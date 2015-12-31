@@ -1,0 +1,92 @@
+div#wordIn {
+  background-color:black;
+  /*border:1px solid gray;*/
+  /*font-size: 200px;*/
+  /*font: inherit;*/
+  /*font-family: "Exo 2", "Helvetica Neue", Helvetica, sans-serif, monospace;*/
+    font-family: "Lucida Console", Monaco, monospace;
+  cursor:pointer;
+  margin: auto;
+  /*padding: 1%;*/
+  /*width: 40%;*/
+  text-align: center;
+  color:#888888;
+}
+
+div#wordOut {
+  background-color:black;
+  /*border:1px solid gray;*/
+  /*font-size: 10px;*/
+  /*font: inherit;*/
+  font-size: 2em;
+    font-family: "Lucida Console", Monaco, monospace;
+  /*font-family: "Exo 2", "Helvetica Neue", Helvetica, sans-serif, monospace;*/
+  /*cursor:pointer;*/
+  margin: auto;
+  /*padding: 1%;*/
+  width: 50%;
+  text-align: center;
+  color:#888888;
+}
+label{
+  /*float:left;*/
+  font-size:16px
+}
+input[type="text"]{
+  /*width:90%;*/
+  font-size: 2em;
+  /*margin-top:10px;*/
+  /*height:35px;*/
+  /*margin-bottom:25px;*/
+  /*padding:10px;*/
+  text-align: center;
+  background-color:black;
+  /*border:1px solid gray;*/
+  border:none;
+  /*font: inherit;*/
+    font-family: "Lucida Console", Monaco, monospace;
+  /*font-family: "Exo 2", "Helvetica Neue", Helvetica, sans-serif, monospace;*/
+  color:yellow;
+}
+output[type="text"]{
+/*  width:50%;
+  font-size: 90%;
+  margin-top:10px;
+  height:35px;
+  margin-bottom:25px;
+  padding:10px;
+*/  
+  font-size: 2em;
+  text-align: center;
+  background-color:black;
+  /*border:1px solid gray;*/
+  border:none;
+  /*font-size: 100%;*/
+  font: inherit;
+  /*font-family: "Exo 2", "Helvetica Neue", Helvetica, sans-serif, monospace;*/
+    font-family: "Lucida Console", Monaco, monospace;
+  color:yellow;
+}
+/*textarea{
+  width:100%;
+  border:3px solid #2BC1F2;
+  padding:10px;
+  margin-bottom:25px;
+  margin-top:10px;
+  height:100px;
+  resize:none
+}
+*/
+.fullscreenButton {
+  background-color:black;
+  border:1px solid gray;
+  cursor:pointer;
+  color:#888888;
+}
+.fullscreenButton:hover {
+  color:white;
+  background-color:gray;
+}
+.fullscreenButton:focus {
+  outline:0;
+}

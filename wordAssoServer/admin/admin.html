@@ -1,0 +1,1452 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+	  <meta charset="utf-8">
+
+		<link rel="stylesheet" href="../css/base.css">
+		<link rel="stylesheet" href="../css/main.css">
+		<link rel="icon" type="image/png" href="../favicon.png" />
+
+		<style>
+	    .defaultButton {
+	      background-color:black;
+	      border:1px solid gray;
+	      cursor:pointer;
+	      color:#888888;
+	    }
+	    .defaultButton:hover {
+	      color:white;
+	      background-color:gray;
+	    }
+
+	    .defaultButton:focus {
+	      outline:0;
+	    }
+
+	    .showHideButton {
+	      background-color:black;
+	      border:1px solid gray;
+	      cursor:pointer;
+	      color:#888888;
+	    }
+	    .showHideButton:hover {
+	      color:white;
+	      background-color:gray;
+	    }
+
+	    .showHideButton:focus {
+	      outline:0;
+	    }
+
+		ul { 
+		    display: block;
+				list-style-position:inside;
+		    list-style-type: disc;
+		    margin-top: 1em;
+		    margin-bottom: 1em;
+		    margin-left: 0;
+		    margin-right: 0;
+		    padding-left: 2em;
+		}
+
+    .admin {
+			font-size: 0.5em;
+			margin-top: 10px;
+			margin: 0.5em;
+			padding: 2em;
+			font-family: "Lucida Console", Monaco, monospace;
+			font-weight: 100;
+			line-height: 1.5em;
+			background: #000000;
+			color: #aaaaaa;
+    }
+
+		.adminControlPanel {
+		    margin-left: 0.5em;
+		    margin-right: 0;
+		    padding-left: 2em;
+		    font-size: 0.5em;
+		}
+
+		table, td {
+		    border: 1px solid #444444;
+				font-size: 1.2em;
+				margin-top: 1em;
+				margin-bottom: 1em;
+				padding: 0.7em;
+				font-family: "Lucida Console", Monaco, monospace;
+				font-weight: 100;
+				line-height: 1.2em;
+				background: #222222;
+				color: #888888;
+		}
+
+		th {
+		    border: 2px solid #880000;
+				font-size: 1.2em;
+				margin-top: 1em;
+				margin-bottom: 1em;
+				padding: 0.7em;
+				font-family: "Lucida Console", Monaco, monospace;
+				font-weight: 100;
+				line-height: 1.2em;
+				background: #000000;
+				color: #888888;
+		}
+
+		label {
+			color:#888888;
+		}
+
+		</style>
+
+	  <script src="https://cdn.socket.io/socket.io-1.3.6.js"></script>
+	  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.6/moment.min.js"></script>
+		<script src="/node_modules/hashmap/hashmap.js"></script>
+
+	</head>
+
+	<body>
+	    <h1>BLM ADMIN</h1>
+
+	    <div id='adminControlPanel' class='adminControlPanel' >
+		    <form class='adminControlPanelForm' name='serverConfig'>
+		    	<br>
+					<label for="searchTerm">SEARCH TERM</label>
+		    	<br>
+		    	<input id="textSearchTerm" type="text" name="searchTerm" onkeypress="return sendServerConfig(event)">
+		    </form>
+		    <form class='adminControlTweetSearch' name='tweetSearchDate'>
+		    	<br>
+					<label for="searchDate">SEARCH DATE YYYY-MM-DD</label>
+		    	<br>
+					<input id="txtYear" type="text" value="2015" >		    	
+					<input id="txtMonth" type="text" value="01" >
+					<input id="txtDay" type="text" value="01" >
+		    </form>
+		    <form class='adminControlTweetSearch' name='tweetSearchTime'>
+		    	<br>
+					<label for="searchTime">SEARCH TIME 24-HR HH:MM</label>
+		    	<br>
+					<input id="txtHour" type="text" value="00" >
+					<input id="txtMinute" type="text" value="00" >
+		    </form>
+		    <br>
+				<button id="searchDateTimeButton" class="showHideButton" onclick="setSearchByDateTime()">DATE/TIME SEARCH</button>
+				<button id="searchDateTimeMaxTpmButton" class="showHideButton" onclick="setSearchByDateTimeMaxTpm()">MAX TPM DATE/TIME SEARCH</button>
+				<button id="searchDateTimeMax24HourTpmButton" class="showHideButton" onclick="setSearchByDateTimeMax24HourTpm()">MAX 24H TPM DATE/TIME SEARCH</button>
+		    <br>
+		    <form class='adminControlTestSendInverval' name='testSendInterval'>
+		    	<br>
+					<label for="sendInterval">TEST TWEET SEND INTERVAL</label>
+		    	<br>
+		    	<input id="textSendInterval" type="text" name="sendInterval" value="1000">
+		    </form>
+		    <br>
+				<button id="testModeButton" class="showHideButton" onclick="setTestMode()">TEST MODE</button>
+	    </div>
+
+	    <div id='admin' class='admin' font-size=0.1em>
+
+	    	<table id='heartbeat_table' class'heartbeatTable'></table>
+
+		    <br>
+		    <hr>
+		    <br>
+		    <br>
+		    <hr>
+		    <br>
+		    <div id='tweets_panel' >
+				<br/>
+		    	<h2>TWEETS</h2>
+				<br/>
+			</div>
+
+			<div id='server_tweets_daterange' ></div>
+			<div id='server_tweets' ></div>
+			<br/>
+
+			<button id="showHideButton" class="showHideButton" onclick="toggleTweets()">show/hide tweets</button>
+			<button id="showHideButton" class="showHideButton" onclick="toggleTweetsDateRange()">show/hide tweets date range</button>
+
+		  <div id='tweets_daterange' ><ul id='tweet_daterange_list'></ul></div>
+		  <div id='tweets' ><ul id='tweet_list'></ul></div>
+
+		  <br>
+		  <hr>
+		  <hr>
+
+		  <div id='admin_panel' >
+				<br/>
+		    	<h2>ADMINS</h2>
+				<br/>
+				<button id="showHideButton" class="showHideButton" onclick="toggleConnectedAdmins()">show/hide connected</button>
+				<button id="showHideButton" class="showHideButton" onclick="toggleDisconnectedAdmins()">show/hide disconnected</button>
+				<button id="showHideButton" class="showHideButton" onclick="toggleIpAdmins()">show/hide admin ip</button>
+				<br/>
+				<br/>
+			  <div id='server_admins' ></div>
+			</div>
+
+	    <div id='admins' ><ul id='admin_ip_list'></ul></div>
+	    <hr>
+	    <div id='admins' ><ul id='admin_session_list'></ul></div>
+
+	    <br>
+	    <hr>
+	    <hr>
+
+		  <div id='client_panel' >
+				<br/>
+		    	<h2>CLIENTS</h2>
+				<br/>
+				<button id="showHideButton" class="showHideButton" onclick="toggleIpClients()">show/hide client ip</button>
+				<button id="showHideButton" class="showHideButton" onclick="toggleConnectedClients()">show/hide connected</button>
+				<button id="showHideButton" class="showHideButton" onclick="toggleDisconnectedClients()">show/hide disconnected</button>
+				<button id="showHideButton" class="showHideButton" onclick="toggleHideTestClients()">show/hide test clients</button>
+				<button id="showHideButton" class="showHideButton" onclick="toggleHideBotClients()">show/hide bot clients</button>
+				<br/>
+				<br/>
+			    <div id='server_clients' ></div>
+			</div>
+
+	    <div id='clients' >
+	    	<table id='client_ip_table' class'clientIpTable'>
+	    		<thead id='client_ip_table_head'>
+	    		</thead>
+	    		<tbody id='client_ip_table_body'>
+	    		</tbody>
+	    	</table>
+				<br/>
+				<br/>
+				<br/>
+	    	<table id='client_session_table' class'clientSessionTable'>
+	    		<thead id='client_session_table_head'>
+	    		</thead>
+	    		<tbody id='client_session_table_body'>
+	    		</tbody>
+	    	</table>
+	    </div>
+
+	    <hr>
+
+		<script type="text/javascript">
+
+			function getTimeNow() {
+				var d = new Date();
+				return d.getTime();
+			}
+
+			var currentTime = getTimeNow();
+
+			var heartBeatTimeoutFlag = false ;
+			var serverCheckInterval = 1000 ;
+			var maxServerHeartBeatWait = 30000 ;
+
+
+			console.log("ADMIN PAGE");
+
+			var adminConfig = {} ;
+
+			var testMode = false ;
+
+			adminConfig['testMode'] = testMode ;
+
+			var searchByDateTimeEnable = false;
+			var searchByDateTimeContinueEnable = false;
+			var showTestClients = false ;
+			var showBotClients = false ;
+
+			var socket = io.connect('http://threeceelabs.com/admin');
+			// var socket = io.connect('http://127.0.0.1:8080/admin');
+
+			var googleOauthUrl = 0;
+
+			var searchTermArray = [] ;
+			var searchTermHashMap = new HashMap();
+			var searchTermFormInput = document.getElementById('textSearchTerm');
+			var searchYear = document.getElementById('txtYear') ;
+			var searchMonth = document.getElementById('txtMonth') ;
+			var searchDay = document.getElementById('txtDay') ;
+			var searchHour = document.getElementById('txtHour') ;
+			var searchMinute = document.getElementById('txtMinute') ;
+
+			var sendIntervalFormInput = document.getElementById('textSendInterval');
+
+			var adminIpHashMap = new HashMap();
+			var adminSocketIdHashMap = new HashMap();
+			var numberAdminIpAddresses = adminIpHashMap.count();
+			var showConnectedAdmins = false ;
+			var showDisconnectedAdmins = false ;
+			var showIpAdmins = false ;
+
+			var adminIpHashMapKeys = [];
+			var adminSocketIdHashMapKeys = [];
+
+			var clientIpHashMapKeys = [];
+			var clientSocketIdHashMapKeys = [];
+
+			var clientIpHashMap = new HashMap();
+			var clientSocketIdHashMap = new HashMap();
+			var numberClientIpAddresses = clientIpHashMap.count();
+
+			var clientConnectedColor = "#00aa00";
+			var testClientConnectedColor = "#555555";
+			var clientDisconnectedColor = "#aa0000";
+			var showConnectedClients = false ;
+			var showDisconnectedClients = false ;
+			var showIpClients = false ;
+
+	    var clientSessionTableHead = document.getElementById('client_session_table_head');
+	    var clientSessionTableBody = document.getElementById('client_session_table_body');
+
+	    var clientIpTableHead = document.getElementById('client_ip_table_head');
+	    var clientIpTableBody = document.getElementById('client_ip_table_body');
+
+			var tweetsPerMin = 0;
+			var maxTweetsPerMin = 0;
+			var maxTweetsPerMinTimeStamp = 0;
+
+			var tweets = [] ;
+			var maxTweets = 100 ;
+			var numberTweets = tweets.length;
+			var currentTweet = { text: "..." };
+			var showTweets = false ;
+
+			var tweetsDateRange = [] ;
+			var maxTweetsDateRange = 100 ;
+			var numberTweetsDateRange = tweetsDateRange.length;
+			var currentTweetDateRange = { tweetsReceived: 0, text: "..." };
+			var showTweetsDateRange = false ;
+
+			var heartBeat = 'SERVER HEARTBEAT: ' ;
+			var lastTimeoutHeartBeat = null ;
+
+			function setValue(id,newvalue) {
+			  var s= document.getElementById(id);
+			  s.value = newvalue;
+			}    
+
+			window.onload=function() {
+			  setValue("txtYear","2047");
+			}			
+
+			function getTimeStamp(inputTime) {
+				var cDate, cTime;
+				var options = {
+				    weekday: "long", year: "numeric", month: "numeric",
+				    day: "numeric", hour: "2-digit", hour12: false,  minute: "2-digit"
+				  };
+
+			  if (typeof inputTime === 'undefined') {
+			    cDate = new Date().toDateString("en-US", options);
+			    cTime = new Date().toTimeString('en-US', options);
+			  }
+			  else {
+			    cDate = new Date(inputTime).toDateString("en-US", options);
+			    cTime = new Date(inputTime).toTimeString('en-US', options);
+			  }
+			  return cDate + " - " + cTime;
+			}
+
+			function msToTime(duration) {
+		    var milliseconds = parseInt((duration%1000)/100)
+		        , seconds = parseInt((duration/1000)%60)
+		        , minutes = parseInt((duration/(1000*60))%60)
+		        , hours = parseInt((duration/(1000*60*60))%24)
+		        , days = parseInt(duration/(1000*60*60*24));
+
+		    var daysInt = days ;
+		    days = (days < 10) ? "0" + days : days;
+		    hours = (hours < 10) ? "0" + hours : hours;
+		    minutes = (minutes < 10) ? "0" + minutes : minutes;
+		    seconds = (seconds < 10) ? "0" + seconds : seconds;
+
+		    if (daysInt > 0){
+			    return days + " DAYS | " + hours + ":" + minutes + ":" + seconds ;
+		    }
+		    else{
+			    return hours + ":" + minutes + ":" + seconds ;
+		    }
+			}
+
+			function sortIpHashMapByConnectTime(ipHashMap){
+			}
+
+			function serverClear(){
+				console.log("... CLEARING SERVER INFO ...\n");
+				heartBeatTimeoutFlag = false ;
+				adminIpHashMap.clear();
+				adminSocketIdHashMap.clear();			
+				clientIpHashMap.clear();
+				clientSocketIdHashMap.clear();			
+				updateServerHeartbeat(heartBeat, heartBeatTimeoutFlag, lastTimeoutHeartBeat);
+			}
+
+			function updateAdminConfig(config) {
+
+			  console.log("ADMIN CONFIG CHANGE");
+
+			  if (typeof config.testMode !== 'undefined') {
+			    console.log("   ---> CONFIG_CHANGE: testMode: " + config.testMode);
+			    testMode = config.testMode;
+			    setTestMode(config.testMode);
+			  }
+
+			  if (typeof config.testSendInterval !== 'undefined') {
+			    console.log("   ---> CONFIG_CHANGE: testSendInterval: " + config.testSendInterval);
+			    testSendInterval = config.testSendInterval;
+			  }
+
+			  if (typeof config.searchByDateTimeEnable !== 'undefined') {
+			    console.log("   ---> CONFIG_CHANGE: searchByDateTimeEnable: " + config.searchByDateTimeEnable);
+			    searchByDateTimeEnableFlag = config.searchByDateTimeEnable;
+			    // searchByDateTimeContinueFlag = config.searchByDateTimeContinueEnable;
+			    setSearchByDateTime(config);
+			  }
+
+			  if (typeof config.searchByDateTimeContinueEnable !== 'undefined') {
+			    console.log("   ---> CONFIG_CHANGE: searchByDateTimeContinueEnable: " + config.searchByDateTimeContinueEnable);
+			    // searchByDateTimeEnableFlag = config.searchByDateTimeEnable;
+			    searchByDateTimeContinueFlag = config.searchByDateTimeContinueEnable;
+			    setSearchByDateTime(config);
+			  }
+
+			  if (typeof config.searchDateTime !== 'undefined') {
+			    console.log("   ---> CONFIG_CHANGE: searchDateTime: " + config.searchDateTime);
+			  }
+
+			  if (typeof config.searchTermArray !== 'undefined') {
+			    console.log("   ---> CONFIG_CHANGE");
+
+	        if (config.searchTermArray == 'CLEAR') {
+	          console.log("   ---> CLEARING SEARCH TERM ARRAY");
+	          searchTermHashMap.forEach(function(value, key) {
+	            console.log("... UNTRACKED " + key);
+	            searchTermHashMap.set(key, false);
+	          });
+	          searchTermHashMap.clear();
+	          config.searchTermArray = [];
+	        } 
+	        else if (config.searchTermArray == 'DEFAULT') {
+	          console.log("   ---> SETTING SEARCH TERM ARRAY TO DEFAULT:\n" + JSON.stringify(defaultSearchTermArray, null, 3));
+	          searchTermHashMap.forEach(function(value, key) {
+	            console.log("... UNTRACKED " + key);
+	            searchTermHashMap.set(key, false);
+	          });
+	          searchTermHashMap.clear();
+	          config.searchTermArray = defaultSearchTermArray ;
+	        }
+	        else {
+	          for (var i = config.searchTermArray.length -1; i >= 0; i--){
+
+	            if (config.searchTermArray[i].charAt(0) == '-') {
+	              console.log('--- REMOVING SEARCH TERM FROM HASH: "' + config.searchTermArray[i] + '"');
+	              config.searchTermArray[i] = config.searchTermArray[i].substr(1);
+	              if (searchTermHashMap.has(config.searchTermArray[i])) {   
+	                searchTermHashMap.set(config.searchTermArray[i], false);
+	                console.log('--- REMOVED SEARCH TERM FROM HASH: "' + config.searchTermArray[i] + '"');
+	                config.searchTermArray.splice(i, 1);
+	              }       
+	            } else if (!searchTermHashMap.has(config.searchTermArray[i])) {
+	              searchTermHashMap.set(config.searchTermArray[i], true);
+	              console.log('... ADDED SEARCH TERM TO HASH: "' + config.searchTermArray[i] + '"');
+	            }
+	            else if (searchTermHashMap.has(config.searchTermArray[i]) 
+	              && !searchTermHashMap.get(config.searchTermArray[i])) {
+	              console.log('+-- ENABLE PREVIOUS SEARCH TERM: "' + config.searchTermArray[i]);
+	              searchTermHashMap.set(config.searchTermArray[i], true);
+	            }
+	            else if (searchTermHashMap.has(config.searchTermArray[i])) {
+	              console.log('... ALREADY TRACKING SEARCH TERM: "' + config.searchTermArray[i] + '" ... SKIPPING ...');
+	            }
+	          }
+	        }
+	        console.log(">>> RX ADMIN CONFIG | " + searchTermHashMap.keys().length + " SEARCH TERMS");
+			  }
+			}
+
+			function tableCreateRow(parentTable, options, cells){
+
+        var tr = parentTable.insertRow();
+        var tdTextColor = options.textColor;
+        var tdBgColor = options.backgroundColor || '#222222';
+
+        if (options.headerFlag){
+		      cells.forEach(function(content){
+			      var th = tr.insertCell();
+			      th.appendChild(document.createTextNode(content));
+			      th.style.color = tdTextColor ;
+			      th.style.backgroundColor = tdBgColor ;
+		      });     	
+        }
+        else {
+		      cells.forEach(function(content){
+			      var td = tr.insertCell();
+			      td.appendChild(document.createTextNode(content));
+			      td.style.color = tdTextColor ;
+			      td.style.backgroundColor = tdBgColor ;
+		      });
+        }
+			}
+
+			function requestSessions(reqSessionsOptions){
+				console.log("TX REQ ADMIN SESSION\n" + JSON.stringify(reqSessionsOptions, null, 3));
+				socket.emit('REQ ADMIN SESSION', reqSessionsOptions);
+			}
+
+			setInterval (function () {
+				currentTime = getTimeNow();
+				updateAdminConnect();
+				updateClientConnect();
+			}, 1000 );
+
+
+			socket.on('connect', function(){
+				serverConnected = true ;
+				console.log("\n===== ADMIN SERVER CONNECTED =====\n" 
+					+ getTimeStamp()
+					);
+				serverClear();
+				requestSessions(reqSessionsOptions);
+			});
+
+			socket.on('disconnect', function(){
+				serverConnected = false ;
+				console.log("\n***** SERVER DISCONECTED *****\n" 
+					+ getTimeStamp()
+					);
+				serverClear();
+			});
+
+		  socket.on("CONFIG_CHANGE", function(rxAdminConfig){
+		  
+		    // var rxAdminConfig = JSON.parse(msg) ;
+		    var previousProperty ;
+		  
+		    console.log("\n*** RX ADMIN CONFIG CHANGE ***\n" 
+		      + JSON.stringify(rxAdminConfig, null, 3));
+		  
+
+		    console.log("\nPREVIOUS ADMIN CONFIG:\n" + JSON.stringify(adminConfig, null, 3));
+
+		    for(var configPropertyName in rxAdminConfig) {
+		      
+		      console.log("configPropertyName: " + configPropertyName + " | " + rxAdminConfig[configPropertyName]);
+
+		      if (typeof adminConfig !== 'undefined'){
+			      previousProperty = adminConfig[configPropertyName];
+		      }
+
+		      adminConfig[configPropertyName] = rxAdminConfig[configPropertyName];
+
+		      console.log(configPropertyName + " was: " + previousProperty + " | now: " + adminConfig[configPropertyName]);
+		    }
+
+		    console.log("\nNEW ADMIN CONFIG:\n" + JSON.stringify(adminConfig, null, 3));
+
+		    updateAdminConfig(adminConfig);
+		  });
+
+
+			socket.on('ADMIN IP', function(rxIpObj){
+				var ipObj = JSON.parse(rxIpObj) ;
+				console.log("RXCD ADMIN IP  " + ipObj.ip + " | " + ipObj.domain);
+				adminIpHashMap.set(ipObj.ip, ipObj);
+				numberAdminIpAddresses = adminIpHashMap.count();
+				adminIpHashMapKeys = adminIpHashMap.keys();
+				adminIpHashMapKeys.sort();
+			});
+
+
+			var reqSessionsOptions = {
+				sessionType: 'ALL', 
+				sessionState: 'CONNECTED', 
+				maxSessions: 10
+			}
+
+			socket.on('ADMIN SESSION', function(rxAdminObj){
+
+				var ao = JSON.parse(rxAdminObj) ;
+
+				console.log("RXCD ADMIN SESSION: " + ao.adminObj.socketId + " | " + ao.adminObj.ip + " | " + ao.adminObj.domain + " | CONNECTED: " + ao.adminObj.connected);
+
+				adminIpHashMap.set(ao.adminObj.ip, ao.adminObj);
+				numberAdminIpAddresses = adminIpHashMap.count();
+
+				adminSocketIdHashMap.set(ao.adminObj.socketId, ao.adminObj);
+				adminSocketIdHashMapKeys = adminSocketIdHashMap.keys();
+				adminSocketIdHashMapKeys.sort();
+				updateAdminConnect(ao.adminObj);
+			});
+
+			socket.on('CLIENT IP', function(rxIpObj){
+				var ipObj = JSON.parse(rxIpObj) ;
+
+				if (typeof ipObj.domain === 'undefined'){
+					ipObj.domain = 'UNKNOWN';
+				}
+				
+				console.log("RXCD CLIENT IP " + ipObj.ip + " | " + ipObj.domain);
+				clientIpHashMap.set(ipObj.ip, ipObj);
+				numberClientIpAddresses = clientIpHashMap.count();
+				clientIpHashMapKeys = clientIpHashMap.keys();
+				clientIpHashMapKeys.sort();
+			});
+
+			socket.on('CLIENT SESSION', function(rxClientObj){
+
+				var co = JSON.parse(rxClientObj) ;
+
+				if (typeof co.clientObj.referer === 'undefined'){
+					co.clientObj.referer = '';
+				}
+
+				if (typeof co.clientObj.numberOfConnections === 'undefined'){
+					co.clientObj.numberOfConnections = 1;
+				}
+				
+
+				clientIpHashMap.set(co.clientObj.ip, co.clientObj);
+				numberClientIpAddresses = clientIpHashMap.count();
+
+				clientSocketIdHashMap.set(co.clientObj.socketId, co.clientObj);
+				clientSocketIdHashMapKeys = clientSocketIdHashMap.keys();
+				clientSocketIdHashMapKeys.sort();
+
+				console.log("RXCD CLIENT SESSION: [" + clientSocketIdHashMap.count() + "] "
+					+ co.clientObj.socketId 
+					+ " | I: " + co.clientObj.ip 
+					+ " | D: " + co.clientObj.domain 
+					+ " | R: " + co.clientObj.referer 
+					+ " | CONNECTED: " + co.clientObj.connected
+					);
+
+				updateClientConnect();
+			});
+
+			socket.on('TWEET', function(rxTweet){
+				currentTweet = JSON.parse(rxTweet) ;
+				console.log("[" + currentTweet.tweetsReceived + "] TWEET: " + currentTweet.id_str + " | " + currentTweet.created_at);
+				updateTweet({tweet: currentTweet});
+			});
+
+			socket.on('TWEETS_DATE_RANGE_RES', function(rxTweet){
+				currentTweetDateRange = JSON.parse(rxTweet) ;
+				console.log("[" + currentTweetDateRange.tweetsReceived + "] TWEETS_DATE_RANGE_RES: " 
+					+ currentTweetDateRange.id_str + " | " + currentTweetDateRange.created_at);
+				updateTweet({tweet_daterange: currentTweetDateRange});
+			});
+
+			socket.on('HEARTBEAT', function(rxHeartbeat){
+				heartBeat = rxHeartbeat ;
+				heartBeatTimeoutFlag = false ;
+				// console.log("tweetsPerMinAve: " + heartBeat.tweetsPerMinAve);
+				// console.log("htPerMin\n" + JSON.stringify(heartBeat.htPerMin, null, 3));
+			});
+
+			var serverCheckTimeout = setInterval(function(){
+
+				numberClientIpAddresses = clientIpHashMap.count();
+				numberAdminIpAddresses = adminIpHashMap.count();
+
+				if (Date.now() > (heartBeat.timeStamp + maxServerHeartBeatWait)){
+
+					heartBeatTimeoutFlag = true ;
+					lastTimeoutHeartBeat = heartBeat ;
+	
+					console.error("***** SERVER HEARTBEAT TIMEOUT ***** " 
+						+ getTimeStamp() 
+						+ " | LAST SEEN: " + getTimeStamp(heartBeat.timeStamp)
+						+ msToTime(Date.now() - heartBeat.timeStamp) + " AGO" 
+					);
+
+				}
+
+ 				updateServerHeartbeat(heartBeat, heartBeatTimeoutFlag, lastTimeoutHeartBeat);
+			}, serverCheckInterval); ;
+
+		  function validateDateTime() {
+
+	    	console.log("DATE INPUT (YYYY-MM-DD): " 
+	    		+ searchYear.value
+	    		+ "-" + searchMonth.value
+	    		+ "-" + searchDay.value
+    		);
+
+	    	console.log("TIME INPUT (24-HOUR: HH:MM): " 
+	    		+ searchHour.value
+	    		+ ":" + searchMinute.value
+    		);
+
+		    var dateTime = new Date(searchYear.value, searchMonth.value-1, searchDay.value, searchHour.value, searchMinute.value);
+		    if (dateTime == "Invalid Date") {
+	        console.error("Invalid date/time");
+		    	return null ;
+		    }
+		    else {
+	        console.log("Valid date/time: " + dateTime);
+		    	return dateTime ;
+		    }
+			}
+
+			function setSearchByDateTimeMaxTpm(){
+
+				var searchDateTimeMoment = moment(heartBeat.maxTweetsPerMinTime) ;
+
+				console.log("setSearchByDateTimeMaxTpm: " + searchDateTimeMoment.format() + " | " + heartBeat.maxTweetsPerMinTime);
+
+			  setValue("txtYear", searchDateTimeMoment.year());
+			  setValue("txtMonth", searchDateTimeMoment.month()+1);  // month is zero based: 0-11
+			  setValue("txtDay",  searchDateTimeMoment.date());
+			  setValue("txtHour",   searchDateTimeMoment.hour());
+			  setValue("txtMinute",   searchDateTimeMoment.minute());
+
+			}
+
+			function setSearchByDateTimeMax24HourTpm(){
+
+				var searchDateTimeMoment = moment(heartBeat.maxTweetsPerMin24hourTime) ;
+
+				console.log("setSearchByDateTimeMax24HourTpm: " + searchDateTimeMoment.format() + " | " + heartBeat.maxTweetsPerMin24hourTime);
+
+			  setValue("txtYear", searchDateTimeMoment.year());
+			  setValue("txtMonth", searchDateTimeMoment.month()+1);  // month is zero based: 0-11
+			  setValue("txtDay",  searchDateTimeMoment.date());
+			  setValue("txtHour",   searchDateTimeMoment.hour());
+			  setValue("txtMinute",   searchDateTimeMoment.minute());
+
+			}
+
+			function setSearchByDateTime(config){
+
+				var serverConfigUpdateFlag = false;
+				var searchDateTime ;
+
+				if (typeof config !== 'undefined'){
+					serverConfigUpdateFlag = true;
+					searchByDateTimeEnable = config.searchByDateTimeEnable;
+					searchByDateTimeContinueEnable = config.searchByDateTimeContinueEnable;
+					searchDateTime = config.searchDateTime;
+				}
+				else {
+					searchByDateTimeEnable = !searchByDateTimeEnable;
+					searchDateTime = validateDateTime();
+				}
+
+				console.log("searchByDateTimeEnable " + searchByDateTimeEnable);
+
+				if (searchByDateTimeEnable && searchDateTime) {
+					config = {
+						searchByDateTimeEnable: searchByDateTimeEnable,
+						searchDateTime: searchDateTime
+					}
+					document.getElementById("txtYear").style.color="red";
+					document.getElementById("txtMonth").style.color="red";
+					document.getElementById("txtDay").style.color="red";
+
+					document.getElementById("txtHour").style.color="red";
+					document.getElementById("txtMinute").style.color="red";
+
+					document.getElementById("searchDateTimeButton").style.color="red";
+					document.getElementById("searchDateTimeButton").style.border="2px solid red";
+
+					if (!serverConfigUpdateFlag){
+						// console.log("***> SENT CONFIG: " + JSON.stringify(config, null, 3));
+						// socket.emit('CONFIG', JSON.stringify(config));
+						console.log("***> SENT TWEETS_DATE_RANGE: " + searchDateTime);
+						socket.emit('TWEETS_DATE_RANGE', searchDateTime, searchDateTime);
+					}
+					else {
+						var d = new Date(searchDateTime);
+						console.log("---> UPDATED CONFIG: " + JSON.stringify(config, null, 3));
+						document.getElementById("txtYear").value=d.getFullYear();
+						document.getElementById("txtMonth").value=d.getMonth()+1;
+						document.getElementById("txtDay").value=d.getDate();
+
+						document.getElementById("txtHour").value=d.getHours();
+						document.getElementById("txtMinute").value=d.getMinutes();
+					}
+				}
+				else if (!serverConfigUpdateFlag && searchByDateTimeEnable) {
+					console.log("??? INVALID DATE OR TIME ??? " 
+						+ " YYYY-MM-DD: " + searchYear.value + "-" + searchMonth.value + "-" + searchDay.value
+						+ " | 24-HOUR TIME: " + searchHour.value + ":" + searchMinute.value
+						);
+				}
+				else {
+					config = {
+						searchByDateTimeEnable: searchByDateTimeEnable
+					}
+					document.getElementById("txtYear").style.color="gray";
+					document.getElementById("txtMonth").style.color="gray";
+					document.getElementById("txtDay").style.color="gray";
+
+					document.getElementById("txtHour").style.color="gray";
+					document.getElementById("txtMinute").style.color="gray";
+
+					document.getElementById("searchDateTimeButton").style.color="gray";
+					document.getElementById("searchDateTimeButton").style.border="1px solid gray";
+
+					// if (!serverConfigUpdateFlag){
+						// console.log("***> SENT CONFIG: " + JSON.stringify(config, null, 3));
+						// socket.emit('CONFIG', JSON.stringify(config));
+					// }
+					// else {
+						// console.log("---> UPDATED CONFIG: " + JSON.stringify(config, null, 3));
+					// }
+				}
+			}
+
+			function setTestMode(inputTestMode){
+
+				var serverConfigUpdateFlag = false;
+				var searchDateTime = validateDateTime();
+
+				if (typeof inputTestMode !== 'undefined'){
+					serverConfigUpdateFlag = true ;
+					testMode = inputTestMode;
+				}
+				else {
+					testMode = !testMode;
+				}
+				console.log("testMode: " + testMode);
+
+				var config = {
+					testMode: testMode,
+					searchDateTime: searchDateTime,
+					testSendInterval: sendIntervalFormInput.value
+				}
+
+				if (testMode){
+					document.getElementById("testModeButton").style.color="red";
+					document.getElementById("testModeButton").style.border="2px solid red";
+				}
+				else {
+					document.getElementById("testModeButton").style.color="gray";
+					document.getElementById("testModeButton").style.border="1px solid gray";
+				}
+
+				if (!serverConfigUpdateFlag){
+					console.log("***> SENT CONFIG: " + JSON.stringify(config, null, 3));
+					socket.emit('CONFIG', JSON.stringify(config));
+				}
+				else {
+					console.log("---> UPDATED CONFIG: " + JSON.stringify(config, null, 3));
+				}
+			}
+
+			function sendServerConfig(e){
+
+				var config = {
+					testMode: testMode
+				}
+
+				var configHasValues = false;
+
+				if ((typeof e === 'undefined' ) || (e.keyCode == 13)) {
+
+					if (searchTermFormInput.value != "") { 
+
+						var tempSearchTerm = searchTermFormInput.value;
+
+				        if (tempSearchTerm == 'CLEAR') {
+
+							configHasValues = true ;
+							console.log('--- CLEAR SEARCH TERMS');
+							config.searchTermArray = [tempSearchTerm];
+							searchTermHashMap.clear();
+
+						}
+				        else if (tempSearchTerm == 'DEFAULT') {
+
+							configHasValues = true ;
+							console.log('--- SET TO DEFAULT SEARCH TERM');
+							config.searchTermArray = [tempSearchTerm];
+
+						}
+				        else if (tempSearchTerm.charAt(0) == '-') {
+
+							configHasValues = true ;
+							console.log('--- DISABLING SEARCH TERM: "' + tempSearchTerm + '"');
+							config.searchTermArray = [tempSearchTerm];
+
+							tempSearchTerm = tempSearchTerm.substr(1);
+							if (searchTermHashMap.has(tempSearchTerm)) {   
+								searchTermHashMap.set(tempSearchTerm, false);
+								console.log('--- DISABLED SEARCH TERM: "' + tempSearchTerm + '"');
+							}       
+				        } else if (!searchTermHashMap.has(tempSearchTerm)) {
+							configHasValues = true ;
+							searchTermHashMap.set(tempSearchTerm, true);
+							config.searchTermArray = [tempSearchTerm];
+							console.log('... ADDED SEARCH TERM TO HASH: "' + tempSearchTerm + '"');
+				        }
+				        else if (searchTermHashMap.has(tempSearchTerm) && !searchTermHashMap.get(tempSearchTerm)) {
+							configHasValues = true ;
+							console.log('+-- ENABLE PREVIOUS SEARCH TERM: "' + tempSearchTerm);
+							config.searchTermArray = [tempSearchTerm];
+							searchTermHashMap.set(stempSearchTerm, true);
+				        }
+				        else if (searchTermHashMap.has(tempSearchTerm)) {
+							console.log('... ALREADY TRACKING SEARCH TERM: "' + tempSearchTerm + '" ... SKIPPING ...');
+				        }
+
+
+						if ((searchTermFormInput.value == 'CLEAR') || (searchTermFormInput.value == 'DEFAULT')) {
+						}
+						else if (searchTermHashMap.has(searchTermFormInput.value)) {
+							console.log("SEARCH TERM ALREADY IN HASH: " + searchTermFormInput.value + " | " + searchTermHashMap.get(searchTermFormInput.value));
+						}
+						else {
+							searchTermHashMap.set(searchTermFormInput.value, true); 
+							config.searchTermArray = [searchTermFormInput.value];
+							configHasValues = true ;
+						}
+					} ;
+
+					if (configHasValues){
+						console.log("***> SENT CONFIG: " + JSON.stringify(config, null, 3));
+						socket.emit('CONFIG', JSON.stringify(config));
+						return false ;
+					}
+					else {
+						console.log("sendServerConfig: NO VALUES SET ... SKIPPING ...");
+					}
+				}
+			}
+
+			function toggleTweets(){
+				updateTweet({ showTweets: "toggle" });
+			}
+
+			function toggleTweetsDateRange(){
+				updateTweet({ showTweetsDateRange: "toggle" });
+			}
+
+			function updateTweet(req) {
+
+				if (typeof req === 'undefined'){
+				}
+				else {
+	
+					if (typeof req.tweet_daterange !== 'undefined') {
+						console.log(">>> RX TWEETS_DATE_RANGE_RES " + req.tweet_daterange.id_str);
+						tweetsDateRange.push(req.tweet_daterange);	
+						if (tweetsDateRange.length > maxTweetsDateRange) { 
+							tweetsDateRange.shift(); 
+						}		
+					}
+					else if (typeof req.tweet === 'undefined') {
+					} 
+					else {
+						tweets.push(req.tweet);	
+						if (tweets.length > maxTweets) { 
+							tweets.shift(); 
+						}		
+					}
+
+					if (req.showTweetsDateRange == 'toggle') {
+						showTweetsDateRange = !showTweetsDateRange ;
+					}
+
+					if (req.showTweets == 'toggle') {
+						showTweets = !showTweets ;
+					}
+				}
+
+
+				var tweetElement = document.getElementById("server_tweets");
+				while(tweetElement.childNodes.length >= 1) {
+					tweetElement.removeChild(tweetElement.firstChild);
+				}
+
+				tweetElement.appendChild(tweetElement.ownerDocument.createTextNode("LATEST TWEET: [" + currentTweet.tweetsReceived + "] " + currentTweet.text));
+
+				var tweetListElement = document.getElementById("tweet_list");
+				while(tweetListElement.childNodes.length >= 1) {
+					tweetListElement.removeChild(tweetListElement.firstChild);
+				}
+				
+
+				if (showTweets) {
+					for	(var i = tweets.length-1; i >= 0 ; i--) {
+
+						var tweetListItem = document.createElement('li');
+
+						tweetListElement.appendChild(tweetListItem);
+						var userName = tweets[i].user.screen_name ;
+						while (userName.length < 16) {
+							userName = userName + ".";
+						}
+
+						var tweetUrl = "http://twitter.com/" + tweets[i].user.screen_name + "/status/" + tweets[i].id_str ;
+
+						var tweetHtmlString = tweets[i].id_str 
+								+ ' | ' + '<a href="' + tweetUrl + '" target="_blank">' + 'tweet' + '</a>'
+								+ ' | ' + getTimeStamp(tweets[i].created_at)
+								+ ' | @' + userName
+								+ ' | ' + tweets[i].text ;
+
+						tweetListItem.innerHTML = tweetListItem.innerHTML + (tweetHtmlString.substring(0,220 + tweetUrl.length)) ;
+					};	
+				}			
+
+
+				var tweetDateRangeElement = document.getElementById("server_tweets_daterange");
+				while(tweetDateRangeElement.childNodes.length >= 1) {
+					tweetDateRangeElement.removeChild(tweetDateRangeElement.firstChild);
+				}
+
+				tweetDateRangeElement.appendChild(tweetDateRangeElement.ownerDocument.createTextNode("LATEST TWEET DATE RANGE: [" + currentTweetDateRange.tweetsReceived + "] " + currentTweetDateRange.text));
+
+				var tweetDateRangeListElement = document.getElementById("tweet_daterange_list");
+				while(tweetDateRangeListElement.childNodes.length >= 1) {
+					tweetDateRangeListElement.removeChild(tweetDateRangeListElement.firstChild);
+				}
+				
+
+				if (showTweetsDateRange) {
+					for	(var i = tweetsDateRange.length-1; i >= 0 ; i--) {
+
+						var tweetListItem = document.createElement('li');
+
+						tweetDateRangeListElement.appendChild(tweetListItem);
+						var userName = tweetsDateRange[i].user.screen_name ;
+						while (userName.length < 16) {
+							userName = userName + ".";
+						}
+
+						var tweetUrl = "http://twitter.com/" + tweetsDateRange[i].user.screen_name + "/status/" + tweetsDateRange[i].id_str ;
+
+						var tweetHtmlString = tweetsDateRange[i].id_str 
+								+ ' | ' + '<a href="' + tweetUrl + '" target="_blank">' + 'tweet' + '</a>'
+								+ ' | ' + getTimeStamp(tweetsDateRange[i].created_at)
+								+ ' | @' + userName
+								+ ' | ' + tweetsDateRange[i].text ;
+
+						tweetListItem.innerHTML = tweetListItem.innerHTML + (tweetHtmlString.substring(0,220 + tweetUrl.length)) ;
+					};	
+				}			
+			}
+
+			function toggleIpAdmins(){
+				updateAdminConnect({ showIp: "toggle" });
+			}
+
+			function toggleConnectedAdmins(){
+				updateAdminConnect({ showConnected: "toggle" });
+			}
+
+			function toggleDisconnectedAdmins(){
+				updateAdminConnect({ showDisconnected: "toggle" });
+			}
+
+			function toggleIpClients(){
+				updateClientConnect({ showIp: "toggle" });
+			}
+
+			function toggleConnectedClients(){
+				updateClientConnect({ showConnected: "toggle" });
+			}
+
+			function toggleDisconnectedClients(){
+				updateClientConnect({ showDisconnected: "toggle" });
+			}
+
+			function toggleHideTestClients(){
+				updateClientConnect({ showTestClients: "toggle" });
+			}
+
+			function toggleHideBotClients(){
+				updateClientConnect({ showBotClients: "toggle" });
+			}
+
+			function updateAdminConnect(req) {
+
+				numberAdminsConnected = 0;
+
+				if (typeof req === 'undefined'){
+				}
+				else {
+					if (req.showConnected == 'toggle') {
+						showConnectedAdmins = !showConnectedAdmins ;
+					}
+					if (req.showDisconnected == 'toggle') {
+						showDisconnectedAdmins = !showDisconnectedAdmins ;
+					}
+					if (req.showIp == 'toggle') {
+						showIpAdmins = !showIpAdmins ;
+					}
+				}
+
+				var adminIpListElement = document.getElementById("admin_ip_list");
+				var adminSessionListElement = document.getElementById("admin_session_list");
+
+				while(adminIpListElement.childNodes.length >= 1) {
+					adminIpListElement.removeChild(adminIpListElement.firstChild);
+				}
+				
+				while(adminSessionListElement.childNodes.length >= 1) {
+					adminSessionListElement.removeChild(adminSessionListElement.firstChild);
+				}
+				
+				if (showIpAdmins) {
+					adminIpHashMap.forEach(function(value, key) {
+						var adminIpListItem = document.createElement('li');
+						adminIpListItem.style.color = clientConnectedColor;
+
+						adminIpListElement.appendChild(adminIpListItem);
+						adminIpListItem.innerHTML = adminIpListItem.innerHTML 
+							+ (
+								key
+								+ ' | ' + value.domain  
+								+ ' | LAST SEEN: ' + getTimeStamp(value.lastSeen)
+								+ ' | CONNECTIONS: ' + value.numberOfConnections 
+							) ;
+					});				
+				}
+				
+				if (showConnectedAdmins) {
+					adminSocketIdHashMap.forEach(function(value, key) {
+
+						// console.log("showConnectedAdmins\n" + JSON.stringify(value));
+
+					  if (value.connected == true) {
+
+							var adminSessionListItem = document.createElement('li');					
+							adminSessionListItem.style.color = clientConnectedColor;
+							adminSessionListElement.appendChild(adminSessionListItem);
+							adminSessionListItem.innerHTML = adminSessionListItem.innerHTML 
+								+ (value.ip 
+								+ ' | ' + value.domain 
+								+ ' | ' + key 
+								+ ' | CONNECT: ' + getTimeStamp(value.connectTime)
+								+ ' | DISCONNECT: ' + getTimeStamp(value.disconnectTime)
+								+ ' | CONNECT TIME: ' + msToTime(heartBeat.timeStamp - value.connectTime)
+								) ;
+						}
+					});			
+				}		
+				
+				if (showDisconnectedAdmins) {
+					adminSocketIdHashMap.forEach(function(value, key) {
+					  if (value.connected == false) {
+
+							var adminSessionListItem = document.createElement('li');					
+							adminSessionListItem.style.color = clientDisconnectedColor;
+					    var timeConnected = value.disconnectTime - value.connectTime ;
+							adminSessionListElement.appendChild(adminSessionListItem);
+							adminSessionListItem.innerHTML = adminSessionListItem.innerHTML 
+								+ (value.ip 
+								+ ' | ' + value.domain 
+								+ ' | ' + key 
+								+ ' | CONNECT: ' + getTimeStamp(value.connectTime)
+								+ ' | DISCONNECT: ' + getTimeStamp(value.disconnectTime)
+								+ ' | CONNECT TIME: ' + msToTime(value.disconnectTime - value.connectTime)
+								) ;
+						}
+					});			
+				}		
+			}
+
+			function initClientConnect(options){
+				// tableCreateRow(clientIpTableHead, options, ['UNIQUE CLIENTS']);  // 2nd arg is headerFlag
+				tableCreateRow(clientIpTableHead, options, ['CLIENTS', 'IP', 'DOMAIN', 'LAST SEEN', 'AGO', 'SESSIONS']);  // 2nd arg is headerFlag
+			}
+
+			function initClientSession(options){
+				// tableCreateRow(clientSessionTableHead, options, ['CLIENT SESSIONS']);  // 2nd arg is headerFlag
+				tableCreateRow(clientSessionTableHead, options, ['SESSIONS', 'IP', 'DOMAIN', 'SESSION', 'CONNECT', 'DISCONNECT', 'TIME CONNECTED']);  // 2nd arg is headerFlag
+			}
+
+			function updateClientConnect(req){
+
+				var clientIpTableBodyOptions = {
+					headerFlag: false,
+					textColor: '#AAAAAA',
+					backgroundColor: 'black'
+				};
+
+				var clientSessionTableBodyOptions = {
+					headerFlag: false,
+					textColor: '#AAAAAA',
+					backgroundColor: 'black'
+				};
+
+				while(clientIpTableBody.childNodes.length > 1) {
+					clientIpTableBody.removeChild(clientIpTableBody.lastChild);
+				}
+
+				while(clientSessionTableBody.childNodes.length > 1) {
+					clientSessionTableBody.removeChild(clientSessionTableBody.lastChild);
+				}
+
+				if (typeof req === 'undefined'){
+				}
+				else {
+					if (req.showConnected == 'toggle') {
+						showConnectedClients = !showConnectedClients ;
+						console.log("showConnectedClients: " + showConnectedClients);
+					}
+					if (req.showDisconnected == 'toggle') {
+						showDisconnectedClients = !showDisconnectedClients ;
+					}
+					if (req.showIp == 'toggle') {
+						showIpClients = !showIpClients ;
+						console.log("showIpClients " + showIpClients);
+					}
+					if (req.showTestClients == 'toggle') {
+						showTestClients = !showTestClients ;
+						console.log("showTestClients " + showTestClients);
+					}
+					if (req.showBotClients == 'toggle') {
+						showBotClients = !showBotClients ;
+						console.log("showBotClients " + showBotClients);
+					}
+				}
+
+				if (showIpClients) {
+
+					var numberUniqueClients = 0;
+					var elapsedSinceLastSeen = 0;
+
+					for (var i=0; i<clientIpHashMapKeys.length; i++){
+
+						var key = clientIpHashMapKeys[i];
+						var value = clientIpHashMap.get(clientIpHashMapKeys[i]);
+
+						if (!showBotClients && ((value.domain.indexOf("googlebot") >= 0))) {
+						}
+						else if (!showTestClients && ((value.domain.indexOf("googleusercontent") >= 0))) {
+						}
+						else {
+							
+							if ((value.domain.indexOf("googleusercontent") >= 0) 
+								|| (value.referer.indexOf('TEST') >= 0)
+								|| (value.domain.indexOf("googlebot") >= 0)
+								) {
+								clientIpTableBodyOptions.textColor = testClientConnectedColor ;
+							}
+							else{
+								clientIpTableBodyOptions.textColor = clientConnectedColor ;
+							}
+
+							numberUniqueClients++;
+
+							if (value.connected == true) {
+								elapsedSinceLastSeen = 0 ;
+							}
+							else if (value.lastSeen > currentTime) {
+								elapsedSinceLastSeen = 0 ;
+							}
+							else {
+								elapsedSinceLastSeen = heartBeat.timeStamp - value.lastSeen;
+							}
+
+							tableCreateRow(clientIpTableBody, clientIpTableBodyOptions, 
+								[
+									numberUniqueClients,
+									key, 
+									value.domain, 
+									getTimeStamp(value.lastSeen), 
+									msToTime(elapsedSinceLastSeen),
+									value.numberOfConnections
+								]
+							);
+						}
+					}			
+				}
+
+				if (showConnectedClients) {
+
+					clientSessionTableBodyOptions.textColor = clientConnectedColor ;
+
+					var numberConnected = 0;
+					var connectTime = 0;
+
+
+					for (var j=0; j<clientSocketIdHashMapKeys.length; j++){
+
+						var key = clientSocketIdHashMapKeys[j];
+						var value = clientSocketIdHashMap.get(clientSocketIdHashMapKeys[j]);
+
+						if (typeof value.referer === 'undefined'){
+							value.referer = '';
+						}
+
+
+						if (!showTestClients && ((value.domain.indexOf("googleusercontent") >= 0) || (value.referer.indexOf('TEST') >= 0))) {
+						}
+						else if (!showBotClients && ((value.domain.indexOf("googlebot") >= 0))) {
+						}
+						else{
+							if (value.connected == true) { 
+
+								numberConnected++;
+
+								if (typeof value.referer !== 'undefined') {
+									if (value.referer.indexOf('TEST') >= 0) {
+										clientSessionTableBodyOptions.textColor = testClientConnectedColor ;
+									}
+									else {
+										clientSessionTableBodyOptions.textColor = clientConnectedColor ;
+									}
+								} 
+								else if (value.domain.indexOf("googlebot") >= 0) {
+									clientSessionTableBodyOptions.textColor = testClientConnectedColor ;
+								}
+								else if (value.domain.indexOf("googleusercontent") >= 0) {
+									clientSessionTableBodyOptions.textColor = testClientConnectedColor ;
+								}
+								else{
+									clientSessionTableBodyOptions.textColor = clientConnectedColor ;
+								}
+								
+								connectTime = heartBeat.timeStamp - value.connectTime ;
+
+								tableCreateRow(clientSessionTableBody, clientSessionTableBodyOptions, 
+									[
+										numberConnected,
+										value.ip, 
+										value.domain, 
+										key, 
+										getTimeStamp(value.connectTime), 
+										'', 
+										msToTime(connectTime)
+									]
+								);
+							}
+						}
+					}
+				}		
+
+				if (showDisconnectedClients) {
+
+					clientSessionTableBodyOptions.textColor = clientDisconnectedColor ;
+
+					var numberDisconnected = 0;
+					var connectedTime = 0;
+
+					for (var k=0; k<clientSocketIdHashMapKeys.length; k++){
+
+						var key = clientSocketIdHashMapKeys[k];
+						var value = clientSocketIdHashMap.get(clientSocketIdHashMapKeys[k]);
+
+						if (!showTestClients && (value.domain.indexOf("googleusercontent") > 0)) {
+						}
+						else{
+							if (value.connected == false) { 
+
+								numberDisconnected++;
+
+								connectedTime = value.disconnectTime - value.connectTime ;
+							    
+								tableCreateRow(clientSessionTableBody, clientSessionTableBodyOptions, 
+									[
+										numberDisconnected,
+										value.ip, 
+										value.domain, 
+										key, 
+										getTimeStamp(value.connectTime), 
+										getTimeStamp(value.disconnectTime), 
+										msToTime(connectedTime)
+									]
+								);
+
+							}
+						}
+					}			
+				}		
+			}
+
+			function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
+
+				// console.log("updateServerHeartbeat: timeoutFlag: " + timeoutFlag);
+
+		    var heatbeatTable = document.getElementById('heartbeat_table');
+
+				while(heatbeatTable.childNodes.length > 0) {
+					heatbeatTable.removeChild(heatbeatTable.firstChild);
+				}
+
+				tableCreateRow(heatbeatTable, false, ['LOCAL TIME', getTimeStamp()]);
+
+				if (timeoutFlag){
+					tableCreateRow(heatbeatTable, false, ['*** SERVER TIMEOUT ***', (msToTime(Date.now() - heartBeat.timeStamp)) + ' AGO']);
+					var x = heatbeatTable.getElementsByTagName("td");
+					x[2].style.color = "white";            
+					x[2].style.backgroundColor = "red";            
+				}
+				else if (lastTimeoutHeartBeat){
+
+					tableCreateRow(
+						heatbeatTable, 
+						false, 
+						[
+							'* SERVER TIMEOUT *', 
+							getTimeStamp(lastTimeoutHeartBeat.timeStamp), 
+							msToTime(Date.now() - lastTimeoutHeartBeat.timeStamp) + ' AGO'
+						]);	
+
+					var x = heatbeatTable.getElementsByTagName("td");
+					x[2].style.color = "white";            
+					x[2].style.backgroundColor = '#880000';            
+				}
+
+				tableCreateRow(heatbeatTable, false, ['SERVER TIME', getTimeStamp(heartBeat.timeStamp)]);
+				tableCreateRow(heatbeatTable, false, ['SERVER UPTIME', msToTime(heartBeat.upTime)]);
+				tableCreateRow(heatbeatTable, false, ['APP START TIME', getTimeStamp(heartBeat.startTime)]);
+				tableCreateRow(heatbeatTable, false, ['APP RUNTIME', msToTime(heartBeat.runTime)]);
+				tableCreateRow(heatbeatTable, false, ['GOOGLE AUTH EXP', getTimeStamp(heartBeat.authExpiryDate)]);
+				tableCreateRow(heatbeatTable, false, ['TOTAL CLIENTS', heartBeat.numberClients]);
+				tableCreateRow(heatbeatTable, false, ['CLIENTS', (heartBeat.numberClients - heartBeat.numberTestClients)]);
+				tableCreateRow(heatbeatTable, false, ['MAX CLIENTS', heartBeat.maxNumberClients]);
+				tableCreateRow(heatbeatTable, false, ['MAX CLIENTS TIME', getTimeStamp(heartBeat.maxNumberClientsTime)]);
+				tableCreateRow(heatbeatTable, false, ['TEST CLIENTS',heartBeat.numberTestClients]);
+				tableCreateRow(heatbeatTable, false, ['TWEETS RCVD',heartBeat.tweetsReceived]);
+				tableCreateRow(heatbeatTable, false, ['TWEETS PER MIN', heartBeat.tweetsPerMin]);
+				tableCreateRow(heatbeatTable, false, ['MAX TWEETS PER MIN', heartBeat.maxTweetsPerMin]);
+				tableCreateRow(heatbeatTable, false, ['MAX TWEETS PER MIN TIME', getTimeStamp(heartBeat.maxTweetsPerMinTime)]);
+				tableCreateRow(heatbeatTable, false, ['MAX 24H TWEETS PER MIN', heartBeat.maxTweetsPerMin24hour]);
+				tableCreateRow(heatbeatTable, false, ['MAX 24H TWEETS PER MIN TIME', getTimeStamp(heartBeat.maxTweetsPerMin24hourTime)]);
+
+				serverHeartbeatElement = document.getElementById("server_admins");
+
+				while(serverHeartbeatElement.childNodes.length >= 1) {
+					serverHeartbeatElement.removeChild(serverHeartbeatElement.firstChild);
+				}
+
+				serverHeartbeatElement.appendChild(serverHeartbeatElement.ownerDocument
+					.createTextNode(numberAdminIpAddresses + " ADMINS UNIQUE IP " 
+						+ " | " + heartBeat.numberAdmins + " CONNECTED"
+						)
+				);
+
+				serverHeartbeatElement = document.getElementById("server_clients");
+
+				while(serverHeartbeatElement.childNodes.length >= 1) {
+					serverHeartbeatElement.removeChild(serverHeartbeatElement.firstChild);
+				}
+				serverHeartbeatElement.appendChild(serverHeartbeatElement.ownerDocument
+					.createTextNode(numberClientIpAddresses + " CLIENT UNIQUE IP " + " | " + heartBeat.numberClients + " CONNECTED")
+				);
+			}
+
+			initClientConnect({
+				headerFlag: true,
+				textColor: '#CCCCCC',
+				backgroundColor: '#222222'
+			});
+
+			initClientSession({
+				headerFlag: true,
+				textColor: '#CCCCCC',
+				backgroundColor: '#222222'
+			});
+
+		</script>
+
+	</body>
+</html>

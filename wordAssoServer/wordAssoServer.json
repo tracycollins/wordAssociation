@@ -5,7 +5,7 @@
     "cwd"         : "/home/tc/wordAssociation",
     "env": {
         "WORDASSO_NODE_ENV": "production",
-        "WORDASSO_PROJECT_NAME": wordAssociation
+        "WORDASSO_PROJECT_NAME": wordAssoServer
     }
   }]
 }

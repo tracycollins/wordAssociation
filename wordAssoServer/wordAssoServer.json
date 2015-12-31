@@ -4,8 +4,7 @@
     "script"      : "wordAssoServer.js",
     "cwd"         : "/home/tc/wordAssociation",
     "env": {
-        "WORDASSO_NODE_ENV": "production",
-        "WORDASSO_PROJECT_NAME": wordAssoServer
+        "WORDASSO_NODE_ENV": "production"
     }
   }]
 }

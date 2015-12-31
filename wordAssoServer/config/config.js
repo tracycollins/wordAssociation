@@ -1,0 +1,1 @@
+module.exports = require('./env/' + process.env.WORDASSO_NODE_ENV + '.js');

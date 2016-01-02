@@ -101,7 +101,7 @@ var async = require('async');
 var HashMap = require('hashmap').HashMap;
 
 // e1b4564ec38d2db399dabdf83a8beeeb
-var Synonymator = require('Synonymator');
+var Synonymator = require('synonymator');
 var API_KEY = "e1b4564ec38d2db399dabdf83a8beeeb";
  
 var syn = new Synonymator(API_KEY);

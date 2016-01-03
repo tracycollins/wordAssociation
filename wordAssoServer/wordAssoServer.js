@@ -117,11 +117,11 @@ if (debug.enabled){
 }
 
 
-debug('NODE_ENV BEFORE: ' + process.env.WORDASSO_NODE_ENV);
-process.env.NODE_ENV = process.env.WORDASSO_NODE_ENV || 'development';
-console.log('NODE_ENV : ' + process.env.WORDASSO_NODE_ENV);
+debug('WORDASSO_NODE_ENV BEFORE: ' + process.env.WORDASSO_NODE_ENV);
+process.env.WORDASSO_NODE_ENV = process.env.WORDASSO_NODE_ENV || 'development';
+console.log('WORDASSO_NODE_ENV : ' + process.env.WORDASSO_NODE_ENV);
 
-console.log('... SERVER NODE_ENV: ' + process.env.WORDASSO_NODE_ENV );
+console.log('... SERVER WORDASSO_NODE_ENV: ' + process.env.WORDASSO_NODE_ENV );
 console.log('... CLIENT HOST + PORT: ' + 'http://localhost:' + config.port);
 
 // ==================================================================

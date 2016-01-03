@@ -4,6 +4,7 @@
 var configHashMap = new HashMap();
 configHashMap.set('testMode', false);
 
+var debug = false ;
 var testMode = false ;
 var resizeFlag = false ;
 
@@ -23,6 +24,7 @@ var mouseOverFlag = false ;
 var mouseHoverFlag = false ;
 
 var socket = io();
+var socketId ;
 var connectedFlag = false ;
 
 function getUrlVariables(config){
@@ -45,11 +47,11 @@ function getUrlVariables(config){
 
 function wordInScript(){
   var wordInValue = document.getElementById("wordInText").value ;
-  console.log("HEY: " + wordInValue);
+  console.log("TX WORD: " + wordInValue);
   socket.emit("WORD_IN", wordInValue);
 }
 
-var wordInValue = "this is a wordIn text area";
+var wordInValue = "word";
 
 function addWordIn() {
   var element = document.createElement("input");
@@ -62,13 +64,7 @@ function addWordIn() {
   element.setAttribute("id", "wordInText");
   element.setAttribute("name", "wordInText");
   element.setAttribute("value", wordInValue);
-  // console.log("wordInValue: " + wordInValue);
-  // element.setAttribute("style", "width:200px");
-  // element.setAttribute("bgColor","red");
-  // element.setAttribute("readOnly", "true");
   element.setAttribute("onkeydown", "if (event.keyCode == 13) { return wordInScript() }");
-  // element.style.color="green";
-  // label.setAttribute("style", "font-weight:100");
 
   var wordInDiv = document.getElementById("wordIn");
   wordInDiv.appendChild(labelIn);
@@ -82,11 +78,11 @@ function addWordOut() {
   labelOut.innerHTML = "SERVER SAYS: ";   
 
   element.setAttribute("class", "wordOut");
-  element.setAttribute("id", "wordOutText");
   element.setAttribute("type", "text");
+  element.setAttribute("id", "wordOutText");
   element.setAttribute("name", "wordOutText");
   element.setAttribute("value", "What up?");
-  element.innerHTML = "What?";   
+  element.innerHTML = "what?";   
 
   var wordOutDiv = document.getElementById("wordOut");
   wordOutDiv.appendChild(labelOut);
@@ -100,18 +96,20 @@ function updateServerWordOut(srvrObj){
 }
 
 socket.on("WORD_OUT", function(serverResponseObj){
-  console.log("RX WORD_OUT: " + JSON.stringify(serverResponseObj, null, 3));
+  if (debug) console.log("RX WORD_OUT: " + JSON.stringify(serverResponseObj, null, 3));
+  console.log("RX WORD_OUT: " + serverResponseObj.response);
   updateServerWordOut(serverResponseObj);
 });
 
 socket.on('connect', function(){
-  console.log(">>> CONNECTED TO HOST");
+  socketId = socket.id ;
+  console.log(">>> CONNECTED TO HOST | SOCKET ID: " + socketId);
   connectedFlag = true ;
   getUrlVariables();
 });
 
 socket.on('disconnect', function(){
-  console.log("*** DISCONNECTED FROM HOST");
+  console.log("*** DISCONNECTED FROM HOST | SOCKET ID: " + socketId);
 });
 
 var data= [] ;

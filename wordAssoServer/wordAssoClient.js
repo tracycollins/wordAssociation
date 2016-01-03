@@ -44,6 +44,8 @@ function wordInScript(){
   var wordInValue = document.getElementById("wordInText").value ;
   console.log("TX WORD: " + wordInValue);
   socket.emit("WORD_IN", wordInValue);
+  var wordInText = document.getElementById("wordInText");
+  wordInText.innerHTML = '';
 }
 
 var wordInValue = "-----";

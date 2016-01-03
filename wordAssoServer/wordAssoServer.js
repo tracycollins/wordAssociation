@@ -81,7 +81,6 @@ var configChangeFlag = false ;
 // NODE MODULE DECLARATIONS
 // ==================================================================
 
-// var kerberos = require('kerberos');
 var moment = require('moment');
 
 var S = require('string');
@@ -100,18 +99,13 @@ var yaml = require('yamljs');
 var async = require('async');
 var HashMap = require('hashmap').HashMap;
 
-// e1b4564ec38d2db399dabdf83a8beeeb
 var Synonymator = require('synonymator');
-var API_KEY = "e1b4564ec38d2db399dabdf83a8beeeb";
+var bigHugeLabsApiKey = "e1b4564ec38d2db399dabdf83a8beeeb";
  
-var syn = new Synonymator(API_KEY);
+var syn = new Synonymator(bigHugeLabsApiKey);
 
-// var Dictionary = require('mw-dictionary');
-  
-//   //pass the constructor a config object with your key
-// var dict = new Dictionary({
-//     key: "b652e4a5-4906-4bce-95e7-dde2acd02362"
-//   });
+var bigHugeThesaurusUrl = "http://words.bighugelabs.com/api/2/" + bigHugeLabsApiKey + "/";
+
 
 // ==================================================================
 // ENV INIT
@@ -140,17 +134,22 @@ var db = mongoose();
 
 var Admin = require('mongoose').model('Admin');
 var Client = require('mongoose').model('Client');
+var Word = require('mongoose').model('Word');
 
+var words = require('./app/controllers/word.server.controller');
 
 // ==================================================================
 // APP HTTP IO DNS CONFIG -- ?? order is important.
 // ==================================================================
 var app = express(); 
 
-var http = require('http').Server(app);
-var io = require('socket.io')(http);
+var http = require('http');
+var httpServer = require('http').Server(app);
+var io = require('socket.io')(httpServer);
 var dns = require('dns');
 var path = require('path');
+var net = require('net');
+var client = new net.Socket();
 
 var EventEmitter2 = require('eventemitter2').EventEmitter2;
 var EventEmitter = require("events").EventEmitter;
@@ -163,6 +162,8 @@ var configEvents = new EventEmitter2({
 
 var Queue = require('queue-fifo');
 var socketQueue = new Queue();
+
+var wordHashMap = new HashMap();
 
 // ==================================================================
 // FUNCTIONS
@@ -279,12 +280,12 @@ function dnsReverseLookup(ip, callback) {
   }
 }
 
-function sendWordResponse(wordIn){
+function sendWordResponse(socketId, wordIn){
   var srvrObj = {
     "timeStamp" : getTimeStamp(),
     "response" : wordIn
   }
-  io.emit("WORD_OUT",srvrObj);
+  io.to(socketId).emit("WORD_OUT",srvrObj);
 }
 
 function readSocketQueue(){
@@ -611,14 +612,128 @@ function createClientSocket (socket){
 
   socket.on("WORD_IN", function(wordInValue){
 
-    console.log(chalkInfo("WORD_IN: " + wordInValue));
+    var socketId = socket.id;
 
-    syn.synonyms(wordInValue).then((data) => {
-      console.log(data);
-      var dataIndex = randomIntFromInterval(0,data.length-1);
-      console.log("TX RESPONSE: " + data[dataIndex]);
-      sendWordResponse(data[dataIndex]);
-    });
+    console.log(chalkGreen("SOCKET " + socketId + " | WORD_IN: " + wordInValue.toLowerCase()));
+
+    var wordIn = {
+      wordId: wordInValue.toLowerCase()
+    };
+
+    if (wordHashMap.has(wordInValue.toLowerCase())){
+      console.log("--> FOUND " + wordInValue + " IN HASH");
+      wordIn = wordHashMap.get(wordInValue.toLowerCase());
+      console.log("WORD IN UPDATED: " + wordIn.wordId 
+        + " | MENTIONS: " + wordIn.mentions 
+        + "\nNOUNS: " + JSON.stringify(wordIn.noun, null, 2)
+        + "\nVERBS: " + JSON.stringify(wordIn.verb, null, 2)
+        + "\nADJS: " + JSON.stringify(wordIn.adjective, null, 2)
+        + "\nADVS: " + JSON.stringify(wordIn.adverb, null, 2)
+      );
+      if (wordIn.noun != null){
+        var dataIndex = randomIntFromInterval(0,wordIn.noun.syn.length-1);
+        console.log("TX RESPONSE: " + wordIn.noun.syn[dataIndex]);
+        sendWordResponse(socketId, wordIn.noun.syn[dataIndex]);
+      }
+      words.findOneWord(wordIn, false, function(err, word){
+        if (!err) {
+          console.log("WORD IN UPDATED: " + word.wordId 
+            + " | MENTIONS: " + word.mentions 
+            + "\nNOUNS: " + JSON.stringify(word.noun, null, 2)
+            + "\nVERBS: " + JSON.stringify(word.verb, null, 2)
+            + "\nADJS: " + JSON.stringify(word.adjective, null, 2)
+            + "\nADVS: " + JSON.stringify(word.adverb, null, 2)
+          );
+        }
+      });
+    }
+    else {
+      console.log("--- NOT FOUND " + wordInValue + " IN HASH");
+      words.findOneWord(wordIn, false, function(err, word){
+        if (!err) {
+          console.log("WORD IN: " + word.wordId 
+            + " | " + word.mentions 
+            + "\nNOUNS: " + JSON.stringify(word.noun, null, 2)
+            + "\nVERBS: " + JSON.stringify(word.verb, null, 2)
+            + "\nADJS: " + JSON.stringify(word.adjective, null, 2)
+            + "\nADVS: " + JSON.stringify(word.adverb, null, 2)
+          );
+          
+          if (word.noun == null){
+
+            var bhtHost = "words.bighugelabs.com";
+            var path = "/api/2/" + bigHugeLabsApiKey + "/" + word.wordId + "/json";
+
+            http.get({host: bhtHost, path: path}, function(response) {
+              debug("... BHT WORD LOOKUP: " + bhtHost + "/" + path);
+              var body = '';
+
+              response.on('data', function(d) {
+                  body += d;
+              });
+
+              response.on('end', function() {
+                
+                if (body != ''){
+                  
+                  var parsed = JSON.parse(body);
+                  
+                  debug("RESPONSE: " + JSON.stringify(parsed, null, 3));
+
+                  if (typeof parsed.noun !== null) word.noun = parsed.noun ;
+                  if (typeof parsed.verb !== null) word.verb = parsed.verb ;
+                  if (typeof parsed.adjective !== null) word.adjective = parsed.adjective ;
+                  if (typeof parsed.adverb !== null) word.adverb = parsed.adverb ;
+
+                  words.findOneWord(word, true, function(err, word2){
+                    if (!err) {
+                      console.log("WORD UPDATED: " + word2.wordId 
+                        + " | MENTIONS: " + word2.mentions 
+                        + "\nNOUNS: " + JSON.stringify(word2.noun, null, 2)
+                        + "\nVERBS: " + JSON.stringify(word2.verb, null, 2)
+                        + "\nADJS: " + JSON.stringify(word2.adjective, null, 2)
+                        + "\nADVS: " + JSON.stringify(word2.adverb, null, 2)
+                      );
+                      wordHashMap.set(word2.wordId, word2);
+                      if (word2.noun != null) {
+                        var dataIndex = randomIntFromInterval(0,word2.noun.syn.length-1);
+                        console.log("TX RESPONSE: " + word2.noun.syn[dataIndex]);
+                        sendWordResponse(socketId, word2.noun.syn[dataIndex]);
+                      }
+                    }
+                  })
+
+                  // if (parsed.noun) {
+                  //   console.log("RESPONSE: NOUN" + JSON.stringify(parsed.noun, null, 3));
+                  // }
+
+                }
+                else {
+                  console.log("RESPONSE: \'" + word.wordId + "\' NOT FOUND");
+                }
+              });
+              response.on('error', function(e) {
+                console.log("RESPONSE ERROR " + JSON.stringify(e, null, 3));
+              });
+            });
+           }
+          else {
+            wordHashMap.set(word.wordId, word);
+            var dataIndex = randomIntFromInterval(0,word.noun.syn.length-1);
+            console.log("TX RESPONSE: " + word.noun.syn[dataIndex]);
+            sendWordResponse(socketId, word.noun.syn[dataIndex]);
+          }
+        }
+      })
+    }
+
+
+    // syn.synonyms(wordInValue).then((data) => {
+    //   console.log(data);
+    //   var dataIndex = randomIntFromInterval(0,data.length-1);
+    //   console.log("TX RESPONSE: " + data[dataIndex]);
+    //   sendWordResponse(data[dataIndex]);
+    // });
 
 
   });
@@ -991,10 +1106,22 @@ function initializeConfiguration() {
     },
 
     // SOCKET INIT
-    function(callbackSeries){
-      console.log(chalkInfo(getTimeStamp() + " | SOCKET INIT"));
-      callbackSeries();
-    },
+    // function(callbackSeries){
+    //   console.log(chalkInfo(getTimeStamp() + " | SOCKET INIT"));
+    //   client.connect(80, 'www.google.com', function() {
+    //     console.log('CONNECTED TO GOOGLE: OK');
+    //   });
+
+    //   client.on('data', function(data) {
+    //     console.log('RX GOOGLE CONNECTION: ' + data);
+    //     // client.destroy(); // kill client after server's response
+    //   });
+
+    //   client.on('close', function() {
+    //     console.log('GOOGLE CONNECTION CLOSED');
+    //   });
+    //   callbackSeries();
+    // },
 
     // CONFIG EVENT
     function(callbackSeries){
@@ -1008,9 +1135,17 @@ function initializeConfiguration() {
 
     // SERVER READY
     function(callbackSeries){
-      console.log(chalkInfo(getTimeStamp() + " | SEND SERVER_READY"));
-      configEvents.emit("SERVER_READY");
-      callbackSeries();
+      console.log("... CHECKING INTERNET CONNECTION ...");
+
+      client.connect(80, 'www.google.com', function() {
+        console.log(chalkInfo(getTimeStamp() + ' | CONNECTED TO GOOGLE: OK'));
+        console.log(chalkInfo(getTimeStamp() + " | SEND SERVER_READY"));
+        internetReady = true ;
+        configEvents.emit("SERVER_READY");
+        client.destroy();
+        callbackSeries();
+      });
+
     }
   ]);
 }
@@ -1021,21 +1156,36 @@ function initializeConfiguration() {
 // CHECK FOR INTERNET CONNECTION AND SOCKET IO
 // ==================================================================
 
-console.log("... CHECKING INTERNET CONNECTION ...");
-dns.resolve('www.google.com', function(err, addresses) {
-  if (err){
-    console.error("\n????? INTERNET DOWN ????? | " + getTimeStamp());
-  } 
-  else{
-    internetReady = true ;
-    console.log(chalkInfo(getTimeStamp() + " | INTERNET CONNECTION OK"));
-    debug('DNS IP RESOLVE www.google.com: ' + JSON.stringify(addresses));
+// console.log("... CHECKING INTERNET CONNECTION ...");
 
-    dns.reverse(addresses[0], function(err, domains){
-      debug('DNS REVERSE IP: ' + addresses[0] + ' | DOMAINS: ' + JSON.stringify(domains, null, 3));
-    });
-  }
-});
+// client.connect(80, 'www.google.com', function() {
+//   console.log('CONNECTED TO GOOGLE: OK');
+// });
+
+// client.on('data', function(data) {
+//   console.log('RX GOOGLE CONNECTION: ' + data);
+//   // client.destroy(); // kill client after server's response
+// });
+
+// client.on('close', function() {
+//   console.log('GOOGLE CONNECTION CLOSED');
+// });
+
+
+// dns.resolve('www.google.com', function(err, addresses) {
+//   if (err){
+//     console.error("\n????? INTERNET DOWN ????? | " + getTimeStamp() + "\n" + err);
+//   } 
+//   else{
+//     internetReady = true ;
+//     console.log(chalkInfo(getTimeStamp() + " | INTERNET CONNECTION OK"));
+//     debug('DNS IP RESOLVE www.google.com: ' + JSON.stringify(addresses));
+
+//     dns.reverse(addresses[0], function(err, domains){
+//       debug('DNS REVERSE IP: ' + addresses[0] + ' | DOMAINS: ' + JSON.stringify(domains, null, 3));
+//     });
+//   }
+// });
 
 // ==================================================================
 // ADMIN
@@ -1094,33 +1244,33 @@ configEvents.on("SERVER_READY", function () {
 
   console.log(chalkInfo(getTimeStamp() + " | SERVER_READY EVENT"));
 
-  http.on("reconnect", function(){
+  httpServer.on("reconnect", function(){
     internetReady = true ;
     console.log(chalkConnect(getTimeStamp() + ' | PORT RECONNECT: ' + config.port));
     initializeConfiguration();
   });
 
-  http.on("connect", function(){
+  httpServer.on("connect", function(){
     internetReady = true ;
     console.log(chalkConnect(getTimeStamp() + ' | PORT CONNECT: ' + config.port));
 
-    http.on("disconnect", function(){
+    httpServer.on("disconnect", function(){
       internetReady = false ;
       console.error(chalkError('\n***** PORT DISCONNECTED | ' + getTimeStamp() + ' | ' + config.port));
     });
   });
 
-  http.listen(config.port, function(){
+  httpServer.listen(config.port, function(){
     console.log(chalkInfo(getTimeStamp() + " | LISTENING ON PORT " + config.port));
   });
 
-  http.on("error", function (err) {
+  httpServer.on("error", function (err) {
     internetReady = false ;
     console.error(chalkError('??? HTTP ERROR | ' + getTimeStamp() + '\n' + err));
     if (err.code == 'EADDRINUSE') {
       console.error(chalkError('??? HTTP ADDRESS IN USE: ' + config.port + ' ... RETRYING...'));
       setTimeout(function () {
-        http.listen(config.port, function(){
+        httpServer.listen(config.port, function(){
           console.log('LISTENING ON PORT ' + config.port);
         });
       }, 5000);
@@ -1789,15 +1939,25 @@ function initAppRouting(){
 
 initializeConfiguration();
 
-syn.synonyms("time").then((data) => {
-  console.log(data);
+Word.count({}, function(err,count){
+  if (!err){ 
+    console.log("TOTAL WORDS: " + count);
+  } 
+  else {
+    console.error(chalkError("\n*** DB Word.count ERROR *** | " + getTimeStamp() + "\n" + err));
+  }
 });
+
+
+// syn.synonyms("time").then((data) => {
+//   console.log(data);
+// });
 
 
 module.exports = {
  app: app,
  io:io, 
- http: http
+ http: httpServer
 }
 
 

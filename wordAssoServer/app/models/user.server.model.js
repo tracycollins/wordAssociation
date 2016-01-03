@@ -8,13 +8,6 @@ var UserSchema = new Schema({
 		trim: true,
 		unique: true
 	},
-	nodeId: {  // for D3.js
-		type: String,
-	},
-	nodeType: { 
-		type: String,
-		default: 'user'
-	},
 	screenName: {
 		type: String,
 		trim: true
@@ -39,24 +32,7 @@ var UserSchema = new Schema({
 	},
 	lastSeen: {   
 		type: String
-	},
-	statusesCount: {
-		type: Number,
-		default: 0
-	},
-	followersCount: {
-		type: Number,
-		default: 0
-	},
-	friendsCount: {
-		type: Number,
-		default: 0
-	},
-	mentions: {
-		type: Number,
-		default: 0
-	},
-	status: Object
+	}
 });
 
 

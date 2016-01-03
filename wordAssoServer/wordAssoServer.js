@@ -99,10 +99,10 @@ var yaml = require('yamljs');
 var async = require('async');
 var HashMap = require('hashmap').HashMap;
 
-var Synonymator = require('synonymator');
+// var Synonymator = require('synonymator');
 var bigHugeLabsApiKey = "e1b4564ec38d2db399dabdf83a8beeeb";
  
-var syn = new Synonymator(bigHugeLabsApiKey);
+// var syn = new Synonymator(bigHugeLabsApiKey);
 
 var bigHugeThesaurusUrl = "http://words.bighugelabs.com/api/2/" + bigHugeLabsApiKey + "/";
 

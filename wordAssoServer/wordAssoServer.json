@@ -2,9 +2,9 @@
   "apps" : [{
     "name"        : "was",
     "script"      : "wordAssoServer.js",
-    "cwd"         : "/home/tc/wordAssociation",
+    "cwd"         : "/home/tc/wordAssociation/wordAssoServer",
     "env": {
-        "WORDASSO_NODE_ENV": "development"
+        "WORDASSO_NODE_ENV": "production"
     }
   }]
 }

@@ -43,8 +43,6 @@ function getUrlVariables(config){
   }
 }
 
-
-
 function wordInScript(){
   var wordInValue = document.getElementById("wordInText").value ;
   console.log("TX WORD: " + wordInValue);

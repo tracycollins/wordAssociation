@@ -49,7 +49,7 @@ function wordInScript(){
   socket.emit("WORD_IN", wordInValue);
 }
 
-var wordInValue = "word";
+var wordInValue = "-----";
 
 function addWordIn() {
   var element = document.createElement("input");
@@ -80,7 +80,7 @@ function addWordOut() {
   element.setAttribute("id", "wordOutText");
   element.setAttribute("name", "wordOutText");
   element.setAttribute("value", "What up?");
-  element.innerHTML = "what?";   
+  element.innerHTML = "-----";   
 
   var wordOutDiv = document.getElementById("wordOut");
   wordOutDiv.appendChild(labelOut);
@@ -88,7 +88,7 @@ function addWordOut() {
 }
 
 function updateServerWordOut(srvrObj){
-  console.log("updateServerWordOut\n" + JSON.stringify(srvrObj, null, 3));
+  if (debug) console.log("updateServerWordOut\n" + JSON.stringify(srvrObj, null, 3));
   var wordOutText = document.getElementById("wordOutText");
   wordOutText.innerHTML = srvrObj.response;
 }
@@ -237,6 +237,7 @@ window.onload = function () {
   console.log("ONLOAD");
   addWordOut();
   addWordIn();
+  socket.emit("CLIENT_READY");
   setTimeout(function(){
     pageLoadedTimeIntervalFlag = false ;
   }, 5000);

@@ -17,6 +17,9 @@ var ClientSchema = new Schema({
 		type: String,
 		default: ''
 	},
+	userId: { 
+		type: String,
+	},
 	connected: { 
 		type: Boolean
 	},

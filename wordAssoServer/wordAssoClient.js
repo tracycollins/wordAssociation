@@ -14,9 +14,6 @@ var pageLoadedTimeIntervalFlag = true ;
 var updateInterval = 500 ;
 var defaultFadeDuration = 250 ;
 
-var width = window.innerWidth * 1 ;
-var height = window.innerHeight * 1 ;
-
 var fullscreenFlag = false ;
 var mouseMovingFlag = false ;
 var mouseMoveTimeoutInterval = 5000; // 5 seconds

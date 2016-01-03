@@ -629,7 +629,7 @@ function createClientSocket (socket){
       console.log("--> FOUND " + wordInValue + " IN HASH");
       wordIn = wordHashMap.get(wordInValue.toLowerCase());
       console.log("WORD IN UPDATED: " + wordIn.wordId 
-        + " | MENTIONS: " + wordIn.mentions 
+        + " | MENTIONS: " + wordIn.mentions
         // + "\nNOUNS: " + JSON.stringify(wordIn.noun, null, 2)
         // + "\nVERBS: " + JSON.stringify(wordIn.verb, null, 2)
         // + "\nADJS: " + JSON.stringify(wordIn.adjective, null, 2)

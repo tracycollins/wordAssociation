@@ -13,18 +13,9 @@ console.log(
 
 process.on("message", function(msg) {
   if (msg == 'shutdown') {
-    // Your process is going to be reloaded
-    // You have to close all database/socket.io/* connections
-
     console.log('\n\n!!!!! RECEIVED PM2 SHUTDOWN !!!!!\n\n***** Closing all connections *****\n\n');
-
-    // You will have 4000ms to close all connections before
-    // the reload mechanism will try to do its job
-
     setTimeout(function() {
       console.log('**** Finished closing connections ****\n\n ***** RELOADING blm.js NOW *****\n\n');
-      // This timeout means that all connections have been closed
-      // Now we can exit to let the reload mechanism do its job
       process.exit(0);
     }, 1500);
   }
@@ -56,16 +47,12 @@ var testMode = false ;
 var chalk = require('chalk');
 
 var chalkGreen = chalk.green;
-
 var chalkAdmin = chalk.bold.cyan;
 var chalkConnectAdmin = chalk.bold.cyan;
-
 var chalkConnect = chalk.bold.green;
 var chalkDisconnect = chalk.bold.blue;
-
 var chalkInfo = chalk.gray;
 var chalkTest = chalk.bold.yellow;
-
 var chalkAlert = chalk.red;
 var chalkError = chalk.bold.red;
 var chalkWarn = chalk.bold.yellow;
@@ -74,7 +61,7 @@ var chalkLog = chalk.gray;
 var serverReady = false ;
 var internetReady = false ;
 
-var sessionConfig = {};
+var serverSessionConfig = {};
 var configChangeFlag = false ;
 
 // ==================================================================
@@ -99,11 +86,7 @@ var yaml = require('yamljs');
 var async = require('async');
 var HashMap = require('hashmap').HashMap;
 
-// var Synonymator = require('synonymator');
 var bigHugeLabsApiKey = "e1b4564ec38d2db399dabdf83a8beeeb";
- 
-// var syn = new Synonymator(bigHugeLabsApiKey);
-
 var bigHugeThesaurusUrl = "http://words.bighugelabs.com/api/2/" + bigHugeLabsApiKey + "/";
 
 
@@ -115,7 +98,6 @@ var debug = require('debug')('wordAsso');
 if (debug.enabled){
   console.log("\n%%%%%%%%%%%%%%\n%%%%%%% DEBUG ENABLED %%%%%%%\n%%%%%%%%%%%%%%\n");
 }
-
 
 debug('WORDASSO_NODE_ENV BEFORE: ' + process.env.WORDASSO_NODE_ENV);
 process.env.WORDASSO_NODE_ENV = process.env.WORDASSO_NODE_ENV || 'development';
@@ -134,6 +116,9 @@ var db = mongoose();
 
 var Admin = require('mongoose').model('Admin');
 var Client = require('mongoose').model('Client');
+
+var User = require('mongoose').model('User');
+var Session = require('mongoose').model('Session');
 var Word = require('mongoose').model('Word');
 
 var words = require('./app/controllers/word.server.controller');
@@ -164,6 +149,9 @@ var Queue = require('queue-fifo');
 var socketQueue = new Queue();
 
 var wordHashMap = new HashMap();
+var sessionHashMap = new HashMap();
+
+var promptArray = ["black"];
 
 // ==================================================================
 // FUNCTIONS
@@ -323,9 +311,6 @@ function readSocketQueue(){
       async.waterfall(
         [
           function(callback) {
-
-            // debug('async.series: dnsReverseLookup');
-
             dnsReverseLookup(socketObj.ip, function(err, domains){
               if (err){
                 console.error(chalkError("\n\n***** ERROR: dnsReverseLookup: " + socketObj.ip + " ERROR: " + err));
@@ -339,7 +324,6 @@ function readSocketQueue(){
           },
 
           function(socketObj, callback) {
-
             clientConnectDb(socketObj, function(err, cl){
               if (err){
                 console.error(chalkError("\n\n***** ERROR: clientConnectDb: " + err));
@@ -534,9 +518,7 @@ function createClientSocket (socket){
 
   numberClientsConnected = io.of('/').sockets.length;
 
-
   var socketId = socket.id;
-
   var clientIp = socket.handshake.headers['x-real-ip'] || socket.client.conn.remoteAddress;
 
   // check for IPV6 address
@@ -547,28 +529,39 @@ function createClientSocket (socket){
     if (clientIp4 == '1'){
       clientIp4 = '127.0.0.1';
     }
+
     console.log("CONVERTING IPV6 IP " + clientIp + " TO IPV4: " + clientIp4);
     clientIp = clientIp4 ;
   }
-
 
   var clientHostname = socket.handshake.headers.host ;
   var clientDomain ;
 
   var clientObj = {
-          type: 'CLIENT',  
-          ip: clientIp, 
-          domain: clientDomain,
-          socketId: socketId,
-          socket: socket,
-          referer: referer,
-          connected: true, 
-          connectTime: currentTime, 
-          // disconnectTime: currentTime
-        };
+    type: 'CLIENT',  
+    ip: clientIp, 
+    domain: clientDomain,
+    socketId: socketId,
+    socket: socket,
+    referer: referer,
+    connected: true, 
+    connectTime: currentTime, 
+    // disconnectTime: currentTime
+  };
 
   // adding also after enqueue; adding early to so add will show up earlier
   clientSocketIdHashMap.set(socketId, clientObj);  
+
+  var sessionObj = {
+    sessionId: socketId,
+    userId: clientIp + "_" + socketId,
+    createAt: Date.now(),
+    wordChain: [promptArray[0]]
+  }
+
+  sessionHashMap.set(sessionObj.sessionId, sessionObj);  
+
+  console.log("CREATED sessionObj\n" + JSON.stringify(sessionObj, null, 3));
 
   socketQueue.enqueue(clientObj);
 
@@ -578,7 +571,6 @@ function createClientSocket (socket){
     console.error(chalkError(getTimeStamp() + " | *** SOCKET ERROR: " + err));
     // console.error(chalkError("\nSOCKET ERROR" + util.inspect(socket, {showHidden: false, depth: 1})));
   });
-
 
   socket.on("disconnect", function(){
 
@@ -610,9 +602,16 @@ function createClientSocket (socket){
     readSocketQueue();
   });
 
+  socket.on("CLIENT_READY", function(){
+    console.log("RX CLIENT_READY | " + socket.id);
+    sendWordResponse(socket.id, promptArray[0]);
+  })
+
   socket.on("WORD_IN", function(wordInValue){
 
     var socketId = socket.id;
+
+    var currentSession = sessionHashMap.get(socketId);
 
     console.log(chalkGreen("SOCKET " + socketId + " | WORD_IN: " + wordInValue.toLowerCase()));
 
@@ -620,29 +619,40 @@ function createClientSocket (socket){
       wordId: wordInValue.toLowerCase()
     };
 
+    currentSession.wordChain.push(wordIn.wordId) ;
+    console.log("WORD CHAIN"
+      + " | " + socketId 
+      + " | " + currentSession.wordChain
+    );
+
     if (wordHashMap.has(wordInValue.toLowerCase())){
       console.log("--> FOUND " + wordInValue + " IN HASH");
       wordIn = wordHashMap.get(wordInValue.toLowerCase());
       console.log("WORD IN UPDATED: " + wordIn.wordId 
         + " | MENTIONS: " + wordIn.mentions 
-        + "\nNOUNS: " + JSON.stringify(wordIn.noun, null, 2)
-        + "\nVERBS: " + JSON.stringify(wordIn.verb, null, 2)
-        + "\nADJS: " + JSON.stringify(wordIn.adjective, null, 2)
-        + "\nADVS: " + JSON.stringify(wordIn.adverb, null, 2)
+        // + "\nNOUNS: " + JSON.stringify(wordIn.noun, null, 2)
+        // + "\nVERBS: " + JSON.stringify(wordIn.verb, null, 2)
+        // + "\nADJS: " + JSON.stringify(wordIn.adjective, null, 2)
+        // + "\nADVS: " + JSON.stringify(wordIn.adverb, null, 2)
       );
       if (wordIn.noun != null){
         var dataIndex = randomIntFromInterval(0,wordIn.noun.syn.length-1);
         console.log("TX RESPONSE: " + wordIn.noun.syn[dataIndex]);
+        currentSession.wordChain.push(wordIn.noun.syn[dataIndex]) ;
+    console.log("WORD CHAIN"
+      + " | " + socketId 
+      + " | " + currentSession.wordChain
+    );
         sendWordResponse(socketId, wordIn.noun.syn[dataIndex]);
       }
       words.findOneWord(wordIn, false, function(err, word){
         if (!err) {
           console.log("WORD IN UPDATED: " + word.wordId 
             + " | MENTIONS: " + word.mentions 
-            + "\nNOUNS: " + JSON.stringify(word.noun, null, 2)
-            + "\nVERBS: " + JSON.stringify(word.verb, null, 2)
-            + "\nADJS: " + JSON.stringify(word.adjective, null, 2)
-            + "\nADVS: " + JSON.stringify(word.adverb, null, 2)
+            // + "\nNOUNS: " + JSON.stringify(word.noun, null, 2)
+            // + "\nVERBS: " + JSON.stringify(word.verb, null, 2)
+            // + "\nADJS: " + JSON.stringify(word.adjective, null, 2)
+            // + "\nADVS: " + JSON.stringify(word.adverb, null, 2)
           );
         }
       });
@@ -653,10 +663,10 @@ function createClientSocket (socket){
         if (!err) {
           console.log("WORD IN: " + word.wordId 
             + " | " + word.mentions 
-            + "\nNOUNS: " + JSON.stringify(word.noun, null, 2)
-            + "\nVERBS: " + JSON.stringify(word.verb, null, 2)
-            + "\nADJS: " + JSON.stringify(word.adjective, null, 2)
-            + "\nADVS: " + JSON.stringify(word.adverb, null, 2)
+            // + "\nNOUNS: " + JSON.stringify(word.noun, null, 2)
+            // + "\nVERBS: " + JSON.stringify(word.verb, null, 2)
+            // + "\nADJS: " + JSON.stringify(word.adjective, null, 2)
+            // + "\nADVS: " + JSON.stringify(word.adverb, null, 2)
           );
           
           if (word.noun == null){
@@ -689,15 +699,20 @@ function createClientSocket (socket){
                     if (!err) {
                       console.log("WORD UPDATED: " + word2.wordId 
                         + " | MENTIONS: " + word2.mentions 
-                        + "\nNOUNS: " + JSON.stringify(word2.noun, null, 2)
-                        + "\nVERBS: " + JSON.stringify(word2.verb, null, 2)
-                        + "\nADJS: " + JSON.stringify(word2.adjective, null, 2)
-                        + "\nADVS: " + JSON.stringify(word2.adverb, null, 2)
+                        // + "\nNOUNS: " + JSON.stringify(word2.noun, null, 2)
+                        // + "\nVERBS: " + JSON.stringify(word2.verb, null, 2)
+                        // + "\nADJS: " + JSON.stringify(word2.adjective, null, 2)
+                        // + "\nADVS: " + JSON.stringify(word2.adverb, null, 2)
                       );
                       wordHashMap.set(word2.wordId, word2);
                       if (word2.noun != null) {
                         var dataIndex = randomIntFromInterval(0,word2.noun.syn.length-1);
                         console.log("TX RESPONSE: " + word2.noun.syn[dataIndex]);
+                        currentSession.wordChain.push(word2.noun.syn[dataIndex]) ;
+    console.log("WORD CHAIN"
+      + " | " + socketId 
+      + " | " + currentSession.wordChain
+    );
                         sendWordResponse(socketId, word2.noun.syn[dataIndex]);
                       }
                     }
@@ -721,6 +736,11 @@ function createClientSocket (socket){
             wordHashMap.set(word.wordId, word);
             var dataIndex = randomIntFromInterval(0,word.noun.syn.length-1);
             console.log("TX RESPONSE: " + word.noun.syn[dataIndex]);
+            currentSession.wordChain.push(word.noun.syn[dataIndex]) ;
+    console.log("WORD CHAIN"
+      + " | " + socketId 
+      + " | " + currentSession.wordChain
+    );
             sendWordResponse(socketId, word.noun.syn[dataIndex]);
           }
         }
@@ -734,11 +754,9 @@ function createClientSocket (socket){
     //   console.log("TX RESPONSE: " + data[dataIndex]);
     //   sendWordResponse(data[dataIndex]);
     // });
-
-
   });
-}
 
+}
 
 function adminConnectDb (adminObj, callback) {
 
@@ -1126,10 +1144,10 @@ function initializeConfiguration() {
     // CONFIG EVENT
     function(callbackSeries){
       console.log(chalkInfo(getTimeStamp() + " | INIT CONFIG COMPLETE"));
-      sessionConfig = { 
+      serverSessionConfig = { 
         testMode: testMode
       };
-      debug("SESSION CONFIGURATION\n" + JSON.stringify(sessionConfig, null, 3) + "\n");
+      debug("SESSION CONFIGURATION\n" + JSON.stringify(serverSessionConfig, null, 3) + "\n");
       callbackSeries();
     },
 
@@ -1149,43 +1167,6 @@ function initializeConfiguration() {
     }
   ]);
 }
-
-
-
-// ==================================================================
-// CHECK FOR INTERNET CONNECTION AND SOCKET IO
-// ==================================================================
-
-// console.log("... CHECKING INTERNET CONNECTION ...");
-
-// client.connect(80, 'www.google.com', function() {
-//   console.log('CONNECTED TO GOOGLE: OK');
-// });
-
-// client.on('data', function(data) {
-//   console.log('RX GOOGLE CONNECTION: ' + data);
-//   // client.destroy(); // kill client after server's response
-// });
-
-// client.on('close', function() {
-//   console.log('GOOGLE CONNECTION CLOSED');
-// });
-
-
-// dns.resolve('www.google.com', function(err, addresses) {
-//   if (err){
-//     console.error("\n????? INTERNET DOWN ????? | " + getTimeStamp() + "\n" + err);
-//   } 
-//   else{
-//     internetReady = true ;
-//     console.log(chalkInfo(getTimeStamp() + " | INTERNET CONNECTION OK"));
-//     debug('DNS IP RESOLVE www.google.com: ' + JSON.stringify(addresses));
-
-//     dns.reverse(addresses[0], function(err, domains){
-//       debug('DNS REVERSE IP: ' + addresses[0] + ' | DOMAINS: ' + JSON.stringify(domains, null, 3));
-//     });
-//   }
-// });
 
 // ==================================================================
 // ADMIN
@@ -1229,7 +1210,6 @@ localHostHashMap.set('::ffff:10.0.1.45', 1);
 localHostHashMap.set('10.0.1.4', 1);
 localHostHashMap.set('10.0.1.10', 1);
 localHostHashMap.set('10.0.1.27', 1);
-
 
 configEvents.on('newListener', function(data){
   console.log("*** NEW CONFIG EVENT LISTENER: " + data);
@@ -1342,33 +1322,29 @@ configEvents.on("SERVER_READY", function () {
     }
   }, 1000 );
 
-  configEvents.emit("CONFIG_CHANGE", sessionConfig );
+  configEvents.emit("CONFIG_CHANGE", serverSessionConfig );
 });
-
 
 // ==================================================================
 // CONFIGURATION CHANGE HANDLER
 // ==================================================================
-configEvents.on("CONFIG_CHANGE", function (sessionConfig) {
+configEvents.on("CONFIG_CHANGE", function (serverSessionConfig) {
 
   console.log(chalkAlert(getTimeStamp() + " | CONFIG_CHANGE EVENT"));
-  debug("==> CONFIG_CHANGE EVENT: " + JSON.stringify(sessionConfig, null, 3));
+  debug("==> CONFIG_CHANGE EVENT: " + JSON.stringify(serverSessionConfig, null, 3));
 
-  if (typeof sessionConfig.testMode !== 'undefined') {
-    console.log(chalkAlert("   ---> CONFIG_CHANGE: testMode: " + sessionConfig.testMode));
-    io.of("/admin").emit('CONFIG_CHANGE',  {testMode: sessionConfig.testMode});
-    io.emit('CONFIG_CHANGE',  {testMode: sessionConfig.testMode});
+  if (typeof serverSessionConfig.testMode !== 'undefined') {
+    console.log(chalkAlert("   ---> CONFIG_CHANGE: testMode: " + serverSessionConfig.testMode));
+    io.of("/admin").emit('CONFIG_CHANGE',  {testMode: serverSessionConfig.testMode});
+    io.emit('CONFIG_CHANGE',  {testMode: serverSessionConfig.testMode});
   }
 
   console.log(chalkInfo(getTimeStamp() + ' | >>> SENT CONFIG_CHANGE'));
 });
 
-
-
 //=================================
 //  SERVER READY
 //=================================
-
 io.of("/test").on("connect", function(socket){
   debug("\n\n===================================\nTEST CONNECT\n" 
     + util.inspect(socket.nsp.name, {showHidden: false, depth: 1})
@@ -1419,8 +1395,8 @@ io.of("/admin").on("connect", function(socket){
           socketId: socketId
   } ;
 
-  console.log("SENDING sessionConfig to ADMIN " + socketId + "\n" + JSON.stringify(sessionConfig));
-  socket.emit('ADMIN_CONFIG', JSON.stringify(sessionConfig));
+  console.log("SENDING serverSessionConfig to ADMIN " + socketId + "\n" + JSON.stringify(serverSessionConfig));
+  socket.emit('ADMIN_CONFIG', JSON.stringify(serverSessionConfig));
 
   socket.on("REQ ADMIN SESSION", function(options){
     console.log("\n>>> RX REQ ADMIN SESSION\n" 
@@ -1670,18 +1646,18 @@ io.of("/admin").on("connect", function(socket){
       + JSON.stringify(rxAdminConfig, null, 3));
   
 
-    console.log("\nPREVIOUS sessionConfig:\n" + JSON.stringify(sessionConfig, null, 3));
+    console.log("\nPREVIOUS serverSessionConfig:\n" + JSON.stringify(serverSessionConfig, null, 3));
 
     for(var configPropertyName in rxAdminConfig) {
       console.log("configPropertyName: " + configPropertyName + " | " + rxAdminConfig[configPropertyName]);
-      previousProperty = sessionConfig[configPropertyName];
-      sessionConfig[configPropertyName] = rxAdminConfig[configPropertyName];
-      console.log(configPropertyName + " was: " + previousProperty + " | now: " + sessionConfig[configPropertyName]);
+      previousProperty = serverSessionConfig[configPropertyName];
+      serverSessionConfig[configPropertyName] = rxAdminConfig[configPropertyName];
+      console.log(configPropertyName + " was: " + previousProperty + " | now: " + serverSessionConfig[configPropertyName]);
     }
 
-    console.log("\nNEW sessionConfig:\n" + JSON.stringify(sessionConfig, null, 3));
+    console.log("\nNEW serverSessionConfig:\n" + JSON.stringify(serverSessionConfig, null, 3));
 
-    configEvents.emit("CONFIG_CHANGE", sessionConfig);
+    configEvents.emit("CONFIG_CHANGE", serverSessionConfig);
   });
 
   socket.on("disconnect", function(){
@@ -1939,6 +1915,24 @@ function initAppRouting(){
 
 initializeConfiguration();
 
+User.count({}, function(err,count){
+  if (!err){ 
+    console.log("TOTAL USERS: " + count);
+  } 
+  else {
+    console.error(chalkError("\n*** DB User.count ERROR *** | " + getTimeStamp() + "\n" + err));
+  }
+});
+
+Session.count({}, function(err,count){
+  if (!err){ 
+    console.log("TOTAL SESSIONS: " + count);
+  } 
+  else {
+    console.error(chalkError("\n*** DB Session.count ERROR *** | " + getTimeStamp() + "\n" + err));
+  }
+});
+
 Word.count({}, function(err,count){
   if (!err){ 
     console.log("TOTAL WORDS: " + count);
@@ -1947,11 +1941,6 @@ Word.count({}, function(err,count){
     console.error(chalkError("\n*** DB Word.count ERROR *** | " + getTimeStamp() + "\n" + err));
   }
 });
-
-
-// syn.synonyms("time").then((data) => {
-//   console.log(data);
-// });
 
 
 module.exports = {

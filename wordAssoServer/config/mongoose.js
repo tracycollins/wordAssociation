@@ -4,9 +4,11 @@ var config = require('./config'),
 module.exports = function() {
 	var wordAssoDb = mongoose.connect(config.wordAssoDb);
 
-	require('../app/models/admin.server.model');  // should probably move admin to separate database
-	require('../app/models/client.server.model');  // should probably move client to separate database
-	require('../app/models/word.server.model');  // should probably move client to separate database
+	require('../app/models/admin.server.model');  
+	require('../app/models/client.server.model');  
+	require('../app/models/user.server.model');  
+	require('../app/models/session.server.model');  
+	require('../app/models/word.server.model');  
 
 	return wordAssoDb;
 };

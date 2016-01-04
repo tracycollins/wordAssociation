@@ -27,7 +27,7 @@ exports.getRandomWord = function(callback){
 			callback(err, null);
 		}
 		else {
-			console.log("RANDOM WORD\n" + JSON.stringify(randomWordArray, null, 3));
+			debug("RANDOM WORD\n" + JSON.stringify(randomWordArray, null, 3));
 			callback(null, randomWordArray[0]);
 		}
 	});

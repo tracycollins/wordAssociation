@@ -758,11 +758,8 @@ function createClientSocket (socket){
               if (err){
                 console.log(chalkError("bhtSearchWord ERROR: " + err));
               }
-              else if (bhtResponseObj.bhtFound){
-                console.log("bht: FOUND\n" + JSON.stringify(bhtResponseObj, null, 3));
-              }
-              else {
-                console.log("bht: NOT FOUND: " + bhtResponseObj.nodeId);
+               else {
+                debug("BHT FOUND: " + bhtResponseObj.bhtFound);
               }
 
               wordHashMap.set(bhtResponseObj.nodeId, bhtResponseObj);

@@ -846,10 +846,6 @@ var mouseHoverFlag = false ;
 var mouseHoverNodeId ;
 var mouse = {} ;
 
-function computeInitialPosition() {
-  return { x: nodeInitialX + (0.1 * Math.random() * nodeInitialX), y: nodeInitialY + (0.1 * Math.random() * nodeInitialY) };
-}
-
 //================================
 // GET NODES FROM QUEUE
 //================================
@@ -903,6 +899,11 @@ var createNode = function (wordObject, callback) {
     wordObject.lastSeen = dateNow;
     wordObject.ageUpdated = dateNow;
     wordObject.text = wordObject.nodeId ;
+
+    var initialPosition = computeInitialPosition();
+
+    wordObject.x = initialPosition.x ;
+    wordObject.y = initialPosition.y ;
 
     nodeHashMap[wordObject.nodeId] = wordObject;
     nodes.push(wordObject);

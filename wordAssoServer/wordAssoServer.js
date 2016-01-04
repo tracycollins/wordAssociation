@@ -294,7 +294,6 @@ function updateSessionViews(sessionUpdateObj){
       io.to(sId).emit("SESSION_UPDATE", sessionUpdateObj);
     }
   });
-
 }
 
 function sendPromptWord(socketId, promptWord){
@@ -505,11 +504,11 @@ function bhtSearchWord (wordObj, callback){
   wordObj.bhtFound = false ;
 
   var bhtHost = "words.bighugelabs.com";
-  var path = "/api/2/" + bigHugeLabsApiKey + "/" + wordObj.nodeId + "/json";
+  var path = "/api/2/" + bigHugeLabsApiKey + "/" + encodeURI(wordObj.nodeId) + "/json";
 
   http.get({host: bhtHost, path: path}, function(response) {
 
-    debug("bhtSearchWord: " + bhtHost + "/" + path);
+    console.log("bhtSearchWord: " + bhtHost + "/" + path);
     
     var body = '';
 
@@ -791,7 +790,6 @@ function createClientSocket (socket){
                   updateSessionViews(sessionUpdateObj);
                 }
               });
-
             });
           }
 

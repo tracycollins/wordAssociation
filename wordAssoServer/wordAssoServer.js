@@ -508,7 +508,7 @@ function bhtSearchWord (wordObj, callback){
 
   http.get({host: bhtHost, path: path}, function(response) {
 
-    console.log("bhtSearchWord: " + bhtHost + "/" + path);
+    debug("bhtSearchWord: " + bhtHost + "/" + path);
     
     var body = '';
 
@@ -529,7 +529,7 @@ function bhtSearchWord (wordObj, callback){
         callback(null, wordObj);
       }
       else {
-        console.log("bhtSearchWord: \'" + wordObj.nodeId + "\' NOT FOUND");
+        debug("bhtSearchWord: \'" + wordObj.nodeId + "\' NOT FOUND");
         callback(null, wordObj);
       }
 
@@ -841,7 +841,7 @@ function createClientSocket (socket){
                 console.log(chalkError("bhtSearchWord ERROR: " + err));
               }
               else if (bhtResponseObj.bhtFound){
-                console.log("bht: FOUND\n" + JSON.stringify(bhtResponseObj, null, 3));
+                console.log("bht: FOUND: " + bhtResponseObj.nodeId);
               }
               else {
                 console.log("bht: NOT FOUND: " + bhtResponseObj.nodeId);

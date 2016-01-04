@@ -1153,8 +1153,8 @@ var updateNodeLabels = function (newNodesFlag, deadNodesFlag, callback) {
       return fontSizeScale(nodeHashMap[d.nodeId].mentions + 1) + "vmin"; 
     })
     .style('opacity', function(d){
-      // return (nodeMaxAge - d.age) / nodeMaxAge ;
-      return 1 ;
+      return (nodeMaxAge - d.age) / nodeMaxAge ;
+      // return 1 ;
     });
 
   nodeLabels.enter()
@@ -1172,7 +1172,9 @@ var updateNodeLabels = function (newNodesFlag, deadNodesFlag, callback) {
     .style("font-size", function(d) { return fontSizeScale(nodeHashMap[d.nodeId].mentions + 1) + "vmin"; })
     .transition()
       .duration(defaultFadeDuration)      
-      .style("opacity", function(d) { return 0.7; });
+      .style("opacity", function(d) { 
+        return (nodeMaxAge - d.age) / nodeMaxAge ;
+      });
 
   nodeLabels.exit()
     .transition()
@@ -1191,9 +1193,9 @@ function ageNodesCheckQueue() {
       getNodeFromQueue,
       ageNodes,
       updateNodes,
+      updateLinks,
       updateNodeCircles,
-      updateNodeLabels,
-      updateLinks
+      updateNodeLabels
     ], 
     
     function(err, newNodesFlag, deadNodesFlag){

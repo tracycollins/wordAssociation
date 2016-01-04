@@ -3,16 +3,15 @@ var mongoose = require('mongoose'),
 	Schema = mongoose.Schema;
 
 var WordSchema = new Schema({
-	wordId: { 
+	nodeId: { 
 		type: String,
-		trim: true,
 		unique: true
 	},
 	createdAt: { 
 		type: Date
 	},
 	lastSeen: {   
-		type: String
+		type: Number // using Date makes aging nodes more complex
 	},
 	mentions: {
 		type: Number,

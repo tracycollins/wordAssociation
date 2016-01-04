@@ -24,14 +24,14 @@ menu, nav, section {
 }
 
 body {
-/*    font-family: "Exo 2", "Helvetica Neue", Helvetica, sans-serif, monospace;
+    font-family: "Exo 2", "Helvetica Neue", Helvetica, sans-serif, monospace;
     font-weight: 100;
     font-size: 100%;
     line-height: 100%;
     background: #000000;
     color: #000000;
     margin: 1%;
-*/    /*margin-top: 10px;*/
+    /*margin-top: 10px;*/
 }
 
 
@@ -82,6 +82,32 @@ h1, h2, h3, h4, h5, h6 {
     margin-bottom: .2em;
 }
 
+p {
+    margin-bottom: .2em;
+}
+
+.container {
+    width: 80%;
+    max-width: 1200px;
+    margin: 0 auto;
+    margin-top: 10px;
+}
+
+@media all and (max-width: 500px) {
+    h2 {
+        padding-left: 10px;
+        text-align: center;
+    }
+
+    .container {
+        width: 100%;
+    }
+}
+
+#graphic {
+    margin: 0 auto;
+}
+
 a {
     color: #819090;
 }
@@ -90,5 +116,15 @@ hr {
     border: 0;
     height: 1px;
     background: #aaaaaa;
+}
+
+.admin, .tooltip {
+    margin: 5%;
+    font-family: "Lucida Console", Monaco, monospace;
+    font-weight: 100;
+    font-size: 1.5em;
+    line-height: 1.5em;
+    background: #000000;
+    color: #aaaaaa;
 }
 

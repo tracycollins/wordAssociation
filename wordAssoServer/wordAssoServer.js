@@ -593,8 +593,7 @@ function createClientSocket (socket){
   // adding also after enqueue; adding early to so add will show up earlier
   clientSocketIdHashMap.set(socketId, clientObj);  
 
-  if (referer == 'SESSION') {
-
+  if (referer == 'SESSIONVIEW') {
   }
   else {
     var sessionObj = {

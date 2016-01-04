@@ -56,3 +56,33 @@ output[type="text"]{
 .fullscreenButton:focus {
   outline:0;
 }
+
+
+.statsToggleButton {
+  background-color:black;
+  border:1px solid gray;
+  cursor:pointer;
+  color:#888888;
+}
+.statsToggleButton:hover {
+  color:white;
+  background-color:gray;
+}
+.statsToggleButton:focus {
+  outline:0;
+}
+
+
+.infoButton {
+  background-color:black;
+  border:1px solid gray;
+  cursor:pointer;
+  color:#888888;
+}
+.infoButton:hover {
+  color:white;
+  background-color:gray;
+}
+.infoButton:focus {
+  outline:0;
+}

@@ -43,7 +43,7 @@ function getUrlVariables(config){
 function wordInScript(){
   var wordInValue = document.getElementById("wordInText").value ;
   console.log("TX WORD: " + wordInValue);
-  socket.emit("WORD_IN", wordInValue);
+  socket.emit("RESPONSE_WORD", wordInValue);
   var wordInText = document.getElementById("wordInText");
   console.log("wordInText: " + wordInText.value);
   wordInText.value = "";
@@ -87,16 +87,16 @@ function addWordOut() {
   wordOutDiv.appendChild(element);
 }
 
-function updateServerWordOut(srvrObj){
-  if (debug) console.log("updateServerWordOut\n" + JSON.stringify(srvrObj, null, 3));
+function updateServerPromptWord(srvrObj){
+  if (debug) console.log("updateServerPromptWord\n" + JSON.stringify(srvrObj, null, 3));
   var wordOutText = document.getElementById("wordOutText");
-  wordOutText.innerHTML = srvrObj.response;
+  wordOutText.innerHTML = srvrObj.promptWord;
 }
 
-socket.on("WORD_OUT", function(serverResponseObj){
-  if (debug) console.log("RX WORD_OUT: " + JSON.stringify(serverResponseObj, null, 3));
-  console.log("RX WORD_OUT: " + serverResponseObj.response);
-  updateServerWordOut(serverResponseObj);
+socket.on("PROMPT_WORD", function(serverResponseObj){
+  if (debug) console.log("RX PROMPT_WORD: " + JSON.stringify(serverResponseObj, null, 3));
+  console.log("RX PROMPT_WORD: " + serverResponseObj.promptWord);
+  updateServerPromptWord(serverResponseObj);
 });
 
 socket.on('connect', function(){

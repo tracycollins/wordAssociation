@@ -27,7 +27,7 @@ var pageLoadedTimeIntervalFlag = true;
 
 var DEFAULT_MAX_AGE = 60000.0 ;
 
-var DEFAULT_CHARGE = -5000;
+var DEFAULT_CHARGE = -10000;
 var DEFAULT_GRAVITY = 0.1 ;
 var DEFAULT_LINK_STRENGTH = 0.1 ;
 var DEFAULT_FRICTION = 0.1;
@@ -146,7 +146,7 @@ function resetMouseMoveTimer() {
   mouseMoveTimeout = setTimeout(function(){
     d3.select("body").style("cursor", "none");
     if (!showStatsFlag && !pageLoadedTimeIntervalFlag){
-      displayInfoOverlay(1e-6);
+      displayInfoOverlay(1);
     }
     displayControlOverlay(1e-6);
     mouseMovingFlag = false ;
@@ -432,9 +432,9 @@ var mouseMoveTimeoutInterval = 1000; // 1 second
 var mouseMoveTimeout = setTimeout(function(){
   d3.select("body").style("cursor", "none");
   if (!showStatsFlag && !pageLoadedTimeIntervalFlag){
-    displayInfoOverlay(1e-6);
+    displayInfoOverlay(1);
   }
-  displayControlOverlay(1e-6);
+  displayControlOverlay(1);
   mouseMovingFlag = false ;
 }, mouseMoveTimeoutInterval);
 
@@ -463,10 +463,10 @@ function displayInfoOverlay(opacity) {
 }
 
 var adjustedAgeRateScale = d3.scale.pow().domain([1,500]).range([1.0,100.0]);  // number of nodes > 100 ; 
-var fontSizeScale =      d3.scale.log().domain([1,10000000000]).range([1.2,2.4]);
+var fontSizeScale =      d3.scale.log().domain([1,1000000]).range([2,10]);
 
-var defaultRadiusScale = d3.scale.log().domain([1,10000000000]).range([20,40]);
-var defaultChargeScale =  d3.scale.log().domain([1,100000000]).range([-1000,-1500]);
+var defaultRadiusScale = d3.scale.log().domain([1,1000000]).range([20,100]);
+var defaultChargeScale =  d3.scale.log().domain([1,1000000]).range([-1000,-1500]);
 
 var nodeHashMap = {};
 var reqNodeHashMap = {};
@@ -688,7 +688,7 @@ window.onload = function () {
 
   setTimeout(function(){
     pageLoadedTimeIntervalFlag = false ;
-    displayInfoOverlay(1e-6);
+    displayInfoOverlay(1);
   }, 5000);
 };
 
@@ -709,7 +709,7 @@ d3.select('#statsToggleButton').on("click", function() {  // STATS BUTTON
   }
   else {
     d3.select("#statsToggleButton").text("show stats");
-    displayInfoOverlay(0);
+    displayInfoOverlay(1);
   }
 });
 
@@ -718,11 +718,9 @@ socket.on("HEARTBEAT", function(heartbeat){
 
   var overlay = d3.select("#adminOverlay0").select("text")
     .text( 
-      heartbeat["tweetsReceived"] + " TWEETS"
-      + " | " + heartbeat["igMediaReceived"] + " IGs"
-      + " | " + heartbeat["tweetsPerMin"] + " TPM"
-      + " | " + heartbeat["maxTweetsPerMin"] + " MAX TPM"
-      + " | " + "MAX TPM TIME: " + getTimeStamp(heartbeat["maxTweetsPerMinTime"])
+      heartbeat["totalSessions"] + " TOTAL SESSIONS"
+      + " | " + heartbeat["totalWords"] + " TOTAL WORDS"
+      + " | " + heartbeat["totalUsers"] + " TOTAL USERS"
       );
 
   var overlay = d3.select("#adminOverlay1").select("text")
@@ -780,6 +778,8 @@ socket.on("CONFIG_CHANGE", function(rxConfig){
 
 
 socket.on("SESSION_UPDATE", function(sessionObject){
+
+  console.log(getTimeStamp() + ">>> RX SESSION_UPDATE\n" + JSON.stringify(sessionObject, null, 3)) ;
 
   if (!windowVisible) {
     return ;
@@ -861,58 +861,52 @@ function computeInitialPosition() {
 var nodesLength, nodeIndex = 0, chainIndex = 0 ;
 var tempMentions ;
 
-var createNodes = function (sessionObject, callback) {
+var createNode = function (wordObject, callback) {
 
+  var dateNow = Date.now();
   var err = null ;
-
 
   force.stop();
 
+  console.log("createNode | " + wordObject.nodeId);
 
-  // sessionObject.wordChain.forEach(function(word){
-  for (chainIndex = 0; chainIndex < sessionObject.wordChain.length; chainIndex++){
+  if (wordObject.nodeId in nodeHashMap) {
 
-    console.log("createNodes | " + sessionObject.wordChain[chainIndex]);
+    var currentNodeObject = nodeHashMap[wordObject.nodeId];
 
-    var nodeObject = {
-      nodeId: sessionObject.wordChain[chainIndex],
-      text: sessionObject.wordChain[chainIndex],
-      mentions : 1, 
-      age : 0,
-      ageUpdated : Date.now(),
-      lastSeen : Date.now(),
-      x: 200,
-      y: 200
-    } ;
+    currentNodeObject.age = 0 ;
+    currentNodeObject.lastSeen = dateNow;
+    currentNodeObject.ageUpdated = dateNow;
+    currentNodeObject.mentions = wordObject.mentions ;
+    currentNodeObject.text = wordObject.nodeId ;
 
-    if (nodeObject.nodeId in nodeHashMap) {
+    console.log("... FOUND NODE IN HASH MAP | " + nodes.length + " NODES\n" + JSON.stringify(currentNodeObject, null, 3));
+    nodesLength = nodes.length ;
 
-      console.log("... FOUND NODE IN HASH MAP: NODES: " + nodes.length + " | " + nodeObject.nodeId + " | MEN: " + nodeObject.mentions);
-      nodesLength = nodes.length ;
+    for (nodeIndex = 0; nodeIndex < nodesLength; nodeIndex++){
 
-      for (nodeIndex = 0; nodeIndex < nodesLength; nodeIndex++){
-        if (nodes[nodeIndex].nodeId == nodeObject.nodeId) { 
-          tempMentions = nodes[nodeIndex].mentions;
-          nodes[nodeIndex].mentions = nodeObject.mentions > tempMentions ? nodeObject.mentions : tempMentions ;
+      if (nodes[nodeIndex].nodeId == currentNodeObject.nodeId) { 
 
-          nodes[nodeIndex].lastSeen = nodeObject.lastSeen ;
-          nodes[nodeIndex].age = nodeObject.age ;
-          nodes[nodeIndex].ageUpdated = nodeObject.ageUpdated ;
+        tempMentions = nodes[nodeIndex].mentions;
+        nodes[nodeIndex].mentions = currentNodeObject.mentions > tempMentions ? currentNodeObject.mentions : tempMentions ;
+        nodes[nodeIndex].lastSeen = currentNodeObject.lastSeen ;
+        nodes[nodeIndex].age = dateNow - currentNodeObject.lastSeen ;
+        nodes[nodeIndex].ageUpdated = currentNodeObject.ageUpdated ;
 
-          break;
-        }
+        break;
       }
     }
-    else {
+  }
+  else {
 
-      // newNodesFlag = true ;
-      // force.stop();
+    wordObject.age = 0 ;
+    wordObject.lastSeen = dateNow;
+    wordObject.ageUpdated = dateNow;
+    wordObject.text = wordObject.nodeId ;
 
-      nodeHashMap[nodeObject.nodeId] = nodeObject;
-      nodes.push(nodeObject);
-      console.log(">>> ADDED NODE TO HASH MAP: NODES: " + nodes.length + " | " + nodeObject.nodeId + " | MEN: " + nodeObject.mentions);
-    }
-
+    nodeHashMap[wordObject.nodeId] = wordObject;
+    nodes.push(wordObject);
+    console.log(">>> ADDED NODE TO HASH MAP | " + nodes.length + " NODES\n" + JSON.stringify(wordObject, null, 3));
   }
 
   callback (err);
@@ -923,18 +917,12 @@ var createLinks = function (sessionObject, callback) {
   var err = null ;
   newLinksFlag = false ;
 
-  links = [];
+  console.log("createLinks | " + sessionObject.sourceWord.nodeId + " --> " + sessionObject.targetWord.nodeId);
 
-  for (chainIndex = 0; chainIndex < sessionObject.wordChain.length-1; chainIndex++){
-
-    console.log("createLinks | " + sessionObject.wordChain[chainIndex] + " --> " + sessionObject.wordChain[chainIndex+1]);
-
-    links.push({
-      source: nodeHashMap[sessionObject.wordChain[chainIndex]], 
-      target: nodeHashMap[sessionObject.wordChain[chainIndex+1]], 
-    });
-
-  }
+  links.push({
+    source: nodeHashMap[sessionObject.sourceWord.nodeId], 
+    target: nodeHashMap[sessionObject.targetWord.nodeId], 
+  });
 
   callback (err, newLinksFlag);
 }
@@ -962,10 +950,10 @@ var getNodeFromQueue = function (callback) {
     sessionObject.age = 0;
     sessionObject.ageUpdated = dateNow;
 
-    createNodes(sessionObject, function(){
-
-      createLinks(sessionObject, function(){
-
+    createNode(sessionObject.sourceWord, function(){
+      createNode(sessionObject.targetWord, function(){
+        createLinks(sessionObject, function(){
+        });
       });
     });
 
@@ -998,14 +986,14 @@ var ageNodes = function (newNodesFlag, deadNodesFlag, callback){
 
     currentNodeObject = nodes[ageNodesIndex];
 
-    age = currentNodeObject.age + (ageRate * (dateNow - currentNodeObject.ageUpdated));
+    age = parseInt(currentNodeObject.age + (ageRate * (dateNow - currentNodeObject.ageUpdated)));
 
     if (age > nodeMaxAge) {
 
       deadNodesFlag = true ;
       force.stop();
 
-      console.log("XXX DEAD NODE: " + nodeHashMap[currentNodeObject.nodeId]);
+      console.log("XXX DEAD NODE: " + nodeHashMap[currentNodeObject.nodeId].nodeId);
       delete nodeHashMap[currentNodeObject.nodeId];
 
       var ageLinksLength = links.length-1;
@@ -1025,6 +1013,7 @@ var ageNodes = function (newNodesFlag, deadNodesFlag, callback){
       nodes.splice(ageNodesIndex, 1); 
     }
     else {
+      // console.log("=== AGE NODE: " + nodeHashMap[currentNodeObject.nodeId].age + " AGE: " + age);
       currentNodeObject.ageUpdated = dateNow;
       currentNodeObject.age = age;
 
@@ -1071,7 +1060,7 @@ var updateLinks = function (newNodesFlag, deadNodesFlag, callback) {
 
   link
     .style('opacity', function(d){
-    return 0.2*(nodeMaxAge - d.source.age) / nodeMaxAge ;
+    return (nodeMaxAge - d.source.age) / nodeMaxAge ;
   });
 
   link.enter()
@@ -1083,7 +1072,7 @@ var updateLinks = function (newNodesFlag, deadNodesFlag, callback) {
     .transition()
       .duration(defaultFadeDuration)      
       .style('opacity', function(d){
-        return 0.2*(nodeMaxAge - d.source.age) / nodeMaxAge ;
+        return (nodeMaxAge - d.source.age) / nodeMaxAge ;
       });
 
   link
@@ -1110,8 +1099,8 @@ var updateNodeCircles = function (newNodesFlag, deadNodesFlag, callback) {
     .attr("r", function(d) { return defaultRadiusScale(d.mentions + 1); })
     .style("visibility", "visible") 
     .style('opacity', function(d){
-      // return (nodeMaxAge - d.age) / nodeMaxAge ;
-      return 1.0 ;
+      return (nodeMaxAge - d.age) / nodeMaxAge ;
+      // return 1.0 ;
     });
 
   nodeCircles
@@ -1141,8 +1130,8 @@ var updateNodeCircles = function (newNodesFlag, deadNodesFlag, callback) {
     .transition()
       .duration(defaultFadeDuration)      
       .style('opacity', function(d){
-        // return (nodeMaxAge - d.age) / nodeMaxAge ;
-      return 1.0 ;
+        return (nodeMaxAge - d.age) / nodeMaxAge ;
+      // return 1.0 ;
       });
 
   nodeCircles
@@ -1159,7 +1148,7 @@ var updateNodeLabels = function (newNodesFlag, deadNodesFlag, callback) {
   
   nodeLabels = nodeLabelSvgGroup.selectAll(".nodeLabel").data(force.nodes(), 
     function(d) { return d.nodeId; })
-    .text(function(d) { return d.text ; })
+    .text(function(d) { return d.text; })
     .style("font-size", function(d) { 
       return fontSizeScale(nodeHashMap[d.nodeId].mentions + 1) + "vmin"; 
     })
@@ -1193,7 +1182,6 @@ var updateNodeLabels = function (newNodesFlag, deadNodesFlag, callback) {
 
   callback(null, newNodesFlag, deadNodesFlag);
 }
-
 
 function ageNodesCheckQueue() {
 

@@ -268,6 +268,21 @@ function dnsReverseLookup(ip, callback) {
   }
 }
 
+function updateSessionViews(socketId){
+  var currentSession = sessionHashMap.get(socketId);
+
+  clientSocketIdHashMap.forEach(function(clientObj, sId) {
+    if (clientObj.referer == 'SESSIONVIEW') {
+      console.log(">>> TX SESSION"
+        + " | " + sId 
+        + "\n" + JSON.stringify(currentSession, null, 3)
+      );
+      io.to(sId).emit("SESSION_UPDATE", currentSession);
+    }
+  });
+
+}
+
 function sendWordResponse(socketId, wordIn){
   var srvrObj = {
     "timeStamp" : getTimeStamp(),
@@ -284,7 +299,6 @@ function readSocketQueue(){
 
     socketObj = socketQueue.dequeue();
 
-
     debug("\n%%% DEQUEUE socketQueue: socketObj: " + socketObj.type 
       + " | SOCKET ID: " + socketObj.socketId 
       + " | IP: " + socketObj.ip 
@@ -294,7 +308,7 @@ function readSocketQueue(){
       + " | DISCONNECT TIME: " + socketObj.disconnectTime
       + "\n"
     );
-    // debug(util.inspect(socketObj, {showHidden: false, depth: 1}));
+
     if (typeof socketObj.socket !== 'undefined'){
       debug("... CONNECT STATE: " + socketObj.socket.connected + " | CLIENT OBJ CONN: " + socketObj.connected);
     }
@@ -304,7 +318,6 @@ function readSocketQueue(){
     else{
       debug(chalkDisconnect("... DISCONNECT DE-Q : CLIENT OBJ CONN: " + socketObj.socketId));      
     }
-
 
     if (socketObj.connected) {
 
@@ -366,6 +379,20 @@ function readSocketQueue(){
               + "\n" + err
             ));
           }
+          else if (socketObj.referer == 'SESSION') {
+            socketObj.connected = true ;
+            socketObj.connectTime = currentTime ;
+            socketObj.sessions = [] ;
+            io.of('/admin').emit('CLIENT SESSION', JSON.stringify({connected: true, clientObj: socketObj}));
+
+            console.log(chalkTest("CL CONNECT SESSION VIEW "
+              + getTimeStamp() 
+              + " | S: " + socketObj.socketId 
+              + " | I: " + socketObj.ip 
+              + " | D: " + socketObj.domain
+              + " | R: " + socketObj.referer
+            ));
+          }
           else if (socketObj.referer == 'TEST') {
             socketObj.connected = true ;
             socketObj.connectTime = currentTime ;
@@ -381,7 +408,7 @@ function readSocketQueue(){
               + " | R: " + socketObj.referer
             ));
           }
-          else{
+          else {
             socketObj.connected = true ;
             socketObj.connectTime = currentTime ;
             socketObj.sessions = [] ;
@@ -500,12 +527,26 @@ function createClientSocket (socket){
       // not a client connection. quit
       return 1;   
     }
+    else if (socket.handshake.headers.referer.indexOf('session') >= 0) {
+      referer = 'SESSIONVIEW';
+      console.log("@@@ SESSION VIEW CLIENT CONNECTED: " + getTimeStamp() 
+        + " | " + socket.id 
+        + " | REFERER: " + socket.handshake.headers.referer
+        ); 
+    }
     else if (socket.handshake.headers.referer.indexOf('test') >= 0) {
       referer = 'TEST';
       debug("@@@ TEST CLIENT CONNECTED: " + getTimeStamp() 
         + " | " + socket.id 
         + " | REFERER: " + socket.handshake.headers.referer
         ); 
+    }
+    else {
+      console.log("@@@ CONNECT: " + getTimeStamp() 
+        + " | " + socket.id 
+        + " | REFERER: " + socket.handshake.headers.referer
+        + " | NAMESPACE: " + socket.nsp.name
+      ); 
     }
   }
   else {
@@ -552,16 +593,21 @@ function createClientSocket (socket){
   // adding also after enqueue; adding early to so add will show up earlier
   clientSocketIdHashMap.set(socketId, clientObj);  
 
-  var sessionObj = {
-    sessionId: socketId,
-    userId: clientIp + "_" + socketId,
-    createAt: Date.now(),
-    wordChain: [promptArray[0]]
+  if (referer == 'SESSION') {
+
   }
+  else {
+    var sessionObj = {
+      sessionId: socketId,
+      userId: clientIp + "_" + socketId,
+      createAt: Date.now(),
+      wordChain: [promptArray[0]]
+    }
 
-  sessionHashMap.set(sessionObj.sessionId, sessionObj);  
+    sessionHashMap.set(sessionObj.sessionId, sessionObj);  
 
-  console.log("CREATED sessionObj\n" + JSON.stringify(sessionObj, null, 3));
+    console.log("CREATED sessionObj\n" + JSON.stringify(sessionObj, null, 3));
+  }
 
   socketQueue.enqueue(clientObj);
 
@@ -610,7 +656,6 @@ function createClientSocket (socket){
   socket.on("WORD_IN", function(wordInValue){
 
     var socketId = socket.id;
-
     var currentSession = sessionHashMap.get(socketId);
 
     console.log(chalkGreen("SOCKET " + socketId + " | WORD_IN: " + wordInValue.toLowerCase()));
@@ -639,10 +684,10 @@ function createClientSocket (socket){
         var dataIndex = randomIntFromInterval(0,wordIn.noun.syn.length-1);
         console.log("TX RESPONSE: " + wordIn.noun.syn[dataIndex]);
         currentSession.wordChain.push(wordIn.noun.syn[dataIndex]) ;
-    console.log("WORD CHAIN"
-      + " | " + socketId 
-      + " | " + currentSession.wordChain
-    );
+        console.log("WORD CHAIN"
+          + " | " + socketId 
+          + " | " + currentSession.wordChain
+        );
         sendWordResponse(socketId, wordIn.noun.syn[dataIndex]);
       }
       words.findOneWord(wordIn, false, function(err, word){
@@ -709,10 +754,10 @@ function createClientSocket (socket){
                         var dataIndex = randomIntFromInterval(0,word2.noun.syn.length-1);
                         console.log("TX RESPONSE: " + word2.noun.syn[dataIndex]);
                         currentSession.wordChain.push(word2.noun.syn[dataIndex]) ;
-    console.log("WORD CHAIN"
-      + " | " + socketId 
-      + " | " + currentSession.wordChain
-    );
+                        console.log("WORD CHAIN"
+                          + " | " + socketId 
+                          + " | " + currentSession.wordChain
+                        );
                         sendWordResponse(socketId, word2.noun.syn[dataIndex]);
                       }
                     }
@@ -737,25 +782,19 @@ function createClientSocket (socket){
             var dataIndex = randomIntFromInterval(0,word.noun.syn.length-1);
             console.log("TX RESPONSE: " + word.noun.syn[dataIndex]);
             currentSession.wordChain.push(word.noun.syn[dataIndex]) ;
-    console.log("WORD CHAIN"
-      + " | " + socketId 
-      + " | " + currentSession.wordChain
-    );
+            console.log("WORD CHAIN"
+              + " | " + socketId 
+              + " | " + currentSession.wordChain
+            );
             sendWordResponse(socketId, word.noun.syn[dataIndex]);
           }
         }
       })
     }
 
+    updateSessionViews(socketId);
 
-    // syn.synonyms(wordInValue).then((data) => {
-    //   console.log(data);
-    //   var dataIndex = randomIntFromInterval(0,data.length-1);
-    //   console.log("TX RESPONSE: " + data[dataIndex]);
-    //   sendWordResponse(data[dataIndex]);
-    // });
   });
-
 }
 
 function adminConnectDb (adminObj, callback) {
@@ -1859,6 +1898,16 @@ function initAppRouting(){
     return;
   });
 
+  app.get('/session', function(req, res){
+    console.log("LOADING FILE: /session.html");
+    res.sendFile(__dirname + '/session.html');
+  });
+
+  app.get('/js/libs/sessionView.js', function(req, res){
+    console.log("LOADING FILE: sessionView.js");
+    res.sendFile(__dirname + '/js/libs/sessionView.js');
+  });
+
   app.get('/admin/admin.html', function(req, res){
     console.log("LOADING PAGE: /admin/admin.html");
     res.sendFile(__dirname + '/admin/admin.html');
@@ -1903,6 +1952,16 @@ function initAppRouting(){
     debug("LOADING FILE: threecee.pem");
     res.sendFile(__dirname + '/threecee.pem');
     return;
+  });
+
+  app.get('/favicon.ico', function(req, res){
+    debug("LOADING PAGE: /favicon.ico");
+    res.sendFile(__dirname + '/favicon.png');
+  });
+
+  app.get('/favicon.png', function(req, res){
+    debug("LOADING PAGE: /favicon.png");
+    res.sendFile(__dirname + '/favicon.png');
   });
 
   // app.get('/*', function(req, res){

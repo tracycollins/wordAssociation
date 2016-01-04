@@ -711,7 +711,7 @@ function createClientSocket (socket){
   });
 
   socket.on("CLIENT_READY", function(){
-    console.log("RX CLIENT_READY | " + socket.id);
+    console.log("*** RX CLIENT_READY | " + socket.id);
 
     sendPromptWord(socket.id, promptArray[0]);
 

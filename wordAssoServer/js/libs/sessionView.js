@@ -491,8 +491,8 @@ var d3LayoutHeight = height * D3_LAYOUT_HEIGHT_RATIO ;
 var svgForceLayoutAreaWidth = d3LayoutWidth * FORCE_LAYOUT_WIDTH_RATIO ;
 var svgForceLayoutAreaHeight = d3LayoutHeight * FORCE_LAYOUT_HEIGHT_RATIO ;
 
-var INITIAL_X_RATIO = 0.2;
-var INITIAL_Y_RATIO = 0.4;
+var INITIAL_X_RATIO = 0.5;
+var INITIAL_Y_RATIO = 0.5;
 
 var nodeInitialX = INITIAL_X_RATIO * svgForceLayoutAreaWidth ;
 var nodeInitialY = INITIAL_Y_RATIO * svgForceLayoutAreaHeight ;

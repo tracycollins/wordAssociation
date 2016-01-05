@@ -34,6 +34,9 @@ var totalSessions = 0;
 var totalUsers = 0;
 var totalWords = 0;
 
+var bhtOverLimitTime = 0;  // will = getTimeNow() on BHT overlimit
+
+
 var currentTimeInteval = setInterval(function () {
   var d = new Date();
   currentTime = d.getTime();
@@ -501,6 +504,11 @@ function findClientsSocket(namespace) {
 
 function bhtSearchWord (wordObj, callback){
 
+  if (bhtOverLimitTime > 0) {
+    debug(chalkError("bhtSearchWord: *** OVER LIMIT ***"));
+    callback({error: 500, timeStamp: bhtOverLimitTime}, wordObj);
+  }
+
   wordObj.bhtFound = false ;
 
   var bhtHost = "words.bighugelabs.com";
@@ -512,34 +520,44 @@ function bhtSearchWord (wordObj, callback){
     
     var body = '';
 
-    response.on('data', function(d) {
-      body += d;
-    });
+    if (response.statusCode == 404) {
+      debug("bhtSearchWord: \'" + wordObj.nodeId + "\' NOT FOUND");
+      callback(null, wordObj);
+    }
+    else if (response.statusCode == 500) {
+      console.log(chalkError("bhtSearchWord: *** OVER LIMIT ***"));
+      bhtOverLimitTime = getTimeNow();
+      callback({error: 500, timeStamp: bhtOverLimitTime}, wordObj);
+    }
+    else {
+      response.on('data', function(d) {
+        body += d;
+      });
 
-    response.on('end', function() {
-    
-      if (body != ''){
-        var parsed = JSON.parse(body);
-        debug("bhtSearchWord: " + JSON.stringify(parsed, null, 3));
-        if (typeof parsed.noun !== null) wordObj.noun = parsed.noun ;
-        if (typeof parsed.verb !== null) wordObj.verb = parsed.verb ;
-        if (typeof parsed.adjective !== null) wordObj.adjective = parsed.adjective ;
-        if (typeof parsed.adverb !== null) wordObj.adverb = parsed.adverb ;
-        wordObj.bhtFound = true ;
-        callback(null, wordObj);
-      }
-      else {
-        debug("bhtSearchWord: \'" + wordObj.nodeId + "\' NOT FOUND");
-        callback(null, wordObj);
-      }
+      response.on('end', function() {
+      
+        if (body != ''){
+          var parsed = JSON.parse(body);
+          debug("bhtSearchWord: " + JSON.stringify(parsed, null, 3));
+          if (typeof parsed.noun !== null) wordObj.noun = parsed.noun ;
+          if (typeof parsed.verb !== null) wordObj.verb = parsed.verb ;
+          if (typeof parsed.adjective !== null) wordObj.adjective = parsed.adjective ;
+          if (typeof parsed.adverb !== null) wordObj.adverb = parsed.adverb ;
+          wordObj.bhtFound = true ;
+          callback(null, wordObj);
+        }
+        else {
+          debug("bhtSearchWord: \'" + wordObj.nodeId + "\' NOT FOUND");
+          callback(null, wordObj);
+        }
 
-    });
+      });
 
-    response.on('error', function(e) {
-      console.log(chalkError("bhtSearchWord ERROR " + JSON.stringify(e, null, 3)));
-      callback(e, wordObj);
-    });
-
+      response.on('error', function(e) {
+        console.log(chalkError("bhtSearchWord ERROR " + JSON.stringify(e, null, 3)));
+        callback(e, wordObj);
+      });
+    }
   });
 }
 
@@ -754,6 +772,7 @@ function createClientSocket (socket){
           console.log(">-- RESPONSE WORD UPDATED: " + word.nodeId + " | MENTIONS: " + word.mentions );
 
           if (typeof word.bhtFound === 'undefined') {  // not yet bht searched
+
             bhtSearchWord(word, function(err, bhtResponseObj){
               if (err){
                 console.log(chalkError("bhtSearchWord ERROR: " + err));
@@ -1314,7 +1333,7 @@ function initializeConfiguration() {
           console.log(chalkError("bhtSearchWord ERROR: " + err));
         }
         if (bhtResponseObj){
-          console.log("bht: FOUND\n" + JSON.stringify(bhtResponseObj, null, 3));
+          debug("bht: FOUND\n" + JSON.stringify(bhtResponseObj, null, 3));
           words.findOneWord(promptWordObj, true, function(err, word){
             if (!err) {
               console.log("WORD IN UPDATED: " + word.nodeId + " | MENTIONS: " + word.mentions );

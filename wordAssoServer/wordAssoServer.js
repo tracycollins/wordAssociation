@@ -673,20 +673,36 @@ function createClientSocket (socket){
   }
   else {
 
-    var promptWord0 = wordHashMap.get(promptArray[0]) ;
+    words.getRandomWord(function(err, randomWord){
+      if (!err) {
 
-    var sessionObj = {
-      sessionId: socketId,
-      userId: clientIp + "_" + socketId,
-      createAt: Date.now(),
-      wordChain: []
-    }
+        wordHashMap.set(randomWord.nodeId, randomWord);
 
-    sessionObj.wordChain.push(promptWord0);
+        var sessionObj = {
+          sessionId: socketId,
+          userId: clientIp + "_" + socketId,
+          createAt: Date.now(),
+          wordChain: []
+        }
 
-    sessionHashMap.set(sessionObj.sessionId, sessionObj);  
+        sessionObj.wordChain.push(randomWord);
+        sessionHashMap.set(sessionObj.sessionId, sessionObj);  
+        console.log("CREATED sessionObj | " + sessionObj.sessionId 
+          + " | WORD CHAIN START: " + sessionObj.wordChain[0].nodeId
+        );
 
-    console.log("CREATED sessionObj | " + sessionObj.sessionId + " | WORD CHAIN START: " + sessionObj.wordChain[0].nodeId);
+      }
+    });
+
+
+    // var promptWord0 = wordHashMap.get(promptArray[0]) ;
+
+
+    // sessionObj.wordChain.push(promptWord0);
+
+    // sessionHashMap.set(sessionObj.sessionId, sessionObj);  
+
+    // console.log("CREATED sessionObj | " + sessionObj.sessionId + " | WORD CHAIN START: " + sessionObj.wordChain[0].nodeId);
   }
 
   socketQueue.enqueue(clientObj);
@@ -731,15 +747,35 @@ function createClientSocket (socket){
   socket.on("CLIENT_READY", function(){
     console.log("*** RX CLIENT_READY | " + socket.id);
 
-    sendPromptWord(socket.id, promptArray[0]);
 
-    var sessionUpdateObj = {
-      sessionId: socket.id,
-      sourceWord: wordHashMap.get(promptArray[0]),
-      targetWord: wordHashMap.get(promptArray[0])  // NEED TO DETECT ????
-    }
+    words.getRandomWord(function(err, randomWord){
+      if (!err) {
 
-    updateSessionViews(sessionUpdateObj);
+        wordHashMap.set(randomWord.nodeId, randomWord);
+
+        sendPromptWord(socket.id, randomWord.nodeId);
+
+        var sessionUpdateObj = {
+          sessionId: socketId,
+          sourceWord: randomWord,
+          targetWord: randomWord
+        };
+
+        updateSessionViews(sessionUpdateObj);
+
+      }
+    });
+
+    // sendPromptWord(socket.id, promptArray[0]);
+
+    // var sessionUpdateObj = {
+    //   sessionId: socket.id,
+    //   sourceWord: wordHashMap.get(promptArray[0]),
+    //   targetWord: wordHashMap.get(promptArray[0])  // NEED TO DETECT ????
+    // }
+
+    // updateSessionViews(sessionUpdateObj);
+
   })
 
 

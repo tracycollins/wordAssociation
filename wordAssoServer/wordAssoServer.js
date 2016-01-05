@@ -35,7 +35,7 @@ var totalUsers = 0;
 var totalWords = 0;
 
 var bhtOverLimitTime = 0;  // will = getTimeNow() on BHT overlimit
-var numberBhtRequests = 30012;
+var numberBhtRequests = 30052;
 
 var currentTimeInteval = setInterval(function () {
   var d = new Date();
@@ -827,7 +827,7 @@ function createClientSocket (socket){
 
       words.findOneWord(responseWordObj, false, function(err, word){
         if (!err) {
-          console.log(">-- RESPONSE WORD UPDATED: " + word.nodeId + " | MENTIONS: " + word.mentions );
+          console.log("--- DB UPDATE | " + word.nodeId + " | MENTIONS: " + word.mentions );
 
           if (typeof word.bhtFound === 'undefined') {  // not yet bht searched
 

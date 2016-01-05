@@ -41,7 +41,15 @@ function getUrlVariables(config){
 }
 
 function wordInScript(){
-  var wordInValue = document.getElementById("wordInText").value ;
+  var wordInValue = document.getElementById("wordInText").value.trim() ;
+
+  if (wordInValue == '') {
+    console.warn("NO INPUT WORD");
+    var wordInText = document.getElementById("wordInText");
+    console.log("wordInText: " + wordInText.value);
+    wordInText.value = "";
+    return ;
+  }
   console.log("TX WORD: " + wordInValue);
   socket.emit("RESPONSE_WORD", wordInValue);
   var wordInText = document.getElementById("wordInText");
@@ -288,7 +296,6 @@ function getTimeNow(callback) {
   callback(nd.getTime());
 }
 
-
 function toggleFullScreen() {
   if (!document.fullscreenElement &&    // alternative standard method
       !document.mozFullScreenElement 
@@ -329,7 +336,6 @@ function toggleFullScreen() {
     }
   }
 }
-
 
 // Get Browser-Specifc Prefix
 function getBrowserPrefix() {
@@ -386,7 +392,5 @@ function visibilityEvent(prefix) {
 // ==================
 
 setInterval(function() {
-
-
 }, updateInterval);
 

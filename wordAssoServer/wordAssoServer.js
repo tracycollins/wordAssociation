@@ -287,9 +287,15 @@ function updateSessionViews(sessionUpdateObj){
     }
   });
 
+  console.log(">>> TX SESSION_UPDATE"
+    + " | " + sessionUpdateObj.sourceWord.nodeId
+    + " --> " + sessionUpdateObj.targetWord.nodeId
+  );
+
+
   clientSocketIdHashMap.forEach(function(clientObj, sId) {
     if (clientObj.referer == 'SESSIONVIEW') {
-      console.log(">>> TX SESSION_UPDATE"
+      debug(">>> TX SESSION_UPDATE"
         + " | SID: " + sId 
         + " | SRC: " + sessionUpdateObj.sourceWord.nodeId
         + " | TGT: " + sessionUpdateObj.targetWord.nodeId

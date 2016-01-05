@@ -28,6 +28,12 @@ var WordSchema = new Schema({
 	},
 	adverb: {
 		type: Object
+	},
+	bhtSearched: {
+		type: Boolean
+	},
+	bhtFound: {
+		type: Boolean
 	}
 });
 

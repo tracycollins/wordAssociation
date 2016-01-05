@@ -828,6 +828,7 @@ function createClientSocket (socket){
       words.findOneWord(responseWordObj, false, function(err, word){
         if (!err) {
           console.log("--- DB UPDATE | " + word.nodeId + " | MENTIONS: " + word.mentions );
+          console.log(JSON.stringify(word, null, 3));
 
           if (typeof word.bhtFound === 'undefined') {  // not yet bht searched
 
@@ -907,6 +908,7 @@ function createClientSocket (socket){
 
         if (!err) {
           console.log(chalkDb("--- DB UPDATE | " + word.nodeId + " | MENTIONS: " + word.mentions ));
+          console.log(JSON.stringify(word, null, 3));
 
           if (typeof word.bhtFound === 'undefined') {  // not yet bht searched
 

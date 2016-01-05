@@ -996,6 +996,14 @@ function createClientSocket (socket){
                 wordHashMap.set(bhtResponseObj.nodeId, bhtResponseObj);
                 currentSession.wordChain.push(bhtResponseObj) ;
 
+                var sessionUpdateObj = {
+                  sessionId: socketId,
+                  sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
+                  targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
+                };
+
+                updateSessionViews(sessionUpdateObj);
+
                 generateResponse(bhtResponseObj, function(responseWord){
 
                   currentSession.wordChain.push(responseWord) ;
@@ -1015,6 +1023,14 @@ function createClientSocket (socket){
 
                 wordHashMap.set(bhtResponseObj.nodeId, bhtResponseObj);
                 currentSession.wordChain.push(bhtResponseObj) ;
+
+                var sessionUpdateObj = {
+                  sessionId: socketId,
+                  sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
+                  targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
+                };
+
+                updateSessionViews(sessionUpdateObj);
 
                 words.getRandomWord(function(err, randomWord){
                   if (!err) {
@@ -1106,6 +1122,14 @@ function createClientSocket (socket){
                 currentSession.wordChain.push(bhtResponseObj) ;
                 wordHashMap.set(bhtResponseObj.nodeId, bhtResponseObj);
 
+                var sessionUpdateObj = {
+                  sessionId: socketId,
+                  sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
+                  targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
+                };
+
+                updateSessionViews(sessionUpdateObj);
+
                 generateResponse(bhtResponseObj, function(responseWord){
 
                   currentSession.wordChain.push(responseWord) ;
@@ -1125,6 +1149,14 @@ function createClientSocket (socket){
 
                 currentSession.wordChain.push(bhtResponseObj) ;
                 wordHashMap.set(bhtResponseObj.nodeId, bhtResponseObj);
+
+                var sessionUpdateObj = {
+                  sessionId: socketId,
+                  sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
+                  targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
+                };
+
+                updateSessionViews(sessionUpdateObj);
 
                 words.getRandomWord(function(err, randomWord){
                   if (!err) {
@@ -2356,6 +2388,7 @@ function initAppRouting(){
     return;
   });
 
+
   app.get('/favicon.ico', function(req, res){
     debug("LOADING PAGE: /favicon.ico");
     res.sendFile(__dirname + '/favicon.png');
@@ -2365,13 +2398,6 @@ function initAppRouting(){
     debug("LOADING PAGE: /favicon.png");
     res.sendFile(__dirname + '/favicon.png');
   });
-
-  // app.get('/*', function(req, res){
-  //   console.log("??? UNKNOWN REQ ??? :");
-  //   // console.log(req);
-  //   // res.status(404).send('what???');
-  //   return;
-  // });
 }
 
 initializeConfiguration();

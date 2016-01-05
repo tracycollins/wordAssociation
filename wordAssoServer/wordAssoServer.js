@@ -320,8 +320,16 @@ function updateSessionViews(sessionUpdateObj){
 function sendPromptWord(socketId, promptWord){
   var currentSession = sessionHashMap.get(socketId);
 
+  var simpleChain = function(chain){
+    var chainArray = [];
+    for (var i=0; i<chain.length; i++){
+      chainArray.push(chain[i].nodeId);
+    }
+    return chainArray;
+  }
+
   console.log(chalkInfo("currentSession.wordChain [" + currentSession.wordChain.length + "]\n" 
-    + JSON.stringify(currentSession.wordChain, null, 2)));
+    + simpleChain(currentSession.wordChain)));
 
   if (currentSession.wordChain.length >= 2) {
     var previousResponse = currentSession.wordChain[currentSession.wordChain.length-2];

@@ -35,7 +35,7 @@ var totalUsers = 0;
 var totalWords = 0;
 
 var bhtOverLimitTime = 0;  // will = getTimeNow() on BHT overlimit
-
+var numberBhtRequests = 30012;
 
 var currentTimeInteval = setInterval(function () {
   var d = new Date();
@@ -64,6 +64,10 @@ var chalkAlert = chalk.red;
 var chalkError = chalk.bold.red;
 var chalkWarn = chalk.bold.yellow;
 var chalkLog = chalk.gray;
+var chalkPrompt = chalk.blue;
+var chalkResponse = chalk.bold.blue;
+var chalkBht = chalk.red;
+var chalkDb = chalk.gray;
 
 var serverReady = false ;
 var internetReady = false ;
@@ -287,10 +291,10 @@ function updateSessionViews(sessionUpdateObj){
     }
   });
 
-  console.log(">>> TX SESSION_UPDATE"
+  debug(chalkInfo(">>> TX SESSION_UPDATE"
     + " | " + sessionUpdateObj.sourceWord.nodeId
     + " --> " + sessionUpdateObj.targetWord.nodeId
-  );
+  ));
 
 
   clientSocketIdHashMap.forEach(function(clientObj, sId) {
@@ -306,7 +310,10 @@ function updateSessionViews(sessionUpdateObj){
 }
 
 function sendPromptWord(socketId, promptWord){
-  console.log("TX PROMPT_WORD | " + socketId + " | " + promptWord);
+  var currentSession = sessionHashMap.get(socketId);
+  var previousResponse = currentSession.wordChain[currentSession.wordChain.length-1];
+
+  console.log(chalkPrompt(previousResponse.nodeId + " --> " + promptWord + " | " + socketId));
   var srvrObj = {
     "timeStamp" : getTimeStamp(),
     "promptWord" : promptWord
@@ -510,8 +517,10 @@ function findClientsSocket(namespace) {
 
 function bhtSearchWord (wordObj, callback){
 
+  numberBhtRequests++ ;
+
   if (bhtOverLimitTime > 0) {
-    debug(chalkError("bhtSearchWord: *** OVER LIMIT ***"));
+    debug(chalkError("bhtSearchWord: *** OVER LIMIT *** | " + numberBhtRequests + " REQUESTS"));
     callback({error: 500, timeStamp: bhtOverLimitTime}, wordObj);
   }
 
@@ -531,7 +540,7 @@ function bhtSearchWord (wordObj, callback){
       callback(null, wordObj);
     }
     else if (response.statusCode == 500) {
-      console.log(chalkError("bhtSearchWord: *** OVER LIMIT ***"));
+      console.log(chalkError("bhtSearchWord: *** OVER LIMIT *** | " + numberBhtRequests + " REQUESTS"));
       bhtOverLimitTime = getTimeNow();
       callback({error: 500, timeStamp: bhtOverLimitTime}, wordObj);
     }
@@ -679,36 +688,37 @@ function createClientSocket (socket){
   }
   else {
 
-    words.getRandomWord(function(err, randomWord){
-      if (!err) {
+    var sessionObj = {
+      sessionId: socketId,
+      userId: clientIp + "_" + socketId,
+      createAt: Date.now(),
+      wordChain: []
+    }
+    sessionHashMap.set(sessionObj.sessionId, sessionObj);  
+    console.log("CREATED sessionObj | " + sessionObj.sessionId 
+    );
 
-        wordHashMap.set(randomWord.nodeId, randomWord);
+    // words.getRandomWord(function(err, randomWord){
+    //   if (!err) {
 
-        var sessionObj = {
-          sessionId: socketId,
-          userId: clientIp + "_" + socketId,
-          createAt: Date.now(),
-          wordChain: []
-        }
+    //     wordHashMap.set(randomWord.nodeId, randomWord);
 
-        sessionObj.wordChain.push(randomWord);
-        sessionHashMap.set(sessionObj.sessionId, sessionObj);  
-        console.log("CREATED sessionObj | " + sessionObj.sessionId 
-          + " | WORD CHAIN START: " + sessionObj.wordChain[0].nodeId
-        );
+    //     var sessionObj = {
+    //       sessionId: socketId,
+    //       userId: clientIp + "_" + socketId,
+    //       createAt: Date.now(),
+    //       wordChain: []
+    //     }
 
-      }
-    });
+    //     sessionObj.wordChain.push(randomWord);
+    //     sessionHashMap.set(sessionObj.sessionId, sessionObj);  
+    //     console.log("CREATED sessionObj | " + sessionObj.sessionId 
+    //       + " | WORD CHAIN START: " + sessionObj.wordChain[0].nodeId
+    //     );
 
+    //   }
+    // });
 
-    // var promptWord0 = wordHashMap.get(promptArray[0]) ;
-
-
-    // sessionObj.wordChain.push(promptWord0);
-
-    // sessionHashMap.set(sessionObj.sessionId, sessionObj);  
-
-    // console.log("CREATED sessionObj | " + sessionObj.sessionId + " | WORD CHAIN START: " + sessionObj.wordChain[0].nodeId);
   }
 
   socketQueue.enqueue(clientObj);
@@ -751,15 +761,18 @@ function createClientSocket (socket){
   });
 
   socket.on("CLIENT_READY", function(){
-    console.log("*** RX CLIENT_READY | " + socket.id);
+    console.log("<<< RX CLIENT_READY | " + socket.id);
 
 
     words.getRandomWord(function(err, randomWord){
       if (!err) {
 
+        debug("randomWord\n" + JSON.stringify(randomWord, null, 3));
+
         wordHashMap.set(randomWord.nodeId, randomWord);
 
-        sendPromptWord(socket.id, randomWord.nodeId);
+        var currentSession = sessionHashMap.get(socket.id);
+        currentSession.wordChain.push(randomWord) ;
 
         var sessionUpdateObj = {
           sessionId: socketId,
@@ -768,6 +781,8 @@ function createClientSocket (socket){
         };
 
         updateSessionViews(sessionUpdateObj);
+
+        sendPromptWord(socket.id, randomWord.nodeId);
 
       }
     });
@@ -794,8 +809,9 @@ function createClientSocket (socket){
     var socketId = socket.id;
     var currentSession = sessionHashMap.get(socketId);
     var promptWord ;
+    var previousPrompt = currentSession.wordChain[currentSession.wordChain.length-1] ;
 
-    console.log(chalkGreen("SOCKET " + socketId + " | RESPONSE_WORD: " + responseWord));
+    console.log(chalkResponse(responseWord + " <-- " + previousPrompt.nodeId + " | " + socketId));
 
     var responseWordObj = new Word ({
       nodeId: responseWord,
@@ -886,12 +902,12 @@ function createClientSocket (socket){
 
     else {
 
-      console.log("--- NOT FOUND " + responseWord + " IN HASH");
+      debug("--- NOT FOUND " + responseWord + " IN HASH");
 
       words.findOneWord(responseWordObj, false, function(err, word){
 
         if (!err) {
-          console.log(">-- RESPONSE WORD UPDATED: " + word.nodeId + " | MENTIONS: " + word.mentions );
+          console.log(chalkDb("--- DB UPDATE | " + word.nodeId + " | MENTIONS: " + word.mentions ));
 
           if (typeof word.bhtFound === 'undefined') {  // not yet bht searched
             bhtSearchWord(word, function(err, bhtResponseObj){
@@ -899,10 +915,10 @@ function createClientSocket (socket){
                 console.log(chalkError("bhtSearchWord ERROR: " + err));
               }
               else if (bhtResponseObj.bhtFound){
-                console.log("bht: FOUND: " + bhtResponseObj.nodeId);
+                console.log(chalkBht("--- BHT FOUND [" + numberBhtRequests + "] " + bhtResponseObj.nodeId));
               }
               else {
-                console.log("bht: NOT FOUND: " + bhtResponseObj.nodeId);
+                console.log(chalkBht("--- BHT NOT FOUND [" + numberBhtRequests + "] " + bhtResponseObj.nodeId));
               }
 
               wordHashMap.set(bhtResponseObj.nodeId, bhtResponseObj);

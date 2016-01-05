@@ -317,18 +317,19 @@ function updateSessionViews(sessionUpdateObj){
   });
 }
 
+var simpleChain = function(chain){
+  var chainArray = [];
+  for (var i=0; i<chain.length; i++){
+    chainArray.push(chain[i].nodeId);
+  }
+  return chainArray;
+}
+
 function sendPromptWord(socketId, promptWord){
   var currentSession = sessionHashMap.get(socketId);
 
-  var simpleChain = function(chain){
-    var chainArray = [];
-    for (var i=0; i<chain.length; i++){
-      chainArray.push(chain[i].nodeId);
-    }
-    return chainArray;
-  }
 
-  console.log(chalkInfo("currentSession.wordChain [" + currentSession.wordChain.length + "]\n" 
+  debug(chalkInfo("currentSession.wordChain [" + currentSession.wordChain.length + "]\n" 
     + simpleChain(currentSession.wordChain)));
 
   if (currentSession.wordChain.length >= 2) {

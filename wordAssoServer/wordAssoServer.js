@@ -820,7 +820,7 @@ function createClientSocket (socket){
 
     if (wordHashMap.has(responseWord)){
 
-      console.log("--> FOUND " + responseWord + " IN HASH");
+      console.log("--- FOUND HASH | " + responseWord);
 
       responseWordObj = wordHashMap.get(responseWord);
       responseWordObj.lastSeen = dateNow;
@@ -899,7 +899,6 @@ function createClientSocket (socket){
         }
       });
     }
-
     else {
 
       debug("--- NOT FOUND " + responseWord + " IN HASH");
@@ -910,6 +909,7 @@ function createClientSocket (socket){
           console.log(chalkDb("--- DB UPDATE | " + word.nodeId + " | MENTIONS: " + word.mentions ));
 
           if (typeof word.bhtFound === 'undefined') {  // not yet bht searched
+
             bhtSearchWord(word, function(err, bhtResponseObj){
               if (err){
                 console.log(chalkError("bhtSearchWord ERROR: " + err));

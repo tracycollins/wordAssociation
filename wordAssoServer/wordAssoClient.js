@@ -49,18 +49,19 @@ function wordInScript(){
   wordInText.value = "";
 }
 
-var wordInValue = "-----";
+var wordInValue = "";
 
 function addWordIn() {
   var element = document.createElement("input");
   var labelIn = document.createElement("label");
 
-  labelIn.innerHTML = "WORD IN: ";   
+  labelIn.innerHTML = "YOU RESPOND: ";   
 
   element.setAttribute("class", "wordIn");
   element.setAttribute("type", "text");
   element.setAttribute("id", "wordInText");
   element.setAttribute("name", "wordInText");
+  element.setAttribute("autofocus", true);
   element.setAttribute("value", wordInValue);
   element.setAttribute("onkeydown", "if (event.keyCode == 13) { return wordInScript() }");
 
@@ -235,9 +236,12 @@ function zoom() {
 
 window.onload = function () {
   console.log("ONLOAD");
+
   addWordOut();
   addWordIn();
+
   socket.emit("CLIENT_READY");
+
   setTimeout(function(){
     pageLoadedTimeIntervalFlag = false ;
   }, 5000);

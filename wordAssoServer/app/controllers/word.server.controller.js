@@ -47,7 +47,9 @@ exports.findOneWord = function(word, testMode, callback) {
 						verb: word.verb,
 						adjective: word.adjective,
 						adverb: word.adverb,
-						lastSeen: Date.now() 
+						lastSeen: Date.now(),
+						bhtSearched: word.bhtSearched,
+						bhtFound: word.bhtFound
 					} 
 				};
 	var options = { upsert: true, new: true	};
@@ -66,6 +68,8 @@ exports.findOneWord = function(word, testMode, callback) {
 					+ " | " + wd.nodeId 
 					+ " | MENTIONS: " + wd.mentions 
 					+ " | LAST SEEN: " + Date(wd.lastSeen) 
+					+ " | BHT SEARCHED: " + wd.bhtSearched 
+					+ " | BHT FOUND: " + wd.bhtFound 
 					);
 				callback(null, wd);
 			}

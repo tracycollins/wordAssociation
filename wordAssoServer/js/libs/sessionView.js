@@ -463,7 +463,7 @@ function displayInfoOverlay(opacity) {
 }
 
 var adjustedAgeRateScale = d3.scale.pow().domain([1,500]).range([1.0,100.0]);  // number of nodes > 100 ; 
-var fontSizeScale =      d3.scale.log().domain([1,1000000]).range([2,10]);
+var fontSizeScale =      d3.scale.log().domain([1,1000000]).range([5,25]);
 
 var defaultRadiusScale = d3.scale.log().domain([1,1000000]).range([20,100]);
 var defaultChargeScale =  d3.scale.log().domain([1,1000000]).range([-1000,-1500]);
@@ -515,7 +515,7 @@ var svgcanvas = d3image.append("svg:svg")
   .attr("y", 0)
   .call(d3.behavior.zoom()
     .scale(currentScale)
-    .scaleExtent([0.25, 8])
+    .scaleExtent([0.1, 10])
     .on("zoom", zoomHandler));
 
 var zoomListener = d3.behavior.zoom()

@@ -717,10 +717,9 @@ d3.select('#statsToggleButton').on("click", function() {  // STATS BUTTON
 socket.on("HEARTBEAT", function(heartbeat){
 
   var overlay = d3.select("#adminOverlay0").select("text")
-    .text( 
-      heartbeat["totalSessions"] + " TOTAL SESSIONS"
-      + " | " + heartbeat["totalWords"] + " TOTAL WORDS"
-      + " | " + heartbeat["totalUsers"] + " TOTAL USERS"
+    .text(
+      heartbeat["totalWords"] + " TOTAL WORDS"
+      + " | " + heartbeat["numberBhtRequests"] + " BHT REQS"
       );
 
   var overlay = d3.select("#adminOverlay1").select("text")

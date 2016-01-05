@@ -320,7 +320,7 @@ function updateSessionViews(sessionUpdateObj){
 function sendPromptWord(socketId, promptWord){
   var currentSession = sessionHashMap.get(socketId);
 
-  debug(chalkInfo("currentSession.wordChain [" + currentSession.wordChain.length + "]\n" 
+  console.log(chalkInfo("currentSession.wordChain [" + currentSession.wordChain.length + "]\n" 
     + JSON.stringify(currentSession.wordChain, null, 2)));
 
   if (currentSession.wordChain.length >= 2) {

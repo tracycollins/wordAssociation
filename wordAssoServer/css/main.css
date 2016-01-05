@@ -1,49 +1,56 @@
 div#wordIn {
-  margin-left: 10%;
   background-color:black;
-  font-size: 2em;
-  font-family: "Lucida Console", Monaco, monospace;
-  /*margin: auto;*/
-  text-align: left;
   color:#888888;
+  font-family: "Lucida Console", Monaco, monospace;
+  text-align: left;
+  padding: 1em;
+  margin-left: 20%;
+  line-height: 1em;
 }
 
 div#wordOut {
-  margin-left: 10%;
   background-color:black;
-  font-size: 2em;
-  font-family: "Lucida Console", Monaco, monospace;
-  /*margin: auto;*/
-  text-align: left;
   color:#888888;
-}
-label{
-  margin-left: 10%;
-  margin-bottom: 1%;
-  display: block;
-  padding: 5px;
-  font-size:16px;
-}
-input[type="text"]{
-  margin-left: 10%;
-  padding: 5px;
-  font-size: 1em;
-  text-align: left;
-  background-color:black;
-  border:none;
   font-family: "Lucida Console", Monaco, monospace;
-  color:yellow;
+  text-align: left;
+  padding: 1em;
+  margin-left: 20%;
+  line-height: 3.5em;
+}
+
+label{
+  display: block;
+  padding: 1em;
+  /*padding-bottom: 1em;*/
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+  font-size: 2.5em;
+  text-align: left;
+}
+a {
+    color: #333333;
+}
+
+input[type="text"]{
+  margin-left: 0.9em;
+  padding: 0.5em;
+  border: 2px solid gray;
+  background-color:black;
+  color: yellow;
+  font-family: "Lucida Console", Monaco, monospace;
+  font-size: 4em;
 }
 output[type="text"]{
-  padding: 5px;
-  margin-left: 10%;
-  font-size: 1em;
-  text-align: left;
-  background-color:black;
+  margin-top: 0.5em;
+  margin-left: 0.9em;
+  padding: 0.5em;
   border:none;
-  font-family: "Lucida Console", Monaco, monospace;
-  color:green;
+  color: #00BB00;
+  border: 2px solid green;
+  font-size: 3.5em;
 }
+
+
 .fullscreenButton {
   background-color:black;
   border:1px solid gray;

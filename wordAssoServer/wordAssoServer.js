@@ -35,7 +35,7 @@ var totalUsers = 0;
 var totalWords = 0;
 
 var bhtOverLimitTime = 0;  // will = getTimeNow() on BHT overlimit
-var numberBhtRequests = 30052;
+var numberBhtRequests = 31817;
 
 var currentTimeInteval = setInterval(function () {
   var d = new Date();
@@ -1779,8 +1779,10 @@ configEvents.on("SERVER_READY", function () {
         maxNumberClients : maxNumberClientsConnected,
         maxNumberClientsTime : maxNumberClientsConnectedTime,
 
-        totalSessions : totalSessions,
         totalWords : totalWords,
+        numberBhtRequests : numberBhtRequests,
+
+        totalSessions : totalSessions,
         totalUsers : totalUsers,
 
         numberTestClients : numberTestClients

@@ -27,7 +27,7 @@ var pageLoadedTimeIntervalFlag = true;
 
 var DEFAULT_MAX_AGE = 60000.0 ;
 
-var DEFAULT_CHARGE = -10000;
+var DEFAULT_CHARGE = -5000;
 var DEFAULT_GRAVITY = 0.1 ;
 var DEFAULT_LINK_STRENGTH = 0.3 ;
 var DEFAULT_FRICTION = 0.5;
@@ -806,9 +806,7 @@ socket.on("SESSION_UPDATE", function(sessionObject){
 
 function tick() {
   node
-    .attr("transform", function(d) {
-      return "translate(" + d.x + "," + d.y + ")" ; 
-  });
+    .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")" });
 
   link
     .attr("x1", function(d) { return d.source.x; })
@@ -851,7 +849,10 @@ var mouse = {} ;
 //================================
 
 function computeInitialPosition() {
-  return { x: nodeInitialX + (0.9 * Math.random() * nodeInitialX), y: nodeInitialY + (0.9 * Math.random() * nodeInitialY) };
+  return { 
+    x: (Math.random() * nodeInitialX), 
+    y: (Math.random() * nodeInitialY) 
+  };
 }
 
 var nodesLength, nodeIndex = 0, chainIndex = 0 ;
@@ -863,7 +864,7 @@ var createNode = function (wordObject, callback) {
   var err = null ;
   var forceStopped = false ;
 
-  // force.stop();
+  force.stop();
 
   console.log("createNode | " + wordObject.nodeId);
 
@@ -897,7 +898,7 @@ var createNode = function (wordObject, callback) {
   else {
 
     // if (!forceStopped) {
-      force.stop();
+      // force.stop();
     //   forceStopped = true ;
     // }
 
@@ -915,7 +916,12 @@ var createNode = function (wordObject, callback) {
 
     nodeHashMap[wordObject.nodeId] = wordObject;
     nodes.push(wordObject);
-    console.log(">>> ADDED NODE TO HASH MAP | " + nodes.length + " | " + wordObject.nodeId);
+    console.log(">>> ADDED NODE TO HASH MAP"
+      + " | " + nodes.length 
+      + " | " + wordObject.nodeId
+      + " | x: " + wordObject.x
+      + " | y: " + wordObject.y
+      );
   }
 
   callback (null, newNodesFlag, deadNodesFlag);
@@ -1002,7 +1008,7 @@ var ageNodes = function (newNodesFlag, deadNodesFlag, callback){
 
       deadNodesFlag = true ;
 
-      force.stop();
+      // force.stop();
 
       console.log("XXX DEAD NODE: " + nodeHashMap[currentNodeObject.nodeId].nodeId);
       delete nodeHashMap[currentNodeObject.nodeId];
@@ -1045,6 +1051,8 @@ var ageNodes = function (newNodesFlag, deadNodesFlag, callback){
 var updateNodes = function (newNodesFlag, deadNodesFlag, callback) {
 
   node = node.data(force.nodes(), function(d) { return d.nodeId;})
+    .attr("x", function(d) { return d.x; })
+    .attr("y", function(d) { return d.y; })
     .attr("mentions", function(d) { return nodeHashMap[d.nodeId].mentions; })
     .attr("lastSeen", function(d) { return d.lastSeen; });
 
@@ -1214,13 +1222,13 @@ function ageNodesCheckQueue() {
         console.error("*** ERROR: ageNodesCheckQueue *** \nERROR: " + error + "\nRESULT: " + result); 
       }
       
-      if (newNodesFlag || deadNodesFlag) {
-        force.nodes(nodes);
-        force.links(links);
-        force.start(); 
-      }
+      // if (newNodesFlag || deadNodesFlag) {
+      //   force.nodes(nodes);
+      //   force.links(links);
+      //   force.start(); 
+      // }
 
-      // force.start(); 
+      force.start(); 
     }
   );
 }

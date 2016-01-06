@@ -34,8 +34,6 @@ var totalSessions = 0;
 var totalUsers = 0;
 var totalWords = 0;
 
-var bhtOverLimitTime = 0;  // will = getTimeNow() on BHT overlimit
-var numberBhtRequests = 31817;
 
 var currentTimeInteval = setInterval(function () {
   var d = new Date();
@@ -99,6 +97,11 @@ var HashMap = require('hashmap').HashMap;
 
 var bigHugeLabsApiKey = "e1b4564ec38d2db399dabdf83a8beeeb";
 var bigHugeThesaurusUrl = "http://words.bighugelabs.com/api/2/" + bigHugeLabsApiKey + "/";
+var bhtOverLimitTime = 0;
+var BHT_REQUEST_LIMIT = 100000;
+var numberBhtRequests = 0;
+var bhtLimitResetTime = 0;
+var bhtTimeToReset ;
 
 
 // ==================================================================
@@ -577,7 +580,7 @@ function generateResponse(wordObj, callback){
 
   bhtSearchWord(wordObj, function(err, bhtResponseObj){
     if (err){
-      console.log(chalkError("bhtSearchWord ERROR: " + err));
+      console.log(chalkError("bhtSearchWord ERROR: " + JSON.stringify(err)));
       callback(bhtResponseObj);
     }
     else if (!bhtResponseObj.bhtFound){
@@ -610,7 +613,7 @@ function generateResponse(wordObj, callback){
 
                 bhtSearchWord(word, function(err, bhtResponseObj){
                   if (err){
-                    console.log(chalkError("bhtSearchWord ERROR: " + err));
+                    console.log(chalkError("bhtSearchWord ERROR: " + JSON.stringify(err)));
                     callback(bhtResponseObj);
                   }
                   else if (bhtResponseObj.bhtFound){
@@ -653,7 +656,7 @@ function generateResponse(wordObj, callback){
 
                 bhtSearchWord(word, function(err, bhtResponseObj){
                   if (err){
-                    console.log(chalkError("bhtSearchWord ERROR: " + err));
+                    console.log(chalkError("bhtSearchWord ERROR: " + JSON.stringify(err)));
                   }
                   else if (bhtResponseObj.bhtFound){
                     console.log(chalkBht("--- BHT FOUND [" + numberBhtRequests + "] " + bhtResponseObj.nodeId));
@@ -683,10 +686,27 @@ function generateResponse(wordObj, callback){
 function bhtSearchWord (wordObj, callback){
 
 
-  if (bhtOverLimitTime > 0) {
-    debug(chalkError("bhtSearchWord: *** OVER LIMIT *** | " + numberBhtRequests + " REQUESTS"));
+  if (moment().isBefore(bhtLimitResetTime)) {
+
+    bhtTimeToReset = moment.utc(bhtLimitResetTime);
+    bhtTimeToReset.subtract(moment.utc());
+
+    console.log(chalkError("bhtSearchWord: *** OVER LIMIT ***"
+      + " | " + bhtOverLimitTime.format("YYYY-MM-DD HH:mm:ss ZZ")
+      + " | RESETS: " + bhtLimitResetTime.format("YYYY-MM-DD HH:mm:ss ZZ")
+      + " | T MINUS: " + bhtTimeToReset.format("HH:mm:ss")
+      + " | " + numberBhtRequests + " REQUESTS" 
+    ));
+    
     callback({error: 500, timeStamp: bhtOverLimitTime}, wordObj);
-    return;
+    return ;
+  }
+  else {
+  }
+
+  if (wordObj.bhtFound) {
+    callback(null, wordObj);
+    return ;
   }
 
   numberBhtRequests++ ;
@@ -708,12 +728,26 @@ function bhtSearchWord (wordObj, callback){
         debug(chalkBht("bhtSearchWord: --- DB UPDATE | " + wordUpdatedObj.nodeId + " | MENTIONS: " + wordUpdatedObj.mentions ));
         debug(chalkBht(JSON.stringify(wordUpdatedObj, null, 3)));
         callback(null, wordUpdatedObj);
+        return ;
       });
     }
     else if (response.statusCode == 500) {
       console.log(chalkError("bhtSearchWord: *** OVER LIMIT *** | " + numberBhtRequests + " REQUESTS"));
-      bhtOverLimitTime = getTimeNow();
+
+      bhtOverLimitTime = moment.utc();
+      bhtOverLimitTime.utcOffset("-08:00");
+
+      bhtLimitResetTime = moment.utc();
+      bhtLimitResetTime.utcOffset("-08:00");
+      bhtLimitResetTime.endOf("day");
+
+      bhtTimeToReset = moment.utc(bhtLimitResetTime);
+      bhtTimeToReset.subtract(bhtOverLimitTime);
+
+      numberBhtRequests = 0 ;
+
       callback({error: 500, timeStamp: bhtOverLimitTime}, wordObj);
+      return ;
     }
     else {
       response.on('data', function(d) {
@@ -742,6 +776,7 @@ function bhtSearchWord (wordObj, callback){
           debug(chalkBht("bhtSearchWord: --- DB UPDATE | " + wordUpdatedObj.nodeId + " | MENTIONS: " + wordUpdatedObj.mentions ));
           debug(chalkBht(JSON.stringify(wordUpdatedObj, null, 3)));
           callback(null, wordUpdatedObj);
+          return;
         });
       });
 

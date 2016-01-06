@@ -546,6 +546,42 @@ function findClientsSocket(namespace) {
 var wordTypes = [ 'noun', 'verb', 'adjective', 'adverb' ];
 var wordVariations = [ 'syn', 'ant', 'rel', 'sim', ];
 
+function addWordToDb(wordObj, callback){
+  words.findOneWord(wordObj, true, function(err, word){
+    if (!err) {
+      console.log("--- DB UPDATE | " + word.nodeId + " | MENTIONS: " + word.mentions );
+      debug(JSON.stringify(word, null, 3));
+
+      if (!word.bhtSearched) {  // not yet bht searched
+        debug("word.bhtSearched: " + word.bhtSearched);
+
+        bhtSearchWord(word, function(err, bhtResponseObj){
+          if (err){
+            console.log(chalkError("bhtSearchWord ERROR: " + JSON.stringify(err)));
+            callback(err, bhtResponseObj);
+          }
+          else if (bhtResponseObj.bhtFound){
+            console.log(chalkBht("--- BHT FOUND [" + numberBhtRequests + "] " + bhtResponseObj.nodeId));
+            wordHashMap.set(bhtResponseObj.nodeId, bhtResponseObj);
+            callback(null, bhtResponseObj);
+          }
+          else {
+            console.log(chalkBht("--- BHT NOT FOUND [" + numberBhtRequests + "] " + bhtResponseObj.nodeId));
+            wordHashMap.set(bhtResponseObj.nodeId, bhtResponseObj);
+            callback(null, bhtResponseObj);
+          }
+        });
+      }
+
+      else { // already bht searched
+        console.log(chalkLog("--- PREV BHT [" + numberBhtRequests + "] " + word.nodeId));
+        wordHashMap.set(word.nodeId, word);
+        callback(null, word);
+      }
+    }
+  });
+}
+
 function loadBhtResponseHash(bhtResponseObj, callback){
 
   var bhtWordHashMap = new HashMap();
@@ -988,32 +1024,25 @@ function createClientSocket (socket){
   })
 
 
-  socket.on("RESPONSE_WORD", function(rw){
+  socket.on("RESPONSE_WORD_OBJ", function(rwObj){
 
     var dateNow = Date.now();
-
-    var responseWord = rw.toLowerCase();
-
     var socketId = socket.id;
-
     var clientObj = clientSocketIdHashMap.get(socket.id);
 
     var currentSession = sessionHashMap.get(socketId);
     var promptWord ;
     var previousPrompt = currentSession.wordChain[currentSession.wordChain.length-1] ;
 
-    console.log(chalkResponse(responseWord + " <-- " + previousPrompt.nodeId + " | " + socketId));
+    console.log(chalkResponse(rwObj.nodeId + " <-- " + previousPrompt.nodeId + " | " + socketId));
 
-    var responseWordObj = new Word ({
-      nodeId: responseWord,
-      lastSeen: dateNow
-    });
+    var responseWordObj;
 
-    if (wordHashMap.has(responseWord)){
+    if (wordHashMap.has(rwObj.nodeId)){
 
-      console.log("--- FOUND HASH | " + responseWord);
+      console.log("--- FOUND HASH | " + rwObj.nodeId);
 
-      responseWordObj = wordHashMap.get(responseWord);
+      responseWordObj = wordHashMap.get(rwObj.nodeId);
       responseWordObj.lastSeen = dateNow;
 
       wordHashMap.set(responseWordObj.nodeId, responseWordObj);

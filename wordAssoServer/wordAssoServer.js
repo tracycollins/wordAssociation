@@ -682,12 +682,14 @@ function generateResponse(wordObj, callback){
 
 function bhtSearchWord (wordObj, callback){
 
-  numberBhtRequests++ ;
 
   if (bhtOverLimitTime > 0) {
     debug(chalkError("bhtSearchWord: *** OVER LIMIT *** | " + numberBhtRequests + " REQUESTS"));
     callback({error: 500, timeStamp: bhtOverLimitTime}, wordObj);
+    return;
   }
+
+  numberBhtRequests++ ;
 
   var bhtHost = "words.bighugelabs.com";
   var path = "/api/2/" + bigHugeLabsApiKey + "/" + encodeURI(wordObj.nodeId) + "/json";
@@ -1096,23 +1098,6 @@ function createClientSocket (socket){
 
           updateSessionViews(sessionUpdateObj);
         }
-
-
-
-        // console.log(chalkResponse(socket.id + " | " + responseWordObj.nodeId + " --> " + promptWordObj.nodeId));
-
-        // wordHashMap.set(promptWordObj.nodeId, promptWordObj);
-        // currentSession.wordChain.push(promptWordObj) ;
-
-        // sendPromptWord(socket.id, promptWordObj.nodeId);
-
-        // var sessionUpdateObj = {
-        //   sessionId: socketId,
-        //   sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
-        //   targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
-        // };
-
-        // updateSessionViews(sessionUpdateObj);
       });
     }
 

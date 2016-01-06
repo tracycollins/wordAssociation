@@ -863,7 +863,7 @@ var createNode = function (wordObject, callback) {
   var err = null ;
   var forceStopped = false ;
 
-  force.stop();
+  // force.stop();
 
   console.log("createNode | " + wordObject.nodeId);
 
@@ -897,7 +897,7 @@ var createNode = function (wordObject, callback) {
   else {
 
     // if (!forceStopped) {
-    //   force.stop();
+      force.stop();
     //   forceStopped = true ;
     // }
 

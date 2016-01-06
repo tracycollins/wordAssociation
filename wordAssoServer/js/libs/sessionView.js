@@ -463,9 +463,9 @@ function displayInfoOverlay(opacity) {
 }
 
 var adjustedAgeRateScale = d3.scale.pow().domain([1,500]).range([1.0,100.0]);  // number of nodes > 100 ; 
-var fontSizeScale =      d3.scale.log().domain([1,10000000]).range([1,20]);
+var fontSizeScale =      d3.scale.log().domain([1,100000000]).range([1.5,15]);
 
-var defaultRadiusScale = d3.scale.log().domain([1,10000000]).range([20,100]);
+var defaultRadiusScale = d3.scale.log().domain([1,10000000]).range([10,100]);
 var defaultChargeScale =  d3.scale.log().domain([1,10000000]).range([-1000,-1500]);
 
 var nodeHashMap = {};

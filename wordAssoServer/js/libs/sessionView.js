@@ -851,7 +851,7 @@ var mouse = {} ;
 //================================
 
 function computeInitialPosition() {
-  return { x: nodeInitialX + (0.3 * Math.random() * nodeInitialX), y: nodeInitialY + (0.3 * Math.random() * nodeInitialY) };
+  return { x: nodeInitialX + (0.9 * Math.random() * nodeInitialX), y: nodeInitialY + (0.9 * Math.random() * nodeInitialY) };
 }
 
 var nodesLength, nodeIndex = 0, chainIndex = 0 ;

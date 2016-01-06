@@ -778,7 +778,7 @@ socket.on("CONFIG_CHANGE", function(rxConfig){
 
 socket.on("SESSION_UPDATE", function(sessionObject){
 
-  console.log(getTimeStamp() + ">>> RX SESSION_UPDATE") ;
+  console.log(">>> RX SESSION_UPDATE") ;
   // console.log(getTimeStamp() + ">>> RX SESSION_UPDATE\n" + JSON.stringify(sessionObject, null, 3)) ;
 
   if (!windowVisible) {
@@ -877,7 +877,7 @@ var createNode = function (wordObject, callback) {
     currentNodeObject.mentions = wordObject.mentions ;
     currentNodeObject.text = wordObject.nodeId ;
 
-    console.log("... FOUND NODE IN HASH MAP | " + nodes.length + " NODES\n" + JSON.stringify(currentNodeObject, null, 3));
+    console.log("... FOUND NODE IN HASH MAP | " + nodes.length + " | " + currentNodeObject.nodeId);
     nodesLength = nodes.length ;
 
     for (nodeIndex = 0; nodeIndex < nodesLength; nodeIndex++){
@@ -915,7 +915,7 @@ var createNode = function (wordObject, callback) {
 
     nodeHashMap[wordObject.nodeId] = wordObject;
     nodes.push(wordObject);
-    console.log(">>> ADDED NODE TO HASH MAP | " + nodes.length + " NODES\n" + JSON.stringify(wordObject, null, 3));
+    console.log(">>> ADDED NODE TO HASH MAP | " + nodes.length + " | " + wordObject.nodeId);
   }
 
   callback (err);

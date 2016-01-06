@@ -1079,8 +1079,9 @@ function createClientSocket (socket){
   socket.on("CLIENT_READY", function(clientConfig){
 
     var clientObj = clientSocketIdHashMap.get(socket.id);
+    clientObj.config = clientConfig ;
 
-    console.log(">>> CLIENT READY | " + socket.id);
+    console.log(">>> CLIENT READY | CONFIG TYPE: " + clientObj.config.type + " | " + socket.id);
 
     if (clientConfig) {
       debug("CLIENT CONFIG\n" + JSON.stringify(clientConfig, null, 3));
@@ -1789,7 +1790,7 @@ configEvents.on("SERVER_READY", function () {
     numberTestClients = 0;
 
     clientSocketIdHashMap.forEach(function(clientObj, ip) {
-      if (clientObj.referer == 'TEST') {
+      if ((clientObj.referer == 'TEST') || (clientObj.config.type == 'TEST')) {
         numberTestClients++;
       }
     });
@@ -1821,7 +1822,7 @@ configEvents.on("SERVER_READY", function () {
         totalUsers : totalUsers,
 
         numberPromptsSent : numberPromptsSent,
-        numberResponsesReceived : numberPromptsSent,
+        numberResponsesReceived : numberResponsesReceived,
 
         numberTestClients : numberTestClients
       } ;
@@ -2362,6 +2363,12 @@ function initAppRouting(){
 
   app.get('/', function(req, res){
     console.log("LOADING PAGE: /");
+    res.sendFile(__dirname + '/index.html');
+    return;
+  });
+
+  app.get('/test', function(req, res){
+    console.log(chalkAlert("TEST PAGE REQUEST ... RETURNING index.html ..."));
     res.sendFile(__dirname + '/index.html');
     return;
   });

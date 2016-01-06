@@ -13,6 +13,10 @@ var ClientSchema = new Schema({
 	socketId: { 
 		type: String
 	},
+	config: { 
+		type: Object,
+		default: '{ type: "CLIENT" }'
+	},
 	referer: { 
 		type: String,
 		default: ''

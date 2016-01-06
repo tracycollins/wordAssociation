@@ -1102,10 +1102,12 @@ function createClientSocket (socket){
     }
     else {
 
-      console.log("--- HASH NOT FOUND " + responseWord);
+      console.log("--- HASH NOT FOUND " + rwObj.nodeId);
 
-      wordHashMap.set(responseWordObj.nodeId, responseWordObj);
-      currentSession.wordChain.push(responseWordObj) ;
+      responseWordObj = rwObj ;
+      
+      wordHashMap.set(rwObj.nodeId, rwObj);
+      currentSession.wordChain.push(rwObj) ;
 
       var sessionUpdateObj = {
         sessionId: socketId,
@@ -1126,7 +1128,7 @@ function createClientSocket (socket){
               currentSession.wordChain.push(randomWordObj) ;
 
               // sendPromptWord(socket.id, randomWordObj.nodeId);
-              sendPromptWord(clientObj, randomWord);
+              sendPromptWord(clientObj, randomWordObj);
 
               var sessionUpdateObj = {
                 sessionId: socketId,

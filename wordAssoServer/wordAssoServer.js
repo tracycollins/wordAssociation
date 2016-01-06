@@ -573,93 +573,107 @@ function loadBhtResponseHash(bhtResponseObj, callback){
   callback(bhtWordHashMap);
 }
 
-function generateResponse(bhtResponseObj, callback){
-  loadBhtResponseHash(bhtResponseObj, function(bhtWordHashMap){
-    var bhtWordHashMapKeys = bhtWordHashMap.keys();
-    var randomIndex = randomInt(0, bhtWordHashMapKeys.length);
-    var responseWord = bhtWordHashMapKeys[randomIndex].toLowerCase();
+function generateResponse(wordObj, callback){
 
-    console.log("--- GENERATE RESPONSE: " + bhtResponseObj.nodeId + " --> " + responseWord);
-
-    if (wordHashMap.has(responseWord)){
-
-      console.log("--- FOUND HASH | " + responseWord);
-
-      responseWordObj = wordHashMap.get(responseWord);
-      responseWordObj.lastSeen = dateNow;
-
-      words.findOneWord(responseWordObj, false, function(err, word){
-        if (!err) {
-          console.log("--- DB UPDATE | " + word.nodeId + " | MENTIONS: " + word.mentions );
-          debug(JSON.stringify(word, null, 3));
-
-          if (!word.bhtSearched) {  // not yet bht searched
-            debug("word.bhtSearched: " + word.bhtSearched);
-
-            bhtSearchWord(word, function(err, bhtResponseObj){
-              if (err){
-                console.log(chalkError("bhtSearchWord ERROR: " + err));
-                callback(bhtResponseObj);
-              }
-              else if (bhtResponseObj.bhtFound){
-                console.log(chalkBht("--- BHT FOUND [" + numberBhtRequests + "] " + bhtResponseObj.nodeId));
-                wordHashMap.set(bhtResponseObj.nodeId, bhtResponseObj);
-                callback(bhtResponseObj);
-              }
-              else {
-                console.log(chalkBht("--- BHT NOT FOUND [" + numberBhtRequests + "] " + bhtResponseObj.nodeId));
-                wordHashMap.set(bhtResponseObj.nodeId, bhtResponseObj);
-                callback(bhtResponseObj);
-              }
-            });
-          }
-
-          else { // already bht searched
-            wordHashMap.set(word.nodeId, word);
-            callback(bhtResponseObj);
-          }
-        }
-      });
+  bhtSearchWord(wordObj, function(err, bhtResponseObj){
+    if (err){
+      console.log(chalkError("bhtSearchWord ERROR: " + err));
+      callback(bhtResponseObj);
+    }
+    else if (!bhtResponseObj.bhtFound){
+      console.log(chalkError("bhtSearchWord NOT FOUND: " + bhtResponseObj.nodeId));
+      callback(bhtResponseObj);
     }
     else {
+      loadBhtResponseHash(bhtResponseObj, function(bhtWordHashMap){
 
-      console.log("--- NOT FOUND HASH | " + responseWord);
-      var dateNow = Date.now();
+        var bhtWordHashMapKeys = bhtWordHashMap.keys();
+        var randomIndex = randomInt(0, bhtWordHashMapKeys.length);
+        var responseWord = bhtWordHashMapKeys[randomIndex].toLowerCase();
 
-      var responseWordObj = new Word ({
-        nodeId: responseWord,
-        lastSeen: dateNow
-      });
+        console.log("--- GENERATE RESPONSE: " + bhtResponseObj.nodeId + " --> " + responseWord);
 
-      words.findOneWord(responseWordObj, false, function(err, word){
-        if (!err) {
-          console.log("--- DB UPDATE | " + word.nodeId + " | MENTIONS: " + word.mentions );
-          debug(JSON.stringify(word, null, 3));
+        if (wordHashMap.has(responseWord)){
 
-          if (!word.bhtSearched) {  // not yet bht searched
-            debug("word.bhtSearched: " + word.bhtSearched);
+          console.log("--- FOUND HASH | " + responseWord);
 
-            bhtSearchWord(word, function(err, bhtResponseObj){
-              if (err){
-                console.log(chalkError("bhtSearchWord ERROR: " + err));
+          responseWordObj = wordHashMap.get(responseWord);
+          responseWordObj.lastSeen = dateNow;
+
+          words.findOneWord(responseWordObj, false, function(err, word){
+            if (!err) {
+              console.log("--- DB UPDATE | " + word.nodeId + " | MENTIONS: " + word.mentions );
+              debug(JSON.stringify(word, null, 3));
+
+              if (!word.bhtSearched) {  // not yet bht searched
+                debug("word.bhtSearched: " + word.bhtSearched);
+
+                bhtSearchWord(word, function(err, bhtResponseObj){
+                  if (err){
+                    console.log(chalkError("bhtSearchWord ERROR: " + err));
+                    callback(bhtResponseObj);
+                  }
+                  else if (bhtResponseObj.bhtFound){
+                    console.log(chalkBht("--- BHT FOUND [" + numberBhtRequests + "] " + bhtResponseObj.nodeId));
+                    wordHashMap.set(bhtResponseObj.nodeId, bhtResponseObj);
+                    callback(bhtResponseObj);
+                  }
+                  else {
+                    console.log(chalkBht("--- BHT NOT FOUND [" + numberBhtRequests + "] " + bhtResponseObj.nodeId));
+                    wordHashMap.set(bhtResponseObj.nodeId, bhtResponseObj);
+                    callback(bhtResponseObj);
+                  }
+                });
               }
-              else if (bhtResponseObj.bhtFound){
-                console.log(chalkBht("--- BHT FOUND [" + numberBhtRequests + "] " + bhtResponseObj.nodeId));
-                wordHashMap.set(bhtResponseObj.nodeId, bhtResponseObj);
+
+              else { // already bht searched
+                wordHashMap.set(word.nodeId, word);
                 callback(bhtResponseObj);
               }
+            }
+          });
+        }
+        else {
+
+          console.log("--- NOT FOUND HASH | " + responseWord);
+          var dateNow = Date.now();
+
+          var responseWordObj = new Word ({
+            nodeId: responseWord,
+            lastSeen: dateNow
+          });
+
+          words.findOneWord(responseWordObj, false, function(err, word){
+            if (!err) {
+              console.log("--- DB UPDATE | " + word.nodeId + " | MENTIONS: " + word.mentions );
+              debug(JSON.stringify(word, null, 3));
+
+              if (!word.bhtSearched) {  // not yet bht searched
+                debug("word.bhtSearched: " + word.bhtSearched);
+
+                bhtSearchWord(word, function(err, bhtResponseObj){
+                  if (err){
+                    console.log(chalkError("bhtSearchWord ERROR: " + err));
+                  }
+                  else if (bhtResponseObj.bhtFound){
+                    console.log(chalkBht("--- BHT FOUND [" + numberBhtRequests + "] " + bhtResponseObj.nodeId));
+                    wordHashMap.set(bhtResponseObj.nodeId, bhtResponseObj);
+                    callback(bhtResponseObj);
+                  }
+                  else {
+                    console.log(chalkBht("--- BHT NOT FOUND [" + numberBhtRequests + "] " + bhtResponseObj.nodeId));
+                    wordHashMap.set(bhtResponseObj.nodeId, bhtResponseObj);
+                    callback(bhtResponseObj);
+                  }
+                });
+              }
+
               else {
-                console.log(chalkBht("--- BHT NOT FOUND [" + numberBhtRequests + "] " + bhtResponseObj.nodeId));
-                wordHashMap.set(bhtResponseObj.nodeId, bhtResponseObj);
+                wordHashMap.set(word.nodeId, word);
                 callback(bhtResponseObj);
               }
-            });
-          }
-
-          else {
-            wordHashMap.set(word.nodeId, word);
-            callback(bhtResponseObj);
-          }
+            }
+          });
         }
       });
     }
@@ -948,17 +962,6 @@ function createClientSocket (socket){
 
       }
     });
-
-    // sendPromptWord(socket.id, promptArray[0]);
-
-    // var sessionUpdateObj = {
-    //   sessionId: socket.id,
-    //   sourceWord: wordHashMap.get(promptArray[0]),
-    //   targetWord: wordHashMap.get(promptArray[0])  // NEED TO DETECT ????
-    // }
-
-    // updateSessionViews(sessionUpdateObj);
-
   })
 
 
@@ -987,252 +990,129 @@ function createClientSocket (socket){
       responseWordObj = wordHashMap.get(responseWord);
       responseWordObj.lastSeen = dateNow;
 
-      words.findOneWord(responseWordObj, false, function(err, word){
-        if (!err) {
-          console.log("--- DB UPDATE | " + word.nodeId + " | MENTIONS: " + word.mentions );
-          debug(JSON.stringify(word, null, 3));
+      wordHashMap.set(responseWordObj.nodeId, responseWordObj);
+      currentSession.wordChain.push(responseWordObj) ;
 
-          if (!word.bhtSearched) {  // not yet bht searched
-            debug("word.bhtSearched: " + word.bhtSearched);
+      var sessionUpdateObj = {
+        sessionId: socketId,
+        sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
+        targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
+      };
 
-            bhtSearchWord(word, function(err, bhtResponseObj){
-              if (err){
-                console.log(chalkError("bhtSearchWord ERROR: " + err));
-              }
-              else if (bhtResponseObj.bhtFound){
-                console.log(chalkBht("--- BHT FOUND [" + numberBhtRequests + "] " + bhtResponseObj.nodeId));
+      updateSessionViews(sessionUpdateObj);
 
-                wordHashMap.set(bhtResponseObj.nodeId, bhtResponseObj);
-                currentSession.wordChain.push(bhtResponseObj) ;
+      generateResponse(responseWordObj, function(promptWordObj){
 
-                var sessionUpdateObj = {
-                  sessionId: socketId,
-                  sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
-                  targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
-                };
+        if (!promptWordObj.bhtFound){
+          words.getRandomWord(function(err, randomWordObj){
+            if (!err) {
+              console.log(chalkResponse(socketId + " | " + responseWordObj.nodeId + " --> " + randomWordObj.nodeId));
 
-                updateSessionViews(sessionUpdateObj);
+              wordHashMap.set(randomWordObj.nodeId, randomWordObj);
+              currentSession.wordChain.push(randomWordObj) ;
 
-                generateResponse(bhtResponseObj, function(responseWord){
+              sendPromptWord(socket.id, randomWordObj.nodeId);
 
-                  currentSession.wordChain.push(responseWord) ;
-                  sendPromptWord(socketId, responseWord.nodeId);
+              var sessionUpdateObj = {
+                sessionId: socketId,
+                sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
+                targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
+              };
 
-                  var sessionUpdateObj = {
-                    sessionId: socketId,
-                    sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
-                    targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
-                  };
-
-                  updateSessionViews(sessionUpdateObj);
-                });
-              }
-              else {
-                console.log(chalkBht("--- BHT NOT FOUND [" + numberBhtRequests + "] " + bhtResponseObj.nodeId));
-
-                wordHashMap.set(bhtResponseObj.nodeId, bhtResponseObj);
-                currentSession.wordChain.push(bhtResponseObj) ;
-
-                var sessionUpdateObj = {
-                  sessionId: socketId,
-                  sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
-                  targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
-                };
-
-                updateSessionViews(sessionUpdateObj);
-
-                words.getRandomWord(function(err, randomWord){
-                  if (!err) {
-
-                    currentSession.wordChain.push(randomWord) ;
-                    sendPromptWord(socketId, randomWord.nodeId);
-
-                    var sessionUpdateObj = {
-                      sessionId: socketId,
-                      sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
-                      targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
-                    };
-
-                    updateSessionViews(sessionUpdateObj);
-                  }
-                });
-              }
-            });
-          }
-
-          else {
-
-            wordHashMap.set(word.nodeId, word);
-            currentSession.wordChain.push(word) ;
-
-            var sessionUpdateObj = {
-              sessionId: socketId,
-              sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
-              targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
-            };
-
-            updateSessionViews(sessionUpdateObj);
-
-            if (word.bhtFound) {
-              generateResponse(word, function(responseWord){
-
-                currentSession.wordChain.push(responseWord) ;
-                sendPromptWord(socketId, responseWord.nodeId);
-
-                var sessionUpdateObj = {
-                  sessionId: socketId,
-                  sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
-                  targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
-                };
-
-                updateSessionViews(sessionUpdateObj);
-              });
+              updateSessionViews(sessionUpdateObj);
             }
-            else {
-              words.getRandomWord(function(err, randomWord){
-                if (!err) {
-
-                  currentSession.wordChain.push(randomWord) ;
-                  sendPromptWord(socketId, randomWord.nodeId);
-
-                  var sessionUpdateObj = {
-                    sessionId: socketId,
-                    sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
-                    targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
-                  };
-
-                  updateSessionViews(sessionUpdateObj);
-                }
-              });
-            }
-          }
+          });
         }
+        else {
+          console.log(chalkResponse(socketId + " | " + responseWordObj.nodeId + " --> " + promptWordObj.nodeId));
+
+          wordHashMap.set(promptWordObj.nodeId, promptWordObj);
+          currentSession.wordChain.push(promptWordObj) ;
+
+          sendPromptWord(socket.id, promptWordObj.nodeId);
+
+          var sessionUpdateObj = {
+            sessionId: socketId,
+            sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
+            targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
+          };
+
+          updateSessionViews(sessionUpdateObj);
+        }
+
       });
+
     }
     else {
 
       console.log("--- HASH NOT FOUND " + responseWord);
 
-      words.findOneWord(responseWordObj, false, function(err, word){
-        if (!err) {
-          console.log("--- DB UPDATE | " + word.nodeId + " | MENTIONS: " + word.mentions );
-          debug(JSON.stringify(word, null, 3));
+      wordHashMap.set(responseWordObj.nodeId, responseWordObj);
+      currentSession.wordChain.push(responseWordObj) ;
 
-          if (!word.bhtSearched) {  // not yet bht searched
-            debug("word.bhtSearched: " + word.bhtSearched);
+      var sessionUpdateObj = {
+        sessionId: socketId,
+        sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
+        targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
+      };
 
-            bhtSearchWord(word, function(err, bhtResponseObj){
-              if (err){
-                console.log(chalkError("bhtSearchWord ERROR: " + err));
-              }
-              else if (bhtResponseObj.bhtFound){
-                console.log(chalkBht("--- BHT FOUND [" + numberBhtRequests + "] " + bhtResponseObj.nodeId));
+      updateSessionViews(sessionUpdateObj);
 
-                currentSession.wordChain.push(bhtResponseObj) ;
-                wordHashMap.set(bhtResponseObj.nodeId, bhtResponseObj);
+      generateResponse(responseWordObj, function(promptWordObj){
 
-                var sessionUpdateObj = {
-                  sessionId: socketId,
-                  sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
-                  targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
-                };
+        if (!promptWordObj.bhtFound){
+          words.getRandomWord(function(err, randomWordObj){
+            if (!err) {
+              console.log(chalkResponse(socketId + " | " + responseWordObj.nodeId + " --> " + randomWordObj.nodeId));
 
-                updateSessionViews(sessionUpdateObj);
+              wordHashMap.set(randomWordObj.nodeId, randomWordObj);
+              currentSession.wordChain.push(randomWordObj) ;
 
-                generateResponse(bhtResponseObj, function(responseWord){
+              sendPromptWord(socket.id, randomWordObj.nodeId);
 
-                  currentSession.wordChain.push(responseWord) ;
-                  sendPromptWord(socketId, responseWord.nodeId);
+              var sessionUpdateObj = {
+                sessionId: socketId,
+                sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
+                targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
+              };
 
-                  var sessionUpdateObj = {
-                    sessionId: socketId,
-                    sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
-                    targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
-                  };
-
-                  updateSessionViews(sessionUpdateObj);
-                });
-              }
-              else {
-                console.log(chalkBht("--- BHT NOT FOUND [" + numberBhtRequests + "] " + bhtResponseObj.nodeId));
-
-                currentSession.wordChain.push(bhtResponseObj) ;
-                wordHashMap.set(bhtResponseObj.nodeId, bhtResponseObj);
-
-                var sessionUpdateObj = {
-                  sessionId: socketId,
-                  sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
-                  targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
-                };
-
-                updateSessionViews(sessionUpdateObj);
-
-                words.getRandomWord(function(err, randomWord){
-                  if (!err) {
-
-                    currentSession.wordChain.push(randomWord) ;
-                    sendPromptWord(socketId, randomWord.nodeId);
-
-                    var sessionUpdateObj = {
-                      sessionId: socketId,
-                      sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
-                      targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
-                    };
-
-                    updateSessionViews(sessionUpdateObj);
-                  }
-                });
-              }
-            });
-          }
-
-          else {
-
-            currentSession.wordChain.push(word) ;
-            wordHashMap.set(word.nodeId, word);
-
-            var sessionUpdateObj = {
-              sessionId: socketId,
-              sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
-              targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
-            };
-
-            updateSessionViews(sessionUpdateObj);
-
-            if (word.bhtFound) {
-              generateResponse(word, function(responseWord){
-
-                currentSession.wordChain.push(responseWord) ;
-                sendPromptWord(socketId, responseWord.nodeId);
-
-                var sessionUpdateObj = {
-                  sessionId: socketId,
-                  sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
-                  targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
-                };
-
-                updateSessionViews(sessionUpdateObj);
-              });
+              updateSessionViews(sessionUpdateObj);
             }
-            else {
-              words.getRandomWord(function(err, randomWord){
-                if (!err) {
-
-                  currentSession.wordChain.push(randomWord) ;
-                  sendPromptWord(socketId, randomWord.nodeId);
-
-                  var sessionUpdateObj = {
-                    sessionId: socketId,
-                    sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
-                    targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
-                  };
-
-                  updateSessionViews(sessionUpdateObj);
-                }
-              });
-            }
-          }
+          });
         }
+        else {
+          console.log(chalkResponse(socketId + " | " + responseWordObj.nodeId + " --> " + promptWordObj.nodeId));
+
+          wordHashMap.set(promptWordObj.nodeId, promptWordObj);
+          currentSession.wordChain.push(promptWordObj) ;
+
+          sendPromptWord(socket.id, promptWordObj.nodeId);
+
+          var sessionUpdateObj = {
+            sessionId: socketId,
+            sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
+            targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
+          };
+
+          updateSessionViews(sessionUpdateObj);
+        }
+
+
+
+        // console.log(chalkResponse(socket.id + " | " + responseWordObj.nodeId + " --> " + promptWordObj.nodeId));
+
+        // wordHashMap.set(promptWordObj.nodeId, promptWordObj);
+        // currentSession.wordChain.push(promptWordObj) ;
+
+        // sendPromptWord(socket.id, promptWordObj.nodeId);
+
+        // var sessionUpdateObj = {
+        //   sessionId: socketId,
+        //   sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
+        //   targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
+        // };
+
+        // updateSessionViews(sessionUpdateObj);
       });
     }
 

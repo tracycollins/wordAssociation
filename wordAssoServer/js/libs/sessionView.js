@@ -862,7 +862,7 @@ var createNode = function (wordObject, callback) {
   var err = null ;
   var forceStopped = false ;
 
-  // force.stop();
+  force.stop();
 
   console.log("createNode | " + wordObject.nodeId);
 
@@ -895,10 +895,10 @@ var createNode = function (wordObject, callback) {
   }
   else {
 
-    if (!forceStopped) {
-      force.stop();
-      forceStopped = true ;
-    }
+    // if (!forceStopped) {
+    //   force.stop();
+    //   forceStopped = true ;
+    // }
 
     newNodesFlag = true ;
 
@@ -1214,7 +1214,7 @@ function ageNodesCheckQueue() {
       
       if (newNodesFlag || deadNodesFlag) {
         force.nodes(nodes);
-        force.links(links);
+        // force.links(links);
         force.start(); 
       }
 

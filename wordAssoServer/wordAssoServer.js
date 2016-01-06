@@ -95,6 +95,9 @@ var yaml = require('yamljs');
 var async = require('async');
 var HashMap = require('hashmap').HashMap;
 
+var numberPromptsSent = 0;
+var numberResponsesReceived = 0;
+
 var bigHugeLabsApiKey = "e1b4564ec38d2db399dabdf83a8beeeb";
 var bigHugeThesaurusUrl = "http://words.bighugelabs.com/api/2/" + bigHugeLabsApiKey + "/";
 var bhtOverLimitTime = 0;
@@ -102,6 +105,83 @@ var BHT_REQUEST_LIMIT = 100000;
 var numberBhtRequests = 0;
 var bhtLimitResetTime = 0;
 var bhtTimeToReset ;
+
+
+// ==================================================================
+// DROPBOX
+// ==================================================================
+var DROPBOX_WORD_ASSO_ACCESS_TOKEN = process.env.DROPBOX_WORD_ASSO_ACCESS_TOKEN ;
+var DROPBOX_WORD_ASSO_APP_KEY = process.env.DROPBOX_WORD_ASSO_APP_KEY ;
+var DROPBOX_WORD_ASSO_APP_SECRET = process.env.DROPBOX_WORD_ASSO_APP_SECRET;
+var DROPBOX_WORD_ASSO_STATS_FILE = process.env.DROPBOX_WORD_ASSO_STATS_FILE;
+
+var Dropbox = require("dropbox");
+
+console.log("DROPBOX_WORD_ASSO_ACCESS_TOKEN :" + DROPBOX_WORD_ASSO_ACCESS_TOKEN);
+console.log("DROPBOX_WORD_ASSO_APP_KEY :" + DROPBOX_WORD_ASSO_APP_KEY);
+console.log("DROPBOX_WORD_ASSO_APP_SECRET :" + DROPBOX_WORD_ASSO_APP_SECRET);
+
+var dropboxClient = new Dropbox.Client({
+    token: DROPBOX_WORD_ASSO_ACCESS_TOKEN,
+    key: DROPBOX_WORD_ASSO_APP_KEY,
+    secret: DROPBOX_WORD_ASSO_APP_SECRET
+});
+
+
+dropboxClient.authDriver(new Dropbox.AuthDriver.NodeServer(8191));
+
+dropboxClient.getAccountInfo(function(error, accountInfo) {
+  if (error) {
+    console.error("\n*** DROPBOX getAccountInfo ERROR ***\n" + JSON.stringify(error, null, 3));
+    return error;  // Something went wrong.
+  }
+  debug(chalkInfo("DROPBOX ACCOUNT INFO: " + JSON.stringify(accountInfo,null,3) ));
+  console.log(chalkInfo("DROPBOX ACCOUNT INFO: " + accountInfo.name ));
+});
+
+function dropboxWriteArrayToFile(filePath, dataArray, callback){
+
+  if (typeof filePath === 'undefined'){
+    console.error(chalkError(getTimeStamp() + " | !!! DROPBOX WRITE FILE ERROR: FILE PATH UNDEFINED"));
+    callback('FILE PATH UNDEFINED', null);
+  }
+
+  var dataString = dataArray.join('\n');
+
+  dropboxClient.writeFile(filePath, dataString, function(error, stat) {
+    if (error) {
+      console.error(chalkError(getTimeStamp() + " | !!! DROPBOX WRITE FILE ERROR: " + error));
+      callback(error, filePath);
+    }
+    else {
+      debug(chalkInfo(getTimeStamp() + " | DROPBOX FILE WRITE: " + filePath));
+      callback(null, stat);
+    }
+  });
+}
+
+dropboxClient.readFile(DROPBOX_WORD_ASSO_STATS_FILE, function(err, statsJson, callback) {
+
+  if (err) {
+    console.error(chalkError("!!! DROPBOX READ DROPBOX_WORD_ASSO_STATS_FILE ERROR: " + err));
+    return; //It's important to return so that the task callback isn't called twice
+  }
+
+  console.log(chalkInfo(getTimeStamp() 
+    + " | ... LOADING STATS FROM DROPBOX FILE: " + DROPBOX_WORD_ASSO_STATS_FILE
+  ));
+
+  var statsObj = JSON.parse(statsJson);
+
+  console.log("statsJson\n" + JSON.stringify(statsObj, null, 3));
+
+  console.log(chalkInfo(getTimeStamp() + " | FOUND " + statsObj.name));
+
+  // statsObj.locations.forEach(function(stat){
+  //   debug("stat\n" + JSON.stringify(stat, null, 3));
+  // });
+
+});
 
 
 // ==================================================================
@@ -336,9 +416,9 @@ function sendPromptWord(clientObj, promptWordObj){
 
   if (currentSession.wordChain.length >= 2) {
     var previousResponse = currentSession.wordChain[currentSession.wordChain.length-2];
-    console.log(chalkPrompt(previousResponse.nodeId + " --> " + promptWordObj.nodeId + " | " + clientObj.socketId));
+    debug(chalkPrompt(previousResponse.nodeId + " --> " + promptWordObj.nodeId + " | " + clientObj.socketId));
   } else {
-    console.log(chalkPrompt("--> " + promptWordObj.nodeId + " | " + clientObj.socketId));
+    debug(chalkPrompt("--> " + promptWordObj.nodeId + " | " + clientObj.socketId));
   }
 
   if (clientObj.clientConfig.mode == "NORMAL") {
@@ -347,6 +427,8 @@ function sendPromptWord(clientObj, promptWordObj){
   else if (clientObj.clientConfig.mode == "WORD_OBJ"){
     io.to(clientObj.socketId).emit("PROMPT_WORD_OBJ",promptWordObj);
   }
+
+  numberPromptsSent++ ;
 }
 
 function readSocketQueue(){
@@ -549,7 +631,7 @@ var wordVariations = [ 'syn', 'ant', 'rel', 'sim', ];
 function addWordToDb(wordObj, callback){
   words.findOneWord(wordObj, true, function(err, word){
     if (!err) {
-      console.log("--- DB UPDATE | " + word.nodeId + " | MENTIONS: " + word.mentions );
+      debug("--- DB UPDATE | " + word.nodeId + " | MNS: " + word.mentions );
       debug(JSON.stringify(word, null, 3));
 
       if (!word.bhtSearched) {  // not yet bht searched
@@ -561,12 +643,12 @@ function addWordToDb(wordObj, callback){
             callback(err, bhtResponseObj);
           }
           else if (bhtResponseObj.bhtFound){
-            console.log(chalkBht("--- BHT FOUND [" + numberBhtRequests + "] " + bhtResponseObj.nodeId));
+            console.log(chalkBht("--- BHT HIT   | " + bhtResponseObj.nodeId));
             wordHashMap.set(bhtResponseObj.nodeId, bhtResponseObj);
             callback(null, bhtResponseObj);
           }
           else {
-            console.log(chalkBht("--- BHT NOT FOUND [" + numberBhtRequests + "] " + bhtResponseObj.nodeId));
+            console.log(chalkBht("--- BHT HIT   | " + bhtResponseObj.nodeId));
             wordHashMap.set(bhtResponseObj.nodeId, bhtResponseObj);
             callback(null, bhtResponseObj);
           }
@@ -620,7 +702,7 @@ function generateResponse(wordObj, callback){
       callback(bhtResponseObj);
     }
     else if (!bhtResponseObj.bhtFound){
-      console.log(chalkError("bhtSearchWord NOT FOUND: " + bhtResponseObj.nodeId));
+      console.log(chalkError("BHT MISS: " + bhtResponseObj.nodeId));
       callback(bhtResponseObj);
     }
     else {
@@ -630,18 +712,18 @@ function generateResponse(wordObj, callback){
         var randomIndex = randomInt(0, bhtWordHashMapKeys.length);
         var responseWord = bhtWordHashMapKeys[randomIndex].toLowerCase();
 
-        console.log("--- GENERATE RESPONSE: " + bhtResponseObj.nodeId + " --> " + responseWord);
+        console.log(  "--- GEN RSPNS | " + bhtResponseObj.nodeId + " --> " + responseWord);
 
         if (wordHashMap.has(responseWord)){
 
-          console.log("--- FOUND HASH | " + responseWord);
+          console.log("--- HASH HIT  | " + responseWord);
 
           responseWordObj = wordHashMap.get(responseWord);
           responseWordObj.lastSeen = dateNow;
 
           words.findOneWord(responseWordObj, false, function(err, word){
             if (!err) {
-              console.log("--- DB UPDATE | " + word.nodeId + " | MENTIONS: " + word.mentions );
+              console.log("--- DB UPDATE | " + word.nodeId + " | MNS: " + word.mentions );
               debug(JSON.stringify(word, null, 3));
 
               if (!word.bhtSearched) {  // not yet bht searched
@@ -653,12 +735,12 @@ function generateResponse(wordObj, callback){
                     callback(bhtResponseObj);
                   }
                   else if (bhtResponseObj.bhtFound){
-                    console.log(chalkBht("--- BHT FOUND [" + numberBhtRequests + "] " + bhtResponseObj.nodeId));
+                    console.log(chalkBht("--- BHT HIT   | " + bhtResponseObj.nodeId));
                     wordHashMap.set(bhtResponseObj.nodeId, bhtResponseObj);
                     callback(bhtResponseObj);
                   }
                   else {
-                    console.log(chalkBht("--- BHT NOT FOUND [" + numberBhtRequests + "] " + bhtResponseObj.nodeId));
+                    console.log(chalkBht("--- BHT MISS  | " + bhtResponseObj.nodeId));
                     wordHashMap.set(bhtResponseObj.nodeId, bhtResponseObj);
                     callback(bhtResponseObj);
                   }
@@ -674,7 +756,7 @@ function generateResponse(wordObj, callback){
         }
         else {
 
-          console.log("--- NOT FOUND HASH | " + responseWord);
+          console.log("--- HASH MISS | " + responseWord);
           var dateNow = Date.now();
 
           var responseWordObj = new Word ({
@@ -684,7 +766,9 @@ function generateResponse(wordObj, callback){
 
           words.findOneWord(responseWordObj, false, function(err, word){
             if (!err) {
-              console.log("--- DB UPDATE | " + word.nodeId + " | MENTIONS: " + word.mentions );
+              console.log("--- DB UPDATE | " + word.nodeId 
+                + " | MNS: " + word.mentions
+              );
               debug(JSON.stringify(word, null, 3));
 
               if (!word.bhtSearched) {  // not yet bht searched
@@ -695,12 +779,12 @@ function generateResponse(wordObj, callback){
                     console.log(chalkError("bhtSearchWord ERROR: " + JSON.stringify(err)));
                   }
                   else if (bhtResponseObj.bhtFound){
-                    console.log(chalkBht("--- BHT FOUND [" + numberBhtRequests + "] " + bhtResponseObj.nodeId));
+                    console.log(chalkBht("--- BHT HIT   | " + bhtResponseObj.nodeId));
                     wordHashMap.set(bhtResponseObj.nodeId, bhtResponseObj);
                     callback(bhtResponseObj);
                   }
                   else {
-                    console.log(chalkBht("--- BHT NOT FOUND [" + numberBhtRequests + "] " + bhtResponseObj.nodeId));
+                    console.log(chalkBht("--- BHT MISS  | " + bhtResponseObj.nodeId));
                     wordHashMap.set(bhtResponseObj.nodeId, bhtResponseObj);
                     callback(bhtResponseObj);
                   }
@@ -762,7 +846,9 @@ function bhtSearchWord (wordObj, callback){
       wordObj.bhtSearched = true ;
       wordObj.bhtFound = false ;
       words.findOneWord(wordObj, true, function(err, wordUpdatedObj){
-        debug(chalkBht("bhtSearchWord: --- DB UPDATE | " + wordUpdatedObj.nodeId + " | MENTIONS: " + wordUpdatedObj.mentions ));
+        debug(chalkBht("bhtSearchWord: --- DB UPDATE | " + wordUpdatedObj.nodeId 
+          + " | MNS: " + wordUpdatedObj.mentions
+        ));
         debug(chalkBht(JSON.stringify(wordUpdatedObj, null, 3)));
         callback(null, wordUpdatedObj);
         return ;
@@ -810,7 +896,10 @@ function bhtSearchWord (wordObj, callback){
         }
 
         words.findOneWord(wordObj, true, function(err, wordUpdatedObj){
-          debug(chalkBht("bhtSearchWord: --- DB UPDATE | " + wordUpdatedObj.nodeId + " | MENTIONS: " + wordUpdatedObj.mentions ));
+          debug(chalkBht("bhtSearchWord: --- DB UPDATE | " 
+            + wordUpdatedObj.nodeId 
+            + " | MNS: " + wordUpdatedObj.mentions
+          ));
           debug(chalkBht(JSON.stringify(wordUpdatedObj, null, 3)));
           callback(null, wordUpdatedObj);
           return;
@@ -991,7 +1080,7 @@ function createClientSocket (socket){
 
     var clientObj = clientSocketIdHashMap.get(socket.id);
 
-    console.log("<<< RX CLIENT_READY | " + socket.id);
+    console.log(">>> CLIENT READY | " + socket.id);
 
     if (clientConfig) {
       debug("CLIENT CONFIG\n" + JSON.stringify(clientConfig, null, 3));
@@ -1027,6 +1116,8 @@ function createClientSocket (socket){
 
   socket.on("RESPONSE_WORD_OBJ", function(rwObj){
 
+    numberResponsesReceived++;
+
     var dateNow = Date.now();
     var socketId = socket.id;
     var clientObj = clientSocketIdHashMap.get(socket.id);
@@ -1041,7 +1132,7 @@ function createClientSocket (socket){
 
     if (wordHashMap.has(rwObj.nodeId)){
 
-      console.log("--- FOUND HASH | " + rwObj.nodeId);
+      console.log("--- HASH HIT  | " + rwObj.nodeId);
 
       responseWordObj = wordHashMap.get(rwObj.nodeId);
       responseWordObj.lastSeen = dateNow;
@@ -1099,17 +1190,18 @@ function createClientSocket (socket){
         }
 
       });
-
     }
     else {
 
-      console.log("--- HASH NOT FOUND " + rwObj.nodeId);
+      console.log("--- HASH MISS | " + rwObj.nodeId);
 
       responseWordObj = rwObj ;
 
       addWordToDb(rwObj, function(err, wordDbObj){
         if (!err) {
-          console.log("->- ADDED DB | " + wordDbObj.nodeId + " | BHT FOUND: " + wordDbObj.bhtFound);
+          console.log("->- DB UPDATE | " + wordDbObj.nodeId 
+            + " | MNS: " + wordDbObj.mentions
+            );
         }
         else {
           console.error("addWordToDb: *** ERROR ***\n" + err);
@@ -1727,6 +1819,9 @@ configEvents.on("SERVER_READY", function () {
 
         totalSessions : totalSessions,
         totalUsers : totalUsers,
+
+        numberPromptsSent : numberPromptsSent,
+        numberResponsesReceived : numberPromptsSent,
 
         numberTestClients : numberTestClients
       } ;

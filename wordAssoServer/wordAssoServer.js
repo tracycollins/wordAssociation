@@ -328,25 +328,25 @@ var simpleChain = function(chain){
   return chainArray;
 }
 
-function sendPromptWord(socketId, promptWord){
-  var currentSession = sessionHashMap.get(socketId);
-
+function sendPromptWord(clientObj, promptWordObj){
+  var currentSession = sessionHashMap.get(clientObj.socketId);
 
   debug(chalkInfo("currentSession.wordChain [" + currentSession.wordChain.length + "]\n" 
     + simpleChain(currentSession.wordChain)));
 
   if (currentSession.wordChain.length >= 2) {
     var previousResponse = currentSession.wordChain[currentSession.wordChain.length-2];
-    console.log(chalkPrompt(previousResponse.nodeId + " --> " + promptWord + " | " + socketId));
+    console.log(chalkPrompt(previousResponse.nodeId + " --> " + promptWordObj.nodeId + " | " + clientObj.socketId));
   } else {
-    console.log(chalkPrompt("--> " + promptWord + " | " + socketId));
+    console.log(chalkPrompt("--> " + promptWordObj.nodeId + " | " + clientObj.socketId));
   }
 
-  var srvrObj = {
-    "timeStamp" : getTimeStamp(),
-    "promptWord" : promptWord
+  if (clientObj.clientConfig.mode == "NORMAL") {
+    io.to(clientObj.socketId).emit("PROMPT_WORD",promptWordObj.nodeId);
   }
-  io.to(socketId).emit("PROMPT_WORD",srvrObj);
+  else if (clientObj.clientConfig.mode == "WORD_OBJ"){
+    io.to(clientObj.socketId).emit("PROMPT_WORD_OBJ",promptWordObj);
+  }
 }
 
 function readSocketQueue(){
@@ -909,28 +909,6 @@ function createClientSocket (socket){
     sessionHashMap.set(sessionObj.sessionId, sessionObj);  
     console.log("CREATED sessionObj | " + sessionObj.sessionId 
     );
-
-    // words.getRandomWord(function(err, randomWord){
-    //   if (!err) {
-
-    //     wordHashMap.set(randomWord.nodeId, randomWord);
-
-    //     var sessionObj = {
-    //       sessionId: socketId,
-    //       userId: clientIp + "_" + socketId,
-    //       createAt: Date.now(),
-    //       wordChain: []
-    //     }
-
-    //     sessionObj.wordChain.push(randomWord);
-    //     sessionHashMap.set(sessionObj.sessionId, sessionObj);  
-    //     console.log("CREATED sessionObj | " + sessionObj.sessionId 
-    //       + " | WORD CHAIN START: " + sessionObj.wordChain[0].nodeId
-    //     );
-
-    //   }
-    // });
-
   }
 
   socketQueue.enqueue(clientObj);
@@ -972,9 +950,17 @@ function createClientSocket (socket){
     readSocketQueue();
   });
 
-  socket.on("CLIENT_READY", function(){
+  socket.on("CLIENT_READY", function(clientConfig){
+
+    var clientObj = clientSocketIdHashMap.get(socket.id);
+
     console.log("<<< RX CLIENT_READY | " + socket.id);
 
+    if (clientConfig) {
+      console.log("CLIENT CONFIG\n" + JSON.stringify(clientConfig, null, 3));
+      clientObj.clientConfig = clientConfig ;
+      clientSocketIdHashMap.set(socket.id, clientObj);
+    }
 
     words.getRandomWord(function(err, randomWord){
       if (!err) {
@@ -986,7 +972,8 @@ function createClientSocket (socket){
         var currentSession = sessionHashMap.get(socket.id);
 
         currentSession.wordChain.push(randomWord) ;
-        sendPromptWord(socket.id, randomWord.nodeId);
+
+        sendPromptWord(clientObj, randomWord);
 
         var sessionUpdateObj = {
           sessionId: socketId,
@@ -995,7 +982,6 @@ function createClientSocket (socket){
         };
 
         updateSessionViews(sessionUpdateObj);
-
 
       }
     });
@@ -1009,6 +995,9 @@ function createClientSocket (socket){
     var responseWord = rw.toLowerCase();
 
     var socketId = socket.id;
+
+    var clientObj = clientSocketIdHashMap.get(socket.id);
+
     var currentSession = sessionHashMap.get(socketId);
     var promptWord ;
     var previousPrompt = currentSession.wordChain[currentSession.wordChain.length-1] ;
@@ -1048,7 +1037,8 @@ function createClientSocket (socket){
               wordHashMap.set(randomWordObj.nodeId, randomWordObj);
               currentSession.wordChain.push(randomWordObj) ;
 
-              sendPromptWord(socket.id, randomWordObj.nodeId);
+              // sendPromptWord(socket.id, randomWordObj.nodeId);
+              sendPromptWord(clientObj, randomWord);
 
               var sessionUpdateObj = {
                 sessionId: socketId,
@@ -1066,7 +1056,8 @@ function createClientSocket (socket){
           wordHashMap.set(promptWordObj.nodeId, promptWordObj);
           currentSession.wordChain.push(promptWordObj) ;
 
-          sendPromptWord(socket.id, promptWordObj.nodeId);
+          // sendPromptWord(socket.id, promptWordObj.nodeId);
+          sendPromptWord(clientObj, promptWordObj);
 
           var sessionUpdateObj = {
             sessionId: socketId,
@@ -1105,7 +1096,8 @@ function createClientSocket (socket){
               wordHashMap.set(randomWordObj.nodeId, randomWordObj);
               currentSession.wordChain.push(randomWordObj) ;
 
-              sendPromptWord(socket.id, randomWordObj.nodeId);
+              // sendPromptWord(socket.id, randomWordObj.nodeId);
+              sendPromptWord(clientObj, randomWord);
 
               var sessionUpdateObj = {
                 sessionId: socketId,
@@ -1123,7 +1115,8 @@ function createClientSocket (socket){
           wordHashMap.set(promptWordObj.nodeId, promptWordObj);
           currentSession.wordChain.push(promptWordObj) ;
 
-          sendPromptWord(socket.id, promptWordObj.nodeId);
+          // sendPromptWord(socket.id, promptWordObj.nodeId);
+          sendPromptWord(clientObj, promptWordObj);
 
           var sessionUpdateObj = {
             sessionId: socketId,

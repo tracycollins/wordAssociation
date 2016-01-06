@@ -1214,7 +1214,7 @@ function ageNodesCheckQueue() {
       
       if (newNodesFlag || deadNodesFlag) {
         force.nodes(nodes);
-        // force.links(links);
+        force.links(links);
         force.start(); 
       }
 

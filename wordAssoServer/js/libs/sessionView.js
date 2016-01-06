@@ -1000,10 +1000,7 @@ var ageNodes = function (newNodesFlag, deadNodesFlag, callback){
 
       deadNodesFlag = true ;
 
-      if (!forceStopped) {
-        forceStopped = true ;
-        force.stop();
-      }
+      force.stop();
 
       console.log("XXX DEAD NODE: " + nodeHashMap[currentNodeObject.nodeId].nodeId);
       delete nodeHashMap[currentNodeObject.nodeId];
@@ -1025,11 +1022,6 @@ var ageNodes = function (newNodesFlag, deadNodesFlag, callback){
       nodes.splice(ageNodesIndex, 1); 
     }
     else {
-
-      // if (forceStopped) {
-      //   forceStopped = false ;
-      //   force.start();
-      // }
 
       currentNodeObject.ageUpdated = dateNow;
       currentNodeObject.age = age;

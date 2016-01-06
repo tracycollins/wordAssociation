@@ -939,6 +939,7 @@ var createLinks = function (sessionObject, callback) {
 var getNodeFromQueue = function (callback) {
 
   newNodesFlag = false ;
+  deadNodesFlag = false ;
 
   var dateNow = Date.now();
 
@@ -959,9 +960,9 @@ var getNodeFromQueue = function (callback) {
     sessionObject.age = 0;
     sessionObject.ageUpdated = dateNow;
 
-    createNode(sessionObject.sourceWord, function(){
-      createNode(sessionObject.targetWord, function(){
-        createLinks(sessionObject, function(){
+    createNode(sessionObject.sourceWord, function(newNodesFlag, deadNodesFlag){
+      createNode(sessionObject.targetWord, function(newNodesFlag, deadNodesFlag){
+        createLinks(sessionObject, function(newNodesFlag, deadNodesFlag){
         });
       });
     });

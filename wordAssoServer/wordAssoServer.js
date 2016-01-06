@@ -722,7 +722,7 @@ function generateResponse(wordObj, callback){
 function bhtSearchWord (wordObj, callback){
 
 
-  if (moment().isBefore(bhtLimitResetTime)) {
+  if (bhtOverLimitTime && moment().isBefore(bhtLimitResetTime)) {
 
     bhtTimeToReset = moment.utc(bhtLimitResetTime);
     bhtTimeToReset.subtract(moment.utc());
@@ -738,6 +738,7 @@ function bhtSearchWord (wordObj, callback){
     return ;
   }
   else {
+    bhtOverLimitTime = 0 ;
   }
 
   if (wordObj.bhtFound) {

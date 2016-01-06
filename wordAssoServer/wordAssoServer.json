@@ -6,8 +6,8 @@
     "env": {
         "WORDASSO_NODE_ENV": "production",
         "DROPBOX_WORD_ASSO_ACCESS_TOKEN" : "nknEWsIkD5UAAAAAAAQouTDFRBKfwsFzuS8PPi2Q_JVYnpotNuaHiddNtmG4mUTi",
-        "DROPBOX_WORD_ASSO_APP_KEY" : , "qlb9k4dp01t9iqk"
-        "DROPBOX_WORD_ASSO_APP_SECRET" : , "wqslhe2t95zfn19"
+        "DROPBOX_WORD_ASSO_APP_KEY" : "qlb9k4dp01t9iqk",
+        "DROPBOX_WORD_ASSO_APP_SECRET" : "wqslhe2t95zfn19",
         "DROPBOX_WORD_ASSO_STATS_FILE" : "wordAssociationStats.json"
     }
   }]

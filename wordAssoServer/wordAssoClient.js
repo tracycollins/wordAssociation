@@ -96,16 +96,20 @@ function addWordOut() {
   wordOutDiv.appendChild(element);
 }
 
-function updateServerPromptWord(srvrObj){
-  if (debug) console.log("updateServerPromptWord\n" + JSON.stringify(srvrObj, null, 3));
+function updateServerPromptWord(prompt){
+  if (debug) console.log("updateServerPromptWord: " + prompt);
   var wordOutText = document.getElementById("wordOutText");
-  wordOutText.innerHTML = srvrObj.promptWord;
+  wordOutText.innerHTML = prompt;
 }
 
-socket.on("PROMPT_WORD", function(serverResponseObj){
-  if (debug) console.log("RX PROMPT_WORD: " + JSON.stringify(serverResponseObj, null, 3));
-  console.log("RX PROMPT_WORD: " + serverResponseObj.promptWord);
-  updateServerPromptWord(serverResponseObj);
+socket.on("PROMPT_WORD", function(promptWord){
+  console.log("RX PROMPT_WORD: " + promptWord);
+  updateServerPromptWord(promptWord);
+});
+
+socket.on("PROMPT_WORD_OBJ", function(promptWordObj){
+  console.log("RX PROMPT_WORD_OBJ: " + promptWordObj.nodeId + " | BHT FOUND: " + promptWordObj.bhtFound);
+  updateServerPromptWord(promptWordObj.nodeId);
 });
 
 socket.on('connect', function(){
@@ -248,7 +252,9 @@ window.onload = function () {
   addWordOut();
   addWordIn();
 
-  socket.emit("CLIENT_READY");
+  var clientConfig = { type: "STANDARD", mode: "WORD_OBJ"} ;
+
+  socket.emit("CLIENT_READY", clientConfig);
 
   setTimeout(function(){
     pageLoadedTimeIntervalFlag = false ;

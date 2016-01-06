@@ -1105,8 +1105,17 @@ function createClientSocket (socket){
       console.log("--- HASH NOT FOUND " + rwObj.nodeId);
 
       responseWordObj = rwObj ;
-      
-      wordHashMap.set(rwObj.nodeId, rwObj);
+
+      addWordToDb(rwObj, function(err, wordDbObj){
+        if (!err) {
+          console.log("->- ADDED RESPONSE " + wordDbObj.nodeId + " TO DB");
+        }
+        else {
+          console.error("addWordToDb: *** ERROR ***\n" + err);
+        }
+      })
+
+      // wordHashMap.set(rwObj.nodeId, rwObj);
       currentSession.wordChain.push(rwObj) ;
 
       var sessionUpdateObj = {

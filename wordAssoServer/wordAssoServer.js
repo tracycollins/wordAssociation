@@ -994,7 +994,7 @@ function createClientSocket (socket){
     console.log("<<< RX CLIENT_READY | " + socket.id);
 
     if (clientConfig) {
-      console.log("CLIENT CONFIG\n" + JSON.stringify(clientConfig, null, 3));
+      debug("CLIENT CONFIG\n" + JSON.stringify(clientConfig, null, 3));
       clientObj.clientConfig = clientConfig ;
       clientSocketIdHashMap.set(socket.id, clientObj);
     }

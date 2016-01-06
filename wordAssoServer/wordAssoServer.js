@@ -1108,7 +1108,7 @@ function createClientSocket (socket){
 
       addWordToDb(rwObj, function(err, wordDbObj){
         if (!err) {
-          console.log("->- ADDED RESPONSE " + wordDbObj.nodeId + " TO DB");
+          console.log("->- ADDED DB | " + wordDbObj.nodeId + " | BHT FOUND: " + wordDbObj.bhtFound);
         }
         else {
           console.error("addWordToDb: *** ERROR ***\n" + err);

@@ -860,6 +860,7 @@ var createNode = function (wordObject, callback) {
 
   var dateNow = Date.now();
   var err = null ;
+  var forceStopped = false ;
 
   // force.stop();
 
@@ -894,7 +895,12 @@ var createNode = function (wordObject, callback) {
   }
   else {
 
-    force.stop();
+    if (!forceStopped) {
+      force.stop();
+      forceStopped = true ;
+    }
+
+    newNodesFlag = true ;
 
     wordObject.age = 0 ;
     wordObject.lastSeen = dateNow;
@@ -940,7 +946,7 @@ var getNodeFromQueue = function (callback) {
   //========================
   while (sessionUpdateQueue.getLength() > 0) {
 
-    newNodesFlag = true ;
+    // newNodesFlag = true ;
 
     if (sessionUpdateQueue.getLength() > QUEUE_MAX) {
       sessionUpdateQueue.dequeue();
@@ -993,7 +999,11 @@ var ageNodes = function (newNodesFlag, deadNodesFlag, callback){
     if (age > nodeMaxAge) {
 
       deadNodesFlag = true ;
-      force.stop();
+
+      if (!forceStopped) {
+        forceStopped = true ;
+        force.stop();
+      }
 
       console.log("XXX DEAD NODE: " + nodeHashMap[currentNodeObject.nodeId].nodeId);
       delete nodeHashMap[currentNodeObject.nodeId];
@@ -1015,7 +1025,12 @@ var ageNodes = function (newNodesFlag, deadNodesFlag, callback){
       nodes.splice(ageNodesIndex, 1); 
     }
     else {
-      // console.log("=== AGE NODE: " + nodeHashMap[currentNodeObject.nodeId].age + " AGE: " + age);
+
+      // if (forceStopped) {
+      //   forceStopped = false ;
+      //   force.start();
+      // }
+
       currentNodeObject.ageUpdated = dateNow;
       currentNodeObject.age = age;
 

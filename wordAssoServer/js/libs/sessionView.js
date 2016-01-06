@@ -918,7 +918,7 @@ var createNode = function (wordObject, callback) {
     console.log(">>> ADDED NODE TO HASH MAP | " + nodes.length + " | " + wordObject.nodeId);
   }
 
-  callback (err);
+  callback (null, newNodesFlag, deadNodesFlag);
 }
 
 var createLinks = function (sessionObject, callback) {
@@ -933,7 +933,7 @@ var createLinks = function (sessionObject, callback) {
     target: nodeHashMap[sessionObject.targetWord.nodeId], 
   });
 
-  callback (err, newLinksFlag);
+  callback (null, newNodesFlag, deadNodesFlag);
 }
 
 var getNodeFromQueue = function (callback) {

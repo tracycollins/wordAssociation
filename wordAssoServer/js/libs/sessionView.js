@@ -861,7 +861,7 @@ var createNode = function (wordObject, callback) {
   var dateNow = Date.now();
   var err = null ;
 
-  force.stop();
+  // force.stop();
 
   console.log("createNode | " + wordObject.nodeId);
 
@@ -893,6 +893,8 @@ var createNode = function (wordObject, callback) {
     }
   }
   else {
+
+    force.stop();
 
     wordObject.age = 0 ;
     wordObject.lastSeen = dateNow;
@@ -1206,9 +1208,10 @@ function ageNodesCheckQueue() {
       if (newNodesFlag || deadNodesFlag) {
         force.nodes(nodes);
         force.links(links);
+        force.start(); 
       }
 
-      force.start(); 
+      // force.start(); 
     }
   );
 }

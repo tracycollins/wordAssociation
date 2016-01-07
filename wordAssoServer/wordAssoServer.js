@@ -914,6 +914,18 @@ function bhtSearchWord (wordObj, callback){
   });
 }
 
+function chainDeadEnd(chain) {
+  if (chain.length > 2) {
+    if ((chain[chain.length-1] == chain[chain.length-2]) && (chain[chain.length-2] == chain[chain.length-3])) {
+      console.log("!!! CHAIN FREEZE !!! " + chain[chain.length-1].nodeId);
+      return true ;
+    }
+    else {
+      return false ;
+    }
+  }
+}
+
 function createClientSocket (socket){
 
   var clientsHashMap = findClientsSocket('/');
@@ -1151,7 +1163,8 @@ function createClientSocket (socket){
 
       generateResponse(responseWordObj, function(promptWordObj){
 
-        if (!promptWordObj.bhtFound){
+        if (!promptWordObj.bhtFound || chainDeadEnd(currentSession.wordChain)) {
+
           words.getRandomWord(function(err, randomWordObj){
             if (!err) {
               console.log(chalkResponse(socketId + " | " + responseWordObj.nodeId + " --> " + randomWordObj.nodeId));
@@ -1159,8 +1172,7 @@ function createClientSocket (socket){
               wordHashMap.set(randomWordObj.nodeId, randomWordObj);
               currentSession.wordChain.push(randomWordObj) ;
 
-              // sendPromptWord(socket.id, randomWordObj.nodeId);
-              sendPromptWord(clientObj, randomWord);
+              sendPromptWord(clientObj, randomWordObj);
 
               var sessionUpdateObj = {
                 sessionId: socketId,

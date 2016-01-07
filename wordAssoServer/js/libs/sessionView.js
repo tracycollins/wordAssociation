@@ -780,7 +780,7 @@ socket.on("CONFIG_CHANGE", function(rxConfig){
 
 socket.on("SESSION_UPDATE", function(sessionObject){
 
-  console.log(">>> RX SESSION_UPDATE") ;
+  console.log("> RX SESS " + sessionObject.sourceWord.nodeId + " > " + sessionObject.targetWord.nodeId) ;
   // console.log(getTimeStamp() + ">>> RX SESSION_UPDATE\n" + JSON.stringify(sessionObject, null, 3)) ;
 
   if (!windowVisible) {
@@ -868,7 +868,8 @@ var createNode = function (wordObject, callback) {
 
   force.stop();
 
-  console.log("createNode | " + wordObject.nodeId);
+  // console.log("createNode | " + wordObject.nodeId);
+  // console.log("createNode | " + JSON.stringify(wordObject, null, 3));
 
   if (wordObject.nodeId in nodeHashMap) {
 
@@ -880,7 +881,7 @@ var createNode = function (wordObject, callback) {
     currentNodeObject.mentions = wordObject.mentions ;
     currentNodeObject.text = wordObject.nodeId ;
 
-    console.log("... FOUND NODE IN HASH MAP | " + nodes.length + " | " + currentNodeObject.nodeId);
+    // console.log("... FOUND NODE IN HASH MAP | " + nodes.length + " | " + currentNodeObject.nodeId);
     nodesLength = nodes.length ;
 
     for (nodeIndex = 0; nodeIndex < nodesLength; nodeIndex++){
@@ -918,12 +919,12 @@ var createNode = function (wordObject, callback) {
 
     nodeHashMap[wordObject.nodeId] = wordObject;
     nodes.push(wordObject);
-    console.log(">>> ADDED NODE TO HASH MAP"
-      + " | " + nodes.length 
-      + " | " + wordObject.nodeId
-      + " | x: " + wordObject.x
-      + " | y: " + wordObject.y
-      );
+    // console.log(">>> ADDED NODE TO HASH MAP"
+    //   + " | " + nodes.length 
+    //   + " | " + wordObject.nodeId
+    //   + " | x: " + wordObject.x
+    //   + " | y: " + wordObject.y
+    //   );
   }
 
   callback (null, newNodesFlag, deadNodesFlag);
@@ -934,7 +935,7 @@ var createLinks = function (sessionObject, callback) {
   var err = null ;
   newLinksFlag = false ;
 
-  console.log("createLinks | " + sessionObject.sourceWord.nodeId + " --> " + sessionObject.targetWord.nodeId);
+  // console.log("createLinks | " + sessionObject.sourceWord.nodeId + " --> " + sessionObject.targetWord.nodeId);
 
   links.push({
     source: nodeHashMap[sessionObject.sourceWord.nodeId], 

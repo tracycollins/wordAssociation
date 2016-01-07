@@ -382,7 +382,7 @@ function updateSessionViews(sessionUpdateObj){
     }
   });
 
-  debug(chalkInfo(">>> TX SESSION_UPDATE"
+  console.log(chalkInfo(">>> TX SESSION_UPDATE"
     + " | " + sessionUpdateObj.sourceWord.nodeId
     + " --> " + sessionUpdateObj.targetWord.nodeId
   ));
@@ -629,7 +629,7 @@ var wordTypes = [ 'noun', 'verb', 'adjective', 'adverb' ];
 var wordVariations = [ 'syn', 'ant', 'rel', 'sim', ];
 
 function addWordToDb(wordObj, callback){
-  words.findOneWord(wordObj, true, function(err, word){
+  words.findOneWord(wordObj, false, function(err, word){
     if (!err) {
       debug("--- DB UPDATE | " + word.nodeId + " | MNS: " + word.mentions );
       debug(JSON.stringify(word, null, 3));
@@ -1203,6 +1203,15 @@ function createClientSocket (socket){
           console.log("->- DB UPDATE | " + wordDbObj.nodeId 
             + " | MNS: " + wordDbObj.mentions
             );
+          currentSession.wordChain.push(wordDbObj) ;
+
+          var sessionUpdateObj = {
+            sessionId: socketId,
+            sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
+            targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
+          };
+
+          updateSessionViews(sessionUpdateObj);
         }
         else {
           console.error("addWordToDb: *** ERROR ***\n" + err);
@@ -1210,15 +1219,15 @@ function createClientSocket (socket){
       })
 
       // wordHashMap.set(rwObj.nodeId, rwObj);
-      currentSession.wordChain.push(rwObj) ;
+      // currentSession.wordChain.push(rwObj) ;
 
-      var sessionUpdateObj = {
-        sessionId: socketId,
-        sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
-        targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
-      };
+      // var sessionUpdateObj = {
+      //   sessionId: socketId,
+      //   sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
+      //   targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
+      // };
 
-      updateSessionViews(sessionUpdateObj);
+      // updateSessionViews(sessionUpdateObj);
 
       generateResponse(responseWordObj, function(promptWordObj){
 

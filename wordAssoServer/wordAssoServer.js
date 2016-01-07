@@ -473,6 +473,7 @@ function readSocketQueue(){
             dnsReverseLookup(socketObj.ip, function(err, domains){
               if (err){
                 console.error(chalkError("\n\n***** ERROR: dnsReverseLookup: " + socketObj.ip + " ERROR: " + err));
+                socketObj.domain = "-- DOMAIN NOT FOUND --";
               }
               else {
                 debug("DNS REVERSE LOOKUP: " + socketObj.ip + " | DOMAINS: " + domains);
@@ -510,7 +511,7 @@ function readSocketQueue(){
           }
         ], 
         function(err, socketObj){
-          if (err){
+          if (err && (err.indexOf("ENOTFOUND") < 0)){
             clientSocketIdHashMap.remove(socketObj.socketId);
             socketObj.connected = false ;
             socketObj.disconnectTime = currentTime ;

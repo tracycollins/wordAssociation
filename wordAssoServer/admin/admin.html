@@ -108,44 +108,7 @@
 	</head>
 
 	<body>
-	    <h1>BLM ADMIN</h1>
-
-	    <div id='adminControlPanel' class='adminControlPanel' >
-		    <form class='adminControlPanelForm' name='serverConfig'>
-		    	<br>
-					<label for="searchTerm">SEARCH TERM</label>
-		    	<br>
-		    	<input id="textSearchTerm" type="text" name="searchTerm" onkeypress="return sendServerConfig(event)">
-		    </form>
-		    <form class='adminControlTweetSearch' name='tweetSearchDate'>
-		    	<br>
-					<label for="searchDate">SEARCH DATE YYYY-MM-DD</label>
-		    	<br>
-					<input id="txtYear" type="text" value="2015" >		    	
-					<input id="txtMonth" type="text" value="01" >
-					<input id="txtDay" type="text" value="01" >
-		    </form>
-		    <form class='adminControlTweetSearch' name='tweetSearchTime'>
-		    	<br>
-					<label for="searchTime">SEARCH TIME 24-HR HH:MM</label>
-		    	<br>
-					<input id="txtHour" type="text" value="00" >
-					<input id="txtMinute" type="text" value="00" >
-		    </form>
-		    <br>
-				<button id="searchDateTimeButton" class="showHideButton" onclick="setSearchByDateTime()">DATE/TIME SEARCH</button>
-				<button id="searchDateTimeMaxTpmButton" class="showHideButton" onclick="setSearchByDateTimeMaxTpm()">MAX TPM DATE/TIME SEARCH</button>
-				<button id="searchDateTimeMax24HourTpmButton" class="showHideButton" onclick="setSearchByDateTimeMax24HourTpm()">MAX 24H TPM DATE/TIME SEARCH</button>
-		    <br>
-		    <form class='adminControlTestSendInverval' name='testSendInterval'>
-		    	<br>
-					<label for="sendInterval">TEST TWEET SEND INTERVAL</label>
-		    	<br>
-		    	<input id="textSendInterval" type="text" name="sendInterval" value="1000">
-		    </form>
-		    <br>
-				<button id="testModeButton" class="showHideButton" onclick="setTestMode()">TEST MODE</button>
-	    </div>
+	    <h1>WORD ASSOCIATION ADMIN</h1>
 
 	    <div id='admin' class='admin' font-size=0.1em>
 
@@ -157,21 +120,6 @@
 		    <br>
 		    <hr>
 		    <br>
-		    <div id='tweets_panel' >
-				<br/>
-		    	<h2>TWEETS</h2>
-				<br/>
-			</div>
-
-			<div id='server_tweets_daterange' ></div>
-			<div id='server_tweets' ></div>
-			<br/>
-
-			<button id="showHideButton" class="showHideButton" onclick="toggleTweets()">show/hide tweets</button>
-			<button id="showHideButton" class="showHideButton" onclick="toggleTweetsDateRange()">show/hide tweets date range</button>
-
-		  <div id='tweets_daterange' ><ul id='tweet_daterange_list'></ul></div>
-		  <div id='tweets' ><ul id='tweet_list'></ul></div>
 
 		  <br>
 		  <hr>
@@ -258,8 +206,8 @@
 			var showTestClients = false ;
 			var showBotClients = false ;
 
-			var socket = io.connect('http://threeceelabs.com/admin');
-			// var socket = io.connect('http://127.0.0.1:8080/admin');
+			// var socket = io.connect('http://threeceelabs.com/admin');
+			var socket = io.connect('http://threeceedev.dyndns.org/');
 
 			var googleOauthUrl = 0;
 

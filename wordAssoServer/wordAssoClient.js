@@ -42,6 +42,7 @@ function getUrlVariables(config){
 
 function wordInScript(){
   var wordInValue = document.getElementById("wordInText").value.trim() ;
+  wordInValue = wordInValue.toLowerCase();
 
   if (wordInValue == '') {
     console.warn("NO INPUT WORD");

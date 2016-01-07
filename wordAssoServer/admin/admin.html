@@ -472,7 +472,7 @@
 			socket.on('HEARTBEAT', function(rxHeartbeat){
 				hbIndex++;
 				heartBeat = rxHeartbeat ;
-				if (hbIndex%10 == 0) console.log("rxHeartbeat\n" + JSON.stringify(rxHeartbeat, null, 2));
+				// if (hbIndex%10 == 0) console.log("rxHeartbeat\n" + JSON.stringify(rxHeartbeat, null, 2));
 				heartBeatTimeoutFlag = false ;
 			});
 

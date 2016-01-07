@@ -5,7 +5,7 @@
   }
 
 div#wordIn {
-  float: none;
+  float: top;
   background-color:black;
   color:#888888;
   font-family: "Lucida Console", Monaco, monospace;

@@ -1,5 +1,9 @@
 /* main.css */
 
+.column {
+    float: none;
+  }
+
 div#wordIn {
   background-color:black;
   color:#888888;

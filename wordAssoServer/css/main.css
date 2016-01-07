@@ -49,8 +49,8 @@ input[type="text"]{
   font-size: 4em;
 }
 output[type="text"]{
+  margin-left: 0.5em;
   margin-top: 0.5em;
-  margin-left: 0.9em;
   padding: 0.5em;
   border:none;
   color: #00BB00;

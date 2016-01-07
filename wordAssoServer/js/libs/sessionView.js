@@ -780,7 +780,7 @@ socket.on("CONFIG_CHANGE", function(rxConfig){
 
 socket.on("SESSION_UPDATE", function(sessionObject){
 
-  console.log("> RX SESS " + sessionObject.sourceWord.nodeId + " > " + sessionObject.targetWord.nodeId) ;
+  console.log("> RX " + sessionObject.sourceWord.nodeId + " > " + sessionObject.targetWord.nodeId) ;
   // console.log(getTimeStamp() + ">>> RX SESSION_UPDATE\n" + JSON.stringify(sessionObject, null, 3)) ;
 
   if (!windowVisible) {
@@ -1013,7 +1013,7 @@ var ageNodes = function (newNodesFlag, deadNodesFlag, callback){
 
       // force.stop();
 
-      console.log("XXX DEAD NODE: " + nodeHashMap[currentNodeObject.nodeId].nodeId);
+      // console.log("XXX DEAD NODE: " + nodeHashMap[currentNodeObject.nodeId].nodeId);
       delete nodeHashMap[currentNodeObject.nodeId];
 
       var ageLinksLength = links.length-1;

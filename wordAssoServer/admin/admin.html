@@ -205,7 +205,8 @@
 			var showTestClients = false ;
 			var showBotClients = false ;
 
-			var socket = io.connect('http://threeceelabs.com/admin');
+			var socket = io.connect('http://localhost:9997/admin');
+			// var socket = io.connect('http://threeceelabs.com/admin');
 			// var socket = io.connect('http://threeceedev.dyndns.org/');
 
 			var googleOauthUrl = 0;
@@ -467,8 +468,11 @@
 			  console.log("> RX " + sessionObject.sourceWord.nodeId + " > " + sessionObject.targetWord.nodeId) ;
 			});
 
+			var hbIndex = 0;
 			socket.on('HEARTBEAT', function(rxHeartbeat){
+				hbIndex++;
 				heartBeat = rxHeartbeat ;
+				if (hbIndex%10 == 0) console.log("rxHeartbeat\n" + JSON.stringify(rxHeartbeat, null, 2));
 				heartBeatTimeoutFlag = false ;
 			});
 
@@ -913,6 +917,12 @@
 				tableCreateRow(heatbeatTable, false, ['SERVER UPTIME', msToTime(heartBeat.upTime)]);
 				tableCreateRow(heatbeatTable, false, ['APP START TIME', getTimeStamp(heartBeat.startTime)]);
 				tableCreateRow(heatbeatTable, false, ['APP RUNTIME', msToTime(heartBeat.runTime)]);
+
+				tableCreateRow(heatbeatTable, false, ['TOTAL WORDS', heartBeat.totalWords]);
+				tableCreateRow(heatbeatTable, false, ['TOTAL PROMPTS', heartBeat.numberPromptsSent]);
+				tableCreateRow(heatbeatTable, false, ['TOTAL REPONSES', heartBeat.numberResponsesReceived]);
+				tableCreateRow(heatbeatTable, false, ['TOTAL BHT REQS', heartBeat.numberBhtRequests]);
+
 				tableCreateRow(heatbeatTable, false, ['TOTAL CLIENTS', heartBeat.numberClients]);
 				tableCreateRow(heatbeatTable, false, ['CLIENTS', (heartBeat.numberClients - heartBeat.numberTestClients)]);
 				tableCreateRow(heatbeatTable, false, ['MAX CLIENTS', heartBeat.maxNumberClients]);

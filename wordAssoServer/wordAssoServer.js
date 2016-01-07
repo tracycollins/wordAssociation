@@ -382,7 +382,7 @@ function updateSessionViews(sessionUpdateObj){
     }
   });
 
-  console.log(chalkInfo(">>> TX SESSION_UPDATE"
+  debug(chalkInfo(">>> TX SESSION_UPDATE"
     + " | " + sessionUpdateObj.sourceWord.nodeId
     + " --> " + sessionUpdateObj.targetWord.nodeId
   ));

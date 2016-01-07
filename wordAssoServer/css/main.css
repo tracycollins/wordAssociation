@@ -5,6 +5,7 @@
   }
 
 div#wordIn {
+    float: none;
   background-color:black;
   color:#888888;
   font-family: "Lucida Console", Monaco, monospace;
@@ -15,6 +16,7 @@ div#wordIn {
 }
 
 div#wordOut {
+    float: none;
   background-color:black;
   color:#888888;
   font-family: "Lucida Console", Monaco, monospace;

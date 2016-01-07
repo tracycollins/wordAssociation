@@ -2376,6 +2376,15 @@ function initAppRouting(){
     return;
   });
 
+  app.get('/admin/admin.html', function(req, res){
+    debug("LOADING PAGE: /admin/admin.html");
+    res.sendFile(__dirname + '/admin/admin.html');
+  });
+
+  app.get('/node_modules/debug/node_modules/debug.js', function(req, res){
+    res.sendFile(__dirname + '/node_modules/debug/node_modules/debug.js');
+  });
+
   app.get('/test', function(req, res){
     console.log(chalkAlert("TEST PAGE REQUEST ... RETURNING index.html ..."));
     res.sendFile(__dirname + '/index.html');

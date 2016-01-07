@@ -370,17 +370,23 @@ function dnsReverseLookup(ip, callback) {
   }
 }
 
+var wordCountComplete = false ;
 function updateSessionViews(sessionUpdateObj){
 
-  Word.count({}, function(err,count){
-    if (!err){ 
-      debug("TOTAL WORDS: " + count);
-      totalWords = count ;
-    } 
-    else {
-      console.error(chalkError("\n*** DB Word.count ERROR *** | " + getTimeStamp() + "\n" + err));
-    }
-  });
+  if (wordCountComplete) {
+    wordCountComplete = false ;
+    Word.count({}, function(err,count){
+      if (!err){ 
+        debug("TOTAL WORDS: " + count);
+        totalWords = count ;
+        wordCountComplete = true ;
+      } 
+      else {
+        console.error(chalkError("\n*** DB Word.count ERROR *** | " + getTimeStamp() + "\n" + err));
+        wordCountComplete = true ;
+      }
+    });
+  }
 
   debug(chalkInfo(">>> TX SESSION_UPDATE"
     + " | " + sessionUpdateObj.sourceWord.nodeId
@@ -1139,7 +1145,7 @@ function createClientSocket (socket){
     var promptWord ;
     var previousPrompt = currentSession.wordChain[currentSession.wordChain.length-1] ;
 
-    console.log(chalkResponse(rwObj.nodeId + " <-- " + previousPrompt.nodeId + " | " + socketId));
+    console.log(chalkResponse(socketId + " | " + rwObj.nodeId + " <-- " + previousPrompt.nodeId));
 
     var responseWordObj;
 
@@ -1959,7 +1965,7 @@ io.of("/admin").on("connect", function(socket){
           clientSocketIdHashMap.forEach(function(value, key) {
 
             if (typeof value.connected !== 'undefined'){
-              if ((value.domain.indexOf("googleusercontent") < 0) || (numberSessionsTxd < MAX_TX_SESSIONS)){
+              if ((value.domain.indexOf("googleusercontent") < 0) || (numberSessionsTxd < options.maxSessions)){
                 console.log(">>> TX SESSION: CLIENT " 
                   + value.domain 
                   + " | I: " + value.ip 
@@ -1988,7 +1994,7 @@ io.of("/admin").on("connect", function(socket){
               }
             }
             else{
-              console.log("... SKIPPING TX SESSION: " + numberSessionsTxd + " TXD | " + MAX_TX_SESSIONS + " MAX");
+              console.log("... SKIPPING TX SESSION: " + numberSessionsTxd + " TXD | " + options.maxSessions + " MAX");
             }
           });  
         });
@@ -2004,7 +2010,7 @@ io.of("/admin").on("connect", function(socket){
 
           var numberSessionsTxd = 0;
           adminSocketIdHashMap.forEach(function(value, key) {
-            if ((numberSessionsTxd < MAX_TX_SESSIONS) && (typeof value.connected !== 'undefined')){
+            if ((numberSessionsTxd < options.maxSessions) && (typeof value.connected !== 'undefined')){
               value.sessions = [] ;
               // io.of('/admin').emit('ADMIN SESSION', JSON.stringify({connected: value.connected, adminObj: value}));
               io.of('/admin').emit('ADMIN SESSION', 
@@ -2022,7 +2028,7 @@ io.of("/admin").on("connect", function(socket){
               numberSessionsTxd++;
             }
             else{
-              debug("... SKIPPING TX SESSION: " + numberSessionsTxd + " TXD | " + MAX_TX_SESSIONS + " MAX");
+              debug("... SKIPPING TX SESSION: " + numberSessionsTxd + " TXD | " + options.maxSessions + " MAX");
             }
           });  
         });
@@ -2503,9 +2509,11 @@ Word.count({}, function(err,count){
   if (!err){ 
     console.log("TOTAL WORDS: " + count);
     totalWords = count ;
+    wordCountComplete = true ;
   } 
   else {
     console.error(chalkError("\n*** DB Word.count ERROR *** | " + getTimeStamp() + "\n" + err));
+    wordCountComplete = true ;
   }
 });
 

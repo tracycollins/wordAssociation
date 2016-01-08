@@ -110,6 +110,10 @@ var numberBhtRequests = BASE_BHT_REQ; // as of 11/47pm  1/7/2016
 var bhtLimitResetTime = 0;
 var bhtTimeToReset ;
 
+bhtLimitResetTime = moment.utc();
+bhtLimitResetTime.utcOffset("-08:00");
+bhtLimitResetTime.endOf("day");
+
 
 // ==================================================================
 // DROPBOX
@@ -1873,15 +1877,14 @@ configEvents.on("SERVER_READY", function () {
         numberTestClients++;
       }
       else if (typeof clientObj.clientConfig !== 'undefined') {
-        // console.log("clientObj.clientConfig\n" + JSON.stringify(clientObj.clientConfig));
-        // if (clientObj.clientConfig.type == 'TEST') {
-        //   clientObj.referer = 'TEST';
-        //   numberTestClients++;
-        // }
       }
     });
 
     runTime =  getTimeNow() - startTime ;
+
+    bhtLimitResetTime = moment.utc();
+    bhtLimitResetTime.utcOffset("-08:00");
+    bhtLimitResetTime.endOf("day");
 
     //
     // SERVER HEARTBEAT
@@ -1903,6 +1906,9 @@ configEvents.on("SERVER_READY", function () {
 
         totalWords : totalWords,
         numberBhtRequests : numberBhtRequests,
+
+        bhtLimitResetTime : bhtLimitResetTime,
+        bhtOverLimitTime : bhtOverLimitTime,
 
         totalSessions : totalSessions,
         totalUsers : totalUsers,

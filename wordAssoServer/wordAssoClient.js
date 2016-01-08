@@ -125,13 +125,21 @@ socket.on('connect', function(){
 
 socket.on('reconnect', function(){
   socketId = socket.id ;
+<<<<<<< HEAD
   console.log(">-> RECONNECTED TO HOST | SOCKET ID: " + socketId);
   connectedFlag = true ;
   getUrlVariables();
+=======
+  console.log(">+< RECONNECTED TO HOST | SOCKET ID: " + socketId);
+  connectedFlag = true ;
+  getUrlVariables();
+  var clientConfig = { type: "STANDARD", mode: "WORD_OBJ"} ;
+>>>>>>> origin/master
   socket.emit("CLIENT_READY", clientConfig);
 });
 
 socket.on('disconnect', function(){
+  connectedFlag = false ;
   console.log("*** DISCONNECTED FROM HOST | SOCKET ID: " + socketId);
 });
 
@@ -276,7 +284,6 @@ socket.on('HEARTBEAT', function(heartbeat){
 
 
 socket.on('CONFIG_CHANGE', function(rxConfig){
-
   console.log("\n-----------------------\nRX CONFIG_CHANGE\n" 
     + JSON.stringify(rxConfig, null, 3) + "\n------------------------\n");
 });

@@ -219,8 +219,8 @@
 			var numberClientIpAddresses = clientIpHashMap.count();
 
 			var clientConnectedColor = "#00aa00";
-			var testClientConnectedColor = "#555555";
 			var clientDisconnectedColor = "#aa0000";
+			var testClientDisonnectedColor = "#880000";
 			var showConnectedClients = false ;
 			var showDisconnectedClients = false ;
 			var showIpClients = false ;
@@ -727,12 +727,16 @@
 
 						if (!showBotClients && ((value.domain.indexOf("googlebot") >= 0))) {
 						}
-						else if (!showTestClients && ((value.domain.indexOf("googleusercontent") >= 0))) {
+						else if (!showTestClients && ((value.domain.indexOf("googleusercontent") >= 0) 
+								|| (value.referer.indexOf('TEST') >= 0)
+								|| (value.clienConfig.type.indexOf('TEST') >= 0)
+								|| (value.domain.indexOf("googlebot") >= 0))) {
 						}
 						else {
 							
 							if ((value.domain.indexOf("googleusercontent") >= 0) 
 								|| (value.referer.indexOf('TEST') >= 0)
+								|| (value.clienConfig.type.indexOf('TEST') >= 0)
 								|| (value.domain.indexOf("googlebot") >= 0)
 								) {
 								clientIpTableBodyOptions.textColor = testClientConnectedColor ;
@@ -785,7 +789,12 @@
 						}
 
 
-						if (!showTestClients && ((value.domain.indexOf("googleusercontent") >= 0) || (value.referer.indexOf('TEST') >= 0))) {
+						if (!showTestClients && ((value.domain.indexOf("googleusercontent") >= 0) 
+							|| (value.referer.indexOf('TEST') >= 0)
+							|| (value.clienConfig.type.indexOf('TEST') >= 0)
+							)
+							) 
+						{
 						}
 						else if (!showBotClients && ((value.domain.indexOf("googlebot") >= 0))) {
 						}
@@ -842,7 +851,11 @@
 						var key = clientSocketIdHashMapKeys[k];
 						var value = clientSocketIdHashMap.get(clientSocketIdHashMapKeys[k]);
 
-						if (!showTestClients && (value.domain.indexOf("googleusercontent") > 0)) {
+						if (!showTestClients && ((value.domain.indexOf("googleusercontent") >= 0) 
+							|| (value.referer.indexOf('TEST') >= 0)
+							|| (value.clienConfig.type.indexOf('TEST') >= 0)
+							)
+							) {
 						}
 						else{
 							if (value.connected == false) { 

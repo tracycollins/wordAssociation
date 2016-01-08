@@ -1836,7 +1836,7 @@ configEvents.on("SERVER_READY", function () {
       if (clientObj.referer == 'TEST') {
         numberTestClients++;
       }
-      else if (typeof clientObj.config.type !== 'undefined') {
+      else if (typeof clientObj.config !== 'undefined') {
         if (clientObj.config.type == 'TEST') numberTestClients++;
       }
     });

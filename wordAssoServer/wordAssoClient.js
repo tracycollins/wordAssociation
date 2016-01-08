@@ -40,77 +40,77 @@ function getUrlVariables(config){
   }
 }
 
-function wordInScript(){
-  var wordInValue = document.getElementById("wordInText").value.trim() ;
-  wordInValue = wordInValue.toLowerCase();
+function sendUserResponse(){
+  var userResponseValue = document.getElementById("userResponse").value.trim() ;
+  userResponseValue = userResponseValue.toLowerCase();
 
-  if (wordInValue == '') {
+  if (userResponseValue == '') {
     console.warn("NO INPUT WORD");
     var wordInText = document.getElementById("wordInText");
     console.log("wordInText: " + wordInText.value);
     wordInText.value = "";
     return ;
   }
-  console.log("TX WORD: " + wordInValue);
-  socket.emit("RESPONSE_WORD_OBJ", {nodeId: wordInValue, bhtSearched: false});
-  var wordInText = document.getElementById("wordInText");
+  console.log("TX WORD: " + userResponseValue);
+  socket.emit("RESPONSE_WORD_OBJ", {nodeId: userResponseValue, bhtSearched: false});
+  var wordInText = document.getElementById("userResponse");
   console.log("wordInText: " + wordInText.value);
   wordInText.value = "";
 }
 
-var wordInValue = "";
+var userResponseValue = "";
 
-function addWordIn() {
-  var element = document.createElement("input");
-  var labelIn = document.createElement("label");
+function addUserResponse() {
+  var userResponseInput = document.createElement("input");
+  var userResponseLabel = document.createElement("label");
 
-  labelIn.innerHTML = "YOU RESPOND: ";   
+  userResponseLabel.innerHTML = "YOU RESPOND: ";   
 
-  element.setAttribute("class", "wordIn");
-  element.setAttribute("type", "text");
-  element.setAttribute("id", "wordInText");
-  element.setAttribute("name", "wordInText");
-  element.setAttribute("autofocus", true);
-  element.setAttribute("value", wordInValue);
-  element.setAttribute("onkeydown", "if (event.keyCode == 13) { return wordInScript() }");
+  userResponseInput.setAttribute("class", "userResponse");
+  userResponseInput.setAttribute("type", "text");
+  userResponseInput.setAttribute("id", "userResponse");
+  userResponseInput.setAttribute("name", "userResponse");
+  userResponseInput.setAttribute("autofocus", true);
+  userResponseInput.setAttribute("value", userResponseValue);
+  userResponseInput.setAttribute("onkeydown", "if (event.keyCode == 13) { return sendUserResponse() }");
 
-  var wordInDiv = document.getElementById("wordIn");
-  wordInDiv.appendChild(labelIn);
-  wordInDiv.appendChild(element);
+  var userResponseDiv = document.getElementById("userResponseDiv");
+  userResponseDiv.appendChild(userResponseLabel);
+  userResponseDiv.appendChild(userResponseInput);
 }
 
-function addWordOut() {
-  var element = document.createElement("output"); 
-  var labelOut = document.createElement("label");
+function addServerPrompt() {
+  var serverPromptOutput = document.createElement("output"); 
+  var serverPromptLabel = document.createElement("label");
 
-  labelOut.innerHTML = "SERVER SAYS: ";   
+  serverPromptLabel.innerHTML = "SERVER SAYS: ";   
 
-  element.setAttribute("class", "wordOut");
-  element.setAttribute("type", "text");
-  element.setAttribute("id", "wordOutText");
-  element.setAttribute("name", "wordOutText");
-  element.setAttribute("value", "What up?");
-  element.innerHTML = "-----";   
+  serverPromptOutput.setAttribute("class", "serverPrompt");
+  serverPromptOutput.setAttribute("type", "text");
+  serverPromptOutput.setAttribute("id", "serverPrompt");
+  serverPromptOutput.setAttribute("name", "serverPrompt");
+  serverPromptOutput.setAttribute("value", "");
+  serverPromptOutput.innerHTML = "";   
 
-  var wordOutDiv = document.getElementById("wordOut");
-  wordOutDiv.appendChild(labelOut);
-  wordOutDiv.appendChild(element);
+  var serverPromptDiv = document.getElementById("serverPromptDiv");
+  serverPromptDiv.appendChild(serverPromptLabel);
+  serverPromptDiv.appendChild(serverPromptOutput);
 }
 
-function updateServerPromptWord(prompt){
-  if (debug) console.log("updateServerPromptWord: " + prompt);
-  var wordOutText = document.getElementById("wordOutText");
-  wordOutText.innerHTML = prompt;
+function updateServerPrompt(prompt){
+  if (debug) console.log("updateServerPrompt: " + prompt);
+  var serverPromptOutputText = document.getElementById("serverPrompt");
+  serverPromptOutputText.innerHTML = prompt;
 }
 
 socket.on("PROMPT_WORD", function(promptWord){
   console.log("RX PROMPT_WORD: " + promptWord);
-  updateServerPromptWord(promptWord);
+  updateServerPrompt(promptWord);
 });
 
 socket.on("PROMPT_WORD_OBJ", function(promptWordObj){
   console.log("RX PROMPT_WORD_OBJ: " + promptWordObj.nodeId + " | BHT FOUND: " + promptWordObj.bhtFound);
-  updateServerPromptWord(promptWordObj.nodeId);
+  updateServerPrompt(promptWordObj.nodeId);
 });
 
 socket.on('connect', function(){
@@ -250,8 +250,8 @@ function zoom() {
 window.onload = function () {
   console.log("ONLOAD");
 
-  addWordOut();
-  addWordIn();
+  addServerPrompt();
+  addUserResponse();
 
   var clientConfig = { type: "STANDARD", mode: "WORD_OBJ"} ;
 

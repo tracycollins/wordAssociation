@@ -1,61 +1,58 @@
 /* main.css */
 
-.column {
-    float: none;
-  }
-
-div#wordIn {
-  float: top;
-  background-color:black;
-  color:#888888;
-  font-family: "Lucida Console", Monaco, monospace;
-  text-align: left;
-  padding: 1em;
-  margin-left: 1em;
-  line-height: 1em;
-}
-
-div#wordOut {
+div#serverPrompt {
+  margin: auto;
   float: none;
   background-color:black;
   color:#888888;
   font-family: "Lucida Console", Monaco, monospace;
+  font-size: 1em;
   text-align: left;
-  padding: 1em;
-  margin-left: 1em;
-  line-height: 1em;
+  /*margin-left: 1em;*/
+  line-height: 5em;
+}
+
+div#userResponse {
+  margin: auto;
+  /*float: center;*/
+  background-color:black;
+  color:#888888;
+  font-family: "Lucida Console", Monaco, monospace;
+  font-size: 1em;
+  text-align: left;
+  /*margin-left: 1em;*/
+  line-height: 5em;
 }
 
 label{
   display: block;
-  padding: 1em;
-  /*padding-bottom: 1em;*/
-  margin-top: 1em;
-  margin-bottom: 0.5em;
-  font-size: 2.5em;
   text-align: left;
+  color: #777777;
+  padding-top: 3em;
+  padding-bottom: 2em;
 }
 a {
     color: #333333;
 }
 
 input[type="text"]{
-  margin-left: 0.5em;
-  padding: 0.5em;
-  border: 2px solid gray;
+  /*margin-left: 0.5em;*/
+  margin: none;
+  padding: 0.9em;
+  /*border: 2px solid gray;*/
   background-color:black;
   color: yellow;
   font-family: "Lucida Console", Monaco, monospace;
-  font-size: 4em;
+  font-size: 1.5em;
+  line-height: 1em;
 }
 output[type="text"]{
-  margin-left: 0.5em;
-  margin-top: 0.75em;
+  /*margin-left: 0.5em;*/
+  /*margin: 10em;*/
   padding: 0.5em;
-  border:none;
   color: #00BB00;
   border: 2px solid green;
-  font-size: 3.5em;
+  font-size: 1.5em;
 }
 
 

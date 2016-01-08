@@ -1833,8 +1833,11 @@ configEvents.on("SERVER_READY", function () {
     numberTestClients = 0;
 
     clientSocketIdHashMap.forEach(function(clientObj, ip) {
-      if ((clientObj.referer == 'TEST') || (clientObj.config.type == 'TEST')) {
+      if (clientObj.referer == 'TEST') {
         numberTestClients++;
+      }
+      else if (typeof clientObj.config.type !== 'undefined') {
+        if (clientObj.config.type == 'TEST') numberTestClients++;
       }
     });
 

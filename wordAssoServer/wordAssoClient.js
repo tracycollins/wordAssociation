@@ -54,7 +54,7 @@ function sendUserResponse(){
     return ;
   }
   console.log("TX WORD: " + userResponseValue);
-  socket.emit("RESPONSE_WORD_OBJ", {nodeId: userResponseValue, bhtSearched: false});
+  socket.emit("RESPONSE_WORD_OBJ", {nodeId: userResponseValue});
   var wordInText = document.getElementById("userResponse");
   console.log("wordInText: " + wordInText.value);
   wordInText.value = "";

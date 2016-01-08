@@ -30,10 +30,12 @@ var WordSchema = new Schema({
 		type: Object
 	},
 	bhtSearched: {
-		type: Boolean
+		type: Boolean,
+		default: false
 	},
 	bhtFound: {
-		type: Boolean
+		type: Boolean,
+		default: false
 	}
 });
 

@@ -36,6 +36,8 @@ exports.getRandomWord = function(callback){
 
 exports.findOneWord = function(word, incMentions, callback) {
 
+	debug("findOneWord:" + JSON.stringify(word, null, 2));
+
 	var inc = 0;
 	if (incMentions) inc = 1 ;
 
@@ -44,16 +46,24 @@ exports.findOneWord = function(word, incMentions, callback) {
 					$inc: { mentions: inc }, 
 					$set: { 
 						nodeId: word.nodeId,
-						noun: word.noun,
-						verb: word.verb,
-						adjective: word.adjective,
-						adverb: word.adverb,
+						// noun: word.noun,
+						// verb: word.verb,
+						// adjective: word.adjective,
+						// adverb: word.adverb,
 						lastSeen: Date.now(),
-						bhtSearched: word.bhtSearched,
-						bhtFound: word.bhtFound
-					} 
+					},
+					$max: { noun: word.noun },
+					$max: { verb: word.verb },
+					$max: { adjective: word.adjective },
+					$max: { adverb: word.adverb },
+					$max: { bhtSearched: word.bhtSearched },
+					$max: { bhtFound: word.bhtFound }
 				};
-	var options = { upsert: true, new: true	};
+	var options = { 
+		setDefaultsOnInsert: true,
+		upsert: true, 
+		new: true	
+	};
 
 	Word.findOneAndUpdate(
 		query,
@@ -65,16 +75,56 @@ exports.findOneWord = function(word, incMentions, callback) {
 				callback(err, null);
 			}
 			else {
-				console.log(chalkDb("> WORD UPDATED" 
+				debug(chalkDb("->- DB UPDATE" 
 					+ " | " + wd.nodeId 
 					+ " | MENTIONS: " + wd.mentions 
 					+ " | LAST SEEN: " + Date(wd.lastSeen) 
 					+ " | BHT SEARCHED: " + wd.bhtSearched 
 					+ " | BHT FOUND: " + wd.bhtFound 
 				));
-				callback(null, wd);
-			}
 
+				debug("> WORD UPDATED:" + JSON.stringify(wd, null, 2));
+
+				if ((typeof wd.noun !== 'undefined') 
+					|| (typeof wd.verb !== 'undefined') 
+					|| (typeof wd.adjective !== 'undefined') 
+					|| (typeof wd.adverb !== 'undefined')) {
+
+					if (!wd.bhtSearched || !wd.bhtFound) {
+
+						console.log(chalkDb("??? BHT DATA NOT NULL | " + wd.nodeId + " ... UPDATING BHT FOUND/SEARCHED"));
+						// console.log("==???==:" + JSON.stringify(wd, null, 2));
+
+						update = { 
+										$set: { 
+											bhtSearched: true,
+											bhtFound: true
+										} 
+									};
+
+						Word.findOneAndUpdate(
+							query,
+							update,
+							options,
+							function(err, wdBhtUpdated) {
+								if (err) {
+									console.error(Date.now() + "\n\n***** WORD FINDONE ERROR: " + wd.nodeId + "\n" + err);
+									callback(err, null);
+								}
+								else {
+									callback(null, wdBhtUpdated);
+								}
+							}
+						);
+					}
+					else {
+						callback(null, wd);
+					}
+				}
+				else {
+					callback(null, wd);
+				}
+			}
 		}
 	);
 }

@@ -71,6 +71,7 @@ function addUserResponse() {
   userResponseInput.setAttribute("id", "userResponse");
   userResponseInput.setAttribute("name", "userResponse");
   userResponseInput.setAttribute("autofocus", true);
+  userResponseInput.setAttribute("autocapitalize", "none");
   userResponseInput.setAttribute("value", userResponseValue);
   userResponseInput.setAttribute("onkeydown", "if (event.keyCode == 13) { return sendUserResponse() }");
 

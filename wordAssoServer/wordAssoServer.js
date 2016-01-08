@@ -633,7 +633,7 @@ function findClientsSocket(namespace) {
 
 // BHT
 var wordTypes = [ 'noun', 'verb', 'adjective', 'adverb' ];
-var wordVariations = [ 'syn', 'ant', 'rel', 'sim', ];
+var wordVariations = [ 'syn', 'ant', 'rel', 'sim', 'usr' ];
 
 function addWordToDb(wordObj, callback){
   words.findOneWord(wordObj, false, function(err, word){
@@ -703,17 +703,24 @@ function loadBhtResponseHash(bhtResponseObj, callback){
 
 function generateResponse(wordObj, callback){
 
+  var status = 'OK';
+
   bhtSearchWord(wordObj, function(err, bhtResponseObj){
     if (err){
       console.log(chalkError("bhtSearchWord ERROR: " + JSON.stringify(err)));
-      callback(bhtResponseObj);
+      callback('BHT_ERROR', bhtResponseObj);
     }
     else if (!bhtResponseObj.bhtFound){
       console.log(chalkError("BHT MISS: " + bhtResponseObj.nodeId));
-      callback(bhtResponseObj);
+      callback('BHT_MISS', bhtResponseObj);
     }
     else {
       loadBhtResponseHash(bhtResponseObj, function(bhtWordHashMap){
+
+        if (bhtWordHashMap.count() == 0) {
+          console.log(chalkWarn("loadBhtResponseHash | BHT_EMPTY\n" + JSON.stringify(bhtResponseObj, null, 2)));
+          callback('BHT_EMPTY', bhtResponseObj);  // ?? maybe unknown wordType?
+        }
 
         var bhtWordHashMapKeys = bhtWordHashMap.keys();
         var randomIndex = randomInt(0, bhtWordHashMapKeys.length);
@@ -729,7 +736,11 @@ function generateResponse(wordObj, callback){
           responseWordObj.lastSeen = dateNow;
 
           words.findOneWord(responseWordObj, false, function(err, word){
-            if (!err) {
+            if (err) {
+              console.error(chalkError("findOneWord ERROR: " + JSON.stringify(err)))
+              callback('BHT_ERROR', responseWordObj);
+            }
+            else {
               console.log("--- DB UPDATE | " + word.nodeId + " | MNS: " + word.mentions );
               debug(JSON.stringify(word, null, 3));
 
@@ -739,24 +750,23 @@ function generateResponse(wordObj, callback){
                 bhtSearchWord(word, function(err, bhtResponseObj){
                   if (err){
                     console.log(chalkError("bhtSearchWord ERROR: " + JSON.stringify(err)));
-                    callback(bhtResponseObj);
+                    callback('BHT_ERROR', bhtResponseObj);
                   }
                   else if (bhtResponseObj.bhtFound){
                     console.log(chalkBht("--- BHT HIT   | " + bhtResponseObj.nodeId));
                     wordHashMap.set(bhtResponseObj.nodeId, bhtResponseObj);
-                    callback(bhtResponseObj);
+                    callback('BHT_HIT', bhtResponseObj);
                   }
                   else {
                     console.log(chalkBht("--- BHT MISS  | " + bhtResponseObj.nodeId));
                     wordHashMap.set(bhtResponseObj.nodeId, bhtResponseObj);
-                    callback(bhtResponseObj);
+                    callback('BHT_MISS', bhtResponseObj);
                   }
                 });
               }
-
               else { // already bht searched
                 wordHashMap.set(word.nodeId, word);
-                callback(bhtResponseObj);
+                callback('BHT_EXISTS', word);
               }
             }
           });
@@ -772,10 +782,12 @@ function generateResponse(wordObj, callback){
           });
 
           words.findOneWord(responseWordObj, false, function(err, word){
-            if (!err) {
-              console.log("--- DB UPDATE | " + word.nodeId 
-                + " | MNS: " + word.mentions
-              );
+            if (err) {
+              console.error(chalkError("findOneWord ERROR: " + JSON.stringify(err)))
+              callback('BHT_ERROR', responseWordObj);
+            }
+            else {
+              console.log("--- DB UPDATE | " + word.nodeId + " | MNS: " + word.mentions);
               debug(JSON.stringify(word, null, 3));
 
               if (!word.bhtSearched) {  // not yet bht searched
@@ -784,16 +796,17 @@ function generateResponse(wordObj, callback){
                 bhtSearchWord(word, function(err, bhtResponseObj){
                   if (err){
                     console.log(chalkError("bhtSearchWord ERROR: " + JSON.stringify(err)));
+                    callback('BHT_ERROR', bhtResponseObj);
                   }
                   else if (bhtResponseObj.bhtFound){
                     console.log(chalkBht("--- BHT HIT   | " + bhtResponseObj.nodeId));
                     wordHashMap.set(bhtResponseObj.nodeId, bhtResponseObj);
-                    callback(bhtResponseObj);
+                    callback('BHT_HIT', bhtResponseObj);
                   }
                   else {
                     console.log(chalkBht("--- BHT MISS  | " + bhtResponseObj.nodeId));
                     wordHashMap.set(bhtResponseObj.nodeId, bhtResponseObj);
-                    callback(bhtResponseObj);
+                    callback('BHT_MISS', bhtResponseObj);
                   }
                 });
               }
@@ -1168,9 +1181,10 @@ function createClientSocket (socket){
 
       updateSessionViews(sessionUpdateObj);
 
-      generateResponse(responseWordObj, function(promptWordObj){
+      generateResponse(responseWordObj, function(status, promptWordObj){
 
-        if (!promptWordObj.bhtFound || chainDeadEnd(currentSession.wordChain)) {
+        // if (!promptWordObj.bhtFound || chainDeadEnd(currentSession.wordChain)) {
+        if ((status == 'BHT_EMPTY') || (status == 'BHT_MISS') || chainDeadEnd(currentSession.wordChain)) {
 
           words.getRandomWord(function(err, randomWordObj){
             if (!err) {
@@ -1248,9 +1262,10 @@ function createClientSocket (socket){
 
       // updateSessionViews(sessionUpdateObj);
 
-      generateResponse(responseWordObj, function(promptWordObj){
+      generateResponse(responseWordObj, function(status, promptWordObj){
 
-        if (!promptWordObj.bhtFound){
+        // if (!promptWordObj.bhtFound){
+        if ((status != 'BHT_EMPTY') && (status != 'BHT_MISS')) {
           words.getRandomWord(function(err, randomWordObj){
             if (!err) {
               console.log(chalkResponse(socketId + " | " + responseWordObj.nodeId + " --> " + randomWordObj.nodeId));

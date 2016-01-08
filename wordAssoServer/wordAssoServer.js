@@ -638,7 +638,7 @@ var wordVariations = [ 'syn', 'ant', 'rel', 'sim', 'usr' ];
 function addWordToDb(wordObj, callback){
   words.findOneWord(wordObj, false, function(err, word){
     if (!err) {
-      debug("--- DB UPDATE | " + word.nodeId + " | MNS: " + word.mentions );
+      debug("->- DB UPDATE | " + word.nodeId + " | MNS: " + word.mentions );
       debug(JSON.stringify(word, null, 3));
 
       if (!word.bhtSearched) {  // not yet bht searched
@@ -650,12 +650,12 @@ function addWordToDb(wordObj, callback){
             callback(err, bhtResponseObj);
           }
           else if (bhtResponseObj.bhtFound){
-            console.log(chalkBht("--- BHT HIT   | " + bhtResponseObj.nodeId));
+            console.log(chalkBht("-*- BHT HIT   | " + bhtResponseObj.nodeId));
             wordHashMap.set(bhtResponseObj.nodeId, bhtResponseObj);
             callback(null, bhtResponseObj);
           }
           else {
-            console.log(chalkBht("--- BHT HIT   | " + bhtResponseObj.nodeId));
+            console.log(chalkBht("-*- BHT HIT   | " + bhtResponseObj.nodeId));
             wordHashMap.set(bhtResponseObj.nodeId, bhtResponseObj);
             callback(null, bhtResponseObj);
           }
@@ -718,7 +718,7 @@ function generateResponse(wordObj, callback){
       loadBhtResponseHash(bhtResponseObj, function(bhtWordHashMap){
 
         if (bhtWordHashMap.count() == 0) {
-          console.log(chalkWarn("loadBhtResponseHash | BHT_EMPTY\n" + JSON.stringify(bhtResponseObj, null, 2)));
+          console.log(chalkWarn("??? loadBhtResponseHash | BHT_EMPTY\n" + JSON.stringify(bhtResponseObj, null, 2)));
           callback('BHT_EMPTY', bhtResponseObj);  // ?? maybe unknown wordType?
         }
 
@@ -741,7 +741,7 @@ function generateResponse(wordObj, callback){
               callback('BHT_ERROR', responseWordObj);
             }
             else {
-              console.log("--- DB UPDATE | " + word.nodeId + " | MNS: " + word.mentions );
+              console.log("->- DB UPDATE | " + word.nodeId + " | MNS: " + word.mentions );
               debug(JSON.stringify(word, null, 3));
 
               if (!word.bhtSearched) {  // not yet bht searched
@@ -753,12 +753,12 @@ function generateResponse(wordObj, callback){
                     callback('BHT_ERROR', bhtResponseObj);
                   }
                   else if (bhtResponseObj.bhtFound){
-                    console.log(chalkBht("--- BHT HIT   | " + bhtResponseObj.nodeId));
+                    console.log(chalkBht("-*- BHT HIT   | " + bhtResponseObj.nodeId));
                     wordHashMap.set(bhtResponseObj.nodeId, bhtResponseObj);
                     callback('BHT_HIT', bhtResponseObj);
                   }
                   else {
-                    console.log(chalkBht("--- BHT MISS  | " + bhtResponseObj.nodeId));
+                    console.log(chalkBht("-O- BHT MISS  | " + bhtResponseObj.nodeId));
                     wordHashMap.set(bhtResponseObj.nodeId, bhtResponseObj);
                     callback('BHT_MISS', bhtResponseObj);
                   }
@@ -787,7 +787,7 @@ function generateResponse(wordObj, callback){
               callback('BHT_ERROR', responseWordObj);
             }
             else {
-              console.log("--- DB UPDATE | " + word.nodeId + " | MNS: " + word.mentions);
+              console.log("->- DB UPDATE | " + word.nodeId + " | MNS: " + word.mentions);
               debug(JSON.stringify(word, null, 3));
 
               if (!word.bhtSearched) {  // not yet bht searched
@@ -799,12 +799,12 @@ function generateResponse(wordObj, callback){
                     callback('BHT_ERROR', bhtResponseObj);
                   }
                   else if (bhtResponseObj.bhtFound){
-                    console.log(chalkBht("--- BHT HIT   | " + bhtResponseObj.nodeId));
+                    console.log(chalkBht("-*- BHT HIT   | " + bhtResponseObj.nodeId));
                     wordHashMap.set(bhtResponseObj.nodeId, bhtResponseObj);
                     callback('BHT_HIT', bhtResponseObj);
                   }
                   else {
-                    console.log(chalkBht("--- BHT MISS  | " + bhtResponseObj.nodeId));
+                    console.log(chalkBht("-O- BHT MISS  | " + bhtResponseObj.nodeId));
                     wordHashMap.set(bhtResponseObj.nodeId, bhtResponseObj);
                     callback('BHT_MISS', bhtResponseObj);
                   }
@@ -866,7 +866,7 @@ function bhtSearchWord (wordObj, callback){
       wordObj.bhtSearched = true ;
       wordObj.bhtFound = false ;
       words.findOneWord(wordObj, true, function(err, wordUpdatedObj){
-        debug(chalkBht("bhtSearchWord: --- DB UPDATE | " + wordUpdatedObj.nodeId 
+        debug(chalkBht("bhtSearchWord: ->- DB UPDATE | " + wordUpdatedObj.nodeId 
           + " | MNS: " + wordUpdatedObj.mentions
         ));
         debug(chalkBht(JSON.stringify(wordUpdatedObj, null, 3)));
@@ -916,7 +916,7 @@ function bhtSearchWord (wordObj, callback){
         }
 
         words.findOneWord(wordObj, true, function(err, wordUpdatedObj){
-          debug(chalkBht("bhtSearchWord: --- DB UPDATE | " 
+          debug(chalkBht("bhtSearchWord: ->- DB UPDATE | " 
             + wordUpdatedObj.nodeId 
             + " | MNS: " + wordUpdatedObj.mentions
           ));

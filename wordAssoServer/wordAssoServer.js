@@ -850,7 +850,9 @@ function bhtSearchWord (wordObj, callback){
     return ;
   }
 
-  numberBhtRequests++ ;
+  incrementSocketBhtReqs(1);
+
+  // numberBhtRequests++ ;
 
   var bhtHost = "words.bighugelabs.com";
   var path = "/api/2/" + bigHugeLabsApiKey + "/" + encodeURI(wordObj.nodeId) + "/json";
@@ -946,6 +948,11 @@ function chainDeadEnd(chain) {
   }
 }
 
+function incrementSocketBhtReqs(delta){
+  numberBhtRequests += delta ;
+  console.log(chalkInfo("... BHT REQS: " + numberBhtRequests));
+}
+
 function createClientSocket (socket){
 
   var clientsHashMap = findClientsSocket('/');
@@ -1032,7 +1039,7 @@ function createClientSocket (socket){
       clientIp4 = '127.0.0.1';
     }
 
-    console.log("CONVERTING IPV6 IP " + clientIp + " TO IPV4: " + clientIp4);
+    debug("CONVERTING IPV6 IP " + clientIp + " TO IPV4: " + clientIp4);
     clientIp = clientIp4 ;
   }
 
@@ -1065,7 +1072,7 @@ function createClientSocket (socket){
       wordChain: []
     }
     sessionHashMap.set(sessionObj.sessionId, sessionObj);  
-    console.log("CREATED sessionObj | " + sessionObj.sessionId 
+    console.log("-S- CREATED SESSION | " + sessionObj.sessionId 
     );
   }
 
@@ -1119,8 +1126,14 @@ function createClientSocket (socket){
 
 
     if (clientConfig) {
-      console.log("<O> CLIENT READY | CONFIG TYPE: " + clientObj.config.type + " | " + socket.id);
-      debug("CLIENT CONFIG\n" + JSON.stringify(clientConfig, null, 3));
+      
+      console.log(chalkConnect("CL READY  "
+        + " | " + socket.id
+        + " | TYPE: " + clientConfig.type 
+        + " | MODE: " + clientConfig.mode 
+      ));
+      
+      // console.log("CLIENT CONFIG\n" + JSON.stringify(clientConfig, null, 3));
       clientObj.clientConfig = clientConfig ;
       clientSocketIdHashMap.set(socket.id, clientObj);
     }
@@ -1157,7 +1170,6 @@ function createClientSocket (socket){
       }
     });
   })
-
 
   socket.on("RESPONSE_WORD_OBJ", function(rwObj){
 
@@ -1317,6 +1329,14 @@ function createClientSocket (socket){
         }
       });
     }
+  });
+
+  socket.on("BHT_REQUESTS", function(numberSocketBhtRequests){
+    console.log(chalkBht(">-- RX BHT_REQUESTS | " + socket.id 
+      + " | " + numberSocketBhtRequests
+    ));
+
+    incrementSocketBhtReqs(numberSocketBhtRequests, function(){});
 
   });
 }
@@ -1848,8 +1868,12 @@ configEvents.on("SERVER_READY", function () {
       if (clientObj.referer == 'TEST') {
         numberTestClients++;
       }
-      else if (typeof clientObj.config !== 'undefined') {
-        if (clientObj.config.type == 'TEST') numberTestClients++;
+      else if (typeof clientObj.clientConfig !== 'undefined') {
+        // console.log("clientObj.clientConfig\n" + JSON.stringify(clientObj.clientConfig));
+        // if (clientObj.clientConfig.type == 'TEST') {
+        //   clientObj.referer = 'TEST';
+        //   numberTestClients++;
+        // }
       }
     });
 

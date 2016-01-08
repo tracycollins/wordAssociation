@@ -1,5 +1,11 @@
 /* main.css */
 
+.boxsizingBorder {
+    -webkit-box-sizing: border-box;
+       -moz-box-sizing: border-box;
+            box-sizing: border-box;
+}
+
 div#serverPrompt {
   margin: auto;
   float: none;
@@ -26,10 +32,10 @@ div#userResponse {
 
 label{
   display: block;
-  text-align: left;
+  /*text-align: center;*/
   color: #777777;
-  padding-top: 3em;
-  padding-bottom: 2em;
+  margin-top: 3em;
+  margin-bottom: 2em;
 }
 a {
     color: #333333;
@@ -53,6 +59,7 @@ output[type="text"]{
   color: #00BB00;
   border: 2px solid green;
   font-size: 1.5em;
+  width: 50%;
 }
 
 

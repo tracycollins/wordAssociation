@@ -219,8 +219,9 @@
 			var numberClientIpAddresses = clientIpHashMap.count();
 
 			var clientConnectedColor = "#00aa00";
-			var testClientConnectedColor = "#555555";
+			var testClientConnectedColor = "#008800";
 			var clientDisconnectedColor = "#aa0000";
+			var testClientDisonnectedColor = "#880000";
 			var showConnectedClients = false ;
 			var showDisconnectedClients = false ;
 			var showIpClients = false ;
@@ -727,7 +728,10 @@
 
 						if (!showBotClients && ((value.domain.indexOf("googlebot") >= 0))) {
 						}
-						else if (!showTestClients && ((value.domain.indexOf("googleusercontent") >= 0))) {
+						else if (!showTestClients && ((value.domain.indexOf("googleusercontent") >= 0) 
+								|| (value.referer.indexOf('TEST') >= 0)
+								|| (value.clienConfig.type.indexOf('TEST') >= 0)
+								|| (value.domain.indexOf("googlebot") >= 0))) {
 						}
 						else {
 							

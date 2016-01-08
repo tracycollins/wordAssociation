@@ -1888,6 +1888,9 @@ configEvents.on("SERVER_READY", function () {
         numberTestClients++;
       }
       else if (typeof clientObj.clientConfig !== 'undefined') {
+        if (clientObj.clientConfig.type = 'TEST') {
+          numberTestClients++;
+        }
       }
     });
 

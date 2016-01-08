@@ -958,7 +958,7 @@ function chainDeadEnd(chain) {
 
 function incrementSocketBhtReqs(delta){
   numberBhtRequests += delta ;
-  console.log(chalkInfo("... BHT REQS: " + numberBhtRequests));
+  debug(chalkInfo("... BHT REQS: " + numberBhtRequests));
 }
 
 function createClientSocket (socket){
@@ -1340,7 +1340,7 @@ function createClientSocket (socket){
   });
 
   socket.on("BHT_REQUESTS", function(numberSocketBhtRequests){
-    console.log(chalkBht(">-- RX BHT_REQUESTS | " + socket.id 
+    debug(chalkBht(">-- RX BHT_REQUESTS | " + socket.id 
       + " | " + numberSocketBhtRequests
     ));
 

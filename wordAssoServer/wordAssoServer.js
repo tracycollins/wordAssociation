@@ -102,7 +102,11 @@ var bigHugeLabsApiKey = "e1b4564ec38d2db399dabdf83a8beeeb";
 var bigHugeThesaurusUrl = "http://words.bighugelabs.com/api/2/" + bigHugeLabsApiKey + "/";
 var bhtOverLimitTime = 0;
 var BHT_REQUEST_LIMIT = 100000;
-var numberBhtRequests = 0;
+
+
+var BASE_BHT_REQ = 46121 ;
+
+var numberBhtRequests = BASE_BHT_REQ; // as of 11/47pm  1/7/2016
 var bhtLimitResetTime = 0;
 var bhtTimeToReset ;
 

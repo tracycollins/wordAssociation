@@ -33,10 +33,10 @@ exports.getRandomWord = function(callback){
 	});
 }
 
-exports.findOneWord = function(word, testMode, callback) {
+exports.findOneWord = function(word, incMentions, callback) {
 
-	var inc = 1;
-	if (testMode) inc = 0 ;
+	var inc = 0;
+	if (incMentions) inc = 1 ;
 
 	var query = { nodeId: word.nodeId  };
 	var update = { 

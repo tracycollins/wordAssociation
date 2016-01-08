@@ -14,6 +14,7 @@ var chalkConnectAdmin = chalk.bold.cyan;
 var chalkDisconnect = chalk.blue;
 var chalkTwitter = chalk.blue;
 var chalkPlace = chalk.bold.green;
+var chalkDb = chalk.gray;
 
 var moment = require('moment');
 var Word = require('mongoose').model('Word');
@@ -64,13 +65,13 @@ exports.findOneWord = function(word, testMode, callback) {
 				callback(err, null);
 			}
 			else {
-				debug("> WORD UPDATED" 
+				console.log(chalkDb("> WORD UPDATED" 
 					+ " | " + wd.nodeId 
 					+ " | MENTIONS: " + wd.mentions 
 					+ " | LAST SEEN: " + Date(wd.lastSeen) 
 					+ " | BHT SEARCHED: " + wd.bhtSearched 
 					+ " | BHT FOUND: " + wd.bhtFound 
-					);
+				));
 				callback(null, wd);
 			}
 

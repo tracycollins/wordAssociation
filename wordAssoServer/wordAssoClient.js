@@ -23,6 +23,8 @@ var mouseHoverFlag = false ;
 var socket = io();
 var socketId ;
 var connectedFlag = false ;
+var clientConfig = { type: "STANDARD", mode: "WORD_OBJ"} ;
+
 
 function getUrlVariables(config){
   var searchString = window.location.search.substring(1);
@@ -119,6 +121,14 @@ socket.on('connect', function(){
   console.log(">>> CONNECTED TO HOST | SOCKET ID: " + socketId);
   connectedFlag = true ;
   getUrlVariables();
+});
+
+socket.on('reconnect', function(){
+  socketId = socket.id ;
+  console.log(">-> RECONNECTED TO HOST | SOCKET ID: " + socketId);
+  connectedFlag = true ;
+  getUrlVariables();
+  socket.emit("CLIENT_READY", clientConfig);
 });
 
 socket.on('disconnect', function(){
@@ -253,9 +263,6 @@ window.onload = function () {
 
   addServerPrompt();
   addUserResponse();
-
-  var clientConfig = { type: "STANDARD", mode: "WORD_OBJ"} ;
-
   socket.emit("CLIENT_READY", clientConfig);
 
   setTimeout(function(){

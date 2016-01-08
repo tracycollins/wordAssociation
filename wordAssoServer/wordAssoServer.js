@@ -1110,14 +1110,26 @@ function createClientSocket (socket){
 
   socket.on("CLIENT_READY", function(clientConfig){
 
-    var clientObj = clientSocketIdHashMap.get(socket.id);
-    clientObj.config = clientConfig ;
+    if (!clientSocketIdHashMap.has(socket.id)) {
+      console.log(chalkError("\nCLIENT_READY\n??? SOCKET " + socket.id + " NOT FOUND IN HASH??\n"));
+      return ;
+    }
 
-    console.log(">>> CLIENT READY | CONFIG TYPE: " + clientObj.config.type + " | " + socket.id);
+    var clientObj = clientSocketIdHashMap.get(socket.id);
+
 
     if (clientConfig) {
+      console.log("<O> CLIENT READY | CONFIG TYPE: " + clientObj.config.type + " | " + socket.id);
       debug("CLIENT CONFIG\n" + JSON.stringify(clientConfig, null, 3));
       clientObj.clientConfig = clientConfig ;
+      clientSocketIdHashMap.set(socket.id, clientObj);
+    }
+    else {
+      console.log(chalkWarn("CLIENT CONFIG NOT SET?: " + JSON.stringify(clientObj.socketId, null, 2)));
+      clientObj.clientConfig + {
+        type: 'CLIENT',
+        mode: 'WORD_OBJ'
+      }
       clientSocketIdHashMap.set(socket.id, clientObj);
     }
 

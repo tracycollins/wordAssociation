@@ -104,7 +104,7 @@ var bhtOverLimitTime = 0;
 var BHT_REQUEST_LIMIT = 100000;
 
 
-var BASE_BHT_REQ = 50829 ;
+var BASE_BHT_REQ = 83703 ;
 
 var numberBhtRequests = BASE_BHT_REQ; // as of 11/47pm  1/7/2016
 var bhtLimitResetTime = 0;

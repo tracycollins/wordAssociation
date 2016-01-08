@@ -643,8 +643,8 @@ function findClientsSocket(namespace) {
 var wordTypes = [ 'noun', 'verb', 'adjective', 'adverb' ];
 var wordVariations = [ 'syn', 'ant', 'rel', 'sim', 'usr' ];
 
-function addWordToDb(wordObj, callback){
-  words.findOneWord(wordObj, false, function(err, word){
+function updateWordInDb(wordObj, incMentions, callback){
+  words.findOneWord(wordObj, incMentions, function(err, word){
     if (!err) {
       debug("->- DB UPDATE | " + word.nodeId + " | MNS: " + word.mentions );
       debug(JSON.stringify(word, null, 3));
@@ -663,7 +663,7 @@ function addWordToDb(wordObj, callback){
             callback(null, bhtResponseObj);
           }
           else {
-            console.log(chalkBht("-*- BHT HIT   | " + bhtResponseObj.nodeId));
+            console.log(chalkBht("-O- BHT MISS  | " + bhtResponseObj.nodeId));
             wordHashMap.set(bhtResponseObj.nodeId, bhtResponseObj);
             callback(null, bhtResponseObj);
           }
@@ -671,7 +671,7 @@ function addWordToDb(wordObj, callback){
       }
 
       else { // already bht searched
-        console.log(chalkLog("--- PREV BHT [" + numberBhtRequests + "] " + word.nodeId));
+        console.log(chalkBht("--- PREV BHT  | " + word.nodeId));
         wordHashMap.set(word.nodeId, word);
         callback(null, word);
       }
@@ -719,7 +719,7 @@ function generateResponse(wordObj, callback){
       callback('BHT_ERROR', bhtResponseObj);
     }
     else if (!bhtResponseObj.bhtFound){
-      console.log(chalkError("BHT MISS: " + bhtResponseObj.nodeId));
+      debug(chalkBht("-O- BHT MISS  | " + bhtResponseObj.nodeId));
       callback('BHT_MISS', bhtResponseObj);
     }
     else {
@@ -738,7 +738,7 @@ function generateResponse(wordObj, callback){
 
         if (wordHashMap.has(responseWord)){
 
-          console.log("--- HASH HIT  | " + responseWord);
+          console.log("-H- HASH HIT  | " + responseWord);
 
           responseWordObj = wordHashMap.get(responseWord);
           responseWordObj.lastSeen = dateNow;
@@ -875,7 +875,7 @@ function bhtSearchWord (wordObj, callback){
       debug("bhtSearchWord: \'" + wordObj.nodeId + "\' NOT FOUND");
       wordObj.bhtSearched = true ;
       wordObj.bhtFound = false ;
-      words.findOneWord(wordObj, true, function(err, wordUpdatedObj){
+      words.findOneWord(wordObj, false, function(err, wordUpdatedObj){
         debug(chalkBht("bhtSearchWord: ->- DB UPDATE | " + wordUpdatedObj.nodeId 
           + " | MNS: " + wordUpdatedObj.mentions
         ));
@@ -925,7 +925,7 @@ function bhtSearchWord (wordObj, callback){
           wordObj.bhtFound = false ;
         }
 
-        words.findOneWord(wordObj, true, function(err, wordUpdatedObj){
+        words.findOneWord(wordObj, false, function(err, wordUpdatedObj){
           debug(chalkBht("bhtSearchWord: ->- DB UPDATE | " 
             + wordUpdatedObj.nodeId 
             + " | MNS: " + wordUpdatedObj.mentions
@@ -1197,21 +1197,46 @@ function createClientSocket (socket){
 
     if (wordHashMap.has(rwObj.nodeId)){
 
-      console.log("--- HASH HIT  | " + rwObj.nodeId);
+      console.log("-h- HASH HIT  | " + rwObj.nodeId);
 
       responseWordObj = wordHashMap.get(rwObj.nodeId);
       responseWordObj.lastSeen = dateNow;
 
-      wordHashMap.set(responseWordObj.nodeId, responseWordObj);
-      currentSession.wordChain.push(responseWordObj) ;
+      updateWordInDb(responseWordObj, true, function(err, wordDbObj){
+        if (!err) {
 
-      var sessionUpdateObj = {
-        sessionId: socketId,
-        sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
-        targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
-      };
+          console.log("->- DB UPDATE | " + wordDbObj.nodeId 
+            + " | MNS: " + wordDbObj.mentions
+            );
 
-      updateSessionViews(sessionUpdateObj);
+          wordHashMap.set(wordDbObj.nodeId, wordDbObj);
+          currentSession.wordChain.push(wordDbObj) ;
+
+          var sessionUpdateObj = {
+            sessionId: socketId,
+            sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
+            targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
+          };
+
+          updateSessionViews(sessionUpdateObj);
+
+        }
+        else {
+          console.error("updateWordInDb: *** ERROR ***\n" + err);
+        }
+      })
+
+
+      // wordHashMap.set(responseWordObj.nodeId, responseWordObj);
+      // currentSession.wordChain.push(responseWordObj) ;
+
+      // var sessionUpdateObj = {
+      //   sessionId: socketId,
+      //   sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
+      //   targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
+      // };
+
+      // updateSessionViews(sessionUpdateObj);
 
       generateResponse(responseWordObj, function(status, promptWordObj){
 
@@ -1254,7 +1279,6 @@ function createClientSocket (socket){
 
           updateSessionViews(sessionUpdateObj);
         }
-
       });
     }
     else {
@@ -1263,7 +1287,7 @@ function createClientSocket (socket){
 
       responseWordObj = rwObj ;
 
-      addWordToDb(rwObj, function(err, wordDbObj){
+      updateWordInDb(rwObj, false, function(err, wordDbObj){
         if (!err) {
           console.log("->- DB UPDATE | " + wordDbObj.nodeId 
             + " | MNS: " + wordDbObj.mentions
@@ -1279,24 +1303,12 @@ function createClientSocket (socket){
           updateSessionViews(sessionUpdateObj);
         }
         else {
-          console.error("addWordToDb: *** ERROR ***\n" + err);
+          console.error("updateWordInDb: *** ERROR ***\n" + err);
         }
       })
 
-      // wordHashMap.set(rwObj.nodeId, rwObj);
-      // currentSession.wordChain.push(rwObj) ;
-
-      // var sessionUpdateObj = {
-      //   sessionId: socketId,
-      //   sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
-      //   targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
-      // };
-
-      // updateSessionViews(sessionUpdateObj);
-
       generateResponse(responseWordObj, function(status, promptWordObj){
 
-        // if (!promptWordObj.bhtFound){
         if ((status != 'BHT_EMPTY') && (status != 'BHT_MISS')) {
           words.getRandomWord(function(err, randomWordObj){
             if (!err) {
@@ -1305,7 +1317,6 @@ function createClientSocket (socket){
               wordHashMap.set(randomWordObj.nodeId, randomWordObj);
               currentSession.wordChain.push(randomWordObj) ;
 
-              // sendPromptWord(socket.id, randomWordObj.nodeId);
               sendPromptWord(clientObj, randomWordObj);
 
               var sessionUpdateObj = {

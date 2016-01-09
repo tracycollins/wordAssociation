@@ -440,12 +440,14 @@ function sendPromptWord(clientObj, promptWordObj){
     console.log(chalkPrompt("PROMPT   | " + clientObj.socketId  + " | " + clientObj.config.type + " | SESSION START --> " + promptWordObj.nodeId));
   }
 
-  if (clientObj.config.mode == "NORMAL") {
-    io.to(clientObj.socketId).emit("PROMPT_WORD", promptWordObj.nodeId);
-  }
-  else if (clientObj.config.mode == "WORD_OBJ"){
-    io.to(clientObj.socketId).emit("PROMPT_WORD_OBJ",promptWordObj);
-    if (clientObj.config.type == 'TEST') io.of('/test').to(clientObj.socketId).emit('PROMPT_WORD_OBJ',promptWordObj);
+  if (typeof clientObj.config !== "undefined") {
+    if (clientObj.config.mode == "NORMAL") {
+      io.to(clientObj.socketId).emit("PROMPT_WORD", promptWordObj.nodeId);
+    }
+    else if (clientObj.config.mode == "WORD_OBJ"){
+      io.to(clientObj.socketId).emit("PROMPT_WORD_OBJ",promptWordObj);
+      if (clientObj.config.type == 'TEST') io.of('/test').to(clientObj.socketId).emit('PROMPT_WORD_OBJ',promptWordObj);
+    }
   }
 
   numberPromptsSent++ ;
@@ -1355,7 +1357,7 @@ function createClientSocket (socket){
     }
 
     clientConnectDb(clientObj, function(err, cl){
-      console.log("CLIENT DB UPDATE ON CLIENT READY\n" + jsonPrint(cl.config));
+      console.log("CLIENT DB UPDATE ON CLIENT READY\n" + cl.config.type);
     })
 
     // Word.find({nodeId : "punish"}, function(err, responseArray){

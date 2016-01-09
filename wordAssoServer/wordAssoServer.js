@@ -321,6 +321,10 @@ var randomIntFromInterval = function (min,max) {
   return Math.floor(Math.random()*(max-min+1)+min);
 }
 
+var jsonPrint = function (obj){
+  return JSON.stringify(obj, null, 2);
+}
+
 function readFileIntoArray (path, callback) {
 
  debug("PATH: " + path);
@@ -686,7 +690,7 @@ function addWordToDb(wordObj, incMentions, callback){
       }
 
       else { // already bht searched
-        console.log(chalkLog("--- PREV BHT   | " + word.nodeId));
+        // console.log(chalkLog("--- PREV BHT   | " + jsonPrint(word)));
         wordHashMap.set(word.nodeId, word);
         callback(null, word);
       }
@@ -726,7 +730,7 @@ function loadBhtResponseHash(bhtResponseObj, callback){
 
 function generateResponse(wordObj, callback){
 
-  debug("generateResponse wordObj: " + wordObj.nodeId);
+  // console.log("generateResponse wordObj: " + jsonPrint(wordObj));
 
   var status = 'OK';
 
@@ -853,13 +857,14 @@ function generateResponse(wordObj, callback){
           if (bhtWordHashMap.count() == 0) {
             console.log(chalkWarn("??? loadBhtResponseHash | BHT_EMPTY\n" + JSON.stringify(bhtResponseObj, null, 2)));
             callback('BHT_EMPTY', bhtResponseObj);  // ?? maybe unknown wordType?
+            return ;
           }
 
           var bhtWordHashMapKeys = bhtWordHashMap.keys();
           var randomIndex = randomInt(0, bhtWordHashMapKeys.length);
           var responseWord = bhtWordHashMapKeys[randomIndex].toLowerCase();
 
-          debug(  "--- GEN RSPNS  | " + bhtResponseObj.nodeId + " --> " + responseWord);
+          console.log(  "--- GEN RSPNS  | " + bhtResponseObj.nodeId + " --> " + responseWord);
 
           if (wordHashMap.has(responseWord)){
 
@@ -945,8 +950,9 @@ function generateResponse(wordObj, callback){
                 }
 
                 else {
+                  // console.log("word.bhtSearched\n" + jsonPrint(word));
                   wordHashMap.set(word.nodeId, word);
-                  callback(bhtResponseObj);
+                  callback('BHT_HIT', word);
                 }
               }
             });
@@ -1071,9 +1077,55 @@ function bhtSearchWord (wordObj, callback){
 }
 
 function chainDeadEnd(chain) {
-  if (chain.length > 2) {
+
+  // console.log(chalkAlert("chainDeadEnd"));
+
+  // for (var i=0; i<chain.length; i++) {
+  //   console.log(chalkAlert("CHAIN[" + i + "]: " + chain[i].nodeId));
+  // }
+
+  if (chain.length > 6) {  // A --> B --> C --> A --> B --> C --> A
+    if ((chain[chain.length-1] == chain[chain.length-4]) 
+      && (chain[chain.length-2] == chain[chain.length-5])
+      && (chain[chain.length-3] == chain[chain.length-6])
+      ) {
+      console.log(chalkResponse("!!! CHAIN FREEZE !!!" 
+        + " | " + chain[chain.length-1].nodeId
+        + " --> " + chain[chain.length-2].nodeId
+        + " --> " + chain[chain.length-3].nodeId
+        + " --> " + chain[chain.length-4].nodeId
+        + " --> " + chain[chain.length-5].nodeId
+        + " --> " + chain[chain.length-6].nodeId
+      ));
+      return true ;
+    }
+    else {
+      return false ;
+    }
+  }
+  else if (chain.length > 3) {  // A --> B --> A --> B --> A
+    if ((chain[chain.length-1] == chain[chain.length-3]) 
+      && (chain[chain.length-2] == chain[chain.length-4])
+      ) {
+      console.log(chalkResponse("!!! CHAIN FREEZE !!!" 
+        + " | " + chain[chain.length-1].nodeId
+        + " --> " + chain[chain.length-2].nodeId
+        + " --> " + chain[chain.length-3].nodeId
+        + " --> " + chain[chain.length-4].nodeId
+      ));
+      return true ;
+    }
+    else {
+      return false ;
+    }
+  }
+  else if (chain.length > 2) {
     if ((chain[chain.length-1] == chain[chain.length-2]) && (chain[chain.length-2] == chain[chain.length-3])) {
-      console.log(chalkResponse("!!! CHAIN FREEZE !!! " + chain[chain.length-1].nodeId));
+      console.log(chalkResponse("!!! CHAIN FREEZE !!!" 
+        + " | " + chain[chain.length-1].nodeId
+        + " --> " + chain[chain.length-2].nodeId
+        + " --> " + chain[chain.length-3].nodeId
+      ));
       return true ;
     }
     else {
@@ -1450,6 +1502,8 @@ function createClientSocket (socket){
       })
 
       generateResponse(responseWordObj, function(status, promptWordObj){
+
+        // console.log(jsonPrint(promptWordObj));
 
         // if (!promptWordObj.bhtFound){
         if (

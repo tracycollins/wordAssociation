@@ -437,14 +437,15 @@ function sendPromptWord(clientObj, promptWordObj){
     var previousResponse = currentSession.wordChain[currentSession.wordChain.length-2];
     console.log(chalkPrompt("PROMPT   | " + clientObj.socketId + " | " + previousResponse.nodeId + " --> " + promptWordObj.nodeId));
   } else {
-    console.log(chalkPrompt("PROMPT   | " + clientObj.socketId + " | SESSION START --> " + promptWordObj.nodeId));
+    console.log(chalkPrompt("PROMPT   | " + clientObj.socketId  + " | " + clientObj.config.type + " | SESSION START --> " + promptWordObj.nodeId));
   }
 
-  if (clientObj.clientConfig.mode == "NORMAL") {
+  if (clientObj.config.mode == "NORMAL") {
     io.to(clientObj.socketId).emit("PROMPT_WORD", promptWordObj.nodeId);
   }
-  else if (clientObj.clientConfig.mode == "WORD_OBJ"){
+  else if (clientObj.config.mode == "WORD_OBJ"){
     io.to(clientObj.socketId).emit("PROMPT_WORD_OBJ",promptWordObj);
+    if (clientObj.config.type == 'TEST') io.of('/test').to(clientObj.socketId).emit('PROMPT_WORD_OBJ',promptWordObj);
   }
 
   numberPromptsSent++ ;
@@ -542,6 +543,9 @@ function readSocketQueue(){
             socketObj.connected = true ;
             socketObj.connectTime = currentTime ;
             socketObj.sessions = [] ;
+
+            clientSocketIdHashMap.set(socketObj.socketId, socketObj);
+
             io.of('/admin').emit('CLIENT SESSION', JSON.stringify({connected: true, clientObj: socketObj}));
 
             console.log(chalkTest("CL CONNECT SESSION VIEW "
@@ -556,6 +560,9 @@ function readSocketQueue(){
             socketObj.connected = true ;
             socketObj.connectTime = currentTime ;
             socketObj.sessions = [] ;
+
+            clientSocketIdHashMap.set(socketObj.socketId, socketObj);
+
             io.of('/admin').emit('CLIENT SESSION', JSON.stringify({connected: true, clientObj: socketObj}));
 
             console.log(chalkTest("TEST CL CONNECT    "
@@ -572,6 +579,8 @@ function readSocketQueue(){
             socketObj.connectTime = currentTime ;
             socketObj.sessions = [] ;
             io.of('/admin').emit('CLIENT SESSION', JSON.stringify({connected: true, clientObj: socketObj}));
+
+            clientSocketIdHashMap.set(socketObj.socketId, socketObj);
 
             console.log(chalkConnect("CL CONNECT    "
               + "[" + numberClientsConnected + "] " 
@@ -1144,7 +1153,7 @@ function createClientSocket (socket){
 
   var socketId = socket.id;
 
-  var clientsHashMap = findClientsSocket('/');
+  // var clientsHashMap = findClientsSocket('/');
   var referer = 'CLIENT';
 
   debug("\nSOCKET NAMESPACE\n" + util.inspect(socket.nsp, {showHidden: false, depth: 1}));
@@ -1312,7 +1321,7 @@ function createClientSocket (socket){
     readSocketQueue();
   });
 
-  socket.on("CLIENT_READY", function(clientConfig){
+  socket.on("CLIENT_READY", function(config){
 
     var socketId = socket.id ;
 
@@ -1323,27 +1332,31 @@ function createClientSocket (socket){
 
     var clientObj = clientSocketIdHashMap.get(socketId);
 
-
-    if (clientConfig) {
+    if (config) {
       
       console.log(chalkConnect("CL READY  "
         + " | " + socketId
-        + " | TYPE: " + clientConfig.type 
-        + " | MODE: " + clientConfig.mode 
+        + " | TYPE: " + config.type 
+        + " | MODE: " + config.mode 
       ));
       
-      // console.log("CLIENT CONFIG\n" + JSON.stringify(clientConfig, null, 3));
-      clientObj.clientConfig = clientConfig ;
+      // console.log("CLIENT CONFIG\n" + JSON.stringify(config, null, 3));
+      clientObj.config = config ;
       clientSocketIdHashMap.set(socketId, clientObj);
+        // console.log("CLIENT READY" + jsonPrint(clientObj));
     }
     else {
       console.log(chalkWarn("CLIENT CONFIG NOT SET?: " + JSON.stringify(clientObj.socketId, null, 2)));
-      clientObj.clientConfig + {
+      clientObj.config + {
         type: 'CLIENT',
         mode: 'WORD_OBJ'
       }
       clientSocketIdHashMap.set(socketId, clientObj);
     }
+
+    clientConnectDb(clientObj, function(err, cl){
+      console.log("CLIENT DB UPDATE ON CLIENT READY\n" + jsonPrint(cl.config));
+    })
 
     // Word.find({nodeId : "punish"}, function(err, responseArray){
     //   if (!err) {
@@ -1654,6 +1667,7 @@ function clientConnectDb (clientObj, callback) {
           $inc: { "numberOfConnections": 1 }, 
           $set: { 
             "socketId": clientObj.socketId,
+            "config": clientObj.config,
             "referer": clientObj.referer,
             "connectTime": currentTime,
             "disconnectTime": currentTime,
@@ -1686,6 +1700,7 @@ function clientConnectDb (clientObj, callback) {
           + " | I: " + cl.ip
           + " | D: " + cl.domain 
           + " | S: " + cl.socketId 
+          + " | C: " + jsonPrint(cl.config)
           + " | R: " + cl.referer 
           + " | CONS: " + cl.numberOfConnections 
           + " | LAST: " + getTimeStamp(cl.lastSeen)
@@ -2115,8 +2130,10 @@ configEvents.on("SERVER_READY", function () {
       if (clientObj.referer == 'TEST') {
         numberTestClients++;
       }
-      else if (typeof clientObj.clientConfig !== 'undefined') {
-      }
+      
+      // if (typeof clientObj.config !== 'undefined') {
+        // console.log("\nclientObj\n" + JSON.stringify(clientObj, null, 2));
+      // }
     });
 
     runTime =  getTimeNow() - startTime ;
@@ -2194,7 +2211,7 @@ configEvents.on("CONFIG_CHANGE", function (serverSessionConfig) {
 //  SERVER READY
 //=================================
 io.of("/test").on("connect", function(socket){
-  debug("\n\n===================================\nTEST CONNECT\n" 
+  console.log("\n\n===================================\nTEST CONNECT\n" 
     + util.inspect(socket.nsp.name, {showHidden: false, depth: 1})
     + "\n========================================\n"
   );
@@ -2283,6 +2300,7 @@ io.of("/admin").on("connect", function(socket){
                     clientObj: {
                       ip: value.ip,
                       socketId: value.socketId,
+                      config: value.config,
                       referer: value.referer,
                       domain: value.domain,
                       connected: value.connected, 
@@ -2399,6 +2417,7 @@ io.of("/admin").on("connect", function(socket){
                   clientObj: {
                     ip: value.ip,
                     socketId: value.socketId,
+                    config: value.config,
                     domain: value.domain,
                     referer: value.referer,
                     connected: value.connected, 

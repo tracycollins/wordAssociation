@@ -219,18 +219,18 @@
 			var numberClientIpAddresses = clientIpHashMap.count();
 
 			var clientConnectedColor = "#00aa00";
-			var testClientConnectedColor = "#008800";
+			var testClientConnectedColor = "#888888";
 			var clientDisconnectedColor = "#aa0000";
 			var testClientDisonnectedColor = "#880000";
 			var showConnectedClients = false ;
 			var showDisconnectedClients = false ;
 			var showIpClients = false ;
 
-		    var clientSessionTableHead = document.getElementById('client_session_table_head');
-		    var clientSessionTableBody = document.getElementById('client_session_table_body');
+	    var clientSessionTableHead = document.getElementById('client_session_table_head');
+	    var clientSessionTableBody = document.getElementById('client_session_table_body');
 
-		    var clientIpTableHead = document.getElementById('client_ip_table_head');
-		    var clientIpTableBody = document.getElementById('client_ip_table_body');
+	    var clientIpTableHead = document.getElementById('client_ip_table_head');
+	    var clientIpTableBody = document.getElementById('client_ip_table_body');
 
 			var heartBeat = 'SERVER HEARTBEAT: ' ;
 			var lastTimeoutHeartBeat = null ;
@@ -239,6 +239,10 @@
 			  var s= document.getElementById(id);
 			  s.value = newvalue;
 			}    
+
+			var jsonPrint = function (obj){
+			  return JSON.stringify(obj, null, 2);
+			}
 
 			window.onload=function() {
 			}			
@@ -445,11 +449,14 @@
 
 				console.log("RXCD CLIENT SESSION: [" + clientSocketIdHashMap.count() + "] "
 					+ co.clientObj.socketId 
+					// + " | T: " + co.clientObj.config.type 
 					+ " | I: " + co.clientObj.ip 
 					+ " | D: " + co.clientObj.domain 
 					+ " | R: " + co.clientObj.referer 
 					+ " | CONNECTED: " + co.clientObj.connected
 					);
+
+				console.log(jsonPrint(co.clientObj));
 
 				updateClientConnect();
 			});
@@ -730,14 +737,14 @@
 						}
 						else if (!showTestClients && ((value.domain.indexOf("googleusercontent") >= 0) 
 								|| (value.referer.indexOf('TEST') >= 0)
-								|| (value.clienConfig.type.indexOf('TEST') >= 0)
+								// || (value.config.type.indexOf('TEST') >= 0)
 								|| (value.domain.indexOf("googlebot") >= 0))) {
 						}
 						else {
 							
 							if ((value.domain.indexOf("googleusercontent") >= 0) 
 								|| (value.referer.indexOf('TEST') >= 0)
-								|| (value.clienConfig.type.indexOf('TEST') >= 0)
+								// || (value.config.type.indexOf('TEST') >= 0)
 								|| (value.domain.indexOf("googlebot") >= 0)
 								) {
 								clientIpTableBodyOptions.textColor = testClientConnectedColor ;
@@ -792,7 +799,7 @@
 
 						if (!showTestClients && ((value.domain.indexOf("googleusercontent") >= 0) 
 							|| (value.referer.indexOf('TEST') >= 0)
-							|| (value.clienConfig.type.indexOf('TEST') >= 0)
+							// || (value.config.type.indexOf('TEST') >= 0)
 							)
 							) 
 						{
@@ -854,7 +861,7 @@
 
 						if (!showTestClients && ((value.domain.indexOf("googleusercontent") >= 0) 
 							|| (value.referer.indexOf('TEST') >= 0)
-							|| (value.clienConfig.type.indexOf('TEST') >= 0)
+							|| (value.config.type.indexOf('TEST') >= 0)
 							)
 							) {
 						}

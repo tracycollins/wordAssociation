@@ -104,7 +104,7 @@ var bhtOverLimitTime = 0;
 var BHT_REQUEST_LIMIT = 100000;
 
 
-var BASE_BHT_REQ = 50829 ;
+var BASE_BHT_REQ = 2002 ;
 
 var numberBhtRequests = BASE_BHT_REQ; // as of 11/47pm  1/7/2016
 var bhtLimitResetTime = 0;
@@ -427,6 +427,7 @@ var simpleChain = function(chain){
 }
 
 function sendPromptWord(clientObj, promptWordObj){
+
   var currentSession = sessionHashMap.get(clientObj.socketId);
 
   debug(chalkInfo("currentSession.wordChain [" + currentSession.wordChain.length + "]\n" 
@@ -440,7 +441,7 @@ function sendPromptWord(clientObj, promptWordObj){
   }
 
   if (clientObj.clientConfig.mode == "NORMAL") {
-    io.to(clientObj.socketId).emit("PROMPT_WORD",promptWordObj.nodeId);
+    io.to(clientObj.socketId).emit("PROMPT_WORD", promptWordObj.nodeId);
   }
   else if (clientObj.clientConfig.mode == "WORD_OBJ"){
     io.to(clientObj.socketId).emit("PROMPT_WORD_OBJ",promptWordObj);
@@ -1343,6 +1344,32 @@ function createClientSocket (socket){
       }
       clientSocketIdHashMap.set(socketId, clientObj);
     }
+
+    // Word.find({nodeId : "punish"}, function(err, responseArray){
+    //   if (!err) {
+
+    //     console.log("randomWordObj" + jsonPrint(responseArray[0]));
+    //     // console.log(chalkResponse(socketId + " <-- " + randomWordObj.nodeId + " (RANDOM)"));
+
+    //     wordHashMap.set(responseArray[0].nodeId, responseArray[0]);
+
+    //     var currentSession = sessionHashMap.get(socketId);
+
+    //     currentSession.wordChain.push(responseArray[0]) ;
+
+    //     sendPromptWord(clientObj, responseArray[0]);
+
+    //     var sessionUpdateObj = {
+    //       sessionId: socketId,
+    //       sourceWord: responseArray[0],
+    //       targetWord: responseArray[0]
+    //     };
+
+    //     updateSessionViews(sessionUpdateObj);
+
+    //   }
+    // });
+
 
     words.getRandomWord(function(err, randomWordObj){
       if (!err) {

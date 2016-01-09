@@ -1401,7 +1401,7 @@ function createClientSocket (socket){
         sendPromptWord(clientObj, randomWordObj);
 
         var sessionUpdateObj = {
-          client: clientObj,
+          client: clientObj.config,
           sessionId: socketId,
           sourceWord: randomWordObj,
           targetWord: randomWordObj
@@ -1443,6 +1443,7 @@ function createClientSocket (socket){
 
       var sessionUpdateObj = {
         sessionId: socketId,
+        client: clientObj.config,
         sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
         targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
       };
@@ -1469,6 +1470,7 @@ function createClientSocket (socket){
 
               var sessionUpdateObj = {
                 sessionId: socketId,
+                client: clientObj.config,
                 sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
                 targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
               };
@@ -1488,6 +1490,7 @@ function createClientSocket (socket){
 
           var sessionUpdateObj = {
             sessionId: socketId,
+            client: clientObj.config,
             sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
             targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
           };
@@ -1521,6 +1524,7 @@ function createClientSocket (socket){
 
             var sessionUpdateObj = {
               sessionId: socketId,
+              client: clientObj.config,
               sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
               targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
             };
@@ -1536,6 +1540,7 @@ function createClientSocket (socket){
 
           var sessionUpdateObj = {
             sessionId: socketId,
+            client: clientObj.config,
             sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
             targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
           };
@@ -1566,6 +1571,7 @@ function createClientSocket (socket){
 
               var sessionUpdateObj = {
                 sessionId: socketId,
+                client: clientObj.config,
                 sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
                 targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
               };
@@ -1584,6 +1590,7 @@ function createClientSocket (socket){
 
           var sessionUpdateObj = {
             sessionId: socketId,
+            client: clientObj.config,
             sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
             targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
           };

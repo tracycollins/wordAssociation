@@ -780,7 +780,8 @@ socket.on("CONFIG_CHANGE", function(rxConfig){
 
 socket.on("SESSION_UPDATE", function(sessionObject){
 
-  console.log("> RX " + sessionObject.sourceWord.nodeId + " > " + sessionObject.targetWord.nodeId) ;
+  // console.log("> RX " + JSON.stringify(sessionObject)); ;
+  console.log("> RX | " + sessionObject.sourceWord.nodeId + " > " + sessionObject.targetWord.nodeId) ;
   // console.log(getTimeStamp() + ">>> RX SESSION_UPDATE\n" + JSON.stringify(sessionObject, null, 3)) ;
 
   if (!windowVisible) {

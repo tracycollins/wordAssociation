@@ -92,7 +92,7 @@ exports.findOneWord = function(word, incMentions, callback) {
 
 					if (!wd.bhtSearched || !wd.bhtFound) {
 
-						console.log(chalkDb("??? BHT DATA NOT NULL | " + wd.nodeId + " ... UPDATING BHT FOUND/SEARCHED"));
+						debug(chalkDb("??? BHT DATA NOT NULL | " + wd.nodeId + " ... UPDATING BHT FOUND/SEARCHED"));
 						// console.log("==???==:" + JSON.stringify(wd, null, 2));
 
 						update = { 

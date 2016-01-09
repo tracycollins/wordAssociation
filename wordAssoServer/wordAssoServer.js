@@ -440,7 +440,7 @@ function sendPromptWord(clientObj, promptWordObj){
     console.log(chalkPrompt("PROMPT   | " + clientObj.socketId  + " | " + clientObj.config.type + " | SESSION START --> " + promptWordObj.nodeId));
   }
 
-  if (typeof clientObj.config !== "undefined") {
+  if (typeof clientObj.config !== 'undefined') {
     if (clientObj.config.mode == "NORMAL") {
       io.to(clientObj.socketId).emit("PROMPT_WORD", promptWordObj.nodeId);
     }
@@ -1401,6 +1401,7 @@ function createClientSocket (socket){
         sendPromptWord(clientObj, randomWordObj);
 
         var sessionUpdateObj = {
+          client: clientObj,
           sessionId: socketId,
           sourceWord: randomWordObj,
           targetWord: randomWordObj

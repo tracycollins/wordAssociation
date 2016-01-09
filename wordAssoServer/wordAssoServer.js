@@ -744,7 +744,7 @@ function generateResponse(wordObj, callback){
       var randomIndex = randomInt(0, bhtWordHashMapKeys.length);
       var responseWord = bhtWordHashMapKeys[randomIndex].toLowerCase();
 
-      console.log(  "--- GEN RSPNS  | " + wordObj.nodeId + " --> " + responseWord);
+      debug(  "--- GEN RSPNS  | " + wordObj.nodeId + " --> " + responseWord);
 
       if (wordHashMap.has(responseWord)){
 
@@ -859,7 +859,7 @@ function generateResponse(wordObj, callback){
           var randomIndex = randomInt(0, bhtWordHashMapKeys.length);
           var responseWord = bhtWordHashMapKeys[randomIndex].toLowerCase();
 
-          console.log(  "--- GEN RSPNS  | " + bhtResponseObj.nodeId + " --> " + responseWord);
+          debug(  "--- GEN RSPNS  | " + bhtResponseObj.nodeId + " --> " + responseWord);
 
           if (wordHashMap.has(responseWord)){
 

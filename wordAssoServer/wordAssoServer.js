@@ -702,10 +702,15 @@ function addWordToDb(wordObj, incMentions, callback){
         });
       }
 
-      else { // already bht searched
-        // console.log(chalkLog("--- PREV BHT   | " + jsonPrint(word)));
+      else if (word.bhtFound){
+        console.log(chalkBht("-*- BHT HIT   | " + word.nodeId));
         wordHashMap.set(word.nodeId, word);
-        callback(null, word);
+        callback('BHT_HIT', word);
+      }
+      else {
+        console.log(chalkBht("-O- BHT MISS  | " + word.nodeId));
+        wordHashMap.set(word.nodeId, word);
+        callback('BHT_MISS', word);
       }
     }
   });
@@ -799,9 +804,15 @@ function generateResponse(wordObj, callback){
                 }
               });
             }
-            else { // already bht searched
+            else if (word.bhtFound){
+              console.log(chalkBht("-*- BHT HIT   | " + word.nodeId));
               wordHashMap.set(word.nodeId, word);
-              callback('BHT_EXISTS', word);
+              callback('BHT_HIT', word);
+            }
+            else {
+              console.log(chalkBht("-O- BHT MISS  | " + word.nodeId));
+              wordHashMap.set(word.nodeId, word);
+              callback('BHT_MISS', word);
             }
           }
         });
@@ -845,9 +856,15 @@ function generateResponse(wordObj, callback){
                 }
               });
             }
-            else {
+            else if (word.bhtFound){
+              console.log(chalkBht("-*- BHT HIT   | " + word.nodeId));
               wordHashMap.set(word.nodeId, word);
               callback('BHT_HIT', word);
+            }
+            else {
+              console.log(chalkBht("-O- BHT MISS  | " + word.nodeId));
+              wordHashMap.set(word.nodeId, word);
+              callback('BHT_MISS', word);
             }
           }
         });
@@ -915,9 +932,15 @@ function generateResponse(wordObj, callback){
                     }
                   });
                 }
-                else { // already bht searched
+                else if (word.bhtFound){
+                  console.log(chalkBht("-*- BHT HIT   | " + word.nodeId));
                   wordHashMap.set(word.nodeId, word);
-                  callback('BHT_EXISTS', word);
+                  callback('BHT_HIT', word);
+                }
+                else {
+                  console.log(chalkBht("-O- BHT MISS  | " + word.nodeId));
+                  wordHashMap.set(word.nodeId, word);
+                  callback('BHT_MISS', word);
                 }
               }
             });
@@ -962,10 +985,15 @@ function generateResponse(wordObj, callback){
                   });
                 }
 
-                else {
-                  // console.log("word.bhtSearched\n" + jsonPrint(word));
+                else if (word.bhtFound){
+                  console.log(chalkBht("-*- BHT HIT   | " + word.nodeId));
                   wordHashMap.set(word.nodeId, word);
                   callback('BHT_HIT', word);
+                }
+                else {
+                  console.log(chalkBht("-O- BHT MISS  | " + word.nodeId));
+                  wordHashMap.set(word.nodeId, word);
+                  callback('BHT_MISS', word);
                 }
               }
             });

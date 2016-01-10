@@ -72,7 +72,7 @@ exports.findOneWord = function(word, incMentions, callback) {
 		function(err, wd) {
 			if (err) {
 				console.error(Date.now() + "\n\n***** WORD FINDONE ERROR: " + word.nodeId + "\n" + err);
-				callback(err, null);
+				callback("ERROR " + err, null);
 			}
 			else {
 				debug(chalkDb("->- DB UPDATE" 

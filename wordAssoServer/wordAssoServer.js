@@ -701,7 +701,6 @@ function addWordToDb(wordObj, incMentions, callback){
           }
         });
       }
-
       else if (word.bhtFound){
         console.log(chalkBht("-*- BHT HIT   | " + word.nodeId));
         wordHashMap.set(word.nodeId, word);
@@ -1536,11 +1535,11 @@ function createClientSocket (socket){
       responseWordObj = rwObj ;
       // responseWordObj.bhtSearched = false ;
 
-      addWordToDb(responseWordObj, true, function(err, wordDbObj){
-        if (err) {
-          if (err.indexOf("BHT_ERROR") < 0){
+      addWordToDb(responseWordObj, true, function(status, wordDbObj){
+        if (status.indexOf("ERROR") >= 0) {
+          if (status.indexOf("BHT_ERROR") < 0){
              console.log(chalkError("addWordToDb (HASH MISS): *** ERROR ***" 
-              + "\n" + JSON.stringify(err)
+              + "\n" + JSON.stringify(status)
               + "\n" + JSON.stringify(responseWordObj, null, 2)
             ));
             return;

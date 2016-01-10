@@ -490,12 +490,13 @@ function readSocketQueue(){
               if (err){
                 console.error(chalkError("\n\n***** ERROR: dnsReverseLookup: " + socketObj.ip + " ERROR: " + err));
                 socketObj.domain = "-- DOMAIN NOT FOUND --";
+                callback(null, socketObj);
               }
               else {
-                debug("DNS REVERSE LOOKUP: " + socketObj.ip + " | DOMAINS: " + domains);
+                console.log("DNS REVERSE LOOKUP: " + socketObj.ip + " | DOMAINS: " + domains);
                 socketObj.domain = domains[0];
+                callback(err, socketObj);
               }
-              callback(err, socketObj);
             });
           },
 

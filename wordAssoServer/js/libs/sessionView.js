@@ -146,8 +146,10 @@ function resetMouseMoveTimer() {
   mouseMoveTimeout = setTimeout(function(){
     d3.select("body").style("cursor", "none");
     if (!showStatsFlag && !pageLoadedTimeIntervalFlag){
-      displayInfoOverlay(1);
+      displayInfoOverlay(1e-6);
+      displayControlOverlay(1e-6);
     }
+    displayInfoOverlay(1e-6);
     displayControlOverlay(1e-6);
     mouseMovingFlag = false ;
   }, mouseMoveTimeoutInterval);
@@ -688,7 +690,7 @@ window.onload = function () {
 
   setTimeout(function(){
     pageLoadedTimeIntervalFlag = false ;
-    displayInfoOverlay(1);
+    displayInfoOverlay(0);
   }, 5000);
 };
 
@@ -709,7 +711,7 @@ d3.select('#statsToggleButton').on("click", function() {  // STATS BUTTON
   }
   else {
     d3.select("#statsToggleButton").text("show stats");
-    displayInfoOverlay(1);
+    displayInfoOverlay(0);
   }
 });
 

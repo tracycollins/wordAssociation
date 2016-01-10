@@ -57,7 +57,7 @@ var chalkConnectAdmin = chalk.bold.cyan;
 var chalkConnect = chalk.green;
 var chalkDisconnect = chalk.blue;
 var chalkInfo = chalk.gray;
-var chalkTest = chalk.bold.yellow;
+var chalkTest = chalk.yellow;
 var chalkAlert = chalk.red;
 var chalkError = chalk.bold.red;
 var chalkWarn = chalk.bold.yellow;
@@ -441,6 +441,7 @@ function sendPromptWord(clientObj, promptWordObj){
   }
 
   if (typeof clientObj.config !== 'undefined') {
+    console.log("clientObj.config\n" + jsonPrint(clientObj.config));
     if (clientObj.config.mode == "NORMAL") {
       io.to(clientObj.socketId).emit("PROMPT_WORD", promptWordObj.nodeId);
     }
@@ -560,6 +561,7 @@ function readSocketQueue(){
             ));
           }
           else if (socketObj.referer == 'TEST') {
+            numberTestClients++;
             socketObj.connected = true ;
             socketObj.connectTime = currentTime ;
             socketObj.sessions = [] ;
@@ -568,8 +570,8 @@ function readSocketQueue(){
 
             io.of('/admin').emit('CLIENT SESSION', JSON.stringify({connected: true, clientObj: socketObj}));
 
-            console.log(chalkTest("TEST CL CONNECT    "
-              + "[" + numberTestClients + "] " 
+            console.log(chalkTest("TEST CL CONNECT"
+              + " [" + numberTestClients + " TEST CLIENTS] " 
               + getTimeStamp() 
               + " | S: " + socketObj.socketId 
               + " | I: " + socketObj.ip 
@@ -756,7 +758,7 @@ function generateResponse(wordObj, callback){
     loadBhtResponseHash(wordObj, function(bhtWordHashMap){
 
       if (bhtWordHashMap.count() == 0) {
-        console.log(chalkWarn("??? loadBhtResponseHash | BHT_EMPTY\n" + JSON.stringify(wordObj, null, 2)));
+        console.log(chalkWarn("??? loadBhtResponseHash | BHT_EMPTY | " + wordObj.nodeId));
         callback('BHT_EMPTY', wordObj);  // ?? maybe unknown wordType?
         return;
       }
@@ -884,7 +886,7 @@ function generateResponse(wordObj, callback){
         loadBhtResponseHash(bhtResponseObj, function(bhtWordHashMap){
 
           if (bhtWordHashMap.count() == 0) {
-            console.log(chalkWarn("??? loadBhtResponseHash | BHT_EMPTY\n" + JSON.stringify(bhtResponseObj, null, 2)));
+            console.log(chalkWarn("??? loadBhtResponseHash | BHT_EMPTY | " + wordObj.nodeId));
             callback('BHT_EMPTY', bhtResponseObj);  // ?? maybe unknown wordType?
             return ;
           }
@@ -1385,7 +1387,7 @@ function createClientSocket (socket){
     }
 
     clientConnectDb(clientObj, function(err, cl){
-      console.log("CLIENT DB UPDATE ON CLIENT READY\n" + cl.config.type);
+      debug("CLIENT DB UPDATE ON CLIENT READY: " + cl.config.type);
     })
 
     // Word.find({nodeId : "punish"}, function(err, responseArray){
@@ -1536,29 +1538,38 @@ function createClientSocket (socket){
       // responseWordObj.bhtSearched = false ;
 
       addWordToDb(responseWordObj, true, function(status, wordDbObj){
+
+        console.log(chalkLog("addWordToDb STATUS: " + status + " | " + wordDbObj.nodeId));
+
         if (status.indexOf("ERROR") >= 0) {
-          if (status.indexOf("BHT_ERROR") < 0){
-             console.log(chalkError("addWordToDb (HASH MISS): *** ERROR ***" 
-              + "\n" + JSON.stringify(status)
-              + "\n" + JSON.stringify(responseWordObj, null, 2)
-            ));
-            return;
-          }
-          else {
-            console.log("->- DB UPDATE  | " + wordDbObj.nodeId 
-              + " | MNS: " + wordDbObj.mentions
-              );
-            currentSession.wordChain.push(wordDbObj) ;
+          console.log(chalkError("addWordToDb (HASH MISS): *** ERROR ***" 
+            + "\n" + JSON.stringify(status)
+            + "\n" + JSON.stringify(responseWordObj, null, 2)
+          ));
+          return;
 
-            var sessionUpdateObj = {
-              sessionId: socketId,
-              client: clientObj.config,
-              sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
-              targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
-            };
+          // if (status.indexOf("BHT_ERROR") < 0){
+            //  console.log(chalkError("addWordToDb (HASH MISS): *** ERROR ***" 
+            //   + "\n" + JSON.stringify(status)
+            //   + "\n" + JSON.stringify(responseWordObj, null, 2)
+            // ));
+            // return;
+          // }
+          // else {
+          //   console.log("->- DB UPDATE  | " + wordDbObj.nodeId 
+          //     + " | MNS: " + wordDbObj.mentions
+          //     );
+          //   currentSession.wordChain.push(wordDbObj) ;
 
-            updateSessionViews(sessionUpdateObj);
-          }
+          //   var sessionUpdateObj = {
+          //     sessionId: socketId,
+          //     client: clientObj.config,
+          //     sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
+          //     targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
+          //   };
+
+          //   updateSessionViews(sessionUpdateObj);
+          // }
         }
         else {
           console.log("->- DB UPDATE  | " + wordDbObj.nodeId 
@@ -2165,9 +2176,9 @@ configEvents.on("SERVER_READY", function () {
     numberTestClients = 0;
 
     clientSocketIdHashMap.forEach(function(clientObj, ip) {
-      if (clientObj.referer == 'TEST') {
-        numberTestClients++;
-      }
+      // if (clientObj.referer == 'TEST') {
+      //   numberTestClients++;
+      // }
       
       // if (typeof clientObj.config !== 'undefined') {
         // console.log("\nclientObj\n" + JSON.stringify(clientObj, null, 2));
@@ -2249,9 +2260,9 @@ configEvents.on("CONFIG_CHANGE", function (serverSessionConfig) {
 //  SERVER READY
 //=================================
 io.of("/test").on("connect", function(socket){
-  console.log("\n\n===================================\nTEST CONNECT\n" 
-    + util.inspect(socket.nsp.name, {showHidden: false, depth: 1})
-    + "\n========================================\n"
+  debug("TEST CONNECT"
+    + " | " + socket.id 
+    // + util.inspect(socket.nsp.name, {showHidden: false, depth: 1})
   );
   createClientSocket(socket);
 });

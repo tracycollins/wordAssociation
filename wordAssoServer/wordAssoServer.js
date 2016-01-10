@@ -34,6 +34,7 @@ var totalSessions = 0;
 var totalUsers = 0;
 var totalWords = 0;
 
+var dropboxWriteStatsInterval = 60000 ;
 
 var currentTimeInteval = setInterval(function () {
   var d = new Date();
@@ -168,6 +169,33 @@ function dropboxWriteArrayToFile(filePath, dataArray, callback){
   });
 }
 
+function updateDropboxStats (dropboxHostStatsFile, statsUpdateObj, callback){
+  dropboxClient.writeFile(dropboxHostStatsFile, JSON.stringify(statsUpdateObj, null, 2), function(error, stat) {
+    if (error) {
+      console.error(chalkError("!!! DROPBOX WRITE " + dropboxHostStatsFile + " ERROR: " + error));
+      callback(error);
+    }
+    else {
+      console.log(chalkInfo(getTimeStamp() 
+        + " | ... WRITING STATS TO DROPBOX FILE: " + dropboxHostStatsFile
+        + "\n" + jsonPrint(statsUpdateObj) 
+      ));
+      callback('OK');
+    }
+  });
+}
+
+
+var dropboxHostStatsFile = os.hostname() + "_" + DROPBOX_WORD_ASSO_STATS_FILE;
+
+var statsUpdateObj = {
+  "host" : os.hostname(),
+  "timeStamp" : getTimeStamp(),
+  "BHT_REQS" : numberBhtRequests
+};
+
+
+
 dropboxClient.readFile(DROPBOX_WORD_ASSO_STATS_FILE, function(err, statsJson, callback) {
 
   if (err) {
@@ -181,14 +209,25 @@ dropboxClient.readFile(DROPBOX_WORD_ASSO_STATS_FILE, function(err, statsJson, ca
 
   var statsObj = JSON.parse(statsJson);
 
-  console.log("statsJson\n" + JSON.stringify(statsObj, null, 3));
+  console.log("DROPBOX STATS\n" + JSON.stringify(statsObj, null, 3));
 
   console.log(chalkInfo(getTimeStamp() + " | FOUND " + statsObj.name));
 
-  // statsObj.locations.forEach(function(stat){
-  //   debug("stat\n" + JSON.stringify(stat, null, 3));
-  // });
+  if (typeof statsObj.BHT_REQS !== 'undefined') {
+    console.log(chalkInfo(getTimeStamp() + " | SET DAILY BHT REQUESTS: " + statsObj.BHT_REQS));
+    numberBhtRequests = statsObj.BHT_REQS ;
+  }
 
+  statsUpdateObj.BHT_REQS = numberBhtRequests;
+
+  updateDropboxStats(dropboxHostStatsFile, statsUpdateObj, function(status){
+    if (status != 'OK'){
+      console.error("!!! ERROR: updateDropboxStats " + status);
+    }
+    else {
+      console.log(chalkLog("UPDATE DROPBOX STATUS OK"));
+    }
+  });
 });
 
 
@@ -441,7 +480,9 @@ function sendPromptWord(clientObj, promptWordObj){
   }
 
   if (typeof clientObj.config !== 'undefined') {
-    console.log("clientObj.config\n" + jsonPrint(clientObj.config));
+
+    debug("clientObj.config\n" + jsonPrint(clientObj.config));
+
     if (clientObj.config.mode == "NORMAL") {
       io.to(clientObj.socketId).emit("PROMPT_WORD", promptWordObj.nodeId);
     }
@@ -604,6 +645,15 @@ function readSocketQueue(){
 
       debug("@@@ DISCONNECT SOCKET " + socketObj.socketId + " | " + socketObj.connected);
 
+      if (socketObj.config.type == 'TEST') {
+        if (numberTestClients > 0) {
+          numberTestClients--; 
+        }
+        else {
+          console.error(chalkError("??? DISCONNECT " + socketObj.socketId + " but numberTestClients = " + numberTestClients));
+        }
+      }
+
       clientSocketIdHashMap.remove(socketObj.socketId);
 
       clientDisconnectDb(socketObj, function(err, cl){
@@ -674,7 +724,7 @@ function addWordToDb(wordObj, incMentions, callback){
     }
     else {
 
-      debug ("addWordToDb ->- DB UPDATE  | " + word.nodeId 
+      debug ("addWordToDb ->- DB UPDATE | " + word.nodeId 
         + " | MNS: " + word.mentions 
         + " | BHT SEARCHED: " + word.bhtSearched
         + " | BHT FOUND: " + word.bhtFound
@@ -704,14 +754,14 @@ function addWordToDb(wordObj, incMentions, callback){
         });
       }
       else if (word.bhtFound){
-        console.log(chalkBht("-*- BHT HIT   | " + word.nodeId));
+        console.log(chalkBht("-F- BHT FOUND | " + word.nodeId));
         wordHashMap.set(word.nodeId, word);
-        callback('BHT_HIT', word);
+        callback('BHT_FOUND', word);
       }
       else {
-        console.log(chalkBht("-O- BHT MISS  | " + word.nodeId));
+        console.log(chalkBht("-N- BHT NOT FOUND  | " + word.nodeId));
         wordHashMap.set(word.nodeId, word);
-        callback('BHT_MISS', word);
+        callback('BHT_NOT_FOUND', word);
       }
     }
   });
@@ -758,7 +808,7 @@ function generateResponse(wordObj, callback){
     loadBhtResponseHash(wordObj, function(bhtWordHashMap){
 
       if (bhtWordHashMap.count() == 0) {
-        console.log(chalkWarn("??? loadBhtResponseHash | BHT_EMPTY | " + wordObj.nodeId));
+        console.log(chalkBht("-v- BHT EMPTY | " + wordObj.nodeId));
         callback('BHT_EMPTY', wordObj);  // ?? maybe unknown wordType?
         return;
       }
@@ -767,11 +817,11 @@ function generateResponse(wordObj, callback){
       var randomIndex = randomInt(0, bhtWordHashMapKeys.length);
       var responseWord = bhtWordHashMapKeys[randomIndex].toLowerCase();
 
-      debug(  "--- GEN RSPNS  | " + wordObj.nodeId + " --> " + responseWord);
+      debug(  "--- GEN RSPNS | " + wordObj.nodeId + " --> " + responseWord);
 
       if (wordHashMap.has(responseWord)){
 
-        console.log("-*- HASH HIT   | " + responseWord);
+        console.log("-*- HASH HIT  | " + responseWord);
 
         responseWordObj = wordHashMap.get(responseWord);
         responseWordObj.lastSeen = dateNow;
@@ -782,7 +832,7 @@ function generateResponse(wordObj, callback){
             callback('BHT_ERROR', responseWordObj);
           }
           else {
-            console.log("->- DB UPDATE  | " + word.nodeId + " | MNS: " + word.mentions );
+            console.log("->- DB UPDATE | " + word.nodeId + " | MNS: " + word.mentions );
             debug(JSON.stringify(word, null, 3));
 
             if (!word.bhtSearched) {  // not yet bht searched
@@ -806,21 +856,21 @@ function generateResponse(wordObj, callback){
               });
             }
             else if (word.bhtFound){
-              console.log(chalkBht("-*- BHT HIT   | " + word.nodeId));
+              console.log(chalkBht("-F- BHT FOUND | " + word.nodeId));
               wordHashMap.set(word.nodeId, word);
-              callback('BHT_HIT', word);
+              callback('BHT_FOUND', word);
             }
             else {
-              console.log(chalkBht("-O- BHT MISS  | " + word.nodeId));
+              console.log(chalkBht("-N- BHT NOT FOUND  | " + word.nodeId));
               wordHashMap.set(word.nodeId, word);
-              callback('BHT_MISS', word);
+              callback('BHT_NOT_FOUND', word);
             }
           }
         });
       }
       else {
 
-        console.log("-O- HASH MISS  | " + responseWord);
+        console.log("-O- HASH MISS | " + responseWord);
         var dateNow = Date.now();
 
         var responseWordObj = new Word ({
@@ -834,7 +884,7 @@ function generateResponse(wordObj, callback){
             callback('BHT_ERROR', responseWordObj);
           }
           else {
-            console.log("->- DB UPDATE  | " + word.nodeId + " | MNS: " + word.mentions);
+            console.log("->- DB UPDATE | " + word.nodeId + " | MNS: " + word.mentions);
             debug(JSON.stringify(word, null, 3));
 
             if (!word.bhtSearched) {  // not yet bht searched
@@ -858,14 +908,14 @@ function generateResponse(wordObj, callback){
               });
             }
             else if (word.bhtFound){
-              console.log(chalkBht("-*- BHT HIT   | " + word.nodeId));
+              console.log(chalkBht("-F- BHT FOUND | " + word.nodeId));
               wordHashMap.set(word.nodeId, word);
-              callback('BHT_HIT', word);
+              callback('BHT_FOUND', word);
             }
             else {
-              console.log(chalkBht("-O- BHT MISS  | " + word.nodeId));
+              console.log(chalkBht("-N- BHT NOT FOUND  | " + word.nodeId));
               wordHashMap.set(word.nodeId, word);
-              callback('BHT_MISS', word);
+              callback('BHT_NOT_FOUND', word);
             }
           }
         });
@@ -886,7 +936,7 @@ function generateResponse(wordObj, callback){
         loadBhtResponseHash(bhtResponseObj, function(bhtWordHashMap){
 
           if (bhtWordHashMap.count() == 0) {
-            console.log(chalkWarn("??? loadBhtResponseHash | BHT_EMPTY | " + wordObj.nodeId));
+            console.log(chalkBht("-v- BHT EMPTY | " + wordObj.nodeId));
             callback('BHT_EMPTY', bhtResponseObj);  // ?? maybe unknown wordType?
             return ;
           }
@@ -895,11 +945,11 @@ function generateResponse(wordObj, callback){
           var randomIndex = randomInt(0, bhtWordHashMapKeys.length);
           var responseWord = bhtWordHashMapKeys[randomIndex].toLowerCase();
 
-          console.log(  "--- GEN RSPNS  | " + bhtResponseObj.nodeId + " --> " + responseWord);
+          console.log(  "--- GEN RSPNS | " + bhtResponseObj.nodeId + " --> " + responseWord);
 
           if (wordHashMap.has(responseWord)){
 
-            console.log("-*- HASH HIT   | " + responseWord);
+            console.log("-*- HASH HIT  | " + responseWord);
 
             responseWordObj = wordHashMap.get(responseWord);
             responseWordObj.lastSeen = dateNow;
@@ -910,7 +960,7 @@ function generateResponse(wordObj, callback){
                 callback('BHT_ERROR', responseWordObj);
               }
               else {
-                console.log("->- DB UPDATE  | " + word.nodeId + " | MNS: " + word.mentions );
+                console.log("->- DB UPDATE | " + word.nodeId + " | MNS: " + word.mentions );
                 debug(JSON.stringify(word, null, 3));
 
                 if (!word.bhtSearched) {  // not yet bht searched
@@ -934,21 +984,21 @@ function generateResponse(wordObj, callback){
                   });
                 }
                 else if (word.bhtFound){
-                  console.log(chalkBht("-*- BHT HIT   | " + word.nodeId));
+                  console.log(chalkBht("-F- BHT FOUND | " + word.nodeId));
                   wordHashMap.set(word.nodeId, word);
-                  callback('BHT_HIT', word);
+                  callback('BHT_FOUND', word);
                 }
                 else {
-                  console.log(chalkBht("-O- BHT MISS  | " + word.nodeId));
+                  console.log(chalkBht("-N- BHT NOT FOUND  | " + word.nodeId));
                   wordHashMap.set(word.nodeId, word);
-                  callback('BHT_MISS', word);
+                  callback('BHT_NOT_FOUND', word);
                 }
               }
             });
           }
           else {
 
-            console.log("-O- HASH MISS  | " + responseWord);
+            console.log("-O- HASH MISS | " + responseWord);
             var dateNow = Date.now();
 
             var responseWordObj = new Word ({
@@ -962,7 +1012,7 @@ function generateResponse(wordObj, callback){
                 callback('BHT_ERROR', responseWordObj);
               }
               else {
-                console.log("->- DB UPDATE  | " + word.nodeId + " | MNS: " + word.mentions);
+                console.log("->- DB UPDATE | " + word.nodeId + " | MNS: " + word.mentions);
                 debug(JSON.stringify(word, null, 3));
 
                 if (!word.bhtSearched) {  // not yet bht searched
@@ -985,16 +1035,15 @@ function generateResponse(wordObj, callback){
                     }
                   });
                 }
-
                 else if (word.bhtFound){
-                  console.log(chalkBht("-*- BHT HIT   | " + word.nodeId));
+                  console.log(chalkBht("-F- BHT FOUND | " + word.nodeId));
                   wordHashMap.set(word.nodeId, word);
-                  callback('BHT_HIT', word);
+                  callback('BHT_FOUND', word);
                 }
                 else {
-                  console.log(chalkBht("-O- BHT MISS  | " + word.nodeId));
+                  console.log(chalkBht("-N- BHT NOT FOUND  | " + word.nodeId));
                   wordHashMap.set(word.nodeId, word);
-                  callback('BHT_MISS', word);
+                  callback('BHT_NOT_FOUND', word);
                 }
               }
             });
@@ -1006,7 +1055,6 @@ function generateResponse(wordObj, callback){
 }
 
 function bhtSearchWord (wordObj, callback){
-
 
   if (bhtOverLimitTime && moment().isBefore(bhtLimitResetTime)) {
 
@@ -1050,7 +1098,7 @@ function bhtSearchWord (wordObj, callback){
       wordObj.bhtSearched = true ;
       wordObj.bhtFound = false ;
       words.findOneWord(wordObj, true, function(err, wordUpdatedObj){
-        debug(chalkBht("bhtSearchWord: ->- DB UPDATE  | " + wordUpdatedObj.nodeId 
+        debug(chalkBht("bhtSearchWord: ->- DB UPDATE | " + wordUpdatedObj.nodeId 
           + " | MNS: " + wordUpdatedObj.mentions
         ));
         debug(chalkBht(JSON.stringify(wordUpdatedObj, null, 3)));
@@ -1100,7 +1148,7 @@ function bhtSearchWord (wordObj, callback){
         }
 
         words.findOneWord(wordObj, true, function(err, wordUpdatedObj){
-          debug(chalkBht("bhtSearchWord: ->- DB UPDATE  | " 
+          debug(chalkBht("bhtSearchWord: ->- DB UPDATE | " 
             + wordUpdatedObj.nodeId 
             + " | MNS: " + wordUpdatedObj.mentions
           ));
@@ -1178,7 +1226,7 @@ function chainDeadEnd(chain) {
 
 function incrementSocketBhtReqs(delta){
   numberBhtRequests += delta ;
-  debug(chalkInfo("... BHT REQS: " + numberBhtRequests));
+  console.log(chalkInfo("... BHT REQS: " + numberBhtRequests + " | DELTA: " + delta));
 }
 
 function createClientSocket (socket){
@@ -1379,10 +1427,7 @@ function createClientSocket (socket){
     }
     else {
       console.log(chalkWarn("CLIENT CONFIG NOT SET?: " + JSON.stringify(clientObj.socketId, null, 2)));
-      clientObj.config + {
-        type: 'CLIENT',
-        mode: 'WORD_OBJ'
-      }
+      clientObj.config = { type: 'CLIENT', mode: 'WORD_OBJ' };
       clientSocketIdHashMap.set(socketId, clientObj);
     }
 
@@ -1462,7 +1507,7 @@ function createClientSocket (socket){
 
     if (wordHashMap.has(rwObj.nodeId)){
 
-      console.log("-*- HASH HIT   | " + rwObj.nodeId);
+      console.log("-*- HASH HIT  | " + rwObj.nodeId);
       // console.log(JSON.stringify(rwObj, null, 2));
 
       responseWordObj = wordHashMap.get(rwObj.nodeId);
@@ -1532,14 +1577,14 @@ function createClientSocket (socket){
     }
     else {
 
-      console.log("-O- HASH MISS  | " + rwObj.nodeId);
+      console.log("-O- HASH MISS | " + rwObj.nodeId);
 
       responseWordObj = rwObj ;
       // responseWordObj.bhtSearched = false ;
 
       addWordToDb(responseWordObj, true, function(status, wordDbObj){
 
-        console.log(chalkLog("addWordToDb STATUS: " + status + " | " + wordDbObj.nodeId));
+        debug(chalkLog("addWordToDb STATUS: " + status + " | " + wordDbObj.nodeId));
 
         if (status.indexOf("ERROR") >= 0) {
           console.log(chalkError("addWordToDb (HASH MISS): *** ERROR ***" 
@@ -1547,32 +1592,9 @@ function createClientSocket (socket){
             + "\n" + JSON.stringify(responseWordObj, null, 2)
           ));
           return;
-
-          // if (status.indexOf("BHT_ERROR") < 0){
-            //  console.log(chalkError("addWordToDb (HASH MISS): *** ERROR ***" 
-            //   + "\n" + JSON.stringify(status)
-            //   + "\n" + JSON.stringify(responseWordObj, null, 2)
-            // ));
-            // return;
-          // }
-          // else {
-          //   console.log("->- DB UPDATE  | " + wordDbObj.nodeId 
-          //     + " | MNS: " + wordDbObj.mentions
-          //     );
-          //   currentSession.wordChain.push(wordDbObj) ;
-
-          //   var sessionUpdateObj = {
-          //     sessionId: socketId,
-          //     client: clientObj.config,
-          //     sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
-          //     targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
-          //   };
-
-          //   updateSessionViews(sessionUpdateObj);
-          // }
         }
         else {
-          console.log("->- DB UPDATE  | " + wordDbObj.nodeId 
+          console.log("->- DB UPDATE | " + wordDbObj.nodeId 
             + " | MNS: " + wordDbObj.mentions
             );
           currentSession.wordChain.push(wordDbObj) ;
@@ -1592,10 +1614,10 @@ function createClientSocket (socket){
 
         // console.log(jsonPrint(promptWordObj));
 
-        // if (!promptWordObj.bhtFound){
         if (
           (status == 'BHT_EMPTY') 
           || (status == 'BHT_MISS') 
+          || (status == 'BHT_NOT_FOUND') 
           || responseWordObj.nodeId == promptWordObj.nodeId
           || chainDeadEnd(currentSession.wordChain)
           ) {
@@ -1641,11 +1663,11 @@ function createClientSocket (socket){
   });
 
   socket.on("BHT_REQUESTS", function(numberSocketBhtRequests){
-    debug(chalkBht(">-- RX BHT_REQUESTS | " + socket.id 
+    console.log(chalkBht(">-- RX BHT_REQUESTS | " + socket.id 
       + " | " + numberSocketBhtRequests
     ));
 
-    incrementSocketBhtReqs(numberSocketBhtRequests, function(){});
+    incrementSocketBhtReqs(numberSocketBhtRequests);
 
   });
 }
@@ -2158,9 +2180,20 @@ configEvents.on("SERVER_READY", function () {
 
   var tempDateTime = new Date();
   var txHeartbeat = { };
+  var heartbeatsSent = 0;
 
   var maxNumberClientsConnected = 0;
   var maxNumberClientsConnectedTime = currentTime;
+
+  function logHeartbeat(){
+    console.log(chalkLog("HB " + heartbeatsSent 
+      + " | " + getTimeStamp(txHeartbeat.timeStamp)
+      + " | ST: " + getTimeStamp(txHeartbeat.startTime)
+      + " | UP: " + msToTime(txHeartbeat.upTime)
+      + " | RN: " + msToTime(txHeartbeat.runTime)
+      + " | BHTR: " + txHeartbeat.numberBhtRequests
+    ));
+  }
 
   var serverHeartbeatInterval = setInterval(function () {
 
@@ -2172,18 +2205,6 @@ configEvents.on("SERVER_READY", function () {
       maxNumberClientsConnectedTime = currentTime;
       console.log(chalkAlert(getTimeStamp() + " | NEW MAX CLIENTS CONNECTED: " + maxNumberClientsConnected));
     }
-
-    numberTestClients = 0;
-
-    clientSocketIdHashMap.forEach(function(clientObj, ip) {
-      // if (clientObj.referer == 'TEST') {
-      //   numberTestClients++;
-      // }
-      
-      // if (typeof clientObj.config !== 'undefined') {
-        // console.log("\nclientObj\n" + JSON.stringify(clientObj, null, 2));
-      // }
-    });
 
     runTime =  getTimeNow() - startTime ;
 
@@ -2197,12 +2218,15 @@ configEvents.on("SERVER_READY", function () {
 
     if (internetReady){
 
+      heartbeatsSent++;
+
       txHeartbeat = { 
         serverHostName : os.hostname(), 
         timeStamp : getTimeNow(), 
         startTime : startTime, 
         upTime : os.uptime() * 1000, 
         runTime : runTime, 
+        heartbeatsSent : heartbeatsSent,
 
         numberAdmins : numberAdminsConnected,
         numberClients : numberClientsConnected,
@@ -2227,6 +2251,12 @@ configEvents.on("SERVER_READY", function () {
       io.emit('HEARTBEAT', txHeartbeat);
       io.of('/admin').emit('HEARTBEAT', txHeartbeat);
       io.of('/test').emit('HEARTBEAT', txHeartbeat);
+
+      if (heartbeatsSent%10 == 0) {
+        logHeartbeat();
+      }
+
+
     }
     else {
       tempDateTime = new Date() ;
@@ -2733,6 +2763,28 @@ configEvents.on("DATABASE_INIT_COMPLETE", function(tweetCount){
   console.log(chalkInfo(getTimeStamp() + " | DATABASE ENABLED"));
 });
 
+
+//=================================
+//  UPDATE DROPBOX STATUS INVERVAL
+//=================================
+var updateDropboxStatsInterval = setInterval(function () {
+
+  var statsUpdateObj = {
+    "host" : os.hostname(),
+    "timeStamp" : getTimeStamp(),
+    "BHT_REQS" : numberBhtRequests
+  };
+
+  updateDropboxStats(dropboxHostStatsFile, statsUpdateObj, function(status){
+    if (status != 'OK'){
+      console.error("!!! ERROR: updateDropboxStats " + status);
+    }
+    else {
+      console.log(chalkLog("UPDATE DROPBOX STATUS OK"));
+    }
+  });
+
+}, dropboxWriteStatsInterval);
 
 //=================================
 //  REMOVE DISCONNECTED CLIENT SOCKETS FROM HASH MAP

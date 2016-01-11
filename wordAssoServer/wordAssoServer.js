@@ -440,7 +440,12 @@ var randomIntFromInterval = function (min,max) {
 }
 
 var jsonPrint = function (obj){
-  return JSON.stringify(obj, null, 2);
+  if (obj) {
+    return JSON.stringify(obj, null, 2);
+  }
+  else {
+    return "UNDEFINED";
+  }
 }
 
 function readFileIntoArray (path, callback) {
@@ -1314,61 +1319,35 @@ function bhtSearchWord (wordObj, callback){
 
 function chainDeadEnd(chain) {
 
-  // console.log(chalkAlert("chainDeadEnd"));
+  if (chain.length > 6) { 
 
-  // for (var i=0; i<chain.length; i++) {
-  //   console.log(chalkAlert("CHAIN[" + i + "]: " + chain[i].nodeId));
-  // }
+    var uniqueNodes = [];
 
-  if (chain.length > 6) {  // A --> B --> C --> A --> B --> C --> A
-    if ((chain[chain.length-1] == chain[chain.length-4]) 
-      && (chain[chain.length-2] == chain[chain.length-5])
-      && (chain[chain.length-3] == chain[chain.length-6])
-      ) {
-      console.log(chalkResponse("!!! CHAIN FREEZE !!!" 
-        + " | " + chain[chain.length-1].nodeId
-        + " --> " + chain[chain.length-2].nodeId
-        + " --> " + chain[chain.length-3].nodeId
-        + " --> " + chain[chain.length-4].nodeId
-        + " --> " + chain[chain.length-5].nodeId
-        + " --> " + chain[chain.length-6].nodeId
-      ));
-      return true ;
+    for (var i = chain.length-1; i >= chain.length-6; i--){
+
+      if (uniqueNodes.indexOf(chain[i].nodeId) == -1){
+
+        if (uniqueNodes.length > 3) {
+          debug("... NO CHAIN FREEZE\n" + jsonPrint(uniqueNodes));
+          return false ;
+        }
+        else if (i == chain.length-6){
+          console.log(chalkResponse("!!! CHAIN FREEZE !!! | " + uniqueNodes)); 
+          return true ;
+        }
+        else {
+          uniqueNodes.push(chain[i].nodeId);
+        }
+
+      }
     }
-    else {
-      return false ;
-    }
+
   }
-  else if (chain.length > 3) {  // A --> B --> A --> B --> A
-    if ((chain[chain.length-1] == chain[chain.length-3]) 
-      && (chain[chain.length-2] == chain[chain.length-4])
-      ) {
-      console.log(chalkResponse("!!! CHAIN FREEZE !!!" 
-        + " | " + chain[chain.length-1].nodeId
-        + " --> " + chain[chain.length-2].nodeId
-        + " --> " + chain[chain.length-3].nodeId
-        + " --> " + chain[chain.length-4].nodeId
-      ));
-      return true ;
-    }
-    else {
-      return false ;
-    }
+  else {
+    console.log("... NO CHAIN FREEZE\n" + jsonPrint(uniqueNodes));
+    return false ;
   }
-  else if (chain.length > 2) {
-    if ((chain[chain.length-1] == chain[chain.length-2]) && (chain[chain.length-2] == chain[chain.length-3])) {
-      console.log(chalkResponse("!!! CHAIN FREEZE !!!" 
-        + " | " + chain[chain.length-1].nodeId
-        + " --> " + chain[chain.length-2].nodeId
-        + " --> " + chain[chain.length-3].nodeId
-      ));
-      return true ;
-    }
-    else {
-      return false ;
-    }
-  }
-}
+ }
 
 function incrementDeltaBhtReqs(delta){
   if (delta == 0) {

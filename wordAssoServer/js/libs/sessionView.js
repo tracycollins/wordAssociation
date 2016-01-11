@@ -145,12 +145,12 @@ function resetMouseMoveTimer() {
 
   mouseMoveTimeout = setTimeout(function(){
     d3.select("body").style("cursor", "none");
+
     if (!showStatsFlag && !pageLoadedTimeIntervalFlag){
       displayInfoOverlay(1e-6);
       displayControlOverlay(1e-6);
     }
-    displayInfoOverlay(1e-6);
-    displayControlOverlay(1e-6);
+
     mouseMovingFlag = false ;
   }, mouseMoveTimeoutInterval);
 }

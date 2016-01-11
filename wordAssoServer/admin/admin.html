@@ -79,7 +79,7 @@
 				font-weight: 100;
 				line-height: 1.2em;
 				background: #222222;
-				color: #888888;
+				color: #CCCCCC;
 		}
 
 		th {
@@ -92,7 +92,7 @@
 				font-weight: 100;
 				line-height: 1.2em;
 				background: #000000;
-				color: #888888;
+				color: #CCCCCC;
 		}
 
 		label {
@@ -315,6 +315,10 @@
         var tr = parentTable.insertRow();
         var tdTextColor = options.textColor;
         var tdBgColor = options.backgroundColor || '#222222';
+
+        if (options.trClass) {
+        	tr.setAttribute("class", options.trClass);
+        }
 
         if (options.headerFlag){
 		      cells.forEach(function(content){
@@ -934,6 +938,8 @@
 				}
 				var bhtLRTmoment = moment(heartBeat.bhtLimitResetTime).format("YYYY-MM-DD HH:mm:ss ZZ");
 
+				var bhtOptions = false ;
+
 				tableCreateRow(heatbeatTable, false, ['SERVER TIME', getTimeStamp(heartBeat.timeStamp)]);
 				tableCreateRow(heatbeatTable, false, ['SERVER UPTIME', msToTime(heartBeat.upTime)]);
 				tableCreateRow(heatbeatTable, false, ['APP START TIME', getTimeStamp(heartBeat.startTime)]);
@@ -942,9 +948,21 @@
 				tableCreateRow(heatbeatTable, false, ['TOTAL WORDS', heartBeat.totalWords]);
 				tableCreateRow(heatbeatTable, false, ['TOTAL PROMPTS', heartBeat.numberPromptsSent]);
 				tableCreateRow(heatbeatTable, false, ['TOTAL REPONSES', heartBeat.numberResponsesReceived]);
-				tableCreateRow(heatbeatTable, false, ['TOTAL BHT REQS', heartBeat.numberBhtRequests]);
-				tableCreateRow(heatbeatTable, false, ['BHT OVER LIMIT', bhtOLTmoment]);
-				tableCreateRow(heatbeatTable, false, ['BHT LIMIT RESET', bhtLRTmoment]);
+
+				if (heartBeat.bhtOverLimitFlag){
+			    var now = moment.utc();
+			    now.utcOffset("-08:00");
+
+			    bhtOptions = {textColor: "black", backgroundColor: "yellow"} ;
+
+					tableCreateRow(heatbeatTable, bhtOptions, ['*** BHT OVER LIMIT ***', 
+						(msToTime(now.diff(heartBeat.bhtOverLimitTime))) + ' AGO | ' 
+						+ (msToTime(moment(heartBeat.bhtLimitResetTime).diff(now))) + ' REMAIN']);
+				}
+
+				tableCreateRow(heatbeatTable, bhtOptions, ['TOTAL BHT REQS', heartBeat.numberBhtRequests]);
+				tableCreateRow(heatbeatTable, bhtOptions, ['BHT OVER LIMIT', bhtOLTmoment]);
+				tableCreateRow(heatbeatTable, bhtOptions, ['BHT LIMIT RESET', bhtLRTmoment]);
 
 				tableCreateRow(heatbeatTable, false, ['TOTAL CLIENTS', heartBeat.numberClients]);
 				tableCreateRow(heatbeatTable, false, ['CLIENTS', (heartBeat.numberClients - heartBeat.numberTestClients)]);

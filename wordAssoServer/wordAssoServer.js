@@ -30,6 +30,8 @@ var currentTime = Date.now();
 var startTime = currentTime;
 var runTime = 0;
 
+var bhtOverLimitTestFlag = false ;
+
 var totalSessions = 0;
 var totalUsers = 0;
 var totalWords = 0;
@@ -80,6 +82,8 @@ var configChangeFlag = false ;
 // ==================================================================
 
 var moment = require('moment');
+var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
+var defaultTimePeriodFormat = "HH:mm:ss";
 
 var S = require('string');
 
@@ -135,19 +139,15 @@ var numberSessionUpdatesSent = 0;
 
 var bigHugeLabsApiKey = "e1b4564ec38d2db399dabdf83a8beeeb";
 var bigHugeThesaurusUrl = "http://words.bighugelabs.com/api/2/" + bigHugeLabsApiKey + "/";
-var bhtOverLimitTime = 0;
+var bhtEvents = new EventEmitter();
+
+var numberBhtRequests = 0; // as of 11/47pm  1/7/2016
+
 var BHT_REQUEST_LIMIT = 100000;
-
-
-var BASE_BHT_REQ = 2002 ;
-
-var numberBhtRequests = BASE_BHT_REQ; // as of 11/47pm  1/7/2016
-var bhtLimitResetTime = 0;
+var bhtOverLimitTime = moment.utc().utcOffset("-08:00").endOf('day');
+var bhtLimitResetTime = moment.utc().utcOffset("-08:00").endOf('day');
 var bhtTimeToReset ;
-
-bhtLimitResetTime = moment.utc();
-bhtLimitResetTime.utcOffset("-08:00");
-bhtLimitResetTime.endOf("day");
+var bhtOverLimitFlag = false ;
 
 
 // ==================================================================
@@ -569,7 +569,7 @@ function sendPromptWord(clientObj, promptWordObj){
     console.log(chalkPrompt("PROMPT   | " + clientObj.socketId  + " | " + clientObj.config.type + " | SESSION START --> " + promptWordObj.nodeId));
   }
 
-  if (typeof clientObj.config !== 'undefined') {
+  if ((typeof clientObj.config !== 'undefined') && (clientObj.config != null)) {
 
     debug("clientObj.config\n" + jsonPrint(clientObj.config));
 
@@ -736,7 +736,7 @@ function readSocketQueue(){
 
       debug("@@@ DISCONNECT SOCKET " + socketObj.socketId + " | " + socketObj.connected);
 
-      if (typeof socketObj.config !== 'undefined') {
+      if ((typeof socketObj.config !== 'undefined') && (socketObj.config != null)) {
         if (socketObj.config.type == 'TEST') {
           if (numberTestClients > 0) {
             numberTestClients--; 
@@ -828,9 +828,14 @@ function addWordToDb(wordObj, incMentions, callback){
       if (!word.bhtSearched) {  // not yet bht searched
         debug("word.bhtSearched: " + word.bhtSearched);
 
-        bhtSearchWord(word, function(err, bhtResponseObj){
-          if (err){
-            debug(chalkError("bhtSearchWord addWordToDb findOneWord ERROR\n" + JSON.stringify(err)));
+        bhtSearchWord(word, function(status, bhtResponseObj){
+          if (status.indexOf("BHT_OVER_LIMIT") >= 0) {
+            debug(chalkError("bhtSearchWord BHT OVER LIMI"));
+            wordHashMap.set(word.nodeId, word);
+            callback('BHT_OVER_LIMIT', wordObj);
+          }
+          if (status.indexOf("BHT_ERROR") >= 0) {
+            debug(chalkError("bhtSearchWord addWordToDb findOneWord ERROR\n" + JSON.stringify(status)));
             wordHashMap.set(word.nodeId, word);
             callback('BHT_ERROR', wordObj);
           }
@@ -931,9 +936,15 @@ function generateResponse(wordObj, callback){
             if (!word.bhtSearched) {  // not yet bht searched
               debug("word.bhtSearched: " + word.bhtSearched);
 
-              bhtSearchWord(word, function(err, wordObj){
-                if (err){
-                  console.log(chalkError("bhtSearchWord ERROR: " + JSON.stringify(err)));
+              bhtSearchWord(word, function(status, wordObj){
+                if (status.indexOf("BHT_OVER_LIMIT") >= 0) {
+                  debug(chalkError("bhtSearchWord BHT OVER LIMI"));
+                  wordHashMap.set(word.nodeId, word);
+                  callback('BHT_OVER_LIMIT', wordObj);
+                }
+                if (status.indexOf("BHT_ERROR") >= 0) {
+                  debug(chalkError("bhtSearchWord addWordToDb findOneWord ERROR\n" + JSON.stringify(status)));
+                  wordHashMap.set(word.nodeId, word);
                   callback('BHT_ERROR', wordObj);
                 }
                 else if (wordObj.bhtFound){
@@ -983,10 +994,16 @@ function generateResponse(wordObj, callback){
             if (!word.bhtSearched) {  // not yet bht searched
               debug("word.bhtSearched: " + word.bhtSearched);
 
-              bhtSearchWord(word, function(err, bhtResponseObj){
-                if (err){
-                  console.log(chalkError("bhtSearchWord ERROR: " + JSON.stringify(err)));
-                  callback('BHT_ERROR', bhtResponseObj);
+              bhtSearchWord(word, function(status, bhtResponseObj){
+                if (status.indexOf("BHT_OVER_LIMIT") >= 0) {
+                  debug(chalkError("bhtSearchWord BHT OVER LIMI"));
+                  wordHashMap.set(word.nodeId, word);
+                  callback('BHT_OVER_LIMIT', wordObj);
+                }
+                else if (status.indexOf("BHT_ERROR") >= 0) {
+                  debug(chalkError("bhtSearchWord addWordToDb findOneWord ERROR\n" + JSON.stringify(status)));
+                  wordHashMap.set(word.nodeId, word);
+                  callback('BHT_ERROR', wordObj);
                 }
                 else if (bhtResponseObj.bhtFound){
                   console.log(chalkBht("-*- BHT HIT   | " + bhtResponseObj.nodeId));
@@ -1016,10 +1033,16 @@ function generateResponse(wordObj, callback){
     });
   }
   else {
-    bhtSearchWord(wordObj, function(err, bhtResponseObj){
-      if (err){
-        console.log(chalkError("bhtSearchWord ERROR: " + JSON.stringify(err)));
-        callback('BHT_ERROR', bhtResponseObj);
+    bhtSearchWord(wordObj, function(status, bhtResponseObj){
+      if (status.indexOf("BHT_OVER_LIMIT") >= 0) {
+        debug(chalkError("bhtSearchWord BHT OVER LIMI"));
+        wordHashMap.set(wordObj.nodeId, wordObj);
+        callback('BHT_OVER_LIMIT', wordObj);
+      }
+      else if (status.indexOf("BHT_ERROR") >= 0) {
+        debug(chalkError("bhtSearchWord addWordToDb findOneWord ERROR\n" + JSON.stringify(status)));
+        wordHashMap.set(wordObj.nodeId, wordObj);
+        callback('BHT_ERROR', wordObj);
       }
       else if (!bhtResponseObj.bhtFound){
         console.log(chalkError("BHT MISS: " + bhtResponseObj.nodeId));
@@ -1059,10 +1082,16 @@ function generateResponse(wordObj, callback){
                 if (!word.bhtSearched) {  // not yet bht searched
                   debug("word.bhtSearched: " + word.bhtSearched);
 
-                  bhtSearchWord(word, function(err, bhtResponseObj){
-                    if (err){
-                      console.log(chalkError("bhtSearchWord ERROR: " + JSON.stringify(err)));
-                      callback('BHT_ERROR', bhtResponseObj);
+                  bhtSearchWord(word, function(status, bhtResponseObj){
+                    if (status.indexOf("BHT_OVER_LIMIT") >= 0) {
+                      debug(chalkError("bhtSearchWord BHT OVER LIMI"));
+                      wordHashMap.set(word.nodeId, word);
+                      callback('BHT_OVER_LIMIT', word);
+                    }
+                    else if (status.indexOf("BHT_ERROR") >= 0) {
+                      debug(chalkError("bhtSearchWord addWordToDb findOneWord ERROR\n" + JSON.stringify(status)));
+                      wordHashMap.set(word.nodeId, word);
+                      callback('BHT_ERROR', word);
                     }
                     else if (bhtResponseObj.bhtFound){
                       console.log(chalkBht("-*- BHT HIT   | " + bhtResponseObj.nodeId));
@@ -1111,15 +1140,16 @@ function generateResponse(wordObj, callback){
                 if (!word.bhtSearched) {  // not yet bht searched
                   debug("word.bhtSearched: " + word.bhtSearched);
 
-                  bhtSearchWord(word, function(err, bhtResponseObj){
-                    if (err){
-                      console.log(chalkError("bhtSearchWord ERROR: " + JSON.stringify(err)));
-                      callback('BHT_ERROR', bhtResponseObj);
+                  bhtSearchWord(word, function(status, bhtResponseObj){
+                    if (status.indexOf("BHT_OVER_LIMIT") >= 0) {
+                      debug(chalkError("bhtSearchWord BHT OVER LIMI"));
+                      wordHashMap.set(word.nodeId, word);
+                      callback('BHT_OVER_LIMIT', word);
                     }
-                    else if (bhtResponseObj.bhtFound){
-                      console.log(chalkBht("-*- BHT HIT   | " + bhtResponseObj.nodeId));
-                      wordHashMap.set(bhtResponseObj.nodeId, bhtResponseObj);
-                      callback('BHT_HIT', bhtResponseObj);
+                    else if (status.indexOf("BHT_ERROR") >= 0) {
+                      debug(chalkError("bhtSearchWord addWordToDb findOneWord ERROR\n" + JSON.stringify(status)));
+                      wordHashMap.set(word.nodeId, word);
+                      callback('BHT_ERROR', word);
                     }
                     else {
                       console.log(chalkBht("-O- BHT MISS  | " + bhtResponseObj.nodeId));
@@ -1147,29 +1177,62 @@ function generateResponse(wordObj, callback){
   }
 }
 
+var checkBhtOverLimit = setInterval(function () {
+
+}, 1000);
+
+bhtEvents.on("BHT_OVER_LIMIT_TIMEOUT", function(){
+  console.log(chalkBht("*** BHT_OVER_LIMIT_TIMEOUT END *** | " + getTimeStamp()));
+  bhtOverLimitFlag = false ;
+  bhtOverLimitTestFlag = true ;
+});
+
+bhtEvents.on("BHT_OVER_LIMIT", function(numberBhtRequests){
+
+  bhtOverLimitFlag = true ;
+  bhtOverLimitTestFlag = false ;
+
+  bhtOverLimitTime = moment.utc();
+  bhtOverLimitTime.utcOffset("-08:00");
+
+  bhtLimitResetTime = moment.utc();
+  bhtLimitResetTime.utcOffset("-08:00");
+  bhtLimitResetTime.endOf("day");
+
+  bhtTimeToReset = moment(bhtLimitResetTime);
+  bhtTimeToReset.subtract(bhtOverLimitTime);
+
+  console.log(chalkBht("bhtSearchWord: *** OVER LIMIT *** | " + numberBhtRequests + " REQUESTS"));
+  console.log(chalkBht("bhtSearchWord: *** OVER LIMIT *** | BHT OVER LIMIT TIME:      " + bhtOverLimitTime.format(defaultDateTimeFormat)));
+  console.log(chalkBht("bhtSearchWord: *** OVER LIMIT *** | BHT LIMIT RESET TIME:     " + bhtLimitResetTime.format(defaultDateTimeFormat)));
+  console.log(chalkBht("bhtSearchWord: *** OVER LIMIT *** | BHT OVER LIMIT REMAINING: " + bhtTimeToReset.format(defaultTimePeriodFormat)));
+
+  console.log("SET bhtOverLimitTimeOut = " + moment.duration(bhtTimeToReset) + " ms");
+
+  var bhtOverLimitTimeOut = setTimeout(function () {
+    bhtEvents.emit("BHT_OVER_LIMIT_TIMEOUT");
+  }, moment.duration(bhtTimeToReset));
+
+});
+
 function bhtSearchWord (wordObj, callback){
 
-  if (bhtOverLimitTime && moment().isBefore(bhtLimitResetTime)) {
+  if (bhtOverLimitFlag) {
 
-    bhtTimeToReset = moment.utc(bhtLimitResetTime);
-    bhtTimeToReset.subtract(moment.utc());
+    var now = moment.utc();
+    now.utcOffset("-08:00");
 
-    console.log(chalkError("bhtSearchWord: *** OVER LIMIT ***"
-      + " | " + bhtOverLimitTime.format("YYYY-MM-DD HH:mm:ss ZZ")
-      + " | RESETS: " + bhtLimitResetTime.format("YYYY-MM-DD HH:mm:ss ZZ")
-      + " | T MINUS: " + bhtTimeToReset.format("HH:mm:ss")
-      + " | " + numberBhtRequests + " REQUESTS" 
+    console.log(chalkBht("*** BHT OVER LIMIT"
+     + " | OVER: " + bhtOverLimitTime.format(defaultDateTimeFormat)
+     + " | RESET: " + bhtLimitResetTime.format(defaultDateTimeFormat)
+     + " | REMAIN: " + msToTime(bhtLimitResetTime.diff(now))
     ));
-    
-    callback({error: 500, timeStamp: bhtOverLimitTime}, wordObj);
+    callback("BHT_OVER_LIMIT", wordObj);
     return ;
-  }
-  else {
-    bhtOverLimitTime = 0 ;
   }
 
   if (wordObj.bhtFound) {
-    callback(null, wordObj);
+    callback("BHT_FOUND", wordObj);
     return ;
   }
 
@@ -1185,8 +1248,14 @@ function bhtSearchWord (wordObj, callback){
     debug("bhtSearchWord: " + bhtHost + "/" + path);
     
     var body = '';
+    var status = '';
 
-    if (response.statusCode == 404) {
+    if ((response.statusCode == 500) || (bhtOverLimitTestFlag)) {
+      bhtEvents.emit("BHT_OVER_LIMIT", numberBhtRequests);
+      callback("BHT_OVER_LIMIT", wordObj);
+      return ;
+    }
+    else if (response.statusCode == 404) {
       debug("bhtSearchWord: \'" + wordObj.nodeId + "\' NOT FOUND");
       wordObj.bhtSearched = true ;
       wordObj.bhtFound = false ;
@@ -1195,27 +1264,9 @@ function bhtSearchWord (wordObj, callback){
           + " | MNS: " + wordUpdatedObj.mentions
         ));
         debug(chalkBht(JSON.stringify(wordUpdatedObj, null, 3)));
-        callback(null, wordUpdatedObj);
+        callback("BHT_NOT_FOUND", wordUpdatedObj);
         return ;
       });
-    }
-    else if (response.statusCode == 500) {
-      console.log(chalkError("bhtSearchWord: *** OVER LIMIT *** | " + numberBhtRequests + " REQUESTS"));
-
-      bhtOverLimitTime = moment.utc();
-      bhtOverLimitTime.utcOffset("-08:00");
-
-      bhtLimitResetTime = moment.utc();
-      bhtLimitResetTime.utcOffset("-08:00");
-      bhtLimitResetTime.endOf("day");
-
-      bhtTimeToReset = moment.utc(bhtLimitResetTime);
-      bhtTimeToReset.subtract(bhtOverLimitTime);
-
-      numberBhtRequests = 0 ;
-
-      callback({error: 500, timeStamp: bhtOverLimitTime}, wordObj);
-      return ;
     }
     else {
       response.on('data', function(d) {
@@ -1231,11 +1282,13 @@ function bhtSearchWord (wordObj, callback){
           if (typeof parsed.verb !== null) wordObj.verb = parsed.verb ;
           if (typeof parsed.adjective !== null) wordObj.adjective = parsed.adjective ;
           if (typeof parsed.adverb !== null) wordObj.adverb = parsed.adverb ;
+          status = "BHT_HIT";
           wordObj.bhtSearched = true ;
           wordObj.bhtFound = true ;
         }
         else {
           debug("bhtSearchWord: \'" + wordObj.nodeId + "\' NOT FOUND");
+          status = "BHT_MISS";
           wordObj.bhtSearched = true ;
           wordObj.bhtFound = false ;
         }
@@ -1246,14 +1299,14 @@ function bhtSearchWord (wordObj, callback){
             + " | MNS: " + wordUpdatedObj.mentions
           ));
           debug(chalkBht(JSON.stringify(wordUpdatedObj, null, 3)));
-          callback(null, wordUpdatedObj);
+          callback(status, wordUpdatedObj);
           return;
         });
       });
 
       response.on('error', function(e) {
         console.log(chalkError("bhtSearchWord ERROR " + JSON.stringify(e, null, 3)));
-        callback(e, wordObj);
+        callback("BHT_ERROR", wordObj);
       });
     }
   });
@@ -1691,11 +1744,16 @@ function createClientSocket (socket){
         debug(chalkLog("addWordToDb STATUS: " + status + " | " + wordDbObj.nodeId));
 
         if (status.indexOf("ERROR") >= 0) {
-          console.log(chalkError("addWordToDb (HASH MISS): *** ERROR ***" 
-            + "\n" + JSON.stringify(status)
-            + "\n" + JSON.stringify(responseWordObj, null, 2)
-          ));
-          return;
+          if (status.indexOf("BHT_OVER_LIMIT") >= 0) {
+            return;
+          }
+          else {
+            console.log(chalkError("addWordToDb (HASH MISS): *** ERROR ***" 
+              + "\n" + JSON.stringify(status)
+              + "\n" + JSON.stringify(responseWordObj, null, 2)
+            ));
+            return;
+          }
         }
         else {
           console.log("->- DB UPDATE | " + wordDbObj.nodeId 
@@ -2638,10 +2696,6 @@ configEvents.on("SERVER_READY", function () {
 
     runTime =  getTimeNow() - startTime ;
 
-    bhtLimitResetTime = moment.utc();
-    bhtLimitResetTime.utcOffset("-08:00");
-    bhtLimitResetTime.endOf("day");
-
     //
     // SERVER HEARTBEAT
     //
@@ -2666,6 +2720,7 @@ configEvents.on("SERVER_READY", function () {
         totalWords : totalWords,
         numberBhtRequests : numberBhtRequests,
 
+        bhtOverLimitFlag : bhtOverLimitFlag,
         bhtLimitResetTime : bhtLimitResetTime,
         bhtOverLimitTime : bhtOverLimitTime,
 

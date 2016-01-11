@@ -2278,7 +2278,7 @@ function updateMetrics(
 
   var metricDate = new Date().toJSON();
 
-  console.log(getTimeStamp() 
+  debug(getTimeStamp() 
     + " | updateMetrics CLIENTS: " + numberClientsConnected 
     + " | PTX: " + numberPromptsSent 
     + " | RRX: " + numberResponsesReceived

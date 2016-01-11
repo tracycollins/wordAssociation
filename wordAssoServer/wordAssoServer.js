@@ -67,6 +67,7 @@ var chalkPrompt = chalk.bold.blue;
 var chalkResponse = chalk.bold.blue;
 var chalkBht = chalk.red;
 var chalkDb = chalk.gray;
+var chalkGoogle = chalk.green;
 
 var serverReady = false ;
 var internetReady = false ;
@@ -96,8 +97,41 @@ var yaml = require('yamljs');
 var async = require('async');
 var HashMap = require('hashmap').HashMap;
 
+var EventEmitter2 = require('eventemitter2').EventEmitter2;
+var EventEmitter = require("events").EventEmitter;
+
+var configEvents = new EventEmitter2({
+  wildcard: true,
+  newListener: true,
+  maxListeners: 20
+});
+
+configEvents.on('newListener', function(data){
+  console.log("*** NEW CONFIG EVENT LISTENER: " + data);
+});
+
+
+var adminIpHashMap = new HashMap();
+var adminSocketIdHashMap = new HashMap();
+
+var numberAdminsTotal = 0;
+var numberAdminsConnected = 0;
+
+var clientIpHashMap = new HashMap();
+var clientSocketIdHashMap = new HashMap();
+
+var numberClientsConnected = 0;
+var numberTestClients = 0;
+
+
+var dnsHostHashMap = new HashMap();
+var localHostHashMap = new HashMap();
+
+
+
 var numberPromptsSent = 0;
 var numberResponsesReceived = 0;
+var numberSessionUpdatesSent = 0;
 
 var bigHugeLabsApiKey = "e1b4564ec38d2db399dabdf83a8beeeb";
 var bigHugeThesaurusUrl = "http://words.bighugelabs.com/api/2/" + bigHugeLabsApiKey + "/";
@@ -263,6 +297,7 @@ var Session = require('mongoose').model('Session');
 var Word = require('mongoose').model('Word');
 
 var words = require('./app/controllers/word.server.controller');
+var Oauth2credential = require('mongoose').model('Oauth2credential');
 
 // ==================================================================
 // APP HTTP IO DNS CONFIG -- ?? order is important.
@@ -277,22 +312,66 @@ var path = require('path');
 var net = require('net');
 var client = new net.Socket();
 
-var EventEmitter2 = require('eventemitter2').EventEmitter2;
-var EventEmitter = require("events").EventEmitter;
 
-var configEvents = new EventEmitter2({
-  wildcard: true,
-  newListener: true,
-  maxListeners: 20
-});
+var googleOauthEvents = new EventEmitter();
+
 
 var Queue = require('queue-fifo');
 var socketQueue = new Queue();
+
+var promptResponseRate1minQ = new Queue();
 
 var wordHashMap = new HashMap();
 var sessionHashMap = new HashMap();
 
 var promptArray = ["black"];
+
+// ==================================================================
+// GOOGLE
+// ==================================================================
+// ==================================================================
+// GOOGLE INIT
+// ==================================================================
+var googleapis = require('googleapis');
+
+var GOOGLE_PROJECT_ID = process.env.GOOGLE_PROJECT_ID ;
+var GOOGLE_SERVICE_ACCOUNT_CLIENT_ID = process.env.GOOGLE_SERVICE_ACCOUNT_CLIENT_ID;
+var GOOGLE_SERVICE_ACCOUNT_EMAIL = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+var GOOGLE_SERVICE_ACCOUNT_KEY_FILE = process.env.GOOGLE_SERVICE_ACCOUNT_KEY_FILE;
+var GOOGLE_MONITORING_SCOPE = process.env.GOOGLE_MONITORING_SCOPE;
+
+console.log("GOOGLE_PROJECT_ID: " + GOOGLE_PROJECT_ID);
+console.log("GOOGLE_SERVICE_ACCOUNT_CLIENT_ID: " + GOOGLE_SERVICE_ACCOUNT_CLIENT_ID);
+console.log("GOOGLE_SERVICE_ACCOUNT_EMAIL: " + GOOGLE_SERVICE_ACCOUNT_EMAIL);
+console.log("GOOGLE_SERVICE_ACCOUNT_KEY_FILE: " + GOOGLE_SERVICE_ACCOUNT_KEY_FILE);
+console.log("GOOGLE_MONITORING_SCOPE: " + GOOGLE_MONITORING_SCOPE);
+
+var disableGoogleMetrics = false;
+if (process.env.GOOGLE_METRICS_DISABLE > 0) {
+  disableGoogleMetrics = true ;
+  console.log("GOOGLE_METRICS_DISABLE: " + disableGoogleMetrics);
+}
+else {
+  console.log("GOOGLE_METRICS_DISABLE: " + disableGoogleMetrics);
+}
+
+var googleAuthorized = false ;
+var googleAuthCode = 0;
+var googleAuthExpiryDate = new Date() ;
+var googleMetricsEnabled = false ;
+
+var googleMonitoring ;
+var googleOauthClient ;
+
+if (!disableGoogleMetrics) {
+  googleOauthClient = new googleapis.auth.JWT(
+                              GOOGLE_SERVICE_ACCOUNT_EMAIL, 
+                              GOOGLE_SERVICE_ACCOUNT_KEY_FILE, 
+                              null, 
+                              [GOOGLE_MONITORING_SCOPE]
+                            );
+}
+
 
 // ==================================================================
 // FUNCTIONS
@@ -421,7 +500,13 @@ function dnsReverseLookup(ip, callback) {
   }
 }
 
+function updatePromptResponseMetric(sessionUpdateObj){
+  debug("PROMPT-RESPONSE RATE FIFO PUSH: NOW: " + getTimeNow() + " | PROMPT-RESPONSE SESSION: " + sessionUpdateObj.sessionId);
+  promptResponseRate1minQ.enqueue(moment.utc());
+}
+
 var wordCountComplete = false ;
+
 function updateSessionViews(sessionUpdateObj){
 
   if (wordCountComplete) {
@@ -455,6 +540,11 @@ function updateSessionViews(sessionUpdateObj){
       io.to(sId).emit("SESSION_UPDATE", sessionUpdateObj);
     }
   });
+
+  numberSessionUpdatesSent++ ;
+
+  updatePromptResponseMetric(sessionUpdateObj);
+
 }
 
 var simpleChain = function(chain){
@@ -493,6 +583,7 @@ function sendPromptWord(clientObj, promptWordObj){
   }
 
   numberPromptsSent++ ;
+  deltaPromptsSent++;
 }
 
 function readSocketQueue(){
@@ -1493,6 +1584,7 @@ function createClientSocket (socket){
   socket.on("RESPONSE_WORD_OBJ", function(rwObj){
 
     numberResponsesReceived++;
+    deltaResponsesReceived++;
 
     var dateNow = Date.now();
     var socketId = socket.id;
@@ -1989,6 +2081,324 @@ function dumpIoStats(){
     + "\n----------------------------");
 }
 
+function oauthExpiryTimer(endTime) {
+
+  var remainingTime = msToTime(endTime - getTimeNow());
+
+  debug("\nSET oauthExpiryTimer: " + getTimeStamp(endTime));
+  console.log(chalkInfo(getTimeStamp() + " | GOOGLE OAUTH2 CREDENTIAL EXPIRES IN: " + remainingTime 
+    + " AT " + endTime
+    ));
+
+  var oauthInterval = setInterval(function () {
+
+      remainingTime = msToTime(endTime - getTimeNow());
+
+      if (endTime - getTimeNow() < 60000) {
+        console.log(chalkAlert(getTimeStamp() + " | GOOGLE OAUTH2 CREDENTIAL EXPIRING IN " + remainingTime
+        ));
+      }
+
+      if (getTimeNow() >= endTime) {
+        console.log(chalkAlert(getTimeStamp() + " | GOOGLE OAUTH2 CREDENTIAL EXPIRED: " 
+          + " | " + getTimeStamp(endTime)));
+        clearInterval(oauthInterval);
+        googleAuthorized = false ;
+        googleMetricsEnabled = false ;
+        googleOauthEvents.emit('GOOGLE OAUTH2 CREDENTIAL EXPIRED');
+        googleOauthEvents.emit('AUTHORIZE GOOGLE');
+      }
+
+  }, 10000);
+}
+
+function authorizeGoogle(){
+  googleOauthClient.authorize(function(err, tokens) {
+    if (err){
+      console.error(chalkError(getTimeStamp() + " | ***** GOOGLE OAUTH ERROR: googleOauthClient " 
+        + " | " + getTimeStamp()
+        + "\n" 
+        + err
+        + "\n" 
+      ));
+      googleOauthEvents.emit('GOOGLE OAUTH ERROR', err);
+    }
+    else {
+
+      console.log("GOOGLE TOKEN\n" + jsonPrint(tokens));
+      googleAuthExpiryDate = tokens.expiry_date;
+
+      googleMonitoring = googleapis.cloudmonitoring({ version: 'v2beta2', auth: googleOauthClient});
+
+
+      var credential = {
+              credentialType: 'SERVICE ACCOUNT',
+              clientId: GOOGLE_SERVICE_ACCOUNT_CLIENT_ID,
+              emailAddress: GOOGLE_SERVICE_ACCOUNT_EMAIL,
+              accessToken: tokens.access_token,
+              refreshToken: tokens.refresh_token,
+              tokenType: tokens.token_type,
+              expiryDate: googleAuthExpiryDate,
+              lastSeen: currentTime 
+            }
+      debug(chalkGoogle("\nGOOGLE OAUTH2 AUTHORIZED\n----------------------\nCREDENTIAL\n" 
+        + JSON.stringify(tokens, null, 3)));
+
+      findOneOauth2Credential(credential);
+      googleAuthorized = true ;
+      googleMetricsEnabled = true ;
+      oauthExpiryTimer(tokens.expiry_date);
+
+      console.log(chalkInfo(getTimeStamp() + " | GOOGLE OAUTH2 AUTHORIZED: ExpiryDate: " + getTimeStamp(googleAuthExpiryDate)));
+      googleOauthEvents.emit('GOOGLE AUTHORIZED', credential);
+    }
+  });
+}
+
+function findOneOauth2Credential (credential) {
+
+  console.log("findOneOauth2Credential: credential\n" + jsonPrint(credential));
+
+  var query = { clientId: credential.clientId  };
+  var update = { 
+          $inc: { mentions: 1 }, 
+          $set: { 
+            credentialType: credential.credentialType,
+            clientId: credential.clientId,
+            clientSecret: credential.clientSecret,
+            emailAddress: credential.emailAddress,
+            accessToken: credential.accessToken,
+            refreshToken: credential.refreshToken,
+            tokenType: credential.tokenType,
+            expiryDate: credential.expiryDate,
+            lastSeen: currentTime 
+          } 
+        };
+  var options = { upsert: true, new: true };
+
+  Oauth2credential.findOneAndUpdate(
+    query,
+    update,
+    options,
+    function(err, cred) {
+      if (err) {
+        console.error(chalkError(getTimeStamp() + " | !!! OAUTH2 CREDENTIAL FINDONE ERROR" 
+          + "\nCLIENT ID: "  + credential.clientId 
+          + "\nERROR" + err
+        ));
+        getErrorMessage(err);
+        return credential;
+      }
+      else {
+        console.log(chalkInfo(getTimeStamp() + " | GOOGLE CREDENTIAL UPDATED"
+          + " | EXPIRES AT " + cred.expiryDate
+        ));
+        console.log(chalkGoogle("\n\n--- OAUTH2 CREDENTIAL UPDATED---" 
+          + "\nCREDENTIAL TYPE: " + cred.credentialType 
+          + "\nCLIENT ID:       " + cred.clientId 
+          + "\nCLIENT SECRET:   " + cred.clientSecret 
+          + "\nEMAIL ADDR:      " + cred.emailAddress 
+          + "\nTOKEN TYPE:      " + cred.tokenType 
+          + "\nACCESS TOKEN:    " + cred.accessToken 
+          + "\nREFRESH TOKEN:   " + cred.refreshToken 
+          + "\nEXPIRY DATE:     " + cred.expiryDate
+          // + "\nLAST SEEN:       " + getTimeStamp(Date(cred.lastSeen)) 
+          + "\nLAST SEEN:       " + cred.lastSeen
+          + "\nMENTIONS:        " + cred.mentions 
+          + "\n--------------------------------\n\n" 
+        ));
+        var mentionsString = cred.mentions.toString() ;
+        cred.mentions = mentionsString ;
+        return cred;  
+      }
+
+    }
+  );
+}
+
+function findCredential (clientId, callback) {
+
+  var query = { clientId: clientId  };
+  
+  Oauth2credential.findOne(
+    query,
+    function(err, cred) {
+      if (err) {
+        console.error(chalkError("!!! OAUTH2 CREDENTIAL FINDONE ERROR: "
+         + getTimeStamp() 
+         + "\nCLIENT ID: "  + clientId 
+         + "\n" + err));
+        getErrorMessage(err);
+        googleOauthEvents.emit('credential error', clientId + "\n" + err);        
+        callback(err);  
+        // return;    
+      }
+      else if (cred) {
+        console.log(chalkInfo(getTimeStamp() + " | GOOGLE OAUTH2 CREDENTIAL FOUND"));
+        debug(chalkGoogle("GOOGLE OAUTH2 CREDENTIAL\n--------------------------------\n" 
+          + "\nCREDENTIAL TYPE: " + cred.credentialType 
+          + "\nCLIENT ID:       " + cred.clientId 
+          + "\nCLIENT SECRET:   " + cred.clientSecret 
+          + "\nEMAIL ADDR:      " + cred.emailAddress 
+          + "\nTOKEN TYPE:      " + cred.tokenType 
+          + "\nACCESS TOKEN:    " + cred.accessToken 
+          + "\nREFRESH TOKEN:   " + cred.refreshToken 
+          + "\nEXPIRY DATE:     " + cred.expiryDate
+          + "\nLAST SEEN:       " + getTimeStamp(cred.lastSeen) 
+          + "\nMENTIONS:        " + cred.mentions 
+          + "\n--------------------------------\n\n" 
+        ));
+        var mentionsString = cred.mentions.toString() ;
+        cred.mentions = mentionsString ;
+        googleOauthEvents.emit('GOOGLE CREDENTIAL FOUND', cred);  
+        callback(cred);      
+      }
+      else {
+        console.log(chalkAlert(getTimeStamp() + " | GOOGLE OAUTH2 CREDENTIAL NOT FOUND"));
+        googleOauthEvents.emit('GOOGLE CREDENTIAL NOT FOUND', clientId);        
+        callback(null);      
+      }
+
+    }
+  );
+}
+
+var deltaPromptsSent = 0 ;
+var deltaResponsesReceived = 0 ;
+
+function updateMetrics(
+
+  numberClientsConnected, 
+  numberPromptsSent, 
+  numberResponsesReceived, 
+  numberSessionUpdatesSent, 
+  numberBhtRequests
+
+  ){
+
+  var metricDate = new Date().toJSON();
+
+  console.log(getTimeStamp() 
+    + " | updateMetrics CLIENTS: " + numberClientsConnected 
+    + " | PTX: " + numberPromptsSent 
+    + " | RRX: " + numberResponsesReceived
+    + " | STX: " + numberSessionUpdatesSent
+    + " | BHTR: " + numberBhtRequests
+    );
+
+  if (typeof googleMonitoring === 'undefined'){
+    console.error("updateMetrics: googleMonitoring UNDEFINED ... SKIPPING METRICS UPDATE");
+    return null;
+  }
+
+
+// name: custom.cloudmonitoring.googleapis.com/word-asso/clients/numberClientsConnected
+// label key: custom.cloudmonitoring.googleapis.com/word-asso/clients/numberClientsConnected
+
+  googleMonitoring.timeseries.write({
+
+    'project': GOOGLE_PROJECT_ID,
+
+    'resource': {
+
+       "timeseries": [
+
+        {
+         "point": {
+          "int64Value": numberClientsConnected,
+          "start": metricDate,
+          "end": metricDate
+         },
+         "timeseriesDesc": {
+          "labels": { "custom.cloudmonitoring.googleapis.com/word-asso/clients/numberClientsConnected" : "clientsConnected"},
+          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/clients/numberClientsConnected"
+         }
+        },
+
+        {
+         "point": {
+          "int64Value": numberPromptsSent,
+          "start": metricDate,
+          "end": metricDate
+         },
+         "timeseriesDesc": {
+          "labels": { "custom.cloudmonitoring.googleapis.com/word-asso/prompts/totalPromptsSent" : "PROMPTS SENT"},
+          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/prompts/totalPromptsSent"
+         }
+        },
+
+        {
+         "point": {
+          "int64Value": deltaPromptsSent,
+          "start": metricDate,
+          "end": metricDate
+         },
+         "timeseriesDesc": {
+          "labels": { "custom.cloudmonitoring.googleapis.com/word-asso/prompts/deltaPromptsSent" : "DELTA PROMPTS SENT"},
+          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/prompts/deltaPromptsSent"
+         }
+        },
+
+        {
+         "point": {
+          "int64Value": numberResponsesReceived,
+          "start": metricDate,
+          "end": metricDate
+         },
+         "timeseriesDesc": {
+          "labels": { "custom.cloudmonitoring.googleapis.com/word-asso/responses/totalResponsesReceived" : "RESPONSES RECEIVED"},
+          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/responses/totalResponsesReceived"
+         }
+        },
+
+        {
+         "point": {
+          "int64Value": deltaResponsesReceived,
+          "start": metricDate,
+          "end": metricDate
+         },
+         "timeseriesDesc": {
+          "labels": { "custom.cloudmonitoring.googleapis.com/word-asso/responses/deltaResponsesReceived" : "DELTA RESPONSES RECEIVED"},
+          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/responses/deltaResponsesReceived"
+         }
+        }
+        // {
+        //  "point": {
+        //   "int64Value": numberResponsesReceived,
+        //   "start": metricDate,
+        //   "end": metricDate
+        //  },
+        //  "timeseriesDesc": {
+        //   "labels": { "custom.cloudmonitoring.googleapis.com/word-asso/responses" : "responses"},
+        //   "metric": "custom.cloudmonitoring.googleapis.com/word-asso/responses/totalResponses"
+        //  }
+        // }
+
+       ]
+      }
+    }, function(err, res){
+      if (err) {
+        console.error("!!! GOOGLE CLOUD MONITORING ERROR " 
+          + " | " + getTimeStamp() 
+          + "\n" + err.toString());
+        if (err.toString().indexOf("Daily Limit Exceeded") >= 0){
+          console.error(chalkGoogle("!!! GOOGLE CLOUD MONITORING DAILY LIMIT EXCEEDED ... DISABLING METRICS"));
+          googleMetricsEnabled = false ;
+          googleOauthEvents.emit("DAILY LIMIT EXCEEDED");
+        }
+        if (err.toString().indexOf("socket hang up") >= 0){
+          console.error(chalkGoogle("!!! GOOGLE CLOUD MONITORING SOCKET HUNG UP ... DISABLING METRICS"));
+          googleMetricsEnabled = false ;
+          googleOauthEvents.emit("SOCKET HUNG UP");
+        }
+      }
+    });
+
+    deltaPromptsSent = 0 ;
+    deltaResponsesReceived = 0 ;
+
+}
+
 function initializeConfiguration() {
 
   console.log(chalkInfo(getTimeStamp() + " | initializeConfiguration ..."));
@@ -2001,6 +2411,7 @@ function initializeConfiguration() {
 
       async.parallel(
         [
+
           // CLIENT IP INIT
           function(callbackParallel) {
             console.log(chalkInfo(getTimeStamp() + " | CLIENT IP INIT"));
@@ -2033,30 +2444,13 @@ function initializeConfiguration() {
       );
     },
 
+
     // APP ROUTING INIT
     function(callbackSeries){
       debug(chalkInfo(getTimeStamp() + " | APP ROUTING INIT"));
       initAppRouting();
       callbackSeries();
     },
-
-    // SOCKET INIT
-    // function(callbackSeries){
-    //   console.log(chalkInfo(getTimeStamp() + " | SOCKET INIT"));
-    //   client.connect(80, 'www.google.com', function() {
-    //     console.log('CONNECTED TO GOOGLE: OK');
-    //   });
-
-    //   client.on('data', function(data) {
-    //     console.log('RX GOOGLE CONNECTION: ' + data);
-    //     // client.destroy(); // kill client after server's response
-    //   });
-
-    //   client.on('close', function() {
-    //     console.log('GOOGLE CONNECTION CLOSED');
-    //   });
-    //   callbackSeries();
-    // },
 
     // CONFIG EVENT
     function(callbackSeries){
@@ -2081,8 +2475,24 @@ function initializeConfiguration() {
         client.destroy();
         callbackSeries();
       });
+    },
 
+    // GOOGLE INIT
+    function(callbackSeries){
+      if (!disableGoogleMetrics) {
+        console.log(chalkInfo(getTimeStamp() + " | GOOGLE INIT"));
+        findCredential(GOOGLE_SERVICE_ACCOUNT_CLIENT_ID, function(){
+          callbackSeries();
+        });
+      }
+      else {
+        console.log(chalkInfo(getTimeStamp() + " | GOOGLE INIT *** SKIPPED *** | GOOGLE METRICS DISABLED"));
+        callbackSeries();
+      }
     }
+
+
+
   ]);
 }
 
@@ -2090,21 +2500,6 @@ function initializeConfiguration() {
 // ADMIN
 // ==================================================================
 
-var adminIpHashMap = new HashMap();
-var adminSocketIdHashMap = new HashMap();
-
-var numberAdminsTotal = 0;
-var numberAdminsConnected = 0;
-
-var clientIpHashMap = new HashMap();
-var clientSocketIdHashMap = new HashMap();
-
-var numberClientsConnected = 0;
-var numberTestClients = 0;
-
-
-var dnsHostHashMap = new HashMap();
-var localHostHashMap = new HashMap();
 localHostHashMap.set('::ffff:127.0.0.1', 1);
 localHostHashMap.set('127.0.0.1', 1);
 localHostHashMap.set('::1', 1);
@@ -2129,9 +2524,6 @@ localHostHashMap.set('10.0.1.4', 1);
 localHostHashMap.set('10.0.1.10', 1);
 localHostHashMap.set('10.0.1.27', 1);
 
-configEvents.on('newListener', function(data){
-  console.log("*** NEW CONFIG EVENT LISTENER: " + data);
-})
 
 // ==================================================================
 // CONNECT TO INTERNET, START SERVER HEARTBEAT
@@ -2287,6 +2679,67 @@ configEvents.on("CONFIG_CHANGE", function (serverSessionConfig) {
 
   console.log(chalkInfo(getTimeStamp() + ' | >>> SENT CONFIG_CHANGE'));
 });
+
+
+googleOauthEvents.on("AUTHORIZE GOOGLE", function(){
+  authorizeGoogle();
+});
+
+googleOauthEvents.on("GOOGLE CREDENTIAL FOUND", function(credential) {
+
+  var credentialExpiryDate = new Date(credential.expiryDate).getTime();
+  var remainingTime = msToTime(credentialExpiryDate - currentTime);
+
+  googleAuthExpiryDate = credential.expiryDate;
+
+  debug(chalkGoogle("googleOauthEvents: GOOGLE CREDENTIAL FOUND: " + JSON.stringify(credential, null, 3)));
+
+  debug("currentTime: " + currentTime + " | credentialExpiryDate: " + credentialExpiryDate);
+
+  if (currentTime < credentialExpiryDate){
+    googleAuthorized = true ;
+    googleMetricsEnabled = true ;
+    googleOauthEvents.emit('GOOGLE AUTHORIZED');
+    oauthExpiryTimer(credential.expiryDate);
+    console.log(chalkInfo(getTimeStamp() + " | GOOGLE OAUTH2 CREDENTIAL EXPIRES IN: " + remainingTime 
+      + " AT " + credential.expiryDate + " ... AUTHORIZING ANYWAY ..."));
+    googleOauthEvents.emit('AUTHORIZE GOOGLE');
+  }
+  else {
+    console.log(chalkAlert(getTimeStamp() + " | !!! GOOGLE OAUTH2 CREDENTIAL EXPIRED AT " + credential.expiryDate 
+      + " | " + msToTime(currentTime - credential.expiryDate) + " AGO ... AUTHORIZING ..."));
+    googleOauthEvents.emit('AUTHORIZE GOOGLE');
+  }
+});
+
+googleOauthEvents.on("GOOGLE CREDENTIAL NOT FOUND", function (credentialId) {
+  console.log(chalkAlert(getTimeStamp() + " | GOOGLE CREDENTIAL NOT FOUND: " + credentialId));
+  googleOauthEvents.emit("AUTHORIZE GOOGLE");
+});
+
+// RE-ENABLE METRICS PERIODICALLY TO CHECK DAILY LIMIT
+googleOauthEvents.on("DAILY LIMIT EXCEEDED", function(){
+  console.log(chalkGoogle("RE-ENABLING GOOGLE METRICS IN " + msToTime(googleCheckDailyLimitInterval)));
+  setTimeout(function () {
+    googleMetricsEnabled = true ;
+    console.log("RE-ENABLED GOOGLE METRICS AFTER DAILY LIMIT EXCEEDED");
+  }, googleCheckDailyLimitInterval);
+});
+
+// RE-ENABLE METRICS PERIODICALLY TO CHECK IF SOCKET IS UP
+googleOauthEvents.on("SOCKET HUNG UP", function(){
+  console.log(chalkGoogle("GOOGLE SOCKET HUNG UP ... CLEARING TWEET RATE QUEUE " + getTimeStamp()));
+  tweetRate1minQ.clear();
+  console.log(chalkGoogle("RE-TRYING GOOGLE METRICS IN " + msToTime(googleCheckSocketUpInterval)));
+
+  setTimeout(function () {
+    // googleMetricsEnabled = true ;
+    googleOauthEvents.emit("AUTHORIZE GOOGLE");
+    // console.log(chalkGoogle("RE-ENABLING GOOGLE METRICS AFTER SOCKET HUNG UP..."));
+  }, googleCheckSocketUpInterval);
+});
+
+
 
 //=================================
 //  SERVER READY
@@ -2793,18 +3246,36 @@ var updateDropboxStatsInterval = setInterval(function () {
 //=================================
 var clientSocketCheckInterval = setInterval(function () {
 
+  if (!disableGoogleMetrics && googleMetricsEnabled) {
+    updateMetrics(numberClientsConnected, numberPromptsSent, numberResponsesReceived, numberSessionUpdatesSent, numberBhtRequests);
+  }
+
   var clientSockets = findClientsSocket('/');
 
   clientSocketIdHashMap.forEach(function(clientObj, socketId) {
     if (clientSockets.has(socketId)){
      }
-    else{
+    else {
       console.warn(chalkWarn("??? DISCONNECTED STATE: CLIENT OBJ CONN: " + clientObj.connected + " ... REMOVING FROM HASH ..."));  
       clientSocketIdHashMap.remove(socketId);    
     }
   });
 }, 1000);
 
+
+var promptResponseRateQhead;
+var rateQinterval = setInterval(function () {
+
+  if (!promptResponseRate1minQ.isEmpty()) {
+    promptResponseRateQhead = new Date(promptResponseRate1minQ.peek());
+    if ((promptResponseRateQhead.getTime()+60000 < currentTime)){
+      debug("<<< --- promptResponseRate1minQ deQ: " + promptResponseRateQhead.getTime() + " | NOW: " + moment.utc().format());  
+      promptResponseRateQhead = promptResponseRate1minQ.dequeue();
+      debug("promptResponseRate1minQ Q size: " + promptResponseRate1minQ.size());   
+    }
+  }
+
+}, 50);
 
 //=================================
 // INIT APP ROUTING
@@ -2813,6 +3284,11 @@ var clientSocketCheckInterval = setInterval(function () {
 function initAppRouting(){
 
   console.log(chalkInfo(getTimeStamp() + " | INIT APP ROUTING"));
+
+  app.get('/threecee.pem', function(req, res){
+    debug("LOADING FILE: threecee.pem");
+    res.sendFile(__dirname + '/threecee.pem');
+  });
 
   app.get('/', function(req, res){
     console.log("LOADING PAGE: /");
@@ -2942,7 +3418,6 @@ Word.count({}, function(err,count){
     wordCountComplete = true ;
   }
 });
-
 
 module.exports = {
  app: app,

@@ -8,7 +8,14 @@
         "DROPBOX_WORD_ASSO_ACCESS_TOKEN" : "nknEWsIkD5UAAAAAAAQouTDFRBKfwsFzuS8PPi2Q_JVYnpotNuaHiddNtmG4mUTi",
         "DROPBOX_WORD_ASSO_APP_KEY" : "qlb9k4dp01t9iqk",
         "DROPBOX_WORD_ASSO_APP_SECRET" : "wqslhe2t95zfn19",
-        "DROPBOX_WORD_ASSO_STATS_FILE" : "wordAssociationStats.json"
+        "DROPBOX_WORD_ASSO_STATS_FILE" : "wordAssociationStats.json",
+        "GOOGLE_PROJECT_ID": "graphic-tangent-627",
+        "GOOGLE_APPLICATION_CREDENTIALS": "/home/tc/forceDirectedJs/auth/threeceeTwitterStream-3b8b488ee9f4.json",
+        "GOOGLE_SERVICE_ACCOUNT_CLIENT_ID": "584836433218-toensh76eq0cep7sponieimsq4c2g8hm.apps.googleusercontent.com",
+        "GOOGLE_SERVICE_ACCOUNT_EMAIL": "584836433218-toensh76eq0cep7sponieimsq4c2g8hm@developer.gserviceaccount.com",
+        "GOOGLE_SERVICE_ACCOUNT_KEY_FILE": "threecee.pem",
+        "GOOGLE_MONITORING_SCOPE": "https://www.googleapis.com/auth/monitoring",
+        "GOOGLE_METRICS_DISABLE": 0
     }
   }]
 }

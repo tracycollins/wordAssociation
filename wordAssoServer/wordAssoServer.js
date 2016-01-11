@@ -1328,7 +1328,7 @@ function chainDeadEnd(chain) {
       if (uniqueNodes.indexOf(chain[i].nodeId) == -1){
 
         if (uniqueNodes.length > 3) {
-          debug("... NO CHAIN FREEZE\n" + jsonPrint(uniqueNodes));
+          debug("... NO CHAIN FREEZE | " + jsonPrint(uniqueNodes));
           return false ;
         }
         else if (i == chain.length-6){
@@ -1344,7 +1344,7 @@ function chainDeadEnd(chain) {
 
   }
   else {
-    console.log("... NO CHAIN FREEZE\n" + jsonPrint(uniqueNodes));
+    debug("... NO CHAIN FREEZE | " + jsonPrint(uniqueNodes));
     return false ;
   }
  }

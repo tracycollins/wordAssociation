@@ -645,12 +645,14 @@ function readSocketQueue(){
 
       debug("@@@ DISCONNECT SOCKET " + socketObj.socketId + " | " + socketObj.connected);
 
-      if (socketObj.config.type == 'TEST') {
-        if (numberTestClients > 0) {
-          numberTestClients--; 
-        }
-        else {
-          console.error(chalkError("??? DISCONNECT " + socketObj.socketId + " but numberTestClients = " + numberTestClients));
+      if (typeof socketObj.config !== 'undefined') {
+        if (socketObj.config.type == 'TEST') {
+          if (numberTestClients > 0) {
+            numberTestClients--; 
+          }
+          else {
+            console.error(chalkError("??? DISCONNECT " + socketObj.socketId + " but numberTestClients = " + numberTestClients));
+          }
         }
       }
 

@@ -1317,9 +1317,19 @@ function chainDeadEnd(chain) {
   }
 }
 
+function incrementDeltaBhtReqs(delta){
+  if (delta == 0) {
+    deltaBhtRequests = 0 ;
+  }
+  else {
+    deltaBhtRequests += delta;
+  }
+}
+
 function incrementSocketBhtReqs(delta){
   numberBhtRequests += delta ;
   console.log(chalkInfo("... BHT REQS: " + numberBhtRequests + " | DELTA: " + delta));
+  incrementDeltaBhtReqs(delta);
 }
 
 function createClientSocket (socket){
@@ -2265,6 +2275,7 @@ function findCredential (clientId, callback) {
 
 var deltaPromptsSent = 0 ;
 var deltaResponsesReceived = 0 ;
+var deltaBhtRequests = 0;
 
 function updateMetrics(
 
@@ -2361,18 +2372,32 @@ function updateMetrics(
           "labels": { "custom.cloudmonitoring.googleapis.com/word-asso/responses/deltaResponsesReceived" : "DELTA RESPONSES RECEIVED"},
           "metric": "custom.cloudmonitoring.googleapis.com/word-asso/responses/deltaResponsesReceived"
          }
+        },
+
+        {
+         "point": {
+          "int64Value": deltaBhtRequests,
+          "start": metricDate,
+          "end": metricDate
+         },
+         "timeseriesDesc": {
+          "labels": { "custom.cloudmonitoring.googleapis.com/word-asso/bht/deltaBhtRequests" : "DELTA BHT REQUESTS"},
+          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/bht/deltaBhtRequests"
+         }
+        },
+
+        {
+         "point": {
+          "int64Value": numberBhtRequests,
+          "start": metricDate,
+          "end": metricDate
+         },
+         "timeseriesDesc": {
+          "labels": { "custom.cloudmonitoring.googleapis.com/word-asso/bht/numberBhtRequests" : "TOTAL DAILY BHT REQUESTS"},
+          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/bht/numberBhtRequests"
+         }
         }
-        // {
-        //  "point": {
-        //   "int64Value": numberResponsesReceived,
-        //   "start": metricDate,
-        //   "end": metricDate
-        //  },
-        //  "timeseriesDesc": {
-        //   "labels": { "custom.cloudmonitoring.googleapis.com/word-asso/responses" : "responses"},
-        //   "metric": "custom.cloudmonitoring.googleapis.com/word-asso/responses/totalResponses"
-        //  }
-        // }
+
 
        ]
       }
@@ -2396,7 +2421,7 @@ function updateMetrics(
 
     deltaPromptsSent = 0 ;
     deltaResponsesReceived = 0 ;
-
+    incrementDeltaBhtReqs(0);
 }
 
 function initializeConfiguration() {

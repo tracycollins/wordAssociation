@@ -2396,8 +2396,19 @@ function updateMetrics(
           "labels": { "custom.cloudmonitoring.googleapis.com/word-asso/bht/numberBhtRequests" : "TOTAL DAILY BHT REQUESTS"},
           "metric": "custom.cloudmonitoring.googleapis.com/word-asso/bht/numberBhtRequests"
          }
-        }
+        },
 
+        {
+         "point": {
+          "int64Value": totalWords,
+          "start": metricDate,
+          "end": metricDate
+         },
+         "timeseriesDesc": {
+          "labels": { "custom.cloudmonitoring.googleapis.com/word-asso/words/totalWords" : "TOTAL WORDS IN DB"},
+          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/words/totalWords"
+         }
+        }
 
        ]
       }

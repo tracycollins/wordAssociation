@@ -230,7 +230,7 @@ var statsUpdateObj = {
 
 
 
-dropboxClient.readFile(DROPBOX_WORD_ASSO_STATS_FILE, function(err, statsJson, callback) {
+dropboxClient.readFile(dropboxHostStatsFile, function(err, statsJson, callback) {
 
   if (err) {
     console.error(chalkError("!!! DROPBOX READ DROPBOX_WORD_ASSO_STATS_FILE ERROR: " + err));
@@ -238,7 +238,7 @@ dropboxClient.readFile(DROPBOX_WORD_ASSO_STATS_FILE, function(err, statsJson, ca
   }
 
   console.log(chalkInfo(getTimeStamp() 
-    + " | ... LOADING STATS FROM DROPBOX FILE: " + DROPBOX_WORD_ASSO_STATS_FILE
+    + " | ... LOADING STATS FROM DROPBOX FILE: " + dropboxHostStatsFile
   ));
 
   var statsObj = JSON.parse(statsJson);

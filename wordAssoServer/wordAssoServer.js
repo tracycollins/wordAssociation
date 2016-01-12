@@ -2962,7 +2962,7 @@ configEvents.on("SERVER_READY", function () {
         maxNumberClientsTime : maxNumberClientsConnectedTime,
 
         totalWords : totalWords,
-        bhtRequests : bhtRequests,
+        numberBhtRequests : bhtRequests,
 
         bhtOverLimitFlag : bhtOverLimitFlag,
         bhtLimitResetTime : bhtLimitResetTime,
@@ -2971,8 +2971,8 @@ configEvents.on("SERVER_READY", function () {
         totalSessions : totalSessions,
         totalUsers : totalUsers,
 
-        promptsSent : promptsSent,
-        responsesReceived : responsesReceived,
+        totalPromptsSent : promptsSent,
+        totalResponsesReceived : responsesReceived,
 
         numberTestClients : numberTestClients
       } ;

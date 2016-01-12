@@ -1254,7 +1254,7 @@ var updateNodeLabels = function (newNodesFlag, deadNodesFlag, callback) {
     .text(function(d) { return d.text; })
     .style("text-anchor", "middle")
     .style("opacity", 1e-6)
-    .style("fill", "#cccccc")
+    .style("fill", "#eeeeee")
     .style("font-size", function(d) { return fontSizeScale(nodeHashMap[d.nodeId].mentions + 1.1) + "vmin"; })
     .transition()
       .duration(defaultFadeDuration)      

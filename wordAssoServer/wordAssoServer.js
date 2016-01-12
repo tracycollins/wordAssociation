@@ -2602,6 +2602,7 @@ function updateMetrics(
     console.error("updateMetrics: googleMonitoring UNDEFINED ... SKIPPING METRICS UPDATE");
     return null;
   }
+
 // name: custom.cloudmonitoring.googleapis.com/word-asso/clients/numberClientsConnected
 // label key: custom.cloudmonitoring.googleapis.com/word-asso/clients/numberClientsConnected
 
@@ -2692,8 +2693,8 @@ function updateMetrics(
           "end": metricDate
          },
          "timeseriesDesc": {
-          "labels": { "custom.cloudmonitoring.googleapis.com/word-asso/bht/bhtRequests" : "TOTAL DAILY BHT REQUESTS"},
-          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/bht/bhtRequests"
+          "labels": { "custom.cloudmonitoring.googleapis.com/word-asso/bht/totalBhtRequests" : "TOTAL DAILY BHT REQUESTS"},
+          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/bht/totalBhtRequests"
          }
         },
 
@@ -2962,7 +2963,7 @@ configEvents.on("SERVER_READY", function () {
         maxNumberClientsTime : maxNumberClientsConnectedTime,
 
         totalWords : totalWords,
-        numberBhtRequests : bhtRequests,
+        bhtRequests : bhtRequests,
 
         bhtOverLimitFlag : bhtOverLimitFlag,
         bhtLimitResetTime : bhtLimitResetTime,
@@ -2971,8 +2972,8 @@ configEvents.on("SERVER_READY", function () {
         totalSessions : totalSessions,
         totalUsers : totalUsers,
 
-        totalPromptsSent : promptsSent,
-        totalResponsesReceived : responsesReceived,
+        promptsSent : promptsSent,
+        responsesReceived : responsesReceived,
 
         numberTestClients : numberTestClients
       } ;

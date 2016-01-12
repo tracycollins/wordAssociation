@@ -945,9 +945,10 @@
 				tableCreateRow(heatbeatTable, false, ['APP START TIME', getTimeStamp(heartBeat.startTime)]);
 				tableCreateRow(heatbeatTable, false, ['APP RUNTIME', msToTime(heartBeat.runTime)]);
 
+				tableCreateRow(heatbeatTable, false, ['TOTAL SESSIONS', heartBeat.totalSessions]);
 				tableCreateRow(heatbeatTable, false, ['TOTAL WORDS', heartBeat.totalWords]);
-				tableCreateRow(heatbeatTable, false, ['TOTAL PROMPTS', heartBeat.numberPromptsSent]);
-				tableCreateRow(heatbeatTable, false, ['TOTAL REPONSES', heartBeat.numberResponsesReceived]);
+				tableCreateRow(heatbeatTable, false, ['TOTAL PROMPTS', heartBeat.promptsSent]);
+				tableCreateRow(heatbeatTable, false, ['TOTAL REPONSES', heartBeat.responsesReceived]);
 
 				if (heartBeat.bhtOverLimitFlag){
 			    var now = moment.utc();
@@ -960,7 +961,7 @@
 						+ (msToTime(moment(heartBeat.bhtLimitResetTime).diff(now))) + ' REMAIN']);
 				}
 
-				tableCreateRow(heatbeatTable, bhtOptions, ['TOTAL BHT REQS', heartBeat.numberBhtRequests]);
+				tableCreateRow(heatbeatTable, bhtOptions, ['TOTAL BHT REQS', heartBeat.bhtRequests]);
 				tableCreateRow(heatbeatTable, bhtOptions, ['BHT OVER LIMIT', bhtOLTmoment]);
 				tableCreateRow(heatbeatTable, bhtOptions, ['BHT LIMIT RESET', bhtLRTmoment]);
 

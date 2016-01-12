@@ -1848,59 +1848,112 @@ function createClientSocket (socket){
 
       readSessionQueue();
 
-    });
+      words.getRandomWord(function(err, randomWordObj){
+        if (!err) {
 
-    words.getRandomWord(function(err, randomWordObj){
-      if (!err) {
+          debug("randomWordObj\n" + JSON.stringify(randomWordObj, null, 3));
+          // console.log(chalkResponse(socketId + " <-- " + randomWordObj.nodeId + " (RANDOM)"));
 
-        debug("randomWordObj\n" + JSON.stringify(randomWordObj, null, 3));
-        // console.log(chalkResponse(socketId + " <-- " + randomWordObj.nodeId + " (RANDOM)"));
+          wordHashMap.set(randomWordObj.nodeId, randomWordObj);
 
-        wordHashMap.set(randomWordObj.nodeId, randomWordObj);
+          var currentSession ;
 
-        var currentSession ;
+          if (!sessionHashMap.has(socketId)){
+            console.error(chalkError("!!! NO CURRENT SESSION FOR NEW CONNECTED CLIENT | " + socketId));
 
-        if (!sessionHashMap.has(socketId)){
-          console.error(chalkError("!!! NO CURRENT SESSION FOR DISCONNECTED CLIENT | " + socketId));
+            currentSession = {
+              sessionId: socketId,
+              userId: clientObj.ip + "_" + socketId,
+              createAt: moment(),
+              lastSeen: moment(),
+              connected: true,
+              disconnectTime: moment()
+            }
 
-          currentSession = {
-            sessionId: socketId,
-            userId: clientObj.ip + "_" + socketId,
-            createAt: moment(),
-            lastSeen: moment(),
-            connected: true,
-            disconnectTime: moment()
+            currentSession.wordChain = [] ;
+            currentSession.wordChain.push(randomWordObj) ;
+
+            sessionHashMap.set(socketId, currentSession);
+
+            sessionConnectDb(currentSession, function(){
+              if (!err) sessionHashMap.set(socketId, currentSession);
+            });
+          }
+          else {
+            currentSession = sessionHashMap.get(socketId);
+            currentSession.wordChain.push(randomWordObj) ;
           }
 
-          currentSession.wordChain = [] ;
-          currentSession.wordChain.push(randomWordObj) ;
+          sendPromptWord(clientObj, randomWordObj);
 
-          sessionHashMap.set(socketId, currentSession);
+          debug(clientObj.socketId + " clientObj.config" + jsonPrint(clientObj.config));
 
-          sessionConnectDb(currentSession, function(){
-            if (!err) sessionHashMap.set(socketId, currentSession);
-          });
+          var sessionUpdateObj = {
+            client: clientObj.config,
+            sessionId: socketId,
+            sourceWord: randomWordObj,
+            targetWord: randomWordObj
+          };
+
+          updateSessionViews(sessionUpdateObj);
+
         }
-        else {
-          currentSession = sessionHashMap.get(socketId);
-          currentSession.wordChain.push(randomWordObj) ;
-        }
+      });
 
-        sendPromptWord(clientObj, randomWordObj);
-
-        debug(clientObj.socketId + " clientObj.config" + jsonPrint(clientObj.config));
-
-        var sessionUpdateObj = {
-          client: clientObj.config,
-          sessionId: socketId,
-          sourceWord: randomWordObj,
-          targetWord: randomWordObj
-        };
-
-        updateSessionViews(sessionUpdateObj);
-
-      }
     });
+
+    // words.getRandomWord(function(err, randomWordObj){
+    //   if (!err) {
+
+    //     debug("randomWordObj\n" + JSON.stringify(randomWordObj, null, 3));
+    //     // console.log(chalkResponse(socketId + " <-- " + randomWordObj.nodeId + " (RANDOM)"));
+
+    //     wordHashMap.set(randomWordObj.nodeId, randomWordObj);
+
+    //     var currentSession ;
+
+    //     if (!sessionHashMap.has(socketId)){
+    //       console.error(chalkError("!!! NO CURRENT SESSION FOR NEW CONNECTED CLIENT | " + socketId));
+
+    //       currentSession = {
+    //         sessionId: socketId,
+    //         userId: clientObj.ip + "_" + socketId,
+    //         createAt: moment(),
+    //         lastSeen: moment(),
+    //         connected: true,
+    //         disconnectTime: moment()
+    //       }
+
+    //       currentSession.wordChain = [] ;
+    //       currentSession.wordChain.push(randomWordObj) ;
+
+    //       sessionHashMap.set(socketId, currentSession);
+
+    //       sessionConnectDb(currentSession, function(){
+    //         if (!err) sessionHashMap.set(socketId, currentSession);
+    //       });
+    //     }
+    //     else {
+    //       currentSession = sessionHashMap.get(socketId);
+    //       currentSession.wordChain.push(randomWordObj) ;
+    //     }
+
+    //     sendPromptWord(clientObj, randomWordObj);
+
+    //     debug(clientObj.socketId + " clientObj.config" + jsonPrint(clientObj.config));
+
+    //     var sessionUpdateObj = {
+    //       client: clientObj.config,
+    //       sessionId: socketId,
+    //       sourceWord: randomWordObj,
+    //       targetWord: randomWordObj
+    //     };
+
+    //     updateSessionViews(sessionUpdateObj);
+
+    //   }
+    // });
+
   })
 
   socket.on("RESPONSE_WORD_OBJ", function(responseInObj){

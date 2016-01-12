@@ -1857,9 +1857,11 @@ function createClientSocket (socket){
             createAt: moment(),
             lastSeen: moment(),
             connected: true,
-            disconnectTime: moment(),
-            wordChain: []
+            disconnectTime: moment()
           }
+
+          currentSession.wordChain = [] ;
+          
           sessionConnectDb(currentSession, function(){});
         }
         else {

@@ -2693,8 +2693,8 @@ function updateMetrics(
           "end": metricDate
          },
          "timeseriesDesc": {
-          "labels": { "custom.cloudmonitoring.googleapis.com/word-asso/bht/totalBhtRequests" : "TOTAL DAILY BHT REQUESTS"},
-          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/bht/totalBhtRequests"
+          "labels": { "custom.cloudmonitoring.googleapis.com/word-asso/bht/numberBhtRequests" : "TOTAL DAILY BHT REQUESTS"},
+          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/bht/numberBhtRequests"
          }
         },
 

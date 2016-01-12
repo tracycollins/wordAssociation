@@ -890,11 +890,15 @@ function readSocketQueue(){
             + " | R: " + cl.referer
             ));
 
-          var sessionObj = sessionHashMap.get(cl.socketId);
+          if (!sessionHashMap.has(cl.socketId)){
+            console.error(chalkError("!!! NO CURRENT SESSION FOR DISCONNECTED CLIENT | " + cl.socketId));
+          }
+          else {
+            var sessionObj = sessionHashMap.get(cl.socketId);
+            sessionDisconnectDb(sessionObj, function(err, ses){
 
-          sessionDisconnectDb(sessionObj, function(err, ses){
-
-          });
+            });
+          }
         }
       });
     }

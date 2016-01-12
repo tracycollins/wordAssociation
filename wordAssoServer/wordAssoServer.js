@@ -1588,12 +1588,13 @@ function sessionDisconnectDb(sessionObj, callback){
           + "\n  SESSION ID: " + ses.sessionId
           + "\n  USER ID: " + ses.userId 
           + "\n  DISCONNECT TIME: " + getTimeStamp(ses.disconnectTime)
-          + "\n  WORD CHAIN LENGTH: " + ses.wordChain.length 
+          // + "\n  WORD CHAIN LENGTH: " + ses.wordChain.length 
           + "\n  CREATED: " + getTimeStamp(ses.createdAt)
           + "\n  LAST SEEN: " + getTimeStamp(ses.lastSeen)
           + "\n  CONNECTED: " + ses.connected
           + "\n  DISCONNECT TIME: " + getTimeStamp(ses.disconnectTime)
         ));
+        if (ses.wordChain) console.log(chalkSession("  WORD CHAIN LENGTH: " + ses.wordChain.length);
         callback(null, ses);
       }
     }

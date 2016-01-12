@@ -1235,6 +1235,16 @@ bhtEvents.on("BHT_OVER_LIMIT_TIMEOUT", function(){
   bhtOverLimitFlag = false ;
   bhtOverLimitTestFlag = true ;
   incrementSocketBhtReqs(0);
+
+  bhtOverLimitTime = moment.utc();
+  bhtOverLimitTime.utcOffset("-08:00");
+
+  bhtLimitResetTime = moment.utc();
+  bhtLimitResetTime.utcOffset("-08:00");
+  bhtLimitResetTime.endOf("day");
+
+  bhtTimeToReset = moment(bhtLimitResetTime);
+  bhtTimeToReset.subtract(bhtOverLimitTime);
 });
 
 bhtEvents.on("BHT_OVER_LIMIT", function(numberBhtRequests){

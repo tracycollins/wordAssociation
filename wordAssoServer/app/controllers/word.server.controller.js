@@ -50,7 +50,7 @@ exports.findOneWord = function(word, incMentions, callback) {
 						// verb: word.verb,
 						// adjective: word.adjective,
 						// adverb: word.adverb,
-						lastSeen: Date.now(),
+						lastSeen: moment(),
 					},
 					$max: { noun: word.noun },
 					$max: { verb: word.verb },

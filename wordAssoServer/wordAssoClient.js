@@ -25,7 +25,6 @@ var socketId ;
 var connectedFlag = false ;
 var clientConfig = { type: "STANDARD", mode: "WORD_OBJ"} ;
 
-
 function getUrlVariables(config){
   var searchString = window.location.search.substring(1);
   var variableArray = searchString.split('&');

@@ -1861,14 +1861,15 @@ function createClientSocket (socket){
           }
 
           currentSession.wordChain = [] ;
-          
+          currentSession.wordChain.push(randomWordObj) ;
+
           sessionConnectDb(currentSession, function(){});
         }
         else {
           currentSession = sessionHashMap.get(socketId);
+          currentSession.wordChain.push(randomWordObj) ;
         }
 
-        currentSession.wordChain.push(randomWordObj) ;
 
         sendPromptWord(clientObj, randomWordObj);
 

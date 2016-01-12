@@ -1229,14 +1229,12 @@ function generateResponse(wordObj, callback){
   }
 }
 
-var checkBhtOverLimit = setInterval(function () {
-
-}, 1000);
 
 bhtEvents.on("BHT_OVER_LIMIT_TIMEOUT", function(){
   console.log(chalkBht("*** BHT_OVER_LIMIT_TIMEOUT END *** | " + getTimeStamp()));
   bhtOverLimitFlag = false ;
   bhtOverLimitTestFlag = true ;
+  numberBhtRequests = 0;
 });
 
 bhtEvents.on("BHT_OVER_LIMIT", function(numberBhtRequests){
@@ -2713,6 +2711,10 @@ configEvents.on("SERVER_READY", function () {
     }
 
     runTime =  getTimeNow() - startTime ;
+
+    if (moment().isAfter(bhtOverLimitTime)){
+      bhtEvents.emit("BHT_OVER_LIMIT_TIMEOUT");
+    }   
 
     //
     // SERVER HEARTBEAT

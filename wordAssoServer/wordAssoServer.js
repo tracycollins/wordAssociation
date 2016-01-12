@@ -82,6 +82,7 @@ var configChangeFlag = false ;
 // ==================================================================
 
 var moment = require('moment');
+
 var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
 var defaultTimePeriodFormat = "HH:mm:ss";
 
@@ -212,7 +213,7 @@ function updateDropboxStats (dropboxHostStatsFile, statsUpdateObj, callback){
     else {
       console.log(chalkInfo(getTimeStamp() 
         + " | ... WRITING STATS TO DROPBOX FILE: " + dropboxHostStatsFile
-        + "\n" + jsonPrint(statsUpdateObj) 
+        // + "\n" + jsonPrint(statsUpdateObj) 
       ));
       callback('OK');
     }
@@ -233,7 +234,49 @@ var statsUpdateObj = {
 dropboxClient.readFile(dropboxHostStatsFile, function(err, statsJson, callback) {
 
   if (err) {
-    console.error(chalkError("!!! DROPBOX READ DROPBOX_WORD_ASSO_STATS_FILE ERROR: " + err));
+
+    console.error(chalkError("!!! DROPBOX READ DROPBOX_WORD_ASSO_STATS_FILE ERROR"));
+    debug(chalkError(jsonPrint(err)));
+
+    if (err.status != 404) {
+      console.log(chalkError(jsonPrint(err)));
+    }
+    else if (err.status = 404) {
+
+      console.log("... TRYING DROPBOX READ OF DEFAULT DROPBOX_WORD_ASSO_STATS_FILE " + DROPBOX_WORD_ASSO_STATS_FILE);
+      
+      dropboxClient.readFile(DROPBOX_WORD_ASSO_STATS_FILE, function(err, statsJson, callback) {
+
+        console.log(chalkInfo(getTimeStamp() 
+          + " | ... LOADING STATS FROM DROPBOX FILE: " + DROPBOX_WORD_ASSO_STATS_FILE
+        ));
+
+        var statsObj = JSON.parse(statsJson);
+
+        console.log("DROPBOX STATS\n" + JSON.stringify(statsObj, null, 3));
+
+        console.log(chalkInfo(getTimeStamp() + " | FOUND " + statsObj.name));
+
+        if (typeof statsObj.BHT_REQS !== 'undefined') {
+          console.log(chalkInfo(getTimeStamp() + " | SET DAILY BHT REQUESTS: " + statsObj.BHT_REQS));
+          numberBhtRequests = statsObj.BHT_REQS ;
+        }
+
+        statsUpdateObj.BHT_REQS = numberBhtRequests;
+
+        updateDropboxStats(dropboxHostStatsFile, statsUpdateObj, function(status){
+          if (status != 'OK'){
+            console.error("!!! ERROR: updateDropboxStats " + status);
+          }
+          else {
+            console.log(chalkLog("UPDATE DROPBOX STATUS OK"));
+          }
+        });
+
+      });
+
+    }
+
     return; //It's important to return so that the task callback isn't called twice
   }
 
@@ -530,6 +573,8 @@ function updateSessionViews(sessionUpdateObj){
   }
 
   debug(chalkInfo(">>> TX SESSION_UPDATE"
+    + " | " + sessionUpdateObj.sessionId
+    + " | " + jsonPrint(sessionUpdateObj.client.config)
     + " | " + sessionUpdateObj.sourceWord.nodeId
     + " --> " + sessionUpdateObj.targetWord.nodeId
   ));
@@ -573,6 +618,8 @@ function sendPromptWord(clientObj, promptWordObj){
   } else {
     console.log(chalkPrompt("PROMPT   | " + clientObj.socketId  + " | " + clientObj.config.type + " | SESSION START --> " + promptWordObj.nodeId));
   }
+
+  // console.log("sendPromptWord clientObj\n" + jsonPrint(clientObj.config));
 
   if ((typeof clientObj.config !== 'undefined') && (clientObj.config != null)) {
 
@@ -927,7 +974,7 @@ function generateResponse(wordObj, callback){
         console.log("-*- HASH HIT  | " + responseWord);
 
         responseWordObj = wordHashMap.get(responseWord);
-        responseWordObj.lastSeen = dateNow;
+        responseWordObj.lastSeen = moment();
 
         words.findOneWord(responseWordObj, false, function(err, word){
           if (err) {
@@ -980,11 +1027,11 @@ function generateResponse(wordObj, callback){
       else {
 
         console.log("-O- HASH MISS | " + responseWord);
-        var dateNow = Date.now();
+        // var dateNow = Date.now();
 
         var responseWordObj = new Word ({
           nodeId: responseWord,
-          lastSeen: dateNow
+          lastSeen: moment()
         });
 
         words.findOneWord(responseWordObj, false, function(err, word){
@@ -1073,7 +1120,7 @@ function generateResponse(wordObj, callback){
             console.log("-*- HASH HIT  | " + responseWord);
 
             responseWordObj = wordHashMap.get(responseWord);
-            responseWordObj.lastSeen = dateNow;
+            responseWordObj.lastSeen = moment();
 
             words.findOneWord(responseWordObj, false, function(err, word){
               if (err) {
@@ -1126,11 +1173,11 @@ function generateResponse(wordObj, callback){
           else {
 
             console.log("-O- HASH MISS | " + responseWord);
-            var dateNow = Date.now();
+            // var dateNow = Date.now();
 
             var responseWordObj = new Word ({
               nodeId: responseWord,
-              lastSeen: dateNow
+              lastSeen: moment()
             });
 
             words.findOneWord(responseWordObj, false, function(err, word){
@@ -1466,8 +1513,8 @@ function createClientSocket (socket){
     socket: socket,
     referer: referer,
     connected: true, 
-    connectTime: currentTime, 
-    // disconnectTime: currentTime
+    connectTime: currentTime,
+    config: { type: referer }
   };
 
   // adding also after enqueue; adding early to so add will show up earlier
@@ -1570,32 +1617,6 @@ function createClientSocket (socket){
       debug("CLIENT DB UPDATE ON CLIENT READY: " + cl.config.type);
     })
 
-    // Word.find({nodeId : "punish"}, function(err, responseArray){
-    //   if (!err) {
-
-    //     console.log("randomWordObj" + jsonPrint(responseArray[0]));
-    //     // console.log(chalkResponse(socketId + " <-- " + randomWordObj.nodeId + " (RANDOM)"));
-
-    //     wordHashMap.set(responseArray[0].nodeId, responseArray[0]);
-
-    //     var currentSession = sessionHashMap.get(socketId);
-
-    //     currentSession.wordChain.push(responseArray[0]) ;
-
-    //     sendPromptWord(clientObj, responseArray[0]);
-
-    //     var sessionUpdateObj = {
-    //       sessionId: socketId,
-    //       sourceWord: responseArray[0],
-    //       targetWord: responseArray[0]
-    //     };
-
-    //     updateSessionViews(sessionUpdateObj);
-
-    //   }
-    // });
-
-
     words.getRandomWord(function(err, randomWordObj){
       if (!err) {
 
@@ -1610,6 +1631,8 @@ function createClientSocket (socket){
 
         sendPromptWord(clientObj, randomWordObj);
 
+        debug(clientObj.socketId + " clientObj.config" + jsonPrint(clientObj.config));
+
         var sessionUpdateObj = {
           client: clientObj.config,
           sessionId: socketId,
@@ -1623,12 +1646,14 @@ function createClientSocket (socket){
     });
   })
 
-  socket.on("RESPONSE_WORD_OBJ", function(rwObj){
+  socket.on("RESPONSE_WORD_OBJ", function(responseInObj){
+
+    if (!responseInObj.mentions) responseInObj.mentions = 1;
 
     numberResponsesReceived++;
     deltaResponsesReceived++;
 
-    var dateNow = Date.now();
+    // var dateNow = moment();
     var socketId = socket.id;
     var clientObj = clientSocketIdHashMap.get(socketId);
 
@@ -1636,171 +1661,185 @@ function createClientSocket (socket){
     var promptWord ;
     var previousPrompt = currentSession.wordChain[currentSession.wordChain.length-1] ;
 
-    console.log(chalkResponse("RESPONSE | " + socketId + " | " + rwObj.nodeId + " <-- " + previousPrompt.nodeId));
-    // console.log(chalkInfo(JSON.stringify(rwObj, null, 2)));
+    console.log(chalkResponse("RESPONSE | " + socketId + " | " + responseInObj.nodeId + " <-- " + previousPrompt.nodeId));
 
     var responseWordObj;
 
-    if (wordHashMap.has(rwObj.nodeId)){
+    addWordToDb(responseInObj, true, function(status, rwObj){
 
-      console.log("-*- HASH HIT  | " + rwObj.nodeId);
-      // console.log(JSON.stringify(rwObj, null, 2));
+      if (wordHashMap.has(rwObj.nodeId)){
 
-      responseWordObj = wordHashMap.get(rwObj.nodeId);
-      responseWordObj.lastSeen = dateNow;
+        console.log("-*- HASH HIT  | " + rwObj.nodeId);
 
-      wordHashMap.set(responseWordObj.nodeId, responseWordObj);
-      currentSession.wordChain.push(responseWordObj) ;
+        responseWordObj = wordHashMap.get(rwObj.nodeId);
+        responseWordObj.mentions = rwObj.mentions;
+        responseWordObj.lastSeen = moment();
 
-      var sessionUpdateObj = {
-        sessionId: socketId,
-        client: clientObj.config,
-        sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
-        targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
-      };
+        wordHashMap.set(responseWordObj.nodeId, responseWordObj);
+        currentSession.wordChain.push(responseWordObj) ;
 
-      updateSessionViews(sessionUpdateObj);
+        var sessionUpdateObj = {
+          sessionId: socketId,
+          client: clientObj.config,
+          sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
+          targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
+        };
 
-      generateResponse(responseWordObj, function(status, promptWordObj){
+        updateSessionViews(sessionUpdateObj);
 
-        // if (!promptWordObj.bhtFound || chainDeadEnd(currentSession.wordChain)) {
-        if ((status == 'BHT_EMPTY') 
-          || (status == 'BHT_MISS') 
-          || responseWordObj.nodeId == promptWordObj.nodeId
-          || chainDeadEnd(currentSession.wordChain)
-          ) {
-          words.getRandomWord(function(err, randomWordObj){
-            if (!err) {
-              // console.log(chalkResponse(socketId + " | " + responseWordObj.nodeId + " --> " + randomWordObj.nodeId + " (RANDOM)"));
-              // console.log(chalkPrompt("PROMPT | " + clientObj.socketId + " | " + previousResponse.nodeId + " --> " + promptWordObj.nodeId));
+        generateResponse(responseWordObj, function(status, promptWordObj){
 
-              wordHashMap.set(randomWordObj.nodeId, randomWordObj);
-              currentSession.wordChain.push(randomWordObj) ;
+          // if (!promptWordObj.bhtFound || chainDeadEnd(currentSession.wordChain)) {
+          if ((status == 'BHT_EMPTY') 
+            || (status == 'BHT_MISS') 
+            || responseWordObj.nodeId == promptWordObj.nodeId
+            || chainDeadEnd(currentSession.wordChain)
+            ) {
+            words.getRandomWord(function(err, randomWordObj){
+              if (!err) {
+                // console.log(chalkResponse(socketId + " | " + responseWordObj.nodeId + " --> " + randomWordObj.nodeId + " (RANDOM)"));
+                // console.log(chalkPrompt("PROMPT | " + clientObj.socketId + " | " + previousResponse.nodeId + " --> " + promptWordObj.nodeId));
 
-              sendPromptWord(clientObj, randomWordObj);
+                randomWordObj.lastSeen = moment();
 
-              var sessionUpdateObj = {
-                sessionId: socketId,
-                client: clientObj.config,
-                sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
-                targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
-              };
+                wordHashMap.set(randomWordObj.nodeId, randomWordObj);
+                currentSession.wordChain.push(randomWordObj) ;
 
-              updateSessionViews(sessionUpdateObj);
-            }
-          });
-        }
-        else {
-          // console.log(chalkResponse(socketId + " | " + responseWordObj.nodeId + " --> " + promptWordObj.nodeId));
+                sendPromptWord(clientObj, randomWordObj);
 
-          wordHashMap.set(promptWordObj.nodeId, promptWordObj);
-          currentSession.wordChain.push(promptWordObj) ;
+                var sessionUpdateObj = {
+                  sessionId: socketId,
+                  client: clientObj.config,
+                  sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
+                  targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
+                };
 
-          // sendPromptWord(socketId, promptWordObj.nodeId);
-          sendPromptWord(clientObj, promptWordObj);
-
-          var sessionUpdateObj = {
-            sessionId: socketId,
-            client: clientObj.config,
-            sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
-            targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
-          };
-
-          updateSessionViews(sessionUpdateObj);
-        }
-
-      });
-    }
-    else {
-
-      console.log("-O- HASH MISS | " + rwObj.nodeId);
-
-      responseWordObj = rwObj ;
-      // responseWordObj.bhtSearched = false ;
-
-      addWordToDb(responseWordObj, true, function(status, wordDbObj){
-
-        debug(chalkLog("addWordToDb STATUS: " + status + " | " + wordDbObj.nodeId));
-
-        if (status.indexOf("ERROR") >= 0) {
-          if (status.indexOf("BHT_OVER_LIMIT") >= 0) {
-            return;
+                updateSessionViews(sessionUpdateObj);
+              }
+            });
           }
           else {
-            console.log(chalkError("addWordToDb (HASH MISS): *** ERROR ***" 
-              + "\n" + JSON.stringify(status)
-              + "\n" + JSON.stringify(responseWordObj, null, 2)
-            ));
-            return;
+            // console.log(chalkResponse(socketId + " | " + responseWordObj.nodeId + " --> " + promptWordObj.nodeId));
+
+            wordHashMap.set(promptWordObj.nodeId, promptWordObj);
+            currentSession.wordChain.push(promptWordObj) ;
+
+            promptWordObj.lastSeen = moment();
+
+            sendPromptWord(clientObj, promptWordObj);
+
+            var sessionUpdateObj = {
+              sessionId: socketId,
+              client: clientObj.config,
+              sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
+              targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
+            };
+
+            updateSessionViews(sessionUpdateObj);
           }
-        }
-        else {
-          console.log("->- DB UPDATE | " + wordDbObj.nodeId 
-            + " | MNS: " + wordDbObj.mentions
-            );
-          currentSession.wordChain.push(wordDbObj) ;
 
-          var sessionUpdateObj = {
-            sessionId: socketId,
-            client: clientObj.config,
-            sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
-            targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
-          };
+        });
+      }
+      else {
 
-          updateSessionViews(sessionUpdateObj);
-        }
-      })
+        console.log("-O- HASH MISS | " + rwObj.nodeId);
 
-      generateResponse(responseWordObj, function(status, promptWordObj){
+        responseWordObj = rwObj ;
+        // responseWordObj.bhtSearched = false ;
 
-        // console.log(jsonPrint(promptWordObj));
+        addWordToDb(responseWordObj, true, function(status, wordDbObj){
 
-        if (
-          (status == 'BHT_EMPTY') 
-          || (status == 'BHT_MISS') 
-          || (status == 'BHT_NOT_FOUND') 
-          || responseWordObj.nodeId == promptWordObj.nodeId
-          || chainDeadEnd(currentSession.wordChain)
-          ) {
-          words.getRandomWord(function(err, randomWordObj){
-            if (!err) {
-              // console.log(chalkResponse(socketId + " | " + responseWordObj.nodeId + " --> " + randomWordObj.nodeId + " (RANDOM)"));
+          debug(chalkLog("addWordToDb STATUS: " + status + " | " + wordDbObj.nodeId));
 
-              wordHashMap.set(randomWordObj.nodeId, randomWordObj);
-              currentSession.wordChain.push(randomWordObj) ;
-
-              sendPromptWord(clientObj, randomWordObj);
-
-              var sessionUpdateObj = {
-                sessionId: socketId,
-                client: clientObj.config,
-                sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
-                targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
-              };
-
-              updateSessionViews(sessionUpdateObj);
+          if (status.indexOf("ERROR") >= 0) {
+            if (status.indexOf("BHT_OVER_LIMIT") >= 0) {
+              return;
             }
-          });
-        }
-        else {
-          // console.log(chalkResponse(socketId + " | " + responseWordObj.nodeId + " --> " + promptWordObj.nodeId));
+            else {
+              console.log(chalkError("addWordToDb (HASH MISS): *** ERROR ***" 
+                + "\n" + JSON.stringify(status)
+                + "\n" + JSON.stringify(responseWordObj, null, 2)
+              ));
+              return;
+            }
+          }
+          else {
+            console.log("->- DB UPDATE | " + wordDbObj.nodeId 
+              + " | MNS: " + wordDbObj.mentions
+              );
+            currentSession.wordChain.push(wordDbObj) ;
 
-          wordHashMap.set(promptWordObj.nodeId, promptWordObj);
-          currentSession.wordChain.push(promptWordObj) ;
+            var sessionUpdateObj = {
+              sessionId: socketId,
+              client: clientObj.config,
+              sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
+              targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
+            };
 
-          sendPromptWord(clientObj, promptWordObj);
+            debug("clientObj\n" + jsonPrint(clientObj));
 
-          var sessionUpdateObj = {
-            sessionId: socketId,
-            client: clientObj.config,
-            sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
-            targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
-          };
+            updateSessionViews(sessionUpdateObj);
+          }
+        })
 
-          updateSessionViews(sessionUpdateObj);
-        }
-      });
-    }
+        generateResponse(responseWordObj, function(status, promptWordObj){
+
+          // console.log(jsonPrint(promptWordObj));
+
+          if (
+            (status == 'BHT_EMPTY') 
+            || (status == 'BHT_MISS') 
+            || (status == 'BHT_NOT_FOUND') 
+            || responseWordObj.nodeId == promptWordObj.nodeId
+            || chainDeadEnd(currentSession.wordChain)
+            ) {
+
+            words.getRandomWord(function(err, randomWordObj){
+              if (!err) {
+                // console.log(chalkResponse(socketId + " | " + responseWordObj.nodeId + " --> " + randomWordObj.nodeId + " (RANDOM)"));
+
+                randomWordObj.lastSeen = moment();
+
+                wordHashMap.set(randomWordObj.nodeId, randomWordObj);
+                currentSession.wordChain.push(randomWordObj) ;
+
+                sendPromptWord(clientObj, randomWordObj);
+
+                var sessionUpdateObj = {
+                  sessionId: socketId,
+                  client: clientObj.config,
+                  sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
+                  targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
+                };
+
+                updateSessionViews(sessionUpdateObj);
+              }
+            });
+          }
+          else {
+            // console.log(chalkResponse(socketId + " | " + responseWordObj.nodeId + " --> " + promptWordObj.nodeId));
+
+            promptWordObj.lastSeen = moment();
+
+            wordHashMap.set(promptWordObj.nodeId, promptWordObj);
+            currentSession.wordChain.push(promptWordObj) ;
+
+            sendPromptWord(clientObj, promptWordObj);
+
+            var sessionUpdateObj = {
+              sessionId: socketId,
+              client: clientObj.config,
+              sourceWord: currentSession.wordChain[currentSession.wordChain.length-2],
+              targetWord: currentSession.wordChain[currentSession.wordChain.length-1]
+            };
+
+            updateSessionViews(sessionUpdateObj);
+          }
+        });
+      }
+    });
+
+
   });
 
   socket.on("BHT_REQUESTS", function(numberSocketBhtRequests){

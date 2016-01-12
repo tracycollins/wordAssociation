@@ -1846,7 +1846,25 @@ function createClientSocket (socket){
 
         wordHashMap.set(randomWordObj.nodeId, randomWordObj);
 
-        var currentSession = sessionHashMap.get(socketId);
+        var currentSession ;
+
+        if (!sessionHashMap.has(socketId)){
+          console.error(chalkError("!!! NO CURRENT SESSION FOR DISCONNECTED CLIENT | " + socketId));
+
+          currentSession = {
+            sessionId: socketId,
+            userId: clientObj.ip + "_" + socketid,
+            createAt: moment(),
+            lastSeen: moment(),
+            connected: true,
+            disconnectTime: moment(),
+            wordChain: []
+          }
+          sessionConnectDb(currentSession, function(){});
+        }
+        else {
+          currentSession = sessionHashMap.get(socketId);
+        }
 
         currentSession.wordChain.push(randomWordObj) ;
 

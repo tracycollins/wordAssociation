@@ -1594,7 +1594,7 @@ function sessionDisconnectDb(sessionObj, callback){
           + "\n  CONNECTED: " + ses.connected
           + "\n  DISCONNECT TIME: " + getTimeStamp(ses.disconnectTime)
         ));
-        if (ses.wordChain) console.log(chalkSession("  WORD CHAIN LENGTH: " + ses.wordChain.length);
+        if (ses.wordChain) console.log(chalkSession("  WORD CHAIN LENGTH: " + ses.wordChain.length));
         callback(null, ses);
       }
     }

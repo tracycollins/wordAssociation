@@ -895,9 +895,7 @@ function readSocketQueue(){
           }
           else {
             var sessionObj = sessionHashMap.get(cl.socketId);
-            sessionDisconnectDb(sessionObj, function(err, ses){
-
-            });
+            sessionDisconnectDb(sessionObj, function(err, ses){});
           }
         }
       });

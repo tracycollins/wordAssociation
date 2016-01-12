@@ -1234,7 +1234,7 @@ bhtEvents.on("BHT_OVER_LIMIT_TIMEOUT", function(){
   console.log(chalkBht("*** BHT_OVER_LIMIT_TIMEOUT END *** | " + getTimeStamp()));
   bhtOverLimitFlag = false ;
   bhtOverLimitTestFlag = true ;
-  numberBhtRequests = 0;
+  incrementSocketBhtReqs(0);
 });
 
 bhtEvents.on("BHT_OVER_LIMIT", function(numberBhtRequests){
@@ -1404,8 +1404,14 @@ function incrementDeltaBhtReqs(delta){
 }
 
 function incrementSocketBhtReqs(delta){
-  numberBhtRequests += delta ;
-  console.log(chalkInfo("... BHT REQS: " + numberBhtRequests + " | DELTA: " + delta));
+  if (delta == 0) {
+    console.log(chalkInfo("RESET BHT REQS: PREV: " + numberBhtRequests + " | NOW: " + 0));
+    numberBhtRequests = 0 ;
+  }
+  else {
+    numberBhtRequests += delta;
+    console.log(chalkInfo("... BHT REQS: " + numberBhtRequests + " | DELTA: " + delta));
+  }
   incrementDeltaBhtReqs(delta);
 }
 

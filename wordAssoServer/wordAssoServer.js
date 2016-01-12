@@ -1853,7 +1853,7 @@ function createClientSocket (socket){
 
           currentSession = {
             sessionId: socketId,
-            userId: clientObj.ip + "_" + socketid,
+            userId: clientObj.ip + "_" + socketId,
             createAt: moment(),
             lastSeen: moment(),
             connected: true,

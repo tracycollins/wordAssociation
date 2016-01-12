@@ -12,7 +12,16 @@ var SessionSchema = new Schema({
 		type: String
 	},
 	createdAt: { 
-		type: Date
+		type: Number
+	},
+	lastSeen: { 
+		type: Number
+	},
+	connected: { 
+		type: Boolean
+	},
+	disconnectTime: { 
+		type: Number
 	},
 	wordChain: {
 		type: Object

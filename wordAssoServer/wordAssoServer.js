@@ -1874,7 +1874,11 @@ function createClientSocket (socket){
           currentSession.wordChain = [] ;
           currentSession.wordChain.push(randomWordObj) ;
 
-          sessionConnectDb(currentSession, function(){});
+          sessionHashMap.set(socketId, currentSession);
+
+          sessionConnectDb(currentSession, function(){
+            if (!err) sessionHashMap.set(socketId, currentSession);
+          });
         }
         else {
           currentSession = sessionHashMap.get(socketId);

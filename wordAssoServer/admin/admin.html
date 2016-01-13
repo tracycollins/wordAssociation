@@ -101,15 +101,19 @@
 
 		</style>
 
-	  <script src="https://cdn.socket.io/socket.io-1.3.6.js"></script>
-	  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.11.0/moment.min.js"></script>
+		<script src="https://cdn.socket.io/socket.io-1.3.6.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.11.0/moment.min.js"></script>
 		<script src="/node_modules/hashmap/hashmap.js"></script>
+
 	</head>
 
 	<body>
 	    <h1>WORD ASSOCIATION ADMIN</h1>
 
 	    <div id='admin' class='admin' font-size=0.1em>
+
+				<input id="updateBhtReqs" type="number" name="bhtReqs">
+				<button id="updateBhtReqsButton" class="showHideButton" onclick="updateBhtReqs()">UPDATE BHT REQS</button>
 
 	    	<table id='heartbeat_table' class'heartbeatTable'></table>
 
@@ -550,6 +554,12 @@
 				}
 			}
 
+
+			function updateBhtReqs(){
+				var newBhtRequests = document.getElementById("updateBhtReqs").value;
+				console.log("UPDATE BHT REQS: " + newBhtRequests);
+				socket.emit("UPDATE_BHT_REQS", newBhtRequests);
+			}
 
 			function toggleIpAdmins(){
 				updateAdminConnect({ showIp: "toggle" });

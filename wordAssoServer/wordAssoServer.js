@@ -3676,7 +3676,7 @@ function initAppRouting(){
   });
 
   app.get('/', function(req, res){
-    console.log("LOADING PAGE: /");
+    debug("LOADING PAGE: /");
     res.sendFile(__dirname + '/index.html');
     return;
   });
@@ -3691,29 +3691,29 @@ function initAppRouting(){
   });
 
   app.get('/test', function(req, res){
-    console.log(chalkAlert("TEST PAGE REQUEST ... RETURNING index.html ..."));
+    debug(chalkAlert("TEST PAGE REQUEST ... RETURNING index.html ..."));
     res.sendFile(__dirname + '/index.html');
     return;
   });
 
   app.get('/wordAssoClient.js', function(req, res){
-    console.log("LOADING PAGE: /wordAssoClient.js");
+    debug("LOADING PAGE: /wordAssoClient.js");
     res.sendFile(__dirname + '/wordAssoClient.js');
     return;
   });
 
   app.get('/session', function(req, res){
-    console.log("LOADING FILE: /session.html");
+    debug("LOADING FILE: /session.html");
     res.sendFile(__dirname + '/session.html');
   });
 
   app.get('/js/libs/sessionView.js', function(req, res){
-    console.log("LOADING FILE: sessionView.js");
+    debug("LOADING FILE: sessionView.js");
     res.sendFile(__dirname + '/js/libs/sessionView.js');
   });
 
   app.get('/admin/admin.html', function(req, res){
-    console.log("LOADING PAGE: /admin/admin.html");
+    debug("LOADING PAGE: /admin/admin.html");
     res.sendFile(__dirname + '/admin/admin.html');
     return;
   });

@@ -681,10 +681,10 @@ function sendPromptWord(clientObj, promptWordObj){
 
   if (currentSession.wordChain.length >= 2) {
     var previousResponse = currentSession.wordChain[currentSession.wordChain.length-2];
-    console.log(chalkPrompt("PROMPT   | " + clientObj.socketId 
+    console.log(chalkPrompt("P --> | " + clientObj.socketId 
       + " | " + previousResponse.nodeId + " --> " + promptWordObj.nodeId));
   } else {
-    console.log(chalkPrompt("PROMPT   | " + clientObj.socketId  
+    console.log(chalkPrompt("P --> | " + clientObj.socketId  
       + " | " + clientObj.config.type + " | SESSION START --> " + promptWordObj.nodeId));
   }
 
@@ -750,7 +750,7 @@ function readSocketQueue(){
                 callback(null, socketObj);
               }
               else {
-                console.log("DNS REVERSE LOOKUP: " + socketObj.ip + " | DOMAINS: " + domains);
+                debug("DNS REVERSE LOOKUP: " + socketObj.ip + " | DOMAINS: " + domains);
                 socketObj.domain = domains[0];
                 callback(err, socketObj);
               }
@@ -1926,7 +1926,7 @@ function createClientSocket (socket){
     var promptWord ;
     var previousPrompt = currentSession.wordChain[currentSession.wordChain.length-1] ;
 
-    console.log(chalkResponse("RESPONSE | " + socketId 
+    console.log(chalkResponse("R <-- | " + socketId 
       + " | " + responseInObj.nodeId + " <-- " + previousPrompt.nodeId));
 
     var responseWordObj;

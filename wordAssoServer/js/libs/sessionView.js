@@ -748,9 +748,9 @@ socket.on("HEARTBEAT", function(heartbeat){
   var overlay = d3.select("#adminOverlay0").select("text")
     .text(
       heartbeat["totalWords"] + " TOTAL WORDS"
-      + " | " + heartbeat["numberBhtRequests"] + " BHT REQS"
-      + " | " + heartbeat["numberPromptsSent"] + " PROMPTS"
-      + " | " + heartbeat["numberResponsesReceived"] + " RESPONSES"
+      + " | " + heartbeat["bhtRequests"] + " BHT REQS"
+      + " | " + heartbeat["promptsSent"] + " PROMPTS"
+      + " | " + heartbeat["responsesReceived"] + " RESPONSES"
       );
 
   var overlay = d3.select("#adminOverlay1").select("text")

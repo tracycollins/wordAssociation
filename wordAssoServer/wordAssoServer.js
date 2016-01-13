@@ -704,9 +704,7 @@ function sendPromptWord(clientObj, promptWordObj){
   promptsSent++ ;
   deltaPromptsSent++;
 
-  updateStats({
-    promptsSent: promptsSent
-  });
+  updateStats({ promptsSent: promptsSent });
 
 }
 
@@ -1517,7 +1515,8 @@ function incrementDeltaBhtReqs(delta){
 
 function setBhtReqs(value){
   console.log(chalkInfo("SET BHT REQS: PREV: " + bhtRequests + " | NOW: " + value));
-  bhtRequests = value ;
+  bhtRequests = parseInt(value) ;
+  updateStats({ bhtRequests: bhtRequests });
 }
 
 function incrementSocketBhtReqs(delta){

@@ -1515,6 +1515,11 @@ function incrementDeltaBhtReqs(delta){
   }
 }
 
+function setBhtReqs(value){
+  console.log(chalkInfo("SET BHT REQS: PREV: " + bhtRequests + " | NOW: " + value));
+  bhtRequests = value ;
+}
+
 function incrementSocketBhtReqs(delta){
   if (delta == 0) {
     console.log(chalkInfo("RESET BHT REQS: PREV: " + bhtRequests + " | NOW: " + 0));
@@ -3141,6 +3146,7 @@ io.of("/test").on("connect", function(socket){
   createClientSocket(socket);
 });
 
+
 io.of("/admin").on("connect", function(socket){
 
   var adminsHashMap = findClientsSocket('/admin');
@@ -3503,6 +3509,12 @@ io.of("/admin").on("connect", function(socket){
 
     });
   });
+
+  socket.on("UPDATE_BHT_REQS", function(newBhtRequests){
+    console.log(chalkAdmin("@@@ RX UPDATE_BHT_REQS | " + socketId + " | " + newBhtRequests));
+    setBhtReqs(newBhtRequests);
+  });
+
 });
 
 io.on("disconnect", function(){

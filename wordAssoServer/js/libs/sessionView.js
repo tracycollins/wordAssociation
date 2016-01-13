@@ -813,7 +813,10 @@ socket.on("SESSION_UPDATE", function(sessionObject){
   sessionObject.targetWord.lastSeen = moment();
 
   // console.log("> RX " + JSON.stringify(sessionObject)); ;
-  console.log("> RX | CL TYPE " + sessionObject.client.type + " | " + sessionObject.sourceWord.nodeId + " > " + sessionObject.targetWord.nodeId) ;
+  console.log("> RX | CL TYPE " + sessionObject.client.type 
+    + " | " + sessionObject.sourceWord.nodeId 
+    + " > " + sessionObject.targetWord.nodeId
+  ) ;
   // console.log(getTimeStamp() + ">>> RX SESSION_UPDATE\n" + JSON.stringify(sessionObject, null, 3)) ;
 
   if (!windowVisible) {
@@ -824,7 +827,9 @@ socket.on("SESSION_UPDATE", function(sessionObject){
     console.log(">>> RX sessionObject: [Q: " 
       + sessionUpdateQueue.getLength() 
     );
-    console.error(getTimeStamp() + " -- !!! Q FULL --- DROPPING SESSION UPDATE !!! " + sessionUpdateQueue.getLength() + "\n\n") ;
+    console.error(getTimeStamp() + " -- !!! Q FULL --- DROPPING SESSION UPDATE !!! " 
+      + sessionUpdateQueue.getLength() + "\n\n"
+    );
   }
   else {
     sessionUpdateQueue.enqueue(sessionObject);
@@ -901,20 +906,15 @@ var createNode = function (wordObject, callback) {
 
   force.stop();
 
-  // console.log("createNode | " + wordObject.nodeId);
-  // console.log("createNode | " + JSON.stringify(wordObject, null, 3));
-
   if (wordObject.nodeId in nodeHashMap) {
 
     var currentNodeObject = nodeHashMap[wordObject.nodeId];
 
-    // currentNodeObject.age = 0 ;
+    currentNodeObject.age = moment() - wordObject.lastSeen;
     currentNodeObject.lastSeen = wordObject.lastSeen;
-    // currentNodeObject.ageUpdated = moment();
     currentNodeObject.mentions = wordObject.mentions ;
     currentNodeObject.text = wordObject.nodeId ;
 
-    // console.log("... FOUND NODE IN HASH MAP | " + nodes.length + " | " + currentNodeObject.nodeId);
     nodesLength = nodes.length ;
 
     for (nodeIndex = 0; nodeIndex < nodesLength; nodeIndex++){
@@ -922,11 +922,11 @@ var createNode = function (wordObject, callback) {
       if (nodes[nodeIndex].nodeId == currentNodeObject.nodeId) { 
 
         tempMentions = nodes[nodeIndex].mentions;
-        nodes[nodeIndex].mentions = currentNodeObject.mentions > tempMentions ? currentNodeObject.mentions : tempMentions ;
-        // nodes[nodeIndex].lastSeen = currentNodeObject.lastSeen ;
-        // nodes[nodeIndex].age = dateNow - currentNodeObject.lastSeen ;
-        // nodes[nodeIndex].ageUpdated = currentNodeObject.ageUpdated ;
+        nodes[nodeIndex].mentions = currentNodeObject.mentions > tempMentions ? 
+          currentNodeObject.mentions : tempMentions ;
 
+        nodes[nodeIndex].age = moment() - currentNodeObject.lastSeen;
+        nodes[nodeIndex].lastSeen = currentNodeObject.lastSeen;
         break;
       }
     }
@@ -970,8 +970,6 @@ var createLinks = function (sessionObject, callback) {
 
   var err = null ;
   newLinksFlag = false ;
-
-  // console.log("createLinks | " + sessionObject.sourceWord.nodeId + " --> " + sessionObject.targetWord.nodeId);
 
   links.push({
     source: nodeHashMap[sessionObject.sourceWord.nodeId], 

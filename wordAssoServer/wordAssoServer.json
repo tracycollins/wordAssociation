@@ -3,6 +3,7 @@
     "name"        : "was",
     "script"      : "wordAssoServer.js",
     "cwd"         : "/home/tc/wordAssociation/wordAssoServer",
+    "autorestart" : false,
     "env": {
         "WORDASSO_NODE_ENV": "production",
         "DROPBOX_WORD_ASSO_ACCESS_TOKEN" : "nknEWsIkD5UAAAAAAAQouTDFRBKfwsFzuS8PPi2Q_JVYnpotNuaHiddNtmG4mUTi",

@@ -70,6 +70,7 @@ var sessionUpdatesSent = 0;
 
 var wordAssoServerStatsObj = {
 
+  "name" : "Word Association Server Status",
   "host" : os.hostname(),
   "timeStamp" : getTimeStamp(),
   "runTimeArgs" : process.argv,
@@ -106,7 +107,7 @@ var chalkGreen = chalk.green;
 var chalkAdmin = chalk.bold.cyan;
 var chalkConnectAdmin = chalk.bold.cyan;
 var chalkConnect = chalk.green;
-var chalkDisconnect = chalk.blue;
+var chalkDisconnect = chalk.black;
 var chalkInfo = chalk.gray;
 var chalkTest = chalk.yellow;
 var chalkAlert = chalk.red;
@@ -114,8 +115,8 @@ var chalkError = chalk.bold.red;
 var chalkWarn = chalk.bold.yellow;
 var chalkLog = chalk.gray;
 var chalkSession = chalk.blue;
-var chalkPrompt = chalk.bold.blue;
-var chalkResponse = chalk.bold.blue;
+var chalkPrompt = chalk.blue;
+var chalkResponse = chalk.blue;
 var chalkBht = chalk.red;
 var chalkDb = chalk.gray;
 var chalkGoogle = chalk.green;
@@ -245,12 +246,13 @@ function dropboxWriteArrayToFile(filePath, dataArray, callback){
 function saveStats (dropboxHostStatsFile, wordAssoServerStatsObj, callback){
   dropboxClient.writeFile(dropboxHostStatsFile, JSON.stringify(wordAssoServerStatsObj, null, 2), function(error, stat) {
     if (error) {
-      console.error(chalkError(getTimeStamp() + " | !!! ERROR STATUS WRITE | FILE: " + dropboxHostStatsFile + " ERROR: " + error));
+      console.error(chalkError(getTimeStamp() + " | !!! ERROR STATUS WRITE | FILE: " + dropboxHostStatsFile 
+        + " ERROR: " + error));
       callback(error);
     }
     else {
       console.log(chalkLog(getTimeStamp() + " | SAVED STATUS | FILE: " + dropboxHostStatsFile));
-      console.log(chalkLog(getTimeStamp() + " | SAVED STATUS | STATUS\n" + jsonPrint(wordAssoServerStatsObj)));
+      // console.log(chalkLog(getTimeStamp() + " | SAVED STATUS | STATUS\n" + jsonPrint(wordAssoServerStatsObj)));
       callback('OK');
     }
   });
@@ -259,7 +261,7 @@ function saveStats (dropboxHostStatsFile, wordAssoServerStatsObj, callback){
 function updateStats(updateObj){
   for (var key in updateObj) {
      if (updateObj.hasOwnProperty(key)) {
-        console.log("UPDATING WORD ASSO STATUS | " + key + ": " + updateObj[key]);
+        debug("UPDATING WORD ASSO STATUS | " + key + ": " + updateObj[key]);
         wordAssoServerStatsObj[key] = updateObj[key];
      }
   }
@@ -290,6 +292,8 @@ function loadStats(){
           var statsObj = JSON.parse(statsJson);
 
           console.log("DROPBOX STATS\n" + JSON.stringify(statsObj, null, 3));
+
+          if (typeof statsObj.name === 'undefined') statsObj.name = 'Word Assocition Server Status | ' + os.hostname()
 
           console.log(chalkInfo(getTimeStamp() + " | FOUND " + statsObj.name));
 
@@ -584,7 +588,8 @@ function dnsReverseLookup(ip, callback) {
 }
 
 function updatePromptResponseMetric(sessionUpdateObj){
-  debug("PROMPT-RESPONSE RATE FIFO PUSH: NOW: " + getTimeNow() + " | PROMPT-RESPONSE SESSION: " + sessionUpdateObj.sessionId);
+  debug("PROMPT-RESPONSE RATE FIFO PUSH: NOW: " + getTimeNow() 
+    + " | PROMPT-RESPONSE SESSION: " + sessionUpdateObj.sessionId);
   promptResponseRate1minQ.enqueue(moment.utc());
 }
 
@@ -598,7 +603,7 @@ function updateSessionViews(sessionUpdateObj){
 
     Session.count({}, function(err,count){
       if (!err){ 
-        console.log("TOTAL SESSIONS: " + count);
+        debug("TOTAL SESSIONS: " + count);
         totalSessions = count ;
         updateStats({totalSessions: totalSessions});
       } 
@@ -664,12 +669,12 @@ function sendPromptWord(clientObj, promptWordObj){
 
   if (currentSession.wordChain.length >= 2) {
     var previousResponse = currentSession.wordChain[currentSession.wordChain.length-2];
-    console.log(chalkPrompt("PROMPT   | " + clientObj.socketId + " | " + previousResponse.nodeId + " --> " + promptWordObj.nodeId));
+    console.log(chalkPrompt("PROMPT   | " + clientObj.socketId 
+      + " | " + previousResponse.nodeId + " --> " + promptWordObj.nodeId));
   } else {
-    console.log(chalkPrompt("PROMPT   | " + clientObj.socketId  + " | " + clientObj.config.type + " | SESSION START --> " + promptWordObj.nodeId));
+    console.log(chalkPrompt("PROMPT   | " + clientObj.socketId  
+      + " | " + clientObj.config.type + " | SESSION START --> " + promptWordObj.nodeId));
   }
-
-  // console.log("sendPromptWord clientObj\n" + jsonPrint(clientObj.config));
 
   if ((typeof clientObj.config !== 'undefined') && (clientObj.config != null)) {
 
@@ -791,7 +796,7 @@ function readSocketQueue(){
 
             io.of('/admin').emit('CLIENT SESSION', JSON.stringify({connected: true, clientObj: socketObj}));
 
-            console.log(chalkTest("CL CONNECT SESSION VIEW "
+            console.log(chalkTest("CONNECT SESSION VIEW "
               + getTimeStamp() 
               + " | S: " + socketObj.socketId 
               + " | I: " + socketObj.ip 
@@ -809,8 +814,8 @@ function readSocketQueue(){
 
             io.of('/admin').emit('CLIENT SESSION', JSON.stringify({connected: true, clientObj: socketObj}));
 
-            console.log(chalkTest("TEST CL CONNECT"
-              + " [" + numberTestClients + " TEST CLIENTS] " 
+            console.log(chalkTest("CONNECT  "
+              + " [" + numberTestClients + "] " 
               + getTimeStamp() 
               + " | S: " + socketObj.socketId 
               + " | I: " + socketObj.ip 
@@ -826,7 +831,7 @@ function readSocketQueue(){
 
             clientSocketIdHashMap.set(socketObj.socketId, socketObj);
 
-            console.log(chalkConnect("CL CONNECT    "
+            console.log(chalkConnect("CONNECT   "
               + "[" + numberClientsConnected + "] " 
               + getTimeStamp() 
               + " | S: " + socketObj.socketId 
@@ -849,7 +854,8 @@ function readSocketQueue(){
             numberTestClients--; 
           }
           else {
-            console.error(chalkError("??? DISCONNECT " + socketObj.socketId + " but numberTestClients = " + numberTestClients));
+            console.error(chalkError("??? DISCONNECT " + socketObj.socketId 
+              + " but numberTestClients = " + numberTestClients));
           }
         }
       }
@@ -881,8 +887,8 @@ function readSocketQueue(){
           // clientSocketIdHashMap.remove(cl.socketId);
           // clientIpHashMap.set(cl.ip, cl);
 
-          console.log(chalkDisconnect("CL DISCONNECT " 
-              + "[" + numberClientsConnected + "] " 
+          console.log(chalkTest("DISCONNECT" 
+              + " [" + numberClientsConnected + "] " 
             + getTimeStamp() 
             + " | S: " + cl.socketId 
             + " | I: " + cl.ip 
@@ -966,24 +972,24 @@ function addWordToDb(wordObj, incMentions, callback){
             callback('BHT_ERROR', wordObj);
           }
           else if (bhtResponseObj.bhtFound){
-            console.log(chalkBht("-*- BHT HIT   | " + bhtResponseObj.nodeId));
+            debug(chalkBht("-*- BHT HIT   | " + bhtResponseObj.nodeId));
             wordHashMap.set(bhtResponseObj.nodeId, bhtResponseObj);
             callback('BHT_HIT', wordObj);
           }
           else {
-            console.log(chalkBht("-O- BHT MISS  | " + wordObj.nodeId));
+            debug(chalkBht("-O- BHT MISS  | " + wordObj.nodeId));
             wordHashMap.set(bhtResponseObj.nodeId, bhtResponseObj);
             callback('BHT_MISS', wordObj);
           }
         });
       }
       else if (word.bhtFound){
-        console.log(chalkBht("-F- BHT FOUND | " + word.nodeId));
+        debug(chalkBht("-F- BHT FOUND | " + word.nodeId));
         wordHashMap.set(word.nodeId, word);
         callback('BHT_FOUND', word);
       }
       else {
-        console.log(chalkBht("-N- BHT NOT FOUND  | " + word.nodeId));
+        debug(chalkBht("-N- BHT NOT FOUND  | " + word.nodeId));
         wordHashMap.set(word.nodeId, word);
         callback('BHT_NOT_FOUND', word);
       }
@@ -1032,7 +1038,7 @@ function generateResponse(wordObj, callback){
     loadBhtResponseHash(wordObj, function(bhtWordHashMap){
 
       if (bhtWordHashMap.count() == 0) {
-        console.log(chalkBht("-v- BHT EMPTY | " + wordObj.nodeId));
+        debug(chalkBht("-v- BHT EMPTY | " + wordObj.nodeId));
         callback('BHT_EMPTY', wordObj);  // ?? maybe unknown wordType?
         return;
       }
@@ -1045,7 +1051,7 @@ function generateResponse(wordObj, callback){
 
       if (wordHashMap.has(responseWord)){
 
-        console.log("-*- HASH HIT  | " + responseWord);
+        debug("-*- HASH HIT  | " + responseWord);
 
         responseWordObj = wordHashMap.get(responseWord);
         responseWordObj.lastSeen = moment();
@@ -1056,7 +1062,7 @@ function generateResponse(wordObj, callback){
             callback('BHT_ERROR', responseWordObj);
           }
           else {
-            console.log("->- DB UPDATE | " + word.nodeId + " | MNS: " + word.mentions );
+            debug("->- DB UPDATE | " + word.nodeId + " | MNS: " + word.mentions );
             debug(JSON.stringify(word, null, 3));
 
             if (!word.bhtSearched) {  // not yet bht searched
@@ -1074,24 +1080,24 @@ function generateResponse(wordObj, callback){
                   callback('BHT_ERROR', wordObj);
                 }
                 else if (wordObj.bhtFound){
-                  console.log(chalkBht("-*- BHT HIT   | " + wordObj.nodeId));
+                  debug(chalkBht("-*- BHT HIT   | " + wordObj.nodeId));
                   wordHashMap.set(wordObj.nodeId, wordObj);
                   callback('BHT_HIT', wordObj);
                 }
                 else {
-                  console.log(chalkBht("-O- BHT MISS  | " + wordObj.nodeId));
+                  debug(chalkBht("-O- BHT MISS  | " + wordObj.nodeId));
                   wordHashMap.set(wordObj.nodeId, wordObj);
                   callback('BHT_MISS', wordObj);
                 }
               });
             }
             else if (word.bhtFound){
-              console.log(chalkBht("-F- BHT FOUND | " + word.nodeId));
+              debug(chalkBht("-F- BHT FOUND | " + word.nodeId));
               wordHashMap.set(word.nodeId, word);
               callback('BHT_FOUND', word);
             }
             else {
-              console.log(chalkBht("-N- BHT NOT FOUND  | " + word.nodeId));
+              debug(chalkBht("-N- BHT NOT FOUND  | " + word.nodeId));
               wordHashMap.set(word.nodeId, word);
               callback('BHT_NOT_FOUND', word);
             }
@@ -1100,7 +1106,7 @@ function generateResponse(wordObj, callback){
       }
       else {
 
-        console.log("-O- HASH MISS | " + responseWord);
+        debug("-O- HASH MISS | " + responseWord);
         // var dateNow = Date.now();
 
         var responseWordObj = new Word ({
@@ -1114,7 +1120,7 @@ function generateResponse(wordObj, callback){
             callback('BHT_ERROR', responseWordObj);
           }
           else {
-            console.log("->- DB UPDATE | " + word.nodeId + " | MNS: " + word.mentions);
+            debug("->- DB UPDATE | " + word.nodeId + " | MNS: " + word.mentions);
             debug(JSON.stringify(word, null, 3));
 
             if (!word.bhtSearched) {  // not yet bht searched
@@ -1132,24 +1138,24 @@ function generateResponse(wordObj, callback){
                   callback('BHT_ERROR', wordObj);
                 }
                 else if (bhtResponseObj.bhtFound){
-                  console.log(chalkBht("-*- BHT HIT   | " + bhtResponseObj.nodeId));
+                  debug(chalkBht("-*- BHT HIT   | " + bhtResponseObj.nodeId));
                   wordHashMap.set(bhtResponseObj.nodeId, bhtResponseObj);
                   callback('BHT_HIT', bhtResponseObj);
                 }
                 else {
-                  console.log(chalkBht("-O- BHT MISS  | " + bhtResponseObj.nodeId));
+                  debug(chalkBht("-O- BHT MISS  | " + bhtResponseObj.nodeId));
                   wordHashMap.set(bhtResponseObj.nodeId, bhtResponseObj);
                   callback('BHT_MISS', bhtResponseObj);
                 }
               });
             }
             else if (word.bhtFound){
-              console.log(chalkBht("-F- BHT FOUND | " + word.nodeId));
+              debug(chalkBht("-F- BHT FOUND | " + word.nodeId));
               wordHashMap.set(word.nodeId, word);
               callback('BHT_FOUND', word);
             }
             else {
-              console.log(chalkBht("-N- BHT NOT FOUND  | " + word.nodeId));
+              debug(chalkBht("-N- BHT NOT FOUND  | " + word.nodeId));
               wordHashMap.set(word.nodeId, word);
               callback('BHT_NOT_FOUND', word);
             }
@@ -1171,14 +1177,14 @@ function generateResponse(wordObj, callback){
         callback('BHT_ERROR', wordObj);
       }
       else if (!bhtResponseObj.bhtFound){
-        console.log(chalkError("BHT MISS: " + bhtResponseObj.nodeId));
+        debug(chalkError("BHT MISS: " + bhtResponseObj.nodeId));
         callback('BHT_MISS', bhtResponseObj);
       }
       else {
         loadBhtResponseHash(bhtResponseObj, function(bhtWordHashMap){
 
           if (bhtWordHashMap.count() == 0) {
-            console.log(chalkBht("-v- BHT EMPTY | " + wordObj.nodeId));
+            debug(chalkBht("-v- BHT EMPTY | " + wordObj.nodeId));
             callback('BHT_EMPTY', bhtResponseObj);  // ?? maybe unknown wordType?
             return ;
           }
@@ -1187,11 +1193,11 @@ function generateResponse(wordObj, callback){
           var randomIndex = randomInt(0, bhtWordHashMapKeys.length);
           var responseWord = bhtWordHashMapKeys[randomIndex].toLowerCase();
 
-          console.log(  "--- GEN RSPNS | " + bhtResponseObj.nodeId + " --> " + responseWord);
+          debug(  "--- GEN RSPNS | " + bhtResponseObj.nodeId + " --> " + responseWord);
 
           if (wordHashMap.has(responseWord)){
 
-            console.log("-*- HASH HIT  | " + responseWord);
+            debug("-*- HASH HIT  | " + responseWord);
 
             responseWordObj = wordHashMap.get(responseWord);
             responseWordObj.lastSeen = moment();
@@ -1202,7 +1208,7 @@ function generateResponse(wordObj, callback){
                 callback('BHT_ERROR', responseWordObj);
               }
               else {
-                console.log("->- DB UPDATE | " + word.nodeId + " | MNS: " + word.mentions );
+                debug("->- DB UPDATE | " + word.nodeId + " | MNS: " + word.mentions );
                 debug(JSON.stringify(word, null, 3));
 
                 if (!word.bhtSearched) {  // not yet bht searched
@@ -1220,24 +1226,24 @@ function generateResponse(wordObj, callback){
                       callback('BHT_ERROR', word);
                     }
                     else if (bhtResponseObj.bhtFound){
-                      console.log(chalkBht("-*- BHT HIT   | " + bhtResponseObj.nodeId));
+                      debug(chalkBht("-*- BHT HIT   | " + bhtResponseObj.nodeId));
                       wordHashMap.set(bhtResponseObj.nodeId, bhtResponseObj);
                       callback('BHT_HIT', bhtResponseObj);
                     }
                     else {
-                      console.log(chalkBht("-O- BHT MISS  | " + bhtResponseObj.nodeId));
+                      debug(chalkBht("-O- BHT MISS  | " + bhtResponseObj.nodeId));
                       wordHashMap.set(bhtResponseObj.nodeId, bhtResponseObj);
                       callback('BHT_MISS', bhtResponseObj);
                     }
                   });
                 }
                 else if (word.bhtFound){
-                  console.log(chalkBht("-F- BHT FOUND | " + word.nodeId));
+                  debug(chalkBht("-F- BHT FOUND | " + word.nodeId));
                   wordHashMap.set(word.nodeId, word);
                   callback('BHT_FOUND', word);
                 }
                 else {
-                  console.log(chalkBht("-N- BHT NOT FOUND  | " + word.nodeId));
+                  debug(chalkBht("-N- BHT NOT FOUND  | " + word.nodeId));
                   wordHashMap.set(word.nodeId, word);
                   callback('BHT_NOT_FOUND', word);
                 }
@@ -1246,7 +1252,7 @@ function generateResponse(wordObj, callback){
           }
           else {
 
-            console.log("-O- HASH MISS | " + responseWord);
+            debug("-O- HASH MISS | " + responseWord);
             // var dateNow = Date.now();
 
             var responseWordObj = new Word ({
@@ -1260,7 +1266,7 @@ function generateResponse(wordObj, callback){
                 callback('BHT_ERROR', responseWordObj);
               }
               else {
-                console.log("->- DB UPDATE | " + word.nodeId + " | MNS: " + word.mentions);
+                debug("->- DB UPDATE | " + word.nodeId + " | MNS: " + word.mentions);
                 debug(JSON.stringify(word, null, 3));
 
                 if (!word.bhtSearched) {  // not yet bht searched
@@ -1278,19 +1284,19 @@ function generateResponse(wordObj, callback){
                       callback('BHT_ERROR', word);
                     }
                     else {
-                      console.log(chalkBht("-O- BHT MISS  | " + bhtResponseObj.nodeId));
+                      debug(chalkBht("-O- BHT MISS  | " + bhtResponseObj.nodeId));
                       wordHashMap.set(bhtResponseObj.nodeId, bhtResponseObj);
                       callback('BHT_MISS', bhtResponseObj);
                     }
                   });
                 }
                 else if (word.bhtFound){
-                  console.log(chalkBht("-F- BHT FOUND | " + word.nodeId));
+                  debug(chalkBht("-F- BHT FOUND | " + word.nodeId));
                   wordHashMap.set(word.nodeId, word);
                   callback('BHT_FOUND', word);
                 }
                 else {
-                  console.log(chalkBht("-N- BHT NOT FOUND  | " + word.nodeId));
+                  debug(chalkBht("-N- BHT NOT FOUND  | " + word.nodeId));
                   wordHashMap.set(word.nodeId, word);
                   callback('BHT_NOT_FOUND', word);
                 }
@@ -1338,9 +1344,12 @@ bhtEvents.on("BHT_OVER_LIMIT", function(bhtRequests){
   bhtTimeToReset.subtract(bhtOverLimitTime);
 
   console.log(chalkBht("bhtSearchWord: *** OVER LIMIT *** | " + bhtRequests + " REQUESTS"));
-  console.log(chalkBht("bhtSearchWord: *** OVER LIMIT *** | BHT OVER LIMIT TIME:      " + bhtOverLimitTime.format(defaultDateTimeFormat)));
-  console.log(chalkBht("bhtSearchWord: *** OVER LIMIT *** | BHT LIMIT RESET TIME:     " + bhtLimitResetTime.format(defaultDateTimeFormat)));
-  console.log(chalkBht("bhtSearchWord: *** OVER LIMIT *** | BHT OVER LIMIT REMAINING: " + bhtTimeToReset.format(defaultTimePeriodFormat)));
+  console.log(chalkBht("bhtSearchWord: *** OVER LIMIT *** | BHT OVER LIMIT TIME:      " 
+    + bhtOverLimitTime.format(defaultDateTimeFormat)));
+  console.log(chalkBht("bhtSearchWord: *** OVER LIMIT *** | BHT LIMIT RESET TIME:     " 
+    + bhtLimitResetTime.format(defaultDateTimeFormat)));
+  console.log(chalkBht("bhtSearchWord: *** OVER LIMIT *** | BHT OVER LIMIT REMAINING: " 
+    + bhtTimeToReset.format(defaultTimePeriodFormat)));
 
   console.log("SET bhtOverLimitTimeOut = " + moment.duration(bhtTimeToReset) + " ms");
 
@@ -1501,7 +1510,7 @@ function incrementSocketBhtReqs(delta){
   }
   else {
     bhtRequests += delta;
-    console.log(chalkInfo("... BHT REQS: " + bhtRequests + " | DELTA: " + delta));
+    debug(chalkInfo("... BHT REQS: " + bhtRequests + " | DELTA: " + delta));
   }
   incrementDeltaBhtReqs(delta);
 }
@@ -1538,15 +1547,15 @@ function sessionConnectDb (sessionObj, callback) {
         callback(err, sessionObj);
       }
       else {
-        console.log(chalkSession(">>> SESSION CONNECT UPDATED" 
-          + "\n  SESSION ID: " + ses.sessionId
-          + "\n  USER ID: " + ses.userId 
-          + "\n  DISCONNECT TIME: " + getTimeStamp(ses.disconnectTime)
-          + "\n  WORD CHAIN LENGTH: " + ses.wordChain.length 
-          + "\n  CREATED: " + getTimeStamp(ses.createdAt)
-          + "\n  LAST SEEN: " + getTimeStamp(ses.lastSeen)
-          + "\n  CONNECTED: " + ses.connected
-          + "\n  DISCONNECT TIME: " + getTimeStamp(ses.disconnectTime)
+        console.log(chalkSession("SESSION CONNECT" 
+          + " | ID: " + ses.sessionId
+          + " | USR ID: " + ses.userId 
+          // + "\n  DISCONNECT TIME: " + getTimeStamp(ses.disconnectTime)
+          // + "\n  WORD CHAIN LENGTH: " + ses.wordChain.length 
+          // + "\n  CREATED: " + getTimeStamp(ses.createdAt)
+          // + "\n  LAST SEEN: " + getTimeStamp(ses.lastSeen)
+          // + "\n  CONNECTED: " + ses.connected
+          // + "\n  DISCONNECT TIME: " + getTimeStamp(ses.disconnectTime)
         ));
         callback(null, ses);
       }
@@ -1584,7 +1593,7 @@ function sessionDisconnectDb(sessionObj, callback){
         callback(err, sessionObj);
       }
       else {
-        console.log(chalkSession(">>> SESSION DISCONNECT UPDATED" 
+        debug(chalkSession(">>> SESSION DISCONNECT UPDATED" 
           + "\n  SESSION ID: " + ses.sessionId
           + "\n  USER ID: " + ses.userId 
           + "\n  DISCONNECT TIME: " + getTimeStamp(ses.disconnectTime)
@@ -1594,7 +1603,7 @@ function sessionDisconnectDb(sessionObj, callback){
           + "\n  CONNECTED: " + ses.connected
           + "\n  DISCONNECT TIME: " + getTimeStamp(ses.disconnectTime)
         ));
-        if (ses.wordChain) console.log(chalkSession("  WORD CHAIN LENGTH: " + ses.wordChain.length));
+        // if (ses.wordChain) console.log(chalkSession("  WORD CHAIN LENGTH: " + ses.wordChain.length));
         callback(null, ses);
       }
     }
@@ -1607,13 +1616,13 @@ function readSessionQueue(){
 
   while (!sessionQueue.isEmpty()){
     sesObj = sessionQueue.dequeue();
-    console.log(chalkSession("READ SESSION QUEUE\n" + jsonPrint(sesObj)));
+    debug(chalkSession("READ SESSION QUEUE\n" + jsonPrint(sesObj)));
     sessionConnectDb(sesObj, function(err, sessionObj){
       if (err){
         sessionHashMap.set(sesObj.sessionId, sesObj);
       }
       else {
-        console.log(chalkSession("SESSION DB UPDATED | " + sessionObj.sessionId));
+        debug(chalkSession("SESSION DB UPDATED | " + sessionObj.sessionId));
         sessionHashMap.set(sessionObj.sessionId, sessionObj);
       }
     });
@@ -1729,33 +1738,12 @@ function createClientSocket (socket){
   // adding also after enqueue; adding early to so add will show up earlier
   clientSocketIdHashMap.set(socketId, clientObj);  
 
-  // if (referer == 'SESSIONVIEW') {
-  // }
-  // else {
-
-  //   var sessionObj = {
-  //     sessionId: socketId,
-  //     userId: clientIp + "_" + socketId,
-  //     createAt: Date.now(),
-  //     wordChain: []
-  //   }
-    
-  //   sessionHashMap.set(sessionObj.sessionId, sessionObj);  
-    
-  //   console.log("-S- CREATED SESSION | " + sessionObj.sessionId );
-
-  //   sessionQueue.enqueue(sessionObj);
-
-  //   readSessionQueue();
-  // }
-
   socketQueue.enqueue(clientObj);
 
   readSocketQueue();
 
   socket.on("error", function(err){
     console.error(chalkError(getTimeStamp() + " | *** SOCKET ERROR: " + err));
-    // console.error(chalkError("\nSOCKET ERROR" + util.inspect(socket, {showHidden: false, depth: 1})));
   });
 
   socket.on("reconnect", function(err){
@@ -1764,7 +1752,6 @@ function createClientSocket (socket){
       var clientReconnectObj = clientSocketIdHashMap.get(socket.id);
       console.log("FOUND RECONNECTED CLIENT IN HASH:" + clientReconnectObj.socketId);
     }
-    // console.error(chalkError("\nSOCKET ERROR" + util.inspect(socket, {showHidden: false, depth: 1})));
   });
 
   socket.on("disconnect", function(){
@@ -1810,7 +1797,7 @@ function createClientSocket (socket){
 
     if (config) {
       
-      console.log(chalkConnect("CL READY  "
+      console.log(chalkConnect("CL READY"
         + " | " + socketId
         + " | TYPE: " + config.type 
         + " | MODE: " + config.mode 
@@ -1842,7 +1829,8 @@ function createClientSocket (socket){
       
       sessionHashMap.set(sessionObj.sessionId, sessionObj);  
       
-      console.log("-S- CREATED SESSION | " + jsonPrint(sessionObj));
+      // console.log("-S- CREATED SESSION | " + jsonPrint(sessionObj));
+      // console.log(chalkSession("-S- CREATED SESSION | " + sessionObj.sessionId));
 
       sessionQueue.enqueue(sessionObj);
 
@@ -1901,59 +1889,6 @@ function createClientSocket (socket){
       });
 
     });
-
-    // words.getRandomWord(function(err, randomWordObj){
-    //   if (!err) {
-
-    //     debug("randomWordObj\n" + JSON.stringify(randomWordObj, null, 3));
-    //     // console.log(chalkResponse(socketId + " <-- " + randomWordObj.nodeId + " (RANDOM)"));
-
-    //     wordHashMap.set(randomWordObj.nodeId, randomWordObj);
-
-    //     var currentSession ;
-
-    //     if (!sessionHashMap.has(socketId)){
-    //       console.error(chalkError("!!! NO CURRENT SESSION FOR NEW CONNECTED CLIENT | " + socketId));
-
-    //       currentSession = {
-    //         sessionId: socketId,
-    //         userId: clientObj.ip + "_" + socketId,
-    //         createAt: moment(),
-    //         lastSeen: moment(),
-    //         connected: true,
-    //         disconnectTime: moment()
-    //       }
-
-    //       currentSession.wordChain = [] ;
-    //       currentSession.wordChain.push(randomWordObj) ;
-
-    //       sessionHashMap.set(socketId, currentSession);
-
-    //       sessionConnectDb(currentSession, function(){
-    //         if (!err) sessionHashMap.set(socketId, currentSession);
-    //       });
-    //     }
-    //     else {
-    //       currentSession = sessionHashMap.get(socketId);
-    //       currentSession.wordChain.push(randomWordObj) ;
-    //     }
-
-    //     sendPromptWord(clientObj, randomWordObj);
-
-    //     debug(clientObj.socketId + " clientObj.config" + jsonPrint(clientObj.config));
-
-    //     var sessionUpdateObj = {
-    //       client: clientObj.config,
-    //       sessionId: socketId,
-    //       sourceWord: randomWordObj,
-    //       targetWord: randomWordObj
-    //     };
-
-    //     updateSessionViews(sessionUpdateObj);
-
-    //   }
-    // });
-
   })
 
   socket.on("RESPONSE_WORD_OBJ", function(responseInObj){
@@ -1967,8 +1902,6 @@ function createClientSocket (socket){
       responsesReceived: responsesReceived
     });
 
-
-    // var dateNow = moment();
     var socketId = socket.id;
     var clientObj = clientSocketIdHashMap.get(socketId);
 
@@ -1978,7 +1911,8 @@ function createClientSocket (socket){
     var promptWord ;
     var previousPrompt = currentSession.wordChain[currentSession.wordChain.length-1] ;
 
-    console.log(chalkResponse("RESPONSE | " + socketId + " | " + responseInObj.nodeId + " <-- " + previousPrompt.nodeId));
+    console.log(chalkResponse("RESPONSE | " + socketId 
+      + " | " + responseInObj.nodeId + " <-- " + previousPrompt.nodeId));
 
     var responseWordObj;
 
@@ -1986,7 +1920,7 @@ function createClientSocket (socket){
 
       if (wordHashMap.has(rwObj.nodeId)){
 
-        console.log("-*- HASH HIT  | " + rwObj.nodeId);
+        debug("-*- HASH HIT  | " + rwObj.nodeId);
 
         responseWordObj = wordHashMap.get(rwObj.nodeId);
         responseWordObj.mentions = rwObj.mentions;
@@ -2014,8 +1948,10 @@ function createClientSocket (socket){
             ) {
             words.getRandomWord(function(err, randomWordObj){
               if (!err) {
-                // console.log(chalkResponse(socketId + " | " + responseWordObj.nodeId + " --> " + randomWordObj.nodeId + " (RANDOM)"));
-                // console.log(chalkPrompt("PROMPT | " + clientObj.socketId + " | " + previousResponse.nodeId + " --> " + promptWordObj.nodeId));
+                // debug(chalkResponse(socketId 
+                //   + " | " + responseWordObj.nodeId + " --> " + randomWordObj.nodeId + " (RANDOM)"));
+                // debug(chalkPrompt("PROMPT | " + clientObj.socketId 
+                //   + " | " + previousResponse.nodeId + " --> " + promptWordObj.nodeId));
 
                 randomWordObj.lastSeen = moment();
 
@@ -2036,7 +1972,7 @@ function createClientSocket (socket){
             });
           }
           else {
-            // console.log(chalkResponse(socketId + " | " + responseWordObj.nodeId + " --> " + promptWordObj.nodeId));
+            debug(chalkResponse(socketId + " | " + responseWordObj.nodeId + " --> " + promptWordObj.nodeId));
 
             wordHashMap.set(promptWordObj.nodeId, promptWordObj);
             currentSession.wordChain.push(promptWordObj) ;
@@ -2059,7 +1995,7 @@ function createClientSocket (socket){
       }
       else {
 
-        console.log("-O- HASH MISS | " + rwObj.nodeId);
+        debug("-O- HASH MISS | " + rwObj.nodeId);
 
         responseWordObj = rwObj ;
         // responseWordObj.bhtSearched = false ;
@@ -2081,7 +2017,7 @@ function createClientSocket (socket){
             }
           }
           else {
-            console.log("->- DB UPDATE | " + wordDbObj.nodeId 
+            debug("->- DB UPDATE | " + wordDbObj.nodeId 
               + " | MNS: " + wordDbObj.mentions
               );
             currentSession.wordChain.push(wordDbObj) ;
@@ -2113,7 +2049,8 @@ function createClientSocket (socket){
 
             words.getRandomWord(function(err, randomWordObj){
               if (!err) {
-                // console.log(chalkResponse(socketId + " | " + responseWordObj.nodeId + " --> " + randomWordObj.nodeId + " (RANDOM)"));
+                debug(chalkResponse(socketId 
+                  + " | " + responseWordObj.nodeId + " --> " + randomWordObj.nodeId + " (RANDOM)"));
 
                 randomWordObj.lastSeen = moment();
 
@@ -2134,7 +2071,7 @@ function createClientSocket (socket){
             });
           }
           else {
-            // console.log(chalkResponse(socketId + " | " + responseWordObj.nodeId + " --> " + promptWordObj.nodeId));
+            debug(chalkResponse(socketId + " | " + responseWordObj.nodeId + " --> " + promptWordObj.nodeId));
 
             promptWordObj.lastSeen = moment();
 
@@ -2221,7 +2158,8 @@ function clientConnectDb (clientObj, callback) {
   // debug("clientConnectDb: clientObj: " + JSON.stringify(clientObj, null, 3));
   // debug("clientConnectDb: clientObj: " + util.inspect(clientObj, {showHidden: false, depth: 1}));
     if (typeof clientObj.socket !== 'undefined'){
-      debug("clientConnectDb CONNECT STATE: " + clientObj.socket.connected + " | CLIENT OBJ CONN: " + clientObj.connected);
+      debug("clientConnectDb CONNECT STATE: " + clientObj.socket.connected 
+        + " | CLIENT OBJ CONN: " + clientObj.connected);
     }
     else{
       debug("??? DISCONNECTED STATE: CLIENT OBJ CONN: " + clientObj.connected);      
@@ -2551,7 +2489,8 @@ function authorizeGoogle(){
       googleMetricsEnabled = true ;
       oauthExpiryTimer(tokens.expiry_date);
 
-      console.log(chalkInfo(getTimeStamp() + " | GOOGLE OAUTH2 AUTHORIZED: ExpiryDate: " + getTimeStamp(googleAuthExpiryDate)));
+      console.log(chalkInfo(getTimeStamp() 
+        + " | GOOGLE OAUTH2 AUTHORIZED: ExpiryDate: " + getTimeStamp(googleAuthExpiryDate)));
       googleOauthEvents.emit('GOOGLE AUTHORIZED', credential);
     }
   });
@@ -2748,7 +2687,9 @@ function updateMetrics(
           "end": metricDate
          },
          "timeseriesDesc": {
-          "labels": { "custom.cloudmonitoring.googleapis.com/word-asso/responses/totalResponsesReceived" : "RESPONSES RECEIVED"},
+          "labels": { 
+            "custom.cloudmonitoring.googleapis.com/word-asso/responses/totalResponsesReceived" : "RESPONSES RECEIVED"
+          },
           "metric": "custom.cloudmonitoring.googleapis.com/word-asso/responses/totalResponsesReceived"
          }
         },
@@ -2760,7 +2701,9 @@ function updateMetrics(
           "end": metricDate
          },
          "timeseriesDesc": {
-          "labels": { "custom.cloudmonitoring.googleapis.com/word-asso/responses/deltaResponsesReceived" : "DELTA RESPONSES RECEIVED"},
+          "labels": { 
+            "custom.cloudmonitoring.googleapis.com/word-asso/responses/deltaResponsesReceived" : "DELTA RESPONSES RECEIVED"
+          },
           "metric": "custom.cloudmonitoring.googleapis.com/word-asso/responses/deltaResponsesReceived"
          }
         },
@@ -2772,7 +2715,9 @@ function updateMetrics(
           "end": metricDate
          },
          "timeseriesDesc": {
-          "labels": { "custom.cloudmonitoring.googleapis.com/word-asso/bht/deltaBhtRequests" : "DELTA BHT REQUESTS"},
+          "labels": { 
+            "custom.cloudmonitoring.googleapis.com/word-asso/bht/deltaBhtRequests" : "DELTA BHT REQUESTS"
+          },
           "metric": "custom.cloudmonitoring.googleapis.com/word-asso/bht/deltaBhtRequests"
          }
         },
@@ -2784,7 +2729,9 @@ function updateMetrics(
           "end": metricDate
          },
          "timeseriesDesc": {
-          "labels": { "custom.cloudmonitoring.googleapis.com/word-asso/bht/numberBhtRequests" : "TOTAL DAILY BHT REQUESTS"},
+          "labels": { 
+            "custom.cloudmonitoring.googleapis.com/word-asso/bht/numberBhtRequests" : "TOTAL DAILY BHT REQUESTS"
+          },
           "metric": "custom.cloudmonitoring.googleapis.com/word-asso/bht/numberBhtRequests"
          }
         },
@@ -3023,7 +2970,8 @@ configEvents.on("SERVER_READY", function () {
     if (numberClientsConnected > maxNumberClientsConnected) {
       maxNumberClientsConnected = numberClientsConnected;
       maxNumberClientsConnectedTime = currentTime;
-      console.log(chalkAlert(getTimeStamp() + " | NEW MAX CLIENTS CONNECTED: " + maxNumberClientsConnected));
+      console.log(chalkAlert("NEW MAX CLIENTS CONNECTED: " + maxNumberClientsConnected 
+        + " | " + getTimeStamp()));
     }
 
     runTime =  getTimeNow() - startTime ;
@@ -3073,7 +3021,7 @@ configEvents.on("SERVER_READY", function () {
       io.of('/admin').emit('HEARTBEAT', txHeartbeat);
       io.of('/test').emit('HEARTBEAT', txHeartbeat);
 
-      if (heartbeatsSent%10 == 0) {
+      if (heartbeatsSent%60 == 0) {
         logHeartbeat();
       }
 
@@ -3478,7 +3426,9 @@ io.of("/admin").on("connect", function(socket){
       console.log("configPropertyName: " + configPropertyName + " | " + rxAdminConfig[configPropertyName]);
       previousProperty = serverSessionConfig[configPropertyName];
       serverSessionConfig[configPropertyName] = rxAdminConfig[configPropertyName];
-      console.log(configPropertyName + " was: " + previousProperty + " | now: " + serverSessionConfig[configPropertyName]);
+      console.log(configPropertyName 
+        + " was: " + previousProperty 
+        + " | now: " + serverSessionConfig[configPropertyName]);
     }
 
     console.log("\nNEW serverSessionConfig:\n" + JSON.stringify(serverSessionConfig, null, 3));
@@ -3660,7 +3610,8 @@ var clientSocketCheckInterval = setInterval(function () {
     if (clientSockets.has(socketId)){
      }
     else {
-      console.warn(chalkWarn("??? DISCONNECTED STATE: CLIENT OBJ CONN: " + clientObj.connected + " ... REMOVING FROM HASH ..."));  
+      console.warn(chalkWarn("??? DISCONNECTED STATE: CLIENT OBJ CONN: " + clientObj.connected 
+        + " ... REMOVING FROM HASH ..."));  
       clientSocketIdHashMap.remove(socketId);    
     }
   });
@@ -3676,7 +3627,8 @@ var rateQinterval = setInterval(function () {
   if (!promptResponseRate1minQ.isEmpty()) {
     promptResponseRateQhead = new Date(promptResponseRate1minQ.peek());
     if ((promptResponseRateQhead.getTime()+60000 < currentTime)){
-      debug("<<< --- promptResponseRate1minQ deQ: " + promptResponseRateQhead.getTime() + " | NOW: " + moment.utc().format());  
+      debug("<<< --- promptResponseRate1minQ deQ: " + promptResponseRateQhead.getTime() 
+        + " | NOW: " + moment.utc().format());  
       promptResponseRateQhead = promptResponseRate1minQ.dequeue();
       debug("promptResponseRate1minQ Q size: " + promptResponseRate1minQ.size());   
     }

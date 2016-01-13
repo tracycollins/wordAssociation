@@ -897,7 +897,7 @@ function readSocketQueue(){
           ));
 
           if (!sessionHashMap.has(cl.socketId)){
-            console.error(chalkError("!!! NO CURRENT SESSION FOR DISCONNECTED CLIENT | " + cl.socketId));
+            console.error(chalkError(getTimeStamp() + " | !!! NO CURRENT SESSION FOR DISCONNECTED CLIENT | " + cl.socketId));
 
             var sessionObj = {
               sessionId: cl.socketId,
@@ -1353,7 +1353,7 @@ bhtEvents.on("BHT_OVER_LIMIT", function(bhtRequests){
 
   console.log("SET bhtOverLimitTimeOut = " + moment.duration(bhtTimeToReset) + " ms");
 
-  updateStatus({
+  updateStats({
     "bhtOverLimits" : bhtOverLimits,
     "bhtOverLimitTime" : bhtOverLimitTime,
     "bhtRequests" : bhtRequests
@@ -1543,7 +1543,7 @@ function sessionConnectDb (sessionObj, callback) {
           + getTimeStamp()
           + " | " + sessionObj.sessionId 
           + "\n" + err);
-        getErrorMessage(err);
+        // getErrorMessage(err);
         callback(err, sessionObj);
       }
       else {
@@ -1589,7 +1589,7 @@ function sessionDisconnectDb(sessionObj, callback){
           + getTimeStamp()
           + " | " + sessionObj.ip 
           + "\n" + err);
-        getErrorMessage(err);
+        // getErrorMessage(err);
         callback(err, sessionObj);
       }
       else {
@@ -1743,7 +1743,10 @@ function createClientSocket (socket){
   readSocketQueue();
 
   socket.on("error", function(err){
-    console.error(chalkError(getTimeStamp() + " | *** SOCKET ERROR: " + err));
+    console.error(chalkError(getTimeStamp() + " | *** SOCKET ERROR"
+      + " | " + socket.id 
+      + " | " + err
+    ));
   });
 
   socket.on("reconnect", function(err){
@@ -2135,7 +2138,7 @@ function adminConnectDb (adminObj, callback) {
           + getTimeStamp()
           + " | " + adminObj.ip 
           + "\n" + err);
-        getErrorMessage(err);
+        // getErrorMessage(err);
         callback(err, adminObj);
       }
       else {
@@ -2195,7 +2198,7 @@ function clientConnectDb (clientObj, callback) {
           + getTimeStamp()
           + " | " + clientObj.ip 
           + "\n" + err);
-        getErrorMessage(err);
+        // getErrorMessage(err);
         callback(err, clientObj);
       }
       else {
@@ -2244,7 +2247,7 @@ function adminDisconnectDb (adminObj, callback) {
           + getTimeStamp()
           + " | " + adminObj.ip 
           + "\n" + err);
-        getErrorMessage(err);
+        // getErrorMessage(err);
         callback(err, adminObj);
       }
       else {
@@ -2291,7 +2294,7 @@ function clientDisconnectDb (clientObj, callback) {
           + getTimeStamp()
           + " | " + clientObj.ip 
           + "\n" + err);
-        getErrorMessage(err);
+        // getErrorMessage(err);
         callback(err, clientObj);
       }
       else {
@@ -2527,7 +2530,7 @@ function findOneOauth2Credential (credential) {
           + "\nCLIENT ID: "  + credential.clientId 
           + "\nERROR" + err
         ));
-        getErrorMessage(err);
+        // getErrorMessage(err);
         return credential;
       }
       else {
@@ -2569,7 +2572,7 @@ function findCredential (clientId, callback) {
          + getTimeStamp() 
          + "\nCLIENT ID: "  + clientId 
          + "\n" + err));
-        getErrorMessage(err);
+        // getErrorMessage(err);
         googleOauthEvents.emit('credential error', clientId + "\n" + err);        
         callback(err);  
         // return;    

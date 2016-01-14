@@ -690,7 +690,7 @@ function sendPromptWord(clientObj, promptWordObj){
 
   if ((typeof clientObj.config !== 'undefined') && (clientObj.config != null)) {
 
-    debug("clientObj.config\n" + jsonPrint(clientObj.config));
+    console.log("%%%% PROMPT: " + promptWordObj.nodeId + " | clientObj.config\n" + jsonPrint(clientObj.config));
 
     if (clientObj.config.mode == "NORMAL") {
       io.to(clientObj.socketId).emit("PROMPT_WORD", promptWordObj.nodeId);

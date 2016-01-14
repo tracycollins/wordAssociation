@@ -3213,8 +3213,11 @@ io.of("/admin").on("connect", function(socket){
           socketId: socketId
   } ;
 
-  console.log("SENDING serverSessionConfig to ADMIN " + socketId + "\n" + JSON.stringify(serverSessionConfig));
-  socket.emit('ADMIN_CONFIG', JSON.stringify(serverSessionConfig));
+  console.log("SENDING serverSessionConfig to ADMIN " 
+    + socketId + " | " + adminIp + " | HOST: " + adminHostname
+    + "\n" + jsonPrint(serverSessionConfig));
+  // socket.emit('ADMIN_CONFIG', JSON.stringify(serverSessionConfig));
+  socket.emit('ADMIN_CONFIG', serverSessionConfig);
 
   socket.on("REQ ADMIN SESSION", function(options){
     console.log("\n>>> RX REQ ADMIN SESSION\n" 
@@ -3223,7 +3226,10 @@ io.of("/admin").on("connect", function(socket){
     switch (options.sessionType) {
 
       case 'ALL':
-        console.log("... FINDING ALL ADMINS + CLIENTS IN DB ...")
+        // console.log("... SENDING ADMIN CONFIG ...\n" + jsonPrint(serverSessionConfig));
+        // io.of('/admin').emit('ADMIN_CONFIG', JSON.stringify(serverSessionConfig));
+
+        console.log("... FINDING ALL ADMINS + CLIENTS IN DB ...");
 
         clientFindAllDb(options, function(numberOfClientIps){
           console.log(chalkInfo("CLIENT UNIQUE IP ADDRESSES: " + numberOfClientIps));

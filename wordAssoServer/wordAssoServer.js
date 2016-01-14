@@ -1536,7 +1536,7 @@ function incrementSocketBhtReqs(delta){
   }
   else {
     bhtRequests += delta;
-    debug(chalkInfo("... BHT REQS: " + bhtRequests + " | DELTA: " + delta));
+    console.log(chalkInfo("-#- BHT REQS: " + bhtRequests + " | DELTA: " + delta));
   }
   incrementDeltaBhtReqs(delta);
 }
@@ -2137,7 +2137,7 @@ function createClientSocket (socket){
   });
 
   socket.on("BHT_REQUESTS", function(numberSocketBhtRequests){
-    console.log(chalkBht(">-- RX BHT_REQUESTS | " + socket.id 
+    console.log(chalkBht("<## RX BHT_REQUESTS | " + socket.id 
       + " | " + numberSocketBhtRequests
     ));
 

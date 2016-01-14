@@ -701,7 +701,7 @@ function sendPromptWord(clientObj, promptWordObj){
         io.of('/test').to(clientObj.socketId).emit('PROMPT_WORD_OBJ',promptWordObj);
       }
       else {
-        console.log("EMIT ON TEST");
+        console.log("EMIT ON /");
         io.to(clientObj.socketId).emit("PROMPT_WORD_OBJ",promptWordObj);
       }
     }

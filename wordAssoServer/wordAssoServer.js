@@ -696,10 +696,13 @@ function sendPromptWord(clientObj, promptWordObj){
       io.to(clientObj.socketId).emit("PROMPT_WORD", promptWordObj.nodeId);
     }
     else if (clientObj.config.mode == "WORD_OBJ"){
-      io.to(clientObj.socketId).emit("PROMPT_WORD_OBJ",promptWordObj);
       if (clientObj.config.type == 'TEST') {
         console.log("EMIT ON TEST");
         io.of('/test').to(clientObj.socketId).emit('PROMPT_WORD_OBJ',promptWordObj);
+      }
+      else {
+        console.log("EMIT ON TEST");
+        io.to(clientObj.socketId).emit("PROMPT_WORD_OBJ",promptWordObj);
       }
     }
   }
@@ -1831,8 +1834,6 @@ function createClientSocket (socket){
         + " | TYPE: " + config.type 
         + " | MODE: " + config.mode 
       ));
-
-
       
       // console.log("CLIENT CONFIG\n" + JSON.stringify(config, null, 3));
       clientObj.config = config ;
@@ -1918,8 +1919,8 @@ function createClientSocket (socket){
 
         }
       });
-
     });
+
   })
 
   socket.on("RESPONSE_WORD_OBJ", function(responseInObj){

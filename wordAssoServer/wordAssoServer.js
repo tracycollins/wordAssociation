@@ -648,6 +648,9 @@ function updateSessionViews(sessionUpdateObj){
 
 
   clientSocketIdHashMap.forEach(function(clientObj, sId) {
+
+    // console.log("sId: " + sId + " | clientSocketIdHashMap\n" + jsonPrint(clientObj));
+
     if (clientObj.referer == 'SESSIONVIEW') {
       debug(">>> TX SESSION_UPDATE"
         + " | SID: " + sId 
@@ -1851,6 +1854,8 @@ function createClientSocket (socket){
 
       debug("CLIENT DB UPDATE ON CLIENT READY: " + cl.config.type);
 
+     clientSocketIdHashMap.set(socketId, clientObj);
+
       var sessionObj = {
         sessionId: cl.socketId,
         userId: cl.ip + "_" + cl.socketId,
@@ -1937,6 +1942,8 @@ function createClientSocket (socket){
 
     var socketId = socket.id;
     var clientObj = clientSocketIdHashMap.get(socketId);
+
+    if (clientObj.config) console.log(jsonPrint(clientObj.config));
 
     var currentSession = sessionHashMap.get(socketId);
     currentSession.lastSeen = moment();
@@ -2190,13 +2197,14 @@ function clientConnectDb (clientObj, callback) {
 
   // debug("clientConnectDb: clientObj: " + JSON.stringify(clientObj, null, 3));
   // debug("clientConnectDb: clientObj: " + util.inspect(clientObj, {showHidden: false, depth: 1}));
-    if (typeof clientObj.socket !== 'undefined'){
-      debug("clientConnectDb CONNECT STATE: " + clientObj.socket.connected 
-        + " | CLIENT OBJ CONN: " + clientObj.connected);
-    }
-    else{
-      debug("??? DISCONNECTED STATE: CLIENT OBJ CONN: " + clientObj.connected);      
-    }
+
+  if (typeof clientObj.socket !== 'undefined'){
+    debug("clientConnectDb CONNECT STATE: " + clientObj.socket.connected 
+      + " | CLIENT OBJ CONN: " + clientObj.connected);
+  }
+  else{
+    debug("??? DISCONNECTED STATE: CLIENT OBJ CONN: " + clientObj.connected);      
+  }
 
   var query = { ip: clientObj.ip };
   var update = { 

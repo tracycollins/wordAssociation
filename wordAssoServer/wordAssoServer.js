@@ -1826,7 +1826,7 @@ function createClientSocket (socket){
 
     if (config) {
 
-      console.log(jsonPrint(config));
+      // console.log(jsonPrint(config));
 
       if (typeof config.user === 'undefined') {
         config.user = 'UNKNOWN';
@@ -2240,7 +2240,7 @@ function clientConnectDb (clientObj, callback) {
         callback(err, clientObj);
       }
       else {
-        console.log(">>> CLIENT UPDATED" 
+        debug(">>> CLIENT UPDATED" 
           + " | I: " + cl.ip
           + " | D: " + cl.domain 
           + " | S: " + cl.socketId 

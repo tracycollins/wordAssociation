@@ -3160,7 +3160,7 @@ googleOauthEvents.on("SOCKET HUNG UP", function(){
 //  SERVER READY
 //=================================
 io.of("/test").on("connect", function(socket){
-  console.log("TEST CONNECT"
+  debug("TEST CONNECT"
     + " | " + socket.id 
     // + util.inspect(socket.nsp.name, {showHidden: false, depth: 1})
   );

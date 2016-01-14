@@ -684,28 +684,28 @@ function sendPromptWord(clientObj, promptWordObj){
 
   if (currentSession.wordChain.length >= 2) {
     var previousResponse = currentSession.wordChain[currentSession.wordChain.length-2];
-    console.log(chalkPrompt("P --> | " + clientObj.socketId 
+    console.log(chalkPrompt("P -->"
+      + " | " + clientObj.config.user 
+      + " | " + clientObj.socketId 
       + " | " + previousResponse.nodeId + " --> " + promptWordObj.nodeId));
   } else {
-    console.log(chalkPrompt("P --> | " + clientObj.socketId  
-      + " | " + clientObj.config.type + " | SESSION START --> " + promptWordObj.nodeId));
+    console.log(chalkPrompt("P -->"
+      + " | " + clientObj.config.user 
+      + " | " + clientObj.socketId  
+      + " | " + clientObj.config.type 
+      + " | SESSION START --> " + promptWordObj.nodeId));
   }
 
   if ((typeof clientObj.config !== 'undefined') && (clientObj.config != null)) {
 
-    // console.log("%%%% PROMPT: " + promptWordObj.nodeId + " | clientObj.config\n" + jsonPrint(clientObj.config));
-
     if (clientObj.config.mode == "NORMAL") {
-        // console.log("EMIT ON / | NORMAL MODE");
       io.to(clientObj.socketId).emit("PROMPT_WORD", promptWordObj.nodeId);
     }
     else if (clientObj.config.mode == "WORD_OBJ"){
       if (clientObj.config.type == 'TEST') {
-        // console.log("EMIT ON TEST");
         io.of('/test').to(clientObj.socketId).emit('PROMPT_WORD_OBJ',promptWordObj);
       }
       else {
-        // console.log("EMIT ON /");
         io.to(clientObj.socketId).emit("PROMPT_WORD_OBJ",promptWordObj);
       }
     }
@@ -1951,7 +1951,9 @@ function createClientSocket (socket){
     var promptWord ;
     var previousPrompt = currentSession.wordChain[currentSession.wordChain.length-1] ;
 
-    console.log(chalkResponse("R <-- | " + socketId 
+    console.log(chalkResponse("R <--"
+      + " | " + clientObj.config.user 
+      + " | " + socketId 
       + " | " + responseInObj.nodeId + " <-- " + previousPrompt.nodeId));
 
     var responseWordObj;

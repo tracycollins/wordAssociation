@@ -1843,7 +1843,7 @@ function createClientSocket (socket){
     }
     else {
       console.log(chalkWarn("CLIENT CONFIG NOT SET?: " + JSON.stringify(clientObj.socketId, null, 2)));
-      clientObj.config = { type: 'CLIENT', mode: 'WORD_OBJ' };
+      clientObj.config = { name: 'UNKNOWN', type: 'CLIENT', mode: 'WORD_OBJ' };
       clientSocketIdHashMap.set(socketId, clientObj);
     }
 
@@ -2232,7 +2232,7 @@ function clientConnectDb (clientObj, callback) {
         callback(err, clientObj);
       }
       else {
-        debug(">>> CLIENT UPDATED" 
+        console.log(">>> CLIENT UPDATED" 
           + " | I: " + cl.ip
           + " | D: " + cl.domain 
           + " | S: " + cl.socketId 

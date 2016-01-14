@@ -108,13 +108,25 @@
 	</head>
 
 	<body>
-	    <h1>WORD ASSOCIATION ADMIN</h1>
 
 	    <div id='admin' class='admin' font-size=0.1em>
-
+				<br>
+		    <h1>WORD ASSOCIATION ADMIN</h1>
+				<br>
+				<hr>
+				<br>
 				<input id="updateBhtReqs" type="number" name="bhtReqs">
 				<button id="updateBhtReqsButton" class="showHideButton" onclick="updateBhtReqs()">UPDATE BHT REQS</button>
-
+				<br>
+				<br>
+				<hr>
+				<br>
+				<button id="testModeButton" class="showHideButton" onclick="setTestMode()">TEST MODE</button>
+				<br>
+				<br>
+				<hr>
+				<br>
+				<br>
 	    	<table id='heartbeat_table' class'heartbeatTable'></table>
 
 		  <div id='admin_panel' >
@@ -198,8 +210,8 @@
 			var showTestClients = false ;
 			var showBotClients = false ;
 
-			var socket = io.connect('http://104.197.93.13/admin');
-			// var socket = io.connect('http://localhost:9997/admin');
+			// var socket = io.connect('http://word.threeceelabs.com/admin');
+			var socket = io.connect('http://localhost:9997/admin');
 			// var socket = io.connect('http://threeceedev.dyndns.org/');
 
 			var googleOauthUrl = 0;
@@ -521,7 +533,7 @@
 					document.getElementById("testModeButton").style.border="2px solid red";
 				}
 				else {
-					document.getElementById("testModeButton").style.color="gray";
+					document.getElementById("testModeButton").style.color="white";
 					document.getElementById("testModeButton").style.border="1px solid gray";
 				}
 
@@ -559,6 +571,11 @@
 				var newBhtRequests = document.getElementById("updateBhtReqs").value;
 				console.log("UPDATE BHT REQS: " + newBhtRequests);
 				socket.emit("UPDATE_BHT_REQS", newBhtRequests);
+			}
+
+			function toggleTestMode(){
+				console.log("SET TEST MODE: " + testMode);
+				socket.emit("SET_TEST_MODE", testMode);
 			}
 
 			function toggleIpAdmins(){

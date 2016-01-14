@@ -1943,7 +1943,7 @@ function createClientSocket (socket){
     var socketId = socket.id;
     var clientObj = clientSocketIdHashMap.get(socketId);
 
-    if (clientObj.config) console.log(jsonPrint(clientObj.config));
+    // if (clientObj.config) console.log(jsonPrint(clientObj.config));
 
     var currentSession = sessionHashMap.get(socketId);
     currentSession.lastSeen = moment();

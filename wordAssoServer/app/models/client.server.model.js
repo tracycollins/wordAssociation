@@ -14,8 +14,7 @@ var ClientSchema = new Schema({
 		type: String
 	},
 	config: { 
-		type: Object,
-		default: '{ type: "CLIENT" }'
+		type: Object
 	},
 	referer: { 
 		type: String,

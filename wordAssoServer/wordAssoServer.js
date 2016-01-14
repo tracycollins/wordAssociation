@@ -697,7 +697,10 @@ function sendPromptWord(clientObj, promptWordObj){
     }
     else if (clientObj.config.mode == "WORD_OBJ"){
       io.to(clientObj.socketId).emit("PROMPT_WORD_OBJ",promptWordObj);
-      if (clientObj.config.type == 'TEST') io.of('/test').to(clientObj.socketId).emit('PROMPT_WORD_OBJ',promptWordObj);
+      if (clientObj.config.type == 'TEST') {
+        console.log("EMIT ON TEST");
+        io.of('/test').to(clientObj.socketId).emit('PROMPT_WORD_OBJ',promptWordObj);
+      }
     }
   }
 
@@ -1815,12 +1818,21 @@ function createClientSocket (socket){
     var clientObj = clientSocketIdHashMap.get(socketId);
 
     if (config) {
+
+      console.log(jsonPrint(config));
+
+      if (typeof config.user === 'undefined') {
+        config.user = 'UNKNOWN';
+      }
       
       console.log(chalkConnect("CL READY"
         + " | " + socketId
+        + " | USER: " + config.user 
         + " | TYPE: " + config.type 
         + " | MODE: " + config.mode 
       ));
+
+
       
       // console.log("CLIENT CONFIG\n" + JSON.stringify(config, null, 3));
       clientObj.config = config ;
@@ -3138,7 +3150,7 @@ googleOauthEvents.on("SOCKET HUNG UP", function(){
 //  SERVER READY
 //=================================
 io.of("/test").on("connect", function(socket){
-  debug("TEST CONNECT"
+  console.log("TEST CONNECT"
     + " | " + socket.id 
     // + util.inspect(socket.nsp.name, {showHidden: false, depth: 1})
   );

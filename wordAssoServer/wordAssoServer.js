@@ -693,19 +693,19 @@ function sendPromptWord(clientObj, promptWordObj){
 
   if ((typeof clientObj.config !== 'undefined') && (clientObj.config != null)) {
 
-    console.log("%%%% PROMPT: " + promptWordObj.nodeId + " | clientObj.config\n" + jsonPrint(clientObj.config));
+    // console.log("%%%% PROMPT: " + promptWordObj.nodeId + " | clientObj.config\n" + jsonPrint(clientObj.config));
 
     if (clientObj.config.mode == "NORMAL") {
-        console.log("EMIT ON / | NORMAL MODE");
+        // console.log("EMIT ON / | NORMAL MODE");
       io.to(clientObj.socketId).emit("PROMPT_WORD", promptWordObj.nodeId);
     }
     else if (clientObj.config.mode == "WORD_OBJ"){
       if (clientObj.config.type == 'TEST') {
-        console.log("EMIT ON TEST");
+        // console.log("EMIT ON TEST");
         io.of('/test').to(clientObj.socketId).emit('PROMPT_WORD_OBJ',promptWordObj);
       }
       else {
-        console.log("EMIT ON /");
+        // console.log("EMIT ON /");
         io.to(clientObj.socketId).emit("PROMPT_WORD_OBJ",promptWordObj);
       }
     }

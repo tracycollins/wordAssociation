@@ -210,8 +210,8 @@
 			var showTestClients = false ;
 			var showBotClients = false ;
 
-			var socket = io.connect('http://word.threeceelabs.com/admin');
-			// var socket = io.connect('http://localhost:9997/admin');
+			// var socket = io.connect('http://word.threeceelabs.com/admin');
+			var socket = io.connect('http://localhost:9997/admin');
 			// var socket = io.connect('http://threeceedev.dyndns.org/');
 
 			var googleOauthUrl = 0;
@@ -317,7 +317,9 @@
 
 			function updateAdminConfig(config) {
 
-			  console.log("ADMIN CONFIG CHANGE");
+				// var config = JSON.parse(rxConfig);
+
+			  console.log("ADMIN CONFIG CHANGE\n" + jsonPrint(config));
 
 			  if (typeof config.testMode !== 'undefined') {
 			    console.log("   ---> CONFIG_CHANGE: testMode: " + config.testMode);
@@ -382,6 +384,13 @@
 					);
 				serverClear();
 			});
+
+		  socket.on("ADMIN_CONFIG", function(rxAdminConfig){
+		    console.log("\n*** RX ADMIN CONFIG ***\n" 
+		      // + rxAdminConfig);
+		      + JSON.stringify(rxAdminConfig, null, 3));
+		    updateAdminConfig(rxAdminConfig);
+		  });
 
 		  socket.on("CONFIG_CHANGE", function(rxAdminConfig){
 		    var previousProperty ;

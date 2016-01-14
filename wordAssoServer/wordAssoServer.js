@@ -3093,6 +3093,7 @@ configEvents.on("CONFIG_CHANGE", function (serverSessionConfig) {
     console.log(chalkAlert("--> CONFIG_CHANGE: testMode: " + serverSessionConfig.testMode));
     io.of("/admin").emit('CONFIG_CHANGE',  {testMode: serverSessionConfig.testMode});
     io.emit('CONFIG_CHANGE',  {testMode: serverSessionConfig.testMode});
+    io.of("/test").emit('CONFIG_CHANGE', {testMode: serverSessionConfig.testMode});
   }
 
   console.log(chalkInfo(getTimeStamp() + ' | >>> SENT CONFIG_CHANGE'));

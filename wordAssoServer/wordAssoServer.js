@@ -1982,7 +1982,12 @@ function createClientSocket (socket){
     });
   });
 
-  socket.on("RESPONSE_WORD_OBJ", function(responseInObj){
+  socket.on("RESPONSE_WORD_OBJ", function(rxInObj){
+
+    rxInObj.nodeId.trim();
+
+    var responseInObj = rxInObj ;
+    responseInObj.nodeId = rxInObj.nodeId.trim();
 
     if (!responseInObj.mentions) responseInObj.mentions = 1;
 

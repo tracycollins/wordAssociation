@@ -459,6 +459,9 @@ var googleAuthCode = 0;
 var googleAuthExpiryDate = new Date() ;
 var googleMetricsEnabled = false ;
 
+var googleCheckDailyLimitInterval = 10 * ONE_MINUTE ;  // check every 10 minutes
+var googleCheckSocketUpInterval = ONE_MINUTE;
+
 var googleMonitoring ;
 var googleOauthClient ;
 

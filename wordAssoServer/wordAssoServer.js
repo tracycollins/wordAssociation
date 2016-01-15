@@ -56,6 +56,12 @@ var EventEmitter = require("events").EventEmitter;
 
 
 // ==================================================================
+// SERVER STATUS
+// ==================================================================
+var memoryTotal = os.totalmem();
+var memoryAvailable = os.freemem();
+
+// ==================================================================
 // WORD ASSO STATUS
 // ==================================================================
 var totalSessions = 0;
@@ -3010,6 +3016,7 @@ configEvents.on("SERVER_READY", function () {
       + " | UP: " + msToTime(txHeartbeat.upTime)
       + " | RN: " + msToTime(txHeartbeat.runTime)
       + " | BHTR: " + txHeartbeat.bhtRequests
+      + " | MEM: " + txHeartbeat.memoryAvailable + "/" + txHeartbeat.memoryTotal
     ));
   }
 
@@ -3046,6 +3053,8 @@ configEvents.on("SERVER_READY", function () {
         upTime : os.uptime() * 1000, 
         runTime : runTime, 
         heartbeatsSent : heartbeatsSent,
+        memoryAvailable : memoryAvailable,
+        memoryTotal : memoryTotal,
 
         numberAdmins : numberAdminsConnected,
         numberClients : numberClientsConnected,

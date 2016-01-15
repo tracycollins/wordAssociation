@@ -133,6 +133,7 @@ socket.on('connect', function(){
   socketId = socket.id ;
   console.log(">>> CONNECTED TO HOST | SOCKET ID: " + socketId);
   connectedFlag = true ;
+  clientConfig.user = "USER_" + socket.id ;
   getUrlVariables();
 });
 

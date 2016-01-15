@@ -1864,7 +1864,7 @@ function createClientSocket (socket){
 
       debug("CLIENT DB UPDATE ON CLIENT READY: " + cl.config.type);
 
-     clientSocketIdHashMap.set(socketId, clientObj);
+      clientSocketIdHashMap.set(socketId, cl);
 
       var sessionObj = {
         sessionId: cl.socketId,
@@ -1875,18 +1875,17 @@ function createClientSocket (socket){
         wordChain: []
       }
       
-      sessionHashMap.set(sessionObj.sessionId, sessionObj);  
+      // sessionHashMap.set(sessionObj.sessionId, sessionObj);  
       
       // console.log("-S- CREATED SESSION | " + jsonPrint(sessionObj));
       // console.log(chalkSession("-S- CREATED SESSION | " + sessionObj.sessionId));
 
-      sessionQueue.enqueue(sessionObj);
+      // sessionQueue.enqueue(sessionObj);
 
-      readSessionQueue();
+      // readSessionQueue();
 
       words.getRandomWord(function(err, randomWordObj){
         if (!err) {
-
           debug("randomWordObj\n" + JSON.stringify(randomWordObj, null, 3));
           // console.log(chalkResponse(socketId + " <-- " + randomWordObj.nodeId + " (RANDOM)"));
 
@@ -1895,11 +1894,11 @@ function createClientSocket (socket){
           var currentSession ;
 
           if (!sessionHashMap.has(socketId)){
-            console.error(chalkError("!!! NO CURRENT SESSION FOR NEW CONNECTED CLIENT | " + socketId));
+            console.error(chalkSession("... CREATING SESSION FOR NEW CONNECTED CLIENT | " + socketId));
 
             currentSession = {
               sessionId: socketId,
-              userId: clientObj.ip + "_" + socketId,
+              userId: cl.ip + "_" + socketId,
               createAt: moment(),
               lastSeen: moment(),
               connected: true,
@@ -1911,33 +1910,77 @@ function createClientSocket (socket){
 
             sessionHashMap.set(socketId, currentSession);
 
-            sessionConnectDb(currentSession, function(){
-              if (!err) sessionHashMap.set(socketId, currentSession);
+            sessionConnectDb(currentSession, function(err, sessionObj){
+              if (!err) {
+
+                sessionHashMap.set(sessionObj.sessionId, sessionObj);
+
+                // console.log("-S- CREATED SESSION | " + jsonPrint(sessionObj));
+                console.log(chalkSession("-S- CREATED SESSION" 
+                  + " | " + sessionObj.sessionId
+                  + " | USER ID: " + sessionObj.userId
+                ));
+
+                sessionQueue.enqueue(sessionObj);
+                readSessionQueue();
+
+                sendPromptWord(cl, randomWordObj);
+
+                debug(cl.socketId + " clientObj.config" + jsonPrint(cl.config));
+
+                var sessionUpdateObj = {
+                  client: cl.config,
+                  sessionId: socketId,
+                  sourceWord: randomWordObj,
+                  targetWord: randomWordObj
+                };
+
+                updateSessionViews(sessionUpdateObj);
+              }
+              else {
+                console.log(chalkError("*** SESSION CREATE ERROR\n" + err));
+              }
             });
           }
           else {
             currentSession = sessionHashMap.get(socketId);
             currentSession.wordChain.push(randomWordObj) ;
+
+            // sessionHashMap.set(socketId, currentSession);
+
+            sessionConnectDb(currentSession, function(err, sessionObj){
+              if (!err) {
+
+                sessionHashMap.set(sessionObj.sessionId, sessionObj);
+
+                // console.log("-S- CREATED SESSION | " + jsonPrint(sessionObj));
+                console.log(chalkSession("-S- CREATED SESSION" 
+                  + " | " + sessionObj.sessionId
+                  + " | USER ID: " + sessionObj.userId
+                ));
+
+                sessionQueue.enqueue(sessionObj);
+                readSessionQueue();
+
+                sendPromptWord(cl, randomWordObj);
+
+                debug(cl.socketId + " clientObj.config" + jsonPrint(cl.config));
+
+                var sessionUpdateObj = {
+                  client: cl.config,
+                  sessionId: socketId,
+                  sourceWord: randomWordObj,
+                  targetWord: randomWordObj
+                };
+
+                updateSessionViews(sessionUpdateObj);
+              }
+            });
           }
-
-          sendPromptWord(clientObj, randomWordObj);
-
-          debug(clientObj.socketId + " clientObj.config" + jsonPrint(clientObj.config));
-
-          var sessionUpdateObj = {
-            client: clientObj.config,
-            sessionId: socketId,
-            sourceWord: randomWordObj,
-            targetWord: randomWordObj
-          };
-
-          updateSessionViews(sessionUpdateObj);
-
         }
       });
     });
-
-  })
+  });
 
   socket.on("RESPONSE_WORD_OBJ", function(responseInObj){
 

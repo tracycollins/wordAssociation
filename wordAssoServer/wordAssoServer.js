@@ -2052,6 +2052,7 @@ function createClientSocket (socket){
 
                 wordHashMap.set(randomWordObj.nodeId, randomWordObj);
                 currentSession.wordChain.push(randomWordObj) ;
+                currentSession = sessionHashMap.set(socketId, currentSession);
 
                 sendPromptWord(clientObj, randomWordObj);
 
@@ -2071,6 +2072,7 @@ function createClientSocket (socket){
 
             wordHashMap.set(promptWordObj.nodeId, promptWordObj);
             currentSession.wordChain.push(promptWordObj) ;
+            sessionHashMap.set(socketId, currentSession);
 
             promptWordObj.lastSeen = moment();
 
@@ -2116,6 +2118,7 @@ function createClientSocket (socket){
               + " | MNS: " + wordDbObj.mentions
               );
             currentSession.wordChain.push(wordDbObj) ;
+            sessionHashMap.set(socketId, currentSession);
 
             var sessionUpdateObj = {
               sessionId: socketId,
@@ -2151,6 +2154,7 @@ function createClientSocket (socket){
 
                 wordHashMap.set(randomWordObj.nodeId, randomWordObj);
                 currentSession.wordChain.push(randomWordObj) ;
+                sessionHashMap.set(socketId, currentSession);
 
                 sendPromptWord(clientObj, randomWordObj);
 
@@ -2173,6 +2177,7 @@ function createClientSocket (socket){
 
             wordHashMap.set(promptWordObj.nodeId, promptWordObj);
             currentSession.wordChain.push(promptWordObj) ;
+            sessionHashMap.set(socketId, currentSession);
 
             sendPromptWord(clientObj, promptWordObj);
 

@@ -1894,7 +1894,7 @@ function createClientSocket (socket){
           var currentSession ;
 
           if (!sessionHashMap.has(socketId)){
-            console.error(chalkSession("... CREATING SESSION FOR NEW CONNECTED CLIENT | " + socketId));
+            console.log(chalkSession("... CREATING SESSION FOR NEW CONNECTED CLIENT | " + socketId));
 
             currentSession = {
               sessionId: socketId,

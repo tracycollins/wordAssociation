@@ -23,7 +23,18 @@ var mouseHoverFlag = false ;
 var socket = io();
 var socketId ;
 var connectedFlag = false ;
-var clientConfig = { type: "STANDARD", mode: "WORD_OBJ"} ;
+
+var randomFloatFromInterval = function (min,max) {
+  var random = Math.random() ;
+  var randomFloat = (random*(max-min))+min;
+  return randomFloat;
+}
+
+var randomIntFromInterval = function (min,max) {
+  var random = Math.random() ;
+  var randomInt = Math.floor((random*(max-min+1))+min) ;
+  return randomInt;
+}
 
 function getUrlVariables(config){
   var searchString = window.location.search.substring(1);
@@ -40,6 +51,9 @@ function getUrlVariables(config){
     }
   }
 }
+
+var clientConfig = { user: "UNDEFINED", type: "STANDARD", mode: "WORD_OBJ"} ;
+
 
 function sendUserResponse(){
   var userResponseValue = document.getElementById("userResponse").value.trim() ;
@@ -127,6 +141,7 @@ socket.on('reconnect', function(){
   console.log(">-> RECONNECTED TO HOST | SOCKET ID: " + socketId);
   connectedFlag = true ;
   getUrlVariables();
+  clientConfig.user = "USER_" + socket.id ;
   socket.emit("CLIENT_READY", clientConfig);
 });
 
@@ -170,17 +185,6 @@ function getSortedKeys(hmap) {
   return keys.sort(function(a,b){return hmap.get(b).mentions-hmap.get(a).mentions});
 }
 
-var randomFloatFromInterval = function (min,max) {
-  var random = Math.random() ;
-  var randomFloat = (random*(max-min))+min;
-  return randomFloat;
-}
-
-var randomIntFromInterval = function (min,max) {
-  var random = Math.random() ;
-  var randomInt = Math.floor((random*(max-min+1))+min) ;
-  return randomInt;
-}
 
 
 

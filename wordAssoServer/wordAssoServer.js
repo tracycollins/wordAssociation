@@ -881,6 +881,7 @@ function readSocketQueue(){
       }
 
       clientSocketIdHashMap.remove(socketObj.socketId);
+      // sessionHashMap.remove(socketObj.socketId);
 
       clientDisconnectDb(socketObj, function(err, cl){
         if (err){
@@ -1629,7 +1630,7 @@ function sessionDisconnectDb(sessionObj, callback){
           + "\n  CONNECTED: " + ses.connected
           + "\n  DISCONNECT TIME: " + getTimeStamp(ses.disconnectTime)
         ));
-        // if (ses.wordChain) console.log(chalkSession("  WORD CHAIN LENGTH: " + ses.wordChain.length));
+        sessionHashMap.remove(ses.sessionId);
         callback(null, ses);
       }
     }
@@ -2113,7 +2114,8 @@ function createClientSocket (socket){
             });
           }
           else {
-            debug(chalkResponse(socketId + " | " + responseWordObj.nodeId + " --> " + promptWordObj.nodeId));
+            debug(chalkResponse(socketId 
+              + " | " + responseWordObj.nodeId + " --> " + promptWordObj.nodeId));
 
             promptWordObj.lastSeen = moment();
 
@@ -2694,7 +2696,9 @@ function updateMetrics(
           "end": metricDate
          },
          "timeseriesDesc": {
-          "labels": { "custom.cloudmonitoring.googleapis.com/word-asso/clients/numberClientsConnected" : "clientsConnected"},
+          "labels": { 
+            "custom.cloudmonitoring.googleapis.com/word-asso/clients/numberClientsConnected" : "clientsConnected"
+          },
           "metric": "custom.cloudmonitoring.googleapis.com/word-asso/clients/numberClientsConnected"
          }
         },
@@ -2706,7 +2710,9 @@ function updateMetrics(
           "end": metricDate
          },
          "timeseriesDesc": {
-          "labels": { "custom.cloudmonitoring.googleapis.com/word-asso/prompts/totalPromptsSent" : "PROMPTS SENT"},
+          "labels": { 
+            "custom.cloudmonitoring.googleapis.com/word-asso/prompts/totalPromptsSent" : "PROMPTS SENT"
+          },
           "metric": "custom.cloudmonitoring.googleapis.com/word-asso/prompts/totalPromptsSent"
          }
         },
@@ -2718,7 +2724,9 @@ function updateMetrics(
           "end": metricDate
          },
          "timeseriesDesc": {
-          "labels": { "custom.cloudmonitoring.googleapis.com/word-asso/prompts/deltaPromptsSent" : "DELTA PROMPTS SENT"},
+          "labels": { 
+            "custom.cloudmonitoring.googleapis.com/word-asso/prompts/deltaPromptsSent" : "DELTA PROMPTS SENT"
+          },
           "metric": "custom.cloudmonitoring.googleapis.com/word-asso/prompts/deltaPromptsSent"
          }
         },
@@ -3275,7 +3283,8 @@ io.of("/admin").on("connect", function(socket){
               }
             }
             else{
-              console.log("... SKIPPING TX SESSION: " + numberSessionsTxd + " TXD | " + options.maxSessions + " MAX");
+              console.log("... SKIPPING TX SESSION: " + numberSessionsTxd 
+                + " TXD | " + options.maxSessions + " MAX");
             }
           });  
         });
@@ -3293,7 +3302,6 @@ io.of("/admin").on("connect", function(socket){
           adminSocketIdHashMap.forEach(function(value, key) {
             if ((numberSessionsTxd < options.maxSessions) && (typeof value.connected !== 'undefined')){
               value.sessions = [] ;
-              // io.of('/admin').emit('ADMIN SESSION', JSON.stringify({connected: value.connected, adminObj: value}));
               io.of('/admin').emit('ADMIN SESSION', 
                 JSON.stringify({
                   adminObj: {

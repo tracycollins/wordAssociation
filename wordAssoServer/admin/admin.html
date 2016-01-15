@@ -185,6 +185,10 @@
 
 		<script type="text/javascript">
 
+			var ONE_MB = 1024*1024;
+			var ONE_GB = ONE_MB*1024;
+
+
 			function getTimeNow() {
 				var d = new Date();
 				return d.getTime();
@@ -980,6 +984,10 @@
 				tableCreateRow(heatbeatTable, false, ['SERVER UPTIME', msToTime(heartBeat.upTime)]);
 				tableCreateRow(heatbeatTable, false, ['APP START TIME', getTimeStamp(heartBeat.startTime)]);
 				tableCreateRow(heatbeatTable, false, ['APP RUNTIME', msToTime(heartBeat.runTime)]);
+				tableCreateRow(heatbeatTable, false, ['MEM AVAIL', parseInt((heartBeat.memoryAvailable/heartBeat.memoryTotal)*100) + '%'
+					+ ' (' + parseInt(heartBeat.memoryAvailable/ONE_MB) + ' OF '
+					+ parseInt(heartBeat.memoryTotal/ONE_MB) + ' MB)'
+					]);
 
 				tableCreateRow(heatbeatTable, false, ['TOTAL SESSIONS', heartBeat.totalSessions]);
 				tableCreateRow(heatbeatTable, false, ['TOTAL WORDS', heartBeat.totalWords]);

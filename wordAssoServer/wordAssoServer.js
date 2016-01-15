@@ -2057,7 +2057,7 @@ function createClientSocket (socket){
 
                 wordHashMap.set(randomWordObj.nodeId, randomWordObj);
                 currentSession.wordChain.push(randomWordObj) ;
-                currentSession = sessionHashMap.set(socketId, currentSession);
+                sessionHashMap.set(socketId, currentSession);
 
                 sendPromptWord(clientObj, randomWordObj);
 

@@ -16,15 +16,6 @@ var ONE_MINUTE = ONE_SECOND*60 ;
 var ONE_HOUR = ONE_MINUTE*60 ;
 var ONE_DAY = ONE_HOUR*24 ;
 
-var currentTime = Date.now();
-var startTime = currentTime;
-var runTime = 0;
-
-
-var currentTimeInteval = setInterval(function () {
-  var d = new Date();
-  currentTime = d.getTime();
-}, 10);
 
 // ==================================================================
 // NODE MODULE DECLARATIONS
@@ -61,6 +52,23 @@ var EventEmitter = require("events").EventEmitter;
 var memoryTotal = os.totalmem();
 var memoryAvailable = os.freemem();
 
+var currentTime = moment();
+var startTime = moment();
+var runTime = 0;
+
+var currentTimeInteval = setInterval(function () {
+  // var d = new Date();
+  currentTime = moment();
+}, 10);
+
+var tempDateTime = moment();
+var txHeartbeat = { };
+var heartbeatsSent = 0;
+
+var maxNumberClientsConnected = 0;
+var maxNumberClientsConnectedTime = currentTime;
+
+
 // ==================================================================
 // WORD ASSO STATUS
 // ==================================================================
@@ -94,6 +102,8 @@ var wordAssoServerStatsObj = {
   "sessionUpdatesSent" : 0,
 
   "bhtRequests" : 0,
+
+  "heartbeat" : txHeartbeat
 };
 
 var saveStatsInterval = 60000 ;
@@ -372,12 +382,15 @@ function loadStats(){
 loadStats();
 setInterval(function () {
 
+  updateStats({ heartbeat : txHeartbeat });
+
+
   saveStats(dropboxHostStatsFile, wordAssoServerStatsObj, function(status){
     if (status != 'OK'){
       // console.error("!!! ERROR: SAVE STATUS | FILE: " + dropboxHostStatsFile + "\n" + status);
     }
     else {
-      // console.log(chalkLog("SAVE STATUS OK | FILE: " + dropboxHostStatsFile));
+      console.log(chalkLog("SAVE STATUS OK | FILE: " + dropboxHostStatsFile));
     }
 
   });
@@ -3058,12 +3071,12 @@ configEvents.on("SERVER_READY", function () {
   //  SERVER HEARTBEAT
   //----------------------
 
-  var tempDateTime = new Date();
-  var txHeartbeat = { };
-  var heartbeatsSent = 0;
+  // var tempDateTime = new Date();
+  // var txHeartbeat = { };
+  // var heartbeatsSent = 0;
 
-  var maxNumberClientsConnected = 0;
-  var maxNumberClientsConnectedTime = currentTime;
+  // var maxNumberClientsConnected = 0;
+  // var maxNumberClientsConnectedTime = currentTime;
 
   function logHeartbeat(){
     console.log(chalkLog("HB " + heartbeatsSent 
@@ -3088,7 +3101,7 @@ configEvents.on("SERVER_READY", function () {
         + " | " + getTimeStamp()));
     }
 
-    runTime =  getTimeNow() - startTime ;
+    runTime =  moment() - startTime ;
 
     if (moment().isAfter(bhtOverLimitTime)){
       bhtEvents.emit("BHT_OVER_LIMIT_TIMEOUT");

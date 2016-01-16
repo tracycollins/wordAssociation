@@ -1333,6 +1333,7 @@ function generateResponse(wordObj, callback){
               }
             });
           }
+          bhtWordHashMap.clear();
         });
       }
     });
@@ -1669,7 +1670,6 @@ function createClientSocket (socket){
 
   var socketId = socket.id;
 
-  // var clientsHashMap = findClientsSocket('/');
   var referer = 'CLIENT';
 
   debug("\nSOCKET NAMESPACE\n" + util.inspect(socket.nsp, {showHidden: false, depth: 1}));
@@ -3111,6 +3111,11 @@ configEvents.on("SERVER_READY", function () {
         heartbeatsSent : heartbeatsSent,
         memoryAvailable : memoryAvailable,
         memoryTotal : memoryTotal,
+
+        wordHashMapCount : wordHashMap.count(),
+        clientIpHashMapCount : clientIpHashMap.count(),
+        clientSocketIdHashMapCount : clientSocketIdHashMap.count(),
+        sessionHashMapCount : sessionHashMap.count(),
 
         numberAdmins : numberAdminsConnected,
         numberClients : numberClientsConnected,

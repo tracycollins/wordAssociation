@@ -989,6 +989,18 @@
 					+ parseInt(heartBeat.memoryTotal/ONE_MB) + ' MB)'
 					]);
 
+
+       // wordHashMapCount : wordHashMap.count(),
+       //  clientIpHashMapCount : clientIpHashMap.count(),
+       //  clientSocketIdHashMapCount : clientSocketIdHashMap.count(),
+       //  sessionHashMapCount : sessionHashMap.count(),
+
+				tableCreateRow(heatbeatTable, false, ['WORD HM COUNT', heartBeat.wordHashMapCount]);
+				tableCreateRow(heatbeatTable, false, ['CL SOCKET HM COUNT', heartBeat.clientSocketIdHashMapCount]);
+				tableCreateRow(heatbeatTable, false, ['CL IP HM COUNT', heartBeat.clientIpHashMapCount]);
+				tableCreateRow(heatbeatTable, false, ['SESSION HM COUNT', heartBeat.sessionHashMapCount]);
+
+
 				tableCreateRow(heatbeatTable, false, ['TOTAL SESSIONS', heartBeat.totalSessions]);
 				tableCreateRow(heatbeatTable, false, ['TOTAL WORDS', heartBeat.totalWords]);
 				tableCreateRow(heatbeatTable, false, ['TOTAL PROMPTS', heartBeat.promptsSent]);

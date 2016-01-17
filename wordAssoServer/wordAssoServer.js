@@ -2346,7 +2346,6 @@ function createClientSocket (socket){
     debug(chalkResponse(">>> RX RESPONSE | " + responseInObj.nodeId));
 
     responseQueue.enqueue(rxInObj);
-
   });
 
   socket.on("BHT_REQUESTS", function(numberSocketBhtRequests){
@@ -2355,6 +2354,13 @@ function createClientSocket (socket){
     ));
 
     incrementSocketBhtReqs(numberSocketBhtRequests);
+  });
+
+  socket.on("SOCKET_TEST_MODE", function(testMode){
+    console.log(chalkTest("RX SOCKET_TEST_MODE: " + testMode));
+    serverSessionConfig.testMode = testMode
+    io.of('/admin').emit("CONFIG_CHANGE", serverSessionConfig);
+    // configEvents.emit("CONFIG_CHANGE", serverSessionConfig);
   });
 
 }
@@ -3460,7 +3466,6 @@ io.of("/test").on("connect", function(socket){
   createClientSocket(socket);
 });
 
-
 io.of("/admin").on("connect", function(socket){
 
   var adminsHashMap = findClientsSocket('/admin');
@@ -3834,7 +3839,6 @@ io.of("/admin").on("connect", function(socket){
     console.log(chalkAdmin("@@@ RX UPDATE_BHT_REQS | " + socketId + " | " + newBhtRequests));
     setBhtReqs(newBhtRequests);
   });
-
 });
 
 io.on("disconnect", function(){

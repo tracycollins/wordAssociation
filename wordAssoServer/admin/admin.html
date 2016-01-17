@@ -996,10 +996,8 @@
        //  clientSocketIdHashMapCount : clientSocketIdHashMap.count(),
        //  sessionHashMapCount : sessionHashMap.count(),
 
-       var wordCacheStats = {};
-       wordCacheStats = JSON.parse(heartBeat.wordCacheStats);
-       // console.log("wordCacheStats\n" + jsonPrint(wordCacheStats));
-       console.log("wordCacheStats keys: " + wordCacheStats.keys);
+				console.log("wordCacheStats\n" + jsonPrint(heartBeat.wordCacheStats));
+				// console.log("wordCacheStats keys: " + wordCacheStats.keys);
 
 				// tableCreateRow(heatbeatTable, false, ['WORD CACHE KEYS', wordCacheStats.keys]);
 				tableCreateRow(heatbeatTable, false, ['CL SOCKET HM COUNT', heartBeat.clientSocketIdHashMapCount]);

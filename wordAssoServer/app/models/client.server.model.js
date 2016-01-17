@@ -8,7 +8,8 @@ var ClientSchema = new Schema({
 		unique: true
 	},
 	domain: { 
-		type: String
+		type: String,
+		default: ''
 	},
 	socketId: { 
 		type: String
@@ -22,9 +23,11 @@ var ClientSchema = new Schema({
 	},
 	userId: { 
 		type: String,
+		default: ''
 	},
 	connected: { 
-		type: Boolean
+		type: Boolean,
+		default: false
 	},
 	connectTime: { 
 		type: Number // milliseconds

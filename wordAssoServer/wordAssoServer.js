@@ -2421,6 +2421,7 @@ function clientConnectDb (clientObj, callback) {
           $inc: { "numberOfConnections": 1 }, 
           $set: { 
             "socketId": clientObj.socketId,
+            "connected": clientObj.connected,
             "config": clientObj.config,
             "referer": clientObj.referer,
             "connectTime": currentTime,
@@ -2452,7 +2453,7 @@ function clientConnectDb (clientObj, callback) {
       else {
         debug(">>> CLIENT UPDATED" 
           + " | I: " + cl.ip
-          // + " | D: " + cl.domain 
+          + " | D: " + cl.domain 
           + " | S: " + cl.socketId 
           + " | C: " + jsonPrint(cl.config)
           + " | R: " + cl.referer 
@@ -2472,10 +2473,14 @@ function adminDisconnectDb (adminObj, callback) {
   var query = { ip: adminObj.ip };
   var update = { 
           $set: { 
+            "socketId": adminObj.socketId,
+            "connected": adminObj.connected,
+            "config": adminObj.config,
+            "referer": adminObj.referer,
+            "connectTime": moment().valueOf(),
+            "disconnectTime": moment().valueOf(),
             "domain": adminObj.domain, 
-            "lastSeen": currentTime,
-            "socketId" : adminObj.socketId, 
-            "disconnectTime": currentTime
+            "lastSeen": moment().valueOf() 
            }
           // $push: { "sessions": { 
           //             "socketId": adminObj.socketId,
@@ -3467,7 +3472,7 @@ io.of("/admin").on("connect", function(socket){
             if (typeof value.connected !== 'undefined'){
               if ((value.domain.indexOf("googleusercontent") < 0) || (numberSessionsTxd < options.maxSessions)){
                 console.log(">>> TX SESSION: CLIENT " 
-                  + value.domain 
+                  + " | D: " + value.domain 
                   + " | I: " + value.ip 
                   + " | S: " + value.socketId
                   + " | R: " + value.referer

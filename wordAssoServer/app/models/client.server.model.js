@@ -1,6 +1,7 @@
 var mongoose = require('mongoose'),
 	crypto = require('crypto'),
 	Schema = mongoose.Schema;
+	moment = require('moment');
 
 var ClientSchema = new Schema({
 	ip: { 
@@ -15,7 +16,8 @@ var ClientSchema = new Schema({
 		type: String
 	},
 	config: { 
-		type: Object
+		type: Object,
+		default: { type: 'CLIENT', mode: 'WORD_OBJ', user: 'UNKNOWN'}
 	},
 	referer: { 
 		type: String,
@@ -39,10 +41,12 @@ var ClientSchema = new Schema({
 		type: Array // {socketId: sId, connectedAt: <date>, disconnectedAt: <date>, connectTime: <ms>}
 	},
 	createdAt: { 
-		type: Number // milliseconds
+		type: Number, // milliseconds
+		default: moment().valueOf()
 	},
 	lastSeen: {   
-		type: Number // milliseconds
+		type: Number, // milliseconds
+		default: moment().valueOf()
 	},
 	numberOfConnections: {   
 		type: Number,

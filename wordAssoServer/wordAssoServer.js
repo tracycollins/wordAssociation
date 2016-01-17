@@ -720,6 +720,11 @@ var simpleChain = function(chain){
 
 function sendPromptWord(clientObj, promptWordObj){
 
+  if (!sessionHashMap.has(clientObj.socketId)){
+    return;
+    console.log("sendPromptWord | clientObj.socketId NOT FOUND IN HASH ... SKIPPING | " + clientObj.socketId);
+  }
+
   var currentSession = sessionHashMap.get(clientObj.socketId);
 
   debug(chalkInfo("currentSession.wordChain [" + currentSession.wordChain.length + "]\n" 

@@ -2101,11 +2101,14 @@ function createClientSocket (socket){
     else if (dnsHostHashMap.has(clientIp)){
       clientDomain = dnsHostHashMap.get(clientIp)[0];
     }
+    else {
+      clientDomain = "UNKNOWN";
+    }
   }
 
   var clientHostname = socket.handshake.headers.host ;
 
-  var clientObj = {
+  var clientObj = new Client({
     type: 'CLIENT',  
     ip: clientIp, 
     domain: clientDomain,
@@ -2115,7 +2118,7 @@ function createClientSocket (socket){
     connected: true, 
     connectTime: currentTime,
     config: { type: referer }
-  };
+  });
 
   clientSocketIdHashMap.set(socketId, clientObj);  
 

@@ -1393,20 +1393,22 @@ function generateResponse(wordObj, callback){
 
 
 bhtEvents.on("BHT_OVER_LIMIT_TIMEOUT", function(){
-  console.log(chalkBht("*** BHT_OVER_LIMIT_TIMEOUT END *** | " + getTimeStamp()));
-  bhtOverLimitFlag = false ;
-  bhtOverLimitTestFlag = true ;
-  incrementSocketBhtReqs(0);
+  if (bhtOverLimitFlag) {
+    console.log(chalkBht("*** BHT_OVER_LIMIT_TIMEOUT END *** | " + getTimeStamp()));
+    bhtOverLimitFlag = false ;
+    bhtOverLimitTestFlag = true ;
+    incrementSocketBhtReqs(0);
 
-  bhtOverLimitTime = moment.utc();
-  bhtOverLimitTime.utcOffset("-08:00");
+    bhtOverLimitTime = moment.utc();
+    bhtOverLimitTime.utcOffset("-08:00");
 
-  bhtLimitResetTime = moment.utc();
-  bhtLimitResetTime.utcOffset("-08:00");
-  bhtLimitResetTime.endOf("day");
+    bhtLimitResetTime = moment.utc();
+    bhtLimitResetTime.utcOffset("-08:00");
+    bhtLimitResetTime.endOf("day");
 
-  bhtTimeToReset = moment(bhtLimitResetTime);
-  bhtTimeToReset.subtract(bhtOverLimitTime);
+    bhtTimeToReset = moment(bhtLimitResetTime);
+    bhtTimeToReset.subtract(bhtOverLimitTime);
+  }
 });
 
 bhtEvents.on("BHT_OVER_LIMIT", function(bhtRequests){

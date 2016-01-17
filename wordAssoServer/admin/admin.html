@@ -997,9 +997,9 @@
        //  sessionHashMapCount : sessionHashMap.count(),
 
        var wordCacheStats = {};
-       wordCacheStats = heartBeat.wordCacheStats;
+       wordCacheStats = JSON.parse(heartBeat.wordCacheStats);
        // console.log("wordCacheStats\n" + jsonPrint(wordCacheStats));
-       console.log("wordCacheStats keys: " + wordCacheStats["keys"]);
+       console.log("wordCacheStats keys: " + wordCacheStats.keys);
 
 				// tableCreateRow(heatbeatTable, false, ['WORD CACHE KEYS', wordCacheStats.keys]);
 				tableCreateRow(heatbeatTable, false, ['CL SOCKET HM COUNT', heartBeat.clientSocketIdHashMapCount]);

@@ -2919,7 +2919,7 @@ function updateMetrics(
 
         {
          "point": {
-          "int64Value": parseInt(((memoryTotal - memoryAvailable)/memoryTotal)*100),
+          "double": (memoryTotal - memoryAvailable)/memoryTotal,
           "start": metricDate,
           "end": metricDate
          },

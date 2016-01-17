@@ -997,9 +997,14 @@
        //  sessionHashMapCount : sessionHashMap.count(),
 
 				console.log("wordCacheStats\n" + jsonPrint(heartBeat.wordCacheStats));
-				if (typeof heartBeat.wordCacheStats !== 'undefined') console.log("wordCacheStats keys: " + heartBeat.wordCacheStats.keys);
 
-				// tableCreateRow(heatbeatTable, false, ['WORD CACHE KEYS', wordCacheStats.keys]);
+				if (typeof heartBeat.wordCacheStats !== 'undefined') {
+					console.log("wordCacheStats keys: " + heartBeat.wordCacheStats.keys);
+					tableCreateRow(heatbeatTable, false, ['WORD CACHE KEYS', heartBeat.wordCacheStats.keys]);
+					tableCreateRow(heatbeatTable, false, ['WORD CACHE HITS', heartBeat.wordCacheStats.hits]);
+					tableCreateRow(heatbeatTable, false, ['WORD CACHE MISSES', heartBeat.wordCacheStats.misses]);
+				}
+
 				tableCreateRow(heatbeatTable, false, ['CL SOCKET HM COUNT', heartBeat.clientSocketIdHashMapCount]);
 				tableCreateRow(heatbeatTable, false, ['CL IP HM COUNT', heartBeat.clientIpHashMapCount]);
 				tableCreateRow(heatbeatTable, false, ['SESSION HM COUNT', heartBeat.sessionHashMapCount]);

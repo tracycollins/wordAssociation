@@ -1,6 +1,7 @@
 var mongoose = require('mongoose'),
 	crypto = require('crypto'),
 	Schema = mongoose.Schema;
+	moment = require('moment');
 
 var AdminSchema = new Schema({
 	ip: { 
@@ -8,13 +9,15 @@ var AdminSchema = new Schema({
 		unique: true
 	},
 	domain: { 
-		type: String
+		type: String,
+		default: ''
 	},
 	socketId: { 
 		type: String
 	},
 	connected: { 
-		type: Boolean
+		type: Boolean,
+		default: false
 	},
 	connectTime: { 
 		type: Number // milliseconds
@@ -26,10 +29,12 @@ var AdminSchema = new Schema({
 		type: Array // {socketId: sId, connectedAt: <date>, disconnectedAt: <date>, connectTime: <ms>}
 	},
 	createdAt: { 
-		type: Number // milliseconds
+		type: Number, // milliseconds
+		default: moment().valueOf()
 	},
 	lastSeen: {   
-		type: Number // milliseconds
+		type: Number, // milliseconds
+		default: moment().valueOf()
 	},
 	numberOfConnections: {   
 		type: Number,

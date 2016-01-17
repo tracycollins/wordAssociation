@@ -2081,7 +2081,9 @@ function createClientSocket (socket){
   numberClientsConnected = io.of('/').sockets.length;
 
   var clientIp = socket.handshake.headers['x-real-ip'] || socket.client.conn.remoteAddress;
-  var clientDomain ;
+
+  console.log("createClientSocket: IP: " + clientIp);
+  var clientDomain = "UNKNOWN" ;
 
   // check for IPV6 address
   if (clientIp.indexOf(':') >= 0){

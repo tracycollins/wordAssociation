@@ -2915,6 +2915,22 @@ function updateMetrics(
          }
         },
 
+
+
+        {
+         "point": {
+          "int64Value": parseInt((memoryUsed/memoryTotal)*100),
+          "start": metricDate,
+          "end": metricDate
+         },
+         "timeseriesDesc": {
+          "labels": { 
+            "custom.cloudmonitoring.googleapis.com/word-asso/memory/memoryUsed" : "MEMORY USED"
+          },
+          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/memory/memoryUsed"
+         }
+        },
+
         {
          "point": {
           "int64Value": wordCache.getStats().keys,

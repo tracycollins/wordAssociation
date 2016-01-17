@@ -1,6 +1,7 @@
 var mongoose = require('mongoose'),
 	crypto = require('crypto'),
-	Schema = mongoose.Schema;
+	Schema = mongoose.Schema,
+	moment = require('moment');
 
 var SessionSchema = new Schema({
 	sessionId: {   // just use socket.id???
@@ -12,16 +13,23 @@ var SessionSchema = new Schema({
 		type: String
 	},
 	createdAt: { 
-		type: Number
+		type: Number,
+		default: moment().valueOf()
 	},
 	lastSeen: { 
-		type: Number
+		type: Number,
+		default: moment().valueOf()
 	},
 	connected: { 
 		type: Boolean
 	},
+	connectTime: { 
+		type: Number,
+		default: 0
+	},
 	disconnectTime: { 
-		type: Number
+		type: Number,
+		default: 0
 	},
 	wordChain: {
 		type: Object

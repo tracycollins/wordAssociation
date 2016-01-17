@@ -504,7 +504,7 @@
 			socket.on('HEARTBEAT', function(rxHeartbeat){
 				hbIndex++;
 				heartBeat = rxHeartbeat ;
-				if (hbIndex%10 == 0) console.log("rxHeartbeat\n" + JSON.stringify(rxHeartbeat, null, 2));
+				// if (hbIndex%10 == 0) console.log("rxHeartbeat\n" + JSON.stringify(rxHeartbeat, null, 2));
 				heartBeatTimeoutFlag = false ;
 			});
 
@@ -996,7 +996,7 @@
        //  clientSocketIdHashMapCount : clientSocketIdHashMap.count(),
        //  sessionHashMapCount : sessionHashMap.count(),
 
-				console.log("wordCacheStats\n" + jsonPrint(heartBeat.wordCacheStats));
+				// console.log("wordCacheStats\n" + jsonPrint(heartBeat.wordCacheStats));
 
 				if (typeof heartBeat.wordCacheStats !== 'undefined') {
 					console.log("wordCacheStats keys: " + heartBeat.wordCacheStats.keys);

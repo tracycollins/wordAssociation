@@ -2919,7 +2919,7 @@ function updateMetrics(
 
         {
          "point": {
-          "double": (memoryTotal - memoryAvailable)/memoryTotal,
+          "double": parseFloat((memoryTotal - memoryAvailable)/memoryTotal),
           "start": metricDate,
           "end": metricDate
          },

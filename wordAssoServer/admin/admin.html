@@ -990,16 +990,7 @@
 					+ parseInt(heartBeat.memoryTotal/ONE_MB) + ' MB)'
 					]);
 
-
-       // wordHashMapCount : wordHashMap.count(),
-       //  clientIpHashMapCount : clientIpHashMap.count(),
-       //  clientSocketIdHashMapCount : clientSocketIdHashMap.count(),
-       //  sessionHashMapCount : sessionHashMap.count(),
-
-				// console.log("wordCacheStats\n" + jsonPrint(heartBeat.wordCacheStats));
-
 				if (typeof heartBeat.wordCacheStats !== 'undefined') {
-					console.log("wordCacheStats keys: " + heartBeat.wordCacheStats.keys);
 					tableCreateRow(heatbeatTable, false, ['WORD CACHE KEYS', heartBeat.wordCacheStats.keys]);
 					tableCreateRow(heatbeatTable, false, ['WORD CACHE HITS', heartBeat.wordCacheStats.hits]);
 					tableCreateRow(heatbeatTable, false, ['WORD CACHE MISSES', heartBeat.wordCacheStats.misses]);

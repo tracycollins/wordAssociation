@@ -2931,6 +2931,34 @@ function updateMetrics(
 
         {
          "point": {
+          "int64Value": wordCache.getStats().hits,
+          "start": metricDate,
+          "end": metricDate
+         },
+         "timeseriesDesc": {
+          "labels": { 
+            "custom.cloudmonitoring.googleapis.com/word-asso/word-cache/wordCacheHits" : "WORD CACHE HITS"
+          },
+          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/word-cache/wordCacheHits"
+         }
+        },
+
+        {
+         "point": {
+          "int64Value": wordCache.getStats().misses,
+          "start": metricDate,
+          "end": metricDate
+         },
+         "timeseriesDesc": {
+          "labels": { 
+            "custom.cloudmonitoring.googleapis.com/word-asso/word-cache/wordCacheMisses" : "WORD CACHE MISSES"
+          },
+          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/word-cache/wordCacheMisses"
+         }
+        },
+
+        {
+         "point": {
           "int64Value": promptsSent,
           "start": metricDate,
           "end": metricDate

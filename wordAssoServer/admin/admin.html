@@ -998,7 +998,7 @@
 
        var wordCacheStats = {};
        wordCacheStats = heartBeat.wordCacheStats
-
+       console.log("wordCacheStats\n" + jsonPrint(wordCacheStats));
 
 				tableCreateRow(heatbeatTable, false, ['WORD CACHE KEYS', wordCacheStats.keys]);
 				tableCreateRow(heatbeatTable, false, ['CL SOCKET HM COUNT', heartBeat.clientSocketIdHashMapCount]);

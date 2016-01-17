@@ -3264,6 +3264,7 @@ configEvents.on("SERVER_READY", function () {
 
         // wordHashMapCount : wordHashMap.count(),
         wordCacheStats : wordCache.getStats(),
+        
         clientIpHashMapCount : clientIpHashMap.count(),
         clientSocketIdHashMapCount : clientSocketIdHashMap.count(),
         sessionHashMapCount : sessionHashMap.count(),

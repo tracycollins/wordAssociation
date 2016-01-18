@@ -2451,7 +2451,7 @@ function clientConnectDb (clientObj, callback) {
           $inc: { "numberOfConnections": 1 }, 
           $set: { 
             "socketId": clientObj.socketId,
-            "connected": clientObj.connected,
+            "connected": true,
             "config": clientObj.config,
             "referer": clientObj.referer,
             "connectTime": currentTime,
@@ -2481,14 +2481,15 @@ function clientConnectDb (clientObj, callback) {
         callback(err, clientObj);
       }
       else {
-        debug(">>> CLIENT UPDATED" 
+        console.log(">>> CLIENT UPDATED" 
           + " | I: " + cl.ip
           + " | D: " + cl.domain 
           + " | S: " + cl.socketId 
-          + " | C: " + jsonPrint(cl.config)
+          + " | CONN: " + cl.connected 
           + " | R: " + cl.referer 
           + " | CONS: " + cl.numberOfConnections 
           + " | LAST: " + getTimeStamp(cl.lastSeen)
+          + "\nCONFIG\n" + jsonPrint(cl.config)
           );
         callback(null, cl);
       }
@@ -3245,7 +3246,7 @@ localHostHashMap.set('10.0.1.4', 'threeceelabs.com');
 localHostHashMap.set('10.0.1.10', 'threeceelabs.com');
 localHostHashMap.set('10.0.1.27', 'threeceelabs.com');
 
-
+dnsHostHashMap.set('104.197.93.13', 'test.threeceelabs.com');
 // ==================================================================
 // CONNECT TO INTERNET, START SERVER HEARTBEAT
 // ==================================================================

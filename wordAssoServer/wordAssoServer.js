@@ -199,7 +199,7 @@ localHostHashMap.set('10.0.1.4', 'threeceelabs.com');
 localHostHashMap.set('10.0.1.10', 'threeceelabs.com');
 localHostHashMap.set('10.0.1.27', 'threeceelabs.com');
 
-localHostHashMap.set('104.197.93.13', 'test.threeceelabs.com');
+localHostHashMap.set('104.197.93.13', 'threeceelabs.com');
 
 // ==================================================================
 // WORD CACHE
@@ -649,8 +649,7 @@ function dnsReverseLookup(ip, callback) {
   if (localHostHashMap.has(ip)) {
     debug("dnsReverseLookup: DEVELOPMENT HOST: " + os.hostname() + " | " + ip);
     var domains =[];
-    domains.push('threeceelabs.com');
-    domains.push('threeceemedia.com');
+    domains.push(localHostHashMap.get(ip));
     callback(null, domains);
   }
   else if (dnsHostHashMap.has(ip)) {

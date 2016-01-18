@@ -172,6 +172,36 @@ var localHostHashMap = new HashMap();
 
 
 // ==================================================================
+// ADMIN
+// ==================================================================
+
+localHostHashMap.set('::ffff:127.0.0.1', 'threeceelabs.com');
+localHostHashMap.set('127.0.0.1', 'threeceelabs.com');
+localHostHashMap.set('::1', 'threeceelabs.com');
+localHostHashMap.set('::1', 'threeceelabs.com');
+
+localHostHashMap.set('macpro.local', 'threeceelabs.com');
+localHostHashMap.set('macpro2.local', 'threeceelabs.com');
+localHostHashMap.set('mbp.local', 'threeceelabs.com');
+localHostHashMap.set('mbp2.local', 'threeceelabs.com');
+localHostHashMap.set('macminiserver0.local', 'threeceelabs.com');
+localHostHashMap.set('macminiserver1.local', 'threeceelabs.com');
+localHostHashMap.set('macminiserver2.local', 'threeceelabs.com');
+localHostHashMap.set('mms0.local', 'threeceelabs.com');
+localHostHashMap.set('mms1.local', 'threeceelabs.com');
+localHostHashMap.set('mms2.local', 'threeceelabs.com');
+
+localHostHashMap.set('::ffff:10.0.1.4', 'threeceelabs.com');
+localHostHashMap.set('::ffff:10.0.1.10', 'threeceelabs.com');
+localHostHashMap.set('::ffff:10.0.1.27', 'threeceelabs.com');
+localHostHashMap.set('::ffff:10.0.1.45', 'threeceelabs.com');
+localHostHashMap.set('10.0.1.4', 'threeceelabs.com');
+localHostHashMap.set('10.0.1.10', 'threeceelabs.com');
+localHostHashMap.set('10.0.1.27', 'threeceelabs.com');
+
+localHostHashMap.set('104.197.93.13', 'test.threeceelabs.com');
+
+// ==================================================================
 // WORD CACHE
 // ==================================================================
 var wordCacheTtl = process.env.WORD_CACHE_TTL || 10 ;
@@ -3218,35 +3248,6 @@ function initializeConfiguration() {
   ]);
 }
 
-// ==================================================================
-// ADMIN
-// ==================================================================
-
-localHostHashMap.set('::ffff:127.0.0.1', 'threeceelabs.com');
-localHostHashMap.set('127.0.0.1', 'threeceelabs.com');
-localHostHashMap.set('::1', 'threeceelabs.com');
-localHostHashMap.set('::1', 'threeceelabs.com');
-
-localHostHashMap.set('macpro.local', 'threeceelabs.com');
-localHostHashMap.set('macpro2.local', 'threeceelabs.com');
-localHostHashMap.set('mbp.local', 'threeceelabs.com');
-localHostHashMap.set('mbp2.local', 'threeceelabs.com');
-localHostHashMap.set('macminiserver0.local', 'threeceelabs.com');
-localHostHashMap.set('macminiserver1.local', 'threeceelabs.com');
-localHostHashMap.set('macminiserver2.local', 'threeceelabs.com');
-localHostHashMap.set('mms0.local', 'threeceelabs.com');
-localHostHashMap.set('mms1.local', 'threeceelabs.com');
-localHostHashMap.set('mms2.local', 'threeceelabs.com');
-
-localHostHashMap.set('::ffff:10.0.1.4', 'threeceelabs.com');
-localHostHashMap.set('::ffff:10.0.1.10', 'threeceelabs.com');
-localHostHashMap.set('::ffff:10.0.1.27', 'threeceelabs.com');
-localHostHashMap.set('::ffff:10.0.1.45', 'threeceelabs.com');
-localHostHashMap.set('10.0.1.4', 'threeceelabs.com');
-localHostHashMap.set('10.0.1.10', 'threeceelabs.com');
-localHostHashMap.set('10.0.1.27', 'threeceelabs.com');
-
-localHostHashMap.set('104.197.93.13', 'test.threeceelabs.com');
 // ==================================================================
 // CONNECT TO INTERNET, START SERVER HEARTBEAT
 // ==================================================================

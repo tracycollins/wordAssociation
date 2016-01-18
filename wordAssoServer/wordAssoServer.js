@@ -1782,6 +1782,10 @@ var readResponseQueue = setInterval(function (){
 
     // if (clientObj.config) console.log(jsonPrint(clientObj.config));
 
+    if (!sessionHashMap.has(socketId)) {
+      console.error("??? SESSION NOT IN HASH ON RESPONSE Q READ (DISCONNECTED?) " + socketId);
+      return ; 
+    }
     var currentSession = sessionHashMap.get(socketId);
     currentSession.lastSeen = moment().valueOf();
 

@@ -3246,7 +3246,7 @@ localHostHashMap.set('10.0.1.4', 'threeceelabs.com');
 localHostHashMap.set('10.0.1.10', 'threeceelabs.com');
 localHostHashMap.set('10.0.1.27', 'threeceelabs.com');
 
-dnsHostHashMap.set('104.197.93.13', ['test.threeceelabs.com']);
+localHostHashMap.set('104.197.93.13', 'test.threeceelabs.com');
 // ==================================================================
 // CONNECT TO INTERNET, START SERVER HEARTBEAT
 // ==================================================================

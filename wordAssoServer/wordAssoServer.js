@@ -2356,6 +2356,14 @@ function createClientSocket (socket){
     incrementSocketBhtReqs(numberSocketBhtRequests);
   });
 
+  socket.on("GET_RANDOM_WORD", function(){
+    console.log(chalkTest("RX GET_RANDOM_WORD"));
+    words.getRandomWord(function(err, randomWordObj){
+      socket.emit("RANDOM_WORD", randomWordObj.nodeId);
+    });
+  });
+
+
   socket.on("SOCKET_TEST_MODE", function(testMode){
     console.log(chalkTest("RX SOCKET_TEST_MODE: " + testMode));
     serverSessionConfig.testMode = testMode

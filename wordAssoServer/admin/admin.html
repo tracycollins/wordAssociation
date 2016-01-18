@@ -792,14 +792,14 @@
 						}
 						else if (!showTestClients && ((value.domain.indexOf("googleusercontent") >= 0) 
 								|| (value.referer.indexOf('TEST') >= 0)
-								// || (value.config.type.indexOf('TEST') >= 0)
+								|| (value.config.type.indexOf('TEST') >= 0)
 								|| (value.domain.indexOf("googlebot") >= 0))) {
 						}
 						else {
 							
 							if ((value.domain.indexOf("googleusercontent") >= 0) 
 								|| (value.referer.indexOf('TEST') >= 0)
-								// || (value.config.type.indexOf('TEST') >= 0)
+								|| (value.config.type.indexOf('TEST') >= 0)
 								|| (value.domain.indexOf("googlebot") >= 0)
 								) {
 								clientIpTableBodyOptions.textColor = testClientConnectedColor ;

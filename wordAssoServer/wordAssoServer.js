@@ -1434,8 +1434,10 @@ bhtEvents.on("BHT_OVER_LIMIT_TIMEOUT", function(){
     bhtLimitResetTime.utcOffset("-08:00");
     bhtLimitResetTime.endOf("day");
 
-    bhtTimeToReset = moment(bhtLimitResetTime);
-    bhtTimeToReset.subtract(bhtOverLimitTime);
+    // bhtTimeToReset = moment(bhtLimitResetTime);
+    // bhtTimeToReset.subtract(bhtOverLimitTime);
+
+    bhtTimeToReset = bhtLimitResetTime.valueOf() - bhtOverLimitTime.valueOf();
   }
 });
 
@@ -1452,8 +1454,9 @@ bhtEvents.on("BHT_OVER_LIMIT", function(bhtRequests){
   bhtLimitResetTime.utcOffset("-08:00");
   bhtLimitResetTime.endOf("day");
 
-  bhtTimeToReset = moment(bhtLimitResetTime);
-  bhtTimeToReset.subtract(bhtOverLimitTime);
+  // bhtTimeToReset = moment(bhtLimitResetTime);
+  // bhtTimeToReset.subtract(bhtOverLimitTime);
+  bhtTimeToReset = bhtLimitResetTime.valueOf() - bhtOverLimitTime.valueOf();
 
   console.log(chalkBht("bhtSearchWord: *** OVER LIMIT *** | " + bhtRequests + " REQUESTS"));
   console.log(chalkBht("bhtSearchWord: *** OVER LIMIT *** | BHT OVER LIMIT TIME:      " 
@@ -1461,9 +1464,10 @@ bhtEvents.on("BHT_OVER_LIMIT", function(bhtRequests){
   console.log(chalkBht("bhtSearchWord: *** OVER LIMIT *** | BHT LIMIT RESET TIME:     " 
     + bhtLimitResetTime.format(defaultDateTimeFormat)));
   console.log(chalkBht("bhtSearchWord: *** OVER LIMIT *** | BHT OVER LIMIT REMAINING: " 
-    + bhtTimeToReset.format(defaultTimePeriodFormat)));
+    + msToTime(bhtTimeToReset)
+  ));
 
-  console.log("SET bhtOverLimitTimeOut = " + moment.duration(bhtTimeToReset) + " ms");
+  console.log("SET bhtOverLimitTimeOut = " + msToTime(bhtTimeToReset) + " ms");
 
   updateStats({
     "bhtOverLimits" : bhtOverLimits,
@@ -1473,7 +1477,7 @@ bhtEvents.on("BHT_OVER_LIMIT", function(bhtRequests){
 
   var bhtOverLimitTimeOut = setTimeout(function () {
     bhtEvents.emit("BHT_OVER_LIMIT_TIMEOUT");
-  }, moment.duration(bhtTimeToReset));
+  }, bhtTimeToReset);
 
 });
 
@@ -3377,6 +3381,7 @@ configEvents.on("SERVER_READY", function () {
         bhtOverLimitFlag : bhtOverLimitFlag,
         bhtLimitResetTime : bhtLimitResetTime,
         bhtOverLimitTime : bhtOverLimitTime,
+        bhtTimeToReset : bhtTimeToReset,
 
         totalSessions : totalSessions,
         totalUsers : totalUsers,

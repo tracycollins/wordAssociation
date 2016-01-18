@@ -169,7 +169,7 @@ socket.on("RANDOM_WORD", function(randomWord){
 socket.on("PROMPT_WORD_OBJ", function(promptWordObj){
   console.log("RX PROMPT_WORD_OBJ: " + promptWordObj.nodeId + " | BHT FOUND: " + promptWordObj.bhtFound);
   updateServerPrompt(promptWordObj.nodeId);
-  socket.emit("GET_RANDOM_WORD");
+  if (monitorMode) socket.emit("GET_RANDOM_WORD");
 });
 
 socket.on('connect', function(){

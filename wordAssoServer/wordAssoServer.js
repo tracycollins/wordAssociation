@@ -2127,7 +2127,7 @@ function createClientSocket (socket){
 
   var clientIp = socket.handshake.headers['x-real-ip'] || socket.client.conn.remoteAddress;
 
-  debug("createClientSocket: IP: " + clientIp);
+  console.log("createClientSocket: IP: " + clientIp);
   var clientDomain = "UNKNOWN" ;
 
   // check for IPV6 address
@@ -2142,6 +2142,17 @@ function createClientSocket (socket){
     debug("CONVERTING IPV6 IP " + clientIp + " TO IPV4: " + clientIp4);
     clientIp = clientIp4 ;
 
+    if (localHostHashMap.has(clientIp)) {
+      clientDomain = localHostHashMap.get(clientIp);
+    }
+    else if (dnsHostHashMap.has(clientIp)){
+      clientDomain = dnsHostHashMap.get(clientIp)[0];
+    }
+    else {
+      clientDomain = "UNKNOWN";
+    }
+  }
+  else {
     if (localHostHashMap.has(clientIp)) {
       clientDomain = localHostHashMap.get(clientIp);
     }

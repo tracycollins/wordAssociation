@@ -3337,7 +3337,7 @@ configEvents.on("SERVER_READY", function () {
 
     runTime =  moment() - startTime ;
 
-    if (moment().isAfter(bhtOverLimitTime)){
+    if (bhtOverLimitFlag && moment().isAfter(bhtOverLimitTime)){
       bhtEvents.emit("BHT_OVER_LIMIT_TIMEOUT");
     }   
 

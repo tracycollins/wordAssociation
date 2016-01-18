@@ -1777,7 +1777,7 @@ var readResponseQueue = setInterval(function (){
     else {
       console.error("??? CLIENT NOT IN HASH ON RESPONSE Q READ (DISCONNECTED?) | " 
         + socketId + " ... SKIPPING RESPONSE");
-      return;
+      return 1;
     }
 
     // if (clientObj.config) console.log(jsonPrint(clientObj.config));

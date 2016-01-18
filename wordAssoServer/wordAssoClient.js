@@ -1,11 +1,18 @@
 /*jslint node: true */
 "use strict";
 
-var configHashMap = new HashMap();
-configHashMap.set('testMode', false);
-
 var debug = false ;
 var testMode = false ;
+
+var monitorMode = false ;
+var responseTimeoutInterval = 3000 ;
+
+var configHashMap = new HashMap();
+
+configHashMap.set('testMode', testMode);
+configHashMap.set('debug', debug);
+configHashMap.set('monitorMode', monitorMode);
+
 var resizeFlag = false ;
 
 var showStatsFlag = false ;
@@ -37,6 +44,7 @@ var randomIntFromInterval = function (min,max) {
 }
 
 function getUrlVariables(config){
+
   var searchString = window.location.search.substring(1);
   var variableArray = searchString.split('&');
 
@@ -44,10 +52,14 @@ function getUrlVariables(config){
     var keyValuePair = variableArray[i].split('=');
     if (typeof keyValuePair[1] !== 'undefined'){
       configHashMap.set(keyValuePair[0], keyValuePair[1]) ;
-      console.log("'" + variableArray[i] + "' >>> URL config: " + keyValuePair[0] + " : " + configHashMap.get(keyValuePair[0]));      
+      console.log("'" + variableArray[i] + "' >>> URL config: " + keyValuePair[0] + " : " + configHashMap.get(keyValuePair[0]));  
+      if (keyValuePair[0] == 'monitor') {
+        monitorMode = keyValuePair[1] ;
+      }    
     } 
     else {
       console.log("NO URL VARIABLES");      
+      configHashMap.set('monitor', false) ;
     }
   }
 }
@@ -64,13 +76,14 @@ function sendUserResponse(){
     var wordInText = document.getElementById("wordInText");
     console.log("wordInText: " + wordInText.value);
     wordInText.value = "";
-    return ;
   }
-  console.log("TX WORD: " + userResponseValue);
-  socket.emit("RESPONSE_WORD_OBJ", {nodeId: userResponseValue});
-  var wordInText = document.getElementById("userResponse");
-  console.log("wordInText: " + wordInText.value);
-  wordInText.value = "";
+  else {
+    console.log("TX WORD: " + userResponseValue);
+    socket.emit("RESPONSE_WORD_OBJ", {nodeId: userResponseValue});
+    var wordInText = document.getElementById("userResponse");
+    console.log("wordInText: " + wordInText.value);
+    wordInText.value = "";
+  }
 }
 
 var userResponseValue = "";
@@ -124,9 +137,39 @@ socket.on("PROMPT_WORD", function(promptWord){
   updateServerPrompt(promptWord);
 });
 
+
+var responseTimeoutInterval = 3000 ;
+var autoResponseWord = "testing";
+
+socket.on("RANDOM_WORD", function(randomWord){
+
+  console.log("RX RANDOM_WORD: " + randomWord);
+  autoResponseWord = randomWord ;
+
+  var userResponseValue = document.getElementById("userResponse") ;
+  var charIndex = 0;
+  var charArray = [];
+
+  userResponseValue.value = charArray;
+
+  var charTypeInterval = setInterval(function(){
+    charArray.push(autoResponseWord[charIndex]);
+    userResponseValue.value = charArray.join("");
+    charIndex++;
+    if (charIndex > autoResponseWord.length) {
+      var sendResponseInterval = setTimeout(function(){
+        sendUserResponse();
+        // clearInterval(sendResponseInterval);
+      }, 1000);
+      clearInterval(charTypeInterval);
+    }
+   }, 200);
+});
+
 socket.on("PROMPT_WORD_OBJ", function(promptWordObj){
   console.log("RX PROMPT_WORD_OBJ: " + promptWordObj.nodeId + " | BHT FOUND: " + promptWordObj.bhtFound);
   updateServerPrompt(promptWordObj.nodeId);
+  socket.emit("GET_RANDOM_WORD");
 });
 
 socket.on('connect', function(){

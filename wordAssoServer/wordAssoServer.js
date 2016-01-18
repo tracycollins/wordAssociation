@@ -57,7 +57,6 @@ var startTime = moment();
 var runTime = 0;
 
 var currentTimeInteval = setInterval(function () {
-  // var d = new Date();
   currentTime = moment();
 }, 10);
 
@@ -2188,6 +2187,7 @@ function createClientSocket (socket){
     }
 
     var clientObj = clientSocketIdHashMap.get(socketId);
+    clientObj.connected = true ;
 
     if (config) {
 
@@ -2205,6 +2205,7 @@ function createClientSocket (socket){
 
       console.log(chalkConnect("CL READY"
         + " | " + socketId
+        + " | CONNECTED: " + clientObj.connected
         + " | IP: " + clientObj.ip 
         + " | DOMAIN: " + clientObj.domain 
         + " | USER: " + config.user 

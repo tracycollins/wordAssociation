@@ -174,8 +174,8 @@ var localHostHashMap = new HashMap();
 // ==================================================================
 // WORD CACHE
 // ==================================================================
-var WORD_CACHE_TTL = process.env.WORD_CACHE_TTL || 10 ;
-console.log("WORD CACHE TTL: " + WORD_CACHE_TTL);
+var wordCacheTtl = process.env.WORD_CACHE_TTL || 10 ;
+console.log("WORD CACHE TTL: " + wordCacheTtl);
 // ==================================================================
 // BIG HUGE THESAURUS
 // ==================================================================
@@ -1038,34 +1038,34 @@ function addWordToDb(wordObj, incMentions, callback){
           if (status.indexOf("BHT_OVER_LIMIT") >= 0) {
             debug(chalkError("bhtSearchWord BHT OVER LIMI"));
             // wordCache.set(word.nodeId, word, WORD_CACHE_TTL);
-            wordCache.set(word.nodeId, word, WORD_CACHE_TTL);
+            wordCache.set(word.nodeId, word, wordCacheTtl);
             callback('BHT_OVER_LIMIT', word);
           }
           else if (status.indexOf("BHT_ERROR") >= 0) {
             debug(chalkError("bhtSearchWord addWordToDb findOneWord ERROR\n" + JSON.stringify(status)));
-            wordCache.set(word.nodeId, word, WORD_CACHE_TTL);
+            wordCache.set(word.nodeId, word, wordCacheTtl);
             callback('BHT_ERROR', word);
           }
           else if (bhtResponseObj.bhtFound){
             debug(chalkBht("-*- BHT HIT   | " + bhtResponseObj.nodeId));
-            wordCache.set(bhtResponseObj.nodeId, bhtResponseObj, WORD_CACHE_TTL);
+            wordCache.set(bhtResponseObj.nodeId, bhtResponseObj, wordCacheTtl);
             callback('BHT_HIT', word);
           }
           else {
             debug(chalkBht("-O- BHT MISS  | " + wordObj.nodeId));
-            wordCache.set(bhtResponseObj.nodeId, bhtResponseObj, WORD_CACHE_TTL);
+            wordCache.set(bhtResponseObj.nodeId, bhtResponseObj, wordCacheTtl);
             callback('BHT_MISS', word);
           }
         });
       }
       else if (word.bhtFound){
         debug(chalkBht("-F- BHT FOUND | " + word.nodeId));
-        wordCache.set(word.nodeId, word, WORD_CACHE_TTL);
+        wordCache.set(word.nodeId, word, wordCacheTtl);
         callback('BHT_FOUND', word);
       }
       else {
         debug(chalkBht("-N- BHT NOT FOUND  | " + word.nodeId));
-        wordCache.set(word.nodeId, word, WORD_CACHE_TTL);
+        wordCache.set(word.nodeId, word, wordCacheTtl);
         callback('BHT_NOT_FOUND', word);
       }
     }
@@ -1147,34 +1147,34 @@ function generateResponse(wordObj, callback){
               bhtSearchWord(word, function(status, wordObj){
                 if (status.indexOf("BHT_OVER_LIMIT") >= 0) {
                   debug(chalkError("bhtSearchWord BHT OVER LIMI"));
-                  wordCache.set(word.nodeId, word, WORD_CACHE_TTL);
+                  wordCache.set(word.nodeId, word, wordCacheTtl);
                   callback('BHT_OVER_LIMIT', word);
                 }
                 else if (status.indexOf("BHT_ERROR") >= 0) {
                   debug(chalkError("bhtSearchWord addWordToDb findOneWord ERROR\n" + JSON.stringify(status)));
-                  wordCache.set(word.nodeId, word, WORD_CACHE_TTL);
+                  wordCache.set(word.nodeId, word, wordCacheTtl);
                   callback('BHT_ERROR', word);
                 }
                 else if (wordObj.bhtFound){
                   debug(chalkBht("-*- BHT HIT   | " + wordObj.nodeId));
-                  wordCache.set(wordObj.nodeId, wordObj, WORD_CACHE_TTL);
+                  wordCache.set(wordObj.nodeId, wordObj, wordCacheTtl);
                   callback('BHT_HIT', wordObj);
                 }
                 else {
                   debug(chalkBht("-O- BHT MISS  | " + wordObj.nodeId));
-                  wordCache.set(wordObj.nodeId, wordObj, WORD_CACHE_TTL);
+                  wordCache.set(wordObj.nodeId, wordObj, wordCacheTtl);
                   callback('BHT_MISS', wordObj);
                 }
               });
             }
             else if (word.bhtFound){
               debug(chalkBht("-F- BHT FOUND | " + word.nodeId));
-              wordCache.set(word.nodeId, word, WORD_CACHE_TTL);
+              wordCache.set(word.nodeId, word, wordCacheTtl);
               callback('BHT_FOUND', word);
             }
             else {
               debug(chalkBht("-N- BHT NOT FOUND  | " + word.nodeId));
-              wordCache.set(word.nodeId, word, WORD_CACHE_TTL);
+              wordCache.set(word.nodeId, word, wordCacheTtl);
               callback('BHT_NOT_FOUND', word);
             }
           }
@@ -1204,34 +1204,34 @@ function generateResponse(wordObj, callback){
               bhtSearchWord(word, function(status, bhtResponseObj){
                 if (status.indexOf("BHT_OVER_LIMIT") >= 0) {
                   debug(chalkError("bhtSearchWord BHT OVER LIMI"));
-                  wordCache.set(word.nodeId, word, WORD_CACHE_TTL);
+                  wordCache.set(word.nodeId, word, wordCacheTtl);
                   callback('BHT_OVER_LIMIT', word);
                 }
                 else if (status.indexOf("BHT_ERROR") >= 0) {
                   debug(chalkError("bhtSearchWord addWordToDb findOneWord ERROR\n" + JSON.stringify(status)));
-                  wordCache.set(word.nodeId, word, WORD_CACHE_TTL);
+                  wordCache.set(word.nodeId, word, wordCacheTtl);
                   callback('BHT_ERROR', word);
                 }
                 else if (bhtResponseObj.bhtFound){
                   debug(chalkBht("-*- BHT HIT   | " + bhtResponseObj.nodeId));
-                  wordCache.set(bhtResponseObj.nodeId, bhtResponseObj, WORD_CACHE_TTL);
+                  wordCache.set(bhtResponseObj.nodeId, bhtResponseObj, wordCacheTtl);
                   callback('BHT_HIT', bhtResponseObj);
                 }
                 else {
                   debug(chalkBht("-O- BHT MISS  | " + bhtResponseObj.nodeId));
-                  wordCache.set(bhtResponseObj.nodeId, bhtResponseObj, WORD_CACHE_TTL);
+                  wordCache.set(bhtResponseObj.nodeId, bhtResponseObj, wordCacheTtl);
                   callback('BHT_MISS', bhtResponseObj);
                 }
               });
             }
             else if (word.bhtFound){
               debug(chalkBht("-F- BHT FOUND | " + word.nodeId));
-              wordCache.set(word.nodeId, word, WORD_CACHE_TTL);
+              wordCache.set(word.nodeId, word, wordCacheTtl);
               callback('BHT_FOUND', word);
             }
             else {
               debug(chalkBht("-N- BHT NOT FOUND  | " + word.nodeId));
-              wordCache.set(word.nodeId, word, WORD_CACHE_TTL);
+              wordCache.set(word.nodeId, word, wordCacheTtl);
               callback('BHT_NOT_FOUND', word);
             }
           }
@@ -1243,17 +1243,17 @@ function generateResponse(wordObj, callback){
     bhtSearchWord(wordObj, function(status, bhtResponseObj){
       if (status.indexOf("BHT_OVER_LIMIT") >= 0) {
         debug(chalkError("bhtSearchWord BHT OVER LIMI"));
-        wordCache.set(wordObj.nodeId, wordObj, WORD_CACHE_TTL);
+        wordCache.set(wordObj.nodeId, wordObj, wordCacheTtl);
         callback('BHT_OVER_LIMIT', wordObj);
       }
       else if (status.indexOf("BHT_ERROR") >= 0) {
         debug(chalkError("bhtSearchWord addWordToDb findOneWord ERROR\n" + JSON.stringify(status)));
-        wordCache.set(wordObj.nodeId, wordObj, WORD_CACHE_TTL);
+        wordCache.set(wordObj.nodeId, wordObj, wordCacheTtl);
         callback('BHT_ERROR', wordObj);
       }
       else if (!bhtResponseObj.bhtFound){
         debug(chalkError("BHT MISS: " + bhtResponseObj.nodeId));
-        wordCache.set(bhtResponseObj.nodeId, bhtResponseObj, WORD_CACHE_TTL);
+        wordCache.set(bhtResponseObj.nodeId, bhtResponseObj, wordCacheTtl);
         callback('BHT_MISS', bhtResponseObj);
       }
       else {
@@ -1261,7 +1261,7 @@ function generateResponse(wordObj, callback){
 
           if (bhtWordHashMap.count() == 0) {
             debug(chalkBht("-v- BHT EMPTY | " + wordObj.nodeId));
-            wordCache.set(bhtResponseObj.nodeId, bhtResponseObj, WORD_CACHE_TTL);
+            wordCache.set(bhtResponseObj.nodeId, bhtResponseObj, wordCacheTtl);
             callback('BHT_EMPTY', bhtResponseObj);  // ?? maybe unknown wordType?
             return ;
           }
@@ -1283,7 +1283,7 @@ function generateResponse(wordObj, callback){
             words.findOneWord(responseWordObj, false, function(err, word){
               if (err) {
                 console.error(chalkError("findOneWord ERROR: " + JSON.stringify(err)))
-                wordCache.set(responseWordObj.nodeId, responseWordObj, WORD_CACHE_TTL);
+                wordCache.set(responseWordObj.nodeId, responseWordObj, wordCacheTtl);
                 callback('BHT_ERROR', responseWordObj);
               }
               else {
@@ -1296,34 +1296,34 @@ function generateResponse(wordObj, callback){
                   bhtSearchWord(word, function(status, bhtResponseObj){
                     if (status.indexOf("BHT_OVER_LIMIT") >= 0) {
                       debug(chalkError("bhtSearchWord BHT OVER LIMI"));
-                      wordCache.set(word.nodeId, word, WORD_CACHE_TTL);
+                      wordCache.set(word.nodeId, word, wordCacheTtl);
                       callback('BHT_OVER_LIMIT', word);
                     }
                     else if (status.indexOf("BHT_ERROR") >= 0) {
                       debug(chalkError("bhtSearchWord addWordToDb findOneWord ERROR\n" + JSON.stringify(status)));
-                      wordCache.set(word.nodeId, word, WORD_CACHE_TTL);
+                      wordCache.set(word.nodeId, word, wordCacheTtl);
                       callback('BHT_ERROR', word);
                     }
                     else if (bhtResponseObj.bhtFound){
                       debug(chalkBht("-*- BHT HIT   | " + bhtResponseObj.nodeId));
-                      wordCache.set(bhtResponseObj.nodeId, bhtResponseObj, WORD_CACHE_TTL);
+                      wordCache.set(bhtResponseObj.nodeId, bhtResponseObj, wordCacheTtl);
                       callback('BHT_HIT', bhtResponseObj);
                     }
                     else {
                       debug(chalkBht("-O- BHT MISS  | " + bhtResponseObj.nodeId));
-                      wordCache.set(bhtResponseObj.nodeId, bhtResponseObj, WORD_CACHE_TTL);
+                      wordCache.set(bhtResponseObj.nodeId, bhtResponseObj, wordCacheTtl);
                       callback('BHT_MISS', bhtResponseObj);
                     }
                   });
                 }
                 else if (word.bhtFound){
                   debug(chalkBht("-F- BHT FOUND | " + word.nodeId));
-                  wordCache.set(word.nodeId, word, WORD_CACHE_TTL);
+                  wordCache.set(word.nodeId, word, wordCacheTtl);
                   callback('BHT_FOUND', word);
                 }
                 else {
                   debug(chalkBht("-N- BHT NOT FOUND  | " + word.nodeId));
-                  wordCache.set(word.nodeId, word, WORD_CACHE_TTL);
+                  wordCache.set(word.nodeId, word, wordCacheTtl);
                   callback('BHT_NOT_FOUND', word);
                 }
               }
@@ -1342,7 +1342,7 @@ function generateResponse(wordObj, callback){
             words.findOneWord(responseWordObj, false, function(err, word){
               if (err) {
                 console.error(chalkError("findOneWord ERROR: " + JSON.stringify(err)))
-                wordCache.set(responseWordObj.nodeId, responseWordObj, WORD_CACHE_TTL);
+                wordCache.set(responseWordObj.nodeId, responseWordObj, wordCacheTtl);
                 callback('BHT_ERROR', responseWordObj);
               }
               else {
@@ -1355,29 +1355,29 @@ function generateResponse(wordObj, callback){
                   bhtSearchWord(word, function(status, bhtResponseObj){
                     if (status.indexOf("BHT_OVER_LIMIT") >= 0) {
                       debug(chalkError("bhtSearchWord BHT OVER LIMI"));
-                      wordCache.set(word.nodeId, word, WORD_CACHE_TTL);
+                      wordCache.set(word.nodeId, word, wordCacheTtl);
                       callback('BHT_OVER_LIMIT', word);
                     }
                     else if (status.indexOf("BHT_ERROR") >= 0) {
                       debug(chalkError("bhtSearchWord addWordToDb findOneWord ERROR\n" + JSON.stringify(status)));
-                      wordCache.set(word.nodeId, word, WORD_CACHE_TTL);
+                      wordCache.set(word.nodeId, word, wordCacheTtl);
                       callback('BHT_ERROR', word);
                     }
                     else {
                       debug(chalkBht("-O- BHT MISS  | " + bhtResponseObj.nodeId));
-                      wordCache.set(bhtResponseObj.nodeId, bhtResponseObj, WORD_CACHE_TTL);
+                      wordCache.set(bhtResponseObj.nodeId, bhtResponseObj, wordCacheTtl);
                       callback('BHT_MISS', bhtResponseObj);
                     }
                   });
                 }
                 else if (word.bhtFound){
                   debug(chalkBht("-F- BHT FOUND | " + word.nodeId));
-                  wordCache.set(word.nodeId, word, WORD_CACHE_TTL);
+                  wordCache.set(word.nodeId, word, wordCacheTtl);
                   callback('BHT_FOUND', word);
                 }
                 else {
                   debug(chalkBht("-N- BHT NOT FOUND  | " + word.nodeId));
-                  wordCache.set(word.nodeId, word, WORD_CACHE_TTL);
+                  wordCache.set(word.nodeId, word, wordCacheTtl);
                   callback('BHT_NOT_FOUND', word);
                 }
               }
@@ -1584,6 +1584,12 @@ function incrementDeltaBhtReqs(delta){
   else {
     deltaBhtRequests += delta;
   }
+}
+
+function setWordCacheTtl(value){
+  console.log(chalkInfo("SET WORD CACHE TTL: PREV: " + wordCacheTtl + " | NOW: " + value));
+  wordCacheTtl = parseInt(value) ;
+  updateStats({ wordCacheTtl: wordCacheTtl });
 }
 
 function setBhtReqs(value){
@@ -1810,7 +1816,7 @@ var readResponseQueue = setInterval(function (){
         responseWordObj.mentions = rwObj.mentions;
         responseWordObj.lastSeen = moment();
 
-        wordCache.set(responseWordObj.nodeId, responseWordObj, WORD_CACHE_TTL);
+        wordCache.set(responseWordObj.nodeId, responseWordObj, wordCacheTtl);
         currentSession.wordChain.push(responseWordObj) ;
 
         var sessionUpdateObj = {
@@ -1839,7 +1845,7 @@ var readResponseQueue = setInterval(function (){
 
                 randomWordObj.lastSeen = moment();
 
-                wordCache.set(randomWordObj.nodeId, randomWordObj, WORD_CACHE_TTL);
+                wordCache.set(randomWordObj.nodeId, randomWordObj, wordCacheTtl);
                 currentSession.wordChain.push(randomWordObj) ;
                 // sessionHashMap.set(socketId, currentSession);
 
@@ -1869,7 +1875,7 @@ var readResponseQueue = setInterval(function (){
           else {
             debug(chalkResponse(socketId + " | " + responseWordObj.nodeId + " --> " + promptWordObj.nodeId));
 
-            wordCache.set(promptWordObj.nodeId, promptWordObj, WORD_CACHE_TTL);
+            wordCache.set(promptWordObj.nodeId, promptWordObj, wordCacheTtl);
             currentSession.wordChain.push(promptWordObj) ;
             sessionHashMap.set(socketId, currentSession);
 
@@ -1951,7 +1957,7 @@ var readResponseQueue = setInterval(function (){
 
                 randomWordObj.lastSeen = moment();
 
-                wordCache.set(randomWordObj.nodeId, randomWordObj, WORD_CACHE_TTL);
+                wordCache.set(randomWordObj.nodeId, randomWordObj, wordCacheTtl);
                 currentSession.wordChain.push(randomWordObj) ;
 
                 sessionUpdateDb(currentSession, function(err, sessionObj){
@@ -1983,7 +1989,7 @@ var readResponseQueue = setInterval(function (){
 
             promptWordObj.lastSeen = moment();
 
-            wordCache.set(promptWordObj.nodeId, promptWordObj, WORD_CACHE_TTL);
+            wordCache.set(promptWordObj.nodeId, promptWordObj, wordCacheTtl);
             currentSession.wordChain.push(promptWordObj) ;
 
             sessionUpdateDb(currentSession, function(err, sessionObj){
@@ -2240,7 +2246,7 @@ function createClientSocket (socket){
           if (!err) {
             debug("randomWordObj\n" + JSON.stringify(randomWordObj, null, 3));
 
-            wordCache.set(randomWordObj.nodeId, randomWordObj, WORD_CACHE_TTL);
+            wordCache.set(randomWordObj.nodeId, randomWordObj, wordCacheTtl);
 
             var currentSession ;
 
@@ -3846,6 +3852,11 @@ io.of("/admin").on("connect", function(socket){
       }
 
     });
+  });
+
+  socket.on("SET_WORD_CACHE_TTL", function(newWordCacheTtl){
+    console.log(chalkAdmin("@@@ RX SET_WORD_CACHE_TTL | " + socketId + " | " + newWordCacheTtl));
+    setWordCacheTtl(newWordCacheTtl);
   });
 
   socket.on("UPDATE_BHT_REQS", function(newBhtRequests){

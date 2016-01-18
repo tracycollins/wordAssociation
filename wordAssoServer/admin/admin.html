@@ -119,6 +119,10 @@
 				<button id="updateBhtReqsButton" class="showHideButton" onclick="updateBhtReqs()">UPDATE BHT REQS</button>
 				<br>
 				<br>
+				<input id="setWordCacheTtl" type="number" name="wordCacheTtl">
+				<button id="setWordCacheTtlButton" class="showHideButton" onclick="setWordCacheTtl()">SET WORD CACHE TTL</button>
+				<br>
+				<br>
 				<hr>
 				<br>
 				<button id="testModeButton" class="showHideButton" onclick="setTestMode()">TEST MODE</button>
@@ -580,6 +584,12 @@
 				}
 			}
 
+
+			function setWordCacheTtl(){
+				var newWordCacheTtl = document.getElementById("setWordCacheTtl").value;
+				console.log("SET WORD CACHE TTL: " + newWordCacheTtl);
+				socket.emit("SET_WORD_CACHE_TTL", newWordCacheTtl);
+			}
 
 			function updateBhtReqs(){
 				var newBhtRequests = document.getElementById("updateBhtReqs").value;

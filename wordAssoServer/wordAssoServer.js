@@ -3067,6 +3067,20 @@ function updateMetrics(
 
         {
          "point": {
+          "int64Value": parseInt(100 * wordCache.getStats().hits/(1 + wordCache.getStats().misses)),
+          "start": metricDate,
+          "end": metricDate
+         },
+         "timeseriesDesc": {
+          "labels": { 
+            "custom.cloudmonitoring.googleapis.com/word-asso/word-cache/wordCacheHitMissRatio" : "WORD CACHE HIT/MISS RATIO"
+          },
+          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/word-cache/wordCacheHitMissRatio"
+         }
+        },
+
+        {
+         "point": {
           "int64Value": promptsSent,
           "start": metricDate,
           "end": metricDate

@@ -1895,6 +1895,8 @@ var readResponseQueue = setInterval(function (){
                 // debug(chalkPrompt("PROMPT | " + clientObj.socketId 
                 //   + " | " + previousResponse.nodeId + " --> " + promptWordObj.nodeId));
 
+                console.log("getRandomWord result: " + randomWordObj.nodeId);
+
                 randomWordObj.lastSeen = moment();
 
                 wordCache.set(randomWordObj.nodeId, randomWordObj, wordCacheTtl);

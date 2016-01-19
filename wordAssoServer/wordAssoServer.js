@@ -1,16 +1,6 @@
 /*jslint node: true */
 "use strict";
 
-console.log(
-  '\n\n====================================================================================================\n' 
-  +   '========================================= ***START*** ==============================================\n' 
-  +   '====================================================================================================\n' 
-  +    process.argv[1] + '\nSTARTED ' + Date() + '\n'
-  +   '====================================================================================================\n' 
-  +   '========================================= ***START*** ==============================================\n' 
-  +   '====================================================================================================\n\n'
-  );
-
 var ONE_SECOND = 1000 ;
 var ONE_MINUTE = ONE_SECOND*60 ;
 var ONE_HOUR = ONE_MINUTE*60 ;
@@ -66,6 +56,16 @@ var heartbeatsSent = 0;
 
 var maxNumberClientsConnected = 0;
 var maxNumberClientsConnectedTime = currentTime;
+
+console.log(
+  '\n\n====================================================================================================\n' 
+  +   '========================================= ***START*** ==============================================\n' 
+  +   '====================================================================================================\n' 
+  +    process.argv[1] + '\nSTARTED ' + Date() + '\n'
+  +   '====================================================================================================\n' 
+  +   '========================================= ***START*** ==============================================\n' 
+  +   '====================================================================================================\n\n'
+  );
 
 
 // ==================================================================
@@ -561,27 +561,18 @@ function getTimeStamp(inputTime) {
 
   var currentTimeStamp ;
   var options = {
-    // weekday: "long", year: "numeric", month: "short",
     weekday: "none", year: "numeric", month: "numeric",
     day: "numeric", hour: "2-digit", hour12: false,  minute: "2-digit"
   };
 
   if (typeof inputTime === 'undefined') {
     currentTimeStamp = moment();
-    // currentDate = new Date().toDateString("en-US", options);
-    // currentTime = new Date().toTimeString('en-US', options);
-  }
+   }
   else if (moment.isMoment(inputTime)) {
-    // console.log("getTimeStamp: inputTime: " + inputTime + " | NOW: " + Date.now());
     currentTimeStamp = moment(inputTime);
-    // currentDate = new Date().toDateString("en-US", options);
-    // currentTime = new Date().toTimeString('en-US', options);
   }
   else {
     currentTimeStamp = moment(parseInt(inputTime));
-    // var d = new Date(inputTime);
-    // currentDate = new Date(d).toDateString("en-US", options);
-    // currentTime = new Date(d).toTimeString('en-US', options);
   }
   return currentTimeStamp.format("YYYY-MM-DD HH:mm:ss ZZ");
 }
@@ -1361,7 +1352,6 @@ function generateResponse(wordObj, callback){
           else {
 
             debug("-O- HASH MISS | " + responseWord);
-            // var dateNow = Date.now();
 
             var responseWordObj = new Word ({
               nodeId: responseWord,
@@ -3183,7 +3173,7 @@ function updateMetrics(
       if (err) {
         console.error("!!! GOOGLE CLOUD MONITORING ERROR " 
           + " | " + getTimeStamp() 
-          + "\n" + err.toString());
+          + "\n" + err);
         if (err.toString().indexOf("Daily Limit Exceeded") >= 0){
           console.error(chalkGoogle("!!! GOOGLE CLOUD MONITORING DAILY LIMIT EXCEEDED ... DISABLING METRICS"));
           googleMetricsEnabled = false ;
@@ -3345,13 +3335,6 @@ configEvents.on("SERVER_READY", function () {
   //  SERVER HEARTBEAT
   //----------------------
 
-  // var tempDateTime = new Date();
-  // var txHeartbeat = { };
-  // var heartbeatsSent = 0;
-
-  // var maxNumberClientsConnected = 0;
-  // var maxNumberClientsConnectedTime = currentTime;
-
   function logHeartbeat(){
     console.log(chalkLog("HB " + heartbeatsSent 
       + " | " + getTimeStamp(txHeartbeat.timeStamp)
@@ -3439,8 +3422,8 @@ configEvents.on("SERVER_READY", function () {
 
     }
     else {
-      tempDateTime = new Date() ;
-      if (tempDateTime.getSeconds()%10 == 0){
+      tempDateTime = moment() ;
+      if (tempDateTime.seconds()%10 == 0){
         console.error(chalkError("!!!! INTERNET DOWN?? !!!!! " + getTimeStamp()));
       }
     }

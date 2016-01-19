@@ -1513,10 +1513,23 @@ function bhtSearchWord (wordObj, callback){
 
     debug("bhtSearchWord: " + bhtHost + "/" + path);
     
+    response.on('error', function(err) {
+      console.error(chalkError("bhtSearchWord ERROR " + JSON.stringify(err, null, 2)));
+      callback("BHT_ERROR | " + err, wordObj);
+      return;
+    });
+
     var body = '';
     var status = '';
 
-    if ((response.statusCode == 500) || (bhtOverLimitTestFlag)) {
+    if (response.statusCode == 500){
+      console.error(chalkBht("BHT RESPONSE CODE: " + response.statusCode));
+      bhtEvents.emit("BHT_OVER_LIMIT", bhtRequests);
+      callback("BHT_OVER_LIMIT", wordObj);
+      return ;
+    }
+    else if (bhtOverLimitTestFlag) {
+      console.log(chalkBht("BHT OVER LIMIT TEST FLAG SET"));
       bhtEvents.emit("BHT_OVER_LIMIT", bhtRequests);
       callback("BHT_OVER_LIMIT", wordObj);
       return ;
@@ -1534,7 +1547,14 @@ function bhtSearchWord (wordObj, callback){
         return ;
       });
     }
+    else if (response.statusCode != 200){
+      console.error(chalkBht("BHT RESPONSE CODE: " + response.statusCode));
+      bhtEvents.emit("BHT_OVER_LIMIT", bhtRequests);
+      callback("BHT_OVER_LIMIT", wordObj);
+      return ;
+    }
     else {
+      // console.log(chalkBht("BHT RESPONSE STATUS CODE:" + response.statusCode));
       response.on('data', function(d) {
         body += d;
       });
@@ -1570,10 +1590,10 @@ function bhtSearchWord (wordObj, callback){
         });
       });
 
-      response.on('error', function(e) {
-        console.log(chalkError("bhtSearchWord ERROR " + JSON.stringify(e, null, 3)));
-        callback("BHT_ERROR", wordObj);
-      });
+      // response.on('error', function(e) {
+      //   console.log(chalkError("bhtSearchWord ERROR " + JSON.stringify(e, null, 3)));
+      //   callback("BHT_ERROR", wordObj);
+      // });
     }
   });
 }

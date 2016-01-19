@@ -2969,7 +2969,7 @@ function updateMetrics(
 
   // var metricDate = new Date().toJSON();
   var metricDateStart = moment().toJSON();
-  var metricDateEnd = moment().add(10, ms).toJSON();  
+  var metricDateEnd = moment().add(10, 'ms').toJSON();  
   // hopefully will avoid Google metric error Timeseries data must be more recent than previously-written data
 
   debug(getTimeStamp() 

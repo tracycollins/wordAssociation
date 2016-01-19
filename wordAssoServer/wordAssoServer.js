@@ -1817,9 +1817,12 @@ var readResponseQueue = setInterval(function (){
       }
       else if (!clientObj.config.mode) {
         console.warn("??? CLIENT CONFIG MODE NOT SET IN HASH ON RESPONSE Q READ | " + socketId 
-          + "\n" + jsonPrint(clientObj.config));
+          // + "\n" + jsonPrint(clientObj.config)
+        );
         clientObj.config.mode = "WORD_OBJ";
-        console.warn("!!! SETTING CLIENT MODE TO WORD_OBJ\n" + jsonPrint(clientObj.config));
+        console.warn("!!! SETTING CLIENT MODE TO WORD_OBJ\n" 
+          // + jsonPrint(clientObj.config)
+        );
         clientSocketIdHashMap.set(socketId, clientObj);
       }
     }

@@ -3170,7 +3170,7 @@ function updateMetrics(
        ]
       }
     }, function(err, res){
-      if (err) {
+      if (err != null) {
         console.error("!!! GOOGLE CLOUD MONITORING ERROR " 
           + " | " + getTimeStamp() 
           + "\n" + err);
@@ -3184,6 +3184,9 @@ function updateMetrics(
           googleMetricsEnabled = false ;
           googleOauthEvents.emit("SOCKET HUNG UP");
         }
+      }
+      else {
+        console.log("GOOGLE MONITORING RESULT: " + res);
       }
     });
 

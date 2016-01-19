@@ -3186,7 +3186,7 @@ function updateMetrics(
         }
       }
       else {
-        console.log("GOOGLE MONITORING RESULT: " + res);
+        console.log("GOOGLE MONITORING RESULT: " + jsonPrint(res));
       }
     });
 

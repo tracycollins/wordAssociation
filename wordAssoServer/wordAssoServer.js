@@ -2949,8 +2949,8 @@ function findCredential (clientId, callback) {
 var deltaPromptsSent = 0 ;
 var deltaResponsesReceived = 0 ;
 var deltaBhtRequests = 0;
-var metricDateStart = (new Date()).toJSON();
-var metricDateEnd = (new Date()).toJSON();
+var metricDateStart = moment().toJSON();
+var metricDateEnd = moment().toJSON();  
 
 function updateMetrics(
 
@@ -2962,8 +2962,8 @@ function updateMetrics(
 
   ){
 
-  metricDateStart = (new Date()).toJSON();
-  metricDateEnd = (new Date()).toJSON();
+  metricDateStart = moment().toJSON();
+  metricDateEnd = moment().toJSON();  
   // hopefully will avoid Google metric error Timeseries data must be more recent than previously-written data
 
   debug(getTimeStamp() 

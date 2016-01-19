@@ -1538,7 +1538,7 @@ function bhtSearchWord (wordObj, callback){
       });
     }
     else if (response.statusCode == 303){
-      console.log(chalkBht("BHT RESPONSE CODE: " + response.statusCode + "\n" + jsonPrint(response)));
+      console.error(chalkBht("BHT RESPONSE CODE: " + response.statusCode + "\n" + jsonPrint(response)));
       // bhtEvents.emit("BHT_OVER_LIMIT", bhtRequests);
       callback("BHT_NOT_FOUND", wordUpdatedObj);
       return ;

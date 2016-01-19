@@ -3195,7 +3195,7 @@ function updateMetrics(
         }
       }
       else {
-        console.log("GOOGLE MONITORING RESULT: " + jsonPrint(res));
+        debug("GOOGLE MONITORING RESULT: " + jsonPrint(res));
       }
     });
 

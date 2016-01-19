@@ -2967,7 +2967,10 @@ function updateMetrics(
 
   ){
 
-  var metricDate = new Date().toJSON();
+  // var metricDate = new Date().toJSON();
+  var metricDateStart = moment().toJSON();
+  var metricDateEnd = moment().add(10, ms).toJSON();  
+  // hopefully will avoid Google metric error Timeseries data must be more recent than previously-written data
 
   debug(getTimeStamp() 
     + " | updateMetrics CLIENTS: " + numberClientsConnected 
@@ -2996,8 +2999,8 @@ function updateMetrics(
         {
          "point": {
           "int64Value": numberClientsConnected,
-          "start": metricDate,
-          "end": metricDate
+          "start": metricDateStart,
+          "end": metricDateEnd
          },
          "timeseriesDesc": {
           "labels": { 
@@ -3012,8 +3015,8 @@ function updateMetrics(
         {
          "point": {
           "int64Value": parseInt(100.0*(memoryTotal - memoryAvailable)/memoryTotal),
-          "start": metricDate,
-          "end": metricDate
+          "start": metricDateStart,
+          "end": metricDateEnd
          },
          "timeseriesDesc": {
           "labels": { 
@@ -3026,8 +3029,8 @@ function updateMetrics(
         {
          "point": {
           "int64Value": wordCache.getStats().keys,
-          "start": metricDate,
-          "end": metricDate
+          "start": metricDateStart,
+          "end": metricDateEnd
          },
          "timeseriesDesc": {
           "labels": { 
@@ -3040,8 +3043,8 @@ function updateMetrics(
         {
          "point": {
           "int64Value": wordCache.getStats().hits,
-          "start": metricDate,
-          "end": metricDate
+          "start": metricDateStart,
+          "end": metricDateEnd
          },
          "timeseriesDesc": {
           "labels": { 
@@ -3054,8 +3057,8 @@ function updateMetrics(
         {
          "point": {
           "int64Value": wordCache.getStats().misses,
-          "start": metricDate,
-          "end": metricDate
+          "start": metricDateStart,
+          "end": metricDateEnd
          },
          "timeseriesDesc": {
           "labels": { 
@@ -3068,8 +3071,8 @@ function updateMetrics(
         {
          "point": {
           "int64Value": parseInt(100 * wordCache.getStats().hits/(1 + wordCache.getStats().misses)),
-          "start": metricDate,
-          "end": metricDate
+          "start": metricDateStart,
+          "end": metricDateEnd
          },
          "timeseriesDesc": {
           "labels": { 
@@ -3082,8 +3085,8 @@ function updateMetrics(
         {
          "point": {
           "int64Value": promptsSent,
-          "start": metricDate,
-          "end": metricDate
+          "start": metricDateStart,
+          "end": metricDateEnd
          },
          "timeseriesDesc": {
           "labels": { 
@@ -3096,8 +3099,8 @@ function updateMetrics(
         {
          "point": {
           "int64Value": deltaPromptsSent,
-          "start": metricDate,
-          "end": metricDate
+          "start": metricDateStart,
+          "end": metricDateEnd
          },
          "timeseriesDesc": {
           "labels": { 
@@ -3110,8 +3113,8 @@ function updateMetrics(
         {
          "point": {
           "int64Value": responsesReceived,
-          "start": metricDate,
-          "end": metricDate
+          "start": metricDateStart,
+          "end": metricDateEnd
          },
          "timeseriesDesc": {
           "labels": { 
@@ -3124,8 +3127,8 @@ function updateMetrics(
         {
          "point": {
           "int64Value": deltaResponsesReceived,
-          "start": metricDate,
-          "end": metricDate
+          "start": metricDateStart,
+          "end": metricDateEnd
          },
          "timeseriesDesc": {
           "labels": { 
@@ -3138,8 +3141,8 @@ function updateMetrics(
         {
          "point": {
           "int64Value": deltaBhtRequests,
-          "start": metricDate,
-          "end": metricDate
+          "start": metricDateStart,
+          "end": metricDateEnd
          },
          "timeseriesDesc": {
           "labels": { 
@@ -3152,8 +3155,8 @@ function updateMetrics(
         {
          "point": {
           "int64Value": bhtRequests,
-          "start": metricDate,
-          "end": metricDate
+          "start": metricDateStart,
+          "end": metricDateEnd
          },
          "timeseriesDesc": {
           "labels": { 
@@ -3166,8 +3169,8 @@ function updateMetrics(
         {
          "point": {
           "int64Value": totalWords,
-          "start": metricDate,
-          "end": metricDate
+          "start": metricDateStart,
+          "end": metricDateEnd
          },
          "timeseriesDesc": {
           "labels": { "custom.cloudmonitoring.googleapis.com/word-asso/words/totalWords" : "TOTAL WORDS IN DB"},

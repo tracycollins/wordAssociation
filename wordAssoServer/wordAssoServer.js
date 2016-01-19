@@ -353,12 +353,12 @@ function loadStats(){
             bhtRequests = statsObj.bhtRequests ;
           }
 
-          if (typeof statsObj.bhtRequests !== 'undefined') {
+          if (typeof statsObj.promptsSent !== 'undefined') {
             console.log(chalkInfo(getTimeStamp() + " | SET PROMPTS SENT: " + statsObj.promptsSent));
             promptsSent = statsObj.promptsSent ;
           }
 
-          if (typeof statsObj.bhtRequests !== 'undefined') {
+          if (typeof statsObj.responsesReceived !== 'undefined') {
             console.log(chalkInfo(getTimeStamp() + " | SET RESPONSES RECEIVED: " + statsObj.responsesReceived));
             responsesReceived = statsObj.responsesReceived ;
           }
@@ -1809,9 +1809,7 @@ var readResponseQueue = setInterval(function (){
     responsesReceived++;
     deltaResponsesReceived++;
 
-    updateStats({
-      responsesReceived: responsesReceived
-    });
+    updateStats({ responsesReceived: responsesReceived });
 
     var socketId = responseInObj.socketId;
     var clientObj ;

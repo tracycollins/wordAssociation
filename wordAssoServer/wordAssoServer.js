@@ -3170,7 +3170,7 @@ function updateMetrics(
        ]
       }
     }, function(err, res){
-      if ((err != "null") && (err != null)) {
+      if (typeof  err !== undefined) {
         console.error("!!! GOOGLE CLOUD MONITORING ERROR " 
           + " | " + getTimeStamp() 
           + "\n" + err);

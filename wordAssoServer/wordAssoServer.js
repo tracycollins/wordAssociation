@@ -3175,6 +3175,7 @@ function updateMetrics(
           + " | " + getTimeStamp() 
           + "\n" + err
           + "\n" + typeof err
+          + "\n" + jsonPrint(err)
         );
         if (err.toString().indexOf("Daily Limit Exceeded") >= 0){
           console.error(chalkGoogle("!!! GOOGLE CLOUD MONITORING DAILY LIMIT EXCEEDED ... DISABLING METRICS"));

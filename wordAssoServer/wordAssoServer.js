@@ -1414,7 +1414,7 @@ bhtEvents.on("BHT_OVER_LIMIT_TIMEOUT", function(){
   if (bhtOverLimitFlag) {
     console.log(chalkBht("*** BHT_OVER_LIMIT_TIMEOUT END *** | " + getTimeStamp()));
     bhtOverLimitFlag = false ;
-    bhtOverLimitTestFlag = true ;
+    bhtOverLimitTestFlag = false ;
     incrementSocketBhtReqs(0);
 
     bhtOverLimitTime = moment.utc();

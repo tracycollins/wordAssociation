@@ -3173,11 +3173,11 @@ function updateMetrics(
       if (err) {
         console.error("!!! GOOGLE CLOUD MONITORING ERROR " 
           + " | " + getTimeStamp() 
-          + "\n" + jsonPrint(err)
+          // + "\n" + jsonPrint(err)
         );
 
         if (err.code == 500){
-          console.warn(chalkGoogle("??? GOOGLE CLOUD MONITORING INTERNAL SERVER ERROR"));
+          console.warn(chalkGoogle("??? GOOGLE CLOUD MONITORING INTERNAL SERVER ERROR (CODE: 500)"));
         }
 
         if (err.toString().indexOf("Daily Limit Exceeded") >= 0){

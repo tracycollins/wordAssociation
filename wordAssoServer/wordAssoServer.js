@@ -2432,7 +2432,7 @@ function createClientSocket (socket){
   });
 
   socket.on("GET_RANDOM_WORD", function(){
-    console.log(chalkTest("RX GET_RANDOM_WORD"));
+    console.log(chalkTest("RX GET_RANDOM_WORD | " + socket.id));
     words.getRandomWord(function(err, randomWordObj){
       socket.emit("RANDOM_WORD", randomWordObj.nodeId);
     });
@@ -2956,6 +2956,8 @@ function findCredential (clientId, callback) {
 var deltaPromptsSent = 0 ;
 var deltaResponsesReceived = 0 ;
 var deltaBhtRequests = 0;
+var metricDateStart = moment().toJSON();
+var metricDateEnd = moment().toJSON();  
 
 function updateMetrics(
 
@@ -2967,9 +2969,8 @@ function updateMetrics(
 
   ){
 
-  // var metricDate = new Date().toJSON();
-  var metricDateStart = moment().toJSON();
-  var metricDateEnd = moment().add(10, 'ms').toJSON();  
+  metricDateStart = moment().toJSON();
+  metricDateEnd = moment().toJSON();  
   // hopefully will avoid Google metric error Timeseries data must be more recent than previously-written data
 
   debug(getTimeStamp() 
@@ -3009,8 +3010,6 @@ function updateMetrics(
           "metric": "custom.cloudmonitoring.googleapis.com/word-asso/clients/numberClientsConnected"
          }
         },
-
-
 
         {
          "point": {

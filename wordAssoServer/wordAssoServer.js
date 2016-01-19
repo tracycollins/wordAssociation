@@ -1540,7 +1540,7 @@ function bhtSearchWord (wordObj, callback){
     else if (response.statusCode == 303){
       console.error(chalkBht("BHT RESPONSE CODE: " + response.statusCode + "\n" + response));
       // bhtEvents.emit("BHT_OVER_LIMIT", bhtRequests);
-      callback("BHT_NOT_FOUND", wordUpdatedObj);
+      callback("BHT_NOT_FOUND", wordObj);
       return ;
     }
     else if (response.statusCode != 200){

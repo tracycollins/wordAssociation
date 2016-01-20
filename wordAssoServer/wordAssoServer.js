@@ -419,6 +419,7 @@ loadStats();
 setInterval(function () {
 
   updateStats({ 
+    timeStamp : getTimeStamp(),
     upTime : msToTime(upTime),
     runTime : msToTime(runTime),
     heartbeat : txHeartbeat,

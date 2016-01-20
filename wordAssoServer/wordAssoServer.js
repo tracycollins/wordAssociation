@@ -428,8 +428,8 @@ setInterval(function () {
     maxNumberClientsTime : maxNumberClientsTime,
     promptsSent : promptsSent,
     responsesReceived: responsesReceived,
-    wordCacheHits: wordCacheHits,
-    wordCacheMisses: wordCacheMisses
+    wordCacheHits: wordCache.getStats().hits,
+    wordCacheMisses: wordCache.getStats().misses
   });
 
 

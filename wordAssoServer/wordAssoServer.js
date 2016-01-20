@@ -54,8 +54,8 @@ var tempDateTime = moment();
 var txHeartbeat = { };
 var heartbeatsSent = 0;
 
-var maxNumberClientsConnected = 0;
-var maxNumberClientsConnectedTime = currentTime;
+var maxNumberClients = 0;
+var maxNumberClientsTime = currentTime;
 
 console.log(
   '\n\n====================================================================================================\n' 
@@ -158,12 +158,12 @@ var adminIpHashMap = new HashMap();
 var adminSocketIdHashMap = new HashMap();
 
 var numberAdminsTotal = 0;
-var numberAdminsConnected = 0;
+var numberAdmins = 0;
 
 var clientIpHashMap = new HashMap();
 var clientSocketIdHashMap = new HashMap();
 
-var numberClientsConnected = 0;
+var numberClients = 0;
 var numberTestClients = 0;
 
 
@@ -417,7 +417,17 @@ function loadStats(){
 loadStats();
 setInterval(function () {
 
-  updateStats({ heartbeat : txHeartbeat });
+  updateStats({ 
+    upTime : msToTime(upTime),
+    runTime : msToTime(runTime),
+    heartbeat : txHeartbeat,
+    numberAdmins : numberAdmins,
+    numberClients : numberClients,
+    maxNumberClients : maxNumberClients,
+    maxNumberClientsTime : maxNumberClientsTime,
+    promptsSent : promptsSent,
+    responsesReceived, responsesReceived
+  });
 
 
   saveStats(dropboxHostStatsFile, wordAssoServerStatsObj, function(status){
@@ -870,7 +880,7 @@ function readSocketQueue(){
             socketObj.connected = false ;
             socketObj.disconnectTime = currentTime ;
             console.error(chalkError("\n *** CL CONNECT ERROR *** " 
-              + "[" + numberClientsConnected + "] " 
+              + "[" + numberClients + "] " 
               + " | " + getTimeStamp() 
               + " | S: " + socketObj.socketId 
               + " | I: " + socketObj.ip 
@@ -898,6 +908,7 @@ function readSocketQueue(){
           }
           else if (socketObj.referer == 'TEST') {
             numberTestClients++;
+            updateStats({ numberTestClients : numberTestClients });
             socketObj.connected = true ;
             socketObj.connectTime = currentTime ;
             socketObj.sessions = [] ;
@@ -924,7 +935,7 @@ function readSocketQueue(){
             clientSocketIdHashMap.set(socketObj.socketId, socketObj);
 
             console.log(chalkConnect("CONNECT   "
-              + "[" + numberClientsConnected + "] " 
+              + "[" + numberClients + "] " 
               + getTimeStamp() 
               + " | S: " + socketObj.socketId 
               + " | I: " + socketObj.ip 
@@ -981,7 +992,7 @@ function readSocketQueue(){
           // clientIpHashMap.set(cl.ip, cl);
 
           console.log(chalkTest("DISCONNECT" 
-              + " [" + numberClientsConnected + "] " 
+              + " [" + numberClients + "] " 
             + getTimeStamp() 
             + " | S: " + cl.socketId 
             + " | U: " + cl.config.user 
@@ -1430,6 +1441,12 @@ bhtEvents.on("BHT_OVER_LIMIT_TIMEOUT", function(){
     bhtLimitResetTime.utcOffset("-08:00");
     bhtLimitResetTime.endOf("day");
 
+    updateStats({ 
+      bhtOverLimitTime : bhtOverLimitTime,
+      bhtLimitResetTime : bhtLimitResetTime,
+      bhtOverLimitFlag : bhtOverLimitFlag
+    });
+
     // bhtTimeToReset = moment(bhtLimitResetTime);
     // bhtTimeToReset.subtract(bhtOverLimitTime);
 
@@ -1590,12 +1607,10 @@ function bhtSearchWord (wordObj, callback){
           callback(status, wordUpdatedObj);
           return;
         });
+      }).on('error', function(e) {
+        console.log(chalkError("bhtSearchWord ERROR " + JSON.stringify(e, null, 3)));
+        callback("BHT_ERROR", wordObj);
       });
-
-      // response.on('error', function(e) {
-      //   console.log(chalkError("bhtSearchWord ERROR " + JSON.stringify(e, null, 3)));
-      //   callback("BHT_ERROR", wordObj);
-      // });
     }
   });
 }
@@ -2151,7 +2166,7 @@ function createClientSocket (socket){
       ); 
   }
 
-  numberClientsConnected = io.of('/').sockets.length;
+  numberClients = io.of('/').sockets.length;
 
   var clientIp = socket.handshake.headers['x-real-ip'] || socket.client.conn.remoteAddress;
 
@@ -2964,22 +2979,14 @@ var deltaBhtRequests = 0;
 var metricDateStart = moment().toJSON();
 var metricDateEnd = moment().toJSON();  
 
-function updateMetrics(
-
-  numberClientsConnected, 
-  promptsSent, 
-  responsesReceived, 
-  sessionUpdatesSent, 
-  bhtRequests
-
-  ){
+function updateMetrics(){
 
   metricDateStart = moment().toJSON();
   metricDateEnd = moment().toJSON();  
   // hopefully will avoid Google metric error Timeseries data must be more recent than previously-written data
 
   debug(getTimeStamp() 
-    + " | updateMetrics CLIENTS: " + numberClientsConnected 
+    + " | updateMetrics CLIENTS: " + numberClients 
     + " | PTX: " + promptsSent 
     + " | RRX: " + responsesReceived
     + " | STX: " + sessionUpdatesSent
@@ -2991,8 +2998,8 @@ function updateMetrics(
     return null;
   }
 
-// name: custom.cloudmonitoring.googleapis.com/word-asso/clients/numberClientsConnected
-// label key: custom.cloudmonitoring.googleapis.com/word-asso/clients/numberClientsConnected
+// name: custom.cloudmonitoring.googleapis.com/word-asso/clients/numberClients
+// label key: custom.cloudmonitoring.googleapis.com/word-asso/clients/numberClients
 
   googleMonitoring.timeseries.write({
 
@@ -3004,7 +3011,7 @@ function updateMetrics(
 
         {
          "point": {
-          "int64Value": numberClientsConnected,
+          "int64Value": numberClients,
           "start": metricDateStart,
           "end": metricDateEnd
          },
@@ -3372,13 +3379,13 @@ configEvents.on("SERVER_READY", function () {
 
   var serverHeartbeatInterval = setInterval(function () {
 
-    numberAdminsConnected = io.of('/admin').sockets.length;
-    numberClientsConnected = io.of('/').sockets.length - io.of('/admin').sockets.length;
+    numberAdmins = io.of('/admin').sockets.length;
+    numberClients = io.of('/').sockets.length - io.of('/admin').sockets.length;
 
-    if (numberClientsConnected > maxNumberClientsConnected) {
-      maxNumberClientsConnected = numberClientsConnected;
-      maxNumberClientsConnectedTime = currentTime;
-      console.log(chalkAlert("NEW MAX CLIENTS CONNECTED: " + maxNumberClientsConnected 
+    if (numberClients > maxNumberClients) {
+      maxNumberClients = numberClients;
+      maxNumberClientsTime = currentTime;
+      console.log(chalkAlert("NEW MAX CLIENTS CONNECTED: " + maxNumberClients 
         + " | " + getTimeStamp()));
     }
 
@@ -3413,10 +3420,10 @@ configEvents.on("SERVER_READY", function () {
         clientSocketIdHashMapCount : clientSocketIdHashMap.count(),
         sessionHashMapCount : sessionHashMap.count(),
 
-        numberAdmins : numberAdminsConnected,
-        numberClients : numberClientsConnected,
-        maxNumberClients : maxNumberClientsConnected,
-        maxNumberClientsTime : maxNumberClientsConnectedTime,
+        numberAdmins : numberAdmins,
+        numberClients : numberClients,
+        maxNumberClients : maxNumberClients,
+        maxNumberClientsTime : maxNumberClientsTime,
 
         totalWords : totalWords,
         bhtRequests : bhtRequests,
@@ -3562,9 +3569,9 @@ io.of("/admin").on("connect", function(socket){
     + "\n========================================\n"
   );
 
-  numberAdminsConnected = io.of('/admin').sockets.length;
+  numberAdmins = io.of('/admin').sockets.length;
 
-  console.log(chalkConnect("ADMIN CONNECTED [" + numberAdminsConnected + "] " 
+  console.log(chalkConnect("ADMIN CONNECTED [" + numberAdmins + "] " 
     + socket.id 
     + " | " + getTimeStamp()
     + " | " + socket.connected
@@ -3863,7 +3870,7 @@ io.of("/admin").on("connect", function(socket){
 
   socket.on("disconnect", function(){
 
-    numberAdminsConnected = io.of('/admin').sockets.length;
+    numberAdmins = io.of('/admin').sockets.length;
 
     adminObj.disconnectTime = currentTime;
 
@@ -3890,7 +3897,7 @@ io.of("/admin").on("connect", function(socket){
           + ' | socketId: ' + ad.socketId
           + ' | domain: ' + ad.domain
           + ' | ' + numberAdminsTotal + ' ADMINS UNIQUE IP'
-          + ' | ' + numberAdminsConnected + ' ADMINS CONNECTED'
+          + ' | ' + numberAdmins + ' ADMINS CONNECTED'
            ;
 
         console.log(adminDisconnectedString);
@@ -4036,7 +4043,8 @@ configEvents.on("DATABASE_INIT_COMPLETE", function(tweetCount){
 var clientSocketCheckInterval = setInterval(function () {
 
   if (!disableGoogleMetrics && googleMetricsEnabled) {
-    updateMetrics(numberClientsConnected, promptsSent, responsesReceived, sessionUpdatesSent, bhtRequests);
+    // updateMetrics(numberClients, promptsSent, responsesReceived, sessionUpdatesSent, bhtRequests);
+    updateMetrics();
   }
 
   var clientSockets = findClientsSocket('/');

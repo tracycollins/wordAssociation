@@ -39,6 +39,7 @@ var EventEmitter = require("events").EventEmitter;
 // ==================================================================
 // SERVER STATUS
 // ==================================================================
+var upTime = os.uptime() * 1000;
 var memoryTotal = os.totalmem();
 var memoryAvailable = os.freemem();
 
@@ -3407,7 +3408,7 @@ configEvents.on("SERVER_READY", function () {
         serverHostName : os.hostname(), 
         timeStamp : getTimeNow(), 
         startTime : startTime, 
-        upTime : os.uptime() * 1000, 
+        upTime : upTime, 
         runTime : runTime, 
         heartbeatsSent : heartbeatsSent,
         memoryAvailable : memoryAvailable,

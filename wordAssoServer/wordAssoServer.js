@@ -1611,12 +1611,12 @@ function bhtSearchWord (wordObj, callback){
           callback(status, wordUpdatedObj);
           return;
         });
-      }).on('error', function(e) {
+      });
+    }
+  }).on('error', function(e) {
         console.log(chalkError("bhtSearchWord ERROR " + JSON.stringify(e, null, 3)));
         callback("BHT_ERROR", wordObj);
       });
-    }
-  });
 }
 
 function chainDeadEnd(chain) {
@@ -3953,7 +3953,7 @@ io.on("connect", function(socket){
 });
 
 io.on("reconnecting", function(reconnectAttemptNum){
-  console.warn(chalkWarn("... SKT RECONNECTING: " 
+  console.warn(chalkWarn("... SKT RECONNECTING" 
     + " | " + getTimeStamp()
     + " | " + sdName
     + " | " + reconnectAttemptNum + " RECONNECT ATTEMPTS"
@@ -3965,7 +3965,7 @@ io.on("reconnecting", function(reconnectAttemptNum){
 });
 
 io.on("reconnect", function(reconnectAttemptNum){
-  console.warn(chalkWarn("+-- SKT RECONNECTED: " 
+  console.warn(chalkWarn("+-- SKT RECONNECTED" 
     + " | " + getTimeStamp()
     + " | " + sdName
     + " | " + reconnectAttemptNum + " RECONNECT ATTEMPTS"
@@ -3973,10 +3973,10 @@ io.on("reconnect", function(reconnectAttemptNum){
 });
 
 io.on("error", function(errorObj){
-  console.error(chalkError("\n*** SKT ERROR: " 
+  console.error(chalkError("\n*** SKT ERROR" 
     + " | " + getTimeStamp()
     + " | " + sdName
-    + JSON.stringify(errorObj, null, 3)
+    + "\n" + JSON.stringify(errorObj, null, 3)
   ));
 
   if (debug.enabled) {
@@ -3985,10 +3985,10 @@ io.on("error", function(errorObj){
 });
 
 io.on("reconnect_error", function(errorObj){
-  console.error(chalkError("\n*** SKT RECONNECT ERROR: " 
+  console.error(chalkError("\n*** SKT RECONNECT ERROR" 
     + " | " + getTimeStamp()
     + " | " + sdName
-    + JSON.stringify(errorObj, null, 3)
+    + "\n" + JSON.stringify(errorObj, null, 3)
   ));
 
   if (debug.enabled) {
@@ -3997,10 +3997,10 @@ io.on("reconnect_error", function(errorObj){
 });
 
 io.on("reconnect_failed", function(errorObj){
-  console.error(chalkError("\n*** SKT RECONNECT FAILED: " 
+  console.error(chalkError("\n*** SKT RECONNECT FAILED" 
     + " | " + getTimeStamp()
     + " | " + sdName
-    + JSON.stringify(errorObj, null, 3)
+    + "\n" + JSON.stringify(errorObj, null, 3)
   ));
 
   if (debug.enabled) {
@@ -4009,10 +4009,10 @@ io.on("reconnect_failed", function(errorObj){
 });
 
 io.on("connect_error", function(errorObj){
-  console.error(chalkError("\n*** SKT CONNECT ERROR: " 
+  console.error(chalkError("\n*** SKT CONNECT ERROR" 
     + " | " + getTimeStamp()
     + " | " + sdName
-    + JSON.stringify(errorObj, null, 3)
+    + "\n" + JSON.stringify(errorObj, null, 3)
   ));
 
   if (debug.enabled) {
@@ -4021,10 +4021,10 @@ io.on("connect_error", function(errorObj){
 });
 
 io.on("connect_timeout", function(errorObj){
-  console.error(chalkError("\n*** SKT CONNECT TIMEOUT: " 
+  console.error(chalkError("\n*** SKT CONNECT TIMEOUT" 
     + " | " + getTimeStamp()
     + " | " + sdName
-    + JSON.stringify(errorObj, null, 3)
+    + "\n" + JSON.stringify(errorObj, null, 3)
   ));
 
   if (debug.enabled) {

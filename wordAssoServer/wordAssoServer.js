@@ -1033,6 +1033,12 @@ var wordVariations = [ 'syn', 'ant', 'rel', 'sim', 'usr' ];
 
 function addWordToDb(wordObj, incMentions, callback){
 
+  if ((wordObj.nodeId == null) || (typeof wordObj.nodeId === 'undefined')) {
+    console.error(chalkError("\n***** addWordToDb: NULL OR UNDEFINED nodeId\n" + jsonPrint(wordObj)));
+    callback("NULL OR UNDEFINED nodeId", wordObj);
+    return;
+  }
+
   words.findOneWord(wordObj, incMentions, function(err, word){
     if (err) {
       console.log(chalkError("addWordToDb -- > findOneWord ERROR" 

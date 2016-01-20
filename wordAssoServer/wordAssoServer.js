@@ -427,7 +427,9 @@ setInterval(function () {
     maxNumberClients : maxNumberClients,
     maxNumberClientsTime : maxNumberClientsTime,
     promptsSent : promptsSent,
-    responsesReceived, responsesReceived
+    responsesReceived: responsesReceived,
+    wordCacheHits: wordCacheHits,
+    wordCacheMisses: wordCacheMisses
   });
 
 

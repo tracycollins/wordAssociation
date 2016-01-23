@@ -787,6 +787,7 @@
 
 						var key = clientIpHashMapKeys[i];
 						var value = clientIpHashMap.get(clientIpHashMapKeys[i]);
+						console.log("KEY: " + key + "\n" + jsonPrint(value));
 
 						if (!showBotClients && ((value.domain.indexOf("googlebot") >= 0))) {
 						}

@@ -1451,9 +1451,6 @@ bhtEvents.on("BHT_OVER_LIMIT_TIMEOUT", function(){
       bhtOverLimitFlag : bhtOverLimitFlag
     });
 
-    // bhtTimeToReset = moment(bhtLimitResetTime);
-    // bhtTimeToReset.subtract(bhtOverLimitTime);
-
     bhtTimeToReset = bhtLimitResetTime.valueOf() - bhtOverLimitTime.valueOf();
   }
 });
@@ -1495,7 +1492,6 @@ bhtEvents.on("BHT_OVER_LIMIT", function(bhtRequests){
   var bhtOverLimitTimeOut = setTimeout(function () {
     bhtEvents.emit("BHT_OVER_LIMIT_TIMEOUT");
   }, bhtTimeToReset);
-
 });
 
 function bhtSearchWord (wordObj, callback){
@@ -3199,7 +3195,7 @@ function updateMetrics(){
       if (err) {
         console.error("!!! GOOGLE CLOUD MONITORING ERROR " 
           + " | " + getTimeStamp() 
-          // + "\n" + jsonPrint(err)
+          + "\n" + util.inspect(err, {showHidden: false, depth: 1})
         );
 
         if (err.code == 500){

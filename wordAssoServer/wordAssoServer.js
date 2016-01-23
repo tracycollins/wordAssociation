@@ -399,7 +399,19 @@ function loadStats(){
       bhtRequests = statsObj.bhtRequests ;
     }
 
+    if (typeof statsObj.promptsSent !== 'undefined') {
+      console.log(chalkInfo(getTimeStamp() + " | SET PROMPTS SENT: " + statsObj.promptsSent));
+      promptsSent = statsObj.promptsSent ;
+    }
+
+    if (typeof statsObj.responsesReceived !== 'undefined') {
+      console.log(chalkInfo(getTimeStamp() + " | SET RESPONSES RECEIVED: " + statsObj.responsesReceived));
+      responsesReceived = statsObj.responsesReceived ;
+    }
+
     wordAssoServerStatsObj.bhtRequests = bhtRequests;
+    wordAssoServerStatsObj.promptsSent = promptsSent;
+    wordAssoServerStatsObj.responsesReceived = responsesReceived;
 
     saveStats(dropboxHostStatsFile, wordAssoServerStatsObj, function(status){
       if (status != 'OK'){

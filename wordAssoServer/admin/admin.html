@@ -782,11 +782,13 @@
 
 					var numberUniqueClients = 0;
 					var elapsedSinceLastSeen = 0;
+					var key;
+					var value = {};
 
 					for (var i=0; i<clientIpHashMapKeys.length; i++){
 
-						var key = clientIpHashMapKeys[i];
-						var value = clientIpHashMap.get(clientIpHashMapKeys[i]);
+						 key = clientIpHashMapKeys[i];
+						 value = clientIpHashMap.get(clientIpHashMapKeys[i]);
 						console.log("KEY: " + key + "\n" + jsonPrint(value));
 
 						if (!showBotClients && ((value.domain.indexOf("googlebot") >= 0))) {
@@ -841,12 +843,14 @@
 
 					var numberConnected = 0;
 					var connectTime = 0;
+					var key;
+					var value = {};
 
 
 					for (var j=0; j<clientSocketIdHashMapKeys.length; j++){
 
-						var key = clientSocketIdHashMapKeys[j];
-						var value = clientSocketIdHashMap.get(clientSocketIdHashMapKeys[j]);
+						 key = clientSocketIdHashMapKeys[j];
+						 value = clientSocketIdHashMap.get(clientSocketIdHashMapKeys[j]);
 
 						if (typeof value.referer === 'undefined'){
 							value.referer = '';

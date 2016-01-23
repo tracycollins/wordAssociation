@@ -106,7 +106,7 @@ var wordAssoServerStatsObj = {
   "heartbeat" : txHeartbeat
 };
 
-var saveStatsInterval = 60000 ;
+var saveStatsInterval = 10000 ;
 
 // ==================================================================
 // TEST CONFIG
@@ -441,6 +441,10 @@ setInterval(function () {
     maxNumberClientsTime : maxNumberClientsTime,
     promptsSent : promptsSent,
     responsesReceived: responsesReceived,
+    bhtRequests: bhtRequests,
+    totalSessions: totalSessions,
+    sessionUpdatesSent: sessionUpdatesSent,
+    totalWords: totalWords,
     wordCacheHits: wordCache.getStats().hits,
     wordCacheMisses: wordCache.getStats().misses
   });
@@ -3464,6 +3468,14 @@ configEvents.on("SERVER_READY", function () {
     if (bhtOverLimitFlag && moment().isAfter(bhtOverLimitTime)){
       bhtEvents.emit("BHT_OVER_LIMIT_TIMEOUT");
     }   
+
+    // updateStats({
+    //   "promptsSent" : promptsSent,
+    //   "responsesReceived" : responsesReceived,
+    //   "bhtOverLimits" : bhtOverLimits,
+    //   "bhtOverLimitTime" : bhtOverLimitTime,
+    //   "bhtRequests" : bhtRequests
+    // });
 
     //
     // SERVER HEARTBEAT

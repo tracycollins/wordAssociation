@@ -4263,7 +4263,7 @@ function initAppRouting(){
 
 process.on("message", function(msg) {
 
-  if (msg == 'shutdown') {
+  if ((msg == 'SIGINT') || (msg == 'shutdown')) {
     
     console.log('\n\n!!!!! RECEIVED PM2 SHUTDOWN !!!!!\n\n***** Closing all connections *****\n\n');
     console.log("... SAVING STATS");
@@ -4280,7 +4280,7 @@ process.on("message", function(msg) {
     setTimeout(function() {
       console.log('**** Finished closing connections ****\n\n ***** RELOADING blm.js NOW *****\n\n');
       process.exit(0);
-    }, 5000);
+    }, 300);
 
   }
 });

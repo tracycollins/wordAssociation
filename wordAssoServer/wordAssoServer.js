@@ -2726,6 +2726,7 @@ function clientFindAllDb (options, callback) {
   var query = {};
   var projections = {
     ip: true,
+    config: true,
     domain: true,
     socketId: true,
     lastSeen: true,
@@ -2747,7 +2748,64 @@ function clientFindAllDb (options, callback) {
         + " | DISCONNECT TIME: " + client.disconnectTime
         + " | NUM SESSIONS: " + client.numberOfConnections
         );
-      clientIpHashMap.set(client.ip, client);
+
+      if (typeof client.config === 'undefined'){
+        console.warn(chalkWarn("??? CLIENT IN DB WITHOUT CONFIG\n" + jsonPrint(client)));
+        // var clientObj = new Client({
+        //   type: 'CLIENT',  
+        //   ip: client.ip, 
+        //   domain: client.domain,
+        //   socketId: client.socketId,
+        //   socket: client.socket,
+        //   referer: client.referer,
+        //   connected: client.connected, 
+        //   connectTime: client.connectTime,
+        //   disconnectTime: client.disconnectTime,
+        //   numberOfConnections: client.numberOfConnections,
+        //   sessions: client.sessions,
+        //   config: { type: 'CLIENT', mode: 'WORD_OBJ', user: 'UNKNOWN'}
+        // });
+
+        var query = { ip: client.ip };
+        var update = { 
+              $set: { 
+                "config": { type: 'CLIENT', mode: 'WORD_OBJ', user: 'UNKNOWN'}
+              }
+            };
+        var options = { upsert: true, new: true };
+
+        Client.findOneAndUpdate(
+          query,
+          update,
+          options,
+          function(err, cl) {
+            if (err) {
+              console.error("!!! CLIENT FINDONE ERROR: " 
+                + getTimeStamp()
+                + " | " + client.ip 
+                + "\n" + err);
+              // getErrorMessage(err);
+            }
+            else {
+              console.log(">>> CLIENT UPDATED" 
+                + " | I: " + cl.ip
+                + " | D: " + cl.domain 
+                + " | S: " + cl.socketId 
+                + " | CONN: " + cl.connected 
+                + " | R: " + cl.referer 
+                + " | CONS: " + cl.numberOfConnections 
+                + " | LAST: " + getTimeStamp(cl.lastSeen)
+                + "\nCONFIG\n" + jsonPrint(cl.config)
+                );
+              console.warn(chalkWarn("??? UPDATED CLIENT\n" + jsonPrint(cl.config)));
+              clientIpHashMap.set(cl.ip, cl);
+            }
+          }
+        );
+      }
+      else {
+        clientIpHashMap.set(client.ip, client);
+      }
     });
     debug(clientIpHashMap.count() + " KNOWN CLIENTS");
     callback(clientIpHashMap.count());

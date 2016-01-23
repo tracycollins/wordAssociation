@@ -1726,7 +1726,7 @@ function sessionUpdateDb (sessionObj, callback) {
         callback(err, sessionObj);
       }
       else {
-        console.log(chalkSession("SESSION UPDATED" 
+        debug(chalkSession("SESSION UPDATED" 
           + " | " + ses.sessionId
           + " | USR ID: " + ses.userId 
           // + "\n  DISCONNECT TIME: " + getTimeStamp(ses.disconnectTime)
@@ -1926,7 +1926,7 @@ var readResponseQueue = setInterval(function (){
                 // debug(chalkPrompt("PROMPT | " + clientObj.socketId 
                 //   + " | " + previousResponse.nodeId + " --> " + promptWordObj.nodeId));
 
-                console.log("getRandomWord result: " + randomWordObj.nodeId);
+                debug("getRandomWord result: " + randomWordObj.nodeId);
 
                 randomWordObj.lastSeen = moment();
 
@@ -2182,7 +2182,7 @@ function createClientSocket (socket){
 
   var clientIp = socket.handshake.headers['x-real-ip'] || socket.client.conn.remoteAddress;
 
-  console.log("createClientSocket: IP: " + clientIp);
+  debug("createClientSocket: IP: " + clientIp);
   var clientDomain = "UNKNOWN" ;
 
   // check for IPV6 address
@@ -2464,7 +2464,7 @@ function createClientSocket (socket){
   });
 
   socket.on("GET_RANDOM_WORD", function(){
-    console.log(chalkTest("RX GET_RANDOM_WORD | " + socket.id));
+    debug(chalkTest("RX GET_RANDOM_WORD | " + socket.id));
     words.getRandomWord(function(err, randomWordObj){
       socket.emit("RANDOM_WORD", randomWordObj.nodeId);
     });
@@ -2577,7 +2577,7 @@ function clientConnectDb (clientObj, callback) {
         callback(err, clientObj);
       }
       else {
-        console.log(">>> CLIENT UPDATED" 
+        debug(">>> CLIENT UPDATED" 
           + " | I: " + cl.ip
           + " | D: " + cl.domain 
           + " | S: " + cl.socketId 

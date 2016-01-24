@@ -86,7 +86,7 @@ var wordAssoServerStatsObj = {
 
   "name" : "Word Association Server Status",
   "host" : os.hostname(),
-  "timeStamp" : getTimeStamp(),
+  "timeStamp" : moment().format(defaultDateTimeFormat),
   "runTimeArgs" : process.argv,
 
   "startTime" : startTime,
@@ -220,8 +220,17 @@ var bhtOverLimits = 0;
 var BHT_REQUEST_LIMIT = 100000;
 var bhtOverLimitTime = moment.utc().utcOffset("-08:00").endOf('day');
 var bhtLimitResetTime = moment.utc().utcOffset("-08:00").endOf('day');
-var bhtTimeToReset ;
+var bhtTimeToReset = moment.utc().utcOffset("-08:00").endOf('day').valueOf() - moment.utc().utcOffset("-08:00").valueOf();
 var bhtOverLimitFlag = false ;
+
+console.log("BHT OVER LIMIT TIME:  " + bhtOverLimitTime.format(defaultDateTimeFormat));
+console.log("BHT OVER LIMIT RESET: " + bhtOverLimitTime.format(defaultDateTimeFormat));
+console.log("BHT TIME TO RESET: " + msToTime(bhtTimeToReset) + " | " + bhtTimeToReset + " ms");
+
+var bhtOverLimitTimeOut = setTimeout(function () {
+  bhtEvents.emit("BHT_OVER_LIMIT_TIMEOUT");
+}, bhtTimeToReset);
+
 
 
 // ==================================================================
@@ -277,7 +286,7 @@ dropboxClient.getAccountInfo(function(error, accountInfo) {
 function dropboxWriteArrayToFile(filePath, dataArray, callback){
 
   if (typeof filePath === 'undefined'){
-    console.error(chalkError(getTimeStamp() + " | !!! DROPBOX WRITE FILE ERROR: FILE PATH UNDEFINED"));
+    console.error(chalkError(moment().format(defaultDateTimeFormat) + " | !!! DROPBOX WRITE FILE ERROR: FILE PATH UNDEFINED"));
     callback('FILE PATH UNDEFINED', null);
   }
 
@@ -285,11 +294,11 @@ function dropboxWriteArrayToFile(filePath, dataArray, callback){
 
   dropboxClient.writeFile(filePath, dataString, function(error, stat) {
     if (error) {
-      console.error(chalkError(getTimeStamp() + " | !!! DROPBOX WRITE FILE ERROR: " + error));
+      console.error(chalkError(moment().format(defaultDateTimeFormat) + " | !!! DROPBOX WRITE FILE ERROR: " + error));
       callback(error, filePath);
     }
     else {
-      debug(chalkInfo(getTimeStamp() + " | DROPBOX FILE WRITE: " + filePath));
+      debug(chalkInfo(moment().format(defaultDateTimeFormat) + " | DROPBOX FILE WRITE: " + filePath));
       callback(null, stat);
     }
   });
@@ -298,13 +307,13 @@ function dropboxWriteArrayToFile(filePath, dataArray, callback){
 function saveStats (dropboxHostStatsFile, wordAssoServerStatsObj, callback){
   dropboxClient.writeFile(dropboxHostStatsFile, JSON.stringify(wordAssoServerStatsObj, null, 2), function(error, stat) {
     if (error) {
-      console.error(chalkError(getTimeStamp() + " | !!! ERROR STATUS WRITE | FILE: " + dropboxHostStatsFile 
+      console.error(chalkError(moment().format(defaultDateTimeFormat) + " | !!! ERROR STATUS WRITE | FILE: " + dropboxHostStatsFile 
         + " ERROR: " + error));
       callback(error);
     }
     else {
-      console.log(chalkLog(getTimeStamp() + " | SAVED STATUS | FILE: " + dropboxHostStatsFile));
-      // console.log(chalkLog(getTimeStamp() + " | SAVED STATUS | STATUS\n" + jsonPrint(wordAssoServerStatsObj)));
+      console.log(chalkLog(moment().format(defaultDateTimeFormat) + " | SAVED STATUS | FILE: " + dropboxHostStatsFile));
+      // console.log(chalkLog(moment().format(defaultDateTimeFormat) + " | SAVED STATUS | STATUS\n" + jsonPrint(wordAssoServerStatsObj)));
       callback('OK');
     }
   });
@@ -337,7 +346,7 @@ function loadStats(){
         
         dropboxClient.readFile(DROPBOX_WORD_ASSO_STATS_FILE, function(err, statsJson, callback) {
 
-          console.log(chalkInfo(getTimeStamp() 
+          console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
             + " | ... LOADING STATS FROM DROPBOX FILE: " + DROPBOX_WORD_ASSO_STATS_FILE
           ));
 
@@ -347,20 +356,20 @@ function loadStats(){
 
           if (typeof statsObj.name === 'undefined') statsObj.name = 'Word Assocition Server Status | ' + os.hostname()
 
-          console.log(chalkInfo(getTimeStamp() + " | FOUND " + statsObj.name));
+          console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | FOUND " + statsObj.name));
 
           if (typeof statsObj.bhtRequests !== 'undefined') {
-            console.log(chalkInfo(getTimeStamp() + " | SET DAILY BHT REQUESTS: " + statsObj.bhtRequests));
+            console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | SET DAILY BHT REQUESTS: " + statsObj.bhtRequests));
             bhtRequests = statsObj.bhtRequests ;
           }
 
           if (typeof statsObj.promptsSent !== 'undefined') {
-            console.log(chalkInfo(getTimeStamp() + " | SET PROMPTS SENT: " + statsObj.promptsSent));
+            console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | SET PROMPTS SENT: " + statsObj.promptsSent));
             promptsSent = statsObj.promptsSent ;
           }
 
           if (typeof statsObj.responsesReceived !== 'undefined') {
-            console.log(chalkInfo(getTimeStamp() + " | SET RESPONSES RECEIVED: " + statsObj.responsesReceived));
+            console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | SET RESPONSES RECEIVED: " + statsObj.responsesReceived));
             responsesReceived = statsObj.responsesReceived ;
           }
 
@@ -384,7 +393,7 @@ function loadStats(){
       return; //It's important to return so that the task callback isn't called twice
     }
 
-    console.log(chalkInfo(getTimeStamp() 
+    console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
       + " | ... LOADING STATS FROM DROPBOX FILE: " + dropboxHostStatsFile
     ));
 
@@ -392,20 +401,20 @@ function loadStats(){
 
     console.log("DROPBOX STATS\n" + JSON.stringify(statsObj, null, 3));
 
-    console.log(chalkInfo(getTimeStamp() + " | FOUND " + statsObj.name));
+    console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | FOUND " + statsObj.name));
 
     if (typeof statsObj.bhtRequests !== 'undefined') {
-      console.log(chalkInfo(getTimeStamp() + " | SET DAILY BHT REQUESTS: " + statsObj.bhtRequests));
+      console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | SET DAILY BHT REQUESTS: " + statsObj.bhtRequests));
       bhtRequests = statsObj.bhtRequests ;
     }
 
     if (typeof statsObj.promptsSent !== 'undefined') {
-      console.log(chalkInfo(getTimeStamp() + " | SET PROMPTS SENT: " + statsObj.promptsSent));
+      console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | SET PROMPTS SENT: " + statsObj.promptsSent));
       promptsSent = statsObj.promptsSent ;
     }
 
     if (typeof statsObj.responsesReceived !== 'undefined') {
-      console.log(chalkInfo(getTimeStamp() + " | SET RESPONSES RECEIVED: " + statsObj.responsesReceived));
+      console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | SET RESPONSES RECEIVED: " + statsObj.responsesReceived));
       responsesReceived = statsObj.responsesReceived ;
     }
 
@@ -431,7 +440,7 @@ loadStats();
 setInterval(function () {
 
   updateStats({ 
-    timeStamp : getTimeStamp(),
+    timeStamp : moment().format(defaultDateTimeFormat),
     upTime : msToTime(upTime),
     runTime : msToTime(runTime),
     heartbeat : txHeartbeat,
@@ -717,7 +726,7 @@ function updateSessionViews(sessionUpdateObj){
         updateStats({totalSessions: totalSessions});
       } 
       else {
-        console.error(chalkError("\n*** DB Session.count ERROR *** | " + getTimeStamp() + "\n" + err));
+        console.error(chalkError("\n*** DB Session.count ERROR *** | " + moment().format(defaultDateTimeFormat) + "\n" + err));
       }
 
       Word.count({}, function(err,count){
@@ -727,7 +736,7 @@ function updateSessionViews(sessionUpdateObj){
           statsCountsComplete = true ;
         } 
         else {
-          console.error(chalkError("\n*** DB Word.count ERROR *** | " + getTimeStamp() + "\n" + err));
+          console.error(chalkError("\n*** DB Word.count ERROR *** | " + moment().format(defaultDateTimeFormat) + "\n" + err));
           statsCountsComplete = true ;
         }
       });
@@ -901,7 +910,7 @@ function readSocketQueue(){
             socketObj.disconnectTime = currentTime ;
             console.error(chalkError("\n *** CL CONNECT ERROR *** " 
               + "[" + numberClients + "] " 
-              + " | " + getTimeStamp() 
+              + " | " + moment().format(defaultDateTimeFormat) 
               + " | S: " + socketObj.socketId 
               + " | I: " + socketObj.ip 
               + " | D: " + socketObj.domain
@@ -919,7 +928,7 @@ function readSocketQueue(){
             io.of('/admin').emit('CLIENT SESSION', JSON.stringify({connected: true, clientObj: socketObj}));
 
             console.log(chalkTest("CONNECT SESSION VIEW "
-              + getTimeStamp() 
+              + moment().format(defaultDateTimeFormat) 
               + " | S: " + socketObj.socketId 
               + " | I: " + socketObj.ip 
               + " | D: " + socketObj.domain
@@ -939,7 +948,7 @@ function readSocketQueue(){
 
             console.log(chalkTest("CONNECT  "
               + " [" + numberTestClients + "] " 
-              + getTimeStamp() 
+              + moment().format(defaultDateTimeFormat) 
               + " | S: " + socketObj.socketId 
               + " | I: " + socketObj.ip 
               + " | D: " + socketObj.domain
@@ -956,7 +965,7 @@ function readSocketQueue(){
 
             console.log(chalkConnect("CONNECT   "
               + "[" + numberClients + "] " 
-              + getTimeStamp() 
+              + moment().format(defaultDateTimeFormat) 
               + " | S: " + socketObj.socketId 
               + " | I: " + socketObj.ip 
               + " | D: " + socketObj.domain
@@ -1013,7 +1022,7 @@ function readSocketQueue(){
 
           console.log(chalkTest("DISCONNECT" 
               + " [" + numberClients + "] " 
-            + getTimeStamp() 
+            + moment().format(defaultDateTimeFormat) 
             + " | S: " + cl.socketId 
             + " | U: " + cl.config.user 
             + " | I: " + cl.ip 
@@ -1022,7 +1031,7 @@ function readSocketQueue(){
           ));
 
           if (!sessionHashMap.has(cl.socketId)){
-            console.error(chalkError(getTimeStamp() + " | !!! NO CURRENT SESSION FOR DISCONNECTED CLIENT | " + cl.socketId));
+            console.error(chalkError(moment().format(defaultDateTimeFormat) + " | !!! NO CURRENT SESSION FOR DISCONNECTED CLIENT | " + cl.socketId));
 
             var sessionObj = {
               sessionId: cl.socketId,
@@ -1446,29 +1455,39 @@ function generateResponse(wordObj, callback){
   }
 }
 
-
 bhtEvents.on("BHT_OVER_LIMIT_TIMEOUT", function(){
   if (bhtOverLimitFlag) {
-    console.log(chalkBht("*** BHT_OVER_LIMIT_TIMEOUT END *** | " + getTimeStamp()));
-    bhtOverLimitFlag = false ;
-    bhtOverLimitTestFlag = false ;
-    incrementSocketBhtReqs(0);
-
-    bhtOverLimitTime = moment.utc();
-    bhtOverLimitTime.utcOffset("-08:00");
-
-    bhtLimitResetTime = moment.utc();
-    bhtLimitResetTime.utcOffset("-08:00");
-    bhtLimitResetTime.endOf("day");
-
-    updateStats({ 
-      bhtOverLimitTime : bhtOverLimitTime,
-      bhtLimitResetTime : bhtLimitResetTime,
-      bhtOverLimitFlag : bhtOverLimitFlag
-    });
-
-    bhtTimeToReset = bhtLimitResetTime.valueOf() - bhtOverLimitTime.valueOf();
+    console.log(chalkBht("*** BHT_OVER_LIMIT_TIMEOUT END *** | " + moment().format(defaultDateTimeFormat)));
   }
+  else {
+    console.log(chalkBht(" BHT_OVER_LIMIT_TIMEOUT END (NO OVER LIMIT) | " + moment().format(defaultDateTimeFormat)));
+  }
+
+  bhtOverLimitFlag = false ;
+  bhtOverLimitTestFlag = false ;
+  incrementSocketBhtReqs(0);
+
+  bhtOverLimitTime = moment.utc();
+  bhtOverLimitTime.utcOffset("-08:00");
+
+  bhtLimitResetTime = moment.utc();
+  bhtLimitResetTime.utcOffset("-08:00");
+  bhtLimitResetTime.endOf("day");
+
+  updateStats({ 
+    bhtOverLimitTime : bhtOverLimitTime,
+    bhtLimitResetTime : bhtLimitResetTime,
+    bhtOverLimitFlag : bhtOverLimitFlag
+  });
+
+  bhtTimeToReset = bhtLimitResetTime.valueOf() - bhtOverLimitTime.valueOf();
+
+  clearTimeout(bhtOverLimitTimeOut);
+
+  bhtOverLimitTimeOut = setTimeout(function () {
+    bhtEvents.emit("BHT_OVER_LIMIT_TIMEOUT");
+  }, bhtTimeToReset);
+
 });
 
 bhtEvents.on("BHT_OVER_LIMIT", function(bhtRequests){
@@ -1505,7 +1524,7 @@ bhtEvents.on("BHT_OVER_LIMIT", function(bhtRequests){
     "bhtRequests" : bhtRequests
   });
 
-  var bhtOverLimitTimeOut = setTimeout(function () {
+  bhtOverLimitTimeOut = setTimeout(function () {
     bhtEvents.emit("BHT_OVER_LIMIT_TIMEOUT");
   }, bhtTimeToReset);
 });
@@ -1723,7 +1742,7 @@ function sessionUpdateDb (sessionObj, callback) {
     function(err, ses) {
       if (err) {
         console.error("!!! SESSION FINDONE ERROR: " 
-          + getTimeStamp()
+          + moment().format(defaultDateTimeFormat)
           + " | " + sessionObj.sessionId 
           + "\n" + err);
         // getErrorMessage(err);
@@ -1769,7 +1788,7 @@ function sessionDisconnectDb(sessionObj, callback){
     function(err, ses) {
       if (err) {
         console.error("!!! SESSION FINDONE ERROR: " 
-          + getTimeStamp()
+          + moment().format(defaultDateTimeFormat)
           + " | " + sessionObj.ip 
           + "\n" + err);
         // getErrorMessage(err);
@@ -2122,7 +2141,7 @@ function createClientSocket (socket){
   
   if (socket.nsp.name.indexOf('admin') >= 0) {
     referer = 'ADMIN';
-    debug("@@@ ADMIN CONNECTED: " + getTimeStamp() 
+    debug("@@@ ADMIN CONNECTED: " + moment().format(defaultDateTimeFormat) 
       + " | " + socket.id 
       + " | NAMESPACE: " + socket.nsp.name
       ); 
@@ -2130,14 +2149,14 @@ function createClientSocket (socket){
   }
   else if (socket.nsp.name.indexOf('test') >= 0) {
     referer = 'TEST';
-    debug("@@@ TEST CLIENT CONNECTED: " + getTimeStamp() 
+    debug("@@@ TEST CLIENT CONNECTED: " + moment().format(defaultDateTimeFormat) 
       + " | " + socket.id 
       + " | NAMESPACE: " + socket.nsp.name
       ); 
   }
   else if (socket.nsp.name.indexOf('stats') >= 0) {
     referer = 'CLIENT';
-    debug("@@@ CLIENT CONNECTED: " + getTimeStamp() 
+    debug("@@@ CLIENT CONNECTED: " + moment().format(defaultDateTimeFormat) 
       + " | " + socket.id 
       + " | NAMESPACE: " + socket.nsp.name
       ); 
@@ -2145,7 +2164,7 @@ function createClientSocket (socket){
   else if (typeof socket.handshake.headers.referer !== 'undefined'){
     if (socket.handshake.headers.referer.indexOf('admin') >= 0) {
       referer = 'ADMIN';
-      debug("@@@ ADMIN CONNECTED: " + getTimeStamp() 
+      debug("@@@ ADMIN CONNECTED: " + moment().format(defaultDateTimeFormat) 
         + " | " + socket.id 
         + " | REFERER: " + socket.handshake.headers.referer
         );
@@ -2154,20 +2173,20 @@ function createClientSocket (socket){
     }
     else if (socket.handshake.headers.referer.indexOf('session') >= 0) {
       referer = 'SESSIONVIEW';
-      console.log("@@@ SESSION VIEW CLIENT CONNECTED: " + getTimeStamp() 
+      console.log("@@@ SESSION VIEW CLIENT CONNECTED: " + moment().format(defaultDateTimeFormat) 
         + " | " + socket.id 
         + " | REFERER: " + socket.handshake.headers.referer
         ); 
     }
     else if (socket.handshake.headers.referer.indexOf('test') >= 0) {
       referer = 'TEST';
-      debug("@@@ TEST CLIENT CONNECTED: " + getTimeStamp() 
+      debug("@@@ TEST CLIENT CONNECTED: " + moment().format(defaultDateTimeFormat) 
         + " | " + socket.id 
         + " | REFERER: " + socket.handshake.headers.referer
         ); 
     }
     else {
-      console.log("@@@ CONNECT: " + getTimeStamp() 
+      console.log("@@@ CONNECT: " + moment().format(defaultDateTimeFormat) 
         + " | " + socket.id 
         + " | REFERER: " + socket.handshake.headers.referer
         + " | NAMESPACE: " + socket.nsp.name
@@ -2176,7 +2195,7 @@ function createClientSocket (socket){
   }
   else {
     referer = 'CLIENT';
-    debug(">>> CLIENT CONNECTED: " + getTimeStamp() 
+    debug(">>> CLIENT CONNECTED: " + moment().format(defaultDateTimeFormat) 
       + " | " + socket.id 
       + " | REFERER: " + 'CLIENT'
       ); 
@@ -2242,14 +2261,14 @@ function createClientSocket (socket){
   dnsReverseLookupQueue.enqueue(clientObj);
 
   socket.on("error", function(err){
-    console.error(chalkError(getTimeStamp() + " | *** SOCKET ERROR"
+    console.error(chalkError(moment().format(defaultDateTimeFormat) + " | *** SOCKET ERROR"
       + " | " + socket.id 
       + " | " + err
     ));
   });
 
   socket.on("reconnect", function(err){
-    console.log(chalkConnect(getTimeStamp() + " | SOCKET RECONNECT: " + socket.id));
+    console.log(chalkConnect(moment().format(defaultDateTimeFormat) + " | SOCKET RECONNECT: " + socket.id));
     if (clientSocketIdHashMap.has(socket.id)) {
       var clientReconnectObj = clientSocketIdHashMap.get(socket.id);
       console.log("FOUND RECONNECTED CLIENT IN HASH:" + clientReconnectObj.socketId);
@@ -2513,7 +2532,7 @@ function adminConnectDb (adminObj, callback) {
     function(err, ad) {
       if (err) {
         console.error("!!! ADMIN FINDONE ERROR: " 
-          + getTimeStamp()
+          + moment().format(defaultDateTimeFormat)
           + " | " + adminObj.ip 
           + "\n" + err);
         // getErrorMessage(err);
@@ -2574,7 +2593,7 @@ function clientConnectDb (clientObj, callback) {
     function(err, cl) {
       if (err) {
         console.error("!!! CLIENT FINDONE ERROR: " 
-          + getTimeStamp()
+          + moment().format(defaultDateTimeFormat)
           + " | " + clientObj.ip 
           + "\n" + err);
         // getErrorMessage(err);
@@ -2628,7 +2647,7 @@ function adminDisconnectDb (adminObj, callback) {
     function(err, ad) {
       if (err) {
         console.error("!!! ADMIN FINDONE ERROR: " 
-          + getTimeStamp()
+          + moment().format(defaultDateTimeFormat)
           + " | " + adminObj.ip 
           + "\n" + err);
         // getErrorMessage(err);
@@ -2674,7 +2693,7 @@ function clientDisconnectDb (clientObj, callback) {
     function(err, cl) {
       if (err) {
         console.error("!!! CLIENT FINDONE ERROR: " 
-          + getTimeStamp()
+          + moment().format(defaultDateTimeFormat)
           + " | " + clientObj.ip 
           + "\n" + err);
         // getErrorMessage(err);
@@ -2797,7 +2816,7 @@ function clientFindAllDb (options, callback) {
           function(err, cl) {
             if (err) {
               console.error("!!! CLIENT FINDONE ERROR: " 
-                + getTimeStamp()
+                + moment().format(defaultDateTimeFormat)
                 + " | " + client.ip 
                 + "\n" + err);
               // getErrorMessage(err);
@@ -2836,7 +2855,7 @@ var getErrorMessage = function(err) {
       case 11000:
       case 11001:
       console.error("... DB ERROR ..." 
-        + " | " + getTimeStamp() 
+        + " | " + moment().format(defaultDateTimeFormat) 
         + "\n" +  JSON.stringify(err));
         break;
       default:
@@ -2869,7 +2888,7 @@ function oauthExpiryTimer(endTime) {
   var remainingTime = msToTime(endTime - getTimeNow());
 
   debug("\nSET oauthExpiryTimer: " + getTimeStamp(endTime));
-  console.log(chalkInfo(getTimeStamp() + " | GOOGLE OAUTH2 CREDENTIAL EXPIRES IN: " + remainingTime 
+  console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | GOOGLE OAUTH2 CREDENTIAL EXPIRES IN: " + remainingTime 
     + " AT " + endTime
     ));
 
@@ -2878,12 +2897,12 @@ function oauthExpiryTimer(endTime) {
       remainingTime = msToTime(endTime - getTimeNow());
 
       if (endTime - getTimeNow() < 60000) {
-        console.log(chalkAlert(getTimeStamp() + " | GOOGLE OAUTH2 CREDENTIAL EXPIRING IN " + remainingTime
+        console.log(chalkAlert(moment().format(defaultDateTimeFormat) + " | GOOGLE OAUTH2 CREDENTIAL EXPIRING IN " + remainingTime
         ));
       }
 
       if (getTimeNow() >= endTime) {
-        console.log(chalkAlert(getTimeStamp() + " | GOOGLE OAUTH2 CREDENTIAL EXPIRED: " 
+        console.log(chalkAlert(moment().format(defaultDateTimeFormat) + " | GOOGLE OAUTH2 CREDENTIAL EXPIRED: " 
           + " | " + getTimeStamp(endTime)));
         clearInterval(oauthInterval);
         googleAuthorized = false ;
@@ -2898,8 +2917,8 @@ function oauthExpiryTimer(endTime) {
 function authorizeGoogle(){
   googleOauthClient.authorize(function(err, tokens) {
     if (err){
-      console.error(chalkError(getTimeStamp() + " | ***** GOOGLE OAUTH ERROR: googleOauthClient " 
-        + " | " + getTimeStamp()
+      console.error(chalkError(moment().format(defaultDateTimeFormat) + " | ***** GOOGLE OAUTH ERROR: googleOauthClient " 
+        + " | " + moment().format(defaultDateTimeFormat)
         + "\n" 
         + err
         + "\n" 
@@ -2932,7 +2951,7 @@ function authorizeGoogle(){
       googleMetricsEnabled = true ;
       oauthExpiryTimer(tokens.expiry_date);
 
-      console.log(chalkInfo(getTimeStamp() 
+      console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
         + " | GOOGLE OAUTH2 AUTHORIZED: ExpiryDate: " + getTimeStamp(googleAuthExpiryDate)));
       googleOauthEvents.emit('GOOGLE AUTHORIZED', credential);
     }
@@ -2966,7 +2985,7 @@ function findOneOauth2Credential (credential) {
     options,
     function(err, cred) {
       if (err) {
-        console.error(chalkError(getTimeStamp() + " | !!! OAUTH2 CREDENTIAL FINDONE ERROR" 
+        console.error(chalkError(moment().format(defaultDateTimeFormat) + " | !!! OAUTH2 CREDENTIAL FINDONE ERROR" 
           + "\nCLIENT ID: "  + credential.clientId 
           + "\nERROR" + err
         ));
@@ -2974,7 +2993,7 @@ function findOneOauth2Credential (credential) {
         return credential;
       }
       else {
-        console.log(chalkInfo(getTimeStamp() + " | GOOGLE CREDENTIAL UPDATED"
+        console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | GOOGLE CREDENTIAL UPDATED"
           + " | EXPIRES AT " + cred.expiryDate
         ));
         console.log(chalkGoogle("\n\n--- OAUTH2 CREDENTIAL UPDATED---" 
@@ -3009,7 +3028,7 @@ function findCredential (clientId, callback) {
     function(err, cred) {
       if (err) {
         console.error(chalkError("!!! OAUTH2 CREDENTIAL FINDONE ERROR: "
-         + getTimeStamp() 
+         + moment().format(defaultDateTimeFormat) 
          + "\nCLIENT ID: "  + clientId 
          + "\n" + err));
         // getErrorMessage(err);
@@ -3018,7 +3037,7 @@ function findCredential (clientId, callback) {
         // return;    
       }
       else if (cred) {
-        console.log(chalkInfo(getTimeStamp() + " | GOOGLE OAUTH2 CREDENTIAL FOUND"));
+        console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | GOOGLE OAUTH2 CREDENTIAL FOUND"));
         debug(chalkGoogle("GOOGLE OAUTH2 CREDENTIAL\n--------------------------------\n" 
           + "\nCREDENTIAL TYPE: " + cred.credentialType 
           + "\nCLIENT ID:       " + cred.clientId 
@@ -3038,7 +3057,7 @@ function findCredential (clientId, callback) {
         callback(cred);      
       }
       else {
-        console.log(chalkAlert(getTimeStamp() + " | GOOGLE OAUTH2 CREDENTIAL NOT FOUND"));
+        console.log(chalkAlert(moment().format(defaultDateTimeFormat) + " | GOOGLE OAUTH2 CREDENTIAL NOT FOUND"));
         googleOauthEvents.emit('GOOGLE CREDENTIAL NOT FOUND', clientId);        
         callback(null);      
       }
@@ -3059,7 +3078,7 @@ function updateMetrics(){
   metricDateEnd = moment().toJSON();  
   // hopefully will avoid Google metric error Timeseries data must be more recent than previously-written data
 
-  debug(getTimeStamp() 
+  debug(moment().format(defaultDateTimeFormat) 
     + " | updateMetrics CLIENTS: " + numberClients 
     + " | PTX: " + promptsSent 
     + " | RRX: " + responsesReceived
@@ -3268,7 +3287,7 @@ function updateMetrics(){
     }, function(err, res){
       if (err) {
         console.error("!!! GOOGLE CLOUD MONITORING ERROR " 
-          + " | " + getTimeStamp() 
+          + " | " + moment().format(defaultDateTimeFormat) 
           + "\n" + util.inspect(err, {showHidden: false, depth: 1})
         );
 
@@ -3299,43 +3318,43 @@ function updateMetrics(){
 
 function initializeConfiguration() {
 
-  console.log(chalkInfo(getTimeStamp() + " | initializeConfiguration ..."));
+  console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | initializeConfiguration ..."));
 
   async.series([
 
     // DATABASE INIT
     function(callbackSeries){
-      console.log(chalkInfo(getTimeStamp() + " | START DATABASE INIT"));
+      console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | START DATABASE INIT"));
 
       async.parallel(
         [
 
           // CLIENT IP INIT
           function(callbackParallel) {
-            console.log(chalkInfo(getTimeStamp() + " | CLIENT IP INIT"));
+            console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | CLIENT IP INIT"));
             clientFindAllDb(null, function(numberOfClientIps){
-              console.log(chalkInfo(getTimeStamp() + " | CLIENT UNIQUE IP ADDRESSES: " + numberOfClientIps));
+              console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | CLIENT UNIQUE IP ADDRESSES: " + numberOfClientIps));
               callbackParallel();
             });
           },
           // ADMIN IP INIT
           function(callbackParallel) {
-            console.log(chalkInfo(getTimeStamp() + " | ADMIN IP INIT"));
+            console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | ADMIN IP INIT"));
             adminFindAllDb(null, function(numberOfAdminIps){
-              console.log(chalkInfo(getTimeStamp() + " | ADMIN UNIQUE IP ADDRESSES: " + numberOfAdminIps));
+              console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | ADMIN UNIQUE IP ADDRESSES: " + numberOfAdminIps));
               callbackParallel();
             });
           }
         ],
         function(err){
           if (err) {
-            console.error(chalkError("\n" + getTimeStamp() + "!!! DATABASE INIT ERROR: " + err));
+            console.error(chalkError("\n" + moment().format(defaultDateTimeFormat) + "!!! DATABASE INIT ERROR: " + err));
             callbackSeries(err);
             // return;
           }
           else {
-            console.log(chalkInfo(getTimeStamp() + " | DATABASE INIT COMPLETE"));
-            configEvents.emit('DATABASE_INIT_COMPLETE', getTimeStamp());
+            console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | DATABASE INIT COMPLETE"));
+            configEvents.emit('DATABASE_INIT_COMPLETE', moment().format(defaultDateTimeFormat));
             callbackSeries();
           }
         }
@@ -3344,14 +3363,14 @@ function initializeConfiguration() {
 
     // APP ROUTING INIT
     function(callbackSeries){
-      debug(chalkInfo(getTimeStamp() + " | APP ROUTING INIT"));
+      debug(chalkInfo(moment().format(defaultDateTimeFormat) + " | APP ROUTING INIT"));
       initAppRouting();
       callbackSeries();
     },
 
     // CONFIG EVENT
     function(callbackSeries){
-      console.log(chalkInfo(getTimeStamp() + " | INIT CONFIG COMPLETE"));
+      console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | INIT CONFIG COMPLETE"));
       serverSessionConfig = { 
         testMode: testMode
       };
@@ -3365,8 +3384,8 @@ function initializeConfiguration() {
       debug("... CHECKING INTERNET CONNECTION ...");
 
       client.connect(80, 'www.google.com', function() {
-        console.log(chalkInfo(getTimeStamp() + ' | CONNECTED TO GOOGLE: OK'));
-        console.log(chalkInfo(getTimeStamp() + " | SEND SERVER_READY"));
+        console.log(chalkInfo(moment().format(defaultDateTimeFormat) + ' | CONNECTED TO GOOGLE: OK'));
+        console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | SEND SERVER_READY"));
         internetReady = true ;
         configEvents.emit("SERVER_READY");
         client.destroy();
@@ -3377,13 +3396,13 @@ function initializeConfiguration() {
     // GOOGLE INIT
     function(callbackSeries){
       if (!disableGoogleMetrics) {
-        console.log(chalkInfo(getTimeStamp() + " | GOOGLE INIT"));
+        console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | GOOGLE INIT"));
         findCredential(GOOGLE_SERVICE_ACCOUNT_CLIENT_ID, function(){
           callbackSeries();
         });
       }
       else {
-        console.log(chalkInfo(getTimeStamp() + " | GOOGLE INIT *** SKIPPED *** | GOOGLE METRICS DISABLED"));
+        console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | GOOGLE INIT *** SKIPPED *** | GOOGLE METRICS DISABLED"));
         callbackSeries();
       }
     }
@@ -3400,31 +3419,31 @@ configEvents.on("SERVER_READY", function () {
 
   serverReady = true ;
 
-  console.log(chalkInfo(getTimeStamp() + " | SERVER_READY EVENT"));
+  console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | SERVER_READY EVENT"));
 
   httpServer.on("reconnect", function(){
     internetReady = true ;
-    console.log(chalkConnect(getTimeStamp() + ' | PORT RECONNECT: ' + config.port));
+    console.log(chalkConnect(moment().format(defaultDateTimeFormat) + ' | PORT RECONNECT: ' + config.port));
     initializeConfiguration();
   });
 
   httpServer.on("connect", function(){
     internetReady = true ;
-    console.log(chalkConnect(getTimeStamp() + ' | PORT CONNECT: ' + config.port));
+    console.log(chalkConnect(moment().format(defaultDateTimeFormat) + ' | PORT CONNECT: ' + config.port));
 
     httpServer.on("disconnect", function(){
       internetReady = false ;
-      console.error(chalkError('\n***** PORT DISCONNECTED | ' + getTimeStamp() + ' | ' + config.port));
+      console.error(chalkError('\n***** PORT DISCONNECTED | ' + moment().format(defaultDateTimeFormat) + ' | ' + config.port));
     });
   });
 
   httpServer.listen(config.port, function(){
-    console.log(chalkInfo(getTimeStamp() + " | LISTENING ON PORT " + config.port));
+    console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | LISTENING ON PORT " + config.port));
   });
 
   httpServer.on("error", function (err) {
     internetReady = false ;
-    console.error(chalkError('??? HTTP ERROR | ' + getTimeStamp() + '\n' + err));
+    console.error(chalkError('??? HTTP ERROR | ' + moment().format(defaultDateTimeFormat) + '\n' + err));
     if (err.code == 'EADDRINUSE') {
       console.error(chalkError('??? HTTP ADDRESS IN USE: ' + config.port + ' ... RETRYING...'));
       setTimeout(function () {
@@ -3460,7 +3479,7 @@ configEvents.on("SERVER_READY", function () {
       maxNumberClients = numberClients;
       maxNumberClientsTime = currentTime;
       console.log(chalkAlert("NEW MAX CLIENTS CONNECTED: " + maxNumberClients 
-        + " | " + getTimeStamp()));
+        + " | " + moment().format(defaultDateTimeFormat)));
     }
 
     runTime =  moment() - startTime ;
@@ -3537,7 +3556,7 @@ configEvents.on("SERVER_READY", function () {
     else {
       tempDateTime = moment() ;
       if (tempDateTime.seconds()%10 == 0){
-        console.error(chalkError("!!!! INTERNET DOWN?? !!!!! " + getTimeStamp()));
+        console.error(chalkError("!!!! INTERNET DOWN?? !!!!! " + moment().format(defaultDateTimeFormat)));
       }
     }
   }, 1000 );
@@ -3550,7 +3569,7 @@ configEvents.on("SERVER_READY", function () {
 // ==================================================================
 configEvents.on("CONFIG_CHANGE", function (serverSessionConfig) {
 
-  console.log(chalkAlert(getTimeStamp() + " | CONFIG_CHANGE EVENT"));
+  console.log(chalkAlert(moment().format(defaultDateTimeFormat) + " | CONFIG_CHANGE EVENT"));
   debug("==> CONFIG_CHANGE EVENT: " + JSON.stringify(serverSessionConfig, null, 3));
 
   if (typeof serverSessionConfig.testMode !== 'undefined') {
@@ -3560,7 +3579,7 @@ configEvents.on("CONFIG_CHANGE", function (serverSessionConfig) {
     io.of("/test").emit('CONFIG_CHANGE', {testMode: serverSessionConfig.testMode});
   }
 
-  console.log(chalkInfo(getTimeStamp() + ' | >>> SENT CONFIG_CHANGE'));
+  console.log(chalkInfo(moment().format(defaultDateTimeFormat) + ' | >>> SENT CONFIG_CHANGE'));
 });
 
 
@@ -3584,19 +3603,19 @@ googleOauthEvents.on("GOOGLE CREDENTIAL FOUND", function(credential) {
     googleMetricsEnabled = true ;
     googleOauthEvents.emit('GOOGLE AUTHORIZED');
     oauthExpiryTimer(credential.expiryDate);
-    console.log(chalkInfo(getTimeStamp() + " | GOOGLE OAUTH2 CREDENTIAL EXPIRES IN: " + remainingTime 
+    console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | GOOGLE OAUTH2 CREDENTIAL EXPIRES IN: " + remainingTime 
       + " AT " + credential.expiryDate + " ... AUTHORIZING ANYWAY ..."));
     googleOauthEvents.emit('AUTHORIZE GOOGLE');
   }
   else {
-    console.log(chalkAlert(getTimeStamp() + " | !!! GOOGLE OAUTH2 CREDENTIAL EXPIRED AT " + credential.expiryDate 
+    console.log(chalkAlert(moment().format(defaultDateTimeFormat) + " | !!! GOOGLE OAUTH2 CREDENTIAL EXPIRED AT " + credential.expiryDate 
       + " | " + msToTime(currentTime - credential.expiryDate) + " AGO ... AUTHORIZING ..."));
     googleOauthEvents.emit('AUTHORIZE GOOGLE');
   }
 });
 
 googleOauthEvents.on("GOOGLE CREDENTIAL NOT FOUND", function (credentialId) {
-  console.log(chalkAlert(getTimeStamp() + " | GOOGLE CREDENTIAL NOT FOUND: " + credentialId));
+  console.log(chalkAlert(moment().format(defaultDateTimeFormat) + " | GOOGLE CREDENTIAL NOT FOUND: " + credentialId));
   googleOauthEvents.emit("AUTHORIZE GOOGLE");
 });
 
@@ -3611,7 +3630,7 @@ googleOauthEvents.on("DAILY LIMIT EXCEEDED", function(){
 
 // RE-ENABLE METRICS PERIODICALLY TO CHECK IF SOCKET IS UP
 googleOauthEvents.on("SOCKET HUNG UP", function(){
-  console.log(chalkGoogle("GOOGLE SOCKET HUNG UP ... CLEARING TWEET RATE QUEUE " + getTimeStamp()));
+  console.log(chalkGoogle("GOOGLE SOCKET HUNG UP ... CLEARING TWEET RATE QUEUE " + moment().format(defaultDateTimeFormat)));
   console.log(chalkGoogle("RE-TRYING GOOGLE METRICS IN " + msToTime(googleCheckSocketUpInterval)));
 
   setTimeout(function () {
@@ -3655,7 +3674,7 @@ io.of("/admin").on("connect", function(socket){
 
   console.log(chalkConnect("ADMIN CONNECTED [" + numberAdmins + "] " 
     + socket.id 
-    + " | " + getTimeStamp()
+    + " | " + moment().format(defaultDateTimeFormat)
     + " | " + socket.connected
   ));
   
@@ -3974,7 +3993,7 @@ io.of("/admin").on("connect", function(socket){
 
         adminSocketIdHashMap.remove(ad.socketId);
 
-        var adminDisconnectedString = '--- ADMIN DISCONNECTED AT ' + getTimeStamp() 
+        var adminDisconnectedString = '--- ADMIN DISCONNECTED AT ' + moment().format(defaultDateTimeFormat) 
           + ' | ' + ad.ip 
           + ' | socketId: ' + ad.socketId
           + ' | domain: ' + ad.domain
@@ -4032,7 +4051,7 @@ io.on("connect", function(socket){
 
 io.on("reconnecting", function(reconnectAttemptNum){
   console.warn(chalkWarn("... SKT RECONNECTING" 
-    + " | " + getTimeStamp()
+    + " | " + moment().format(defaultDateTimeFormat)
     + " | " + sdName
     + " | " + reconnectAttemptNum + " RECONNECT ATTEMPTS"
   ));
@@ -4044,7 +4063,7 @@ io.on("reconnecting", function(reconnectAttemptNum){
 
 io.on("reconnect", function(reconnectAttemptNum){
   console.warn(chalkWarn("+-- SKT RECONNECTED" 
-    + " | " + getTimeStamp()
+    + " | " + moment().format(defaultDateTimeFormat)
     + " | " + sdName
     + " | " + reconnectAttemptNum + " RECONNECT ATTEMPTS"
   ));
@@ -4052,7 +4071,7 @@ io.on("reconnect", function(reconnectAttemptNum){
 
 io.on("error", function(errorObj){
   console.error(chalkError("\n*** SKT ERROR" 
-    + " | " + getTimeStamp()
+    + " | " + moment().format(defaultDateTimeFormat)
     + " | " + sdName
     + "\n" + JSON.stringify(errorObj, null, 3)
   ));
@@ -4064,7 +4083,7 @@ io.on("error", function(errorObj){
 
 io.on("reconnect_error", function(errorObj){
   console.error(chalkError("\n*** SKT RECONNECT ERROR" 
-    + " | " + getTimeStamp()
+    + " | " + moment().format(defaultDateTimeFormat)
     + " | " + sdName
     + "\n" + JSON.stringify(errorObj, null, 3)
   ));
@@ -4076,7 +4095,7 @@ io.on("reconnect_error", function(errorObj){
 
 io.on("reconnect_failed", function(errorObj){
   console.error(chalkError("\n*** SKT RECONNECT FAILED" 
-    + " | " + getTimeStamp()
+    + " | " + moment().format(defaultDateTimeFormat)
     + " | " + sdName
     + "\n" + JSON.stringify(errorObj, null, 3)
   ));
@@ -4088,7 +4107,7 @@ io.on("reconnect_failed", function(errorObj){
 
 io.on("connect_error", function(errorObj){
   console.error(chalkError("\n*** SKT CONNECT ERROR" 
-    + " | " + getTimeStamp()
+    + " | " + moment().format(defaultDateTimeFormat)
     + " | " + sdName
     + "\n" + JSON.stringify(errorObj, null, 3)
   ));
@@ -4100,7 +4119,7 @@ io.on("connect_error", function(errorObj){
 
 io.on("connect_timeout", function(errorObj){
   console.error(chalkError("\n*** SKT CONNECT TIMEOUT" 
-    + " | " + getTimeStamp()
+    + " | " + moment().format(defaultDateTimeFormat)
     + " | " + sdName
     + "\n" + JSON.stringify(errorObj, null, 3)
   ));
@@ -4115,7 +4134,7 @@ var databaseEnabled = false ;
 
 configEvents.on("DATABASE_INIT_COMPLETE", function(tweetCount){
   databaseEnabled = true ;
-  console.log(chalkInfo(getTimeStamp() + " | DATABASE ENABLED"));
+  console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | DATABASE ENABLED"));
 });
 
 
@@ -4166,7 +4185,7 @@ var rateQinterval = setInterval(function () {
 
 function initAppRouting(){
 
-  console.log(chalkInfo(getTimeStamp() + " | INIT APP ROUTING"));
+  console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | INIT APP ROUTING"));
 
   app.get('/threecee.pem', function(req, res){
     debug("LOADING FILE: threecee.pem");
@@ -4309,7 +4328,7 @@ User.count({}, function(err,count){
     updateStats({totalUsers: totalUsers});
   } 
   else {
-    console.error(chalkError("\n*** DB User.count ERROR *** | " + getTimeStamp() + "\n" + err));
+    console.error(chalkError("\n*** DB User.count ERROR *** | " + moment().format(defaultDateTimeFormat) + "\n" + err));
   }
 });
 
@@ -4320,7 +4339,7 @@ Client.count({}, function(err,count){
     updateStats({totalClients: totalClients});
   } 
   else {
-    console.error(chalkError("\n*** DB Client.count ERROR *** | " + getTimeStamp() + "\n" + err));
+    console.error(chalkError("\n*** DB Client.count ERROR *** | " + moment().format(defaultDateTimeFormat) + "\n" + err));
   }
 });
 
@@ -4331,7 +4350,7 @@ Session.count({}, function(err,count){
     updateStats({totalSessions: totalSessions});
   } 
   else {
-    console.error(chalkError("\n*** DB Session.count ERROR *** | " + getTimeStamp() + "\n" + err));
+    console.error(chalkError("\n*** DB Session.count ERROR *** | " + moment().format(defaultDateTimeFormat) + "\n" + err));
   }
 });
 
@@ -4343,7 +4362,7 @@ Word.count({}, function(err,count){
     updateStats({totalWords: totalWords});
   } 
   else {
-    console.error(chalkError("\n*** DB Word.count ERROR *** | " + getTimeStamp() + "\n" + err));
+    console.error(chalkError("\n*** DB Word.count ERROR *** | " + moment().format(defaultDateTimeFormat) + "\n" + err));
     statsCountsComplete = true ;
   }
 });

@@ -56,11 +56,11 @@ function getUrlVariables(config){
       if (keyValuePair[0] == 'monitor') {
         monitorMode = keyValuePair[1] ;
       }    
-      if (keyValuePair[0] == 'session') {
-        currentSession = keyValuePair[1] ;
-        sessionMode = true ;
-        launchSessionView(socket.id);
-      }    
+      // if (keyValuePair[0] == 'session') {
+      //   currentSession = keyValuePair[1] ;
+      //   sessionMode = true ;
+      //   launchSessionView(socket.id);
+      // }    
     } 
     else {
       console.log("NO URL VARIABLES");      
@@ -183,6 +183,7 @@ socket.on('connect', function(){
   connectedFlag = true ;
   clientConfig.user = "USER_" + socket.id ;
   getUrlVariables();
+  launchSessionView(socket.id);
 });
 
 socket.on('reconnect', function(){
@@ -192,6 +193,7 @@ socket.on('reconnect', function(){
   getUrlVariables();
   clientConfig.user = "USER_" + socket.id ;
   socket.emit("CLIENT_READY", clientConfig);
+  launchSessionView(socket.id);
 });
 
 socket.on('disconnect', function(){

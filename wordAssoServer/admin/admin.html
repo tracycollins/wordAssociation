@@ -852,7 +852,7 @@
 						 key = clientSocketIdHashMapKeys[j];
 						 value = clientSocketIdHashMap.get(clientSocketIdHashMapKeys[j]);
 
-						console.log("KEY: " + key + "\n" + jsonPrint(value));
+						// console.log("KEY: " + key + "\n" + jsonPrint(value));
 
 						if (typeof value.referer === 'undefined'){
 							value.referer = '';
@@ -891,6 +891,7 @@
 									clientSessionTableBodyOptions.textColor = clientConnectedColor ;
 								}
 								
+								console.log("KEY: " + key + "\n" + jsonPrint(value));
 								console.log("heartBeat.timeStamp: " + heartBeat.timeStamp + " | " + value.connectTime);
 								connectTime = heartBeat.timeStamp - value.connectTime ;
 

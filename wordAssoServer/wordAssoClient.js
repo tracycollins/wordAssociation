@@ -6,7 +6,8 @@ var testMode = false ;
 
 var monitorMode = false ;
 var responseTimeoutInterval = 3000 ;
-
+var urlRoot = "http://word.threeceelabs.com/session?session=";
+// var urlRoot = "http://localhost:9997/session?session=";
 var configHashMap = new HashMap();
 
 configHashMap.set('testMode', testMode);
@@ -183,7 +184,7 @@ socket.on('connect', function(){
   connectedFlag = true ;
   clientConfig.user = "USER_" + socket.id ;
   getUrlVariables();
-  launchSessionView(socket.id);
+  // launchSessionView(socket.id);
 });
 
 socket.on('reconnect', function(){
@@ -193,7 +194,7 @@ socket.on('reconnect', function(){
   getUrlVariables();
   clientConfig.user = "USER_" + socket.id ;
   socket.emit("CLIENT_READY", clientConfig);
-  launchSessionView(socket.id);
+  // launchSessionView(socket.id);
 });
 
 socket.on('disconnect', function(){
@@ -290,7 +291,7 @@ function showInfo() {
 
 function launchSessionView(sessionId) {
   console.log("launchSessionView: " + sessionId);
-  window.open("http://word.threeceelabs.com/session?session=" + sessionId, '_blank');
+  window.open(urlRoot + sessionId, '_blank');
 }
 
 function getTimeStamp(inputTime) {
@@ -320,6 +321,8 @@ function zoom() {
 window.onload = function () {
   console.log("ONLOAD");
 
+  self.resizeTo(400,600);
+
   addServerPrompt();
   addUserResponse();
   socket.emit("CLIENT_READY", clientConfig);
@@ -344,6 +347,10 @@ socket.on('CONFIG_CHANGE', function(rxConfig){
 
 var defaultBarOpacity = 0.3 ;
 
+function openSessionView(){
+  console.log("openSessionView BUTTON PRESS");
+  launchSessionView(socket.id);
+}
 
 function resize() {
   if (typeof window.innerWidth != 'undefined') {

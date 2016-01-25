@@ -56,6 +56,10 @@ function getUrlVariables(config){
       if (keyValuePair[0] == 'monitor') {
         monitorMode = keyValuePair[1] ;
       }    
+      if (keyValuePair[0] == 'session') {
+        currentSession = keyValuePair[1] ;
+        sessionMode = true ;
+      }    
     } 
     else {
       console.log("NO URL VARIABLES");      
@@ -281,6 +285,10 @@ function showInfo() {
   window.open("http://www.threeCeeMedia.com/", '_blank');
 }
 
+function launchSessionView(sessionId) {
+  window.open("http://localhost:9997/session?session=" + sessionId, '_blank');
+}
+
 function getTimeStamp(inputTime) {
   var options = {
     weekday: "long", year: "numeric", month: "short",
@@ -311,6 +319,7 @@ window.onload = function () {
   addServerPrompt();
   addUserResponse();
   socket.emit("CLIENT_READY", clientConfig);
+  launchSessionView(socket.id);
 
   setTimeout(function(){
     pageLoadedTimeIntervalFlag = false ;

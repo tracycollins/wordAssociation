@@ -287,7 +287,7 @@ function showInfo() {
 }
 
 function launchSessionView(sessionId) {
-  window.open("http://threeceelabs.com/session?session=" + sessionId, '_blank');
+  window.open("http://word.threeceelabs.com/session?session=" + sessionId, '_blank');
 }
 
 function getTimeStamp(inputTime) {

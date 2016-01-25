@@ -918,7 +918,7 @@ function readSocketQueue(){
               + "\n" + err
             ));
           }
-          else if (socketObj.referer == 'SESSION') {
+          else if (socketObj.referer == 'SESSIONVIEW') {
             socketObj.connected = true ;
             socketObj.connectTime = currentTime ;
             socketObj.sessions = [] ;
@@ -1030,7 +1030,7 @@ function readSocketQueue(){
             + " | R: " + cl.referer
           ));
 
-          if (!sessionHashMap.has(cl.socketId)){
+          if (!sessionHashMap.has(cl.socketId) && cl.referer != 'sessionView'){
             console.error(chalkError(moment().format(defaultDateTimeFormat) + " | !!! NO CURRENT SESSION FOR DISCONNECTED CLIENT | " + cl.socketId));
 
             var sessionObj = {
@@ -2292,6 +2292,28 @@ function createClientSocket (socket){
   });
 
   clientSocketIdHashMap.set(socketId, clientObj);  
+
+  // if (referer == 'SESSIONVIEW') {
+    clientConnectDb(clientObj, function(err, cl){
+      if (!err) {
+        clientSocketIdHashMap.set(socketId, cl);
+        io.of('/admin').emit('CLIENT SESSION', 
+          JSON.stringify({
+            clientObj: {
+              ip: cl.ip,
+              socketId: cl.socketId,
+              config: cl.config,
+              referer: cl.referer,
+              domain: cl.domain,
+              connected: cl.connected, 
+              connectTime: cl.connectTime,
+              disconnectTime: cl.disconnectTime
+            }
+          })
+        );
+      }
+    });
+  // }
 
   dnsReverseLookupQueue.enqueue(clientObj);
 

@@ -1002,8 +1002,8 @@ function computeInitialPosition(index) {
   return { 
     // x: (Math.random() * nodeInitialX), 
     // y: (Math.random() * nodeInitialY) 
-    x: (nodeInitialX + (radius * Math.cos(index * 0.01))), 
-    y: (nodeInitialY - (radius * Math.sin(index * 0.01)))
+    x: (nodeInitialX + (radius * Math.cos(index * 0.05))), 
+    y: (nodeInitialY - (radius * Math.sin(index * 0.05)))
   };
 }
 

@@ -59,6 +59,7 @@ function getUrlVariables(config){
       if (keyValuePair[0] == 'session') {
         currentSession = keyValuePair[1] ;
         sessionMode = true ;
+        launchSessionView(socket.id);
       }    
     } 
     else {
@@ -319,7 +320,7 @@ window.onload = function () {
   addServerPrompt();
   addUserResponse();
   socket.emit("CLIENT_READY", clientConfig);
-  launchSessionView(socket.id);
+  // launchSessionView(socket.id);
 
   setTimeout(function(){
     pageLoadedTimeIntervalFlag = false ;

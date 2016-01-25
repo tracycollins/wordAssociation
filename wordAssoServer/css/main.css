@@ -63,6 +63,21 @@ output[type="text"]{
 }
 
 
+.sessionViewButton {
+  background-color:black;
+  border:1px solid gray;
+  cursor:pointer;
+  color:#888888;
+}
+.sessionViewButton:hover {
+  color:white;
+  background-color:gray;
+}
+.sessionViewButton:focus {
+  outline:0;
+}
+
+
 .fullscreenButton {
   background-color:black;
   border:1px solid gray;

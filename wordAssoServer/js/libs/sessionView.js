@@ -5,6 +5,9 @@
 var dateNow = (new Date).getTime();
 var d3TimerCount = 1 ;
 
+var currentSession;
+var sessionMode = false;
+
 var DEFAULT_AGE_RATE =  1.0;
 var ageRate = DEFAULT_AGE_RATE ;
 var nodeMaxAge = 60000 ;
@@ -132,6 +135,17 @@ var MEDIA_OVERLAY1_X = DEFAULT_MEDIA_OVERLAY1_X * width ;
 var MEDIA_OVERLAY1_Y = DEFAULT_MEDIA_OVERLAY1_Y * height ;
 
 console.log("@@@@@@@ CLIENT @@@@@@@@");
+
+
+var jsonPrint = function (obj){
+  if (obj) {
+    return JSON.stringify(obj, null, 2);
+  }
+  else {
+    return "UNDEFINED";
+  }
+}
+
 
 var randomIntFromInterval = function (min,max) {
   var random = Math.random() ;
@@ -431,6 +445,35 @@ document.addEventListener("mousemove", function() {
   resetMouseMoveTimer();
 }, true);
 
+
+function getUrlVariables(config){
+
+  var searchString = window.location.search.substring(1);
+  var variableArray = searchString.split('&');
+
+  for(var i = 0; i < variableArray.length; i++){
+    var keyValuePair = variableArray[i].split('=');
+    if (typeof keyValuePair[1] !== 'undefined'){
+      // configHashMap.set(keyValuePair[0], keyValuePair[1]) ;
+      console.log("'" + variableArray[i] + "' >>> URL config: " + keyValuePair[0] + " : " + keyValuePair[1]);  
+      if (keyValuePair[0] == 'monitor') {
+        monitorMode = keyValuePair[1] ;
+      }    
+      if (keyValuePair[0] == 'session') {
+        currentSession = keyValuePair[1] ;
+        sessionMode = true ;
+        socket.emit("GET_SESSION", currentSession);
+      }    
+    } 
+    else {
+      console.log("NO URL VARIABLES");      
+      // configHashMap.set('monitor', false) ;
+    }
+  }
+}
+
+
+
 var mouseMoveTimeoutInterval = 1000; // 1 second
 
 var mouseMoveTimeout = setTimeout(function(){
@@ -714,6 +757,7 @@ var force = d3.layout.force()
 window.onload = function () {
   resize();
   displayInfoOverlay(1.0);
+  getUrlVariables();
 
   setTimeout(function(){
     pageLoadedTimeIntervalFlag = false ;
@@ -807,6 +851,52 @@ socket.on("CONFIG_CHANGE", function(rxConfig){
   resetMouseMoveTimer();
 });
 
+function displaySession(sessionObject){
+
+
+  for (var i=0; i<sessionObject.wordChain.length-1; i++) {
+
+    var sessionUpdateObj = {};
+
+    console.log("WORD: " + sessionObject.wordChain[i].nodeId);
+
+    sessionUpdateObj.sourceWord = sessionObject.wordChain[i];
+    sessionUpdateObj.targetWord = sessionObject.wordChain[i+1];
+
+    sessionUpdateObj.sourceWord.lastSeen = moment();
+    sessionUpdateObj.targetWord.lastSeen = moment();
+
+    // console.log("> RX " + JSON.stringify(sessionObject)); ;
+    console.log("> SESSION UPDATE " + sessionObject.sessionId
+      + " | " + sessionUpdateObj.sourceWord.nodeId 
+      + " > " + sessionUpdateObj.targetWord.nodeId
+    ) ;
+
+    if (sessionUpdateQueue.getLength() >= QUEUE_MAX) {
+      console.log(">>> RX sessionObject: [Q: " 
+        + sessionUpdateQueue.getLength() 
+      );
+      console.error(getTimeStamp() + " -- !!! Q FULL --- DROPPING SESSION UPDATE !!! " 
+        + sessionUpdateQueue.getLength() + "\n\n"
+      );
+    }
+    else {
+      sessionUpdateQueue.enqueue(sessionUpdateObj);
+      console.log("SESSION Q: " + sessionUpdateQueue.getLength());
+      if (sessionUpdateQueue.getLength() > sessionUpdateQueueMaxInQ) { 
+        sessionUpdateQueueMaxInQ = sessionUpdateQueue.getLength(); 
+      }
+    }
+    
+  }
+}
+
+socket.on("SESSION", function(sessionObject){
+
+  console.log("> RX SESSION\n" + jsonPrint(sessionObject));
+  displaySession(sessionObject);
+
+});
 
 socket.on("SESSION_UPDATE", function(sessionObject){
 
@@ -814,15 +904,21 @@ socket.on("SESSION_UPDATE", function(sessionObject){
   sessionObject.targetWord.lastSeen = moment();
 
   // console.log("> RX " + JSON.stringify(sessionObject)); ;
-  console.log("> RX | CL TYPE " + sessionObject.client.type 
-    + " | " + sessionObject.sourceWord.nodeId 
-    + " > " + sessionObject.targetWord.nodeId
-  ) ;
   // console.log(getTimeStamp() + ">>> RX SESSION_UPDATE\n" + JSON.stringify(sessionObject, null, 3)) ;
 
   if (!windowVisible) {
     return ;
   }
+
+  if (sessionMode && (sessionObject.sessionId !== currentSession)) {
+    console.log("... SKIP SESSION_UPDATE: ID: " + sessionObject.sessionId + " | CURRENT SESSION: " + currentSession);
+    return;
+  }
+
+  console.log("> RX | CL TYPE " + sessionObject.client.type 
+    + " | " + sessionObject.sourceWord.nodeId 
+    + " > " + sessionObject.targetWord.nodeId
+  ) ;
 
   if (sessionUpdateQueue.getLength() >= QUEUE_MAX) {
     console.log(">>> RX sessionObject: [Q: " 
@@ -901,7 +997,8 @@ var tempMentions ;
 
 var createNode = function (wordObject, callback) {
 
-  // var dateNow = Date.now();
+      console.log("createNode: " + wordObject.nodeId);
+
   var err = null ;
   var forceStopped = false ;
 
@@ -972,6 +1069,8 @@ var createLinks = function (sessionObject, callback) {
   var err = null ;
   newLinksFlag = false ;
 
+  console.log("createLinks | " + sessionObject.sourceWord.nodeId + " > " + sessionObject.targetWord.nodeId);
+
   links.push({
     source: nodeHashMap[sessionObject.sourceWord.nodeId], 
     target: nodeHashMap[sessionObject.targetWord.nodeId], 
@@ -997,7 +1096,8 @@ var getNodeFromQueue = function (callback) {
 
   numberSessionsUpdated = 0;
 
-  while ((numberSessionsUpdated < MAX_UPDATES_PER_CYCLE) && (sessionUpdateQueue.getLength() > 0)) {
+  // while ((numberSessionsUpdated < MAX_UPDATES_PER_CYCLE) && (sessionUpdateQueue.getLength() > 0)) {
+  while (sessionUpdateQueue.getLength() > 0){
     numberSessionsUpdated++ ;
     // newNodesFlag = true ;
 

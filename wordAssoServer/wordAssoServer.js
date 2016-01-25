@@ -1812,6 +1812,34 @@ function sessionDisconnectDb(sessionObj, callback){
   );
 }
 
+function findSessionById(sessionId, callback){
+
+  var query = { sessionId: sessionId  };
+
+  Session.findOne(
+    query,
+    function(err, session) {
+      if (err) {
+        console.error(chalkError("!!! SESSION FINDONE ERROR: "
+         + moment().format(defaultDateTimeFormat) 
+         + "\nSESSION ID: "  + sessionId 
+         + "\n" + err));
+        callback(err, null);  
+      }
+      else if (session) {
+        console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | SESSION FOUND\n" + jsonPrint(session)));
+        console.log(chalkSession("SESSION\n" 
+        ));
+        callback(null, session);      
+      }
+      else {
+        console.log(chalkAlert(moment().format(defaultDateTimeFormat) + " | SESSION NOT FOUND"));
+        callback(null, null);      
+      }
+    }
+  );
+}
+
 function readSessionQueue(){
 
   var sesObj = {};
@@ -2418,11 +2446,6 @@ function createClientSocket (socket){
               currentSession = sessionHashMap.get(socketId);
               currentSession.wordChain.push(randomWordObj) ;
 
-              // sessionHashMap.set(socketId, currentSession);
-              // updateSessionViews(sessionUpdateObj);
-              // sendPromptWord(cl, randomWordObj);
-
-
               sessionUpdateDb(currentSession, function(err, sessionObj){
                 if (!err) {
 
@@ -2490,6 +2513,18 @@ function createClientSocket (socket){
     debug(chalkTest("RX GET_RANDOM_WORD | " + socket.id));
     words.getRandomWord(function(err, randomWordObj){
       socket.emit("RANDOM_WORD", randomWordObj.nodeId);
+    });
+  });
+
+  socket.on("GET_SESSION", function(sessionId){
+    console.log(chalkTest("RX GET_SESSION | " + sessionId));
+    findSessionById(sessionId, function(err, sessionObj){
+      if (err){
+
+      }
+      else if (sessionObj) {
+        socket.emit("SESSION", sessionObj);
+      }
     });
   });
 
@@ -3490,14 +3525,6 @@ configEvents.on("SERVER_READY", function () {
 
     bhtTimeToReset = moment.utc().utcOffset("-08:00").endOf('day').valueOf() - moment.utc().utcOffset("-08:00").valueOf();
 
-    // updateStats({
-    //   "promptsSent" : promptsSent,
-    //   "responsesReceived" : responsesReceived,
-    //   "bhtOverLimits" : bhtOverLimits,
-    //   "bhtOverLimitTime" : bhtOverLimitTime,
-    //   "bhtRequests" : bhtRequests
-    // });
-
     //
     // SERVER HEARTBEAT
     //
@@ -4288,7 +4315,6 @@ function initAppRouting(){
     res.sendFile(__dirname + '/favicon.png');
   });
 }
-
 
 //=================================
 // PROCESS HANDLERS

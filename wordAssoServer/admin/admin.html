@@ -891,6 +891,7 @@
 									clientSessionTableBodyOptions.textColor = clientConnectedColor ;
 								}
 								
+								console.log("heartBeat.timeStamp: " + heartBeat.timeStamp + " | " + value.connectTime);
 								connectTime = heartBeat.timeStamp - value.connectTime ;
 
 								tableCreateRow(clientSessionTableBody, clientSessionTableBodyOptions, 

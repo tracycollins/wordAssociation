@@ -789,7 +789,7 @@
 
 						 key = clientIpHashMapKeys[i];
 						 value = clientIpHashMap.get(clientIpHashMapKeys[i]);
-						console.log("KEY: " + key + "\n" + jsonPrint(value));
+						// console.log("KEY: " + key + "\n" + jsonPrint(value));
 
 						if (!showBotClients && ((value.domain.indexOf("googlebot") >= 0))) {
 						}
@@ -851,6 +851,8 @@
 
 						 key = clientSocketIdHashMapKeys[j];
 						 value = clientSocketIdHashMap.get(clientSocketIdHashMapKeys[j]);
+
+						console.log("KEY: " + key + "\n" + jsonPrint(value));
 
 						if (typeof value.referer === 'undefined'){
 							value.referer = '';

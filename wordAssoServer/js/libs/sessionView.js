@@ -2,7 +2,7 @@
 "use strict";
 
 var urlRoot = "http://word.threeceelabs.com/session?session=";
-
+var nodesCreated = 0;
 // var dateNow = Date.now();
 var dateNow = (new Date).getTime();
 var d3TimerCount = 1 ;
@@ -444,6 +444,7 @@ document.addEventListener("mousemove", function() {
     d3.select("body").style("cursor", "default");
   }
   mouseMovingFlag = true ;
+  force.stop();
   resetMouseMoveTimer();
 }, true);
 
@@ -995,10 +996,14 @@ var mouse = {} ;
 // GET NODES FROM QUEUE
 //================================
 
-function computeInitialPosition() {
+var radius = height * 0.5;
+
+function computeInitialPosition(index) {
   return { 
-    x: (Math.random() * nodeInitialX), 
-    y: (Math.random() * nodeInitialY) 
+    // x: (Math.random() * nodeInitialX), 
+    // y: (Math.random() * nodeInitialY) 
+    x: (nodeInitialX + (radius * Math.cos(index * 0.01))), 
+    y: (nodeInitialY - (radius * Math.sin(index * 0.01)))
   };
 }
 
@@ -1006,6 +1011,7 @@ var nodesLength, nodeIndex = 0, chainIndex = 0 ;
 var tempMentions ;
 
 var createNode = function (sessionId, wordObject, callback) {
+
 
   console.log("createNode: SID: " + sessionId + " | " + wordObject.nodeId);
 
@@ -1042,6 +1048,7 @@ var createNode = function (sessionId, wordObject, callback) {
   }
   else {
 
+    nodesCreated++;
     newNodesFlag = true ;
 
     if ((typeof wordObject.mentions === 'undefined') || (wordObject.mentions == null)) {
@@ -1056,7 +1063,7 @@ var createNode = function (sessionId, wordObject, callback) {
     wordObject.ageUpdated = moment();
     wordObject.text = wordObject.nodeId ;
 
-    var initialPosition = computeInitialPosition();
+    var initialPosition = computeInitialPosition(nodesCreated);
 
     wordObject.x = initialPosition.x ;
     wordObject.y = initialPosition.y ;
@@ -1426,6 +1433,7 @@ function nodeMouseover(d) {
 
   var nodeId = d.nodeId ;
   var sessionId = d.sessionId ;
+  var mentions = d.mentions ;
   var currentR = d3.select(this).attr("r");
 
   d3.select("body").style("cursor", "pointer");
@@ -1445,7 +1453,7 @@ function nodeMouseover(d) {
     .duration(defaultFadeDuration)    
     .style("opacity", 1);
 
-  var tooltipString =  sessionId;
+  var tooltipString =  "<bold>" + nodeId + "</bold>" + "<br>MENTIONS: " + mentions + "<br>" + sessionId;
 
   divTooltip.html(tooltipString) 
     .style("left", (d3.event.pageX - 40) + "px")   

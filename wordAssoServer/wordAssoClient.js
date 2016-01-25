@@ -291,7 +291,7 @@ function showInfo() {
 
 function launchSessionView(sessionId) {
   console.log("launchSessionView: " + sessionId);
-  window.open(urlRoot + sessionId, '_blank');
+  window.open(urlRoot + sessionId, 'SESSION VIEW', '_new');
 }
 
 function getTimeStamp(inputTime) {

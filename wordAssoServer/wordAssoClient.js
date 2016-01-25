@@ -6,8 +6,8 @@ var testMode = false ;
 
 var monitorMode = false ;
 var responseTimeoutInterval = 3000 ;
-var urlRoot = "http://word.threeceelabs.com/session?session=";
-// var urlRoot = "http://localhost:9997/session?session=";
+// var urlRoot = "http://word.threeceelabs.com/session?session=";
+var urlRoot = "http://localhost:9997/session?session=";
 var configHashMap = new HashMap();
 
 configHashMap.set('testMode', testMode);
@@ -321,7 +321,7 @@ function zoom() {
 window.onload = function () {
   console.log("ONLOAD");
 
-  self.resizeTo(400,600);
+  window.resizeTo(400,600);
 
   addServerPrompt();
   addUserResponse();

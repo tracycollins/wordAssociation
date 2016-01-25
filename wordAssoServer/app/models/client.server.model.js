@@ -32,7 +32,8 @@ var ClientSchema = new Schema({
 		default: false
 	},
 	connectTime: { 
-		type: Number // milliseconds
+		type: Number, // milliseconds
+		default: moment().valueOf()
 	},
 	disconnectTime: { 
 		type: Number // milliseconds

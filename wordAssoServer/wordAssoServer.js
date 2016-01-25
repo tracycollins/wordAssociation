@@ -2175,6 +2175,13 @@ function createClientSocket (socket){
       ); 
       return 1;   
   }
+  else if (socket.nsp.name.indexOf('session') >= 0) {
+    referer = 'SESSIONVIEW';
+    debug("@@@ SESSION VIEW CLIENT CONNECTED: " + moment().format(defaultDateTimeFormat) 
+      + " | " + socket.id 
+      + " | NAMESPACE: " + socket.nsp.name
+      ); 
+  }
   else if (socket.nsp.name.indexOf('test') >= 0) {
     referer = 'TEST';
     debug("@@@ TEST CLIENT CONNECTED: " + moment().format(defaultDateTimeFormat) 

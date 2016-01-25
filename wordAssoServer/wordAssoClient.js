@@ -287,6 +287,7 @@ function showInfo() {
 }
 
 function launchSessionView(sessionId) {
+  console.log("launchSessionView: " + sessionId);
   window.open("http://word.threeceelabs.com/session?session=" + sessionId, '_blank');
 }
 

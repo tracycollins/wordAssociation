@@ -1,6 +1,8 @@
 /*jslint node: true */
 "use strict";
 
+var urlRoot = "http://word.threeceelabs.com/session?session=";
+
 // var dateNow = Date.now();
 var dateNow = (new Date).getTime();
 var d3TimerCount = 1 ;
@@ -489,6 +491,12 @@ function showInfo() {
   window.open("http://www.threeCeeMedia.com/", '_blank');
 }
 
+function launchSessionView(sessionId) {
+  console.log("launchSessionView: " + sessionId);
+  window.open(urlRoot + sessionId, 'SESSION VIEW', '_new');
+}
+
+
 function displayControlOverlay(opacity) {
   d3.select("#infoButton").style("opacity", opacity);
   d3.select("#statsToggleButton").style("opacity", opacity);
@@ -858,6 +866,8 @@ function displaySession(sessionObject){
 
     var sessionUpdateObj = {};
 
+    sessionUpdateObj.sessionId = sessionObject.sessionId;
+
     console.log("WORD: " + sessionObject.wordChain[i].nodeId);
 
     sessionUpdateObj.sourceWord = sessionObject.wordChain[i];
@@ -995,9 +1005,9 @@ function computeInitialPosition() {
 var nodesLength, nodeIndex = 0, chainIndex = 0 ;
 var tempMentions ;
 
-var createNode = function (wordObject, callback) {
+var createNode = function (sessionId, wordObject, callback) {
 
-      console.log("createNode: " + wordObject.nodeId);
+  console.log("createNode: SID: " + sessionId + " | " + wordObject.nodeId);
 
   var err = null ;
   var forceStopped = false ;
@@ -1008,6 +1018,7 @@ var createNode = function (wordObject, callback) {
 
     var currentNodeObject = nodeHashMap[wordObject.nodeId];
 
+    currentNodeObject.sessionId = sessionId ;
     currentNodeObject.age = moment() - wordObject.lastSeen;
     currentNodeObject.lastSeen = wordObject.lastSeen;
     currentNodeObject.mentions = wordObject.mentions ;
@@ -1039,6 +1050,7 @@ var createNode = function (wordObject, callback) {
       console.log("wordObject\n" + JSON.stringify(wordObject));
     }
 
+    wordObject.sessionId = sessionId;
     wordObject.age = moment() - wordObject.lastSeen ;
     wordObject.lastSeen = moment();
     wordObject.ageUpdated = moment();
@@ -1072,6 +1084,7 @@ var createLinks = function (sessionObject, callback) {
   console.log("createLinks | " + sessionObject.sourceWord.nodeId + " > " + sessionObject.targetWord.nodeId);
 
   links.push({
+    sessionId: sessionObject.sessionId,
     source: nodeHashMap[sessionObject.sourceWord.nodeId], 
     target: nodeHashMap[sessionObject.targetWord.nodeId], 
   });
@@ -1111,8 +1124,8 @@ var getNodeFromQueue = function (callback) {
     // sessionObject.age = 0;
     // sessionObject.ageUpdated = dateNow;
 
-    createNode(sessionObject.sourceWord, function(newNodesFlag, deadNodesFlag){
-      createNode(sessionObject.targetWord, function(newNodesFlag, deadNodesFlag){
+    createNode(sessionObject.sessionId, sessionObject.sourceWord, function(newNodesFlag, deadNodesFlag){
+      createNode(sessionObject.sessionId, sessionObject.targetWord, function(newNodesFlag, deadNodesFlag){
         createLinks(sessionObject, function(newNodesFlag, deadNodesFlag){
         });
       });
@@ -1293,9 +1306,9 @@ var updateNodeCircles = function (newNodesFlag, deadNodesFlag, callback) {
     .attr("cx", function(d) { return d.x; })
     .attr("cy", function(d) { return d.y; })
     .attr("mouseover", 0)
-    // .on("mouseover", nodeMouseover)
-    // .on("mouseout", nodeMouseout)
-    // .on("click", nodeClick)
+    .on("mouseover", nodeMouseover)
+    .on("mouseout", nodeMouseout)
+    .on("click", nodeClick)
     .call(force.drag)
     .attr("nodeId",function(d) { return d.nodeId;} )
     .attr("nodeType", function(d) { return d.nodeType; })
@@ -1397,6 +1410,75 @@ function ageNodesCheckQueue() {
       force.start(); 
     }
   );
+}
+
+
+
+function nodeFill (age) { 
+  var fillColor ;
+  return fillColorScale(age) ;
+}
+
+function nodeMouseover(d) { 
+
+  mouseHoverFlag = true ;
+  mouseHoverNodeId = d.nodeId ;
+
+  var nodeId = d.nodeId ;
+  var sessionId = d.sessionId ;
+  var currentR = d3.select(this).attr("r");
+
+  d3.select("body").style("cursor", "pointer");
+
+  d3.select(this)
+    .attr("mouseover", 1)
+    .style("fill", palette.blue)
+    .style("opacity", 1)
+    .style("stroke", palette.red)
+    .style("stroke-width", 3)
+    .attr("r", function() {
+      return Math.max(mouseOverRadius, currentR);
+    });
+
+
+  divTooltip.transition()    
+    .duration(defaultFadeDuration)    
+    .style("opacity", 1);
+
+  var tooltipString =  sessionId;
+
+  divTooltip.html(tooltipString) 
+    .style("left", (d3.event.pageX - 40) + "px")   
+    .style("top", (d3.event.pageY - 50) + "px");  
+}
+
+function nodeMouseout() {
+
+  mouseHoverFlag = false ;
+
+  var nodeId = d3.select(this).attr("nodeId") ;
+  var mentions = d3.select(this).attr("mentions") ;
+  var age = d3.select(this).attr("age") ;
+
+  var fillColor = nodeFill(age);
+
+  d3.select("body").style("cursor", "default");
+
+  d3.select(this).style("fill", fillColor)
+    .style("stroke", "#eeeeee")
+    .style("stroke-width", 1.5)
+    .attr("mouseover", 0)
+    .attr("r", function(d) {       
+      return defaultRadiusScale(d.mentions + 1); 
+     });
+
+    divTooltip.transition()   
+      .duration(defaultFadeDuration)    
+      .style("opacity", 1e-6); 
+}
+
+function nodeClick(d) {
+  launchSessionView(d.sessionId);
 }
 
 d3.timer(function () {

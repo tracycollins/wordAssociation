@@ -18,10 +18,10 @@ var QUEUE_MAX = 200 ;
 
 var defaultFadeDuration = 100 ;
 
-var currentScale = 0.1 ;
-var translate = [0,0] ;
+var currentScale = 0.5 ;
 var width = window.innerWidth * 1 ;
 var height = window.innerHeight * 1 ;
+var translate = [0.5*width,0.5*height] ;
 
 var zoomWidth = (width - (currentScale * width))/2  ;
 var zoomHeight =  (height - (currentScale * height))/2  ;
@@ -199,6 +199,7 @@ function resize() {
   console.log("width: " + width + " | height: " + height);
 
   radius = height * 0.4;
+  translate = [0.5*width,0.5*height] ;
 
   d3LayoutWidth = width * D3_LAYOUT_WIDTH_RATIO ;
   d3LayoutHeight = height * D3_LAYOUT_HEIGHT_RATIO ;

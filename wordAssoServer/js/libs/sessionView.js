@@ -996,7 +996,7 @@ var mouse = {} ;
 // GET NODES FROM QUEUE
 //================================
 
-var radius = height * 0.05;
+var radius = height * 0.4;
 
 function computeInitialPosition(index) {
   return { 

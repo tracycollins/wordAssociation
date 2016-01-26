@@ -1745,11 +1745,12 @@ function chainDeadEnd(chain) {
  }
 
 function incrementDeltaBhtReqs(delta){
-  if (delta == 0) {
+  var d = parseInt(delta);
+  if (d == 0) {
     deltaBhtRequests = 0 ;
   }
   else {
-    deltaBhtRequests += delta;
+    deltaBhtRequests += d;
   }
 }
 

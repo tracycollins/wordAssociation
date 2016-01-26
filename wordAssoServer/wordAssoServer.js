@@ -1523,6 +1523,8 @@ bhtEvents.on("BHT_OVER_LIMIT", function(bhtRequests){
     "bhtRequests" : bhtRequests
   });
 
+  clearTimeout(bhtOverLimitTimeOut);
+
   bhtOverLimitTimeOut = setTimeout(function () {
     bhtEvents.emit("BHT_OVER_LIMIT_TIMEOUT");
   }, bhtTimeToReset);
@@ -3613,9 +3615,9 @@ configEvents.on("SERVER_READY", function () {
 
     runTime =  moment() - startTime ;
 
-    if (bhtOverLimitFlag && moment().isAfter(bhtOverLimitTime)){
-      bhtEvents.emit("BHT_OVER_LIMIT_TIMEOUT");
-    }   
+    // if (bhtOverLimitFlag && moment().isAfter(bhtOverLimitTime)){
+    //   bhtEvents.emit("BHT_OVER_LIMIT_TIMEOUT");
+    // }   
 
     bhtTimeToReset = moment.utc().utcOffset("-08:00").endOf('day').valueOf() - moment.utc().utcOffset("-08:00").valueOf();
 

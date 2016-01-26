@@ -1038,9 +1038,9 @@
 				tableCreateRow(heatbeatTable, bhtOptions, ['BHT OVER LIMIT', bhtOLTmoment]);
 				tableCreateRow(heatbeatTable, bhtOptions, ['BHT LIMIT RESET', bhtLRTmoment]);
 
-				tableCreateRow(heatbeatTable, false, ['TOTAL CLIENTS', heartBeat.numberClients]);
 				tableCreateRow(heatbeatTable, false, ['CLIENTS', (heartBeat.numberClients - heartBeat.numberTestClients)]);
 				tableCreateRow(heatbeatTable, false, ['TEST CLIENTS',heartBeat.numberTestClients]);
+				tableCreateRow(heatbeatTable, false, ['TOTAL CLIENTS', heartBeat.numberClients]);
 				tableCreateRow(heatbeatTable, false, ['MAX CLIENTS', heartBeat.maxNumberClients]);
 				tableCreateRow(heatbeatTable, false, ['MAX CLIENTS TIME', getTimeStamp(heartBeat.maxNumberClientsTime)]);
 

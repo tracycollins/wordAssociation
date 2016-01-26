@@ -940,6 +940,7 @@ function readSocketQueue(){
             updateStats({ numberTestClients : numberTestClients });
             socketObj.connected = true ;
             socketObj.connectTime = currentTime ;
+            socketObj.config.type = 'TEST';
             socketObj.sessions = [] ;
 
             clientSocketIdHashMap.set(socketObj.socketId, socketObj);

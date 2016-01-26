@@ -1761,7 +1761,8 @@ function setBhtReqs(value){
 }
 
 function incrementSocketBhtReqs(delta){
-  if ((bhtRequests > BHT_REQUEST_LIMIT) || (bhtRequests+delta > BHT_REQUEST_LIMIT)){
+  // if ((bhtRequests > BHT_REQUEST_LIMIT) || (bhtRequests+delta > BHT_REQUEST_LIMIT)){
+  if (bhtRequests > BHT_REQUEST_LIMIT){
     console.log(chalkInfo("!!! incrementSocketBhtReqs: AT BHT_REQUEST_LIMIT: " + bhtRequests + " | NOW: " + BHT_REQUEST_LIMIT));
     bhtRequests = BHT_REQUEST_LIMIT ;
   }

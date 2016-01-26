@@ -1883,9 +1883,9 @@ var readResponseQueue = setInterval(function (){
     var rxInObj = responseQueue.dequeue();
 
     var responseInObj = rxInObj ;
-    
+
     // responseInObj.nodeId = rxInObj.nodeId.trim();
-    responseInObj.nodeId = rxInObj.nodeId.replace(/^\s+|\s+$/g, '');
+    responseInObj.nodeId = rxInObj.nodeId.replace(/[\W_]+/g, '');
 
     if (!responseInObj.mentions) responseInObj.mentions = 1;
 
@@ -2523,7 +2523,9 @@ function createClientSocket (socket){
 
     var responseInObj = rxInObj ;
 
-    responseInObj.nodeId = rxInObj.nodeId.trim() ;
+    // responseInObj.nodeId = rxInObj.nodeId.trim() ;
+    responseInObj.nodeId = rxInObj.nodeId.replace(/[\W_]+/g, '') ;
+
     responseInObj.socketId = socket.id ;
 
     debug(chalkResponse(">>> RX RESPONSE | " + responseInObj.nodeId));

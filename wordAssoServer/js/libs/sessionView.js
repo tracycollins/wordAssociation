@@ -18,7 +18,7 @@ var QUEUE_MAX = 200 ;
 
 var defaultFadeDuration = 100 ;
 
-var currentScale = 0.2 ;
+var currentScale = 0.1 ;
 var translate = [0,0] ;
 var width = window.innerWidth * 1 ;
 var height = window.innerHeight * 1 ;

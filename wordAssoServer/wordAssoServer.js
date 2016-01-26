@@ -1463,7 +1463,7 @@ bhtEvents.on("BHT_OVER_LIMIT_TIMEOUT", function(){
 
   bhtOverLimitFlag = false ;
   bhtOverLimitTestFlag = false ;
-  incrementSocketBhtReqs(0);
+  setBhtReqs(0);
 
   bhtOverLimitTime = moment.utc();
   bhtOverLimitTime.utcOffset("-08:00");
@@ -1583,7 +1583,7 @@ function bhtSearchWord (wordObj, callback){
     var body = '';
     var status = '';
 
-    if ((response.statusCode == 500) && (response.statusMessage != 'Inactive key')){
+    if ((response.statusCode == 500) && (response.statusMessage == 'Usage Exceeded')){
       bhtErrors++;
       console.log(chalkError("BHT ERROR" 
         + " | TOTAL ERRORS: " + bhtErrors
@@ -1758,13 +1758,17 @@ function setBhtReqs(value){
 }
 
 function incrementSocketBhtReqs(delta){
-  if (delta == 0) {
-    console.log(chalkInfo("RESET BHT REQS: PREV: " + bhtRequests + " | NOW: " + 0));
-    bhtRequests = 0 ;
+  if ((bhtRequests > BHT_REQUEST_LIMIT) || (bhtRequests+delta > BHT_REQUEST_LIMIT)){
+    console.log(chalkInfo("!!! incrementSocketBhtReqs: AT BHT_REQUEST_LIMIT: " + bhtRequests + " | NOW: " + BHT_REQUEST_LIMIT));
+    bhtRequests = BHT_REQUEST_LIMIT ;
   }
   else {
     bhtRequests += delta;
-    console.log(chalkInfo("-#- BHT REQS: " + bhtRequests + " | DELTA: " + delta));
+    console.log(chalkInfo("-#- BHT REQS: " + bhtRequests
+      + " | DELTA: " + delta
+      + " | LIMIT: " + BHT_REQUEST_LIMIT
+      + " | REMAIN: " + BHT_REQUEST_LIMIT - bhtRequests
+    ));
   }
   incrementDeltaBhtReqs(delta);
 }

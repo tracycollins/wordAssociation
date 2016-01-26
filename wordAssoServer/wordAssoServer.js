@@ -2606,10 +2606,11 @@ function createClientSocket (socket){
 
   socket.on("BHT_REQUESTS", function(numberSocketBhtRequests){
 
+    console.log("numberSocketBhtRequests type: " + typeof numberSocketBhtRequests);
+
     var n = parseInt(numberSocketBhtRequests);
 
-    // console.log(chalkBht("<## RX BHT_REQUESTS | " + socket.id + " | " + n ));
-    console.log(chalkBht("<## RX BHT_REQUESTS | " + socket.id));
+    console.log(chalkBht(">>> RX BHT_REQUESTS | " + socket.id + " | " + n ));
 
     incrementSocketBhtReqs(n);
   });

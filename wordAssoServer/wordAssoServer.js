@@ -2608,9 +2608,8 @@ function createClientSocket (socket){
 
     var n = parseInt(numberSocketBhtRequests);
 
-    console.log(chalkBht("<## RX BHT_REQUESTS | " + socket.id 
-      + " | " + n
-    ));
+    // console.log(chalkBht("<## RX BHT_REQUESTS | " + socket.id + " | " + n ));
+    console.log(chalkBht("<## RX BHT_REQUESTS | " + socket.id));
 
     incrementSocketBhtReqs(n);
   });

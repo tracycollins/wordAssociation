@@ -2605,11 +2605,14 @@ function createClientSocket (socket){
   });
 
   socket.on("BHT_REQUESTS", function(numberSocketBhtRequests){
+
+    var n = parseInt(numberSocketBhtRequests);
+
     console.log(chalkBht("<## RX BHT_REQUESTS | " + socket.id 
-      + " | " + numberSocketBhtRequests
+      + " | " + n
     ));
 
-    incrementSocketBhtReqs(parseInt(numberSocketBhtRequests));
+    incrementSocketBhtReqs(n);
   });
 
   socket.on("GET_RANDOM_WORD", function(){

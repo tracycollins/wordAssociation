@@ -1768,7 +1768,7 @@ function setBhtReqs(value){
 
 function incrementSocketBhtReqs(delta){
 
-  console.log("incrementSocketBhtReqs: bhtRequests: " + bhtRequests + " | " + BHT_REQUEST_LIMIT + " | " + delta);
+  console.log("incrementSocketBhtReqs: bhtRequests: " + typeof bhtRequests + " | " + typeof BHT_REQUEST_LIMIT + " | " + typeof delta);
 
   // if ((bhtRequests > BHT_REQUEST_LIMIT) || (bhtRequests+delta > BHT_REQUEST_LIMIT)){
   if (bhtRequests > BHT_REQUEST_LIMIT){
@@ -1777,10 +1777,11 @@ function incrementSocketBhtReqs(delta){
   }
   else if (delta > 0) {
     bhtRequests += delta;
+    var remain = BHT_REQUEST_LIMIT - bhtRequests ;
     console.log(chalkInfo("-#- BHT REQS: " + bhtRequests
       + " | DELTA: " + delta
       + " | LIMIT: " + BHT_REQUEST_LIMIT
-      + " | REMAIN: " + BHT_REQUEST_LIMIT - bhtRequests
+      + " | REMAIN: " + remain
     ));
   }
   incrementDeltaBhtReqs(delta);

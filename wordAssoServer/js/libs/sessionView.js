@@ -23,8 +23,8 @@ var translate = [0,0] ;
 var width = window.innerWidth * 1 ;
 var height = window.innerHeight * 1 ;
 
-var zoomWidth = (width - currentScale * width)/2  ;
-var zoomHeight =  (height - currentScale * height)/2  ;
+var zoomWidth = (width - (currentScale * width))/2  ;
+var zoomHeight =  (height - (currentScale * height))/2  ;
 
 console.log("width: " + width + " | height: " + height);
 

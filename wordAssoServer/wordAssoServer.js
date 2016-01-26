@@ -1551,7 +1551,12 @@ function bhtSearchWord (wordObj, callback){
   incrementSocketBhtReqs(1);
 
   console.log(chalkBht(">>> BHT SEARCH (before replace): " + wordObj.nodeId));
-  wordObj.nodeId = wordObj.nodeId.replace(/[\W_]+/g, '');
+  wordObj.nodeId = wordObj.nodeId.replace(/\s+/g, ' ');
+  wordObj.nodeId = wordObj.nodeId.replace(/[\n\r\[\]\{\}\<\>\/\;\:\"\'\`\~\?\!\@\#\$\%\^\&\*\(\)\_\+\=]+/g, '') ;
+  wordObj.nodeId = wordObj.nodeId.replace(/\s+/g, ' ') ;
+  wordObj.nodeId = wordObj.nodeId.replace(/^\s+|\s+$/g, '') ;
+  wordObj.nodeId = wordObj.nodeId.toLowerCase();
+
   console.log(chalkBht(">>> BHT SEARCH (after replace):  " + wordObj.nodeId));
 
 

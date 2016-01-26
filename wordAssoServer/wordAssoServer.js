@@ -1559,7 +1559,12 @@ function bhtSearchWord (wordObj, callback){
     debug("bhtSearchWord: " + bhtHost + "/" + path);
     
     response.on('error', function(err) {
-      console.error(chalkError("bhtSearchWord ERROR " + JSON.stringify(err, null, 2)));
+      console.log(chalkError("BHT ERROR" 
+        + " | WORD: " + wordObj.nodeId
+        + " | STATUS CODE: " + response.statusCode
+        + " | STATUS MESSAGE: " + response.statusMessage
+        + "\n" + util.inspect(err, {showHidden: false, depth: 3})
+      ));
       callback("BHT_ERROR | " + err, wordObj);
       return;
     });
@@ -1567,10 +1572,26 @@ function bhtSearchWord (wordObj, callback){
     var body = '';
     var status = '';
 
-    if (response.statusCode == 500){
-      console.error(chalkBht("BHT RESPONSE CODE: " + response.statusCode));
+    if ((response.statusCode == 500) && (response.statusMessage != 'Inactive key')){
+      console.log(chalkError("BHT ERROR" 
+        + " | WORD: " + wordObj.nodeId
+        + " | STATUS CODE: " + response.statusCode
+        + " | STATUS MESSAGE: " + response.statusMessage
+        + "\n" + util.inspect(response, {showHidden: false, depth: 3})
+      ));
       bhtEvents.emit("BHT_OVER_LIMIT", bhtRequests);
       callback("BHT_OVER_LIMIT", wordObj);
+      return ;
+    }
+    else if ((response.statusCode == 500) && (response.statusMessage == 'Inactive key')){
+      console.log(chalkError("BHT ERROR" 
+        + " | WORD: " + wordObj.nodeId
+        + " | STATUS CODE: " + response.statusCode
+        + " | STATUS MESSAGE: " + response.statusMessage
+        + "\n" + util.inspect(response, {showHidden: false, depth: 3})
+      ));
+      bhtEvents.emit("BHT_INACTIVE_KEY", bhtRequests);
+      callback("BHT_INACTIVE_KEY", wordObj);
       return ;
     }
     else if (bhtOverLimitTestFlag) {
@@ -1593,15 +1614,25 @@ function bhtSearchWord (wordObj, callback){
       });
     }
     else if (response.statusCode == 303){
-      console.error(chalkBht("BHT RESPONSE CODE: " + response.statusCode + "\n" + response));
+      console.log(chalkError("BHT ERROR" 
+        + " | WORD: " + wordObj.nodeId
+        + " | STATUS CODE: " + response.statusCode
+        + " | STATUS MESSAGE: " + response.statusMessage
+        + "\n" + util.inspect(response, {showHidden: false, depth: 3})
+      ));
       // bhtEvents.emit("BHT_OVER_LIMIT", bhtRequests);
       callback("BHT_NOT_FOUND", wordObj);
       return ;
     }
     else if (response.statusCode != 200){
-      console.error(chalkBht("BHT RESPONSE CODE: " + response.statusCode));
-      bhtEvents.emit("BHT_OVER_LIMIT", bhtRequests);
-      callback("BHT_OVER_LIMIT", wordObj);
+      console.log(chalkError("BHT ERROR" 
+        + " | WORD: " + wordObj.nodeId
+        + " | STATUS CODE: " + response.statusCode
+        + " | STATUS MESSAGE: " + response.statusMessage
+        + "\n" + util.inspect(response, {showHidden: false, depth: 3})
+      ));
+      bhtEvents.emit("BHT_UNKNOWN_STATUS", bhtRequests);
+      callback("BHT_UNKNOWN_STATUS", wordObj);
       return ;
     }
     else {
@@ -1642,7 +1673,12 @@ function bhtSearchWord (wordObj, callback){
       });
     }
   }).on('error', function(e) {
-        console.log(chalkError("bhtSearchWord ERROR " + JSON.stringify(e, null, 3)));
+        console.log(chalkError("BHT ERROR" 
+          + " | WORD: " + wordObj.nodeId
+          + " | STATUS CODE: " + response.statusCode
+          + " | STATUS MESSAGE: " + response.statusMessage
+          + "\n" + util.inspect(response, {showHidden: false, depth: 3})
+        ));
         callback("BHT_ERROR", wordObj);
       });
 }

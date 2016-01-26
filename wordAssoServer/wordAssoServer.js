@@ -1473,6 +1473,7 @@ bhtEvents.on("BHT_OVER_LIMIT_TIMEOUT", function(){
   bhtLimitResetTime.endOf("day");
 
   updateStats({ 
+    bhtRequests : bhtRequests,
     bhtOverLimitTime : bhtOverLimitTime,
     bhtLimitResetTime : bhtLimitResetTime,
     bhtOverLimitFlag : bhtOverLimitFlag

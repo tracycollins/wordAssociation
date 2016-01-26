@@ -213,7 +213,7 @@ console.log("WORD CACHE TTL: " + wordCacheTtl);
 var bigHugeLabsApiKey = "e1b4564ec38d2db399dabdf83a8beeeb";
 var bigHugeThesaurusUrl = "http://words.bighugelabs.com/api/2/" + bigHugeLabsApiKey + "/";
 var bhtEvents = new EventEmitter();
-
+var bhtErrors = 0;
 var bhtRequests = 0; 
 var bhtOverLimits = 0; 
 
@@ -450,6 +450,7 @@ setInterval(function () {
     maxNumberClientsTime : maxNumberClientsTime,
     promptsSent : promptsSent,
     responsesReceived: responsesReceived,
+    bhtErrors: bhtErrors,
     bhtRequests: bhtRequests,
     totalSessions: totalSessions,
     sessionUpdatesSent: sessionUpdatesSent,
@@ -1549,7 +1550,10 @@ function bhtSearchWord (wordObj, callback){
 
   incrementSocketBhtReqs(1);
 
-  // bhtRequests++ ;
+  console.log(chalkBht(">>> BHT SEARCH (before replace): " + wordObj.nodeId));
+  wordObj.nodeId = wordObj.nodeId.replace(/[\W_]+/g, '');
+  console.log(chalkBht(">>> BHT SEARCH (after replace):  " + wordObj.nodeId));
+
 
   var bhtHost = "words.bighugelabs.com";
   var path = "/api/2/" + bigHugeLabsApiKey + "/" + encodeURI(wordObj.nodeId) + "/json";
@@ -1559,7 +1563,9 @@ function bhtSearchWord (wordObj, callback){
     debug("bhtSearchWord: " + bhtHost + "/" + path);
     
     response.on('error', function(err) {
+      bhtErrors++;
       console.log(chalkError("BHT ERROR" 
+        + " | TOTAL ERRORS: " + bhtErrors
         + " | WORD: " + wordObj.nodeId
         + " | STATUS CODE: " + response.statusCode
         + " | STATUS MESSAGE: " + response.statusMessage
@@ -1573,7 +1579,9 @@ function bhtSearchWord (wordObj, callback){
     var status = '';
 
     if ((response.statusCode == 500) && (response.statusMessage != 'Inactive key')){
+      bhtErrors++;
       console.log(chalkError("BHT ERROR" 
+        + " | TOTAL ERRORS: " + bhtErrors
         + " | WORD: " + wordObj.nodeId
         + " | STATUS CODE: " + response.statusCode
         + " | STATUS MESSAGE: " + response.statusMessage
@@ -1584,7 +1592,9 @@ function bhtSearchWord (wordObj, callback){
       return ;
     }
     else if ((response.statusCode == 500) && (response.statusMessage == 'Inactive key')){
+      bhtErrors++;
       console.log(chalkError("BHT ERROR" 
+        + " | TOTAL ERRORS: " + bhtErrors
         + " | WORD: " + wordObj.nodeId
         + " | STATUS CODE: " + response.statusCode
         + " | STATUS MESSAGE: " + response.statusMessage
@@ -1614,7 +1624,9 @@ function bhtSearchWord (wordObj, callback){
       });
     }
     else if (response.statusCode == 303){
+      bhtErrors++;
       console.log(chalkError("BHT ERROR" 
+        + " | TOTAL ERRORS: " + bhtErrors
         + " | WORD: " + wordObj.nodeId
         + " | STATUS CODE: " + response.statusCode
         + " | STATUS MESSAGE: " + response.statusMessage
@@ -1625,7 +1637,9 @@ function bhtSearchWord (wordObj, callback){
       return ;
     }
     else if (response.statusCode != 200){
+      bhtErrors++;
       console.log(chalkError("BHT ERROR" 
+        + " | TOTAL ERRORS: " + bhtErrors
         + " | WORD: " + wordObj.nodeId
         + " | STATUS CODE: " + response.statusCode
         + " | STATUS MESSAGE: " + response.statusMessage
@@ -1673,14 +1687,16 @@ function bhtSearchWord (wordObj, callback){
       });
     }
   }).on('error', function(e) {
-        console.log(chalkError("BHT ERROR" 
-          + " | WORD: " + wordObj.nodeId
-          + " | STATUS CODE: " + response.statusCode
-          + " | STATUS MESSAGE: " + response.statusMessage
-          + "\n" + util.inspect(response, {showHidden: false, depth: 3})
-        ));
-        callback("BHT_ERROR", wordObj);
-      });
+      bhtErrors++;
+      console.log(chalkError("BHT ERROR" 
+        + " | TOTAL ERRORS: " + bhtErrors
+        + " | WORD: " + wordObj.nodeId
+        + " | STATUS CODE: " + response.statusCode
+        + " | STATUS MESSAGE: " + response.statusMessage
+        + "\n" + util.inspect(response, {showHidden: false, depth: 3})
+      ));
+      callback("BHT_ERROR", wordObj);
+    });
 }
 
 function chainDeadEnd(chain) {

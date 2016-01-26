@@ -2608,7 +2608,7 @@ function createClientSocket (socket){
       + " | " + numberSocketBhtRequests
     ));
 
-    incrementSocketBhtReqs(numberSocketBhtRequests);
+    incrementSocketBhtReqs(parseInt(numberSocketBhtRequests));
   });
 
   socket.on("GET_RANDOM_WORD", function(){

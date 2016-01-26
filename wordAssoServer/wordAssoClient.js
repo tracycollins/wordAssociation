@@ -74,7 +74,8 @@ var clientConfig = { user: "UNDEFINED", type: "STANDARD", mode: "WORD_OBJ"} ;
 
 
 function sendUserResponse(){
-  var userResponseValue = document.getElementById("userResponse").value.trim() ;
+  // var userResponseValue = document.getElementById("userResponse").value.trim() ;
+  var userResponseValue = document.getElementById("userResponse").value.replace(/^\s+|\s+$/g, '') ;
   userResponseValue = userResponseValue.toLowerCase();
 
   if (userResponseValue == '') {

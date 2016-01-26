@@ -1,6 +1,8 @@
 /*jslint node: true */
 "use strict";
 
+var BHT_REQUEST_LIMIT = 250000;
+
 var ONE_SECOND = 1000 ;
 var ONE_MINUTE = ONE_SECOND*60 ;
 var ONE_HOUR = ONE_MINUTE*60 ;
@@ -217,7 +219,6 @@ var bhtErrors = 0;
 var bhtRequests = 0; 
 var bhtOverLimits = 0; 
 
-var BHT_REQUEST_LIMIT = 100000;
 var bhtOverLimitTime = moment.utc().utcOffset("-08:00").endOf('day');
 var bhtLimitResetTime = moment.utc().utcOffset("-08:00").endOf('day');
 var bhtTimeToReset = moment.utc().utcOffset("-08:00").endOf('day').valueOf() - moment.utc().utcOffset("-08:00").valueOf();

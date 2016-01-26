@@ -1591,7 +1591,7 @@ function bhtSearchWord (wordObj, callback){
         + " | WORD: " + wordObj.nodeId
         + " | STATUS CODE: " + response.statusCode
         + " | STATUS MESSAGE: " + response.statusMessage
-        + "\n" + util.inspect(response, {showHidden: false, depth: 3})
+        // + "\n" + util.inspect(response, {showHidden: false, depth: 3})
       ));
       bhtEvents.emit("BHT_OVER_LIMIT", bhtRequests);
       callback("BHT_OVER_LIMIT", wordObj);
@@ -4151,6 +4151,7 @@ io.of("/admin").on("connect", function(socket){
   });
 
   socket.on("UPDATE_BHT_REQS", function(newBhtRequests){
+    if (newBhtRequests <= 0) return;
     console.log(chalkAdmin("@@@ RX UPDATE_BHT_REQS | " + socketId + " | " + newBhtRequests));
     setBhtReqs(newBhtRequests);
   });

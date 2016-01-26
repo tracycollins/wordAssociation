@@ -1767,6 +1767,9 @@ function setBhtReqs(value){
 }
 
 function incrementSocketBhtReqs(delta){
+
+  console.log("incrementSocketBhtReqs: bhtRequests: " + bhtRequests + " | " + BHT_REQUEST_LIMIT + " | " + delta);
+
   // if ((bhtRequests > BHT_REQUEST_LIMIT) || (bhtRequests+delta > BHT_REQUEST_LIMIT)){
   if (bhtRequests > BHT_REQUEST_LIMIT){
     console.log(chalkInfo("!!! incrementSocketBhtReqs: AT BHT_REQUEST_LIMIT: " + bhtRequests + " | NOW: " + BHT_REQUEST_LIMIT));
@@ -2605,8 +2608,6 @@ function createClientSocket (socket){
   });
 
   socket.on("BHT_REQUESTS", function(numberSocketBhtRequests){
-
-    console.log("numberSocketBhtRequests type: " + typeof numberSocketBhtRequests);
 
     var n = parseInt(numberSocketBhtRequests);
 

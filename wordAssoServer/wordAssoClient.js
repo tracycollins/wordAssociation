@@ -6,8 +6,8 @@ var testMode = false ;
 
 var monitorMode = false ;
 var responseTimeoutInterval = 3000 ;
-// var urlRoot = "http://word.threeceelabs.com/session?session=";
-var urlRoot = "http://localhost:9997/session?session=";
+var urlRoot = "http://word.threeceelabs.com/session?session=";
+// var urlRoot = "http://localhost:9997/session?session=";
 var configHashMap = new HashMap();
 
 configHashMap.set('testMode', testMode);
@@ -75,8 +75,16 @@ var clientConfig = { user: "UNDEFINED", type: "STANDARD", mode: "WORD_OBJ"} ;
 
 function sendUserResponse(){
   // var userResponseValue = document.getElementById("userResponse").value.trim() ;
-  var userResponseValue = document.getElementById("userResponse").value.replace(/^\s+|\s+$/g, '') ;
+  console.log("RAW INPUT: " + document.getElementById("userResponse").value);
+
+  var userResponseValue = document.getElementById("userResponse").value.replace(/\s+/g, ' ') ;
+  // userResponseValue = userResponseValue.replace(/^\s+|\s+$|\n+|\r+|\?+|\`+|\!+|\@+|\#+|\$+|\%+|\^+|\&+|\*+|\(+|\)+|\_+|\++|\=+|\^+/g, '') ;
+  userResponseValue = userResponseValue.replace(/[\n\r\[\]\{\}\<\>\/\;\:\"\'\`\~\?\!\@\#\$\%\^\&\*\(\)\_\+\=]+/g, '') ;
+  userResponseValue = userResponseValue.replace(/\s+/g, ' ') ;
+  userResponseValue = userResponseValue.replace(/^\s+|\s+$/g, '') ;
   userResponseValue = userResponseValue.toLowerCase();
+
+  console.log("CORRECTED INPUT: " + userResponseValue);
 
   if (userResponseValue == '') {
     console.warn("NO INPUT WORD");
@@ -85,7 +93,7 @@ function sendUserResponse(){
     wordInText.value = "";
   }
   else {
-    console.log("TX WORD: " + userResponseValue);
+    console.log("TX WORD: '" + userResponseValue + "'");
     socket.emit("RESPONSE_WORD_OBJ", {nodeId: userResponseValue});
     var wordInText = document.getElementById("userResponse");
     console.log("wordInText: " + wordInText.value);

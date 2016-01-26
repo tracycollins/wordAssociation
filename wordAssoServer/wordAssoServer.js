@@ -936,8 +936,8 @@ function readSocketQueue(){
             ));
           }
           else if (socketObj.referer == 'TEST') {
-            numberTestClients++;
-            updateStats({ numberTestClients : numberTestClients });
+            // numberTestClients++;
+            // updateStats({ numberTestClients : numberTestClients });
             socketObj.connected = true ;
             socketObj.connectTime = currentTime ;
             socketObj.config.type = 'TEST';
@@ -981,25 +981,21 @@ function readSocketQueue(){
 
       debug("@@@ DISCONNECT SOCKET " + socketObj.socketId + " | " + socketObj.connected);
 
-      if ((typeof socketObj.config !== 'undefined') && (socketObj.config != null)) {
-        if (socketObj.config.type == 'TEST') {
-          if (numberTestClients > 0) {
-            numberTestClients--; 
-          }
-          else {
-            console.error(chalkError("??? DISCONNECT " + socketObj.socketId 
-              + " but numberTestClients = " + numberTestClients));
-          }
+      if (socketObj.referer == 'TEST') {
+        if (numberTestClients > 0) {
+          numberTestClients--; 
+        }
+        else {
+          console.error(chalkError("??? DISCONNECT " + socketObj.socketId 
+            + " but numberTestClients = " + numberTestClients));
         }
       }
 
       clientSocketIdHashMap.remove(socketObj.socketId);
-      // sessionHashMap.remove(socketObj.socketId);
 
       clientDisconnectDb(socketObj, function(err, cl){
         if (err){
           console.error(chalkError("\n\n***** ERROR: clientDisconnectDb: " + err));
-          // clientSocketIdHashMap.remove(socketObj.socketId);
           clientIpHashMap.set(socketObj.ip, socketObj);
         }
         else {
@@ -2185,7 +2181,7 @@ function createClientSocket (socket){
   }
   else if (socket.nsp.name.indexOf('test') >= 0) {
     referer = 'TEST';
-    debug("@@@ TEST CLIENT CONNECTED: " + moment().format(defaultDateTimeFormat) 
+    console.log("@@@ TEST CLIENT CONNECTED: " + moment().format(defaultDateTimeFormat) 
       + " | " + socket.id 
       + " | NAMESPACE: " + socket.nsp.name
       ); 
@@ -2222,6 +2218,7 @@ function createClientSocket (socket){
         ); 
     }
     else {
+      referer = socket.handshake.headers.referer;
       console.log("@@@ CONNECT: " + moment().format(defaultDateTimeFormat) 
         + " | " + socket.id 
         + " | REFERER: " + socket.handshake.headers.referer
@@ -2238,6 +2235,7 @@ function createClientSocket (socket){
   }
 
   numberClients = io.of('/').sockets.length;
+  numberTestClients = io.of('/test').sockets.length;
 
   var clientIp = socket.handshake.headers['x-real-ip'] || socket.client.conn.remoteAddress;
 
@@ -2386,7 +2384,7 @@ function createClientSocket (socket){
 
       if (typeof config.type !== 'undefined') {
         if (config.type == 'TEST') {
-          numberTestClients++;
+          // numberTestClients++;
         }
       }
 
@@ -4208,9 +4206,10 @@ var clientSocketCheckInterval = setInterval(function () {
   }
 
   var clientSockets = findClientsSocket('/');
+  var testClientSockets = findClientsSocket('/test');
 
   clientSocketIdHashMap.forEach(function(clientObj, socketId) {
-    if (clientSockets.has(socketId)){
+    if (clientSockets.has(socketId) || testClientSockets.has(socketId)){
      }
     else {
       console.warn(chalkWarn("??? DISCONNECTED STATE: CLIENT OBJ CONN: " + clientObj.connected 
@@ -4218,6 +4217,7 @@ var clientSocketCheckInterval = setInterval(function () {
       clientSocketIdHashMap.remove(socketId);    
     }
   });
+
 }, 1000);
 
 

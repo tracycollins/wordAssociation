@@ -1122,7 +1122,7 @@ var getNodeFromQueue = function (callback) {
   numberSessionsUpdated = 0;
 
   // while ((numberSessionsUpdated < MAX_UPDATES_PER_CYCLE) && (sessionUpdateQueue.getLength() > 0)) {
-  if (sessionUpdateQueue.getLength() > 0){
+  while (sessionUpdateQueue.getLength() > 0){
     numberSessionsUpdated++ ;
     // newNodesFlag = true ;
 

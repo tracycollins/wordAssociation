@@ -996,16 +996,16 @@ var mouse = {} ;
 // GET NODES FROM QUEUE
 //================================
 
-var radius = height * 0.5;
+var radius = height * 0.05;
 
 function computeInitialPosition(index) {
   return { 
     // x: (Math.random() * nodeInitialX), 
     // y: (Math.random() * nodeInitialY) 
-    // x: (nodeInitialX + (radius * Math.cos(index * 0.1))), 
-    // y: (nodeInitialY - (radius * Math.sin(index * 0.1)))
-    x: nodeInitialX, 
-    y: nodeInitialY
+    x: (nodeInitialX + (radius * Math.cos(index * 0.1))), 
+    y: (nodeInitialY - (radius * Math.sin(index * 0.1)))
+    // x: nodeInitialX, 
+    // y: nodeInitialY
   };
 }
 

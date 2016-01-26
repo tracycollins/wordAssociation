@@ -198,6 +198,8 @@ function resize() {
 
   console.log("width: " + width + " | height: " + height);
 
+  radius = height * 0.4;
+
   d3LayoutWidth = width * D3_LAYOUT_WIDTH_RATIO ;
   d3LayoutHeight = height * D3_LAYOUT_HEIGHT_RATIO ;
 

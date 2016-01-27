@@ -1558,13 +1558,13 @@ function bhtSearchWord (wordObj, callback){
 
     incrementSocketBhtReqs(1);
 
-    console.log(chalkBht(">>> BHT SEARCH (before replace): " + wordObj.nodeId));
+    debug(chalkBht(">>> BHT SEARCH (before replace): " + wordObj.nodeId));
     wordObj.nodeId = wordObj.nodeId.replace(/\s+/g, ' ');
     wordObj.nodeId = wordObj.nodeId.replace(/[\n\r\[\]\{\}\<\>\/\;\:\"\'\`\~\?\!\@\#\$\%\^\&\*\(\)\_\+\=]+/g, '') ;
     wordObj.nodeId = wordObj.nodeId.replace(/\s+/g, ' ') ;
     wordObj.nodeId = wordObj.nodeId.replace(/^\s+|\s+$/g, '') ;
     wordObj.nodeId = wordObj.nodeId.toLowerCase();
-    console.log(chalkBht(">>> BHT SEARCH (after replace):  " + wordObj.nodeId));
+    debug(chalkBht(">>> BHT SEARCH (after replace):  " + wordObj.nodeId));
 
     var bhtHost = "words.bighugelabs.com";
     var path = "/api/2/" + bigHugeLabsApiKey + "/" + encodeURI(wordObj.nodeId) + "/json";

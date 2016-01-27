@@ -1040,7 +1040,7 @@
 						bhtLRTmoment + ' | ' + (msToTime(moment(heartBeat.bhtLimitResetTime).diff(now))) + ' REMAIN'
 					]);
 
-				tableCreateRow(heatbeatTable, false, ['CLIENTS', heartBeat.numberClients + heartBeat.numberTestClients]);
+				tableCreateRow(heatbeatTable, false, ['CLIENTS', heartBeat.numberClients - heartBeat.numberTestClients]);
 				tableCreateRow(heatbeatTable, false, ['TEST CLIENTS',heartBeat.numberTestClients]);
 				tableCreateRow(heatbeatTable, false, ['TOTAL CLIENTS', heartBeat.numberClients ]);
 				tableCreateRow(heatbeatTable, false, ['MAX CLIENTS', heartBeat.maxNumberClients]);

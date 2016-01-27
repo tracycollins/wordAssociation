@@ -628,7 +628,7 @@ function randomInt (low, high) {
 
 wordCache.on( "expired", function(word, wordObj){
   debug("CACHE WORD EXPIRED\n" + jsonPrint(wordObj));
-  console.log("CACHE WORD EXPIRED | " + wordObj.nodeId 
+  debug("CACHE WORD EXPIRED | " + wordObj.nodeId 
     + " | LAST SEEN: " + getTimeStamp(wordObj.lastSeen)
     + " | AGO: " + msToTime(moment().valueOf() - wordObj.lastSeen)
     + " | M: " + wordObj.mentions
@@ -1957,7 +1957,14 @@ var readResponseQueue = setInterval(function (){
     var responseInObj = rxInObj ;
 
     // responseInObj.nodeId = rxInObj.nodeId.trim();
-    responseInObj.nodeId = rxInObj.nodeId.replace(/[\W_]+/g, '');
+    // responseInObj.nodeId = rxInObj.nodeId.replace(/[\W_]+/g, '');
+    console.log(chalkBht(">>> RESPONSE (before replace): " + responseInObj.nodeId));
+    responseInObj.nodeId = responseInObj.nodeId.replace(/\s+/g, ' ');
+    responseInObj.nodeId = responseInObj.nodeId.replace(/[\n\r\[\]\{\}\<\>\/\;\:\"\'\`\~\?\!\@\#\$\%\^\&\*\(\)\_\+\=]+/g, '') ;
+    responseInObj.nodeId = responseInObj.nodeId.replace(/\s+/g, ' ') ;
+    responseInObj.nodeId = responseInObj.nodeId.replace(/^\s+|\s+$/g, '') ;
+    responseInObj.nodeId = responseInObj.nodeId.toLowerCase();
+    console.log(chalkBht(">>> RESPONSE (after replace):  " + responseInObj.nodeId));
 
     if (!responseInObj.mentions) responseInObj.mentions = 1;
 

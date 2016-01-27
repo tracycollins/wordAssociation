@@ -1958,13 +1958,13 @@ var readResponseQueue = setInterval(function (){
 
     // responseInObj.nodeId = rxInObj.nodeId.trim();
     // responseInObj.nodeId = rxInObj.nodeId.replace(/[\W_]+/g, '');
-    console.log(chalkBht(">>> RESPONSE (before replace): " + responseInObj.nodeId));
+    debug(chalkBht(">>> RESPONSE (before replace): " + responseInObj.nodeId));
     responseInObj.nodeId = responseInObj.nodeId.replace(/\s+/g, ' ');
     responseInObj.nodeId = responseInObj.nodeId.replace(/[\n\r\[\]\{\}\<\>\/\;\:\"\'\`\~\?\!\@\#\$\%\^\&\*\(\)\_\+\=]+/g, '') ;
     responseInObj.nodeId = responseInObj.nodeId.replace(/\s+/g, ' ') ;
     responseInObj.nodeId = responseInObj.nodeId.replace(/^\s+|\s+$/g, '') ;
     responseInObj.nodeId = responseInObj.nodeId.toLowerCase();
-    console.log(chalkBht(">>> RESPONSE (after replace):  " + responseInObj.nodeId));
+    debug(chalkBht(">>> RESPONSE: " + responseInObj.nodeId));
 
     if (!responseInObj.mentions) responseInObj.mentions = 1;
 

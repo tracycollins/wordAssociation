@@ -168,7 +168,7 @@ var clientSocketIdHashMap = new HashMap();
 
 var numberClients = 0;
 var numberTestClients = 0;
-
+var numberSessionClients = 0;
 
 var dnsHostHashMap = new HashMap();
 var localHostHashMap = new HashMap();
@@ -446,7 +446,8 @@ setInterval(function () {
     runTime : msToTime(runTime),
     heartbeat : txHeartbeat,
     numberAdmins : numberAdmins,
-    numberClients : numberClients,
+    numberTestClients : numberTestClients,
+    numberSessionClients : numberSessionClients,
     maxNumberClients : maxNumberClients,
     maxNumberClientsTime : maxNumberClientsTime,
     promptsSent : promptsSent,
@@ -2317,6 +2318,7 @@ function createClientSocket (socket){
 
   numberClients = io.of('/').sockets.length;
   numberTestClients = io.of('/test').sockets.length;
+  numberSessionClients = io.of('/session').sockets.length;
 
   var clientIp = socket.handshake.headers['x-real-ip'] || socket.client.conn.remoteAddress;
 

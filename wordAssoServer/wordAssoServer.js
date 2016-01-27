@@ -2056,7 +2056,7 @@ var readResponseQueue = setInterval(function (){
                 // debug(chalkPrompt("PROMPT | " + clientObj.socketId 
                 //   + " | " + previousResponse.nodeId + " --> " + promptWordObj.nodeId));
 
-                debug("getRandomWord result: " + randomWordObj.nodeId);
+                console.log("getRandomWord result: " + randomWordObj.nodeId);
 
                 randomWordObj.lastSeen = moment();
 

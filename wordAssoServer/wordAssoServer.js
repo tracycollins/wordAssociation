@@ -1970,9 +1970,9 @@ function updateMetrics(){
          },
          "timeseriesDesc": {
           "labels": { 
-            "custom.cloudmonitoring.googleapis.com/word-asso/clients/numberUsersConnected" : "clientsConnected"
+            "custom.cloudmonitoring.googleapis.com/word-asso/clients/numberClientsConnected" : "clientsConnected"
           },
-          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/clients/numberUsersConnected"
+          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/clients/numberClientsConnected"
          }
         },
 

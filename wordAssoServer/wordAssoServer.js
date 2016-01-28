@@ -2460,6 +2460,11 @@ var readPromptQueue = setInterval(function (){
 
     var currentSession = sessionCache.get(currentSessionId);
 
+    if (!currentSession) {
+      console.log(chalkWarn("??? SESSION EXPIRED ??? ... SKIPPING SEND PROMPT | " + currentSessionId));
+      return;
+    }
+
     debug("readPromptQueue currentSession\n" + jsonPrint(currentSession));
 
     var currentResponse = currentSession.wordChain[currentSession.wordChain.length-1];

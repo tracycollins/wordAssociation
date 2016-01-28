@@ -1,7 +1,8 @@
 /*jslint node: true */
 "use strict";
 
-var urlRoot = "http://word.threeceelabs.com/session?session=";
+// var urlRoot = "http://word.threeceelabs.com/session?session=";
+var urlRoot = "http://localhost:9997/session?session=";
 var nodesCreated = 0;
 // var dateNow = Date.now();
 var dateNow = (new Date).getTime();
@@ -373,7 +374,8 @@ function getVisibilityEvent(prefix) {
   }
 }
 
-var socket = io();
+// var socket = io();
+var socket = io('/view');
 
 socket.on("connect", function(){
   console.log("CONNECTED TO HOST | SOCKET ID: " + socket.id);
@@ -929,7 +931,8 @@ socket.on("SESSION_UPDATE", function(sessionObject){
     return;
   }
 
-  console.log("> RX | CL TYPE " + sessionObject.client.type 
+  console.log("> RX"
+    + " | " + sessionObject.sessionId
     + " | " + sessionObject.sourceWord.nodeId 
     + " > " + sessionObject.targetWord.nodeId
   ) ;

@@ -15,14 +15,6 @@ var ClientSchema = new Schema({
 	socketId: { 
 		type: String
 	},
-	config: { 
-		type: Object,
-		default: { type: 'CLIENT', mode: 'WORD_OBJ', user: 'UNKNOWN'}
-	},
-	referer: { 
-		type: String,
-		default: ''
-	},
 	userId: { 
 		type: String,
 		default: ''

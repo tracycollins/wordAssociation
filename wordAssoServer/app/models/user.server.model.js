@@ -12,26 +12,34 @@ var UserSchema = new Schema({
 		type: String,
 		trim: true
 	},
+	description: { 
+		type: String,
+		trim: true
+	},
 	url: { 
-		type: String
+		type: String,
+		trim: true
 	},
 	profileUrl: { 
-		type: String
+		type: String,
+		trim: true
 	},
 	profileImageUrl: { 
-		type: String
+		type: String,
+		trim: true
 	},
 	verified: { 
-		type: Boolean
+		type: Boolean,
+		default: false
 	},
 	createdAt: { 
 		type: Date
 	},
-	description: { 
-		type: String
-	},
 	lastSeen: {   
 		type: String
+	},
+	sessions: {  
+		type: [String]// Session objects
 	}
 });
 

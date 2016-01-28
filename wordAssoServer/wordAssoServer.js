@@ -2819,7 +2819,7 @@ function createSession (newSessionObj){
 
   socket.on("USER_READY", function(userObj){
 
-    console.log(chalkUser("USER READY\n" + jsonPrint(userObj)));
+    debug(chalkUser("USER READY\n" + jsonPrint(userObj)));
 
     var socketId = socket.id ;
     var sessionObj = sessionCache.get(socketId);

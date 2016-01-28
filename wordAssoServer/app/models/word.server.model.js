@@ -11,7 +11,7 @@ var WordSchema = new Schema({
 		type: Date
 	},
 	lastSeen: {   
-		type: Number // using Date makes aging nodes more complex
+		type: Number
 	},
 	mentions: {
 		type: Number,
@@ -36,6 +36,20 @@ var WordSchema = new Schema({
 	bhtFound: {
 		type: Boolean,
 		default: false
+	},
+	bhtAlt: {  // 303 Redirected
+		type: String  // alternate word
+	},
+	mwSearched: {
+		type: Boolean,
+		default: false
+	},
+	mwFound: {
+		type: Boolean,
+		default: false
+	},
+	mwEntry: {
+		type: Object
 	}
 });
 

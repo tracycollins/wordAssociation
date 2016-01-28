@@ -1935,9 +1935,9 @@ function updateMetrics(){
          },
          "timeseriesDesc": {
           "labels": { 
-            "custom.cloudmonitoring.googleapis.com/word-asso/clients/numberClientsConnected" : "clientsConnected"
+            "custom.cloudmonitoring.googleapis.com/word-asso/users/numberUsers" : "NUMBER USERS"
           },
-          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/clients/numberClientsConnected"
+          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/users/numberUsers"
          }
         },
 
@@ -2928,29 +2928,15 @@ configEvents.on("DATABASE_INIT_COMPLETE", function(tweetCount){
 
 
 //=================================
-//  REMOVE DISCONNECTED CLIENT SOCKETS FROM HASH MAP
+//  METRICS INTERVAL
 //=================================
-// var clientSocketCheckInterval = setInterval(function () {
+var metricsInterval = setInterval(function () {
 
-//   if (!disableGoogleMetrics && googleMetricsEnabled) {
-//     // updateMetrics(numberUsers, promptsSent, responsesReceived, sessionUpdatesSent, bhtRequests);
-//     updateMetrics();
-//   }
+  if (!disableGoogleMetrics && googleMetricsEnabled) {
+    updateMetrics();
+  }
 
-//   var clientSockets = findClientsSocket('/');
-//   var testClientSockets = findClientsSocket('/test');
-
-//   clientSocketIdHashMap.forEach(function(clientObj, socketId) {
-//     if (clientSockets.has(socketId) || testClientSockets.has(socketId)){
-//      }
-//     else {
-//       console.warn(chalkWarn("??? DISCONNECTED STATE: CLIENT OBJ CONN: " + clientObj.connected 
-//         + " ... REMOVING FROM HASH ..."));  
-//       clientSocketIdHashMap.remove(socketId);    
-//     }
-//   });
-
-// }, 1000);
+}, 1000);
 
 
 //=================================

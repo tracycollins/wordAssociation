@@ -1943,6 +1943,20 @@ function updateMetrics(){
 
         {
          "point": {
+          "int64Value": numberTestUsers,
+          "start": metricDateStart,
+          "end": metricDateEnd
+         },
+         "timeseriesDesc": {
+          "labels": { 
+            "custom.cloudmonitoring.googleapis.com/word-asso/users/numberTestUsers" : "NUMBER TEST USERS"
+          },
+          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/users"
+         }
+        },
+
+        {
+         "point": {
           "int64Value": parseInt(100.0*(memoryTotal - memoryAvailable)/memoryTotal),
           "start": metricDateStart,
           "end": metricDateEnd

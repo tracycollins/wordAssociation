@@ -2204,10 +2204,11 @@ var readSessionQueue = setInterval(function (){
         var currentUser = userCache.get(currentSession.userId);
 
         sessionCache.del(currentSession.sessionId);
-        if (currentUser) userCache.del(currentUser.userId);
-
-        currentUser.connected = false;
-        userUpdateDb(currentUser, function(){});
+        if (currentUser) {
+          userCache.del(currentUser.userId);
+          currentUser.connected = false;
+          userUpdateDb(currentUser, function(){});
+        }
 
         break;
 

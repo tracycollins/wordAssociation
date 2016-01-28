@@ -367,7 +367,7 @@
 
 			function requestSessions(reqSessionsOptions){
 				console.log("TX REQ ADMIN SESSION\n" + JSON.stringify(reqSessionsOptions, null, 3));
-				socket.emit('REQ ADMIN SESSION', reqSessionsOptions);
+				socket.emit('REQ_ADMIN_SESSION', reqSessionsOptions);
 			}
 
 			setInterval (function () {

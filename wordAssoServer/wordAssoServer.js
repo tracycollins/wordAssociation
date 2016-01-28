@@ -450,6 +450,7 @@ setInterval(function () {
     numberAdmins : numberAdmins,
     numberUsers : numberUsers,
     numberViewers : numberViewers,
+    numberTestViewers : numberTestViewers,
     numberTestUsers : numberTestUsers,
     numberSessionClients : numberSessionClients,
     maxNumberUsers : maxNumberUsers,
@@ -581,7 +582,8 @@ if (!disableGoogleMetrics) {
 var adminNameSpace = io.of("/admin");
 var userNameSpace = io.of("/user");
 var viewNameSpace = io.of("/view");
-var testNameSpace = io.of("/test");
+var testUsersNameSpace = io.of("/test-user");
+var testViewersNameSpace = io.of("/test-view");
 
 
 
@@ -768,6 +770,7 @@ function updateSessionViews(sessionUpdateObj){
   ));
 
   viewNameSpace.emit("SESSION_UPDATE", sessionUpdateObj);
+  testViewersNameSpace.emit("SESSION_UPDATE", sessionUpdateObj);
 
   sessionUpdatesSent++ ;
   updateStats({ sessionUpdatesSent: sessionUpdatesSent });
@@ -842,18 +845,6 @@ function sendPrompt(sessionObj, promptWordObj){
 
   updateStats({ promptsSent: promptsSent });
 
-}
-
-function findClientsSocket(namespace) {
-  var res = new HashMap();
-  var ns = io.of(namespace ||"/");    // the default namespace is "/"
-
-  if (ns) {
-    for (var id in ns.connected) {
-      res.set(id, ns.connected[id]);
-    }
-  }
-  return res;
 }
 
 // BHT
@@ -1957,6 +1948,34 @@ function updateMetrics(){
 
         {
          "point": {
+          "int64Value": numberViewers,
+          "start": metricDateStart,
+          "end": metricDateEnd
+         },
+         "timeseriesDesc": {
+          "labels": { 
+            "custom.cloudmonitoring.googleapis.com/word-asso/viewers/numberViewers" : "NUMBER VIEWERS"
+          },
+          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/viewers"
+         }
+        },
+
+        {
+         "point": {
+          "int64Value": numberTestViewers,
+          "start": metricDateStart,
+          "end": metricDateEnd
+         },
+         "timeseriesDesc": {
+          "labels": { 
+            "custom.cloudmonitoring.googleapis.com/word-asso/viewers/numberTestViewers" : "NUMBER TEST VIEWERS"
+          },
+          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/viewers"
+         }
+        },
+
+        {
+         "point": {
           "int64Value": parseInt(100.0*(memoryTotal - memoryAvailable)/memoryTotal),
           "start": metricDateStart,
           "end": metricDateEnd
@@ -2588,8 +2607,9 @@ configEvents.on("SERVER_READY", function () {
 
     numberAdmins = adminNameSpace.sockets.length;
     numberUsers = userNameSpace.sockets.length;
-    numberTestUsers = testNameSpace.sockets.length;
+    numberTestUsers = testUsersNameSpace.sockets.length;
     numberViewers = viewNameSpace.sockets.length;
+    numberTestViewers = testViewersNameSpace.sockets.length;
 
     if (numberUsers > maxNumberUsers) {
       maxNumberUsers = numberUsers;
@@ -2660,7 +2680,8 @@ configEvents.on("SERVER_READY", function () {
       adminNameSpace.emit('HEARTBEAT', txHeartbeat);
       userNameSpace.emit('HEARTBEAT', txHeartbeat);
       viewNameSpace.emit('HEARTBEAT', txHeartbeat);
-      testNameSpace.emit('HEARTBEAT', txHeartbeat);
+      testUsersNameSpace.emit('HEARTBEAT', txHeartbeat);
+      testViewersNameSpace.emit('HEARTBEAT', txHeartbeat);
 
       if (heartbeatsSent%60 == 0) {
         logHeartbeat();
@@ -2691,7 +2712,8 @@ configEvents.on("CONFIG_CHANGE", function (serverSessionConfig) {
     console.log(chalkAlert("--> CONFIG_CHANGE: testMode: " + serverSessionConfig.testMode));
     io.of("/admin").emit('CONFIG_CHANGE',  {testMode: serverSessionConfig.testMode});
     io.emit('CONFIG_CHANGE',  {testMode: serverSessionConfig.testMode});
-    io.of("/test").emit('CONFIG_CHANGE', {testMode: serverSessionConfig.testMode});
+    io.of("/test-user").emit('CONFIG_CHANGE', {testMode: serverSessionConfig.testMode});
+    io.of("/test-view").emit('CONFIG_CHANGE', {testMode: serverSessionConfig.testMode});
   }
 
   console.log(chalkInfo(moment().format(defaultDateTimeFormat) + ' | >>> SENT CONFIG_CHANGE'));
@@ -2760,11 +2782,6 @@ googleOauthEvents.on("SOCKET HUNG UP", function(){
 //  SERVER READY
 //=================================
 
-// var adminNameSpace = io.of("/admin");
-// var userNameSpace = io.of("/user");
-// var viewNameSpace = io.of("/view");
-// var testNameSpace = io.of("/test");
-
 
 function createSession (newSessionObj){
 
@@ -2780,8 +2797,9 @@ function createSession (newSessionObj){
 
   numberAdmins = adminNameSpace.sockets.length;
   numberUsers = userNameSpace.sockets.length;
-  numberTestUsers = testNameSpace.sockets.length;
   numberViewers = viewNameSpace.sockets.length;
+  numberTestUsers = testUsersNameSpace.sockets.length;
+  numberTestViewers = testViewersNameSpace.sockets.length;
 
   var sessionObj = new Session ({
     sessionId: socketId,
@@ -2928,8 +2946,12 @@ viewNameSpace.on('connect', function(socket){
   createSession({namespace:"view", socket: socket});
 });
 
-testNameSpace.on('connect', function(socket){
-  createSession({namespace:"test", socket: socket});
+testUsersNameSpace.on('connect', function(socket){
+  createSession({namespace:"test-user", socket: socket});
+});
+
+testViewersNameSpace.on('connect', function(socket){
+  createSession({namespace:"test-view", socket: socket});
 });
 
 

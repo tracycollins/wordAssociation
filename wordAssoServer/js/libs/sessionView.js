@@ -374,7 +374,6 @@ function getVisibilityEvent(prefix) {
   }
 }
 
-// var socket = io();
 var socket = io('/view');
 
 socket.on("connect", function(){
@@ -386,10 +385,6 @@ socket.on("disconnect", function(){
 });
 
 var data = [] ;
-
-// var fill = d3.scale.category10();
-// var color = d3.scale.category10();
-// var stroke = d3.scale.category10();
 
 var palette = {
   "black": "#000000",

@@ -1213,7 +1213,7 @@ function bhtSearchWord (wordObj, callback){
     callback("BHT_FOUND", wordObj);
     return ;
   }
-  
+
   else if (bhtOverLimitFlag) {
 
     var now = moment.utc();
@@ -3042,7 +3042,7 @@ function initAppRouting(){
   });
 
   app.get('/', function(req, res){
-    console.log("LOADING PAGE: /");
+    debug("LOADING PAGE: /");
     res.sendFile(__dirname + '/index.html');
     return;
   });
@@ -3063,12 +3063,6 @@ function initAppRouting(){
     res.sendFile(__dirname + '/index.html');
     return;
   });
-
-  // app.get('/test', function(req, res){
-  //   debug(chalkAlert("TEST PAGE REQUEST ... RETURNING index.html ..."));
-  //   res.sendFile(__dirname + '/index.html');
-  //   return;
-  // });
 
   app.get('/wordAssoClient.js', function(req, res){
     debug("LOADING PAGE: /wordAssoClient.js");
@@ -3094,7 +3088,6 @@ function initAppRouting(){
     return;
   });
 
-
   app.get('/css/main.css', function(req, res){
     res.sendFile(__dirname + '/css/main.css');
     return;
@@ -3110,30 +3103,20 @@ function initAppRouting(){
     return;
   });
 
-
   app.get('/node_modules/async/lib/async.js', function(req, res){
     res.sendFile(__dirname + '/node_modules/async/lib/async.js');
     return;
   });
-
 
   app.get('/js/libs/Queue.js', function(req, res){
     res.sendFile(__dirname + '/js/libs/Queue.js');
     return;
   });
 
-
   app.get('/node_modules/hashmap/hashmap.js', function(req, res){
     res.sendFile(__dirname + '/node_modules/hashmap/hashmap.js');
     return;
   });
-
-  // app.get('/threecee.pem', function(req, res){
-  //   debug("LOADING FILE: threecee.pem");
-  //   res.sendFile(__dirname + '/threecee.pem');
-  //   return;
-  // });
-
 
   app.get('/favicon.ico', function(req, res){
     debug("LOADING PAGE: /favicon.ico");

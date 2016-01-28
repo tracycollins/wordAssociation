@@ -169,6 +169,7 @@ var clientSocketIdHashMap = new HashMap();
 
 var numberUsers = 0;
 var numberViewers = 0;
+var numberTestViewers = 0;
 var numberTestUsers = 0;
 var numberSessionClients = 0;
 

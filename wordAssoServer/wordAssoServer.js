@@ -2204,7 +2204,7 @@ var readSessionQueue = setInterval(function (){
         var currentUser = userCache.get(currentSession.userId);
 
         sessionCache.del(currentSession.sessionId);
-        userCache.del(currentUser.userId);
+        if (currentUser) userCache.del(currentUser.userId);
 
         currentUser.connected = false;
         userUpdateDb(currentUser, function(){});

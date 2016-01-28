@@ -1937,7 +1937,7 @@ function updateMetrics(){
           "labels": { 
             "custom.cloudmonitoring.googleapis.com/word-asso/users/numberUsers" : "NUMBER USERS"
           },
-          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/users/numberUsers"
+          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/users"
          }
         },
 

@@ -1154,7 +1154,7 @@ function bhtSearchWord (wordObj, callback){
           + " | WORD: " + wordObj.nodeId
           + " | STATUS CODE: " + response.statusCode
           + " | STATUS MESSAGE: " + response.statusMessage
-          + "\n" + util.inspect(response, {showHidden: false, depth: 3})
+          + "\n" + util.inspect(response, {showHidden: false, depth: 1})
         ));
         // bhtEvents.emit("BHT_OVER_LIMIT", bhtRequests);
         callback("BHT_NOT_FOUND", wordObj);

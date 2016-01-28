@@ -2815,7 +2815,6 @@ function createSession (newSessionObj){
     ));
 
     sessionQueue.enqueue({sessionEvent: "REQ_ADMIN_SESSION", session: sessionObj, options: options});
-
   });
 
   socket.on("USER_READY", function(userObj){
@@ -2887,6 +2886,19 @@ function createSession (newSessionObj){
     io.of('/admin').emit("CONFIG_CHANGE", serverSessionConfig);
     // configEvents.emit("CONFIG_CHANGE", serverSessionConfig);
   });
+
+  socket.on("UPDATE_BHT_REQS", function(newBhtRequests){
+    console.log(chalkTest("RX UPDATE_BHT_REQS: " + newBhtRequests));
+    if (newBhtRequests <= 0) {
+      return;
+    }
+    else {
+      console.log(chalkAdmin("@@@ RX UPDATE_BHT_REQS | " + socket.id + " | " + newBhtRequests));
+      setBhtReqs(newBhtRequests);
+    }
+  });
+
+
 }
 
 

@@ -29,7 +29,14 @@ exports.getRandomWord = function(callback){
 		}
 		else {
 			debug("RANDOM WORD\n" + JSON.stringify(randomWordArray, null, 3));
-			callback(null, randomWordArray[0]);
+			if (!randomWordArray[0]) {
+				console.log(chalkError("*** NULL RANDOM WORD... RETURNING black"));
+				console.error(chalkError("*** NULL RANDOM WORD... RETURNING black"));
+				callback(null, {nodeId: 'black'});
+			}
+			else {
+				callback(null, randomWordArray[0]);
+			}
 		}
 	});
 }

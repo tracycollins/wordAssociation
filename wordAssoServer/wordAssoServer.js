@@ -798,53 +798,54 @@ function sendPrompt(sessionObj, promptWordObj){
     console.log("sendPrompt | sessionObj.sessionId NOT FOUND IN SESSION CACHE ... SKIPPING | " + sessionObj.sessionId);
     return;
   }
-
-  if (!currentUser){
+  else if (!currentUser){
     console.log("sendPrompt | " + sessionObj.userId + " NOT FOUND IN USER CACHE ... SKIPPING | " + sessionObj.sessionId);
     return;
   }
+  else {
+    currentSession.wordChain.push(promptWordObj.nodeId);
+    sessionCache.set(currentSession.sessionId, currentSession);
 
-  currentSession.wordChain.push(promptWordObj.nodeId);
-  sessionCache.set(currentSession.sessionId, currentSession);
+    var sourceWordObj ;
 
-  var sourceWordObj ;
+    if (currentSession.wordChain.length >= 2) {
 
-  if (currentSession.wordChain.length >= 2) {
+      var previousResponse = currentSession.wordChain[currentSession.wordChain.length-2];
 
-    var previousResponse = currentSession.wordChain[currentSession.wordChain.length-2];
+      sourceWordObj = wordCache.get(previousResponse);
 
-    sourceWordObj = wordCache.get(previousResponse);
+      debug("CHAIN: " + currentSession.wordChain);
+      console.log(chalkPrompt("P -->"
+        + " | " + currentUser.userId 
+        + " | " + sessionObj.sessionId 
+        + " | " + previousResponse + " --> " + promptWordObj.nodeId));
 
-    debug("CHAIN: " + currentSession.wordChain);
-    console.log(chalkPrompt("P -->"
-      + " | " + currentUser.userId 
-      + " | " + sessionObj.sessionId 
-      + " | " + previousResponse + " --> " + promptWordObj.nodeId));
+    } else {
 
-  } else {
+      sourceWordObj = promptWordObj;
 
-    sourceWordObj = promptWordObj;
+      console.log(chalkPrompt("P -->"
+        + " | " + currentUser.userId 
+        + " | " + sessionObj.sessionId 
+        + " | START --> " + promptWordObj.nodeId));
+    }
 
-    console.log(chalkPrompt("P -->"
-      + " | " + currentUser.userId 
-      + " | " + sessionObj.sessionId 
-      + " | START --> " + promptWordObj.nodeId));
+    io.of(currentSession.namespace).to(currentSession.sessionId).emit('PROMPT_WORD_OBJ',promptWordObj);
+
+    promptsSent++ ;
+    deltaPromptsSent++;
+
+    var sessionUpdateObj = {
+      sessionId: currentSession.sessionId,
+      sourceWord: sourceWordObj,
+      targetWord: promptWordObj
+    };
+
+    updateSessionViews(sessionUpdateObj);
+
+    updateStats({ promptsSent: promptsSent });
   }
 
-  io.of(currentSession.namespace).to(currentSession.sessionId).emit('PROMPT_WORD_OBJ',promptWordObj);
-
-  promptsSent++ ;
-  deltaPromptsSent++;
-
-  var sessionUpdateObj = {
-    sessionId: currentSession.sessionId,
-    sourceWord: sourceWordObj,
-    targetWord: promptWordObj
-  };
-
-  updateSessionViews(sessionUpdateObj);
-
-  updateStats({ promptsSent: promptsSent });
 
 }
 

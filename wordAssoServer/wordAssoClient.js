@@ -4,6 +4,7 @@
 var debug = false ;
 var testMode = false ;
 
+
 var monitorMode = false ;
 var responseTimeoutInterval = 3000 ;
 var urlRoot = "http://word.threeceelabs.com/session?session=";
@@ -28,7 +29,7 @@ var mouseMoveTimeoutInterval = 5000; // 5 seconds
 var mouseOverFlag = false ;
 var mouseHoverFlag = false ;
 
-var socket = io();
+var socket = io('/user');
 var socketId ;
 var connectedFlag = false ;
 
@@ -43,6 +44,8 @@ var randomIntFromInterval = function (min,max) {
   var randomInt = Math.floor((random*(max-min+1))+min) ;
   return randomInt;
 }
+
+var userObj = { userId: 'RANDOM_' + randomIntFromInterval(1000000000,9999999999)};
 
 function getUrlVariables(config){
 
@@ -70,7 +73,7 @@ function getUrlVariables(config){
   }
 }
 
-var clientConfig = { user: "UNDEFINED", type: "STANDARD", mode: "WORD_OBJ"} ;
+// var clientConfig = { user: "UNDEFINED", type: "STANDARD", mode: "WORD_OBJ"} ;
 
 
 function sendUserResponse(){
@@ -102,6 +105,10 @@ function sendUserResponse(){
 }
 
 var userResponseValue = "";
+var socketIdDiv = document.getElementById("socketId");
+var socketIdLabel = document.createElement("label");
+socketIdLabel.innerHTML = "SID: " + socket.id;   
+socketIdDiv.appendChild(socketIdLabel);
 
 function addUserResponse() {
   var userResponseInput = document.createElement("input");
@@ -191,9 +198,9 @@ socket.on('connect', function(){
   socketId = socket.id ;
   console.log(">>> CONNECTED TO HOST | SOCKET ID: " + socketId);
   connectedFlag = true ;
-  clientConfig.user = "USER_" + socket.id ;
   getUrlVariables();
-  // launchSessionView(socket.id);
+  socketIdLabel.innerHTML = "SID: " + socket.id;   
+  socketIdDiv.appendChild(socketIdLabel);
 });
 
 socket.on('reconnect', function(){
@@ -201,9 +208,9 @@ socket.on('reconnect', function(){
   console.log(">-> RECONNECTED TO HOST | SOCKET ID: " + socketId);
   connectedFlag = true ;
   getUrlVariables();
-  clientConfig.user = "USER_" + socket.id ;
-  socket.emit("CLIENT_READY", clientConfig);
-  // launchSessionView(socket.id);
+  socket.emit("USER_READY", userObj);
+  socketIdLabel.innerHTML = "SID: " + socket.id;   
+  socketIdDiv.appendChild(socketIdLabel);
 });
 
 socket.on('disconnect', function(){
@@ -334,7 +341,12 @@ window.onload = function () {
 
   addServerPrompt();
   addUserResponse();
-  socket.emit("CLIENT_READY", clientConfig);
+
+  // userObj.userId = socket.id;
+
+  console.log("USER: " + userObj.userId);
+
+  socket.emit("USER_READY", userObj);
   // launchSessionView(socket.id);
 
   setTimeout(function(){

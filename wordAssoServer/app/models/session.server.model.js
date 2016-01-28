@@ -12,6 +12,9 @@ var SessionSchema = new Schema({
 	userId: { 
 		type: String
 	},
+	namespace: { 
+		type: String
+	},
 	createdAt: { 
 		type: Number,
 		default: moment().valueOf()
@@ -32,7 +35,8 @@ var SessionSchema = new Schema({
 		default: 0
 	},
 	wordChain: {
-		type: Object
+		type: Object,
+		default: []
 	}
 });
 

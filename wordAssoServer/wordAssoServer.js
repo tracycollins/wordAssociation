@@ -121,6 +121,7 @@ var bhtOverLimitTestFlag = false ;
 // ==================================================================
 var chalk = require('chalk');
 
+var chalkUser = chalk.green;
 var chalkGreen = chalk.green;
 var chalkAdmin = chalk.bold.cyan;
 var chalkConnectAdmin = chalk.bold.cyan;
@@ -447,6 +448,8 @@ setInterval(function () {
     runTime : msToTime(runTime),
     heartbeat : txHeartbeat,
     numberAdmins : numberAdmins,
+    numberUsers : numberUsers,
+    numberViewers : numberViewers,
     numberTestUsers : numberTestUsers,
     numberSessionClients : numberSessionClients,
     maxNumberUsers : maxNumberUsers,
@@ -573,6 +576,13 @@ if (!disableGoogleMetrics) {
                               [GOOGLE_MONITORING_SCOPE]
                             );
 }
+
+
+var adminNameSpace = io.of("/admin");
+var userNameSpace = io.of("/user");
+var viewNameSpace = io.of("/view");
+var testNameSpace = io.of("/test");
+
 
 
 // ==================================================================
@@ -1460,61 +1470,52 @@ function adminConnectDb (adminObj, callback) {
   );
 }
 
-function clientConnectDb (clientObj, callback) {
+function userUpdateDb (userObj, callback) {
 
-  if (typeof clientObj.socket !== 'undefined'){
-    debug("clientConnectDb CONNECT STATE: " + clientObj.socket.connected 
-      + " | CLIENT OBJ CONN: " + clientObj.connected);
-  }
-  else{
-    debug("??? DISCONNECTED STATE: CLIENT OBJ CONN: " + clientObj.connected);      
-  }
-
-  var query = { ip: clientObj.ip };
+  var query = { userId: userObj.userId };
   var update = { 
-          $inc: { "numberOfConnections": 1 }, 
           $set: { 
-            "socketId": clientObj.socketId,
-            "connected": true,
-            "config": clientObj.config,
-            "referer": clientObj.referer,
-            "connectTime": currentTime,
-            "disconnectTime": currentTime,
-            "domain": clientObj.domain, 
-            "lastSeen": currentTime 
+            "screenName": userObj.screenName,
+            "description": userObj.description,
+            "url": userObj.url,
+            "profileUrl": userObj.profileUrl,
+            "profileImageUrl": userObj.profileImageUrl,
+            "verified": userObj.verified,
+            "lastSeen": moment(),
+            "lastSession": userObj.lastSession,
+            "connected": userObj.connected
           },
-          $push: { "sessions": { 
-                      "socketId": clientObj.socketId,
-                      "connectedAt": currentTime
-                    }
-                  } 
-          };
+          $push: { "sessions": userObj.sessions } 
+        };
   var options = { upsert: true, new: true };
 
-  Client.findOneAndUpdate(
+  User.findOneAndUpdate(
     query,
     update,
     options,
-    function(err, cl) {
+    function(err, us) {
       if (err) {
-        console.error("!!! CLIENT FINDONE ERROR: " 
+        console.error("!!! USER FINDONE ERROR: " 
           + moment().format(defaultDateTimeFormat)
-          + " | " + clientObj.ip 
+          + " | " + userObj.userId 
           + "\n" + err);
-        callback(err, clientObj);
+        callback(err, userObj);
       }
       else {
-        debug(">>> CLIENT UPDATED" 
-          + " | I: " + cl.ip
-          + " | D: " + cl.domain 
-          + " | S: " + cl.socketId 
-          + " | CONN: " + cl.connected 
-          + " | R: " + cl.referer 
-          + " | CONS: " + cl.numberOfConnections 
-          + " | LAST: " + getTimeStamp(cl.lastSeen)
-          + "\nCONFIG\n" + jsonPrint(cl.config)
+        console.log(">>> USER UPDATED" 
+          + " | ID: " + us.userId
+          + " | SN: " + us.screenName 
+          + " | DES: " + us.description 
+          + " | URL: " + us.url 
+          + " | PURL: " + us.profileUrl 
+          + " | PIURL: " + us.profileImageUrl 
+          + " | VER: " + us.verified
+          + " | LS: " + getTimeStamp(us.lastSeen)
+          + " | SES: " + us.sessions.length
+          + " | LSES: " + us.lastSession
+          + " | CONN: " + us.connected
           );
-        callback(null, cl);
+        callback(null, us);
       }
     }
   );
@@ -1572,7 +1573,7 @@ function adminDisconnectDb (adminObj, callback) {
   );
 }
 
-function clientDisconnectDb (clientObj, callback) {
+function userDisconnectDb (userObj, callback) {
 
   debug("clientDisconnectDb: clientObj: " + clientObj.socketId + " | " + clientObj.ip);
 
@@ -1655,82 +1656,46 @@ function adminFindAllDb (options, callback) {
   });
 }
 
-function clientFindAllDb (options, callback) {
+function userFindAllDb (options, callback) {
 
-  debug("\n=============================\nCLIENTS IN DB\nOPTIONS");
-  debug(options);
+  console.log("\n=============================\nUSERS IN DB\n----------");
+  if (options) console.log("OPTIONS\n" + jsonPrint(options));
 
   var query = {};
   var projections = {
-    ip: true,
-    config: true,
-    domain: true,
-    socketId: true,
+    userId: true,
+    screenName: true,
+    description: true,
+    url: true,
+    profileUrl: true,
+    profileImageUrl: true,
+    verified: true,
+    createdAt: true,
     lastSeen: true,
-    referer: true,
-    connectTime: true,
-    disconnectTime: true,
-    numberOfConnections: true
+    lastSession: true,
+    connected: true,
   };
 
-  Client.find(query, projections, options, function(err, clients) {
-
-    clients.forEach(function(client) {
-        debug("IP: " + client.ip 
-        + " | SOCKET: " + client.socketId
-        + " | DOMAIN: " + client.domain
-        + " | REFERER: " + client.referer
-        + " | LAST SEEN: " + client.lastSeen
-        + " | CONNECT TIME: " + client.connectTime
-        + " | DISCONNECT TIME: " + client.disconnectTime
-        + " | NUM SESSIONS: " + client.numberOfConnections
-        );
-
-      if (typeof client.config === 'undefined'){
-        console.warn(chalkWarn("??? CLIENT IN DB WITHOUT CONFIG\n" + jsonPrint(client)));
-
-        var query = { ip: client.ip };
-        var update = { 
-              $set: { 
-                "config": { type: 'CLIENT', mode: 'WORD_OBJ', user: 'UNKNOWN'}
-              }
-            };
-        var options = { upsert: true, new: true };
-
-        Client.findOneAndUpdate(
-          query,
-          update,
-          options,
-          function(err, cl) {
-            if (err) {
-              console.error("!!! CLIENT FINDONE ERROR: " 
-                + moment().format(defaultDateTimeFormat)
-                + " | " + client.ip 
-                + "\n" + err);
-            }
-            else {
-              console.log(">>> CLIENT UPDATED" 
-                + " | I: " + cl.ip
-                + " | D: " + cl.domain 
-                + " | S: " + cl.socketId 
-                + " | CONN: " + cl.connected 
-                + " | R: " + cl.referer 
-                + " | CONS: " + cl.numberOfConnections 
-                + " | LAST: " + getTimeStamp(cl.lastSeen)
-                + "\nCONFIG\n" + jsonPrint(cl.config)
-                );
-              console.warn(chalkWarn("??? UPDATED CLIENT\n" + jsonPrint(cl.config)));
-              clientIpHashMap.set(cl.ip, cl);
-            }
-          }
-        );
+  User.find(query, projections, options, function(err, users) {
+    if (err) {
+      callback(err, null);
+      return;
+    }
+    if (users){
+      for (var i=0; i<users.length; i++) {
+        console.log("USER " + users[i].userId
+          + "\n" + chalkLog(util.inspect(users[i], {showHidden: false, depth: 1})
+        ));
+        userCache.set(users[i].userId, users[i]);
+        if (i >= users.length) {
+          callback(null, users.length);
+          return;
+        }
       }
-      else {
-        clientIpHashMap.set(client.ip, client);
-      }
-    });
-    debug(clientIpHashMap.count() + " KNOWN CLIENTS");
-    callback(clientIpHashMap.count());
+    }
+    else {
+      console.log("NO USERS FOUND");
+    }
   });
 }
 
@@ -1939,7 +1904,7 @@ function updateMetrics(){
   // hopefully will avoid Google metric error Timeseries data must be more recent than previously-written data
 
   debug(moment().format(defaultDateTimeFormat) 
-    + " | updateMetrics CLIENTS: " + numberUsers 
+    + " | updateMetrics USERS: " + numberUsers 
     + " | PTX: " + promptsSent 
     + " | RRX: " + responsesReceived
     + " | STX: " + sessionUpdatesSent
@@ -2210,6 +2175,13 @@ var readSessionQueue = setInterval(function (){
 
     switch (sesObj.sessionEvent) {
 
+      case 'REQ_ADMIN_SESSION':
+        var options ;
+        userFindAllDb(options, function(numberUsers){
+          console.log("NUMBER USERS: " + numberUsers);
+        });
+        break;
+
       case 'SESSION_CREATE':
         console.log(chalkSession(
           ">>> SESSION CREATE"
@@ -2227,8 +2199,16 @@ var readSessionQueue = setInterval(function (){
           + " | SID: " + sesObj.sessionId
           // + " | UID: " + sesObj.user.userId
         ));
+
         var currentSession = sessionCache.get(sesObj.sessionId);
+        var currentUser = userCache.get(currentSession.userId);
+
         sessionCache.del(currentSession.sessionId);
+        userCache.del(currentUser.userId);
+
+        currentUser.connected = false;
+        userUpdateDb(currentUser, function(){});
+
         break;
 
       case 'SOCKET_ERROR':
@@ -2240,16 +2220,26 @@ var readSessionQueue = setInterval(function (){
         ));
         var currentSession = sessionCache.get(sesObj.sessionId);
         sessionCache.del(currentSession.sessionId);
+        sesObj.user.connected = false;
+        userUpdateDb(sesObj.user, function(){});
         break;
 
       case 'USER_READY':
+
         debug(chalkSession(
           ">>> SESSION USER READY"
           + " | SID: " + sesObj.session.sessionId
           + " | UID: " + sesObj.user.userId
         ));
+
         var currentSession = sessionCache.get(sesObj.session.sessionId);
         currentSession.userId = sesObj.user.userId;
+
+        sesObj.user.lastSession = sesObj.session.sessionId;
+        sesObj.user.connected = true;
+
+        userUpdateDb(sesObj.user, function(){});
+
         sessionCache.set(currentSession.sessionId, currentSession, function( err, success ){
           if( !err && success ){
             userCache.set(currentSession.userId, sesObj.user, function( err, success ){
@@ -2436,13 +2426,13 @@ function initializeConfiguration() {
         [
 
           // CLIENT IP INIT
-          function(callbackParallel) {
-            console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | CLIENT IP INIT"));
-            clientFindAllDb(null, function(numberOfClientIps){
-              console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | CLIENT UNIQUE IP ADDRESSES: " + numberOfClientIps));
-              callbackParallel();
-            });
-          },
+          // function(callbackParallel) {
+          //   console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | CLIENT IP INIT"));
+          //   clientFindAllDb(null, function(numberOfClientIps){
+          //     console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | CLIENT UNIQUE IP ADDRESSES: " + numberOfClientIps));
+          //     callbackParallel();
+          //   });
+          // },
           // ADMIN IP INIT
           function(callbackParallel) {
             console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | ADMIN IP INIT"));
@@ -2627,7 +2617,10 @@ configEvents.on("SERVER_READY", function () {
         sessionHashMapCount : sessionHashMap.count(),
 
         numberAdmins : numberAdmins,
+        numberViewers : numberViewers,
         numberUsers : numberUsers,
+        numberTestUsers : numberTestUsers,
+
         maxNumberUsers : maxNumberUsers,
         maxNumberUsersTime : maxNumberUsersTime,
 
@@ -2643,14 +2636,16 @@ configEvents.on("SERVER_READY", function () {
         totalUsers : totalUsers,
 
         promptsSent : promptsSent,
-        responsesReceived : responsesReceived,
+        responsesReceived : responsesReceived
 
-        numberTestUsers : numberTestUsers
       } ;
 
       io.emit('HEARTBEAT', txHeartbeat);
-      io.of('/admin').emit('HEARTBEAT', txHeartbeat);
-      io.of('/test').emit('HEARTBEAT', txHeartbeat);
+
+      adminNameSpace.emit('HEARTBEAT', txHeartbeat);
+      userNameSpace.emit('HEARTBEAT', txHeartbeat);
+      viewNameSpace.emit('HEARTBEAT', txHeartbeat);
+      testNameSpace.emit('HEARTBEAT', txHeartbeat);
 
       if (heartbeatsSent%60 == 0) {
         logHeartbeat();
@@ -2750,10 +2745,10 @@ googleOauthEvents.on("SOCKET HUNG UP", function(){
 //  SERVER READY
 //=================================
 
-var adminNameSpace = io.of("/admin");
-var userNameSpace = io.of("/user");
-var viewNameSpace = io.of("/view");
-var testNameSpace = io.of("/test");
+// var adminNameSpace = io.of("/admin");
+// var userNameSpace = io.of("/user");
+// var viewNameSpace = io.of("/view");
+// var testNameSpace = io.of("/test");
 
 
 function createSession (newSessionObj){
@@ -2796,17 +2791,11 @@ function createSession (newSessionObj){
       + " | " + socket.id 
       + " | " + error
     ));
-
     sessionQueue.enqueue({sessionEvent: "SOCKET_ERROR", sessionId: socket.id, error: error});
   });
 
   socket.on("reconnect", function(err){
     console.log(chalkConnect(moment().format(defaultDateTimeFormat) + " | SOCKET RECONNECT: " + socket.id));
-    // if (sessionHashMap.has(socket.id)) {
-    //   var sessionReconnectObj = sessionHashMap.get(socket.id);
-    //   console.log("FOUND RECONNECTED SESSION IN HASH:" + sessionReconnectObj.socketId);
-    // }
-
     sessionQueue.enqueue({sessionEvent: "SOCKET_RECONNECT", sessionId: socket.id});
   });
 
@@ -2816,7 +2805,22 @@ function createSession (newSessionObj){
     debug(chalkDisconnect("\nDISCONNECTED SOCKET " + util.inspect(socket, {showHidden: false, depth: 1})));
   });
 
+  socket.on("REQ_ADMIN_SESSION", function(options){
+    console.log(chalkAdmin(moment().format(defaultDateTimeFormat) 
+      + " | REQ_ADMIN_SESSION: " + socketId
+      + " | IP: " + ipAddress
+      + " | SID: " + sessionObj.sessionId
+      + " | OPTIONS: " + jsonPrint(options)      
+    ));
+
+    sessionQueue.enqueue({sessionEvent: "REQ_ADMIN_SESSION", session: sessionObj, options: options});
+
+  });
+
   socket.on("USER_READY", function(userObj){
+
+    console.log(chalkUser("USER READY\n" + jsonPrint(userObj)));
+
     var socketId = socket.id ;
     var sessionObj = sessionCache.get(socketId);
 
@@ -2832,8 +2836,6 @@ function createSession (newSessionObj){
     ));
 
     sessionQueue.enqueue({sessionEvent: "USER_READY", session: sessionObj, user: userObj});
-
-
   });
 
   socket.on("RESPONSE_WORD_OBJ", function(rxInObj){
@@ -2915,27 +2917,27 @@ configEvents.on("DATABASE_INIT_COMPLETE", function(tweetCount){
 //=================================
 //  REMOVE DISCONNECTED CLIENT SOCKETS FROM HASH MAP
 //=================================
-var clientSocketCheckInterval = setInterval(function () {
+// var clientSocketCheckInterval = setInterval(function () {
 
-  if (!disableGoogleMetrics && googleMetricsEnabled) {
-    // updateMetrics(numberUsers, promptsSent, responsesReceived, sessionUpdatesSent, bhtRequests);
-    updateMetrics();
-  }
+//   if (!disableGoogleMetrics && googleMetricsEnabled) {
+//     // updateMetrics(numberUsers, promptsSent, responsesReceived, sessionUpdatesSent, bhtRequests);
+//     updateMetrics();
+//   }
 
-  var clientSockets = findClientsSocket('/');
-  var testClientSockets = findClientsSocket('/test');
+//   var clientSockets = findClientsSocket('/');
+//   var testClientSockets = findClientsSocket('/test');
 
-  clientSocketIdHashMap.forEach(function(clientObj, socketId) {
-    if (clientSockets.has(socketId) || testClientSockets.has(socketId)){
-     }
-    else {
-      console.warn(chalkWarn("??? DISCONNECTED STATE: CLIENT OBJ CONN: " + clientObj.connected 
-        + " ... REMOVING FROM HASH ..."));  
-      clientSocketIdHashMap.remove(socketId);    
-    }
-  });
+//   clientSocketIdHashMap.forEach(function(clientObj, socketId) {
+//     if (clientSockets.has(socketId) || testClientSockets.has(socketId)){
+//      }
+//     else {
+//       console.warn(chalkWarn("??? DISCONNECTED STATE: CLIENT OBJ CONN: " + clientObj.connected 
+//         + " ... REMOVING FROM HASH ..."));  
+//       clientSocketIdHashMap.remove(socketId);    
+//     }
+//   });
 
-}, 1000);
+// }, 1000);
 
 
 //=================================

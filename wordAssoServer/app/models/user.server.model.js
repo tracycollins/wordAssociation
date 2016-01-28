@@ -33,10 +33,19 @@ var UserSchema = new Schema({
 		default: false
 	},
 	createdAt: { 
-		type: Date
+		type: Number,
+		default: moment().valueOf()
 	},
 	lastSeen: {   
+		type: Number,
+		default: moment().valueOf()
+	},
+	lastSession: {   
 		type: String
+	},
+	connected: {   
+		type: Boolean,
+		default: false
 	},
 	sessions: {  
 		type: [String]// Session objects

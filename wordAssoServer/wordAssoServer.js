@@ -3024,11 +3024,17 @@ function initAppRouting(){
     return;
   });
 
-  app.get('/test', function(req, res){
-    debug(chalkAlert("TEST PAGE REQUEST ... RETURNING index.html ..."));
+  app.get('/test-user', function(req, res){
+    debug(chalkAlert("TEST USER PAGE REQUEST ... RETURNING index.html ..."));
     res.sendFile(__dirname + '/index.html');
     return;
   });
+
+  // app.get('/test', function(req, res){
+  //   debug(chalkAlert("TEST PAGE REQUEST ... RETURNING index.html ..."));
+  //   res.sendFile(__dirname + '/index.html');
+  //   return;
+  // });
 
   app.get('/wordAssoClient.js', function(req, res){
     debug("LOADING PAGE: /wordAssoClient.js");

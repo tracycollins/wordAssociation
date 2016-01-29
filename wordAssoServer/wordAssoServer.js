@@ -128,7 +128,7 @@ var chalkGreen = chalk.green;
 var chalkAdmin = chalk.bold.cyan;
 var chalkConnectAdmin = chalk.bold.cyan;
 var chalkConnect = chalk.green;
-var chalkDisconnect = chalk.black;
+var chalkDisconnect = chalk.red;
 var chalkInfo = chalk.gray;
 var chalkTest = chalk.yellow;
 var chalkAlert = chalk.red;
@@ -497,7 +497,7 @@ setInterval(function () {
 
     totalSessions: totalSessions,
     sessionUpdatesSent: sessionUpdatesSent,
-    
+
     totalWords: totalWords,
     wordCacheHits: wordCache.getStats().hits,
     wordCacheMisses: wordCache.getStats().misses
@@ -2716,6 +2716,7 @@ configEvents.on("SERVER_READY", function () {
       + " | ST: " + getTimeStamp(txHeartbeat.startTime)
       + " | UP: " + msToTime(txHeartbeat.upTime)
       + " | RN: " + msToTime(txHeartbeat.runTime)
+      + " | MWR: " + txHeartbeat.mwRequests
       + " | BHTR: " + txHeartbeat.bhtRequests
       + " | MEM: " + txHeartbeat.memoryAvailable + "/" + txHeartbeat.memoryTotal
     ));
@@ -2782,8 +2783,10 @@ configEvents.on("SERVER_READY", function () {
         maxNumberUsersTime : maxNumberUsersTime,
 
         totalWords : totalWords,
-        bhtRequests : bhtRequests,
 
+        mwRequests : mwRequests,
+
+        bhtRequests : bhtRequests,
         bhtOverLimitFlag : bhtOverLimitFlag,
         bhtLimitResetTime : bhtLimitResetTime,
         bhtOverLimitTime : bhtOverLimitTime,
@@ -2958,7 +2961,7 @@ function createSession (newSessionObj){
   });
 
   socket.on("disconnect", function(){
-    console.log(chalkConnect(moment().format(defaultDateTimeFormat) + " | SOCKET DISCONNECT: " + socket.id));
+    console.log(chalkDisconnect(moment().format(defaultDateTimeFormat) + " | SOCKET DISCONNECT: " + socket.id));
     sessionQueue.enqueue({sessionEvent: "SOCKET_DISCONNECT", sessionId: socket.id});
     debug(chalkDisconnect("\nDISCONNECTED SOCKET " + util.inspect(socket, {showHidden: false, depth: 1})));
   });

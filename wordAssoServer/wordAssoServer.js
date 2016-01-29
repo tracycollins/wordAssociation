@@ -1584,51 +1584,6 @@ function adminConnectDb (adminObj, callback) {
   );
 }
 
-// function sessionUpdateDb (sesObj, callback) {
-
-//   var query = { sessionId: sesObj.sessionId };
-//   var update = { 
-//           $set: { 
-//             "userId": sesObj.userId,
-//             "namespace": sesObj.namespace,
-//             "lastSeen": moment(),
-//             "connected": sesObj.connected,
-//             "connectTime": sesObj.connectTime,
-//             "disconnectTime": sesObj.disconnectTime
-//           },
-//           $push: { "wordChain": sesObj.wordChain } 
-//         };
-//   var options = { upsert: true, new: true };
-
-//   Session.findOneAndUpdate(
-//     query,
-//     update,
-//     options,
-//     function(err, ses) {
-//       if (err) {
-//         console.error("!!! SESSION FINDONE ERROR: " 
-//           + moment().format(defaultDateTimeFormat)
-//           + " | " + sesObj.sessionId 
-//           + "\n" + err);
-//         callback(err, sesObj);
-//       }
-//       else {
-//         console.log(">>> SES UPDATED" 
-//           + " | ID: " + ses.sessionId
-//           + " | UID: " + ses.userId 
-//           + " | NSP: " + ses.namespace 
-//           + " | LS: " + getTimeStamp(ses.lastSeen)
-//           + " | #SES: " + ses.sessions.length
-//           + " | CONN: " + ses.connected
-//           + " | CT: " + ses.connectTime
-//           + " | DCT: " + ses.disconnectTime
-//           );
-//         callback(null, ses);
-//       }
-//     }
-//   );
-// }
-
 function userUpdateDb (userObj, callback) {
 
   var query = { userId: userObj.userId };
@@ -1842,7 +1797,7 @@ function userFindAllDb (options, callback) {
     }
     if (users){
       for (var i=0; i<users.length; i++) {
-        console.log(chalkUser("USER " + users[i].userId
+        debug(chalkUser("USER " + users[i].userId
           + " | SCREEN NAME: " +  users[i].screenName
           + " LS: " + getTimeStamp(users[i].lastSeen)
           // + "\n" + chalkLog(util.inspect(users[i], {showHidden: false, depth: 1})
@@ -3334,41 +3289,6 @@ process.on("message", function(msg) {
 initializeConfiguration();
 
 updateStatsCounts();
-
-// User.count({}, function(err,count){
-//   if (!err){ 
-//     console.log("TOTAL USERS: " + count);
-//     totalUsers = count ;
-//     updateStats({totalUsers: totalUsers});
-//   } 
-//   else {
-//     console.error(chalkError("\n*** DB User.count ERROR *** | " + moment().format(defaultDateTimeFormat) + "\n" + err));
-//   }
-// });
-
-// Session.count({}, function(err,count){
-//   if (!err){ 
-//     // console.log("TOTAL SESSIONS: " + count);
-//     totalSessions = count ;
-//     updateStats({totalSessions: totalSessions});
-//   } 
-//   else {
-//     console.error(chalkError("\n*** DB Session.count ERROR *** | " + moment().format(defaultDateTimeFormat) + "\n" + err));
-//   }
-// });
-
-// Word.count({}, function(err,count){
-//   if (!err){ 
-//     console.log("TOTAL WORDS: " + count);
-//     totalWords = count ;
-//     // statsCountsComplete = true ;
-//     updateStats({totalWords: totalWords});
-//   } 
-//   else {
-//     console.error(chalkError("\n*** DB Word.count ERROR *** | " + moment().format(defaultDateTimeFormat) + "\n" + err));
-//     // statsCountsComplete = true ;
-//   }
-// });
 
 module.exports = {
  app: app,

@@ -2075,7 +2075,7 @@ function updateMetrics(){
           "labels": { 
             "custom.cloudmonitoring.googleapis.com/word-asso/word-cache/wordCacheHitMissRatio" : "WORD CACHE HIT/MISS RATIO"
           },
-          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/word-cache"
+          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/word-cache/wordCacheHitMissRatio"
          }
         },
 

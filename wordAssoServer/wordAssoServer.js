@@ -775,7 +775,7 @@ function updateSessionViews(sessionUpdateObj){
 
     Session.count({}, function(err,count){
       if (!err){ 
-        console.log("TOTAL SESSIONS: " + count);
+        debug("TOTAL SESSIONS: " + count);
         totalSessions = count ;
         updateStats({totalSessions: totalSessions});
       } 
@@ -3322,7 +3322,7 @@ User.count({}, function(err,count){
 
 Session.count({}, function(err,count){
   if (!err){ 
-    console.log("TOTAL SESSIONS: " + count);
+    // console.log("TOTAL SESSIONS: " + count);
     totalSessions = count ;
     updateStats({totalSessions: totalSessions});
   } 

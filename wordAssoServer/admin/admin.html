@@ -1035,6 +1035,8 @@
 						bhtLRTmoment + ' | ' + (msToTime(moment(heartBeat.bhtLimitResetTime).diff(now))) + ' REMAIN'
 					]);
 
+				tableCreateRow(heatbeatTable, false, ['TOTAL MW REQS', heartBeat.mwRequests]);
+
 				tableCreateRow(heatbeatTable, false, ['ADMINS', heartBeat.numberAdmins]);
 				tableCreateRow(heatbeatTable, false, ['UTILS', heartBeat.numberUtils]);
 				tableCreateRow(heatbeatTable, false, ['VIEWERS',heartBeat.numberViewers]);

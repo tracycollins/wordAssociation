@@ -767,7 +767,7 @@ function updatePromptResponseMetric(sessionUpdateObj){
 
 var statsCountsComplete = false ;
 
-function updateSessionViews(sessionUpdateObj){
+function updateStatsCounts(){
 
   if (statsCountsComplete) {
 
@@ -798,6 +798,12 @@ function updateSessionViews(sessionUpdateObj){
     });
 
   }
+}
+
+function updateSessionViews(sessionUpdateObj){
+
+  updateStatsCounts();
+
 
   debug(chalkInfo(">>> TX SESSION_UPDATE"
     + " | " + sessionUpdateObj.sessionId

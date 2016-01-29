@@ -885,7 +885,6 @@ function dbUpdateWord(wordObj, incMentions, callback){
         bhtSearchWord(word, function(status, bhtResponseObj){
           if (status.indexOf("BHT_OVER_LIMIT") >= 0) {
             debug(chalkError("bhtSearchWord BHT OVER LIMI"));
-            // wordCache.set(word.nodeId, word, WORD_CACHE_TTL);
             wordCache.set(word.nodeId, word, wordCacheTtl);
             callback('BHT_OVER_LIMIT', word);
           }
@@ -2034,7 +2033,7 @@ function updateMetrics(){
           "labels": { 
             "custom.cloudmonitoring.googleapis.com/word-asso/word-cache/wordCacheKeys" : "WORD CACHE KEYS"
           },
-          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/word-cache/wordCacheKeys"
+          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/word-cache"
          }
         },
 
@@ -2048,7 +2047,7 @@ function updateMetrics(){
           "labels": { 
             "custom.cloudmonitoring.googleapis.com/word-asso/word-cache/wordCacheHits" : "WORD CACHE HITS"
           },
-          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/word-cache/wordCacheHits"
+          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/word-cache"
          }
         },
 
@@ -2062,7 +2061,7 @@ function updateMetrics(){
           "labels": { 
             "custom.cloudmonitoring.googleapis.com/word-asso/word-cache/wordCacheMisses" : "WORD CACHE MISSES"
           },
-          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/word-cache/wordCacheMisses"
+          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/word-cache"
          }
         },
 
@@ -2076,7 +2075,7 @@ function updateMetrics(){
           "labels": { 
             "custom.cloudmonitoring.googleapis.com/word-asso/word-cache/wordCacheHitMissRatio" : "WORD CACHE HIT/MISS RATIO"
           },
-          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/word-cache/wordCacheHitMissRatio"
+          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/word-cache"
          }
         },
 
@@ -2316,9 +2315,7 @@ var readSessionQueue = setInterval(function (){
               if( !err && success ){
                 words.getRandomWord(function(err, randomWordObj){
                   if (!err) {
-                    // console.log("randomWordObj\n" + jsonPrint(randomWordObj));
                     wordCache.set(randomWordObj.nodeId, randomWordObj, wordCacheTtl);
-                    // currentSession.wordChain.push(randomWordObj.nodeId);
                     sessionCache.set(currentSession.sessionId, currentSession);
                     sendPrompt(currentSession, randomWordObj);
                   }
@@ -2477,7 +2474,6 @@ var readPromptQueue = setInterval(function (){
         console.log(chalkError("**** generatePrompt ERROR\n" + jsonPrint(responseObj)))
       }
       else if (status == 'OK') {
-        // console.log(chalkPrompt("PROMPT: " + responseObj.nodeId));
         wordCache.set(responseObj.nodeId, responseObj, wordCacheTtl);
         sendPrompt(currentSession, responseObj);
       }

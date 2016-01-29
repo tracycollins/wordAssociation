@@ -1363,7 +1363,7 @@ function setBhtReqs(value){
 
 function incrementSocketBhtReqs(delta){
 
-  if ((bhtRequests > BHT_REQUEST_LIMIT) || ((bhtRequests+delta) > BHT_REQUEST_LIMIT)){
+  if ((bhtRequests >= BHT_REQUEST_LIMIT) || ((bhtRequests+delta) > BHT_REQUEST_LIMIT)){
     console.log(chalkInfo("!!! incrementSocketBhtReqs: AT BHT_REQUEST_LIMIT: " + bhtRequests + " | NOW: " + BHT_REQUEST_LIMIT));
     bhtRequests = BHT_REQUEST_LIMIT ;
   }
@@ -1375,15 +1375,15 @@ function incrementSocketBhtReqs(delta){
       + " | LIMIT: " + BHT_REQUEST_LIMIT
       + " | REMAIN: " + remain
     ));
+    incrementDeltaBhtReqs(delta);
   }
-  incrementDeltaBhtReqs(delta);
 }
 
 function incrementSocketMwReqs(delta){
 
   if ((mwRequests > MW_REQUEST_LIMIT) || ((mwRequests+delta) > MW_REQUEST_LIMIT)){
     console.log(chalkInfo("!!! incrementSocketMwReqs: AT MW_REQUEST_LIMIT: " + mwRequests + " | NOW: " + BHT_REQUEST_LIMIT));
-    bhtRequests = MW_REQUEST_LIMIT ;
+    mwRequests = MW_REQUEST_LIMIT ;
   }
   else if (delta > 0) {
     mwRequests += delta;
@@ -1393,8 +1393,8 @@ function incrementSocketMwReqs(delta){
       + " | LIMIT: " + MW_REQUEST_LIMIT
       + " | REMAIN: " + remain
     ));
+    incrementDeltaMwReqs(delta);
   }
-  incrementDeltaMwReqs(delta);
 }
 
 function sessionUpdateDb (sessionObj, callback) {

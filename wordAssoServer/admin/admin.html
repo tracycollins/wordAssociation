@@ -1013,11 +1013,6 @@
 					tableCreateRow(heatbeatTable, false, ['WORD CACHE MISSES', heartBeat.wordCacheStats.misses]);
 				}
 
-				tableCreateRow(heatbeatTable, false, ['CL SOCKET HM COUNT', heartBeat.clientSocketIdHashMapCount]);
-				tableCreateRow(heatbeatTable, false, ['CL IP HM COUNT', heartBeat.clientIpHashMapCount]);
-				tableCreateRow(heatbeatTable, false, ['SESSION HM COUNT', heartBeat.sessionHashMapCount]);
-
-
 				tableCreateRow(heatbeatTable, false, ['TOTAL SESSIONS', heartBeat.totalSessions]);
 				tableCreateRow(heatbeatTable, false, ['TOTAL WORDS', heartBeat.totalWords]);
 				tableCreateRow(heatbeatTable, false, ['TOTAL PROMPTS', heartBeat.promptsSent]);
@@ -1040,6 +1035,8 @@
 						bhtLRTmoment + ' | ' + (msToTime(moment(heartBeat.bhtLimitResetTime).diff(now))) + ' REMAIN'
 					]);
 
+				tableCreateRow(heatbeatTable, false, ['ADMINS', heartBeat.numberAdmins]);
+				tableCreateRow(heatbeatTable, false, ['UTILS', heartBeat.numberUtils]);
 				tableCreateRow(heatbeatTable, false, ['USERS', heartBeat.numberUsers]);
 				tableCreateRow(heatbeatTable, false, ['TEST USERS',heartBeat.numberTestUsers]);
 				tableCreateRow(heatbeatTable, false, ['TOTAL USERS', heartBeat.numberUsers + heartBeat.numberTestUsers]);

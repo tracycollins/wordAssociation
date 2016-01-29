@@ -2767,12 +2767,14 @@ configEvents.on("SERVER_READY", function () {
 
   var serverHeartbeatInterval = setInterval(function () {
 
-    numberAdmins = adminNameSpace.sockets.length;
-    numberUtils = utilNameSpace.sockets.length;
-    numberUsers = userNameSpace.sockets.length;
-    numberTestUsers = testUsersNameSpace.sockets.length;
-    numberViewers = viewNameSpace.sockets.length;
-    numberTestViewers = testViewersNameSpace.sockets.length;
+    debug(util.inspect(userNameSpace.connected, {showHidden: false, depth: 1}))
+
+    numberAdmins = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
+    numberUtils = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
+    numberUsers = Object.keys(userNameSpace.connected).length; // userNameSpace.sockets.length ;
+    numberTestUsers = Object.keys(testUsersNameSpace.connected).length; // userNameSpace.sockets.length ;
+    numberViewers = Object.keys(viewNameSpace.connected).length; // userNameSpace.sockets.length ;
+    numberTestViewers = Object.keys(testViewersNameSpace.connected).length; // userNameSpace.sockets.length ;
 
     if (numberUsers > maxNumberUsers) {
       maxNumberUsers = numberUsers;
@@ -2955,12 +2957,12 @@ function createSession (newSessionObj){
   var hostname = newSessionObj.socket.handshake.headers.host ;
   var domain = "UNKNOWN" ;
 
-  numberAdmins = adminNameSpace.sockets.length;
-  numberUtils = utilNameSpace.sockets.length;
-  numberUsers = userNameSpace.sockets.length;
-  numberViewers = viewNameSpace.sockets.length;
-  numberTestUsers = testUsersNameSpace.sockets.length;
-  numberTestViewers = testViewersNameSpace.sockets.length;
+  numberAdmins = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
+  numberUtils = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
+  numberUsers = Object.keys(userNameSpace.connected).length; // userNameSpace.sockets.length ;
+  numberTestUsers = Object.keys(testUsersNameSpace.connected).length; // userNameSpace.sockets.length ;
+  numberViewers = Object.keys(viewNameSpace.connected).length; // userNameSpace.sockets.length ;
+  numberTestViewers = Object.keys(testViewersNameSpace.connected).length; // userNameSpace.sockets.length ;
 
   var sessionObj = new Session ({
     sessionId: socketId,
@@ -2975,7 +2977,7 @@ function createSession (newSessionObj){
 
   sessionCache.set(sessionObj.sessionId, sessionObj);
 
-  console.log(chalkSession("\nNEW SESSION\n" + util.inspect(sessionObj, {showHidden: false, depth: 1})));
+  debug(chalkSession("\nNEW SESSION\n" + util.inspect(sessionObj, {showHidden: false, depth: 1})));
 
   sessionQueue.enqueue({sessionEvent: "SESSION_CREATE", session: sessionObj});
 

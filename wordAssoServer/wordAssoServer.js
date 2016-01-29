@@ -2272,7 +2272,7 @@ function updateMetrics(){
       if (err) {
         console.error("!!! GOOGLE CLOUD MONITORING ERROR " 
           + " | " + moment().format(defaultDateTimeFormat) 
-          + "\n" + util.inspect(err, {showHidden: false, depth: 2})
+          + "\n" + util.inspect(err, {showHidden: false, depth: 3})
         );
 
         if (err.code == 500){

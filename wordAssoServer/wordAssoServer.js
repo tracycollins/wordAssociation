@@ -175,7 +175,6 @@ var numberUsers = 0;
 var numberViewers = 0;
 var numberTestViewers = 0;
 var numberTestUsers = 0;
-var numberSessionClients = 0;
 
 var dnsHostHashMap = new HashMap();
 var localHostHashMap = new HashMap();
@@ -482,7 +481,6 @@ setInterval(function () {
     numberViewers : numberViewers,
     numberTestViewers : numberTestViewers,
     numberTestUsers : numberTestUsers,
-    numberSessionClients : numberSessionClients,
 
     maxNumberUsers : maxNumberUsers,
     maxNumberUsersTime : maxNumberUsersTime,
@@ -777,7 +775,7 @@ function updateSessionViews(sessionUpdateObj){
 
     Session.count({}, function(err,count){
       if (!err){ 
-        debug("TOTAL SESSIONS: " + count);
+        console.log("TOTAL SESSIONS: " + count);
         totalSessions = count ;
         updateStats({totalSessions: totalSessions});
       } 

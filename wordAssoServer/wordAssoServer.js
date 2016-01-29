@@ -2812,6 +2812,7 @@ configEvents.on("SERVER_READY", function () {
         numberAdmins : numberAdmins,
         numberUtils : numberUtils,
         numberViewers : numberViewers,
+        numberTestViewers : numberTestViewers,
         numberUsers : numberUsers,
         numberTestUsers : numberTestUsers,
 

@@ -3335,12 +3335,12 @@ Word.count({}, function(err,count){
   if (!err){ 
     console.log("TOTAL WORDS: " + count);
     totalWords = count ;
-    statsCountsComplete = true ;
+    // statsCountsComplete = true ;
     updateStats({totalWords: totalWords});
   } 
   else {
     console.error(chalkError("\n*** DB Word.count ERROR *** | " + moment().format(defaultDateTimeFormat) + "\n" + err));
-    statsCountsComplete = true ;
+    // statsCountsComplete = true ;
   }
 });
 

@@ -1711,7 +1711,6 @@ function userFindAllDb (options, callback) {
       for (var i=0; i<users.length; i++) {
         console.log(chalkUser("USER " + users[i].userId
           + " | SCREEN NAME: " +  users[i].screenName
-          + " | " + users[i].sessions.length + " SESSIONS"
           + " LS: " + getTimeStamp(users[i].lastSeen)
           // + "\n" + chalkLog(util.inspect(users[i], {showHidden: false, depth: 1})
         ));

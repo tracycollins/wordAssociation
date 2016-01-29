@@ -475,20 +475,29 @@ setInterval(function () {
     upTime : msToTime(upTime),
     runTime : msToTime(runTime),
     heartbeat : txHeartbeat,
+
     numberAdmins : numberAdmins,
+    numberUtils : numberUtils,
     numberUsers : numberUsers,
     numberViewers : numberViewers,
     numberTestViewers : numberTestViewers,
     numberTestUsers : numberTestUsers,
     numberSessionClients : numberSessionClients,
+
     maxNumberUsers : maxNumberUsers,
     maxNumberUsersTime : maxNumberUsersTime,
+
     promptsSent : promptsSent,
     responsesReceived: responsesReceived,
+
     bhtErrors: bhtErrors,
     bhtRequests: bhtRequests,
+
+    mwRequests: mwRequests,
+
     totalSessions: totalSessions,
     sessionUpdatesSent: sessionUpdatesSent,
+    
     totalWords: totalWords,
     wordCacheHits: wordCache.getStats().hits,
     wordCacheMisses: wordCache.getStats().misses

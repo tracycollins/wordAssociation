@@ -2033,7 +2033,7 @@ function updateMetrics(){
           "labels": { 
             "custom.cloudmonitoring.googleapis.com/word-asso/word-cache/wordCacheKeys" : "WORD CACHE KEYS"
           },
-          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/word-cache"
+          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/word-cache/wordCacheKeys"
          }
         },
 

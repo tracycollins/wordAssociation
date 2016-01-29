@@ -2365,7 +2365,9 @@ var readResponseQueue = setInterval(function (){
     var currentSessionObj = sessionCache.get(socketId);
 
     if (!currentSessionObj) {
-      console.error("??? SESSION NOT IN CACHE ON RESPONSE Q READ (DISCONNECTED?) " + socketId);
+      console.error(chalkWarn("??? SESSION NOT IN CACHE ON RESPONSE Q READ (DISCONNECTED?) " + socketId
+        + " ... ABORTING SESSION"
+      ));
       return ; 
     }
 
@@ -2374,10 +2376,18 @@ var readResponseQueue = setInterval(function (){
     // console.log("currentSession.wordChain: " + currentSessionObj.wordChain);
 
     var promptWordObj ;
-    var previousPrompt = currentSessionObj.wordChain[currentSessionObj.wordChain.length-1] ;
-    var previousPromptObj = wordCache.get(previousPrompt);
-    if (!previousPromptObj) {
-      console.log(chalkWarn("??? previousPrompt NOT IN CACHE: " + previousPrompt));
+    var previousPrompt;
+    var previousPromptObj;
+
+    if ((typeof currentSessionObj.wordChain !== 'undefined') && (currentSessionObj.wordChain.length > 0)){
+      previousPrompt = currentSessionObj.wordChain[currentSessionObj.wordChain.length-1] ;
+      previousPromptObj = wordCache.get(previousPrompt);
+      if (!previousPromptObj) {
+        console.log(chalkWarn("??? previousPrompt NOT IN CACHE: " + previousPrompt
+          + " ... ABORTING SESSION"
+        ));
+        return;
+      }
     }
 
     console.log(chalkResponse("R <--"

@@ -2036,6 +2036,24 @@ function updateMetrics(){
   // name: custom.cloudmonitoring.googleapis.com/word-asso/clients/numberUsers
   // label key: custom.cloudmonitoring.googleapis.com/word-asso/clients/numberUsers
 
+  var statArray = [
+    numberUsers,
+    numberTestUsers,
+    numberViewers,
+    numberTestViewers,
+    wordCache.getStats().keys,
+    wordCache.getStats().hits,
+    wordCache.getStats().misses,
+    promptsSent,
+    deltaPromptsSent,
+    responsesReceived,
+    deltaResponsesReceived,
+    deltaBhtRequests,
+    bhtRequests,
+    totalWords
+  ];
+
+
   googleMonitoring.timeseries.write({
 
     'project': GOOGLE_PROJECT_ID,
@@ -2272,6 +2290,7 @@ function updateMetrics(){
       if (err) {
         console.error("!!! GOOGLE CLOUD MONITORING ERROR " 
           + " | " + moment().format(defaultDateTimeFormat) 
+          + " | " + statArray
           + "\n" + util.inspect(err, {showHidden: false, depth: 3})
         );
 

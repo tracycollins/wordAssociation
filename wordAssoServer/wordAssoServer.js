@@ -1710,7 +1710,10 @@ function userFindAllDb (options, callback) {
     if (users){
       for (var i=0; i<users.length; i++) {
         console.log("USER " + users[i].userId
-          + "\n" + chalkLog(util.inspect(users[i], {showHidden: false, depth: 1})
+          + " | SCREEN NAME: " +  users[i].screenName
+          + " | " + users[i].sessions.length + " SESSIONS"
+          + " LS: " + getTimeStamp(users[i].lastSeen)
+          // + "\n" + chalkLog(util.inspect(users[i], {showHidden: false, depth: 1})
         ));
         userCache.set(users[i].userId, users[i]);
         if (i >= users.length) {

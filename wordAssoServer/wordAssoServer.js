@@ -684,7 +684,7 @@ wordCache.on( "expired", function(word, wordObj){
   debug("CACHE WORD EXPIRED\n" + jsonPrint(wordObj));
   debug("CACHE WORD EXPIRED | " + wordObj.nodeId 
     + " | LAST SEEN: " + getTimeStamp(wordObj.lastSeen)
-    + " | AGO: " + msToTime(moment().valueOf() - wordObj.lastSeen.valueOf())
+    + " | AGO: " + msToTime(moment().valueOf() - wordObj.lastSeen)
     + " | M: " + wordObj.mentions
     + " | KEYS: " + wordCache.getStats().keys
     + " | HITS: " + wordCache.getStats().hits
@@ -1562,6 +1562,51 @@ function adminConnectDb (adminObj, callback) {
   );
 }
 
+// function sessionUpdateDb (sesObj, callback) {
+
+//   var query = { sessionId: sesObj.sessionId };
+//   var update = { 
+//           $set: { 
+//             "userId": sesObj.userId,
+//             "namespace": sesObj.namespace,
+//             "lastSeen": moment(),
+//             "connected": sesObj.connected,
+//             "connectTime": sesObj.connectTime,
+//             "disconnectTime": sesObj.disconnectTime
+//           },
+//           $push: { "wordChain": sesObj.wordChain } 
+//         };
+//   var options = { upsert: true, new: true };
+
+//   Session.findOneAndUpdate(
+//     query,
+//     update,
+//     options,
+//     function(err, ses) {
+//       if (err) {
+//         console.error("!!! SESSION FINDONE ERROR: " 
+//           + moment().format(defaultDateTimeFormat)
+//           + " | " + sesObj.sessionId 
+//           + "\n" + err);
+//         callback(err, sesObj);
+//       }
+//       else {
+//         console.log(">>> SES UPDATED" 
+//           + " | ID: " + ses.sessionId
+//           + " | UID: " + ses.userId 
+//           + " | NSP: " + ses.namespace 
+//           + " | LS: " + getTimeStamp(ses.lastSeen)
+//           + " | #SES: " + ses.sessions.length
+//           + " | CONN: " + ses.connected
+//           + " | CT: " + ses.connectTime
+//           + " | DCT: " + ses.disconnectTime
+//           );
+//         callback(null, ses);
+//       }
+//     }
+//   );
+// }
+
 function userUpdateDb (userObj, callback) {
 
   var query = { userId: userObj.userId };
@@ -2327,6 +2372,7 @@ var readSessionQueue = setInterval(function (){
           // + " | UID: " + sesObj.user.userId
         ));
         sessionCache.set(sesObj.session.sessionId, sesObj.session);
+        sessionUpdateDb(sesObj.session, function(){});
         break;
 
       case 'SOCKET_DISCONNECT':
@@ -2725,9 +2771,6 @@ configEvents.on("SERVER_READY", function () {
 
   var serverHeartbeatInterval = setInterval(function () {
 
-    // numberAdmins = io.of('/admin').sockets.length;
-    // numberUsers = io.of('/').sockets.length - io.of('/admin').sockets.length;
-
     numberAdmins = adminNameSpace.sockets.length;
     numberUtils = utilNameSpace.sockets.length;
     numberUsers = userNameSpace.sockets.length;
@@ -2743,10 +2786,6 @@ configEvents.on("SERVER_READY", function () {
     }
 
     runTime =  moment() - startTime ;
-
-    // if (bhtOverLimitFlag && moment().isAfter(bhtOverLimitTime)){
-    //   bhtEvents.emit("BHT_OVER_LIMIT_TIMEOUT");
-    // }   
 
     bhtTimeToReset = moment.utc().utcOffset("-08:00").endOf('day').valueOf() - moment.utc().utcOffset("-08:00").valueOf();
 
@@ -2768,14 +2807,10 @@ configEvents.on("SERVER_READY", function () {
         memoryAvailable : memoryAvailable,
         memoryTotal : memoryTotal,
 
-        // wordHashMapCount : wordHashMap.count(),
         wordCacheStats : wordCache.getStats(),
         
-        clientIpHashMapCount : clientIpHashMap.count(),
-        clientSocketIdHashMapCount : clientSocketIdHashMap.count(),
-        sessionHashMapCount : sessionHashMap.count(),
-
         numberAdmins : numberAdmins,
+        numberUtils : numberUtils,
         numberViewers : numberViewers,
         numberUsers : numberUsers,
         numberTestUsers : numberTestUsers,
@@ -2937,13 +2972,13 @@ function createSession (newSessionObj){
     createAt: moment().valueOf(),
     lastSeen: moment().valueOf(),
     connected: true,
-    connectTime: moment(),
+    connectTime: moment().valueOf(),
     disconnectTime: null
   });
 
   sessionCache.set(sessionObj.sessionId, sessionObj);
 
-  debug(chalkSession("\nNEW SESSION\n" + util.inspect(sessionObj, {showHidden: false, depth: 1})));
+  console.log(chalkSession("\nNEW SESSION\n" + util.inspect(sessionObj, {showHidden: false, depth: 1})));
 
   sessionQueue.enqueue({sessionEvent: "SESSION_CREATE", session: sessionObj});
 
@@ -3067,8 +3102,6 @@ function createSession (newSessionObj){
       setBhtReqs(newBhtRequests);
     }
   });
-
-
 }
 
 

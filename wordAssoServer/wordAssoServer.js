@@ -500,7 +500,8 @@ setInterval(function () {
 
     totalWords: totalWords,
     wordCacheHits: wordCache.getStats().hits,
-    wordCacheMisses: wordCache.getStats().misses
+    wordCacheMisses: wordCache.getStats().misses,
+    wordCacheTtl: wordCacheTtl
   });
 
   saveStats(dropboxHostStatsFile, wordAssoServerStatsObj, function(status){
@@ -683,7 +684,7 @@ wordCache.on( "expired", function(word, wordObj){
   debug("CACHE WORD EXPIRED\n" + jsonPrint(wordObj));
   debug("CACHE WORD EXPIRED | " + wordObj.nodeId 
     + " | LAST SEEN: " + getTimeStamp(wordObj.lastSeen)
-    + " | AGO: " + msToTime(moment().valueOf() - wordObj.lastSeen)
+    + " | AGO: " + msToTime(moment().valueOf() - wordObj.lastSeen.valueOf())
     + " | M: " + wordObj.mentions
     + " | KEYS: " + wordCache.getStats().keys
     + " | HITS: " + wordCache.getStats().hits

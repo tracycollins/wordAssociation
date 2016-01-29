@@ -809,8 +809,9 @@ socket.on("HEARTBEAT", function(heartbeat){
 
   var overlay = d3.select("#adminOverlay1").select("text")
     .text( 
-      heartbeat["numberClients"] + " USERS"
-      + " | " +  "SERVER HEARTBEAT: " + getTimeStamp(heartbeat["timeStamp"])
+      heartbeat["numberUsers"] + " USERS"
+      + " | " + heartbeat["numberTestUsers"] + " TEST USERS"
+      + " | " + "SERVER HEARTBEAT: " + getTimeStamp(heartbeat["timeStamp"])
       );
 });
 

@@ -1709,7 +1709,7 @@ function userFindAllDb (options, callback) {
     }
     if (users){
       for (var i=0; i<users.length; i++) {
-        console.log("USER " + users[i].userId
+        console.log(chalkUser("USER " + users[i].userId
           + " | SCREEN NAME: " +  users[i].screenName
           + " | " + users[i].sessions.length + " SESSIONS"
           + " LS: " + getTimeStamp(users[i].lastSeen)

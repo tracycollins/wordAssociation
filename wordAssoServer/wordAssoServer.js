@@ -2389,6 +2389,12 @@ var readResponseQueue = setInterval(function (){
         return;
       }
     }
+    else{
+      console.log(chalkWarn("??? EMPTY WORD CHAIN ... PREVIOUS PROMPT NOT IN CACHE: " + previousPrompt
+        + " ... ABORTING SESSION"
+      ));
+      return;
+    }
 
     console.log(chalkResponse("R <--"
       + " | " + currentSessionObj.userId 

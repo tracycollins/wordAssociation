@@ -2,6 +2,7 @@
 "use strict";
 
 var BHT_REQUEST_LIMIT = 250000;
+var MW_REQUEST_LIMIT = 1000;
 
 var ONE_SECOND = 1000 ;
 var ONE_MINUTE = ONE_SECOND*60 ;
@@ -104,6 +105,7 @@ var wordAssoServerStatsObj = {
   "sessionUpdatesSent" : 0,
 
   "bhtRequests" : 0,
+  "mwRequests" : 0,
 
   "heartbeat" : txHeartbeat
 };
@@ -137,6 +139,7 @@ var chalkSession = chalk.blue;
 var chalkPrompt = chalk.blue;
 var chalkResponse = chalk.blue;
 var chalkBht = chalk.red;
+var chalkMw = chalk.yellow;
 var chalkDb = chalk.gray;
 var chalkGoogle = chalk.green;
 
@@ -167,6 +170,7 @@ var numberAdmins = 0;
 var clientIpHashMap = new HashMap();
 var clientSocketIdHashMap = new HashMap();
 
+var numberUtils = 0;
 var numberUsers = 0;
 var numberViewers = 0;
 var numberTestViewers = 0;
@@ -212,6 +216,7 @@ localHostHashMap.set('104.197.93.13', 'threeceelabs.com');
 // ==================================================================
 var wordCacheTtl = process.env.WORD_CACHE_TTL || 60 ;
 console.log("WORD CACHE TTL: " + wordCacheTtl);
+
 // ==================================================================
 // BIG HUGE THESAURUS
 // ==================================================================
@@ -234,6 +239,28 @@ console.log("BHT TIME TO RESET: " + msToTime(bhtTimeToReset));
 var bhtOverLimitTimeOut = setTimeout(function () {
   bhtEvents.emit("BHT_OVER_LIMIT_TIMEOUT");
 }, bhtTimeToReset);
+
+
+// ==================================================================
+// MERRIAM-WEBSTER
+// ==================================================================
+var mwEvents = new EventEmitter();
+var mwErrors = 0;
+var mwRequests = 0; 
+var mwOverLimits = 0; 
+
+var mwOverLimitTime = moment.utc().utcOffset("-05:00").endOf('day');
+var mwLimitResetTime = moment.utc().utcOffset("-05:00").endOf('day');
+var mwTimeToReset = moment.utc().utcOffset("-05:00").endOf('day').valueOf() - moment.utc().utcOffset("-05:00").valueOf();
+var mwOverLimitFlag = false ;
+
+console.log("MW OVER LIMIT TIME:  " + mwOverLimitTime.format(defaultDateTimeFormat));
+console.log("MW OVER LIMIT RESET: " + mwOverLimitTime.format(defaultDateTimeFormat));
+console.log("MW TIME TO RESET: " + msToTime(mwTimeToReset));
+
+var mwOverLimitTimeOut = setTimeout(function () {
+  mwEvents.emit("MW_OVER_LIMIT_TIMEOUT");
+}, mwTimeToReset);
 
 
 
@@ -581,6 +608,7 @@ if (!disableGoogleMetrics) {
 
 
 var adminNameSpace = io.of("/admin");
+var utilNameSpace = io.of("/util");
 var userNameSpace = io.of("/user");
 var viewNameSpace = io.of("/view");
 var testUsersNameSpace = io.of("/test-user");
@@ -1301,6 +1329,16 @@ function incrementDeltaBhtReqs(delta){
   }
 }
 
+function incrementDeltaMwReqs(delta){
+  var d = parseInt(delta);
+  if (d == 0) {
+    deltaMwRequests = 0 ;
+  }
+  else {
+    deltaMwRequests += d;
+  }
+}
+
 function setWordCacheTtl(value){
   console.log(chalkInfo("SET WORD CACHE TTL: PREV: " + wordCacheTtl + " | NOW: " + value));
   wordCacheTtl = parseInt(value) ;
@@ -1329,6 +1367,24 @@ function incrementSocketBhtReqs(delta){
     ));
   }
   incrementDeltaBhtReqs(delta);
+}
+
+function incrementSocketMwReqs(delta){
+
+  if ((mwRequests > MW_REQUEST_LIMIT) || ((mwRequests+delta) > MW_REQUEST_LIMIT)){
+    console.log(chalkInfo("!!! incrementSocketMwReqs: AT MW_REQUEST_LIMIT: " + mwRequests + " | NOW: " + BHT_REQUEST_LIMIT));
+    bhtRequests = MW_REQUEST_LIMIT ;
+  }
+  else if (delta > 0) {
+    mwRequests += delta;
+    var remain = MW_REQUEST_LIMIT - mwRequests ;
+    console.log(chalkInfo("-#- MW  REQS: " + mwRequests
+      + " | DELTA: " + delta
+      + " | LIMIT: " + MW_REQUEST_LIMIT
+      + " | REMAIN: " + remain
+    ));
+  }
+  incrementDeltaMwReqs(delta);
 }
 
 function sessionUpdateDb (sessionObj, callback) {
@@ -1922,6 +1978,7 @@ function findCredential (clientId, callback) {
 var deltaPromptsSent = 0 ;
 var deltaResponsesReceived = 0 ;
 var deltaBhtRequests = 0;
+var deltaMwRequests = 0;
 var metricDateStart = moment().toJSON();
 var metricDateEnd = moment().toJSON();  
 
@@ -2661,6 +2718,7 @@ configEvents.on("SERVER_READY", function () {
     // numberUsers = io.of('/').sockets.length - io.of('/admin').sockets.length;
 
     numberAdmins = adminNameSpace.sockets.length;
+    numberUtils = utilNameSpace.sockets.length;
     numberUsers = userNameSpace.sockets.length;
     numberTestUsers = testUsersNameSpace.sockets.length;
     numberViewers = viewNameSpace.sockets.length;
@@ -2732,6 +2790,7 @@ configEvents.on("SERVER_READY", function () {
 
       io.emit('HEARTBEAT', txHeartbeat);
 
+      utilNameSpace.emit('HEARTBEAT', txHeartbeat);
       adminNameSpace.emit('HEARTBEAT', txHeartbeat);
       userNameSpace.emit('HEARTBEAT', txHeartbeat);
       viewNameSpace.emit('HEARTBEAT', txHeartbeat);
@@ -2766,6 +2825,7 @@ configEvents.on("CONFIG_CHANGE", function (serverSessionConfig) {
   if (typeof serverSessionConfig.testMode !== 'undefined') {
     console.log(chalkAlert("--> CONFIG_CHANGE: testMode: " + serverSessionConfig.testMode));
     io.of("/admin").emit('CONFIG_CHANGE',  {testMode: serverSessionConfig.testMode});
+    io.of("/util").emit('CONFIG_CHANGE',  {testMode: serverSessionConfig.testMode});
     io.emit('CONFIG_CHANGE',  {testMode: serverSessionConfig.testMode});
     io.of("/test-user").emit('CONFIG_CHANGE', {testMode: serverSessionConfig.testMode});
     io.of("/test-view").emit('CONFIG_CHANGE', {testMode: serverSessionConfig.testMode});
@@ -2851,6 +2911,7 @@ function createSession (newSessionObj){
   var domain = "UNKNOWN" ;
 
   numberAdmins = adminNameSpace.sockets.length;
+  numberUtils = utilNameSpace.sockets.length;
   numberUsers = userNameSpace.sockets.length;
   numberViewers = viewNameSpace.sockets.length;
   numberTestUsers = testUsersNameSpace.sockets.length;
@@ -2948,6 +3009,15 @@ function createSession (newSessionObj){
     incrementSocketBhtReqs(n);
   });
 
+  socket.on("MW_REQUESTS", function(numberSocketMwRequests){
+
+    var n = parseInt(numberSocketMwRequests);
+
+    console.log(chalkMw(">>> RX MW_REQUESTS | " + socket.id + " | " + n ));
+
+    incrementSocketMwReqs(n);
+  });
+
   socket.on("GET_RANDOM_WORD", function(){
     debug(chalkTest("RX GET_RANDOM_WORD | " + socket.id));
     words.getRandomWord(function(err, randomWordObj){
@@ -2991,6 +3061,10 @@ function createSession (newSessionObj){
 
 adminNameSpace.on('connect', function(socket){
   createSession({namespace:"admin", socket: socket});
+});
+
+utilNameSpace.on('connect', function(socket){
+  createSession({namespace:"util", socket: socket});
 });
 
 userNameSpace.on('connect', function(socket){
@@ -3075,6 +3149,12 @@ function initAppRouting(){
 
   app.get('/node_modules/debug/node_modules/debug.js', function(req, res){
     res.sendFile(__dirname + '/node_modules/debug/node_modules/debug.js');
+    return;
+  });
+
+  app.get('/util', function(req, res){
+    debug(chalkAlert("UTIL PAGE REQUEST ... RETURNING index.html ..."));
+    res.sendFile(__dirname + '/index.html');
     return;
   });
 

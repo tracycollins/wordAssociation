@@ -1178,18 +1178,83 @@ function bhtHttpGet(host, path, wordObj, callback){
 function generatePrompt(query, callback){
   // console.log("generatePrompt: " + query.input + " | OPTIONS: " + jsonPrint(query));
 
-  if (query.algorithm == 'random'){
-    words.getRandomWord(function(err, randomWordObj){
-      if (!err) {
-        // console.log("randomWordObj: " + randomWordObj.nodeId);
-        wordCache.set(randomWordObj.nodeId, randomWordObj, wordCacheTtl);
-        callback('OK', randomWordObj);
-      }
-      else {
-        callback('ERROR', err);
-      }
-    });
+// wordVariations = [ 'syn', 'ant', 'rel', 'sim', 'usr' ]
 
+  switch (query.algorithm) {
+    case 'antonym':
+      words.getWordVariation(query.input, wordTypes, ['ant'], function(status, antWordObj){
+        if (status == 'BHT_VAR_HIT') {
+          // console.log("randomWordObj: " + randomWordObj.nodeId);
+          wordCache.set(antWordObj.nodeId, antWordObj, wordCacheTtl);
+          callback('OK', antWordObj);
+          return;
+        }
+        else if (status == 'BHT_VAR_MISS') {
+          words.getRandomWord(function(err, randomWordObj){
+            if (!err) {
+              console.log("GGG GENERATE RANDOM WORD ON ANT MISS: " + randomWordObj.nodeId);
+              wordCache.set(randomWordObj.nodeId, randomWordObj, wordCacheTtl);
+              callback('OK', randomWordObj);
+              return;
+            }
+            else {
+              console.error("*** GENERATE PROMPT ERROR | " + status);
+              callback('ERROR', status);
+              return;
+            }
+          });
+        }
+        else {
+          console.error("*** GENERATE PROMPT ERROR | " + status);
+          callback('ERROR', status);
+          return;
+        }
+      });
+      break;
+    case 'synonym':
+      words.getWordVariation(query.input, wordTypes, ['syn'], function(status, synWordObj){
+        if (status == 'BHT_VAR_HIT') {
+          // console.log("randomWordObj: " + randomWordObj.nodeId);
+          wordCache.set(synWordObj.nodeId, synWordObj, wordCacheTtl);
+          callback('OK', synWordObj);
+          return;
+        }
+        else if (status == 'BHT_VAR_MISS') {
+          words.getRandomWord(function(err, randomWordObj){
+            if (!err) {
+              console.log("GGG GENERATE RANDOM WORD ON SYN MISS: " + randomWordObj.nodeId);
+              wordCache.set(randomWordObj.nodeId, randomWordObj, wordCacheTtl);
+              callback('OK', randomWordObj);
+              return;
+            }
+            else {
+              console.error("*** GENERATE PROMPT ERROR | " + status);
+              callback('ERROR', status);
+              return;
+            }
+          });
+        }
+        else {
+          console.error("*** GENERATE PROMPT ERROR | " + status);
+          callback('ERROR', status);
+          return;
+        }
+      });
+      break;
+    default: // 'random':
+      words.getRandomWord(function(err, randomWordObj){
+        if (!err) {
+          // console.log("randomWordObj: " + randomWordObj.nodeId);
+          wordCache.set(randomWordObj.nodeId, randomWordObj, wordCacheTtl);
+          callback('OK', randomWordObj);
+          return;
+        }
+        else {
+          callback('ERROR', err);
+          return;
+        }
+      });
+      break;
   }
 }
 
@@ -2595,11 +2660,17 @@ var readResponseQueue = setInterval(function (){
   }
 }, 20);
 
+
+var algorithms = [ 'antonym', 'synonym', 'related', 'similar', 'user', 'random' ];
+var currentAlgorithm = 'antonym'; // random, antonym, synonym, ??
+// wordVariations = [ 'syn', 'ant', 'rel', 'sim', 'usr' ]
+
+
 var readPromptQueue = setInterval(function (){
 
   if (!promptQueue.isEmpty()){
 
-    var currentAlgorithm = 'random';
+
     var currentSessionId = promptQueue.dequeue();
 
     var currentSession = sessionCache.get(currentSessionId);
@@ -2612,6 +2683,10 @@ var readPromptQueue = setInterval(function (){
     debug("readPromptQueue currentSession\n" + jsonPrint(currentSession));
 
     var currentResponse = currentSession.wordChain[currentSession.wordChain.length-1];
+
+    var randomIndex = randomInt(0, algorithms.length);
+    currentAlgorithm = algorithms[randomIndex];
+    console.log("[-] CURRENT ALGORITHM: " + currentAlgorithm);
 
     var query = { input: currentResponse, algorithm: currentAlgorithm};
 

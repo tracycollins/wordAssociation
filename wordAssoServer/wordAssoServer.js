@@ -213,7 +213,9 @@ localHostHashMap.set('104.197.93.13', 'threeceelabs.com');
 // ==================================================================
 // WORD CACHE
 // ==================================================================
-var wordCacheTtl = process.env.WORD_CACHE_TTL || 60 ;
+var wordCacheTtl = parseInt(process.env.WORD_CACHE_TTL);
+
+if (typeof wordCacheTtl === 'undefined') wordCacheTtl = 60 ;
 console.log("WORD CACHE TTL: " + wordCacheTtl);
 
 // ==================================================================

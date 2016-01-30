@@ -124,6 +124,7 @@ var bhtOverLimitTestFlag = false ;
 var chalk = require('chalk');
 
 var chalkUser = chalk.green;
+var chalkRed = chalk.red;
 var chalkGreen = chalk.green;
 var chalkAdmin = chalk.bold.cyan;
 var chalkConnectAdmin = chalk.bold.cyan;
@@ -2514,7 +2515,19 @@ var readResponseQueue = setInterval(function (){
       + " | " + socketId 
       + " | " + responseInObj.nodeId + " <-- " + previousPrompt));
 
+
+    // ????? IS A WORD CACHE NECESSARY? HELPFUL??
+
     var responseWordObj;
+
+    var responseCacheObj = wordCache.get(responseInObj.nodeId); 
+
+    if (responseCacheObj) {
+      console.log(chalkRed(".W. WORD CACHE HIT  | " + responseInObj.nodeId));
+    }
+    else {
+      console.log(chalkInfo(".w. WORD CACHE MISS | " + responseInObj.nodeId));
+    }
 
     // ADD/UPDATE WORD IN DB
     dbUpdateWord(responseInObj, true, function(status, responseWordObj){

@@ -1008,6 +1008,7 @@
 					]);
 
 				if (typeof heartBeat.wordCacheStats !== 'undefined') {
+					tableCreateRow(heatbeatTable, false, ['WORD CACHE TTL', heartBeat.wordCacheTtl]);
 					tableCreateRow(heatbeatTable, false, ['WORD CACHE KEYS', heartBeat.wordCacheStats.keys]);
 					tableCreateRow(heatbeatTable, false, ['WORD CACHE HITS', heartBeat.wordCacheStats.hits]);
 					tableCreateRow(heatbeatTable, false, ['WORD CACHE MISSES', heartBeat.wordCacheStats.misses]);

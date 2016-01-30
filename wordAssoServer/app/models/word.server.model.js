@@ -38,17 +38,28 @@ var WordSchema = new Schema({
 		default: false
 	},
 	bhtAlt: {  // 303 Redirected
-		type: String  // alternate word
+		type: String
 	},
-	mwSearched: {
+	mwDictSearched: {
 		type: Boolean,
 		default: false
 	},
-	mwFound: {
+	mwDictFound: {
 		type: Boolean,
 		default: false
 	},
-	mwEntry: {
+	mwThesSearched: {
+		type: Boolean,
+		default: false
+	},
+	mwThesFound: {
+		type: Boolean,
+		default: false
+	},
+	mwEntry: {  // mw thesaurus
+		type: Object
+	},
+	mwSuggestion: { // mw dictionary
 		type: Object
 	}
 });

@@ -2661,7 +2661,7 @@ var readResponseQueue = setInterval(function (){
 }, 20);
 
 
-var algorithms = [ 'antonym', 'synonym', 'related', 'similar', 'user', 'random' ];
+var algorithms = [ 'antonym', 'synonym', 'related', 'similar', 'user'];
 var currentAlgorithm = 'antonym'; // random, antonym, synonym, ??
 // wordVariations = [ 'syn', 'ant', 'rel', 'sim', 'usr' ]
 

@@ -1372,7 +1372,7 @@ function incrementDeltaMwReqs(delta){
 }
 
 function setWordCacheTtl(value){
-  console.log(chalkInfo("SET WORD CACHE TTL: PREV: " + wordCacheTtl + " | NOW: " + value));
+  console.log(chalkWarn("SET WORD CACHE TTL: PREV: " + wordCacheTtl + " | NOW: " + value));
   wordCacheTtl = parseInt(value) ;
   updateStats({ wordCacheTtl: wordCacheTtl });
 }
@@ -3087,7 +3087,7 @@ function createSession (newSessionObj){
   socket.on("SOCKET_TEST_MODE", function(testMode){
     console.log(chalkTest("RX SOCKET_TEST_MODE: " + testMode));
     serverSessionConfig.testMode = testMode
-    io.of('/admin').emit("CONFIG_CHANGE", serverSessionConfig);
+    adminNameSpace.emit("CONFIG_CHANGE", serverSessionConfig);
     // configEvents.emit("CONFIG_CHANGE", serverSessionConfig);
   });
 
@@ -3101,11 +3101,19 @@ function createSession (newSessionObj){
       setBhtReqs(newBhtRequests);
     }
   });
+
+
+
 }
 
 
 adminNameSpace.on('connect', function(socket){
   createSession({namespace:"admin", socket: socket});
+
+  socket.on('SET_WORD_CACHE_TTL', function(value){
+    setWordCacheTtl(value);
+  });
+
 });
 
 utilNameSpace.on('connect', function(socket){

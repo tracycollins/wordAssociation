@@ -9,6 +9,12 @@
 		<link rel="icon" type="image/png" href="../favicon.png" />
 
 		<style>
+	    .heartbeatTable {
+	      background-color:red;
+	      border:1px solid gray;
+	      cursor:pointer;
+	      color:#888888;
+	    }
 	    .defaultButton {
 	      background-color:black;
 	      border:1px solid gray;
@@ -59,7 +65,7 @@
 			font-weight: 100;
 			line-height: 1.5em;
 			background: #000000;
-			color: #aaaaaa;
+			color: #888888;
     }
 
 		.adminControlPanel {
@@ -78,8 +84,8 @@
 				font-family: "Lucida Console", Monaco, monospace;
 				font-weight: 100;
 				line-height: 1.2em;
-				background: #222222;
-				color: #CCCCCC;
+				background: #111111;
+				color: #999999;
 		}
 
 		th {
@@ -358,6 +364,7 @@
         else {
 		      cells.forEach(function(content){
 			      var td = tr.insertCell();
+			      // var td2 = td.insertCell();
 			      td.appendChild(document.createTextNode(content));
 			      td.style.color = tdTextColor ;
 			      td.style.backgroundColor = tdBgColor ;
@@ -1009,7 +1016,9 @@
 					]);
 
 				if (typeof heartBeat.wordCacheStats !== 'undefined') {
+
 					var hmr = (heartBeat.wordCacheStats.hits/(1+heartBeat.wordCacheStats.misses)) ;
+
 					tableCreateRow(heatbeatTable, false, ['WORD CACHE', 
 						'TTL: ' + heartBeat.wordCacheTtl
 						+ ' | K: ' + heartBeat.wordCacheStats.keys
@@ -1017,9 +1026,15 @@
 						+ ' | M: ' + heartBeat.wordCacheStats.misses
 						+ ' | HMR: ' + hmr.toFixed(2)
 						]);
-					// tableCreateRow(heatbeatTable, false, ['WORD CACHE KEYS', heartBeat.wordCacheStats.keys]);
-					// tableCreateRow(heatbeatTable, false, ['WORD CACHE HITS', heartBeat.wordCacheStats.hits]);
-					// tableCreateRow(heatbeatTable, false, ['WORD CACHE MISSES', heartBeat.wordCacheStats.misses]);
+
+					tableCreateRow(heatbeatTable, false, ['WORD CACHE', 
+						'TTL: ' + heartBeat.wordCacheTtl,
+						'K: ' + heartBeat.wordCacheStats.keys,
+						'H: ' + heartBeat.wordCacheStats.hits,
+						'M: ' + heartBeat.wordCacheStats.misses,
+						'HMR: ' + hmr.toFixed(2)
+						]);
+
 				}
 
 				tableCreateRow(heatbeatTable, false, ['TOTAL SESSIONS', heartBeat.totalSessions]);
@@ -1031,7 +1046,7 @@
 			    var now = moment.utc();
 			    now.utcOffset("-08:00");
 
-			    bhtOptions = {textColor: "black", backgroundColor: "yellow"} ;
+			    bhtOptions = {textColor: "black", backgroundColor: "#999947"} ;
 
 					tableCreateRow(heatbeatTable, bhtOptions, ['*** BHT OVER LIMIT ***', 
 						(msToTime(now.diff(heartBeat.bhtOverLimitTime))) + ' AGO | ' 

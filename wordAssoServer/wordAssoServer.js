@@ -2808,6 +2808,7 @@ configEvents.on("SERVER_READY", function () {
         memoryTotal : memoryTotal,
 
         wordCacheStats : wordCache.getStats(),
+        wordCacheTtl: wordCacheTtl,
         
         numberAdmins : numberAdmins,
         numberUtils : numberUtils,

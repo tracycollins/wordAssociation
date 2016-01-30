@@ -768,7 +768,7 @@ function updatePromptResponseMetric(sessionUpdateObj){
   responseRate1minQ.enqueue(moment.utc());
 }
 
-var statsCountsComplete = false ;
+var statsCountsComplete = true ;
 
 function updateStatsCounts(){
 
@@ -786,37 +786,40 @@ function updateStatsCounts(){
         totalUsers = count ;
         updateStats({totalUsers: totalUsers});
         uComplete = true ;
+
+        Session.count({}, function(err,count){
+          if (!err){ 
+            // console.log("TOTAL SESSIONS: " + count);
+            totalSessions = count ;
+            updateStats({totalSessions: totalSessions});
+            sComplete = true ;
+
+            Word.count({}, function(err,count){
+              statsCountsComplete = true ;
+              if (!err){ 
+                // console.log("TOTAL WORDS: " + count);
+                totalWords = count ;
+                updateStats({totalWords: totalWords});
+                wComplete = true ;
+                return;
+              } 
+              else {
+                console.error(chalkError("\n*** DB Word.count ERROR *** | " + moment().format(defaultDateTimeFormat) + "\n" + err));
+                return;
+              }
+            });
+          } 
+          else {
+            console.error(chalkError("\n*** DB Session.count ERROR *** | " + moment().format(defaultDateTimeFormat) + "\n" + err));
+            return;
+          }
+        });
       } 
       else {
         console.error(chalkError("\n*** DB User.count ERROR *** | " + moment().format(defaultDateTimeFormat) + "\n" + err));
+        return;
       }
     });
-
-    Session.count({}, function(err,count){
-      if (!err){ 
-        // console.log("TOTAL SESSIONS: " + count);
-        totalSessions = count ;
-        updateStats({totalSessions: totalSessions});
-        sComplete = true ;
-      } 
-      else {
-        console.error(chalkError("\n*** DB Session.count ERROR *** | " + moment().format(defaultDateTimeFormat) + "\n" + err));
-      }
-    });
-
-    Word.count({}, function(err,count){
-      if (!err){ 
-        // console.log("TOTAL WORDS: " + count);
-        totalWords = count ;
-        updateStats({totalWords: totalWords});
-        wComplete = true ;
-      } 
-      else {
-        console.error(chalkError("\n*** DB Word.count ERROR *** | " + moment().format(defaultDateTimeFormat) + "\n" + err));
-      }
-    });
-
-    if (uComplete && sComplete && wComplete) statsCountsComplete = true ;
 
   }
 }
@@ -824,7 +827,6 @@ function updateStatsCounts(){
 function updateSessionViews(sessionUpdateObj){
 
   updateStatsCounts();
-
 
   debug(chalkInfo(">>> TX SESSION_UPDATE"
     + " | " + sessionUpdateObj.sessionId
@@ -2018,6 +2020,8 @@ var metricDateStart = moment().toJSON();
 var metricDateEnd = moment().toJSON();  
 
 function updateMetrics(){
+
+  if (heartbeatsSent%100 == 0) updateStatsCounts();
 
   metricDateStart = moment().toJSON();
   metricDateEnd = moment().toJSON();  

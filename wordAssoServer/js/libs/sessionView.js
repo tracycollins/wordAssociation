@@ -1,8 +1,11 @@
 /*jslint node: true */
 "use strict";
 
-// var urlRoot = "http://word.threeceelabs.com/session?session=";
-var urlRoot = "http://localhost:9997/session?session=";
+var urlRoot = "http://word.threeceelabs.com/session?session=";
+// var urlRoot = "http://localhost:9997/session?session=";
+
+var socketNamespace = "/user";
+
 var nodesCreated = 0;
 // var dateNow = Date.now();
 var dateNow = (new Date).getTime();
@@ -463,7 +466,8 @@ function getUrlVariables(config){
         monitorMode = keyValuePair[1] ;
       }    
       if (keyValuePair[0] == 'session') {
-        currentSession = keyValuePair[1] ;
+        currentSession = socketNamespace + "#" + keyValuePair[1] ;
+        console.log("currentSession: " + currentSession);
         sessionMode = true ;
         socket.emit("GET_SESSION", currentSession);
       }    

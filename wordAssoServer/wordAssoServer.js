@@ -560,7 +560,6 @@ var NodeCache = require( "node-cache" );
 var userCache = new NodeCache();
 var wordCache = new NodeCache();
 var sessionCache = new NodeCache();
-var sessionHashMap = new HashMap();
 
 var promptQueue = new Queue();
 var responseQueue = new Queue();
@@ -1572,7 +1571,6 @@ function sessionDisconnectDb(sessionObj, callback){
           + "\n  CONNECTED: " + ses.connected
           + "\n  DISCONNECT TIME: " + getTimeStamp(ses.disconnectTime)
         ));
-        sessionHashMap.remove(ses.sessionId);
         callback(null, ses);
       }
     }
@@ -2434,6 +2432,17 @@ var readSessionQueue = setInterval(function (){
       case 'SESSION_CREATE':
         console.log(chalkSession(
           ">>> SESSION CREATE"
+          + " | NSP: " + sesObj.session.namespace
+          + " | SID: " + sesObj.session.sessionId
+          // + " | UID: " + sesObj.user.userId
+        ));
+        sessionCache.set(sesObj.session.sessionId, sesObj.session);
+        sessionUpdateDb(sesObj.session, function(){});
+        break;
+
+      case 'SOCKET_RECONNECT':
+        console.log(chalkSession(
+          "<-> SOCKET RECONNECT"
           + " | NSP: " + sesObj.session.namespace
           + " | SID: " + sesObj.session.sessionId
           // + " | UID: " + sesObj.user.userId

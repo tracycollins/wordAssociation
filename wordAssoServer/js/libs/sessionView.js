@@ -1,10 +1,13 @@
 /*jslint node: true */
 "use strict";
 
+var sessionHashMap = new HashMap();
+
 var urlRoot = "http://word.threeceelabs.com/session?session=";
 // var urlRoot = "http://localhost:9997/session?session=";
 
 var socketNamespace = "/user";
+
 
 var nodesCreated = 0;
 // var dateNow = Date.now();
@@ -868,16 +871,23 @@ socket.on("CONFIG_CHANGE", function(rxConfig){
 function displaySession(sessionObject){
 
 
-  for (var i=0; i<sessionObject.wordChain.length-1; i++) {
+  for (var i=0; i<sessionObject.wordChain.length; i++) {
 
     var sessionUpdateObj = {};
 
     sessionUpdateObj.sessionId = sessionObject.sessionId;
 
-    console.log("WORD: " + sessionObject.wordChain[i].nodeId);
+    console.log("WORD: " + sessionObject.wordChain[i]);
 
     sessionUpdateObj.sourceWord = sessionObject.wordChain[i];
-    sessionUpdateObj.targetWord = sessionObject.wordChain[i+1];
+
+    if (sessionObject.wordChain.length == 1){  // no link created is source == target
+      sessionUpdateObj.targetWord = sessionObject.wordChain[i];
+    }
+    else {
+      sessionUpdateObj.targetWord = sessionObject.wordChain[i+1];
+    }
+
 
     sessionUpdateObj.sourceWord.lastSeen = moment();
     sessionUpdateObj.targetWord.lastSeen = moment();
@@ -909,15 +919,40 @@ function displaySession(sessionObject){
 
 socket.on("SESSION", function(sessionObject){
 
-  console.log("> RX SESSION\n" + jsonPrint(sessionObject));
-  displaySession(sessionObject);
+  console.log("> RX SESSION"
+    + " | " + sessionObject.sessionId
+    + " | " + sessionObject.wordChainLength
+    + " | " + sessionObject.wordChainIndex
+    + " | " + sessionObject.word.nodeId
+  );
+
+  var currentSession;
+
+  if (sessionHashMap.has(sessionObject.sessionId)){
+    currentSession = sessionHashMap.get(sessionObject.sessionId);
+  }
+  else {
+    currentSession = {
+      sessionId: sessionObject.sessionId,
+      wordChain: []
+    };
+  }
+
+  currentSession.wordChain[sessionObject.wordChainIndex] = sessionObject.word
+  sessionHashMap.set(currentSession.sessionId, currentSession);
+
+  if (sessionObject.wordChainLength == sessionObject.wordChainIndex+1){
+    console.log("CHAIN COMPLETE: " + sessionObject.wordChainLength);
+    displaySession(currentSession);
+  }
 
 });
 
 socket.on("SESSION_UPDATE", function(sessionObject){
 
   sessionObject.sourceWord.lastSeen = moment();
-  sessionObject.targetWord.lastSeen = moment();
+
+  if (sessionObject.targetWord) sessionObject.targetWord.lastSeen = moment();
 
   // console.log("> RX " + JSON.stringify(sessionObject)); ;
   // console.log(getTimeStamp() + ">>> RX SESSION_UPDATE\n" + JSON.stringify(sessionObject, null, 3)) ;
@@ -931,11 +966,19 @@ socket.on("SESSION_UPDATE", function(sessionObject){
     return;
   }
 
-  console.log("> RX"
-    + " | " + sessionObject.sessionId
-    + " | " + sessionObject.sourceWord.nodeId 
-    + " > " + sessionObject.targetWord.nodeId
-  ) ;
+  if (sessionObject.targetWord) {
+    console.log("> RX"
+      + " | " + sessionObject.sessionId
+      + " | " + sessionObject.sourceWord.nodeId 
+      + " > " + sessionObject.targetWord.nodeId
+    ) ;
+  }
+  else {
+    console.log("> RX"
+      + " | " + sessionObject.sessionId
+      + " | " + sessionObject.sourceWord.nodeId 
+    ) ;
+  }
 
   if (sessionUpdateQueue.getLength() >= QUEUE_MAX) {
     console.log(">>> RX sessionObject: [Q: " 
@@ -1020,6 +1063,11 @@ var tempMentions ;
 
 var createNode = function (sessionId, wordObject, callback) {
 
+  if (!wordObject) {
+    callback (null, newNodesFlag, deadNodesFlag);
+    return;
+  }
+
 
   console.log("createNode: SID: " + sessionId + " | " + wordObject.nodeId);
 
@@ -1095,6 +1143,12 @@ var createLinks = function (sessionObject, callback) {
 
   var err = null ;
   newLinksFlag = false ;
+
+  if (!sessionObject.targetWord) {
+    console.log("createLinks | NO LINK CREATED | NO TARGET: " + sessionObject.sourceWord.nodeId);
+    callback (null, newNodesFlag, deadNodesFlag);
+    return;
+  }
 
   console.log("createLinks | " + sessionObject.sourceWord.nodeId + " > " + sessionObject.targetWord.nodeId);
 

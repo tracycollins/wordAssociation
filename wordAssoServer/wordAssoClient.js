@@ -199,7 +199,7 @@ socket.on('connect', function(){
   console.log(">>> CONNECTED TO HOST | SOCKET ID: " + socketId);
   connectedFlag = true ;
   getUrlVariables();
-  socketIdLabel.innerHTML = "SID: " + socket.id;   
+  socketIdLabel.innerHTML = socket.id;   
   socketIdDiv.appendChild(socketIdLabel);
 });
 

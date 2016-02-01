@@ -1,6 +1,8 @@
 /*jslint node: true */
 "use strict";
 
+var debug = false ;
+
 var sessionHashMap = new HashMap();
 
 var urlRoot = "http://word.threeceelabs.com/session?session=";
@@ -1002,7 +1004,7 @@ socket.on("SESSION_UPDATE", function(sessionObject){
   }
 
   if (sessionMode && (sessionObject.sessionId !== currentSession)) {
-    console.log("... SKIP SESSION_UPDATE: ID: " + sessionObject.sessionId + " | CURRENT SESSION: " + currentSession);
+    if (debug)  console.log("... SKIP SESSION_UPDATE: ID: " + sessionObject.sessionId + " | CURRENT SESSION: " + currentSession);
     return;
   }
 

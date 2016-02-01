@@ -29,8 +29,8 @@ var mouseMoveTimeoutInterval = 5000; // 5 seconds
 var mouseOverFlag = false ;
 var mouseHoverFlag = false ;
 
-var namespace = '/user'
-var socket = io(namespace);
+var namespace = 'user'
+var socket = io('/' + namespace);
 var socketId ;
 var connectedFlag = false ;
 
@@ -307,8 +307,9 @@ function showInfo() {
 }
 
 function launchSessionView(sessionId) {
-  console.log("launchSessionView: " + sessionId);
-  window.open(urlRoot + sessionId, 'SESSION VIEW', '_new');
+  var url = urlRoot + sessionId + "&nsp=" + namespace ;
+  console.log("launchSessionView: " + sessionId + " URL: " + url);
+  window.open(url, 'SESSION VIEW', '_new');
 }
 
 function getTimeStamp(inputTime) {

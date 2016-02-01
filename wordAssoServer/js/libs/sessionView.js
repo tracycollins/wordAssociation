@@ -918,9 +918,16 @@ function displaySession(sessionObject){
 
     sessionUpdateObj.sourceWord = sessionObject.wordChain[i];
 
-    if (i == sessionObject.wordChain.length-1){  // no link created is source == target
+    if (sessionObject.wordChain.length == 1){  // no link created is source == target
       sessionUpdateObj.targetWord = sessionObject.wordChain[i];
     }
+    else if (i == sessionObject.wordChain.length-1){  // no link created is source == target
+      sessionUpdateObj.targetWord = sessionObject.wordChain[i];
+    }
+    else {
+      sessionUpdateObj.targetWord = sessionObject.wordChain[i+1];
+    }
+
 
     sessionUpdateObj.sourceWord.lastSeen = moment();
     sessionUpdateObj.targetWord.lastSeen = moment();

@@ -255,8 +255,6 @@ function getSortedKeys(hmap) {
 }
 
 
-
-
 document.title = "Word Association";
 
 // Get Browser Prefix

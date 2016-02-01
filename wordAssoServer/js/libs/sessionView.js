@@ -930,8 +930,8 @@ function displaySession(sessionObject){
       sessionUpdateObj.targetWord = sessionObject.wordChain[i+1];
     }
 
-    sessionUpdateObj.sourceWord.lastSeen = moment();
-    sessionUpdateObj.targetWord.lastSeen = moment();
+    sessionUpdateObj.sourceWord.lastSeen = moment().valueOf();
+    sessionUpdateObj.targetWord.lastSeen = moment().valueOf();
 
     // console.log("> RX " + JSON.stringify(sessionObject)); ;
     console.log("> SESSION UPDATE " + sessionObject.sessionId
@@ -980,21 +980,47 @@ socket.on("SESSION", function(sessionObject){
     };
   }
 
-  currentSession.wordChain[sessionObject.wordChainIndex] = sessionObject.word
+  sessionObject.word.lastSeen = moment().valueOf();
+  currentSession.wordChain[sessionObject.wordChainIndex] = sessionObject.word;
   sessionHashMap.set(currentSession.sessionId, currentSession);
 
-  if (sessionObject.wordChainSegmentLength == sessionObject.wordChainIndex+1){
-    console.log("CHAIN COMPLETE: " + sessionObject.wordChainLength);
-    displaySession(currentSession);
-  }
+  createNode(currentSession.sessionId, sessionObject.word, function(){
+    if (currentSession.wordChain[sessionObject.wordChainIndex-1]) {
+      if (nodeHashMap[currentSession.wordChain[sessionObject.wordChainIndex-1].nodeId]) {
+        console.log("@@@ < CREATE PREV LINNK");
+        createLinks(
+          { sessionId: sessionObject.sessionId, 
+            sourceWord: currentSession.wordChain[sessionObject.wordChainIndex-1],
+            targetWord: sessionObject.word
+          },
+          function(){});
+      }
+    }
+    if (currentSession.wordChain[sessionObject.wordChainIndex+1]) {
+      if (nodeHashMap[currentSession.wordChain[sessionObject.wordChainIndex+1].nodeId]) {
+        console.log("@@@ > CREATE NEXT LINNK");
+        createLinks(
+          { sessionId: sessionObject.sessionId, 
+            sourceWord: sessionObject.word,
+            targetWord: currentSession.wordChain[sessionObject.wordChainIndex+1]
+          },
+          function(){});
+      }
+    }
+  });
+
+  // if (sessionObject.wordChainSegmentLength == sessionObject.wordChainIndex+1){
+  //   console.log("CHAIN COMPLETE: " + sessionObject.wordChainLength);
+  //   displaySession(currentSession);
+  // }
 
 });
 
 socket.on("SESSION_UPDATE", function(sessionObject){
 
-  sessionObject.sourceWord.lastSeen = moment();
+  sessionObject.sourceWord.lastSeen = moment().valueOf();
 
-  if (sessionObject.targetWord) sessionObject.targetWord.lastSeen = moment();
+  if (sessionObject.targetWord) sessionObject.targetWord.lastSeen = moment().valueOf();
 
   // console.log("> RX " + JSON.stringify(sessionObject)); ;
   // console.log(getTimeStamp() + ">>> RX SESSION_UPDATE\n" + JSON.stringify(sessionObject, null, 3)) ;
@@ -1111,7 +1137,7 @@ var createNode = function (sessionId, wordObject, callback) {
   }
 
 
-  console.log("createNode: SID: " + sessionId + " | " + wordObject.nodeId);
+  console.log("createNode: SID: " + sessionId + " | " + wordObject.nodeId + " | M: " + wordObject.mentions);
 
   var err = null ;
   var forceStopped = false ;
@@ -1119,11 +1145,12 @@ var createNode = function (sessionId, wordObject, callback) {
   force.stop();
 
   if (wordObject.nodeId in nodeHashMap) {
+    console.log("@@@--- NODE IN HM: " + sessionId + " | " + wordObject.nodeId);
 
     var currentNodeObject = nodeHashMap[wordObject.nodeId];
 
     currentNodeObject.sessionId = sessionId ;
-    currentNodeObject.age = moment() - wordObject.lastSeen;
+    currentNodeObject.age = moment().valueOf() - wordObject.lastSeen;
     currentNodeObject.lastSeen = wordObject.lastSeen;
     currentNodeObject.mentions = wordObject.mentions ;
     currentNodeObject.text = wordObject.nodeId ;
@@ -1138,13 +1165,14 @@ var createNode = function (sessionId, wordObject, callback) {
         nodes[nodeIndex].mentions = currentNodeObject.mentions > tempMentions ? 
           currentNodeObject.mentions : tempMentions ;
 
-        nodes[nodeIndex].age = moment() - currentNodeObject.lastSeen;
+        nodes[nodeIndex].age = moment().valueOf() - currentNodeObject.lastSeen;
         nodes[nodeIndex].lastSeen = currentNodeObject.lastSeen;
         break;
       }
     }
   }
   else {
+    console.log("@@@--- NODE *NOT* IN HM: " + sessionId + " | " + wordObject.nodeId);
 
     nodesCreated++;
     newNodesFlag = true ;
@@ -1156,9 +1184,9 @@ var createNode = function (sessionId, wordObject, callback) {
     }
 
     wordObject.sessionId = sessionId;
-    wordObject.age = moment() - wordObject.lastSeen ;
-    wordObject.lastSeen = moment();
-    wordObject.ageUpdated = moment();
+    wordObject.age = moment().valueOf() - wordObject.lastSeen ;
+    wordObject.lastSeen = moment().valueOf();
+    wordObject.ageUpdated = moment().valueOf();
     wordObject.text = wordObject.nodeId ;
 
     var initialPosition = computeInitialPosition(nodesCreated);
@@ -1274,25 +1302,12 @@ var ageNodes = function (newNodesFlag, deadNodesFlag, callback){
 
     currentNodeObject = nodes[ageNodesIndex];
 
-    age = currentNodeObject.age + (ageRate * (moment() - currentNodeObject.ageUpdated));
-    // var age = moment() - currentNodeObject.lastSeen;
-    // age = currentNodeObject.age + ageRate * (d3TimerCount - lastD3TimeCount);
-    // console.log(
-    //   "id: " + currentNodeObject.nodeId
-    //   + " | AGE: " + age
-    //   + " | NOW: " + moment()
-    //   + " | LS: " + currentNodeObject.lastSeen
-    //   );
-
+    age = currentNodeObject.age + (ageRate * (moment().valueOf() - currentNodeObject.ageUpdated));
+ 
     if (age > nodeMaxAge) {
 
       deadNodesFlag = true ;
 
-      // console.log("XXX DEAD NODE: " + nodeHashMap[currentNodeObject.nodeId].nodeId
-      //   + " | AGE " + nodeHashMap[currentNodeObject.nodeId].age
-      //   + " | LS " + nodeHashMap[currentNodeObject.nodeId].lastSeen
-      //   + " | NOW " + dateNow
-      //   );
       delete nodeHashMap[currentNodeObject.nodeId];
 
       var ageLinksLength = links.length-1;
@@ -1314,10 +1329,10 @@ var ageNodes = function (newNodesFlag, deadNodesFlag, callback){
     else {
 
       currentNodeObject.age = age;
-      currentNodeObject.ageUpdated = moment();
+      currentNodeObject.ageUpdated = moment().valueOf();
 
       nodes[ageNodesIndex].age = age;
-      nodes[ageNodesIndex].ageUpdated = moment();
+      nodes[ageNodesIndex].ageUpdated = moment().valueOf();
 
       nodeHashMap[currentNodeObject.nodeId] = currentNodeObject;
     }

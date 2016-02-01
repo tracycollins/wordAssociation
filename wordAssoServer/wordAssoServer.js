@@ -868,8 +868,8 @@ function sendPrompt(sessionObj, promptWordObj){
     return;
   }
   else {
-    currentSession.wordChain.push(promptWordObj.nodeId);
-    sessionCache.set(currentSession.sessionId, currentSession);
+    // currentSession.wordChain.push(promptWordObj.nodeId);
+    // sessionCache.set(currentSession.sessionId, currentSession);
 
     var sourceWordObj ;
 
@@ -1594,8 +1594,6 @@ function findSessionById(sessionId, callback){
       }
       else if (session) {
         console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | SESSION FOUND\n" + jsonPrint(session)));
-        console.log(chalkSession("SESSION\n" 
-        ));
         callback(null, session);      
       }
       else {
@@ -2499,10 +2497,23 @@ var readSessionQueue = setInterval(function (){
                 words.getRandomWord(function(err, randomWordObj){
                   if (!err) {
                     wordCache.set(randomWordObj.nodeId, randomWordObj, wordCacheTtl);
-                    sessionCache.set(currentSession.sessionId, currentSession);
-                    sendPrompt(currentSession, randomWordObj);
+                    currentSession.wordChain.push(randomWordObj.nodeId);
+                    sessionUpdateDb(currentSession, function(err, sessionUpdatedObj){
+                      if (!err){
+                        sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
+                        console.log(chalkSession("DB UPDATED SESSION"
+                          + " | " + sessionUpdatedObj.sessionId
+                          + " | WCL: " + sessionUpdatedObj.wordChain.length
+                        ));
+                        sendPrompt(currentSession, randomWordObj);
+                      }
+                      else {
+                        console.log(chalkError("*** ERROR DB UPDATE SESSION\n" + err));
+                      }
+                    });
                   }
                   else {
+                    console.log(chalkError("*** ERROR GET RANDOM WORD\n" + err));
                   }
                 });
               }
@@ -2696,7 +2707,21 @@ var readPromptQueue = setInterval(function (){
       }
       else if (status == 'OK') {
         wordCache.set(responseObj.nodeId, responseObj, wordCacheTtl);
-        sendPrompt(currentSession, responseObj);
+        currentSession.wordChain.push(responseObj.nodeId);
+
+        sessionUpdateDb(currentSession, function(err, sessionUpdatedObj){
+          if (!err){
+            sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
+            console.log(chalkSession("DB UPDATED SESSION"
+              + " | " + sessionUpdatedObj.sessionId
+              + " | WCL: " + sessionUpdatedObj.wordChain.length
+            ));
+            sendPrompt(sessionUpdatedObj, responseObj);
+          }
+          else {
+            console.log(chalkError("*** ERROR DB UPDATE SESSION\n" + err));
+          }
+        });
       }
     });
 
@@ -3174,7 +3199,42 @@ function createSession (newSessionObj){
 
       }
       else if (sessionObj) {
-        socket.emit("SESSION", sessionObj);
+
+        var wordChainIndex = 0;
+
+        async.each(
+
+          sessionObj.wordChain,  // iterate over wordChain array
+
+          function(word, callback){
+
+            Word.find({nodeId: word}, function(err, wordArray){
+              if (err) {
+                console.error("ERROR\n" + err);
+                callback(err, null);
+              }
+              else if (!wordArray){
+                callback(null, null);
+              }
+              console.log("FOUND CHAIN WORD[" + wordChainIndex + "]: " + wordArray[0].nodeId);
+              var sessionUpdateObj = {
+                  sessionId: sessionObj.sessionId,
+                  wordChainIndex: wordChainIndex,
+                  wordChainLength: sessionObj.wordChain.length,
+                  word: wordArray[0]
+              };
+              socket.emit("SESSION", sessionUpdateObj);
+              wordChainIndex++;
+              callback(null, wordChainIndex);
+            });
+
+          },
+
+          function(err){
+            if (!err) console.log("TX SESSION COMPLETE: " + sessionId);
+          }
+
+        )
       }
     });
   });

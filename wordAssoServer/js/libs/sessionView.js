@@ -930,7 +930,6 @@ function displaySession(sessionObject){
       sessionUpdateObj.targetWord = sessionObject.wordChain[i+1];
     }
 
-
     sessionUpdateObj.sourceWord.lastSeen = moment();
     sessionUpdateObj.targetWord.lastSeen = moment();
 

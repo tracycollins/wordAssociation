@@ -962,9 +962,10 @@ function displaySession(sessionObject){
 socket.on("SESSION", function(sessionObject){
 
   console.log("> RX SESSION"
-    + " | " + sessionObject.sessionId
-    + " | " + sessionObject.wordChainLength
-    + " | " + sessionObject.wordChainIndex
+    + " | SID: " + sessionObject.sessionId
+    + " | WCL: " + sessionObject.wordChainLength
+    + " | WCSL: " + sessionObject.wordChainSegmentLength
+    + " | WCI: " + sessionObject.wordChainIndex
     + " | " + sessionObject.word.nodeId
   );
 
@@ -983,7 +984,7 @@ socket.on("SESSION", function(sessionObject){
   currentSession.wordChain[sessionObject.wordChainIndex] = sessionObject.word
   sessionHashMap.set(currentSession.sessionId, currentSession);
 
-  if (sessionObject.wordChainLength == sessionObject.wordChainIndex+1){
+  if (sessionObject.wordChainSegmentLength == sessionObject.wordChainIndex+1){
     console.log("CHAIN COMPLETE: " + sessionObject.wordChainLength);
     displaySession(currentSession);
   }

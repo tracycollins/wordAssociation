@@ -3,11 +3,10 @@
 
 var sessionHashMap = new HashMap();
 
-var urlRoot = "http://word.threeceelabs.com/session?session=";
-// var urlRoot = "http://localhost:9997/session?session=";
+// var urlRoot = "http://word.threeceelabs.com/session?session=";
+var urlRoot = "http://localhost:9997/session?session=";
 
 var socketNamespace = "/user";
-
 
 var nodesCreated = 0;
 // var dateNow = Date.now();
@@ -16,6 +15,7 @@ var d3TimerCount = 1 ;
 
 var currentSession;
 var sessionMode = false;
+var monitorMode = false;
 
 var DEFAULT_AGE_RATE =  1.0;
 var ageRate = DEFAULT_AGE_RATE ;
@@ -457,29 +457,59 @@ document.addEventListener("mousemove", function() {
 
 function getUrlVariables(config){
 
+  var sessionId;
+  var namespace ;
+
   var searchString = window.location.search.substring(1);
+  console.log("searchString: " + searchString);
+
   var variableArray = searchString.split('&');
 
-  for(var i = 0; i < variableArray.length; i++){
-    var keyValuePair = variableArray[i].split('=');
-    if (typeof keyValuePair[1] !== 'undefined'){
-      // configHashMap.set(keyValuePair[0], keyValuePair[1]) ;
-      console.log("'" + variableArray[i] + "' >>> URL config: " + keyValuePair[0] + " : " + keyValuePair[1]);  
-      if (keyValuePair[0] == 'monitor') {
-        monitorMode = keyValuePair[1] ;
-      }    
-      if (keyValuePair[0] == 'session') {
-        currentSession = socketNamespace + "#" + keyValuePair[1] ;
-        console.log("currentSession: " + currentSession);
-        sessionMode = true ;
-        socket.emit("GET_SESSION", currentSession);
-      }    
-    } 
-    else {
-      console.log("NO URL VARIABLES");      
-      // configHashMap.set('monitor', false) ;
+  var asyncTasks = [];
+
+  variableArray.forEach(
+    function(variable, callback){
+      asyncTasks.push(function(callback){
+        var keyValuePair = variable.split('=');
+        if (typeof keyValuePair[1] !== 'undefined'){
+          // configHashMap.set(keyValuePair[0], keyValuePair[1]) ;
+          console.log("'" + variable + "' >>> URL config: " + keyValuePair[0] + " : " + keyValuePair[1]);  
+          if (keyValuePair[0] == 'monitor') {
+            monitorMode = keyValuePair[1] ;
+            callback(null, {namespace: namespace, sessionId: sessionId, sessionMode: sessionMode, monitorMode: monitorMode});
+          }    
+          if (keyValuePair[0] == 'session') {
+            sessionId = keyValuePair[1] ;
+            console.log("sessionId: " + sessionId);
+            sessionMode = true ;
+            callback(null, {namespace: namespace, sessionId: sessionId, sessionMode: sessionMode, monitorMode: monitorMode});
+          }    
+          if (keyValuePair[0] == 'nsp') {
+            namespace = keyValuePair[1] ;
+            console.log("namespace: " + namespace);
+            callback(null, {namespace: namespace, sessionId: sessionId, sessionMode: sessionMode, monitorMode: monitorMode});
+          }    
+        } 
+        else {
+          console.log("NO URL VARIABLES");      
+          callback(null, null);
+        }
+      });
     }
-  }
+  )
+
+  async.parallel(asyncTasks, function(err, results){
+    // console.log(jsonPrint(results));
+    if (sessionMode) {
+      console.log("SESSION MODE"
+        + " | SID: " + sessionId
+        + " | NSP: " + namespace
+      );
+      currentSession = "/" + namespace + "#" + sessionId;
+      socket.emit("GET_SESSION", currentSession);
+    }
+  });
+
 }
 
 
@@ -500,10 +530,17 @@ function showInfo() {
 }
 
 function launchSessionView(sessionId) {
-  console.log("launchSessionView: " + sessionId);
-  window.open(urlRoot + sessionId, 'SESSION VIEW', '_new');
-}
+  var namespacePattern = new RegExp(/^\/(\S*)#(\S*)$/);
+  var sessionIdParts = namespacePattern.exec(sessionId);
+  console.log("sessionId: " + sessionId + " | nsp: " + sessionIdParts[1] + " | id: " + sessionIdParts[2]);
 
+  // var sessionIdNameSpace = sessionId.replace(/^\/(\S*)#/, "");
+  // var sessionIdNameSpace = sessionId.replace(/#/, "");
+
+  var url = urlRoot + sessionIdParts[2] + "&nsp=" + sessionIdParts[1] ;
+  console.log("launchSessionView: " + sessionId + " | " + url);
+  window.open(url, 'SESSION VIEW', '_new');
+}
 
 function displayControlOverlay(opacity) {
   d3.select("#infoButton").style("opacity", opacity);

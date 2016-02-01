@@ -3,6 +3,7 @@
 
 var BHT_REQUEST_LIMIT = 250000;
 var MW_REQUEST_LIMIT = 250000;
+var SESSION_WORDCHAIN_REQUEST_LIMIT = 25;
 
 var ONE_SECOND = 1000 ;
 var ONE_MINUTE = ONE_SECOND*60 ;
@@ -3193,7 +3194,7 @@ function createSession (newSessionObj){
   });
 
   socket.on("GET_SESSION", function(sessionId){
-    console.log(chalkTest("RX GET_SESSION | " + sessionId));
+    console.log(chalkTest("RX GET_SESSION | " + sessionId + " | CHAIN LIMIT: " + SESSION_WORDCHAIN_REQUEST_LIMIT));
     findSessionById(sessionId, function(err, sessionObj){
       if (err){
 
@@ -3201,31 +3202,33 @@ function createSession (newSessionObj){
       else if (sessionObj) {
 
         var wordChainIndex = 0;
+        var wordChainSegment = sessionObj.wordChain.slice(-SESSION_WORDCHAIN_REQUEST_LIMIT) ;
 
-        async.each(
 
-          sessionObj.wordChain,  // iterate over wordChain array
+        async.forEachOf(
 
-          function(word, callback){
+          wordChainSegment,  // iterate over wordChain array
+
+          function(word, wordChainIndex, callback){
 
             Word.find({nodeId: word}, function(err, wordArray){
               if (err) {
                 console.error("ERROR\n" + err);
-                callback(err, null);
+                callback(err);
               }
               else if (!wordArray){
-                callback(null, null);
+                callback(null);
               }
               console.log("FOUND CHAIN WORD[" + wordChainIndex + "]: " + wordArray[0].nodeId);
               var sessionUpdateObj = {
                   sessionId: sessionObj.sessionId,
                   wordChainIndex: wordChainIndex,
                   wordChainLength: sessionObj.wordChain.length,
+                  wordChainSegmentLength: wordChainSegment.length,
                   word: wordArray[0]
               };
               socket.emit("SESSION", sessionUpdateObj);
-              wordChainIndex++;
-              callback(null, wordChainIndex);
+              callback(null);
             });
 
           },

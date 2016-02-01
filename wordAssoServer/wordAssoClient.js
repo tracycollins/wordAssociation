@@ -7,8 +7,8 @@ var testMode = false ;
 
 var monitorMode = false ;
 var responseTimeoutInterval = 3000 ;
-var urlRoot = "http://word.threeceelabs.com/session?session=";
-// var urlRoot = "http://localhost:9997/session?session=";
+// var urlRoot = "http://word.threeceelabs.com/session?session=";
+var urlRoot = "http://localhost:9997/session?session=";
 var configHashMap = new HashMap();
 
 configHashMap.set('testMode', testMode);
@@ -29,7 +29,8 @@ var mouseMoveTimeoutInterval = 5000; // 5 seconds
 var mouseOverFlag = false ;
 var mouseHoverFlag = false ;
 
-var socket = io('/user');
+var namespace = '/user'
+var socket = io(namespace);
 var socketId ;
 var connectedFlag = false ;
 

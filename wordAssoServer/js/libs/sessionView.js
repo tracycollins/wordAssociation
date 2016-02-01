@@ -3,8 +3,8 @@
 
 var sessionHashMap = new HashMap();
 
-// var urlRoot = "http://word.threeceelabs.com/session?session=";
-var urlRoot = "http://localhost:9997/session?session=";
+var urlRoot = "http://word.threeceelabs.com/session?session=";
+// var urlRoot = "http://localhost:9997/session?session=";
 
 var socketNamespace = "/user";
 

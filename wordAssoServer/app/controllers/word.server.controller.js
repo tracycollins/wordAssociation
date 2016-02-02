@@ -66,7 +66,7 @@ function loadBhtResponseHash(wordObj, wordTypes, wordVariations, callback){
 
 exports.getWordVariation = function(word, wordTypeArray, wordVariation, callback){
 
-	console.log("word: " + word);
+	debug("getWordVariation | word: " + word);
 
 	var query = { nodeId: word };
   var projections = {
@@ -85,7 +85,7 @@ exports.getWordVariation = function(word, wordTypeArray, wordVariation, callback
       console.log(chalkBht("-*- BHT WORD FOUND | " + word));
 			loadBhtResponseHash(wordObj, wordTypeArray, wordVariation, function(wordVarHashMap){
 	      if (wordVarHashMap.count() == 0) {
-	        console.log(chalkBht("-v- BHT VAR MISS | " + wordObj.nodeId));
+	        console.log(chalkBht("-v- BHT VAR MISS   | " + wordObj.nodeId));
 	        callback('BHT_VAR_MISS', wordObj.nodeId);  // ?? maybe unknown wordType?
 	        return;
 	      }
@@ -105,7 +105,7 @@ exports.getWordVariation = function(word, wordTypeArray, wordVariation, callback
 						callback(err, word);
         	}
         	else {
-		        console.log(chalkBht("-*- BHT VAR HIT  | " + updatedResponseWordObj.nodeId + " | " + responseWord));
+		        console.log(chalkBht("-*- BHT VAR HIT    | " + updatedResponseWordObj.nodeId + " | " + responseWord));
 			      callback('BHT_VAR_HIT', updatedResponseWordObj);
 			      return;
 			    }
@@ -114,7 +114,7 @@ exports.getWordVariation = function(word, wordTypeArray, wordVariation, callback
 			});
 		}
 		else {
-      console.log(chalkBht("-v- BHT VAR MISS | " + word));
+      console.log(chalkBht("-v- BHT VAR MISS   | " + word));
       callback('BHT_VAR_MISS', word);  // ?? maybe unknown wordType?
 		}
 	});

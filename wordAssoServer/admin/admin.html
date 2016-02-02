@@ -105,32 +105,19 @@
 			color:#888888;
 		}
 
-    .progress-bar {
+    .bar-text {
+				color: #CCCCCC;
+				font-family: "Lucida Console", Monaco, monospace;
+				font-size: 1.5em;
+				font-weight: 100;
+				line-height: 1.2em;
+    }
+    .bar {
         height: 5px;
-        width: 300px;
+        width: 500px;
         background-color: #444444;
     }
-    .progress-bar > svg {
-        height: 100%;
-        display: block;
-    }
-
-    .users-bar {
-        height: 5px;
-        width: 300px;
-        background-color: #444444;
-    }
-    .users-bar > svg {
-        height: 100%;
-        display: block;
-    }
-
-    .delta-response-bar {
-        height: 5px;
-        width: 300px;
-        background-color: #444444;
-    }
-    .delta-response-bar > svg {
+    .bar > svg {
         height: 100%;
         display: block;
     }
@@ -169,14 +156,17 @@
 				<hr>
 				<br>
 				<br>
-		    <div id="progress-bar-text"></div>
-		    <div class="progress-bar" id="progress-bar"></div>
+		    <div class="bar-text" id="bht-requests-bar-text"></div>
+		    <div class="bar" id="bht-requests-bar"></div>
 				<br>
-		    <div id="users-bar-text"></div>
-		    <div class="users-bar" id="users-bar"></div>
+		    <div class="bar-text" id="users-bar-text"></div>
+		    <div class="bar" id="users-bar"></div>
 				<br>
-		    <div id="delta-response-bar-text"></div>
-		    <div class="delta-response-bar" id="delta-response-bar"></div>
+		    <div class="bar-text" id="test-users-bar-text"></div>
+		    <div class="bar" id="test-users-bar"></div>
+				<br>
+		    <div class="bar-text" id="delta-response-bar-text"></div>
+		    <div class="bar" id="delta-response-bar"></div>
 				<br>
 				<br>
 	    	<table id='heartbeat_table' class'heartbeatTable'></table>
@@ -310,21 +300,30 @@
 			var midColor = '#F9CD2B';
 			var endColor = '#CC0000';
 
-			var progressBar;
-			var progressBarPercent = 0;
+			var bhtRequestsBar;
+			var bhtRequestsBarPercent = 0;
 
-			progressBar = new ProgressBar.Line("#progress-bar", {});
-			progressBar.animate(0);
-	    var progressBarText = document.getElementById('progress-bar-text');
+	    var bhtRequestsBarDiv = document.getElementById('bht-requests-bar');
+			bhtRequestsBar = new ProgressBar.Line(bhtRequestsBarDiv, {});
+			bhtRequestsBar.animate(0);
+	    var bhtRequestsBarText = document.getElementById('bht-requests-bar-text');
 
 			var usersBar;
-			usersBar = new ProgressBar.Line("#users-bar", {});
+	    var usersBarDiv = document.getElementById('users-bar');
+			usersBar = new ProgressBar.Line(usersBarDiv, {});
 			usersBar.animate(0);
 	    var usersBarText = document.getElementById('users-bar-text');
 
+			var testUsersBar;
+	    var testUsersBarDiv = document.getElementById('test-users-bar');
+			testUsersBar = new ProgressBar.Line(testUsersBarDiv, {});
+			testUsersBar.animate(0);
+	    var testUsersBarText = document.getElementById('test-users-bar-text');
+
 	    var deltaResponsesMax = 1;
 			var deltaResponseBar;
-			deltaResponseBar = new ProgressBar.Line("#delta-response-bar", { duration: 200 });
+	    var deltaResponseBarDiv = document.getElementById('delta-response-bar');
+			deltaResponseBar = new ProgressBar.Line(deltaResponseBarDiv, { duration: 200 });
 			deltaResponseBar.animate(0);
 	    var deltaResponseBarText = document.getElementById('delta-response-bar-text');
 
@@ -1028,24 +1027,23 @@
 
 				// console.log("updateServerHeartbeat: timeoutFlag: " + timeoutFlag);
 
-				progressBar.animate(heartBeat.bhtRequests/heartBeat.bhtRequestLimit);
+				bhtRequestsBar.animate(heartBeat.bhtRequests/heartBeat.bhtRequestLimit);
 
 				if (100*heartBeat.bhtRequests/heartBeat.bhtRequestLimit >= 90) {
-					progressBar.path.setAttribute('stroke', endColor);
+					bhtRequestsBar.path.setAttribute('stroke', endColor);
 				}
 				else if (100*heartBeat.bhtRequests/heartBeat.bhtRequestLimit >= 50) {
-					progressBar.path.setAttribute('stroke', midColor);
+					bhtRequestsBar.path.setAttribute('stroke', midColor);
 				}
 				else {
-					progressBar.path.setAttribute('stroke', startColor);
+					bhtRequestsBar.path.setAttribute('stroke', startColor);
 				}
 
-				progressBarText.innerHTML =  
+				bhtRequestsBarText.innerHTML =  
 					'BHT REQS'
 					+ ' | USED: ' + heartBeat.bhtRequests + ' ' + (heartBeat.bhtRequests/heartBeat.bhtRequestLimit * 100).toFixed(0) + '%'
 					+ ' | REMAIN: ' + (heartBeat.bhtRequestLimit - heartBeat.bhtRequests)
 				;
-
 
 
 				usersBar.animate(heartBeat.numberUsers/heartBeat.maxNumberUsers);
@@ -1063,6 +1061,21 @@
 				usersBarText.innerHTML = (heartBeat.numberUsers) + ' USERS | ' + (heartBeat.maxNumberUsers) + ' MAX USERS';
 
 
+				testUsersBar.animate(heartBeat.numberTestUsers/heartBeat.maxNumberTestUsers);
+
+				if (100*heartBeat.numberTestUsers/heartBeat.maxNumberTestUsers >= 90) {
+					testUsersBar.path.setAttribute('stroke', endColor);
+				}
+				else if (100*heartBeat.numberTestUsers/heartBeat.maxNumberTestUsers >= 50) {
+					testUsersBar.path.setAttribute('stroke', midColor);
+				}
+				else {
+					testUsersBar.path.setAttribute('stroke', startColor);
+				}
+
+				testUsersBarText.innerHTML = (heartBeat.numberTestUsers) + ' TEST USERS | ' + (heartBeat.maxNumberTestUsers) + ' MAX TEST USERS';
+
+
 				deltaResponseBar.animate(heartBeat.deltaResponsesReceived/deltaResponsesMax);
 
 				if (heartBeat.deltaResponsesReceived >= 90) {
@@ -1075,7 +1088,7 @@
 					deltaResponseBar.path.setAttribute('stroke', startColor);
 				}
 
-				deltaResponseBarText.innerHTML = heartBeat.deltaResponsesReceived + ' RESPONSES | ' + deltaResponsesMax + ' MAX';
+				deltaResponseBarText.innerHTML = heartBeat.deltaResponsesReceived + ' RESPONSES/SEC | ' + deltaResponsesMax + ' MAX';
 
 
 
@@ -1170,7 +1183,7 @@
 						+ (msToTime(moment(heartBeat.bhtLimitResetTime).diff(now))) + ' REMAIN']);
 				}
 
-				tableCreateRow(heatbeatTable, bhtOptions, ['TOTAL BHT REQS', heartBeat.bhtRequests]);
+				// tableCreateRow(heatbeatTable, bhtOptions, ['TOTAL BHT REQS', heartBeat.bhtRequests]);
 				tableCreateRow(heatbeatTable, bhtOptions, ['BHT OVER LIMIT', bhtOLTmoment]);
 				tableCreateRow(heatbeatTable, bhtOptions, ['BHT LIMIT RESET', 
 						bhtLRTmoment + ' | ' + (msToTime(moment(heartBeat.bhtLimitResetTime).diff(now))) + ' REMAIN'
@@ -1182,10 +1195,10 @@
 				tableCreateRow(heatbeatTable, false, ['UTILS', heartBeat.numberUtils]);
 				tableCreateRow(heatbeatTable, false, ['VIEWERS',heartBeat.numberViewers]);
 				tableCreateRow(heatbeatTable, false, ['TEST VIEWERS',heartBeat.numberTestViewers]);
-				tableCreateRow(heatbeatTable, false, ['USERS', heartBeat.numberUsers]);
-				tableCreateRow(heatbeatTable, false, ['TEST USERS',heartBeat.numberTestUsers]);
-				tableCreateRow(heatbeatTable, false, ['TOTAL USERS', heartBeat.numberUsers + heartBeat.numberTestUsers]);
-				tableCreateRow(heatbeatTable, false, ['MAX USERS', heartBeat.maxNumberUsers]);
+				// tableCreateRow(heatbeatTable, false, ['USERS', heartBeat.numberUsers]);
+				// tableCreateRow(heatbeatTable, false, ['TEST USERS',heartBeat.numberTestUsers]);
+				// tableCreateRow(heatbeatTable, false, ['TOTAL USERS', heartBeat.numberUsers + heartBeat.numberTestUsers]);
+				// tableCreateRow(heatbeatTable, false, ['MAX USERS', heartBeat.maxNumberUsers]);
 				tableCreateRow(heatbeatTable, false, ['MAX USERS TIME', getTimeStamp(heartBeat.maxNumberUsersTime)]);
 
 				serverHeartbeatElement = document.getElementById("server_admins");

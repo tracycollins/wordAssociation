@@ -283,10 +283,20 @@
 			var progressBar;
 			var progressBarPercent = 0;
 
+			var startColor = '#008000';
+			var endColor = '#CC0000';
+
 			progressBar = new ProgressBar.Line("#progress-bar", 
 				{
-					'color': '#00aa00'
-				});
+			    color: startColor,
+					// text: {
+					//         value: '0'
+					//     },
+			    // step: function(state, progressBar) {
+			    //     progressBar.setText((progressBar.value()*100).toFixed(0));
+			    //     // progressBar.path.setAttribute('stroke', state.color);
+					  //  }
+			});
 			progressBar.animate(0);
 	    var progressBarText = document.getElementById('progress-bar-text');
 
@@ -993,6 +1003,12 @@
 				// console.log("updateServerHeartbeat: timeoutFlag: " + timeoutFlag);
 
 			progressBar.animate(heartBeat.bhtRequests/heartBeat.bhtRequestLimit);
+			if (100*heartBeat.bhtRequests/heartBeat.bhtRequestLimit >= 90) {
+				progressBar.path.setAttribute('stroke', endColor);
+			}
+			else {
+				progressBar.path.setAttribute('stroke', startColor);
+			}
 			progressBarText.innerHTML =  
 				'BHT REQS'
 				+ ' | USED: ' + heartBeat.bhtRequests + ' ' + (heartBeat.bhtRequests/heartBeat.bhtRequestLimit * 100).toFixed(0) + '%'

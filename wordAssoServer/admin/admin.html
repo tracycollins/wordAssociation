@@ -107,7 +107,7 @@
 
 		</style>
 
-		<script src="https://cdn.socket.io/socket.io-1.3.6.js"></script>
+	  <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.11.0/moment.min.js"></script>
 		<script src="/node_modules/hashmap/hashmap.js"></script>
 
@@ -225,7 +225,8 @@
 			var showBotClients = false ;
 
 			// var socket = io.connect();
-			var socket = io.connect('http://word.threeceelabs.com/admin');
+			var socket = io.connect('/admin');
+			// var socket = io.connect('http://word.threeceelabs.com/admin');
 			// var socket = io.connect('http://localhost:9997/admin');
 			// var socket = io.connect('http://threeceedev.dyndns.org/');
 

@@ -34,12 +34,12 @@
 
 <body>
 
-  <div id="main">
-    <!-- <button id="openSessionViewButton" class="sessionViewButton" onclick="openSessionView()">open session view</button> -->
-    <div id="serverPromptDiv"></div>
-    <!-- <br> -->
-    <div id="userResponseDiv"></div>
-    <div id="socketId" class="sessionLink" onclick="openSessionView()"></div>
+  <div id="main" style="position:relative;overflow:hidden;">
+    <div id="overlay">
+      <div id="serverPromptDiv"></div>
+      <div id="userResponseDiv"></div>
+      <div id="socketId" class="sessionLink" onclick="openSessionView()"></div>
+    </div>
   </div>
 
   <script>

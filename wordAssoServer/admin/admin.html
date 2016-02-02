@@ -287,21 +287,9 @@
 			var midColor = '#F9CD2B';
 			var endColor = '#CC0000';
 
-			progressBar = new ProgressBar.Line("#progress-bar", 
-				{
-			    color: startColor,
-					// text: {
-					//         value: '0'
-					//     },
-			    // step: function(state, progressBar) {
-			    //     progressBar.setText((progressBar.value()*100).toFixed(0));
-			    //     // progressBar.path.setAttribute('stroke', state.color);
-					  //  }
-			});
+			progressBar = new ProgressBar.Line("#progress-bar", {});
 			progressBar.animate(0);
 	    var progressBarText = document.getElementById('progress-bar-text');
-
-			
 
 			var heartBeat = {} ;
 			var lastTimeoutHeartBeat = null ;

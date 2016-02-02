@@ -105,15 +105,25 @@
 			color:#888888;
 		}
 
-        .progress-bar {
-            height: 5px;
-            width: 300px;
-            background-color: #444444;
-        }
-        .progress-bar > svg {
-            height: 100%;
-            display: block;
-        }
+    .progress-bar {
+        height: 5px;
+        width: 300px;
+        background-color: #444444;
+    }
+    .progress-bar > svg {
+        height: 100%;
+        display: block;
+    }
+
+    .users-bar {
+        height: 5px;
+        width: 300px;
+        background-color: #444444;
+    }
+    .users-bar > svg {
+        height: 100%;
+        display: block;
+    }
 
 		</style>
 
@@ -149,8 +159,12 @@
 				<hr>
 				<br>
 				<br>
-			    <div id="progress-bar-text"></div>
-			    <div class="progress-bar" id="progress-bar"></div>
+		    <div id="progress-bar-text"></div>
+		    <div class="progress-bar" id="progress-bar"></div>
+				<br>
+				<br>
+		    <div id="users-bar-text"></div>
+		    <div class="users-bar" id="users-bar"></div>
 				<br>
 				<br>
 	    	<table id='heartbeat_table' class'heartbeatTable'></table>
@@ -280,16 +294,21 @@
 			var clientIpTableHead = document.getElementById('client_ip_table_head');
 			var clientIpTableBody = document.getElementById('client_ip_table_body');
 
-			var progressBar;
-			var progressBarPercent = 0;
-
 			var startColor = '#008000';
 			var midColor = '#F9CD2B';
 			var endColor = '#CC0000';
 
+			var progressBar;
+			var progressBarPercent = 0;
+
 			progressBar = new ProgressBar.Line("#progress-bar", {});
 			progressBar.animate(0);
 	    var progressBarText = document.getElementById('progress-bar-text');
+
+			var usersBar;
+			usersBar = new ProgressBar.Line("#users-bar", {});
+			usersBar.animate(0);
+	    var usersBarText = document.getElementById('users-bar-text');
 
 			var heartBeat = {} ;
 			var lastTimeoutHeartBeat = null ;
@@ -991,21 +1010,37 @@
 
 				// console.log("updateServerHeartbeat: timeoutFlag: " + timeoutFlag);
 
-			progressBar.animate(heartBeat.bhtRequests/heartBeat.bhtRequestLimit);
-			if (100*heartBeat.bhtRequests/heartBeat.bhtRequestLimit >= 90) {
-				progressBar.path.setAttribute('stroke', endColor);
-			}
-			else if (100*heartBeat.bhtRequests/heartBeat.bhtRequestLimit >= 50) {
-				progressBar.path.setAttribute('stroke', midColor);
-			}
-			else {
-				progressBar.path.setAttribute('stroke', startColor);
-			}
-			progressBarText.innerHTML =  
-				'BHT REQS'
-				+ ' | USED: ' + heartBeat.bhtRequests + ' ' + (heartBeat.bhtRequests/heartBeat.bhtRequestLimit * 100).toFixed(0) + '%'
-				+ ' | REMAIN: ' + (heartBeat.bhtRequestLimit - heartBeat.bhtRequests)
+				progressBar.animate(heartBeat.bhtRequests/heartBeat.bhtRequestLimit);
+
+				if (100*heartBeat.bhtRequests/heartBeat.bhtRequestLimit >= 90) {
+					progressBar.path.setAttribute('stroke', endColor);
+				}
+				else if (100*heartBeat.bhtRequests/heartBeat.bhtRequestLimit >= 50) {
+					progressBar.path.setAttribute('stroke', midColor);
+				}
+				else {
+					progressBar.path.setAttribute('stroke', startColor);
+				}
+
+				progressBarText.innerHTML =  
+					'BHT REQS'
+					+ ' | USED: ' + heartBeat.bhtRequests + ' ' + (heartBeat.bhtRequests/heartBeat.bhtRequestLimit * 100).toFixed(0) + '%'
+					+ ' | REMAIN: ' + (heartBeat.bhtRequestLimit - heartBeat.bhtRequests)
 				;
+
+				usersBar.animate(heartBeat.numberUsers/heartBeat.maxNumberUsers);
+
+				if (100*heartBeat.numberUsers/heartBeat.maxNumberUsers >= 90) {
+					usersBar.path.setAttribute('stroke', endColor);
+				}
+				else if (100*heartBeat.numberUsers/heartBeat.maxNumberUsers >= 50) {
+					usersBar.path.setAttribute('stroke', midColor);
+				}
+				else {
+					usersBar.path.setAttribute('stroke', startColor);
+				}
+
+				usersBarText.innerHTML = (heartBeat.numberUsers) + ' USERS | ' + (heartBeat.maxNumberUsers) + ' MAX USERS';
 
 		    var heatbeatTable = document.getElementById('heartbeat_table');
 

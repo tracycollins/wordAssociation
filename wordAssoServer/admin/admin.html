@@ -1057,12 +1057,12 @@
 				;
 
 
-				viewersBar.animate(heartBeat.numberViewers/heartBeat.maxNumberViewers);
+				viewersBar.animate(heartBeat.numberViewers/heartBeat.numberViewersMax);
 
-				if (100*heartBeat.numberViewers/heartBeat.maxNumberViewers >= 90) {
+				if (100*heartBeat.numberViewers/heartBeat.numberViewersMax >= 90) {
 					viewersBar.path.setAttribute('stroke', endColor);
 				}
-				else if (100*heartBeat.numberViewers/heartBeat.maxNumberViewers >= 50) {
+				else if (100*heartBeat.numberViewers/heartBeat.numberViewersMax >= 50) {
 					viewersBar.path.setAttribute('stroke', midColor);
 				}
 				else {
@@ -1072,12 +1072,12 @@
 				viewersBarText.innerHTML = (heartBeat.numberViewers) + ' VIEWERS | ' + (heartBeat.numberViewersMax) + ' MAX | ' + moment(heartBeat.numberViewersMaxTime).format(defaultDateTimeFormat);
 
 
-				usersBar.animate(heartBeat.numberUsers/heartBeat.maxNumberUsers);
+				usersBar.animate(heartBeat.numberUsers/heartBeat.numberUsersMax);
 
-				if (100*heartBeat.numberUsers/heartBeat.maxNumberUsers >= 90) {
+				if (100*heartBeat.numberUsers/heartBeat.numberUsersMax >= 90) {
 					usersBar.path.setAttribute('stroke', endColor);
 				}
-				else if (100*heartBeat.numberUsers/heartBeat.maxNumberUsers >= 50) {
+				else if (100*heartBeat.numberUsers/heartBeat.numberUsersMax >= 50) {
 					usersBar.path.setAttribute('stroke', midColor);
 				}
 				else {
@@ -1087,12 +1087,12 @@
 				usersBarText.innerHTML = (heartBeat.numberUsers) + ' USERS | ' + (heartBeat.numberUsersMax) + ' MAX | ' + moment(heartBeat.numberUsersMaxTime).format(defaultDateTimeFormat);
 
 
-				testUsersBar.animate(heartBeat.numberTestUsers/heartBeat.maxNumberTestUsers);
+				testUsersBar.animate(heartBeat.numberTestUsers/heartBeat.numberTestUsersMax);
 
-				if (100*heartBeat.numberTestUsers/heartBeat.maxNumberTestUsers >= 90) {
+				if (100*heartBeat.numberTestUsers/heartBeat.numberTestUsersMax >= 90) {
 					testUsersBar.path.setAttribute('stroke', endColor);
 				}
-				else if (100*heartBeat.numberTestUsers/heartBeat.maxNumberTestUsers >= 50) {
+				else if (100*heartBeat.numberTestUsers/heartBeat.numberTestUsersMax >= 50) {
 					testUsersBar.path.setAttribute('stroke', midColor);
 				}
 				else {

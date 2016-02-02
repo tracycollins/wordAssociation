@@ -159,6 +159,9 @@
 		    <div class="bar-text" id="bht-requests-bar-text"></div>
 		    <div class="bar" id="bht-requests-bar"></div>
 				<br>
+		    <div class="bar-text" id="viewers-bar-text"></div>
+		    <div class="bar" id="viewers-bar"></div>
+				<br>
 		    <div class="bar-text" id="users-bar-text"></div>
 		    <div class="bar" id="users-bar"></div>
 				<br>
@@ -230,6 +233,8 @@
 			var ONE_MB = 1024*1024;
 			var ONE_GB = ONE_MB*1024;
 
+			var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
+			var defaultTimePeriodFormat = "HH:mm:ss";
 
 			function getTimeNow() {
 				var d = new Date();
@@ -307,6 +312,12 @@
 			bhtRequestsBar = new ProgressBar.Line(bhtRequestsBarDiv, {});
 			bhtRequestsBar.animate(0);
 	    var bhtRequestsBarText = document.getElementById('bht-requests-bar-text');
+
+			var viewersBar;
+	    var viewersBarDiv = document.getElementById('viewers-bar');
+			viewersBar = new ProgressBar.Line(viewersBarDiv, {});
+			viewersBar.animate(0);
+	    var viewersBarText = document.getElementById('viewers-bar-text');
 
 			var usersBar;
 	    var usersBarDiv = document.getElementById('users-bar');
@@ -1046,6 +1057,21 @@
 				;
 
 
+				viewersBar.animate(heartBeat.numberViewers/heartBeat.maxNumberViewers);
+
+				if (100*heartBeat.numberViewers/heartBeat.maxNumberViewers >= 90) {
+					viewersBar.path.setAttribute('stroke', endColor);
+				}
+				else if (100*heartBeat.numberViewers/heartBeat.maxNumberViewers >= 50) {
+					viewersBar.path.setAttribute('stroke', midColor);
+				}
+				else {
+					viewersBar.path.setAttribute('stroke', startColor);
+				}
+
+				viewersBarText.innerHTML = (heartBeat.numberViewers) + ' VIEWERS | ' + (heartBeat.numberViewersMax) + ' MAX | ' + moment(heartBeat.numberViewersMaxTime).format(defaultDateTimeFormat);
+
+
 				usersBar.animate(heartBeat.numberUsers/heartBeat.maxNumberUsers);
 
 				if (100*heartBeat.numberUsers/heartBeat.maxNumberUsers >= 90) {
@@ -1058,7 +1084,7 @@
 					usersBar.path.setAttribute('stroke', startColor);
 				}
 
-				usersBarText.innerHTML = (heartBeat.numberUsers) + ' USERS | ' + (heartBeat.maxNumberUsers) + ' MAX USERS';
+				usersBarText.innerHTML = (heartBeat.numberUsers) + ' USERS | ' + (heartBeat.numberUsersMax) + ' MAX | ' + moment(heartBeat.numberUsersMaxTime).format(defaultDateTimeFormat);
 
 
 				testUsersBar.animate(heartBeat.numberTestUsers/heartBeat.maxNumberTestUsers);
@@ -1073,7 +1099,7 @@
 					testUsersBar.path.setAttribute('stroke', startColor);
 				}
 
-				testUsersBarText.innerHTML = (heartBeat.numberTestUsers) + ' TEST USERS | ' + (heartBeat.maxNumberTestUsers) + ' MAX TEST USERS';
+				testUsersBarText.innerHTML = (heartBeat.numberTestUsers) + ' TEST USERS | ' + (heartBeat.numberTestUsersMax) + ' MAX | ' + moment(heartBeat.numberTestUsersMaxTime).format(defaultDateTimeFormat);
 
 
 				deltaResponseBar.animate(heartBeat.deltaResponsesReceived/deltaResponsesMax);

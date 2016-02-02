@@ -77,8 +77,17 @@ var tempDateTime = moment();
 var txHeartbeat = { };
 var heartbeatsSent = 0;
 
-var maxNumberUsers = 0;
-var maxNumberUsersTime = moment();
+var numberUsersMax = 0;
+var numberUsersMaxTime = moment().valueOf();
+
+var numberUsersTotalMax = 0;
+var numberUsersTotalMaxTime = moment().valueOf();
+
+var numberTestUsersMax = 0;
+var numberTestUsersMaxTime = moment().valueOf();
+
+var numberViewersMax = 0;
+var numberViewersMaxTime = moment().valueOf();
 
 statsLogger.addStat("numberViewers", "snapshot", {initialValue: 0});
 statsLogger.addStat("numberViewersMax", "max", {initialValue: 0, suppressReset: true});
@@ -523,13 +532,24 @@ setInterval(function () {
 
     numberAdmins : numberAdmins,
     numberUtils : numberUtils,
-    numberUsers : numberUsers,
-    numberViewers : numberViewers,
-    numberTestViewers : numberTestViewers,
-    numberTestUsers : numberTestUsers,
 
-    maxNumberUsers : maxNumberUsers,
-    maxNumberUsersTime : maxNumberUsersTime,
+    numberUsers : numberUsers,
+    numberUsersMax : numberUsersMax,
+    numberUsersMaxTime : numberUsersMaxTime,
+
+    numberTestUsers : numberTestUsers,
+    numberTestUsersMax : numberTestUsersMax,
+    numberTestUsersMaxTime : numberTestUsersMaxTime,
+
+    numberUsersTotal : numberUsersTotal,
+    numberUsersTotalMax : numberUsersTotalMax,
+    numberUsersTotalMaxTime : numberUsersTotalMaxTime,
+
+    numberViewers : numberViewers,
+    numberViewersMax : numberViewersMax,
+    numberViewersMaxTime : numberViewersMaxTime,
+
+    numberTestViewers : numberTestViewers,
 
     promptsSent : promptsSent,
     responsesReceived: responsesReceived,
@@ -3039,13 +3059,20 @@ configEvents.on("SERVER_READY", function () {
         
         numberAdmins : numberAdmins,
         numberUtils : numberUtils,
-        numberViewers : numberViewers,
-        numberTestViewers : numberTestViewers,
-        numberUsers : numberUsers,
-        numberTestUsers : numberTestUsers,
 
-        maxNumberUsers : maxNumberUsers,
-        maxNumberUsersTime : maxNumberUsersTime,
+        numberViewers : numberViewers,
+        numberViewersMax : numberViewersMax,
+        numberViewersMaxTime : numberViewersMaxTime,
+
+        numberTestViewers : numberTestViewers,
+
+        numberUsers : numberUsers,
+        numberUsersMax : numberUsersMax,
+        numberUsersMaxTime : numberUsersMaxTime,
+
+        numberTestUsers : numberTestUsers,
+        numberTestUsersMax : numberTestUsersMax,
+        numberTestUsersMaxTime : numberTestUsersMaxTime,
 
         totalWords : totalWords,
 
@@ -3432,8 +3459,9 @@ var metricsInterval = setInterval(function () {
   statsLogger.recordStat('numberTestUsers', numberTestUsers);
   statsLogger.recordStat('numberUsersTotal', numberUsersTotal);
 
-  if (statsLogger.getStatValue('numberViewers') > statsLogger.getStatValue('numberViewersMax')) {
-    maxNumberUsersTime = moment().valueOf();
+  if (numberViewers > numberViewersMax) {
+    numberViewersMaxTime = moment().valueOf();
+    numberViewersMax = numberViewers;
     statsLogger.recordStat('numberViewersMax', numberViewers);
     console.log(chalkAlert("... NEW TOTAL MAX VIEWERS"
       + " | " + statsLogger.getStatValue('numberViewersMax') 
@@ -3443,8 +3471,9 @@ var metricsInterval = setInterval(function () {
     statsLogger.recordStat('numberViewersMax', numberViewers);
   }
 
-  if (statsLogger.getStatValue('numberUsersTotal') > statsLogger.getStatValue('numberUsersTotalMax')) {
-    maxNumberUsersTime = moment().valueOf();
+  if (numberUsersTotal > numberUsersTotalMax) {
+    numberUsersTotalMaxTime = moment().valueOf();
+    numberUsersTotalMax = numberUsersTotal ;
     statsLogger.recordStat('numberUsersTotalMax', numberUsersTotal);
     console.log(chalkAlert("... NEW TOTAL MAX USERS"
       + " | " + statsLogger.getStatValue('numberUsersTotalMax') 
@@ -3454,8 +3483,9 @@ var metricsInterval = setInterval(function () {
     statsLogger.recordStat('numberUsersTotalMax', numberUsersTotal);
   }
 
-  if (statsLogger.getStatValue('numberUsers') > statsLogger.getStatValue('numberUsersMax')) {
-    maxNumberUsersTime = moment().valueOf();
+  if (numberUsers > numberUsersMax) {
+    numberUsersMaxTime = moment().valueOf();
+    numberUsersMax = numberUsers;
     statsLogger.recordStat('numberUsersMax', numberUsers);
     console.log(chalkAlert("... NEW MAX USERS"
       + " | " + statsLogger.getStatValue('numberUsersMax') 
@@ -3466,10 +3496,11 @@ var metricsInterval = setInterval(function () {
   }
 
 
-  if (statsLogger.getStatValue('numberTestUsers') > statsLogger.getStatValue('numberTestUsersMax')) {
-    maxNumberUsersTime = moment().valueOf();
+  if (numberTestUsers > numberTestUsersMax) {
+    numberTestUsersMaxTime = moment().valueOf();
+    numberTestUsersMax = numberTestUsers;
     statsLogger.recordStat('numberTestUsersMax', numberTestUsers);
-    console.log(chalkAlert("... NEW MAX USERS"
+    console.log(chalkAlert("... NEW MAX TEST USERS"
       + " | " + statsLogger.getStatValue('numberTestUsersMax') 
       + " | " + moment().format(defaultDateTimeFormat)));
   }

@@ -162,6 +162,9 @@
 		    <div class="bar-text" id="viewers-bar-text"></div>
 		    <div class="bar" id="viewers-bar"></div>
 				<br>
+		    <div class="bar-text" id="users-total-bar-text"></div>
+		    <div class="bar" id="users-total-bar"></div>
+				<br>
 		    <div class="bar-text" id="users-bar-text"></div>
 		    <div class="bar" id="users-bar"></div>
 				<br>
@@ -330,6 +333,12 @@
 			testUsersBar = new ProgressBar.Line(testUsersBarDiv, {});
 			testUsersBar.animate(0);
 	    var testUsersBarText = document.getElementById('test-users-bar-text');
+
+			var usersTotalTotalBar;
+	    var usersTotalBarDiv = document.getElementById('users-total-bar');
+			usersTotalBar = new ProgressBar.Line(usersTotalBarDiv, {});
+			usersTotalBar.animate(0);
+	    var usersTotalBarText = document.getElementById('users-total-bar-text');
 
 	    var deltaResponsesMax = 1;
 			var deltaResponseBar;
@@ -1070,6 +1079,21 @@
 				}
 
 				viewersBarText.innerHTML = (heartBeat.numberViewers) + ' VIEWERS | ' + (heartBeat.numberViewersMax) + ' MAX | ' + moment(heartBeat.numberViewersMaxTime).format(defaultDateTimeFormat);
+
+
+				usersTotalBar.animate(heartBeat.numberUsers/heartBeat.numberUsersMax);
+
+				if (100*heartBeat.numberUsersTotal/heartBeat.numberUsersTotalMax >= 90) {
+					usersTotalBar.path.setAttribute('stroke', endColor);
+				}
+				else if (100*heartBeat.numberUsersTotal/heartBeat.numberUsersTotalMax >= 50) {
+					usersTotalBar.path.setAttribute('stroke', midColor);
+				}
+				else {
+					usersTotalBar.path.setAttribute('stroke', startColor);
+				}
+
+				usersTotalBarText.innerHTML = (heartBeat.numberUsersTotal) + ' TOTAL USERS | ' + (heartBeat.numberUsersTotalMax) + ' MAX | ' + moment(heartBeat.numberUsersTotalMaxTime).format(defaultDateTimeFormat);
 
 
 				usersBar.animate(heartBeat.numberUsers/heartBeat.numberUsersMax);

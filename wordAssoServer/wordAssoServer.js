@@ -3068,7 +3068,7 @@ configEvents.on("SERVER_READY", function () {
 
         numberUsersTotal : numberUsersTotal,
         numberUsersTotalMax : numberUsersTotalMax,
-        numberUsersTotalMaxTime : numberUsersTotalMax,
+        numberUsersTotalMaxTime : numberUsersTotalMaxTime,
 
         numberUsers : numberUsers,
         numberUsersMax : numberUsersMax,

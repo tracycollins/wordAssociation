@@ -3283,7 +3283,7 @@ function createSession (newSessionObj){
 
     var n = parseInt(numberSocketBhtRequests);
 
-    console.log(chalkBht(">>> RX BHT_REQUESTS | " + socket.id + " | " + n ));
+    debug(chalkBht(">>> RX BHT_REQUESTS | " + socket.id + " | " + n ));
 
     incrementSocketBhtReqs(n);
   });
@@ -3292,7 +3292,7 @@ function createSession (newSessionObj){
 
     var n = parseInt(numberSocketMwRequests);
 
-    console.log(chalkMw(">>> RX MW_REQUESTS | " + socket.id + " | " + n ));
+    debug(chalkMw(">>> RX MW_REQUESTS | " + socket.id + " | " + n ));
 
     incrementSocketMwReqs(n);
   });

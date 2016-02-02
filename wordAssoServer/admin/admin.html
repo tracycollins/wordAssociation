@@ -1062,8 +1062,7 @@
 				usersBarText.innerHTML = (heartBeat.numberUsers) + ' USERS | ' + (heartBeat.maxNumberUsers) + ' MAX USERS';
 
 
-
-				deltaResponseBar.animate(heartBeat.deltaResponsesReceived/100);
+				deltaResponseBar.set(heartBeat.deltaResponsesReceived/100);
 
 				if (heartBeat.deltaResponsesReceived >= 90) {
 					deltaResponseBar.path.setAttribute('stroke', endColor);
@@ -1075,7 +1074,7 @@
 					deltaResponseBar.path.setAttribute('stroke', startColor);
 				}
 
-				deltaResponseBarText.innerHTML = (heartBeat.deltaResponsesReceived) + ' RESPONSES';
+				deltaResponseBarText.innerHTML = heartBeat.deltaResponsesReceived + ' RESPONSES';
 
 
 

@@ -105,9 +105,21 @@
 			color:#888888;
 		}
 
+        .progress-bar {
+            height: 5px;
+            width: 300px;
+            background-color: #444444;
+        }
+        .progress-bar > svg {
+            height: 100%;
+            display: block;
+        }
+
 		</style>
 
-	  <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+		<link rel="stylesheet" href="css/progressbar.css" />
+		<script src="/js/libs/progressbar.js"></script>
+		<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.11.0/moment.min.js"></script>
 		<script src="/node_modules/hashmap/hashmap.js"></script>
 
@@ -135,6 +147,10 @@
 				<br>
 				<br>
 				<hr>
+				<br>
+				<br>
+			    <div id="progress-bar-text"></div>
+			    <div class="progress-bar" id="progress-bar"></div>
 				<br>
 				<br>
 	    	<table id='heartbeat_table' class'heartbeatTable'></table>
@@ -258,11 +274,23 @@
 			var showDisconnectedClients = false ;
 			var showIpClients = false ;
 
-	    var clientSessionTableHead = document.getElementById('client_session_table_head');
-	    var clientSessionTableBody = document.getElementById('client_session_table_body');
+			var clientSessionTableHead = document.getElementById('client_session_table_head');
+			var clientSessionTableBody = document.getElementById('client_session_table_body');
 
-	    var clientIpTableHead = document.getElementById('client_ip_table_head');
-	    var clientIpTableBody = document.getElementById('client_ip_table_body');
+			var clientIpTableHead = document.getElementById('client_ip_table_head');
+			var clientIpTableBody = document.getElementById('client_ip_table_body');
+
+			var progressBar;
+			var progressBarPercent = 0;
+
+			progressBar = new ProgressBar.Line("#progress-bar", 
+				{
+					'color': '#00aa00'
+				});
+			progressBar.animate(0);
+	    var progressBarText = document.getElementById('progress-bar-text');
+
+			
 
 			var heartBeat = {} ;
 			var lastTimeoutHeartBeat = null ;
@@ -963,6 +991,13 @@
 			function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
 				// console.log("updateServerHeartbeat: timeoutFlag: " + timeoutFlag);
+
+			progressBar.animate(heartBeat.bhtRequests/heartBeat.bhtRequestLimit);
+			progressBarText.innerHTML =  
+				'BHT REQS'
+				+ ' | USED: ' + heartBeat.bhtRequests + ' ' + (heartBeat.bhtRequests/heartBeat.bhtRequestLimit * 100).toFixed(0) + '%'
+				+ ' | REMAIN: ' + (heartBeat.bhtRequestLimit - heartBeat.bhtRequests)
+				;
 
 		    var heatbeatTable = document.getElementById('heartbeat_table');
 

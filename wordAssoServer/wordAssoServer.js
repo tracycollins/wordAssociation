@@ -3066,6 +3066,10 @@ configEvents.on("SERVER_READY", function () {
 
         numberTestViewers : numberTestViewers,
 
+        numberUsersTotal : numberUsersTotal,
+        numberUsersTotalMax : numberUsersTotalMax,
+        numberUsersTotalMaxTime : numberUsersTotalMax,
+
         numberUsers : numberUsers,
         numberUsersMax : numberUsersMax,
         numberUsersMaxTime : numberUsersMaxTime,

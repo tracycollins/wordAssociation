@@ -6,6 +6,7 @@
     "autorestart" : false,
     "env": {
         "WORDASSO_NODE_ENV": "production",
+        "SOCKET_IDLE_TIMEOUT" : 60,
         "WORD_CACHE_TTL" : 60,
         "DROPBOX_WORD_ASSO_ACCESS_TOKEN" : "nknEWsIkD5UAAAAAAAQouTDFRBKfwsFzuS8PPi2Q_JVYnpotNuaHiddNtmG4mUTi",
         "DROPBOX_WORD_ASSO_APP_KEY" : "qlb9k4dp01t9iqk",

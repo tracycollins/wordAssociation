@@ -212,13 +212,22 @@ localHostHashMap.set('10.0.1.27', 'threeceelabs.com');
 
 localHostHashMap.set('104.197.93.13', 'threeceelabs.com');
 
+
+// ==================================================================
+// SESSION CACHE
+// ==================================================================
+var sessionCacheTtl = process.env.SESSION_CACHE_DEFAULT_TTL ;
+
+if (typeof sessionCacheTtl === 'undefined') sessionCacheTtl = 60 ;
+console.log("SESSION CACHE TTL: " + sessionCacheTtl + " SECONDS");
+
 // ==================================================================
 // WORD CACHE
 // ==================================================================
 var wordCacheTtl = parseInt(process.env.WORD_CACHE_TTL);
 
 if (typeof wordCacheTtl === 'undefined') wordCacheTtl = 60 ;
-console.log("WORD CACHE TTL: " + wordCacheTtl);
+console.log("WORD CACHE TTL: " + wordCacheTtl + " SECONDS");
 
 // ==================================================================
 // BIG HUGE THESAURUS
@@ -558,8 +567,9 @@ var wordArray = [] ; // used to keep wordHashMap.count() < MAX_WORD_HASH_MAP_COU
 var NodeCache = require( "node-cache" );
 
 var userCache = new NodeCache();
-var wordCache = new NodeCache();
-var sessionCache = new NodeCache();
+var wordCache = new NodeCache({ stdTTL: 0, checkperiod: 10 });
+
+var sessionCache = new NodeCache({ stdTTL: sessionCacheTtl, checkperiod: 10 });
 
 var promptQueue = new Queue();
 var responseQueue = new Queue();
@@ -681,9 +691,23 @@ function randomInt (low, high) {
     return Math.floor(Math.random() * (high - low) + low);
 }
 
+sessionCache.on( "expired", function(sessionId, sessionObj){
+  sessionQueue.enqueue({sessionEvent: "SESSION_EXPIRED", sessionId: sessionId, session: sessionObj});
+  io.of(sessionObj.namespace).to(sessionObj.sessionId).emit("SESSION_EXPIRED", "IDLE_TIMEOUT");
+  debug("CACHE SESSION EXPIRED\n" + jsonPrint(sessionObj));
+  console.log("CACHE SESSION EXPIRED | " + sessionObj.sessionId 
+    + " | LAST SEEN: " + getTimeStamp(sessionObj.lastSeen)
+    + " | AGO: " + msToTime(moment().valueOf() - sessionObj.lastSeen)
+    + " | WORDS: " + sessionObj.wordChain.length
+    + " | KEYS: " + sessionCache.getStats().keys
+    + " | HITS: " + sessionCache.getStats().hits
+    + " | MISSES: " + sessionCache.getStats().misses
+  );
+});
+
 wordCache.on( "expired", function(word, wordObj){
   debug("CACHE WORD EXPIRED\n" + jsonPrint(wordObj));
-  debug("CACHE WORD EXPIRED | " + wordObj.nodeId 
+  console.log("CACHE WORD EXPIRED | " + wordObj.nodeId 
     + " | LAST SEEN: " + getTimeStamp(wordObj.lastSeen)
     + " | AGO: " + msToTime(moment().valueOf() - wordObj.lastSeen)
     + " | M: " + wordObj.mentions
@@ -950,39 +974,39 @@ function dbUpdateWord(wordObj, incMentions, callback){
         bhtSearchWord(word, function(status, bhtResponseObj){
           if (status.indexOf("BHT_OVER_LIMIT") >= 0) {
             debug(chalkError("bhtSearchWord BHT OVER LIMI"));
-            wordCache.set(word.nodeId, word, wordCacheTtl);
+            wordCache.set(word.nodeId, word);
             callback('BHT_OVER_LIMIT', word);
           }
           else if (status.indexOf("BHT_ERROR") >= 0) {
             debug(chalkError("bhtSearchWord dbUpdateWord findOneWord ERROR\n" + JSON.stringify(status)));
-            wordCache.set(word.nodeId, word, wordCacheTtl);
+            wordCache.set(word.nodeId, word);
             callback('BHT_ERROR', word);
           }
           else if (bhtResponseObj.bhtFound){
             debug(chalkBht("-*- BHT HIT   | " + bhtResponseObj.nodeId));
-            wordCache.set(bhtResponseObj.nodeId, bhtResponseObj, wordCacheTtl);
+            wordCache.set(bhtResponseObj.nodeId, bhtResponseObj);
             callback('BHT_HIT', bhtResponseObj);
           }
           else if (status == 'BHT_REDIRECT') {
             debug(chalkBht("-A- BHT REDIRECT  | " + wordObj.nodeId));
-            wordCache.set(bhtResponseObj.nodeId, bhtResponseObj, wordCacheTtl);
+            wordCache.set(bhtResponseObj.nodeId, bhtResponseObj);
             callback('BHT_REDIRECT', bhtResponseObj);
           }
           else {
             debug(chalkBht("-O- BHT MISS  | " + wordObj.nodeId));
-            wordCache.set(bhtResponseObj.nodeId, bhtResponseObj, wordCacheTtl);
+            wordCache.set(bhtResponseObj.nodeId, bhtResponseObj);
             callback('BHT_MISS', bhtResponseObj);
           }
         });
       }
       else if (word.bhtFound){
         debug(chalkBht("-F- BHT FOUND | " + word.nodeId));
-        wordCache.set(word.nodeId, word, wordCacheTtl);
+        wordCache.set(word.nodeId, word);
         callback('BHT_FOUND', word);
       }
       else {
         debug(chalkBht("-N- BHT NOT FOUND  | " + word.nodeId));
-        wordCache.set(word.nodeId, word, wordCacheTtl);
+        wordCache.set(word.nodeId, word);
         callback('BHT_NOT_FOUND', word);
       }
     }
@@ -1185,7 +1209,7 @@ function generatePrompt(query, callback){
       words.getWordVariation(query.input, wordTypes, ['ant'], function(status, antWordObj){
         if (status == 'BHT_VAR_HIT') {
           // console.log("randomWordObj: " + randomWordObj.nodeId);
-          wordCache.set(antWordObj.nodeId, antWordObj, wordCacheTtl);
+          wordCache.set(antWordObj.nodeId, antWordObj);
           callback('OK', antWordObj);
           return;
         }
@@ -1193,7 +1217,7 @@ function generatePrompt(query, callback){
           words.getRandomWord(function(err, randomWordObj){
             if (!err) {
               console.log("GGG GENERATE RANDOM WORD ON ANT MISS: " + randomWordObj.nodeId);
-              wordCache.set(randomWordObj.nodeId, randomWordObj, wordCacheTtl);
+              wordCache.set(randomWordObj.nodeId, randomWordObj);
               callback('OK', randomWordObj);
               return;
             }
@@ -1215,7 +1239,7 @@ function generatePrompt(query, callback){
       words.getWordVariation(query.input, wordTypes, ['syn'], function(status, synWordObj){
         if (status == 'BHT_VAR_HIT') {
           // console.log("randomWordObj: " + randomWordObj.nodeId);
-          wordCache.set(synWordObj.nodeId, synWordObj, wordCacheTtl);
+          wordCache.set(synWordObj.nodeId, synWordObj);
           callback('OK', synWordObj);
           return;
         }
@@ -1223,7 +1247,7 @@ function generatePrompt(query, callback){
           words.getRandomWord(function(err, randomWordObj){
             if (!err) {
               console.log("GGG GENERATE RANDOM WORD ON SYN MISS: " + randomWordObj.nodeId);
-              wordCache.set(randomWordObj.nodeId, randomWordObj, wordCacheTtl);
+              wordCache.set(randomWordObj.nodeId, randomWordObj);
               callback('OK', randomWordObj);
               return;
             }
@@ -1245,7 +1269,7 @@ function generatePrompt(query, callback){
       words.getRandomWord(function(err, randomWordObj){
         if (!err) {
           // console.log("randomWordObj: " + randomWordObj.nodeId);
-          wordCache.set(randomWordObj.nodeId, randomWordObj, wordCacheTtl);
+          wordCache.set(randomWordObj.nodeId, randomWordObj);
           callback('OK', randomWordObj);
           return;
         }
@@ -2451,6 +2475,34 @@ var readSessionQueue = setInterval(function (){
         sessionUpdateDb(sesObj.session, function(){});
         break;
 
+      case 'SESSION_EXPIRED':
+        debug(chalkSession(
+          "EXP SESSION EXPIRED"
+          // + " | NSP: " + sesObj.session.namespace
+          + " | SID: " + sesObj.sessionId
+          // + " | UID: " + sesObj.user.userId
+        ));
+
+        // var currentSession = sessionCache.get(sesObj.sessionId);
+        var currentUser = userCache.get(sesObj.session.userId);
+
+        sesObj.session.disconnectTime = moment().valueOf();
+        sessionUpdateDb(sesObj.session, function(){});
+
+        sesObj.session.wordChain.forEach(function(word){
+          console.log(chalkSession(">T< SET WORD " + word + " TTL: " + wordCacheTtl));
+          wordCache.ttl(word, wordCacheTtl);
+        });
+
+        // sessionCache.del(sesObj.session.sessionId);
+        // if (currentUser) {
+        //   userCache.del(currentUser.userId);
+        //   currentUser.connected = false;
+        //   userUpdateDb(currentUser, function(){});
+        // }
+
+        break;
+
       case 'SOCKET_DISCONNECT':
         debug(chalkSession(
           "XXX SOCKET DISCONNECT"
@@ -2459,14 +2511,23 @@ var readSessionQueue = setInterval(function (){
           // + " | UID: " + sesObj.user.userId
         ));
 
-        var currentSession = sessionCache.get(sesObj.sessionId);
-        var currentUser = userCache.get(currentSession.userId);
 
-        sessionCache.del(currentSession.sessionId);
-        if (currentUser) {
-          userCache.del(currentUser.userId);
-          currentUser.connected = false;
-          userUpdateDb(currentUser, function(){});
+        if (sesObj.session){
+          var currentUser = userCache.get(sesObj.session.userId);
+          sesObj.session.disconnectTime = moment().valueOf();
+          sessionUpdateDb(sesObj.session, function(){});
+
+          sesObj.session.wordChain.forEach(function(word){
+            console.log(chalkSession(">T< SET WORD " + word + " TTL: " + wordCacheTtl));
+            wordCache.ttl(word, wordCacheTtl);
+          });
+
+          sessionCache.del(sesObj.session.sessionId);
+          if (currentUser) {
+            userCache.del(currentUser.userId);
+            currentUser.connected = false;
+            userUpdateDb(currentUser, function(){});
+          }
         }
 
         break;
@@ -2506,7 +2567,7 @@ var readSessionQueue = setInterval(function (){
               if( !err && success ){
                 words.getRandomWord(function(err, randomWordObj){
                   if (!err) {
-                    wordCache.set(randomWordObj.nodeId, randomWordObj, wordCacheTtl);
+                    wordCache.set(randomWordObj.nodeId, randomWordObj);
                     currentSession.wordChain.push(randomWordObj.nodeId);
                     sessionUpdateDb(currentSession, function(err, sessionUpdatedObj){
                       if (!err){
@@ -2548,6 +2609,15 @@ var readResponseQueue = setInterval(function (){
     var rxInObj = responseQueue.dequeue();
 
     var responseInObj = rxInObj ;
+    var socketId = responseInObj.socketId;
+    var currentSessionObj = sessionCache.get(socketId);
+
+    if (!currentSessionObj) {
+      console.error(chalkWarn("??? SESSION NOT IN CACHE ON RESPONSE Q READ (DISCONNECTED?) " + socketId
+        + " ... ABORTING SESSION"
+      ));
+      return ; 
+    }
 
     debug(chalkBht(">>> RESPONSE (before replace): " + responseInObj.nodeId));
     responseInObj.nodeId = responseInObj.nodeId.replace(/\s+/g, ' ');
@@ -2564,16 +2634,6 @@ var readResponseQueue = setInterval(function (){
 
     updateStats({ responsesReceived: responsesReceived });
 
-    var socketId = responseInObj.socketId;
-
-    var currentSessionObj = sessionCache.get(socketId);
-
-    if (!currentSessionObj) {
-      console.error(chalkWarn("??? SESSION NOT IN CACHE ON RESPONSE Q READ (DISCONNECTED?) " + socketId
-        + " ... ABORTING SESSION"
-      ));
-      return ; 
-    }
 
     currentSessionObj.lastSeen = moment().valueOf();
 
@@ -2622,7 +2682,7 @@ var readResponseQueue = setInterval(function (){
     // ADD/UPDATE WORD IN DB
     dbUpdateWord(responseInObj, true, function(status, responseWordObj){
       if ((status == 'BHT_ERROR') || (status == 'BHT_OVER_LIMIT')) {
-        wordCache.set(responseInObj.nodeId, responseInObj, wordCacheTtl);
+        wordCache.set(responseInObj.nodeId, responseInObj);
         currentSessionObj.wordChain.push(responseInObj.nodeId);
         sessionCache.set(currentSessionObj.sessionId, currentSessionObj, function(err, success){
           if (!err && success) {
@@ -2640,7 +2700,7 @@ var readResponseQueue = setInterval(function (){
         });
       }
       else {
-        wordCache.set(responseWordObj.nodeId, responseWordObj, wordCacheTtl);
+        wordCache.set(responseWordObj.nodeId, responseWordObj);
         currentSessionObj.wordChain.push(responseWordObj.nodeId);
         sessionCache.set(currentSessionObj.sessionId, currentSessionObj, function(err, success){
           if (!err && success) {
@@ -2716,7 +2776,7 @@ var readPromptQueue = setInterval(function (){
         console.log(chalkError("**** generatePrompt ERROR\n" + jsonPrint(responseObj)))
       }
       else if (status == 'OK') {
-        wordCache.set(responseObj.nodeId, responseObj, wordCacheTtl);
+        wordCache.set(responseObj.nodeId, responseObj);
         currentSession.wordChain.push(responseObj.nodeId);
 
         sessionUpdateDb(currentSession, function(err, sessionUpdatedObj){
@@ -3127,7 +3187,8 @@ function createSession (newSessionObj){
 
   socket.on("disconnect", function(){
     console.log(chalkDisconnect(moment().format(defaultDateTimeFormat) + " | SOCKET DISCONNECT: " + socket.id));
-    sessionQueue.enqueue({sessionEvent: "SOCKET_DISCONNECT", sessionId: socket.id});
+    var sessionObj = sessionCache.get(socket.id) ;
+    sessionQueue.enqueue({sessionEvent: "SOCKET_DISCONNECT", sessionId: socket.id, session: sessionObj});
     debug(chalkDisconnect("\nDISCONNECTED SOCKET " + util.inspect(socket, {showHidden: false, depth: 1})));
   });
 
@@ -3268,13 +3329,11 @@ function createSession (newSessionObj){
       setBhtReqs(newBhtRequests);
     }
   });
-
-
-
 }
 
 
 adminNameSpace.on('connect', function(socket){
+  console.log(chalkAdmin("ADMIN CONNECT"));
   createSession({namespace:"admin", socket: socket});
 
   socket.on('SET_WORD_CACHE_TTL', function(value){
@@ -3320,7 +3379,6 @@ var metricsInterval = setInterval(function () {
   if (!disableGoogleMetrics && googleMetricsEnabled) {
     updateMetrics();
   }
-
 }, 1000);
 
 
@@ -3361,8 +3419,14 @@ function initAppRouting(){
     return;
   });
 
+  app.get('/admin', function(req, res){
+    console.log("LOADING PAGE: /admin/admin.html");
+    res.sendFile(__dirname + '/admin/admin.html');
+    return;
+  });
+
   app.get('/admin/admin.html', function(req, res){
-    debug("LOADING PAGE: /admin/admin.html");
+    console.log("LOADING PAGE: /admin/admin.html");
     res.sendFile(__dirname + '/admin/admin.html');
     return;
   });
@@ -3399,12 +3463,6 @@ function initAppRouting(){
   app.get('/js/libs/sessionView.js', function(req, res){
     debug("LOADING FILE: sessionView.js");
     res.sendFile(__dirname + '/js/libs/sessionView.js');
-    return;
-  });
-
-  app.get('/admin/admin.html', function(req, res){
-    debug("LOADING PAGE: /admin/admin.html");
-    res.sendFile(__dirname + '/admin/admin.html');
     return;
   });
 

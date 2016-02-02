@@ -79,9 +79,9 @@ function getUrlVariables(config){
 
 function sendUserResponse(){
   // var userResponseValue = document.getElementById("userResponse").value.trim() ;
-  console.log("RAW INPUT: " + document.getElementById("userResponse").value);
+  console.log("RAW INPUT: " + document.getElementById("userResponseInput").value);
 
-  var userResponseValue = document.getElementById("userResponse").value.replace(/\s+/g, ' ') ;
+  var userResponseValue = document.getElementById("userResponseInput").value.replace(/\s+/g, ' ') ;
   // userResponseValue = userResponseValue.replace(/^\s+|\s+$|\n+|\r+|\?+|\`+|\!+|\@+|\#+|\$+|\%+|\^+|\&+|\*+|\(+|\)+|\_+|\++|\=+|\^+/g, '') ;
   userResponseValue = userResponseValue.replace(/[\n\r\[\]\{\}\<\>\/\;\:\"\'\`\~\?\!\@\#\$\%\^\&\*\(\)\_\+\=]+/g, '') ;
   userResponseValue = userResponseValue.replace(/\s+/g, ' ') ;
@@ -99,7 +99,7 @@ function sendUserResponse(){
   else {
     console.log("TX WORD: '" + userResponseValue + "'");
     socket.emit("RESPONSE_WORD_OBJ", {nodeId: userResponseValue});
-    var wordInText = document.getElementById("userResponse");
+    var wordInText = document.getElementById("userResponseInput");
     console.log("wordInText: " + wordInText.value);
     wordInText.value = "";
   }
@@ -114,12 +114,13 @@ socketIdDiv.appendChild(socketIdLabel);
 function addUserResponse() {
   var userResponseInput = document.createElement("input");
   var userResponseLabel = document.createElement("label");
+  userResponseLabel.setAttribute("id", "userResponseLabel");
 
   userResponseLabel.innerHTML = "YOU RESPOND: ";   
 
   userResponseInput.setAttribute("class", "userResponse");
   userResponseInput.setAttribute("type", "text");
-  userResponseInput.setAttribute("id", "userResponse");
+  userResponseInput.setAttribute("id", "userResponseInput");
   userResponseInput.setAttribute("name", "userResponse");
   userResponseInput.setAttribute("autofocus", true);
   userResponseInput.setAttribute("autocapitalize", "none");
@@ -134,12 +135,13 @@ function addUserResponse() {
 function addServerPrompt() {
   var serverPromptOutput = document.createElement("output"); 
   var serverPromptLabel = document.createElement("label");
+  serverPromptLabel.setAttribute("id", "serverPromptLabel");
 
   serverPromptLabel.innerHTML = "SERVER SAYS: ";   
 
   serverPromptOutput.setAttribute("class", "serverPrompt");
   serverPromptOutput.setAttribute("type", "text");
-  serverPromptOutput.setAttribute("id", "serverPrompt");
+  serverPromptOutput.setAttribute("id", "serverPromptOutput");
   serverPromptOutput.setAttribute("name", "serverPrompt");
   serverPromptOutput.setAttribute("value", "");
   serverPromptOutput.innerHTML = "";   
@@ -151,7 +153,7 @@ function addServerPrompt() {
 
 function updateServerPrompt(prompt){
   if (debug) console.log("updateServerPrompt: " + prompt);
-  var serverPromptOutputText = document.getElementById("serverPrompt");
+  var serverPromptOutputText = document.getElementById("serverPromptOutput");
   serverPromptOutputText.innerHTML = prompt;
 }
 
@@ -164,12 +166,31 @@ socket.on("PROMPT_WORD", function(promptWord){
 var responseTimeoutInterval = 3000 ;
 var autoResponseWord = "testing";
 
+socket.on("SESSION_EXPIRED", function(reason){
+  console.log("**** RX SESSION_EXPIRED: " + reason);
+  var serverPromptDiv = document.getElementById("serverPromptDiv");
+  var serverPromptLabel = document.getElementById("serverPromptLabel");
+  var serverPromptOutput = document.getElementById("serverPromptOutput");
+  serverPromptDiv.removeChild(serverPromptOutput);
+  serverPromptDiv.removeChild(serverPromptLabel);
+
+  var userResponseDiv = document.getElementById("userResponseDiv");
+  var userResponseLabel = document.getElementById("userResponseLabel");
+  var userResponseInput = document.getElementById("userResponseInput");
+  userResponseDiv.removeChild(userResponseInput);
+  userResponseDiv.removeChild(userResponseLabel);
+
+
+  socketIdLabel.innerHTML = '<bold>*** SESSION EXPIRED ***</bold>'  + '<br><br>' + 'REFRESH BROWSER TO RECONNECT' + '<br><br>EXPIRED SESSION: ' + socket.id;   
+
+});
+
 socket.on("RANDOM_WORD", function(randomWord){
 
   console.log("RX RANDOM_WORD: " + randomWord);
   autoResponseWord = randomWord ;
 
-  var userResponseValue = document.getElementById("userResponse") ;
+  var userResponseValue = document.getElementById("userResponseInput") ;
   var charIndex = 0;
   var charArray = [];
 

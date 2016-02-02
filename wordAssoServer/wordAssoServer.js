@@ -103,6 +103,7 @@ var wordAssoServerStatsObj = {
 
   "promptsSent" : 0,
   "responsesReceived" : 0,
+  "deltaResponsesReceived" : 0,
   "sessionUpdatesSent" : 0,
 
   "bhtRequests" : 0,
@@ -2105,7 +2106,7 @@ var deltaMwRequests = 0;
 var metricDateStart = moment().toJSON();
 var metricDateEnd = moment().toJSON();  
 
-function updateMetrics(){
+function updateMetrics(googleMetricsUpdateFlag){
 
   if (heartbeatsSent%100 == 0) updateStatsCounts();
 
@@ -2121,10 +2122,6 @@ function updateMetrics(){
     + " | BHTR: " + bhtRequests
     );
 
-  if (typeof googleMonitoring === 'undefined'){
-    console.error("updateMetrics: googleMonitoring UNDEFINED ... SKIPPING METRICS UPDATE");
-    return null;
-  }
 
   // name: custom.cloudmonitoring.googleapis.com/word-asso/clients/numberUsers
   // label key: custom.cloudmonitoring.googleapis.com/word-asso/clients/numberUsers
@@ -2146,270 +2143,274 @@ function updateMetrics(){
     totalWords
   ];
 
+  if (googleMetricsUpdateFlag && (typeof googleMonitoring !== 'undefined')){
+    googleMonitoring.timeseries.write({
 
-  googleMonitoring.timeseries.write({
+      'project': GOOGLE_PROJECT_ID,
 
-    'project': GOOGLE_PROJECT_ID,
+      'resource': {
 
-    'resource': {
+         "timeseries": [
 
-       "timeseries": [
-
-        {
-         "point": {
-          "int64Value": numberUsers,
-          "start": metricDateStart,
-          "end": metricDateEnd
-         },
-         "timeseriesDesc": {
-          "labels": { 
-            "custom.cloudmonitoring.googleapis.com/word-asso/users/numberUsers" : "NUMBER USERS"
+          {
+           "point": {
+            "int64Value": numberUsers,
+            "start": metricDateStart,
+            "end": metricDateEnd
+           },
+           "timeseriesDesc": {
+            "labels": { 
+              "custom.cloudmonitoring.googleapis.com/word-asso/users/numberUsers" : "NUMBER USERS"
+            },
+            "metric": "custom.cloudmonitoring.googleapis.com/word-asso/users"
+           }
           },
-          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/users"
-         }
-        },
 
-        {
-         "point": {
-          "int64Value": numberTestUsers,
-          "start": metricDateStart,
-          "end": metricDateEnd
-         },
-         "timeseriesDesc": {
-          "labels": { 
-            "custom.cloudmonitoring.googleapis.com/word-asso/users/numberTestUsers" : "NUMBER TEST USERS"
+          {
+           "point": {
+            "int64Value": numberTestUsers,
+            "start": metricDateStart,
+            "end": metricDateEnd
+           },
+           "timeseriesDesc": {
+            "labels": { 
+              "custom.cloudmonitoring.googleapis.com/word-asso/users/numberTestUsers" : "NUMBER TEST USERS"
+            },
+            "metric": "custom.cloudmonitoring.googleapis.com/word-asso/users"
+           }
           },
-          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/users"
-         }
-        },
 
-        {
-         "point": {
-          "int64Value": numberViewers,
-          "start": metricDateStart,
-          "end": metricDateEnd
-         },
-         "timeseriesDesc": {
-          "labels": { 
-            "custom.cloudmonitoring.googleapis.com/word-asso/viewers/numberViewers" : "NUMBER VIEWERS"
+          {
+           "point": {
+            "int64Value": numberViewers,
+            "start": metricDateStart,
+            "end": metricDateEnd
+           },
+           "timeseriesDesc": {
+            "labels": { 
+              "custom.cloudmonitoring.googleapis.com/word-asso/viewers/numberViewers" : "NUMBER VIEWERS"
+            },
+            "metric": "custom.cloudmonitoring.googleapis.com/word-asso/viewers"
+           }
           },
-          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/viewers"
-         }
-        },
 
-        {
-         "point": {
-          "int64Value": numberTestViewers,
-          "start": metricDateStart,
-          "end": metricDateEnd
-         },
-         "timeseriesDesc": {
-          "labels": { 
-            "custom.cloudmonitoring.googleapis.com/word-asso/viewers/numberTestViewers" : "NUMBER TEST VIEWERS"
+          {
+           "point": {
+            "int64Value": numberTestViewers,
+            "start": metricDateStart,
+            "end": metricDateEnd
+           },
+           "timeseriesDesc": {
+            "labels": { 
+              "custom.cloudmonitoring.googleapis.com/word-asso/viewers/numberTestViewers" : "NUMBER TEST VIEWERS"
+            },
+            "metric": "custom.cloudmonitoring.googleapis.com/word-asso/viewers"
+           }
           },
-          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/viewers"
-         }
-        },
 
-        {
-         "point": {
-          "int64Value": parseInt(100.0*(memoryTotal - memoryAvailable)/memoryTotal),
-          "start": metricDateStart,
-          "end": metricDateEnd
-         },
-         "timeseriesDesc": {
-          "labels": { 
-            "custom.cloudmonitoring.googleapis.com/word-asso/memory/memoryUsed" : "MEMORY USED"
+          {
+           "point": {
+            "int64Value": parseInt(100.0*(memoryTotal - memoryAvailable)/memoryTotal),
+            "start": metricDateStart,
+            "end": metricDateEnd
+           },
+           "timeseriesDesc": {
+            "labels": { 
+              "custom.cloudmonitoring.googleapis.com/word-asso/memory/memoryUsed" : "MEMORY USED"
+            },
+            "metric": "custom.cloudmonitoring.googleapis.com/word-asso/memory/memoryUsed"
+           }
           },
-          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/memory/memoryUsed"
-         }
-        },
 
-        {
-         "point": {
-          "int64Value": wordCache.getStats().keys,
-          "start": metricDateStart,
-          "end": metricDateEnd
-         },
-         "timeseriesDesc": {
-          "labels": { 
-            "custom.cloudmonitoring.googleapis.com/word-asso/word-cache/wordCacheKeys" : "WORD CACHE KEYS"
+          {
+           "point": {
+            "int64Value": wordCache.getStats().keys,
+            "start": metricDateStart,
+            "end": metricDateEnd
+           },
+           "timeseriesDesc": {
+            "labels": { 
+              "custom.cloudmonitoring.googleapis.com/word-asso/word-cache/wordCacheKeys" : "WORD CACHE KEYS"
+            },
+            "metric": "custom.cloudmonitoring.googleapis.com/word-asso/word-cache/wordCacheKeys"
+           }
           },
-          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/word-cache/wordCacheKeys"
-         }
-        },
 
-        {
-         "point": {
-          "int64Value": wordCache.getStats().hits,
-          "start": metricDateStart,
-          "end": metricDateEnd
-         },
-         "timeseriesDesc": {
-          "labels": { 
-            "custom.cloudmonitoring.googleapis.com/word-asso/word-cache/wordCacheHits" : "WORD CACHE HITS"
+          {
+           "point": {
+            "int64Value": wordCache.getStats().hits,
+            "start": metricDateStart,
+            "end": metricDateEnd
+           },
+           "timeseriesDesc": {
+            "labels": { 
+              "custom.cloudmonitoring.googleapis.com/word-asso/word-cache/wordCacheHits" : "WORD CACHE HITS"
+            },
+            "metric": "custom.cloudmonitoring.googleapis.com/word-asso/word-cache"
+           }
           },
-          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/word-cache"
-         }
-        },
 
-        {
-         "point": {
-          "int64Value": wordCache.getStats().misses,
-          "start": metricDateStart,
-          "end": metricDateEnd
-         },
-         "timeseriesDesc": {
-          "labels": { 
-            "custom.cloudmonitoring.googleapis.com/word-asso/word-cache/wordCacheMisses" : "WORD CACHE MISSES"
+          {
+           "point": {
+            "int64Value": wordCache.getStats().misses,
+            "start": metricDateStart,
+            "end": metricDateEnd
+           },
+           "timeseriesDesc": {
+            "labels": { 
+              "custom.cloudmonitoring.googleapis.com/word-asso/word-cache/wordCacheMisses" : "WORD CACHE MISSES"
+            },
+            "metric": "custom.cloudmonitoring.googleapis.com/word-asso/word-cache"
+           }
           },
-          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/word-cache"
-         }
-        },
 
-        {
-         "point": {
-          "int64Value": parseInt(100 * wordCache.getStats().hits/(1 + wordCache.getStats().misses)),
-          "start": metricDateStart,
-          "end": metricDateEnd
-         },
-         "timeseriesDesc": {
-          "labels": { 
-            "custom.cloudmonitoring.googleapis.com/word-asso/word-cache/wordCacheHitMissRatio" : "WORD CACHE HIT/MISS RATIO"
+          {
+           "point": {
+            "int64Value": parseInt(100 * wordCache.getStats().hits/(1 + wordCache.getStats().misses)),
+            "start": metricDateStart,
+            "end": metricDateEnd
+           },
+           "timeseriesDesc": {
+            "labels": { 
+              "custom.cloudmonitoring.googleapis.com/word-asso/word-cache/wordCacheHitMissRatio" : "WORD CACHE HIT/MISS RATIO"
+            },
+            "metric": "custom.cloudmonitoring.googleapis.com/word-asso/word-cache/wordCacheHitMissRatio"
+           }
           },
-          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/word-cache/wordCacheHitMissRatio"
-         }
-        },
 
-        {
-         "point": {
-          "int64Value": promptsSent,
-          "start": metricDateStart,
-          "end": metricDateEnd
-         },
-         "timeseriesDesc": {
-          "labels": { 
-            "custom.cloudmonitoring.googleapis.com/word-asso/prompts/totalPromptsSent" : "PROMPTS SENT"
+          {
+           "point": {
+            "int64Value": promptsSent,
+            "start": metricDateStart,
+            "end": metricDateEnd
+           },
+           "timeseriesDesc": {
+            "labels": { 
+              "custom.cloudmonitoring.googleapis.com/word-asso/prompts/totalPromptsSent" : "PROMPTS SENT"
+            },
+            "metric": "custom.cloudmonitoring.googleapis.com/word-asso/prompts/totalPromptsSent"
+           }
           },
-          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/prompts/totalPromptsSent"
-         }
-        },
 
-        {
-         "point": {
-          "int64Value": deltaPromptsSent,
-          "start": metricDateStart,
-          "end": metricDateEnd
-         },
-         "timeseriesDesc": {
-          "labels": { 
-            "custom.cloudmonitoring.googleapis.com/word-asso/prompts/deltaPromptsSent" : "DELTA PROMPTS SENT"
+          {
+           "point": {
+            "int64Value": deltaPromptsSent,
+            "start": metricDateStart,
+            "end": metricDateEnd
+           },
+           "timeseriesDesc": {
+            "labels": { 
+              "custom.cloudmonitoring.googleapis.com/word-asso/prompts/deltaPromptsSent" : "DELTA PROMPTS SENT"
+            },
+            "metric": "custom.cloudmonitoring.googleapis.com/word-asso/prompts/deltaPromptsSent"
+           }
           },
-          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/prompts/deltaPromptsSent"
-         }
-        },
 
-        {
-         "point": {
-          "int64Value": responsesReceived,
-          "start": metricDateStart,
-          "end": metricDateEnd
-         },
-         "timeseriesDesc": {
-          "labels": { 
-            "custom.cloudmonitoring.googleapis.com/word-asso/responses/totalResponsesReceived" : "RESPONSES RECEIVED"
+          {
+           "point": {
+            "int64Value": responsesReceived,
+            "start": metricDateStart,
+            "end": metricDateEnd
+           },
+           "timeseriesDesc": {
+            "labels": { 
+              "custom.cloudmonitoring.googleapis.com/word-asso/responses/totalResponsesReceived" : "RESPONSES RECEIVED"
+            },
+            "metric": "custom.cloudmonitoring.googleapis.com/word-asso/responses/totalResponsesReceived"
+           }
           },
-          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/responses/totalResponsesReceived"
-         }
-        },
 
-        {
-         "point": {
-          "int64Value": deltaResponsesReceived,
-          "start": metricDateStart,
-          "end": metricDateEnd
-         },
-         "timeseriesDesc": {
-          "labels": { 
-            "custom.cloudmonitoring.googleapis.com/word-asso/responses/deltaResponsesReceived" : "DELTA RESPONSES RECEIVED"
+          {
+           "point": {
+            "int64Value": deltaResponsesReceived,
+            "start": metricDateStart,
+            "end": metricDateEnd
+           },
+           "timeseriesDesc": {
+            "labels": { 
+              "custom.cloudmonitoring.googleapis.com/word-asso/responses/deltaResponsesReceived" : "DELTA RESPONSES RECEIVED"
+            },
+            "metric": "custom.cloudmonitoring.googleapis.com/word-asso/responses/deltaResponsesReceived"
+           }
           },
-          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/responses/deltaResponsesReceived"
-         }
-        },
 
-        {
-         "point": {
-          "int64Value": deltaBhtRequests,
-          "start": metricDateStart,
-          "end": metricDateEnd
-         },
-         "timeseriesDesc": {
-          "labels": { 
-            "custom.cloudmonitoring.googleapis.com/word-asso/bht/deltaBhtRequests" : "DELTA BHT REQUESTS"
+          {
+           "point": {
+            "int64Value": deltaBhtRequests,
+            "start": metricDateStart,
+            "end": metricDateEnd
+           },
+           "timeseriesDesc": {
+            "labels": { 
+              "custom.cloudmonitoring.googleapis.com/word-asso/bht/deltaBhtRequests" : "DELTA BHT REQUESTS"
+            },
+            "metric": "custom.cloudmonitoring.googleapis.com/word-asso/bht/deltaBhtRequests"
+           }
           },
-          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/bht/deltaBhtRequests"
-         }
-        },
 
-        {
-         "point": {
-          "int64Value": bhtRequests,
-          "start": metricDateStart,
-          "end": metricDateEnd
-         },
-         "timeseriesDesc": {
-          "labels": { 
-            "custom.cloudmonitoring.googleapis.com/word-asso/bht/numberBhtRequests" : "TOTAL DAILY BHT REQUESTS"
+          {
+           "point": {
+            "int64Value": bhtRequests,
+            "start": metricDateStart,
+            "end": metricDateEnd
+           },
+           "timeseriesDesc": {
+            "labels": { 
+              "custom.cloudmonitoring.googleapis.com/word-asso/bht/numberBhtRequests" : "TOTAL DAILY BHT REQUESTS"
+            },
+            "metric": "custom.cloudmonitoring.googleapis.com/word-asso/bht/numberBhtRequests"
+           }
           },
-          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/bht/numberBhtRequests"
-         }
-        },
 
-        {
-         "point": {
-          "int64Value": totalWords,
-          "start": metricDateStart,
-          "end": metricDateEnd
-         },
-         "timeseriesDesc": {
-          "labels": { "custom.cloudmonitoring.googleapis.com/word-asso/words/totalWords" : "TOTAL WORDS IN DB"},
-          "metric": "custom.cloudmonitoring.googleapis.com/word-asso/words/totalWords"
-         }
+          {
+           "point": {
+            "int64Value": totalWords,
+            "start": metricDateStart,
+            "end": metricDateEnd
+           },
+           "timeseriesDesc": {
+            "labels": { "custom.cloudmonitoring.googleapis.com/word-asso/words/totalWords" : "TOTAL WORDS IN DB"},
+            "metric": "custom.cloudmonitoring.googleapis.com/word-asso/words/totalWords"
+           }
+          }
+
+         ]
         }
+      }, function(err, res){
+        if (err) {
+          console.error("!!! GOOGLE CLOUD MONITORING ERROR " 
+            + " | " + moment().format(defaultDateTimeFormat) 
+            + " | " + statArray
+            + "\n" + util.inspect(err, {showHidden: false, depth: 3})
+          );
 
-       ]
-      }
-    }, function(err, res){
-      if (err) {
-        console.error("!!! GOOGLE CLOUD MONITORING ERROR " 
-          + " | " + moment().format(defaultDateTimeFormat) 
-          + " | " + statArray
-          + "\n" + util.inspect(err, {showHidden: false, depth: 3})
-        );
+          if (err.code == 500){
+            console.warn(chalkGoogle("??? GOOGLE CLOUD MONITORING INTERNAL SERVER ERROR (CODE: 500)"));
+          }
 
-        if (err.code == 500){
-          console.warn(chalkGoogle("??? GOOGLE CLOUD MONITORING INTERNAL SERVER ERROR (CODE: 500)"));
+          if (err.toString().indexOf("Daily Limit Exceeded") >= 0){
+            console.error(chalkGoogle("!!! GOOGLE CLOUD MONITORING DAILY LIMIT EXCEEDED ... DISABLING METRICS"));
+            googleMetricsEnabled = false ;
+            googleOauthEvents.emit("DAILY LIMIT EXCEEDED");
+          }
+          if (err.toString().indexOf("socket hang up") >= 0){
+            console.error(chalkGoogle("!!! GOOGLE CLOUD MONITORING SOCKET HUNG UP ... DISABLING METRICS"));
+            googleMetricsEnabled = false ;
+            googleOauthEvents.emit("SOCKET HUNG UP");
+          }
         }
-
-        if (err.toString().indexOf("Daily Limit Exceeded") >= 0){
-          console.error(chalkGoogle("!!! GOOGLE CLOUD MONITORING DAILY LIMIT EXCEEDED ... DISABLING METRICS"));
-          googleMetricsEnabled = false ;
-          googleOauthEvents.emit("DAILY LIMIT EXCEEDED");
-        }
-        if (err.toString().indexOf("socket hang up") >= 0){
-          console.error(chalkGoogle("!!! GOOGLE CLOUD MONITORING SOCKET HUNG UP ... DISABLING METRICS"));
-          googleMetricsEnabled = false ;
-          googleOauthEvents.emit("SOCKET HUNG UP");
-        }
-      }
-      else {
-        debug("GOOGLE MONITORING RESULT: " + jsonPrint(res));
-      }
+        else {
+          debug("GOOGLE MONITORING RESULT: " + jsonPrint(res));
+        } 
     });
+  }
 
-    deltaPromptsSent = 0 ;
-    deltaResponsesReceived = 0 ;
-    incrementDeltaBhtReqs(0);
+  updateStats({deltaResponsesReceived: deltaResponsesReceived});
+
+  deltaPromptsSent = 0 ;
+  deltaResponsesReceived = 0 ;
+  incrementDeltaBhtReqs(0);
+
 }
 
 var readDnsQueue = setInterval(function (){
@@ -2632,7 +2633,7 @@ var readResponseQueue = setInterval(function (){
     responsesReceived++;
     deltaResponsesReceived++;
 
-    updateStats({ responsesReceived: responsesReceived });
+    updateStats({ responsesReceived: responsesReceived, deltaResponsesReceived: deltaResponsesReceived });
 
 
     currentSessionObj.lastSeen = moment().valueOf();
@@ -3023,7 +3024,7 @@ configEvents.on("SERVER_READY", function () {
 
         promptsSent : promptsSent,
         deltaPromptsSent : deltaPromptsSent,
-        deltaResponsesReceived : deltaResponsesReceived,
+        deltaResponsesReceived : wordAssoServerStatsObj.deltaResponsesReceived,
         responsesReceived : responsesReceived
 
       } ;
@@ -3136,8 +3137,6 @@ googleOauthEvents.on("SOCKET HUNG UP", function(){
 //=================================
 //  SERVER READY
 //=================================
-
-
 function createSession (newSessionObj){
 
   debug(chalkSession("\nCREATE SESSION\n" + util.inspect(newSessionObj, {showHidden: false, depth: 1})));
@@ -3334,7 +3333,6 @@ function createSession (newSessionObj){
   });
 }
 
-
 adminNameSpace.on('connect', function(socket){
   console.log(chalkAdmin("ADMIN CONNECT"));
   createSession({namespace:"admin", socket: socket});
@@ -3378,10 +3376,11 @@ configEvents.on("DATABASE_INIT_COMPLETE", function(tweetCount){
 //  METRICS INTERVAL
 //=================================
 var metricsInterval = setInterval(function () {
+var googleMetricsUpdateFlag = !disableGoogleMetrics && googleMetricsEnabled ;
 
-  if (!disableGoogleMetrics && googleMetricsEnabled) {
-    updateMetrics();
-  }
+  // if (googleMetricsUpdateFlag) {
+    updateMetrics(googleMetricsUpdateFlag);
+  // }
 }, 1000);
 
 

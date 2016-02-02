@@ -284,6 +284,7 @@
 			var progressBarPercent = 0;
 
 			var startColor = '#008000';
+			var midColor = '#F9CD2B';
 			var endColor = '#CC0000';
 
 			progressBar = new ProgressBar.Line("#progress-bar", 
@@ -1005,6 +1006,9 @@
 			progressBar.animate(heartBeat.bhtRequests/heartBeat.bhtRequestLimit);
 			if (100*heartBeat.bhtRequests/heartBeat.bhtRequestLimit >= 90) {
 				progressBar.path.setAttribute('stroke', endColor);
+			}
+			else if (100*heartBeat.bhtRequests/heartBeat.bhtRequestLimit >= 50) {
+				progressBar.path.setAttribute('stroke', midColor);
 			}
 			else {
 				progressBar.path.setAttribute('stroke', startColor);

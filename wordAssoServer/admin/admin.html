@@ -125,6 +125,16 @@
         display: block;
     }
 
+    .delta-response-bar {
+        height: 5px;
+        width: 300px;
+        background-color: #444444;
+    }
+    .delta-response-bar > svg {
+        height: 100%;
+        display: block;
+    }
+
 		</style>
 
 		<link rel="stylesheet" href="css/progressbar.css" />
@@ -164,6 +174,9 @@
 				<br>
 		    <div id="users-bar-text"></div>
 		    <div class="users-bar" id="users-bar"></div>
+				<br>
+		    <div id="delta-response-bar-text"></div>
+		    <div class="delta-response-bar" id="delta-response-bar"></div>
 				<br>
 				<br>
 	    	<table id='heartbeat_table' class'heartbeatTable'></table>
@@ -308,6 +321,11 @@
 			usersBar = new ProgressBar.Line("#users-bar", {});
 			usersBar.animate(0);
 	    var usersBarText = document.getElementById('users-bar-text');
+
+			var deltaResponseBar;
+			deltaResponseBar = new ProgressBar.Line("#delta-response-bar", {});
+			deltaResponseBar.animate(0);
+	    var deltaResponseBarText = document.getElementById('delta-response-bar-text');
 
 			var heartBeat = {} ;
 			var lastTimeoutHeartBeat = null ;
@@ -1027,6 +1045,8 @@
 					+ ' | REMAIN: ' + (heartBeat.bhtRequestLimit - heartBeat.bhtRequests)
 				;
 
+
+
 				usersBar.animate(heartBeat.numberUsers/heartBeat.maxNumberUsers);
 
 				if (100*heartBeat.numberUsers/heartBeat.maxNumberUsers >= 90) {
@@ -1040,6 +1060,25 @@
 				}
 
 				usersBarText.innerHTML = (heartBeat.numberUsers) + ' USERS | ' + (heartBeat.maxNumberUsers) + ' MAX USERS';
+
+
+
+				deltaResponseBar.animate(heartBeat.deltaResponsesReceived/100);
+
+				if (heartBeat.deltaResponsesReceived >= 90) {
+					deltaResponseBar.path.setAttribute('stroke', endColor);
+				}
+				else if (heartBeat.deltaResponsesReceived >= 50) {
+					deltaResponseBar.path.setAttribute('stroke', midColor);
+				}
+				else {
+					deltaResponseBar.path.setAttribute('stroke', startColor);
+				}
+
+				deltaResponseBarText.innerHTML = (heartBeat.deltaResponsesReceived) + ' RESPONSES';
+
+
+
 
 		    var heatbeatTable = document.getElementById('heartbeat_table');
 

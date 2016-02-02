@@ -3022,6 +3022,8 @@ configEvents.on("SERVER_READY", function () {
         totalUsers : totalUsers,
 
         promptsSent : promptsSent,
+        deltaPromptsSent : deltaPromptsSent,
+        deltaResponsesReceived : deltaResponsesReceived,
         responsesReceived : responsesReceived
 
       } ;

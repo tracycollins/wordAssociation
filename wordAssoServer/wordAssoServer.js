@@ -39,6 +39,24 @@ var HashMap = require('hashmap').HashMap;
 var EventEmitter2 = require('eventemitter2').EventEmitter2;
 var EventEmitter = require("events").EventEmitter;
 
+var statsLogger = require('stats-logger').createInstance(
+  10*ONE_SECOND, 
+  'file', 
+  {
+    filename: "./" + os.hostname() +  "_wordAssoServerStats.log", 
+    outputFormat: "{lastFlushTime}"
+      + " | {numberViewers} V"
+      + " | {numberViewersMax} V MAX"
+      + " | {numberUsers} U"
+      + " | {numberUsersMax} U MAX"
+      + " | {numberTestUsers} TEST U"
+      + " | {numberTestUsersMax} TEST U MAX"
+      + " | {numberUsersTotal} TOTAL U"
+      + " | {numberUsersTotalMax} TOTAL U MAX"
+      // + " | CACHE K:{wordCacheKeys} H:{wordCacheHits} M:{wordCacheMisses} VS:{wordCacheVsize} KS:{wordCacheKsize}"
+  }
+);
+
 
 // ==================================================================
 // SERVER STATUS
@@ -61,6 +79,20 @@ var heartbeatsSent = 0;
 
 var maxNumberUsers = 0;
 var maxNumberUsersTime = moment();
+
+statsLogger.addStat("numberViewers", "snapshot", {initialValue: 0});
+statsLogger.addStat("numberViewersMax", "max", {initialValue: 0, suppressReset: true});
+
+statsLogger.addStat("numberUsersTotal", "snapshot", {initialValue: 0});
+statsLogger.addStat("numberUsersTotalMax", "max", {initialValue: 0, suppressReset: true});
+
+statsLogger.addStat("numberUsers", "snapshot", {initialValue: 0});
+statsLogger.addStat("numberUsersMax", "max", {initialValue: 0, suppressReset: true});
+
+statsLogger.addStat("numberTestUsers", "snapshot", {initialValue: 0});
+statsLogger.addStat("numberTestUsersMax", "max", {initialValue: 0, suppressReset: true});
+
+statsLogger.start();
 
 console.log(
   '\n\n====================================================================================================\n' 
@@ -356,7 +388,7 @@ function saveStats (dropboxHostStatsFile, wordAssoServerStatsObj, callback){
       callback(error);
     }
     else {
-      console.log(chalkLog(moment().format(defaultDateTimeFormat) + " | SAVED STATUS | FILE: " + dropboxHostStatsFile));
+      debug(chalkLog("... SAVED STATS | " + dropboxHostStatsFile));
       // console.log(chalkLog(moment().format(defaultDateTimeFormat) + " | SAVED STATUS | STATUS\n" + jsonPrint(wordAssoServerStatsObj)));
       callback('OK');
     }
@@ -696,25 +728,25 @@ sessionCache.on( "expired", function(sessionId, sessionObj){
   sessionQueue.enqueue({sessionEvent: "SESSION_EXPIRED", sessionId: sessionId, session: sessionObj});
   io.of(sessionObj.namespace).to(sessionObj.sessionId).emit("SESSION_EXPIRED", "IDLE_TIMEOUT");
   debug("CACHE SESSION EXPIRED\n" + jsonPrint(sessionObj));
-  console.log("CACHE SESSION EXPIRED | " + sessionObj.sessionId 
-    + " | LAST SEEN: " + getTimeStamp(sessionObj.lastSeen)
-    + " | AGO: " + msToTime(moment().valueOf() - sessionObj.lastSeen)
-    + " | WORDS: " + sessionObj.wordChain.length
-    + " | KEYS: " + sessionCache.getStats().keys
-    + " | HITS: " + sessionCache.getStats().hits
-    + " | MISSES: " + sessionCache.getStats().misses
+  console.log("... CACHE SESS EXPIRED | " + sessionObj.sessionId 
+    + " | LS: " + getTimeStamp(sessionObj.lastSeen)
+    + " | " + msToTime(moment().valueOf() - sessionObj.lastSeen)
+    + " | W: " + sessionObj.wordChain.length
+    + " | K: " + sessionCache.getStats().keys
+    + " | H: " + sessionCache.getStats().hits
+    + " | M: " + sessionCache.getStats().misses
   );
 });
 
 wordCache.on( "expired", function(word, wordObj){
   debug("CACHE WORD EXPIRED\n" + jsonPrint(wordObj));
-  console.log("CACHE WORD EXPIRED | " + wordObj.nodeId 
-    + " | LAST SEEN: " + getTimeStamp(wordObj.lastSeen)
-    + " | AGO: " + msToTime(moment().valueOf() - wordObj.lastSeen)
+  console.log("... CACHE WORD EXPIRED | " + wordObj.nodeId 
+    + " | LS: " + getTimeStamp(wordObj.lastSeen)
+    + " | " + msToTime(moment().valueOf() - wordObj.lastSeen)
     + " | M: " + wordObj.mentions
-    + " | KEYS: " + wordCache.getStats().keys
-    + " | HITS: " + wordCache.getStats().hits
-    + " | MISSES: " + wordCache.getStats().misses
+    + " | K: " + wordCache.getStats().keys
+    + " | H: " + wordCache.getStats().hits
+    + " | M: " + wordCache.getStats().misses
   );
 });
 
@@ -905,8 +937,8 @@ function sendPrompt(sessionObj, promptWordObj){
       sourceWordObj = wordCache.get(previousResponse);
 
       debug("CHAIN: " + currentSession.wordChain);
-      console.log(chalkPrompt("P -->"
-        + " | " + currentUser.userId 
+      console.log(chalkPrompt("P-> "
+        + currentUser.userId 
         + " | " + sessionObj.sessionId 
         + " | " + previousResponse + " --> " + promptWordObj.nodeId));
 
@@ -914,8 +946,8 @@ function sendPrompt(sessionObj, promptWordObj){
 
       sourceWordObj = promptWordObj;
 
-      console.log(chalkPrompt("P -->"
-        + " | " + currentUser.userId 
+      console.log(chalkPrompt("P-> "
+        + currentUser.userId 
         + " | " + sessionObj.sessionId 
         + " | START --> " + promptWordObj.nodeId));
     }
@@ -1201,7 +1233,7 @@ function bhtHttpGet(host, path, wordObj, callback){
 }
 
 function generatePrompt(query, callback){
-  // console.log("generatePrompt: " + query.input + " | OPTIONS: " + jsonPrint(query));
+  console.log("->- GEN PROMPT | " + query.input + " | " + query.algorithm.toUpperCase());
 
 // wordVariations = [ 'syn', 'ant', 'rel', 'sim', 'usr' ]
 
@@ -1217,7 +1249,7 @@ function generatePrompt(query, callback){
         else if (status == 'BHT_VAR_MISS') {
           words.getRandomWord(function(err, randomWordObj){
             if (!err) {
-              console.log("GGG GENERATE RANDOM WORD ON ANT MISS: " + randomWordObj.nodeId);
+              console.log("-G- GEN RANDOM - ANT MISS: " + randomWordObj.nodeId);
               wordCache.set(randomWordObj.nodeId, randomWordObj);
               callback('OK', randomWordObj);
               return;
@@ -1247,7 +1279,7 @@ function generatePrompt(query, callback){
         else if (status == 'BHT_VAR_MISS') {
           words.getRandomWord(function(err, randomWordObj){
             if (!err) {
-              console.log("GGG GENERATE RANDOM WORD ON SYN MISS: " + randomWordObj.nodeId);
+              console.log("-G- GEN RANDOM - SYN MISS: " + randomWordObj.nodeId);
               wordCache.set(randomWordObj.nodeId, randomWordObj);
               callback('OK', randomWordObj);
               return;
@@ -1709,12 +1741,12 @@ function userUpdateDb (userObj, callback) {
       }
       else {
         console.log(">>> USER UPDATED" 
-          + " | ID: " + us.userId
+          + " | " + us.userId
           + " | SN: " + us.screenName 
-          + " | DES: " + us.description 
-          + " | URL: " + us.url 
-          + " | PURL: " + us.profileUrl 
-          + " | PIURL: " + us.profileImageUrl 
+          // + " | DES: " + us.description 
+          // + " | URL: " + us.url 
+          // + " | PURL: " + us.profileUrl 
+          // + " | PIURL: " + us.profileImageUrl 
           + " | VER: " + us.verified
           + " | LS: " + getTimeStamp(us.lastSeen)
           + " | SES: " + us.sessions.length
@@ -2573,7 +2605,7 @@ var readSessionQueue = setInterval(function (){
                     sessionUpdateDb(currentSession, function(err, sessionUpdatedObj){
                       if (!err){
                         sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
-                        console.log(chalkSession("DB UPDATED SESSION"
+                        debug(chalkInfo("-S- DB UPDATE"
                           + " | " + sessionUpdatedObj.sessionId
                           + " | WCL: " + sessionUpdatedObj.wordChain.length
                         ));
@@ -2661,8 +2693,8 @@ var readResponseQueue = setInterval(function (){
       return;
     }
 
-    console.log(chalkResponse("R <--"
-      + " | " + currentSessionObj.userId 
+    console.log(chalkResponse("R<- "
+      + currentSessionObj.userId 
       + " | " + socketId 
       + " | " + responseInObj.nodeId + " <-- " + previousPrompt));
 
@@ -2674,10 +2706,10 @@ var readResponseQueue = setInterval(function (){
     var responseCacheObj = wordCache.get(responseInObj.nodeId); 
 
     if (responseCacheObj) {
-      console.log(chalkRed(".W. WORD CACHE HIT  | " + responseInObj.nodeId));
+      console.log(chalkRed(".W. CACHE HIT  | " + responseInObj.nodeId));
     }
     else {
-      console.log(chalkInfo(".w. WORD CACHE MISS | " + responseInObj.nodeId));
+      console.log(chalkInfo(".w. CACHE MISS | " + responseInObj.nodeId));
     }
 
     // ADD/UPDATE WORD IN DB
@@ -2768,7 +2800,7 @@ var readPromptQueue = setInterval(function (){
 
     var randomIndex = randomInt(0, algorithms.length);
     currentAlgorithm = algorithms[randomIndex];
-    console.log("[-] CURRENT ALGORITHM: " + currentAlgorithm);
+    // console.log("[-] CURRENT ALGORITHM: " + currentAlgorithm);
 
     var query = { input: currentResponse, algorithm: currentAlgorithm};
 
@@ -2783,7 +2815,7 @@ var readPromptQueue = setInterval(function (){
         sessionUpdateDb(currentSession, function(err, sessionUpdatedObj){
           if (!err){
             sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
-            console.log(chalkSession("DB UPDATED SESSION"
+            debug(chalkInfo("-S- DB UPDATE"
               + " | " + sessionUpdatedObj.sessionId
               + " | WCL: " + sessionUpdatedObj.wordChain.length
             ));
@@ -2959,19 +2991,26 @@ configEvents.on("SERVER_READY", function () {
 
     debug(util.inspect(userNameSpace.connected, {showHidden: false, depth: 1}))
 
-    numberAdmins = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
-    numberUtils = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
-    numberUsers = Object.keys(userNameSpace.connected).length; // userNameSpace.sockets.length ;
-    numberTestUsers = Object.keys(testUsersNameSpace.connected).length; // userNameSpace.sockets.length ;
-    numberViewers = Object.keys(viewNameSpace.connected).length; // userNameSpace.sockets.length ;
-    numberTestViewers = Object.keys(testViewersNameSpace.connected).length; // userNameSpace.sockets.length ;
+    // numberAdmins = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
+    // numberUtils = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
+    // numberUsers = Object.keys(userNameSpace.connected).length; // userNameSpace.sockets.length ;
+    // numberTestUsers = Object.keys(testUsersNameSpace.connected).length; // userNameSpace.sockets.length ;
+    // numberViewers = Object.keys(viewNameSpace.connected).length; // userNameSpace.sockets.length ;
+    // numberTestViewers = Object.keys(testViewersNameSpace.connected).length; // userNameSpace.sockets.length ;
 
-    if (numberUsers > maxNumberUsers) {
-      maxNumberUsers = numberUsers;
-      maxNumberUsersTime = currentTime;
-      console.log(chalkAlert("NEW MAX CLIENTS CONNECTED: " + maxNumberUsers 
-        + " | " + moment().format(defaultDateTimeFormat)));
-    }
+    // if (numberUsers > maxNumberUsers) {
+    //   maxNumberUsers = numberUsers;
+    //   maxNumberUsersTime = currentTime;
+    //   console.log(chalkAlert("NEW MAX CLIENTS CONNECTED: " + maxNumberUsers 
+    //     + " | " + moment().format(defaultDateTimeFormat)));
+    // }
+
+    // if (numberUsers > maxNumberUsers) {
+    //   maxNumberUsers = numberUsers;
+    //   maxNumberUsersTime = currentTime;
+    //   console.log(chalkAlert("NEW MAX CLIENTS CONNECTED: " + maxNumberUsers 
+    //     + " | " + moment().format(defaultDateTimeFormat)));
+    // }
 
     runTime =  moment() - startTime ;
 
@@ -3218,9 +3257,9 @@ function createSession (newSessionObj){
       ));
       return;
     }
-    console.log(chalkConnect(moment().format(defaultDateTimeFormat) 
-      + " | USER_READY: " + userObj.userId
+    console.log(chalkConnect("--- USER READY   | " + userObj.userId
       + " | SID: " + sessionObj.sessionId
+      + " | " + moment().format(defaultDateTimeFormat)
     ));
 
     sessionQueue.enqueue({sessionEvent: "USER_READY", session: sessionObj, user: userObj});
@@ -3375,12 +3414,72 @@ configEvents.on("DATABASE_INIT_COMPLETE", function(tweetCount){
 //=================================
 //  METRICS INTERVAL
 //=================================
-var metricsInterval = setInterval(function () {
-var googleMetricsUpdateFlag = !disableGoogleMetrics && googleMetricsEnabled ;
+var numberUsersTotal = 0;
 
-  // if (googleMetricsUpdateFlag) {
-    updateMetrics(googleMetricsUpdateFlag);
-  // }
+var metricsInterval = setInterval(function () {
+
+  numberAdmins = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
+  numberUtils = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
+  numberUsers = Object.keys(userNameSpace.connected).length; // userNameSpace.sockets.length ;
+  numberTestUsers = Object.keys(testUsersNameSpace.connected).length; // userNameSpace.sockets.length ;
+  numberViewers = Object.keys(viewNameSpace.connected).length; // userNameSpace.sockets.length ;
+  numberTestViewers = Object.keys(testViewersNameSpace.connected).length; // userNameSpace.sockets.length ;
+
+  numberUsersTotal = numberUsers + numberTestUsers ;
+
+  statsLogger.recordStat('numberViewers', numberViewers);
+  statsLogger.recordStat('numberUsers', numberUsers);
+  statsLogger.recordStat('numberTestUsers', numberTestUsers);
+  statsLogger.recordStat('numberUsersTotal', numberUsersTotal);
+
+  if (statsLogger.getStatValue('numberViewers') > statsLogger.getStatValue('numberViewersMax')) {
+    maxNumberUsersTime = moment().valueOf();
+    statsLogger.recordStat('numberViewersMax', numberViewers);
+    console.log(chalkAlert("... NEW TOTAL MAX VIEWERS"
+      + " | " + statsLogger.getStatValue('numberViewersMax') 
+      + " | " + moment().format(defaultDateTimeFormat)));
+  }
+  else{
+    statsLogger.recordStat('numberViewersMax', numberViewers);
+  }
+
+  if (statsLogger.getStatValue('numberUsersTotal') > statsLogger.getStatValue('numberUsersTotalMax')) {
+    maxNumberUsersTime = moment().valueOf();
+    statsLogger.recordStat('numberUsersTotalMax', numberUsersTotal);
+    console.log(chalkAlert("... NEW TOTAL MAX USERS"
+      + " | " + statsLogger.getStatValue('numberUsersTotalMax') 
+      + " | " + moment().format(defaultDateTimeFormat)));
+  }
+  else{
+    statsLogger.recordStat('numberUsersTotalMax', numberUsersTotal);
+  }
+
+  if (statsLogger.getStatValue('numberUsers') > statsLogger.getStatValue('numberUsersMax')) {
+    maxNumberUsersTime = moment().valueOf();
+    statsLogger.recordStat('numberUsersMax', numberUsers);
+    console.log(chalkAlert("... NEW MAX USERS"
+      + " | " + statsLogger.getStatValue('numberUsersMax') 
+      + " | " + moment().format(defaultDateTimeFormat)));
+  }
+  else{
+    statsLogger.recordStat('numberUsersMax', numberUsers);
+  }
+
+
+  if (statsLogger.getStatValue('numberTestUsers') > statsLogger.getStatValue('numberTestUsersMax')) {
+    maxNumberUsersTime = moment().valueOf();
+    statsLogger.recordStat('numberTestUsersMax', numberTestUsers);
+    console.log(chalkAlert("... NEW MAX USERS"
+      + " | " + statsLogger.getStatValue('numberTestUsersMax') 
+      + " | " + moment().format(defaultDateTimeFormat)));
+  }
+  else{
+    statsLogger.recordStat('numberTestUsersMax', numberTestUsers);
+  }
+
+
+  var googleMetricsUpdateFlag = !disableGoogleMetrics && googleMetricsEnabled ;
+  updateMetrics(googleMetricsUpdateFlag);
 }, 1000);
 
 

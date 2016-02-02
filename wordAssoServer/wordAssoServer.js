@@ -3011,6 +3011,7 @@ configEvents.on("SERVER_READY", function () {
 
         mwRequests : mwRequests,
 
+        bhtRequestLimit : BHT_REQUEST_LIMIT,
         bhtRequests : bhtRequests,
         bhtOverLimitFlag : bhtOverLimitFlag,
         bhtLimitResetTime : bhtLimitResetTime,
@@ -3428,6 +3429,21 @@ function initAppRouting(){
   app.get('/admin/admin.html', function(req, res){
     console.log("LOADING PAGE: /admin/admin.html");
     res.sendFile(__dirname + '/admin/admin.html');
+    return;
+  });
+
+  app.get('/js/libs/progressbar.js', function(req, res){
+    res.sendFile(__dirname + '/js/libs/progressbar.js');
+    return;
+  });
+
+  app.get('/js/libs/progressbar.min.js', function(req, res){
+    res.sendFile(__dirname + '/js/libs/progressbar.min.js');
+    return;
+  });
+
+  app.get('/css/progressbar.css', function(req, res){
+    res.sendFile(__dirname + '/css/progressbar.css');
     return;
   });
 

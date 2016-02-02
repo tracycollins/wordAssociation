@@ -14,16 +14,19 @@
       background: #000000;
       text-align: center;
       margin: 0;
-      padding: 0
+      padding: 0;
+      overflow: hidden;
     }
     #d3group {
       background: #000000;
       text-align: center;
       margin: 0;
-      padding: 0
+      padding: 0;
+      overflow: hidden;
     }
     #statsOverlay {
       color: #aaaaaa;
+      overflow: hidden;
     }
 
     #tweetText:hover {
@@ -40,6 +43,7 @@
 
     #mediaOverlay1:hover {
       cursor: pointer;
+      overflow: hidden;
     }
 
     .tooltip { 
@@ -67,7 +71,7 @@
 
 </head>
 
-<body>
+<body style="overflow:hidden;">
 
   <div id="main" style="overflow:hidden;">
     <button id="fullscreenToggleButton" class="fullscreenButton" onclick="toggleFullScreen()">toggle fullscreen</button>

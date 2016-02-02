@@ -1081,7 +1081,7 @@
 				viewersBarText.innerHTML = (heartBeat.numberViewers) + ' VIEWERS | ' + (heartBeat.numberViewersMax) + ' MAX | ' + moment(heartBeat.numberViewersMaxTime).format(defaultDateTimeFormat);
 
 
-				usersTotalBar.animate(heartBeat.numberUsers/heartBeat.numberUsersMax);
+				usersTotalBar.animate(heartBeat.numberUsersTotal/heartBeat.numberUsersTotalMax);
 
 				if (100*heartBeat.numberUsersTotal/heartBeat.numberUsersTotalMax >= 90) {
 					usersTotalBar.path.setAttribute('stroke', endColor);

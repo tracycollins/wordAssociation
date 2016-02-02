@@ -203,7 +203,6 @@ socket.on("RANDOM_WORD", function(randomWord){
     if (charIndex > autoResponseWord.length) {
       var sendResponseInterval = setTimeout(function(){
         sendUserResponse();
-        // clearInterval(sendResponseInterval);
       }, 1000);
       clearInterval(charTypeInterval);
     }

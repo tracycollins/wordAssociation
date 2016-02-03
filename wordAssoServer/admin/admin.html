@@ -156,6 +156,9 @@
 				<hr>
 				<br>
 				<br>
+		    <div class="bar-text" id="memory-bar-text"></div>
+		    <div class="bar" id="memory-bar"></div>
+				<br>
 		    <div class="bar-text" id="bht-requests-bar-text"></div>
 		    <div class="bar" id="bht-requests-bar"></div>
 				<br>
@@ -315,9 +318,14 @@
 			var midColor = '#F9CD2B';
 			var endColor = '#CC0000';
 
+			var memoryBar;
+	    var memoryBarDiv = document.getElementById('memory-bar');
+			memoryBar = new ProgressBar.Line(memoryBarDiv, {});
+			memoryBar.animate(0);
+	    var memoryBarText = document.getElementById('memory-bar-text');
+
 			var bhtRequestsBar;
 			var bhtRequestsBarPercent = 0;
-
 	    var bhtRequestsBarDiv = document.getElementById('bht-requests-bar');
 			bhtRequestsBar = new ProgressBar.Line(bhtRequestsBarDiv, {});
 			bhtRequestsBar.animate(0);
@@ -1077,6 +1085,31 @@
 
 				// console.log("updateServerHeartbeat: timeoutFlag: " + timeoutFlag);
 
+				var memoryAvailable = heartBeat.memoryAvailable/heartBeat.memoryTotal;
+				var memoryUsed = (heartBeat.memoryTotal-heartBeat.memoryAvailable)/heartBeat.memoryTotal;
+
+				memoryBar.animate(memoryUsed);
+
+				if (100*memoryUsed >= 90) {
+					memoryBar.path.setAttribute('stroke', endColor);
+				}
+				else if (100*memoryUsed >= 70) {
+					memoryBar.path.setAttribute('stroke', midColor);
+				}
+				else {
+					memoryBar.path.setAttribute('stroke', startColor);
+				}
+
+				memoryBarText.innerHTML =  
+					'MEMORY (GB)'
+					+ ' | ' + (heartBeat.memoryTotal/ONE_GB).toFixed(2) + ' TOT' 
+					+ ' | ' + ((heartBeat.memoryTotal-heartBeat.memoryAvailable)/ONE_GB).toFixed(2) + ' USED' 
+					+ ' (' + (100*memoryUsed).toFixed(1) + ' %)' 
+					+ ' | ' + (heartBeat.memoryAvailable/ONE_GB).toFixed(2) + ' AVAIL' 
+					+ ' (' + 100*memoryAvailable.toFixed(3) + ' %)' 
+				;
+
+
 				bhtRequestsBar.animate(heartBeat.bhtRequests/heartBeat.bhtRequestLimit);
 
 				if (100*heartBeat.bhtRequests/heartBeat.bhtRequestLimit >= 90) {
@@ -1214,16 +1247,16 @@
 				var bhtLRTmoment = moment(heartBeat.bhtLimitResetTime).format("YYYY-MM-DD HH:mm:ss ZZ");
 
 				var bhtOptions = false ;
-				var memoryAvailable = (heartBeat.memoryAvailable/heartBeat.memoryTotal)*100;
+				// var memoryAvailable = (heartBeat.memoryAvailable/heartBeat.memoryTotal)*100;
 
 				tableCreateRow(heatbeatTable, false, ['SERVER TIME', getTimeStamp(heartBeat.timeStamp)]);
 				tableCreateRow(heatbeatTable, false, ['SERVER UPTIME', msToTime(heartBeat.upTime)]);
 				tableCreateRow(heatbeatTable, false, ['APP START TIME', getTimeStamp(heartBeat.startTime)]);
 				tableCreateRow(heatbeatTable, false, ['APP RUNTIME', msToTime(heartBeat.runTime)]);
-				tableCreateRow(heatbeatTable, false, ['MEM AVAIL', memoryAvailable.toFixed(1) + '%'
-					+ ' (' + parseInt(heartBeat.memoryAvailable/ONE_MB) + ' OF '
-					+ parseInt(heartBeat.memoryTotal/ONE_MB) + ' MB)'
-					]);
+				// tableCreateRow(heatbeatTable, false, ['MEM AVAIL', memoryAvailable.toFixed(1) + '%'
+				// 	+ ' (' + parseInt(heartBeat.memoryAvailable/ONE_MB) + ' OF '
+				// 	+ parseInt(heartBeat.memoryTotal/ONE_MB) + ' MB)'
+				// 	]);
 
 				if (typeof heartBeat.wordCacheStats !== 'undefined') {
 

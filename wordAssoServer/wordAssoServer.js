@@ -3470,9 +3470,14 @@ function createSession (newSessionObj){
   socket.on("disconnect", function(){
     console.log(chalkDisconnect(moment().format(defaultDateTimeFormat) + " | SOCKET DISCONNECT: " + socket.id));
     var sessionObj = sessionCache.get(socket.id) ;
-    sessionObj.connected = false ;
-    sessionQueue.enqueue({sessionEvent: "SOCKET_DISCONNECT", sessionId: socket.id, session: sessionObj});
-    debug(chalkDisconnect("\nDISCONNECTED SOCKET " + util.inspect(socket, {showHidden: false, depth: 1})));
+    if (sessionObj) {
+      sessionObj.connected = false ;
+      sessionQueue.enqueue({sessionEvent: "SOCKET_DISCONNECT", sessionId: socket.id, session: sessionObj});
+      debug(chalkDisconnect("\nDISCONNECTED SOCKET " + util.inspect(socket, {showHidden: false, depth: 1})));
+    }
+    else {
+      console.log(chalkWarn("??? DISCONNECTED SOCKET NOT IN CACHE ... TIMED OUT? | " + socket.id));
+    }
   });
 
   socket.on("REQ_ADMIN_SESSION", function(options){

@@ -24,7 +24,7 @@ var monitorMode = false;
 
 var DEFAULT_AGE_RATE =  1.0;
 var ageRate = DEFAULT_AGE_RATE ;
-var nodeMaxAge = 10000 ;
+var nodeMaxAge = 30000 ;
 
 var QUEUE_MAX = 200 ;
 
@@ -1236,7 +1236,7 @@ var createNode = function (sessionId, wordObject, callback) {
   force.stop();
 
   if (wordObject.nodeId in nodeHashMap) {
-    console.log("@@@--- NODE IN HM: " + sessionId + " | " + wordObject.nodeId);
+    // console.log("@@@--- NODE IN HM: " + sessionId + " | " + wordObject.nodeId);
 
     var currentNodeObject = nodeHashMap[wordObject.nodeId];
 
@@ -1263,7 +1263,7 @@ var createNode = function (sessionId, wordObject, callback) {
     }
   }
   else {
-    console.log("@@@--- NODE *NOT* IN HM: " + sessionId + " | " + wordObject.nodeId);
+    // console.log("@@@--- NODE *NOT* IN HM: " + sessionId + " | " + wordObject.nodeId);
 
     nodesCreated++;
     newNodesFlag = true ;
@@ -1304,13 +1304,13 @@ var createNode = function (sessionId, wordObject, callback) {
     nodeHashMap[wordObject.nodeId] = wordObject;
     nodes.push(wordObject);
 
-    console.log(">>> ADDED NODE TO HASH MAP"
-      + " | " + nodes.length 
-      + " | " + wordObject.nodeId
-      + " | MN: " + wordObject.mentions
-      + " | x: " + wordObject.x
-      + " | y: " + wordObject.y
-      );
+    // console.log(">>> ADDED NODE TO HASH MAP"
+    //   + " | " + nodes.length 
+    //   + " | " + wordObject.nodeId
+    //   + " | MN: " + wordObject.mentions
+    //   + " | x: " + wordObject.x
+    //   + " | y: " + wordObject.y
+    //   );
   }
 
   callback (null, newNodesFlag, deadNodesFlag);
@@ -1409,9 +1409,9 @@ var ageNodes = function (newNodesFlag, deadNodesFlag, callback){
 
     var linkExists = false ;
 
-    var currentNodeObject = {} ;
+    // var currentNodeObject = {} ;
 
-    currentNodeObject = nodes[ageNodesIndex];
+    var currentNodeObject = nodes[ageNodesIndex];
 
     age = currentNodeObject.age + (ageRate * (moment().valueOf() - currentNodeObject.ageUpdated));
  
@@ -1439,22 +1439,17 @@ var ageNodes = function (newNodesFlag, deadNodesFlag, callback){
 
       sessionIds[currentNodeObject.sessionId]--;
 
-      if (sessionIds[currentNodeObject.sessionId] <= 1) {
-        console.log("XXXX SESSION EXPIRED: " + currentNodeObject.sessionId + " | " + sessionIds[currentNodeObject.sessionId]);
+      if (sessionIds[currentNodeObject.sessionId] < 1) {
+        var keys = Object.keys(sessionIds) ;
+        console.log(keys);
+        console.warn("XXXX SESSION EXPIRED: " + currentNodeObject.sessionId + " | " + sessionIds[currentNodeObject.sessionId]);
         delete sessionIds[currentNodeObject.sessionId] ;
         sessionHashMap.remove(currentNodeObject.sessionId) ;
-        console.log("XXXX SESSION EXPIRED: " + Object.keys(sessionIds).length + " | " + sessionHashMap.count());
+        console.log("XXXX SESSION EXPIRED: " + keys.length + " | " + sessionHashMap.count());  // ????? can't delete the last/final key of sessionIds????
       }
 
     }
     else {
-      // if (!sessionIds[currentNodeObject.sessionId]) {
-      //   sessionIds[currentNodeObject.sessionId] = 1;
-      //   // console.log("SESSION ID (INC): " + currentNodeObject.sessionId + " | " + sessionIds[currentNodeObject.sessionId]);
-      // }
-      // else {
-      //   sessionIds[currentNodeObject.sessionId]++;
-      // }
 
       currentNodeObject.age = age;
       currentNodeObject.ageUpdated = moment().valueOf();

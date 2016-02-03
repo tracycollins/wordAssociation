@@ -16,6 +16,8 @@ var dateNow = (new Date).getTime();
 var d3TimerCount = 1 ;
 
 var currentSession;
+var sessionId;
+var namespace;
 var sessionMode = false;
 var monitorMode = false;
 
@@ -163,6 +165,13 @@ var randomIntFromInterval = function (min,max) {
   var randomInt = Math.floor((random*(max-min+1))+min) ;
   return randomInt;
 }
+
+var randomId = randomIntFromInterval(1000000000,9999999999);
+
+var viewerObj = { 
+  viewerId: 'VIEWER_RANDOM_' + randomId,
+  screenName: 'VIEWER RANDOM ' + randomId
+};
 
 function resetMouseMoveTimer() {
   clearTimeout(mouseMoveTimeout);
@@ -384,6 +393,31 @@ function getVisibilityEvent(prefix) {
 
 var socket = io('/view');
 
+socket.on("VIEWER_ACK", function(viewerSessionKey){
+  console.log("RX VIEWER_ACK | SESSION KEY: " + viewerSessionKey);
+  if (sessionMode) {
+    console.log("SESSION MODE"
+      + " | SID: " + sessionId
+      + " | NSP: " + namespace
+    );
+    currentSession = "/" + namespace + "#" + sessionId;
+    console.log("TX GET_SESSION | " + currentSession);
+    socket.emit("GET_SESSION", currentSession);
+  }
+});
+
+socket.on("reconnect", function(){
+  socket.emit("VIEWER_READY", viewerObj);
+  if (sessionMode) {
+    console.log("SESSION MODE"
+      + " | SID: " + sessionId
+      + " | NSP: " + namespace
+    );
+    currentSession = "/" + namespace + "#" + sessionId;
+    socket.emit("GET_SESSION", currentSession);
+  }
+});
+
 socket.on("connect", function(){
   console.log("CONNECTED TO HOST | SOCKET ID: " + socket.id);
 });
@@ -457,10 +491,10 @@ document.addEventListener("mousemove", function() {
 }, true);
 
 
-function getUrlVariables(config){
+function getUrlVariables(callback){
 
-  var sessionId;
-  var namespace ;
+  var urlSessionId;
+  var urlNamespace ;
 
   var searchString = window.location.search.substring(1);
   console.log("searchString: " + searchString);
@@ -470,46 +504,51 @@ function getUrlVariables(config){
   var asyncTasks = [];
 
   variableArray.forEach(
+
     function(variable, callback){
-      asyncTasks.push(function(callback){
+
+      asyncTasks.push(function(callback2){
+
         var keyValuePair = variable.split('=');
+
         if (typeof keyValuePair[1] !== 'undefined'){
           // configHashMap.set(keyValuePair[0], keyValuePair[1]) ;
           console.log("'" + variable + "' >>> URL config: " + keyValuePair[0] + " : " + keyValuePair[1]);  
           if (keyValuePair[0] == 'monitor') {
             monitorMode = keyValuePair[1] ;
-            callback(null, {namespace: namespace, sessionId: sessionId, sessionMode: sessionMode, monitorMode: monitorMode});
+            callback2(null, {namespace: urlNamespace, sessionId: urlSessionId, sessionMode: sessionMode, monitorMode: monitorMode});
           }    
           if (keyValuePair[0] == 'session') {
-            sessionId = keyValuePair[1] ;
-            console.log("sessionId: " + sessionId);
+            urlSessionId = keyValuePair[1] ;
+            console.log("urlSessionId: " + urlSessionId);
             sessionMode = true ;
-            callback(null, {namespace: namespace, sessionId: sessionId, sessionMode: sessionMode, monitorMode: monitorMode});
+            callback2(null, {sessionId: urlSessionId});
           }    
           if (keyValuePair[0] == 'nsp') {
-            namespace = keyValuePair[1] ;
-            console.log("namespace: " + namespace);
-            callback(null, {namespace: namespace, sessionId: sessionId, sessionMode: sessionMode, monitorMode: monitorMode});
+            urlNamespace = keyValuePair[1] ;
+            console.log("namespace: " + urlNamespace);
+            callback2(null, {namespace: urlNamespace});
           }    
         } 
         else {
           console.log("NO URL VARIABLES");      
-          callback(null, null);
+          callback2(null, null);
         }
+
       });
     }
   )
 
   async.parallel(asyncTasks, function(err, results){
-    // console.log(jsonPrint(results));
+    console.log("results\n" + jsonPrint(results));
     if (sessionMode) {
       console.log("SESSION MODE"
-        + " | SID: " + sessionId
-        + " | NSP: " + namespace
+        + " | SID: " + urlSessionId
+        + " | NSP: " + urlNamespace
       );
-      currentSession = "/" + namespace + "#" + sessionId;
-      socket.emit("GET_SESSION", currentSession);
+      currentSession = "/" + urlNamespace + "#" + urlSessionId;
     }
+    callback(err, {sessionId: urlSessionId, namespace: urlNamespace});
   });
 
 }
@@ -812,7 +851,16 @@ var force = d3.layout.force()
 window.onload = function () {
   resize();
   displayInfoOverlay(1.0);
-  getUrlVariables();
+  getUrlVariables(function(err, urlVariablesObj){
+    if (!err) {
+      console.log("ON LOAD getUrlVariables\n" + jsonPrint(urlVariablesObj));
+      if (urlVariablesObj.sessionId) sessionId = urlVariablesObj.sessionId;
+      if (urlVariablesObj.namespace) namespace = urlVariablesObj.namespace;
+    }
+  });
+
+  console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
+  socket.emit("VIEWER_READY", viewerObj);
 
   setTimeout(function(){
     pageLoadedTimeIntervalFlag = false ;
@@ -1013,7 +1061,6 @@ socket.on("SESSION", function(sessionObject){
   //   console.log("CHAIN COMPLETE: " + sessionObject.wordChainLength);
   //   displaySession(currentSession);
   // }
-
 });
 
 socket.on("SESSION_UPDATE", function(sessionObject){

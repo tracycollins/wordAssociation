@@ -233,16 +233,24 @@
 
 		<script type="text/javascript">
 
+
+
 			var ONE_MB = 1024*1024;
 			var ONE_GB = ONE_MB*1024;
 
 			var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
 			var defaultTimePeriodFormat = "HH:mm:ss";
 
+			var randomIntFromInterval = function (min,max) {
+			  return Math.floor(Math.random()*(max-min+1)+min);
+			}
+
 			function getTimeNow() {
 				var d = new Date();
 				return d.getTime();
 			}
+
+			var mainAdminObj = { adminId: 'ADMIN_RANDOM_' + randomIntFromInterval(1000,9999)};
 
 			var currentTime = getTimeNow();
 
@@ -271,7 +279,6 @@
 			// var socket = io.connect('http://threeceedev.dyndns.org/');
 
 			var googleOauthUrl = 0;
-
 
 			var adminIpHashMap = new HashMap();
 			var adminSocketIdHashMap = new HashMap();
@@ -360,6 +367,7 @@
 			}
 
 			window.onload=function() {
+			  socket.emit("ADMIN_READY", mainAdminObj);
 			}			
 
 			function getTimeStamp(inputTime) {
@@ -474,7 +482,15 @@
 					+ getTimeStamp()
 					);
 				serverClear();
-				requestSessions(reqSessionsOptions);
+			});
+
+			socket.on('reconnect', function(){
+				serverConnected = true ;
+				console.log("\n===== ADMIN SERVER RECONNECTED =====\n" 
+					+ getTimeStamp()
+					);
+				serverClear();
+			  socket.emit("ADMIN_READY", mainAdminObj);
 			});
 
 			socket.on('disconnect', function(){
@@ -521,25 +537,35 @@
 				adminIpHashMapKeys.sort();
 			});
 
-			var reqSessionsOptions = {
-				sessionType: 'ALL', 
-				sessionState: 'CONNECTED', 
-				maxSessions: 10
-			}
 
-			socket.on('ADMIN SESSION', function(rxAdminObj){
 
-				var ao = JSON.parse(rxAdminObj) ;
+			socket.on('ADMIN_ACK', function(adminSessionKey){
 
-				console.log("RXCD ADMIN SESSION: " + ao.adminObj.socketId + " | " + ao.adminObj.ip + " | " + ao.adminObj.domain + " | CONNECTED: " + ao.adminObj.connected);
+				console.log("RXCD ADMIN ACK: " + socket.id + " | KEY: " + adminSessionKey);
 
-				adminIpHashMap.set(ao.adminObj.ip, ao.adminObj);
+				var reqSessionsOptions = {
+					sessionType: 'ALL', 
+					sessionState: 'CONNECTED', 
+					maxSessions: 10
+				}
+
+				requestSessions(reqSessionsOptions);
+
+			});
+
+			socket.on('ADMIN_SESSION', function(rxAdminObj){
+
+				var adminObj = JSON.parse(rxAdminObj) ;
+
+				console.log("RXCD ADMIN SESSION: " + adminObj.socketId + " | " + adminObj.ip + " | " + adminObj.domain + " | CONNECTED: " + adminObj.connected);
+
+				adminIpHashMap.set(adminObj.ip, adminObj);
 				numberAdminIpAddresses = adminIpHashMap.count();
 
-				adminSocketIdHashMap.set(ao.adminObj.socketId, ao.adminObj);
+				adminSocketIdHashMap.set(adminObj.socketId, adminObj);
 				adminSocketIdHashMapKeys = adminSocketIdHashMap.keys();
 				adminSocketIdHashMapKeys.sort();
-				updateAdminConnect(ao.adminObj);
+				updateAdminConnect(adminObj);
 			});
 
 			socket.on('CLIENT IP', function(rxIpObj){

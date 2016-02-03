@@ -166,6 +166,7 @@ var bhtOverLimitTestFlag = false ;
 // ==================================================================
 var chalk = require('chalk');
 
+var chalkViewer = chalk.cyan;
 var chalkUser = chalk.green;
 var chalkRed = chalk.red;
 var chalkGreen = chalk.green;
@@ -586,7 +587,7 @@ setInterval(function () {
 var db = mongoose();
 
 var Admin = require('mongoose').model('Admin');
-var Client = require('mongoose').model('Client');
+var Viewer = require('mongoose').model('Viewer');
 
 var User = require('mongoose').model('User');
 var Session = require('mongoose').model('Session');
@@ -619,7 +620,10 @@ var wordArray = [] ; // used to keep wordHashMap.count() < MAX_WORD_HASH_MAP_COU
 
 var NodeCache = require( "node-cache" );
 
+var adminCache = new NodeCache();
+var viewerCache = new NodeCache();
 var userCache = new NodeCache();
+
 var wordCache = new NodeCache({ stdTTL: 0, checkperiod: 10 });
 
 var sessionCache = new NodeCache({ stdTTL: sessionCacheTtl, checkperiod: 10 });
@@ -748,7 +752,8 @@ sessionCache.on( "expired", function(sessionId, sessionObj){
   sessionQueue.enqueue({sessionEvent: "SESSION_EXPIRED", sessionId: sessionId, session: sessionObj});
   io.of(sessionObj.namespace).to(sessionObj.sessionId).emit("SESSION_EXPIRED", "IDLE_TIMEOUT");
   debug("CACHE SESSION EXPIRED\n" + jsonPrint(sessionObj));
-  console.log("... CACHE SESS EXPIRED | " + sessionObj.sessionId 
+  debug("... CACHE SESS EXPIRED | " + sessionObj.sessionId 
+    + " | NSP: " + sessionObj.namespace
     + " | LS: " + getTimeStamp(sessionObj.lastSeen)
     + " | " + msToTime(moment().valueOf() - sessionObj.lastSeen)
     + " | W: " + sessionObj.wordChain.length
@@ -760,7 +765,7 @@ sessionCache.on( "expired", function(sessionId, sessionObj){
 
 wordCache.on( "expired", function(word, wordObj){
   debug("CACHE WORD EXPIRED\n" + jsonPrint(wordObj));
-  console.log("... CACHE WORD EXPIRED | " + wordObj.nodeId 
+  debug("... CACHE WORD EXPIRED | " + wordObj.nodeId 
     + " | LS: " + getTimeStamp(wordObj.lastSeen)
     + " | " + msToTime(moment().valueOf() - wordObj.lastSeen)
     + " | M: " + wordObj.mentions
@@ -1728,6 +1733,108 @@ function adminConnectDb (adminObj, callback) {
   );
 }
 
+function adminUpdateDb (adminObj, callback) {
+
+  var query = { adminId: adminObj.adminId };
+  var update = { 
+          $set: { 
+            "screenName": adminObj.screenName,
+            "description": adminObj.description,
+            "url": adminObj.url,
+            "profileUrl": adminObj.profileUrl,
+            "profileImageUrl": adminObj.profileImageUrl,
+            "verified": adminObj.verified,
+            "lastSeen": moment(),
+            "lastSession": adminObj.lastSession,
+            "connected": adminObj.connected
+          },
+          $push: { "sessions": adminObj.sessions } 
+        };
+  var options = { upsert: true, new: true };
+
+  Admin.findOneAndUpdate(
+    query,
+    update,
+    options,
+    function(err, ad) {
+      if (err) {
+        console.error("!!! ADMIN FINDONE ERROR: " 
+          + moment().format(defaultDateTimeFormat)
+          + " | " + adminObj.adminId 
+          + "\n" + err);
+        callback(err, adminObj);
+      }
+      else {
+        console.log(">>> ADMIN UPDATED" 
+          + " | " + ad.adminId
+          + " | SN: " + ad.screenName 
+          // + " | DES: " + us.description 
+          // + " | URL: " + us.url 
+          // + " | PURL: " + us.profileUrl 
+          // + " | PIURL: " + us.profileImageUrl 
+          + " | VER: " + ad.verified
+          + " | LS: " + getTimeStamp(ad.lastSeen)
+          + " | SES: " + ad.sessions.length
+          + " | LSES: " + ad.lastSession
+          + " | CONN: " + ad.connected
+          );
+        callback(null, ad);
+      }
+    }
+  );
+}
+
+function viewerUpdateDb (viewerObj, callback) {
+
+  var query = { viewerId: viewerObj.viewerId };
+  var update = { 
+          $set: { 
+            "screenName": viewerObj.screenName,
+            "description": viewerObj.description,
+            "url": viewerObj.url,
+            "profileUrl": viewerObj.profileUrl,
+            "profileImageUrl": viewerObj.profileImageUrl,
+            "verified": viewerObj.verified,
+            "lastSeen": moment(),
+            "lastSession": viewerObj.lastSession,
+            "connected": viewerObj.connected
+          },
+          $push: { "sessions": viewerObj.sessions } 
+        };
+  var options = { upsert: true, new: true };
+
+  Viewer.findOneAndUpdate(
+    query,
+    update,
+    options,
+    function(err, vw) {
+      if (err) {
+        console.error("!!! VIEWER FINDONE ERROR: " 
+          + moment().format(defaultDateTimeFormat)
+          + " | " + viewerObj.viewerId 
+          + "\n" + err);
+        callback(err, viewerObj);
+      }
+      else {
+        console.log(">>> VIEWER UPDATED" 
+          + " | " + vw.viewerId
+          + " | SN: " + vw.screenName 
+          // + " | DES: " + us.description 
+          // + " | URL: " + us.url 
+          // + " | PURL: " + us.profileUrl 
+          // + " | PIURL: " + us.profileImageUrl 
+          + " | VER: " + vw.verified
+          + " | LS: " + getTimeStamp(vw.lastSeen)
+          + " | SES: " + vw.sessions.length
+          + " | LSES: " + vw.lastSession
+          + " | CONN: " + vw.connected
+          );
+        callback(null, vw);
+      }
+    }
+  );
+}
+
 function userUpdateDb (userObj, callback) {
 
   var query = { userId: userObj.userId };
@@ -1879,38 +1986,147 @@ function userDisconnectDb (userObj, callback) {
 
 function adminFindAllDb (options, callback) {
 
-  debug("\n=============================\nADMINS IN DB\nOPTIONS");
-  debug(options);
+  console.log("\n=============================\nADMINS IN DB\n----------");
+  if (options) console.log("OPTIONS\n" + jsonPrint(options));
 
   var query = {};
   var projections = {
-    ip: true,
-    domain: true,
-    socketId: true,
+    adminId: true,
+    screenName: true,
+    description: true,
+    url: true,
+    profileUrl: true,
+    profileImageUrl: true,
+    verified: true,
+    createdAt: true,
     lastSeen: true,
-    // connected: true,
-    connectTime: true,
-    disconnectTime: true,
-    numberOfConnections: true
+    lastSession: true,
+    connected: true,
   };
 
-  Admin.find(query, projections, function(err, admins) {
+  Admin.find(query, projections, options, function(err, admins) {
+    if (err) {
+      callback(err, null);
+      return;
+    }
+    if (admins){
 
-    admins.forEach(function(admin) {
-        debug("IP: " + admin.ip 
-        + " | SOCKET: " + admin.socketId
-        + " | DOMAIN: " + admin.domain
-        + " | LAST SEEN: " + admin.lastSeen
-        + " | CONNECT TIME: " + admin.connectTime
-        + " | DISCONNECT TIME: " + admin.disconnectTime
-        + " | NUM SESSIONS: " + admin.numberOfConnections
-        );
-      adminIpHashMap.set(admin.ip, admin);
-      adminSocketIdHashMap.set(admin.socketId, admin);
-    });
+      async.forEach(
 
-    debug(adminIpHashMap.count() + " KNOWN ADMINS");
-    callback(adminIpHashMap.count());
+        admins,
+
+        function(admin, callback){
+
+          console.log(chalkAdmin("UID: " + admin.adminId
+            + " | SN: " +  admin.screenName
+            + " | CONN: " + admin.connected
+            + " | LS: " + getTimeStamp(admin.lastSeen)
+            // + "\n" + chalkLog(util.inspect(admins[i], {showHidden: false, depth: 1})
+          ));
+
+          if (admin.connected) {
+            adminCache.set(admin.adminId, admin);
+          }
+          else {
+            adminCache.del(admin.adminId);
+          }
+          callback(null);
+
+        },
+
+        function(err){
+          if (err) {
+            console.error("*** ERROR  adminFindAllDb\n" + err);
+            callback(err, null);
+            return;
+          }
+          else {
+            console.log("FOUND " + admins.length + " ADMINS");
+            callback(null, admins.length);
+            return;
+          }
+        }
+      );
+
+    }
+    else {
+      console.log("NO ADMINS FOUND");
+      callback(null, 0);
+      return;
+    }
+  });
+}
+
+function viewerFindAllDb (options, callback) {
+
+  console.log("\n=============================\nVIEWERS IN DB\n----------");
+  if (options) console.log("OPTIONS\n" + jsonPrint(options));
+
+  var query = {};
+  var projections = {
+    viewerId: true,
+    screenName: true,
+    description: true,
+    url: true,
+    profileUrl: true,
+    profileImageUrl: true,
+    verified: true,
+    createdAt: true,
+    lastSeen: true,
+    lastSession: true,
+    connected: true,
+  };
+
+  Viewer.find(query, projections, options, function(err, viewers) {
+    if (err) {
+      callback(err, null);
+      return;
+    }
+    if (viewers){
+
+      async.forEach(
+
+        viewers,
+
+        function(viewer, callback){
+
+          console.log(chalkViewer("UID: " + viewer.viewerId
+            + " | SN: " +  viewer.screenName
+            + " | CONN: " + viewer.connected
+            + " | LS: " + getTimeStamp(viewer.lastSeen)
+            // + "\n" + chalkLog(util.inspect(viewers[i], {showHidden: false, depth: 1})
+          ));
+
+          if (viewer.connected) {
+            viewerCache.set(viewer.viewerId, viewers);
+          }
+          else {
+            viewerCache.del(viewer.viewerId);
+          }
+          callback(null);
+
+        },
+
+        function(err){
+          if (err) {
+            console.error("*** ERROR  viewerFindAllDb\n" + err);
+            callback(err, null);
+            return;
+          }
+          else {
+            console.log("FOUND " + viewers.length + " VIEWERS");
+            callback(null, viewers.length);
+            return;
+          }
+        }
+      );
+
+    }
+    else {
+      console.log("NO VIEWERS FOUND");
+      callback(null, 0);
+      return;
+    }
   });
 }
 
@@ -1940,21 +2156,49 @@ function userFindAllDb (options, callback) {
       return;
     }
     if (users){
-      for (var i=0; i<users.length; i++) {
-        debug(chalkUser("USER " + users[i].userId
-          + " | SCREEN NAME: " +  users[i].screenName
-          + " LS: " + getTimeStamp(users[i].lastSeen)
-          // + "\n" + chalkLog(util.inspect(users[i], {showHidden: false, depth: 1})
-        ));
-        userCache.set(users[i].userId, users[i]);
-        if (i >= users.length) {
-          callback(null, users.length);
-          return;
+
+      async.forEach(
+
+        users,
+
+        function(user, callback){
+
+          console.log(chalkUser("UID: " + user.userId
+            + " | SN: " +  user.screenName
+            + " | CONN: " + user.connected
+            + " | LS: " + getTimeStamp(user.lastSeen)
+            // + "\n" + chalkLog(util.inspect(users[i], {showHidden: false, depth: 1})
+          ));
+
+          if (user.connected) {
+            userCache.set(user.userId, user);
+          }
+          else {
+            userCache.del(user.userId);
+          }
+          callback(null);
+
+        },
+
+        function(err){
+          if (err) {
+            console.error("*** ERROR  userFindAllDb\n" + err);
+            callback(err, null);
+            return;
+          }
+          else {
+            console.log("FOUND " + users.length + " USERS");
+            callback(null, users.length);
+            return;
+          }
         }
-      }
+      );
+
     }
     else {
       console.log("NO USERS FOUND");
+      callback(null, 0);
+      return;
     }
   });
 }
@@ -2501,8 +2745,14 @@ var readSessionQueue = setInterval(function (){
 
       case 'REQ_ADMIN_SESSION':
         var options ;
-        userFindAllDb(options, function(numberUsers){
-          console.log("NUMBER USERS: " + numberUsers);
+        adminFindAllDb(options, function(err, numberAdmins){
+          if (!err) console.log("NUMBER ADMINS: " + numberAdmins);
+        });
+        userFindAllDb(options, function(err, numberUsers){
+          if (!err) console.log("NUMBER USERS: " + numberUsers);
+        });
+        viewerFindAllDb(options, function(err, numberViewers){
+          if (!err) console.log("NUMBER VIEWERS: " + numberViewers);
         });
         break;
 
@@ -2513,8 +2763,23 @@ var readSessionQueue = setInterval(function (){
           + " | SID: " + sesObj.session.sessionId
           // + " | UID: " + sesObj.user.userId
         ));
-        sessionCache.set(sesObj.session.sessionId, sesObj.session);
-        sessionUpdateDb(sesObj.session, function(){});
+
+        // if (sesObj.session.namespace == 'admin') sesObj.session.userId = sesObj.session.adminId ;
+        // if (sesObj.session.namespace == 'view') sesObj.session.userId = sesObj.session.viewerId ;
+
+        sessionUpdateDb(sesObj.session, function(err, sessionUpdatedObj){
+          if (!err){
+            if (sessionUpdatedObj.namespace == 'admin') {
+              sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, 0);  // don't age out view sessions
+            }
+            else if (sessionUpdatedObj.namespace == 'view') {
+              sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, 0);  // don't age out view sessions
+            }
+            else {
+              sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
+            }
+          }
+        });
         break;
 
       case 'SOCKET_RECONNECT':
@@ -2543,7 +2808,7 @@ var readSessionQueue = setInterval(function (){
         sessionUpdateDb(sesObj.session, function(){});
 
         sesObj.session.wordChain.forEach(function(word){
-          console.log(chalkSession(">T< SET WORD " + word + " TTL: " + wordCacheTtl));
+          debug(chalkSession(">T< SET WORD " + word + " TTL: " + wordCacheTtl));
           wordCache.ttl(word, wordCacheTtl);
         });
 
@@ -2557,7 +2822,7 @@ var readSessionQueue = setInterval(function (){
         break;
 
       case 'SOCKET_DISCONNECT':
-        debug(chalkSession(
+        console.log(chalkSession(
           "XXX SOCKET DISCONNECT"
           // + " | NSP: " + sesObj.session.namespace
           + " | SID: " + sesObj.sessionId
@@ -2566,20 +2831,42 @@ var readSessionQueue = setInterval(function (){
 
 
         if (sesObj.session){
+
+          debug("SOCKET_DISCONNECT\n" + jsonPrint(sesObj));
+
+          var currentAdmin = adminCache.get(sesObj.session.userId);
           var currentUser = userCache.get(sesObj.session.userId);
+          var currentViewer = viewerCache.get(sesObj.session.userId);
+
           sesObj.session.disconnectTime = moment().valueOf();
           sessionUpdateDb(sesObj.session, function(){});
 
           sesObj.session.wordChain.forEach(function(word){
-            console.log(chalkSession(">T< SET WORD " + word + " TTL: " + wordCacheTtl));
+            debug(chalkSession(">T< SET WORD " + word + " TTL: " + wordCacheTtl));
             wordCache.ttl(word, wordCacheTtl);
           });
 
           sessionCache.del(sesObj.session.sessionId);
+
+          if (currentAdmin) {
+            debug("currentAdmin\n" + jsonPrint(currentAdmin));
+            adminCache.del(currentAdmin.adminId);
+            currentAdmin.connected = false;
+            adminUpdateDb(currentAdmin, function(){});
+          }
+          
           if (currentUser) {
+            debug("currentUser\n" + jsonPrint(currentUser));
             userCache.del(currentUser.userId);
             currentUser.connected = false;
             userUpdateDb(currentUser, function(){});
+          }
+          
+          if (currentViewer) {
+            debug("currentViewer\n" + jsonPrint(currentViewer));
+            viewerCache.del(currentViewer.viewerId);
+            currentViewer.connected = false;
+            viewerUpdateDb(currentViewer, function(){});
           }
         }
 
@@ -2597,6 +2884,87 @@ var readSessionQueue = setInterval(function (){
         sesObj.user.connected = false;
         userUpdateDb(sesObj.user, function(){});
         break;
+
+      case 'ADMIN_READY':
+
+        // ????? ADMIN VERIFICATION SHOULD HAPPEN HERE
+
+        console.log("ADMIN_READY\n" + jsonPrint(sesObj));
+
+        debug(chalkSession(
+          ">>> SESSION ADMIN READY"
+          + " | SID: " + sesObj.session.sessionId
+          + " | UID: " + sesObj.admin.adminId
+        ));
+
+        var currentSession = sessionCache.get(sesObj.session.sessionId);
+
+        currentSession.userId = sesObj.admin.adminId;
+
+        sesObj.admin.lastSession = sesObj.session.sessionId;
+        sesObj.admin.connected = true;
+
+        adminUpdateDb(sesObj.admin, function(err, adminObj){
+          if (!err) {
+
+            var adminSessionKey = randomIntFromInterval(1000000,1999999) ;
+            currentSession.adminSessionKey = adminSessionKey;
+
+            sessionUpdateDb(currentSession, function(err, sessionUpdatedObj){
+              if (!err){
+                sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
+                debug(chalkInfo("-S- DB UPDATE"
+                  + " | " + sessionUpdatedObj.sessionId
+                ));
+                console.log("TX ADMIN_ACK", adminSessionKey);
+                io.of(currentSession.namespace).to(currentSession.sessionId).emit('ADMIN_ACK', adminSessionKey);
+              }
+              else {
+                console.log(chalkError("*** ERROR DB UPDATE SESSION\n" + err));
+              }
+            });
+          } 
+        });
+        break;
+
+      case 'VIEWER_READY':
+
+        console.log("VIEWER_READY\n" + jsonPrint(sesObj));
+
+        console.log(chalkSession(
+          ">>> SESSION VIEWER READY"
+          + " | SID: " + sesObj.session.sessionId
+          + " | UID: " + sesObj.viewer.viewerId
+        ));
+
+        var currentSession = sessionCache.get(sesObj.session.sessionId);
+
+        currentSession.userId = sesObj.viewer.viewerId;
+
+        sesObj.viewer.lastSession = sesObj.session.sessionId;
+        sesObj.viewer.connected = true;
+
+        viewerUpdateDb(sesObj.viewer, function(err, viewerObj){
+          if (!err) {
+            var viewerSessionKey = randomIntFromInterval(1000000,1999999) ;
+            currentSession.viewerSessionKey = viewerSessionKey;
+             sessionUpdateDb(currentSession, function(err, sessionUpdatedObj){
+              if (!err){
+                sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
+                debug(chalkInfo("-S- DB UPDATE"
+                  + " | " + sessionUpdatedObj.sessionId
+                ));
+                console.log("TX VIEWER_ACK", viewerSessionKey);
+                io.of(currentSession.namespace).to(currentSession.sessionId).emit('VIEWER_ACK', viewerSessionKey);
+              }
+              else {
+                console.log(chalkError("*** ERROR DB UPDATE SESSION\n" + err));
+              }
+            });
+          } 
+        });
+        break;
+
 
       case 'USER_READY':
 
@@ -3275,6 +3643,49 @@ function createSession (newSessionObj){
     sessionQueue.enqueue({sessionEvent: "REQ_ADMIN_SESSION", session: sessionObj, options: options});
   });
 
+  socket.on("ADMIN_READY", function(adminObj){
+
+    debug(chalkAdmin("ADMIN READY\n" + jsonPrint(adminObj)));
+
+    var socketId = socket.id ;
+    var sessionObj = sessionCache.get(socketId);
+
+    if (!sessionObj){
+      console.log(chalkError(moment().format(defaultDateTimeFormat) 
+        + " | ??? SESSION NOT FOUND ON ADMIN READY | " + socketId
+      ));
+      return;
+    }
+
+    console.log(chalkConnect("--- ADMIN READY   | " + adminObj.adminId
+      + " | SID: " + sessionObj.sessionId
+      + " | " + moment().format(defaultDateTimeFormat)
+    ));
+
+    sessionQueue.enqueue({sessionEvent: "ADMIN_READY", session: sessionObj, admin: adminObj});
+  });
+
+  socket.on("VIEWER_READY", function(viewerObj){
+
+    debug(chalkViewer("VIEWER READY\n" + jsonPrint(viewerObj)));
+
+    var socketId = socket.id ;
+    var sessionObj = sessionCache.get(socketId);
+
+    if (!sessionObj){
+      console.log(chalkError(moment().format(defaultDateTimeFormat) 
+        + " | ??? SESSION NOT FOUND ON VIEWER READY | " + socketId
+      ));
+      return;
+    }
+    console.log(chalkConnect("--- VIEWER READY   | " + viewerObj.viewerId
+      + " | SID: " + sessionObj.sessionId
+      + " | " + moment().format(defaultDateTimeFormat)
+    ));
+
+    sessionQueue.enqueue({sessionEvent: "VIEWER_READY", session: sessionObj, viewer: viewerObj});
+  });
+
   socket.on("USER_READY", function(userObj){
 
     debug(chalkUser("USER READY\n" + jsonPrint(userObj)));
@@ -3386,7 +3797,7 @@ function createSession (newSessionObj){
 
   socket.on("SOCKET_TEST_MODE", function(testMode){
     console.log(chalkTest("RX SOCKET_TEST_MODE: " + testMode));
-    serverSessionConfig.testMode = testMode
+    serverSessionConfig.testMode = testMode;
     adminNameSpace.emit("CONFIG_CHANGE", serverSessionConfig);
     // configEvents.emit("CONFIG_CHANGE", serverSessionConfig);
   });
@@ -3406,6 +3817,19 @@ function createSession (newSessionObj){
 adminNameSpace.on('connect', function(socket){
   console.log(chalkAdmin("ADMIN CONNECT"));
   createSession({namespace:"admin", socket: socket});
+
+  // socket.on('REQ_ADMIN_SESSION', function(value){
+  //   adminCache.keys( function(err, adminIdArray){ // 
+  //     if( !err ){
+  //       console.log("... SENDING " + adminIdArray.length + " ADMINS");
+  //       adminIdArray.forEach(function(adminId){
+  //         var adminObj = adminCache.get(adminId) ;
+  //         console.log("TX ADMIN_SESSION\n" + jsonPrint(adminObj));
+  //         socket.emit("ADMIN_SESSION", adminObj);
+  //       });
+  //     }
+  //   });  
+  // });
 
   socket.on('SET_WORD_CACHE_TTL', function(value){
     setWordCacheTtl(value);

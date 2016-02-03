@@ -9,6 +9,14 @@ var SessionSchema = new Schema({
 		trim: true,
 		unique: true
 	},
+	ip: { 
+		type: String,
+		trim: true
+	},
+	domain: { 
+		type: String,
+		trim: true
+	},
 	userId: { 
 		type: String
 	},
@@ -24,7 +32,8 @@ var SessionSchema = new Schema({
 		default: moment().valueOf()
 	},
 	connected: { 
-		type: Boolean
+		type: Boolean,
+		default: false
 	},
 	connectTime: { 
 		type: Number,

@@ -3,8 +3,8 @@ var mongoose = require('mongoose'),
 	crypto = require('crypto'),
 	Schema = mongoose.Schema;
 
-var AdminSchema = new Schema({
-	adminId: { 
+var ViewerSchema = new Schema({
+	viewerId: { 
 		type: String,
 		trim: true,
 		unique: true
@@ -54,4 +54,4 @@ var AdminSchema = new Schema({
 });
 
 
-mongoose.model('Admin', AdminSchema);
+mongoose.model('Viewer', ViewerSchema);

@@ -44,10 +44,6 @@ var ViewerSchema = new Schema({
 	lastSession: {   
 		type: String
 	},
-	connected: {   
-		type: Boolean,
-		default: false
-	},
 	sessions: {  
 		type: [String]// Session objects
 	}

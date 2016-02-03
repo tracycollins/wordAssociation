@@ -4,6 +4,7 @@
 var debug = false ;
 
 var sessionHashMap = new HashMap();
+var sessionIds = {};
 
 var urlRoot = "http://word.threeceelabs.com/session?session=";
 // var urlRoot = "http://localhost:9997/session?session=";
@@ -23,7 +24,7 @@ var monitorMode = false;
 
 var DEFAULT_AGE_RATE =  1.0;
 var ageRate = DEFAULT_AGE_RATE ;
-var nodeMaxAge = 60000 ;
+var nodeMaxAge = 10000 ;
 
 var QUEUE_MAX = 200 ;
 
@@ -616,6 +617,14 @@ function interpolateHsl(a, b) {
     }
 }
 
+function interpolateColorFull(startColor, endColor){
+  return d3.interpolateHcl(endColor, startColor);
+}
+
+
+// var interpolateColor = interpolateColorFull("white", "black");
+
+
 // var colorScale = d3.scale.linear()
 //     .range(["hsl(0, 100%, 100%)", "hsl(100, 100%, 100%)"])
 //     // .range(["black", "red"])
@@ -1008,6 +1017,10 @@ function displaySession(sessionObject){
 
 socket.on("SESSION", function(sessionObject){
 
+  if (!windowVisible) {
+    return ;
+  }
+
   console.log("> RX SESSION"
     + " | SID: " + sessionObject.sessionId
     + " | WCL: " + sessionObject.wordChainLength
@@ -1022,10 +1035,22 @@ socket.on("SESSION", function(sessionObject){
     currentSession = sessionHashMap.get(sessionObject.sessionId);
   }
   else {
+
+    var startColor = "hsl(" + Math.random() * 360 + ",100%,50%)";
+    var endColor = "hsl(" + Math.random() * 360 + ",0%,0%)";
+    var interpolateNodeColor = d3.interpolateHcl(endColor, startColor);
+
+    currentSession = sessionObject ;
+
     currentSession = {
       sessionId: sessionObject.sessionId,
+      colors: {'startColor': startColor, 'endColor': endColor},
+      interpolateColor: interpolateColor,
       wordChain: []
     };
+
+    sessionObject.colors = {'startColor': startColor, 'endColor': endColor};
+    sessionObject.interpolateColor = interpolateColor;
   }
 
   sessionObject.word.lastSeen = moment().valueOf();
@@ -1065,13 +1090,6 @@ socket.on("SESSION", function(sessionObject){
 
 socket.on("SESSION_UPDATE", function(sessionObject){
 
-  sessionObject.sourceWord.lastSeen = moment().valueOf();
-
-  if (sessionObject.targetWord) sessionObject.targetWord.lastSeen = moment().valueOf();
-
-  // console.log("> RX " + JSON.stringify(sessionObject)); ;
-  // console.log(getTimeStamp() + ">>> RX SESSION_UPDATE\n" + JSON.stringify(sessionObject, null, 3)) ;
-
   if (!windowVisible) {
     return ;
   }
@@ -1080,6 +1098,33 @@ socket.on("SESSION_UPDATE", function(sessionObject){
     if (debug)  console.log("... SKIP SESSION_UPDATE: ID: " + sessionObject.sessionId + " | CURRENT SESSION: " + currentSession);
     return;
   }
+
+  var currentSession;
+
+  if (sessionHashMap.has(sessionObject.sessionId)){
+    // currentSession = sessionHashMap.get(sessionObject.sessionId);
+  }
+  else {
+
+    var startColor = "hsl(" + Math.random() * 360 + ",100%,50%)";
+    var endColor = "hsl(" + Math.random() * 360 + ",0%,0%)";
+    var interpolateNodeColor = d3.interpolateHcl(endColor, startColor);
+
+    sessionObject.colors = {'startColor': startColor, 'endColor': endColor};
+    sessionObject.interpolateColor = interpolateNodeColor;
+
+    // currentSession.colors = {'startColor': startColor, 'endColor': endColor},
+    sessionHashMap.set(sessionObject.sessionId, sessionObject);
+  }
+
+  sessionObject.sourceWord.lastSeen = moment().valueOf();
+
+  if (sessionObject.targetWord) sessionObject.targetWord.lastSeen = moment().valueOf();
+
+  // console.log("> RX " + JSON.stringify(sessionObject)); ;
+  // console.log(getTimeStamp() + ">>> RX SESSION_UPDATE\n" + JSON.stringify(sessionObject, null, 3)) ;
+
+
 
   if (sessionObject.targetWord) {
     console.log("> RX"
@@ -1183,7 +1228,6 @@ var createNode = function (sessionId, wordObject, callback) {
     return;
   }
 
-
   console.log("createNode: SID: " + sessionId + " | " + wordObject.nodeId + " | M: " + wordObject.mentions);
 
   var err = null ;
@@ -1224,6 +1268,18 @@ var createNode = function (sessionId, wordObject, callback) {
     nodesCreated++;
     newNodesFlag = true ;
 
+    if (sessionIds[sessionId]) {
+      sessionIds[sessionId]++;
+    }
+    else {
+      sessionIds[sessionId] = 1;
+    }
+
+    var currentSession = sessionHashMap.get(sessionId);
+
+    // console.log("COLORS | " + sessionId + "\n" + jsonPrint(currentSession.colors));
+
+
     if ((typeof wordObject.mentions === 'undefined') || (wordObject.mentions == null)) {
       console.log("wordObject\n" + JSON.stringify(wordObject));
       wordObject.mentions = 1;
@@ -1235,6 +1291,10 @@ var createNode = function (sessionId, wordObject, callback) {
     wordObject.lastSeen = moment().valueOf();
     wordObject.ageUpdated = moment().valueOf();
     wordObject.text = wordObject.nodeId ;
+
+    wordObject.colors = currentSession.colors ;
+    wordObject.interpolateColor = currentSession.interpolateColor ;
+
 
     var initialPosition = computeInitialPosition(nodesCreated);
 
@@ -1310,6 +1370,8 @@ var getNodeFromQueue = function (callback) {
     // sessionObject.age = 0;
     // sessionObject.ageUpdated = dateNow;
 
+    // sessionHashMap.set(sessionObject.sessionId, sessionObject);
+
     createNode(sessionObject.sessionId, sessionObject.sourceWord, function(newNodesFlag, deadNodesFlag){
       createNode(sessionObject.sessionId, sessionObject.targetWord, function(newNodesFlag, deadNodesFlag){
         createLinks(sessionObject, function(newNodesFlag, deadNodesFlag){
@@ -1323,9 +1385,11 @@ var getNodeFromQueue = function (callback) {
 }
 
 var lastD3TimeCount = 0;
+
+
 var ageNodes = function (newNodesFlag, deadNodesFlag, callback){
 
-  // var localDateNow = Date.now()
+  // sessionIds = {};
 
   if (nodes.length === 0) {
     ageRate = DEFAULT_AGE_RATE ;
@@ -1339,7 +1403,7 @@ var ageNodes = function (newNodesFlag, deadNodesFlag, callback){
 
   var ageNodesLength = nodes.length-1 ;
   var ageNodesIndex = nodes.length-1 ;
-  // var dateNow = Date.now();
+
 
   for (ageNodesIndex = ageNodesLength; ageNodesIndex>=0; ageNodesIndex--) {  
 
@@ -1372,8 +1436,25 @@ var ageNodes = function (newNodesFlag, deadNodesFlag, callback){
       }
 
       nodes.splice(ageNodesIndex, 1); 
+
+      sessionIds[currentNodeObject.sessionId]--;
+
+      if (sessionIds[currentNodeObject.sessionId] <= 1) {
+        console.log("XXXX SESSION EXPIRED: " + currentNodeObject.sessionId + " | " + sessionIds[currentNodeObject.sessionId]);
+        delete sessionIds[currentNodeObject.sessionId] ;
+        sessionHashMap.remove(currentNodeObject.sessionId) ;
+        console.log("XXXX SESSION EXPIRED: " + Object.keys(sessionIds).length + " | " + sessionHashMap.count());
+      }
+
     }
     else {
+      // if (!sessionIds[currentNodeObject.sessionId]) {
+      //   sessionIds[currentNodeObject.sessionId] = 1;
+      //   // console.log("SESSION ID (INC): " + currentNodeObject.sessionId + " | " + sessionIds[currentNodeObject.sessionId]);
+      // }
+      // else {
+      //   sessionIds[currentNodeObject.sessionId]++;
+      // }
 
       currentNodeObject.age = age;
       currentNodeObject.ageUpdated = moment().valueOf();
@@ -1464,7 +1545,8 @@ var updateNodeCircles = function (newNodesFlag, deadNodesFlag, callback) {
       return defaultRadiusScale(d.mentions + 1); 
     })
     .style("visibility", "visible") 
-    .style("fill", function(d) { return fillColorScale(d.age) ; })
+    // .style("fill", function(d) { return fillColorScale(d.age) ; })
+    .style("fill", function(d) { return d.interpolateColor((nodeMaxAge - d.age) / nodeMaxAge) ;})
     .style('stroke', function(d){ return strokeColorScale(d.age) ;})
     .style('opacity', function(d){
       // return (nodeMaxAge - d.age) / nodeMaxAge ;
@@ -1495,7 +1577,13 @@ var updateNodeCircles = function (newNodesFlag, deadNodesFlag, callback) {
     .style("opacity", 1e-6)
     .style('stroke', function(d){ return strokeColorScale(d.age) ;})
     .style("stroke-width", 2.5)
-    .style("fill", function(d) { return fillColorScale(d.age) ;})
+    // .style("fill", function(d) { return fillColorScale(d.age) ;})
+    .style("fill", function(d) { 
+      return d.interpolateColor((nodeMaxAge - d.age) / nodeMaxAge) ;
+    })
+
+
+
     .transition()
       .duration(defaultFadeDuration)      
       .style('opacity', function(d){

@@ -1680,8 +1680,13 @@ function adminUpdateDb (adminObj, callback) {
         console.error("!!! ADMIN FINDONE ERROR: " 
           + moment().format(defaultDateTimeFormat)
           + " | " + adminObj.adminId 
-          + "\n" + err);
+          + "\nQUERY: " + jsonPrint(query)
+          + "\nUPDATE: " + jsonPrint(update)
+          + "\nOPTIONS: " + jsonPrint(options)
+          + "\nERROR: " + jsonPrint(err)
+          );
         callback(err, adminObj);
+        return;
       }
       else {
         console.log(">>> ADMIN UPDATED" 
@@ -1697,6 +1702,7 @@ function adminUpdateDb (adminObj, callback) {
           + " | LSES: " + ad.lastSession
           );
         callback(null, ad);
+        return;
       }
     }
   );

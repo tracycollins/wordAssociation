@@ -1,6 +1,6 @@
 {
   "apps" : [{
-    "name"        : "was",
+    "name"        : "wa",
     "script"      : "wordAssoServer.js",
     "cwd"         : "/home/tc/wordAssociation/wordAssoServer",
     "autorestart" : false,

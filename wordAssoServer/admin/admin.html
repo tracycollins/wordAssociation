@@ -544,6 +544,7 @@
 				console.log("RXCD ADMIN ACK: " + socket.id + " | KEY: " + adminSessionKey);
 
 				var reqSessionsOptions = {
+					requestSocketId: socket.id,
 					sessionType: 'ALL', 
 					sessionState: 'CONNECTED', 
 					maxSessions: 10
@@ -553,19 +554,22 @@
 
 			});
 
-			socket.on('ADMIN_SESSION', function(rxAdminObj){
+			socket.on('ADMIN_SESSION', function(adminSessionObj){
 
-				var adminObj = JSON.parse(rxAdminObj) ;
+				console.log("adminSessionObj\n" + jsonPrint(adminSessionObj));
 
-				console.log("RXCD ADMIN SESSION: " + adminObj.socketId + " | " + adminObj.ip + " | " + adminObj.domain + " | CONNECTED: " + adminObj.connected);
+				console.log("RX ADMIN SESSION: " 
+					+ adminSessionObj.sessionId 
+					+ " | UID: " + adminSessionObj.userId 
+				);
 
-				adminIpHashMap.set(adminObj.ip, adminObj);
+				adminIpHashMap.set(adminSessionObj.ip, adminSessionObj);
 				numberAdminIpAddresses = adminIpHashMap.count();
 
-				adminSocketIdHashMap.set(adminObj.socketId, adminObj);
+				adminSocketIdHashMap.set(adminSessionObj.sessionId, adminSessionObj);
 				adminSocketIdHashMapKeys = adminSocketIdHashMap.keys();
 				adminSocketIdHashMapKeys.sort();
-				updateAdminConnect(adminObj);
+				updateAdminConnect(adminSessionObj);
 			});
 
 			socket.on('CLIENT IP', function(rxIpObj){

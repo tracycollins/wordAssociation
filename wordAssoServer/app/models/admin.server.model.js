@@ -35,17 +35,21 @@ var AdminSchema = new Schema({
 	},
 	createdAt: { 
 		type: Number,
+		trim: true,
 		default: moment().valueOf()
 	},
 	lastSeen: {   
 		type: Number,
+		trim: true,
 		default: moment().valueOf()
 	},
 	lastSession: {   
-		type: String
+		type: String,
+		trim: true
 	},
 	sessions: {  
-		type: [String]// Session objects
+		type: [String], // Session objects
+		trim: true
 	}
 });
 

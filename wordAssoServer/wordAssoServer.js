@@ -1649,9 +1649,10 @@ function findSessionById(sessionId, callback){
 
 function adminUpdateDb (adminObj, callback) {
 
-  if (!adminObj.adminId) {
+  if (!adminObj.adminId || typeof adminObj.adminId === 'undefined' || adminObj.adminId == null) {
     console.log(chalkError("*** adminUpdateDb adminObj.adminId UNDEFINED *** | SKIPPING UPDATE"));
     callback("ERROR: ADMIN ID UNDEFINED", null);
+    return;
   }
 
   var query = { adminId: adminObj.adminId };
@@ -1830,29 +1831,30 @@ function adminFindAllDb (options, callback) {
 
         admins,
 
-        function(admin, callback){
+        function(adminObj, callback){
 
-          console.log(chalkAdmin("UID: " + admin.adminId
-            + " | SN: " +  admin.screenName
-            + " | LS: " + getTimeStamp(admin.lastSeen)
+          console.log(chalkAdmin("UID: " + adminObj.adminId
+            + " | SN: " +  adminObj.screenName
+            + " | LS: " + getTimeStamp(adminObj.lastSeen)
             // + "\n" + chalkLog(util.inspect(admins[i], {showHidden: false, depth: 1})
           ));
 
-          if (!admin.adminId) {
-            console.log(chalkError("*** ERROR: adminFindAllDb: ADMIN ID UNDEFINED *** | SKIPPING"));
-            callback("ERROR: ADMINID UNDEFINED");
+          if (!adminObj.adminId || typeof adminObj.adminId === 'undefined' || adminObj.adminId == null) {
+            console.log(chalkError("*** ERROR: adminFindAllDb: ADMIN ID UNDEFINED *** | SKIPPING ADD TO CACHE"));
+            callback("ERROR: ADMIN ID UNDEFINED", null);
             return;
           }
-          adminCache.set(admin.adminId, admin);
-          
-          callback(null);
-          return;
+          else {
+            var addCacheResult = adminCache.set(adminObj.adminId, adminObj);
+            callback(null, addCacheResult);
+            return;
+          }
 
         },
 
         function(err){
           if (err) {
-            console.error("*** ERROR  adminFindAllDb\n" + err);
+            console.error("*** ERROR  adminFindAllDb: " + err);
             callback(err, null);
             return;
           }

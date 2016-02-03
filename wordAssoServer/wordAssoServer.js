@@ -214,9 +214,6 @@ var adminSocketIdHashMap = new HashMap();
 var numberAdminsTotal = 0;
 var numberAdmins = 0;
 
-var clientIpHashMap = new HashMap();
-var clientSocketIdHashMap = new HashMap();
-
 var numberUtils = 0;
 var numberUsers = 0;
 var numberViewers = 0;
@@ -611,7 +608,7 @@ var io = require('socket.io')(httpServer);
 var dns = require('dns');
 var path = require('path');
 var net = require('net');
-var client = new net.Socket();
+// var testClient = new net.Socket();
 
 var googleOauthEvents = new EventEmitter();
 
@@ -3099,12 +3096,11 @@ var readPromptQueue = setInterval(function (){
 }, 20);
 
 
-function initializeConfiguration() {
+function initializeConfiguration(callback) {
 
   console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | initializeConfiguration ..."));
 
   async.series([
-
     // DATABASE INIT
     function(callbackSeries){
       console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | START DATABASE INIT"));
@@ -3121,36 +3117,38 @@ function initializeConfiguration() {
             });
           }
         ],
-        function(err){
+        function(err, results){  //async.parallel callbac
           if (err) {
             console.error(chalkError("\n" + moment().format(defaultDateTimeFormat) + "!!! DATABASE INIT ERROR: " + err));
-            callbackSeries(err);
-            // return;
+            callbackSeries(err, null);
+            return;
           }
           else {
             console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | DATABASE INIT COMPLETE"));
-            configEvents.emit('DATABASE_INIT_COMPLETE', moment().format(defaultDateTimeFormat));
-            callbackSeries();
+            configEvents.emit('INIT_DATABASE_COMPLETE', moment().format(defaultDateTimeFormat));
+            callbackSeries(null, 'INIT_DATABASE_COMPLETE');
           }
         }
-      );
+      );  // async.parallel
     },
 
     // APP ROUTING INIT
     function(callbackSeries){
       debug(chalkInfo(moment().format(defaultDateTimeFormat) + " | APP ROUTING INIT"));
-      initAppRouting();
-      callbackSeries();
+      initAppRouting(function(err, results){
+        callbackSeries(err, results);
+      });
     },
 
     // CONFIG EVENT
     function(callbackSeries){
       console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | INIT CONFIG COMPLETE"));
-      serverSessionConfig = { 
+      var serverSessionConfig = { 
+        configOrigin: 'SERVER',
         testMode: testMode
       };
       debug("SESSION CONFIGURATION\n" + JSON.stringify(serverSessionConfig, null, 3) + "\n");
-      callbackSeries();
+      callbackSeries(null, serverSessionConfig);
     },
 
     // SERVER READY
@@ -3158,13 +3156,24 @@ function initializeConfiguration() {
 
       debug("... CHECKING INTERNET CONNECTION ...");
 
-      client.connect(80, 'www.google.com', function() {
+      // var testClient = new net.Socket();
+      var testClient = net.createConnection(80, 'www.google.com');
+
+      testClient.on('connect', function(){
         console.log(chalkInfo(moment().format(defaultDateTimeFormat) + ' | CONNECTED TO GOOGLE: OK'));
         console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | SEND SERVER_READY"));
         internetReady = true ;
         configEvents.emit("SERVER_READY");
-        client.destroy();
-        callbackSeries();
+        testClient.destroy();
+        callbackSeries(null, "SERVER_READY");
+      });
+
+      testClient.on('error', function(err){
+        console.error(chalkInfo(moment().format(defaultDateTimeFormat) + ' | CONNECTED TO GOOGLE: OK'));
+        internetReady = false ;
+        testClient.destroy();
+        configEvents.emit("SERVER_NOT_READY");
+        callbackSeries(err, null);
       });
     },
 
@@ -3173,19 +3182,27 @@ function initializeConfiguration() {
       if (!disableGoogleMetrics) {
         console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | GOOGLE INIT"));
         findCredential(GOOGLE_SERVICE_ACCOUNT_CLIENT_ID, function(){
-          callbackSeries();
+          callbackSeries(null, "INIT_GOOGLE_METRICS_COMPLETE");
+          return;
         });
       }
       else {
         console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
           + " | GOOGLE INIT *** SKIPPED *** | GOOGLE METRICS DISABLED"));
-        callbackSeries();
+        callbackSeries(null, "INIT_GOOGLE_METRICS_SKIPPED");
       }
     }
-
-
-
-  ]);
+  ],
+  function(err, results){
+    if (err){
+      console.error(chalkError("\n*** INITIALIZE CONFIGURATION ERROR ***\n" + jsonPrint(err) + "\n"));
+      callback(err, null);
+    }
+    else {
+      debug(chalkLog("\nINITIALIZE CONFIGURATION RESULTS\n" + jsonPrint(results) + "\n"));
+      callback(null, results);
+    }
+  });
 }
 
 // ==================================================================
@@ -3705,7 +3722,7 @@ testViewersNameSpace.on('connect', function(socket){
 
 var databaseEnabled = false ;
 
-configEvents.on("DATABASE_INIT_COMPLETE", function(tweetCount){
+configEvents.on("INIT_DATABASE_COMPLETE", function(tweetCount){
   databaseEnabled = true ;
   console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | DATABASE ENABLED"));
 });
@@ -3808,7 +3825,7 @@ var rateQinterval = setInterval(function () {
 // INIT APP ROUTING
 //=================================
 
-function initAppRouting(){
+function initAppRouting(callback){
 
   console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | INIT APP ROUTING"));
 
@@ -3927,6 +3944,9 @@ function initAppRouting(){
     res.sendFile(__dirname + '/favicon.png');
     return;
   });
+
+  configEvents.emit("INIT_APP_ROUTING_COMPLETE");
+  callback(null, "INIT_APP_ROUTING_COMPLETE");
 }
 
 //=================================
@@ -3960,7 +3980,14 @@ process.on("message", function(msg) {
 //=================================
 // BEGIN !!
 //=================================
-initializeConfiguration();
+initializeConfiguration(function(err, results){
+  if (err){
+    console.error(chalkError("*** INITIALIZE CONFIGURATION ERROR ***\n" + jsonPrint(err)));
+  }
+  else {
+    console.log(chalkLog("INITIALIZE CONFIGURATION COMPLETE\n" + jsonPrint(results)));
+  }
+});
 
 updateStatsCounts();
 

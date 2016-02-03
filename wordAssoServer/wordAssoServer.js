@@ -1652,6 +1652,11 @@ function findSessionById(sessionId, callback){
 
 function adminUpdateDb (adminObj, callback) {
 
+  if (!adminObj.adminId) {
+    console.log(chalkError("*** adminUpdateDb adminObj.adminId UNDEFINED *** | SKIPPING UPDATE"));
+    callback("ERROR: ADMIN ID UNDEFINED", null);
+  }
+
   var query = { adminId: adminObj.adminId };
   var update = { 
           $set: { 
@@ -1836,10 +1841,15 @@ function adminFindAllDb (options, callback) {
             // + "\n" + chalkLog(util.inspect(admins[i], {showHidden: false, depth: 1})
           ));
 
-          
+          if (!admin.adminId) {
+            console.log(chalkError("*** ERROR: adminFindAllDb: ADMIN ID UNDEFINED *** | SKIPPING"));
+            callback("ERROR: ADMINID UNDEFINED");
+            return;
+          }
           adminCache.set(admin.adminId, admin);
           
           callback(null);
+          return;
 
         },
 

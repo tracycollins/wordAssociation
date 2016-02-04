@@ -10,20 +10,30 @@
     body {
     }
 
-    #main {
+    #sliderDiv {
       background: #000000;
+      border: 1px solid #aaaaaa;    
+      color: #cccccc;
       text-align: center;
-      margin: 0;
-      padding: 0;
+      margin: 20px;
+      padding: 10px;
       overflow: hidden;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 10;
     }
     #d3group {
       background: #000000;
       text-align: center;
       margin: 0;
       padding: 0;
+      width: 100%
+      height: 100%;
       overflow: hidden;
-    }
+      position: relative;
+/*  z-index: 10;
+*/    }
     #statsOverlay {
       color: #aaaaaa;
       overflow: hidden;
@@ -57,6 +67,40 @@
       pointer-events: none;     
     }
 
+/*.sliderTable {
+  background-color:black;
+  border:1px solid gray;
+  cursor:pointer;
+  opacity: 0.5;
+  color:#880000;
+}
+*/
+.slider {
+  /*background-color:black;*/
+  /*border:1px solid gray;*/
+  /*cursor:pointer;*/
+  /*color:#880000;*/
+}
+
+    tr {
+  /*color:yellow;*/
+/*  opacity: 0.5;
+*/    }
+
+    td {
+      /*background-color:red;*/
+      /*border:1px solid gray;*/
+      /*opacity: 0.6;*/
+      text-align: left;
+      cursor:pointer;
+      /*color:#888888;*/
+      padding: 5px;
+    }
+table {
+    border-collapse: collapse;
+    border-spacing: 0
+}
+
   </style>
 
   <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
@@ -73,10 +117,59 @@
 
 <body style="overflow:hidden;">
 
+  <div id="d3group" style="overflow:hidden;"></div>
   <div id="main" style="overflow:hidden;">
-    <button id="fullscreenToggleButton" class="fullscreenButton" onclick="toggleFullScreen()">toggle fullscreen</button>
-    <button id="statsToggleButton" class="statsToggleButton">toggle stats</button>
-    <div id="d3group" style="overflow:hidden;"></div>
+    <div id="sliderDiv">
+      <table id='sliderTable' class='sliderTable'>
+        <tr>
+          <td><button id="fullscreenToggleButton" class="button" onclick="toggleFullScreen()">toggle fullscreen</button></td>
+          <td><button id="statsToggleButton" class="button">toggle stats</button></td>
+          <td><button id="resetDefaultForceButton" class="button"  onclick="resetDefaultForce()">RESET</button></td>
+        </tr>
+        <tr>
+          <td></td>
+        </tr>
+        <tr>
+          <td> 
+            <input id="chargeSlider" type="range" class="slider"  min="-10000" max="10000" value="-100" oninput="updateCharge(this.value)"/>
+          </td>
+          <td> 
+            <p>CHARGE </p>
+          </td>
+          <td id="chargeSliderText" class="sliderSpan">-100</td>
+        </tr>
+
+        <tr>
+          <td> 
+            <input id="gravitySlider" type="range" class="slider"  min="-100" max="100" value="5" oninput="updateGravity(this.value/100)"/>
+          </td>
+          <td> 
+            <p>GRAVITY </p>
+          </td>
+          <td id="gravitySliderText" class="sliderSpan">0.05</td>
+        </tr>
+
+        <tr>
+          <td> 
+            <input id="frictionSlider" type="range" class="slider"  min="0" max="1000" value="900" oninput="updateFriction(this.value/1000)"/>
+          </td>
+          <td> 
+            <p>FRICTION </p>
+          </td>
+          <td id="frictionSliderText" class="sliderSpan">0.900</td>
+        </tr>
+
+        <tr>
+          <td> 
+            <input id="linkstrengthSlider" type="range" class="slider"  min="0" max="1000" value="50" oninput="updateLinkstrength(this.value/1000)"/>
+          </td>
+          <td> 
+            <p>LINKSTRENGTH </p>
+          </td>
+          <td id="linkstrengthSliderText" class="sliderSpan">0.05</td>
+        </tr>
+      </table>
+    </div>
   </div>
 
   <script>

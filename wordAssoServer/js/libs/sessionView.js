@@ -31,14 +31,14 @@ var QUEUE_MAX = 200 ;
 
 var defaultFadeDuration = 100 ;
 
-var currentScale = 0.5 ;
+var currentScale = 1.0 ;
 var width = window.innerWidth * 1 ;
 var height = window.innerHeight * 1 ;
 // var translate = [0.5*width,0.5*height] ;
 
 var DEFAULT_TRANSLATE = [width,0]; 
 
-var translate = DEFAULT_TRANSLATE ;
+// var translate = DEFAULT_TRANSLATE ;
 
 var zoomWidth = (width - (currentScale * width))/2  ;
 var zoomHeight =  (height - (currentScale * height))/2  ;
@@ -51,10 +51,10 @@ var pageLoadedTimeIntervalFlag = true;
 
 var DEFAULT_MAX_AGE = 60000.0 ;
 
-var DEFAULT_CHARGE = -100;
+var DEFAULT_CHARGE = -10;
 var charge = DEFAULT_CHARGE;
 
-var DEFAULT_GRAVITY = 0.005;
+var DEFAULT_GRAVITY = 0.02;
 var gravity = DEFAULT_GRAVITY;
 
 var DEFAULT_LINK_STRENGTH = 0.05;
@@ -311,22 +311,30 @@ function resize() {
 
   console.log("width: " + width + " | height: " + height);
 
-  radius = height * 0.4;
-  // translate = [0.5*width,0.5*height] ;
-  translate = DEFAULT_TRANSLATE ;
+  radiusX = 0.4*width;
+  radiusY = 0.4*height;
 
-  d3LayoutWidth = width * D3_LAYOUT_WIDTH_RATIO ;
+  d3LayoutWidth = width * D3_LAYOUT_WIDTH_RATIO ; // double the width for now
   d3LayoutHeight = height * D3_LAYOUT_HEIGHT_RATIO ;
+
+  svgcanvas
+    .attr("width", SVGCANVAS_WIDTH_RATIO * width)
+    .attr("height", SVGCANVAS_HEIGHT_RATIO * height)
+    // .attr("viewbox", 100, 100, 0.5*d3LayoutWidth, 0.5*d3LayoutHeight);
+    // .attr("x", 0)
+    // .attr("y", 0);
+
 
   svgForceLayoutAreaWidth = d3LayoutWidth * FORCE_LAYOUT_WIDTH_RATIO ;
   svgForceLayoutAreaHeight = d3LayoutHeight * FORCE_LAYOUT_HEIGHT_RATIO ;
 
-  svgcanvas.attr("width", SVGCANVAS_WIDTH_RATIO * width).attr("height", SVGCANVAS_HEIGHT_RATIO * height);
 
   svgForceLayoutArea.attr("width", svgForceLayoutAreaWidth).attr("height", svgForceLayoutAreaHeight);
-  svgForceLayoutArea.attr("viewbox", 1e-6, 1e-6, d3LayoutWidth, d3LayoutHeight);
-  svgForceLayoutArea.attr("x", 1e-6);
-  svgForceLayoutArea.attr("y", 1e-6);
+  // svgForceLayoutArea.attr("width", d3LayoutWidth).attr("height", d3LayoutHeight);
+  // svgForceLayoutArea.attr("viewbox", 0, 0, d3LayoutWidth, d3LayoutHeight);
+  // svgForceLayoutArea.attr("viewbox", 0, 0, svgForceLayoutAreaWidth, svgForceLayoutAreaHeight);
+  svgForceLayoutArea.attr("x", 0);
+  svgForceLayoutArea.attr("y", 0);
 
   force.size([svgForceLayoutAreaWidth, svgForceLayoutAreaHeight]) ;
 
@@ -717,10 +725,10 @@ function displayInfoOverlay(opacity) {
 }
 
 var adjustedAgeRateScale = d3.scale.pow().domain([1,500]).range([1.0,100.0]);  // number of nodes > 100 ; 
-var fontSizeScale =      d3.scale.log().domain([1,100000000]).range([1.5,15]);
+var fontSizeScale = d3.scale.log().domain([1,10000000]).range([1,3]);
 
-var defaultRadiusScale = d3.scale.log().domain([1,10000000]).range([10,100]);
-var defaultChargeScale =  d3.scale.log().domain([1,10000000]).range([-1000,-1500]);
+var defaultRadiusScale = d3.scale.log().domain([1,10000000]).range([10,50]);
+var defaultChargeScale =  d3.scale.log().domain([1,10000000]).range([-100,-150]);
 
 function interpolateHsl(a, b) {
     var i = d3.interpolateString(a, b);
@@ -795,35 +803,47 @@ var SVGCANVAS_WIDTH_RATIO = 1.0 ;
 var SVGCANVAS_HEIGHT_RATIO = 1.0 ;
 
 var svgcanvas = d3image.append("svg:svg")
-  .attr("id", "svgcanvas")
-  .attr("width", SVGCANVAS_WIDTH_RATIO * width)
-  .attr("height", SVGCANVAS_HEIGHT_RATIO * height)
-  .attr("x", 0)
-  .attr("y", 0)
-  .call(d3.behavior.zoom()
-    .scale(currentScale)
-    .scaleExtent([0.1, 10])
-    .on("zoom", zoomHandler));
+  .attr("id", "svgcanvas");
+  // .attr("width", SVGCANVAS_WIDTH_RATIO * width)
+  // .attr("height", SVGCANVAS_HEIGHT_RATIO * height)
+  // .attr("x", 0)
+  // .attr("y", 0);
 
-var zoomListener = d3.behavior.zoom()
-  .scaleExtent([0.4, 4])
-  .on("zoom", zoomHandler) ;
-
-function zoomHandler() {
-  svgForceLayoutArea.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
-}
-
-zoomListener.translate([zoomWidth,zoomHeight]).scale(currentScale);//translate and scale to whatever value you wish
-zoomListener.event(svgcanvas.transition().duration(1000));//does a zoom
+// zoomListener.translate([zoomWidth,zoomHeight]).scale(currentScale);//translate and scale to whatever value you wish
+// zoomListener.event(svgcanvas.transition().duration(1000));//does a zoom
 
 var svgForceLayoutArea = svgcanvas.append("g")
-  .attr("id", "svgForceLayoutArea")
-  .attr("width", svgForceLayoutAreaWidth)
-  .attr("height", svgForceLayoutAreaHeight)
-  .attr("viewbox", 1e-6, 1e-6, d3LayoutWidth, d3LayoutHeight)
-  .attr("preserveAspectRatio", "none")
-  .attr("x", 1e-6)
-  .attr("y", 1e-6);
+  .attr("id", "svgForceLayoutArea");
+  // .attr("width", svgForceLayoutAreaWidth)
+  // .attr("height", svgForceLayoutAreaHeight)
+  // .attr("viewbox", 0, 0, d3LayoutWidth, d3LayoutHeight)
+  // .attr("preserveAspectRatio", "none")
+  // .attr("x", 0)
+  // .attr("y", 0);
+  // .call(d3.behavior.zoom()
+  //   .scale(currentScale)
+  //   .scaleExtent([0.1, 10])
+  //   .on("zoom", zoomHandler));
+
+// var zoomListener = d3.behavior.zoom()
+//   .scaleExtent([0.4, 4])
+//   .on("zoom", zoomHandler) ;
+
+// function zoomHandler() {
+//   svgForceLayoutArea.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+// }
+
+// zoomListener.translate([zoomWidth,zoomHeight]).scale(currentScale);//translate and scale to whatever value you wish
+// zoomListener.event(svgcanvas.transition().duration(1000));//does a zoom
+
+// var svgForceLayoutArea = svgcanvas.append("g")
+//   .attr("id", "svgForceLayoutArea")
+//   .attr("width", svgForceLayoutAreaWidth)
+//   .attr("height", svgForceLayoutAreaHeight)
+//   .attr("viewbox", 1e-6, 1e-6, d3LayoutWidth, d3LayoutHeight)
+//   .attr("preserveAspectRatio", "none")
+//   .attr("x", 1e-6)
+//   .attr("y", 1e-6);
 
 var divTooltip = d3.select("body").append("div") 
   .attr("class", "tooltip")       
@@ -1216,33 +1236,42 @@ socket.on("SESSION_UPDATE", function(sessionObject){
 
   if (sessionHashMap.has(sessionObject.sessionId)){
     currentSession = sessionHashMap.get(sessionObject.sessionId);
+    currentSession.sourceWord = sessionObject.sourceWord;
+    currentSession.targetWord = sessionObject.targetWord;
+    currentSession.sourceWord.fixed = true;
+    currentSession.targetWord.fixed = false;
+    currentSession.sourceWord.lastSeen = moment().valueOf();
+    if (currentSession.targetWord) sessionObject.targetWord.lastSeen = moment().valueOf();
   }
   else {
 
     sessionsCreated++;
-    sessionObject.initialPosition = computeInitialPosition(sessionsCreated);
+    currentSession = sessionObject ;
+    currentSession.initialPosition = computeInitialPosition(sessionsCreated);
 
-    sessionObject.sourceWord.fixed = true;
+    currentSession.sourceWord.fixed = true;
+    currentSession.targetWord.fixed = false;
 
     var startColor = "hsl(" + Math.random() * 360 + ",100%,50%)";
     var endColor = "hsl(" + Math.random() * 360 + ",0%,0%)";
     var interpolateNodeColor = d3.interpolateHcl(endColor, startColor);
 
-    sessionObject.colors = {'startColor': startColor, 'endColor': endColor};
-    sessionObject.interpolateColor = interpolateNodeColor;
+    currentSession.colors = {'startColor': startColor, 'endColor': endColor};
+    currentSession.interpolateColor = interpolateNodeColor;
 
     // currentSession.colors = {'startColor': startColor, 'endColor': endColor},
-    sessionHashMap.set(sessionObject.sessionId, sessionObject);
+    // sessionHashMap.set(sessionObject.sessionId, sessionObject);
 
     console.log("NEW SESSION " + sessionObject.sessionId + " POS: " + jsonPrint(sessionObject.initialPosition));
   }
 
-  sessionObject.sourceWord.lastSeen = moment().valueOf();
+  currentSession.sourceWord.lastSeen = moment().valueOf();
 
-  if (sessionObject.targetWord) sessionObject.targetWord.lastSeen = moment().valueOf();
 
   // console.log("> RX " + JSON.stringify(sessionObject)); ;
   // console.log(getTimeStamp() + ">>> RX SESSION_UPDATE\n" + JSON.stringify(sessionObject, null, 3)) ;
+
+    sessionHashMap.set(sessionObject.sessionId, currentSession);
 
 
 
@@ -1283,11 +1312,11 @@ socket.on("SESSION_UPDATE", function(sessionObject){
 
 function tick(e) {
 
-  var k = 10 * e.alpha;
-  nodes.forEach(function(o, i) {
-    // o.y += i & 1 ? k : -k;
-    o.x += (0.1 + Math.abs(0.0001*o.x*k));
-  });
+  // var k = 2 * e.alpha;
+  // nodes.forEach(function(o, i) {
+  //   // o.y += i & 1 ? k : -k;
+  //   o.x += (0.1 + Math.abs(0.00001 * o.x * k));
+  // });
 
   node
     .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")" });
@@ -1332,18 +1361,19 @@ var mouse = {} ;
 // GET NODES FROM QUEUE
 //================================
 
-var radius = 1000;
+var radiusX = 0.4*width;
+var radiusY = 0.4*height;
 
 function computeInitialPosition(index) {
   return { 
     // x: (Math.random() * nodeInitialX), 
     // y: (Math.random() * nodeInitialY) 
-    // x: (nodeInitialX + (radius * Math.cos(index))), 
-    // y: (nodeInitialY - (radius * Math.sin(index)))
-    // x: width * Math.random(), 
-    // y: 0
-    y: height * Math.random(), 
-    x: -width * (0.5 * Math.random())
+    x: ((0.5 * width) + (radiusX * Math.cos(index))), 
+    y: ((0.5 * height) - (radiusY * Math.sin(index)))
+    // x: (0.8 * width)- (0.6 * width * Math.random()), 
+    // y: (0.8 * height)- (0.6 * height * Math.random())
+    // y: translate[1] + (height * Math.random()), 
+    // x: translate[0] + -(width * (0.4 * Math.random()))
   };
 }
 
@@ -1677,11 +1707,7 @@ var updateNodeCircles = function (newNodesFlag, deadNodesFlag, callback) {
   nodeCircles
     .attr("lastSeen", function(d) { return d.lastSeen; })
     .attr("mentions", function(d) { return d.mentions; })
-    // .on("mouseover", nodeMouseover)
-    // .on("mouseout", nodeMouseout)
-    // .on("click", nodeClick)
     .attr("r", function(d) { 
-      // console.log(d.nodeId + " | M: " + d.mentions);
       return defaultRadiusScale(d.mentions + 1); 
     })
     .style("visibility", "visible") 
@@ -1703,7 +1729,7 @@ var updateNodeCircles = function (newNodesFlag, deadNodesFlag, callback) {
     .attr("mouseover", 0)
     .on("mouseover", nodeMouseover)
     .on("mouseout", nodeMouseout)
-    .on("click", nodeClick)
+    .on("dblclick", nodeClick)
     .call(force.drag)
     .attr("nodeId",function(d) { return d.nodeId;} )
     .attr("nodeType", function(d) { return d.nodeType; })

@@ -1088,6 +1088,8 @@ socket.on("SESSION", function(sessionObject){
   // }
 });
 
+var sessionsCreated = 0;
+
 socket.on("SESSION_UPDATE", function(sessionObject){
 
   if (!windowVisible) {
@@ -1102,9 +1104,12 @@ socket.on("SESSION_UPDATE", function(sessionObject){
   var currentSession;
 
   if (sessionHashMap.has(sessionObject.sessionId)){
-    // currentSession = sessionHashMap.get(sessionObject.sessionId);
+    currentSession = sessionHashMap.get(sessionObject.sessionId);
   }
   else {
+
+    sessionsCreated++;
+    sessionObject.initialPosition = computeInitialPosition(sessionsCreated);
 
     var startColor = "hsl(" + Math.random() * 360 + ",100%,50%)";
     var endColor = "hsl(" + Math.random() * 360 + ",0%,0%)";
@@ -1115,6 +1120,8 @@ socket.on("SESSION_UPDATE", function(sessionObject){
 
     // currentSession.colors = {'startColor': startColor, 'endColor': endColor},
     sessionHashMap.set(sessionObject.sessionId, sessionObject);
+
+    console.log("NEW SESSION " + sessionObject.sessionId + " POS: " + jsonPrint(sessionObject.initialPosition));
   }
 
   sessionObject.sourceWord.lastSeen = moment().valueOf();
@@ -1205,16 +1212,16 @@ var mouse = {} ;
 // GET NODES FROM QUEUE
 //================================
 
-var radius = height * 0.4;
+var radius = 1000;
 
 function computeInitialPosition(index) {
   return { 
     // x: (Math.random() * nodeInitialX), 
     // y: (Math.random() * nodeInitialY) 
-    x: (nodeInitialX + (radius * Math.cos(index * 0.1))), 
-    y: (nodeInitialY - (radius * Math.sin(index * 0.1)))
-    // x: nodeInitialX, 
-    // y: nodeInitialY
+    // x: (nodeInitialX + (radius * Math.cos(index))), 
+    // y: (nodeInitialY - (radius * Math.sin(index)))
+    x: width * Math.random(), 
+    y: 0
   };
 }
 
@@ -1277,7 +1284,8 @@ var createNode = function (sessionId, wordObject, callback) {
 
     var currentSession = sessionHashMap.get(sessionId);
 
-    // console.log("COLORS | " + sessionId + "\n" + jsonPrint(currentSession.colors));
+    wordObject.x = currentSession.initialPosition.x + (0.1 * currentSession.initialPosition.x * Math.random());  // avoid creating nodes onto of each other
+    wordObject.y = currentSession.initialPosition.y;
 
 
     if ((typeof wordObject.mentions === 'undefined') || (wordObject.mentions == null)) {
@@ -1296,10 +1304,8 @@ var createNode = function (sessionId, wordObject, callback) {
     wordObject.interpolateColor = currentSession.interpolateColor ;
 
 
-    var initialPosition = computeInitialPosition(nodesCreated);
+    // var initialPosition = computeInitialPosition(nodesCreated);
 
-    wordObject.x = initialPosition.x ;
-    wordObject.y = initialPosition.y ;
 
     nodeHashMap[wordObject.nodeId] = wordObject;
     nodes.push(wordObject);
@@ -1356,7 +1362,8 @@ var getNodeFromQueue = function (callback) {
   numberSessionsUpdated = 0;
 
   // while ((numberSessionsUpdated < MAX_UPDATES_PER_CYCLE) && (sessionUpdateQueue.getLength() > 0)) {
-  while (sessionUpdateQueue.getLength() > 0){
+  // while (sessionUpdateQueue.getLength() > 0){
+  if (sessionUpdateQueue.getLength() > 0){
     numberSessionsUpdated++ ;
     // newNodesFlag = true ;
 

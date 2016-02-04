@@ -33,7 +33,8 @@ var defaultFadeDuration = 100 ;
 var currentScale = 0.5 ;
 var width = window.innerWidth * 1 ;
 var height = window.innerHeight * 1 ;
-var translate = [0.5*width,0.5*height] ;
+// var translate = [0.5*width,0.5*height] ;
+var translate = [0,0] ;
 
 var zoomWidth = (width - (currentScale * width))/2  ;
 var zoomHeight =  (height - (currentScale * height))/2  ;
@@ -46,10 +47,10 @@ var pageLoadedTimeIntervalFlag = true;
 
 var DEFAULT_MAX_AGE = 60000.0 ;
 
-var DEFAULT_CHARGE = -5000;
-var DEFAULT_GRAVITY = 0.1 ;
-var DEFAULT_LINK_STRENGTH = 0.3 ;
-var DEFAULT_FRICTION = 0.5;
+var DEFAULT_CHARGE = -100;
+var DEFAULT_GRAVITY = 0.005;
+var DEFAULT_LINK_STRENGTH = 0.1;
+var DEFAULT_FRICTION = 0.9;
 
 var DEFAULT_CONFIG = {
   'nodeMaxAge' : DEFAULT_MAX_AGE
@@ -218,7 +219,8 @@ function resize() {
   console.log("width: " + width + " | height: " + height);
 
   radius = height * 0.4;
-  translate = [0.5*width,0.5*height] ;
+  // translate = [0.5*width,0.5*height] ;
+  translate = [0,0] ;
 
   d3LayoutWidth = width * D3_LAYOUT_WIDTH_RATIO ;
   d3LayoutHeight = height * D3_LAYOUT_HEIGHT_RATIO ;
@@ -465,6 +467,7 @@ document.addEventListener(visibilityEvent, function(event) {
     windowVisible = true ;
   } else {
     windowVisible = false ;
+    mouseMovingFlag = false;
   }
 });
 
@@ -654,7 +657,7 @@ var links = [];
 var D3_LAYOUT_WIDTH_RATIO = 1.0;
 var D3_LAYOUT_HEIGHT_RATIO = 1.0 ;
 
-var FORCE_LAYOUT_WIDTH_RATIO = 0.6;
+var FORCE_LAYOUT_WIDTH_RATIO = 1.0;
 var FORCE_LAYOUT_HEIGHT_RATIO = 1.0 ;
 
 var TIMELINE_WIDTH_RATIO = 0.2;
@@ -1040,21 +1043,16 @@ socket.on("SESSION", function(sessionObject){
     var endColor = "hsl(" + Math.random() * 360 + ",0%,0%)";
     var interpolateNodeColor = d3.interpolateHcl(endColor, startColor);
 
+    sessionObject.colors = {'startColor': startColor, 'endColor': endColor};
+    sessionObject.interpolateColor = interpolateNodeColor;
     currentSession = sessionObject ;
 
-    currentSession = {
-      sessionId: sessionObject.sessionId,
-      colors: {'startColor': startColor, 'endColor': endColor},
-      interpolateColor: interpolateColor,
-      wordChain: []
-    };
-
-    sessionObject.colors = {'startColor': startColor, 'endColor': endColor};
-    sessionObject.interpolateColor = interpolateColor;
   }
 
-  sessionObject.word.lastSeen = moment().valueOf();
+  currentSession.lastSeen = moment().valueOf();
+
   currentSession.wordChain[sessionObject.wordChainIndex] = sessionObject.word;
+  
   sessionHashMap.set(currentSession.sessionId, currentSession);
 
   createNode(currentSession.sessionId, sessionObject.word, function(){
@@ -1110,6 +1108,8 @@ socket.on("SESSION_UPDATE", function(sessionObject){
 
     sessionsCreated++;
     sessionObject.initialPosition = computeInitialPosition(sessionsCreated);
+
+    sessionObject.sourceWord.fixed = true;
 
     var startColor = "hsl(" + Math.random() * 360 + ",100%,50%)";
     var endColor = "hsl(" + Math.random() * 360 + ",0%,0%)";
@@ -1168,7 +1168,14 @@ socket.on("SESSION_UPDATE", function(sessionObject){
 // TICK
 //=============================
 
-function tick() {
+function tick(e) {
+
+  var k = 10 * e.alpha;
+  nodes.forEach(function(o, i) {
+    // o.y += i & 1 ? k : -k;
+    o.x += (0.1 + Math.abs(0.0001*o.x*k));
+  });
+
   node
     .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")" });
 
@@ -1220,13 +1227,17 @@ function computeInitialPosition(index) {
     // y: (Math.random() * nodeInitialY) 
     // x: (nodeInitialX + (radius * Math.cos(index))), 
     // y: (nodeInitialY - (radius * Math.sin(index)))
-    x: width * Math.random(), 
-    y: 0
+    // x: width * Math.random(), 
+    // y: 0
+    y: height * Math.random(), 
+    x: -width * 0.3 * Math.random()
   };
 }
 
 var nodesLength, nodeIndex = 0, chainIndex = 0 ;
 var tempMentions ;
+
+var sessionLatestNode = {};
 
 var createNode = function (sessionId, wordObject, callback) {
 
@@ -1236,6 +1247,16 @@ var createNode = function (sessionId, wordObject, callback) {
   }
 
   console.log("createNode: SID: " + sessionId + " | " + wordObject.nodeId + " | M: " + wordObject.mentions);
+
+  wordObject.fixed = true;
+
+  if (typeof sessionLatestNode[sessionId] !== 'undefined'){
+    sessionLatestNode[sessionId].fixed = false ;
+    sessionLatestNode[sessionId] = wordObject ;
+  }
+  else {
+    sessionLatestNode[sessionId] = wordObject ;
+  }
 
   var err = null ;
   var forceStopped = false ;
@@ -1248,10 +1269,12 @@ var createNode = function (sessionId, wordObject, callback) {
     var currentNodeObject = nodeHashMap[wordObject.nodeId];
 
     currentNodeObject.sessionId = sessionId ;
+    // currentNodeObject.fixed = false;
     currentNodeObject.age = moment().valueOf() - wordObject.lastSeen;
     currentNodeObject.lastSeen = wordObject.lastSeen;
     currentNodeObject.mentions = wordObject.mentions ;
     currentNodeObject.text = wordObject.nodeId ;
+    // currentNodeObject.fixed = wordObject.fixed ;
 
     nodesLength = nodes.length ;
 
@@ -1265,6 +1288,7 @@ var createNode = function (sessionId, wordObject, callback) {
 
         nodes[nodeIndex].age = moment().valueOf() - currentNodeObject.lastSeen;
         nodes[nodeIndex].lastSeen = currentNodeObject.lastSeen;
+        nodes[nodeIndex].fixed = currentNodeObject.fixed;
         break;
       }
     }
@@ -1282,7 +1306,15 @@ var createNode = function (sessionId, wordObject, callback) {
       sessionIds[sessionId] = 1;
     }
 
+    if (!sessionHashMap.has(sessionId)){
+      console.warn("??? SESSION NOT IN HASH ??? " + sessionId + " ... SKIPPING");
+      callback (null, newNodesFlag, deadNodesFlag);
+      return;
+    }
+
     var currentSession = sessionHashMap.get(sessionId);
+
+    // wordObject.fixed = currentSession.fixed;
 
     wordObject.x = currentSession.initialPosition.x + (0.1 * currentSession.initialPosition.x * Math.random());  // avoid creating nodes onto of each other
     wordObject.y = currentSession.initialPosition.y;
@@ -1309,14 +1341,6 @@ var createNode = function (sessionId, wordObject, callback) {
 
     nodeHashMap[wordObject.nodeId] = wordObject;
     nodes.push(wordObject);
-
-    // console.log(">>> ADDED NODE TO HASH MAP"
-    //   + " | " + nodes.length 
-    //   + " | " + wordObject.nodeId
-    //   + " | MN: " + wordObject.mentions
-    //   + " | x: " + wordObject.x
-    //   + " | y: " + wordObject.y
-    //   );
   }
 
   callback (null, newNodesFlag, deadNodesFlag);
@@ -1451,6 +1475,7 @@ var ageNodes = function (newNodesFlag, deadNodesFlag, callback){
         console.log(keys);
         console.warn("XXXX SESSION EXPIRED: " + currentNodeObject.sessionId + " | " + sessionIds[currentNodeObject.sessionId]);
         delete sessionIds[currentNodeObject.sessionId] ;
+        delete sessionLatestNode[currentNodeObject.sessionId];
         sessionHashMap.remove(currentNodeObject.sessionId) ;
         console.log("XXXX SESSION EXPIRED: " + keys.length + " | " + sessionHashMap.count());  // ????? can't delete the last/final key of sessionIds????
       }

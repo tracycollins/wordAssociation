@@ -64,7 +64,7 @@ output[type="text"]{
 
 .button {
   background-color:black;
-  opacity: 0.6;
+  /*opacity: 0.6;*/
   /*border:1px solid gray;*/
   cursor:pointer;
   color:#888888;

@@ -14,7 +14,7 @@
       background: #000000;
       border: 1px solid #aaaaaa;    
       color: #cccccc;
-      text-align: center;
+      /*text-align: center;*/
       margin: 20px;
       padding: 10px;
       overflow: hidden;
@@ -23,6 +23,7 @@
       left: 0;
       z-index: 10;
     }
+
     #d3group {
       background: #000000;
       text-align: center;
@@ -32,8 +33,8 @@
       height: 100%;
       overflow: hidden;
       position: relative;
-/*  z-index: 10;
-*/    }
+    }
+
     #statsOverlay {
       color: #aaaaaa;
       overflow: hidden;
@@ -67,39 +68,20 @@
       pointer-events: none;     
     }
 
-/*.sliderTable {
-  background-color:black;
-  border:1px solid gray;
-  cursor:pointer;
-  opacity: 0.5;
-  color:#880000;
-}
-*/
-.slider {
-  /*background-color:black;*/
-  /*border:1px solid gray;*/
-  /*cursor:pointer;*/
-  /*color:#880000;*/
-}
-
-    tr {
-  /*color:yellow;*/
-/*  opacity: 0.5;
-*/    }
-
     td {
       /*background-color:red;*/
       /*border:1px solid gray;*/
       /*opacity: 0.6;*/
-      text-align: left;
-      cursor:pointer;
+      /*text-align: left;*/
+      /*cursor:pointer;*/
       /*color:#888888;*/
-      padding: 5px;
+      padding: 8px;
     }
-table {
-    border-collapse: collapse;
-    border-spacing: 0
-}
+
+    table {
+      border-collapse: collapse;
+      border-spacing: 0
+    }
 
   </style>
 
@@ -131,22 +113,22 @@ table {
         </tr>
         <tr>
           <td> 
-            <input id="chargeSlider" type="range" class="slider"  min="-10000" max="10000" value="-100" oninput="updateCharge(this.value)"/>
+            <input id="chargeSlider" type="range" class="slider"  min="-500" max="500" value="-10" oninput="updateCharge(this.value)"/>
           </td>
           <td> 
             <p>CHARGE </p>
           </td>
-          <td id="chargeSliderText" class="sliderSpan">-100</td>
+          <td id="chargeSliderText" class="sliderSpan">-10</td>
         </tr>
 
         <tr>
           <td> 
-            <input id="gravitySlider" type="range" class="slider"  min="-100" max="100" value="5" oninput="updateGravity(this.value/100)"/>
+            <input id="gravitySlider" type="range" class="slider"  min="-50" max="50" value="0" oninput="updateGravity(this.value/1000)"/>
           </td>
           <td> 
             <p>GRAVITY </p>
           </td>
-          <td id="gravitySliderText" class="sliderSpan">0.05</td>
+          <td id="gravitySliderText" class="sliderSpan">0</td>
         </tr>
 
         <tr>

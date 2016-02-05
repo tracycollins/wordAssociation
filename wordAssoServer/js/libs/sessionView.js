@@ -624,7 +624,6 @@ function getUrlVariables(callback){
         var keyValuePair = variable.split('=');
 
         if (typeof keyValuePair[1] !== 'undefined'){
-          // configHashMap.set(keyValuePair[0], keyValuePair[1]) ;
           console.log("'" + variable + "' >>> URL config: " + keyValuePair[0] + " : " + keyValuePair[1]);  
           if (keyValuePair[0] == 'monitor') {
             monitorMode = keyValuePair[1] ;
@@ -662,10 +661,7 @@ function getUrlVariables(callback){
     }
     callback(err, {sessionId: urlSessionId, namespace: urlNamespace});
   });
-
 }
-
-
 
 var mouseMoveTimeoutInterval = 1000; // 1 second
 
@@ -734,10 +730,10 @@ var defaultRadiusScale = d3.scale.log().domain([1,1000000]).range([4,24]);
 var defaultChargeScale =  d3.scale.log().domain([1,1000000]).range([-100,-150]);
 
 function interpolateHsl(a, b) {
-    var i = d3.interpolateString(a, b);
-    return function(t) {
-        return d3.hsl(i(t));
-    }
+  var i = d3.interpolateString(a, b);
+  return function(t) {
+      return d3.hsl(i(t));
+  }
 }
 
 function interpolateColorFull(startColor, endColor){
@@ -1098,7 +1094,6 @@ socket.on("CONFIG_CHANGE", function(rxConfig){
 
 function displaySession(sessionObject){
 
-
   for (var i=0; i<sessionObject.wordChain.length; i++) {
 
     var sessionUpdateObj = {};
@@ -1418,12 +1413,10 @@ var createNode = function (sessionId, wordObject, callback) {
     currentNodeObject = nodeHashMap[currentNodeId];
 
     currentNodeObject.sessionId = sessionId ;
-    // currentNodeObject.fixed = false;
     currentNodeObject.age = dateNow - wordObject.lastSeen;
     currentNodeObject.lastSeen = wordObject.lastSeen;
     currentNodeObject.mentions = wordObject.mentions ;
     currentNodeObject.text = currentNodeId ;
-    // currentNodeObject.fixed = wordObject.fixed ;
 
     nodesLength = nodes.length ;
 
@@ -1463,21 +1456,6 @@ var createNode = function (sessionId, wordObject, callback) {
       nodes[currentNodeIndex].lastSeen = currentNodeObject.lastSeen;
       nodes[currentNodeIndex].fixed = currentNodeObject.fixed;
     }
-
-    // for (nodeIndex = 0; nodeIndex < nodesLength; nodeIndex++){
-
-    //   if (nodes[nodeIndex].nodeId == currentNodeId) { 
-
-    //     tempMentions = nodes[nodeIndex].mentions;
-    //     nodes[nodeIndex].mentions = currentNodeObject.mentions > tempMentions ? 
-    //       currentNodeObject.mentions : tempMentions ;
-
-    //     nodes[nodeIndex].age = dateNow - currentNodeObject.lastSeen;
-    //     nodes[nodeIndex].lastSeen = currentNodeObject.lastSeen;
-    //     nodes[nodeIndex].fixed = currentNodeObject.fixed;
-    //     break;
-    //   }
-    // }
   }
   else {
     // console.log("@@@--- NODE *NOT* IN HM: " + sessionId + " | " + wordObject.nodeId);
@@ -1500,7 +1478,8 @@ var createNode = function (sessionId, wordObject, callback) {
 
     currentSession = sessionHashMap.get(sessionId);
 
-    wordObject.x = currentSession.initialPosition.x + (0.1 * currentSession.initialPosition.x * Math.random());  // avoid creating nodes onto of each other
+    wordObject.x = currentSession.initialPosition.x + (0.1 * currentSession.initialPosition.x * Math.random());  
+    // avoid creating nodes onto of each other
     wordObject.y = currentSession.initialPosition.y;
 
 
@@ -1834,7 +1813,7 @@ var updateNodeLabels = function (newNodesFlag, deadNodesFlag, callback) {
 
 function ageNodesCheckQueue() {
 
-  checkRxSessionUpdateQueue();
+  // checkRxSessionUpdateQueue();
 
   async.waterfall([ 
       getNodeFromQueue,
@@ -1921,6 +1900,10 @@ function nodeMouseout() {
 function nodeClick(d) {
   launchSessionView(d.sessionId);
 }
+
+setInterval (function(){
+  checkRxSessionUpdateQueue();
+}, 50);
 
 d3.timer(function () {
   dateNow = moment().valueOf();

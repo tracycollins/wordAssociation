@@ -9,6 +9,9 @@ var SessionSchema = new Schema({
 		trim: true,
 		unique: true
 	},
+	config: {
+		type: Object
+	},
 	ip: { 
 		type: String,
 		trim: true
@@ -18,10 +21,12 @@ var SessionSchema = new Schema({
 		trim: true
 	},
 	userId: { 
-		type: String
+		type: String,
+		trim: true
 	},
 	namespace: { 
-		type: String
+		type: String,
+		trim: true
 	},
 	createdAt: { 
 		type: Number,

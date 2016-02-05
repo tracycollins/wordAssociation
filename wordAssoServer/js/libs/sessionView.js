@@ -1624,9 +1624,11 @@ var ageNodes = function (newNodesFlag, deadNodesFlag, callback){
       nodes.splice(ageNodesIndex, 1); 
       console.warn("><>< REMOVED DEAD NODE " + currentNodeObject.nodeId + " | ANI: " + ageNodesIndex + " | nodes " + nodes.length);
 
-      var newCurrentNodeObject = nodes[nodes.length-1];
-      newCurrentNodeObject.nodeIndex = nodes.length-1 ;
-      nodeHashMap[newCurrentNodeObject.nodeId] = newCurrentNodeObject;
+      if (nodes.length > 0) {
+        var newCurrentNodeObject = nodes[nodes.length-1];
+        newCurrentNodeObject.nodeIndex = nodes.length-1 ;
+        nodeHashMap[newCurrentNodeObject.nodeId] = newCurrentNodeObject;
+      }
 
       sessionIds[currentNodeObject.sessionId]--;
 

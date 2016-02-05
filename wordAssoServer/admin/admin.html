@@ -237,6 +237,7 @@
 		<script type="text/javascript">
 
 			var windowLoaded = false;
+			var sentAdminReady = false;
 
 			var ONE_MB = 1024*1024;
 			var ONE_GB = ONE_MB*1024;
@@ -481,6 +482,11 @@
 				currentTime = getTimeNow();
 				updateAdminConnect();
 				updateUserConnect();
+				if (windowLoaded && !sentAdminReady) {
+				  socket.emit("ADMIN_READY", mainAdminObj);
+				  sentAdminReady = true;
+					console.log("TX ADMIN_READY\n" + jsonPrint(mainAdminObj));
+				}
 			}, 1000 );
 
 
@@ -490,8 +496,10 @@
 					+ getTimeStamp()
 					);
 				serverClear();
-				if (windowLoaded) {
+				if (windowLoaded && !sentAdminReady) {
 				  socket.emit("ADMIN_READY", mainAdminObj);
+					console.log("TX ADMIN_READY\n" + jsonPrint(mainAdminObj));
+				  sentAdminReady = true;
 				}
 			});
 
@@ -502,6 +510,8 @@
 					);
 				serverClear();
 			  socket.emit("ADMIN_READY", mainAdminObj);
+				console.log("TX ADMIN_READY\n" + jsonPrint(mainAdminObj));
+			  sentAdminReady = true;
 			});
 
 			socket.on('disconnect', function(){
@@ -510,6 +520,7 @@
 					+ getTimeStamp()
 					);
 				serverClear();
+			  sentAdminReady = false;
 			});
 
 		  socket.on("ADMIN_CONFIG", function(rxAdminConfig){

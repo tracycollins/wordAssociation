@@ -1126,8 +1126,8 @@ function displaySession(sessionObject){
       sessionUpdateObj.targetWord = sessionObject.wordChain[i+1];
     }
 
-    sessionUpdateObj.sourceWord.lastSeen = moment().valueOf();
-    sessionUpdateObj.targetWord.lastSeen = moment().valueOf();
+    sessionUpdateObj.sourceWord.lastSeen = dateNow;
+    sessionUpdateObj.targetWord.lastSeen = dateNow;
 
     // console.log("> RX " + JSON.stringify(sessionObject)); ;
     console.log("> SESSION UPDATE " + sessionObject.sessionId
@@ -1190,7 +1190,7 @@ socket.on("SESSION", function(sessionObject){
 
   }
 
-  currentSession.lastSeen = moment().valueOf();
+  currentSession.lastSeen = dateNow;
 
   currentSession.wordChain[sessionObject.wordChainIndex] = sessionObject.word;
   
@@ -1248,8 +1248,8 @@ socket.on("SESSION_UPDATE", function(sessionObject){
     currentSession.targetWord = sessionObject.targetWord;
     currentSession.sourceWord.fixed = true;
     currentSession.targetWord.fixed = false;
-    currentSession.sourceWord.lastSeen = moment().valueOf();
-    if (currentSession.targetWord) sessionObject.targetWord.lastSeen = moment().valueOf();
+    currentSession.sourceWord.lastSeen = dateNow;
+    if (currentSession.targetWord) sessionObject.targetWord.lastSeen = dateNow;
   }
   else {
 
@@ -1273,7 +1273,7 @@ socket.on("SESSION_UPDATE", function(sessionObject){
     console.log("NEW SESSION " + sessionObject.sessionId + " POS: " + jsonPrint(sessionObject.initialPosition));
   }
 
-  currentSession.sourceWord.lastSeen = moment().valueOf();
+  currentSession.sourceWord.lastSeen = dateNow;
 
 
   // console.log("> RX " + JSON.stringify(sessionObject)); ;
@@ -1421,7 +1421,7 @@ var createNode = function (sessionId, wordObject, callback) {
 
     currentNodeObject.sessionId = sessionId ;
     // currentNodeObject.fixed = false;
-    currentNodeObject.age = moment().valueOf() - wordObject.lastSeen;
+    currentNodeObject.age = dateNow - wordObject.lastSeen;
     currentNodeObject.lastSeen = wordObject.lastSeen;
     currentNodeObject.mentions = wordObject.mentions ;
     currentNodeObject.text = wordObject.nodeId ;
@@ -1437,7 +1437,7 @@ var createNode = function (sessionId, wordObject, callback) {
         nodes[nodeIndex].mentions = currentNodeObject.mentions > tempMentions ? 
           currentNodeObject.mentions : tempMentions ;
 
-        nodes[nodeIndex].age = moment().valueOf() - currentNodeObject.lastSeen;
+        nodes[nodeIndex].age = dateNow - currentNodeObject.lastSeen;
         nodes[nodeIndex].lastSeen = currentNodeObject.lastSeen;
         nodes[nodeIndex].fixed = currentNodeObject.fixed;
         break;
@@ -1478,9 +1478,9 @@ var createNode = function (sessionId, wordObject, callback) {
     }
 
     wordObject.sessionId = sessionId;
-    wordObject.age = moment().valueOf() - wordObject.lastSeen ;
-    wordObject.lastSeen = moment().valueOf();
-    wordObject.ageUpdated = moment().valueOf();
+    wordObject.age = dateNow - wordObject.lastSeen ;
+    wordObject.lastSeen = dateNow;
+    wordObject.ageUpdated = dateNow;
     wordObject.text = wordObject.nodeId ;
 
     wordObject.colors = currentSession.colors ;
@@ -1600,7 +1600,7 @@ var ageNodes = function (newNodesFlag, deadNodesFlag, callback){
 
     currentNodeObject = nodes[ageNodesIndex];
 
-    age = currentNodeObject.age + (ageRate * (moment().valueOf() - currentNodeObject.ageUpdated));
+    age = currentNodeObject.age + (ageRate * (dateNow - currentNodeObject.ageUpdated));
  
     if (age > nodeMaxAge) {
 
@@ -1640,10 +1640,10 @@ var ageNodes = function (newNodesFlag, deadNodesFlag, callback){
     else {
 
       currentNodeObject.age = age;
-      currentNodeObject.ageUpdated = moment().valueOf();
+      currentNodeObject.ageUpdated = dateNow;
 
       nodes[ageNodesIndex].age = age;
-      nodes[ageNodesIndex].ageUpdated = moment().valueOf();
+      nodes[ageNodesIndex].ageUpdated = dateNow;
 
       nodeHashMap[currentNodeObject.nodeId] = currentNodeObject;
     }
@@ -1923,9 +1923,10 @@ function nodeClick(d) {
 }
 
 d3.timer(function () {
-  lastD3TimeCount = d3TimerCount ;
-  d3TimerCount += 100 ;
+  // lastD3TimeCount = d3TimerCount ;
+  // d3TimerCount += 100 ;
   // console.log("d3TimerCount " + d3TimerCount + "| lastD3TimeCount: " + lastD3TimeCount);
-  dateNow = parseInt((new Date).getTime());
+  // dateNow = parseInt((new Date).getTime());
+  dateNow = moment().valueOf();
   if (!(mouseMovingFlag && mouseFreezeEnabled)) ageNodesCheckQueue();
 });

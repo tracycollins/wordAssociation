@@ -85,6 +85,10 @@ p {
     margin-bottom: .2em;
 }
 
+table {
+  border-collapse: collapse;
+}
+
 .container {
     width: 80%;
     max-width: 1000px;

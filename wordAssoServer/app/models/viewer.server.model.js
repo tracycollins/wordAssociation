@@ -37,6 +37,18 @@ var ViewerSchema = new Schema({
 		type: Number,
 		default: moment().valueOf()
 	},
+	connected: { 
+		type: Boolean,
+		default: false
+	},
+	connectTime: { 
+		type: Number,
+		default: 0
+	},
+	disconnectTime: { 
+		type: Number,
+		default: 0
+	},
 	lastSeen: {   
 		type: Number,
 		default: moment().valueOf()

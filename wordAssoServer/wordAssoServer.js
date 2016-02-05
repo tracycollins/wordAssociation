@@ -817,14 +817,14 @@ function readFileIntoArray (path, callback) {
 
 function dnsReverseLookup(ip, callback) {
   if (localHostHashMap.has(ip)) {
-    debug("dnsReverseLookup: DEVELOPMENT HOST: " + os.hostname() + " | " + ip);
+    console.log("dnsReverseLookup: DEVELOPMENT HOST: " + os.hostname() + " | " + ip);
     var domains =[];
     domains.push(localHostHashMap.get(ip));
     callback(null, domains);
   }
   else if (dnsHostHashMap.has(ip)) {
     var domains = dnsHostHashMap.get(ip) ;
-    debug("dnsReverseLookup: HOST IN HASHMAP : " + os.hostname() + " | " + ip + " | " + domains);
+    console.log("dnsReverseLookup: HOST IN HASHMAP : " + os.hostname() + " | " + ip + " | " + domains);
     callback(null, domains);
   }
   else {
@@ -834,10 +834,10 @@ function dnsReverseLookup(ip, callback) {
         callback(err, null);
       }
       else {
-        debug('DNS REVERSE IP: ' + ip);
+        console.log('DNS REVERSE IP: ' + ip);
         dnsHostHashMap.set(ip, domains);
         domains.forEach(function(domain){
-          debug("DOMAIN: " + domain);
+          console.log("DOMAIN: " + domain);
         });
         callback(null, domains);
       }
@@ -1611,9 +1611,14 @@ function sessionUpdateDb (sessionObj, callback) {
         callback(err, sessionObj);
       }
       else {
-        debug(chalkSession("SESSION UPDATED" 
+        console.log(chalkSession("SESSION UPDATED" 
           + " | " + ses.sessionId
-          + " | USR ID: " + ses.userId 
+          + " | NSP: " + ses.namespace 
+          + " | UID: " + ses.userId 
+          + " | IP: " + ses.ip 
+          + " | DOM: " + ses.domain 
+          + " | CON: " + ses.connected 
+          + " | WCL: " + ses.wordChain.length 
         ));
         callback(null, ses);
       }
@@ -1649,25 +1654,34 @@ function findSessionById(sessionId, callback){
 
 function adminUpdateDb (adminObj, callback) {
 
-  if (!adminObj.adminId || typeof adminObj.adminId === 'undefined' || adminObj.adminId == null) {
-    console.log(chalkError("*** adminUpdateDb adminObj.adminId UNDEFINED *** | SKIPPING UPDATE"));
-    callback("ERROR: ADMIN ID UNDEFINED", null);
-    return;
+  if (adminObj.ip && (typeof adminObj.domain === 'undefined')) {
+    dnsReverseLookup(adminObj.ip, function(err, domains){
+      if (domains[0]) {
+        adminObj.domain = domains[0];
+        console.log("adminUpdateDb: UPDATED DOMAIN | " + adminObj.userId + " | " + adminObj.domain);
+      }
+    });
   }
 
   var query = { adminId: adminObj.adminId };
   var update = { 
           $set: { 
             "screenName": adminObj.screenName,
+            "domain": adminObj.domain,
+            "ip": adminObj.ip,
+            "sessionId": adminObj.lastSession,
             "description": adminObj.description,
             "url": adminObj.url,
             "profileUrl": adminObj.profileUrl,
             "profileImageUrl": adminObj.profileImageUrl,
             "verified": adminObj.verified,
-            "lastSeen": moment(),
-            "lastSession": adminObj.lastSession
+            "lastSeen": adminObj.lastSeen,
+            "lastSession": adminObj.lastSession,
+            "connectTime": adminObj.connectTime,
+            "disconnectTime": adminObj.disconnectTime,
+            "connected": adminObj.connected
           },
-          $push: { "sessions": adminObj.sessions } 
+          $push: { "sessions": adminObj.lastSession } 
         };
   var options = { upsert: true, new: true };
 
@@ -1691,6 +1705,9 @@ function adminUpdateDb (adminObj, callback) {
       else {
         console.log(">>> ADMIN UPDATED" 
           + " | " + ad.adminId
+          + " | IP: " + ad.ip
+          + " | DOM: " + ad.domain
+          + " | SID: " + ad.sessionId
           + " | SN: " + ad.screenName 
           // + " | DES: " + us.description 
           // + " | URL: " + us.url 
@@ -1700,6 +1717,7 @@ function adminUpdateDb (adminObj, callback) {
           + " | LS: " + getTimeStamp(ad.lastSeen)
           + " | SES: " + ad.sessions.length
           + " | LSES: " + ad.lastSession
+          + " | CON: " + ad.connected
           );
         callback(null, ad);
         return;
@@ -1722,7 +1740,7 @@ function viewerUpdateDb (viewerObj, callback) {
             "lastSeen": moment(),
             "lastSession": viewerObj.lastSession
           },
-          $push: { "sessions": viewerObj.sessions } 
+          $push: { "sessions": viewerObj.lastSession } 
         };
   var options = { upsert: true, new: true };
 
@@ -1759,19 +1777,39 @@ function viewerUpdateDb (viewerObj, callback) {
 
 function userUpdateDb (userObj, callback) {
 
+  if (userObj.ip && (typeof userObj.domain === 'undefined')) {
+    dnsReverseLookup(userObj.ip, function(err, domains){
+      if (domains[0]) {
+        userObj.domain = domains[0];
+        console.log("userUpdateDb: UPDATED DOMAIN | " + userObj.userId + " | " + userObj.domain);
+      }
+    });
+  }
+
+  // if (dnsHostHashMap.has(userObj.ip)) {
+  //   userObj.domain = dnsHostHashMap.get(userObj.ip);
+  //   console.log("userUpdateDb: UPDATED DOMAIN | " + userObj.userId + " | " + userObj.domain);
+  // }
+
   var query = { userId: userObj.userId };
   var update = { 
           $set: { 
+            "domain": userObj.domain,
+            "ip": userObj.ip,
+            "sessionId": userObj.lastSession,
             "screenName": userObj.screenName,
             "description": userObj.description,
             "url": userObj.url,
             "profileUrl": userObj.profileUrl,
             "profileImageUrl": userObj.profileImageUrl,
             "verified": userObj.verified,
-            "lastSeen": moment(),
-            "lastSession": userObj.lastSession
+            "lastSeen": userObj.lastSeen,
+            "lastSession": userObj.lastSession,
+            "connectTime": userObj.connectTime,
+            "disconnectTime": userObj.disconnectTime,
+            "connected": userObj.connected
           },
-          $push: { "sessions": userObj.sessions } 
+          $push: { "sessions": userObj.lastSession } 
         };
   var options = { upsert: true, new: true };
 
@@ -1788,10 +1826,12 @@ function userUpdateDb (userObj, callback) {
         callback(err, userObj);
       }
       else {
-        console.log(">>> USER UPDATED" 
+        console.log(chalkUser(">>> USER UPDATED" 
           + " | " + us.userId
           + " | SN: " + us.screenName 
-          // + " | DES: " + us.description 
+          + " | IP: " + us.ip
+          + " | DOM: " + us.domain
+          + " | SID: " + us.sessionId
           // + " | URL: " + us.url 
           // + " | PURL: " + us.profileUrl 
           // + " | PIURL: " + us.profileImageUrl 
@@ -1799,7 +1839,8 @@ function userUpdateDb (userObj, callback) {
           + " | LS: " + getTimeStamp(us.lastSeen)
           + " | SES: " + us.sessions.length
           + " | LSES: " + us.lastSession
-          );
+          + " | CON: " + us.connected
+        ));
         callback(null, us);
       }
     }
@@ -1814,6 +1855,9 @@ function adminFindAllDb (options, callback) {
   var query = {};
   var projections = {
     adminId: true,
+    sessionId: true,
+    ip: true,
+    domain: true,
     screenName: true,
     description: true,
     url: true,
@@ -1956,6 +2000,9 @@ function userFindAllDb (options, callback) {
   var query = {};
   var projections = {
     userId: true,
+    sessionId: true,
+    ip: true,
+    domain: true,
     screenName: true,
     description: true,
     url: true,
@@ -2631,6 +2678,30 @@ var readSessionQueue = setInterval(function (){
         });
         break;
 
+      case 'REQ_USER_SESSION':
+        console.log(chalkAlert("RX REQ_USER_SESSION\n" + jsonPrint(sesObj)));
+        Object.keys(userNameSpace.connected).forEach(function(userSessionKey){
+          var userSessionObj = sessionCache.get(userSessionKey);
+          if (userSessionObj) {
+            console.log("FOUND USER SESSION: " + userSessionObj.sessionId);
+            console.log(chalkRed("TX USER SESSION: " + userSessionObj.sessionId 
+              + " TO " + sesObj.options.requestNamespace + "#" + sesObj.options.requestSocketId));
+
+            adminNameSpace.to(sesObj.session.sessionId).emit('USER_SESSION', userSessionObj);
+          }
+        });
+        Object.keys(testUsersNameSpace.connected).forEach(function(userSessionKey){
+          var userSessionObj = sessionCache.get(userSessionKey);
+          if (userSessionObj) {
+            console.log("FOUND TEST USER SESSION: " + userSessionObj.sessionId);
+            console.log(chalkRed("TX USER SESSION: " + userSessionObj.sessionId 
+              + " TO " + sesObj.options.requestNamespace + "#" + sesObj.options.requestSocketId));
+
+            adminNameSpace.to(sesObj.session.sessionId).emit('USER_SESSION', userSessionObj);
+          }
+        });
+        break;
+
       case 'SESSION_CREATE':
         console.log(chalkSession(
           ">>> SESSION CREATE"
@@ -2643,13 +2714,19 @@ var readSessionQueue = setInterval(function (){
         // if (sesObj.session.namespace == 'admin') sesObj.session.userId = sesObj.session.adminId ;
         // if (sesObj.session.namespace == 'view') sesObj.session.userId = sesObj.session.viewerId ;
 
-        dnsReverseLookup(sesObj.session.ip, function(err, domain){
+        dnsReverseLookup(sesObj.session.ip, function(err, domains){
           if (!err) {
             console.log(chalkSession("... SESSION CREATE | IP: " 
-              + sesObj.session.ip + " | DOMAIN: " + domain
+              + sesObj.session.ip + " | DOMAINS: " + domains.length + " | " + domains[0]
             ));
 
-            sesObj.session.domain = domain;
+            if (domains.length > 0){
+              sesObj.session.domain = domains[0];
+            } 
+            else {
+              sesObj.session.domain = 'UNKNOWN';
+            }
+
             sesObj.session.connected = true;
 
             sessionUpdateDb(sesObj.session, function(err, sessionUpdatedObj){
@@ -2658,6 +2735,12 @@ var readSessionQueue = setInterval(function (){
                   sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, 0);  // don't age out view sessions
                 }
                 else if (sessionUpdatedObj.namespace == 'view') {
+                  sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, 0);  // don't age out view sessions
+                }
+                else if (sessionUpdatedObj.namespace == 'user') {
+                  sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, 0);  // don't age out view sessions
+                }
+               else if (sessionUpdatedObj.namespace == 'test-user') {
                   sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, 0);  // don't age out view sessions
                 }
                 else {
@@ -2676,25 +2759,64 @@ var readSessionQueue = setInterval(function (){
           "<-> SOCKET RECONNECT"
           + " | NSP: " + sesObj.session.namespace
           + " | SID: " + sesObj.session.sessionId
-          // + " | UID: " + sesObj.user.userId
+          + " | IP: " + sesObj.session.ip
+          + " | DOMAIN: " + sesObj.session.domain
         ));
         sessionCache.set(sesObj.session.sessionId, sesObj.session);
         sessionUpdateDb(sesObj.session, function(){});
+
+        var currentUser = userCache.get(sesObj.session.userId);
+        currentUser.connected = true ;
+
+        userUpdateDb(currentUser, function(err, updatedUserObj){
+          if (!err){
+            console.log(chalkRed("TX USER SESSION (SOCKET ERROR): " 
+              + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"));
+
+            adminNameSpace.emit('USER_SESSION', updatedUserObj);
+          }
+        });
+
         break;
 
       case 'SESSION_EXPIRED':
         debug(chalkSession(
           "EXP SESSION EXPIRED"
-          // + " | NSP: " + sesObj.session.namespace
-          + " | SID: " + sesObj.sessionId
-          // + " | UID: " + sesObj.user.userId
+          + " | NSP: " + sesObj.session.namespace
+          + " | SID: " + sesObj.session.sessionId
+          + " | IP: " + sesObj.session.ip
+          + " | DOMAIN: " + sesObj.session.domain
         ));
 
-        // var currentSession = sessionCache.get(sesObj.sessionId);
-        var currentUser = userCache.get(sesObj.session.userId);
 
         sesObj.session.disconnectTime = moment().valueOf();
-        sessionUpdateDb(sesObj.session, function(){});
+
+        sessionUpdateDb(sesObj.session, function(err, updatedSessionObj){
+
+          var currentUser = userCache.get(updatedSessionObj.userId);
+
+          if (currentUser) {
+            debug("currentUser\n" + jsonPrint(currentUser));
+            userCache.del(currentUser.userId);
+            currentUser.lastSeen = moment().valueOf();
+            currentUser.connected = false;
+            userUpdateDb(currentUser, function(err, updatedUserObj){
+              if (!err){
+
+                updatedUserObj.sessionId = updatedUserObj.lastSession;
+
+                console.log(chalkRed("TX USER SESSION (DISCONNECT): " 
+                  + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"
+                ));
+
+                adminNameSpace.emit('USER_SESSION', updatedUserObj);
+              }
+            });
+          }
+
+
+        });
+
 
         sesObj.session.wordChain.forEach(function(word){
           debug(chalkSession(">T< SET WORD " + word + " TTL: " + wordCacheTtl));
@@ -2706,9 +2828,10 @@ var readSessionQueue = setInterval(function (){
       case 'SOCKET_DISCONNECT':
         console.log(chalkSession(
           "XXX SOCKET DISCONNECT"
-          // + " | NSP: " + sesObj.session.namespace
-          + " | SID: " + sesObj.sessionId
-          // + " | UID: " + sesObj.user.userId
+          + " | NSP: " + sesObj.session.namespace
+          + " | SID: " + sesObj.session.sessionId
+          + " | IP: " + sesObj.session.ip
+          + " | DOMAIN: " + sesObj.session.domain
         ));
 
 
@@ -2733,21 +2856,44 @@ var readSessionQueue = setInterval(function (){
           if (currentAdmin) {
             debug("currentAdmin\n" + jsonPrint(currentAdmin));
             adminCache.del(currentAdmin.adminId);
+
             currentAdmin.lastSeen = moment().valueOf();
-            adminUpdateDb(currentAdmin, function(){});
+            currentAdmin.connected = false;
+
+            adminUpdateDb(currentAdmin, function(err, updatedAdminObj){
+              if (!err){
+                console.log(chalkRed("TX ADMIN SESSION (DISCONNECT): " 
+                  + updatedAdminObj.lastSession + " TO ADMIN NAMESPACE"));
+
+                adminNameSpace.emit('ADMIN_SESSION', updatedAdminObj);
+              }
+            });
           }
           
           if (currentUser) {
             debug("currentUser\n" + jsonPrint(currentUser));
             userCache.del(currentUser.userId);
             currentUser.lastSeen = moment().valueOf();
-            userUpdateDb(currentUser, function(){});
+            currentUser.connected = false;
+            userUpdateDb(currentUser, function(err, updatedUserObj){
+              if (!err){
+
+                updatedUserObj.sessionId = updatedUserObj.lastSession;
+
+                console.log(chalkRed("TX USER SESSION (DISCONNECT): " 
+                  + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"
+                ));
+
+                adminNameSpace.emit('USER_SESSION', updatedUserObj);
+              }
+            });
           }
           
           if (currentViewer) {
             debug("currentViewer\n" + jsonPrint(currentViewer));
             viewerCache.del(currentViewer.viewerId);
             currentViewer.lastSeen = moment().valueOf();
+            currentViewer.connected = false;
             viewerUpdateDb(currentViewer, function(){});
           }
         }
@@ -2764,27 +2910,52 @@ var readSessionQueue = setInterval(function (){
         var currentSession = sessionCache.get(sesObj.sessionId);
         sessionCache.del(currentSession.sessionId);
         sesObj.user.lastSeen = moment().valueOf();
-        userUpdateDb(sesObj.user, function(){});
+        sesObj.user.connected = false;
+        userUpdateDb(sesObj.user, function(err, updatedUserObj){
+          if (!err){
+            console.log(chalkRed("TX USER SESSION (SOCKET ERROR): " 
+              + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"));
+
+            adminNameSpace.emit('USER_SESSION', updatedUserObj);
+          }
+        });
         break;
 
       case 'ADMIN_READY':
 
         // ????? ADMIN VERIFICATION SHOULD HAPPEN HERE
 
+        if (typeof sesObj.session.ip !== 'undefined'){
+          if (dnsHostHashMap.has(sesObj.session.ip)) {
+            sesObj.admin.domain = dnsHostHashMap.get(sesObj.session.ip);
+            sesObj.session.domain = dnsHostHashMap.get(sesObj.session.ip);
+          }
+        }
+
         console.log("ADMIN_READY\n" + jsonPrint(sesObj));
 
-        debug(chalkSession(
+        console.log(chalkSession(
           ">>> SESSION ADMIN READY"
           + " | SID: " + sesObj.session.sessionId
           + " | UID: " + sesObj.admin.adminId
+          + " | NSP: " + sesObj.session.namespace
+          + " | IP: " + sesObj.session.ip
+          + " | DOMAIN: " + sesObj.session.domain
         ));
 
         var currentSession = sessionCache.get(sesObj.session.sessionId);
 
         currentSession.userId = sesObj.admin.adminId;
 
+        sesObj.admin.ip = sesObj.session.ip;
+        sesObj.admin.domain = sesObj.session.domain;
         sesObj.admin.lastSession = sesObj.session.sessionId;
         sesObj.admin.lastSeen = moment().valueOf();
+        sesObj.admin.connectTime = moment().valueOf();
+        sesObj.admin.disconnectTime = moment().valueOf();
+        sesObj.admin.connected = true;
+
+        console.log("adminUpdateDb\n" + jsonPrint(sesObj));
 
         adminUpdateDb(sesObj.admin, function(err, adminObj){
           if (!err) {
@@ -2813,12 +2984,22 @@ var readSessionQueue = setInterval(function (){
 
       case 'VIEWER_READY':
 
+        if (typeof sesObj.session.ip !== 'undefined'){
+          if (dnsHostHashMap.has(sesObj.session.ip)) {
+            sesObj.session.domain = dnsHostHashMap.get(sesObj.session.ip);
+            sesObj.viewer.domain = dnsHostHashMap.get(sesObj.session.ip);
+          }
+        }
+
         console.log("VIEWER_READY\n" + jsonPrint(sesObj));
 
         console.log(chalkSession(
           ">>> SESSION VIEWER READY"
           + " | SID: " + sesObj.session.sessionId
           + " | UID: " + sesObj.viewer.viewerId
+          + " | NSP: " + sesObj.session.namespace
+          + " | IP: " + sesObj.session.ip
+          + " | DOMAIN: " + sesObj.session.domain
         ));
 
         var currentSession = sessionCache.get(sesObj.session.sessionId);
@@ -2827,6 +3008,7 @@ var readSessionQueue = setInterval(function (){
 
         sesObj.viewer.lastSession = sesObj.session.sessionId;
         sesObj.viewer.lastSeen = moment().valueOf();
+        sesObj.viewer.connected = true;
 
         viewerUpdateDb(sesObj.viewer, function(err, viewerObj){
           if (!err) {
@@ -2849,22 +3031,44 @@ var readSessionQueue = setInterval(function (){
         });
         break;
 
-
       case 'USER_READY':
 
-        debug(chalkSession(
+        if (typeof sesObj.session.ip !== 'undefined'){
+          if (dnsHostHashMap.has(sesObj.session.ip)) {
+            sesObj.session.domain = dnsHostHashMap.get(sesObj.session.ip);
+            sesObj.user.domain = dnsHostHashMap.get(sesObj.session.ip);
+            console.log(chalkUser("@@@ USER_READY SET DOMAIN: " + dnsHostHashMap.get(sesObj.session.ip)));
+          }
+        }
+
+        console.log(chalkSession(
           ">>> SESSION USER READY"
           + " | SID: " + sesObj.session.sessionId
           + " | UID: " + sesObj.user.userId
+          + " | NSP: " + sesObj.session.namespace
+          + " | IP: " + sesObj.session.ip
+          + " | DOMAIN: " + sesObj.session.domain
         ));
 
         var currentSession = sessionCache.get(sesObj.session.sessionId);
         currentSession.userId = sesObj.user.userId;
 
+        sesObj.user.ip = sesObj.session.ip;
+        sesObj.user.domain = sesObj.session.domain;
         sesObj.user.lastSession = sesObj.session.sessionId;
         sesObj.user.lastSeen = moment().valueOf();
+        sesObj.user.connectTime = moment().valueOf();
+        sesObj.user.disconnectTime = moment().valueOf();
+        sesObj.user.connected = true;
 
-        userUpdateDb(sesObj.user, function(){});
+        userUpdateDb(sesObj.user, function(err, updatedUserObj){
+          if (!err){
+            console.log(chalkRed("TX USER SESSION (USER READY): " 
+              + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"));
+
+            adminNameSpace.emit('USER_SESSION', updatedUserObj);
+          }
+        });
 
         sessionCache.set(currentSession.sessionId, currentSession, function( err, success ){
           if( !err && success ){
@@ -3526,6 +3730,17 @@ function createSession (newSessionObj){
     sessionQueue.enqueue({sessionEvent: "REQ_ADMIN_SESSION", session: sessionObj, options: options});
   });
 
+  socket.on("REQ_USER_SESSION", function(options){
+    console.log(chalkUser(moment().format(defaultDateTimeFormat) 
+      + " | REQ_USER_SESSION: " + socketId
+      + " | IP: " + ipAddress
+      + " | SID: " + sessionObj.sessionId
+      + " | OPTIONS: " + jsonPrint(options)      
+    ));
+
+    sessionQueue.enqueue({sessionEvent: "REQ_USER_SESSION", session: sessionObj, options: options});
+  });
+
   socket.on("ADMIN_READY", function(adminObj){
 
     debug(chalkAdmin("ADMIN READY\n" + jsonPrint(adminObj)));
@@ -3572,7 +3787,7 @@ function createSession (newSessionObj){
 
   socket.on("USER_READY", function(userObj){
 
-    debug(chalkUser("USER READY\n" + jsonPrint(userObj)));
+    console.log(chalkUser("USER READY\n" + jsonPrint(userObj)));
 
     var socketId = socket.id ;
     var sessionObj = sessionCache.get(socketId);
@@ -3587,6 +3802,9 @@ function createSession (newSessionObj){
       + " | SID: " + sessionObj.sessionId
       + " | " + moment().format(defaultDateTimeFormat)
     ));
+
+    // console.log("TX USER SESSION: " + sessionObj.sessionId + " TO ADMIN NAMESPACE");
+    // adminNameSpace.emit('USER_SESSION', sessionObj);
 
     sessionQueue.enqueue({sessionEvent: "USER_READY", session: sessionObj, user: userObj});
   });

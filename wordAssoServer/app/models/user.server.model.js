@@ -41,11 +41,37 @@ var UserSchema = new Schema({
 		type: Number,
 		default: moment().valueOf()
 	},
+	connected: { 
+		type: Boolean,
+		default: false
+	},
+	connectTime: { 
+		type: Number,
+		default: 0
+	},
+	disconnectTime: { 
+		type: Number,
+		default: 0
+	},
+	sessionId: {   // ??????? KLUDGE: for admin updates of sessions/users/admins
+		type: String,
+		trim: true
+	},
+	ip: {   // ??????? KLUDGE: for admin updates of sessions/users/admins
+		type: String,
+		trim: true
+	},
+	domain: {   // ??????? KLUDGE: for admin updates of sessions/users/admins
+		type: String,
+		trim: true
+	},
 	lastSession: {   
-		type: String
+		type: String,
+		trim: true
 	},
 	sessions: {  
-		type: [String]// Session objects
+		type: [String],// Session objects
+		trim: true
 	}
 });
 

@@ -236,7 +236,7 @@
 
 		<script type="text/javascript">
 
-
+			var windowLoaded = false;
 
 			var ONE_MB = 1024*1024;
 			var ONE_GB = ONE_MB*1024;
@@ -490,6 +490,9 @@
 					+ getTimeStamp()
 					);
 				serverClear();
+				if (windowLoaded) {
+				  socket.emit("ADMIN_READY", mainAdminObj);
+				}
 			});
 
 			socket.on('reconnect', function(){
@@ -1315,8 +1318,9 @@
 			});
 
 			window.onload=function() {
-				console.log("TX ADMIN_READY\n" + jsonPrint(mainAdminObj));
-			  socket.emit("ADMIN_READY", mainAdminObj);
+				console.log("WINNDOW LOADED");
+				windowLoaded = true;
+			  // socket.emit("ADMIN_READY", mainAdminObj);
 			}			
 
 

@@ -1,7 +1,7 @@
 /*jslint node: true */
 "use strict";
 
-var debug = false ;
+var debug = true ;
 var mouseFreezeEnabled = false;
 
 var sessionHashMap = new HashMap();
@@ -51,16 +51,16 @@ var pageLoadedTimeIntervalFlag = true;
 
 var DEFAULT_MAX_AGE = 60000.0 ;
 
-var DEFAULT_CHARGE = -10;
+var DEFAULT_CHARGE = -300;
 var charge = DEFAULT_CHARGE;
 
 var DEFAULT_GRAVITY = 0.02;
 var gravity = DEFAULT_GRAVITY;
 
-var DEFAULT_LINK_STRENGTH = 0.05;
+var DEFAULT_LINK_STRENGTH = 0.5;
 var linkStrength = DEFAULT_LINK_STRENGTH;
 
-var DEFAULT_FRICTION = 0.9;
+var DEFAULT_FRICTION = 0.5;
 var friction = DEFAULT_FRICTION;
 
 var DEFAULT_CONFIG = {
@@ -1001,7 +1001,7 @@ window.onload = function () {
     }
   });
 
-  setGravitySliderValue(gravity);
+  resetDefaultForce();
 
   console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
   socket.emit("VIEWER_READY", viewerObj);
@@ -1165,13 +1165,14 @@ socket.on("SESSION", function(sessionObject){
     + " | " + sessionObject.word.nodeId
   );
 
-  var currentSession;
+  // var currentSession;
 
   if (sessionHashMap.has(sessionObject.sessionId)){
     currentSession = sessionHashMap.get(sessionObject.sessionId);
   }
   else {
 
+    sessionsCreated++;
     var startColor = "hsl(" + Math.random() * 360 + ",100%,50%)";
     var endColor = "hsl(" + Math.random() * 360 + ",0%,0%)";
     var interpolateNodeColor = d3.interpolateHcl(endColor, startColor);
@@ -1179,6 +1180,10 @@ socket.on("SESSION", function(sessionObject){
     sessionObject.colors = {'startColor': startColor, 'endColor': endColor};
     sessionObject.interpolateColor = interpolateNodeColor;
     currentSession = sessionObject ;
+    currentSession.wordChain = [];
+    currentSession.initialPosition = computeInitialPosition(sessionsCreated);
+
+    console.log("NEW SESSION " + currentSession.sessionId + " POS: " + jsonPrint(currentSession.initialPosition));
 
   }
 
@@ -1227,12 +1232,12 @@ socket.on("SESSION_UPDATE", function(sessionObject){
     return ;
   }
 
-  if (sessionMode && (sessionObject.sessionId !== currentSession)) {
-    if (debug)  console.log("... SKIP SESSION_UPDATE: ID: " + sessionObject.sessionId + " | CURRENT SESSION: " + currentSession);
+  if (sessionMode && (sessionObject.sessionId !== currentSession.sessionId)) {
+    if (debug)  console.log("... SKIP SESSION_UPDATE: ID: " + sessionObject.sessionId + " | CURRENT SESSION: " + currentSession.sessionId);
     return;
   }
 
-  var currentSession;
+  // var currentSession;
 
   if (sessionHashMap.has(sessionObject.sessionId)){
     currentSession = sessionHashMap.get(sessionObject.sessionId);
@@ -1389,7 +1394,7 @@ var createNode = function (sessionId, wordObject, callback) {
     return;
   }
 
-  console.log("createNode: SID: " + sessionId + " | " + wordObject.nodeId + " | M: " + wordObject.mentions);
+  // console.log("createNode: SID: " + sessionId + " | " + wordObject.nodeId + " | M: " + wordObject.mentions);
 
   wordObject.fixed = true;
 
@@ -1455,7 +1460,7 @@ var createNode = function (sessionId, wordObject, callback) {
       return;
     }
 
-    var currentSession = sessionHashMap.get(sessionId);
+    currentSession = sessionHashMap.get(sessionId);
 
     // wordObject.fixed = currentSession.fixed;
 
@@ -1500,7 +1505,7 @@ var createLinks = function (sessionObject, callback) {
     return;
   }
 
-  console.log("createLinks | " + sessionObject.sourceWord.nodeId + " > " + sessionObject.targetWord.nodeId);
+  // console.log("createLinks | " + sessionObject.sourceWord.nodeId + " > " + sessionObject.targetWord.nodeId);
 
   links.push({
     sessionId: sessionObject.sessionId,

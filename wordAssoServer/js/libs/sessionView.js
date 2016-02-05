@@ -745,14 +745,6 @@ function interpolateColorFull(startColor, endColor){
 }
 
 
-// var interpolateColor = interpolateColorFull("white", "black");
-
-
-// var colorScale = d3.scale.linear()
-//     .range(["hsl(0, 100%, 100%)", "hsl(100, 100%, 100%)"])
-//     // .range(["black", "red"])
-//     .interpolate(interpolateHsl);
-
 var fillColorScale = d3.scale.linear()
     .domain([0, 30000, 60000])
     .range(["#555555", "#222222", "#000000"]);
@@ -1168,15 +1160,12 @@ socket.on("SESSION", function(sessionObject){
     + " | " + sessionObject.word.nodeId
   );
 
-  // var currentSession;
-
   if (sessionHashMap.has(sessionObject.sessionId)){
     currentSession = sessionHashMap.get(sessionObject.sessionId);
   }
   else {
-
     sessionsCreated++;
-    var startColor = "hsl(" + Math.random() * 360 + ",100%,50%)";
+    var startColor = "hsl(" + Math.random() * 360 + ",100%,40%)";
     var endColor = "hsl(" + Math.random() * 360 + ",0%,0%)";
     var interpolateNodeColor = d3.interpolateHcl(endColor, startColor);
 
@@ -1187,7 +1176,6 @@ socket.on("SESSION", function(sessionObject){
     currentSession.initialPosition = computeInitialPosition(sessionsCreated);
 
     console.log("NEW SESSION " + currentSession.sessionId + " POS: " + jsonPrint(currentSession.initialPosition));
-
   }
 
   currentSession.lastSeen = dateNow;

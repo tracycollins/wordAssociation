@@ -730,7 +730,7 @@ function displayInfoOverlay(opacity) {
 var adjustedAgeRateScale = d3.scale.pow().domain([1,500]).range([1.0,100.0]);  // number of nodes > 100 ; 
 var fontSizeScale = d3.scale.log().domain([1,1000000]).range([1.8,4]);
 
-var defaultRadiusScale = d3.scale.log().domain([1,1000000]).range([10,50]);
+var defaultRadiusScale = d3.scale.log().domain([1,1000000]).range([5,30]);
 var defaultChargeScale =  d3.scale.log().domain([1,1000000]).range([-100,-150]);
 
 function interpolateHsl(a, b) {

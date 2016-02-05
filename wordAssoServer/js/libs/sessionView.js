@@ -4,6 +4,36 @@
 var debug = true ;
 var mouseFreezeEnabled = false;
 
+var DEFAULT_MAX_AGE = 60000.0 ;
+var DEFAULT_AGE_RATE =  1.0;
+
+var DEFAULT_CHARGE = -75;
+var DEFAULT_GRAVITY = 0.03;
+var DEFAULT_LINK_STRENGTH = 0.5;
+var DEFAULT_FRICTION = 0.75;
+
+var DEFAULT_SESSION_CONFIG = {
+  'charge' : DEFAULT_CHARGE,
+  'friction' : DEFAULT_FRICTION,
+  'linkStrength' : DEFAULT_LINK_STRENGTH,
+  'gravity' : DEFAULT_GRAVITY,
+  'ageRate' : DEFAULT_AGE_RATE,
+  'sessionMode' : false,
+  'sessionModeId' : '',
+  'monitorMode' : false,
+  'monitorModeId' : '',  // will be used to select which session to monitor
+};
+
+var charge = DEFAULT_CHARGE;
+var gravity = DEFAULT_GRAVITY;
+var linkStrength = DEFAULT_LINK_STRENGTH;
+var friction = DEFAULT_FRICTION;
+
+var SESSION_CONFIG = {} ;
+SESSION_CONFIG = DEFAULT_SESSION_CONFIG ;
+
+var QUEUE_MAX = 200 ;
+
 var sessionHashMap = new HashMap();
 var sessionIds = {};
 
@@ -14,7 +44,7 @@ var socketNamespace = "/user";
 
 var nodesCreated = 0;
 // var dateNow = Date.now();
-var dateNow = (new Date).getTime();
+var dateNow = moment().valueOf();
 var d3TimerCount = 1 ;
 
 var currentSession;
@@ -25,23 +55,14 @@ var monitorMode = false;
 
 var currentNodeObject = {} ;
 
-
-var DEFAULT_AGE_RATE =  1.0;
 var ageRate = DEFAULT_AGE_RATE ;
 var nodeMaxAge = 30000 ;
-
-var QUEUE_MAX = 200 ;
 
 var defaultFadeDuration = 100 ;
 
 var currentScale = 1.0 ;
 var width = window.innerWidth * 1 ;
 var height = window.innerHeight * 1 ;
-// var translate = [0.5*width,0.5*height] ;
-
-var DEFAULT_TRANSLATE = [width,0]; 
-
-// var translate = DEFAULT_TRANSLATE ;
 
 var zoomWidth = (width - (currentScale * width))/2  ;
 var zoomHeight =  (height - (currentScale * height))/2  ;
@@ -52,19 +73,6 @@ var fullscreenFlag = false ;
 var showStatsFlag = false ;
 var pageLoadedTimeIntervalFlag = true;
 
-var DEFAULT_MAX_AGE = 60000.0 ;
-
-var DEFAULT_CHARGE = -300;
-var charge = DEFAULT_CHARGE;
-
-var DEFAULT_GRAVITY = 0.02;
-var gravity = DEFAULT_GRAVITY;
-
-var DEFAULT_LINK_STRENGTH = 0.5;
-var linkStrength = DEFAULT_LINK_STRENGTH;
-
-var DEFAULT_FRICTION = 0.5;
-var friction = DEFAULT_FRICTION;
 
 var DEFAULT_CONFIG = {
   'nodeMaxAge' : DEFAULT_MAX_AGE
@@ -175,6 +183,15 @@ var jsonPrint = function (obj){
   }
 }
 
+function updateSessionConfig(updateObj){
+  for (var key in updateObj) {
+     if (updateObj.hasOwnProperty(key)) {
+        console.log("SESSION_CONFIG UPDATE | " + key + ": " +  updateObj[key]);
+        SESSION_CONFIG[key] = updateObj[key];
+     }
+  }
+}
+
 function setLinkstrengthSliderValue(value){
   document.getElementById("linkstrengthSlider").value = value * 1000;
   document.getElementById("linkstrengthSliderText").innerHTML = value.toFixed(3);
@@ -220,6 +237,7 @@ function updateCharge(value) {
 }
 
 function resetDefaultForce(){
+  console.log("RESET FORCE LAYOUT DEFAULTS")
   updateCharge(DEFAULT_CHARGE);
   setChargeSliderValue(DEFAULT_CHARGE);
   updateFriction(DEFAULT_FRICTION);
@@ -228,6 +246,8 @@ function resetDefaultForce(){
   setGravitySliderValue(DEFAULT_GRAVITY);
   updateLinkstrength(DEFAULT_LINK_STRENGTH);
   setLinkstrengthSliderValue(DEFAULT_LINK_STRENGTH);
+  SESSION_CONFIG = DEFAULT_SESSION_CONFIG;
+  console.log("SESSION_CONFIG\n" + jsonPrint(SESSION_CONFIG));
 }
 
 var randomIntFromInterval = function (min,max) {

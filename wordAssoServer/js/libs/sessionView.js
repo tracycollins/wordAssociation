@@ -23,6 +23,9 @@ var namespace;
 var sessionMode = false;
 var monitorMode = false;
 
+var currentNodeObject = {} ;
+
+
 var DEFAULT_AGE_RATE =  1.0;
 var ageRate = DEFAULT_AGE_RATE ;
 var nodeMaxAge = 30000 ;
@@ -1414,7 +1417,7 @@ var createNode = function (sessionId, wordObject, callback) {
   if (wordObject.nodeId in nodeHashMap) {
     // console.log("@@@--- NODE IN HM: " + sessionId + " | " + wordObject.nodeId);
 
-    var currentNodeObject = nodeHashMap[wordObject.nodeId];
+    currentNodeObject = nodeHashMap[wordObject.nodeId];
 
     currentNodeObject.sessionId = sessionId ;
     // currentNodeObject.fixed = false;
@@ -1565,6 +1568,13 @@ var getNodeFromQueue = function (callback) {
 
 var lastD3TimeCount = 0;
 
+var ageNodesLength = 0;
+var ageNodesIndex = 0;
+var linkExists = false;
+var ageLinksLength = 0;
+var ageLinksIndex = 0;
+
+var sessionIdKeys = [];
 
 var ageNodes = function (newNodesFlag, deadNodesFlag, callback){
 
@@ -1580,17 +1590,15 @@ var ageNodes = function (newNodesFlag, deadNodesFlag, callback){
     ageRate = DEFAULT_AGE_RATE ;
   }
 
-  var ageNodesLength = nodes.length-1 ;
-  var ageNodesIndex = nodes.length-1 ;
+  ageNodesLength = nodes.length-1 ;
+  ageNodesIndex = nodes.length-1 ;
 
 
   for (ageNodesIndex = ageNodesLength; ageNodesIndex>=0; ageNodesIndex--) {  
 
-    var linkExists = false ;
+    linkExists = false ;
 
-    // var currentNodeObject = {} ;
-
-    var currentNodeObject = nodes[ageNodesIndex];
+    currentNodeObject = nodes[ageNodesIndex];
 
     age = currentNodeObject.age + (ageRate * (moment().valueOf() - currentNodeObject.ageUpdated));
  
@@ -1600,8 +1608,8 @@ var ageNodes = function (newNodesFlag, deadNodesFlag, callback){
 
       delete nodeHashMap[currentNodeObject.nodeId];
 
-      var ageLinksLength = links.length-1;
-      var ageLinksIndex = links.length-1;
+      ageLinksLength = links.length-1;
+      ageLinksIndex = links.length-1;
 
       for (ageLinksIndex = ageLinksLength; ageLinksIndex >= 0; ageLinksIndex--) {
         if (currentNodeObject.nodeId == links[ageLinksIndex].target.nodeId) {
@@ -1619,13 +1627,13 @@ var ageNodes = function (newNodesFlag, deadNodesFlag, callback){
       sessionIds[currentNodeObject.sessionId]--;
 
       if (sessionIds[currentNodeObject.sessionId] < 1) {
-        var keys = Object.keys(sessionIds) ;
-        console.log(keys);
+        sessionIdKeys = Object.keys(sessionIds) ;
+        console.log(sessionIdKeys);
         console.warn("XXXX SESSION EXPIRED: " + currentNodeObject.sessionId + " | " + sessionIds[currentNodeObject.sessionId]);
         delete sessionIds[currentNodeObject.sessionId] ;
         delete sessionLatestNode[currentNodeObject.sessionId];
         sessionHashMap.remove(currentNodeObject.sessionId) ;
-        console.log("XXXX SESSION EXPIRED: " + keys.length + " | " + sessionHashMap.count());  // ????? can't delete the last/final key of sessionIds????
+        console.log("XXXX SESSION EXPIRED: " + sessionIdKeys.length + " | " + sessionHashMap.count());  // ????? can't delete the last/final key of sessionIds????
       }
 
     }

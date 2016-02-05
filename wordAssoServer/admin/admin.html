@@ -376,10 +376,6 @@
 			  return JSON.stringify(obj, null, 2);
 			}
 
-			window.onload=function() {
-			  socket.emit("ADMIN_READY", mainAdminObj);
-			}			
-
 			function getTimeStamp(inputTime) {
 				var cDate, cTime;
 				var options = {
@@ -1317,6 +1313,12 @@
 				textColor: '#CCCCCC',
 				backgroundColor: '#222222'
 			});
+
+			window.onload=function() {
+				console.log("TX ADMIN_READY\n" + jsonPrint(mainAdminObj));
+			  socket.emit("ADMIN_READY", mainAdminObj);
+			}			
+
 
 		</script>
 

@@ -728,10 +728,10 @@ function displayInfoOverlay(opacity) {
 }
 
 var adjustedAgeRateScale = d3.scale.pow().domain([1,500]).range([1.0,100.0]);  // number of nodes > 100 ; 
-var fontSizeScale = d3.scale.log().domain([1,10000000]).range([1,3]);
+var fontSizeScale = d3.scale.log().domain([1,1000000]).range([1.8,4]);
 
-var defaultRadiusScale = d3.scale.log().domain([1,10000000]).range([10,50]);
-var defaultChargeScale =  d3.scale.log().domain([1,10000000]).range([-100,-150]);
+var defaultRadiusScale = d3.scale.log().domain([1,1000000]).range([10,50]);
+var defaultChargeScale =  d3.scale.log().domain([1,1000000]).range([-100,-150]);
 
 function interpolateHsl(a, b) {
     var i = d3.interpolateString(a, b);
@@ -1390,12 +1390,17 @@ var tempMentions ;
 
 var sessionLatestNode = {};
 
+var currentNodeId ;
+var currentNodeIndex = 0;
+
 var createNode = function (sessionId, wordObject, callback) {
 
   if (!wordObject) {
     callback (null, newNodesFlag, deadNodesFlag);
     return;
   }
+
+  currentNodeId = wordObject.nodeId ;
 
   // console.log("createNode: SID: " + sessionId + " | " + wordObject.nodeId + " | M: " + wordObject.mentions);
 
@@ -1414,35 +1419,72 @@ var createNode = function (sessionId, wordObject, callback) {
 
   force.stop();
 
-  if (wordObject.nodeId in nodeHashMap) {
+  if (currentNodeId in nodeHashMap) {
     // console.log("@@@--- NODE IN HM: " + sessionId + " | " + wordObject.nodeId);
 
-    currentNodeObject = nodeHashMap[wordObject.nodeId];
+    currentNodeObject = nodeHashMap[currentNodeId];
 
     currentNodeObject.sessionId = sessionId ;
     // currentNodeObject.fixed = false;
     currentNodeObject.age = dateNow - wordObject.lastSeen;
     currentNodeObject.lastSeen = wordObject.lastSeen;
     currentNodeObject.mentions = wordObject.mentions ;
-    currentNodeObject.text = wordObject.nodeId ;
+    currentNodeObject.text = currentNodeId ;
     // currentNodeObject.fixed = wordObject.fixed ;
 
     nodesLength = nodes.length ;
 
-    for (nodeIndex = 0; nodeIndex < nodesLength; nodeIndex++){
+    currentNodeIndex = currentNodeObject.nodeIndex ;
 
-      if (nodes[nodeIndex].nodeId == currentNodeObject.nodeId) { 
+    console.log("currentNodeObject: " + currentNodeObject.nodeId + " | currentNodeIndex: " + currentNodeIndex + " | nodes: " + nodesLength);
 
-        tempMentions = nodes[nodeIndex].mentions;
-        nodes[nodeIndex].mentions = currentNodeObject.mentions > tempMentions ? 
-          currentNodeObject.mentions : tempMentions ;
+    if (currentNodeIndex >= nodesLength){
+      console.error("!!! currentNodeIndex >= nodesLength: " + currentNodeIndex + " v. " + nodesLength);
 
-        nodes[nodeIndex].age = dateNow - currentNodeObject.lastSeen;
-        nodes[nodeIndex].lastSeen = currentNodeObject.lastSeen;
-        nodes[nodeIndex].fixed = currentNodeObject.fixed;
-        break;
+      for (nodeIndex = 0; nodeIndex < nodesLength; nodeIndex++){
+
+        currentNodeObject.nodeIndex = nodeIndex ;
+        nodeHashMap[currentNodeId] = currentNodeObject ;
+
+        if (nodes[nodeIndex].nodeId == currentNodeId) { 
+
+          tempMentions = nodes[nodeIndex].mentions;
+          nodes[nodeIndex].mentions = currentNodeObject.mentions > tempMentions ? 
+            currentNodeObject.mentions : tempMentions ;
+
+          nodes[nodeIndex].age = dateNow - currentNodeObject.lastSeen;
+          nodes[nodeIndex].lastSeen = currentNodeObject.lastSeen;
+          nodes[nodeIndex].fixed = currentNodeObject.fixed;
+          break;
+        }
       }
+
     }
+    else {
+
+      tempMentions = nodes[currentNodeIndex].mentions;
+      nodes[currentNodeIndex].mentions = currentNodeObject.mentions > tempMentions ? 
+        currentNodeObject.mentions : tempMentions ;
+
+      nodes[currentNodeIndex].age = dateNow - currentNodeObject.lastSeen;
+      nodes[currentNodeIndex].lastSeen = currentNodeObject.lastSeen;
+      nodes[currentNodeIndex].fixed = currentNodeObject.fixed;
+    }
+
+    // for (nodeIndex = 0; nodeIndex < nodesLength; nodeIndex++){
+
+    //   if (nodes[nodeIndex].nodeId == currentNodeId) { 
+
+    //     tempMentions = nodes[nodeIndex].mentions;
+    //     nodes[nodeIndex].mentions = currentNodeObject.mentions > tempMentions ? 
+    //       currentNodeObject.mentions : tempMentions ;
+
+    //     nodes[nodeIndex].age = dateNow - currentNodeObject.lastSeen;
+    //     nodes[nodeIndex].lastSeen = currentNodeObject.lastSeen;
+    //     nodes[nodeIndex].fixed = currentNodeObject.fixed;
+    //     break;
+    //   }
+    // }
   }
   else {
     // console.log("@@@--- NODE *NOT* IN HM: " + sessionId + " | " + wordObject.nodeId);
@@ -1465,8 +1507,6 @@ var createNode = function (sessionId, wordObject, callback) {
 
     currentSession = sessionHashMap.get(sessionId);
 
-    // wordObject.fixed = currentSession.fixed;
-
     wordObject.x = currentSession.initialPosition.x + (0.1 * currentSession.initialPosition.x * Math.random());  // avoid creating nodes onto of each other
     wordObject.y = currentSession.initialPosition.y;
 
@@ -1486,9 +1526,7 @@ var createNode = function (sessionId, wordObject, callback) {
     wordObject.colors = currentSession.colors ;
     wordObject.interpolateColor = currentSession.interpolateColor ;
 
-
-    // var initialPosition = computeInitialPosition(nodesCreated);
-
+    wordObject.nodeIndex = nodes.length-1;  // to find node in nodes array later
 
     nodeHashMap[wordObject.nodeId] = wordObject;
     nodes.push(wordObject);
@@ -1499,7 +1537,6 @@ var createNode = function (sessionId, wordObject, callback) {
 
 var createLinks = function (sessionObject, callback) {
 
-  var err = null ;
   newLinksFlag = false ;
 
   if (!sessionObject.targetWord) {
@@ -1507,8 +1544,6 @@ var createLinks = function (sessionObject, callback) {
     callback (null, newNodesFlag, deadNodesFlag);
     return;
   }
-
-  // console.log("createLinks | " + sessionObject.sourceWord.nodeId + " > " + sessionObject.targetWord.nodeId);
 
   links.push({
     sessionId: sessionObject.sessionId,
@@ -1523,12 +1558,12 @@ var createLinks = function (sessionObject, callback) {
 var numberSessionsUpdated = 0 ;
 var MAX_UPDATES_PER_CYCLE = 5 ;
 
+var sessionDeQobject = {};
+
 var getNodeFromQueue = function (callback) {
 
   newNodesFlag = false ;
   deadNodesFlag = false ;
-
-  // var dateNow = Date.now();
 
   //========================
   // CHECK QUEUE
@@ -1540,23 +1575,16 @@ var getNodeFromQueue = function (callback) {
   // while (sessionUpdateQueue.getLength() > 0){
   if (sessionUpdateQueue.getLength() > 0){
     numberSessionsUpdated++ ;
-    // newNodesFlag = true ;
 
     if (sessionUpdateQueue.getLength() > QUEUE_MAX) {
       sessionUpdateQueue.dequeue();
     }
 
-    var sessionObject = sessionUpdateQueue.dequeue();
+    sessionDeQobject = sessionUpdateQueue.dequeue();
 
-    // sessionObject.lastSeen = dateNow;
-    // sessionObject.age = 0;
-    // sessionObject.ageUpdated = dateNow;
-
-    // sessionHashMap.set(sessionObject.sessionId, sessionObject);
-
-    createNode(sessionObject.sessionId, sessionObject.sourceWord, function(newNodesFlag, deadNodesFlag){
-      createNode(sessionObject.sessionId, sessionObject.targetWord, function(newNodesFlag, deadNodesFlag){
-        createLinks(sessionObject, function(newNodesFlag, deadNodesFlag){
+    createNode(sessionDeQobject.sessionId, sessionDeQobject.sourceWord, function(newNodesFlag, deadNodesFlag){
+      createNode(sessionDeQobject.sessionId, sessionDeQobject.targetWord, function(newNodesFlag, deadNodesFlag){
+        createLinks(sessionDeQobject, function(newNodesFlag, deadNodesFlag){
         });
       });
     });
@@ -1578,8 +1606,6 @@ var sessionIdKeys = [];
 
 var ageNodes = function (newNodesFlag, deadNodesFlag, callback){
 
-  // sessionIds = {};
-
   if (nodes.length === 0) {
     ageRate = DEFAULT_AGE_RATE ;
   }
@@ -1599,6 +1625,7 @@ var ageNodes = function (newNodesFlag, deadNodesFlag, callback){
     linkExists = false ;
 
     currentNodeObject = nodes[ageNodesIndex];
+    currentNodeObject.nodeIndex = ageNodesIndex ;
 
     age = currentNodeObject.age + (ageRate * (dateNow - currentNodeObject.ageUpdated));
  
@@ -1623,17 +1650,20 @@ var ageNodes = function (newNodesFlag, deadNodesFlag, callback){
       }
 
       nodes.splice(ageNodesIndex, 1); 
+      console.warn("><>< REMOVED DEAD NODE " + currentNodeObject.nodeId + " | ANI: " + ageNodesIndex + " | nodes " + nodes.length);
+
+      var newCurrentNodeObject = nodes[nodes.length-1];
+      newCurrentNodeObject.nodeIndex = nodes.length-1 ;
+      nodeHashMap[newCurrentNodeObject.nodeId] = newCurrentNodeObject;
 
       sessionIds[currentNodeObject.sessionId]--;
 
       if (sessionIds[currentNodeObject.sessionId] < 1) {
         sessionIdKeys = Object.keys(sessionIds) ;
-        console.log(sessionIdKeys);
-        console.warn("XXXX SESSION EXPIRED: " + currentNodeObject.sessionId + " | " + sessionIds[currentNodeObject.sessionId]);
+        console.log("XXXX SESSION EXPIRED: " + currentNodeObject.sessionId + " | " + sessionIds[currentNodeObject.sessionId]);
         delete sessionIds[currentNodeObject.sessionId] ;
         delete sessionLatestNode[currentNodeObject.sessionId];
         sessionHashMap.remove(currentNodeObject.sessionId) ;
-        console.log("XXXX SESSION EXPIRED: " + sessionIdKeys.length + " | " + sessionHashMap.count());  // ????? can't delete the last/final key of sessionIds????
       }
 
     }
@@ -1644,6 +1674,8 @@ var ageNodes = function (newNodesFlag, deadNodesFlag, callback){
 
       nodes[ageNodesIndex].age = age;
       nodes[ageNodesIndex].ageUpdated = dateNow;
+
+      currentNodeObject.nodeIndex = ageNodesIndex;
 
       nodeHashMap[currentNodeObject.nodeId] = currentNodeObject;
     }
@@ -1686,9 +1718,8 @@ var updateLinks = function (newNodesFlag, deadNodesFlag, callback) {
     function(d) { return d.source.nodeId + "-" + d.target.nodeId; });
 
   link
-    .style('stroke', function(d){ return linkColorScale(d.target.age) ;})
-    // .style('opacity', function(d){ return (nodeMaxAge - d.target.age) / nodeMaxAge; });
-    .style('opacity', function(d){ return 1.0; });
+    .style('stroke', function(d){ return linkColorScale(d.target.age) ;});
+    // .style('opacity', function(d){ return 1.0; });
 
   link.enter()
     .append("svg:line", "g.node")
@@ -1720,17 +1751,9 @@ var updateNodeCircles = function (newNodesFlag, deadNodesFlag, callback) {
   nodeCircles
     .attr("lastSeen", function(d) { return d.lastSeen; })
     .attr("mentions", function(d) { return d.mentions; })
-    .attr("r", function(d) { 
-      return defaultRadiusScale(d.mentions + 1); 
-    })
-    .style("visibility", "visible") 
-    // .style("fill", function(d) { return fillColorScale(d.age) ; })
+    .attr("r", function(d) { return defaultRadiusScale(d.mentions + 1); })
     .style("fill", function(d) { return d.interpolateColor((nodeMaxAge - d.age) / nodeMaxAge) ;})
-    .style('stroke', function(d){ return strokeColorScale(d.age) ;})
-    .style('opacity', function(d){
-      // return (nodeMaxAge - d.age) / nodeMaxAge ;
-      return 1.0 ;
-    });
+    .style('stroke', function(d){ return strokeColorScale(d.age); });
 
   nodeCircles
     .enter()
@@ -1750,25 +1773,18 @@ var updateNodeCircles = function (newNodesFlag, deadNodesFlag, callback) {
     .attr("mentions", function(d) { return d.mentions; })
     .attr("nodeText", function(d) { return d.text; })
     .attr("r", function(d) { 
-      // console.log(d.nodeId + " | M: " + d.mentions);
       return defaultRadiusScale(d.mentions + 1); 
     })
+    .style("visibility", "visible") 
     .style("opacity", 1e-6)
     .style('stroke', function(d){ return strokeColorScale(d.age) ;})
     .style("stroke-width", 2.5)
-    // .style("fill", function(d) { return fillColorScale(d.age) ;})
     .style("fill", function(d) { 
       return d.interpolateColor((nodeMaxAge - d.age) / nodeMaxAge) ;
     })
-
-
-
     .transition()
       .duration(defaultFadeDuration)      
-      .style('opacity', function(d){
-        // return defaultOpacityAgeScale(d.age) ;
-        return 1.0 ;
-      });
+      .style('opacity', function(d){ return 1.0; });
 
   nodeCircles
     .exit()
@@ -1824,9 +1840,6 @@ var updateNodeLabels = function (newNodesFlag, deadNodesFlag, callback) {
 }
 
 function ageNodesCheckQueue() {
-
-  // console.log("ageNodesCheckQueue");
-
   async.waterfall([ 
       getNodeFromQueue,
       ageNodes,
@@ -1840,19 +1853,10 @@ function ageNodesCheckQueue() {
       if (err) { 
         console.error("*** ERROR: ageNodesCheckQueue *** \nERROR: " + error + "\nRESULT: " + result); 
       }
-      
-      // if (newNodesFlag || deadNodesFlag) {
-      //   force.nodes(nodes);
-      //   force.links(links);
-      //   force.start(); 
-      // }
-
       force.start(); 
     }
   );
 }
-
-
 
 function nodeFill (age) { 
   var fillColor ;
@@ -1923,10 +1927,6 @@ function nodeClick(d) {
 }
 
 d3.timer(function () {
-  // lastD3TimeCount = d3TimerCount ;
-  // d3TimerCount += 100 ;
-  // console.log("d3TimerCount " + d3TimerCount + "| lastD3TimeCount: " + lastD3TimeCount);
-  // dateNow = parseInt((new Date).getTime());
   dateNow = moment().valueOf();
   if (!(mouseMovingFlag && mouseFreezeEnabled)) ageNodesCheckQueue();
 });

@@ -968,6 +968,7 @@ var nodeCircles = nodeSvgGroup.selectAll("circle");
 var nodeLabels = nodeSvgGroup.selectAll(".nodeLabel");
 
 var sessionUpdateQueue = new Queue();
+var rxSessionUpdateQueue = new Queue();
 var sessionUpdateQueueMaxInQ = 0;
 
 //
@@ -1217,89 +1218,93 @@ socket.on("SESSION", function(sessionObject){
 
 var sessionsCreated = 0;
 
-socket.on("SESSION_UPDATE", function(sessionObject){
-
+socket.on("SESSION_UPDATE", function(rxSessionObject){
   if (!windowVisible) {
     return ;
   }
 
-  if (sessionMode && (sessionObject.sessionId !== currentSession.sessionId)) {
-    if (debug)  console.log("... SKIP SESSION_UPDATE: ID: " + sessionObject.sessionId + " | CURRENT SESSION: " + currentSession.sessionId);
+  if (sessionMode && (rxSessionObject.sessionId !== currentSession.sessionId)) {
+    if (debug)  console.log("... SKIP SESSION_UPDATE: ID: " + rxSessionObject.sessionId + " | CURRENT SESSION: " + currentSession.sessionId);
     return;
   }
 
-  // var currentSession;
+  rxSessionUpdateQueue.enqueue(rxSessionObject);
+});
 
-  if (sessionHashMap.has(sessionObject.sessionId)){
-    currentSession = sessionHashMap.get(sessionObject.sessionId);
-    currentSession.sourceWord = sessionObject.sourceWord;
-    currentSession.targetWord = sessionObject.targetWord;
-    currentSession.sourceWord.fixed = true;
-    currentSession.targetWord.fixed = false;
+var rxSessionUpdateObject = {};
+var randomNumber = Math.random();
+
+var checkRxSessionUpdateQueue = function(){
+
+  if (rxSessionUpdateQueue.getLength() > 0){
+
+    var currentSession = {};
+    var sessionObject = rxSessionUpdateQueue.dequeue();
+
+    if (sessionHashMap.has(sessionObject.sessionId)){
+      currentSession = sessionHashMap.get(sessionObject.sessionId);
+      currentSession.sourceWord = sessionObject.sourceWord;
+      currentSession.targetWord = sessionObject.targetWord;
+      currentSession.sourceWord.fixed = true;
+      currentSession.targetWord.fixed = false;
+      currentSession.sourceWord.lastSeen = dateNow;
+      if (currentSession.targetWord) sessionObject.targetWord.lastSeen = dateNow;
+    }
+
+    else {
+      sessionsCreated++;
+      currentSession = sessionObject ;
+      currentSession.initialPosition = computeInitialPosition(sessionsCreated);
+
+      currentSession.sourceWord.fixed = true;
+      currentSession.targetWord.fixed = false;
+
+      randomNumber = Math.random();
+
+      var startColor = "hsl(" + randomNumber * 360 + ",100%,50%)";
+      var endColor = "hsl(" + randomNumber * 360 + ",0%,0%)";
+      var interpolateNodeColor = d3.interpolateHcl(endColor, startColor);
+
+      currentSession.colors = {'startColor': startColor, 'endColor': endColor};
+      currentSession.interpolateColor = interpolateNodeColor;
+
+      console.log("NEW SESSION " + sessionObject.sessionId + " POS: " + jsonPrint(sessionObject.initialPosition));
+    }
+
     currentSession.sourceWord.lastSeen = dateNow;
-    if (currentSession.targetWord) sessionObject.targetWord.lastSeen = dateNow;
-  }
-  else {
-
-    sessionsCreated++;
-    currentSession = sessionObject ;
-    currentSession.initialPosition = computeInitialPosition(sessionsCreated);
-
-    currentSession.sourceWord.fixed = true;
-    currentSession.targetWord.fixed = false;
-
-    var startColor = "hsl(" + Math.random() * 360 + ",100%,50%)";
-    var endColor = "hsl(" + Math.random() * 360 + ",0%,0%)";
-    var interpolateNodeColor = d3.interpolateHcl(endColor, startColor);
-
-    currentSession.colors = {'startColor': startColor, 'endColor': endColor};
-    currentSession.interpolateColor = interpolateNodeColor;
-
-    // currentSession.colors = {'startColor': startColor, 'endColor': endColor},
-    // sessionHashMap.set(sessionObject.sessionId, sessionObject);
-
-    console.log("NEW SESSION " + sessionObject.sessionId + " POS: " + jsonPrint(sessionObject.initialPosition));
-  }
-
-  currentSession.sourceWord.lastSeen = dateNow;
-
-
-  // console.log("> RX " + JSON.stringify(sessionObject)); ;
-  // console.log(getTimeStamp() + ">>> RX SESSION_UPDATE\n" + JSON.stringify(sessionObject, null, 3)) ;
-
     sessionHashMap.set(sessionObject.sessionId, currentSession);
 
+    if (sessionObject.targetWord) {
+      console.log("> RX"
+        + " | " + sessionObject.sessionId
+        + " | " + sessionObject.sourceWord.nodeId 
+        + " > " + sessionObject.targetWord.nodeId
+      ) ;
+    }
+    else {
+      console.log("> RX"
+        + " | " + sessionObject.sessionId
+        + " | " + sessionObject.sourceWord.nodeId 
+      ) ;
+    }
 
-
-  if (sessionObject.targetWord) {
-    console.log("> RX"
-      + " | " + sessionObject.sessionId
-      + " | " + sessionObject.sourceWord.nodeId 
-      + " > " + sessionObject.targetWord.nodeId
-    ) ;
-  }
-  else {
-    console.log("> RX"
-      + " | " + sessionObject.sessionId
-      + " | " + sessionObject.sourceWord.nodeId 
-    ) ;
-  }
-
-  if (sessionUpdateQueue.getLength() >= QUEUE_MAX) {
-    console.log(">>> RX sessionObject: [Q: " 
-      + sessionUpdateQueue.getLength() 
-    );
-    console.error(getTimeStamp() + " -- !!! Q FULL --- DROPPING SESSION UPDATE !!! " 
-      + sessionUpdateQueue.getLength() + "\n\n"
-    );
-  }
-  else {
-    sessionUpdateQueue.enqueue(sessionObject);
-    if (sessionUpdateQueue.getLength() > sessionUpdateQueueMaxInQ) { 
-      sessionUpdateQueueMaxInQ = sessionUpdateQueue.getLength(); 
+    if (sessionUpdateQueue.getLength() >= QUEUE_MAX) {
+      console.log(">>> RX sessionObject: [Q: " 
+        + sessionUpdateQueue.getLength() 
+      );
+      console.error(getTimeStamp() + " -- !!! Q FULL --- DROPPING SESSION UPDATE !!! " 
+        + sessionUpdateQueue.getLength() + "\n\n"
+      );
+    }
+    else {
+      sessionUpdateQueue.enqueue(sessionObject);
+      if (sessionUpdateQueue.getLength() > sessionUpdateQueueMaxInQ) { 
+        sessionUpdateQueueMaxInQ = sessionUpdateQueue.getLength(); 
+      }
     }
   }
-});
+
+}
 
 
 //=============================
@@ -1828,6 +1833,9 @@ var updateNodeLabels = function (newNodesFlag, deadNodesFlag, callback) {
 }
 
 function ageNodesCheckQueue() {
+
+  checkRxSessionUpdateQueue();
+
   async.waterfall([ 
       getNodeFromQueue,
       ageNodes,

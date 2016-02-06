@@ -1,6 +1,24 @@
 /*jslint node: true */
 "use strict";
 
+function quit(){
+  console.log( "\n... QUITTING ..." );
+  process.exit( );
+}
+
+process.on( 'SIGINT', function() {
+  quit();
+});
+
+// SESSION TYPES: RANDOM, ANTONYM, SYNONYM, SCRIPT, USER-USER, GROUP  ( session.config.type )
+
+var sessionTypes = [ "RANDOM", "ANTONYM", "SYNONYM", "SCRIPT", "USER-USER", "GROUP" ];
+var enabledSessionTypes = [ 'RANDOM', 'ANTONYM', 'SYNONYM'];
+
+var DEFAULT_SESSION_TYPE = 'ANTONYM';
+
+var defaultSessionType = DEFAULT_SESSION_TYPE ;
+
 var BHT_REQUEST_LIMIT = 250000;
 var MW_REQUEST_LIMIT = 250000;
 var SESSION_WORDCHAIN_REQUEST_LIMIT = 25;
@@ -741,6 +759,10 @@ function getTimeStamp(inputTime) {
   return currentTimeStamp.format("YYYY-MM-DD HH:mm:ss ZZ");
 }
 
+// var randomIntFromInterval = function (min,max) {
+//   return Math.floor(Math.random()*(max-min+1)+min);
+// }
+
 function randomIntInc (low, high) {
     return Math.floor(Math.random() * (high - low + 1) + low);
 }
@@ -776,9 +798,6 @@ wordCache.on( "expired", function(word, wordObj){
   );
 });
 
-var randomIntFromInterval = function (min,max) {
-  return Math.floor(Math.random()*(max-min+1)+min);
-}
 
 var jsonPrint = function (obj){
   if (obj) {
@@ -969,6 +988,7 @@ function sendPrompt(sessionObj, promptWordObj){
       console.log(chalkPrompt("P-> "
         + currentUser.userId 
         + " | " + sessionObj.sessionId 
+        + " | " + sessionObj.config.type 
         + " | " + previousResponse + " --> " + promptWordObj.nodeId));
 
     } else {
@@ -978,6 +998,7 @@ function sendPrompt(sessionObj, promptWordObj){
       console.log(chalkPrompt("P-> "
         + currentUser.userId 
         + " | " + sessionObj.sessionId 
+        + " | " + sessionObj.config.type 
         + " | START --> " + promptWordObj.nodeId));
     }
 
@@ -1298,7 +1319,7 @@ function generatePrompt(query, callback){
       });
       break;
     case 'synonym':
-      words.getWordVariation(query.input, wordTypes, ['syn'], function(status, synWordObj){
+      words.getWordVariation(query.input, wordTypes, ['syn', 'sim'], function(status, synWordObj){
         if (status == 'BHT_VAR_HIT') {
           // console.log("randomWordObj: " + randomWordObj.nodeId);
           wordCache.set(synWordObj.nodeId, synWordObj);
@@ -1458,7 +1479,7 @@ function bhtSearchWord (wordObj, callback){
     wordObj.nodeId = wordObj.nodeId.replace(/^\s+|\s+$/g, '') ;
     wordObj.nodeId = wordObj.nodeId.replace(/\'+/g, "'") ;
     wordObj.nodeId = wordObj.nodeId.toLowerCase();
-    
+
     debug(chalkBht(">>> BHT SEARCH (after replace):  " + wordObj.nodeId));
 
     var bhtHost = "words.bighugelabs.com";
@@ -1587,6 +1608,7 @@ function sessionUpdateDb (sessionObj, callback) {
 
   var update = { 
           $set: { 
+            "config": sessionObj.config,
             "userId": sessionObj.userId,
             "namespace": sessionObj.namespace,
             "ip": sessionObj.ip,
@@ -1614,7 +1636,7 @@ function sessionUpdateDb (sessionObj, callback) {
         callback(err, sessionObj);
       }
       else {
-        console.log(chalkSession("SESSION UPDATED" 
+        debug(chalkSession("SESSION UPDATED" 
           + " | " + ses.sessionId
           + " | NSP: " + ses.namespace 
           + " | UID: " + ses.userId 
@@ -1622,6 +1644,7 @@ function sessionUpdateDb (sessionObj, callback) {
           + " | DOM: " + ses.domain 
           + " | CON: " + ses.connected 
           + " | WCL: " + ses.wordChain.length 
+          + "\nCONFIG\n" + jsonPrint(ses.config) 
         ));
         callback(null, ses);
       }
@@ -2730,6 +2753,13 @@ var readSessionQueue = setInterval(function (){
         break;
 
       case 'SESSION_CREATE':
+
+        sesObj.session.config.type = enabledSessionTypes[randomInt(0, enabledSessionTypes.length)];
+
+        console.log(chalkSession("... SESSION TYPE: " + sesObj.session.config.type ));
+
+        // sesObj.session.config.type = defaultSessionType ;
+
         console.log(chalkSession(
           ">>> SESSION CREATE"
           + " | NSP: " + sesObj.session.namespace
@@ -2738,8 +2768,29 @@ var readSessionQueue = setInterval(function (){
           // + " | UID: " + sesObj.user.userId
         ));
 
-        // if (sesObj.session.namespace == 'admin') sesObj.session.userId = sesObj.session.adminId ;
-        // if (sesObj.session.namespace == 'view') sesObj.session.userId = sesObj.session.viewerId ;
+
+
+ // SESSION TYPES: RANDOM, ANTONYM, SYNONYM, SCRIPT, USER-USER, GROUP 
+
+        switch (sesObj.session.config.type) {
+          case 'RANDOM':
+          break;
+          case 'ANTONYM':
+          break;
+          case 'SYNONYM':
+          break;
+          case 'SCRIPT':
+          break;
+          case 'USER-USER':
+          break;
+          case 'GROUP':
+          break;
+          default:
+            console.error(chalkError(" 1 ????? UNKNOWN SESSION TYPE: " + sesObj.session.config.type));
+            quit();
+          break;
+        }
+
 
         dnsReverseLookup(sesObj.session.ip, function(err, domains){
           if (!err) {
@@ -2759,16 +2810,16 @@ var readSessionQueue = setInterval(function (){
             sessionUpdateDb(sesObj.session, function(err, sessionUpdatedObj){
               if (!err){
                 if (sessionUpdatedObj.namespace == 'admin') {
-                  sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, 0);  // don't age out view sessions
+                  sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, 0);  // don't age out admin sessions
                 }
                 else if (sessionUpdatedObj.namespace == 'view') {
                   sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, 0);  // don't age out view sessions
                 }
                 else if (sessionUpdatedObj.namespace == 'user') {
-                  sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, 0);  // don't age out view sessions
+                  sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, 0);  // don't age out user sessions
                 }
                else if (sessionUpdatedObj.namespace == 'test-user') {
-                  sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, 0);  // don't age out view sessions
+                  sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, 0);  // don't age out test-user sessions
                 }
                 else {
                   sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
@@ -2778,7 +2829,6 @@ var readSessionQueue = setInterval(function (){
 
           }
         });
-
         break;
 
       case 'SOCKET_RECONNECT':
@@ -3005,7 +3055,7 @@ var readSessionQueue = setInterval(function (){
         adminUpdateDb(sesObj.admin, function(err, adminObj){
           if (!err) {
 
-            var adminSessionKey = randomIntFromInterval(1000000,1999999) ;
+            var adminSessionKey = randomInt(1000000,1999999) ;
 
             currentSession.adminSessionKey = adminSessionKey;
             currentSession.connected = true;
@@ -3062,7 +3112,7 @@ var readSessionQueue = setInterval(function (){
 
         viewerUpdateDb(sesObj.viewer, function(err, viewerObj){
           if (!err) {
-            var viewerSessionKey = randomIntFromInterval(1000000,1999999) ;
+            var viewerSessionKey = randomInt(1000000,1999999) ;
             currentSession.viewerSessionKey = viewerSessionKey;
              sessionUpdateDb(currentSession, function(err, sessionUpdatedObj){
               if (!err){
@@ -3094,6 +3144,7 @@ var readSessionQueue = setInterval(function (){
         console.log(chalkSession(
           ">>> SESSION USER READY"
           + " | SID: " + sesObj.session.sessionId
+          + " | SES TYPE: " + sesObj.session.config.type
           + " | UID: " + sesObj.user.userId
           + " | NSP: " + sesObj.session.namespace
           + " | IP: " + sesObj.session.ip
@@ -3116,37 +3167,63 @@ var readSessionQueue = setInterval(function (){
           if (!err){
             console.log(chalkRed("TX USER SESSION (USER READY): " 
               + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"));
-
             adminNameSpace.emit('USER_SESSION', updatedUserObj);
           }
         });
+
+        /*
+            ROUTING OF PROMPT/RESPONSE BASED ON SESSION TYPE
+        */
+
 
         sessionCache.set(currentSession.sessionId, currentSession, function( err, success ){
           if( !err && success ){
             userCache.set(currentSession.userId, sesObj.user, function( err, success ){
               if( !err && success ){
-                words.getRandomWord(function(err, randomWordObj){
-                  if (!err) {
-                    wordCache.set(randomWordObj.nodeId, randomWordObj);
-                    currentSession.wordChain.push(randomWordObj.nodeId);
-                    sessionUpdateDb(currentSession, function(err, sessionUpdatedObj){
-                      if (!err){
-                        sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
-                        debug(chalkInfo("-S- DB UPDATE"
-                          + " | " + sessionUpdatedObj.sessionId
-                          + " | WCL: " + sessionUpdatedObj.wordChain.length
-                        ));
-                        sendPrompt(currentSession, randomWordObj);
+
+                switch (sesObj.session.config.type) {
+
+                  // start with a random word for these session types
+
+                  case 'RANDOM':
+                  case 'ANTONYM':
+                  case 'SYNONYM':
+                    words.getRandomWord(function(err, randomWordObj){
+                      if (!err) {
+                        wordCache.set(randomWordObj.nodeId, randomWordObj);
+                        currentSession.wordChain.push(randomWordObj.nodeId);
+                        sessionUpdateDb(currentSession, function(err, sessionUpdatedObj){
+                          if (!err){
+                            sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
+                            debug(chalkInfo("-S- DB UPDATE"
+                              + " | " + sessionUpdatedObj.sessionId
+                              + " | WCL: " + sessionUpdatedObj.wordChain.length
+                            ));
+                            sendPrompt(currentSession, randomWordObj);
+                          }
+                          else {
+                            console.log(chalkError("*** ERROR DB UPDATE SESSION\n" + err));
+                          }
+                        });
                       }
                       else {
-                        console.log(chalkError("*** ERROR DB UPDATE SESSION\n" + err));
+                        console.log(chalkError("*** ERROR GET RANDOM WORD\n" + err));
                       }
                     });
-                  }
-                  else {
-                    console.log(chalkError("*** ERROR GET RANDOM WORD\n" + err));
-                  }
-                });
+                  break;
+
+                  case 'SCRIPT':
+                  break;
+                  case 'USER-USER':
+                  break;
+                  case 'GROUP':
+                  break;
+                  default:
+                    console.error(chalkError("2  ????? UNKNOWN SESSION TYPE: " + sesObj.session.config.type));
+                    quit();
+                  break;
+                }
+
               }
             });
           }
@@ -3307,7 +3384,7 @@ var currentAlgorithm = 'antonym'; // random, antonym, synonym, ??
 // wordVariations = [ 'syn', 'ant', 'rel', 'sim', 'usr' ]
 
 
-var readPromptQueue = setInterval(function (){
+var generatePromptQueueInterval = setInterval(function (){
 
   if (!promptQueue.isEmpty()){
 
@@ -3321,39 +3398,94 @@ var readPromptQueue = setInterval(function (){
       return;
     }
 
-    debug("readPromptQueue currentSession\n" + jsonPrint(currentSession));
+    debug("generatePromptQueueInterval currentSession\n" + jsonPrint(currentSession));
 
     var currentResponse = currentSession.wordChain[currentSession.wordChain.length-1];
 
-    var randomIndex = randomInt(0, algorithms.length);
-    currentAlgorithm = algorithms[randomIndex];
-    // console.log("[-] CURRENT ALGORITHM: " + currentAlgorithm);
+/*
 
-    var query = { input: currentResponse, algorithm: currentAlgorithm};
+This is where routing of response -> prompt happens
 
-    generatePrompt(query, function(status, responseObj){
-      if (status == 'ERROR') {
-        console.log(chalkError("**** generatePrompt ERROR\n" + jsonPrint(responseObj)))
+*/
+
+      switch (currentSession.config.type) {
+
+        case 'RANDOM':
+          var randomIndex = randomInt(0, algorithms.length);
+          currentAlgorithm = algorithms[randomIndex];
+          // console.log("[-] CURRENT ALGORITHM: " + currentAlgorithm);
+
+          var query = { input: currentResponse, algorithm: currentAlgorithm};
+
+          generatePrompt(query, function(status, responseObj){
+            if (status == 'ERROR') {
+              console.log(chalkError("**** generatePrompt ERROR\n" + jsonPrint(responseObj)))
+            }
+            else if (status == 'OK') {
+              wordCache.set(responseObj.nodeId, responseObj);
+              currentSession.wordChain.push(responseObj.nodeId);
+
+              sessionUpdateDb(currentSession, function(err, sessionUpdatedObj){
+                if (!err){
+                  sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
+                  debug(chalkInfo("-S- DB UPDATE"
+                    + " | " + sessionUpdatedObj.sessionId
+                    + " | WCL: " + sessionUpdatedObj.wordChain.length
+                  ));
+                  sendPrompt(sessionUpdatedObj, responseObj);
+                }
+                else {
+                  console.log(chalkError("*** ERROR DB UPDATE SESSION\n" + err));
+                }
+              });
+            }
+          });
+        break;
+
+        case 'ANTONYM':
+        case 'SYNONYM':
+
+          currentAlgorithm = currentSession.config.type.toLowerCase();
+          // console.log("[-] CURRENT ALGORITHM: " + currentAlgorithm);
+
+          var query = { input: currentResponse, algorithm: currentAlgorithm};
+
+          generatePrompt(query, function(status, responseObj){
+            if (status == 'ERROR') {
+              console.log(chalkError("**** generatePrompt ERROR\n" + jsonPrint(responseObj)))
+            }
+            else if (status == 'OK') {
+              wordCache.set(responseObj.nodeId, responseObj);
+              currentSession.wordChain.push(responseObj.nodeId);
+
+              sessionUpdateDb(currentSession, function(err, sessionUpdatedObj){
+                if (!err){
+                  sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
+                  debug(chalkInfo("-S- DB UPDATE"
+                    + " | " + sessionUpdatedObj.sessionId
+                    + " | WCL: " + sessionUpdatedObj.wordChain.length
+                  ));
+                  sendPrompt(sessionUpdatedObj, responseObj);
+                }
+                else {
+                  console.log(chalkError("*** ERROR DB UPDATE SESSION\n" + err));
+                }
+              });
+            }
+          });
+        break;
+
+        // case 'SCRIPT':
+        // break;
+        // case 'USER-USER':
+        // break;
+        // case 'GROUP':
+        // break;
+        default:
+          console.error(chalkError("3  ????? UNKNOWN SESSION TYPE: " + sesObj.session.config.type));
+          quit();
+        break;
       }
-      else if (status == 'OK') {
-        wordCache.set(responseObj.nodeId, responseObj);
-        currentSession.wordChain.push(responseObj.nodeId);
-
-        sessionUpdateDb(currentSession, function(err, sessionUpdatedObj){
-          if (!err){
-            sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
-            debug(chalkInfo("-S- DB UPDATE"
-              + " | " + sessionUpdatedObj.sessionId
-              + " | WCL: " + sessionUpdatedObj.wordChain.length
-            ));
-            sendPrompt(sessionUpdatedObj, responseObj);
-          }
-          else {
-            console.log(chalkError("*** ERROR DB UPDATE SESSION\n" + err));
-          }
-        });
-      }
-    });
 
   }
 }, 20);
@@ -3710,14 +3842,12 @@ function createSession (newSessionObj){
 
   debug(chalkSession("\nCREATE SESSION\n" + util.inspect(newSessionObj, {showHidden: false, depth: 1})));
 
-  // var userId = newSessionObj.userId ;
   var namespace = newSessionObj.namespace ;
   var socket = newSessionObj.socket ;
   var socketId = newSessionObj.socket.id;
   var ipAddress = newSessionObj.socket.handshake.headers['x-real-ip'] || newSessionObj.socket.client.conn.remoteAddress;
   var hostname = newSessionObj.socket.handshake.headers.host ;
   var domain = "UNKNOWN" ;
-
 
   numberAdmins = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
   numberUtils = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;

@@ -13,7 +13,8 @@ process.on( 'SIGINT', function() {
 // SESSION TYPES: RANDOM, ANTONYM, SYNONYM, SCRIPT, USER-USER, GROUP  ( session.config.type )
 
 var sessionTypes = [ "RANDOM", "ANTONYM", "SYNONYM", "SCRIPT", "USER-USER", "GROUP" ];
-var enabledSessionTypes = [ 'RANDOM', 'ANTONYM', 'SYNONYM'];
+// var enabledSessionTypes = [ 'RANDOM', 'ANTONYM', 'SYNONYM'];
+var enabledSessionTypes = [ "ANTONYM", "SYNONYM" ];
 
 var DEFAULT_SESSION_TYPE = 'ANTONYM';
 
@@ -2695,6 +2696,78 @@ var readDnsQueue = setInterval(function (){
   }
 }, 20);
 
+var unpairedUserHashMap = new HashMap();
+var pairedUserHashMap = new HashMap();
+
+function pairUser(sessionObj, callback){
+
+  sessionObj.config.type = 'USER-USER' ; // should already be set
+  console.log(unpairedUserHashMap.count() + " PAIRING USER " + sessionObj.userId + " | SID: " + sessionObj.sessionId);
+
+  if (unpairedUserHashMap.count() > 0){
+
+    unpairedUserHashMap.forEach(function(userId, sessionId){
+
+      console.log(chalkSession("UNPAIRED USER | " + userId + " | SID: " + sessionId));
+
+      if (sessionId != sessionObj.sessionId){
+
+        console.log(chalkSession("PPP FOUND USER TO PAIR | A: " + sessionId + " <-> B: " + sessionObj.sessionId));
+
+        sessionObj.config.userB = sessionObj.sessionId;
+        sessionObj.config.userA = sessionId;
+
+        // add both A -> B and B -> A to pairedUserHashMap
+
+        pairedUserHashMap.set(sessionObj.sessionId, sessionId);
+        pairedUserHashMap.set(sessionId, sessionObj.sessionId);
+
+        unpairedUserHashMap.remove(sessionObj.sessionId);
+        unpairedUserHashMap.remove(sessionId);
+
+        sessionUpdateDb(sessionObj, function(err, updatedSessionObj){
+          sessionCache.set(updatedSessionObj.sessionId, updatedSessionObj);  
+
+          // update session for userA
+          var sessionUserA = sessionCache.get(sessionId);  
+
+          sessionUserA.config.userB = sessionObj.sessionId;
+          sessionUserA.config.userA = sessionId;
+
+          sessionUpdateDb(sessionUserA, function(err, updatedSessionObj){
+            sessionCache.set(updatedSessionObj.sessionId, updatedSessionObj);  
+            callback(null, sessionObj);
+            return;
+          });
+
+        });
+
+      }
+      else {
+        console.log(chalkSession("FOUND CURRENT USER " + sessionObj.userId + " | " + sessionObj.sessionId + " ... ALREADY IN unpairedUserHashMap"));
+        sessionObj.config.userA = sessionObj.sessionId;
+      }
+
+    });
+
+    sessionUpdateDb(sessionObj, function(err, updatedSessionObj){
+      sessionCache.set(updatedSessionObj.sessionId, updatedSessionObj);  
+      callback(null, sessionObj);
+    });
+
+  }
+  else {
+    sessionObj.config.userA = sessionObj.sessionId;
+    console.log(chalkSession("NO UNPAIRED USER FOUND " + sessionObj.userId + " | " + sessionObj.sessionId + " ... ADDING TO unpairedUserHashMap"));
+    unpairedUserHashMap.set(sessionObj.sessionId, sessionObj.userId);
+    sessionUpdateDb(sessionObj, function(err, updatedSessionObj){
+      sessionCache.set(updatedSessionObj.sessionId, updatedSessionObj);  
+      callback(null, sessionObj);
+    });
+  }
+
+}
+
 var readSessionQueue = setInterval(function (){
 
   var sesObj;
@@ -2768,9 +2841,7 @@ var readSessionQueue = setInterval(function (){
           // + " | UID: " + sesObj.user.userId
         ));
 
-
-
- // SESSION TYPES: RANDOM, ANTONYM, SYNONYM, SCRIPT, USER-USER, GROUP 
+         // SESSION TYPES: RANDOM, ANTONYM, SYNONYM, SCRIPT, USER-USER, GROUP 
 
         switch (sesObj.session.config.type) {
           case 'RANDOM':
@@ -2871,7 +2942,47 @@ var readSessionQueue = setInterval(function (){
         sessionUpdateDb(sesObj.session, function(err, updatedSessionObj){
 
           var currentUser = userCache.get(updatedSessionObj.userId);
+          var currentAdmin = adminCache.get(updatedSessionObj.userId);
+          var currentViewer = viewerCache.get(updatedSessionObj.userId);
 
+          if (currentViewer) {
+            debug("currentViewer\n" + jsonPrint(currentViewer));
+            viewerCache.del(currentViewer.viewerId);
+            currentViewer.lastSeen = moment().valueOf();
+            currentViewer.connected = false;
+            viewerUpdateDb(currentViewer, function(err, updatedViewerObj){
+              if (!err){
+
+                updatedViewerObj.sessionId = updatedViewerObj.lastSession;
+
+                console.log(chalkRed("TX VIEWER SESSION (DISCONNECT): " 
+                  + updatedViewerObj.lastSession + " TO ADMIN NAMESPACE"
+                ));
+
+                adminNameSpace.emit('VIEWER_SESSION', updatedViewerObj);
+              }
+            });
+          }
+
+          if (currentAdmin) {
+            debug("currentAdmin\n" + jsonPrint(currentAdmin));
+            adminCache.del(currentAdmin.adminId);
+            currentAdmin.lastSeen = moment().valueOf();
+            currentAdmin.connected = false;
+            adminUpdateDb(currentAdmin, function(err, updatedAdminObj){
+              if (!err){
+
+                updatedAdminObj.sessionId = updatedAdminObj.lastSession;
+
+                console.log(chalkRed("TX ADMIN SESSION (DISCONNECT): " 
+                  + updatedAdminObj.lastSession + " TO ADMIN NAMESPACE"
+                ));
+
+                adminNameSpace.emit('ADMIN_SESSION', updatedAdminObj);
+              }
+            });
+          }
+          
           if (currentUser) {
             debug("currentUser\n" + jsonPrint(currentUser));
             userCache.del(currentUser.userId);
@@ -2938,6 +3049,9 @@ var readSessionQueue = setInterval(function (){
             currentAdmin.disconnectTime = moment().valueOf();
             currentAdmin.connected = false;
 
+            console.log(chalkRed("CONNECTION DURATION: " + currentAdmin.adminId
+             + " | " + msToTime(moment().valueOf() - currentAdmin.connectTime)));
+
             adminUpdateDb(currentAdmin, function(err, updatedAdminObj){
               if (!err){
                 console.log(chalkRed("TX ADMIN SESSION (DISCONNECT): " 
@@ -2955,6 +3069,9 @@ var readSessionQueue = setInterval(function (){
             currentUser.lastSeen = moment().valueOf();
             currentUser.connected = false;
             currentUser.disconnectTime = moment().valueOf();
+
+            console.log(chalkRed("CONNECTION DURATION: " + currentUser.userId
+             + " | " + msToTime(moment().valueOf() - currentUser.connectTime)));
 
             userUpdateDb(currentUser, function(err, updatedUserObj){
               if (!err){
@@ -2977,6 +3094,9 @@ var readSessionQueue = setInterval(function (){
             currentViewer.lastSeen = moment().valueOf();
             currentViewer.connected = false;
             currentViewer.disconnectTime = moment().valueOf();
+
+            console.log(chalkRed("CONNECTION DURATION: " + currentViewer.userId
+             + " | " + msToTime(moment().valueOf() - currentViewer.connectTime)));
 
             viewerUpdateDb(currentViewer, function(err, updatedViewerObj){
               if (!err){
@@ -3215,6 +3335,37 @@ var readSessionQueue = setInterval(function (){
                   case 'SCRIPT':
                   break;
                   case 'USER-USER':
+                    console.log(chalkSession("... PAIRING USER " + currentSession.userId));
+                    pairUser(currentSession, function(err, updatedSessionObj){
+                      if (err){
+                        console.error(chalkError("*** pairUser ERROR\n" + jsonPrint(err)));
+                      }
+                      else {
+                        console.log(chalkSession("U-U CREATED USER-USER PAIR\n" + jsonPrint(updatedSessionObj.config)));
+                        words.getRandomWord(function(err, randomWordObj){
+                          if (!err) {
+                            wordCache.set(randomWordObj.nodeId, randomWordObj);
+                            updatedSessionObj.wordChain.push(randomWordObj.nodeId);
+                            sessionUpdateDb(updatedSessionObj, function(err, sessionUpdatedObj){
+                              if (!err){
+                                sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
+                                debug(chalkInfo("-S- DB UPDATE"
+                                  + " | " + sessionUpdatedObj.sessionId
+                                  + " | WCL: " + sessionUpdatedObj.wordChain.length
+                                ));
+                                sendPrompt(currentSession, randomWordObj);
+                              }
+                              else {
+                                console.log(chalkError("*** ERROR DB UPDATE SESSION\n" + err));
+                              }
+                            });
+                          }
+                          else {
+                            console.log(chalkError("*** ERROR GET RANDOM WORD\n" + err));
+                          }
+                        });
+                      }
+                    })
                   break;
                   case 'GROUP':
                   break;
@@ -3289,8 +3440,45 @@ var readResponseQueue = setInterval(function (){
         ));
         return;
       }
+      else {
+        console.log(chalkResponse("previousPromptObj\n" + previousPromptObj.nodeId));
+      }
     }
-    else{
+    else if (currentSessionObj.config.type == 'USER-USER') {
+
+      console.log(chalkResponse("---------- USER-USER ----------"));
+
+      var respondentSessionId = currentSessionObj.sessionId ;
+      var targetSessionId ;
+
+      if (respondentSessionId == currentSessionObj.config.userA) {
+        targetSessionId = currentSessionObj.config.userB;
+      }
+      else if (respondentSessionId == currentSessionObj.config.userB) {
+        targetSessionId = currentSessionObj.config.userA;
+      }
+      else {
+        console.error("?????? USER-USER RESPONSE FROM UNKNOWN USER\n" + jsonPrint(currentSessionObj));
+        quit();
+      }
+
+      if ((typeof currentSessionObj.wordChain === 'undefined') || (currentSessionObj.wordChain.length == 0)){
+        console.log(chalkResponse("START OF USER-USER SESSION | ADDING " + responseInObj.nodeId + " TO WORDCHAIN"));
+        previousPrompt = responseInObj.nodeId;
+        currentSessionObj.wordChain.push(responseInObj.nodeId);
+        previousPromptObj = { nodeId: previousPrompt } ;
+        wordCache.set(previousPromptObj.nodeId, previousPrompt); 
+      }
+      else {
+
+      }
+
+      console.log(chalkResponse("U->U RESPONSE"
+        + " | " + currentSessionObj.config.userA + " -> " + currentSessionObj.config.userB
+        + " | " + jsonPrint(responseInObj)
+      ));
+    }
+    else {
       console.log(chalkWarn("??? EMPTY WORD CHAIN ... PREVIOUS PROMPT NOT IN CACHE: " + previousPrompt
         + " ... ABORTING SESSION"
       ));
@@ -3475,9 +3663,10 @@ This is where routing of response -> prompt happens
           });
         break;
 
+        case 'USER-USER':
+        break;
+
         // case 'SCRIPT':
-        // break;
-        // case 'USER-USER':
         // break;
         // case 'GROUP':
         // break;
@@ -3864,7 +4053,7 @@ function createSession (newSessionObj){
     lastSeen: moment().valueOf(),
     connected: true,
     connectTime: moment().valueOf(),
-    disconnectTime: null
+    disconnectTime: 0
   });
 
   sessionCache.set(sessionObj.sessionId, sessionObj);

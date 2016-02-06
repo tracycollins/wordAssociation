@@ -1428,7 +1428,7 @@ var createNode = function (sessionId, wordObject, callback) {
   force.stop();
 
   if (currentNodeId in nodeHashMap) {
-    // console.log("@@@--- NODE IN HM: " + sessionId + " | " + wordObject.nodeId);
+    console.log("@@@--- NODE IN HM: " + sessionId + " | " + currentNodeId + " | " + wordObject.nodeId);
 
     currentNodeObject = nodeHashMap[currentNodeId];
 
@@ -1444,8 +1444,8 @@ var createNode = function (sessionId, wordObject, callback) {
 
     console.log("currentNodeObject: " + currentNodeObject.nodeId + " | currentNodeIndex: " + currentNodeIndex + " | nodes: " + nodesLength);
 
-    if ((currentNodeIndex < 0) || (currentNodeIndex >= nodesLength)){
-      console.error("!!! currentNodeIndex >= nodesLength OR < 0): " + currentNodeIndex + " v. " + nodesLength);
+    if ((typeof currentNodeIndex === 'undefined') || (currentNodeIndex < 0) || (currentNodeIndex >= nodesLength)){
+      console.error("!!! currentNodeIndex UNDEFINED -OR- >= nodesLength -OR- < 0): " + currentNodeIndex + " v. " + nodesLength);
 
       for (nodeIndex = 0; nodeIndex < nodesLength; nodeIndex++){
 

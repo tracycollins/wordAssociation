@@ -373,7 +373,25 @@
 			  s.value = newvalue;
 			}    
 
-			var jsonPrint = function (obj){
+			var jsonPrint = function (obj, options){
+
+				if (options) {
+					if (options.ignore) {
+						console.warn("ignore: " + options.ignore);
+						var tempObj = obj;
+						options.ignore.forEach(function(ignoreWord){
+					     if (tempObj.hasOwnProperty(ignoreWord)) {
+									console.log("delete: " + ignoreWord);
+									tempObj.ignoreWord = [] ;
+					     }
+					  });
+						// options.ignore.forEach(function(ignoreWord){
+						// 	console.log("delete: " + ignoreWord);
+						// 	delete tempObj.ignoreWord;
+						// });
+						return JSON.stringify(tempObj, null, 2);
+					}
+				}
 			  return JSON.stringify(obj, null, 2);
 			}
 
@@ -587,7 +605,7 @@
 
 			socket.on('ADMIN_SESSION', function(adminSessionObj){
 
-				console.log("adminSessionObj\n" + jsonPrint(adminSessionObj));
+				console.log("adminSessionObj\n" + jsonPrint(adminSessionObj, { ignore: ['wordChain']}));
 
 				console.log("RX ADMIN SESSION: " 
 					+ adminSessionObj.sessionId 
@@ -605,7 +623,7 @@
 
 			socket.on('USER_SESSION', function(userSessionObj){
 
-				console.log("userSessionObj\n" + jsonPrint(userSessionObj));
+				console.log("userSessionObj\n" + jsonPrint(userSessionObj, { ignore: ['wordChain']}));
 
 				console.log("RX USER SESSION: " 
 					+ userSessionObj.sessionId 

@@ -59,6 +59,10 @@ var AdminSchema = new Schema({
 		type: String,
 		trim: true
 	},
+	namespace: {   // ??????? KLUDGE: for admin updates of sessions/users/admins
+		type: String,
+		trim: true
+	},
 	ip: {   // ??????? KLUDGE: for admin updates of sessions/users/admins
 		type: String,
 		trim: true

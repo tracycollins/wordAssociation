@@ -1668,6 +1668,7 @@ function adminUpdateDb (adminObj, callback) {
           $set: { 
             "screenName": adminObj.screenName,
             "domain": adminObj.domain,
+            "namespace": adminObj.namespace,
             "ip": adminObj.ip,
             "sessionId": adminObj.lastSession,
             "description": adminObj.description,
@@ -1731,6 +1732,10 @@ function viewerUpdateDb (viewerObj, callback) {
   var query = { viewerId: viewerObj.viewerId };
   var update = { 
           $set: { 
+            "namespace": viewerObj.namespace,
+            "domain": viewerObj.domain,
+            "ip": viewerObj.ip,
+            "sessionId": viewerObj.lastSession,
             "screenName": viewerObj.screenName,
             "description": viewerObj.description,
             "url": viewerObj.url,
@@ -1738,7 +1743,10 @@ function viewerUpdateDb (viewerObj, callback) {
             "profileImageUrl": viewerObj.profileImageUrl,
             "verified": viewerObj.verified,
             "lastSeen": moment(),
-            "lastSession": viewerObj.lastSession
+            "lastSession": viewerObj.lastSession,
+            "connectTime": viewerObj.connectTime,
+            "disconnectTime": viewerObj.disconnectTime,
+            "connected": viewerObj.connected
           },
           $push: { "sessions": viewerObj.lastSession } 
         };
@@ -1760,6 +1768,10 @@ function viewerUpdateDb (viewerObj, callback) {
         console.log(">>> VIEWER UPDATED" 
           + " | " + vw.viewerId
           + " | SN: " + vw.screenName 
+          + " | NSP: " + vw.namespace
+          + " | IP: " + vw.ip
+          + " | DOM: " + vw.domain
+          + " | SID: " + vw.sessionId
           // + " | DES: " + us.description 
           // + " | URL: " + us.url 
           // + " | PURL: " + us.profileUrl 
@@ -1794,6 +1806,7 @@ function userUpdateDb (userObj, callback) {
   var query = { userId: userObj.userId };
   var update = { 
           $set: { 
+            "namespace": userObj.namespace,
             "domain": userObj.domain,
             "ip": userObj.ip,
             "sessionId": userObj.lastSession,
@@ -1829,6 +1842,7 @@ function userUpdateDb (userObj, callback) {
         console.log(chalkUser(">>> USER UPDATED" 
           + " | " + us.userId
           + " | SN: " + us.screenName 
+          + " | NSP: " + us.namespace
           + " | IP: " + us.ip
           + " | DOM: " + us.domain
           + " | SID: " + us.sessionId
@@ -1855,6 +1869,7 @@ function adminFindAllDb (options, callback) {
   var query = {};
   var projections = {
     adminId: true,
+    namespace: true,
     sessionId: true,
     ip: true,
     domain: true,
@@ -1933,6 +1948,7 @@ function viewerFindAllDb (options, callback) {
   var query = {};
   var projections = {
     viewerId: true,
+    namespace: true,
     screenName: true,
     description: true,
     url: true,
@@ -2000,6 +2016,7 @@ function userFindAllDb (options, callback) {
   var query = {};
   var projections = {
     userId: true,
+    namespace: true,
     sessionId: true,
     ip: true,
     domain: true,
@@ -2686,6 +2703,7 @@ var readSessionQueue = setInterval(function (){
             console.log("FOUND USER SESSION: " + userSessionObj.sessionId);
             console.log(chalkRed("TX USER SESSION: " + userSessionObj.sessionId 
               + " TO " + sesObj.options.requestNamespace + "#" + sesObj.options.requestSocketId));
+            delete userSessionObj.wordChain ;
 
             adminNameSpace.to(sesObj.session.sessionId).emit('USER_SESSION', userSessionObj);
           }
@@ -2696,6 +2714,7 @@ var readSessionQueue = setInterval(function (){
             console.log("FOUND TEST USER SESSION: " + userSessionObj.sessionId);
             console.log(chalkRed("TX USER SESSION: " + userSessionObj.sessionId 
               + " TO " + sesObj.options.requestNamespace + "#" + sesObj.options.requestSocketId));
+            delete userSessionObj.wordChain ;
 
             adminNameSpace.to(sesObj.session.sessionId).emit('USER_SESSION', userSessionObj);
           }
@@ -2858,6 +2877,7 @@ var readSessionQueue = setInterval(function (){
             adminCache.del(currentAdmin.adminId);
 
             currentAdmin.lastSeen = moment().valueOf();
+            currentAdmin.disconnectTime = moment().valueOf();
             currentAdmin.connected = false;
 
             adminUpdateDb(currentAdmin, function(err, updatedAdminObj){
@@ -2873,8 +2893,11 @@ var readSessionQueue = setInterval(function (){
           if (currentUser) {
             debug("currentUser\n" + jsonPrint(currentUser));
             userCache.del(currentUser.userId);
+
             currentUser.lastSeen = moment().valueOf();
             currentUser.connected = false;
+            currentUser.disconnectTime = moment().valueOf();
+
             userUpdateDb(currentUser, function(err, updatedUserObj){
               if (!err){
 
@@ -2892,9 +2915,23 @@ var readSessionQueue = setInterval(function (){
           if (currentViewer) {
             debug("currentViewer\n" + jsonPrint(currentViewer));
             viewerCache.del(currentViewer.viewerId);
+
             currentViewer.lastSeen = moment().valueOf();
             currentViewer.connected = false;
-            viewerUpdateDb(currentViewer, function(){});
+            currentViewer.disconnectTime = moment().valueOf();
+
+            viewerUpdateDb(currentViewer, function(err, updatedViewerObj){
+              if (!err){
+
+                updatedViewerObj.sessionId = updatedViewerObj.lastSession;
+
+                console.log(chalkRed("TX VIEWER SESSION (DISCONNECT): " 
+                  + updatedViewerObj.lastSession + " TO ADMIN NAMESPACE"
+                ));
+
+                adminNameSpace.emit('USER_SESSION', updatedViewerObj);
+              }
+            });
           }
         }
 
@@ -3054,6 +3091,7 @@ var readSessionQueue = setInterval(function (){
         currentSession.userId = sesObj.user.userId;
 
         sesObj.user.ip = sesObj.session.ip;
+        sesObj.user.namespace = sesObj.session.namespace;
         sesObj.user.domain = sesObj.session.domain;
         sesObj.user.lastSession = sesObj.session.sessionId;
         sesObj.user.lastSeen = moment().valueOf();

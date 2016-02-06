@@ -3043,9 +3043,14 @@ var readSessionQueue = setInterval(function (){
 
         currentSession.userId = sesObj.viewer.viewerId;
 
+        sesObj.viewer.ip = sesObj.session.ip;
+        sesObj.viewer.domain = sesObj.session.domain;
+        sesObj.viewer.namespace = sesObj.session.namespace;
         sesObj.viewer.lastSession = sesObj.session.sessionId;
         sesObj.viewer.lastSeen = moment().valueOf();
         sesObj.viewer.connected = true;
+        sesObj.viewer.connectTime = moment().valueOf();
+        sesObj.viewer.disconnectTime = 0;
 
         viewerUpdateDb(sesObj.viewer, function(err, viewerObj){
           if (!err) {

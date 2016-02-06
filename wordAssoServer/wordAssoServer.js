@@ -1791,9 +1791,14 @@ function userUpdateDb (userObj, callback) {
 
   if (userObj.ip && (typeof userObj.domain === 'undefined')) {
     dnsReverseLookup(userObj.ip, function(err, domains){
-      if (domains[0]) {
-        userObj.domain = domains[0];
-        console.log("userUpdateDb: UPDATED DOMAIN | " + userObj.userId + " | " + userObj.domain);
+      if (err){
+        console.error(chalkError("*** dnsReverseLookup ERROR\n" + err));
+      }
+      else {
+        if (domains[0]) {
+          userObj.domain = domains[0];
+          console.log("userUpdateDb: UPDATED DOMAIN | " + userObj.userId + " | " + userObj.domain);
+        }
       }
     });
   }

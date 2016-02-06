@@ -78,14 +78,13 @@ function getUrlVariables(config){
 
 
 function sendUserResponse(){
-  // var userResponseValue = document.getElementById("userResponse").value.trim() ;
   console.log("RAW INPUT: " + document.getElementById("userResponseInput").value);
 
   var userResponseValue = document.getElementById("userResponseInput").value.replace(/\s+/g, ' ') ;
-  // userResponseValue = userResponseValue.replace(/^\s+|\s+$|\n+|\r+|\?+|\`+|\!+|\@+|\#+|\$+|\%+|\^+|\&+|\*+|\(+|\)+|\_+|\++|\=+|\^+/g, '') ;
-  userResponseValue = userResponseValue.replace(/[\n\r\[\]\{\}\<\>\/\;\:\"\'\`\~\?\!\@\#\$\%\^\&\*\(\)\_\+\=]+/g, '') ;
+  userResponseValue = userResponseValue.replace(/[\n\r\[\]\{\}\<\>\/\;\:\"\`\~\?\!\@\#\$\%\^\&\*\(\)\_\+\=]+/g, '') ;
   userResponseValue = userResponseValue.replace(/\s+/g, ' ') ;
   userResponseValue = userResponseValue.replace(/^\s+|\s+$/g, '') ;
+  userResponseValue = userResponseValue.replace(/\'+/g, "'") ;
   userResponseValue = userResponseValue.toLowerCase();
 
   console.log("CORRECTED INPUT: " + userResponseValue);

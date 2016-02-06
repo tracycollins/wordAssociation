@@ -3841,9 +3841,6 @@ function createSession (newSessionObj){
       + " | " + moment().format(defaultDateTimeFormat)
     ));
 
-    // console.log("TX USER SESSION: " + sessionObj.sessionId + " TO ADMIN NAMESPACE");
-    // adminNameSpace.emit('USER_SESSION', sessionObj);
-
     sessionQueue.enqueue({sessionEvent: "USER_READY", session: sessionObj, user: userObj});
   });
 
@@ -3851,12 +3848,18 @@ function createSession (newSessionObj){
 
     var responseInObj = rxInObj ;
 
-    // responseInObj.nodeId = rxInObj.nodeId.trim() ;
-    responseInObj.nodeId = rxInObj.nodeId.replace(/[\W_]+/g, '') ;
+    // responseInObj.nodeId = rxInObj.nodeId.replace(/[\W_]+/g, '') ;
+
+    responseInObj.nodeId = responseInObj.nodeId.replace(/\s+/g, ' ') ;
+    responseInObj.nodeId = responseInObj.nodeId.replace(/[\n\r\[\]\{\}\<\>\/\;\:\"\'\`\~\?\!\@\#\$\%\^\&\*\(\)\_\+\=]+/g, '') ;
+    responseInObj.nodeId = responseInObj.nodeId.replace(/\s+/g, ' ') ;
+    responseInObj.nodeId = responseInObj.nodeId.replace(/^\s+|\s+$/g, '') ;
+    responseInObj.nodeId = responseInObj.nodeId.replace(/\'+/g, "'") ;
+    responseInObj.nodeId = responseInObj.nodeId.toLowerCase();
 
     responseInObj.socketId = socket.id ;
 
-    debug(chalkResponse(">>> RX RESPONSE | " + responseInObj.nodeId));
+    console.log(chalkResponse(">>> RX RESPONSE | " + responseInObj.nodeId));
 
     responseQueue.enqueue(rxInObj);
   });

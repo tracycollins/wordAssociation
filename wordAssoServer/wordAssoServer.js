@@ -1451,11 +1451,14 @@ function bhtSearchWord (wordObj, callback){
     incrementSocketBhtReqs(1);
 
     debug(chalkBht(">>> BHT SEARCH (before replace): " + wordObj.nodeId));
+
     wordObj.nodeId = wordObj.nodeId.replace(/\s+/g, ' ');
-    wordObj.nodeId = wordObj.nodeId.replace(/[\n\r\[\]\{\}\<\>\/\;\:\"\'\`\~\?\!\@\#\$\%\^\&\*\(\)\_\+\=]+/g, '') ;
+    wordObj.nodeId = wordObj.nodeId.replace(/[\n\r\[\]\{\}\<\>\/\;\:\"\`\~\?\!\@\#\$\%\^\&\*\(\)\_\+\=]+/g, '') ;
     wordObj.nodeId = wordObj.nodeId.replace(/\s+/g, ' ') ;
     wordObj.nodeId = wordObj.nodeId.replace(/^\s+|\s+$/g, '') ;
+    wordObj.nodeId = wordObj.nodeId.replace(/\'+/g, "'") ;
     wordObj.nodeId = wordObj.nodeId.toLowerCase();
+    
     debug(chalkBht(">>> BHT SEARCH (after replace):  " + wordObj.nodeId));
 
     var bhtHost = "words.bighugelabs.com";

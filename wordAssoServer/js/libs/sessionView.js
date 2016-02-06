@@ -4,7 +4,7 @@
 var debug = true ;
 var mouseFreezeEnabled = false;
 
-var DEFAULT_MAX_AGE = 60000.0 ;
+var DEFAULT_MAX_AGE = 30000.0 ;
 var DEFAULT_AGE_RATE =  1.0;
 
 var DEFAULT_CHARGE = -75;
@@ -1251,7 +1251,7 @@ var randomNumber = Math.random();
 
 var checkRxSessionUpdateQueue = function(){
 
-  if (rxSessionUpdateQueue.getLength() > 0){
+  while (rxSessionUpdateQueue.getLength() > 0){
 
     var currentSession = {};
     var sessionObject = rxSessionUpdateQueue.dequeue();
@@ -1290,17 +1290,13 @@ var checkRxSessionUpdateQueue = function(){
     sessionHashMap.set(sessionObject.sessionId, currentSession);
 
     if (sessionObject.targetWord) {
-      console.log("> RX"
-        + " | " + sessionObject.sessionId
-        + " | " + sessionObject.sourceWord.nodeId 
+      console.log("RX "
+        + sessionObject.sourceWord.nodeId 
         + " > " + sessionObject.targetWord.nodeId
       ) ;
     }
     else {
-      console.log("> RX"
-        + " | " + sessionObject.sessionId
-        + " | " + sessionObject.sourceWord.nodeId 
-      ) ;
+      console.log("RX " + sessionObject.sourceWord.nodeId) ;
     }
 
     if (sessionUpdateQueue.getLength() >= QUEUE_MAX) {
@@ -1428,7 +1424,7 @@ var createNode = function (sessionId, wordObject, callback) {
   force.stop();
 
   if (currentNodeId in nodeHashMap) {
-    console.log("@@@--- NODE IN HM: " + sessionId + " | " + currentNodeId + " | " + wordObject.nodeId);
+    // console.log("@@@--- NODE IN HM: " + sessionId + " | " + currentNodeId + " | " + wordObject.nodeId);
 
     currentNodeObject = nodeHashMap[currentNodeId];
 
@@ -1442,7 +1438,7 @@ var createNode = function (sessionId, wordObject, callback) {
 
     currentNodeIndex = currentNodeObject.nodeIndex ;
 
-    console.log("currentNodeObject: " + currentNodeObject.nodeId + " | currentNodeIndex: " + currentNodeIndex + " | nodes: " + nodesLength);
+    // console.log("currentNodeObject: " + currentNodeObject.nodeId + " | currentNodeIndex: " + currentNodeIndex + " | nodes: " + nodesLength);
 
     if ((typeof currentNodeIndex === 'undefined') || (currentNodeIndex < 0) || (currentNodeIndex >= nodesLength)){
       console.error("!!! currentNodeIndex UNDEFINED -OR- >= nodesLength -OR- < 0): " + currentNodeIndex + " v. " + nodesLength);
@@ -1564,8 +1560,8 @@ var getNodeFromQueue = function (callback) {
   numberSessionsUpdated = 0;
 
   // while ((numberSessionsUpdated < MAX_UPDATES_PER_CYCLE) && (sessionUpdateQueue.getLength() > 0)) {
-  // while (sessionUpdateQueue.getLength() > 0){
-  if (sessionUpdateQueue.getLength() > 0){
+  while (sessionUpdateQueue.getLength() > 0){
+  // if (sessionUpdateQueue.getLength() > 0){
     numberSessionsUpdated++ ;
 
     if (sessionUpdateQueue.getLength() > QUEUE_MAX) {
@@ -1595,6 +1591,18 @@ var ageLinksLength = 0;
 var ageLinksIndex = 0;
 
 var sessionIdKeys = [];
+
+var computeNodeAge = function(nodeObject){
+  if (nodeObject.age) {
+    var age = nodeObject.age + (ageRate * (dateNow - nodeObject.ageUpdated));
+    console.log("computeNodeAge | " + nodeObject.nodeId + " | " + nodeObject.age + " > " + age);
+    return age;
+  }
+  else {
+    console.log("computeNodeAge | " + nodeObject.nodeId + " | " + nodeObject.age + " > " + age);
+    return 0;
+  }
+}
 
 var ageNodes = function (newNodesFlag, deadNodesFlag, callback){
 
@@ -1642,7 +1650,8 @@ var ageNodes = function (newNodesFlag, deadNodesFlag, callback){
       }
 
       nodes.splice(ageNodesIndex, 1); 
-      console.warn("><>< REMOVED DEAD NODE " + currentNodeObject.nodeId + " | ANI: " + ageNodesIndex + " | nodes " + nodes.length);
+      // console.warn(">< DEAD " + currentNodeObject.nodeId + " | ANI: " + ageNodesIndex + " | nodes " + nodes.length);
+      console.log("DEAD " + currentNodeObject.nodeId);
 
       if (nodes.length > 0) {
         var newCurrentNodeObject = nodes[nodes.length-1];
@@ -1689,16 +1698,20 @@ var updateNodes = function (newNodesFlag, deadNodesFlag, callback) {
     .attr("y", function(d) { return d.y; })
     .attr("mentions", function(d) { return nodeHashMap[d.nodeId].mentions; })
     .attr("lastSeen", function(d) { return d.lastSeen; });
+    // .attr("age", function(d){ d.age = computeNodeAge(d); })
+    // .attr("ageUpdated", function(d){ d.ageUpdated = dateNow; });
 
   node.enter()
     .append("svg:g")
     .attr("class", "node")
-    .attr("nodeType", function(d) { return d.nodeType; })
+    // .attr("nodeType", function(d) { return d.nodeType; })
     .attr("nodeId", function(d) { return d.nodeId; })
     .attr("x", function(d) { return d.x; })
     .attr("y", function(d) { return d.y; })
     .attr("mentions", function(d) { return d.mentions; })
     .attr("lastSeen", function(d) { return d.lastSeen; });
+    // .attr("age", function(d){ d.age = 0; })
+    // .attr("ageUpdated", function(d){ d.ageUpdated = dateNow; });
 
   node.exit()
     .remove();
@@ -1743,8 +1756,8 @@ var updateNodeCircles = function (newNodesFlag, deadNodesFlag, callback) {
     function(d) { return d.nodeId; })
 
   nodeCircles
-    .attr("lastSeen", function(d) { return d.lastSeen; })
-    .attr("mentions", function(d) { return d.mentions; })
+    // .attr("lastSeen", function(d) { return d.lastSeen; })
+    // .attr("mentions", function(d) { return d.mentions; })
     .attr("r", function(d) { return defaultRadiusScale(d.mentions + 1); })
     .style("fill", function(d) { return d.interpolateColor((nodeMaxAge - d.age) / nodeMaxAge) ;})
     .style('stroke', function(d){ return strokeColorScale(d.age); });
@@ -1761,11 +1774,11 @@ var updateNodeCircles = function (newNodesFlag, deadNodesFlag, callback) {
     .on("mouseout", nodeMouseout)
     .on("dblclick", nodeClick)
     .call(force.drag)
-    .attr("nodeId",function(d) { return d.nodeId;} )
-    .attr("nodeType", function(d) { return d.nodeType; })
-    .attr("lastSeen", function(d) { return d.lastSeen; })
-    .attr("mentions", function(d) { return d.mentions; })
-    .attr("nodeText", function(d) { return d.text; })
+    // .attr("nodeId",function(d) { return d.nodeId;} )
+    // .attr("nodeType", function(d) { return d.nodeType; })
+    // .attr("lastSeen", function(d) { return d.lastSeen; })
+    // .attr("mentions", function(d) { return d.mentions; })
+    // .attr("nodeText", function(d) { return d.text; })
     .attr("r", function(d) { 
       return defaultRadiusScale(d.mentions + 1); 
     })
@@ -1795,13 +1808,12 @@ var updateNodeLabels = function (newNodesFlag, deadNodesFlag, callback) {
   nodeLabels = nodeLabelSvgGroup.selectAll(".nodeLabel").data(force.nodes(), 
     function(d) { return d.nodeId; })
     .text(function(d) { return d.text; })
-    // .text(function(d) { return (d.text + " | " + d.age); })
     .style("font-size", function(d) { 
-      return fontSizeScale(nodeHashMap[d.nodeId].mentions + 1.1) + "vmin"; 
+      // return fontSizeScale(nodeHashMap[d.nodeId].mentions + 1.1) + "vmin"; 
+      return fontSizeScale(d.mentions + 1.1) + "vmin"; 
     })
     .style('opacity', function(d){
       return (nodeMaxAge - d.age) / nodeMaxAge ;
-      // return 1 ;
     });
 
   nodeLabels.enter()
@@ -1809,15 +1821,16 @@ var updateNodeLabels = function (newNodesFlag, deadNodesFlag, callback) {
     .attr("x", function(d) { return d.x; })
     .attr("y", function(d) { return d.y; })
     .attr("class", "nodeLabel")
-    .attr("nodeType", function(d) { return d.nodeType; })
     .attr("id", function(d) { return d.nodeId; })
     .attr("nodeId", function(d) { return d.nodeId; })
-    // .text(function(d) { return (d.text + " | " + d.age); })
     .text(function(d) { return d.text; })
     .style("text-anchor", "middle")
     .style("opacity", 1e-6)
     .style("fill", "#eeeeee")
-    .style("font-size", function(d) { return fontSizeScale(nodeHashMap[d.nodeId].mentions + 1.1) + "vmin"; })
+    .style("font-size", function(d) { 
+      // return fontSizeScale(nodeHashMap[d.nodeId].mentions + 1.1) + "vmin"; 
+      return fontSizeScale(d.mentions + 1.1) + "vmin"; 
+    })
     .transition()
       .duration(defaultFadeDuration)      
       .style("opacity", function(d) { 
@@ -1835,7 +1848,7 @@ var updateNodeLabels = function (newNodesFlag, deadNodesFlag, callback) {
 
 function ageNodesCheckQueue() {
 
-  // checkRxSessionUpdateQueue();
+  checkRxSessionUpdateQueue();
 
   async.waterfall([ 
       getNodeFromQueue,
@@ -1922,10 +1935,6 @@ function nodeMouseout() {
 function nodeClick(d) {
   launchSessionView(d.sessionId);
 }
-
-setInterval (function(){
-  checkRxSessionUpdateQueue();
-}, 50);
 
 d3.timer(function () {
   dateNow = moment().valueOf();

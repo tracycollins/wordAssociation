@@ -10,7 +10,8 @@ var SessionSchema = new Schema({
 		unique: true
 	},
 	config: {
-		type: Object
+		type: Object, // SESSION TYPES: RANDOM, ANTONYM, SYNONYM, SCRIPT, USER-USER, GROUP  ( session.config.type )
+		default: { type: 'SYNONYM'}
 	},
 	ip: { 
 		type: String,

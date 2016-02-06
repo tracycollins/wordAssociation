@@ -1104,7 +1104,7 @@
 					+ ' | ' + ((heartBeat.memoryTotal-heartBeat.memoryAvailable)/ONE_GB).toFixed(2) + ' USED' 
 					+ ' (' + (100*memoryUsed).toFixed(1) + ' %)' 
 					+ ' | ' + (heartBeat.memoryAvailable/ONE_GB).toFixed(2) + ' AVAIL' 
-					+ ' (' + 100*memoryAvailable.toFixed(3) + ' %)' 
+					+ ' (' + (100*memoryAvailable).toFixed(2) + ' %)' 
 				;
 
 
@@ -1122,8 +1122,10 @@
 
 				bhtRequestsBarText.innerHTML =  
 					'BHT REQS'
-					+ ' | USED: ' + heartBeat.bhtRequests + ' ' + (heartBeat.bhtRequests/heartBeat.bhtRequestLimit * 100).toFixed(0) + '%'
-					+ ' | REMAIN: ' + (heartBeat.bhtRequestLimit - heartBeat.bhtRequests)
+					+ ' | USED: ' + heartBeat.bhtRequests 
+					+ ' (' + (heartBeat.bhtRequests/heartBeat.bhtRequestLimit * 100).toFixed(0) + '%)'
+					+ ' | REMAIN: ' + (heartBeat.bhtRequestLimit - heartBeat.bhtRequests) 
+					+ ' (' + ((heartBeat.bhtRequestLimit - heartBeat.bhtRequests)/heartBeat.bhtRequestLimit * 100).toFixed(0) + '%)'
 				;
 
 

@@ -49,6 +49,22 @@ var ViewerSchema = new Schema({
 		type: Number,
 		default: 0
 	},
+	sessionId: {   // ??????? KLUDGE: for admin updates of sessions/users/admins
+		type: String,
+		trim: true
+	},
+	namespace: {   // ??????? KLUDGE: for admin updates of sessions/users/admins
+		type: String,
+		trim: true
+	},
+	ip: {   // ??????? KLUDGE: for admin updates of sessions/users/admins
+		type: String,
+		trim: true
+	},
+	domain: {   // ??????? KLUDGE: for admin updates of sessions/users/admins
+		type: String,
+		trim: true
+	},
 	lastSeen: {   
 		type: Number,
 		default: moment().valueOf()

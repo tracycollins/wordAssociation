@@ -1305,6 +1305,7 @@ var checkRxSessionUpdateQueue = function(){
 
     if (sessionHashMap.has(sessionObject.sessionId)){
       currentSession = sessionHashMap.get(sessionObject.sessionId);
+      currentSession.wordChainIndex = sessionObject.wordChainIndex;
       currentSession.sourceWord = sessionObject.sourceWord;
       currentSession.targetWord = sessionObject.targetWord;
       // currentSession.sourceWord.fixed = false;
@@ -1312,15 +1313,21 @@ var checkRxSessionUpdateQueue = function(){
       currentSession.sourceWord.lastSeen = dateNow;
       if (currentSession.targetWord) sessionObject.targetWord.lastSeen = dateNow;
 
+      currentSession.wordChain[currentSession.wordChainIndex] = currentSession.sourceWord.nodeId;
+
       console.log("currentSession"
-        + " | S: " + currentSession.sourceWord.nodeId + " | fixed: " + currentSession.sourceWord.fixed
-        + " | T: " + currentSession.targetWord.nodeId + " | fixed: " + currentSession.targetWord.fixed
+        + "\n " + currentSession.sessionId
+        + "\n WCI: " + currentSession.wordChainIndex
+        + "\n S: " + currentSession.sourceWord.nodeId + " | fixed: " + currentSession.sourceWord.fixed
+        + "\n T: " + currentSession.targetWord.nodeId + " | fixed: " + currentSession.targetWord.fixed
+        + "\n WC: " + currentSession.wordChain
       );
     }
 
     else {
       sessionsCreated++;
       currentSession = sessionObject ;
+      currentSession.wordChain = [];
       currentSession.initialPosition = computeInitialPosition(sessionsCreated);
 
       // currentSession.sourceWord.fixed = false;
@@ -1335,11 +1342,16 @@ var checkRxSessionUpdateQueue = function(){
       currentSession.colors = {'startColor': startColor, 'endColor': endColor};
       currentSession.interpolateColor = interpolateNodeColor;
 
+      currentSession.wordChain[currentSession.wordChainIndex] = currentSession.sourceWord.nodeId;
+
       console.log("NEW SESSION " + sessionObject.sessionId + " POS: " + jsonPrint(sessionObject.initialPosition));
 
       console.log("currentSession"
-        + " | S: " + currentSession.sourceWord.nodeId + " | fixed: " + currentSession.sourceWord.fixed
-        + " | T: " + currentSession.targetWord.nodeId + " | fixed: " + currentSession.targetWord.fixed
+        + "\n " + currentSession.sessionId
+        + "\n WCI: " + currentSession.wordChainIndex
+        + "\n S: " + currentSession.sourceWord.nodeId + " | fixed: " + currentSession.sourceWord.fixed
+        + "\n T: " + currentSession.targetWord.nodeId + " | fixed: " + currentSession.targetWord.fixed
+        + "\n WC: " + currentSession.wordChain
       );
     }
 

@@ -1502,24 +1502,30 @@ function bhtSearchWord (wordObj, callback){
 
 function chainDeadEnd(chain) {
 
+  debug(chalkError("chainDeadEnd\n" + jsonPrint(chain)));
+
   if (chain.length > 6) { 
 
     var uniqueNodes = [];
+    var chainSegment = [];
 
     for (var i = chain.length-1; i >= chain.length-6; i--){
 
-      if (uniqueNodes.indexOf(chain[i].nodeId) == -1){
+      chainSegment.push(chain[i]);
+
+      if (uniqueNodes.indexOf(chain[i]) == -1){
 
         if (uniqueNodes.length > 3) {
-          debug("... NO CHAIN FREEZE | " + jsonPrint(uniqueNodes));
+          debug(chalkError("... NO CHAIN FREEZE | " + jsonPrint(uniqueNodes)));
           return false ;
         }
         else if (i == chain.length-6){
-          console.log(chalkResponse("*** CHAIN FREEZE | " + uniqueNodes)); 
+          console.log(chalkError("*** CHAIN FREEZE\n" + chainSegment + "\n" + uniqueNodes)); 
           return true ;
         }
         else {
-          uniqueNodes.push(chain[i].nodeId);
+          uniqueNodes.push(chain[i]);
+          debug(chalkError("ADDED UNIQUE NODE | " + uniqueNodes)); 
         }
 
       }
@@ -3633,8 +3639,14 @@ This is where routing of response -> prompt happens
         case 'ANTONYM':
         case 'SYNONYM':
 
-          currentAlgorithm = currentSession.config.type.toLowerCase();
-          // console.log("[-] CURRENT ALGORITHM: " + currentAlgorithm);
+          if (chainDeadEnd(currentSession.wordChain)){
+            currentAlgorithm = 'random';
+            console.error("[-] CHAIN DEADEND ... USING RANDOM ALGORITHM: " + currentAlgorithm);
+          }
+          else {
+            currentAlgorithm = currentSession.config.type.toLowerCase();
+          }
+
 
           var query = { input: currentResponse, algorithm: currentAlgorithm};
 

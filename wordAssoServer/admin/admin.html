@@ -150,7 +150,7 @@
 				<br>
 				<hr>
 				<br>
-				<button id="testModeButton" class="showHideButton" onclick="setTestMode()">TEST MODE</button>
+				<button id="testModeButton" class="showHideButton" onclick="toggleTestMode()">TEST MODE</button>
 				<br>
 				<br>
 				<hr>
@@ -702,7 +702,7 @@
 
 				if (!serverConfigUpdateFlag){
 					console.log("***> SENT CONFIG: " + JSON.stringify(config, null, 3));
-					socket.emit('CONFIG', JSON.stringify(config));
+					// socket.emit('CONFIG', JSON.stringify(config));
 				}
 				else {
 					console.log("---> UPDATED CONFIG: " + JSON.stringify(config, null, 3));
@@ -743,6 +743,7 @@
 			}
 
 			function toggleTestMode(){
+				testMode = !testMode;
 				console.log("SOCKET_TEST_MODE: " + testMode);
 				socket.emit("SOCKET_TEST_MODE", testMode);
 			}

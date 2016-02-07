@@ -743,8 +743,8 @@
 			}
 
 			function toggleTestMode(){
-				console.log("SET TEST MODE: " + testMode);
-				socket.emit("SET_TEST_MODE", testMode);
+				console.log("SOCKET_TEST_MODE: " + testMode);
+				socket.emit("SOCKET_TEST_MODE", testMode);
 			}
 
 			function toggleIpAdmins(){

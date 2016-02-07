@@ -196,7 +196,7 @@ var chalkConnectAdmin = chalk.bold.cyan;
 var chalkConnect = chalk.green;
 var chalkDisconnect = chalk.red;
 var chalkInfo = chalk.gray;
-var chalkTest = chalk.yellow;
+var chalkTest = chalk.bold.red;
 var chalkAlert = chalk.red;
 var chalkError = chalk.bold.red;
 var chalkWarn = chalk.bold.yellow;
@@ -4289,7 +4289,9 @@ function createSession (newSessionObj){
   socket.on("SOCKET_TEST_MODE", function(testMode){
     console.log(chalkTest("RX SOCKET_TEST_MODE: " + testMode));
     serverSessionConfig.testMode = testMode;
-    adminNameSpace.emit("CONFIG_CHANGE", serverSessionConfig);
+    serverSessionConfig.socketId = socket.id;
+    // adminNameSpace.emit("CONFIG_CHANGE", serverSessionConfig);
+    testUsersNameSpace.emit("SOCKET_TEST_MODE", serverSessionConfig);
     // configEvents.emit("CONFIG_CHANGE", serverSessionConfig);
   });
 

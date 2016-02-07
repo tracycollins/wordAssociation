@@ -934,8 +934,9 @@ function updateSessionViews(sessionUpdateObj){
 
   updateStatsCounts();
 
-  debug(chalkInfo(">>> TX SESSION_UPDATE"
+  console.log(chalkInfo(">>> TX SESSION_UPDATE"
     + " | " + sessionUpdateObj.sessionId
+    + " | WCI: " + sessionUpdateObj.wordChainIndex
     // + " | " + jsonPrint(sessionUpdateObj.client.config)
     + " | " + sessionUpdateObj.sourceWord.nodeId
     + " --> " + sessionUpdateObj.targetWord.nodeId
@@ -1010,6 +1011,7 @@ function sendPrompt(sessionObj, promptWordObj){
 
     var sessionUpdateObj = {
       sessionId: currentSession.sessionId,
+      wordChainIndex: currentSession.wordChain.length,
       sourceWord: sourceWordObj,
       targetWord: promptWordObj
     };
@@ -3522,6 +3524,7 @@ var readResponseQueue = setInterval(function (){
 
             var sessionUpdateObj = {
               sessionId: currentSessionObj.sessionId,
+              wordChainIndex: currentSession.wordChain.length,
               sourceWord: previousPromptObj,
               targetWord: responseInObj
             };
@@ -3540,6 +3543,7 @@ var readResponseQueue = setInterval(function (){
 
             var sessionUpdateObj = {
               sessionId: currentSessionObj.sessionId,
+              wordChainIndex: currentSessionObj.wordChain.length,
               sourceWord: previousPromptObj,
               targetWord: responseWordObj
             };

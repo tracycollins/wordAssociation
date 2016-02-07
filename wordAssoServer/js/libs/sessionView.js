@@ -1112,55 +1112,6 @@ socket.on("CONFIG_CHANGE", function(rxConfig){
   resetMouseMoveTimer();
 });
 
-// function displaySession(sessionObject){
-
-//   for (var i=0; i<sessionObject.wordChain.length; i++) {
-
-//     var sessionUpdateObj = {};
-
-//     sessionUpdateObj.sessionId = sessionObject.sessionId;
-
-//     console.log("WORD: " + sessionObject.wordChain[i]);
-
-//     sessionUpdateObj.sourceWord = sessionObject.wordChain[i];
-
-//     if (sessionObject.wordChain.length == 1){  // no link created is source == target
-//       sessionUpdateObj.targetWord = sessionObject.wordChain[i];
-//     }
-//     else if (i == sessionObject.wordChain.length-1){  // no link created is source == target
-//       sessionUpdateObj.targetWord = sessionObject.wordChain[i];
-//     }
-//     else {
-//       sessionUpdateObj.targetWord = sessionObject.wordChain[i+1];
-//     }
-
-//     sessionUpdateObj.sourceWord.lastSeen = dateNow;
-//     sessionUpdateObj.targetWord.lastSeen = dateNow;
-
-//     // console.log("> RX " + JSON.stringify(sessionObject)); ;
-//     console.log("> SESSION UPDATE " + sessionObject.sessionId
-//       + " | " + sessionUpdateObj.sourceWord.nodeId 
-//       + " > " + sessionUpdateObj.targetWord.nodeId
-//     ) ;
-
-//     if (sessionUpdateQueue.getLength() >= QUEUE_MAX) {
-//       console.log(">>> RX sessionObject: [Q: " 
-//         + sessionUpdateQueue.getLength() 
-//       );
-//       console.error(getTimeStamp() + " -- !!! Q FULL --- DROPPING SESSION UPDATE !!! " 
-//         + sessionUpdateQueue.getLength() + "\n\n"
-//       );
-//     }
-//     else {
-//       sessionUpdateQueue.enqueue(sessionUpdateObj);
-//       console.log("SESSION Q: " + sessionUpdateQueue.getLength());
-//       if (sessionUpdateQueue.getLength() > sessionUpdateQueueMaxInQ) { 
-//         sessionUpdateQueueMaxInQ = sessionUpdateQueue.getLength(); 
-//       }
-//     }
-    
-//   }
-// }
 
 socket.on("SESSION", function(sessionObject){
 
@@ -1280,28 +1231,6 @@ var checkRxSessionUpdateQueue = function(){
 
     var currentSession = {};
     var sessionObject = rxSessionUpdateQueue.dequeue();
-
-
-    // if (sessionObject.targetWord && (sessionObject.targetWord.nodeId != sessionObject.targetWord.nodeId)) {
-    //   sessionObject.sourceWord.fixed = false ;
-    //   sessionObject.targetWord.fixed = true ;
-    //   console.log("RX "
-    //     + sessionObject.sourceWord.nodeId 
-    //     + " > " + sessionObject.targetWord.nodeId
-    //   ) ;
-    // }
-    // else if (sessionObject.targetWord && (sessionObject.targetWord.nodeId == sessionObject.targetWord.nodeId)) {
-    //   sessionObject.sourceWord.fixed = true ;
-    //   sessionObject.targetWord.fixed = true ;
-    //   console.log("RX "
-    //     + sessionObject.sourceWord.nodeId 
-    //     + " > " + sessionObject.targetWord.nodeId
-    //   ) ;
-    // }
-    // else {
-    //   sessionObject.sourceWord.fixed = true ;
-    //   console.log("RX " + sessionObject.sourceWord.nodeId) ;
-    // }
 
     if (sessionHashMap.has(sessionObject.sessionId)){
       currentSession = sessionHashMap.get(sessionObject.sessionId);

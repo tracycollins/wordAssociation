@@ -14,9 +14,9 @@ process.on( 'SIGINT', function() {
 
 var sessionTypes = [ "RANDOM", "ANTONYM", "SYNONYM", "SCRIPT", "USER-USER", "GROUP" ];
 // var enabledSessionTypes = [ 'RANDOM', 'ANTONYM', 'SYNONYM'];
-var enabledSessionTypes = [ "RANDOM" ];
+var enabledSessionTypes = [ "ANTONYM", "SYNONYM" ];
 
-var DEFAULT_SESSION_TYPE = 'RANDOM';
+var DEFAULT_SESSION_TYPE = 'ANTONYM';
 
 var defaultSessionType = DEFAULT_SESSION_TYPE ;
 
@@ -934,19 +934,12 @@ function updateSessionViews(sessionUpdateObj){
 
   updateStatsCounts();
 
-  // console.log(chalkInfo(">>> TX SESSION_UPDATE"
-  //   + " | " + sessionUpdateObj.sessionId
-  //   + " | WCI: " + sessionUpdateObj.wordChainIndex
-  //   // + " | " + jsonPrint(sessionUpdateObj.client.config)
-  //   + " | " + sessionUpdateObj.sourceWord.nodeId
-  //   + " --> " + sessionUpdateObj.targetWord.nodeId
-  // ));
-
   console.log(chalkInfo(">>> TX SESSION_UPDATE"
     + " | " + sessionUpdateObj.sessionId
     + " | WCI: " + sessionUpdateObj.wordChainIndex
     // + " | " + jsonPrint(sessionUpdateObj.client.config)
-    + " | " + sessionUpdateObj.word.nodeId
+    + " | " + sessionUpdateObj.sourceWord.nodeId
+    + " --> " + sessionUpdateObj.targetWord.nodeId
   ));
 
   viewNameSpace.emit("SESSION_UPDATE", sessionUpdateObj);
@@ -1016,17 +1009,11 @@ function sendPrompt(sessionObj, promptWordObj){
     promptsSent++ ;
     deltaPromptsSent++;
 
-    // var sessionUpdateObj = {
-    //   sessionId: currentSession.sessionId,
-    //   wordChainIndex: currentSession.wordChain.length,
-    //   sourceWord: sourceWordObj,
-    //   targetWord: promptWordObj
-    // };
-
     var sessionUpdateObj = {
       sessionId: currentSession.sessionId,
       wordChainIndex: currentSession.wordChain.length,
-      word: promptWordObj
+      sourceWord: sourceWordObj,
+      targetWord: promptWordObj
     };
 
     updateSessionViews(sessionUpdateObj);
@@ -1517,7 +1504,7 @@ function bhtSearchWord (wordObj, callback){
 
 function chainDeadEnd(chain) {
 
-  console.log(chalkError("chainDeadEnd\n" + jsonPrint(chain)));
+  debug(chalkError("chainDeadEnd\n" + jsonPrint(chain)));
 
   if (chain.length > 6) { 
 
@@ -3340,8 +3327,7 @@ var readSessionQueue = setInterval(function (){
                               + " | " + sessionUpdatedObj.sessionId
                               + " | WCL: " + sessionUpdatedObj.wordChain.length
                             ));
-                            // sendPrompt(currentSession, randomWordObj);
-                            sendPrompt(sessionUpdatedObj, randomWordObj);
+                            sendPrompt(currentSession, randomWordObj);
                           }
                           else {
                             console.log(chalkError("*** ERROR DB UPDATE SESSION\n" + err));
@@ -3375,8 +3361,7 @@ var readSessionQueue = setInterval(function (){
                                   + " | " + sessionUpdatedObj.sessionId
                                   + " | WCL: " + sessionUpdatedObj.wordChain.length
                                 ));
-                                // sendPrompt(currentSession, randomWordObj);
-                                sendPrompt(sessionUpdatedObj, randomWordObj);
+                                sendPrompt(currentSession, randomWordObj);
                               }
                               else {
                                 console.log(chalkError("*** ERROR DB UPDATE SESSION\n" + err));
@@ -3530,25 +3515,18 @@ var readResponseQueue = setInterval(function (){
     // ADD/UPDATE WORD IN DB
     dbUpdateWord(responseInObj, true, function(status, responseWordObj){
       if ((status == 'BHT_ERROR') || (status == 'BHT_OVER_LIMIT')) {
-        // wordCache.set(responseInObj.nodeId, responseInObj);
-        wordCache.set(responseWordObj.nodeId, responseWordObj);
-        currentSessionObj.wordChain.push(responseWordObj.nodeId);
+        wordCache.set(responseInObj.nodeId, responseInObj);
+        currentSessionObj.wordChain.push(responseInObj.nodeId);
         sessionCache.set(currentSessionObj.sessionId, currentSessionObj, function(err, success){
           if (!err && success) {
 
             promptQueue.enqueue(currentSessionObj.sessionId);
 
-            // var sessionUpdateObj = {
-            //   sessionId: currentSessionObj.sessionId,
-            //   wordChainIndex: currentSession.wordChain.length,
-            //   sourceWord: previousPromptObj,
-            //   targetWord: responseInObj
-            // };
-
             var sessionUpdateObj = {
-              sessionId: currentSession.sessionId,
+              sessionId: currentSessionObj.sessionId,
               wordChainIndex: currentSession.wordChain.length,
-              word: responseWordObj
+              sourceWord: previousPromptObj,
+              targetWord: responseInObj
             };
 
             updateSessionViews(sessionUpdateObj);
@@ -3563,17 +3541,11 @@ var readResponseQueue = setInterval(function (){
 
             promptQueue.enqueue(currentSessionObj.sessionId);
 
-            // var sessionUpdateObj = {
-            //   sessionId: currentSessionObj.sessionId,
-            //   wordChainIndex: currentSessionObj.wordChain.length,
-            //   sourceWord: previousPromptObj,
-            //   targetWord: responseWordObj
-            // };
-
             var sessionUpdateObj = {
               sessionId: currentSessionObj.sessionId,
               wordChainIndex: currentSessionObj.wordChain.length,
-              word: responseWordObj
+              sourceWord: previousPromptObj,
+              targetWord: responseWordObj
             };
 
             updateSessionViews(sessionUpdateObj);
@@ -3658,7 +3630,6 @@ This is where routing of response -> prompt happens
                     + " | " + sessionUpdatedObj.sessionId
                     + " | WCL: " + sessionUpdatedObj.wordChain.length
                   ));
-                  // sendPrompt(sessionUpdatedObj, responseObj);
                   sendPrompt(sessionUpdatedObj, responseObj);
                 }
                 else {

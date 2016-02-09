@@ -3,10 +3,8 @@
 
 var debug = true ;
 var mouseFreezeEnabled = false;
-// var tickEnabled = true;
 
-
-var DEFAULT_MAX_AGE = 10000.0 ;
+var DEFAULT_MAX_AGE = 5000.0 ;
 var DEFAULT_AGE_RATE =  1.0;
 
 var ageRate = DEFAULT_AGE_RATE ;
@@ -47,11 +45,7 @@ var urlRoot = "http://localhost:9997/session?session=";
 
 var socketNamespace = "/user";
 
-// var nodeHashMap = new HashMap();
-var nodeHashMap = {};
 var nodesCreated = 0;
-
-
 // var dateNow = Date.now();
 var dateNow = moment().valueOf();
 var d3TimerCount = 1 ;
@@ -62,7 +56,7 @@ var namespace;
 var sessionMode = false;
 var monitorMode = false;
 
-// var currentNodeObject = {} ;
+var currentNodeObject = {} ;
 
 
 var defaultFadeDuration = 100 ;
@@ -781,6 +775,9 @@ var linkColorScale = d3.scale.linear()
     .range(["#cccccc", "#666666", "#444444"]);
 
 
+var nodeHashMap = {};
+var reqNodeHashMap = {};
+
 var nodes = [];
 var maxNumberNodes = 0;
 
@@ -1157,29 +1154,23 @@ socket.on("SESSION", function(sessionObject){
 
   createNode(currentSession.sessionId, sessionObject.word, function(){
     if (currentSession.wordChain[sessionObject.wordChainIndex-1]) {
-      // if (nodeHashMap.has(currentSession.wordChain[sessionObject.wordChainIndex-1].nodeId)) {
       if (nodeHashMap[currentSession.wordChain[sessionObject.wordChainIndex-1].nodeId]) {
-        // var sourceWord = nodeHashMap.get(currentSession.wordChain[sessionObject.wordChainIndex-1].nodeId);
-        var sourceWord = nodeHashMap[currentSession.wordChain[sessionObject.wordChainIndex-1].nodeId];
         console.log("@@@ < CREATE PREV LINNK");
         createLinks(
           { sessionId: sessionObject.sessionId, 
-            sourceWord: sourceWord,
+            sourceWord: currentSession.wordChain[sessionObject.wordChainIndex-1],
             targetWord: sessionObject.word
           },
           function(){});
       }
     }
     if (currentSession.wordChain[sessionObject.wordChainIndex+1]) {
-      // if (nodeHashMap.has(currentSession.wordChain[sessionObject.wordChainIndex+1].nodeId)) {
       if (nodeHashMap[currentSession.wordChain[sessionObject.wordChainIndex+1].nodeId]) {
-        // var targetWord = nodeHashMap.get(currentSession.wordChain[sessionObject.wordChainIndex+1].nodeId);
-        var targetWord = nodeHashMap[currentSession.wordChain[sessionObject.wordChainIndex+1].nodeId];
         console.log("@@@ > CREATE NEXT LINNK");
         createLinks(
           { sessionId: sessionObject.sessionId, 
             sourceWord: sessionObject.word,
-            targetWord: targetWord
+            targetWord: currentSession.wordChain[sessionObject.wordChainIndex+1]
           },
           function(){});
       }
@@ -1196,11 +1187,6 @@ socket.on("SESSION_UPDATE", function(rxSessionObject){
     if (debug)  console.log("... SKIP SESSION_UPDATE: ID: " + rxSessionObject.sessionId + " | CURRENT SESSION: " + currentSession.sessionId);
   }
   else {
-
-    console.log("SESSION_UPDATE | " + rxSessionObject.sessionId 
-      + " | " + rxSessionObject.word.nodeId 
-      + " | WCI: " + rxSessionObject.wordChainIndex
-    );
     rxSessionObject.word.nodeLinks = {};
     rxSessionObject.word.fixed = false ;
     console.log(">>> RX "
@@ -1214,6 +1200,91 @@ socket.on("SESSION_UPDATE", function(rxSessionObject){
 var rxSessionUpdateObject = {};
 var randomNumber = Math.random();
 
+var checkRxSessionUpdateQueue = function(){
+  while (rxSessionUpdateQueue.getLength() > 0){
+    var currentSession = {};
+    var sessionObject = rxSessionUpdateQueue.dequeue();
+
+    if (sessionHashMap.has(sessionObject.sessionId)){
+      currentSession = sessionHashMap.get(sessionObject.sessionId);
+      currentSession.wordChainIndex = sessionObject.wordChainIndex;
+      currentSession.word = sessionObject.word;
+      currentSession.word.lastSeen = dateNow;
+
+      currentSession.wordChain[currentSession.wordChainIndex] = currentSession.word.nodeId;
+
+      console.log("currentSession"
+        + "\n      " + currentSession.sessionId
+        + "\n WCI: " + currentSession.wordChainIndex
+        + "\n      " + currentSession.word.nodeId + " | fixed: " + currentSession.word.fixed
+      );
+
+      currentSession.word.lastSeen = dateNow;
+
+      sessionHashMap.set(sessionObject.sessionId, currentSession);
+
+      if (sessionUpdateQueue.getLength() >= QUEUE_MAX) {
+        console.log(">>> RX sessionObject: [Q: " 
+          + sessionUpdateQueue.getLength() 
+        );
+        console.error(getTimeStamp() + " -- !!! Q FULL --- DROPPING SESSION UPDATE !!! " 
+          + sessionUpdateQueue.getLength() + "\n\n"
+        );
+      }
+      else {
+        sessionUpdateQueue.enqueue(currentSession);
+        if (sessionUpdateQueue.getLength() > sessionUpdateQueueMaxInQ) { 
+          sessionUpdateQueueMaxInQ = sessionUpdateQueue.getLength(); 
+        }
+      }
+    }
+    else {
+      sessionsCreated++;
+      currentSession = sessionObject ;
+      currentSession.wordChain = [];
+      currentSession.initialPosition = computeInitialPosition(sessionsCreated);
+
+      randomNumber = Math.random();
+
+      var startColor = "hsl(" + randomNumber * 360 + ",100%,50%)";
+      var endColor = "hsl(" + randomNumber * 360 + ",0%,0%)";
+      var interpolateNodeColor = d3.interpolateHcl(endColor, startColor);
+
+      currentSession.colors = {'startColor': startColor, 'endColor': endColor};
+      currentSession.interpolateColor = interpolateNodeColor;
+
+      currentSession.wordChain[currentSession.wordChainIndex] = currentSession.word.nodeId;
+
+      console.log("NEW SESSION " + sessionObject.sessionId + " POS: " + jsonPrint(sessionObject.initialPosition));
+
+      console.log("currentSession"
+        + "\n      " + currentSession.sessionId
+        + "\n WCI: " + currentSession.wordChainIndex
+        + "\n      " + currentSession.word.nodeId + " | fixed: " + currentSession.word.fixed
+      );
+
+      currentSession.word.lastSeen = dateNow;
+
+      sessionHashMap.set(sessionObject.sessionId, currentSession);
+
+      if (sessionUpdateQueue.getLength() >= QUEUE_MAX) {
+        console.log(">>> RX sessionObject: [Q: " 
+          + sessionUpdateQueue.getLength() 
+        );
+        console.error(getTimeStamp() + " -- !!! Q FULL --- DROPPING SESSION UPDATE !!! " 
+          + sessionUpdateQueue.getLength() + "\n\n"
+        );
+      }
+      else {
+        sessionUpdateQueue.enqueue(currentSession);
+        if (sessionUpdateQueue.getLength() > sessionUpdateQueueMaxInQ) { 
+          sessionUpdateQueueMaxInQ = sessionUpdateQueue.getLength(); 
+        }
+      }
+
+    }
+  }
+}
 
 
 //=============================
@@ -1228,7 +1299,6 @@ function tick(e) {
   //   o.x += (0.1 + Math.abs(0.00001 * o.x * k));
   // });
 
-// if (tickEnabled){
   node
     .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")" });
 
@@ -1248,8 +1318,7 @@ function tick(e) {
       var shiftY = -1.8 * (fontSizeScale(d.mentions + 1) + defaultRadiusScale(d.mentions + 1));
       return d.y + shiftY ; 
     });
-  }
-// }
+}
 
 var age ;
 
@@ -1259,11 +1328,11 @@ initialPosition.y = 10;
 
 var nodeObject = {} ;
 
-// var newNodesFlag = false ;
-// var deadNodesFlag = false ;
+var newNodesFlag = false ;
+var deadNodesFlag = false ;
 
-// var newLinksFlag = false ;
-// var deadLinksFlag = false ;
+var newLinksFlag = false ;
+var deadLinksFlag = false ;
 
 var mouseOverRadiusMultiplier = 2.0 ;
 var mouseOverRadius = 10 ;
@@ -1295,36 +1364,34 @@ function computeInitialPosition(index) {
 var nodesLength, nodeIndex = 0, chainIndex = 0 ;
 var tempMentions ;
 
-// var currentNodeId ;
+var currentNodeId ;
 var currentNodeIndex = 0;
 
 var createNode = function (sessionId, wordObject, callback) {
 
-  var newNodesFlag = false;
+  var currentSession = sessionHashMap.get(sessionId) ;
 
   if (!sessionHashMap.has(sessionId)){
-    console.error("??? SESSION NOT IN HASH ??? " + sessionId + " ... SKIPPING");
+    console.warn("??? SESSION NOT IN HASH ??? " + sessionId + " ... SKIPPING");
     callback (null);
     return;
-  } else if (!wordObject) {
-    console.error("??? NO WORD OBJECT ??? " + sessionId + " ... SKIPPING");
+  }
+
+  if (!wordObject) {
     callback (null);
     return;
   }
   else {
 
-    var currentNodeObject = {} ;
-    var currentNodeId = wordObject.nodeId ;
+    currentNodeId = wordObject.nodeId ;
    
     var err = null ;
+    var forceStopped = false ;
 
-    // force.stop();
+    force.stop();
 
-    // if (nodeHashMap.has(currentNodeId)) {
-    if (nodeHashMap[currentNodeId]) {
-
-      console.log("@@@--- NODE IN HM: " + sessionId + " | " + currentNodeId + " | " + wordObject.nodeId);
-      // currentNodeObject = nodeHashMap.get(currentNodeId);
+    if (currentNodeId in nodeHashMap) {
+      // console.log("@@@--- NODE IN HM: " + sessionId + " | " + currentNodeId + " | " + wordObject.nodeId);
       currentNodeObject = nodeHashMap[currentNodeId];
 
       currentNodeObject.sessionId = sessionId ;
@@ -1337,18 +1404,15 @@ var createNode = function (sessionId, wordObject, callback) {
       currentNodeObject.fixed = wordObject.fixed ;
 
       console.log("currentNodeObject | " + currentNodeObject.nodeId 
-        + " | pos: " +  currentNodeObject.x + ", " + currentNodeObject.y 
         + " | fixed: " +  currentNodeObject.fixed 
         + " nodes.length: " + nodes.length
         );
 
       nodesLength = nodes.length ;
 
-      // console.log("nodeHashMap SET: currentNodeId: " + currentNodeId + " | " + currentNodeObject.age);
-      // nodeHashMap.set(currentNodeId, currentNodeObject) ;
-      nodeHashMap[currentNodeId] = currentNodeObject ;
-
       for (nodeIndex = 0; nodeIndex < nodesLength; nodeIndex++){
+
+        nodeHashMap[currentNodeId] = currentNodeObject ;
 
         if (nodes[nodeIndex].nodeId == currentNodeId) { 
 
@@ -1358,25 +1422,23 @@ var createNode = function (sessionId, wordObject, callback) {
 
           nodes[nodeIndex].age = dateNow - currentNodeObject.lastSeen;
           nodes[nodeIndex].lastSeen = currentNodeObject.lastSeen;
-          // force.nodes(nodes);
-          callback (null, newNodesFlag);
+          callback (null, nodes[nodeIndex]);
           return;
         }
       }
     }
     else {
-      console.log("@@@--- NODE *NOT* IN HM: " + sessionId + " | " + wordObject.nodeId);
-
-      force.stop();
-
-      var createNodeSession = sessionHashMap.get(sessionId) ;
+      // console.log("@@@--- NODE *NOT* IN HM: " + sessionId + " | " + wordObject.nodeId);
 
       nodesCreated++;
       newNodesFlag = true ;
 
-      wordObject.x = createNodeSession.initialPosition.x + (0.1 * createNodeSession.initialPosition.x * Math.random());  
+      var currentSession = sessionHashMap.get(sessionId);
+
+
+      wordObject.x = currentSession.initialPosition.x + (0.1 * currentSession.initialPosition.x * Math.random());  
       // avoid creating nodes on top of each other
-      wordObject.y = createNodeSession.initialPosition.y;
+      wordObject.y = currentSession.initialPosition.y;
 
       if ((typeof wordObject.mentions === 'undefined') || (wordObject.mentions == null)) {
         console.log("wordObject\n" + JSON.stringify(wordObject));
@@ -1390,112 +1452,61 @@ var createNode = function (sessionId, wordObject, callback) {
       wordObject.ageUpdated = dateNow;
       wordObject.text = wordObject.nodeId ;
 
-      wordObject.colors = createNodeSession.colors ;
-      wordObject.interpolateColor = createNodeSession.interpolateColor ;
+      wordObject.colors = currentSession.colors ;
+      wordObject.interpolateColor = currentSession.interpolateColor ;
 
       console.log("wordObject | " + wordObject.nodeId 
-        + " | pos: " +  wordObject.x + ", " + wordObject.y 
         + " | fixed: " +  wordObject.fixed 
         + " nodes.length: " + nodes.length
         );
 
-      // console.log("nodeHashMap SET: wordObject.nodeId: " + wordObject.nodeId + " | " + wordObject.age);
-      // nodeHashMap.set(wordObject.nodeId, wordObject);
       nodeHashMap[wordObject.nodeId] = wordObject;
-
       nodes.push(wordObject);
-      // force.nodes(nodes);
+
       if (nodes.length > maxNumberNodes) { 
         maxNumberNodes = nodes.length; 
       }  
 
-      callback (null, newNodesFlag);
+      callback (null, wordObject);
     }
   }
 }
 
 var linkHashMap = {};
 var linkHashMapKey ;
-// var link = {};
-
-var linksSimple = function(linkArray){
-  var linksSimpleArray = [];
-  linkArray.forEach(function(lnk){
-    linksSimpleArray.push({source: lnk.source.nodeId, target:lnk.target.nodeId});
-  });
-  return linksSimpleArray ;
-}
-
-var simpleChain = function(chain){
-  var chainArray = [];
-  for (var i=0; i<chain.length; i++){
-    chainArray.push(chain[i].nodeId);
-  }
-  return chainArray;
-}
+var link = {};
 
 var createLinks = function (sessionObject, callback) {
 
-  var newLinksFlag = false ;
+  newLinksFlag = false ;
 
-  console.log("createLinks NODES BEFORE: " + nodes.length);
-  // console.log("createLinks BEFORE\n" + jsonPrint(linksSimple(links)));
-      console.log("createLinks BEFORE: " + links.length);
+  var targetWordId = sessionObject.wordChain[sessionObject.wordChainIndex-1];
+  var targetWord ;
 
+  if (targetWordId){
+    targetWord = nodeHashMap[targetWordId];
 
-  var sourceWord = nodeHashMap[sessionObject.word.nodeId] ;
+    console.log("createLinks | LINK CREATED"
+      + " | " + links.length
+      + " | WCI: " + sessionObject.wordChainIndex
+      + " | " + sessionObject.word.nodeId
+      + " > " + targetWord.nodeId
+    );
 
-  var targetWordSegmentIndex = sessionObject.wordChainSegmentIndex-1;
-  var targetWordId = sessionObject.wordChain[targetWordSegmentIndex];
-  var targetWord; 
+    link = {
+      sessionId: sessionObject.sessionId,
+      age: 0,
+      source: nodeHashMap[sessionObject.word.nodeId],
+      target: targetWord
+    };
 
-  if (!sourceWord || !targetWordId || !nodeHashMap[targetWordId]) {
-    callback(null, newLinksFlag);
+    links.push(link);
+    force.links(links);
+    callback (null, link);
     return;
   }
-  else  {
-    targetWord = nodeHashMap[targetWordId] ;
-
-    if (targetWord){
-
-      newLinksFlag = true;
-
-      force.stop();
-
-      console.warn("createLinks | LINK CREATED"
-        + " | " + links.length
-        + " | WCSI: " + targetWordSegmentIndex
-        + " | " + sessionObject.word.nodeId
-        + " > " + targetWord.nodeId
-      );
-
-      var newLink = {
-        sessionId: sessionObject.sessionId,
-        age: 0,
-        // source: nodeHashMap.get(sessionObject.word.nodeId),
-        source: sourceWord,
-        target: targetWord
-      };
-
-      links.push(newLink);
-      // force.links(links);
-      // console.log("createLinks NODES AFTER\n" + jsonPrint(simpleChain(nodes)));
-      console.log("createLinks NODES AFTER: " + nodes.length);
-      // console.log("createLinks AFTER\n" + jsonPrint(linksSimple(links)));
-      console.log("createLinks AFTER: " + links.length);
-      callback (null, newLinksFlag);
-      return;
-    }
-    else {
-      console.warn("createLinks | NO LINK CREATED" 
-      + " | TARGET: " + sessionObject.wordChain[targetWordSegmentIndex]
-      + " | " + links.length
-      + " | WCSI: " + targetWordSegmentIndex
-      + " | " + sessionObject.word.nodeId
-      // + " > " + targetWord.nodeId
-      );
-      callback (null, newLinksFlag);
-    }
+  else {
+    callback (null, null);
   }
 }
 
@@ -1504,10 +1515,65 @@ var MAX_UPDATES_PER_CYCLE = 5 ;
 
 var sessionDeQobject = {};
 
+var getNodeFromQueue = function (callback) {
+
+  newNodesFlag = false ;
+  deadNodesFlag = false ;
+
+  //========================
+  // CHECK QUEUE
+  //========================
+
+  numberSessionsUpdated = 0;
+
+  while (sessionUpdateQueue.getLength() > 0){
+  // if (sessionUpdateQueue.getLength() > 0){
+    numberSessionsUpdated++ ;
+
+    if (sessionUpdateQueue.getLength() > QUEUE_MAX) {
+      sessionUpdateQueue.dequeue();
+    }
+
+    sessionDeQobject = sessionUpdateQueue.dequeue();
+
+    console.log("sessionDeQobject"
+     // + jsonPrint(sessionDeQobject)
+     + " | S: " + sessionDeQobject.word.nodeId + " | fixed: " +  sessionDeQobject.word.fixed
+     );
+
+    async.series({
+        sourceNode: function(callbackSeries){
+          createNode(sessionDeQobject.sessionId, sessionDeQobject.word, function(newNodesFlag, deadNodesFlag){
+            console.log("NODE: " + sessionDeQobject.word.nodeId);
+            callbackSeries(null, sessionDeQobject.word);
+          });
+        },
+         nodeLink: function(callbackSeries){
+          createLinks(sessionDeQobject, function(err, link){
+            // console.log("LINK: " + jsonPrint(link));
+            callbackSeries(null, link);
+          });
+        }
+    },
+    function(err, results) {
+      if (results.nodeLink){
+        console.warn("RESULTS | " + results.nodeLink.source.nodeId + " > " + results.nodeLink.target.nodeId);
+        callback(null);
+      }
+      else {
+        console.warn("RESULTS | " + results.sourceNode.nodeId + " > NO TARGET");
+        callback(null);
+      }
+    });
+  }
+}
+
 var lastD3TimeCount = 0;
 
-// var ageNodesLength = 0;
-// var ageLinksLength = 0;
+var ageNodesLength = 0;
+var ageNodesIndex = 0;
+var ageLinksLength = 0;
+var ageLinksIndex = 0;
 
 var sessionIdKeys = [];
 
@@ -1523,176 +1589,9 @@ var computeNodeAge = function(nodeObject){
   }
 }
 
-function checkRxSessionUpdateQueue (callback){
+var ageNodes = function (callback){
 
-  var numberSessionUpdates = 0;
-
-  // if (rxSessionUpdateQueue.getLength() > 0){
-  while (rxSessionUpdateQueue.getLength() > 0){
-
-    force.stop();
-
-    var currentSession = {};
-    var sessionObject = rxSessionUpdateQueue.dequeue();
-
-    numberSessionUpdates++;
-
-    if (sessionHashMap.has(sessionObject.sessionId)){
-      currentSession = sessionHashMap.get(sessionObject.sessionId);
-      currentSession.wordChainIndex = sessionObject.wordChainIndex;
-      currentSession.wordChainSegmentIndex = sessionObject.wordChainIndex - currentSession.wordChainOffset;
-      currentSession.word = sessionObject.word;
-      currentSession.word.lastSeen = dateNow;
-
-      if (currentSession.wordChainIndex < currentSession.wordChainOffset){
-        // earlier word in chain arrives after initial word received (out of order tx)
-        currentSession.wordChainOffset = currentSession.wordChainIndex;
-        currentSession.wordChainSegmentIndex = 0;
-        currentSession.wordChain[currentSession.wordChainSegmentIndex] = currentSession.word.nodeId;
-      }
-      else {
-        currentSession.wordChain[currentSession.wordChainSegmentIndex] = currentSession.word.nodeId;
-      }
-
-      console.log("OLD SESSION " + currentSession.sessionId + " POS: " + jsonPrint(currentSession.initialPosition));
-      console.warn("currentSession"
-        + " | " + currentSession.sessionId
-        + " | " + currentSession.word.nodeId 
-        + " | fixed: " + currentSession.word.fixed
-        + " | WCI: " + currentSession.wordChainIndex
-        + " | WCO: " + currentSession.wordChainOffset
-        + " | WCSI: " + currentSession.wordChainSegmentIndex
-        + " | WCL: " + currentSession.wordChain.length
-        // + "\nWC: " + currentSession.wordChain
-      );
-
-      currentSession.word.lastSeen = dateNow;
-
-      sessionHashMap.set(sessionObject.sessionId, currentSession);
-
-      if (sessionUpdateQueue.getLength() >= QUEUE_MAX) {
-        console.log(">>> RX sessionObject: [Q: " 
-          + sessionUpdateQueue.getLength() 
-        );
-        console.warn(getTimeStamp() + " -- !!! Q FULL --- DROPPING SESSION UPDATE !!! " 
-          + sessionUpdateQueue.getLength() + "\n\n"
-        );
-      }
-      else {
-        sessionUpdateQueue.enqueue(currentSession);
-        if (sessionUpdateQueue.getLength() > sessionUpdateQueueMaxInQ) { 
-          sessionUpdateQueueMaxInQ = sessionUpdateQueue.getLength(); 
-        }
-      }
-    }
-    else {
-      sessionsCreated++;
-      currentSession = sessionObject ;
-      currentSession.wordChainOffset = sessionObject.wordChainIndex;
-      currentSession.wordChainSegmentIndex = 0;
-      currentSession.wordChain = [];
-      currentSession.initialPosition = computeInitialPosition(sessionsCreated);
-
-      var randomNumber360 = Math.random() * 360;
-
-      var startColor = "hsl(" + randomNumber360 + ",100%,50%)";
-      var endColor = "hsl(" + randomNumber360 + ",0%,0%)";
-      var interpolateNodeColor = d3.interpolateHcl(endColor, startColor);
-
-      currentSession.colors = {'startColor': startColor, 'endColor': endColor};
-      currentSession.interpolateColor = interpolateNodeColor;
-
-      currentSession.wordChain[currentSession.wordChainSegmentIndex] = currentSession.word.nodeId;
-
-      console.log("NEW SESSION " + sessionObject.sessionId + " POS: " + jsonPrint(sessionObject.initialPosition));
-
-      console.log("currentSession"
-        + " | " + currentSession.sessionId
-        + " | " + currentSession.word.nodeId 
-        + " | fixed: " + currentSession.word.fixed
-        + " | WCI: " + currentSession.wordChainIndex
-        + " | WCO: " + currentSession.wordChainOffset
-        + " | WCSI: " + currentSession.wordChainSegmentIndex
-        + " | WCL: " + currentSession.wordChain.length
-        // + "\nWC: " + currentSession.wordChain
-      );
-
-      currentSession.word.lastSeen = dateNow;
-
-      sessionHashMap.set(sessionObject.sessionId, currentSession);
-
-      if (sessionUpdateQueue.getLength() >= QUEUE_MAX) {
-        console.log(">>> RX sessionObject: [Q: " 
-          + sessionUpdateQueue.getLength() 
-        );
-        console.warn(getTimeStamp() + " -- !!! Q FULL --- DROPPING SESSION UPDATE !!! " 
-          + sessionUpdateQueue.getLength() + "\n\n"
-        );
-      }
-      else {
-        sessionUpdateQueue.enqueue(currentSession);
-        if (sessionUpdateQueue.getLength() > sessionUpdateQueueMaxInQ) { 
-          sessionUpdateQueueMaxInQ = sessionUpdateQueue.getLength(); 
-        }
-      }
-    }
-    // callback(null, numberSessionUpdates);
-    // return;
-  }
-  
-  callback(null, numberSessionUpdates);
-}
-
-function getNodeFromQueue (numberSessionUpdates, callback) {
-
-  //========================
-  // CHECK QUEUE
-  //========================
-
-  numberSessionsUpdated = 0;
-
-  while (sessionUpdateQueue.getLength() > 0){
-
-    // tickEnabled = false;
-
-    numberSessionsUpdated++ ;
-
-    if (sessionUpdateQueue.getLength() > QUEUE_MAX) {
-      sessionUpdateQueue.dequeue();
-    }
-
-    sessionDeQobject = sessionUpdateQueue.dequeue();
-
-    console.log("sessionDeQobject"
-     // + jsonPrint(sessionDeQobject)
-     + " | S: " + sessionDeQobject.word.nodeId + " | fixed: " +  sessionDeQobject.word.fixed
-     );
-
-    async.series({
-        createNodeSeries: function(callbackSeries){
-          createNode(sessionDeQobject.sessionId, sessionDeQobject.word, function(err, newNodesFlag){
-            console.log("NODE: " + sessionDeQobject.word.nodeId);
-            callbackSeries(null, newNodesFlag);
-          });
-        },
-         createLinkSeries: function(callbackSeries){
-          createLinks(sessionDeQobject, function(err, newLinksFlag){
-            // console.log("LINK: " + jsonPrint(newLink));
-            // force.links(links);
-            callbackSeries(null, newLinksFlag);
-          });
-        }
-    },
-    function(err, results) {
-      console.warn("RESULTS | NEW NODES: " + results.createNodeSeries + " | LINKS: " + results.createLinkSeries);
-      callback (null, results.createNodeSeries, results.createLinkSeries);
-      return;
-    });
-  }
-  callback(null, false, false);
-}
-
-var ageNodes = function (newNodesFlag, deadNodesFlag, callback){
+  age = 0;
 
   if (nodes.length === 0) {
     ageRate = DEFAULT_AGE_RATE ;
@@ -1704,68 +1603,122 @@ var ageNodes = function (newNodesFlag, deadNodesFlag, callback){
     ageRate = DEFAULT_AGE_RATE ;
   }
 
-  var ageNodesLength = nodes.length-1 ;
-  var ageNodesIndex = nodes.length-1 ;
+  ageNodesLength = nodes.length-1 ;
+  ageNodesIndex = nodes.length-1 ;
 
-  deadNodesFlag = false;
+  currentNodeObject = {};
 
-  for (ageNodesIndex = ageNodesLength; ageNodesIndex>=0; ageNodesIndex--) {  
+  console.log("START AGE NODES");
 
-    var currentNodeObject = {} ;
+  var deadNodesFlag = false;
 
-    currentNodeObject = nodes[ageNodesIndex];
-
-    age = nodes[ageNodesIndex].age + (ageRate * (dateNow - nodes[ageNodesIndex].ageUpdated));
- 
-    if (age > nodeMaxAge) {
-
-      deadNodesFlag = true ;
-      force.stop();
-
-      // nodeHashMap.remove(nodes[ageNodesIndex].nodeId);
-      delete nodeHashMap[currentNodeObject.nodeId];
-
-
-      var ageLinksLength = links.length-1;
-      var ageLinksIndex = links.length-1;
-
-      for (ageLinksIndex = ageLinksLength; ageLinksIndex >= 0; ageLinksIndex--) {
-        if (currentNodeObject.nodeId == links[ageLinksIndex].target.nodeId) {
-          links.splice(ageLinksIndex, 1); 
-          force.links(links);
-        }
-        else if (currentNodeObject.nodeId == links[ageLinksIndex].source.nodeId) {
-          links.splice(ageLinksIndex, 1); 
-          force.links(links);
-        }
+  async.forEachOf(
+    nodes,  // iterate over nodes array
+    function(currentNodeObject, nodesIndex, callbackAsync){
+      age = currentNodeObject.age + (ageRate * (dateNow - currentNodeObject.ageUpdated));
+      if (age > nodeMaxAge) {
+        deadNodesFlag = true;
+        deadLinksFlag = true;
+        console.log("DEAD " + currentNodeObject.nodeId);
+        delete nodeHashMap[nodes[ageNodesIndex].nodeId];
+        nodes[nodesIndex].dead = true ;
+        callbackAsync(null);
+        // return;
       }
+      else {
+        currentNodeObject.age = age;
+        currentNodeObject.ageUpdated = dateNow;
+        nodes[nodesIndex] = currentNodeObject ;
+        nodeHashMap[currentNodeObject.nodeId] = currentNodeObject;
+        callbackAsync(null);
+        // return;
+      }
+    },
+    function(err){
+      if (!err) {
 
-      console.log("DEAD " + nodes[ageNodesIndex].nodeId);
+        var ageNodesLength = nodes.length;
+        var ageNodesIndex ;
+        var ageLinksLength = links.length;
+        var ageLinksIndex = links.length;
 
-      nodes.splice(ageNodesIndex, 1); 
+        console.log("AGE NODES | REMOVING DEAD NODES | LINKS: " + ageLinksLength);
+
+        if (deadNodesFlag){
+          async.series(
+            [
+              function(callbackSeries){
+                var tempNodes = [];
+                for (var i=0; i < ageNodesLength; i++) { 
+                  if (nodes[i].dead){
+                    for (var j=0; j < ageLinksLength; j++) {
+                      if (nodes[i].nodeId == links[j].target.nodeId) {
+                        links[j].dead = true;
+                        // break;
+                      }
+                      else if (nodes[i].nodeId == links[j].source.nodeId) {
+                        links[j].dead = true;
+                        // break;
+                      }
+                    }
+
+                    console.log("REMOVED DEAD NODE: " + nodes[i].nodeId);
+                    console.warn("DEAD NODE LINKS " + nodes[i].nodeId + "\n" + jsonPrint(nodes[i].nodeLinks));
+                  }
+                  else {
+                    tempNodes.push(nodes[i]);
+                  }
+                }
+                callbackSeries(null, tempNodes);
+                return;
+              },
+              function(callbackSeries){
+                var tempLinks = [];
+                for (var i=0; i < links.length; i++) { 
+                  if (links[i].dead){
+                    console.warn("DEAD LINK " + links[i].source.nodeId + " > " + links[i].target.nodeId);
+                  }
+                  else {
+                    console.warn("TEMP NODE LINK " + links[i].source.nodeId + " > " + links[i].target.nodeId);
+                    tempLinks.push(links[i]);
+                  }
+                }
+                callbackSeries(null, tempLinks);
+                return;
+              }
+            ],
+            function(err, results){
+              if (!err) {
+                links = results[1].slice(0);
+                nodes = results[0].slice(0);
+                force.nodes(results[0]);
+                force.links(results[1]);
+                force.start();
+                console.warn("AGE NODES RESULTS | NODES: " + results[0].length + " | LINKS: " + results[1].length);
+              }
+              else {
+                console.error("AGE NODES ERROR: " + err);
+              }
+              callback(null);
+              return;
+            }
+          );
+        }
+        else {
+          callback(null);
+        }
+
+      }
     }
-    else {
-      currentNodeObject.ageUpdated = dateNow;
-      currentNodeObject.age = age;
-
-      nodes[ageNodesIndex].age = age;
-      nodes[ageNodesIndex].ageUpdated = dateNow;
- 
-      // nodeHashMap.set(currentNodeObject.nodeId, currentNodeObject);
-      nodeHashMap[currentNodeObject.nodeId] = currentNodeObject;
-    }
-  }
-
-  callback(null, newNodesFlag, deadNodesFlag);
-
+  );
 }
 
-function updateNodes (newNodesFlag, deadNodesFlag, callback) {
+var updateNodes = function (callback) {
 
   node = node.data(force.nodes(), function(d) { return d.nodeId;})
     .attr("x", function(d) { return d.x; })
     .attr("y", function(d) { return d.y; })
-    .attr("mentions", function(d) { return d.mentions; })
+    .attr("mentions", function(d) { return nodeHashMap[d.nodeId].mentions; })
     .attr("lastSeen", function(d) { return d.lastSeen; });
     // .attr("age", function(d){ d.age = computeNodeAge(d); })
     // .attr("ageUpdated", function(d){ d.ageUpdated = dateNow; });
@@ -1785,10 +1738,10 @@ function updateNodes (newNodesFlag, deadNodesFlag, callback) {
   node.exit()
     .remove();
 
-  callback(null, newNodesFlag, deadNodesFlag);
+  callback(null);
 } 
 
-function updateLinks(newNodesFlag, deadNodesFlag, callback) {
+var updateLinks = function (callback) {
 
   link = linkSvgGroup.selectAll("line").data(force.links(), 
     function(d) { return d.source.nodeId + "-" + d.target.nodeId; });
@@ -1816,10 +1769,10 @@ function updateLinks(newNodesFlag, deadNodesFlag, callback) {
       .style("opacity", 1e-6)
     .remove();
 
-  callback(null, newNodesFlag, deadNodesFlag);
+  callback(null);
 }
 
-function updateNodeCircles (newNodesFlag, deadNodesFlag, callback) {
+var updateNodeCircles = function (callback) {
 
   nodeCircles = nodeSvgGroup.selectAll("circle").data(force.nodes(), 
     function(d) { return d.nodeId; })
@@ -1827,14 +1780,8 @@ function updateNodeCircles (newNodesFlag, deadNodesFlag, callback) {
   nodeCircles
     // .attr("lastSeen", function(d) { return d.lastSeen; })
     // .attr("mentions", function(d) { return d.mentions; })
-    .attr("r", function(d) { 
-      // return defaultRadiusScale(d.mentions + 1); 
-      return defaultRadiusScale(100);
-    })
-    .style("fill", function(d) { 
-      // return d.interpolateColor((nodeMaxAge - d.age) / nodeMaxAge) ;
-      return d.interpolateColor(1) ;
-    })
+    .attr("r", function(d) { return defaultRadiusScale(d.mentions + 1); })
+    .style("fill", function(d) { return d.interpolateColor((nodeMaxAge - d.age) / nodeMaxAge) ;})
     .style('stroke', function(d){ return strokeColorScale(d.age); });
 
   nodeCircles
@@ -1855,8 +1802,7 @@ function updateNodeCircles (newNodesFlag, deadNodesFlag, callback) {
     // .attr("mentions", function(d) { return d.mentions; })
     // .attr("nodeText", function(d) { return d.text; })
     .attr("r", function(d) { 
-      // return defaultRadiusScale(d.mentions + 1); 
-      return defaultRadiusScale(100);
+      return defaultRadiusScale(d.mentions + 1); 
     })
     .style("visibility", "visible") 
     .style("opacity", 1e-6)
@@ -1876,10 +1822,10 @@ function updateNodeCircles (newNodesFlag, deadNodesFlag, callback) {
       .style('opacity', 1e-6)
     .remove();
 
-  callback(null, newNodesFlag, deadNodesFlag);
+  callback(null);
 }
 
-function updateNodeLabels (newNodesFlag, deadNodesFlag, callback) {
+var updateNodeLabels = function (callback) {
   
   nodeLabels = nodeLabelSvgGroup.selectAll(".nodeLabel").data(force.nodes(), 
     function(d) { return d.nodeId; })
@@ -1889,8 +1835,7 @@ function updateNodeLabels (newNodesFlag, deadNodesFlag, callback) {
       return fontSizeScale(d.mentions + 1.1) + "vmin"; 
     })
     .style('opacity', function(d){
-      // return (nodeMaxAge - d.age) / nodeMaxAge ;
-      return 1;
+      return (nodeMaxAge - d.age) / nodeMaxAge ;
     });
 
   nodeLabels.enter()
@@ -1907,13 +1852,11 @@ function updateNodeLabels (newNodesFlag, deadNodesFlag, callback) {
     .style("font-size", function(d) { 
       // return fontSizeScale(nodeHashMap[d.nodeId].mentions + 1.1) + "vmin"; 
       return fontSizeScale(d.mentions + 1.1) + "vmin"; 
-      // return "1vmin";
     })
     .transition()
       .duration(defaultFadeDuration)      
       .style("opacity", function(d) { 
-        // return (nodeMaxAge - d.age) / nodeMaxAge ;
-        return 1;
+        return (nodeMaxAge - d.age) / nodeMaxAge ;
       });
 
   nodeLabels.exit()
@@ -1922,35 +1865,27 @@ function updateNodeLabels (newNodesFlag, deadNodesFlag, callback) {
       .style("opacity", 1e-6)
       .remove();
 
-  callback(null, newNodesFlag, deadNodesFlag);
+  callback(null);
 }
 
 function ageNodesCheckQueue() {
 
-    var deadNodesFlag = false  ;
-    var newNodesFlag = false ;
-
+  checkRxSessionUpdateQueue();
 
   async.waterfall([ 
-
-      checkRxSessionUpdateQueue,
       getNodeFromQueue,
       ageNodes,
+      updateLinks,
       updateNodes,
       updateNodeCircles,
-      updateNodeLabels,
-      updateLinks
+      updateNodeLabels
     ], 
     
-    function(err, newNodesFlag, deadNodesFlag){
+    function(err){
       if (err) { 
         console.error("*** ERROR: ageNodesCheckQueue *** \nERROR: " + error + "\nRESULT: " + result); 
       }
-      force.nodes(nodes);
-      force.links(links);
-      // tickEnabled = true;
       force.start(); 
-
     }
   );
 }
@@ -2025,6 +1960,5 @@ function nodeClick(d) {
 
 d3.timer(function () {
   dateNow = moment().valueOf();
-  // if (!(mouseMovingFlag && mouseFreezeEnabled)) ageNodesCheckQueue();
-  ageNodesCheckQueue();
+  if (!(mouseMovingFlag && mouseFreezeEnabled)) ageNodesCheckQueue();
 });

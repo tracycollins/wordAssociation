@@ -1639,9 +1639,13 @@ function sessionUpdateDb (sessionObj, callback) {
             "domain": sessionObj.domain,
             "lastSeen": sessionObj.lastSeen,
             "connected": sessionObj.connected,
-            "connectTime": sessionObj.connectTime,
-            "disconnectTime": sessionObj.disconnectTime,
+            // "connectTime": sessionObj.connectTime,
+            // "disconnectTime": sessionObj.disconnectTime,
             "wordChain": sessionObj.wordChain
+            },
+          $max: {
+            "connectTime": sessionObj.connectTime,
+            "disconnectTime": sessionObj.disconnectTime
             },
           };
 
@@ -1802,9 +1806,13 @@ function viewerUpdateDb (viewerObj, callback) {
             "verified": viewerObj.verified,
             "lastSeen": moment(),
             "lastSession": viewerObj.lastSession,
-            "connectTime": viewerObj.connectTime,
-            "disconnectTime": viewerObj.disconnectTime,
+            // "connectTime": viewerObj.connectTime,
+            // "disconnectTime": viewerObj.disconnectTime,
             "connected": viewerObj.connected
+          },
+          $max: {
+            "connectTime": viewerObj.connectTime,
+            "disconnectTime": viewerObj.disconnectTime
           },
           $push: { "sessions": viewerObj.lastSession } 
         };
@@ -1881,9 +1889,13 @@ function userUpdateDb (userObj, callback) {
             "verified": userObj.verified,
             "lastSeen": userObj.lastSeen,
             "lastSession": userObj.lastSession,
-            "connectTime": userObj.connectTime,
-            "disconnectTime": userObj.disconnectTime,
+            // "connectTime": userObj.connectTime,
+            // "disconnectTime": userObj.disconnectTime,
             "connected": userObj.connected
+          },
+          $max: {
+            "connectTime": userObj.connectTime,
+            "disconnectTime": userObj.disconnectTime
           },
           $push: { "sessions": userObj.lastSession } 
         };

@@ -15,6 +15,7 @@ process.on( 'SIGINT', function() {
 var sessionTypes = [ "RANDOM", "ANTONYM", "SYNONYM", "SCRIPT", "USER-USER", "GROUP" ];
 // var enabledSessionTypes = [ 'RANDOM', 'ANTONYM', 'SYNONYM'];
 var enabledSessionTypes = [ "ANTONYM", "SYNONYM" ];
+// var enabledSessionTypes = [ "USER-USER" ];
 
 var DEFAULT_SESSION_TYPE = 'ANTONYM';
 
@@ -1683,7 +1684,11 @@ function adminUpdateDb (adminObj, callback) {
 
   if (adminObj.ip && (typeof adminObj.domain === 'undefined')) {
     dnsReverseLookup(adminObj.ip, function(err, domains){
-      if (domains[0]) {
+      if (err){
+        adminObj.domain = 'DOMAIN NOT FOUND';
+        console.log("adminUpdateDb: DOMAIN NOT FOUND | " + adminObj.ip + " | " + adminObj.userId);
+      }
+      else if (domains[0]) {
         adminObj.domain = domains[0];
         console.log("adminUpdateDb: UPDATED DOMAIN | " + adminObj.userId + " | " + adminObj.domain);
       }
@@ -1873,19 +1878,19 @@ function userUpdateDb (userObj, callback) {
       else {
         console.log(chalkUser(">>> USER UPDATED" 
           + " | " + us.userId
-          + " | SN: " + us.screenName 
-          + " | NSP: " + us.namespace
-          + " | IP: " + us.ip
-          + " | DOM: " + us.domain
-          + " | SID: " + us.sessionId
-          // + " | URL: " + us.url 
-          // + " | PURL: " + us.profileUrl 
-          // + " | PIURL: " + us.profileImageUrl 
-          + " | VER: " + us.verified
-          + " | LS: " + getTimeStamp(us.lastSeen)
-          + " | SES: " + us.sessions.length
-          + " | LSES: " + us.lastSession
-          + " | CON: " + us.connected
+          + "\nSN:   " + us.screenName 
+          + "\nNSP:  " + us.namespace
+          + "\nIP:   " + us.ip
+          + "\nDOM:  " + us.domain
+          + "\nSID:  " + us.sessionId
+          // + "\nURL: " + us.url 
+          // + "\nPURL: " + us.profileUrl 
+          // + "\nPIURL: " + us.profileImageUrl 
+          + "\nVER:  " + us.verified
+          + "\nLS:   " + getTimeStamp(us.lastSeen)
+          + "\nSES:  " + us.sessions.length
+          + "\nLSES: " + us.lastSession
+          + "\nCON:  " + us.connected
         ));
         callback(null, us);
       }
@@ -2697,7 +2702,7 @@ var readDnsQueue = setInterval(function (){
 }, 20);
 
 var unpairedUserHashMap = new HashMap();
-var pairedUserHashMap = new HashMap();
+var sessionRouteHashMap = new HashMap();
 
 function pairUser(sessionObj, callback){
 
@@ -2706,7 +2711,16 @@ function pairUser(sessionObj, callback){
 
   if (unpairedUserHashMap.count() > 0){
 
-    unpairedUserHashMap.forEach(function(userId, sessionId){
+    var userId;
+    var sessionId;
+    var sessionKeys = unpairedUserHashMap.keys();
+
+    for (var i = 0; i < sessionKeys.length; i++) {
+
+      sessionId = sessionKeys[i];
+      userId = unpairedUserHashMap.get(sessionId);
+      
+      // unpairedUserHashMap.forEach(function(userId, sessionId){
 
       console.log(chalkSession("UNPAIRED USER | " + userId + " | SID: " + sessionId));
 
@@ -2717,10 +2731,10 @@ function pairUser(sessionObj, callback){
         sessionObj.config.userB = sessionObj.sessionId;
         sessionObj.config.userA = sessionId;
 
-        // add both A -> B and B -> A to pairedUserHashMap
+        // add both A -> B and B -> A to sessionRouteHashMap
 
-        pairedUserHashMap.set(sessionObj.sessionId, sessionId);
-        pairedUserHashMap.set(sessionId, sessionObj.sessionId);
+        sessionRouteHashMap.set(sessionObj.sessionId, sessionId);
+        sessionRouteHashMap.set(sessionId, sessionObj.sessionId);
 
         unpairedUserHashMap.remove(sessionObj.sessionId);
         unpairedUserHashMap.remove(sessionId);
@@ -2731,16 +2745,19 @@ function pairUser(sessionObj, callback){
           // update session for userA
           var sessionUserA = sessionCache.get(sessionId);  
 
+          console.log("sessionUserA\n" + jsonPrint(sessionUserA));
+
           sessionUserA.config.userB = sessionObj.sessionId;
           sessionUserA.config.userA = sessionId;
 
           sessionUpdateDb(sessionUserA, function(err, updatedSessionObj){
             sessionCache.set(updatedSessionObj.sessionId, updatedSessionObj);  
             callback(null, sessionObj);
-            return;
           });
 
         });
+
+        break;
 
       }
       else {
@@ -2748,11 +2765,12 @@ function pairUser(sessionObj, callback){
         sessionObj.config.userA = sessionObj.sessionId;
       }
 
-    });
+    }
 
     sessionUpdateDb(sessionObj, function(err, updatedSessionObj){
       sessionCache.set(updatedSessionObj.sessionId, updatedSessionObj);  
       callback(null, sessionObj);
+      return;
     });
 
   }
@@ -2763,6 +2781,7 @@ function pairUser(sessionObj, callback){
     sessionUpdateDb(sessionObj, function(err, updatedSessionObj){
       sessionCache.set(updatedSessionObj.sessionId, updatedSessionObj);  
       callback(null, sessionObj);
+      return;
     });
   }
 
@@ -2835,6 +2854,7 @@ var readSessionQueue = setInterval(function (){
 
         console.log(chalkSession(
           ">>> SESSION CREATE"
+          + " | TYPE: " + sesObj.session.config.type
           + " | NSP: " + sesObj.session.namespace
           + " | SID: " + sesObj.session.sessionId
           + " | SIP: " + sesObj.session.ip
@@ -3040,6 +3060,10 @@ var readSessionQueue = setInterval(function (){
           });
 
           sessionCache.del(sesObj.session.sessionId);
+          unpairedUserHashMap.remove(sesObj.session.config.userA);
+          unpairedUserHashMap.remove(sesObj.session.config.userB);
+          sessionRouteHashMap.remove(sesObj.session.config.userA);
+          sessionRouteHashMap.remove(sesObj.session.config.userB);
 
           if (currentAdmin) {
             debug("currentAdmin\n" + jsonPrint(currentAdmin));
@@ -3340,7 +3364,7 @@ var readSessionQueue = setInterval(function (){
                       if (err){
                         console.error(chalkError("*** pairUser ERROR\n" + jsonPrint(err)));
                       }
-                      else {
+                      else if (updatedSessionObj.config.userA && updatedSessionObj.config.userB) {
                         console.log(chalkSession("U-U CREATED USER-USER PAIR\n" + jsonPrint(updatedSessionObj.config)));
                         words.getRandomWord(function(err, randomWordObj){
                           if (!err) {
@@ -3364,6 +3388,9 @@ var readSessionQueue = setInterval(function (){
                             console.log(chalkError("*** ERROR GET RANDOM WORD\n" + err));
                           }
                         });
+                      }
+                      else {
+                        console.log(chalkSession("U-? WAITING TO COMPLETE PAIR\n" + jsonPrint(updatedSessionObj.config)));
                       }
                     })
                   break;
@@ -3461,6 +3488,10 @@ var readResponseQueue = setInterval(function (){
         console.error("?????? USER-USER RESPONSE FROM UNKNOWN USER\n" + jsonPrint(currentSessionObj));
         quit();
       }
+
+      console.log(chalkResponse("USER-USER ROUTE"
+      + " | " + respondentSessionId +  " -> " + targetSessionId
+      ));
 
       if ((typeof currentSessionObj.wordChain === 'undefined') || (currentSessionObj.wordChain.length == 0)){
         console.log(chalkResponse("START OF USER-USER SESSION | ADDING " + responseInObj.nodeId + " TO WORDCHAIN"));

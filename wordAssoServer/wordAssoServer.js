@@ -1519,7 +1519,7 @@ function bhtSearchWord (wordObj, callback){
 
 function chainDeadEnd(chain) {
 
-  console.log(chalkError("chainDeadEnd\n" + jsonPrint(chain)));
+  debug(chalkError("chainDeadEnd\n" + jsonPrint(chain)));
 
   if (chain.length > 6) { 
 

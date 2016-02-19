@@ -14,12 +14,9 @@ process.on( 'SIGINT', function() {
 
 var sessionTypes = [ "RANDOM", "ANTONYM", "SYNONYM", "SCRIPT", "USER-USER", "GROUP" ];
 // var enabledSessionTypes = [ 'RANDOM', 'ANTONYM', 'SYNONYM'];
-<<<<<<< HEAD
 var enabledSessionTypes = [ "ANTONYM", "SYNONYM" ];
 // var enabledSessionTypes = [ "USER-USER" ];
-=======
-var enabledSessionTypes = [ "RANDOM" ];
->>>>>>> origin/master
+// var enabledSessionTypes = [ "RANDOM" ];
 
 var DEFAULT_SESSION_TYPE = 'RANDOM';
 

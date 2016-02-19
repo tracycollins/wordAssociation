@@ -1732,9 +1732,13 @@ function adminUpdateDb (adminObj, callback) {
             "verified": adminObj.verified,
             "lastSeen": adminObj.lastSeen,
             "lastSession": adminObj.lastSession,
-            "connectTime": adminObj.connectTime,
-            "disconnectTime": adminObj.disconnectTime,
+            // "connectTime": adminObj.connectTime,
+            // "disconnectTime": adminObj.disconnectTime,
             "connected": adminObj.connected
+          },
+          $max: {
+            "connectTime": adminObj.connectTime,
+            "disconnectTime": adminObj.disconnectTime
           },
           $push: { "sessions": adminObj.lastSession } 
         };

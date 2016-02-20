@@ -3602,6 +3602,13 @@ var readResponseQueue = setInterval(function (){
     var socketId = responseInObj.socketId;
     var currentSessionObj = sessionCache.get(socketId);
 
+    if (!currentSessionObj) {
+      console.error(chalkWarn("??? SESSION NOT IN CACHE ON RESPONSE Q READ (DISCONNECTED?) " + socketId
+        + " ... ABORTING SESSION"
+      ));
+      return ; 
+    }
+
     console.log("currentSessionObj"
       + ": " + currentSessionObj.sessionId
       + " | TYPE: " + currentSessionObj.config.type
@@ -3609,12 +3616,6 @@ var readResponseQueue = setInterval(function (){
 
     // console.log("currentSessionObj\n" + jsonPrint(currentSessionObj));
 
-    if (!currentSessionObj) {
-      console.error(chalkWarn("??? SESSION NOT IN CACHE ON RESPONSE Q READ (DISCONNECTED?) " + socketId
-        + " ... ABORTING SESSION"
-      ));
-      return ; 
-    }
 
     debug(chalkBht(">>> RESPONSE (before replace): " + responseInObj.nodeId));
     responseInObj.nodeId = responseInObj.nodeId.replace(/\s+/g, ' ');

@@ -5,7 +5,7 @@ var util = require('util');
 var chalkAdmin = chalk.bold.blue;
 
 var chalkAlert = chalk.red;
-var chalkBht = chalk.red;
+var chalkBht = chalk.gray;
 var chalkInfo = chalk.yellow;
 var chalkTest = chalk.bold.yellow;
 var chalkError = chalk.bold.red;
@@ -183,7 +183,7 @@ exports.findOneWord = function(word, incMentions, callback) {
 				callback("ERROR " + err, null);
 			}
 			else {
-				debug(chalkDb("->- DB UPDATE" 
+				console.log(chalkDb("->- DB UPDATE" 
 					+ " | " + wd.nodeId 
 					+ " | MENTIONS: " + wd.mentions 
 					+ " | LAST SEEN: " + Date(wd.lastSeen) 

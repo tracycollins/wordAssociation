@@ -3727,8 +3727,8 @@ var readResponseQueue = setInterval(function (){
             // };
 
             var sessionUpdateObj = {
-              sessionId: currentSession.sessionId,
-              wordChainIndex: currentSession.wordChain.length,
+              sessionId: currentSessionObj.sessionId,
+              wordChainIndex: currentSessionObj.wordChain.length,
               word: responseWordObj
             };
 

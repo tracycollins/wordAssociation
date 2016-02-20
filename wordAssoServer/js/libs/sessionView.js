@@ -6,15 +6,15 @@ var mouseFreezeEnabled = false;
 // var tickEnabled = true;
 
 
-var DEFAULT_MAX_AGE = 10000.0 ;
+var DEFAULT_MAX_AGE = 20000.0 ;
 var DEFAULT_AGE_RATE =  1.0;
 
 var ageRate = DEFAULT_AGE_RATE ;
 var nodeMaxAge = DEFAULT_MAX_AGE ;
 
-var DEFAULT_CHARGE = -75;
+var DEFAULT_CHARGE = -150;
 var DEFAULT_GRAVITY = 0.03;
-var DEFAULT_LINK_STRENGTH = 0.5;
+var DEFAULT_LINK_STRENGTH = 0.1;
 var DEFAULT_FRICTION = 0.75;
 
 var DEFAULT_SESSION_CONFIG = {
@@ -1440,7 +1440,7 @@ var createLinks = function (sessionObject, callback) {
 
   console.log("createLinks NODES BEFORE: " + nodes.length);
   // console.log("createLinks BEFORE\n" + jsonPrint(linksSimple(links)));
-      console.log("createLinks BEFORE: " + links.length);
+  console.log("createLinks BEFORE: " + links.length);
 
 
   var sourceWord = nodeHashMap[sessionObject.word.nodeId] ;
@@ -1449,7 +1449,23 @@ var createLinks = function (sessionObject, callback) {
   var targetWordId = sessionObject.wordChain[targetWordSegmentIndex];
   var targetWord; 
 
-  if (!sourceWord || !targetWordId || !nodeHashMap[targetWordId]) {
+  if (!sourceWord) {
+    console.error("????? NO SOURCE: " + sessionObject.sessionId);
+    callback(null, newLinksFlag);
+    return;
+  }
+  else if (!targetWordId) {
+    console.error("????? NO TARGET: " + sessionObject.sessionId
+      + " | SOURCE: " + sourceWord.nodeId
+      );
+    callback(null, newLinksFlag);
+    return;
+  }
+  else if (!nodeHashMap[targetWordId]) {
+    console.error("????? NO TARGET IN NODE HASHMAP: " + sessionObject.sessionId
+      + " | SOURCE: " + sourceWord.nodeId
+      + " -> TARGET: " + targetWordId
+      );
     callback(null, newLinksFlag);
     return;
   }
@@ -1462,8 +1478,10 @@ var createLinks = function (sessionObject, callback) {
 
       force.stop();
 
-      console.warn("createLinks | LINK CREATED"
-        + " | " + links.length
+      console.log("createLinks | LINK CREATED"
+        + " | SID: " + sessionObject.sessionId
+        + " | WCI: " + sessionObject.wordChainIndex
+        + " | LINKS LEN: " + links.length
         + " | WCSI: " + targetWordSegmentIndex
         + " | " + sessionObject.word.nodeId
         + " > " + targetWord.nodeId
@@ -1471,6 +1489,7 @@ var createLinks = function (sessionObject, callback) {
 
       var newLink = {
         sessionId: sessionObject.sessionId,
+        wordChainIndex: sessionObject.wordChainIndex,
         age: 0,
         // source: nodeHashMap.get(sessionObject.word.nodeId),
         source: sourceWord,
@@ -1488,6 +1507,8 @@ var createLinks = function (sessionObject, callback) {
     }
     else {
       console.warn("createLinks | NO LINK CREATED" 
+      + " | SID: " + sessionObject.sessionId
+      + " | WCI: " + sessionObject.wordChainIndex
       + " | TARGET: " + sessionObject.wordChain[targetWordSegmentIndex]
       + " | " + links.length
       + " | WCSI: " + targetWordSegmentIndex
@@ -1545,6 +1566,11 @@ function checkRxSessionUpdateQueue (callback){
       currentSession.word.lastSeen = dateNow;
 
       if (currentSession.wordChainIndex < currentSession.wordChainOffset){
+        console.log("??? OUT-OF-ORDER SESSION wordChainIndex ???"
+          + " INDEX " + currentSession.wordChainIndex 
+          + " < OFFSET " + currentSession.wordChainOffset
+          + " | SETTING OFFSET = INDEX "
+        );
         // earlier word in chain arrives after initial word received (out of order tx)
         currentSession.wordChainOffset = currentSession.wordChainIndex;
         currentSession.wordChainSegmentIndex = 0;
@@ -1555,7 +1581,7 @@ function checkRxSessionUpdateQueue (callback){
       }
 
       console.log("OLD SESSION " + currentSession.sessionId + " POS: " + jsonPrint(currentSession.initialPosition));
-      console.warn("currentSession"
+      console.log("currentSession"
         + " | " + currentSession.sessionId
         + " | " + currentSession.word.nodeId 
         + " | fixed: " + currentSession.word.fixed
@@ -1684,7 +1710,7 @@ function getNodeFromQueue (numberSessionUpdates, callback) {
         }
     },
     function(err, results) {
-      console.warn("RESULTS | NEW NODES: " + results.createNodeSeries + " | LINKS: " + results.createLinkSeries);
+      console.log("RESULTS | NEW NODES: " + results.createNodeSeries + " | LINKS: " + results.createLinkSeries);
       callback (null, results.createNodeSeries, results.createLinkSeries);
       return;
     });

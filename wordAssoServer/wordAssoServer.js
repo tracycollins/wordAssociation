@@ -1583,7 +1583,7 @@ function chainDeadEnd(chain) {
           return false ;
         }
         else if (i == chain.length-6){
-          console.log(chalkError("*** CHAIN FREEZE\n" + chainSegment + "\n" + uniqueNodes)); 
+          console.error(chalkError("*** CHAIN FREEZE\n" + chainSegment + "\n" + uniqueNodes)); 
           return true ;
         }
         else {

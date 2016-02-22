@@ -10,8 +10,27 @@
     body {
     }
 
+    td {
+      /*background-color:red;*/
+      /*border:1px solid gray;*/
+      /*opacity: 0.6;*/
+      /*text-align: left;*/
+      /*cursor:pointer;*/
+      /*color:#888888;*/
+      padding: 8px;
+    }
+
+    table {
+      border-collapse: collapse;
+      border-spacing: 0
+    }
+
+    p {
+        background: #222222;
+    }
+
     #sliderDiv {
-      background: #000000;
+      background-color:#222222;
       border: 1px solid #aaaaaa;    
       color: #cccccc;
       /*text-align: center;*/
@@ -22,6 +41,10 @@
       top: 0;
       left: 0;
       z-index: 10;
+    }
+
+    #sliderLabel {
+      color:#aaaaaa;
     }
 
     #d3group {
@@ -68,21 +91,6 @@
       pointer-events: none;     
     }
 
-    td {
-      /*background-color:red;*/
-      /*border:1px solid gray;*/
-      /*opacity: 0.6;*/
-      /*text-align: left;*/
-      /*cursor:pointer;*/
-      /*color:#888888;*/
-      padding: 8px;
-    }
-
-    table {
-      border-collapse: collapse;
-      border-spacing: 0
-    }
-
   </style>
 
   <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
@@ -115,7 +123,7 @@
           <td> 
             <input id="chargeSlider" type="range" class="slider"  min="-500" max="500" oninput="updateCharge(this.value)"/>
           </td>
-          <td> 
+          <td > 
             <p>CHARGE </p>
           </td>
           <td id="chargeSliderText" class="sliderSpan"></td>

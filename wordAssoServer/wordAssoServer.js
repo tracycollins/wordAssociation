@@ -1,6 +1,8 @@
 /*jslint node: true */
 "use strict";
 
+var OFFLINE_MODE = false ;
+
 var serverReady = false ;
 var internetReady = false ;
 
@@ -29,7 +31,6 @@ var enabledSessionTypes = [ "ANTONYM", "SYNONYM" ];
 // var enabledSessionTypes = [ "USER_USER" ];
 
 var DEFAULT_SESSION_TYPE = 'RANDOM';
-
 var defaultSessionType = DEFAULT_SESSION_TYPE ;
 
 
@@ -156,6 +157,8 @@ console.log(
   +   '========================================= ***START*** ==============================================\n' 
   +   '====================================================================================================\n\n'
   );
+
+console.error("OFFLINE_MODE: " + OFFLINE_MODE);
 
 
 // ==================================================================
@@ -367,6 +370,17 @@ console.log('WORDASSO_NODE_ENV : ' + process.env.WORDASSO_NODE_ENV);
 console.log('CLIENT HOST + PORT: ' + 'http://localhost:' + config.port);
 
 
+
+var statsFile ;
+
+// ==================================================================
+// OFFLINE MODE
+// ==================================================================
+var OFFLINE_WORD_ASSO_STATS_FILE = process.env.OFFLINE_WORD_ASSO_STATS_FILE || 'wordAssociationStats.json';
+console.log("OFFLINE_WORD_ASSO_STATS_FILE :" + OFFLINE_WORD_ASSO_STATS_FILE);
+var offlineStatsFile = os.hostname() + "_" + OFFLINE_WORD_ASSO_STATS_FILE;
+console.log("offlineStatsFile: " + offlineStatsFile);
+
 // ==================================================================
 // DROPBOX
 // ==================================================================
@@ -388,17 +402,23 @@ var dropboxClient = new Dropbox.Client({
     secret: DROPBOX_WORD_ASSO_APP_SECRET
 });
 
+if (OFFLINE_MODE){
+  statsFile = offlineStatsFile ;
+}
+else {
+  statsFile = dropboxHostStatsFile ;
 
-dropboxClient.authDriver(new Dropbox.AuthDriver.NodeServer(8191));
+  dropboxClient.authDriver(new Dropbox.AuthDriver.NodeServer(8191));
 
-dropboxClient.getAccountInfo(function(error, accountInfo) {
-  if (error) {
-    console.error("\n*** DROPBOX getAccountInfo ERROR ***\n" + JSON.stringify(error, null, 3));
-    return error;  // Something went wrong.
-  }
-  debug(chalkInfo("DROPBOX ACCOUNT INFO: " + JSON.stringify(accountInfo,null,3) ));
-  console.log(chalkInfo("DROPBOX ACCOUNT INFO: " + accountInfo.name ));
-});
+  dropboxClient.getAccountInfo(function(error, accountInfo) {
+    if (error) {
+      console.error("\n*** DROPBOX getAccountInfo ERROR ***\n" + JSON.stringify(error, null, 3));
+      return error;  // Something went wrong.
+    }
+    debug(chalkInfo("DROPBOX ACCOUNT INFO: " + JSON.stringify(accountInfo,null,3) ));
+    console.log(chalkInfo("DROPBOX ACCOUNT INFO: " + accountInfo.name ));
+  });
+}
 
 function dropboxWriteArrayToFile(filePath, dataArray, callback){
 
@@ -421,19 +441,36 @@ function dropboxWriteArrayToFile(filePath, dataArray, callback){
   });
 }
 
-function saveStats (dropboxHostStatsFile, wordAssoServerStatsObj, callback){
-  dropboxClient.writeFile(dropboxHostStatsFile, JSON.stringify(wordAssoServerStatsObj, null, 2), function(error, stat) {
-    if (error) {
-      console.error(chalkError(moment().format(defaultDateTimeFormat) + " | !!! ERROR STATUS WRITE | FILE: " + dropboxHostStatsFile 
-        + " ERROR: " + error));
-      callback(error);
-    }
-    else {
-      debug(chalkLog("... SAVED STATS | " + dropboxHostStatsFile));
-      // console.log(chalkLog(moment().format(defaultDateTimeFormat) + " | SAVED STATUS | STATUS\n" + jsonPrint(wordAssoServerStatsObj)));
-      callback('OK');
-    }
-  });
+function saveStats (statsFile, wordAssoServerStatsObj, callback){
+  if (OFFLINE_MODE){
+
+    fs.exists(statsFile, function(exists) {
+      if (exists) {
+        fs.stat(statsFile, function(error, stats) {
+          fs.open(statsFile, "w", function(error, fd) {   
+            fs.writeFile(path, wordAssoServerStatsObj, function(error) {
+              callback('OK') ;
+              fs.close(fd);
+            });
+          });   
+        });
+      }
+    });
+  }
+  else {
+    dropboxClient.writeFile(statsFile, JSON.stringify(wordAssoServerStatsObj, null, 2), function(error, stat) {
+      if (error) {
+        console.error(chalkError(moment().format(defaultDateTimeFormat) + " | !!! ERROR STATUS WRITE | FILE: " + statsFile 
+          + " ERROR: " + error));
+        callback(error);
+      }
+      else {
+        debug(chalkLog("... SAVED STATS | " + statsFile));
+        // console.log(chalkLog(moment().format(defaultDateTimeFormat) + " | SAVED STATUS | STATUS\n" + jsonPrint(wordAssoServerStatsObj)));
+        callback('OK');
+      }
+    });
+  }
 }
 
 function updateStats(updateObj){
@@ -447,7 +484,7 @@ function updateStats(updateObj){
 
 function loadStats(){
 
-  dropboxClient.readFile(dropboxHostStatsFile, function(err, statsJson, callback) {
+  dropboxClient.readFile(statsFile, function(err, statsJson, callback) {
 
     if (err) {
 
@@ -494,7 +531,7 @@ function loadStats(){
           wordAssoServerStatsObj.promptsSent = promptsSent;
           wordAssoServerStatsObj.responsesReceived = responsesReceived;
 
-          saveStats(dropboxHostStatsFile, wordAssoServerStatsObj, function(status){
+          saveStats(statsFile, wordAssoServerStatsObj, function(status){
             if (status != 'OK'){
               console.error("!!! ERROR: saveStats " + status);
             }
@@ -511,7 +548,7 @@ function loadStats(){
     }
 
     console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
-      + " | ... LOADING STATS FROM DROPBOX FILE: " + dropboxHostStatsFile
+      + " | ... LOADING STATS FROM FILE: " + statsFile
     ));
 
     var statsObj = JSON.parse(statsJson);
@@ -539,7 +576,7 @@ function loadStats(){
     wordAssoServerStatsObj.promptsSent = promptsSent;
     wordAssoServerStatsObj.responsesReceived = responsesReceived;
 
-    saveStats(dropboxHostStatsFile, wordAssoServerStatsObj, function(status){
+    saveStats(statsFile, wordAssoServerStatsObj, function(status){
       if (status != 'OK'){
         console.error("!!! ERROR: saveStats " + status);
       }
@@ -553,7 +590,12 @@ function loadStats(){
 //=================================
 //  UPDATE STATUS
 //=================================
-loadStats();
+if (OFFLINE_MODE) {
+
+}
+else {
+  loadStats();
+}
 
 setInterval(function () {
   updateStats({ 
@@ -600,14 +642,24 @@ setInterval(function () {
     wordCacheTtl: wordCacheTtl
   });
 
-  saveStats(dropboxHostStatsFile, wordAssoServerStatsObj, function(status){
+  var statsFile ;
+
+  if (OFFLINE_MODE) {
+    statsFile = OFFLINE_WORD_ASSO_STATS_FILE;
+  }
+  else {
+    statsFile = dropboxHostStatsFile;
+  }
+
+  saveStats(statsFile, wordAssoServerStatsObj, function(status){
     if (status != 'OK'){
-      console.error("!!! ERROR: SAVE STATUS | FILE: " + dropboxHostStatsFile + "\n" + status);
+      console.error("!!! ERROR: SAVE STATUS | FILE: " + statsFile + "\n" + status);
     }
     else {
-      // console.log(chalkLog("SAVE STATUS OK | FILE: " + dropboxHostStatsFile));
+      console.log(chalkLog("SAVE STATUS OK | FILE: " + statsFile));
     }
   });
+
 }, saveStatsInterval);
 
 
@@ -927,7 +979,8 @@ function updateSessionViews(sessionUpdateObj){
     + " | " + sessionUpdateObj.sessionId
     + " | WCI: " + sessionUpdateObj.wordChainIndex
     // + " | " + jsonPrint(sessionUpdateObj.client.config)
-    + " | " + sessionUpdateObj.word.nodeId
+    + " | " + sessionUpdateObj.source.nodeId
+    + " -> " + sessionUpdateObj.target.nodeId
   ));
 
   viewNameSpace.emit("SESSION_UPDATE", sessionUpdateObj);
@@ -977,7 +1030,7 @@ function sendPrompt(sessionObj, promptWordObj){
 
           var previousResponse = currentSession.wordChain[currentSession.wordChain.length-2];
 
-          sourceWordObj = wordCache.get(previousResponse);
+          var targetWordObj = wordCache.get(previousResponse);
 
           debug("CHAIN: " + currentSession.wordChain);
           console.log(chalkPrompt("P-> "
@@ -985,6 +1038,15 @@ function sendPrompt(sessionObj, promptWordObj){
             + " | " + sessionObj.sessionId 
             + " | " + sessionObj.config.type 
             + " | " + previousResponse + " --> " + promptWordObj.nodeId));
+
+          var sessionUpdateObj = {
+            sessionId: currentSession.sessionId,
+            wordChainIndex: currentSession.wordChain.length,
+            source: promptWordObj,
+            target: targetWordObj
+          };
+
+          updateSessionViews(sessionUpdateObj);
 
         } else {
 
@@ -995,6 +1057,15 @@ function sendPrompt(sessionObj, promptWordObj){
             + " | " + sessionObj.sessionId 
             + " | " + sessionObj.config.type 
             + " | START --> " + promptWordObj.nodeId));
+
+          var sessionUpdateObj = {
+            sessionId: currentSession.sessionId,
+            wordChainIndex: currentSession.wordChain.length,
+            source: promptWordObj,
+            target: 0
+          };
+
+          updateSessionViews(sessionUpdateObj);
         }
 
         io.of(currentSession.namespace).to(currentSession.sessionId).emit('PROMPT_WORD_OBJ',promptWordObj);
@@ -1002,13 +1073,14 @@ function sendPrompt(sessionObj, promptWordObj){
         promptsSent++ ;
         deltaPromptsSent++;
 
-        var sessionUpdateObj = {
-          sessionId: currentSession.sessionId,
-          wordChainIndex: currentSession.wordChain.length,
-          word: promptWordObj
-        };
+        // var sessionUpdateObj = {
+        //   sessionId: currentSession.sessionId,
+        //   wordChainIndex: currentSession.wordChain.length,
+        //   source: promptWordObj
+        //   target: promptWordObj
+        // };
 
-        updateSessionViews(sessionUpdateObj);
+        // updateSessionViews(sessionUpdateObj);
 
         updateStats({ promptsSent: promptsSent });
       break;
@@ -1033,7 +1105,7 @@ function sendPrompt(sessionObj, promptWordObj){
 
           var previousResponse = currentSession.wordChain[currentSession.wordChain.length-2];
 
-          sourceWordObj = wordCache.get(previousResponse);
+          var targetWordObj = wordCache.get(previousResponse);
 
           // console.log("CHAIN: " + currentSession.wordChain);
 
@@ -1041,7 +1113,7 @@ function sendPrompt(sessionObj, promptWordObj){
             // + currentUser.userId 
             + " | " + sessionObj.sessionId 
             + " | " + sessionObj.config.type 
-            + " | " + previousResponse 
+            + " | " + targetWordObj.nodeId 
             + " --> " + promptWordObj.nodeId
             + " | " + targetSessionId 
           ));
@@ -1066,7 +1138,8 @@ function sendPrompt(sessionObj, promptWordObj){
         var sessionUpdateObj = {
           sessionId: currentSession.sessionId,
           wordChainIndex: currentSession.wordChain.length,
-          word: promptWordObj
+          source: promptWordObj,
+          target: targetWordObj
         };
 
         updateSessionViews(sessionUpdateObj);
@@ -1338,8 +1411,8 @@ function bhtHttpGet(host, path, wordObj, callback){
       console.log(chalkError("BHT ERROR" 
         + " | TOTAL ERRORS: " + bhtErrors
         + " | WORD: " + wordObj.nodeId
-        + " | STATUS CODE: " + response.statusCode
-        + " | STATUS MESSAGE: " + response.statusMessage
+        // + " | STATUS CODE: " + response.statusCode
+        // + " | STATUS MESSAGE: " + response.statusMessage
         + "\n" + util.inspect(e, {showHidden: false, depth: 3})
       ));
       callback("BHT_ERROR", wordObj);
@@ -3732,7 +3805,8 @@ var readResponseQueue = setInterval(function (){
             var sessionUpdateObj = {
               sessionId: currentSessionObj.sessionId,
               wordChainIndex: currentSessionObj.wordChain.length,
-              word: responseWordObj
+              source: responseInObj,
+              target: previousPromptObj
             };
 
             updateSessionViews(sessionUpdateObj);
@@ -3757,7 +3831,8 @@ var readResponseQueue = setInterval(function (){
             var sessionUpdateObj = {
               sessionId: currentSessionObj.sessionId,
               wordChainIndex: currentSessionObj.wordChain.length,
-              word: responseWordObj
+              source: responseWordObj,
+              target: previousPromptObj
             };
 
             updateSessionViews(sessionUpdateObj);
@@ -4028,6 +4103,15 @@ function initializeConfiguration(callback) {
     // SERVER READY
     function(callbackSeries){
 
+      if (OFFLINE_MODE) {
+        console.log(chalkInfo(moment().format(defaultDateTimeFormat) + ' | OFFLINE MODE ... SKIPPING SERVER READY'));
+        console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | SEND SERVER_NOT_READY"));
+        internetReady = true ;
+        configEvents.emit("SERVER_READY");
+        callbackSeries(null, "SERVER_READY");
+        return;
+      }
+
       debug("... CHECKING INTERNET CONNECTION ...");
 
       // var testClient = new net.Socket();
@@ -4043,7 +4127,8 @@ function initializeConfiguration(callback) {
       });
 
       testClient.on('error', function(err){
-        console.error(chalkInfo(moment().format(defaultDateTimeFormat) + ' | CONNECTED TO GOOGLE: OK'));
+        console.error(chalkError(moment().format(defaultDateTimeFormat) + ' | **** GOOGLE CONNECT ERROR ****\n' + err ));
+        console.error(chalkError(moment().format(defaultDateTimeFormat) + " | **** SERVER_NOT_READY ****"));
         internetReady = false ;
         testClient.destroy();
         configEvents.emit("SERVER_NOT_READY");
@@ -4752,6 +4837,15 @@ function initAppRouting(callback){
 
   console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | INIT APP ROUTING"));
 
+
+
+
+  app.get('/node_modules/socket.io/lib/socket.js', function(req, res){
+    console.log("LOADING FILE: /node_modules/socket.io/lib/socket.js");
+    res.sendFile(__dirname + '/node_modules/socket.io/lib/socket.js');
+    return;
+  });
+
   app.get('/threecee.pem', function(req, res){
     debug("LOADING FILE: threecee.pem");
     res.sendFile(__dirname + '/threecee.pem');
@@ -4759,7 +4853,7 @@ function initAppRouting(callback){
   });
 
   app.get('/', function(req, res){
-    debug("LOADING PAGE: /");
+    console.log("LOADING PAGE: /");
     res.sendFile(__dirname + '/index.html');
     return;
   });
@@ -4883,12 +4977,12 @@ process.on("message", function(msg) {
     console.log('\n\n!!!!! RECEIVED PM2 SHUTDOWN !!!!!\n\n***** Closing all connections *****\n\n');
     console.log("... SAVING STATS");
 
-    saveStats(dropboxHostStatsFile, wordAssoServerStatsObj, function(status){
+    saveStats(statsFile, wordAssoServerStatsObj, function(status){
       if (status != 'OK'){
         console.error("!!! ERROR: saveStats " + status);
       }
       else {
-        console.log(chalkLog("UPDATE DROPBOX STATUS OK"));
+        console.log(chalkLog("UPDATE STATUS OK"));
       }
     });
 

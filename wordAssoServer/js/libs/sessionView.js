@@ -1,32 +1,37 @@
 /*jslint node: true */
 "use strict";
 
-var debug = false ;
+var debug = false;
+
+var sessionsCreated = 0;
+
+var mouseMoveTimeoutInterval = 1000; 
 var mouseFreezeEnabled = false;
-// var tickEnabled = true;
+var mouseOverRadius = 10;
+var mouseHoverFlag = false;
+var mouseHoverNodeId;
 
+var DEFAULT_MAX_AGE = 20000.0;
+var DEFAULT_AGE_RATE = 1.0;
 
-var DEFAULT_MAX_AGE = 20000.0 ;
-var DEFAULT_AGE_RATE =  1.0;
+var ageRate = DEFAULT_AGE_RATE;
+var nodeMaxAge = DEFAULT_MAX_AGE;
 
-var ageRate = DEFAULT_AGE_RATE ;
-var nodeMaxAge = DEFAULT_MAX_AGE ;
-
-var DEFAULT_CHARGE = -150;
+var DEFAULT_CHARGE = -250;
 var DEFAULT_GRAVITY = 0.03;
 var DEFAULT_LINK_STRENGTH = 0.1;
 var DEFAULT_FRICTION = 0.75;
 
 var DEFAULT_SESSION_CONFIG = {
-  'charge' : DEFAULT_CHARGE,
-  'friction' : DEFAULT_FRICTION,
-  'linkStrength' : DEFAULT_LINK_STRENGTH,
-  'gravity' : DEFAULT_GRAVITY,
-  'ageRate' : DEFAULT_AGE_RATE,
-  'sessionMode' : false,
-  'sessionModeId' : '',
-  'monitorMode' : false,
-  'monitorModeId' : '',  // will be used to select which session to monitor
+    'charge': DEFAULT_CHARGE,
+    'friction': DEFAULT_FRICTION,
+    'linkStrength': DEFAULT_LINK_STRENGTH,
+    'gravity': DEFAULT_GRAVITY,
+    'ageRate': DEFAULT_AGE_RATE,
+    'sessionMode': false,
+    'sessionModeId': '',
+    'monitorMode': false,
+    'monitorModeId': ''  // will be used to select which session to monitor
 };
 
 var charge = DEFAULT_CHARGE;
@@ -34,27 +39,22 @@ var gravity = DEFAULT_GRAVITY;
 var linkStrength = DEFAULT_LINK_STRENGTH;
 var friction = DEFAULT_FRICTION;
 
-var SESSION_CONFIG = {} ;
-SESSION_CONFIG = DEFAULT_SESSION_CONFIG ;
 
-var QUEUE_MAX = 200 ;
+var SESSION_CONFIG = {};
+SESSION_CONFIG = DEFAULT_SESSION_CONFIG;
+
+var QUEUE_MAX = 200;
 
 var sessionHashMap = new HashMap();
-var sessionFixedNodeIndex = {};
 
-// var urlRoot = "http://word.threeceelabs.com/session?session=";
 var urlRoot = "http://localhost:9997/session?session=";
 
-var socketNamespace = "/user";
-
-// var nodeHashMap = new HashMap();
 var nodeHashMap = {};
+
+
 var nodesCreated = 0;
 
-
-// var dateNow = Date.now();
 var dateNow = moment().valueOf();
-var d3TimerCount = 1 ;
 
 var currentSession;
 var sessionId;
@@ -62,140 +62,107 @@ var namespace;
 var sessionMode = false;
 var monitorMode = false;
 
-// var currentNodeObject = {} ;
+var defaultFadeDuration = 100;
 
+var width = window.innerWidth * 1;
+var height = window.innerHeight * 1;
 
-var defaultFadeDuration = 100 ;
+var currentScale = 0.7 ;
+var translate = [0,0] ;
 
-var currentScale = 1.0 ;
-var width = window.innerWidth * 1 ;
-var height = window.innerHeight * 1 ;
+var zoomWidth = (width - currentScale * width)/2  ;
+var zoomHeight =  (height - currentScale * height)/2  ;
 
-var zoomWidth = (width - (currentScale * width))/2  ;
-var zoomHeight =  (height - (currentScale * height))/2  ;
+var D3_LAYOUT_WIDTH_RATIO = 1.0;
+var D3_LAYOUT_HEIGHT_RATIO = 1.0;
 
+var FORCE_LAYOUT_WIDTH_RATIO = 1.0;
+var FORCE_LAYOUT_HEIGHT_RATIO = 1.0;
+
+var d3LayoutWidth = width * D3_LAYOUT_WIDTH_RATIO;
+var d3LayoutHeight = height * D3_LAYOUT_HEIGHT_RATIO;
+
+var radiusX = 0.4*width;
+var radiusY = 0.4*height;
 console.log("width: " + width + " | height: " + height);
 
-var fullscreenFlag = false ;
-var showStatsFlag = false ;
+var showStatsFlag = false;
 var pageLoadedTimeIntervalFlag = true;
 
+var DEFAULT_CONFIG = { 'nodeMaxAge': DEFAULT_MAX_AGE };
 
-var DEFAULT_CONFIG = {
-  'nodeMaxAge' : DEFAULT_MAX_AGE
-};
+var config = DEFAULT_CONFIG;
+var previousConfig = [];
 
-var config = DEFAULT_CONFIG ;
-var previousConfig = [] ;
+var DEFAULT_ADMIN_OVERLAY0_X = 0.95;
+var DEFAULT_ADMIN_OVERLAY0_Y = 0.10;
 
-var DEFAULT_ADMIN_OVERLAY0_X = 0.95 ;
-var DEFAULT_ADMIN_OVERLAY0_Y = 0.10 ;
+var DEFAULT_ADMIN_OVERLAY1_X = 0.95;
+var DEFAULT_ADMIN_OVERLAY1_Y = 0.08;
 
-var DEFAULT_ADMIN_OVERLAY1_X = 0.95 ;
-var DEFAULT_ADMIN_OVERLAY1_Y = 0.08 ;
+var DEFAULT_ADMIN_OVERLAY2_X = 0.95;
+var DEFAULT_ADMIN_OVERLAY2_Y = 0.12;
 
-var DEFAULT_ADMIN_OVERLAY2_X = 0.95 ;
-var DEFAULT_ADMIN_OVERLAY2_Y = 0.12 ;
+var DEFAULT_ADMIN_OVERLAY3_X = 0.95;
+var DEFAULT_ADMIN_OVERLAY3_Y = 0.06;
 
-var DEFAULT_ADMIN_OVERLAY3_X = 0.95 ;
-var DEFAULT_ADMIN_OVERLAY3_Y = 0.06 ;
+var DEFAULT_STATS_OVERLAY1_X = 0.05;
+var DEFAULT_STATS_OVERLAY1_Y = 0.84;
 
-var DEFAULT_STATS_OVERLAY1_X = 0.05 ;
-var DEFAULT_STATS_OVERLAY1_Y = 0.84 ;
+var DEFAULT_STATS_OVERLAY2_X = 0.05;
+var DEFAULT_STATS_OVERLAY2_Y = 0.86;
 
-var DEFAULT_STATS_OVERLAY2_X = 0.05 ;
-var DEFAULT_STATS_OVERLAY2_Y = 0.86 ;
+var DEFAULT_STATS_OVERLAY3_X = 0.05;
+var DEFAULT_STATS_OVERLAY3_Y = 0.88;
 
-var DEFAULT_STATS_OVERLAY3_X = 0.05 ;
-var DEFAULT_STATS_OVERLAY3_Y = 0.88 ;
+var DEFAULT_DATE_TIME_OVERLAY_X = 0.05;
+var DEFAULT_DATE_TIME_OVERLAY_Y = 0.90;
 
-var DEFAULT_TEXT_TITLE_OVERLAY1_X = 0.05 ;
-var DEFAULT_TEXT_TITLE_OVERLAY1_Y = 0.80 ;
+var ADMIN_OVERLAY0_X;
+var ADMIN_OVERLAY0_Y;
 
-var DEFAULT_TEXT_TITLE_OVERLAY2_X = 0.5 ;
-var DEFAULT_TEXT_TITLE_OVERLAY2_Y = 0.90 ;
+var ADMIN_OVERLAY1_X;
+var ADMIN_OVERLAY1_Y;
 
-var DEFAULT_DATE_TIME_OVERLAY_X = 0.05 ;
-var DEFAULT_DATE_TIME_OVERLAY_Y = 0.90 ;
+var ADMIN_OVERLAY2_X;
+var ADMIN_OVERLAY2_Y;
 
-var DEFAULT_MEDIA_OVERLAY1_X = 0.55 ;
-var DEFAULT_MEDIA_OVERLAY1_Y = 0.25 ;
+var ADMIN_OVERLAY3_X;
+var ADMIN_OVERLAY3_Y;
 
-var DEFAULT_MEDIA_OVERLAY1_WIDTH_RATIO = 0.3 ;
-var DEFAULT_MEDIA_OVERLAY1_HEIGHT_RATIO = 0.4  ;
+var STATS_OVERLAY1_X;
+var STATS_OVERLAY1_Y;
 
-var ADMIN_OVERLAY0_X ;
-var ADMIN_OVERLAY0_Y ;
+var STATS_OVERLAY2_X;
+var STATS_OVERLAY2_Y;
 
-var ADMIN_OVERLAY1_X ;
-var ADMIN_OVERLAY1_Y ;
+var STATS_OVERLAY3_X;
+var STATS_OVERLAY3_Y;
 
-var ADMIN_OVERLAY2_X ;
-var ADMIN_OVERLAY2_Y ;
+var DATE_TIME_OVERLAY_X;
+var DATE_TIME_OVERLAY_Y;
 
-var ADMIN_OVERLAY3_X ;
-var ADMIN_OVERLAY3_Y ;
+STATS_OVERLAY1_X = DEFAULT_STATS_OVERLAY1_X * width;
+STATS_OVERLAY1_Y = DEFAULT_STATS_OVERLAY1_Y * height;
 
-var STATS_OVERLAY1_X ;
-var STATS_OVERLAY1_Y ;
+STATS_OVERLAY2_X = DEFAULT_STATS_OVERLAY2_X * width;
+STATS_OVERLAY2_Y = DEFAULT_STATS_OVERLAY2_Y * height;
 
-var STATS_OVERLAY2_X ;
-var STATS_OVERLAY2_Y ;
+STATS_OVERLAY3_X = DEFAULT_STATS_OVERLAY3_X * width;
+STATS_OVERLAY3_Y = DEFAULT_STATS_OVERLAY3_Y * height;
 
-var STATS_OVERLAY3_X ;
-var STATS_OVERLAY3_Y ;
-
-var TEXT_TITLE_OVERLAY1_X  ;
-var TEXT_TITLE_OVERLAY1_Y  ;
-
-var TEXT_TITLE_OVERLAY2_X  ;
-var TEXT_TITLE_OVERLAY2_Y  ;
-
-var DATE_TIME_OVERLAY_X  ;
-var DATE_TIME_OVERLAY_Y  ;
-
-var DEFAULT_MEDIA_OVERLAY1_WIDTH = DEFAULT_MEDIA_OVERLAY1_WIDTH_RATIO * width ;
-var DEFAULT_MEDIA_OVERLAY1_HEIGHT = DEFAULT_MEDIA_OVERLAY1_HEIGHT_RATIO * height ;
-
-STATS_OVERLAY1_X = DEFAULT_STATS_OVERLAY1_X * width ;
-STATS_OVERLAY1_Y = DEFAULT_STATS_OVERLAY1_Y * height ;
-
-STATS_OVERLAY2_X = DEFAULT_STATS_OVERLAY2_X * width ;
-STATS_OVERLAY2_Y = DEFAULT_STATS_OVERLAY2_Y * height ;
-
-STATS_OVERLAY3_X = DEFAULT_STATS_OVERLAY3_X * width ;
-STATS_OVERLAY3_Y = DEFAULT_STATS_OVERLAY3_Y * height ;
-
-TEXT_TITLE_OVERLAY1_X = DEFAULT_TEXT_TITLE_OVERLAY1_X * width ;
-TEXT_TITLE_OVERLAY1_Y = DEFAULT_TEXT_TITLE_OVERLAY2_Y * height ;
-
-TEXT_TITLE_OVERLAY2_X = DEFAULT_TEXT_TITLE_OVERLAY2_X * width ;
-TEXT_TITLE_OVERLAY2_Y = DEFAULT_TEXT_TITLE_OVERLAY2_Y * height ;
-
-DATE_TIME_OVERLAY_X = DEFAULT_DATE_TIME_OVERLAY_X * width ;
-DATE_TIME_OVERLAY_Y = DEFAULT_DATE_TIME_OVERLAY_Y * height ;
-
-var MEDIA_OVERLAY1_X = DEFAULT_MEDIA_OVERLAY1_X * width ;
-var MEDIA_OVERLAY1_Y = DEFAULT_MEDIA_OVERLAY1_Y * height ;
+DATE_TIME_OVERLAY_X = DEFAULT_DATE_TIME_OVERLAY_X * width;
+DATE_TIME_OVERLAY_Y = DEFAULT_DATE_TIME_OVERLAY_Y * height;
 
 console.log("@@@@@@@ CLIENT @@@@@@@@");
 
-
-var jsonPrint = function (obj){
-  if (obj || obj == 0) {
-    return JSON.stringify(obj, null, 2);
+function jsonPrint(obj) {
+  if ((obj) || (obj === 0)) {
+    var jsonString = JSON.stringify(obj, null, 2);
+    return jsonString;
   }
   else {
     return "UNDEFINED";
-  }
-}
-
-function updateSessionConfig(updateObj){
-  for (var key in updateObj) {
-     if (updateObj.hasOwnProperty(key)) {
-        console.log("SESSION_CONFIG UPDATE | " + key + ": " +  updateObj[key]);
-        SESSION_CONFIG[key] = updateObj[key];
-     }
   }
 }
 
@@ -204,21 +171,9 @@ function setLinkstrengthSliderValue(value){
   document.getElementById("linkstrengthSliderText").innerHTML = value.toFixed(3);
 }
 
-function updateLinkstrength(value) {
-  document.getElementById("linkstrengthSliderText").innerHTML = value.toFixed(3);
-  linkStrength = value;
-  force.linkStrength(linkStrength);
-}
-
 function setFrictionSliderValue(value){
   document.getElementById("frictionSlider").value = value * 1000;
   document.getElementById("frictionSliderText").innerHTML = value.toFixed(3);
-}
-
-function updateFriction(value) {
-  document.getElementById("frictionSliderText").innerHTML = value.toFixed(3);
-  friction = value;
-  force.friction(friction);
 }
 
 function setGravitySliderValue(value){
@@ -226,49 +181,64 @@ function setGravitySliderValue(value){
   document.getElementById("gravitySliderText").innerHTML = value.toFixed(3);
 }
 
-function updateGravity(value) {
-  document.getElementById("gravitySliderText").innerHTML = value.toFixed(3);
-  gravity = value;
-  force.gravity(gravity);
-}
-
 function setChargeSliderValue(value){
   document.getElementById("chargeSlider").value = value;
   document.getElementById("chargeSliderText").innerHTML = value;
 }
 
-function updateCharge(value) {
-  document.getElementById("chargeSliderText").innerHTML = value;
-  charge = value;
-  force.charge(charge);
+function displayControlOverlay(vis) {
+
+  var visible = "visible";
+
+  if (vis) {
+    visible = "visible";
+  }
+  else {
+    visible = "hidden";
+  }
+
+  d3.select("#sliderDiv").style("visibility", visible);
+
+  d3.select("#infoButton").style("visibility", visible);
+  d3.select("#statsToggleButton").style("visibility", visible);
+  d3.select("#fullscreenToggleButton").style("visibility", visible);
 }
 
-function resetDefaultForce(){
-  console.log("RESET FORCE LAYOUT DEFAULTS")
-  updateCharge(DEFAULT_CHARGE);
-  setChargeSliderValue(DEFAULT_CHARGE);
-  updateFriction(DEFAULT_FRICTION);
-  setFrictionSliderValue(DEFAULT_FRICTION);
-  updateGravity(DEFAULT_GRAVITY);
-  setGravitySliderValue(DEFAULT_GRAVITY);
-  updateLinkstrength(DEFAULT_LINK_STRENGTH);
-  setLinkstrengthSliderValue(DEFAULT_LINK_STRENGTH);
-  SESSION_CONFIG = DEFAULT_SESSION_CONFIG;
-  console.log("SESSION_CONFIG\n" + jsonPrint(SESSION_CONFIG));
+function displayInfoOverlay(opacity) {
+
+  d3.select("#adminOverlay0").select("text").style("opacity", opacity);
+  d3.select("#adminOverlay1").select("text").style("opacity", opacity);
+  d3.select("#adminOverlay2").select("text").style("opacity", opacity);
+  d3.select("#adminOverlay3").select("text").style("opacity", opacity);
+
+  d3.select("#dateTimeOverlay").select("text").style("opacity", opacity);
+
+  d3.select("#statsOverlay1").style("opacity", opacity);
+  d3.select("#statsOverlay2").style("opacity", opacity);
+  d3.select("#statsOverlay3").style("opacity", opacity);
 }
 
 var randomIntFromInterval = function (min,max) {
-  var random = Math.random() ;
-  var randomInt = Math.floor((random*(max-min+1))+min) ;
+  var random = Math.random();
+  var randomInt = Math.floor((random*(max-min+1))+min);
   return randomInt;
-}
+};
 
 var randomId = randomIntFromInterval(1000000000,9999999999);
 
-var viewerObj = { 
+var viewerObj = {
   viewerId: 'VIEWER_RANDOM_' + randomId,
   screenName: 'VIEWER RANDOM ' + randomId
 };
+
+var mouseMoveTimeout = setTimeout(function(){
+  d3.select("body").style("cursor", "none");
+  if (!showStatsFlag && !pageLoadedTimeIntervalFlag){
+    displayInfoOverlay(1);
+  }
+  displayControlOverlay(true);
+}, mouseMoveTimeoutInterval);
+
 
 function resetMouseMoveTimer() {
   clearTimeout(mouseMoveTimeout);
@@ -284,140 +254,8 @@ function resetMouseMoveTimer() {
       displayControlOverlay(false);
     }
 
-    mouseMovingFlag = false ;
+    // mouseMovingFlag = false;
   }, mouseMoveTimeoutInterval);
-}
-
-function tableCreateRow(parentTable, options, cells){
-
-  var tr = parentTable.insertRow();
-  var tdTextColor = options.textColor;
-  var tdBgColor = options.backgroundColor || '#222222';
-
-  if (options.trClass) {
-    tr.setAttribute("class", options.trClass);
-  }
-
-  if (options.headerFlag){
-    cells.forEach(function(content){
-      var th = tr.insertCell();
-      th.appendChild(document.createTextNode(content));
-      th.style.color = tdTextColor ;
-      th.style.backgroundColor = tdBgColor ;
-    });       
-  }
-  else {
-    cells.forEach(function(content){
-      var td = tr.insertCell();
-      // var td2 = td.insertCell();
-      td.appendChild(document.createTextNode(content));
-      td.style.color = tdTextColor ;
-      td.style.backgroundColor = tdBgColor ;
-    });
-  }
-}
-
-function resize() {
-  console.log("resize");
-
-  if (typeof window.innerWidth !== 'undefined') {
-    width = window.innerWidth; 
-    height = window.innerHeight;
-  }
-  // IE6 in standards compliant mode (i.e. with a valid doctype as the first line in the document)
-
-  else if (typeof document.documentElement !== 'undefined'
-   && typeof document.documentElement.clientWidth !=='undefined' && document.documentElement.clientWidth !== 0) {
-     width = document.documentElement.clientWidth; 
-     height = document.documentElement.clientHeight; 
-  }
-
-  // older versions of IE
-
-  else {
-     width = document.getElementsByTagName('body')[0].clientWidth;
-     height = document.getElementsByTagName('body')[0].clientHeight;
-  }
-
-  console.log("width: " + width + " | height: " + height);
-
-  radiusX = 0.4*width;
-  radiusY = 0.4*height;
-
-  d3LayoutWidth = width * D3_LAYOUT_WIDTH_RATIO ; // double the width for now
-  d3LayoutHeight = height * D3_LAYOUT_HEIGHT_RATIO ;
-
-  svgcanvas
-    .attr("width", SVGCANVAS_WIDTH_RATIO * width)
-    .attr("height", SVGCANVAS_HEIGHT_RATIO * height)
-    // .attr("viewbox", 100, 100, 0.5*d3LayoutWidth, 0.5*d3LayoutHeight);
-    // .attr("x", 0)
-    // .attr("y", 0);
-
-
-  svgForceLayoutAreaWidth = d3LayoutWidth * FORCE_LAYOUT_WIDTH_RATIO ;
-  svgForceLayoutAreaHeight = d3LayoutHeight * FORCE_LAYOUT_HEIGHT_RATIO ;
-
-
-  svgForceLayoutArea.attr("width", svgForceLayoutAreaWidth).attr("height", svgForceLayoutAreaHeight);
-  // svgForceLayoutArea.attr("width", d3LayoutWidth).attr("height", d3LayoutHeight);
-  // svgForceLayoutArea.attr("viewbox", 0, 0, d3LayoutWidth, d3LayoutHeight);
-  // svgForceLayoutArea.attr("viewbox", 0, 0, svgForceLayoutAreaWidth, svgForceLayoutAreaHeight);
-  svgForceLayoutArea.attr("x", 0);
-  svgForceLayoutArea.attr("y", 0);
-
-  force.size([svgForceLayoutAreaWidth, svgForceLayoutAreaHeight]) ;
-
-  ADMIN_OVERLAY0_X = DEFAULT_ADMIN_OVERLAY0_X * width ;
-  ADMIN_OVERLAY0_Y = DEFAULT_ADMIN_OVERLAY0_Y * height ;
-
-  ADMIN_OVERLAY1_X = DEFAULT_ADMIN_OVERLAY1_X * width ;
-  ADMIN_OVERLAY1_Y = DEFAULT_ADMIN_OVERLAY1_Y * height ;
-
-  ADMIN_OVERLAY2_X = DEFAULT_ADMIN_OVERLAY2_X * width ;
-  ADMIN_OVERLAY2_Y = DEFAULT_ADMIN_OVERLAY2_Y * height ;
-
-  ADMIN_OVERLAY3_X = DEFAULT_ADMIN_OVERLAY3_X * width ;
-  ADMIN_OVERLAY3_Y = DEFAULT_ADMIN_OVERLAY3_Y * height ;
-
-  STATS_OVERLAY1_X = DEFAULT_STATS_OVERLAY1_X * width ;
-  STATS_OVERLAY1_Y = DEFAULT_STATS_OVERLAY1_Y * height ;
-
-  STATS_OVERLAY2_X = DEFAULT_STATS_OVERLAY2_X * width ;
-  STATS_OVERLAY2_Y = DEFAULT_STATS_OVERLAY2_Y * height ;
-
-  STATS_OVERLAY3_X = DEFAULT_STATS_OVERLAY3_X * width ;
-  STATS_OVERLAY3_Y = DEFAULT_STATS_OVERLAY3_Y * height ;
-
-  TEXT_TITLE_OVERLAY1_X = DEFAULT_TEXT_TITLE_OVERLAY1_X * width ;
-  TEXT_TITLE_OVERLAY1_Y = DEFAULT_TEXT_TITLE_OVERLAY1_Y * height ;
-
-  TEXT_TITLE_OVERLAY2_X = DEFAULT_TEXT_TITLE_OVERLAY2_X * width ;
-  TEXT_TITLE_OVERLAY2_Y = DEFAULT_TEXT_TITLE_OVERLAY2_Y * height ;
-
-  DATE_TIME_OVERLAY_X = DEFAULT_DATE_TIME_OVERLAY_X * width ;
-  DATE_TIME_OVERLAY_Y = DEFAULT_DATE_TIME_OVERLAY_Y * height ;
-
-  MEDIA_OVERLAY1_X = DEFAULT_MEDIA_OVERLAY1_X * width ;
-  MEDIA_OVERLAY1_Y = DEFAULT_MEDIA_OVERLAY1_Y * height ;
-
-  DEFAULT_MEDIA_OVERLAY1_WIDTH = DEFAULT_MEDIA_OVERLAY1_WIDTH_RATIO * width ;
-  DEFAULT_MEDIA_OVERLAY1_HEIGHT = DEFAULT_MEDIA_OVERLAY1_HEIGHT_RATIO * height ;
-
-  adminOverlay0.attr("x", ADMIN_OVERLAY0_X).attr("y",ADMIN_OVERLAY0_Y);
-  adminOverlay1.attr("x", ADMIN_OVERLAY1_X).attr("y",ADMIN_OVERLAY1_Y);
-  adminOverlay2.attr("x", ADMIN_OVERLAY2_X).attr("y",ADMIN_OVERLAY2_Y);
-  adminOverlay3.attr("x", ADMIN_OVERLAY3_X).attr("y",ADMIN_OVERLAY3_Y);
-
-  dateTimeOverlay.attr("x", DATE_TIME_OVERLAY_X).attr("y", DATE_TIME_OVERLAY_Y);
-  statsOverlay1.attr("x", STATS_OVERLAY1_X).attr("y", STATS_OVERLAY1_Y);
-  statsOverlay2.attr("x", STATS_OVERLAY2_X).attr("y", STATS_OVERLAY2_Y);
-  statsOverlay3.attr("x", STATS_OVERLAY3_X).attr("y", STATS_OVERLAY3_Y);
-
-  nodeInitialX = INITIAL_X_RATIO * svgForceLayoutAreaWidth ;
-  nodeInitialY = INITIAL_Y_RATIO * svgForceLayoutAreaHeight ;
-
-  resizeFlag = true ;
 }
 
 function getTimeStamp(inputTime) {
@@ -429,7 +267,7 @@ function getTimeStamp(inputTime) {
   var currentDate;
   var currentTime;
 
-  if (typeof inputTime === 'undefined') {
+  if (inputTime === 'undefined') {
     currentDate = new Date().toDateString("en-US", options);
     currentTime = new Date().toTimeString('en-US', options);
   }
@@ -440,67 +278,27 @@ function getTimeStamp(inputTime) {
   return currentDate + " - " + currentTime;
 }
 
-function toggleFullScreen() {
-  if (!document.fullscreenElement &&    // alternative standard method
-      !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement ) {
-
-    fullscreenFlag = true ;
-
-    if (document.documentElement.requestFullscreen) {
-      document.documentElement.requestFullscreen();
-      resize();
-    } else if (document.documentElement.msRequestFullscreen) {
-      document.documentElement.msRequestFullscreen();
-      resize();
-    } else if (document.documentElement.mozRequestFullScreen) {
-      document.documentElement.mozRequestFullScreen();
-      resize();
-    } else if (document.documentElement.webkitRequestFullscreen) {
-      document.documentElement.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
-      resize();
-    }
-  } else {
-
-    fullscreenFlag = false ;
-
-    if (document.exitFullscreen) {
-      document.exitFullscreen();
-      resize();
-    } else if (document.msExitFullscreen) {
-      document.msExitFullscreen();
-      resize();
-    } else if (document.mozCancelFullScreen) {
-      document.mozCancelFullScreen();
-      resize();
-    } else if (document.webkitExitFullscreen) {
-      document.webkitExitFullscreen();
-      resize();
-    }
-  }
-}
-
 function getBrowserPrefix() {
-   
   // Check for the unprefixed property.
-  if ('hidden' in document) {
+  // if ('hidden' in document) {
+  if (document.hidden !== 'undefined') {
     return null;
   }
- 
   // All the possible prefixes.
   var browserPrefixes = ['moz', 'ms', 'o', 'webkit'];
-  var prefixIndex = 0;
- 
-  for (prefixIndex = 0; prefixIndex < browserPrefixes.length; prefixIndex++) {
-    var prefix = browserPrefixes[prefixIndex] + 'Hidden';
-    if (prefix in document) {
-      return browserPrefixes[prefixIndex];
+  var prefix;
+
+  browserPrefixes.forEach(function(p){
+    prefix = p + 'Hidden';
+    if (document[prefix] !== 'undefined') {
+      return p;
     }
-  }
+  });
 
   // The API is not supported in browser.
   return null;
 }
- 
+
 function hiddenProperty(prefix) {
   if (prefix) {
     return prefix + 'Hidden';
@@ -508,15 +306,7 @@ function hiddenProperty(prefix) {
     return 'hidden';
   }
 }
- 
-function getVisibilityState(prefix) {
-  if (prefix) {
-    return prefix + 'VisibilityState';
-  } else {
-    return 'visibilityState';
-  }
-}
- 
+
 function getVisibilityEvent(prefix) {
   if (prefix) {
     return prefix + 'visibilitychange';
@@ -560,8 +350,6 @@ socket.on("disconnect", function(){
   console.log("*** DISCONNECTED FROM HOST");
 });
 
-var data = [] ;
-
 var palette = {
   "black": "#000000",
   "white": "#FFFFFF",
@@ -589,51 +377,23 @@ document.title = "Word Association";
 
 var prefix = getBrowserPrefix();
 var hidden = hiddenProperty(prefix);
-var visibilityState = getVisibilityState(prefix);
 var visibilityEvent = getVisibilityEvent(prefix);
- 
-document.addEventListener(visibilityEvent, function(event) {
+
+document.addEventListener(visibilityEvent, function() {
   console.log("visibilityEvent");
   if (!document[hidden]) {
-    windowVisible = true ;
+    windowVisible = true;
   } else {
-    windowVisible = false ;
-    mouseMovingFlag = false;
+    windowVisible = false;
   }
 });
 
-
-document.addEventListener("keydown", function(e) {
-  // if (e.keyCode == 84) { // 't'
-  //   enableRandomNodeGenerator = !enableRandomNodeGenerator ;
-  //   console.log("enableRandomNodeGenerator: " + enableRandomNodeGenerator);
-  //   socket.emit("TEST_MODE", enableRandomNodeGenerator);
-  // }
-}, false);
-
 d3.select("body").style("cursor", "default");
 
-document.addEventListener("mousemove", function() {
-  if (mouseHoverFlag) {
-    d3.select("body").style("cursor", "pointer");
-  }
-  else {
-    d3.select("body").style("cursor", "default");
-  }
-  
-  mouseMovingFlag = true ;
-    resetMouseMoveTimer();
-
-  if (mouseFreezeEnabled) {
-    force.stop();
-  }
-}, true);
-
-
-function getUrlVariables(callback){
+function getUrlVariables(callbackMain){
 
   var urlSessionId;
-  var urlNamespace ;
+  var urlNamespace;
 
   var searchString = window.location.search.substring(1);
   console.log("searchString: " + searchString);
@@ -650,32 +410,32 @@ function getUrlVariables(callback){
 
         var keyValuePair = variable.split('=');
 
-        if (typeof keyValuePair[1] !== 'undefined'){
-          console.log("'" + variable + "' >>> URL config: " + keyValuePair[0] + " : " + keyValuePair[1]);  
-          if (keyValuePair[0] == 'monitor') {
-            monitorMode = keyValuePair[1] ;
+        if (keyValuePair[1] !== 'undefined'){
+          console.log("'" + variable + "' >>> URL config: " + keyValuePair[0] + " : " + keyValuePair[1]);
+          if (keyValuePair[0] === 'monitor') {
+            monitorMode = keyValuePair[1];
             callback2(null, {namespace: urlNamespace, sessionId: urlSessionId, sessionMode: sessionMode, monitorMode: monitorMode});
-          }    
-          if (keyValuePair[0] == 'session') {
-            urlSessionId = keyValuePair[1] ;
+          }
+          if (keyValuePair[0] === 'session') {
+            urlSessionId = keyValuePair[1];
             console.log("urlSessionId: " + urlSessionId);
-            sessionMode = true ;
+            sessionMode = true;
             callback2(null, {sessionId: urlSessionId});
-          }    
-          if (keyValuePair[0] == 'nsp') {
-            urlNamespace = keyValuePair[1] ;
+          }
+          if (keyValuePair[0] === 'nsp') {
+            urlNamespace = keyValuePair[1];
             console.log("namespace: " + urlNamespace);
             callback2(null, {namespace: urlNamespace});
-          }    
-        } 
+          }
+        }
         else {
-          console.log("NO URL VARIABLES");      
+          console.log("NO URL VARIABLES");
           callback2(null, null);
         }
 
       });
     }
-  )
+  );
 
   async.parallel(asyncTasks, function(err, results){
     console.log("results\n" + jsonPrint(results));
@@ -686,23 +446,8 @@ function getUrlVariables(callback){
       );
       currentSession = "/" + urlNamespace + "#" + urlSessionId;
     }
-    callback(err, {sessionId: urlSessionId, namespace: urlNamespace});
+    callbackMain(err, {sessionId: urlSessionId, namespace: urlNamespace});
   });
-}
-
-var mouseMoveTimeoutInterval = 1000; // 1 second
-
-var mouseMoveTimeout = setTimeout(function(){
-  d3.select("body").style("cursor", "none");
-  if (!showStatsFlag && !pageLoadedTimeIntervalFlag){
-    displayInfoOverlay(1);
-  }
-  displayControlOverlay(true);
-  mouseMovingFlag = false ;
-}, mouseMoveTimeoutInterval);
-
-function showInfo() {
-  window.open("http://www.threeCeeMedia.com/", '_blank');
 }
 
 function launchSessionView(sessionId) {
@@ -713,60 +458,15 @@ function launchSessionView(sessionId) {
   // var sessionIdNameSpace = sessionId.replace(/^\/(\S*)#/, "");
   // var sessionIdNameSpace = sessionId.replace(/#/, "");
 
-  var url = urlRoot + sessionIdParts[2] + "&nsp=" + sessionIdParts[1] ;
+  var url = urlRoot + sessionIdParts[2] + "&nsp=" + sessionIdParts[1];
   console.log("launchSessionView: " + sessionId + " | " + url);
   window.open(url, 'SESSION VIEW', '_new');
 }
 
-function displayControlOverlay(vis) {
-
-  var visible = "visible";
-
-  if (vis) {
-    visible = "visible";
-  }
-  else {
-    visible = "hidden";
-  }
-
-  d3.select("#sliderDiv").style("visibility", visible);
-
-  d3.select("#infoButton").style("visibility", visible);
-  d3.select("#statsToggleButton").style("visibility", visible);
-  d3.select("#fullscreenToggleButton").style("visibility", visible);
-}
-
-function displayInfoOverlay(opacity) {
-
-  d3.select("#adminOverlay0").select("text").style("opacity", opacity);
-  d3.select("#adminOverlay1").select("text").style("opacity", opacity);
-  d3.select("#adminOverlay2").select("text").style("opacity", opacity);
-  d3.select("#adminOverlay3").select("text").style("opacity", opacity);
-
-  d3.select("#dateTimeOverlay").select("text").style("opacity", opacity);
-
-  d3.select("#statsOverlay1").style("opacity", opacity);
-  d3.select("#statsOverlay2").style("opacity", opacity);
-  d3.select("#statsOverlay3").style("opacity", opacity);
-}
-
-var adjustedAgeRateScale = d3.scale.pow().domain([1,500]).range([1.0,100.0]);  // number of nodes > 100 ; 
+var adjustedAgeRateScale = d3.scale.pow().domain([1,500]).range([1.0,100.0]);
 var fontSizeScale = d3.scale.log().domain([1,1000000]).range([1.8,3.6]);
 
 var defaultRadiusScale = d3.scale.log().domain([1,1000000]).range([4,24]);
-var defaultChargeScale =  d3.scale.log().domain([1,1000000]).range([-100,-150]);
-
-function interpolateHsl(a, b) {
-  var i = d3.interpolateString(a, b);
-  return function(t) {
-      return d3.hsl(i(t));
-  }
-}
-
-function interpolateColorFull(startColor, endColor){
-  return d3.interpolateHcl(endColor, startColor);
-}
-
 
 var fillColorScale = d3.scale.linear()
     .domain([0, 30000, 60000])
@@ -786,95 +486,79 @@ var maxNumberNodes = 0;
 
 var links = [];
 
-var D3_LAYOUT_WIDTH_RATIO = 1.0;
-var D3_LAYOUT_HEIGHT_RATIO = 1.0 ;
 
-var FORCE_LAYOUT_WIDTH_RATIO = 1.0;
-var FORCE_LAYOUT_HEIGHT_RATIO = 1.0 ;
-
-var TIMELINE_WIDTH_RATIO = 0.2;
-var TIMELINE_HEIGHT_RATIO = 0.2;
-
-var d3LayoutWidth = width * D3_LAYOUT_WIDTH_RATIO ;
-var d3LayoutHeight = height * D3_LAYOUT_HEIGHT_RATIO ;
-
-var svgForceLayoutAreaWidth = d3LayoutWidth * FORCE_LAYOUT_WIDTH_RATIO ;
-var svgForceLayoutAreaHeight = d3LayoutHeight * FORCE_LAYOUT_HEIGHT_RATIO ;
+var svgForceLayoutAreaWidth = d3LayoutWidth * FORCE_LAYOUT_WIDTH_RATIO;
+var svgForceLayoutAreaHeight = d3LayoutHeight * FORCE_LAYOUT_HEIGHT_RATIO;
 
 var INITIAL_X_RATIO = 0.5;
 var INITIAL_Y_RATIO = 0.5;
 
-var nodeInitialX = INITIAL_X_RATIO * svgForceLayoutAreaWidth ;
-var nodeInitialY = INITIAL_Y_RATIO * svgForceLayoutAreaHeight ;
+var nodeInitialX = INITIAL_X_RATIO * svgForceLayoutAreaWidth;
+var nodeInitialY = INITIAL_Y_RATIO * svgForceLayoutAreaHeight;
 
 console.log("nodeInitialX: " + nodeInitialX + " | nodeInitialY: " + nodeInitialY);
 
-var resizeFlag = false ;
-d3.select(window).on("resize", resize); 
+function zoomHandler() {
+  // console.log("zoomHandler: TRANSLATE: " + d3.event.translate + " | SCALE: " + d3.event.scale);
+  svgForceLayoutArea.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+}
+
 
 var d3image = d3.select("#d3group");
 
-var SVGCANVAS_WIDTH_RATIO = 1.0 ;
-var SVGCANVAS_HEIGHT_RATIO = 1.0 ;
+var SVGCANVAS_WIDTH_RATIO = 1.0;
+var SVGCANVAS_HEIGHT_RATIO = 1.0;
 
 var svgcanvas = d3image.append("svg:svg")
-  .attr("id", "svgcanvas");
+  .attr("id", "svgcanvas")
   // .attr("width", SVGCANVAS_WIDTH_RATIO * width)
   // .attr("height", SVGCANVAS_HEIGHT_RATIO * height)
   // .attr("x", 0)
   // .attr("y", 0);
-
-// zoomListener.translate([zoomWidth,zoomHeight]).scale(currentScale);//translate and scale to whatever value you wish
-// zoomListener.event(svgcanvas.transition().duration(1000));//does a zoom
+  .attr("x", 0)
+  .attr("y", 0)
+  .call(d3.behavior.zoom()
+  .scale(currentScale)
+  .scaleExtent([0.1, 10])
+  .on("zoom", zoomHandler));
 
 var svgForceLayoutArea = svgcanvas.append("g")
-  .attr("id", "svgForceLayoutArea");
+  .attr("id", "svgForceLayoutArea")
   // .attr("width", svgForceLayoutAreaWidth)
   // .attr("height", svgForceLayoutAreaHeight)
   // .attr("viewbox", 0, 0, d3LayoutWidth, d3LayoutHeight)
   // .attr("preserveAspectRatio", "none")
   // .attr("x", 0)
-  // .attr("y", 0);
+  // .attr("y", 0)
   // .call(d3.behavior.zoom()
-  //   .scale(currentScale)
-  //   .scaleExtent([0.1, 10])
-  //   .on("zoom", zoomHandler));
+  // .scale(currentScale)
+  // .scaleExtent([0.1, 10])
+  // .on("zoom", zoomHandler));
 
-// var zoomListener = d3.behavior.zoom()
-//   .scaleExtent([0.4, 4])
-//   .on("zoom", zoomHandler) ;
+var zoomListener = d3.behavior.zoom()
+  .scaleExtent([0.4, 4])
+  .on("zoom", zoomHandler) ;
 
-// function zoomHandler() {
-//   svgForceLayoutArea.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
-// }
 
-// zoomListener.translate([zoomWidth,zoomHeight]).scale(currentScale);//translate and scale to whatever value you wish
-// zoomListener.event(svgcanvas.transition().duration(1000));//does a zoom
+zoomListener.translate([zoomWidth,zoomHeight]).scale(currentScale);//translate and scale to whatever value you wish
+zoomListener.event(svgcanvas.transition().duration(1000));//does a zoom
 
-// var svgForceLayoutArea = svgcanvas.append("g")
-//   .attr("id", "svgForceLayoutArea")
-//   .attr("width", svgForceLayoutAreaWidth)
-//   .attr("height", svgForceLayoutAreaHeight)
-//   .attr("viewbox", 1e-6, 1e-6, d3LayoutWidth, d3LayoutHeight)
-//   .attr("preserveAspectRatio", "none")
-//   .attr("x", 1e-6)
-//   .attr("y", 1e-6);
 
-var divTooltip = d3.select("body").append("div") 
-  .attr("class", "tooltip")       
+var divTooltip = d3.select("body").append("div")
+  .attr("class", "tooltip")
   .style("opacity", 1e-6);
 
 var dateTimeOverlay = svgcanvas.append("svg:g")
   .attr("class", "admin")
   .attr("id", "dateTimeOverlay")
   .append("text")
-  .text("../../..  --:--:--")    
+  .text("../../..  --:--:--")
   .attr("x", DATE_TIME_OVERLAY_X)
   .attr("y", DATE_TIME_OVERLAY_Y)
   .style("opacity", 1e-6)
   .style("font-size", "1.4vmin")
   .style("text-anchor", "start")
-  .style("fill", "#888888");       
+  .style("fill", "#888888");
 
 var statsOverlay1 = svgcanvas.append("svg:g") // user screenname
   .attr("id", "statsOverlay1")
@@ -897,12 +581,12 @@ var statsOverlay2 = svgcanvas.append("svg:g")  // tweet createdAt
   .attr("class", "statsOverlay")
   .append("text")
   .attr("id", "tweetCreatedAt")
-  .text("...")    
+  .text("...")
   .attr("x", STATS_OVERLAY2_X)
   .attr("y", STATS_OVERLAY2_Y)
   .style("opacity", 0.4)
   .style("font-size", "1.4vmin")
-  .style("fill", palette.white);       
+  .style("fill", palette.white);
 
 var statsOverlay3 = svgcanvas.append("svg:g") // tweet text
   .attr("id", "statsOverlay3")
@@ -926,7 +610,7 @@ var adminOverlay0 = svgcanvas.append("svg:g")
   .attr("id", "adminOverlay0")
   .append("text")
   .attr("id", "heartBeat")
-  .text("...")    
+  .text("...")
   .attr("x", ADMIN_OVERLAY0_X)
   .attr("y", ADMIN_OVERLAY0_Y)
   .style("text-anchor", "end")
@@ -939,40 +623,39 @@ var adminOverlay1 = svgcanvas.append("svg:g")
   .attr("id", "adminOverlay1")
   .append("text")
   .attr("id", "heartBeat")
-  .text("...")    
+  .text("...")
   .attr("x", ADMIN_OVERLAY1_X)
   .attr("y", ADMIN_OVERLAY1_Y)
   .style("text-anchor", "end")
   .style("opacity", 1e-6)
   .style("font-size", "1.4vmin")
-  .style("fill", "#888888");       
+  .style("fill", "#888888");
 
 var adminOverlay2 = svgcanvas.append("svg:g")
   .attr("class", "admin")
   .attr("id", "adminOverlay2")
   .append("text")
   .attr("id", "heartBeat")
-  .text("...")    
+  .text("...")
   .attr("x", ADMIN_OVERLAY2_X)
   .attr("y", ADMIN_OVERLAY2_Y)
   .style("text-anchor", "end")
   .style("opacity", 1e-6)
   .style("font-size", "1.4vmin")
-  .style("fill", "#888888");       
+  .style("fill", "#888888");
 
 var adminOverlay3 = svgcanvas.append("svg:g")
   .attr("class", "admin")
   .attr("id", "adminOverlay3")
   .append("text")
   .attr("id", "heartBeat")
-  .text("LOCAL TIME: " + getTimeStamp())    
+  .text("LOCAL TIME: " + getTimeStamp())
   .attr("x", ADMIN_OVERLAY3_X)
   .attr("y", ADMIN_OVERLAY3_Y)
   .style("text-anchor", "end")
   .style("opacity", 1e-6)
   .style("font-size", "1.4vmin")
   .style("fill", "#888888");
-
 
 var linkSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "linkSvgGroup");
 
@@ -995,6 +678,34 @@ var sessionUpdateQueueMaxInQ = 0;
 // FORCE LAYOUT DECLARATION
 //
 
+function tick() {
+  node
+    .attr("transform", function(d) {
+      if (isNaN(d.x)) console.error("**** NODE POS NaN: " + d.nodeId
+        + " | TYPE OF " + typeof d.x
+        + " | " + d.x
+      );
+      return "translate(" + d.x + "," + d.y + ")";
+    });
+
+  link
+    .attr("x1", function(d) { return d.source.x; })
+    .attr("y1", function(d) { return d.source.y; })
+    .attr("x2", function(d) { return d.target.x; })
+    .attr("y2", function(d) { return d.target.y; });
+
+  nodeCircles
+    .attr("cx", function(d) { return d.x; })
+    .attr("cy", function(d) { return d.y; });
+
+  nodeLabels
+    .attr("x", function(d) { return d.x; })
+    .attr("y", function(d) {
+      var shiftY = -1.8 * (fontSizeScale(d.mentions + 1) + defaultRadiusScale(d.mentions + 1));
+      return d.y + shiftY;
+    });
+}
+
 var force = d3.layout.force()
     .nodes(nodes)
     .links(links)
@@ -1005,38 +716,52 @@ var force = d3.layout.force()
     .size([svgForceLayoutAreaWidth, svgForceLayoutAreaHeight])
     .on("tick", tick);
 
-window.onload = function () {
-  resize();
-  displayInfoOverlay(1.0);
-  displayControlOverlay(true);
-  getUrlVariables(function(err, urlVariablesObj){
-    if (!err) {
-      console.log("ON LOAD getUrlVariables\n" + jsonPrint(urlVariablesObj));
-      if (urlVariablesObj.sessionId) sessionId = urlVariablesObj.sessionId;
-      if (urlVariablesObj.namespace) namespace = urlVariablesObj.namespace;
-    }
-  });
+function updateLinkstrength(value) {
+  document.getElementById("linkstrengthSliderText").innerHTML = value.toFixed(3);
+  linkStrength = value;
+  force.linkStrength(linkStrength);
+}
 
-  resetDefaultForce();
+function updateFriction(value) {
+  document.getElementById("frictionSliderText").innerHTML = value.toFixed(3);
+  friction = value;
+  force.friction(friction);
+}
 
-  console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
-  socket.emit("VIEWER_READY", viewerObj);
+function updateGravity(value) {
+  document.getElementById("gravitySliderText").innerHTML = value.toFixed(3);
+  gravity = value;
+  force.gravity(gravity);
+}
 
-  setTimeout(function(){
-    pageLoadedTimeIntervalFlag = false ;
-    displayControlOverlay(false);
-    displayInfoOverlay(0);
-  }, 5000);
-};
+function updateCharge(value) {
+  document.getElementById("chargeSliderText").innerHTML = value;
+  charge = value;
+  force.charge(charge);
+}
+
+function resetDefaultForce(){
+  console.log("RESET FORCE LAYOUT DEFAULTS");
+  updateCharge(DEFAULT_CHARGE);
+  setChargeSliderValue(DEFAULT_CHARGE);
+  updateFriction(DEFAULT_FRICTION);
+  setFrictionSliderValue(DEFAULT_FRICTION);
+  updateGravity(DEFAULT_GRAVITY);
+  setGravitySliderValue(DEFAULT_GRAVITY);
+  updateLinkstrength(DEFAULT_LINK_STRENGTH);
+  setLinkstrengthSliderValue(DEFAULT_LINK_STRENGTH);
+  SESSION_CONFIG = DEFAULT_SESSION_CONFIG;
+  console.log("SESSION_CONFIG\n" + jsonPrint(SESSION_CONFIG));
+}
 
 //  CLOCK
-setInterval (function () { 
-  var dateTimeOverlay = d3.select("#dateTimeOverlay").select("text").text(getTimeStamp());  }, 
-  1000 );
+setInterval (function () {
+  dateTimeOverlay = d3.select("#dateTimeOverlay").select("text").text(getTimeStamp());
+}, 1000 );
 
 d3.select('#statsToggleButton').on("click", function() {  // STATS BUTTON
 
-  showStatsFlag = !showStatsFlag ;
+  showStatsFlag = !showStatsFlag;
 
   console.log("@@@ STATS BUTTON: showStatsFlag: " + showStatsFlag);
 
@@ -1053,63 +778,61 @@ d3.select('#statsToggleButton').on("click", function() {  // STATS BUTTON
 
 socket.on("HEARTBEAT", function(heartbeat){
 
-  var overlay = d3.select("#adminOverlay0").select("text")
+  d3.select("#adminOverlay0").select("text")
     .text(
-      heartbeat["totalWords"] + " TOTAL WORDS"
-      + " | " + heartbeat["wordCacheStats"]["keys"] + " WORDS IN CACHE"
-      + " | " + heartbeat["bhtRequests"] + " BHT REQS"
-      + " | " + heartbeat["promptsSent"] + " PROMPTS"
-      + " | " + heartbeat["responsesReceived"] + " RESPONSES"
+      heartbeat.totalWords + " TOTAL WORDS"
+      + " | " + heartbeat.wordCacheStats.keys + " WORDS IN CACHE"
+      + " | " + heartbeat.bhtRequests + " BHT REQS"
+      + " | " + heartbeat.promptsSent + " PROMPTS"
+      + " | " + heartbeat.responsesReceived + " RESPONSES"
       );
 
-  var overlay = d3.select("#adminOverlay1").select("text")
-    .text( 
-      heartbeat["numberUsers"] + " USERS"
-      + " | " + heartbeat["numberTestUsers"] + " TEST USERS"
-      + " | " + "SERVER HEARTBEAT: " + getTimeStamp(heartbeat["timeStamp"])
+  d3.select("#adminOverlay1").select("text")
+    .text(
+      heartbeat.numberUsers + " USERS"
+      + " | " + heartbeat.numberTestUsers + " TEST USERS"
+      + " | " + "SERVER HEARTBEAT: " + getTimeStamp(heartbeat.timeStamp)
       );
 });
 
 // adminOverlay2 update
 setInterval (function () {
-  var overlay = d3.select("#adminOverlay2").select("text")
-    .text(nodes.length + " NODES" 
-      + " | " + maxNumberNodes + " MAX NODES" 
-      + " | " + (Math.round( ageRate * 10 ) / 10) + " AGE RATE" 
+  d3.select("#adminOverlay2").select("text")
+    .text(nodes.length + " NODES"
+      + " | " + maxNumberNodes + " MAX NODES"
+      + " | " + (Math.round( ageRate * 10 ) / 10) + " AGE RATE"
       + " | " + sessionUpdateQueue.getLength() + " NODES IN Q"
       + " | " + sessionUpdateQueueMaxInQ + " MAX NODES IN Q"
       );
 
-  var overlay = d3.select("#adminOverlay3").select("text")
+  d3.select("#adminOverlay3").select("text")
     .text("LOCAL TIME: " + getTimeStamp());
 }, 1000 );
 
 
 socket.on("CONFIG_CHANGE", function(rxConfig){
 
-  console.log("\n-----------------------\nRX CONFIG_CHANGE\n" 
+  console.log("\n-----------------------\nRX CONFIG_CHANGE\n"
     + JSON.stringify(rxConfig, null, 3) + "\n------------------------\n");
 
-  if (typeof rxConfig.testMode !== 'undefined') { 
+  if ( rxConfig.testMode !== 'undefined') {
     config.testMode = rxConfig.testMode;
     console.log("\n*** ENV CHANGE: TEST_MODE:  WAS: " + previousConfig.testMode + " | NOW: " + config.testMode + "\n");
     previousConfig.testMode = config.testMode;
-    testMode = config.testMode ;
   }
 
-  if (typeof rxConfig.testSendInterval !== 'undefined') { 
+  if ( rxConfig.testSendInterval !== 'undefined') {
     config.testSendInterval = rxConfig.testSendInterval;
-    console.log("\n*** ENV CHANGE: TEST_SEND_INTERVAL: WAS: " + previousConfig.testSendInterval 
+    console.log("\n*** ENV CHANGE: TEST_SEND_INTERVAL: WAS: " + previousConfig.testSendInterval
       + " | NOW: " + config.testSendInterval + "\n");
-    testSendInterval = config.testSendInterval ;
     previousConfig.testSendInterval = config.testSendInterval;
   }
 
-  if (typeof rxConfig.nodeMaxAge !== 'undefined') { 
+  if ( rxConfig.nodeMaxAge !== 'undefined') {
     config.nodeMaxAge = rxConfig.nodeMaxAge;
-    console.log("\n*** ENV CHANGE: NODE_MAX_AGE: WAS: " + previousConfig.nodeMaxAge 
+    console.log("\n*** ENV CHANGE: NODE_MAX_AGE: WAS: " + previousConfig.nodeMaxAge
       + " | NOW: " + config.nodeMaxAge + "\n");
-    nodeMaxAge = config.nodeMaxAge ;
+    nodeMaxAge = config.nodeMaxAge;
     previousConfig.nodeMaxAge = config.nodeMaxAge;
   }
 
@@ -1120,7 +843,7 @@ socket.on("CONFIG_CHANGE", function(rxConfig){
 socket.on("SESSION", function(sessionObject){
 
   if (!windowVisible) {
-    return ;
+    return;
   }
 
   console.log("> RX SESSION"
@@ -1135,14 +858,14 @@ socket.on("SESSION", function(sessionObject){
     currentSession = sessionHashMap.get(sessionObject.sessionId);
   }
   else {
-    sessionsCreated++;
+    sessionsCreated += 1;
     var startColor = "hsl(" + Math.random() * 360 + ",100%,40%)";
     var endColor = "hsl(" + Math.random() * 360 + ",0%,0%)";
     var interpolateNodeColor = d3.interpolateHcl(endColor, startColor);
 
     sessionObject.colors = {'startColor': startColor, 'endColor': endColor};
     sessionObject.interpolateColor = interpolateNodeColor;
-    currentSession = sessionObject ;
+    currentSession = sessionObject;
     currentSession.wordChain = [];
     currentSession.initialPosition = computeInitialPosition(sessionsCreated);
 
@@ -1152,267 +875,206 @@ socket.on("SESSION", function(sessionObject){
   currentSession.lastSeen = dateNow;
 
   currentSession.wordChain[sessionObject.wordChainIndex] = sessionObject.word;
-  
+
   sessionHashMap.set(currentSession.sessionId, currentSession);
 
   createNode(currentSession.sessionId, sessionObject.word, function(){
     if (currentSession.wordChain[sessionObject.wordChainIndex-1]) {
-      // if (nodeHashMap.has(currentSession.wordChain[sessionObject.wordChainIndex-1].nodeId)) {
       if (nodeHashMap[currentSession.wordChain[sessionObject.wordChainIndex-1].nodeId]) {
-        // var sourceWord = nodeHashMap.get(currentSession.wordChain[sessionObject.wordChainIndex-1].nodeId);
         var sourceWord = nodeHashMap[currentSession.wordChain[sessionObject.wordChainIndex-1].nodeId];
-        console.log("@@@ < CREATE PREV LINNK");
+        console.log("@@@ < CREATE PREV LINK");
         createLinks(
-          { sessionId: sessionObject.sessionId, 
+          { sessionId: sessionObject.sessionId,
             sourceWord: sourceWord,
             targetWord: sessionObject.word
           },
-          function(){});
+          function(){
+            console.log("@@@ ... CREATED PREV LINK");
+          });
       }
     }
     if (currentSession.wordChain[sessionObject.wordChainIndex+1]) {
-      // if (nodeHashMap.has(currentSession.wordChain[sessionObject.wordChainIndex+1].nodeId)) {
       if (nodeHashMap[currentSession.wordChain[sessionObject.wordChainIndex+1].nodeId]) {
-        // var targetWord = nodeHashMap.get(currentSession.wordChain[sessionObject.wordChainIndex+1].nodeId);
         var targetWord = nodeHashMap[currentSession.wordChain[sessionObject.wordChainIndex+1].nodeId];
-        console.log("@@@ > CREATE NEXT LINNK");
+        console.log("@@@ > CREATE NEXT LINK");
         createLinks(
-          { sessionId: sessionObject.sessionId, 
+          { sessionId: sessionObject.sessionId,
             sourceWord: sessionObject.word,
             targetWord: targetWord
           },
-          function(){});
+          function(){
+            console.log("@@@ ... CREATED NEXT LINK");
+          });
       }
     }
   });
 });
 
-var sessionsCreated = 0;
-
 socket.on("SESSION_UPDATE", function(rxSessionObject){
   if (!windowVisible){
-
+    if (debug) {
+      console.log("... SKIP SESSION_UPDATE ... WINDOW NOT VISIBLE");
+    }
   }
   else if (sessionMode && (rxSessionObject.sessionId !== currentSession.sessionId)) {
-    if (debug)  console.log("... SKIP SESSION_UPDATE: ID: " + rxSessionObject.sessionId + " | CURRENT SESSION: " + currentSession.sessionId);
+    if (debug) {
+      console.log("... SKIP SESSION_UPDATE: ID: " + rxSessionObject.sessionId + " | CURRENT SESSION: " + currentSession.sessionId);
+    }
   }
   else {
 
-    console.log("SESSION_UPDATE | " + rxSessionObject.sessionId 
-      + " | " + rxSessionObject.source.nodeId 
-      + " -> " + rxSessionObject.target.nodeId 
+    console.log("SESSION_UPDATE | " + rxSessionObject.sessionId
+      + " | " + rxSessionObject.source.nodeId
+      + " -> " + rxSessionObject.target.nodeId
       + " | WCI: " + rxSessionObject.wordChainIndex
       + " | Q: " + rxSessionUpdateQueue.getLength()
     );
-    // rxSessionObject.source.fixed = false ;
-    // console.log(">>> RX "
-    //   + " | " + rxSessionObject.sessionId
-    //   + " | " + rxSessionObject.word.nodeId 
-    // ) ;
     rxSessionUpdateQueue.enqueue(rxSessionObject);
   }
 });
-
-var rxSessionUpdateObject = {};
-var randomNumber = Math.random();
-
-
 
 //=============================
 // TICK
 //=============================
 
-function tick(e) {
-
-  // var k = 2 * e.alpha;
-  // nodes.forEach(function(o, i) {
-  //   // o.y += i & 1 ? k : -k;
-  //   o.x += (0.1 + Math.abs(0.00001 * o.x * k));
-  // });
-
-// if (tickEnabled){
-  node
-    .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")" });
-
-  link
-    .attr("x1", function(d) { return d.source.x; })
-    .attr("y1", function(d) { return d.source.y; })
-    .attr("x2", function(d) { return d.target.x; })
-    .attr("y2", function(d) { return d.target.y; })
-
-  nodeCircles
-    .attr("cx", function(d) { return d.x; })
-    .attr("cy", function(d) { return d.y; });
-
-  nodeLabels
-    .attr("x", function(d) { return d.x ; })
-    .attr("y", function(d) { 
-      var shiftY = -1.8 * (fontSizeScale(d.mentions + 1) + defaultRadiusScale(d.mentions + 1));
-      return d.y + shiftY ; 
-    });
-  }
-// }
-
-var age ;
+var age;
 
 var initialPosition = {};
 initialPosition.x = 10;
 initialPosition.y = 10;
 
-var nodeObject = {} ;
-
-// var newNodesFlag = false ;
-// var deadNodesFlag = false ;
-
-// var newLinksFlag = false ;
-// var deadLinksFlag = false ;
-
-var mouseOverRadiusMultiplier = 2.0 ;
-var mouseOverRadius = 10 ;
-var mouseMovingFlag = false ;
-var mouseHoverFlag = false ;
-var mouseHoverNodeId ;
-var mouse = {} ;
 
 //================================
 // GET NODES FROM QUEUE
 //================================
 
-var radiusX = 0.4*width;
-var radiusY = 0.4*height;
-
 function computeInitialPosition(index) {
-  return { 
-    // x: (Math.random() * nodeInitialX), 
-    // y: (Math.random() * nodeInitialY) 
-    x: ((0.5 * width) + (radiusX * Math.cos(index))), 
+  var pos = {
+    x: ((0.5 * width) + (radiusX * Math.cos(index))),
     y: ((0.5 * height) - (radiusY * Math.sin(index)))
-    // x: (0.8 * width)- (0.6 * width * Math.random()), 
-    // y: (0.8 * height)- (0.6 * height * Math.random())
-    // y: translate[1] + (height * Math.random()), 
-    // x: translate[0] + -(width * (0.4 * Math.random()))
   };
+
+  return pos;
 }
 
-var nodesLength, nodeIndex = 0, chainIndex = 0 ;
-var tempMentions ;
+var nodesLength;
+var nodeIndex = 0;
+var tempMentions;
 
-// var currentNodeId ;
-var currentNodeIndex = 0;
+function createNode (sessionId, wordObject, callback) {
 
-var createNode = function (sessionId, wordObject, callback) {
+  // force.stop();
 
   var newNodesFlag = false;
 
-  if (!sessionHashMap.has(sessionId)){
+  if (!sessionHashMap.has(sessionId)) {
     console.error("??? SESSION NOT IN HASH ??? " + sessionId + " ... SKIPPING");
     callback (null);
-    return;
-  } else if (!wordObject) {
+  }
+  else if (!wordObject) {
     console.error("??? NO WORD OBJECT ??? " + sessionId + " ... SKIPPING");
     callback (null);
-    return;
   }
   else {
 
-    var createNodeSession = sessionHashMap.get(sessionId) ;
-    var currentNodeObject = {} ;
-    var currentNodeId = wordObject.nodeId ;
-   
-    var err = null ;
+    var createNodeSession = sessionHashMap.get(sessionId);
+    var currentNodeObject = {};
+    var currentNodeId = wordObject.nodeId;
 
-    // force.stop();
-
-    // if (nodeHashMap.has(currentNodeId)) {
     if (nodeHashMap[currentNodeId]) {
 
-      console.log("@@@--- NODE IN HM: " + sessionId + " | " + currentNodeId + " | WCSI: " + createNodeSession.wordChainSegmentIndex);
-      // currentNodeObject = nodeHashMap.get(currentNodeId);
+      console.log("@@@ NODE IN HM: " + sessionId 
+        + " | " + currentNodeId 
+        + " | " + createNodeSession.source.nodeId 
+        + " -> " + createNodeSession.target.nodeId 
+        + " | WCSI: " + createNodeSession.wordChainSegmentIndex
+      );
+      
       currentNodeObject = nodeHashMap[currentNodeId];
 
-      currentNodeObject.sessionId = sessionId ;
-      currentNodeObject.wordChainSegmentIndex = createNodeSession.wordChainSegmentIndex ;
+      // if (isNaN(currentNodeObject.x)) {
+      //   console.error("\n!!!! NODE POS NaN: " + currentNodeObject.nodeId + "\n");
+      // }
+      // else {
+      //   // console.error("\n... NODE POS NOT NaN: " + currentNodeObject.nodeId + "\n");
+      // }
+
+      currentNodeObject.sessionId = sessionId;
+      currentNodeObject.wordChainSegmentIndex = createNodeSession.wordChainSegmentIndex;
       currentNodeObject.age = 0;
       currentNodeObject.ageUpdated = dateNow;
       currentNodeObject.lastSeen = dateNow;
-      currentNodeObject.mentions = wordObject.mentions ;
-      currentNodeObject.text = currentNodeId + " | " + createNodeSession.wordChainSegmentIndex ;
+      currentNodeObject.mentions = wordObject.mentions;
 
-      currentNodeObject.fixed = wordObject.fixed ;
-
-      // console.log("currentNodeObject | " + currentNodeObject.nodeId 
-        // + " | pos: " +  currentNodeObject.x + ", " + currentNodeObject.y 
-        // + " | fixed: " +  currentNodeObject.fixed 
-        // + " nodes.length: " + nodes.length
-        // );
-
-      nodesLength = nodes.length ;
-
-      // console.log("nodeHashMap SET: currentNodeId: " + currentNodeId + " | " + currentNodeObject.age);
-      // nodeHashMap.set(currentNodeId, currentNodeObject) ;
-      nodeHashMap[currentNodeId] = currentNodeObject ;
-
-      for (nodeIndex = 0; nodeIndex < nodesLength; nodeIndex++){
-
-        if (nodes[nodeIndex].nodeId == currentNodeId) { 
-
-          tempMentions = nodes[nodeIndex].mentions;
-          nodes[nodeIndex].mentions = currentNodeObject.mentions > tempMentions ? 
-            currentNodeObject.mentions : tempMentions ;
-
-          nodes[nodeIndex].age = dateNow - currentNodeObject.lastSeen;
-          nodes[nodeIndex].lastSeen = currentNodeObject.lastSeen;
-          // force.nodes(nodes);
-          callback (null, newNodesFlag);
-          return;
-        }
+      if (currentNodeId == createNodeSession.source.nodeId) {
+        currentNodeObject.text = currentNodeId + " | " + (createNodeSession.wordChainSegmentIndex);
       }
+      else {
+        currentNodeObject.text = currentNodeId + " | " + (createNodeSession.wordChainSegmentIndex-1);
+      }
+
+      currentNodeObject.fixed = wordObject.fixed;
+
+      nodesLength = nodes.length;
+
+      nodeHashMap[currentNodeId] = currentNodeObject;
+
+      // for (nodeIndex = 0; nodeIndex < nodesLength; nodeIndex+=1){
+
+      //   if (nodes[nodeIndex].nodeId === currentNodeId) {
+
+      //     tempMentions = nodes[nodeIndex].mentions;
+      //     nodes[nodeIndex].mentions = currentNodeObject.mentions > tempMentions ?
+      //     currentNodeObject.mentions : tempMentions;
+
+      //     nodes[nodeIndex].age = dateNow - currentNodeObject.lastSeen;
+      //     nodes[nodeIndex].lastSeen = currentNodeObject.lastSeen;
+      //     callback (null, newNodesFlag);
+      //     return;
+      //   }
+      // }
     }
     else {
-      // console.log("@@@--- NODE *NOT* IN HM: " + sessionId + " | " + wordObject.nodeId);
-
       force.stop();
 
-      // var createNodeSession = sessionHashMap.get(sessionId) ;
+      nodesCreated += 1;
+      newNodesFlag = true;
 
-      nodesCreated++;
-      newNodesFlag = true ;
-
-      wordObject.x = createNodeSession.initialPosition.x + (0.1 * createNodeSession.initialPosition.x * Math.random());  
+      wordObject.x = createNodeSession.initialPosition.x + (0.2 * createNodeSession.initialPosition.x * Math.random());
       // avoid creating nodes on top of each other
-      wordObject.y = createNodeSession.initialPosition.y;
+      wordObject.y = createNodeSession.initialPosition.y + (0.2 * createNodeSession.initialPosition.y * Math.random());
 
-      if ((typeof wordObject.mentions === 'undefined') || (wordObject.mentions == null)) {
+      if (( wordObject.mentions === 'undefined') || (wordObject.mentions === null)) {
         console.log("wordObject\n" + JSON.stringify(wordObject));
         wordObject.mentions = 1;
         console.log("wordObject\n" + JSON.stringify(wordObject));
       }
 
       wordObject.sessionId = sessionId;
+      wordObject.links = {};
       wordObject.wordChainSegmentIndex = createNodeSession.wordChainSegmentIndex;
-      wordObject.age = 0 ;
+      wordObject.age = 0;
       wordObject.lastSeen = dateNow;
       wordObject.ageUpdated = dateNow;
-      wordObject.text = wordObject.nodeId + " | " + createNodeSession.wordChainSegmentIndex;
+      // wordObject.text = wordObject.nodeId + " | " + createNodeSession.wordChainSegmentIndex;
 
-      wordObject.colors = createNodeSession.colors ;
-      wordObject.interpolateColor = createNodeSession.interpolateColor ;
+      wordObject.colors = createNodeSession.colors;
+      wordObject.interpolateColor = createNodeSession.interpolateColor;
 
-      // console.log("wordObject | " + wordObject.nodeId 
-      //   + " | pos: " +  wordObject.x + ", " + wordObject.y 
-      //   + " | fixed: " +  wordObject.fixed 
-      //   + " nodes.length: " + nodes.length
-      //   );
+      if (wordObject.nodeId == createNodeSession.source.nodeId) {
+        wordObject.text = wordObject.nodeId + " | " + (createNodeSession.wordChainSegmentIndex);
+      }
+      else {
+        wordObject.text = wordObject.nodeId + " | " + (createNodeSession.wordChainSegmentIndex-1);
+      }
 
-      // console.log("nodeHashMap SET: wordObject.nodeId: " + wordObject.nodeId + " | " + wordObject.age);
-      // nodeHashMap.set(wordObject.nodeId, wordObject);
       nodeHashMap[wordObject.nodeId] = wordObject;
 
       nodes.push(wordObject);
-      // force.nodes(nodes);
-      if (nodes.length > maxNumberNodes) { 
-        maxNumberNodes = nodes.length; 
-      }  
+
+      if (nodes.length > maxNumberNodes) {
+        maxNumberNodes = nodes.length;
+      }
 
       callback (null, newNodesFlag);
     }
@@ -1420,240 +1082,203 @@ var createNode = function (sessionId, wordObject, callback) {
 }
 
 var linkHashMap = {};
-var linkHashMapKey ;
-// var link = {};
 
-var linksSimple = function(linkArray){
-  var linksSimpleArray = [];
-  linkArray.forEach(function(lnk){
-    linksSimpleArray.push({source: lnk.source.nodeId, target:lnk.target.nodeId});
-  });
-  return linksSimpleArray ;
-}
+var linkExists = function(nodeIdA, nodeIdB){
 
-var simpleChain = function(chain){
-  var chainArray = [];
-  for (var i=0; i<chain.length; i++){
-    chainArray.push(chain[i].nodeId);
+  var linkIdAB = nodeIdA + '_' + nodeIdB ;
+  var linkIdBA = nodeIdB + '_' + nodeIdA ;
+
+  if (linkHashMap[linkIdAB] || linkHashMap[linkIdBA]){
+    return true ;
   }
-  return chainArray;
-}
 
-var createLinks = function (sessionObject, callback) {
+};
 
-  var newLinksFlag = false ;
+function createLinks (sessionObject, callback) {
 
-  // console.log("createLinks NODES BEFORE: " + nodes.length);
-  // console.log("createLinks BEFORE\n" + jsonPrint(linksSimple(links)));
-  // console.log("createLinks BEFORE: " + links.length);
+  var currentWord ;
+  var previousWord ;
 
+  var wcIndex = 0;
+  var wcLength = sessionObject.wordChain.length;
+  var nodeId ;
+  var prevNodeId ;
 
-  var sourceWord = nodeHashMap[sessionObject.source.nodeId] ;
-  var targetWord = nodeHashMap[sessionObject.target.nodeId] ;
+  // links = [];
+
+  for (wcIndex = 0; wcIndex < wcLength; wcIndex += 1){
+  // sessionObject.wordChain.forEach(function(nodeId){
+    nodeId = sessionObject.wordChain[wcIndex];
+    prevNodeId = sessionObject.wordChain[wcIndex-1];
+
+    currentWord = nodeHashMap[nodeId];
+    previousWord = nodeHashMap[prevNodeId];
+
+    if (
+      (typeof currentWord !== 'undefined') 
+      && (typeof previousWord !== 'undefined') 
+      && (typeof currentWord.links[previousWord.nodeId] === 'undefined')
+      && (typeof previousWord.links[currentWord.nodeId] === 'undefined')
+      ){
+
+      console.log("LINK | " + currentWord.nodeId + " > " + previousWord.nodeId);
+      var newLink = {
+        sessionId: sessionObject.sessionId,
+        wordChainIndex: wcIndex,
+        age: 0,
+        source: currentWord,
+        target: previousWord
+      };
+
+      links.push(newLink);
+
+      currentWord.links[previousWord.nodeId] = 1;
+      // previousWord.links[currentWord.nodeId] = 1;
+
+      nodeHashMap[currentWord.nodeId] = currentWord ;
+      // nodeHashMap[previousWord.nodeId] = previousWord ;
+
+      // var linkIdAB = currentWord.nodeId + '_' + previousWord.nodeId ;
+
+      // linkHashMap[linkIdAB] = newLink;
+
+    }
+
+    if (wcIndex >= wcLength) callback (null, newLink);
+  }
+
+/*
+  var sourceWord = nodeHashMap[sessionObject.source.nodeId];
+  var targetWord = nodeHashMap[sessionObject.target.nodeId];
+  // var sourceWord = sessionObject.source;
+  // var targetWord = sessionObject.target;
 
   var targetWordSegmentIndex = sessionObject.wordChainSegmentIndex-1;
-  // var targetWordId = sessionObject.wordChain[targetWordSegmentIndex];
 
   if (!sourceWord) {
     console.error("????? NO SOURCE: " + sessionObject.sessionId);
-    callback(null, newLinksFlag);
-    return;
+    callback(null, false);
   }
   else if (!targetWord) {
     console.error("... NO TARGET: " + sessionObject.sessionId
       + " | SOURCE: " + sourceWord.nodeId
-      );
-    callback(null, newLinksFlag);
-    return;
+    );
+    callback(null, false);
   }
-  // else if (!nodeHashMap[targetWordId]) {
-  //   console.error("????? NO TARGET IN NODE HASHMAP: " + sessionObject.sessionId
-  //     + " | SOURCE: " + sourceWord.nodeId
-  //     + " -> TARGET: " + targetWordId
-  //     );
-  //   callback(null, newLinksFlag);
-  //   return;
-  // }
   else  {
-    // targetWord = nodeHashMap[targetWordId] ;
-
-    if (targetWord){
-
-      newLinksFlag = true;
-
-      force.stop();
-
-      // console.log("createLinks | LINK CREATED"
-      //   + " | SID: " + sessionObject.sessionId
-      //   + " | WCI: " + sessionObject.wordChainIndex
-      //   + " | LINKS LEN: " + links.length
-      //   + " | WCSI: " + targetWordSegmentIndex
-      //   + " | " + sessionObject.word.nodeId
-      //   + " > " + targetWord.nodeId
-      // );
-
-      var newLink = {
-        sessionId: sessionObject.sessionId,
-        wordChainIndex: sessionObject.wordChainIndex,
-        age: 0,
-        // source: nodeHashMap.get(sessionObject.word.nodeId),
-        source: sourceWord,
-        target: targetWord
-      };
-
-      links.push(newLink);
-      // force.links(links);
-      // console.log("createLinks NODES AFTER\n" + jsonPrint(simpleChain(nodes)));
-      // console.log("createLinks NODES AFTER: " + nodes.length);
-      // console.log("createLinks AFTER\n" + jsonPrint(linksSimple(links)));
-      // console.log("createLinks AFTER: " + links.length);
-      callback (null, newLink);
-      return;
-    }
-    else {
-      console.warn("createLinks | NO LINK CREATED" 
-      + " | SID: " + sessionObject.sessionId
-      + " | WCI: " + sessionObject.wordChainIndex
-      + " | TARGET: " + sessionObject.wordChain[targetWordSegmentIndex]
-      + " | " + links.length
-      + " | WCSI: " + targetWordSegmentIndex
-      + " | " + sessionObject.word.nodeId
-      // + " > " + targetWord.nodeId
-      );
-      callback (null, newLink);
-    }
-  }
-}
-
-var numberSessionsUpdated = 0 ;
-var MAX_UPDATES_PER_CYCLE = 5 ;
-
-var sessionDeQobject = {};
-
-var lastD3TimeCount = 0;
-
-// var ageNodesLength = 0;
-// var ageLinksLength = 0;
-
-var sessionIdKeys = [];
-
-var computeNodeAge = function(nodeObject){
-  if (nodeObject.age) {
-    var age = nodeObject.age + (ageRate * (dateNow - nodeObject.ageUpdated));
-    console.log("computeNodeAge | " + nodeObject.nodeId + " | " + nodeObject.age + " > " + age);
-    return age;
-  }
-  else {
-    console.log("computeNodeAge | " + nodeObject.nodeId + " | " + nodeObject.age + " > " + age);
-    return 0;
-  }
-}
-
-function checkRxSessionUpdateQueue (callback){
-
-  var numberSessionUpdates = 0;
-
-  if (rxSessionUpdateQueue.getLength() > 0){
-  // while (rxSessionUpdateQueue.getLength() > 0){
 
     force.stop();
 
-    var currentSession = {};
+    var newLink = {
+      sessionId: sessionObject.sessionId,
+      wordChainIndex: sessionObject.wordChainIndex,
+      age: 0,
+      source: sourceWord,
+      target: targetWord
+    };
+
+    links.push(newLink);
+    callback (null, newLink);
+  }
+
+  */
+};
+
+var numberSessionsUpdated = 0;
+
+var sessionDeQobject = {};
+var randomNumber360 = Math.random() * 360;
+
+function checkRxSessionUpdateQueue (callback){
+
+  // if (rxSessionUpdateQueue.getLength() > 0){
+  while (rxSessionUpdateQueue.getLength() > 0){
+
+    // force.stop();
+
+    var currentSess = {};
     var sessionObject = rxSessionUpdateQueue.dequeue();
 
-    numberSessionUpdates++;
+    randomNumber360 = Math.random() * 360;
 
     if (sessionHashMap.has(sessionObject.sessionId)){
-      currentSession = sessionHashMap.get(sessionObject.sessionId);
-      currentSession.wordChainIndex = sessionObject.wordChainIndex;
-      currentSession.wordChainSegmentIndex = sessionObject.wordChainIndex - currentSession.wordChainOffset;
-      currentSession.source = sessionObject.source;
-      currentSession.source.lastSeen = dateNow;
-      currentSession.target = sessionObject.target;
-      currentSession.target.lastSeen = dateNow;
+      currentSess = sessionHashMap.get(sessionObject.sessionId);
+      currentSess.wordChainIndex = sessionObject.wordChainIndex;
+      currentSess.wordChainSegmentIndex = sessionObject.wordChainIndex - currentSess.wordChainOffset;
+      currentSess.source = sessionObject.source;
+      currentSess.source.lastSeen = dateNow;
+      currentSess.target = sessionObject.target;
+      currentSess.target.lastSeen = dateNow;
 
-      if (currentSession.wordChainIndex < currentSession.wordChainOffset){
+      if (currentSess.wordChainIndex < currentSess.wordChainOffset){
         console.log("??? OUT-OF-ORDER SESSION wordChainIndex ???"
-          + " INDEX " + currentSession.wordChainIndex 
-          + " < OFFSET " + currentSession.wordChainOffset
+          + " INDEX " + currentSess.wordChainIndex
+          + " < OFFSET " + currentSess.wordChainOffset
           + " | SETTING OFFSET = INDEX "
         );
         // earlier word in chain arrives after initial word received (out of order tx)
-        currentSession.wordChainOffset = currentSession.wordChainIndex;
-        currentSession.wordChainSegmentIndex = 0;
-        currentSession.wordChain[currentSession.wordChainSegmentIndex] = currentSession.source.nodeId;
+        currentSess.wordChainOffset = currentSess.wordChainIndex;
+        currentSess.wordChainSegmentIndex = 0;
+        currentSess.wordChain[currentSess.wordChainSegmentIndex] = currentSess.source.nodeId;
       }
       else {
-        currentSession.wordChain[currentSession.wordChainSegmentIndex] = currentSession.source.nodeId;
+        currentSess.wordChain[currentSess.wordChainSegmentIndex] = currentSess.source.nodeId;
       }
 
-      // console.log("OLD SESSION " + currentSession.sessionId + " POS: " + jsonPrint(currentSession.initialPosition));
-      // console.log("currentSession"
-      //   + " | " + currentSession.sessionId
-      //   + " | " + currentSession.word.nodeId 
-      //   + " | fixed: " + currentSession.word.fixed
-      //   + " | WCI: " + currentSession.wordChainIndex
-      //   + " | WCO: " + currentSession.wordChainOffset
-      //   + " | WCSI: " + currentSession.wordChainSegmentIndex
-      //   + " | WCL: " + currentSession.wordChain.length
-        // + "\nWC: " + currentSession.wordChain
-      // );
-
-      // currentSession.word.lastSeen = dateNow;
-
-      sessionHashMap.set(sessionObject.sessionId, currentSession);
+      sessionHashMap.set(sessionObject.sessionId, currentSess);
 
       if (sessionUpdateQueue.getLength() >= QUEUE_MAX) {
-        console.log(">>> RX sessionObject: [Q: " 
-          + sessionUpdateQueue.getLength() 
+        console.log(">>> RX sessionObject: [Q: "
+          + sessionUpdateQueue.getLength()
         );
-        console.warn(getTimeStamp() + " -- !!! Q FULL --- DROPPING SESSION UPDATE !!! " 
+        console.warn(getTimeStamp() + " -- !!! Q FULL --- DROPPING SESSION UPDATE !!! "
           + sessionUpdateQueue.getLength() + "\n\n"
         );
       }
       else {
-        sessionUpdateQueue.enqueue(currentSession);
-        if (sessionUpdateQueue.getLength() > sessionUpdateQueueMaxInQ) { 
-          sessionUpdateQueueMaxInQ = sessionUpdateQueue.getLength(); 
+        sessionUpdateQueue.enqueue(currentSess);
+        if (sessionUpdateQueue.getLength() > sessionUpdateQueueMaxInQ) {
+          sessionUpdateQueueMaxInQ = sessionUpdateQueue.getLength();
         }
       }
     }
     else {
-      sessionsCreated++;
-      currentSession = sessionObject ;
-      currentSession.wordChainOffset = sessionObject.wordChainIndex;
-      currentSession.wordChainSegmentIndex = 0;
-      currentSession.wordChain = [];
-      currentSession.initialPosition = computeInitialPosition(sessionsCreated);
+      sessionsCreated += 1;
+      currentSess = sessionObject;
+      currentSess.wordChainOffset = sessionObject.wordChainIndex;
+      currentSess.wordChainSegmentIndex = 0;
+      currentSess.wordChain = [];
+      currentSess.initialPosition = computeInitialPosition(sessionsCreated);
 
-      var randomNumber360 = Math.random() * 360;
 
       var startColor = "hsl(" + randomNumber360 + ",100%,50%)";
       var endColor = "hsl(" + randomNumber360 + ",0%,0%)";
       var interpolateNodeColor = d3.interpolateHcl(endColor, startColor);
 
-      currentSession.colors = {'startColor': startColor, 'endColor': endColor};
-      currentSession.interpolateColor = interpolateNodeColor;
+      currentSess.colors = {'startColor': startColor, 'endColor': endColor};
+      currentSess.interpolateColor = interpolateNodeColor;
 
-      currentSession.wordChain[currentSession.wordChainSegmentIndex] = currentSession.source.nodeId;
+      currentSess.wordChain[currentSess.wordChainSegmentIndex] = currentSess.source.nodeId;
 
       console.log("NEW SESSION " + sessionObject.sessionId + " POS: " + jsonPrint(sessionObject.initialPosition));
 
-      console.log("currentSession"
-        + " | " + currentSession.sessionId
-        + " | " + currentSession.source.nodeId 
-        + " | fixed: " + currentSession.source.fixed
-        + " | WCI: " + currentSession.wordChainIndex
-        + " | WCO: " + currentSession.wordChainOffset
-        + " | WCSI: " + currentSession.wordChainSegmentIndex
-        + " | WCL: " + currentSession.wordChain.length
-        // + "\nWC: " + currentSession.wordChain
+      console.log("currentSess"
+        + " | " + currentSess.sessionId
+        + " | " + currentSess.source.nodeId
+        + " | fixed: " + currentSess.source.fixed
+        + " | WCI: " + currentSess.wordChainIndex
+        + " | WCO: " + currentSess.wordChainOffset
+        + " | WCSI: " + currentSess.wordChainSegmentIndex
+        + " | WCL: " + currentSess.wordChain.length
+        // + "\nWC: " + currentSess.wordChain
       );
 
-      currentSession.source.lastSeen = dateNow;
-      if (currentSession.target) currentSession.target.lastSeen = dateNow;
+      currentSess.source.lastSeen = dateNow;
+      if (currentSess.target) {
+        currentSess.target.lastSeen = dateNow;
+      }
 
-      sessionHashMap.set(sessionObject.sessionId, currentSession);
+      sessionHashMap.set(sessionObject.sessionId, currentSess);
 
       if (sessionUpdateQueue.getLength() >= QUEUE_MAX) {
         console.log(">>> RX sessionObject: [Q: " 
@@ -1664,20 +1289,20 @@ function checkRxSessionUpdateQueue (callback){
         );
       }
       else {
-        sessionUpdateQueue.enqueue(currentSession);
+        sessionUpdateQueue.enqueue(currentSess);
         if (sessionUpdateQueue.getLength() > sessionUpdateQueueMaxInQ) { 
           sessionUpdateQueueMaxInQ = sessionUpdateQueue.getLength(); 
         }
       }
     }
-    // callback(null, numberSessionUpdates);
-    // return;
   }
   
-  callback(null, numberSessionUpdates);
+  if (rxSessionUpdateQueue.getLength() == 0){
+    callback(null, sessionsCreated);
+  }
 }
 
-function getNodeFromQueue (numberSessionUpdates, callback) {
+function getNodeFromQueue (callback) {
 
   //========================
   // CHECK QUEUE
@@ -1685,11 +1310,10 @@ function getNodeFromQueue (numberSessionUpdates, callback) {
 
   numberSessionsUpdated = 0;
 
-  while (sessionUpdateQueue.getLength() > 0){
+  if (sessionUpdateQueue.getLength() > 0){
+  // while (sessionUpdateQueue.getLength() > 0){
 
-    // tickEnabled = false;
-
-    numberSessionsUpdated++ ;
+    numberSessionsUpdated += 1;
 
     if (sessionUpdateQueue.getLength() > QUEUE_MAX) {
       sessionUpdateQueue.dequeue();
@@ -1697,97 +1321,103 @@ function getNodeFromQueue (numberSessionUpdates, callback) {
 
     sessionDeQobject = sessionUpdateQueue.dequeue();
 
-    // console.log("sessionDeQobject"
-    //  // + jsonPrint(sessionDeQobject)
-    //  + " | S: " + sessionDeQobject.word.nodeId + " | fixed: " +  sessionDeQobject.word.fixed
-    //  );
-
-    async.series({
-        createNodeSeries: function(callbackSeries){
+    async.series([
+      function(callbackSeries){
+        if (typeof sessionDeQobject.target.nodeId !== 'undefined'){
+          console.log("TARGET NODE BEFORE CREATE NODE: " + sessionDeQobject.target.nodeId);
           createNode(sessionDeQobject.sessionId, sessionDeQobject.target, function(err, newNodesFlag){
-              console.log("TNODE: " + sessionDeQobject.target.nodeId);
-            createNode(sessionDeQobject.sessionId, sessionDeQobject.source, function(err, newNodesFlag){
-              console.log("SNODE: " + sessionDeQobject.source.nodeId);
-              createLinks(sessionDeQobject, function(err, newLink){
-                if (newLink.target) {
-                  console.warn("LINK: " + newLink.source.nodeId + " -> " + newLink.target.nodeId);
-                }
-                else{
-                  console.warn("LINK: " + newLink.source.nodeId + " -> NO TARGET");
-                }
-                // force.links(links);
-                callbackSeries(null, newLink);
-              });
-              // callbackSeries(null, newNodesFlag);
-            });
+            console.log("TARGET NODE: " + sessionDeQobject.target.nodeId);
+            callbackSeries(null, "target");
           });
         }
-        //  createLinkSeries: function(callbackSeries){
-        //   createLinks(sessionDeQobject, function(err, newLinksFlag){
-        //     // console.log("LINK: " + jsonPrint(newLink));
-        //     // force.links(links);
-        //     callbackSeries(null, newLinksFlag);
-        //   });
-        // }
-    },
+        else {
+          console.warn("TARGET NODE UNDEFINED ... SKIPPING " + sessionDeQobject.sessionId);
+          callbackSeries(null, "target");
+        }
+      },
+      function(callbackSeries){
+        createNode(sessionDeQobject.sessionId, sessionDeQobject.source, function(err, newNodesFlag){
+          console.log("SOURCE NODE: " + sessionDeQobject.source.nodeId);
+          callbackSeries(null, "source");
+        });
+      },
+      // function(callbackSeries){
+      //   createLinks(sessionDeQobject, function(err, newLink){
+      //     // console.warn("LINK\n" + jsonPrint(newLink));
+      //     if (newLink.source && newLink.target) {
+      //       console.warn("LINK: " + newLink.source.nodeId + " -> " + newLink.target.nodeId);
+      //     }
+      //     else if (newLink.source){
+      //       console.warn("LINK: " + newLink.source.nodeId + " -> NO TARGET");
+      //     }
+      //     callbackSeries(null, "link");
+      //   });
+      // }
+    ],
     function(err, results) {
-      // console.log("RESULTS | NEW NODES: " + results.createNodeSeries + " | LINKS: " + results.createLinkSeries);
-      callback (null, results.createNodeSeries, results.createLinkSeries);
-      return;
+      // console.log("RESULTS | NEW NODES / LINK: " + results);
+      callback (null, numberSessionsUpdated);
+      // return;
     });
   }
-  callback(null, false, false);
+
+  // if (sessionUpdateQueue.getLength() == 0) {
+  //   callback(null, numberSessionsUpdated);
+  // }
 }
 
-var ageNodes = function (newNodesFlag, deadNodesFlag, callback){
+function ageNodes (callback){
 
   if (nodes.length === 0) {
-    ageRate = DEFAULT_AGE_RATE ;
+    ageRate = DEFAULT_AGE_RATE;
   }
   else if (nodes.length > 100) {
     ageRate = adjustedAgeRateScale(nodes.length-100);
   }
   else {
-    ageRate = DEFAULT_AGE_RATE ;
+    ageRate = DEFAULT_AGE_RATE;
   }
 
-  var ageNodesLength = nodes.length-1 ;
-  var ageNodesIndex = nodes.length-1 ;
+  var ageNodesLength = nodes.length-1;
+  var ageNodesIndex = nodes.length-1;
+  var ageLinksLength;
+  var ageLinksIndex;
 
-  deadNodesFlag = false;
+  var deadNodesFlag = false;
+  var currentNodeObject = {};
 
-  for (ageNodesIndex = ageNodesLength; ageNodesIndex>=0; ageNodesIndex--) {  
+  var ageSession;
 
-    var currentNodeObject = {} ;
+  for (ageNodesIndex = ageNodesLength; ageNodesIndex>=0; ageNodesIndex -= 1) {  
 
     currentNodeObject = nodes[ageNodesIndex];
+    ageSession = sessionHashMap.get(currentNodeObject.sessionId);
 
     age = nodes[ageNodesIndex].age + (ageRate * (dateNow - nodes[ageNodesIndex].ageUpdated));
  
     if (age > nodeMaxAge) {
 
-      deadNodesFlag = true ;
+      deadNodesFlag = true;
       force.stop();
 
-      // nodeHashMap.remove(nodes[ageNodesIndex].nodeId);
       delete nodeHashMap[currentNodeObject.nodeId];
+      // delete linkHashMap[currentNodeObject.nodeId];
 
+      ageLinksLength = links.length-1;
+      ageLinksIndex = links.length-1;
 
-      var ageLinksLength = links.length-1;
-      var ageLinksIndex = links.length-1;
-
-      for (ageLinksIndex = ageLinksLength; ageLinksIndex >= 0; ageLinksIndex--) {
-        if (currentNodeObject.nodeId == links[ageLinksIndex].target.nodeId) {
+      for (ageLinksIndex = ageLinksLength; ageLinksIndex >= 0; ageLinksIndex -= 1) {
+        if (currentNodeObject.nodeId === links[ageLinksIndex].target.nodeId) {
           links.splice(ageLinksIndex, 1); 
-          force.links(links);
+          // force.links(links);
         }
-        else if (currentNodeObject.nodeId == links[ageLinksIndex].source.nodeId) {
+        else if (currentNodeObject.nodeId === links[ageLinksIndex].source.nodeId) {
           links.splice(ageLinksIndex, 1); 
-          force.links(links);
+          // force.links(links);
         }
       }
 
-      console.log("DEAD " + nodes[ageNodesIndex].nodeId);
+      console.log("XXX DEAD | " + nodes[ageNodesIndex].nodeId);
 
       nodes.splice(ageNodesIndex, 1); 
     }
@@ -1798,16 +1428,26 @@ var ageNodes = function (newNodesFlag, deadNodesFlag, callback){
       nodes[ageNodesIndex].age = age;
       nodes[ageNodesIndex].ageUpdated = dateNow;
  
-      // nodeHashMap.set(currentNodeObject.nodeId, currentNodeObject);
       nodeHashMap[currentNodeObject.nodeId] = currentNodeObject;
+
+      createLinks(ageSession, function(err, newLink){
+        // console.warn("LINK\n" + jsonPrint(newLink));
+        if (newLink.source && newLink.target) {
+          console.warn("LINK: " + newLink.source.nodeId + " -> " + newLink.target.nodeId);
+        }
+        else if (newLink.source){
+          console.warn("LINK: " + newLink.source.nodeId + " -> NO TARGET");
+        }
+        callbackSeries(null, "link");
+      });
+
     }
   }
 
-  callback(null, newNodesFlag, deadNodesFlag);
-
+  callback(null, deadNodesFlag);
 }
 
-function updateNodes (newNodesFlag, deadNodesFlag, callback) {
+function updateNodes (callback) {
 
   node = node.data(force.nodes(), function(d) { return d.nodeId;})
     .attr("x", function(d) { return d.x; })
@@ -1832,28 +1472,28 @@ function updateNodes (newNodesFlag, deadNodesFlag, callback) {
   node.exit()
     .remove();
 
-  callback(null, newNodesFlag, deadNodesFlag);
+  callback(null);
 } 
 
-function updateLinks(newNodesFlag, deadNodesFlag, callback) {
+function updateLinks(callback) {
 
   link = linkSvgGroup.selectAll("line").data(force.links(), 
     function(d) { return d.source.nodeId + "-" + d.target.nodeId; });
 
   link
-    .style('stroke', function(d){ return linkColorScale(d.age) ;});
+    .style('stroke', function(d){ return linkColorScale(d.age);});
     // .style('opacity', function(d){ return 1.0; });
 
   link.enter()
     .append("svg:line", "g.node")
     .attr("class", "link")
-    .style('stroke', function(d){ return linkColorScale(d.age) ;})
+    .style('stroke', function(d){ return linkColorScale(d.age);})
     .style('stroke-width', 1.5)
     .style('opacity', 1e-6)
     .transition()
       .duration(defaultFadeDuration)      
       .style('opacity', function(d){
-        return (nodeMaxAge - d.age) / nodeMaxAge ;
+        return (nodeMaxAge - d.age) / nodeMaxAge;
       });
 
   link
@@ -1863,24 +1503,26 @@ function updateLinks(newNodesFlag, deadNodesFlag, callback) {
       .style("opacity", 1e-6)
     .remove();
 
-  callback(null, newNodesFlag, deadNodesFlag);
+  callback(null);
 }
 
-function updateNodeCircles (newNodesFlag, deadNodesFlag, callback) {
+function updateNodeCircles (callback) {
 
-  nodeCircles = nodeSvgGroup.selectAll("circle").data(force.nodes(), 
-    function(d) { return d.nodeId; })
+  nodeCircles = nodeSvgGroup.selectAll("circle")
+    .data(force.nodes(), function(d) {
+      return d.nodeId;
+    });
 
   nodeCircles
     // .attr("lastSeen", function(d) { return d.lastSeen; })
     // .attr("mentions", function(d) { return d.mentions; })
     .attr("r", function(d) { 
-      // return defaultRadiusScale(d.mentions + 1); 
-      return defaultRadiusScale(100);
+      return defaultRadiusScale(d.mentions + 1); 
+      // return defaultRadiusScale(100);
     })
     .style("fill", function(d) { 
-      // return d.interpolateColor((nodeMaxAge - d.age) / nodeMaxAge) ;
-      return d.interpolateColor(1) ;
+      // return d.interpolateColor((nodeMaxAge - d.age) / nodeMaxAge);
+      return d.interpolateColor(1);
     })
     .style('stroke', function(d){ return strokeColorScale(d.age); });
 
@@ -1892,8 +1534,8 @@ function updateNodeCircles (newNodesFlag, deadNodesFlag, callback) {
     .attr("cx", function(d) { return d.x; })
     .attr("cy", function(d) { return d.y; })
     .attr("mouseover", 0)
-    .on("mouseover", nodeMouseover)
-    .on("mouseout", nodeMouseout)
+    .on("mouseover", nodeMouseOver)
+    .on("mouseout", nodeMouseOut)
     .on("dblclick", nodeClick)
     .call(force.drag)
     // .attr("nodeId",function(d) { return d.nodeId;} )
@@ -1907,10 +1549,10 @@ function updateNodeCircles (newNodesFlag, deadNodesFlag, callback) {
     })
     .style("visibility", "visible") 
     .style("opacity", 1e-6)
-    .style('stroke', function(d){ return strokeColorScale(d.age) ;})
+    .style('stroke', function(d){ return strokeColorScale(d.age);})
     .style("stroke-width", 2.5)
     .style("fill", function(d) { 
-      return d.interpolateColor((nodeMaxAge - d.age) / nodeMaxAge) ;
+      return d.interpolateColor((nodeMaxAge - d.age) / nodeMaxAge);
     })
     .transition()
       .duration(defaultFadeDuration)      
@@ -1923,10 +1565,10 @@ function updateNodeCircles (newNodesFlag, deadNodesFlag, callback) {
       .style('opacity', 1e-6)
     .remove();
 
-  callback(null, newNodesFlag, deadNodesFlag);
+  callback(null);
 }
 
-function updateNodeLabels (newNodesFlag, deadNodesFlag, callback) {
+function updateNodeLabels (callback) {
   
   nodeLabels = nodeLabelSvgGroup.selectAll(".nodeLabel").data(force.nodes(), 
     function(d) { return d.nodeId; })
@@ -1936,7 +1578,7 @@ function updateNodeLabels (newNodesFlag, deadNodesFlag, callback) {
       return fontSizeScale(d.mentions + 1.1) + "vmin"; 
     })
     .style('opacity', function(d){
-      // return (nodeMaxAge - d.age) / nodeMaxAge ;
+      // return (nodeMaxAge - d.age) / nodeMaxAge;
       return 1;
     });
 
@@ -1959,7 +1601,7 @@ function updateNodeLabels (newNodesFlag, deadNodesFlag, callback) {
     .transition()
       .duration(defaultFadeDuration)      
       .style("opacity", function(d) { 
-        // return (nodeMaxAge - d.age) / nodeMaxAge ;
+        // return (nodeMaxAge - d.age) / nodeMaxAge;
         return 1;
       });
 
@@ -1969,52 +1611,87 @@ function updateNodeLabels (newNodesFlag, deadNodesFlag, callback) {
       .style("opacity", 1e-6)
       .remove();
 
-  callback(null, newNodesFlag, deadNodesFlag);
+  callback(null);
 }
 
 function ageNodesCheckQueue() {
 
-    var deadNodesFlag = false  ;
-    var newNodesFlag = false ;
+  async.series([ 
 
+      function(callbackSeries){
+        checkRxSessionUpdateQueue(function(err, sessionsCreated){
+          // console.log("SESSIONS CREATED: " + sessionsCreated);
+          callbackSeries(null, sessionsCreated);
+        });
+      },
 
-  async.waterfall([ 
+      function(callbackSeries){
+        getNodeFromQueue(function(err, numberSessionsUpdated){
+          // console.log("SESSIONS UPDATED: " + numberSessionsUpdated);
+          callbackSeries(null, numberSessionsUpdated);
+        });
+      },
 
-      checkRxSessionUpdateQueue,
-      getNodeFromQueue,
-      ageNodes,
-      updateNodes,
-      updateNodeCircles,
-      updateNodeLabels,
-      updateLinks
+      function(callbackSeries){
+        ageNodes(function(err, deadNodesFlag){
+          // console.log("AGED NODES: DEAD NODE(S): " + deadNodesFlag);
+          callbackSeries(null, deadNodesFlag);
+        });
+      },
+
+      function(callbackSeries){
+        updateNodes(function(err){
+          // console.log("UPDATED NODES");
+          callbackSeries(null, "nodes");
+        });
+      },
+
+      function(callbackSeries){
+        updateNodeCircles(function(err){
+          // console.log("UPDATED NODE CIRCLES");
+          callbackSeries(null, "nodeCircles");
+        });
+      },
+
+      function(callbackSeries){
+        updateNodeLabels(function(err){
+          // console.log("UPDATED NODE LABELS");
+          callbackSeries(null, "nodeLabels");
+        });
+      },
+
+      function(callbackSeries){
+        updateLinks(function(err){
+          // console.log("UPDATED LINKS");
+          callbackSeries(null, "links");
+        });
+      }
     ], 
     
-    function(err, newNodesFlag, deadNodesFlag){
+    function(err, results){
       if (err) { 
-        console.error("*** ERROR: ageNodesCheckQueue *** \nERROR: " + error + "\nRESULT: " + result); 
+        console.error("*** ERROR: ageNodesCheckQueue *** \nERROR: " + err); 
       }
-      force.nodes(nodes);
-      force.links(links);
-      // tickEnabled = true;
-      force.start(); 
 
+      // force.nodes(nodes);
+      // force.links(links);
+      force.start(); 
     }
   );
 }
 
 function nodeFill (age) { 
-  var fillColor ;
-  return fillColorScale(age) ;
+  return fillColorScale(age);
 }
 
-function nodeMouseover(d) { 
+function nodeMouseOver(d) { 
 
-  mouseHoverFlag = true ;
-  mouseHoverNodeId = d.nodeId ;
+  mouseHoverFlag = true;
+  mouseHoverNodeId = d.nodeId;
 
-  var nodeId = d.nodeId ;
-  var sessionId = d.sessionId ;
-  var mentions = d.mentions ;
+  var nodeId = d.nodeId;
+  var sId = d.sessionId;
+  var mentions = d.mentions;
   var currentR = d3.select(this).attr("r");
 
   d3.select("body").style("cursor", "pointer");
@@ -2034,20 +1711,16 @@ function nodeMouseover(d) {
     .duration(defaultFadeDuration)    
     .style("opacity", 1);
 
-  var tooltipString =  "<bold>" + nodeId + "</bold>" + "<br>MENTIONS: " + mentions + "<br>" + sessionId;
+  var tooltipString =  "<bold>" + nodeId + "</bold>" + "<br>MENTIONS: " + mentions + "<br>" + sId;
 
   divTooltip.html(tooltipString) 
     .style("left", (d3.event.pageX - 40) + "px")   
     .style("top", (d3.event.pageY - 50) + "px");  
 }
 
-function nodeMouseout() {
+function nodeMouseOut() {
 
-  mouseHoverFlag = false ;
-
-  var nodeId = d3.select(this).attr("nodeId") ;
-  var mentions = d3.select(this).attr("mentions") ;
-  var age = d3.select(this).attr("age") ;
+  mouseHoverFlag = false;
 
   var fillColor = nodeFill(age);
 
@@ -2070,8 +1743,178 @@ function nodeClick(d) {
   launchSessionView(d.sessionId);
 }
 
-d3.timer(function () {
+function resize() {
+  console.log("resize");
+
+  if (window.innerWidth !== 'undefined') {
+    width = window.innerWidth;
+    height = window.innerHeight;
+  }
+  // IE6 in standards compliant mode (i.e. with a valid doctype as the first line in the document)
+
+  else if (document.documentElement !== 'undefined'
+   && document.documentElement.clientWidth !=='undefined' && document.documentElement.clientWidth !== 0) {
+     width = document.documentElement.clientWidth;
+     height = document.documentElement.clientHeight;
+  }
+
+  // older versions of IE
+
+  else {
+     width = document.getElementsByTagName('body')[0].clientWidth;
+     height = document.getElementsByTagName('body')[0].clientHeight;
+  }
+
+  console.log("width: " + width + " | height: " + height);
+
+  radiusX = 0.4*width;
+  radiusY = 0.4*height;
+
+  d3LayoutWidth = width * D3_LAYOUT_WIDTH_RATIO; // double the width for now
+  d3LayoutHeight = height * D3_LAYOUT_HEIGHT_RATIO;
+
+  svgcanvas
+    .attr("width", SVGCANVAS_WIDTH_RATIO * width)
+    .attr("height", SVGCANVAS_HEIGHT_RATIO * height);
+
+  svgForceLayoutAreaWidth = d3LayoutWidth * FORCE_LAYOUT_WIDTH_RATIO;
+  svgForceLayoutAreaHeight = d3LayoutHeight * FORCE_LAYOUT_HEIGHT_RATIO;
+
+
+  svgForceLayoutArea.attr("width", svgForceLayoutAreaWidth)
+  .attr("height", svgForceLayoutAreaHeight);
+  
+  svgForceLayoutArea.attr("x", 0);
+  svgForceLayoutArea.attr("y", 0);
+
+
+  force.size([svgForceLayoutAreaWidth, svgForceLayoutAreaHeight]);
+
+  ADMIN_OVERLAY0_X = DEFAULT_ADMIN_OVERLAY0_X * width;
+  ADMIN_OVERLAY0_Y = DEFAULT_ADMIN_OVERLAY0_Y * height;
+
+  ADMIN_OVERLAY1_X = DEFAULT_ADMIN_OVERLAY1_X * width;
+  ADMIN_OVERLAY1_Y = DEFAULT_ADMIN_OVERLAY1_Y * height;
+
+  ADMIN_OVERLAY2_X = DEFAULT_ADMIN_OVERLAY2_X * width;
+  ADMIN_OVERLAY2_Y = DEFAULT_ADMIN_OVERLAY2_Y * height;
+
+  ADMIN_OVERLAY3_X = DEFAULT_ADMIN_OVERLAY3_X * width;
+  ADMIN_OVERLAY3_Y = DEFAULT_ADMIN_OVERLAY3_Y * height;
+
+  STATS_OVERLAY1_X = DEFAULT_STATS_OVERLAY1_X * width;
+  STATS_OVERLAY1_Y = DEFAULT_STATS_OVERLAY1_Y * height;
+
+  STATS_OVERLAY2_X = DEFAULT_STATS_OVERLAY2_X * width;
+  STATS_OVERLAY2_Y = DEFAULT_STATS_OVERLAY2_Y * height;
+
+  STATS_OVERLAY3_X = DEFAULT_STATS_OVERLAY3_X * width;
+  STATS_OVERLAY3_Y = DEFAULT_STATS_OVERLAY3_Y * height;
+
+  DATE_TIME_OVERLAY_X = DEFAULT_DATE_TIME_OVERLAY_X * width;
+  DATE_TIME_OVERLAY_Y = DEFAULT_DATE_TIME_OVERLAY_Y * height;
+
+  adminOverlay0.attr("x", ADMIN_OVERLAY0_X).attr("y",ADMIN_OVERLAY0_Y);
+  adminOverlay1.attr("x", ADMIN_OVERLAY1_X).attr("y",ADMIN_OVERLAY1_Y);
+  adminOverlay2.attr("x", ADMIN_OVERLAY2_X).attr("y",ADMIN_OVERLAY2_Y);
+  adminOverlay3.attr("x", ADMIN_OVERLAY3_X).attr("y",ADMIN_OVERLAY3_Y);
+
+  dateTimeOverlay.attr("x", DATE_TIME_OVERLAY_X).attr("y", DATE_TIME_OVERLAY_Y);
+  statsOverlay1.attr("x", STATS_OVERLAY1_X).attr("y", STATS_OVERLAY1_Y);
+  statsOverlay2.attr("x", STATS_OVERLAY2_X).attr("y", STATS_OVERLAY2_Y);
+  statsOverlay3.attr("x", STATS_OVERLAY3_X).attr("y", STATS_OVERLAY3_Y);
+
+  nodeInitialX = INITIAL_X_RATIO * svgForceLayoutAreaWidth;
+  nodeInitialY = INITIAL_Y_RATIO * svgForceLayoutAreaHeight;
+}
+
+window.onload = function () {
+  resize();
+  displayInfoOverlay(1.0);
+  displayControlOverlay(true);
+  getUrlVariables(function(err, urlVariablesObj){
+    if (!err) {
+      console.log("ON LOAD getUrlVariables\n" + jsonPrint(urlVariablesObj));
+      if (urlVariablesObj.sessionId) {
+        sessionId = urlVariablesObj.sessionId;
+      }
+      if (urlVariablesObj.namespace) {
+        namespace = urlVariablesObj.namespace;
+      }
+    }
+  });
+
+  resetDefaultForce();
+
+  console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
+  socket.emit("VIEWER_READY", viewerObj);
+
+  setTimeout(function(){
+    pageLoadedTimeIntervalFlag = false;
+    displayControlOverlay(false);
+    displayInfoOverlay(0);
+  }, 5000);
+};
+
+function toggleFullScreen() {
+  if (!document.fullscreenElement &&
+      !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement ) {
+
+    if (document.documentElement.requestFullscreen) {
+      document.documentElement.requestFullscreen();
+      resize();
+    } else if (document.documentElement.msRequestFullscreen) {
+      document.documentElement.msRequestFullscreen();
+      resize();
+    } else if (document.documentElement.mozRequestFullScreen) {
+      document.documentElement.mozRequestFullScreen();
+      resize();
+    } else if (document.documentElement.webkitRequestFullscreen) {
+      document.documentElement.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+      resize();
+    }
+  } else {
+
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+      resize();
+    } else if (document.msExitFullscreen) {
+      document.msExitFullscreen();
+      resize();
+    } else if (document.mozCancelFullScreen) {
+      document.mozCancelFullScreen();
+      resize();
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+      resize();
+    }
+  }
+}
+
+document.addEventListener("mousemove", function() {
+  if (mouseHoverFlag) {
+    d3.select("body").style("cursor", "pointer");
+  }
+  else {
+    d3.select("body").style("cursor", "default");
+  }
+
+  resetMouseMoveTimer();
+
+  if (mouseFreezeEnabled) {
+    force.stop();
+  }
+}, true);
+
+d3.select(window).on("resize", resize);
+
+
+// d3.timer(function () {
+//   dateNow = moment().valueOf();
+//   ageNodesCheckQueue();
+// });
+
+setInterval (function () {
   dateNow = moment().valueOf();
-  // if (!(mouseMovingFlag && mouseFreezeEnabled)) ageNodesCheckQueue();
   ageNodesCheckQueue();
-});
+}, 20 );

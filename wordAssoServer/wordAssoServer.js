@@ -703,7 +703,7 @@ var sessionQueue = new Queue();
 var MAX_WORD_HASH_MAP_COUNT = 20 ;
 var wordArray = [] ; // used to keep wordHashMap.count() < MAX_WORD_HASH_MAP_COUNT
 
-var NodeCache = require( "node-cache" );
+var NodeCache = require("node-cache");
 
 var adminCache = new NodeCache();
 var viewerCache = new NodeCache();
@@ -1041,7 +1041,7 @@ function sendPrompt(sessionObj, promptWordObj){
 
           var sessionUpdateObj = {
             sessionId: currentSession.sessionId,
-            wordChainIndex: currentSession.wordChain.length,
+            wordChainIndex: currentSession.wordChain.length-1,
             source: promptWordObj,
             target: targetWordObj
           };
@@ -1060,7 +1060,7 @@ function sendPrompt(sessionObj, promptWordObj){
 
           var sessionUpdateObj = {
             sessionId: currentSession.sessionId,
-            wordChainIndex: currentSession.wordChain.length,
+            wordChainIndex: currentSession.wordChain.length-1,
             source: promptWordObj,
             target: 0
           };
@@ -1137,7 +1137,7 @@ function sendPrompt(sessionObj, promptWordObj){
 
         var sessionUpdateObj = {
           sessionId: currentSession.sessionId,
-          wordChainIndex: currentSession.wordChain.length,
+          wordChainIndex: currentSession.wordChain.length-1,
           source: promptWordObj,
           target: targetWordObj
         };
@@ -1652,19 +1652,19 @@ function chainDeadEnd(chain) {
       if (uniqueNodes.indexOf(chain[i]) == -1){
 
         if (uniqueNodes.length > 3) {
-          debug(chalkError("... NO CHAIN FREEZE | " + jsonPrint(uniqueNodes)));
+          console.log(chalkError("... NO CHAIN FREEZE\n" + jsonPrint(uniqueNodes)));
           return false ;
         }
         else if (i == chain.length-6){
-          console.error(chalkError("*** CHAIN FREEZE"
-            + "\nSEG:    " + chainSegment 
-            + "\nUNIQUE: " + uniqueNodes
+          console.log(chalkError("*** CHAIN FREEZE"
+            + "\nSEG\n" + jsonPrint(chainSegment) 
+            + "\nUNIQUE\n" + jsonPrint(uniqueNodes)
           )); 
           return true ;
         }
         else {
           uniqueNodes.push(chain[i]);
-          debug(chalkError("ADDED UNIQUE NODE | " + uniqueNodes)); 
+          console.log(chalkError("ADDED UNIQUE NODE\n" + jsonPrint(uniqueNodes))); 
         }
 
       }
@@ -1672,7 +1672,7 @@ function chainDeadEnd(chain) {
 
   }
   else {
-    debug("... NO CHAIN FREEZE | " + jsonPrint(uniqueNodes));
+    console.log(chalkError("... NO CHAIN FREEZE\nCHAIN\n" + jsonPrint(chain)));
     return false ;
   }
  }
@@ -3795,16 +3795,9 @@ var readResponseQueue = setInterval(function (){
 
             promptQueue.enqueue(currentSessionObj.sessionId);
 
-            // var sessionUpdateObj = {
-            //   sessionId: currentSessionObj.sessionId,
-            //   wordChainIndex: currentSession.wordChain.length,
-            //   sourceWord: previousPromptObj,
-            //   targetWord: responseInObj
-            // };
-
             var sessionUpdateObj = {
               sessionId: currentSessionObj.sessionId,
-              wordChainIndex: currentSessionObj.wordChain.length,
+              wordChainIndex: currentSessionObj.wordChain.length-1,
               source: responseInObj,
               target: previousPromptObj
             };
@@ -3830,7 +3823,7 @@ var readResponseQueue = setInterval(function (){
 
             var sessionUpdateObj = {
               sessionId: currentSessionObj.sessionId,
-              wordChainIndex: currentSessionObj.wordChain.length,
+              wordChainIndex: currentSessionObj.wordChain.length-1,
               source: responseWordObj,
               target: previousPromptObj
             };
@@ -4838,7 +4831,11 @@ function initAppRouting(callback){
   console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | INIT APP ROUTING"));
 
 
-
+  app.get('/node_modules/node-cache/lib/node_cache.js', function(req, res){
+    console.log("LOADING FILE: /node_modules/node-cache/lib/node_cache.js");
+    res.sendFile(__dirname + '/node_modules/node-cache/lib/node_cache.js');
+    return;
+  });
 
   app.get('/node_modules/socket.io/lib/socket.js', function(req, res){
     console.log("LOADING FILE: /node_modules/socket.io/lib/socket.js");

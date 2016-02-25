@@ -26,10 +26,10 @@ var DEFAULT_AGE_RATE = 1.0;
 var ageRate = DEFAULT_AGE_RATE;
 var nodeMaxAge = DEFAULT_MAX_AGE;
 
-var DEFAULT_CHARGE = -250;
-var DEFAULT_GRAVITY = 0.03;
-var DEFAULT_LINK_STRENGTH = 0.1;
-var DEFAULT_FRICTION = 0.75;
+var DEFAULT_CHARGE = -500;
+var DEFAULT_GRAVITY = 0.04;
+var DEFAULT_LINK_STRENGTH = 0.4;
+var DEFAULT_FRICTION = 0.9;
 
 var DEFAULT_SESSION_CONFIG = {
     'charge': DEFAULT_CHARGE,
@@ -474,9 +474,9 @@ function launchSessionView(sessionId) {
 }
 
 var adjustedAgeRateScale = d3.scale.pow().domain([1,500]).range([1.0,100.0]);
-var fontSizeScale = d3.scale.log().domain([1,1000000]).range([1.8,3.6]);
+var fontSizeScale = d3.scale.log().domain([1,1000000]).range([1.6,3.2]);
 
-var defaultRadiusScale = d3.scale.log().domain([1,1000000]).range([4,24]);
+var defaultRadiusScale = d3.scale.log().domain([1,1000000]).range([3.2,32]);
 
 var fillColorScale = d3.scale.linear()
     .domain([0, 30000, 60000])
@@ -1027,24 +1027,8 @@ function createNode (sessionId, wordObject, callback) {
 
       currentNodeObject.text = currentNodeObject.nodeId + " | " + wordObject.wordChainIndex;
 
-      // if (currentNodeId == createNodeSession.source.nodeId) {
-      //   if (typeof createNodeSession.target.nodeId !== 'undefined') {
-      //     currentNodeObject.text = currentNodeId + " | " + (createNodeSession.wordChainSegmentIndex);
-      //   }
-      //   else {
-      //     currentNodeObject.text = currentNodeId + " | " + (createNodeSession.wordChainSegmentIndex+1);
-      //   }
-      // }
-      // else if (currentNodeId == createNodeSession.target.nodeId) {
-      //   if (typeof createNodeSession.target.nodeId !== 'undefined') {
-      //     currentNodeObject.text = currentNodeId + " | " + (createNodeSession.wordChainSegmentIndex);
-      //   }
-      //   else {
-      //     currentNodeObject.text = currentNodeId + " | " + (createNodeSession.wordChainSegmentIndex);
-      //   }
-      // }
-
-      currentNodeObject.fixed = wordObject.fixed;
+      currentNodeObject.fixed = true;
+      createNodeSession.fixedNodeId = currentNodeObject.nodeId ;
 
       nodesLength = nodes.length;
 
@@ -1082,6 +1066,10 @@ function createNode (sessionId, wordObject, callback) {
       wordObject.colors = createNodeSession.colors;
       wordObject.interpolateColor = createNodeSession.interpolateColor;
       wordObject.text = wordObject.nodeId + " | " + wordObject.wordChainIndex;
+
+      wordObject.fixed = true;
+
+      createNodeSession.fixedNodeId = wordObject.nodeId ;
 
       nodeHashMap.set(wordObject.nodeId, wordObject);
 
@@ -1130,9 +1118,18 @@ function createLinks (sessionObject, callback) {
   var sourceWord = nodeHashMap.get(sessionObject.source.nodeId);
   var targetWord;
 
-  if (typeof sessionObject.target !== 'undefined'){
-    if (typeof sessionObject.target.nodeId !== 'string') console.error("??? not string: " + jsonPrint(sessionObject.target));
-    if (nodeHashMap.has(sessionObject.target.nodeId)){
+  if (typeof sessionObject.target === 'undefined'){
+    callback (null, newLinks);
+    return;
+  }
+  else{
+    if (typeof sessionObject.target.nodeId !== 'string') {
+      console.warn("??? TARGET NODE ID NOT A STRING (NEW SESSION?) ... SKIPPING CREATE LINKS\nSESSION OBJECT TARGET\n" 
+        + jsonPrint(sessionObject.target));
+      callback (null, newLinks);
+      return;
+    }
+    else if (nodeHashMap.has(sessionObject.target.nodeId)){
       targetWord = nodeHashMap.get(sessionObject.target.nodeId);
     }
   }
@@ -1221,7 +1218,7 @@ function checkRxSessionUpdateQueue (callback){
     // + "\n" + jsonPrint(rxSessionObject.source)
     );
 
-    randomNumber360 = Math.random() * 360;
+    // randomNumber360 = Math.random() * 360;
 
     // if (sessionHashMap.has(sessionObject.sessionId)){
     if (sessionHashMap[sessionObject.sessionId]){
@@ -1280,24 +1277,6 @@ function checkRxSessionUpdateQueue (callback){
         // var currentSessEnQ = sessionUpdateQueue.enqueue(currentSess);
         sessionUpdateQueue.push(currentSess);
 
-        // if (sessionUpdateQueue.getLength() > sessionUpdateQueueMaxInQ) {
-        //   sessionUpdateQueueMaxInQ = sessionUpdateQueue.getLength();
-        // }
-
-
-        // console.warn("sessionUpdateQueue EN-Q | " + currentSessEnQ.sessionId
-        //   + " | " + currentSessEnQ.source.nodeId
-        //   + " [" + currentSessEnQ.source.wordChainIndex + "]"
-        //   + " -> " + currentSessEnQ.target.nodeId
-        //   + " [" + currentSessEnQ.target.wordChainIndex + "]"
-        //   + " | WCI: " + currentSessEnQ.wordChainIndex
-        //   + " | Q: " + sessionUpdateQueue.getLength()
-        // // + "\n" + jsonPrint(rxSessionObject.source)
-        // );
-
-        // peek = sessionUpdateQueue.peek() ;
-
-        // console.warn("sessionUpdateQueue POST EN-Q | PEEK: " + peek.source.nodeId);
       }
 
       callback(null, sessionsCreated);
@@ -1314,6 +1293,7 @@ function checkRxSessionUpdateQueue (callback){
       currentSess.wordChain = [];
       currentSess.initialPosition = computeInitialPosition(sessionsCreated);
 
+      randomNumber360 = Math.random() * 360;
 
       var startColor = "hsl(" + randomNumber360 + ",100%,50%)";
       var endColor = "hsl(" + randomNumber360 + ",0%,0%)";
@@ -1366,26 +1346,7 @@ function checkRxSessionUpdateQueue (callback){
 
         // var currentSessEnQ = sessionUpdateQueue.enqueue(currentSess);
         sessionUpdateQueue.push(currentSess);
-        // sessionUpdateQueue.enqueue(currentSess);
-
-        // if (sessionUpdateQueue.getLength() > sessionUpdateQueueMaxInQ) { 
-        //   sessionUpdateQueueMaxInQ = sessionUpdateQueue.getLength(); 
-        // }
-
-        // console.warn("sessionUpdateQueue NEW SESS | EN-Q | " + currentSessEnQ.sessionId
-        //   + " | " + currentSessEnQ.source.nodeId
-        //   + " [" + currentSessEnQ.source.wordChainIndex + "]"
-        //   + " -> " + currentSessEnQ.target.nodeId
-        //   + " [" + currentSessEnQ.target.wordChainIndex + "]"
-        //   + " | WCI: " + currentSessEnQ.wordChainIndex
-        //   + " | Q: " + sessionUpdateQueue.getLength()
-        // // + "\n" + jsonPrint(rxSessionObject.source)
-        // );
-
-        // var peek = sessionUpdateQueue.peek() ;
-
-        // console.warn("sessionUpdateQueue NEW SESS | PEEK: " + peek.source.nodeId);
-      }
+       }
 
       callback(null, sessionsCreated);
       return;
@@ -1395,9 +1356,6 @@ function checkRxSessionUpdateQueue (callback){
     // return;
   }
 
-  // if (rxSessionUpdateQueue.getLength() == 0){
-  //   callback(null, sessionsCreated);
-  // }
 }
 
 function getNodeFromQueue (callback) {
@@ -1413,23 +1371,9 @@ function getNodeFromQueue (callback) {
     return;
   }
 
-  // if (!sessionUpdateQueue.isEmpty()){
-  // while (!sessionUpdateQueue.isEmpty()){
-
   else {
 
-    // console.log("sessionUpdateQueue PEEK: " + jsonPrint(sessionUpdateQueue.peek()));
-
     numberSessionsUpdated += 1;
-
-    // if (sessionUpdateQueue.getLength() > QUEUE_MAX) {
-    //   sessionUpdateQueue.dequeue();
-    //   console.error("*** sessionUpdateQueue QUEUE_MAX *** " + sessionUpdateQueue.getLength());
-    // }
-
-    // var peek = sessionUpdateQueue.peek() ;
-
-    // console.warn("sessionUpdateQueue B4 DE-Q [" + sessionUpdateQueue.getLength() + "] | PEEK: " + peek.source.nodeId);
 
     var sessionDeQobject = {};
  
@@ -1496,6 +1440,7 @@ function ageNodes (callback){
 
     currentNodeObject = nodes[ageNodesIndex];
 
+
     // ageSession = sessionHashMap.get(currentNodeObject.sessionId);
     ageSession = sessionHashMap[currentNodeObject.sessionId];
 
@@ -1538,6 +1483,25 @@ function ageNodes (callback){
       nodes[ageNodesIndex].age = age;
       nodes[ageNodesIndex].ageUpdated = dateNow;
  
+      if (currentNodeObject.nodeId == ageSession.fixedNodeId) {
+        currentNodeObject.fixed = true;
+      }
+      else {
+        currentNodeObject.fixed = false;
+      }
+
+      ageLinksLength = links.length-1;
+      ageLinksIndex = links.length-1;
+
+      for (ageLinksIndex = ageLinksLength; ageLinksIndex >= 0; ageLinksIndex -= 1) {
+        if (currentNodeObject.nodeId === links[ageLinksIndex].target.nodeId) {
+          links[ageLinksIndex].age = currentNodeObject.age; 
+        }
+        else if (currentNodeObject.nodeId === links[ageLinksIndex].source.nodeId) {
+          links[ageLinksIndex].age = currentNodeObject.age; 
+        }
+      }
+
       nodeHashMap.set(currentNodeObject.nodeId, currentNodeObject);
     }
   }
@@ -1585,8 +1549,10 @@ function updateLinks(callback) {
     function(d) { return d.source.nodeId + "-" + d.target.nodeId; });
 
   link
-    .style('stroke', function(d){ return linkColorScale(d.age);});
-    // .style('opacity', function(d){ return 1.0; });
+    .style('stroke', function(d){ return linkColorScale(d.age);})
+    .style('opacity', function(d){
+      return (nodeMaxAge - d.age) / nodeMaxAge;
+    });
 
   link.enter()
     .append("svg:line", "g.node")
@@ -1625,10 +1591,14 @@ function updateNodeCircles (callback) {
       // return defaultRadiusScale(100);
     })
     .style("fill", function(d) { 
-      // return d.interpolateColor((nodeMaxAge - d.age) / nodeMaxAge);
-      return d.interpolateColor(1);
+      return d.interpolateColor((nodeMaxAge - d.age) / nodeMaxAge);
+      // return d.interpolateColor(1);
     })
-    .style('stroke', function(d){ return strokeColorScale(d.age); });
+    .style('stroke', function(d){ return strokeColorScale(d.age); })
+    .style('opacity', function(d){
+      return (nodeMaxAge - d.age) / nodeMaxAge;
+      // return 1;
+    });
 
   nodeCircles
     .enter()
@@ -1682,8 +1652,8 @@ function updateNodeLabels (callback) {
       return fontSizeScale(d.mentions + 1.1) + "vmin"; 
     })
     .style('opacity', function(d){
-      // return (nodeMaxAge - d.age) / nodeMaxAge;
-      return 1;
+      return (nodeMaxAge - d.age) / nodeMaxAge;
+      // return 1;
     });
 
   nodeLabels.enter()

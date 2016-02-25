@@ -486,7 +486,7 @@ var fillColorScale = d3.scale.linear()
 
 var strokeColorScale = d3.scale.linear()
     .domain([0, 30000, 60000])
-    .range(["#cccccc", "#666666", "#444444"]);
+    .range(["#cccccc", "#444444", "#000000"]);
 
 var linkColorScale = d3.scale.linear()
     .domain([0, 30000, 60000])
@@ -1599,8 +1599,12 @@ function updateNodeCircles (callback) {
       return d.interpolateColor((nodeMaxAge - d.age) / nodeMaxAge);
       // return d.interpolateColor(1);
     })
-    .style('stroke', function(d){ return strokeColorScale(d.age); })
     .style('opacity', function(d){
+      // return (nodeMaxAge - d.age) / nodeMaxAge;
+      return 1;
+    })
+    .style('stroke', function(d){ return strokeColorScale(d.age); })
+    .style('stroke-opacity', function(d){
       return (nodeMaxAge - d.age) / nodeMaxAge;
       // return 1;
     });

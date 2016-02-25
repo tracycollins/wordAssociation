@@ -10,6 +10,13 @@ var WordSchema = new Schema({
 	createdAt: { 
 		type: Date
 	},
+	wordChainIndex: {   
+		type: Number,
+		default: 0
+	},
+	links: {   
+		type: Object
+	},
 	lastSeen: {   
 		type: Number
 	},

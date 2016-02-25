@@ -978,13 +978,35 @@ function updateSessionViews(sessionUpdateObj){
   console.log(chalkInfo(">>> TX SESSION_UPDATE"
     + " | " + sessionUpdateObj.sessionId
     + " | WCI: " + sessionUpdateObj.wordChainIndex
-    // + " | " + jsonPrint(sessionUpdateObj.client.config)
     + " | " + sessionUpdateObj.source.nodeId
+    + " [" + sessionUpdateObj.source.wordChainIndex + "]"
     + " -> " + sessionUpdateObj.target.nodeId
+    + " [" + sessionUpdateObj.target.wordChainIndex + "]"
   ));
 
-  viewNameSpace.emit("SESSION_UPDATE", sessionUpdateObj);
-  testViewersNameSpace.emit("SESSION_UPDATE", sessionUpdateObj);
+  var sessionSmallObj = {
+    sessionId: sessionUpdateObj.sessionId,
+    wordChainIndex: sessionUpdateObj.wordChainIndex,
+    source: {},
+    target: {}
+  };
+
+  sessionSmallObj.source = {
+    nodeId: sessionUpdateObj.source.nodeId,
+    wordChainIndex: sessionUpdateObj.source.wordChainIndex,
+    links: {},
+    mentions: sessionUpdateObj.source.mentions
+  };
+
+  sessionSmallObj.target = {
+    nodeId: sessionUpdateObj.target.nodeId,
+    wordChainIndex: sessionUpdateObj.target.wordChainIndex,
+    links: {},
+    mentions: sessionUpdateObj.target.mentions
+  };
+
+  viewNameSpace.emit("SESSION_UPDATE", sessionSmallObj);
+  testViewersNameSpace.emit("SESSION_UPDATE", sessionSmallObj);
 
   sessionUpdatesSent++ ;
   updateStats({ sessionUpdatesSent: sessionUpdatesSent });
@@ -1032,7 +1054,10 @@ function sendPrompt(sessionObj, promptWordObj){
 
           var targetWordObj = wordCache.get(previousResponse);
 
+          targetWordObj.wordChainIndex = currentSession.wordChain.length-2;
+
           debug("CHAIN: " + currentSession.wordChain);
+
           console.log(chalkPrompt("P-> "
             + currentUser.userId 
             + " | " + sessionObj.sessionId 
@@ -1051,6 +1076,7 @@ function sendPrompt(sessionObj, promptWordObj){
         } else {
 
           sourceWordObj = promptWordObj;
+          sourceWordObj.wordChainIndex = currentSession.wordChain.length-1;
 
           console.log(chalkPrompt("P-> "
             + currentUser.userId 
@@ -1096,6 +1122,8 @@ function sendPrompt(sessionObj, promptWordObj){
         var targetSessionId = sessionRouteHashMap.get(currentSession.sessionId);
         var targetSession = sessionCache.get(targetSessionId);
         // var targetUser = userCache.get(targetSession.userId);
+
+        promptWordObj.wordChainIndex = targetSession.wordChain.length;
 
         targetSession.wordChain.push(promptWordObj.nodeId);
 
@@ -1651,7 +1679,7 @@ function chainDeadEnd(chain) {
 
       if (uniqueNodes.indexOf(chain[i]) == -1){
 
-        if (uniqueNodes.length > 3) {
+        if (uniqueNodes.length > 4) {
           console.log(chalkError("... NO CHAIN FREEZE\n" + jsonPrint(uniqueNodes)));
           return false ;
         }
@@ -3570,8 +3598,13 @@ var readSessionQueue = setInterval(function (){
                   case 'SYNONYM':
                     words.getRandomWord(function(err, randomWordObj){
                       if (!err) {
+
+                        randomWordObj.wordChainIndex = currentSession.wordChain.length;
+
                         wordCache.set(randomWordObj.nodeId, randomWordObj);
+
                         currentSession.wordChain.push(randomWordObj.nodeId);
+
                         sessionUpdateDb(currentSession, function(err, sessionUpdatedObj){
                           if (!err){
                             sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
@@ -3612,8 +3645,13 @@ var readSessionQueue = setInterval(function (){
 
                         words.getRandomWord(function(err, randomWordObj){
                           if (!err) {
+
+                            randomWordObj.wordChainIndex = updatedSessionObj.wordChain.length;
+
                             wordCache.set(randomWordObj.nodeId, randomWordObj);
+
                             updatedSessionObj.wordChain.push(randomWordObj.nodeId);
+
                             sessionUpdateDb(updatedSessionObj, function(err, sessionUpdatedObj){
                               if (!err){
                                 sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
@@ -3750,8 +3788,13 @@ var readResponseQueue = setInterval(function (){
 
       if ((typeof currentSessionObj.wordChain === 'undefined') || (currentSessionObj.wordChain.length == 0)){
         console.log(chalkResponse("START OF USER_USER SESSION | ADDING " + responseInObj.nodeId + " TO WORDCHAIN"));
+
         previousPrompt = responseInObj.nodeId;
+
+        responseInObj.wordChainIndex = currentSessionObj.wordChain.length;
+
         currentSessionObj.wordChain.push(responseInObj.nodeId);
+
         previousPromptObj = { nodeId: previousPrompt } ;
         wordCache.set(previousPromptObj.nodeId, previousPrompt); 
       }
@@ -3787,9 +3830,13 @@ var readResponseQueue = setInterval(function (){
     // ADD/UPDATE WORD IN DB
     dbUpdateWord(responseInObj, true, function(status, responseWordObj){
       if ((status == 'BHT_ERROR') || (status == 'BHT_OVER_LIMIT')) {
-        // wordCache.set(responseInObj.nodeId, responseInObj);
+
+        responseWordObj.wordChainIndex = currentSessionObj.wordChain.length;
+
         wordCache.set(responseWordObj.nodeId, responseWordObj);
+
         currentSessionObj.wordChain.push(responseWordObj.nodeId);
+
         sessionCache.set(currentSessionObj.sessionId, currentSessionObj, function(err, success){
           if (!err && success) {
 
@@ -3807,8 +3854,13 @@ var readResponseQueue = setInterval(function (){
         });
       }
       else {
+
+        responseWordObj.wordChainIndex = currentSessionObj.wordChain.length;
+
         wordCache.set(responseWordObj.nodeId, responseWordObj);
+
         currentSessionObj.wordChain.push(responseWordObj.nodeId);
+
         sessionCache.set(currentSessionObj.sessionId, currentSessionObj, function(err, success){
           if (!err && success) {
 
@@ -3900,7 +3952,11 @@ This is where routing of response -> prompt happens
               console.log(chalkError("**** generatePrompt ERROR\n" + jsonPrint(responseObj)))
             }
             else if (status == 'OK') {
+
+              responseObj.wordChainIndex = currentSession.wordChain.length;
+
               wordCache.set(responseObj.nodeId, responseObj);
+
               currentSession.wordChain.push(responseObj.nodeId);
 
               sessionUpdateDb(currentSession, function(err, sessionUpdatedObj){
@@ -3940,7 +3996,11 @@ This is where routing of response -> prompt happens
               console.log(chalkError("**** generatePrompt ERROR\n" + jsonPrint(responseObj)))
             }
             else if (status == 'OK') {
+
+              responseObj.wordChainIndex = currentSession.wordChain.length;
+
               wordCache.set(responseObj.nodeId, responseObj);
+
               currentSession.wordChain.push(responseObj.nodeId);
 
               sessionUpdateDb(currentSession, function(err, sessionUpdatedObj){
@@ -3986,9 +4046,11 @@ This is where routing of response -> prompt happens
               console.log(chalkError("**** USER_USER generatePrompt ERROR\n" + jsonPrint(err)))
             }
             else {
+
+              responseWordObj.wordChainIndex = targetSession.wordChain.length;
+
               wordCache.set(responseWordObj.nodeId, responseWordObj);
 
-              // currentSession.wordChain.push(responseWordObj.nodeId);
               targetSession.wordChain.push(responseWordObj.nodeId);
 
               sessionUpdateDb(currentSession, function(err, sessionUpdatedObj){
@@ -4830,6 +4892,12 @@ function initAppRouting(callback){
 
   console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | INIT APP ROUTING"));
 
+
+  app.get('/js/libs/stringmap.js', function(req, res){
+    console.log("LOADING FILE: /js/libs/stringmap.jss");
+    res.sendFile(__dirname + '/js/libs/stringmap.js');
+    return;
+  });
 
   app.get('/node_modules/node-cache/lib/node_cache.js', function(req, res){
     console.log("LOADING FILE: /node_modules/node-cache/lib/node_cache.js");

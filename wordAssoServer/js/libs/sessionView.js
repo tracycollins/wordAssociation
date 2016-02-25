@@ -26,8 +26,8 @@ var DEFAULT_AGE_RATE = 1.0;
 var ageRate = DEFAULT_AGE_RATE;
 var nodeMaxAge = DEFAULT_MAX_AGE;
 
-var DEFAULT_CHARGE = -500;
-var DEFAULT_GRAVITY = 0.04;
+var DEFAULT_CHARGE = -350;
+var DEFAULT_GRAVITY = 0.05;
 var DEFAULT_LINK_STRENGTH = 0.4;
 var DEFAULT_FRICTION = 0.9;
 
@@ -65,6 +65,8 @@ var nodeHashMap = new StringMap();
 var nodesCreated = 0;
 
 var dateNow = moment().valueOf();
+var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
+var defaultTimePeriodFormat = "HH:mm:ss";
 
 var currentSession;
 var sessionId;
@@ -125,8 +127,8 @@ var DEFAULT_STATS_OVERLAY2_Y = 0.86;
 var DEFAULT_STATS_OVERLAY3_X = 0.05;
 var DEFAULT_STATS_OVERLAY3_Y = 0.88;
 
-var DEFAULT_DATE_TIME_OVERLAY_X = 0.05;
-var DEFAULT_DATE_TIME_OVERLAY_Y = 0.90;
+var DEFAULT_DATE_TIME_OVERLAY_X = 0.95;
+var DEFAULT_DATE_TIME_OVERLAY_Y = 0.04;
 
 var ADMIN_OVERLAY0_X;
 var ADMIN_OVERLAY0_Y;
@@ -567,7 +569,7 @@ var dateTimeOverlay = svgcanvas.append("svg:g")
   .attr("y", DATE_TIME_OVERLAY_Y)
   .style("opacity", 1e-6)
   .style("font-size", "1.4vmin")
-  .style("text-anchor", "start")
+  .style("text-anchor", "end")
   .style("fill", "#888888");
 
 var statsOverlay1 = svgcanvas.append("svg:g") // user screenname
@@ -576,27 +578,28 @@ var statsOverlay1 = svgcanvas.append("svg:g") // user screenname
   .append("svg:a")
   .attr("id", "userUrl")
   .attr("xlink:show", "new")
-  .attr("xlink:href", "http://threeceemedia.com/blacklivesmatter")
+  .attr("xlink:href", "http://word.threeceemedia.com/")
   .attr("x", STATS_OVERLAY1_X)
   .attr("y", STATS_OVERLAY1_Y)
   .append("text")
   .attr("id", "userScreenName")
   .attr("class", "userScreenName")
-  .style("opacity", 0.4)
+  .text("word association")
+  .style("opacity", 0.8)
   .style("font-size", "1.4vmin")
-  .style("fill", palette.white);
+  .style("fill", palette.blue);
 
 var statsOverlay2 = svgcanvas.append("svg:g")  // tweet createdAt
   .attr("id", "statsOverlay2")
   .attr("class", "statsOverlay")
   .append("text")
   .attr("id", "tweetCreatedAt")
-  .text("...")
+  .text("threecee")
   .attr("x", STATS_OVERLAY2_X)
   .attr("y", STATS_OVERLAY2_Y)
-  .style("opacity", 0.4)
+  .style("opacity", 0.8)
   .style("font-size", "1.4vmin")
-  .style("fill", palette.white);
+  .style("fill", palette.blue);
 
 var statsOverlay3 = svgcanvas.append("svg:g") // tweet text
   .attr("id", "statsOverlay3")
@@ -611,9 +614,10 @@ var statsOverlay3 = svgcanvas.append("svg:g") // tweet text
   .append("text")
   .attr("id", "tweetText")
   .attr("class", "tweetText")
-  .style("opacity", 1)
-  .style("font-size", "1.5vmin")
-  .style("fill", "#aaaaaa");
+  .text("threeceemedia.com")
+  .style("opacity", 0.8)
+  .style("font-size", "1.4vmin")
+  .style("fill", palette.blue);
 
 var adminOverlay0 = svgcanvas.append("svg:g")
   .attr("class", "admin")
@@ -767,7 +771,8 @@ function resetDefaultForce(){
 
 //  CLOCK
 setInterval (function () {
-  dateTimeOverlay = d3.select("#dateTimeOverlay").select("text").text(getTimeStamp());
+  // dateTimeOverlay = d3.select("#dateTimeOverlay").select("text").text(getTimeStamp());
+  dateTimeOverlay = d3.select("#dateTimeOverlay").select("text").text("SERVER TIME: " + moment().format(defaultDateTimeFormat));
 }, 1000 );
 
 d3.select('#statsToggleButton').on("click", function() {  // STATS BUTTON
@@ -817,7 +822,7 @@ setInterval (function () {
       );
 
   d3.select("#adminOverlay3").select("text")
-    .text("LOCAL TIME: " + getTimeStamp());
+    .text("LOCAL TIME: " + moment().format(defaultDateTimeFormat));
 }, 1000 );
 
 

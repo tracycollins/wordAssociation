@@ -1196,7 +1196,7 @@ function createLinks (sessionObject, callback) {
 var numberSessionsUpdated = 0;
 
 // var sessionDeQobject = {};
-var randomNumber360 = Math.random() * 360;
+// var randomNumber360 = Math.random() * 360;
 
 function checkRxSessionUpdateQueue (callback){
 
@@ -1298,10 +1298,11 @@ function checkRxSessionUpdateQueue (callback){
       currentSess.wordChain = [];
       currentSess.initialPosition = computeInitialPosition(sessionsCreated);
 
-      randomNumber360 = Math.random() * 360;
+      var randomNumber360 = Math.random() * 360;
 
       var startColor = "hsl(" + randomNumber360 + ",100%,50%)";
       var endColor = "hsl(" + randomNumber360 + ",0%,0%)";
+
       var interpolateNodeColor = d3.interpolateHcl(endColor, startColor);
 
       currentSess.colors = {'startColor': startColor, 'endColor': endColor};
@@ -1319,6 +1320,7 @@ function checkRxSessionUpdateQueue (callback){
         + " | WCO: " + currentSess.wordChainOffset
         + " | WCSI: " + currentSess.wordChainSegmentIndex
         + " | WCL: " + currentSess.wordChain.length
+        + " | colors\n" + jsonPrint(currentSess.colors)
         // + "\nWC: " + currentSess.wordChain
       );
 

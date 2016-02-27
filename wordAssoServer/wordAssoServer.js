@@ -23,7 +23,7 @@ var testMode = false ;
 var bhtOverLimitTestFlag = false ;
 
 // ==================================================================
-// SESSION TYPES: RANDOM, ANTONYM, SYNONYM, SCRIPT, USER_USER, GROUP  ( session.config.type )
+// SESSION TYPES: RANDOM, ANTONYM, SYNONYM, SCRIPT, USER_USER, GROUP, STREAM  ( session.config.type )
 // ==================================================================
 
 var sessionTypes = [ "RANDOM", "ANTONYM", "SYNONYM", "SCRIPT", "USER_USER", "GROUP" ];
@@ -173,6 +173,14 @@ var promptsSent = 0;
 var responsesReceived = 0;
 var sessionUpdatesSent = 0;
 
+var bhtWordsMiss = {};
+var bhtWordsNotFound = {};
+
+var mwDictWordsMiss = {};
+var mwDictWordsNotFound = {};
+
+var mwThesWordsMiss = {};
+var mwThesWordsNotFound = {};
 
 var wordAssoServerStatsObj = {
 
@@ -195,7 +203,14 @@ var wordAssoServerStatsObj = {
   "sessionUpdatesSent" : 0,
 
   "bhtRequests" : 0,
+  "bhtWordsMiss" : {},
+  "bhtWordsNotFound" : {},
+
   "mwRequests" : 0,
+  "mwDictWordsMiss" : {},
+  "mwDictWordsNotFound" : {},
+  "mwThesWordsMiss" : {},
+  "mwThesWordsNotFound" : {},
 
   "heartbeat" : txHeartbeat
 };
@@ -1243,6 +1258,8 @@ function dbUpdateWord(wordObj, incMentions, callback){
           else {
             debug(chalkBht("-O- BHT MISS  | " + wordObj.nodeId));
             wordCache.set(bhtResponseObj.nodeId, bhtResponseObj);
+            bhtWordsMiss[word.nodeId] = word.nodeId;
+            updateStats({bhtWordsMiss: bhtWordsMiss});
             callback('BHT_MISS', bhtResponseObj);
           }
         });
@@ -1255,6 +1272,8 @@ function dbUpdateWord(wordObj, incMentions, callback){
       else {
         debug(chalkBht("-N- BHT NOT FOUND  | " + word.nodeId));
         wordCache.set(word.nodeId, word);
+        bhtWordsNotFound[word.nodeId] = word.nodeId;
+        updateStats({bhtWordsNotFound: bhtWordsNotFound});
         callback('BHT_NOT_FOUND', word);
       }
     }
@@ -1639,8 +1658,9 @@ function bhtSearchWord (wordObj, callback){
     debug(chalkBht(">>> BHT SEARCH (before replace): " + wordObj.nodeId));
 
     wordObj.nodeId = wordObj.nodeId.replace(/\s+/g, ' ');
-    wordObj.nodeId = wordObj.nodeId.replace(/[\n\r\[\]\{\}\<\>\/\;\:\"\`\~\?\!\@\#\$\%\^\&\*\(\)\_\+\=]+/g, '') ;
+    wordObj.nodeId = wordObj.nodeId.replace(/[\n\r\[\]\{\}\<\>\/\;\:\"\`\~\?\!\@\#\$\%\^\&\*\(\)\_\+\=\.\,]+/g, '') ;
     wordObj.nodeId = wordObj.nodeId.replace(/\s+/g, ' ') ;
+    wordObj.nodeId = wordObj.nodeId.replace(/^-+|-+$/g, '') ;
     wordObj.nodeId = wordObj.nodeId.replace(/^\s+|\s+$/g, '') ;
     wordObj.nodeId = wordObj.nodeId.replace(/\'+/g, "'") ;
     wordObj.nodeId = wordObj.nodeId.toLowerCase();
@@ -3109,9 +3129,14 @@ var readSessionQueue = setInterval(function (){
 
       case 'SESSION_CREATE':
 
-        sesObj.session.config.type = enabledSessionTypes[randomInt(0, enabledSessionTypes.length)];
+        if (typeof sesObj.session.config.type !== 'undefined'){
+          console.log(chalkSession("... SESSION TYPE SET:    " + sesObj.session.config.type ));
+        }
+        else {
+          sesObj.session.config.type = enabledSessionTypes[randomInt(0, enabledSessionTypes.length)];
+          console.log(chalkSession("... SESSION TYPE RANDOM: " + sesObj.session.config.type ));
+        }
 
-        console.log(chalkSession("... SESSION TYPE: " + sesObj.session.config.type ));
 
         // sesObj.session.config.type = defaultSessionType ;
 
@@ -3138,6 +3163,8 @@ var readSessionQueue = setInterval(function (){
           case 'USER_USER':
           break;
           case 'GROUP':
+          break;
+          case 'STREAM':
           break;
           default:
             console.error(chalkError(" 1 ????? UNKNOWN SESSION TYPE: " + sesObj.session.config.type));
@@ -3560,6 +3587,8 @@ var readSessionQueue = setInterval(function (){
         ));
 
         var currentSession = sessionCache.get(sesObj.session.sessionId);
+
+        currentSession.config.type = sesObj.session.config.type;
         currentSession.userId = sesObj.user.userId;
 
         sesObj.user.ip = sesObj.session.ip;
@@ -3685,6 +3714,23 @@ var readSessionQueue = setInterval(function (){
                   case 'GROUP':
                   break;
 
+                  case 'STREAM':
+                    console.log(chalkSession("... STREAM USER " + currentSession.userId));
+                    sessionUpdateDb(currentSession, function(err, sessionUpdatedObj){
+                      if (!err){
+                        sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
+                        console.log(chalkInfo("-S- DB UPDATE"
+                          + " | " + sessionUpdatedObj.sessionId
+                          + " | TYPE: " + sessionUpdatedObj.config.type
+                          + " | WCL: " + sessionUpdatedObj.wordChain.length
+                        ));
+                      }
+                      else {
+                        console.log(chalkError("*** ERROR DB UPDATE SESSION\n" + err));
+                      }
+                    });
+                  break;
+
                   default:
                     console.error(chalkError("2  ????? UNKNOWN SESSION TYPE: " + sesObj.session.config.type));
                     quit();
@@ -3768,12 +3814,19 @@ var readResponseQueue = setInterval(function (){
         debug(chalkResponse("... previousPromptObj: " + previousPromptObj.nodeId));
       }
     }
+    else if (currentSessionObj.config.type == 'STREAM') {
+      // currentSessionObj.wordChain.push(responseInObj.nodeId);
+      previousPromptObj = {nodeId: 'STREAM'};
+      console.log(chalkWarn("STREAM WORD CHAIN\n" + jsonPrint(currentSessionObj.wordChain)));
+      // return;
+    }
     else {
       console.log(chalkWarn("??? EMPTY WORD CHAIN ... PREVIOUS PROMPT NOT IN CACHE: " + previousPrompt
         + " ... ABORTING SESSION"
       ));
       return;
     }
+
     
     if (currentSessionObj.config.type == 'USER_USER') {
 
@@ -4083,7 +4136,9 @@ This is where routing of response -> prompt happens
               });
             }
           });
+        break;
 
+        case 'STREAM':
         break;
 
         // case 'SCRIPT':
@@ -4635,6 +4690,11 @@ function createSession (newSessionObj){
       + " | SID: " + sessionObj.sessionId
       + " | " + moment().format(defaultDateTimeFormat)
     ));
+
+    if (typeof userObj.mode !== 'undefined'){
+      console.log("USER MODE: " + userObj.mode);
+      sessionObj.config.type = userObj.mode;
+    }
 
     sessionQueue.enqueue({sessionEvent: "USER_READY", session: sessionObj, user: userObj});
   });

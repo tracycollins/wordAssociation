@@ -1122,6 +1122,18 @@ function createLinks (sessionObject, callback) {
   var sourceWordId = sessionObject.source.nodeId;
   var targetWordId = sessionObject.target.nodeId;
 
+  var prevTargetWordId ;
+  var prevTargetWord;
+
+  if (sessionObject.wordChain.length > 2){
+    prevTargetWordId = sessionObject.wordChain[sessionObject.wordChain.length-3];
+      // console.log("PREV TARGET ID: " + prevTargetWordId);
+    if (nodeHashMap.has(prevTargetWordId)) {
+      prevTargetWord = nodeHashMap.get(prevTargetWordId);
+      // console.log("PREV TARGET: " + jsonPrint(prevTargetWord));
+    }
+  }
+
   var sourceWord = nodeHashMap.get(sessionObject.source.nodeId);
   var targetWord;
 
@@ -1186,6 +1198,26 @@ function createLinks (sessionObject, callback) {
 
     nodeHashMap.set(sourceWord.nodeId, sourceWord) ;
     nodeHashMap.set(targetWord.nodeId, targetWord) ;
+
+    if (prevTargetWord) {
+      console.log("PREV LINK | " + targetWord.nodeId + " > " + prevTargetWord.nodeId);
+      var newPrevLink = {
+        sessionId: sessionObject.sessionId,
+        // wordChainIndex: wcIndex,
+        age: 0,
+        source: targetWord,
+        target: prevTargetWord
+      };
+
+      links.push(newPrevLink);
+      newLinks.push(newPrevLink.source.nodeId + " > " + newPrevLink.target.nodeId);
+
+      targetWord.links[prevTargetWord.nodeId] = 1;
+      prevTargetWord.links[targetWord.nodeId] = 1;
+
+      nodeHashMap.set(targetWord.nodeId, targetWord) ;
+      nodeHashMap.set(prevTargetWord.nodeId, prevTargetWord) ;
+    }
 
     // force.links(links);
 

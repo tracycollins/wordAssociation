@@ -671,7 +671,7 @@ setInterval(function () {
       console.error("!!! ERROR: SAVE STATUS | FILE: " + statsFile + "\n" + status);
     }
     else {
-      console.log(chalkLog("SAVE STATUS OK | FILE: " + statsFile));
+      debug(chalkLog("SAVE STATUS OK | FILE: " + statsFile));
     }
   });
 
@@ -1700,7 +1700,7 @@ function chainDeadEnd(chain) {
       if (uniqueNodes.indexOf(chain[i]) == -1){
 
         if (uniqueNodes.length > 4) {
-          console.log(chalkError("... NO CHAIN FREEZE\n" + jsonPrint(uniqueNodes)));
+          debug(chalkError("... NO CHAIN FREEZE\n" + jsonPrint(uniqueNodes)));
           return false ;
         }
         else if (i == chain.length-6){
@@ -1712,7 +1712,7 @@ function chainDeadEnd(chain) {
         }
         else {
           uniqueNodes.push(chain[i]);
-          console.log(chalkError("ADDED UNIQUE NODE\n" + jsonPrint(uniqueNodes))); 
+          debug(chalkError("ADDED UNIQUE NODE\n" + jsonPrint(uniqueNodes))); 
         }
 
       }
@@ -1720,7 +1720,7 @@ function chainDeadEnd(chain) {
 
   }
   else {
-    console.log(chalkError("... NO CHAIN FREEZE\nCHAIN\n" + jsonPrint(chain)));
+    debug(chalkError("... NO CHAIN FREEZE\nCHAIN\n" + jsonPrint(chain)));
     return false ;
   }
  }
@@ -3246,6 +3246,7 @@ var readSessionQueue = setInterval(function (){
           + " | DOMAIN: " + sesObj.session.domain
         ));
 
+        io.of(sesObj.session.namespace).to(sesObj.session.sessionId).emit('SESSION_EXPIRED', sesObj.session.sessionId);
 
         sesObj.session.disconnectTime = moment().valueOf();
 
@@ -4715,7 +4716,7 @@ function createSession (newSessionObj){
 
     responseInObj.socketId = socket.id ;
 
-    console.log(chalkResponse(">>> RX RESPONSE | " + responseInObj.nodeId));
+    console.log(chalkResponse("> RX RSP | " + responseInObj.nodeId));
 
     responseQueue.enqueue(rxInObj);
   });

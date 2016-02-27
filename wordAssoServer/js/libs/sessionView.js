@@ -1199,7 +1199,7 @@ function createLinks (sessionObject, callback) {
     nodeHashMap.set(sourceWord.nodeId, sourceWord) ;
     nodeHashMap.set(targetWord.nodeId, targetWord) ;
 
-    if (prevTargetWord) {
+    if (prevTargetWord && !targetWord.links[prevTargetWord.nodeId] && !prevTargetWord.links[targetWord.nodeId]) {
       console.log("PREV LINK | " + targetWord.nodeId + " > " + prevTargetWord.nodeId);
       var newPrevLink = {
         sessionId: sessionObject.sessionId,

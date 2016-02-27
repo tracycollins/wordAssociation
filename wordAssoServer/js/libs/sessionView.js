@@ -1014,12 +1014,12 @@ function createNode (sessionId, wordObject, callback) {
 
     if (nodeHashMap.has(currentNodeId)) {
 
-      console.log("@@@ NODE IN HM: " + sessionId 
-        + " | " + currentNodeId 
-        + " | " + createNodeSession.source.nodeId 
-        + " -> " + createNodeSession.target.nodeId 
-        + " | WCSI: " + createNodeSession.wordChainSegmentIndex
-      );
+      // console.log("@@@ NODE IN HM: " + sessionId 
+      //   + " | " + currentNodeId 
+      //   + " | " + createNodeSession.source.nodeId 
+      //   + " -> " + createNodeSession.target.nodeId 
+      //   + " | WCSI: " + createNodeSession.wordChainSegmentIndex
+      // );
       
       currentNodeObject = nodeHashMap.get(currentNodeId);
 
@@ -1215,15 +1215,15 @@ function checkRxSessionUpdateQueue (callback){
     // var currentSess = {};
     var sessionObject = rxSessionUpdateQueue.dequeue();
 
-    console.log("checkRxSessionUpdateQueue DE-Q | " + sessionObject.sessionId
-      + " | " + sessionObject.source.nodeId
-      + " [" + sessionObject.source.wordChainIndex + "]"
-      + " -> " + sessionObject.target.nodeId
-      + " [" + sessionObject.target.wordChainIndex + "]"
-      + " | WCI: " + sessionObject.wordChainIndex
-      + " | Q: " + rxSessionUpdateQueue.getLength()
-    // + "\n" + jsonPrint(rxSessionObject.source)
-    );
+    // console.log("checkRxSessionUpdateQueue DE-Q | " + sessionObject.sessionId
+    //   + " | " + sessionObject.source.nodeId
+    //   + " [" + sessionObject.source.wordChainIndex + "]"
+    //   + " -> " + sessionObject.target.nodeId
+    //   + " [" + sessionObject.target.wordChainIndex + "]"
+    //   + " | WCI: " + sessionObject.wordChainIndex
+    //   + " | Q: " + rxSessionUpdateQueue.getLength()
+    // // + "\n" + jsonPrint(rxSessionObject.source)
+    // );
 
     // randomNumber360 = Math.random() * 360;
 
@@ -1271,15 +1271,15 @@ function checkRxSessionUpdateQueue (callback){
         // var peek = sessionUpdateQueue.peek() ;
         // if (peek) console.warn("sessionUpdateQueue B4 EN-Q | PEEK: " + peek.source.nodeId);
 
-        console.log("sessionUpdateQueue B4 EN-Q | " + currentSess.sessionId
-          + " | " + currentSess.source.nodeId
-          + " [" + currentSess.source.wordChainIndex + "]"
-          + " -> " + currentSess.target.nodeId
-          + " [" + currentSess.target.wordChainIndex + "]"
-          + " | WCI: " + currentSess.wordChainIndex
-          + " | Q: " + sessionUpdateQueue.length
-        // + "\n" + jsonPrint(rxSessionObject.source)
-        );
+        // console.log("sessionUpdateQueue B4 EN-Q | " + currentSess.sessionId
+        //   + " | " + currentSess.source.nodeId
+        //   + " [" + currentSess.source.wordChainIndex + "]"
+        //   + " -> " + currentSess.target.nodeId
+        //   + " [" + currentSess.target.wordChainIndex + "]"
+        //   + " | WCI: " + currentSess.wordChainIndex
+        //   + " | Q: " + sessionUpdateQueue.length
+        // // + "\n" + jsonPrint(rxSessionObject.source)
+        // );
 
         // var currentSessEnQ = sessionUpdateQueue.enqueue(currentSess);
         sessionUpdateQueue.push(currentSess);
@@ -1343,15 +1343,15 @@ function checkRxSessionUpdateQueue (callback){
         );
       }
       else {
-        console.log("sessionUpdateQueue NEW SESS | B4 EN-Q | " + currentSess.sessionId
-          + " | " + currentSess.source.nodeId
-          + " [" + currentSess.source.wordChainIndex + "]"
-          + " -> " + currentSess.target.nodeId
-          + " [" + currentSess.target.wordChainIndex + "]"
-          + " | WCI: " + currentSess.wordChainIndex
-          + " | Q: " + sessionUpdateQueue.length
-        // + "\n" + jsonPrint(rxSessionObject.source)
-        );
+        // console.log("sessionUpdateQueue NEW SESS | B4 EN-Q | " + currentSess.sessionId
+        //   + " | " + currentSess.source.nodeId
+        //   + " [" + currentSess.source.wordChainIndex + "]"
+        //   + " -> " + currentSess.target.nodeId
+        //   + " [" + currentSess.target.wordChainIndex + "]"
+        //   + " | WCI: " + currentSess.wordChainIndex
+        //   + " | Q: " + sessionUpdateQueue.length
+        // // + "\n" + jsonPrint(rxSessionObject.source)
+        // );
 
         // var currentSessEnQ = sessionUpdateQueue.enqueue(currentSess);
         sessionUpdateQueue.push(currentSess);
@@ -1389,14 +1389,14 @@ function getNodeFromQueue (callback) {
     // sessionDeQobject = sessionUpdateQueue.dequeue();
     sessionDeQobject = sessionUpdateQueue.shift();
 
-    console.log("sessionUpdateQueue DE-Q" 
-      + " [" + sessionUpdateQueue.length + "]"
-      + " | " + sessionDeQobject.sessionId
-      + " | " + sessionDeQobject.source.nodeId
-      + " [ " + sessionDeQobject.source.wordChainIndex
-      + " | " + sessionDeQobject.wordChainOffset
-      + " | " + sessionDeQobject.wordChainSegmentIndex + " ]"
-    );
+    // console.log("sessionUpdateQueue DE-Q" 
+    //   + " [" + sessionUpdateQueue.length + "]"
+    //   + " | " + sessionDeQobject.sessionId
+    //   + " | " + sessionDeQobject.source.nodeId
+    //   + " [ " + sessionDeQobject.source.wordChainIndex
+    //   + " | " + sessionDeQobject.wordChainOffset
+    //   + " | " + sessionDeQobject.wordChainSegmentIndex + " ]"
+    // );
 
     createNode(sessionDeQobject.sessionId, sessionDeQobject.source, function(err, newNodesFlag){
       console.log("SOURCE" 
@@ -1408,7 +1408,7 @@ function getNodeFromQueue (callback) {
       );
       createLinks(sessionDeQobject, function(err, newLinks){
         if (newLinks.length > 0) {
-          console.log("NEW LINKS\n" + jsonPrint(newLinks));
+          // console.log("NEW LINKS\n" + jsonPrint(newLinks));
           // if (sessionUpdateQueue.isEmpty()) {
             callback (null, numberSessionsUpdated);
           // }

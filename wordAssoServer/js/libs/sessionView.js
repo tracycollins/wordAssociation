@@ -20,7 +20,7 @@ var mouseOverRadius = 10;
 var mouseHoverFlag = false;
 var mouseHoverNodeId;
 
-var DEFAULT_MAX_AGE = 20000.0;
+var DEFAULT_MAX_AGE = 30000.0;
 var DEFAULT_AGE_RATE = 1.0;
 
 var ageRate = DEFAULT_AGE_RATE;
@@ -29,7 +29,7 @@ var nodeMaxAge = DEFAULT_MAX_AGE;
 var DEFAULT_CHARGE = -350;
 var DEFAULT_GRAVITY = 0.05;
 var DEFAULT_LINK_STRENGTH = 0.4;
-var DEFAULT_FRICTION = 0.9;
+var DEFAULT_FRICTION = 0.75;
 
 var DEFAULT_SESSION_CONFIG = {
     'charge': DEFAULT_CHARGE,
@@ -1504,10 +1504,14 @@ function ageNodes (callback){
 
       for (ageLinksIndex = ageLinksLength; ageLinksIndex >= 0; ageLinksIndex -= 1) {
         if (currentNodeObject.nodeId === links[ageLinksIndex].target.nodeId) {
-          links[ageLinksIndex].age = currentNodeObject.age; 
-        }
+          if (links[ageLinksIndex].age < currentNodeObject.age){
+            links[ageLinksIndex].age = currentNodeObject.age; 
+          }
+         }
         else if (currentNodeObject.nodeId === links[ageLinksIndex].source.nodeId) {
-          links[ageLinksIndex].age = currentNodeObject.age; 
+          if (links[ageLinksIndex].age < currentNodeObject.age){
+            links[ageLinksIndex].age = currentNodeObject.age; 
+          }
         }
       }
 
@@ -1560,7 +1564,7 @@ function updateLinks(callback) {
   link
     .style('stroke', function(d){ return linkColorScale(d.age);})
     .style('opacity', function(d){
-      return (nodeMaxAge - d.age) / nodeMaxAge;
+        return 0.1+((nodeMaxAge - d.age) / nodeMaxAge);
     });
 
   link.enter()
@@ -1572,7 +1576,7 @@ function updateLinks(callback) {
     .transition()
       .duration(defaultFadeDuration)      
       .style('opacity', function(d){
-        return (nodeMaxAge - d.age) / nodeMaxAge;
+        return 0.1+((nodeMaxAge - d.age) / nodeMaxAge);
       });
 
   link

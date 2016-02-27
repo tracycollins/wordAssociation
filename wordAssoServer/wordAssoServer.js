@@ -3769,10 +3769,10 @@ var readResponseQueue = setInterval(function (){
       return ; 
     }
 
-    console.log("currentSessionObj"
-      + ": " + currentSessionObj.sessionId
-      + " | TYPE: " + currentSessionObj.config.type
-    );
+    // console.log("currentSessionObj"
+    //   + ": " + currentSessionObj.sessionId
+    //   + " | TYPE: " + currentSessionObj.config.type
+    // );
 
     // console.log("currentSessionObj\n" + jsonPrint(currentSessionObj));
 
@@ -3864,6 +3864,7 @@ var readResponseQueue = setInterval(function (){
     console.log(chalkResponse("R<- "
       + currentSessionObj.userId 
       + " | " + socketId 
+      + " | " + currentSessionObj.config.type 
       + " | " + responseInObj.nodeId + " <-- " + previousPrompt));
 
 
@@ -3874,10 +3875,10 @@ var readResponseQueue = setInterval(function (){
     var responseCacheObj = wordCache.get(responseInObj.nodeId); 
 
     if (responseCacheObj) {
-      console.log(chalkInfo(".W. CACHE HIT  | " + responseInObj.nodeId));
+      debug(chalkInfo(".W. CACHE HIT  | " + responseInObj.nodeId));
     }
     else {
-      console.log(chalkInfo(".w. CACHE MISS | " + responseInObj.nodeId));
+      debug(chalkInfo(".w. CACHE MISS | " + responseInObj.nodeId));
     }
 
     // ADD/UPDATE WORD IN DB

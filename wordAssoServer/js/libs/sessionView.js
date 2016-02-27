@@ -1030,7 +1030,8 @@ function createNode (sessionId, wordObject, callback) {
       currentNodeObject.lastSeen = dateNow;
       currentNodeObject.mentions = wordObject.mentions;
 
-      currentNodeObject.text = currentNodeObject.nodeId + " | " + wordObject.wordChainIndex;
+      // currentNodeObject.text = currentNodeObject.nodeId + " | " + wordObject.wordChainIndex;
+      currentNodeObject.text = currentNodeObject.nodeId;
 
       currentNodeObject.fixed = true;
       createNodeSession.fixedNodeId = currentNodeObject.nodeId ;
@@ -1070,7 +1071,8 @@ function createNode (sessionId, wordObject, callback) {
 
       wordObject.colors = createNodeSession.colors;
       wordObject.interpolateColor = createNodeSession.interpolateColor;
-      wordObject.text = wordObject.nodeId + " | " + wordObject.wordChainIndex;
+      // wordObject.text = wordObject.nodeId + " | " + wordObject.wordChainIndex;
+      wordObject.text = wordObject.nodeId ;
 
       wordObject.fixed = true;
 

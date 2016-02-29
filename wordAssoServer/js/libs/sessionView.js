@@ -61,8 +61,9 @@ var sessionHashMap = {};
 
 var urlRoot = "http://localhost:9997/session?session=";
 
-var nodeHashMap = {};
+// var nodeHashMap = {};
 // var nodeHashMap = new StringMap();
+var nodeHashMap = new StringMap();
 
 var nodesCreated = 0;
 
@@ -1003,9 +1004,9 @@ function createNode (sessionId, wordObject, callback) {
     var currentNodeObject = {};
     var currentNodeId = wordObject.nodeId;
 
-    if (nodeHashMap[currentNodeId]) {
+    if (nodeHashMap.has(currentNodeId)) {
 
-      currentNodeObject = nodeHashMap[currentNodeId];
+      currentNodeObject = nodeHashMap.get(currentNodeId);
 
       currentNodeObject.sessionId = sessionId;
       currentNodeObject.age = 0;
@@ -1020,7 +1021,7 @@ function createNode (sessionId, wordObject, callback) {
 
       nodesLength = nodes.length;
 
-      nodeHashMap[currentNodeId] = currentNodeObject;
+      nodeHashMap.set(currentNodeId, currentNodeObject);
 
       callback (null, newNodesFlag);
     }
@@ -1058,7 +1059,7 @@ function createNode (sessionId, wordObject, callback) {
 
       createNodeSession.fixedNodeId = wordObject.nodeId ;
 
-      nodeHashMap[wordObject.nodeId] = wordObject;
+      nodeHashMap.set(wordObject.nodeId, wordObject);
 
       nodes.push(wordObject);
 
@@ -1114,7 +1115,7 @@ function createLinks (sessionObject, callback) {
   var sourceWordId = sessionObject.source.nodeId;
   var targetWordId = sessionObject.target.nodeId;
 
-  var sourceWord = nodeHashMap[sessionObject.source.nodeId];
+  var sourceWord = nodeHashMap.get(sessionObject.source.nodeId);
   var targetWord;
 
   if (typeof sessionObject.target === 'undefined'){
@@ -1131,17 +1132,17 @@ function createLinks (sessionObject, callback) {
     callback (null, newLinks);
     return;
   }
-  else if (nodeHashMap[sessionObject.target.nodeId]){
-    targetWord = nodeHashMap[sessionObject.target.nodeId];
+  else if (nodeHashMap.has(sessionObject.target.nodeId)){
+    targetWord = nodeHashMap.get(sessionObject.target.nodeId);
   }
 
-  if (!nodeHashMap[sessionObject.source.nodeId]) {
-    console.warn("sourceWordId " + sourceWordId + " NOT IN nodeHashMap ... SKIPPING createLinks");
+  if (!nodeHashMap.has(sessionObject.source.nodeId)) {
+    console.error("sourceWordId " + sourceWordId + " NOT IN nodeHashMap ... SKIPPING createLinks");
     callback (null, newLinks);
     return;
   }
-  else if (!nodeHashMap[sessionObject.target.nodeId]) {
-    console.warn("targetWordId " + targetWordId + " NOT IN nodeHashMap ... SKIPPING createLinks");
+  else if (!nodeHashMap.has(sessionObject.target.nodeId)) {
+    console.error("targetWordId " + targetWordId + " NOT IN nodeHashMap ... SKIPPING createLinks");
     callback (null, newLinks);
     return;
   }
@@ -1193,8 +1194,8 @@ function createLinks (sessionObject, callback) {
   sourceWord.links[targetWord.nodeId] = 1;
   targetWord.links[sourceWord.nodeId] = 1;
 
-  nodeHashMap[sourceWord.nodeI] = sourceWord;
-  nodeHashMap[targetWord.nodeId] = targetWord;
+  nodeHashMap.set(sourceWord.nodeId, sourceWord) ;
+  nodeHashMap.set(targetWord.nodeId, targetWord) ;
 
   if (!currentSession.linkHashMap[sourceWord.nodeId]){
     currentSession.linkHashMap[sourceWord.nodeId] = {};
@@ -1381,7 +1382,7 @@ function ageNodes (callback){
         force.stop();
       }
 
-      delete nodeHashMap[currentNodeObject.nodeId];
+      nodeHashMap.remove(currentNodeObject.nodeId);
 
       // console.warn("DELETE SESSION LINK HASH MAP | " + currentNodeObject.nodeId 
         // + "\n" + jsonPrint(ageSession.linkHashMap[currentNodeObject.nodeId])
@@ -1444,7 +1445,7 @@ function ageNodes (callback){
         }
       }
 
-      nodeHashMap[currentNodeObject.nodeId] = currentNodeObject;
+      nodeHashMap.set(currentNodeObject.nodeId, currentNodeObject);
     }
 
   }

@@ -49,6 +49,14 @@ var SessionSchema = new Schema({
 		type: Number,
 		default: 0
 	},
+	linkHashMap: {
+		type: Object,
+		default: []
+	},
+	wordChainIndex: {
+		type: Number,
+		default: 0
+	},
 	wordChain: {
 		type: Object,
 		default: []

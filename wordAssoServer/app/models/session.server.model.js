@@ -60,6 +60,9 @@ var SessionSchema = new Schema({
 	wordChain: {
 		type: Object,
 		default: []
+	},
+	fixedNodeId: {
+		type: String
 	}
 });
 

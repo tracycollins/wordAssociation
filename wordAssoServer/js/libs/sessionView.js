@@ -22,7 +22,7 @@ var mouseHoverNodeId;
 
 var MAX_WORDCHAIN_LENGTH = 100;
 
-var DEFAULT_MAX_AGE = 30000.0;
+var DEFAULT_MAX_AGE = 20000.0;
 var DEFAULT_AGE_RATE = 1.0;
 
 var ageRate = DEFAULT_AGE_RATE;

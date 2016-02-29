@@ -946,10 +946,10 @@ socket.on("SESSION_UPDATE", function(rxSessionObject){
     rxSessionUpdateQueue.push(rxObj);
     var len = rxSessionUpdateQueue.length 
 
-    console.log("SESSION_UPDATE | " + rxObj.sessionId
+    console.log(rxObj.sessionId
       + " | " + rxObj.source.nodeId
       + " -> " + rxObj.target.nodeId
-      + " | Q: " + len
+      // + " | Q: " + len
     );
 
   }
@@ -984,8 +984,6 @@ var nodeIndex = 0;
 var tempMentions;
 
 function createNode (sessionId, wordObject, callback) {
-
-  console.log("IN createNode: " + sessionId + " | " + wordObject.nodeId);
 
   var dateNow = moment().valueOf();
 
@@ -1180,7 +1178,8 @@ function createLinks (sessionObject, callback) {
 
   var currentSession = sessionHashMap[sessionObject.sessionId];
 
-  console.log("LINK | " + sourceWord.nodeId + " > " + targetWord.nodeId);
+  // console.log("LINK | " + sourceWord.nodeId + " > " + targetWord.nodeId);
+
   var newLink = {
     sessionId: sessionObject.sessionId,
     age: 0,
@@ -1329,13 +1328,11 @@ function getNodeFromQueue (callback) {
  
     sessionDeQobject = sessionUpdateQueue.shift();
 
-    console.log("sessionUpdateQueue shift: " + sessionDeQobject.source.nodeId);
-
     createNode(sessionDeQobject.sessionId, sessionDeQobject.source, function(err, newNodesFlag){
-      console.log("SOURCE" 
-        + " | " + sessionDeQobject.sessionId
-        + " | " + sessionDeQobject.source.nodeId
-      );
+      // console.log("SOURCE" 
+      //   + " | " + sessionDeQobject.sessionId
+      //   + " | " + sessionDeQobject.source.nodeId
+      // );
       createLinks(sessionDeQobject, function(err, newLinks){
         callback (null, numberSessionsUpdated);
       });
@@ -1413,7 +1410,7 @@ function ageNodes (callback){
         }
       }
 
-      console.log("XXX DEAD | " + nodes[ageNodesIndex].nodeId);
+      console.log("DEAD " + nodes[ageNodesIndex].nodeId);
 
       nodes.splice(ageNodesIndex, 1); 
     }

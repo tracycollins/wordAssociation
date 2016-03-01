@@ -71,7 +71,7 @@ var dateNow = moment().valueOf();
 var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
 var defaultTimePeriodFormat = "HH:mm:ss";
 
-var currentSession;
+var currentSession = {};
 var sessionId;
 var namespace;
 var sessionMode = false;
@@ -339,9 +339,10 @@ socket.on("VIEWER_ACK", function(viewerSessionKey){
       + " | SID: " + sessionId
       + " | NSP: " + namespace
     );
-    currentSession = "/" + namespace + "#" + sessionId;
-    console.log("TX GET_SESSION | " + currentSession);
-    socket.emit("GET_SESSION", currentSession);
+    var tempSessionId = "/" + namespace + "#" + sessionId ;
+    currentSession.sessionId = tempSessionId;
+    console.log("TX GET_SESSION | " + currentSession.sessionId);
+    socket.emit("GET_SESSION", currentSession.sessionId);
   }
 });
 
@@ -352,8 +353,9 @@ socket.on("reconnect", function(){
       + " | SID: " + sessionId
       + " | NSP: " + namespace
     );
-    currentSession = "/" + namespace + "#" + sessionId;
-    socket.emit("GET_SESSION", currentSession);
+    var tempSessionId = "/" + namespace + "#" + sessionId ;
+    currentSession.sessionId = tempSessionId;
+    socket.emit("GET_SESSION", currentSession.sessionId);
   }
 });
 
@@ -426,26 +428,29 @@ function getUrlVariables(callbackMain){
         var keyValuePair = variable.split('=');
 
         if (keyValuePair[1] !== 'undefined'){
-          console.log("'" + variable + "' >>> URL config: " + keyValuePair[0] + " : " + keyValuePair[1]);
+
+          console.warn("'" + variable + "' >>> URL config: " + keyValuePair[0] + " : " + keyValuePair[1]);
+
           if (keyValuePair[0] === 'monitor') {
             monitorMode = keyValuePair[1];
-            callback2(null, {namespace: urlNamespace, sessionId: urlSessionId, sessionMode: sessionMode, monitorMode: monitorMode});
+            console.log("MONITOR MODE | monitorMode: " + monitorMode);
+            return(callback2(null, {monitorMode: monitorMode}));
           }
           if (keyValuePair[0] === 'session') {
             urlSessionId = keyValuePair[1];
-            console.log("urlSessionId: " + urlSessionId);
-            sessionMode = true;
-            callback2(null, {sessionId: urlSessionId});
+            console.warn("SESSION MODE | urlSessionId: " + urlSessionId);
+            return(callback2(null, {sessionMode: true, sessionId: urlSessionId}));
+            // return(callback2(null, {sessionMode: sessionMode}));
           }
           if (keyValuePair[0] === 'nsp') {
             urlNamespace = keyValuePair[1];
             console.log("namespace: " + urlNamespace);
-            callback2(null, {namespace: urlNamespace});
+            return(callback2(null, {namespace: urlNamespace}));
           }
         }
         else {
           console.log("NO URL VARIABLES");
-          callback2(null, null);
+          return(callback2(null, null));
         }
 
       });
@@ -454,14 +459,21 @@ function getUrlVariables(callbackMain){
 
   async.parallel(asyncTasks, function(err, results){
     console.log("results\n" + jsonPrint(results));
-    if (sessionMode) {
-      console.log("SESSION MODE"
-        + " | SID: " + urlSessionId
-        + " | NSP: " + urlNamespace
-      );
-      currentSession = "/" + urlNamespace + "#" + urlSessionId;
-    }
-    callbackMain(err, {sessionId: urlSessionId, namespace: urlNamespace});
+    results.forEach(function(resultObj){
+      console.warn("resultObj\n" + jsonPrint(resultObj));
+
+      // KLUDGE ?????? should set global var here (not in asyncTasks above)
+      if (resultObj.sessionMode) {
+        sessionMode = true ;
+        currentSession.sessionId = "/" + urlNamespace + "#" + urlSessionId;
+        console.warn("SESSION MODE"
+          + " | SID: " + urlSessionId
+          + " | NSP: " + urlNamespace
+          + " | SID (full): " + currentSession.sessionId
+        );
+      }
+    });
+    callbackMain(err, {sessionMode: sessionMode, sessionId: urlSessionId, namespace: urlNamespace});
   });
 }
 
@@ -857,77 +869,6 @@ socket.on("CONFIG_CHANGE", function(rxConfig){
   resetMouseMoveTimer();
 });
 
-
-// socket.on("SESSION", function(sessionObject){
-
-//   if (!windowVisible) {
-//     return;
-//   }
-
-//   console.log("> RX SESSION"
-//     + " | SID: " + sessionObject.sessionId
-//     + " | WCL: " + sessionObject.wordChainLength
-//     + " | WCSL: " + sessionObject.wordChainSegmentLength
-//     + " | WCI: " + sessionObject.wordChainIndex
-//     + " | " + sessionObject.word.nodeId
-//   );
-
-//   if (sessionHashMap[sessionObject.sessionId]){
-//     currentSession = sessionHashMap[sessionObject.sessionId];
-//   }
-//   else {
-//     sessionsCreated += 1;
-//     var startColor = "hsl(" + Math.random() * 360 + ",100%,40%)";
-//     var endColor = "hsl(" + Math.random() * 360 + ",0%,0%)";
-//     var interpolateNodeColor = d3.interpolateHcl(endColor, startColor);
-
-//     sessionObject.colors = {'startColor': startColor, 'endColor': endColor};
-//     sessionObject.interpolateColor = interpolateNodeColor;
-//     currentSession = sessionObject;
-//     currentSession.wordChain = [];
-//     currentSession.initialPosition = computeInitialPosition(sessionsCreated);
-
-//     console.log("NEW SESSION " + currentSession.sessionId + " POS: " + jsonPrint(currentSession.initialPosition));
-//   }
-
-//   currentSession.lastSeen = dateNow;
-
-//   currentSession.wordChain[sessionObject.wordChainIndex] = sessionObject.word;
-
-//   sessionHashMap[currentSession.sessionId] = currentSession;
-
-//   createNode(currentSession.sessionId, sessionObject.word, function(){
-//     if (currentSession.wordChain[sessionObject.wordChainIndex-1]) {
-//       if (nodeHashMap.has(currentSession.wordChain[sessionObject.wordChainIndex-1].nodeId)) {
-//         var sourceWord = nodeHashMap.get(currentSession.wordChain[sessionObject.wordChainIndex-1].nodeId);
-//         console.log("@@@ < CREATE PREV LINK");
-//         createLinks(
-//           { sessionId: sessionObject.sessionId,
-//             sourceWord: sourceWord,
-//             targetWord: sessionObject.word
-//           },
-//           function(){
-//             console.log("@@@ ... CREATED PREV LINK");
-//           });
-//       }
-//     }
-//     if (currentSession.wordChain[sessionObject.wordChainIndex+1]) {
-//       if (nodeHashMap.has(currentSession.wordChain[sessionObject.wordChainIndex+1].nodeId)) {
-//         var targetWord = nodeHashMap.get(currentSession.wordChain[sessionObject.wordChainIndex+1].nodeId);
-//         console.log("@@@ > CREATE NEXT LINK");
-//         createLinks(
-//           { sessionId: sessionObject.sessionId,
-//             sourceWord: sessionObject.word,
-//             targetWord: targetWord
-//           },
-//           function(){
-//             console.log("@@@ ... CREATED NEXT LINK");
-//           });
-//       }
-//     }
-//   });
-// });
-
 socket.on("SESSION_UPDATE", function(rxSessionObject){
 
   var rxObj = rxSessionObject ;
@@ -939,7 +880,8 @@ socket.on("SESSION_UPDATE", function(rxSessionObject){
   }
   else if (sessionMode && (rxObj.sessionId !== currentSession.sessionId)) {
     if (debug) {
-      console.log("... SKIP SESSION_UPDATE: ID: " + rxObj.sessionId + " | CURRENT SESSION: " + currentSession.sessionId);
+      console.log("SKIP SESSION_UPDATE: " + rxObj.sessionId + " | CURRENT: " + currentSession.sessionId);
+
     }
   }
   else {

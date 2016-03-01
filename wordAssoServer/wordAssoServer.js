@@ -9,6 +9,9 @@ var internetReady = false ;
 var SESSION_CACHE_DEFAULT_TTL = 60;  // seconds
 var WORD_CACHE_TTL = 60; // seconds
 
+var MIN_CHAIN_FREEZE_LENGTH = 10;
+var MIN_CHAIN_FREEZE_UNIQUE_NODES = 4;
+
 var BHT_REQUEST_LIMIT = 250000;
 var MW_REQUEST_LIMIT = 250000;
 
@@ -1760,31 +1763,32 @@ function chainDeadEnd(chain) {
 
   debug(chalkError("chainDeadEnd\n" + jsonPrint(chain)));
 
-  if (chain.length > 6) { 
+  if (chain.length > MIN_CHAIN_FREEZE_LENGTH) { 
 
     var uniqueNodes = [];
     var chainSegment = [];
 
-    for (var i = chain.length-1; i >= chain.length-6; i--){
+    for (var i = chain.length-1; i >= chain.length-MIN_CHAIN_FREEZE_LENGTH; i--){
 
       chainSegment.push(chain[i]);
 
       if (uniqueNodes.indexOf(chain[i]) == -1){
 
-        if (uniqueNodes.length > 4) {
-          debug(chalkError("... NO CHAIN FREEZE\n" + jsonPrint(uniqueNodes)));
+        if (uniqueNodes.length >= MIN_CHAIN_FREEZE_UNIQUE_NODES) {
+          debug(chalkError("... NO CHAIN FREEZE\n" + uniqueNodes));
           return false ;
         }
-        else if (i == chain.length-6){
+        else if (i == chain.length-MIN_CHAIN_FREEZE_LENGTH){
           console.log(chalkError("*** CHAIN FREEZE"
-            + "\nSEG\n" + jsonPrint(chainSegment) 
-            + "\nUNIQUE\n" + jsonPrint(uniqueNodes)
+            + "\nSEG\n" + chainSegment 
+            + "\nUNIQUE\n" + uniqueNodes
           )); 
+          // quit();
           return true ;
         }
         else {
           uniqueNodes.push(chain[i]);
-          debug(chalkError("ADDED UNIQUE NODE\n" + jsonPrint(uniqueNodes))); 
+          debug(chalkError("ADDED UNIQUE NODE\n" + uniqueNodes)); 
         }
 
       }
@@ -1792,7 +1796,7 @@ function chainDeadEnd(chain) {
 
   }
   else {
-    debug(chalkError("... NO CHAIN FREEZE\nCHAIN\n" + jsonPrint(chain)));
+    debug(chalkError("... NO CHAIN FREEZE\nCHAIN\n" + chain));
     return false ;
   }
  }

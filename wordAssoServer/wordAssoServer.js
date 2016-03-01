@@ -1138,8 +1138,9 @@ function sendPrompt(sessionObj, sourceWordObj){
         if (currentSession.wordChainIndex >= 2){
 
           var targetWordId = currentSession.wordChain[currentSession.wordChainIndex-2];
+          var targetWordObj = wordCache.get(targetWordId);
 
-          if (!wordCache.has(targetWordId)){
+          if (!targetWordObj){
             console.log(chalkWarn("sendPrompt"
               + " | " + sessionObj.sessionId
               + " | " + targetWordId + " NOT FOUND IN WORD CACHE (EXPIRED?) ... SKIPPING"
@@ -1148,7 +1149,6 @@ function sendPrompt(sessionObj, sourceWordObj){
             // KLUDGE??? WILL THIS STALL SESSION?
           }
 
-          var targetWordObj = wordCache.get(targetWordId);
           targetWordObj.wordChainIndex = currentSession.wordChainIndex-2;
           wordCache.set(targetWordId, targetWordObj);
 

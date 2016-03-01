@@ -1018,7 +1018,8 @@ function createSession (callback){
 
       session.initialPosition = computeInitialPosition(sessionsCreated);
 
-      var randomNumber360 = Math.random() * 360;
+      var randomNumber360 = randomIntFromInterval(0,360);
+      // var randomNumber360 = Math.random() * 360;
 
       var startColor = "hsl(" + randomNumber360 + ",100%,50%)";
       var endColor = "hsl(" + randomNumber360 + ",0%,0%)";

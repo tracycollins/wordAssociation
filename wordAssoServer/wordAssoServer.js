@@ -1139,12 +1139,18 @@ function sendPrompt(sessionObj, sourceWordObj){
 
           var targetWordId = currentSession.wordChain[currentSession.wordChainIndex-2];
 
+          if (!wordCache.has(targetWordId)){
+            console.log(chalkWarn("sendPrompt"
+              + " | " + sessionObj.sessionId
+              + " | " + targetWordId + " NOT FOUND IN WORD CACHE (EXPIRED?) ... SKIPPING"
+            ));
+            return;
+            // KLUDGE??? WILL THIS STALL SESSION?
+          }
+
           var targetWordObj = wordCache.get(targetWordId);
           targetWordObj.wordChainIndex = currentSession.wordChainIndex-2;
           wordCache.set(targetWordId, targetWordObj);
-          if (targetWordObj){
-
-          }
 
           // targetWordObj.wordChainIndex = currentSession.wordChainIndex-1;
 

@@ -988,8 +988,7 @@ var numberSessionsUpdated = 0;
 function createSession (callback){
 
   if (rxSessionUpdateQueue.length == 0){
-    callback(null, null);
-    return;
+    return(callback(null, null));
   }
   else {
     var dateNow = moment().valueOf();
@@ -1009,9 +1008,7 @@ function createSession (callback){
 
       sessionHashMap[sessionObject.sessionId] = session;
 
-      callback(null, session.sessionId);
-      return;
-
+      return(callback(null, session.sessionId));
     }
     else {
       sessionsCreated += 1;
@@ -1048,8 +1045,7 @@ function createSession (callback){
 
       sessionHashMap[session.sessionId] = session;
 
-      callback(null, session.sessionId);
-      return;
+      return(callback(null, session.sessionId));
     }
   }
 }
@@ -1057,8 +1053,7 @@ function createSession (callback){
 function createNode (sessionId, callback) {
 
   if (sessionId === null){
-    callback(null, null);
-    return;
+    return(callback(null, null));
   }
 
   var session = sessionHashMap[sessionId];
@@ -1152,8 +1147,7 @@ function createNode (sessionId, callback) {
 function createLink (sessionId, callback) {
 
   if (sessionId === null){
-    callback(null, null);
-    return;
+    return(callback(null, null));
   }
 
   var session = sessionHashMap[sessionId];
@@ -1380,7 +1374,7 @@ function ageNodes (sessionId, callback){
   }
 
   if (ageNodesIndex < 0) {
-    callback(null, sessionId);
+    return(callback(null, sessionId));
   }
 }
 
@@ -1404,7 +1398,7 @@ function updateNodes (sessionId, callback) {
   node.exit()
     .remove();
 
-  callback(null, sessionId);
+  return(callback(null, sessionId));
 } 
 
 function updateLinks(sessessionIdsion, callback) {
@@ -1437,7 +1431,7 @@ function updateLinks(sessessionIdsion, callback) {
       .style("opacity", 1e-6)
     .remove();
 
-  callback(null, sessionId);
+  return(callback(null, sessionId));
 }
 
 function updateNodeCircles (sessionId, callback) {
@@ -1496,7 +1490,7 @@ function updateNodeCircles (sessionId, callback) {
       .style('opacity', 1e-6)
     .remove();
 
-  callback(null, sessionId);
+  return(callback(null, sessionId));
 }
 
 function updateNodeLabels (sessionId, callback) {
@@ -1537,7 +1531,7 @@ function updateNodeLabels (sessionId, callback) {
       .style("opacity", 1e-6)
       .remove();
 
-  callback(null, sessionId);
+  return(callback(null, sessionId));
 }
 
 function createSessionNodeLink() {

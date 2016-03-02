@@ -8,7 +8,6 @@ var testMode = false ;
 var monitorMode = false ;
 var responseTimeoutInterval = 3000 ;
 var urlRoot = "http://word.threeceelabs.com/session?session=";
-// var urlRoot = "http://localhost:9997/session?session=";
 var configHashMap = new HashMap();
 
 configHashMap.set('testMode', testMode);
@@ -61,11 +60,6 @@ function getUrlVariables(config){
       if (keyValuePair[0] == 'monitor') {
         monitorMode = keyValuePair[1] ;
       }    
-      // if (keyValuePair[0] == 'session') {
-      //   currentSession = keyValuePair[1] ;
-      //   sessionMode = true ;
-      //   launchSessionView(socket.id);
-      // }    
     } 
     else {
       console.log("NO URL VARIABLES");      
@@ -73,8 +67,6 @@ function getUrlVariables(config){
     }
   }
 }
-
-// var clientConfig = { user: "UNDEFINED", type: "STANDARD", mode: "WORD_OBJ"} ;
 
 
 function sendUserResponse(){
@@ -91,7 +83,7 @@ function sendUserResponse(){
 
   if (userResponseValue == '') {
     console.warn("NO INPUT WORD");
-    var wordInText = document.getElementById("wordInText");
+    var wordInText = document.getElementById("userResponseInput");
     console.log("wordInText: " + wordInText.value);
     wordInText.value = "";
   }
@@ -104,11 +96,38 @@ function sendUserResponse(){
   }
 }
 
+var currentInput = '';
+var previousInput = '';
+var previousTimestamp = moment().valueOf();
+var timeDelta = 0;
+
+var inputChangedTimeout;
+
+// var checkInputTextInterval = setInterval(function() { 
+//   currentInput = document.getElementById("userResponseInput").value; ;
+//   if (previousInput != currentInput){
+//     clearTimeout(inputChangedTimeout);
+//     timeDelta = moment().valueOf() - previousTimestamp;
+//     console.log("CHANGE [" + timeDelta + "]: "  + previousInput + " | " + currentInput);
+//     previousTimestamp = moment().valueOf();
+//     inputChangedTimeout = setTimeout(function(){
+//       sendUserResponse();
+//     }, 1000);
+//   }
+//   previousInput = document.getElementById("userResponseInput").value;
+// }, 100);
+
+// setInterval(function(){
+//   sendUserResponse();
+// }, 5000);
+
 var userResponseValue = "";
 var socketIdDiv = document.getElementById("socketId");
 var socketIdLabel = document.createElement("label");
 socketIdLabel.innerHTML = "SID: " + socket.id;   
 socketIdDiv.appendChild(socketIdLabel);
+
+var checkInputTextInterval;
 
 function addUserResponse() {
   var userResponseInput = document.createElement("input");
@@ -129,6 +148,25 @@ function addUserResponse() {
   var userResponseDiv = document.getElementById("userResponseDiv");
   userResponseDiv.appendChild(userResponseLabel);
   userResponseDiv.appendChild(userResponseInput);
+
+  checkInputTextInterval = setInterval(function() { 
+    if (connectedFlag){
+      currentInput = document.getElementById("userResponseInput").value.toLowerCase(); ;
+      if (!currentInput){
+        clearTimeout(inputChangedTimeout);
+      }
+      else if (previousInput != currentInput){
+        clearTimeout(inputChangedTimeout);
+        timeDelta = moment().valueOf() - previousTimestamp;
+        console.log("CHANGE [" + timeDelta + "]: "  + previousInput + " | " + currentInput);
+        previousTimestamp = moment().valueOf();
+        inputChangedTimeout = setTimeout(function(){
+          sendUserResponse();
+        }, 1000);
+      }
+      previousInput = document.getElementById("userResponseInput").value.toLowerCase();
+    }
+  }, 100);
 }
 
 function addServerPrompt() {
@@ -179,8 +217,9 @@ socket.on("SESSION_EXPIRED", function(reason){
   userResponseDiv.removeChild(userResponseInput);
   userResponseDiv.removeChild(userResponseLabel);
 
+  socketIdLabel.innerHTML = '<bold>*** SESSION EXPIRED ***</bold>'  + '<br><br>' + 'REFRESH BROWSER TO RECONNECT' + '<br><br>EXPIRED SESSION: ' + socket.id; 
 
-  socketIdLabel.innerHTML = '<bold>*** SESSION EXPIRED ***</bold>'  + '<br><br>' + 'REFRESH BROWSER TO RECONNECT' + '<br><br>EXPIRED SESSION: ' + socket.id;   
+  socket.disconnect();  
 
 });
 
@@ -234,6 +273,7 @@ socket.on('reconnect', function(){
 });
 
 socket.on('disconnect', function(){
+  connectedFlag = false;
   console.log("*** DISCONNECTED FROM HOST | SOCKET ID: " + socketId);
 });
 

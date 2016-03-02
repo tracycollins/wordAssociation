@@ -4,8 +4,9 @@
 var debug = false ;
 var testMode = false ;
 
-
+var sessionMode = 'STREAM' ;
 var monitorMode = false ;
+
 var responseTimeoutInterval = 3000 ;
 var urlRoot = "http://word.threeceelabs.com/session?session=";
 var configHashMap = new HashMap();
@@ -33,6 +34,15 @@ var socket = io('/' + namespace);
 var socketId ;
 var connectedFlag = false ;
 
+var jsonPrint = function (obj){
+  if (obj) {
+    return JSON.stringify(obj, null, 2);
+  }
+  else {
+    return "UNDEFINED";
+  }
+}
+
 var randomFloatFromInterval = function (min,max) {
   var random = Math.random() ;
   var randomFloat = (random*(max-min))+min;
@@ -45,7 +55,13 @@ var randomIntFromInterval = function (min,max) {
   return randomInt;
 }
 
-var userObj = { userId: 'RANDOM_' + randomIntFromInterval(1000000000,9999999999)};
+var userObj = { 
+  userId: 'RANDOM_' + sessionMode + '_' + randomIntFromInterval(1000000000,9999999999),
+  screenName: 'RANDOM_' + sessionMode + '_' + randomIntFromInterval(1000000000,9999999999), 
+  type: "USER", 
+  mode: sessionMode,
+  streamSource: "USER"
+} ;
 
 function getUrlVariables(config){
 
@@ -68,11 +84,20 @@ function getUrlVariables(config){
   }
 }
 
+var transmitDataQueue = [];
 
-function sendUserResponse(){
-  console.log("RAW INPUT: " + document.getElementById("userResponseInput").value);
+setInterval(function(){
+  if (transmitDataQueue.length > 0){
+    var word = transmitDataQueue.shift();
+    socket.emit("RESPONSE_WORD_OBJ", {nodeId: word});
+  }
+}, 1000);
 
-  var userResponseValue = document.getElementById("userResponseInput").value.replace(/\s+/g, ' ') ;
+function sendUserResponse(sessionMode, data, callback){
+  // console.log("RAW INPUT: " + document.getElementById("userResponseInput").value);
+  console.log("SESSION MODE: " + sessionMode + " | RAW INPUT: " + data);
+
+  var userResponseValue = data.replace(/\s+/g, ' ') ;
   userResponseValue = userResponseValue.replace(/[\n\r\[\]\{\}\<\>\/\;\:\"\`\~\?\!\@\#\$\%\^\&\*\(\)\_\+\=]+/g, '') ;
   userResponseValue = userResponseValue.replace(/\s+/g, ' ') ;
   userResponseValue = userResponseValue.replace(/^\s+|\s+$/g, '') ;
@@ -83,16 +108,31 @@ function sendUserResponse(){
 
   if (userResponseValue == '') {
     console.warn("NO INPUT WORD");
-    var wordInText = document.getElementById("userResponseInput");
-    console.log("wordInText: " + wordInText.value);
-    wordInText.value = "";
+    // var wordInText = document.getElementById("userResponseInput");
+    // console.log("wordInText: " + wordInText.value);
+    callback('');
+    return;
   }
-  else {
+  else if (sessionMode == 'STREAM') {
+    var wordArray = userResponseValue.split(" ");
+
+    wordArray.forEach(function(word){
+      console.log("TX-Q WORD: '" + word + "'");
+      transmitDataQueue.push(word);
+      // var wordInText = document.getElementById("userResponseInput");
+      // console.log("wordInText: " + wordInText.value);
+    });
+
+    callback(userResponseValue);
+    return;
+  }
+  else if (sessionMode == 'PROMPT') {
+
     console.log("TX WORD: '" + userResponseValue + "'");
     socket.emit("RESPONSE_WORD_OBJ", {nodeId: userResponseValue});
-    var wordInText = document.getElementById("userResponseInput");
-    console.log("wordInText: " + wordInText.value);
-    wordInText.value = "";
+
+    callback(userResponseValue);
+    return;
   }
 }
 
@@ -101,35 +141,87 @@ var previousInput = '';
 var previousTimestamp = moment().valueOf();
 var timeDelta = 0;
 
+var currentStreamInput = '';
+var previousStreamInput = '';
+var previousStreamTimestamp = moment().valueOf();
+var timeStreamDelta = 0;
+
 var inputChangedTimeout;
-
-// var checkInputTextInterval = setInterval(function() { 
-//   currentInput = document.getElementById("userResponseInput").value; ;
-//   if (previousInput != currentInput){
-//     clearTimeout(inputChangedTimeout);
-//     timeDelta = moment().valueOf() - previousTimestamp;
-//     console.log("CHANGE [" + timeDelta + "]: "  + previousInput + " | " + currentInput);
-//     previousTimestamp = moment().valueOf();
-//     inputChangedTimeout = setTimeout(function(){
-//       sendUserResponse();
-//     }, 1000);
-//   }
-//   previousInput = document.getElementById("userResponseInput").value;
-// }, 100);
-
-// setInterval(function(){
-//   sendUserResponse();
-// }, 5000);
+var inputStreamChangedTimeout;
 
 var userResponseValue = "";
+var userResponseStreamValue = "";
+
 var socketIdDiv = document.getElementById("socketId");
 var socketIdLabel = document.createElement("label");
 socketIdLabel.innerHTML = "SID: " + socket.id;   
 socketIdDiv.appendChild(socketIdLabel);
 
 var checkInputTextInterval;
+var checkStreamInputTextInterval;
 
-function addUserResponse() {
+var enterKeyDownFlag = false ;
+function sendUserResponseOnEnter(){
+  console.log("sendUserResponseOnEnter");
+  if (connectedFlag) {
+    enterKeyDownFlag = true ;
+    console.log("enterKeyDownFlag: " + enterKeyDownFlag);
+  }
+}
+
+function addUserResponseStream() {
+  var userResponseStreamInput = document.createElement("textarea");
+  var userResponseStreamLabel = document.createElement("label");
+  userResponseStreamLabel.setAttribute("id", "userResponseStreamLabel");
+
+  userResponseStreamLabel.innerHTML = "YOU RESPOND: ";   
+
+  userResponseStreamInput.setAttribute("class", "userResponseStream");
+  userResponseStreamInput.setAttribute("type", "textarea");
+  userResponseStreamInput.setAttribute("id", "userResponseStreamInput");
+  userResponseStreamInput.setAttribute("name", "userResponseStream");
+  userResponseStreamInput.setAttribute("autofocus", true);
+  userResponseStreamInput.setAttribute("autocapitalize", "none");
+  userResponseStreamInput.setAttribute("value", userResponseStreamValue);
+  userResponseStreamInput.setAttribute("rows", 10);
+  userResponseStreamInput.setAttribute("cols", 50);
+  userResponseStreamInput.setAttribute("onkeydown", "if (event.keyCode == 13) { return sendUserResponseOnEnter() }");
+
+// <textarea rows="4" cols="50">
+// At w3schools.com you will learn how to make a website. We offer free tutorials in all web development technologies. 
+// </textarea>
+
+
+  var userResponseStreamDiv = document.getElementById("userResponseStreamDiv");
+  userResponseStreamDiv.appendChild(userResponseStreamLabel);
+  userResponseStreamDiv.appendChild(userResponseStreamInput);
+
+  checkStreamInputTextInterval = setInterval(function() { 
+    if (connectedFlag){
+      currentStreamInput = document.getElementById("userResponseStreamInput").value.toLowerCase(); ;
+      if (!currentStreamInput){
+        clearTimeout(inputStreamChangedTimeout);
+      }
+      else if (enterKeyDownFlag || (previousStreamInput != currentStreamInput)) {
+        enterKeyDownFlag = false ;
+        clearTimeout(inputStreamChangedTimeout);
+        var timeStreamDelta = moment().valueOf() - previousStreamTimestamp;
+        // console.log("CHANGE [" + timeStreamDelta + "]: "  + previousStreamInput + " | " + currentStreamInput);
+        previousStreamTimestamp = moment().valueOf();
+        inputStreamChangedTimeout = setTimeout(function(){
+          sendUserResponse('STREAM', currentStreamInput, function(dataTransmitted){
+            console.log("TXD: " + dataTransmitted);
+            currentStreamInput = document.getElementById("userResponseStreamInput");
+            currentStreamInput.value = '';
+          });
+        }, 4000);
+      }
+      previousStreamInput = document.getElementById("userResponseStreamInput").value.toLowerCase();
+    }
+  }, 100);
+}
+
+function addUserResponsePrompt() {
   var userResponseInput = document.createElement("input");
   var userResponseLabel = document.createElement("label");
   userResponseLabel.setAttribute("id", "userResponseLabel");
@@ -143,7 +235,7 @@ function addUserResponse() {
   userResponseInput.setAttribute("autofocus", true);
   userResponseInput.setAttribute("autocapitalize", "none");
   userResponseInput.setAttribute("value", userResponseValue);
-  userResponseInput.setAttribute("onkeydown", "if (event.keyCode == 13) { return sendUserResponse() }");
+  // userResponseInput.setAttribute("onkeydown", "if (event.keyCode == 13) { return sendUserResponse() }");
 
   var userResponseDiv = document.getElementById("userResponseDiv");
   userResponseDiv.appendChild(userResponseLabel);
@@ -155,14 +247,19 @@ function addUserResponse() {
       if (!currentInput){
         clearTimeout(inputChangedTimeout);
       }
-      else if (previousInput != currentInput){
+      else if (enterKeyDownFlag || (previousInput != currentInput)) {
+        enterKeyDownFlag = false ;
         clearTimeout(inputChangedTimeout);
         timeDelta = moment().valueOf() - previousTimestamp;
-        console.log("CHANGE [" + timeDelta + "]: "  + previousInput + " | " + currentInput);
+        // console.log("CHANGE [" + timeDelta + "]: "  + previousInput + " | " + currentInput);
         previousTimestamp = moment().valueOf();
         inputChangedTimeout = setTimeout(function(){
-          sendUserResponse();
-        }, 1000);
+          sendUserResponse('PROMPT', currentInput, function(dataTransmitted){
+            console.log("TXD: " + dataTransmitted);
+            currentInput = document.getElementById("userResponseInput");
+            currentInput.value = '';
+          });
+        }, 4000);
       }
       previousInput = document.getElementById("userResponseInput").value.toLowerCase();
     }
@@ -214,6 +311,7 @@ socket.on("SESSION_EXPIRED", function(reason){
   var userResponseDiv = document.getElementById("userResponseDiv");
   var userResponseLabel = document.getElementById("userResponseLabel");
   var userResponseInput = document.getElementById("userResponseInput");
+
   userResponseDiv.removeChild(userResponseInput);
   userResponseDiv.removeChild(userResponseLabel);
 
@@ -240,7 +338,9 @@ socket.on("RANDOM_WORD", function(randomWord){
     charIndex++;
     if (charIndex > autoResponseWord.length) {
       var sendResponseInterval = setTimeout(function(){
-        sendUserResponse();
+        sendUserResponse(userObj.sessionMode, null, function(randomWord){
+          console.log("TXD RANDOM: " + randomWord);
+        });
       }, 1000);
       clearInterval(charTypeInterval);
     }
@@ -399,11 +499,12 @@ window.onload = function () {
   window.resizeTo(400,600);
 
   addServerPrompt();
-  addUserResponse();
+  addUserResponsePrompt();
+  addUserResponseStream();
 
   // userObj.userId = socket.id;
 
-  console.log("USER: " + userObj.userId);
+  console.log("USER\n" + jsonPrint(userObj));
 
   socket.emit("USER_READY", userObj);
   // launchSessionView(socket.id);

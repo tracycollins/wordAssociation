@@ -3134,6 +3134,17 @@ var readSessionQueue = setInterval(function (){
         });
         break;
 
+      case 'SESSION_KEEPALIVE':
+        console.log(chalkSession(
+          ">>> SESSION CREATE"
+          + " | TYPE: " + sesObj.session.config.type
+          + " | NSP: " + sesObj.session.namespace
+          + " | SID: " + sesObj.session.sessionId
+          + " | SIP: " + sesObj.session.ip
+          // + " | UID: " + sesObj.user.userId
+        ));
+        break;
+
       case 'SESSION_CREATE':
 
         if (typeof sesObj.session.config.type !== 'undefined'){
@@ -4684,6 +4695,32 @@ function createSession (newSessionObj){
     ));
 
     sessionQueue.enqueue({sessionEvent: "VIEWER_READY", session: sessionObj, viewer: viewerObj});
+  });
+
+  socket.on("SESSION_KEEPALIVE", function(userObj){
+
+    console.log(chalkUser("SESSION_KEEPALIVE\n" + jsonPrint(userObj)));
+
+    var socketId = socket.id ;
+    var sessionObj = sessionCache.get(socketId);
+
+    if (!sessionObj){
+      console.log(chalkError(moment().format(defaultDateTimeFormat) 
+        + " | ??? SESSION NOT FOUND ON SESSION_KEEPALIVE | " + socketId
+      ));
+      return;
+    }
+    console.log(chalkConnect("... SESSION_KEEPALIVE   | " + userObj.userId
+      + " | SID: " + sessionObj.sessionId
+      + " | " + moment().format(defaultDateTimeFormat)
+    ));
+
+    if (typeof userObj.mode !== 'undefined'){
+      console.log("USER MODE: " + userObj.mode);
+      sessionObj.config.type = userObj.mode;
+    }
+
+    sessionQueue.enqueue({sessionEvent: "SESSION_KEEPALIVE", session: sessionObj, user: userObj});
   });
 
   socket.on("USER_READY", function(userObj){

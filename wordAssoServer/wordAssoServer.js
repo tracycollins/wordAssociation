@@ -730,7 +730,7 @@ var userCache = new NodeCache();
 
 var wordCache = new NodeCache({ stdTTL: 0, checkperiod: 10 });
 
-var sessionCache = new NodeCache({ stdTTL: sessionCacheTtl, checkperiod: 10 });
+var sessionCache = new NodeCache({ stdTTL: sessionCacheTtl, checkperiod: parseInt(sessionCacheTtl+15) });
 
 var promptQueue = new Queue();
 var responseQueue = new Queue();
@@ -3081,8 +3081,29 @@ var readSessionQueue = setInterval(function (){
         break;
 
       case 'SESSION_KEEPALIVE':
-        console.log(chalkSession(
-          ">>> SESSION CREATE"
+
+        sessionUpdateDb(sesObj.session, function(err, sessionUpdatedObj){
+          if (!err){
+            if (sessionUpdatedObj.namespace == 'admin') {
+              sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, 0);  // don't age out admin sessions
+            }
+            else if (sessionUpdatedObj.namespace == 'view') {
+              sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, 0);  // don't age out view sessions
+            }
+            else if (sessionUpdatedObj.namespace == 'user') {
+              sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, 0);  // don't age out user sessions
+            }
+           else if (sessionUpdatedObj.namespace == 'test-user') {
+              sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, 0);  // don't age out test-user sessions
+            }
+            else {
+              sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
+            }
+          }
+        });
+
+        debug(chalkSession(
+          ">>> SESSION KEEPALIVE"
           + " | TYPE: " + sesObj.session.config.type
           + " | NSP: " + sesObj.session.namespace
           + " | SID: " + sesObj.session.sessionId
@@ -4645,7 +4666,7 @@ function createSession (newSessionObj){
 
   socket.on("SESSION_KEEPALIVE", function(userObj){
 
-    console.log(chalkUser("SESSION_KEEPALIVE\n" + jsonPrint(userObj)));
+    debug(chalkUser("SESSION_KEEPALIVE\n" + jsonPrint(userObj)));
 
     var socketId = socket.id ;
     var sessionObj = sessionCache.get(socketId);
@@ -4656,13 +4677,13 @@ function createSession (newSessionObj){
       ));
       return;
     }
-    console.log(chalkConnect("... SESSION_KEEPALIVE   | " + userObj.userId
-      + " | SID: " + sessionObj.sessionId
+    console.log(chalkLog("... SESSION_KEEPALIVE | " + userObj.userId
+      + " | " + sessionObj.sessionId
       + " | " + moment().format(defaultDateTimeFormat)
     ));
 
     if (typeof userObj.mode !== 'undefined'){
-      console.log("USER MODE: " + userObj.mode);
+      debug("USER MODE: " + userObj.mode);
       sessionObj.config.type = userObj.mode;
     }
 
@@ -4688,7 +4709,7 @@ function createSession (newSessionObj){
     ));
 
     if (typeof userObj.mode !== 'undefined'){
-      console.log("USER MODE: " + userObj.mode);
+      debug("USER MODE: " + userObj.mode);
       sessionObj.config.type = userObj.mode;
     }
 

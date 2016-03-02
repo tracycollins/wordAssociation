@@ -986,7 +986,7 @@ var updateSessionViewQueue = [];
 
 var readUpdateSessionViewQueue = setInterval(function (){
 
-  if (updateSessionViewQueue.length > 0){
+  while (updateSessionViewQueue.length > 0){
     var sessionUpdateObj = updateSessionViewQueue.shift();
 
     updateStatsCounts();
@@ -1014,7 +1014,6 @@ var readUpdateSessionViewQueue = setInterval(function (){
         mentions: sessionUpdateObj.target.mentions
       };
     }
-
 
     if (sessionUpdateObj.target) {
       console.log(chalkRed(">>> TX SESSION_UPDATE"
@@ -1050,59 +1049,6 @@ function updateSessionViews(sessionUpdateObj){
 
   updateSessionViewQueue.push(sessionUpdateObj);
 
-  // updateStatsCounts();
-
-
-  // var sessionSmallObj = {
-  //   sessionId: sessionUpdateObj.sessionId,
-  //   wordChainIndex: sessionUpdateObj.wordChainIndex,
-  //   source: {},
-  //   target: {}
-  // };
-
-  // sessionSmallObj.source = {
-  //   nodeId: sessionUpdateObj.source.nodeId,
-  //   wordChainIndex: sessionUpdateObj.source.wordChainIndex,
-  //   links: {},
-  //   mentions: sessionUpdateObj.source.mentions
-  // };
-
-  // if (sessionUpdateObj.target) {
-  //   sessionSmallObj.target = {
-  //     nodeId: sessionUpdateObj.target.nodeId,
-  //     wordChainIndex: sessionUpdateObj.target.wordChainIndex,
-  //     links: {},
-  //     mentions: sessionUpdateObj.target.mentions
-  //   };
-  // }
-
-
-  // if (sessionUpdateObj.target) {
-  //   console.log(chalkRed(">>> TX SESSION_UPDATE"
-  //     + " | " + sessionUpdateObj.sessionId
-  //     + " | WCI: " + sessionUpdateObj.wordChainIndex
-  //     + " | " + sessionUpdateObj.source.nodeId
-  //     + " [" + sessionUpdateObj.source.wordChainIndex + "]"
-  //     + " -> " + sessionUpdateObj.target.nodeId
-  //     + " [" + sessionUpdateObj.target.wordChainIndex + "]"
-  //   ));
-  // }
-  // else {
-  //   console.log(chalkRed(">>> TX SESSION_UPDATE (NO TARGET)"
-  //     + " | " + sessionUpdateObj.sessionId
-  //     + " | WCI: " + sessionUpdateObj.wordChainIndex
-  //     + " | " + sessionUpdateObj.source.nodeId
-  //     + " [" + sessionUpdateObj.source.wordChainIndex + "]"
-  //   ));
-  // }
-
-  // viewNameSpace.emit("SESSION_UPDATE", sessionSmallObj);
-  // testViewersNameSpace.emit("SESSION_UPDATE", sessionSmallObj);
-
-  // sessionUpdatesSent++ ;
-  // updateStats({ sessionUpdatesSent: sessionUpdatesSent });
-
-  // updatePromptResponseMetric(sessionUpdateObj);
 }
 
 var simpleChain = function(chain){

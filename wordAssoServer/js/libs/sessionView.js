@@ -1743,4 +1743,4 @@ d3.select(window).on("resize", resize);
 setInterval (function () {
   dateNow = moment().valueOf();
   createSessionNodeLink();
-}, 200 );
+}, 100 );

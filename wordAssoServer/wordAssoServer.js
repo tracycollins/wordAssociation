@@ -3038,6 +3038,15 @@ var readSessionQueue = setInterval(function (){
 
     switch (sesObj.sessionEvent) {
 
+      case 'SESSION_ABORT':
+        console.log(chalkSession(
+          "*** ABT SESSION ABORTED"
+          + " | ID: " + sesObj.sessionId
+        ));
+
+        io.to(sesObj.sessionId).emit('SESSION_ABORT', sesObj.sessionId);
+        break;
+
       case 'REQ_ADMIN_SESSION':
         Object.keys(adminNameSpace.connected).forEach(function(adminSessionKey){
           var adminSessionObj = sessionCache.get(adminSessionKey);
@@ -3297,8 +3306,6 @@ var readSessionQueue = setInterval(function (){
               }
             });
           }
-
-
         });
 
 
@@ -3757,6 +3764,7 @@ var readResponseQueue = setInterval(function (){
       console.error(chalkWarn("??? SESSION NOT IN CACHE ON RESPONSE Q READ (DISCONNECTED?) " + socketId
         + " ... ABORTING SESSION"
       ));
+      sessionQueue.enqueue({sessionEvent: "SESSION_ABORT", sessionId: socketId});
       return ; 
     }
 

@@ -3773,7 +3773,7 @@ var readResponseQueue = setInterval(function (){
 
     if (responseInObj.nodeId == '') {
       console.error("EMPTY RESPONSE: " + responseInObj.nodeId);
-      quit();
+      return;
     }
 
     if (!responseInObj.mentions) responseInObj.mentions = 1;

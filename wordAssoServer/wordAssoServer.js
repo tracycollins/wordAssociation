@@ -4729,15 +4729,18 @@ function createSession (newSessionObj){
     responseInObj.nodeId = responseInObj.nodeId.toLowerCase();
 
     if ((responseInObj.nodeId == ' ') || (responseInObj.nodeId == '')) {
-      console.error(chalkError("??? RX EMPTY WORD (AFTER STRING REPLACE: " + rxInObj.nodeId + " | " + responseInObj.nodeId));
-        quit();
+      console.error(chalkError("??? RX EMPTY WORD (AFTER STRING REPLACE: " 
+        + rxInObj.nodeId 
+        + " | " + responseInObj.nodeId
+        + " | SKIPPING"
+      ));
+    }
+    else{
+      responseInObj.socketId = socket.id ;
+      console.log(chalkResponse("> RX RSP | " + responseInObj.nodeId));
+      responseQueue.enqueue(responseInObj);
     }
 
-    responseInObj.socketId = socket.id ;
-
-    console.log(chalkResponse("> RX RSP | " + responseInObj.nodeId));
-
-    responseQueue.enqueue(responseInObj);
   });
 
   socket.on("BHT_REQUESTS", function(numberSocketBhtRequests){

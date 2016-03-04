@@ -142,10 +142,11 @@ var previousTimestamp = moment().valueOf();
 var timeDelta = 0;
 
 var currentStreamInput = '';
-var previousStreamInput = '';
+var previousStreamInputData = '';
 var previousStreamTimestamp = moment().valueOf();
 var timeStreamDelta = 0;
 
+var checkStreamInputTextInterval;
 var inputChangedTimeout;
 var inputStreamChangedTimeout;
 
@@ -158,14 +159,50 @@ socketIdLabel.innerHTML = "SID: " + socket.id;
 socketIdDiv.appendChild(socketIdLabel);
 
 var checkInputTextInterval;
-var checkStreamInputTextInterval;
-
 var enterKeyDownFlag = false ;
+
+function setCaretPosition(elemId, caretPos) {
+    var elem = document.getElementById(elemId);
+
+    if(elem != null) {
+        if(elem.createTextRange) {
+            var range = elem.createTextRange();
+            range.move('character', caretPos);
+            range.select();
+        }
+        else {
+            if(elem.selectionStart) {
+                elem.focus();
+                elem.setSelectionRange(caretPos, caretPos);
+            }
+            else
+                elem.focus();
+        }
+    }
+}
+
 function sendUserResponseOnEnter(){
   console.log("sendUserResponseOnEnter");
   if (connectedFlag) {
     enterKeyDownFlag = true ;
+    clearTimeout(inputStreamChangedTimeout);
+    clearInterval(checkStreamInputTextInterval);
     console.log("enterKeyDownFlag: " + enterKeyDownFlag);
+    var inputData = document.getElementById("userResponseStreamInput").value.toLowerCase();
+    sendUserResponse('STREAM', inputData, function(dataTransmitted){
+      if (dataTransmitted !== '') console.log("TXD: " + dataTransmitted);
+      var currentStreamInput = document.getElementById("userResponseStreamInput");
+      console.log("currentStreamInput\n" + (currentStreamInput));
+      for (var x in currentStreamInput)
+        if (currentStreamInput.hasAttribute(x) && typeof x !== 'function'){
+          console.log(x + " " + currentStreamInput[x]);
+        }
+      currentStreamInput = document.getElementById("userResponseStreamInput");
+      currentStreamInput.value = '???';
+      previousStreamInputData = '';
+      enterKeyDownFlag = false;
+      checkStreamInputText();
+    });
   }
 }
 
@@ -187,39 +224,38 @@ function addUserResponseStream() {
   userResponseStreamInput.setAttribute("cols", 50);
   userResponseStreamInput.setAttribute("onkeydown", "if (event.keyCode == 13) { return sendUserResponseOnEnter() }");
 
-// <textarea rows="4" cols="50">
-// At w3schools.com you will learn how to make a website. We offer free tutorials in all web development technologies. 
-// </textarea>
-
-
   var userResponseStreamDiv = document.getElementById("userResponseStreamDiv");
   userResponseStreamDiv.appendChild(userResponseStreamLabel);
   userResponseStreamDiv.appendChild(userResponseStreamInput);
 
+      checkStreamInputText();
+}
+
+function checkStreamInputText() {
   checkStreamInputTextInterval = setInterval(function() { 
     if (connectedFlag){
-      currentStreamInput = document.getElementById("userResponseStreamInput").value.toLowerCase(); ;
-      if (!currentStreamInput){
+      var currentStreamInputData = document.getElementById("userResponseStreamInput").value.toLowerCase(); ;
+      if (!currentStreamInputData || currentStreamInputData == ''){
         clearTimeout(inputStreamChangedTimeout);
       }
-      else if (enterKeyDownFlag || (previousStreamInput != currentStreamInput)) {
-        enterKeyDownFlag = false ;
+      else if (!enterKeyDownFlag && (previousStreamInputData != currentStreamInputData)) {
         clearTimeout(inputStreamChangedTimeout);
         var timeStreamDelta = moment().valueOf() - previousStreamTimestamp;
         // console.log("CHANGE [" + timeStreamDelta + "]: "  + previousStreamInput + " | " + currentStreamInput);
         previousStreamTimestamp = moment().valueOf();
         inputStreamChangedTimeout = setTimeout(function(){
-          sendUserResponse('STREAM', currentStreamInput, function(dataTransmitted){
-            console.log("TXD: " + dataTransmitted);
-            currentStreamInput = document.getElementById("userResponseStreamInput");
+          sendUserResponse('STREAM', currentStreamInputData, function(dataTransmitted){
+            if (dataTransmitted !== '') console.log("TXD: " + dataTransmitted);
+            var currentStreamInput = document.getElementById("userResponseStreamInput");
             currentStreamInput.value = '';
           });
         }, 4000);
       }
-      previousStreamInput = document.getElementById("userResponseStreamInput").value.toLowerCase();
+      previousStreamInputData = document.getElementById("userResponseStreamInput").value.toLowerCase();
     }
   }, 100);
 }
+
 
 function addUserResponsePrompt() {
   var userResponseInput = document.createElement("input");
@@ -235,6 +271,7 @@ function addUserResponsePrompt() {
   userResponseInput.setAttribute("autofocus", true);
   userResponseInput.setAttribute("autocapitalize", "none");
   userResponseInput.setAttribute("value", userResponseValue);
+  userResponseInput.setAttribute("onkeydown", "if (event.keyCode == 13) { return sendUserResponseOnEnter() }");
   // userResponseInput.setAttribute("onkeydown", "if (event.keyCode == 13) { return sendUserResponse() }");
 
   var userResponseDiv = document.getElementById("userResponseDiv");
@@ -300,13 +337,53 @@ socket.on("PROMPT_WORD", function(promptWord){
 var responseTimeoutInterval = 3000 ;
 var autoResponseWord = "testing";
 
-socket.on("SESSION_EXPIRED", function(reason){
-  console.log("**** RX SESSION_EXPIRED: " + reason);
+socket.on("SESSION_ABORT", function(socketId){
+
+  console.log("**** RX SESSION_ABORT: " + socketId);
+
   var serverPromptDiv = document.getElementById("serverPromptDiv");
   var serverPromptLabel = document.getElementById("serverPromptLabel");
   var serverPromptOutput = document.getElementById("serverPromptOutput");
+
   serverPromptDiv.removeChild(serverPromptOutput);
   serverPromptDiv.removeChild(serverPromptLabel);
+
+  var userResponseStreamDiv = document.getElementById("userResponseStreamDiv");
+  var userResponseStreamLabel = document.getElementById("userResponseStreamLabel");
+  var userResponseStreamInput = document.getElementById("userResponseStreamInput");
+
+  userResponseStreamDiv.removeChild(userResponseStreamLabel);
+  userResponseStreamDiv.removeChild(userResponseStreamInput);
+
+  var userResponseDiv = document.getElementById("userResponseDiv");
+  var userResponseLabel = document.getElementById("userResponseLabel");
+  var userResponseInput = document.getElementById("userResponseInput");
+
+  userResponseDiv.removeChild(userResponseLabel);
+  userResponseDiv.removeChild(userResponseInput);
+
+  socketIdLabel.innerHTML = '<bold>*** SESSION EXPIRED ***</bold>'  + '<br><br>' + 'REFRESH BROWSER TO RECONNECT' + '<br><br>EXPIRED SESSION: ' + socket.id; 
+
+  socket.disconnect();  
+
+});
+
+socket.on("SESSION_EXPIRED", function(reason){
+  console.log("**** RX SESSION_EXPIRED: " + reason);
+
+  var serverPromptDiv = document.getElementById("serverPromptDiv");
+  var serverPromptLabel = document.getElementById("serverPromptLabel");
+  var serverPromptOutput = document.getElementById("serverPromptOutput");
+
+  serverPromptDiv.removeChild(serverPromptOutput);
+  serverPromptDiv.removeChild(serverPromptLabel);
+
+  var userResponseStreamDiv = document.getElementById("userResponseStreamDiv");
+  var userResponseStreamLabel = document.getElementById("userResponseStreamLabel");
+  var userResponseStreamInput = document.getElementById("userResponseStreamInput");
+
+  userResponseStreamDiv.removeChild(userResponseStreamLabel);
+  userResponseStreamDiv.removeChild(userResponseStreamInput);
 
   var userResponseDiv = document.getElementById("userResponseDiv");
   var userResponseLabel = document.getElementById("userResponseLabel");
@@ -318,7 +395,6 @@ socket.on("SESSION_EXPIRED", function(reason){
   socketIdLabel.innerHTML = '<bold>*** SESSION EXPIRED ***</bold>'  + '<br><br>' + 'REFRESH BROWSER TO RECONNECT' + '<br><br>EXPIRED SESSION: ' + socket.id; 
 
   socket.disconnect();  
-
 });
 
 socket.on("RANDOM_WORD", function(randomWord){

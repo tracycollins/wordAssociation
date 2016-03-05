@@ -968,7 +968,10 @@ function createSession (callback){
 
       var interpolateNodeColor = d3.interpolateHcl(endColor, startColor);
 
-      session.colors = {'startColor': startColor, 'endColor': endColor};
+      session.colors = {};
+      session.colors.startColor = startColor;
+      session.colors.endColor = endColor;
+
       session.interpolateColor = interpolateNodeColor;
 
       console.log("NEW SESSION\n" + sessionObject.sessionId + "\nPOS: " + jsonPrint(sessionObject.initialPosition));

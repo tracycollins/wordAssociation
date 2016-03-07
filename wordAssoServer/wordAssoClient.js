@@ -87,6 +87,10 @@ function getUrlVariables(config){
 var transmitDataQueue = [];
 
 setInterval(function(){
+  socket.emit("SESSION_KEEPALIVE", userObj);
+}, 10000);
+
+setInterval(function(){
   if (transmitDataQueue.length > 0){
     var word = transmitDataQueue.shift();
     socket.emit("RESPONSE_WORD_OBJ", {nodeId: word});

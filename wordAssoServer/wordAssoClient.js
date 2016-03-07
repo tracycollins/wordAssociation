@@ -4,7 +4,7 @@
 var debug = false ;
 var testMode = false ;
 
-var sessionMode = 'STREAM' ;
+var sessionMode = 'PROMPT' ;
 var monitorMode = false ;
 
 var responseTimeoutInterval = 1000 ;
@@ -169,32 +169,29 @@ var enterKeyDownFlag = false ;
 function setSessionMode(mode){
   console.log("NEW SESSION MODE: " + mode);
   sessionMode = mode;
-
   userObj.mode = sessionMode;
-
   socket.emit("USER_READY", userObj);
-
 }
 
-function setCaretPosition(elemId, caretPos) {
-    var elem = document.getElementById(elemId);
+// function setCaretPosition(elemId, caretPos) {
+//     var elem = document.getElementById(elemId);
 
-    if(elem != null) {
-        if(elem.createTextRange) {
-            var range = elem.createTextRange();
-            range.move('character', caretPos);
-            range.select();
-        }
-        else {
-            if(elem.selectionStart) {
-                elem.focus();
-                elem.setSelectionRange(caretPos, caretPos);
-            }
-            else
-                elem.focus();
-        }
-    }
-}
+//     if(elem != null) {
+//         if(elem.createTextRange) {
+//             var range = elem.createTextRange();
+//             range.move('character', caretPos);
+//             range.select();
+//         }
+//         else {
+//             if(elem.selectionStart) {
+//                 elem.focus();
+//                 elem.setSelectionRange(caretPos, caretPos);
+//             }
+//             else
+//                 elem.focus();
+//         }
+//     }
+// }
 
 function sendUserResponseOnEnter(){
   console.log("sendUserResponseOnEnter");
@@ -243,7 +240,7 @@ function addUserResponseStream() {
   userResponseStreamDiv.appendChild(userResponseStreamLabel);
   userResponseStreamDiv.appendChild(userResponseStreamInput);
 
-      checkStreamInputText();
+  checkStreamInputText();
 }
 
 function checkStreamInputText() {

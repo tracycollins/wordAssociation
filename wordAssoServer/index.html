@@ -20,6 +20,27 @@
       padding: 0
     }
 
+    #sessionModeForm {
+      /*background: #222222;*/
+      color: #cccccc;
+      text-align: left;
+      width: 200px;
+      margin: 0 auto;
+      padding: 0
+      font-family: "Lucida Console", Monaco, monospace;
+      font-size: 1em;
+      padding: 5px;
+      border: 2px solid red;
+     }
+
+/*    #sessionModeForm {
+      background: #222222;
+      text-align: left;
+      width: 200px;
+      margin: 0 auto;
+      padding: 0
+    }
+*/
   </style>
 
   <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
@@ -36,6 +57,16 @@
 
   <div id="main" style="position:relative;overflow:hidden;">
     <div id="overlay">
+      <div id="controlDiv">
+        <form id="sessionModeForm" method="post" >
+          <p>SESSION TYPE</p>
+          <hr>
+          <input type="radio" name="sessionModeButton" onclick="setSessionMode('PROMPT');" value="PROMPT"> prompt<br>
+          <input type="radio" name="sessionModeButton" onclick="setSessionMode('STREAM');" value="STREAM" checked> stream<br>
+          <input type="radio" name="sessionModeButton" onclick="setSessionMode('USER_USER');" value="USER_USER"> user-user
+        </form>      
+      
+      </div>
       <div id="serverPromptDiv"></div>
       <div id="userResponseDiv"></div>
       <div id="userResponseStreamDiv"></div>

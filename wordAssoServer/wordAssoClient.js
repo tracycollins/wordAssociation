@@ -7,7 +7,8 @@ var testMode = false ;
 var sessionMode = 'STREAM' ;
 var monitorMode = false ;
 
-var responseTimeoutInterval = 3000 ;
+var responseTimeoutInterval = 1000 ;
+
 var urlRoot = "http://word.threeceelabs.com/session?session=";
 var configHashMap = new HashMap();
 
@@ -263,7 +264,7 @@ function checkStreamInputText() {
             var currentStreamInput = document.getElementById("userResponseStreamInput");
             currentStreamInput.value = '';
           });
-        }, 1000);
+        }, responseTimeoutInterval);
       }
       previousStreamInputData = document.getElementById("userResponseStreamInput").value.toLowerCase();
     }
@@ -309,7 +310,7 @@ function addUserResponsePrompt() {
             currentInput = document.getElementById("userResponseInput");
             currentInput.value = '';
           });
-        }, 4000);
+        }, responseTimeoutInterval);
       }
       previousInput = document.getElementById("userResponseInput").value.toLowerCase();
     }
@@ -373,7 +374,6 @@ socket.on("PROMPT_WORD", function(promptWord){
 });
 
 
-var responseTimeoutInterval = 3000 ;
 var autoResponseWord = "testing";
 
 socket.on("SESSION_ABORT", function(socketId){

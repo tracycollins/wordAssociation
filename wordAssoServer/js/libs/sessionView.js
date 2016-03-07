@@ -9,6 +9,7 @@ if(typeof(Worker) !== "undefined") {
 }
 
 var debug = true;
+var MAX_RX_QUEUE = 250;
 
 var forceStopped = false;
 
@@ -881,15 +882,16 @@ socket.on("SESSION_UPDATE", function(rxSessionObject){
   else if (sessionMode && (rxObj.sessionId !== currentSession.sessionId)) {
     if (debug) {
       console.log("SKIP SESSION_UPDATE: " + rxObj.sessionId + " | CURRENT: " + currentSession.sessionId);
-
     }
   }
-  else {
+  else if (rxSessionUpdateQueue.length < MAX_RX_QUEUE) {
 
-    rxSessionUpdateQueue.push(rxObj);
     var len = rxSessionUpdateQueue.length 
 
+    rxSessionUpdateQueue.push(rxObj);
+
     console.log(rxObj.sessionId
+      + " | Q: " + len
       + " | " + rxObj.source.nodeId
       + " -> " + rxObj.target.nodeId
       // + " | Q: " + len

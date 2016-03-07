@@ -1079,6 +1079,7 @@ function sendPrompt(sessionObj, sourceWordObj){
     var sourceWordObj ;
 
     switch (sessionObj.config.type) {
+      case 'PROMPT':
       case 'RANDOM':
       case 'ANTONYM':
       case 'SYNONYM':
@@ -1214,7 +1215,7 @@ function sendPrompt(sessionObj, sourceWordObj){
       case 'GROUP':
       break;
       default:
-        console.error(chalkError(" 1 ????? UNKNOWN SESSION TYPE: " + sesObj.session.config.type));
+        console.error(chalkError(" 1 ????? UNKNOWN SESSION TYPE: " + sessionObj.config.type));
         quit();
       break;
     }
@@ -3146,6 +3147,8 @@ var readSessionQueue = setInterval(function (){
          // SESSION TYPES: RANDOM, ANTONYM, SYNONYM, SCRIPT, USER_USER, GROUP 
 
         switch (sesObj.session.config.type) {
+          case 'PROMPT':
+          break;
           case 'RANDOM':
           break;
           case 'ANTONYM':
@@ -3615,6 +3618,7 @@ var readSessionQueue = setInterval(function (){
 
                   // start with a random word for these session types
 
+                  case 'PROMPT':
                   case 'RANDOM':
                   case 'ANTONYM':
                   case 'SYNONYM':
@@ -4007,6 +4011,7 @@ This is where routing of response -> prompt happens
           });
         break;
 
+        case 'PROMPT':
         case 'ANTONYM':
         case 'SYNONYM':
 

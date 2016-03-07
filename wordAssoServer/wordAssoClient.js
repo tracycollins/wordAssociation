@@ -165,6 +165,16 @@ socketIdDiv.appendChild(socketIdLabel);
 var checkInputTextInterval;
 var enterKeyDownFlag = false ;
 
+function setSessionMode(mode){
+  console.log("NEW SESSION MODE: " + mode);
+  sessionMode = mode;
+
+  userObj.mode = sessionMode;
+
+  socket.emit("USER_READY", userObj);
+
+}
+
 function setCaretPosition(elemId, caretPos) {
     var elem = document.getElementById(elemId);
 
@@ -202,7 +212,7 @@ function sendUserResponseOnEnter(){
           console.log(x + " " + currentStreamInput[x]);
         }
       currentStreamInput = document.getElementById("userResponseStreamInput");
-      currentStreamInput.value = '???';
+      currentStreamInput.value = '';
       previousStreamInputData = '';
       enterKeyDownFlag = false;
       checkStreamInputText();
@@ -253,13 +263,12 @@ function checkStreamInputText() {
             var currentStreamInput = document.getElementById("userResponseStreamInput");
             currentStreamInput.value = '';
           });
-        }, 4000);
+        }, 1000);
       }
       previousStreamInputData = document.getElementById("userResponseStreamInput").value.toLowerCase();
     }
   }, 100);
 }
-
 
 function addUserResponsePrompt() {
   var userResponseInput = document.createElement("input");
@@ -306,6 +315,32 @@ function addUserResponsePrompt() {
     }
   }, 100);
 }
+
+// function addControlPanel() {
+
+//   var sessionModeForm = document.createElement("form");
+
+//   var sessionModeFormLabel = document.createElement("label");
+//   sessionModeFormLabel.setAttribute("id", "sessionModeFormLabel");
+//   sessionModeFormLabel.innerHTML = "SESSION MODE";
+
+//   sessionModeForm.setAttribute("id", "sessionModeForm");
+//   sessionModeForm.setAttribute("class", "sessionModeForm");
+
+//   var promptModeButton = document.createElement("input");
+//   promptModeButton.setAttribute("type", "radio");
+//   promptModeButton.setAttribute("class", "sessionModeForm");
+//   promptModeButton.setAttribute("name", "sessionMode");
+//   promptModeButton.setAttribute("value", "PROMPT");
+//   promptModeButton.setAttribute("defaultValue", "PROMPT");
+//   promptModeButton.innerHTML = "prompt";
+
+//   sessionModeForm.appendChild(sessionModeFormLabel);
+//   sessionModeForm.appendChild(promptModeButton);
+
+//   var controlDiv = document.getElementById("controlDiv");
+//   controlDiv.appendChild(sessionModeForm);
+// }
 
 function addServerPrompt() {
   var serverPromptOutput = document.createElement("output"); 
@@ -578,6 +613,7 @@ window.onload = function () {
 
   window.resizeTo(400,600);
 
+  // addControlPanel();
   addServerPrompt();
   addUserResponsePrompt();
   addUserResponseStream();

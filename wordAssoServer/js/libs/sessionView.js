@@ -1234,6 +1234,21 @@ function calcNodeAges (callback){
       deadNodesFlag = true;
       deadNodeHashMap.set(nodeId,1);
 
+      ageLinksLength = links.length-1;
+      ageLinksIndex = links.length-1;
+      
+      for (ageLinksIndex = ageLinksLength; ageLinksIndex >= 0; ageLinksIndex -= 1) {
+
+        currentLinkObject = links[ageLinksIndex];
+
+        if (currentNodeObject.nodeId === currentLinkObject.target.nodeId) {
+          links.splice(ageLinksIndex, 1); 
+        }
+        else if (currentNodeObject.nodeId === currentLinkObject.source.nodeId) {
+          links.splice(ageLinksIndex, 1); 
+        }
+      }
+
     }
     else {
       currentNodeObject.ageUpdated = dateNow;

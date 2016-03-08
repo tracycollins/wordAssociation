@@ -1793,7 +1793,20 @@ d3.select(window).on("resize", resize);
 //   });
 // }, 1000 );
 
-setInterval (function () {
+// setInterval (function () {
+//   dateNow = moment().valueOf();
+//   calcNodeAges(function(deadNodes){
+//     if (deadNodes) {
+//       console.warn("DEAD NODES");
+//       // deadNodeHashMap.forEach(function(nodeObj, nodeId){
+//       //   deadNodeHashMap.remove(nodeId);
+//       // });
+//     }
+//   });
+//   createSessionNodeLink();
+// }, 100 );
+
+d3.timer(function () {
   dateNow = moment().valueOf();
   calcNodeAges(function(deadNodes){
     if (deadNodes) {
@@ -1804,4 +1817,4 @@ setInterval (function () {
     }
   });
   createSessionNodeLink();
-}, 100 );
+});

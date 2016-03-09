@@ -56,13 +56,13 @@ var randomIntFromInterval = function (min,max) {
   return randomInt;
 }
 
-var userObj = { 
-  userId: 'RANDOM_' + sessionMode + '_' + randomIntFromInterval(1000000000,9999999999),
-  screenName: 'RANDOM_' + sessionMode + '_' + randomIntFromInterval(1000000000,9999999999), 
-  type: "USER", 
-  mode: sessionMode,
-  streamSource: "USER"
-} ;
+var userObj = {};
+
+userObj.userId ='RANDOM_' + sessionMode + '_' + randomIntFromInterval(1000000000,9999999999);
+userObj.screenName = 'RANDOM_' + sessionMode + '_' + randomIntFromInterval(1000000000,9999999999);
+userObj.type = "USER";
+userObj.mode = sessionMode;
+userObj.streamSource = "USER";
 
 function getUrlVariables(config){
 
@@ -201,20 +201,24 @@ function sendUserResponseOnEnter(){
     clearInterval(checkStreamInputTextInterval);
     console.log("enterKeyDownFlag: " + enterKeyDownFlag);
     var inputData = document.getElementById("userResponseStreamInput").value.toLowerCase();
-    sendUserResponse('STREAM', inputData, function(dataTransmitted){
-      if (dataTransmitted !== '') console.log("TXD: " + dataTransmitted);
-      var currentStreamInput = document.getElementById("userResponseStreamInput");
-      console.log("currentStreamInput\n" + (currentStreamInput));
-      for (var x in currentStreamInput)
-        if (currentStreamInput.hasAttribute(x) && typeof x !== 'function'){
-          console.log(x + " " + currentStreamInput[x]);
-        }
-      currentStreamInput = document.getElementById("userResponseStreamInput");
-      currentStreamInput.value = '';
-      previousStreamInputData = '';
-      enterKeyDownFlag = false;
-      checkStreamInputText();
-    });
+
+    if (inputData){
+      sendUserResponse('STREAM', inputData, function(dataTransmitted){
+        if (dataTransmitted !== '') console.log("TXD: " + dataTransmitted);
+        var currentStreamInput = document.getElementById("userResponseStreamInput");
+        console.log("currentStreamInput");
+        for (var x in currentStreamInput)
+          if (currentStreamInput.hasAttribute(x) && typeof x !== 'function'){
+            console.log("currentStreamInput: " + x + " " + currentStreamInput[x]);
+          }
+        currentStreamInput = document.getElementById("userResponseStreamInput");
+        currentStreamInput.value = '';
+        previousStreamInputData = '';
+        enterKeyDownFlag = false;
+        checkStreamInputText();
+      });
+    }
+
   }
 }
 
@@ -450,7 +454,7 @@ socket.on("RANDOM_WORD", function(randomWord){
     charIndex++;
     if (charIndex > autoResponseWord.length) {
       var sendResponseInterval = setTimeout(function(){
-        sendUserResponse(userObj.sessionMode, null, function(randomWord){
+        sendUserResponse(userObj.mode, '', function(randomWord){
           console.log("TXD RANDOM: " + randomWord);
         });
       }, 1000);

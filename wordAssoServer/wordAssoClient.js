@@ -454,7 +454,7 @@ socket.on("RANDOM_WORD", function(randomWord){
     charIndex++;
     if (charIndex > autoResponseWord.length) {
       var sendResponseInterval = setTimeout(function(){
-        sendUserResponse(userObj.mode, '', function(randomWord){
+        sendUserResponse(userObj.mode, null, function(randomWord){
           console.log("TXD RANDOM: " + randomWord);
         });
       }, 1000);

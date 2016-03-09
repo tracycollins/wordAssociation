@@ -935,13 +935,12 @@ setInterval(function(){
   var randomNumber360 = randomIntFromInterval(0,360);
   var startColor = "hsl(" + randomNumber360 + ",100%,50%)";
   var endColor = "hsl(" + randomNumber360 + ",0%,0%)";
-  // var interpolateNodeColor = d3.interpolateHcl(endColor, startColor);
 
-  if (randomColorQueue.length < 20) {
+  if (randomColorQueue.length < 50) {
     randomColorQueue.push({ "startColor": startColor, "endColor": endColor});
   }
 
-}, 100);
+}, 50);
 
 function createSession (callback){
 
@@ -978,22 +977,14 @@ function createSession (callback){
 
       session.initialPosition = computeInitialPosition(sessionsCreated);
 
-      // var randomNumber360 = randomIntFromInterval(0,360);
-      // var startColor = "hsl(" + randomNumber360 + ",100%,50%)";
-      // var endColor = "hsl(" + randomNumber360 + ",0%,0%)";
-
-
       session.colors = {};
-      // session.colors.startColor = startColor;
-      // session.colors.endColor = endColor;
-
       session.colors = randomColorQueue.shift();
 
       var interpolateNodeColor = d3.interpolateHcl(session.colors.endColor, session.colors.startColor);
       session.interpolateColor = interpolateNodeColor;
 
       console.log("NEW SESSION " + sessionObject.sessionId 
-        // + "\nPOS: " + jsonPrint(sessionObject.initialPosition)
+        // + "\ncolors: " + jsonPrint(session.colors)
         );
 
       // console.log("session"

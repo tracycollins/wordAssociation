@@ -1032,6 +1032,9 @@ function createNode (sessionId, callback) {
       wordObject.mentions = session.source.mentions;
       wordObject.text = nodeId;
       wordObject.fixed = true;
+      wordObject.colors = session.colors;
+      wordObject.interpolateColor = session.interpolateColor;
+
       // nodeHashMap.set(nodeId, wordObject);
       nodeHashMap[nodeId] = wordObject;
 
@@ -1094,7 +1097,6 @@ function createNode (sessionId, callback) {
       callback (null, sessionId);
     }
   }
-
 }
 
 function pauseForNodes (sessionId, callback) {  
@@ -1127,7 +1129,6 @@ function pauseForNodes (sessionId, callback) {
     //   }
     // }, 100);
   }
-
 }
 
 function createLink (sessionId, callback) {

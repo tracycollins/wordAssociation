@@ -1407,7 +1407,7 @@ function ageNodes (sessionId, callback){
       nodes[ageNodesIndex].age = currentNodeObject.age;
       nodes[ageNodesIndex].ageUpdated = currentNodeObject.ageUpdated;
  
-      if (currentNodeId == ageSession.fixedNodeId) {
+      if ((typeof ageSession !== 'undefined') && (currentNodeId == ageSession.fixedNodeId)) {
         currentNodeObject.fixed = true;
       }
       else {

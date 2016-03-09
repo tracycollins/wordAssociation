@@ -495,7 +495,7 @@ function launchSessionView(sessionId) {
 var adjustedAgeRateScale = d3.scale.pow().domain([1,500]).range([1.0,100.0]);
 var fontSizeScale = d3.scale.log().domain([1,1000000]).range([1.6,3.2]);
 
-var defaultRadiusScale = d3.scale.log().domain([1,1000000]).range([2.2,24]);
+var defaultRadiusScale = d3.scale.log().domain([1,1000000]).range([1.0,24.0]);
 
 var fillColorScale = d3.scale.linear()
     .domain([0, 30000, 60000])

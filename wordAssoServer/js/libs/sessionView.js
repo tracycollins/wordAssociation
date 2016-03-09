@@ -929,12 +929,16 @@ var tempMentions;
 var numberSessionsUpdated = 0;
 
 var randomColorQueue = [];
+var randomNumber360 = randomIntFromInterval(0,360);
+var startColor = "hsl(" + randomNumber360 + ",100%,50%)";
+var endColor = "hsl(" + randomNumber360 + ",0%,0%)";
+randomColorQueue.push({ "startColor": startColor, "endColor": endColor});
 
 setInterval(function(){
 
-  var randomNumber360 = randomIntFromInterval(0,360);
-  var startColor = "hsl(" + randomNumber360 + ",100%,50%)";
-  var endColor = "hsl(" + randomNumber360 + ",0%,0%)";
+  randomNumber360 += randomIntFromInterval(60,120);
+  startColor = "hsl(" + randomNumber360 + ",100%,50%)";
+  endColor = "hsl(" + randomNumber360 + ",0%,0%)";
 
   if (randomColorQueue.length < 50) {
     randomColorQueue.push({ "startColor": startColor, "endColor": endColor});

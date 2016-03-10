@@ -1017,6 +1017,7 @@ var readUpdateSessionViewQueue = setInterval(function (){
 
     if (sessionUpdateObj.target) {
       console.log(chalkRed(">>> TX SESSION_UPDATE"
+        + " | " + sessionUpdateObj.userId
         + " | " + sessionUpdateObj.sessionId
         + " | WCI: " + sessionUpdateObj.wordChainIndex
         + " | " + sessionUpdateObj.source.nodeId
@@ -1027,6 +1028,7 @@ var readUpdateSessionViewQueue = setInterval(function (){
     }
     else {
       console.log(chalkRed(">>> TX SESSION_UPDATE (NO TARGET)"
+        + " | " + sessionUpdateObj.userId
         + " | " + sessionUpdateObj.sessionId
         + " | WCI: " + sessionUpdateObj.wordChainIndex
         + " | " + sessionUpdateObj.source.nodeId
@@ -1115,6 +1117,7 @@ function sendPrompt(sessionObj, sourceWordObj){
           ));
 
           var sessionUpdateObj = {
+            userId: currentUser.userId,
             sessionId: currentSession.sessionId,
             wordChainIndex: currentSession.wordChainIndex,
             source: sourceWordObj,
@@ -1133,6 +1136,7 @@ function sendPrompt(sessionObj, sourceWordObj){
             + " | START -> " + sourceWordObj.nodeId));
 
           var sessionUpdateObj = {
+            userId: currentUser.userId,
             sessionId: currentSession.sessionId,
             wordChainIndex: currentSession.wordChainIndex,
             source: sourceWordObj,
@@ -1175,7 +1179,7 @@ function sendPrompt(sessionObj, sourceWordObj){
           var targetWordObj = wordCache.get(previousResponse);
 
           console.log(chalkPrompt("P-> "
-            // + currentUser.userId 
+            + currentUser.userId 
             + " | " + sessionObj.sessionId 
             + " | " + sessionObj.config.type 
             + " | " + targetWordObj.nodeId 
@@ -1188,7 +1192,7 @@ function sendPrompt(sessionObj, sourceWordObj){
           sourceWordObj = promptWordObj;
 
           console.log(chalkPrompt("P-> "
-            // + targetUser.userId 
+            + currentUser.userId 
             + " | " + targetSession.sessionId 
             + " | " + targetSession.config.type 
             + " | START --> " + promptWordObj.nodeId));
@@ -1201,6 +1205,7 @@ function sendPrompt(sessionObj, sourceWordObj){
         deltaPromptsSent++;
 
         var sessionUpdateObj = {
+          userId: currentUser.userId,
           sessionId: currentSession.sessionId,
           wordChainIndex: currentSession.wordChainIndex,
           source: promptWordObj,
@@ -3905,6 +3910,7 @@ var readDbUpdateQueue = setInterval(function (){
           promptQueue.enqueue(currentSessionObj.sessionId);
 
           var sessionUpdateObj = {
+            userId: currentSessionObj.userId,
             sessionId: currentSessionObj.sessionId,
             wordChainIndex: dbUpdateObj.word.wordChainIndex,
             source: updatedWordObj,

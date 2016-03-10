@@ -82,10 +82,10 @@ exports.getWordVariation = function(word, wordTypeArray, wordVariation, callback
 			callback(err, word);
 		}
 		else if (wordObj) {
-      console.log(chalkBht("-*- BHT WORD FOUND | " + word));
+      debug(chalkBht("-*- BHT WORD FOUND | " + word));
 			loadBhtResponseHash(wordObj, wordTypeArray, wordVariation, function(wordVarHashMap){
 	      if (wordVarHashMap.count() == 0) {
-	        console.log(chalkBht("-v- BHT VAR MISS   | " + wordObj.nodeId));
+	        debug(chalkBht("-v- BHT VAR MISS   | " + wordObj.nodeId));
 	        callback('BHT_VAR_MISS', wordObj.nodeId);  // ?? maybe unknown wordType?
 	        return;
 	      }
@@ -105,7 +105,7 @@ exports.getWordVariation = function(word, wordTypeArray, wordVariation, callback
 						callback(err, word);
         	}
         	else {
-		        console.log(chalkBht("-*- BHT VAR HIT    | " + updatedResponseWordObj.nodeId + " | " + responseWord));
+		        debug(chalkBht("-*- BHT VAR HIT    | " + updatedResponseWordObj.nodeId + " | " + responseWord));
 			      callback('BHT_VAR_HIT', updatedResponseWordObj);
 			      return;
 			    }
@@ -114,7 +114,7 @@ exports.getWordVariation = function(word, wordTypeArray, wordVariation, callback
 			});
 		}
 		else {
-      console.log(chalkBht("-v- BHT VAR MISS   | " + word));
+      debug(chalkBht("-v- BHT VAR MISS   | " + word));
       callback('BHT_VAR_MISS', word);  // ?? maybe unknown wordType?
 		}
 	});
@@ -130,7 +130,7 @@ exports.getRandomWord = function(callback){
 		else {
 			debug("RANDOM WORD\n" + JSON.stringify(randomWordArray, null, 3));
 			if (!randomWordArray[0]) {
-				console.log(chalkError("*** NULL RANDOM WORD... RETURNING black"));
+				debug(chalkError("*** NULL RANDOM WORD... RETURNING black"));
 				console.error(chalkError("*** NULL RANDOM WORD... RETURNING black"));
 				callback(null, {nodeId: 'black'});
 			}
@@ -183,7 +183,7 @@ exports.findOneWord = function(word, incMentions, callback) {
 				callback("ERROR " + err, null);
 			}
 			else {
-				console.log(chalkDb("->- DB UPDATE" 
+				debug(chalkDb("->- DB UPDATE" 
 					+ " | " + wd.nodeId 
 					+ " | MENTIONS: " + wd.mentions 
 					+ " | LAST SEEN: " + Date(wd.lastSeen) 

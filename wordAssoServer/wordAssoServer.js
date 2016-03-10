@@ -889,14 +889,14 @@ function readFileIntoArray (path, callback) {
 
 function dnsReverseLookup(ip, callback) {
   if (localHostHashMap.has(ip)) {
-    console.log("dnsReverseLookup: DEVELOPMENT HOST: " + os.hostname() + " | " + ip);
+    debug("dnsReverseLookup: DEVELOPMENT HOST: " + os.hostname() + " | " + ip);
     var domains =[];
     domains.push(localHostHashMap.get(ip));
     callback(null, domains);
   }
   else if (dnsHostHashMap.has(ip)) {
     var domains = dnsHostHashMap.get(ip) ;
-    console.log("dnsReverseLookup: HOST IN HASHMAP : " + os.hostname() + " | " + ip + " | " + domains);
+    deubg("dnsReverseLookup: HOST IN HASHMAP : " + os.hostname() + " | " + ip + " | " + domains);
     callback(null, domains);
   }
   else {
@@ -1420,7 +1420,7 @@ function bhtHttpGet(host, path, wordObj, callback){
           return;
         }
         else {
-          console.log(chalkBht("bhtHttpGet: ->- DB ALT UPDATE | " 
+          debug(chalkBht("bhtHttpGet: ->- DB ALT UPDATE | " 
             + wordUpdatedObj.nodeId 
             + " | ALT: " + wordUpdatedObj.bhtAlt  // alternative word
             + " | MNS: " + wordUpdatedObj.mentions
@@ -1494,7 +1494,7 @@ function bhtHttpGet(host, path, wordObj, callback){
 }
 
 function generatePrompt(query, callback){
-  console.log("->- GEN PROMPT | " + query.input + " | " + query.algorithm.toUpperCase());
+  debug("->- GEN PROMPT | " + query.input + " | " + query.algorithm.toUpperCase());
 
   // wordVariations = [ 'syn', 'ant', 'rel', 'sim', 'usr' ]
 
@@ -1510,7 +1510,7 @@ function generatePrompt(query, callback){
         else if (status == 'BHT_VAR_MISS') {
           words.getRandomWord(function(err, randomWordObj){
             if (!err) {
-              console.log("-G- GEN RANDOM - ANT MISS: " + randomWordObj.nodeId);
+              debug("-G- GEN RANDOM - ANT MISS: " + randomWordObj.nodeId);
               wordCache.set(randomWordObj.nodeId, randomWordObj);
               callback('OK', randomWordObj);
               return;
@@ -1540,7 +1540,7 @@ function generatePrompt(query, callback){
         else if (status == 'BHT_VAR_MISS') {
           words.getRandomWord(function(err, randomWordObj){
             if (!err) {
-              console.log("-G- GEN RANDOM - SYN MISS: " + randomWordObj.nodeId);
+              debug("-G- GEN RANDOM - SYN MISS: " + randomWordObj.nodeId);
               wordCache.set(randomWordObj.nodeId, randomWordObj);
               callback('OK', randomWordObj);
               return;
@@ -1916,7 +1916,7 @@ function adminUpdateDb (adminObj, callback) {
       }
       else if (domains[0]) {
         adminObj.domain = domains[0];
-        console.log("adminUpdateDb: UPDATED DOMAIN | " + adminObj.userId + " | " + adminObj.domain);
+        debug("adminUpdateDb: UPDATED DOMAIN | " + adminObj.userId + " | " + adminObj.domain);
       }
     });
   }
@@ -2063,16 +2063,11 @@ function userUpdateDb (userObj, callback) {
       else {
         if (domains[0]) {
           userObj.domain = domains[0];
-          console.log("userUpdateDb: UPDATED DOMAIN | " + userObj.userId + " | " + userObj.domain);
+          debug("userUpdateDb: UPDATED DOMAIN | " + userObj.userId + " | " + userObj.domain);
         }
       }
     });
   }
-
-  // if (dnsHostHashMap.has(userObj.ip)) {
-  //   userObj.domain = dnsHostHashMap.get(userObj.ip);
-  //   console.log("userUpdateDb: UPDATED DOMAIN | " + userObj.userId + " | " + userObj.domain);
-  // }
 
   var query = { userId: userObj.userId };
   var update = { 
@@ -3777,7 +3772,7 @@ var readResponseQueue = setInterval(function (){
       return ; 
     }
 
-    console.log(chalkBht(">>> RESPONSE (before replace): " + responseInObj.nodeId));
+    debug(chalkBht(">>> RESPONSE (before replace): " + responseInObj.nodeId));
     responseInObj.nodeId = responseInObj.nodeId.replace(/\s+/g, ' ');
     responseInObj.nodeId = responseInObj.nodeId.replace(/[\n\r\[\]\{\}\<\>\/\;\:\"\'\`\~\?\!\@\#\$\%\^\&\*\(\)\_\+\=]+/g, '') ;
     responseInObj.nodeId = responseInObj.nodeId.replace(/\s+/g, ' ') ;
@@ -3901,7 +3896,7 @@ var readDbUpdateQueue = setInterval(function (){
         previousPromptNodeId = currentSessionObj.wordChain[dbUpdateObj.word.wordChainIndex-1];
         previousPromptObj = wordCache.get(previousPromptNodeId);
         previousPromptObj.wordChainIndex = dbUpdateObj.word.wordChainIndex-1;
-        console.log(chalkRed("CHAIN previousPromptObj: " + previousPromptNodeId));
+        debug(chalkRed("CHAIN previousPromptObj: " + previousPromptNodeId));
       }
 
       sessionCache.set(currentSessionObj.sessionId, currentSessionObj, function(err, success){
@@ -4756,7 +4751,7 @@ function createSession (newSessionObj){
     }
     else{
       responseInObj.socketId = socket.id ;
-      console.log(chalkResponse("> RX RSP | " + responseInObj.nodeId));
+      debug(chalkResponse("> RX RSP | " + responseInObj.nodeId));
       responseQueue.enqueue(responseInObj);
     }
 

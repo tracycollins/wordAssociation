@@ -2851,19 +2851,19 @@ function updateMetrics(googleMetricsUpdateFlag){
            }
           },
 
-          // {
-          //  "point": {
-          //   "int64Value": mwRequests,
-          //   "start": metricDateStart,
-          //   "end": metricDateEnd
-          //  },
-          //  "timeseriesDesc": {
-          //   "labels": { 
-          //     "custom.cloudmonitoring.googleapis.com/word-asso/mw/numberMwRequests" : "TOTAL DAILY MW REQUESTS"
-          //   },
-          //   "metric": "custom.cloudmonitoring.googleapis.com/word-asso/mw/numberMwRequests"
-          //  }
-          // },
+          {
+           "point": {
+            "int64Value": mwRequests,
+            "start": metricDateStart,
+            "end": metricDateEnd
+           },
+           "timeseriesDesc": {
+            "labels": { 
+              "custom.cloudmonitoring.googleapis.com/word-asso/mw/numberMwRequests" : "TOTAL DAILY MW REQUESTS"
+            },
+            "metric": "custom.cloudmonitoring.googleapis.com/word-asso/mw/numberMwRequests"
+           }
+          },
 
           {
            "point": {

@@ -2941,6 +2941,7 @@ function updateMetrics(googleMetricsUpdateFlag){
   deltaPromptsSent = 0 ;
   deltaResponsesReceived = 0 ;
   incrementDeltaBhtReqs(0);
+  incrementDeltaMwReqs(0);
 
 }
 
@@ -4799,7 +4800,7 @@ function createSession (newSessionObj){
 
     var n = parseInt(numberSocketMwRequests);
 
-    debug(chalkMw(">>> RX MW_REQUESTS | " + socket.id + " | " + n ));
+    console.log(chalkMw(">>> RX MW_REQUESTS | " + socket.id + " | " + n ));
 
     incrementSocketMwReqs(n);
   });

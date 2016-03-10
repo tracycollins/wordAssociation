@@ -896,7 +896,7 @@ function dnsReverseLookup(ip, callback) {
   }
   else if (dnsHostHashMap.has(ip)) {
     var domains = dnsHostHashMap.get(ip) ;
-    deubg("dnsReverseLookup: HOST IN HASHMAP : " + os.hostname() + " | " + ip + " | " + domains);
+    debug("dnsReverseLookup: HOST IN HASHMAP : " + os.hostname() + " | " + ip + " | " + domains);
     callback(null, domains);
   }
   else {

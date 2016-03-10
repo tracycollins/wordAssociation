@@ -993,6 +993,7 @@ var readUpdateSessionViewQueue = setInterval(function (){
 
 
     var sessionSmallObj = {
+      userId: sessionUpdateObj.userId,
       sessionId: sessionUpdateObj.sessionId,
       wordChainIndex: sessionUpdateObj.wordChainIndex,
       source: {},
@@ -1016,7 +1017,7 @@ var readUpdateSessionViewQueue = setInterval(function (){
     }
 
     if (sessionUpdateObj.target) {
-      console.log(chalkRed(">>> TX SESSION_UPDATE"
+      console.log(chalkSession(">>> TX SESSION_UPDATE"
         + " | " + sessionUpdateObj.userId
         + " | " + sessionUpdateObj.sessionId
         + " | WCI: " + sessionUpdateObj.wordChainIndex
@@ -1027,7 +1028,7 @@ var readUpdateSessionViewQueue = setInterval(function (){
       ));
     }
     else {
-      console.log(chalkRed(">>> TX SESSION_UPDATE (NO TARGET)"
+      console.log(chalkSession(">>> TX SESSION_UPDATE (NO TARGET)"
         + " | " + sessionUpdateObj.userId
         + " | " + sessionUpdateObj.sessionId
         + " | WCI: " + sessionUpdateObj.wordChainIndex

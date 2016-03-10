@@ -889,12 +889,14 @@ socket.on("SESSION_UPDATE", function(rxSessionObject){
 
     rxSessionUpdateQueue.push(rxObj);
 
-    // console.log(
-    //   // rxObj.sessionId
-    //   // + " | Q: " + len
-    //   rxObj.source.nodeId
-    //   + " > " + rxObj.target.nodeId
-    // );
+    console.log(
+      rxObj.userId
+      + " | " + rxObj.sessionId
+      // + " | Q: " + len
+      + " | " + rxObj.source.nodeId
+      + " > " + rxObj.target.nodeId
+      // + "\n" + jsonPrint(rxObj)
+    );
 
   }
 });
@@ -962,6 +964,7 @@ function createSession (callback){
 
       var session = sessionHashMap[sessionObject.sessionId];
 
+      session.userId = sessionObject.userId;
       session.source = sessionObject.source;
       session.source.lastSeen = dateNow;
       session.target = sessionObject.target;
@@ -987,7 +990,9 @@ function createSession (callback){
       var interpolateNodeColor = d3.interpolateHcl(session.colors.endColor, session.colors.startColor);
       session.interpolateColor = interpolateNodeColor;
 
-      console.log("NEW SESSION " + sessionObject.sessionId 
+      console.log("NEW SESSION " 
+        + sessionObject.userId 
+        + " | " + sessionObject.sessionId 
         // + "\ncolors: " + jsonPrint(session.colors)
         );
 
@@ -1032,6 +1037,7 @@ function createNode (sessionId, callback) {
 
       // wordObject = nodeHashMap.get(nodeId);
       wordObject = nodeHashMap[nodeId];
+      wordObject.userId = session.userId;
       wordObject.sessionId = sessionId;
       wordObject.age = 0;
       wordObject.ageUpdated = dateNow;
@@ -1073,6 +1079,7 @@ function createNode (sessionId, callback) {
         console.log("wordObject\n" + JSON.stringify(wordObject));
       }
 
+      wordObject.userId = session.userId;
       wordObject.sessionId = sessionId;
       wordObject.links = {};
       wordObject.age = 0;
@@ -1657,6 +1664,7 @@ function nodeMouseOver(d) {
 
   var nodeId = d.nodeId;
   var sId = d.sessionId;
+  var uId = d.userId;
   var mentions = d.mentions;
   var currentR = d3.select(this).attr("r");
 
@@ -1677,7 +1685,7 @@ function nodeMouseOver(d) {
     .duration(defaultFadeDuration)    
     .style("opacity", 1);
 
-  var tooltipString =  "<bold>" + nodeId + "</bold>" + "<br>MENTIONS: " + mentions + "<br>" + sId;
+  var tooltipString =  "<bold>" + nodeId + "</bold>" + "<br>MENTIONS: " + mentions + "<br>" + uId + "<br>" + sId;
 
   divTooltip.html(tooltipString) 
     .style("left", (d3.event.pageX - 40) + "px")   
@@ -1700,9 +1708,9 @@ function nodeMouseOut() {
       return defaultRadiusScale(d.mentions + 1); 
      });
 
-    divTooltip.transition()   
-      .duration(defaultFadeDuration)    
-      .style("opacity", 1e-6); 
+  divTooltip.transition()   
+    .duration(defaultFadeDuration)    
+    .style("opacity", 1e-6); 
 }
 
 function nodeClick(d) {

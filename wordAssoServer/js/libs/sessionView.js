@@ -12,11 +12,12 @@ var debug = true;
 var MAX_RX_QUEUE = 250;
 
 var forceStopped = false;
+var mouseMovingFlag = false;
 
 var sessionsCreated = 0;
 
 var mouseMoveTimeoutInterval = 1000; 
-var mouseFreezeEnabled = false;
+var mouseFreezeEnabled = true;
 var mouseOverRadius = 10;
 var mouseHoverFlag = false;
 var mouseHoverNodeId;
@@ -257,6 +258,7 @@ var mouseMoveTimeout = setTimeout(function(){
 }, mouseMoveTimeoutInterval);
 
 
+
 function resetMouseMoveTimer() {
   clearTimeout(mouseMoveTimeout);
 
@@ -271,7 +273,7 @@ function resetMouseMoveTimer() {
       displayControlOverlay(false);
     }
 
-    // mouseMovingFlag = false;
+    mouseMovingFlag = false;
   }, mouseMoveTimeoutInterval);
 }
 
@@ -406,6 +408,7 @@ document.addEventListener(visibilityEvent, function() {
     windowVisible = false;
   }
 });
+
 
 d3.select("body").style("cursor", "default");
 
@@ -1876,6 +1879,7 @@ document.addEventListener("mousemove", function() {
   }
 
   resetMouseMoveTimer();
+  mouseMovingFlag = true ;
 
   if (mouseFreezeEnabled) {
     force.stop();
@@ -1910,7 +1914,7 @@ d3.select(window).on("resize", resize);
 d3.timer(function () {
   dateNow = moment().valueOf();
   calcNodeAges(function(deadNodes){});
-  if (createSessionNodeLinkReady) createSessionNodeLink();
+  if (!mouseMovingFlag && createSessionNodeLinkReady) createSessionNodeLink();
   // createSessionNodeLink();
   // updateNodesLinks();
 });

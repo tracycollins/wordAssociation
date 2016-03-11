@@ -1392,16 +1392,18 @@ function ageNodes (sessionId, callback){
         // + "\n" + jsonPrint(ageSession.linkHashMap[currentNodeObject.nodeId])
       // );
 
-      if (typeof ageSession !== 'undefined') delete ageSession.linkHashMap[currentNodeId];
+      if (typeof ageSession !== 'undefined') {
+        delete ageSession.linkHashMap[currentNodeId];
+        if (Object.keys(ageSession.linkHashMap).length == 0){
+          console.warn("SESSION LINK HASH MAP EMPTY ... DELETE SESSION " + ageSession.sessionId);
+          delete sessionHashMap[ageSession.sessionId];
+        }
+      }
 
       // console.warn("SESSION LINK HASH MAP | " + currentNodeObject.nodeId 
       //   + "\n" + jsonPrint(ageSession.linkHashMap)
       // );
 
-      if (Object.keys(ageSession.linkHashMap).length == 0){
-        console.warn("SESSION LINK HASH MAP EMPTY ... DELETE SESSION " + ageSession.sessionId);
-        delete sessionHashMap[ageSession.sessionId];
-      }
 
       // console.log("X " + currentNodeId);
 

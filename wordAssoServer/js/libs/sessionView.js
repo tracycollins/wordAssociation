@@ -1392,7 +1392,7 @@ function ageNodes (sessionId, callback){
         // + "\n" + jsonPrint(ageSession.linkHashMap[currentNodeObject.nodeId])
       // );
 
-      delete ageSession.linkHashMap[currentNodeId];
+      if (typeof ageSession !== 'undefined') delete ageSession.linkHashMap[currentNodeId];
 
       // console.warn("SESSION LINK HASH MAP | " + currentNodeObject.nodeId 
       //   + "\n" + jsonPrint(ageSession.linkHashMap)

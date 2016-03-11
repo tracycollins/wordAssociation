@@ -3614,8 +3614,15 @@ var readSessionQueue = setInterval(function (){
 
         var currentSession = sessionCache.get(sesObj.session.sessionId);
 
-        currentSession.config.type = sesObj.session.config.type;
-        currentSession.userId = sesObj.user.userId;
+        if (typeof currentSession !== 'undefined') {
+          currentSession.config.type = sesObj.session.config.type;
+          currentSession.userId = sesObj.user.userId;
+        }
+        else {
+          currentSession = {};
+          currentSession = sesObj.session;
+          currentSession.userId = sesObj.user.userId;
+        }
 
         sesObj.user.ip = sesObj.session.ip;
         sesObj.user.namespace = sesObj.session.namespace;

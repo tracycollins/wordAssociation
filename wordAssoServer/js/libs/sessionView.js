@@ -921,7 +921,7 @@ initialPosition.y = 10;
 
 function computeInitialPosition(index) {
   var pos = {
-    x: ((0.5 * width) + (radiusX * Math.cos(index))),
+    x: ((0.4 * width) + (radiusX * Math.cos(index))),
     y: ((0.5 * height) - (radiusY * Math.sin(index)))
   };
 

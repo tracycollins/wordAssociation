@@ -26,15 +26,15 @@ var testMode = false ;
 var bhtOverLimitTestFlag = false ;
 
 // ==================================================================
-// SESSION TYPES: RANDOM, ANTONYM, SYNONYM, SCRIPT, USER_USER, GROUP, STREAM  ( session.config.type )
+// SESSION MODES: RANDOM, ANTONYM, SYNONYM, SCRIPT, USER_USER, GROUP, STREAM  ( session.config.mode )
 // ==================================================================
 
-var sessionTypes = [ "RANDOM", "ANTONYM", "SYNONYM", "SCRIPT", "USER_USER", "GROUP" ];
-var enabledSessionTypes = [ "ANTONYM", "SYNONYM" ];
-// var enabledSessionTypes = [ "USER_USER" ];
+var sessionModes = [ "RANDOM", "ANTONYM", "SYNONYM", "SCRIPT", "USER_USER", "GROUP" ];
+var enabledSessionModes = [ "ANTONYM", "SYNONYM" ];
+// var enabledSessionModes = [ "USER_USER" ];
 
-var DEFAULT_SESSION_TYPE = 'RANDOM';
-var defaultSessionType = DEFAULT_SESSION_TYPE ;
+var DEFAULT_SESSION_MODE = 'RANDOM';
+var defaultSessionMode = DEFAULT_SESSION_MODE ;
 
 
 function quit(){
@@ -1081,7 +1081,7 @@ function sendPrompt(sessionObj, sourceWordObj){
 
     var sourceWordObj ;
 
-    switch (sessionObj.config.type) {
+    switch (sessionObj.config.mode) {
       case 'PROMPT':
       case 'RANDOM':
       case 'ANTONYM':
@@ -1221,7 +1221,7 @@ function sendPrompt(sessionObj, sourceWordObj){
       case 'GROUP':
       break;
       default:
-        console.error(chalkError(" 1 ????? UNKNOWN SESSION TYPE: " + sessionObj.config.type));
+        console.error(chalkError(" 1 ????? UNKNOWN SESSION TYPE: " + sessionObj.config.mode));
         quit();
       break;
     }
@@ -3162,20 +3162,21 @@ var readSessionQueue = setInterval(function (){
 
       case 'SESSION_CREATE':
 
-        if (typeof sesObj.session.config.type !== 'undefined'){
-          console.log(chalkSession("... SESSION TYPE SET:    " + sesObj.session.config.type ));
+        if (typeof sesObj.session.config.mode !== 'undefined'){
+          console.log(chalkSession("... SESSION MODE SET:    " + sesObj.session.config.mode ));
         }
         else {
-          sesObj.session.config.type = enabledSessionTypes[randomInt(0, enabledSessionTypes.length)];
-          console.log(chalkSession("... SESSION TYPE RANDOM: " + sesObj.session.config.type ));
+          sesObj.session.config.mode = enabledSessionModes[randomInt(0, enabledSessionModes.length)];
+          console.log(chalkSession("... SESSION MODE RANDOM: " + sesObj.session.config.mode ));
         }
 
 
-        // sesObj.session.config.type = defaultSessionType ;
+        // sesObj.session.config.mode = defaultSessionType ;
 
         console.log(chalkSession(
           ">>> SESSION CREATE"
           + " | TYPE: " + sesObj.session.config.type
+          + " | MODE: " + sesObj.session.config.mode
           + " | NSP: " + sesObj.session.namespace
           + " | SID: " + sesObj.session.sessionId
           + " | SIP: " + sesObj.session.ip
@@ -3185,21 +3186,17 @@ var readSessionQueue = setInterval(function (){
          // SESSION TYPES: RANDOM, ANTONYM, SYNONYM, SCRIPT, USER_USER, GROUP 
 
         switch (sesObj.session.config.type) {
-          case 'PROMPT':
+          case 'ADMIN':
           break;
-          case 'RANDOM':
+          case 'USER':
           break;
-          case 'ANTONYM':
+          case 'UTIL':
           break;
-          case 'SYNONYM':
+          case 'VIEWER':
           break;
-          case 'SCRIPT':
+          case 'TEST_USER':
           break;
-          case 'USER_USER':
-          break;
-          case 'GROUP':
-          break;
-          case 'STREAM':
+          case 'TEST_VIEWER':
           break;
           default:
             console.error(chalkError(" 1 ????? UNKNOWN SESSION TYPE: " + sesObj.session.config.type));
@@ -3614,6 +3611,7 @@ var readSessionQueue = setInterval(function (){
           ">>> SESSION USER READY"
           + " | SID: " + sesObj.session.sessionId
           + " | SES TYPE: " + sesObj.session.config.type
+          + " | SES MODE: " + sesObj.session.config.mode
           + " | UID: " + sesObj.user.userId
           + " | NSP: " + sesObj.session.namespace
           + " | IP: " + sesObj.session.ip
@@ -3624,6 +3622,7 @@ var readSessionQueue = setInterval(function (){
 
         if (typeof currentSession !== 'undefined') {
           currentSession.config.type = sesObj.session.config.type;
+          currentSession.config.mode = sesObj.session.config.mode;
           currentSession.userId = sesObj.user.userId;
         }
         else {
@@ -3660,85 +3659,36 @@ var readSessionQueue = setInterval(function (){
               if( !err && success ){
 
                 switch (sesObj.session.config.type) {
+                  case 'USER':
+                  case 'TEST_USER':
+                    switch (sesObj.session.config.mode) {
 
-                  // start with a random word for these session types
+                      // start with a random word for these session modes
 
-                  case 'PROMPT':
-                  case 'RANDOM':
-                  case 'ANTONYM':
-                  case 'SYNONYM':
-                    words.getRandomWord(function(err, randomWordObj){
-                      if (!err) {
-
-                        randomWordObj.wordChainIndex = currentSession.wordChainIndex;
-
-                        wordCache.set(randomWordObj.nodeId, randomWordObj);
-
-                        currentSession.wordChain.push(randomWordObj.nodeId);
-                        currentSession.wordChainIndex++;
-
-                        sessionUpdateDb(currentSession, function(err, sessionUpdatedObj){
-                          if (!err){
-                            sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, sessionCacheTtl);
-                            debug(chalkInfo("-S- DB UPDATE"
-                              + " | " + sessionUpdatedObj.sessionId
-                              + " | WCI: " + sessionUpdatedObj.wordChainIndex
-                              + " | WCL: " + sessionUpdatedObj.wordChain.length
-                            ));
-                            // sendPrompt(currentSession, randomWordObj);
-                            sendPrompt(sessionUpdatedObj, randomWordObj);
-                          }
-                          else {
-                            console.log(chalkError("*** ERROR DB UPDATE SESSION\n" + err));
-                          }
-                        });
-                      }
-                      else {
-                        console.log(chalkError("*** ERROR GET RANDOM WORD\n" + err));
-                      }
-                    });
-                  break;
-
-                  case 'SCRIPT':
-                  break;
-
-                  case 'USER_USER':
-                    console.log(chalkSession("... PAIRING USER " + currentSession.userId));
-                    pairUser(currentSession, function(err, updatedSessionObj){
-                      if (err){
-                        console.error(chalkError("*** pairUser ERROR\n" + jsonPrint(err)));
-                      }
-                      else if (updatedSessionObj.config.userA && updatedSessionObj.config.userB) {
-
-                        console.log(chalkSession("U_U CREATED USER_USER PAIR"
-                          + " | " + moment().valueOf()
-                          + " | " + sesObj.session.sessionId
-                          + "\n" + jsonPrint(updatedSessionObj.config)
-                        ));
-
+                      case 'PROMPT':
+                      case 'RANDOM':
+                      case 'ANTONYM':
+                      case 'SYNONYM':
                         words.getRandomWord(function(err, randomWordObj){
                           if (!err) {
 
-                            randomWordObj.wordChainIndex = updatedSessionObj.wordChainIndex;
+                            randomWordObj.wordChainIndex = currentSession.wordChainIndex;
 
                             wordCache.set(randomWordObj.nodeId, randomWordObj);
 
-                            updatedSessionObj.wordChain.push(randomWordObj.nodeId);
-                            updatedSessionObj.wordChainIndex++;
+                            currentSession.wordChain.push(randomWordObj.nodeId);
+                            currentSession.wordChainIndex++;
 
-                            sessionUpdateDb(updatedSessionObj, function(err, sessionUpdatedObj){
+                            sessionUpdateDb(currentSession, function(err, sessionUpdatedObj){
                               if (!err){
                                 sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, sessionCacheTtl);
-                                console.log(chalkInfo("-S- DB UPDATE"
+                                debug(chalkInfo("-S- DB UPDATE"
                                   + " | " + sessionUpdatedObj.sessionId
-                                  + " | TYPE: " + sessionUpdatedObj.config.type
                                   + " | WCI: " + sessionUpdatedObj.wordChainIndex
                                   + " | WCL: " + sessionUpdatedObj.wordChain.length
-                                  + "CHAIN\n" + sessionUpdatedObj.wordChain
                                 ));
                                 // sendPrompt(currentSession, randomWordObj);
                                 sendPrompt(sessionUpdatedObj, randomWordObj);
-                                return;
                               }
                               else {
                                 console.log(chalkError("*** ERROR DB UPDATE SESSION\n" + err));
@@ -3749,41 +3699,113 @@ var readSessionQueue = setInterval(function (){
                             console.log(chalkError("*** ERROR GET RANDOM WORD\n" + err));
                           }
                         });
-                      }
-                      else {
-                        console.log(chalkSession("U-? WAITING TO COMPLETE PAIR\n" + jsonPrint(updatedSessionObj.config)));
-                        return;
-                      }
-                    });
+                      break;
+
+                      case 'SCRIPT':
+                      break;
+
+                      case 'USER_USER':
+                        console.log(chalkSession("... PAIRING USER " + currentSession.userId));
+                        pairUser(currentSession, function(err, updatedSessionObj){
+                          if (err){
+                            console.error(chalkError("*** pairUser ERROR\n" + jsonPrint(err)));
+                          }
+                          else if (updatedSessionObj.config.userA && updatedSessionObj.config.userB) {
+
+                            console.log(chalkSession("U_U CREATED USER_USER PAIR"
+                              + " | " + moment().valueOf()
+                              + " | " + sesObj.session.sessionId
+                              + "\n" + jsonPrint(updatedSessionObj.config)
+                            ));
+
+                            words.getRandomWord(function(err, randomWordObj){
+                              if (!err) {
+
+                                randomWordObj.wordChainIndex = updatedSessionObj.wordChainIndex;
+
+                                wordCache.set(randomWordObj.nodeId, randomWordObj);
+
+                                updatedSessionObj.wordChain.push(randomWordObj.nodeId);
+                                updatedSessionObj.wordChainIndex++;
+
+                                sessionUpdateDb(updatedSessionObj, function(err, sessionUpdatedObj){
+                                  if (!err){
+                                    sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, sessionCacheTtl);
+                                    console.log(chalkInfo("-S- DB UPDATE"
+                                      + " | " + sessionUpdatedObj.sessionId
+                                      + " | TYPE: " + sessionUpdatedObj.config.type
+                                      + " | WCI: " + sessionUpdatedObj.wordChainIndex
+                                      + " | WCL: " + sessionUpdatedObj.wordChain.length
+                                      + "CHAIN\n" + sessionUpdatedObj.wordChain
+                                    ));
+                                    // sendPrompt(currentSession, randomWordObj);
+                                    sendPrompt(sessionUpdatedObj, randomWordObj);
+                                    return;
+                                  }
+                                  else {
+                                    console.log(chalkError("*** ERROR DB UPDATE SESSION\n" + err));
+                                  }
+                                });
+                              }
+                              else {
+                                console.log(chalkError("*** ERROR GET RANDOM WORD\n" + err));
+                              }
+                            });
+                          }
+                          else {
+                            console.log(chalkSession("U-? WAITING TO COMPLETE PAIR\n" + jsonPrint(updatedSessionObj.config)));
+                            return;
+                          }
+                        });
+                      break;
+
+                      case 'GROUP':
+                      break;
+
+                      case 'STREAM':
+                        console.log(chalkSession("... STREAM USER " + currentSession.userId));
+                        sessionUpdateDb(currentSession, function(err, sessionUpdatedObj){
+                          if (!err){
+                            sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, sessionCacheTtl);
+                            console.log(chalkInfo("-S- DB UPDATE"
+                              + " | " + sessionUpdatedObj.sessionId
+                              + " | TYPE: " + sessionUpdatedObj.config.type
+                              + " | WCI: " + sessionUpdatedObj.wordChainIndex
+                              + " | WCL: " + sessionUpdatedObj.wordChain.length
+                            ));
+                          }
+                          else {
+                            console.log(chalkError("*** ERROR DB UPDATE SESSION\n" + err));
+                          }
+                        });
+                      break;
+
+                      default:
+                        console.error(chalkError("2  ????? UNKNOWN SESSION MODE: " + sesObj.session.config.mode));
+                        quit();
+                      break;
+                    }
                   break;
 
-                  case 'GROUP':
+                  case 'VIEWER':
                   break;
 
-                  case 'STREAM':
-                    console.log(chalkSession("... STREAM USER " + currentSession.userId));
-                    sessionUpdateDb(currentSession, function(err, sessionUpdatedObj){
-                      if (!err){
-                        sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, sessionCacheTtl);
-                        console.log(chalkInfo("-S- DB UPDATE"
-                          + " | " + sessionUpdatedObj.sessionId
-                          + " | TYPE: " + sessionUpdatedObj.config.type
-                          + " | WCI: " + sessionUpdatedObj.wordChainIndex
-                          + " | WCL: " + sessionUpdatedObj.wordChain.length
-                        ));
-                      }
-                      else {
-                        console.log(chalkError("*** ERROR DB UPDATE SESSION\n" + err));
-                      }
-                    });
+                  case 'ADMIN':
+                  break;
+
+                  case 'UTIL':
+                  break;
+
+                  // case 'TEST_USER':
+                  // break;
+
+                  case 'TEST_VIEWER':
                   break;
 
                   default:
-                    console.error(chalkError("2  ????? UNKNOWN SESSION TYPE: " + sesObj.session.config.type));
+                    console.error("???? UNKNOWN SESSION TYPE: " + sesObj.session.config.type);
                     quit();
-                  break;
                 }
-
               }
             });
           }
@@ -4007,7 +4029,7 @@ This is where routing of response -> prompt happens
 
 */
 
-      switch (currentSession.config.type) {
+      switch (currentSession.config.mode) {
 
         case 'RANDOM':
           var randomIndex = randomInt(0, algorithms.length);
@@ -4195,7 +4217,7 @@ This is where routing of response -> prompt happens
         // case 'GROUP':
         // break;
         default:
-          console.error(chalkError("3  ????? UNKNOWN SESSION TYPE: " + sesObj.session.config.type));
+          console.error(chalkError("3  ????? UNKNOWN SESSION MODE: " + sesObj.session.config.mode));
           quit();
         break;
       }
@@ -4625,9 +4647,12 @@ function createSession (newSessionObj){
     disconnectTime: 0
   });
 
+  sessionObj.config.type = newSessionObj.type;
+  sessionObj.config.mode = newSessionObj.mode;
+
   sessionCache.set(sessionObj.sessionId, sessionObj, sessionCacheTtl);
 
-  debug(chalkSession("\nNEW SESSION\n" + util.inspect(sessionObj, {showHidden: false, depth: 1})));
+  console.log(chalkSession("\nNEW SESSION\n" + util.inspect(sessionObj, {showHidden: false, depth: 1})));
 
   sessionQueue.enqueue({sessionEvent: "SESSION_CREATE", session: sessionObj});
 
@@ -4763,15 +4788,27 @@ function createSession (newSessionObj){
       ));
       return;
     }
+
+    if (typeof userObj.type !== 'undefined'){
+      sessionObj.config.type = userObj.type;
+    }
+    if (typeof userObj.mode !== 'undefined'){
+      sessionObj.config.mode = userObj.mode;
+    }
+
     console.log(chalkConnect("--- USER READY   | " + userObj.userId
       + " | SID: " + sessionObj.sessionId
+      + " | TYPE: " + sessionObj.config.type
+      + " | MODE: " + sessionObj.config.mode
       + " | " + moment().format(defaultDateTimeFormat)
+      + "\nSESSION OBJ\n" + jsonPrint(sessionObj)
+      + "\nUSER OBJ\n" + jsonPrint(userObj)
     ));
 
-    if (typeof userObj.mode !== 'undefined'){
-      debug("USER MODE: " + userObj.mode);
-      sessionObj.config.type = userObj.mode;
-    }
+    // if (typeof userObj.mode !== 'undefined'){
+    //   debug("USER MODE: " + userObj.mode);
+    //   sessionObj.config.type = userObj.mode;
+    // }
 
     sessionQueue.enqueue({sessionEvent: "USER_READY", session: sessionObj, user: userObj});
   });
@@ -4822,7 +4859,7 @@ function createSession (newSessionObj){
 
     var mwSession = sessionCache.get(socket.id);
 
-    if (!mwSession) console.error(chalkError("MW SESSION EXPIRED"));
+    if (!mwSession) console.error(chalkError("MW SESSION EXPIRED | " + socket.id));
 
     incrementSocketMwReqs(n);
   });
@@ -4918,30 +4955,35 @@ function createSession (newSessionObj){
 
 adminNameSpace.on('connect', function(socket){
   console.log(chalkAdmin("ADMIN CONNECT"));
-  createSession({namespace:"admin", socket: socket});
+  createSession({namespace:"admin", socket: socket, type: "ADMIN"});
   socket.on('SET_WORD_CACHE_TTL', function(value){
     setWordCacheTtl(value);
   });
 });
 
 utilNameSpace.on('connect', function(socket){
-  createSession({namespace:"util", socket: socket});
+  console.log(chalkAdmin("UTIL CONNECT"));
+  createSession({namespace:"util", socket: socket, type: "UTIL"});
 });
 
 userNameSpace.on('connect', function(socket){
-  createSession({namespace:"user", socket: socket});
+  console.log(chalkAdmin("USER CONNECT"));
+  createSession({namespace:"user", socket: socket, type: "USER", mode: "SYNONYM"});
 });
 
 viewNameSpace.on('connect', function(socket){
-  createSession({namespace:"view", socket: socket});
+  console.log(chalkAdmin("VIEWER CONNECT"));
+  createSession({namespace:"view", socket: socket, type: "VIEWER"});
 });
 
 testUsersNameSpace.on('connect', function(socket){
-  createSession({namespace:"test-user", socket: socket});
+  console.log(chalkAdmin("TEST USER CONNECT"));
+  createSession({namespace:"test-user", socket: socket, type: "TEST_USER"});
 });
 
 testViewersNameSpace.on('connect', function(socket){
-  createSession({namespace:"test-view", socket: socket});
+  console.log(chalkAdmin("TEST VIEWER CONNECT"));
+  createSession({namespace:"test-view", socket: socket, type: "TEST_VIEWER"});
 });
 
 

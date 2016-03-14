@@ -1163,14 +1163,16 @@ function createLink (sessionId, callback) {
     var targetWord;
 
     if (typeof session.target === 'undefined'){
-      console.error("??? SESSION TARGET UNDEFINED ... SKIPPING CREATE LINKS"
+      console.error("??? SESSION TARGET UNDEFINED"
+        + " | " + sessionId
         // + "\nSESSION OBJECT TARGET\n" 
-        // + session.sessionId
       );
       return(callback (null, sessionId));
     }
     else if (typeof session.target.nodeId !== 'string') {
-      console.warn("??? TARGET NODE ID NOT A STRING (NEW SESSION?) ... SKIPPING CREATE LINKS"
+      console.warn("??? TARGET NODE ID NOT A STRING (NEW SESSION?)"
+        + " | " + sessionId
+        + " | SKIPPING CREATE LINKS"
         // + " \nSESSION OBJECT TARGET\n" 
         // + jsonPrint(session.target)
       );
@@ -1181,32 +1183,38 @@ function createLink (sessionId, callback) {
     }
 
     if (typeof nodeHashMap[sourceWordId] === 'undefined') {
-      console.error("sourceWordId " + sourceWordId + " NOT IN nodeHashMap ... SKIPPING createLinks");
+      console.error("sourceWordId " + sourceWordId + " NOT IN nodeHashMap"
+        + " | " + sessionId
+       + " | SKIPPING CREATE LINKS"
+       );
       return(callback (null, sessionId));
     }
     else if (!nodeHashMap[targetWordId]){
-      console.warn("targetWordId " + targetWordId + " NOT IN nodeHashMap ... SKIPPING createLinks");
+      console.error("targetWordId " + targetWordId + " NOT IN nodeHashMap"
+        + " | " + sessionId
+       + " | SKIPPING CREATE LINKS"
+       );
       return(callback (null, sessionId));
     }
     
     if (session.linkHashMap[sourceWordId]) {
       if (session.linkHashMap[sourceWordId][targetWordId]) {
-        // console.warn("LINK EXISTS" 
-        //   + " | " + sourceWordId
-        //   + " -> " + targetWordId
-        //   + " EXISTS ... SKIPPING createLinks"
-        //   );
+        console.warn("LINK EXISTS" 
+          + " | " + sourceWordId
+          + " -> " + targetWordId
+          + " EXISTS ... SKIPPING createLinks"
+          );
         return(callback (null, sessionId));
       }
     }
     
     if (session.linkHashMap[targetWordId]) {
       if (session.linkHashMap[targetWordId][sourceWordId]) {
-        // console.warn("LINK EXISTS" 
-        //   + " | " + sourceWordId
-        //   + " -> " + targetWordId
-        //   + " EXISTS ... SKIPPING createLinks"
-        //   );
+        console.warn("LINK EXISTS" 
+          + " | " + sourceWordId
+          + " -> " + targetWordId
+          + " EXISTS ... SKIPPING createLinks"
+          );
         return(callback (null, sessionId));
       }
     }

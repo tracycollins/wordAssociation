@@ -1157,9 +1157,9 @@ function sendPrompt(sessionObj, sourceWordObj){
         updateStats({ promptsSent: promptsSent });
       break;
 
-
       case 'SCRIPT':
       break;
+
       case 'USER_USER':
 
         var currentSession = sessionCache.get(sessionObj.sessionId);
@@ -1168,17 +1168,24 @@ function sendPrompt(sessionObj, sourceWordObj){
         var targetSessionId = sessionRouteHashMap.get(currentSession.sessionId);
         var targetSession = sessionCache.get(targetSessionId);
 
-        promptWordObj.wordChainIndex = targetSession.wordChainIndex;
+        console.log(chalkRed("currentSession\n" + jsonPrint(currentSession)));
+        console.log(chalkRed("targetSession\n" + jsonPrint(targetSession)));
 
-        targetSession.wordChain.push(promptWordObj.nodeId);
-        targetSession.wordChainIndex++;
+        var promptWordObj;
 
-        io.of(currentSession.namespace).to(targetSessionId).emit('PROMPT_WORD_OBJ',promptWordObj);
+        // promptWordObj.wordChainIndex = targetSession.wordChainIndex;
+
+        // targetSession.wordChain.push(promptWordObj.nodeId);
+        // targetSession.wordChainIndex++;
+
+        // io.of(currentSession.namespace).to(targetSessionId).emit('PROMPT_WORD_OBJ',promptWordObj);
       
-        if (currentSession.wordChainIndex >= 1) {
+        if (currentSession.wordChainIndex >= 2) {
 
-          var previousResponse = currentSession.wordChain[currentSession.wordChainIndex-1];
+          var promptWord = currentSession.wordChain[currentSession.wordChainIndex-1];
+          var previousResponse = currentSession.wordChain[currentSession.wordChainIndex-2];
 
+          promptWordObj = wordCache.get(promptWord);
           var targetWordObj = wordCache.get(previousResponse);
 
           console.log(chalkPrompt("P-> "
@@ -1190,19 +1197,38 @@ function sendPrompt(sessionObj, sourceWordObj){
             + " | " + targetSessionId 
           ));
 
-        } else {
+        } 
+        else if (currentSession.wordChainIndex >= 1) {
 
-          sourceWordObj = promptWordObj;
+          var previousResponse = currentSession.wordChain[currentSession.wordChainIndex-1];
+
+          var targetWordObj = wordCache.get(previousResponse);
+          promptWordObj = targetWordObj;
+
+          console.log(chalkPrompt("P-> "
+            + currentUser.userId 
+            + " | " + sessionObj.sessionId 
+            + " | " + sessionObj.config.type 
+            + " | START --> " + targetWordObj.nodeId
+          ));
+
+        } 
+        else {
+
+          promptWordObj = { nodeId: "START"};
 
           console.log(chalkPrompt("P-> "
             + currentUser.userId 
             + " | " + targetSession.sessionId 
             + " | " + targetSession.config.type 
-            + " | START --> " + promptWordObj.nodeId));
+            + " | START --> " + promptWordObj.nodeId
+          ));
         }
 
         sessionCache.set(currentSession.sessionId, currentSession, sessionCacheTtl);
         sessionCache.set(targetSession.sessionId, targetSession, sessionCacheTtl);
+
+        io.of(currentSession.namespace).to(targetSession.sessionId).emit('PROMPT_WORD_OBJ',promptWordObj);
 
         promptsSent++ ;
         deltaPromptsSent++;
@@ -3005,6 +3031,8 @@ function pairUser(sessionObj, callback){
 
           sessionObj.config.userB = sessionObj.sessionId;
           sessionObj.config.userA = foundPairSessionId;
+          sessionObj.wordChain = [];
+          sessionObj.wordChainIndex = 0;
 
           // add both A -> B and B -> A to sessionRouteHashMap
 
@@ -3020,6 +3048,8 @@ function pairUser(sessionObj, callback){
 
             // update session for userA
             var sessionUserA = sessionCache.get(foundPairSessionId);  
+            sessionUserA.wordChain = [];
+            sessionUserA.wordChainIndex = 0;
 
             console.log("sessionUserA\n" + jsonPrint(sessionUserA));
 
@@ -3386,6 +3416,50 @@ var readSessionQueue = setInterval(function (){
 
           unpairedUserHashMap.remove(sesObj.session.config.userA);
           unpairedUserHashMap.remove(sesObj.session.config.userB);
+
+          if (sessionRouteHashMap.has(sesObj.session.sessionId)){
+            console.log(chalkWarn("FOUND SESSION IN ROUTE HASH: " + sesObj.session.sessionId 
+              + "\n" + jsonPrint(sesObj)
+              + "\n" + jsonPrint(sessionRouteHashMap.get(sesObj.session.sessionId))
+            ));
+
+            var unpairedSessionObj;
+
+            if (sesObj.session.sessionId == sesObj.session.config.userA) {
+              unpairedSessionObj = sessionCache.get(sesObj.session.config.userB);
+              console.log(chalkWarn(">>> TX PAIRED_USER_END TO USER B: " + sesObj.session.config.userB));
+              io.of(sesObj.session.namespace).to(sesObj.session.config.userB).emit('PAIRED_USER_END', sesObj.session.config.userA);
+            }
+            else {
+              unpairedSessionObj = sessionCache.get(sesObj.session.config.userA);
+              console.log(chalkWarn(">>> TX PAIRED_USER_END TO USER A: " + sesObj.session.config.userA));
+              io.of(sesObj.session.namespace).to(sesObj.session.config.userA).emit('PAIRED_USER_END', sesObj.session.config.userB);
+            }
+
+            pairUser(unpairedSessionObj, function(err, updatedSessionObj){
+              if (err){
+                console.error(chalkError("*** pairUser ERROR\n" + jsonPrint(err)));
+              }
+              else if (updatedSessionObj.config.userA && updatedSessionObj.config.userB) {
+
+                console.log(chalkSession("U_U CREATED USER_USER PAIR"
+                  + " | " + moment().valueOf()
+                  + " | " + sesObj.session.sessionId
+                  + "\n" + jsonPrint(updatedSessionObj.config)
+                ));
+
+                io.of(updatedSessionObj.namespace).to(updatedSessionObj.config.userA).emit('PAIRED_USER',updatedSessionObj.config.userB);
+                io.of(updatedSessionObj.namespace).to(updatedSessionObj.config.userB).emit('PAIRED_USER',updatedSessionObj.config.userA);
+
+              }
+              else {
+                console.log(chalkSession("U-? WAITING TO COMPLETE PAIR\n" + jsonPrint(updatedSessionObj.config)));
+                return;
+              }
+            });
+
+           }
+
           sessionRouteHashMap.remove(sesObj.session.config.userA);
           sessionRouteHashMap.remove(sesObj.session.config.userB);
 
@@ -3657,6 +3731,7 @@ var readSessionQueue = setInterval(function (){
 
         sessionCache.set(currentSession.sessionId, currentSession, sessionCacheTtl, function( err, success ){
           if( !err && success ){
+
             userCache.set(currentSession.userId, sesObj.user, function( err, success ){
               if( !err && success ){
 
@@ -3707,7 +3782,9 @@ var readSessionQueue = setInterval(function (){
                       break;
 
                       case 'USER_USER':
+
                         console.log(chalkSession("... PAIRING USER " + currentSession.userId));
+
                         pairUser(currentSession, function(err, updatedSessionObj){
                           if (err){
                             console.error(chalkError("*** pairUser ERROR\n" + jsonPrint(err)));
@@ -3720,39 +3797,10 @@ var readSessionQueue = setInterval(function (){
                               + "\n" + jsonPrint(updatedSessionObj.config)
                             ));
 
-                            words.getRandomWord(function(err, randomWordObj){
-                              if (!err) {
 
-                                randomWordObj.wordChainIndex = updatedSessionObj.wordChainIndex;
+                            io.of(currentSession.namespace).to(updatedSessionObj.config.userA).emit('PAIRED_USER',updatedSessionObj.config.userB);
+                            io.of(currentSession.namespace).to(updatedSessionObj.config.userB).emit('PAIRED_USER',updatedSessionObj.config.userA);
 
-                                wordCache.set(randomWordObj.nodeId, randomWordObj);
-
-                                updatedSessionObj.wordChain.push(randomWordObj.nodeId);
-                                updatedSessionObj.wordChainIndex++;
-
-                                sessionUpdateDb(updatedSessionObj, function(err, sessionUpdatedObj){
-                                  if (!err){
-                                    sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, sessionCacheTtl);
-                                    console.log(chalkInfo("-S- DB UPDATE"
-                                      + " | " + sessionUpdatedObj.sessionId
-                                      + " | TYPE: " + sessionUpdatedObj.config.type
-                                      + " | WCI: " + sessionUpdatedObj.wordChainIndex
-                                      + " | WCL: " + sessionUpdatedObj.wordChain.length
-                                      + "CHAIN\n" + sessionUpdatedObj.wordChain
-                                    ));
-                                    // sendPrompt(currentSession, randomWordObj);
-                                    sendPrompt(sessionUpdatedObj, randomWordObj);
-                                    return;
-                                  }
-                                  else {
-                                    console.log(chalkError("*** ERROR DB UPDATE SESSION\n" + err));
-                                  }
-                                });
-                              }
-                              else {
-                                console.log(chalkError("*** ERROR GET RANDOM WORD\n" + err));
-                              }
-                            });
                           }
                           else {
                             console.log(chalkSession("U-? WAITING TO COMPLETE PAIR\n" + jsonPrint(updatedSessionObj.config)));
@@ -3808,8 +3856,10 @@ var readSessionQueue = setInterval(function (){
                     console.error("???? UNKNOWN SESSION TYPE: " + sesObj.session.config.type);
                     quit();
                 }
+
               }
             });
+
           }
         });
         break;
@@ -3887,6 +3937,10 @@ var readResponseQueue = setInterval(function (){
     else if (currentSessionObj.config.type == 'STREAM') {
       previousPromptObj = {nodeId: 'STREAM'};
       debug(chalkWarn("STREAM WORD CHAIN\n" + jsonPrint(currentSessionObj.wordChain)));
+    }
+    else if (currentSessionObj.config.type == 'USER_USER') {
+      previousPromptObj = {nodeId: 'USER_USER'};
+      console.log(chalkWarn("USER_USER WORD CHAIN\n" + jsonPrint(currentSessionObj.wordChain)));
     }
     else {
       console.log(chalkWarn("??? EMPTY WORD CHAIN ... PREVIOUS PROMPT NOT IN CACHE: " + previousPrompt

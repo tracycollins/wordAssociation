@@ -162,6 +162,9 @@
 		    <div class="bar-text" id="bht-requests-bar-text"></div>
 		    <div class="bar" id="bht-requests-bar"></div>
 				<br>
+		    <div class="bar-text" id="mw-requests-bar-text"></div>
+		    <div class="bar" id="mw-requests-bar"></div>
+				<br>
 		    <div class="bar-text" id="viewers-bar-text"></div>
 		    <div class="bar" id="viewers-bar"></div>
 				<br>
@@ -333,6 +336,13 @@
 			bhtRequestsBar = new ProgressBar.Line(bhtRequestsBarDiv, {});
 			bhtRequestsBar.animate(0);
 	    var bhtRequestsBarText = document.getElementById('bht-requests-bar-text');
+
+			var mwRequestsBar;
+			var mwRequestsBarPercent = 0;
+	    var mwRequestsBarDiv = document.getElementById('mw-requests-bar');
+			mwRequestsBar = new ProgressBar.Line(mwRequestsBarDiv, {});
+			mwRequestsBar.animate(0);
+	    var mwRequestsBarText = document.getElementById('mw-requests-bar-text');
 
 			var viewersBar;
 	    var viewersBarDiv = document.getElementById('viewers-bar');
@@ -1130,6 +1140,27 @@
 				;
 
 
+				mwRequestsBar.animate(heartBeat.mwRequests/heartBeat.mwRequestLimit);
+
+				if (100*heartBeat.mwRequests/heartBeat.mwRequestLimit >= 90) {
+					mwRequestsBar.path.setAttribute('stroke', endColor);
+				}
+				else if (100*heartBeat.mwRequests/heartBeat.mwRequestLimit >= 50) {
+					mwRequestsBar.path.setAttribute('stroke', midColor);
+				}
+				else {
+					mwRequestsBar.path.setAttribute('stroke', startColor);
+				}
+
+				mwRequestsBarText.innerHTML =  
+					'MW REQS'
+					+ ' | USED: ' + heartBeat.mwRequests 
+					+ ' (' + (heartBeat.mwRequests/heartBeat.mwRequestLimit * 100).toFixed(0) + ' %)'
+					+ ' | REMAIN: ' + (heartBeat.mwRequestLimit - heartBeat.mwRequests) 
+					+ ' (' + ((heartBeat.mwRequestLimit - heartBeat.mwRequests)/heartBeat.mwRequestLimit * 100).toFixed(0) + ' %)'
+				;
+
+
 				viewersBar.animate(heartBeat.numberViewers/heartBeat.numberViewersMax);
 
 				if (100*heartBeat.numberViewers/heartBeat.numberViewersMax >= 90) {
@@ -1307,13 +1338,6 @@
 
 				tableCreateRow(heatbeatTable, false, ['ADMINS', heartBeat.numberAdmins]);
 				tableCreateRow(heatbeatTable, false, ['UTILS', heartBeat.numberUtils]);
-				// tableCreateRow(heatbeatTable, false, ['VIEWERS',heartBeat.numberViewers]);
-				// tableCreateRow(heatbeatTable, false, ['TEST VIEWERS',heartBeat.numberTestViewers]);
-				// tableCreateRow(heatbeatTable, false, ['USERS', heartBeat.numberUsers]);
-				// tableCreateRow(heatbeatTable, false, ['TEST USERS',heartBeat.numberTestUsers]);
-				// tableCreateRow(heatbeatTable, false, ['TOTAL USERS', heartBeat.numberUsers + heartBeat.numberTestUsers]);
-				// tableCreateRow(heatbeatTable, false, ['MAX USERS', heartBeat.maxNumberUsers]);
-				// tableCreateRow(heatbeatTable, false, ['MAX USERS TIME', getTimeStamp(heartBeat.maxNumberUsersTime)]);
 
 				serverHeartbeatElement = document.getElementById("server_admins");
 

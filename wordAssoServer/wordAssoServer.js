@@ -354,6 +354,7 @@ var bhtOverLimitTimeOut = setTimeout(function () {
 var mwEvents = new EventEmitter();
 var mwErrors = 0;
 var mwRequests = 0; 
+var mwRequestLimit = MW_REQUEST_LIMIT; 
 var mwOverLimits = 0; 
 
 var mwOverLimitTime = moment.utc().utcOffset("-05:00").endOf('day');
@@ -649,6 +650,7 @@ setInterval(function () {
     bhtErrors: bhtErrors,
     bhtRequests: bhtRequests,
 
+    mwErrors: mwErrors,
     mwRequests: mwRequests,
 
     totalSessions: totalSessions,
@@ -4497,7 +4499,12 @@ configEvents.on("SERVER_READY", function () {
 
         totalWords : totalWords,
 
+        mwRequestLimit : MW_REQUEST_LIMIT,
         mwRequests : mwRequests,
+        mwOverLimitFlag : mwOverLimitFlag,
+        mwLimitResetTime : mwLimitResetTime,
+        mwOverLimitTime : mwOverLimitTime,
+        mwTimeToReset : mwTimeToReset,
 
         bhtRequestLimit : BHT_REQUEST_LIMIT,
         bhtRequests : bhtRequests,

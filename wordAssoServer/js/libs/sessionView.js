@@ -894,11 +894,8 @@ socket.on("SESSION_UPDATE", function(rxSessionObject){
 
     console.log(
       rxObj.userId
-      + " | " + rxObj.sessionId
-      // + " | Q: " + len
-      + " | " + rxObj.source.nodeId
-      + " > " + rxObj.target.nodeId
-      // + "\n" + jsonPrint(rxObj)
+      // + " | " + rxObj.sessionId
+      + " | " + rxObj.source.nodeId + " > " + rxObj.target.nodeId
     );
 
   }

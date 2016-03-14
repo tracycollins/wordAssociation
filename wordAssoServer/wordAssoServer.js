@@ -7,7 +7,7 @@ var serverReady = false ;
 var internetReady = false ;
 
 var SESSION_CACHE_DEFAULT_TTL = 60;  // seconds
-var WORD_CACHE_TTL = 60; // seconds
+var WORD_CACHE_TTL = 30; // seconds
 
 var MIN_CHAIN_FREEZE_LENGTH = 10;
 var MIN_CHAIN_FREEZE_UNIQUE_NODES = 4;
@@ -3962,8 +3962,14 @@ var readDbUpdateQueue = setInterval(function (){
       else {
         previousPromptNodeId = currentSessionObj.wordChain[dbUpdateObj.word.wordChainIndex-1];
         previousPromptObj = wordCache.get(previousPromptNodeId);
-        previousPromptObj.wordChainIndex = dbUpdateObj.word.wordChainIndex-1;
-        debug(chalkRed("CHAIN previousPromptObj: " + previousPromptNodeId));
+        if (!previousPromptObj) {
+          console.log(chalkWarn("??? PREVIOUS PROMPT NOT IN CACHE: " + previousPromptNodeId));
+          quit();
+        }
+        else {
+          previousPromptObj.wordChainIndex = dbUpdateObj.word.wordChainIndex-1;
+          debug(chalkRed("CHAIN previousPromptObj: " + previousPromptNodeId));
+        }
       }
 
       sessionCache.set(currentSessionObj.sessionId, currentSessionObj, sessionCacheTtl, function(err, success){

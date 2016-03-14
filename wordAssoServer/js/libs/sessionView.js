@@ -1162,7 +1162,6 @@ function createLink (sessionId, callback) {
     var sourceWordId = session.source.nodeId;
     var targetWordId = session.target.nodeId;
 
-    // var sourceWord = nodeHashMap.get(sourceWordId);
     var sourceWord = nodeHashMap[sourceWordId];
     var targetWord;
 
@@ -1181,23 +1180,18 @@ function createLink (sessionId, callback) {
       );
       return(callback (null, sessionId));
     }
-    // else if (nodeHashMap.has(targetWordId)){
     else if (nodeHashMap[targetWordId]){
-      // targetWord = nodeHashMap.get(targetWordId);
       targetWord = nodeHashMap[targetWordId];
     }
 
-    // if (!nodeHashMap.has(sourceWordId)) {
     if (typeof nodeHashMap[sourceWordId] === 'undefined') {
       console.error("sourceWordId " + sourceWordId + " NOT IN nodeHashMap ... SKIPPING createLinks");
       return(callback (null, sessionId));
     }
-    // else if (!nodeHashMap.has(targetWordId)) {
     else if (!nodeHashMap[targetWordId]){
       console.warn("targetWordId " + targetWordId + " NOT IN nodeHashMap ... SKIPPING createLinks");
       return(callback (null, sessionId));
     }
-    // else if (typeof sourceWord.links[targetWordId] !== 'undefined') {
     
     if (session.linkHashMap[sourceWordId]) {
       if (session.linkHashMap[sourceWordId][targetWordId]) {
@@ -1243,8 +1237,6 @@ function createLink (sessionId, callback) {
     sourceWord.links[targetWordId] = 1;
     targetWord.links[sourceWordId] = 1;
 
-    // nodeHashMap.set(sourceWordId, sourceWord) ;
-    // nodeHashMap.set(targetWordId, targetWord) ;
     nodeHashMap[sourceWordId] = sourceWord ;
     nodeHashMap[targetWordId] = targetWord ;
 
@@ -1299,7 +1291,7 @@ function calcNodeAges (callback){
 
     age = currentNodeObject.age + (ageRate * (dateNow - currentNodeObject.ageUpdated));
  
-    if (age > nodeMaxAge) {
+    if (age >= nodeMaxAge) {
       deadNodesFlag = true;
       deadNodeHashMap.set(nodeId,1);
 

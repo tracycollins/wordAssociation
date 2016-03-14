@@ -1169,8 +1169,7 @@ function createLink (sessionId, callback) {
       );
       return(callback (null, sessionId));
     }
-
-    if (typeof session.target.nodeId !== 'string') {
+    else if (typeof session.target.nodeId !== 'string') {
       console.warn("??? TARGET NODE ID NOT A STRING (NEW SESSION?) ... SKIPPING CREATE LINKS"
         // + " \nSESSION OBJECT TARGET\n" 
         // + jsonPrint(session.target)

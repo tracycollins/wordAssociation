@@ -8,6 +8,10 @@ if(typeof(Worker) !== "undefined") {
   console.log("NO Worker!");
 }
 
+var serverConnected = false ;
+var serverHeartbeatTimeout = 30000 ;
+var serverCheckInterval = 30000;
+
 var debug = true;
 var MAX_RX_QUEUE = 250;
 
@@ -133,6 +137,9 @@ var DEFAULT_STATS_OVERLAY2_Y = 0.86;
 var DEFAULT_STATS_OVERLAY3_X = 0.05;
 var DEFAULT_STATS_OVERLAY3_Y = 0.88;
 
+var DEFAULT_STATS_OVERLAY4_X = 0.05;
+var DEFAULT_STATS_OVERLAY4_Y = 0.90;
+
 var DEFAULT_DATE_TIME_OVERLAY_X = 0.95;
 var DEFAULT_DATE_TIME_OVERLAY_Y = 0.04;
 
@@ -157,6 +164,9 @@ var STATS_OVERLAY2_Y;
 var STATS_OVERLAY3_X;
 var STATS_OVERLAY3_Y;
 
+var STATS_OVERLAY4_X;
+var STATS_OVERLAY4_Y;
+
 var DATE_TIME_OVERLAY_X;
 var DATE_TIME_OVERLAY_Y;
 
@@ -169,8 +179,14 @@ STATS_OVERLAY2_Y = DEFAULT_STATS_OVERLAY2_Y * height;
 STATS_OVERLAY3_X = DEFAULT_STATS_OVERLAY3_X * width;
 STATS_OVERLAY3_Y = DEFAULT_STATS_OVERLAY3_Y * height;
 
+STATS_OVERLAY4_X = DEFAULT_STATS_OVERLAY4_X * width;
+STATS_OVERLAY4_Y = DEFAULT_STATS_OVERLAY4_Y * height;
+
 DATE_TIME_OVERLAY_X = DEFAULT_DATE_TIME_OVERLAY_X * width;
 DATE_TIME_OVERLAY_Y = DEFAULT_DATE_TIME_OVERLAY_Y * height;
+
+
+var defaultTextFill = "#888888";
 
 console.log("@@@@@@@ CLIENT @@@@@@@@");
 
@@ -222,7 +238,8 @@ function displayControlOverlay(vis) {
   d3.select("#fullscreenToggleButton").style("visibility", visible);
 }
 
-function displayInfoOverlay(opacity) {
+function displayInfoOverlay(opacity, color) {
+
 
   d3.select("#adminOverlay0").select("text").style("opacity", opacity);
   d3.select("#adminOverlay1").select("text").style("opacity", opacity);
@@ -234,6 +251,24 @@ function displayInfoOverlay(opacity) {
   d3.select("#statsOverlay1").style("opacity", opacity);
   d3.select("#statsOverlay2").style("opacity", opacity);
   d3.select("#statsOverlay3").style("opacity", opacity);
+  d3.select("#statsOverlay4").style("opacity", opacity);
+
+  if (color) {
+
+  console.warn("displayInfoOverlay", opacity, color);
+
+    d3.select("#adminOverlay0").select("text").style("fill", color);
+    d3.select("#adminOverlay1").select("text").style("fill", color);
+    d3.select("#adminOverlay2").select("text").style("fill", color);
+    d3.select("#adminOverlay3").select("text").style("fill", color);
+
+    d3.select("#dateTimeOverlay").select("text").style("fill", color);
+
+    d3.select("#statsOverlay1").style("fill", color);
+    d3.select("#statsOverlay2").style("fill", color);
+    d3.select("#statsOverlay3").style("fill", color);
+    d3.select("#statsOverlay4").style("fill", color);
+  }
 }
 
 var randomIntFromInterval = function (min,max) {
@@ -337,7 +372,13 @@ function getVisibilityEvent(prefix) {
 var socket = io('/view');
 
 socket.on("VIEWER_ACK", function(viewerSessionKey){
+
+  serverConnected = true;
+
   console.log("RX VIEWER_ACK | SESSION KEY: " + viewerSessionKey);
+
+  updateStatsOverlay4(socket.id + " | " + viewerSessionKey);
+
   if (sessionMode) {
     console.log("SESSION MODE"
       + " | SID: " + sessionId
@@ -351,6 +392,9 @@ socket.on("VIEWER_ACK", function(viewerSessionKey){
 });
 
 socket.on("reconnect", function(){
+
+  serverConnected = true ;
+
   socket.emit("VIEWER_READY", viewerObj);
   if (sessionMode) {
     console.log("SESSION MODE"
@@ -364,11 +408,24 @@ socket.on("reconnect", function(){
 });
 
 socket.on("connect", function(){
+
+  serverConnected = true;
+
+  displayInfoOverlay(1.0, defaultTextFill);
+
   console.log("CONNECTED TO HOST | SOCKET ID: " + socket.id);
+  updateStatsOverlay4(socket.id);
+
 });
 
 socket.on("disconnect", function(){
+
+  serverConnected = false;
+
+  displayInfoOverlay(1.0, 'red');
+
   console.log("*** DISCONNECTED FROM HOST");
+
 });
 
 var palette = {
@@ -590,7 +647,7 @@ var dateTimeOverlay = svgcanvas.append("svg:g")
   .style("opacity", 1e-6)
   .style("font-size", "1.4vmin")
   .style("text-anchor", "end")
-  .style("fill", "#888888");
+  .style("fill", defaultTextFill);
 
 var statsOverlay1 = svgcanvas.append("svg:g") // user screenname
   .attr("id", "statsOverlay1")
@@ -639,6 +696,21 @@ var statsOverlay3 = svgcanvas.append("svg:g") // tweet text
   .style("font-size", "1.4vmin")
   .style("fill", palette.blue);
 
+var statsOverlay4 = svgcanvas.append("svg:g") // tweet text
+  .attr("id", "statsOverlay4")
+  .attr("class", "statsOverlay")
+  .append("svg:a")
+  .attr("id", "sessionId")
+  .attr("x", STATS_OVERLAY4_X)
+  .attr("y", STATS_OVERLAY4_Y)
+  .append("text")
+  .attr("id", "sessionIdText")
+  .attr("class", "sessionIdText")
+  .text("SESSION ID")
+  .style("opacity", 0.8)
+  .style("font-size", "1.4vmin")
+  .style("fill", palette.gray);
+
 var adminOverlay0 = svgcanvas.append("svg:g")
   .attr("class", "admin")
   .attr("id", "adminOverlay0")
@@ -650,7 +722,7 @@ var adminOverlay0 = svgcanvas.append("svg:g")
   .style("text-anchor", "end")
   .style("opacity", 1e-6)
   .style("font-size", "1.4vmin")
-  .style("fill", "#888888");
+  .style("fill", defaultTextFill);
 
 var adminOverlay1 = svgcanvas.append("svg:g")
   .attr("class", "admin")
@@ -663,7 +735,7 @@ var adminOverlay1 = svgcanvas.append("svg:g")
   .style("text-anchor", "end")
   .style("opacity", 1e-6)
   .style("font-size", "1.4vmin")
-  .style("fill", "#888888");
+  .style("fill", defaultTextFill);
 
 var adminOverlay2 = svgcanvas.append("svg:g")
   .attr("class", "admin")
@@ -676,7 +748,7 @@ var adminOverlay2 = svgcanvas.append("svg:g")
   .style("text-anchor", "end")
   .style("opacity", 1e-6)
   .style("font-size", "1.4vmin")
-  .style("fill", "#888888");
+  .style("fill", defaultTextFill);
 
 var adminOverlay3 = svgcanvas.append("svg:g")
   .attr("class", "admin")
@@ -689,7 +761,7 @@ var adminOverlay3 = svgcanvas.append("svg:g")
   .style("text-anchor", "end")
   .style("opacity", 1e-6)
   .style("font-size", "1.4vmin")
-  .style("fill", "#888888");
+  .style("fill", defaultTextFill);
 
 var linkSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "linkSvgGroup");
 
@@ -790,6 +862,11 @@ function resetDefaultForce(){
   console.log("SESSION_CONFIG\n" + jsonPrint(SESSION_CONFIG));
 }
 
+function updateStatsOverlay4(stringIn){
+  statsOverlay4 = d3.select("#statsOverlay4").select("text").text(stringIn);
+}
+
+
 //  CLOCK
 setInterval (function () {
   dateTimeOverlay = d3.select("#dateTimeOverlay").select("text").text("SERVER TIME: " + moment().format(defaultDateTimeFormat));
@@ -811,8 +888,29 @@ d3.select('#statsToggleButton').on("click", function() {  // STATS BUTTON
   }
 });
 
+var lastHeartbeatReceived = 0;
+
+// CHECK FOR SERVER HEARTBEAT
+setInterval(function () {
+  if ((lastHeartbeatReceived > 0) && (lastHeartbeatReceived + serverHeartbeatTimeout) < moment()) {
+    console.warn(chalkError("\n????? SERVER DOWN ????? | " + targetServer 
+      + " | LAST HEARTBEAT: " + getTimeStamp(lastHeartbeatReceived)
+      + " | " + moment().format(defaultDateTimeFormat)
+      + " | AGO: " + msToTime(moment().valueOf()-lastHeartbeatReceived)
+    ));
+    socket.connect(targetServer, {reconnection: false});
+  }
+}, serverCheckInterval);
+
+
+
+var heartBeatsReceived = 0;
 
 socket.on("HEARTBEAT", function(heartbeat){
+
+  heartBeatsReceived++;
+
+  serverConnected = true;
 
   d3.select("#adminOverlay0").select("text")
     .text(
@@ -1786,6 +1884,9 @@ function resize() {
   STATS_OVERLAY3_X = DEFAULT_STATS_OVERLAY3_X * width;
   STATS_OVERLAY3_Y = DEFAULT_STATS_OVERLAY3_Y * height;
 
+  STATS_OVERLAY4_X = DEFAULT_STATS_OVERLAY4_X * width;
+  STATS_OVERLAY4_Y = DEFAULT_STATS_OVERLAY4_Y * height;
+
   DATE_TIME_OVERLAY_X = DEFAULT_DATE_TIME_OVERLAY_X * width;
   DATE_TIME_OVERLAY_Y = DEFAULT_DATE_TIME_OVERLAY_Y * height;
 
@@ -1798,6 +1899,7 @@ function resize() {
   statsOverlay1.attr("x", STATS_OVERLAY1_X).attr("y", STATS_OVERLAY1_Y);
   statsOverlay2.attr("x", STATS_OVERLAY2_X).attr("y", STATS_OVERLAY2_Y);
   statsOverlay3.attr("x", STATS_OVERLAY3_X).attr("y", STATS_OVERLAY3_Y);
+  statsOverlay4.attr("x", STATS_OVERLAY4_X).attr("y", STATS_OVERLAY4_Y);
 
   nodeInitialX = INITIAL_X_RATIO * svgForceLayoutAreaWidth;
   nodeInitialY = INITIAL_Y_RATIO * svgForceLayoutAreaHeight;

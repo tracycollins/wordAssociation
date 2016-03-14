@@ -4,6 +4,8 @@
 var debug = false ;
 var testMode = false ;
 
+var userResponseEnabled = false;
+
 var sessionMode = 'PROMPT' ;
 var monitorMode = false ;
 
@@ -188,6 +190,25 @@ function addServerPrompt() {
   serverPromptDiv.appendChild(serverPromptOutput);
 }
 
+function addPairedUserPrompt() {
+  var pairedUserPromptOutput = document.createElement("output"); 
+  var pairedUserPromptLabel = document.createElement("label");
+  pairedUserPromptLabel.setAttribute("id", "pairedUserPromptLabel");
+
+  pairedUserPromptLabel.innerHTML = "... WAITING FOR USER TO PAIR ...";   
+
+  pairedUserPromptOutput.setAttribute("class", "serverPrompt");
+  pairedUserPromptOutput.setAttribute("type", "text");
+  pairedUserPromptOutput.setAttribute("id", "serverPromptOutput");
+  pairedUserPromptOutput.setAttribute("name", "serverPrompt");
+  pairedUserPromptOutput.setAttribute("value", "");
+  pairedUserPromptOutput.innerHTML = "";   
+
+  var pairedUserPromptDiv = document.getElementById("pairedUserPromptDiv");
+  pairedUserPromptDiv.appendChild(pairedUserPromptLabel);
+  pairedUserPromptDiv.appendChild(pairedUserPromptOutput);
+}
+
 function addUserResponseStream() {
   var userResponseStreamInput = document.createElement("textarea");
   var userResponseStreamLabel = document.createElement("label");
@@ -213,6 +234,14 @@ function addUserResponseStream() {
   checkStreamInputText();
 }
 
+function enableUserResponsePrompt() {
+  userResponseEnabled = true;
+}
+
+function disableUserResponsePrompt() {
+  userResponseEnabled = false;
+}
+
 function addUserResponsePrompt() {
   var userResponseInput = document.createElement("input");
   var userResponseLabel = document.createElement("label");
@@ -235,7 +264,7 @@ function addUserResponsePrompt() {
   userResponseDiv.appendChild(userResponseInput);
 
   checkInputTextInterval = setInterval(function() { 
-    if (connectedFlag){
+    if (connectedFlag && userResponseEnabled){
       currentInput = document.getElementById("userResponseInput").value.toLowerCase(); ;
       if (!currentInput){
         clearTimeout(inputChangedTimeout);
@@ -256,12 +285,17 @@ function addUserResponsePrompt() {
       }
       previousInput = document.getElementById("userResponseInput").value.toLowerCase();
     }
+    else if (connectedFlag && !userResponseEnabled){
+      clearTimeout(inputChangedTimeout);
+      currentInput = document.getElementById("userResponseInput");
+      currentInput.value = '';
+    }
   }, 100);
 }
 
 function sendUserResponseOnEnter(){
   console.log("sendUserResponseOnEnter");
-  if (connectedFlag) {
+  if (connectedFlag && userResponseEnabled) {
     enterKeyDownFlag = true ;
     clearTimeout(inputStreamChangedTimeout);
     clearInterval(checkStreamInputTextInterval);
@@ -290,7 +324,7 @@ function sendUserResponseOnEnter(){
 
 function checkStreamInputText() {
   checkStreamInputTextInterval = setInterval(function() { 
-    if (connectedFlag){
+    if (connectedFlag && userResponseEnabled){
       var currentStreamInputData = document.getElementById("userResponseStreamInput").value.toLowerCase(); ;
       if (!currentStreamInputData || currentStreamInputData == ''){
         clearTimeout(inputStreamChangedTimeout);
@@ -319,6 +353,12 @@ function updateServerPrompt(prompt){
   serverPromptOutputText.innerHTML = prompt;
 }
 
+function updatePairedUserPromptLabel(labelText){
+  var pairedUserPromptDiv = document.getElementById("pairedUserPromptDiv");
+  pairedUserPromptLabel.innerHTML = labelText;   
+
+}
+
 function removeServerPrompt() {
   clearInterval(checkInputTextInterval);
   clearInterval(checkStreamInputTextInterval);
@@ -326,6 +366,16 @@ function removeServerPrompt() {
   var serverPromptDiv = document.getElementById("serverPromptDiv");
   while (serverPromptDiv.hasChildNodes()) {   
     serverPromptDiv.removeChild(serverPromptDiv.firstChild);
+  }
+}
+
+function removePairedUserPrompt() {
+  clearInterval(checkInputTextInterval);
+  clearInterval(checkStreamInputTextInterval);
+
+  var pairedUserPromptDiv = document.getElementById("pairedUserPromptDiv");
+  while (pairedUserPromptDiv.hasChildNodes()) {   
+    pairedUserPromptDiv.removeChild(pairedUserPromptDiv.firstChild);
   }
 }
 
@@ -356,27 +406,27 @@ function setSessionMode(mode){
   sessionMode = mode;
   userObj.mode = sessionMode;
 
+  removeServerPrompt();
+  removePairedUserPrompt();
+  removeUserResponsePrompt();
+  removeUserResponseStream();
+
   switch (mode) {
     case 'PROMPT':
-      removeServerPrompt();
-      removeUserResponsePrompt();
-      removeUserResponseStream();
       addServerPrompt();
       addUserResponsePrompt();
+      enableUserResponsePrompt();
     break;
 
     case 'STREAM':
-      removeServerPrompt();
-      removeUserResponsePrompt();
-      removeUserResponseStream();
       addUserResponseStream();
+      enableUserResponsePrompt();
     break;
 
     case 'USER_USER':
-      removeServerPrompt();
-      removeUserResponsePrompt();
-      removeUserResponseStream();
+      addPairedUserPrompt();
       addUserResponsePrompt();
+      disableUserResponsePrompt();
     break;
 
     default:
@@ -391,6 +441,7 @@ function setSessionMode(mode){
 socket.on("PROMPT_WORD", function(promptWord){
   console.log("RX PROMPT_WORD: " + promptWord);
   updateServerPrompt(promptWord);
+  enableUserResponsePrompt();
 });
 
 
@@ -457,6 +508,7 @@ socket.on("SESSION_EXPIRED", function(reason){
 });
 
 socket.on("RANDOM_WORD", function(randomWord){
+  enableUserResponsePrompt();
 
   console.log("RX RANDOM_WORD: " + randomWord);
   autoResponseWord = randomWord ;
@@ -486,6 +538,19 @@ socket.on("PROMPT_WORD_OBJ", function(promptWordObj){
   console.log("RX PROMPT_WORD_OBJ: " + promptWordObj.nodeId + " | BHT FOUND: " + promptWordObj.bhtFound);
   updateServerPrompt(promptWordObj.nodeId);
   if (monitorMode) socket.emit("GET_RANDOM_WORD");
+  enableUserResponsePrompt();
+});
+
+socket.on("PAIRED_USER", function(pairedUserSessionId){
+  console.warn("PAIRED USER: " + pairedUserSessionId);
+  updatePairedUserPromptLabel("USER " + pairedUserSessionId);
+  enableUserResponsePrompt();
+});
+
+socket.on("PAIRED_USER_END", function(pairedUserSessionId){
+  console.warn("PAIRED USER END: " + pairedUserSessionId);
+  updatePairedUserPromptLabel("... WAITING FOR USER TO PAIR ...");
+  disableUserResponsePrompt();
 });
 
 socket.on('connect', function(){

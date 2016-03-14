@@ -9,6 +9,8 @@ var monitorMode = false ;
 
 var responseTimeoutInterval = 1000 ;
 
+var defaultTextColor = "#888888";
+
 var urlRoot = "http://word.threeceelabs.com/session?session=";
 var configHashMap = new HashMap();
 
@@ -160,66 +162,30 @@ var userResponseStreamValue = "";
 
 var socketIdDiv = document.getElementById("socketId");
 var socketIdLabel = document.createElement("label");
+
 socketIdLabel.innerHTML = "SID: " + socket.id;   
 socketIdDiv.appendChild(socketIdLabel);
 
 var checkInputTextInterval;
 var enterKeyDownFlag = false ;
 
-function setSessionMode(mode){
-  console.log("NEW SESSION MODE: " + mode);
-  sessionMode = mode;
-  userObj.mode = sessionMode;
-  socket.emit("USER_READY", userObj);
-}
+function addServerPrompt() {
+  var serverPromptOutput = document.createElement("output"); 
+  var serverPromptLabel = document.createElement("label");
+  serverPromptLabel.setAttribute("id", "serverPromptLabel");
 
-// function setCaretPosition(elemId, caretPos) {
-//     var elem = document.getElementById(elemId);
+  serverPromptLabel.innerHTML = "SERVER SAYS: ";   
 
-//     if(elem != null) {
-//         if(elem.createTextRange) {
-//             var range = elem.createTextRange();
-//             range.move('character', caretPos);
-//             range.select();
-//         }
-//         else {
-//             if(elem.selectionStart) {
-//                 elem.focus();
-//                 elem.setSelectionRange(caretPos, caretPos);
-//             }
-//             else
-//                 elem.focus();
-//         }
-//     }
-// }
+  serverPromptOutput.setAttribute("class", "serverPrompt");
+  serverPromptOutput.setAttribute("type", "text");
+  serverPromptOutput.setAttribute("id", "serverPromptOutput");
+  serverPromptOutput.setAttribute("name", "serverPrompt");
+  serverPromptOutput.setAttribute("value", "");
+  serverPromptOutput.innerHTML = "";   
 
-function sendUserResponseOnEnter(){
-  console.log("sendUserResponseOnEnter");
-  if (connectedFlag) {
-    enterKeyDownFlag = true ;
-    clearTimeout(inputStreamChangedTimeout);
-    clearInterval(checkStreamInputTextInterval);
-    console.log("enterKeyDownFlag: " + enterKeyDownFlag);
-    var inputData = document.getElementById("userResponseStreamInput").value.toLowerCase();
-
-    if (inputData){
-      sendUserResponse('STREAM', inputData, function(dataTransmitted){
-        if (dataTransmitted !== '') console.log("TXD: " + dataTransmitted);
-        var currentStreamInput = document.getElementById("userResponseStreamInput");
-        console.log("currentStreamInput");
-        for (var x in currentStreamInput)
-          if (currentStreamInput.hasAttribute(x) && typeof x !== 'function'){
-            console.log("currentStreamInput: " + x + " " + currentStreamInput[x]);
-          }
-        currentStreamInput = document.getElementById("userResponseStreamInput");
-        currentStreamInput.value = '';
-        previousStreamInputData = '';
-        enterKeyDownFlag = false;
-        checkStreamInputText();
-      });
-    }
-
-  }
+  var serverPromptDiv = document.getElementById("serverPromptDiv");
+  serverPromptDiv.appendChild(serverPromptLabel);
+  serverPromptDiv.appendChild(serverPromptOutput);
 }
 
 function addUserResponseStream() {
@@ -227,7 +193,7 @@ function addUserResponseStream() {
   var userResponseStreamLabel = document.createElement("label");
   userResponseStreamLabel.setAttribute("id", "userResponseStreamLabel");
 
-  userResponseStreamLabel.innerHTML = "YOU RESPOND: ";   
+  userResponseStreamLabel.innerHTML = "WHAT SAY YOU? (text sent when idle)";   
 
   userResponseStreamInput.setAttribute("class", "userResponseStream");
   userResponseStreamInput.setAttribute("type", "textarea");
@@ -245,31 +211,6 @@ function addUserResponseStream() {
   userResponseStreamDiv.appendChild(userResponseStreamInput);
 
   checkStreamInputText();
-}
-
-function checkStreamInputText() {
-  checkStreamInputTextInterval = setInterval(function() { 
-    if (connectedFlag){
-      var currentStreamInputData = document.getElementById("userResponseStreamInput").value.toLowerCase(); ;
-      if (!currentStreamInputData || currentStreamInputData == ''){
-        clearTimeout(inputStreamChangedTimeout);
-      }
-      else if (!enterKeyDownFlag && (previousStreamInputData != currentStreamInputData)) {
-        clearTimeout(inputStreamChangedTimeout);
-        var timeStreamDelta = moment().valueOf() - previousStreamTimestamp;
-        // console.log("CHANGE [" + timeStreamDelta + "]: "  + previousStreamInput + " | " + currentStreamInput);
-        previousStreamTimestamp = moment().valueOf();
-        inputStreamChangedTimeout = setTimeout(function(){
-          sendUserResponse('STREAM', currentStreamInputData, function(dataTransmitted){
-            if (dataTransmitted !== '') console.log("TXD: " + dataTransmitted);
-            var currentStreamInput = document.getElementById("userResponseStreamInput");
-            currentStreamInput.value = '';
-          });
-        }, responseTimeoutInterval);
-      }
-      previousStreamInputData = document.getElementById("userResponseStreamInput").value.toLowerCase();
-    }
-  }, 100);
 }
 
 function addUserResponsePrompt() {
@@ -318,49 +259,58 @@ function addUserResponsePrompt() {
   }, 100);
 }
 
-// function addControlPanel() {
+function sendUserResponseOnEnter(){
+  console.log("sendUserResponseOnEnter");
+  if (connectedFlag) {
+    enterKeyDownFlag = true ;
+    clearTimeout(inputStreamChangedTimeout);
+    clearInterval(checkStreamInputTextInterval);
+    console.log("enterKeyDownFlag: " + enterKeyDownFlag);
+    var inputData = document.getElementById("userResponseStreamInput").value.toLowerCase();
 
-//   var sessionModeForm = document.createElement("form");
+    if (inputData){
+      sendUserResponse('STREAM', inputData, function(dataTransmitted){
+        if (dataTransmitted !== '') console.log("TXD: " + dataTransmitted);
+        var currentStreamInput = document.getElementById("userResponseStreamInput");
+        console.log("currentStreamInput");
+        for (var x in currentStreamInput)
+          if (currentStreamInput.hasAttribute(x) && typeof x !== 'function'){
+            console.log("currentStreamInput: " + x + " " + currentStreamInput[x]);
+          }
+        currentStreamInput = document.getElementById("userResponseStreamInput");
+        currentStreamInput.value = '';
+        previousStreamInputData = '';
+        enterKeyDownFlag = false;
+        checkStreamInputText();
+      });
+    }
 
-//   var sessionModeFormLabel = document.createElement("label");
-//   sessionModeFormLabel.setAttribute("id", "sessionModeFormLabel");
-//   sessionModeFormLabel.innerHTML = "SESSION MODE";
+  }
+}
 
-//   sessionModeForm.setAttribute("id", "sessionModeForm");
-//   sessionModeForm.setAttribute("class", "sessionModeForm");
-
-//   var promptModeButton = document.createElement("input");
-//   promptModeButton.setAttribute("type", "radio");
-//   promptModeButton.setAttribute("class", "sessionModeForm");
-//   promptModeButton.setAttribute("name", "sessionMode");
-//   promptModeButton.setAttribute("value", "PROMPT");
-//   promptModeButton.setAttribute("defaultValue", "PROMPT");
-//   promptModeButton.innerHTML = "prompt";
-
-//   sessionModeForm.appendChild(sessionModeFormLabel);
-//   sessionModeForm.appendChild(promptModeButton);
-
-//   var controlDiv = document.getElementById("controlDiv");
-//   controlDiv.appendChild(sessionModeForm);
-// }
-
-function addServerPrompt() {
-  var serverPromptOutput = document.createElement("output"); 
-  var serverPromptLabel = document.createElement("label");
-  serverPromptLabel.setAttribute("id", "serverPromptLabel");
-
-  serverPromptLabel.innerHTML = "SERVER SAYS: ";   
-
-  serverPromptOutput.setAttribute("class", "serverPrompt");
-  serverPromptOutput.setAttribute("type", "text");
-  serverPromptOutput.setAttribute("id", "serverPromptOutput");
-  serverPromptOutput.setAttribute("name", "serverPrompt");
-  serverPromptOutput.setAttribute("value", "");
-  serverPromptOutput.innerHTML = "";   
-
-  var serverPromptDiv = document.getElementById("serverPromptDiv");
-  serverPromptDiv.appendChild(serverPromptLabel);
-  serverPromptDiv.appendChild(serverPromptOutput);
+function checkStreamInputText() {
+  checkStreamInputTextInterval = setInterval(function() { 
+    if (connectedFlag){
+      var currentStreamInputData = document.getElementById("userResponseStreamInput").value.toLowerCase(); ;
+      if (!currentStreamInputData || currentStreamInputData == ''){
+        clearTimeout(inputStreamChangedTimeout);
+      }
+      else if (!enterKeyDownFlag && (previousStreamInputData != currentStreamInputData)) {
+        clearTimeout(inputStreamChangedTimeout);
+        var timeStreamDelta = moment().valueOf() - previousStreamTimestamp;
+        // console.log("CHANGE [" + timeStreamDelta + "]: "  + previousStreamInput + " | " + currentStreamInput);
+        previousStreamTimestamp = moment().valueOf();
+        inputStreamChangedTimeout = setTimeout(function(){
+          sendUserResponse('STREAM', currentStreamInputData, function(dataTransmitted){
+            if (dataTransmitted !== '') console.log("TXD: " + dataTransmitted);
+            var currentStreamInput = document.getElementById("userResponseStreamInput");
+            currentStreamInput.value = '';
+          });
+        }, responseTimeoutInterval);
+      }
+      previousStreamInputData = document.getElementById("userResponseStreamInput").value.toLowerCase();
+    }
+  }, 100);
 }
 
 function updateServerPrompt(prompt){
@@ -368,6 +318,75 @@ function updateServerPrompt(prompt){
   var serverPromptOutputText = document.getElementById("serverPromptOutput");
   serverPromptOutputText.innerHTML = prompt;
 }
+
+function removeServerPrompt() {
+  clearInterval(checkInputTextInterval);
+  clearInterval(checkStreamInputTextInterval);
+
+  var serverPromptDiv = document.getElementById("serverPromptDiv");
+  while (serverPromptDiv.hasChildNodes()) {   
+    serverPromptDiv.removeChild(serverPromptDiv.firstChild);
+  }
+}
+
+function removeUserResponsePrompt() {
+  clearInterval(checkInputTextInterval);
+  clearInterval(checkStreamInputTextInterval);
+
+  var userResponseDiv = document.getElementById("userResponseDiv");
+  while (userResponseDiv.hasChildNodes()) {   
+    userResponseDiv.removeChild(userResponseDiv.firstChild);
+  }
+}
+
+function removeUserResponseStream() {
+  clearInterval(checkInputTextInterval);
+  clearInterval(checkStreamInputTextInterval);
+
+  var userResponseStreamDiv = document.getElementById("userResponseStreamDiv");
+  while (userResponseStreamDiv.hasChildNodes()) {   
+    userResponseStreamDiv.removeChild(userResponseStreamDiv.firstChild);
+  }
+}
+
+function setSessionMode(mode){
+
+  console.log("NEW SESSION MODE: " + mode);
+
+  sessionMode = mode;
+  userObj.mode = sessionMode;
+
+  switch (mode) {
+    case 'PROMPT':
+      removeServerPrompt();
+      removeUserResponsePrompt();
+      removeUserResponseStream();
+      addServerPrompt();
+      addUserResponsePrompt();
+    break;
+
+    case 'STREAM':
+      removeServerPrompt();
+      removeUserResponsePrompt();
+      removeUserResponseStream();
+      addUserResponseStream();
+    break;
+
+    case 'USER_USER':
+      removeServerPrompt();
+      removeUserResponsePrompt();
+      removeUserResponseStream();
+      addUserResponsePrompt();
+    break;
+
+    default:
+      console.error("??? UNKNOWN SESSION MODE: " + sessionMode);
+    break;
+  }
+
+  socket.emit("USER_READY", userObj);
+}
+
 
 socket.on("PROMPT_WORD", function(promptWord){
   console.log("RX PROMPT_WORD: " + promptWord);
@@ -470,27 +489,38 @@ socket.on("PROMPT_WORD_OBJ", function(promptWordObj){
 });
 
 socket.on('connect', function(){
+  connectedFlag = true ;
+
   socketId = socket.id ;
   console.log(">>> CONNECTED TO HOST | SOCKET ID: " + socketId);
-  connectedFlag = true ;
   getUrlVariables();
+
+  socketIdLabel.style.color = defaultTextColor ;
   socketIdLabel.innerHTML = socket.id;   
   socketIdDiv.appendChild(socketIdLabel);
 });
 
 socket.on('reconnect', function(){
+  connectedFlag = true ;
   socketId = socket.id ;
   console.log(">-> RECONNECTED TO HOST | SOCKET ID: " + socketId);
-  connectedFlag = true ;
   getUrlVariables();
   socket.emit("USER_READY", userObj);
-  socketIdLabel.innerHTML = "SID: " + socket.id;   
+
+  socketIdLabel.style.color = defaultTextColor ;
+  socketIdLabel.innerHTML = "SERVER DISCONNECTED";   
   socketIdDiv.appendChild(socketIdLabel);
+
 });
 
 socket.on('disconnect', function(){
   connectedFlag = false;
   console.log("*** DISCONNECTED FROM HOST | SOCKET ID: " + socketId);
+
+  socketIdLabel.style.color = "red";
+  socketIdLabel.innerHTML = "SERVER DISCONNECTED";   
+  socketIdDiv.appendChild(socketIdLabel);
+
 });
 
 var data= [] ;
@@ -615,9 +645,13 @@ window.onload = function () {
   window.resizeTo(400,600);
 
   // addControlPanel();
-  addServerPrompt();
-  addUserResponsePrompt();
-  addUserResponseStream();
+
+  if (sessionMode == 'PROMPT') {
+    addServerPrompt();
+    addUserResponsePrompt();
+  }
+
+  if (sessionMode == 'STREAM') addUserResponseStream();
 
   // userObj.userId = socket.id;
 

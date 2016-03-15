@@ -1523,7 +1523,6 @@ function ageNodes (sessionId, callback){
       // nodeHashMap.set(currentNodeId, currentNodeObject);
       nodeHashMap[currentNodeId] = currentNodeObject;
     }
-
   }
 
   if (ageNodesIndex < 0) {

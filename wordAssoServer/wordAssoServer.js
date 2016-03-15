@@ -5250,9 +5250,34 @@ function initAppRouting(callback){
     return;
   });
 
+
+  app.get('/js/libs/SpriteText2D.js', function(req, res){
+    debug("LOADING FILE: SpriteText2D.js");
+    res.sendFile(__dirname + '/js/libs/SpriteText2D.js');
+    return;
+  });
+
+  app.get('/js/libs/three-text2d.js', function(req, res){
+    debug("LOADING FILE: three-text2d.js");
+    res.sendFile(__dirname + '/js/libs/three-text2d.js');
+    return;
+  });
+
+  app.get('/js/libs/sessionView3d.js', function(req, res){
+    debug("LOADING FILE: sessionView3d.js");
+    res.sendFile(__dirname + '/js/libs/sessionView3d.js');
+    return;
+  });
+
   app.get('/js/libs/sessionView.js', function(req, res){
     debug("LOADING FILE: sessionView.js");
     res.sendFile(__dirname + '/js/libs/sessionView.js');
+    return;
+  });
+
+  app.get('/js/libs/three.min.js', function(req, res){
+    debug("LOADING FILE: three.min.js");
+    res.sendFile(__dirname + '/js/libs/three.min.js');
     return;
   });
 

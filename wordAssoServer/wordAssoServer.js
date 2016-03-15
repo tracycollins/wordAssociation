@@ -4829,7 +4829,7 @@ function createSession (newSessionObj){
       ));
       return;
     }
-    console.log(chalkLog("... SESSION_KEEPALIVE | " + userObj.userId
+    debug(chalkLog("... SESSION_KEEPALIVE | " + userObj.userId
       + " | " + sessionObj.sessionId
       + " | " + moment().format(defaultDateTimeFormat)
     ));
@@ -5030,7 +5030,7 @@ adminNameSpace.on('connect', function(socket){
 
 utilNameSpace.on('connect', function(socket){
   console.log(chalkAdmin("UTIL CONNECT"));
-  createSession({namespace:"util", socket: socket, type: "UTIL"});
+  createSession({namespace:"util", socket: socket, type: "UTIL", mode: "STREAM"});
 });
 
 userNameSpace.on('connect', function(socket){

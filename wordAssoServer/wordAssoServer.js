@@ -3934,17 +3934,17 @@ var readResponseQueue = setInterval(function (){
         debug(chalkResponse("... previousPromptObj: " + previousPromptObj.nodeId));
       }
     }
-    else if (currentSessionObj.config.type == 'STREAM') {
+    else if (currentSessionObj.config.mode == 'STREAM') {
       previousPromptObj = {nodeId: 'STREAM'};
       debug(chalkWarn("STREAM WORD CHAIN\n" + jsonPrint(currentSessionObj.wordChain)));
     }
-    else if (currentSessionObj.config.type == 'USER_USER') {
+    else if (currentSessionObj.config.mode == 'USER_USER') {
       previousPromptObj = {nodeId: 'USER_USER'};
       console.log(chalkWarn("USER_USER WORD CHAIN\n" + jsonPrint(currentSessionObj.wordChain)));
     }
     else {
-      console.log(chalkWarn("??? EMPTY WORD CHAIN ... PREVIOUS PROMPT NOT IN CACHE: " + previousPrompt
-        + " ... ABORTING SESSION"
+      console.log(chalkWarn("??? EMPTY WORD CHAIN ... PREVIOUS PROMPT NOT IN CACHE ... ABORTING SESSION"
+        + " | " + socketId
       ));
       return;
     }

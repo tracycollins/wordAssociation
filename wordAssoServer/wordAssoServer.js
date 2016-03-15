@@ -1114,7 +1114,8 @@ function sendPrompt(sessionObj, sourceWordObj){
           console.log(chalkPrompt("P-> "
             + currentUser.userId 
             + " | " + sessionObj.sessionId 
-            + " | " + sessionObj.config.type 
+            + " | TYPE: " + sessionObj.config.type 
+            + " | MODE: " + sessionObj.config.mode 
             + " | " + sourceWordObj.nodeId
             + " -> " + targetWordObj.nodeId
           ));
@@ -1135,7 +1136,8 @@ function sendPrompt(sessionObj, sourceWordObj){
           console.log(chalkPrompt("P-> "
             + currentUser.userId 
             + " | " + sessionObj.sessionId 
-            + " | " + sessionObj.config.type 
+            + " | TYPE: " + sessionObj.config.type 
+            + " | MODE: " + sessionObj.config.mode 
             + " | START -> " + sourceWordObj.nodeId));
 
           var sessionUpdateObj = {
@@ -1191,7 +1193,8 @@ function sendPrompt(sessionObj, sourceWordObj){
           console.log(chalkPrompt("P-> "
             + currentUser.userId 
             + " | " + sessionObj.sessionId 
-            + " | " + sessionObj.config.type 
+            + " | TYPE: " + sessionObj.config.type 
+            + " | MODE: " + sessionObj.config.mode 
             + " | " + targetWordObj.nodeId 
             + " --> " + promptWordObj.nodeId
             + " | " + targetSessionId 
@@ -1208,7 +1211,8 @@ function sendPrompt(sessionObj, sourceWordObj){
           console.log(chalkPrompt("P-> "
             + currentUser.userId 
             + " | " + sessionObj.sessionId 
-            + " | " + sessionObj.config.type 
+            + " | TYPE: " + sessionObj.config.type 
+            + " | MODE: " + sessionObj.config.mode 
             + " | START --> " + targetWordObj.nodeId
           ));
 
@@ -1220,7 +1224,8 @@ function sendPrompt(sessionObj, sourceWordObj){
           console.log(chalkPrompt("P-> "
             + currentUser.userId 
             + " | " + targetSession.sessionId 
-            + " | " + targetSession.config.type 
+            + " | TYPE: " + sessionObj.config.type 
+            + " | MODE: " + sessionObj.config.mode 
             + " | START --> " + promptWordObj.nodeId
           ));
         }
@@ -2997,7 +3002,7 @@ var sessionRouteHashMap = new HashMap();
 
 function pairUser(sessionObj, callback){
 
-  sessionObj.config.type = 'USER_USER' ; // should already be set
+  sessionObj.config.mode = 'USER_USER' ; // should already be set
   console.log(unpairedUserHashMap.count() + " PAIRING USER " + sessionObj.userId + " | SID: " + sessionObj.sessionId);
 
   if (unpairedUserHashMap.count() > 0){
@@ -3182,6 +3187,7 @@ var readSessionQueue = setInterval(function (){
               ">>> SESSION KEEPALIVE"
               + " | UID: " + sesObj.user.userId
               + " | TYPE: " + sessionUpdatedObj.config.type
+              + " | MODE: " + sessionUpdatedObj.config.mode
               + " | NSP: " + sessionUpdatedObj.namespace
               + " | SID: " + sessionUpdatedObj.sessionId
               + " | SIP: " + sessionUpdatedObj.ip
@@ -3820,6 +3826,7 @@ var readSessionQueue = setInterval(function (){
                             console.log(chalkInfo("-S- DB UPDATE"
                               + " | " + sessionUpdatedObj.sessionId
                               + " | TYPE: " + sessionUpdatedObj.config.type
+                              + " | MODE: " + sessionUpdatedObj.config.mode
                               + " | WCI: " + sessionUpdatedObj.wordChainIndex
                               + " | WCL: " + sessionUpdatedObj.wordChain.length
                             ));
@@ -3950,7 +3957,7 @@ var readResponseQueue = setInterval(function (){
     }
 
     
-    if (currentSessionObj.config.type == 'USER_USER') {
+    if (currentSessionObj.config.mode == 'USER_USER') {
 
       console.log(chalkResponse("---------- USER_USER ----------"));
 
@@ -3980,7 +3987,8 @@ var readResponseQueue = setInterval(function (){
     console.log(chalkResponse("R<- "
       + currentSessionObj.userId 
       + " | " + socketId 
-      + " | " + currentSessionObj.config.type 
+      + " | TYPE: " + currentSessionObj.config.type 
+      + " | MODE: " + currentSessionObj.config.mode 
       + " | " + responseInObj.nodeId + " [" + currentSessionObj.wordChainIndex + "]"
       + " <-- " + previousPrompt));
 
@@ -4150,7 +4158,7 @@ This is where routing of response -> prompt happens
             console.error("[-] CHAIN DEADEND ... USING RANDOM ALGORITHM: " + currentAlgorithm);
           }
           else {
-            currentAlgorithm = currentSession.config.type.toLowerCase();
+            currentAlgorithm = currentSession.config.mode.toLowerCase();
           }
 
 

@@ -100,10 +100,9 @@ setInterval(function(){
     var word = transmitDataQueue.shift();
     socket.emit("RESPONSE_WORD_OBJ", {nodeId: word});
   }
-}, 1000);
+}, 333);
 
 function sendUserResponse(sessionMode, data, callback){
-  // console.log("RAW INPUT: " + document.getElementById("userResponseInput").value);
   console.log("SESSION MODE: " + sessionMode + " | RAW INPUT: " + data);
 
   var userResponseValue = data.replace(/\s+/g, ' ') ;
@@ -117,29 +116,21 @@ function sendUserResponse(sessionMode, data, callback){
 
   if (userResponseValue == '') {
     console.warn("NO INPUT WORD");
-    // var wordInText = document.getElementById("userResponseInput");
-    // console.log("wordInText: " + wordInText.value);
     callback('');
     return;
   }
   else if (sessionMode == 'STREAM') {
     var wordArray = userResponseValue.split(" ");
-
     wordArray.forEach(function(word){
       console.log("TX-Q WORD: '" + word + "'");
       transmitDataQueue.push(word);
-      // var wordInText = document.getElementById("userResponseInput");
-      // console.log("wordInText: " + wordInText.value);
     });
-
     callback(userResponseValue);
     return;
   }
   else if (sessionMode == 'PROMPT') {
-
     console.log("TX WORD: '" + userResponseValue + "'");
     socket.emit("RESPONSE_WORD_OBJ", {nodeId: userResponseValue});
-
     callback(userResponseValue);
     return;
   }

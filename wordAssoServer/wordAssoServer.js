@@ -334,9 +334,9 @@ var bhtErrors = 0;
 var bhtRequests = 0; 
 var bhtOverLimits = 0; 
 
-var bhtOverLimitTime = moment.utc().utcOffset("-08:00").endOf('day');
-var bhtLimitResetTime = moment.utc().utcOffset("-08:00").endOf('day');
-var bhtTimeToReset = moment.utc().utcOffset("-08:00").endOf('day').valueOf() - moment.utc().utcOffset("-08:00").valueOf();
+var bhtOverLimitTime = moment.utc().utcOffset("-07:00").endOf('day');
+var bhtLimitResetTime = moment.utc().utcOffset("-07:00").endOf('day');
+var bhtTimeToReset = moment.utc().utcOffset("-07:00").endOf('day').valueOf() - moment.utc().utcOffset("-07:00").valueOf();
 var bhtOverLimitFlag = false ;
 
 console.log("BHT OVER LIMIT TIME:  " + bhtOverLimitTime.format(defaultDateTimeFormat));
@@ -1623,10 +1623,10 @@ bhtEvents.on("BHT_OVER_LIMIT_TIMEOUT", function(){
   setBhtReqs(0);
 
   bhtOverLimitTime = moment.utc();
-  bhtOverLimitTime.utcOffset("-08:00");
+  bhtOverLimitTime.utcOffset("-07:00");
 
   bhtLimitResetTime = moment.utc();
-  bhtLimitResetTime.utcOffset("-08:00");
+  bhtLimitResetTime.utcOffset("-07:00");
   bhtLimitResetTime.endOf("day");
 
   updateStats({ 
@@ -1653,10 +1653,10 @@ bhtEvents.on("BHT_OVER_LIMIT", function(){
   bhtOverLimitTestFlag = false ;
 
   bhtOverLimitTime = moment.utc();
-  bhtOverLimitTime.utcOffset("-08:00");
+  bhtOverLimitTime.utcOffset("-07:00");
 
   bhtLimitResetTime = moment.utc();
-  bhtLimitResetTime.utcOffset("-08:00");
+  bhtLimitResetTime.utcOffset("-07:00");
   bhtLimitResetTime.endOf("day");
 
   // bhtTimeToReset = moment(bhtLimitResetTime);
@@ -1699,7 +1699,7 @@ function bhtSearchWord (wordObj, callback){
   else if (bhtOverLimitFlag) {
 
     var now = moment.utc();
-    now.utcOffset("-08:00");
+    now.utcOffset("-07:00");
 
     console.log(chalkBht("*** BHT OVER LIMIT"
      + " | LIMIT: " + BHT_REQUEST_LIMIT
@@ -4515,7 +4515,7 @@ configEvents.on("SERVER_READY", function () {
 
     runTime =  moment() - startTime ;
 
-    bhtTimeToReset = moment.utc().utcOffset("-08:00").endOf('day').valueOf() - moment.utc().utcOffset("-08:00").valueOf();
+    bhtTimeToReset = moment.utc().utcOffset("-07:00").endOf('day').valueOf() - moment.utc().utcOffset("-07:00").valueOf();
 
     //
     // SERVER HEARTBEAT

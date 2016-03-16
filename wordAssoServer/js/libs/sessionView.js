@@ -1126,14 +1126,11 @@ function createNode (sessionId, callback) {
 
     var newNodesFlag = false;
 
-    // var session = sessionHashMap[sessionId];
     var wordObject = {};
     var nodeId = session.source.nodeId;
 
-    // if (nodeHashMap.has(nodeId)) {
     if (nodeHashMap[nodeId]) {
 
-      // wordObject = nodeHashMap.get(nodeId);
       wordObject = nodeHashMap[nodeId];
       wordObject.userId = session.userId;
       wordObject.sessionId = sessionId;
@@ -1146,10 +1143,9 @@ function createNode (sessionId, callback) {
       wordObject.colors = session.colors;
       wordObject.interpolateColor = session.interpolateColor;
 
-      // nodeHashMap.set(nodeId, wordObject);
       nodeHashMap[nodeId] = wordObject;
 
-      session.fixedNodeId = nodeId ;
+      session.fixedNodeId = '' ;
       session.source = wordObject ;
       sessionHashMap[session.sessionId] = session;
 
@@ -1158,7 +1154,6 @@ function createNode (sessionId, callback) {
     else {
 
       wordObject = session.source ;
-      // nodeHashMap.set(session.source.nodeId, session.source);
 
       if (!forceStopped){
         forceStopped = true ;
@@ -1189,7 +1184,6 @@ function createNode (sessionId, callback) {
       wordObject.text = nodeId ;
 
       wordObject.fixed = true;
-      // nodeHashMap.set(nodeId, wordObject);
       nodeHashMap[nodeId] = wordObject;
 
       session.source = wordObject ;
@@ -1295,27 +1289,27 @@ function createLink (sessionId, callback) {
       return(callback (null, sessionId));
     }
     
-    if (session.linkHashMap[sourceWordId]) {
-      if (session.linkHashMap[sourceWordId][targetWordId]) {
-        console.warn("LINK EXISTS" 
-          + " | " + sourceWordId
-          + " -> " + targetWordId
-          + " EXISTS ... SKIPPING createLinks"
-          );
-        return(callback (null, sessionId));
-      }
-    }
+    // if (session.linkHashMap[sourceWordId]) {
+    //   if (session.linkHashMap[sourceWordId][targetWordId]) {
+    //     console.warn("LINK EXISTS" 
+    //       + " | " + sourceWordId
+    //       + " -> " + targetWordId
+    //       + " EXISTS ... SKIPPING createLinks"
+    //       );
+    //     return(callback (null, sessionId));
+    //   }
+    // }
     
-    if (session.linkHashMap[targetWordId]) {
-      if (session.linkHashMap[targetWordId][sourceWordId]) {
-        console.warn("LINK EXISTS" 
-          + " | " + sourceWordId
-          + " -> " + targetWordId
-          + " EXISTS ... SKIPPING createLinks"
-          );
-        return(callback (null, sessionId));
-      }
-    }
+    // if (session.linkHashMap[targetWordId]) {
+    //   if (session.linkHashMap[targetWordId][sourceWordId]) {
+    //     console.warn("LINK EXISTS" 
+    //       + " | " + sourceWordId
+    //       + " -> " + targetWordId
+    //       + " EXISTS ... SKIPPING createLinks"
+    //       );
+    //     return(callback (null, sessionId));
+    //   }
+    // }
 
     if (!forceStopped){
       forceStopped = true ;

@@ -695,33 +695,6 @@ function zoom() {
   svgcanvas.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
 }
 
-window.onload = function () {
-  console.log("ONLOAD");
-
-  window.resizeTo(400,600);
-
-  // addControlPanel();
-
-  if (sessionMode == 'PROMPT') {
-    addServerPrompt();
-    addUserResponsePrompt();
-  }
-
-  if (sessionMode == 'STREAM') addUserResponseStream();
-
-  // userObj.userId = socket.id;
-
-  console.log("USER\n" + jsonPrint(userObj));
-
-  socket.emit("USER_READY", userObj);
-  // launchSessionView(socket.id);
-
-  setTimeout(function(){
-    pageLoadedTimeIntervalFlag = false ;
-  }, 5000);
-};
-
-
 socket.on('HEARTBEAT', function(heartbeat){
 });
 
@@ -861,6 +834,38 @@ function visibilityEvent(prefix) {
 // MAIN INTERVAL LOOP
 // ==================
 
-setInterval(function() {
-}, updateInterval);
+// setInterval(function() {
+// }, updateInterval);
+
+window.onload = function () {
+  console.log("ONLOAD");
+
+  window.resizeTo(400,600);
+
+  // addControlPanel();
+
+  setSessionMode(sessionMode);
+
+  // if (sessionMode == 'PROMPT') {
+  //   addServerPrompt();
+  //   addUserResponsePrompt();
+  // }
+  // else if (sessionMode == 'STREAM') {
+  //   addUserResponseStream();
+  //   enableUserResponsePrompt();
+  // }
+
+  // userObj.userId = socket.id;
+
+  console.log("sessionMode: " + sessionMode);
+  console.log("USER\n" + jsonPrint(userObj));
+
+  // socket.emit("USER_READY", userObj);
+  // launchSessionView(socket.id);
+
+  setTimeout(function(){
+    pageLoadedTimeIntervalFlag = false ;
+  }, 5000);
+};
+
 

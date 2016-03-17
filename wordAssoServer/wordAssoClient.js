@@ -6,7 +6,7 @@ var testMode = false ;
 
 var userResponseEnabled = false;
 
-var sessionMode = 'PROMPT' ;
+var sessionMode = 'STREAM' ;
 var monitorMode = false ;
 
 var responseTimeoutInterval = 1000 ;

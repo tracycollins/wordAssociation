@@ -211,7 +211,7 @@ function addUserResponseStream() {
   userResponseStreamInput.setAttribute("type", "textarea");
   userResponseStreamInput.setAttribute("id", "userResponseStreamInput");
   userResponseStreamInput.setAttribute("name", "userResponseStream");
-  // userResponseStreamInput.setAttribute("autofocus", true);
+  userResponseStreamInput.setAttribute("autofocus", true);
   userResponseStreamInput.setAttribute("autocapitalize", "none");
   userResponseStreamInput.setAttribute("value", userResponseStreamValue);
   userResponseStreamInput.setAttribute("rows", 10);

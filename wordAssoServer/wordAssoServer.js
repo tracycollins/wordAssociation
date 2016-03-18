@@ -2,6 +2,7 @@
 "use strict";
 
 var OFFLINE_MODE = false ;
+var quitOnError = false;
 
 var serverReady = false ;
 var internetReady = false ;
@@ -37,13 +38,16 @@ var DEFAULT_SESSION_MODE = 'RANDOM';
 var defaultSessionMode = DEFAULT_SESSION_MODE ;
 
 
-function quit(){
-  console.log( "\n... QUITTING ..." );
-  process.exit( );
+function quit(message){
+  console.log( "\n... QUITTING ...");
+  var msg = '';
+  if (message) msg = message;
+  console.log("QUIT MESSAGE\n" + msg);
+  process.exit();
 }
 
 process.on( 'SIGINT', function() {
-  quit();
+  quit('SIGINT');
 });
 
 
@@ -1255,7 +1259,7 @@ function sendPrompt(sessionObj, sourceWordObj){
       break;
       default:
         console.error(chalkError(" 1 ????? UNKNOWN SESSION TYPE: " + sessionObj.config.mode));
-        quit();
+        quit(" 1 ????? UNKNOWN SESSION TYPE: " + sessionObj.config.mode);
       break;
     }
 
@@ -1769,7 +1773,6 @@ function chainDeadEnd(chain) {
             + "\nSEG\n" + chainSegment 
             + "\nUNIQUE\n" + uniqueNodes
           )); 
-          // quit();
           return true ;
         }
         else {
@@ -3238,7 +3241,7 @@ var readSessionQueue = setInterval(function (){
           break;
           default:
             console.error(chalkError(" 1 ????? UNKNOWN SESSION TYPE: " + sesObj.session.config.type));
-            quit();
+            quit(" 1 ????? UNKNOWN SESSION TYPE: " + sesObj.session.config.type);
           break;
         }
 
@@ -3839,7 +3842,7 @@ var readSessionQueue = setInterval(function (){
 
                       default:
                         console.error(chalkError("2  ????? UNKNOWN SESSION MODE: " + sesObj.session.config.mode));
-                        quit();
+                        quit(" 2 ????? UNKNOWN SESSION TYPE: " + sesObj.session.config.type);
                       break;
                     }
                   break;
@@ -3861,7 +3864,7 @@ var readSessionQueue = setInterval(function (){
 
                   default:
                     console.error("???? UNKNOWN SESSION TYPE: " + sesObj.session.config.type);
-                    quit();
+                    quit("???? UNKNOWN SESSION TYPE: " + sesObj.session.config.type);
                 }
 
               }
@@ -3880,9 +3883,13 @@ var readSessionQueue = setInterval(function (){
   }
 }, 20);
 
+var ready = true;
+
 var readResponseQueue = setInterval(function (){
 
-  if (!responseQueue.isEmpty()){
+  if (ready && !responseQueue.isEmpty()){
+
+    ready = false;
 
     var rxInObj = responseQueue.dequeue();
 
@@ -3894,7 +3901,10 @@ var readResponseQueue = setInterval(function (){
       console.error(chalkWarn("??? SESSION NOT IN CACHE ON RESPONSE Q READ (DISCONNECTED?) " + socketId
         + " ... ABORTING SESSION"
       ));
+
       sessionQueue.enqueue({sessionEvent: "SESSION_ABORT", sessionId: socketId});
+
+      ready = true;
       return ; 
     }
 
@@ -3911,6 +3921,9 @@ var readResponseQueue = setInterval(function (){
 
     if (responseInObj.nodeId == '') {
       console.error("EMPTY RESPONSE: " + responseInObj.nodeId);
+
+      ready = true;
+
       return;
     }
 
@@ -3935,6 +3948,9 @@ var readResponseQueue = setInterval(function (){
         console.log(chalkWarn("??? previousPrompt NOT IN CACHE: " + previousPrompt
           + " ... ABORTING SESSION"
         ));
+
+        ready = true;
+
         return;
       }
       else {
@@ -3953,6 +3969,9 @@ var readResponseQueue = setInterval(function (){
       console.log(chalkWarn("??? EMPTY WORD CHAIN ... PREVIOUS PROMPT NOT IN CACHE ... ABORTING SESSION"
         + " | " + socketId
       ));
+
+      ready = true;
+
       return;
     }
 
@@ -3997,6 +4016,9 @@ var readResponseQueue = setInterval(function (){
     dbUpdateObj.session = currentSessionObj ;
 
     dbUpdateQueue.enqueue(dbUpdateObj);
+
+    ready = true;
+
   }
 }, 20);
 
@@ -4028,7 +4050,7 @@ var readDbUpdateQueue = setInterval(function (){
         previousPromptObj = wordCache.get(previousPromptNodeId);
         if (!previousPromptObj) {
           console.log(chalkWarn("??? PREVIOUS PROMPT NOT IN CACHE: " + previousPromptNodeId));
-          quit();
+          if (quitOnError) quit("??? PREVIOUS PROMPT NOT IN CACHE: " + previousPromptNodeId);
         }
         else {
           previousPromptObj.wordChainIndex = dbUpdateObj.word.wordChainIndex-1;
@@ -4068,7 +4090,6 @@ var generatePromptQueueInterval = setInterval(function (){
 
   if (!promptQueue.isEmpty()){
 
-
     var currentSessionId = promptQueue.dequeue();
 
     var currentSession = sessionCache.get(currentSessionId);
@@ -4085,10 +4106,11 @@ var generatePromptQueueInterval = setInterval(function (){
 
     if (!currentResponse){
       console.error("??? currentResponse UNDEFINED"
+        + " | SID: " + currentSession.sessionId
         + " | WCI: " + currentSession.wordChainIndex
         + " | CHAIN\n" + jsonPrint(currentSession.wordChain)
         );
-      quit();
+      if (quitOnError) quit("??? currentResponse UNDEFINED " + currentSession.sessionId);
     }
 
     var targetWordObj = wordCache.get(currentResponse);
@@ -4288,7 +4310,7 @@ This is where routing of response -> prompt happens
         // break;
         default:
           console.error(chalkError("3  ????? UNKNOWN SESSION MODE: " + sesObj.session.config.mode));
-          quit();
+          quit("3  ????? UNKNOWN SESSION MODE: " + sesObj.session.config.mode);
         break;
       }
 
@@ -4889,30 +4911,9 @@ function createSession (newSessionObj){
   });
 
   socket.on("RESPONSE_WORD_OBJ", function(rxInObj){
-
     var responseInObj = rxInObj ;
-
-    responseInObj.nodeId = responseInObj.nodeId.replace(/\s+/g, ' ') ;
-    responseInObj.nodeId = responseInObj.nodeId.replace(/[\n\r\[\]\{\}\<\>\/\;\:\"\'\`\~\?\!\@\#\$\%\^\&\*\(\)\_\+\=]+/g, '') ;
-    responseInObj.nodeId = responseInObj.nodeId.replace(/\s+/g, ' ') ;
-    responseInObj.nodeId = responseInObj.nodeId.replace(/^\s+|\s+$/g, '') ;
-    responseInObj.nodeId = responseInObj.nodeId.replace(/\'+/g, "'") ;
-    responseInObj.nodeId = responseInObj.nodeId.replace(/\s+/g, ' ') ;
-    responseInObj.nodeId = responseInObj.nodeId.toLowerCase();
-
-    if ((responseInObj.nodeId == ' ') || (responseInObj.nodeId == '')) {
-      console.error(chalkError("??? RX EMPTY WORD (AFTER STRING REPLACE: " 
-        + rxInObj.nodeId 
-        + " | " + responseInObj.nodeId
-        + " | SKIPPING"
-      ));
-    }
-    else{
-      responseInObj.socketId = socket.id ;
-      debug(chalkResponse("> RX RSP | " + responseInObj.nodeId));
-      responseQueue.enqueue(responseInObj);
-    }
-
+    responseInObj.socketId = socket.id;
+    responseQueue.enqueue(responseInObj);
   });
 
   socket.on("BHT_REQUESTS", function(numberSocketBhtRequests){

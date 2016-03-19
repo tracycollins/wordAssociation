@@ -1117,7 +1117,7 @@ function createSession (callback){
 function createNode (sessionId, callback) {
 
   if (sessionId === null){
-    callback(null, null);
+    return(callback(null, null));
   }
   else {
     var session = sessionHashMap[sessionId];
@@ -1149,7 +1149,7 @@ function createNode (sessionId, callback) {
       session.source = wordObject ;
       sessionHashMap[session.sessionId] = session;
 
-      callback (null, sessionId);
+      return(callback (null, sessionId));
     }
     else {
 
@@ -1200,7 +1200,7 @@ function createNode (sessionId, callback) {
       }
 
       // force.nodes(nodes);
-      callback (null, sessionId);
+      return(callback (null, sessionId));
     }
   }
 }
@@ -1348,7 +1348,7 @@ function createLink (sessionId, callback) {
 
     sessionHashMap[session.sessionId] = session;
 
-    callback (null, sessionId);
+    return(callback (null, sessionId));
   } 
 }
 

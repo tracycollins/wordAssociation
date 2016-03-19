@@ -230,6 +230,7 @@ var chalk = require('chalk');
 
 var chalkViewer = chalk.cyan;
 var chalkUser = chalk.green;
+var chalkUtil = chalk.blue;
 var chalkRed = chalk.red;
 var chalkGreen = chalk.green;
 var chalkAdmin = chalk.bold.cyan;
@@ -733,6 +734,7 @@ var NodeCache = require("node-cache");
 var adminCache = new NodeCache();
 var viewerCache = new NodeCache();
 var userCache = new NodeCache();
+var utilCache = new NodeCache();
 
 var wordCache = new NodeCache({ stdTTL: 0, checkperiod: 10 });
 
@@ -3160,6 +3162,25 @@ var readSessionQueue = setInterval(function (){
         });
         break;
 
+      case 'REQ_UTIL_SESSION':
+        console.log(chalkAlert("RX REQ_UTIL_SESSION\n" + jsonPrint(sesObj)));
+
+        Object.keys(utilNameSpace.connected).forEach(function(utilSessionKey){
+
+          var utilSessionObj = sessionCache.get(utilSessionKey);
+
+          if (utilSessionObj) {
+            console.log("FOUND UTIL SESSION: " + utilSessionObj.sessionId);
+            console.log(chalkRed("TX UTIL SESSION: " + utilSessionObj.sessionId 
+              + " TO " + sesObj.options.requestNamespace + "#" + sesObj.options.requestSocketId));
+            delete utilSessionObj.wordChain ;
+
+            adminNameSpace.to(sesObj.session.sessionId).emit('UTIL_SESSION', utilSessionObj);
+          }
+
+        });
+        break;
+
       case 'SESSION_KEEPALIVE':
 
         sessionUpdateDb(sesObj.session, function(err, sessionUpdatedObj){
@@ -3272,7 +3293,10 @@ var readSessionQueue = setInterval(function (){
                 else if (sessionUpdatedObj.namespace == 'user') {
                   sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, sessionCacheTtl);  
                 }
-               else if (sessionUpdatedObj.namespace == 'test-user') {
+                else if (sessionUpdatedObj.namespace == 'test-user') {
+                  sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, sessionCacheTtl);  
+                }
+                else if (sessionUpdatedObj.namespace == 'util') {
                   sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, sessionCacheTtl);  
                 }
                 else {
@@ -3286,6 +3310,7 @@ var readSessionQueue = setInterval(function (){
         break;
 
       case 'SOCKET_RECONNECT':
+
         console.log(chalkSession(
           "<-> SOCKET RECONNECT"
           + " | NSP: " + sesObj.session.namespace
@@ -3293,20 +3318,38 @@ var readSessionQueue = setInterval(function (){
           + " | IP: " + sesObj.session.ip
           + " | DOMAIN: " + sesObj.session.domain
         ));
+
         sessionCache.set(sesObj.session.sessionId, sesObj.session, sessionCacheTtl);
         sessionUpdateDb(sesObj.session, function(){});
 
         var currentUser = userCache.get(sesObj.session.userId);
-        currentUser.connected = true ;
+        var currentUtil = utilCache.get(sesObj.session.userId);
 
-        userUpdateDb(currentUser, function(err, updatedUserObj){
-          if (!err){
-            console.log(chalkRed("TX USER SESSION (SOCKET ERROR): " 
-              + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"));
+        if (currentUser) {
+          currentUser.connected = true ;
 
-            adminNameSpace.emit('USER_SESSION', updatedUserObj);
-          }
-        });
+          userUpdateDb(currentUser, function(err, updatedUserObj){
+            if (!err){
+              console.log(chalkRed("TX USER SESSION (SOCKET ERROR): " 
+                + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"));
+
+              adminNameSpace.emit('USER_SESSION', updatedUserObj);
+            }
+          });
+        }
+
+        if (currentUtil) {
+          currentUtil.connected = true ;
+
+          utilUpdateDb(currentUtil, function(err, updatedUtilObj){
+            if (!err){
+              console.log(chalkRed("TX UTIL SESSION (SOCKET ERROR): " 
+                + updatedUtilObj.lastSession + " TO ADMIN NAMESPACE"));
+
+              adminNameSpace.emit('UTIL_SESSION', updatedUtilObj);
+            }
+          });
+        }
 
         break;
 
@@ -3327,6 +3370,7 @@ var readSessionQueue = setInterval(function (){
 
           var currentUser = userCache.get(updatedSessionObj.userId);
           var currentAdmin = adminCache.get(updatedSessionObj.userId);
+          var currentUtil = utilCache.get(updatedSessionObj.userId);
           var currentViewer = viewerCache.get(updatedSessionObj.userId);
 
           if (currentViewer) {
@@ -3385,8 +3429,27 @@ var readSessionQueue = setInterval(function (){
               }
             });
           }
-        });
+          
+          if (currentUtil) {
+            debug("currentUtil\n" + jsonPrint(currentUtil));
+            utilCache.del(currentUtil.utilId);
+            currentUtil.lastSeen = moment().valueOf();
+            currentUtil.connected = false;
+            utilUpdateDb(currentUtil, function(err, updatedUtilObj){
+              if (!err){
 
+                updatedUtilObj.sessionId = updatedUtilObj.lastSession;
+
+                console.log(chalkRed("TX UTIL SESSION (DISCONNECT): " 
+                  + updatedUtilObj.lastSession + " TO ADMIN NAMESPACE"
+                ));
+
+                adminNameSpace.emit('UTIL_SESSION', updatedUtilObj);
+              }
+            });
+          }
+
+        });
 
         sesObj.session.wordChain.forEach(function(word){
           debug(chalkSession(">T< SET WORD " + word + " TTL: " + wordCacheTtl));
@@ -3411,6 +3474,7 @@ var readSessionQueue = setInterval(function (){
 
           var currentAdmin = adminCache.get(sesObj.session.userId);
           var currentUser = userCache.get(sesObj.session.userId);
+          var currentUtil = utilCache.get(sesObj.session.userId);
           var currentViewer = viewerCache.get(sesObj.session.userId);
 
           sesObj.session.disconnectTime = moment().valueOf();
@@ -3518,6 +3582,31 @@ var readSessionQueue = setInterval(function (){
             });
           }
           
+          if (currentUtil) {
+            debug("currentUtil\n" + jsonPrint(currentUtil));
+            utilCache.del(currentUtil.utilId);
+
+            currentUtil.lastSeen = moment().valueOf();
+            currentUtil.connected = false;
+            currentUtil.disconnectTime = moment().valueOf();
+
+            console.log(chalkRed("CONNECTION DURATION: " + currentUtil.utilId
+             + " | " + msToTime(moment().valueOf() - currentUtil.connectTime)));
+
+            utilUpdateDb(currentUtil, function(err, updatedUtilObj){
+              if (!err){
+
+                updatedUtilObj.sessionId = updatedUtilObj.lastSession;
+
+                console.log(chalkRed("TX UTIL SESSION (DISCONNECT): " 
+                  + updatedUtilObj.lastSession + " TO ADMIN NAMESPACE"
+                ));
+
+                adminNameSpace.emit('UTIL_SESSION', updatedUtilObj);
+              }
+            });
+          }
+          
           if (currentViewer) {
             debug("currentViewer\n" + jsonPrint(currentViewer));
             viewerCache.del(currentViewer.viewerId);
@@ -3549,12 +3638,13 @@ var readSessionQueue = setInterval(function (){
       case 'SOCKET_ERROR':
         console.log(chalkSession(
           "*** SOCKET ERROR"
-          // + " | NSP: " + sesObj.session.namespace
           + " | SID: " + sesObj.sessionId
-          // + " | UID: " + sesObj.user.userId
         ));
+
         var currentSession = sessionCache.get(sesObj.sessionId);
+
         sessionCache.del(currentSession.sessionId);
+
         sesObj.user.lastSeen = moment().valueOf();
         sesObj.user.connected = false;
         userUpdateDb(sesObj.user, function(err, updatedUserObj){
@@ -3855,9 +3945,6 @@ var readSessionQueue = setInterval(function (){
 
                   case 'UTIL':
                   break;
-
-                  // case 'TEST_USER':
-                  // break;
 
                   case 'TEST_VIEWER':
                   break;
@@ -4800,6 +4887,17 @@ function createSession (newSessionObj){
     ));
 
     sessionQueue.enqueue({sessionEvent: "REQ_USER_SESSION", session: sessionObj, options: options});
+  });
+
+  socket.on("REQ_UTIL_SESSION", function(options){
+    console.log(chalkUtil(moment().format(defaultDateTimeFormat) 
+      + " | REQ_UTIL_SESSION: " + socketId
+      + " | IP: " + ipAddress
+      + " | SID: " + sessionObj.sessionId
+      + " | OPTIONS: " + jsonPrint(options)      
+    ));
+
+    sessionQueue.enqueue({sessionEvent: "REQ_UTIL_SESSION", session: sessionObj, options: options});
   });
 
   socket.on("ADMIN_READY", function(adminObj){

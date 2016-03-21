@@ -3222,7 +3222,7 @@ var readSessionQueue = setInterval(function (){
             sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, sessionCacheTtl);
 
             console.log(chalkSession(
-              ">>> SESSION KEEPALIVE"
+              "@@@ SESSION KEEPALIVE"
               + " | U: " + sessionUpdatedObj.userId
               + " | T: " + sessionUpdatedObj.config.type
               + " | M: " + sessionUpdatedObj.config.mode
@@ -4982,7 +4982,7 @@ function createSession (newSessionObj){
       sessionQueue.enqueue({sessionEvent: "SESSION_ABORT", sessionId: socketId});
       return;
     }
-    console.log(chalkLog("... SESSION_KEEPALIVE | " + userObj.userId
+    console.log(chalkLog("@@@ SESSION_KEEPALIVE | " + userObj.userId
       + " | " + sessionObj.sessionId
       + " | " + moment().format(defaultDateTimeFormat)
     ));

@@ -4107,7 +4107,7 @@ var readResponseQueue = setInterval(function (){
     ready = true;
 
   }
-}, 20);
+}, 50);
 
 var readDbUpdateQueue = setInterval(function (){
 
@@ -4165,7 +4165,7 @@ var readDbUpdateQueue = setInterval(function (){
 
     });
   }
-}, 20);
+}, 50);
 
 
 var algorithms = [ 'antonym', 'synonym', 'related', 'similar', 'user'];
@@ -4202,11 +4202,11 @@ var generatePromptQueueInterval = setInterval(function (){
 
     var targetWordObj = wordCache.get(currentResponse);
 
-/*
+      /*
 
-This is where routing of response -> prompt happens
+      This is where routing of response -> prompt happens
 
-*/
+      */
 
       switch (currentSession.config.mode) {
 
@@ -4402,7 +4402,7 @@ This is where routing of response -> prompt happens
       }
 
   }
-}, 20);
+}, 50);
 
 
 function initializeConfiguration(callback) {

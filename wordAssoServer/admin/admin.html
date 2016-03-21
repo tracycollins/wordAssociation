@@ -584,6 +584,11 @@
         }, 1000);
 
 
+        setInterval(function(){
+          if (serverConnected && sentAdminReady) socket.emit("SESSION_KEEPALIVE", mainAdminObj);
+        }, 10000);
+
+
         socket.on('connect', function() {
             serverConnected = true;
             console.log("\n===== ADMIN SERVER CONNECTED =====\n" + getTimeStamp());

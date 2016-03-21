@@ -103,6 +103,8 @@ var statsLogger = require('stats-logger').createInstance(
       + " | {numberTestUsersMax} TEST U MAX"
       + " | {numberUsersTotal} TOTAL U"
       + " | {numberUsersTotalMax} TOTAL U MAX"
+      + " | {numberUtils} UTL"
+      + " | {numberUtilsMax} UTL MAX"
       // + " | CACHE K:{wordCacheKeys} H:{wordCacheHits} M:{wordCacheMisses} VS:{wordCacheVsize} KS:{wordCacheKsize}"
   }
 );
@@ -138,6 +140,9 @@ var numberUsersTotalMaxTime = moment().valueOf();
 var numberTestUsersMax = 0;
 var numberTestUsersMaxTime = moment().valueOf();
 
+var numberUtilsMax = 0;
+var numberUtilsMaxTime = moment().valueOf();
+
 var numberViewersMax = 0;
 var numberViewersMaxTime = moment().valueOf();
 
@@ -152,6 +157,9 @@ statsLogger.addStat("numberUsersMax", "max", {initialValue: 0, suppressReset: tr
 
 statsLogger.addStat("numberTestUsers", "snapshot", {initialValue: 0});
 statsLogger.addStat("numberTestUsersMax", "max", {initialValue: 0, suppressReset: true});
+
+statsLogger.addStat("numberUtils", "snapshot", {initialValue: 0});
+statsLogger.addStat("numberUtilsMax", "max", {initialValue: 0, suppressReset: true});
 
 statsLogger.start();
 
@@ -633,7 +641,10 @@ setInterval(function () {
     heartbeat : txHeartbeat,
 
     numberAdmins : numberAdmins,
+
     numberUtils : numberUtils,
+    numberUtilsMax : numberUtilsMax,
+    numberUtilsMaxTime : numberUtilsMaxTime,
 
     numberUsers : numberUsers,
     numberUsersMax : numberUsersMax,
@@ -658,6 +669,7 @@ setInterval(function () {
 
     bhtErrors: bhtErrors,
     bhtRequests: bhtRequests,
+    bhtOverLimitFlag: bhtOverLimitFlag,
 
     mwErrors: mwErrors,
     mwRequests: mwRequests,
@@ -1658,6 +1670,11 @@ bhtEvents.on("BHT_OVER_LIMIT_TIMEOUT", function(){
 
 bhtEvents.on("BHT_OVER_LIMIT", function(){
 
+  io.of(adminNameSpace).emit('BHT_OVER_LIMIT', bhtRequests);
+  io.of(utilNameSpace).emit('BHT_OVER_LIMIT', bhtRequests);
+  io.of(testUsersNameSpace).emit('BHT_OVER_LIMIT', bhtRequests);
+  io.of(userNameSpace).emit('BHT_OVER_LIMIT', bhtRequests);
+
   bhtOverLimits++ ;
   bhtOverLimitFlag = true ;
   bhtOverLimitTestFlag = false ;
@@ -1689,6 +1706,7 @@ bhtEvents.on("BHT_OVER_LIMIT", function(){
   updateStats({
     "bhtOverLimits" : bhtOverLimits,
     "bhtOverLimitTime" : bhtOverLimitTime,
+    "bhtOverLimitFlag" : bhtOverLimitFlag,
     "bhtRequests" : BHT_REQUEST_LIMIT
   });
 
@@ -1833,6 +1851,10 @@ function incrementSocketBhtReqs(delta){
   if ((bhtRequests >= BHT_REQUEST_LIMIT) || ((bhtRequests+delta) > BHT_REQUEST_LIMIT)){
     console.log(chalkInfo("!!! incrementSocketBhtReqs: AT BHT_REQUEST_LIMIT: " + bhtRequests + " | NOW: " + BHT_REQUEST_LIMIT));
     bhtRequests = BHT_REQUEST_LIMIT ;
+    io.of(adminNameSpace).emit('BHT_OVER_LIMIT', bhtRequests);
+    io.of(utilNameSpace).emit('BHT_OVER_LIMIT', bhtRequests);
+    io.of(testUsersNameSpace).emit('BHT_OVER_LIMIT', bhtRequests);
+    io.of(userNameSpace).emit('BHT_OVER_LIMIT', bhtRequests);
   }
   else if (delta > 0) {
     bhtRequests += delta;
@@ -3191,34 +3213,17 @@ var readSessionQueue = setInterval(function (){
           if (err){
 
           }
-          else{
-            if (sessionUpdatedObj.namespace == 'admin') {
-              sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, sessionCacheTtl);  
-            }
-            else if (sessionUpdatedObj.namespace == 'view') {
-              sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, sessionCacheTtl); 
-            }
-            else if (sessionUpdatedObj.namespace == 'user') {
-              sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, sessionCacheTtl);  
-            }
-           else if (sessionUpdatedObj.namespace == 'util') {
-              sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, sessionCacheTtl);  
-            }
-           else if (sessionUpdatedObj.namespace == 'test-user') {
-              sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, sessionCacheTtl);  
-            }
-            else {
-              sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, sessionCacheTtl);
-            }
+          else {
+            sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, sessionCacheTtl);
 
             console.log(chalkSession(
               ">>> SESSION KEEPALIVE"
-              + " | UID: " + sesObj.user.userId
-              + " | TYPE: " + sessionUpdatedObj.config.type
-              + " | MODE: " + sessionUpdatedObj.config.mode
-              + " | NSP: " + sessionUpdatedObj.namespace
+              + " | U: " + sessionUpdatedObj.userId
+              + " | T: " + sessionUpdatedObj.config.type
+              + " | M: " + sessionUpdatedObj.config.mode
+              + " | NS: " + sessionUpdatedObj.namespace
               + " | SID: " + sessionUpdatedObj.sessionId
-              + " | SIP: " + sessionUpdatedObj.ip
+              + " | IP: " + sessionUpdatedObj.ip
             ));
 
           }
@@ -3366,7 +3371,7 @@ var readSessionQueue = setInterval(function (){
           + " | DOMAIN: " + sesObj.session.domain
         ));
 
-        io.of(sesObj.session.namespace).to(sesObj.session.sessionId).emit('SESSION_EXPIRED', sesObj.session.sessionId);
+        // io.of(sesObj.session.namespace).to(sesObj.session.sessionId).emit('SESSION_EXPIRED', sesObj.session.sessionId);
 
         sesObj.session.disconnectTime = moment().valueOf();
 
@@ -4658,7 +4663,10 @@ configEvents.on("SERVER_READY", function () {
         wordCacheTtl: wordCacheTtl,
         
         numberAdmins : numberAdmins,
+
         numberUtils : numberUtils,
+        numberUtilsMax : numberUtilsMax,
+        numberUtilsMaxTime : numberUtilsMaxTime,
 
         numberViewers : numberViewers,
         numberViewersMax : numberViewersMax,
@@ -4964,10 +4972,12 @@ function createSession (newSessionObj){
     if (!sessionObj){
       console.log(chalkError(moment().format(defaultDateTimeFormat) 
         + " | ??? SESSION NOT FOUND ON SESSION_KEEPALIVE | " + socketId
+        + " | ABORTING SESSION"
       ));
+      sessionQueue.enqueue({sessionEvent: "SESSION_ABORT", sessionId: socketId});
       return;
     }
-    debug(chalkLog("... SESSION_KEEPALIVE | " + userObj.userId
+    console.log(chalkLog("... SESSION_KEEPALIVE | " + userObj.userId
       + " | " + sessionObj.sessionId
       + " | " + moment().format(defaultDateTimeFormat)
     ));
@@ -5247,6 +5257,18 @@ var metricsInterval = setInterval(function () {
   }
   else{
     statsLogger.recordStat('numberTestUsersMax', numberTestUsers);
+  }
+
+  if (numberUtils > numberUtilsMax) {
+    numberUtilsMaxTime = moment().valueOf();
+    numberUtilsMax = numberUtils;
+    statsLogger.recordStat('numberUtilsMax', numberUtils);
+    console.log(chalkAlert("... NEW MAX UTILS"
+      + " | " + statsLogger.getStatValue('numberUtilsMax') 
+      + " | " + moment().format(defaultDateTimeFormat)));
+  }
+  else{
+    statsLogger.recordStat('numberUtilsMax', numberUtils);
   }
 
 

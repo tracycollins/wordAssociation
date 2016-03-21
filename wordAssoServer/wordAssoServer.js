@@ -219,9 +219,13 @@ var wordAssoServerStatsObj = {
   "mwThesWordsMiss" : {},
   "mwThesWordsNotFound" : {},
 
+  "session": {},
+
   "heartbeat" : txHeartbeat
 };
 
+wordAssoServerStatsObj.session.error = 0;
+wordAssoServerStatsObj.session.previousPromptNotFound = 0;
 
 // ==================================================================
 // LOGS, STATS
@@ -4032,13 +4036,19 @@ var readResponseQueue = setInterval(function (){
       previousPrompt = currentSessionObj.wordChain[currentSessionObj.wordChainIndex-1] ;
       previousPromptObj = wordCache.get(previousPrompt);
       if (!previousPromptObj) {
-        console.log(chalkWarn("??? previousPrompt NOT IN CACHE: " + previousPrompt
-          + " ... ABORTING SESSION"
+        console.error(chalkError(socketId
+          + " | " + currentSessionObj.userId
+          + " | ??? previousPrompt NOT IN CACHE: " + previousPrompt
+          // + " ... ABORTING SESSION"
         ));
 
-        ready = true;
+        wordAssoServerStatsObj.session.error++;
+        wordAssoServerStatsObj.session.previousPromptNotFound++;
 
-        return;
+        previousPromptObj = {nodeId: previousPrompt};
+
+        // ready = true;
+        // return;
       }
       else {
         debug(chalkResponse("... previousPromptObj: " + previousPromptObj.nodeId));

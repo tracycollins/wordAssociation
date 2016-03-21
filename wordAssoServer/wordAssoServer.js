@@ -7,7 +7,7 @@ var quitOnError = false;
 var serverReady = false ;
 var internetReady = false ;
 
-var SESSION_CACHE_DEFAULT_TTL = 60;  // seconds
+var SESSION_CACHE_DEFAULT_TTL = 300;  // seconds
 var WORD_CACHE_TTL = 30; // seconds
 
 var MIN_CHAIN_FREEZE_LENGTH = 10;
@@ -3211,7 +3211,12 @@ var readSessionQueue = setInterval(function (){
 
         sessionUpdateDb(sesObj.session, function(err, sessionUpdatedObj){
           if (err){
-
+            console.error(chalkError(
+              "*** SESSION KEEPALIVE ERROR"
+              + " | SID: " + sessionUpdatedObj.sessionId
+              + " | IP: " + sessionUpdatedObj.ip
+              + "\n" + jsonPrint(err)
+            ));
           }
           else {
             sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, sessionCacheTtl);

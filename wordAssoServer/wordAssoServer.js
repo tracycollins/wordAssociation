@@ -754,7 +754,7 @@ var utilCache = new NodeCache();
 
 var wordCache = new NodeCache({ stdTTL: 0, checkperiod: 10 });
 
-var sessionCache = new NodeCache({ stdTTL: sessionCacheTtl, checkperiod: parseInt(sessionCacheTtl+15) });
+var sessionCache = new NodeCache({ stdTTL: sessionCacheTtl, checkperiod: 15 });
 
 var promptQueue = new Queue();
 var responseQueue = new Queue();

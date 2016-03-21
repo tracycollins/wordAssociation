@@ -465,8 +465,7 @@ socket.on("SESSION_ABORT", function(socketId){
 
   socketIdLabel.innerHTML = '<bold>*** SESSION EXPIRED ***</bold>'  + '<br><br>' + 'REFRESH BROWSER TO RECONNECT' + '<br><br>EXPIRED SESSION: ' + socket.id; 
 
-  socket.disconnect();  
-
+  socket.disconnect();
 });
 
 socket.on("SESSION_EXPIRED", function(reason){
@@ -566,17 +565,14 @@ socket.on('reconnect', function(){
   socketIdLabel.style.color = defaultTextColor ;
   socketIdLabel.innerHTML = "SERVER DISCONNECTED";   
   socketIdDiv.appendChild(socketIdLabel);
-
 });
 
 socket.on('disconnect', function(){
   connectedFlag = false;
   console.log("*** DISCONNECTED FROM HOST | SOCKET ID: " + socketId);
-
   socketIdLabel.style.color = "red";
   socketIdLabel.innerHTML = "SERVER DISCONNECTED";   
   socketIdDiv.appendChild(socketIdLabel);
-
 });
 
 var data= [] ;

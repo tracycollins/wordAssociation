@@ -3999,12 +3999,12 @@ var readResponseQueue = setInterval(function (){
     var currentSessionObj = sessionCache.get(socketId);
 
     if (!currentSessionObj) {
-      console.error(chalkWarn("??? SESSION NOT IN CACHE ON RESPONSE Q READ (DISCONNECTED?) " + socketId
+      console.error(chalkWarn("??? SESSION NOT IN CACHE ON RESPONSE Q READ (DISCONNECTED?)"
+        + " [" + responseQueue.getLength() + "] " + socketId
         + " ... ABORTING SESSION"
       ));
 
       sessionQueue.enqueue({sessionEvent: "SESSION_ABORT", sessionId: socketId});
-
       ready = true;
       return ; 
     }
@@ -4022,15 +4022,12 @@ var readResponseQueue = setInterval(function (){
 
     if (responseInObj.nodeId == '') {
       console.error("EMPTY RESPONSE: " + responseInObj.nodeId);
-
       ready = true;
-
       return;
     }
 
     if (!responseInObj.mentions) responseInObj.mentions = 1;
 
-    // currentSessionObj.wordChainIndex++;
     responsesReceived++;
     deltaResponsesReceived++;
 

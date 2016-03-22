@@ -273,9 +273,6 @@
         var ONE_MB = 1024 * 1024;
         var ONE_GB = ONE_MB * 1024;
 
-        var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
-        var defaultTimePeriodFormat = "HH:mm:ss";
-
         var randomIntFromInterval = function(min, max) {
             return Math.floor(Math.random() * (max - min + 1) + min);
         }
@@ -285,8 +282,19 @@
             return d.getTime();
         }
 
+        function getMillis() {
+            var d = new Date();
+            return d.getMilliseconds();
+        }
+
+        var USER_ID = 'ADMIN_' + getMillis();
+        var SCREEN_NAME = USER_ID;
+
         var mainAdminObj = {
-            adminId: 'ADMIN_RANDOM_' + randomIntFromInterval(1000, 9999)
+            userId: 
+            screenName: SCREEN_NAME, 
+            type: "UTIL", 
+            mode: "STREAM",
         };
 
         var currentTime = getTimeNow();

@@ -60,10 +60,18 @@ var randomIntFromInterval = function (min,max) {
   return randomInt;
 }
 
+function getMillis() {
+  var d = new Date();
+  return d.getMilliseconds();
+}
+
+var USER_ID = 'CLIENT_' + getMillis();
+var SCREEN_NAME = USER_ID;
+
 var userObj = {};
 
-userObj.userId ='RANDOM_' + sessionMode + '_' + randomIntFromInterval(1000000000,9999999999);
-userObj.screenName = 'RANDOM_' + sessionMode + '_' + randomIntFromInterval(1000000000,9999999999);
+userObj.userId = USER_ID;
+userObj.screenName = SCREEN_NAME;
 userObj.type = "USER";
 userObj.mode = sessionMode;
 userObj.streamSource = "USER";

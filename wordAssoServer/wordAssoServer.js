@@ -3999,7 +3999,7 @@ var readResponseQueue = setInterval(function (){
     var currentSessionObj = sessionCache.get(socketId);
 
     if (!currentSessionObj) {
-      console.error(chalkWarn("??? SESSION NOT IN CACHE ON RESPONSE Q READ (DISCONNECTED?)"
+      console.error(chalkWarn("??? SESSION NOT IN CACHE ON RESPONSE Q READ"
         + " [" + responseQueue.getLength() + "] " + socketId
         + " ... ABORTING SESSION"
       ));

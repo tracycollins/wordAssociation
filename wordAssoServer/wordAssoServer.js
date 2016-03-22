@@ -4979,7 +4979,7 @@ function createSession (newSessionObj){
       sessionQueue.enqueue({sessionEvent: "SESSION_ABORT", sessionId: socketId});
       return;
     }
-    console.log(chalkLog("@@@ SESSION_KEEPALIVE | " + userObj.userId
+    debug(chalkLog("@@@ SESSION_KEEPALIVE | " + userObj.userId
       + " | " + sessionObj.sessionId
       + " | " + moment().format(defaultDateTimeFormat)
     ));

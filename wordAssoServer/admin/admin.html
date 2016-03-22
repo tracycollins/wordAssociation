@@ -270,6 +270,9 @@
         var windowLoaded = false;
         var sentAdminReady = false;
 
+        var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
+        var defaultTimePeriodFormat = "HH:mm:ss";
+
         var ONE_MB = 1024 * 1024;
         var ONE_GB = ONE_MB * 1024;
 
@@ -1366,7 +1369,8 @@
             }
 
             bhtRequestsBarText.innerHTML =
-                'BHT REQS' + ' | USED: ' + heartBeat.bhtRequests + ' (' + (heartBeat.bhtRequests / heartBeat.bhtRequestLimit * 100).toFixed(0) + ' %)' + ' | REMAIN: ' + (heartBeat.bhtRequestLimit - heartBeat.bhtRequests) + ' (' + ((heartBeat.bhtRequestLimit - heartBeat.bhtRequests) / heartBeat.bhtRequestLimit * 100).toFixed(0) + ' %)';
+                'BHT REQS' + ' | USED: ' + heartBeat.bhtRequests + ' (' + (heartBeat.bhtRequests / heartBeat.bhtRequestLimit * 100).toFixed(0) + ' %)' 
+                + ' | REMAIN: ' + (heartBeat.bhtRequestLimit - heartBeat.bhtRequests) + ' (' + ((heartBeat.bhtRequestLimit - heartBeat.bhtRequests) / heartBeat.bhtRequestLimit * 100).toFixed(0) + ' %)';
 
 
             mwRequestsBar.animate(heartBeat.mwRequests / heartBeat.mwRequestLimit);
@@ -1380,7 +1384,8 @@
             }
 
             mwRequestsBarText.innerHTML =
-                'MW REQS' + ' | USED: ' + heartBeat.mwRequests + ' (' + (heartBeat.mwRequests / heartBeat.mwRequestLimit * 100).toFixed(0) + ' %)' + ' | REMAIN: ' + (heartBeat.mwRequestLimit - heartBeat.mwRequests) + ' (' + ((heartBeat.mwRequestLimit - heartBeat.mwRequests) / heartBeat.mwRequestLimit * 100).toFixed(0) + ' %)';
+                'MW REQS' + ' | USED: ' + heartBeat.mwRequests + ' (' + (heartBeat.mwRequests / heartBeat.mwRequestLimit * 100).toFixed(0) + ' %)' 
+                + ' | REMAIN: ' + (heartBeat.mwRequestLimit - heartBeat.mwRequests) + ' (' + ((heartBeat.mwRequestLimit - heartBeat.mwRequests) / heartBeat.mwRequestLimit * 100).toFixed(0) + ' %)';
 
 
             viewersBar.animate(heartBeat.numberViewers / heartBeat.numberViewersMax);
@@ -1393,7 +1398,8 @@
                 viewersBar.path.setAttribute('stroke', startColor);
             }
 
-            viewersBarText.innerHTML = (heartBeat.numberViewers) + ' VIEWERS | ' + (heartBeat.numberViewersMax) + ' MAX | ' + moment(heartBeat.numberViewersMaxTime).format(defaultDateTimeFormat);
+            viewersBarText.innerHTML = (heartBeat.numberViewers) + ' VIEWERS | ' + (heartBeat.numberViewersMax) 
+            + ' MAX | ' + moment(heartBeat.numberViewersMaxTime).format(defaultDateTimeFormat);
 
 
             usersTotalBar.animate(heartBeat.numberUsersTotal / heartBeat.numberUsersTotalMax);
@@ -1406,7 +1412,8 @@
                 usersTotalBar.path.setAttribute('stroke', startColor);
             }
 
-            usersTotalBarText.innerHTML = (heartBeat.numberUsersTotal) + ' TOTAL USERS | ' + (heartBeat.numberUsersTotalMax) + ' MAX | ' + moment(heartBeat.numberUsersTotalMaxTime).format(defaultDateTimeFormat);
+            usersTotalBarText.innerHTML = (heartBeat.numberUsersTotal) + ' TOTAL USERS | ' + (heartBeat.numberUsersTotalMax) 
+            + ' MAX | ' + moment(heartBeat.numberUsersTotalMaxTime).format(defaultDateTimeFormat);
 
 
             usersBar.animate(heartBeat.numberUsers / heartBeat.numberUsersMax);

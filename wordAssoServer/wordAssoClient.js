@@ -1,6 +1,9 @@
 /*jslint node: true */
 "use strict";
 
+var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
+var defaultTimePeriodFormat = "HH:mm:ss";
+
 var debug = false ;
 var testMode = false ;
 

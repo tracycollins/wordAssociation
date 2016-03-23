@@ -792,10 +792,6 @@ var sessionUpdateQueueMaxInQ = 0;
 function tick() {
   node
     .attr("transform", function(d) {
-      if (isNaN(d.x)) console.error("**** NODE POS NaN: " + d.nodeId
-        + " | TYPE OF " + typeof d.x
-        + " | " + d.x
-      );
       return "translate(" + d.x + "," + d.y + ")";
     });
 
@@ -904,7 +900,7 @@ var lastHeartbeatReceived = 0;
 // CHECK FOR SERVER HEARTBEAT
 setInterval(function () {
   if ((lastHeartbeatReceived > 0) && (lastHeartbeatReceived + serverHeartbeatTimeout) < moment()) {
-    console.warn(chalkError("\n????? SERVER DOWN ????? | " + targetServer 
+    console.error(chalkError("\n????? SERVER DOWN ????? | " + targetServer 
       + " | LAST HEARTBEAT: " + getTimeStamp(lastHeartbeatReceived)
       + " | " + moment().format(defaultDateTimeFormat)
       + " | AGO: " + msToTime(moment().valueOf()-lastHeartbeatReceived)
@@ -1245,14 +1241,6 @@ function pauseForNodes (sessionId, callback) {
         break;
       }
     }
-
-    // pauseInterval = setInterval(function(){
-    //   if (typeof nodeHashMap[sourceWordId] !== 'undefined') {
-    //     console.warn("FOUND SOURCE IN HASH PAUSE: " + sourceWordId);
-    //     clearInterval(pauseInterval);
-    //     return callback(null, sessionId);
-    //   }
-    // }, 100);
   }
 }
 
@@ -1274,9 +1262,9 @@ function createLink (sessionId, callback) {
     var targetWord;
 
     if (typeof session.target === 'undefined'){
-      console.error("??? SESSION TARGET UNDEFINED"
+      console.warn("??? SESSION TARGET UNDEFINED"
         + " | " + sessionId
-        // + "\nSESSION OBJECT TARGET\n" 
+        + " | SKIPPING CREATE LINKS"
       );
       return(callback (null, sessionId));
     }
@@ -1284,8 +1272,6 @@ function createLink (sessionId, callback) {
       console.warn("??? TARGET NODE ID NOT A STRING (NEW SESSION?)"
         + " | " + sessionId
         + " | SKIPPING CREATE LINKS"
-        // + " \nSESSION OBJECT TARGET\n" 
-        // + jsonPrint(session.target)
       );
       return(callback (null, sessionId));
     }
@@ -1294,42 +1280,20 @@ function createLink (sessionId, callback) {
     }
 
     if (typeof nodeHashMap[sourceWordId] === 'undefined') {
-      console.error("sourceWordId " + sourceWordId + " NOT IN nodeHashMap"
+      console.warn("sourceWordId " + sourceWordId + " NOT IN nodeHashMap"
         + " | " + sessionId
        + " | SKIPPING CREATE LINKS"
        );
       return(callback (null, sessionId));
     }
     else if (!nodeHashMap[targetWordId]){
-      console.error("targetWordId " + targetWordId + " NOT IN nodeHashMap"
+      console.warn("targetWordId " + targetWordId + " NOT IN nodeHashMap"
         + " | " + sessionId
        + " | SKIPPING CREATE LINKS"
        );
       return(callback (null, sessionId));
     }
     
-    // if (session.linkHashMap[sourceWordId]) {
-    //   if (session.linkHashMap[sourceWordId][targetWordId]) {
-    //     console.warn("LINK EXISTS" 
-    //       + " | " + sourceWordId
-    //       + " -> " + targetWordId
-    //       + " EXISTS ... SKIPPING createLinks"
-    //       );
-    //     return(callback (null, sessionId));
-    //   }
-    // }
-    
-    // if (session.linkHashMap[targetWordId]) {
-    //   if (session.linkHashMap[targetWordId][sourceWordId]) {
-    //     console.warn("LINK EXISTS" 
-    //       + " | " + sourceWordId
-    //       + " -> " + targetWordId
-    //       + " EXISTS ... SKIPPING createLinks"
-    //       );
-    //     return(callback (null, sessionId));
-    //   }
-    // }
-
     if (!forceStopped){
       forceStopped = true ;
       force.stop();
@@ -1710,8 +1674,6 @@ function createSessionNodeLink() {
       }
 
       if (forceStopped) {
-        // force.nodes();
-        // force.links();
         force.start(); 
         forceStopped = false ;
       }
@@ -1722,11 +1684,6 @@ function createSessionNodeLink() {
 }
 
 function updateNodesLinks() {
-
-      // updateNodes(function(){});
-      // updateNodeCircles(function(){});
-      // updateNodeLabels(function(){});
-      // updateLinks(function(){});
 
   async.waterfall(
     [ 
@@ -1740,13 +1697,6 @@ function updateNodesLinks() {
       if (err) { 
         console.error("*** ERROR: createSessionNodeLink *** \nERROR: " + err); 
       }
-
-      // if (forceStopped) {
-      //   // force.nodes();
-      //   // force.links();
-      //   force.start(); 
-      //   forceStopped = false ;
-      // }
     }
   );
 }

@@ -7,7 +7,7 @@ var quitOnError = false;
 var serverReady = false ;
 var internetReady = false ;
 
-var SESSION_CACHE_DEFAULT_TTL = 120;  // seconds
+var SESSION_CACHE_DEFAULT_TTL = 300;  // seconds
 var WORD_CACHE_TTL = 30; // seconds
 
 var MIN_CHAIN_FREEZE_LENGTH = 10;
@@ -754,7 +754,7 @@ var utilCache = new NodeCache();
 
 var wordCache = new NodeCache({ stdTTL: 0, checkperiod: 10 });
 
-var sessionCache = new NodeCache({ stdTTL: sessionCacheTtl, checkperiod: 15 });
+var sessionCache = new NodeCache({ stdTTL: sessionCacheTtl});
 
 var promptQueue = new Queue();
 var responseQueue = new Queue();
@@ -1252,8 +1252,8 @@ function sendPrompt(sessionObj, sourceWordObj){
           ));
         }
 
-        sessionCache.set(currentSession.sessionId, currentSession, sessionCacheTtl);
-        sessionCache.set(targetSession.sessionId, targetSession, sessionCacheTtl);
+        sessionCache.set(currentSession.sessionId, currentSession);
+        sessionCache.set(targetSession.sessionId, targetSession);
 
         io.of(currentSession.namespace).to(targetSession.sessionId).emit('PROMPT_WORD_OBJ',promptWordObj);
 
@@ -3080,7 +3080,7 @@ function pairUser(sessionObj, callback){
 
 
           sessionUpdateDb(sessionObj, function(err, updatedSessionObj){
-            sessionCache.set(updatedSessionObj.sessionId, updatedSessionObj, sessionCacheTtl);  
+            sessionCache.set(updatedSessionObj.sessionId, updatedSessionObj);  
 
             // update session for userA
             var sessionUserA = sessionCache.get(foundPairSessionId);  
@@ -3093,7 +3093,7 @@ function pairUser(sessionObj, callback){
             sessionUserA.config.userA = foundPairSessionId;
 
             sessionUpdateDb(sessionUserA, function(err, updatedSessionObj){
-              sessionCache.set(updatedSessionObj.sessionId, updatedSessionObj, sessionCacheTtl);  
+              sessionCache.set(updatedSessionObj.sessionId, updatedSessionObj);  
               callback(null, sessionObj);
               return;
             });
@@ -3114,7 +3114,7 @@ function pairUser(sessionObj, callback){
     console.log(chalkSession("NO UNPAIRED USER FOUND " + sessionObj.userId + " | " + sessionObj.sessionId + " ... ADDING TO unpairedUserHashMap"));
     unpairedUserHashMap.set(sessionObj.sessionId, sessionObj.userId);
     sessionUpdateDb(sessionObj, function(err, updatedSessionObj){
-      sessionCache.set(updatedSessionObj.sessionId, updatedSessionObj, sessionCacheTtl);  
+      sessionCache.set(updatedSessionObj.sessionId, updatedSessionObj);  
       callback(null, sessionObj);
       return;
     });
@@ -3219,7 +3219,7 @@ var readSessionQueue = setInterval(function (){
             ));
           }
           else {
-            sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, sessionCacheTtl);
+            sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
 
             console.log(chalkSession(
               "@@@ SESSION KEEPALIVE"
@@ -3299,22 +3299,22 @@ var readSessionQueue = setInterval(function (){
             sessionUpdateDb(sesObj.session, function(err, sessionUpdatedObj){
               if (!err){
                 if (sessionUpdatedObj.namespace == 'admin') {
-                  sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, sessionCacheTtl);  
+                  sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);  
                 }
                 else if (sessionUpdatedObj.namespace == 'view') {
-                  sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, sessionCacheTtl);  
+                  sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);  
                 }
                 else if (sessionUpdatedObj.namespace == 'user') {
-                  sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, sessionCacheTtl);  
+                  sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);  
                 }
                 else if (sessionUpdatedObj.namespace == 'test-user') {
-                  sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, sessionCacheTtl);  
+                  sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);  
                 }
                 else if (sessionUpdatedObj.namespace == 'util') {
-                  sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, sessionCacheTtl);  
+                  sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);  
                 }
                 else {
-                  sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, sessionCacheTtl);
+                  sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
                 }
               }
             });
@@ -3333,7 +3333,7 @@ var readSessionQueue = setInterval(function (){
           + " | DOMAIN: " + sesObj.session.domain
         ));
 
-        sessionCache.set(sesObj.session.sessionId, sesObj.session, sessionCacheTtl);
+        sessionCache.set(sesObj.session.sessionId, sesObj.session);
         sessionUpdateDb(sesObj.session, function(){});
 
         var currentUser = userCache.get(sesObj.session.userId);
@@ -3717,7 +3717,7 @@ var readSessionQueue = setInterval(function (){
 
             sessionUpdateDb(currentSession, function(err, sessionUpdatedObj){
               if (!err){
-                sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, sessionCacheTtl);
+                sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
                 debug(chalkInfo("-S- DB UPDATE"
                   + " | " + sessionUpdatedObj.sessionId
                 ));
@@ -3771,7 +3771,7 @@ var readSessionQueue = setInterval(function (){
             currentSession.viewerSessionKey = viewerSessionKey;
              sessionUpdateDb(currentSession, function(err, sessionUpdatedObj){
               if (!err){
-                sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, sessionCacheTtl);
+                sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
                 debug(chalkInfo("-S- DB UPDATE"
                   + " | " + sessionUpdatedObj.sessionId
                 ));
@@ -3842,7 +3842,7 @@ var readSessionQueue = setInterval(function (){
         */
 
 
-        sessionCache.set(currentSession.sessionId, currentSession, sessionCacheTtl, function( err, success ){
+        sessionCache.set(currentSession.sessionId, currentSession, function( err, success ){
           if( !err && success ){
 
             userCache.set(currentSession.userId, sesObj.user, function( err, success ){
@@ -3871,7 +3871,7 @@ var readSessionQueue = setInterval(function (){
 
                             sessionUpdateDb(currentSession, function(err, sessionUpdatedObj){
                               if (!err){
-                                sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, sessionCacheTtl);
+                                sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
                                 debug(chalkInfo("-S- DB UPDATE"
                                   + " | " + sessionUpdatedObj.sessionId
                                   + " | WCI: " + sessionUpdatedObj.wordChainIndex
@@ -3929,7 +3929,7 @@ var readSessionQueue = setInterval(function (){
                         console.log(chalkSession("... STREAM USER " + currentSession.userId));
                         sessionUpdateDb(currentSession, function(err, sessionUpdatedObj){
                           if (!err){
-                            sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, sessionCacheTtl);
+                            sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
                             console.log(chalkInfo("-S- DB UPDATE"
                               + " | " + sessionUpdatedObj.sessionId
                               + " | TYPE: " + sessionUpdatedObj.config.type
@@ -4162,7 +4162,7 @@ var readDbUpdateQueue = setInterval(function (){
         }
       }
 
-      sessionCache.set(currentSessionObj.sessionId, currentSessionObj, sessionCacheTtl, function(err, success){
+      sessionCache.set(currentSessionObj.sessionId, currentSessionObj, function(err, success){
         if (!err && success) {
 
           promptQueue.enqueue(currentSessionObj.sessionId);
@@ -4249,7 +4249,7 @@ var generatePromptQueueInterval = setInterval(function (){
 
               sessionUpdateDb(currentSession, function(err, sessionUpdatedObj){
                 if (!err){
-                  sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, sessionCacheTtl);
+                  sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
                   debug(chalkInfo("-S- DB UPDATE"
                     + " | " + sessionUpdatedObj.sessionId
                     + " | WCI: " + sessionUpdatedObj.wordChainIndex
@@ -4307,7 +4307,7 @@ var generatePromptQueueInterval = setInterval(function (){
 
                 if (!err){
 
-                  sessionCache.set(sessionUpdateObj.sessionId, sessionUpdateObj, sessionCacheTtl);
+                  sessionCache.set(sessionUpdateObj.sessionId, sessionUpdateObj);
 
                   debug(chalkInfo("-S- DB UPDATE"
                     + " | " + sessionUpdateObj.sessionId
@@ -4373,7 +4373,7 @@ var generatePromptQueueInterval = setInterval(function (){
 
               sessionUpdateDb(currentSession, function(err, sessionUpdatedObj){
                 if (!err){
-                  sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj, sessionCacheTtl);
+                  sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
                   console.log(chalkInfo("-S- DB UPDATE SOURCE SESSION"
                     + " | " + sessionUpdatedObj.sessionId
                     + " | WCI: " + sessionUpdatedObj.wordChainIndex
@@ -4382,7 +4382,7 @@ var generatePromptQueueInterval = setInterval(function (){
 
                   sessionUpdateDb(targetSession, function(err, targetSessionUpdatedObj){
                     if (!err){
-                      sessionCache.set(targetSessionUpdatedObj.sessionId, targetSessionUpdatedObj, sessionCacheTtl);
+                      sessionCache.set(targetSessionUpdatedObj.sessionId, targetSessionUpdatedObj);
                       console.log(chalkInfo("-S- DB UPDATE TARGET SESSION"
                         + " | " + targetSessionUpdatedObj.sessionId
                         + " | WCI: " + targetSessionUpdatedObj.wordChainIndex
@@ -4858,7 +4858,7 @@ function createSession (newSessionObj){
   sessionObj.config.type = newSessionObj.type;
   sessionObj.config.mode = newSessionObj.mode;
 
-  sessionCache.set(sessionObj.sessionId, sessionObj, sessionCacheTtl);
+  sessionCache.set(sessionObj.sessionId, sessionObj);
 
   console.log(chalkSession("\nNEW SESSION\n" + util.inspect(sessionObj, {showHidden: false, depth: 1})));
 

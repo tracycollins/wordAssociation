@@ -7,7 +7,7 @@ var quitOnError = false;
 var serverReady = false ;
 var internetReady = false ;
 
-var SESSION_CACHE_DEFAULT_TTL = 10;  // seconds
+var SESSION_CACHE_DEFAULT_TTL = 120;  // seconds
 var WORD_CACHE_TTL = 30; // seconds
 
 var MIN_CHAIN_FREEZE_LENGTH = 10;

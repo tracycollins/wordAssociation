@@ -11,6 +11,7 @@ if(typeof(Worker) !== "undefined") {
 var serverConnected = false ;
 var serverHeartbeatTimeout = 30000 ;
 var serverCheckInterval = 30000;
+var serverKeepaliveInteval = 15047;
 
 var debug = true;
 var MAX_RX_QUEUE = 250;
@@ -280,8 +281,10 @@ var randomIntFromInterval = function (min,max) {
 var randomId = randomIntFromInterval(1000000000,9999999999);
 
 var viewerObj = {
+  userId: 'VIEWER_RANDOM_' + randomId,
   viewerId: 'VIEWER_RANDOM_' + randomId,
-  screenName: 'VIEWER RANDOM ' + randomId
+  screenName: 'VIEWER RANDOM ' + randomId,
+  type: "VIEWER",
 };
 
 var mouseMoveTimeout = setTimeout(function(){
@@ -872,6 +875,14 @@ setInterval (function () {
   dateTimeOverlay = d3.select("#dateTimeOverlay").select("text").text("SERVER TIME: " + moment().format(defaultDateTimeFormat));
 }, 1000 );
 
+//  KEEPALIVE
+setInterval (function () {
+  if (serverConnected){
+    socket.emit("SESSION_KEEPALIVE", viewerObj);
+    console.log("SESSION_KEEPALIVE | " + moment());
+  }
+}, 1000 );
+
 d3.select('#statsToggleButton').on("click", function() {  // STATS BUTTON
 
   showStatsFlag = !showStatsFlag;
@@ -999,6 +1010,14 @@ socket.on("SESSION_UPDATE", function(rxSessionObject){
   }
 });
 
+socket.on("SESSION_EXPIRED", function(sessionId){
+  console.log("RX SESSION_EXPIRED: " + sessionId 
+    + " | REMOVE FROM SESSION HASH | " 
+    + moment().format(defaultDateTimeFormat
+  ));
+  delete sessionHashMap[sessionId];
+});
+
 //=============================
 // TICK
 //=============================
@@ -1034,7 +1053,7 @@ var startColor = "hsl(" + randomNumber360 + ",100%,50%)";
 var endColor = "hsl(" + randomNumber360 + ",0%,0%)";
 randomColorQueue.push({ "startColor": startColor, "endColor": endColor});
 
-setInterval(function(){
+setInterval(function(){ // randomColorQueue
 
   randomNumber360 += randomIntFromInterval(60,120);
   startColor = "hsl(" + randomNumber360 + ",100%,50%)";
@@ -1479,31 +1498,19 @@ function ageNodes (sessionId, callback){
         force.stop();
       }
 
-      // console.warn("DELETE SESSION LINK HASH MAP | " + currentNodeObject.nodeId 
-        // + "\n" + jsonPrint(ageSession.linkHashMap[currentNodeObject.nodeId])
-      // );
-
       if (typeof ageSession !== 'undefined') {
         delete ageSession.linkHashMap[currentNodeId];
-        if (Object.keys(ageSession.linkHashMap).length == 0){
-          console.warn("SESSION LINK HASH MAP EMPTY ... DELETE SESSION " + ageSession.sessionId);
-          delete sessionHashMap[ageSession.sessionId];
-        }
+
+        // if (Object.keys(ageSession.linkHashMap).length == 0){
+        //   console.warn("SESSION LINK HASH MAP EMPTY ... DELETE SESSION " + ageSession.sessionId);
+        //   delete sessionHashMap[ageSession.sessionId];
+        // }
       }
-
-      // console.warn("SESSION LINK HASH MAP | " + currentNodeObject.nodeId 
-      //   + "\n" + jsonPrint(ageSession.linkHashMap)
-      // );
-
-
-      // console.log("X " + currentNodeId);
 
       nodes.splice(ageNodesIndex, 1); 
     }
     else {
-      // currentNodeObject.ageUpdated = dateNow;
-      // currentNodeObject.age = age;
-
+ 
       nodes[ageNodesIndex].age = currentNodeObject.age;
       nodes[ageNodesIndex].ageUpdated = currentNodeObject.ageUpdated;
  
@@ -1514,7 +1521,6 @@ function ageNodes (sessionId, callback){
         currentNodeObject.fixed = false;
       }
 
-      // nodeHashMap.set(currentNodeId, currentNodeObject);
       nodeHashMap[currentNodeId] = currentNodeObject;
     }
   }

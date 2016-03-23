@@ -7,7 +7,7 @@ var quitOnError = false;
 var serverReady = false ;
 var internetReady = false ;
 
-var SESSION_CACHE_DEFAULT_TTL = 300;  // seconds
+var SESSION_CACHE_DEFAULT_TTL = 10;  // seconds
 var WORD_CACHE_TTL = 30; // seconds
 
 var MIN_CHAIN_FREEZE_LENGTH = 10;
@@ -4000,8 +4000,8 @@ var readResponseQueue = setInterval(function (){
 
     if (!currentSessionObj) {
       console.error(chalkWarn("??? SESSION NOT IN CACHE ON RESPONSE Q READ"
-        + " [" + responseQueue.getLength() + "] " + socketId
-        + " ... ABORTING SESSION"
+        + " | " + socketId
+        + " | ABORTING SESSION"
       ));
 
       sessionQueue.enqueue({sessionEvent: "SESSION_ABORT", sessionId: socketId});
@@ -4548,7 +4548,11 @@ function initializeConfiguration(callback) {
 // ==================================================================
 sessionCache.on( "expired", function(sessionId, sessionObj){
   sessionQueue.enqueue({sessionEvent: "SESSION_EXPIRED", sessionId: sessionId, session: sessionObj});
-  io.of(sessionObj.namespace).to(sessionObj.sessionId).emit("SESSION_EXPIRED", "IDLE_TIMEOUT");
+
+  io.of(sessionObj.namespace).to(sessionId).emit('SESSION_EXPIRED',sessionId);
+
+  viewNameSpace.emit("SESSION_EXPIRED", sessionId);
+
   debug("CACHE SESSION EXPIRED\n" + jsonPrint(sessionObj));
   console.log(chalkRed("... CACHE SESS EXPIRED | " + sessionObj.sessionId 
     + " | NSP: " + sessionObj.namespace

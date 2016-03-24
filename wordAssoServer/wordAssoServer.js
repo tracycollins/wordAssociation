@@ -3155,10 +3155,6 @@ var readSessionQueue = setInterval(function (){
               + " TO " + sesObj.options.requestNamespace + "#" + sesObj.options.requestSocketId);
             adminNameSpace.to(sesObj.session.sessionId).emit('ADMIN_SESSION', adminSessionObj);
           }
-          // else {
-          //   console.log("NOT FOUND ADMIN SESSION: " + adminSessionKey);
-          //   adminNameSpace.to(sesObj.options.requestSocketId).emit('ADMIN_SESSION', adminSessionObj);
-          // }
         });
         break;
 
@@ -3184,6 +3180,32 @@ var readSessionQueue = setInterval(function (){
             delete userSessionObj.wordChain ;
 
             adminNameSpace.to(sesObj.session.sessionId).emit('USER_SESSION', userSessionObj);
+          }
+        });
+        break;
+
+      case 'REQ_VIEWER_SESSION':
+        console.log(chalkAlert("RX REQ_VIEWER_SESSION\n" + jsonPrint(sesObj)));
+        Object.keys(viewNameSpace.connected).forEach(function(viewerSessionKey){
+          var viewerSessionObj = sessionCache.get(viewerSessionKey);
+          if (viewerSessionObj) {
+            console.log("FOUND VIEWER SESSION: " + viewerSessionObj.sessionId);
+            console.log(chalkRed("TX VIEWER SESSION: " + viewerSessionObj.sessionId 
+              + " TO " + sesObj.options.requestNamespace + "#" + sesObj.options.requestSocketId));
+            delete viewerSessionObj.wordChain ;
+
+            adminNameSpace.to(sesObj.session.sessionId).emit('VIEWER_SESSION', viewerSessionObj);
+          }
+        });
+        Object.keys(testViewersNameSpace.connected).forEach(function(viewerSessionKey){
+          var viewerSessionObj = sessionCache.get(viewerSessionKey);
+          if (viewerSessionObj) {
+            console.log("FOUND TEST VIEWER SESSION: " + viewerSessionObj.sessionId);
+            console.log(chalkRed("TX VIEWER SESSION: " + viewerSessionObj.sessionId 
+              + " TO " + sesObj.options.requestNamespace + "#" + sesObj.options.requestSocketId));
+            delete viewerSessionObj.wordChain ;
+
+            adminNameSpace.to(sesObj.session.sessionId).emit('VIEWER_SESSION', viewerSessionObj);
           }
         });
         break;
@@ -3245,7 +3267,6 @@ var readSessionQueue = setInterval(function (){
           sesObj.session.config.mode = enabledSessionModes[randomInt(0, enabledSessionModes.length)];
           console.log(chalkSession("... SESSION MODE RANDOM: " + sesObj.session.config.mode ));
         }
-
 
         // sesObj.session.config.mode = defaultSessionType ;
 
@@ -3348,6 +3369,19 @@ var readSessionQueue = setInterval(function (){
                 + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"));
 
               adminNameSpace.emit('USER_SESSION', updatedUserObj);
+            }
+          });
+        }
+
+        if (currentViewer) {
+          currentViewer.connected = true ;
+
+          viewerUpdateDb(currentViewer, function(err, updatedViewerObj){
+            if (!err){
+              console.log(chalkRed("TX VIEWER SESSION (SOCKET ERROR): " 
+                + updatedViewerObj.lastSession + " TO ADMIN NAMESPACE"));
+
+              adminNameSpace.emit('VIEWER_SESSION', updatedViewerObj);
             }
           });
         }
@@ -3472,9 +3506,10 @@ var readSessionQueue = setInterval(function (){
 
         break;
 
+      case 'SOCKET_ERROR':
       case 'SOCKET_DISCONNECT':
         console.log(chalkSession(
-          "XXX SOCKET DISCONNECT"
+          "XXX " + sesObj.sessionEvent
           + " | NSP: " + sesObj.session.namespace
           + " | SID: " + sesObj.session.sessionId
           + " | IP: " + sesObj.session.ip
@@ -3484,12 +3519,14 @@ var readSessionQueue = setInterval(function (){
 
         if (sesObj.session){
 
-          debug("SOCKET_DISCONNECT\n" + jsonPrint(sesObj));
+          console.log(sesObj.sessionEvent + "\n" + jsonPrint(sesObj));
 
           var currentAdmin = adminCache.get(sesObj.session.userId);
           var currentUser = userCache.get(sesObj.session.userId);
           var currentUtil = utilCache.get(sesObj.session.userId);
           var currentViewer = viewerCache.get(sesObj.session.userId);
+
+          console.log(jsonPrint(currentViewer));
 
           sesObj.session.disconnectTime = moment().valueOf();
           sessionUpdateDb(sesObj.session, function(){});
@@ -3587,7 +3624,7 @@ var readSessionQueue = setInterval(function (){
 
                 updatedUserObj.sessionId = updatedUserObj.lastSession;
 
-                console.log(chalkRed("TX USER SESSION (DISCONNECT): " 
+                console.log(chalkRed("TX USER SESSION (" + sesObj.sessionEvent + "): " 
                   + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"
                 ));
 
@@ -3622,7 +3659,7 @@ var readSessionQueue = setInterval(function (){
           }
           
           if (currentViewer) {
-            debug("currentViewer\n" + jsonPrint(currentViewer));
+            console.log("currentViewer\n" + jsonPrint(currentViewer));
             viewerCache.del(currentViewer.viewerId);
 
             currentViewer.lastSeen = moment().valueOf();
@@ -3641,7 +3678,7 @@ var readSessionQueue = setInterval(function (){
                   + updatedViewerObj.lastSession + " TO ADMIN NAMESPACE"
                 ));
 
-                adminNameSpace.emit('USER_SESSION', updatedViewerObj);
+                adminNameSpace.emit('VIEWER_SESSION', updatedViewerObj);
               }
             });
           }
@@ -3649,27 +3686,27 @@ var readSessionQueue = setInterval(function (){
 
         break;
 
-      case 'SOCKET_ERROR':
-        console.log(chalkSession(
-          "*** SOCKET ERROR"
-          + " | SID: " + sesObj.sessionId
-        ));
+      // case 'SOCKET_ERROR':
+      //   console.log(chalkSession(
+      //     "*** SOCKET ERROR"
+      //     + " | SID: " + sesObj.sessionId
+      //   ));
 
-        var currentSession = sessionCache.get(sesObj.sessionId);
+      //   var currentSession = sessionCache.get(sesObj.sessionId);
 
-        sessionCache.del(currentSession.sessionId);
+      //   sessionCache.del(currentSession.sessionId);
 
-        sesObj.user.lastSeen = moment().valueOf();
-        sesObj.user.connected = false;
-        userUpdateDb(sesObj.user, function(err, updatedUserObj){
-          if (!err){
-            console.log(chalkRed("TX USER SESSION (SOCKET ERROR): " 
-              + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"));
+      //   sesObj.user.lastSeen = moment().valueOf();
+      //   sesObj.user.connected = false;
+      //   userUpdateDb(sesObj.user, function(err, updatedUserObj){
+      //     if (!err){
+      //       console.log(chalkRed("TX USER SESSION (SOCKET ERROR): " 
+      //         + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"));
 
-            adminNameSpace.emit('USER_SESSION', updatedUserObj);
-          }
-        });
-        break;
+      //       adminNameSpace.emit('USER_SESSION', updatedUserObj);
+      //     }
+      //   });
+      //   break;
 
       case 'ADMIN_READY':
 
@@ -3765,23 +3802,44 @@ var readSessionQueue = setInterval(function (){
         sesObj.viewer.connectTime = moment().valueOf();
         sesObj.viewer.disconnectTime = 0;
 
-        viewerUpdateDb(sesObj.viewer, function(err, viewerObj){
-          if (!err) {
+        viewerCache.set(sesObj.viewer.viewerId, sesObj.viewer);
+
+
+        viewerUpdateDb(sesObj.viewer, function(err, updatedViewerObj){
+          if (err) {
+            console.error(chalkError("*** ERROR viewerUpdateDb\n" + jsonPrint(err)))
+          }
+          else {
             var viewerSessionKey = randomInt(1000000,1999999) ;
+
             currentSession.viewerSessionKey = viewerSessionKey;
-             sessionUpdateDb(currentSession, function(err, sessionUpdatedObj){
-              if (!err){
+            updatedViewerObj.viewerSessionKey = viewerSessionKey;
+
+            sessionUpdateDb(currentSession, function(err, sessionUpdatedObj){
+              if (err){
+                console.error(chalkError("*** ERROR sessionUpdateDb\n" + jsonPrint(err)))
+              }
+              else {
+                // viewerCache.set(sessionUpdatedObj.userId, sessionUpdatedObj.viewer);
+
+                var viewer = viewerCache.get(sessionUpdatedObj.userId);
+
+                console.log("viewer\n" + jsonPrint(viewer));
+                console.log("viewer\n" + jsonPrint(viewer));
+
                 sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
-                debug(chalkInfo("-S- DB UPDATE"
+                console.log(chalkInfo("-S- DB UPDATE"
                   + " | " + sessionUpdatedObj.sessionId
+                  + " | " + sessionUpdatedObj.userId
+                  + "\n" + jsonPrint(sessionUpdatedObj)
                 ));
                 console.log("TX VIEWER_ACK", viewerSessionKey);
                 io.of(currentSession.namespace).to(currentSession.sessionId).emit('VIEWER_ACK', viewerSessionKey);
+                console.log(chalkRed("TX VIEWER SESSION (VIEWER READY): " 
+                  + updatedViewerObj.lastSession + " TO ADMIN NAMESPACE"));
+                adminNameSpace.emit('VIEWER_SESSION', updatedViewerObj);
               }
-              else {
-                console.log(chalkError("*** ERROR DB UPDATE SESSION\n" + err));
-              }
-            });
+             });
           } 
         });
         break;
@@ -4658,7 +4716,7 @@ configEvents.on("SERVER_READY", function () {
       txHeartbeat = { 
         serverHostName : os.hostname(), 
         timeStamp : getTimeNow(), 
-        startTime : startTime, 
+        startTime : startTime.valueOf(), 
         upTime : upTime, 
         runTime : runTime, 
         heartbeatsSent : heartbeatsSent,
@@ -4911,6 +4969,17 @@ function createSession (newSessionObj){
     ));
 
     sessionQueue.enqueue({sessionEvent: "REQ_USER_SESSION", session: sessionObj, options: options});
+  });
+
+  socket.on("REQ_VIEWER_SESSION", function(options){
+    console.log(chalkViewer(moment().format(defaultDateTimeFormat) 
+      + " | REQ_VIEWER_SESSION: " + socketId
+      + " | IP: " + ipAddress
+      + " | SID: " + sessionObj.sessionId
+      + " | OPTIONS: " + jsonPrint(options)      
+    ));
+
+    sessionQueue.enqueue({sessionEvent: "REQ_VIEWER_SESSION", session: sessionObj, options: options});
   });
 
   socket.on("REQ_UTIL_SESSION", function(options){

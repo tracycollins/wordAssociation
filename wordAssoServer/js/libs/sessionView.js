@@ -877,7 +877,7 @@ setInterval (function () {
     socket.emit("SESSION_KEEPALIVE", viewerObj);
     console.log("SESSION_KEEPALIVE | " + moment());
   }
-}, 1000 );
+}, serverKeepaliveInteval );
 
 d3.select('#statsToggleButton').on("click", function() {  // STATS BUTTON
 

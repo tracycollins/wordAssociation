@@ -11,7 +11,7 @@
         "DROPBOX_WORD_ASSO_ACCESS_TOKEN" : "nknEWsIkD5UAAAAAAAQouTDFRBKfwsFzuS8PPi2Q_JVYnpotNuaHiddNtmG4mUTi",
         "DROPBOX_WORD_ASSO_APP_KEY" : "qlb9k4dp01t9iqk",
         "DROPBOX_WORD_ASSO_APP_SECRET" : "wqslhe2t95zfn19",
-        "DROPBOX_WORD_ASSO_STATS_FILE" : "wordAssociationStats.json",
+        "WA_STATS_FILE" : "wordAssociationStats.json",
         "GOOGLE_PROJECT_ID": "graphic-tangent-627",
         "GOOGLE_APPLICATION_CREDENTIALS": "/home/tc/forceDirectedJs/auth/threeceeTwitterStream-3b8b488ee9f4.json",
         "GOOGLE_SERVICE_ACCOUNT_CLIENT_ID": "584836433218-toensh76eq0cep7sponieimsq4c2g8hm.apps.googleusercontent.com",

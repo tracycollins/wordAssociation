@@ -524,7 +524,7 @@ function loadStats(){
 
     if (err) {
 
-      console.error(chalkError("!!! DROPBOX READ WORDASSO_STATS_FILE ERROR: " + statsFile));
+      console.error(chalkError("!!! DROPBOX READ WA_STATS_FILE ERROR: " + statsFile));
       debug(chalkError(jsonPrint(err)));
 
       if (err.status != 404) {
@@ -532,12 +532,12 @@ function loadStats(){
       }
       else if (err.status = 404) {
 
-        console.log("... TRYING DROPBOX READ OF DEFAULT WORDASSO_STATS_FILE " + WORDASSO_STATS_FILE);
+        console.log("... TRYING DROPBOX READ OF DEFAULT WA_STATS_FILE " + WA_STATS_FILE);
         
-        dropboxClient.readFile(WORDASSO_STATS_FILE, function(err, statsJson, callback) {
+        dropboxClient.readFile(WA_STATS_FILE, function(err, statsJson, callback) {
 
           console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
-            + " | ... LOADING STATS FROM DROPBOX FILE: " + WORDASSO_STATS_FILE
+            + " | ... LOADING STATS FROM DROPBOX FILE: " + WA_STATS_FILE
           ));
 
           var statsObj = JSON.parse(statsJson);

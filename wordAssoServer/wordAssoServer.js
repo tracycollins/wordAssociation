@@ -3519,14 +3519,12 @@ var readSessionQueue = setInterval(function (){
 
         if (sesObj.session){
 
-          console.log(sesObj.sessionEvent + "\n" + jsonPrint(sesObj));
+          debug(sesObj.sessionEvent + "\n" + jsonPrint(sesObj));
 
           var currentAdmin = adminCache.get(sesObj.session.userId);
           var currentUser = userCache.get(sesObj.session.userId);
           var currentUtil = utilCache.get(sesObj.session.userId);
           var currentViewer = viewerCache.get(sesObj.session.userId);
-
-          console.log(jsonPrint(currentViewer));
 
           sesObj.session.disconnectTime = moment().valueOf();
           sessionUpdateDb(sesObj.session, function(){});

@@ -423,8 +423,8 @@ console.log("offlineStatsFile: " + offlineStatsFile);
 var DROPBOX_WORD_ASSO_ACCESS_TOKEN = process.env.DROPBOX_WORD_ASSO_ACCESS_TOKEN ;
 var DROPBOX_WORD_ASSO_APP_KEY = process.env.DROPBOX_WORD_ASSO_APP_KEY ;
 var DROPBOX_WORD_ASSO_APP_SECRET = process.env.DROPBOX_WORD_ASSO_APP_SECRET;
-var DROPBOX_WORD_ASSO_STATS_FILE = process.env.DROPBOX_WORD_ASSO_STATS_FILE;
-var dropboxHostStatsFile = os.hostname() + "_" + DROPBOX_WORD_ASSO_STATS_FILE;
+var WORDASSO_STATS_FILE = process.env.WORDASSO_STATS_FILE;
+var dropboxHostStatsFile = os.hostname() + "_" + WORDASSO_STATS_FILE;
 
 var Dropbox = require("dropbox");
 
@@ -524,7 +524,7 @@ function loadStats(){
 
     if (err) {
 
-      console.error(chalkError("!!! DROPBOX READ DROPBOX_WORD_ASSO_STATS_FILE ERROR"));
+      console.error(chalkError("!!! DROPBOX READ WORDASSO_STATS_FILE ERROR"));
       debug(chalkError(jsonPrint(err)));
 
       if (err.status != 404) {
@@ -532,12 +532,12 @@ function loadStats(){
       }
       else if (err.status = 404) {
 
-        console.log("... TRYING DROPBOX READ OF DEFAULT DROPBOX_WORD_ASSO_STATS_FILE " + DROPBOX_WORD_ASSO_STATS_FILE);
+        console.log("... TRYING DROPBOX READ OF DEFAULT WORDASSO_STATS_FILE " + WORDASSO_STATS_FILE);
         
-        dropboxClient.readFile(DROPBOX_WORD_ASSO_STATS_FILE, function(err, statsJson, callback) {
+        dropboxClient.readFile(WORDASSO_STATS_FILE, function(err, statsJson, callback) {
 
           console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
-            + " | ... LOADING STATS FROM DROPBOX FILE: " + DROPBOX_WORD_ASSO_STATS_FILE
+            + " | ... LOADING STATS FROM DROPBOX FILE: " + WORDASSO_STATS_FILE
           ));
 
           var statsObj = JSON.parse(statsJson);
@@ -4276,13 +4276,9 @@ var generatePromptQueueInterval = setInterval(function (){
     }
 
     var targetWordObj = wordCache.get(currentResponse);
-
       /*
-
       This is where routing of response -> prompt happens
-
       */
-
       switch (currentSession.config.mode) {
 
         case 'RANDOM':
@@ -4342,6 +4338,7 @@ var generatePromptQueueInterval = setInterval(function (){
             console.error("[-] CHAIN DEADEND ... USING RANDOM ALGORITHM: " + currentAlgorithm);
           }
           else {
+            console.error("NO CHAIN DEADEND (last 10): " + currentSession.wordChain.slice(Math.max(currentSession.wordChain.length - 10, 1)));
             currentAlgorithm = currentSession.config.mode.toLowerCase();
           }
 
@@ -4466,10 +4463,6 @@ var generatePromptQueueInterval = setInterval(function (){
         case 'STREAM':
         break;
 
-        // case 'SCRIPT':
-        // break;
-        // case 'GROUP':
-        // break;
         default:
           console.error(chalkError("3  ????? UNKNOWN SESSION MODE: " + sesObj.session.config.mode));
           quit("3  ????? UNKNOWN SESSION MODE: " + sesObj.session.config.mode);

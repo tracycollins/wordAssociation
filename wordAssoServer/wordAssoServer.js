@@ -4338,7 +4338,7 @@ var generatePromptQueueInterval = setInterval(function (){
             console.error("[-] CHAIN DEADEND ... USING RANDOM ALGORITHM: " + currentAlgorithm);
           }
           else {
-            console.error("NO CHAIN DEADEND (last 10): " + currentSession.wordChain.slice(Math.max(currentSession.wordChain.length - 10, 1)));
+            debug("NO CHAIN DEADEND (last 10): " + currentSession.wordChain.slice(Math.max(currentSession.wordChain.length - 10, 1)));
             currentAlgorithm = currentSession.config.mode.toLowerCase();
           }
 

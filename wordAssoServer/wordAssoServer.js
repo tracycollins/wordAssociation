@@ -423,8 +423,8 @@ console.log("offlineStatsFile: " + offlineStatsFile);
 var DROPBOX_WORD_ASSO_ACCESS_TOKEN = process.env.DROPBOX_WORD_ASSO_ACCESS_TOKEN ;
 var DROPBOX_WORD_ASSO_APP_KEY = process.env.DROPBOX_WORD_ASSO_APP_KEY ;
 var DROPBOX_WORD_ASSO_APP_SECRET = process.env.DROPBOX_WORD_ASSO_APP_SECRET;
-var WORDASSO_STATS_FILE = process.env.WORDASSO_STATS_FILE;
-var dropboxHostStatsFile = os.hostname() + "_" + WORDASSO_STATS_FILE;
+var WA_STATS_FILE = process.env.WA_STATS_FILE;
+var dropboxHostStatsFile = os.hostname() + "_" + WA_STATS_FILE;
 
 var Dropbox = require("dropbox");
 
@@ -524,7 +524,7 @@ function loadStats(){
 
     if (err) {
 
-      console.error(chalkError("!!! DROPBOX READ WORDASSO_STATS_FILE ERROR"));
+      console.error(chalkError("!!! DROPBOX READ WORDASSO_STATS_FILE ERROR: " + statsFile));
       debug(chalkError(jsonPrint(err)));
 
       if (err.status != 404) {

@@ -4619,15 +4619,20 @@ sessionCache.on( "expired", function(sessionId, sessionObj){
 });
 
 wordCache.on( "expired", function(word, wordObj){
-  debug("CACHE WORD EXPIRED\n" + jsonPrint(wordObj));
-  debug("... CACHE WORD EXPIRED | " + wordObj.nodeId 
-    + " | LS: " + getTimeStamp(wordObj.lastSeen)
-    + " | " + msToTime(moment().valueOf() - wordObj.lastSeen)
-    + " | M: " + wordObj.mentions
-    + " | K: " + wordCache.getStats().keys
-    + " | H: " + wordCache.getStats().hits
-    + " | M: " + wordCache.getStats().misses
-  );
+  if (typeof  wordObj !== 'undefined'){
+    debug("CACHE WORD EXPIRED\n" + jsonPrint(wordObj));
+    debug("... CACHE WORD EXPIRED | " + wordObj.nodeId 
+      + " | LS: " + getTimeStamp(wordObj.lastSeen)
+      + " | " + msToTime(moment().valueOf() - wordObj.lastSeen)
+      + " | M: " + wordObj.mentions
+      + " | K: " + wordCache.getStats().keys
+      + " | H: " + wordCache.getStats().hits
+      + " | M: " + wordCache.getStats().misses
+    );
+  }
+  else {
+    console.error(chalkError("??? UNDEFINED wordObj on wordCache expired ???"));
+  }
 });
 
 

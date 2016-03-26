@@ -229,6 +229,8 @@ var wordAssoServerStatsObj = {
 
   "session": {},
 
+  "chainFreezes": 0,
+
   "heartbeat" : txHeartbeat
 };
 
@@ -1793,6 +1795,7 @@ function chainDeadEnd(chain) {
           return false ;
         }
         else if (i == chain.length-MIN_CHAIN_FREEZE_LENGTH){
+          wordAssoServerStatsObj.chainFreezes++;
           console.log(chalkError("*** CHAIN FREEZE"
             + "\nSEG\n" + chainSegment 
             + "\nUNIQUE\n" + uniqueNodes

@@ -3432,6 +3432,8 @@ var readSessionQueue = setInterval(function (){
 
         sesObj.session.disconnectTime = moment().valueOf();
 
+        sessionCache.del(sesObj.session.sessionId);
+
         sessionUpdateDb(sesObj.session, function(err, updatedSessionObj){
 
           var currentUser = userCache.get(updatedSessionObj.userId);
@@ -3534,6 +3536,7 @@ var readSessionQueue = setInterval(function (){
           + " | DOMAIN: " + sesObj.session.domain
         ));
 
+        sessionCache.del(sesObj.session.sessionId);
 
         if (sesObj.session){
 
@@ -3552,7 +3555,7 @@ var readSessionQueue = setInterval(function (){
             wordCache.ttl(word, wordCacheTtl);
           });
 
-          sessionCache.del(sesObj.session.sessionId);
+          // sessionCache.del(sesObj.session.sessionId);
 
           unpairedUserHashMap.remove(sesObj.session.config.userA);
           unpairedUserHashMap.remove(sesObj.session.config.userB);
@@ -4945,36 +4948,32 @@ function createSession (newSessionObj){
 
 
  socket.on('reconnect_error', function(errorObj){
-    console.log(chalkDisconnect(moment().format(defaultDateTimeFormat)
+    console.error(chalkError(moment().format(defaultDateTimeFormat)
       + " | SOCKET RECONNECT ERROR: " + socket.id
       + "\nerrorObj\n" + jsonPrint(errorObj)
     ));
   });
 
   socket.on('reconnect_failed', function(errorObj){
-    console.log(chalkDisconnect(moment().format(defaultDateTimeFormat)
+    console.error(chalkError(moment().format(defaultDateTimeFormat)
       + " | SOCKET RECONNECT FAILED: " + socket.id
       + "\nerrorObj\n" + jsonPrint(errorObj)
     ));
   });
 
   socket.on('connect_error', function(errorObj){
-    console.log(chalkDisconnect(moment().format(defaultDateTimeFormat)
+    console.error(chalkError(moment().format(defaultDateTimeFormat)
       + " | SOCKET CONNECT ERROR: " + socket.id
       + "\nerrorObj\n" + jsonPrint(errorObj)
     ));
   });
 
   socket.on('connect_timeout', function(errorObj){
-    console.log(chalkDisconnect(moment().format(defaultDateTimeFormat)
+    console.error(chalkError(moment().format(defaultDateTimeFormat)
       + " | SOCKET CONNECT TIMEOUT: " + socket.id
       + "\nerrorObj\n" + jsonPrint(errorObj)
     ));
   });
-
-
-
-
 
 
   socket.on("error", function(error){

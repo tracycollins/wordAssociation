@@ -4942,6 +4942,41 @@ function createSession (newSessionObj){
 
   sessionQueue.enqueue({sessionEvent: "SESSION_CREATE", session: sessionObj});
 
+
+
+ socket.on('reconnect_error', function(errorObj){
+    console.log(chalkDisconnect(moment().format(defaultDateTimeFormat)
+      + " | SOCKET RECONNECT ERROR: " + socket.id
+      + "\nerrorObj\n" + jsonPrint(errorObj)
+    ));
+  });
+
+  socket.on('reconnect_failed', function(errorObj){
+    console.log(chalkDisconnect(moment().format(defaultDateTimeFormat)
+      + " | SOCKET RECONNECT FAILED: " + socket.id
+      + "\nerrorObj\n" + jsonPrint(errorObj)
+    ));
+  });
+
+  socket.on('connect_error', function(errorObj){
+    console.log(chalkDisconnect(moment().format(defaultDateTimeFormat)
+      + " | SOCKET CONNECT ERROR: " + socket.id
+      + "\nerrorObj\n" + jsonPrint(errorObj)
+    ));
+  });
+
+  socket.on('connect_timeout', function(errorObj){
+    console.log(chalkDisconnect(moment().format(defaultDateTimeFormat)
+      + " | SOCKET CONNECT TIMEOUT: " + socket.id
+      + "\nerrorObj\n" + jsonPrint(errorObj)
+    ));
+  });
+
+
+
+
+
+
   socket.on("error", function(error){
     console.error(chalkError(moment().format(defaultDateTimeFormat) + " | *** SOCKET ERROR"
       + " | " + socket.id 
@@ -4956,8 +4991,11 @@ function createSession (newSessionObj){
     sessionQueue.enqueue({sessionEvent: "SOCKET_RECONNECT", sessionId: socket.id});
   });
 
-  socket.on("disconnect", function(){
-    console.log(chalkDisconnect(moment().format(defaultDateTimeFormat) + " | SOCKET DISCONNECT: " + socket.id));
+  socket.on("disconnect", function(status){
+    console.log(chalkDisconnect(moment().format(defaultDateTimeFormat)
+      + " | SOCKET DISCONNECT: " + socket.id
+      + "\nstatus\n" + jsonPrint(status)
+    ));
     var sessionObj = sessionCache.get(socket.id) ;
     if (sessionObj) {
       sessionObj.connected = false ;

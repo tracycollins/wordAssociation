@@ -89,25 +89,25 @@ var HashMap = require('hashmap').HashMap;
 var EventEmitter2 = require('eventemitter2').EventEmitter2;
 var EventEmitter = require("events").EventEmitter;
 
-var statsLogger = require('stats-logger').createInstance(
-  10*ONE_SECOND, 
-  'file', 
-  {
-    filename: "./" + os.hostname() +  "_wordAssoServerStats.log", 
-    outputFormat: "{lastFlushTime}"
-      + " | {numberViewers} V"
-      + " | {numberViewersMax} V MAX"
-      + " | {numberUsers} U"
-      + " | {numberUsersMax} U MAX"
-      + " | {numberTestUsers} TEST U"
-      + " | {numberTestUsersMax} TEST U MAX"
-      + " | {numberUsersTotal} TOTAL U"
-      + " | {numberUsersTotalMax} TOTAL U MAX"
-      + " | {numberUtils} UTL"
-      + " | {numberUtilsMax} UTL MAX"
-      // + " | CACHE K:{wordCacheKeys} H:{wordCacheHits} M:{wordCacheMisses} VS:{wordCacheVsize} KS:{wordCacheKsize}"
-  }
-);
+// var statsLogger = require('stats-logger').createInstance(
+//   10*ONE_SECOND, 
+//   'file', 
+//   {
+//     filename: "./" + os.hostname() +  "_wordAssoServerStats.log", 
+//     outputFormat: "{lastFlushTime}"
+//       + " | {numberViewers} V"
+//       + " | {numberViewersMax} V MAX"
+//       + " | {numberUsers} U"
+//       + " | {numberUsersMax} U MAX"
+//       + " | {numberTestUsers} TEST U"
+//       + " | {numberTestUsersMax} TEST U MAX"
+//       + " | {numberUsersTotal} TOTAL U"
+//       + " | {numberUsersTotalMax} TOTAL U MAX"
+//       + " | {numberUtils} UTL"
+//       + " | {numberUtilsMax} UTL MAX"
+//       // + " | CACHE K:{wordCacheKeys} H:{wordCacheHits} M:{wordCacheMisses} VS:{wordCacheVsize} KS:{wordCacheKsize}"
+//   }
+// );
 
 
 // ==================================================================
@@ -134,34 +134,43 @@ var numberIpAddresses = 0;
 var numberUsersMax = 0;
 var numberUsersMaxTime = moment().valueOf();
 
+var numberTestUsersMax = 0;
+var numberTestUsersMaxTime = moment().valueOf();
+
 var numberUsersTotalMax = 0;
 var numberUsersTotalMaxTime = moment().valueOf();
 
-var numberTestUsersMax = 0;
-var numberTestUsersMaxTime = moment().valueOf();
 
 var numberUtilsMax = 0;
 var numberUtilsMaxTime = moment().valueOf();
 
+
 var numberViewersMax = 0;
 var numberViewersMaxTime = moment().valueOf();
 
-statsLogger.addStat("numberViewers", "snapshot", {initialValue: 0});
-statsLogger.addStat("numberViewersMax", "max", {initialValue: 0, suppressReset: true});
+var numberTestViewersMax = 0;
+var numberTestViewersMaxTime = moment().valueOf();
 
-statsLogger.addStat("numberUsersTotal", "snapshot", {initialValue: 0});
-statsLogger.addStat("numberUsersTotalMax", "max", {initialValue: 0, suppressReset: true});
+var numberViewersTotalMax = 0;
+var numberViewersTotalMaxTime = moment().valueOf();
 
-statsLogger.addStat("numberUsers", "snapshot", {initialValue: 0});
-statsLogger.addStat("numberUsersMax", "max", {initialValue: 0, suppressReset: true});
 
-statsLogger.addStat("numberTestUsers", "snapshot", {initialValue: 0});
-statsLogger.addStat("numberTestUsersMax", "max", {initialValue: 0, suppressReset: true});
+// statsLogger.addStat("numberViewers", "snapshot", {initialValue: 0});
+// statsLogger.addStat("numberViewersMax", "max", {initialValue: 0, suppressReset: true});
 
-statsLogger.addStat("numberUtils", "snapshot", {initialValue: 0});
-statsLogger.addStat("numberUtilsMax", "max", {initialValue: 0, suppressReset: true});
+// statsLogger.addStat("numberUsersTotal", "snapshot", {initialValue: 0});
+// statsLogger.addStat("numberUsersTotalMax", "max", {initialValue: 0, suppressReset: true});
 
-statsLogger.start();
+// statsLogger.addStat("numberUsers", "snapshot", {initialValue: 0});
+// statsLogger.addStat("numberUsersMax", "max", {initialValue: 0, suppressReset: true});
+
+// statsLogger.addStat("numberTestUsers", "snapshot", {initialValue: 0});
+// statsLogger.addStat("numberTestUsersMax", "max", {initialValue: 0, suppressReset: true});
+
+// statsLogger.addStat("numberUtils", "snapshot", {initialValue: 0});
+// statsLogger.addStat("numberUtilsMax", "max", {initialValue: 0, suppressReset: true});
+
+// statsLogger.start();
 
 console.log(
   '\n\n====================================================================================================\n' 
@@ -665,6 +674,12 @@ setInterval(function () {
     numberViewersMaxTime : numberViewersMaxTime,
 
     numberTestViewers : numberTestViewers,
+    numberTestViewersMax : numberTestViewersMax,
+    numberTestViewersMaxTime : numberTestViewersMaxTime,
+
+    numberViewersTotal : numberViewersTotal,
+    numberViewersTotalMax : numberViewersTotalMax,
+    numberViewersTotalMaxTime : numberViewersTotalMaxTime,
 
     promptsSent : promptsSent,
     responsesReceived: responsesReceived,
@@ -4736,6 +4751,12 @@ configEvents.on("SERVER_READY", function () {
         numberViewersMaxTime : numberViewersMaxTime,
 
         numberTestViewers : numberTestViewers,
+        numberTestViewersMax : numberTestViewersMax,
+        numberTestViewersMaxTime : numberTestViewersMaxTime,
+
+        numberViewersTotal : numberViewersTotal,
+        numberViewersTotalMax : numberViewersTotalMax,
+        numberViewersTotalMaxTime : numberViewersTotalMaxTime,
 
         numberUsersTotal : numberUsersTotal,
         numberUsersTotalMax : numberUsersTotalMax,
@@ -5267,6 +5288,7 @@ configEvents.on("INIT_DATABASE_COMPLETE", function(tweetCount){
 //  METRICS INTERVAL
 //=================================
 var numberUsersTotal = 0;
+var numberViewersTotal = 0;
 
 var metricsInterval = setInterval(function () {
 
@@ -5278,71 +5300,84 @@ var metricsInterval = setInterval(function () {
   numberTestViewers = Object.keys(testViewersNameSpace.connected).length; // userNameSpace.sockets.length ;
 
   numberUsersTotal = numberUsers + numberTestUsers ;
+  numberViewersTotal = numberViewers + numberTestViewers ;
 
-  statsLogger.recordStat('numberViewers', numberViewers);
-  statsLogger.recordStat('numberUsers', numberUsers);
-  statsLogger.recordStat('numberTestUsers', numberTestUsers);
-  statsLogger.recordStat('numberUsersTotal', numberUsersTotal);
+  // statsLogger.recordStat('numberViewers', numberViewers);
+  // statsLogger.recordStat('numberUsers', numberUsers);
+  // statsLogger.recordStat('numberTestUsers', numberTestUsers);
+  // statsLogger.recordStat('numberUsersTotal', numberUsersTotal);
+
+  if (numberViewersTotal > numberViewersTotalMax) {
+    numberViewersTotalMaxTime = moment().valueOf();
+    numberViewersTotalMax = numberViewersTotal;
+    // statsLogger.recordStat('numberViewersTotalMax', numberViewersTotal);
+    console.log(chalkAlert("... NEW TOTAL MAX VIEWERS"
+      // + " | " + statsLogger.getStatValue('numberViewersTotalMax') 
+      + " | " + moment().format(defaultDateTimeFormat)));
+  }
+  else{
+    // statsLogger.recordStat('numberViewersMax', numberViewers);
+  }
 
   if (numberViewers > numberViewersMax) {
     numberViewersMaxTime = moment().valueOf();
     numberViewersMax = numberViewers;
-    statsLogger.recordStat('numberViewersMax', numberViewers);
-    console.log(chalkAlert("... NEW TOTAL MAX VIEWERS"
-      + " | " + statsLogger.getStatValue('numberViewersMax') 
+    // statsLogger.recordStat('numberViewersMax', numberViewers);
+    console.log(chalkAlert("... NEW MAX VIEWERS"
+      // + " | " + statsLogger.getStatValue('numberViewersMax') 
       + " | " + moment().format(defaultDateTimeFormat)));
   }
   else{
-    statsLogger.recordStat('numberViewersMax', numberViewers);
+    // statsLogger.recordStat('numberViewersMax', numberViewers);
   }
 
   if (numberUsersTotal > numberUsersTotalMax) {
     numberUsersTotalMaxTime = moment().valueOf();
     numberUsersTotalMax = numberUsersTotal ;
-    statsLogger.recordStat('numberUsersTotalMax', numberUsersTotal);
+    // statsLogger.recordStat('numberUsersTotalMax', numberUsersTotal);
     console.log(chalkAlert("... NEW TOTAL MAX USERS"
-      + " | " + statsLogger.getStatValue('numberUsersTotalMax') 
+      // + " | " + statsLogger.getStatValue('numberUsersTotalMax') 
       + " | " + moment().format(defaultDateTimeFormat)));
   }
   else{
-    statsLogger.recordStat('numberUsersTotalMax', numberUsersTotal);
+    // statsLogger.recordStat('numberUsersTotalMax', numberUsersTotal);
   }
 
   if (numberUsers > numberUsersMax) {
     numberUsersMaxTime = moment().valueOf();
     numberUsersMax = numberUsers;
-    statsLogger.recordStat('numberUsersMax', numberUsers);
+    // statsLogger.recordStat('numberUsersMax', numberUsers);
     console.log(chalkAlert("... NEW MAX USERS"
-      + " | " + statsLogger.getStatValue('numberUsersMax') 
+      // + " | " + statsLogger.getStatValue('numberUsersMax') 
       + " | " + moment().format(defaultDateTimeFormat)));
   }
   else{
-    statsLogger.recordStat('numberUsersMax', numberUsers);
+    // statsLogger.recordStat('numberUsersMax', numberUsers);
   }
 
 
   if (numberTestUsers > numberTestUsersMax) {
     numberTestUsersMaxTime = moment().valueOf();
     numberTestUsersMax = numberTestUsers;
-    statsLogger.recordStat('numberTestUsersMax', numberTestUsers);
+    // statsLogger.recordStat('numberTestUsersMax', numberTestUsers);
     console.log(chalkAlert("... NEW MAX TEST USERS"
-      + " | " + statsLogger.getStatValue('numberTestUsersMax') 
+      // + " | " + statsLogger.getStatValue('numberTestUsersMax') 
       + " | " + moment().format(defaultDateTimeFormat)));
   }
   else{
-    statsLogger.recordStat('numberTestUsersMax', numberTestUsers);
+    // statsLogger.recordStat('numberTestUsersMax', numberTestUsers);
   }
 
   if (numberUtils > numberUtilsMax) {
     numberUtilsMaxTime = moment().valueOf();
     numberUtilsMax = numberUtils;
-    statsLogger.recordStat('numberUtilsMax', numberUtils);
+    // statsLogger.recordStat('numberUtilsMax', numberUtils);
     console.log(chalkAlert("... NEW MAX UTILS"
-      + " | " + statsLogger.getStatValue('numberUtilsMax') 
+      // + " | " + statsLogger.getStatValue('numberUtilsMax') 
       + " | " + moment().format(defaultDateTimeFormat)));
   }
   else{
-    statsLogger.recordStat('numberUtilsMax', numberUtils);
+    // statsLogger.recordStat('numberUtilsMax', numberUtils);
   }
 
 

@@ -5,7 +5,7 @@
     "cwd"         : "/home/tc/wordAssociation/wordAssoServer",
     "autorestart" : false,
     "env": {
-        "WORDASSO_NODE_ENV": "production",
+        "WA_NODE_ENV": "production",
         "SOCKET_IDLE_TIMEOUT" : 60,
         "WORD_CACHE_TTL" : 30,
         "DROPBOX_WORD_ASSO_ACCESS_TOKEN" : "nknEWsIkD5UAAAAAAAQouTDFRBKfwsFzuS8PPi2Q_JVYnpotNuaHiddNtmG4mUTi",

@@ -1777,6 +1777,37 @@
                 + ' (' + ((heartBeat.mwRequestLimit - heartBeat.mwRequests) / heartBeat.mwRequestLimit * 100).toFixed(0) + ' %)';
 
 
+            // TEST VIEWERS ==========================
+            testViewersBar.animate(heartBeat.numberTestViewers / heartBeat.numberTestViewersMax);
+
+            if (100 * heartBeat.numberTestViewers / heartBeat.numberTestViewersMax >= 90) {
+                testViewersBar.path.setAttribute('stroke', endColor);
+            } else if (100 * heartBeat.numberTestViewers / heartBeat.numberTestViewersMax >= 50) {
+                testViewersBar.path.setAttribute('stroke', midColor);
+            } else {
+                testViewersBar.path.setAttribute('stroke', startColor);
+            }
+
+            testViewersBarText.innerHTML = (heartBeat.numberTestViewers) 
+            + ' TEST VIEWERS | ' + (heartBeat.numberTestViewersMax) 
+            + ' MAX | ' + moment(heartBeat.numberTestViewersMaxTime).format(defaultDateTimeFormat);
+
+
+            // VIEWERS ==========================
+            viewersTotalBar.animate(heartBeat.numberViewersTotal / heartBeat.numberViewersTotalMax);
+
+            if (100 * heartBeat.numberViewersTotal / heartBeat.numberViewersTotalMax >= 90) {
+                viewersTotalBar.path.setAttribute('stroke', endColor);
+            } else if (100 * heartBeat.numberViewersTotal / heartBeat.numberViewersTotalMax >= 50) {
+                viewersTotalBar.path.setAttribute('stroke', midColor);
+            } else {
+                viewersTotalBar.path.setAttribute('stroke', startColor);
+            }
+
+            viewersTotalBarText.innerHTML = (heartBeat.numberViewersTotal) + ' TOTAL VIEWERS | ' + (heartBeat.numberViewersTotalMax) 
+            + ' MAX | ' + moment(heartBeat.numberViewersTotalMaxTime).format(defaultDateTimeFormat);
+
+
             viewersBar.animate(heartBeat.numberViewers / heartBeat.numberViewersMax);
 
             if (100 * heartBeat.numberViewers / heartBeat.numberViewersMax >= 90) {
@@ -1791,6 +1822,23 @@
             + ' MAX | ' + moment(heartBeat.numberViewersMaxTime).format(defaultDateTimeFormat);
 
 
+            // TEST USERS ==========================
+            testUsersBar.animate(heartBeat.numberTestUsers / heartBeat.numberTestUsersMax);
+
+            if (100 * heartBeat.numberTestUsers / heartBeat.numberTestUsersMax >= 90) {
+                testUsersBar.path.setAttribute('stroke', endColor);
+            } else if (100 * heartBeat.numberTestUsers / heartBeat.numberTestUsersMax >= 50) {
+                testUsersBar.path.setAttribute('stroke', midColor);
+            } else {
+                testUsersBar.path.setAttribute('stroke', startColor);
+            }
+
+            testUsersBarText.innerHTML = (heartBeat.numberTestUsers) 
+            + ' TEST USERS | ' + (heartBeat.numberTestUsersMax) 
+            + ' MAX | ' + moment(heartBeat.numberTestUsersMaxTime).format(defaultDateTimeFormat);
+
+
+            // USERS ==========================
             usersTotalBar.animate(heartBeat.numberUsersTotal / heartBeat.numberUsersTotalMax);
 
             if (100 * heartBeat.numberUsersTotal / heartBeat.numberUsersTotalMax >= 90) {
@@ -1820,6 +1868,7 @@
             + ' MAX | ' + moment(heartBeat.numberUsersMaxTime).format(defaultDateTimeFormat);
 
 
+            // TEST USERS ==========================
             testUsersBar.animate(heartBeat.numberTestUsers / heartBeat.numberTestUsersMax);
 
             if (100 * heartBeat.numberTestUsers / heartBeat.numberTestUsersMax >= 90) {
@@ -1834,6 +1883,8 @@
             + ' TEST USERS | ' + (heartBeat.numberTestUsersMax) 
             + ' MAX | ' + moment(heartBeat.numberTestUsersMaxTime).format(defaultDateTimeFormat);
 
+
+            // UTILS=========================
             utilsBar.animate(heartBeat.numberUtils / heartBeat.numberUtilsMax);
 
             if (100 * heartBeat.numberUtils / heartBeat.numberUtilsMax >= 90) {

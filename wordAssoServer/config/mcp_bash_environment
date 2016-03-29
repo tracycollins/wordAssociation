@@ -1,5 +1,9 @@
 echo "... running mcp_bash_environment ..."
 
+export MY_CURRENT_PROJECT_DIR=//home/tc/wordAssociation/wordAssoServer
+
+alias mcp='source /home/tc/wordAssociation/wordAssoServer/config/mcp_bash_environment; cd $MY_CURRENT_PROJECT_DIR'
+
 export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/node_modules/
 export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
 

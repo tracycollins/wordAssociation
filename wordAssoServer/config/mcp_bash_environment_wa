@@ -1,14 +1,14 @@
 echo "... running mcp_bash_environment ..."
 
-export MY_CURRENT_PROJECT_DIR=/Volumes/RAID1/projects/wordAssociation/wordAssoServer/
+export MY_CURRENT_PROJECT_DIR=//home/tc/wordAssociation/wordAssoServer
 
 # ========================
 # WORD ASSOCIATION
 # ========================
 export WA_NODE_ENV='development'
-export WA_SOCKETTEST_DIR=/Volumes/RAID1/projects/wordAssoSocketTest/
+export WA_SOCKETTEST_DIR=/home/tc/wordAssoSocketTest
 export WA_TARGET_SERVER='http://word.threeceelabs.com/test'
-export WA_CONFIG_DIR=/Users/tc/Dropbox/Apps/wordAssociation/config
+export WA_CONFIG_DIR=$MY_CURRENT_PROJECT_DIR/config
 export WA_STATS_FILE='wordAssociationStats.json'
 
 

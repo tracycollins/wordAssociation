@@ -1,6 +1,6 @@
 echo "... running mcp_bash_environment ..."
 
-export MY_CURRENT_PROJECT_DIR=//home/tc/wordAssociation/wordAssoServer
+export MY_CURRENT_PROJECT_DIR=/home/tc/wordAssociation/wordAssoServer
 
 # ========================
 # WORD ASSOCIATION

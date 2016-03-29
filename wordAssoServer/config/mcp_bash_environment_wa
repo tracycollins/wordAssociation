@@ -85,13 +85,13 @@ alias dst='cd $WA_SOCKETTEST_DIR'
 
 alias rwa='cd $MY_CURRENT_PROJECT_DIR; node wordAssoServer.js'
 
-alias rbc='cd $WA_SOCKETTEST_DIR; node bhtCrawler.js LOCAL'
+alias rbc='cd $WA_SOCKETTEST_DIR; node bhtCrawler.js'
 alias rdb='cd $WA_SOCKETTEST_DIR; node dbWordPurgeCrawler.js'
-alias rmw='cd $WA_SOCKETTEST_DIR; node mwCrawler.js LOCAL'
-alias roc='cd $WA_SOCKETTEST_DIR; node openedCaptionsClient.js LOCAL'
+alias rmw='cd $WA_SOCKETTEST_DIR; node mwCrawler.js'
+alias roc='cd $WA_SOCKETTEST_DIR; node openedCaptionsClient.js'
 alias rrf='cd $WA_SOCKETTEST_DIR; node rssFeedClient.js'
 alias rsf='cd $WA_SOCKETTEST_DIR; node streamFile.js'
-alias rst='cd $WA_SOCKETTEST_DIR; node socketTest.js LOCAL'
+alias rst='cd $WA_SOCKETTEST_DIR; node socketTest.js'
 alias ryt='cd $WA_SOCKETTEST_DIR; node youtubeCaptionDownload.js'
 
 echo "... END mcp_bash_environment ..."

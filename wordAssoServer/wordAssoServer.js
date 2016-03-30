@@ -1190,7 +1190,9 @@ function sendPrompt(sessionObj, sourceWordObj){
           updateSessionViews(sessionUpdateObj);
         }
 
-        io.of(currentSession.namespace).to(currentSession.sessionId).emit('PROMPT_WORD_OBJ',sourceWordObj);
+        setTimeout(function(){
+          io.of(currentSession.namespace).to(currentSession.sessionId).emit('PROMPT_WORD_OBJ',sourceWordObj);
+        }, randomInt(1000,10000));
 
         promptsSent++ ;
         deltaPromptsSent++;

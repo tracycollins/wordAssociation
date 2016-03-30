@@ -1182,7 +1182,7 @@
 
         function initUserSession(options) {
             // tableCreateRow(userSessionTableHead, options, ['USER SESSIONS']);  // 2nd arg is headerFlag
-            tableCreateRow(userSessionTableHead, options, ['SESSIONS', 'IP', 'DOMAIN', 'SESSION', 'CONNECT', 'DISCONNECT', 'TIME CONNECTED']); // 2nd arg is headerFlag
+            tableCreateRow(userSessionTableHead, options, ['SESSIONS', 'IP', 'DOMAIN', 'USER', 'SESSION', 'CONNECT', 'DISCONNECT', 'TIME CONNECTED']); // 2nd arg is headerFlag
         }
 
         function updateUserConnect(req) {
@@ -1319,6 +1319,7 @@
                                 numberConnected,
                                 sessionObj.ip,
                                 sessionObj.domain,
+                                sessionObj.userId,
                                 sessionId,
                                 getTimeStamp(sessionObj.connectTime),
                                 '',
@@ -1353,6 +1354,7 @@
                                 numberDisconnected,
                                 value.ip,
                                 value.domain,
+                                value.userId,
                                 key,
                                 getTimeStamp(value.connectTime),
                                 getTimeStamp(value.disconnectTime),
@@ -1374,7 +1376,7 @@
 
         function initViewerSession(options) {
             // tableCreateRow(viewerSessionTableHead, options, ['VIEWER SESSIONS']);  // 2nd arg is headerFlag
-            tableCreateRow(viewerSessionTableHead, options, ['SESSIONS', 'IP', 'DOMAIN', 'SESSION', 'CONNECT', 'DISCONNECT', 'TIME CONNECTED']); // 2nd arg is headerFlag
+            tableCreateRow(viewerSessionTableHead, options, ['SESSIONS', 'IP', 'DOMAIN', 'USER', 'SESSION', 'CONNECT', 'DISCONNECT', 'TIME CONNECTED']); // 2nd arg is headerFlag
         }
 
         function updateViewerConnect(req) {
@@ -1511,6 +1513,7 @@
                                 numberConnected,
                                 sessionObj.ip,
                                 sessionObj.domain,
+                                sessionObj.userId,
                                 sessionId,
                                 getTimeStamp(sessionObj.connectTime),
                                 '',
@@ -1547,6 +1550,7 @@
                                 numberDisconnected,
                                 value.ip,
                                 value.domain,
+                                value.userId,
                                 key,
                                 getTimeStamp(value.connectTime),
                                 getTimeStamp(value.disconnectTime),
@@ -1569,7 +1573,7 @@
 
         function initUtilSession(options) {
             // tableCreateRow(utilSessionTableHead, options, ['UTIL SESSIONS']);  // 2nd arg is headerFlag
-            tableCreateRow(utilSessionTableHead, options, ['SESSIONS', 'IP', 'DOMAIN', 'SESSION', 'CONNECT', 'DISCONNECT', 'TIME CONNECTED']); // 2nd arg is headerFlag
+            tableCreateRow(utilSessionTableHead, options, ['SESSIONS', 'IP', 'DOMAIN', 'USER', 'SESSION', 'CONNECT', 'DISCONNECT', 'TIME CONNECTED']); // 2nd arg is headerFlag
         }
 
         function updateUtilConnect(req) {
@@ -1678,6 +1682,7 @@
                             numberConnected,
                             sessionObj.ip,
                             sessionObj.domain,
+                            sessionObj.userId,
                             sessionId,
                             getTimeStamp(sessionObj.connectTime),
                             '',
@@ -1709,6 +1714,7 @@
                             numberDisconnected,
                             value.ip,
                             value.domain,
+                            value.userId,
                             key,
                             getTimeStamp(value.connectTime),
                             getTimeStamp(value.disconnectTime),

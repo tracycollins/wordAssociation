@@ -3378,33 +3378,8 @@ var readSessionQueue = setInterval(function (){
         sessionUpdateDb(sesObj.session, function(){});
 
         var currentUser = userCache.get(sesObj.session.userId);
+        var currentViewer = viewerCache.get(sesObj.session.userId);
         var currentUtil = utilCache.get(sesObj.session.userId);
-
-        if (currentUser) {
-          currentUser.connected = true ;
-
-          userUpdateDb(currentUser, function(err, updatedUserObj){
-            if (!err){
-              console.log(chalkRed("TX USER SESSION (SOCKET ERROR): " 
-                + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"));
-
-              adminNameSpace.emit('USER_SESSION', updatedUserObj);
-            }
-          });
-        }
-
-        if (currentViewer) {
-          currentViewer.connected = true ;
-
-          viewerUpdateDb(currentViewer, function(err, updatedViewerObj){
-            if (!err){
-              console.log(chalkRed("TX VIEWER SESSION (SOCKET ERROR): " 
-                + updatedViewerObj.lastSession + " TO ADMIN NAMESPACE"));
-
-              adminNameSpace.emit('VIEWER_SESSION', updatedViewerObj);
-            }
-          });
-        }
 
         if (currentUtil) {
           currentUtil.connected = true ;
@@ -3418,6 +3393,31 @@ var readSessionQueue = setInterval(function (){
             }
           });
         }
+        else if (currentUser) {
+          currentUser.connected = true ;
+
+          userUpdateDb(currentUser, function(err, updatedUserObj){
+            if (!err){
+              console.log(chalkRed("TX USER SESSION (SOCKET ERROR): " 
+                + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"));
+
+              adminNameSpace.emit('USER_SESSION', updatedUserObj);
+            }
+          });
+        }
+        else if (currentViewer) {
+          currentViewer.connected = true ;
+
+          viewerUpdateDb(currentViewer, function(err, updatedViewerObj){
+            if (!err){
+              console.log(chalkRed("TX VIEWER SESSION (SOCKET ERROR): " 
+                + updatedViewerObj.lastSession + " TO ADMIN NAMESPACE"));
+
+              adminNameSpace.emit('VIEWER_SESSION', updatedViewerObj);
+            }
+          });
+        }
+
 
         break;
 
@@ -3707,28 +3707,6 @@ var readSessionQueue = setInterval(function (){
 
         break;
 
-      // case 'SOCKET_ERROR':
-      //   console.log(chalkSession(
-      //     "*** SOCKET ERROR"
-      //     + " | SID: " + sesObj.sessionId
-      //   ));
-
-      //   var currentSession = sessionCache.get(sesObj.sessionId);
-
-      //   sessionCache.del(currentSession.sessionId);
-
-      //   sesObj.user.lastSeen = moment().valueOf();
-      //   sesObj.user.connected = false;
-      //   userUpdateDb(sesObj.user, function(err, updatedUserObj){
-      //     if (!err){
-      //       console.log(chalkRed("TX USER SESSION (SOCKET ERROR): " 
-      //         + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"));
-
-      //       adminNameSpace.emit('USER_SESSION', updatedUserObj);
-      //     }
-      //   });
-      //   break;
-
       case 'ADMIN_READY':
 
         // ????? ADMIN VERIFICATION SHOULD HAPPEN HERE
@@ -3910,9 +3888,20 @@ var readSessionQueue = setInterval(function (){
 
         userUpdateDb(sesObj.user, function(err, updatedUserObj){
           if (!err){
-            console.log(chalkRed("TX USER SESSION (USER READY): " 
-              + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"));
-            adminNameSpace.emit('USER_SESSION', updatedUserObj);
+            if (sesObj.session.config.type == 'USER'){
+              console.log(chalkRed("TX USER SESSION (USER READY): " 
+                + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"));
+              adminNameSpace.emit('USER_SESSION', updatedUserObj);
+            }
+            else if (sesObj.session.config.type == 'UTIL'){
+              console.log(chalkRed("TX UTIL SESSION (UTIL READY): " 
+                + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"));
+              adminNameSpace.emit('UTIL_SESSION', updatedUserObj);
+            }
+          }
+          else {
+            console.error(chalkError("*** USER UPDATE DB ERROR\n" + jsonPrint(err)));
+            if (quitOnError) quit(err);
           }
         });
 

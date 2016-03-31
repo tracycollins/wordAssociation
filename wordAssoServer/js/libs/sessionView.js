@@ -772,6 +772,10 @@ var adminOverlay3 = svgcanvas.append("svg:g")
 var sessionSvgGroup = svgForceLayoutArea.append("svg:g")
   .attr("id", "sessionSvgGroup");
 
+var sessionLabelSvgGroup = svgForceLayoutArea.append("svg:g")
+  .attr("id", "sessionLabelSvgGroup");
+
+
 // d3.select("#statsOverlay3")
 
 var linkSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "linkSvgGroup");
@@ -782,6 +786,7 @@ var nodeLabelSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "nodeLabel
 
 var session = sessionSvgGroup.selectAll("g.session");
 var sessionCircles = sessionSvgGroup.selectAll("circle");
+var sessionLabels = sessionLabelSvgGroup.selectAll(".sessionLabel");
 
 var node = nodeSvgGroup.selectAll("g.node");
 var nodeCircles = nodeSvgGroup.selectAll("circle");
@@ -1174,7 +1179,10 @@ function createSession (callback){
       sessionsCreated += 1;
 
       var currentSession = sessionObject;
+
       currentSession.linkHashMap = {};
+
+      currentSession.text =  sessionObject.userId;
 
       currentSession.initialPosition = computeInitialPosition(sessionsCreated);
       currentSession.x = currentSession.initialPosition.x;
@@ -1702,6 +1710,39 @@ function updateSessionCircles (sessionId, callback) {
       .remove();
 
  
+  sessionLabels = sessionLabelSvgGroup.selectAll(".sessionLabel")
+    .data(sessions, function(d) { return d.sessionId; })
+    .text(function(d) { return d.text; })
+    .style("font-size", function(d) { 
+      return fontSizeScale(1000.1) + "vmin"; 
+    })
+    .style('opacity', 1.0);
+
+  sessionLabels.enter()
+    .append("svg:text")
+    .attr("x", function(d) { return d.x; })
+    .attr("y", function(d) { return d.y - 1.5*d.r; })
+    .attr("class", "sessionLabel")
+    .attr("id", function(d) { return d.sessionId; })
+    .attr("sessionId", function(d) { return d.sessionId; })
+    .text(function(d) { return d.text; })
+    .style("text-anchor", "middle")
+    .style("opacity", 1e-6)
+    .style('fill', function(d){
+      return d.interpolateColor(0.8);
+    })
+    .style("font-size", function(d) { 
+      return fontSizeScale(1000.1) + "vmin"; 
+    })
+    .transition()
+      .duration(defaultFadeDuration)      
+      .style("opacity", 1.0);
+
+  sessionLabels
+    .exit().remove();
+    // .transition()
+    //   .duration(defaultFadeDuration)      
+    //   .style("opacity", 1e-6)
 
 
   callback(null, sessionId);

@@ -5454,6 +5454,12 @@ function initAppRouting(callback){
   console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | INIT APP ROUTING"));
 
 
+  app.get('/js/libs/d3.js', function(req, res){
+    console.log("LOADING FILE: /js/libs/d3.jss");
+    res.sendFile(__dirname + '/js/libs/d3.js');
+    return;
+  });
+
   app.get('/js/libs/stringmap.js', function(req, res){
     console.log("LOADING FILE: /js/libs/stringmap.jss");
     res.sendFile(__dirname + '/js/libs/stringmap.js');

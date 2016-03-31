@@ -772,22 +772,22 @@ var adminOverlay3 = svgcanvas.append("svg:g")
 var sessionSvgGroup = svgForceLayoutArea.append("svg:g")
   .attr("id", "sessionSvgGroup");
 
-var sessionCircles = sessionSvgGroup.selectAll("sessionCircle");
-
+// d3.select("#statsOverlay3")
 
 var linkSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "linkSvgGroup");
 
-var nodeSvgGroup = svgForceLayoutArea.append("svg:g")
-  .attr("id", "nodeSvgGroup");
+var nodeSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "nodeSvgGroup");
 
-var nodeLabelSvgGroup = svgForceLayoutArea.append("svg:g")
-  .attr("id", "nodeLabelSvgGroup");
+var nodeLabelSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "nodeLabelSvgGroup");
 
 var session = sessionSvgGroup.selectAll("g.session");
+var sessionCircles = sessionSvgGroup.selectAll("circle");
+
 var node = nodeSvgGroup.selectAll("g.node");
-var link = linkSvgGroup.selectAll("line");
 var nodeCircles = nodeSvgGroup.selectAll("circle");
 var nodeLabels = nodeSvgGroup.selectAll(".nodeLabel");
+
+var link = linkSvgGroup.selectAll("line");
 
 // var sessionUpdateQueue = new Queue();
 var sessionUpdateQueue = [];
@@ -811,6 +811,7 @@ function tick() {
     });
 
   sessionCircles
+    .attr("r", function(d) { return d.r; })
     .attr("cx", function(d) { return d.x; })
     .attr("cy", function(d) { return d.y; });
 
@@ -929,6 +930,8 @@ setInterval(function () {
 }, serverCheckInterval);
 
 function deleteSession(sessionId, callback){
+
+  // force.stop();
 
   var deletedSession = {};
   var index = -1;
@@ -1176,6 +1179,7 @@ function createSession (callback){
       currentSession.initialPosition = computeInitialPosition(sessionsCreated);
       currentSession.x = currentSession.initialPosition.x;
       currentSession.y = currentSession.initialPosition.y;
+      currentSession.r = 50;
 
       currentSession.colors = {};
       currentSession.colors = randomColorQueue.shift();
@@ -1610,7 +1614,8 @@ function updateNodes (sessionId, callback) {
     .attr("mentions", function(d) { return d.mentions; })
     .attr("lastSeen", function(d) { return d.lastSeen; });
 
-  node.exit()
+  node
+    .exit()
     .remove();
 
   callback(null, sessionId);
@@ -1640,7 +1645,8 @@ function updateLinks(sessionId, callback) {
       });
 
   link
-    .exit().remove();
+    .exit()
+    .remove();
     // .transition()
     //   .duration(defaultFadeDuration)      
     //   .style("opacity", 1e-6)
@@ -1657,9 +1663,9 @@ function updateSessionCircles (sessionId, callback) {
     });
 
   sessionCircles
-    // .attr("r", function(d) { 
-    //   return defaultRadiusScale(1000);
-    // })    
+    .attr("r", function(d) { 
+      return d.r;
+    })    
     .style('opacity', function(d){
       return 1;
     });
@@ -1667,15 +1673,17 @@ function updateSessionCircles (sessionId, callback) {
   sessionCircles
     .enter()
     .append("svg:circle")
+    .attr("id", function(d) { return d.sessionId; })
+    .attr("class", "sessionCircleClass")
     .attr("x", function(d) { return d.x; })
     .attr("y", function(d) { return d.y; })
     .attr("cx", function(d) { return d.x; })
     .attr("cy", function(d) { return d.y; })
     .attr("r", 1e-6)
     .style("visibility", "visible") 
-    .style("fill", function(d) { 
-      return d.interpolateColor(0.05);
-    })
+    // .style("fill", function(d) { 
+    //   return d.interpolateColor(0.05);
+    // })
     .style("opacity", 1e-6)
     .style('stroke', function(d){
       return d.interpolateColor(0.5);
@@ -1683,19 +1691,19 @@ function updateSessionCircles (sessionId, callback) {
     .style("stroke-width", 2.5)
     .transition()
       .duration(defaultFadeDuration)      
-      .attr("r", function(d) { 
-        return defaultRadiusScale(1000000);
-      })
+      .attr("r", function(d) { return d.r;})
       .style('opacity', 1.0);
 
   sessionCircles
-    .exit()
-      .transition()
-        .duration(defaultFadeDuration)      
-        .attr("r", 1e-6)
-        .style('opacity', 1e-6)
-        .remove();
-    
+  .exit()
+    .transition()
+      .duration(defaultFadeDuration)
+      .attr("r", 0.5)
+      .style("opacity", 1e-6)
+      .remove();
+
+ 
+
 
   callback(null, sessionId);
 }
@@ -1747,7 +1755,7 @@ function updateNodeCircles (sessionId, callback) {
     })
     .transition()
       .duration(defaultFadeDuration)      
-      .style('opacity', function(d){ return 1.0; });
+      .style('opacity', 1.0);
 
   nodeCircles
     .exit().remove();
@@ -1786,9 +1794,7 @@ function updateNodeLabels (sessionId, callback) {
     })
     .transition()
       .duration(defaultFadeDuration)      
-      .style("opacity", function(d) { 
-        return 1;
-      });
+      .style("opacity", 1.0);
 
   nodeLabels
     .exit().remove();
@@ -1882,7 +1888,7 @@ function nodeMouseOver(d) {
 
   divTooltip.transition()    
     .duration(defaultFadeDuration)    
-    .style("opacity", 1);
+    .style("opacity", 1.0);
 
   var tooltipString =  "<bold>" + nodeId + "</bold>" + "<br>MENTIONS: " + mentions + "<br>" + uId + "<br>" + sId;
 
@@ -2108,6 +2114,7 @@ d3.select(window).on("resize", resize);
 //   calcNodeAges(function(deadNodes){});
 //   createSessionNodeLink();
 // }, 60 );
+
 
 d3.timer(function () {
   dateNow = moment().valueOf();

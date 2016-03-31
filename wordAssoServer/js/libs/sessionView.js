@@ -411,24 +411,20 @@ socket.on("reconnect", function(){
 });
 
 socket.on("connect", function(){
-
   serverConnected = true;
-
   displayInfoOverlay(1.0, defaultTextFill);
-
   console.log("CONNECTED TO HOST | SOCKET ID: " + socket.id);
   updateStatsOverlay4(socket.id);
 
 });
 
 socket.on("disconnect", function(){
-
   serverConnected = false;
-
   displayInfoOverlay(1.0, 'red');
-
-  console.log("*** DISCONNECTED FROM HOST");
-
+  console.log("*** DISCONNECTED FROM HOST ... DELETING ALL SESSIONS ...");
+  deleteAllSessions(function(){
+    console.log("DELETED ALL SESSIONS");
+  });
 });
 
 var palette = {
@@ -980,9 +976,19 @@ function deleteSession(sessionId, callback){
   }
 
   if (index == 0) {
-    return(callback());
+    return(callback(sessionId));
   }
+}
 
+function deleteAllSessions(callback){
+  var sessionIds = Object.keys(sessionHashMap);
+  sessionIds.forEach(function(sessionId){
+    deleteSession(sessionId, function(sId){
+      console.log("XXX DELETED SESSION " + sId);
+      delete sessionHashMap[sessionId];
+    });
+  });
+  callback();
 }
 
 var heartBeatsReceived = 0;
@@ -1880,23 +1886,23 @@ function createSessionNodeLink() {
   );
 }
 
-function updateNodesLinks() {
+// function updateNodesLinks() {
 
-  async.waterfall(
-    [ 
-      updateNodes,
-      updateNodeCircles,
-      updateNodeLabels,
-      updateLinks
-    ], 
+//   async.waterfall(
+//     [ 
+//       updateNodes,
+//       updateNodeCircles,
+//       updateNodeLabels,
+//       updateLinks
+//     ], 
     
-    function(err, result){
-      if (err) { 
-        console.error("*** ERROR: createSessionNodeLink *** \nERROR: " + err); 
-      }
-    }
-  );
-}
+//     function(err, result){
+//       if (err) { 
+//         console.error("*** ERROR: createSessionNodeLink *** \nERROR: " + err); 
+//       }
+//     }
+//   );
+// }
 
 function nodeFill (age) { 
   return fillColorScale(age);

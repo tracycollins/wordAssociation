@@ -1160,6 +1160,7 @@ function sendPrompt(sessionObj, sourceWordObj){
           ));
 
           var sessionUpdateObj = {
+            action: 'PROMPT',
             userId: currentUser.userId,
             sessionId: currentSession.sessionId,
             wordChainIndex: currentSession.wordChainIndex,
@@ -1180,6 +1181,7 @@ function sendPrompt(sessionObj, sourceWordObj){
             + " | START -> " + sourceWordObj.nodeId));
 
           var sessionUpdateObj = {
+            action: 'PROMPT',
             userId: currentUser.userId,
             sessionId: currentSession.sessionId,
             wordChainIndex: currentSession.wordChainIndex,
@@ -1280,6 +1282,7 @@ function sendPrompt(sessionObj, sourceWordObj){
         deltaPromptsSent++;
 
         var sessionUpdateObj = {
+          action: 'PROMPT',
           userId: currentUser.userId,
           sessionId: currentSession.sessionId,
           wordChainIndex: currentSession.wordChainIndex,
@@ -3164,6 +3167,10 @@ var readSessionQueue = setInterval(function (){
         ));
 
         io.to(sesObj.sessionId).emit('SESSION_ABORT', sesObj.sessionId);
+
+        sesObj.sessionEvent = 'SESSION_DELETE';
+        viewNameSpace.emit('SESSION_DELETE', sesObj);
+
         break;
 
       case 'REQ_ADMIN_SESSION':
@@ -3430,7 +3437,8 @@ var readSessionQueue = setInterval(function (){
           + " | DOMAIN: " + sesObj.session.domain
         ));
 
-        // io.of(sesObj.session.namespace).to(sesObj.session.sessionId).emit('SESSION_EXPIRED', sesObj.session.sessionId);
+        sesObj.sessionEvent = 'SESSION_DELETE';
+        viewNameSpace.emit('SESSION_DELETE', sesObj);
 
         sesObj.session.disconnectTime = moment().valueOf();
 
@@ -3538,6 +3546,9 @@ var readSessionQueue = setInterval(function (){
           + " | DOMAIN: " + sesObj.session.domain
         ));
 
+        sesObj.sessionEvent = 'SESSION_DELETE';
+        viewNameSpace.emit('SESSION_DELETE', sesObj);
+
         sessionCache.del(sesObj.session.sessionId);
 
         if (sesObj.session){
@@ -3557,7 +3568,6 @@ var readSessionQueue = setInterval(function (){
             wordCache.ttl(word, wordCacheTtl);
           });
 
-          // sessionCache.del(sesObj.session.sessionId);
 
           unpairedUserHashMap.remove(sesObj.session.config.userA);
           unpairedUserHashMap.remove(sesObj.session.config.userB);
@@ -4236,6 +4246,7 @@ var readDbUpdateQueue = setInterval(function (){
           promptQueue.enqueue(currentSessionObj.sessionId);
 
           var sessionUpdateObj = {
+            action: 'RESPONSE',
             userId: currentSessionObj.userId,
             sessionId: currentSessionObj.sessionId,
             wordChainIndex: dbUpdateObj.word.wordChainIndex,
@@ -4612,7 +4623,9 @@ sessionCache.on( "expired", function(sessionId, sessionObj){
 
   io.of(sessionObj.namespace).to(sessionId).emit('SESSION_EXPIRED',sessionId);
 
-  viewNameSpace.emit("SESSION_EXPIRED", sessionId);
+  sessionObj.sessionEvent = 'SESSION_DELETE';
+
+  viewNameSpace.emit("SESSION_DELETE", sessionObj);
 
   debug("CACHE SESSION EXPIRED\n" + jsonPrint(sessionObj));
   console.log(chalkRed("... CACHE SESS EXPIRED | " + sessionObj.sessionId 
@@ -5098,6 +5111,7 @@ function createSession (newSessionObj){
         + " | ABORTING SESSION"
       ));
       sessionQueue.enqueue({sessionEvent: "SESSION_ABORT", sessionId: socketId});
+      viewNameSpace.emit("SESSION_DELETE", {sessionEvent: "SESSION_DELETE", sessionId: socketId});
       return;
     }
     debug(chalkLog("@@@ SESSION_KEEPALIVE | " + userObj.userId

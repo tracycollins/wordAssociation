@@ -1212,6 +1212,7 @@ function createSession (callback){
 
       var sessionNode = {};
 
+      sessionNode.isSessionNode = true;
       sessionNode.nodeId = currentSession.userId;
       sessionNode.userId = currentSession.userId;
       sessionNode.sessionId = currentSession.sessionId;
@@ -1601,7 +1602,7 @@ function calcNodeAges (callback){
 
     age = currentNodeObject.age + (ageRate * (dateNow - currentNodeObject.ageUpdated));
  
-    if (age >= nodeMaxAge) {
+    if (!currentNodeObject.isSessionNode && (age >= nodeMaxAge)) {
       deadNodesFlag = true;
       deadNodeHashMap.set(nodeId,1);
 

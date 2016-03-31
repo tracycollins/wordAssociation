@@ -1318,7 +1318,6 @@ function pauseForNodes (sessionId, callback) {
   var pauseInterval ;
 
   if (sessionId === null){
-    // console.error("NULL SESSION ID ");
     callback(null, null);
   }
   else {

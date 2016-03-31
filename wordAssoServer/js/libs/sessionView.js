@@ -1696,10 +1696,10 @@ function updateSessionCircles (sessionId, callback) {
 
   sessionCircles
   .exit()
-    .transition()
-      .duration(defaultFadeDuration)
-      .attr("r", 0.5)
-      .style("opacity", 1e-6)
+    // .transition()
+    //   .duration(defaultFadeDuration)
+    //   .attr("r", 0.5)
+    //   .style("opacity", 1e-6)
       .remove();
 
  

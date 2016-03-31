@@ -4242,7 +4242,6 @@ var readDbUpdateQueue = setInterval(function (){
 
       sessionCache.set(currentSessionObj.sessionId, currentSessionObj, function(err, success){
         if (!err && success) {
-
           promptQueue.enqueue(currentSessionObj.sessionId);
 
           var sessionUpdateObj = {
@@ -4255,6 +4254,11 @@ var readDbUpdateQueue = setInterval(function (){
           };
 
           updateSessionViews(sessionUpdateObj);
+        }
+        else {
+          console.error(chalkError("*** SESSION CACHE SET ERROR"
+            + "\n" + jsonPrint(err)
+          ));
         }
       });
 

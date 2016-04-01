@@ -939,7 +939,7 @@ function deleteSession(sessionId, callback){
     if (sessions[index].sessionId == sessionId){
       deletedSession = sessionHashMap[sessionId];
       sessions.splice(index, 1);
-      console.error("XXX DELETE SESSION"
+      console.warn("XXX DELETE SESSION"
         + " [" + sessions.length + "]"
         + " | " + deletedSession.sessionId
         + " | " + deletedSession.userId
@@ -982,7 +982,7 @@ function deleteAllSessions(callback){
   var sessionIds = Object.keys(sessionHashMap);
   sessionIds.forEach(function(sessionId){
     deleteSession(sessionId, function(sId){
-      console.log("XXX DELETED SESSION " + sId);
+      console.warn("XXX DELETED SESSION " + sId);
       delete sessionHashMap[sessionId];
     });
   });
@@ -1438,64 +1438,17 @@ function createLink (sessionId, callback) {
 
       sessionHashMap[session.sessionId] = session;
   
-      console.log("CREATED LINK TO SESSION NODE"
-        + " | " + session.sessionId
-        + " | " + jsonPrint(session.node)
-        + " | " + session.node.nodeId + " > " + latestWord.nodeId
-      );
+      // console.log("CREATED LINK TO SESSION NODE"
+      //   + " | " + session.sessionId
+      //   + " | " + session.node.nodeId + " > " + latestWord.nodeId
+      // );
     }
-    // else {
-    //   var linksLength = links.length-1;
-    //   var linksIndex = links.length-1;
-    //   var currentLinkObject;
-      
-    //   for (linksIndex = linksLength; linksIndex >= 0; linksIndex -= 1) {
 
-    //     currentLinkObject = links[linksIndex];
-
-    //     if (session.latestNodeId === currentLinkObject.target.nodeId) {
-    //       if (sourceWordId === currentLinkObject.source.nodeId) {
-    //         if (!forceStopped){
-    //           forceStopped = true ;
-    //           force.stop();
-    //         }
-    //         links.splice(linksIndex, 1); 
-    //         console.error("XXX LINK | " + sourceWordId + " > " + session.latestNodeId);
-    //       }
-    //       if (targetWordId === currentLinkObject.source.nodeId) {
-    //         if (!forceStopped){
-    //           forceStopped = true ;
-    //           force.stop();
-    //         }
-    //         links.splice(linksIndex, 1); 
-    //         console.error("XXX LINK | " + targetWordId + " > " + session.latestNodeId);
-    //       }
-    //     }
-        
-    //     if (session.latestNodeId === currentLinkObject.source.nodeId) {
-    //       if (sourceWordId === currentLinkObject.target.nodeId) {
-    //         if (!forceStopped){
-    //           forceStopped = true ;
-    //           force.stop();
-    //         }
-    //         links.splice(linksIndex, 1); 
-    //         console.error("XXX LINK | " + session.latestNodeId + " > " + sourceWordId);
-    //       }
-    //       if (targetWordId === currentLinkObject.target.nodeId) {
-    //         if (!forceStopped){
-    //           forceStopped = true ;
-    //           force.stop();
-    //         }
-    //         links.splice(linksIndex, 1); 
-    //         console.error("XXX LINK | " + session.latestNodeId + " > " + targetWordId);
-    //       }
-    //     }      
-    //   }
-    // }
     
     if (typeof session.target === 'undefined'){
       console.warn("??? SESSION TARGET UNDEFINED"
         + " | " + sessionId
+        + " | " + session.userId
         + " | SKIPPING CREATE LINKS"
       );
       return(callback (null, sessionId));
@@ -1503,6 +1456,7 @@ function createLink (sessionId, callback) {
     else if (typeof session.target.nodeId !== 'string') {
       console.warn("??? TARGET NODE ID NOT A STRING (NEW SESSION?)"
         + " | " + sessionId
+        + " | " + session.userId
         + " | SKIPPING CREATE LINKS"
       );
       return(callback (null, sessionId));
@@ -1514,6 +1468,7 @@ function createLink (sessionId, callback) {
     if (typeof nodeHashMap[sourceWordId] === 'undefined') {
       console.warn("sourceWordId " + sourceWordId + " NOT IN nodeHashMap"
         + " | " + sessionId
+        + " | " + session.userId
        + " | SKIPPING CREATE LINKS"
        );
       return(callback (null, sessionId));
@@ -1521,6 +1476,7 @@ function createLink (sessionId, callback) {
     else if (!nodeHashMap[targetWordId]){
       console.warn("targetWordId " + targetWordId + " NOT IN nodeHashMap"
         + " | " + sessionId
+        + " | " + session.userId
        + " | SKIPPING CREATE LINKS"
        );
       return(callback (null, sessionId));
@@ -1682,6 +1638,13 @@ function ageNodes (sessionId, callback){
     currentNodeId = nodes[ageNodesIndex].nodeId;
     ageSession = sessionHashMap[currentNodeObject.sessionId];
 
+    if (typeof currentNodeId !== 'string') {
+      console.error("*** currentNodeId NOT STRING"
+        + " | " + currentNodeId
+        + " | TYPE: " + typeof currentNodeId
+      );
+    }
+
     if ((typeof ageSession !== 'undefined') && (ageSession.sessionEvent == 'SESSION_DELETE')){
       console.warn("ageNodes: DELETE SESSION: " + ageSession.sessionId + " | " + currentNodeId);
       deleteSession(currentNodeObject.sessionId, function(sessionId){
@@ -1730,7 +1693,7 @@ function ageNodes (sessionId, callback){
         currentNodeObject.latestNode = false;
 
         if ((typeof ageSession !== 'undefined') && (currentNodeObject.links[ageSession.node.nodeId])) {
-          console.error("XXX DELETE currentNodeObject.links[" + ageSession.node.nodeId + "]");
+          // console.warn("XXX DELETE currentNodeObject.links[" + ageSession.node.nodeId + "]");
 
           delete currentNodeObject.links[ageSession.node.nodeId];
 
@@ -1744,13 +1707,13 @@ function ageNodes (sessionId, callback){
 
             if (currentNodeObject.nodeId === currentLinkObject.target.nodeId) {
               if (ageSession.node.nodeId === currentLinkObject.source.nodeId){
-                console.error("XXX DELETE LINK: " + links[ageLinksIndex].source.nodeId + " > " + links[ageLinksIndex].target.nodeId);
+                // console.warn("XXX DELETE LINK: " + links[ageLinksIndex].source.nodeId + " > " + links[ageLinksIndex].target.nodeId);
                 links.splice(ageLinksIndex, 1); 
               }
              }
             else if (currentNodeObject.nodeId === currentLinkObject.source.nodeId) {
               if (ageSession.node.nodeId === currentLinkObject.target.nodeId){
-                console.error("XXX DELETE LINK: " + links[ageLinksIndex].source.nodeId + " > " + links[ageLinksIndex].target.nodeId);
+                // console.warn("XXX DELETE LINK: " + links[ageLinksIndex].source.nodeId + " > " + links[ageLinksIndex].target.nodeId);
                 links.splice(ageLinksIndex, 1); 
               }
             }

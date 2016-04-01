@@ -1635,94 +1635,87 @@ function ageNodes (sessionId, callback){
   for (ageNodesIndex = ageNodesLength; ageNodesIndex>=0; ageNodesIndex -= 1) {  
 
     currentNodeObject = nodes[ageNodesIndex];
-    currentNodeId = nodes[ageNodesIndex].nodeId;
+    currentNodeId = currentNodeObject.nodeId;
     ageSession = sessionHashMap[currentNodeObject.sessionId];
 
     if (typeof currentNodeId !== 'string') {
-      console.error("*** currentNodeId NOT STRING"
-        + " | " + currentNodeId
+      console.error("*** SKIPPING currentNodeId NOT STRING"
         + " | TYPE: " + typeof currentNodeId
+        + " | currentNodeId: " + currentNodeId
+        + " | jsonPrint(currentNodeId)\n" + jsonPrint(currentNodeId)
       );
-    }
-
-    if ((typeof ageSession !== 'undefined') && (ageSession.sessionEvent == 'SESSION_DELETE')){
-      console.warn("ageNodes: DELETE SESSION: " + ageSession.sessionId + " | " + currentNodeId);
-      deleteSession(currentNodeObject.sessionId, function(sessionId){
-        delete sessionHashMap[sessionId];
-      });
-      // delete sessionHashMap[currentNodeObject.sessionId];
-    }
-
-    if (((typeof ageSession !== 'undefined') && (ageSession.sessionEvent == 'SESSION_DELETE'))
-      || (deadNodeHashMap.has(currentNodeId))){
-
-      deadNodeHashMap.remove(currentNodeId);
-      // nodeHashMap.remove(currentNodeId);
-      delete nodeHashMap[currentNodeId];
-
-      deadNodesFlag = true;
-
-      if (!forceStopped){
-        forceStopped = true ;
-        force.stop();
-      }
-
-      // if ((typeof ageSession !== 'undefined') && (typeof ageSession.linkHashMap !== 'undefined')) {
-      //   delete ageSession.linkHashMap[currentNodeId];
-      // }
-
-      nodes.splice(ageNodesIndex, 1); 
+      continue;
     }
     else {
- 
-      nodes[ageNodesIndex].age = currentNodeObject.age;
-      nodes[ageNodesIndex].ageUpdated = currentNodeObject.ageUpdated;
- 
-      // if ((typeof ageSession !== 'undefined') && (currentNodeId == ageSession.fixedNodeId)) {
-      //   currentNodeObject.fixed = true;
-      // }
-      // else {
-      //   currentNodeObject.fixed = false;
-      // }
+      if ((typeof ageSession !== 'undefined') && (ageSession.sessionEvent == 'SESSION_DELETE')){
+        console.warn("ageNodes: DELETE SESSION: " + ageSession.sessionId + " | " + currentNodeId);
+        deleteSession(currentNodeObject.sessionId, function(sessionId){
+          delete sessionHashMap[sessionId];
+        });
+        // delete sessionHashMap[currentNodeObject.sessionId];
+      }
 
-      if ((typeof ageSession !== 'undefined') && (currentNodeId == ageSession.latestNodeId)) {
-        currentNodeObject.latestNode = true;
+      if (((typeof ageSession !== 'undefined') && (ageSession.sessionEvent == 'SESSION_DELETE'))
+        || (deadNodeHashMap.has(currentNodeId))){
+
+        deadNodeHashMap.remove(currentNodeId);
+        // nodeHashMap.remove(currentNodeId);
+        delete nodeHashMap[currentNodeId];
+
+        deadNodesFlag = true;
+
+        if (!forceStopped){
+          forceStopped = true ;
+          force.stop();
+        }
+
+        nodes.splice(ageNodesIndex, 1); 
       }
       else {
+   
+        nodes[ageNodesIndex].age = currentNodeObject.age;
+        nodes[ageNodesIndex].ageUpdated = currentNodeObject.ageUpdated;
+   
+        if ((typeof ageSession !== 'undefined') && (currentNodeId == ageSession.latestNodeId)) {
+          currentNodeObject.latestNode = true;
+        }
+        else {
 
-        currentNodeObject.latestNode = false;
+          currentNodeObject.latestNode = false;
 
-        if ((typeof ageSession !== 'undefined') && (currentNodeObject.links[ageSession.node.nodeId])) {
-          // console.warn("XXX DELETE currentNodeObject.links[" + ageSession.node.nodeId + "]");
+          if ((typeof ageSession !== 'undefined') && (currentNodeObject.links[ageSession.node.nodeId])) {
+            // console.warn("XXX DELETE currentNodeObject.links[" + ageSession.node.nodeId + "]");
 
-          delete currentNodeObject.links[ageSession.node.nodeId];
+            delete currentNodeObject.links[ageSession.node.nodeId];
 
-          ageLinksLength = links.length-1;
-          ageLinksIndex = links.length-1;
-          var currentLinkObject;
+            ageLinksLength = links.length-1;
+            ageLinksIndex = links.length-1;
+            var currentLinkObject;
 
-          for (ageLinksIndex = ageLinksLength; ageLinksIndex >= 0; ageLinksIndex -= 1) {
+            for (ageLinksIndex = ageLinksLength; ageLinksIndex >= 0; ageLinksIndex -= 1) {
 
-            currentLinkObject = links[ageLinksIndex];
+              currentLinkObject = links[ageLinksIndex];
 
-            if (currentNodeObject.nodeId === currentLinkObject.target.nodeId) {
-              if (ageSession.node.nodeId === currentLinkObject.source.nodeId){
-                // console.warn("XXX DELETE LINK: " + links[ageLinksIndex].source.nodeId + " > " + links[ageLinksIndex].target.nodeId);
-                links.splice(ageLinksIndex, 1); 
-              }
-             }
-            else if (currentNodeObject.nodeId === currentLinkObject.source.nodeId) {
-              if (ageSession.node.nodeId === currentLinkObject.target.nodeId){
-                // console.warn("XXX DELETE LINK: " + links[ageLinksIndex].source.nodeId + " > " + links[ageLinksIndex].target.nodeId);
-                links.splice(ageLinksIndex, 1); 
+              if (currentNodeObject.nodeId === currentLinkObject.target.nodeId) {
+                if (ageSession.node.nodeId === currentLinkObject.source.nodeId){
+                  // console.warn("XXX DELETE LINK: " + links[ageLinksIndex].source.nodeId + " > " + links[ageLinksIndex].target.nodeId);
+                  links.splice(ageLinksIndex, 1); 
+                }
+               }
+              else if (currentNodeObject.nodeId === currentLinkObject.source.nodeId) {
+                if (ageSession.node.nodeId === currentLinkObject.target.nodeId){
+                  // console.warn("XXX DELETE LINK: " + links[ageLinksIndex].source.nodeId + " > " + links[ageLinksIndex].target.nodeId);
+                  links.splice(ageLinksIndex, 1); 
+                }
               }
             }
           }
         }
-      }
 
-      nodeHashMap[currentNodeId] = currentNodeObject;
+        nodeHashMap[currentNodeId] = currentNodeObject;
+      }
     }
+
   }
 
   if (ageNodesIndex < 0) {

@@ -1220,7 +1220,8 @@ function createSession (callback){
       sessionNode.ageUpdated = dateNow;
       sessionNode.lastSeen = dateNow;
       sessionNode.mentions = 0;
-      sessionNode.text = currentSession.userId;
+      // sessionNode.text = currentSession.userId;
+      sessionNode.text = '';
       sessionNode.x = currentSession.initialPosition.x;
       sessionNode.y = currentSession.initialPosition.y;
       sessionNode.fixed = true;

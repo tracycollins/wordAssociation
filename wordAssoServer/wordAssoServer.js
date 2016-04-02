@@ -4343,17 +4343,7 @@ var generatePromptQueueInterval = setInterval(function (){
                     + " | WCI: " + sessionUpdatedObj.wordChainIndex
                     + " | WCL: " + sessionUpdatedObj.wordChainLength
                   ));
-                  // sendPrompt(sessionUpdatedObj, responseObj);
                   sendPrompt(sessionUpdatedObj, responseObj);
-
-                  // var sessionViewObj = {
-                  //   sessionId: sessionUpdateObj.sessionId,
-                  //   wordChainIndex: sessionUpdateObj.wordChainIndex,
-                  //   source: responseObj,
-                  //   target: targetWordObj
-                  // };
-
-                  // updateSessionViews(sessionUpdateObj);
                 }
                 else {
                   console.log(chalkError("*** ERROR DB UPDATE SESSION\n" + err));
@@ -4405,17 +4395,6 @@ var generatePromptQueueInterval = setInterval(function (){
                   ));
 
                   sendPrompt(sessionUpdateObj, responseObj);
-
-                  // var targetWordObj = wordCache.get(currentResponse);
-
-                  // var sessionViewObj = {
-                  //   sessionId: sessionUpdateObj.sessionId,
-                  //   wordChainIndex: sessionUpdateObj.wordChainIndex,
-                  //   source: responseObj,
-                  //   target: targetWordObj
-                  // };
-
-                  // updateSessionViews(sessionViewObj);
                 }
                 else {
                   console.log(chalkError("*** ERROR DB UPDATE SESSION\n" + err));

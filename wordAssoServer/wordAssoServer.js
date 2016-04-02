@@ -1058,21 +1058,21 @@ var readUpdateSessionViewQueue = setInterval(function (){
     }
 
     if (sessionUpdateObj.target) {
-      console.log(chalkSession(">>> TX SESSION_UPDATE"
+      console.log(chalkSession(">TX SES"
         + " | " + sessionUpdateObj.userId
-        + " | " + sessionUpdateObj.sessionId
-        + " | WCI: " + sessionUpdateObj.wordChainIndex
+        // + " | " + sessionUpdateObj.sessionId
+        // + " | WCI: " + sessionUpdateObj.wordChainIndex
         + " | " + sessionUpdateObj.source.nodeId
         + " [" + sessionUpdateObj.source.wordChainIndex + "]"
-        + " -> " + sessionUpdateObj.target.nodeId
+        + " > " + sessionUpdateObj.target.nodeId
         + " [" + sessionUpdateObj.target.wordChainIndex + "]"
       ));
     }
     else {
-      console.log(chalkSession(">>> TX SESSION_UPDATE (NO TARGET)"
+      console.log(chalkSession(">>> TX SES NO T"
         + " | " + sessionUpdateObj.userId
-        + " | " + sessionUpdateObj.sessionId
-        + " | WCI: " + sessionUpdateObj.wordChainIndex
+        // + " | " + sessionUpdateObj.sessionId
+        // + " | WCI: " + sessionUpdateObj.wordChainIndex
         + " | " + sessionUpdateObj.source.nodeId
         + " [" + sessionUpdateObj.source.wordChainIndex + "]"
       ));
@@ -1150,13 +1150,13 @@ function sendPrompt(sessionObj, sourceWordObj){
 
           debug("CHAIN: " + currentSession.wordChain);
 
-          console.log(chalkPrompt("P-> "
+          console.log(chalkPrompt("P> "
             + currentUser.userId 
-            + " | " + sessionObj.sessionId 
-            + " | TYPE: " + sessionObj.config.type 
-            + " | MODE: " + sessionObj.config.mode 
+            // + " | " + sessionObj.sessionId 
+            // + " | TYPE: " + sessionObj.config.type 
+            // + " | MODE: " + sessionObj.config.mode 
             + " | " + sourceWordObj.nodeId
-            + " -> " + targetWordObj.nodeId
+            + " > " + targetWordObj.nodeId
           ));
 
           var sessionUpdateObj = {
@@ -1173,11 +1173,11 @@ function sendPrompt(sessionObj, sourceWordObj){
         } 
         else {
 
-          console.log(chalkPrompt("P-> "
+          console.log(chalkPrompt("P> "
             + currentUser.userId 
-            + " | " + sessionObj.sessionId 
-            + " | TYPE: " + sessionObj.config.type 
-            + " | MODE: " + sessionObj.config.mode 
+            // + " | " + sessionObj.sessionId 
+            // + " | TYPE: " + sessionObj.config.type 
+            // + " | MODE: " + sessionObj.config.mode 
             + " | START -> " + sourceWordObj.nodeId));
 
           var sessionUpdateObj = {
@@ -3259,13 +3259,13 @@ function handleSessionEvent(sesObj, callback) {
           sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
 
           console.log(chalkSession(
-            "@@@ SESSION KEEPALIVE"
-            + " | U: " + sessionUpdatedObj.userId
-            + " | T: " + sessionUpdatedObj.config.type
-            + " | M: " + sessionUpdatedObj.config.mode
-            + " | NS: " + sessionUpdatedObj.namespace
-            + " | SID: " + sessionUpdatedObj.sessionId
-            + " | IP: " + sessionUpdatedObj.ip
+            "K> SES"
+            + " | U " + sessionUpdatedObj.userId
+            + " | T " + sessionUpdatedObj.config.type
+            + " | M " + sessionUpdatedObj.config.mode
+            + " | NS " + sessionUpdatedObj.namespace
+            + " | SID " + sessionUpdatedObj.sessionId
+            + " | IP " + sessionUpdatedObj.ip
           ));
 
         }
@@ -4194,13 +4194,14 @@ var readResponseQueue = setInterval(function (){
       }
     }
 
-    console.log(chalkResponse("R<- "
+    console.log(chalkResponse("R< "
       + currentSessionObj.userId 
-      + " | " + socketId 
-      + " | TYPE: " + currentSessionObj.config.type 
-      + " | MODE: " + currentSessionObj.config.mode 
+      // + " | " + socketId 
+      // + " | TYPE: " + currentSessionObj.config.type 
+      // + " | MODE: " + currentSessionObj.config.mode 
       + " | " + responseInObj.nodeId + " [" + currentSessionObj.wordChainIndex + "]"
-      + " <-- " + previousPrompt));
+      + " < " + previousPrompt
+    ));
 
     var dbUpdateObj = {};
     dbUpdateObj.word = responseInObj;

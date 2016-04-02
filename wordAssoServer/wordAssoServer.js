@@ -1058,7 +1058,7 @@ var readUpdateSessionViewQueue = setInterval(function (){
     }
 
     if (sessionUpdateObj.target) {
-      console.log(chalkSession(">TX SES"
+      console.log(chalkLog("S>"
         + " | " + sessionUpdateObj.userId
         // + " | " + sessionUpdateObj.sessionId
         // + " | WCI: " + sessionUpdateObj.wordChainIndex
@@ -1069,7 +1069,7 @@ var readUpdateSessionViewQueue = setInterval(function (){
       ));
     }
     else {
-      console.log(chalkSession(">>> TX SES NO T"
+      console.log(chalkLog("SNT>"
         + " | " + sessionUpdateObj.userId
         // + " | " + sessionUpdateObj.sessionId
         // + " | WCI: " + sessionUpdateObj.wordChainIndex
@@ -1151,7 +1151,7 @@ function sendPrompt(sessionObj, sourceWordObj){
           debug("CHAIN: " + currentSession.wordChain);
 
           console.log(chalkPrompt("P> "
-            + currentUser.userId 
+            + " | " + currentUser.userId 
             // + " | " + sessionObj.sessionId 
             // + " | TYPE: " + sessionObj.config.type 
             // + " | MODE: " + sessionObj.config.mode 
@@ -3258,9 +3258,9 @@ function handleSessionEvent(sesObj, callback) {
         else {
           sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
 
-          console.log(chalkSession(
-            "K> SES"
-            + " | U " + sessionUpdatedObj.userId
+          console.log(chalkLog(
+            "K>"
+            + " | " + sessionUpdatedObj.userId
             + " | T " + sessionUpdatedObj.config.type
             + " | M " + sessionUpdatedObj.config.mode
             + " | NS " + sessionUpdatedObj.namespace
@@ -4194,8 +4194,8 @@ var readResponseQueue = setInterval(function (){
       }
     }
 
-    console.log(chalkResponse("R< "
-      + currentSessionObj.userId 
+    console.log(chalkResponse("R<"
+      + " | " + currentSessionObj.userId 
       // + " | " + socketId 
       // + " | TYPE: " + currentSessionObj.config.type 
       // + " | MODE: " + currentSessionObj.config.mode 

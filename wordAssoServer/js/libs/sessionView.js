@@ -63,14 +63,11 @@ SESSION_CONFIG = DEFAULT_SESSION_CONFIG;
 
 var QUEUE_MAX = 200;
 
-// var sessionHashMap = new HashMap();
 var sessionHashMap = {};
 
 var urlRoot = "http://localhost:9997/session?session=";
 
 var nodeHashMap = {};
-// var nodeHashMap = new StringMap();
-// var nodeHashMap = new StringMap();
 var deadNodeHashMap = new StringMap();
 
 var dateNow = moment().valueOf();
@@ -1273,6 +1270,12 @@ function createNode (sessionId, callback) {
   }
   else {
     var session = sessionHashMap[sessionId];
+
+    if (nodeHashMap[session.userId]) {
+      var sessionNode = nodeHashMap[session.userId];
+      sessionNode.age = 0;
+      nodeHashMap[sessionNode.nodeId] = sessionNode;
+    }
 
     var dateNow = moment().valueOf();
 

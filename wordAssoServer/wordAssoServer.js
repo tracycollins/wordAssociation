@@ -1150,7 +1150,7 @@ function sendPrompt(sessionObj, sourceWordObj){
 
           debug("CHAIN: " + currentSession.wordChain);
 
-          console.log(chalkPrompt("P> "
+          console.log(chalkPrompt("P>"
             + " | " + currentUser.userId 
             // + " | " + sessionObj.sessionId 
             // + " | TYPE: " + sessionObj.config.type 
@@ -1173,8 +1173,8 @@ function sendPrompt(sessionObj, sourceWordObj){
         } 
         else {
 
-          console.log(chalkPrompt("P> "
-            + currentUser.userId 
+          console.log(chalkPrompt("P>"
+            + " | " + currentUser.userId 
             // + " | " + sessionObj.sessionId 
             // + " | TYPE: " + sessionObj.config.type 
             // + " | MODE: " + sessionObj.config.mode 

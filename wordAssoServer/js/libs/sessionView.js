@@ -788,9 +788,7 @@ var nodeLabels = nodeSvgGroup.selectAll(".nodeLabel");
 
 var link = linkSvgGroup.selectAll("line");
 
-// var sessionUpdateQueue = new Queue();
 var sessionUpdateQueue = [];
-// var rxSessionUpdateQueue = new Queue();
 var rxSessionUpdateQueue = [];
 var sessionUpdateQueueMaxInQ = 0;
 

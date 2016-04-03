@@ -1576,7 +1576,7 @@ function calcNodeAges (callback){
           if ((currentLinkObject.source.nodeId == currentNodeObject.nodeId)
           && (currentLinkObject.target.nodeId != latestNodeId)) {
             links.splice(ageLinksIndex, 1); 
-            console.warn("XXX DELETE SES LINK"
+            console.warn("XXX SES LINK"
               + " | " + currentLinkObject.source.nodeId
               + " > " + currentLinkObject.target.nodeId
             );

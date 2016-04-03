@@ -1416,13 +1416,14 @@ function createLink (sessionId, callback) {
         sessionId: session.sessionId,
         age: 0,
         source: session.node,
-        target: latestWord
+        target: latestWord,
+        isSessionLink: true
       };
 
       links.push(newSessionLink);
 
       latestWord.links[session.node.nodeId] = 1;
-      session.node.links[latestWord.nodeId] = 1;
+      session.node.isSessionNode = latestWord.nodeId;
 
       nodeHashMap[latestWord.nodeId] = sourceWord ;
       nodeHashMap[session.node.nodeId] = session.node ;
@@ -1546,21 +1547,45 @@ function calcNodeAges (callback){
 
   var dateNow = moment().valueOf();
 
-  // var ageNodesIndex = nodeHashMap.size();
   var ageNodesIndex =  nodeHashMap.length-1;
   var ageLinksLength = links.length-1;
   var ageLinksIndex = links.length-1;
 
   var nodeHashMapKeys = Object.keys(nodeHashMap);
 
-  // nodeHashMap.forEach(function(currentNodeObject, nodeId){
   nodeHashMapKeys.forEach(function(nodeId){
 
     var currentNodeObject = nodeHashMap[nodeId];
 
     age = currentNodeObject.age + (ageRate * (dateNow - currentNodeObject.ageUpdated));
  
-    if (!currentNodeObject.isSessionNode && (age >= nodeMaxAge)) {
+    if (currentNodeObject.isSessionNode) {
+
+      currentNodeObject.age = 0;
+      // currentNodeObject.links[latestWord.nodeId] = latestWord.nodeId;
+      var latestNodeId = currentNodeObject.isSessionNode; // targetNode
+
+      ageLinksLength = links.length-1;
+      ageLinksIndex = links.length-1;
+      
+      for (ageLinksIndex = ageLinksLength; ageLinksIndex >= 0; ageLinksIndex -= 1) {
+
+        currentLinkObject = links[ageLinksIndex];
+
+        if (currentLinkObject.isSessionLink) {
+          if ((currentLinkObject.source.nodeId == currentNodeObject.nodeId)
+          && (currentLinkObject.target.nodeId != latestNodeId)) {
+            links.splice(ageLinksIndex, 1); 
+            console.warn("XXX DELETE SES LINK"
+              + " | " + currentLinkObject.source.nodeId
+              + " > " + currentLinkObject.target.nodeId
+            );
+          }
+        }
+
+      }
+    }
+    else if (age >= nodeMaxAge) {
       deadNodesFlag = true;
       deadNodeHashMap.set(nodeId,1);
 
@@ -1571,10 +1596,10 @@ function calcNodeAges (callback){
 
         currentLinkObject = links[ageLinksIndex];
 
-        if (currentNodeObject.nodeId === currentLinkObject.target.nodeId) {
+        if (currentNodeObject.nodeId == currentLinkObject.target.nodeId) {
           links.splice(ageLinksIndex, 1); 
         }
-        else if (currentNodeObject.nodeId === currentLinkObject.source.nodeId) {
+        else if (currentNodeObject.nodeId == currentLinkObject.source.nodeId) {
           links.splice(ageLinksIndex, 1); 
         }
       }
@@ -1583,7 +1608,6 @@ function calcNodeAges (callback){
     else {
       currentNodeObject.ageUpdated = dateNow;
       currentNodeObject.age = age;
-      // nodeHashMap.set(nodeId, currentNodeObject);
       nodeHashMap[nodeId] = currentNodeObject;
 
       ageLinksLength = links.length-1;

@@ -933,7 +933,6 @@ function deleteSession(sessionId, callback){
   for (index=sessions.length-1; index >= 0; index -= 1) {
     if (sessions[index].sessionId == sessionId){
       deletedSession = sessionHashMap[sessionId];
-      sessions.splice(index, 1);
       console.warn("XXX DELETE SESSION"
         + " [" + sessions.length + "]"
         + " | " + deletedSession.sessionId
@@ -941,7 +940,9 @@ function deleteSession(sessionId, callback){
         // + "\n" + jsonPrint(deletedSession.linkHashMap)
       );
       var sessionLinks = Object.keys(deletedSession.linkHashMap);
+
       // console.warn("SESSION " + sessionId + " | " + jsonPrint(deletedSession));
+
       sessionLinks.forEach(function(nodeId){
         // console.warn("SESSION " + sessionId
         //  + " | " + nodeId
@@ -964,7 +965,12 @@ function deleteSession(sessionId, callback){
           }
         });
       });
+
       delete sessionHashMap[sessionId];
+
+      sessions.splice(index, 1);
+
+      deadNodeHashMap.set(deletedSession.userId,1);
     }
   }
 

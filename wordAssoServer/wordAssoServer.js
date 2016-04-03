@@ -3148,17 +3148,17 @@ function pairUser(sessionObj, callback){
 function handleSessionEvent(sesObj, callback) {
   switch (sesObj.sessionEvent) {
 
-    // case 'SESSION_ABORT':
-    //   console.log(chalkSession(
-    //     "*** ABT SESSION ABORTED"
-    //     + " | ID: " + sesObj.sessionId
-    //   ));
+    case 'SESSION_ABORT':
+      console.log(chalkSession(
+        "*** ABT SESSION ABORTED"
+        + " | ID: " + sesObj.sessionId
+      ));
 
-    //   io.to(sesObj.sessionId).emit('SESSION_ABORT', sesObj.sessionId);
+      io.to(sesObj.sessionId).emit('SESSION_ABORT', sesObj.sessionId);
 
-    //   sesObj.sessionEvent = 'SESSION_DELETE';
-    //   viewNameSpace.emit('SESSION_DELETE', sesObj);
-    //   break;
+      sesObj.sessionEvent = 'SESSION_DELETE';
+      viewNameSpace.emit('SESSION_DELETE', sesObj);
+      break;
 
     // case 'SESSION_EXPIRED':
     //   console.log(chalkSession(
@@ -3268,10 +3268,10 @@ function handleSessionEvent(sesObj, callback) {
 
     //   break;
 
-    case 'SESSION_ABORT':
     case 'SESSION_EXPIRED':
     case 'SOCKET_ERROR':
     case 'SOCKET_DISCONNECT':
+
       console.log(chalkSession(
         "XXX " + sesObj.sessionEvent
         + " | NSP: " + sesObj.session.namespace

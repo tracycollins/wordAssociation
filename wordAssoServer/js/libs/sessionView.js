@@ -2024,7 +2024,20 @@ function nodeFill (age) {
   return fillColorScale(age);
 }
 
-function nodeMouseOver(d) { 
+function nodeMouseOver(d) {
+
+  console.log("MOUSE OVER\n"
+    + jsonPrint(d)
+  );
+
+  var linkNodeIds = Object.keys(d.links);
+
+  linkNodeIds.forEach(function(nId){
+    var cNode = nodeHashMap[nId];
+    console.log("CONNECTED NODES | " + d.nodeId
+      + "\n" + jsonPrint(cNode)
+      );
+  });
 
   mouseHoverFlag = true;
   mouseHoverNodeId = d.nodeId;

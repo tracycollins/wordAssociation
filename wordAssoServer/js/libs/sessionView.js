@@ -1191,14 +1191,11 @@ function createSession (callback){
 
       currentSession.age = 0;
       currentSession.linkHashMap = {};
-
       currentSession.text =  sessionObject.userId;
-
       currentSession.initialPosition = computeInitialPosition(sessionsCreated);
       currentSession.x = currentSession.initialPosition.x;
       currentSession.y = currentSession.initialPosition.y;
       currentSession.r = 50;
-
       currentSession.colors = {};
       currentSession.colors = randomColorQueue.shift();
 
@@ -1215,12 +1212,10 @@ function createSession (callback){
       sessionNode.ageUpdated = dateNow;
       sessionNode.lastSeen = dateNow;
       sessionNode.mentions = 0;
-      // sessionNode.text = currentSession.userId;
       sessionNode.text = '';
       sessionNode.x = currentSession.initialPosition.x;
       sessionNode.y = currentSession.initialPosition.y;
       sessionNode.fixed = true;
-      // sessionNode.latestNode = true;
       sessionNode.links = {};
       sessionNode.colors = currentSession.colors;
       sessionNode.interpolateColor = currentSession.interpolateColor;
@@ -1292,14 +1287,12 @@ function createNode (sessionId, callback) {
       wordObject.lastSeen = dateNow;
       wordObject.mentions = session.source.mentions;
       wordObject.text = nodeId;
-      // wordObject.fixed = true;
       wordObject.latestNode = true;
       wordObject.colors = session.colors;
       wordObject.interpolateColor = session.interpolateColor;
 
       nodeHashMap[nodeId] = wordObject;
 
-      // session.fixedNodeId = '' ;
       session.latestNodeId = nodeId ;
       session.source = wordObject ;
       sessionHashMap[session.sessionId].session = session;
@@ -1315,11 +1308,8 @@ function createNode (sessionId, callback) {
         force.stop();
       }
 
-      // wordObject.x = session.initialPosition.x + (0.1 * session.initialPosition.x * Math.random());
-      wordObject.y = session.initialPosition.y + (0.1 * session.initialPosition.y * Math.random());
-
       wordObject.x = session.initialPosition.x;
-      // wordObject.y = session.initialPosition.y;
+      wordObject.y = session.initialPosition.y + (0.1 * session.initialPosition.y * Math.random());
 
       if (( wordObject.mentions === 'undefined') || (wordObject.mentions === null)) {
         console.log("wordObject\n" + JSON.stringify(wordObject));
@@ -2024,24 +2014,6 @@ function createSessionNodeLink() {
   );
 }
 
-// function updateNodesLinks() {
-
-//   async.waterfall(
-//     [ 
-//       updateNodes,
-//       updateNodeCircles,
-//       updateNodeLabels,
-//       updateLinks
-//     ], 
-    
-//     function(err, result){
-//       if (err) { 
-//         console.error("*** ERROR: createSessionNodeLink *** \nERROR: " + err); 
-//       }
-//     }
-//   );
-// }
-
 function nodeFill (age) { 
   return fillColorScale(age);
 }
@@ -2276,34 +2248,8 @@ document.addEventListener("mousemove", function() {
 
 d3.select(window).on("resize", resize);
 
-
-// d3.timer(function () {
-//   dateNow = moment().valueOf();
-//   createSessionNodeLink();
-// });
-
-// setInterval (function () {
-//   calcNodeAges(function(deadNodes){
-//     if (deadNodes) {
-//       console.warn("DEAD NODES");
-//       deadNodeHashMap.forEach(function(nodeObj, nodeId){
-//         deadNodeHashMap.remove(nodeId);
-//       });
-//     }
-//   });
-// }, 1000 );
-
-// setInterval (function () {
-//   dateNow = moment().valueOf();
-//   calcNodeAges(function(deadNodes){});
-//   createSessionNodeLink();
-// }, 60 );
-
-
 d3.timer(function () {
   dateNow = moment().valueOf();
   calcNodeAges(function(deadNodes){});
   if (!mouseMovingFlag && createSessionNodeLinkReady) createSessionNodeLink();
-  // createSessionNodeLink();
-  // updateNodesLinks();
 });

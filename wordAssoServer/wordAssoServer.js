@@ -3148,16 +3148,306 @@ function pairUser(sessionObj, callback){
 function handleSessionEvent(sesObj, callback) {
   switch (sesObj.sessionEvent) {
 
-    case 'SESSION_ABORT':
-      console.log(chalkSession(
-        "*** ABT SESSION ABORTED"
-        + " | ID: " + sesObj.sessionId
-      ));
+    // case 'SESSION_ABORT':
+    //   console.log(chalkSession(
+    //     "*** ABT SESSION ABORTED"
+    //     + " | ID: " + sesObj.sessionId
+    //   ));
 
-      io.to(sesObj.sessionId).emit('SESSION_ABORT', sesObj.sessionId);
+    //   io.to(sesObj.sessionId).emit('SESSION_ABORT', sesObj.sessionId);
+
+    //   sesObj.sessionEvent = 'SESSION_DELETE';
+    //   viewNameSpace.emit('SESSION_DELETE', sesObj);
+    //   break;
+
+    // case 'SESSION_EXPIRED':
+    //   console.log(chalkSession(
+    //     "EXP SESSION EXPIRED"
+    //     + " | NSP: " + sesObj.session.namespace
+    //     + " | SID: " + sesObj.session.sessionId
+    //     + " | IP: " + sesObj.session.ip
+    //     + " | DOMAIN: " + sesObj.session.domain
+    //   ));
+
+    //   sesObj.sessionEvent = 'SESSION_DELETE';
+    //   viewNameSpace.emit('SESSION_DELETE', sesObj);
+
+    //   sesObj.session.disconnectTime = moment().valueOf();
+
+    //   sessionCache.del(sesObj.session.sessionId);
+
+    //   sessionUpdateDb(sesObj.session, function(err, updatedSessionObj){
+
+    //     var currentUser = userCache.get(updatedSessionObj.userId);
+    //     var currentAdmin = adminCache.get(updatedSessionObj.userId);
+    //     var currentUtil = utilCache.get(updatedSessionObj.userId);
+    //     var currentViewer = viewerCache.get(updatedSessionObj.userId);
+
+    //     if (currentViewer) {
+    //       debug("currentViewer\n" + jsonPrint(currentViewer));
+    //       viewerCache.del(currentViewer.viewerId);
+    //       currentViewer.lastSeen = moment().valueOf();
+    //       currentViewer.connected = false;
+    //       viewerUpdateDb(currentViewer, function(err, updatedViewerObj){
+    //         if (!err){
+
+    //           updatedViewerObj.sessionId = updatedViewerObj.lastSession;
+
+    //           console.log(chalkRed("TX VIEWER SESSION (DISCONNECT): " 
+    //             + updatedViewerObj.lastSession + " TO ADMIN NAMESPACE"
+    //           ));
+
+    //           adminNameSpace.emit('VIEWER_SESSION', updatedViewerObj);
+    //         }
+    //       });
+    //     }
+
+    //     if (currentAdmin) {
+    //       debug("currentAdmin\n" + jsonPrint(currentAdmin));
+    //       adminCache.del(currentAdmin.adminId);
+    //       currentAdmin.lastSeen = moment().valueOf();
+    //       currentAdmin.connected = false;
+    //       adminUpdateDb(currentAdmin, function(err, updatedAdminObj){
+    //         if (!err){
+
+    //           updatedAdminObj.sessionId = updatedAdminObj.lastSession;
+
+    //           console.log(chalkRed("TX ADMIN SESSION (DISCONNECT): " 
+    //             + updatedAdminObj.lastSession + " TO ADMIN NAMESPACE"
+    //           ));
+
+    //           adminNameSpace.emit('ADMIN_SESSION', updatedAdminObj);
+    //         }
+    //       });
+    //     }
+        
+    //     if (currentUser) {
+    //       debug("currentUser\n" + jsonPrint(currentUser));
+    //       userCache.del(currentUser.userId);
+    //       currentUser.lastSeen = moment().valueOf();
+    //       currentUser.connected = false;
+    //       userUpdateDb(currentUser, function(err, updatedUserObj){
+    //         if (!err){
+
+    //           updatedUserObj.sessionId = updatedUserObj.lastSession;
+
+    //           console.log(chalkRed("TX USER SESSION (DISCONNECT): " 
+    //             + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"
+    //           ));
+
+    //           adminNameSpace.emit('USER_SESSION', updatedUserObj);
+    //         }
+    //       });
+    //     }
+        
+    //     if (currentUtil) {
+    //       debug("currentUtil\n" + jsonPrint(currentUtil));
+    //       utilCache.del(currentUtil.utilId);
+    //       currentUtil.lastSeen = moment().valueOf();
+    //       currentUtil.connected = false;
+    //       utilUpdateDb(currentUtil, function(err, updatedUtilObj){
+    //         if (!err){
+
+    //           updatedUtilObj.sessionId = updatedUtilObj.lastSession;
+
+    //           console.log(chalkRed("TX UTIL SESSION (DISCONNECT): " 
+    //             + updatedUtilObj.lastSession + " TO ADMIN NAMESPACE"
+    //           ));
+
+    //           adminNameSpace.emit('UTIL_SESSION', updatedUtilObj);
+    //         }
+    //       });
+    //     }
+
+    //   });
+
+    //   sesObj.session.wordChain.forEach(function(word){
+    //     debug(chalkSession(">T< SET WORD " + word + " TTL: " + wordCacheTtl));
+    //     wordCache.ttl(word, wordCacheTtl);
+    //   });
+
+    //   break;
+
+    case 'SESSION_ABORT':
+    case 'SESSION_EXPIRED':
+    case 'SOCKET_ERROR':
+    case 'SOCKET_DISCONNECT':
+      console.log(chalkSession(
+        "XXX " + sesObj.sessionEvent
+        + " | NSP: " + sesObj.session.namespace
+        + " | SID: " + sesObj.session.sessionId
+        + " | IP: " + sesObj.session.ip
+        + " | DOMAIN: " + sesObj.session.domain
+      ));
 
       sesObj.sessionEvent = 'SESSION_DELETE';
       viewNameSpace.emit('SESSION_DELETE', sesObj);
+
+      sessionCache.del(sesObj.session.sessionId);
+
+      if (sesObj.session){
+
+        debug(sesObj.sessionEvent + "\n" + jsonPrint(sesObj));
+
+        var currentAdmin = adminCache.get(sesObj.session.userId);
+        var currentUser = userCache.get(sesObj.session.userId);
+        var currentUtil = utilCache.get(sesObj.session.userId);
+        var currentViewer = viewerCache.get(sesObj.session.userId);
+
+        sesObj.session.disconnectTime = moment().valueOf();
+        sessionUpdateDb(sesObj.session, function(){});
+
+        sesObj.session.wordChain.forEach(function(word){
+          debug(chalkSession(">T< SET WORD " + word + " TTL: " + wordCacheTtl));
+          wordCache.ttl(word, wordCacheTtl);
+        });
+
+
+        unpairedUserHashMap.remove(sesObj.session.config.userA);
+        unpairedUserHashMap.remove(sesObj.session.config.userB);
+
+        if (sessionRouteHashMap.has(sesObj.session.sessionId)){
+          console.log(chalkWarn("FOUND SESSION IN ROUTE HASH: " + sesObj.session.sessionId 
+            + "\n" + jsonPrint(sesObj)
+            + "\n" + jsonPrint(sessionRouteHashMap.get(sesObj.session.sessionId))
+          ));
+
+          var unpairedSessionObj;
+
+          if (sesObj.session.sessionId == sesObj.session.config.userA) {
+            unpairedSessionObj = sessionCache.get(sesObj.session.config.userB);
+            console.log(chalkWarn(">>> TX PAIRED_USER_END TO USER B: " + sesObj.session.config.userB));
+            io.of(sesObj.session.namespace).to(sesObj.session.config.userB).emit('PAIRED_USER_END', sesObj.session.config.userA);
+          }
+          else {
+            unpairedSessionObj = sessionCache.get(sesObj.session.config.userA);
+            console.log(chalkWarn(">>> TX PAIRED_USER_END TO USER A: " + sesObj.session.config.userA));
+            io.of(sesObj.session.namespace).to(sesObj.session.config.userA).emit('PAIRED_USER_END', sesObj.session.config.userB);
+          }
+
+          pairUser(unpairedSessionObj, function(err, updatedSessionObj){
+            if (err){
+              console.error(chalkError("*** pairUser ERROR\n" + jsonPrint(err)));
+            }
+            else if (updatedSessionObj.config.userA && updatedSessionObj.config.userB) {
+
+              console.log(chalkSession("U_U CREATED USER_USER PAIR"
+                + " | " + moment().valueOf()
+                + " | " + sesObj.session.sessionId
+                + "\n" + jsonPrint(updatedSessionObj.config)
+              ));
+
+              io.of(updatedSessionObj.namespace).to(updatedSessionObj.config.userA).emit('PAIRED_USER',updatedSessionObj.config.userB);
+              io.of(updatedSessionObj.namespace).to(updatedSessionObj.config.userB).emit('PAIRED_USER',updatedSessionObj.config.userA);
+
+            }
+            else {
+              console.log(chalkSession("U-? WAITING TO COMPLETE PAIR\n" + jsonPrint(updatedSessionObj.config)));
+              return(callback(null, sesObj));
+            }
+          });
+
+         }
+
+        sessionRouteHashMap.remove(sesObj.session.config.userA);
+        sessionRouteHashMap.remove(sesObj.session.config.userB);
+
+        if (currentAdmin) {
+          debug("currentAdmin\n" + jsonPrint(currentAdmin));
+          adminCache.del(currentAdmin.adminId);
+
+          currentAdmin.lastSeen = moment().valueOf();
+          currentAdmin.disconnectTime = moment().valueOf();
+          currentAdmin.connected = false;
+
+          console.log(chalkRed("CONNECTION DURATION: " + currentAdmin.adminId
+           + " | " + msToTime(moment().valueOf() - currentAdmin.connectTime)));
+
+          adminUpdateDb(currentAdmin, function(err, updatedAdminObj){
+            if (!err){
+              console.log(chalkRed("TX ADMIN SESSION (DISCONNECT): " 
+                + updatedAdminObj.lastSession + " TO ADMIN NAMESPACE"));
+
+              adminNameSpace.emit('ADMIN_SESSION', updatedAdminObj);
+            }
+          });
+        }
+        
+        if (currentUser) {
+          debug("currentUser\n" + jsonPrint(currentUser));
+          userCache.del(currentUser.userId);
+
+          currentUser.lastSeen = moment().valueOf();
+          currentUser.connected = false;
+          currentUser.disconnectTime = moment().valueOf();
+
+          console.log(chalkRed("CONNECTION DURATION: " + currentUser.userId
+           + " | " + msToTime(moment().valueOf() - currentUser.connectTime)));
+
+          userUpdateDb(currentUser, function(err, updatedUserObj){
+            if (!err){
+
+              updatedUserObj.sessionId = updatedUserObj.lastSession;
+
+              console.log(chalkRed("TX USER SESSION (" + sesObj.sessionEvent + "): " 
+                + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"
+              ));
+
+              adminNameSpace.emit('USER_SESSION', updatedUserObj);
+            }
+          });
+        }
+        
+        if (currentUtil) {
+          debug("currentUtil\n" + jsonPrint(currentUtil));
+          utilCache.del(currentUtil.utilId);
+
+          currentUtil.lastSeen = moment().valueOf();
+          currentUtil.connected = false;
+          currentUtil.disconnectTime = moment().valueOf();
+
+          console.log(chalkRed("CONNECTION DURATION: " + currentUtil.utilId
+           + " | " + msToTime(moment().valueOf() - currentUtil.connectTime)));
+
+          utilUpdateDb(currentUtil, function(err, updatedUtilObj){
+            if (!err){
+
+              updatedUtilObj.sessionId = updatedUtilObj.lastSession;
+
+              console.log(chalkRed("TX UTIL SESSION (DISCONNECT): " 
+                + updatedUtilObj.lastSession + " TO ADMIN NAMESPACE"
+              ));
+
+              adminNameSpace.emit('UTIL_SESSION', updatedUtilObj);
+            }
+          });
+        }
+        
+        if (currentViewer) {
+          console.log("currentViewer\n" + jsonPrint(currentViewer));
+          viewerCache.del(currentViewer.viewerId);
+
+          currentViewer.lastSeen = moment().valueOf();
+          currentViewer.connected = false;
+          currentViewer.disconnectTime = moment().valueOf();
+
+          console.log(chalkRed("CONNECTION DURATION: " + currentViewer.userId
+           + " | " + msToTime(moment().valueOf() - currentViewer.connectTime)));
+
+          viewerUpdateDb(currentViewer, function(err, updatedViewerObj){
+            if (!err){
+
+              updatedViewerObj.sessionId = updatedViewerObj.lastSession;
+
+              console.log(chalkRed("TX VIEWER SESSION (DISCONNECT): " 
+                + updatedViewerObj.lastSession + " TO ADMIN NAMESPACE"
+              ));
+
+              adminNameSpace.emit('VIEWER_SESSION', updatedViewerObj);
+            }
+          });
+        }
+      }
 
       break;
 
@@ -3411,295 +3701,6 @@ function handleSessionEvent(sesObj, callback) {
           }
         });
       }
-      break;
-
-    case 'SESSION_EXPIRED':
-      console.log(chalkSession(
-        "EXP SESSION EXPIRED"
-        + " | NSP: " + sesObj.session.namespace
-        + " | SID: " + sesObj.session.sessionId
-        + " | IP: " + sesObj.session.ip
-        + " | DOMAIN: " + sesObj.session.domain
-      ));
-
-      sesObj.sessionEvent = 'SESSION_DELETE';
-      viewNameSpace.emit('SESSION_DELETE', sesObj);
-
-      sesObj.session.disconnectTime = moment().valueOf();
-
-      sessionCache.del(sesObj.session.sessionId);
-
-      sessionUpdateDb(sesObj.session, function(err, updatedSessionObj){
-
-        var currentUser = userCache.get(updatedSessionObj.userId);
-        var currentAdmin = adminCache.get(updatedSessionObj.userId);
-        var currentUtil = utilCache.get(updatedSessionObj.userId);
-        var currentViewer = viewerCache.get(updatedSessionObj.userId);
-
-        if (currentViewer) {
-          debug("currentViewer\n" + jsonPrint(currentViewer));
-          viewerCache.del(currentViewer.viewerId);
-          currentViewer.lastSeen = moment().valueOf();
-          currentViewer.connected = false;
-          viewerUpdateDb(currentViewer, function(err, updatedViewerObj){
-            if (!err){
-
-              updatedViewerObj.sessionId = updatedViewerObj.lastSession;
-
-              console.log(chalkRed("TX VIEWER SESSION (DISCONNECT): " 
-                + updatedViewerObj.lastSession + " TO ADMIN NAMESPACE"
-              ));
-
-              adminNameSpace.emit('VIEWER_SESSION', updatedViewerObj);
-            }
-          });
-        }
-
-        if (currentAdmin) {
-          debug("currentAdmin\n" + jsonPrint(currentAdmin));
-          adminCache.del(currentAdmin.adminId);
-          currentAdmin.lastSeen = moment().valueOf();
-          currentAdmin.connected = false;
-          adminUpdateDb(currentAdmin, function(err, updatedAdminObj){
-            if (!err){
-
-              updatedAdminObj.sessionId = updatedAdminObj.lastSession;
-
-              console.log(chalkRed("TX ADMIN SESSION (DISCONNECT): " 
-                + updatedAdminObj.lastSession + " TO ADMIN NAMESPACE"
-              ));
-
-              adminNameSpace.emit('ADMIN_SESSION', updatedAdminObj);
-            }
-          });
-        }
-        
-        if (currentUser) {
-          debug("currentUser\n" + jsonPrint(currentUser));
-          userCache.del(currentUser.userId);
-          currentUser.lastSeen = moment().valueOf();
-          currentUser.connected = false;
-          userUpdateDb(currentUser, function(err, updatedUserObj){
-            if (!err){
-
-              updatedUserObj.sessionId = updatedUserObj.lastSession;
-
-              console.log(chalkRed("TX USER SESSION (DISCONNECT): " 
-                + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"
-              ));
-
-              adminNameSpace.emit('USER_SESSION', updatedUserObj);
-            }
-          });
-        }
-        
-        if (currentUtil) {
-          debug("currentUtil\n" + jsonPrint(currentUtil));
-          utilCache.del(currentUtil.utilId);
-          currentUtil.lastSeen = moment().valueOf();
-          currentUtil.connected = false;
-          utilUpdateDb(currentUtil, function(err, updatedUtilObj){
-            if (!err){
-
-              updatedUtilObj.sessionId = updatedUtilObj.lastSession;
-
-              console.log(chalkRed("TX UTIL SESSION (DISCONNECT): " 
-                + updatedUtilObj.lastSession + " TO ADMIN NAMESPACE"
-              ));
-
-              adminNameSpace.emit('UTIL_SESSION', updatedUtilObj);
-            }
-          });
-        }
-
-      });
-
-      sesObj.session.wordChain.forEach(function(word){
-        debug(chalkSession(">T< SET WORD " + word + " TTL: " + wordCacheTtl));
-        wordCache.ttl(word, wordCacheTtl);
-      });
-
-      break;
-
-    case 'SOCKET_ERROR':
-    case 'SOCKET_DISCONNECT':
-      console.log(chalkSession(
-        "XXX " + sesObj.sessionEvent
-        + " | NSP: " + sesObj.session.namespace
-        + " | SID: " + sesObj.session.sessionId
-        + " | IP: " + sesObj.session.ip
-        + " | DOMAIN: " + sesObj.session.domain
-      ));
-
-      sesObj.sessionEvent = 'SESSION_DELETE';
-      viewNameSpace.emit('SESSION_DELETE', sesObj);
-
-      sessionCache.del(sesObj.session.sessionId);
-
-      if (sesObj.session){
-
-        debug(sesObj.sessionEvent + "\n" + jsonPrint(sesObj));
-
-        var currentAdmin = adminCache.get(sesObj.session.userId);
-        var currentUser = userCache.get(sesObj.session.userId);
-        var currentUtil = utilCache.get(sesObj.session.userId);
-        var currentViewer = viewerCache.get(sesObj.session.userId);
-
-        sesObj.session.disconnectTime = moment().valueOf();
-        sessionUpdateDb(sesObj.session, function(){});
-
-        sesObj.session.wordChain.forEach(function(word){
-          debug(chalkSession(">T< SET WORD " + word + " TTL: " + wordCacheTtl));
-          wordCache.ttl(word, wordCacheTtl);
-        });
-
-
-        unpairedUserHashMap.remove(sesObj.session.config.userA);
-        unpairedUserHashMap.remove(sesObj.session.config.userB);
-
-        if (sessionRouteHashMap.has(sesObj.session.sessionId)){
-          console.log(chalkWarn("FOUND SESSION IN ROUTE HASH: " + sesObj.session.sessionId 
-            + "\n" + jsonPrint(sesObj)
-            + "\n" + jsonPrint(sessionRouteHashMap.get(sesObj.session.sessionId))
-          ));
-
-          var unpairedSessionObj;
-
-          if (sesObj.session.sessionId == sesObj.session.config.userA) {
-            unpairedSessionObj = sessionCache.get(sesObj.session.config.userB);
-            console.log(chalkWarn(">>> TX PAIRED_USER_END TO USER B: " + sesObj.session.config.userB));
-            io.of(sesObj.session.namespace).to(sesObj.session.config.userB).emit('PAIRED_USER_END', sesObj.session.config.userA);
-          }
-          else {
-            unpairedSessionObj = sessionCache.get(sesObj.session.config.userA);
-            console.log(chalkWarn(">>> TX PAIRED_USER_END TO USER A: " + sesObj.session.config.userA));
-            io.of(sesObj.session.namespace).to(sesObj.session.config.userA).emit('PAIRED_USER_END', sesObj.session.config.userB);
-          }
-
-          pairUser(unpairedSessionObj, function(err, updatedSessionObj){
-            if (err){
-              console.error(chalkError("*** pairUser ERROR\n" + jsonPrint(err)));
-            }
-            else if (updatedSessionObj.config.userA && updatedSessionObj.config.userB) {
-
-              console.log(chalkSession("U_U CREATED USER_USER PAIR"
-                + " | " + moment().valueOf()
-                + " | " + sesObj.session.sessionId
-                + "\n" + jsonPrint(updatedSessionObj.config)
-              ));
-
-              io.of(updatedSessionObj.namespace).to(updatedSessionObj.config.userA).emit('PAIRED_USER',updatedSessionObj.config.userB);
-              io.of(updatedSessionObj.namespace).to(updatedSessionObj.config.userB).emit('PAIRED_USER',updatedSessionObj.config.userA);
-
-            }
-            else {
-              console.log(chalkSession("U-? WAITING TO COMPLETE PAIR\n" + jsonPrint(updatedSessionObj.config)));
-              return(callback(null, sesObj));
-            }
-          });
-
-         }
-
-        sessionRouteHashMap.remove(sesObj.session.config.userA);
-        sessionRouteHashMap.remove(sesObj.session.config.userB);
-
-        if (currentAdmin) {
-          debug("currentAdmin\n" + jsonPrint(currentAdmin));
-          adminCache.del(currentAdmin.adminId);
-
-          currentAdmin.lastSeen = moment().valueOf();
-          currentAdmin.disconnectTime = moment().valueOf();
-          currentAdmin.connected = false;
-
-          console.log(chalkRed("CONNECTION DURATION: " + currentAdmin.adminId
-           + " | " + msToTime(moment().valueOf() - currentAdmin.connectTime)));
-
-          adminUpdateDb(currentAdmin, function(err, updatedAdminObj){
-            if (!err){
-              console.log(chalkRed("TX ADMIN SESSION (DISCONNECT): " 
-                + updatedAdminObj.lastSession + " TO ADMIN NAMESPACE"));
-
-              adminNameSpace.emit('ADMIN_SESSION', updatedAdminObj);
-            }
-          });
-        }
-        
-        if (currentUser) {
-          debug("currentUser\n" + jsonPrint(currentUser));
-          userCache.del(currentUser.userId);
-
-          currentUser.lastSeen = moment().valueOf();
-          currentUser.connected = false;
-          currentUser.disconnectTime = moment().valueOf();
-
-          console.log(chalkRed("CONNECTION DURATION: " + currentUser.userId
-           + " | " + msToTime(moment().valueOf() - currentUser.connectTime)));
-
-          userUpdateDb(currentUser, function(err, updatedUserObj){
-            if (!err){
-
-              updatedUserObj.sessionId = updatedUserObj.lastSession;
-
-              console.log(chalkRed("TX USER SESSION (" + sesObj.sessionEvent + "): " 
-                + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"
-              ));
-
-              adminNameSpace.emit('USER_SESSION', updatedUserObj);
-            }
-          });
-        }
-        
-        if (currentUtil) {
-          debug("currentUtil\n" + jsonPrint(currentUtil));
-          utilCache.del(currentUtil.utilId);
-
-          currentUtil.lastSeen = moment().valueOf();
-          currentUtil.connected = false;
-          currentUtil.disconnectTime = moment().valueOf();
-
-          console.log(chalkRed("CONNECTION DURATION: " + currentUtil.utilId
-           + " | " + msToTime(moment().valueOf() - currentUtil.connectTime)));
-
-          utilUpdateDb(currentUtil, function(err, updatedUtilObj){
-            if (!err){
-
-              updatedUtilObj.sessionId = updatedUtilObj.lastSession;
-
-              console.log(chalkRed("TX UTIL SESSION (DISCONNECT): " 
-                + updatedUtilObj.lastSession + " TO ADMIN NAMESPACE"
-              ));
-
-              adminNameSpace.emit('UTIL_SESSION', updatedUtilObj);
-            }
-          });
-        }
-        
-        if (currentViewer) {
-          console.log("currentViewer\n" + jsonPrint(currentViewer));
-          viewerCache.del(currentViewer.viewerId);
-
-          currentViewer.lastSeen = moment().valueOf();
-          currentViewer.connected = false;
-          currentViewer.disconnectTime = moment().valueOf();
-
-          console.log(chalkRed("CONNECTION DURATION: " + currentViewer.userId
-           + " | " + msToTime(moment().valueOf() - currentViewer.connectTime)));
-
-          viewerUpdateDb(currentViewer, function(err, updatedViewerObj){
-            if (!err){
-
-              updatedViewerObj.sessionId = updatedViewerObj.lastSession;
-
-              console.log(chalkRed("TX VIEWER SESSION (DISCONNECT): " 
-                + updatedViewerObj.lastSession + " TO ADMIN NAMESPACE"
-              ));
-
-              adminNameSpace.emit('VIEWER_SESSION', updatedViewerObj);
-            }
-          });
-        }
-      }
-
       break;
 
     case 'ADMIN_READY':
@@ -5104,7 +5105,7 @@ function createSession (newSessionObj){
         + " | ABORTING SESSION"
       ));
       sessionQueue.enqueue({sessionEvent: "SESSION_ABORT", sessionId: socketId});
-      viewNameSpace.emit("SESSION_DELETE", {sessionEvent: "SESSION_DELETE", sessionId: socketId});
+      // viewNameSpace.emit("SESSION_DELETE", {sessionEvent: "SESSION_DELETE", sessionId: socketId});
       return;
     }
     debug(chalkLog("@@@ SESSION_KEEPALIVE | " + userObj.userId

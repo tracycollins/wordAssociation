@@ -1589,10 +1589,18 @@ function ageLinks (sessionId, callback){
     currentLinkObject = links[ageLinksIndex];
 
     if (!linkHashMap.has(currentLinkObject.linkId)){
+      if (!forceStopped){
+        forceStopped = true ;
+        force.stop();
+      }
       linkHashMap.remove(currentLinkObject.linkId);
       links.splice(ageLinksIndex, 1); 
     }
     else if (!nodeHashMap.has(currentLinkObject.source.nodeId) || !nodeHashMap.has(currentLinkObject.target.nodeId)){
+      if (!forceStopped){
+        forceStopped = true ;
+        force.stop();
+      }
       linkHashMap.remove(currentLinkObject.linkId);
       links.splice(ageLinksIndex, 1); 
     }

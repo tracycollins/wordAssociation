@@ -13,7 +13,7 @@ var serverHeartbeatTimeout = 30000 ;
 var serverCheckInterval = 30000;
 var serverKeepaliveInteval = 15047;
 
-var debug = true;
+var debug = false;
 var MAX_RX_QUEUE = 250;
 
 var forceStopped = false;
@@ -1065,6 +1065,7 @@ socket.on("SESSION_UPDATE", function(rxSessionObject){
   var rxObj = rxSessionObject ;
 
   if (!windowVisible){
+    rxSessionUpdateQueue = [];
     if (debug) {
       console.log("... SKIP SESSION_UPDATE ... WINDOW NOT VISIBLE");
     }

@@ -1602,7 +1602,11 @@ function calcNodeAges (callback){
 
         currentLinkObject = links[ageLinksIndex];
 
-        if (currentNodeObject.nodeId == currentLinkObject.target.nodeId) {
+        if (currentNodeObject.links[currentLinkObject.linkId]) {
+          delete linkHashMap[currentLinkObject.linkId];
+          links.splice(ageLinksIndex, 1); 
+        }
+        else if (currentNodeObject.nodeId == currentLinkObject.target.nodeId) {
           delete linkHashMap[currentLinkObject.linkId];
           links.splice(ageLinksIndex, 1); 
         }
@@ -1610,6 +1614,7 @@ function calcNodeAges (callback){
           delete linkHashMap[currentLinkObject.linkId];
           links.splice(ageLinksIndex, 1); 
         }
+
       }
 
     }

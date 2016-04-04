@@ -966,6 +966,7 @@ function deleteSession(sessionId, callback){
             if (links[linksIndex].linkId == sessionLinkId) {
               links.splice(linksIndex, 1);
               delete linkHashMap[sessionLinkId];
+              delete deletedSession.linkHashMap[sessionLinkId];
             }
 
             // if (nodeId === currentLinkObject.target.nodeId) {
@@ -1418,7 +1419,7 @@ function createLink (sessionId, callback) {
       var latestWord = nodeHashMap[session.latestNodeId];
 
       var newSessionLink = {
-        linkId: generateLinkId,
+        linkId: generateLinkId(),
         sessionId: session.sessionId,
         age: 0,
         source: session.node,
@@ -1449,10 +1450,11 @@ function createLink (sessionId, callback) {
       // session.linkHashMap[session.node.nodeId].push(latestWord.nodeId);
 
   
-      // console.log("CREATED LINK TO SESSION NODE"
-      //   + " | " + session.sessionId
-      //   + " | " + session.node.nodeId + " > " + latestWord.nodeId
-      // );
+      console.log("LINK (SES NODE)"
+        + " | " + session.sessionId
+        + " | LID: " + newSessionLink.linkId
+        + " | " + session.node.nodeId + " > " + latestWord.nodeId
+      );
     }
   
     if (typeof session.target === 'undefined'){
@@ -1502,7 +1504,7 @@ function createLink (sessionId, callback) {
     // console.log("LINK | " + sourceWord.nodeId + " > " + targetWordId);
 
     var newLink = {
-      linkId: generateLinkId,
+      linkId: generateLinkId(),
       sessionId: session.sessionId,
       age: 0,
       source: sourceWord,
@@ -1531,9 +1533,11 @@ function createLink (sessionId, callback) {
     // session.linkHashMap[sourceWordId].push(targetWordId);
     // session.linkHashMap[targetWordId].push(sourceWordId);
 
-
-
-    // console.log("createLink: session\n" + jsonPrint(session.linkHashMap));
+    console.log("LINK"
+      + " | " + session.sessionId
+      + " | LID: " + newLink.linkId
+      + " | " + sourceWord.nodeId + " > " + targetWord.nodeId
+    );
 
     return(callback (null, sessionId));
   } 
@@ -1597,7 +1601,7 @@ function calcNodeAges (callback){
 
             links.splice(ageLinksIndex, 1); 
             delete linkHashMap[currentLinkObject.linkId];
-            delete currentSession.linkHashMap[currentLinkObject.linkId];
+            if (typeof currentSession !== 'undefined') delete currentSession.linkHashMap[currentLinkObject.linkId];
 
             // console.log("XXX SES LINK"
             //   + " | " + currentLinkObject.source.nodeId

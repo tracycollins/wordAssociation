@@ -1445,7 +1445,7 @@ function createLink (sessionId, callback) {
       targetWord = nodeHashMap[targetWordId];
     }
 
-    else if (nodeHashMap[sourceWordId]){
+    else if (!nodeHashMap[sourceWordId]){
     // else if (!nodeHashMap.has(sourceWordId)){
       console.warn("sourceWordId " + sourceWordId + " NOT IN nodeHashMap"
         + " | " + sessionId

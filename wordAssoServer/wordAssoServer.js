@@ -1769,7 +1769,7 @@ function chainDeadEnd(chain) {
 
       chainSegment.push(chain[i]);
 
-      if (uniqueNodes.indexOf(chain[i]) == -1){
+      // if (uniqueNodes.indexOf(chain[i]) == -1){
 
         if (uniqueNodes.length >= MIN_CHAIN_FREEZE_UNIQUE_NODES) {
           debug(chalkError("... NO CHAIN FREEZE\n" + uniqueNodes));
@@ -1783,14 +1783,12 @@ function chainDeadEnd(chain) {
           )); 
           return true ;
         }
-        else {
+        else if (uniqueNodes.indexOf(chain[i]) == -1) {
           uniqueNodes.push(chain[i]);
           debug(chalkError("ADDED UNIQUE NODE\n" + uniqueNodes)); 
         }
-
-      }
+      // }
     }
-
   }
   else {
     debug(chalkError("... NO CHAIN FREEZE\nCHAIN\n" + chain));

@@ -1077,11 +1077,11 @@ socket.on("SESSION_DELETE", function(rxSessionObject){
   var rxObj = rxSessionObject ;
   if (sessionHashMap[rxObj.sessionId]) {
     console.warn("SESSION_DELETE"
-      + " | " + rxSessionObject.sessionId
+      + " | " + rxSessionObject.session.sessionId
       + " | " + rxSessionObject.sessionEvent
       // + "\n" + jsonPrint(rxSessionObject)
     );
-    var session = sessionHashMap[rxObj.sessionId];
+    var session = sessionHashMap[rxObj.session.sessionId];
     session.sessionEvent = "SESSION_DELETE";
     rxSessionUpdateQueue.push(session);
   }
@@ -1395,7 +1395,7 @@ function pauseForNodes (sessionId, callback) {
 
 function createLink (sessionId, callback) {
 
-  if (sessionId === null){
+  if (!sessionId || (!sessionHashMap[sessionId])){
     callback(null, null);
   }
   else if (sessionHashMap[sessionId].sessionEvent == 'SESSION_DELETE'){
@@ -1708,8 +1708,10 @@ function ageNodes (sessionId, callback){
         // delete sessionHashMap[currentNodeObject.sessionId];
       }
 
-      if (((typeof ageSession !== 'undefined') && (ageSession.sessionEvent == 'SESSION_DELETE'))
-        || (deadNodeHashMap.has(currentNodeId))){
+      // if (((typeof ageSession !== 'undefined') && (ageSession.sessionEvent == 'SESSION_DELETE'))
+      //   || (deadNodeHashMap.has(currentNodeId))){
+
+      if (deadNodeHashMap.has(currentNodeId)){
 
         deadNodeHashMap.remove(currentNodeId);
         // nodeHashMap.remove(currentNodeId);

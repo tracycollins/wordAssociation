@@ -10,7 +10,7 @@ var internetReady = false ;
 var minServerResponseTime = 147;
 var maxServerResponseTime = 1447;
 
-var SESSION_CACHE_DEFAULT_TTL = 300;  // seconds
+var SESSION_CACHE_DEFAULT_TTL = 30;  // seconds
 var WORD_CACHE_TTL = 30; // seconds
 
 var MIN_CHAIN_FREEZE_LENGTH = 10;

@@ -7,6 +7,9 @@ var quitOnError = false;
 var serverReady = false ;
 var internetReady = false ;
 
+var minServerResponseTime = 147;
+var maxServerResponseTime = 1447;
+
 var SESSION_CACHE_DEFAULT_TTL = 300;  // seconds
 var WORD_CACHE_TTL = 30; // seconds
 
@@ -89,27 +92,6 @@ var HashMap = require('hashmap').HashMap;
 var EventEmitter2 = require('eventemitter2').EventEmitter2;
 var EventEmitter = require("events").EventEmitter;
 
-// var statsLogger = require('stats-logger').createInstance(
-//   10*ONE_SECOND, 
-//   'file', 
-//   {
-//     filename: "./" + os.hostname() +  "_wordAssoServerStats.log", 
-//     outputFormat: "{lastFlushTime}"
-//       + " | {numberViewers} V"
-//       + " | {numberViewersMax} V MAX"
-//       + " | {numberUsers} U"
-//       + " | {numberUsersMax} U MAX"
-//       + " | {numberTestUsers} TEST U"
-//       + " | {numberTestUsersMax} TEST U MAX"
-//       + " | {numberUsersTotal} TOTAL U"
-//       + " | {numberUsersTotalMax} TOTAL U MAX"
-//       + " | {numberUtils} UTL"
-//       + " | {numberUtilsMax} UTL MAX"
-//       // + " | CACHE K:{wordCacheKeys} H:{wordCacheHits} M:{wordCacheMisses} VS:{wordCacheVsize} KS:{wordCacheKsize}"
-//   }
-// );
-
-
 // ==================================================================
 // SERVER STATUS
 // ==================================================================
@@ -140,10 +122,8 @@ var numberTestUsersMaxTime = moment().valueOf();
 var numberUsersTotalMax = 0;
 var numberUsersTotalMaxTime = moment().valueOf();
 
-
 var numberUtilsMax = 0;
 var numberUtilsMaxTime = moment().valueOf();
-
 
 var numberViewersMax = 0;
 var numberViewersMaxTime = moment().valueOf();
@@ -153,24 +133,6 @@ var numberTestViewersMaxTime = moment().valueOf();
 
 var numberViewersTotalMax = 0;
 var numberViewersTotalMaxTime = moment().valueOf();
-
-
-// statsLogger.addStat("numberViewers", "snapshot", {initialValue: 0});
-// statsLogger.addStat("numberViewersMax", "max", {initialValue: 0, suppressReset: true});
-
-// statsLogger.addStat("numberUsersTotal", "snapshot", {initialValue: 0});
-// statsLogger.addStat("numberUsersTotalMax", "max", {initialValue: 0, suppressReset: true});
-
-// statsLogger.addStat("numberUsers", "snapshot", {initialValue: 0});
-// statsLogger.addStat("numberUsersMax", "max", {initialValue: 0, suppressReset: true});
-
-// statsLogger.addStat("numberTestUsers", "snapshot", {initialValue: 0});
-// statsLogger.addStat("numberTestUsersMax", "max", {initialValue: 0, suppressReset: true});
-
-// statsLogger.addStat("numberUtils", "snapshot", {initialValue: 0});
-// statsLogger.addStat("numberUtilsMax", "max", {initialValue: 0, suppressReset: true});
-
-// statsLogger.start();
 
 console.log(
   '\n\n====================================================================================================\n' 
@@ -1025,13 +987,17 @@ function updateStatsCounts(){
 
 var updateSessionViewQueue = [];
 
+var updateSessionViewReady = true;
+
 var readUpdateSessionViewQueue = setInterval(function (){
 
-  while (updateSessionViewQueue.length > 0){
+  while (updateSessionViewReady && (updateSessionViewQueue.length > 0)){
+
+    updateSessionViewReady = false;
+
     var sessionUpdateObj = updateSessionViewQueue.shift();
 
     updateStatsCounts();
-
 
     var sessionSmallObj = {
       userId: sessionUpdateObj.userId,
@@ -1085,8 +1051,11 @@ var readUpdateSessionViewQueue = setInterval(function (){
     updateStats({ sessionUpdatesSent: sessionUpdatesSent });
 
     updatePromptResponseMetric(sessionUpdateObj);
+
+    updateSessionViewReady = true;
+
   }
-}, 20);
+}, 50);
 
 
 function updateSessionViews(sessionUpdateObj){
@@ -1128,7 +1097,6 @@ function sendPrompt(sessionObj, sourceWordObj){
       case 'ANTONYM':
       case 'SYNONYM':
 
-        // if (currentSession.wordChain.length >= 2) {
         if (currentSession.wordChainIndex >= 2){
 
           var targetWordId = currentSession.wordChain[currentSession.wordChainIndex-2];
@@ -1146,7 +1114,6 @@ function sendPrompt(sessionObj, sourceWordObj){
           targetWordObj.wordChainIndex = currentSession.wordChainIndex-2;
           wordCache.set(targetWordId, targetWordObj);
 
-          // targetWordObj.wordChainIndex = currentSession.wordChainIndex-1;
 
           debug("CHAIN: " + currentSession.wordChain);
 
@@ -1168,8 +1135,6 @@ function sendPrompt(sessionObj, sourceWordObj){
             target: targetWordObj
           };
 
-          updateSessionViews(sessionUpdateObj);
-
         } 
         else {
 
@@ -1189,17 +1154,20 @@ function sendPrompt(sessionObj, sourceWordObj){
             target: 0
           };
 
-          updateSessionViews(sessionUpdateObj);
         }
 
         setTimeout(function(){
+
           io.of(currentSession.namespace).to(currentSession.sessionId).emit('PROMPT_WORD_OBJ',sourceWordObj);
-        }, randomInt(1000,10000));
 
-        promptsSent++ ;
-        deltaPromptsSent++;
+          updateSessionViews(sessionUpdateObj);
 
-        updateStats({ promptsSent: promptsSent });
+          promptsSent++ ;
+          deltaPromptsSent++;
+          updateStats({ promptsSent: promptsSent });
+
+        }, randomInt(minServerResponseTime, maxServerResponseTime));
+
       break;
 
       case 'SCRIPT':
@@ -1217,13 +1185,6 @@ function sendPrompt(sessionObj, sourceWordObj){
         console.log(chalkRed("targetSession\n" + jsonPrint(targetSession)));
 
         var promptWordObj;
-
-        // promptWordObj.wordChainIndex = targetSession.wordChainIndex;
-
-        // targetSession.wordChain.push(promptWordObj.nodeId);
-        // targetSession.wordChainIndex++;
-
-        // io.of(currentSession.namespace).to(targetSessionId).emit('PROMPT_WORD_OBJ',promptWordObj);
       
         if (currentSession.wordChainIndex >= 2) {
 

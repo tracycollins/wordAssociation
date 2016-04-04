@@ -1439,22 +1439,11 @@ function createLink (sessionId, callback) {
       session.linkHashMap[newSessionLink.linkId] = newSessionLink;
       sessionHashMap[session.sessionId] = session;
 
-      // if (!session.linkHashMap[latestWord.nodeId]){
-      //   session.linkHashMap[latestWord.nodeId] = [];
-      // }
-      // if (!session.linkHashMap[session.node.nodeId]){
-      //   session.linkHashMap[session.node.nodeId] = [];
-      // }
-
-      // session.linkHashMap[latestWord.nodeId].push(session.node.nodeId);
-      // session.linkHashMap[session.node.nodeId].push(latestWord.nodeId);
-
-  
-      console.log("LINK (SES NODE)"
-        + " | " + session.sessionId
-        + " | LID: " + newSessionLink.linkId
-        + " | " + session.node.nodeId + " > " + latestWord.nodeId
-      );
+      // console.log("LINK (SES NODE)"
+      //   + " | " + session.sessionId
+      //   + " | LID: " + newSessionLink.linkId
+      //   + " | " + session.node.nodeId + " > " + latestWord.nodeId
+      // );
     }
   
     if (typeof session.target === 'undefined'){
@@ -1523,21 +1512,11 @@ function createLink (sessionId, callback) {
     session.linkHashMap[newLink.linkId] = newLink;
     sessionHashMap[session.sessionId] = session;
 
-    // if (!session.linkHashMap[sourceWordId]){
-    //   session.linkHashMap[sourceWordId] = []
-    // }
-    // if (!session.linkHashMap[targetWordId]){
-    //   session.linkHashMap[targetWordId] = [];
-    // }
-
-    // session.linkHashMap[sourceWordId].push(targetWordId);
-    // session.linkHashMap[targetWordId].push(sourceWordId);
-
-    console.log("LINK"
-      + " | " + session.sessionId
-      + " | LID: " + newLink.linkId
-      + " | " + sourceWord.nodeId + " > " + targetWord.nodeId
-    );
+    // console.log("LINK"
+    //   + " | " + session.sessionId
+    //   + " | LID: " + newLink.linkId
+    //   + " | " + sourceWord.nodeId + " > " + targetWord.nodeId
+    // );
 
     return(callback (null, sessionId));
   } 

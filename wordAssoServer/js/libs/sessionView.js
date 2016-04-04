@@ -1459,7 +1459,7 @@ function createLink (sessionId, callback) {
         + " | " + sessionId
         + " | " + session.userId
         + " | SKIPPING CREATE LINKS"
-       + "\nSOURCE" + jsonPrint(sourceWord)
+       // + "\nSOURCE" + jsonPrint(sourceWord)
       );
       return(callback (null, sessionId));
     }
@@ -1480,7 +1480,7 @@ function createLink (sessionId, callback) {
         + " | " + sessionId
         + " | " + session.userId
        + " | SKIPPING CREATE LINKS"
-       + "\nSOURCE" + jsonPrint(sourceWord)
+       // + "\nSOURCE" + jsonPrint(sourceWord)
        );
       return(callback (null, sessionId));
     }
@@ -1604,6 +1604,7 @@ function calcNodeAges (callback){
 
         if (currentNodeObject.links[currentLinkObject.linkId]) {
           delete linkHashMap[currentLinkObject.linkId];
+          delete currentNodeObject.linkHashMap[currentLinkObject.linkId];
           links.splice(ageLinksIndex, 1); 
         }
         else if (currentNodeObject.nodeId == currentLinkObject.target.nodeId) {
@@ -1630,7 +1631,13 @@ function calcNodeAges (callback){
 
         currentLinkObject = links[ageLinksIndex];
 
-        if (nodeId === currentLinkObject.target.nodeId) {
+        if (!nodeHashMap[currentLinkObject.source.nodeId] || !nodeHashMap[currentLinkObject.target.nodeId]){
+          console.warn("XXX LINK | source OR target undefined\n" + jsonPrint(currentLinkObject) );
+          delete linkHashMap[currentLinkObject.linkId];
+          delete currentNodeObject.linkHashMap[currentLinkObject.linkId];
+          links.splice(ageLinksIndex, 1); 
+        }
+        else if (nodeId === currentLinkObject.target.nodeId) {
           if (currentLinkObject.age < age){
             links[ageLinksIndex].age = age; 
           }

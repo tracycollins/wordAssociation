@@ -1103,6 +1103,9 @@ initialPosition.y = 10;
 // GET NODES FROM QUEUE
 //================================
 
+var initialPositionIndex = 0;
+var initialPositionArray = [];
+
 function computeInitialPosition(index) {
   var pos = {
     x: ((0.4 * width) + (radiusX * Math.cos(index))),
@@ -1111,6 +1114,8 @@ function computeInitialPosition(index) {
 
   return pos;
 }
+
+
 
 var nodeIndex = 0;
 var tempMentions;
@@ -1131,7 +1136,9 @@ setInterval(function(){ // randomColorQueue
 
   if (randomColorQueue.length < 50) {
     randomColorQueue.push({ "startColor": startColor, "endColor": endColor});
+    initialPositionArray.push(computeInitialPosition(initialPositionIndex++));
   }
+
 }, 50);
 
 function createSession (callback){
@@ -1187,7 +1194,8 @@ function createSession (callback){
       currentSession.linkHashMap = new StringMap();
       currentSession.sessionLinkId = '';
       currentSession.text =  sessionObject.userId;
-      currentSession.initialPosition = computeInitialPosition(sessionsCreated);
+      // currentSession.initialPosition = computeInitialPosition(sessionsCreated);
+      currentSession.initialPosition = initialPositionArray.shift();
       currentSession.x = currentSession.initialPosition.x;
       currentSession.y = currentSession.initialPosition.y;
       currentSession.r = 50;
@@ -1261,7 +1269,6 @@ function createNode (sessionId, callback) {
   }
   else {
     session = sessionHashMap.get(sessionId);
-    // session = sessionObj.session;
 
     if (session.sessionEvent == 'SESSION_DELETE'){
       console.warn("DELETE SESSION: " + session.sessionId);

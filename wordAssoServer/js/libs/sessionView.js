@@ -1152,6 +1152,12 @@ function createSession (callback){
     callback(null, null);
   }
   else {
+
+      if (!forceStopped){
+        forceStopped = true ;
+        force.stop();
+      }
+
     var dateNow = moment().valueOf();
 
     var sessionObject = rxSessionUpdateQueue.shift();

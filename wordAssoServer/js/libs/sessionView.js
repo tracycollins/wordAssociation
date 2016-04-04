@@ -2366,8 +2366,14 @@ document.addEventListener("mousemove", function() {
 
 d3.select(window).on("resize", resize);
 
-d3.timer(function () {
+// d3.timer(function () {
+//   dateNow = moment().valueOf();
+//   calcNodeAges(function(deadNodes){});
+//   if (!mouseMovingFlag && createSessionNodeLinkReady) createSessionNodeLink();
+// });
+
+setInterval(function () {
   dateNow = moment().valueOf();
   calcNodeAges(function(deadNodes){});
   if (!mouseMovingFlag && createSessionNodeLinkReady) createSessionNodeLink();
-});
+}, 40);

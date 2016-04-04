@@ -950,29 +950,34 @@ function deleteSession(sessionId, callback){
 
       // console.warn("SESSION " + sessionId + " | " + jsonPrint(deletedSession));
 
-      sessionLinks.forEach(function(nodeId){
+      sessionLinks.forEach(function(sessionLinkId){
         // console.warn("SESSION " + sessionId
         //  + " | " + nodeId
         //  + " | " + jsonPrint(deletedSession.linkHashMap[nodeId])
         // );
-        deletedSession.linkHashMap[nodeId].forEach(function(targetNodeId){
+        // deletedSession.linkHashMap[nodeId].forEach(function(targetNodeId){
           var linksLength = links.length-1;
           var linksIndex = links.length-1;
           
           for (linksIndex = linksLength; linksIndex >= 0; linksIndex -= 1) {
 
-            var currentLinkObject = links[linksIndex];
+            // var currentLinkObject = links[linksIndex];
 
-            if (nodeId === currentLinkObject.target.nodeId) {
+            if (links[linksIndex].linkId == sessionLinkId) {
               links.splice(linksIndex, 1);
-              delete linkHashMap[currentLinkObject.linkId];
+              delete linkHashMap[sessionLinkId];
             }
-            else if (nodeId === currentLinkObject.source.nodeId) {
-              links.splice(linksIndex, 1); 
-              delete linkHashMap[currentLinkObject.linkId];
-            }
+
+            // if (nodeId === currentLinkObject.target.nodeId) {
+            //   links.splice(linksIndex, 1);
+            //   delete linkHashMap[currentLinkObject.linkId];
+            // }
+            // else if (nodeId === currentLinkObject.source.nodeId) {
+            //   links.splice(linksIndex, 1); 
+            //   delete linkHashMap[currentLinkObject.linkId];
+            // }
           }
-        });
+        // });
       });
 
       delete sessionHashMap[sessionId];
@@ -1550,6 +1555,7 @@ function calcNodeAges (callback){
 
   var deadNodesFlag = false;
 
+  var currentSession = {};
   var currentNodeObject = {};
   var currentLinkObject = {};
 
@@ -1559,11 +1565,13 @@ function calcNodeAges (callback){
   var ageLinksLength = links.length-1;
   var ageLinksIndex = links.length-1;
 
+  var latestNodeId;
+
   var nodeHashMapKeys = Object.keys(nodeHashMap);
 
   nodeHashMapKeys.forEach(function(nodeId){
 
-    var currentNodeObject = nodeHashMap[nodeId];
+    currentNodeObject = nodeHashMap[nodeId];
 
     age = currentNodeObject.age + (ageRate * (dateNow - currentNodeObject.ageUpdated));
  
@@ -1571,7 +1579,7 @@ function calcNodeAges (callback){
 
       currentNodeObject.age = 0;
       // currentNodeObject.links[latestWord.nodeId] = latestWord.nodeId;
-      var latestNodeId = currentNodeObject.isSessionNode; // targetNode
+      latestNodeId = currentNodeObject.isSessionNode; // targetNode
 
       ageLinksLength = links.length-1;
       ageLinksIndex = links.length-1;
@@ -1581,10 +1589,16 @@ function calcNodeAges (callback){
         currentLinkObject = links[ageLinksIndex];
 
         if (currentLinkObject.isSessionLink) {
+
+          currentSession = sessionHashMap[currentLinkObject.sessionId];
+
           if ((currentLinkObject.source.nodeId == currentNodeObject.nodeId)
           && (currentLinkObject.target.nodeId != latestNodeId)) {
+
             links.splice(ageLinksIndex, 1); 
             delete linkHashMap[currentLinkObject.linkId];
+            delete currentSession.linkHashMap[currentLinkObject.linkId];
+
             // console.log("XXX SES LINK"
             //   + " | " + currentLinkObject.source.nodeId
             //   + " > " + currentLinkObject.target.nodeId

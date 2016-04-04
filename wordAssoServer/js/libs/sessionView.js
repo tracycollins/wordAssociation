@@ -420,6 +420,8 @@ socket.on("disconnect", function(){
   console.log("*** DISCONNECTED FROM HOST ... DELETING ALL SESSIONS ...");
   deleteAllSessions(function(){
     console.log("DELETED ALL SESSIONS");
+    nodeHashMap = {};
+    linkHashMap = {};
   });
 });
 
@@ -932,13 +934,12 @@ setInterval(function () {
 
 function deleteSession(sessionId, callback){
 
-  // force.stop();
+  force.stop();
 
   var deletedSession = {};
   var index = -1;
 
-  for (index=sessions.length-1; index >= 0; index -= 1) {
-    if (sessions[index].sessionId == sessionId){
+    // if (sessions[index].sessionId == sessionId){
       deletedSession = sessionHashMap[sessionId];
       console.warn("XXX DELETE SESSION"
         + " [" + sessions.length + "]"
@@ -986,8 +987,8 @@ function deleteSession(sessionId, callback){
       sessions.splice(index, 1);
 
       deadNodeHashMap.set(deletedSession.userId,1);
-    }
-  }
+    // }
+
 
   if (index == 0) {
     return(callback(sessionId));
@@ -1604,7 +1605,7 @@ function calcNodeAges (callback){
 
         if (currentNodeObject.links[currentLinkObject.linkId]) {
           delete linkHashMap[currentLinkObject.linkId];
-          delete currentNodeObject.linkHashMap[currentLinkObject.linkId];
+          delete currentNodeObject.links[currentLinkObject.linkId];
           links.splice(ageLinksIndex, 1); 
         }
         else if (currentNodeObject.nodeId == currentLinkObject.target.nodeId) {
@@ -1634,7 +1635,7 @@ function calcNodeAges (callback){
         if (!nodeHashMap[currentLinkObject.source.nodeId] || !nodeHashMap[currentLinkObject.target.nodeId]){
           console.warn("XXX LINK | source OR target undefined\n" + jsonPrint(currentLinkObject) );
           delete linkHashMap[currentLinkObject.linkId];
-          delete currentNodeObject.linkHashMap[currentLinkObject.linkId];
+          delete currentNodeObject.links[currentLinkObject.linkId];
           links.splice(ageLinksIndex, 1); 
         }
         else if (nodeId === currentLinkObject.target.nodeId) {

@@ -1495,16 +1495,18 @@ function createLink (sessionId, callback) {
     var sourceWord = nodeHashMap.get(sourceWordId);
     sourceWord.links[sessionId] = 1;
 
+    var newLink;
+
     if (typeof session.target !== 'undefined') {
 
       var targetWordId = session.target.nodeId;
       var targetWord = nodeHashMap.get(targetWordId);
-      delete targetWord.links[sessionId];
+      if (typeof targetWord.links !== 'undefined') delete targetWord.links[sessionId];
       targetWord.links[linkId] = 1;
 
       var linkId = generateLinkId();
 
-      var newLink = {
+      newLink = {
         linkId: linkId,
         sessionId: session.sessionId,
         age: 0,
@@ -1520,7 +1522,7 @@ function createLink (sessionId, callback) {
     addToHashMap(nodeHashMap, sourceWordId, sourceWord, function(){});
 
 
-    addToHashMap(linkHashMap, linkId, newLink, function(nLink){
+    if (newLink) addToHashMap(linkHashMap, linkId, newLink, function(nLink){
       newLinks.push(nLink.linkId);
       // console.log("NEW LINK"
       //   + " | " + newLinks.length

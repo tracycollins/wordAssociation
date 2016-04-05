@@ -1486,48 +1486,50 @@ function createLink (sessionId, callback) {
       //   + " > " + sesLink.target.nodeId
       // );
     });
-    
+
     var sourceWordId = session.source.nodeId;
-    var targetWordId = session.target.nodeId;
-
     var sourceWord = nodeHashMap.get(sourceWordId);
-    var targetWord = nodeHashMap.get(targetWordId);
-
-    var linkId = generateLinkId();
-
-    var newLink = {
-      linkId: linkId,
-      sessionId: session.sessionId,
-      age: 0,
-      source: sourceWord,
-      target: targetWord
-    };
-
     sourceWord.links[sessionId] = 1;
-    sourceWord.links[linkId] = 1;
-    addToHashMap(nodeHashMap, sourceWordId, sourceWord, function(){});
 
-    if (typeof targetWord !== 'undefined') {
+    if (typeof session.target !== 'undefined') {
+
+      var targetWordId = session.target.nodeId;
+      var targetWord = nodeHashMap.get(targetWordId);
       delete targetWord.links[sessionId];
       targetWord.links[linkId] = 1;
+
+      var linkId = generateLinkId();
+
+      var newLink = {
+        linkId: linkId,
+        sessionId: session.sessionId,
+        age: 0,
+        source: sourceWord,
+        target: targetWord
+      };
+      
+      sourceWord.links[linkId] = 1;
+      addToHashMap(nodeHashMap, targetWordId, targetWord, function(){});
+
     }
-    addToHashMap(nodeHashMap, targetWordId, targetWord, function(){});
+
+    addToHashMap(nodeHashMap, sourceWordId, sourceWord, function(){});
+
 
     addToHashMap(linkHashMap, linkId, newLink, function(nLink){
-
       newLinks.push(nLink.linkId);
-
       // console.log("NEW LINK"
       //   + " | " + newLinks.length
       //   + " | " + nLink.linkId
       //   + " | " + nLink.source.nodeId
       //   + " > " + nLink.target.nodeId
       // );
-
-      addToHashMap(sessionHashMap, session.sessionId, session, function(sess){
-        // console.log("createLink END\n" + jsonPrint(sess));
-      });
     });
+
+    addToHashMap(sessionHashMap, session.sessionId, session, function(sess){
+      // console.log("createLink END\n" + jsonPrint(sess));
+    });
+
   }
   return(callback (null, sessionId));
 }

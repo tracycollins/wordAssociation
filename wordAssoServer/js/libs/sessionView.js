@@ -23,12 +23,9 @@ var mouseMovingFlag = false;
 
 var createNodeQueue = [];
 var createLinkQueue = [];
-// var updateNodesArrayQueue = [];
-// var updateLinksArrayQueue = [];
 
 var newNodes = [];
 var newLinks = [];
-var deadLinks = [];
 
 var sessionsCreated = 0;
 
@@ -1075,9 +1072,9 @@ socket.on("SESSION_DELETE", function(rxSessionObject){
   var rxObj = rxSessionObject ;
   if (sessionHashMap.has(rxObj.sessionId)) {
     console.warn("SESSION_DELETE"
-      + " | " + rxSessionObject.session.sessionId
-      + " | " + rxSessionObject.sessionEvent
-      // + "\n" + jsonPrint(rxSessionObject)
+      // + " | " + rxSessionObject.sessionId
+      // + " | " + rxSessionObject.sessionEvent
+      + "\n" + jsonPrint(rxSessionObject)
     );
     var session = sessionHashMap.get(rxObj.session.sessionId);
     session.sessionEvent = "SESSION_DELETE";
@@ -1226,6 +1223,10 @@ function createSession (callback){
       currentSession.node.ageUpdated = dateNow;
       currentSession.node.lastSeen = dateNow;
 
+      var sessionLinkId = sessUpdate.sessionId + "_" + sessUpdate.source.nodeId;
+      currentSession.node.links = {};
+      currentSession.node.links[sessionLinkId] = 1;
+
       // sessionHashMap.set(sessionObject.sessionId, currentSession);
       addToHashMap(sessionHashMap, currentSession.sessionId, currentSession, function(cSession){
         createNodeQueue.push(cSession);
@@ -1263,7 +1264,7 @@ function createSession (callback){
       var sessionNode = {};
 
       sessionNode.isSessionNode = true;
-      sessionNode.nodeId = sessionId;
+      sessionNode.nodeId = sessUpdate.sessionId;
       sessionNode.userId = sessUpdate.userId;
       sessionNode.sessionId = sessUpdate.sessionId;
       sessionNode.age = 0;
@@ -1277,6 +1278,11 @@ function createSession (callback){
       sessionNode.colors = currentSession.colors;
       sessionNode.interpolateColor = currentSession.interpolateColor;
 
+      sessionNode.links = {};
+
+      var sessionLinkId = sessUpdate.sessionId + "_" + currentSession.latestNodeId;
+      sessionNode.links[sessionLinkId] = 1;
+
       currentSession.node = sessionNode;
       currentSession.source.lastSeen = dateNow;
       if (typeof currentSession.target !== 'undefined') {
@@ -1284,9 +1290,7 @@ function createSession (callback){
       }
 
       addToHashMap(nodeHashMap, sessionNode.nodeId, sessionNode, function(sesNode){
-
         newNodes.push(sesNode.nodeId);
-
         addToHashMap(sessionHashMap, currentSession.sessionId, currentSession, function(cSession){
           console.log("NEW SESSION " 
             + cSession.userId 
@@ -1358,8 +1362,8 @@ function createNode (sessionId, callback) {
         }
         else {
           sourceNode = session.source ;
-          sourceNode.x = session.initialPosition.x + (0.1 * session.initialPosition.x * Math.random());
-          sourceNode.y = session.initialPosition.y + (0.1 * session.initialPosition.y * Math.random());
+          sourceNode.x = session.initialPosition.x + 100;
+          sourceNode.y = session.initialPosition.y + 100;
           sourceNode.userId = session.userId;
           sourceNode.sessionId = sessionId;
           sourceNode.links = {};
@@ -1380,9 +1384,9 @@ function createNode (sessionId, callback) {
       target: function (cb) {
         if (typeof targetNodeId === 'undefined'){
           console.warn("targetNodeId UNDEFINED ... SKIPPING CREATE NODE");
-          cb("TARGET UNDEFINED", null);
+          (cb("TARGET UNDEFINED", null));
         }
-        if (nodeHashMap.has(targetNodeId)) {
+        else if (nodeHashMap.has(targetNodeId)) {
           targetNode = nodeHashMap.get(targetNodeId);
           targetNode.userId = session.userId;
           targetNode.sessionId = sessionId;
@@ -1424,10 +1428,12 @@ function createNode (sessionId, callback) {
       // console.warn("CREATE NODE RESULTS\n" + jsonPrint(results));
 
       session.source = results.source.node;
-      session.target = results.target.node;
-
       if (results.source.isNew) newNodes.push(results.source.node.nodeId);
-      if (results.target.isNew) newNodes.push(results.target.node.nodeId);
+
+      if (results.target) {
+        session.target = results.target.node;
+        if (results.target.isNew) newNodes.push(results.target.node.nodeId);
+      }
 
       addToHashMap(sessionHashMap, session.sessionId, session, function(cSession){
         // console.log("CREATE NODE UPDATED SESSION " 
@@ -1499,11 +1505,12 @@ function createLink (sessionId, callback) {
 
     sourceWord.links[sessionId] = 1;
     sourceWord.links[linkId] = 1;
-
-    delete targetWord.links[sessionId];
-    targetWord.links[linkId] = 1;
-
     addToHashMap(nodeHashMap, sourceWordId, sourceWord, function(){});
+
+    if (typeof targetWord !== 'undefined') {
+      delete targetWord.links[sessionId];
+      targetWord.links[linkId] = 1;
+    }
     addToHashMap(nodeHashMap, targetWordId, targetWord, function(){});
 
     addToHashMap(linkHashMap, linkId, newLink, function(nLink){
@@ -1653,7 +1660,7 @@ function ageNodes (sessionId, callback){
       removeFromHashMap(nodeHashMap, currentNodeId, function(){
         nodes.splice(ageNodesIndex, 1);
 
-        jp("currentNodeObject.links", currentNodeObject.links);
+        // jp("currentNodeObject.links", currentNodeObject.links);
 
       });
     }
@@ -2031,7 +2038,6 @@ function nodeMouseOver(d) {
   var linkNodeIds = Object.keys(d.links);
 
   linkNodeIds.forEach(function(nId){
-    // var cNode = nodeHashMap[nId];
     var cNode = nodeHashMap.get(nId);
     console.log("CONNECTED NODES | " + d.nodeId
       + "\n" + jsonPrint(cNode)

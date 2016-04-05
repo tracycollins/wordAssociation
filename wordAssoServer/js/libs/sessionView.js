@@ -1026,8 +1026,11 @@ function deleteSession(sessionId, callback){
     function(err){
       sessionHashMap.remove(sessionId);
 
-      nodeHashMap.remove(deletedSession.node.nodeId);
-      nodeHashMap.remove(deletedSession.userId);
+      // nodeHashMap.remove(deletedSession.node.nodeId);
+      var sessionNode = nodeHashMap.get(deletedSession.userId);
+      sessionNode.isDead = true;
+      nodeHashMap.set(deletedSession.userId, sessionNode);
+      nodeHashMap.remove(deletedSession.sessionId);
 
       deleteSessionHashMap.set(sessionId, 1);
 
@@ -1048,11 +1051,6 @@ function deleteAllSessions(callback){
     });
   },
     function(err){
-      sessions = [];
-      sessionHashMap = new HashMap();
-      nodeHashMap = new HashMap();
-      linkHashMap = new HashMap();
-      deleteSessionHashMap = new HashMap();
       callback();
     }
   );
@@ -1227,8 +1225,6 @@ function removeFromHashMap(hm, key, callback){
   hm.remove(key);
   callback(key);
 }
-
-
 
 function createSession (callback){
 

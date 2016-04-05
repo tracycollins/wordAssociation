@@ -9,7 +9,7 @@ var testMode = false ;
 
 var userResponseEnabled = false;
 
-var sessionMode = 'STREAM' ;
+var sessionMode = 'PROMPT' ;
 var monitorMode = false ;
 
 var responseTimeoutInterval = 1000 ;
@@ -302,7 +302,9 @@ function sendUserResponseOnEnter(){
     clearTimeout(inputStreamChangedTimeout);
     clearInterval(checkStreamInputTextInterval);
     console.log("enterKeyDownFlag: " + enterKeyDownFlag);
-    var inputData = document.getElementById("userResponseStreamInput").value.toLowerCase();
+    var inputDataRaw = document.getElementById("userResponseStreamInput");
+    if (!inputDataRaw) return;
+    var inputData = inputDataRaw.value.toLowerCase();
 
     if (inputData){
       sendUserResponse('STREAM', inputData, function(dataTransmitted){
@@ -560,9 +562,11 @@ socket.on('connect', function(){
   socketId = socket.id ;
   console.log(">>> CONNECTED TO HOST | SOCKET ID: " + socketId);
   getUrlVariables();
+  socket.emit("USER_READY", userObj);
+  transmitDataQueue.push(userObj.userId);
 
   socketIdLabel.style.color = defaultTextColor ;
-  socketIdLabel.innerHTML = socket.id;   
+  socketIdLabel.innerHTML = userObj.userId + '<br>' + socket.id;   
   socketIdDiv.appendChild(socketIdLabel);
 });
 

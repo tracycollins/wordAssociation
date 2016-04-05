@@ -991,10 +991,10 @@ function deleteAllSessions(callback){
   },
     function(err){
       sessions = [];
-      sessionHashMap = new StringMap();
-      // nodeHashMap = [];
-      nodeHashMap = new StringMap();
-      linkHashMap = new StringMap();
+      sessionHashMap = new HashMap();
+      nodeHashMap = new HashMap();
+      linkHashMap = new HashMap();
+      deleteSessionHashMap = new HashMap();
       callback();
     }
   );
@@ -1250,7 +1250,7 @@ function createSession (callback){
 
       currentSession.node = {};
       currentSession.age = 0;
-      currentSession.linkHashMap = new StringMap();
+      currentSession.linkHashMap = new HashMap();
       currentSession.initialPosition = initialPositionArray.shift();
       currentSession.x = currentSession.initialPosition.x;
       currentSession.y = currentSession.initialPosition.y;
@@ -1500,23 +1500,27 @@ function createLink (sessionId, callback) {
     if (typeof session.target !== 'undefined') {
 
       var targetWordId = session.target.nodeId;
-      var targetWord = nodeHashMap.get(targetWordId);
-      if (typeof targetWord.links !== 'undefined') delete targetWord.links[sessionId];
-      targetWord.links[linkId] = 1;
+      var targetWord;
 
-      var linkId = generateLinkId();
+      if (nodeHashMap.has(targetWordId)) {
+        targetWord = nodeHashMap.get(targetWordId);
+        if (typeof targetWord.links !== 'undefined') delete targetWord.links[sessionId];
+      
+        var linkId = generateLinkId();
 
-      newLink = {
-        linkId: linkId,
-        sessionId: session.sessionId,
-        age: 0,
-        source: sourceWord,
-        target: targetWord
-      };
+        targetWord.links[linkId] = 1;
 
-      sourceWord.links[linkId] = 1;
-      addToHashMap(nodeHashMap, targetWordId, targetWord, function(){});
+        newLink = {
+          linkId: linkId,
+          sessionId: session.sessionId,
+          age: 0,
+          source: sourceWord,
+          target: targetWord
+        };
 
+        sourceWord.links[linkId] = 1;
+        addToHashMap(nodeHashMap, targetWordId, targetWord, function(){});
+      }
     }
 
     addToHashMap(nodeHashMap, sourceWordId, sourceWord, function(){});

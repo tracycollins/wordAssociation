@@ -1116,10 +1116,6 @@ socket.on("SESSION_UPDATE", function(rxSessionObject){
 
 var age;
 
-var initialPosition = {};
-initialPosition.x = 10;
-initialPosition.y = 10;
-
 
 //================================
 // GET NODES FROM QUEUE
@@ -1179,6 +1175,7 @@ function removeFromHashMap(hm, key, callback){
 function createSession (callback){
 
   var currentSession = {};
+  var currentSessionNode = {};
   // console.log("rxSessionUpdateQueue: " + rxSessionUpdateQueue.length);
 
   if (rxSessionUpdateQueue.length == 0){
@@ -1206,6 +1203,10 @@ function createSession (callback){
     else if (sessionHashMap.has(sessUpdate.sessionId)){
 
       currentSession = sessionHashMap.get(sessUpdate.sessionId);
+
+      if (nodeHashMap.has(currentSession.node.nodeId)) {
+        currentSession.node = nodeHashMap.get(currentSession.node.nodeId);
+      }
 
       var prevLatestNodeId = currentSession.latestNodeId;
       var prevSessionLinkId = currentSession.sessionId + "_" + prevLatestNodeId;
@@ -1290,7 +1291,9 @@ function createSession (callback){
       }
 
       addToHashMap(nodeHashMap, sessionNode.nodeId, sessionNode, function(sesNode){
+
         newNodes.push(sesNode.nodeId);
+
         addToHashMap(sessionHashMap, currentSession.sessionId, currentSession, function(cSession){
           console.log("NEW SESSION " 
             + cSession.userId 
@@ -1298,6 +1301,7 @@ function createSession (callback){
             + " | " + cSession.node.nodeId 
             // + "\n" + jsonPrint(cSession) 
           );
+          sessions.push(cSession);
           createNodeQueue.push(cSession);
           return(callback (null, cSession.sessionId));
         });
@@ -1362,8 +1366,8 @@ function createNode (sessionId, callback) {
         }
         else {
           sourceNode = session.source ;
-          sourceNode.x = session.initialPosition.x + 100;
-          sourceNode.y = session.initialPosition.y + 100;
+          sourceNode.x = session.initialPosition.x + (100 - 100 * Math.random());
+          sourceNode.y = session.initialPosition.y;
           sourceNode.userId = session.userId;
           sourceNode.sessionId = sessionId;
           sourceNode.links = {};
@@ -1405,8 +1409,8 @@ function createNode (sessionId, callback) {
         }
         else {
           targetNode = session.target ;
-          targetNode.x = session.initialPosition.x - (0.1 * session.initialPosition.y * Math.random());
-          targetNode.y = session.initialPosition.y - (0.1 * session.initialPosition.y * Math.random());
+          targetNode.x = session.initialPosition.x - (100 - 100 * Math.random());
+          targetNode.y = session.initialPosition.y - (100 - 100 * Math.random());
           targetNode.userId = session.userId;
           targetNode.sessionId = sessionId;
           targetNode.links = {};
@@ -1507,7 +1511,7 @@ function createLink (sessionId, callback) {
         source: sourceWord,
         target: targetWord
       };
-      
+
       sourceWord.links[linkId] = 1;
       addToHashMap(nodeHashMap, targetWordId, targetWord, function(){});
 
@@ -1591,7 +1595,7 @@ function calcNodeAges (callback){
 
     age = node.age + (ageRate * (dateNow - node.ageUpdated));
 
-    if (age >= nodeMaxAge) {
+    if (!node.isSessionNode && (age >= nodeMaxAge)) {
       node.isDead = true;
       addToHashMap(nodeHashMap, nodeId, node, function(node){
         cb();
@@ -1927,18 +1931,18 @@ function updateNodeCircles (sessionId, callback) {
     .on("mouseout", nodeMouseOut)
     .on("dblclick", nodeClick)
     .call(force.drag)
-    .attr("r", function(d) { 
-      return defaultRadiusScale(100);
-    })
+    .attr("r", 0)
     .style("visibility", "visible") 
-    .style("opacity", 1e-6)
+    .style("opacity", 1.0)
     .style('stroke', function(d){ return strokeColorScale(d.age);})
     .style("stroke-width", 2.5)
-    .style("fill", function(d) { 
-      return d.interpolateColor((nodeMaxAge - d.age) / nodeMaxAge);
-    })
+    .style("fill", "#FFFFFF")
     .transition()
       .duration(defaultFadeDuration)      
+      .style("fill", "#ffffff")
+      .attr("r", function(d) { 
+        return defaultRadiusScale(100);
+      })
       .style('opacity', 1.0);
 
   nodeCircles
@@ -1997,7 +2001,6 @@ function createSessionNodeLink() {
   async.waterfall(
     [ 
       createSession,
-      updateSessionCircles,
       createNode,
       createLink,
       updateNodesArray,
@@ -2006,6 +2009,7 @@ function createSessionNodeLink() {
       ageNodes,
       ageLinks,
       updateNodes,
+      updateSessionCircles,
       updateNodeCircles,
       updateNodeLabels,
       updateLinks

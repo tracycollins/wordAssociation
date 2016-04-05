@@ -207,6 +207,7 @@ var wordAssoServerStatsObj = {
 
 wordAssoServerStatsObj.session.error = 0;
 wordAssoServerStatsObj.session.previousPromptNotFound = 0;
+wordAssoServerStatsObj.session.responseError = 0;
 
 // ==================================================================
 // LOGS, STATS
@@ -4040,6 +4041,17 @@ var readResponseQueue = setInterval(function (){
     ready = false;
 
     var rxInObj = responseQueue.dequeue();
+
+    if ((typeof rxInObj.nodeId === 'undefined') || (typeof rxInObj.nodeId !== 'string')){
+      console.error(chalkError("*** ILLEGAL RESPONSE ... SKIPPING"
+        + "\nTYPE: " + typeof rxInObj.nodeId
+        + "\n" + jsonPrint(rxInObj)
+      ));
+      ready = true;
+      wordAssoServerStatsObj.session.error++;
+      wordAssoServerStatsObj.session.responseError++;
+      return;
+    }
 
     var responseInObj = rxInObj ;
     var socketId = responseInObj.socketId;

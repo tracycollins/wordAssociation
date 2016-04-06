@@ -1124,11 +1124,11 @@ socket.on("SESSION_DELETE", function(rxSessionObject){
   var rxObj = rxSessionObject ;
   if (sessionHashMap.has(rxObj.sessionId)) {
     console.warn("SESSION_DELETE"
-      // + " | " + rxSessionObject.sessionId
-      // + " | " + rxSessionObject.sessionEvent
-      + "\n" + jsonPrint(rxSessionObject)
+      + " | " + rxSessionObject.sessionId
+      + " | " + rxSessionObject.sessionEvent
+      // + "\n" + jsonPrint(rxSessionObject)
     );
-    var session = sessionHashMap.get(rxObj.session.sessionId);
+    var session = sessionHashMap.get(rxObj.sessionId);
     session.sessionEvent = "SESSION_DELETE";
     rxSessionUpdateQueue.push(session);
   }

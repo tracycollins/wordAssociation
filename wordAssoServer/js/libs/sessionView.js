@@ -800,8 +800,8 @@ var linkSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "linkSvgGroup")
 var nodeSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "nodeSvgGroup");
 var nodeLabelSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "nodeLabelSvgGroup");
 
-var session = sessionSvgGroup.selectAll("g.session");
-var sessionCircles = sessionSvgGroup.selectAll("circle");
+var sessionGnode = sessionSvgGroup.selectAll("g.session");
+var sessionCircles = sessionSvgGroup.selectAll(".sessionCircle");
 var sessionLabels = sessionLabelSvgGroup.selectAll(".sessionLabel");
 
 var node = nodeSvgGroup.selectAll("g.node");
@@ -822,36 +822,32 @@ function sessionCircleDragMove(d) {
   var dX = 1 * (-d.x + x);
   var dY = 1 * (-d.y + y);
 
-  var session = sessionHashMap.get(d.sessionId);
-  var sessionNode = nodeHashMap.get(d.nodeId);
-
-
-  session.initialPosition.x = x;
-  session.initialPosition.y = y;
-
-  jp('session', session);
-
-  sessionNode.x = x;
-  sessionNode.y = y;
-
-  nodeHashMap.set(d.nodeId, sessionNode);
-  sessionHashMap.set(d.sessionId, session);
-
-  // d3.select(this).attr("transform", "translate(" + dX + "," + dY + ")");
+  d3.select(this).attr("transform", "translate(" + dX + "," + dY + ")");
   nodeSvgGroup.selectAll('#' + d.nodeId).attr("transform", "translate(" + dX + "," + dY + ")");
-  sessionSvgGroup.selectAll('#' + d.nodeId).attr("transform", "translate(" + dX + "," + dY + ")");
-  sessionLabelSvgGroup.selectAll('#' + d.nodeId).attr("transform", "translate(" + dX + "," + dY + ")");
-  linkSvgGroup.selectAll('#' + d.nodeId).attr("transform", "translate(" + dX + "," + dY + ")");
+  sessionGnode.select('#' + d.nodeId).attr("transform", "translate(" + dX + "," + dY + ")");
+  sessionCircles.select('#' + d.userId).attr("transform", "translate(" + dX + "," + dY + ")");
+  // sessionSvgGroup.selectAll('#' + d.nodeId).attr("transform", "translate(" + dX + "," + dY + ")");
+  sessionLabelSvgGroup.select('#' + d.nodeId).attr("transform", "translate(" + dX + "," + dY + ")");
 
-  console.log("dragmove\n" + d.sessionId +  " | " + d.nodeId + " | currentScale: " + currentScale + " x: " + x + " y: " + y);
+  // console.log("dragmove\n" + d.sessionId +  " | " + d.nodeId + " | currentScale: " + currentScale + " x: " + x + " y: " + y);
 }
 
 // Define drag beavior
 var drag = d3.behavior.drag()
+    .origin(function(d) { return d; })
     .on("drag", sessionCircleDragMove);
 
 drag.on("dragstart", function() {
   d3.event.sourceEvent.stopPropagation(); // silence other listeners
+});
+
+drag.on("dragend", function(d) {
+  d3.event.sourceEvent.stopPropagation(); // silence other listeners
+
+  console.warn("DRAG END"
+    + " | " + d.nodeId
+    + " | " + d.x + " " + d.y
+  );
 });
 
 var globalLinkIndex = 0;
@@ -866,7 +862,7 @@ function generateLinkId(callback){
 //
 
 function tick() {
-  session
+  sessionGnode
     .attr("transform", function(d) {
       return "translate(" + d.x + "," + d.y + ")";
     });
@@ -1263,7 +1259,7 @@ function createSession (callback){
       }
 
       var prevLatestNodeId = currentSession.latestNodeId;
-      var prevSessionLinkId = currentSession.sessionId + "_" + prevLatestNodeId;
+      var prevSessionLinkId = currentSession.userId + "_" + prevLatestNodeId;
 
       removeFromHashMap(linkHashMap, prevSessionLinkId, function(){});
 
@@ -1279,7 +1275,7 @@ function createSession (callback){
       currentSession.node.ageUpdated = dateNow;
       currentSession.node.lastSeen = dateNow;
 
-      var sessionLinkId = sessUpdate.sessionId + "_" + sessUpdate.source.nodeId;
+      var sessionLinkId = sessUpdate.userId + "_" + sessUpdate.source.nodeId;
       currentSession.node.links = {};
       currentSession.node.links[sessionLinkId] = 1;
 
@@ -1339,8 +1335,9 @@ function createSession (callback){
 
       sessionNode.links = {};
 
-      var sessionLinkId = sessUpdate.sessionId + "_" + currentSession.latestNodeId;
+      var sessionLinkId = sessUpdate.userId + "_" + currentSession.latestNodeId;
       sessionNode.links[sessionLinkId] = 1;
+      sessionNode.link = sessionLinkId;
 
       currentSession.node = sessionNode;
       currentSession.source.lastSeen = dateNow;
@@ -1528,7 +1525,7 @@ function createLink (sessionId, callback) {
     // session.linkHashMap.remove(sessionId);
     // linkHashMap.remove(sessionId);
 
-    var sessionLinkId = sessionId + "_" + session.latestNodeId;
+    var sessionLinkId = session.userId + "_" + session.latestNodeId;
 
     var newSessionLink = {
       linkId: sessionLinkId,
@@ -1853,7 +1850,8 @@ function updateLinks(sessionId, callback) {
     });
 
   link.enter()
-    .append("svg:line", "g.node")
+    // .append("svg:line", "g.node")
+    .append("svg:line")
     .attr("class", "link")
     .attr("id", function(d) { return d.linkId; })
     .attr("sourceNodeId", function(d) { return d.source.nodeId; })
@@ -1903,7 +1901,7 @@ function updateSessionCircles (sessionId, callback) {
     .enter()
     .append("svg:circle")
     .attr("id", function(d) { return d.nodeId; })
-    .attr("class", "sessionCircleClass")
+    .attr("class", "sessionCircle")
     .attr("x", function(d) { return d.x; })
     .attr("y", function(d) { return d.y; })
     .attr("cx", function(d) { return d.x; })
@@ -2014,7 +2012,9 @@ function updateNodeCircles (sessionId, callback) {
     .on("mouseout", nodeMouseOut)
     .on("dblclick", nodeClick)
     // .call(force.drag)
-    .attr("r", 0)
+      .attr("r", function(d) { 
+        return defaultRadiusScale(d.mentions + 1); 
+      })
     .style("visibility", "visible") 
     .style("opacity", 1.0)
     .style('stroke', function(d){ return strokeColorScale(d.age);})
@@ -2023,9 +2023,9 @@ function updateNodeCircles (sessionId, callback) {
     .transition()
       .duration(defaultFadeDuration)      
       .style("fill", "#ffffff")
-      .attr("r", function(d) { 
-        return defaultRadiusScale(100);
-      })
+      // .attr("r", function(d) { 
+      //   return defaultRadiusScale(d.mentions + 1); 
+      // })
       .style('opacity', 1.0);
 
   nodeCircles
@@ -2121,7 +2121,7 @@ function nodeFill (age) {
 function nodeMouseOver(d) {
 
   console.warn("MOUSE OVER"
-    + "\n" + jsonPrint(d)
+    // + "\n" + jsonPrint(d)
   );
 
   if (d.links) {
@@ -2205,7 +2205,7 @@ function sessionCircleMouseOver(d) {
     + " | ID: " + d.id
     // + " | NID: " + d.nodeId
     // + " | UID: " + d.userId
-    + jsonPrint(d)
+    // + jsonPrint(d)
   );
 
   mouseHoverFlag = true;

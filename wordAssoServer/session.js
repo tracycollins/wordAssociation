@@ -422,10 +422,10 @@ function deleteSession(sessionId, callback){
       sessionHashMap.remove(sessionId);
 
       // nodeHashMap.remove(deletedSession.node.nodeId);
-      var sessionNode = nodeHashMap.get(deletedSession.userId);
-      sessionNode.isDead = true;
-      nodeHashMap.set(deletedSession.userId, sessionNode);
-      nodeHashMap.remove(deletedSession.sessionId);
+      // var sessionNode = nodeHashMap.get(deletedSession.userId);
+      // sessionNode.isDead = true;
+      // nodeHashMap.set(deletedSession.userId, sessionNode);
+      nodeHashMap.remove(deletedSession.userId);
 
       deleteSessionHashMap.set(sessionId, 1);
       deleteSessionLinks(sessionId);
@@ -497,6 +497,7 @@ socket.on("SESSION_DELETE", function(rxSessionObject){
       // + "\n" + jsonPrint(rxSessionObject)
     );
     var session = sessionHashMap.get(rxObj.sessionId);
+    deleteSessionHashMap.set(rxObj.sessionId, 1);
     session.sessionEvent = "SESSION_DELETE";
     rxSessionDeleteQueue.push(session);
   }
@@ -511,6 +512,9 @@ socket.on("SESSION_UPDATE", function(rxSessionObject){
     if (debug) {
       console.log("... SKIP SESSION_UPDATE ... WINDOW NOT VISIBLE");
     }
+  }
+  else if (deleteSessionHashMap.has(rxObj.sessionId)){
+    console.warn("... SKIP SESSION_UPDATE ... DELETED SESSION: " + rxObj.sessionId);
   }
   else if (sessionMode && (rxObj.sessionId !== currentSession.sessionId)) {
     if (debug) {

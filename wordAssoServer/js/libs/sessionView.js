@@ -54,6 +54,7 @@ var DEFAULT_SESSION_CONFIG = {
     'linkStrength': DEFAULT_LINK_STRENGTH,
     'gravity': DEFAULT_GRAVITY,
     'ageRate': DEFAULT_AGE_RATE,
+    'sessionType': '',
     'sessionMode': false,
     'sessionModeId': '',
     'monitorMode': false,
@@ -484,6 +485,7 @@ function getUrlVariables(callbackMain){
 
   var urlSessionId;
   var urlNamespace;
+  var sessionType;
 
   var searchString = window.location.search.substring(1);
   console.log("searchString: " + searchString);
@@ -520,6 +522,13 @@ function getUrlVariables(callbackMain){
             console.log("namespace: " + urlNamespace);
             return(callback2(null, {namespace: urlNamespace}));
           }
+          if (keyValuePair[0] === 'type') {
+            sessionType = keyValuePair[1];
+            console.log("SESSION TYPE | sessionType: " + sessionType);
+            return(callback2(null, {sessionType: sessionType}));
+          }
+
+
         }
         else {
           console.log("NO URL VARIABLES");
@@ -545,8 +554,25 @@ function getUrlVariables(callbackMain){
           + " | SID (full): " + currentSession.sessionId
         );
       }
+
+      if (resultObj.sessionType) {
+        console.warn("SESSION TYPE"
+          + " | " + sessionType
+        );
+      }
+
+
+
     });
-    callbackMain(err, {sessionMode: sessionMode, sessionId: urlSessionId, namespace: urlNamespace});
+
+    var returnObj = {
+      sessionType: sessionType,
+      sessionMode: sessionMode,
+      sessionId: urlSessionId,
+      namespace: urlNamespace
+    };
+
+    callbackMain(err, returnObj);
   });
 }
 
@@ -1002,6 +1028,11 @@ setInterval(function () {
 }, serverCheckInterval);
 
 function deleteSession(sessionId, callback){
+
+  if (!sessionHashMap.has(sessionId)) {
+    console.warn("deleteSession: SID NOT IN HASH: " + sessionId + " ... SKIPPING DELETE");
+    return(callback(sessionId));
+  }
 
   force.stop();
 

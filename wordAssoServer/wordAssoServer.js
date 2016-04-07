@@ -168,7 +168,7 @@ var mwDictWordsNotFound = {};
 var mwThesWordsMiss = {};
 var mwThesWordsNotFound = {};
 
-var wordAssoServerStatsObj = {
+var statsObj = {
 
   "name" : "Word Association Server Status",
   "host" : os.hostname(),
@@ -182,6 +182,8 @@ var wordAssoServerStatsObj = {
   "totalUsers" : 0,
   "totalSessions" : 0,
   "totalWords" : 0,
+
+  "socket" : {},
 
   "promptsSent" : 0,
   "responsesReceived" : 0,
@@ -205,9 +207,14 @@ var wordAssoServerStatsObj = {
   "heartbeat" : txHeartbeat
 };
 
-wordAssoServerStatsObj.session.error = 0;
-wordAssoServerStatsObj.session.previousPromptNotFound = 0;
-wordAssoServerStatsObj.session.responseError = 0;
+statsObj.session.error = 0;
+statsObj.session.previousPromptNotFound = 0;
+statsObj.session.responseError = 0;
+
+statsObj.socket.connects = 0;
+statsObj.socket.reconnects = 0;
+statsObj.socket.disconnects = 0;
+statsObj.socket.errors = 0;
 
 // ==================================================================
 // LOGS, STATS
@@ -451,14 +458,14 @@ function dropboxWriteArrayToFile(filePath, dataArray, callback){
   });
 }
 
-function saveStats (statsFile, wordAssoServerStatsObj, callback){
+function saveStats (statsFile, statsObj, callback){
   if (OFFLINE_MODE){
 
     fs.exists(statsFile, function(exists) {
       if (exists) {
         fs.stat(statsFile, function(error, stats) {
           fs.open(statsFile, "w", function(error, fd) {   
-            fs.writeFile(path, wordAssoServerStatsObj, function(error) {
+            fs.writeFile(path, statsObj, function(error) {
               callback('OK') ;
               fs.close(fd);
             });
@@ -468,7 +475,7 @@ function saveStats (statsFile, wordAssoServerStatsObj, callback){
     });
   }
   else {
-    dropboxClient.writeFile(statsFile, JSON.stringify(wordAssoServerStatsObj, null, 2), function(error, stat) {
+    dropboxClient.writeFile(statsFile, JSON.stringify(statsObj, null, 2), function(error, stat) {
       if (error) {
         console.error(chalkError(moment().format(defaultDateTimeFormat) + " | !!! ERROR STATUS WRITE | FILE: " + statsFile 
           + " ERROR: " + error));
@@ -476,7 +483,7 @@ function saveStats (statsFile, wordAssoServerStatsObj, callback){
       }
       else {
         debug(chalkLog("... SAVED STATS | " + statsFile));
-        // console.log(chalkLog(moment().format(defaultDateTimeFormat) + " | SAVED STATUS | STATUS\n" + jsonPrint(wordAssoServerStatsObj)));
+        // console.log(chalkLog(moment().format(defaultDateTimeFormat) + " | SAVED STATUS | STATUS\n" + jsonPrint(statsObj)));
         callback('OK');
       }
     });
@@ -487,7 +494,7 @@ function updateStats(updateObj){
   for (var key in updateObj) {
      if (updateObj.hasOwnProperty(key)) {
         debug("UPDATING WORD ASSO STATUS | " + key + ": " + updateObj[key]);
-        wordAssoServerStatsObj[key] = updateObj[key];
+        statsObj[key] = updateObj[key];
      }
   }
 }
@@ -537,11 +544,11 @@ function loadStats(){
             responsesReceived = statsObj.responsesReceived ;
           }
 
-          wordAssoServerStatsObj.bhtRequests = bhtRequests;
-          wordAssoServerStatsObj.promptsSent = promptsSent;
-          wordAssoServerStatsObj.responsesReceived = responsesReceived;
+          statsObj.bhtRequests = bhtRequests;
+          statsObj.promptsSent = promptsSent;
+          statsObj.responsesReceived = responsesReceived;
 
-          saveStats(statsFile, wordAssoServerStatsObj, function(status){
+          saveStats(statsFile, statsObj, function(status){
             if (status != 'OK'){
               console.error("!!! ERROR: saveStats " + status);
             }
@@ -582,11 +589,11 @@ function loadStats(){
       responsesReceived = statsObj.responsesReceived ;
     }
 
-    wordAssoServerStatsObj.bhtRequests = bhtRequests;
-    wordAssoServerStatsObj.promptsSent = promptsSent;
-    wordAssoServerStatsObj.responsesReceived = responsesReceived;
+    statsObj.bhtRequests = bhtRequests;
+    statsObj.promptsSent = promptsSent;
+    statsObj.responsesReceived = responsesReceived;
 
-    saveStats(statsFile, wordAssoServerStatsObj, function(status){
+    saveStats(statsFile, statsObj, function(status){
       if (status != 'OK'){
         console.error("!!! ERROR: saveStats " + status);
       }
@@ -672,7 +679,7 @@ setInterval(function () {
     statsFile = dropboxHostStatsFile;
   }
 
-  saveStats(statsFile, wordAssoServerStatsObj, function(status){
+  saveStats(statsFile, statsObj, function(status){
     if (status != 'OK'){
       console.error("!!! ERROR: SAVE STATUS | FILE: " + statsFile + "\n" + status);
     }
@@ -1777,7 +1784,7 @@ function chainDeadEnd(chain) {
           return false ;
         }
         else if (i == chain.length-MIN_CHAIN_FREEZE_LENGTH){
-          wordAssoServerStatsObj.chainFreezes++;
+          statsObj.chainFreezes++;
           console.log(chalkError("*** CHAIN FREEZE"
             + "\nSEG\n" + chainSegment 
             + "\nUNIQUE\n" + uniqueNodes
@@ -4048,8 +4055,8 @@ var readResponseQueue = setInterval(function (){
         + "\n" + jsonPrint(rxInObj)
       ));
       ready = true;
-      wordAssoServerStatsObj.session.error++;
-      wordAssoServerStatsObj.session.responseError++;
+      statsObj.session.error++;
+      statsObj.session.responseError++;
       return;
     }
 
@@ -4108,8 +4115,8 @@ var readResponseQueue = setInterval(function (){
           // + " ... ABORTING SESSION"
         ));
 
-        wordAssoServerStatsObj.session.error++;
-        wordAssoServerStatsObj.session.previousPromptNotFound++;
+        statsObj.session.error++;
+        statsObj.session.previousPromptNotFound++;
 
         previousPromptObj = {nodeId: previousPrompt};
 
@@ -4532,6 +4539,7 @@ function initializeConfiguration(callback) {
       var testClient = net.createConnection(80, 'www.google.com');
 
       testClient.on('connect', function(){
+        statsObj.socket.connects++;
         console.log(chalkInfo(moment().format(defaultDateTimeFormat) + ' | CONNECTED TO GOOGLE: OK'));
         console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | SEND SERVER_READY"));
         internetReady = true ;
@@ -4541,6 +4549,7 @@ function initializeConfiguration(callback) {
       });
 
       testClient.on('error', function(err){
+        statsObj.socket.errors++;
         console.error(chalkError(moment().format(defaultDateTimeFormat) + ' | **** GOOGLE CONNECT ERROR ****\n' + err ));
         console.error(chalkError(moment().format(defaultDateTimeFormat) + " | **** SERVER_NOT_READY ****"));
         internetReady = false ;
@@ -4640,7 +4649,8 @@ configEvents.on("SERVER_READY", function () {
   });
 
   httpServer.on('connect', function(){
-    internetReady = true ;
+   statsObj.socket.connects++;
+   internetReady = true ;
     console.log(chalkConnect(moment().format(defaultDateTimeFormat) + ' | PORT CONNECT: ' + config.port));
 
     httpServer.on("disconnect", function(){
@@ -4654,6 +4664,7 @@ configEvents.on("SERVER_READY", function () {
   });
 
   httpServer.on("error", function (err) {
+   statsObj.socket.errors++;
     internetReady = false ;
     console.error(chalkError('??? HTTP ERROR | ' + moment().format(defaultDateTimeFormat) + '\n' + err));
     if (err.code == 'EADDRINUSE') {
@@ -4763,7 +4774,7 @@ configEvents.on("SERVER_READY", function () {
 
         promptsSent : promptsSent,
         deltaPromptsSent : deltaPromptsSent,
-        deltaResponsesReceived : wordAssoServerStatsObj.deltaResponsesReceived,
+        deltaResponsesReceived : statsObj.deltaResponsesReceived,
         responsesReceived : responsesReceived
 
       } ;
@@ -4916,7 +4927,8 @@ function createSession (newSessionObj){
 
 
 
- socket.on('reconnect_error', function(errorObj){
+  socket.on('reconnect_error', function(errorObj){
+    statsObj.socket.reconnect_errors++;
     console.error(chalkError(moment().format(defaultDateTimeFormat)
       + " | SOCKET RECONNECT ERROR: " + socket.id
       + "\nerrorObj\n" + jsonPrint(errorObj)
@@ -4924,6 +4936,7 @@ function createSession (newSessionObj){
   });
 
   socket.on('reconnect_failed', function(errorObj){
+    statsObj.socket.reconnect_fails++;
     console.error(chalkError(moment().format(defaultDateTimeFormat)
       + " | SOCKET RECONNECT FAILED: " + socket.id
       + "\nerrorObj\n" + jsonPrint(errorObj)
@@ -4931,6 +4944,7 @@ function createSession (newSessionObj){
   });
 
   socket.on('connect_error', function(errorObj){
+    statsObj.socket.connect_errors++;
     console.error(chalkError(moment().format(defaultDateTimeFormat)
       + " | SOCKET CONNECT ERROR: " + socket.id
       + "\nerrorObj\n" + jsonPrint(errorObj)
@@ -4938,6 +4952,7 @@ function createSession (newSessionObj){
   });
 
   socket.on('connect_timeout', function(errorObj){
+    statsObj.socket.connect_timeouts++;
     console.error(chalkError(moment().format(defaultDateTimeFormat)
       + " | SOCKET CONNECT TIMEOUT: " + socket.id
       + "\nerrorObj\n" + jsonPrint(errorObj)
@@ -4946,6 +4961,7 @@ function createSession (newSessionObj){
 
 
   socket.on("error", function(error){
+    statsObj.socket.errors++;
     console.error(chalkError(moment().format(defaultDateTimeFormat) + " | *** SOCKET ERROR"
       + " | " + socket.id 
       + " | " + error
@@ -4954,12 +4970,14 @@ function createSession (newSessionObj){
   });
 
   socket.on("reconnect", function(err){
+    statsObj.socket.reconnects++;
     sessionObj.connected = true ;
     console.log(chalkConnect(moment().format(defaultDateTimeFormat) + " | SOCKET RECONNECT: " + socket.id));
     sessionQueue.enqueue({sessionEvent: "SOCKET_RECONNECT", sessionId: socket.id});
   });
 
   socket.on("disconnect", function(status){
+    statsObj.socket.disconnects++;
     console.log(chalkDisconnect(moment().format(defaultDateTimeFormat)
       + " | SOCKET DISCONNECT: " + socket.id
       + "\nstatus\n" + jsonPrint(status)
@@ -5064,7 +5082,7 @@ function createSession (newSessionObj){
   });
 
   socket.on("SESSION_KEEPALIVE", function(userObj){
-
+    statsObj.socket.SESSION_KEEPALIVES++;
     debug(chalkUser("SESSION_KEEPALIVE\n" + jsonPrint(userObj)));
 
     var socketId = socket.id ;
@@ -5093,7 +5111,7 @@ function createSession (newSessionObj){
   });
 
   socket.on("USER_READY", function(userObj){
-
+    statsObj.socket.USER_READYS++;
     console.log(chalkUser("USER READY\n" + jsonPrint(userObj)));
 
     var socketId = socket.id ;
@@ -5524,6 +5542,12 @@ function initAppRouting(callback){
     return;
   });
 
+  app.get('/js/libs/sessionViewForce.js', function(req, res){
+    debug("LOADING FILE: sessionViewForce.js");
+    res.sendFile(__dirname + '/js/libs/sessionViewForce.js');
+    return;
+  });
+
   app.get('/js/libs/sessionView3d.js', function(req, res){
     debug("LOADING FILE: sessionView3d.js");
     res.sendFile(__dirname + '/js/libs/sessionView3d.js');
@@ -5599,7 +5623,7 @@ process.on("message", function(msg) {
     console.log('\n\n!!!!! RECEIVED PM2 SHUTDOWN !!!!!\n\n***** Closing all connections *****\n\n');
     console.log("... SAVING STATS");
 
-    saveStats(statsFile, wordAssoServerStatsObj, function(status){
+    saveStats(statsFile, statsObj, function(status){
       if (status != 'OK'){
         console.error("!!! ERROR: saveStats " + status);
       }

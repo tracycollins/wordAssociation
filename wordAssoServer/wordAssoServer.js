@@ -5537,8 +5537,8 @@ function initAppRouting(callback){
   });
 
   app.get('/session', function(req, res){
-    debugAppGet("LOADING FILE: /session.html");
-    res.sendFile(__dirname + '/session.html');
+    debugAppGet("LOADING FILE: /sessionModular.html");
+    res.sendFile(__dirname + '/sessionModular.html');
     return;
   });
 

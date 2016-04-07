@@ -127,7 +127,9 @@ var forceStopped = true;
 
 var createNodeQueue = [];
 var createLinkQueue = [];
-var deadLinksQueue = [];
+
+var deadNodesHash = {};
+var deadLinksHash = {};
 
 var newNodes = [];
 var newLinks = [];
@@ -656,12 +658,7 @@ var tempMentions;
 var numberSessionsUpdated = 0;
 
 
-var ageNodesIndex = 0;
-var ageNodesLength = 0;
-
 function ageNodes(callback) {
-
-    var deadNodes = [];
 
     if (nodes.length === 0) {
         ageRate = DEFAULT_AGE_RATE;
@@ -671,15 +668,11 @@ function ageNodes(callback) {
         ageRate = DEFAULT_AGE_RATE;
     }
 
-    // var nodeIds = nodeHashMap.keys();
-    // var nodeIds = Object.keys(nodeHashMap);
-
     var node;
 
-    ageNodesLength = nodes.length - 1;
-    ageNodesIndex = nodes.length - 1;
+    var ageNodesLength = nodes.length - 1;
+    var ageNodesIndex = nodes.length - 1;
 
-    // async.eachOf(nodes, function(node, nodeArrayIndex, cb) {
     for (ageNodesIndex = ageNodesLength; ageNodesIndex >= 0; ageNodesIndex -= 1) {
 
         node = nodes[ageNodesIndex];
@@ -687,24 +680,78 @@ function ageNodes(callback) {
         age = node.age + (ageRate * (dateNow - node.ageUpdated));
 
         if (node.isDead) {
-            deadNodes.push(node.nodeId);
-            nodes.splice(ageNodesIndex, 1);
+            deadNodesHash[node.nodeId] = 1;
         } else if (!node.isSessionNode && (age >= nodeMaxAge)) {
             node.isDead = true;
-            deadNodes.push(node.nodeId);
-            nodes.splice(ageNodesIndex, 1);
+            deadNodesHash[node.nodeId] = 1;
         } else {
             node.ageUpdated = dateNow;
             node.age = age;
-            // nodes[nodeArrayIndex] = node;
+            // nodes[ageNodesIndex] = node;
         }
-
     }
 
     if (ageNodesIndex < 0) {
-        return (callback(null, deadNodes));
+        return (callback());
     }
 }
+
+
+function initDeadNodesInterval(interval){
+
+}
+
+function processDeadLinksHash(callback) {
+
+  // if (Object.keys(deadLinksHash).length == 0) return(callback());
+
+  force.stop();
+  forceStopped = true;
+
+  var ageLinksLength = links.length - 1;
+  var ageLinksIndex = links.length - 1;
+  var link;
+
+  for (ageLinksIndex = ageLinksLength; ageLinksIndex >= 0; ageLinksIndex -= 1) {
+    link = links[ageLinksIndex];
+    if (deadLinksHash[link.linkId]){
+      links.splice(ageLinksIndex, 1);
+      delete deadLinksHash[link.linkId];
+      console.log("XXX LINK: " + link.linkId);
+    }
+  }
+
+  if (ageLinksIndex < 0) {
+    callback();
+  }
+
+}
+function processDeadNodesHash(callback) {
+
+  // if (nodes.length == 0) return(callback());
+
+  force.stop();
+  forceStopped = true;
+
+  var ageNodesLength = nodes.length - 1;
+  var ageNodesIndex = nodes.length - 1;
+  var node;
+
+  for (ageNodesIndex = ageNodesLength; ageNodesIndex >= 0; ageNodesIndex -= 1) {
+    node = nodes[ageNodesIndex];
+    if (deadNodesHash[node.nodeId]){
+      nodes.splice(ageNodesIndex, 1);
+      delete deadNodesHash[node.nodeId];
+      console.log("XXX NODE: " + node.nodeId);
+    }
+  }
+
+  if (ageNodesIndex < 0) {
+    callback();
+  }
+
+}
+
 
 function updateNodes(callback) {
 
@@ -1085,11 +1132,13 @@ function updateForceDisplay() {
         [
             ageNodes,
             ageLinks,
+            processDeadNodesHash,
+            processDeadLinksHash,
             updateNodes,
+            updateLinks,
             updateSessionCircles,
             updateNodeCircles,
             updateNodeLabels,
-            updateLinks,
         ],
 
         function(err, result) {
@@ -1264,48 +1313,7 @@ function sessionCircleClick(d) {
     launchSessionView(d.sessionId);
 }
 
-
-// function ageNodes(sessionId, callback) {
-
-//     // var dateNow = moment().valueOf();
-
-//     var ageNodesLength = nodes.length - 1;
-//     var ageNodesIndex = nodes.length - 1;
-
-//     var currentNodeObject;
-//     var currentNodeId;
-
-//     for (ageNodesIndex = ageNodesLength; ageNodesIndex >= 0; ageNodesIndex -= 1) {
-
-//         currentNodeObject = nodes[ageNodesIndex];
-//         currentNodeId = currentNodeObject.nodeId;
-
-//         if (currentNodeObject.isDead) {
-//             if (!forceStopped) {
-//                 forceStopped = true;
-//                 force.stop();
-//             }
-//             removeFromHashMap(nodeHashMap, currentNodeId, function() {
-//                 nodes.splice(ageNodesIndex, 1);
-
-//                 // jp("currentNodeObject.links", currentNodeObject.links);
-
-//             });
-//         } else {
-//             nodes[ageNodesIndex].age = currentNodeObject.age;
-//             nodes[ageNodesIndex].ageUpdated = currentNodeObject.ageUpdated;
-//             addToHashMap(nodeHashMap, currentNodeId, currentNodeObject, function(node) {});
-//         }
-//     }
-
-//     if (ageNodesIndex < 0) {
-//         return (callback(null, sessionId));
-//     }
-// }
-
 function ageLinks(callback) {
-
-    // var deadLinks = [];
 
     var ageLinksLength = links.length - 1;
     var ageLinksIndex = links.length - 1;
@@ -1321,33 +1329,13 @@ function ageLinks(callback) {
         // console.log("currentLinkObject\n" + jsonPrint(currentLinkObject));
 
         if ((typeof currentLinkObject !== 'undefined') && currentLinkObject.isDead) {
-            if (!forceStopped) {
-                forceStopped = true;
-                force.stop();
-            }
-            deadLinksQueue.push(currentLinkObject.linkId);
-            // links.splice(ageLinksIndex, 1);
+            deadLinksHash[currentLinkObject.linkId] = 1;
         } else if ((typeof currentLinkObject !== 'undefined') && (currentLinkObject.source.isDead || currentLinkObject.target.isDead)) {
-            if (!forceStopped) {
-                forceStopped = true;
-                force.stop();
-            }
-            deadLinksQueue.push(currentLinkObject.linkId);
-            // links.splice(ageLinksIndex, 1);
+            deadLinksHash[currentLinkObject.linkId] = 1;
         } else if ((typeof currentLinkObject !== 'undefined') && !linkHashMap.has(currentLinkObject.linkId)) {
-            if (!forceStopped) {
-                forceStopped = true;
-                force.stop();
-            }
-            deadLinksQueue.push(currentLinkObject.linkId);
-            // links.splice(ageLinksIndex, 1);
+            deadLinksHash[currentLinkObject.linkId] = 1;
         } else if (!nodeHashMap.has(currentLinkObject.source.nodeId) || !nodeHashMap.has(currentLinkObject.target.nodeId)) {
-            if (!forceStopped) {
-                forceStopped = true;
-                force.stop();
-            }
-            deadLinksQueue.push(currentLinkObject.linkId);
-            // links.splice(ageLinksIndex, 1);
+             deadLinksHash[currentLinkObject.linkId] = 1;
         } else {
             if (currentLinkObject.source.age < currentLinkObject.target.age) {
                 currentLinkObject.age = currentLinkObject.source.age;
@@ -1362,7 +1350,6 @@ function ageLinks(callback) {
     }
 }
 
-
 function addSession(newSession) {
     // console.log("addNode\n" + jsonPrint(newNode));
     // console.log("addNode " + newNode.nodeId);
@@ -1374,18 +1361,11 @@ function addSession(newSession) {
 function deleteSessionLinks(sessionId) {
     console.log("deleteSessionLinks " + sessionId);
 
-    // var deadLinks = [];
-
-    force.stop();
-    forceStopped = true;
-
     var deletedSession;
     var deadSessionFlag = false;
 
-
     var sessionsLength = sessions.length - 1;
     var sessionIndex = sessions.length - 1;
-
 
     for (sessionIndex = sessionsLength; sessionIndex >= 0; sessionIndex -= 1) {
         deletedSession = sessions[sessionIndex];
@@ -1401,11 +1381,9 @@ function deleteSessionLinks(sessionId) {
 
             for (linkIndex = linksLength; linkIndex >= 0; linkIndex -= 1) {
                 var link = links[linkIndex];
-                // var linkId = link.linkId;
                 if (link.sessionId == sessionId) {
                     console.warn("XXX SESS LINK " + link.linkId);
-                    deadLinksQueue.push(link.linkId);
-                    // links.splice(linkIndex, 1);
+                    deadLinksHash[link.linkId] = 1;
                 }
             }
 
@@ -1421,7 +1399,6 @@ function deleteSessionLinks(sessionId) {
         return;
     }
 }
-
 
 function addNode(newNode) {
     // console.log("addNode\n" + jsonPrint(newNode));
@@ -1465,7 +1442,7 @@ function deleteNode(nodeId) {
 
             if (linkIndex < 0) {
                 nodes.splice(nodeIndex, 1);
-                    console.error("slice nodes: nodeIndex " + nodeIndex + "\n"  + jsonPrint(nodes));
+                    // console.error("slice nodes: nodeIndex " + nodeIndex + "\n"  + jsonPrint(nodes));
 
                 return;
             }
@@ -1477,6 +1454,114 @@ function deleteNode(nodeId) {
         return;
     }
 }
+
+function addLink(newLink) {
+    // console.log("addLink"
+    //   + " | " + newLink.linkId
+    //   + " | " + newLink.source.nodeId
+    //   + " > " + newLink.target.nodeId
+    //     // + "\n" + jsonPrint(newLink)
+    // );
+    force.stop();
+    forceStopped = true;
+    links.push(newLink);
+}
+
+function deleteLink(linkId) {
+    // console.log("deleteLink " + linkId);
+
+    force.stop();
+    forceStopped = true;
+
+    var linksLength = links.length - 1;
+
+    var linkIndex = linksLength;
+
+    for (linkIndex = linksLength; linkIndex >= 0; linkIndex -= 1) {
+        if (linkId == links[linkIndex].linkId) {
+            console.log("XXX LINK " + linkId);
+            links.splice(linkIndex, 1);
+            return;
+        }
+    }
+
+    if (linkIndex < 0) {
+        return;
+    }
+}
+
+
+var ageNodesReady = true;
+
+function initD3timer() {
+    d3.timer(function() {
+        tickNumber++;
+        dateNow = moment().valueOf();
+        // if (ageNodesReady) {
+        //     ageNodesReady = false;
+        //     ageNodes(function(deadNodes) {
+        //         if (deadNodes.length > 0) {
+        //             console.warn("DEAD NODES" + "\n" + jsonPrint(deadNodes));
+        //         }
+        //         ageNodesReady = true;
+        //     });
+        // }
+        if (updateForceDisplayReady && !mouseMovingFlag) updateForceDisplay();
+    });
+}
+
+function resize() {
+    console.log("RESIZE");
+
+    if (window.innerWidth !== 'undefined') {
+        width = window.innerWidth;
+        height = window.innerHeight;
+    }
+    // IE6 in standards compliant mode (i.e. with a valid doctype as the first line in the document)
+    else if (document.documentElement !== 'undefined' && document.documentElement.clientWidth !== 'undefined' && document.documentElement.clientWidth !== 0) {
+        width = document.documentElement.clientWidth;
+        height = document.documentElement.clientHeight;
+    }
+
+    // older versions of IE
+    else {
+        width = document.getElementsByTagName('body')[0].clientWidth;
+        height = document.getElementsByTagName('body')[0].clientHeight;
+    }
+
+    console.log("width: " + width + " | height: " + height);
+
+    radiusX = 0.5 * width;
+    radiusY = 0.5 * height;
+
+    d3LayoutWidth = width * D3_LAYOUT_WIDTH_RATIO; // double the width for now
+    d3LayoutHeight = height * D3_LAYOUT_HEIGHT_RATIO;
+
+    svgcanvas
+        .attr("width", SVGCANVAS_WIDTH_RATIO * width)
+        .attr("height", SVGCANVAS_HEIGHT_RATIO * height);
+
+    svgForceLayoutAreaWidth = d3LayoutWidth * FORCE_LAYOUT_WIDTH_RATIO;
+    svgForceLayoutAreaHeight = d3LayoutHeight * FORCE_LAYOUT_HEIGHT_RATIO;
+
+
+    svgForceLayoutArea.attr("width", svgForceLayoutAreaWidth)
+        .attr("height", svgForceLayoutAreaHeight);
+
+    svgForceLayoutArea.attr("x", 0);
+    svgForceLayoutArea.attr("y", 0);
+
+
+    force.size([svgForceLayoutAreaWidth, svgForceLayoutAreaHeight]);
+
+    nodeInitialX = INITIAL_X_RATIO * svgForceLayoutAreaWidth;
+    nodeInitialY = INITIAL_Y_RATIO * svgForceLayoutAreaHeight;
+}
+
+
+
+// ==========================================
+var testAddNodeInterval;
 
 function deleteRandomNode() {
     if (nodes.length == 0) return;
@@ -1529,19 +1614,6 @@ function addRandomNode() {
     addNode(newNode);
 }
 
-function addLink(newLink) {
-    // console.log("addLink"
-    //   + " | " + newLink.linkId
-    //   + " | " + newLink.source.nodeId
-    //   + " > " + newLink.target.nodeId
-    //     // + "\n" + jsonPrint(newLink)
-    // );
-    force.stop();
-    forceStopped = true;
-    links.push(newLink);
-}
-
-
 var testSessionIndex = 0;
 function addRandomLink() {
 
@@ -1590,103 +1662,6 @@ function addRandomLink() {
     addLink(newLink);
 }
 
-function deleteLink(linkId) {
-    // console.log("deleteLink " + linkId);
-
-    force.stop();
-    forceStopped = true;
-
-    var linksLength = links.length - 1;
-
-    var linkIndex = linksLength;
-
-    for (linkIndex = linksLength; linkIndex >= 0; linkIndex -= 1) {
-        if (linkId == links[linkIndex].linkId) {
-            console.log("XXX LINK " + linkId);
-            links.splice(linkIndex, 1);
-            return;
-        }
-    }
-
-    if (linkIndex < 0) {
-        return;
-    }
-}
-
-
-
-function resize() {
-    console.log("RESIZE");
-
-    if (window.innerWidth !== 'undefined') {
-        width = window.innerWidth;
-        height = window.innerHeight;
-    }
-    // IE6 in standards compliant mode (i.e. with a valid doctype as the first line in the document)
-    else if (document.documentElement !== 'undefined' && document.documentElement.clientWidth !== 'undefined' && document.documentElement.clientWidth !== 0) {
-        width = document.documentElement.clientWidth;
-        height = document.documentElement.clientHeight;
-    }
-
-    // older versions of IE
-    else {
-        width = document.getElementsByTagName('body')[0].clientWidth;
-        height = document.getElementsByTagName('body')[0].clientHeight;
-    }
-
-    console.log("width: " + width + " | height: " + height);
-
-    radiusX = 0.5 * width;
-    radiusY = 0.5 * height;
-
-    d3LayoutWidth = width * D3_LAYOUT_WIDTH_RATIO; // double the width for now
-    d3LayoutHeight = height * D3_LAYOUT_HEIGHT_RATIO;
-
-    svgcanvas
-        .attr("width", SVGCANVAS_WIDTH_RATIO * width)
-        .attr("height", SVGCANVAS_HEIGHT_RATIO * height);
-
-    svgForceLayoutAreaWidth = d3LayoutWidth * FORCE_LAYOUT_WIDTH_RATIO;
-    svgForceLayoutAreaHeight = d3LayoutHeight * FORCE_LAYOUT_HEIGHT_RATIO;
-
-
-    svgForceLayoutArea.attr("width", svgForceLayoutAreaWidth)
-        .attr("height", svgForceLayoutAreaHeight);
-
-    svgForceLayoutArea.attr("x", 0);
-    svgForceLayoutArea.attr("y", 0);
-
-
-    force.size([svgForceLayoutAreaWidth, svgForceLayoutAreaHeight]);
-
-    nodeInitialX = INITIAL_X_RATIO * svgForceLayoutAreaWidth;
-    nodeInitialY = INITIAL_Y_RATIO * svgForceLayoutAreaHeight;
-}
-
-var ageNodesReady = true;
-
-function initD3timer() {
-    d3.timer(function() {
-        tickNumber++;
-        dateNow = moment().valueOf();
-        // if (ageNodesReady) {
-        //     ageNodesReady = false;
-        //     ageNodes(function(deadNodes) {
-        //         if (deadNodes.length > 0) {
-        //             console.warn("DEAD NODES" + "\n" + jsonPrint(deadNodes));
-        //         }
-        //         ageNodesReady = true;
-        //     });
-        // }
-        if (updateForceDisplayReady && !mouseMovingFlag) updateForceDisplay();
-    });
-}
-
-
-
-// ==========================================
-var testAddNodeInterval;
-
 function clearTestAddNodeInterval() {
     clearInterval(testAddNodeInterval);
 }
@@ -1699,7 +1674,6 @@ function initTestAddNodeInterval(interval) {
 }
 
 var testAddLinkInterval;
-
 function clearTestAddLinkInterval() {
     clearInterval(testAddLinkInterval);
 }

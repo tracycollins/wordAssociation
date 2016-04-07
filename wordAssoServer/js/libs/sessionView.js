@@ -2,6 +2,8 @@
 /*jslint node: true */
 "use strict";
 
+var d3 = window.d3;
+
 if(typeof(Worker) !== "undefined") {
   console.log("Worker!");
 } else {

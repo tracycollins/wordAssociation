@@ -2,6 +2,39 @@
 /*jslint node: true */
 "use strict";
 
+// requirejs(["https://cdn.socket.io/socket.io-1.4.5"], function(io) {});
+// requirejs(["node_modules/hashmap/hashmap"], function(Hashmap) {});
+requirejs(["js/libs/d3"], function(d3) {
+  console.log("d3 LOADED");
+  requirejs(["js/libs/sessionViewForce"], function(forceView) {
+    console.log("sessionViewForce LOADED");
+    initialize();
+  });
+});
+// requirejs(["node_modules/async/lib/async.js"], function(async) {});
+// requirejs(["https://cdnjs.cloudflare.com/ajax/libs/mathjs/2.6.0/math.min.js"], function(Math) {});
+// requirejs(["https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.11.1/moment.min.js"], function(moment) {});
+
+var config = {};
+config.testMode = false;
+
+function toggleTestMode(){
+  config.testMode = !config.testMode;
+  testModeEnabled = config.testMode;
+  console.warn("TEST MODE: " + testModeEnabled);
+
+  if (testModeEnabled) {
+    setTimeout(initTestAddNodeInterval(1000), 1047);
+    setTimeout(initTestAddLinkInterval(1000), 2047);
+    setTimeout(initTestDeleteNodeInterval(1000), 5047);
+  }
+  else {
+    clearTestAddNodeInterval();
+    clearTestAddLinkInterval();
+    clearTestDeleteNodeInterval();
+  }
+}
+
 var serverConnected = false ;
 var serverHeartbeatTimeout = 30000 ;
 var serverCheckInterval = 30000;
@@ -41,8 +74,8 @@ var namespace;
 var sessionMode = false;
 var monitorMode = false;
 
-var config = DEFAULT_CONFIG;
-var previousConfig = [];
+// var config = DEFAULT_CONFIG;
+// var previousConfig = [];
 
 
 function jp(s, obj){
@@ -276,10 +309,8 @@ function getUrlVariables(callbackMain){
 
         var keyValuePair = variable.split('=');
 
-        if (keyValuePair[1] !== 'undefined'){
-
+        if ((keyValuePair[0] !== '') && (keyValuePair[1] !== 'undefined')){
           console.log("'" + variable + "' >>> URL config: " + keyValuePair[0] + " : " + keyValuePair[1]);
-
           if (keyValuePair[0] === 'monitor') {
             monitorMode = keyValuePair[1];
             console.log("MONITOR MODE | monitorMode: " + monitorMode);
@@ -301,52 +332,44 @@ function getUrlVariables(callbackMain){
             console.log("SESSION TYPE | sessionType: " + sessionType);
             return(callback2(null, {sessionType: sessionType}));
           }
-
-
         }
         else {
           console.log("NO URL VARIABLES");
           return(callback2(null, null));
         }
-
       });
     }
   );
 
   async.parallel(asyncTasks, function(err, results){
     console.log("results\n" + jsonPrint(results));
-    results.forEach(function(resultObj){
-      console.warn("resultObj\n" + jsonPrint(resultObj));
+    // results.forEach(function(resultObj){
+    //   console.warn("resultObj\n" + jsonPrint(resultObj));
+    //   // KLUDGE ?????? should set global var here (not in asyncTasks above)
+    //   if (resultObj.sessionMode) {
+    //     sessionMode = true ;
+    //     currentSession.sessionId = "/" + urlNamespace + "#" + urlSessionId;
+    //     console.warn("SESSION MODE"
+    //       + " | SID: " + urlSessionId
+    //       + " | NSP: " + urlNamespace
+    //       + " | SID (full): " + currentSession.sessionId
+    //     );
+    //   }
+    //   if (resultObj.sessionType) {
+    //     console.warn("SESSION TYPE"
+    //       + " | " + sessionType
+    //     );
+    //   }
+    // });
 
-      // KLUDGE ?????? should set global var here (not in asyncTasks above)
-      if (resultObj.sessionMode) {
-        sessionMode = true ;
-        currentSession.sessionId = "/" + urlNamespace + "#" + urlSessionId;
-        console.warn("SESSION MODE"
-          + " | SID: " + urlSessionId
-          + " | NSP: " + urlNamespace
-          + " | SID (full): " + currentSession.sessionId
-        );
-      }
+    // var returnObj = {
+    //     sessionType: sessionType,
+    //     sessionMode: sessionMode,
+    //     sessionId: urlSessionId,
+    //     namespace: urlNamespace
+    // };
 
-      if (resultObj.sessionType) {
-        console.warn("SESSION TYPE"
-          + " | " + sessionType
-        );
-      }
-
-
-
-    });
-
-    var returnObj = {
-      sessionType: sessionType,
-      sessionMode: sessionMode,
-      sessionId: urlSessionId,
-      namespace: urlNamespace
-    };
-
-    callbackMain(err, returnObj);
+     callbackMain(err, results);
   });
 }
 
@@ -1184,7 +1207,47 @@ function updateSessions() {
   );
 }
 
-window.onload = function () {
+function toggleFullScreen() {
+  if (!document.fullscreenElement &&
+      !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement ) {
+
+    if (document.documentElement.requestFullscreen) {
+      document.documentElement.requestFullscreen();
+      resize();
+    } else if (document.documentElement.msRequestFullscreen) {
+      document.documentElement.msRequestFullscreen();
+      resize();
+    } else if (document.documentElement.mozRequestFullScreen) {
+      document.documentElement.mozRequestFullScreen();
+      resize();
+    } else if (document.documentElement.webkitRequestFullscreen) {
+      document.documentElement.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+      resize();
+    }
+  } else {
+
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+      resize();
+    } else if (document.msExitFullscreen) {
+      document.msExitFullscreen();
+      resize();
+    } else if (document.mozCancelFullScreen) {
+      document.mozCancelFullScreen();
+      resize();
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+      resize();
+    }
+  }
+}
+
+
+function initialize(){
+
+  console.log("initialize");
+
+// window.onload = function () {
   getUrlVariables(function(err, urlVariablesObj){
     if (!err) {
       console.log("ON LOAD getUrlVariables\n" + jsonPrint(urlVariablesObj));
@@ -1194,6 +1257,11 @@ window.onload = function () {
       if (urlVariablesObj.namespace) {
         namespace = urlVariablesObj.namespace;
       }
+      resize();
+      resetDefaultForce();
+    }
+    else{
+      console.error("GET URL VARIABLES ERROR\n" + jsonPrint(err));
     }
   });
 

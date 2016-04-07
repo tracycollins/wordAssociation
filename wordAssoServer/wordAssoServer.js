@@ -5438,6 +5438,12 @@ function initAppRouting(callback){
   debugAppGet(chalkInfo(moment().format(defaultDateTimeFormat) + " | INIT APP ROUTING"));
 
 
+  app.get('/js/require.js', function(req, res){
+    debugAppGet("LOADING FILE: /js/require.js");
+    res.sendFile(__dirname + '/js/require.js');
+    return;
+  });
+
   app.get('/js/libs/d3.js', function(req, res){
     debugAppGet("LOADING FILE: /js/libs/d3.jss");
     res.sendFile(__dirname + '/js/libs/d3.js');
@@ -5524,9 +5530,9 @@ function initAppRouting(callback){
     return;
   });
 
-  app.get('/js/libs/session.js', function(req, res){
-    debugAppGet("LOADING FILE: /js/libs/session.js");
-    res.sendFile(__dirname + '/js/libs/session.js');
+  app.get('/session.js', function(req, res){
+    debugAppGet("LOADING FILE: /session.js");
+    res.sendFile(__dirname + '/session.js');
     return;
   });
 

@@ -1,4 +1,4 @@
-/*ver 0.47*/
+mouseMoveTimeoutInterval/*ver 0.47*/
 /*jslint node: true */
 "use strict";
 

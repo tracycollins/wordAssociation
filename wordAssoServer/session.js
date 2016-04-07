@@ -107,33 +107,6 @@ var viewerObj = {
   type: "VIEWER",
 };
 
-// var mouseMoveTimeout = setTimeout(function(){
-//   d3.select("body").style("cursor", "none");
-//   if (!showStatsFlag && !pageLoadedTimeIntervalFlag){
-//     displayInfoOverlay(1);
-//   }
-//   displayControlOverlay(true);
-// }, mouseMoveTimeoutInterval);
-
-
-
-// function resetMouseMoveTimer() {
-//   clearTimeout(mouseMoveTimeout);
-
-//   displayInfoOverlay(1);
-//   displayControlOverlay(true);
-
-//   mouseMoveTimeout = setTimeout(function(){
-//     d3.select("body").style("cursor", "none");
-
-//     if (!showStatsFlag && !pageLoadedTimeIntervalFlag){
-//       displayInfoOverlay(1e-6);
-//       displayControlOverlay(false);
-//     }
-
-//     mouseMovingFlag = false;
-//   }, mouseMoveTimeoutInterval);
-// }
 
 function getTimeStamp(inputTime) {
   var options = {
@@ -594,7 +567,7 @@ function createSession (callback){
 
     var sessUpdate = rxSessionUpdateQueue.shift();
 
-    // console.log("sessUpdate\n" + jsonPrint(sessUpdate));
+    console.log("sessUpdate\n" + jsonPrint(sessUpdate));
 
     if (sessUpdate.sessionEvent == 'SESSION_DELETE'){
       console.warn("DELETE SESSION: " + sessUpdate.sessionId);
@@ -617,7 +590,9 @@ function createSession (callback){
       var prevLatestNodeId = currentSession.latestNodeId;
       var prevSessionLinkId = currentSession.userId + "_" + prevLatestNodeId;
 
-      removeFromHashMap(linkHashMap, prevSessionLinkId, function(){});
+      removeFromHashMap(linkHashMap, prevSessionLinkId, function(){
+        deleteLink(prevSessionLinkId);
+      });
 
       currentSession.age = 0;
       currentSession.userId = sessUpdate.userId;
@@ -703,7 +678,7 @@ function createSession (callback){
 
       addToHashMap(nodeHashMap, sessionNode.nodeId, sessionNode, function(sesNode){
 
-        newNodes.push(sesNode.nodeId);
+        addNode(sesNode);
 
         addToHashMap(sessionHashMap, currentSession.sessionId, currentSession, function(cSession){
           console.log("NEW SESSION " 
@@ -747,7 +722,7 @@ function createNode (sessionId, callback) {
     }
     else {
       addToHashMap(nodeHashMap, sessionId, session.node, function(sNode){
-        newNodes.push(sNode.nodeId);
+        addNode(sNode);
         // console.log("CREATE SESSION NODE" 
         //   + " | " + sNode.nodeId 
         //   // + "\n" + jsonPrint(sNode) 
@@ -850,11 +825,13 @@ function createNode (sessionId, callback) {
       // console.warn("CREATE NODE RESULTS\n" + jsonPrint(results));
 
       session.source = results.source.node;
-      if (results.source.isNew) newNodes.push(results.source.node.nodeId);
+      // if (results.source.isNew) newNodes.push(results.source.node.nodeId);
+      if (results.source.isNew) addNode(results.source.node);
 
       if (results.target) {
         session.target = results.target.node;
-        if (results.target.isNew) newNodes.push(results.target.node.nodeId);
+        // if (results.target.isNew) newNodes.push(results.target.node.nodeId);
+        if (results.target.isNew) addNode(results.target.node);
       }
 
       addToHashMap(sessionHashMap, session.sessionId, session, function(cSession){
@@ -900,7 +877,7 @@ function createLink (sessionId, callback) {
     };
 
     addToHashMap(linkHashMap, sessionLinkId, newSessionLink, function(sesLink){
-      newLinks.push(sesLink.linkId);
+      addLink(sesLink);
       // console.log("NEW SESSION LINK"
       //   + " | " + newLinks.length
       //   + " | " + sesLink.linkId
@@ -945,7 +922,7 @@ function createLink (sessionId, callback) {
 
 
     if (newLink) addToHashMap(linkHashMap, linkId, newLink, function(nLink){
-      newLinks.push(nLink.linkId);
+      addLink(nLink);
       // console.log("NEW LINK"
       //   + " | " + newLinks.length
       //   + " | " + nLink.linkId
@@ -964,88 +941,13 @@ function createLink (sessionId, callback) {
 
 function updateNodesArray (sessionId, callback) {
 
-  // NOW TO BE HANDLED BY sessionView module
-
-
-  // var nodeId;
-  // var newNode;
-  // while (newNodes.length > 0){
-  //   if (!forceStopped) {
-  //     force.stop(); 
-  //     forceStopped = true ;
-  //   }
-  //   nodeId = newNodes.shift();
-  //   newNode = nodeHashMap.get(nodeId);
-  //   nodes.push(newNode);
-  // }
   return(callback (null, sessionId));
 }
 
 function updateLinksArray (sessionId, callback) {
-
-  // NOW TO BE HANDLED BY sessionView module
-
-
-  // while (newLinks.length > 0){
-  //   var linkId = newLinks.shift();
-  //   var newLink = linkHashMap.get(linkId);
-  //   if (typeof newLink !== 'undefined'){
-  //     if (!forceStopped) {
-  //       force.stop(); 
-  //       forceStopped = true ;
-  //     }
-  //     links.push(newLink);
-  //   }
-  //   else {
-  //     console.warn("updateLinksArray: NEW LINK NOT IN HM? SKIPPING | linkId: " + linkId);
-  //   }
-  // }
   return(callback (null, sessionId));
 }
 
-// function calcNodeAges (callback){
-
-//   if (nodes.length === 0) {
-//     ageRate = DEFAULT_AGE_RATE;
-//   }
-//   else if (nodes.length > 100) {
-//     ageRate = adjustedAgeRateScale(nodes.length-100);
-//   }
-//   else {
-//     ageRate = DEFAULT_AGE_RATE;
-//   }
-
-//   var dateNow = moment().valueOf();
-
-//   var nodeIds = nodeHashMap.keys();
-//   // var nodeIds = Object.keys(nodeHashMap);
-
-//   async.each(nodeIds, function(nodeId, cb){
-
-//     var node = nodeHashMap.get(nodeId);
-
-//     age = node.age + (ageRate * (dateNow - node.ageUpdated));
-
-//     if (!node.isSessionNode && (age >= nodeMaxAge)) {
-//       node.isDead = true;
-//       addToHashMap(nodeHashMap, nodeId, node, function(node){
-//         cb();
-//       });
-//     }
-//     else {
-//       node.ageUpdated = dateNow;
-//       node.age = age;
-//       addToHashMap(nodeHashMap, nodeId, node, function(node){
-//         cb();
-//       });
-//     }
-
-//   },
-//     function(err){
-//       return(callback());
-//     }
-//   )
-// }
 
 function ageSessions (sessionId, callback){
 
@@ -1074,116 +976,7 @@ function ageSessions (sessionId, callback){
   }
 }
 
-// function ageNodes (sessionId, callback){
-
-//   var dateNow = moment().valueOf();
-
-//   var ageNodesLength = nodes.length-1;
-//   var ageNodesIndex =  nodes.length-1;
-
-//   var currentNodeObject;
-//   var currentNodeId;
-
-//   for (ageNodesIndex = ageNodesLength; ageNodesIndex>=0; ageNodesIndex -= 1) {  
-
-//     currentNodeObject = nodes[ageNodesIndex];
-//     currentNodeId = currentNodeObject.nodeId;
-
-//     if (currentNodeObject.isDead){
-//       if (!forceStopped){
-//         forceStopped = true ;
-//         force.stop();
-//       }
-//       removeFromHashMap(nodeHashMap, currentNodeId, function(){
-//         nodes.splice(ageNodesIndex, 1);
-
-//         // jp("currentNodeObject.links", currentNodeObject.links);
-
-//       });
-//     }
-//     else {
-//       nodes[ageNodesIndex].age = currentNodeObject.age;
-//       nodes[ageNodesIndex].ageUpdated = currentNodeObject.ageUpdated;
-//       addToHashMap(nodeHashMap, currentNodeId, currentNodeObject, function(node){
-//       });
-//     }
-//   }
-
-//   if (ageNodesIndex < 0) {
-//     return(callback(null, sessionId));
-//   }
-// }
-
-// function ageLinks (sessionId, callback){
-
-//   var ageLinksIndex = links.length-1;
-
-//   var currentSession;
-//   var currentLinkObject = {};
-//   var dateNow = moment().valueOf();
-
-//   for (ageLinksIndex = links.length-1; ageLinksIndex >= 0; ageLinksIndex -= 1) {
-
-//     currentLinkObject = links[ageLinksIndex];
-
-//     // console.log("currentLinkObject\n" + jsonPrint(currentLinkObject));
-
-//     if ((typeof currentLinkObject !== 'undefined') && currentLinkObject.isDead){
-//       if (!forceStopped){
-//         forceStopped = true ;
-//         force.stop();
-//       }
-//       removeFromHashMap(linkHashMap, currentLinkObject.linkId, function(){
-//         links.splice(ageLinksIndex, 1); 
-//       });
-//     }
-//     else if ((typeof currentLinkObject !== 'undefined') 
-//       && (currentLinkObject.source.isDead || currentLinkObject.target.isDead)){
-//       if (!forceStopped){
-//         forceStopped = true ;
-//         force.stop();
-//       }
-//       removeFromHashMap(linkHashMap, currentLinkObject.linkId, function(){
-//         links.splice(ageLinksIndex, 1); 
-//       });
-//     }
-//     else if ((typeof currentLinkObject !== 'undefined') && !linkHashMap.has(currentLinkObject.linkId)){
-//       if (!forceStopped){
-//         forceStopped = true ;
-//         force.stop();
-//       }
-//       removeFromHashMap(linkHashMap, currentLinkObject.linkId, function(){
-//         links.splice(ageLinksIndex, 1); 
-//       });
-//     }
-//     else if (!nodeHashMap.has(currentLinkObject.source.nodeId) || !nodeHashMap.has(currentLinkObject.target.nodeId)){
-//       if (!forceStopped){
-//         forceStopped = true ;
-//         force.stop();
-//       }
-//       removeFromHashMap(linkHashMap, currentLinkObject.linkId, function(){
-//         links.splice(ageLinksIndex, 1); 
-//       });
-//     }
-//     else {
-//       if (currentLinkObject.source.age < currentLinkObject.target.age) {
-//         currentLinkObject.age = currentLinkObject.source.age;
-//       }
-//       else {
-//         currentLinkObject.age = currentLinkObject.target.age;
-//       }
-//       addToHashMap(linkHashMap, currentLinkObject.linkId, currentLinkObject, function(link){
-//       });
-//     }
-//   }
-
-//   if (ageLinksIndex < 0) {
-//     return(callback(null, sessionId));
-//   }
-// }
-
-
-
+var updateSessionsReady = true;
 function updateSessions() {
 
   updateSessionsReady = false;
@@ -1243,11 +1036,22 @@ function toggleFullScreen() {
 }
 
 
+var updateSessionsInterval;
+function clearUpdateSessionsInterval(){
+  clearInterval(updateSessionsInterval);
+}
+
+function initUpdateSessionsInterval(interval){
+  clearInterval(updateSessionsInterval);
+  updateSessionsInterval = setInterval(function(){
+    if (updateSessionsReady) updateSessions();
+  }, interval);
+}
+
 function initialize(){
 
   console.log("initialize");
 
-// window.onload = function () {
   getUrlVariables(function(err, urlVariablesObj){
     if (!err) {
       console.log("ON LOAD getUrlVariables\n" + jsonPrint(urlVariablesObj));
@@ -1267,6 +1071,8 @@ function initialize(){
 
   console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
   socket.emit("VIEWER_READY", viewerObj);
+
+  initUpdateSessionsInterval(50);
 
   setTimeout(function(){
     pageLoadedTimeIntervalFlag = false;

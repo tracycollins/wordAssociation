@@ -16,9 +16,17 @@ var dateNow = moment().valueOf();
 var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
 var defaultTimePeriodFormat = "HH:mm:ss";
 
+var mouseFreezeEnabled = true;
 var mouseMovingFlag = false;
+var mouseHoverFlag = false;
 var mouseOverRadius = 10;
+var mouseMoveTimeoutInterval = 1000; 
+var mouseHoverNodeId;
+
+
 var updateForceDisplayReady = true;
+
+var showStatsFlag = false;
 
 var nodeMaxAge = window.DEFAULT_MAX_AGE;
 
@@ -182,6 +190,21 @@ STATS_OVERLAY4_Y = DEFAULT_STATS_OVERLAY4_Y * height;
 DATE_TIME_OVERLAY_X = DEFAULT_DATE_TIME_OVERLAY_X * width;
 DATE_TIME_OVERLAY_Y = DEFAULT_DATE_TIME_OVERLAY_Y * height;
 
+document.addEventListener("mousemove", function() {
+  if (mouseHoverFlag) {
+    d3.select("body").style("cursor", "pointer");
+  }
+  else {
+    d3.select("body").style("cursor", "default");
+  }
+
+  resetMouseMoveTimer();
+  mouseMovingFlag = true ;
+
+  if (mouseFreezeEnabled) {
+    force.stop();
+  }
+}, true);
 
 
 
@@ -310,8 +333,87 @@ var nodeInitialY = INITIAL_Y_RATIO * svgForceLayoutAreaHeight;
 console.log("nodeInitialX: " + nodeInitialX + " | nodeInitialY: " + nodeInitialY);
 
 
+function displayControlOverlay(vis) {
+
+  var visible = "visible";
+
+  if (vis) {
+    visible = "visible";
+  }
+  else {
+    visible = "hidden";
+  }
+
+  d3.select("#sliderDiv").style("visibility", visible);
+
+  d3.select("#infoButton").style("visibility", visible);
+  d3.select("#statsToggleButton").style("visibility", visible);
+  d3.select("#fullscreenToggleButton").style("visibility", visible);
+}
+
+function displayInfoOverlay(opacity, color) {
+
+
+  d3.select("#adminOverlay0").select("text").style("opacity", opacity);
+  d3.select("#adminOverlay1").select("text").style("opacity", opacity);
+  d3.select("#adminOverlay2").select("text").style("opacity", opacity);
+  d3.select("#adminOverlay3").select("text").style("opacity", opacity);
+
+  d3.select("#dateTimeOverlay").select("text").style("opacity", opacity);
+
+  d3.select("#statsOverlay1").style("opacity", opacity);
+  d3.select("#statsOverlay2").style("opacity", opacity);
+  d3.select("#statsOverlay3").style("opacity", opacity);
+  d3.select("#statsOverlay4").style("opacity", opacity);
+
+  if (color) {
+
+  console.log("displayInfoOverlay", opacity, color);
+
+    d3.select("#adminOverlay0").select("text").style("fill", color);
+    d3.select("#adminOverlay1").select("text").style("fill", color);
+    d3.select("#adminOverlay2").select("text").style("fill", color);
+    d3.select("#adminOverlay3").select("text").style("fill", color);
+
+    d3.select("#dateTimeOverlay").select("text").style("fill", color);
+
+    d3.select("#statsOverlay1").style("fill", color);
+    d3.select("#statsOverlay2").style("fill", color);
+    d3.select("#statsOverlay3").style("fill", color);
+    d3.select("#statsOverlay4").style("fill", color);
+  }
+}
+
+var mouseMoveTimeout = setTimeout(function(){
+  d3.select("body").style("cursor", "none");
+  if (!showStatsFlag && !pageLoadedTimeIntervalFlag){
+    displayInfoOverlay(1);
+  }
+  displayControlOverlay(true);
+}, mouseMoveTimeoutInterval);
+
+
+
+function resetMouseMoveTimer() {
+  clearTimeout(mouseMoveTimeout);
+
+  displayInfoOverlay(1);
+  displayControlOverlay(true);
+
+  mouseMoveTimeout = setTimeout(function(){
+    d3.select("body").style("cursor", "none");
+
+    if (!showStatsFlag && !pageLoadedTimeIntervalFlag){
+      displayInfoOverlay(1e-6);
+      displayControlOverlay(false);
+    }
+
+    mouseMovingFlag = false;
+  }, mouseMoveTimeoutInterval);
+}
+
 function zoomHandler() {
-  console.log("zoomHandler: TRANSLATE: " + d3.event.translate + " | SCALE: " + d3.event.scale);
+  // console.log("zoomHandler: TRANSLATE: " + d3.event.translate + " | SCALE: " + d3.event.scale);
   // svgForceLayoutArea.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
   if (!mouseHoverFlag) {
     svgForceLayoutArea.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
@@ -324,11 +426,11 @@ var d3image = d3.select("#d3group");
 var svgcanvas = d3image.append("svg:svg")
   .attr("id", "svgcanvas")
   .attr("x", 0)
-  .attr("y", 0);
-  // .call(d3.behavior.zoom()
-  //   .scale(currentScale)
-  //   .scaleExtent([0.1, 10])
-  //   .on("zoom", zoomHandler));
+  .attr("y", 0)
+  .call(d3.behavior.zoom()
+    .scale(currentScale)
+    .scaleExtent([0.1, 10])
+    .on("zoom", zoomHandler));
 
 var svgForceLayoutArea = svgcanvas.append("g")
   .attr("id", "svgForceLayoutArea");
@@ -337,8 +439,8 @@ var zoomListener = d3.behavior.zoom()
   .scaleExtent([0.1, 10])
   .on("zoom", zoomHandler) ;
 
-// zoomListener.translate([zoomWidth,zoomHeight]).scale(currentScale);//translate and scale to whatever value you wish
-// zoomListener.event(svgcanvas.transition().duration(1000));//does a zoom
+zoomListener.translate([zoomWidth,zoomHeight]).scale(currentScale);//translate and scale to whatever value you wish
+zoomListener.event(svgcanvas.transition().duration(1000));//does a zoom
 
 var sessionSvgGroup = svgForceLayoutArea.append("svg:g")
   .attr("id", "sessionSvgGroup");
@@ -1314,6 +1416,28 @@ function addRandomLink(){
   addLink(newLink);
 }
 
+function deleteLink(linkId){
+  console.log("deleteLink " + linkId);
+
+  force.stop();
+  forceStopped = true;
+
+  var linksLength = links.length-1;
+
+  var linkIndex = linksLength;
+
+  for (linkIndex = linksLength; linkIndex>=0; linkIndex -= 1) {
+    if (linkId == links[linkIndex].linkId) {
+      console.log("XXX LINK " + linkId);
+      links.splice(linkIndex, 1);
+    }
+  }   
+
+  if (linkIndex < 0) {
+    return;
+  }
+}
+
 
 var testAddNodeInterval;
 function clearTestAddNodeInterval(){
@@ -1402,22 +1526,8 @@ function resize() {
   nodeInitialY = INITIAL_Y_RATIO * svgForceLayoutAreaHeight;
 }
 
-// window.onload = function () {
-//   resize();
-//   resetDefaultForce();
-//   console.log("WINDOW LOADED");
-
-//   if (testModeEnabled){
-//     setTimeout(initTestAddNodeInterval(1000), 1047);
-//     setTimeout(initTestAddLinkInterval(1000), 2047);
-//     setTimeout(initTestDeleteNodeInterval(1000), 5047);
-//   }
-// };
-
 d3.timer(function () {
   tickNumber++;
   dateNow = moment().valueOf();
   if (updateForceDisplayReady && !mouseMovingFlag) updateForceDisplay();
 });
-
-// resize();

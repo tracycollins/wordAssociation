@@ -373,7 +373,8 @@ var mwOverLimitTimeOut = setTimeout(function () {
 // ==================================================================
 // ENV INIT
 // ==================================================================
-var debug = require('debug')('wordAsso');
+var debug = require('debug')('wa');
+var debugAppGet = require('debug')('wa:appGet');
 
 if (debug.enabled){
   console.log("\n%%%%%%%%%%%%%%\n%%%%%%% DEBUG ENABLED %%%%%%%\n%%%%%%%%%%%%%%\n");
@@ -5434,53 +5435,53 @@ var rateQinterval = setInterval(function () {
 
 function initAppRouting(callback){
 
-  console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | INIT APP ROUTING"));
+  debugAppGet(chalkInfo(moment().format(defaultDateTimeFormat) + " | INIT APP ROUTING"));
 
 
   app.get('/js/libs/d3.js', function(req, res){
-    console.log("LOADING FILE: /js/libs/d3.jss");
+    debugAppGet("LOADING FILE: /js/libs/d3.jss");
     res.sendFile(__dirname + '/js/libs/d3.js');
     return;
   });
 
   app.get('/js/libs/stringmap.js', function(req, res){
-    console.log("LOADING FILE: /js/libs/stringmap.jss");
+    debugAppGet("LOADING FILE: /js/libs/stringmap.jss");
     res.sendFile(__dirname + '/js/libs/stringmap.js');
     return;
   });
 
   app.get('/node_modules/node-cache/lib/node_cache.js', function(req, res){
-    console.log("LOADING FILE: /node_modules/node-cache/lib/node_cache.js");
+    debugAppGet("LOADING FILE: /node_modules/node-cache/lib/node_cache.js");
     res.sendFile(__dirname + '/node_modules/node-cache/lib/node_cache.js');
     return;
   });
 
   app.get('/node_modules/socket.io/lib/socket.js', function(req, res){
-    console.log("LOADING FILE: /node_modules/socket.io/lib/socket.js");
+    debugAppGet("LOADING FILE: /node_modules/socket.io/lib/socket.js");
     res.sendFile(__dirname + '/node_modules/socket.io/lib/socket.js');
     return;
   });
 
   app.get('/threecee.pem', function(req, res){
-    debug("LOADING FILE: threecee.pem");
+    debugAppGet("LOADING FILE: threecee.pem");
     res.sendFile(__dirname + '/threecee.pem');
     return;
   });
 
   app.get('/', function(req, res){
-    console.log("LOADING PAGE: /");
+    debugAppGet("LOADING PAGE: /");
     res.sendFile(__dirname + '/index.html');
     return;
   });
 
   app.get('/admin', function(req, res){
-    console.log("LOADING PAGE: /admin/admin.html");
+    debugAppGet("LOADING PAGE: /admin/admin.html");
     res.sendFile(__dirname + '/admin/admin.html');
     return;
   });
 
   app.get('/admin/admin.html', function(req, res){
-    console.log("LOADING PAGE: /admin/admin.html");
+    debugAppGet("LOADING PAGE: /admin/admin.html");
     res.sendFile(__dirname + '/admin/admin.html');
     return;
   });
@@ -5506,62 +5507,74 @@ function initAppRouting(callback){
   });
 
   app.get('/util', function(req, res){
-    debug(chalkAlert("UTIL PAGE REQUEST ... RETURNING index.html ..."));
+    debugAppGet(chalkAlert("UTIL PAGE REQUEST ... RETURNING index.html ..."));
     res.sendFile(__dirname + '/index.html');
     return;
   });
 
   app.get('/test-user', function(req, res){
-    debug(chalkAlert("TEST USER PAGE REQUEST ... RETURNING index.html ..."));
+    debugAppGet(chalkAlert("TEST USER PAGE REQUEST ... RETURNING index.html ..."));
     res.sendFile(__dirname + '/index.html');
     return;
   });
 
   app.get('/wordAssoClient.js', function(req, res){
-    debug("LOADING PAGE: /wordAssoClient.js");
+    debugAppGet("LOADING PAGE: /wordAssoClient.js");
     res.sendFile(__dirname + '/wordAssoClient.js');
     return;
   });
 
+  app.get('/js/libs/session.js', function(req, res){
+    debugAppGet("LOADING FILE: /js/libs/session.js");
+    res.sendFile(__dirname + '/js/libs/session.js');
+    return;
+  });
+
   app.get('/session', function(req, res){
-    debug("LOADING FILE: /session.html");
+    debugAppGet("LOADING FILE: /session.html");
     res.sendFile(__dirname + '/session.html');
     return;
   });
 
-
-  app.get('/js/libs/SpriteText2D.js', function(req, res){
-    debug("LOADING FILE: SpriteText2D.js");
-    res.sendFile(__dirname + '/js/libs/SpriteText2D.js');
-    return;
-  });
-
-  app.get('/js/libs/three-text2d.js', function(req, res){
-    debug("LOADING FILE: three-text2d.js");
-    res.sendFile(__dirname + '/js/libs/three-text2d.js');
+  app.get('/sessionModular', function(req, res){
+    debugAppGet("LOADING FILE: /sessionModular.html");
+    res.sendFile(__dirname + '/sessionModular.html');
     return;
   });
 
   app.get('/js/libs/sessionViewForce.js', function(req, res){
-    debug("LOADING FILE: sessionViewForce.js");
+    debugAppGet("LOADING FILE: sessionViewForce.js");
     res.sendFile(__dirname + '/js/libs/sessionViewForce.js');
     return;
   });
 
   app.get('/js/libs/sessionView3d.js', function(req, res){
-    debug("LOADING FILE: sessionView3d.js");
+    debugAppGet("LOADING FILE: sessionView3d.js");
     res.sendFile(__dirname + '/js/libs/sessionView3d.js');
     return;
   });
 
   app.get('/js/libs/sessionView.js', function(req, res){
-    debug("LOADING FILE: sessionView.js");
+    debugAppGet("LOADING FILE: sessionView.js");
     res.sendFile(__dirname + '/js/libs/sessionView.js');
     return;
   });
 
+  app.get('/js/libs/SpriteText2D.js', function(req, res){
+    debugAppGet("LOADING FILE: SpriteText2D.js");
+    res.sendFile(__dirname + '/js/libs/SpriteText2D.js');
+    return;
+  });
+
+  app.get('/js/libs/three-text2d.js', function(req, res){
+    debugAppGet("LOADING FILE: three-text2d.js");
+    res.sendFile(__dirname + '/js/libs/three-text2d.js');
+    return;
+  });
+
+
   app.get('/js/libs/three.min.js', function(req, res){
-    debug("LOADING FILE: three.min.js");
+    debugAppGet("LOADING FILE: three.min.js");
     res.sendFile(__dirname + '/js/libs/three.min.js');
     return;
   });
@@ -5597,13 +5610,13 @@ function initAppRouting(callback){
   });
 
   app.get('/favicon.ico', function(req, res){
-    debug("LOADING PAGE: /favicon.ico");
+    debugAppGet("LOADING PAGE: /favicon.ico");
     res.sendFile(__dirname + '/favicon.png');
     return;
   });
 
   app.get('/favicon.png', function(req, res){
-    debug("LOADING PAGE: /favicon.png");
+    debugAppGet("LOADING PAGE: /favicon.png");
     res.sendFile(__dirname + '/favicon.png');
     return;
   });

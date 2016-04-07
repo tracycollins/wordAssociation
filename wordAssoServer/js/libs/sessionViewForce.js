@@ -6,6 +6,8 @@
 // ==============================================
 // GLOBAL VARS
 // ==============================================
+var testModeEnabled = false ;
+
 var tickNumber = 0;
 var width = window.innerWidth * 1;
 var height = window.innerHeight * 1;
@@ -18,12 +20,9 @@ var mouseMovingFlag = false;
 var mouseOverRadius = 10;
 var updateForceDisplayReady = true;
 
+var nodeMaxAge = window.DEFAULT_MAX_AGE;
 
-var DEFAULT_MAX_AGE = 20000;
-var DEFAULT_AGE_RATE = 1.0;
-var nodeMaxAge = DEFAULT_MAX_AGE;
-
-var DEFAULT_CONFIG = { 'nodeMaxAge': DEFAULT_MAX_AGE };
+var DEFAULT_CONFIG = { 'nodeMaxAge': window.DEFAULT_MAX_AGE };
 var config = DEFAULT_CONFIG;
 var previousConfig = [];
 
@@ -41,7 +40,7 @@ var DEFAULT_FORCE_CONFIG = {
     'friction': DEFAULT_FRICTION,
     'linkStrength': DEFAULT_LINK_STRENGTH,
     'gravity': DEFAULT_GRAVITY,
-    'ageRate': DEFAULT_AGE_RATE,
+    'ageRate': window.DEFAULT_AGE_RATE,
 };
 
 var charge = DEFAULT_CHARGE;
@@ -577,7 +576,10 @@ function updateLinks(callback) {
     // .append("svg:line", "g.node")
     .append("svg:line")
     .attr("class", "link")
-    .attr("id", function(d) { return d.linkId; })
+    .attr("id", function(d) { 
+      console.log("LINK ENTER " + d.linkId);
+      return d.linkId; 
+    })
     .attr("sourceNodeId", function(d) { return d.source.nodeId; })
     .attr("targetNodeId", function(d) { return d.target.nodeId; })
     .style('stroke', function(d){ return linkColorScale(d.age);})
@@ -818,10 +820,10 @@ function updateForceDisplay() {
   async.series(
     [
       updateNodes,
-      updateLinks,
       updateSessionCircles,
       updateNodeCircles,
       updateNodeLabels,
+      updateLinks,
     ], 
     
     function(err, result){
@@ -844,9 +846,9 @@ function nodeFill (age) {
 
 function nodeMouseOver(d) {
 
-  console.warn("MOUSE OVER"
-    // + "\n" + jsonPrint(d)
-  );
+  // console.warn("MOUSE OVER"
+  //   // + "\n" + jsonPrint(d)
+  // );
 
   // if (d.links) {
   //   var linkNodeIds = Object.keys(d.links);
@@ -994,19 +996,165 @@ function sessionCircleClick(d) {
   launchSessionView(d.sessionId);
 }
 
-d3.timer(function () {
-  tickNumber++;
-  dateNow = moment().valueOf();
-  if (updateForceDisplayReady && !mouseMovingFlag) updateForceDisplay();
-});
+function calcNodeAges (callback){
+
+  if (nodes.length === 0) {
+    ageRate = DEFAULT_AGE_RATE;
+  }
+  else if (nodes.length > 100) {
+    ageRate = adjustedAgeRateScale(nodes.length-100);
+  }
+  else {
+    ageRate = DEFAULT_AGE_RATE;
+  }
+
+  var dateNow = moment().valueOf();
+
+  var nodeIds = nodeHashMap.keys();
+  // var nodeIds = Object.keys(nodeHashMap);
+
+  async.each(nodeIds, function(nodeId, cb){
+
+    var node = nodeHashMap.get(nodeId);
+
+    age = node.age + (ageRate * (dateNow - node.ageUpdated));
+
+    if (!node.isSessionNode && (age >= nodeMaxAge)) {
+      node.isDead = true;
+      addToHashMap(nodeHashMap, nodeId, node, function(node){
+        cb();
+      });
+    }
+    else {
+      node.ageUpdated = dateNow;
+      node.age = age;
+      addToHashMap(nodeHashMap, nodeId, node, function(node){
+        cb();
+      });
+    }
+
+  },
+    function(err){
+      return(callback());
+    }
+  )
+}
+
+function ageNodes (sessionId, callback){
+
+  var dateNow = moment().valueOf();
+
+  var ageNodesLength = nodes.length-1;
+  var ageNodesIndex =  nodes.length-1;
+
+  var currentNodeObject;
+  var currentNodeId;
+
+  for (ageNodesIndex = ageNodesLength; ageNodesIndex>=0; ageNodesIndex -= 1) {  
+
+    currentNodeObject = nodes[ageNodesIndex];
+    currentNodeId = currentNodeObject.nodeId;
+
+    if (currentNodeObject.isDead){
+      if (!forceStopped){
+        forceStopped = true ;
+        force.stop();
+      }
+      removeFromHashMap(nodeHashMap, currentNodeId, function(){
+        nodes.splice(ageNodesIndex, 1);
+
+        // jp("currentNodeObject.links", currentNodeObject.links);
+
+      });
+    }
+    else {
+      nodes[ageNodesIndex].age = currentNodeObject.age;
+      nodes[ageNodesIndex].ageUpdated = currentNodeObject.ageUpdated;
+      addToHashMap(nodeHashMap, currentNodeId, currentNodeObject, function(node){
+      });
+    }
+  }
+
+  if (ageNodesIndex < 0) {
+    return(callback(null, sessionId));
+  }
+}
+
+function ageLinks (sessionId, callback){
+
+  var ageLinksIndex = links.length-1;
+
+  var currentSession;
+  var currentLinkObject = {};
+  var dateNow = moment().valueOf();
+
+  for (ageLinksIndex = links.length-1; ageLinksIndex >= 0; ageLinksIndex -= 1) {
+
+    currentLinkObject = links[ageLinksIndex];
+
+    // console.log("currentLinkObject\n" + jsonPrint(currentLinkObject));
+
+    if ((typeof currentLinkObject !== 'undefined') && currentLinkObject.isDead){
+      if (!forceStopped){
+        forceStopped = true ;
+        force.stop();
+      }
+      removeFromHashMap(linkHashMap, currentLinkObject.linkId, function(){
+        links.splice(ageLinksIndex, 1); 
+      });
+    }
+    else if ((typeof currentLinkObject !== 'undefined') 
+      && (currentLinkObject.source.isDead || currentLinkObject.target.isDead)){
+      if (!forceStopped){
+        forceStopped = true ;
+        force.stop();
+      }
+      removeFromHashMap(linkHashMap, currentLinkObject.linkId, function(){
+        links.splice(ageLinksIndex, 1); 
+      });
+    }
+    else if ((typeof currentLinkObject !== 'undefined') && !linkHashMap.has(currentLinkObject.linkId)){
+      if (!forceStopped){
+        forceStopped = true ;
+        force.stop();
+      }
+      removeFromHashMap(linkHashMap, currentLinkObject.linkId, function(){
+        links.splice(ageLinksIndex, 1); 
+      });
+    }
+    else if (!nodeHashMap.has(currentLinkObject.source.nodeId) || !nodeHashMap.has(currentLinkObject.target.nodeId)){
+      if (!forceStopped){
+        forceStopped = true ;
+        force.stop();
+      }
+      removeFromHashMap(linkHashMap, currentLinkObject.linkId, function(){
+        links.splice(ageLinksIndex, 1); 
+      });
+    }
+    else {
+      if (currentLinkObject.source.age < currentLinkObject.target.age) {
+        currentLinkObject.age = currentLinkObject.source.age;
+      }
+      else {
+        currentLinkObject.age = currentLinkObject.target.age;
+      }
+      addToHashMap(linkHashMap, currentLinkObject.linkId, currentLinkObject, function(link){
+      });
+    }
+  }
+
+  if (ageLinksIndex < 0) {
+    return(callback(null, sessionId));
+  }
+}
+
 
 function addNode(newNode){
-  // console.log("addNode\n" + jsonPrint(newNode));
+  console.log("addNode\n" + jsonPrint(newNode));
   console.log("addNode " + newNode.nodeId);
   force.stop();
   forceStopped = true;
   nodes.push(newNode);
-
 }
 
 function deleteNode(nodeId){
@@ -1072,7 +1220,7 @@ function addRandomNode(){
   var sessionId = 'session_' + randomNumber360;
   var userId = 'user_' + randomNumber360;
   var nodeId = 'testNode' + tickNumber;
-  var mentions = randomIntFromInterval(0,100000000);
+  var mentions = randomIntFromInterval(0,1000000);
   var wordChainIndex = tickNumber;
   var text = randomNumber360 + ' | ' + mentions;
 
@@ -1088,6 +1236,8 @@ function addRandomNode(){
     text: text,
     mentions: mentions,
     wordChainIndex: wordChainIndex,
+    startColor: startColor,
+    endColor: endColor,
     interpolateColor: interpolateNodeColor,
     x: 0.5*width + randomIntFromInterval(0,100),
     y: 0.5*height + randomIntFromInterval(0,100),
@@ -1101,7 +1251,12 @@ function addRandomNode(){
 }
 
 function addLink(newLink){
-  console.log("addLink" + newLink.linkId);
+  console.log("addLink"
+    + " | " + newLink.linkId
+    + " | " + newLink.source.nodeId
+    + " > " + newLink.target.nodeId
+    + "\n" + jsonPrint(newLink)
+  );
   force.stop();
   forceStopped = true;
   links.push(newLink);
@@ -1231,18 +1386,21 @@ function resize() {
   nodeInitialY = INITIAL_Y_RATIO * svgForceLayoutAreaHeight;
 }
 
-window.onload = function () {
-  resize();
-  resetDefaultForce();
-  console.log("WINDOW LOADED");
+// window.onload = function () {
+//   resize();
+//   resetDefaultForce();
+//   console.log("WINDOW LOADED");
 
-  setTimeout(initTestAddNodeInterval(1000), 1047);
-  setTimeout(initTestAddLinkInterval(1000), 2047);
-  setTimeout(initTestDeleteNodeInterval(1000), 5047);
-};
+//   if (testModeEnabled){
+//     setTimeout(initTestAddNodeInterval(1000), 1047);
+//     setTimeout(initTestAddLinkInterval(1000), 2047);
+//     setTimeout(initTestDeleteNodeInterval(1000), 5047);
+//   }
+// };
 
-// setInterval(function () {
-//   dateNow = moment().valueOf();
-//   calcNodeAges(function(){});
-//   if (createSessionNodeLinkReady && !mouseMovingFlag) createSessionNodeLink();
-// }, 50);
+d3.timer(function () {
+  tickNumber++;
+  dateNow = moment().valueOf();
+  if (updateForceDisplayReady && !mouseMovingFlag) updateForceDisplay();
+});
+

@@ -438,7 +438,7 @@ function setSessionMode(mode){
     break;
   }
 
-  socket.emit("USER_READY", userObj);
+  // socket.emit("USER_READY", userObj);
 }
 
 

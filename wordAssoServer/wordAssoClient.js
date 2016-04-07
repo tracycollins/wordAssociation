@@ -1,6 +1,8 @@
 /*jslint node: true */
 "use strict";
 
+var DEFAULT_MAX_AGE = 10000;
+
 var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
 var defaultTimePeriodFormat = "HH:mm:ss";
 
@@ -556,6 +558,12 @@ socket.on("PAIRED_USER_END", function(pairedUserSessionId){
   disableUserResponsePrompt();
 });
 
+socket.on("PAIRED_USER_END", function(pairedUserSessionId){
+  console.warn("PAIRED USER END: " + pairedUserSessionId);
+  updatePairedUserPromptLabel("... WAITING FOR USER TO PAIR ...");
+  disableUserResponsePrompt();
+});
+
 socket.on('connect', function(){
   connectedFlag = true ;
 
@@ -563,6 +571,7 @@ socket.on('connect', function(){
   console.log(">>> CONNECTED TO HOST | SOCKET ID: " + socketId);
   getUrlVariables();
   socket.emit("USER_READY", userObj);
+  console.log("TX USER READY\nuserObj\n" + jsonPrint(userObj));
   transmitDataQueue.push(userObj.userId);
 
   socketIdLabel.style.color = defaultTextColor ;

@@ -465,27 +465,32 @@ var force = d3.layout.force()
     .on("tick", tick);
 
 function updateLinkstrength(value) {
+  console.log("updateLinkstrength: " + value + " | forceStopped: " + forceStopped);
   document.getElementById("linkstrengthSliderText").innerHTML = value.toFixed(3);
   linkStrength = value;
   force.linkStrength(linkStrength);
+  force.start();
 }
 
 function updateFriction(value) {
   document.getElementById("frictionSliderText").innerHTML = value.toFixed(3);
   friction = value;
   force.friction(friction);
+  force.start();
 }
 
 function updateGravity(value) {
   document.getElementById("gravitySliderText").innerHTML = value.toFixed(3);
   gravity = value;
   force.gravity(gravity);
+  force.start();
 }
 
 function updateCharge(value) {
   document.getElementById("chargeSliderText").innerHTML = value;
   charge = value;
   force.charge(charge);
+  force.start();
 }
 
 function resetDefaultForce(){
@@ -834,6 +839,7 @@ function updateForceDisplay() {
       if (forceStopped) {
         force.start(); 
         forceStopped = false ;
+        console.warn("force start");
       }
       updateForceDisplayReady = true;
     }
@@ -1150,7 +1156,7 @@ function ageLinks (sessionId, callback){
 
 
 function addNode(newNode){
-  console.log("addNode\n" + jsonPrint(newNode));
+  // console.log("addNode\n" + jsonPrint(newNode));
   console.log("addNode " + newNode.nodeId);
   force.stop();
   forceStopped = true;
@@ -1202,7 +1208,8 @@ function deleteNode(nodeId){
 
 function deleteRandomNode(){
   if (nodes.length == 0) return;
-  if (randomIntFromInterval(0,100) < 20) return;
+  if ((nodes.length < 5) && (randomIntFromInterval(0,100) < 80)) return;
+  if (randomIntFromInterval(0,100) < 5) return;
   force.stop();
   forceStopped = true;
   var index = randomIntFromInterval(0,nodes.length-1);
@@ -1255,7 +1262,7 @@ function addLink(newLink){
     + " | " + newLink.linkId
     + " | " + newLink.source.nodeId
     + " > " + newLink.target.nodeId
-    + "\n" + jsonPrint(newLink)
+    // + "\n" + jsonPrint(newLink)
   );
   force.stop();
   forceStopped = true;
@@ -1309,16 +1316,22 @@ function addRandomLink(){
 
 
 var testAddNodeInterval;
+function clearTestAddNodeInterval(){
+  clearInterval(testAddNodeInterval);
+}
 function initTestAddNodeInterval(interval){
-  clearInterval(testAddNodeInterval)
+  clearInterval(testAddNodeInterval);
   testAddNodeInterval = setInterval(function(){
     addRandomNode();
   }, interval);
 }
 
 var testAddLinkInterval;
+function clearTestAddLinkInterval(){
+  clearInterval(testAddLinkInterval);
+}
 function initTestAddLinkInterval(interval){
-  clearInterval(testAddLinkInterval)
+  clearInterval(testAddLinkInterval);
   testAddLinkInterval = setInterval(function(){
     if (nodes.length > 1) {
       addRandomLink();
@@ -1327,8 +1340,11 @@ function initTestAddLinkInterval(interval){
 }
 
 var testDeleteNodeInterval;
+function clearTestDeleteNodeInterval(){
+  clearInterval(testDeleteNodeInterval);
+}
 function initTestDeleteNodeInterval(interval){
-  clearInterval(testDeleteNodeInterval)
+  clearInterval(testDeleteNodeInterval);
   testDeleteNodeInterval = setInterval(function(){
     deleteRandomNode();
   }, interval);
@@ -1404,3 +1420,4 @@ d3.timer(function () {
   if (updateForceDisplayReady && !mouseMovingFlag) updateForceDisplay();
 });
 
+// resize();

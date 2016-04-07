@@ -4,7 +4,7 @@
 
 // requirejs(["https://cdn.socket.io/socket.io-1.4.5"], function(io) {});
 // requirejs(["node_modules/hashmap/hashmap"], function(Hashmap) {});
-requirejs(["js/libs/d3"], function(d3) {
+requirejs(["http://d3js.org/d3.v3.min.js"], function(d3) {
   console.log("d3 LOADED");
   requirejs(["js/libs/sessionViewForce"], function(forceView) {
     console.log("sessionViewForce LOADED");
@@ -594,7 +594,7 @@ function createSession (session, callback){
     }
     else if (sessionHashMap.has(sessUpdate.sessionId)){
 
-    console.warn("FOUND SESS"
+    console.log("FOUND SESS"
       + " [" + sessUpdate.wordChainIndex + "]"
       + " | UID: " + sessUpdate.userId
       + " | " + sessUpdate.source.nodeId
@@ -644,7 +644,7 @@ function createSession (session, callback){
 
       sessionsCreated += 1;
 
-    console.error("CREATE SESS"
+    console.log("CREATE SESS"
       + " [" + sessUpdate.wordChainIndex + "]"
       + " | UID: " + sessUpdate.userId
       + " | " + sessUpdate.source.nodeId

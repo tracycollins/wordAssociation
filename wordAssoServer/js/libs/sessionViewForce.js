@@ -127,6 +127,7 @@ var forceStopped = true;
 
 var createNodeQueue = [];
 var createLinkQueue = [];
+var deadLinksQueue = [];
 
 var newNodes = [];
 var newLinks = [];
@@ -685,7 +686,10 @@ function ageNodes(callback) {
 
         age = node.age + (ageRate * (dateNow - node.ageUpdated));
 
-        if (!node.isSessionNode && (age >= nodeMaxAge)) {
+        if (node.isDead) {
+            deadNodes.push(node.nodeId);
+            nodes.splice(ageNodesIndex, 1);
+        } else if (!node.isSessionNode && (age >= nodeMaxAge)) {
             node.isDead = true;
             deadNodes.push(node.nodeId);
             nodes.splice(ageNodesIndex, 1);
@@ -1301,7 +1305,7 @@ function sessionCircleClick(d) {
 
 function ageLinks(callback) {
 
-    var deadLinks = [];
+    // var deadLinks = [];
 
     var ageLinksLength = links.length - 1;
     var ageLinksIndex = links.length - 1;
@@ -1321,29 +1325,29 @@ function ageLinks(callback) {
                 forceStopped = true;
                 force.stop();
             }
-            deadLinks.push(currentLinkObject.linkId);
-            links.splice(ageLinksIndex, 1);
+            deadLinksQueue.push(currentLinkObject.linkId);
+            // links.splice(ageLinksIndex, 1);
         } else if ((typeof currentLinkObject !== 'undefined') && (currentLinkObject.source.isDead || currentLinkObject.target.isDead)) {
             if (!forceStopped) {
                 forceStopped = true;
                 force.stop();
             }
-            deadLinks.push(currentLinkObject.linkId);
-            links.splice(ageLinksIndex, 1);
+            deadLinksQueue.push(currentLinkObject.linkId);
+            // links.splice(ageLinksIndex, 1);
         } else if ((typeof currentLinkObject !== 'undefined') && !linkHashMap.has(currentLinkObject.linkId)) {
             if (!forceStopped) {
                 forceStopped = true;
                 force.stop();
             }
-            deadLinks.push(currentLinkObject.linkId);
-            links.splice(ageLinksIndex, 1);
+            deadLinksQueue.push(currentLinkObject.linkId);
+            // links.splice(ageLinksIndex, 1);
         } else if (!nodeHashMap.has(currentLinkObject.source.nodeId) || !nodeHashMap.has(currentLinkObject.target.nodeId)) {
             if (!forceStopped) {
                 forceStopped = true;
                 force.stop();
             }
-            deadLinks.push(currentLinkObject.linkId);
-            links.splice(ageLinksIndex, 1);
+            deadLinksQueue.push(currentLinkObject.linkId);
+            // links.splice(ageLinksIndex, 1);
         } else {
             if (currentLinkObject.source.age < currentLinkObject.target.age) {
                 currentLinkObject.age = currentLinkObject.source.age;
@@ -1354,7 +1358,7 @@ function ageLinks(callback) {
     }
 
     if (ageLinksIndex < 0) {
-        return (callback(null, deadLinks));
+        return (callback(null, null));
     }
 }
 
@@ -1369,6 +1373,8 @@ function addSession(newSession) {
 
 function deleteSessionLinks(sessionId) {
     console.log("deleteSessionLinks " + sessionId);
+
+    // var deadLinks = [];
 
     force.stop();
     forceStopped = true;
@@ -1395,14 +1401,17 @@ function deleteSessionLinks(sessionId) {
 
             for (linkIndex = linksLength; linkIndex >= 0; linkIndex -= 1) {
                 var link = links[linkIndex];
-                var linkId = link.linkId;
-                if (deletedSession.links[linkId]) {
-                    console.log("XXX LINK " + linkId);
-                    links.splice(linkIndex, 1);
+                // var linkId = link.linkId;
+                if (link.sessionId == sessionId) {
+                    console.warn("XXX SESS LINK " + link.linkId);
+                    deadLinksQueue.push(link.linkId);
+                    // links.splice(linkIndex, 1);
                 }
             }
 
             if (linkIndex < 0) {
+                console.warn("XXX SESS NODE " + deletedSession.userId);
+                deleteNode(deletedSession.userId);
                 sessions.splice(sessionIndex, 1);
                 return;
             }
@@ -1442,7 +1451,7 @@ function deleteNode(nodeId) {
         if (node.nodeId == nodeId) {
 
             console.log("XXX NODE " + nodeId
-                // + "\n" + jsonPrint(node)
+                + "\n" + jsonPrint(node)
             );
 
             for (linkIndex = linksLength; linkIndex >= 0; linkIndex -= 1) {
@@ -1450,17 +1459,21 @@ function deleteNode(nodeId) {
                 var linkId = link.linkId;
                 if (node.links[linkId]) {
                     console.log("XXX LINK " + linkId);
-                    links.splice(linkIndex, 1);
+                    // links.splice(linkIndex, 1);
                 }
             }
 
             if (linkIndex < 0) {
                 nodes.splice(nodeIndex, 1);
+                    console.error("slice nodes: nodeIndex " + nodeIndex + "\n"  + jsonPrint(nodes));
+
                 return;
             }
         }
     }
     if ((nodeIndex < 0) && (linkIndex < 0)) {
+                nodes.splice(nodeIndex, 1);
+                    console.error("XXX NODE NOT FOUND ??? " + nodeId);
         return;
     }
 }
@@ -1528,6 +1541,8 @@ function addLink(newLink) {
     links.push(newLink);
 }
 
+
+var testSessionIndex = 0;
 function addRandomLink() {
 
     if (nodes.length < 2) {
@@ -1537,6 +1552,7 @@ function addRandomLink() {
     force.stop();
     forceStopped = true;
 
+    var sessionId = 'testSession' + testSessionIndex;
     var linkId = 'testLink' + tickNumber;
 
     var sourceNodeIndex = randomIntFromInterval(0, nodes.length - 1);
@@ -1555,6 +1571,7 @@ function addRandomLink() {
     // console.log("targetNodeIndex: " + targetNodeIndex);
 
     var newLink = {
+        sessionId: sessionId,
         linkId: linkId,
         age: 0,
         source: {},

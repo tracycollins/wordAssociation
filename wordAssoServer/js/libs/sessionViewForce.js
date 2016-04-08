@@ -716,8 +716,14 @@ function processDeadLinksHash(callback) {
     link = links[ageLinksIndex];
     if (deadLinksHash[link.linkId]){
       links.splice(ageLinksIndex, 1);
+      console.warn("XXX LINK"
+        + link.linkId
+        + " | " + link.source.nodeId
+        + " > " + link.target.nodeId
+        + " | " + deadLinksHash[link.linkId]
+        + " | " + deadLinksHash[link.linkId]
+      );
       delete deadLinksHash[link.linkId];
-      console.log("XXX LINK: " + link.linkId);
     }
   }
 
@@ -742,7 +748,7 @@ function processDeadNodesHash(callback) {
     if (deadNodesHash[node.nodeId]){
       nodes.splice(ageNodesIndex, 1);
       delete deadNodesHash[node.nodeId];
-      console.log("XXX NODE: " + node.nodeId);
+      // console.log("XXX NODE: " + node.nodeId);
     }
   }
 
@@ -1377,9 +1383,9 @@ function deleteSessionLinks(sessionId) {
         deletedSession = sessions[sessionIndex];
         if (deletedSession.sessionId == sessionId) {
 
-            console.log("XXX SESS " + sessionId
-                // + "\n" + jsonPrint(session)
-            );
+            // console.log("XXX SESS " + sessionId
+            //     // + "\n" + jsonPrint(session)
+            // );
 
             var linksLength = links.length - 1;
             var linkIndex = links.length - 1;
@@ -1388,13 +1394,13 @@ function deleteSessionLinks(sessionId) {
             for (linkIndex = linksLength; linkIndex >= 0; linkIndex -= 1) {
                 var link = links[linkIndex];
                 if (link.sessionId == sessionId) {
-                    console.warn("XXX SESS LINK " + link.linkId);
+                    // console.warn("XXX SESS LINK " + link.linkId);
                     deadLinksHash[link.linkId] = 1;
                 }
             }
 
             if (linkIndex < 0) {
-                console.warn("XXX SESS NODE " + deletedSession.userId);
+                console.error("XXX SESS NODE " + deletedSession.userId);
                 deleteNode(deletedSession.userId);
                 sessions.splice(sessionIndex, 1);
                 return;
@@ -1433,15 +1439,15 @@ function deleteNode(nodeId) {
         node = nodes[nodeIndex];
         if (node.nodeId == nodeId) {
 
-            console.log("XXX NODE " + nodeId
-                + "\n" + jsonPrint(node)
-            );
+            // console.log("XXX NODE " + nodeId
+            //     + "\n" + jsonPrint(node)
+            // );
 
             for (linkIndex = linksLength; linkIndex >= 0; linkIndex -= 1) {
                 var link = links[linkIndex];
                 var linkId = link.linkId;
                 if (node.links[linkId]) {
-                    console.log("XXX LINK " + linkId);
+                    // console.log("XXX LINK " + linkId);
                     // links.splice(linkIndex, 1);
                 }
             }
@@ -1485,7 +1491,7 @@ function deleteLink(linkId) {
 
     for (linkIndex = linksLength; linkIndex >= 0; linkIndex -= 1) {
         if (linkId == links[linkIndex].linkId) {
-            console.log("XXX LINK " + linkId);
+            // console.log("XXX LINK " + linkId);
             links.splice(linkIndex, 1);
             return;
         }

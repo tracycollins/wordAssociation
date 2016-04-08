@@ -1329,13 +1329,19 @@ function ageLinks(callback) {
         // console.log("currentLinkObject\n" + jsonPrint(currentLinkObject));
 
         if ((typeof currentLinkObject !== 'undefined') && currentLinkObject.isDead) {
-            deadLinksHash[currentLinkObject.linkId] = 1;
-        } else if ((typeof currentLinkObject !== 'undefined') && (currentLinkObject.source.isDead || currentLinkObject.target.isDead)) {
-            deadLinksHash[currentLinkObject.linkId] = 1;
-        } else if ((typeof currentLinkObject !== 'undefined') && !linkHashMap.has(currentLinkObject.linkId)) {
-            deadLinksHash[currentLinkObject.linkId] = 1;
-        } else if (!nodeHashMap.has(currentLinkObject.source.nodeId) || !nodeHashMap.has(currentLinkObject.target.nodeId)) {
-             deadLinksHash[currentLinkObject.linkId] = 1;
+            deadLinksHash[currentLinkObject.linkId] = 'DEAD';
+        } else if ((typeof currentLinkObject !== 'undefined') && currentLinkObject.source.isDead) {
+            deadLinksHash[currentLinkObject.linkId] = 'DEAD SOURCE';
+        } else if ((typeof currentLinkObject !== 'undefined') && currentLinkObject.target.isDead ) {
+            deadLinksHash[currentLinkObject.linkId] = 'DEAD TARGET';
+          }
+        // } else if ((typeof currentLinkObject !== 'undefined') && !linkHashMap.has(currentLinkObject.linkId)) {
+        //     deadLinksHash[currentLinkObject.linkId] = 1;
+        // } 
+        else if (!nodeHashMap.has(currentLinkObject.source.nodeId)) {
+             deadLinksHash[currentLinkObject.linkId] = 'UNDEFINED SOURCE';
+        } else if (!nodeHashMap.has(currentLinkObject.target.nodeId)) {
+             deadLinksHash[currentLinkObject.linkId] = 'UNDEFINED TARGET';
         } else {
             if (currentLinkObject.source.age < currentLinkObject.target.age) {
                 currentLinkObject.age = currentLinkObject.source.age;

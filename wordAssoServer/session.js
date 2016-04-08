@@ -527,7 +527,7 @@ socket.on("SESSION_UPDATE", function(rxSessionObject){
 
     console.log(
       rxObj.userId
-      + " | " + rxSessionUpdateQueue.length
+      // + " | " + rxSessionUpdateQueue.length
       + " | " + rxObj.source.nodeId + " > " + rxObj.target.nodeId
     );
 
@@ -598,13 +598,13 @@ function createSession (session, callback){
     }
     else if (sessionHashMap.has(sessUpdate.sessionId)){
 
-    console.log("FOUND SESS"
-      + " [" + sessUpdate.wordChainIndex + "]"
-      + " | UID: " + sessUpdate.userId
-      + " | " + sessUpdate.source.nodeId
-      + " > " + sessUpdate.target.nodeId
-      // + "\n" + jsonPrint(sessUpdate)
-    );
+    // console.log("FOUND SESS"
+    //   + " [" + sessUpdate.wordChainIndex + "]"
+    //   + " | UID: " + sessUpdate.userId
+    //   + " | " + sessUpdate.source.nodeId
+    //   + " > " + sessUpdate.target.nodeId
+    //   // + "\n" + jsonPrint(sessUpdate)
+    // );
 
       currentSession = sessionHashMap.get(sessUpdate.sessionId);
 
@@ -711,7 +711,7 @@ function createSession (session, callback){
 
       addToHashMap(nodeHashMap, sessionNode.nodeId, sessionNode, function(sesNode){
 
-        addNode(sesNode);
+        // addNode(sesNode);
 
         addToHashMap(sessionHashMap, currentSession.sessionId, currentSession, function(cSession){
           console.log("NEW SESSION " 

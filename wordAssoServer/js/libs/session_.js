@@ -1038,10 +1038,10 @@ function ageSessions (sessionId, callback){
     ageSession = sessions[ageSessionsIndex];
 
     if (!sessionHashMap.has(ageSession.sessionId)){
-      if (!forceStopped){
-        forceStopped = true ;
-        force.stop();
-      }
+      // if (!forceStopped){
+      //   forceStopped = true ;
+      //   force.stop();
+      // }
       sessions.splice(ageSessionsIndex, 1); 
     }
   }

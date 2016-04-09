@@ -11,6 +11,8 @@ function ViewHistogram() {
   // GLOBAL VARS
   // ==============================================
 
+  var removeDeadNodes = false;
+  var minOpacity = 0.2;
   var defaultFadeDuration = 100;
 
   var testModeEnabled = false;
@@ -604,10 +606,10 @@ function ViewHistogram() {
 
       age = node.age + (ageRate * (dateNow - node.ageUpdated));
 
-      if (node.isDead) {
+      if (removeDeadNodes && node.isDead) {
         deadNodesHash[node.nodeId] = 1;
       }
-      else if (!node.isSessionNode && (age >= nodeMaxAge)) {
+      else if (removeDeadNodes && !node.isSessionNode && (age >= nodeMaxAge)) {
         node.isDead = true;
         deadNodesHash[node.nodeId] = 1;
       }
@@ -963,8 +965,12 @@ function ViewHistogram() {
           return 1;
         }
         else {
-          // return d.newFlag ? 1 : 0.5; 
+          if (removeDeadNodes) {
           return wordOpacityScale(d.age);
+          }
+          else {
+            return Math.max(wordOpacityScale(d.age), minOpacity)
+          }
         }
       })
       // .on("mouseout", wordMouseOut)

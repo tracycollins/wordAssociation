@@ -2,21 +2,38 @@
 /*jslint node: true */
 "use strict";
 
-// requirejs(["https://cdn.socket.io/socket.io-1.4.5"], function(io) {});
-// requirejs(["node_modules/hashmap/hashmap"], function(Hashmap) {});
 requirejs(["http://d3js.org/d3.v3.min.js"], function(d3) {
   console.log("d3 LOADED");
-  requirejs(["js/libs/sessionViewForce"], function(forceView) {
-    console.log("sessionViewForce LOADED");
-    initialize();
-  });
+  initialize();
+  // requirejs(["js/libs/sessionViewHistogram"], function(histogramView) {
+  //   console.log("sessionViewHistogram LOADED");
+  //     displayControlOverlay(false);
+  // });
+  // requirejs(["js/libs/sessionViewForce"], function(forceView) {
+  //   console.log("sessionViewForce LOADED");
+  //   initialize();
+  //     // displayControlOverlay(false);
+  // });
 });
-// requirejs(["node_modules/async/lib/async.js"], function(async) {});
-// requirejs(["https://cdnjs.cloudflare.com/ajax/libs/mathjs/2.6.0/math.min.js"], function(Math) {});
-// requirejs(["https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.11.1/moment.min.js"], function(moment) {});
 
 var config = {};
 config.testMode = false;
+
+config.sessionViewType = 'force';  // options: force, histogram ??
+
+var currentSessionView ;
+
+var debug = true;
+var MAX_RX_QUEUE = 250;
+var QUEUE_MAX = 200;
+var MAX_WORDCHAIN_LENGTH = 100;
+var DEFAULT_MAX_AGE = 60000;
+var DEFAULT_AGE_RATE = 1.0;
+
+var dateNow = moment().valueOf();
+var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
+var defaultTimePeriodFormat = "HH:mm:ss";
+
 
 function toggleTestMode() {
   config.testMode = !config.testMode;
@@ -41,11 +58,10 @@ var serverCheckInterval = 30000;
 var serverKeepaliveInteval = 60000;
 var pageLoadedTimeIntervalFlag = true;
 
-var debug = true;
-var MAX_RX_QUEUE = 250;
-var QUEUE_MAX = 200;
-
-
+var linkHashMap = new HashMap();
+var nodeHashMap = new HashMap();
+var sessionHashMap = new HashMap();
+var sessionDeleteHashMap = new HashMap();
 
 var rxSessionUpdateQueue = [];
 var rxSessionDeleteQueue = [];
@@ -56,22 +72,8 @@ var nodeCreateQueue = [];
 var linkCreateQueue = [];
 var nodeDeleteQueue = [];  // gets a hash of nodes deleted by sessionViewForce for each d3 timer cycle.
 
-var MAX_WORDCHAIN_LENGTH = 100;
-
-var DEFAULT_MAX_AGE = 5000;
-var DEFAULT_AGE_RATE = 1.0;
-
 
 var urlRoot = "http://localhost:9997/session?session=";
-
-var linkHashMap = new HashMap();
-var nodeHashMap = new HashMap();
-var sessionHashMap = new HashMap();
-var sessionDeleteHashMap = new HashMap();
-
-var dateNow = moment().valueOf();
-var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
-var defaultTimePeriodFormat = "HH:mm:ss";
 
 var currentSession = {};
 var sessionId;
@@ -112,6 +114,70 @@ var viewerObj = {
   type: "VIEWER",
 };
 
+
+
+  var initialPositionIndex = 0;
+  var initialPositionArray = [];
+  var radiusX = 0.4 * window.innerWidth * 1;
+  var radiusY = 0.5 * window.innerHeight * 1;
+
+
+  this.initialPositionArrayShift = function() {
+    return initialPositionArray.shift();
+  }
+
+  function computeInitialPosition(index) {
+    var pos = {
+      x: (radiusX + (radiusX * Math.cos(index))),
+      y: (radiusY - (radiusY * Math.sin(index)))
+    };
+
+    return pos;
+  }
+
+
+
+
+var randomColorQueue = [];
+var randomNumber360 = randomIntFromInterval(0, 360);
+var startColor = "hsl(" + randomNumber360 + ",100%,50%)";
+var endColor = "hsl(" + randomNumber360 + ",0%,0%)";
+randomColorQueue.push({
+  "startColor": startColor,
+  "endColor": endColor
+});
+
+setInterval(function() { // randomColorQueue
+
+  randomNumber360 += randomIntFromInterval(60, 120);
+  startColor = "hsl(" + randomNumber360 + ",100%,50%)";
+  endColor = "hsl(" + randomNumber360 + ",0%,0%)";
+
+  if (randomColorQueue.length < 50) {
+    randomColorQueue.push({
+      "startColor": startColor,
+      "endColor": endColor
+    });
+    initialPositionArray.push(computeInitialPosition(initialPositionIndex++));
+  }
+
+}, 50);
+
+
+
+function getSortedKeys(hmap, sortProperty) {
+  var keys = []; 
+  hmap.forEach(function(value, key){
+    if (value.isSessionNode) {
+      // console.error("isSessionNode " + value.nodeId);
+    }
+    else {
+      keys.push(key);
+    }
+  });
+  // return keys.sort(function(a,b){return hmap.get(b).mentions-hmap.get(a).mentions});
+  return keys.sort(function(a,b){return hmap.get(b)[sortProperty]-hmap.get(a)[sortProperty]});
+}
 
 function getTimeStamp(inputTime) {
   var options = {
@@ -177,13 +243,6 @@ function getVisibilityEvent(prefix) {
   }
 }
 
-
-
-//  CLOCK
-setInterval(function() {
-  dateTimeOverlay = d3.select("#dateTimeOverlay").select("text").text("SERVER TIME: " + moment().format(defaultDateTimeFormat));
-  statsOverlay4 = d3.select("#statsOverlay4").select("text").text(viewerSessionKey);
-}, 1000);
 
 setInterval(function() {
   dateNow = moment().valueOf();
@@ -284,6 +343,7 @@ function getUrlVariables(callbackMain) {
   var urlSessionId;
   var urlNamespace;
   var sessionType;
+  var sessionViewType;
 
   var searchString = window.location.search.substring(1);
   console.log("searchString: " + searchString);
@@ -332,6 +392,13 @@ function getUrlVariables(callbackMain) {
               sessionType: sessionType
             }));
           }
+          if (keyValuePair[0] === 'viewtype') {
+            sessionViewType = keyValuePair[1];
+            console.log("SESSION VIEW TYPE | sessionViewType: " + sessionViewType);
+            return (callback2(null, {
+              sessionViewType: sessionViewType
+            }));
+          }
         }
         else {
           console.log("NO URL VARIABLES");
@@ -342,8 +409,36 @@ function getUrlVariables(callbackMain) {
   );
 
   async.parallel(asyncTasks, function(err, results) {
+
     console.log("results\n" + jsonPrint(results));
-    callbackMain(err, results);
+
+    var urlConfig = {};
+
+    // results is an array of objs:  results = [ {key0: val0}, ... {keyN: valN} ];
+    async.each(results, function(urlVarObj, cb1) {
+
+      console.warn("urlVarObj\n" + jsonPrint(urlVarObj));
+
+      var urlVarKeys = Object.keys(urlVarObj);
+
+      async.each(urlVarKeys, function(key, cb2) {
+
+
+        urlConfig[key] = urlVarObj[key];
+
+        console.warn("key: " + key + " > urlVarObj[key]: " +  urlVarObj[key]);
+
+        cb2();
+
+      }, function(err){
+        cb1();
+      });
+
+
+    }, function(err){
+      callbackMain(err, urlConfig);
+    });
+
   });
 }
 
@@ -396,12 +491,12 @@ function deleteSession(sessionId, callback) {
     return (callback(sessionId));
   }
 
-  // force.stop();
+  if (currentSessionView == 'force') currentSessionView.force.stop();
 
   var deletedSession = sessionHashMap.get(sessionId);
 
   console.log("XXX DELETE SESSION"
-    // + " [" + sessions.length + "]"
+    // + " [" + currentSessionView.getSessionsLength() + "]"
     + " | " + deletedSession.sessionId + " | " + deletedSession.userId
   );
 
@@ -421,7 +516,7 @@ function deleteSession(sessionId, callback) {
       nodeHashMap.remove(deletedSession.userId);
 
       sessionDeleteHashMap.set(sessionId, 1);
-      deleteSessionLinks(sessionId);
+      currentSessionView.deleteSessionLinks(sessionId);
       return (callback(sessionId));
     }
   );
@@ -631,7 +726,7 @@ function createSession(session, callback) {
       var prevSessionLinkId = currentSession.userId + "_" + prevLatestNodeId;
 
       removeFromHashMap(linkHashMap, prevSessionLinkId, function() {
-        deleteLink(prevSessionLinkId);
+        currentSessionView.deleteLink(prevSessionLinkId);
       });
 
       currentSession.age = 0;
@@ -666,9 +761,12 @@ function createSession(session, callback) {
         // + "\n" + jsonPrint(sessUpdate)
       );
 
+      currentSession.rank = -1;
+      currentSession.isSession = true;
       currentSession.sessionId = sessUpdate.sessionId;
       currentSession.nodeId = sessUpdate.userId;
       currentSession.userId = sessUpdate.userId;
+      currentSession.wordChainIndex = sessUpdate.wordChainIndex;
       currentSession.text = sessUpdate.userId;
       currentSession.source = sessUpdate.source;
       currentSession.target = sessUpdate.target;
@@ -699,8 +797,9 @@ function createSession(session, callback) {
       sessionNode.age = 0;
       sessionNode.ageUpdated = dateNow;
       sessionNode.lastSeen = dateNow;
-      sessionNode.mentions = 5000;
-      sessionNode.text = '';
+      sessionNode.wordChainIndex = sessUpdate.wordChainIndex;
+      sessionNode.mentions = sessUpdate.wordChainIndex;
+      sessionNode.text = sessUpdate.userId;
       sessionNode.x = currentSession.initialPosition.x;
       sessionNode.y = currentSession.initialPosition.y;
       sessionNode.fixed = true;
@@ -721,13 +820,11 @@ function createSession(session, callback) {
 
       addToHashMap(nodeHashMap, sessionNode.nodeId, sessionNode, function(sesNode) {
 
-        // addNode(sesNode);
-
         addToHashMap(sessionHashMap, currentSession.sessionId, currentSession, function(cSession) {
           console.log("NEW SESSION " + cSession.userId + " | " + cSession.sessionId + " | " + cSession.node.nodeId
             // + "\n" + jsonPrint(cSession) 
           );
-          addSession(cSession);
+          currentSessionView.addSession(cSession);
           nodeCreateQueue.push(cSession);
           return (callback(null, cSession.sessionId));
         });
@@ -744,16 +841,10 @@ function createNode(sessionId, callback) {
 
     var session = nodeCreateQueue.shift();
 
-
-
-    // NEED TO CREATE SESSION IF ONE DOES NOT EXIST
-
-
-
-
     if (nodeHashMap.has(sessionId)) {
       var sessionNode = nodeHashMap.get(sessionId);
       sessionNode.age = 0;
+      sessionNode.wordChainIndex = session.wordChainIndex;
 
       addToHashMap(nodeHashMap, sessionId, session.node, function(sNode) {
         // console.log("EXIST SESSION NODE" 
@@ -764,7 +855,7 @@ function createNode(sessionId, callback) {
     }
     else {
       addToHashMap(nodeHashMap, sessionId, session.node, function(sNode) {
-        addNode(sNode);
+        currentSessionView.addNode(sNode);
         // console.log("CREATE SESSION NODE" 
         //   + " | " + sNode.nodeId 
         //   // + "\n" + jsonPrint(sNode) 
@@ -782,6 +873,7 @@ function createNode(sessionId, callback) {
     async.parallel({
         source: function(cb) {
           if (nodeHashMap.has(sourceNodeId)) {
+            sourceNode.newFlag = false;
             sourceNode = nodeHashMap.get(sourceNodeId);
             sourceNode.userId = session.userId;
             sourceNode.sessionId = sessionId;
@@ -804,6 +896,7 @@ function createNode(sessionId, callback) {
           }
           else {
             sourceNode = session.source;
+            sourceNode.newFlag = true;
             sourceNode.x = session.initialPosition.x + (100 * Math.random());
             sourceNode.y = session.initialPosition.y + 100;
             sourceNode.userId = session.userId;
@@ -834,6 +927,7 @@ function createNode(sessionId, callback) {
           }
           else if (nodeHashMap.has(targetNodeId)) {
             targetNode = nodeHashMap.get(targetNodeId);
+            targetNode.newFlag = false;
             targetNode.userId = session.userId;
             targetNode.sessionId = sessionId;
             targetNode.age = 0;
@@ -855,6 +949,7 @@ function createNode(sessionId, callback) {
           }
           else {
             targetNode = session.target;
+            targetNode.newFlag = true;
             targetNode.x = session.initialPosition.x - (100 - 100 * Math.random());
             targetNode.y = session.initialPosition.y - (100 - 100 * Math.random());
             targetNode.userId = session.userId;
@@ -885,7 +980,7 @@ function createNode(sessionId, callback) {
         session.source.isNew = results.source.isNew;
         // if (results.source.isNew) newNodes.push(results.source.node.nodeId);
         if (results.source.isNew) {
-          addNode(results.source.node);
+          currentSessionView.addNode(results.source.node);
         }
 
         if (results.target) {
@@ -893,7 +988,7 @@ function createNode(sessionId, callback) {
           session.target.isNew = results.target.isNew;
           // if (results.target.isNew) newNodes.push(results.target.node.nodeId);
           if (results.target.isNew) {
-            addNode(results.target.node);
+            currentSessionView.addNode(results.target.node);
           }
         }
 
@@ -933,7 +1028,7 @@ function createLink(sessionId, callback) {
     };
 
     addToHashMap(linkHashMap, sessionLinkId, newSessionLink, function(sesLink) {
-      addLink(sesLink);
+      currentSessionView.addLink(sesLink);
     });
 
     var sourceWordId = session.source.nodeId;
@@ -974,7 +1069,7 @@ function createLink(sessionId, callback) {
         addToHashMap(nodeHashMap, sourceWordId, sourceWord, function() {});
 
         addToHashMap(linkHashMap, linkId, newLink, function(nLink) {
-          addLink(nLink);
+          currentSessionView.addLink(nLink);
         });
       }
       else {
@@ -1000,26 +1095,63 @@ function ageSessions(sessionId, callback) {
 
   var ageSession;
 
-  var ageSessionsLength = sessions.length - 1;
-  var ageSessionsIndex = sessions.length - 1;
+  var ageSessionsLength = currentSessionView.getSessionsLength() - 1;
+  var ageSessionsIndex = currentSessionView.getSessionsLength() - 1;
 
   for (ageSessionsIndex = ageSessionsLength; ageSessionsIndex >= 0; ageSessionsIndex -= 1) {
 
-    ageSession = sessions[ageSessionsIndex];
+    // ageSession = sessions[ageSessionsIndex];
+    ageSession = currentSessionView.getSession(ageSessionsIndex);
 
     if (!sessionHashMap.has(ageSession.sessionId)) {
-      if (!forceStopped) {
-        forceStopped = true;
-        force.stop();
-      }
+      // if (!forceStopped) {
+      //   forceStopped = true;
+      //   force.stop();
+      // }
       console.warn("XXX SESSION" + sessionId);
-      sessions.splice(ageSessionsIndex, 1);
+      currentSessionView.sessions.splice(ageSessionsIndex, 1);
     }
   }
 
   if (ageSessionsIndex < 0) {
     return (callback(null, sessionId));
   }
+}
+
+
+
+function rankSessions(sessionId, callback) {
+  var sortedSessionIds = getSortedKeys(sessionHashMap, "wordChainIndex");
+  // console.error("RANKING " + sortedSessionIds.length + " sessions");
+  var session;
+  async.forEachOf(sortedSessionIds, function(sessionId, rank, cb){
+    session = sessionHashMap.get(sessionId);
+    session.rank = rank;
+    sessionHashMap.set(sessionId, session);
+    // console.error("RANK " + rank + " | " + session.wordChainIndex + " | " + sessionId);
+    cb();
+  }, function(err){
+    // console.warn("RANKING COMPLETE | " + sortedSessionIds.length + " sessions");
+    return (callback(null, sessionId));
+  }
+  );
+}
+
+function rankNodes(sessionId, callback) {
+  var sortedNodeIds = getSortedKeys(nodeHashMap, "mentions");
+  // console.error("RANKING " + sortedNodeIds.length + " nodes");
+  var node;
+  async.forEachOf(sortedNodeIds, function(nodeId, rank, cb){
+    node = nodeHashMap.get(nodeId);
+    node.rank = rank;
+    nodeHashMap.set(nodeId, node);
+    // console.error("RANK " + rank + " | " + node.mentions + " | " + nodeId);
+    cb();
+  }, function(err){
+    // console.warn("RANKING COMPLETE | " + sortedNodeIds.length + " nodes");
+    return (callback(null, sessionId));
+  }
+  );
 }
 
 var updateSessionsReady = true;
@@ -1034,6 +1166,8 @@ function updateSessions() {
       processSessionQueues,
       createSession,
       createNode,
+      rankSessions,
+      rankNodes,
       createLink,
       // updateSessionsArray,
       // updateNodesArray,
@@ -1106,35 +1240,132 @@ function initUpdateSessionsInterval(interval) {
   }, interval);
 }
 
+
+function loadViewType(svt, callback){
+
+  console.warn("LOADING SESSION VIEW TYPE: " + svt);
+
+  switch(svt){
+    case 'histogram' :
+      config.sessionViewType = 'histogram';
+      requirejs(["js/libs/sessionViewHistogram"], function() {
+
+        console.log("sessionViewHistogram LOADED");
+
+        currentSessionView = new ViewHistogram();
+
+        // currentSessionView.initD3timer();
+        // currentSessionView.resize();
+
+        // initUpdateSessionsInterval(50);
+
+        // console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
+        // socket.emit("VIEWER_READY", viewerObj);
+
+        // setTimeout(function() {
+        //   pageLoadedTimeIntervalFlag = false;
+        //   currentSessionView.displayInfoOverlay(1e-6);
+        //   currentSessionView.displayControlOverlay(false);
+        // }, 5000);
+
+        callback();
+      });
+    break;
+    default:
+      config.sessionViewType = 'force';
+      requirejs(["js/libs/sessionViewForce"], function() {
+
+        console.log("sessionViewForce LOADED");
+
+        currentSessionView = new ViewForce();
+
+        // currentSessionView.initD3timer();
+        // currentSessionView.resize();
+
+        // initUpdateSessionsInterval(50);
+
+        // console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
+        // socket.emit("VIEWER_READY", viewerObj);
+
+        // setTimeout(function() {
+        //   pageLoadedTimeIntervalFlag = false;
+        //   currentSessionView.displayInfoOverlay(1e-6);
+        //   currentSessionView.displayControlOverlay(false);
+        // }, 5000);
+
+        callback();
+      });
+    break;
+  }
+
+}
+
 function initialize() {
 
   console.log("initialize");
 
-  initD3timer();
-
   getUrlVariables(function(err, urlVariablesObj) {
+
+    console.warn("URL VARS\n" + jsonPrint(urlVariablesObj));
+
+    var sessionId;
+    var namespace;
+    var sessionViewType;
+
     if (!err) {
+
       console.log("ON LOAD getUrlVariables\n" + jsonPrint(urlVariablesObj));
+
       if (urlVariablesObj.sessionId) {
         sessionId = urlVariablesObj.sessionId;
       }
       if (urlVariablesObj.namespace) {
         namespace = urlVariablesObj.namespace;
       }
-      resize();
-      resetDefaultForce();
+      if (typeof urlVariablesObj.sessionViewType !== 'undefined') {
+        sessionViewType = urlVariablesObj.sessionViewType;
+      console.log("ON LOAD getUrlVariables\n" + jsonPrint(urlVariablesObj));
+        loadViewType(sessionViewType, function(){
+
+          currentSessionView.initD3timer();
+          currentSessionView.resize();
+
+          initUpdateSessionsInterval(50);
+
+          console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
+          socket.emit("VIEWER_READY", viewerObj);
+
+          setTimeout(function() {
+            pageLoadedTimeIntervalFlag = false;
+            currentSessionView.displayInfoOverlay(1e-6);
+            currentSessionView.displayControlOverlay(false);
+          }, 5000);
+        });
+      }
+      else {
+        loadViewType(sessionViewType, function(){
+
+          currentSessionView.initD3timer();
+          currentSessionView.resize();
+
+          initUpdateSessionsInterval(50);
+
+          console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
+          socket.emit("VIEWER_READY", viewerObj);
+
+          setTimeout(function() {
+            pageLoadedTimeIntervalFlag = false;
+            currentSessionView.displayInfoOverlay(1e-6);
+            currentSessionView.displayControlOverlay(false);
+          }, 5000);
+        });
+      }
+
+
     }
     else {
       console.error("GET URL VARIABLES ERROR\n" + jsonPrint(err));
     }
   });
 
-  console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
-  socket.emit("VIEWER_READY", viewerObj);
-
-  initUpdateSessionsInterval(50);
-
-  setTimeout(function() {
-    pageLoadedTimeIntervalFlag = false;
-  }, 5000);
 };

@@ -5548,6 +5548,12 @@ function initAppRouting(callback){
     return;
   });
 
+  app.get('/js/libs/sessionViewHistogram.js', function(req, res){
+    debugAppGet("LOADING FILE: sessionViewHistogram.js");
+    res.sendFile(__dirname + '/js/libs/sessionViewHistogram.js');
+    return;
+  });
+
   app.get('/js/libs/sessionViewForce.js', function(req, res){
     debugAppGet("LOADING FILE: sessionViewForce.js");
     res.sendFile(__dirname + '/js/libs/sessionViewForce.js');

@@ -19,9 +19,10 @@ requirejs(["http://d3js.org/d3.v3.min.js"], function(d3) {
 var config = {};
 config.testMode = false;
 
-config.sessionViewType = 'force';  // options: force, histogram ??
+var DEFAULT_SESSION_VIEW = 'force';
+config.sessionViewType = DEFAULT_SESSION_VIEW; // options: force, histogram ??
 
-var currentSessionView ;
+var currentSessionView;
 
 var debug = true;
 var MAX_RX_QUEUE = 250;
@@ -70,7 +71,7 @@ var sessionsCreated = 0;
 
 var nodeCreateQueue = [];
 var linkCreateQueue = [];
-var nodeDeleteQueue = [];  // gets a hash of nodes deleted by sessionViewForce for each d3 timer cycle.
+var nodeDeleteQueue = []; // gets a hash of nodes deleted by sessionViewForce for each d3 timer cycle.
 
 
 var urlRoot = "http://localhost:9997/session?session=";
@@ -116,24 +117,24 @@ var viewerObj = {
 
 
 
-  var initialPositionIndex = 0;
-  var initialPositionArray = [];
-  var radiusX = 0.4 * window.innerWidth * 1;
-  var radiusY = 0.5 * window.innerHeight * 1;
+var initialPositionIndex = 0;
+var initialPositionArray = [];
+var radiusX = 0.4 * window.innerWidth * 1;
+var radiusY = 0.5 * window.innerHeight * 1;
 
 
-  this.initialPositionArrayShift = function() {
-    return initialPositionArray.shift();
-  }
+this.initialPositionArrayShift = function() {
+  return initialPositionArray.shift();
+}
 
-  function computeInitialPosition(index) {
-    var pos = {
-      x: (radiusX + (radiusX * Math.cos(index))),
-      y: (radiusY - (radiusY * Math.sin(index)))
-    };
+function computeInitialPosition(index) {
+  var pos = {
+    x: (radiusX + (radiusX * Math.cos(index))),
+    y: (radiusY - (radiusY * Math.sin(index)))
+  };
 
-    return pos;
-  }
+  return pos;
+}
 
 
 
@@ -166,8 +167,8 @@ setInterval(function() { // randomColorQueue
 
 
 function getSortedKeys(hmap, sortProperty) {
-  var keys = []; 
-  hmap.forEach(function(value, key){
+  var keys = [];
+  hmap.forEach(function(value, key) {
     if (value.isSessionNode) {
       // console.error("isSessionNode " + value.nodeId);
     }
@@ -176,7 +177,9 @@ function getSortedKeys(hmap, sortProperty) {
     }
   });
   // return keys.sort(function(a,b){return hmap.get(b).mentions-hmap.get(a).mentions});
-  return keys.sort(function(a,b){return hmap.get(b)[sortProperty]-hmap.get(a)[sortProperty]});
+  return keys.sort(function(a, b) {
+    return hmap.get(b)[sortProperty] - hmap.get(a)[sortProperty]
+  });
 }
 
 function getTimeStamp(inputTime) {
@@ -402,7 +405,7 @@ function getUrlVariables(callbackMain) {
         }
         else {
           console.log("NO URL VARIABLES");
-          return (callback2(null, null));
+          return (callback2(null, []));
         }
       });
     }
@@ -410,7 +413,7 @@ function getUrlVariables(callbackMain) {
 
   async.parallel(asyncTasks, function(err, results) {
 
-    console.log("results\n" + jsonPrint(results));
+    console.log("results\n" + results);
 
     var urlConfig = {};
 
@@ -426,16 +429,16 @@ function getUrlVariables(callbackMain) {
 
         urlConfig[key] = urlVarObj[key];
 
-        console.warn("key: " + key + " > urlVarObj[key]: " +  urlVarObj[key]);
+        console.warn("key: " + key + " > urlVarObj[key]: " + urlVarObj[key]);
 
         cb2();
 
-      }, function(err){
+      }, function(err) {
         cb1();
       });
 
 
-    }, function(err){
+    }, function(err) {
       callbackMain(err, urlConfig);
     });
 
@@ -473,11 +476,7 @@ var lastHeartbeatReceived = 0;
 // CHECK FOR SERVER HEARTBEAT
 setInterval(function() {
   if ((lastHeartbeatReceived > 0) && (lastHeartbeatReceived + serverHeartbeatTimeout) < moment()) {
-    console.error(chalkError("\n????? SERVER DOWN ????? | " 
-      + targetServer 
-      + " | LAST HEARTBEAT: " + getTimeStamp(lastHeartbeatReceived) 
-      + " | " + moment().format(defaultDateTimeFormat) 
-      + " | AGO: " + msToTime(moment().valueOf() - lastHeartbeatReceived)));
+    console.error(chalkError("\n????? SERVER DOWN ????? | " + targetServer + " | LAST HEARTBEAT: " + getTimeStamp(lastHeartbeatReceived) + " | " + moment().format(defaultDateTimeFormat) + " | AGO: " + msToTime(moment().valueOf() - lastHeartbeatReceived)));
     socket.connect(targetServer, {
       reconnection: false
     });
@@ -659,10 +658,9 @@ function processSessionQueues(callback) {
 
 function processNodeDeleteQueue(callback) {
   if (nodeDeleteQueue.length == 0) {
-      return(callback());
+    return (callback());
   }
-  else
-  {
+  else {
 
     var deletedNodeId = nodeDeleteQueue.shift();
 
@@ -670,7 +668,7 @@ function processNodeDeleteQueue(callback) {
 
     removeFromHashMap(nodeHashMap, deletedNodeId, function() {
       // console.error("processNodeDeleteQueue: DELETED: " + deletedNodeId);
-      return(callback());
+      return (callback());
     });
 
   }
@@ -1081,9 +1079,8 @@ function createLink(sessionId, callback) {
       console.warn("SESSION TARGET UNDEFINED" + " | " + sessionId)
     }
 
-  
-    addToHashMap(sessionHashMap, session.sessionId, session, function(sess) {
-    });
+
+    addToHashMap(sessionHashMap, session.sessionId, session, function(sess) {});
 
   }
   return (callback(null, sessionId));
@@ -1124,34 +1121,32 @@ function rankSessions(sessionId, callback) {
   var sortedSessionIds = getSortedKeys(sessionHashMap, "wordChainIndex");
   // console.error("RANKING " + sortedSessionIds.length + " sessions");
   var session;
-  async.forEachOf(sortedSessionIds, function(sessionId, rank, cb){
+  async.forEachOf(sortedSessionIds, function(sessionId, rank, cb) {
     session = sessionHashMap.get(sessionId);
     session.rank = rank;
     sessionHashMap.set(sessionId, session);
     // console.error("RANK " + rank + " | " + session.wordChainIndex + " | " + sessionId);
     cb();
-  }, function(err){
+  }, function(err) {
     // console.warn("RANKING COMPLETE | " + sortedSessionIds.length + " sessions");
     return (callback(null, sessionId));
-  }
-  );
+  });
 }
 
 function rankNodes(sessionId, callback) {
   var sortedNodeIds = getSortedKeys(nodeHashMap, "mentions");
   // console.error("RANKING " + sortedNodeIds.length + " nodes");
   var node;
-  async.forEachOf(sortedNodeIds, function(nodeId, rank, cb){
+  async.forEachOf(sortedNodeIds, function(nodeId, rank, cb) {
     node = nodeHashMap.get(nodeId);
     node.rank = rank;
     nodeHashMap.set(nodeId, node);
     // console.error("RANK " + rank + " | " + node.mentions + " | " + nodeId);
     cb();
-  }, function(err){
+  }, function(err) {
     // console.warn("RANKING COMPLETE | " + sortedNodeIds.length + " nodes");
     return (callback(null, sessionId));
-  }
-  );
+  });
 }
 
 var updateSessionsReady = true;
@@ -1241,12 +1236,12 @@ function initUpdateSessionsInterval(interval) {
 }
 
 
-function loadViewType(svt, callback){
+function loadViewType(svt, callback) {
 
   console.warn("LOADING SESSION VIEW TYPE: " + svt);
 
-  switch(svt){
-    case 'histogram' :
+  switch (svt) {
+    case 'histogram':
       config.sessionViewType = 'histogram';
       requirejs(["js/libs/sessionViewHistogram"], function() {
 
@@ -1270,7 +1265,7 @@ function loadViewType(svt, callback){
 
         callback();
       });
-    break;
+      break;
     default:
       config.sessionViewType = 'force';
       requirejs(["js/libs/sessionViewForce"], function() {
@@ -1295,7 +1290,7 @@ function loadViewType(svt, callback){
 
         callback();
       });
-    break;
+      break;
   }
 
 }
@@ -1316,34 +1311,56 @@ function initialize() {
 
       console.log("ON LOAD getUrlVariables\n" + jsonPrint(urlVariablesObj));
 
-      if (urlVariablesObj.sessionId) {
-        sessionId = urlVariablesObj.sessionId;
-      }
-      if (urlVariablesObj.namespace) {
-        namespace = urlVariablesObj.namespace;
-      }
-      if (typeof urlVariablesObj.sessionViewType !== 'undefined') {
-        sessionViewType = urlVariablesObj.sessionViewType;
-      console.log("ON LOAD getUrlVariables\n" + jsonPrint(urlVariablesObj));
-        loadViewType(sessionViewType, function(){
+      if (typeof urlVariablesObj !== 'undefined') {
+        if (urlVariablesObj.sessionId) {
+          sessionId = urlVariablesObj.sessionId;
+        }
+        if (urlVariablesObj.namespace) {
+          namespace = urlVariablesObj.namespace;
+        }
+        if (urlVariablesObj.sessionViewType) {
+          sessionViewType = urlVariablesObj.sessionViewType;
+          console.log("ON LOAD getUrlVariables: sessionViewType:" + sessionViewType);
+          loadViewType(sessionViewType, function() {
 
-          currentSessionView.initD3timer();
-          currentSessionView.resize();
+            currentSessionView.initD3timer();
+            currentSessionView.resize();
 
-          initUpdateSessionsInterval(50);
+            initUpdateSessionsInterval(50);
 
-          console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
-          socket.emit("VIEWER_READY", viewerObj);
+            console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
+            socket.emit("VIEWER_READY", viewerObj);
 
-          setTimeout(function() {
-            pageLoadedTimeIntervalFlag = false;
-            currentSessionView.displayInfoOverlay(1e-6);
-            currentSessionView.displayControlOverlay(false);
-          }, 5000);
-        });
+            setTimeout(function() {
+              pageLoadedTimeIntervalFlag = false;
+              currentSessionView.displayInfoOverlay(1e-6);
+              currentSessionView.displayControlOverlay(false);
+            }, 5000);
+          });
+        }
+        else {
+          console.warn("HERE1");
+          loadViewType(DEFAULT_SESSION_VIEW, function() {
+
+            currentSessionView.initD3timer();
+            currentSessionView.resize();
+
+            initUpdateSessionsInterval(50);
+
+            console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
+            socket.emit("VIEWER_READY", viewerObj);
+
+            setTimeout(function() {
+              pageLoadedTimeIntervalFlag = false;
+              currentSessionView.displayInfoOverlay(1e-6);
+              currentSessionView.displayControlOverlay(false);
+            }, 5000);
+          });
+        }
       }
       else {
-        loadViewType(sessionViewType, function(){
+        console.warn("HERE");
+        loadViewType(DEFAULT_SESSION_VIEW, function() {
 
           currentSessionView.initD3timer();
           currentSessionView.resize();
@@ -1359,7 +1376,9 @@ function initialize() {
             currentSessionView.displayControlOverlay(false);
           }, 5000);
         });
+
       }
+
 
 
     }

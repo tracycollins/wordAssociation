@@ -521,7 +521,7 @@ function deleteSession(sessionId, callback) {
       // nodeHashMap.set(deletedSession.userId, sessionNode);
       nodeHashMap.remove(deletedSession.userId);
 
-      sessionDeleteHashMap.set(sessionId, 1);
+      // sessionDeleteHashMap.set(sessionId, 1);
       currentSessionView.deleteSessionLinks(sessionId);
       return (callback(sessionId));
     }
@@ -592,7 +592,7 @@ socket.on("SESSION_DELETE", function(rxSessionObject) {
       // + "\n" + jsonPrint(rxSessionObject)
     );
     var session = sessionHashMap.get(rxObj.sessionId);
-    sessionDeleteHashMap.set(rxObj.sessionId, 1);
+    // sessionDeleteHashMap.set(rxObj.sessionId, 1);
     session.sessionEvent = "SESSION_DELETE";
     rxSessionDeleteQueue.push(session);
   }

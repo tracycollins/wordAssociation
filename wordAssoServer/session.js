@@ -17,6 +17,7 @@ requirejs(["http://d3js.org/d3.v3.min.js"], function(d3) {
 });
 
 var config = {};
+config.maxWords = 100;
 config.testMode = false;
 
 var DEFAULT_SESSION_VIEW = 'force';
@@ -28,12 +29,18 @@ var debug = true;
 var MAX_RX_QUEUE = 250;
 var QUEUE_MAX = 200;
 var MAX_WORDCHAIN_LENGTH = 100;
-var DEFAULT_MAX_AGE = 60000;
+var DEFAULT_MAX_AGE = 10000;
 var DEFAULT_AGE_RATE = 1.0;
 
 var dateNow = moment().valueOf();
 var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
 var defaultTimePeriodFormat = "HH:mm:ss";
+
+var removeDeadNodes = false;
+function toggleRemoveDeadNode(){
+  removeDeadNodes = !removeDeadNodes;
+  console.warn("TOGGLE REMOVE DEAD NODES: " + removeDeadNodes);
+}
 
 
 function toggleTestMode() {
@@ -544,8 +551,6 @@ socket.on("HEARTBEAT", function(heartbeat) {
   serverConnected = true;
 });
 
-
-
 socket.on("CONFIG_CHANGE", function(rxConfig) {
 
   console.log("\n-----------------------\nRX CONFIG_CHANGE\n" + JSON.stringify(rxConfig, null, 3) + "\n------------------------\n");
@@ -570,6 +575,14 @@ socket.on("CONFIG_CHANGE", function(rxConfig) {
   }
 
   // resetMouseMoveTimer();
+});
+
+socket.on("SESSION_ABORT", function(rxSessionObject) {
+  if (rxSessionObject.sessionId == socket.id) {
+    console.error("SESSION_ABORT" + " | " + rxSessionObject.sessionId + " | " + rxSessionObject.sessionEvent);
+    serverConnected = false;
+    socket.disconnect();
+  }
 });
 
 socket.on("SESSION_DELETE", function(rxSessionObject) {
@@ -1115,8 +1128,6 @@ function ageSessions(sessionId, callback) {
   }
 }
 
-
-
 function rankSessions(sessionId, callback) {
   var sortedSessionIds = getSortedKeys(sessionHashMap, "wordChainIndex");
   // console.error("RANKING " + sortedSessionIds.length + " sessions");
@@ -1133,22 +1144,6 @@ function rankSessions(sessionId, callback) {
   });
 }
 
-function rankNodes(sessionId, callback) {
-  var sortedNodeIds = getSortedKeys(nodeHashMap, "mentions");
-  // console.error("RANKING " + sortedNodeIds.length + " nodes");
-  var node;
-  async.forEachOf(sortedNodeIds, function(nodeId, rank, cb) {
-    node = nodeHashMap.get(nodeId);
-    node.rank = rank;
-    nodeHashMap.set(nodeId, node);
-    // console.error("RANK " + rank + " | " + node.mentions + " | " + nodeId);
-    cb();
-  }, function(err) {
-    // console.warn("RANKING COMPLETE | " + sortedNodeIds.length + " nodes");
-    return (callback(null, sessionId));
-  });
-}
-
 var updateSessionsReady = true;
 
 function updateSessions() {
@@ -1159,10 +1154,10 @@ function updateSessions() {
     [
       processNodeDeleteQueue,
       processSessionQueues,
+      // rankSessions,
+      // rankNodes,
       createSession,
       createNode,
-      rankSessions,
-      rankNodes,
       createLink,
       // updateSessionsArray,
       // updateNodesArray,
@@ -1235,7 +1230,6 @@ function initUpdateSessionsInterval(interval) {
   }, interval);
 }
 
-
 function loadViewType(svt, callback) {
 
   console.warn("LOADING SESSION VIEW TYPE: " + svt);
@@ -1292,7 +1286,6 @@ function loadViewType(svt, callback) {
       });
       break;
   }
-
 }
 
 function initialize() {
@@ -1386,5 +1379,4 @@ function initialize() {
       console.error("GET URL VARIABLES ERROR\n" + jsonPrint(err));
     }
   });
-
 };

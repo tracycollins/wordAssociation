@@ -13,6 +13,7 @@ function ViewHistogram() {
 
   var maxWords = 100;
   // var removeDeadNodes = false;
+  var maxOpacity = 0.9;
   var minOpacity = 0.3;
   var defaultFadeDuration = 100;
 
@@ -34,6 +35,8 @@ function ViewHistogram() {
   var marginLeftWords = 15;
 
   var colSpacing = 20;
+
+  var maxY = (marginTopWords + (2 * maxWordRows)) + "%";
 
 
   var maxRecentWords = maxWordRows;
@@ -205,7 +208,7 @@ function ViewHistogram() {
 
 
   var wordBarWidthScale = d3.scale.linear().domain([1, 2e6]).range([0.1, 65]);
-  var wordOpacityScale = d3.scale.linear().domain([0, DEFAULT_MAX_AGE]).range([0.9, 0.15]);
+  var wordOpacityScale = d3.scale.linear().domain([0, DEFAULT_MAX_AGE]).range([maxOpacity, minOpacity]);
   var placeOpacityScale = d3.scale.linear().domain([0, DEFAULT_MAX_AGE]).range([0.9, 0.15]);
   var wordBarOpacityScale = d3.scale.linear().domain([0, DEFAULT_MAX_AGE]).range([0.9, 0.15]);
   var wordCloudFontScale = d3.scale.linear().domain([1, 2e6]).range([2, 8]);
@@ -239,25 +242,25 @@ function ViewHistogram() {
   var randomId = randomIntFromInterval(1000000000, 9999999999);
 
 
-  function setLinkstrengthSliderValue(value) {
-    document.getElementById("linkstrengthSlider").value = value * 1000;
-    document.getElementById("linkstrengthSliderText").innerHTML = value.toFixed(3);
-  }
+  // function setLinkstrengthSliderValue(value) {
+  //   document.getElementById("linkstrengthSlider").value = value * 1000;
+  //   document.getElementById("linkstrengthSliderText").innerHTML = value.toFixed(3);
+  // }
 
-  function setFrictionSliderValue(value) {
-    document.getElementById("frictionSlider").value = value * 1000;
-    document.getElementById("frictionSliderText").innerHTML = value.toFixed(3);
-  }
+  // function setFrictionSliderValue(value) {
+  //   document.getElementById("frictionSlider").value = value * 1000;
+  //   document.getElementById("frictionSliderText").innerHTML = value.toFixed(3);
+  // }
 
-  function setGravitySliderValue(value) {
-    document.getElementById("gravitySlider").value = value * 1000;
-    document.getElementById("gravitySliderText").innerHTML = value.toFixed(3);
-  }
+  // function setGravitySliderValue(value) {
+  //   document.getElementById("gravitySlider").value = value * 1000;
+  //   document.getElementById("gravitySliderText").innerHTML = value.toFixed(3);
+  // }
 
-  function setChargeSliderValue(value) {
-    document.getElementById("chargeSlider").value = value;
-    document.getElementById("chargeSliderText").innerHTML = value;
-  }
+  // function setChargeSliderValue(value) {
+  //   document.getElementById("chargeSlider").value = value;
+  //   document.getElementById("chargeSliderText").innerHTML = value;
+  // }
 
 
 
@@ -533,7 +536,7 @@ function ViewHistogram() {
       else {
         session.ageUpdated = dateNow;
         session.age = age;
-        if (age < 0.01 * sessionMaxAge) {
+        if (age < 0.05 * sessionMaxAge) {
           session.newFlag = true;
         }
         else {
@@ -691,7 +694,7 @@ function ViewHistogram() {
       else {
         node.ageUpdated = dateNow;
         node.age = age;
-        if (age < 0.01 * nodeMaxAge) {
+        if (age < 0.05 * nodeMaxAge) {
           node.newFlag = true;
         }
         else {
@@ -834,7 +837,8 @@ function ViewHistogram() {
         return d.lastSeen;
       });
 
-    sessionGnode.enter()
+    sessionGnode
+      .enter()
       .append("svg:g")
       .attr("class", "session")
       .attr("id", function(d) {
@@ -883,73 +887,54 @@ function ViewHistogram() {
       .attr("class", function(d) {
         return d.newFlag ? "updateNew" : "update";
       })
-      // .text(function(d) { return d.mentions + " | " + d.text; })
-      .attr("rank", function(d) {
-        return d.rank;
-      })
-      .text(function(d) {
-        // return d.wordChainIndex + "_|_" + d.rank + "_|_" + d.text;
-        return d.text;
-      })
-      .style("fill", function(d) {
-        return d.newFlag ? "red" : "#ffffff";
-      })
+      .attr("rank", function(d) { return d.rank; })
+      .text(function(d) { return d.text; })
+      .style("fill", function(d) { return d.newFlag ? "red" : "white"; })
       .style("fill-opacity", function(d) {
         if (d3.select(this).attr("mouseOverFlag") == "true") {
           return 1;
         }
         else {
-          // return d.newFlag ? 1 : 0.5; 
-          return wordOpacityScale(d.age);
+          if (removeDeadNodes) {
+            return wordOpacityScale(d.age + 1);
+          }
+          else {
+            return Math.max(wordOpacityScale(d.age + 1), minOpacity)
+          }
         }
       })
-      // .on("mouseout", wordMouseOut)
-      // .on("mouseover", wordMouseOver)
       .transition()
-      .duration(defaultFadeDuration)
-      .attr("x", xposition)
-      .attr("y", yposition);
+        .duration(defaultFadeDuration)
+        .style("fill", function(d) {
+          return d.newFlag ? "red" : "white";
+        })
+        .attr("x", xposition)
+        .attr("y", yposition);
 
     sessionWords
       .enter()
       .append("svg:text")
       .attr("id", "session")
-      .attr("nodeId", function(d) {
-        return d.nodeId;
-      })
-      .attr("userId", function(d) {
-        return d.userId;
-      })
-      .attr("sessionId", function(d) {
-        return d.sessionId;
-      })
+      .attr("nodeId", function(d) { return d.nodeId; })
+      .attr("userId", function(d) { return d.userId; })
+      .attr("sessionId", function(d) { return d.sessionId; })
       .attr("class", "enter")
-      .attr("rank", function(d) {
-        return d.rank;
-      })
+      .attr("rank", function(d) { return d.rank; })
       .attr("x", xposition)
       .attr("y", yposition)
-      // .on("click", function(d){
-      //   window.open("http://twitter.com/search?f=realtime&q=%23" + d.text, '_blank');
-      // })
-      // .text(function(d) { return d.mentions + " | " + d.text; })
-      .text(function(d) {
-        // return d.wordChainIndex + "_|_" + d.rank + "_|_" + d.text;
-        return d.text;
-      })
+      .text(function(d) { return d.text; })
+      .style("fill", "red")
       .style("fill-opacity", 1e-6)
       .style("font-size", "2.2vmin")
-      // .on("mouseout", sessionMouseOut)
-      // .on("mouseover", sessionMouseOver)
       .transition()
-      .duration(defaultFadeDuration * 2)
+      .duration(defaultFadeDuration)
       .style("fill-opacity", 1);
 
     sessionWords
       .exit()
       .attr("class", "exit")
       .transition()
-      .duration(defaultFadeDuration * 2)
+      .duration(defaultFadeDuration)
       .style("fill-opacity", 1e-6)
       .remove();
 
@@ -979,7 +964,8 @@ function ViewHistogram() {
         return d.lastSeen;
       });
 
-    node.enter()
+    node
+      .enter()
       .append("svg:g")
       .attr("class", "node")
       .attr("id", function(d) {
@@ -994,14 +980,10 @@ function ViewHistogram() {
       .attr("userId", function(d) {
         return d.userId;
       })
+      .attr("x", xposition)
+      .attr("y", yposition)
       .attr("rank", function(d) {
         return d.rank;
-      })
-      .attr("x", function(d) {
-        return d.x;
-      })
-      .attr("y", function(d) {
-        return d.y;
       })
       .attr("mentions", function(d) {
         return d.mentions;
@@ -1020,82 +1002,66 @@ function ViewHistogram() {
   function updateNodeWords(callback) {
 
     var nodeWords = nodeSvgGroup.selectAll("#word")
-      .data(nodes, function(d) {
-        return d.nodeId;
-      });
+      .data(nodes, function(d) { return d.nodeId; });
 
     nodeWords
-      .attr("class", function(d) {
-        return d.newFlag ? "updateNew" : "update";
-      })
-      // .text(function(d) { return d.mentions + " | " + d.text; })
-      .attr("rank", function(d) {
-        return d.rank;
-      })
-      .text(function(d) {
-        // return d.mentions + "____" + d.rank + "____" + d.text;
-        return d.text;
-      })
-      .style("fill", function(d) {
-        return d.newFlag ? "red" : "#ffffff";
-      })
+      .attr("class", function(d) {return d.newFlag ? "updateNew" : "update";})
+      // .attr("x", xposition)
+      // .attr("y", yposition)
+      .attr("rank", function(d) { return d.rank; })
+      .text(function(d) { return d.text; })
+      .style("fill", "#FFFFFF")
       .style("fill-opacity", function(d) {
         if (d3.select(this).attr("mouseOverFlag") == "true") {
           return 1;
         }
         else {
           if (removeDeadNodes) {
-            return wordOpacityScale(d.age);
+            return wordOpacityScale(d.age + 1);
           }
           else {
-            return Math.max(wordOpacityScale(d.age), minOpacity)
+            return Math.max(wordOpacityScale(d.age + 1), minOpacity)
           }
         }
       })
-      // .on("mouseout", wordMouseOut)
-      // .on("mouseover", wordMouseOver)
       .transition()
-      .duration(defaultFadeDuration)
-      .attr("x", xposition)
-      .attr("y", yposition);
+        .duration(defaultFadeDuration)
+        .style("fill", function(d) {
+          return d.newFlag ? "red" : "white";
+        })
+        .attr("x", xposition)
+        .attr("y", yposition);
 
     nodeWords
       .enter()
       .append("svg:text")
       .attr("id", "word")
-      .attr("nodeId", function(d) {
-        return d.nodeId;
-      })
+      .attr("nodeId", function(d) { return d.nodeId; })
       .attr("class", "enter")
-      .attr("rank", function(d) {
-        return d.rank;
-      })
+      .attr("rank", function(d) {return d.rank;})
       .attr("x", xposition)
       .attr("y", yposition)
-      // .on("click", function(d){
-      //   window.open("http://twitter.com/search?f=realtime&q=%23" + d.text, '_blank');
-      // })
-      // .text(function(d) { return d.mentions + " | " + d.text; })
-      .text(function(d) {
-        // return d.mentions + "____" + d.rank + "____" + d.text;
-        return d.text;
-      })
-      .style("fill", palette.blue)
+      .text(function(d) { return d.text;})
+      .style("fill", "white")
       .style("fill-opacity", 1e-6)
       .style("font-size", "2.2vmin")
       .on("mouseout", nodeMouseOut)
       .on("mouseover", nodeMouseOver)
       .transition()
-      .duration(defaultFadeDuration * 2)
-      .style("fill-opacity", 1);
+        .duration(defaultFadeDuration)
+        .style("fill-opacity", 1);
+        // .attr("x", xposition)
+        // .attr("y", yposition);
 
     nodeWords
       .exit()
       .attr("class", "exit")
       .transition()
-      .duration(defaultFadeDuration * 2)
-      .style("fill-opacity", 1e-6)
-      .remove();
+        .duration(defaultFadeDuration)
+        // .attr("x", xposition)
+        // .attr("y", maxY)
+        .style("fill-opacity", 1e-6)
+        .remove();
 
     return (callback(null, "updateNodeWords"));
   }
@@ -1203,10 +1169,10 @@ function ViewHistogram() {
         }
         else {
           if (removeDeadNodes) {
-          return wordOpacityScale(d.age);
+          return wordOpacityScale(d.age + 1);
           }
           else {
-            return Math.max(wordOpacityScale(d.age), minOpacity)
+            return Math.max(wordOpacityScale(d.age + 1), minOpacity)
           }
         }
       });
@@ -1277,6 +1243,8 @@ function ViewHistogram() {
       && !newNode.isSessionNode 
       && ((nodes.length < maxWords) || (newNode.rank < maxWords))) 
     {
+      newNode.x = 0;
+      nodeMouseOut.y = height;
       nodes.push(newNode);
     }
     updateRecentNodes(newNode);
@@ -1430,7 +1398,7 @@ function ViewHistogram() {
     var text = randomNumber360 + ' | ' + mentions;
 
     var startColor = "hsl(" + randomNumber360 + ",100%,50%)";
-    var endColor = "hsl(" + randomNumber360 + ",0%,0%)";
+    var endColor = "hsl(" + randomNumber360 + ",20%,20%)";
 
     var interpolateNodeColor = d3.interpolateHcl(endColor, startColor);
 
@@ -1551,7 +1519,7 @@ function ViewHistogram() {
     }
 
     if (typeof d.rank === 'undefined') {
-      return marginLeftWords + (colSpacing * 10);
+      return marginLeftWords;
     }
 
     var value;

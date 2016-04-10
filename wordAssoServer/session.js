@@ -29,14 +29,14 @@ var debug = true;
 var MAX_RX_QUEUE = 250;
 var QUEUE_MAX = 200;
 var MAX_WORDCHAIN_LENGTH = 100;
-var DEFAULT_MAX_AGE = 10000;
+var DEFAULT_MAX_AGE = 30000;
 var DEFAULT_AGE_RATE = 1.0;
 
 var dateNow = moment().valueOf();
 var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
 var defaultTimePeriodFormat = "HH:mm:ss";
 
-var removeDeadNodes = false;
+var removeDeadNodes = true;
 function toggleRemoveDeadNode(){
   removeDeadNodes = !removeDeadNodes;
   console.warn("TOGGLE REMOVE DEAD NODES: " + removeDeadNodes);

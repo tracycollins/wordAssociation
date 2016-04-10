@@ -5093,6 +5093,7 @@ function createSession (newSessionObj){
       console.log(chalkError(moment().format(defaultDateTimeFormat) 
         + " | ??? SESSION NOT FOUND ON SESSION_KEEPALIVE | " + socketId
         + " | ABORTING SESSION"
+        + "\n" + jsonPrint(userObj)
       ));
       sessionQueue.enqueue({sessionEvent: "SESSION_ABORT", sessionId: socketId});
       // viewNameSpace.emit("SESSION_DELETE", {sessionEvent: "SESSION_DELETE", sessionId: socketId});

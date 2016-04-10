@@ -723,12 +723,15 @@ function ViewHistogram() {
 
     for (ageNodesIndex = ageNodesLength; ageNodesIndex >= 0; ageNodesIndex -= 1) {
       node = nodes[ageNodesIndex];
-      if (deadNodesHash[node.nodeId]) {
+      if ((typeof node != 'undefined') && deadNodesHash[node.nodeId]) {
         nodeDeleteQueue.push(node.nodeId);
         nodes.splice(ageNodesIndex, 1);
         delete deadNodesHash[node.nodeId];
         self.deleteNode(node.nodeId);
         // console.log("XXX NODE: " + node.nodeId);
+      }
+      else if (typeof node == 'undefined'){
+        nodes.splice(ageNodesIndex, 1);
       }
     }
 

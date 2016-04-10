@@ -151,7 +151,8 @@
           <td><button id="statsToggleButton" class="button">toggle stats</button></td>
           <td><button id="resetDefaultForceButton" class="button"  onclick="resetDefaultForce()">RESET</button></td>
           <!-- <input type="radio" name="sessionModeButton" onclick="setSessionMode('PROMPT');" value="PROMPT" checked> prompt<br> -->
-          <td><input id="removeDeadNodeButton" type="checkbox" class="button"  onclick="toggleRemoveDeadNode()">REMOVE DEAD NODE</button></td>
+          <!-- <td><input id="removeDeadNodeButton" type="checkbox" class="button"  onclick="toggleRemoveDeadNode()">REMOVE DEAD NODES</button></td> -->
+          <td><button id="removeDeadNodeButton" class="button"  onclick="toggleRemoveDeadNode()">REMOVE DEAD</button></td>
           <td><button id="addRandomNodeButton" class="button"  onclick="addRandomNode()">NODE</button></td>
           <td><button id="addRandomLinkButton" class="button"  onclick="addRandomLink()">LINK</button></td>
           <td><button id="testModeButton" class="button"  onclick="toggleTestMode()">TEST</button></td>
@@ -159,7 +160,8 @@
         <tr>
           <td></td>
         </tr>
-        <tr>
+
+<!--         <tr>
           <td> 
             <input id="chargeSlider" type="range" class="slider"  min="-1000" max="1000" oninput="updateCharge(this.value)"/>
           </td>
@@ -198,6 +200,7 @@
           </td>
           <td id="linkstrengthSliderText" class="sliderSpan"></td>
         </tr>
+ -->        
       </table>
     </div>
   </div>

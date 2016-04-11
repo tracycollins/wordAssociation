@@ -11,6 +11,7 @@ function ViewHistogram() {
   // GLOBAL VARS
   // ==============================================
 
+  var newFlagRatio = 0.01;
   var maxWords = 100;
   // var removeDeadNodes = false;
   var maxOpacity = 0.9;
@@ -38,7 +39,6 @@ function ViewHistogram() {
 
   var maxY = (marginTopWords + (2 * maxWordRows)) + "%";
 
-
   var maxRecentWords = maxWordRows;
   var wordArray = [];
   var recentNodeArray = [];
@@ -55,7 +55,6 @@ function ViewHistogram() {
   var mouseOverRadius = 10;
   var mouseMoveTimeoutInterval = 1000;
   var mouseHoverNodeId;
-
 
   var updateHistogramDisplayReady = true;
 
@@ -195,8 +194,7 @@ function ViewHistogram() {
   document.addEventListener("mousemove", function() {
     if (mouseHoverFlag) {
       d3.select("body").style("cursor", "pointer");
-    }
-    else {
+    } else {
       d3.select("body").style("cursor", "default");
     }
 
@@ -314,8 +312,7 @@ function ViewHistogram() {
 
     if (vis) {
       visible = "visible";
-    }
-    else {
+    } else {
       visible = "hidden";
     }
 
@@ -507,11 +504,9 @@ function ViewHistogram() {
 
     if (sessions.length === 0) {
       ageRate = DEFAULT_AGE_RATE;
-    }
-    else if (sessions.length > 100) {
+    } else if (sessions.length > 100) {
       ageRate = adjustedAgeRateScale(sessions.length - 100);
-    }
-    else {
+    } else {
       ageRate = DEFAULT_AGE_RATE;
     }
 
@@ -528,18 +523,15 @@ function ViewHistogram() {
 
       if (session.isDead) {
         deadSessionsHash[session.sessionId] = 1;
-      }
-      else if (age >= sessionMaxAge) {
+      } else if (age >= sessionMaxAge) {
         session.isDead = true;
         deadSessionsHash[session.sessionId] = 1;
-      }
-      else {
+      } else {
         session.ageUpdated = dateNow;
         session.age = age;
-        if (age < 0.05 * sessionMaxAge) {
+        if (age < newFlagRatio * sessionMaxAge) {
           session.newFlag = true;
-        }
-        else {
+        } else {
           session.newFlag = false;
         }
         // sessions[ageSessionsIndex] = session;
@@ -579,18 +571,18 @@ function ViewHistogram() {
   }
 
   // ===================================================================
-  function compareMentions(a,b) {
+  function compareMentions(a, b) {
     if (a.mentions > b.mentions)
       return -1;
     else if (a.mentions < b.mentions)
       return 1;
-    else 
+    else
       return 0;
   }
 
   function pad(num, size) {
-      var s = "0000000000" + num;
-      return s.substr(s.length-size);
+    var s = "0000000000" + num;
+    return s.substr(s.length - size);
   }
 
   function sortByProperty(array, property) {
@@ -607,11 +599,11 @@ function ViewHistogram() {
         return -1;
       else if (a.value < b.value)
         return 1;
-      else 
+      else
         return 0;
     });
 
-    var result = mapped.map(function(node){
+    var result = mapped.map(function(node) {
       // console.log("node.index: " + node.index);
       return array[node.index];
     });
@@ -620,7 +612,7 @@ function ViewHistogram() {
   }
 
   function rankNodes(callback) {
-    if (nodes.length == 0 ) return(callback());
+    if (nodes.length == 0) return (callback());
     var sortedNodeArray = sortByProperty(nodes, 'mentions');
 
     // console.warn("sortedNodeArray\n" + jsonPrint(sortedNodeArray));
@@ -639,7 +631,7 @@ function ViewHistogram() {
   }
 
   function rankSessions(callback) {
-    if (sessions.length == 0 ) return(callback());
+    if (sessions.length == 0) return (callback());
     var sortedSessionArray = sortByProperty(sessions, 'wordChainIndex');
 
     // console.warn("sortedNodeArray\n" + jsonPrint(sortedNodeArray));
@@ -661,11 +653,9 @@ function ViewHistogram() {
 
     if (nodes.length === 0) {
       ageRate = DEFAULT_AGE_RATE;
-    }
-    else if (nodes.length > 100) {
+    } else if (nodes.length > 100) {
       ageRate = adjustedAgeRateScale(nodes.length - 100);
-    }
-    else {
+    } else {
       ageRate = DEFAULT_AGE_RATE;
     }
 
@@ -682,22 +672,18 @@ function ViewHistogram() {
 
       if (removeDeadNodes && node.isDead) {
         deadNodesHash[node.nodeId] = 1;
-      }
-      else if (removeDeadNodes && !node.isSessionNode && (age >= nodeMaxAge)) {
+      } else if (removeDeadNodes && !node.isSessionNode && (age >= nodeMaxAge)) {
         node.isDead = true;
         deadNodesHash[node.nodeId] = 1;
-      }
-      else if ((nodes.length >= maxWords-1) && (node.rank > maxWords)) {
+      } else if ((nodes.length >= maxWords - 1) && (node.rank > maxWords)) {
         deadNodesHash[node.nodeId] = 1;
         console.warn("XXX NODE " + node.nodeId);
-      }
-      else {
+      } else {
         node.ageUpdated = dateNow;
         node.age = age;
-        if (age < 0.05 * nodeMaxAge) {
+        if (age < newFlagRatio * nodeMaxAge) {
           node.newFlag = true;
-        }
-        else {
+        } else {
           node.newFlag = false;
         }
         // nodes[ageNodesIndex] = node;
@@ -729,8 +715,7 @@ function ViewHistogram() {
         delete deadNodesHash[node.nodeId];
         self.deleteNode(node.nodeId);
         // console.log("XXX NODE: " + node.nodeId);
-      }
-      else if (typeof node == 'undefined'){
+      } else if (typeof node == 'undefined') {
         nodes.splice(ageNodesIndex, 1);
       }
     }
@@ -757,11 +742,9 @@ function ViewHistogram() {
 
       if ((typeof currentLinkObject !== 'undefined') && currentLinkObject.isDead) {
         deadLinksHash[currentLinkObject.linkId] = 'DEAD';
-      }
-      else if ((typeof currentLinkObject !== 'undefined') && currentLinkObject.source.isDead) {
+      } else if ((typeof currentLinkObject !== 'undefined') && currentLinkObject.source.isDead) {
         deadLinksHash[currentLinkObject.linkId] = 'DEAD SOURCE';
-      }
-      else if ((typeof currentLinkObject !== 'undefined') && currentLinkObject.target.isDead) {
+      } else if ((typeof currentLinkObject !== 'undefined') && currentLinkObject.target.isDead) {
         deadLinksHash[currentLinkObject.linkId] = 'DEAD TARGET';
       }
       // } else if ((typeof currentLinkObject !== 'undefined') && !linkHashMap.has(currentLinkObject.linkId)) {
@@ -769,15 +752,12 @@ function ViewHistogram() {
       // } 
       else if (!nodeHashMap.has(currentLinkObject.source.nodeId)) {
         deadLinksHash[currentLinkObject.linkId] = 'UNDEFINED SOURCE';
-      }
-      else if (!nodeHashMap.has(currentLinkObject.target.nodeId)) {
+      } else if (!nodeHashMap.has(currentLinkObject.target.nodeId)) {
         deadLinksHash[currentLinkObject.linkId] = 'UNDEFINED TARGET';
-      }
-      else {
+      } else {
         if (currentLinkObject.source.age > currentLinkObject.target.age) {
           currentLinkObject.age = currentLinkObject.source.age;
-        }
-        else {
+        } else {
           currentLinkObject.age = currentLinkObject.target.age;
           links[ageLinksIndex] = currentLinkObject;
         }
@@ -890,55 +870,62 @@ function ViewHistogram() {
       .attr("class", function(d) {
         return d.newFlag ? "updateNew" : "update";
       })
-      .attr("rank", function(d) { return d.rank; })
-      .text(function(d) { return d.text; })
-      .style("fill", function(d) { return d.newFlag ? "red" : "white"; })
-      .style("fill-opacity", function(d) {
-        if (d3.select(this).attr("mouseOverFlag") == "true") {
-          return 1;
+      .attr("rank", function(d) {
+        return d.rank; })
+      .text(function(d) {
+        return d.text; })
+      .style("fill", function(d) {
+        if (d.newFlag) {
+          return "white";
         }
         else {
-          if (removeDeadNodes) {
-            return wordOpacityScale(d.age + 1);
-          }
-          else {
-            return Math.max(wordOpacityScale(d.age + 1), minOpacity)
-          }
+          return d.interpolateColor((nodeMaxAge - d.age) / nodeMaxAge); 
         }
       })
+      // .style("fill", function(d) {
+      //   return d.newFlag ? "red" : "white"; })
+      // .style("fill-opacity", function(d) {
+      //   if (d3.select(this).attr("mouseOverFlag") == "true") {
+      //     return 1;
+      //   } else {
+      //     if (removeDeadNodes) {
+      //       return wordOpacityScale(d.age + 1);
+      //     } else {
+      //       return Math.max(wordOpacityScale(d.age + 1), minOpacity)
+      //     }
+      //   }
+      // })
       .transition()
-        .duration(defaultFadeDuration)
-        .style("fill", function(d) {
-          return d.newFlag ? "red" : "white";
-        })
-        .attr("x", xposition)
-        .attr("y", yposition);
+      .duration(defaultFadeDuration)
+      // .style("fill", function(d) {
+      //   return d.newFlag ? "red" : "white";
+      // })
+      .attr("x", xposition)
+      .attr("y", yposition);
 
     sessionWords
       .enter()
       .append("svg:text")
       .attr("id", "session")
-      .attr("nodeId", function(d) { return d.nodeId; })
-      .attr("userId", function(d) { return d.userId; })
-      .attr("sessionId", function(d) { return d.sessionId; })
+      .attr("nodeId", function(d) {
+        return d.nodeId; })
+      .attr("userId", function(d) {
+        return d.userId; })
+      .attr("sessionId", function(d) {
+        return d.sessionId; })
       .attr("class", "enter")
-      .attr("rank", function(d) { return d.rank; })
+      .attr("rank", function(d) {
+        return d.rank; })
       .attr("x", xposition)
       .attr("y", yposition)
-      .text(function(d) { return d.text; })
-      .style("fill", "red")
-      .style("fill-opacity", 1e-6)
-      .style("font-size", "2.2vmin")
-      .transition()
-      .duration(defaultFadeDuration)
-      .style("fill-opacity", 1);
+      .text(function(d) {
+        return d.text; })
+      .style("fill", "FFFFFF")
+      .style("fill-opacity", 1)
+      .style("font-size", "2.2vmin");
 
     sessionWords
       .exit()
-      .attr("class", "exit")
-      .transition()
-      .duration(defaultFadeDuration)
-      .style("fill-opacity", 1e-6)
       .remove();
 
     return (callback(null, "updateSessionWords"));
@@ -1008,45 +995,24 @@ function ViewHistogram() {
       .data(nodes, function(d) { return d.nodeId; });
 
     nodeWords
-      .attr("class", function(d) {return d.newFlag ? "updateNew" : "update";})
-      // .attr("x", xposition)
-      // .attr("y", yposition)
+      .attr("class", function(d) { return d.newFlag ? "updateNew" : "update"; })
       .attr("rank", function(d) { return d.rank; })
       .text(function(d) { return d.text; })
-      .style("fill", "#FFFFFF")
-      .style("fill-opacity", function(d) {
-        if (d3.select(this).attr("mouseOverFlag") == "true") {
-          return 1;
+      .style("fill", function(d) {
+        if (d.newFlag) {
+          return "white";
         }
         else {
-          if (removeDeadNodes) {
-            return wordOpacityScale(d.age + 1);
-          }
-          else {
-            return Math.max(wordOpacityScale(d.age + 1), minOpacity)
-          }
+          return d.interpolateColor((nodeMaxAge - d.age) / nodeMaxAge); 
         }
       })
+      // .style("fill", function(d) {
+      //   return d.interpolateColor((nodeMaxAge - d.age) / nodeMaxAge); 
+      // })
       .transition()
-        .duration(defaultFadeDuration)
-        .style("fill", function(d) {
-          return d.newFlag ? "red" : "white";
-        })
-      .style("fill-opacity", function(d) {
-        if (d3.select(this).attr("mouseOverFlag") == "true") {
-          return 1;
-        }
-        else {
-          if (removeDeadNodes) {
-            return wordOpacityScale(d.age + 1);
-          }
-          else {
-            return Math.max(wordOpacityScale(d.age + 1), minOpacity)
-          }
-        }
-      })
-        .attr("x", xposition)
-        .attr("y", yposition);
+      .duration(defaultFadeDuration)
+      .attr("x", xposition)
+      .attr("y", yposition);
 
     nodeWords
       .enter()
@@ -1054,30 +1020,24 @@ function ViewHistogram() {
       .attr("id", "word")
       .attr("nodeId", function(d) { return d.nodeId; })
       .attr("class", "enter")
-      .attr("rank", function(d) {return d.rank;})
+      .attr("rank", function(d) { return d.rank; })
       .attr("x", xposition)
       .attr("y", yposition)
-      .text(function(d) { return d.text;})
-      .style("fill", "white")
-      .style("fill-opacity", 1e-6)
+      .text(function(d) { return d.text; })
+      .style("fill", "#FF0000")
+      .style("fill-opacity", 1)
       .style("font-size", "2.2vmin")
       .on("mouseout", nodeMouseOut)
       .on("mouseover", nodeMouseOver)
       .transition()
-        .duration(defaultFadeDuration)
-        .style("fill-opacity", 1);
-        // .attr("x", xposition)
-        // .attr("y", yposition);
+      .duration(defaultFadeDuration)
+      // // .style("fill-opacity", 1)
+      .style("fill", "#FF0000");
 
     nodeWords
       .exit()
       .attr("class", "exit")
-      .transition()
-        .duration(defaultFadeDuration)
-        // .attr("x", xposition)
-        // .attr("y", maxY)
-        .style("fill-opacity", 1e-6)
-        .remove();
+      .remove();
 
     return (callback(null, "updateNodeWords"));
   }
@@ -1182,12 +1142,10 @@ function ViewHistogram() {
       .style("fill-opacity", function(d) {
         if (d3.select(this).attr("mouseOverFlag") == "true") {
           return 1;
-        }
-        else {
+        } else {
           if (removeDeadNodes) {
-          return wordOpacityScale(d.age + 1);
-          }
-          else {
+            return wordOpacityScale(d.age + 1);
+          } else {
             return Math.max(wordOpacityScale(d.age + 1), minOpacity)
           }
         }
@@ -1255,14 +1213,11 @@ function ViewHistogram() {
   }
 
   this.addNode = function(newNode) {
-    if (!newNode.isSession 
-      && !newNode.isSessionNode 
-      && ((nodes.length < maxWords-1) || (newNode.rank < maxWords-1))) 
-    {
+    if (!newNode.isSession && !newNode.isSessionNode && ((nodes.length < maxWords - 1) || (newNode.rank < maxWords - 1))) {
       newNode.x = 0;
       nodeMouseOut.y = height;
       nodes.push(newNode);
-      rankNodes(function(){
+      rankNodes(function() {
         if (nodes.length > maxWords) nodes.pop();
       });
     }

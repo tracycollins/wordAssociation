@@ -3128,114 +3128,6 @@ function handleSessionEvent(sesObj, callback) {
       viewNameSpace.emit('SESSION_DELETE', sesObj);
       break;
 
-    // case 'SESSION_EXPIRED':
-    //   console.log(chalkSession(
-    //     "EXP SESSION EXPIRED"
-    //     + " | NSP: " + sesObj.session.namespace
-    //     + " | SID: " + sesObj.session.sessionId
-    //     + " | IP: " + sesObj.session.ip
-    //     + " | DOMAIN: " + sesObj.session.domain
-    //   ));
-
-    //   sesObj.sessionEvent = 'SESSION_DELETE';
-    //   viewNameSpace.emit('SESSION_DELETE', sesObj);
-
-    //   sesObj.session.disconnectTime = moment().valueOf();
-
-    //   sessionCache.del(sesObj.session.sessionId);
-
-    //   sessionUpdateDb(sesObj.session, function(err, updatedSessionObj){
-
-    //     var currentUser = userCache.get(updatedSessionObj.userId);
-    //     var currentAdmin = adminCache.get(updatedSessionObj.userId);
-    //     var currentUtil = utilCache.get(updatedSessionObj.userId);
-    //     var currentViewer = viewerCache.get(updatedSessionObj.userId);
-
-    //     if (currentViewer) {
-    //       debug("currentViewer\n" + jsonPrint(currentViewer));
-    //       viewerCache.del(currentViewer.viewerId);
-    //       currentViewer.lastSeen = moment().valueOf();
-    //       currentViewer.connected = false;
-    //       viewerUpdateDb(currentViewer, function(err, updatedViewerObj){
-    //         if (!err){
-
-    //           updatedViewerObj.sessionId = updatedViewerObj.lastSession;
-
-    //           console.log(chalkRed("TX VIEWER SESSION (DISCONNECT): " 
-    //             + updatedViewerObj.lastSession + " TO ADMIN NAMESPACE"
-    //           ));
-
-    //           adminNameSpace.emit('VIEWER_SESSION', updatedViewerObj);
-    //         }
-    //       });
-    //     }
-
-    //     if (currentAdmin) {
-    //       debug("currentAdmin\n" + jsonPrint(currentAdmin));
-    //       adminCache.del(currentAdmin.adminId);
-    //       currentAdmin.lastSeen = moment().valueOf();
-    //       currentAdmin.connected = false;
-    //       adminUpdateDb(currentAdmin, function(err, updatedAdminObj){
-    //         if (!err){
-
-    //           updatedAdminObj.sessionId = updatedAdminObj.lastSession;
-
-    //           console.log(chalkRed("TX ADMIN SESSION (DISCONNECT): " 
-    //             + updatedAdminObj.lastSession + " TO ADMIN NAMESPACE"
-    //           ));
-
-    //           adminNameSpace.emit('ADMIN_SESSION', updatedAdminObj);
-    //         }
-    //       });
-    //     }
-        
-    //     if (currentUser) {
-    //       debug("currentUser\n" + jsonPrint(currentUser));
-    //       userCache.del(currentUser.userId);
-    //       currentUser.lastSeen = moment().valueOf();
-    //       currentUser.connected = false;
-    //       userUpdateDb(currentUser, function(err, updatedUserObj){
-    //         if (!err){
-
-    //           updatedUserObj.sessionId = updatedUserObj.lastSession;
-
-    //           console.log(chalkRed("TX USER SESSION (DISCONNECT): " 
-    //             + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"
-    //           ));
-
-    //           adminNameSpace.emit('USER_SESSION', updatedUserObj);
-    //         }
-    //       });
-    //     }
-        
-    //     if (currentUtil) {
-    //       debug("currentUtil\n" + jsonPrint(currentUtil));
-    //       utilCache.del(currentUtil.utilId);
-    //       currentUtil.lastSeen = moment().valueOf();
-    //       currentUtil.connected = false;
-    //       utilUpdateDb(currentUtil, function(err, updatedUtilObj){
-    //         if (!err){
-
-    //           updatedUtilObj.sessionId = updatedUtilObj.lastSession;
-
-    //           console.log(chalkRed("TX UTIL SESSION (DISCONNECT): " 
-    //             + updatedUtilObj.lastSession + " TO ADMIN NAMESPACE"
-    //           ));
-
-    //           adminNameSpace.emit('UTIL_SESSION', updatedUtilObj);
-    //         }
-    //       });
-    //     }
-
-    //   });
-
-    //   sesObj.session.wordChain.forEach(function(word){
-    //     debug(chalkSession(">T< SET WORD " + word + " TTL: " + wordCacheTtl));
-    //     wordCache.ttl(word, wordCacheTtl);
-    //   });
-
-    //   break;
-
     case 'SESSION_EXPIRED':
     case 'SOCKET_ERROR':
     case 'SOCKET_DISCONNECT':
@@ -3438,9 +3330,13 @@ function handleSessionEvent(sesObj, callback) {
         if (userSessionObj) {
           console.log("FOUND USER SESSION: " + userSessionObj.sessionId);
           console.log(chalkRed("TX USER SESSION: " + userSessionObj.sessionId 
-            + " TO " + sesObj.options.requestNamespace + "#" + sesObj.options.requestSocketId));
+            // + " TO " + sesObj.options.requestNamespace + "#" + sesObj.options.requestSocketId));
+            + " TO " + sesObj.session.namespace + "#" + sesObj.session.sessionId));
           delete userSessionObj.wordChain ;
 
+          if (sesObj.session.namespace == 'view'){
+            viewNameSpace.to(sesObj.session.sessionId).emit('USER_SESSION', userSessionObj);
+          }
           adminNameSpace.to(sesObj.session.sessionId).emit('USER_SESSION', userSessionObj);
         }
       });
@@ -3449,9 +3345,13 @@ function handleSessionEvent(sesObj, callback) {
         if (userSessionObj) {
           console.log("FOUND TEST USER SESSION: " + userSessionObj.sessionId);
           console.log(chalkRed("TX USER SESSION: " + userSessionObj.sessionId 
-            + " TO " + sesObj.options.requestNamespace + "#" + sesObj.options.requestSocketId));
+            // + " TO " + sesObj.options.requestNamespace + "#" + sesObj.options.requestSocketId));
+            + " TO " + sesObj.session.namespace + "#" + sesObj.session.sessionId));
           delete userSessionObj.wordChain ;
 
+          if (sesObj.session.namespace == 'view'){
+            viewNameSpace.to(sesObj.session.sessionId).emit('USER_SESSION', userSessionObj);
+          }
           adminNameSpace.to(sesObj.session.sessionId).emit('USER_SESSION', userSessionObj);
         }
       });
@@ -5010,6 +4910,7 @@ function createSession (newSessionObj){
       + " | REQ_USER_SESSION: " + socketId
       + " | IP: " + ipAddress
       + " | SID: " + sessionObj.sessionId
+      + " | NSP: " + sessionObj.namespace
       + " | OPTIONS: " + jsonPrint(options)      
     ));
 

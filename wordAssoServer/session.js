@@ -20,6 +20,71 @@ var config = {};
 config.maxWords = 100;
 config.testMode = false;
 
+var ignoreWordsArray = [
+  "a",
+  "about",
+  "across",
+  "all",
+  "an",
+  "also",
+  "too",
+  "and",
+  "are",
+  "as",
+  "at",
+  "be",
+  "been",
+  "but",
+  "by",
+  "do",
+  "dont",
+  "for",
+  "from",
+  "has",
+  "hasnt",
+  "have",
+  "havent",
+  "here",
+  "how",
+  "if",
+  "in",
+  "into",
+  "is",
+  "isnt",
+  "it",
+  "its",
+  "not",
+  "of",
+  "on",
+  "or",
+  "should",
+  "so",
+  "than",
+  "that",
+  "the",
+  "there",
+  "these",
+  "thats",
+  "this",
+  "those",
+  "though",
+  "to",
+  "upon",
+  "was",
+  "wasnt",
+  "were",
+  "what",
+  "when",
+  "where",
+  "which",
+  "who",
+  "why",
+  "will",
+  "with",
+  "wont",
+  "would",
+];
+
 var DEFAULT_SESSION_VIEW = 'force';
 config.sessionViewType = DEFAULT_SESSION_VIEW; // options: force, histogram ??
 
@@ -70,6 +135,7 @@ var linkHashMap = new HashMap();
 var nodeHashMap = new HashMap();
 var sessionHashMap = new HashMap();
 var sessionDeleteHashMap = new HashMap();
+var ignoreWordHashMap = new HashMap();
 
 var rxSessionUpdateQueue = [];
 var rxSessionDeleteQueue = [];
@@ -706,29 +772,7 @@ function createSession(session, callback) {
       return (callback(null, null));
     }
     else if (sessionHashMap.has(sessUpdate.sessionId)) {
-
-      // console.log("FOUND SESS"
-      //   + " [" + sessUpdate.wordChainIndex + "]"
-      //   + " | UID: " + sessUpdate.userId
-      //   + " | " + sessUpdate.source.nodeId
-      //   + " > " + sessUpdate.target.nodeId
-      //   // + "\n" + jsonPrint(sessUpdate)
-      // );
-
       currentSession = sessionHashMap.get(sessUpdate.sessionId);
-
-
-      // if (currentSession.wordChainIndex + 1 != sessUpdate.wordChainIndex) {
-      //   console.error("??? MISSED / OUT OF ORDER UPDATE?");
-      //   console.error(currentSession.sessionId + " | PREV WCI: " + currentSession.wordChainIndex + " | CURR WCI: " + sessUpdate.wordChainIndex);
-      // } // else {
-      //   console.error("??? MISSED / OUT OF ORDER UPDATE?");
-      // console.error(currentSession.sessionId
-      //  + " | PREV WCI: " + currentSession.wordChainIndex
-      //  + " | CURR WCI: " + sessUpdate.wordChainIndex
-      //  );
-      // }
-
       if (nodeHashMap.has(currentSession.node.nodeId)) {
         currentSession.node = nodeHashMap.get(currentSession.node.nodeId);
       }
@@ -756,7 +800,6 @@ function createSession(session, callback) {
       currentSession.node.links = {};
       currentSession.node.links[sessionLinkId] = 1;
 
-      // sessionHashMap.set(sessionObject.sessionId, currentSession);
       addToHashMap(sessionHashMap, currentSession.sessionId, currentSession, function(cSession) {
         nodeCreateQueue.push(cSession);
         removeFromHashMap(linkHashMap, sessionId, function() {
@@ -768,7 +811,10 @@ function createSession(session, callback) {
 
       sessionsCreated += 1;
 
-      console.log("CREATE SESS" + " [" + sessUpdate.wordChainIndex + "]" + " | UID: " + sessUpdate.userId + " | " + sessUpdate.source.nodeId + " > " + sessUpdate.target.nodeId
+      console.log("CREATE SESS" + " [" + sessUpdate.wordChainIndex + "]" 
+        + " | UID: " + sessUpdate.userId 
+        + " | " + sessUpdate.source.nodeId 
+        + " > " + sessUpdate.target.nodeId
         // + "\n" + jsonPrint(sessUpdate)
       );
 
@@ -789,8 +835,6 @@ function createSession(session, callback) {
       currentSession.initialPosition = initialPositionArray.shift();
       currentSession.x = currentSession.initialPosition.x;
       currentSession.y = currentSession.initialPosition.y;
-      // currentSession.r = 50;
-      // currentSession.mentions = sessUpdate.wordChainIndex;
       currentSession.wordChainIndex = sessUpdate.wordChainIndex;
       currentSession.colors = {};
       currentSession.colors = randomColorQueue.shift();
@@ -883,7 +927,15 @@ function createNode(sessionId, callback) {
 
     async.parallel({
         source: function(cb) {
-          if (nodeHashMap.has(sourceNodeId)) {
+          if (ignoreWordHashMap.has(sourceNodeId)){
+            console.warn("sourceNodeId IGNORED: " + sourceNodeId);
+            cb(null, {
+              node: sourceNodeId,
+              isIgnored: true,
+              isNew: false
+            });
+          }
+          else if (nodeHashMap.has(sourceNodeId)) {
             sourceNode.newFlag = false;
             sourceNode = nodeHashMap.get(sourceNodeId);
             sourceNode.userId = session.userId;
@@ -901,6 +953,7 @@ function createNode(sessionId, callback) {
             addToHashMap(nodeHashMap, sourceNodeId, sourceNode, function(sNode) {
               cb(null, {
                 node: sNode,
+                isIgnored: false,
                 isNew: false
               });
             });
@@ -926,6 +979,7 @@ function createNode(sessionId, callback) {
             addToHashMap(nodeHashMap, sourceNodeId, sourceNode, function(sNode) {
               cb(null, {
                 node: sNode,
+                isIgnored: false,
                 isNew: true
               });
             });
@@ -935,7 +989,15 @@ function createNode(sessionId, callback) {
         target: function(cb) {
           if (typeof targetNodeId === 'undefined') {
             console.warn("targetNodeId UNDEFINED ... SKIPPING CREATE NODE");
-            (cb("TARGET UNDEFINED", null));
+            cb("TARGET UNDEFINED", null);
+          }
+          else if (ignoreWordHashMap.has(targetNodeId)){
+            console.warn("targetNodeId IGNORED: " + targetNodeId);
+            cb(null, {
+              node: targetNodeId,
+              isIgnored: true,
+              isNew: false
+            });
           }
           else if (nodeHashMap.has(targetNodeId)) {
             targetNode = nodeHashMap.get(targetNodeId);
@@ -955,6 +1017,7 @@ function createNode(sessionId, callback) {
             addToHashMap(nodeHashMap, targetNodeId, targetNode, function(tNode) {
               cb(null, {
                 node: tNode,
+                isIgnored: false,
                 isNew: false
               });
             });
@@ -980,6 +1043,7 @@ function createNode(sessionId, callback) {
             addToHashMap(nodeHashMap, targetNodeId, targetNode, function(tNode) {
               cb(null, {
                 node: tNode,
+                isIgnored: false,
                 isNew: true
               });
             });
@@ -989,17 +1053,17 @@ function createNode(sessionId, callback) {
       function(err, results) {
         // console.warn("CREATE NODE RESULTS\n" + jsonPrint(results));
 
-        session.source = results.source.node;
-        session.source.isNew = results.source.isNew;
-        // if (results.source.isNew) newNodes.push(results.source.node.nodeId);
-        if (results.source.isNew) {
-          currentSessionView.addNode(results.source.node);
+        if (!results.source.isIgnored){
+          session.source = results.source.node;
+          session.source.isNew = results.source.isNew;
+          if (results.source.isNew) {
+            currentSessionView.addNode(results.source.node);
+          }
         }
 
-        if (results.target) {
+        if (results.target  && !results.target.isIgnored) {
           session.target = results.target.node;
           session.target.isNew = results.target.isNew;
-          // if (results.target.isNew) newNodes.push(results.target.node.nodeId);
           if (results.target.isNew) {
             currentSessionView.addNode(results.target.node);
           }
@@ -1017,7 +1081,7 @@ function createNode(sessionId, callback) {
           //   + " > " + cSession.target.nodeId  + " (" + cSession.target.isNew + ")"
           //   // + "\n" + jsonPrint(cSession) 
           // );
-          linkCreateQueue.push(cSession);
+          if (!results.source.isIgnored) linkCreateQueue.push(cSession);
         });
       });
   }
@@ -1290,9 +1354,20 @@ function loadViewType(svt, callback) {
   }
 }
 
+function initIgnoreWordsHashMap(callback){
+  async.each(ignoreWordsArray, function(ignoreWord, cb){
+    addToHashMap(ignoreWordHashMap, ignoreWord, true, function(){
+      cb();
+    });
+  }, function (err){
+    callback();
+  });
+}
+
 function initialize() {
 
   console.log("initialize");
+
 
   getUrlVariables(function(err, urlVariablesObj) {
 
@@ -1314,8 +1389,17 @@ function initialize() {
           namespace = urlVariablesObj.namespace;
         }
         if (urlVariablesObj.sessionViewType) {
+
           sessionViewType = urlVariablesObj.sessionViewType;
+
           console.log("ON LOAD getUrlVariables: sessionViewType:" + sessionViewType);
+
+          if (sessionViewType == 'histogram') {
+            initIgnoreWordsHashMap(function(){
+              console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+            });
+          }
+
           loadViewType(sessionViewType, function() {
 
             currentSessionView.initD3timer();
@@ -1334,7 +1418,6 @@ function initialize() {
           });
         }
         else {
-          console.warn("HERE1");
           loadViewType(DEFAULT_SESSION_VIEW, function() {
 
             currentSessionView.initD3timer();
@@ -1354,7 +1437,6 @@ function initialize() {
         }
       }
       else {
-        console.warn("HERE");
         loadViewType(DEFAULT_SESSION_VIEW, function() {
 
           currentSessionView.initD3timer();

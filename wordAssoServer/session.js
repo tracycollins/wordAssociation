@@ -913,6 +913,7 @@ function createNode(sessionId, callback) {
             sourceNode.userId = session.userId;
             sourceNode.sessionId = sessionId;
             sourceNode.links = {};
+            sourceNode.rank = -1;
             sourceNode.age = 0;
             sourceNode.lastSeen = dateNow;
             sourceNode.ageUpdated = dateNow;
@@ -966,6 +967,7 @@ function createNode(sessionId, callback) {
             targetNode.userId = session.userId;
             targetNode.sessionId = sessionId;
             targetNode.links = {};
+            targetNode.rank = -1;
             targetNode.age = 0;
             targetNode.lastSeen = dateNow;
             targetNode.ageUpdated = dateNow;

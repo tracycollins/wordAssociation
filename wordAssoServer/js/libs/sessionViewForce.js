@@ -273,6 +273,7 @@ function ViewForce () {
     return randomInt;
   };
 
+
   var randomId = randomIntFromInterval(1000000000, 9999999999);
 
   var randomColorQueue = [];
@@ -343,6 +344,12 @@ function ViewForce () {
   var sessions = [];
   var nodes = [];
   var links = [];
+
+
+  this.setNodeMaxAge = function(maxAge) {
+    nodeMaxAge = maxAge;
+    console.warn("SET NODE MAX AGE: " + nodeMaxAge);
+  }
 
 
   this.getSession = function(index) {

@@ -687,7 +687,7 @@ function ViewHistogram() {
         node.isDead = true;
         deadNodesHash[node.nodeId] = 1;
       }
-      else if ((nodes.length >= maxWords) && (node.rank > maxWords)) {
+      else if ((nodes.length >= maxWords-1) && (node.rank > maxWords)) {
         deadNodesHash[node.nodeId] = 1;
         console.warn("XXX NODE " + node.nodeId);
       }
@@ -1032,6 +1032,19 @@ function ViewHistogram() {
         .style("fill", function(d) {
           return d.newFlag ? "red" : "white";
         })
+      .style("fill-opacity", function(d) {
+        if (d3.select(this).attr("mouseOverFlag") == "true") {
+          return 1;
+        }
+        else {
+          if (removeDeadNodes) {
+            return wordOpacityScale(d.age + 1);
+          }
+          else {
+            return Math.max(wordOpacityScale(d.age + 1), minOpacity)
+          }
+        }
+      })
         .attr("x", xposition)
         .attr("y", yposition);
 
@@ -1244,11 +1257,14 @@ function ViewHistogram() {
   this.addNode = function(newNode) {
     if (!newNode.isSession 
       && !newNode.isSessionNode 
-      && ((nodes.length < maxWords) || (newNode.rank < maxWords))) 
+      && ((nodes.length < maxWords-1) || (newNode.rank < maxWords-1))) 
     {
       newNode.x = 0;
       nodeMouseOut.y = height;
       nodes.push(newNode);
+      rankNodes(function(){
+        if (nodes.length > maxWords) nodes.pop();
+      });
     }
     updateRecentNodes(newNode);
   }

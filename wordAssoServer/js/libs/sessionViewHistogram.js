@@ -306,6 +306,12 @@ function ViewHistogram() {
     return sessions.length;
   }
 
+
+  this.setNodeMaxAge = function(maxAge) {
+    nodeMaxAge = maxAge;
+    console.warn("SET NODE MAX AGE: " + nodeMaxAge);
+  }
+
   this.displayControlOverlay = function(vis) {
 
     var visible = "visible";

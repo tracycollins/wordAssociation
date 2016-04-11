@@ -95,6 +95,7 @@ var MAX_RX_QUEUE = 250;
 var QUEUE_MAX = 200;
 var MAX_WORDCHAIN_LENGTH = 100;
 var DEFAULT_MAX_AGE = 30000;
+var FORCE_MAX_AGE = 5347;
 var DEFAULT_AGE_RATE = 1.0;
 
 var dateNow = moment().valueOf();
@@ -637,6 +638,7 @@ socket.on("CONFIG_CHANGE", function(rxConfig) {
     config.nodeMaxAge = rxConfig.nodeMaxAge;
     console.log("\n*** ENV CHANGE: NODE_MAX_AGE: WAS: " + previousConfig.nodeMaxAge + " | NOW: " + config.nodeMaxAge + "\n");
     nodeMaxAge = config.nodeMaxAge;
+    currentSessionView.setMaxAge(rxConfig.nodeMaxAge);
     previousConfig.nodeMaxAge = config.nodeMaxAge;
   }
 
@@ -1402,6 +1404,13 @@ function initialize() {
 
           loadViewType(sessionViewType, function() {
 
+            if (sessionViewType == 'histogram') {
+              currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
+            }
+            if (sessionViewType == 'force') {
+              currentSessionView.setNodeMaxAge(FORCE_MAX_AGE);
+            }
+
             currentSessionView.initD3timer();
             currentSessionView.resize();
 
@@ -1418,7 +1427,17 @@ function initialize() {
           });
         }
         else {
-          loadViewType(DEFAULT_SESSION_VIEW, function() {
+
+          sessionViewType = DEFAULT_SESSION_VIEW;
+
+          loadViewType(sessionViewType, function() {
+
+            if (sessionViewType == 'histogram') {
+              currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
+            }
+            if (sessionViewType == 'force') {
+              currentSessionView.setNodeMaxAge(FORCE_MAX_AGE);
+            }
 
             currentSessionView.initD3timer();
             currentSessionView.resize();
@@ -1437,7 +1456,17 @@ function initialize() {
         }
       }
       else {
-        loadViewType(DEFAULT_SESSION_VIEW, function() {
+
+        sessionViewType = DEFAULT_SESSION_VIEW;
+
+        loadViewType(sessionViewType, function() {
+
+            if (sessionViewType == 'histogram') {
+              currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
+            }
+            if (sessionViewType == 'force') {
+              currentSessionView.setNodeMaxAge(FORCE_MAX_AGE);
+            }
 
           currentSessionView.initD3timer();
           currentSessionView.resize();
@@ -1455,9 +1484,6 @@ function initialize() {
         });
 
       }
-
-
-
     }
     else {
       console.error("GET URL VARIABLES ERROR\n" + jsonPrint(err));

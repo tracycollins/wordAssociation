@@ -103,7 +103,8 @@ var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
 var defaultTimePeriodFormat = "HH:mm:ss";
 
 var removeDeadNodes = true;
-function toggleRemoveDeadNode(){
+
+function toggleRemoveDeadNode() {
   removeDeadNodes = !removeDeadNodes;
   console.warn("TOGGLE REMOVE DEAD NODES: " + removeDeadNodes);
 }
@@ -118,8 +119,7 @@ function toggleTestMode() {
     setTimeout(initTestAddNodeInterval(1000), 1047);
     setTimeout(initTestAddLinkInterval(1000), 2047);
     setTimeout(initTestDeleteNodeInterval(1000), 5047);
-  }
-  else {
+  } else {
     clearTestAddNodeInterval();
     clearTestAddLinkInterval();
     clearTestDeleteNodeInterval();
@@ -168,8 +168,7 @@ function jsonPrint(obj) {
   if ((obj) || (obj === 0)) {
     var jsonString = JSON.stringify(obj, null, 2);
     return jsonString;
-  }
-  else {
+  } else {
     return "UNDEFINED";
   }
 }
@@ -245,8 +244,7 @@ function getSortedKeys(hmap, sortProperty) {
   hmap.forEach(function(value, key) {
     if (value.isSessionNode) {
       // console.error("isSessionNode " + value.nodeId);
-    }
-    else {
+    } else {
       keys.push(key);
     }
   });
@@ -273,8 +271,7 @@ function getTimeStamp(inputTime) {
   if (inputTime === 'undefined') {
     currentDate = new Date().toDateString("en-US", options);
     currentTime = new Date().toTimeString('en-US', options);
-  }
-  else {
+  } else {
     currentDate = new Date(inputTime).toDateString("en-US", options);
     currentTime = new Date(inputTime).toTimeString('en-US', options);
   }
@@ -305,8 +302,7 @@ function getBrowserPrefix() {
 function hiddenProperty(prefix) {
   if (prefix) {
     return prefix + 'Hidden';
-  }
-  else {
+  } else {
     return 'hidden';
   }
 }
@@ -314,8 +310,7 @@ function hiddenProperty(prefix) {
 function getVisibilityEvent(prefix) {
   if (prefix) {
     return prefix + 'visibilitychange';
-  }
-  else {
+  } else {
     return 'visibilitychange';
   }
 }
@@ -336,13 +331,14 @@ socket.on("VIEWER_ACK", function(vSesKey) {
 
   viewerSessionKey = vSesKey;
 
-
   if (sessionMode) {
     console.log("SESSION MODE" + " | SID: " + sessionId + " | NSP: " + namespace);
     var tempSessionId = "/" + namespace + "#" + sessionId;
     currentSession.sessionId = tempSessionId;
     console.log("TX GET_SESSION | " + currentSession.sessionId);
     socket.emit("GET_SESSION", currentSession.sessionId);
+  } else {
+    socket.emit("REQ_USER_SESSION");
   }
 });
 
@@ -356,15 +352,15 @@ socket.on("reconnect", function() {
     var tempSessionId = "/" + namespace + "#" + sessionId;
     currentSession.sessionId = tempSessionId;
     socket.emit("GET_SESSION", currentSession.sessionId);
+  } else {
+    // socket.emit("REQ_USER_SESSION");
   }
 });
 
 socket.on("connect", function() {
   serverConnected = true;
-  // displayInfoOverlay(1.0, defaultTextFill);
   console.log("CONNECTED TO HOST | SOCKET ID: " + socket.id);
-  // updateStatsOverlay4(socket.id);
-
+  // socket.emit("REQ_USER_SESSION");
 });
 
 socket.on("disconnect", function() {
@@ -409,8 +405,7 @@ document.addEventListener(visibilityEvent, function() {
   console.log("visibilityEvent");
   if (!document[hidden]) {
     windowVisible = true;
-  }
-  else {
+  } else {
     windowVisible = false;
   }
 });
@@ -476,8 +471,7 @@ function getUrlVariables(callbackMain) {
               sessionViewType: sessionViewType
             }));
           }
-        }
-        else {
+        } else {
           console.log("NO URL VARIABLES");
           return (callback2(null, []));
         }
@@ -666,6 +660,23 @@ socket.on("SESSION_DELETE", function(rxSessionObject) {
   }
 });
 
+socket.on("USER_SESSION", function(rxSessionObject) {
+
+  var rxObj = rxSessionObject;
+
+  console.log("USER_SESSION"
+    + " | SID: " + rxObj.sessionId
+    + " | UID: " + rxObj.userId
+    + " | NSP: " + rxObj.namespace
+    + " | WCI: " + rxObj.wordChainIndex
+    + " | CONN: " + rxObj.connected
+    // + "\n" + jsonPrint(rxObj)
+  );
+
+
+});
+
+
 socket.on("SESSION_UPDATE", function(rxSessionObject) {
 
   var rxObj = rxSessionObject;
@@ -675,16 +686,13 @@ socket.on("SESSION_UPDATE", function(rxSessionObject) {
     if (debug) {
       console.log("... SKIP SESSION_UPDATE ... WINDOW NOT VISIBLE");
     }
-  }
-  else if (sessionDeleteHashMap.has(rxObj.sessionId)) {
+  } else if (sessionDeleteHashMap.has(rxObj.sessionId)) {
     console.log("... SKIP SESSION_UPDATE ... DELETED SESSION: " + rxObj.sessionId);
-  }
-  else if (sessionMode && (rxObj.sessionId !== currentSession.sessionId)) {
+  } else if (sessionMode && (rxObj.sessionId !== currentSession.sessionId)) {
     if (debug) {
       console.log("SKIP SESSION_UPDATE: " + rxObj.sessionId + " | CURRENT: " + currentSession.sessionId);
     }
-  }
-  else if (rxSessionUpdateQueue.length < MAX_RX_QUEUE) {
+  } else if (rxSessionUpdateQueue.length < MAX_RX_QUEUE) {
 
     rxSessionUpdateQueue.push(rxSessionObject);
 
@@ -725,12 +733,10 @@ function processSessionQueues(callback) {
       // sessionHashMap.remove(sessionId);
       return (callback(null, null));
     });
-  }
-  else if (rxSessionUpdateQueue.length == 0) {
+  } else if (rxSessionUpdateQueue.length == 0) {
     // console.log("sessionObject\n");
     return (callback(null, null));
-  }
-  else {
+  } else {
     var session = rxSessionUpdateQueue.shift();
     sessionCreateQueue.push(session);
     return (callback(null, session.sessionId));
@@ -740,8 +746,7 @@ function processSessionQueues(callback) {
 function processNodeDeleteQueue(callback) {
   if (nodeDeleteQueue.length == 0) {
     return (callback());
-  }
-  else {
+  } else {
 
     var deletedNodeId = nodeDeleteQueue.shift();
 
@@ -764,16 +769,14 @@ function createSession(session, callback) {
   if (sessionCreateQueue.length == 0) {
     // console.log("sessionObject\n");
     return (callback(null, null));
-  }
-  else {
+  } else {
 
 
     var sessUpdate = sessionCreateQueue.shift();
 
     if (sessionDeleteHashMap.has(sessUpdate.sessionId)) {
       return (callback(null, null));
-    }
-    else if (sessionHashMap.has(sessUpdate.sessionId)) {
+    } else if (sessionHashMap.has(sessUpdate.sessionId)) {
       currentSession = sessionHashMap.get(sessUpdate.sessionId);
       if (nodeHashMap.has(currentSession.node.nodeId)) {
         currentSession.node = nodeHashMap.get(currentSession.node.nodeId);
@@ -808,15 +811,11 @@ function createSession(session, callback) {
           return (callback(null, cSession.sessionId));
         });
       });
-    }
-    else {
+    } else {
 
       sessionsCreated += 1;
 
-      console.log("CREATE SESS" + " [" + sessUpdate.wordChainIndex + "]" 
-        + " | UID: " + sessUpdate.userId 
-        + " | " + sessUpdate.source.nodeId 
-        + " > " + sessUpdate.target.nodeId
+      console.log("CREATE SESS" + " [" + sessUpdate.wordChainIndex + "]" + " | UID: " + sessUpdate.userId + " | " + sessUpdate.source.nodeId + " > " + sessUpdate.target.nodeId
         // + "\n" + jsonPrint(sessUpdate)
       );
 
@@ -909,8 +908,7 @@ function createNode(sessionId, callback) {
         //   // + "\n" + jsonPrint(sNode) 
         // );
       });
-    }
-    else {
+    } else {
       addToHashMap(nodeHashMap, sessionId, session.node, function(sNode) {
         currentSessionView.addNode(sNode);
         // console.log("CREATE SESSION NODE" 
@@ -929,15 +927,14 @@ function createNode(sessionId, callback) {
 
     async.parallel({
         source: function(cb) {
-          if (ignoreWordHashMap.has(sourceNodeId)){
+          if (ignoreWordHashMap.has(sourceNodeId)) {
             console.warn("sourceNodeId IGNORED: " + sourceNodeId);
             cb(null, {
               node: sourceNodeId,
               isIgnored: true,
               isNew: false
             });
-          }
-          else if (nodeHashMap.has(sourceNodeId)) {
+          } else if (nodeHashMap.has(sourceNodeId)) {
             sourceNode.newFlag = false;
             sourceNode = nodeHashMap.get(sourceNodeId);
             sourceNode.userId = session.userId;
@@ -959,8 +956,7 @@ function createNode(sessionId, callback) {
                 isNew: false
               });
             });
-          }
-          else {
+          } else {
             sourceNode = session.source;
             sourceNode.newFlag = true;
             sourceNode.x = session.initialPosition.x + (100 * Math.random());
@@ -992,16 +988,14 @@ function createNode(sessionId, callback) {
           if (typeof targetNodeId === 'undefined') {
             console.warn("targetNodeId UNDEFINED ... SKIPPING CREATE NODE");
             cb("TARGET UNDEFINED", null);
-          }
-          else if (ignoreWordHashMap.has(targetNodeId)){
+          } else if (ignoreWordHashMap.has(targetNodeId)) {
             console.warn("targetNodeId IGNORED: " + targetNodeId);
             cb(null, {
               node: targetNodeId,
               isIgnored: true,
               isNew: false
             });
-          }
-          else if (nodeHashMap.has(targetNodeId)) {
+          } else if (nodeHashMap.has(targetNodeId)) {
             targetNode = nodeHashMap.get(targetNodeId);
             targetNode.newFlag = false;
             targetNode.userId = session.userId;
@@ -1023,8 +1017,7 @@ function createNode(sessionId, callback) {
                 isNew: false
               });
             });
-          }
-          else {
+          } else {
             targetNode = session.target;
             targetNode.newFlag = true;
             targetNode.x = session.initialPosition.x - (100 - 100 * Math.random());
@@ -1055,7 +1048,7 @@ function createNode(sessionId, callback) {
       function(err, results) {
         // console.warn("CREATE NODE RESULTS\n" + jsonPrint(results));
 
-        if (!results.source.isIgnored){
+        if (!results.source.isIgnored) {
           session.source = results.source.node;
           session.source.isNew = results.source.isNew;
           if (results.source.isNew) {
@@ -1063,7 +1056,7 @@ function createNode(sessionId, callback) {
           }
         }
 
-        if (results.target  && !results.target.isIgnored) {
+        if (results.target && !results.target.isIgnored) {
           session.target = results.target.node;
           session.target.isNew = results.target.isNew;
           if (results.target.isNew) {
@@ -1150,13 +1143,11 @@ function createLink(sessionId, callback) {
         addToHashMap(linkHashMap, linkId, newLink, function(nLink) {
           currentSessionView.addLink(nLink);
         });
-      }
-      else {
+      } else {
         console.warn("SESSION TARGET UNDEFINED" + " | " + sessionId)
         console.warn("??? TARGET " + targetWordId + " NOT IN HASH MAP ... SKIPPING NEW LINK: SOURCE: " + sourceWordId);
       }
-    }
-    else {
+    } else {
       console.warn("SESSION TARGET UNDEFINED" + " | " + sessionId)
     }
 
@@ -1249,35 +1240,28 @@ function toggleFullScreen() {
     if (document.documentElement.requestFullscreen) {
       document.documentElement.requestFullscreen();
       resize();
-    }
-    else if (document.documentElement.msRequestFullscreen) {
+    } else if (document.documentElement.msRequestFullscreen) {
       document.documentElement.msRequestFullscreen();
       resize();
-    }
-    else if (document.documentElement.mozRequestFullScreen) {
+    } else if (document.documentElement.mozRequestFullScreen) {
       document.documentElement.mozRequestFullScreen();
       resize();
-    }
-    else if (document.documentElement.webkitRequestFullscreen) {
+    } else if (document.documentElement.webkitRequestFullscreen) {
       document.documentElement.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
       resize();
     }
-  }
-  else {
+  } else {
 
     if (document.exitFullscreen) {
       document.exitFullscreen();
       resize();
-    }
-    else if (document.msExitFullscreen) {
+    } else if (document.msExitFullscreen) {
       document.msExitFullscreen();
       resize();
-    }
-    else if (document.mozCancelFullScreen) {
+    } else if (document.mozCancelFullScreen) {
       document.mozCancelFullScreen();
       resize();
-    }
-    else if (document.webkitExitFullscreen) {
+    } else if (document.webkitExitFullscreen) {
       document.webkitExitFullscreen();
       resize();
     }
@@ -1356,12 +1340,12 @@ function loadViewType(svt, callback) {
   }
 }
 
-function initIgnoreWordsHashMap(callback){
-  async.each(ignoreWordsArray, function(ignoreWord, cb){
-    addToHashMap(ignoreWordHashMap, ignoreWord, true, function(){
+function initIgnoreWordsHashMap(callback) {
+  async.each(ignoreWordsArray, function(ignoreWord, cb) {
+    addToHashMap(ignoreWordHashMap, ignoreWord, true, function() {
       cb();
     });
-  }, function (err){
+  }, function(err) {
     callback();
   });
 }
@@ -1397,7 +1381,7 @@ function initialize() {
           console.log("ON LOAD getUrlVariables: sessionViewType:" + sessionViewType);
 
           if (sessionViewType == 'histogram') {
-            initIgnoreWordsHashMap(function(){
+            initIgnoreWordsHashMap(function() {
               console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
             });
           }
@@ -1418,6 +1402,7 @@ function initialize() {
 
             console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
             socket.emit("VIEWER_READY", viewerObj);
+            // socket.emit("REQ_USER_SESSION");
 
             setTimeout(function() {
               pageLoadedTimeIntervalFlag = false;
@@ -1425,8 +1410,7 @@ function initialize() {
               currentSessionView.displayControlOverlay(false);
             }, 5000);
           });
-        }
-        else {
+        } else {
 
           sessionViewType = DEFAULT_SESSION_VIEW;
 
@@ -1446,6 +1430,7 @@ function initialize() {
 
             console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
             socket.emit("VIEWER_READY", viewerObj);
+            // socket.emit("REQ_USER_SESSION");
 
             setTimeout(function() {
               pageLoadedTimeIntervalFlag = false;
@@ -1454,19 +1439,18 @@ function initialize() {
             }, 5000);
           });
         }
-      }
-      else {
+      } else {
 
         sessionViewType = DEFAULT_SESSION_VIEW;
 
         loadViewType(sessionViewType, function() {
 
-            if (sessionViewType == 'histogram') {
-              currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-            }
-            if (sessionViewType == 'force') {
-              currentSessionView.setNodeMaxAge(FORCE_MAX_AGE);
-            }
+          if (sessionViewType == 'histogram') {
+            currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
+          }
+          if (sessionViewType == 'force') {
+            currentSessionView.setNodeMaxAge(FORCE_MAX_AGE);
+          }
 
           currentSessionView.initD3timer();
           currentSessionView.resize();
@@ -1475,6 +1459,7 @@ function initialize() {
 
           console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
           socket.emit("VIEWER_READY", viewerObj);
+          // socket.emit("REQ_USER_SESSION");
 
           setTimeout(function() {
             pageLoadedTimeIntervalFlag = false;
@@ -1484,8 +1469,7 @@ function initialize() {
         });
 
       }
-    }
-    else {
+    } else {
       console.error("GET URL VARIABLES ERROR\n" + jsonPrint(err));
     }
   });

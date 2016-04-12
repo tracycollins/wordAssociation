@@ -31,7 +31,7 @@ function ViewForce () {
 
   var ageNodesReady = true;
 
-
+  var minSessionNodeOpacity = 0.2;
 
   var mouseFreezeEnabled = true;
   var mouseMovingFlag = false;
@@ -1124,6 +1124,7 @@ function ViewForce () {
         return fontSizeScale(d.mentions + 1.1) + "px";
       })
       .style('opacity', function(d) {
+        if (d.isSessionNode) return Math.max(((nodeMaxAge - d.age) / nodeMaxAge), minSessionNodeOpacity);
         return (nodeMaxAge - d.age) / nodeMaxAge;
       });
 

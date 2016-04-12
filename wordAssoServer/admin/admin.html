@@ -156,19 +156,15 @@
         <hr>
         <br>
         <br>
-
         <div class="bar-text" id="memory-bar-text"></div>
         <div class="bar" id="memory-bar"></div>
         <br>
-
         <div class="bar-text" id="bht-requests-bar-text"></div>
         <div class="bar" id="bht-requests-bar"></div>
         <br>
-
         <div class="bar-text" id="mw-requests-bar-text"></div>
         <div class="bar" id="mw-requests-bar"></div>
         <br>
-
         <div class="bar-text" id="users-total-bar-text"></div>
         <div class="bar" id="users-total-bar"></div>
         <br>
@@ -178,7 +174,6 @@
         <div class="bar-text" id="test-users-bar-text"></div>
         <div class="bar" id="test-users-bar"></div>
         <br>
-
         <div class="bar-text" id="viewers-total-bar-text"></div>
         <div class="bar" id="viewers-total-bar"></div>
         <br>
@@ -188,14 +183,12 @@
         <div class="bar-text" id="test-viewers-bar-text"></div>
         <div class="bar" id="test-viewers-bar"></div>
         <br>
-
         <div class="bar-text" id="utils-bar-text"></div>
         <div class="bar" id="utils-bar"></div>
         <br>
         <div class="bar-text" id="delta-response-bar-text"></div>
         <div class="bar" id="delta-response-bar"></div>
         <br>
-
         <br>
         <table id='heartbeat_table' class 'heartbeatTable'></table>
         <div id='admin_panel'>
@@ -218,7 +211,6 @@
         </div>
         <br>
         <hr>
-
         <hr>
         <div id='user_panel'>
             <br/>
@@ -250,8 +242,6 @@
                 </tbody>
             </table>
         </div>
-
-
         <hr>
         <div id='viewer_panel'>
             <br/>
@@ -283,8 +273,6 @@
                 </tbody>
             </table>
         </div>
-
-
         <hr>
         <div id='util_panel'>
             <br/>
@@ -314,8 +302,6 @@
                 </tbody>
             </table>
         </div>
-
-
         <hr>
         <script type="text/javascript">
         var windowLoaded = false;
@@ -347,8 +333,8 @@
         var mainAdminObj = {
             adminId: USER_ID,
             userId: USER_ID,
-            screenName: SCREEN_NAME, 
-            type: "UTIL", 
+            screenName: SCREEN_NAME,
+            type: "UTIL",
             mode: "STREAM"
         };
 
@@ -545,7 +531,9 @@
         var deltaResponseBar;
         var deltaResponseBarDiv = document.getElementById('delta-response-bar');
         var deltaResponseBarText = document.getElementById('delta-response-bar-text');
-        deltaResponseBar = new ProgressBar.Line(deltaResponseBarDiv, {duration: 200 });
+        deltaResponseBar = new ProgressBar.Line(deltaResponseBarDiv, {
+            duration: 200
+        });
         deltaResponseBar.animate(0);
 
         var heartBeat = {};
@@ -700,8 +688,8 @@
         }, 1000);
 
 
-        setInterval(function(){
-          if (serverConnected && sentAdminReady) socket.emit("SESSION_KEEPALIVE", mainAdminObj);
+        setInterval(function() {
+            if (serverConnected && sentAdminReady) socket.emit("SESSION_KEEPALIVE", mainAdminObj);
         }, 10000);
 
 
@@ -733,8 +721,7 @@
         });
 
         socket.on("ADMIN_CONFIG", function(rxAdminConfig) {
-            console.log("\n*** RX ADMIN CONFIG ***\n"
-                + JSON.stringify(rxAdminConfig, null, 3));
+            console.log("\n*** RX ADMIN CONFIG ***\n" + JSON.stringify(rxAdminConfig, null, 3));
             updateAdminConfig(rxAdminConfig);
         });
 
@@ -916,8 +903,7 @@
             if (Date.now() > (heartBeat.timeStamp + maxServerHeartBeatWait)) {
                 heartBeatTimeoutFlag = true;
                 lastTimeoutHeartBeat = heartBeat;
-                console.error("***** SERVER HEARTBEAT TIMEOUT ***** " + getTimeStamp() 
-                    + " | LAST SEEN: " + getTimeStamp(heartBeat.timeStamp) + msToTime(Date.now() - heartBeat.timeStamp) + " AGO");
+                console.error("***** SERVER HEARTBEAT TIMEOUT ***** " + getTimeStamp() + " | LAST SEEN: " + getTimeStamp(heartBeat.timeStamp) + msToTime(Date.now() - heartBeat.timeStamp) + " AGO");
             }
             updateServerHeartbeat(heartBeat, heartBeatTimeoutFlag, lastTimeoutHeartBeat);
         }, serverCheckInterval);;
@@ -1146,11 +1132,7 @@
                         var adminSessionListItem = document.createElement('li');
                         adminSessionListItem.style.color = userConnectedColor;
                         adminSessionListElement.appendChild(adminSessionListItem);
-                        adminSessionListItem.innerHTML = adminSessionListItem.innerHTML 
-                        + (value.ip + ' | ' + value.domain + ' | ' + key 
-                            + ' | CONNECT: ' + getTimeStamp(value.connectTime) 
-                            + ' | DISCONNECT: ' + getTimeStamp(value.disconnectTime) 
-                            + ' | CONNECT TIME: ' + msToTime(heartBeat.timeStamp - value.connectTime));
+                        adminSessionListItem.innerHTML = adminSessionListItem.innerHTML + (value.ip + ' | ' + value.domain + ' | ' + key + ' | CONNECT: ' + getTimeStamp(value.connectTime) + ' | DISCONNECT: ' + getTimeStamp(value.disconnectTime) + ' | CONNECT TIME: ' + msToTime(heartBeat.timeStamp - value.connectTime));
                     }
                 });
             }
@@ -1163,10 +1145,7 @@
                         adminSessionListItem.style.color = userDisconnectedColor;
                         var timeConnected = value.disconnectTime - value.connectTime;
                         adminSessionListElement.appendChild(adminSessionListItem);
-                        adminSessionListItem.innerHTML = adminSessionListItem.innerHTML + (value.ip + ' | ' + value.domain + ' | ' + key 
-                            + ' | CONNECT: ' + getTimeStamp(value.connectTime) 
-                            + ' | DISCONNECT: ' + getTimeStamp(value.disconnectTime) 
-                            + ' | CONNECT TIME: ' + msToTime(value.disconnectTime - value.connectTime));
+                        adminSessionListItem.innerHTML = adminSessionListItem.innerHTML + (value.ip + ' | ' + value.domain + ' | ' + key + ' | CONNECT: ' + getTimeStamp(value.connectTime) + ' | DISCONNECT: ' + getTimeStamp(value.disconnectTime) + ' | CONNECT TIME: ' + msToTime(value.disconnectTime - value.connectTime));
                     }
                 });
             }
@@ -1242,7 +1221,11 @@
                     key = userIpHashMapKeys[i];
                     value = userIpHashMap.get(userIpHashMapKeys[i]);
 
-                    if (!showBotUsers && ((value.domain.indexOf("googlebot") >= 0))) {} else if (!showTestUsers && (value.namespace == 'test-user')) {} else {
+                    if (!showBotUsers && ((value.domain.indexOf("googlebot") >= 0))) {
+
+                    } else if (!showTestUsers && (value.namespace == 'test-user')) {
+
+                    } else {
 
                         if (value.namespace == 'test-user') {
                             userIpTableBodyOptions.textColor = testUserConnectedColor;
@@ -1292,9 +1275,7 @@
                     }
 
 
-                    if (!showTestUsers 
-                        && (sessionObj.namespace == 'test-user')) {
-                    } else if (!showBotUsers && ((sessionObj.domain.indexOf("googlebot") >= 0))) {
+                    if (!showTestUsers && (sessionObj.namespace == 'test-user')) {} else if (!showBotUsers && ((sessionObj.domain.indexOf("googlebot") >= 0))) {
 
                     } else {
                         if (sessionObj.connected == true) {
@@ -1486,9 +1467,7 @@
                     }
 
 
-                    if (!showTestViewers 
-                        && (sessionObj.namespace == 'test-viewer')) {
-                    } else if (!showBotViewers && ((sessionObj.domain.indexOf("googlebot") >= 0))) {
+                    if (!showTestViewers && (sessionObj.namespace == 'test-viewer')) {} else if (!showBotViewers && ((sessionObj.domain.indexOf("googlebot") >= 0))) {
 
                     } else {
                         if (sessionObj.connected == true) {
@@ -1537,9 +1516,7 @@
                     var key = viewerSessionHashMapKeys[k];
                     var value = viewerSessionHashMap.get(viewerSessionHashMapKeys[k]);
 
-                    if (!showTestViewers && (value.namespace == 'test-viewer')) {
-                    } 
-                    else {
+                    if (!showTestViewers && (value.namespace == 'test-viewer')) {} else {
                         if (value.connected == false) {
 
                             numberDisconnected++;
@@ -1745,9 +1722,7 @@
             }
 
             memoryBarText.innerHTML =
-                'MEMORY (GB)' + ' | ' + (heartBeat.memoryTotal / ONE_GB).toFixed(2) + ' TOT' 
-                + ' | ' + ((heartBeat.memoryTotal - heartBeat.memoryAvailable) / ONE_GB).toFixed(2) + ' USED' + ' (' + (100 * memoryUsed).toFixed(1) + ' %)' 
-                + ' | ' + (heartBeat.memoryAvailable / ONE_GB).toFixed(2) + ' AVAIL' + ' (' + (100 * memoryAvailable).toFixed(2) + ' %)';
+                'MEMORY (GB)' + ' | ' + (heartBeat.memoryTotal / ONE_GB).toFixed(2) + ' TOT' + ' | ' + ((heartBeat.memoryTotal - heartBeat.memoryAvailable) / ONE_GB).toFixed(2) + ' USED' + ' (' + (100 * memoryUsed).toFixed(1) + ' %)' + ' | ' + (heartBeat.memoryAvailable / ONE_GB).toFixed(2) + ' AVAIL' + ' (' + (100 * memoryAvailable).toFixed(2) + ' %)';
 
 
             bhtRequestsBar.animate(heartBeat.bhtRequests / heartBeat.bhtRequestLimit);
@@ -1761,10 +1736,7 @@
             }
 
             bhtRequestsBarText.innerHTML =
-                'BHT REQS' + ' | USED: ' + heartBeat.bhtRequests 
-                + ' (' + (heartBeat.bhtRequests / heartBeat.bhtRequestLimit * 100).toFixed(0) + ' %)' 
-                + ' | REMAIN: ' + (heartBeat.bhtRequestLimit - heartBeat.bhtRequests) 
-                + ' (' + ((heartBeat.bhtRequestLimit - heartBeat.bhtRequests) / heartBeat.bhtRequestLimit * 100).toFixed(0) + ' %)';
+                'BHT REQS' + ' | USED: ' + heartBeat.bhtRequests + ' (' + (heartBeat.bhtRequests / heartBeat.bhtRequestLimit * 100).toFixed(0) + ' %)' + ' | REMAIN: ' + (heartBeat.bhtRequestLimit - heartBeat.bhtRequests) + ' (' + ((heartBeat.bhtRequestLimit - heartBeat.bhtRequests) / heartBeat.bhtRequestLimit * 100).toFixed(0) + ' %)';
 
 
             mwRequestsBar.animate(heartBeat.mwRequests / heartBeat.mwRequestLimit);
@@ -1778,9 +1750,7 @@
             }
 
             mwRequestsBarText.innerHTML =
-                'MW REQS' + ' | USED: ' + heartBeat.mwRequests + ' (' + (heartBeat.mwRequests / heartBeat.mwRequestLimit * 100).toFixed(0) + ' %)' 
-                + ' | REMAIN: ' + (heartBeat.mwRequestLimit - heartBeat.mwRequests) 
-                + ' (' + ((heartBeat.mwRequestLimit - heartBeat.mwRequests) / heartBeat.mwRequestLimit * 100).toFixed(0) + ' %)';
+                'MW REQS' + ' | USED: ' + heartBeat.mwRequests + ' (' + (heartBeat.mwRequests / heartBeat.mwRequestLimit * 100).toFixed(0) + ' %)' + ' | REMAIN: ' + (heartBeat.mwRequestLimit - heartBeat.mwRequests) + ' (' + ((heartBeat.mwRequestLimit - heartBeat.mwRequests) / heartBeat.mwRequestLimit * 100).toFixed(0) + ' %)';
 
 
             // TEST VIEWERS ==========================
@@ -1794,9 +1764,7 @@
                 testViewersBar.path.setAttribute('stroke', startColor);
             }
 
-            testViewersBarText.innerHTML = (heartBeat.numberTestViewers) 
-            + ' TEST VIEWERS | ' + (heartBeat.numberTestViewersMax) 
-            + ' MAX | ' + moment(heartBeat.numberTestViewersMaxTime).format(defaultDateTimeFormat);
+            testViewersBarText.innerHTML = (heartBeat.numberTestViewers) + ' TEST VIEWERS | ' + (heartBeat.numberTestViewersMax) + ' MAX | ' + moment(heartBeat.numberTestViewersMaxTime).format(defaultDateTimeFormat);
 
 
             // VIEWERS ==========================
@@ -1810,8 +1778,7 @@
                 viewersTotalBar.path.setAttribute('stroke', startColor);
             }
 
-            viewersTotalBarText.innerHTML = (heartBeat.numberViewersTotal) + ' TOTAL VIEWERS | ' + (heartBeat.numberViewersTotalMax) 
-            + ' MAX | ' + moment(heartBeat.numberViewersTotalMaxTime).format(defaultDateTimeFormat);
+            viewersTotalBarText.innerHTML = (heartBeat.numberViewersTotal) + ' TOTAL VIEWERS | ' + (heartBeat.numberViewersTotalMax) + ' MAX | ' + moment(heartBeat.numberViewersTotalMaxTime).format(defaultDateTimeFormat);
 
 
             viewersBar.animate(heartBeat.numberViewers / heartBeat.numberViewersMax);
@@ -1824,8 +1791,7 @@
                 viewersBar.path.setAttribute('stroke', startColor);
             }
 
-            viewersBarText.innerHTML = (heartBeat.numberViewers) + ' VIEWERS | ' + (heartBeat.numberViewersMax) 
-            + ' MAX | ' + moment(heartBeat.numberViewersMaxTime).format(defaultDateTimeFormat);
+            viewersBarText.innerHTML = (heartBeat.numberViewers) + ' VIEWERS | ' + (heartBeat.numberViewersMax) + ' MAX | ' + moment(heartBeat.numberViewersMaxTime).format(defaultDateTimeFormat);
 
 
             // TEST USERS ==========================
@@ -1839,9 +1805,7 @@
                 testUsersBar.path.setAttribute('stroke', startColor);
             }
 
-            testUsersBarText.innerHTML = (heartBeat.numberTestUsers) 
-            + ' TEST USERS | ' + (heartBeat.numberTestUsersMax) 
-            + ' MAX | ' + moment(heartBeat.numberTestUsersMaxTime).format(defaultDateTimeFormat);
+            testUsersBarText.innerHTML = (heartBeat.numberTestUsers) + ' TEST USERS | ' + (heartBeat.numberTestUsersMax) + ' MAX | ' + moment(heartBeat.numberTestUsersMaxTime).format(defaultDateTimeFormat);
 
 
             // USERS ==========================
@@ -1855,8 +1819,7 @@
                 usersTotalBar.path.setAttribute('stroke', startColor);
             }
 
-            usersTotalBarText.innerHTML = (heartBeat.numberUsersTotal) + ' TOTAL USERS | ' + (heartBeat.numberUsersTotalMax) 
-            + ' MAX | ' + moment(heartBeat.numberUsersTotalMaxTime).format(defaultDateTimeFormat);
+            usersTotalBarText.innerHTML = (heartBeat.numberUsersTotal) + ' TOTAL USERS | ' + (heartBeat.numberUsersTotalMax) + ' MAX | ' + moment(heartBeat.numberUsersTotalMaxTime).format(defaultDateTimeFormat);
 
 
             usersBar.animate(heartBeat.numberUsers / heartBeat.numberUsersMax);
@@ -1869,9 +1832,7 @@
                 usersBar.path.setAttribute('stroke', startColor);
             }
 
-            usersBarText.innerHTML = (heartBeat.numberUsers) 
-            + ' USERS | ' + (heartBeat.numberUsersMax) 
-            + ' MAX | ' + moment(heartBeat.numberUsersMaxTime).format(defaultDateTimeFormat);
+            usersBarText.innerHTML = (heartBeat.numberUsers) + ' USERS | ' + (heartBeat.numberUsersMax) + ' MAX | ' + moment(heartBeat.numberUsersMaxTime).format(defaultDateTimeFormat);
 
 
             // TEST USERS ==========================
@@ -1885,9 +1846,7 @@
                 testUsersBar.path.setAttribute('stroke', startColor);
             }
 
-            testUsersBarText.innerHTML = (heartBeat.numberTestUsers) 
-            + ' TEST USERS | ' + (heartBeat.numberTestUsersMax) 
-            + ' MAX | ' + moment(heartBeat.numberTestUsersMaxTime).format(defaultDateTimeFormat);
+            testUsersBarText.innerHTML = (heartBeat.numberTestUsers) + ' TEST USERS | ' + (heartBeat.numberTestUsersMax) + ' MAX | ' + moment(heartBeat.numberTestUsersMaxTime).format(defaultDateTimeFormat);
 
 
             // UTILS=========================
@@ -1901,9 +1860,7 @@
                 utilsBar.path.setAttribute('stroke', startColor);
             }
 
-            utilsBarText.innerHTML = (heartBeat.numberUtils) 
-            + ' UTILS | ' + (heartBeat.numberUtilsMax) 
-            + ' MAX | ' + moment(heartBeat.numberUtilsMaxTime).format(defaultDateTimeFormat);
+            utilsBarText.innerHTML = (heartBeat.numberUtils) + ' UTILS | ' + (heartBeat.numberUtilsMax) + ' MAX | ' + moment(heartBeat.numberUtilsMaxTime).format(defaultDateTimeFormat);
 
 
             deltaResponseBar.animate(heartBeat.deltaResponsesReceived / deltaResponsesMax);
@@ -1968,11 +1925,7 @@
                 var hmr = (heartBeat.wordCacheStats.hits / (1 + heartBeat.wordCacheStats.misses));
 
                 tableCreateRow(heatbeatTable, false, ['WORD CACHE',
-                    'TTL: ' + heartBeat.wordCacheTtl 
-                    + ' | K: ' + heartBeat.wordCacheStats.keys 
-                    + ' | H: ' + heartBeat.wordCacheStats.hits 
-                    + ' | M: ' + heartBeat.wordCacheStats.misses 
-                    + ' | HMR: ' + hmr.toFixed(2)
+                    'TTL: ' + heartBeat.wordCacheTtl + ' | K: ' + heartBeat.wordCacheStats.keys + ' | H: ' + heartBeat.wordCacheStats.hits + ' | M: ' + heartBeat.wordCacheStats.misses + ' | HMR: ' + hmr.toFixed(2)
                 ]);
 
             }
@@ -2027,7 +1980,7 @@
                 .createTextNode(numberUserIpAddresses + " USER UNIQUE IP " + " | " + heartBeat.numberUsers + " USERS" + " | " + heartBeat.numberTestUsers + " TEST USERS")
             );
 
-            
+
             serverHeartbeatElement = document.getElementById("server_viewers");
 
             while (serverHeartbeatElement.childNodes.length >= 1) {
@@ -2037,7 +1990,7 @@
                 .createTextNode(numberViewerIpAddresses + " VIEWER UNIQUE IP " + " | " + heartBeat.numberViewers + " VIEWERS" + " | " + heartBeat.numberTestViewers + " TEST VIEWERS")
             );
 
-            
+
         }
 
         initUserConnect({

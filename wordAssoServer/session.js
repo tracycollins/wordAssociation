@@ -5,15 +5,6 @@
 requirejs(["http://d3js.org/d3.v3.min.js"], function(d3) {
   console.log("d3 LOADED");
   initialize();
-  // requirejs(["js/libs/sessionViewHistogram"], function(histogramView) {
-  //   console.log("sessionViewHistogram LOADED");
-  //     displayControlOverlay(false);
-  // });
-  // requirejs(["js/libs/sessionViewForce"], function(forceView) {
-  //   console.log("sessionViewForce LOADED");
-  //   initialize();
-  //     // displayControlOverlay(false);
-  // });
 });
 
 var config = {};
@@ -90,6 +81,10 @@ config.sessionViewType = DEFAULT_SESSION_VIEW; // options: force, histogram ??
 
 var currentSessionView;
 
+var pageLoadedTimeIntervalFlag = true;
+var showStatsFlag = false;
+var removeDeadNodes = true;
+
 var debug = false;
 var MAX_RX_QUEUE = 250;
 var QUEUE_MAX = 200;
@@ -102,35 +97,251 @@ var dateNow = moment().valueOf();
 var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
 var defaultTimePeriodFormat = "HH:mm:ss";
 
-var removeDeadNodes = true;
+
+
+
+function displayControl(isVisible) {
+  var v = 'hidden';
+  if (isVisible) v = 'visible';
+  document.getElementById('controlDiv').style.visibility = v;
+  // document.getElementById('controlTable').style.visibility = v;
+}
+
+function displayInfo(opacity, color) {}
+
+
+
+
+
+
+var mouseMoveTimeout;
+var mouseMovingFlag = false;
+var mouseMoveTimeoutInterval = 1000;
+
+var mouseMoveTimeout = setTimeout(function() {
+  console.warn("mouseMoveTimeout");
+  d3.select("body").style("cursor", "none");
+  if (!showStatsFlag && !pageLoadedTimeIntervalFlag) {
+    displayInfo(false);
+  }
+  displayControl(false);
+}, mouseMoveTimeoutInterval);
+
+
+
+function resetMouseMoveTimer() {
+  console.warn("resetMouseMoveTimer");
+  clearTimeout(mouseMoveTimeout);
+
+  displayControl(true);
+  displayInfo(true);
+
+  mouseMoveTimeout = setTimeout(function() {
+    d3.select("body").style("cursor", "none");
+
+    if (!showStatsFlag && !pageLoadedTimeIntervalFlag) {
+      displayInfo(false);
+      displayControl(false);
+    }
+
+    mouseMovingFlag = false;
+  }, mouseMoveTimeoutInterval);
+}
+
+document.addEventListener("mousemove", function() {
+  console.warn("mousemove");
+  resetMouseMoveTimer();
+  mouseMovingFlag = true;
+}, true);
+
+function tableCreateRow(parentTable, options, cells) {
+
+  var tr = parentTable.insertRow();
+  var tdTextColor = options.textColor;
+  var tdBgColor = options.backgroundColor || '#222222';
+
+  if (options.trClass) {
+    tr.className = options.trClass;
+  }
+
+  if (options.headerFlag) {
+    cells.forEach(function(content) {
+      var th = tr.insertCell();
+      th.appendChild(document.createTextNode(content));
+      th.style.color = tdTextColor;
+      th.style.backgroundColor = tdBgColor;
+    });
+  } else {
+    cells.forEach(function(content) {
+      var td = tr.insertCell();
+      if (typeof content.type === 'undefined') {
+        // var td2 = td.insertCell();
+        td.appendChild(document.createTextNode(content));
+        td.style.color = tdTextColor;
+        td.style.backgroundColor = tdBgColor;
+      } else if (content.type == 'BUTTON') {
+        var buttonElement = document.createElement("BUTTON");
+        buttonElement.className = content.class;
+        buttonElement.setAttribute('id', content.id);
+        buttonElement.setAttribute('onclick', content.onclick);
+        buttonElement.innerHTML = content.text;
+        td.appendChild(buttonElement);
+      }
+    });
+  }
+}
+
+function reset() {
+  console.error("*** RESET ***");
+}
+
+function updateControlPanel() {
+  if (showStatsFlag) {
+    document.getElementById("statsToggleButton").style.color = "red";
+    document.getElementById("statsToggleButton").style.border = "2px solid red";
+  } else {
+    document.getElementById("statsToggleButton").style.color = "#888888";
+    document.getElementById("statsToggleButton").style.border = "1px solid white";
+  }
+  if (config.testModeEnabled) {
+    document.getElementById("testModeButton").style.color = "red";
+    document.getElementById("testModeButton").style.border = "2px solid red";
+  } else {
+    document.getElementById("testModeButton").style.color = "#888888";
+    document.getElementById("testModeButton").style.border = "1px solid white";
+  }
+  if (removeDeadNodes) {
+    document.getElementById("removeDeadNodeButton").style.color = "red";
+    document.getElementById("removeDeadNodeButton").style.border = "2px solid red";
+  } else {
+    document.getElementById("removeDeadNodeButton").style.color = "#888888";
+    document.getElementById("removeDeadNodeButton").style.border = "1px solid white";
+  }
+}
+
+function createControlPanel(sessionViewType) {
+  var controlTableHead = document.getElementById('controlTableHead');
+  var controlTableBody = document.getElementById('controlTableBody');
+
+  var optionsHead = {
+    headerFlag: true,
+    textColor: '#CCCCCC',
+    backgroundColor: '#222222'
+  };
+
+  var optionsBody = {
+    headerFlag: false,
+    textColor: '#BBBBBB',
+    backgroundColor: '#111111'
+  };
+
+  var fullscreenButton = {
+    type: 'BUTTON',
+    id: 'fullscreenToggleButton',
+    class: 'button',
+    onclick: 'toggleFullScreen()',
+    text: 'FULLSCREEN'
+  }
+
+  var statsButton = {
+    type: 'BUTTON',
+    id: 'statsToggleButton',
+    class: 'button',
+    onclick: 'toggleStats()',
+    text: 'STATS'
+  }
+
+  var testModeButton = {
+    type: 'BUTTON',
+    id: 'testModeButton',
+    class: 'button',
+    onclick: 'toggleTestMode()',
+    text: 'TEST'
+  }
+
+  var resetButton = {
+    type: 'BUTTON',
+    id: 'resetButton',
+    class: 'button',
+    onclick: 'reset()',
+    text: 'RESET'
+  }
+
+  var removeDeadNodeButton = {
+    type: 'BUTTON',
+    id: 'removeDeadNodeButton',
+    class: 'button',
+    onclick: 'toggleRemoveDeadNode()',
+    text: 'DEAD'
+  }
+
+  var nodeCreateButton = {
+    type: 'BUTTON',
+    id: 'nodeCreateButton',
+    class: 'button',
+    onclick: 'currentSessionView.addRandomNode()',
+    text: 'NODE'
+  }
+
+  switch (sessionViewType) {
+    case 'force':
+      // tableCreateRow(controlTableHead, optionsHead, ['FORCE VIEW CONROL TABLE']);
+      // tableCreateRow(controlTableBody, optionsBody, ['FULLSCREEN', 'STATS', 'TEST', 'RESET', 'NODE', 'LINK']);
+      tableCreateRow(controlTableBody, optionsBody, [fullscreenButton, statsButton, testModeButton, resetButton, nodeCreateButton, removeDeadNodeButton]);
+      break;
+    case 'histogram':
+      // tableCreateRow(controlTableHead, optionsHead, ['HISTOGRAM VIEW CONROL TABLE']);
+      tableCreateRow(controlTableBody, optionsBody, [fullscreenButton, statsButton, testModeButton, resetButton, nodeCreateButton, removeDeadNodeButton]);
+      break;
+    default:
+      // tableCreateRow(controlTableHead, optionsHead, ['CONROL TABLE HEAD']);
+      tableCreateRow(controlTableBody, optionsBody, [fullscreenButton, statsButton, testModeButton, resetButton, nodeCreateButton, removeDeadNodeButton]);
+      break;
+  }
+
+  updateControlPanel();
+}
 
 function toggleRemoveDeadNode() {
   removeDeadNodes = !removeDeadNodes;
   console.warn("TOGGLE REMOVE DEAD NODES: " + removeDeadNodes);
+  updateControlPanel();
 }
 
+function toggleStats() {
+  showStatsFlag = !showStatsFlag;
+
+  if (showStatsFlag) {
+    displayInfo(1);
+  } else {
+    displayInfo(0);
+  }
+  console.warn("TOGGLE STATS: " + showStatsFlag);
+  updateControlPanel();
+}
 
 function toggleTestMode() {
   config.testMode = !config.testMode;
-  testModeEnabled = config.testMode;
-  console.warn("TEST MODE: " + testModeEnabled);
+  config.testModeEnabled = config.testMode;
+  console.warn("TEST MODE: " + config.testModeEnabled);
 
-  if (testModeEnabled) {
-    setTimeout(initTestAddNodeInterval(1000), 1047);
-    setTimeout(initTestAddLinkInterval(1000), 2047);
-    setTimeout(initTestDeleteNodeInterval(1000), 5047);
+  if (config.testModeEnabled) {
+    setTimeout(currentSessionView.initTestAddNodeInterval(1000), 1047);
+    setTimeout(currentSessionView.initTestAddLinkInterval(1000), 2047);
+    setTimeout(currentSessionView.initTestDeleteNodeInterval(1000), 5047);
   } else {
-    clearTestAddNodeInterval();
-    clearTestAddLinkInterval();
-    clearTestDeleteNodeInterval();
+    currentSessionView.clearTestAddNodeInterval();
+    currentSessionView.clearTestAddLinkInterval();
+    currentSessionView.clearTestDeleteNodeInterval();
   }
+
+  updateControlPanel();
 }
 
 var serverConnected = false;
 var serverHeartbeatTimeout = 30000;
 var serverCheckInterval = 30000;
 var serverKeepaliveInteval = 60000;
-var pageLoadedTimeIntervalFlag = true;
 
 var linkHashMap = new HashMap();
 var nodeHashMap = new HashMap();
@@ -365,7 +576,7 @@ socket.on("connect", function() {
 
 socket.on("disconnect", function() {
   serverConnected = false;
-  // displayInfoOverlay(1.0, 'red');
+  displayInfo(1.0, 'red');
   console.log("*** DISCONNECTED FROM HOST ... DELETING ALL SESSIONS ...");
   deleteAllSessions(function() {
     console.log("DELETED ALL SESSIONS");
@@ -665,12 +876,7 @@ socket.on("USER_SESSION", function(rxSessionObject) {
 
   var rxObj = rxSessionObject;
 
-  console.log("USER_SESSION"
-    + " | SID: " + rxObj.sessionId
-    + " | UID: " + rxObj.userId
-    + " | NSP: " + rxObj.namespace
-    + " | WCI: " + rxObj.wordChainIndex
-    + " | CONN: " + rxObj.connected
+  console.log("USER_SESSION" + " | SID: " + rxObj.sessionId + " | UID: " + rxObj.userId + " | NSP: " + rxObj.namespace + " | WCI: " + rxObj.wordChainIndex + " | CONN: " + rxObj.connected
     // + "\n" + jsonPrint(rxObj)
   );
 
@@ -1370,11 +1576,13 @@ function initialize() {
 
             console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
             socket.emit("VIEWER_READY", viewerObj);
+            createControlPanel(sessionViewType);
 
             setTimeout(function() {
+              console.error("END PAGE LOAD TIMEOUT");
               pageLoadedTimeIntervalFlag = false;
-              currentSessionView.displayInfoOverlay(1e-6);
-              currentSessionView.displayControlOverlay(false);
+              displayInfo(false);
+              displayControl(false);
             }, 5000);
           });
         } else {
@@ -1397,11 +1605,13 @@ function initialize() {
 
             console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
             socket.emit("VIEWER_READY", viewerObj);
+            createControlPanel(sessionViewType);
 
             setTimeout(function() {
+              console.error("END PAGE LOAD TIMEOUT");
               pageLoadedTimeIntervalFlag = false;
-              currentSessionView.displayInfoOverlay(1e-6);
-              currentSessionView.displayControlOverlay(false);
+              displayInfo(false);
+              displayControl(false);
             }, 5000);
           });
         }
@@ -1425,11 +1635,13 @@ function initialize() {
 
           console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
           socket.emit("VIEWER_READY", viewerObj);
+          createControlPanel(sessionViewType);
 
           setTimeout(function() {
+              console.error("END PAGE LOAD TIMEOUT");
             pageLoadedTimeIntervalFlag = false;
-            currentSessionView.displayInfoOverlay(1e-6);
-            currentSessionView.displayControlOverlay(false);
+            displayInfo(false);
+            displayControl(false);
           }, 5000);
         });
 

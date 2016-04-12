@@ -90,7 +90,7 @@ config.sessionViewType = DEFAULT_SESSION_VIEW; // options: force, histogram ??
 
 var currentSessionView;
 
-var debug = true;
+var debug = false;
 var MAX_RX_QUEUE = 250;
 var QUEUE_MAX = 200;
 var MAX_WORDCHAIN_LENGTH = 100;
@@ -405,6 +405,7 @@ document.addEventListener(visibilityEvent, function() {
   console.log("visibilityEvent");
   if (!document[hidden]) {
     windowVisible = true;
+    currentSessionView.resize();
   } else {
     windowVisible = false;
   }
@@ -582,7 +583,7 @@ function deleteSession(sessionId, callback) {
       // nodeHashMap.set(deletedSession.userId, sessionNode);
       nodeHashMap.remove(deletedSession.userId);
 
-      // sessionDeleteHashMap.set(sessionId, 1);
+      sessionDeleteHashMap.set(sessionId, 1);
       currentSessionView.deleteSessionLinks(sessionId);
       return (callback(sessionId));
     }
@@ -654,7 +655,7 @@ socket.on("SESSION_DELETE", function(rxSessionObject) {
       // + "\n" + jsonPrint(rxSessionObject)
     );
     var session = sessionHashMap.get(rxObj.sessionId);
-    // sessionDeleteHashMap.set(rxObj.sessionId, 1);
+    sessionDeleteHashMap.set(rxObj.sessionId, 1);
     session.sessionEvent = "SESSION_DELETE";
     rxSessionDeleteQueue.push(session);
   }
@@ -729,6 +730,7 @@ function processSessionQueues(callback) {
   if (rxSessionDeleteQueue.length > 0) {
     var deleteSessUpdate = rxSessionDeleteQueue.shift();
     console.log("DELETE SESSION: " + deleteSessUpdate.sessionId);
+    sessionDeleteHashMap.set(deleteSessUpdate.sessionId, 1);
     deleteSession(deleteSessUpdate.sessionId, function(sessionId) {
       // sessionHashMap.remove(sessionId);
       return (callback(null, null));
@@ -1239,31 +1241,31 @@ function toggleFullScreen() {
 
     if (document.documentElement.requestFullscreen) {
       document.documentElement.requestFullscreen();
-      resize();
+      currentSessionView.resize();
     } else if (document.documentElement.msRequestFullscreen) {
       document.documentElement.msRequestFullscreen();
-      resize();
+      currentSessionView.resize();
     } else if (document.documentElement.mozRequestFullScreen) {
       document.documentElement.mozRequestFullScreen();
-      resize();
+      currentSessionView.resize();
     } else if (document.documentElement.webkitRequestFullscreen) {
       document.documentElement.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
-      resize();
+      currentSessionView.resize();
     }
   } else {
 
     if (document.exitFullscreen) {
       document.exitFullscreen();
-      resize();
+      currentSessionView.resize();
     } else if (document.msExitFullscreen) {
       document.msExitFullscreen();
-      resize();
+      currentSessionView.resize();
     } else if (document.mozCancelFullScreen) {
       document.mozCancelFullScreen();
-      resize();
+      currentSessionView.resize();
     } else if (document.webkitExitFullscreen) {
       document.webkitExitFullscreen();
-      resize();
+      currentSessionView.resize();
     }
   }
 }
@@ -1290,50 +1292,16 @@ function loadViewType(svt, callback) {
     case 'histogram':
       config.sessionViewType = 'histogram';
       requirejs(["js/libs/sessionViewHistogram"], function() {
-
         console.log("sessionViewHistogram LOADED");
-
         currentSessionView = new ViewHistogram();
-
-        // currentSessionView.initD3timer();
-        // currentSessionView.resize();
-
-        // initUpdateSessionsInterval(50);
-
-        // console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
-        // socket.emit("VIEWER_READY", viewerObj);
-
-        // setTimeout(function() {
-        //   pageLoadedTimeIntervalFlag = false;
-        //   currentSessionView.displayInfoOverlay(1e-6);
-        //   currentSessionView.displayControlOverlay(false);
-        // }, 5000);
-
         callback();
       });
       break;
     default:
       config.sessionViewType = 'force';
       requirejs(["js/libs/sessionViewForce"], function() {
-
         console.log("sessionViewForce LOADED");
-
         currentSessionView = new ViewForce();
-
-        // currentSessionView.initD3timer();
-        // currentSessionView.resize();
-
-        // initUpdateSessionsInterval(50);
-
-        // console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
-        // socket.emit("VIEWER_READY", viewerObj);
-
-        // setTimeout(function() {
-        //   pageLoadedTimeIntervalFlag = false;
-        //   currentSessionView.displayInfoOverlay(1e-6);
-        //   currentSessionView.displayControlOverlay(false);
-        // }, 5000);
-
         callback();
       });
       break;
@@ -1402,7 +1370,6 @@ function initialize() {
 
             console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
             socket.emit("VIEWER_READY", viewerObj);
-            // socket.emit("REQ_USER_SESSION");
 
             setTimeout(function() {
               pageLoadedTimeIntervalFlag = false;
@@ -1430,7 +1397,6 @@ function initialize() {
 
             console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
             socket.emit("VIEWER_READY", viewerObj);
-            // socket.emit("REQ_USER_SESSION");
 
             setTimeout(function() {
               pageLoadedTimeIntervalFlag = false;
@@ -1459,7 +1425,6 @@ function initialize() {
 
           console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
           socket.emit("VIEWER_READY", viewerObj);
-          // socket.emit("REQ_USER_SESSION");
 
           setTimeout(function() {
             pageLoadedTimeIntervalFlag = false;

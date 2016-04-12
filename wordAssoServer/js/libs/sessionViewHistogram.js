@@ -216,7 +216,7 @@ function ViewHistogram() {
   var adjustedAgeRateScale = d3.scale.pow().domain([1, 500]).range([1.0, 100.0]);
   var fontSizeScale = d3.scale.linear().domain([1, 100000000]).range([20.0, 30]);
 
-  var sessionCircleRadiusScale = d3.scale.log().domain([1, 100000000]).range([40.0, 100.0]); // uses wordChainIndex
+  var sessionCircleRadiusScale = d3.scale.linear().domain([1, 100000000]).range([5.0, 100.0]); // uses wordChainIndex
   var defaultRadiusScale = d3.scale.linear().domain([1, 100000000]).range([1.0, 30.0]);
 
   var fillColorScale = d3.scale.linear()
@@ -657,6 +657,8 @@ function ViewHistogram() {
 
   function ageNodes(callback) {
 
+    var dateNow = moment().valueOf();
+
     if (nodes.length === 0) {
       ageRate = DEFAULT_AGE_RATE;
     } else if (nodes.length > 100) {
@@ -676,9 +678,17 @@ function ViewHistogram() {
 
       age = node.age + (ageRate * (dateNow - node.ageUpdated));
 
-      if (removeDeadNodes && node.isDead) {
+      if (node.isSessionNode) {
+        node.ageUpdated = dateNow;
+        node.age = age;
+        if (age < newFlagRatio * nodeMaxAge) {
+          node.newFlag = true;
+        } else {
+          node.newFlag = false;
+        }
+      } else if (removeDeadNodes && node.isDead) {
         deadNodesHash[node.nodeId] = 1;
-      } else if (removeDeadNodes && !node.isSessionNode && (age >= nodeMaxAge)) {
+      } else if (removeDeadNodes && (age >= nodeMaxAge)) {
         node.isDead = true;
         deadNodesHash[node.nodeId] = 1;
       } else if ((nodes.length >= maxWords - 1) && (node.rank > maxWords)) {
@@ -877,15 +887,16 @@ function ViewHistogram() {
         return d.newFlag ? "updateNew" : "update";
       })
       .attr("rank", function(d) {
-        return d.rank; })
+        return d.rank;
+      })
       .text(function(d) {
-        return d.text; })
+        return d.text;
+      })
       .style("fill", function(d) {
         if (d.newFlag) {
           return "white";
-        }
-        else {
-          return d.interpolateColor((nodeMaxAge - d.age) / nodeMaxAge); 
+        } else {
+          return d.interpolateColor((nodeMaxAge - d.age) / nodeMaxAge);
         }
       })
       // .style("fill", function(d) {
@@ -914,18 +925,23 @@ function ViewHistogram() {
       .append("svg:text")
       .attr("id", "session")
       .attr("nodeId", function(d) {
-        return d.nodeId; })
+        return d.nodeId;
+      })
       .attr("userId", function(d) {
-        return d.userId; })
+        return d.userId;
+      })
       .attr("sessionId", function(d) {
-        return d.sessionId; })
+        return d.sessionId;
+      })
       .attr("class", "enter")
       .attr("rank", function(d) {
-        return d.rank; })
+        return d.rank;
+      })
       .attr("x", xposition)
       .attr("y", yposition)
       .text(function(d) {
-        return d.text; })
+        return d.text;
+      })
       .style("fill", "FFFFFF")
       .style("fill-opacity", 1)
       .style("font-size", "2.2vmin");
@@ -998,18 +1014,25 @@ function ViewHistogram() {
   function updateNodeWords(callback) {
 
     var nodeWords = nodeSvgGroup.selectAll("#word")
-      .data(nodes, function(d) { return d.nodeId; });
+      .data(nodes, function(d) {
+        return d.nodeId;
+      });
 
     nodeWords
-      .attr("class", function(d) { return d.newFlag ? "updateNew" : "update"; })
-      .attr("rank", function(d) { return d.rank; })
-      .text(function(d) { return d.text; })
+      .attr("class", function(d) {
+        return d.newFlag ? "updateNew" : "update";
+      })
+      .attr("rank", function(d) {
+        return d.rank;
+      })
+      .text(function(d) {
+        return d.text;
+      })
       .style("fill", function(d) {
         if (d.newFlag) {
           return "white";
-        }
-        else {
-          return d.interpolateColor((nodeMaxAge - d.age) / nodeMaxAge); 
+        } else {
+          return d.interpolateColor((nodeMaxAge - d.age) / nodeMaxAge);
         }
       })
       // .style("fill", function(d) {
@@ -1024,12 +1047,18 @@ function ViewHistogram() {
       .enter()
       .append("svg:text")
       .attr("id", "word")
-      .attr("nodeId", function(d) { return d.nodeId; })
+      .attr("nodeId", function(d) {
+        return d.nodeId;
+      })
       .attr("class", "enter")
-      .attr("rank", function(d) { return d.rank; })
+      .attr("rank", function(d) {
+        return d.rank;
+      })
       .attr("x", xposition)
       .attr("y", yposition)
-      .text(function(d) { return d.text; })
+      .text(function(d) {
+        return d.text;
+      })
       .style("fill", "#FF0000")
       .style("fill-opacity", 1)
       .style("font-size", "2.2vmin")

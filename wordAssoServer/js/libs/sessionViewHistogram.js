@@ -322,48 +322,48 @@ function ViewHistogram() {
       visible = "hidden";
     }
 
-    d3.select("#sliderDiv").style("visibility", visible);
+    // d3.select("#sliderDiv").style("visibility", visible);
 
   }
 
-  this.displayInfoOverlay = function(opacity, color) {
+  // this.displayInfoOverlay = function(opacity, color) {
 
 
-    d3.select("#adminOverlay0").select("text").style("opacity", opacity);
-    d3.select("#adminOverlay1").select("text").style("opacity", opacity);
-    d3.select("#adminOverlay2").select("text").style("opacity", opacity);
-    d3.select("#adminOverlay3").select("text").style("opacity", opacity);
+  //   d3.select("#adminOverlay0").select("text").style("opacity", opacity);
+  //   d3.select("#adminOverlay1").select("text").style("opacity", opacity);
+  //   d3.select("#adminOverlay2").select("text").style("opacity", opacity);
+  //   d3.select("#adminOverlay3").select("text").style("opacity", opacity);
 
-    d3.select("#dateTimeOverlay").select("text").style("opacity", opacity);
+  //   d3.select("#dateTimeOverlay").select("text").style("opacity", opacity);
 
-    d3.select("#statsOverlay1").style("opacity", opacity);
-    d3.select("#statsOverlay2").style("opacity", opacity);
-    d3.select("#statsOverlay3").style("opacity", opacity);
-    d3.select("#statsOverlay4").style("opacity", opacity);
+  //   d3.select("#statsOverlay1").style("opacity", opacity);
+  //   d3.select("#statsOverlay2").style("opacity", opacity);
+  //   d3.select("#statsOverlay3").style("opacity", opacity);
+  //   d3.select("#statsOverlay4").style("opacity", opacity);
 
-    if (color) {
+  //   if (color) {
 
-      console.log("displayInfoOverlay", opacity, color);
+  //     console.log("displayInfoOverlay", opacity, color);
 
-      d3.select("#adminOverlay0").select("text").style("fill", color);
-      d3.select("#adminOverlay1").select("text").style("fill", color);
-      d3.select("#adminOverlay2").select("text").style("fill", color);
-      d3.select("#adminOverlay3").select("text").style("fill", color);
+  //     d3.select("#adminOverlay0").select("text").style("fill", color);
+  //     d3.select("#adminOverlay1").select("text").style("fill", color);
+  //     d3.select("#adminOverlay2").select("text").style("fill", color);
+  //     d3.select("#adminOverlay3").select("text").style("fill", color);
 
-      d3.select("#dateTimeOverlay").select("text").style("fill", color);
+  //     d3.select("#dateTimeOverlay").select("text").style("fill", color);
 
-      d3.select("#statsOverlay1").style("fill", color);
-      d3.select("#statsOverlay2").style("fill", color);
-      d3.select("#statsOverlay3").style("fill", color);
-      d3.select("#statsOverlay4").style("fill", color);
-    }
-  }
+  //     d3.select("#statsOverlay1").style("fill", color);
+  //     d3.select("#statsOverlay2").style("fill", color);
+  //     d3.select("#statsOverlay3").style("fill", color);
+  //     d3.select("#statsOverlay4").style("fill", color);
+  //   }
+  // }
 
   var mouseMoveTimeout = setTimeout(function() {
     d3.select("body").style("cursor", "none");
     if (!showStatsFlag && !pageLoadedTimeIntervalFlag) {
-      self.displayInfoOverlay(1e-6);
-      self.displayControlOverlay(false);
+      // self.displayInfoOverlay(1e-6);
+      // self.displayControlOverlay(false);
     }
   }, mouseMoveTimeoutInterval);
 
@@ -372,15 +372,15 @@ function ViewHistogram() {
   function resetMouseMoveTimer() {
     clearTimeout(mouseMoveTimeout);
 
-    self.displayInfoOverlay(1);
-    self.displayControlOverlay(true);
+    // self.displayInfoOverlay(1);
+    // self.displayControlOverlay(true);
 
     mouseMoveTimeout = setTimeout(function() {
       d3.select("body").style("cursor", "none");
 
       if (!showStatsFlag && !pageLoadedTimeIntervalFlag) {
-        self.displayInfoOverlay(1e-6);
-        self.displayControlOverlay(false);
+        // self.displayInfoOverlay(1e-6);
+        // self.displayControlOverlay(false);
       }
 
       mouseMovingFlag = false;
@@ -1429,7 +1429,7 @@ function ViewHistogram() {
 
     newNode.links = {};
 
-    addNode(newNode);
+    self.addNode(newNode);
   }
 
   function addRandomLink() {
@@ -1473,25 +1473,25 @@ function ViewHistogram() {
     nodes[sourceNodeIndex] = sourceNode;
     nodes[targetNodeIndex] = targetNode;
 
-    addLink(newLink);
+    self.addLink(newLink);
   }
 
-  function clearTestAddNodeInterval() {
+  this.clearTestAddNodeInterval = function () {
     clearInterval(testAddNodeInterval);
   }
 
-  function initTestAddNodeInterval(interval) {
+  this.initTestAddNodeInterval = function (interval) {
     clearInterval(testAddNodeInterval);
     testAddNodeInterval = setInterval(function() {
       addRandomNode();
     }, interval);
   }
 
-  function clearTestAddLinkInterval() {
+  this.clearTestAddLinkInterval = function () {
     clearInterval(testAddLinkInterval);
   }
 
-  function initTestAddLinkInterval(interval) {
+  this.initTestAddLinkInterval = function (interval) {
     clearInterval(testAddLinkInterval);
     testAddLinkInterval = setInterval(function() {
       if (nodes.length > 1) {
@@ -1500,11 +1500,11 @@ function ViewHistogram() {
     }, interval);
   }
 
-  function clearTestDeleteNodeInterval() {
+  this.clearTestDeleteNodeInterval = function () {
     clearInterval(testDeleteNodeInterval);
   }
 
-  function initTestDeleteNodeInterval(interval) {
+  this.initTestDeleteNodeInterval = function (interval) {
     clearInterval(testDeleteNodeInterval);
     testDeleteNodeInterval = setInterval(function() {
       deleteRandomNode();
@@ -1571,135 +1571,135 @@ function ViewHistogram() {
     .attr("class", "tooltip")
     .style("opacity", 1e-6);
 
-  var dateTimeOverlay = svgcanvas.append("svg:g")
-    .attr("class", "admin")
-    .attr("id", "dateTimeOverlay")
-    .append("text")
-    .text("../../..  --:--:--")
-    .attr("x", DATE_TIME_OVERLAY_X)
-    .attr("y", DATE_TIME_OVERLAY_Y)
-    .style("opacity", 1e-6)
-    .style("font-size", "1.4vmin")
-    .style("text-anchor", "end")
-    .style("fill", defaultTextFill);
+  // var dateTimeOverlay = svgcanvas.append("svg:g")
+  //   .attr("class", "admin")
+  //   .attr("id", "dateTimeOverlay")
+  //   .append("text")
+  //   .text("../../..  --:--:--")
+  //   .attr("x", DATE_TIME_OVERLAY_X)
+  //   .attr("y", DATE_TIME_OVERLAY_Y)
+  //   .style("opacity", 1e-6)
+  //   .style("font-size", "1.4vmin")
+  //   .style("text-anchor", "end")
+  //   .style("fill", defaultTextFill);
 
-  var statsOverlay1 = svgcanvas.append("svg:g") // user screenname
-    .attr("id", "statsOverlay1")
-    .attr("class", "statsOverlay")
-    .append("svg:a")
-    .attr("id", "userUrl")
-    .attr("xlink:show", "new")
-    .attr("xlink:href", "http://word.threeceemedia.com/")
-    .attr("x", STATS_OVERLAY1_X)
-    .attr("y", STATS_OVERLAY1_Y)
-    .append("text")
-    .attr("id", "userScreenName")
-    .attr("class", "userScreenName")
-    .text("word association")
-    .style("opacity", 0.8)
-    .style("font-size", "1.4vmin")
-    .style("fill", palette.blue);
+  // var statsOverlay1 = svgcanvas.append("svg:g") // user screenname
+  //   .attr("id", "statsOverlay1")
+  //   .attr("class", "statsOverlay")
+  //   .append("svg:a")
+  //   .attr("id", "userUrl")
+  //   .attr("xlink:show", "new")
+  //   .attr("xlink:href", "http://word.threeceemedia.com/")
+  //   .attr("x", STATS_OVERLAY1_X)
+  //   .attr("y", STATS_OVERLAY1_Y)
+  //   .append("text")
+  //   .attr("id", "userScreenName")
+  //   .attr("class", "userScreenName")
+  //   .text("word association")
+  //   .style("opacity", 0.8)
+  //   .style("font-size", "1.4vmin")
+  //   .style("fill", palette.blue);
 
-  var statsOverlay2 = svgcanvas.append("svg:g") // tweet createdAt
-    .attr("id", "statsOverlay2")
-    .attr("class", "statsOverlay")
-    .append("text")
-    .attr("id", "tweetCreatedAt")
-    .text("threecee")
-    .attr("x", STATS_OVERLAY2_X)
-    .attr("y", STATS_OVERLAY2_Y)
-    .style("opacity", 0.8)
-    .style("font-size", "1.4vmin")
-    .style("fill", palette.blue);
+  // var statsOverlay2 = svgcanvas.append("svg:g") // tweet createdAt
+  //   .attr("id", "statsOverlay2")
+  //   .attr("class", "statsOverlay")
+  //   .append("text")
+  //   .attr("id", "tweetCreatedAt")
+  //   .text("threecee")
+  //   .attr("x", STATS_OVERLAY2_X)
+  //   .attr("y", STATS_OVERLAY2_Y)
+  //   .style("opacity", 0.8)
+  //   .style("font-size", "1.4vmin")
+  //   .style("fill", palette.blue);
 
-  var statsOverlay3 = svgcanvas.append("svg:g") // tweet text
-    .attr("id", "statsOverlay3")
-    .attr("class", "statsOverlay")
-    .append("svg:a")
-    .attr("id", "tweetUrl")
-    .attr("class", "tweetUrl")
-    .attr("xlink:show", "new")
-    .attr("xlink:href", "http://threeceemedia.com")
-    .attr("x", STATS_OVERLAY3_X)
-    .attr("y", STATS_OVERLAY3_Y)
-    .append("text")
-    .attr("id", "tweetText")
-    .attr("class", "tweetText")
-    .text("threeceemedia.com")
-    .style("opacity", 0.8)
-    .style("font-size", "1.4vmin")
-    .style("fill", palette.blue);
+  // var statsOverlay3 = svgcanvas.append("svg:g") // tweet text
+  //   .attr("id", "statsOverlay3")
+  //   .attr("class", "statsOverlay")
+  //   .append("svg:a")
+  //   .attr("id", "tweetUrl")
+  //   .attr("class", "tweetUrl")
+  //   .attr("xlink:show", "new")
+  //   .attr("xlink:href", "http://threeceemedia.com")
+  //   .attr("x", STATS_OVERLAY3_X)
+  //   .attr("y", STATS_OVERLAY3_Y)
+  //   .append("text")
+  //   .attr("id", "tweetText")
+  //   .attr("class", "tweetText")
+  //   .text("threeceemedia.com")
+  //   .style("opacity", 0.8)
+  //   .style("font-size", "1.4vmin")
+  //   .style("fill", palette.blue);
 
-  var statsOverlay4 = svgcanvas.append("svg:g") // tweet text
-    .attr("id", "statsOverlay4")
-    .attr("class", "statsOverlay")
-    .append("svg:a")
-    .attr("id", "sessionId")
-    .attr("x", STATS_OVERLAY4_X)
-    .attr("y", STATS_OVERLAY4_Y)
-    .append("text")
-    .attr("id", "sessionIdText")
-    .attr("class", "sessionIdText")
-    .text("SESSION ID")
-    .style("opacity", 0.8)
-    .style("font-size", "1.4vmin")
-    .style("fill", palette.gray);
+  // var statsOverlay4 = svgcanvas.append("svg:g") // tweet text
+  //   .attr("id", "statsOverlay4")
+  //   .attr("class", "statsOverlay")
+  //   .append("svg:a")
+  //   .attr("id", "sessionId")
+  //   .attr("x", STATS_OVERLAY4_X)
+  //   .attr("y", STATS_OVERLAY4_Y)
+  //   .append("text")
+  //   .attr("id", "sessionIdText")
+  //   .attr("class", "sessionIdText")
+  //   .text("SESSION ID")
+  //   .style("opacity", 0.8)
+  //   .style("font-size", "1.4vmin")
+  //   .style("fill", palette.gray);
 
-  var adminOverlay0 = svgcanvas.append("svg:g")
-    .attr("class", "admin")
-    .attr("id", "adminOverlay0")
-    .append("text")
-    .attr("id", "heartBeat")
-    .text("...")
-    .attr("x", ADMIN_OVERLAY0_X)
-    .attr("y", ADMIN_OVERLAY0_Y)
-    .style("text-anchor", "end")
-    .style("opacity", 1e-6)
-    .style("font-size", "1.4vmin")
-    .style("fill", defaultTextFill);
+  // var adminOverlay0 = svgcanvas.append("svg:g")
+  //   .attr("class", "admin")
+  //   .attr("id", "adminOverlay0")
+  //   .append("text")
+  //   .attr("id", "heartBeat")
+  //   .text("...")
+  //   .attr("x", ADMIN_OVERLAY0_X)
+  //   .attr("y", ADMIN_OVERLAY0_Y)
+  //   .style("text-anchor", "end")
+  //   .style("opacity", 1e-6)
+  //   .style("font-size", "1.4vmin")
+  //   .style("fill", defaultTextFill);
 
-  var adminOverlay1 = svgcanvas.append("svg:g")
-    .attr("class", "admin")
-    .attr("id", "adminOverlay1")
-    .append("text")
-    .attr("id", "heartBeat")
-    .text("...")
-    .attr("x", ADMIN_OVERLAY1_X)
-    .attr("y", ADMIN_OVERLAY1_Y)
-    .style("text-anchor", "end")
-    .style("opacity", 1e-6)
-    .style("font-size", "1.4vmin")
-    .style("fill", defaultTextFill);
+  // var adminOverlay1 = svgcanvas.append("svg:g")
+  //   .attr("class", "admin")
+  //   .attr("id", "adminOverlay1")
+  //   .append("text")
+  //   .attr("id", "heartBeat")
+  //   .text("...")
+  //   .attr("x", ADMIN_OVERLAY1_X)
+  //   .attr("y", ADMIN_OVERLAY1_Y)
+  //   .style("text-anchor", "end")
+  //   .style("opacity", 1e-6)
+  //   .style("font-size", "1.4vmin")
+  //   .style("fill", defaultTextFill);
 
-  var adminOverlay2 = svgcanvas.append("svg:g")
-    .attr("class", "admin")
-    .attr("id", "adminOverlay2")
-    .append("text")
-    .attr("id", "heartBeat")
-    .text("...")
-    .attr("x", ADMIN_OVERLAY2_X)
-    .attr("y", ADMIN_OVERLAY2_Y)
-    .style("text-anchor", "end")
-    .style("opacity", 1e-6)
-    .style("font-size", "1.4vmin")
-    .style("fill", defaultTextFill);
+  // var adminOverlay2 = svgcanvas.append("svg:g")
+  //   .attr("class", "admin")
+  //   .attr("id", "adminOverlay2")
+  //   .append("text")
+  //   .attr("id", "heartBeat")
+  //   .text("...")
+  //   .attr("x", ADMIN_OVERLAY2_X)
+  //   .attr("y", ADMIN_OVERLAY2_Y)
+  //   .style("text-anchor", "end")
+  //   .style("opacity", 1e-6)
+  //   .style("font-size", "1.4vmin")
+  //   .style("fill", defaultTextFill);
 
-  var adminOverlay3 = svgcanvas.append("svg:g")
-    .attr("class", "admin")
-    .attr("id", "adminOverlay3")
-    .append("text")
-    .attr("id", "heartBeat")
-    .text("LOCAL TIME: " + getTimeStamp())
-    .attr("x", ADMIN_OVERLAY3_X)
-    .attr("y", ADMIN_OVERLAY3_Y)
-    .style("text-anchor", "end")
-    .style("opacity", 1e-6)
-    .style("font-size", "1.4vmin")
-    .style("fill", defaultTextFill);
+  // var adminOverlay3 = svgcanvas.append("svg:g")
+  //   .attr("class", "admin")
+  //   .attr("id", "adminOverlay3")
+  //   .append("text")
+  //   .attr("id", "heartBeat")
+  //   .text("LOCAL TIME: " + getTimeStamp())
+  //   .attr("x", ADMIN_OVERLAY3_X)
+  //   .attr("y", ADMIN_OVERLAY3_Y)
+  //   .style("text-anchor", "end")
+  //   .style("opacity", 1e-6)
+  //   .style("font-size", "1.4vmin")
+  //   .style("fill", defaultTextFill);
 
-  setInterval(function() {
-    dateTimeOverlay = d3.select("#dateTimeOverlay").select("text").text("SERVER TIME: " + moment().format(defaultDateTimeFormat));
-    // statsOverlay4 = d3.select("#statsOverlay4").select("text").text(viewerSessionKey);
-  }, 1000);
+  // setInterval(function() {
+  //   dateTimeOverlay = d3.select("#dateTimeOverlay").select("text").text("SERVER TIME: " + moment().format(defaultDateTimeFormat));
+  //   // statsOverlay4 = d3.select("#statsOverlay4").select("text").text(viewerSessionKey);
+  // }, 1000);
 
 }

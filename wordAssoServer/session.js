@@ -104,22 +104,21 @@ function displayControl(isVisible) {
   var v = 'hidden';
   if (isVisible) v = 'visible';
   document.getElementById('controlDiv').style.visibility = v;
-  // document.getElementById('controlTable').style.visibility = v;
 }
 
-function displayInfo(opacity, color) {}
+function displayInfo(isVisible) {
+  var v = 'hidden';
+  if (isVisible) v = 'visible';
+  document.getElementById('infoDiv').style.visibility = v;
 
-
-
-
-
+}
 
 var mouseMoveTimeout;
 var mouseMovingFlag = false;
 var mouseMoveTimeoutInterval = 1000;
 
 var mouseMoveTimeout = setTimeout(function() {
-  console.warn("mouseMoveTimeout");
+  // console.warn("mouseMoveTimeout");
   d3.select("body").style("cursor", "none");
   if (!showStatsFlag && !pageLoadedTimeIntervalFlag) {
     displayInfo(false);
@@ -130,7 +129,7 @@ var mouseMoveTimeout = setTimeout(function() {
 
 
 function resetMouseMoveTimer() {
-  console.warn("resetMouseMoveTimer");
+  // console.warn("resetMouseMoveTimer");
   clearTimeout(mouseMoveTimeout);
 
   displayControl(true);
@@ -149,7 +148,7 @@ function resetMouseMoveTimer() {
 }
 
 document.addEventListener("mousemove", function() {
-  console.warn("mousemove");
+  // console.warn("mousemove");
   resetMouseMoveTimer();
   mouseMovingFlag = true;
 }, true);
@@ -1638,7 +1637,7 @@ function initialize() {
           createControlPanel(sessionViewType);
 
           setTimeout(function() {
-              console.error("END PAGE LOAD TIMEOUT");
+            console.error("END PAGE LOAD TIMEOUT");
             pageLoadedTimeIntervalFlag = false;
             displayInfo(false);
             displayControl(false);

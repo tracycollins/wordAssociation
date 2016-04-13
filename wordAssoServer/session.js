@@ -1571,6 +1571,15 @@ function initUpdateSessionsInterval(interval) {
   }, interval);
 }
 
+requirejs.onError = function (err) {
+    console.log(err.requireType);
+    if (err.requireType === 'timeout') {
+        console.log('modules: ' + err.requireModules);
+    }
+
+    throw err;
+};
+
 function loadViewType(svt, callback) {
 
   console.warn("LOADING SESSION VIEW TYPE: " + svt);
@@ -1689,7 +1698,7 @@ function initialize() {
             createControlPanel(sessionViewType);
 
             setTimeout(function() {
-              console.error("END PAGE LOAD TIMEOUT");
+              console.log("END PAGE LOAD");
               pageLoadedTimeIntervalFlag = false;
               displayInfo(false);
               displayControl(false);

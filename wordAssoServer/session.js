@@ -98,6 +98,10 @@ var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
 var defaultTimePeriodFormat = "HH:mm:ss";
 
 
+var DEFAULT_CHARGE = -350;
+var DEFAULT_GRAVITY = 0.05;
+var DEFAULT_LINK_STRENGTH = 0.1;
+var DEFAULT_FRICTION = 0.75;
 
 
 function displayControl(isVisible) {
@@ -202,13 +206,21 @@ function tableCreateRow(parentTable, options, cells) {
 
 function reset() {
   console.error("*** RESET ***");
-  if (config.sessionViewType == 'force') currentSessionView.resetDefaultForce();
+  if (config.sessionViewType == 'force') {
+
+    currentSessionView.resetDefaultForce();
+
+    setLinkStrengthSliderValue(DEFAULT_LINK_STRENGTH);
+    setFrictionSliderValue(DEFAULT_FRICTION);
+    setGravitySliderValue(DEFAULT_GRAVITY);
+    setChargeSliderValue(DEFAULT_CHARGE);
+  }
 }
 
-function setLinkstrengthSliderValue(value) {
-  document.getElementById("linkstrengthSlider").value = value * 1000;
+function setLinkStrengthSliderValue(value) {
+  document.getElementById("linkStrengthSlider").value = value * 1000;
   currentSessionView.updateLinkStrength(value);
-  // document.getElementById("linkstrengthSliderText").innerHTML = value.toFixed(3);
+  // document.getElementById("linkStrengthSliderText").innerHTML = value.toFixed(3);
 }
 
 function setFrictionSliderValue(value) {
@@ -348,11 +360,11 @@ function createControlPanel(sessionViewType) {
     value: 300,
   }
 
-  var linkstrengthSlider = {
+  var linkStrengthSlider = {
     type: 'SLIDER',
-    id: 'linkstrengthSlider',
+    id: 'linkStrengthSlider',
     class: 'slider',
-    oninput: 'setLinkstrengthSliderValue(this.value/1000)',
+    oninput: 'setLinkStrengthSliderValue(this.value/1000)',
     min: 0,
     max: 1000,
     value: 747,
@@ -367,7 +379,7 @@ function createControlPanel(sessionViewType) {
       tableCreateRow(controlSliderTable, optionsBody, ['CHARGE', chargeSlider]);
       tableCreateRow(controlSliderTable, optionsBody, ['GRAVITY', gravitySlider]);
       tableCreateRow(controlSliderTable, optionsBody, ['FRICTION', frictionSlider]);
-      tableCreateRow(controlSliderTable, optionsBody, ['LINK STRENGTH', linkstrengthSlider]);
+      tableCreateRow(controlSliderTable, optionsBody, ['LINK STRENGTH', linkStrengthSlider]);
       break;
     case 'histogram':
       // tableCreateRow(controlTableHead, optionsHead, ['HISTOGRAM VIEW CONROL TABLE']);
@@ -1571,13 +1583,13 @@ function initUpdateSessionsInterval(interval) {
   }, interval);
 }
 
-requirejs.onError = function (err) {
-    console.log(err.requireType);
-    if (err.requireType === 'timeout') {
-        console.log('modules: ' + err.requireModules);
-    }
+requirejs.onError = function(err) {
+  console.log(err.requireType);
+  if (err.requireType === 'timeout') {
+    console.log('modules: ' + err.requireModules);
+  }
 
-    throw err;
+  throw err;
 };
 
 function loadViewType(svt, callback) {

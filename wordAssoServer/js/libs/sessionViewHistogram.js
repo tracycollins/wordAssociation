@@ -282,7 +282,6 @@ function ViewHistogram() {
 
   self.reset = function() {
     console.error("RESET");
-    force.stop();
     nodes = [];
     links = [];
     createNodeQueue = [];
@@ -293,7 +292,6 @@ function ViewHistogram() {
 
     newNodes = [];
     newLinks = [];
-    self.resetDefaultForce();
   }
 
   this.getSessionsLength = function() {
@@ -789,7 +787,7 @@ function ViewHistogram() {
       link = links[ageLinksIndex];
       if (deadLinksHash[link.linkId]) {
         links.splice(ageLinksIndex, 1);
-        // console.log("XXX LINK"
+      // console.log("XXX LINK"
         //   + " | " + link.linkId
         //   + " | " + link.source.nodeId
         //   + " > " + link.target.nodeId

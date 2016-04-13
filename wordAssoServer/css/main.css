@@ -177,3 +177,7 @@ output[type="text"]{
 .infoButton:focus {
   outline:0;
 }
+
+.slider {
+  width:400px;
+}

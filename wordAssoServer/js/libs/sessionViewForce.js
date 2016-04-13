@@ -623,45 +623,45 @@ function ViewForce () {
     .size([svgForceLayoutAreaWidth, svgForceLayoutAreaHeight])
     .on("tick", tick);
 
-  function updateLinkstrength(value) {
+  self.updateLinkstrength = function (value) {
     console.log("updateLinkstrength: " + value + " | forceStopped: " + forceStopped);
-    document.getElementById("linkstrengthSliderText").innerHTML = value.toFixed(3);
+    // document.getElementById("linkstrengthSliderText").innerHTML = value.toFixed(3);
     linkStrength = value;
     force.linkStrength(linkStrength);
     force.start();
   }
 
-  function updateFriction(value) {
-    document.getElementById("frictionSliderText").innerHTML = value.toFixed(3);
+  self.updateFriction = function (value) {
+    // document.getElementById("frictionSliderText").innerHTML = value.toFixed(3);
     friction = value;
     force.friction(friction);
     force.start();
   }
 
-  function updateGravity(value) {
-    document.getElementById("gravitySliderText").innerHTML = value.toFixed(3);
+  self.updateGravity = function (value) {
+    // document.getElementById("gravitySliderText").innerHTML = value.toFixed(3);
     gravity = value;
     force.gravity(gravity);
     force.start();
   }
 
-  function updateCharge(value) {
-    document.getElementById("chargeSliderText").innerHTML = value;
+  self.updateCharge = function (value) {
+    // document.getElementById("chargeSliderText").innerHTML = value;
     charge = value;
     force.charge(charge);
     force.start();
   }
 
-  function resetDefaultForce() {
+  self.resetDefaultForce = function () {
     console.log("RESET FORCE LAYOUT DEFAULTS");
-    updateCharge(DEFAULT_CHARGE);
-    setChargeSliderValue(DEFAULT_CHARGE);
-    updateFriction(DEFAULT_FRICTION);
-    setFrictionSliderValue(DEFAULT_FRICTION);
-    updateGravity(DEFAULT_GRAVITY);
-    setGravitySliderValue(DEFAULT_GRAVITY);
-    updateLinkstrength(DEFAULT_LINK_STRENGTH);
-    setLinkstrengthSliderValue(DEFAULT_LINK_STRENGTH);
+    self.updateCharge(DEFAULT_CHARGE);
+    // setChargeSliderValue(DEFAULT_CHARGE);
+    self.updateFriction(DEFAULT_FRICTION);
+    // setFrictionSliderValue(DEFAULT_FRICTION);
+    self.updateGravity(DEFAULT_GRAVITY);
+    // setGravitySliderValue(DEFAULT_GRAVITY);
+    self.updateLinkstrength(DEFAULT_LINK_STRENGTH);
+    // setLinkstrengthSliderValue(DEFAULT_LINK_STRENGTH);
   }
 
 

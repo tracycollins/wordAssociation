@@ -3,7 +3,7 @@
 
 "use strict";
 
-function ViewForce () {
+function ViewForce() {
 
   var self = this;
 
@@ -218,8 +218,7 @@ function ViewForce () {
   document.addEventListener("mousemove", function() {
     if (mouseHoverFlag) {
       d3.select("body").style("cursor", "pointer");
-    }
-    else {
+    } else {
       d3.select("body").style("cursor", "default");
     }
 
@@ -261,8 +260,7 @@ function ViewForce () {
     if ((obj) || (obj === 0)) {
       var jsonString = JSON.stringify(obj, null, 2);
       return jsonString;
-    }
-    else {
+    } else {
       return "UNDEFINED";
     }
   }
@@ -300,27 +298,6 @@ function ViewForce () {
     }
 
   }, 50);
-
-
-  function setLinkstrengthSliderValue(value) {
-    document.getElementById("linkstrengthSlider").value = value * 1000;
-    document.getElementById("linkstrengthSliderText").innerHTML = value.toFixed(3);
-  }
-
-  function setFrictionSliderValue(value) {
-    document.getElementById("frictionSlider").value = value * 1000;
-    document.getElementById("frictionSliderText").innerHTML = value.toFixed(3);
-  }
-
-  function setGravitySliderValue(value) {
-    document.getElementById("gravitySlider").value = value * 1000;
-    document.getElementById("gravitySliderText").innerHTML = value.toFixed(3);
-  }
-
-  function setChargeSliderValue(value) {
-    document.getElementById("chargeSlider").value = value;
-    document.getElementById("chargeSliderText").innerHTML = value;
-  }
 
 
   d3.select("body").style("cursor", "default");
@@ -370,7 +347,7 @@ function ViewForce () {
   console.log("nodeInitialX: " + nodeInitialX + " | nodeInitialY: " + nodeInitialY);
 
 
-  this.getSessionsLength = function(){
+  this.getSessionsLength = function() {
     return sessions.length;
   }
 
@@ -623,63 +600,47 @@ function ViewForce () {
     .size([svgForceLayoutAreaWidth, svgForceLayoutAreaHeight])
     .on("tick", tick);
 
-  self.updateLinkstrength = function (value) {
-    console.log("updateLinkstrength: " + value + " | forceStopped: " + forceStopped);
-    // document.getElementById("linkstrengthSliderText").innerHTML = value.toFixed(3);
+  self.updateLinkStrength = function(value) {
+    console.log("updateLinkStrength: " + value + " | forceStopped: " + forceStopped);
     linkStrength = value;
     force.linkStrength(linkStrength);
     force.start();
   }
 
-  self.updateFriction = function (value) {
-    // document.getElementById("frictionSliderText").innerHTML = value.toFixed(3);
+  self.updateFriction = function(value) {
     friction = value;
     force.friction(friction);
     force.start();
   }
 
-  self.updateGravity = function (value) {
-    // document.getElementById("gravitySliderText").innerHTML = value.toFixed(3);
+  self.updateGravity = function(value) {
     gravity = value;
     force.gravity(gravity);
     force.start();
   }
 
-  self.updateCharge = function (value) {
-    // document.getElementById("chargeSliderText").innerHTML = value;
+  self.updateCharge = function(value) {
     charge = value;
     force.charge(charge);
     force.start();
   }
 
-  self.resetDefaultForce = function () {
+  self.resetDefaultForce = function() {
     console.log("RESET FORCE LAYOUT DEFAULTS");
     self.updateCharge(DEFAULT_CHARGE);
-    // setChargeSliderValue(DEFAULT_CHARGE);
     self.updateFriction(DEFAULT_FRICTION);
-    // setFrictionSliderValue(DEFAULT_FRICTION);
     self.updateGravity(DEFAULT_GRAVITY);
-    // setGravitySliderValue(DEFAULT_GRAVITY);
     self.updateLinkstrength(DEFAULT_LINK_STRENGTH);
-    // setLinkstrengthSliderValue(DEFAULT_LINK_STRENGTH);
   }
 
-
-
-  //=============================
-  // TICK
-  //=============================
-
-  var age;
 
   //================================
   // GET NODES FROM QUEUE
   //================================
 
-
+  var age;
   var nodeIndex = 0;
   var tempMentions;
-
   var numberSessionsUpdated = 0;
 
 
@@ -687,11 +648,9 @@ function ViewForce () {
 
     if (nodes.length === 0) {
       ageRate = DEFAULT_AGE_RATE;
-    }
-    else if (nodes.length > 100) {
+    } else if (nodes.length > 100) {
       ageRate = adjustedAgeRateScale(nodes.length - 100);
-    }
-    else {
+    } else {
       ageRate = DEFAULT_AGE_RATE;
     }
 
@@ -708,13 +667,11 @@ function ViewForce () {
 
       if (node.isDead) {
         deadNodesHash[node.nodeId] = 1;
-      }
-      else if (!node.isSessionNode && (age >= nodeMaxAge)) {
+      } else if (!node.isSessionNode && (age >= nodeMaxAge)) {
         node.isDead = true;
         deadNodesHash[node.nodeId] = 1;
         // console.log("XXX DEAD NODE " + node.nodeId);
-      }
-      else {
+      } else {
         node.ageUpdated = dateNow;
         node.age = age;
         // nodes[ageNodesIndex] = node;
@@ -732,8 +689,6 @@ function ViewForce () {
   }
 
   function processDeadLinksHash(callback) {
-
-    // if (Object.keys(deadLinksHash).length == 0) return(callback());
 
     force.stop();
     forceStopped = true;
@@ -1377,11 +1332,9 @@ function ViewForce () {
 
       if ((typeof currentLinkObject !== 'undefined') && currentLinkObject.isDead) {
         deadLinksHash[currentLinkObject.linkId] = 'DEAD';
-      }
-      else if ((typeof currentLinkObject !== 'undefined') && currentLinkObject.source.isDead) {
+      } else if ((typeof currentLinkObject !== 'undefined') && currentLinkObject.source.isDead) {
         deadLinksHash[currentLinkObject.linkId] = 'DEAD SOURCE';
-      }
-      else if ((typeof currentLinkObject !== 'undefined') && currentLinkObject.target.isDead) {
+      } else if ((typeof currentLinkObject !== 'undefined') && currentLinkObject.target.isDead) {
         deadLinksHash[currentLinkObject.linkId] = 'DEAD TARGET';
       }
       // } else if ((typeof currentLinkObject !== 'undefined') && !linkHashMap.has(currentLinkObject.linkId)) {
@@ -1389,15 +1342,12 @@ function ViewForce () {
       // } 
       else if (!nodeHashMap.has(currentLinkObject.source.nodeId)) {
         deadLinksHash[currentLinkObject.linkId] = 'UNDEFINED SOURCE';
-      }
-      else if (!nodeHashMap.has(currentLinkObject.target.nodeId)) {
+      } else if (!nodeHashMap.has(currentLinkObject.target.nodeId)) {
         deadLinksHash[currentLinkObject.linkId] = 'UNDEFINED TARGET';
-      }
-      else {
+      } else {
         if (currentLinkObject.source.age > currentLinkObject.target.age) {
           currentLinkObject.age = currentLinkObject.source.age;
-        }
-        else {
+        } else {
           currentLinkObject.age = currentLinkObject.target.age;
           links[ageLinksIndex] = currentLinkObject;
         }
@@ -1409,14 +1359,14 @@ function ViewForce () {
     }
   }
 
-  this.addSession = function (newSession) {
+  this.addSession = function(newSession) {
     // console.warn("addSession: " + newSession.sessionId);
     force.stop();
     forceStopped = true;
     sessions.push(newSession);
   }
 
-  this.deleteSessionLinks = function (sessionId) {
+  this.deleteSessionLinks = function(sessionId) {
     // console.log("deleteSessionLinks " + sessionId);
 
     var deletedSession;
@@ -1458,7 +1408,7 @@ function ViewForce () {
     }
   }
 
-  this.addNode = function (newNode) {
+  this.addNode = function(newNode) {
     // console.log("addNode\n" + jsonPrint(newNode));
     // console.warn("addNode: " + newNode.nodeId);
     force.stop();
@@ -1466,7 +1416,7 @@ function ViewForce () {
     nodes.push(newNode);
   }
 
-  this.deleteNode = function (nodeId) {
+  this.deleteNode = function(nodeId) {
     // console.log("deleteNode " + nodeId);
 
     force.stop();
@@ -1513,13 +1463,13 @@ function ViewForce () {
     }
   }
 
-  this.addLink = function (newLink) {
+  this.addLink = function(newLink) {
     force.stop();
     forceStopped = true;
     links.push(newLink);
   }
 
-  this.deleteLink = function (linkId) {
+  this.deleteLink = function(linkId) {
 
     force.stop();
     forceStopped = true;
@@ -1551,7 +1501,7 @@ function ViewForce () {
     });
   }
 
-  this.resize = function () {
+  this.resize = function() {
     console.log("RESIZE");
 
     if (window.innerWidth !== 'undefined') {
@@ -1604,7 +1554,7 @@ function ViewForce () {
   // ==========================================
   var testAddNodeInterval;
 
-  this.deleteRandomNode = function () {
+  this.deleteRandomNode = function() {
     if (nodes.length == 0) return;
     if ((nodes.length < 5) && (randomIntFromInterval(0, 100) < 80)) return;
     if (randomIntFromInterval(0, 100) < 5) return;
@@ -1615,7 +1565,7 @@ function ViewForce () {
     self.deleteNode(node.nodeId);
   }
 
-  this.addRandomNode = function () {
+  this.addRandomNode = function() {
 
     force.stop();
     forceStopped = true;
@@ -1657,7 +1607,7 @@ function ViewForce () {
 
   var testSessionIndex = 0;
 
-  this.addRandomLink = function () {
+  this.addRandomLink = function() {
 
     if (nodes.length < 2) {
       return;
@@ -1704,11 +1654,11 @@ function ViewForce () {
     self.addLink(newLink);
   }
 
-  this.clearTestAddNodeInterval = function () {
+  this.clearTestAddNodeInterval = function() {
     clearInterval(testAddNodeInterval);
   }
 
-  this.initTestAddNodeInterval = function (interval) {
+  this.initTestAddNodeInterval = function(interval) {
     clearInterval(testAddNodeInterval);
     testAddNodeInterval = setInterval(function() {
       self.addRandomNode();
@@ -1717,11 +1667,11 @@ function ViewForce () {
 
   var testAddLinkInterval;
 
-  this.clearTestAddLinkInterval = function () {
+  this.clearTestAddLinkInterval = function() {
     clearInterval(testAddLinkInterval);
   }
 
-  this.initTestAddLinkInterval = function (interval) {
+  this.initTestAddLinkInterval = function(interval) {
     clearInterval(testAddLinkInterval);
     testAddLinkInterval = setInterval(function() {
       if (nodes.length > 1) {
@@ -1732,11 +1682,11 @@ function ViewForce () {
 
   var testDeleteNodeInterval;
 
-  this.clearTestDeleteNodeInterval = function () {
+  this.clearTestDeleteNodeInterval = function() {
     clearInterval(testDeleteNodeInterval);
   }
 
-  this.initTestDeleteNodeInterval = function (interval) {
+  this.initTestDeleteNodeInterval = function(interval) {
     clearInterval(testDeleteNodeInterval);
     testDeleteNodeInterval = setInterval(function() {
       self.deleteRandomNode();

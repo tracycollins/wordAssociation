@@ -58,10 +58,10 @@ function ViewForce() {
 
   var defaultFadeDuration = 250;
 
-  var DEFAULT_CHARGE = -350;
-  var DEFAULT_GRAVITY = 0.05;
-  var DEFAULT_LINK_STRENGTH = 0.1;
-  var DEFAULT_FRICTION = 0.75;
+  // var DEFAULT_CHARGE = -350;
+  // var DEFAULT_GRAVITY = 0.05;
+  // var DEFAULT_LINK_STRENGTH = 0.1;
+  // var DEFAULT_FRICTION = 0.75;
 
   var DEFAULT_FORCE_CONFIG = {
     'charge': DEFAULT_CHARGE,
@@ -328,11 +328,9 @@ function ViewForce() {
     console.warn("SET NODE MAX AGE: " + nodeMaxAge);
   }
 
-
   this.getSession = function(index) {
     return sessions[index];
   }
-
 
   var maxNumberSessions = 0;
   var maxNumberNodes = 0;
@@ -351,87 +349,7 @@ function ViewForce() {
     return sessions.length;
   }
 
-  // this.displayControlOverlay = function (vis) {
-
-  //   var visible = "visible";
-
-  //   if (vis) {
-  //     visible = "visible";
-  //   }
-  //   else {
-  //     visible = "hidden";
-  //   }
-
-  //   d3.select("#sliderDiv").style("visibility", visible);
-
-  //   d3.select("#infoButton").style("visibility", visible);
-  //   d3.select("#statsToggleButton").style("visibility", visible);
-  //   d3.select("#fullscreenToggleButton").style("visibility", visible);
-  // }
-
-  // this.displayInfoOverlay = function (opacity, color) {
-
-  //   d3.select("#adminOverlay0").select("text").style("opacity", opacity);
-  //   d3.select("#adminOverlay1").select("text").style("opacity", opacity);
-  //   d3.select("#adminOverlay2").select("text").style("opacity", opacity);
-  //   d3.select("#adminOverlay3").select("text").style("opacity", opacity);
-
-  //   d3.select("#dateTimeOverlay").select("text").style("opacity", opacity);
-
-  //   d3.select("#statsOverlay1").style("opacity", opacity);
-  //   d3.select("#statsOverlay2").style("opacity", opacity);
-  //   d3.select("#statsOverlay3").style("opacity", opacity);
-  //   d3.select("#statsOverlay4").style("opacity", opacity);
-
-  //   if (color) {
-
-  //     console.log("displayInfoOverlay", opacity, color);
-
-  //     d3.select("#adminOverlay0").select("text").style("fill", color);
-  //     d3.select("#adminOverlay1").select("text").style("fill", color);
-  //     d3.select("#adminOverlay2").select("text").style("fill", color);
-  //     d3.select("#adminOverlay3").select("text").style("fill", color);
-
-  //     d3.select("#dateTimeOverlay").select("text").style("fill", color);
-
-  //     d3.select("#statsOverlay1").style("fill", color);
-  //     d3.select("#statsOverlay2").style("fill", color);
-  //     d3.select("#statsOverlay3").style("fill", color);
-  //     d3.select("#statsOverlay4").style("fill", color);
-  //   }
-  // }
-
-  // var mouseMoveTimeout = setTimeout(function() {
-  //   d3.select("body").style("cursor", "none");
-  //   // if (!showStatsFlag && !pageLoadedTimeIntervalFlag) {
-  //   //   self.displayInfoOverlay(1);
-  //   // }
-  //   // self.displayControlOverlay(true);
-  // }, mouseMoveTimeoutInterval);
-
-
-
-  // function resetMouseMoveTimer() {
-  //   clearTimeout(mouseMoveTimeout);
-
-  //   // self.displayInfoOverlay(1);
-  //   // self.displayControlOverlay(true);
-
-  //   mouseMoveTimeout = setTimeout(function() {
-  //     d3.select("body").style("cursor", "none");
-
-  //     // if (!showStatsFlag && !pageLoadedTimeIntervalFlag) {
-  //     //   self.displayInfoOverlay(1e-6);
-  //     //   self.displayControlOverlay(false);
-  //     // }
-
-  //     mouseMovingFlag = false;
-  //   }, mouseMoveTimeoutInterval);
-  // }
-
   function zoomHandler() {
-    // console.log("zoomHandler: TRANSLATE: " + d3.event.translate + " | SCALE: " + d3.event.scale);
-    // svgForceLayoutArea.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
     if (!mouseHoverFlag) {
       svgForceLayoutArea.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
     }
@@ -540,7 +458,6 @@ function ViewForce() {
       .attr("r", function(d) {
         return sessionCircleRadiusScale(d.wordChainIndex + 1);
       })
-      // .attr("r", function(d) { return d.r; })
       .attr("cx", function(d) {
         return d.x;
       })
@@ -586,7 +503,6 @@ function ViewForce() {
       .attr("y", function(d) {
         var shiftY = -10 - 1.1 * (defaultRadiusScale(d.mentions + 1));
         return d.y + shiftY;
-        // return d.y;
       });
   }
 
@@ -630,7 +546,7 @@ function ViewForce() {
     self.updateCharge(DEFAULT_CHARGE);
     self.updateFriction(DEFAULT_FRICTION);
     self.updateGravity(DEFAULT_GRAVITY);
-    self.updateLinkstrength(DEFAULT_LINK_STRENGTH);
+    self.updateLinkStrength(DEFAULT_LINK_STRENGTH);
   }
 
 

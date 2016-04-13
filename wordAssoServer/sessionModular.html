@@ -2,237 +2,236 @@
 <html>
 
 <head>
-    <meta charset="utf-8">
-    <link rel="stylesheet" href="css/base.css">
-    <link rel="stylesheet" href="css/main.css">
-    <link rel="icon" type="image/png" href="favicon.png" />
-    <style>
-    body {}
-    
-    td {
-        /*background-color:red;*/
-        /*border:1px solid gray;*/
-        /*opacity: 0.6;*/
-        /*text-align: left;*/
-        /*cursor:pointer;*/
-        /*color:#888888;*/
-        padding: 8px;
-    }
-    
-    table {
-        border-collapse: collapse;
-        border-spacing: 0
-    }
-    
-    p {
-        background: #222222;
-    }
-    /*  .enter {
-    fill: green;
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <style>
+  body {}
+  
+  td {
+    padding: 8px;
   }
-
-  .enter:hover {
+  
+  table {
+    border-collapse: collapse;
+    border-spacing: 0
+  }
+  
+  p {
+    background: #222222;
+  }
+  .updateBar:hover {
     fill: white;
     cursor: pointer;
   }
-*/
-    /*  .update {
-    fill: white;
+  
+  .exit {
+    fill: blue;
   }
-
-  .update:hover {
-    fill: white;
+  
+  #controlDiv {
+    background-color: #222222;
+    border: 1px solid #aaaaaa;
+    color: #cccccc;
+    margin: 20px;
+    padding: 10px;
+    overflow: hidden;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 10;
+  }
+  
+  #controlSliderDiv {
+    background-color: #222222;
+    border: 1px solid #aaaaaa;
+    color: #cccccc;
+    margin: 20px;
+    padding: 10px;
+    overflow: hidden;
+    position: absolute;
+    top: 0;
+    right: 0;
+    /*width: 30%;*/
+    z-index: 10;
+  }
+  
+  #sliderLabel {
+    color: #aaaaaa;
+  }
+  
+  #d3group {
+    background: #000000;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+  }
+  
+  #statsOverlay {
+    color: #aaaaaa;
+    overflow: hidden;
+  }
+  
+  #tweetText:hover {
+    color: #ff0000;
+    text-decoration: underline;
     cursor: pointer;
   }
-*/
-    
-    .updateBar:hover {
-        fill: white;
-        cursor: pointer;
-    }
-    /*  .updateNew {
-    fill: red;
-  }
-
-  .updateNew:hover {
-    fill: white;
+  
+  #userScreenName:hover {
+    color: #ff0000;
+    text-decoration: underline;
     cursor: pointer;
   }
-*/
-    
-    .exit {
-        fill: blue;
-    }
-    
-    #controlDiv {
-        background-color: #222222;
-        border: 1px solid #aaaaaa;
-        color: #cccccc;
-        /*text-align: center;*/
-        margin: 20px;
-        padding: 10px;
-        overflow: hidden;
-        position: absolute;
-        top: 0;
-        left: 0;
-        z-index: 10;
-    }
-    
-    #sliderDiv {
-        background-color: #222222;
-        border: 1px solid #aaaaaa;
-        color: #cccccc;
-        /*text-align: center;*/
-        margin: 20px;
-        padding: 10px;
-        overflow: hidden;
-        position: absolute;
-        top: 0;
-        left: 0;
-        z-index: 10;
-    }
-    
-    #sliderLabel {
-        color: #aaaaaa;
-    }
-    
-    #d3group {
-        background: #000000;
-        text-align: center;
-        margin: 0;
-        padding: 0;
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-        position: relative;
-    }
-    
-    #statsOverlay {
-        color: #aaaaaa;
-        overflow: hidden;
-    }
-    
-    #tweetText:hover {
-        color: #ff0000;
-        text-decoration: underline;
-        cursor: pointer;
-    }
-    
-    #userScreenName:hover {
-        color: #ff0000;
-        text-decoration: underline;
-        cursor: pointer;
-    }
-    
-    #mediaOverlay1:hover {
-        cursor: pointer;
-        overflow: hidden;
-    }
-    
-    .tooltip {
-        position: absolute;
-        text-align: left;
-        color: #aaaaaa;
-        padding: 1em;
-        font-size: 0.6em;
-        background: #333333;
-        border: 1px solid #aaaaaa;
-        pointer-events: none;
-    }
-    </style>
-    <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
-    <script src="node_modules/hashmap/hashmap.js"></script>
-    <script src="node_modules/async/lib/async.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/2.6.0/math.min.js" type="text/javascript"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.11.1/moment.min.js" type="text/javascript"></script>
-    <script data-main="session" src="js/require.js"></script>
+  
+  #mediaOverlay1:hover {
+    cursor: pointer;
+    overflow: hidden;
+  }
+  
+  .tooltip {
+    position: absolute;
+    text-align: left;
+    color: #aaaaaa;
+    padding: 1em;
+    font-size: 0.6em;
+    background: #333333;
+    border: 1px solid #aaaaaa;
+    pointer-events: none;
+  }
+  
+  input[type=range] {
+    -webkit-appearance: none;
+    margin: 18px 0;
+    width: 100%;
+  }
+  
+  input[type=range]:focus {
+    outline: none;
+  }
+  
+  input[type=range]::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 8.4px;
+    cursor: pointer;
+    animate: 0.2s;
+    box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+    background: #3071a9;
+    border-radius: 1.3px;
+    border: 0.2px solid #010101;
+  }
+  
+  input[type=range]::-webkit-slider-thumb {
+    box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+    border: 1px solid #000000;
+    height: 36px;
+    width: 16px;
+    border-radius: 3px;
+    background: #ffffff;
+    cursor: pointer;
+    -webkit-appearance: none;
+    margin-top: -14px;
+  }
+  
+  input[type=range]:focus::-webkit-slider-runnable-track {
+    background: #367ebd;
+  }
+  
+  input[type=range]::-moz-range-track {
+    width: 100%;
+    height: 8.4px;
+    cursor: pointer;
+    animate: 0.2s;
+    box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+    background: #3071a9;
+    border-radius: 1.3px;
+    border: 0.2px solid #010101;
+  }
+  
+  input[type=range]::-moz-range-thumb {
+    box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+    border: 1px solid #000000;
+    height: 36px;
+    width: 16px;
+    border-radius: 3px;
+    background: #ffffff;
+    cursor: pointer;
+  }
+  
+  input[type=range]::-ms-track {
+    width: 100%;
+    height: 8.4px;
+    cursor: pointer;
+    animate: 0.2s;
+    background: transparent;
+    border-color: transparent;
+    border-width: 16px 0;
+    color: transparent;
+  }
+  
+  input[type=range]::-ms-fill-lower {
+    background: #2a6495;
+    border: 0.2px solid #010101;
+    border-radius: 2.6px;
+    box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+  }
+  
+  input[type=range]::-ms-fill-upper {
+    background: #3071a9;
+    border: 0.2px solid #010101;
+    border-radius: 2.6px;
+    box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+  }
+  
+  input[type=range]::-ms-thumb {
+    box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+    border: 1px solid #000000;
+    height: 36px;
+    width: 16px;
+    border-radius: 3px;
+    background: #ffffff;
+    cursor: pointer;
+  }
+  
+  input[type=range]:focus::-ms-fill-lower {
+    background: #3071a9;
+  }
+  
+  input[type=range]:focus::-ms-fill-upper {
+    background: #367ebd;
+  }
+  </style>
+  <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+  <script src="node_modules/hashmap/hashmap.js"></script>
+  <script src="node_modules/async/lib/async.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/2.6.0/math.min.js" type="text/javascript"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.11.1/moment.min.js" type="text/javascript"></script>
+  <script data-main="session" src="js/require.js"></script>
 </head>
 
 <body style="overflow:hidden;">
-    <div id="d3group" style="overflow:hidden;"></div>
-    <div id="main" style="overflow:hidden;">
-        <div id='infoDiv'>
-        </div>
-        <div id='controlDiv'>
-            <table id='controlTable' class='controlTable'>
-                <thead id='controlTableHead'>
-                </thead>
-                <tbody id='controlTableBody'>
-                </tbody>
-            </table>
-        </div>
-<!--          <div id="sliderDiv">
-            <table id='sliderTable' class='sliderTable'>
-                <tr>
-                    <td>
-                        <button id="fullscreenToggleButton" class="button" onclick="toggleFullScreen()">toggle fullscreen</button>
-                    </td>
-                    <td>
-                        <button id="statsToggleButton" class="button" onclick="toggleStats()">toggle stats</button>
-                    </td>
-                    <td>
-                        <button id="resetDefaultForceButton" class="button" onclick="resetDefaultForce()">RESET</button>
-                    </td>
-                    <td>
-                        <button id="removeDeadNodeButton" class="button" onclick="toggleRemoveDeadNode()">REMOVE DEAD</button>
-                    </td>
-                    <td>
-                        <button id="addRandomNodeButton" class="button" onclick="addRandomNode()">NODE</button>
-                    </td>
-                    <td>
-                        <button id="addRandomLinkButton" class="button" onclick="addRandomLink()">LINK</button>
-                    </td>
-                    <td>
-                        <button id="testModeButton" class="button" onclick="toggleTestMode()">TEST</button>
-                    </td>
-                </tr>
-                <tr>
-                    <td></td>
-                </tr>
-                       <tr>
-          <td> 
-            <input id="chargeSlider" type="range" class="slider"  min="-1000" max="1000" oninput="updateCharge(this.value)"/>
-          </td>
-          <td > 
-            <p>CHARGE </p>
-          </td>
-          <td id="chargeSliderText" class="sliderSpan"></td>
-        </tr>
-
-        <tr>
-          <td> 
-            <input id="gravitySlider" type="range" class="slider"  min="-100" max="100" oninput="updateGravity(this.value/1000)"/>
-          </td>
-          <td> 
-            <p>GRAVITY </p>
-          </td>
-          <td id="gravitySliderText" class="sliderSpan"></td>
-        </tr>
-
-        <tr>
-          <td> 
-            <input id="frictionSlider" type="range" class="slider"  min="0" max="1000" oninput="updateFriction(this.value/1000)"/>
-          </td>
-          <td> 
-            <p>FRICTION </p>
-          </td>
-          <td id="frictionSliderText" class="sliderSpan"></td>
-        </tr>
-
-        <tr>
-          <td> 
-            <input id="linkstrengthSlider" type="range" class="slider"  min="0" max="1000" oninput="updateLinkstrength(this.value/1000)"/>
-          </td>
-          <td> 
-            <p>LINKSTRENGTH </p>
-          </td>
-          <td id="linkstrengthSliderText" class="sliderSpan"></td>
-        </tr>
-            </table>
-        </div>
+  <div id="d3group" style="overflow:hidden;"></div>
+  <div id="main" style="overflow:hidden;">
+    <div id='infoDiv'>
     </div>
- -->
-    <!-- <script src="js/libs/session.js" charset="utf-8"></script> -->
+    <div id='controlDiv'>
+      <table id='controlTable' class='controlTable'>
+        <thead id='controlTableHead'>
+        </thead>
+        <tbody id='controlTableBody'>
+        </tbody>
+      </table>
+      <br>
+    </div>
+    <div id='controlSliderDiv'>
+      <table id='controlSliderTable' class='sliderTable'>
+      </table>
+    </div>
 </body>
 
 </html>

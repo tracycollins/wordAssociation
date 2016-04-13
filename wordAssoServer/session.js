@@ -104,13 +104,13 @@ function displayControl(isVisible) {
   var v = 'hidden';
   if (isVisible) v = 'visible';
   document.getElementById('controlDiv').style.visibility = v;
+  document.getElementById('controlSliderDiv').style.visibility = v;
 }
 
 function displayInfo(isVisible) {
   var v = 'hidden';
   if (isVisible) v = 'visible';
   document.getElementById('infoDiv').style.visibility = v;
-
 }
 
 var mouseMoveTimeout;
@@ -185,6 +185,16 @@ function tableCreateRow(parentTable, options, cells) {
         buttonElement.setAttribute('onclick', content.onclick);
         buttonElement.innerHTML = content.text;
         td.appendChild(buttonElement);
+      } else if (content.type == 'SLIDER') {
+        var sliderElement = document.createElement("INPUT");
+        sliderElement.type = 'range';
+        sliderElement.className = content.class;
+        sliderElement.setAttribute('id', content.id);
+        sliderElement.setAttribute('min', content.min);
+        sliderElement.setAttribute('max', content.max);
+        sliderElement.setAttribute('oninput', content.oninput);
+        sliderElement.value = content.value;
+        td.appendChild(sliderElement);
       }
     });
   }
@@ -192,7 +202,33 @@ function tableCreateRow(parentTable, options, cells) {
 
 function reset() {
   console.error("*** RESET ***");
+  if (config.sessionViewType == 'force') currentSessionView.resetDefaultForce();
 }
+
+function setLinkstrengthSliderValue(value) {
+  document.getElementById("linkstrengthSlider").value = value * 1000;
+  currentSessionView.updateLinkStrength(value);
+  // document.getElementById("linkstrengthSliderText").innerHTML = value.toFixed(3);
+}
+
+function setFrictionSliderValue(value) {
+  document.getElementById("frictionSlider").value = value * 1000;
+  currentSessionView.updateFriction(value);
+  // document.getElementById("frictionSliderText").innerHTML = value.toFixed(3);
+}
+
+function setGravitySliderValue(value) {
+  document.getElementById("gravitySlider").value = value * 1000;
+  currentSessionView.updateGravity(value);
+  // document.getElementById("gravitySliderText").innerHTML = value.toFixed(3);
+}
+
+function setChargeSliderValue(value) {
+  document.getElementById("chargeSlider").value = value;
+  currentSessionView.updateCharge(value);
+  // document.getElementById("chargeSliderText").innerHTML = value;
+}
+
 
 function updateControlPanel() {
   if (showStatsFlag) {
@@ -282,15 +318,61 @@ function createControlPanel(sessionViewType) {
     text: 'NODE'
   }
 
+  var chargeSlider = {
+    type: 'SLIDER',
+    id: 'chargeSlider',
+    class: 'slider',
+    oninput: 'setChargeSliderValue(this.value)',
+    min: -1000,
+    max: 1000,
+    value: -300,
+  }
+
+  var gravitySlider = {
+    type: 'SLIDER',
+    id: 'gravitySlider',
+    class: 'slider',
+    oninput: 'setGravitySliderValue(this.value/1000)',
+    min: -100,
+    max: 100,
+    value: 50,
+  }
+
+  var frictionSlider = {
+    type: 'SLIDER',
+    id: 'frictionSlider',
+    class: 'slider',
+    oninput: 'setFrictionSliderValue(this.value/1000)',
+    min: 0,
+    max: 1000,
+    value: 300,
+  }
+
+  var linkstrengthSlider = {
+    type: 'SLIDER',
+    id: 'linkstrengthSlider',
+    class: 'slider',
+    oninput: 'setLinkstrengthSliderValue(this.value/1000)',
+    min: 0,
+    max: 1000,
+    value: 747,
+  }
+
   switch (sessionViewType) {
     case 'force':
       // tableCreateRow(controlTableHead, optionsHead, ['FORCE VIEW CONROL TABLE']);
       // tableCreateRow(controlTableBody, optionsBody, ['FULLSCREEN', 'STATS', 'TEST', 'RESET', 'NODE', 'LINK']);
-      tableCreateRow(controlTableBody, optionsBody, [fullscreenButton, statsButton, testModeButton, resetButton, nodeCreateButton, removeDeadNodeButton]);
+      tableCreateRow(controlTableBody, optionsBody, [fullscreenButton, statsButton, testModeButton, nodeCreateButton, removeDeadNodeButton]);
+      tableCreateRow(controlSliderTable, optionsBody, [resetButton]);
+      tableCreateRow(controlSliderTable, optionsBody, ['CHARGE', chargeSlider]);
+      tableCreateRow(controlSliderTable, optionsBody, ['GRAVITY', gravitySlider]);
+      tableCreateRow(controlSliderTable, optionsBody, ['FRICTION', frictionSlider]);
+      tableCreateRow(controlSliderTable, optionsBody, ['LINK STRENGTH', linkstrengthSlider]);
       break;
     case 'histogram':
       // tableCreateRow(controlTableHead, optionsHead, ['HISTOGRAM VIEW CONROL TABLE']);
       tableCreateRow(controlTableBody, optionsBody, [fullscreenButton, statsButton, testModeButton, resetButton, nodeCreateButton, removeDeadNodeButton]);
+
       break;
     default:
       // tableCreateRow(controlTableHead, optionsHead, ['CONROL TABLE HEAD']);

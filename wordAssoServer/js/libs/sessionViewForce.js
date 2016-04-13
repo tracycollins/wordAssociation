@@ -34,10 +34,8 @@ function ViewForce() {
   var minSessionNodeOpacity = 0.2;
 
   var mouseFreezeEnabled = true;
-  // var mouseMovingFlag = false;
   var mouseHoverFlag = false;
   var mouseOverRadius = 10;
-  // var mouseMoveTimeoutInterval = 1000;
   var mouseHoverNodeId;
 
 
@@ -45,7 +43,6 @@ function ViewForce() {
 
   var showStatsFlag = false;
 
-  // var nodeMaxAge = window.DEFAULT_MAX_AGE;
   var nodeMaxAge = 10000;
 
   var DEFAULT_CONFIG = {
@@ -57,11 +54,6 @@ function ViewForce() {
   var defaultTextFill = "#888888";
 
   var defaultFadeDuration = 250;
-
-  // var DEFAULT_CHARGE = -350;
-  // var DEFAULT_GRAVITY = 0.05;
-  // var DEFAULT_LINK_STRENGTH = 0.1;
-  // var DEFAULT_FRICTION = 0.75;
 
   var DEFAULT_FORCE_CONFIG = {
     'charge': DEFAULT_CHARGE,
@@ -141,12 +133,11 @@ function ViewForce() {
   var DEFAULT_DATE_TIME_OVERLAY_X = 0.95;
   var DEFAULT_DATE_TIME_OVERLAY_Y = 0.04;
 
-  var createSessionNodeLinkReady = true;
-
   var forceStopped = true;
 
   var createNodeQueue = [];
   var createLinkQueue = [];
+  // var nodeDeleteQueue = [];
 
   var deadNodesHash = {};
   var deadLinksHash = {};
@@ -157,8 +148,6 @@ function ViewForce() {
   var mouseHoverFlag = false;
   var mouseHoverNodeId;
 
-
-
   var translate = [0, 0];
 
   var zoomWidth = (width - currentScale * width) / 2;
@@ -166,9 +155,6 @@ function ViewForce() {
 
   var d3LayoutWidth = width * D3_LAYOUT_WIDTH_RATIO;
   var d3LayoutHeight = height * D3_LAYOUT_HEIGHT_RATIO;
-
-  // var radiusX = 0.4 * width;
-  // var radiusY = 0.4 * height;
 
   console.log("width: " + width + " | height: " + height);
 
@@ -409,7 +395,6 @@ function ViewForce() {
     nodeSvgGroup.selectAll('#' + d.nodeId).attr("transform", "translate(" + dX + "," + dY + ")");
     sessionGnode.select('#' + d.nodeId).attr("transform", "translate(" + dX + "," + dY + ")");
     sessionCircles.select('#' + d.userId).attr("transform", "translate(" + dX + "," + dY + ")");
-    // sessionSvgGroup.selectAll('#' + d.nodeId).attr("transform", "translate(" + dX + "," + dY + ")");
     sessionLabelSvgGroup.select('#' + d.nodeId).attr("transform", "translate(" + dX + "," + dY + ")");
 
     // console.log("dragmove\n" + d.sessionId +  " | " + d.nodeId + " | currentScale: " + currentScale + " x: " + x + " y: " + y);
@@ -549,7 +534,6 @@ function ViewForce() {
     self.updateLinkStrength(DEFAULT_LINK_STRENGTH);
   }
 
-
   //================================
   // GET NODES FROM QUEUE
   //================================
@@ -562,8 +546,13 @@ function ViewForce() {
 
   function ageNodes(callback) {
 
+    // console.log("ageNodes: " + nodes.length);
+    var numDeadNodes = Object.keys(deadNodesHash);
+    // console.log("deadNodesHash: " + numDeadNodes.length);
+
     if (nodes.length === 0) {
       ageRate = DEFAULT_AGE_RATE;
+      return (callback());
     } else if (nodes.length > 100) {
       ageRate = adjustedAgeRateScale(nodes.length - 100);
     } else {
@@ -574,6 +563,7 @@ function ViewForce() {
 
     var ageNodesLength = nodes.length - 1;
     var ageNodesIndex = nodes.length - 1;
+    var dateNow = moment().valueOf();
 
     for (ageNodesIndex = ageNodesLength; ageNodesIndex >= 0; ageNodesIndex -= 1) {
 
@@ -584,13 +574,16 @@ function ViewForce() {
       if (node.isDead) {
         deadNodesHash[node.nodeId] = 1;
       } else if (!node.isSessionNode && (age >= nodeMaxAge)) {
+        node.ageUpdated = dateNow;
+        node.age = age;
         node.isDead = true;
+        nodes[ageNodesIndex] = node;
         deadNodesHash[node.nodeId] = 1;
-        // console.log("XXX DEAD NODE " + node.nodeId);
+        console.log("XXX DEAD NODE " + node.nodeId);
       } else {
         node.ageUpdated = dateNow;
         node.age = age;
-        // nodes[ageNodesIndex] = node;
+        nodes[ageNodesIndex] = node;
       }
     }
 
@@ -599,10 +592,7 @@ function ViewForce() {
     }
   }
 
-
-  function initDeadNodesInterval(interval) {
-
-  }
+  function initDeadNodesInterval(interval) {}
 
   function processDeadLinksHash(callback) {
 
@@ -617,6 +607,7 @@ function ViewForce() {
       link = links[ageLinksIndex];
       if (deadLinksHash[link.linkId]) {
         links.splice(ageLinksIndex, 1);
+        force.links(links);
         // console.log("XXX LINK"
         //   + " | " + link.linkId
         //   + " | " + link.source.nodeId
@@ -628,21 +619,21 @@ function ViewForce() {
       }
     }
 
-    if (ageLinksIndex < 0) {
+    if ((links.length == 0) || (ageLinksIndex < 0)) {
       callback();
     }
-
   }
 
   function processDeadNodesHash(callback) {
-
-    // if (nodes.length == 0) return(callback());
 
     if (Object.keys(deadNodesHash).length == 0) {
       // console.warn("NO DEAD NODES");
       return (callback());
     }
-    // console.error("processDeadNodesHash\n" + jsonPrint(deadNodesHash));
+
+    var deadNodeIds = Object.keys(deadNodesHash);
+
+    // console.error("processDeadNodesHash\n" + jsonPrint(deadNodeIds));
 
     force.stop();
     forceStopped = true;
@@ -656,15 +647,16 @@ function ViewForce() {
       if (deadNodesHash[node.nodeId]) {
         nodeDeleteQueue.push(node.nodeId);
         nodes.splice(ageNodesIndex, 1);
+        force.nodes(nodes);
         delete deadNodesHash[node.nodeId];
-        // console.log("XXX NODE: " + node.nodeId);
+        console.log("XXX NODE: " + node.nodeId);
       }
+      deadNodeIds = Object.keys(deadNodesHash);
     }
 
-    if (ageNodesIndex < 0) {
+    if ((nodes.length == 0) || (deadNodeIds.length == 0) || (ageNodesIndex < 0)) {
       return (callback());
     }
-
   }
 
 
@@ -741,12 +733,13 @@ function ViewForce() {
       });
 
     link.enter()
-      // .append("svg:line", "g.node")
       .append("svg:line")
       .attr("class", "link")
       .attr("id", function(d) {
-        // console.log("LINK ENTER " + d.linkId);
         return d.linkId;
+      })
+      .attr("sessionId", function(d) {
+        return d.sessionId;
       })
       .attr("sourceNodeId", function(d) {
         return d.source.nodeId;
@@ -768,10 +761,6 @@ function ViewForce() {
     link
       .exit()
       .remove();
-    // .transition()
-    //   .duration(defaultFadeDuration)      
-    //   .style("opacity", 1e-6)
-
 
     return (callback(null, "updateLinks"));
   }
@@ -804,6 +793,9 @@ function ViewForce() {
       .append("svg:circle")
       .attr("id", function(d) {
         return d.nodeId;
+      })
+      .attr("sessionId", function(d) {
+        return d.sessionId;
       })
       .attr("class", "sessionCircle")
       .attr("x", function(d) {
@@ -844,10 +836,6 @@ function ViewForce() {
 
     sessionCircles
       .exit()
-      // .transition()
-      //   .duration(defaultFadeDuration)
-      //   .attr("r", 0.5)
-      //   .style("opacity", 1e-6)
       .remove();
 
 
@@ -895,9 +883,6 @@ function ViewForce() {
 
     sessionLabels
       .exit().remove();
-    // .transition()
-    //   .duration(defaultFadeDuration)      
-    //   .style("opacity", 1e-6)
 
 
     return (callback(null, "updateSessionCircles"));
@@ -935,6 +920,9 @@ function ViewForce() {
       .attr("id", function(d) {
         return d.nodeId;
       })
+      .attr("sessionId", function(d) {
+        return d.sessionId;
+      })
       .attr("x", function(d) {
         return d.x;
       })
@@ -951,7 +939,6 @@ function ViewForce() {
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)
       .on("dblclick", nodeClick)
-      // .call(force.drag)
       .attr("r", function(d) {
         return defaultRadiusScale(d.mentions + 1);
       })
@@ -965,16 +952,10 @@ function ViewForce() {
       .transition()
       .duration(defaultFadeDuration)
       .style("fill", "#ffffff")
-      // .attr("r", function(d) { 
-      //   return defaultRadiusScale(d.mentions + 1); 
-      // })
       .style('opacity', 1.0);
 
     nodeCircles
       .exit().remove();
-    // .transition()
-    //   .duration(defaultFadeDuration)      
-    //   .style('opacity', 1e-6);
 
     return (callback(null, "updateNodeCircles"));
   }
@@ -1013,6 +994,9 @@ function ViewForce() {
       })
       .attr("nodeId", function(d) {
         return d.nodeId;
+      })
+      .attr("sessionId", function(d) {
+        return d.sessionId;
       })
       .text(function(d) {
         if (d.isSessionNode) return d.wordChainIndex;
@@ -1081,21 +1065,6 @@ function ViewForce() {
   }
 
   function nodeMouseOver(d) {
-
-    // console.warn("MOUSE OVER"
-    //   // + "\n" + jsonPrint(d)
-    // );
-
-    // if (d.links) {
-    //   var linkNodeIds = Object.keys(d.links);
-
-    //   linkNodeIds.forEach(function(nId){
-    //     var cNode = nodeHashMap.get(nId);
-    //     console.log("CONNECTED NODES | " + d.nodeId
-    //       + "\n" + jsonPrint(cNode)
-    //       );
-    //   });
-    // }
 
     mouseHoverFlag = true;
     mouseHoverNodeId = d.nodeId;
@@ -1252,11 +1221,7 @@ function ViewForce() {
         deadLinksHash[currentLinkObject.linkId] = 'DEAD SOURCE';
       } else if ((typeof currentLinkObject !== 'undefined') && currentLinkObject.target.isDead) {
         deadLinksHash[currentLinkObject.linkId] = 'DEAD TARGET';
-      }
-      // } else if ((typeof currentLinkObject !== 'undefined') && !linkHashMap.has(currentLinkObject.linkId)) {
-      //     deadLinksHash[currentLinkObject.linkId] = 1;
-      // } 
-      else if (!nodeHashMap.has(currentLinkObject.source.nodeId)) {
+      } else if (!nodeHashMap.has(currentLinkObject.source.nodeId)) {
         deadLinksHash[currentLinkObject.linkId] = 'UNDEFINED SOURCE';
       } else if (!nodeHashMap.has(currentLinkObject.target.nodeId)) {
         deadLinksHash[currentLinkObject.linkId] = 'UNDEFINED TARGET';
@@ -1270,7 +1235,7 @@ function ViewForce() {
       }
     }
 
-    if (ageLinksIndex < 0) {
+    if ((links.length == 0) || (ageLinksIndex < 0)) {
       return (callback(null, null));
     }
   }
@@ -1326,10 +1291,11 @@ function ViewForce() {
 
   this.addNode = function(newNode) {
     // console.log("addNode\n" + jsonPrint(newNode));
-    // console.warn("addNode: " + newNode.nodeId);
+    console.warn("addNode" + " | NID: " + newNode.nodeId + " | SID: " + newNode.sessionId + " | UID: " + newNode.userId);
     force.stop();
     forceStopped = true;
     nodes.push(newNode);
+    force.nodes(nodes);
   }
 
   this.deleteNode = function(nodeId) {
@@ -1366,6 +1332,7 @@ function ViewForce() {
 
         if (linkIndex < 0) {
           nodes.splice(nodeIndex, 1);
+          force.nodes(nodes);
           // console.error("slice nodes: nodeIndex " + nodeIndex + "\n"  + jsonPrint(nodes));
 
           return;
@@ -1374,15 +1341,24 @@ function ViewForce() {
     }
     if ((nodeIndex < 0) && (linkIndex < 0)) {
       nodes.splice(nodeIndex, 1);
+      force.nodes(nodes);
       console.error("XXX NODE NOT FOUND ??? " + nodeId);
       return;
     }
   }
 
   this.addLink = function(newLink) {
+    console.warn("addLink" 
+      + " | LID: " + newLink.linkId 
+      + " | SID: " + newLink.sessionId 
+      + " | UID: " + newLink.userId
+      + " | " + newLink.source.nodeId
+      + " > " + newLink.target.nodeId
+      );
     force.stop();
     forceStopped = true;
     links.push(newLink);
+    force.links(links);
   }
 
   this.deleteLink = function(linkId) {
@@ -1398,6 +1374,7 @@ function ViewForce() {
       if (linkId == links[linkIndex].linkId) {
         // console.log("XXX LINK " + linkId);
         links.splice(linkIndex, 1);
+        force.links(links);
         return;
       }
     }
@@ -1610,135 +1587,30 @@ function ViewForce() {
   }
 
 
+  self.reset = function() {
+    console.error("RESET");
+    force.stop();
+    forceStopped = true;
+    nodes = [];
+    links = [];
+    createNodeQueue = [];
+    createLinkQueue = [];
 
-  // var divTooltip = d3.select("body").append("div")
-  //   .attr("class", "tooltip")
-  //   .style("opacity", 1e-6);
+    deadNodesHash = {};
+    deadLinksHash = {};
 
-  // var dateTimeOverlay = svgcanvas.append("svg:g")
-  //   .attr("class", "admin")
-  //   .attr("id", "dateTimeOverlay")
-  //   .append("text")
-  //   .text("../../..  --:--:--")
-  //   .attr("x", DATE_TIME_OVERLAY_X)
-  //   .attr("y", DATE_TIME_OVERLAY_Y)
-  //   .style("opacity", 1e-6)
-  //   .style("font-size", "1.4vmin")
-  //   .style("text-anchor", "end")
-  //   .style("fill", defaultTextFill);
-
-  // var statsOverlay1 = svgcanvas.append("svg:g") // user screenname
-  //   .attr("id", "statsOverlay1")
-  //   .attr("class", "statsOverlay")
-  //   .append("svg:a")
-  //   .attr("id", "userUrl")
-  //   .attr("xlink:show", "new")
-  //   .attr("xlink:href", "http://word.threeceemedia.com/")
-  //   .attr("x", STATS_OVERLAY1_X)
-  //   .attr("y", STATS_OVERLAY1_Y)
-  //   .append("text")
-  //   .attr("id", "userScreenName")
-  //   .attr("class", "userScreenName")
-  //   .text("word association")
-  //   .style("opacity", 0.8)
-  //   .style("font-size", "1.4vmin")
-  //   .style("fill", palette.blue);
-
-  // var statsOverlay2 = svgcanvas.append("svg:g") // tweet createdAt
-  //   .attr("id", "statsOverlay2")
-  //   .attr("class", "statsOverlay")
-  //   .append("text")
-  //   .attr("id", "tweetCreatedAt")
-  //   .text("threecee")
-  //   .attr("x", STATS_OVERLAY2_X)
-  //   .attr("y", STATS_OVERLAY2_Y)
-  //   .style("opacity", 0.8)
-  //   .style("font-size", "1.4vmin")
-  //   .style("fill", palette.blue);
-
-  // var statsOverlay3 = svgcanvas.append("svg:g") // tweet text
-  //   .attr("id", "statsOverlay3")
-  //   .attr("class", "statsOverlay")
-  //   .append("svg:a")
-  //   .attr("id", "tweetUrl")
-  //   .attr("class", "tweetUrl")
-  //   .attr("xlink:show", "new")
-  //   .attr("xlink:href", "http://threeceemedia.com")
-  //   .attr("x", STATS_OVERLAY3_X)
-  //   .attr("y", STATS_OVERLAY3_Y)
-  //   .append("text")
-  //   .attr("id", "tweetText")
-  //   .attr("class", "tweetText")
-  //   .text("threeceemedia.com")
-  //   .style("opacity", 0.8)
-  //   .style("font-size", "1.4vmin")
-  //   .style("fill", palette.blue);
-
-  // var statsOverlay4 = svgcanvas.append("svg:g") // tweet text
-  //   .attr("id", "statsOverlay4")
-  //   .attr("class", "statsOverlay")
-  //   .append("svg:a")
-  //   .attr("id", "sessionId")
-  //   .attr("x", STATS_OVERLAY4_X)
-  //   .attr("y", STATS_OVERLAY4_Y)
-  //   .append("text")
-  //   .attr("id", "sessionIdText")
-  //   .attr("class", "sessionIdText")
-  //   .text("SESSION ID")
-  //   .style("opacity", 0.8)
-  //   .style("font-size", "1.4vmin")
-  //   .style("fill", palette.gray);
-
-  // var adminOverlay0 = svgcanvas.append("svg:g")
-  //   .attr("class", "admin")
-  //   .attr("id", "adminOverlay0")
-  //   .append("text")
-  //   .attr("id", "heartBeat")
-  //   .text("...")
-  //   .attr("x", ADMIN_OVERLAY0_X)
-  //   .attr("y", ADMIN_OVERLAY0_Y)
-  //   .style("text-anchor", "end")
-  //   .style("opacity", 1e-6)
-  //   .style("font-size", "1.4vmin")
-  //   .style("fill", defaultTextFill);
-
-  // var adminOverlay1 = svgcanvas.append("svg:g")
-  //   .attr("class", "admin")
-  //   .attr("id", "adminOverlay1")
-  //   .append("text")
-  //   .attr("id", "heartBeat")
-  //   .text("...")
-  //   .attr("x", ADMIN_OVERLAY1_X)
-  //   .attr("y", ADMIN_OVERLAY1_Y)
-  //   .style("text-anchor", "end")
-  //   .style("opacity", 1e-6)
-  //   .style("font-size", "1.4vmin")
-  //   .style("fill", defaultTextFill);
-
-  // var adminOverlay2 = svgcanvas.append("svg:g")
-  //   .attr("class", "admin")
-  //   .attr("id", "adminOverlay2")
-  //   .append("text")
-  //   .attr("id", "heartBeat")
-  //   .text("...")
-  //   .attr("x", ADMIN_OVERLAY2_X)
-  //   .attr("y", ADMIN_OVERLAY2_Y)
-  //   .style("text-anchor", "end")
-  //   .style("opacity", 1e-6)
-  //   .style("font-size", "1.4vmin")
-  //   .style("fill", defaultTextFill);
-
-  // var adminOverlay3 = svgcanvas.append("svg:g")
-  //   .attr("class", "admin")
-  //   .attr("id", "adminOverlay3")
-  //   .append("text")
-  //   .attr("id", "heartBeat")
-  //   .text("LOCAL TIME: " + getTimeStamp())
-  //   .attr("x", ADMIN_OVERLAY3_X)
-  //   .attr("y", ADMIN_OVERLAY3_Y)
-  //   .style("text-anchor", "end")
-  //   .style("opacity", 1e-6)
-  //   .style("font-size", "1.4vmin")
-  //   .style("fill", defaultTextFill);
+    newNodes = [];
+    newLinks = [];
+    resetMouseMoveTimer();
+    mouseMovingFlag = false;
+    self.resize();
+    self.resetDefaultForce();
+    force.nodes(nodes);
+    force.links(links);
+    force.start;
+    forceStopped = false;
+    ageNodesReady = true;
+    updateForceDisplayReady = true;
+  }
 
 }

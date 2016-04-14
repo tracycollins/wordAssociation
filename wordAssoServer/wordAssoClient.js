@@ -457,28 +457,28 @@ var autoResponseWord = "testing";
 
 socket.on("SESSION_ABORT", function(socketId){
 
-  console.log("**** RX SESSION_ABORT: " + socketId);
+  console.error("**** RX SESSION_ABORT: " + socketId);
 
   var serverPromptDiv = document.getElementById("serverPromptDiv");
   var serverPromptLabel = document.getElementById("serverPromptLabel");
   var serverPromptOutput = document.getElementById("serverPromptOutput");
 
-  serverPromptDiv.removeChild(serverPromptOutput);
-  serverPromptDiv.removeChild(serverPromptLabel);
+  if (serverPromptOutput) serverPromptDiv.removeChild(serverPromptOutput);
+  if (serverPromptLabel) serverPromptDiv.removeChild(serverPromptLabel);
 
   var userResponseStreamDiv = document.getElementById("userResponseStreamDiv");
   var userResponseStreamLabel = document.getElementById("userResponseStreamLabel");
   var userResponseStreamInput = document.getElementById("userResponseStreamInput");
 
-  userResponseStreamDiv.removeChild(userResponseStreamLabel);
-  userResponseStreamDiv.removeChild(userResponseStreamInput);
+  if (userResponseStreamLabel) userResponseStreamDiv.removeChild(userResponseStreamLabel);
+  if (userResponseStreamInput) userResponseStreamDiv.removeChild(userResponseStreamInput);
 
   var userResponseDiv = document.getElementById("userResponseDiv");
   var userResponseLabel = document.getElementById("userResponseLabel");
   var userResponseInput = document.getElementById("userResponseInput");
 
-  userResponseDiv.removeChild(userResponseLabel);
-  userResponseDiv.removeChild(userResponseInput);
+  if (userResponseLabel) userResponseDiv.removeChild(userResponseLabel);
+  if (userResponseInput) userResponseDiv.removeChild(userResponseInput);
 
   socketIdLabel.innerHTML = '<bold>*** SESSION EXPIRED ***</bold>'  + '<br><br>' + 'REFRESH BROWSER TO RECONNECT' + '<br><br>EXPIRED SESSION: ' + socket.id; 
 
@@ -486,28 +486,28 @@ socket.on("SESSION_ABORT", function(socketId){
 });
 
 socket.on("SESSION_EXPIRED", function(reason){
-  console.log("**** RX SESSION_EXPIRED: " + reason);
+  console.error("**** RX SESSION_EXPIRED: " + reason);
 
   var serverPromptDiv = document.getElementById("serverPromptDiv");
   var serverPromptLabel = document.getElementById("serverPromptLabel");
   var serverPromptOutput = document.getElementById("serverPromptOutput");
 
-  serverPromptDiv.removeChild(serverPromptOutput);
-  serverPromptDiv.removeChild(serverPromptLabel);
+  if (serverPromptOutput) serverPromptDiv.removeChild(serverPromptOutput);
+  if (serverPromptLabel) serverPromptDiv.removeChild(serverPromptLabel);
 
   var userResponseStreamDiv = document.getElementById("userResponseStreamDiv");
   var userResponseStreamLabel = document.getElementById("userResponseStreamLabel");
   var userResponseStreamInput = document.getElementById("userResponseStreamInput");
 
-  userResponseStreamDiv.removeChild(userResponseStreamLabel);
-  userResponseStreamDiv.removeChild(userResponseStreamInput);
+  if (userResponseStreamLabel) userResponseStreamDiv.removeChild(userResponseStreamLabel);
+  if (userResponseStreamInput) userResponseStreamDiv.removeChild(userResponseStreamInput);
 
   var userResponseDiv = document.getElementById("userResponseDiv");
   var userResponseLabel = document.getElementById("userResponseLabel");
   var userResponseInput = document.getElementById("userResponseInput");
 
-  userResponseDiv.removeChild(userResponseInput);
-  userResponseDiv.removeChild(userResponseLabel);
+  if (userResponseInput) userResponseDiv.removeChild(userResponseInput);
+  if (userResponseLabel) userResponseDiv.removeChild(userResponseLabel);
 
   socketIdLabel.innerHTML = '<bold>*** SESSION EXPIRED ***</bold>'  + '<br><br>' + 'REFRESH BROWSER TO RECONNECT' + '<br><br>EXPIRED SESSION: ' + socket.id; 
 
@@ -595,7 +595,7 @@ socket.on('reconnect', function(){
 
 socket.on('disconnect', function(){
   connectedFlag = false;
-  console.log("*** DISCONNECTED FROM HOST | SOCKET ID: " + socketId);
+  console.error("*** DISCONNECTED FROM HOST | SOCKET ID: " + socketId);
   socketIdLabel.style.color = "red";
   socketIdLabel.innerHTML = "SERVER DISCONNECTED";   
   socketIdDiv.appendChild(socketIdLabel);

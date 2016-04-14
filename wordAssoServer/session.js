@@ -1462,6 +1462,7 @@ var createLink = function(callback) {
 
     var sourceWordId = session.source.nodeId;
     var sourceWord = nodeHashMap.get(sourceWordId);
+    if (typeof sourceWord.links === 'undefined') sourceWord.links = {};
     sourceWord.links[sessionId] = 1;
 
     var newLink;

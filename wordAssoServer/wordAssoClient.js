@@ -440,7 +440,9 @@ function setSessionMode(mode){
     break;
   }
 
-  // socket.emit("USER_READY", userObj);
+  socket.emit("USER_READY", userObj);
+  console.log("TX USER READY\nuserObj\n" + jsonPrint(userObj));
+  transmitDataQueue.push(userObj.userId);
 }
 
 

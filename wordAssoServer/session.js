@@ -958,6 +958,7 @@ socket.on("CONFIG_CHANGE", function(rxConfig) {
 });
 
 socket.on("SESSION_ABORT", function(rxSessionObject) {
+    console.error("RX SESSION_ABORT" + " | " + rxSessionObject.sessionId + " | " + rxSessionObject.sessionEvent);
   if (rxSessionObject.sessionId == socket.id) {
     console.error("SESSION_ABORT" + " | " + rxSessionObject.sessionId + " | " + rxSessionObject.sessionEvent);
     serverConnected = false;

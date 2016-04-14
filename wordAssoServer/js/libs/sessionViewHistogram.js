@@ -314,48 +314,13 @@ function ViewHistogram() {
       visible = "hidden";
     }
 
-    // d3.select("#sliderDiv").style("visibility", visible);
-
   }
 
-  // this.displayInfoOverlay = function(opacity, color) {
 
-
-  //   d3.select("#adminOverlay0").select("text").style("opacity", opacity);
-  //   d3.select("#adminOverlay1").select("text").style("opacity", opacity);
-  //   d3.select("#adminOverlay2").select("text").style("opacity", opacity);
-  //   d3.select("#adminOverlay3").select("text").style("opacity", opacity);
-
-  //   d3.select("#dateTimeOverlay").select("text").style("opacity", opacity);
-
-  //   d3.select("#statsOverlay1").style("opacity", opacity);
-  //   d3.select("#statsOverlay2").style("opacity", opacity);
-  //   d3.select("#statsOverlay3").style("opacity", opacity);
-  //   d3.select("#statsOverlay4").style("opacity", opacity);
-
-  //   if (color) {
-
-  //     console.log("displayInfoOverlay", opacity, color);
-
-  //     d3.select("#adminOverlay0").select("text").style("fill", color);
-  //     d3.select("#adminOverlay1").select("text").style("fill", color);
-  //     d3.select("#adminOverlay2").select("text").style("fill", color);
-  //     d3.select("#adminOverlay3").select("text").style("fill", color);
-
-  //     d3.select("#dateTimeOverlay").select("text").style("fill", color);
-
-  //     d3.select("#statsOverlay1").style("fill", color);
-  //     d3.select("#statsOverlay2").style("fill", color);
-  //     d3.select("#statsOverlay3").style("fill", color);
-  //     d3.select("#statsOverlay4").style("fill", color);
-  //   }
-  // }
 
   var mouseMoveTimeout = setTimeout(function() {
     d3.select("body").style("cursor", "none");
     if (!showStatsFlag && !pageLoadedTimeIntervalFlag) {
-      // self.displayInfoOverlay(1e-6);
-      // self.displayControlOverlay(false);
     }
   }, mouseMoveTimeoutInterval);
 
@@ -364,15 +329,11 @@ function ViewHistogram() {
   function resetMouseMoveTimer() {
     clearTimeout(mouseMoveTimeout);
 
-    // self.displayInfoOverlay(1);
-    // self.displayControlOverlay(true);
 
     mouseMoveTimeout = setTimeout(function() {
       d3.select("body").style("cursor", "none");
 
       if (!showStatsFlag && !pageLoadedTimeIntervalFlag) {
-        // self.displayInfoOverlay(1e-6);
-        // self.displayControlOverlay(false);
       }
 
       mouseMovingFlag = false;
@@ -380,8 +341,6 @@ function ViewHistogram() {
   }
 
   function zoomHandler() {
-    // console.log("zoomHandler: TRANSLATE: " + d3.event.translate + " | SCALE: " + d3.event.scale);
-    // svgHistogramLayoutArea.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
     if (!mouseHoverFlag) {
       svgHistogramLayoutArea.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
     }
@@ -429,39 +388,6 @@ function ViewHistogram() {
     .attr("class", "tooltip")
     .style("opacity", 1e-6);
 
-  // function sessionCircleDragMove(d) {
-  //   var x = d3.event.x;
-  //   var y = d3.event.y;
-
-  //   var dX = 1 * (-d.x + x);
-  //   var dY = 1 * (-d.y + y);
-
-  //   d3.select(this).attr("transform", "translate(" + dX + "," + dY + ")");
-  //   nodeSvgGroup.selectAll('#' + d.nodeId).attr("transform", "translate(" + dX + "," + dY + ")");
-  //   sessionGnode.select('#' + d.nodeId).attr("transform", "translate(" + dX + "," + dY + ")");
-  //   sessionCircles.select('#' + d.userId).attr("transform", "translate(" + dX + "," + dY + ")");
-  //   // sessionSvgGroup.selectAll('#' + d.nodeId).attr("transform", "translate(" + dX + "," + dY + ")");
-  //   sessionLabelSvgGroup.select('#' + d.nodeId).attr("transform", "translate(" + dX + "," + dY + ")");
-
-  //   // console.log("dragmove\n" + d.sessionId +  " | " + d.nodeId + " | currentScale: " + currentScale + " x: " + x + " y: " + y);
-  // }
-
-  // Define drag beavior
-  // var drag = d3.behavior.drag()
-  //   .origin(function(d) {
-  //     return d;
-  //   })
-  //   .on("drag", sessionCircleDragMove);
-
-  // drag.on("dragstart", function() {
-  //   d3.event.sourceEvent.stopPropagation(); // silence other listeners
-  // });
-
-  // drag.on("dragend", function(d) {
-  //   d3.event.sourceEvent.stopPropagation(); // silence other listeners
-
-  //   console.warn("DRAG END" + " | " + d.nodeId + " | " + d.x + " " + d.y);
-  // });
 
   var globalLinkIndex = 0;
 
@@ -532,7 +458,6 @@ function ViewHistogram() {
         } else {
           session.newFlag = false;
         }
-        // sessions[ageSessionsIndex] = session;
       }
     }
 
@@ -681,6 +606,7 @@ function ViewHistogram() {
       } else if (removeDeadNodes && node.isDead) {
         deadNodesHash[node.nodeId] = 1;
       } else if (removeDeadNodes && (age >= nodeMaxAge)) {
+        age = nodeMaxAge;
         node.isDead = true;
         deadNodesHash[node.nodeId] = 1;
       } else if ((nodes.length >= maxWords - 1) && (node.rank > maxWords)) {
@@ -688,7 +614,7 @@ function ViewHistogram() {
         console.warn("XXX NODE " + node.nodeId);
       } else {
         node.ageUpdated = dateNow;
-        node.age = age;
+        node.age = Math.min(age, nodeMaxAge);
         if (age < newFlagRatio * nodeMaxAge) {
           node.newFlag = true;
         } else {
@@ -891,24 +817,8 @@ function ViewHistogram() {
           return d.interpolateColor((nodeMaxAge - d.age) / nodeMaxAge);
         }
       })
-      // .style("fill", function(d) {
-      //   return d.newFlag ? "red" : "white"; })
-      // .style("fill-opacity", function(d) {
-      //   if (d3.select(this).attr("mouseOverFlag") == "true") {
-      //     return 1;
-      //   } else {
-      //     if (removeDeadNodes) {
-      //       return wordOpacityScale(d.age + 1);
-      //     } else {
-      //       return Math.max(wordOpacityScale(d.age + 1), minOpacity)
-      //     }
-      //   }
-      // })
       .transition()
       .duration(defaultFadeDuration)
-      // .style("fill", function(d) {
-      //   return d.newFlag ? "red" : "white";
-      // })
       .attr("x", xposition)
       .attr("y", yposition);
 
@@ -1027,9 +937,6 @@ function ViewHistogram() {
           return d.interpolateColor((nodeMaxAge - d.age) / nodeMaxAge);
         }
       })
-      // .style("fill", function(d) {
-      //   return d.interpolateColor((nodeMaxAge - d.age) / nodeMaxAge); 
-      // })
       .transition()
       .duration(defaultFadeDuration)
       .attr("x", xposition)
@@ -1058,7 +965,6 @@ function ViewHistogram() {
       .on("mouseover", nodeMouseOver)
       .transition()
       .duration(defaultFadeDuration)
-      // // .style("fill-opacity", 1)
       .style("fill", "#FF0000");
 
     nodeWords
@@ -1399,7 +1305,7 @@ function ViewHistogram() {
     var text = randomNumber360 + ' | ' + mentions;
 
     var startColor = "hsl(" + randomNumber360 + ",100%,50%)";
-    var endColor = "hsl(" + randomNumber360 + ",20%,20%)";
+    var endColor = "hsl(" + randomNumber360 + ",100%,30%)";
 
     var interpolateNodeColor = d3.interpolateHcl(endColor, startColor);
 

@@ -397,7 +397,7 @@ function createControlPanel(sessionViewType) {
     case 'force':
       // tableCreateRow(controlTableHead, optionsHead, ['FORCE VIEW CONROL TABLE']);
       // tableCreateRow(controlTableBody, optionsBody, ['FULLSCREEN', 'STATS', 'TEST', 'RESET', 'NODE', 'LINK']);
-      tableCreateRow(controlTableBody, optionsBody, [status]);
+      // tableCreateRow(controlTableBody, optionsBody, [status]);
       tableCreateRow(controlTableBody, optionsBody, [fullscreenButton, statsButton, testModeButton, nodeCreateButton, removeDeadNodeButton]);
       tableCreateRow(controlSliderTable, optionsBody, [resetButton]);
       tableCreateRow(controlSliderTable, optionsBody, ['CHARGE', chargeSlider]);

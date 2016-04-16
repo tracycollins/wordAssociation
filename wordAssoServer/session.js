@@ -11,6 +11,9 @@ var config = {};
 config.maxWords = 100;
 config.testMode = false;
 
+var statsObj = {};
+statsObj.socketId = null;
+
 var ignoreWordsArray = [
   "a",
   "about",
@@ -159,6 +162,7 @@ document.addEventListener("mousemove", function() {
 
 function tableCreateRow(parentTable, options, cells) {
 
+
   var tr = parentTable.insertRow();
   var tdTextColor = options.textColor;
   var tdBgColor = options.backgroundColor || '#222222';
@@ -176,12 +180,24 @@ function tableCreateRow(parentTable, options, cells) {
     });
   } else {
     cells.forEach(function(content) {
-      var td = tr.insertCell();
+ 
+         console.warn("tableCreateRow\n" + jsonPrint(content));
+
+     var td = tr.insertCell();
       if (typeof content.type === 'undefined') {
         // var td2 = td.insertCell();
         td.appendChild(document.createTextNode(content));
         td.style.color = tdTextColor;
         td.style.backgroundColor = tdBgColor;
+      } else if (content.type == 'TEXT') {
+        console.warn("tableCreateRow\n" + content);
+        // var td2 = td.insertCell();
+        td.className = content.class;
+        td.setAttribute('id', content.id);
+        // td.appendChild(document.createTextNode(content.text));
+        td.style.color = tdTextColor;
+        td.style.backgroundColor = tdBgColor;
+        td.innerHTML = content.text;
       } else if (content.type == 'BUTTON') {
         var buttonElement = document.createElement("BUTTON");
         buttonElement.className = content.class;
@@ -306,6 +322,13 @@ function createControlPanel(sessionViewType) {
     text: 'TEST'
   }
 
+  var status = {
+    type: 'TEXT',
+    id: 'statusSessionId',
+    class: 'statusText',
+    text: 'SESSION ID: ' + statsObj.socketId
+  }
+
   var resetButton = {
     type: 'BUTTON',
     id: 'resetButton',
@@ -374,6 +397,7 @@ function createControlPanel(sessionViewType) {
     case 'force':
       // tableCreateRow(controlTableHead, optionsHead, ['FORCE VIEW CONROL TABLE']);
       // tableCreateRow(controlTableBody, optionsBody, ['FULLSCREEN', 'STATS', 'TEST', 'RESET', 'NODE', 'LINK']);
+      tableCreateRow(controlTableBody, optionsBody, [status]);
       tableCreateRow(controlTableBody, optionsBody, [fullscreenButton, statsButton, testModeButton, nodeCreateButton, removeDeadNodeButton]);
       tableCreateRow(controlSliderTable, optionsBody, [resetButton]);
       tableCreateRow(controlSliderTable, optionsBody, ['CHARGE', chargeSlider]);
@@ -383,12 +407,14 @@ function createControlPanel(sessionViewType) {
       break;
     case 'histogram':
       // tableCreateRow(controlTableHead, optionsHead, ['HISTOGRAM VIEW CONROL TABLE']);
-      tableCreateRow(controlTableBody, optionsBody, [fullscreenButton, statsButton, testModeButton, resetButton, nodeCreateButton, removeDeadNodeButton]);
+      tableCreateRow(controlTableBody, optionsBody, 
+        [fullscreenButton, statsButton, testModeButton, resetButton, nodeCreateButton, removeDeadNodeButton]);
 
       break;
     default:
       // tableCreateRow(controlTableHead, optionsHead, ['CONROL TABLE HEAD']);
-      tableCreateRow(controlTableBody, optionsBody, [fullscreenButton, statsButton, testModeButton, resetButton, nodeCreateButton, removeDeadNodeButton]);
+      tableCreateRow(controlTableBody, optionsBody, 
+        [fullscreenButton, statsButton, testModeButton, resetButton, nodeCreateButton, removeDeadNodeButton]);
       break;
   }
 
@@ -635,6 +661,9 @@ socket.on("VIEWER_ACK", function(vSesKey) {
 
   viewerSessionKey = vSesKey;
 
+    document.getElementById("statusSessionId").innerHTML = 'SOCKET: ' + statsObj.socketId;
+        // buttonElement.innerHTML = content.text;
+
   if (sessionMode) {
     console.log("SESSION MODE" + " | SID: " + sessionId + " | NSP: " + namespace);
     var tempSessionId = "/" + namespace + "#" + sessionId;
@@ -648,6 +677,8 @@ socket.on("VIEWER_ACK", function(vSesKey) {
 
 socket.on("reconnect", function() {
 
+  statsObj.socketId = socket.id;
+
   serverConnected = true;
 
   socket.emit("VIEWER_READY", viewerObj);
@@ -655,6 +686,7 @@ socket.on("reconnect", function() {
     console.log("SESSION MODE" + " | SID: " + sessionId + " | NSP: " + namespace);
     var tempSessionId = "/" + namespace + "#" + sessionId;
     currentSession.sessionId = tempSessionId;
+    document.getElementById("statusSessionId").innerHTML = 'SOCKET: ' + statsObj.socketId;
     socket.emit("GET_SESSION", currentSession.sessionId);
   } else {
     // socket.emit("REQ_USER_SESSION");
@@ -662,13 +694,15 @@ socket.on("reconnect", function() {
 });
 
 socket.on("connect", function() {
+  statsObj.socketId = socket.id;
   serverConnected = true;
   console.log("CONNECTED TO HOST | SOCKET ID: " + socket.id);
-  // socket.emit("REQ_USER_SESSION");
+    // document.getElementById("statusSessionId").innerHTML = socket.id;
 });
 
 socket.on("disconnect", function() {
   serverConnected = false;
+  statsObj.socketId = null;
   displayInfo(1.0, 'red');
   console.log("*** DISCONNECTED FROM HOST ... DELETING ALL SESSIONS ...");
   deleteAllSessions(function() {
@@ -858,7 +892,10 @@ var lastHeartbeatReceived = 0;
 // CHECK FOR SERVER HEARTBEAT
 setInterval(function() {
   if ((lastHeartbeatReceived > 0) && (lastHeartbeatReceived + serverHeartbeatTimeout) < moment()) {
-    console.error(chalkError("\n????? SERVER DOWN ????? | " + targetServer + " | LAST HEARTBEAT: " + getTimeStamp(lastHeartbeatReceived) + " | " + moment().format(defaultDateTimeFormat) + " | AGO: " + msToTime(moment().valueOf() - lastHeartbeatReceived)));
+    console.error(chalkError("\n????? SERVER DOWN ????? | " + targetServer 
+      + " | LAST HEARTBEAT: " + getTimeStamp(lastHeartbeatReceived) 
+      + " | " + moment().format(defaultDateTimeFormat) 
+      + " | AGO: " + msToTime(moment().valueOf() - lastHeartbeatReceived)));
     socket.connect(targetServer, {
       reconnection: false
     });
@@ -962,6 +999,7 @@ socket.on("SESSION_ABORT", function(rxSessionObject) {
   if (rxSessionObject.sessionId == socket.id) {
     console.error("SESSION_ABORT" + " | " + rxSessionObject.sessionId + " | " + rxSessionObject.sessionEvent);
     serverConnected = false;
+    statsObj.socketId = 'ABORTED';
     socket.disconnect();
   }
 });
@@ -983,7 +1021,11 @@ socket.on("USER_SESSION", function(rxSessionObject) {
 
   var rxObj = rxSessionObject;
 
-  console.log("USER_SESSION" + " | SID: " + rxObj.sessionId + " | UID: " + rxObj.userId + " | NSP: " + rxObj.namespace + " | WCI: " + rxObj.wordChainIndex + " | CONN: " + rxObj.connected
+  console.log("USER_SESSION" + " | SID: " + rxObj.sessionId 
+    + " | UID: " + rxObj.userId 
+    + " | NSP: " + rxObj.namespace 
+    + " | WCI: " + rxObj.wordChainIndex 
+    + " | CONN: " + rxObj.connected
     // + "\n" + jsonPrint(rxObj)
   );
 
@@ -1140,7 +1182,10 @@ var createSession = function(callback) {
 
       sessionsCreated += 1;
 
-      console.log("CREATE SESS" + " [" + sessUpdate.wordChainIndex + "]" + " | UID: " + sessUpdate.userId + " | " + sessUpdate.source.nodeId + " > " + sessUpdate.target.nodeId
+      console.log("CREATE SESS" + " [" + sessUpdate.wordChainIndex + "]" 
+        + " | UID: " + sessUpdate.userId 
+        + " | " + sessUpdate.source.nodeId 
+        + " > " + sessUpdate.target.nodeId
         // + "\n" + jsonPrint(sessUpdate)
       );
 
@@ -1233,7 +1278,11 @@ var createNode = function(callback) {
 
       var sessionNode = nodeHashMap.get(session.node.nodeId);
 
-      // console.warn("createNode: SESSION NODE IN HASH" + " | SNID: " + sessionNode.nodeId + " | SNUID: " + sessionNode.userId + " | SNSID: " + sessionNode.sessionId + "\n" + jsonPrint(sessionNode));
+      // console.warn("createNode: SESSION NODE IN HASH" 
+        // + " | SNID: " + sessionNode.nodeId 
+        // + " | SNUID: " + sessionNode.userId 
+        // + " | SNSID: " + sessionNode.sessionId 
+        // + "\n" + jsonPrint(sessionNode));
 
       sessionNode.age = 0;
       sessionNode.wordChainIndex = session.wordChainIndex;

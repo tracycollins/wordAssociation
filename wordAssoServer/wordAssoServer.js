@@ -3654,6 +3654,10 @@ function handleSessionEvent(sesObj, callback) {
 
       var currentSession = sessionCache.get(sesObj.session.sessionId);
 
+      if (currentSession === 'undefined'){
+        currentSession = sesObj.session;
+      }
+
       currentSession.userId = sesObj.viewer.viewerId;
 
       sesObj.viewer.ip = sesObj.session.ip;

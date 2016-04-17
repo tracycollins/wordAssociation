@@ -579,7 +579,7 @@ function ViewForce() {
         node.isDead = true;
         nodes[ageNodesIndex] = node;
         deadNodesHash[node.nodeId] = 1;
-        console.log("XXX DEAD NODE " + node.nodeId);
+        // console.log("XXX DEAD NODE " + node.nodeId);
       } else {
         node.ageUpdated = dateNow;
         node.age = age;
@@ -1291,7 +1291,7 @@ function ViewForce() {
 
   this.addNode = function(newNode) {
     // console.log("addNode\n" + jsonPrint(newNode));
-    console.warn("addNode" + " | NID: " + newNode.nodeId + " | SID: " + newNode.sessionId + " | UID: " + newNode.userId);
+    // console.warn("addNode" + " | NID: " + newNode.nodeId + " | SID: " + newNode.sessionId + " | UID: " + newNode.userId);
     force.stop();
     forceStopped = true;
     nodes.push(newNode);
@@ -1348,13 +1348,13 @@ function ViewForce() {
   }
 
   this.addLink = function(newLink) {
-    console.warn("addLink" 
-      + " | LID: " + newLink.linkId 
-      + " | SID: " + newLink.sessionId 
-      + " | UID: " + newLink.userId
-      + " | " + newLink.source.nodeId
-      + " > " + newLink.target.nodeId
-      );
+    // console.warn("addLink" 
+    //   + " | LID: " + newLink.linkId 
+    //   + " | SID: " + newLink.sessionId 
+    //   + " | UID: " + newLink.userId
+    //   + " | " + newLink.source.nodeId
+    //   + " > " + newLink.target.nodeId
+    //   );
     force.stop();
     forceStopped = true;
     links.push(newLink);

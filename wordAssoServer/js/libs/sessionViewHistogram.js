@@ -611,7 +611,7 @@ function ViewHistogram() {
         deadNodesHash[node.nodeId] = 1;
       } else if ((nodes.length >= maxWords - 1) && (node.rank > maxWords)) {
         deadNodesHash[node.nodeId] = 1;
-        console.warn("XXX NODE " + node.nodeId);
+        // console.warn("XXX NODE " + node.nodeId);
       } else {
         node.ageUpdated = dateNow;
         node.age = Math.min(age, nodeMaxAge);

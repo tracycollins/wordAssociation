@@ -902,7 +902,7 @@ function ViewForce() {
         return defaultRadiusScale(d.mentions + 1);
       })
       .style("fill", function(d) {
-        if (d.age < (0.05 * nodeMaxAge)) {
+        if (d.age < (0.01 * nodeMaxAge)) {
           return "#ffffff";
         }
         else {

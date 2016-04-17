@@ -180,17 +180,17 @@ function tableCreateRow(parentTable, options, cells) {
     });
   } else {
     cells.forEach(function(content) {
- 
-         console.warn("tableCreateRow\n" + jsonPrint(content));
 
-     var td = tr.insertCell();
+      // console.warn("tableCreateRow\n" + jsonPrint(content));
+
+      var td = tr.insertCell();
       if (typeof content.type === 'undefined') {
         // var td2 = td.insertCell();
         td.appendChild(document.createTextNode(content));
         td.style.color = tdTextColor;
         td.style.backgroundColor = tdBgColor;
       } else if (content.type == 'TEXT') {
-        console.warn("tableCreateRow\n" + content);
+        // console.warn("tableCreateRow\n" + content);
         // var td2 = td.insertCell();
         td.className = content.class;
         td.setAttribute('id', content.id);
@@ -397,7 +397,7 @@ function createControlPanel(sessionViewType) {
     case 'force':
       // tableCreateRow(controlTableHead, optionsHead, ['FORCE VIEW CONROL TABLE']);
       // tableCreateRow(controlTableBody, optionsBody, ['FULLSCREEN', 'STATS', 'TEST', 'RESET', 'NODE', 'LINK']);
-      // tableCreateRow(controlTableBody, optionsBody, [status]);
+      tableCreateRow(controlTableBody, optionsBody, [status]);
       tableCreateRow(controlTableBody, optionsBody, [fullscreenButton, statsButton, testModeButton, nodeCreateButton, removeDeadNodeButton]);
       tableCreateRow(controlSliderTable, optionsBody, [resetButton]);
       tableCreateRow(controlSliderTable, optionsBody, ['CHARGE', chargeSlider]);
@@ -407,14 +407,14 @@ function createControlPanel(sessionViewType) {
       break;
     case 'histogram':
       // tableCreateRow(controlTableHead, optionsHead, ['HISTOGRAM VIEW CONROL TABLE']);
-      tableCreateRow(controlTableBody, optionsBody, 
-        [fullscreenButton, statsButton, testModeButton, resetButton, nodeCreateButton, removeDeadNodeButton]);
+      tableCreateRow(controlTableBody, optionsBody, [status]);
+      tableCreateRow(controlTableBody, optionsBody, [fullscreenButton, statsButton, testModeButton, resetButton, nodeCreateButton, removeDeadNodeButton]);
 
       break;
     default:
       // tableCreateRow(controlTableHead, optionsHead, ['CONROL TABLE HEAD']);
-      tableCreateRow(controlTableBody, optionsBody, 
-        [fullscreenButton, statsButton, testModeButton, resetButton, nodeCreateButton, removeDeadNodeButton]);
+      tableCreateRow(controlTableBody, optionsBody, [status]);
+      tableCreateRow(controlTableBody, optionsBody, [fullscreenButton, statsButton, testModeButton, resetButton, nodeCreateButton, removeDeadNodeButton]);
       break;
   }
 
@@ -661,8 +661,14 @@ socket.on("VIEWER_ACK", function(vSesKey) {
 
   viewerSessionKey = vSesKey;
 
-    document.getElementById("statusSessionId").innerHTML = 'SOCKET: ' + statsObj.socketId;
-        // buttonElement.innerHTML = content.text;
+  var statusSessionId = document.getElementById("statusSessionId");
+
+  if (typeof statusSessionId !== 'undefined'){
+    statusSessionId.innerHTML = 'SOCKET: ' + statsObj.socketId;
+  }
+  else {
+    console.warn("statusSessionId element is undefined");
+  }
 
   if (sessionMode) {
     console.log("SESSION MODE" + " | SID: " + sessionId + " | NSP: " + namespace);
@@ -697,7 +703,7 @@ socket.on("connect", function() {
   statsObj.socketId = socket.id;
   serverConnected = true;
   console.log("CONNECTED TO HOST | SOCKET ID: " + socket.id);
-    // document.getElementById("statusSessionId").innerHTML = socket.id;
+  // document.getElementById("statusSessionId").innerHTML = socket.id;
 });
 
 socket.on("disconnect", function() {
@@ -892,10 +898,7 @@ var lastHeartbeatReceived = 0;
 // CHECK FOR SERVER HEARTBEAT
 setInterval(function() {
   if ((lastHeartbeatReceived > 0) && (lastHeartbeatReceived + serverHeartbeatTimeout) < moment()) {
-    console.error(chalkError("\n????? SERVER DOWN ????? | " + targetServer 
-      + " | LAST HEARTBEAT: " + getTimeStamp(lastHeartbeatReceived) 
-      + " | " + moment().format(defaultDateTimeFormat) 
-      + " | AGO: " + msToTime(moment().valueOf() - lastHeartbeatReceived)));
+    console.error(chalkError("\n????? SERVER DOWN ????? | " + targetServer + " | LAST HEARTBEAT: " + getTimeStamp(lastHeartbeatReceived) + " | " + moment().format(defaultDateTimeFormat) + " | AGO: " + msToTime(moment().valueOf() - lastHeartbeatReceived)));
     socket.connect(targetServer, {
       reconnection: false
     });
@@ -995,7 +998,7 @@ socket.on("CONFIG_CHANGE", function(rxConfig) {
 });
 
 socket.on("SESSION_ABORT", function(rxSessionObject) {
-    console.error("RX SESSION_ABORT" + " | " + rxSessionObject.sessionId + " | " + rxSessionObject.sessionEvent);
+  console.error("RX SESSION_ABORT" + " | " + rxSessionObject.sessionId + " | " + rxSessionObject.sessionEvent);
   if (rxSessionObject.sessionId == socket.id) {
     console.error("SESSION_ABORT" + " | " + rxSessionObject.sessionId + " | " + rxSessionObject.sessionEvent);
     serverConnected = false;
@@ -1021,11 +1024,7 @@ socket.on("USER_SESSION", function(rxSessionObject) {
 
   var rxObj = rxSessionObject;
 
-  console.log("USER_SESSION" + " | SID: " + rxObj.sessionId 
-    + " | UID: " + rxObj.userId 
-    + " | NSP: " + rxObj.namespace 
-    + " | WCI: " + rxObj.wordChainIndex 
-    + " | CONN: " + rxObj.connected
+  console.log("USER_SESSION" + " | SID: " + rxObj.sessionId + " | UID: " + rxObj.userId + " | NSP: " + rxObj.namespace + " | WCI: " + rxObj.wordChainIndex + " | CONN: " + rxObj.connected
     // + "\n" + jsonPrint(rxObj)
   );
 
@@ -1182,10 +1181,7 @@ var createSession = function(callback) {
 
       sessionsCreated += 1;
 
-      console.log("CREATE SESS" + " [" + sessUpdate.wordChainIndex + "]" 
-        + " | UID: " + sessUpdate.userId 
-        + " | " + sessUpdate.source.nodeId 
-        + " > " + sessUpdate.target.nodeId
+      console.log("CREATE SESS" + " [" + sessUpdate.wordChainIndex + "]" + " | UID: " + sessUpdate.userId + " | " + sessUpdate.source.nodeId + " > " + sessUpdate.target.nodeId
         // + "\n" + jsonPrint(sessUpdate)
       );
 
@@ -1244,14 +1240,14 @@ var createSession = function(callback) {
       }
 
       addToHashMap(nodeHashMap, currentSession.node.nodeId, currentSession.node, function(sesNode) {
-        console.error("NEW SESSION NODE " + " | " + sesNode.nodeId
+        console.log("NEW SESSION NODE " + " | " + sesNode.nodeId
           // + "\n" + jsonPrint(sesNode) 
         );
 
         currentSessionView.addNode(sesNode);
 
         addToHashMap(sessionHashMap, currentSession.sessionId, currentSession, function(cSession) {
-          console.warn("NEW SESSION " + cSession.userId + " | " + cSession.sessionId + " | SNID: " + cSession.node.nodeId
+          console.log("NEW SESSION " + cSession.userId + " | " + cSession.sessionId + " | SNID: " + cSession.node.nodeId
             // + "\n" + jsonPrint(cSession) 
           );
           currentSessionView.addSession(cSession);
@@ -1279,10 +1275,10 @@ var createNode = function(callback) {
       var sessionNode = nodeHashMap.get(session.node.nodeId);
 
       // console.warn("createNode: SESSION NODE IN HASH" 
-        // + " | SNID: " + sessionNode.nodeId 
-        // + " | SNUID: " + sessionNode.userId 
-        // + " | SNSID: " + sessionNode.sessionId 
-        // + "\n" + jsonPrint(sessionNode));
+      // + " | SNID: " + sessionNode.nodeId 
+      // + " | SNUID: " + sessionNode.userId 
+      // + " | SNSID: " + sessionNode.sessionId 
+      // + "\n" + jsonPrint(sessionNode));
 
       sessionNode.age = 0;
       sessionNode.wordChainIndex = session.wordChainIndex;

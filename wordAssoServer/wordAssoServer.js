@@ -5000,7 +5000,8 @@ function createSession (newSessionObj){
         + " | ABORTING SESSION"
         + "\n" + jsonPrint(userObj)
       ));
-      sessionQueue.enqueue({sessionEvent: "SESSION_ABORT", sessionId: socketId});
+      createSession({namespace:"view", socket: socket, type: "VIEWER"});
+      // sessionQueue.enqueue({sessionEvent: "SESSION_ABORT", sessionId: socketId});
       // viewNameSpace.emit("SESSION_DELETE", {sessionEvent: "SESSION_DELETE", sessionId: socketId});
       return;
     }

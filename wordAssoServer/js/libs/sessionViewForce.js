@@ -902,7 +902,12 @@ function ViewForce() {
         return defaultRadiusScale(d.mentions + 1);
       })
       .style("fill", function(d) {
-        return d.interpolateColor((nodeMaxAge - d.age) / nodeMaxAge);
+        if (d.age < (0.05 * nodeMaxAge)) {
+          return "#ffffff";
+        }
+        else {
+          return d.interpolateColor((nodeMaxAge - d.age) / nodeMaxAge);
+        }
       })
       .style('opacity', function(d) {
         return 1;

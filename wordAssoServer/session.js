@@ -1784,7 +1784,7 @@ function initialize() {
             createControlPanel(sessionViewType);
 
             setTimeout(function() {
-              console.error("END PAGE LOAD TIMEOUT");
+              console.log("END PAGE LOAD TIMEOUT");
               pageLoadedTimeIntervalFlag = false;
               displayInfo(false);
               displayControl(false);

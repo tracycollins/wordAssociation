@@ -649,7 +649,7 @@ function ViewForce() {
         nodes.splice(ageNodesIndex, 1);
         force.nodes(nodes);
         delete deadNodesHash[node.nodeId];
-        console.log("XXX NODE: " + node.nodeId);
+        // console.log("XXX NODE: " + node.nodeId);
       }
       deadNodeIds = Object.keys(deadNodesHash);
     }

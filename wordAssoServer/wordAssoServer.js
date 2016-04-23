@@ -4362,8 +4362,8 @@ var generatePromptQueueInterval = setInterval(function (){
         break;
 
         default:
-          console.error(chalkError("3  ????? UNKNOWN SESSION MODE: " + sesObj.session.config.mode));
-          quit("3  ????? UNKNOWN SESSION MODE: " + sesObj.session.config.mode);
+          console.error(chalkError("3  ????? UNKNOWN SESSION MODE: " + currentSession.config.mode));
+          quit("3  ????? UNKNOWN SESSION MODE: " + currentSession.config.mode);
         break;
       }
 
@@ -5360,6 +5360,18 @@ function initAppRouting(callback){
   app.get('/js/libs/stringmap.js', function(req, res){
     debugAppGet("LOADING FILE: /js/libs/stringmap.jss");
     res.sendFile(__dirname + '/js/libs/stringmap.js');
+    return;
+  });
+
+  app.get('/node_modules/moment/moment.js', function(req, res){
+    debugAppGet("LOADING FILE: /node_modules/moment/moment.js");
+    res.sendFile(__dirname + '/node_modules/moment/moment.js');
+    return;
+  });
+
+  app.get('/node_modules/moment/min/moment.min.js', function(req, res){
+    debugAppGet("LOADING FILE: /node_modules/moment/min/moment.min.js");
+    res.sendFile(__dirname + '/node_modules/moment/min/moment.min.js');
     return;
   });
 

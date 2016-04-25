@@ -3105,36 +3105,34 @@ function handleSessionEvent(sesObj, callback) {
       }
 
       dnsReverseLookup(sesObj.session.ip, function(err, domains) {
-        if (!err) {
-          console.log(chalkSession("... SESSION CREATE | IP: " + sesObj.session.ip + " | DOMAINS: " + domains.length + " | " + domains[0]));
 
-          if (domains.length > 0) {
-            sesObj.session.domain = domains[0];
-          } else {
-            sesObj.session.domain = 'UNKNOWN';
-          }
+        console.log(chalkSession("... SESSION CREATE | IP: " + sesObj.session.ip + " | DOMAINS: " + domains.length + " | " + domains[0]));
 
-          sesObj.session.connected = true;
-
-          sessionUpdateDb(sesObj.session, function(err, sessionUpdatedObj) {
-            if (!err) {
-              if (sessionUpdatedObj.namespace == 'admin') {
-                sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
-              } else if (sessionUpdatedObj.namespace == 'view') {
-                sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
-              } else if (sessionUpdatedObj.namespace == 'user') {
-                sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
-              } else if (sessionUpdatedObj.namespace == 'test-user') {
-                sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
-              } else if (sessionUpdatedObj.namespace == 'util') {
-                sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
-              } else {
-                sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
-              }
-            }
-          });
-
+        if (domains.length > 0) {
+          sesObj.session.domain = domains[0];
+        } else {
+          sesObj.session.domain = 'UNKNOWN';
         }
+
+        sesObj.session.connected = true;
+
+        sessionUpdateDb(sesObj.session, function(err, sessionUpdatedObj) {
+          if (!err) {
+            if (sessionUpdatedObj.namespace == 'admin') {
+              sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
+            } else if (sessionUpdatedObj.namespace == 'view') {
+              sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
+            } else if (sessionUpdatedObj.namespace == 'user') {
+              sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
+            } else if (sessionUpdatedObj.namespace == 'test-user') {
+              sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
+            } else if (sessionUpdatedObj.namespace == 'util') {
+              sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
+            } else {
+              sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
+            }
+          }
+        });
       });
       break;
 

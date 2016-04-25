@@ -3053,15 +3053,31 @@ function handleSessionEvent(sesObj, callback) {
       sessionUpdateDb(sesObj.session, function(err, sessionUpdatedObj) {
         if (err) {
           console.error(chalkError(
-            "*** SESSION KEEPALIVE ERROR" + " | SID: " + sessionUpdatedObj.sessionId + " | IP: " + sessionUpdatedObj.ip + "\n" + jsonPrint(err)
+            "*** SESSION KEEPALIVE ERROR" 
+            + " | SID: " + sessionUpdatedObj.sessionId 
+            + " | IP: " + sessionUpdatedObj.ip 
+            + "\n" + jsonPrint(err)
           ));
         } else {
           sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
 
           console.log(chalkLog(
-            "K>" + " | " + sessionUpdatedObj.userId + " | T " + sessionUpdatedObj.config.type + " | M " + sessionUpdatedObj.config.mode + " | NS " + sessionUpdatedObj.namespace + " | SID " + sessionUpdatedObj.sessionId + " | IP " + sessionUpdatedObj.ip
+            "K>" 
+            + " | " + sessionUpdatedObj.userId 
+            + " | T " + sessionUpdatedObj.config.type 
+            + " | M " + sessionUpdatedObj.config.mode 
+            + " | NS " + sessionUpdatedObj.namespace 
+            + " | SID " + sessionUpdatedObj.sessionId 
+            + " | IP " + sessionUpdatedObj.ip
           ));
 
+          var sessionUpdateObj = {
+            action: 'KEEPALIVE',
+            userId: sessionUpdatedObj.userId,
+            sessionId: sessionUpdatedObj.sessionId,
+          };
+
+          updateSessionViews(sessionUpdateObj);
         }
       });
 

@@ -3106,13 +3106,12 @@ function handleSessionEvent(sesObj, callback) {
 
       dnsReverseLookup(sesObj.session.ip, function(err, domains) {
 
-
-        if (domains.length > 0) {
+        if (!err && domains.length > 0) {
           sesObj.session.domain = domains[0];
           console.log(chalkSession("... SESSION CREATE | IP: " + sesObj.session.ip + " | DOMAINS: " + domains.length + " | " + domains[0]));
         } else {
           sesObj.session.domain = 'UNKNOWN';
-          console.log(chalkSession("... SESSION CREATE | IP: " + sesObj.session.ip + " | DOMAINS: " + domains.length + " | " + domains[0]));
+          console.log(chalkSession("... SESSION CREATE | IP: " + sesObj.session.ip + " | DOMAINS: UNKNOWN"));
         }
 
         sesObj.session.connected = true;

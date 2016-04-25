@@ -1603,22 +1603,6 @@ var ageSessions = function(callback) {
   }
 }
 
-// function rankSessions(sessionId, callback) {
-//   var sortedSessionIds = getSortedKeys(sessionHashMap, "wordChainIndex");
-//   // console.error("RANKING " + sortedSessionIds.length + " sessions");
-//   var session;
-//   async.forEachOf(sortedSessionIds, function(sessionId, rank, cb) {
-//     session = sessionHashMap.get(sessionId);
-//     session.rank = rank;
-//     sessionHashMap.set(sessionId, session);
-//     // console.error("RANK " + rank + " | " + session.wordChainIndex + " | " + sessionId);
-//     cb();
-//   }, function(err) {
-//     // console.warn("RANKING COMPLETE | " + sortedSessionIds.length + " sessions");
-//     return (callback(null, sessionId));
-//   });
-// }
-
 var updateSessionsReady = true;
 
 function updateSessions() {

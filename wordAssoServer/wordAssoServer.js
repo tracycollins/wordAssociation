@@ -3082,26 +3082,21 @@ function handleSessionEvent(sesObj, callback) {
           sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
 
           console.log(chalkLog(
-            "K>" 
-            + " | " + sessionUpdatedObj.userId 
-            + " | T " + sessionUpdatedObj.config.type 
-            + " | M " + sessionUpdatedObj.config.mode 
-            + " | NS " + sessionUpdatedObj.namespace 
-            + " | SID " + sessionUpdatedObj.sessionId 
-            + " | WCI " + sessionUpdatedObj.wordChainIndex 
-            + " | IP " + sessionUpdatedObj.ip
+            "K>" + " | " + sessionUpdatedObj.userId + " | T " + sessionUpdatedObj.config.type + " | M " + sessionUpdatedObj.config.mode + " | NS " + sessionUpdatedObj.namespace + " | SID " + sessionUpdatedObj.sessionId + " | WCI " + sessionUpdatedObj.wordChainIndex + " | IP " + sessionUpdatedObj.ip
           ));
 
-          var sessionUpdateObj = {
-            action: 'KEEPALIVE',
-            userId: sessionUpdatedObj.userId,
-            sessionId: sessionUpdatedObj.sessionId,
-            wordChainIndex: sessionUpdatedObj.wordChainIndex,
-            source: {},
-            target: 0
-          };
+          if (sessionUpdatedObj.namespace != 'view') {
+            var sessionUpdateObj = {
+              action: 'KEEPALIVE',
+              userId: sessionUpdatedObj.userId,
+              sessionId: sessionUpdatedObj.sessionId,
+              wordChainIndex: sessionUpdatedObj.wordChainIndex,
+              source: {},
+              target: 0
+            };
 
-          updateSessionViews(sessionUpdateObj);
+            updateSessionViews(sessionUpdateObj);
+          }
         }
       });
 

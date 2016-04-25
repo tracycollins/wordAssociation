@@ -3082,7 +3082,14 @@ function handleSessionEvent(sesObj, callback) {
           sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
 
           console.log(chalkLog(
-            "K>" + " | " + sessionUpdatedObj.userId + " | T " + sessionUpdatedObj.config.type + " | M " + sessionUpdatedObj.config.mode + " | NS " + sessionUpdatedObj.namespace + " | SID " + sessionUpdatedObj.sessionId + " | IP " + sessionUpdatedObj.ip
+            "K>" 
+            + " | " + sessionUpdatedObj.userId 
+            + " | T " + sessionUpdatedObj.config.type 
+            + " | M " + sessionUpdatedObj.config.mode 
+            + " | NS " + sessionUpdatedObj.namespace 
+            + " | SID " + sessionUpdatedObj.sessionId 
+            + " | WCI " + sessionUpdatedObj.wordChainIndex 
+            + " | IP " + sessionUpdatedObj.ip
           ));
 
           var sessionUpdateObj = {

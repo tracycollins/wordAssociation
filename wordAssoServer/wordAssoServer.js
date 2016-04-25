@@ -982,8 +982,19 @@ var readUpdateSessionViewQueue = setInterval(function() {
       sessionSmallObj = {
         action: sessionUpdateObj.action,
         userId: sessionUpdateObj.userId,
-        sessionId: sessionUpdateObj.sessionId
+        sessionId: sessionUpdateObj.sessionId,
+        wordChainIndex: sessionUpdateObj.wordChainIndex,
+        source: {},
+        target: {}
       };
+
+      sessionSmallObj.source = {
+        nodeId: sessionUpdateObj.userId,
+        wordChainIndex: 0,
+        links: {},
+        mentions: 0
+      };
+
     } else {
       sessionSmallObj = {
         action: sessionUpdateObj.action,

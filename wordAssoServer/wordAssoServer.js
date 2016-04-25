@@ -3089,6 +3089,9 @@ function handleSessionEvent(sesObj, callback) {
             action: 'KEEPALIVE',
             userId: sessionUpdatedObj.userId,
             sessionId: sessionUpdatedObj.sessionId,
+            wordChainIndex: sessionUpdatedObj.wordChainIndex,
+            source: 0,
+            target: 0
           };
 
           updateSessionViews(sessionUpdateObj);

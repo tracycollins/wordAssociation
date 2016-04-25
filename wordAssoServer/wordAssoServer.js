@@ -976,42 +976,54 @@ var readUpdateSessionViewQueue = setInterval(function() {
 
     updateStatsCounts();
 
-    var sessionSmallObj = {
-      userId: sessionUpdateObj.userId,
-      sessionId: sessionUpdateObj.sessionId,
-      wordChainIndex: sessionUpdateObj.wordChainIndex,
-      source: {},
-      target: {}
-    };
+    var sessionSmallObj;
 
-    sessionSmallObj.source = {
-      nodeId: sessionUpdateObj.source.nodeId,
-      wordChainIndex: sessionUpdateObj.source.wordChainIndex,
-      links: {},
-      mentions: sessionUpdateObj.source.mentions
-    };
-
-    if (sessionUpdateObj.target) {
-      sessionSmallObj.target = {
-        nodeId: sessionUpdateObj.target.nodeId,
-        wordChainIndex: sessionUpdateObj.target.wordChainIndex,
-        links: {},
-        mentions: sessionUpdateObj.target.mentions
+    if (sessionUpdateObj.action == 'KEEPALIVE') {
+      sessionSmallObj = {
+        action: sessionUpdateObj.action,
+        userId: sessionUpdateObj.userId,
+        sessionId: sessionUpdateObj.sessionId
       };
-    }
-
-    if (sessionUpdateObj.target) {
-      console.log(chalkLog("S>" + " | " + sessionUpdateObj.userId
-        // + " | " + sessionUpdateObj.sessionId
-        // + " | WCI: " + sessionUpdateObj.wordChainIndex
-        + " | " + sessionUpdateObj.source.nodeId + " [" + sessionUpdateObj.source.wordChainIndex + "]" + " > " + sessionUpdateObj.target.nodeId + " [" + sessionUpdateObj.target.wordChainIndex + "]"
-      ));
     } else {
-      console.log(chalkLog("SNT>" + " | " + sessionUpdateObj.userId
-        // + " | " + sessionUpdateObj.sessionId
-        // + " | WCI: " + sessionUpdateObj.wordChainIndex
-        + " | " + sessionUpdateObj.source.nodeId + " [" + sessionUpdateObj.source.wordChainIndex + "]"
-      ));
+      sessionSmallObj = {
+        action: sessionUpdateObj.action,
+        userId: sessionUpdateObj.userId,
+        sessionId: sessionUpdateObj.sessionId,
+        wordChainIndex: sessionUpdateObj.wordChainIndex,
+        source: {},
+        target: {}
+      };
+
+      sessionSmallObj.source = {
+        nodeId: sessionUpdateObj.source.nodeId,
+        wordChainIndex: sessionUpdateObj.source.wordChainIndex,
+        links: {},
+        mentions: sessionUpdateObj.source.mentions
+      };
+
+      if (sessionUpdateObj.target) {
+        sessionSmallObj.target = {
+          nodeId: sessionUpdateObj.target.nodeId,
+          wordChainIndex: sessionUpdateObj.target.wordChainIndex,
+          links: {},
+          mentions: sessionUpdateObj.target.mentions
+        };
+      }
+
+      if (sessionUpdateObj.target) {
+        console.log(chalkLog("S>" + " | " + sessionUpdateObj.userId
+          // + " | " + sessionUpdateObj.sessionId
+          // + " | WCI: " + sessionUpdateObj.wordChainIndex
+          + " | " + sessionUpdateObj.source.nodeId + " [" + sessionUpdateObj.source.wordChainIndex + "]" + " > " + sessionUpdateObj.target.nodeId + " [" + sessionUpdateObj.target.wordChainIndex + "]"
+        ));
+      } else {
+        console.log(chalkLog("SNT>" + " | " + sessionUpdateObj.userId
+          // + " | " + sessionUpdateObj.sessionId
+          // + " | WCI: " + sessionUpdateObj.wordChainIndex
+          + " | " + sessionUpdateObj.source.nodeId + " [" + sessionUpdateObj.source.wordChainIndex + "]"
+        ));
+      }
+
     }
 
     viewNameSpace.emit("SESSION_UPDATE", sessionSmallObj);
@@ -3053,22 +3065,13 @@ function handleSessionEvent(sesObj, callback) {
       sessionUpdateDb(sesObj.session, function(err, sessionUpdatedObj) {
         if (err) {
           console.error(chalkError(
-            "*** SESSION KEEPALIVE ERROR" 
-            + " | SID: " + sessionUpdatedObj.sessionId 
-            + " | IP: " + sessionUpdatedObj.ip 
-            + "\n" + jsonPrint(err)
+            "*** SESSION KEEPALIVE ERROR" + " | SID: " + sessionUpdatedObj.sessionId + " | IP: " + sessionUpdatedObj.ip + "\n" + jsonPrint(err)
           ));
         } else {
           sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
 
           console.log(chalkLog(
-            "K>" 
-            + " | " + sessionUpdatedObj.userId 
-            + " | T " + sessionUpdatedObj.config.type 
-            + " | M " + sessionUpdatedObj.config.mode 
-            + " | NS " + sessionUpdatedObj.namespace 
-            + " | SID " + sessionUpdatedObj.sessionId 
-            + " | IP " + sessionUpdatedObj.ip
+            "K>" + " | " + sessionUpdatedObj.userId + " | T " + sessionUpdatedObj.config.type + " | M " + sessionUpdatedObj.config.mode + " | NS " + sessionUpdatedObj.namespace + " | SID " + sessionUpdatedObj.sessionId + " | IP " + sessionUpdatedObj.ip
           ));
 
           var sessionUpdateObj = {

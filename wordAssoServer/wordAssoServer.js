@@ -990,9 +990,9 @@ var readUpdateSessionViewQueue = setInterval(function() {
 
       sessionSmallObj.source = {
         nodeId: sessionUpdateObj.userId,
-        wordChainIndex: 0,
+        wordChainIndex: sessionUpdateObj.wordChainIndex,
         links: {},
-        mentions: 0
+        mentions: sessionUpdateObj.wordChainIndex
       };
 
     } else {
@@ -3097,7 +3097,7 @@ function handleSessionEvent(sesObj, callback) {
             userId: sessionUpdatedObj.userId,
             sessionId: sessionUpdatedObj.sessionId,
             wordChainIndex: sessionUpdatedObj.wordChainIndex,
-            source: 0,
+            source: {},
             target: 0
           };
 

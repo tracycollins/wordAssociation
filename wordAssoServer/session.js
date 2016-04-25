@@ -670,10 +670,9 @@ socket.on("VIEWER_ACK", function(vSesKey) {
 
   var statusSessionId = document.getElementById("statusSessionId");
 
-  if (typeof statusSessionId !== 'undefined'){
+  if (typeof statusSessionId !== 'undefined') {
     statusSessionId.innerHTML = 'SOCKET: ' + statsObj.socketId;
-  }
-  else {
+  } else {
     console.warn("statusSessionId element is undefined");
   }
 
@@ -1058,9 +1057,15 @@ socket.on("SESSION_UPDATE", function(rxSessionObject) {
 
     rxSessionUpdateQueue.push(rxSessionObject);
 
-    console.log(
-      rxObj.userId + " | " + rxObj.wordChainIndex + " | " + rxObj.source.nodeId + " > " + rxObj.target.nodeId
-    );
+    if (rxObj.action == 'KEEPALIVE') {
+      console.log("KEEPALIVE"
+        + " | " + rxObj.userId
+      );
+    } else {
+      console.log(
+        rxObj.userId + " | " + rxObj.wordChainIndex + " | " + rxObj.source.nodeId + " > " + rxObj.target.nodeId
+      );
+    }
 
   }
 });

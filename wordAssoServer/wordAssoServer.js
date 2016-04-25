@@ -3106,12 +3106,13 @@ function handleSessionEvent(sesObj, callback) {
 
       dnsReverseLookup(sesObj.session.ip, function(err, domains) {
 
-        console.log(chalkSession("... SESSION CREATE | IP: " + sesObj.session.ip + " | DOMAINS: " + domains.length + " | " + domains[0]));
 
         if (domains.length > 0) {
           sesObj.session.domain = domains[0];
+          console.log(chalkSession("... SESSION CREATE | IP: " + sesObj.session.ip + " | DOMAINS: " + domains.length + " | " + domains[0]));
         } else {
           sesObj.session.domain = 'UNKNOWN';
+          console.log(chalkSession("... SESSION CREATE | IP: " + sesObj.session.ip + " | DOMAINS: " + domains.length + " | " + domains[0]));
         }
 
         sesObj.session.connected = true;
@@ -3204,8 +3205,7 @@ function handleSessionEvent(sesObj, callback) {
 
       if (!currentSession) {
         console.log(chalkWarn("??? ADMIN SESSION NOT IN CACHE\n" + jsonPrint(sesObj)));
-      }
-      else {
+      } else {
         currentSession.userId = sesObj.admin.adminId;
 
         sesObj.admin.ip = sesObj.session.ip;

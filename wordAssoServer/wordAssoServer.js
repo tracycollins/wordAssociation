@@ -2997,17 +2997,18 @@ function pairUser(sessionObj, callback) {
 function handleSessionEvent(sesObj, callback) {
   switch (sesObj.sessionEvent) {
 
+    // case 'SESSION_ABORT':
+    //   console.log(chalkSession(
+    //     "*** ABT SESSION ABORTED" + " | ID: " + sesObj.sessionId
+    //   ));
+
+    //   io.to(sesObj.sessionId).emit('SESSION_ABORT', sesObj.sessionId);
+
+    //   sesObj.sessionEvent = 'SESSION_DELETE';
+    //   viewNameSpace.emit('SESSION_DELETE', sesObj);
+    //   break;
+
     case 'SESSION_ABORT':
-      console.log(chalkSession(
-        "*** ABT SESSION ABORTED" + " | ID: " + sesObj.sessionId
-      ));
-
-      io.to(sesObj.sessionId).emit('SESSION_ABORT', sesObj.sessionId);
-
-      sesObj.sessionEvent = 'SESSION_DELETE';
-      viewNameSpace.emit('SESSION_DELETE', sesObj);
-      break;
-
     case 'SESSION_EXPIRED':
     case 'SOCKET_ERROR':
     case 'SOCKET_DISCONNECT':
@@ -4806,13 +4807,14 @@ function createSession(newSessionObj) {
     if (!sessionObj) {
       console.log(chalkError(moment().format(defaultDateTimeFormat) 
         + " | ??? SESSION NOT FOUND ON SESSION_KEEPALIVE | " + socketId 
-        + " | ABORTING SESSION" + "\n" + jsonPrint(userObj)));
+        + " | CREATING SESSION" + "\n" + jsonPrint(userObj)
+      ));
       createSession({ namespace: "view", socket: socket, type: "VIEWER" });
       // sessionQueue.enqueue({sessionEvent: "SESSION_ABORT", sessionId: socketId});
       // viewNameSpace.emit("SESSION_DELETE", {sessionEvent: "SESSION_DELETE", sessionId: socketId});
       return;
     }
-    debug(chalkLog("@@@ SESSION_KEEPALIVE | " 
+    console.log(chalkLog("@@@ SESSION_KEEPALIVE | " 
       + userObj.userId 
       + " | " + sessionObj.sessionId 
       + " | " + moment().format(defaultDateTimeFormat)));

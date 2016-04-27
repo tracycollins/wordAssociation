@@ -4708,7 +4708,7 @@ function createSession(newSessionObj) {
     if (sessionObj) {
       sessionObj.connected = false;
       sessionQueue.enqueue({ sessionEvent: "SOCKET_DISCONNECT", sessionId: socket.id, session: sessionObj });
-      debug(chalkDisconnect("\nDISCONNECTED SOCKET " + util.inspect(socket, { showHidden: false, depth: 1 })));
+      console.log(chalkDisconnect("\nDISCONNECTED SOCKET " + util.inspect(socket, { showHidden: false, depth: 1 })));
     } else {
       console.log(chalkWarn("??? DISCONNECTED SOCKET NOT IN CACHE ... TIMED OUT? | " + socket.id));
     }

@@ -1842,7 +1842,7 @@ function sessionUpdateDb(sessionObj, callback) {
           + " | " + sessionObj.sessionId + "\n" + err);
         callback(err, sessionObj);
       } else {
-        debug(chalkSession("SESSION UPDATED" 
+        console.log(chalkSession("SESSION UPDATED" 
           + " | " + ses.sessionId 
           + " | NSP: " + ses.namespace 
           + " | UID: " + ses.userId 

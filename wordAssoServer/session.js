@@ -727,6 +727,7 @@ socket.on("disconnect", function() {
   console.log("*** DISCONNECTED FROM HOST ... DELETING ALL SESSIONS ...");
   deleteAllSessions(function() {
     console.log("DELETED ALL SESSIONS");
+    updateSessionsReady = true;
   });
 });
 
@@ -738,6 +739,7 @@ socket.on("error", function(error) {
   console.log("*** SOCKET ERROR ... DELETING ALL SESSIONS ...");
   deleteAllSessions(function() {
     console.log("DELETED ALL SESSIONS");
+    updateSessionsReady = true;
   });
 });
 
@@ -749,6 +751,7 @@ socket.on("connect_error", function(error) {
   console.log("*** SOCKET CONNECT ERROR ... DELETING ALL SESSIONS ...");
   deleteAllSessions(function() {
     console.log("DELETED ALL SESSIONS");
+    updateSessionsReady = true;
   });
 });
 
@@ -760,6 +763,7 @@ socket.on("reconnect_error", function(error) {
   console.log("*** SOCKET RECONNECT ERROR ... DELETING ALL SESSIONS ...");
   deleteAllSessions(function() {
     console.log("DELETED ALL SESSIONS");
+    updateSessionsReady = true;
   });
 });
 

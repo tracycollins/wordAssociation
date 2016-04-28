@@ -1041,7 +1041,7 @@ var readUpdateSessionViewQueue = setInterval(function() {
       }
 
       if (sessionUpdateObj.target) {
-        console.log(chalkLog("S>" + " | " + sessionUpdateObj.userId
+        debug(chalkLog("S>" + " | " + sessionUpdateObj.userId
           // + " | " + sessionUpdateObj.sessionId
           // + " | WCI: " + sessionUpdateObj.wordChainIndex
           + " | " + sessionUpdateObj.source.nodeId 
@@ -1050,7 +1050,7 @@ var readUpdateSessionViewQueue = setInterval(function() {
           + " [" + sessionUpdateObj.target.wordChainIndex + "]"
         ));
       } else {
-        console.log(chalkLog("SNT>" + " | " + sessionUpdateObj.userId
+        debug(chalkLog("SNT>" + " | " + sessionUpdateObj.userId
           // + " | " + sessionUpdateObj.sessionId
           // + " | WCI: " + sessionUpdateObj.wordChainIndex
           + " | " + sessionUpdateObj.source.nodeId + " [" + sessionUpdateObj.source.wordChainIndex + "]"
@@ -1061,14 +1061,10 @@ var readUpdateSessionViewQueue = setInterval(function() {
 
     viewNameSpace.emit("SESSION_UPDATE", sessionSmallObj);
     testViewersNameSpace.emit("SESSION_UPDATE", sessionSmallObj);
-
     sessionUpdatesSent++;
     updateStats({ sessionUpdatesSent: sessionUpdatesSent });
-
     updatePromptResponseMetric(sessionUpdateObj);
-
     updateSessionViewReady = true;
-
   }
 }, 50);
 

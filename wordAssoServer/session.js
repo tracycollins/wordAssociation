@@ -532,13 +532,10 @@ var viewerObj = {
   type: "VIEWER",
 };
 
-
-
 var initialPositionIndex = 0;
 var initialPositionArray = [];
 var radiusX = 0.4 * window.innerWidth * 1;
 var radiusY = 0.5 * window.innerHeight * 1;
-
 
 this.initialPositionArrayShift = function() {
   return initialPositionArray.shift();
@@ -553,13 +550,11 @@ function computeInitialPosition(index) {
   return pos;
 }
 
-
-
-
 var randomColorQueue = [];
 var randomNumber360 = randomIntFromInterval(0, 360);
 var startColor = "hsl(" + randomNumber360 + ",100%,50%)";
 var endColor = "hsl(" + randomNumber360 + ",50%,25%)";
+
 randomColorQueue.push({
   "startColor": startColor,
   "endColor": endColor
@@ -578,7 +573,6 @@ setInterval(function() { // randomColorQueue
     });
     initialPositionArray.push(computeInitialPosition(initialPositionIndex++));
   }
-
 }, 50);
 
 
@@ -950,11 +944,13 @@ var lastHeartbeatReceived = 0;
 
 // CHECK FOR SERVER HEARTBEAT
 setInterval(function() {
-  if ((lastHeartbeatReceived > 0) && (lastHeartbeatReceived + serverHeartbeatTimeout) < moment()) {
+  if (!serverConnected){
     console.error(chalkError("\n????? SERVER DOWN ????? | " + targetServer + " | LAST HEARTBEAT: " + getTimeStamp(lastHeartbeatReceived) + " | " + moment().format(defaultDateTimeFormat) + " | AGO: " + msToTime(moment().valueOf() - lastHeartbeatReceived)));
-    socket.connect(targetServer, {
-      reconnection: false
-    });
+    socket.connect(targetServer, {reconnection: false});
+  }
+  else if ((lastHeartbeatReceived > 0) && (lastHeartbeatReceived + serverHeartbeatTimeout) < moment()) {
+    console.error(chalkError("\n????? SERVER DOWN ????? | " + targetServer + " | LAST HEARTBEAT: " + getTimeStamp(lastHeartbeatReceived) + " | " + moment().format(defaultDateTimeFormat) + " | AGO: " + msToTime(moment().valueOf() - lastHeartbeatReceived)));
+    socket.connect(targetServer, {reconnection: false});
   }
 }, serverCheckInterval);
 
@@ -1077,7 +1073,6 @@ socket.on("USER_SESSION", function(rxSessionObject) {
   var rxObj = rxSessionObject;
   console.log("USER_SESSION" + " | SID: " + rxObj.sessionId + " | UID: " + rxObj.userId + " | NSP: " + rxObj.namespace + " | WCI: " + rxObj.wordChainIndex + " | CONN: " + rxObj.connected);
 });
-
 
 socket.on("SESSION_UPDATE", function(rxSessionObject) {
   var rxObj = rxSessionObject;
@@ -1704,7 +1699,6 @@ function toggleFullScreen() {
     }
   }
 }
-
 
 var updateSessionsInterval;
 

@@ -710,7 +710,7 @@ var app = express();
 
 var http = require('http');
 var httpServer = require('http').Server(app);
-var io = require('socket.io')(httpServer);
+var io = require('socket.io')(httpServer, { reconnection: false });
 var dns = require('dns');
 var path = require('path');
 var net = require('net');
@@ -3831,7 +3831,9 @@ var readResponseQueue = setInterval(function() {
 
     if (!currentSessionObj) {
       console.error(chalkWarn("??? SESSION NOT IN CACHE ON RESPONSE Q READ" 
-        + " | " + socketId + " | ABORTING SESSION"));
+        + " | responseQueue: " + responseQueue.size()
+        + " | " + socketId + " | ABORTING SESSION"
+        ));
 
       sessionQueue.enqueue({ sessionEvent: "SESSION_ABORT", sessionId: socketId });
       ready = true;
@@ -4658,8 +4660,6 @@ function createSession(newSessionObj) {
 
   sessionQueue.enqueue({ sessionEvent: "SESSION_CREATE", session: sessionObj });
 
-
-
   socket.on('reconnect_error', function(errorObj) {
     statsObj.socket.reconnect_errors++;
     console.error(chalkError(moment().format(defaultDateTimeFormat) 
@@ -4683,7 +4683,6 @@ function createSession(newSessionObj) {
     console.error(chalkError(moment().format(defaultDateTimeFormat) 
       + " | SOCKET CONNECT TIMEOUT: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
   });
-
 
   socket.on("error", function(error) {
     statsObj.socket.errors++;
@@ -5010,7 +5009,6 @@ testViewersNameSpace.on('connect', function(socket) {
   createSession({ namespace: "test-view", socket: socket, type: "TEST_VIEWER" });
 });
 
-
 var databaseEnabled = false;
 
 configEvents.on("INIT_DATABASE_COMPLETE", function(tweetCount) {
@@ -5037,78 +5035,47 @@ var metricsInterval = setInterval(function() {
   numberUsersTotal = numberUsers + numberTestUsers;
   numberViewersTotal = numberViewers + numberTestViewers;
 
-  // statsLogger.recordStat('numberViewers', numberViewers);
-  // statsLogger.recordStat('numberUsers', numberUsers);
-  // statsLogger.recordStat('numberTestUsers', numberTestUsers);
-  // statsLogger.recordStat('numberUsersTotal', numberUsersTotal);
-
   if (numberViewersTotal > numberViewersTotalMax) {
     numberViewersTotalMaxTime = moment().valueOf();
     numberViewersTotalMax = numberViewersTotal;
-    // statsLogger.recordStat('numberViewersTotalMax', numberViewersTotal);
     console.log(chalkAlert("... NEW TOTAL MAX VIEWERS"
-      // + " | " + statsLogger.getStatValue('numberViewersTotalMax') 
       + " | " + moment().format(defaultDateTimeFormat)));
-  } else {
-    // statsLogger.recordStat('numberViewersMax', numberViewers);
   }
 
   if (numberViewers > numberViewersMax) {
     numberViewersMaxTime = moment().valueOf();
     numberViewersMax = numberViewers;
-    // statsLogger.recordStat('numberViewersMax', numberViewers);
     console.log(chalkAlert("... NEW MAX VIEWERS"
-      // + " | " + statsLogger.getStatValue('numberViewersMax') 
       + " | " + moment().format(defaultDateTimeFormat)));
-  } else {
-    // statsLogger.recordStat('numberViewersMax', numberViewers);
   }
 
   if (numberUsersTotal > numberUsersTotalMax) {
     numberUsersTotalMaxTime = moment().valueOf();
     numberUsersTotalMax = numberUsersTotal;
-    // statsLogger.recordStat('numberUsersTotalMax', numberUsersTotal);
     console.log(chalkAlert("... NEW TOTAL MAX USERS"
-      // + " | " + statsLogger.getStatValue('numberUsersTotalMax') 
       + " | " + moment().format(defaultDateTimeFormat)));
-  } else {
-    // statsLogger.recordStat('numberUsersTotalMax', numberUsersTotal);
   }
 
   if (numberUsers > numberUsersMax) {
     numberUsersMaxTime = moment().valueOf();
     numberUsersMax = numberUsers;
-    // statsLogger.recordStat('numberUsersMax', numberUsers);
     console.log(chalkAlert("... NEW MAX USERS"
-      // + " | " + statsLogger.getStatValue('numberUsersMax') 
       + " | " + moment().format(defaultDateTimeFormat)));
-  } else {
-    // statsLogger.recordStat('numberUsersMax', numberUsers);
   }
-
 
   if (numberTestUsers > numberTestUsersMax) {
     numberTestUsersMaxTime = moment().valueOf();
     numberTestUsersMax = numberTestUsers;
-    // statsLogger.recordStat('numberTestUsersMax', numberTestUsers);
     console.log(chalkAlert("... NEW MAX TEST USERS"
-      // + " | " + statsLogger.getStatValue('numberTestUsersMax') 
       + " | " + moment().format(defaultDateTimeFormat)));
-  } else {
-    // statsLogger.recordStat('numberTestUsersMax', numberTestUsers);
   }
 
   if (numberUtils > numberUtilsMax) {
     numberUtilsMaxTime = moment().valueOf();
     numberUtilsMax = numberUtils;
-    // statsLogger.recordStat('numberUtilsMax', numberUtils);
     console.log(chalkAlert("... NEW MAX UTILS"
-      // + " | " + statsLogger.getStatValue('numberUtilsMax') 
       + " | " + moment().format(defaultDateTimeFormat)));
-  } else {
-    // statsLogger.recordStat('numberUtilsMax', numberUtils);
   }
-
 
   var googleMetricsUpdateFlag = !disableGoogleMetrics && googleMetricsEnabled;
   updateMetrics(googleMetricsUpdateFlag);

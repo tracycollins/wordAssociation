@@ -949,13 +949,13 @@ var lastHeartbeatReceived = 0;
 // CHECK FOR SERVER HEARTBEAT
 setInterval(function() {
   if (!serverConnected) {
-    console.error("\n????? SERVER DOWN ????? | " + targetServer + " | LAST HEARTBEAT: " + getTimeStamp(lastHeartbeatReceived) + " | " + moment().format(defaultDateTimeFormat) + " | AGO: " + msToTime(moment().valueOf() - lastHeartbeatReceived);
+    console.error("\n????? SERVER DOWN ????? | " + targetServer + " | LAST HEARTBEAT: " + getTimeStamp(lastHeartbeatReceived) + " | " + moment().format(defaultDateTimeFormat) + " | AGO: " + msToTime(moment().valueOf() - lastHeartbeatReceived));
     socket.connect(targetServer, {
       reconnection: false
     });
   }
   else if ((lastHeartbeatReceived > 0) && (lastHeartbeatReceived + serverHeartbeatTimeout) < moment()) {
-    console.error("\n????? SERVER DOWN ????? | " + targetServer + " | LAST HEARTBEAT: " + getTimeStamp(lastHeartbeatReceived) + " | " + moment().format(defaultDateTimeFormat) + " | AGO: " + msToTime(moment().valueOf() - lastHeartbeatReceived);
+    console.error("\n????? SERVER DOWN ????? | " + targetServer + " | LAST HEARTBEAT: " + getTimeStamp(lastHeartbeatReceived) + " | " + moment().format(defaultDateTimeFormat) + " | AGO: " + msToTime(moment().valueOf() - lastHeartbeatReceived));
     socket.connect(targetServer, {
       reconnection: false
     });

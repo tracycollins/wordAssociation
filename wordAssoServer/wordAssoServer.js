@@ -1,6 +1,7 @@
 /*jslint node: true */
 "use strict";
 
+var MAX_RESPONSE_QUEUE_SIZE = 250;
 var OFFLINE_MODE = false;
 var quitOnError = false;
 
@@ -135,13 +136,7 @@ var numberViewersTotalMax = 0;
 var numberViewersTotalMaxTime = moment().valueOf();
 
 console.log(
-  '\n\n====================================================================================================\n' 
-  + '========================================= ***START*** ==============================================\n' 
-  + '====================================================================================================\n' 
-  + process.argv[1] + '\nSTARTED ' + Date() 
-  + '\n' + '====================================================================================================\n' 
-  + '========================================= ***START*** ==============================================\n' 
-  + '====================================================================================================\n\n'
+  '\n\n====================================================================================================\n' + '========================================= ***START*** ==============================================\n' + '====================================================================================================\n' + process.argv[1] + '\nSTARTED ' + Date() + '\n' + '====================================================================================================\n' + '========================================= ***START*** ==============================================\n' + '====================================================================================================\n\n'
 );
 
 console.error("OFFLINE_MODE: " + OFFLINE_MODE);
@@ -475,9 +470,7 @@ function saveStats(statsFile, statsObj, callback) {
   } else {
     dropboxClient.writeFile(statsFile, JSON.stringify(statsObj, null, 2), function(error, stat) {
       if (error) {
-        console.error(chalkError(moment().format(defaultDateTimeFormat) 
-          + " | !!! ERROR STATUS WRITE | FILE: " + statsFile 
-          + " ERROR: " + error));
+        console.error(chalkError(moment().format(defaultDateTimeFormat) + " | !!! ERROR STATUS WRITE | FILE: " + statsFile + " ERROR: " + error));
         callback(error);
       } else {
         debug(chalkLog("... SAVED STATS | " + statsFile));
@@ -513,8 +506,7 @@ function loadStats() {
 
         dropboxClient.readFile(WA_STATS_FILE, function(err, statsJson, callback) {
 
-          console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
-            + " | ... LOADING STATS FROM DROPBOX FILE: " + WA_STATS_FILE));
+          console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | ... LOADING STATS FROM DROPBOX FILE: " + WA_STATS_FILE));
 
           var statsObj = JSON.parse(statsJson);
 
@@ -525,20 +517,17 @@ function loadStats() {
           console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | FOUND " + statsObj.name));
 
           if (typeof statsObj.bhtRequests !== 'undefined') {
-            console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
-              + " | SET DAILY BHT REQUESTS: " + statsObj.bhtRequests));
+            console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | SET DAILY BHT REQUESTS: " + statsObj.bhtRequests));
             bhtRequests = statsObj.bhtRequests;
           }
 
           if (typeof statsObj.promptsSent !== 'undefined') {
-            console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
-              + " | SET PROMPTS SENT: " + statsObj.promptsSent));
+            console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | SET PROMPTS SENT: " + statsObj.promptsSent));
             promptsSent = statsObj.promptsSent;
           }
 
           if (typeof statsObj.responsesReceived !== 'undefined') {
-            console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
-              + " | SET RESPONSES RECEIVED: " + statsObj.responsesReceived));
+            console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | SET RESPONSES RECEIVED: " + statsObj.responsesReceived));
             responsesReceived = statsObj.responsesReceived;
           }
 
@@ -561,8 +550,7 @@ function loadStats() {
       return; //It's important to return so that the task callback isn't called twice
     }
 
-    console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
-      + " | ... LOADING STATS FROM FILE: " + statsFile));
+    console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | ... LOADING STATS FROM FILE: " + statsFile));
 
     var statsObj = JSON.parse(statsJson);
 
@@ -576,14 +564,12 @@ function loadStats() {
     }
 
     if (typeof statsObj.promptsSent !== 'undefined') {
-      console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
-        + " | SET PROMPTS SENT: " + statsObj.promptsSent));
+      console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | SET PROMPTS SENT: " + statsObj.promptsSent));
       promptsSent = statsObj.promptsSent;
     }
 
     if (typeof statsObj.responsesReceived !== 'undefined') {
-      console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
-        + " | SET RESPONSES RECEIVED: " + statsObj.responsesReceived));
+      console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | SET RESPONSES RECEIVED: " + statsObj.responsesReceived));
       responsesReceived = statsObj.responsesReceived;
     }
 
@@ -710,7 +696,9 @@ var app = express();
 
 var http = require('http');
 var httpServer = require('http').Server(app);
-var io = require('socket.io')(httpServer, { reconnection: false });
+var io = require('socket.io')(httpServer, {
+  reconnection: false
+});
 var dns = require('dns');
 var path = require('path');
 var net = require('net');
@@ -733,9 +721,14 @@ var viewerCache = new NodeCache();
 var userCache = new NodeCache();
 var utilCache = new NodeCache();
 
-var wordCache = new NodeCache({ stdTTL: 0, checkperiod: 10 });
+var wordCache = new NodeCache({
+  stdTTL: 0,
+  checkperiod: 10
+});
 
-var sessionCache = new NodeCache({ stdTTL: sessionCacheTtl });
+var sessionCache = new NodeCache({
+  stdTTL: sessionCacheTtl
+});
 
 var promptQueue = new Queue();
 var responseQueue = new Queue();
@@ -919,9 +912,7 @@ function dnsReverseLookup(ip, callback) {
 }
 
 function updatePromptResponseMetric(sessionUpdateObj) {
-  debug("PROMPT-RESPONSE RATE FIFO PUSH: NOW: " 
-    + getTimeNow() 
-    + " | PROMPT-RESPONSE SESSION: " + sessionUpdateObj.sessionId);
+  debug("PROMPT-RESPONSE RATE FIFO PUSH: NOW: " + getTimeNow() + " | PROMPT-RESPONSE SESSION: " + sessionUpdateObj.sessionId);
   responseRate1minQ.enqueue(moment.utc());
 }
 
@@ -941,14 +932,18 @@ function updateStatsCounts() {
       if (!err) {
         // console.log("TOTAL USERS: " + count);
         totalUsers = count;
-        updateStats({ totalUsers: totalUsers });
+        updateStats({
+          totalUsers: totalUsers
+        });
         uComplete = true;
 
         Session.count({}, function(err, count) {
           if (!err) {
             // console.log("TOTAL SESSIONS: " + count);
             totalSessions = count;
-            updateStats({ totalSessions: totalSessions });
+            updateStats({
+              totalSessions: totalSessions
+            });
             sComplete = true;
 
             Word.count({}, function(err, count) {
@@ -956,24 +951,23 @@ function updateStatsCounts() {
               if (!err) {
                 // console.log("TOTAL WORDS: " + count);
                 totalWords = count;
-                updateStats({ totalWords: totalWords });
+                updateStats({
+                  totalWords: totalWords
+                });
                 wComplete = true;
                 return;
               } else {
-                console.error(chalkError("\n*** DB Word.count ERROR *** | " 
-                  + moment().format(defaultDateTimeFormat) + "\n" + err));
+                console.error(chalkError("\n*** DB Word.count ERROR *** | " + moment().format(defaultDateTimeFormat) + "\n" + err));
                 return;
               }
             });
           } else {
-            console.error(chalkError("\n*** DB Session.count ERROR *** | " 
-              + moment().format(defaultDateTimeFormat) + "\n" + err));
+            console.error(chalkError("\n*** DB Session.count ERROR *** | " + moment().format(defaultDateTimeFormat) + "\n" + err));
             return;
           }
         });
       } else {
-        console.error(chalkError("\n*** DB User.count ERROR *** | " 
-          + moment().format(defaultDateTimeFormat) + "\n" + err));
+        console.error(chalkError("\n*** DB User.count ERROR *** | " + moment().format(defaultDateTimeFormat) + "\n" + err));
         return;
       }
     });
@@ -1044,10 +1038,7 @@ var readUpdateSessionViewQueue = setInterval(function() {
         console.log(chalkLog("S>" + " | " + sessionUpdateObj.userId
           // + " | " + sessionUpdateObj.sessionId
           // + " | WCI: " + sessionUpdateObj.wordChainIndex
-          + " | " + sessionUpdateObj.source.nodeId 
-          + " [" + sessionUpdateObj.source.wordChainIndex + "]" 
-          + " > " + sessionUpdateObj.target.nodeId 
-          + " [" + sessionUpdateObj.target.wordChainIndex + "]"
+          + " | " + sessionUpdateObj.source.nodeId + " [" + sessionUpdateObj.source.wordChainIndex + "]" + " > " + sessionUpdateObj.target.nodeId + " [" + sessionUpdateObj.target.wordChainIndex + "]"
         ));
       } else {
         console.log(chalkLog("SNT>" + " | " + sessionUpdateObj.userId
@@ -1062,7 +1053,9 @@ var readUpdateSessionViewQueue = setInterval(function() {
     viewNameSpace.emit("SESSION_UPDATE", sessionSmallObj);
     testViewersNameSpace.emit("SESSION_UPDATE", sessionSmallObj);
     sessionUpdatesSent++;
-    updateStats({ sessionUpdatesSent: sessionUpdatesSent });
+    updateStats({
+      sessionUpdatesSent: sessionUpdatesSent
+    });
     updatePromptResponseMetric(sessionUpdateObj);
     updateSessionViewReady = true;
   }
@@ -1091,12 +1084,10 @@ function sendPrompt(sessionObj, sourceWordObj) {
   var currentUser = userCache.get(sessionObj.userId);
 
   if (!currentSession) {
-    console.log("sendPrompt | sessionObj.sessionId NOT FOUND IN SESSION CACHE ... SKIPPING | " 
-      + sessionObj.sessionId);
+    console.log("sendPrompt | sessionObj.sessionId NOT FOUND IN SESSION CACHE ... SKIPPING | " + sessionObj.sessionId);
     return;
   } else if (!currentUser) {
-    console.log("sendPrompt | " + sessionObj.userId + " NOT FOUND IN USER CACHE ... SKIPPING | " 
-      + sessionObj.sessionId);
+    console.log("sendPrompt | " + sessionObj.userId + " NOT FOUND IN USER CACHE ... SKIPPING | " + sessionObj.sessionId);
     return;
   } else {
 
@@ -1114,9 +1105,7 @@ function sendPrompt(sessionObj, sourceWordObj) {
           var targetWordObj = wordCache.get(targetWordId);
 
           if (!targetWordObj) {
-            console.log(chalkWarn("sendPrompt" 
-              + " | " + sessionObj.sessionId 
-              + " | " + targetWordId + " NOT FOUND IN WORD CACHE (EXPIRED?) ... SKIPPING"));
+            console.log(chalkWarn("sendPrompt" + " | " + sessionObj.sessionId + " | " + targetWordId + " NOT FOUND IN WORD CACHE (EXPIRED?) ... SKIPPING"));
             return;
             // KLUDGE??? WILL THIS STALL SESSION?
           }
@@ -1170,7 +1159,9 @@ function sendPrompt(sessionObj, sourceWordObj) {
 
           promptsSent++;
           deltaPromptsSent++;
-          updateStats({ promptsSent: promptsSent });
+          updateStats({
+            promptsSent: promptsSent
+          });
 
         }, randomInt(minServerResponseTime, maxServerResponseTime));
 
@@ -1200,13 +1191,7 @@ function sendPrompt(sessionObj, sourceWordObj) {
           promptWordObj = wordCache.get(promptWord);
           var targetWordObj = wordCache.get(previousResponse);
 
-          console.log(chalkPrompt("P-> " + currentUser.userId 
-            + " | " + sessionObj.sessionId 
-            + " | TYPE: " + sessionObj.config.type 
-            + " | MODE: " + sessionObj.config.mode 
-            + " | " + targetWordObj.nodeId 
-            + " --> " + promptWordObj.nodeId 
-            + " | " + targetSessionId));
+          console.log(chalkPrompt("P-> " + currentUser.userId + " | " + sessionObj.sessionId + " | TYPE: " + sessionObj.config.type + " | MODE: " + sessionObj.config.mode + " | " + targetWordObj.nodeId + " --> " + promptWordObj.nodeId + " | " + targetSessionId));
 
         } else if (currentSession.wordChainIndex >= 1) {
 
@@ -1215,22 +1200,15 @@ function sendPrompt(sessionObj, sourceWordObj) {
           var targetWordObj = wordCache.get(previousResponse);
           promptWordObj = targetWordObj;
 
-          console.log(chalkPrompt("P-> " + currentUser.userId 
-            + " | " + sessionObj.sessionId 
-            + " | TYPE: " + sessionObj.config.type 
-            + " | MODE: " + sessionObj.config.mode 
-            + " | START --> " + targetWordObj.nodeId));
+          console.log(chalkPrompt("P-> " + currentUser.userId + " | " + sessionObj.sessionId + " | TYPE: " + sessionObj.config.type + " | MODE: " + sessionObj.config.mode + " | START --> " + targetWordObj.nodeId));
 
         } else {
 
-          promptWordObj = { nodeId: "START" };
+          promptWordObj = {
+            nodeId: "START"
+          };
 
-          console.log(chalkPrompt("P-> " 
-            + currentUser.userId 
-            + " | " + targetSession.sessionId 
-            + " | TYPE: " + sessionObj.config.type 
-            + " | MODE: " + sessionObj.config.mode 
-            + " | START --> " + promptWordObj.nodeId));
+          console.log(chalkPrompt("P-> " + currentUser.userId + " | " + targetSession.sessionId + " | TYPE: " + sessionObj.config.type + " | MODE: " + sessionObj.config.mode + " | START --> " + promptWordObj.nodeId));
         }
 
         sessionCache.set(currentSession.sessionId, currentSession);
@@ -1252,7 +1230,9 @@ function sendPrompt(sessionObj, sourceWordObj) {
 
         updateSessionViews(sessionUpdateObj);
 
-        updateStats({ promptsSent: promptsSent });
+        updateStats({
+          promptsSent: promptsSent
+        });
         break;
 
       case 'GROUP':
@@ -1280,16 +1260,11 @@ function dbUpdateWord(wordObj, incMentions, callback) {
 
   words.findOneWord(wordObj, incMentions, function(err, word) {
     if (err) {
-      console.log(chalkError("dbUpdateWord -- > findOneWord ERROR" 
-        + "\n" + JSON.stringify(err) 
-        + "\n" + JSON.stringify(wordObj, null, 2)));
+      console.log(chalkError("dbUpdateWord -- > findOneWord ERROR" + "\n" + JSON.stringify(err) + "\n" + JSON.stringify(wordObj, null, 2)));
       callback(err, wordObj);
     } else {
 
-      debug("dbUpdateWord ->- DB UPDATE | " + word.nodeId 
-        + " | MNS: " + word.mentions 
-        + " | BHT SEARCHED: " + word.bhtSearched 
-        + " | BHT FOUND: " + word.bhtFound);
+      debug("dbUpdateWord ->- DB UPDATE | " + word.nodeId + " | MNS: " + word.mentions + " | BHT SEARCHED: " + word.bhtSearched + " | BHT FOUND: " + word.bhtFound);
 
       debug(JSON.stringify(word, null, 3));
 
@@ -1317,7 +1292,9 @@ function dbUpdateWord(wordObj, incMentions, callback) {
             debug(chalkBht("-O- BHT MISS  | " + wordObj.nodeId));
             wordCache.set(bhtResponseObj.nodeId, bhtResponseObj);
             bhtWordsMiss[word.nodeId] = word.nodeId;
-            updateStats({ bhtWordsMiss: bhtWordsMiss });
+            updateStats({
+              bhtWordsMiss: bhtWordsMiss
+            });
             callback('BHT_MISS', bhtResponseObj);
           }
         });
@@ -1329,7 +1306,9 @@ function dbUpdateWord(wordObj, incMentions, callback) {
         debug(chalkBht("-N- BHT NOT FOUND  | " + word.nodeId));
         wordCache.set(word.nodeId, word);
         bhtWordsNotFound[word.nodeId] = word.nodeId;
-        updateStats({ bhtWordsNotFound: bhtWordsNotFound });
+        updateStats({
+          bhtWordsNotFound: bhtWordsNotFound
+        });
         callback('BHT_NOT_FOUND', word);
       }
     }
@@ -1362,18 +1341,19 @@ function loadBhtResponseHash(bhtResponseObj, callback) {
 
 function bhtHttpGet(host, path, wordObj, callback) {
 
-  http.get({ host: host, path: path }, function(response) {
+  http.get({
+    host: host,
+    path: path
+  }, function(response) {
 
     debug("bhtHttpGet: " + host + "/" + path);
 
     response.on('error', function(err) {
       bhtErrors++;
-      console.log(chalkError("BHT ERROR" 
-        + " | TOTAL ERRORS: " + bhtErrors 
-        + " | WORD: " + wordObj.nodeId 
-        + " | STATUS CODE: " + response.statusCode 
-        + " | STATUS MESSAGE: " + response.statusMessage 
-        + "\n" + util.inspect(err, { showHidden: false, depth: 3 })));
+      console.log(chalkError("BHT ERROR" + " | TOTAL ERRORS: " + bhtErrors + " | WORD: " + wordObj.nodeId + " | STATUS CODE: " + response.statusCode + " | STATUS MESSAGE: " + response.statusMessage + "\n" + util.inspect(err, {
+        showHidden: false,
+        depth: 3
+      })));
       callback("BHT_ERROR | " + err, wordObj);
       return;
     });
@@ -1383,11 +1363,7 @@ function bhtHttpGet(host, path, wordObj, callback) {
 
     if ((response.statusCode == 500) && (response.statusMessage == 'Usage Exceeded')) {
       bhtErrors++;
-      console.log(chalkError("BHT ERROR" 
-        + " | TOTAL ERRORS: " + bhtErrors 
-        + " | WORD: " + wordObj.nodeId 
-        + " | STATUS CODE: " + response.statusCode 
-        + " | STATUS MESSAGE: " + response.statusMessage
+      console.log(chalkError("BHT ERROR" + " | TOTAL ERRORS: " + bhtErrors + " | WORD: " + wordObj.nodeId + " | STATUS CODE: " + response.statusCode + " | STATUS MESSAGE: " + response.statusMessage
         // + "\n" + util.inspect(response, {showHidden: false, depth: 3})
       ));
       bhtEvents.emit("BHT_OVER_LIMIT", bhtRequests);
@@ -1395,12 +1371,10 @@ function bhtHttpGet(host, path, wordObj, callback) {
       return;
     } else if ((response.statusCode == 500) && (response.statusMessage == 'Inactive key')) {
       bhtErrors++;
-      console.log(chalkError("BHT ERROR" 
-        + " | TOTAL ERRORS: " + bhtErrors 
-        + " | WORD: " + wordObj.nodeId 
-        + " | STATUS CODE: " + response.statusCode 
-        + " | STATUS MESSAGE: " + response.statusMessage 
-        + "\n" + util.inspect(response, { showHidden: false, depth: 3 })));
+      console.log(chalkError("BHT ERROR" + " | TOTAL ERRORS: " + bhtErrors + " | WORD: " + wordObj.nodeId + " | STATUS CODE: " + response.statusCode + " | STATUS MESSAGE: " + response.statusMessage + "\n" + util.inspect(response, {
+        showHidden: false,
+        depth: 3
+      })));
       bhtEvents.emit("BHT_INACTIVE_KEY", bhtRequests);
       callback("BHT_INACTIVE_KEY", wordObj);
       return;
@@ -1426,7 +1400,10 @@ function bhtHttpGet(host, path, wordObj, callback) {
       ));
       words.findOneWord(wordObj, true, function(err, wordUpdatedObj) {
         if (err) {
-          console.log(chalkError("bhtHttpGet: findOneWord: DB ERROR\n" + "\n" + util.inspect(err, { showHidden: false, depth: 3 })));
+          console.log(chalkError("bhtHttpGet: findOneWord: DB ERROR\n" + "\n" + util.inspect(err, {
+            showHidden: false,
+            depth: 3
+          })));
           callback("BHT_ERROR | " + err, wordObj);
           return;
         } else {
@@ -1440,12 +1417,10 @@ function bhtHttpGet(host, path, wordObj, callback) {
       });
     } else if (response.statusCode != 200) {
       bhtErrors++;
-      console.log(chalkError("BHT ERROR" 
-        + " | TOTAL ERRORS: " + bhtErrors 
-        + " | WORD: " + wordObj.nodeId 
-        + " | STATUS CODE: " + response.statusCode 
-        + " | STATUS MESSAGE: " + response.statusMessage 
-        + "\n" + util.inspect(response, { showHidden: false, depth: 3 })));
+      console.log(chalkError("BHT ERROR" + " | TOTAL ERRORS: " + bhtErrors + " | WORD: " + wordObj.nodeId + " | STATUS CODE: " + response.statusCode + " | STATUS MESSAGE: " + response.statusMessage + "\n" + util.inspect(response, {
+        showHidden: false,
+        depth: 3
+      })));
       bhtEvents.emit("BHT_UNKNOWN_STATUS", bhtRequests);
       callback("BHT_UNKNOWN_STATUS", wordObj);
       return;
@@ -1486,7 +1461,10 @@ function bhtHttpGet(host, path, wordObj, callback) {
     console.log(chalkError("BHT ERROR" + " | TOTAL ERRORS: " + bhtErrors + " | WORD: " + wordObj.nodeId
       // + " | STATUS CODE: " + response.statusCode
       // + " | STATUS MESSAGE: " + response.statusMessage
-      + "\n" + util.inspect(e, { showHidden: false, depth: 3 })
+      + "\n" + util.inspect(e, {
+        showHidden: false,
+        depth: 3
+      })
     ));
     callback("BHT_ERROR", wordObj);
   });
@@ -1658,12 +1636,7 @@ function bhtSearchWord(wordObj, callback) {
     var now = moment.utc();
     now.utcOffset("-07:00");
 
-    console.log(chalkBht("*** BHT OVER LIMIT" 
-      + " | LIMIT: " + BHT_REQUEST_LIMIT 
-      + " | REQS: " + bhtRequests 
-      + " | OVER: " + bhtOverLimitTime.format(defaultDateTimeFormat) 
-      + " | RESET: " + bhtLimitResetTime.format(defaultDateTimeFormat) 
-      + " | REMAIN: " + msToTime(bhtLimitResetTime.diff(now))));
+    console.log(chalkBht("*** BHT OVER LIMIT" + " | LIMIT: " + BHT_REQUEST_LIMIT + " | REQS: " + bhtRequests + " | OVER: " + bhtOverLimitTime.format(defaultDateTimeFormat) + " | RESET: " + bhtLimitResetTime.format(defaultDateTimeFormat) + " | REMAIN: " + msToTime(bhtLimitResetTime.diff(now))));
     callback("BHT_OVER_LIMIT", wordObj);
     return;
   } else {
@@ -1753,20 +1726,23 @@ function incrementDeltaMwReqs(delta) {
 function setWordCacheTtl(value) {
   console.log(chalkWarn("SET WORD CACHE TTL: PREV: " + wordCacheTtl + " | NOW: " + value));
   wordCacheTtl = parseInt(value);
-  updateStats({ wordCacheTtl: wordCacheTtl });
+  updateStats({
+    wordCacheTtl: wordCacheTtl
+  });
 }
 
 function setBhtReqs(value) {
   console.log(chalkInfo("SET BHT REQS: PREV: " + bhtRequests + " | NOW: " + value));
   bhtRequests = parseInt(value);
-  updateStats({ bhtRequests: bhtRequests });
+  updateStats({
+    bhtRequests: bhtRequests
+  });
 }
 
 function incrementSocketBhtReqs(delta) {
 
   if ((bhtRequests >= BHT_REQUEST_LIMIT) || ((bhtRequests + delta) > BHT_REQUEST_LIMIT)) {
-    console.log(chalkInfo("!!! incrementSocketBhtReqs: AT BHT_REQUEST_LIMIT: " + bhtRequests 
-      + " | NOW: " + BHT_REQUEST_LIMIT));
+    console.log(chalkInfo("!!! incrementSocketBhtReqs: AT BHT_REQUEST_LIMIT: " + bhtRequests + " | NOW: " + BHT_REQUEST_LIMIT));
     bhtRequests = BHT_REQUEST_LIMIT;
     io.of(adminNameSpace).emit('BHT_OVER_LIMIT', bhtRequests);
     io.of(utilNameSpace).emit('BHT_OVER_LIMIT', bhtRequests);
@@ -1775,10 +1751,7 @@ function incrementSocketBhtReqs(delta) {
   } else if (delta > 0) {
     bhtRequests += delta;
     var remain = BHT_REQUEST_LIMIT - bhtRequests;
-    console.log(chalkInfo("-#- BHT REQS: " + bhtRequests 
-      + " | DELTA: " + delta 
-      + " | LIMIT: " + BHT_REQUEST_LIMIT 
-      + " | REMAIN: " + remain));
+    console.log(chalkInfo("-#- BHT REQS: " + bhtRequests + " | DELTA: " + delta + " | LIMIT: " + BHT_REQUEST_LIMIT + " | REMAIN: " + remain));
     incrementDeltaBhtReqs(delta);
   }
 }
@@ -1786,15 +1759,12 @@ function incrementSocketBhtReqs(delta) {
 function incrementSocketMwReqs(delta) {
 
   if ((mwRequests > MW_REQUEST_LIMIT) || ((mwRequests + delta) > MW_REQUEST_LIMIT)) {
-    console.log(chalkInfo("!!! incrementSocketMwReqs: AT MW_REQUEST_LIMIT: " + mwRequests 
-      + " | NOW: " + MW_REQUEST_LIMIT));
+    console.log(chalkInfo("!!! incrementSocketMwReqs: AT MW_REQUEST_LIMIT: " + mwRequests + " | NOW: " + MW_REQUEST_LIMIT));
     mwRequests = MW_REQUEST_LIMIT;
   } else if (delta > 0) {
     mwRequests += delta;
     var remain = MW_REQUEST_LIMIT - mwRequests;
-    console.log(chalkInfo("-#- MW  REQS: " + mwRequests 
-      + " | DELTA: " + delta + " | LIMIT: " + MW_REQUEST_LIMIT 
-      + " | REMAIN: " + remain));
+    console.log(chalkInfo("-#- MW  REQS: " + mwRequests + " | DELTA: " + delta + " | LIMIT: " + MW_REQUEST_LIMIT + " | REMAIN: " + remain));
     incrementDeltaMwReqs(delta);
   }
 }
@@ -1804,7 +1774,9 @@ function sessionUpdateDb(sessionObj, callback) {
   // debug("sessionUpdateDb: sessionObj: " + JSON.stringify(sessionObj, null, 3));
   // debug("sessionConnectDb: sessionObj: " + util.inspect(sessionObj, {showHidden: false, depth: 1}));
 
-  var query = { sessionId: sessionObj.sessionId };
+  var query = {
+    sessionId: sessionObj.sessionId
+  };
 
   var update = {
     $set: {
@@ -1826,7 +1798,10 @@ function sessionUpdateDb(sessionObj, callback) {
     },
   };
 
-  var options = { upsert: true, new: true };
+  var options = {
+    upsert: true,
+    new: true
+  };
 
   Session.findOneAndUpdate(
     query,
@@ -1834,20 +1809,10 @@ function sessionUpdateDb(sessionObj, callback) {
     options,
     function(err, ses) {
       if (err) {
-        console.error("!!! SESSION FINDONE ERROR: " + moment().format(defaultDateTimeFormat) 
-          + " | " + sessionObj.sessionId + "\n" + err);
+        console.error("!!! SESSION FINDONE ERROR: " + moment().format(defaultDateTimeFormat) + " | " + sessionObj.sessionId + "\n" + err);
         callback(err, sessionObj);
       } else {
-        debug(chalkSession("SESSION UPDATED" 
-          + " | " + ses.sessionId 
-          + " | NSP: " + ses.namespace 
-          + " | UID: " + ses.userId 
-          + " | IP: " + ses.ip 
-          + " | DOM: " + ses.domain 
-          + " | CON: " + ses.connected 
-          + " | WCI: " + ses.wordChainIndex 
-          + " | WCL: " + ses.wordChain.length 
-          + "\nCONFIG\n" + jsonPrint(ses.config)));
+        debug(chalkSession("SESSION UPDATED" + " | " + ses.sessionId + " | NSP: " + ses.namespace + " | UID: " + ses.userId + " | IP: " + ses.ip + " | DOM: " + ses.domain + " | CON: " + ses.connected + " | WCI: " + ses.wordChainIndex + " | WCL: " + ses.wordChain.length + "\nCONFIG\n" + jsonPrint(ses.config)));
         callback(null, ses);
       }
     }
@@ -1856,20 +1821,18 @@ function sessionUpdateDb(sessionObj, callback) {
 
 function findSessionById(sessionId, callback) {
 
-  var query = { sessionId: sessionId };
+  var query = {
+    sessionId: sessionId
+  };
 
   Session.findOne(
     query,
     function(err, session) {
       if (err) {
-        console.error(chalkError("!!! SESSION FINDONE ERROR: " 
-          + moment().format(defaultDateTimeFormat) 
-          + "\nSESSION ID: " + sessionId 
-          + "\n" + err));
+        console.error(chalkError("!!! SESSION FINDONE ERROR: " + moment().format(defaultDateTimeFormat) + "\nSESSION ID: " + sessionId + "\n" + err));
         callback(err, null);
       } else if (session) {
-        console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
-          + " | SESSION FOUND\n" + jsonPrint(session)));
+        console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | SESSION FOUND\n" + jsonPrint(session)));
         callback(null, session);
       } else {
         console.log(chalkAlert(moment().format(defaultDateTimeFormat) + " | SESSION NOT FOUND"));
@@ -1893,7 +1856,9 @@ function adminUpdateDb(adminObj, callback) {
     });
   }
 
-  var query = { adminId: adminObj.adminId };
+  var query = {
+    adminId: adminObj.adminId
+  };
   var update = {
     $set: {
       "screenName": adminObj.screenName,
@@ -1916,9 +1881,14 @@ function adminUpdateDb(adminObj, callback) {
       "connectTime": adminObj.connectTime,
       "disconnectTime": adminObj.disconnectTime
     },
-    $push: { "sessions": adminObj.lastSession }
+    $push: {
+      "sessions": adminObj.lastSession
+    }
   };
-  var options = { upsert: true, new: true };
+  var options = {
+    upsert: true,
+    new: true
+  };
 
   Admin.findOneAndUpdate(
     query,
@@ -1926,29 +1896,16 @@ function adminUpdateDb(adminObj, callback) {
     options,
     function(err, ad) {
       if (err) {
-        console.error("!!! ADMIN FINDONE ERROR: " + moment().format(defaultDateTimeFormat) 
-          + " | " + adminObj.adminId 
-          + "\nQUERY: " + jsonPrint(query) 
-          + "\nUPDATE: " + jsonPrint(update) 
-          + "\nOPTIONS: " + jsonPrint(options) 
-          + "\nERROR: " + jsonPrint(err));
+        console.error("!!! ADMIN FINDONE ERROR: " + moment().format(defaultDateTimeFormat) + " | " + adminObj.adminId + "\nQUERY: " + jsonPrint(query) + "\nUPDATE: " + jsonPrint(update) + "\nOPTIONS: " + jsonPrint(options) + "\nERROR: " + jsonPrint(err));
         callback(err, adminObj);
         return;
       } else {
-        console.log(">>> ADMIN UPDATED" + " | " + ad.adminId 
-          + " | IP: " + ad.ip 
-          + " | DOM: " + ad.domain 
-          + " | SID: " + ad.sessionId 
-          + " | SN: " + ad.screenName
+        console.log(">>> ADMIN UPDATED" + " | " + ad.adminId + " | IP: " + ad.ip + " | DOM: " + ad.domain + " | SID: " + ad.sessionId + " | SN: " + ad.screenName
           // + " | DES: " + us.description 
           // + " | URL: " + us.url 
           // + " | PURL: " + us.profileUrl 
           // + " | PIURL: " + us.profileImageUrl 
-          + " | VER: " + ad.verified 
-          + " | LS: " + getTimeStamp(ad.lastSeen) 
-          + " | SES: " + ad.sessions.length 
-          + " | LSES: " + ad.lastSession 
-          + " | CON: " + ad.connected
+          + " | VER: " + ad.verified + " | LS: " + getTimeStamp(ad.lastSeen) + " | SES: " + ad.sessions.length + " | LSES: " + ad.lastSession + " | CON: " + ad.connected
         );
         callback(null, ad);
         return;
@@ -1959,7 +1916,9 @@ function adminUpdateDb(adminObj, callback) {
 
 function viewerUpdateDb(viewerObj, callback) {
 
-  var query = { viewerId: viewerObj.viewerId };
+  var query = {
+    viewerId: viewerObj.viewerId
+  };
   var update = {
     $set: {
       "namespace": viewerObj.namespace,
@@ -1982,9 +1941,14 @@ function viewerUpdateDb(viewerObj, callback) {
       "connectTime": viewerObj.connectTime,
       "disconnectTime": viewerObj.disconnectTime
     },
-    $push: { "sessions": viewerObj.lastSession }
+    $push: {
+      "sessions": viewerObj.lastSession
+    }
   };
-  var options = { upsert: true, new: true };
+  var options = {
+    upsert: true,
+    new: true
+  };
 
   Viewer.findOneAndUpdate(
     query,
@@ -1992,26 +1956,15 @@ function viewerUpdateDb(viewerObj, callback) {
     options,
     function(err, vw) {
       if (err) {
-        console.error("!!! VIEWER FINDONE ERROR: " 
-          + moment().format(defaultDateTimeFormat) 
-          + " | " + viewerObj.viewerId + "\n" + err);
+        console.error("!!! VIEWER FINDONE ERROR: " + moment().format(defaultDateTimeFormat) + " | " + viewerObj.viewerId + "\n" + err);
         callback(err, viewerObj);
       } else {
-        console.log(">>> VIEWER UPDATED" 
-          + " | " + vw.viewerId 
-          + " | SN: " + vw.screenName 
-          + " | NSP: " + vw.namespace 
-          + " | IP: " + vw.ip 
-          + " | DOM: " + vw.domain 
-          + " | SID: " + vw.sessionId
+        console.log(">>> VIEWER UPDATED" + " | " + vw.viewerId + " | SN: " + vw.screenName + " | NSP: " + vw.namespace + " | IP: " + vw.ip + " | DOM: " + vw.domain + " | SID: " + vw.sessionId
           // + " | DES: " + us.description 
           // + " | URL: " + us.url 
           // + " | PURL: " + us.profileUrl 
           // + " | PIURL: " + us.profileImageUrl 
-          + " | VER: " + vw.verified 
-          + " | LS: " + getTimeStamp(vw.lastSeen) 
-          + " | SES: " + vw.sessions.length 
-          + " | LSES: " + vw.lastSession
+          + " | VER: " + vw.verified + " | LS: " + getTimeStamp(vw.lastSeen) + " | SES: " + vw.sessions.length + " | LSES: " + vw.lastSession
         );
         callback(null, vw);
       }
@@ -2034,7 +1987,9 @@ function userUpdateDb(userObj, callback) {
     });
   }
 
-  var query = { userId: userObj.userId };
+  var query = {
+    userId: userObj.userId
+  };
   var update = {
     $set: {
       "namespace": userObj.namespace,
@@ -2057,9 +2012,14 @@ function userUpdateDb(userObj, callback) {
       "connectTime": userObj.connectTime,
       "disconnectTime": userObj.disconnectTime
     },
-    $push: { "sessions": userObj.lastSession }
+    $push: {
+      "sessions": userObj.lastSession
+    }
   };
-  var options = { upsert: true, new: true };
+  var options = {
+    upsert: true,
+    new: true
+  };
 
   User.findOneAndUpdate(
     query,
@@ -2067,26 +2027,14 @@ function userUpdateDb(userObj, callback) {
     options,
     function(err, us) {
       if (err) {
-        console.error("!!! USER FINDONE ERROR: " 
-          + moment().format(defaultDateTimeFormat) 
-          + " | " + userObj.userId + "\n" + err);
+        console.error("!!! USER FINDONE ERROR: " + moment().format(defaultDateTimeFormat) + " | " + userObj.userId + "\n" + err);
         callback(err, userObj);
       } else {
-        console.log(chalkUser(">>> USER UPDATED" 
-          + " | " + us.userId 
-          + "\nSN:   " + us.screenName 
-          + "\nNSP:  " + us.namespace 
-          + "\nIP:   " + us.ip 
-          + "\nDOM:  " + us.domain 
-          + "\nSID:  " + us.sessionId
+        console.log(chalkUser(">>> USER UPDATED" + " | " + us.userId + "\nSN:   " + us.screenName + "\nNSP:  " + us.namespace + "\nIP:   " + us.ip + "\nDOM:  " + us.domain + "\nSID:  " + us.sessionId
           // + "\nURL: " + us.url 
           // + "\nPURL: " + us.profileUrl 
           // + "\nPIURL: " + us.profileImageUrl 
-          + "\nVER:  " + us.verified 
-          + "\nLS:   " + getTimeStamp(us.lastSeen) 
-          + "\nSES:  " + us.sessions.length 
-          + "\nLSES: " + us.lastSession 
-          + "\nCON:  " + us.connected
+          + "\nVER:  " + us.verified + "\nLS:   " + getTimeStamp(us.lastSeen) + "\nSES:  " + us.sessions.length + "\nLSES: " + us.lastSession + "\nCON:  " + us.connected
         ));
         callback(null, us);
       }
@@ -2131,9 +2079,7 @@ function adminFindAllDb(options, callback) {
 
         function(adminObj, callback) {
 
-          console.log(chalkAdmin("UID: " + adminObj.adminId 
-            + " | SN: " + adminObj.screenName 
-            + " | LS: " + getTimeStamp(adminObj.lastSeen)
+          console.log(chalkAdmin("UID: " + adminObj.adminId + " | SN: " + adminObj.screenName + " | LS: " + getTimeStamp(adminObj.lastSeen)
             // + "\n" + chalkLog(util.inspect(admins[i], {showHidden: false, depth: 1})
           ));
 
@@ -2204,9 +2150,7 @@ function viewerFindAllDb(options, callback) {
 
         function(viewer, callback) {
 
-          console.log(chalkViewer("UID: " + viewer.viewerId 
-            + " | SN: " + viewer.screenName 
-            + " | LS: " + getTimeStamp(viewer.lastSeen)
+          console.log(chalkViewer("UID: " + viewer.viewerId + " | SN: " + viewer.screenName + " | LS: " + getTimeStamp(viewer.lastSeen)
             // + "\n" + chalkLog(util.inspect(viewers[i], {showHidden: false, depth: 1})
           ));
 
@@ -2273,9 +2217,7 @@ function userFindAllDb(options, callback) {
 
         function(user, callback) {
 
-          console.log(chalkUser("UID: " + user.userId 
-            + " | SN: " + user.screenName 
-            + " | LS: " + getTimeStamp(user.lastSeen)
+          console.log(chalkUser("UID: " + user.userId + " | SN: " + user.screenName + " | LS: " + getTimeStamp(user.lastSeen)
             // + "\n" + chalkLog(util.inspect(users[i], {showHidden: false, depth: 1})
           ));
 
@@ -2331,10 +2273,7 @@ function ipAddressFindAllDb(options, callback) {
         ipAddressArray,
 
         function(ipAddress, callback) {
-          console.log(chalkUser("IP: " + ipAddress.ip 
-            + " | LSESS: " + ipAddress.lastSession 
-            + " | LS: " + getTimeStamp(ipAddress.lastSeen) 
-            + " | #SESS: " + ipAddress.sessions.length
+          console.log(chalkUser("IP: " + ipAddress.ip + " | LSESS: " + ipAddress.lastSession + " | LS: " + getTimeStamp(ipAddress.lastSeen) + " | #SESS: " + ipAddress.sessions.length
             // + "\n" + chalkLog(util.inspect(users[i], {showHidden: false, depth: 1})
           ));
 
@@ -2364,14 +2303,16 @@ function ipAddressFindAllDb(options, callback) {
 }
 
 function dumpIoStats() {
-  debug("\n-------------\nIO\n-------------" 
-    + "\nIO SOCKETS NAME: " + io.sockets.name 
-    + "\nSERVER:          " + util.inspect(io.sockets.server, { showHidden: false, depth: 2 }) 
-    + "\nCONNECTED:       " + util.inspect(io.sockets.connected, { showHidden: false, depth: 2 }) 
-    + "\nFNS:             " + io.sockets.fns 
-    + "\nIDS:             " + io.sockets.ids 
-    + "\nACKS:            " + util.inspect(io.sockets.acks, { showHidden: false, depth: 2 }) 
-    + "\n----------------------------");
+  debug("\n-------------\nIO\n-------------" + "\nIO SOCKETS NAME: " + io.sockets.name + "\nSERVER:          " + util.inspect(io.sockets.server, {
+    showHidden: false,
+    depth: 2
+  }) + "\nCONNECTED:       " + util.inspect(io.sockets.connected, {
+    showHidden: false,
+    depth: 2
+  }) + "\nFNS:             " + io.sockets.fns + "\nIDS:             " + io.sockets.ids + "\nACKS:            " + util.inspect(io.sockets.acks, {
+    showHidden: false,
+    depth: 2
+  }) + "\n----------------------------");
 }
 
 function oauthExpiryTimer(endTime) {
@@ -2379,21 +2320,18 @@ function oauthExpiryTimer(endTime) {
   var remainingTime = msToTime(endTime - getTimeNow());
 
   debug("\nSET oauthExpiryTimer: " + getTimeStamp(endTime));
-  console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
-    + " | GOOGLE OAUTH2 CREDENTIAL EXPIRES IN: " + remainingTime + " AT " + endTime));
+  console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | GOOGLE OAUTH2 CREDENTIAL EXPIRES IN: " + remainingTime + " AT " + endTime));
 
   var oauthInterval = setInterval(function() {
 
     remainingTime = msToTime(endTime - getTimeNow());
 
     if (endTime - getTimeNow() < 60000) {
-      console.log(chalkAlert(moment().format(defaultDateTimeFormat) 
-        + " | GOOGLE OAUTH2 CREDENTIAL EXPIRING IN " + remainingTime));
+      console.log(chalkAlert(moment().format(defaultDateTimeFormat) + " | GOOGLE OAUTH2 CREDENTIAL EXPIRING IN " + remainingTime));
     }
 
     if (getTimeNow() >= endTime) {
-      console.log(chalkAlert(moment().format(defaultDateTimeFormat) 
-        + " | GOOGLE OAUTH2 CREDENTIAL EXPIRED: " + " | " + getTimeStamp(endTime)));
+      console.log(chalkAlert(moment().format(defaultDateTimeFormat) + " | GOOGLE OAUTH2 CREDENTIAL EXPIRED: " + " | " + getTimeStamp(endTime)));
       clearInterval(oauthInterval);
       googleAuthorized = false;
       googleMetricsEnabled = false;
@@ -2407,16 +2345,17 @@ function oauthExpiryTimer(endTime) {
 function authorizeGoogle() {
   googleOauthClient.authorize(function(err, tokens) {
     if (err) {
-      console.error(chalkError(moment().format(defaultDateTimeFormat) 
-        + " | ***** GOOGLE OAUTH ERROR: googleOauthClient " 
-        + " | " + moment().format(defaultDateTimeFormat) + "\n" + err + "\n"));
+      console.error(chalkError(moment().format(defaultDateTimeFormat) + " | ***** GOOGLE OAUTH ERROR: googleOauthClient " + " | " + moment().format(defaultDateTimeFormat) + "\n" + err + "\n"));
       googleOauthEvents.emit('GOOGLE OAUTH ERROR', err);
     } else {
 
       console.log("GOOGLE TOKEN\n" + jsonPrint(tokens));
       googleAuthExpiryDate = tokens.expiry_date;
 
-      googleMonitoring = googleapis.cloudmonitoring({ version: 'v2beta2', auth: googleOauthClient });
+      googleMonitoring = googleapis.cloudmonitoring({
+        version: 'v2beta2',
+        auth: googleOauthClient
+      });
 
 
       var credential = {
@@ -2429,16 +2368,14 @@ function authorizeGoogle() {
         expiryDate: googleAuthExpiryDate,
         lastSeen: currentTime
       }
-      debug(chalkGoogle("\nGOOGLE OAUTH2 AUTHORIZED\n----------------------\nCREDENTIAL\n" 
-        + JSON.stringify(tokens, null, 3)));
+      debug(chalkGoogle("\nGOOGLE OAUTH2 AUTHORIZED\n----------------------\nCREDENTIAL\n" + JSON.stringify(tokens, null, 3)));
 
       findOneOauth2Credential(credential);
       googleAuthorized = true;
       googleMetricsEnabled = true;
       oauthExpiryTimer(tokens.expiry_date);
 
-      console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
-        + " | GOOGLE OAUTH2 AUTHORIZED: ExpiryDate: " + getTimeStamp(googleAuthExpiryDate)));
+      console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | GOOGLE OAUTH2 AUTHORIZED: ExpiryDate: " + getTimeStamp(googleAuthExpiryDate)));
       googleOauthEvents.emit('GOOGLE AUTHORIZED', credential);
     }
   });
@@ -2448,9 +2385,13 @@ function findOneOauth2Credential(credential) {
 
   console.log("findOneOauth2Credential: credential\n" + jsonPrint(credential));
 
-  var query = { clientId: credential.clientId };
+  var query = {
+    clientId: credential.clientId
+  };
   var update = {
-    $inc: { mentions: 1 },
+    $inc: {
+      mentions: 1
+    },
     $set: {
       credentialType: credential.credentialType,
       clientId: credential.clientId,
@@ -2463,7 +2404,10 @@ function findOneOauth2Credential(credential) {
       lastSeen: currentTime
     }
   };
-  var options = { upsert: true, new: true };
+  var options = {
+    upsert: true,
+    new: true
+  };
 
   Oauth2credential.findOneAndUpdate(
     query,
@@ -2471,26 +2415,13 @@ function findOneOauth2Credential(credential) {
     options,
     function(err, cred) {
       if (err) {
-        console.error(chalkError(moment().format(defaultDateTimeFormat) 
-          + " | !!! OAUTH2 CREDENTIAL FINDONE ERROR" 
-          + "\nCLIENT ID: " + credential.clientId 
-          + "\nERROR" + err));
+        console.error(chalkError(moment().format(defaultDateTimeFormat) + " | !!! OAUTH2 CREDENTIAL FINDONE ERROR" + "\nCLIENT ID: " + credential.clientId + "\nERROR" + err));
         return credential;
       } else {
-        console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
-          + " | GOOGLE CREDENTIAL UPDATED" + " | EXPIRES AT " + cred.expiryDate));
-        console.log(chalkGoogle("\n\n--- OAUTH2 CREDENTIAL UPDATED---" 
-          + "\nCREDENTIAL TYPE: " + cred.credentialType 
-          + "\nCLIENT ID:       " + cred.clientId 
-          + "\nCLIENT SECRET:   " + cred.clientSecret 
-          + "\nEMAIL ADDR:      " + cred.emailAddress 
-          + "\nTOKEN TYPE:      " + cred.tokenType 
-          + "\nACCESS TOKEN:    " + cred.accessToken 
-          + "\nREFRESH TOKEN:   " + cred.refreshToken 
-          + "\nEXPIRY DATE:     " + cred.expiryDate
+        console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | GOOGLE CREDENTIAL UPDATED" + " | EXPIRES AT " + cred.expiryDate));
+        console.log(chalkGoogle("\n\n--- OAUTH2 CREDENTIAL UPDATED---" + "\nCREDENTIAL TYPE: " + cred.credentialType + "\nCLIENT ID:       " + cred.clientId + "\nCLIENT SECRET:   " + cred.clientSecret + "\nEMAIL ADDR:      " + cred.emailAddress + "\nTOKEN TYPE:      " + cred.tokenType + "\nACCESS TOKEN:    " + cred.accessToken + "\nREFRESH TOKEN:   " + cred.refreshToken + "\nEXPIRY DATE:     " + cred.expiryDate
           // + "\nLAST SEEN:       " + getTimeStamp(Date(cred.lastSeen)) 
-          + "\nLAST SEEN:       " + cred.lastSeen + "\nMENTIONS:        " 
-          + cred.mentions + "\n--------------------------------\n\n"
+          + "\nLAST SEEN:       " + cred.lastSeen + "\nMENTIONS:        " + cred.mentions + "\n--------------------------------\n\n"
         ));
         var mentionsString = cred.mentions.toString();
         cred.mentions = mentionsString;
@@ -2503,30 +2434,21 @@ function findOneOauth2Credential(credential) {
 
 function findCredential(clientId, callback) {
 
-  var query = { clientId: clientId };
+  var query = {
+    clientId: clientId
+  };
 
   Oauth2credential.findOne(
     query,
     function(err, cred) {
       if (err) {
-        console.error(chalkError("!!! OAUTH2 CREDENTIAL FINDONE ERROR: " 
-          + moment().format(defaultDateTimeFormat) + "\nCLIENT ID: " + clientId + "\n" + err));
+        console.error(chalkError("!!! OAUTH2 CREDENTIAL FINDONE ERROR: " + moment().format(defaultDateTimeFormat) + "\nCLIENT ID: " + clientId + "\n" + err));
         googleOauthEvents.emit('credential error', clientId + "\n" + err);
         callback(err);
         // return;    
       } else if (cred) {
         console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | GOOGLE OAUTH2 CREDENTIAL FOUND"));
-        debug(chalkGoogle("GOOGLE OAUTH2 CREDENTIAL\n--------------------------------\n" 
-          + "\nCREDENTIAL TYPE: " + cred.credentialType + "\nCLIENT ID:       " 
-          + cred.clientId + "\nCLIENT SECRET:   " + cred.clientSecret 
-          + "\nEMAIL ADDR:      " + cred.emailAddress 
-          + "\nTOKEN TYPE:      " + cred.tokenType 
-          + "\nACCESS TOKEN:    " + cred.accessToken 
-          + "\nREFRESH TOKEN:   " + cred.refreshToken 
-          + "\nEXPIRY DATE:     " + cred.expiryDate 
-          + "\nLAST SEEN:       " + getTimeStamp(cred.lastSeen) 
-          + "\nMENTIONS:        " + cred.mentions 
-          + "\n--------------------------------\n\n"));
+        debug(chalkGoogle("GOOGLE OAUTH2 CREDENTIAL\n--------------------------------\n" + "\nCREDENTIAL TYPE: " + cred.credentialType + "\nCLIENT ID:       " + cred.clientId + "\nCLIENT SECRET:   " + cred.clientSecret + "\nEMAIL ADDR:      " + cred.emailAddress + "\nTOKEN TYPE:      " + cred.tokenType + "\nACCESS TOKEN:    " + cred.accessToken + "\nREFRESH TOKEN:   " + cred.refreshToken + "\nEXPIRY DATE:     " + cred.expiryDate + "\nLAST SEEN:       " + getTimeStamp(cred.lastSeen) + "\nMENTIONS:        " + cred.mentions + "\n--------------------------------\n\n"));
         var mentionsString = cred.mentions.toString();
         cred.mentions = mentionsString;
         googleOauthEvents.emit('GOOGLE CREDENTIAL FOUND', cred);
@@ -2556,12 +2478,7 @@ function updateMetrics(googleMetricsUpdateFlag) {
   metricDateEnd = moment().toJSON();
   // hopefully will avoid Google metric error Timeseries data must be more recent than previously-written data
 
-  debug(moment().format(defaultDateTimeFormat) 
-    + " | updateMetrics USERS: " + numberUsers 
-    + " | PTX: " + promptsSent 
-    + " | RRX: " + responsesReceived 
-    + " | STX: " + sessionUpdatesSent 
-    + " | BHTR: " + bhtRequests);
+  debug(moment().format(defaultDateTimeFormat) + " | updateMetrics USERS: " + numberUsers + " | PTX: " + promptsSent + " | RRX: " + responsesReceived + " | STX: " + sessionUpdatesSent + " | BHTR: " + bhtRequests);
 
 
   // name: custom.cloudmonitoring.googleapis.com/word-asso/clients/numberUsers
@@ -2838,7 +2755,9 @@ function updateMetrics(googleMetricsUpdateFlag) {
               "end": metricDateEnd
             },
             "timeseriesDesc": {
-              "labels": { "custom.cloudmonitoring.googleapis.com/word-asso/words/totalWords": "TOTAL WORDS IN DB" },
+              "labels": {
+                "custom.cloudmonitoring.googleapis.com/word-asso/words/totalWords": "TOTAL WORDS IN DB"
+              },
               "metric": "custom.cloudmonitoring.googleapis.com/word-asso/words/totalWords"
             }
           }
@@ -2847,9 +2766,10 @@ function updateMetrics(googleMetricsUpdateFlag) {
       }
     }, function(err, res) {
       if (err) {
-        console.error("!!! GOOGLE CLOUD MONITORING ERROR " 
-          + " | " + moment().format(defaultDateTimeFormat) 
-          + " | " + statArray + "\n" + util.inspect(err, { showHidden: false, depth: 3 }));
+        console.error("!!! GOOGLE CLOUD MONITORING ERROR " + " | " + moment().format(defaultDateTimeFormat) + " | " + statArray + "\n" + util.inspect(err, {
+          showHidden: false,
+          depth: 3
+        }));
 
         if (err.code == 500) {
           console.warn(chalkGoogle("??? GOOGLE CLOUD MONITORING INTERNAL SERVER ERROR (CODE: 500)"));
@@ -2871,7 +2791,9 @@ function updateMetrics(googleMetricsUpdateFlag) {
     });
   }
 
-  updateStats({ deltaResponsesReceived: deltaResponsesReceived });
+  updateStats({
+    deltaResponsesReceived: deltaResponsesReceived
+  });
 
   deltaPromptsSent = 0;
   deltaResponsesReceived = 0;
@@ -2978,8 +2900,7 @@ function pairUser(sessionObj, callback) {
 
   } else {
     sessionObj.config.userA = sessionObj.sessionId;
-    console.log(chalkSession("NO UNPAIRED USER FOUND " + sessionObj.userId 
-      + " | " + sessionObj.sessionId + " ... ADDING TO unpairedUserHashMap"));
+    console.log(chalkSession("NO UNPAIRED USER FOUND " + sessionObj.userId + " | " + sessionObj.sessionId + " ... ADDING TO unpairedUserHashMap"));
     unpairedUserHashMap.set(sessionObj.sessionId, sessionObj.userId);
     sessionUpdateDb(sessionObj, function(err, updatedSessionObj) {
       sessionCache.set(updatedSessionObj.sessionId, updatedSessionObj);
@@ -3009,11 +2930,7 @@ function handleSessionEvent(sesObj, callback) {
     case 'SOCKET_DISCONNECT':
 
       console.log(chalkSession(
-        "XXX " + sesObj.sessionEvent 
-        + " | NSP: " + sesObj.session.namespace 
-        + " | SID: " + sesObj.session.sessionId 
-        + " | IP: " + sesObj.session.ip 
-        + " | DOMAIN: " + sesObj.session.domain
+        "XXX " + sesObj.sessionEvent + " | NSP: " + sesObj.session.namespace + " | SID: " + sesObj.session.sessionId + " | IP: " + sesObj.session.ip + " | DOMAIN: " + sesObj.session.domain
       ));
 
       sesObj.sessionEvent = 'SESSION_DELETE';
@@ -3043,10 +2960,7 @@ function handleSessionEvent(sesObj, callback) {
         unpairedUserHashMap.remove(sesObj.session.config.userB);
 
         if (sessionRouteHashMap.has(sesObj.session.sessionId)) {
-          console.log(chalkWarn("FOUND SESSION IN ROUTE HASH: " 
-            + sesObj.session.sessionId 
-            + "\n" + jsonPrint(sesObj) 
-            + "\n" + jsonPrint(sessionRouteHashMap.get(sesObj.session.sessionId))));
+          console.log(chalkWarn("FOUND SESSION IN ROUTE HASH: " + sesObj.session.sessionId + "\n" + jsonPrint(sesObj) + "\n" + jsonPrint(sessionRouteHashMap.get(sesObj.session.sessionId))));
 
           var unpairedSessionObj;
 
@@ -3065,10 +2979,7 @@ function handleSessionEvent(sesObj, callback) {
               console.error(chalkError("*** pairUser ERROR\n" + jsonPrint(err)));
             } else if (updatedSessionObj.config.userA && updatedSessionObj.config.userB) {
 
-              console.log(chalkSession("U_U CREATED USER_USER PAIR" 
-                + " | " + moment().valueOf() 
-                + " | " + sesObj.session.sessionId 
-                + "\n" + jsonPrint(updatedSessionObj.config)));
+              console.log(chalkSession("U_U CREATED USER_USER PAIR" + " | " + moment().valueOf() + " | " + sesObj.session.sessionId + "\n" + jsonPrint(updatedSessionObj.config)));
 
               io.of(updatedSessionObj.namespace).to(updatedSessionObj.config.userA).emit('PAIRED_USER', updatedSessionObj.config.userB);
               io.of(updatedSessionObj.namespace).to(updatedSessionObj.config.userB).emit('PAIRED_USER', updatedSessionObj.config.userA);
@@ -3092,8 +3003,7 @@ function handleSessionEvent(sesObj, callback) {
           currentAdmin.disconnectTime = moment().valueOf();
           currentAdmin.connected = false;
 
-          console.log(chalkRed("CONNECTION DURATION: " + currentAdmin.adminId 
-            + " | " + msToTime(moment().valueOf() - currentAdmin.connectTime)));
+          console.log(chalkRed("CONNECTION DURATION: " + currentAdmin.adminId + " | " + msToTime(moment().valueOf() - currentAdmin.connectTime)));
 
           adminUpdateDb(currentAdmin, function(err, updatedAdminObj) {
             if (!err) {
@@ -3112,16 +3022,14 @@ function handleSessionEvent(sesObj, callback) {
           currentUser.connected = false;
           currentUser.disconnectTime = moment().valueOf();
 
-          console.log(chalkRed("CONNECTION DURATION: " + currentUser.userId 
-            + " | " + msToTime(moment().valueOf() - currentUser.connectTime)));
+          console.log(chalkRed("CONNECTION DURATION: " + currentUser.userId + " | " + msToTime(moment().valueOf() - currentUser.connectTime)));
 
           userUpdateDb(currentUser, function(err, updatedUserObj) {
             if (!err) {
 
               updatedUserObj.sessionId = updatedUserObj.lastSession;
 
-              console.log(chalkRed("TX USER SESSION (" + sesObj.sessionEvent + "): " 
-                + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"));
+              console.log(chalkRed("TX USER SESSION (" + sesObj.sessionEvent + "): " + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"));
 
               adminNameSpace.emit('USER_SESSION', updatedUserObj);
             }
@@ -3136,16 +3044,14 @@ function handleSessionEvent(sesObj, callback) {
           currentUtil.connected = false;
           currentUtil.disconnectTime = moment().valueOf();
 
-          console.log(chalkRed("CONNECTION DURATION: " + currentUtil.utilId 
-            + " | " + msToTime(moment().valueOf() - currentUtil.connectTime)));
+          console.log(chalkRed("CONNECTION DURATION: " + currentUtil.utilId + " | " + msToTime(moment().valueOf() - currentUtil.connectTime)));
 
           utilUpdateDb(currentUtil, function(err, updatedUtilObj) {
             if (!err) {
 
               updatedUtilObj.sessionId = updatedUtilObj.lastSession;
 
-              console.log(chalkRed("TX UTIL SESSION (DISCONNECT): " 
-                + updatedUtilObj.lastSession + " TO ADMIN NAMESPACE"));
+              console.log(chalkRed("TX UTIL SESSION (DISCONNECT): " + updatedUtilObj.lastSession + " TO ADMIN NAMESPACE"));
 
               adminNameSpace.emit('UTIL_SESSION', updatedUtilObj);
             }
@@ -3160,16 +3066,14 @@ function handleSessionEvent(sesObj, callback) {
           currentViewer.connected = false;
           currentViewer.disconnectTime = moment().valueOf();
 
-          console.log(chalkRed("CONNECTION DURATION: " + currentViewer.userId 
-            + " | " + msToTime(moment().valueOf() - currentViewer.connectTime)));
+          console.log(chalkRed("CONNECTION DURATION: " + currentViewer.userId + " | " + msToTime(moment().valueOf() - currentViewer.connectTime)));
 
           viewerUpdateDb(currentViewer, function(err, updatedViewerObj) {
             if (!err) {
 
               updatedViewerObj.sessionId = updatedViewerObj.lastSession;
 
-              console.log(chalkRed("TX VIEWER SESSION (DISCONNECT): " 
-                + updatedViewerObj.lastSession + " TO ADMIN NAMESPACE"));
+              console.log(chalkRed("TX VIEWER SESSION (DISCONNECT): " + updatedViewerObj.lastSession + " TO ADMIN NAMESPACE"));
 
               adminNameSpace.emit('VIEWER_SESSION', updatedViewerObj);
             }
@@ -3184,10 +3088,7 @@ function handleSessionEvent(sesObj, callback) {
         var adminSessionObj = sessionCache.get(adminSessionKey);
         if (adminSessionObj) {
           console.log("FOUND ADMIN SESSION: " + adminSessionObj.sessionId);
-          console.log("TX ADMIN SESSION: " 
-            + adminSessionObj.sessionId 
-            + " TO " + sesObj.options.requestNamespace 
-            + "#" + sesObj.options.requestSocketId);
+          console.log("TX ADMIN SESSION: " + adminSessionObj.sessionId + " TO " + sesObj.options.requestNamespace + "#" + sesObj.options.requestSocketId);
           adminNameSpace.to(sesObj.session.sessionId).emit('ADMIN_SESSION', adminSessionObj);
         }
       });
@@ -3233,9 +3134,7 @@ function handleSessionEvent(sesObj, callback) {
         var viewerSessionObj = sessionCache.get(viewerSessionKey);
         if (viewerSessionObj) {
           console.log("FOUND VIEWER SESSION: " + viewerSessionObj.sessionId);
-          console.log(chalkRed("TX VIEWER SESSION: " 
-            + viewerSessionObj.sessionId + " TO " + sesObj.options.requestNamespace 
-            + "#" + sesObj.options.requestSocketId));
+          console.log(chalkRed("TX VIEWER SESSION: " + viewerSessionObj.sessionId + " TO " + sesObj.options.requestNamespace + "#" + sesObj.options.requestSocketId));
           delete viewerSessionObj.wordChain;
 
           adminNameSpace.to(sesObj.session.sessionId).emit('VIEWER_SESSION', viewerSessionObj);
@@ -3245,9 +3144,7 @@ function handleSessionEvent(sesObj, callback) {
         var viewerSessionObj = sessionCache.get(viewerSessionKey);
         if (viewerSessionObj) {
           console.log("FOUND TEST VIEWER SESSION: " + viewerSessionObj.sessionId);
-          console.log(chalkRed("TX VIEWER SESSION: " + viewerSessionObj.sessionId 
-            + " TO " + sesObj.options.requestNamespace 
-            + "#" + sesObj.options.requestSocketId));
+          console.log(chalkRed("TX VIEWER SESSION: " + viewerSessionObj.sessionId + " TO " + sesObj.options.requestNamespace + "#" + sesObj.options.requestSocketId));
           delete viewerSessionObj.wordChain;
 
           adminNameSpace.to(sesObj.session.sessionId).emit('VIEWER_SESSION', viewerSessionObj);
@@ -3264,9 +3161,7 @@ function handleSessionEvent(sesObj, callback) {
 
         if (utilSessionObj) {
           console.log("FOUND UTIL SESSION: " + utilSessionObj.sessionId);
-          console.log(chalkRed("TX UTIL SESSION: " + utilSessionObj.sessionId 
-            + " TO " + sesObj.options.requestNamespace 
-            + "#" + sesObj.options.requestSocketId));
+          console.log(chalkRed("TX UTIL SESSION: " + utilSessionObj.sessionId + " TO " + sesObj.options.requestNamespace + "#" + sesObj.options.requestSocketId));
           delete utilSessionObj.wordChain;
 
           adminNameSpace.to(sesObj.session.sessionId).emit('UTIL_SESSION', utilSessionObj);
@@ -3280,32 +3175,22 @@ function handleSessionEvent(sesObj, callback) {
       sessionUpdateDb(sesObj.session, function(err, sessionUpdatedObj) {
         if (err) {
           console.error(chalkError(
-            "*** SESSION KEEPALIVE ERROR" 
-            + " | SID: " + sessionUpdatedObj.sessionId 
-            + " | IP: " + sessionUpdatedObj.ip 
-            + "\n" + jsonPrint(err)
+            "*** SESSION KEEPALIVE ERROR" + " | SID: " + sessionUpdatedObj.sessionId + " | IP: " + sessionUpdatedObj.ip + "\n" + jsonPrint(err)
           ));
         } else {
 
           sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
 
-          if (!sessionUpdatedObj.userId){
+          if (!sessionUpdatedObj.userId) {
             console.error(chalkError("UNDEFINED USER ID" + "\nsessionUpdatedObj\n" + jsonPrint(sessionUpdatedObj)));
             console.error(chalkError("UNDEFINED USER ID" + "\nsesObj\n" + jsonPrint(sesObj)));
             quit("UNDEFINED USER ID: " + sessionUpdatedObj.sessionId);
           }
 
-          userCache.set(sessionUpdatedObj.userId, sessionUpdatedObj.user, function(err, success) {
-          });
+          userCache.set(sessionUpdatedObj.userId, sessionUpdatedObj.user, function(err, success) {});
 
           console.log(chalkLog(
-            "K>" + " | " + sessionUpdatedObj.userId 
-            + " | T " + sessionUpdatedObj.config.type 
-            + " | M " + sessionUpdatedObj.config.mode 
-            + " | NS " + sessionUpdatedObj.namespace 
-            + " | SID " + sessionUpdatedObj.sessionId 
-            + " | WCI " + sessionUpdatedObj.wordChainIndex 
-            + " | IP " + sessionUpdatedObj.ip
+            "K>" + " | " + sessionUpdatedObj.userId + " | T " + sessionUpdatedObj.config.type + " | M " + sessionUpdatedObj.config.mode + " | NS " + sessionUpdatedObj.namespace + " | SID " + sessionUpdatedObj.sessionId + " | WCI " + sessionUpdatedObj.wordChainIndex + " | IP " + sessionUpdatedObj.ip
           ));
 
           if (sessionUpdatedObj.namespace != 'view') {
@@ -3339,12 +3224,7 @@ function handleSessionEvent(sesObj, callback) {
       // sesObj.session.config.mode = defaultSessionType ;
 
       console.log(chalkSession(
-        ">>> SESSION CREATE" 
-        + " | TYPE: " + sesObj.session.config.type 
-        + " | MODE: " + sesObj.session.config.mode 
-        + " | NSP: " + sesObj.session.namespace 
-        + " | SID: " + sesObj.session.sessionId 
-        + " | SIP: " + sesObj.session.ip
+        ">>> SESSION CREATE" + " | TYPE: " + sesObj.session.config.type + " | MODE: " + sesObj.session.config.mode + " | NSP: " + sesObj.session.namespace + " | SID: " + sesObj.session.sessionId + " | SIP: " + sesObj.session.ip
         // + " | UID: " + sesObj.user.userId
       ));
 
@@ -3373,12 +3253,10 @@ function handleSessionEvent(sesObj, callback) {
 
         if (!err && domains.length > 0) {
           sesObj.session.domain = domains[0];
-          console.log(chalkSession("... SESSION CREATE | IP: " + sesObj.session.ip 
-            + " | DOMAINS: " + domains.length + " | " + domains[0]));
+          console.log(chalkSession("... SESSION CREATE | IP: " + sesObj.session.ip + " | DOMAINS: " + domains.length + " | " + domains[0]));
         } else {
           sesObj.session.domain = 'UNKNOWN';
-          console.log(chalkSession("... SESSION CREATE | IP: " + sesObj.session.ip 
-            + " | DOMAINS: UNKNOWN"));
+          console.log(chalkSession("... SESSION CREATE | IP: " + sesObj.session.ip + " | DOMAINS: UNKNOWN"));
         }
 
         sesObj.session.connected = true;
@@ -3406,11 +3284,7 @@ function handleSessionEvent(sesObj, callback) {
     case 'SOCKET_RECONNECT':
 
       console.log(chalkSession(
-        "<-> SOCKET RECONNECT" 
-        + " | NSP: " + sesObj.session.namespace 
-        + " | SID: " + sesObj.session.sessionId 
-        + " | IP: " + sesObj.session.ip 
-        + " | DOMAIN: " + sesObj.session.domain
+        "<-> SOCKET RECONNECT" + " | NSP: " + sesObj.session.namespace + " | SID: " + sesObj.session.sessionId + " | IP: " + sesObj.session.ip + " | DOMAIN: " + sesObj.session.domain
       ));
 
       sessionCache.set(sesObj.session.sessionId, sesObj.session);
@@ -3425,8 +3299,7 @@ function handleSessionEvent(sesObj, callback) {
 
         utilUpdateDb(currentUtil, function(err, updatedUtilObj) {
           if (!err) {
-            console.log(chalkRed("TX UTIL SESSION (SOCKET ERROR): " 
-              + updatedUtilObj.lastSession + " TO ADMIN NAMESPACE"));
+            console.log(chalkRed("TX UTIL SESSION (SOCKET ERROR): " + updatedUtilObj.lastSession + " TO ADMIN NAMESPACE"));
 
             adminNameSpace.emit('UTIL_SESSION', updatedUtilObj);
           }
@@ -3436,8 +3309,7 @@ function handleSessionEvent(sesObj, callback) {
 
         userUpdateDb(currentUser, function(err, updatedUserObj) {
           if (!err) {
-            console.log(chalkRed("TX USER SESSION (SOCKET ERROR): " 
-              + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"));
+            console.log(chalkRed("TX USER SESSION (SOCKET ERROR): " + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"));
 
             adminNameSpace.emit('USER_SESSION', updatedUserObj);
           }
@@ -3447,8 +3319,7 @@ function handleSessionEvent(sesObj, callback) {
 
         viewerUpdateDb(currentViewer, function(err, updatedViewerObj) {
           if (!err) {
-            console.log(chalkRed("TX VIEWER SESSION (SOCKET ERROR): " 
-              + updatedViewerObj.lastSession + " TO ADMIN NAMESPACE"));
+            console.log(chalkRed("TX VIEWER SESSION (SOCKET ERROR): " + updatedViewerObj.lastSession + " TO ADMIN NAMESPACE"));
 
             adminNameSpace.emit('VIEWER_SESSION', updatedViewerObj);
           }
@@ -3470,12 +3341,7 @@ function handleSessionEvent(sesObj, callback) {
       console.log("ADMIN_READY\n" + jsonPrint(sesObj));
 
       console.log(chalkSession(
-        ">>> SESSION ADMIN READY" 
-        + " | SID: " + sesObj.session.sessionId 
-        + " | UID: " + sesObj.admin.adminId 
-        + " | NSP: " + sesObj.session.namespace 
-        + " | IP: " + sesObj.session.ip 
-        + " | DOMAIN: " + sesObj.session.domain
+        ">>> SESSION ADMIN READY" + " | SID: " + sesObj.session.sessionId + " | UID: " + sesObj.admin.adminId + " | NSP: " + sesObj.session.namespace + " | IP: " + sesObj.session.ip + " | DOMAIN: " + sesObj.session.domain
       ));
 
       var currentSession = sessionCache.get(sesObj.session.sessionId);
@@ -3532,12 +3398,7 @@ function handleSessionEvent(sesObj, callback) {
       console.log("VIEWER_READY\n" + jsonPrint(sesObj));
 
       console.log(chalkSession(
-        ">>> SESSION VIEWER READY" 
-        + " | SID: " + sesObj.session.sessionId 
-        + " | UID: " + sesObj.viewer.viewerId 
-        + " | NSP: " + sesObj.session.namespace 
-        + " | IP: " + sesObj.session.ip 
-        + " | DOMAIN: " + sesObj.session.domain
+        ">>> SESSION VIEWER READY" + " | SID: " + sesObj.session.sessionId + " | UID: " + sesObj.viewer.viewerId + " | NSP: " + sesObj.session.namespace + " | IP: " + sesObj.session.ip + " | DOMAIN: " + sesObj.session.domain
       ));
 
       var currentSession = sessionCache.get(sesObj.session.sessionId);
@@ -3581,14 +3442,10 @@ function handleSessionEvent(sesObj, callback) {
               console.log("viewer\n" + jsonPrint(viewer));
 
               sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
-              console.log(chalkInfo("-S- DB UPDATE" 
-                + " | " + sessionUpdatedObj.sessionId 
-                + " | " + sessionUpdatedObj.userId 
-                + "\n" + jsonPrint(sessionUpdatedObj)));
+              console.log(chalkInfo("-S- DB UPDATE" + " | " + sessionUpdatedObj.sessionId + " | " + sessionUpdatedObj.userId + "\n" + jsonPrint(sessionUpdatedObj)));
               console.log("TX VIEWER_ACK", viewerSessionKey);
               io.of(currentSession.namespace).to(currentSession.sessionId).emit('VIEWER_ACK', viewerSessionKey);
-              console.log(chalkRed("TX VIEWER SESSION (VIEWER READY): " 
-                + updatedViewerObj.lastSession + " TO ADMIN NAMESPACE"));
+              console.log(chalkRed("TX VIEWER SESSION (VIEWER READY): " + updatedViewerObj.lastSession + " TO ADMIN NAMESPACE"));
               adminNameSpace.emit('VIEWER_SESSION', updatedViewerObj);
             }
           });
@@ -3607,14 +3464,7 @@ function handleSessionEvent(sesObj, callback) {
       }
 
       console.log(chalkSession(
-        ">>> SESSION USER READY" 
-        + " | SID: " + sesObj.session.sessionId 
-        + " | SES TYPE: " + sesObj.session.config.type 
-        + " | SES MODE: " + sesObj.session.config.mode 
-        + " | UID: " + sesObj.user.userId 
-        + " | NSP: " + sesObj.session.namespace 
-        + " | IP: " + sesObj.session.ip 
-        + " | DOMAIN: " + sesObj.session.domain
+        ">>> SESSION USER READY" + " | SID: " + sesObj.session.sessionId + " | SES TYPE: " + sesObj.session.config.type + " | SES MODE: " + sesObj.session.config.mode + " | UID: " + sesObj.user.userId + " | NSP: " + sesObj.session.namespace + " | IP: " + sesObj.session.ip + " | DOMAIN: " + sesObj.session.domain
       ));
 
       var currentSession = sessionCache.get(sesObj.session.sessionId);
@@ -3688,10 +3538,7 @@ function handleSessionEvent(sesObj, callback) {
                           sessionUpdateDb(currentSession, function(err, sessionUpdatedObj) {
                             if (!err) {
                               sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
-                              debug(chalkInfo("-S- DB UPDATE" 
-                                + " | " + sessionUpdatedObj.sessionId 
-                                + " | WCI: " + sessionUpdatedObj.wordChainIndex 
-                                + " | WCL: " + sessionUpdatedObj.wordChain.length));
+                              debug(chalkInfo("-S- DB UPDATE" + " | " + sessionUpdatedObj.sessionId + " | WCI: " + sessionUpdatedObj.wordChainIndex + " | WCL: " + sessionUpdatedObj.wordChain.length));
                               // sendPrompt(currentSession, randomWordObj);
                               sendPrompt(sessionUpdatedObj, randomWordObj);
                             } else {
@@ -3716,10 +3563,7 @@ function handleSessionEvent(sesObj, callback) {
                           console.error(chalkError("*** pairUser ERROR\n" + jsonPrint(err)));
                         } else if (updatedSessionObj.config.userA && updatedSessionObj.config.userB) {
 
-                          console.log(chalkSession("U_U CREATED USER_USER PAIR" 
-                            + " | " + moment().valueOf() 
-                            + " | " + sesObj.session.sessionId 
-                            + "\n" + jsonPrint(updatedSessionObj.config)));
+                          console.log(chalkSession("U_U CREATED USER_USER PAIR" + " | " + moment().valueOf() + " | " + sesObj.session.sessionId + "\n" + jsonPrint(updatedSessionObj.config)));
 
 
                           io.of(currentSession.namespace).to(updatedSessionObj.config.userA).emit('PAIRED_USER', updatedSessionObj.config.userB);
@@ -3740,12 +3584,7 @@ function handleSessionEvent(sesObj, callback) {
                       sessionUpdateDb(currentSession, function(err, sessionUpdatedObj) {
                         if (!err) {
                           sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
-                          console.log(chalkInfo("-S- DB UPDATE" 
-                            + " | " + sessionUpdatedObj.sessionId 
-                            + " | TYPE: " + sessionUpdatedObj.config.type 
-                            + " | MODE: " + sessionUpdatedObj.config.mode 
-                            + " | WCI: " + sessionUpdatedObj.wordChainIndex 
-                            + " | WCL: " + sessionUpdatedObj.wordChain.length));
+                          console.log(chalkInfo("-S- DB UPDATE" + " | " + sessionUpdatedObj.sessionId + " | TYPE: " + sessionUpdatedObj.config.type + " | MODE: " + sessionUpdatedObj.config.mode + " | WCI: " + sessionUpdatedObj.wordChainIndex + " | WCL: " + sessionUpdatedObj.wordChain.length));
                         } else {
                           console.log(chalkError("*** ERROR DB UPDATE SESSION\n" + err));
                         }
@@ -3822,9 +3661,7 @@ var readResponseQueue = setInterval(function() {
     var rxInObj = responseQueue.dequeue();
 
     if ((typeof rxInObj.nodeId === 'undefined') || (typeof rxInObj.nodeId !== 'string')) {
-      console.error(chalkError("*** ILLEGAL RESPONSE ... SKIPPING" 
-        + "\nTYPE: " + typeof rxInObj.nodeId 
-        + "\n" + jsonPrint(rxInObj)));
+      console.error(chalkError("*** ILLEGAL RESPONSE ... SKIPPING" + "\nTYPE: " + typeof rxInObj.nodeId + "\n" + jsonPrint(rxInObj)));
       ready = true;
       statsObj.session.error++;
       statsObj.session.responseError++;
@@ -3836,12 +3673,12 @@ var readResponseQueue = setInterval(function() {
     var currentSessionObj = sessionCache.get(socketId);
 
     if (!currentSessionObj) {
-      console.error(chalkWarn("??? SESSION NOT IN CACHE ON RESPONSE Q READ" 
-        + " | responseQueue: " + responseQueue.size()
-        + " | " + socketId + " | ABORTING SESSION"
-        ));
+      console.error(chalkWarn("??? SESSION NOT IN CACHE ON RESPONSE Q READ" + " | responseQueue: " + responseQueue.size() + " | " + socketId + " | ABORTING SESSION"));
 
-      sessionQueue.enqueue({ sessionEvent: "SESSION_ABORT", sessionId: socketId });
+      sessionQueue.enqueue({
+        sessionEvent: "SESSION_ABORT",
+        sessionId: socketId
+      });
       ready = true;
       return;
     }
@@ -3868,7 +3705,10 @@ var readResponseQueue = setInterval(function() {
     responsesReceived++;
     deltaResponsesReceived++;
 
-    updateStats({ responsesReceived: responsesReceived, deltaResponsesReceived: deltaResponsesReceived });
+    updateStats({
+      responsesReceived: responsesReceived,
+      deltaResponsesReceived: deltaResponsesReceived
+    });
 
     currentSessionObj.lastSeen = moment().valueOf();
 
@@ -3880,16 +3720,16 @@ var readResponseQueue = setInterval(function() {
       previousPrompt = currentSessionObj.wordChain[currentSessionObj.wordChainIndex - 1];
       previousPromptObj = wordCache.get(previousPrompt);
       if (!previousPromptObj) {
-        console.error(chalkError(socketId 
-          + " | " + currentSessionObj.userId 
-          + " | ??? previousPrompt NOT IN CACHE: " + previousPrompt
+        console.error(chalkError(socketId + " | " + currentSessionObj.userId + " | ??? previousPrompt NOT IN CACHE: " + previousPrompt
           // + " ... ABORTING SESSION"
         ));
 
         statsObj.session.error++;
         statsObj.session.previousPromptNotFound++;
 
-        previousPromptObj = { nodeId: previousPrompt };
+        previousPromptObj = {
+          nodeId: previousPrompt
+        };
 
         // ready = true;
         // return;
@@ -3897,14 +3737,17 @@ var readResponseQueue = setInterval(function() {
         debug(chalkResponse("... previousPromptObj: " + previousPromptObj.nodeId));
       }
     } else if (currentSessionObj.config.mode == 'STREAM') {
-      previousPromptObj = { nodeId: 'STREAM' };
+      previousPromptObj = {
+        nodeId: 'STREAM'
+      };
       debug(chalkWarn("STREAM WORD CHAIN\n" + jsonPrint(currentSessionObj.wordChain)));
     } else if (currentSessionObj.config.mode == 'USER_USER') {
-      previousPromptObj = { nodeId: 'USER_USER' };
+      previousPromptObj = {
+        nodeId: 'USER_USER'
+      };
       console.log(chalkWarn("USER_USER WORD CHAIN\n" + jsonPrint(currentSessionObj.wordChain)));
     } else {
-      console.log(chalkWarn("??? EMPTY WORD CHAIN ... PREVIOUS PROMPT NOT IN CACHE ... ABORTING SESSION" 
-        + " | " + socketId));
+      console.log(chalkWarn("??? EMPTY WORD CHAIN ... PREVIOUS PROMPT NOT IN CACHE ... ABORTING SESSION" + " | " + socketId));
 
       ready = true;
 
@@ -3929,7 +3772,9 @@ var readResponseQueue = setInterval(function() {
         currentSessionObj.wordChain.push(responseInObj.nodeId);
         // currentSessionObj.wordChainIndex++;
 
-        previousPromptObj = { nodeId: previousPrompt };
+        previousPromptObj = {
+          nodeId: previousPrompt
+        };
         wordCache.set(previousPromptObj.nodeId, previousPrompt);
       } else {
 
@@ -4037,10 +3882,7 @@ var generatePromptQueueInterval = setInterval(function() {
     var currentResponse = currentSession.wordChain[currentSession.wordChainIndex - 1];
 
     if (!currentResponse) {
-      console.error("??? currentResponse UNDEFINED" 
-        + " | SID: " + currentSession.sessionId 
-        + " | WCI: " + currentSession.wordChainIndex 
-        + " | CHAIN\n" + jsonPrint(currentSession.wordChain));
+      console.error("??? currentResponse UNDEFINED" + " | SID: " + currentSession.sessionId + " | WCI: " + currentSession.wordChainIndex + " | CHAIN\n" + jsonPrint(currentSession.wordChain));
       if (quitOnError) quit("??? currentResponse UNDEFINED " + currentSession.sessionId);
     }
 
@@ -4055,7 +3897,10 @@ var generatePromptQueueInterval = setInterval(function() {
         currentAlgorithm = algorithms[randomIndex];
         // console.log("[-] CURRENT ALGORITHM: " + currentAlgorithm);
 
-        var query = { input: currentResponse, algorithm: currentAlgorithm };
+        var query = {
+          input: currentResponse,
+          algorithm: currentAlgorithm
+        };
 
         generatePrompt(query, function(status, responseObj) {
           if (status == 'ERROR') {
@@ -4072,10 +3917,7 @@ var generatePromptQueueInterval = setInterval(function() {
             sessionUpdateDb(currentSession, function(err, sessionUpdatedObj) {
               if (!err) {
                 sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
-                debug(chalkInfo("-S- DB UPDATE" 
-                  + " | " + sessionUpdatedObj.sessionId 
-                  + " | WCI: " + sessionUpdatedObj.wordChainIndex 
-                  + " | WCL: " + sessionUpdatedObj.wordChainLength));
+                debug(chalkInfo("-S- DB UPDATE" + " | " + sessionUpdatedObj.sessionId + " | WCI: " + sessionUpdatedObj.wordChainIndex + " | WCL: " + sessionUpdatedObj.wordChainLength));
                 sendPrompt(sessionUpdatedObj, responseObj);
               } else {
                 console.log(chalkError("*** ERROR DB UPDATE SESSION\n" + err));
@@ -4098,7 +3940,10 @@ var generatePromptQueueInterval = setInterval(function() {
         }
 
 
-        var query = { input: currentResponse, algorithm: currentAlgorithm };
+        var query = {
+          input: currentResponse,
+          algorithm: currentAlgorithm
+        };
 
         generatePrompt(query, function(status, responseObj) {
           if (status == 'ERROR') {
@@ -4118,10 +3963,7 @@ var generatePromptQueueInterval = setInterval(function() {
 
                 sessionCache.set(sessionUpdateObj.sessionId, sessionUpdateObj);
 
-                debug(chalkInfo("-S- DB UPDATE" 
-                  + " | " + sessionUpdateObj.sessionId 
-                  + " | WCI: " + sessionUpdateObj.wordChainIndex 
-                  + " | WCL: " + sessionUpdateObj.wordChain.length));
+                debug(chalkInfo("-S- DB UPDATE" + " | " + sessionUpdateObj.sessionId + " | WCI: " + sessionUpdateObj.wordChainIndex + " | WCL: " + sessionUpdateObj.wordChain.length));
 
                 sendPrompt(sessionUpdateObj, responseObj);
               } else {
@@ -4139,15 +3981,11 @@ var generatePromptQueueInterval = setInterval(function() {
         var targetSession = sessionCache.get(targetSessionId);
 
         if (!targetSession || !targetSessionId) {
-          console.log(chalkWarn("??? TARGET SESSION EXPIRED ??? ... SKIPPING SEND PROMPT | CURRENT: " 
-            + currentSession.sessionId));
+          console.log(chalkWarn("??? TARGET SESSION EXPIRED ??? ... SKIPPING SEND PROMPT | CURRENT: " + currentSession.sessionId));
           return;
         }
 
-        console.log("USER_USER | SEND PROMPT" 
-          + " | " + currentSession.sessionId 
-          + " -> " + currentResponse 
-          + " -> " + targetSessionId
+        console.log("USER_USER | SEND PROMPT" + " | " + currentSession.sessionId + " -> " + currentResponse + " -> " + targetSessionId
           // + "\ncurrentSession\n" + jsonPrint(currentSession)
           // + "\ntargetSession\n" + jsonPrint(targetSession.sessionId)
         );
@@ -4170,18 +4008,12 @@ var generatePromptQueueInterval = setInterval(function() {
             sessionUpdateDb(currentSession, function(err, sessionUpdatedObj) {
               if (!err) {
                 sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
-                console.log(chalkInfo("-S- DB UPDATE SOURCE SESSION" 
-                  + " | " + sessionUpdatedObj.sessionId 
-                  + " | WCI: " + sessionUpdatedObj.wordChainIndex 
-                  + " | WCL: " + sessionUpdatedObj.wordChain.length));
+                console.log(chalkInfo("-S- DB UPDATE SOURCE SESSION" + " | " + sessionUpdatedObj.sessionId + " | WCI: " + sessionUpdatedObj.wordChainIndex + " | WCL: " + sessionUpdatedObj.wordChain.length));
 
                 sessionUpdateDb(targetSession, function(err, targetSessionUpdatedObj) {
                   if (!err) {
                     sessionCache.set(targetSessionUpdatedObj.sessionId, targetSessionUpdatedObj);
-                    console.log(chalkInfo("-S- DB UPDATE TARGET SESSION" 
-                      + " | " + targetSessionUpdatedObj.sessionId 
-                      + " | WCI: " + targetSessionUpdatedObj.wordChainIndex 
-                      + " | WCL: " + targetSessionUpdatedObj.wordChain.length));
+                    console.log(chalkInfo("-S- DB UPDATE TARGET SESSION" + " | " + targetSessionUpdatedObj.sessionId + " | WCI: " + targetSessionUpdatedObj.wordChainIndex + " | WCL: " + targetSessionUpdatedObj.wordChain.length));
 
                     sendPrompt(sessionUpdatedObj, responseWordObj);
 
@@ -4225,16 +4057,14 @@ function initializeConfiguration(callback) {
             function(callbackParallel) {
               console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | ADMIN IP INIT"));
               adminFindAllDb(null, function(numberOfAdminIps) {
-                console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
-                  + " | ADMIN UNIQUE IP ADDRESSES: " + numberOfAdminIps));
+                console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | ADMIN UNIQUE IP ADDRESSES: " + numberOfAdminIps));
                 callbackParallel();
               });
             }
           ],
           function(err, results) { //async.parallel callbac
             if (err) {
-              console.error(chalkError("\n" + moment().format(defaultDateTimeFormat) 
-                + "!!! DATABASE INIT ERROR: " + err));
+              console.error(chalkError("\n" + moment().format(defaultDateTimeFormat) + "!!! DATABASE INIT ERROR: " + err));
               callbackSeries(err, null);
               return;
             } else {
@@ -4312,8 +4142,7 @@ function initializeConfiguration(callback) {
             return;
           });
         } else {
-          console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
-            + " | GOOGLE INIT *** SKIPPED *** | GOOGLE METRICS DISABLED"));
+          console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | GOOGLE INIT *** SKIPPED *** | GOOGLE METRICS DISABLED"));
           callbackSeries(null, "INIT_GOOGLE_METRICS_SKIPPED");
         }
       }
@@ -4335,7 +4164,11 @@ function initializeConfiguration(callback) {
 // CACHE HANDLERS
 // ==================================================================
 sessionCache.on("expired", function(sessionId, sessionObj) {
-  sessionQueue.enqueue({ sessionEvent: "SESSION_EXPIRED", sessionId: sessionId, session: sessionObj });
+  sessionQueue.enqueue({
+    sessionEvent: "SESSION_EXPIRED",
+    sessionId: sessionId,
+    session: sessionObj
+  });
 
   io.of(sessionObj.namespace).to(sessionId).emit('SESSION_EXPIRED', sessionId);
 
@@ -4344,29 +4177,13 @@ sessionCache.on("expired", function(sessionId, sessionObj) {
   viewNameSpace.emit("SESSION_DELETE", sessionObj);
 
   debug("CACHE SESSION EXPIRED\n" + jsonPrint(sessionObj));
-  console.log(chalkRed("... CACHE SESS EXPIRED | " 
-    + sessionObj.sessionId 
-    + " | NSP: " + sessionObj.namespace 
-    + " | NOW: " + getTimeStamp() 
-    + " | LS: " + getTimeStamp(sessionObj.lastSeen) 
-    + " | " + msToTime(moment().valueOf() - sessionObj.lastSeen) 
-    + " | WCI: " + sessionObj.wordChainIndex 
-    + " | WCL: " + sessionObj.wordChain.length 
-    + " | K: " + sessionCache.getStats().keys 
-    + " | H: " + sessionCache.getStats().hits 
-    + " | M: " + sessionCache.getStats().misses));
+  console.log(chalkRed("... CACHE SESS EXPIRED | " + sessionObj.sessionId + " | NSP: " + sessionObj.namespace + " | NOW: " + getTimeStamp() + " | LS: " + getTimeStamp(sessionObj.lastSeen) + " | " + msToTime(moment().valueOf() - sessionObj.lastSeen) + " | WCI: " + sessionObj.wordChainIndex + " | WCL: " + sessionObj.wordChain.length + " | K: " + sessionCache.getStats().keys + " | H: " + sessionCache.getStats().hits + " | M: " + sessionCache.getStats().misses));
 });
 
 wordCache.on("expired", function(word, wordObj) {
   if (typeof wordObj !== 'undefined') {
     debug("CACHE WORD EXPIRED\n" + jsonPrint(wordObj));
-    debug("... CACHE WORD EXPIRED | " + wordObj.nodeId 
-      + " | LS: " + getTimeStamp(wordObj.lastSeen) 
-      + " | " + msToTime(moment().valueOf() - wordObj.lastSeen) 
-      + " | M: " + wordObj.mentions 
-      + " | K: " + wordCache.getStats().keys 
-      + " | H: " + wordCache.getStats().hits 
-      + " | M: " + wordCache.getStats().misses);
+    debug("... CACHE WORD EXPIRED | " + wordObj.nodeId + " | LS: " + getTimeStamp(wordObj.lastSeen) + " | " + msToTime(moment().valueOf() - wordObj.lastSeen) + " | M: " + wordObj.mentions + " | K: " + wordCache.getStats().keys + " | H: " + wordCache.getStats().hits + " | M: " + wordCache.getStats().misses);
   } else {
     console.error(chalkError("??? UNDEFINED wordObj on wordCache expired ???"));
   }
@@ -4395,8 +4212,7 @@ configEvents.on("SERVER_READY", function() {
 
     httpServer.on("disconnect", function() {
       internetReady = false;
-      console.error(chalkError('\n***** PORT DISCONNECTED | ' 
-        + moment().format(defaultDateTimeFormat) + ' | ' + config.port));
+      console.error(chalkError('\n***** PORT DISCONNECTED | ' + moment().format(defaultDateTimeFormat) + ' | ' + config.port));
     });
   });
 
@@ -4424,20 +4240,15 @@ configEvents.on("SERVER_READY", function() {
   //----------------------
 
   function logHeartbeat() {
-    console.log(chalkLog("HB " + heartbeatsSent 
-      + " | " + getTimeStamp(txHeartbeat.timeStamp) 
-      + " | ST: " + getTimeStamp(txHeartbeat.startTime) 
-      + " | UP: " + msToTime(txHeartbeat.upTime) 
-      + " | RN: " + msToTime(txHeartbeat.runTime) 
-      + " | MWR: " + txHeartbeat.mwRequests 
-      + " | BHTR: " + txHeartbeat.bhtRequests 
-      + " | MEM: " + txHeartbeat.memoryAvailable 
-      + "/" + txHeartbeat.memoryTotal));
+    console.log(chalkLog("HB " + heartbeatsSent + " | " + getTimeStamp(txHeartbeat.timeStamp) + " | ST: " + getTimeStamp(txHeartbeat.startTime) + " | UP: " + msToTime(txHeartbeat.upTime) + " | RN: " + msToTime(txHeartbeat.runTime) + " | MWR: " + txHeartbeat.mwRequests + " | BHTR: " + txHeartbeat.bhtRequests + " | MEM: " + txHeartbeat.memoryAvailable + "/" + txHeartbeat.memoryTotal));
   }
 
   var serverHeartbeatInterval = setInterval(function() {
 
-    debug(util.inspect(userNameSpace.connected, { showHidden: false, depth: 1 }))
+    debug(util.inspect(userNameSpace.connected, {
+      showHidden: false,
+      depth: 1
+    }))
 
     runTime = moment() - startTime;
 
@@ -4555,11 +4366,21 @@ configEvents.on("CONFIG_CHANGE", function(serverSessionConfig) {
 
   if (typeof serverSessionConfig.testMode !== 'undefined') {
     console.log(chalkAlert("--> CONFIG_CHANGE: testMode: " + serverSessionConfig.testMode));
-    io.of("/admin").emit('CONFIG_CHANGE', { testMode: serverSessionConfig.testMode });
-    io.of("/util").emit('CONFIG_CHANGE', { testMode: serverSessionConfig.testMode });
-    io.emit('CONFIG_CHANGE', { testMode: serverSessionConfig.testMode });
-    io.of("/test-user").emit('CONFIG_CHANGE', { testMode: serverSessionConfig.testMode });
-    io.of("/test-view").emit('CONFIG_CHANGE', { testMode: serverSessionConfig.testMode });
+    io.of("/admin").emit('CONFIG_CHANGE', {
+      testMode: serverSessionConfig.testMode
+    });
+    io.of("/util").emit('CONFIG_CHANGE', {
+      testMode: serverSessionConfig.testMode
+    });
+    io.emit('CONFIG_CHANGE', {
+      testMode: serverSessionConfig.testMode
+    });
+    io.of("/test-user").emit('CONFIG_CHANGE', {
+      testMode: serverSessionConfig.testMode
+    });
+    io.of("/test-view").emit('CONFIG_CHANGE', {
+      testMode: serverSessionConfig.testMode
+    });
   }
 
   console.log(chalkInfo(moment().format(defaultDateTimeFormat) + ' | >>> SENT CONFIG_CHANGE'));
@@ -4586,14 +4407,10 @@ googleOauthEvents.on("GOOGLE CREDENTIAL FOUND", function(credential) {
     googleMetricsEnabled = true;
     googleOauthEvents.emit('GOOGLE AUTHORIZED');
     oauthExpiryTimer(credential.expiryDate);
-    console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
-      + " | GOOGLE OAUTH2 CREDENTIAL EXPIRES IN: " + remainingTime + " AT " + credential.expiryDate 
-      + " ... AUTHORIZING ANYWAY ..."));
+    console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | GOOGLE OAUTH2 CREDENTIAL EXPIRES IN: " + remainingTime + " AT " + credential.expiryDate + " ... AUTHORIZING ANYWAY ..."));
     googleOauthEvents.emit('AUTHORIZE GOOGLE');
   } else {
-    console.log(chalkAlert(moment().format(defaultDateTimeFormat) 
-      + " | !!! GOOGLE OAUTH2 CREDENTIAL EXPIRED AT " + credential.expiryDate 
-      + " | " + msToTime(currentTime - credential.expiryDate) + " AGO ... AUTHORIZING ..."));
+    console.log(chalkAlert(moment().format(defaultDateTimeFormat) + " | !!! GOOGLE OAUTH2 CREDENTIAL EXPIRED AT " + credential.expiryDate + " | " + msToTime(currentTime - credential.expiryDate) + " AGO ... AUTHORIZING ..."));
     googleOauthEvents.emit('AUTHORIZE GOOGLE');
   }
 });
@@ -4630,7 +4447,10 @@ googleOauthEvents.on("SOCKET HUNG UP", function() {
 //=================================
 function createSession(newSessionObj) {
 
-  debug(chalkSession("\nCREATE SESSION\n" + util.inspect(newSessionObj, { showHidden: false, depth: 1 })));
+  debug(chalkSession("\nCREATE SESSION\n" + util.inspect(newSessionObj, {
+    showHidden: false,
+    depth: 1
+  })));
 
   var namespace = newSessionObj.namespace;
   var socket = newSessionObj.socket;
@@ -4657,7 +4477,7 @@ function createSession(newSessionObj) {
     disconnectTime: 0
   });
 
-  if (newSessionObj.user){
+  if (newSessionObj.user) {
     sessionObj.userId = newSessionObj.user.userId;
   }
 
@@ -4666,101 +4486,114 @@ function createSession(newSessionObj) {
 
   sessionCache.set(sessionObj.sessionId, sessionObj);
 
-  console.log(chalkSession("\nNEW SESSION\n" + util.inspect(sessionObj, { showHidden: false, depth: 1 })));
+  console.log(chalkSession("\nNEW SESSION\n" + util.inspect(sessionObj, {
+    showHidden: false,
+    depth: 1
+  })));
 
-  sessionQueue.enqueue({ sessionEvent: "SESSION_CREATE", session: sessionObj });
+  sessionQueue.enqueue({
+    sessionEvent: "SESSION_CREATE",
+    session: sessionObj
+  });
 
   socket.on('reconnect_error', function(errorObj) {
     statsObj.socket.reconnect_errors++;
-    console.error(chalkError(moment().format(defaultDateTimeFormat) 
-      + " | SOCKET RECONNECT ERROR: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
+    console.error(chalkError(moment().format(defaultDateTimeFormat) + " | SOCKET RECONNECT ERROR: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
   });
 
   socket.on('reconnect_failed', function(errorObj) {
     statsObj.socket.reconnect_fails++;
-    console.error(chalkError(moment().format(defaultDateTimeFormat) 
-      + " | SOCKET RECONNECT FAILED: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
+    console.error(chalkError(moment().format(defaultDateTimeFormat) + " | SOCKET RECONNECT FAILED: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
   });
 
   socket.on('connect_error', function(errorObj) {
     statsObj.socket.connect_errors++;
-    console.error(chalkError(moment().format(defaultDateTimeFormat) 
-      + " | SOCKET CONNECT ERROR: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
+    console.error(chalkError(moment().format(defaultDateTimeFormat) + " | SOCKET CONNECT ERROR: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
   });
 
   socket.on('connect_timeout', function(errorObj) {
     statsObj.socket.connect_timeouts++;
-    console.error(chalkError(moment().format(defaultDateTimeFormat) 
-      + " | SOCKET CONNECT TIMEOUT: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
+    console.error(chalkError(moment().format(defaultDateTimeFormat) + " | SOCKET CONNECT TIMEOUT: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
   });
 
   socket.on("error", function(error) {
     statsObj.socket.errors++;
-    console.error(chalkError(moment().format(defaultDateTimeFormat) + " | *** SOCKET ERROR" 
-      + " | " + socket.id + " | " + error));
-    sessionQueue.enqueue({ sessionEvent: "SOCKET_ERROR", sessionId: socket.id, error: error });
+    console.error(chalkError(moment().format(defaultDateTimeFormat) + " | *** SOCKET ERROR" + " | " + socket.id + " | " + error));
+    sessionQueue.enqueue({
+      sessionEvent: "SOCKET_ERROR",
+      sessionId: socket.id,
+      error: error
+    });
   });
 
   socket.on("reconnect", function(err) {
     statsObj.socket.reconnects++;
     sessionObj.connected = true;
     console.log(chalkConnect(moment().format(defaultDateTimeFormat) + " | SOCKET RECONNECT: " + socket.id));
-    sessionQueue.enqueue({ sessionEvent: "SOCKET_RECONNECT", sessionId: socket.id });
+    sessionQueue.enqueue({
+      sessionEvent: "SOCKET_RECONNECT",
+      sessionId: socket.id
+    });
   });
 
   socket.on("disconnect", function(status) {
     statsObj.socket.disconnects++;
-    console.log(chalkDisconnect(moment().format(defaultDateTimeFormat) 
-      + " | SOCKET DISCONNECT: " + socket.id + "\nstatus\n" + jsonPrint(status)));
+    console.log(chalkDisconnect(moment().format(defaultDateTimeFormat) + " | SOCKET DISCONNECT: " + socket.id + "\nstatus\n" + jsonPrint(status)));
     var sessionObj = sessionCache.get(socket.id);
     if (sessionObj) {
       sessionObj.connected = false;
-      sessionQueue.enqueue({ sessionEvent: "SOCKET_DISCONNECT", sessionId: socket.id, session: sessionObj });
-      console.log(chalkDisconnect("\nDISCONNECTED SOCKET " + util.inspect(socket, { showHidden: false, depth: 1 })));
+      sessionQueue.enqueue({
+        sessionEvent: "SOCKET_DISCONNECT",
+        sessionId: socket.id,
+        session: sessionObj
+      });
+      console.log(chalkDisconnect("\nDISCONNECTED SOCKET " + util.inspect(socket, {
+        showHidden: false,
+        depth: 1
+      })));
     } else {
       console.log(chalkWarn("??? DISCONNECTED SOCKET NOT IN CACHE ... TIMED OUT? | " + socket.id));
     }
   });
 
   socket.on("REQ_ADMIN_SESSION", function(options) {
-    console.log(chalkAdmin(moment().format(defaultDateTimeFormat) 
-      + " | REQ_ADMIN_SESSION: " + socketId 
-      + " | IP: " + ipAddress 
-      + " | SID: " + sessionObj.sessionId 
-      + " | OPTIONS: " + jsonPrint(options)));
+    console.log(chalkAdmin(moment().format(defaultDateTimeFormat) + " | REQ_ADMIN_SESSION: " + socketId + " | IP: " + ipAddress + " | SID: " + sessionObj.sessionId + " | OPTIONS: " + jsonPrint(options)));
 
-    sessionQueue.enqueue({ sessionEvent: "REQ_ADMIN_SESSION", session: sessionObj, options: options });
+    sessionQueue.enqueue({
+      sessionEvent: "REQ_ADMIN_SESSION",
+      session: sessionObj,
+      options: options
+    });
   });
 
   socket.on("REQ_USER_SESSION", function(options) {
-    console.log(chalkUser(moment().format(defaultDateTimeFormat) 
-      + " | REQ_USER_SESSION: " + socketId 
-      + " | IP: " + ipAddress 
-      + " | SID: " + sessionObj.sessionId 
-      + " | NSP: " + sessionObj.namespace 
-      + " | OPTIONS: " + jsonPrint(options)));
+    console.log(chalkUser(moment().format(defaultDateTimeFormat) + " | REQ_USER_SESSION: " + socketId + " | IP: " + ipAddress + " | SID: " + sessionObj.sessionId + " | NSP: " + sessionObj.namespace + " | OPTIONS: " + jsonPrint(options)));
 
-    sessionQueue.enqueue({ sessionEvent: "REQ_USER_SESSION", session: sessionObj, options: options });
+    sessionQueue.enqueue({
+      sessionEvent: "REQ_USER_SESSION",
+      session: sessionObj,
+      options: options
+    });
   });
 
   socket.on("REQ_VIEWER_SESSION", function(options) {
-    console.log(chalkViewer(moment().format(defaultDateTimeFormat) 
-      + " | REQ_VIEWER_SESSION: " + socketId 
-      + " | IP: " + ipAddress 
-      + " | SID: " + sessionObj.sessionId 
-      + " | OPTIONS: " + jsonPrint(options)));
+    console.log(chalkViewer(moment().format(defaultDateTimeFormat) + " | REQ_VIEWER_SESSION: " + socketId + " | IP: " + ipAddress + " | SID: " + sessionObj.sessionId + " | OPTIONS: " + jsonPrint(options)));
 
-    sessionQueue.enqueue({ sessionEvent: "REQ_VIEWER_SESSION", session: sessionObj, options: options });
+    sessionQueue.enqueue({
+      sessionEvent: "REQ_VIEWER_SESSION",
+      session: sessionObj,
+      options: options
+    });
   });
 
   socket.on("REQ_UTIL_SESSION", function(options) {
-    console.log(chalkUtil(moment().format(defaultDateTimeFormat) 
-      + " | REQ_UTIL_SESSION: " + socketId 
-      + " | IP: " + ipAddress 
-      + " | SID: " + sessionObj.sessionId 
-      + " | OPTIONS: " + jsonPrint(options)));
+    console.log(chalkUtil(moment().format(defaultDateTimeFormat) + " | REQ_UTIL_SESSION: " + socketId + " | IP: " + ipAddress + " | SID: " + sessionObj.sessionId + " | OPTIONS: " + jsonPrint(options)));
 
-    sessionQueue.enqueue({ sessionEvent: "REQ_UTIL_SESSION", session: sessionObj, options: options });
+    sessionQueue.enqueue({
+      sessionEvent: "REQ_UTIL_SESSION",
+      session: sessionObj,
+      options: options
+    });
   });
 
   socket.on("ADMIN_READY", function(adminObj) {
@@ -4772,17 +4605,17 @@ function createSession(newSessionObj) {
     var sessionObj = sessionCache.get(socketId);
 
     if (!sessionObj) {
-      console.log(chalkError(moment().format(defaultDateTimeFormat) 
-        + " | ??? SESSION NOT FOUND ON ADMIN READY | " + socketId));
+      console.log(chalkError(moment().format(defaultDateTimeFormat) + " | ??? SESSION NOT FOUND ON ADMIN READY | " + socketId));
       return;
     }
 
-    console.log(chalkConnect("--- ADMIN READY   | " 
-      + adminObj.adminId 
-      + " | SID: " + sessionObj.sessionId 
-      + " | " + moment().format(defaultDateTimeFormat)));
+    console.log(chalkConnect("--- ADMIN READY   | " + adminObj.adminId + " | SID: " + sessionObj.sessionId + " | " + moment().format(defaultDateTimeFormat)));
 
-    sessionQueue.enqueue({ sessionEvent: "ADMIN_READY", session: sessionObj, admin: adminObj });
+    sessionQueue.enqueue({
+      sessionEvent: "ADMIN_READY",
+      session: sessionObj,
+      admin: adminObj
+    });
   });
 
   socket.on("VIEWER_READY", function(viewerObj) {
@@ -4793,16 +4626,16 @@ function createSession(newSessionObj) {
     var sessionObj = sessionCache.get(socketId);
 
     if (!sessionObj) {
-      console.log(chalkError(moment().format(defaultDateTimeFormat) 
-        + " | ??? SESSION NOT FOUND ON VIEWER READY | " + socketId));
+      console.log(chalkError(moment().format(defaultDateTimeFormat) + " | ??? SESSION NOT FOUND ON VIEWER READY | " + socketId));
       return;
     }
-    console.log(chalkConnect("--- VIEWER READY   | " 
-      + viewerObj.viewerId 
-      + " | SID: " + sessionObj.sessionId 
-      + " | " + moment().format(defaultDateTimeFormat)));
+    console.log(chalkConnect("--- VIEWER READY   | " + viewerObj.viewerId + " | SID: " + sessionObj.sessionId + " | " + moment().format(defaultDateTimeFormat)));
 
-    sessionQueue.enqueue({ sessionEvent: "VIEWER_READY", session: sessionObj, viewer: viewerObj });
+    sessionQueue.enqueue({
+      sessionEvent: "VIEWER_READY",
+      session: sessionObj,
+      viewer: viewerObj
+    });
   });
 
   socket.on("SESSION_KEEPALIVE", function(userObj) {
@@ -4813,19 +4646,18 @@ function createSession(newSessionObj) {
     var sessionObj = sessionCache.get(socketId);
 
     if (!sessionObj) {
-      console.log(chalkError(moment().format(defaultDateTimeFormat) 
-        + " | ??? SESSION NOT FOUND ON SESSION_KEEPALIVE | " + socketId 
-        + " | CREATING SESSION" + "\n" + jsonPrint(userObj)
-      ));
-      createSession({ namespace: "view", socket: socket, type: "VIEWER", user: userObj });
+      console.log(chalkError(moment().format(defaultDateTimeFormat) + " | ??? SESSION NOT FOUND ON SESSION_KEEPALIVE | " + socketId + " | CREATING SESSION" + "\n" + jsonPrint(userObj)));
+      createSession({
+        namespace: "view",
+        socket: socket,
+        type: "VIEWER",
+        user: userObj
+      });
       // sessionQueue.enqueue({sessionEvent: "SESSION_ABORT", sessionId: socketId});
       // viewNameSpace.emit("SESSION_DELETE", {sessionEvent: "SESSION_DELETE", sessionId: socketId});
       return;
     }
-    console.log(chalkLog("@@@ SESSION_KEEPALIVE | " 
-      + userObj.userId 
-      + " | " + sessionObj.sessionId 
-      + " | " + moment().format(defaultDateTimeFormat)));
+    console.log(chalkLog("@@@ SESSION_KEEPALIVE | " + userObj.userId + " | " + sessionObj.sessionId + " | " + moment().format(defaultDateTimeFormat)));
 
     if (typeof userObj.mode !== 'undefined') {
       debug("USER MODE: " + userObj.mode);
@@ -4833,7 +4665,11 @@ function createSession(newSessionObj) {
       sessionObj.config.type = userObj.mode;
     }
 
-    sessionQueue.enqueue({ sessionEvent: "SESSION_KEEPALIVE", session: sessionObj, user: userObj });
+    sessionQueue.enqueue({
+      sessionEvent: "SESSION_KEEPALIVE",
+      session: sessionObj,
+      user: userObj
+    });
   });
 
   socket.on("USER_READY", function(userObj) {
@@ -4844,8 +4680,7 @@ function createSession(newSessionObj) {
     var sessionObj = sessionCache.get(socketId);
 
     if (!sessionObj) {
-      console.log(chalkError(moment().format(defaultDateTimeFormat) 
-        + " | ??? SESSION NOT FOUND ON USER READY | " + socketId));
+      console.log(chalkError(moment().format(defaultDateTimeFormat) + " | ??? SESSION NOT FOUND ON USER READY | " + socketId));
       return;
     }
 
@@ -4856,25 +4691,26 @@ function createSession(newSessionObj) {
       sessionObj.config.mode = userObj.mode;
     }
 
-    console.log(chalkConnect("--- USER READY   | " + userObj.userId 
-      + " | SID: " + sessionObj.sessionId 
-      + " | TYPE: " + sessionObj.config.type 
-      + " | MODE: " + sessionObj.config.mode 
-      + " | " + moment().format(defaultDateTimeFormat) 
-      + "\nSESSION OBJ\n" + jsonPrint(sessionObj) + "\nUSER OBJ\n" + jsonPrint(userObj)));
+    console.log(chalkConnect("--- USER READY   | " + userObj.userId + " | SID: " + sessionObj.sessionId + " | TYPE: " + sessionObj.config.type + " | MODE: " + sessionObj.config.mode + " | " + moment().format(defaultDateTimeFormat) + "\nSESSION OBJ\n" + jsonPrint(sessionObj) + "\nUSER OBJ\n" + jsonPrint(userObj)));
 
     // if (typeof userObj.mode !== 'undefined'){
     //   debug("USER MODE: " + userObj.mode);
     //   sessionObj.config.type = userObj.mode;
     // }
 
-    sessionQueue.enqueue({ sessionEvent: "USER_READY", session: sessionObj, user: userObj });
+    sessionQueue.enqueue({
+      sessionEvent: "USER_READY",
+      session: sessionObj,
+      user: userObj
+    });
   });
 
   socket.on("RESPONSE_WORD_OBJ", function(rxInObj) {
-    var responseInObj = rxInObj;
-    responseInObj.socketId = socket.id;
-    responseQueue.enqueue(responseInObj);
+    if (responseQueue.size() < MAX_RESPONSE_QUEUE_SIZE) {
+      var responseInObj = rxInObj;
+      responseInObj.socketId = socket.id;
+      responseQueue.enqueue(responseInObj);
+    }
   });
 
   socket.on("BHT_REQUESTS", function(numberSocketBhtRequests) {
@@ -4931,7 +4767,9 @@ function createSession(newSessionObj) {
 
           function(word, wordChainIndex, callback) {
 
-            Word.find({ nodeId: word }, function(err, wordArray) {
+            Word.find({
+              nodeId: word
+            }, function(err, wordArray) {
               if (err) {
                 console.error("ERROR\n" + err);
                 callback(err);
@@ -4989,7 +4827,11 @@ function createSession(newSessionObj) {
 
 adminNameSpace.on('connect', function(socket) {
   console.log(chalkAdmin("ADMIN CONNECT"));
-  createSession({ namespace: "admin", socket: socket, type: "ADMIN" });
+  createSession({
+    namespace: "admin",
+    socket: socket,
+    type: "ADMIN"
+  });
   socket.on('SET_WORD_CACHE_TTL', function(value) {
     setWordCacheTtl(value);
   });
@@ -4997,27 +4839,49 @@ adminNameSpace.on('connect', function(socket) {
 
 utilNameSpace.on('connect', function(socket) {
   console.log(chalkAdmin("UTIL CONNECT"));
-  createSession({ namespace: "util", socket: socket, type: "UTIL", mode: "STREAM" });
+  createSession({
+    namespace: "util",
+    socket: socket,
+    type: "UTIL",
+    mode: "STREAM"
+  });
 });
 
 userNameSpace.on('connect', function(socket) {
   console.log(chalkAdmin("USER CONNECT"));
-  createSession({ namespace: "user", socket: socket, type: "USER", mode: "SYNONYM" });
+  createSession({
+    namespace: "user",
+    socket: socket,
+    type: "USER",
+    mode: "SYNONYM"
+  });
 });
 
 viewNameSpace.on('connect', function(socket) {
   console.log(chalkAdmin("VIEWER CONNECT"));
-  createSession({ namespace: "view", socket: socket, type: "VIEWER" });
+  createSession({
+    namespace: "view",
+    socket: socket,
+    type: "VIEWER"
+  });
 });
 
 testUsersNameSpace.on('connect', function(socket) {
   console.log(chalkAdmin("TEST USER CONNECT"));
-  createSession({ namespace: "test-user", socket: socket, type: "TEST_USER" });
+  createSession({
+    namespace: "test-user",
+    socket: socket,
+    type: "TEST_USER"
+  });
 });
 
 testViewersNameSpace.on('connect', function(socket) {
   console.log(chalkAdmin("TEST VIEWER CONNECT"));
-  createSession({ namespace: "test-view", socket: socket, type: "TEST_VIEWER" });
+  createSession({
+    namespace: "test-view",
+    socket: socket,
+    type: "TEST_VIEWER"
+  });
 });
 
 var databaseEnabled = false;
@@ -5049,43 +4913,37 @@ var metricsInterval = setInterval(function() {
   if (numberViewersTotal > numberViewersTotalMax) {
     numberViewersTotalMaxTime = moment().valueOf();
     numberViewersTotalMax = numberViewersTotal;
-    console.log(chalkAlert("... NEW TOTAL MAX VIEWERS"
-      + " | " + moment().format(defaultDateTimeFormat)));
+    console.log(chalkAlert("... NEW TOTAL MAX VIEWERS" + " | " + moment().format(defaultDateTimeFormat)));
   }
 
   if (numberViewers > numberViewersMax) {
     numberViewersMaxTime = moment().valueOf();
     numberViewersMax = numberViewers;
-    console.log(chalkAlert("... NEW MAX VIEWERS"
-      + " | " + moment().format(defaultDateTimeFormat)));
+    console.log(chalkAlert("... NEW MAX VIEWERS" + " | " + moment().format(defaultDateTimeFormat)));
   }
 
   if (numberUsersTotal > numberUsersTotalMax) {
     numberUsersTotalMaxTime = moment().valueOf();
     numberUsersTotalMax = numberUsersTotal;
-    console.log(chalkAlert("... NEW TOTAL MAX USERS"
-      + " | " + moment().format(defaultDateTimeFormat)));
+    console.log(chalkAlert("... NEW TOTAL MAX USERS" + " | " + moment().format(defaultDateTimeFormat)));
   }
 
   if (numberUsers > numberUsersMax) {
     numberUsersMaxTime = moment().valueOf();
     numberUsersMax = numberUsers;
-    console.log(chalkAlert("... NEW MAX USERS"
-      + " | " + moment().format(defaultDateTimeFormat)));
+    console.log(chalkAlert("... NEW MAX USERS" + " | " + moment().format(defaultDateTimeFormat)));
   }
 
   if (numberTestUsers > numberTestUsersMax) {
     numberTestUsersMaxTime = moment().valueOf();
     numberTestUsersMax = numberTestUsers;
-    console.log(chalkAlert("... NEW MAX TEST USERS"
-      + " | " + moment().format(defaultDateTimeFormat)));
+    console.log(chalkAlert("... NEW MAX TEST USERS" + " | " + moment().format(defaultDateTimeFormat)));
   }
 
   if (numberUtils > numberUtilsMax) {
     numberUtilsMaxTime = moment().valueOf();
     numberUtilsMax = numberUtils;
-    console.log(chalkAlert("... NEW MAX UTILS"
-      + " | " + moment().format(defaultDateTimeFormat)));
+    console.log(chalkAlert("... NEW MAX UTILS" + " | " + moment().format(defaultDateTimeFormat)));
   }
 
   var googleMetricsUpdateFlag = !disableGoogleMetrics && googleMetricsEnabled;

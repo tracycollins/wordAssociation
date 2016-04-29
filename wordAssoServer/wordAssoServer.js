@@ -4656,6 +4656,10 @@ function createSession(newSessionObj) {
     disconnectTime: 0
   });
 
+  if (newSessionObj.user){
+    sessionObj.userId = newSessionObj.user.userId;
+  }
+
   sessionObj.config.type = newSessionObj.type;
   sessionObj.config.mode = newSessionObj.mode;
 
@@ -4812,7 +4816,7 @@ function createSession(newSessionObj) {
         + " | ??? SESSION NOT FOUND ON SESSION_KEEPALIVE | " + socketId 
         + " | CREATING SESSION" + "\n" + jsonPrint(userObj)
       ));
-      createSession({ namespace: "view", socket: socket, type: "VIEWER" });
+      createSession({ namespace: "view", socket: socket, type: "VIEWER", user: userObj });
       // sessionQueue.enqueue({sessionEvent: "SESSION_ABORT", sessionId: socketId});
       // viewNameSpace.emit("SESSION_DELETE", {sessionEvent: "SESSION_DELETE", sessionId: socketId});
       return;

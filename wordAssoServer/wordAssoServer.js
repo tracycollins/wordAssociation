@@ -3290,7 +3290,8 @@ function handleSessionEvent(sesObj, callback) {
           sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
 
           if (!sessionUpdatedObj.userId){
-            console.error(chalkError("UNDEFINED USER ID" + "\n" + jsonPrint(sessionUpdatedObj)));
+            console.error(chalkError("UNDEFINED USER ID" + "\nsessionUpdatedObj\n" + jsonPrint(sessionUpdatedObj)));
+            console.error(chalkError("UNDEFINED USER ID" + "\nsesObj\n" + jsonPrint(sesObj)));
             quit("UNDEFINED USER ID: " + sessionUpdatedObj.sessionId);
           }
 
@@ -4828,6 +4829,7 @@ function createSession(newSessionObj) {
 
     if (typeof userObj.mode !== 'undefined') {
       debug("USER MODE: " + userObj.mode);
+      sessionObj.userId = userObj.userId;
       sessionObj.config.type = userObj.mode;
     }
 

@@ -948,13 +948,17 @@ var lastHeartbeatReceived = 0;
 
 // CHECK FOR SERVER HEARTBEAT
 setInterval(function() {
-  if (!serverConnected){
+  if (!serverConnected) {
     console.error(chalkError("\n????? SERVER DOWN ????? | " + targetServer + " | LAST HEARTBEAT: " + getTimeStamp(lastHeartbeatReceived) + " | " + moment().format(defaultDateTimeFormat) + " | AGO: " + msToTime(moment().valueOf() - lastHeartbeatReceived)));
-    socket.connect(targetServer, {reconnection: false});
+    socket.connect(targetServer, {
+      reconnection: false
+    });
   }
   else if ((lastHeartbeatReceived > 0) && (lastHeartbeatReceived + serverHeartbeatTimeout) < moment()) {
     console.error(chalkError("\n????? SERVER DOWN ????? | " + targetServer + " | LAST HEARTBEAT: " + getTimeStamp(lastHeartbeatReceived) + " | " + moment().format(defaultDateTimeFormat) + " | AGO: " + msToTime(moment().valueOf() - lastHeartbeatReceived)));
-    socket.connect(targetServer, {reconnection: false});
+    socket.connect(targetServer, {
+      reconnection: false
+    });
   }
 }, serverCheckInterval);
 
@@ -1555,8 +1559,13 @@ var createLink = function(callback) {
 
     var sourceWordId = session.source.nodeId;
     var sourceWord = nodeHashMap.get(sourceWordId);
-    if (typeof sourceWord.links === 'undefined') sourceWord.links = {};
-    sourceWord.links[sessionId] = 1;
+    if (!sourceWord) {
+      console.error("SOURCE UNDEFINED ... SKIPPING CREATE LINK");
+    }
+    else if (typeof sourceWord.links === 'undefined') {
+      sourceWord.links = {};
+      sourceWord.links[sessionId] = 1;
+    }
 
     var newLink;
 

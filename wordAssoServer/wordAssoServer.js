@@ -1041,7 +1041,7 @@ var readUpdateSessionViewQueue = setInterval(function() {
       }
 
       if (sessionUpdateObj.target) {
-        debug(chalkLog("S>" + " | " + sessionUpdateObj.userId
+        console.log(chalkLog("S>" + " | " + sessionUpdateObj.userId
           // + " | " + sessionUpdateObj.sessionId
           // + " | WCI: " + sessionUpdateObj.wordChainIndex
           + " | " + sessionUpdateObj.source.nodeId 
@@ -1050,7 +1050,7 @@ var readUpdateSessionViewQueue = setInterval(function() {
           + " [" + sessionUpdateObj.target.wordChainIndex + "]"
         ));
       } else {
-        debug(chalkLog("SNT>" + " | " + sessionUpdateObj.userId
+        console.log(chalkLog("SNT>" + " | " + sessionUpdateObj.userId
           // + " | " + sessionUpdateObj.sessionId
           // + " | WCI: " + sessionUpdateObj.wordChainIndex
           + " | " + sessionUpdateObj.source.nodeId + " [" + sessionUpdateObj.source.wordChainIndex + "]"
@@ -1838,7 +1838,7 @@ function sessionUpdateDb(sessionObj, callback) {
           + " | " + sessionObj.sessionId + "\n" + err);
         callback(err, sessionObj);
       } else {
-        console.log(chalkSession("SESSION UPDATED" 
+        debug(chalkSession("SESSION UPDATED" 
           + " | " + ses.sessionId 
           + " | NSP: " + ses.namespace 
           + " | UID: " + ses.userId 
@@ -3286,7 +3286,16 @@ function handleSessionEvent(sesObj, callback) {
             + "\n" + jsonPrint(err)
           ));
         } else {
+
           sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
+
+          if (!sessionUpdatedObj.userId){
+            console.error(chalkError("UNDEFINED USER ID" + "\n" + jsonPrint(sessionUpdatedObj)));
+            quit("UNDEFINED USER ID: " + sessionUpdatedObj.sessionId);
+          }
+
+          userCache.set(sessionUpdatedObj.userId, sessionUpdatedObj.user, function(err, success) {
+          });
 
           console.log(chalkLog(
             "K>" + " | " + sessionUpdatedObj.userId 

@@ -3795,7 +3795,6 @@ var readResponseQueue = setInterval(function() {
     dbUpdateQueue.enqueue(dbUpdateObj);
 
     ready = true;
-
   }
 }, 50);
 
@@ -4659,9 +4658,12 @@ function createSession(newSessionObj) {
     }
     console.log(chalkLog("@@@ SESSION_KEEPALIVE | " + userObj.userId + " | " + sessionObj.sessionId + " | " + moment().format(defaultDateTimeFormat)));
 
-    if (typeof userObj.mode !== 'undefined') {
-      debug("USER MODE: " + userObj.mode);
+    if (typeof userObj.userId !== 'undefined') {
       sessionObj.userId = userObj.userId;
+    }
+
+   if (typeof userObj.mode !== 'undefined') {
+      debug("USER MODE: " + userObj.mode);
       sessionObj.config.type = userObj.mode;
     }
 

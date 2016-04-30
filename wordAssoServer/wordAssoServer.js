@@ -4056,6 +4056,8 @@ var generatePromptQueueInterval = setInterval(function() {
         });
         break;
 
+      case 'BHT_CRAWLER':
+      case 'MW_CRAWLER':
       case 'STREAM':
         break;
 

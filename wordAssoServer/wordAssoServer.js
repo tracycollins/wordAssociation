@@ -139,7 +139,7 @@ console.log(
   '\n\n====================================================================================================\n' + '========================================= ***START*** ==============================================\n' + '====================================================================================================\n' + process.argv[1] + '\nSTARTED ' + Date() + '\n' + '====================================================================================================\n' + '========================================= ***START*** ==============================================\n' + '====================================================================================================\n\n'
 );
 
-console.error("OFFLINE_MODE: " + OFFLINE_MODE);
+console.log("OFFLINE_MODE: " + OFFLINE_MODE);
 
 
 // ==================================================================
@@ -424,7 +424,7 @@ if (OFFLINE_MODE) {
 
   dropboxClient.getAccountInfo(function(error, accountInfo) {
     if (error) {
-      console.error("\n*** DROPBOX getAccountInfo ERROR ***\n" + JSON.stringify(error, null, 3));
+      console.log("\n*** DROPBOX getAccountInfo ERROR ***\n" + JSON.stringify(error, null, 3));
       return error; // Something went wrong.
     }
     debug(chalkInfo("DROPBOX ACCOUNT INFO: " + JSON.stringify(accountInfo, null, 3)));
@@ -435,7 +435,7 @@ if (OFFLINE_MODE) {
 function dropboxWriteArrayToFile(filePath, dataArray, callback) {
 
   if (typeof filePath === 'undefined') {
-    console.error(chalkError(moment().format(defaultDateTimeFormat) + " | !!! DROPBOX WRITE FILE ERROR: FILE PATH UNDEFINED"));
+    console.log(chalkError(moment().format(defaultDateTimeFormat) + " | !!! DROPBOX WRITE FILE ERROR: FILE PATH UNDEFINED"));
     callback('FILE PATH UNDEFINED', null);
   }
 
@@ -443,7 +443,7 @@ function dropboxWriteArrayToFile(filePath, dataArray, callback) {
 
   dropboxClient.writeFile(filePath, dataString, function(error, stat) {
     if (error) {
-      console.error(chalkError(moment().format(defaultDateTimeFormat) + " | !!! DROPBOX WRITE FILE ERROR: " + error));
+      console.log(chalkError(moment().format(defaultDateTimeFormat) + " | !!! DROPBOX WRITE FILE ERROR: " + error));
       callback(error, filePath);
     } else {
       debug(chalkInfo(moment().format(defaultDateTimeFormat) + " | DROPBOX FILE WRITE: " + filePath));
@@ -470,7 +470,7 @@ function saveStats(statsFile, statsObj, callback) {
   } else {
     dropboxClient.writeFile(statsFile, JSON.stringify(statsObj, null, 2), function(error, stat) {
       if (error) {
-        console.error(chalkError(moment().format(defaultDateTimeFormat) + " | !!! ERROR STATUS WRITE | FILE: " + statsFile + " ERROR: " + error));
+        console.log(chalkError(moment().format(defaultDateTimeFormat) + " | !!! ERROR STATUS WRITE | FILE: " + statsFile + " ERROR: " + error));
         callback(error);
       } else {
         debug(chalkLog("... SAVED STATS | " + statsFile));
@@ -495,7 +495,7 @@ function loadStats() {
 
     if (err) {
 
-      console.error(chalkError("!!! DROPBOX READ WA_STATS_FILE ERROR: " + statsFile));
+      console.log(chalkError("!!! DROPBOX READ WA_STATS_FILE ERROR: " + statsFile));
       debug(chalkError(jsonPrint(err)));
 
       if (err.status != 404) {
@@ -537,7 +537,7 @@ function loadStats() {
 
           saveStats(statsFile, statsObj, function(status) {
             if (status != 'OK') {
-              console.error("!!! ERROR: saveStats " + status);
+              console.log("!!! ERROR: saveStats " + status);
             } else {
               console.log(chalkLog("UPDATE DROPBOX STATUS OK"));
             }
@@ -579,7 +579,7 @@ function loadStats() {
 
     saveStats(statsFile, statsObj, function(status) {
       if (status != 'OK') {
-        console.error("!!! ERROR: saveStats " + status);
+        console.log("!!! ERROR: saveStats " + status);
       } else {
         console.log(chalkLog("UPDATE DROPBOX STATUS OK"));
       }
@@ -662,7 +662,7 @@ setInterval(function() {
 
   saveStats(statsFile, statsObj, function(status) {
     if (status != 'OK') {
-      console.error("!!! ERROR: SAVE STATUS | FILE: " + statsFile + "\n" + status);
+      console.log("!!! ERROR: SAVE STATUS | FILE: " + statsFile + "\n" + status);
     } else {
       debug(chalkLog("SAVE STATUS OK | FILE: " + statsFile));
     }
@@ -879,7 +879,7 @@ function readFileIntoArray(path, callback) {
         });
       });
     } else {
-      console.error("??? FILE DOES NOT EXIST ??? " + path);
+      console.log("??? FILE DOES NOT EXIST ??? " + path);
     }
   });
 }
@@ -897,7 +897,7 @@ function dnsReverseLookup(ip, callback) {
   } else {
     dns.reverse(ip, function(err, domains) {
       if (err) {
-        console.error('\n\n***** ERROR: DNS REVERSE IP: ' + ip + '\n' + err + '\n');
+        console.log('\n\n***** ERROR: DNS REVERSE IP: ' + ip + '\n' + err + '\n');
         callback(err, null);
       } else {
         console.log('DNS REVERSE IP: ' + ip);
@@ -957,17 +957,17 @@ function updateStatsCounts() {
                 wComplete = true;
                 return;
               } else {
-                console.error(chalkError("\n*** DB Word.count ERROR *** | " + moment().format(defaultDateTimeFormat) + "\n" + err));
+                console.log(chalkError("\n*** DB Word.count ERROR *** | " + moment().format(defaultDateTimeFormat) + "\n" + err));
                 return;
               }
             });
           } else {
-            console.error(chalkError("\n*** DB Session.count ERROR *** | " + moment().format(defaultDateTimeFormat) + "\n" + err));
+            console.log(chalkError("\n*** DB Session.count ERROR *** | " + moment().format(defaultDateTimeFormat) + "\n" + err));
             return;
           }
         });
       } else {
-        console.error(chalkError("\n*** DB User.count ERROR *** | " + moment().format(defaultDateTimeFormat) + "\n" + err));
+        console.log(chalkError("\n*** DB User.count ERROR *** | " + moment().format(defaultDateTimeFormat) + "\n" + err));
         return;
       }
     });
@@ -1242,7 +1242,7 @@ function sendPrompt(sessionObj, sourceWordObj) {
       case 'GROUP':
         break;
       default:
-        console.error(chalkError(" 1 ????? UNKNOWN SESSION TYPE: " + sessionObj.config.mode));
+        console.log(chalkError(" 1 ????? UNKNOWN SESSION TYPE: " + sessionObj.config.mode));
         quit(" 1 ????? UNKNOWN SESSION TYPE: " + sessionObj.config.mode);
         break;
     }
@@ -1257,7 +1257,7 @@ var wordVariations = ['syn', 'ant', 'rel', 'sim', 'usr'];
 function dbUpdateWord(wordObj, incMentions, callback) {
 
   if ((wordObj.nodeId == null) || (typeof wordObj.nodeId === 'undefined')) {
-    console.error(chalkError("\n***** dbUpdateWord: NULL OR UNDEFINED nodeId\n" + jsonPrint(wordObj)));
+    console.log(chalkError("\n***** dbUpdateWord: NULL OR UNDEFINED nodeId\n" + jsonPrint(wordObj)));
     callback("NULL OR UNDEFINED nodeId", wordObj);
     return;
   }
@@ -1495,13 +1495,13 @@ function generatePrompt(query, callback) {
               callback('OK', randomWordObj);
               return;
             } else {
-              console.error("*** GENERATE PROMPT ERROR | " + status);
+              console.log("*** GENERATE PROMPT ERROR | " + status);
               callback('ERROR', status);
               return;
             }
           });
         } else {
-          console.error("*** GENERATE PROMPT ERROR | " + status);
+          console.log("*** GENERATE PROMPT ERROR | " + status);
           callback('ERROR', status);
           return;
         }
@@ -1522,13 +1522,13 @@ function generatePrompt(query, callback) {
               callback('OK', randomWordObj);
               return;
             } else {
-              console.error("*** GENERATE PROMPT ERROR | " + status);
+              console.log("*** GENERATE PROMPT ERROR | " + status);
               callback('ERROR', status);
               return;
             }
           });
         } else {
-          console.error("*** GENERATE PROMPT ERROR | " + status);
+          console.log("*** GENERATE PROMPT ERROR | " + status);
           callback('ERROR', status);
           return;
         }
@@ -1814,7 +1814,7 @@ function sessionUpdateDb(sessionObj, callback) {
     options,
     function(err, ses) {
       if (err) {
-        console.error("!!! SESSION FINDONE ERROR: " + moment().format(defaultDateTimeFormat) + " | " + sessionObj.sessionId + "\n" + err);
+        console.log("!!! SESSION FINDONE ERROR: " + moment().format(defaultDateTimeFormat) + " | " + sessionObj.sessionId + "\n" + err);
         callback(err, sessionObj);
       } else {
         debug(chalkSession("SESSION UPDATED" + " | " + ses.sessionId + " | NSP: " + ses.namespace + " | UID: " + ses.userId + " | IP: " + ses.ip + " | DOM: " + ses.domain + " | CON: " + ses.connected + " | WCI: " + ses.wordChainIndex + " | WCL: " + ses.wordChain.length + "\nCONFIG\n" + jsonPrint(ses.config)));
@@ -1834,7 +1834,7 @@ function findSessionById(sessionId, callback) {
     query,
     function(err, session) {
       if (err) {
-        console.error(chalkError("!!! SESSION FINDONE ERROR: " + moment().format(defaultDateTimeFormat) + "\nSESSION ID: " + sessionId + "\n" + err));
+        console.log(chalkError("!!! SESSION FINDONE ERROR: " + moment().format(defaultDateTimeFormat) + "\nSESSION ID: " + sessionId + "\n" + err));
         callback(err, null);
       } else if (session) {
         console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | SESSION FOUND\n" + jsonPrint(session)));
@@ -1901,7 +1901,7 @@ function adminUpdateDb(adminObj, callback) {
     options,
     function(err, ad) {
       if (err) {
-        console.error("!!! ADMIN FINDONE ERROR: " + moment().format(defaultDateTimeFormat) + " | " + adminObj.adminId + "\nQUERY: " + jsonPrint(query) + "\nUPDATE: " + jsonPrint(update) + "\nOPTIONS: " + jsonPrint(options) + "\nERROR: " + jsonPrint(err));
+        console.log("!!! ADMIN FINDONE ERROR: " + moment().format(defaultDateTimeFormat) + " | " + adminObj.adminId + "\nQUERY: " + jsonPrint(query) + "\nUPDATE: " + jsonPrint(update) + "\nOPTIONS: " + jsonPrint(options) + "\nERROR: " + jsonPrint(err));
         callback(err, adminObj);
         return;
       } else {
@@ -1961,7 +1961,7 @@ function viewerUpdateDb(viewerObj, callback) {
     options,
     function(err, vw) {
       if (err) {
-        console.error("!!! VIEWER FINDONE ERROR: " + moment().format(defaultDateTimeFormat) + " | " + viewerObj.viewerId + "\n" + err);
+        console.log("!!! VIEWER FINDONE ERROR: " + moment().format(defaultDateTimeFormat) + " | " + viewerObj.viewerId + "\n" + err);
         callback(err, viewerObj);
       } else {
         console.log(">>> VIEWER UPDATED" + " | " + vw.viewerId + " | SN: " + vw.screenName + " | NSP: " + vw.namespace + " | IP: " + vw.ip + " | DOM: " + vw.domain + " | SID: " + vw.sessionId
@@ -1982,7 +1982,7 @@ function userUpdateDb(userObj, callback) {
   if (userObj.ip && (typeof userObj.domain === 'undefined')) {
     dnsReverseLookup(userObj.ip, function(err, domains) {
       if (err) {
-        console.error(chalkError("*** dnsReverseLookup ERROR\n" + err));
+        console.log(chalkError("*** dnsReverseLookup ERROR\n" + err));
       } else {
         if (domains[0]) {
           userObj.domain = domains[0];
@@ -2032,7 +2032,7 @@ function userUpdateDb(userObj, callback) {
     options,
     function(err, us) {
       if (err) {
-        console.error("!!! USER FINDONE ERROR: " + moment().format(defaultDateTimeFormat) + " | " + userObj.userId + "\n" + err);
+        console.log("!!! USER FINDONE ERROR: " + moment().format(defaultDateTimeFormat) + " | " + userObj.userId + "\n" + err);
         callback(err, userObj);
       } else {
         console.log(chalkUser(">>> USER UPDATED" + " | " + us.userId + "\nSN:   " + us.screenName + "\nNSP:  " + us.namespace + "\nIP:   " + us.ip + "\nDOM:  " + us.domain + "\nSID:  " + us.sessionId
@@ -2102,7 +2102,7 @@ function adminFindAllDb(options, callback) {
 
         function(err) {
           if (err) {
-            console.error("*** ERROR  adminFindAllDb: " + err);
+            console.log("*** ERROR  adminFindAllDb: " + err);
             callback(err, null);
             return;
           } else {
@@ -2166,7 +2166,7 @@ function viewerFindAllDb(options, callback) {
 
         function(err) {
           if (err) {
-            console.error("*** ERROR  viewerFindAllDb\n" + err);
+            console.log("*** ERROR  viewerFindAllDb\n" + err);
             callback(err, null);
             return;
           } else {
@@ -2233,7 +2233,7 @@ function userFindAllDb(options, callback) {
 
         function(err) {
           if (err) {
-            console.error("*** ERROR  userFindAllDb\n" + err);
+            console.log("*** ERROR  userFindAllDb\n" + err);
             callback(err, null);
             return;
           } else {
@@ -2288,7 +2288,7 @@ function ipAddressFindAllDb(options, callback) {
 
         function(err) {
           if (err) {
-            console.error("*** ERROR  ipAddressFindAllDb\n" + err);
+            console.log("*** ERROR  ipAddressFindAllDb\n" + err);
             callback(err, null);
             return;
           } else {
@@ -2350,7 +2350,7 @@ function oauthExpiryTimer(endTime) {
 function authorizeGoogle() {
   googleOauthClient.authorize(function(err, tokens) {
     if (err) {
-      console.error(chalkError(moment().format(defaultDateTimeFormat) + " | ***** GOOGLE OAUTH ERROR: googleOauthClient " + " | " + moment().format(defaultDateTimeFormat) + "\n" + err + "\n"));
+      console.log(chalkError(moment().format(defaultDateTimeFormat) + " | ***** GOOGLE OAUTH ERROR: googleOauthClient " + " | " + moment().format(defaultDateTimeFormat) + "\n" + err + "\n"));
       googleOauthEvents.emit('GOOGLE OAUTH ERROR', err);
     } else {
 
@@ -2420,7 +2420,7 @@ function findOneOauth2Credential(credential) {
     options,
     function(err, cred) {
       if (err) {
-        console.error(chalkError(moment().format(defaultDateTimeFormat) + " | !!! OAUTH2 CREDENTIAL FINDONE ERROR" + "\nCLIENT ID: " + credential.clientId + "\nERROR" + err));
+        console.log(chalkError(moment().format(defaultDateTimeFormat) + " | !!! OAUTH2 CREDENTIAL FINDONE ERROR" + "\nCLIENT ID: " + credential.clientId + "\nERROR" + err));
         return credential;
       } else {
         console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | GOOGLE CREDENTIAL UPDATED" + " | EXPIRES AT " + cred.expiryDate));
@@ -2447,7 +2447,7 @@ function findCredential(clientId, callback) {
     query,
     function(err, cred) {
       if (err) {
-        console.error(chalkError("!!! OAUTH2 CREDENTIAL FINDONE ERROR: " + moment().format(defaultDateTimeFormat) + "\nCLIENT ID: " + clientId + "\n" + err));
+        console.log(chalkError("!!! OAUTH2 CREDENTIAL FINDONE ERROR: " + moment().format(defaultDateTimeFormat) + "\nCLIENT ID: " + clientId + "\n" + err));
         googleOauthEvents.emit('credential error', clientId + "\n" + err);
         callback(err);
         // return;    
@@ -2771,22 +2771,22 @@ function updateMetrics(googleMetricsUpdateFlag) {
       }
     }, function(err, res) {
       if (err) {
-        console.error("!!! GOOGLE CLOUD MONITORING ERROR " + " | " + moment().format(defaultDateTimeFormat) + " | " + statArray + "\n" + util.inspect(err, {
+        console.log("!!! GOOGLE CLOUD MONITORING ERROR " + " | " + moment().format(defaultDateTimeFormat) + " | " + statArray + "\n" + util.inspect(err, {
           showHidden: false,
           depth: 3
         }));
 
         if (err.code == 500) {
-          console.warn(chalkGoogle("??? GOOGLE CLOUD MONITORING INTERNAL SERVER ERROR (CODE: 500)"));
+          console.log(chalkGoogle("??? GOOGLE CLOUD MONITORING INTERNAL SERVER ERROR (CODE: 500)"));
         }
 
         if (err.toString().indexOf("Daily Limit Exceeded") >= 0) {
-          console.error(chalkGoogle("!!! GOOGLE CLOUD MONITORING DAILY LIMIT EXCEEDED ... DISABLING METRICS"));
+          console.log(chalkGoogle("!!! GOOGLE CLOUD MONITORING DAILY LIMIT EXCEEDED ... DISABLING METRICS"));
           googleMetricsEnabled = false;
           googleOauthEvents.emit("DAILY LIMIT EXCEEDED");
         }
         if (err.toString().indexOf("socket hang up") >= 0) {
-          console.error(chalkGoogle("!!! GOOGLE CLOUD MONITORING SOCKET HUNG UP ... DISABLING METRICS"));
+          console.log(chalkGoogle("!!! GOOGLE CLOUD MONITORING SOCKET HUNG UP ... DISABLING METRICS"));
           googleMetricsEnabled = false;
           googleOauthEvents.emit("SOCKET HUNG UP");
         }
@@ -2814,7 +2814,7 @@ var readDnsQueue = setInterval(function() {
 
     dnsReverseLookup(sessionObj.ip, function(err, domains) {
       if (err) {
-        console.error(chalkError("\n\n***** ERROR: dnsReverseLookup: " + sessionObj.ip + " ERROR: " + err));
+        console.log(chalkError("\n\n***** ERROR: dnsReverseLookup: " + sessionObj.ip + " ERROR: " + err));
       } else {
         debug("DNS REVERSE LOOKUP: " + sessionObj.ip + " | DOMAINS: " + domains);
         sessionObj.domain = domains[0];
@@ -2981,7 +2981,7 @@ function handleSessionEvent(sesObj, callback) {
 
           pairUser(unpairedSessionObj, function(err, updatedSessionObj) {
             if (err) {
-              console.error(chalkError("*** pairUser ERROR\n" + jsonPrint(err)));
+              console.log(chalkError("*** pairUser ERROR\n" + jsonPrint(err)));
             } else if (updatedSessionObj.config.userA && updatedSessionObj.config.userB) {
 
               console.log(chalkSession("U_U CREATED USER_USER PAIR" + " | " + moment().valueOf() + " | " + sesObj.session.sessionId + "\n" + jsonPrint(updatedSessionObj.config)));
@@ -3179,7 +3179,7 @@ function handleSessionEvent(sesObj, callback) {
 
       sessionUpdateDb(sesObj.session, function(err, sessionUpdatedObj) {
         if (err) {
-          console.error(chalkError(
+          console.log(chalkError(
             "*** SESSION KEEPALIVE ERROR" + " | SID: " + sessionUpdatedObj.sessionId + " | IP: " + sessionUpdatedObj.ip + "\n" + jsonPrint(err)
           ));
         } else {
@@ -3187,8 +3187,8 @@ function handleSessionEvent(sesObj, callback) {
           sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
 
           if (!sessionUpdatedObj.userId) {
-            console.error(chalkError("UNDEFINED USER ID" + "\nsessionUpdatedObj\n" + jsonPrint(sessionUpdatedObj)));
-            console.error(chalkError("UNDEFINED USER ID" + "\nsesObj\n" + jsonPrint(sesObj)));
+            console.log(chalkError("UNDEFINED USER ID" + "\nsessionUpdatedObj\n" + jsonPrint(sessionUpdatedObj)));
+            console.log(chalkError("UNDEFINED USER ID" + "\nsesObj\n" + jsonPrint(sesObj)));
             quit("UNDEFINED USER ID: " + sessionUpdatedObj.sessionId);
           }
 
@@ -3256,7 +3256,7 @@ function handleSessionEvent(sesObj, callback) {
         case 'TEST_VIEWER':
           break;
         default:
-          console.error(chalkError(" 1 ????? UNKNOWN SESSION TYPE: " + sesObj.session.config.type));
+          console.log(chalkError(" 1 ????? UNKNOWN SESSION TYPE: " + sesObj.session.config.type));
           quit(" 1 ????? UNKNOWN SESSION TYPE: " + sesObj.session.config.type);
           break;
       }
@@ -3435,7 +3435,7 @@ function handleSessionEvent(sesObj, callback) {
 
       viewerUpdateDb(sesObj.viewer, function(err, updatedViewerObj) {
         if (err) {
-          console.error(chalkError("*** ERROR viewerUpdateDb\n" + jsonPrint(err)))
+          console.log(chalkError("*** ERROR viewerUpdateDb\n" + jsonPrint(err)))
         } else {
           var viewerSessionKey = randomInt(1000000, 1999999);
 
@@ -3444,7 +3444,7 @@ function handleSessionEvent(sesObj, callback) {
 
           sessionUpdateDb(currentSession, function(err, sessionUpdatedObj) {
             if (err) {
-              console.error(chalkError("*** ERROR sessionUpdateDb\n" + jsonPrint(err)))
+              console.log(chalkError("*** ERROR sessionUpdateDb\n" + jsonPrint(err)))
             } else {
               // viewerCache.set(sessionUpdatedObj.userId, sessionUpdatedObj.viewer);
 
@@ -3523,7 +3523,7 @@ function handleSessionEvent(sesObj, callback) {
             adminNameSpace.emit('UTIL_SESSION', updatedUserObj);
           }
         } else {
-          console.error(chalkError("*** USER UPDATE DB ERROR\n" + jsonPrint(err)));
+          console.log(chalkError("*** USER UPDATE DB ERROR\n" + jsonPrint(err)));
           if (quitOnError) quit(err);
         }
       });
@@ -3585,7 +3585,7 @@ function handleSessionEvent(sesObj, callback) {
 
                       pairUser(currentSession, function(err, updatedSessionObj) {
                         if (err) {
-                          console.error(chalkError("*** pairUser ERROR\n" + jsonPrint(err)));
+                          console.log(chalkError("*** pairUser ERROR\n" + jsonPrint(err)));
                         } else if (updatedSessionObj.config.userA && updatedSessionObj.config.userB) {
 
                           console.log(chalkSession("U_U CREATED USER_USER PAIR" + " | " + moment().valueOf() + " | " + sesObj.session.sessionId + "\n" + jsonPrint(updatedSessionObj.config)));
@@ -3617,7 +3617,7 @@ function handleSessionEvent(sesObj, callback) {
                       break;
 
                     default:
-                      console.error(chalkError("2  ????? UNKNOWN SESSION MODE: " + sesObj.session.config.mode));
+                      console.log(chalkError("2  ????? UNKNOWN SESSION MODE: " + sesObj.session.config.mode));
                       quit(" 2 ????? UNKNOWN SESSION TYPE: " + sesObj.session.config.type);
                       break;
                   }
@@ -3636,7 +3636,7 @@ function handleSessionEvent(sesObj, callback) {
                   break;
 
                 default:
-                  console.error("???? UNKNOWN SESSION TYPE: " + sesObj.session.config.type);
+                  console.log("???? UNKNOWN SESSION TYPE: " + sesObj.session.config.type);
                   quit("???? UNKNOWN SESSION TYPE: " + sesObj.session.config.type);
               }
 
@@ -3686,7 +3686,7 @@ var readResponseQueue = setInterval(function() {
     var rxInObj = responseQueue.dequeue();
 
     if ((typeof rxInObj.nodeId === 'undefined') || (typeof rxInObj.nodeId !== 'string')) {
-      console.error(chalkError("*** ILLEGAL RESPONSE ... SKIPPING" + "\nTYPE: " + typeof rxInObj.nodeId + "\n" + jsonPrint(rxInObj)));
+      console.log(chalkError("*** ILLEGAL RESPONSE ... SKIPPING" + "\nTYPE: " + typeof rxInObj.nodeId + "\n" + jsonPrint(rxInObj)));
       ready = true;
       statsObj.session.error++;
       statsObj.session.responseError++;
@@ -3698,7 +3698,7 @@ var readResponseQueue = setInterval(function() {
     var currentSessionObj = sessionCache.get(socketId);
 
     if (!currentSessionObj) {
-      console.error(chalkWarn("??? SESSION NOT IN CACHE ON RESPONSE Q READ" + " | responseQueue: " + responseQueue.size() + " | " + socketId + " | ABORTING SESSION"));
+      console.log(chalkWarn("??? SESSION NOT IN CACHE ON RESPONSE Q READ" + " | responseQueue: " + responseQueue.size() + " | " + socketId + " | ABORTING SESSION"));
 
       sessionQueue.enqueue({
         sessionEvent: "SESSION_ABORT",
@@ -3720,7 +3720,7 @@ var readResponseQueue = setInterval(function() {
     debug(chalkBht(">>> RESPONSE: " + responseInObj.nodeId));
 
     if (responseInObj.nodeId == '') {
-      console.error("EMPTY RESPONSE: " + responseInObj.nodeId);
+      console.log("EMPTY RESPONSE: " + responseInObj.nodeId);
       ready = true;
       return;
     }
@@ -3745,7 +3745,7 @@ var readResponseQueue = setInterval(function() {
       previousPrompt = currentSessionObj.wordChain[currentSessionObj.wordChainIndex - 1];
       previousPromptObj = wordCache.get(previousPrompt);
       if (!previousPromptObj) {
-        console.error(chalkError(socketId + " | " + currentSessionObj.userId + " | ??? previousPrompt NOT IN CACHE: " + previousPrompt
+        console.log(chalkError(socketId + " | " + currentSessionObj.userId + " | ??? previousPrompt NOT IN CACHE: " + previousPrompt
           // + " ... ABORTING SESSION"
         ));
 
@@ -3844,7 +3844,7 @@ var readDbUpdateQueue = setInterval(function() {
 
       if (dbUpdateObj.word.wordChainIndex == 0) {
         previousPromptObj == null
-        console.error(chalkRed("CHAIN START"));
+        console.log(chalkRed("CHAIN START"));
       } else {
         previousPromptNodeId = currentSessionObj.wordChain[dbUpdateObj.word.wordChainIndex - 1];
         previousPromptObj = wordCache.get(previousPromptNodeId);
@@ -3872,7 +3872,7 @@ var readDbUpdateQueue = setInterval(function() {
 
           updateSessionViews(sessionUpdateObj);
         } else {
-          console.error(chalkError("*** SESSION CACHE SET ERROR" + "\n" + jsonPrint(err)));
+          console.log(chalkError("*** SESSION CACHE SET ERROR" + "\n" + jsonPrint(err)));
         }
       });
 
@@ -3906,7 +3906,7 @@ var generatePromptQueueInterval = setInterval(function() {
     var currentResponse = currentSession.wordChain[currentSession.wordChainIndex - 1];
 
     if (!currentResponse) {
-      console.error("??? currentResponse UNDEFINED" + " | SID: " + currentSession.sessionId + " | WCI: " + currentSession.wordChainIndex + " | CHAIN\n" + jsonPrint(currentSession.wordChain));
+      console.log("??? currentResponse UNDEFINED" + " | SID: " + currentSession.sessionId + " | WCI: " + currentSession.wordChainIndex + " | CHAIN\n" + jsonPrint(currentSession.wordChain));
       if (quitOnError) quit("??? currentResponse UNDEFINED " + currentSession.sessionId);
     }
 
@@ -3957,7 +3957,7 @@ var generatePromptQueueInterval = setInterval(function() {
 
         if (chainDeadEnd(currentSession.wordChain)) {
           currentAlgorithm = 'random';
-          console.error("[-] CHAIN DEADEND ... USING RANDOM ALGORITHM: " + currentAlgorithm);
+          console.log("[-] CHAIN DEADEND ... USING RANDOM ALGORITHM: " + currentAlgorithm);
         } else {
           debug("NO CHAIN DEADEND (last 10): " + currentSession.wordChain.slice(Math.max(currentSession.wordChain.length - 10, 1)));
           currentAlgorithm = currentSession.config.mode.toLowerCase();
@@ -4057,7 +4057,7 @@ var generatePromptQueueInterval = setInterval(function() {
         break;
 
       default:
-        console.error(chalkError("3  ????? UNKNOWN SESSION MODE: " + currentSession.config.mode));
+        console.log(chalkError("3  ????? UNKNOWN SESSION MODE: " + currentSession.config.mode));
         quit("3  ????? UNKNOWN SESSION MODE: " + currentSession.config.mode);
         break;
     }
@@ -4088,7 +4088,7 @@ function initializeConfiguration(callback) {
           ],
           function(err, results) { //async.parallel callbac
             if (err) {
-              console.error(chalkError("\n" + moment().format(defaultDateTimeFormat) + "!!! DATABASE INIT ERROR: " + err));
+              console.log(chalkError("\n" + moment().format(defaultDateTimeFormat) + "!!! DATABASE INIT ERROR: " + err));
               callbackSeries(err, null);
               return;
             } else {
@@ -4148,8 +4148,8 @@ function initializeConfiguration(callback) {
 
         testClient.on('error', function(err) {
           statsObj.socket.errors++;
-          console.error(chalkError(moment().format(defaultDateTimeFormat) + ' | **** GOOGLE CONNECT ERROR ****\n' + err));
-          console.error(chalkError(moment().format(defaultDateTimeFormat) + " | **** SERVER_NOT_READY ****"));
+          console.log(chalkError(moment().format(defaultDateTimeFormat) + ' | **** GOOGLE CONNECT ERROR ****\n' + err));
+          console.log(chalkError(moment().format(defaultDateTimeFormat) + " | **** SERVER_NOT_READY ****"));
           internetReady = false;
           testClient.destroy();
           configEvents.emit("SERVER_NOT_READY");
@@ -4173,7 +4173,7 @@ function initializeConfiguration(callback) {
     ],
     function(err, results) {
       if (err) {
-        console.error(chalkError("\n*** INITIALIZE CONFIGURATION ERROR ***\n" + jsonPrint(err) + "\n"));
+        console.log(chalkError("\n*** INITIALIZE CONFIGURATION ERROR ***\n" + jsonPrint(err) + "\n"));
         callback(err, null);
       } else {
         debug(chalkLog("\nINITIALIZE CONFIGURATION RESULTS\n" + jsonPrint(results) + "\n"));
@@ -4209,7 +4209,7 @@ wordCache.on("expired", function(word, wordObj) {
     debug("CACHE WORD EXPIRED\n" + jsonPrint(wordObj));
     debug("... CACHE WORD EXPIRED | " + wordObj.nodeId + " | LS: " + getTimeStamp(wordObj.lastSeen) + " | " + msToTime(moment().valueOf() - wordObj.lastSeen) + " | M: " + wordObj.mentions + " | K: " + wordCache.getStats().keys + " | H: " + wordCache.getStats().hits + " | M: " + wordCache.getStats().misses);
   } else {
-    console.error(chalkError("??? UNDEFINED wordObj on wordCache expired ???"));
+    console.log(chalkError("??? UNDEFINED wordObj on wordCache expired ???"));
   }
 });
 
@@ -4236,7 +4236,7 @@ configEvents.on("SERVER_READY", function() {
 
     httpServer.on("disconnect", function() {
       internetReady = false;
-      console.error(chalkError('\n***** PORT DISCONNECTED | ' + moment().format(defaultDateTimeFormat) + ' | ' + config.port));
+      console.log(chalkError('\n***** PORT DISCONNECTED | ' + moment().format(defaultDateTimeFormat) + ' | ' + config.port));
     });
   });
 
@@ -4247,9 +4247,9 @@ configEvents.on("SERVER_READY", function() {
   httpServer.on("error", function(err) {
     statsObj.socket.errors++;
     internetReady = false;
-    console.error(chalkError('??? HTTP ERROR | ' + moment().format(defaultDateTimeFormat) + '\n' + err));
+    console.log(chalkError('??? HTTP ERROR | ' + moment().format(defaultDateTimeFormat) + '\n' + err));
     if (err.code == 'EADDRINUSE') {
-      console.error(chalkError('??? HTTP ADDRESS IN USE: ' + config.port + ' ... RETRYING...'));
+      console.log(chalkError('??? HTTP ADDRESS IN USE: ' + config.port + ' ... RETRYING...'));
       setTimeout(function() {
         httpServer.listen(config.port, function() {
           console.log('LISTENING ON PORT ' + config.port);
@@ -4372,7 +4372,7 @@ configEvents.on("SERVER_READY", function() {
     } else {
       tempDateTime = moment();
       if (tempDateTime.seconds() % 10 == 0) {
-        console.error(chalkError("!!!! INTERNET DOWN?? !!!!! " + moment().format(defaultDateTimeFormat)));
+        console.log(chalkError("!!!! INTERNET DOWN?? !!!!! " + moment().format(defaultDateTimeFormat)));
       }
     }
   }, 1000);
@@ -4522,27 +4522,27 @@ function createSession(newSessionObj) {
 
   socket.on('reconnect_error', function(errorObj) {
     statsObj.socket.reconnect_errors++;
-    console.error(chalkError(moment().format(defaultDateTimeFormat) + " | SOCKET RECONNECT ERROR: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
+    console.log(chalkError(moment().format(defaultDateTimeFormat) + " | SOCKET RECONNECT ERROR: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
   });
 
   socket.on('reconnect_failed', function(errorObj) {
     statsObj.socket.reconnect_fails++;
-    console.error(chalkError(moment().format(defaultDateTimeFormat) + " | SOCKET RECONNECT FAILED: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
+    console.log(chalkError(moment().format(defaultDateTimeFormat) + " | SOCKET RECONNECT FAILED: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
   });
 
   socket.on('connect_error', function(errorObj) {
     statsObj.socket.connect_errors++;
-    console.error(chalkError(moment().format(defaultDateTimeFormat) + " | SOCKET CONNECT ERROR: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
+    console.log(chalkError(moment().format(defaultDateTimeFormat) + " | SOCKET CONNECT ERROR: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
   });
 
   socket.on('connect_timeout', function(errorObj) {
     statsObj.socket.connect_timeouts++;
-    console.error(chalkError(moment().format(defaultDateTimeFormat) + " | SOCKET CONNECT TIMEOUT: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
+    console.log(chalkError(moment().format(defaultDateTimeFormat) + " | SOCKET CONNECT TIMEOUT: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
   });
 
   socket.on("error", function(error) {
     statsObj.socket.errors++;
-    console.error(chalkError(moment().format(defaultDateTimeFormat) + " | *** SOCKET ERROR" + " | " + socket.id + " | " + error));
+    console.log(chalkError(moment().format(defaultDateTimeFormat) + " | *** SOCKET ERROR" + " | " + socket.id + " | " + error));
     sessionQueue.enqueue({
       sessionEvent: "SOCKET_ERROR",
       sessionId: socket.id,
@@ -4760,7 +4760,7 @@ function createSession(newSessionObj) {
 
     var mwSession = sessionCache.get(socket.id);
 
-    if (!mwSession) console.error(chalkError("MW SESSION EXPIRED | " + socket.id));
+    if (!mwSession) console.log(chalkError("MW SESSION EXPIRED | " + socket.id));
 
     incrementSocketMwReqs(n);
   });
@@ -4799,7 +4799,7 @@ function createSession(newSessionObj) {
               nodeId: word
             }, function(err, wordArray) {
               if (err) {
-                console.error("ERROR\n" + err);
+                console.log("ERROR\n" + err);
                 callback(err);
               } else if (!wordArray) {
                 callback(null);
@@ -5228,7 +5228,7 @@ process.on("message", function(msg) {
 
     saveStats(statsFile, statsObj, function(status) {
       if (status != 'OK') {
-        console.error("!!! ERROR: saveStats " + status);
+        console.log("!!! ERROR: saveStats " + status);
       } else {
         console.log(chalkLog("UPDATE STATUS OK"));
       }
@@ -5247,7 +5247,7 @@ process.on("message", function(msg) {
 //=================================
 initializeConfiguration(function(err, results) {
   if (err) {
-    console.error(chalkError("*** INITIALIZE CONFIGURATION ERROR ***\n" + jsonPrint(err)));
+    console.log(chalkError("*** INITIALIZE CONFIGURATION ERROR ***\n" + jsonPrint(err)));
   } else {
     console.log(chalkLog("INITIALIZE CONFIGURATION COMPLETE\n" + jsonPrint(results)));
   }

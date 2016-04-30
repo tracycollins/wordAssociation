@@ -4649,7 +4649,8 @@ function createSession(newSessionObj) {
       createSession({
         namespace: "view",
         socket: socket,
-        type: "VIEWER",
+        type: userObj.type,
+        mode: userObj.mode,
         user: userObj
       });
       // sessionQueue.enqueue({sessionEvent: "SESSION_ABORT", sessionId: socketId});

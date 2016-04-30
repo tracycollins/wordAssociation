@@ -1087,7 +1087,11 @@ function sendPrompt(sessionObj, sourceWordObj) {
     console.log("sendPrompt | sessionObj.sessionId NOT FOUND IN SESSION CACHE ... SKIPPING | " + sessionObj.sessionId);
     return;
   } else if (!currentUser) {
-    console.log("sendPrompt | " + sessionObj.userId + " NOT FOUND IN USER CACHE ... SKIPPING | " + sessionObj.sessionId);
+    console.log("sendPrompt | " 
+      + sessionObj.userId + " NOT FOUND IN USER CACHE ... SKIPPING | " 
+      + sessionObj.sessionId
+      + "\n" + jsonPrint(currentUser)
+      );
     return;
   } else {
 
@@ -1782,6 +1786,7 @@ function sessionUpdateDb(sessionObj, callback) {
     $set: {
       "config": sessionObj.config,
       "userId": sessionObj.userId,
+      "user": sessionObj.user,
       "namespace": sessionObj.namespace,
       "ip": sessionObj.ip,
       "domain": sessionObj.domain,
@@ -3190,7 +3195,14 @@ function handleSessionEvent(sesObj, callback) {
           userCache.set(sessionUpdatedObj.userId, sessionUpdatedObj.user, function(err, success) {});
 
           console.log(chalkLog(
-            "K>" + " | " + sessionUpdatedObj.userId + " | T " + sessionUpdatedObj.config.type + " | M " + sessionUpdatedObj.config.mode + " | NS " + sessionUpdatedObj.namespace + " | SID " + sessionUpdatedObj.sessionId + " | WCI " + sessionUpdatedObj.wordChainIndex + " | IP " + sessionUpdatedObj.ip
+            "K>" + " | " + sessionUpdatedObj.userId 
+            + " | T " + sessionUpdatedObj.config.type 
+            + " | M " + sessionUpdatedObj.config.mode 
+            + " | NS " + sessionUpdatedObj.namespace 
+            + " | SID " + sessionUpdatedObj.sessionId 
+            + " | WCI " + sessionUpdatedObj.wordChainIndex 
+            + " | IP " + sessionUpdatedObj.ip
+            // + "\n" + jsonPrint(sessionUpdatedObj)
           ));
 
           if (sessionUpdatedObj.namespace != 'view') {
@@ -3464,8 +3476,19 @@ function handleSessionEvent(sesObj, callback) {
       }
 
       console.log(chalkSession(
-        ">>> SESSION USER READY" + " | SID: " + sesObj.session.sessionId + " | SES TYPE: " + sesObj.session.config.type + " | SES MODE: " + sesObj.session.config.mode + " | UID: " + sesObj.user.userId + " | NSP: " + sesObj.session.namespace + " | IP: " + sesObj.session.ip + " | DOMAIN: " + sesObj.session.domain
+        ">>> SESSION USER READY" 
+        + " | SID: " + sesObj.session.sessionId 
+        + " | SES TYPE: " + sesObj.session.config.type 
+        + " | SES MODE: " + sesObj.session.config.mode 
+        + " | UID: " + sesObj.user.userId 
+        + " | NSP: " + sesObj.session.namespace 
+        + " | IP: " + sesObj.session.ip 
+        + " | DOMAIN: " + sesObj.session.domain
       ));
+
+      userCache.set(sesObj.user.userId, sesObj.user, function(err, success) {
+        console.log(chalkLog("USER CACHE RESULTS" + "\n" + err + "\n" + success));
+      });
 
       var currentSession = sessionCache.get(sesObj.session.sessionId);
 
@@ -3473,10 +3496,12 @@ function handleSessionEvent(sesObj, callback) {
         currentSession.config.type = sesObj.session.config.type;
         currentSession.config.mode = sesObj.session.config.mode;
         currentSession.userId = sesObj.user.userId;
+        currentSession.user = sesObj.user;
       } else {
         currentSession = {};
         currentSession = sesObj.session;
         currentSession.userId = sesObj.user.userId;
+        currentSession.user = sesObj.user;
       }
 
       sesObj.user.ip = sesObj.session.ip;

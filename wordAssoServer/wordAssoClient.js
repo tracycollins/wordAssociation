@@ -118,6 +118,12 @@ setInterval(function(){
 function sendUserResponse(sessionMode, data, callback){
   console.log("SESSION MODE: " + sessionMode + " | RAW INPUT: " + data);
 
+  if (!data) {
+    console.warn("NO INPUT WORD");
+    callback('');
+    return;
+  }
+
   var userResponseValue = data.replace(/\s+/g, ' ') ;
   userResponseValue = userResponseValue.replace(/[\n\r\[\]\{\}\<\>\/\;\:\"\`\~\?\!\@\#\$\%\^\&\*\(\)\_\+\=]+/g, '') ;
   userResponseValue = userResponseValue.replace(/\s+/g, ' ') ;

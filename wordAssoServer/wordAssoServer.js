@@ -15,7 +15,7 @@ var minServerResponseTime = 147;
 var maxServerResponseTime = 1447;
 
 var SESSION_CACHE_DEFAULT_TTL = 30; // seconds
-var WORD_CACHE_TTL = 30; // seconds
+var WORD_CACHE_TTL = 10; // seconds
 
 var MIN_CHAIN_FREEZE_LENGTH = 20;
 var MIN_CHAIN_FREEZE_UNIQUE_NODES = 10;
@@ -725,7 +725,7 @@ var userCache = new NodeCache();
 var utilCache = new NodeCache();
 
 var wordCache = new NodeCache({
-  stdTTL: 0,
+  stdTTL: wordCacheTtl,
   checkperiod: 10
 });
 
@@ -4746,29 +4746,29 @@ function createSession(newSessionObj) {
     }
   });
 
-  socket.on("BHT_REQUESTS", function(numberSocketBhtRequests) {
+  // socket.on("BHT_REQUESTS", function(numberSocketBhtRequests) {
 
-    var n = parseInt(numberSocketBhtRequests);
+  //   var n = parseInt(numberSocketBhtRequests);
 
-    debug(chalkBht(">>> RX BHT_REQUESTS | " + socket.id + " | " + n));
+  //   debug(chalkBht(">>> RX BHT_REQUESTS | " + socket.id + " | " + n));
 
-    var bhtSession = sessionCache.get(socket.id);
+  //   var bhtSession = sessionCache.get(socket.id);
 
-    incrementSocketBhtReqs(n);
-  });
+  //   incrementSocketBhtReqs(n);
+  // });
 
-  socket.on("MW_REQUESTS", function(numberSocketMwRequests) {
+  // socket.on("MW_REQUESTS", function(numberSocketMwRequests) {
 
-    var n = parseInt(numberSocketMwRequests);
+  //   var n = parseInt(numberSocketMwRequests);
 
-    debug(chalkMw(">>> RX MW_REQUESTS | " + socket.id + " | " + n));
+  //   debug(chalkMw(">>> RX MW_REQUESTS | " + socket.id + " | " + n));
 
-    var mwSession = sessionCache.get(socket.id);
+  //   var mwSession = sessionCache.get(socket.id);
 
-    if (!mwSession) debug(chalkError("MW SESSION EXPIRED | " + socket.id));
+  //   if (!mwSession) debug(chalkError("MW SESSION EXPIRED | " + socket.id));
 
-    incrementSocketMwReqs(n);
-  });
+  //   incrementSocketMwReqs(n);
+  // });
 
   socket.on("GET_RANDOM_WORD", function() {
     debug(chalkTest("RX GET_RANDOM_WORD | " + socket.id));
@@ -4844,18 +4844,18 @@ function createSession(newSessionObj) {
     // configEvents.emit("CONFIG_CHANGE", serverSessionConfig);
   });
 
-  socket.on("UPDATE_BHT_REQS", function(newBhtRequests) {
+  // socket.on("UPDATE_BHT_REQS", function(newBhtRequests) {
 
-    var updateBhtReqsSession = sessionCache.get(socket.id);
+  //   var updateBhtReqsSession = sessionCache.get(socket.id);
 
-    debug(chalkTest("RX UPDATE_BHT_REQS: " + newBhtRequests));
-    if (newBhtRequests <= 0) {
-      return;
-    } else {
-      debug(chalkAdmin("@@@ RX UPDATE_BHT_REQS | " + socket.id + " | " + newBhtRequests));
-      setBhtReqs(newBhtRequests);
-    }
-  });
+  //   debug(chalkTest("RX UPDATE_BHT_REQS: " + newBhtRequests));
+  //   if (newBhtRequests <= 0) {
+  //     return;
+  //   } else {
+  //     debug(chalkAdmin("@@@ RX UPDATE_BHT_REQS | " + socket.id + " | " + newBhtRequests));
+  //     setBhtReqs(newBhtRequests);
+  //   }
+  // });
 }
 
 adminNameSpace.on('connect', function(socket) {

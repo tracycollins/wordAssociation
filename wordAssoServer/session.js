@@ -750,6 +750,7 @@ socket.on("error", function(error) {
   statsObj.socketId = null;
   displayInfo(1.0, 'red');
   console.log("*** SOCKET ERROR ... DELETING ALL SESSIONS ...");
+  console.error("*** SOCKET ERROR\n" + error);
   deleteAllSessions(function() {
     console.log("DELETED ALL SESSIONS");
     updateSessionsReady = true;
@@ -762,6 +763,7 @@ socket.on("connect_error", function(error) {
   statsObj.socketId = null;
   displayInfo(1.0, 'red');
   console.log("*** SOCKET CONNECT ERROR ... DELETING ALL SESSIONS ...");
+  console.error("*** SOCKET CONNECT ERROR\n" + error);
   deleteAllSessions(function() {
     console.log("DELETED ALL SESSIONS");
     updateSessionsReady = true;
@@ -774,6 +776,7 @@ socket.on("reconnect_error", function(error) {
   statsObj.socketId = null;
   displayInfo(1.0, 'red');
   console.log("*** SOCKET RECONNECT ERROR ... DELETING ALL SESSIONS ...");
+  console.error("*** SOCKET RECONNECT ERROR\n" + error);
   deleteAllSessions(function() {
     console.log("DELETED ALL SESSIONS");
     updateSessionsReady = true;

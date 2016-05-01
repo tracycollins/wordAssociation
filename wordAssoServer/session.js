@@ -120,6 +120,19 @@ var DEFAULT_GRAVITY = 0.05;
 var DEFAULT_LINK_STRENGTH = 0.1;
 var DEFAULT_FRICTION = 0.75;
 
+function msToTime(duration) {
+  var milliseconds = parseInt((duration % 1000) / 100),
+    seconds = parseInt((duration / 1000) % 60),
+    minutes = parseInt((duration / (1000 * 60)) % 60),
+    hours = parseInt((duration / (1000 * 60 * 60)) % 24);
+
+  hours = (hours < 10) ? "0" + hours : hours;
+  minutes = (minutes < 10) ? "0" + minutes : minutes;
+  seconds = (seconds < 10) ? "0" + seconds : seconds;
+
+  return hours + ":" + minutes + ":" + seconds;
+}
+
 
 function displayControl(isVisible) {
   var v = 'hidden';
@@ -949,11 +962,17 @@ var lastHeartbeatReceived = 0;
 // CHECK FOR SERVER HEARTBEAT
 setInterval(function() {
   if (!serverConnected) {
-    console.error("\n????? SERVER DOWN ????? | | LAST HEARTBEAT: " + getTimeStamp(lastHeartbeatReceived) + " | " + moment().format(defaultDateTimeFormat) + " | AGO: " + msToTime(moment().valueOf() - lastHeartbeatReceived));
+    console.error("\n????? SERVER DOWN ????? | | LAST HEARTBEAT: " 
+      + getTimeStamp(lastHeartbeatReceived) 
+      + " | " + moment().format(defaultDateTimeFormat) 
+      + " | AGO: " + msToTime(moment().valueOf() - lastHeartbeatReceived));
     socket.connect();
   }
   else if ((lastHeartbeatReceived > 0) && (lastHeartbeatReceived + serverHeartbeatTimeout) < moment()) {
-    console.error("\n????? SERVER DOWN ????? | LAST HEARTBEAT: " + getTimeStamp(lastHeartbeatReceived) + " | " + moment().format(defaultDateTimeFormat) + " | AGO: " + msToTime(moment().valueOf() - lastHeartbeatReceived));
+    console.error("\n????? SERVER DOWN ????? | LAST HEARTBEAT: " 
+      + getTimeStamp(lastHeartbeatReceived) 
+      + " | " + moment().format(defaultDateTimeFormat) 
+      + " | AGO: " + msToTime(moment().valueOf() - lastHeartbeatReceived));
     socket.connect();
   }
 }, serverCheckInterval);

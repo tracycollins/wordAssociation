@@ -4859,6 +4859,7 @@ function createSession(newSessionObj) {
 }
 
 adminNameSpace.on('connect', function(socket) {
+  socket.setMaxListeners(0);
   debug(chalkAdmin("ADMIN CONNECT"));
   createSession({
     namespace: "admin",
@@ -4871,6 +4872,7 @@ adminNameSpace.on('connect', function(socket) {
 });
 
 utilNameSpace.on('connect', function(socket) {
+  socket.setMaxListeners(0);
   debug(chalkAdmin("UTIL CONNECT"));
   createSession({
     namespace: "util",
@@ -4881,6 +4883,7 @@ utilNameSpace.on('connect', function(socket) {
 });
 
 userNameSpace.on('connect', function(socket) {
+  socket.setMaxListeners(0);
   debug(chalkAdmin("USER CONNECT"));
   createSession({
     namespace: "user",
@@ -4891,6 +4894,7 @@ userNameSpace.on('connect', function(socket) {
 });
 
 viewNameSpace.on('connect', function(socket) {
+  socket.setMaxListeners(0);
   debug(chalkAdmin("VIEWER CONNECT"));
   createSession({
     namespace: "view",
@@ -4900,6 +4904,7 @@ viewNameSpace.on('connect', function(socket) {
 });
 
 testUsersNameSpace.on('connect', function(socket) {
+  socket.setMaxListeners(0);
   debug(chalkAdmin("TEST USER CONNECT"));
   createSession({
     namespace: "test-user",
@@ -4909,6 +4914,7 @@ testUsersNameSpace.on('connect', function(socket) {
 });
 
 testViewersNameSpace.on('connect', function(socket) {
+  socket.setMaxListeners(0);
   debug(chalkAdmin("TEST VIEWER CONNECT"));
   createSession({
     namespace: "test-view",

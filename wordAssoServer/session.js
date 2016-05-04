@@ -14,9 +14,19 @@ requirejs(["http://d3js.org/d3.v3.min.js"], function(d3) {
     console.log(error.message);
   });
 
+var DEFAULT_SESSION_VIEW = 'force';
+var currentSessionView;
+
+var pageLoadedTimeIntervalFlag = true;
+
 var config = {};
+
+config.sessionViewType = DEFAULT_SESSION_VIEW; // options: force, histogram ??
 config.maxWords = 100;
 config.testMode = false;
+config.showStatsFlag = false;
+config.removeDeadNodes = true;
+config.disableLinks = false;
 
 var statsObj = {};
 statsObj.socketId = null;
@@ -93,14 +103,7 @@ var ignoreWordsArray = [
   "would",
 ];
 
-var DEFAULT_SESSION_VIEW = 'force';
-config.sessionViewType = DEFAULT_SESSION_VIEW; // options: force, histogram ??
 
-var currentSessionView;
-
-var pageLoadedTimeIntervalFlag = true;
-var showStatsFlag = false;
-var removeDeadNodes = true;
 
 var debug = false;
 var MAX_RX_QUEUE = 250;
@@ -154,7 +157,7 @@ var mouseMoveTimeoutInterval = 1000;
 var mouseMoveTimeout = setTimeout(function() {
   // console.warn("mouseMoveTimeout");
   d3.select("body").style("cursor", "none");
-  if (!showStatsFlag && !pageLoadedTimeIntervalFlag) {
+  if (!config.showStatsFlag && !pageLoadedTimeIntervalFlag) {
     displayInfo(false);
   }
   displayControl(false);
@@ -172,7 +175,7 @@ function resetMouseMoveTimer() {
   mouseMoveTimeout = setTimeout(function() {
     d3.select("body").style("cursor", "none");
 
-    if (!showStatsFlag && !pageLoadedTimeIntervalFlag) {
+    if (!config.showStatsFlag && !pageLoadedTimeIntervalFlag) {
       displayInfo(false);
       displayControl(false);
     }
@@ -257,6 +260,7 @@ function reset() {
     setFrictionSliderValue(DEFAULT_FRICTION);
     setGravitySliderValue(DEFAULT_GRAVITY);
     setChargeSliderValue(DEFAULT_CHARGE);
+    setMaxAgeSliderValue(DEFAULT_MAX_AGE);
   }
 }
 
@@ -284,9 +288,15 @@ function setChargeSliderValue(value) {
   // document.getElementById("chargeSliderText").innerHTML = value;
 }
 
+function setMaxAgeSliderValue(value) {
+  document.getElementById("maxAgeSlider").value = value;
+  currentSessionView.setNodeMaxAge(value);
+  // document.getElementById("chargeSliderText").innerHTML = value;
+}
+
 
 function updateControlPanel() {
-  if (showStatsFlag) {
+  if (config.showStatsFlag) {
     document.getElementById("statsToggleButton").style.color = "red";
     document.getElementById("statsToggleButton").style.border = "2px solid red";
   } else {
@@ -300,16 +310,25 @@ function updateControlPanel() {
     document.getElementById("testModeButton").style.color = "#888888";
     document.getElementById("testModeButton").style.border = "1px solid white";
   }
-  if (removeDeadNodes) {
+  if (config.removeDeadNodes) {
     document.getElementById("removeDeadNodeButton").style.color = "red";
     document.getElementById("removeDeadNodeButton").style.border = "2px solid red";
   } else {
     document.getElementById("removeDeadNodeButton").style.color = "#888888";
     document.getElementById("removeDeadNodeButton").style.border = "1px solid white";
   }
+  if (config.sessionViewType == 'force'){  
+    if (config.disableLinks) {
+      document.getElementById("disableLinksButton").style.color = "red";
+      document.getElementById("disableLinksButton").style.border = "2px solid red";
+    } else {
+      document.getElementById("disableLinksButton").style.color = "#888888";
+      document.getElementById("disableLinksButton").style.border = "1px solid white";
+    }
+  }
 }
 
-function createControlPanel(sessionViewType) {
+function createControlPanel() {
   var controlTableHead = document.getElementById('controlTableHead');
   var controlTableBody = document.getElementById('controlTableBody');
 
@@ -364,6 +383,14 @@ function createControlPanel(sessionViewType) {
     text: 'RESET'
   }
 
+  var disableLinksButton = {
+    type: 'BUTTON',
+    id: 'disableLinksButton',
+    class: 'button',
+    onclick: 'toggleDisableLinks()',
+    text: 'LINKS'
+  }
+
   var removeDeadNodeButton = {
     type: 'BUTTON',
     id: 'removeDeadNodeButton',
@@ -378,6 +405,16 @@ function createControlPanel(sessionViewType) {
     class: 'button',
     onclick: 'currentSessionView.addRandomNode()',
     text: 'NODE'
+  }
+
+  var maxAgeSlider = {
+    type: 'SLIDER',
+    id: 'maxAgeSlider',
+    class: 'slider',
+    oninput: 'setMaxAgeSliderValue(this.value)',
+    min: 1000,
+    max: 60000,
+    value: DEFAULT_MAX_AGE,
   }
 
   var chargeSlider = {
@@ -420,13 +457,14 @@ function createControlPanel(sessionViewType) {
     value: 747,
   }
 
-  switch (sessionViewType) {
+  switch (config.sessionViewType) {
     case 'force':
       // tableCreateRow(controlTableHead, optionsHead, ['FORCE VIEW CONROL TABLE']);
       // tableCreateRow(controlTableBody, optionsBody, ['FULLSCREEN', 'STATS', 'TEST', 'RESET', 'NODE', 'LINK']);
       tableCreateRow(controlTableBody, optionsBody, [status]);
-      tableCreateRow(controlTableBody, optionsBody, [fullscreenButton, statsButton, testModeButton, nodeCreateButton, removeDeadNodeButton]);
+      tableCreateRow(controlTableBody, optionsBody, [fullscreenButton, statsButton, testModeButton, nodeCreateButton, removeDeadNodeButton, disableLinksButton]);
       tableCreateRow(controlSliderTable, optionsBody, [resetButton]);
+      tableCreateRow(controlSliderTable, optionsBody, ['MAX AGE', maxAgeSlider]);
       tableCreateRow(controlSliderTable, optionsBody, ['CHARGE', chargeSlider]);
       tableCreateRow(controlSliderTable, optionsBody, ['GRAVITY', gravitySlider]);
       tableCreateRow(controlSliderTable, optionsBody, ['FRICTION', frictionSlider]);
@@ -436,6 +474,8 @@ function createControlPanel(sessionViewType) {
       // tableCreateRow(controlTableHead, optionsHead, ['HISTOGRAM VIEW CONROL TABLE']);
       tableCreateRow(controlTableBody, optionsBody, [status]);
       tableCreateRow(controlTableBody, optionsBody, [fullscreenButton, statsButton, testModeButton, resetButton, nodeCreateButton, removeDeadNodeButton]);
+      tableCreateRow(controlSliderTable, optionsBody, [resetButton]);
+      tableCreateRow(controlSliderTable, optionsBody, ['MAX AGE', maxAgeSlider]);
 
       break;
     default:
@@ -445,25 +485,33 @@ function createControlPanel(sessionViewType) {
       break;
   }
 
-  updateControlPanel();
+  updateControlPanel(config.sessionViewType);
 }
 
 function toggleRemoveDeadNode() {
-  removeDeadNodes = !removeDeadNodes;
-  console.warn("TOGGLE REMOVE DEAD NODES: " + removeDeadNodes);
-  updateControlPanel();
+  config.removeDeadNodes = !config.removeDeadNodes;
+  currentSessionView.removeDeadNodes = config.removeDeadNodes;
+  console.warn("TOGGLE REMOVE DEAD NODES: " + config.removeDeadNodes);
+  updateControlPanel(config.sessionViewType);
+}
+
+function toggleDisableLinks() {
+  config.disableLinks = !config.disableLinks;
+  currentSessionView.disableLinks = config.disableLinks;
+  console.warn("TOGGLE DISABLE LINKS: " + config.disableLinks);
+  updateControlPanel(config.sessionViewType);
 }
 
 function toggleStats() {
-  showStatsFlag = !showStatsFlag;
+  config.showStatsFlag = !config.showStatsFlag;
 
-  if (showStatsFlag) {
+  if (config.showStatsFlag) {
     displayInfo(1);
   } else {
     displayInfo(0);
   }
-  console.warn("TOGGLE STATS: " + showStatsFlag);
-  updateControlPanel();
+  console.warn("TOGGLE STATS: " + config.showStatsFlag);
+  updateControlPanel(config.sessionViewType);
 }
 
 function toggleTestMode() {
@@ -481,7 +529,7 @@ function toggleTestMode() {
     currentSessionView.clearTestDeleteNodeInterval();
   }
 
-  updateControlPanel();
+  updateControlPanel(config.sessionViewType);
 }
 
 var serverConnected = false;
@@ -836,7 +884,6 @@ function getUrlVariables(callbackMain) {
   var urlSessionId;
   var urlNamespace;
   var sessionType;
-  var sessionViewType;
 
   var searchString = window.location.search.substring(1);
   console.log("searchString: " + searchString);
@@ -886,10 +933,10 @@ function getUrlVariables(callbackMain) {
             }));
           }
           if (keyValuePair[0] === 'viewtype') {
-            sessionViewType = keyValuePair[1];
-            console.log("SESSION VIEW TYPE | sessionViewType: " + sessionViewType);
+            config.sessionViewType = keyValuePair[1];
+            console.log("SESSION VIEW TYPE | sessionViewType: " + config.sessionViewType);
             return (callback2(null, {
-              sessionViewType: sessionViewType
+              sessionViewType: config.sessionViewType
             }));
           }
         } else {
@@ -1556,7 +1603,7 @@ var createNode = function(callback) {
 
 var createLink = function(callback) {
 
-  if (linkCreateQueue.length > 0) {
+  if (!config.disableLinks && (linkCreateQueue.length > 0)) {
     var session = linkCreateQueue.shift();
 
     var sessionLinkId = session.node.nodeId + "_" + session.latestNodeId;
@@ -1632,7 +1679,6 @@ var createLink = function(callback) {
 
 
     addToHashMap(sessionHashMap, session.sessionId, session, function(sess) {});
-
   }
   return (callback(null, sessionId));
 }
@@ -1798,7 +1844,7 @@ function initialize() {
 
     var sessionId;
     var namespace;
-    var sessionViewType;
+    // var sessionViewType;
 
     if (!err) {
 
@@ -1813,22 +1859,22 @@ function initialize() {
         }
         if (urlVariablesObj.sessionViewType) {
 
-          sessionViewType = urlVariablesObj.sessionViewType;
+          config.sessionViewType = urlVariablesObj.sessionViewType;
 
-          console.log("ON LOAD getUrlVariables: sessionViewType:" + sessionViewType);
+          console.log("ON LOAD getUrlVariables: sessionViewType:" + config.sessionViewType);
 
-          if (sessionViewType == 'histogram') {
+          if (config.sessionViewType == 'histogram') {
             initIgnoreWordsHashMap(function() {
               console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
             });
           }
 
-          loadViewType(sessionViewType, function() {
+          loadViewType(config.sessionViewType, function() {
 
-            if (sessionViewType == 'histogram') {
+            if (config.sessionViewType == 'histogram') {
               currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
             }
-            if (sessionViewType == 'force') {
+            if (config.sessionViewType == 'force') {
               currentSessionView.setNodeMaxAge(FORCE_MAX_AGE);
             }
 
@@ -1839,7 +1885,7 @@ function initialize() {
 
             console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
             socket.emit("VIEWER_READY", viewerObj);
-            createControlPanel(sessionViewType);
+            createControlPanel(config.sessionViewType);
 
             setTimeout(function() {
               console.log("END PAGE LOAD TIMEOUT");
@@ -1850,14 +1896,14 @@ function initialize() {
           });
         } else {
 
-          sessionViewType = DEFAULT_SESSION_VIEW;
+          config.sessionViewType = DEFAULT_SESSION_VIEW;
 
-          loadViewType(sessionViewType, function() {
+          loadViewType(config.sessionViewType, function() {
 
-            if (sessionViewType == 'histogram') {
+            if (config.sessionViewType == 'histogram') {
               currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
             }
-            if (sessionViewType == 'force') {
+            if (config.sessionViewType == 'force') {
               currentSessionView.setNodeMaxAge(FORCE_MAX_AGE);
             }
 
@@ -1868,7 +1914,7 @@ function initialize() {
 
             console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
             socket.emit("VIEWER_READY", viewerObj);
-            createControlPanel(sessionViewType);
+            createControlPanel(config.sessionViewType);
 
             setTimeout(function() {
               console.log("END PAGE LOAD");
@@ -1880,14 +1926,14 @@ function initialize() {
         }
       } else {
 
-        sessionViewType = DEFAULT_SESSION_VIEW;
+        config.sessionViewType = DEFAULT_SESSION_VIEW;
 
-        loadViewType(sessionViewType, function() {
+        loadViewType(config.sessionViewType, function() {
 
-          if (sessionViewType == 'histogram') {
+          if (config.sessionViewType == 'histogram') {
             currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
           }
-          if (sessionViewType == 'force') {
+          if (config.sessionViewType == 'force') {
             currentSessionView.setNodeMaxAge(FORCE_MAX_AGE);
           }
 
@@ -1898,7 +1944,7 @@ function initialize() {
 
           console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
           socket.emit("VIEWER_READY", viewerObj);
-          createControlPanel(sessionViewType);
+          createControlPanel(config.sessionViewType);
 
           setTimeout(function() {
             console.error("END PAGE LOAD TIMEOUT");

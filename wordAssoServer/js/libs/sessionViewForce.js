@@ -596,7 +596,14 @@ function ViewForce() {
 
   function processDeadLinksHash(callback) {
 
-    if (config.disableLinks){
+    if (self.disableLinks){
+      if (links.length > 0) {
+        force.stop();
+        forceStopped = true;
+        links = [];
+        force.links(links);
+        callback();
+      }
       return (callback());
     }
 
@@ -1211,7 +1218,7 @@ function ViewForce() {
 
   function ageLinks(callback) {
 
-    if (config.disableLinks)  return (callback(null, null));
+    if (self.disableLinks)  return (callback(null, null));
 
     var ageLinksLength = links.length - 1;
     var ageLinksIndex = links.length - 1;
@@ -1260,7 +1267,7 @@ function ViewForce() {
 
   this.deleteSessionLinks = function(sessionId) {
     // console.log("deleteSessionLinks " + sessionId);
-    if (config.disableLinks)  return ;
+    if (self.disableLinks)  return ;
 
     var deletedSession;
     var deadSessionFlag = false;
@@ -1361,7 +1368,7 @@ function ViewForce() {
 
   this.addLink = function(newLink) {
 
-    if (config.disableLinks)  return ;
+    if (self.disableLinks)  return ;
     // console.warn("addLink" 
     //   + " | LID: " + newLink.linkId 
     //   + " | SID: " + newLink.sessionId 
@@ -1620,7 +1627,7 @@ function ViewForce() {
     self.resize();
     self.resetDefaultForce();
     force.nodes(nodes);
-    if (!config.disableLinks) force.links(links);
+    if (!self.disableLinks) force.links(links);
     force.start;
     forceStopped = false;
     ageNodesReady = true;

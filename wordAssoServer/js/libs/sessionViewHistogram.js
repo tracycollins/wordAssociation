@@ -66,7 +66,11 @@ function ViewHistogram() {
   var DEFAULT_CONFIG = {
     'nodeMaxAge': window.DEFAULT_MAX_AGE
   };
+
   var config = DEFAULT_CONFIG;
+  config.removeDeadNodes = true;
+  config.disableLinks = false;
+
   var previousConfig = [];
 
   var defaultTextFill = "#888888";
@@ -603,9 +607,9 @@ function ViewHistogram() {
         } else {
           node.newFlag = false;
         }
-      } else if (removeDeadNodes && node.isDead) {
+      } else if (self.removeDeadNodes && node.isDead) {
         deadNodesHash[node.nodeId] = 1;
-      } else if (removeDeadNodes && (age >= nodeMaxAge)) {
+      } else if (self.removeDeadNodes && (age >= nodeMaxAge)) {
         age = nodeMaxAge;
         node.isDead = true;
         deadNodesHash[node.nodeId] = 1;
@@ -1076,7 +1080,7 @@ function ViewHistogram() {
         if (d3.select(this).attr("mouseOverFlag") == "true") {
           return 1;
         } else {
-          if (removeDeadNodes) {
+          if (self.removeDeadNodes) {
             return wordOpacityScale(d.age + 1);
           } else {
             return Math.max(wordOpacityScale(d.age + 1), minOpacity)

@@ -103,8 +103,6 @@ var ignoreWordsArray = [
   "would",
 ];
 
-
-
 var debug = false;
 var MAX_RX_QUEUE = 250;
 var QUEUE_MAX = 200;
@@ -163,8 +161,6 @@ var mouseMoveTimeout = setTimeout(function() {
   displayControl(false);
 }, mouseMoveTimeoutInterval);
 
-
-
 function resetMouseMoveTimer() {
   // console.warn("resetMouseMoveTimer");
   clearTimeout(mouseMoveTimeout);
@@ -190,8 +186,28 @@ document.addEventListener("mousemove", function() {
   mouseMovingFlag = true;
 }, true);
 
-function tableCreateRow(parentTable, options, cells) {
+var dragEndPosition = { 'id': 'ID', 'x': 47, 'y': 147};
 
+document.addEventListener("dragEnd", function(e) {
+  console.error("DRAG END: " + jsonPrint(dragEndPosition));
+  var dragSession = sessionHashMap.get(dragEndPosition.id);
+  dragSession.initialPosition.x = dragEndPosition.x;
+  dragSession.initialPosition.y = dragEndPosition.y;
+  dragSession.node.x = dragEndPosition.x;
+  dragSession.node.y = dragEndPosition.y;
+  sessionHashMap.set(dragSession.sessionId, dragSession);
+  nodeHashMap.set(dragSession.node.nodeId, dragSession.node);
+  console.log("dragSession\n" + jsonPrint(dragSession));
+});
+
+var sessionDragEndEvent = new CustomEvent(
+  'dragEnd', { 
+    'detail': dragEndPosition
+  } 
+);
+
+
+function tableCreateRow(parentTable, options, cells) {
 
   var tr = parentTable.insertRow();
   var tdTextColor = options.textColor;
@@ -870,7 +886,6 @@ document.addEventListener(visibilityEvent, function() {
     currentSessionView.reset();
     nodeHashMap.clear();
     linkHashMap.clear();
-    // sessionHashMap.clear();
     deleteAllSessions(function() {
       console.log("DELETED ALL SESSIONS ON WINDOW HIDDEN");
       sessionDeleteHashMap.clear();
@@ -1238,12 +1253,8 @@ var createSession = function(callback) {
   var currentSession = {};
 
   if (sessionCreateQueue.length == 0) {
-    // console.log("sessionObject\n");
     return (callback(null, null));
   } else {
-
-    // console.log("sessionCreateQueue: " + sessionCreateQueue.length);
-
 
     var sessUpdate = sessionCreateQueue.shift();
 
@@ -1298,7 +1309,10 @@ var createSession = function(callback) {
 
       sessionsCreated += 1;
 
-      console.log("CREATE SESS" + " [" + sessUpdate.wordChainIndex + "]" + " | UID: " + sessUpdate.userId + " | " + sessUpdate.source.nodeId + " > " + sessUpdate.target.nodeId
+      console.log("CREATE SESS" + " [" + sessUpdate.wordChainIndex + "]" 
+        + " | UID: " + sessUpdate.userId 
+        + " | " + sessUpdate.source.nodeId 
+        + " > " + sessUpdate.target.nodeId
         // + "\n" + jsonPrint(sessUpdate)
       );
 
@@ -1839,6 +1853,8 @@ function initialize() {
 
 
   getUrlVariables(function(err, urlVariablesObj) {
+
+    document.dispatchEvent(sessionDragEndEvent);
 
     console.warn("URL VARS\n" + jsonPrint(urlVariablesObj));
 

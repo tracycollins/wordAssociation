@@ -535,7 +535,7 @@ function toggleTestMode() {
 var serverConnected = false;
 var serverHeartbeatTimeout = 30000;
 var serverCheckInterval = 30000;
-var serverKeepaliveInteval = 60000;
+var serverKeepaliveInteval = 10000;
 
 var linkHashMap = new HashMap();
 var nodeHashMap = new HashMap();

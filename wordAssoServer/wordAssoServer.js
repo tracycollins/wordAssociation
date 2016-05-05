@@ -1112,7 +1112,9 @@ function sendPrompt(sessionObj, sourceWordObj) {
           var targetWordObj = wordCache.get(targetWordId);
 
           if (!targetWordObj) {
-            debug(chalkWarn("sendPrompt" + " | " + sessionObj.sessionId + " | " + targetWordId + " NOT FOUND IN WORD CACHE (EXPIRED?) ... SKIPPING"));
+            debug(chalkWarn("sendPrompt" 
+              + " | " + sessionObj.sessionId 
+              + " | " + targetWordId + " NOT FOUND IN WORD CACHE (EXPIRED?) ... SKIPPING"));
             return;
             // KLUDGE??? WILL THIS STALL SESSION?
           }
@@ -2328,18 +2330,22 @@ function oauthExpiryTimer(endTime) {
   var remainingTime = msToTime(endTime - getTimeNow());
 
   debug("\nSET oauthExpiryTimer: " + getTimeStamp(endTime));
-  debug(chalkInfo(moment().format(defaultDateTimeFormat) + " | GOOGLE OAUTH2 CREDENTIAL EXPIRES IN: " + remainingTime + " AT " + endTime));
+  debug(chalkInfo(moment().format(defaultDateTimeFormat) 
+    + " | GOOGLE OAUTH2 CREDENTIAL EXPIRES IN: " + remainingTime + " AT " + endTime));
 
   var oauthInterval = setInterval(function() {
 
     remainingTime = msToTime(endTime - getTimeNow());
 
     if (endTime - getTimeNow() < 60000) {
-      debug(chalkAlert(moment().format(defaultDateTimeFormat) + " | GOOGLE OAUTH2 CREDENTIAL EXPIRING IN " + remainingTime));
+      debug(chalkAlert(moment().format(defaultDateTimeFormat) 
+        + " | GOOGLE OAUTH2 CREDENTIAL EXPIRING IN " + remainingTime));
     }
 
     if (getTimeNow() >= endTime) {
-      debug(chalkAlert(moment().format(defaultDateTimeFormat) + " | GOOGLE OAUTH2 CREDENTIAL EXPIRED: " + " | " + getTimeStamp(endTime)));
+      debug(chalkAlert(moment().format(defaultDateTimeFormat) 
+        + " | GOOGLE OAUTH2 CREDENTIAL EXPIRED: " 
+        + " | " + getTimeStamp(endTime)));
       clearInterval(oauthInterval);
       googleAuthorized = false;
       googleMetricsEnabled = false;
@@ -2353,7 +2359,10 @@ function oauthExpiryTimer(endTime) {
 function authorizeGoogle() {
   googleOauthClient.authorize(function(err, tokens) {
     if (err) {
-      console.error(chalkError(moment().format(defaultDateTimeFormat) + " | ***** GOOGLE OAUTH ERROR: googleOauthClient " + " | " + moment().format(defaultDateTimeFormat) + "\n" + err + "\n"));
+      console.error(chalkError(moment().format(defaultDateTimeFormat) 
+        + " | ***** GOOGLE OAUTH ERROR: googleOauthClient " 
+        + " | " + moment().format(defaultDateTimeFormat) 
+        + "\n" + err + "\n"));
       googleOauthEvents.emit('GOOGLE OAUTH ERROR', err);
     } else {
 
@@ -2937,8 +2946,13 @@ function handleSessionEvent(sesObj, callback) {
     case 'SOCKET_ERROR':
     case 'SOCKET_DISCONNECT':
 
-      debug(chalkSession(
-        "XXX " + sesObj.sessionEvent + " | NSP: " + sesObj.session.namespace + " | SID: " + sesObj.session.sessionId + " | IP: " + sesObj.session.ip + " | DOMAIN: " + sesObj.session.domain
+      console.log(chalkSession(
+        "XXX " + sesObj.sessionEvent 
+        + " | NSP: " + sesObj.session.namespace 
+        + " | SID: " + sesObj.session.sessionId 
+        + " | UID: " + sesObj.session.userId 
+        + " | IP: " + sesObj.session.ip 
+        + " | DOMAIN: " + sesObj.session.domain
       ));
 
       sesObj.sessionEvent = 'SESSION_DELETE';
@@ -2968,7 +2982,9 @@ function handleSessionEvent(sesObj, callback) {
         unpairedUserHashMap.remove(sesObj.session.config.userB);
 
         if (sessionRouteHashMap.has(sesObj.session.sessionId)) {
-          debug(chalkWarn("FOUND SESSION IN ROUTE HASH: " + sesObj.session.sessionId + "\n" + jsonPrint(sesObj) + "\n" + jsonPrint(sessionRouteHashMap.get(sesObj.session.sessionId))));
+          debug(chalkWarn("FOUND SESSION IN ROUTE HASH: " + sesObj.session.sessionId 
+            + "\n" + jsonPrint(sesObj) 
+            + "\n" + jsonPrint(sessionRouteHashMap.get(sesObj.session.sessionId))));
 
           var unpairedSessionObj;
 
@@ -2987,7 +3003,10 @@ function handleSessionEvent(sesObj, callback) {
               console.error(chalkError("*** pairUser ERROR\n" + jsonPrint(err)));
             } else if (updatedSessionObj.config.userA && updatedSessionObj.config.userB) {
 
-              debug(chalkSession("U_U CREATED USER_USER PAIR" + " | " + moment().valueOf() + " | " + sesObj.session.sessionId + "\n" + jsonPrint(updatedSessionObj.config)));
+              debug(chalkSession("U_U CREATED USER_USER PAIR" 
+                + " | " + moment().valueOf() 
+                + " | " + sesObj.session.sessionId 
+                + "\n" + jsonPrint(updatedSessionObj.config)));
 
               io.of(updatedSessionObj.namespace).to(updatedSessionObj.config.userA).emit('PAIRED_USER', updatedSessionObj.config.userB);
               io.of(updatedSessionObj.namespace).to(updatedSessionObj.config.userB).emit('PAIRED_USER', updatedSessionObj.config.userA);
@@ -2997,7 +3016,6 @@ function handleSessionEvent(sesObj, callback) {
               return (callback(null, sesObj));
             }
           });
-
         }
 
         sessionRouteHashMap.remove(sesObj.session.config.userA);
@@ -3011,11 +3029,13 @@ function handleSessionEvent(sesObj, callback) {
           currentAdmin.disconnectTime = moment().valueOf();
           currentAdmin.connected = false;
 
-          debug(chalkRed("CONNECTION DURATION: " + currentAdmin.adminId + " | " + msToTime(moment().valueOf() - currentAdmin.connectTime)));
+          debug(chalkRed("CONNECTION DURATION: " + currentAdmin.adminId 
+            + " | " + msToTime(moment().valueOf() - currentAdmin.connectTime)));
 
           adminUpdateDb(currentAdmin, function(err, updatedAdminObj) {
             if (!err) {
-              debug(chalkRed("TX ADMIN SESSION (DISCONNECT): " + updatedAdminObj.lastSession + " TO ADMIN NAMESPACE"));
+              debug(chalkRed("TX ADMIN SESSION (DISCONNECT): " 
+                + updatedAdminObj.lastSession + " TO ADMIN NAMESPACE"));
 
               adminNameSpace.emit('ADMIN_SESSION', updatedAdminObj);
             }
@@ -3030,14 +3050,16 @@ function handleSessionEvent(sesObj, callback) {
           currentUser.connected = false;
           currentUser.disconnectTime = moment().valueOf();
 
-          debug(chalkRed("CONNECTION DURATION: " + currentUser.userId + " | " + msToTime(moment().valueOf() - currentUser.connectTime)));
+          debug(chalkRed("CONNECTION DURATION: " + currentUser.userId 
+            + " | " + msToTime(moment().valueOf() - currentUser.connectTime)));
 
           userUpdateDb(currentUser, function(err, updatedUserObj) {
             if (!err) {
 
               updatedUserObj.sessionId = updatedUserObj.lastSession;
 
-              debug(chalkRed("TX USER SESSION (" + sesObj.sessionEvent + "): " + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"));
+              debug(chalkRed("TX USER SESSION (" + sesObj.sessionEvent + "): " + updatedUserObj.lastSession 
+                + " TO ADMIN NAMESPACE"));
 
               adminNameSpace.emit('USER_SESSION', updatedUserObj);
             }
@@ -3052,14 +3074,16 @@ function handleSessionEvent(sesObj, callback) {
           currentUtil.connected = false;
           currentUtil.disconnectTime = moment().valueOf();
 
-          debug(chalkRed("CONNECTION DURATION: " + currentUtil.utilId + " | " + msToTime(moment().valueOf() - currentUtil.connectTime)));
+          debug(chalkRed("CONNECTION DURATION: " + currentUtil.utilId 
+            + " | " + msToTime(moment().valueOf() - currentUtil.connectTime)));
 
           utilUpdateDb(currentUtil, function(err, updatedUtilObj) {
             if (!err) {
 
               updatedUtilObj.sessionId = updatedUtilObj.lastSession;
 
-              debug(chalkRed("TX UTIL SESSION (DISCONNECT): " + updatedUtilObj.lastSession + " TO ADMIN NAMESPACE"));
+              debug(chalkRed("TX UTIL SESSION (DISCONNECT): " 
+                + updatedUtilObj.lastSession + " TO ADMIN NAMESPACE"));
 
               adminNameSpace.emit('UTIL_SESSION', updatedUtilObj);
             }

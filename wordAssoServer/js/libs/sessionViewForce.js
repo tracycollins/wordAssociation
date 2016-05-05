@@ -28,6 +28,8 @@ function ViewForce() {
   var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
   var defaultTimePeriodFormat = "HH:mm:ss";
 
+  // var dragEndEvent = new Event('dragEnd');
+  // var dragEndEvent = new CustomEvent('dragEnd', { 'position': { 'x': elem.x, 'y': elem.y } });
 
   var ageNodesReady = true;
 
@@ -201,6 +203,8 @@ function ViewForce() {
   DATE_TIME_OVERLAY_X = DEFAULT_DATE_TIME_OVERLAY_X * width;
   DATE_TIME_OVERLAY_Y = DEFAULT_DATE_TIME_OVERLAY_Y * height;
 
+
+
   document.addEventListener("mousemove", function() {
     if (mouseHoverFlag) {
       d3.select("body").style("cursor", "pointer");
@@ -280,7 +284,6 @@ function ViewForce() {
         "startColor": startColor,
         "endColor": endColor
       });
-      initialPositionArray.push(computeInitialPosition(initialPositionIndex++));
     }
 
   }, 50);
@@ -360,7 +363,7 @@ function ViewForce() {
     .scaleExtent([0.1, 10])
     .on("zoom", zoomHandler);
 
-  zoomListener.translate([zoomWidth, zoomHeight]).scale(currentScale); //translate and scale to whatever value you wish
+  zoomListener.translate([zoomWidth, zoomHeight]).scale(currentScale); 
   zoomListener.event(svgcanvas.transition().duration(1000)); //does a zoom
 
   var sessionSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "sessionSvgGroup");
@@ -385,6 +388,11 @@ function ViewForce() {
     .style("opacity", 1e-6);
 
   function sessionCircleDragMove(d) {
+
+    console.warn("sessionCircleDragMove" + " | " + d3.event.x + " " + d3.event.y);
+
+    dragEndPosition = { 'id': d.sessionId, 'x': d3.event.x, 'y': d3.event.y};
+
     var x = d3.event.x;
     var y = d3.event.y;
 
@@ -397,7 +405,6 @@ function ViewForce() {
     sessionCircles.select('#' + d.userId).attr("transform", "translate(" + dX + "," + dY + ")");
     sessionLabelSvgGroup.select('#' + d.nodeId).attr("transform", "translate(" + dX + "," + dY + ")");
 
-    // console.log("dragmove\n" + d.sessionId +  " | " + d.nodeId + " | currentScale: " + currentScale + " x: " + x + " y: " + y);
   }
 
   // Define drag beavior
@@ -412,9 +419,10 @@ function ViewForce() {
   });
 
   drag.on("dragend", function(d) {
+    console.warn("d\n" + jsonPrint(d));
+    console.warn("DRAG END" + "\n" + jsonPrint(dragEndPosition));
+    document.dispatchEvent(sessionDragEndEvent);
     d3.event.sourceEvent.stopPropagation(); // silence other listeners
-
-    console.warn("DRAG END" + " | " + d.nodeId + " | " + d.x + " " + d.y);
   });
 
   var globalLinkIndex = 0;
@@ -669,7 +677,6 @@ function ViewForce() {
       return (callback());
     }
   }
-
 
   function updateNodes(callback) {
 
@@ -1310,7 +1317,6 @@ function ViewForce() {
 
   this.addNode = function(newNode) {
     // console.log("addNode\n" + jsonPrint(newNode));
-    // console.warn("addNode" + " | NID: " + newNode.nodeId + " | SID: " + newNode.sessionId + " | UID: " + newNode.userId);
     force.stop();
     forceStopped = true;
     nodes.push(newNode);
@@ -1423,7 +1429,9 @@ function ViewForce() {
       height = window.innerHeight;
     }
     // IE6 in standards compliant mode (i.e. with a valid doctype as the first line in the document)
-    else if (document.documentElement !== 'undefined' && document.documentElement.clientWidth !== 'undefined' && document.documentElement.clientWidth !== 0) {
+    else if (document.documentElement !== 'undefined' 
+      && document.documentElement.clientWidth !== 'undefined' 
+      && document.documentElement.clientWidth !== 0) {
       width = document.documentElement.clientWidth;
       height = document.documentElement.clientHeight;
     }

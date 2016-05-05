@@ -3287,7 +3287,7 @@ function handleSessionEvent(sesObj, callback) {
 
       // sesObj.session.config.mode = defaultSessionType ;
 
-      debug(chalkSession(
+      console.log(chalkSession(
         ">>> SESSION CREATE" 
         + " | TYPE: " + sesObj.session.config.type 
         + " | MODE: " + sesObj.session.config.mode 

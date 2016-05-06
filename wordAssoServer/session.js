@@ -1640,6 +1640,7 @@ var createLink = function(callback) {
     var sourceWord = nodeHashMap.get(sourceWordId);
     if (!sourceWord) {
       console.error("SOURCE UNDEFINED ... SKIPPING CREATE LINK");
+      return (callback(null, sessionId));
     }
     else if (typeof sourceWord.links === 'undefined') {
       sourceWord.links = {};

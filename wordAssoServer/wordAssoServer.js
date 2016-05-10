@@ -3663,7 +3663,7 @@ function handleSessionEvent(sesObj, callback) {
 
       var currentSession = sessionCache.get(sesObj.session.sessionId);
 
-      if (currentSession === 'undefined') {
+      if (typeof currentSession === 'undefined') {
         currentSession = sesObj.session;
       }
 

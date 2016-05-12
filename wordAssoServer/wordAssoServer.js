@@ -17,6 +17,7 @@ var maxServerResponseTime = 1447;
 var SESSION_CACHE_DEFAULT_TTL = 60; // seconds
 var WORD_CACHE_TTL = 10; // seconds
 
+var MAX_WORDCHAIN_LENGTH = 10;
 var MIN_CHAIN_FREEZE_LENGTH = 20;
 var MIN_CHAIN_FREEZE_UNIQUE_NODES = 10;
 
@@ -1875,6 +1876,19 @@ function incrementSocketMwReqs(delta) {
 
 function sessionUpdateDb(sessionObj, callback) {
 
+<<<<<<< HEAD
+
+  console.log(chalkSession("sessionUpdateDb"
+    + " | UID: " + sessionObj.userId
+    + " | WCI: " + sessionObj.wordChainIndex
+    + " | WCL: " + sessionObj.wordChain.length
+  ))
+
+  // debug("sessionUpdateDb: sessionObj: " + JSON.stringify(sessionObj, null, 3));
+  // debug("sessionConnectDb: sessionObj: " + util.inspect(sessionObj, {showHidden: false, depth: 1}));
+
+=======
+>>>>>>> origin/master
   var query = {
     sessionId: sessionObj.sessionId
   };
@@ -3410,7 +3424,27 @@ function handleSessionEvent(sesObj, callback) {
           ));
         } else {
 
-          sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
+          if (sessionUpdatedObj.wordChain.length > MAX_WORDCHAIN_LENGTH) {
+            console.log(chalkSession("SHORTEN WC TO " + MAX_WORDCHAIN_LENGTH
+              + " | UID: " + sessionUpdatedObj.userId
+              + " | CURR LEN: " + sessionUpdatedObj.wordChain.length
+              + " | FIRST WORD: " + sessionUpdatedObj.wordChain[0]
+              + " | LAST WORD: " + sessionUpdatedObj.wordChain[sessionUpdatedObj.wordChain.length-1]
+            ));
+            sessionUpdatedObj.wordChain = sessionUpdatedObj.wordChain.slice(-MAX_WORDCHAIN_LENGTH);
+            console.log(chalkSession("NEW WC"
+              + " | UID: " + sessionUpdatedObj.userId
+              + " | CURR LEN: " + sessionUpdatedObj.wordChain.length
+              + " | FIRST WORD: " + sessionUpdatedObj.wordChain[0]
+              + " | LAST WORD: " + sessionUpdatedObj.wordChain[sessionUpdatedObj.wordChain.length-1]
+            ));
+            sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
+          }
+          else {
+            sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
+          }
+
+          // sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
 
           if (!sessionUpdatedObj.userId) {
             debug(chalkError("SESSION_KEEPALIVE: UNDEFINED USER ID" 
@@ -3845,8 +3879,13 @@ function handleSessionEvent(sesObj, callback) {
                           debug(chalkSession("U_U CREATED USER_USER PAIR" 
                             + " | " + moment().valueOf() 
                             + " | " + sesObj.session.sessionId 
+<<<<<<< HEAD
+                            + "\n" + jsonPrint(updatedSessionObj.config)
+                          ));
+=======
                             + "\n" + jsonPrint(updatedSessionObj.config)));
 
+>>>>>>> origin/master
 
                           io.of(currentSession.namespace).to(updatedSessionObj.config.userA).emit('PAIRED_USER', updatedSessionObj.config.userB);
                           io.of(currentSession.namespace).to(updatedSessionObj.config.userB).emit('PAIRED_USER', updatedSessionObj.config.userA);
@@ -3865,7 +3904,25 @@ function handleSessionEvent(sesObj, callback) {
                       debug(chalkSession("... STREAM USER " + currentSession.userId));
                       sessionUpdateDb(currentSession, function(err, sessionUpdatedObj) {
                         if (!err) {
-                          sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
+                          if (sessionCache.wordChain.length > MAX_WORDCHAIN_LENGTH) {
+                            console.log(chalkSession("SHORTEN WC TO " + MAX_WORDCHAIN_LENGTH
+                              + " | UID: " + sessionUpdatedObj.userId
+                              + " | CURR LEN: " + sessionUpdatedObj.wordChain.length
+                              + " | FIRST WORD: " + sessionUpdatedObj.wordChain[0]
+                              + " | LAST WORD: " + sessionUpdatedObj.wordChain[sessionUpdatedObj.wordChain.length-1]
+                            ));
+                            sessionUpdatedObj.wordChain = sessionUpdatedObj.wordChain.slice(-MAX_WORDCHAIN_LENGTH);
+                            console.log(chalkSession("NEW WC"
+                              + " | UID: " + sessionUpdatedObj.userId
+                              + " | CURR LEN: " + sessionUpdatedObj.wordChain.length
+                              + " | FIRST WORD: " + sessionUpdatedObj.wordChain[0]
+                              + " | LAST WORD: " + sessionUpdatedObj.wordChain[sessionUpdatedObj.wordChain.length-1]
+                            ));
+                            sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
+                          }
+                          else {
+                            sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
+                          }
                           debug(chalkInfo("-S- DB UPDATE" 
                             + " | " + sessionUpdatedObj.sessionId 
                             + " | TYPE: " + sessionUpdatedObj.config.type 
@@ -4338,6 +4395,7 @@ var generatePromptQueueInterval = setInterval(function() {
 
       case 'BHT_CRAWLER':
       case 'MW_CRAWLER':
+        break;
       case 'STREAM':
         break;
 

@@ -1876,8 +1876,6 @@ function incrementSocketMwReqs(delta) {
 
 function sessionUpdateDb(sessionObj, callback) {
 
-<<<<<<< HEAD
-
   console.log(chalkSession("sessionUpdateDb"
     + " | UID: " + sessionObj.userId
     + " | WCI: " + sessionObj.wordChainIndex
@@ -1887,8 +1885,6 @@ function sessionUpdateDb(sessionObj, callback) {
   // debug("sessionUpdateDb: sessionObj: " + JSON.stringify(sessionObj, null, 3));
   // debug("sessionConnectDb: sessionObj: " + util.inspect(sessionObj, {showHidden: false, depth: 1}));
 
-=======
->>>>>>> origin/master
   var query = {
     sessionId: sessionObj.sessionId
   };
@@ -3879,13 +3875,8 @@ function handleSessionEvent(sesObj, callback) {
                           debug(chalkSession("U_U CREATED USER_USER PAIR" 
                             + " | " + moment().valueOf() 
                             + " | " + sesObj.session.sessionId 
-<<<<<<< HEAD
                             + "\n" + jsonPrint(updatedSessionObj.config)
                           ));
-=======
-                            + "\n" + jsonPrint(updatedSessionObj.config)));
-
->>>>>>> origin/master
 
                           io.of(currentSession.namespace).to(updatedSessionObj.config.userA).emit('PAIRED_USER', updatedSessionObj.config.userB);
                           io.of(currentSession.namespace).to(updatedSessionObj.config.userB).emit('PAIRED_USER', updatedSessionObj.config.userA);

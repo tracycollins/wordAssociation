@@ -1876,7 +1876,7 @@ function incrementSocketMwReqs(delta) {
 
 function sessionUpdateDb(sessionObj, callback) {
 
-  console.log(chalkSession("sessionUpdateDb"
+  debug(chalkSession("sessionUpdateDb"
     + " | UID: " + sessionObj.userId
     + " | WCI: " + sessionObj.wordChainIndex
     + " | WCL: " + sessionObj.wordChain.length
@@ -3127,7 +3127,6 @@ function pairUser(sessionObj, callback) {
       return;
     });
   }
-
 }
 
 function handleSessionEvent(sesObj, callback) {
@@ -3421,14 +3420,14 @@ function handleSessionEvent(sesObj, callback) {
         } else {
 
           if (sessionUpdatedObj.wordChain.length > MAX_WORDCHAIN_LENGTH) {
-            console.log(chalkSession("SHORTEN WC TO " + MAX_WORDCHAIN_LENGTH
+            debug(chalkSession("SHORTEN WC TO " + MAX_WORDCHAIN_LENGTH
               + " | UID: " + sessionUpdatedObj.userId
               + " | CURR LEN: " + sessionUpdatedObj.wordChain.length
               + " | FIRST WORD: " + sessionUpdatedObj.wordChain[0]
               + " | LAST WORD: " + sessionUpdatedObj.wordChain[sessionUpdatedObj.wordChain.length-1]
             ));
             sessionUpdatedObj.wordChain = sessionUpdatedObj.wordChain.slice(-MAX_WORDCHAIN_LENGTH);
-            console.log(chalkSession("NEW WC"
+            debug(chalkSession("NEW WC"
               + " | UID: " + sessionUpdatedObj.userId
               + " | CURR LEN: " + sessionUpdatedObj.wordChain.length
               + " | FIRST WORD: " + sessionUpdatedObj.wordChain[0]
@@ -4119,7 +4118,7 @@ var readResponseQueue = setInterval(function() {
       }
     }
 
-    debug(chalkResponse("R<" + " | " + currentSessionObj.userId
+    console.log(chalkResponse("R<" + " | " + currentSessionObj.userId
       // + " | " + socketId 
       // + " | TYPE: " + currentSessionObj.config.type 
       // + " | MODE: " + currentSessionObj.config.mode 
@@ -5419,6 +5418,12 @@ function initAppRouting(callback) {
   app.get('/threecee.pem', function(req, res) {
     debugAppGet("LOADING FILE: threecee.pem");
     res.sendFile(__dirname + '/threecee.pem');
+    return;
+  });
+
+  app.get('/instagram', function(req, res) {
+    debugAppGet("LOADING PAGE: /instagram");
+    // res.sendFile(__dirname + '/index.html');
     return;
   });
 

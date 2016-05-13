@@ -1159,7 +1159,12 @@ socket.on("SESSION_DELETE", function(rxSessionObject) {
 
 socket.on("USER_SESSION", function(rxSessionObject) {
   var rxObj = rxSessionObject;
-  console.log("USER_SESSION" + " | SID: " + rxObj.sessionId + " | UID: " + rxObj.userId + " | NSP: " + rxObj.namespace + " | WCI: " + rxObj.wordChainIndex + " | CONN: " + rxObj.connected);
+  console.log("USER_SESSION" 
+    + " | SID: " + rxObj.sessionId 
+    + " | UID: " + rxObj.userId 
+    + " | NSP: " + rxObj.namespace 
+    + " | WCI: " + rxObj.wordChainIndex 
+    + " | CONN: " + rxObj.connected);
 });
 
 socket.on("SESSION_UPDATE", function(rxSessionObject) {
@@ -1183,7 +1188,10 @@ socket.on("SESSION_UPDATE", function(rxSessionObject) {
       console.log("KEEPALIVE" + " | " + rxObj.userId);
     } else {
       console.log(
-        rxObj.userId + " | " + rxObj.wordChainIndex + " | " + rxObj.source.nodeId + " > " + rxObj.target.nodeId
+        rxObj.userId 
+        + " | " + rxObj.wordChainIndex 
+        + " | " + rxObj.source.nodeId 
+        + " > " + rxObj.target.nodeId
       );
     }
 
@@ -1260,7 +1268,7 @@ var createSession = function(callback) {
 
     if (sessionDeleteHashMap.has(sessUpdate.sessionId)) {
 
-      console.warn("createSession: " + sessUpdate.userId + " ALREADY EXISTS ... SKIPPING");
+      console.warn("createSession: " + sessUpdate.userId + " SESSION IN DELETE HASH MAP ... SKIPPING");
       return (callback(null, null));
 
     } else if (sessionHashMap.has(sessUpdate.sessionId)) {

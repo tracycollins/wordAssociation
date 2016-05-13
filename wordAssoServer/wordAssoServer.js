@@ -4158,8 +4158,9 @@ var readDbUpdateQueue = setInterval(function() {
       if (dbUpdateObj.word.wordChainIndex == 0) {
         previousPromptObj == null
         debug(chalkRed("CHAIN START"));
-      } else {
-        previousPromptNodeId = currentSessionObj.wordChain[dbUpdateObj.word.wordChainIndex - 1];
+      } else if (currentSessionObj.wordChain.length > 1) {
+        // previousPromptNodeId = currentSessionObj.wordChain[dbUpdateObj.word.wordChainIndex - 1];
+        previousPromptNodeId = currentSessionObj.wordChain[currentSessionObj.wordChain.length - 2];
         previousPromptObj = wordCache.get(previousPromptNodeId);
         if (!previousPromptObj) {
           debug(chalkWarn("??? PREVIOUS PROMPT NOT IN CACHE: " + previousPromptNodeId));
@@ -4172,6 +4173,7 @@ var readDbUpdateQueue = setInterval(function() {
 
       sessionCache.set(currentSessionObj.sessionId, currentSessionObj, function(err, success) {
         if (!err && success) {
+
           promptQueue.enqueue(currentSessionObj.sessionId);
 
           var sessionUpdateObj = {

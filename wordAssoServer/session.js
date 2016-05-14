@@ -1726,7 +1726,12 @@ var ageSessions = function(callback) {
       //   force.stop();
       // }
       console.warn("XXX SESSION" + sessionId);
-      currentSessionView.sessions.splice(ageSessionsIndex, 1);
+      if (typeof currentSessionView.sessions === 'undefined'){
+        console.error("???? currentSessionView.sessions UNDEFINED");
+      }
+      else {
+        currentSessionView.sessions.splice(ageSessionsIndex, 1);
+      }
     }
   }
 

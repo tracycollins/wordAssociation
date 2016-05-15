@@ -793,8 +793,20 @@ function ViewForce() {
       });
 
     sessionCircles
+      .attr("id", function(d) {
+        return d.nodeId;
+      })
       .attr("r", function(d) {
         return sessionCircleRadiusScale(d.wordChainIndex + 1);
+      })
+      .attr("y", function(d) {
+        return d.y;
+      })
+      .attr("cx", function(d) {
+        return d.x;
+      })
+      .attr("cy", function(d) {
+        return d.y;
       })
       .style("fill", function(d) {
         return d.interpolateColor(0.25);

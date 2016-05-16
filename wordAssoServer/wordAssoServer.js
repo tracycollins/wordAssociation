@@ -1023,6 +1023,7 @@ var readUpdateSessionViewQueue = setInterval(function() {
 
     if (sessionUpdateObj.action == 'KEEPALIVE') {
       sessionSmallObj = {
+        tags: {},
         action: sessionUpdateObj.action,
         userId: sessionUpdateObj.userId,
         sessionId: sessionUpdateObj.sessionId,
@@ -1030,6 +1031,10 @@ var readUpdateSessionViewQueue = setInterval(function() {
         source: {},
         target: {}
       };
+
+      if (sessionUpdateObj.tags) {
+        sessionSmallObj.tags = sessionUpdateObj.tags;
+      }
 
       sessionSmallObj.source = {
         nodeId: sessionUpdateObj.userId,
@@ -1040,6 +1045,7 @@ var readUpdateSessionViewQueue = setInterval(function() {
 
     } else {
       sessionSmallObj = {
+        tags: {},
         action: sessionUpdateObj.action,
         userId: sessionUpdateObj.userId,
         sessionId: sessionUpdateObj.sessionId,
@@ -1047,6 +1053,10 @@ var readUpdateSessionViewQueue = setInterval(function() {
         source: {},
         target: {}
       };
+
+      if (sessionUpdateObj.tags) {
+        sessionSmallObj.tags = sessionUpdateObj.tags;
+      }
 
       sessionSmallObj.source = {
         nodeId: sessionUpdateObj.source.nodeId,
@@ -4118,16 +4128,31 @@ var readResponseQueue = setInterval(function() {
       }
     }
 
-    console.log(chalkResponse("R<" + " | " + currentSessionObj.userId
+    if (typeof responseInObj.tags === 'undefined') {
+      responseInObj.tags = {};
+      responseInObj.tags.entity = 'UNKNOWN';
+    } else if (typeof responseInObj.tags.entity === 'undefined') {
+      responseInObj.tags.entity = 'UNKNOWN';
+    }
+
+    console.log(chalkResponse("R<" 
+      + " | " + currentSessionObj.userId
       // + " | " + socketId 
       // + " | TYPE: " + currentSessionObj.config.type 
       // + " | MODE: " + currentSessionObj.config.mode 
-      + " | " + responseInObj.nodeId + " [" + currentSessionObj.wordChainIndex + "]" + " < " + previousPrompt
+      + " | " + responseInObj.tags.entity 
+      + " | " + responseInObj.nodeId 
+      + " [" + currentSessionObj.wordChainIndex + "]" 
+      + " < " + previousPrompt
     ));
 
     var dbUpdateObj = {};
     dbUpdateObj.word = responseInObj;
     dbUpdateObj.session = currentSessionObj;
+
+    if (responseInObj.tags){
+      dbUpdateObj.tags = responseInObj.tags;
+    }
 
     dbUpdateQueue.enqueue(dbUpdateObj);
 
@@ -4181,9 +4206,11 @@ var readDbUpdateQueue = setInterval(function() {
             sessionId: currentSessionObj.sessionId,
             wordChainIndex: dbUpdateObj.word.wordChainIndex,
             source: updatedWordObj,
-            target: previousPromptObj
+            target: previousPromptObj,
+            tags: {}
           };
 
+          if (updatedWordObj.tags) sessionUpdateObj.tags = updatedWordObj.tags;
           updateSessionViews(sessionUpdateObj);
         } else {
           debug(chalkError("*** SESSION CACHE SET ERROR" + "\n" + jsonPrint(err)));

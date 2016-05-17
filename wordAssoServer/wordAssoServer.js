@@ -3831,6 +3831,7 @@ function handleSessionEvent(sesObj, callback) {
 
               switch (sesObj.session.config.type) {
                 case 'USER':
+                case 'TEST':
                 case 'TEST_USER':
                   switch (sesObj.session.config.mode) {
 

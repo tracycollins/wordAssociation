@@ -93,7 +93,7 @@ function ViewForce() {
     "yellowgreen": "#738A05"
   };
 
-  var currentScale = 0.7;
+  var currentScale = 1.0;
 
   var INITIAL_X_RATIO = 0.5;
   var INITIAL_Y_RATIO = 0.5;

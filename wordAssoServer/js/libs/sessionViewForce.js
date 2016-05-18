@@ -222,7 +222,7 @@ function ViewForce() {
 
 
   var adjustedAgeRateScale = d3.scale.pow().domain([1, 500]).range([1.0, 100.0]);
-  var fontSizeScale = d3.scale.linear().domain([1, 100000000]).range([20.0, 30]);
+  var fontSizeScale = d3.scale.linear().domain([1, 100000000]).range([30.0, 60]);
 
   var sessionCircleRadiusScale = d3.scale.log().domain([1, 100000000]).range([40.0, 100.0]); // uses wordChainIndex
   var defaultRadiusScale = d3.scale.linear().domain([1, 100000000]).range([1.0, 30.0]);

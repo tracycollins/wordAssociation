@@ -946,8 +946,7 @@ function ViewForce() {
         }
       })
       .style('opacity', function(d) {
-        return (nodeMaxAge - d.age) / nodeMaxAge;
-        // return 1;
+        return 1;
       })
       .style('stroke', function(d) {
         return strokeColorScale(d.age);

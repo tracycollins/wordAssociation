@@ -3770,11 +3770,12 @@ function handleSessionEvent(sesObj, callback) {
         }
       }
 
-      debug(chalkSession(
+      console.log(chalkSession(
         ">>> SESSION USER READY" 
         + " | SID: " + sesObj.session.sessionId 
         + " | SES TYPE: " + sesObj.session.config.type 
         + " | SES MODE: " + sesObj.session.config.mode 
+        + " | ENTITY: " + sesObj.user.tags.entity 
         + " | UID: " + sesObj.user.userId 
         + " | NSP: " + sesObj.session.namespace 
         + " | IP: " + sesObj.session.ip 
@@ -5149,7 +5150,7 @@ function createSession(newSessionObj) {
 
   socket.on("USER_READY", function(userObj) {
     statsObj.socket.USER_READYS++;
-    debug(chalkUser("USER READY\n" + jsonPrint(userObj)));
+    console.log(chalkUser("USER READY\n" + jsonPrint(userObj)));
 
     var socketId = socket.id;
     var sessionObj = sessionCache.get(socketId);
@@ -5161,6 +5162,7 @@ function createSession(newSessionObj) {
     }
 
     if (typeof userObj.tags !== 'undefined') {
+      if (typeof sessionObj.tags === 'undefined') sessionObj.tags = {};
       sessionObj.tags = userObj.tags;
     }
     if (typeof userObj.type !== 'undefined') {

@@ -267,7 +267,7 @@ function ViewForce() {
   var randomColorQueue = [];
   var randomNumber360 = randomIntFromInterval(0, 360);
   var startColor = "hsl(" + randomNumber360 + ",0.8,0.5)";
-  var endColor = "hsl(" + randomNumber360 + ",0.8,0.001)";
+  var endColor = "hsl(" + randomNumber360 + ",0,0)";
   randomColorQueue.push({
     "startColor": startColor,
     "endColor": endColor
@@ -277,7 +277,7 @@ function ViewForce() {
 
     randomNumber360 += randomIntFromInterval(60, 120);
     startColor = "hsl(" + randomNumber360 + ",0.8,0.5)";
-    endColor = "hsl(" + randomNumber360 + ",0.8,0.001)";
+    endColor = "hsl(" + randomNumber360 + ",0,0)";
 
     if (randomColorQueue.length < 50) {
       randomColorQueue.push({
@@ -627,13 +627,6 @@ function ViewForce() {
       if (deadLinksHash[link.linkId]) {
         links.splice(ageLinksIndex, 1);
         force.links(links);
-        // console.log("XXX LINK"
-        //   + " | " + link.linkId
-        //   + " | " + link.source.nodeId
-        //   + " > " + link.target.nodeId
-        //   + " | " + deadLinksHash[link.linkId]
-        //   + " | " + deadLinksHash[link.linkId]
-        // );
         delete deadLinksHash[link.linkId];
       }
     }
@@ -646,13 +639,10 @@ function ViewForce() {
   function processDeadNodesHash(callback) {
 
     if (Object.keys(deadNodesHash).length == 0) {
-      // console.warn("NO DEAD NODES");
       return (callback());
     }
 
     var deadNodeIds = Object.keys(deadNodesHash);
-
-    // console.error("processDeadNodesHash\n" + jsonPrint(deadNodeIds));
 
     force.stop();
     forceStopped = true;
@@ -668,7 +658,6 @@ function ViewForce() {
         nodes.splice(ageNodesIndex, 1);
         force.nodes(nodes);
         delete deadNodesHash[node.nodeId];
-        // console.log("XXX NODE: " + node.nodeId);
       }
       deadNodeIds = Object.keys(deadNodesHash);
     }
@@ -679,8 +668,6 @@ function ViewForce() {
   }
 
   function updateNodes(callback) {
-
-    // console.log("updateNodes");
 
     node = node.data(force.nodes(), function(d) {
         return d.nodeId;
@@ -1520,7 +1507,7 @@ function ViewForce() {
     var text = randomNumber360 + ' | ' + mentions;
 
     var startColor = "hsl(" + randomNumber360 + ",0.8,0.5)";
-    var endColor = "hsl(" + randomNumber360 + ",0.8,0.001)";
+    var endColor = "hsl(" + randomNumber360 + ",0,0)";
 
     var interpolateNodeColor = d3.interpolateHsl(endColor, startColor);
 

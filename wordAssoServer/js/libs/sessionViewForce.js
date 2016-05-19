@@ -224,8 +224,24 @@ function ViewForce() {
   var adjustedAgeRateScale = d3.scale.pow().domain([1, 500]).range([1.0, 100.0]);
   var fontSizeScale = d3.scale.linear().domain([1, 100000000]).range([35.0, 70]);
 
-  var sessionCircleRadiusScale = d3.scale.log().domain([1, 100000000]).range([40.0, 100.0]);
-  var defaultRadiusScale = d3.scale.linear().domain([1, 100000000]).range([1.0, 30.0]);
+  // var sessionCircleRadiusScale = d3.scale.log().domain([1, 100000000]).range([40.0, 100.0]);
+  // var defaultRadiusScale = d3.scale.linear().domain([1, 100000000]).range([1.0, 30.0]);
+
+  // var fillColorScale = d3.scale.linear()
+  //   .domain([0, 30000, 60000])
+  //   .range(["#555555", "#111111", "#000000"]);
+
+  // var strokeColorScale = d3.scale.linear()
+  //   .domain([0, 30000, 60000])
+  //   .range(["#cccccc", "#444444", "#000000"]);
+
+  // var linkColorScale = d3.scale.linear()
+  //   .domain([0, 30000, 60000])
+  //   .range(["#cccccc", "#666666", "#444444"]);
+
+
+  var sessionCircleRadiusScale = d3.scale.log().domain([1, 2000000]).range([40.0, 100.0]); // uses wordChainIndex
+  var defaultRadiusScale = d3.scale.log().domain([1, 2000000]).range([1.0, 40.0]);
 
   var fillColorScale = d3.scale.linear()
     .domain([0, 30000, 60000])

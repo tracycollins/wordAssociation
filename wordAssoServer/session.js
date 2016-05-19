@@ -191,8 +191,15 @@ var dragEndPosition = { 'id': 'ID', 'x': 47, 'y': 147};
 document.addEventListener("dragEnd", function(e) {
   console.error("DRAG END: " + jsonPrint(dragEndPosition));
   var dragSession = sessionHashMap.get(dragEndPosition.id);
-  dragSession.initialPosition.x = dragEndPosition.x;
-  dragSession.initialPosition.y = dragEndPosition.y;
+  if (typeof dragSession.initialPosition === 'undefined'){
+    dragSession.initialPosition = {};
+    dragSession.initialPosition.x = dragEndPosition.x;
+    dragSession.initialPosition.y = dragEndPosition.y;
+  }
+  else {
+    dragSession.initialPosition.x = dragEndPosition.x;
+    dragSession.initialPosition.y = dragEndPosition.y;
+  }
   dragSession.node.x = dragEndPosition.x;
   dragSession.node.y = dragEndPosition.y;
   sessionHashMap.set(dragSession.sessionId, dragSession);

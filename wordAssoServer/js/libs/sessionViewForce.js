@@ -943,12 +943,12 @@ function ViewForce() {
           return "#ffffff";
         }
         else {
-          return d.interpolateColor((nodeMaxAge - d.age) / nodeMaxAge);
+          return d.interpolateColor((nodeMaxAge - (1.1*d.age)) / nodeMaxAge);
         }
       })
-      .style('opacity', function(d) {
-        return 1;
-      })
+      // .style('opacity', function(d) {
+      //   return 1;
+      // })
       .style('stroke', function(d) {
         return strokeColorScale(d.age);
       })

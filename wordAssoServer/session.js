@@ -190,21 +190,16 @@ var dragEndPosition = { 'id': 'ID', 'x': 47, 'y': 147};
 
 document.addEventListener("dragEnd", function(e) {
   console.error("DRAG END: " + jsonPrint(dragEndPosition));
-  var dragSession = sessionHashMap.get(dragEndPosition.id);
-  if (typeof dragSession.initialPosition === 'undefined'){
-    dragSession.initialPosition = {};
+  if (sessionHashMap.has(dragEndPosition.id)){
+    var dragSession = sessionHashMap.get(dragEndPosition.id);
     dragSession.initialPosition.x = dragEndPosition.x;
     dragSession.initialPosition.y = dragEndPosition.y;
+    dragSession.node.x = dragEndPosition.x;
+    dragSession.node.y = dragEndPosition.y;
+    sessionHashMap.set(dragSession.sessionId, dragSession);
+    nodeHashMap.set(dragSession.node.nodeId, dragSession.node);
+    console.log("dragSession\n" + jsonPrint(dragSession));
   }
-  else {
-    dragSession.initialPosition.x = dragEndPosition.x;
-    dragSession.initialPosition.y = dragEndPosition.y;
-  }
-  dragSession.node.x = dragEndPosition.x;
-  dragSession.node.y = dragEndPosition.y;
-  sessionHashMap.set(dragSession.sessionId, dragSession);
-  nodeHashMap.set(dragSession.node.nodeId, dragSession.node);
-  console.log("dragSession\n" + jsonPrint(dragSession));
 });
 
 var sessionDragEndEvent = new CustomEvent(

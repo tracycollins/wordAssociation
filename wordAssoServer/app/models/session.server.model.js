@@ -28,6 +28,9 @@ var SessionSchema = new Schema({
 	user: { 
 		type: Object
 	},
+	tags: { 
+		type: Object
+	},
 	namespace: { 
 		type: String,
 		trim: true

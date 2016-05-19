@@ -279,29 +279,29 @@ function ViewForce() {
 
   var randomId = randomIntFromInterval(1000000000, 9999999999);
 
-  var randomColorQueue = [];
-  var randomNumber360 = randomIntFromInterval(0, 360);
-  var startColor = "hsl(" + randomNumber360 + ",0.8,0.5)";
-  // var endColor = "hsl(" + randomNumber360 + ",0,0)";
-  var endColor = "black";
-  randomColorQueue.push({
-    "startColor": startColor,
-    "endColor": endColor
-  });
+  // var randomColorQueue = [];
+  // var randomNumber360 = randomIntFromInterval(0, 360);
+  // var startColor = "hsl(" + randomNumber360 + ",0.8,0.5)";
+  // // var endColor = "hsl(" + randomNumber360 + ",0,0)";
+  // var endColor = "black";
+  // randomColorQueue.push({
+  //   "startColor": startColor,
+  //   "endColor": endColor
+  // });
 
-  setInterval(function() { // randomColorQueue
+  // setInterval(function() { // randomColorQueue
 
-    randomNumber360 += randomIntFromInterval(60, 120);
-    startColor = "hsl(" + randomNumber360 + ",0.8,0.5)";
-    // endColor = "hsl(" + randomNumber360 + ",0,0)";
+  //   randomNumber360 += randomIntFromInterval(60, 120);
+  //   startColor = "hsl(" + randomNumber360 + ",0.8,0.5)";
+  //   // endColor = "hsl(" + randomNumber360 + ",0,0)";
 
-    if (randomColorQueue.length < 50) {
-      randomColorQueue.push({
-        "startColor": startColor,
-        "endColor": endColor
-      });
-    }
-  }, 50);
+  //   if (randomColorQueue.length < 50) {
+  //     randomColorQueue.push({
+  //       "startColor": startColor,
+  //       "endColor": endColor
+  //     });
+  //   }
+  // }, 50);
 
   d3.select("body").style("cursor", "default");
 
@@ -1512,6 +1512,7 @@ function ViewForce() {
     forceStopped = true;
 
     var randomNumber360 = randomIntFromInterval(0, 360);
+    var randomNumber256 = randomIntFromInterval(0, 256);
 
     var sessionId = 'session_' + randomNumber360;
     var userId = 'user_' + randomNumber360;
@@ -1520,11 +1521,12 @@ function ViewForce() {
     var wordChainIndex = tickNumber;
     var text = randomNumber360 + ' | ' + mentions;
 
+    // var startColor = "hsl(" + randomNumber360 + ",0.8,0.5)";
     var startColor = "hsl(" + randomNumber360 + ",0.8,0.5)";
     // var endColor = "hsl(" + randomNumber360 + ",0,0)";
     var endColor = "black";
 
-    var interpolateNodeColor = d3.interpolateHsl(endColor, startColor);
+    var interpolateNodeColor = d3.interpolateRgb(endColor, startColor);
 
     var newNode = {
       nodeId: nodeId,

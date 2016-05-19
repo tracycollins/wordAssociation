@@ -3502,14 +3502,19 @@ function handleSessionEvent(sesObj, callback) {
 
       // sesObj.session.config.mode = defaultSessionType ;
 
+      if (typeof sesObj.tags === 'undefined') {
+        sesObj.tags = {};
+        sesObj.tags.entity = 'UNKNOWN';
+      }
+
       console.log(chalkSession(
         ">>> SESSION CREATE" 
+        + " | ENTITY: " + sesObj.tags.entity
         + " | TYPE: " + sesObj.session.config.type 
         + " | MODE: " + sesObj.session.config.mode 
         + " | NSP: " + sesObj.session.namespace 
         + " | SID: " + sesObj.session.sessionId 
         + " | SIP: " + sesObj.session.ip
-        // + " | UID: " + sesObj.user.userId
       ));
 
       // SESSION TYPES: RANDOM, ANTONYM, SYNONYM, SCRIPT, USER_USER, GROUP 
@@ -4890,6 +4895,7 @@ function createSession(newSessionObj) {
 
   var sessionObj = new Session({
     sessionId: socketId,
+    tags: {},
     ip: ipAddress,
     namespace: namespace,
     createAt: moment().valueOf(),
@@ -4898,6 +4904,10 @@ function createSession(newSessionObj) {
     connectTime: moment().valueOf(),
     disconnectTime: 0
   });
+
+  if (newSessionObj.tags) {
+    sessionObj.tags = newSessionObj.tags;
+  }
 
   if (newSessionObj.user) {
     sessionObj.userId = newSessionObj.user.userId;
@@ -5098,13 +5108,19 @@ function createSession(newSessionObj) {
       debug(chalkError(moment().format(defaultDateTimeFormat) 
         + " | ??? SESSION NOT FOUND ON SESSION_KEEPALIVE | " + socketId 
         + " | CREATING SESSION" + "\n" + jsonPrint(userObj)));
-      createSession({
+
+      sessionObj = {
         namespace: "view",
         socket: socket,
         type: userObj.type,
         mode: userObj.mode,
-        user: userObj
-      });
+        user: userObj,
+        tags: {}
+      }
+
+      if (typeof userObj.tags !== 'undefined') sessionObj.tags = userObj.tags;
+
+      createSession(sessionObj);
       return;
     }
     debug(chalkLog("@@@ SESSION_KEEPALIVE | " + userObj.userId 
@@ -5113,6 +5129,10 @@ function createSession(newSessionObj) {
 
     if (typeof userObj.userId !== 'undefined') {
       sessionObj.userId = userObj.userId;
+    }
+
+    if (typeof userObj.tags !== 'undefined') {
+      sessionObj.tags = userObj.tags;
     }
 
    if (typeof userObj.mode !== 'undefined') {
@@ -5140,6 +5160,9 @@ function createSession(newSessionObj) {
       return;
     }
 
+    if (typeof userObj.tags !== 'undefined') {
+      sessionObj.tags = userObj.tags;
+    }
     if (typeof userObj.type !== 'undefined') {
       sessionObj.config.type = userObj.type;
     }

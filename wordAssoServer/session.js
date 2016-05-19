@@ -632,7 +632,7 @@ function computeInitialPosition(index) {
 var randomColorQueue = [];
 var randomNumber360 = randomIntFromInterval(0, 360);
 var startColor = "hsl(" + randomNumber360 + ",100%,50%)";
-var endColor = "hsl(" + randomNumber360 + ",50%,25%)";
+var endColor = "hsl(" + randomNumber360 + ",100%,0%)";
 
 randomColorQueue.push({
   "startColor": startColor,
@@ -643,7 +643,7 @@ setInterval(function() { // randomColorQueue
 
   randomNumber360 += randomIntFromInterval(60, 120);
   startColor = "hsl(" + randomNumber360 + ",100%,50%)";
-  endColor = "hsl(" + randomNumber360 + ",50%,25%)";
+  endColor = "hsl(" + randomNumber360 + ",100%,0%)";
 
   if (randomColorQueue.length < 50) {
     randomColorQueue.push({
@@ -1347,7 +1347,7 @@ var createSession = function(callback) {
       currentSession.colors = {};
       currentSession.colors = randomColorQueue.shift();
 
-      var interpolateNodeColor = d3.interpolateHcl(currentSession.colors.endColor, currentSession.colors.startColor);
+      var interpolateNodeColor = d3.interpolateHsl(currentSession.colors.endColor, currentSession.colors.startColor);
       currentSession.interpolateColor = interpolateNodeColor;
 
       // CREATE SESSION NODE

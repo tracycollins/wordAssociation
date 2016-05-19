@@ -261,7 +261,6 @@ function ViewForce() {
     return randomInt;
   };
 
-
   var randomId = randomIntFromInterval(1000000000, 9999999999);
 
   var randomColorQueue = [];
@@ -286,26 +285,24 @@ function ViewForce() {
         "endColor": endColor
       });
     }
-
   }, 50);
-
 
   d3.select("body").style("cursor", "default");
 
-  var sessionCircleRadiusScale = d3.scale.log().domain([1, 2000000]).range([40.0, 100.0]); // uses wordChainIndex
-  var defaultRadiusScale = d3.scale.log().domain([1, 2000000]).range([1.0, 40.0]);
+  // var sessionCircleRadiusScale = d3.scale.log().domain([1, 2000000]).range([40.0, 100.0]); // uses wordChainIndex
+  // var defaultRadiusScale = d3.scale.log().domain([1, 2000000]).range([1.0, 40.0]);
 
-  var fillColorScale = d3.scale.linear()
-    .domain([0, 30000, 60000])
-    .range(["#555555", "#111111", "#000000"]);
+  // var fillColorScale = d3.scale.linear()
+  //   .domain([0, 30000, 60000])
+  //   .range(["#555555", "#111111", "#000000"]);
 
-  var strokeColorScale = d3.scale.linear()
-    .domain([0, 30000, 60000])
-    .range(["#cccccc", "#444444", "#000000"]);
+  // var strokeColorScale = d3.scale.linear()
+  //   .domain([0, 30000, 60000])
+  //   .range(["#cccccc", "#444444", "#000000"]);
 
-  var linkColorScale = d3.scale.linear()
-    .domain([0, 30000, 60000])
-    .range(["#cccccc", "#666666", "#444444"]);
+  // var linkColorScale = d3.scale.linear()
+  //   .domain([0, 30000, 60000])
+  //   .range(["#cccccc", "#666666", "#444444"]);
 
 
   var sessions = [];
@@ -1154,9 +1151,9 @@ function ViewForce() {
     launchSessionView(d.sessionId);
   }
 
-  function nodeFill(age) {
-    return fillColorScale(age);
-  }
+  // function nodeFill(age) {
+  //   return fillColorScale(age);
+  // }
 
   // SESSION CIRCLE
   function sessionCircleMouseOver(d) {

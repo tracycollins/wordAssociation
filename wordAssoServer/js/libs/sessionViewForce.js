@@ -266,8 +266,8 @@ function ViewForce() {
 
   var randomColorQueue = [];
   var randomNumber360 = randomIntFromInterval(0, 360);
-  var startColor = "hsl(" + randomNumber360 + ",100%,50%)";
-  var endColor = "hsl(" + randomNumber360 + ",0%,0%)";
+  var startColor = "hsl(" + randomNumber360 + ",80%,50%)";
+  var endColor = "hsl(" + randomNumber360 + ",80%,0%)";
   randomColorQueue.push({
     "startColor": startColor,
     "endColor": endColor
@@ -276,8 +276,8 @@ function ViewForce() {
   setInterval(function() { // randomColorQueue
 
     randomNumber360 += randomIntFromInterval(60, 120);
-    startColor = "hsl(" + randomNumber360 + ",100%,50%)";
-    endColor = "hsl(" + randomNumber360 + ",0%,0%)";
+    startColor = "hsl(" + randomNumber360 + ",80%,50%)";
+    endColor = "hsl(" + randomNumber360 + ",80%,0%)";
 
     if (randomColorQueue.length < 50) {
       randomColorQueue.push({
@@ -1519,8 +1519,8 @@ function ViewForce() {
     var wordChainIndex = tickNumber;
     var text = randomNumber360 + ' | ' + mentions;
 
-    var startColor = "hsl(" + randomNumber360 + ",100%,50%)";
-    var endColor = "hsl(" + randomNumber360 + ",0%,0%)";
+    var startColor = "hsl(" + randomNumber360 + ",80%,50%)";
+    var endColor = "hsl(" + randomNumber360 + ",80%,0%)";
 
     var interpolateNodeColor = d3.interpolateHcl(endColor, startColor);
 

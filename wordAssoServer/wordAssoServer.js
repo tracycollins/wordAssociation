@@ -4068,7 +4068,8 @@ var readResponseQueue = setInterval(function() {
       previousPrompt = currentSessionObj.wordChain[currentSessionObj.wordChainIndex - 1];
       previousPromptObj = wordCache.get(previousPrompt);
       if (!previousPromptObj) {
-        debug(chalkError(socketId + " | " + currentSessionObj.userId + " | ??? previousPrompt NOT IN CACHE: " + previousPrompt
+        debug(chalkError(socketId + " | " + currentSessionObj.userId 
+          + " | ??? previousPrompt NOT IN CACHE: " + previousPrompt
           // + " ... ABORTING SESSION"
         ));
 
@@ -4209,10 +4210,10 @@ var readDbUpdateQueue = setInterval(function() {
             wordChainIndex: dbUpdateObj.word.wordChainIndex,
             source: updatedWordObj,
             target: previousPromptObj,
-            tags: {}
+            tags: dbUpdateObj.tags
           };
 
-          if (updatedWordObj.tags) sessionUpdateObj.tags = updatedWordObj.tags;
+          // if (updatedWordObj.tags) sessionUpdateObj.tags = updatedWordObj.tags;
           updateSessionViews(sessionUpdateObj);
         } else {
           debug(chalkError("*** SESSION CACHE SET ERROR" + "\n" + jsonPrint(err)));

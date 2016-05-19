@@ -1522,7 +1522,7 @@ function ViewForce() {
     var startColor = "hsl(" + randomNumber360 + ",80%,50%)";
     var endColor = "hsl(" + randomNumber360 + ",80%,0%)";
 
-    var interpolateNodeColor = d3.interpolateHcl(endColor, startColor);
+    var interpolateNodeColor = d3.interpolateHsl(endColor, startColor);
 
     var newNode = {
       nodeId: nodeId,

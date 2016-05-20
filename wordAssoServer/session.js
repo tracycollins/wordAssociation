@@ -1184,11 +1184,12 @@ socket.on("SESSION_UPDATE", function(rxSessionObject) {
     }
   } else if (rxSessionUpdateQueue.length < MAX_RX_QUEUE) {
 
-    rxSessionUpdateQueue.push(rxSessionObject);
+    // rxSessionUpdateQueue.push(rxSessionObject);
 
     if (rxObj.action == 'KEEPALIVE') {
       console.log("KEEPALIVE" + " | " + rxObj.userId);
     } else {
+      rxSessionUpdateQueue.push(rxSessionObject);
       console.log(
         rxObj.userId 
         // + " | " + jsonPrint(rxObj.tags) 

@@ -794,6 +794,8 @@ function ViewForce() {
 
     // console.log("updateSessionCircles");
 
+    var dateNow = moment().valueOf();
+
     sessionCircles = sessionSvgGroup.selectAll("circle")
       .data(sessions, function(d) {
         return d.sessionId;
@@ -818,9 +820,11 @@ function ViewForce() {
       .style("fill", function(d) {
         return d.interpolateColor(0.25);
       })
-      .style('opacity', 0.5)
+      .style('opacity', function(d) {
+        return (nodeMaxAge - (dateNow - d.lastSeen)) / nodeMaxAge;
+      })
       .style('stroke', function(d) {
-        return d.interpolateColor(0.95);
+        return d.interpolateColor(0.95)
       })
       .style("stroke-opacity", 0.8);
 
@@ -886,7 +890,9 @@ function ViewForce() {
       .style("font-size", function(d) {
         return fontSizeScale(1000.1) + "px";
       })
-      .style('opacity', 1.0);
+      .style('opacity', function(d) {
+        return (nodeMaxAge - (dateNow - d.lastSeen)) / nodeMaxAge;
+      });
 
     sessionLabels.enter()
       .append("svg:text")

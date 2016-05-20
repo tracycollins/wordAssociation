@@ -1297,6 +1297,7 @@ var createSession = function(callback) {
       });
 
       currentSession.age = 0;
+      currentSession.lastSeen = dateNow;
       currentSession.userId = sessUpdate.userId;
       currentSession.wordChainIndex = sessUpdate.wordChainIndex;
       currentSession.source = sessUpdate.source;
@@ -1335,6 +1336,8 @@ var createSession = function(callback) {
         // + "\n" + jsonPrint(sessUpdate)
       );
 
+      currentSession.age = 0;
+      currentSession.lastSeen = dateNow;
       currentSession.rank = -1;
       currentSession.isSession = true;
       currentSession.sessionId = sessUpdate.sessionId;
@@ -1350,7 +1353,6 @@ var createSession = function(callback) {
       currentSession.latestNodeId = sessUpdate.source.nodeId;
 
       currentSession.node = {};
-      currentSession.age = 0;
       currentSession.linkHashMap = new HashMap();
       currentSession.initialPosition = initialPositionArray.shift();
       currentSession.x = currentSession.initialPosition.x;

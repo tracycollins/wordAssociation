@@ -1032,7 +1032,7 @@ var readUpdateSessionViewQueue = setInterval(function() {
         target: {}
       };
 
-      if (sessionUpdateObj.tags) {
+      if (typeof sessionUpdateObj.tags !== 'undefined') {
         sessionSmallObj.tags = sessionUpdateObj.tags;
       }
 
@@ -1054,7 +1054,7 @@ var readUpdateSessionViewQueue = setInterval(function() {
         target: {}
       };
 
-      if (sessionUpdateObj.tags) {
+      if (typeof sessionUpdateObj.tags !== 'undefined') {
         sessionSmallObj.tags = sessionUpdateObj.tags;
       }
 
@@ -1174,12 +1174,15 @@ function sendPrompt(sessionObj, sourceWordObj) {
 
           var sessionUpdateObj = {
             action: 'PROMPT',
+            tags: {},
             userId: currentUser.userId,
             sessionId: currentSession.sessionId,
             wordChainIndex: currentSession.wordChainIndex,
             source: sourceWordObj,
             target: targetWordObj
           };
+
+          sessionUpdateObj.tags.entity = currentUser.userId.toLowerCase();
 
         } else {
 
@@ -1191,12 +1194,15 @@ function sendPrompt(sessionObj, sourceWordObj) {
 
           var sessionUpdateObj = {
             action: 'PROMPT',
+            tags: {},
             userId: currentUser.userId,
             sessionId: currentSession.sessionId,
             wordChainIndex: currentSession.wordChainIndex,
             source: sourceWordObj,
             target: 0
           };
+
+          sessionUpdateObj.tags.entity = currentUser.userId.toLowerCase();
 
         }
 
@@ -1284,12 +1290,15 @@ function sendPrompt(sessionObj, sourceWordObj) {
 
         var sessionUpdateObj = {
           action: 'PROMPT',
+          tags: {},
           userId: currentUser.userId,
           sessionId: currentSession.sessionId,
           wordChainIndex: currentSession.wordChainIndex,
           source: promptWordObj,
           target: targetWordObj
         };
+
+        sessionUpdateObj.tags.entity = currentUser.userId.toLowerCase();
 
         updateSessionViews(sessionUpdateObj);
 
@@ -3475,12 +3484,15 @@ function handleSessionEvent(sesObj, callback) {
           if (sessionUpdatedObj.namespace != 'view') {
             var sessionUpdateObj = {
               action: 'KEEPALIVE',
+              tags: {},
               userId: sessionUpdatedObj.userId,
               sessionId: sessionUpdatedObj.sessionId,
               wordChainIndex: sessionUpdatedObj.wordChainIndex,
               source: {},
               target: 0
             };
+
+            sessionUpdateObj.tags.entity = sessionUpdatedObj.userId.toLowerCase();
 
             io.of(sessionUpdatedObj.namespace).to(sessionUpdatedObj.sessionId).emit('KEEPALIVE_ACK', sessionUpdatedObj.userId);
 
@@ -4158,6 +4170,7 @@ var readResponseQueue = setInterval(function() {
     var dbUpdateObj = {};
     dbUpdateObj.word = responseInObj;
     dbUpdateObj.session = currentSessionObj;
+    dbUpdateObj.tags = {};
 
     if (responseInObj.tags){
       dbUpdateObj.tags = responseInObj.tags;

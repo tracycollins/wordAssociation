@@ -3787,7 +3787,7 @@ function handleSessionEvent(sesObj, callback) {
         + " | SID: " + sesObj.session.sessionId 
         + " | SES TYPE: " + sesObj.session.config.type 
         + " | SES MODE: " + sesObj.session.config.mode 
-        + " | ENTITY: " + sesObj.user.tags.entity 
+        // + " | ENTITY: " + sesObj.user.tags.entity 
         + " | UID: " + sesObj.user.userId 
         + " | NSP: " + sesObj.session.namespace 
         + " | IP: " + sesObj.session.ip 

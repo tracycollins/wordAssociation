@@ -45,7 +45,7 @@ function ViewForce() {
 
   var showStatsFlag = false;
 
-  var nodeMaxAge = 15000;
+  var nodeMaxAge = 20000;
 
   var DEFAULT_CONFIG = {
     'nodeMaxAge': window.DEFAULT_MAX_AGE

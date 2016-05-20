@@ -1024,7 +1024,7 @@ function ViewForce() {
         return fontSizeScale(d.mentions + 1.1) + "px";
       })
       .style('opacity', function(d) {
-        if (d.isSessionNode) return Math.max(((nodeMaxAge - d.age) / nodeMaxAge), minSessionNodeOpacity);
+        // if (d.isSessionNode) return Math.max(((nodeMaxAge - d.age) / nodeMaxAge), minSessionNodeOpacity);
         return (nodeMaxAge - d.age) / nodeMaxAge;
       });
 

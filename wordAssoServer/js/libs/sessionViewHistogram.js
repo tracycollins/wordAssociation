@@ -938,7 +938,15 @@ function ViewHistogram() {
         if (d.newFlag) {
           return "white";
         } else {
-          return d.interpolateColor((nodeMaxAge - d.age) / nodeMaxAge);
+          // return d.interpolateColor((nodeMaxAge - d.age) / nodeMaxAge);
+          return d.interpolateColor(1.0);
+        }
+      })
+      .style("fill-opacity", function(d) {
+        if (self.removeDeadNodes) {
+          return wordOpacityScale(d.age + 1);
+        } else {
+          return Math.max(wordOpacityScale(d.age + 1), minOpacity)
         }
       })
       .transition()

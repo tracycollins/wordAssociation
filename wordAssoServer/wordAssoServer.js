@@ -3482,7 +3482,7 @@ function handleSessionEvent(sesObj, callback) {
               target: 0
             };
 
-            io.of(sessionUpdatedObj.namespace).to(sessionUpdatedObj.sessionId).emit('KEEPALIVE_ACK');
+            io.of(sessionUpdatedObj.namespace).to(sessionUpdatedObj.sessionId).emit('KEEPALIVE_ACK', sessionUpdatedObj.userId);
 
             updateSessionViews(sessionUpdateObj);
           }

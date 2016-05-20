@@ -45,7 +45,7 @@ function ViewForce() {
 
   var showStatsFlag = false;
 
-  var nodeMaxAge = 10000;
+  var nodeMaxAge = 15000;
 
   var DEFAULT_CONFIG = {
     'nodeMaxAge': window.DEFAULT_MAX_AGE
@@ -914,9 +914,10 @@ function ViewForce() {
       })
       .style("text-anchor", "middle")
       .style("opacity", 1e-6)
-      .style('fill', function(d) {
-        return d.interpolateColor(0.8);
-      })
+      // .style('fill', function(d) {
+      //   return d.interpolateColor(0.8);
+      // })
+      .style('fill', "#ffffff")
       .style("font-size", function(d) {
         return fontSizeScale(1000.1) + "px";
       })
@@ -1052,7 +1053,7 @@ function ViewForce() {
       })
       .style("text-anchor", "middle")
       .style("opacity", 1e-6)
-      .style("fill", "#eeeeee")
+      .style("fill", "#ffffff")
       .style("font-size", function(d) {
         return fontSizeScale(d.mentions + 1.1) + "px";
       })

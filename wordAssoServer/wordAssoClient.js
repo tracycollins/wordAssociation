@@ -11,7 +11,7 @@ var testMode = false ;
 
 var userResponseEnabled = false;
 
-var sessionMode = 'PROMPT' ;
+var sessionMode = 'STREAM' ;
 var monitorMode = false ;
 
 var responseTimeoutInterval = 1000 ;
@@ -74,12 +74,14 @@ var USER_ID = 'CLIENT_' + getMillis();
 var SCREEN_NAME = USER_ID;
 
 var userObj = {};
+userObj.tags = {};
 
 userObj.userId = USER_ID;
 userObj.screenName = SCREEN_NAME;
 userObj.type = "USER";
 userObj.mode = sessionMode;
 userObj.streamSource = "USER";
+userObj.tags.entity = USER_ID;
 
 function getUrlVariables(config){
 
@@ -106,14 +108,17 @@ var transmitDataQueue = [];
 
 setInterval(function(){
   socket.emit("SESSION_KEEPALIVE", userObj);
-}, 10000);
+}, 60000);
 
 setInterval(function(){
   if (transmitDataQueue.length > 0){
-    var word = transmitDataQueue.shift();
-    socket.emit("RESPONSE_WORD_OBJ", {nodeId: word});
+    var wordObj = {};
+    wordObj.tags = {};
+    wordObj.tags.entity = userObj.userId;
+    wordObj.nodeId = transmitDataQueue.shift();
+    socket.emit("RESPONSE_WORD_OBJ", wordObj);
   }
-}, 333);
+}, 447);
 
 function sendUserResponse(sessionMode, data, callback){
   console.log("SESSION MODE: " + sessionMode + " | RAW INPUT: " + data);
@@ -446,9 +451,16 @@ function setSessionMode(mode){
     break;
   }
 
-  socket.emit("USER_READY", userObj);
-  console.log("TX USER READY\nuserObj\n" + jsonPrint(userObj));
-  transmitDataQueue.push(userObj.userId);
+  var userReadyObj = {};
+  userReadyObj.tags = {};
+  userReadyObj.userId = userObj.userId;
+  userReadyObj.screenName = userObj.screenName;
+  userReadyObj.nodeId = userObj.userId;
+  userReadyObj.tags.entity = userObj.userId;
+
+  socket.emit("USER_READY", userReadyObj);
+  console.log("TX USER READY\nuserReadyObj\n" + jsonPrint(userReadyObj));
+  transmitDataQueue.push(userReadyObj.userId);
 }
 
 

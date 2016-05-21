@@ -1284,6 +1284,7 @@ var createSession = function(callback) {
     } else if (sessionHashMap.has(sessUpdate.sessionId)) {
 
       currentSession = sessionHashMap.get(sessUpdate.sessionId);
+      if (typeof currentSession.tags === 'undefined') currentSession.tags = {};
       currentSession.tags = sessUpdate.tags;
 
       if (nodeHashMap.has(currentSession.node.nodeId)) {
@@ -1300,6 +1301,7 @@ var createSession = function(callback) {
       currentSession.age = 0;
       currentSession.lastSeen = dateNow;
       currentSession.userId = sessUpdate.userId;
+      currentSession.text = sessUpdate.userId;
       currentSession.wordChainIndex = sessUpdate.wordChainIndex;
       currentSession.source = sessUpdate.source;
       currentSession.source.lastSeen = dateNow;

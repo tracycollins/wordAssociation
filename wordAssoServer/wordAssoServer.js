@@ -3974,6 +3974,9 @@ function handleSessionEvent(sesObj, callback) {
                 case 'TEST_VIEWER':
                   break;
 
+                case 'STREAM':
+                  break;
+
                 default:
                   debug("???? UNKNOWN SESSION TYPE: " + sesObj.session.config.type);
                   quit("???? UNKNOWN SESSION TYPE: " + sesObj.session.config.type);

@@ -279,47 +279,7 @@ function ViewForce() {
 
   var randomId = randomIntFromInterval(1000000000, 9999999999);
 
-  // var randomColorQueue = [];
-  // var randomNumber360 = randomIntFromInterval(0, 360);
-  // var startColor = "hsl(" + randomNumber360 + ",0.8,0.5)";
-  // // var endColor = "hsl(" + randomNumber360 + ",0,0)";
-  // var endColor = "black";
-  // randomColorQueue.push({
-  //   "startColor": startColor,
-  //   "endColor": endColor
-  // });
-
-  // setInterval(function() { // randomColorQueue
-
-  //   randomNumber360 += randomIntFromInterval(60, 120);
-  //   startColor = "hsl(" + randomNumber360 + ",0.8,0.5)";
-  //   // endColor = "hsl(" + randomNumber360 + ",0,0)";
-
-  //   if (randomColorQueue.length < 50) {
-  //     randomColorQueue.push({
-  //       "startColor": startColor,
-  //       "endColor": endColor
-  //     });
-  //   }
-  // }, 50);
-
   d3.select("body").style("cursor", "default");
-
-  // var sessionCircleRadiusScale = d3.scale.log().domain([1, 2000000]).range([40.0, 100.0]); // uses wordChainIndex
-  // var defaultRadiusScale = d3.scale.log().domain([1, 2000000]).range([1.0, 40.0]);
-
-  // var fillColorScale = d3.scale.linear()
-  //   .domain([0, 30000, 60000])
-  //   .range(["#555555", "#111111", "#000000"]);
-
-  // var strokeColorScale = d3.scale.linear()
-  //   .domain([0, 30000, 60000])
-  //   .range(["#cccccc", "#444444", "#000000"]);
-
-  // var linkColorScale = d3.scale.linear()
-  //   .domain([0, 30000, 60000])
-  //   .range(["#cccccc", "#666666", "#444444"]);
-
 
   var sessions = [];
   var nodes = [];
@@ -953,9 +913,12 @@ function ViewForce() {
           return d.interpolateColor((nodeMaxAge - d.age) / nodeMaxAge);
         }
       })
-      // .style('opacity', function(d) {
-      //   return 1;
-      // })
+      .style('opacity', function(d) {
+        if (d.age >= nodeMaxAge) {
+          return 0;
+        }
+        return 1
+      })
       .style('stroke', function(d) {
         return strokeColorScale(d.age);
       })

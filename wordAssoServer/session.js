@@ -1311,6 +1311,7 @@ var createSession = function(callback) {
       currentSession.node.age = 0;
       currentSession.node.ageUpdated = dateNow;
       currentSession.node.lastSeen = dateNow;
+      currentSession.node.mentions = sessUpdate.wordChainIndex;
       currentSession.node.interpolateColor = currentSession.interpolateColor;
       currentSession.node.x = currentSession.initialPosition.x;
       currentSession.node.y = currentSession.initialPosition.y;
@@ -1327,6 +1328,7 @@ var createSession = function(callback) {
           return (callback(null, cSession.sessionId));
         });
       });
+      
     } else {
 
       sessionsCreated += 1;

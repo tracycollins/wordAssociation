@@ -318,15 +318,15 @@ localHostHashMap.set('104.197.93.13', 'threeceelabs.com');
 var sessionCacheTtl = process.env.SESSION_CACHE_DEFAULT_TTL;
 
 if (typeof sessionCacheTtl === 'undefined') sessionCacheTtl = SESSION_CACHE_DEFAULT_TTL;
-debug("SESSION CACHE TTL: " + sessionCacheTtl + " SECONDS");
+console.log("SESSION CACHE TTL: " + sessionCacheTtl + " SECONDS");
 
 // ==================================================================
 // WORD CACHE
 // ==================================================================
-var wordCacheTtl = parseInt(process.env.WORD_CACHE_TTL);
+var wordCacheTtl = process.env.WORD_CACHE_TTL;
 
 if (typeof wordCacheTtl === 'undefined') wordCacheTtl = WORD_CACHE_TTL;
-debug("WORD CACHE TTL: " + wordCacheTtl + " SECONDS");
+console.log("WORD CACHE TTL: " + wordCacheTtl + " SECONDS");
 
 // ==================================================================
 // BIG HUGE THESAURUS
@@ -505,7 +505,7 @@ function updateStats(updateObj) {
   }
 }
 
-function loadStats() {
+function loadStats(callback) {
 
   dropboxClient.readFile(statsFile, function(err, statsJson, callback) {
 
@@ -516,18 +516,27 @@ function loadStats() {
 
       if (err.status != 404) {
         console.error(chalkError(jsonPrint(err)));
-      } else if (err.status = 404) {
+      } 
+      else if (err.status = 404) {
 
-        console.error("... TRYING DROPBOX READ OF DEFAULT WA_STATS_FILE " + WA_STATS_FILE);
+        console.log(chalkError("FILE NOT FOUND ... TRYING DROPBOX READ OF DEFAULT WA_STATS_FILE " + WA_STATS_FILE));
 
         dropboxClient.readFile(WA_STATS_FILE, function(err, statsJson, callback) {
 
-          console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
-            + " | ... LOADING STATS FROM DROPBOX FILE: " + WA_STATS_FILE));
+          if (err){
+            console.log(chalkError("DROPBOX READ ERROR " + WA_STATS_FILE + " ... SKIPPING"));
+            console.log(chalkError(jsonPrint(err)));
+            return(err);
+          }
+
+          console.log(chalkInfo(
+            moment().format(defaultDateTimeFormat) 
+            + " | ... LOADING STATS FROM DROPBOX FILE: " + WA_STATS_FILE
+          ));
 
           var statsObj = JSON.parse(statsJson);
 
-          console.log("DROPBOX STATS\n" + JSON.stringify(statsObj, null, 3));
+          debug("DROPBOX STATS\n" + JSON.stringify(statsObj, null, 3));
 
           if (typeof statsObj.name === 'undefined') statsObj.name = 'Word Assocition Server Status | ' + os.hostname()
 
@@ -619,7 +628,7 @@ function loadStats() {
 if (OFFLINE_MODE) {
 
 } else {
-  loadStats();
+  loadStats(function(err, file){});
 }
 
 setInterval(function() {
@@ -671,6 +680,7 @@ setInterval(function() {
 
     totalSessions: totalSessions,
     sessionUpdatesSent: sessionUpdatesSent,
+    sessionCacheTtl: sessionCacheTtl,
 
     totalWords: totalWords,
     wordCacheHits: wordCache.getStats().hits,
@@ -753,7 +763,8 @@ var wordCache = new NodeCache({
 });
 
 var sessionCache = new NodeCache({
-  stdTTL: sessionCacheTtl
+  stdTTL: sessionCacheTtl,
+  checkperiod: 30
 });
 
 var promptQueue = new Queue();
@@ -3168,6 +3179,7 @@ function handleSessionEvent(sesObj, callback) {
 
       console.log(chalkSession(
         "XXX " + sesObj.sessionEvent 
+        + " | " + moment().format(defaultDateTimeFormat) 
         + " | NSP: " + sesObj.session.namespace 
         + " | SID: " + sesObj.session.sessionId 
         + " | UID: " + sesObj.session.userId 
@@ -3436,7 +3448,8 @@ function handleSessionEvent(sesObj, callback) {
             + " | SID: " + sessionUpdatedObj.sessionId 
             + " | IP: " + sessionUpdatedObj.ip + "\n" + jsonPrint(err)
           ));
-        } else {
+        } 
+        else {
 
           if (sessionUpdatedObj.wordChain.length > MAX_WORDCHAIN_LENGTH) {
             debug(chalkSession("SHORTEN WC TO " + MAX_WORDCHAIN_LENGTH
@@ -3521,6 +3534,7 @@ function handleSessionEvent(sesObj, callback) {
 
       console.log(chalkSession(
         ">>> SESSION CREATE" 
+        + " | " + moment().format(defaultDateTimeFormat) 
         + " | ENTITY: " + sesObj.tags.entity
         + " | TYPE: " + sesObj.session.config.type 
         + " | MODE: " + sesObj.session.config.mode 
@@ -3588,6 +3602,7 @@ function handleSessionEvent(sesObj, callback) {
 
       debug(chalkSession(
         "<-> SOCKET RECONNECT" 
+        + " | " + moment().format(defaultDateTimeFormat) 
         + " | NSP: " + sesObj.session.namespace 
         + " | SID: " + sesObj.session.sessionId 
         + " | IP: " + sesObj.session.ip 
@@ -3648,6 +3663,7 @@ function handleSessionEvent(sesObj, callback) {
 
       debug(chalkSession(
         ">>> SESSION ADMIN READY" 
+        + " | " + moment().format(defaultDateTimeFormat) 
         + " | SID: " + sesObj.session.sessionId 
         + " | UID: " + sesObj.admin.adminId 
         + " | NSP: " + sesObj.session.namespace 
@@ -3710,6 +3726,7 @@ function handleSessionEvent(sesObj, callback) {
 
       debug(chalkSession(
         ">>> SESSION VIEWER READY" 
+        + " | " + moment().format(defaultDateTimeFormat) 
         + " | SID: " + sesObj.session.sessionId 
         + " | UID: " + sesObj.viewer.viewerId 
         + " | NSP: " + sesObj.session.namespace 
@@ -3784,6 +3801,7 @@ function handleSessionEvent(sesObj, callback) {
 
       console.log(chalkSession(
         ">>> SESSION USER READY" 
+        + " | " + moment().format(defaultDateTimeFormat) 
         + " | SID: " + sesObj.session.sessionId 
         + " | SES TYPE: " + sesObj.session.config.type 
         + " | SES MODE: " + sesObj.session.config.mode 
@@ -5140,7 +5158,8 @@ function createSession(newSessionObj) {
       createSession(sessionObj);
       return;
     }
-    debug(chalkLog("@@@ SESSION_KEEPALIVE | " + userObj.userId 
+    console.log(chalkLog("@@@ SESSION_KEEPALIVE"
+      + " | " + userObj.userId 
       + " | " + sessionObj.sessionId 
       + " | " + moment().format(defaultDateTimeFormat)));
 

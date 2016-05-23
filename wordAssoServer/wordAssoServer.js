@@ -5158,7 +5158,7 @@ function createSession(newSessionObj) {
       createSession(sessionObj);
       return;
     }
-    console.log(chalkLog("@@@ SESSION_KEEPALIVE"
+    debug(chalkLog("@@@ SESSION_KEEPALIVE"
       + " | " + userObj.userId 
       + " | " + sessionObj.sessionId 
       + " | " + moment().format(defaultDateTimeFormat)));

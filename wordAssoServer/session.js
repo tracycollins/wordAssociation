@@ -20,7 +20,7 @@ var currentSessionView;
 var pageLoadedTimeIntervalFlag = true;
 
 var config = {};
-
+config.pauseFlag = false;
 config.sessionViewType = DEFAULT_SESSION_VIEW; // options: force, histogram ??
 config.maxWords = 100;
 config.testMode = false;
@@ -194,11 +194,14 @@ document.addEventListener("dragEnd", function(e) {
     var dragSession = sessionHashMap.get(dragEndPosition.id);
     dragSession.initialPosition.x = dragEndPosition.x;
     dragSession.initialPosition.y = dragEndPosition.y;
-    dragSession.node.x = dragEndPosition.x;
-    dragSession.node.y = dragEndPosition.y;
+    // dragSession.node.x = dragEndPosition.x;
+    // dragSession.node.y = dragEndPosition.y;
+    dragSession.node.px = dragEndPosition.x;
+    dragSession.node.py = dragEndPosition.y;
     sessionHashMap.set(dragSession.sessionId, dragSession);
     nodeHashMap.set(dragSession.node.nodeId, dragSession.node);
-    console.log("dragSession\n" + jsonPrint(dragSession));
+    // currentSessionView.updateNode(dragSession.node);
+    console.error("dragSession\n" + jsonPrint(dragSession));
   }
 });
 
@@ -314,6 +317,13 @@ function setMaxAgeSliderValue(value) {
 
 
 function updateControlPanel() {
+  if (config.pauseFlag) {
+    document.getElementById("pauseToggleButton").style.color = "red";
+    document.getElementById("pauseToggleButton").style.border = "2px solid red";
+  } else {
+    document.getElementById("pauseToggleButton").style.color = "#888888";
+    document.getElementById("pauseToggleButton").style.border = "1px solid white";
+  }
   if (config.showStatsFlag) {
     document.getElementById("statsToggleButton").style.color = "red";
     document.getElementById("statsToggleButton").style.border = "2px solid red";
@@ -368,6 +378,14 @@ function createControlPanel() {
     class: 'button',
     onclick: 'toggleFullScreen()',
     text: 'FULLSCREEN'
+  }
+
+  var pauseButton = {
+    type: 'BUTTON',
+    id: 'pauseToggleButton',
+    class: 'button',
+    onclick: 'togglePause()',
+    text: 'PAUSE'
   }
 
   var statsButton = {
@@ -480,7 +498,7 @@ function createControlPanel() {
       // tableCreateRow(controlTableHead, optionsHead, ['FORCE VIEW CONROL TABLE']);
       // tableCreateRow(controlTableBody, optionsBody, ['FULLSCREEN', 'STATS', 'TEST', 'RESET', 'NODE', 'LINK']);
       tableCreateRow(controlTableBody, optionsBody, [status]);
-      tableCreateRow(controlTableBody, optionsBody, [fullscreenButton, statsButton, testModeButton, nodeCreateButton, removeDeadNodeButton, disableLinksButton]);
+      tableCreateRow(controlTableBody, optionsBody, [fullscreenButton, pauseButton, statsButton, testModeButton, nodeCreateButton, removeDeadNodeButton, disableLinksButton]);
       tableCreateRow(controlSliderTable, optionsBody, [resetButton]);
       tableCreateRow(controlSliderTable, optionsBody, ['MAX AGE', maxAgeSlider]);
       tableCreateRow(controlSliderTable, optionsBody, ['CHARGE', chargeSlider]);
@@ -491,7 +509,7 @@ function createControlPanel() {
     case 'histogram':
       // tableCreateRow(controlTableHead, optionsHead, ['HISTOGRAM VIEW CONROL TABLE']);
       tableCreateRow(controlTableBody, optionsBody, [status]);
-      tableCreateRow(controlTableBody, optionsBody, [fullscreenButton, statsButton, testModeButton, resetButton, nodeCreateButton, removeDeadNodeButton]);
+      tableCreateRow(controlTableBody, optionsBody, [fullscreenButton, pauseButton, statsButton, testModeButton, resetButton, nodeCreateButton, removeDeadNodeButton]);
       tableCreateRow(controlSliderTable, optionsBody, [resetButton]);
       tableCreateRow(controlSliderTable, optionsBody, ['MAX AGE', maxAgeSlider]);
 
@@ -499,10 +517,17 @@ function createControlPanel() {
     default:
       // tableCreateRow(controlTableHead, optionsHead, ['CONROL TABLE HEAD']);
       tableCreateRow(controlTableBody, optionsBody, [status]);
-      tableCreateRow(controlTableBody, optionsBody, [fullscreenButton, statsButton, testModeButton, resetButton, nodeCreateButton, removeDeadNodeButton]);
+      tableCreateRow(controlTableBody, optionsBody, [fullscreenButton, pauseButton, statsButton, testModeButton, resetButton, nodeCreateButton, removeDeadNodeButton]);
       break;
   }
 
+  updateControlPanel(config.sessionViewType);
+}
+
+function togglePause() {
+  config.pauseFlag = !config.pauseFlag;
+  currentSessionView.setPause(config.pauseFlag);
+  console.warn("TOGGLE PAUSE: " + config.pauseFlag);
   updateControlPanel(config.sessionViewType);
 }
 
@@ -1313,8 +1338,8 @@ var createSession = function(callback) {
       currentSession.node.lastSeen = dateNow;
       currentSession.node.mentions = sessUpdate.wordChainIndex;
       currentSession.node.interpolateColor = currentSession.interpolateColor;
-      currentSession.node.x = currentSession.initialPosition.x;
-      currentSession.node.y = currentSession.initialPosition.y;
+      // currentSession.node.x = currentSession.initialPosition.x;
+      // currentSession.node.y = currentSession.initialPosition.y;
 
       var sessionLinkId = currentSession.node.nodeId + "_" + sessUpdate.source.nodeId;
       currentSession.node.links = {};
@@ -1444,11 +1469,13 @@ var createNode = function(callback) {
       sessionNode.text = session.tags.entity;
       sessionNode.age = 0;
       sessionNode.wordChainIndex = session.wordChainIndex;
-      sessionNode.x = session.x;
-      sessionNode.y = session.y;
+      sessionNode.x = session.initialPosition.x;
+      sessionNode.y = session.initialPosition.y;
       sessionNode.fixed = true;
       sessionNode.colors = session.colors;
       sessionNode.interpolateColor = session.interpolateColor;
+
+      session.node = sessionNode;
 
       addToHashMap(nodeHashMap, session.node.nodeId, sessionNode, function(sNode) {
         // currentSessionView.addNode(sNode);
@@ -1461,14 +1488,14 @@ var createNode = function(callback) {
 
       // var sessionNode = nodeHashMap.get(session.node.nodeId);
 
-      sessionNode.text = session.tags.entity;
+      session.node.text = session.tags.entity;
       session.node.nodeId = session.userId;
       session.node.userId = session.userId;
       session.node.sessionId = session.sessionId;
       session.node.age = 0;
       session.node.wordChainIndex = session.wordChainIndex;
-      session.node.x = session.x;
-      session.node.y = session.y;
+      session.node.x = session.initialPosition.x;
+      session.node.y = session.initialPosition.y;
       session.node.fixed = true;
       session.node.colors = session.colors;
       session.node.interpolateColor = session.interpolateColor;
@@ -1512,6 +1539,10 @@ var createNode = function(callback) {
             sourceNode.latestNode = true;
             sourceNode.colors = session.colors;
             sourceNode.interpolateColor = session.interpolateColor;
+            if (sourceNode.isSessionNode){
+              sourceNode.x = session.initialPosition.x;
+              sourceNode.y = session.initialPosition.y;
+            }
 
             addToHashMap(nodeHashMap, sourceNodeId, sourceNode, function(sNode) {
               cb(null, {
@@ -1523,8 +1554,14 @@ var createNode = function(callback) {
           } else {
             sourceNode = session.source;
             sourceNode.newFlag = true;
-            sourceNode.x = session.initialPosition.x + (100 * Math.random());
-            sourceNode.y = session.initialPosition.y + 100;
+            if (sourceNode.isSessionNode){
+              sourceNode.x = session.initialPosition.x;
+              sourceNode.y = session.initialPosition.y;
+            }
+            else {
+              sourceNode.x = session.initialPosition.x + (100 * Math.random());
+              sourceNode.y = session.initialPosition.y + 100;
+            }
             sourceNode.userId = session.userId;
             sourceNode.sessionId = session.sessionId;
             sourceNode.links = {};

@@ -3841,6 +3841,7 @@ function handleSessionEvent(sesObj, callback) {
 
       userUpdateDb(sesObj.user, function(err, updatedUserObj) {
         if (!err) {
+
           if (sesObj.session.config.type == 'USER') {
             debug(chalkRed("TX USER SESSION (USER READY): " + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"));
             adminNameSpace.emit('USER_SESSION', updatedUserObj);
@@ -3848,6 +3849,9 @@ function handleSessionEvent(sesObj, callback) {
             debug(chalkRed("TX UTIL SESSION (UTIL READY): " + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"));
             adminNameSpace.emit('UTIL_SESSION', updatedUserObj);
           }
+
+          io.of(sesObj.session.namespace).to(sesObj.session.sessionId).emit('USER_READY_ACK', updatedUserObj.userId);
+
         } else {
           debug(chalkError("*** USER UPDATE DB ERROR\n" + jsonPrint(err)));
           if (quitOnError) quit(err);

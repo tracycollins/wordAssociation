@@ -4182,11 +4182,12 @@ var readResponseQueue = setInterval(function() {
     }
 
     console.log(chalkResponse("R<" 
-      + " | " + currentSessionObj.userId
+      + " UID: " + currentSessionObj.userId
       // + " | " + socketId 
       // + " | TYPE: " + currentSessionObj.config.type 
       // + " | MODE: " + currentSessionObj.config.mode 
-      + " | " + responseInObj.tags.entity 
+      + " | ENT: " + responseInObj.tags.entity 
+      + " | CH: " + responseInObj.tags.channel 
       + " | " + responseInObj.nodeId 
       + " [" + currentSessionObj.wordChainIndex + "]" 
       + " < " + previousPrompt

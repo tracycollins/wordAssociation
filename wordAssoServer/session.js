@@ -1209,10 +1209,10 @@ socket.on("SESSION_UPDATE", function(rxSessionObject) {
       console.log("KEEPALIVE" + " | " + rxObj.userId);
     } else {
       rxSessionUpdateQueue.push(rxSessionObject);
-      console.log(
-        rxObj.userId 
+      console.log("UID: " + rxObj.userId 
         // + " | " + jsonPrint(rxObj.tags) 
-        + " | " + rxObj.tags.entity
+        + " | ENT: " + rxObj.tags.entity
+        + " | CH: " + rxObj.tags.channel
         + " | " + rxObj.wordChainIndex 
         + " | " + rxObj.source.nodeId 
         + " > " + rxObj.target.nodeId

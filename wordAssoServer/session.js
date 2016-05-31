@@ -181,7 +181,6 @@ function resetMouseMoveTimer() {
 }
 
 document.addEventListener("mousemove", function() {
-  // console.warn("mousemove");
   resetMouseMoveTimer();
   mouseMovingFlag = true;
 }, true);
@@ -194,14 +193,11 @@ document.addEventListener("dragEnd", function(e) {
     var dragSession = sessionHashMap.get(dragEndPosition.id);
     dragSession.initialPosition.x = dragEndPosition.x;
     dragSession.initialPosition.y = dragEndPosition.y;
-    // dragSession.node.x = dragEndPosition.x;
-    // dragSession.node.y = dragEndPosition.y;
     dragSession.node.px = dragEndPosition.x;
     dragSession.node.py = dragEndPosition.y;
     sessionHashMap.set(dragSession.sessionId, dragSession);
     nodeHashMap.set(dragSession.node.nodeId, dragSession.node);
-    // currentSessionView.updateNode(dragSession.node);
-    console.error("dragSession\n" + jsonPrint(dragSession));
+    // console.error("dragSession\n" + jsonPrint(dragSession));
   }
 });
 

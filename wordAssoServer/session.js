@@ -633,18 +633,20 @@ var viewerObj = {
 };
 
 var initialPositionIndex = 0;
-var initialPositionArray = [];
-var radiusX = 0.95 * window.innerWidth * 1;
-var radiusY = 0.95 * window.innerHeight * 1;
+// var initialPositionArray = [];
+// var radiusX = 0.5 * window.innerWidth;
+// var radiusY = 0.5 * window.innerHeight;
 
-this.initialPositionArrayShift = function() {
-  return initialPositionArray.shift();
-}
+// this.initialPositionArrayShift = function() {
+//   return initialPositionArray.shift();
+// }
 
 function computeInitialPosition(index) {
+  var radiusX = 0.5 * window.innerWidth;
+  var radiusY = 0.5 * window.innerHeight;
   var pos = {
-    x: (radiusX + (radiusX * Math.cos(index))),
-    y: (radiusY - (radiusY * Math.sin(index)))
+    x: (radiusX - (2 * radiusX * Math.cos(index))),
+    y: (radiusY - (2 * radiusY * Math.sin(index)))
   };
 
   return pos;
@@ -671,7 +673,7 @@ setInterval(function() { // randomColorQueue
       "startColor": startColor,
       "endColor": endColor
     });
-    initialPositionArray.push(computeInitialPosition(initialPositionIndex++));
+    // initialPositionArray.push(computeInitialPosition(initialPositionIndex++));
   }
 }, 50);
 
@@ -1374,7 +1376,8 @@ var createSession = function(callback) {
 
       currentSession.node = {};
       currentSession.linkHashMap = new HashMap();
-      currentSession.initialPosition = initialPositionArray.shift();
+      // currentSession.initialPosition = initialPositionArray.shift();
+      currentSession.initialPosition = computeInitialPosition(initialPositionIndex++);
       currentSession.x = currentSession.initialPosition.x;
       currentSession.y = currentSession.initialPosition.y;
       currentSession.wordChainIndex = sessUpdate.wordChainIndex;

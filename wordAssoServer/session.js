@@ -638,8 +638,8 @@ var viewerObj = {
 
 var initialPositionIndex = 0;
 var initialPositionArray = [];
-var radiusX = 0.5 * window.innerWidth * 1;
-var radiusY = 0.5 * window.innerHeight * 1;
+var radiusX = 0.95 * window.innerWidth * 1;
+var radiusY = 0.95 * window.innerHeight * 1;
 
 this.initialPositionArrayShift = function() {
   return initialPositionArray.shift();

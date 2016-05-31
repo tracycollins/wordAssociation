@@ -38,7 +38,7 @@ function ViewForce() {
 
   var minSessionNodeOpacity = 0.2;
 
-  var mouseFreezeEnabled = true;
+  var mouseFreezeEnabled = false;
   var mouseHoverFlag = false;
   var mouseOverRadius = 10;
   var mouseHoverNodeId;
@@ -219,29 +219,13 @@ function ViewForce() {
     mouseMovingFlag = true;
 
     if (mouseFreezeEnabled) {
-      force.stop();
+      // force.stop();
     }
   }, true);
 
 
   var adjustedAgeRateScale = d3.scale.pow().domain([1, 500]).range([1.0, 100.0]);
   var fontSizeScale = d3.scale.linear().domain([1, 100000000]).range([35.0, 70]);
-
-  // var sessionCircleRadiusScale = d3.scale.log().domain([1, 100000000]).range([40.0, 100.0]);
-  // var defaultRadiusScale = d3.scale.linear().domain([1, 100000000]).range([1.0, 30.0]);
-
-  // var fillColorScale = d3.scale.linear()
-  //   .domain([0, 30000, 60000])
-  //   .range(["#555555", "#111111", "#000000"]);
-
-  // var strokeColorScale = d3.scale.linear()
-  //   .domain([0, 30000, 60000])
-  //   .range(["#cccccc", "#444444", "#000000"]);
-
-  // var linkColorScale = d3.scale.linear()
-  //   .domain([0, 30000, 60000])
-  //   .range(["#cccccc", "#666666", "#444444"]);
-
 
   var sessionCircleRadiusScale = d3.scale.log().domain([1, 2000000]).range([40.0, 100.0]); // uses wordChainIndex
   var defaultRadiusScale = d3.scale.log().domain([1, 2000000]).range([1.0, 40.0]);
@@ -366,10 +350,10 @@ function ViewForce() {
 
   function sessionCircleDragMove(d) {
 
-    console.error("sessionCircleDragMove"
-      + " | " + d.nodeId
-      + " | " + d3.event.x + " " + d3.event.y
-    );
+    // console.error("sessionCircleDragMove"
+    //   + " | " + d.nodeId
+    //   + " | " + d3.event.x + " " + d3.event.y
+    // );
 
     dragEndPosition = { 'id': d.sessionId, 'x': d3.event.x, 'y': d3.event.y};
 
@@ -381,22 +365,23 @@ function ViewForce() {
 
     d.x = x;
     d.y = y;
-    // d.cx = x;
-    // d.cy = y;
 
-    // d3.select(this).attr("transform", "translate(" + dX + "," + dY + ")");
     d3.select(this)
+      .attr("x", x)
+      .attr("y", y)
+      .attr("px", x)
+      .attr("py", y)
       .attr("cx", x)
       .attr("cy", y);
 
-    // // nodeSvgGroup.selectAll('#' + d.nodeId).attr("transform", "translate(" + dX + "," + dY + ")");
     nodeSvgGroup.selectAll('#' + d.nodeId)
       .attr("x", x)
       .attr("y", y)
+      .attr("px", x)
+      .attr("py", y)
       .attr("cx", x)
       .attr("cy", y);
 
-    // // nodeLabelSvgGroup.selectAll('#' + d.nodeId).attr("transform", "translate(" + dX + "," + dY + ")");
     nodeLabelSvgGroup.selectAll('#' + d.nodeId)
       .attr("x", x)
       .attr("y", function(d) {
@@ -404,17 +389,21 @@ function ViewForce() {
         return y + shiftY;
       });
 
-    // // sessionGnode.select('#' + d.nodeId).attr("transform", "translate(" + dX + "," + dY + ")");
     sessionGnode.select('#' + d.sessionId)
+      .attr("px", x)
+      .attr("py", y)
       .attr("x", x)
       .attr("y", y);
 
 
     nodeCircles.select('#' + d.nodeId)
+      .attr("x", x)
+      .attr("y", y)
+      .attr("px", x)
+      .attr("py", y)
       .attr("cx", x)
       .attr("cy", y);
 
-    // // sessionLabelSvgGroup.select('#' + d.nodeId).attr("transform", "translate(" + dX + "," + dY + ")");
     sessionLabelSvgGroup.select('#' + d.nodeId)
       .attr("x", x)
       .attr("y", function(d) {
@@ -422,17 +411,20 @@ function ViewForce() {
         return d.y + shiftY;
       });
 
-    // link.select("[sourceNodeId='" + d.nodeId + "']")
-    //   .attr("x1", function(d){
-    //     return 1047;
-    //   })
-    //   .attr("y1", dY);
+    document.dispatchEvent(sessionDragEndEvent);
+      tick();
+        updateNodes();
+        updateLinks();
+        updateSessionCircles();
+        updateNodeCircles();
+        updateNodeLabels();
 
   }
 
   // Define drag beavior
   var drag = d3.behavior.drag()
     .origin(function(d) {
+      // d3.event.sourceEvent.stopPropagation();
       return d;
     })
     .on("drag", sessionCircleDragMove);
@@ -444,8 +436,8 @@ function ViewForce() {
   drag.on("dragend", function(d) {
     console.warn("d\n" + jsonPrint(d));
     console.warn("DRAG END" + "\n" + jsonPrint(dragEndPosition));
-    document.dispatchEvent(sessionDragEndEvent);
-    d3.event.sourceEvent.stopPropagation(); // silence other listeners
+    // document.dispatchEvent(sessionDragEndEvent);
+    // d3.event.sourceEvent.stopPropagation(); // silence other listeners
   });
 
   var globalLinkIndex = 0;
@@ -467,14 +459,8 @@ function ViewForce() {
       .attr("y", function(d) {
         return d.y;
       });
-      // .attr("transform", function(d) {
-      //   return "translate(" + d.x + "," + d.y + ")";
-      // });
 
     node
-      // .attr("transform", function(d) {
-      //   return "translate(" + d.x + "," + d.y + ")";
-      // });
       .attr("x", function(d) {
         return d.x;
       })
@@ -486,12 +472,6 @@ function ViewForce() {
       .attr("r", function(d) {
         return sessionCircleRadiusScale(d.wordChainIndex + 1);
       })
-      // .attr("x", function(d) {
-      //   return d.x;
-      // })
-      // .attr("y", function(d) {
-      //   return d.y;
-      // })
       .attr("cx", function(d) {
         return d.x;
       })
@@ -523,12 +503,6 @@ function ViewForce() {
       });
 
     nodeCircles
-      // .attr("x", function(d) {
-      //   return d.x;
-      // })
-      // .attr("y", function(d) {
-      //   return d.y;
-      // })
       .attr("cx", function(d) {
         return d.x;
       })
@@ -853,12 +827,6 @@ function ViewForce() {
       .attr("r", function(d) {
         return sessionCircleRadiusScale(d.wordChainIndex + 1);
       })
-      // .attr("x", function(d) {
-      //   return d.x;
-      // })
-      // .attr("y", function(d) {
-      //   return d.y;
-      // })
       .attr("cx", function(d) {
         return d.x;
       })
@@ -887,12 +855,6 @@ function ViewForce() {
         return d.sessionId;
       })
       .attr("class", "sessionCircle")
-      // .attr("x", function(d) {
-      //   return d.x;
-      // })
-      // .attr("y", function(d) {
-      //   return d.y;
-      // })
       .attr("cx", function(d) {
         return d.x;
       })
@@ -900,7 +862,6 @@ function ViewForce() {
         return d.y;
       })
       .attr("mouseover", 0)
-      // .on("mousedrag", drag)
       .on("mouseover", sessionCircleMouseOver)
       .on("mouseout", sessionCircleMouseOut)
       .on("dblclick", sessionCircleClick)
@@ -951,9 +912,6 @@ function ViewForce() {
         var shiftY = -1.4 * (sessionCircleRadiusScale(d.wordChainIndex + 1));
         return d.y + shiftY;
       })
-      // .attr("y", function(d) {
-      //   return d.y;
-      // })
       .attr("class", "sessionLabel")
       .attr("id", function(d) {
         return d.nodeId;
@@ -966,9 +924,6 @@ function ViewForce() {
       })
       .style("text-anchor", "middle")
       .style("opacity", 1e-6)
-      // .style('fill', function(d) {
-      //   return d.interpolateColor(0.8);
-      // })
       .style('fill', "#ffffff")
       .style("font-size", function(d) {
         return fontSizeScale(1000.1) + "px";
@@ -997,12 +952,6 @@ function ViewForce() {
       .attr("r", function(d) {
         return defaultRadiusScale(d.mentions + 1);
       })
-      // .attr("x", function(d) {
-      //   return d.x;
-      // })
-      // .attr("y", function(d) {
-      //   return d.y;
-      // })
       .attr("cx", function(d) {
         return d.x;
       })
@@ -1042,12 +991,6 @@ function ViewForce() {
       .attr("sessionId", function(d) {
         return d.sessionId;
       })
-      // .attr("x", function(d) {
-      //   return d.x;
-      // })
-      // .attr("y", function(d) {
-      //   return d.y;
-      // })
       .attr("cx", function(d) {
         return d.x;
       })
@@ -1102,7 +1045,6 @@ function ViewForce() {
         return fontSizeScale(d.mentions + 1.1) + "px";
       })
       .style('opacity', function(d) {
-        // if (d.isSessionNode) return Math.max(((nodeMaxAge - d.age) / nodeMaxAge), minSessionNodeOpacity);
         return (nodeMaxAge - d.age) / nodeMaxAge;
       });
 
@@ -1140,9 +1082,6 @@ function ViewForce() {
 
     nodeLabels
       .exit().remove();
-    // .transition()
-    //   .duration(defaultFadeDuration)      
-    //   .style("opacity", 1e-6)
 
 
     return (callback(null, "updateNodeLabels"));
@@ -1151,8 +1090,6 @@ function ViewForce() {
   function updateForceDisplay() {
 
     // console.log("updateForceDisplay");
-
-    // if (tickNumber%100==0)  console.log("updateForceDisplay");
 
     updateForceDisplayReady = false;
 
@@ -1565,7 +1502,9 @@ function ViewForce() {
     d3.timer(function() {
       tickNumber++;
       dateNow = moment().valueOf();
-      if (!pauseFlag && !updateNodeFlag && updateForceDisplayReady && !mouseMovingFlag) updateForceDisplay();
+      if (!pauseFlag && !updateNodeFlag && updateForceDisplayReady && (!mouseFreezeEnabled || (mouseFreezeEnabled && !mouseMovingFlag))){
+        updateForceDisplay();
+      }
     });
   }
 

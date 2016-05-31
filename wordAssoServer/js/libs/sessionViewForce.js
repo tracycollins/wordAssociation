@@ -20,11 +20,11 @@ function ViewForce() {
   var height = window.innerHeight * 1;
 
   this.getWidth = function() {
-    return width;
+    return window.innerWidth;
   }
 
   this.getHeight = function() {
-    return height;
+    return window.innerHeight;
   }
 
   var dateNow = moment().valueOf();
@@ -96,7 +96,7 @@ function ViewForce() {
     "yellowgreen": "#738A05"
   };
 
-  var currentScale = 0.3;
+  var currentScale = 0.4;
 
   var INITIAL_X_RATIO = 0.5;
   var INITIAL_Y_RATIO = 0.5;
@@ -107,8 +107,8 @@ function ViewForce() {
   var FORCE_LAYOUT_WIDTH_RATIO = 1.0;
   var FORCE_LAYOUT_HEIGHT_RATIO = 1.0;
 
-  var SVGCANVAS_WIDTH_RATIO = 2.0;
-  var SVGCANVAS_HEIGHT_RATIO = 2.0;
+  var SVGCANVAS_WIDTH_RATIO = 1.0;
+  var SVGCANVAS_HEIGHT_RATIO = 1.0;
 
 
   var DEFAULT_ADMIN_OVERLAY0_X = 0.95;
@@ -155,13 +155,13 @@ function ViewForce() {
 
   var translate = [0, 0];
 
-  var zoomWidth = (width - (currentScale * width)) / 2;
-  var zoomHeight = (height - (currentScale * height)) / 2;
+  var zoomWidth = (window.innerWidth - (currentScale * window.innerWidth)) / 2;
+  var zoomHeight = (window.innerHeight - (currentScale * window.innerHeight)) / 2;
 
-  var d3LayoutWidth = width * D3_LAYOUT_WIDTH_RATIO;
-  var d3LayoutHeight = height * D3_LAYOUT_HEIGHT_RATIO;
+  var d3LayoutWidth = window.innerWidth * D3_LAYOUT_WIDTH_RATIO;
+  var d3LayoutHeight = window.innerHeight * D3_LAYOUT_HEIGHT_RATIO;
 
-  console.log("width: " + width + " | height: " + height);
+  console.log("width: " + window.innerWidth + " | height: " + window.innerHeight);
 
 
   var ADMIN_OVERLAY0_X;
@@ -191,20 +191,20 @@ function ViewForce() {
   var DATE_TIME_OVERLAY_X;
   var DATE_TIME_OVERLAY_Y;
 
-  STATS_OVERLAY1_X = DEFAULT_STATS_OVERLAY1_X * width;
-  STATS_OVERLAY1_Y = DEFAULT_STATS_OVERLAY1_Y * height;
+  STATS_OVERLAY1_X = DEFAULT_STATS_OVERLAY1_X * window.innerWidth;
+  STATS_OVERLAY1_Y = DEFAULT_STATS_OVERLAY1_Y * window.innerHeight;
 
-  STATS_OVERLAY2_X = DEFAULT_STATS_OVERLAY2_X * width;
-  STATS_OVERLAY2_Y = DEFAULT_STATS_OVERLAY2_Y * height;
+  STATS_OVERLAY2_X = DEFAULT_STATS_OVERLAY2_X * window.innerWidth;
+  STATS_OVERLAY2_Y = DEFAULT_STATS_OVERLAY2_Y * window.innerHeight;
 
-  STATS_OVERLAY3_X = DEFAULT_STATS_OVERLAY3_X * width;
-  STATS_OVERLAY3_Y = DEFAULT_STATS_OVERLAY3_Y * height;
+  STATS_OVERLAY3_X = DEFAULT_STATS_OVERLAY3_X * window.innerWidth;
+  STATS_OVERLAY3_Y = DEFAULT_STATS_OVERLAY3_Y * window.innerHeight;
 
-  STATS_OVERLAY4_X = DEFAULT_STATS_OVERLAY4_X * width;
-  STATS_OVERLAY4_Y = DEFAULT_STATS_OVERLAY4_Y * height;
+  STATS_OVERLAY4_X = DEFAULT_STATS_OVERLAY4_X * window.innerWidth;
+  STATS_OVERLAY4_Y = DEFAULT_STATS_OVERLAY4_Y * window.innerHeight;
 
-  DATE_TIME_OVERLAY_X = DEFAULT_DATE_TIME_OVERLAY_X * width;
-  DATE_TIME_OVERLAY_Y = DEFAULT_DATE_TIME_OVERLAY_Y * height;
+  DATE_TIME_OVERLAY_X = DEFAULT_DATE_TIME_OVERLAY_X * window.innerWidth;
+  DATE_TIME_OVERLAY_Y = DEFAULT_DATE_TIME_OVERLAY_Y * window.innerHeight;
 
 
 
@@ -289,10 +289,10 @@ function ViewForce() {
   var svgForceLayoutAreaWidth = d3LayoutWidth * FORCE_LAYOUT_WIDTH_RATIO;
   var svgForceLayoutAreaHeight = d3LayoutHeight * FORCE_LAYOUT_HEIGHT_RATIO;
 
-  var nodeInitialX = INITIAL_X_RATIO * svgForceLayoutAreaWidth;
-  var nodeInitialY = INITIAL_Y_RATIO * svgForceLayoutAreaHeight;
+  // var nodeInitialX = INITIAL_X_RATIO * svgForceLayoutAreaWidth;
+  // var nodeInitialY = INITIAL_Y_RATIO * svgForceLayoutAreaHeight;
 
-  console.log("nodeInitialX: " + nodeInitialX + " | nodeInitialY: " + nodeInitialY);
+  // console.log("nodeInitialX: " + nodeInitialX + " | nodeInitialY: " + nodeInitialY);
 
 
   this.getSessionsLength = function() {
@@ -1531,15 +1531,15 @@ function ViewForce() {
 
     console.log("width: " + width + " | height: " + height);
 
-    radiusX = 0.5 * width;
-    radiusY = 0.5 * height;
+    // radiusX = 0.5 * width;
+    // radiusY = 0.5 * height;
 
-    d3LayoutWidth = width * D3_LAYOUT_WIDTH_RATIO; // double the width for now
-    d3LayoutHeight = height * D3_LAYOUT_HEIGHT_RATIO;
+    d3LayoutWidth = window.innerWidth * D3_LAYOUT_WIDTH_RATIO; // double the width for now
+    d3LayoutHeight = window.innerHeight * D3_LAYOUT_HEIGHT_RATIO;
 
     svgcanvas
-      .attr("width", SVGCANVAS_WIDTH_RATIO * width)
-      .attr("height", SVGCANVAS_HEIGHT_RATIO * height);
+      .attr("width", SVGCANVAS_WIDTH_RATIO * window.innerWidth)
+      .attr("height", SVGCANVAS_HEIGHT_RATIO * window.innerHeight);
 
     svgForceLayoutAreaWidth = d3LayoutWidth * FORCE_LAYOUT_WIDTH_RATIO;
     svgForceLayoutAreaHeight = d3LayoutHeight * FORCE_LAYOUT_HEIGHT_RATIO;
@@ -1554,8 +1554,8 @@ function ViewForce() {
 
     force.size([svgForceLayoutAreaWidth, svgForceLayoutAreaHeight]);
 
-    nodeInitialX = INITIAL_X_RATIO * svgForceLayoutAreaWidth;
-    nodeInitialY = INITIAL_Y_RATIO * svgForceLayoutAreaHeight;
+    // nodeInitialX = INITIAL_X_RATIO * svgForceLayoutAreaWidth;
+    // nodeInitialY = INITIAL_Y_RATIO * svgForceLayoutAreaHeight;
   }
 
 
@@ -1606,8 +1606,8 @@ function ViewForce() {
       startColor: startColor,
       endColor: endColor,
       interpolateColor: interpolateNodeColor,
-      x: 0.5 * width + randomIntFromInterval(0, 100),
-      y: 0.5 * height + randomIntFromInterval(0, 100),
+      x: 0.5 * window.innerWidth + randomIntFromInterval(0, 100),
+      y: 0.5 * window.innerHeight + randomIntFromInterval(0, 100),
       age: 0,
       lastSeen: dateNow,
     }

@@ -96,7 +96,7 @@ function ViewForce() {
     "yellowgreen": "#738A05"
   };
 
-  var currentScale = 0.75;
+  var currentScale = 0.3;
 
   var INITIAL_X_RATIO = 0.5;
   var INITIAL_Y_RATIO = 0.5;
@@ -107,8 +107,8 @@ function ViewForce() {
   var FORCE_LAYOUT_WIDTH_RATIO = 1.0;
   var FORCE_LAYOUT_HEIGHT_RATIO = 1.0;
 
-  var SVGCANVAS_WIDTH_RATIO = 1.0;
-  var SVGCANVAS_HEIGHT_RATIO = 1.0;
+  var SVGCANVAS_WIDTH_RATIO = 2.0;
+  var SVGCANVAS_HEIGHT_RATIO = 2.0;
 
 
   var DEFAULT_ADMIN_OVERLAY0_X = 0.95;

@@ -123,11 +123,10 @@ setInterval(function() {
 
 setInterval(function() {
     if (transmitDataQueue.length > 0) {
-        var wordObj = {};
-        wordObj.tags = {};
-        wordObj.tags = userObj.tags;
-        wordObj.nodeId = transmitDataQueue.shift();
-        socket.emit("RESPONSE_WORD_OBJ", wordObj);
+        var txWordObj = {};
+        txWordObj = userObj
+        txWordObj.nodeId = transmitDataQueue.shift();
+        socket.emit("RESPONSE_WORD_OBJ", txWordObj);
     }
 }, 447);
 
@@ -163,7 +162,10 @@ function sendUserResponse(sessionMode, data, callback) {
         return;
     } else if (sessionMode == 'PROMPT') {
         console.log("TX WORD: '" + userResponseValue + "'");
-        socket.emit("RESPONSE_WORD_OBJ", { nodeId: userResponseValue });
+        var responseWord = {};
+        responseWord = userObj
+        responseWord.nodeId = userResponseValue;
+        socket.emit("RESPONSE_WORD_OBJ", responseWord);
         callback(userResponseValue);
         return;
     }
@@ -479,6 +481,15 @@ function updatePairedUserPromptLabel(labelText) {
 
 }
 
+function removeSessionMode() {
+  console.warn("removeSessionMode");
+  var controlDiv = document.getElementById("controlDiv");
+  while (controlDiv.hasChildNodes()) {
+      console.log("controlDiv.firstChild.id: " + controlDiv.firstChild.id);
+      controlDiv.removeChild(controlDiv.firstChild);
+  }
+}
+
 function removeServerPrompt() {
     clearInterval(checkInputTextInterval);
     clearInterval(checkStreamInputTextInterval);
@@ -564,7 +575,7 @@ function setSessionMode(mode) {
 socket.on('USER_READY_ACK', function(userId) {
     statsObj.userReadyAck = true;
     console.log(socket.id + " | RX USER_READY_ACK" + " | " + moment().format(defaultDateTimeFormat));
-    transmitDataQueue.push(userObj);
+    transmitDataQueue.push(userId);
 });
 
 
@@ -693,6 +704,7 @@ socket.on('connect', function() {
 
     socketId = socket.id;
     console.log(">>> CONNECTED TO HOST | SOCKET ID: " + socketId);
+    removeSessionMode();
     getUrlVariables(function(variableArray) {
         console.warn("SESSION MODE: " + sessionMode + " | MONITOR: " + monitorMode);
         addSessionModeForm(sessionMode, function() {
@@ -708,6 +720,7 @@ socket.on('reconnect', function() {
     connectedFlag = true;
     socketId = socket.id;
     console.log(">-> RECONNECTED TO HOST | SOCKET ID: " + socketId);
+    removeSessionMode();
     getUrlVariables(function(variableArray) {
         console.warn("SESSION MODE: " + sessionMode + " | MONITOR: " + monitorMode);
         addSessionModeForm(sessionMode, function() {

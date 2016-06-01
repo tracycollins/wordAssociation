@@ -4063,7 +4063,7 @@ var readResponseQueue = setInterval(function() {
     var currentSessionObj = sessionCache.get(socketId);
 
     if (!currentSessionObj) {
-      debug(chalkWarn("??? SESSION NOT IN CACHE ON RESPONSE Q READ" + " | responseQueue: " + responseQueue.size() 
+      console.log(chalkWarn("??? SESSION NOT IN CACHE ON RESPONSE Q READ" + " | responseQueue: " + responseQueue.size() 
         + " | " + socketId + " | ABORTING SESSION"));
 
       sessionQueue.enqueue({

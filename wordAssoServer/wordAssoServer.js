@@ -15,7 +15,7 @@ var minServerResponseTime = 147;
 var maxServerResponseTime = 1447;
 
 var SESSION_CACHE_DEFAULT_TTL = 300; // seconds
-var WORD_CACHE_TTL = 10; // seconds
+var WORD_CACHE_TTL = 60; // seconds
 
 var MAX_WORDCHAIN_LENGTH = 10;
 var MIN_CHAIN_FREEZE_LENGTH = 20;
@@ -1159,18 +1159,21 @@ function sendPrompt(sessionObj, sourceWordObj) {
 
         if (currentSession.wordChainIndex >= 2) {
 
-          var targetWordId = currentSession.wordChain[currentSession.wordChainIndex - 2];
+          // var targetWordId = currentSession.wordChain[currentSession.wordChainIndex - 2];
+          var targetWordId = currentSession.wordChain[currentSession.wordChain.length - 2];
           var targetWordObj = wordCache.get(targetWordId);
 
           if (!targetWordObj) {
-            debug(chalkWarn("sendPrompt" 
+            console.log(chalkWarn("sendPrompt" 
               + " | " + sessionObj.sessionId 
               + " | " + targetWordId + " NOT FOUND IN WORD CACHE (EXPIRED?) ... SKIPPING"));
             return;
             // KLUDGE??? WILL THIS STALL SESSION?
           }
 
-          targetWordObj.wordChainIndex = currentSession.wordChainIndex - 2;
+          // targetWordObj.wordChainIndex = currentSession.wordChainIndex - 2;
+          targetWordObj.wordChainIndex = currentSession.wordChain.length - 2;
+          debug("Word CACHE SET0: " + targetWordObj.nodeId);
           wordCache.set(targetWordId, targetWordObj);
 
 
@@ -1249,10 +1252,10 @@ function sendPrompt(sessionObj, sourceWordObj) {
 
         var promptWordObj;
 
-        if (currentSession.wordChainIndex >= 2) {
+        if (currentSession.wordChain.length >= 2) {
 
-          var promptWord = currentSession.wordChain[currentSession.wordChainIndex - 1];
-          var previousResponse = currentSession.wordChain[currentSession.wordChainIndex - 2];
+          var promptWord = currentSession.wordChain[currentSession.wordChain.length - 1];
+          var previousResponse = currentSession.wordChain[currentSession.wordChain.length - 2];
 
           promptWordObj = wordCache.get(promptWord);
           var targetWordObj = wordCache.get(previousResponse);
@@ -1267,7 +1270,7 @@ function sendPrompt(sessionObj, sourceWordObj) {
 
         } else if (currentSession.wordChainIndex >= 1) {
 
-          var previousResponse = currentSession.wordChain[currentSession.wordChainIndex - 1];
+          var previousResponse = currentSession.wordChain[currentSession.wordChain.length - 1];
 
           var targetWordObj = wordCache.get(previousResponse);
           promptWordObj = targetWordObj;
@@ -1362,22 +1365,27 @@ function dbUpdateWord(wordObj, incMentions, callback) {
         bhtSearchWord(word, function(status, bhtResponseObj) {
           if (status.indexOf("BHT_OVER_LIMIT") >= 0) {
             debug(chalkError("bhtSearchWord BHT OVER LIMI"));
+            debug("Word CACHE SET1: " + word.nodeId);
             wordCache.set(word.nodeId, word);
             callback('BHT_OVER_LIMIT', word);
           } else if (status.indexOf("BHT_ERROR") >= 0) {
             debug(chalkError("bhtSearchWord dbUpdateWord findOneWord ERROR\n" + JSON.stringify(status)));
+            debug("Word CACHE SET2: " + word.nodeId);
             wordCache.set(word.nodeId, word);
             callback('BHT_ERROR', word);
           } else if (bhtResponseObj.bhtFound) {
             debug(chalkBht("-*- BHT HIT   | " + bhtResponseObj.nodeId));
+            debug("Word CACHE SET3: " + bhtResponseObj.nodeId);
             wordCache.set(bhtResponseObj.nodeId, bhtResponseObj);
             callback('BHT_HIT', bhtResponseObj);
           } else if (status == 'BHT_REDIRECT') {
             debug(chalkBht("-A- BHT REDIRECT  | " + wordObj.nodeId));
+            debug("Word CACHE SET4: " + bhtResponseObj.nodeId);
             wordCache.set(bhtResponseObj.nodeId, bhtResponseObj);
             callback('BHT_REDIRECT', bhtResponseObj);
           } else {
             debug(chalkBht("-O- BHT MISS  | " + wordObj.nodeId));
+            debug("Word CACHE SET5: " + bhtResponseObj.nodeId);
             wordCache.set(bhtResponseObj.nodeId, bhtResponseObj);
             bhtWordsMiss[word.nodeId] = word.nodeId;
             updateStats({
@@ -1388,10 +1396,12 @@ function dbUpdateWord(wordObj, incMentions, callback) {
         });
       } else if (word.bhtFound) {
         debug(chalkBht("-F- BHT FOUND | " + word.nodeId));
+        debug("Word CACHE SET6: " + word.nodeId);
         wordCache.set(word.nodeId, word);
         callback('BHT_FOUND', word);
       } else {
         debug(chalkBht("-N- BHT NOT FOUND  | " + word.nodeId));
+        debug("Word CACHE SET7: " + word.nodeId);
         wordCache.set(word.nodeId, word);
         bhtWordsNotFound[word.nodeId] = word.nodeId;
         updateStats({
@@ -1594,6 +1604,7 @@ function generatePrompt(query, callback) {
       words.getWordVariation(query.input, wordTypes, ['ant'], function(status, antWordObj) {
         if (status == 'BHT_VAR_HIT') {
           // debug("randomWordObj: " + randomWordObj.nodeId);
+          debug("Word CACHE SET8: " + antWordObj.nodeId);
           wordCache.set(antWordObj.nodeId, antWordObj);
           callback('OK', antWordObj);
           return;
@@ -1601,6 +1612,7 @@ function generatePrompt(query, callback) {
           words.getRandomWord(function(err, randomWordObj) {
             if (!err) {
               debug("-G- GEN RANDOM - ANT MISS: " + randomWordObj.nodeId);
+              debug("Word CACHE SET9: " + randomWordObj.nodeId);
               wordCache.set(randomWordObj.nodeId, randomWordObj);
               callback('OK', randomWordObj);
               return;
@@ -1621,6 +1633,7 @@ function generatePrompt(query, callback) {
       words.getWordVariation(query.input, wordTypes, ['syn', 'sim'], function(status, synWordObj) {
         if (status == 'BHT_VAR_HIT') {
           // debug("randomWordObj: " + randomWordObj.nodeId);
+          debug("Word CACHE SET10: " + synWordObj.nodeId);
           wordCache.set(synWordObj.nodeId, synWordObj);
           callback('OK', synWordObj);
           return;
@@ -1628,6 +1641,7 @@ function generatePrompt(query, callback) {
           words.getRandomWord(function(err, randomWordObj) {
             if (!err) {
               debug("-G- GEN RANDOM - SYN MISS: " + randomWordObj.nodeId);
+              debug("Word CACHE SET11: " + randomWordObj.nodeId);
               wordCache.set(randomWordObj.nodeId, randomWordObj);
               callback('OK', randomWordObj);
               return;
@@ -1648,6 +1662,7 @@ function generatePrompt(query, callback) {
       words.getRandomWord(function(err, randomWordObj) {
         if (!err) {
           // debug("randomWordObj: " + randomWordObj.nodeId);
+          debug("Word CACHE SET12: " + randomWordObj.nodeId);
           wordCache.set(randomWordObj.nodeId, randomWordObj);
           callback('OK', randomWordObj);
           return;
@@ -3452,14 +3467,14 @@ function handleSessionEvent(sesObj, callback) {
         else {
 
           if (sessionUpdatedObj.wordChain.length > MAX_WORDCHAIN_LENGTH) {
-            debug(chalkSession("SHORTEN WC TO " + MAX_WORDCHAIN_LENGTH
+            console.log(chalkSession("SHORTEN WC TO " + MAX_WORDCHAIN_LENGTH
               + " | UID: " + sessionUpdatedObj.userId
               + " | CURR LEN: " + sessionUpdatedObj.wordChain.length
               + " | FIRST WORD: " + sessionUpdatedObj.wordChain[0]
               + " | LAST WORD: " + sessionUpdatedObj.wordChain[sessionUpdatedObj.wordChain.length-1]
             ));
             sessionUpdatedObj.wordChain = sessionUpdatedObj.wordChain.slice(-MAX_WORDCHAIN_LENGTH);
-            debug(chalkSession("NEW WC"
+            console.log(chalkSession("NEW WC"
               + " | UID: " + sessionUpdatedObj.userId
               + " | CURR LEN: " + sessionUpdatedObj.wordChain.length
               + " | FIRST WORD: " + sessionUpdatedObj.wordChain[0]
@@ -3886,6 +3901,7 @@ function handleSessionEvent(sesObj, callback) {
 
                           randomWordObj.wordChainIndex = currentSession.wordChainIndex;
 
+                          debug("Word CACHE SET13: " + randomWordObj.nodeId);
                           wordCache.set(randomWordObj.nodeId, randomWordObj);
 
                           currentSession.wordChain.push(randomWordObj.nodeId);
@@ -4062,7 +4078,7 @@ var readResponseQueue = setInterval(function() {
     var socketId = responseInObj.socketId;
     var currentSessionObj = sessionCache.get(socketId);
 
-    if (!currentSessionObj) {
+    if (typeof currentSessionObj === 'undefined') {
       console.log(chalkWarn("??? SESSION NOT IN CACHE ON RESPONSE Q READ" + " | responseQueue: " + responseQueue.size() 
         + " | " + socketId + " | ABORTING SESSION"));
 
@@ -4108,10 +4124,14 @@ var readResponseQueue = setInterval(function() {
     var previousPromptObj;
 
     if ((typeof currentSessionObj.wordChain !== 'undefined') && (currentSessionObj.wordChainIndex > 0)) {
-      previousPrompt = currentSessionObj.wordChain[currentSessionObj.wordChainIndex - 1];
+      // previousPrompt = currentSessionObj.wordChain[currentSessionObj.wordChainIndex - 1];
+      previousPrompt = currentSessionObj.wordChain[currentSessionObj.wordChain.length - 1];
       previousPromptObj = wordCache.get(previousPrompt);
       if (!previousPromptObj) {
-        debug(chalkError(socketId + " | " + currentSessionObj.userId 
+        console.log(chalkError(socketId 
+          + " | " + currentSessionObj.userId 
+          + " | WCI: " + currentSessionObj.wordChainIndex 
+          + " | WCL: " + currentSessionObj.wordChain.length
           + " | ??? previousPrompt NOT IN CACHE: " + previousPrompt
           // + " ... ABORTING SESSION"
         ));
@@ -4168,6 +4188,7 @@ var readResponseQueue = setInterval(function() {
         previousPromptObj = {
           nodeId: previousPrompt
         };
+        debug("Word CACHE SET14: " + previousPromptObj.nodeId);
         wordCache.set(previousPromptObj.nodeId, previousPrompt);
       } else {
 
@@ -4235,7 +4256,7 @@ var readDbUpdateQueue = setInterval(function() {
         previousPromptNodeId = currentSessionObj.wordChain[currentSessionObj.wordChain.length - 2];
         previousPromptObj = wordCache.get(previousPromptNodeId);
         if (!previousPromptObj) {
-          debug(chalkWarn("??? PREVIOUS PROMPT NOT IN CACHE: " + previousPromptNodeId));
+          console.log(chalkWarn("??? PREVIOUS PROMPT NOT IN CACHE: " + previousPromptNodeId));
           if (quitOnError) quit("??? PREVIOUS PROMPT NOT IN CACHE: " + previousPromptNodeId);
         } else {
           previousPromptObj.wordChainIndex = dbUpdateObj.word.wordChainIndex - 1;
@@ -4285,14 +4306,15 @@ var generatePromptQueueInterval = setInterval(function() {
     var currentSession = sessionCache.get(currentSessionId);
 
     if (!currentSession) {
-      debug(chalkWarn("??? SESSION EXPIRED ??? ... SKIPPING SEND PROMPT | " + currentSessionId));
+      console.log(chalkWarn("??? SESSION EXPIRED ??? ... SKIPPING SEND PROMPT | " + currentSessionId));
       return;
     }
 
     debug("generatePromptQueueInterval currentSession\n" + jsonPrint(currentSession));
 
     // var currentResponse = currentSession.wordChain[currentSession.wordChainIndex];
-    var currentResponse = currentSession.wordChain[currentSession.wordChainIndex - 1];
+    // var currentResponse = currentSession.wordChain[currentSession.wordChainIndex - 1].toLowerCase();
+    var currentResponse = currentSession.wordChain[currentSession.wordChain.length - 1].toLowerCase();
 
     if (!currentResponse) {
       debug("??? currentResponse UNDEFINED" 
@@ -4325,6 +4347,7 @@ var generatePromptQueueInterval = setInterval(function() {
 
             responseObj.wordChainIndex = currentSession.wordChainIndex;
 
+            debug("Word CACHE SET15: " + responseObj.nodeId);
             wordCache.set(responseObj.nodeId, responseObj);
 
             currentSession.wordChain.push(responseObj.nodeId);
@@ -4371,6 +4394,7 @@ var generatePromptQueueInterval = setInterval(function() {
 
             responseObj.wordChainIndex = currentSession.wordChainIndex;
 
+            debug("Word CACHE SET16: " + responseObj.nodeId);
             wordCache.set(responseObj.nodeId, responseObj);
 
             currentSession.wordChain.push(responseObj.nodeId);
@@ -4425,6 +4449,7 @@ var generatePromptQueueInterval = setInterval(function() {
 
             responseWordObj.wordChainIndex = targetSession.wordChainIndex;
 
+            debug("Word CACHE SET17: " + responseWordObj.nodeId);
             wordCache.set(responseWordObj.nodeId, responseWordObj);
 
             targetSession.wordChain.push(responseWordObj.nodeId);

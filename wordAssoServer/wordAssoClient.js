@@ -6,6 +6,9 @@ var DEFAULT_MAX_AGE = 10000;
 var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
 var defaultTimePeriodFormat = "HH:mm:ss";
 
+var statsObj = {};
+statsObj.userReadyAck = false;
+
 var debug = false ;
 var testMode = false ;
 
@@ -24,6 +27,7 @@ var configHashMap = new HashMap();
 configHashMap.set('testMode', testMode);
 configHashMap.set('debug', debug);
 configHashMap.set('monitorMode', monitorMode);
+configHashMap.set('sessionMode', sessionMode);
 
 var resizeFlag = false ;
 
@@ -82,25 +86,34 @@ userObj.type = "USER";
 userObj.mode = sessionMode;
 userObj.streamSource = "USER";
 userObj.tags.entity = USER_ID;
+userObj.tags.channel = "userInput";
 
-function getUrlVariables(config){
+function getUrlVariables(callback){
 
   var searchString = window.location.search.substring(1);
   var variableArray = searchString.split('&');
+  var variableArrayIndex = 0;
 
-  for(var i = 0; i < variableArray.length; i++){
-    var keyValuePair = variableArray[i].split('=');
+  for(variableArrayIndex = 0; variableArrayIndex < variableArray.length; variableArrayIndex++){
+    var keyValuePair = variableArray[variableArrayIndex].split('=');
     if (typeof keyValuePair[1] !== 'undefined'){
       configHashMap.set(keyValuePair[0], keyValuePair[1]) ;
-      console.log("'" + variableArray[i] + "' >>> URL config: " + keyValuePair[0] + " : " + configHashMap.get(keyValuePair[0]));  
+      console.log("'" + variableArray[variableArrayIndex] + "' >>> URL config: " + keyValuePair[0] + " : " + configHashMap.get(keyValuePair[0]));  
       if (keyValuePair[0] == 'monitor') {
         monitorMode = keyValuePair[1] ;
+      }    
+      if (keyValuePair[0] == 'session_mode') {
+        sessionMode = keyValuePair[1].toUpperCase() ;
       }    
     } 
     else {
       console.log("NO URL VARIABLES");      
       configHashMap.set('monitor', false) ;
     }
+  }
+
+  if (variableArrayIndex >= variableArray.length){
+    return(callback(variableArray));
   }
 }
 
@@ -114,7 +127,7 @@ setInterval(function(){
   if (transmitDataQueue.length > 0){
     var wordObj = {};
     wordObj.tags = {};
-    wordObj.tags.entity = userObj.userId;
+    wordObj.tags = userObj.tags;
     wordObj.nodeId = transmitDataQueue.shift();
     socket.emit("RESPONSE_WORD_OBJ", wordObj);
   }
@@ -185,6 +198,64 @@ socketIdDiv.appendChild(socketIdLabel);
 
 var checkInputTextInterval;
 var enterKeyDownFlag = false ;
+
+function addSessionModeForm(mode) {
+
+  // PROMPT MODE
+  var sessionModePromptButtonText = document.createElement('text');
+  sessionModePromptButtonText.innerHTML = 'PROMPT' + '<br>';   
+
+  var sessionModePromptButton = document.createElement("input"); 
+  sessionModePromptButton.setAttribute("type", "radio");
+  sessionModePromptButton.setAttribute("name", "sessionModeButton");
+  sessionModePromptButton.setAttribute("value", "PROMPT");
+  sessionModePromptButton.setAttribute("onclick", "setSessionMode('PROMPT');");
+  if (mode == 'PROMPT') sessionModePromptButton.setAttribute("checked", true);
+
+  // STREAM MODE
+  var sessionModeStreamButtonText = document.createElement('text');
+  sessionModeStreamButtonText.innerHTML = 'STREAM' + '<br>';   
+
+  var sessionModeStreamButton = document.createElement("input"); 
+  sessionModeStreamButton.setAttribute("type", "radio");
+  sessionModeStreamButton.setAttribute("name", "sessionModeButton");
+  sessionModeStreamButton.setAttribute("value", "STREAM");
+  sessionModeStreamButton.setAttribute("onclick", "setSessionMode('STREAM');");
+  if (mode == 'STREAM') sessionModeStreamButton.setAttribute("checked", true);
+
+  // USER-USER MODE
+  var sessionModeUserUserButtonText = document.createTextNode("USER-USER");
+
+  var sessionModeUserUserButton = document.createElement("input"); 
+  sessionModeUserUserButton.setAttribute("type", "radio");
+  sessionModeUserUserButton.setAttribute("name", "sessionModeButton");
+  sessionModeUserUserButton.setAttribute("value", "USER_USER");
+  sessionModeUserUserButton.setAttribute("onclick", "setSessionMode('USER_USER');");
+  if (mode == 'USER_USER') sessionModeUserUserButton.setAttribute("checked", true);
+
+  var sessionModeForm = document.createElement("FORM"); 
+  var sessionModeFormLabel = document.createElement("label");
+  sessionModeFormLabel.setAttribute("id", "sessionModeFormLabel");
+
+  sessionModeFormLabel.innerHTML = "SESSION MODE";   
+
+  sessionModeForm.setAttribute("class", "control");
+  sessionModeForm.setAttribute("id", "sessionModeForm");
+  sessionModeForm.setAttribute("name", "sessionMode");
+  sessionModeForm.appendChild(sessionModePromptButton);
+  sessionModeForm.appendChild(sessionModePromptButtonText);
+  sessionModeForm.appendChild(sessionModeStreamButton);
+  sessionModeForm.appendChild(sessionModeStreamButtonText);
+  sessionModeForm.appendChild(sessionModeUserUserButton);
+  sessionModeForm.appendChild(sessionModeUserUserButtonText);
+
+
+  var controlDiv = document.getElementById("controlDiv");
+  controlDiv.appendChild(sessionModeFormLabel);
+  controlDiv.appendChild(sessionModeForm);
+}
+
+
 
 function addServerPrompt() {
   var serverPromptOutput = document.createElement("output"); 
@@ -277,6 +348,8 @@ function addUserResponsePrompt() {
   var userResponseDiv = document.getElementById("userResponseDiv");
   userResponseDiv.appendChild(userResponseLabel);
   userResponseDiv.appendChild(userResponseInput);
+
+  clearInterval(checkInputTextInterval);
 
   checkInputTextInterval = setInterval(function() { 
     if (connectedFlag && userResponseEnabled){
@@ -451,17 +524,18 @@ function setSessionMode(mode){
     break;
   }
 
-  var userReadyObj = {};
-  userReadyObj.tags = {};
-  userReadyObj.userId = userObj.userId;
-  userReadyObj.screenName = userObj.screenName;
-  userReadyObj.nodeId = userObj.userId;
-  userReadyObj.tags.entity = userObj.userId;
-
-  socket.emit("USER_READY", userReadyObj);
-  console.log("TX USER READY\nuserReadyObj\n" + jsonPrint(userReadyObj));
-  transmitDataQueue.push(userReadyObj.userId);
+  socket.emit("USER_READY", userObj);
+  console.log("TX USER READY\nuserObj\n" + jsonPrint(userObj));
 }
+
+socket.on('USER_READY_ACK', function(userId) {
+  statsObj.userReadyAck = true ;
+  console.log(socket.id 
+    + " | RX USER_READY_ACK"
+    + " | " + moment().format(defaultDateTimeFormat)
+  );
+  transmitDataQueue.push(userObj);
+});
 
 
 socket.on("PROMPT_WORD", function(promptWord){
@@ -589,26 +663,22 @@ socket.on('connect', function(){
 
   socketId = socket.id ;
   console.log(">>> CONNECTED TO HOST | SOCKET ID: " + socketId);
-  getUrlVariables();
-  socket.emit("USER_READY", userObj);
-  console.log("TX USER READY\nuserObj\n" + jsonPrint(userObj));
-  transmitDataQueue.push(userObj.userId);
-
-  socketIdLabel.style.color = defaultTextColor ;
-  socketIdLabel.innerHTML = userObj.userId + '<br>' + socket.id;   
-  socketIdDiv.appendChild(socketIdLabel);
+  getUrlVariables(function(variableArray){
+    socketIdLabel.style.color = defaultTextColor ;
+    socketIdLabel.innerHTML = userObj.userId + '<br>' + socket.id;   
+    socketIdDiv.appendChild(socketIdLabel);
+  });
 });
 
 socket.on('reconnect', function(){
   connectedFlag = true ;
   socketId = socket.id ;
   console.log(">-> RECONNECTED TO HOST | SOCKET ID: " + socketId);
-  getUrlVariables();
-  socket.emit("USER_READY", userObj);
-
-  socketIdLabel.style.color = defaultTextColor ;
-  socketIdLabel.innerHTML = "SERVER DISCONNECTED";   
-  socketIdDiv.appendChild(socketIdLabel);
+  getUrlVariables(function(variableArray){
+    socketIdLabel.style.color = defaultTextColor ;
+    socketIdLabel.innerHTML = "SERVER DISCONNECTED";   
+    socketIdDiv.appendChild(socketIdLabel);
+  });
 });
 
 socket.on('disconnect', function(){
@@ -869,39 +939,21 @@ function visibilityEvent(prefix) {
   }
 }
 
+function updateControls(){
 
-// ==================
-// MAIN INTERVAL LOOP
-// ==================
-
-// setInterval(function() {
-// }, updateInterval);
+}
 
 window.onload = function () {
   console.log("ONLOAD");
 
   window.resizeTo(400,600);
 
-  // addControlPanel();
+  addSessionModeForm(sessionMode);
 
   setSessionMode(sessionMode);
 
-  // if (sessionMode == 'PROMPT') {
-  //   addServerPrompt();
-  //   addUserResponsePrompt();
-  // }
-  // else if (sessionMode == 'STREAM') {
-  //   addUserResponseStream();
-  //   enableUserResponsePrompt();
-  // }
-
-  // userObj.userId = socket.id;
-
   console.log("sessionMode: " + sessionMode);
   console.log("USER\n" + jsonPrint(userObj));
-
-  // socket.emit("USER_READY", userObj);
-  // launchSessionView(socket.id);
 
   setTimeout(function(){
     pageLoadedTimeIntervalFlag = false ;

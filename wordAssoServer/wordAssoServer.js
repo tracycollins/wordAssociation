@@ -1892,7 +1892,7 @@ function incrementSocketBhtReqs(delta) {
   } else if (delta > 0) {
     bhtRequests += delta;
     var remain = BHT_REQUEST_LIMIT - bhtRequests;
-    debug(chalkInfo("-#- BHT REQS: " + bhtRequests 
+    console.log(chalkInfo("-#- BHT REQS: " + bhtRequests 
       + " | DELTA: " + delta 
       + " | LIMIT: " + BHT_REQUEST_LIMIT 
       + " | REMAIN: " + remain
@@ -5321,6 +5321,22 @@ function createSession(newSessionObj) {
 
       }
     });
+  });
+
+  socket.on("BHT_REQUESTS", function(deltaReqs) {
+    console.log(chalkBht("RX BHT_REQUESTS"
+    + " | " + socket.id
+    + " | DELTA: " + deltaReqs
+    ));
+    incrementSocketBhtReqs(deltaReqs)
+  });
+
+  socket.on("MW_REQUESTS", function(deltaReqs) {
+    console.log(chalkMw("RX MW_REQUESTS"
+    + " | " + socket.id
+    + " | DELTA: " + deltaReqs
+    ));
+    incrementSocketMwReqs(deltaReqs)
   });
 
   socket.on("SOCKET_TEST_MODE", function(testMode) {

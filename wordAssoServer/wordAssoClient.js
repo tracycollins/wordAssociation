@@ -709,11 +709,14 @@ socket.on('reconnect', function() {
     socketId = socket.id;
     console.log(">-> RECONNECTED TO HOST | SOCKET ID: " + socketId);
     getUrlVariables(function(variableArray) {
-        setSessionMode(sessionMode);
         console.warn("SESSION MODE: " + sessionMode + " | MONITOR: " + monitorMode);
-        socketIdLabel.style.color = defaultTextColor;
-        socketIdLabel.innerHTML = "SERVER DISCONNECTED";
-        socketIdDiv.appendChild(socketIdLabel);
+        addSessionModeForm(sessionMode, function() {
+          setSessionMode(sessionMode);
+          console.warn("SESSION MODE: " + sessionMode + " | MONITOR: " + monitorMode);
+          socketIdLabel.style.color = defaultTextColor;
+          socketIdLabel.innerHTML = "SERVER DISCONNECTED";
+          socketIdDiv.appendChild(socketIdLabel);
+        });
     });
 });
 
@@ -987,7 +990,7 @@ window.onload = function() {
 
     // });
 
-    setSessionMode(sessionMode);
+    // setSessionMode(sessionMode);
 
     console.log("sessionMode: " + sessionMode);
     console.log("USER\n" + jsonPrint(userObj));

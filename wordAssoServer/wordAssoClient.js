@@ -664,6 +664,8 @@ socket.on('connect', function(){
   socketId = socket.id ;
   console.log(">>> CONNECTED TO HOST | SOCKET ID: " + socketId);
   getUrlVariables(function(variableArray){
+    console.warn("SESSION MODE: " + sessionMode + " | MONITOR: " + monitorMode);
+    setSessionMode(sessionMode);
     socketIdLabel.style.color = defaultTextColor ;
     socketIdLabel.innerHTML = userObj.userId + '<br>' + socket.id;   
     socketIdDiv.appendChild(socketIdLabel);
@@ -675,6 +677,8 @@ socket.on('reconnect', function(){
   socketId = socket.id ;
   console.log(">-> RECONNECTED TO HOST | SOCKET ID: " + socketId);
   getUrlVariables(function(variableArray){
+    setSessionMode(sessionMode);
+    console.warn("SESSION MODE: " + sessionMode + " | MONITOR: " + monitorMode);
     socketIdLabel.style.color = defaultTextColor ;
     socketIdLabel.innerHTML = "SERVER DISCONNECTED";   
     socketIdDiv.appendChild(socketIdLabel);

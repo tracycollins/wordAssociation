@@ -4305,7 +4305,7 @@ var generatePromptQueueInterval = setInterval(function() {
 
     var currentSession = sessionCache.get(currentSessionId);
 
-    if (!currentSession) {
+    if (typeof currentSession === 'undefined') {
       console.log(chalkWarn("??? SESSION EXPIRED ??? ... SKIPPING SEND PROMPT | " + currentSessionId));
       return;
     }

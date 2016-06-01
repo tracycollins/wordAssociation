@@ -266,14 +266,17 @@ function setSessionModeButton(mode) {
     switch (mode) {
         case 'PROMPT':
             modeButton = document.getElementById("sessionModePromptButton");
+            modeButton.setAttribute("checked", true);
             break;
 
         case 'STREAM':
             modeButton = document.getElementById("sessionModeStreamButton");
+            modeButton.setAttribute("checked", true);
             break;
 
         case 'USER_USER':
             modeButton = document.getElementById("sessionModeUserUserButton");
+            modeButton.setAttribute("checked", true);
             break;
 
         default:
@@ -281,8 +284,6 @@ function setSessionModeButton(mode) {
             return;
             break;
     }
-
-    modeButton.setAttribute("checked", true);
 
 }
 

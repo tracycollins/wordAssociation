@@ -4305,8 +4305,14 @@ var generatePromptQueueInterval = setInterval(function() {
 
     var currentSession = sessionCache.get(currentSessionId);
 
-    if (typeof currentSession === 'undefined') {
+    if (!currentSession || (typeof currentSession === 'undefined')) {
       console.log(chalkWarn("??? SESSION EXPIRED ??? ... SKIPPING SEND PROMPT | " + currentSessionId));
+      return;
+    }
+    else if (currentSession.wordChain.length == 0) {
+      console.log(chalkWarn("*** EMPTY SESSION WORDCHAIN *** ... SKIPPING SEND PROMPT" 
+        + "\n" + jsonPrint(currentSession)
+      ));
       return;
     }
 
@@ -4315,6 +4321,7 @@ var generatePromptQueueInterval = setInterval(function() {
     // var currentResponse = currentSession.wordChain[currentSession.wordChainIndex];
     // var currentResponse = currentSession.wordChain[currentSession.wordChainIndex - 1].toLowerCase();
     var currentResponse = currentSession.wordChain[currentSession.wordChain.length - 1].toLowerCase();
+
 
     if (!currentResponse) {
       debug("??? currentResponse UNDEFINED" 

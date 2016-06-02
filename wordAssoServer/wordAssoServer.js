@@ -3467,14 +3467,14 @@ function handleSessionEvent(sesObj, callback) {
         else {
 
           if (sessionUpdatedObj.wordChain.length > MAX_WORDCHAIN_LENGTH) {
-            console.log(chalkSession("SHORTEN WC TO " + MAX_WORDCHAIN_LENGTH
+            debug(chalkSession("SHORTEN WC TO " + MAX_WORDCHAIN_LENGTH
               + " | UID: " + sessionUpdatedObj.userId
               + " | CURR LEN: " + sessionUpdatedObj.wordChain.length
               + " | FIRST WORD: " + sessionUpdatedObj.wordChain[0]
               + " | LAST WORD: " + sessionUpdatedObj.wordChain[sessionUpdatedObj.wordChain.length-1]
             ));
             sessionUpdatedObj.wordChain = sessionUpdatedObj.wordChain.slice(-MAX_WORDCHAIN_LENGTH);
-            console.log(chalkSession("NEW WC"
+            debug(chalkSession("NEW WC"
               + " | UID: " + sessionUpdatedObj.userId
               + " | CURR LEN: " + sessionUpdatedObj.wordChain.length
               + " | FIRST WORD: " + sessionUpdatedObj.wordChain[0]
@@ -4256,7 +4256,7 @@ var readDbUpdateQueue = setInterval(function() {
         previousPromptNodeId = currentSessionObj.wordChain[currentSessionObj.wordChain.length - 2];
         previousPromptObj = wordCache.get(previousPromptNodeId);
         if (!previousPromptObj) {
-          console.log(chalkWarn("??? PREVIOUS PROMPT NOT IN CACHE: " + previousPromptNodeId));
+          debug(chalkWarn("??? PREVIOUS PROMPT NOT IN CACHE: " + previousPromptNodeId));
           if (quitOnError) quit("??? PREVIOUS PROMPT NOT IN CACHE: " + previousPromptNodeId);
         } else {
           previousPromptObj.wordChainIndex = dbUpdateObj.word.wordChainIndex - 1;

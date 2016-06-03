@@ -145,7 +145,8 @@ console.log(
   + '========================================= ***START*** ==============================================\n' 
   + '====================================================================================================\n' 
   + process.argv[1] 
-  + '\nSTARTED ' + Date() 
+  + '\nPROCESS ID  ' + process.pid 
+  + '\nSTARTED     ' + Date() 
   + '\n' + '====================================================================================================\n' 
   + '========================================= ***START*** ==============================================\n' 
   + '====================================================================================================\n\n'
@@ -629,86 +630,140 @@ function loadStats(callback) {
 //=================================
 //  UPDATE STATUS
 //=================================
-if (OFFLINE_MODE) {
+// if (OFFLINE_MODE) {
 
-} else {
-  loadStats(function(err, file){});
+// } else {
+//   loadStats(function(err, file){});
+// }
+
+var statsInterval;
+
+function updateStatsInterval(statsFile, interval){
+  statsInterval = setInterval(function() {
+    updateStats({
+      timeStamp: moment().format(defaultDateTimeFormat),
+      upTime: msToTime(upTime),
+      runTime: msToTime(runTime),
+      heartbeat: txHeartbeat,
+
+      numberAdmins: numberAdmins,
+
+      numberUtils: numberUtils,
+      numberUtilsMax: numberUtilsMax,
+      numberUtilsMaxTime: numberUtilsMaxTime,
+
+      numberUsers: numberUsers,
+      numberUsersMax: numberUsersMax,
+      numberUsersMaxTime: numberUsersMaxTime,
+
+      numberTestUsers: numberTestUsers,
+      numberTestUsersMax: numberTestUsersMax,
+      numberTestUsersMaxTime: numberTestUsersMaxTime,
+
+      numberUsersTotal: numberUsersTotal,
+      numberUsersTotalMax: numberUsersTotalMax,
+      numberUsersTotalMaxTime: numberUsersTotalMaxTime,
+
+      numberViewers: numberViewers,
+      numberViewersMax: numberViewersMax,
+      numberViewersMaxTime: numberViewersMaxTime,
+
+      numberTestViewers: numberTestViewers,
+      numberTestViewersMax: numberTestViewersMax,
+      numberTestViewersMaxTime: numberTestViewersMaxTime,
+
+      numberViewersTotal: numberViewersTotal,
+      numberViewersTotalMax: numberViewersTotalMax,
+      numberViewersTotalMaxTime: numberViewersTotalMaxTime,
+
+      promptsSent: promptsSent,
+      responsesReceived: responsesReceived,
+
+      bhtErrors: bhtErrors,
+      bhtRequests: bhtRequests,
+      bhtOverLimitFlag: bhtOverLimitFlag,
+
+      mwErrors: mwErrors,
+      mwRequests: mwRequests,
+
+      totalSessions: totalSessions,
+      sessionUpdatesSent: sessionUpdatesSent,
+      sessionCacheTtl: sessionCacheTtl,
+
+      totalWords: totalWords,
+      wordCacheHits: wordCache.getStats().hits,
+      wordCacheMisses: wordCache.getStats().misses,
+      wordCacheTtl: wordCacheTtl
+    });
+
+    // var statsFile;
+
+    // if (OFFLINE_MODE) {
+    //   statsFile = OFFLINE_WORD_ASSO_STATS_FILE;
+    // } else {
+    //   statsFile = dropboxHostStatsFile;
+    // }
+
+    saveStats(statsFile, statsObj, function(status) {
+      if (status != 'OK') {
+        console.log("!!! ERROR: SAVE STATUS | FILE: " + statsFile + "\n" + status);
+      } else {
+        debug(chalkLog("SAVE STATUS OK | FILE: " + statsFile));
+      }
+    });
+
+  }, interval);
 }
 
-setInterval(function() {
-  updateStats({
-    timeStamp: moment().format(defaultDateTimeFormat),
-    upTime: msToTime(upTime),
-    runTime: msToTime(runTime),
-    heartbeat: txHeartbeat,
+var initEntityChannelGroupsInterval;
 
-    numberAdmins: numberAdmins,
-
-    numberUtils: numberUtils,
-    numberUtilsMax: numberUtilsMax,
-    numberUtilsMaxTime: numberUtilsMaxTime,
-
-    numberUsers: numberUsers,
-    numberUsersMax: numberUsersMax,
-    numberUsersMaxTime: numberUsersMaxTime,
-
-    numberTestUsers: numberTestUsers,
-    numberTestUsersMax: numberTestUsersMax,
-    numberTestUsersMaxTime: numberTestUsersMaxTime,
-
-    numberUsersTotal: numberUsersTotal,
-    numberUsersTotalMax: numberUsersTotalMax,
-    numberUsersTotalMaxTime: numberUsersTotalMaxTime,
-
-    numberViewers: numberViewers,
-    numberViewersMax: numberViewersMax,
-    numberViewersMaxTime: numberViewersMaxTime,
-
-    numberTestViewers: numberTestViewers,
-    numberTestViewersMax: numberTestViewersMax,
-    numberTestViewersMaxTime: numberTestViewersMaxTime,
-
-    numberViewersTotal: numberViewersTotal,
-    numberViewersTotalMax: numberViewersTotalMax,
-    numberViewersTotalMaxTime: numberViewersTotalMaxTime,
-
-    promptsSent: promptsSent,
-    responsesReceived: responsesReceived,
-
-    bhtErrors: bhtErrors,
-    bhtRequests: bhtRequests,
-    bhtOverLimitFlag: bhtOverLimitFlag,
-
-    mwErrors: mwErrors,
-    mwRequests: mwRequests,
-
-    totalSessions: totalSessions,
-    sessionUpdatesSent: sessionUpdatesSent,
-    sessionCacheTtl: sessionCacheTtl,
-
-    totalWords: totalWords,
-    wordCacheHits: wordCache.getStats().hits,
-    wordCacheMisses: wordCache.getStats().misses,
-    wordCacheTtl: wordCacheTtl
-  });
-
-  var statsFile;
-
-  if (OFFLINE_MODE) {
-    statsFile = OFFLINE_WORD_ASSO_STATS_FILE;
-  } else {
-    statsFile = dropboxHostStatsFile;
-  }
-
-  saveStats(statsFile, statsObj, function(status) {
-    if (status != 'OK') {
-      console.log("!!! ERROR: SAVE STATUS | FILE: " + statsFile + "\n" + status);
-    } else {
-      debug(chalkLog("SAVE STATUS OK | FILE: " + statsFile));
+function updateEntityChannelGroups(configFile){
+  initEntityChannelGroups(configFile, function(err, entityChannelGroups){
+    if (err){
+      console.log(chalkError("*** ERROR initEntityChannelGroups"
+        + " | CONFIG FILE: " + configFile
+        + "\n" + jsonPrint(err)
+      ));
     }
-  });
+    else {
+      console.log(chalkLog("ENTITY CHANNEL GROUPS CONFIG INIT COMPLETE"
+        // + "\n" + jsonPrint(entityChannelGroups)
+      ));
+      Object.keys(entityChannelGroups).forEach(function(entityChannel) {
+        var entityGroup = entityChannelGroups[entityChannel];
 
-}, saveStatsInterval);
+        if (entityChannelGroupHashMap.has(entityChannel)){
+          entityChannelGroupHashMap.set(entityChannel, entityGroup);
+          delete statsObj.entityChannelGroup.hashMiss[entityChannel];
+          debug(chalkRed("--- UPDATED ENTITY CHANNEL"
+            + " | " + entityChannel
+            + " | " + entityChannelGroupHashMap.get(entityChannel)
+          ));
+        }
+        else {
+          entityChannelGroupHashMap.set(entityChannel, entityGroup);
+          console.log(chalkLog("+++ ADDED ENTITY CHANNEL  "
+            + " | " + entityChannel
+            + " | " + entityChannelGroupHashMap.get(entityChannel)
+          ));
+        }
+
+      });
+    }
+  });  
+}
+
+function updateEntityChannelGroupsInterval(configFile, interval){
+
+  console.log(chalkLog("updateEntityChannelGroupsInterval"
+    + " | INTERVAL: " + interval
+    + " | " + configFile
+  ));
+
+  initEntityChannelGroupsInterval = setInterval(function() {
+    updateEntityChannelGroups(configFile);
+  }, interval);
+}
 
 
 // ==================================================================
@@ -4532,25 +4587,6 @@ function initializeConfiguration(callback) {
 
   debug(chalkInfo(moment().format(defaultDateTimeFormat) + " | initializeConfiguration ..."));
 
-  initEntityChannelGroups(defaultDropboxEntityChannelGroupsConfigFile, function(err, entityChannelGroups){
-    if (err){
-
-    }
-    else {
-      console.log(chalkRed("ENTITY CHANNEL GROUPS CONFIG INIT COMPLETE"
-        + "\n" + jsonPrint(entityChannelGroups)
-      ));
-      Object.keys(entityChannelGroups).forEach(function(entityChannel) {
-        var entityGroup = entityChannelGroups[entityChannel];
-        entityChannelGroupHashMap.set(entityChannel, entityGroup);
-        console.log(chalkRed("ADD ENTITY CHANNEL"
-          + " | " + entityChannel
-          + " | " + entityChannelGroupHashMap.get(entityChannel)
-        ));
-      });
-    }
-  });
-
   async.series([
       // DATABASE INIT
       function(callbackSeries) {
@@ -4656,6 +4692,12 @@ function initializeConfiguration(callback) {
       }
     ],
     function(err, results) {
+
+      updateEntityChannelGroups(defaultDropboxEntityChannelGroupsConfigFile);
+      updateEntityChannelGroupsInterval(defaultDropboxEntityChannelGroupsConfigFile, 5*ONE_MINUTE);
+
+      updateStatsInterval(dropboxHostStatsFile, ONE_MINUTE);
+
       if (err) {
         console.error(chalkError("\n*** INITIALIZE CONFIGURATION ERROR ***\n" + jsonPrint(err) + "\n"));
         callback(err, null);
@@ -5259,7 +5301,16 @@ function createSession(newSessionObj) {
 
   socket.on("USER_READY", function(userObj) {
     statsObj.socket.USER_READYS++;
-    console.log(chalkUser("USER READY\n" + jsonPrint(userObj)));
+    console.log(chalkUser("USER READY"
+      + " | NID: " + userObj.nodeId
+      + " | UID: " + userObj.userId
+      + " | SCN: " + userObj.screenName
+      + " | ENT: " + userObj.tags.entity
+      + " | CH: " + userObj.tags.channel
+      + " | TYPE: " + userObj.type
+      + " | MODE: " + userObj.mode
+      // + "\n" + jsonPrint(userObj)
+    ));
 
     var socketId = socket.id;
     var sessionObj = sessionCache.get(socketId);
@@ -5275,6 +5326,7 @@ function createSession(newSessionObj) {
       sessionObj.tags = userObj.tags;
       if (sessionObj.tags.entity) {
         if (entityChannelGroupHashMap.has(sessionObj.tags.entity)){
+          delete statsObj.entityChannelGroup.hashMiss[sessionObj.tags.entity];
           console.log(chalkRed("### ENTITY CHANNEL GROUP HASHMAP HIT"
             + " | " + sessionObj.tags.entity
             + " > " + entityChannelGroupHashMap.get(sessionObj.tags.entity)
@@ -5284,7 +5336,7 @@ function createSession(newSessionObj) {
           statsObj.entityChannelGroup.hashMiss[sessionObj.tags.entity] = 1;
           console.log(chalkRed("--- ENTITY CHANNEL GROUP HASHMAP MISS"
             + " | " + sessionObj.tags.entity
-            + "\n" + jsonPrint(statsObj.entityChannelGroup.hashMiss)
+            // + "\n" + jsonPrint(statsObj.entityChannelGroup.hashMiss)
           ));
         }
       }
@@ -5595,7 +5647,9 @@ function loadConfig(file, callback){
 function initEntityChannelGroups(dropboxConfigFile, callback){
   loadConfig(dropboxConfigFile, function(err, loadedConfigObj){
     if (!err) {
-      console.log(dropboxConfigFile + "\n" + jsonPrint(loadedConfigObj));
+      console.log("LOADED "
+        + " | " + dropboxConfigFile
+        );
       return(callback(err, loadedConfigObj));
     }
     else {

@@ -48,7 +48,7 @@ function ViewForce() {
 
   var showStatsFlag = false;
 
-  var nodeMaxAge = 20000;
+  var nodeMaxAge = 60000;
 
   var DEFAULT_CONFIG = {
     'nodeMaxAge': window.DEFAULT_MAX_AGE
@@ -820,6 +820,15 @@ function ViewForce() {
         return d.sessionId;
       });
 
+      // .style("fill", palette.blue)
+      // .style("opacity", 1)
+      // .style("stroke", palette.red)
+      // .style("stroke-width", 3)
+      // .attr("r", function() {
+      //   return Math.max(mouseOverRadius, currentR);
+      // });
+
+
     sessionCircles
       .attr("id", function(d) {
         return d.nodeId;
@@ -834,15 +843,32 @@ function ViewForce() {
         return d.y;
       })
       .style("fill", function(d) {
+        if (d3.select(this).attr("mouseover") == 1) {
+          return palette.red;
+        }
         return d.interpolateColor(0.25);
       })
       .style('opacity', function(d) {
         return (nodeMaxAge - (dateNow - d.lastSeen)) / nodeMaxAge;
       })
       .style('stroke', function(d) {
-        return d.interpolateColor(0.95)
+        if (d3.select(this).attr("mouseover") == 1) {
+          return palette.white;
+        }
+        return d.interpolateColor(0.95);
       })
-      .style("stroke-opacity", 0.8);
+      .style('stroke-width', function(d) {
+        if (d3.select(this).attr("mouseover") == 1) {
+          return 8;
+        }
+        return 2.5;
+      })
+      .style("stroke-opacity", function(d) {
+        if (d3.select(this).attr("mouseover") == 1) {
+          return 1.0;
+        }
+        return 0.8;
+      });
 
 
     sessionCircles
@@ -1155,7 +1181,10 @@ function ViewForce() {
       .duration(defaultFadeDuration)
       .style("opacity", 1.0);
 
-    var tooltipString = "<bold>" + nodeId + "</bold>" + "<br>MENTIONS: " + mentions + "<br>" + uId + "<br>" + sId;
+    var tooltipString = "<bold>" + nodeId + "</bold>" 
+      + "<br>MENTIONS: " + mentions 
+      + "<br>" + uId 
+      + "<br>" + sId;
 
     divTooltip.html(tooltipString)
       .style("left", (d3.event.pageX - 40) + "px")
@@ -1214,10 +1243,10 @@ function ViewForce() {
 
     d3.select(this)
       .attr("mouseover", 1)
-      .style("fill", palette.blue)
+      .style("fill", palette.red)
       .style("opacity", 1)
-      .style("stroke", palette.red)
-      .style("stroke-width", 3)
+      .style("stroke", palette.white)
+      .style("stroke-width", 8)
       .attr("r", function() {
         return Math.max(mouseOverRadius, currentR);
       });
@@ -1241,7 +1270,10 @@ function ViewForce() {
       .duration(defaultFadeDuration)
       .style("opacity", 1.0);
 
-    var tooltipString = "<bold>" + uId + "<br>" + sId + "</bold>" + "<br>WORDS: " + wordChainIndex;
+    var tooltipString = "ENT: " + d.tags.entity
+      + "<br>CH: " + d.tags.channel
+      + "<br>WORDS: " + wordChainIndex
+      + "<br>" + sId;
 
     divTooltip.html(tooltipString)
       .style("left", (d3.event.pageX - 40) + "px")

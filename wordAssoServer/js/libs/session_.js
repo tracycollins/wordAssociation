@@ -626,9 +626,11 @@ function createSession (callback){
       sessionsCreated += 1;
 
       currentSession.sessionId = sessUpdate.sessionId;
-      currentSession.nodeId = sessUpdate.userId;
+      // currentSession.nodeId = sessUpdate.userId;
+      currentSession.nodeId = sessUpdate.tags.entity + '_' + sessUpdate.tags.channel;
       currentSession.userId = sessUpdate.userId;
-      currentSession.text =  sessUpdate.userId;
+      // currentSession.text =  sessUpdate.userId;
+      currentSession.text =  sessUpdate.tags.entity + '|' + sessUpdate.tags.channel;
       currentSession.source = sessUpdate.source;
       currentSession.target = sessUpdate.target;
       currentSession.latestNodeId = sessUpdate.source.nodeId;
@@ -652,7 +654,8 @@ function createSession (callback){
       var sessionNode = {};
 
       sessionNode.isSessionNode = true;
-      sessionNode.nodeId = sessUpdate.userId;
+      // sessionNode.nodeId = sessUpdate.userId;
+      sessionNode.nodeId = sessUpdate.tags.entity + '_' + sessUpdate.tags.channel;
       sessionNode.userId = sessUpdate.userId;
       sessionNode.sessionId = sessUpdate.sessionId;
       sessionNode.age = 0;

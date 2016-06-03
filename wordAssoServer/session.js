@@ -12,12 +12,27 @@ requirejs(["http://d3js.org/d3.v3.min.js"], function(d3) {
     var failedId = error.requireModules && error.requireModules[0];
     console.log(failedId);
     console.log(error.message);
-  });
+  }
+);
 
 var DEFAULT_SESSION_VIEW = 'force';
 var currentSessionView;
 
 var pageLoadedTimeIntervalFlag = true;
+
+var debug = false;
+var MAX_RX_QUEUE = 250;
+var QUEUE_MAX = 200;
+var MAX_WORDCHAIN_LENGTH = 100;
+var DEFAULT_MAX_AGE = 60000;
+var FORCE_MAX_AGE = 60347;
+var DEFAULT_AGE_RATE = 1.0;
+
+var DEFAULT_CHARGE = -350;
+var DEFAULT_GRAVITY = 0.05;
+var DEFAULT_LINK_STRENGTH = 0.1;
+var DEFAULT_FRICTION = 0.75;
+
 
 var config = {};
 config.pauseFlag = false;
@@ -27,6 +42,38 @@ config.testMode = false;
 config.showStatsFlag = false;
 config.removeDeadNodes = true;
 config.disableLinks = false;
+
+// // group channels by entity
+// // i.e.:  <entity>: { 'twitter': [twitterId...], 'rss': [rssName...], 'youtube': [youtubeChannelId...], ... }
+// config.entityChannelGroups = {};
+
+// config.entityChannelGroups.cnn = {};
+// config.entityChannelGroups.cnn.youtube = [];
+// config.entityChannelGroups.cnn.youtube.push('cnn');
+// config.entityChannelGroups.cnn.rss = [];
+// config.entityChannelGroups.cnn.rss.push('cnnallpolitics');
+// config.entityChannelGroups.cnn.rss.push('cnnus');
+// config.entityChannelGroups.cnn.rss.push('cnnworld');
+// config.entityChannelGroups.cnn.rss.push('cnntopstories');
+// config.entityChannelGroups.cnn.twitter = [];
+// config.entityChannelGroups.cnn.twitter.push('cnn');
+// config.entityChannelGroups.cnn.twitter.push('cnnpolitics');
+// config.entityChannelGroups.cnn.twitter.push('cnnbrk');
+// config.entityChannelGroups.cnn.twitter.push('cnni');
+// config.entityChannelGroups.cnn.twitter.push('cnnnewsroom');
+// config.entityChannelGroups.cnn.twitter.push('cnnireport');
+// config.entityChannelGroups.cnn.twitter.push('natseccnn');
+
+// config.entityChannelGroups.cspan = {};
+// config.entityChannelGroups.cspan.twitter = [];
+// config.entityChannelGroups.cspan.twitter.push('cspan');
+// config.entityChannelGroups.cspan.twitter.push('cspanwj');
+// config.entityChannelGroups.cspan.twitter.push('cspanradio');
+// config.entityChannelGroups.cspan.twitter.push('cspannow');
+// config.entityChannelGroups.cspan.livestream = [];
+// config.entityChannelGroups.cspan.livestream.push('cspan');
+// config.entityChannelGroups.cspan.youtube = [];
+// config.entityChannelGroups.cspan.youtube.push('cspan');
 
 var statsObj = {};
 statsObj.socketId = null;
@@ -38,6 +85,8 @@ var ignoreWordsArray = [
   "all",
   "also",
   "an",
+  "ao",
+  "aos",
   "and",
   "are",
   "as",
@@ -49,9 +98,14 @@ var ignoreWordsArray = [
   "by",
   "can",
   "could",
+  "da",
+  "de",
   "do",
   "dont",
+  "e",
+  "é",
   "else",
+  "em",
   "for",
   "from",
   "had",
@@ -68,10 +122,15 @@ var ignoreWordsArray = [
   "isnt",
   "it",
   "its",
+  "no",
+  "nas",
+  "nos",
   "not",
   "of",
   "on",
   "or",
+  "os",
+  "ou",
   "should",
   "so",
   "than",
@@ -103,24 +162,6 @@ var ignoreWordsArray = [
   "would",
 ];
 
-var debug = false;
-var MAX_RX_QUEUE = 250;
-var QUEUE_MAX = 200;
-var MAX_WORDCHAIN_LENGTH = 100;
-var DEFAULT_MAX_AGE = 60000;
-var FORCE_MAX_AGE = 60347;
-var DEFAULT_AGE_RATE = 1.0;
-
-var dateNow = moment().valueOf();
-var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
-var defaultTimePeriodFormat = "HH:mm:ss";
-
-
-var DEFAULT_CHARGE = -350;
-var DEFAULT_GRAVITY = 0.05;
-var DEFAULT_LINK_STRENGTH = 0.1;
-var DEFAULT_FRICTION = 0.75;
-
 function msToTime(duration) {
   var milliseconds = parseInt((duration % 1000) / 100),
     seconds = parseInt((duration / 1000) % 60),
@@ -133,7 +174,6 @@ function msToTime(duration) {
 
   return hours + ":" + minutes + ":" + seconds;
 }
-
 
 function displayControl(isVisible) {
   var v = 'hidden';
@@ -633,13 +673,6 @@ var viewerObj = {
 };
 
 var initialPositionIndex = 0;
-// var initialPositionArray = [];
-// var radiusX = 0.5 * window.innerWidth;
-// var radiusY = 0.5 * window.innerHeight;
-
-// this.initialPositionArrayShift = function() {
-//   return initialPositionArray.shift();
-// }
 
 function computeInitialPosition(index) {
   var radiusX = 0.5 * window.innerWidth;
@@ -752,11 +785,6 @@ function getVisibilityEvent(prefix) {
     return 'visibilitychange';
   }
 }
-
-
-setInterval(function() {
-  dateNow = moment().valueOf();
-}, 100);
 
 var viewerSessionKey;
 var socket = io('/view');
@@ -1279,28 +1307,29 @@ var processNodeDeleteQueue = function(callback) {
 
 var createSession = function(callback) {
 
-  var currentSession = {};
-
   if (sessionCreateQueue.length == 0) {
     return (callback(null, null));
-  } else {
+  } 
+  else {
 
+    var dateNow = moment().valueOf();
     var sessUpdate = sessionCreateQueue.shift();
+    var currentSession = {};
 
     if (sessionDeleteHashMap.has(sessUpdate.sessionId)) {
-
       console.warn("createSession: " 
         + sessUpdate.userId 
         + " | " + sessUpdate.tags.entity 
         + " SESSION IN DELETE HASH MAP ... SKIPPING"
       );
-
       return (callback(null, null));
-
-    } else if (sessionHashMap.has(sessUpdate.sessionId)) {
+    } 
+    else if (sessionHashMap.has(sessUpdate.sessionId)) {
 
       currentSession = sessionHashMap.get(sessUpdate.sessionId);
+
       if (typeof currentSession.tags === 'undefined') currentSession.tags = {};
+
       currentSession.tags = sessUpdate.tags;
 
       if (nodeHashMap.has(currentSession.node.nodeId)) {
@@ -1317,7 +1346,6 @@ var createSession = function(callback) {
       currentSession.age = 0;
       currentSession.lastSeen = dateNow;
       currentSession.userId = sessUpdate.userId;
-      // currentSession.text = sessUpdate.userId;
       currentSession.text = sessUpdate.tags.entity + ' | ' + sessUpdate.tags.channel;
       currentSession.wordChainIndex = sessUpdate.wordChainIndex;
       currentSession.source = sessUpdate.source;
@@ -1332,8 +1360,6 @@ var createSession = function(callback) {
       currentSession.node.lastSeen = dateNow;
       currentSession.node.mentions = sessUpdate.wordChainIndex;
       currentSession.node.interpolateColor = currentSession.interpolateColor;
-      // currentSession.node.x = currentSession.initialPosition.x;
-      // currentSession.node.y = currentSession.initialPosition.y;
 
       var sessionLinkId = currentSession.node.nodeId + "_" + sessUpdate.source.nodeId;
       
@@ -1371,14 +1397,13 @@ var createSession = function(callback) {
       currentSession.nodeId = sessUpdate.userId;
       currentSession.userId = sessUpdate.userId;
       currentSession.wordChainIndex = sessUpdate.wordChainIndex;
-      currentSession.text = sessUpdate.tags.entity;
+      currentSession.text = sessUpdate.tags.entity + ' | ' + sessUpdate.tags.channel;
       currentSession.source = sessUpdate.source;
       currentSession.target = sessUpdate.target;
       currentSession.latestNodeId = sessUpdate.source.nodeId;
 
       currentSession.node = {};
       currentSession.linkHashMap = new HashMap();
-      // currentSession.initialPosition = initialPositionArray.shift();
       currentSession.initialPosition = computeInitialPosition(initialPositionIndex++);
       currentSession.x = currentSession.initialPosition.x;
       currentSession.y = currentSession.initialPosition.y;
@@ -1393,7 +1418,6 @@ var createSession = function(callback) {
       var sessionNode = {};
 
       currentSession.node.isSessionNode = true;
-      // currentSession.node.nodeId = sessUpdate.userId;
       currentSession.node.nodeId = sessUpdate.tags.entity + '_' + sessUpdate.tags.channel;
       currentSession.node.entity = sessUpdate.tags.entity;
       currentSession.node.channel = sessUpdate.tags.channel;
@@ -1457,6 +1481,7 @@ var createNode = function(callback) {
 
       sessionNode.entity = session.tags.entity;
       sessionNode.channel = session.tags.channel;
+      // sessionNode.text = session.tags.entity + '_' + session.tags.channel;
       sessionNode.text = session.tags.entity + '_' + session.tags.channel;
       sessionNode.age = 0;
       sessionNode.wordChainIndex = session.wordChainIndex;
@@ -1477,7 +1502,8 @@ var createNode = function(callback) {
       session.node.nodeId = session.tags.entity + '_' + session.tags.channel;
       session.node.entity = session.tags.entity;
       session.node.channel = session.tags.channel;
-      session.node.text = session.tags.entity;
+      // session.node.text = session.tags.entity;
+      session.node.text = session.tags.entity + ' | ' + session.tags.channel;
       session.node.userId = session.userId;
       session.node.sessionId = session.sessionId;
       session.node.age = 0;

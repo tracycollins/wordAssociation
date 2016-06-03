@@ -62,7 +62,6 @@ process.on('SIGINT', function() {
 // ==================================================================
 // GLOBAL VARIABLES
 // ==================================================================
-
 var ONE_SECOND = 1000;
 var ONE_MINUTE = ONE_SECOND * 60;
 var ONE_HOUR = ONE_MINUTE * 60;
@@ -96,6 +95,8 @@ var HashMap = require('hashmap').HashMap;
 
 var EventEmitter2 = require('eventemitter2').EventEmitter2;
 var EventEmitter = require("events").EventEmitter;
+
+var entityChannelGroupHashMap = new HashMap();
 
 // ==================================================================
 // SERVER STATUS
@@ -222,6 +223,8 @@ statsObj.socket.reconnects = 0;
 statsObj.socket.disconnects = 0;
 statsObj.socket.errors = 0;
 
+statsObj.entityChannelGroup = {};
+statsObj.entityChannelGroup.hashMiss = {};
 // ==================================================================
 // LOGS, STATS
 // ==================================================================
@@ -412,7 +415,8 @@ var DROPBOX_WORD_ASSO_ACCESS_TOKEN = process.env.DROPBOX_WORD_ASSO_ACCESS_TOKEN;
 var DROPBOX_WORD_ASSO_APP_KEY = process.env.DROPBOX_WORD_ASSO_APP_KEY;
 var DROPBOX_WORD_ASSO_APP_SECRET = process.env.DROPBOX_WORD_ASSO_APP_SECRET;
 var WA_STATS_FILE = process.env.WA_STATS_FILE;
-var dropboxHostStatsFile = os.hostname() + "_" + WA_STATS_FILE;
+
+var dropboxHostStatsFile = "/stats/" + os.hostname() + "_" + process.pid + "_" + WA_STATS_FILE;
 
 var Dropbox = require("dropbox");
 
@@ -3888,7 +3892,6 @@ function handleSessionEvent(sesObj, callback) {
           ROUTING OF PROMPT/RESPONSE BASED ON SESSION TYPE
       */
 
-
       sessionCache.set(currentSession.sessionId, currentSession, function(err, success) {
         if (!err && success) {
 
@@ -4529,6 +4532,25 @@ function initializeConfiguration(callback) {
 
   debug(chalkInfo(moment().format(defaultDateTimeFormat) + " | initializeConfiguration ..."));
 
+  initEntityChannelGroups(defaultDropboxEntityChannelGroupsConfigFile, function(err, entityChannelGroups){
+    if (err){
+
+    }
+    else {
+      console.log(chalkRed("ENTITY CHANNEL GROUPS CONFIG INIT COMPLETE"
+        + "\n" + jsonPrint(entityChannelGroups)
+      ));
+      Object.keys(entityChannelGroups).forEach(function(entityChannel) {
+        var entityGroup = entityChannelGroups[entityChannel];
+        entityChannelGroupHashMap.set(entityChannel, entityGroup);
+        console.log(chalkRed("ADD ENTITY CHANNEL"
+          + " | " + entityChannel
+          + " | " + entityChannelGroupHashMap.get(entityChannel)
+        ));
+      });
+    }
+  });
+
   async.series([
       // DATABASE INIT
       function(callbackSeries) {
@@ -4704,30 +4726,30 @@ configEvents.on("SERVER_READY", function() {
 
   httpServer.on("reconnect", function() {
     internetReady = true;
-    debug(chalkConnect(moment().format(defaultDateTimeFormat) + ' | PORT RECONNECT: ' + config.port));
-    initializeConfiguration();
+    console.log(chalkConnect(moment().format(defaultDateTimeFormat) + ' | PORT RECONNECT: ' + config.port));
+    // initializeConfiguration();
   });
 
   httpServer.on('connect', function() {
     statsObj.socket.connects++;
     internetReady = true;
-    debug(chalkConnect(moment().format(defaultDateTimeFormat) + ' | PORT CONNECT: ' + config.port));
+    console.log(chalkConnect(moment().format(defaultDateTimeFormat) + ' | PORT CONNECT: ' + config.port));
 
     httpServer.on("disconnect", function() {
       internetReady = false;
-      debug(chalkError('\n***** PORT DISCONNECTED | ' + moment().format(defaultDateTimeFormat) 
+      console.log(chalkError('\n***** PORT DISCONNECTED | ' + moment().format(defaultDateTimeFormat) 
         + ' | ' + config.port));
     });
   });
 
   httpServer.listen(config.port, function() {
-    debug(chalkInfo(moment().format(defaultDateTimeFormat) + " | LISTENING ON PORT " + config.port));
+    console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | LISTENING ON PORT " + config.port));
   });
 
   httpServer.on("error", function(err) {
     statsObj.socket.errors++;
     internetReady = false;
-    debug(chalkError('??? HTTP ERROR | ' + moment().format(defaultDateTimeFormat) + '\n' + err));
+    console.log(chalkError('??? HTTP ERROR | ' + moment().format(defaultDateTimeFormat) + '\n' + err));
     if (err.code == 'EADDRINUSE') {
       console.error(chalkError('??? HTTP ADDRESS IN USE: ' + config.port + ' ... RETRYING...'));
       setTimeout(function() {
@@ -4935,7 +4957,6 @@ googleOauthEvents.on("GOOGLE CREDENTIAL NOT FOUND", function(credentialId) {
   debug(chalkAlert(moment().format(defaultDateTimeFormat) + " | GOOGLE CREDENTIAL NOT FOUND: " + credentialId));
   googleOauthEvents.emit("AUTHORIZE GOOGLE");
 });
-
 // RE-ENABLE METRICS PERIODICALLY TO CHECK DAILY LIMIT
 googleOauthEvents.on("DAILY LIMIT EXCEEDED", function() {
   debug(chalkGoogle("RE-ENABLING GOOGLE METRICS IN " + msToTime(googleCheckDailyLimitInterval)));
@@ -4944,7 +4965,6 @@ googleOauthEvents.on("DAILY LIMIT EXCEEDED", function() {
     debug("RE-ENABLED GOOGLE METRICS AFTER DAILY LIMIT EXCEEDED");
   }, googleCheckDailyLimitInterval);
 });
-
 // RE-ENABLE METRICS PERIODICALLY TO CHECK IF SOCKET IS UP
 googleOauthEvents.on("SOCKET HUNG UP", function() {
   debug(chalkGoogle("GOOGLE SOCKET HUNG UP ... CLEARING TWEET RATE QUEUE " + moment().format(defaultDateTimeFormat)));
@@ -5253,6 +5273,21 @@ function createSession(newSessionObj) {
     if (typeof userObj.tags !== 'undefined') {
       if (typeof sessionObj.tags === 'undefined') sessionObj.tags = {};
       sessionObj.tags = userObj.tags;
+      if (sessionObj.tags.entity) {
+        if (entityChannelGroupHashMap.has(sessionObj.tags.entity)){
+          console.log(chalkRed("### ENTITY CHANNEL GROUP HASHMAP HIT"
+            + " | " + sessionObj.tags.entity
+            + " > " + entityChannelGroupHashMap.get(sessionObj.tags.entity)
+          ));
+        }
+        else {
+          statsObj.entityChannelGroup.hashMiss[sessionObj.tags.entity] = 1;
+          console.log(chalkRed("--- ENTITY CHANNEL GROUP HASHMAP MISS"
+            + " | " + sessionObj.tags.entity
+            + "\n" + jsonPrint(statsObj.entityChannelGroup.hashMiss)
+          ));
+        }
+      }
     }
     if (typeof userObj.type !== 'undefined') {
       sessionObj.config.type = userObj.type;
@@ -5372,8 +5407,6 @@ function createSession(newSessionObj) {
     serverSessionConfig.socketId = socket.id;
     testUsersNameSpace.emit("SOCKET_TEST_MODE", serverSessionConfig);
   });
-
-
 }
 
 adminNameSpace.on('connect', function(socket) {
@@ -5529,6 +5562,49 @@ var rateQinterval = setInterval(function() {
     }
   }
 }, 50);
+
+var DROPBOX_WA_ENTITY_CHANNEL_GROUPS_CONFIG_FILE = process.env.DROPBOX_WA_ENTITY_CHANNEL_GROUPS_CONFIG_FILE || 'entityChannelGroups.json';
+var defaultDropboxEntityChannelGroupsConfigFile = DROPBOX_WA_ENTITY_CHANNEL_GROUPS_CONFIG_FILE;
+var dropboxEntityChannelGroupsConfigFile = os.hostname() +  "_" + DROPBOX_WA_ENTITY_CHANNEL_GROUPS_CONFIG_FILE;
+
+function loadConfig(file, callback){
+
+  dropboxClient.readFile(file, function(err, configJson) {
+
+    if (err) {
+      console.error(chalkError("!!! DROPBOX READ " + file + " ERROR"));
+      debug(chalkError(jsonPrint(err)));
+      return(callback(err, null));
+    }
+
+    console.log(chalkLog(getTimeStamp()
+      + " | LOADING CONFIG FROM DROPBOX FILE: " + file
+    ));
+
+    var configObj = JSON.parse(configJson);
+
+    debug("DROPBOX CONFIG\n" + JSON.stringify(configObj, null, 3));
+
+    debug(chalkLog(getTimeStamp() + " | FOUND " + configObj.timeStamp));
+
+    return(callback(null, configObj));
+
+  });
+}
+
+function initEntityChannelGroups(dropboxConfigFile, callback){
+  loadConfig(dropboxConfigFile, function(err, loadedConfigObj){
+    if (!err) {
+      console.log(dropboxConfigFile + "\n" + jsonPrint(loadedConfigObj));
+      return(callback(err, loadedConfigObj));
+    }
+    else {
+      console.error(dropboxConfigFile + "\n" + jsonPrint(err));
+      return(callback(err, loadedConfigObj));
+     }
+  });
+}
+
 
 //=================================
 // INIT APP ROUTING

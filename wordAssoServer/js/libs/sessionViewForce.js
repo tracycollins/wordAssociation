@@ -31,9 +31,6 @@ function ViewForce() {
   var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
   var defaultTimePeriodFormat = "HH:mm:ss";
 
-  // var dragEndEvent = new Event('dragEnd');
-  // var dragEndEvent = new CustomEvent('dragEnd', { 'position': { 'x': elem.x, 'y': elem.y } });
-
   var ageNodesReady = true;
 
   var minSessionNodeOpacity = 0.2;
@@ -42,7 +39,6 @@ function ViewForce() {
   var mouseHoverFlag = false;
   var mouseOverRadius = 10;
   var mouseHoverNodeId;
-
 
   var updateForceDisplayReady = true;
 
@@ -289,12 +285,6 @@ function ViewForce() {
   var svgForceLayoutAreaWidth = d3LayoutWidth * FORCE_LAYOUT_WIDTH_RATIO;
   var svgForceLayoutAreaHeight = d3LayoutHeight * FORCE_LAYOUT_HEIGHT_RATIO;
 
-  // var nodeInitialX = INITIAL_X_RATIO * svgForceLayoutAreaWidth;
-  // var nodeInitialY = INITIAL_Y_RATIO * svgForceLayoutAreaHeight;
-
-  // console.log("nodeInitialX: " + nodeInitialX + " | nodeInitialY: " + nodeInitialY);
-
-
   this.getSessionsLength = function() {
     return sessions.length;
   }
@@ -350,10 +340,6 @@ function ViewForce() {
 
   function sessionCircleDragMove(d) {
 
-    // console.error("sessionCircleDragMove"
-    //   + " | " + d.nodeId
-    //   + " | " + d3.event.x + " " + d3.event.y
-    // );
 
     dragEndPosition = { 'id': d.sessionId, 'x': d3.event.x, 'y': d3.event.y};
 
@@ -424,7 +410,6 @@ function ViewForce() {
   // Define drag beavior
   var drag = d3.behavior.drag()
     .origin(function(d) {
-      // d3.event.sourceEvent.stopPropagation();
       return d;
     })
     .on("drag", sessionCircleDragMove);
@@ -436,8 +421,6 @@ function ViewForce() {
   drag.on("dragend", function(d) {
     console.warn("d\n" + jsonPrint(d));
     console.warn("DRAG END" + "\n" + jsonPrint(dragEndPosition));
-    // document.dispatchEvent(sessionDragEndEvent);
-    // d3.event.sourceEvent.stopPropagation(); // silence other listeners
   });
 
   var globalLinkIndex = 0;
@@ -811,23 +794,12 @@ function ViewForce() {
 
   function updateSessionCircles(callback) {
 
-    // console.log("updateSessionCircles");
-
     var dateNow = moment().valueOf();
 
     sessionCircles = sessionSvgGroup.selectAll("circle")
       .data(sessions, function(d) {
         return d.sessionId;
       });
-
-      // .style("fill", palette.blue)
-      // .style("opacity", 1)
-      // .style("stroke", palette.red)
-      // .style("stroke-width", 3)
-      // .attr("r", function() {
-      //   return Math.max(mouseOverRadius, currentR);
-      // });
-
 
     sessionCircles
       .attr("id", function(d) {
@@ -849,6 +821,9 @@ function ViewForce() {
         return d.interpolateColor(0.25);
       })
       .style('opacity', function(d) {
+        if (d3.select(this).attr("mouseover") == 1) {
+          return 1.0;
+        }
         return (nodeMaxAge - (dateNow - d.lastSeen)) / nodeMaxAge;
       })
       .style('stroke', function(d) {
@@ -926,6 +901,9 @@ function ViewForce() {
         return fontSizeScale(1000.1) + "px";
       })
       .style('opacity', function(d) {
+        if (d3.select(this).attr("mouseover") == 1) {
+          return 1.0;
+        }
         return (nodeMaxAge - (dateNow - d.lastSeen)) / nodeMaxAge;
       });
 
@@ -1299,6 +1277,9 @@ function ViewForce() {
       .attr("r", function(d) {
         return sessionCircleRadiusScale(d.wordChainIndex + 1);
       });
+
+    sessionLabelSvgGroup.select('#' + d.nodeId)
+      .attr("mouseover", 0);
 
     divTooltip.transition()
       .duration(defaultFadeDuration)

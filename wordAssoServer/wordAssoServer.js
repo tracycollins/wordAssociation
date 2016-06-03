@@ -1196,7 +1196,8 @@ function sendPrompt(sessionObj, sourceWordObj) {
             target: targetWordObj
           };
 
-          sessionUpdateObj.tags.entity = currentUser.userId.toLowerCase();
+          // sessionUpdateObj.tags.entity = currentUser.userId.toLowerCase();
+          sessionUpdateObj.tags = currentSession.tags;
 
         } else {
 
@@ -1216,7 +1217,8 @@ function sendPrompt(sessionObj, sourceWordObj) {
             target: 0
           };
 
-          sessionUpdateObj.tags.entity = currentUser.userId.toLowerCase();
+          // sessionUpdateObj.tags.entity = currentUser.userId.toLowerCase();
+          sessionUpdateObj.tags = currentSession.tags;
 
         }
 
@@ -1312,7 +1314,8 @@ function sendPrompt(sessionObj, sourceWordObj) {
           target: targetWordObj
         };
 
-        sessionUpdateObj.tags.entity = currentUser.userId.toLowerCase();
+        // sessionUpdateObj.tags.entity = currentUser.userId.toLowerCase();
+        sessionUpdateObj.tags = currentSession.tags;
 
         updateSessionViews(sessionUpdateObj);
 
@@ -1938,6 +1941,7 @@ function sessionUpdateDb(sessionObj, callback) {
     $set: {
       "config": sessionObj.config,
       "userId": sessionObj.userId,
+      "tags": sessionObj.tags,
       "user": sessionObj.user,
       "namespace": sessionObj.namespace,
       "ip": sessionObj.ip,
@@ -3512,6 +3516,7 @@ function handleSessionEvent(sesObj, callback) {
           if (sessionUpdatedObj.namespace != 'view') {
             var sessionUpdateObj = {
               action: 'KEEPALIVE',
+              nodeId: sessionUpdatedObj.tags.entity + '_' + sessionUpdatedObj.tags.channel,
               tags: {},
               userId: sessionUpdatedObj.userId,
               sessionId: sessionUpdatedObj.sessionId,
@@ -3520,9 +3525,10 @@ function handleSessionEvent(sesObj, callback) {
               target: 0
             };
 
-            sessionUpdateObj.tags.entity = sessionUpdatedObj.userId.toLowerCase();
+            sessionUpdateObj.tags = sessionUpdatedObj.tags;
+            // sessionUpdateObj.tags.entity = sessionUpdatedObj.userId.toLowerCase();
 
-            io.of(sessionUpdatedObj.namespace).to(sessionUpdatedObj.sessionId).emit('KEEPALIVE_ACK', sessionUpdatedObj.userId);
+            io.of(sessionUpdatedObj.namespace).to(sessionUpdatedObj.sessionId).emit('KEEPALIVE_ACK', sessionUpdatedObj.nodeId);
 
             updateSessionViews(sessionUpdateObj);
           }
@@ -3542,15 +3548,17 @@ function handleSessionEvent(sesObj, callback) {
 
       // sesObj.session.config.mode = defaultSessionType ;
 
-      if (typeof sesObj.tags === 'undefined') {
-        sesObj.tags = {};
-        sesObj.tags.entity = 'UNKNOWN';
+      if (typeof sesObj.session.tags === 'undefined') {
+        sesObj.session.tags = {};
+        sesObj.session.tags.entity = 'UNKNOWN_ENTITY';
+        sesObj.session.tags.channel = 'UNKNOWN_CHANNEL';
       }
 
       console.log(chalkSession(
         ">>> SESSION CREATE" 
         + " | " + moment().format(defaultDateTimeFormat) 
-        + " | ENTITY: " + sesObj.tags.entity
+        + " | ENTITY: " + sesObj.session.tags.entity
+        + " | CHAN: " + sesObj.session.tags.channel
         + " | TYPE: " + sesObj.session.config.type 
         + " | MODE: " + sesObj.session.config.mode 
         + " | NSP: " + sesObj.session.namespace 
@@ -3820,7 +3828,8 @@ function handleSessionEvent(sesObj, callback) {
         + " | SID: " + sesObj.session.sessionId 
         + " | SES TYPE: " + sesObj.session.config.type 
         + " | SES MODE: " + sesObj.session.config.mode 
-        // + " | ENTITY: " + sesObj.user.tags.entity 
+        + " | ENTITY: " + sesObj.session.tags.entity 
+        + " | CHAN: " + sesObj.session.tags.channel 
         + " | UID: " + sesObj.user.userId 
         + " | NSP: " + sesObj.session.namespace 
         + " | IP: " + sesObj.session.ip 
@@ -3836,11 +3845,13 @@ function handleSessionEvent(sesObj, callback) {
       if (typeof currentSession !== 'undefined') {
         currentSession.config.type = sesObj.session.config.type;
         currentSession.config.mode = sesObj.session.config.mode;
+        currentSession.nodeId = sesObj.session.tags.entity + '_' + sesObj.session.tags.channel;
         currentSession.userId = sesObj.user.userId;
         currentSession.user = sesObj.user;
       } else {
         currentSession = {};
         currentSession = sesObj.session;
+        currentSession.nodeId = sesObj.session.tags.entity + '_' + sesObj.session.tags.channel;
         currentSession.userId = sesObj.user.userId;
         currentSession.user = sesObj.user;
       }
@@ -4197,9 +4208,15 @@ var readResponseQueue = setInterval(function() {
 
     if (typeof responseInObj.tags === 'undefined') {
       responseInObj.tags = {};
-      responseInObj.tags.entity = 'UNKNOWN';
-    } else if (typeof responseInObj.tags.entity === 'undefined') {
-      responseInObj.tags.entity = 'UNKNOWN';
+      responseInObj.tags.entity = 'UNKNOWN_ENTITY';
+      responseInObj.tags.channel = 'UNKNOWN_CHANNEL';
+    } else {
+      if (typeof responseInObj.tags.entity === 'undefined') {
+        responseInObj.tags.entity = 'UNKNOWN_ENTITY';
+      }
+      if (typeof responseInObj.tags.channel === 'undefined') {
+        responseInObj.tags.channel = 'UNKNOWN_CHANNEL';
+      }
     }
 
     console.log(chalkResponse("R<" 
@@ -5365,7 +5382,8 @@ adminNameSpace.on('connect', function(socket) {
   createSession({
     namespace: "admin",
     socket: socket,
-    type: "ADMIN"
+    type: "ADMIN",
+    tags: {}
   });
   socket.on('SET_WORD_CACHE_TTL', function(value) {
     setWordCacheTtl(value);
@@ -5379,7 +5397,8 @@ utilNameSpace.on('connect', function(socket) {
     namespace: "util",
     socket: socket,
     type: "UTIL",
-    mode: "STREAM"
+    mode: "STREAM",
+    tags: {}
   });
 });
 
@@ -5390,7 +5409,8 @@ userNameSpace.on('connect', function(socket) {
     namespace: "user",
     socket: socket,
     type: "USER",
-    mode: "SYNONYM"
+    mode: "SYNONYM",
+    tags: {}
   });
 });
 
@@ -5400,7 +5420,8 @@ viewNameSpace.on('connect', function(socket) {
   createSession({
     namespace: "view",
     socket: socket,
-    type: "VIEWER"
+    type: "VIEWER",
+    tags: {}
   });
 });
 
@@ -5410,7 +5431,8 @@ testUsersNameSpace.on('connect', function(socket) {
   createSession({
     namespace: "test-user",
     socket: socket,
-    type: "TEST_USER"
+    type: "TEST_USER",
+    tags: {}
   });
 });
 
@@ -5420,7 +5442,8 @@ testViewersNameSpace.on('connect', function(socket) {
   createSession({
     namespace: "test-view",
     socket: socket,
-    type: "TEST_VIEWER"
+    type: "TEST_VIEWER",
+    tags: {}
   });
 });
 

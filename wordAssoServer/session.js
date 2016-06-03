@@ -107,8 +107,8 @@ var debug = false;
 var MAX_RX_QUEUE = 250;
 var QUEUE_MAX = 200;
 var MAX_WORDCHAIN_LENGTH = 100;
-var DEFAULT_MAX_AGE = 30000;
-var FORCE_MAX_AGE = 5347;
+var DEFAULT_MAX_AGE = 60000;
+var FORCE_MAX_AGE = 60347;
 var DEFAULT_AGE_RATE = 1.0;
 
 var dateNow = moment().valueOf();
@@ -444,8 +444,8 @@ function createControlPanel() {
     id: 'maxAgeSlider',
     class: 'slider',
     oninput: 'setMaxAgeSliderValue(this.value)',
-    min: 1000,
-    max: 60000,
+    min: 500,
+    max: 120000,
     value: DEFAULT_MAX_AGE,
   }
 
@@ -454,8 +454,8 @@ function createControlPanel() {
     id: 'chargeSlider',
     class: 'slider',
     oninput: 'setChargeSliderValue(this.value)',
-    min: -1000,
-    max: 1000,
+    min: -2000,
+    max: 2000,
     value: -300,
   }
 
@@ -464,8 +464,8 @@ function createControlPanel() {
     id: 'gravitySlider',
     class: 'slider',
     oninput: 'setGravitySliderValue(this.value/1000)',
-    min: -100,
-    max: 100,
+    min: -200,
+    max: 200,
     value: 50,
   }
 
@@ -664,7 +664,7 @@ randomColorQueue.push({
 
 setInterval(function() { // randomColorQueue
 
-  randomNumber360 += randomIntFromInterval(60, 120);
+  randomNumber360 += randomIntFromInterval(61, 117);
   startColor = "hsl(" + randomNumber360 + ",100%,50%)";
   endColor = "hsl(" + randomNumber360 + ",100%,0%)";
 
@@ -1216,7 +1216,6 @@ socket.on("SESSION_UPDATE", function(rxSessionObject) {
         + " > " + rxObj.target.nodeId
       );
     }
-
   }
 });
 
@@ -1318,13 +1317,16 @@ var createSession = function(callback) {
       currentSession.age = 0;
       currentSession.lastSeen = dateNow;
       currentSession.userId = sessUpdate.userId;
-      currentSession.text = sessUpdate.userId;
+      // currentSession.text = sessUpdate.userId;
+      currentSession.text = sessUpdate.tags.entity + ' | ' + sessUpdate.tags.channel;
       currentSession.wordChainIndex = sessUpdate.wordChainIndex;
       currentSession.source = sessUpdate.source;
       currentSession.source.lastSeen = dateNow;
       currentSession.target = sessUpdate.target;
       currentSession.target.lastSeen = dateNow;
       currentSession.latestNodeId = sessUpdate.source.nodeId;
+
+      currentSession.node.text = sessUpdate.tags.entity + ' | ' + sessUpdate.tags.channel;
       currentSession.node.age = 0;
       currentSession.node.ageUpdated = dateNow;
       currentSession.node.lastSeen = dateNow;
@@ -1391,7 +1393,10 @@ var createSession = function(callback) {
       var sessionNode = {};
 
       currentSession.node.isSessionNode = true;
-      currentSession.node.nodeId = sessUpdate.userId;
+      // currentSession.node.nodeId = sessUpdate.userId;
+      currentSession.node.nodeId = sessUpdate.tags.entity + '_' + sessUpdate.tags.channel;
+      currentSession.node.entity = sessUpdate.tags.entity;
+      currentSession.node.channel = sessUpdate.tags.channel;
       currentSession.node.userId = sessUpdate.userId;
       currentSession.node.sessionId = sessUpdate.sessionId;
       currentSession.node.age = 0;
@@ -1399,7 +1404,7 @@ var createSession = function(callback) {
       currentSession.node.lastSeen = dateNow;
       currentSession.node.wordChainIndex = sessUpdate.wordChainIndex;
       currentSession.node.mentions = sessUpdate.wordChainIndex;
-      currentSession.node.text = sessUpdate.tags.entity;
+      currentSession.node.text = sessUpdate.tags.entity + ' | ' + sessUpdate.tags.channel;
       currentSession.node.x = currentSession.initialPosition.x;
       currentSession.node.y = currentSession.initialPosition.y;
       currentSession.node.fixed = true;
@@ -1450,7 +1455,9 @@ var createNode = function(callback) {
 
       var sessionNode = nodeHashMap.get(session.node.nodeId);
 
-      sessionNode.text = session.tags.entity;
+      sessionNode.entity = session.tags.entity;
+      sessionNode.channel = session.tags.channel;
+      sessionNode.text = session.tags.entity + '_' + session.tags.channel;
       sessionNode.age = 0;
       sessionNode.wordChainIndex = session.wordChainIndex;
       sessionNode.x = session.initialPosition.x;
@@ -1467,8 +1474,10 @@ var createNode = function(callback) {
     } 
     else {
 
+      session.node.nodeId = session.tags.entity + '_' + session.tags.channel;
+      session.node.entity = session.tags.entity;
+      session.node.channel = session.tags.channel;
       session.node.text = session.tags.entity;
-      session.node.nodeId = session.userId;
       session.node.userId = session.userId;
       session.node.sessionId = session.sessionId;
       session.node.age = 0;

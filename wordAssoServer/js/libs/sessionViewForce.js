@@ -136,8 +136,6 @@ function ViewForce() {
 
   var forceStopped = true;
 
-  var createNodeQueue = [];
-  var createLinkQueue = [];
   // var nodeDeleteQueue = [];
 
   var deadNodesHash = {};
@@ -220,9 +218,10 @@ function ViewForce() {
   }, true);
 
 
-  var adjustedAgeRateScale = d3.scale.pow().domain([1, 500]).range([1.0, 100.0]);
+  var adjustedAgeRateScale = d3.scale.linear().domain([1, 500]).range([1.0, 100.0]);
   var fontSizeScale = d3.scale.linear().domain([1, 100000000]).range([35.0, 70]);
 
+  var groupCircleRadiusScale = d3.scale.log().domain([1, 2000000]).range([50.0, 150.0]); // uses wordChainIndex
   var sessionCircleRadiusScale = d3.scale.log().domain([1, 2000000]).range([40.0, 100.0]); // uses wordChainIndex
   var defaultRadiusScale = d3.scale.log().domain([1, 2000000]).range([1.0, 40.0]);
 
@@ -264,11 +263,19 @@ function ViewForce() {
 
   d3.select("body").style("cursor", "default");
 
+  var groups = [];
   var sessions = [];
   var nodes = [];
   var links = [];
 
-
+  this.nodesLength = function() {
+    return nodes.length;
+  }
+  
+  this.ageRate = function() {
+    return ageRate;
+  }
+  
   this.setNodeMaxAge = function(maxAge) {
     nodeMaxAge = maxAge;
     console.warn("SET NODE MAX AGE: " + nodeMaxAge);
@@ -317,6 +324,12 @@ function ViewForce() {
   zoomListener.translate([zoomWidth, zoomHeight]).scale(currentScale); 
   zoomListener.event(svgcanvas.transition().duration(1000)); //does a zoom
 
+  var groupSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "groupSvgGroup");
+  var groupLabelSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "groupLabelSvgGroup");
+  var groupGnode = groupSvgGroup.selectAll("g.group");
+  var groupCircles = groupSvgGroup.selectAll(".groupCircle");
+  var groupLabels = groupLabelSvgGroup.selectAll(".groupLabel");
+
   var sessionSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "sessionSvgGroup");
   var sessionLabelSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "sessionLabelSvgGroup");
   var sessionGnode = sessionSvgGroup.selectAll("g.session");
@@ -339,7 +352,6 @@ function ViewForce() {
     .style("opacity", 1e-6);
 
   function sessionCircleDragMove(d) {
-
 
     dragEndPosition = { 'id': d.sessionId, 'x': d3.event.x, 'y': d3.event.y};
 
@@ -398,21 +410,21 @@ function ViewForce() {
       });
 
     document.dispatchEvent(sessionDragEndEvent);
-      tick();
-        updateNodes();
-        updateLinks();
-        updateSessionCircles();
-        updateNodeCircles();
-        updateNodeLabels();
-
+    tick();
+    updateNodes;
+    updateLinks;
+    updateGroupsCircles;
+    updateSessionCircles;
+    updateNodeCircles;
+    updateNodeLabels;
   }
 
   // Define drag beavior
   var drag = d3.behavior.drag()
     .origin(function(d) {
       return d;
-    })
-    .on("drag", sessionCircleDragMove);
+    });
+    // .on("drag", sessionCircleDragMove);
 
   drag.on("dragstart", function() {
     d3.event.sourceEvent.stopPropagation(); // silence other listeners
@@ -435,6 +447,14 @@ function ViewForce() {
   //
 
   function tick() {
+    groupGnode
+      .attr("x", function(d) {
+        return d.x;
+      })
+      .attr("y", function(d) {
+        return d.y;
+      });
+
     sessionGnode
       .attr("x", function(d) {
         return d.x;
@@ -451,9 +471,9 @@ function ViewForce() {
         return d.y;
       });
 
-    sessionCircles
+    groupCircles
       .attr("r", function(d) {
-        return sessionCircleRadiusScale(d.wordChainIndex + 1);
+        return groupCircleRadiusScale(d.mentions + 1);
       })
       .attr("cx", function(d) {
         return d.x;
@@ -462,12 +482,32 @@ function ViewForce() {
         return d.y;
       });
 
-    sessionLabels
+    sessionCircles
+      .attr("r", function(d) {
+        return sessionCircleRadiusScale(d.wordChainIndex + 1);
+      });
+      // .attr("cx", function(d) {
+      //   return d.x;
+      // })
+      // .attr("cy", function(d) {
+      //   return d.y;
+      // });
+
+    // sessionLabels
+    //   .attr("x", function(d) {
+    //     return d.x;
+    //   })
+    //   .attr("y", function(d) {
+    //     var shiftY = -1.4 * (sessionCircleRadiusScale(d.wordChainIndex + 1));
+    //     return d.y + shiftY;
+    //   });
+
+    groupLabels
       .attr("x", function(d) {
         return d.x;
       })
       .attr("y", function(d) {
-        var shiftY = -1.4 * (sessionCircleRadiusScale(d.wordChainIndex + 1));
+        var shiftY = -1.4 * (groupCircleRadiusScale(d.mentions + 1));
         return d.y + shiftY;
       });
 
@@ -594,7 +634,7 @@ function ViewForce() {
 
       if (node.isDead) {
         deadNodesHash[node.nodeId] = 1;
-      } else if (!node.isSessionNode && (age >= nodeMaxAge)) {
+      } else if (!node.isGroupNode && !node.isSessionNode && (age >= nodeMaxAge)) {
         node.ageUpdated = dateNow;
         node.age = age;
         node.isDead = true;
@@ -669,13 +709,14 @@ function ViewForce() {
       if (deadNodesHash[node.nodeId]) {
         nodeDeleteQueue.push(node.nodeId);
         nodes.splice(ageNodesIndex, 1);
-        force.nodes(nodes);
+        // force.nodes(nodes);
         delete deadNodesHash[node.nodeId];
       }
       deadNodeIds = Object.keys(deadNodesHash);
     }
 
     if ((nodes.length == 0) || (deadNodeIds.length == 0) || (ageNodesIndex < 0)) {
+      force.nodes(nodes);
       return (callback());
     }
   }
@@ -687,6 +728,12 @@ function ViewForce() {
       })
       .attr("userId", function(d) {
         return d.userId;
+      })
+      .attr("groupId", function(d) {
+        return d.groupId;
+      })
+      .attr("sessionId", function(d) {
+        return d.sessionId;
       })
       .attr("x", function(d) {
         return d.x;
@@ -709,6 +756,9 @@ function ViewForce() {
       })
       .attr("nodeId", function(d) {
         return d.nodeId;
+      })
+      .attr("groupId", function(d) {
+        return d.groupId;
       })
       .attr("sessionId", function(d) {
         return d.sessionId;
@@ -792,27 +842,208 @@ function ViewForce() {
     return (callback(null, "updateLinks"));
   }
 
-  function updateSessionCircles(callback) {
+  function updateGroupsCircles(callback) {
 
     var dateNow = moment().valueOf();
 
-    sessionCircles = sessionSvgGroup.selectAll("circle")
-      .data(sessions, function(d) {
-        return d.sessionId;
+    groupCircles = groupSvgGroup.selectAll("circle")
+      .data(groups, function(d) {
+        return d.groupId;
       });
 
-    sessionCircles
+    groupCircles
       .attr("id", function(d) {
+        return d.groupId;
+      })
+      .attr("nodeId", function(d) {
         return d.nodeId;
       })
       .attr("r", function(d) {
-        return sessionCircleRadiusScale(d.wordChainIndex + 1);
+        return groupCircleRadiusScale(d.mentions + 1);
       })
       .attr("cx", function(d) {
         return d.x;
       })
       .attr("cy", function(d) {
         return d.y;
+      })
+      .style("fill", function(d) {
+        // if (d3.select(this).attr("mouseover") == 1) {
+        //   return palette.red;
+        // }
+        return d.interpolateColor(0.5);
+      })
+      .style('opacity', function(d) {
+        // if (d3.select(this).attr("mouseover") == 1) {
+        //   return 1.0;
+        // }
+        return (nodeMaxAge - (dateNow - d.lastSeen)) / nodeMaxAge;
+      })
+      .style('stroke', function(d) {
+        // if (d3.select(this).attr("mouseover") == 1) {
+        //   return palette.white;
+        // }
+        return d.interpolateColor(0.95);
+      })
+      .style('stroke-width', function(d) {
+        // if (d3.select(this).attr("mouseover") == 1) {
+        //   return 8;
+        // }
+        return 2.5;
+      })
+      .style("stroke-opacity", function(d) {
+        // if (d3.select(this).attr("mouseover") == 1) {
+        //   return 1.0;
+        // }
+        return 0.8;
+      });
+
+
+    groupCircles
+      .enter()
+      .append("svg:circle")
+      .attr("id", function(d) {
+        return d.groupId;
+      })
+      .attr("groupId", function(d) {
+        return d.groupId;
+      })
+      .attr("nodeId", function(d) {
+        return d.nodeId;
+      })
+      .attr("sessionId", function(d) {
+        return d.sessionId;
+      })
+      .attr("class", "groupCircle")
+      .attr("cx", function(d) {
+        return d.x;
+      })
+      .attr("cy", function(d) {
+        return d.y;
+      })
+      .attr("mouseover", 0)
+      // .on("mouseover", sessionCircleMouseOver)
+      // .on("mouseout", sessionCircleMouseOut)
+      // .on("dblclick", sessionCircleClick)
+      // .call(drag)
+      .attr("r", 1e-6)
+      .style("visibility", "visible")
+      .style("fill", function(d) {
+        return d.interpolateColor(0.5);
+      })
+      .style("opacity", 1e-6)
+      .style('stroke', function(d) {
+        return d.interpolateColor(0.75);
+      })
+      .style("stroke-width", 2.5)
+      .style("stroke-opacity", 0.8)
+      .transition()
+      .duration(defaultFadeDuration)
+      .attr("r", function(d) {
+        return 10;
+      })
+      .style('opacity', 0.5);
+
+    groupCircles
+      .exit()
+      .remove();
+
+    groupLabels = groupLabelSvgGroup.selectAll(".groupLabel")
+      .data(groups, function(d) {
+        return d.groupId;
+      })
+      .text(function(d) {
+        return d.text;
+      })
+      .style("font-size", function(d) {
+        return fontSizeScale(1000.1) + "px";
+      })
+      .style('opacity', function(d) {
+        if (d3.select(this).attr("mouseover") == 1) {
+          return 1.0;
+        }
+        return (nodeMaxAge - (dateNow - d.lastSeen)) / nodeMaxAge;
+      });
+
+    groupLabels.enter()
+      .append("svg:text")
+      .attr("x", function(d) {
+        return d.x;
+      })
+      .attr("y", function(d) {
+        var shiftY = -1.4 * (groupCircleRadiusScale(d.mentions + 1));
+        return d.y + shiftY;
+      })
+      .attr("class", "groupLabel")
+      .attr("id", function(d) {
+        return d.groupId;
+      })
+      .attr("nodeId", function(d) {
+        return d.nodeId;
+      })
+      .attr("sessionId", function(d) {
+        return d.sessionId;
+      })
+      .text(function(d) {
+        return d.text;
+      })
+      .style("text-anchor", "middle")
+      .style("opacity", 1e-6)
+      .style('fill', "#ffffff")
+      .style("font-size", function(d) {
+        return fontSizeScale(1000.1) + "px";
+      })
+      .transition()
+      .duration(defaultFadeDuration)
+      .style("opacity", 1.0);
+
+    groupLabels
+      .exit().remove();
+
+
+    return (callback(null, "updateGroupsCircles"));
+  }
+
+  function updateSessionCircles(callback) {
+
+    var dateNow = moment().valueOf();
+
+    sessionCircles = sessionSvgGroup.selectAll("circle")
+      .data(sessions, function(d) {
+        return d.nodeId;
+      });
+
+    sessionCircles
+      .attr("id", function(d) {
+        return d.nodeId;
+      })
+      .attr("nodeId", function(d) {
+        return d.nodeId;
+      })
+      .attr("groupId", function(d) {
+        return d.groupId;
+      })
+      .attr("sessionId", function(d) {
+        return d.sessionId;
+      })
+      .attr("r", function(d) {
+        return sessionCircleRadiusScale(d.wordChainIndex + 1);
+      })
+      .attr("x", function(d) {
+        var cnode = nodeHashMap.get(d.nodeId);
+        return cnode.x;
+      })
+      .attr("y", function(d) {
+        var cnode = nodeHashMap.get(d.nodeId);
+        return cnode.y;
+      })
+      .attr("cx", function(d) {
+        var cnode = nodeHashMap.get(d.nodeId);
+        return cnode.x;
+      })
+      .attr("cy", function(d) {
+        var cnode = nodeHashMap.get(d.nodeId);
+        return cnode.y;
       })
       .style("fill", function(d) {
         if (d3.select(this).attr("mouseover") == 1) {
@@ -845,22 +1076,36 @@ function ViewForce() {
         return 0.8;
       });
 
-
     sessionCircles
       .enter()
       .append("svg:circle")
       .attr("id", function(d) {
         return d.nodeId;
       })
+      .attr("groupId", function(d) {
+        return d.groupId;
+      })
       .attr("sessionId", function(d) {
         return d.sessionId;
       })
       .attr("class", "sessionCircle")
+      .attr("x", function(d) {
+        var cnode = nodeHashMap.get(d.nodeId);
+        return cnode.x;
+      })
+      .attr("y", function(d) {
+        var cnode = nodeHashMap.get(d.nodeId);
+        return cnode.y;
+      })
       .attr("cx", function(d) {
-        return d.x;
+        var cnode = nodeHashMap.get(d.nodeId);
+        d.x = cnode.x;
+        return cnode.x;
       })
       .attr("cy", function(d) {
-        return d.y;
+        var cnode = nodeHashMap.get(d.nodeId);
+        d.y = cnode.y;
+        return cnode.y;
       })
       .attr("mouseover", 0)
       .on("mouseover", sessionCircleMouseOver)
@@ -879,10 +1124,10 @@ function ViewForce() {
       .style("stroke-width", 2.5)
       .style("stroke-opacity", 0.8)
       .transition()
-      .duration(defaultFadeDuration)
-      .attr("r", function(d) {
-        return sessionCircleRadiusScale(d.wordChainIndex + 1);
-      })
+        .duration(defaultFadeDuration)
+        .attr("r", function(d) {
+          return sessionCircleRadiusScale(d.wordChainIndex + 1);
+        })
       .style('opacity', 0.5);
 
     sessionCircles
@@ -892,10 +1137,19 @@ function ViewForce() {
 
     sessionLabels = sessionLabelSvgGroup.selectAll(".sessionLabel")
       .data(sessions, function(d) {
-        return d.sessionId;
+        return d.nodeId;
       })
       .text(function(d) {
         return d.text;
+      })
+      .attr("x", function(d) {
+        var cnode = nodeHashMap.get(d.nodeId);
+        return cnode.x;
+      })
+      .attr("y", function(d) {
+        var shiftY = -1.4 * (sessionCircleRadiusScale(d.wordChainIndex + 1));
+        var cnode = nodeHashMap.get(d.nodeId);
+        return cnode.y + shiftY;
       })
       .style("font-size", function(d) {
         return fontSizeScale(1000.1) + "px";
@@ -910,12 +1164,21 @@ function ViewForce() {
     sessionLabels.enter()
       .append("svg:text")
       .attr("x", function(d) {
-        return d.x;
+        var cnode = nodeHashMap.get(d.nodeId);
+        return cnode.x;
       })
       .attr("y", function(d) {
         var shiftY = -1.4 * (sessionCircleRadiusScale(d.wordChainIndex + 1));
-        return d.y + shiftY;
+        var cnode = nodeHashMap.get(d.nodeId);
+        return cnode.y + shiftY;
       })
+      // .attr("x", function(d) {
+      //   return d.x;
+      // })
+      // .attr("y", function(d) {
+      //   var shiftY = -1.4 * (sessionCircleRadiusScale(d.wordChainIndex + 1));
+      //   return d.y + shiftY;
+      // })
       .attr("class", "sessionLabel")
       .attr("id", function(d) {
         return d.nodeId;
@@ -1036,6 +1299,7 @@ function ViewForce() {
         })
       .text(function(d) {
         if (d.isSessionNode) return d.wordChainIndex;
+        if (d.isGroupNode) return d.groupId;
         return d.text;
       })
       .attr("x", function(d) {
@@ -1071,6 +1335,7 @@ function ViewForce() {
         return d.sessionId;
       })
       .text(function(d) {
+        if (d.isGroupNode) return d.groupId;
         if (d.isSessionNode) return d.wordChainIndex;
         return d.text;
       })
@@ -1105,6 +1370,7 @@ function ViewForce() {
         processDeadLinksHash,
         updateNodes,
         updateLinks,
+        updateGroupsCircles,
         updateSessionCircles,
         updateNodeCircles,
         updateNodeLabels,
@@ -1258,7 +1524,7 @@ function ViewForce() {
       .style("top", (d3.event.pageY - 50) + "px");
   }
 
-  function sessionCircleMouseOut() {
+  function sessionCircleMouseOut(d) {
 
     mouseHoverFlag = false;
 
@@ -1334,9 +1600,19 @@ function ViewForce() {
 
   this.addSession = function(newSession) {
     // console.warn("addSession: " + newSession.sessionId);
+    if (!forceStopped){
+      force.stop();
+      forceStopped = true;
+    }
+    sessions.push(newSession);
+  }
+
+  this.addGroup = function(newGroup) {
+    console.warn("addGroup: " + newGroup.groupId);
     force.stop();
     forceStopped = true;
-    sessions.push(newSession);
+    groups.push(newGroup);
+    // force.nodes(nodes);
   }
 
   this.deleteSessionLinks = function(sessionId) {
@@ -1384,6 +1660,7 @@ function ViewForce() {
 
   this.addNode = function(newNode) {
     // console.log("addNode\n" + jsonPrint(newNode));
+    // console.log("addNode | " + newNode.nodeId + " | " + newNode.isGroupNode);
     force.stop();
     forceStopped = true;
     nodes.push(newNode);
@@ -1515,7 +1792,10 @@ function ViewForce() {
     d3.timer(function() {
       tickNumber++;
       dateNow = moment().valueOf();
-      if (!pauseFlag && !updateNodeFlag && updateForceDisplayReady && (!mouseFreezeEnabled || (mouseFreezeEnabled && !mouseMovingFlag))){
+      if (!pauseFlag 
+        && !updateNodeFlag 
+        && updateForceDisplayReady 
+        && (!mouseFreezeEnabled || (mouseFreezeEnabled && !mouseMovingFlag))){
         updateForceDisplay();
       }
     });
@@ -1726,8 +2006,6 @@ function ViewForce() {
     updateNodeFlag = false;
     nodes = [];
     links = [];
-    createNodeQueue = [];
-    createLinkQueue = [];
 
     deadNodesHash = {};
     deadLinksHash = {};

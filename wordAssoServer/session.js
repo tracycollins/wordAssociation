@@ -24,8 +24,8 @@ var debug = false;
 var MAX_RX_QUEUE = 250;
 var QUEUE_MAX = 200;
 var MAX_WORDCHAIN_LENGTH = 100;
-var DEFAULT_MAX_AGE = 60000;
-var FORCE_MAX_AGE = 60347;
+var DEFAULT_MAX_AGE = 20000;
+var FORCE_MAX_AGE = 10347;
 var DEFAULT_AGE_RATE = 1.0;
 
 var DEFAULT_CHARGE = -350;
@@ -39,41 +39,9 @@ config.pauseFlag = false;
 config.sessionViewType = DEFAULT_SESSION_VIEW; // options: force, histogram ??
 config.maxWords = 100;
 config.testMode = false;
-config.showStatsFlag = false;
+config.showStatsFlag = true;
 config.removeDeadNodes = true;
 config.disableLinks = false;
-
-// // group channels by entity
-// // i.e.:  <entity>: { 'twitter': [twitterId...], 'rss': [rssName...], 'youtube': [youtubeChannelId...], ... }
-// config.entityChannelGroups = {};
-
-// config.entityChannelGroups.cnn = {};
-// config.entityChannelGroups.cnn.youtube = [];
-// config.entityChannelGroups.cnn.youtube.push('cnn');
-// config.entityChannelGroups.cnn.rss = [];
-// config.entityChannelGroups.cnn.rss.push('cnnallpolitics');
-// config.entityChannelGroups.cnn.rss.push('cnnus');
-// config.entityChannelGroups.cnn.rss.push('cnnworld');
-// config.entityChannelGroups.cnn.rss.push('cnntopstories');
-// config.entityChannelGroups.cnn.twitter = [];
-// config.entityChannelGroups.cnn.twitter.push('cnn');
-// config.entityChannelGroups.cnn.twitter.push('cnnpolitics');
-// config.entityChannelGroups.cnn.twitter.push('cnnbrk');
-// config.entityChannelGroups.cnn.twitter.push('cnni');
-// config.entityChannelGroups.cnn.twitter.push('cnnnewsroom');
-// config.entityChannelGroups.cnn.twitter.push('cnnireport');
-// config.entityChannelGroups.cnn.twitter.push('natseccnn');
-
-// config.entityChannelGroups.cspan = {};
-// config.entityChannelGroups.cspan.twitter = [];
-// config.entityChannelGroups.cspan.twitter.push('cspan');
-// config.entityChannelGroups.cspan.twitter.push('cspanwj');
-// config.entityChannelGroups.cspan.twitter.push('cspanradio');
-// config.entityChannelGroups.cspan.twitter.push('cspannow');
-// config.entityChannelGroups.cspan.livestream = [];
-// config.entityChannelGroups.cspan.livestream.push('cspan');
-// config.entityChannelGroups.cspan.youtube = [];
-// config.entityChannelGroups.cspan.youtube.push('cspan');
 
 var statsObj = {};
 statsObj.socketId = null;
@@ -197,8 +165,8 @@ var mouseMoveTimeout = setTimeout(function() {
   d3.select("body").style("cursor", "none");
   if (!config.showStatsFlag && !pageLoadedTimeIntervalFlag) {
     displayInfo(false);
+    displayControl(false);
   }
-  displayControl(false);
 }, mouseMoveTimeoutInterval);
 
 function resetMouseMoveTimer() {
@@ -447,6 +415,13 @@ function createControlPanel() {
     text: 'SESSION ID: ' + statsObj.socketId
   }
 
+  var status2 = {
+    type: 'TEXT',
+    id: 'statusSession2Id',
+    class: 'statusText',
+    text: 'NODES: ' + 0
+  }
+
   var resetButton = {
     type: 'BUTTON',
     id: 'resetButton',
@@ -534,6 +509,7 @@ function createControlPanel() {
       // tableCreateRow(controlTableHead, optionsHead, ['FORCE VIEW CONROL TABLE']);
       // tableCreateRow(controlTableBody, optionsBody, ['FULLSCREEN', 'STATS', 'TEST', 'RESET', 'NODE', 'LINK']);
       tableCreateRow(controlTableBody, optionsBody, [status]);
+      tableCreateRow(controlTableBody, optionsBody, [status2]);
       tableCreateRow(controlTableBody, optionsBody, [fullscreenButton, pauseButton, statsButton, testModeButton, nodeCreateButton, removeDeadNodeButton, disableLinksButton]);
       tableCreateRow(controlSliderTable, optionsBody, [resetButton]);
       tableCreateRow(controlSliderTable, optionsBody, ['MAX AGE', maxAgeSlider]);
@@ -577,6 +553,7 @@ function toggleRemoveDeadNode() {
 function toggleDisableLinks() {
   config.disableLinks = !config.disableLinks;
   currentSessionView.disableLinks = config.disableLinks;
+  if (config.disableLinks) linkHashMap.clear();
   console.warn("TOGGLE DISABLE LINKS: " + config.disableLinks);
   updateControlPanel(config.sessionViewType);
 }
@@ -616,14 +593,23 @@ var serverHeartbeatTimeout = 30000;
 var serverCheckInterval = 30000;
 var serverKeepaliveInteval = 10000;
 
-var linkHashMap = new HashMap();
-var nodeHashMap = new HashMap();
+var groupHashMap = new HashMap();
+var groupDeleteHashMap = new HashMap();
+
 var sessionHashMap = new HashMap();
 var sessionDeleteHashMap = new HashMap();
+
+var linkHashMap = new HashMap();
+var nodeHashMap = new HashMap();
+
 var ignoreWordHashMap = new HashMap();
 
 var rxSessionUpdateQueue = [];
 var rxSessionDeleteQueue = [];
+
+var groupCreateQueue = [];
+var groupsCreated = 0;
+
 var sessionCreateQueue = [];
 var sessionsCreated = 0;
 
@@ -1069,7 +1055,7 @@ function generateLinkId(callback) {
 setInterval(function() {
   if (serverConnected) {
     socket.emit("SESSION_KEEPALIVE", viewerObj);
-    console.log("SESSION_KEEPALIVE | " + moment());
+    // console.log("SESSION_KEEPALIVE | " + moment());
   }
 }, serverKeepaliveInteval);
 
@@ -1232,11 +1218,12 @@ socket.on("SESSION_UPDATE", function(rxSessionObject) {
     // rxSessionUpdateQueue.push(rxSessionObject);
 
     if (rxObj.action == 'KEEPALIVE') {
-      console.log("KEEPALIVE" + " | " + rxObj.userId);
+      // console.log("KEEPALIVE" + " | " + rxObj.userId);
     } else {
       rxSessionUpdateQueue.push(rxSessionObject);
       console.log("UID: " + rxObj.userId 
         // + " | " + jsonPrint(rxObj.tags) 
+        + " | G: " + rxObj.tags.group
         + " | ENT: " + rxObj.tags.entity
         + " | CH: " + rxObj.tags.channel
         + " | " + rxObj.wordChainIndex 
@@ -1283,15 +1270,16 @@ var processSessionQueues = function(callback) {
     return (callback(null, null));
   } else {
     var session = rxSessionUpdateQueue.shift();
-    sessionCreateQueue.push(session);
+    groupCreateQueue.push(session);
+    // sessionCreateQueue.push(session);
     return (callback(null, session.sessionId));
   }
 }
 
 var processNodeDeleteQueue = function(callback) {
-  if (nodeDeleteQueue.length == 0) {
-    return (callback(null, "processNodeDeleteQueue"));
-  } else {
+  while (nodeDeleteQueue.length > 0) {
+  //   return (callback(null, "processNodeDeleteQueue"));
+  // } else {
 
     var deletedNodeId = nodeDeleteQueue.shift();
 
@@ -1299,9 +1287,164 @@ var processNodeDeleteQueue = function(callback) {
 
     removeFromHashMap(nodeHashMap, deletedNodeId, function() {
       // console.error("processNodeDeleteQueue: DELETED: " + deletedNodeId);
-      return (callback(null, "processNodeDeleteQueue"));
+      // return (callback(null, "processNodeDeleteQueue"));
     });
 
+  }
+  return (callback(null, "processNodeDeleteQueue"));
+}
+
+var createGroup = function(callback) {
+  if (groupCreateQueue.length == 0) {
+    return (callback(null, null));
+  } 
+  else {
+
+    var dateNow = moment().valueOf();
+    var sessUpdate = groupCreateQueue.shift();
+
+    var groupId = sessUpdate.tags.group.toLowerCase();
+
+    // console.warn("createGroup" + " | " + groupId);
+
+    var currentGroup = {};
+    var currentSession = {};
+
+    if (groupDeleteHashMap.has(groupId)) {
+      console.warn("createGroup: " 
+        + groupId 
+        + " GROUP IN DELETE HASH MAP ... SKIPPING"
+      );
+      return (callback(null, null));
+    } 
+    else if (groupHashMap.has(groupId)) {
+
+      currentGroup = groupHashMap.get(groupId);
+
+      if (nodeHashMap.has(currentGroup.node.nodeId)) {
+        currentGroup.node = nodeHashMap.get(currentGroup.node.nodeId);
+      }
+
+      // console.warn("FOUND GROUP" + " [" + sessUpdate.wordChainIndex + "]" 
+      //   + " | G: " + sessUpdate.tags.group 
+      //   + " | C: " + sessUpdate.tags.channel 
+      //   + " | E: " + sessUpdate.tags.entity 
+      //   + " | U: " + sessUpdate.userId 
+      //   + " | " + sessUpdate.source.nodeId 
+      //   + " > " + sessUpdate.target.nodeId
+      //   // + "\n" + jsonPrint(currentGroup)
+      // );
+
+      currentGroup.mentions++;
+      currentGroup.age = 0;
+      currentGroup.lastSeen = dateNow;
+      currentGroup.text = groupId;
+
+      currentGroup.node.text = groupId;
+      currentGroup.node.age = 0;
+      currentGroup.node.isDead = false;
+      currentGroup.node.mentions++;
+      currentGroup.node.ageUpdated = dateNow;
+      currentGroup.node.lastSeen = dateNow;
+      currentGroup.node.interpolateColor = currentGroup.interpolateColor;
+
+      if (sessionHashMap.has(sessUpdate.sessionId)) {
+        currentSession = sessionHashMap.get(sessUpdate.sessionId);
+        var groupLinkId = currentGroup.node.nodeId + "_" + currentSession.node.nodeId;
+        currentGroup.node.links = {};
+        currentGroup.node.links[groupLinkId] = 1;
+      }
+
+      addToHashMap(nodeHashMap, currentGroup.node.nodeId, currentGroup.node, function(grpNode) {
+
+        addToHashMap(groupHashMap, currentGroup.groupId, currentGroup, function(cGroup) {
+          sessionCreateQueue.push(sessUpdate);
+          return (callback(null, cGroup.groupId));
+        });
+      });
+
+    } 
+    else {
+
+      groupsCreated += 1;
+
+      console.warn("CREATE GROUP" + " [" + sessUpdate.wordChainIndex + "]" 
+        + " | G: " + groupId 
+        + " | C: " + sessUpdate.tags.channel 
+        + " | E: " + sessUpdate.tags.entity 
+        + " | U: " + sessUpdate.userId 
+        + " | " + sessUpdate.source.nodeId 
+        + " > " + sessUpdate.target.nodeId
+        // + "\n" + jsonPrint(sessUpdate)
+      );
+
+      currentGroup.groupId = groupId;
+      currentGroup.nodeId = groupId;
+      currentGroup.age = 0;
+      currentGroup.lastSeen = dateNow;
+      currentGroup.isGroup = true;
+      currentGroup.mentions = 0;
+      currentGroup.tags = {};
+      currentGroup.tags = sessUpdate.tags;
+      currentGroup.text = groupId;
+      currentGroup.source = sessUpdate.source;
+      currentGroup.source.lastSeen = dateNow;
+      currentGroup.target = sessUpdate.target;
+      currentGroup.target.lastSeen = dateNow;
+
+      currentGroup.node = {};
+      currentGroup.linkHashMap = new HashMap();
+      currentGroup.initialPosition = computeInitialPosition(initialPositionIndex++);
+      currentGroup.x = currentGroup.initialPosition.x;
+      currentGroup.y = currentGroup.initialPosition.y;
+      currentGroup.colors = {};
+      currentGroup.colors = randomColorQueue.shift();
+
+      var interpolateNodeColor = d3.interpolateHsl(currentGroup.colors.endColor, currentGroup.colors.startColor);
+      currentGroup.interpolateColor = interpolateNodeColor;
+
+      // CREATE GROUP NODE
+
+      currentGroup.node.isGroupNode = true;
+      currentGroup.node.nodeId = groupId;
+      currentGroup.node.age = 0;
+      currentGroup.node.isDead = false;
+      currentGroup.node.ageUpdated = dateNow;
+      currentGroup.node.lastSeen = dateNow;
+      currentGroup.node.mentions = 1;
+      currentGroup.node.text = groupId;
+      currentGroup.node.x = currentGroup.initialPosition.x;
+      currentGroup.node.y = currentGroup.initialPosition.y;
+      currentGroup.node.fixed = true;
+      currentGroup.node.colors = currentGroup.colors;
+      currentGroup.node.interpolateColor = currentGroup.interpolateColor;
+
+      currentGroup.node.links = {};
+
+      if (sessionHashMap.has(sessUpdate.sessionId)) {
+        currentSession = sessionHashMap.get(sessUpdate.sessionId);
+        var groupLinkId = currentGroup.node.nodeId + "_" + currentSession.node.nodeId;
+        currentGroup.node.links[groupLinkId] = 1;
+      }
+
+      addToHashMap(nodeHashMap, currentGroup.node.nodeId, currentGroup.node, function(grpNode) {
+        console.log("NEW GROUP NODE" 
+          + " | " + grpNode.nodeId
+        );
+
+        currentSessionView.addNode(grpNode);
+
+        addToHashMap(groupHashMap, currentGroup.groupId, currentGroup, function(cGroup) {
+          console.log("NEW GROUP " + cGroup.groupId 
+            + " | GNID: " + cGroup.node.nodeId
+          );
+          sessionCreateQueue.push(sessUpdate);
+          currentSessionView.addGroup(cGroup);
+          nodeCreateQueue.push(cGroup);
+          return (callback(null, cGroup.groupId));
+        });
+      });
+    }
   }
 }
 
@@ -1314,7 +1457,14 @@ var createSession = function(callback) {
 
     var dateNow = moment().valueOf();
     var sessUpdate = sessionCreateQueue.shift();
+
+    var currentGroup = {};
     var currentSession = {};
+
+    if (groupHashMap.has(sessUpdate.tags.group)) {
+      currentGroup = groupHashMap.get(sessUpdate.tags.group);
+    }
+
 
     if (sessionDeleteHashMap.has(sessUpdate.sessionId)) {
       console.warn("createSession: " 
@@ -1335,14 +1485,19 @@ var createSession = function(callback) {
       if (nodeHashMap.has(currentSession.node.nodeId)) {
         currentSession.node = nodeHashMap.get(currentSession.node.nodeId);
       }
+      if (nodeHashMap.has(sessUpdate.tags.group)) {
+        currentGroup.node = nodeHashMap.get(sessUpdate.tags.group);
+      }
 
       var prevLatestNodeId = currentSession.latestNodeId;
+      currentSession.prevLatestNodeId = prevLatestNodeId;
       var prevSessionLinkId = currentSession.node.nodeId + "_" + prevLatestNodeId;
 
       removeFromHashMap(linkHashMap, prevSessionLinkId, function() {
         currentSessionView.deleteLink(prevSessionLinkId);
       });
 
+      currentSession.groupId = currentGroup.groupId;
       currentSession.age = 0;
       currentSession.lastSeen = dateNow;
       currentSession.userId = sessUpdate.userId;
@@ -1356,6 +1511,7 @@ var createSession = function(callback) {
 
       currentSession.node.text = sessUpdate.tags.entity + ' | ' + sessUpdate.tags.channel;
       currentSession.node.age = 0;
+      currentSession.node.isDead = false;
       currentSession.node.ageUpdated = dateNow;
       currentSession.node.lastSeen = dateNow;
       currentSession.node.mentions = sessUpdate.wordChainIndex;
@@ -1394,7 +1550,7 @@ var createSession = function(callback) {
       currentSession.sessionId = sessUpdate.sessionId;
       currentSession.tags = {};
       currentSession.tags = sessUpdate.tags;
-      currentSession.nodeId = sessUpdate.userId;
+      currentSession.nodeId = sessUpdate.tags.entity + '_' + sessUpdate.tags.channel;
       currentSession.userId = sessUpdate.userId;
       currentSession.wordChainIndex = sessUpdate.wordChainIndex;
       currentSession.text = sessUpdate.tags.entity + ' | ' + sessUpdate.tags.channel;
@@ -1415,9 +1571,10 @@ var createSession = function(callback) {
       currentSession.interpolateColor = interpolateNodeColor;
 
       // CREATE SESSION NODE
-      var sessionNode = {};
 
       currentSession.node.isSessionNode = true;
+      currentSession.node.isDead = false;
+      currentSession.node.isGroupNode = false;
       currentSession.node.nodeId = sessUpdate.tags.entity + '_' + sessUpdate.tags.channel;
       currentSession.node.entity = sessUpdate.tags.entity;
       currentSession.node.channel = sessUpdate.tags.channel;
@@ -1429,9 +1586,9 @@ var createSession = function(callback) {
       currentSession.node.wordChainIndex = sessUpdate.wordChainIndex;
       currentSession.node.mentions = sessUpdate.wordChainIndex;
       currentSession.node.text = sessUpdate.tags.entity + ' | ' + sessUpdate.tags.channel;
-      currentSession.node.x = currentSession.initialPosition.x;
-      currentSession.node.y = currentSession.initialPosition.y;
-      currentSession.node.fixed = true;
+      // currentSession.node.x = currentSession.initialPosition.x;
+      // currentSession.node.y = currentSession.initialPosition.y;
+      // currentSession.node.fixed = true;
       currentSession.node.colors = currentSession.colors;
       currentSession.node.interpolateColor = currentSession.interpolateColor;
 
@@ -1475,7 +1632,9 @@ var createNode = function(callback) {
 
     var session = nodeCreateQueue.shift();
 
-    if (nodeHashMap.has(session.node.nodeId)) {
+    if (nodeHashMap.has(session.tags.group)) {
+    }
+    else if (nodeHashMap.has(session.node.nodeId)) {
 
       var sessionNode = nodeHashMap.get(session.node.nodeId);
 
@@ -1484,10 +1643,11 @@ var createNode = function(callback) {
       // sessionNode.text = session.tags.entity + '_' + session.tags.channel;
       sessionNode.text = session.tags.entity + '_' + session.tags.channel;
       sessionNode.age = 0;
+      sessionNode.isDead = false;
       sessionNode.wordChainIndex = session.wordChainIndex;
-      sessionNode.x = session.initialPosition.x;
-      sessionNode.y = session.initialPosition.y;
-      sessionNode.fixed = true;
+      // sessionNode.x = session.initialPosition.x;
+      // sessionNode.y = session.initialPosition.y;
+      // sessionNode.fixed = true;
       sessionNode.colors = session.colors;
       sessionNode.interpolateColor = session.interpolateColor;
 
@@ -1502,15 +1662,13 @@ var createNode = function(callback) {
       session.node.nodeId = session.tags.entity + '_' + session.tags.channel;
       session.node.entity = session.tags.entity;
       session.node.channel = session.tags.channel;
-      // session.node.text = session.tags.entity;
       session.node.text = session.tags.entity + ' | ' + session.tags.channel;
       session.node.userId = session.userId;
       session.node.sessionId = session.sessionId;
       session.node.age = 0;
+      session.node.isSessionNode = false;
+      session.node.isDead = false;
       session.node.wordChainIndex = session.wordChainIndex;
-      session.node.x = session.initialPosition.x;
-      session.node.y = session.initialPosition.y;
-      session.node.fixed = true;
       session.node.colors = session.colors;
       session.node.interpolateColor = session.interpolateColor;
 
@@ -1539,6 +1697,7 @@ var createNode = function(callback) {
             sourceNode.userId = session.userId;
             sourceNode.sessionId = session.sessionId;
             sourceNode.age = 0;
+            sourceNode.isDead = false;
             sourceNode.ageUpdated = dateNow;
             sourceNode.lastSeen = dateNow;
             sourceNode.mentions = session.source.mentions;
@@ -1547,8 +1706,14 @@ var createNode = function(callback) {
             sourceNode.colors = session.colors;
             sourceNode.interpolateColor = session.interpolateColor;
             if (sourceNode.isSessionNode){
-              sourceNode.x = session.initialPosition.x;
-              sourceNode.y = session.initialPosition.y;
+              sourceNode.x = session.node.x;
+              sourceNode.y = session.node.y;
+            }
+            else {
+              sourceNode.isSessionNode = false;
+            }
+            if (!sourceNode.isGroupNode){
+              sourceNode.isGroupNode = false;
             }
 
             addToHashMap(nodeHashMap, sourceNodeId, sourceNode, function(sNode) {
@@ -1562,18 +1727,23 @@ var createNode = function(callback) {
             sourceNode = session.source;
             sourceNode.newFlag = true;
             if (sourceNode.isSessionNode){
-              sourceNode.x = session.initialPosition.x;
-              sourceNode.y = session.initialPosition.y;
+              sourceNode.x = session.node.x;
+              sourceNode.y = session.node.y;
             }
             else {
-              sourceNode.x = session.initialPosition.x + (100 * Math.random());
-              sourceNode.y = session.initialPosition.y + 100;
+              sourceNode.x = session.node.x + (100 * Math.random());
+              sourceNode.y = session.node.y + 100;
+              sourceNode.isSessionNode = false;
+            }
+            if (!sourceNode.isGroupNode){
+              sourceNode.isGroupNode = false;
             }
             sourceNode.userId = session.userId;
             sourceNode.sessionId = session.sessionId;
             sourceNode.links = {};
             sourceNode.rank = -1;
             sourceNode.age = 0;
+            sourceNode.isDead = false;
             sourceNode.lastSeen = dateNow;
             sourceNode.ageUpdated = dateNow;
             sourceNode.colors = session.colors;
@@ -1608,6 +1778,7 @@ var createNode = function(callback) {
             targetNode.userId = session.userId;
             targetNode.sessionId = session.sessionId;
             targetNode.age = 0;
+            targetNode.isDead = false;
             targetNode.ageUpdated = dateNow;
             targetNode.lastSeen = dateNow;
             targetNode.mentions = session.target.mentions;
@@ -1615,6 +1786,12 @@ var createNode = function(callback) {
             targetNode.colors = session.colors;
             targetNode.interpolateColor = session.interpolateColor;
             targetNode.latestNode = false;
+            if (!targetNode.isSessionNode){
+              targetNode.isSessionNode = false;
+            }
+            if (!targetNode.isGroupNode){
+              targetNode.isGroupNode = false;
+            }
 
             addToHashMap(nodeHashMap, targetNodeId, targetNode, function(tNode) {
               cb(null, {
@@ -1626,19 +1803,26 @@ var createNode = function(callback) {
           } else {
             targetNode = session.target;
             targetNode.newFlag = true;
-            targetNode.x = session.initialPosition.x - (100 - 100 * Math.random());
-            targetNode.y = session.initialPosition.y - (100 - 100 * Math.random());
+            targetNode.x = session.node.x - (100 - 100 * Math.random());
+            targetNode.y = session.node.y - (100 - 100 * Math.random());
             targetNode.userId = session.userId;
             targetNode.sessionId = session.sessionId;
             targetNode.links = {};
             targetNode.rank = -1;
             targetNode.age = 0;
+            targetNode.isDead = false;
             targetNode.lastSeen = dateNow;
             targetNode.ageUpdated = dateNow;
             targetNode.colors = session.colors;
             targetNode.interpolateColor = session.interpolateColor;
             targetNode.text = targetNodeId;
             targetNode.latestNode = false;
+            if (!targetNode.isSessionNode){
+              targetNode.isSessionNode = false;
+            }
+            if (!targetNode.isGroupNode){
+              targetNode.isGroupNode = false;
+            }
 
             addToHashMap(nodeHashMap, targetNodeId, targetNode, function(tNode) {
               cb(null, {
@@ -1682,21 +1866,69 @@ var createLink = function(callback) {
 
     var session = linkCreateQueue.shift();
 
-    var sessionLinkId = session.node.nodeId + "_" + session.latestNodeId;
+    var currentGroup = groupHashMap.get(session.tags.group);
 
-    var newSessionLink = {
-      linkId: sessionLinkId,
-      userId: session.userId,
-      sessionId: session.sessionId,
-      age: 0,
-      source: session.node,
-      target: session.source,
-      isSessionLink: true
-    };
+    var groupLinkId;
+    var sessionLinkId;
 
-    addToHashMap(linkHashMap, sessionLinkId, newSessionLink, function(sesLink) {
-      currentSessionView.addLink(sesLink);
-    });
+    // if (!session.node.isGroupNode && (currentGroup.node.nodeId != session.node.nodeId)){
+    if (session.node.isSessionNode && (currentGroup.node.nodeId != session.node.nodeId)){
+      var groupLinkId = currentGroup.node.nodeId + "_" + session.node.nodeId;
+
+      if (!linkHashMap.has(groupLinkId)){
+        var newGroupLink = {
+          linkId: groupLinkId,
+          groupId: currentGroup.groupId,
+          age: 0,
+          isDead: false,
+          source: currentGroup.node,
+          target: session.node,
+          isGroupLink: true
+        };
+
+        addToHashMap(linkHashMap, groupLinkId, newGroupLink, function(grpLink) {
+          // console.log("grpLink\n" + jsonPrint(grpLink));
+          currentSessionView.addLink(grpLink);
+        });
+      }
+      else {
+        var groupLink = linkHashMap.get(groupLinkId);
+        groupLink.age = 0;
+        addToHashMap(linkHashMap, groupLinkId, groupLink, function(grpLink) {
+          // console.log("grpLink\n" + jsonPrint(grpLink));
+          // currentSessionView.addLink(grpLink);
+        });
+      }
+    }
+    else {
+      console.warn("SOURCE == TARGET " + session.node.nodeId);
+    }
+
+    if (session.node.isSessionNode && (session.node.nodeId != session.latestNodeId)){
+      var sessionLinkId = session.node.nodeId + "_" + session.latestNodeId;
+      var prevSessionLinkId = session.node.nodeId + "_" + session.prevLatestNodeId;
+      if (linkHashMap.has(prevSessionLinkId)){
+        console.log("prevSessionLinkId: " + jsonPrint(prevSessionLinkId));
+      }
+      if (!linkHashMap.has(sessionLinkId)){
+        var newSessionLink = {
+          linkId: sessionLinkId,
+          userId: session.userId,
+          sessionId: session.sessionId,
+          age: 0,
+          isDead: false,
+          source: session.node,
+          target: session.source,
+          isSessionLink: true
+        };
+        addToHashMap(linkHashMap, sessionLinkId, newSessionLink, function(sesLink) {
+          currentSessionView.addLink(sesLink);
+        });
+      }
+    }
+    else {
+      console.warn("SOURCE == TARGET " + session.node.nodeId);
+    }
 
     var sourceWordId = session.source.nodeId;
     var sourceWord = nodeHashMap.get(sourceWordId);
@@ -1734,6 +1966,7 @@ var createLink = function(callback) {
           sessionId: session.sessionId,
           userId: session.userId,
           age: 0,
+          isDead: false,
           source: sourceWord,
           target: targetWord
         };
@@ -1796,6 +2029,7 @@ var ageSessions = function(callback) {
 }
 
 var updateSessionsReady = true;
+var statusSession2Id = document.getElementById("statusSession2Id");
 
 function updateSessions() {
 
@@ -1805,10 +2039,11 @@ function updateSessions() {
     [
       processNodeDeleteQueue,
       processSessionQueues,
+      createGroup,
       createSession,
       createNode,
       createLink,
-      ageSessions,
+      // ageSessions,
     ],
 
     function(err, result) {
@@ -1816,6 +2051,14 @@ function updateSessions() {
         console.error("*** ERROR: updateSessions *** \nERROR: " + err);
       }
       updateSessionsReady = true;
+      statusSession2Id = document.getElementById("statusSession2Id");
+      if (typeof statusSession2Id !== 'undefined') {
+        statusSession2Id.innerHTML = 'NODES: ' + currentSessionView.nodesLength() 
+        + '<br>' + 'AGE RATE: ' + currentSessionView.ageRate();
+      } else {
+        console.warn("statusSession2Id element is undefined");
+      }
+
     }
   );
 }
@@ -1970,8 +2213,8 @@ function initialize() {
             setTimeout(function() {
               console.log("END PAGE LOAD TIMEOUT");
               pageLoadedTimeIntervalFlag = false;
-              displayInfo(false);
-              displayControl(false);
+              if (config.showStatsFlag) displayInfo(false);
+              if (config.showStatsFlag) displayControl(false);
             }, 5000);
           });
         } else {
@@ -1999,8 +2242,8 @@ function initialize() {
             setTimeout(function() {
               console.log("END PAGE LOAD");
               pageLoadedTimeIntervalFlag = false;
-              displayInfo(false);
-              displayControl(false);
+              if (!config.showStatsFlag) displayInfo(false);
+              if (!config.showStatsFlag) displayControl(false);
             }, 5000);
           });
         }
@@ -2029,8 +2272,8 @@ function initialize() {
           setTimeout(function() {
             console.error("END PAGE LOAD TIMEOUT");
             pageLoadedTimeIntervalFlag = false;
-            displayInfo(false);
-            displayControl(false);
+            if (!config.showStatsFlag) displayInfo(false);
+            if (!config.showStatsFlag) displayControl(false);
           }, 5000);
         });
 

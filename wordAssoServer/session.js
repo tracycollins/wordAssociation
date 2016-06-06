@@ -1411,6 +1411,7 @@ var createGroup = function(callback) {
       currentGroup.node.isDead = false;
       currentGroup.node.ageUpdated = dateNow;
       currentGroup.node.lastSeen = dateNow;
+      currentGroup.node.wordChainIndex = sessUpdate.source.wordChainIndex;
       currentGroup.node.mentions = 1;
       currentGroup.node.text = groupId;
       currentGroup.node.x = currentGroup.initialPosition.x;
@@ -1478,6 +1479,10 @@ var createSession = function(callback) {
 
       currentSession = sessionHashMap.get(sessUpdate.sessionId);
 
+      if (typeof currentSession.wordChainIndex === 'undefined'){
+        console.error("*** currentSession.wordChainIndex UNDEFINED");
+      }
+
       if (typeof currentSession.tags === 'undefined') currentSession.tags = {};
 
       currentSession.tags = sessUpdate.tags;
@@ -1511,9 +1516,12 @@ var createSession = function(callback) {
 
       currentSession.node.text = sessUpdate.tags.entity + ' | ' + sessUpdate.tags.channel;
       currentSession.node.age = 0;
+      currentSession.node.isGroupNode = false;
+      currentSession.node.isSessionNode = true;
       currentSession.node.isDead = false;
       currentSession.node.ageUpdated = dateNow;
       currentSession.node.lastSeen = dateNow;
+      currentSession.node.wordChainIndex = sessUpdate.wordChainIndex;
       currentSession.node.mentions = sessUpdate.wordChainIndex;
       currentSession.node.interpolateColor = currentSession.interpolateColor;
 
@@ -1522,14 +1530,15 @@ var createSession = function(callback) {
       currentSession.node.links = {};
       currentSession.node.links[sessionLinkId] = 1;
 
-      addToHashMap(nodeHashMap, currentSession.node.nodeId, currentSession.node, function(sesNode) {});
-
-      addToHashMap(sessionHashMap, currentSession.sessionId, currentSession, function(cSession) {
-        nodeCreateQueue.push(cSession);
-        removeFromHashMap(linkHashMap, sessionId, function() {
-          return (callback(null, cSession.sessionId));
+      addToHashMap(nodeHashMap, currentSession.node.nodeId, currentSession.node, function(sesNode) {
+        addToHashMap(sessionHashMap, currentSession.sessionId, currentSession, function(cSession) {
+          nodeCreateQueue.push(cSession);
+          removeFromHashMap(linkHashMap, sessionId, function() {
+            return (callback(null, cSession.sessionId));
+          });
         });
       });
+
       
     } else {
 
@@ -1584,17 +1593,17 @@ var createSession = function(callback) {
       currentSession.node.ageUpdated = dateNow;
       currentSession.node.lastSeen = dateNow;
       currentSession.node.wordChainIndex = sessUpdate.wordChainIndex;
-      currentSession.node.mentions = sessUpdate.wordChainIndex;
+      // currentSession.node.mentions = sessUpdate.wordChainIndex;
       currentSession.node.text = sessUpdate.tags.entity + ' | ' + sessUpdate.tags.channel;
-      // currentSession.node.x = currentSession.initialPosition.x;
-      // currentSession.node.y = currentSession.initialPosition.y;
+      currentSession.node.x = currentSession.initialPosition.x;
+      currentSession.node.y = currentSession.initialPosition.y;
       // currentSession.node.fixed = true;
       currentSession.node.colors = currentSession.colors;
-      currentSession.node.interpolateColor = currentSession.interpolateColor;
+      currentSession.node.interpolateColor = interpolateNodeColor;
 
       currentSession.node.links = {};
 
-      var sessionLinkId = sessUpdate.userId + "_" + currentSession.latestNodeId;
+      var sessionLinkId = currentSession.node.nodeId + "_" + currentSession.latestNodeId;
       currentSession.node.links[sessionLinkId] = 1;
       currentSession.node.link = sessionLinkId;
 
@@ -1606,14 +1615,19 @@ var createSession = function(callback) {
       addToHashMap(nodeHashMap, currentSession.node.nodeId, currentSession.node, function(sesNode) {
         console.log("NEW SESSION NODE" 
           + " | " + sesNode.nodeId
+          + " | " + sesNode.wordChainIndex
         );
 
         currentSessionView.addNode(sesNode);
 
         addToHashMap(sessionHashMap, currentSession.sessionId, currentSession, function(cSession) {
           console.log("NEW SESSION " + cSession.userId 
+            + " | " + cSession.nodeId 
             + " | " + cSession.sessionId 
             + " | SNID: " + cSession.node.nodeId
+            + " | LNID: " + cSession.latestNodeId
+            + " | " + cSession.wordChainIndex 
+            + "\n" + jsonPrint(cSession) 
           );
           currentSessionView.addSession(cSession);
           nodeCreateQueue.push(cSession);
@@ -1632,22 +1646,18 @@ var createNode = function(callback) {
 
     var session = nodeCreateQueue.shift();
 
-    if (nodeHashMap.has(session.tags.group)) {
-    }
-    else if (nodeHashMap.has(session.node.nodeId)) {
+    if (nodeHashMap.has(session.node.nodeId)) {
 
       var sessionNode = nodeHashMap.get(session.node.nodeId);
 
+      // sessionNode.isSessionNode = true;
       sessionNode.entity = session.tags.entity;
       sessionNode.channel = session.tags.channel;
-      // sessionNode.text = session.tags.entity + '_' + session.tags.channel;
-      sessionNode.text = session.tags.entity + '_' + session.tags.channel;
+      sessionNode.text = session.tags.entity + ' | ' + session.tags.channel;
       sessionNode.age = 0;
       sessionNode.isDead = false;
       sessionNode.wordChainIndex = session.wordChainIndex;
-      // sessionNode.x = session.initialPosition.x;
-      // sessionNode.y = session.initialPosition.y;
-      // sessionNode.fixed = true;
+      sessionNode.mentions = session.wordChainIndex;
       sessionNode.colors = session.colors;
       sessionNode.interpolateColor = session.interpolateColor;
 
@@ -1659,6 +1669,8 @@ var createNode = function(callback) {
     } 
     else {
 
+      session.node.isSessionNode = true;
+      session.node.isGroupNode = false;
       session.node.nodeId = session.tags.entity + '_' + session.tags.channel;
       session.node.entity = session.tags.entity;
       session.node.channel = session.tags.channel;
@@ -1666,14 +1678,16 @@ var createNode = function(callback) {
       session.node.userId = session.userId;
       session.node.sessionId = session.sessionId;
       session.node.age = 0;
-      session.node.isSessionNode = false;
       session.node.isDead = false;
       session.node.wordChainIndex = session.wordChainIndex;
+      session.node.mentions = session.wordChainIndex;
+      session.node.x = session.initialPosition.x;
+      session.node.y = session.initialPosition.y;
       session.node.colors = session.colors;
       session.node.interpolateColor = session.interpolateColor;
 
       addToHashMap(nodeHashMap, session.node.nodeId, session.node, function(sNode) {
-        currentSessionView.addNode(sNode);
+        // currentSessionView.addNode(sNode);
       });
     }
 
@@ -1700,12 +1714,15 @@ var createNode = function(callback) {
             sourceNode.isDead = false;
             sourceNode.ageUpdated = dateNow;
             sourceNode.lastSeen = dateNow;
+            // sourceNode.wordChainIndex = session.source.wordChainIndex;
             sourceNode.mentions = session.source.mentions;
             sourceNode.text = sourceNodeId;
             sourceNode.latestNode = true;
             sourceNode.colors = session.colors;
             sourceNode.interpolateColor = session.interpolateColor;
             if (sourceNode.isSessionNode){
+              sourceNode.wordChainIndex = session.source.wordChainIndex;
+              sourceNode.mentions = session.source.wordChainIndex;
               sourceNode.x = session.node.x;
               sourceNode.y = session.node.y;
             }
@@ -1727,8 +1744,8 @@ var createNode = function(callback) {
             sourceNode = session.source;
             sourceNode.newFlag = true;
             if (sourceNode.isSessionNode){
-              sourceNode.x = session.node.x;
-              sourceNode.y = session.node.y;
+              // sourceNode.wordChainIndex = session.source.wordChainIndex;
+              sourceNode.mentions = session.source.wordChainIndex;
             }
             else {
               sourceNode.x = session.node.x + (100 * Math.random());
@@ -1746,6 +1763,7 @@ var createNode = function(callback) {
             sourceNode.isDead = false;
             sourceNode.lastSeen = dateNow;
             sourceNode.ageUpdated = dateNow;
+            sourceNode.wordChainIndex = session.source.wordChainIndex;
             sourceNode.colors = session.colors;
             sourceNode.interpolateColor = session.interpolateColor;
             sourceNode.text = sourceNodeId;
@@ -1782,6 +1800,7 @@ var createNode = function(callback) {
             targetNode.ageUpdated = dateNow;
             targetNode.lastSeen = dateNow;
             targetNode.mentions = session.target.mentions;
+            targetNode.wordChainIndex = session.target.wordChainIndex;
             targetNode.text = targetNodeId;
             targetNode.colors = session.colors;
             targetNode.interpolateColor = session.interpolateColor;
@@ -1836,6 +1855,8 @@ var createNode = function(callback) {
       },
       function(err, results) {
 
+        // console.warn("results\n" + jsonPrint(results));
+
         if (!results.source.isIgnored) {
           session.source = results.source.node;
           session.source.isNew = results.source.isNew;
@@ -1853,6 +1874,7 @@ var createNode = function(callback) {
         }
 
         addToHashMap(sessionHashMap, session.sessionId, session, function(cSession) {
+    // console.warn("cSession\n" + jsonPrint(session));
           if (!results.source.isIgnored) linkCreateQueue.push(cSession);
         });
       });
@@ -1866,13 +1888,19 @@ var createLink = function(callback) {
 
     var session = linkCreateQueue.shift();
 
+    // console.warn("createLink session\n" + jsonPrint(session));
+
     var currentGroup = groupHashMap.get(session.tags.group);
+
+    // console.warn("createLink currentGroup\n" + jsonPrint(currentGroup));
 
     var groupLinkId;
     var sessionLinkId;
 
     // if (!session.node.isGroupNode && (currentGroup.node.nodeId != session.node.nodeId)){
-    if (session.node.isSessionNode && (currentGroup.node.nodeId != session.node.nodeId)){
+    // if (session.node.isSessionNode && (currentGroup.node.nodeId != session.node.nodeId)){
+    if (currentGroup.node.nodeId != session.node.nodeId){
+
       var groupLinkId = currentGroup.node.nodeId + "_" + session.node.nodeId;
 
       if (!linkHashMap.has(groupLinkId)){
@@ -1901,7 +1929,10 @@ var createLink = function(callback) {
       }
     }
     else {
-      console.warn("SOURCE == TARGET " + session.node.nodeId);
+      console.warn("SOURCE == TARGET ?"
+        + " | " + currentGroup.node.nodeId
+        + " | " + session.node.nodeId
+      );
     }
 
     if (session.node.isSessionNode && (session.node.nodeId != session.latestNodeId)){
@@ -1922,6 +1953,7 @@ var createLink = function(callback) {
           isSessionLink: true
         };
         addToHashMap(linkHashMap, sessionLinkId, newSessionLink, function(sesLink) {
+          // console.warn("sesLink\n" + jsonPrint(sesLink));
           currentSessionView.addLink(sesLink);
         });
       }

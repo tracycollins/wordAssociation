@@ -8,6 +8,7 @@ function ViewForce() {
   var self = this;
 
   var force;
+  var showStatsFlag = false;
 
   var pauseFlag = false;
   var updateNodeFlag = false;
@@ -44,7 +45,6 @@ function ViewForce() {
 
   var updateForceDisplayReady = true;
 
-  var showStatsFlag = false;
 
   var nodeMaxAge = 60000;
 
@@ -349,8 +349,8 @@ function ViewForce() {
   });
 
   drag.on("dragend", function(d) {
-    console.warn("d\n" + jsonPrint(d));
-    console.warn("DRAG END" + "\n" + jsonPrint(dragEndPosition));
+    // console.warn("d\n" + jsonPrint(d));
+    // console.warn("DRAG END" + "\n" + jsonPrint(dragEndPosition));
   });
 
   var globalLinkIndex = 0;
@@ -887,7 +887,12 @@ function ViewForce() {
         // return d.interpolateColor(0.5 * (nodeMaxAge - d.age) / nodeMaxAge);
         return d.interpolateColor(0.5 * (nodeMaxAge - (dateNow - d.lastSeen)) / nodeMaxAge);
       })
-      .style('opacity', 1)
+      .style('opacity', function(d) {
+        if (d.age >= nodeMaxAge) {
+          return 0;
+        }
+        return 1
+      })
       .style('stroke', function(d) {
         if (d3.select(this).attr("mouseover") == 1) {
           return palette.white;
@@ -1031,7 +1036,14 @@ function ViewForce() {
 
     nodeCircles
       .attr("r", function(d) {
-        return defaultRadiusScale(d.mentions + 1);
+        if (typeof d.mentions === 'undefined') 
+          {
+            console.error(d.nodeId + " | NODE CIRCLE d.mentions UNDEFINED");
+            return defaultRadiusScale(1);
+          }
+          else {
+            return defaultRadiusScale(parseInt(d.mentions) + 1);
+          }
       })
       .attr("cx", function(d) {
         return d.x;
@@ -1119,11 +1131,11 @@ function ViewForce() {
       })
       .attr("y", function(d) {
         if (d.isSessionNode) {
-          var shiftY = -10 - 1.1 * (sessionCircleRadiusScale(d.wordChainIndex + 1));
+          var shiftY = -10 - 1.1 * (sessionCircleRadiusScale(parseInt(d.wordChainIndex) + 1));
           return d.y + shiftY;
         }
         else{
-          var shiftY = -10 - 1.1 * (defaultRadiusScale(d.mentions + 1));
+          var shiftY = -10 - 1.1 * (defaultRadiusScale(parseInt(d.mentions) + 1));
           return d.y + shiftY;
         }
       })
@@ -1141,11 +1153,29 @@ function ViewForce() {
       })
       .attr("y", function(d) {
         if (d.isSessionNode) {
-          var shiftY = -10 - 1.1 * (sessionCircleRadiusScale(d.wordChainIndex + 1));
+          var shiftY = -10 - 1.1 * (sessionCircleRadiusScale(parseInt(d.wordChainIndex) + 1));
+          // console.log("nodeLabels"
+          // + " | d.nodeId: " + d.nodeId
+          // + " | d.isGroupNode: " + d.isGroupNode
+          // + " | d.isSessionNode: " + d.isSessionNode
+          // + " | d.y: " + d.y 
+          // + " | WCI: " + d.wordChainIndex 
+          // + " | M: " + d.mentions 
+          // + " | " + shiftY
+          // );
           return d.y + shiftY;
         }
         else{
-          var shiftY = -10 - 1.1 * (defaultRadiusScale(d.mentions + 1));
+          var shiftY = -10 - 1.1 * (defaultRadiusScale(parseInt(d.mentions) + 1));
+          // console.log("nodeLabels"
+          // + " | d.nodeId: " + d.nodeId
+          // + " | d.isGroupNode: " + d.isGroupNode
+          // + " | d.isSessionNode: " + d.isSessionNode
+          // + " | d.y: " + d.y 
+          // + " | WCI: " + d.wordChainIndex 
+          // + " | M: " + d.mentions 
+          // + " | " + shiftY
+          // );
           return d.y + shiftY;
         }
       })
@@ -1430,7 +1460,7 @@ function ViewForce() {
   }
 
   this.addGroup = function(newGroup) {
-    console.warn("addGroup: " + newGroup.groupId);
+    // console.log("addGroup: " + newGroup.groupId);
     force.stop();
     forceStopped = true;
     groups.push(newGroup);
@@ -1481,8 +1511,12 @@ function ViewForce() {
   }
 
   this.addNode = function(newNode) {
-    // console.log("addNode\n" + jsonPrint(newNode));
-    console.log("addNode | " + newNode.nodeId + " | " + newNode.wordChainIndex);
+    // console.error("addNode\n" + jsonPrint(newNode));
+    // console.log("addNode"
+    //   + " | " + newNode.nodeId 
+    //   + " | " + newNode.mentions 
+    //   + " | " + newNode.wordChainIndex
+    // );
     force.stop();
     forceStopped = true;
     nodes.push(newNode);

@@ -39,7 +39,7 @@ config.pauseFlag = false;
 config.sessionViewType = DEFAULT_SESSION_VIEW; // options: force, histogram ??
 config.maxWords = 100;
 config.testMode = false;
-config.showStatsFlag = true;
+config.showStatsFlag = false;
 config.removeDeadNodes = true;
 config.disableLinks = false;
 
@@ -196,7 +196,7 @@ document.addEventListener("mousemove", function() {
 var dragEndPosition = { 'id': 'ID', 'x': 47, 'y': 147};
 
 document.addEventListener("dragEnd", function(e) {
-  console.error("DRAG END: " + jsonPrint(dragEndPosition));
+  console.log("DRAG END: " + jsonPrint(dragEndPosition));
   if (sessionHashMap.has(dragEndPosition.id)){
     var dragSession = sessionHashMap.get(dragEndPosition.id);
     dragSession.initialPosition.x = dragEndPosition.x;
@@ -963,7 +963,7 @@ function getUrlVariables(callbackMain) {
           }
           if (keyValuePair[0] === 'session') {
             urlSessionId = keyValuePair[1];
-            console.warn("SESSION MODE | urlSessionId: " + urlSessionId);
+            console.log("SESSION MODE | urlSessionId: " + urlSessionId);
             return (callback2(null, {
               sessionMode: true,
               sessionId: urlSessionId
@@ -1008,7 +1008,7 @@ function getUrlVariables(callbackMain) {
     // results is an array of objs:  results = [ {key0: val0}, ... {keyN: valN} ];
     async.each(results, function(urlVarObj, cb1) {
 
-      console.warn("urlVarObj\n" + jsonPrint(urlVarObj));
+      console.log("urlVarObj\n" + jsonPrint(urlVarObj));
 
       var urlVarKeys = Object.keys(urlVarObj);
 
@@ -1017,7 +1017,7 @@ function getUrlVariables(callbackMain) {
 
         urlConfig[key] = urlVarObj[key];
 
-        console.warn("key: " + key + " > urlVarObj[key]: " + urlVarObj[key]);
+        console.log("key: " + key + " > urlVarObj[key]: " + urlVarObj[key]);
 
         cb2();
 
@@ -1221,15 +1221,15 @@ socket.on("SESSION_UPDATE", function(rxSessionObject) {
       // console.log("KEEPALIVE" + " | " + rxObj.userId);
     } else {
       rxSessionUpdateQueue.push(rxSessionObject);
-      console.log("UID: " + rxObj.userId 
-        // + " | " + jsonPrint(rxObj.tags) 
-        + " | G: " + rxObj.tags.group
-        + " | ENT: " + rxObj.tags.entity
-        + " | CH: " + rxObj.tags.channel
-        + " | " + rxObj.wordChainIndex 
-        + " | " + rxObj.source.nodeId 
-        + " > " + rxObj.target.nodeId
-      );
+      // console.log("UID: " + rxObj.userId 
+      //   // + " | " + jsonPrint(rxObj.tags) 
+      //   + " | G: " + rxObj.tags.group
+      //   + " | ENT: " + rxObj.tags.entity
+      //   + " | CH: " + rxObj.tags.channel
+      //   + " | " + rxObj.wordChainIndex 
+      //   + " | " + rxObj.source.nodeId 
+      //   + " > " + rxObj.target.nodeId
+      // );
     }
   }
 });
@@ -1368,7 +1368,7 @@ var createGroup = function(callback) {
 
       groupsCreated += 1;
 
-      console.warn("CREATE GROUP" + " [" + sessUpdate.wordChainIndex + "]" 
+      console.log("CREATE GROUP" + " [" + sessUpdate.wordChainIndex + "]" 
         + " | G: " + groupId 
         + " | C: " + sessUpdate.tags.channel 
         + " | E: " + sessUpdate.tags.entity 
@@ -1384,7 +1384,7 @@ var createGroup = function(callback) {
       currentGroup.lastSeen = dateNow;
       currentGroup.isGroup = true;
       currentGroup.isSession = false;
-      currentGroup.mentions = 0;
+      currentGroup.mentions = 1;
       currentGroup.tags = {};
       currentGroup.tags = sessUpdate.tags;
       currentGroup.text = groupId;
@@ -1433,6 +1433,9 @@ var createGroup = function(callback) {
       addToHashMap(nodeHashMap, currentGroup.node.nodeId, currentGroup.node, function(grpNode) {
         console.log("NEW GROUP NODE" 
           + " | " + grpNode.nodeId
+          + " | isGroupNode: " + grpNode.isGroupNode
+          + " | isSessionNode: " + grpNode.isSessionNode
+          // + "\n" + jsonPrint(grpNode)
         );
 
         currentSessionView.addNode(grpNode);
@@ -1443,7 +1446,7 @@ var createGroup = function(callback) {
           );
           sessionCreateQueue.push(sessUpdate);
           currentSessionView.addGroup(cGroup);
-          nodeCreateQueue.push(cGroup);
+          // nodeCreateQueue.push(cGroup);
           return (callback(null, cGroup.groupId));
         });
       });
@@ -1468,9 +1471,8 @@ var createSession = function(callback) {
       currentGroup = groupHashMap.get(sessUpdate.tags.group);
     }
 
-
     if (sessionDeleteHashMap.has(sessUpdate.sessionId)) {
-      console.warn("createSession: " 
+      console.log("createSession: " 
         + sessUpdate.userId 
         + " | " + sessUpdate.tags.entity 
         + " SESSION IN DELETE HASH MAP ... SKIPPING"
@@ -1506,9 +1508,10 @@ var createSession = function(callback) {
 
       currentSession.groupId = currentGroup.groupId;
       currentSession.age = 0;
+      currentSession.mentions++;
       currentSession.lastSeen = dateNow;
       currentSession.userId = sessUpdate.userId;
-      currentSession.text = sessUpdate.tags.entity + ' | ' + sessUpdate.tags.channel;
+      currentSession.text = sessUpdate.tags.entity + " | " + sessUpdate.tags.channel;
       currentSession.wordChainIndex = sessUpdate.wordChainIndex;
       currentSession.source = sessUpdate.source;
       currentSession.source.lastSeen = dateNow;
@@ -1546,7 +1549,9 @@ var createSession = function(callback) {
 
       sessionsCreated += 1;
 
-      console.log("CREATE SESS" + " [" + sessUpdate.wordChainIndex + "]" 
+      console.log("CREATE SESS" 
+        + " [" + sessUpdate.wordChainIndex + "]" 
+        // + " [" + sessUpdate.mentions + "]" 
         + " | UID: " + sessUpdate.userId 
         + " | ENTITY: " + sessUpdate.tags.entity 
         + " | " + sessUpdate.source.nodeId 
@@ -1555,26 +1560,24 @@ var createSession = function(callback) {
       );
 
       currentSession.age = 0;
+      currentSession.mentions = 1;
       currentSession.lastSeen = dateNow;
       currentSession.rank = -1;
       currentSession.isSession = true;
       currentSession.sessionId = sessUpdate.sessionId;
       currentSession.tags = {};
       currentSession.tags = sessUpdate.tags;
-      currentSession.nodeId = sessUpdate.tags.entity + '_' + sessUpdate.tags.channel;
+      currentSession.nodeId = sessUpdate.tags.entity + "_" + sessUpdate.tags.channel;
       currentSession.userId = sessUpdate.userId;
       currentSession.wordChainIndex = sessUpdate.wordChainIndex;
       currentSession.text = sessUpdate.tags.entity + "[" + sessUpdate.tags.channel + "]";
       currentSession.source = sessUpdate.source;
       currentSession.target = sessUpdate.target;
       currentSession.latestNodeId = sessUpdate.source.nodeId;
-
-      currentSession.node = {};
       currentSession.linkHashMap = new HashMap();
       currentSession.initialPosition = currentGroup.initialPosition;
       currentSession.x = currentGroup.x;
       currentSession.y = currentGroup.y;
-      currentSession.wordChainIndex = sessUpdate.wordChainIndex;
       currentSession.colors = {};
       currentSession.colors = currentGroup.colors;
 
@@ -1582,10 +1585,11 @@ var createSession = function(callback) {
 
       // CREATE SESSION NODE
 
+      currentSession.node = {};
       currentSession.node.isSessionNode = true;
       currentSession.node.isGroupNode = false;
       currentSession.node.isDead = false;
-      currentSession.node.nodeId = sessUpdate.tags.entity + '_' + sessUpdate.tags.channel;
+      currentSession.node.nodeId = sessUpdate.tags.entity + "_" + sessUpdate.tags.channel;
       currentSession.node.entity = sessUpdate.tags.entity;
       currentSession.node.channel = sessUpdate.tags.channel;
       currentSession.node.userId = sessUpdate.userId;
@@ -1594,6 +1598,7 @@ var createSession = function(callback) {
       currentSession.node.ageUpdated = dateNow;
       currentSession.node.lastSeen = dateNow;
       currentSession.node.wordChainIndex = sessUpdate.wordChainIndex;
+      currentSession.node.mentions = sessUpdate.wordChainIndex;
       currentSession.node.text = sessUpdate.tags.entity + "[" + sessUpdate.tags.channel + "]";
       currentSession.node.x = currentSession.initialPosition.x + 10;
       currentSession.node.y = currentSession.initialPosition.y + 10;
@@ -1615,7 +1620,8 @@ var createSession = function(callback) {
         console.log("NEW SESSION NODE" 
           + " | " + sesNode.nodeId
           + " | " + sesNode.text
-          + " | " + sesNode.wordChainIndex
+          + " | WCI: " + sesNode.wordChainIndex
+          + " | M: " + sesNode.wordChainIndex
         );
 
         currentSessionView.addNode(sesNode);
@@ -1626,8 +1632,9 @@ var createSession = function(callback) {
             + " | " + cSession.sessionId 
             + " | SNID: " + cSession.node.nodeId
             + " | LNID: " + cSession.latestNodeId
-            + " | " + cSession.wordChainIndex 
-            + "\n" + jsonPrint(cSession) 
+            + " | WCI:" + cSession.wordChainIndex 
+            + " | M:" + cSession.mentions 
+            // + "\n" + jsonPrint(cSession) 
           );
           currentSessionView.addSession(cSession);
           nodeCreateQueue.push(cSession);
@@ -1650,10 +1657,10 @@ var createNode = function(callback) {
 
       var sessionNode = nodeHashMap.get(session.node.nodeId);
 
-      console.warn("FOUND NODE" 
-        + " | " + session.node.nodeId
-        + "\n" + jsonPrint(session)
-      );
+      // console.log("FOUND NODE" 
+      //   + " | " + session.node.nodeId
+      //   // + "\n" + jsonPrint(session)
+      // );
 
       sessionNode.age = 0;
       sessionNode.isDead = false;
@@ -1668,9 +1675,14 @@ var createNode = function(callback) {
     } 
     else {
 
+      console.log("CREATE SESSION NODE" 
+        + " | " + session.node.nodeId
+        // + "\n" + jsonPrint(session)
+      );
+
       session.node.isSessionNode = true;
       session.node.isGroupNode = false;
-      session.node.nodeId = session.tags.entity + '_' + session.tags.channel;
+      session.node.nodeId = session.tags.entity + "_" + session.tags.channel;
       session.node.entity = session.tags.entity;
       session.node.channel = session.tags.channel;
       session.node.text = session.tags.entity + "[" + session.tags.channel + "]";
@@ -1679,14 +1691,14 @@ var createNode = function(callback) {
       session.node.age = 0;
       session.node.isDead = false;
       session.node.wordChainIndex = session.wordChainIndex;
-      session.node.mentions = session.wordChainIndex;
+      session.node.mentions = session.wordChainIndex+1;
       session.node.x = session.initialPosition.x+10;
       session.node.y = session.initialPosition.y+10;
       session.node.colors = session.colors;
       session.node.interpolateColor = session.interpolateColor;
 
       addToHashMap(nodeHashMap, session.node.nodeId, session.node, function(sNode) {
-        // currentSessionView.addNode(sNode);
+        currentSessionView.addNode(sNode);
       });
     }
 
@@ -1694,6 +1706,19 @@ var createNode = function(callback) {
     var targetNodeId = session.target.nodeId;
     var targetNode = {};
     var sourceNode = {};
+
+    if (typeof session.source.wordChainIndex === 'undefined'){
+      console.warn("session.source.wordChainIndex UNDEFINED");
+    }
+    if (typeof session.source.mentions === 'undefined'){
+      console.warn("session.source.mentions UNDEFINED");
+    }
+    if (typeof session.target.wordChainIndex === 'undefined'){
+      console.warn("session.target.wordChainIndex UNDEFINED");
+    }
+    if (typeof session.target.mentions === 'undefined'){
+      console.warn("session.target.mentions UNDEFINED");
+    }
 
     async.parallel({
         source: function(cb) {
@@ -1716,6 +1741,15 @@ var createNode = function(callback) {
             sourceNode.lastSeen = dateNow;
             sourceNode.colors = session.colors;
             sourceNode.interpolateColor = session.interpolateColor;
+            if (sourceNode.isSessionNode){
+              sourceNode.text = session.tags.entity + "[" + session.tags.channel + "]";
+              sourceNode.wordChainIndex = session.source.wordChainIndex;
+              sourceNode.mentions = session.source.wordChainIndex;
+            }
+            else {
+              sourceNode.text = sourceNodeId;
+              sourceNode.mentions = session.source.mentions;
+            }
 
             addToHashMap(nodeHashMap, sourceNodeId, sourceNode, function(sNode) {
               cb(null, {
@@ -1728,6 +1762,8 @@ var createNode = function(callback) {
             sourceNode = session.source;
             sourceNode.newFlag = true;
             sourceNode.latestNode = true;
+            sourceNode.isSessionNode = false;
+            sourceNode.isGroupNode = false;
             sourceNode.userId = session.userId;
             sourceNode.sessionId = session.sessionId;
             sourceNode.links = {};
@@ -1738,12 +1774,12 @@ var createNode = function(callback) {
             sourceNode.ageUpdated = dateNow;
             sourceNode.colors = session.colors;
             sourceNode.interpolateColor = session.interpolateColor;
+            sourceNode.x = session.node.x+10;
+            sourceNode.y = session.node.y+10;
             if (sourceNode.isSessionNode){
               sourceNode.text = session.tags.entity + "[" + session.tags.channel + "]";
               sourceNode.wordChainIndex = session.source.wordChainIndex;
               sourceNode.mentions = session.source.wordChainIndex;
-              sourceNode.x = session.node.x;
-              sourceNode.y = session.node.y;
             }
             else {
               sourceNode.text = sourceNodeId;
@@ -1805,6 +1841,8 @@ var createNode = function(callback) {
           } else {
             targetNode = session.target;
             targetNode.newFlag = true;
+            targetNode.isSessionNode = false;
+            targetNode.isGroupNode = false;
             targetNode.userId = session.userId;
             targetNode.sessionId = session.sessionId;
             targetNode.links = {};
@@ -2013,40 +2051,6 @@ var createLink = function(callback) {
   return (callback(null, sessionId));
 }
 
-// var ageSessions = function(callback) {
-
-//   var dateNow = moment().valueOf();
-
-//   var ageSession;
-
-//   var ageSessionsLength = currentSessionView.getSessionsLength() - 1;
-//   var ageSessionsIndex = currentSessionView.getSessionsLength() - 1;
-
-//   for (ageSessionsIndex = ageSessionsLength; ageSessionsIndex >= 0; ageSessionsIndex -= 1) {
-
-//     // ageSession = sessions[ageSessionsIndex];
-//     ageSession = currentSessionView.getSession(ageSessionsIndex);
-
-//     if (!sessionHashMap.has(ageSession.sessionId)) {
-//       // if (!forceStopped) {
-//       //   forceStopped = true;
-//       //   force.stop();
-//       // }
-//       console.warn("XXX SESSION" + sessionId);
-//       if (typeof currentSessionView.sessions === 'undefined'){
-//         console.error("???? currentSessionView.sessions UNDEFINED");
-//       }
-//       else {
-//         currentSessionView.sessions.splice(ageSessionsIndex, 1);
-//       }
-//     }
-//   }
-
-//   if (ageSessionsIndex < 0) {
-//     return (callback(null, sessionId));
-//   }
-// }
-
 var updateSessionsReady = true;
 var statusSession2Id = document.getElementById("statusSession2Id");
 
@@ -2141,7 +2145,7 @@ requirejs.onError = function(err) {
 
 function loadViewType(svt, callback) {
 
-  console.warn("LOADING SESSION VIEW TYPE: " + svt);
+  console.log("LOADING SESSION VIEW TYPE: " + svt);
 
   switch (svt) {
     case 'histogram':
@@ -2182,7 +2186,7 @@ function initialize() {
 
     document.dispatchEvent(sessionDragEndEvent);
 
-    console.warn("URL VARS\n" + jsonPrint(urlVariablesObj));
+    console.log("URL VARS\n" + jsonPrint(urlVariablesObj));
 
     var sessionId;
     var namespace;

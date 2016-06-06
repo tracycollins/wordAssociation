@@ -723,11 +723,21 @@ function ViewForce() {
         if (this.getAttribute("mouseover") == 1) {
           return "#ffffff";
         }
+        else if ((dateNow - d.lastSeen) < 0.01 * nodeMaxAge) {
+          return "#ffffff";
+        }
         else {
           return d.interpolateColor(0.5*(nodeMaxAge - (dateNow - d.lastSeen)) / nodeMaxAge);
         }
       })
-      .style('opacity', 1)
+      .style('opacity', function(d) {
+        if ((dateNow - d.lastSeen) >= nodeMaxAge) {
+          return 1e-6;
+        }
+        else {
+          return 1.0;
+        }
+      })
       .style('stroke', function(d) {
           return d.interpolateColor(0.95*(nodeMaxAge - (dateNow - d.lastSeen)) / nodeMaxAge);
       })
@@ -767,7 +777,7 @@ function ViewForce() {
         if (this.getAttribute("mouseover") == 1) {
           return "#ffffff";
         }
-        else if (d.age < (0.01 * nodeMaxAge)) {
+        else if ((dateNow - d.lastSeen) < 0.1 * nodeMaxAge) {
           return "#ffffff";
         }
         else {
@@ -888,10 +898,12 @@ function ViewForce() {
         return d.interpolateColor(0.5 * (nodeMaxAge - (dateNow - d.lastSeen)) / nodeMaxAge);
       })
       .style('opacity', function(d) {
-        if (d.age >= nodeMaxAge) {
-          return 0;
+        if ((dateNow - d.lastSeen) >= nodeMaxAge) {
+          return 1e-6;
         }
-        return 1
+        else {
+          return 1.0;
+        }
       })
       .style('stroke', function(d) {
         if (d3.select(this).attr("mouseover") == 1) {
@@ -909,7 +921,12 @@ function ViewForce() {
         if (d3.select(this).attr("mouseover") == 1) {
           return 1.0;
         }
-        return (nodeMaxAge - (dateNow - d.lastSeen)) / nodeMaxAge;
+        if ((dateNow - d.lastSeen) >= nodeMaxAge) {
+          return 1e-6;
+        }
+        else {
+          return (nodeMaxAge - (dateNow - d.lastSeen)) / nodeMaxAge;
+        }
       });
 
     sessionCircles

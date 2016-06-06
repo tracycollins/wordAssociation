@@ -992,10 +992,12 @@ function ViewForce() {
       .attr("class", "sessionCircleClass")
       .attr("cx", function(d) {
         var cnode = nodeHashMap.get(d.nodeId);
+        if (typeof cnode === 'undefined') return 0;
         return cnode.x;
       })
       .attr("cy", function(d) {
         var cnode = nodeHashMap.get(d.nodeId);
+        if (typeof cnode === 'undefined') return 0;
         return cnode.y;
       })
       .attr("mouseover", 0)
@@ -1035,11 +1037,13 @@ function ViewForce() {
       })
       .attr("x", function(d) {
         var cnode = nodeHashMap.get(d.nodeId);
+        if (typeof cnode === 'undefined') return 0;
         return cnode.x;
       })
       .attr("y", function(d) {
         var shiftY = -2.5 * (sessionCircleRadiusScale(d.wordChainIndex + 1));
         var cnode = nodeHashMap.get(d.nodeId);
+        if (typeof cnode === 'undefined') return 0;
         return cnode.y + shiftY;
       })
       .style("font-size", function(d) {
@@ -1072,11 +1076,13 @@ function ViewForce() {
       })
       .attr("x", function(d) {
         var cnode = nodeHashMap.get(d.nodeId);
+        if (typeof cnode === 'undefined') return 0;
         return cnode.x;
       })
       .attr("y", function(d) {
         var shiftY = -2.5 * (sessionCircleRadiusScale(d.wordChainIndex + 1));
         var cnode = nodeHashMap.get(d.nodeId);
+        if (typeof cnode === 'undefined') return 0;
         return cnode.y + shiftY;
       })
       .transition()

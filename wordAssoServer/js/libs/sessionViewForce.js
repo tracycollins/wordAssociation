@@ -194,8 +194,20 @@ function ViewForce() {
   var nodes = [];
   var links = [];
 
+  this.groupsLength = function() {
+    return groups.length;
+  }
+  
+  this.sessionsLength = function() {
+    return sessions.length;
+  }
+  
   this.nodesLength = function() {
     return nodes.length;
+  }
+  
+  this.linksLength = function() {
+    return links.length;
   }
   
   this.ageRate = function() {
@@ -498,17 +510,29 @@ function ViewForce() {
 
       if (node.isDead) {
         deadNodesHash[node.nodeId] = 1;
-      } else if (!node.isGroupNode && !node.isSessionNode && (age >= nodeMaxAge)) {
+      // } else if (!node.isGroupNode && !node.isSessionNode && (age >= nodeMaxAge)) {
+      // } else if (!node.isGroupNode && (age >= nodeMaxAge)) {
+      } else if (age >= nodeMaxAge) {
         node.ageUpdated = dateNow;
         node.age = age;
         node.isDead = true;
         nodes[ageNodesIndex] = node;
         deadNodesHash[node.nodeId] = 1;
-        // console.log("XXX DEAD NODE " + node.nodeId);
+        if (node.isGroupNode) {
+          console.log("XXX DEAD NODE\n" + jsonPrint(node));
+          // deadLinksHash[node.links]
+        }
       } else {
         node.ageUpdated = dateNow;
         node.age = age;
         nodes[ageNodesIndex] = node;
+        // if (node.isGroupNode) {
+        //   console.log("AGE GROUP NODE" 
+        //     + " | " + node.groupId
+        //     + " | " + node.nodeId
+        //     + " | " + node.age
+        //   );
+        // }
       }
     }
 
@@ -575,6 +599,28 @@ function ViewForce() {
         nodes.splice(ageNodesIndex, 1);
         // force.nodes(nodes);
         delete deadNodesHash[node.nodeId];
+        // delete deadNodesHash[node.groupId];
+        // if (node.isSessionNode){
+        //   for (var i=sessions.length-1; i >= 0; i -= 1) {
+        //     if (node.nodeId == sessions[i].node.nodeId) {
+        //       console.warn("XXX SESSION\n" + jsonPrint(node));
+        //       sessions.splice(i, 1);
+        //     }
+        //   }
+        // }
+        if (node.isGroupNode){
+          for (var i=groups.length-1; i >= 0; i -= 1) {
+            if (node.nodeId == groups[i].node.nodeId) {
+              console.warn("XXX GROUP\n" + jsonPrint(node));
+              groups.splice(i, 1);
+              var deadLinkIds = Object.keys(node.links);
+              deadLinkIds.forEach(function(deadLink){
+                console.warn("XXX GROUP LINK | " + jsonPrint(deadLink));
+                deadLinksHash[deadLink] = 'DEAD';
+              });
+            }
+          }
+        }
       }
       deadNodeIds = Object.keys(deadNodesHash);
     }
@@ -1140,7 +1186,8 @@ function ViewForce() {
         })
       .text(function(d) {
         if (d.isSessionNode) return d.wordChainIndex;
-        if (d.isGroupNode) return d.groupId;
+        // if (d.isGroupNode) return d.groupId;
+        if (d.isGroupNode) return d.mentions;
         return d.text;
       })
       .attr("x", function(d) {
@@ -1515,8 +1562,8 @@ function ViewForce() {
         }
 
         if (linkIndex < 0) {
-          console.log("XXX SESS NODE " + deletedSession.userId);
-          self.deleteNode(deletedSession.userId);
+          console.log("XXX SESS NODE " + deletedSession.node.nodeId);
+          self.deleteNode(deletedSession.node.nodeId);
           sessions.splice(sessionIndex, 1);
           return;
         }

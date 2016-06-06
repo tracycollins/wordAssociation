@@ -1252,8 +1252,14 @@ function addToHashMap(hm, key, value, callback) {
 }
 
 function removeFromHashMap(hm, key, callback) {
-  hm.remove(key);
-  callback(key);
+  if (hm.has(key)){
+    var value = hm.get(key);
+    hm.remove(key);
+    callback({key:key, value:value});
+  }
+  else{
+    callback(false);
+  }
 }
 
 var processSessionQueues = function(callback) {
@@ -1288,6 +1294,21 @@ var processNodeDeleteQueue = function(callback) {
     removeFromHashMap(nodeHashMap, deletedNodeId, function() {
       // console.error("processNodeDeleteQueue: DELETED: " + deletedNodeId);
       // return (callback(null, "processNodeDeleteQueue"));
+    });
+    removeFromHashMap(sessionHashMap, deletedNodeId, function() {
+      // console.error("processNodeDeleteQueue: DELETED: " + deletedNodeId);
+      // return (callback(null, "processNodeDeleteQueue"));
+    });
+    removeFromHashMap(groupHashMap, deletedNodeId, function(deletedGroup) {
+      if (deletedGroup) {
+        console.error("processNodeDeleteQueue: DELETED GROUP: " + jsonPrint(deletedGroup));
+        var linkKeys = Object.keys(deletedGroup.value.node.links);
+        linkKeys.forEach(function(deadLink){
+          removeFromHashMap(linkHashMap, deadLink, function(deletedLink) {
+            console.error("processNodeDeleteQueue: DELETED GROUP LINK: " + jsonPrint(deletedLink));
+          });
+        });
+      }
     });
 
   }
@@ -1408,6 +1429,7 @@ var createGroup = function(callback) {
 
       currentGroup.node.isGroupNode = true;
       currentGroup.node.isSessionNode = false;
+      currentGroup.node.groupId = groupId;
       currentGroup.node.nodeId = groupId;
       currentGroup.node.age = 0;
       currentGroup.node.isDead = false;
@@ -1433,6 +1455,7 @@ var createGroup = function(callback) {
       addToHashMap(nodeHashMap, currentGroup.node.nodeId, currentGroup.node, function(grpNode) {
         console.log("NEW GROUP NODE" 
           + " | " + grpNode.nodeId
+          + " | " + grpNode.groupId
           + " | isGroupNode: " + grpNode.isGroupNode
           + " | isSessionNode: " + grpNode.isSessionNode
           // + "\n" + jsonPrint(grpNode)
@@ -1929,6 +1952,7 @@ var createLink = function(callback) {
       var groupLinkId = currentGroup.node.nodeId + "_" + session.node.nodeId;
 
       if (!linkHashMap.has(groupLinkId)){
+        console.log("-M- GROUP LINK HASH MISS | " + groupLinkId);
         var newGroupLink = {
           linkId: groupLinkId,
           groupId: currentGroup.groupId,
@@ -1946,6 +1970,7 @@ var createLink = function(callback) {
       }
       else {
         var groupLink = linkHashMap.get(groupLinkId);
+        console.log("*** GROUP LINK HASH HIT | " + groupLinkId);
         groupLink.age = 0;
         addToHashMap(linkHashMap, groupLinkId, groupLink, function(grpLink) {
           // console.log("grpLink\n" + jsonPrint(grpLink));
@@ -2077,6 +2102,9 @@ function updateSessions() {
       statusSession2Id = document.getElementById("statusSession2Id");
       if (typeof statusSession2Id !== 'undefined') {
         statusSession2Id.innerHTML = 'NODES: ' + currentSessionView.nodesLength() 
+        + '<br>' + 'SESSIONS: ' + currentSessionView.sessionsLength()
+        + '<br>' + 'GROUPS: ' + currentSessionView.groupsLength()
+        + '<br>' + 'LINKS: ' + currentSessionView.linksLength()
         + '<br>' + 'AGE RATE: ' + currentSessionView.ageRate();
       } else {
         console.warn("statusSession2Id element is undefined");

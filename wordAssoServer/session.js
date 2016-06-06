@@ -1594,11 +1594,9 @@ var createSession = function(callback) {
       currentSession.node.ageUpdated = dateNow;
       currentSession.node.lastSeen = dateNow;
       currentSession.node.wordChainIndex = sessUpdate.wordChainIndex;
-      // currentSession.node.mentions = sessUpdate.wordChainIndex;
       currentSession.node.text = sessUpdate.tags.entity + "[" + sessUpdate.tags.channel + "]";
-      currentSession.node.x = currentSession.initialPosition.x;
-      currentSession.node.y = currentSession.initialPosition.y;
-      // currentSession.node.fixed = true;
+      currentSession.node.x = currentSession.initialPosition.x + 10;
+      currentSession.node.y = currentSession.initialPosition.y + 10;
       currentSession.node.colors = currentSession.colors;
       currentSession.node.interpolateColor = currentSession.interpolateColor;
 
@@ -1657,16 +1655,10 @@ var createNode = function(callback) {
         + "\n" + jsonPrint(session)
       );
 
-      // sessionNode.isSessionNode = true;
-      // sessionNode.entity = session.tags.entity;
-      // sessionNode.channel = session.tags.channel;
-      // sessionNode.text = session.tags.entity + ' | ' + session.tags.channel;
       sessionNode.age = 0;
       sessionNode.isDead = false;
       sessionNode.wordChainIndex = session.wordChainIndex;
       sessionNode.mentions = session.wordChainIndex;
-      // sessionNode.colors = session.colors;
-      // sessionNode.interpolateColor = session.interpolateColor;
 
       session.node = sessionNode;
 
@@ -1688,8 +1680,8 @@ var createNode = function(callback) {
       session.node.isDead = false;
       session.node.wordChainIndex = session.wordChainIndex;
       session.node.mentions = session.wordChainIndex;
-      session.node.x = session.initialPosition.x;
-      session.node.y = session.initialPosition.y;
+      session.node.x = session.initialPosition.x+10;
+      session.node.y = session.initialPosition.y+10;
       session.node.colors = session.colors;
       session.node.interpolateColor = session.interpolateColor;
 

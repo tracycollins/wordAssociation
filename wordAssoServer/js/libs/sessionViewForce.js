@@ -930,10 +930,12 @@ function ViewForce() {
       })
       .attr("cx", function(d) {
         var cnode = nodeHashMap.get(d.nodeId);
+        if (typeof cnode === 'undefined') return 0;
         return cnode.x;
       })
       .attr("cy", function(d) {
         var cnode = nodeHashMap.get(d.nodeId);
+        if (typeof cnode === 'undefined') return 0;
         return cnode.y;
       })
       .style("fill", function(d) {

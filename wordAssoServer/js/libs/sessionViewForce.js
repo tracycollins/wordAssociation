@@ -7,6 +7,8 @@ function ViewForce() {
 
   var self = this;
 
+  var force;
+
   var pauseFlag = false;
   var updateNodeFlag = false;
 
@@ -222,7 +224,7 @@ function ViewForce() {
   var fontSizeScale = d3.scale.linear().domain([1, 100000000]).range([35.0, 70]);
 
   var groupCircleRadiusScale = d3.scale.log().domain([1, 2000000]).range([50.0, 150.0]); // uses wordChainIndex
-  var sessionCircleRadiusScale = d3.scale.log().domain([1, 2000000]).range([40.0, 100.0]); // uses wordChainIndex
+  var sessionCircleRadiusScale = d3.scale.linear().domain([1, 2000000]).range([40.0, 100.0]); // uses wordChainIndex
   var defaultRadiusScale = d3.scale.log().domain([1, 2000000]).range([1.0, 40.0]);
 
   var fillColorScale = d3.scale.linear()
@@ -305,6 +307,16 @@ function ViewForce() {
 
   var d3image = d3.select("#d3group");
 
+  // force = d3.layout.force()
+  //   .nodes(nodes)
+  //   .links(links)
+  //   .gravity(gravity)
+  //   .friction(friction)
+  //   .charge(charge)
+  //   .linkStrength(linkStrength)
+  //   .size([svgForceLayoutAreaWidth, svgForceLayoutAreaHeight])
+  //   .on("tick", tick);
+
   var svgcanvas = d3image.append("svg:svg")
     .attr("id", "svgcanvas")
     .attr("x", 0)
@@ -327,13 +339,13 @@ function ViewForce() {
   var groupSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "groupSvgGroup");
   var groupLabelSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "groupLabelSvgGroup");
   var groupGnode = groupSvgGroup.selectAll("g.group");
-  var groupCircles = groupSvgGroup.selectAll(".groupCircle");
+  var groupCircles = groupSvgGroup.selectAll("circle");
   var groupLabels = groupLabelSvgGroup.selectAll(".groupLabel");
 
   var sessionSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "sessionSvgGroup");
   var sessionLabelSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "sessionLabelSvgGroup");
-  var sessionGnode = sessionSvgGroup.selectAll("g.session");
-  var sessionCircles = sessionSvgGroup.selectAll(".sessionCircle");
+  // var sessionGnode = sessionSvgGroup.selectAll("g.session");
+  var sessionCircles = sessionSvgGroup.selectAll("circle");
   var sessionLabels = sessionLabelSvgGroup.selectAll(".sessionLabel");
 
   var linkSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "linkSvgGroup");
@@ -344,6 +356,7 @@ function ViewForce() {
   var node = nodeSvgGroup.selectAll("g.node");
   var nodeCircles = nodeSvgGroup.selectAll("circle");
   var nodeLabels = nodeSvgGroup.selectAll(".nodeLabel");
+  // var sessionCircles = nodeSvgGroup.selectAll(".sessionCircle");
 
   var link = linkSvgGroup.selectAll("line");
 
@@ -387,11 +400,11 @@ function ViewForce() {
         return y + shiftY;
       });
 
-    sessionGnode.select('#' + d.sessionId)
-      .attr("px", x)
-      .attr("py", y)
-      .attr("x", x)
-      .attr("y", y);
+    // sessionGnode.select('#' + d.sessionId)
+    //   .attr("px", x)
+    //   .attr("py", y)
+    //   .attr("x", x)
+    //   .attr("y", y);
 
 
     nodeCircles.select('#' + d.nodeId)
@@ -410,7 +423,7 @@ function ViewForce() {
       });
 
     document.dispatchEvent(sessionDragEndEvent);
-    tick();
+    // tick();
     updateNodes;
     updateLinks;
     updateGroupsCircles;
@@ -455,13 +468,13 @@ function ViewForce() {
         return d.y;
       });
 
-    sessionGnode
-      .attr("x", function(d) {
-        return d.x;
-      })
-      .attr("y", function(d) {
-        return d.y;
-      });
+    // sessionGnode
+    //   .attr("x", function(d) {
+    //     return d.x;
+    //   })
+    //   .attr("y", function(d) {
+    //     return d.y;
+    //   });
 
     node
       .attr("x", function(d) {
@@ -484,23 +497,25 @@ function ViewForce() {
 
     sessionCircles
       .attr("r", function(d) {
+        // console.warn("d.wordChainIndex " + d.wordChainIndex);
         return sessionCircleRadiusScale(d.wordChainIndex + 1);
+        // return 100;
+      })
+      .attr("cx", function(d) {
+        return d.x;
+      })
+      .attr("cy", function(d) {
+        return d.y;
       });
-      // .attr("cx", function(d) {
-      //   return d.x;
-      // })
-      // .attr("cy", function(d) {
-      //   return d.y;
-      // });
 
-    // sessionLabels
-    //   .attr("x", function(d) {
-    //     return d.x;
-    //   })
-    //   .attr("y", function(d) {
-    //     var shiftY = -1.4 * (sessionCircleRadiusScale(d.wordChainIndex + 1));
-    //     return d.y + shiftY;
-    //   });
+    sessionLabels
+      .attr("x", function(d) {
+        return d.x;
+      })
+      .attr("y", function(d) {
+        // var shiftY = -1.4 * (sessionCircleRadiusScale(d.wordChainIndex + 1));
+        return d.y;
+      });
 
     groupLabels
       .attr("x", function(d) {
@@ -543,15 +558,15 @@ function ViewForce() {
       });
   }
 
-  var force = d3.layout.force()
-    .nodes(nodes)
-    .links(links)
-    .gravity(gravity)
-    .friction(friction)
-    .charge(charge)
-    .linkStrength(linkStrength)
-    .size([svgForceLayoutAreaWidth, svgForceLayoutAreaHeight])
-    .on("tick", tick);
+  // var force = d3.layout.force()
+  //   .nodes(nodes)
+  //   .links(links)
+  //   .gravity(gravity)
+  //   .friction(friction)
+  //   .charge(charge)
+  //   .linkStrength(linkStrength)
+  //   .size([svgForceLayoutAreaWidth, svgForceLayoutAreaHeight])
+  //   .on("tick", tick);
 
   self.setPause = function(pause){
     pauseFlag = pause;
@@ -735,12 +750,12 @@ function ViewForce() {
       .attr("sessionId", function(d) {
         return d.sessionId;
       })
-      .attr("x", function(d) {
-        return d.x;
-      })
-      .attr("y", function(d) {
-        return d.y;
-      })
+      // .attr("x", function(d) {
+      //   return d.x;
+      // })
+      // .attr("y", function(d) {
+      //   return d.y;
+      // })
       .attr("mentions", function(d) {
         return d.mentions;
       })
@@ -766,12 +781,12 @@ function ViewForce() {
       .attr("userId", function(d) {
         return d.userId;
       })
-      .attr("x", function(d) {
-        return d.x;
-      })
-      .attr("y", function(d) {
-        return d.y;
-      })
+      // .attr("x", function(d) {
+      //   return d.x;
+      // })
+      // .attr("y", function(d) {
+      //   return d.y;
+      // })
       .attr("mentions", function(d) {
         return d.mentions;
       })
@@ -1010,6 +1025,13 @@ function ViewForce() {
 
     sessionCircles = sessionSvgGroup.selectAll("circle")
       .data(sessions, function(d) {
+        // if (d.isSessionNode) {
+        //   // console.warn("sessionCircles"
+        //   //   + " | NID: " + d.nodeId
+        //   //   + " | WCI: " + d.wordChainIndex
+        //   // );
+        //   return d.nodeId;
+        // }
         return d.nodeId;
       });
 
@@ -1028,23 +1050,34 @@ function ViewForce() {
       })
       .attr("r", function(d) {
         return sessionCircleRadiusScale(d.wordChainIndex + 1);
-      })
-      .attr("x", function(d) {
-        var cnode = nodeHashMap.get(d.nodeId);
-        return cnode.x;
-      })
-      .attr("y", function(d) {
-        var cnode = nodeHashMap.get(d.nodeId);
-        return cnode.y;
+        // return 100;
       })
       .attr("cx", function(d) {
-        var cnode = nodeHashMap.get(d.nodeId);
-        return cnode.x;
+        return d.x;
       })
       .attr("cy", function(d) {
-        var cnode = nodeHashMap.get(d.nodeId);
-        return cnode.y;
+        return d.y;
       })
+      // .attr("r", function(d) {
+      //   console.warn("d.wordChainIndex: " + d.wordChainIndex);
+      //   return sessionCircleRadiusScale(d.wordChainIndex + 1);
+      // })
+      // .attr("x", function(d) {
+      //   var cnode = nodeHashMap.get(d.nodeId);
+      //   return cnode.x;
+      // })
+      // .attr("y", function(d) {
+      //   var cnode = nodeHashMap.get(d.nodeId);
+      //   return cnode.y;
+      // })
+      // .attr("cx", function(d) {
+      //   var cnode = nodeHashMap.get(d.nodeId);
+      //   return cnode.x;
+      // })
+      // .attr("cy", function(d) {
+      //   var cnode = nodeHashMap.get(d.nodeId);
+      //   return cnode.y;
+      // })
       .style("fill", function(d) {
         if (d3.select(this).attr("mouseover") == 1) {
           return palette.red;
@@ -1088,25 +1121,31 @@ function ViewForce() {
       .attr("sessionId", function(d) {
         return d.sessionId;
       })
-      .attr("class", "sessionCircle")
-      .attr("x", function(d) {
-        var cnode = nodeHashMap.get(d.nodeId);
-        return cnode.x;
-      })
-      .attr("y", function(d) {
-        var cnode = nodeHashMap.get(d.nodeId);
-        return cnode.y;
-      })
+      .attr("class", "sessionCircleClass")
       .attr("cx", function(d) {
-        var cnode = nodeHashMap.get(d.nodeId);
-        d.x = cnode.x;
-        return cnode.x;
+        return d.x;
       })
       .attr("cy", function(d) {
-        var cnode = nodeHashMap.get(d.nodeId);
-        d.y = cnode.y;
-        return cnode.y;
+        return d.y;
       })
+       // .attr("x", function(d) {
+      //   var cnode = nodeHashMap.get(d.nodeId);
+      //   return cnode.x;
+      // })
+      // .attr("y", function(d) {
+      //   var cnode = nodeHashMap.get(d.nodeId);
+      //   return cnode.y;
+      // })
+      // .attr("cx", function(d) {
+      //   var cnode = nodeHashMap.get(d.nodeId);
+      //   d.x = cnode.x;
+      //   return cnode.x;
+      // })
+      // .attr("cy", function(d) {
+      //   var cnode = nodeHashMap.get(d.nodeId);
+      //   d.y = cnode.y;
+      //   return cnode.y;
+      // })
       .attr("mouseover", 0)
       .on("mouseover", sessionCircleMouseOver)
       .on("mouseout", sessionCircleMouseOut)
@@ -1136,21 +1175,22 @@ function ViewForce() {
 
 
     sessionLabels = sessionLabelSvgGroup.selectAll(".sessionLabel")
-      .data(sessions, function(d) {
-        return d.nodeId;
+      .data(nodes, function(d) {
+        if (d.isSessionNode) return d.nodeId;
+        // return d.nodeId;
       })
       .text(function(d) {
         return d.text;
       })
-      .attr("x", function(d) {
-        var cnode = nodeHashMap.get(d.nodeId);
-        return cnode.x;
-      })
-      .attr("y", function(d) {
-        var shiftY = -1.4 * (sessionCircleRadiusScale(d.wordChainIndex + 1));
-        var cnode = nodeHashMap.get(d.nodeId);
-        return cnode.y + shiftY;
-      })
+      // .attr("x", function(d) {
+      //   // var cnode = nodeHashMap.get(d.nodeId);
+      //   return d.x;
+      // })
+      // .attr("y", function(d) {
+      //   var shiftY = -2 * (sessionCircleRadiusScale(d.wordChainIndex + 1));
+      //   // var cnode = nodeHashMap.get(d.nodeId);
+      //   return d.y + shiftY;
+      // })
       .style("font-size", function(d) {
         return fontSizeScale(1000.1) + "px";
       })
@@ -1162,15 +1202,15 @@ function ViewForce() {
       });
 
     sessionLabels.enter()
-      .append("svg:text")
+      .append("text")
       .attr("x", function(d) {
         var cnode = nodeHashMap.get(d.nodeId);
         return cnode.x;
       })
       .attr("y", function(d) {
         var shiftY = -1.4 * (sessionCircleRadiusScale(d.wordChainIndex + 1));
-        var cnode = nodeHashMap.get(d.nodeId);
-        return cnode.y + shiftY;
+        // var cnode = nodeHashMap.get(d.nodeId);
+        return d.y + shiftY;
       })
       // .attr("x", function(d) {
       //   return d.x;
@@ -1196,8 +1236,8 @@ function ViewForce() {
         return fontSizeScale(1000.1) + "px";
       })
       .transition()
-      .duration(defaultFadeDuration)
-      .style("opacity", 1.0);
+        .duration(defaultFadeDuration)
+        .style("opacity", 1.0);
 
     sessionLabels
       .exit().remove();
@@ -1216,15 +1256,15 @@ function ViewForce() {
       });
 
     nodeCircles
-      .attr("r", function(d) {
-        return defaultRadiusScale(d.mentions + 1);
-      })
-      .attr("cx", function(d) {
-        return d.x;
-      })
-      .attr("cy", function(d) {
-        return d.y;
-      })
+      // .attr("r", function(d) {
+      //   return defaultRadiusScale(d.mentions + 1);
+      // })
+      // .attr("cx", function(d) {
+      //   return d.x;
+      // })
+      // .attr("cy", function(d) {
+      //   return d.y;
+      // })
       .style("fill", function(d) {
         if (this.getAttribute("mouseover") == 1) {
           return "#ffffff";
@@ -1660,7 +1700,7 @@ function ViewForce() {
 
   this.addNode = function(newNode) {
     // console.log("addNode\n" + jsonPrint(newNode));
-    // console.log("addNode | " + newNode.nodeId + " | " + newNode.isGroupNode);
+    console.log("addNode | " + newNode.nodeId + " | " + newNode.wordChainIndex);
     force.stop();
     forceStopped = true;
     nodes.push(newNode);
@@ -1789,6 +1829,17 @@ function ViewForce() {
 
   // function initD3timer() {
   this.initD3timer = function() {
+
+  force = d3.layout.force()
+    .nodes(nodes)
+    .links(links)
+    .gravity(gravity)
+    .friction(friction)
+    .charge(charge)
+    .linkStrength(linkStrength)
+    .size([svgForceLayoutAreaWidth, svgForceLayoutAreaHeight])
+    .on("tick", tick);
+
     d3.timer(function() {
       tickNumber++;
       dateNow = moment().valueOf();
@@ -1796,6 +1847,7 @@ function ViewForce() {
         && !updateNodeFlag 
         && updateForceDisplayReady 
         && (!mouseFreezeEnabled || (mouseFreezeEnabled && !mouseMovingFlag))){
+        // tick();
         updateForceDisplay();
       }
     });
@@ -1997,7 +2049,6 @@ function ViewForce() {
       self.deleteRandomNode();
     }, interval);
   }
-
 
   self.reset = function() {
     console.error("RESET");

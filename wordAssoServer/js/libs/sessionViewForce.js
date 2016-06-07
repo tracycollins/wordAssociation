@@ -613,7 +613,7 @@ function ViewForce() {
         if (node.isGroupNode){
           for (var i=groups.length-1; i >= 0; i -= 1) {
             if (node.nodeId == groups[i].node.nodeId) {
-              console.warn("XXX GROUP | " + groups[i].node.nodeId);
+              console.log("XXX GROUP | " + groups[i].node.nodeId);
               groups.splice(i, 1);
               var deadLinkIds = Object.keys(node.links);
               deadLinkIds.forEach(function(deadLink){
@@ -626,7 +626,7 @@ function ViewForce() {
         if (node.isSessionNode){
           for (var i=sessions.length-1; i >= 0; i -= 1) {
             if (node.nodeId == sessions[i].node.nodeId) {
-              console.warn("XXX SESSION | " + sessions[i].node.nodeId);
+              console.log("XXX SESSION | " + sessions[i].node.nodeId);
               sessions.splice(i, 1);
               var deadLinkIds = Object.keys(node.links);
               deadLinkIds.forEach(function(deadLink){

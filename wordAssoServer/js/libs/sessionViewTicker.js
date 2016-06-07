@@ -12,7 +12,7 @@ function ViewTicker() {
   // ==============================================
   var groupYpositionHash = {};
 
-  var minFontSize = 16;
+  var minFontSize = 20;
   var maxFontSize = 48;
 
   var currentMaxMentions = 2;
@@ -39,7 +39,7 @@ function ViewTicker() {
 
   var marginTopGroups = 15; // %
   var marginLeftGroups = 5;
-  var marginRightGroups = 85;
+  var marginRightGroups = 82;
 
   var marginTopSessions = 15; // %
   var marginLeftSessions = 5;
@@ -758,7 +758,7 @@ function ViewTicker() {
       })
       .style("fill", "FFFFFF")
       .style("fill-opacity", 1)
-      .style("font-size", "2.2vmin")
+      .style("font-size", "2.1vmin")
       .on("mouseout", nodeMouseOut)
       .on("mouseover", nodeMouseOver);
 

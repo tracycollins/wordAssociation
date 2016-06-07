@@ -1130,9 +1130,9 @@ function deleteSession(nodeId, callback) {
 
 function deleteAllSessions(callback) {
 
-  var sessionIds = sessionHashMap.keys();
+  var nodeIds = sessionHashMap.keys();
 
-  async.each(sessionIds, function(sessionId, cb) {
+  async.each(nodeIds, function(nodeId, cb) {
       deleteSession(nodeId, function(nId) {
         console.log("XXX DELETED SESSION " + nId);
         cb();
@@ -1195,15 +1195,16 @@ socket.on("SESSION_ABORT", function(rxSessionObject) {
 
 socket.on("SESSION_DELETE", function(rxSessionObject) {
   var rxObj = rxSessionObject;
-  if (sessionHashMap.has(rxObj.sessionId)) {
+  rxObj.session.nodeId = rxObj.session.user.tags.entity.toLowerCase() + "_" + rxObj.session.user.tags.channel.toLowerCase();
+  if (sessionHashMap.has(rxObj.session.nodeId)) {
     console.log("SESSION_DELETE" 
-      + " | " + rxSessionObject.nodeId 
+      + " | " + rxObj.session.nodeId
       // + " | " + rxSessionObject.sessionId 
-      + " | " + rxSessionObject.sessionEvent
+      + " | " + rxObj.sessionEvent
       // + "\n" + jsonPrint(rxSessionObject)
     );
-    var session = sessionHashMap.get(rxObj.sessionId);
-    sessionDeleteHashMap.set(rxObj.sessionId, 1);
+    var session = sessionHashMap.get(rxObj.session.nodeId);
+    sessionDeleteHashMap.set(rxObj.session.nodeId, 1);
     session.sessionEvent = "SESSION_DELETE";
     rxSessionDeleteQueue.push(session);
   }

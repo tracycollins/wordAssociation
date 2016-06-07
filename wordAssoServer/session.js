@@ -1445,7 +1445,7 @@ var createGroup = function(callback) {
       currentGroup.node.mentions++;
       currentGroup.node.ageUpdated = dateNow;
       currentGroup.node.lastSeen = dateNow;
-      currentGroup.node.interpolateColor = currentGroup.interpolateColor;
+      // currentGroup.node.interpolateColor = currentGroup.interpolateColor;
 
       if (sessionHashMap.has(sessUpdate.nodeId)) {
         currentSession = sessionHashMap.get(sessUpdate.nodeId);

@@ -39,7 +39,7 @@ config.pauseFlag = false;
 config.sessionViewType = DEFAULT_SESSION_VIEW; // options: force, histogram ??
 config.maxWords = 100;
 config.testMode = false;
-config.showStatsFlag = false;
+config.showStatsFlag = true;
 config.removeDeadNodes = true;
 config.disableLinks = false;
 
@@ -203,7 +203,7 @@ document.addEventListener("dragEnd", function(e) {
     dragSession.initialPosition.y = dragEndPosition.y;
     dragSession.node.px = dragEndPosition.x;
     dragSession.node.py = dragEndPosition.y;
-    sessionHashMap.set(dragSession.sessionId, dragSession);
+    sessionHashMap.set(dragSession.nodeId, dragSession);
     nodeHashMap.set(dragSession.node.nodeId, dragSession.node);
     // console.error("dragSession\n" + jsonPrint(dragSession));
   }
@@ -616,6 +616,7 @@ var sessionsCreated = 0;
 var nodeCreateQueue = [];
 var linkCreateQueue = [];
 var nodeDeleteQueue = []; // gets a hash of nodes deleted by sessionViewForce for each d3 timer cycle.
+var linkDeleteQueue = []; // gets a hash of nodes deleted by sessionViewForce for each d3 timer cycle.
 
 
 var urlRoot = "http://localhost:9997/session?session=";
@@ -925,6 +926,7 @@ document.addEventListener(visibilityEvent, function() {
     linkHashMap.clear();
     deleteAllSessions(function() {
       console.log("DELETED ALL SESSIONS ON WINDOW HIDDEN");
+      groupHashMap.clear();
       sessionDeleteHashMap.clear();
       currentSessionView.resize();
     });
@@ -1079,20 +1081,27 @@ setInterval(function() {
   }
 }, serverCheckInterval);
 
-function deleteSession(sessionId, callback) {
+function deleteSession(nodeId, callback) {
 
-  if (!sessionHashMap.has(sessionId)) {
-    console.error("deleteSession: SID NOT IN HASH: " + sessionId + " ... SKIPPING DELETE");
-    return (callback(sessionId));
+  if (!sessionHashMap.has(nodeId)) {
+    console.error("deleteSession: SID NOT IN HASH: " + nodeId + " ... SKIPPING DELETE");
+    return (callback(nodeId));
   }
 
   if (currentSessionView == 'force') currentSessionView.force.stop();
 
-  var deletedSession = sessionHashMap.get(sessionId);
+  var deletedSession = sessionHashMap.get(nodeId);
+  var groupLinkId = deletedSession.groupId + "_" + deletedSession.node.nodeId;
 
   console.log("XXX DELETE SESSION"
     // + " [" + currentSessionView.getSessionsLength() + "]"
-    + " | " + deletedSession.sessionId + " | " + deletedSession.userId
+    + " | GID: " + deletedSession.groupId 
+    + " | NID: " + deletedSession.nodeId 
+    + " | SID: " + deletedSession.sessionId 
+    + " | UID: " + deletedSession.userId
+    + " | SNID: " + deletedSession.linkHashMap.keys()
+    + " | SNID: " + deletedSession.node.nodeId
+    + " | LINKS: " + jsonPrint(deletedSession.node.links)
   );
 
   var sessionLinks = deletedSession.linkHashMap.keys();
@@ -1102,7 +1111,10 @@ function deleteSession(sessionId, callback) {
       cb();
     },
     function(err) {
-      sessionHashMap.remove(sessionId);
+
+      linkHashMap.remove(groupLinkId);
+
+      sessionHashMap.remove(nodeId);
 
       nodeHashMap.remove(deletedSession.node.nodeId);
 
@@ -1121,8 +1133,8 @@ function deleteAllSessions(callback) {
   var sessionIds = sessionHashMap.keys();
 
   async.each(sessionIds, function(sessionId, cb) {
-      deleteSession(sessionId, function(sId) {
-        console.log("XXX DELETED SESSION " + sId);
+      deleteSession(nodeId, function(nId) {
+        console.log("XXX DELETED SESSION " + nId);
         cb();
       });
     },
@@ -1168,9 +1180,13 @@ socket.on("CONFIG_CHANGE", function(rxConfig) {
 });
 
 socket.on("SESSION_ABORT", function(rxSessionObject) {
-  console.error("RX SESSION_ABORT" + " | " + rxSessionObject.sessionId + " | " + rxSessionObject.sessionEvent);
+  console.error("RX SESSION_ABORT" 
+    + " | " + rxSessionObject.sessionId 
+    + " | " + rxSessionObject.sessionEvent);
   if (rxSessionObject.sessionId == socket.id) {
-    console.error("SESSION_ABORT" + " | " + rxSessionObject.sessionId + " | " + rxSessionObject.sessionEvent);
+    console.error("SESSION_ABORT" 
+      + " | " + rxSessionObject.sessionId 
+      + " | " + rxSessionObject.sessionEvent);
     serverConnected = false;
     statsObj.socketId = 'ABORTED';
     socket.disconnect();
@@ -1180,7 +1196,10 @@ socket.on("SESSION_ABORT", function(rxSessionObject) {
 socket.on("SESSION_DELETE", function(rxSessionObject) {
   var rxObj = rxSessionObject;
   if (sessionHashMap.has(rxObj.sessionId)) {
-    console.log("SESSION_DELETE" + " | " + rxSessionObject.sessionId + " | " + rxSessionObject.sessionEvent
+    console.log("SESSION_DELETE" 
+      + " | " + rxSessionObject.nodeId 
+      // + " | " + rxSessionObject.sessionId 
+      + " | " + rxSessionObject.sessionEvent
       // + "\n" + jsonPrint(rxSessionObject)
     );
     var session = sessionHashMap.get(rxObj.sessionId);
@@ -1255,7 +1274,7 @@ function removeFromHashMap(hm, key, callback) {
   if (hm.has(key)){
     var value = hm.get(key);
     hm.remove(key);
-    callback({key:key, value:value});
+    callback(value);
   }
   else{
     callback(false);
@@ -1276,6 +1295,8 @@ var processSessionQueues = function(callback) {
     return (callback(null, null));
   } else {
     var session = rxSessionUpdateQueue.shift();
+    session.nodeId = session.tags.entity.toLowerCase() + "_" + session.tags.channel.toLowerCase();
+    console.log("R< | " + "\n" + jsonPrint(session));
     groupCreateQueue.push(session);
     // sessionCreateQueue.push(session);
     return (callback(null, session.sessionId));
@@ -1283,6 +1304,7 @@ var processSessionQueues = function(callback) {
 }
 
 var processNodeDeleteQueue = function(callback) {
+  
   while (nodeDeleteQueue.length > 0) {
   //   return (callback(null, "processNodeDeleteQueue"));
   // } else {
@@ -1291,24 +1313,50 @@ var processNodeDeleteQueue = function(callback) {
 
     // console.error("processNodeDeleteQueue: DELETE NODE: " + deletedNodeId);
 
-    removeFromHashMap(nodeHashMap, deletedNodeId, function() {
-      // console.error("processNodeDeleteQueue: DELETED: " + deletedNodeId);
+    removeFromHashMap(nodeHashMap, deletedNodeId, function(deletedNode) {
+      if (deletedNode) {
+        console.error("processNodeDeleteQueue: DELETED NODE: " + deletedNodeId);
       // return (callback(null, "processNodeDeleteQueue"));
+      }
     });
-    removeFromHashMap(sessionHashMap, deletedNodeId, function() {
-      // console.error("processNodeDeleteQueue: DELETED: " + deletedNodeId);
-      // return (callback(null, "processNodeDeleteQueue"));
+    removeFromHashMap(sessionHashMap, deletedNodeId, function(deletedSession) {
+      if (deletedSession) {
+        console.error("processNodeDeleteQueue: DELETED SESSION: " + deletedNodeId);
+        // return (callback(null, "processNodeDeleteQueue"));
+      }
     });
     removeFromHashMap(groupHashMap, deletedNodeId, function(deletedGroup) {
       if (deletedGroup) {
-        console.error("processNodeDeleteQueue: DELETED GROUP: " + jsonPrint(deletedGroup));
-        var linkKeys = Object.keys(deletedGroup.value.node.links);
-        linkKeys.forEach(function(deadLink){
-          removeFromHashMap(linkHashMap, deadLink, function(deletedLink) {
-            console.error("processNodeDeleteQueue: DELETED GROUP LINK: " + jsonPrint(deletedLink));
-          });
-        });
+        console.error("processNodeDeleteQueue: DELETED GROUP: " + deletedNodeId);
+        // var linkKeys = Object.keys(deletedGroup.node.links);
+        // linkKeys.forEach(function(deadLinkId){
+        //   removeFromHashMap(linkHashMap, deadLinkId, function(deletedLink) {
+        //     console.error("processNodeDeleteQueue: DELETED GROUP LINK"
+        //       + " | " + deadLinkId
+        //       + "\n" + + jsonPrint(deletedLink)
+        //     );
+        //   });
+        // });
       }
+    });
+
+  }
+  return (callback(null, "processNodeDeleteQueue"));
+}
+
+var processLinkDeleteQueue = function(callback) {
+  
+  while (linkDeleteQueue.length > 0) {
+  //   return (callback(null, "processNodeDeleteQueue"));
+  // } else {
+
+    var deletedLinkId = linkDeleteQueue.shift();
+
+    // console.error("processNodeDeleteQueue: DELETE NODE: " + deletedNodeId);
+
+    removeFromHashMap(linkHashMap, deletedLinkId, function() {
+      // console.error("processNodeDeleteQueue: DELETED: " + deletedNodeId);
+      // return (callback(null, "processNodeDeleteQueue"));
     });
 
   }
@@ -1369,8 +1417,8 @@ var createGroup = function(callback) {
       currentGroup.node.lastSeen = dateNow;
       currentGroup.node.interpolateColor = currentGroup.interpolateColor;
 
-      if (sessionHashMap.has(sessUpdate.sessionId)) {
-        currentSession = sessionHashMap.get(sessUpdate.sessionId);
+      if (sessionHashMap.has(sessUpdate.nodeId)) {
+        currentSession = sessionHashMap.get(sessUpdate.nodeId);
         var groupLinkId = currentGroup.node.nodeId + "_" + currentSession.node.nodeId;
         currentGroup.node.links = {};
         currentGroup.node.links[groupLinkId] = 1;
@@ -1446,8 +1494,8 @@ var createGroup = function(callback) {
 
       currentGroup.node.links = {};
 
-      if (sessionHashMap.has(sessUpdate.sessionId)) {
-        currentSession = sessionHashMap.get(sessUpdate.sessionId);
+      if (sessionHashMap.has(sessUpdate.nodeId)) {
+        currentSession = sessionHashMap.get(sessUpdate.nodeId);
         var groupLinkId = currentGroup.node.nodeId + "_" + currentSession.node.nodeId;
         currentGroup.node.links[groupLinkId] = 1;
       }
@@ -1502,9 +1550,9 @@ var createSession = function(callback) {
       );
       return (callback(null, null));
     } 
-    else if (sessionHashMap.has(sessUpdate.sessionId)) {
+    else if (sessionHashMap.has(sessUpdate.nodeId)) {
 
-      currentSession = sessionHashMap.get(sessUpdate.sessionId);
+      currentSession = sessionHashMap.get(sessUpdate.nodeId);
 
       if (typeof currentSession.wordChainIndex === 'undefined'){
         console.error("*** currentSession.wordChainIndex UNDEFINED");
@@ -1525,6 +1573,7 @@ var createSession = function(callback) {
       currentSession.prevLatestNodeId = prevLatestNodeId;
       var prevSessionLinkId = currentSession.node.nodeId + "_" + prevLatestNodeId;
 
+      console.warn("REMOVE LINK " + prevSessionLinkId);
       removeFromHashMap(linkHashMap, prevSessionLinkId, function() {
         currentSessionView.deleteLink(prevSessionLinkId);
       });
@@ -1559,11 +1608,12 @@ var createSession = function(callback) {
       currentSession.node.links[sessionLinkId] = 1;
 
       addToHashMap(nodeHashMap, currentSession.node.nodeId, currentSession.node, function(sesNode) {
-        addToHashMap(sessionHashMap, currentSession.sessionId, currentSession, function(cSession) {
+        addToHashMap(sessionHashMap, currentSession.nodeId, currentSession, function(cSession) {
           nodeCreateQueue.push(cSession);
-          removeFromHashMap(linkHashMap, sessionId, function() {
-            return (callback(null, cSession.sessionId));
-          });
+          return (callback(null, cSession.nodeId));
+          // removeFromHashMap(linkHashMap, sessionId, function() {
+            // return (callback(null, cSession.sessionId));
+          // });
         });
       });
 
@@ -1576,7 +1626,8 @@ var createSession = function(callback) {
         + " [" + sessUpdate.wordChainIndex + "]" 
         // + " [" + sessUpdate.mentions + "]" 
         + " | UID: " + sessUpdate.userId 
-        + " | ENTITY: " + sessUpdate.tags.entity 
+        + " | ENT: " + sessUpdate.tags.entity 
+        + " | CH: " + sessUpdate.tags.channel 
         + " | " + sessUpdate.source.nodeId 
         + " > " + sessUpdate.target.nodeId
         // + "\n" + jsonPrint(sessUpdate)
@@ -1587,10 +1638,10 @@ var createSession = function(callback) {
       currentSession.lastSeen = dateNow;
       currentSession.rank = -1;
       currentSession.isSession = true;
+      currentSession.nodeId = sessUpdate.tags.entity + "_" + sessUpdate.tags.channel;
       currentSession.sessionId = sessUpdate.sessionId;
       currentSession.tags = {};
       currentSession.tags = sessUpdate.tags;
-      currentSession.nodeId = sessUpdate.tags.entity + "_" + sessUpdate.tags.channel;
       currentSession.userId = sessUpdate.userId;
       currentSession.wordChainIndex = sessUpdate.wordChainIndex;
       currentSession.text = sessUpdate.tags.entity + "[" + sessUpdate.tags.channel + "]";
@@ -1649,10 +1700,10 @@ var createSession = function(callback) {
 
         currentSessionView.addNode(sesNode);
 
-        addToHashMap(sessionHashMap, currentSession.sessionId, currentSession, function(cSession) {
+        addToHashMap(sessionHashMap, currentSession.nodeId, currentSession, function(cSession) {
           console.log("NEW SESSION " + cSession.userId 
-            + " | " + cSession.nodeId 
-            + " | " + cSession.sessionId 
+            + " | NID: " + cSession.nodeId 
+            + " | SID: " + cSession.sessionId 
             + " | SNID: " + cSession.node.nodeId
             + " | LNID: " + cSession.latestNodeId
             + " | WCI:" + cSession.wordChainIndex 
@@ -1661,7 +1712,7 @@ var createSession = function(callback) {
           );
           currentSessionView.addSession(cSession);
           nodeCreateQueue.push(cSession);
-          return (callback(null, cSession.sessionId));
+          return (callback(null, cSession.nodeId));
         });
       });
     }
@@ -1921,7 +1972,7 @@ var createNode = function(callback) {
           }
         }
 
-        addToHashMap(sessionHashMap, session.sessionId, session, function(cSession) {
+        addToHashMap(sessionHashMap, session.nodeId, session, function(cSession) {
     // console.warn("cSession\n" + jsonPrint(session));
           if (!results.source.isIgnored) linkCreateQueue.push(cSession);
         });
@@ -1951,8 +2002,11 @@ var createLink = function(callback) {
 
       var groupLinkId = currentGroup.node.nodeId + "_" + session.node.nodeId;
 
+      currentGroup.node.links[groupLinkId] = 1;
+      session.node.links[groupLinkId] = 1;
+
       if (!linkHashMap.has(groupLinkId)){
-        console.log("-M- GROUP LINK HASH MISS | " + groupLinkId);
+        console.error("-M- GROUP LINK HASH MISS | " + groupLinkId);
         var newGroupLink = {
           linkId: groupLinkId,
           groupId: currentGroup.groupId,
@@ -1963,6 +2017,7 @@ var createLink = function(callback) {
           isGroupLink: true
         };
 
+
         addToHashMap(linkHashMap, groupLinkId, newGroupLink, function(grpLink) {
           // console.log("grpLink\n" + jsonPrint(grpLink));
           currentSessionView.addLink(grpLink);
@@ -1970,7 +2025,7 @@ var createLink = function(callback) {
       }
       else {
         var groupLink = linkHashMap.get(groupLinkId);
-        console.log("*** GROUP LINK HASH HIT | " + groupLinkId);
+        // console.log("*** GROUP LINK HASH HIT | " + groupLinkId);
         groupLink.age = 0;
         addToHashMap(linkHashMap, groupLinkId, groupLink, function(grpLink) {
           // console.log("grpLink\n" + jsonPrint(grpLink));
@@ -1995,7 +2050,7 @@ var createLink = function(callback) {
         var newSessionLink = {
           linkId: sessionLinkId,
           userId: session.userId,
-          sessionId: session.sessionId,
+          nodeId: session.nodeId,
           age: 0,
           isDead: false,
           source: session.node,
@@ -2071,7 +2126,7 @@ var createLink = function(callback) {
     }
 
 
-    addToHashMap(sessionHashMap, session.sessionId, session, function(sess) {});
+    addToHashMap(sessionHashMap, session.nodeId, session, function(sess) {});
   }
   return (callback(null, sessionId));
 }
@@ -2085,6 +2140,7 @@ function updateSessions() {
 
   async.series(
     [
+      processLinkDeleteQueue,
       processNodeDeleteQueue,
       processSessionQueues,
       createGroup,
@@ -2102,9 +2158,13 @@ function updateSessions() {
       statusSession2Id = document.getElementById("statusSession2Id");
       if (typeof statusSession2Id !== 'undefined') {
         statusSession2Id.innerHTML = 'NODES: ' + currentSessionView.nodesLength() 
+        + '<br>' + 'NHM K: ' + nodeHashMap.keys().length
         + '<br>' + 'SESSIONS: ' + currentSessionView.sessionsLength()
+        + '<br>' + 'SHM K: ' + sessionHashMap.keys().length
         + '<br>' + 'GROUPS: ' + currentSessionView.groupsLength()
+        + '<br>' + 'GHM K: ' + groupHashMap.keys().length
         + '<br>' + 'LINKS: ' + currentSessionView.linksLength()
+        + '<br>' + 'LHM K: ' + linkHashMap.keys().length
         + '<br>' + 'AGE RATE: ' + currentSessionView.ageRate();
       } else {
         console.warn("statusSession2Id element is undefined");

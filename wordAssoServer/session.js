@@ -47,6 +47,17 @@ var statsObj = {};
 statsObj.socketId = null;
 
 var ignoreWordsArray = [
+  "m",
+  "'",
+  "ve",
+  "...",
+  "s",
+  "s",
+  "|",
+  "htt...",
+  "rt",
+  "–",
+  "-",
   "a",
   "about",
   "across",
@@ -129,6 +140,9 @@ var ignoreWordsArray = [
   "wont",
   "would",
 ];
+
+ignoreWordsArray.push('"');
+ignoreWordsArray.push("'");
 
 function msToTime(duration) {
   var milliseconds = parseInt((duration % 1000) / 100),
@@ -518,9 +532,19 @@ function createControlPanel() {
       tableCreateRow(controlSliderTable, optionsBody, ['FRICTION', frictionSlider]);
       tableCreateRow(controlSliderTable, optionsBody, ['LINK STRENGTH', linkStrengthSlider]);
       break;
+    case 'ticker':
+      // tableCreateRow(controlTableHead, optionsHead, ['HISTOGRAM VIEW CONROL TABLE']);
+      tableCreateRow(controlTableBody, optionsBody, [status]);
+      tableCreateRow(controlTableBody, optionsBody, [status2]);
+      tableCreateRow(controlTableBody, optionsBody, [fullscreenButton, pauseButton, statsButton, testModeButton, resetButton, nodeCreateButton, removeDeadNodeButton]);
+      tableCreateRow(controlSliderTable, optionsBody, [resetButton]);
+      tableCreateRow(controlSliderTable, optionsBody, ['MAX AGE', maxAgeSlider]);
+
+      break;
     case 'histogram':
       // tableCreateRow(controlTableHead, optionsHead, ['HISTOGRAM VIEW CONROL TABLE']);
       tableCreateRow(controlTableBody, optionsBody, [status]);
+      tableCreateRow(controlTableBody, optionsBody, [status2]);
       tableCreateRow(controlTableBody, optionsBody, [fullscreenButton, pauseButton, statsButton, testModeButton, resetButton, nodeCreateButton, removeDeadNodeButton]);
       tableCreateRow(controlSliderTable, optionsBody, [resetButton]);
       tableCreateRow(controlSliderTable, optionsBody, ['MAX AGE', maxAgeSlider]);
@@ -1315,10 +1339,10 @@ var processNodeDeleteQueue = function(callback) {
     // console.error("processNodeDeleteQueue: DELETE NODE: " + deletedNodeId);
 
     removeFromHashMap(nodeHashMap, deletedNodeId, function(deletedNode) {
-      // if (deletedNode) {
-      //   console.error("processNodeDeleteQueue: DELETED NODE: " + deletedNodeId);
-      // // return (callback(null, "processNodeDeleteQueue"));
-      // }
+      if (deletedNode) {
+        // console.error("processNodeDeleteQueue: DELETED NODE: " + deletedNodeId);
+      // return (callback(null, "processNodeDeleteQueue"));
+      }
     });
     removeFromHashMap(sessionHashMap, deletedNodeId, function(deletedSession) {
       // if (deletedSession) {
@@ -1777,28 +1801,28 @@ var createNode = function(callback) {
       });
     }
 
-    var sourceNodeId = session.source.nodeId;
-    var targetNodeId = session.target.nodeId;
+    var sourceNodeId;
+    var targetNodeId;
+
+    if (config.sessionViewType == 'ticker'){
+      sourceNodeId = session.source.nodeId + "_" + moment().valueOf();
+      targetNodeId = session.target.nodeId + "_" + moment().valueOf();
+    }
+    else {
+      sourceNodeId = session.source.nodeId;
+      targetNodeId = session.target.nodeId;
+    }
+
+    var sourceText = session.source.nodeId;
+    var targetText = session.target.nodeId;
+
     var targetNode = {};
     var sourceNode = {};
 
-    // if (typeof session.source.wordChainIndex === 'undefined'){
-    //   console.warn("session.source.wordChainIndex UNDEFINED");
-    // }
-    // if (typeof session.source.mentions === 'undefined'){
-    //   console.warn("session.source.mentions UNDEFINED");
-    // }
-    // if (typeof session.target.wordChainIndex === 'undefined'){
-    //   console.warn("session.target.wordChainIndex UNDEFINED");
-    // }
-    // if (typeof session.target.mentions === 'undefined'){
-    //   console.warn("session.target.mentions UNDEFINED");
-    // }
-
     async.parallel({
         source: function(cb) {
-          if (ignoreWordHashMap.has(sourceNodeId)) {
-            console.warn("sourceNodeId IGNORED: " + sourceNodeId);
+          if ((config.sessionViewType != 'ticker') && ignoreWordHashMap.has(sourceText)) {
+            // console.warn("sourceNodeId IGNORED: " + sourceNodeId);
             cb(null, {
               node: sourceNodeId,
               isIgnored: true,
@@ -1806,10 +1830,12 @@ var createNode = function(callback) {
             });
           } else if (nodeHashMap.has(sourceNodeId)) {
             sourceNode = nodeHashMap.get(sourceNodeId);
+            sourceNode.isIgnored = ignoreWordHashMap.has(sourceText);
             sourceNode.latestNode = true;
             sourceNode.newFlag = false;
             sourceNode.userId = session.userId;
             sourceNode.sessionId = session.sessionId;
+            sourceNode.groupId = session.groupId;
             sourceNode.age = 0;
             sourceNode.isDead = false;
             sourceNode.ageUpdated = dateNow;
@@ -1822,7 +1848,7 @@ var createNode = function(callback) {
               sourceNode.mentions = session.source.wordChainIndex;
             }
             else {
-              sourceNode.text = sourceNodeId;
+              sourceNode.text = sourceText;
               sourceNode.mentions = session.source.mentions;
             }
 
@@ -1835,11 +1861,14 @@ var createNode = function(callback) {
             });
           } else {
             sourceNode = session.source;
+            sourceNode.nodeId = sourceNodeId;
+            sourceNode.isIgnored = ignoreWordHashMap.has(sourceText);
             sourceNode.newFlag = true;
             sourceNode.latestNode = true;
             sourceNode.isSessionNode = false;
             sourceNode.isGroupNode = false;
             sourceNode.userId = session.userId;
+            sourceNode.groupId = session.groupId;
             sourceNode.sessionId = session.sessionId;
             sourceNode.links = {};
             sourceNode.rank = -1;
@@ -1857,7 +1886,7 @@ var createNode = function(callback) {
               sourceNode.mentions = session.source.wordChainIndex;
             }
             else {
-              sourceNode.text = sourceNodeId;
+              sourceNode.text = sourceText;
               sourceNode.mentions = session.source.mentions;
             }
 
@@ -1872,11 +1901,11 @@ var createNode = function(callback) {
         },
 
         target: function(cb) {
-          if (typeof targetNodeId === 'undefined') {
-            console.warn("targetNodeId UNDEFINED ... SKIPPING CREATE NODE");
+          if (typeof targetNodeId === 'undefined' || (config.sessionViewType == 'ticker')) {
+            // console.warn("targetNodeId UNDEFINED ... SKIPPING CREATE NODE");
             cb("TARGET UNDEFINED", null);
           } else if (ignoreWordHashMap.has(targetNodeId)) {
-            console.warn("targetNodeId IGNORED: " + targetNodeId);
+            // console.warn("targetNodeId IGNORED: " + targetNodeId);
             cb(null, {
               node: targetNodeId,
               isIgnored: true,
@@ -1887,6 +1916,7 @@ var createNode = function(callback) {
             targetNode.newFlag = false;
             targetNode.userId = session.userId;
             targetNode.sessionId = session.sessionId;
+            targetNode.groupId = session.groupId;
             targetNode.age = 0;
             targetNode.isDead = false;
             targetNode.ageUpdated = dateNow;
@@ -1902,7 +1932,7 @@ var createNode = function(callback) {
               targetNode.y = session.node.y;
             }
             else {
-              targetNode.text = targetNodeId;
+              targetNode.text = targetText;
               targetNode.mentions = session.target.mentions;
             }
 
@@ -1915,10 +1945,12 @@ var createNode = function(callback) {
             });
           } else {
             targetNode = session.target;
+            targetNode.nodeId = targetNodeId;
             targetNode.newFlag = true;
             targetNode.isSessionNode = false;
             targetNode.isGroupNode = false;
             targetNode.userId = session.userId;
+            targetNode.groupId = session.groupId;
             targetNode.sessionId = session.sessionId;
             targetNode.links = {};
             targetNode.rank = -1;
@@ -1937,7 +1969,7 @@ var createNode = function(callback) {
               targetNode.y = session.node.y;
             }
             else {
-              targetNode.text = targetNodeId;
+              targetNode.text = targetText;
               targetNode.mentions = session.target.mentions;
               targetNode.x = session.node.x - (100 - 100 * Math.random());
               targetNode.y = session.node.y - (100 - 100 * Math.random());
@@ -1975,7 +2007,7 @@ var createNode = function(callback) {
 
         addToHashMap(sessionHashMap, session.nodeId, session, function(cSession) {
     // console.warn("cSession\n" + jsonPrint(session));
-          if (!results.source.isIgnored) linkCreateQueue.push(cSession);
+          if (!results.source.isIgnored && (config.sessionViewType != 'ticker')) linkCreateQueue.push(cSession);
         });
       });
   }
@@ -2072,7 +2104,7 @@ var createLink = function(callback) {
     var sourceWord = nodeHashMap.get(sourceWordId);
 
     if (!sourceWord) {
-      console.error("SOURCE UNDEFINED ... SKIPPING CREATE LINK");
+      // console.error("SOURCE UNDEFINED ... SKIPPING CREATE LINK");
       return (callback(null, sessionId));
     }
     else if (typeof sourceWord.links === 'undefined') {
@@ -2237,6 +2269,14 @@ function loadViewType(svt, callback) {
   console.log("LOADING SESSION VIEW TYPE: " + svt);
 
   switch (svt) {
+    case 'ticker':
+      config.sessionViewType = 'ticker';
+      requirejs(["js/libs/sessionViewTicker"], function() {
+        console.log("sessionViewTicker LOADED");
+        currentSessionView = new ViewTicker();
+        callback();
+      });
+      break;
     case 'histogram':
       config.sessionViewType = 'histogram';
       requirejs(["js/libs/sessionViewHistogram"], function() {
@@ -2298,6 +2338,11 @@ function initialize() {
 
           console.log("ON LOAD getUrlVariables: sessionViewType:" + config.sessionViewType);
 
+          if (config.sessionViewType == 'ticker') {
+            initIgnoreWordsHashMap(function() {
+              console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+            });
+          }
           if (config.sessionViewType == 'histogram') {
             initIgnoreWordsHashMap(function() {
               console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
@@ -2306,6 +2351,9 @@ function initialize() {
 
           loadViewType(config.sessionViewType, function() {
 
+            if (config.sessionViewType == 'ticker') {
+              currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
+            }
             if (config.sessionViewType == 'histogram') {
               currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
             }
@@ -2335,6 +2383,9 @@ function initialize() {
 
           loadViewType(config.sessionViewType, function() {
 
+            if (config.sessionViewType == 'ticker') {
+              currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
+            }
             if (config.sessionViewType == 'histogram') {
               currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
             }
@@ -2365,6 +2416,9 @@ function initialize() {
 
         loadViewType(config.sessionViewType, function() {
 
+          if (config.sessionViewType == 'ticker') {
+            currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
+          }
           if (config.sessionViewType == 'histogram') {
             currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
           }

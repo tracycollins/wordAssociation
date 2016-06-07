@@ -3,13 +3,16 @@
 
 "use strict";
 
-function ViewHistogram() {
+function ViewTicker() {
 
   var self = this;
 
   // ==============================================
   // GLOBAL VARS
   // ==============================================
+  var groupYpositionHash = {};
+
+  var currentMaxMentions = 2;
 
   var age;
 
@@ -18,7 +21,7 @@ function ViewHistogram() {
   // var removeDeadNodes = false;
   var maxOpacity = 0.9;
   var minOpacity = 0.3;
-  var defaultFadeDuration = 150;
+  var defaultFadeDuration = 250;
 
   var testModeEnabled = false;
 
@@ -33,16 +36,17 @@ function ViewHistogram() {
 
   var marginTopGroups = 15; // %
   var marginLeftGroups = 5;
+  var marginRightGroups = 90;
 
   var marginTopSessions = 15; // %
   var marginLeftSessions = 5;
+  var marginRightSessions = 95;
 
   var marginTopWords = 15; // %
   var marginLeftWords = 15;
+  var marginRightWords = 85;
 
   var colSpacing = 20;
-
-  var maxY = (marginTopWords + (2 * maxWordRows)) + "%";
 
   var maxRecentWords = maxWordRows;
   var wordArray = [];
@@ -61,7 +65,7 @@ function ViewHistogram() {
   var mouseMoveTimeoutInterval = 1000;
   var mouseHoverNodeId;
 
-  var updateHistogramDisplayReady = true;
+  var updateTickerDisplayReady = true;
 
   var showStatsFlag = false;
 
@@ -81,17 +85,17 @@ function ViewHistogram() {
   var defaultTextFill = "#888888";
 
 
-  var DEFAULT_HISTOGRAM_CONFIG = {
+  var DEFAULT_TICKER_CONFIG = {
     'ageRate': window.DEFAULT_AGE_RATE,
   };
 
-  var ageRate = DEFAULT_HISTOGRAM_CONFIG.ageRate;
+  var ageRate = DEFAULT_TICKER_CONFIG.ageRate;
 
   var D3_LAYOUT_WIDTH_RATIO = 1.0;
   var D3_LAYOUT_HEIGHT_RATIO = 1.0;
 
-  var HISTOGRAM_LAYOUT_WIDTH_RATIO = 1.0;
-  var HISTOGRAM_LAYOUT_HEIGHT_RATIO = 1.0;
+  var TICKER_LAYOUT_WIDTH_RATIO = 1.0;
+  var TICKER_LAYOUT_HEIGHT_RATIO = 1.0;
 
   var SVGCANVAS_WIDTH_RATIO = 1.0;
   var SVGCANVAS_HEIGHT_RATIO = 1.0;
@@ -136,7 +140,7 @@ function ViewHistogram() {
 
 
   var adjustedAgeRateScale = d3.scale.pow().domain([1, 500]).range([1.0, 100.0]);
-  var fontSizeScale = d3.scale.linear().domain([1, 100000000]).range([20.0, 30]);
+  var fontSizeScale = d3.scale.linear().domain([1, currentMaxMentions]).range([16.0, 32.0]);
 
   var sessionCircleRadiusScale = d3.scale.linear().domain([1, 100000000]).range([5.0, 100.0]); // uses wordChainIndex
   var defaultRadiusScale = d3.scale.linear().domain([1, 100000000]).range([1.0, 30.0]);
@@ -188,8 +192,8 @@ function ViewHistogram() {
   var maxNumberSessions = 0;
   var maxNumberNodes = 0;
 
-  var svgHistogramLayoutAreaWidth = d3LayoutWidth * HISTOGRAM_LAYOUT_WIDTH_RATIO;
-  var svgHistogramLayoutAreaHeight = d3LayoutHeight * HISTOGRAM_LAYOUT_HEIGHT_RATIO;
+  var svgTickerLayoutAreaWidth = d3LayoutWidth * TICKER_LAYOUT_WIDTH_RATIO;
+  var svgTickerLayoutAreaHeight = d3LayoutHeight * TICKER_LAYOUT_HEIGHT_RATIO;
 
   self.reset = function() {
     console.error("RESET");
@@ -246,22 +250,22 @@ function ViewHistogram() {
     .attr("x", 0)
     .attr("y", 0);
 
-  var svgHistogramLayoutArea = svgcanvas.append("g")
-    .attr("id", "svgHistogramLayoutArea");
+  var svgTickerLayoutArea = svgcanvas.append("g")
+    .attr("id", "svgTickerLayoutArea");
 
 
-  var groupSvgGroup = svgHistogramLayoutArea.append("svg:g").attr("id", "groupSvgGroup");
-  var groupLabelSvgGroup = svgHistogramLayoutArea.append("svg:g").attr("id", "groupLabelSvgGroup");
+  var groupSvgGroup = svgTickerLayoutArea.append("svg:g").attr("id", "groupSvgGroup");
+  var groupLabelSvgGroup = svgTickerLayoutArea.append("svg:g").attr("id", "groupLabelSvgGroup");
   var groupGnode = groupSvgGroup.selectAll("g.group");
   var groupLabels = groupLabelSvgGroup.selectAll(".groupLabel");
   
-  var sessionSvgGroup = svgHistogramLayoutArea.append("svg:g").attr("id", "sessionSvgGroup");
-  var sessionLabelSvgGroup = svgHistogramLayoutArea.append("svg:g").attr("id", "sessionLabelSvgGroup");
+  var sessionSvgGroup = svgTickerLayoutArea.append("svg:g").attr("id", "sessionSvgGroup");
+  var sessionLabelSvgGroup = svgTickerLayoutArea.append("svg:g").attr("id", "sessionLabelSvgGroup");
   var sessionGnode = sessionSvgGroup.selectAll("g.session");
   var sessionLabels = sessionLabelSvgGroup.selectAll(".sessionLabel");
   
-  var nodeSvgGroup = svgHistogramLayoutArea.append("svg:g").attr("id", "nodeSvgGroup");
-  var nodeLabelSvgGroup = svgHistogramLayoutArea.append("svg:g").attr("id", "nodeLabelSvgGroup");
+  var nodeSvgGroup = svgTickerLayoutArea.append("svg:g").attr("id", "nodeSvgGroup");
+  var nodeLabelSvgGroup = svgTickerLayoutArea.append("svg:g").attr("id", "nodeLabelSvgGroup");
   var node = nodeSvgGroup.selectAll("g.node");
   var nodeLabels = nodeSvgGroup.selectAll(".nodeLabel");
 
@@ -274,8 +278,8 @@ function ViewHistogram() {
 
     if (groups.length === 0) {
       ageRate = DEFAULT_AGE_RATE;
-    } else if (groups.length > 100) {
-      ageRate = adjustedAgeRateScale(groups.length - 100);
+    } else if (groups.length > 500) {
+      ageRate = adjustedAgeRateScale(groups.length - 500);
     } else {
       ageRate = DEFAULT_AGE_RATE;
     }
@@ -316,8 +320,8 @@ function ViewHistogram() {
 
     if (sessions.length === 0) {
       ageRate = DEFAULT_AGE_RATE;
-    } else if (sessions.length > 100) {
-      ageRate = adjustedAgeRateScale(sessions.length - 100);
+    } else if (sessions.length > 500) {
+      ageRate = adjustedAgeRateScale(sessions.length - 500);
     } else {
       ageRate = DEFAULT_AGE_RATE;
     }
@@ -485,8 +489,8 @@ function ViewHistogram() {
 
     if (nodes.length === 0) {
       ageRate = DEFAULT_AGE_RATE;
-    } else if (nodes.length > 100) {
-      ageRate = adjustedAgeRateScale(nodes.length - 100);
+    } else if (nodes.length > 500) {
+      ageRate = adjustedAgeRateScale(nodes.length - 500);
     } else {
       ageRate = DEFAULT_AGE_RATE;
     }
@@ -500,34 +504,43 @@ function ViewHistogram() {
 
       node = nodes[ageNodesIndex];
 
-      age = node.age + (ageRate * (dateNow - node.ageUpdated));
+      age = node.age + (ageRate * (moment().valueOf() - node.ageUpdated));
 
       if (node.isSessionNode) {
-        node.ageUpdated = dateNow;
         node.age = age;
+        node.ageUpdated = moment().valueOf();
         if (age < newFlagRatio * nodeMaxAge) {
           node.newFlag = true;
         } else {
           node.newFlag = false;
         }
-      } else if (self.removeDeadNodes && node.isDead) {
+        nodes[ageNodesIndex] = node;
+      } 
+      else if (self.removeDeadNodes && node.isDead) {
         deadNodesHash[node.nodeId] = 1;
-      } else if (self.removeDeadNodes && (age >= nodeMaxAge)) {
-        age = nodeMaxAge;
+        node.age = age;
+        node.ageUpdated = moment().valueOf();
+        nodes[ageNodesIndex] = node;
+      } 
+      else if (self.removeDeadNodes && (age >= nodeMaxAge)) {
+        node.age = nodeMaxAge;
+        node.ageUpdated = moment().valueOf();
         node.isDead = true;
         deadNodesHash[node.nodeId] = 1;
-      } else if ((nodes.length >= maxWords - 1) && (node.rank > maxWords)) {
-        deadNodesHash[node.nodeId] = 1;
-        // console.warn("XXX NODE " + node.nodeId);
-      } else {
-        node.ageUpdated = dateNow;
-        node.age = Math.min(age, nodeMaxAge);
+        console.warn("XXX NODE " + node.nodeId);
+        nodes[ageNodesIndex] = node;
+      } 
+      else {
+        node.age = age;
+        node.ageUpdated = moment().valueOf();
+
         if (age < newFlagRatio * nodeMaxAge) {
           node.newFlag = true;
         } else {
           node.newFlag = false;
         }
-        // nodes[ageNodesIndex] = node;
+
+        nodes[ageNodesIndex] = node;
       }
     }
 
@@ -900,11 +913,20 @@ function ViewHistogram() {
       .attr("class", function(d) {
         return d.newFlag ? "updateNew" : "update";
       })
+      .attr("x", xposition)
       .attr("rank", function(d) {
         return d.rank;
       })
       .text(function(d) {
         return d.text;
+      })
+      .style("font-size", function(d){
+        if (d.isIgnored) {
+          return  "12px";
+        }
+        else {
+          return fontSizeScale(d.mentions) + "px";
+        }
       })
       .style("fill", function(d) {
         if (d.newFlag) {
@@ -920,11 +942,10 @@ function ViewHistogram() {
         } else {
           return Math.max(wordOpacityScale(d.age + 1), minOpacity)
         }
-      })
-      .transition()
-      .duration(defaultFadeDuration)
-      .attr("x", xposition)
-      .attr("y", yposition);
+      });
+      // .transition()
+      // .duration(defaultFadeDuration)
+      // .attr("y", ypositionGroup);
 
     nodeWords
       .enter()
@@ -938,18 +959,23 @@ function ViewHistogram() {
         return d.rank;
       })
       .attr("x", xposition)
-      .attr("y", yposition)
+      .attr("y", ypositionGroup)
       .text(function(d) {
         return d.text;
       })
-      .style("fill", "#FF0000")
+      .style("fill", "#FFFFFF")
       .style("fill-opacity", 1)
-      .style("font-size", "2.2vmin")
+      // .style("font-size", "1.2vmin")
+      .style("font-size", function(d){
+        if (d.isIgnored) {
+          return  "8%";
+        }
+        else {
+          return fontSizeScale(d.mentions) + "%";
+        }
+      })
       .on("mouseout", nodeMouseOut)
-      .on("mouseover", nodeMouseOver)
-      .transition()
-      .duration(defaultFadeDuration)
-      .style("fill", "#FF0000");
+      .on("mouseover", nodeMouseOver);
 
     nodeWords
       .exit()
@@ -981,9 +1007,9 @@ function ViewHistogram() {
     };
   }
 
-  function updateHistogramDisplay() {
+  function updateTickerDisplay() {
 
-    updateHistogramDisplayReady = false;
+    updateTickerDisplayReady = false;
 
     async.series(
       [
@@ -1004,9 +1030,9 @@ function ViewHistogram() {
 
       function(err, result) {
         if (err) {
-          console.error("*** ERROR: updateHistogramDisplayReady *** \nERROR: " + err);
+          console.error("*** ERROR: updateTickerDisplayReady *** \nERROR: " + err);
         }
-        updateHistogramDisplayReady = true;
+        updateTickerDisplayReady = true;
       }
     );
   }
@@ -1040,7 +1066,7 @@ function ViewHistogram() {
       .duration(defaultFadeDuration)
       .style("opacity", 1.0);
 
-    var tooltipString = "<bold>" + nodeId + "</bold>" + "<br>MENTIONS: " + mentions + "<br>RANK: " + rank;
+    var tooltipString = nodeId + "<br>GROUP: " + d.groupId + "<br>MENTIONS: " + mentions + "<br>AGE: " + d.age + "<br>RANK: " + rank;
 
     divTooltip.html(tooltipString)
       .style("left", (d3.event.pageX - 40) + "px")
@@ -1094,18 +1120,28 @@ function ViewHistogram() {
     sessions.push(newSession);
   }
 
+
   this.addNode = function(newNode) {
     if (!newNode.isSession 
       && !newNode.isSessionNode 
       && !newNode.isGroup 
-      && !newNode.isGroupNode 
-      && ((nodes.length < maxWords - 1) || (newNode.rank < maxWords - 1))) {
+      && !newNode.isGroupNode) {
+
+      if (!newNode.isIgnored && (newNode.mentions > currentMaxMentions)) {
+        currentMaxMentions = newNode.mentions;
+        fontSizeScale = d3.scale.linear().domain([1, currentMaxMentions]).range([16.0, 32.0]);
+        console.warn("NEW MAX MENTIONS" 
+          + " | " + newNode.text 
+          + " | " + currentMaxMentions 
+          + " | " + fontSizeScale(currentMaxMentions)
+        );
+      }
+
       newNode.x = 0;
+      newNode.randomYoffset = randomIntFromInterval(0,20);
       nodeMouseOut.y = height;
       nodes.push(newNode);
-      rankNodes(function() {
-        if (nodes.length > maxWords) nodes.pop();
-      });
+      // console.log("NEW NODE\n" + jsonPrint(newNode));
     }
     updateRecentNodes(newNode);
   }
@@ -1139,7 +1175,7 @@ function ViewHistogram() {
     d3.timer(function() {
       tickNumber++;
       dateNow = moment().valueOf();
-      if (updateHistogramDisplayReady && !mouseMovingFlag) updateHistogramDisplay();
+      if (updateTickerDisplayReady && !mouseMovingFlag) updateTickerDisplay();
     });
   }
 
@@ -1176,18 +1212,18 @@ function ViewHistogram() {
       .attr("width", SVGCANVAS_WIDTH_RATIO * width)
       .attr("height", SVGCANVAS_HEIGHT_RATIO * height);
 
-    svgHistogramLayoutAreaWidth = d3LayoutWidth * HISTOGRAM_LAYOUT_WIDTH_RATIO;
-    svgHistogramLayoutAreaHeight = d3LayoutHeight * HISTOGRAM_LAYOUT_HEIGHT_RATIO;
+    svgTickerLayoutAreaWidth = d3LayoutWidth * TICKER_LAYOUT_WIDTH_RATIO;
+    svgTickerLayoutAreaHeight = d3LayoutHeight * TICKER_LAYOUT_HEIGHT_RATIO;
 
 
-    svgHistogramLayoutArea.attr("width", svgHistogramLayoutAreaWidth)
-      .attr("height", svgHistogramLayoutAreaHeight);
+    svgTickerLayoutArea.attr("width", svgTickerLayoutAreaWidth)
+      .attr("height", svgTickerLayoutAreaHeight);
 
-    svgHistogramLayoutArea.attr("x", 0);
-    svgHistogramLayoutArea.attr("y", 0);
+    svgTickerLayoutArea.attr("x", 0);
+    svgTickerLayoutArea.attr("y", 0);
 
-    // nodeInitialX = INITIAL_X_RATIO * svgHistogramLayoutAreaWidth;
-    // nodeInitialY = INITIAL_Y_RATIO * svgHistogramLayoutAreaHeight;
+    // nodeInitialX = INITIAL_X_RATIO * svgTickerLayoutAreaWidth;
+    // nodeInitialY = INITIAL_Y_RATIO * svgTickerLayoutAreaHeight;
   }
 
   // ===================================================================
@@ -1274,20 +1310,15 @@ function ViewHistogram() {
   function xposition(d, i) {
 
     if (d.isGroup) {
-      return marginLeftGroups;
+      return marginRightGroups + "%";
     }
     if (d.isSession) {
-      return marginLeftSessions;
-    }
-
-    if (typeof d.rank === 'undefined') {
-      return marginLeftWords;
+      return marginRightSessions + "%";
     }
 
     var value;
-    var col = parseInt(d.rank / maxWordRows);
 
-    value = marginLeftWords + (colSpacing * col);
+    value = marginRightWords - 100.0*(d.age/nodeMaxAge);
 
     return value + "%";
   }
@@ -1295,29 +1326,51 @@ function ViewHistogram() {
   var rows = maxWordRows;
   var cols = 5;
 
+
+  function ypositionGroup(d, i) {
+
+    var value;
+
+    // value = groupYpositionHash[d.groupId] + (d.rank * 0.5);
+    value = groupYpositionHash[d.groupId] + (0.2 * d.randomYoffset);
+
+    if (typeof groupYpositionHash[d.groupId] == 'undefined') {
+      value = 25;
+      groupYpositionHash[d.groupId] = value;
+      return value + "%";
+    }
+    else {
+      return value + "%";
+    }
+    // console.error("ypositionGroup: " + ypositionGroup);
+
+  }
+
   function yposition(d, i) {
 
     var value;
 
-    if (d.isSession) {
-
+    if (d.isGroup) {
       if (typeof d.rank === 'undefined') {
         value = marginTopSessions + (3 * maxSessionRows);
+        groupYpositionHash[d.groupId] = value;
         return value + "%";
       }
-
-      value = marginTopSessions + (3 * (d.rank % maxSessionRows));
-      return value + "%";
+      else {
+        value = marginTopSessions + (3 * (d.rank % maxSessionRows));
+        groupYpositionHash[d.groupId] = value;
+        return value + "%";
+      }
     }
-
-    if (typeof d.rank === 'undefined') {
+    else if (typeof d.rank === 'undefined') {
       value = marginTopWords + (3 * maxWordRows);
       return value + "%";
     }
-
-    value = marginTopWords + (3 * (d.rank % maxWordRows));
-    return value + "%";
-  }
+    else {
+      value = marginTopWords + (3 * (d.rank % maxWordRows));
+      return value + "%";
+    }
+   }
 
 
   var divTooltip = d3.select("body").append("div")

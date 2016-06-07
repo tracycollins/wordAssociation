@@ -506,17 +506,7 @@ function ViewTicker() {
 
       age = node.age + (ageRate * (moment().valueOf() - node.ageUpdated));
 
-      if (node.isSessionNode) {
-        node.age = age;
-        node.ageUpdated = moment().valueOf();
-        if (age < newFlagRatio * nodeMaxAge) {
-          node.newFlag = true;
-        } else {
-          node.newFlag = false;
-        }
-        nodes[ageNodesIndex] = node;
-      } 
-      else if (self.removeDeadNodes && node.isDead) {
+      if (self.removeDeadNodes && node.isDead) {
         deadNodesHash[node.nodeId] = 1;
         node.age = age;
         node.ageUpdated = moment().valueOf();
@@ -527,7 +517,7 @@ function ViewTicker() {
         node.ageUpdated = moment().valueOf();
         node.isDead = true;
         deadNodesHash[node.nodeId] = 1;
-        console.warn("XXX NODE " + node.nodeId);
+        if (node.isGroupNode) console.warn("XXX NODE " + node.nodeId + " | " + node.isGroupNode);
         nodes[ageNodesIndex] = node;
       } 
       else {
@@ -549,13 +539,69 @@ function ViewTicker() {
     }
   }
 
+  // function processDeadNodesHash(callback) {
+
+  //   if (Object.keys(deadNodesHash).length == 0) {
+  //     // console.warn("NO DEAD NODES");
+  //     return (callback());
+  //   }
+  //   // console.error("processDeadNodesHash\n" + jsonPrint(deadNodesHash));
+
+  //   var ageNodesLength = nodes.length - 1;
+  //   var ageNodesIndex = nodes.length - 1;
+  //   var node;
+
+  //   for (ageNodesIndex = ageNodesLength; ageNodesIndex >= 0; ageNodesIndex -= 1) {
+  //     node = nodes[ageNodesIndex];
+  //     if ((typeof node != 'undefined') && deadNodesHash[node.nodeId]) {
+  //       nodeDeleteQueue.push(node.nodeId);
+  //       nodes.splice(ageNodesIndex, 1);
+  //       delete deadNodesHash[node.nodeId];
+  //       self.deleteNode(node.nodeId);
+  //       // console.log("XXX NODE: " + node.nodeId);
+  //     } else if (typeof node == 'undefined') {
+  //       nodes.splice(ageNodesIndex, 1);
+  //     }
+  //   }
+
+  //   if (ageNodesIndex < 0) {
+  //     return (callback());
+  //   }
+  // }
+  function processDeadGroupsHash(callback) {
+
+    if (Object.keys(deadGroupsHash).length == 0) {
+      // console.warn("NO DEAD GROUPS");
+      return (callback());
+    }
+    // console.error("processDeadGroupsHash\n" + jsonPrint(deadGroupsHash));
+
+    var ageGroupsLength = groups.length - 1;
+    var ageGroupsIndex = groups.length - 1;
+    var group;
+
+    for (ageGroupsIndex = ageGroupsLength; ageGroupsIndex >= 0; ageGroupsIndex -= 1) {
+      group = groups[ageGroupsIndex];
+      if (deadGroupsHash[group.groupId]) {
+        nodeDeleteQueue.push(group.groupId);
+        groups.splice(ageGroupsIndex, 1);
+        delete deadGroupsHash[group.groupId];
+        // console.log("XXX GROUP: " + group.groupId);
+      }
+    }
+
+    if (ageGroupsIndex < 0) {
+      return (callback());
+    }
+  }
+
   function processDeadNodesHash(callback) {
 
     if (Object.keys(deadNodesHash).length == 0) {
-      // console.warn("NO DEAD NODES");
       return (callback());
     }
-    // console.error("processDeadNodesHash\n" + jsonPrint(deadNodesHash));
+
+    var deadNodeIds = Object.keys(deadNodesHash);
 
     var ageNodesLength = nodes.length - 1;
     var ageNodesIndex = nodes.length - 1;
@@ -563,22 +609,34 @@ function ViewTicker() {
 
     for (ageNodesIndex = ageNodesLength; ageNodesIndex >= 0; ageNodesIndex -= 1) {
       node = nodes[ageNodesIndex];
-      if ((typeof node != 'undefined') && deadNodesHash[node.nodeId]) {
+      if (deadNodesHash[node.nodeId]) {
         nodeDeleteQueue.push(node.nodeId);
         nodes.splice(ageNodesIndex, 1);
         delete deadNodesHash[node.nodeId];
-        self.deleteNode(node.nodeId);
-        // console.log("XXX NODE: " + node.nodeId);
-      } else if (typeof node == 'undefined') {
-        nodes.splice(ageNodesIndex, 1);
+        if (node.isGroupNode){
+          for (var i=groups.length-1; i >= 0; i -= 1) {
+            if (node.nodeId == groups[i].node.nodeId) {
+              console.log("XXX GROUP | " + groups[i].node.nodeId);
+              groups.splice(i, 1);
+            }
+          }
+        }
+        if (node.isSessionNode){
+          for (var i=sessions.length-1; i >= 0; i -= 1) {
+            if (node.nodeId == sessions[i].node.nodeId) {
+              console.log("XXX SESSION | " + sessions[i].node.nodeId);
+              sessions.splice(i, 1);
+            }
+          }
+        }
       }
+      deadNodeIds = Object.keys(deadNodesHash);
     }
 
-    if (ageNodesIndex < 0) {
+    if ((nodes.length == 0) || (deadNodeIds.length == 0) || (ageNodesIndex < 0)) {
       return (callback());
     }
   }
-
 
   // ===================================================================
 
@@ -665,8 +723,8 @@ function ViewTicker() {
         if (d.newFlag) {
           return "white";
         } else {
-          // return d.interpolateColor((nodeMaxAge - d.age) / nodeMaxAge);
-          return d.interpolateColor(1.0);
+          return d.interpolateColor((nodeMaxAge - d.age) / nodeMaxAge);
+          // return d.interpolateColor(1.0);
         }
       })
       .transition()
@@ -1017,6 +1075,7 @@ function ViewTicker() {
         ageSessions,
         ageNodes,
         processDeadNodesHash,
+        processDeadGroupsHash,
         rankGroups,
         // rankSessions,
         rankNodes,

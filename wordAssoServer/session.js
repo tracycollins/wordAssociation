@@ -1403,8 +1403,8 @@ var createGroup = function(callback) {
 
     // console.warn("createGroup" + " | " + groupId);
 
-    var currentGroup = {};
-    var currentSession = {};
+    // var currentGroup = {};
+    // var currentSession = {};
 
     if (groupDeleteHashMap.has(groupId)) {
       console.warn("createGroup: " 
@@ -1414,6 +1414,9 @@ var createGroup = function(callback) {
       return (callback(null, null));
     } 
     else if (groupHashMap.has(groupId)) {
+
+      var currentGroup = {};
+      var currentSession = {};
 
       currentGroup = groupHashMap.get(groupId);
 
@@ -1463,6 +1466,9 @@ var createGroup = function(callback) {
     else {
 
       groupsCreated += 1;
+
+      var currentGroup = {};
+      var currentSession = {};
 
       // console.log("CREATE GROUP" + " [" + sessUpdate.wordChainIndex + "]" 
       //   + " | G: " + groupId 

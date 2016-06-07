@@ -1296,7 +1296,7 @@ var processSessionQueues = function(callback) {
   } else {
     var session = rxSessionUpdateQueue.shift();
     session.nodeId = session.tags.entity.toLowerCase() + "_" + session.tags.channel.toLowerCase();
-    console.log("R< | " + "\n" + jsonPrint(session));
+    // console.log("R< | " + "\n" + jsonPrint(session));
     groupCreateQueue.push(session);
     // sessionCreateQueue.push(session);
     return (callback(null, session.sessionId));
@@ -1314,20 +1314,20 @@ var processNodeDeleteQueue = function(callback) {
     // console.error("processNodeDeleteQueue: DELETE NODE: " + deletedNodeId);
 
     removeFromHashMap(nodeHashMap, deletedNodeId, function(deletedNode) {
-      if (deletedNode) {
-        console.error("processNodeDeleteQueue: DELETED NODE: " + deletedNodeId);
-      // return (callback(null, "processNodeDeleteQueue"));
-      }
+      // if (deletedNode) {
+      //   console.error("processNodeDeleteQueue: DELETED NODE: " + deletedNodeId);
+      // // return (callback(null, "processNodeDeleteQueue"));
+      // }
     });
     removeFromHashMap(sessionHashMap, deletedNodeId, function(deletedSession) {
-      if (deletedSession) {
-        console.error("processNodeDeleteQueue: DELETED SESSION: " + deletedNodeId);
-        // return (callback(null, "processNodeDeleteQueue"));
-      }
+      // if (deletedSession) {
+      //   console.error("processNodeDeleteQueue: DELETED SESSION: " + deletedNodeId);
+      //   // return (callback(null, "processNodeDeleteQueue"));
+      // }
     });
     removeFromHashMap(groupHashMap, deletedNodeId, function(deletedGroup) {
-      if (deletedGroup) {
-        console.error("processNodeDeleteQueue: DELETED GROUP: " + deletedNodeId);
+      // if (deletedGroup) {
+        // console.error("processNodeDeleteQueue: DELETED GROUP: " + deletedNodeId);
         // var linkKeys = Object.keys(deletedGroup.node.links);
         // linkKeys.forEach(function(deadLinkId){
         //   removeFromHashMap(linkHashMap, deadLinkId, function(deletedLink) {
@@ -1337,7 +1337,7 @@ var processNodeDeleteQueue = function(callback) {
         //     );
         //   });
         // });
-      }
+      // }
     });
 
   }
@@ -1437,15 +1437,15 @@ var createGroup = function(callback) {
 
       groupsCreated += 1;
 
-      console.log("CREATE GROUP" + " [" + sessUpdate.wordChainIndex + "]" 
-        + " | G: " + groupId 
-        + " | C: " + sessUpdate.tags.channel 
-        + " | E: " + sessUpdate.tags.entity 
-        + " | U: " + sessUpdate.userId 
-        + " | " + sessUpdate.source.nodeId 
-        + " > " + sessUpdate.target.nodeId
-        // + "\n" + jsonPrint(sessUpdate)
-      );
+      // console.log("CREATE GROUP" + " [" + sessUpdate.wordChainIndex + "]" 
+      //   + " | G: " + groupId 
+      //   + " | C: " + sessUpdate.tags.channel 
+      //   + " | E: " + sessUpdate.tags.entity 
+      //   + " | U: " + sessUpdate.userId 
+      //   + " | " + sessUpdate.source.nodeId 
+      //   + " > " + sessUpdate.target.nodeId
+      //   // + "\n" + jsonPrint(sessUpdate)
+      // );
 
       currentGroup.groupId = groupId;
       currentGroup.nodeId = groupId;
@@ -1501,13 +1501,13 @@ var createGroup = function(callback) {
       }
 
       addToHashMap(nodeHashMap, currentGroup.node.nodeId, currentGroup.node, function(grpNode) {
-        console.log("NEW GROUP NODE" 
-          + " | " + grpNode.nodeId
-          + " | " + grpNode.groupId
-          + " | isGroupNode: " + grpNode.isGroupNode
-          + " | isSessionNode: " + grpNode.isSessionNode
-          // + "\n" + jsonPrint(grpNode)
-        );
+        // console.log("NEW GROUP NODE" 
+        //   + " | " + grpNode.nodeId
+        //   + " | " + grpNode.groupId
+        //   + " | isGroupNode: " + grpNode.isGroupNode
+        //   + " | isSessionNode: " + grpNode.isSessionNode
+        //   // + "\n" + jsonPrint(grpNode)
+        // );
 
         currentSessionView.addNode(grpNode);
 
@@ -1573,7 +1573,7 @@ var createSession = function(callback) {
       currentSession.prevLatestNodeId = prevLatestNodeId;
       var prevSessionLinkId = currentSession.node.nodeId + "_" + prevLatestNodeId;
 
-      console.warn("REMOVE LINK " + prevSessionLinkId);
+      // console.warn("REMOVE LINK " + prevSessionLinkId);
       removeFromHashMap(linkHashMap, prevSessionLinkId, function() {
         currentSessionView.deleteLink(prevSessionLinkId);
       });
@@ -1622,16 +1622,16 @@ var createSession = function(callback) {
 
       sessionsCreated += 1;
 
-      console.log("CREATE SESS" 
-        + " [" + sessUpdate.wordChainIndex + "]" 
-        // + " [" + sessUpdate.mentions + "]" 
-        + " | UID: " + sessUpdate.userId 
-        + " | ENT: " + sessUpdate.tags.entity 
-        + " | CH: " + sessUpdate.tags.channel 
-        + " | " + sessUpdate.source.nodeId 
-        + " > " + sessUpdate.target.nodeId
-        // + "\n" + jsonPrint(sessUpdate)
-      );
+      // console.log("CREATE SESS" 
+      //   + " [" + sessUpdate.wordChainIndex + "]" 
+      //   // + " [" + sessUpdate.mentions + "]" 
+      //   + " | UID: " + sessUpdate.userId 
+      //   + " | ENT: " + sessUpdate.tags.entity 
+      //   + " | CH: " + sessUpdate.tags.channel 
+      //   + " | " + sessUpdate.source.nodeId 
+      //   + " > " + sessUpdate.target.nodeId
+      //   // + "\n" + jsonPrint(sessUpdate)
+      // );
 
       currentSession.age = 0;
       currentSession.mentions = 1;
@@ -1691,12 +1691,12 @@ var createSession = function(callback) {
       }
 
       addToHashMap(nodeHashMap, currentSession.node.nodeId, currentSession.node, function(sesNode) {
-        console.log("NEW SESSION NODE" 
-          + " | " + sesNode.nodeId
-          + " | " + sesNode.text
-          + " | WCI: " + sesNode.wordChainIndex
-          + " | M: " + sesNode.wordChainIndex
-        );
+        // console.log("NEW SESSION NODE" 
+        //   + " | " + sesNode.nodeId
+        //   + " | " + sesNode.text
+        //   + " | WCI: " + sesNode.wordChainIndex
+        //   + " | M: " + sesNode.wordChainIndex
+        // );
 
         currentSessionView.addNode(sesNode);
 
@@ -2006,7 +2006,7 @@ var createLink = function(callback) {
       session.node.links[groupLinkId] = 1;
 
       if (!linkHashMap.has(groupLinkId)){
-        console.error("-M- GROUP LINK HASH MISS | " + groupLinkId);
+        // console.error("-M- GROUP LINK HASH MISS | " + groupLinkId);
         var newGroupLink = {
           linkId: groupLinkId,
           groupId: currentGroup.groupId,

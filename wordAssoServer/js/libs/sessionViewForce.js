@@ -566,7 +566,7 @@ function ViewForce() {
     for (ageLinksIndex = ageLinksLength; ageLinksIndex >= 0; ageLinksIndex -= 1) {
       link = links[ageLinksIndex];
       if (deadLinksHash[link.linkId]) {
-        console.warn("XXX DEAD LINK | " + link.linkId);
+        // console.warn("XXX DEAD LINK | " + link.linkId);
         linkDeleteQueue.push(link.linkId);
         links.splice(ageLinksIndex, 1);
         force.links(links);
@@ -617,7 +617,7 @@ function ViewForce() {
               groups.splice(i, 1);
               var deadLinkIds = Object.keys(node.links);
               deadLinkIds.forEach(function(deadLink){
-                console.warn("XXX GROUP LINK | " + jsonPrint(deadLink));
+                // console.warn("XXX GROUP LINK | " + jsonPrint(deadLink));
                 deadLinksHash[deadLink] = 'DEAD';
               });
             }
@@ -630,7 +630,7 @@ function ViewForce() {
               sessions.splice(i, 1);
               var deadLinkIds = Object.keys(node.links);
               deadLinkIds.forEach(function(deadLink){
-                console.warn("XXX SESSION LINK | " + jsonPrint(deadLink));
+                // console.warn("XXX SESSION LINK | " + jsonPrint(deadLink));
                 deadLinksHash[deadLink] = 'DEAD';
               });
             }
@@ -1689,9 +1689,9 @@ function ViewForce() {
     force.stop();
     forceStopped = true;
     links.push(newLink);
-    if (newLink.isGroupLink){
-      console.error("ADD GROUP LINK | " + newLink.linkId);
-    }
+    // if (newLink.isGroupLink){
+    //   console.error("ADD GROUP LINK | " + newLink.linkId);
+    // }
     force.links(links);
   }
 

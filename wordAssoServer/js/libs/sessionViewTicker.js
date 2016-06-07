@@ -1000,10 +1000,10 @@ function ViewTicker() {
         } else {
           return Math.max(wordOpacityScale(d.age + 1), minOpacity)
         }
-      })
-      .transition()
-        .duration(defaultFadeDuration)
-        .attr("y", ypositionGroup);
+      });
+      // .transition()
+      //   .duration(defaultFadeDuration)
+      //   .attr("y", ypositionGroup);
         // .style("font-size", function(d){
         //   if (d.isIgnored) {
         //     return minFontSize + "px";

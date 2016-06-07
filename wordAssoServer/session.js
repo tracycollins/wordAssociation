@@ -2119,8 +2119,8 @@ var createLink = function(callback) {
           currentSessionView.addLink(nLink);
         });
       } else {
-        console.warn("SESSION TARGET UNDEFINED" + " | " + sessionId)
-        console.warn("??? TARGET " + targetWordId + " NOT IN HASH MAP ... SKIPPING NEW LINK: SOURCE: " + sourceWordId);
+        // console.warn("SESSION TARGET UNDEFINED" + " | " + sessionId)
+        // console.warn("??? TARGET " + targetWordId + " NOT IN HASH MAP ... SKIPPING NEW LINK: SOURCE: " + sourceWordId);
       }
     } else {
       console.warn("SESSION TARGET UNDEFINED" + " | " + sessionId)

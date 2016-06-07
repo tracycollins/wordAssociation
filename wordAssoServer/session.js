@@ -639,6 +639,8 @@ var sessionsCreated = 0;
 
 var nodeCreateQueue = [];
 var linkCreateQueue = [];
+
+var groupDeleteQueue = []; // gets a hash of nodes deleted by sessionViewForce for each d3 timer cycle.
 var nodeDeleteQueue = []; // gets a hash of nodes deleted by sessionViewForce for each d3 timer cycle.
 var linkDeleteQueue = []; // gets a hash of nodes deleted by sessionViewForce for each d3 timer cycle.
 

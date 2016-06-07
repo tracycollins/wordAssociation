@@ -39,7 +39,7 @@ config.pauseFlag = false;
 config.sessionViewType = DEFAULT_SESSION_VIEW; // options: force, histogram ??
 config.maxWords = 100;
 config.testMode = false;
-config.showStatsFlag = true;
+config.showStatsFlag = false;
 config.removeDeadNodes = true;
 config.disableLinks = false;
 

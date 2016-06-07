@@ -12,7 +12,7 @@ function ViewTicker() {
   // ==============================================
   var groupYpositionHash = {};
 
-  var minFontSize = 24;
+  var minFontSize = 16;
   var maxFontSize = 48;
 
   var currentMaxMentions = 2;
@@ -986,6 +986,7 @@ function ViewTicker() {
           return fontSizeScale(d.mentions) + "px";
         }
       })
+
       .style("fill", function(d) {
         if (d.newFlag) {
           return "white";
@@ -1126,7 +1127,7 @@ function ViewTicker() {
       .duration(defaultFadeDuration)
       .style("opacity", 1.0);
 
-    var tooltipString = nodeId + "<br>GROUP: " + d.groupId + "<br>MENTIONS: " + mentions + "<br>AGE: " + d.age + "<br>RANK: " + rank;
+    var tooltipString = nodeId + "<br>GROUP: " + d.groupId + "<br>CHAN: " + d.channel + "<br>MENTIONS: " + mentions + "<br>AGE: " + d.age + "<br>RANK: " + rank;
 
     divTooltip.html(tooltipString)
       .style("left", (d3.event.pageX - 40) + "px")
@@ -1198,7 +1199,7 @@ function ViewTicker() {
       }
 
       newNode.x = 0;
-      newNode.randomYoffset = randomIntFromInterval(0,20);
+      newNode.randomYoffset = randomIntFromInterval(-10,10);
       nodeMouseOut.y = height;
       nodes.push(newNode);
       // console.log("NEW NODE\n" + jsonPrint(newNode));
@@ -1367,20 +1368,38 @@ function ViewTicker() {
     });
   }
 
+  // var previousWordShiftX = {};
+
   function xposition(d, i) {
 
     if (d.isGroup) {
+      // previousWordShiftX[d.groupId] = 0;
       return marginRightGroups + "%";
     }
-    if (d.isSession) {
+    else if (d.isSession) {
       return marginRightSessions + "%";
     }
+    else {
 
-    var value;
+      var value;
 
-    value = marginRightWords - 100.0*(d.age/nodeMaxAge);
+      var currentWord = d3.select(this);
 
-    return value + "%";
+      // console.log("currentWord[0][0]\n" + jsonPrint(currentWord[0][0]));
+
+      // var bbox = currentWord[0][0].getBBox();
+      // var xShiftRatio = bbox.width/window.innerWidth;
+
+
+      // console.warn("BBOX " + d.text + " | W: " + bbox.width + " | H: " + bbox.height);
+
+      // value = marginRightWords - 100.0*((d.age/nodeMaxAge) - previousWordShiftX[d.groupId]);
+      value = marginRightWords - 100.0*(d.age/nodeMaxAge);
+
+      // previousWordShiftX[d.groupId] = xShiftRatio;
+
+      return value + "%";
+    }
   }
 
   var rows = maxWordRows;

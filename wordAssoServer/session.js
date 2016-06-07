@@ -1781,18 +1781,18 @@ var createNode = function(callback) {
     var targetNode = {};
     var sourceNode = {};
 
-    if (typeof session.source.wordChainIndex === 'undefined'){
-      console.warn("session.source.wordChainIndex UNDEFINED");
-    }
-    if (typeof session.source.mentions === 'undefined'){
-      console.warn("session.source.mentions UNDEFINED");
-    }
-    if (typeof session.target.wordChainIndex === 'undefined'){
-      console.warn("session.target.wordChainIndex UNDEFINED");
-    }
-    if (typeof session.target.mentions === 'undefined'){
-      console.warn("session.target.mentions UNDEFINED");
-    }
+    // if (typeof session.source.wordChainIndex === 'undefined'){
+    //   console.warn("session.source.wordChainIndex UNDEFINED");
+    // }
+    // if (typeof session.source.mentions === 'undefined'){
+    //   console.warn("session.source.mentions UNDEFINED");
+    // }
+    // if (typeof session.target.wordChainIndex === 'undefined'){
+    //   console.warn("session.target.wordChainIndex UNDEFINED");
+    // }
+    // if (typeof session.target.mentions === 'undefined'){
+    //   console.warn("session.target.mentions UNDEFINED");
+    // }
 
     async.parallel({
         source: function(cb) {

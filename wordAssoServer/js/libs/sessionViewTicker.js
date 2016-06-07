@@ -12,6 +12,9 @@ function ViewTicker() {
   // ==============================================
   var groupYpositionHash = {};
 
+  var minFontSize = 32;
+  var maxFontSize = 64;
+
   var currentMaxMentions = 2;
 
   var age;
@@ -138,9 +141,8 @@ function ViewTicker() {
   var wordCloudFontScale = d3.scale.linear().domain([1, 2e6]).range([2, 8]);
   var wordCloudAgeScale = d3.scale.linear().domain([1, DEFAULT_MAX_AGE]).range([1, 1e-6]);
 
-
   var adjustedAgeRateScale = d3.scale.pow().domain([1, 500]).range([1.0, 100.0]);
-  var fontSizeScale = d3.scale.linear().domain([1, currentMaxMentions]).range([16.0, 32.0]);
+  var fontSizeScale = d3.scale.linear().domain([1, currentMaxMentions]).range([32.0, 64.0]);
 
   var sessionCircleRadiusScale = d3.scale.linear().domain([1, 100000000]).range([5.0, 100.0]); // uses wordChainIndex
   var defaultRadiusScale = d3.scale.linear().domain([1, 100000000]).range([1.0, 30.0]);
@@ -980,7 +982,7 @@ function ViewTicker() {
       })
       .style("font-size", function(d){
         if (d.isIgnored) {
-          return  "12px";
+          return minFontSize + "px";
         }
         else {
           return fontSizeScale(d.mentions) + "px";
@@ -1001,9 +1003,6 @@ function ViewTicker() {
           return Math.max(wordOpacityScale(d.age + 1), minOpacity)
         }
       });
-      // .transition()
-      // .duration(defaultFadeDuration)
-      // .attr("y", ypositionGroup);
 
     nodeWords
       .enter()
@@ -1024,14 +1023,7 @@ function ViewTicker() {
       .style("fill", "#FFFFFF")
       .style("fill-opacity", 1)
       // .style("font-size", "1.2vmin")
-      .style("font-size", function(d){
-        if (d.isIgnored) {
-          return  "8%";
-        }
-        else {
-          return fontSizeScale(d.mentions) + "%";
-        }
-      })
+      .style("font-size", minFontSize + "px")
       .on("mouseout", nodeMouseOut)
       .on("mouseover", nodeMouseOver);
 
@@ -1188,7 +1180,7 @@ function ViewTicker() {
 
       if (!newNode.isIgnored && (newNode.mentions > currentMaxMentions)) {
         currentMaxMentions = newNode.mentions;
-        fontSizeScale = d3.scale.linear().domain([1, currentMaxMentions]).range([16.0, 32.0]);
+        fontSizeScale = d3.scale.linear().domain([1, currentMaxMentions]).range([minFontSize, maxFontSize]);
         console.warn("NEW MAX MENTIONS" 
           + " | " + newNode.text 
           + " | " + currentMaxMentions 
@@ -1391,7 +1383,7 @@ function ViewTicker() {
     var value;
 
     // value = groupYpositionHash[d.groupId] + (d.rank * 0.5);
-    value = groupYpositionHash[d.groupId] + (0.2 * d.randomYoffset);
+    value = groupYpositionHash[d.groupId] + (0.5 * d.randomYoffset);
 
     if (typeof groupYpositionHash[d.groupId] == 'undefined') {
       value = 25;
@@ -1411,12 +1403,12 @@ function ViewTicker() {
 
     if (d.isGroup) {
       if (typeof d.rank === 'undefined') {
-        value = marginTopSessions + (3 * maxSessionRows);
+        value = marginTopSessions + (10 * maxSessionRows);
         groupYpositionHash[d.groupId] = value;
         return value + "%";
       }
       else {
-        value = marginTopSessions + (3 * (d.rank % maxSessionRows));
+        value = marginTopSessions + (10 * (d.rank % maxSessionRows));
         groupYpositionHash[d.groupId] = value;
         return value + "%";
       }

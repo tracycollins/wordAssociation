@@ -12,8 +12,8 @@ function ViewTicker() {
   // ==============================================
   var groupYpositionHash = {};
 
-  var minFontSize = 32;
-  var maxFontSize = 64;
+  var minFontSize = 24;
+  var maxFontSize = 48;
 
   var currentMaxMentions = 2;
 
@@ -22,7 +22,7 @@ function ViewTicker() {
   var newFlagRatio = 0.01;
   var maxWords = 100;
   // var removeDeadNodes = false;
-  var maxOpacity = 0.9;
+  var maxOpacity = 1.0;
   var minOpacity = 0.3;
   var defaultFadeDuration = 250;
 
@@ -39,15 +39,15 @@ function ViewTicker() {
 
   var marginTopGroups = 15; // %
   var marginLeftGroups = 5;
-  var marginRightGroups = 90;
+  var marginRightGroups = 85;
 
   var marginTopSessions = 15; // %
   var marginLeftSessions = 5;
-  var marginRightSessions = 95;
+  var marginRightSessions = 85;
 
   var marginTopWords = 15; // %
   var marginLeftWords = 15;
-  var marginRightWords = 85;
+  var marginRightWords = 75;
 
   var colSpacing = 20;
 
@@ -135,14 +135,14 @@ function ViewTicker() {
 
 
   var wordBarWidthScale = d3.scale.linear().domain([1, 2e6]).range([0.1, 65]);
-  var wordOpacityScale = d3.scale.linear().domain([0, DEFAULT_MAX_AGE]).range([maxOpacity, minOpacity]);
+  var wordOpacityScale = d3.scale.linear().domain([1e-6, 0.1*nodeMaxAge, nodeMaxAge]).range([maxOpacity, 0.4*maxOpacity, 0.2*maxOpacity]);
   var placeOpacityScale = d3.scale.linear().domain([0, DEFAULT_MAX_AGE]).range([0.9, 0.15]);
   var wordBarOpacityScale = d3.scale.linear().domain([0, DEFAULT_MAX_AGE]).range([0.9, 0.15]);
   var wordCloudFontScale = d3.scale.linear().domain([1, 2e6]).range([2, 8]);
   var wordCloudAgeScale = d3.scale.linear().domain([1, DEFAULT_MAX_AGE]).range([1, 1e-6]);
 
   var adjustedAgeRateScale = d3.scale.pow().domain([1, 500]).range([1.0, 100.0]);
-  var fontSizeScale = d3.scale.linear().domain([1, currentMaxMentions]).range([32.0, 64.0]);
+  var fontSizeScale = d3.scale.linear().domain([1, currentMaxMentions]).range([minFontSize, maxFontSize]);
 
   var sessionCircleRadiusScale = d3.scale.linear().domain([1, 100000000]).range([5.0, 100.0]); // uses wordChainIndex
   var defaultRadiusScale = d3.scale.linear().domain([1, 100000000]).range([1.0, 30.0]);
@@ -731,7 +731,7 @@ function ViewTicker() {
       })
       .transition()
       .duration(defaultFadeDuration)
-      .attr("x", xposition)
+      // .attr("x", xposition)
       .attr("y", yposition);
 
     groupWords
@@ -760,10 +760,7 @@ function ViewTicker() {
       .style("fill-opacity", 1)
       .style("font-size", "2.2vmin")
       .on("mouseout", nodeMouseOut)
-      .on("mouseover", nodeMouseOver)
-      .transition()
-      .duration(defaultFadeDuration)
-      .style("fill", "#FF0000");
+      .on("mouseover", nodeMouseOver);
 
     groupWords
       .exit()
@@ -974,6 +971,7 @@ function ViewTicker() {
         return d.newFlag ? "updateNew" : "update";
       })
       .attr("x", xposition)
+      // .attr("y", ypositionGroup)
       .attr("rank", function(d) {
         return d.rank;
       })
@@ -1002,7 +1000,18 @@ function ViewTicker() {
         } else {
           return Math.max(wordOpacityScale(d.age + 1), minOpacity)
         }
-      });
+      })
+      .transition()
+        .duration(defaultFadeDuration)
+        .attr("y", ypositionGroup);
+        // .style("font-size", function(d){
+        //   if (d.isIgnored) {
+        //     return minFontSize + "px";
+        //   }
+        //   else {
+        //     return fontSizeScale(d.mentions) + "px";
+        //   }
+        // });
 
     nodeWords
       .enter()
@@ -1403,12 +1412,12 @@ function ViewTicker() {
 
     if (d.isGroup) {
       if (typeof d.rank === 'undefined') {
-        value = marginTopSessions + (10 * maxSessionRows);
+        value = marginTopSessions + (8 * maxSessionRows);
         groupYpositionHash[d.groupId] = value;
         return value + "%";
       }
       else {
-        value = marginTopSessions + (10 * (d.rank % maxSessionRows));
+        value = marginTopSessions + (8 * (d.rank % maxSessionRows));
         groupYpositionHash[d.groupId] = value;
         return value + "%";
       }

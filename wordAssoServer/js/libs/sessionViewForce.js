@@ -518,10 +518,10 @@ function ViewForce() {
         node.isDead = true;
         nodes[ageNodesIndex] = node;
         deadNodesHash[node.nodeId] = 1;
-        if (node.isGroupNode) {
-          console.log("XXX DEAD NODE\n" + jsonPrint(node));
-          // deadLinksHash[node.links]
-        }
+        // if (node.isGroupNode) {
+        //   console.log("XXX DEAD GROUP NODE" + node.nodeId);
+        //   // deadLinksHash[node.links]
+        // }
       } else {
         node.ageUpdated = dateNow;
         node.age = age;
@@ -566,6 +566,8 @@ function ViewForce() {
     for (ageLinksIndex = ageLinksLength; ageLinksIndex >= 0; ageLinksIndex -= 1) {
       link = links[ageLinksIndex];
       if (deadLinksHash[link.linkId]) {
+        console.warn("XXX DEAD LINK | " + link.linkId);
+        linkDeleteQueue.push(link.linkId);
         links.splice(ageLinksIndex, 1);
         force.links(links);
         delete deadLinksHash[link.linkId];
@@ -611,11 +613,24 @@ function ViewForce() {
         if (node.isGroupNode){
           for (var i=groups.length-1; i >= 0; i -= 1) {
             if (node.nodeId == groups[i].node.nodeId) {
-              console.warn("XXX GROUP\n" + jsonPrint(node));
+              console.warn("XXX GROUP | " + groups[i].node.nodeId);
               groups.splice(i, 1);
               var deadLinkIds = Object.keys(node.links);
               deadLinkIds.forEach(function(deadLink){
                 console.warn("XXX GROUP LINK | " + jsonPrint(deadLink));
+                deadLinksHash[deadLink] = 'DEAD';
+              });
+            }
+          }
+        }
+        if (node.isSessionNode){
+          for (var i=sessions.length-1; i >= 0; i -= 1) {
+            if (node.nodeId == sessions[i].node.nodeId) {
+              console.warn("XXX SESSION | " + sessions[i].node.nodeId);
+              sessions.splice(i, 1);
+              var deadLinkIds = Object.keys(node.links);
+              deadLinkIds.forEach(function(deadLink){
+                console.warn("XXX SESSION LINK | " + jsonPrint(deadLink));
                 deadLinksHash[deadLink] = 'DEAD';
               });
             }
@@ -1391,7 +1406,7 @@ function ViewForce() {
   // SESSION CIRCLE
   function sessionCircleMouseOver(d) {
 
-    console.log("MOUSE OVER" + " | ID: " + d.id
+    console.log("MOUSE OVER" + " | ID: " + d.nodeId
       // + " | NID: " + d.nodeId
       // + " | UID: " + d.userId
       // + jsonPrint(d)
@@ -1674,6 +1689,9 @@ function ViewForce() {
     force.stop();
     forceStopped = true;
     links.push(newLink);
+    if (newLink.isGroupLink){
+      console.error("ADD GROUP LINK | " + newLink.linkId);
+    }
     force.links(links);
   }
 
@@ -1911,9 +1929,14 @@ function ViewForce() {
 
   self.reset = function() {
     console.error("RESET");
+
     force.stop();
+
     forceStopped = true;
     updateNodeFlag = false;
+
+    groups = [];
+    sessions = [];
     nodes = [];
     links = [];
 

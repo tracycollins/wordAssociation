@@ -192,8 +192,6 @@ function ViewTicker() {
   self.reset = function() {
      console.error("RESET");
 
-    updateNodeFlag = false;
-
     groups = [];
     sessions = [];
     nodes = [];

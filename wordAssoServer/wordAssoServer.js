@@ -3292,21 +3292,24 @@ function handleSessionEvent(sesObj, callback) {
     case 'SOCKET_DISCONNECT':
 
       console.log(chalkSession(
-        "XXX " + sesObj.sessionEvent 
-        + " | " + moment().format(defaultDateTimeFormat) 
-        + " | NSP: " + sesObj.session.namespace 
-        + " | SID: " + sesObj.session.sessionId 
-        + " | UID: " + sesObj.session.userId 
-        + " | IP: " + sesObj.session.ip 
-        + " | DOMAIN: " + sesObj.session.domain
+        "XXX " + sesObj.sessionEvent
+        + "\n" + jsonPrint(sesObj)
+        // + " | " + moment().format(defaultDateTimeFormat) 
+        // + " | NSP: " + sesObj.session.namespace 
+        // + " | SID: " + sesObj.session.sessionId 
+        // + " | UID: " + sesObj.session.userId 
+        // + " | IP: " + sesObj.session.ip 
+        // + " | DOMAIN: " + sesObj.session.domain
       ));
 
       sesObj.sessionEvent = 'SESSION_DELETE';
       viewNameSpace.emit('SESSION_DELETE', sesObj);
 
-      sessionCache.del(sesObj.session.sessionId);
+      // sessionCache.del(sesObj.session.sessionId);
 
       if (sesObj.session) {
+
+        sessionCache.del(sesObj.session.sessionId);
 
         debug(sesObj.sessionEvent + "\n" + jsonPrint(sesObj));
 

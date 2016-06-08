@@ -1118,7 +1118,7 @@ var readUpdateSessionViewQueue = setInterval(function() {
 
       if (typeof sessionUpdateObj.tags !== 'undefined') {
         sessionSmallObj.tags = sessionUpdateObj.tags;
-        console.log("readUpdateSessionViewQueue | sessionSmallObj.tags\n" + jsonPrint(sessionSmallObj.tags));
+        // console.log("readUpdateSessionViewQueue | sessionSmallObj.tags\n" + jsonPrint(sessionSmallObj.tags));
       }
 
       sessionSmallObj.source = {
@@ -1170,7 +1170,7 @@ var readUpdateSessionViewQueue = setInterval(function() {
 
 function updateSessionViews(sessionUpdateObj) {
 
-  console.log(chalkRed("updateSessionViews | sessionUpdateObj\n" + jsonPrint(sessionUpdateObj)));
+  // console.log(chalkRed("updateSessionViews | sessionUpdateObj\n" + jsonPrint(sessionUpdateObj)));
 
   if (entityChannelGroupHashMap.has(sessionUpdateObj.tags.entity)){
     sessionUpdateObj.tags.group = entityChannelGroupHashMap.get(sessionUpdateObj.tags.entity);
@@ -1208,8 +1208,8 @@ function sendPrompt(sessionObj, sourceWordObj) {
   } else {
 
 
-    console.log("sendPrompt: currentSession\n" + jsonPrint(currentSession));
-    console.log("sendPrompt: currentUser\n" + jsonPrint(currentUser));
+    // console.log("sendPrompt: currentSession\n" + jsonPrint(currentSession));
+    // console.log("sendPrompt: currentUser\n" + jsonPrint(currentUser));
 
     var sourceWordObj;
 
@@ -4408,8 +4408,8 @@ var readDbUpdateQueue = setInterval(function() {
           promptQueue.enqueue(currentSessionObj.sessionId);
 
 
-          console.log(chalkRed("readDbUpdateQueue | currentSessionObj\n" + jsonPrint(currentSessionObj)));
-          console.log(chalkRed("readDbUpdateQueue | dbUpdateObj\n" + jsonPrint(dbUpdateObj)));
+          // console.log(chalkRed("readDbUpdateQueue | currentSessionObj\n" + jsonPrint(currentSessionObj)));
+          // console.log(chalkRed("readDbUpdateQueue | dbUpdateObj\n" + jsonPrint(dbUpdateObj)));
 
           var sessionUpdateObj = {
             action: 'RESPONSE',
@@ -5410,7 +5410,7 @@ function createSession(newSessionObj) {
 
     if (typeof userObj.tags !== 'undefined') {
 
-      console.log(chalkRed("userObj.tags\n" + jsonPrint(userObj)));
+      // console.log(chalkRed("userObj.tags\n" + jsonPrint(userObj)));
 
 
       if (typeof sessionObj.tags === 'undefined') {
@@ -5422,7 +5422,7 @@ function createSession(newSessionObj) {
       else {
         if (typeof sessionObj.tags.entity !== 'undefined') {
 
-          console.log(chalkRed("sessionObj.tags.entity: " + sessionObj.tags.entity));
+          // console.log(chalkRed("sessionObj.tags.entity: " + sessionObj.tags.entity));
           sessionObj.tags.entity = sessionObj.tags.entity.toLowerCase();
 
           if (entityChannelGroupHashMap.has(sessionObj.tags.entity)){
@@ -5442,17 +5442,17 @@ function createSession(newSessionObj) {
           }
         }
         else {
-          console.log(chalkRed("sessionObj.tags\n" + jsonPrint(sessionObj.tags)));
+          // console.log(chalkRed("sessionObj.tags\n" + jsonPrint(sessionObj.tags)));
           sessionObj.tags.entity = userObj.tags.entity.toLowerCase();
         }
         if (typeof sessionObj.tags.channel !== 'undefined') {
 
-          console.log(chalkRed("sessionObj.tags.channel: " + sessionObj.tags.channel));
+          // console.log(chalkRed("sessionObj.tags.channel: " + sessionObj.tags.channel));
           sessionObj.tags.channel = sessionObj.tags.channel.toLowerCase();
 
         }
         else {
-          console.log(chalkRed("sessionObj.tags\n" + jsonPrint(sessionObj.tags)));
+          // console.log(chalkRed("sessionObj.tags\n" + jsonPrint(sessionObj.tags)));
           sessionObj.tags.channel = userObj.tags.channel.toLowerCase();
         }
       }

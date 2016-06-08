@@ -18,6 +18,9 @@ requirejs(["http://d3js.org/d3.v3.min.js"], function(d3) {
 var DEFAULT_SESSION_VIEW = 'force';
 var currentSessionView;
 
+var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
+var defaultTimePeriodFormat = "HH:mm:ss";
+
 var pageLoadedTimeIntervalFlag = true;
 
 var debug = false;

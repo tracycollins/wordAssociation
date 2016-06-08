@@ -45,7 +45,6 @@ function ViewForce() {
 
   var updateForceDisplayReady = true;
 
-
   var nodeMaxAge = 60000;
 
   var DEFAULT_CONFIG = {
@@ -114,9 +113,6 @@ function ViewForce() {
   var newNodes = [];
   var newLinks = [];
 
-  var mouseHoverFlag = false;
-  var mouseHoverNodeId;
-
   var translate = [0, 0];
 
   var zoomWidth = (window.innerWidth - (currentScale * window.innerWidth)) / 2;
@@ -126,7 +122,6 @@ function ViewForce() {
   var d3LayoutHeight = window.innerHeight * D3_LAYOUT_HEIGHT_RATIO;
 
   console.log("width: " + window.innerWidth + " | height: " + window.innerHeight);
-
 
   document.addEventListener("mousemove", function() {
     if (mouseHoverFlag) {
@@ -1300,8 +1295,6 @@ function ViewForce() {
 
   function updateForceDisplay() {
 
-    // console.log("updateForceDisplay");
-
     updateForceDisplayReady = false;
 
     async.series(
@@ -1326,7 +1319,6 @@ function ViewForce() {
         if (forceStopped) {
           force.start();
           forceStopped = false;
-          // console.warn("force start");
         }
         updateForceDisplayReady = true;
       }
@@ -1401,8 +1393,6 @@ function ViewForce() {
   function nodeClick(d) {
     launchSessionView(d.sessionId);
   }
-
-
   // SESSION CIRCLE
   function sessionCircleMouseOver(d) {
 
@@ -1510,8 +1500,6 @@ function ViewForce() {
 
       currentLinkObject = links[ageLinksIndex];
 
-      // console.log("currentLinkObject\n" + jsonPrint(currentLinkObject));
-
       if ((typeof currentLinkObject !== 'undefined') && currentLinkObject.isDead) {
         deadLinksHash[currentLinkObject.linkId] = 'DEAD';
       } else if ((typeof currentLinkObject !== 'undefined') && currentLinkObject.source.isDead) {
@@ -1538,7 +1526,6 @@ function ViewForce() {
   }
 
   this.addSession = function(newSession) {
-    // console.warn("addSession: " + newSession.sessionId);
     if (!forceStopped){
       force.stop();
       forceStopped = true;
@@ -1547,15 +1534,12 @@ function ViewForce() {
   }
 
   this.addGroup = function(newGroup) {
-    // console.log("addGroup: " + newGroup.groupId);
     force.stop();
     forceStopped = true;
     groups.push(newGroup);
-    // force.nodes(nodes);
   }
 
   this.deleteSessionLinks = function(sessionId) {
-    // console.log("deleteSessionLinks " + sessionId);
     if (self.disableLinks)  return ;
 
     var deletedSession;
@@ -1568,10 +1552,6 @@ function ViewForce() {
       deletedSession = sessions[sessionIndex];
       if (deletedSession.sessionId == sessionId) {
 
-        // console.log("XXX SESS " + sessionId
-        //     // + "\n" + jsonPrint(session)
-        // );
-
         var linksLength = links.length - 1;
         var linkIndex = links.length - 1;
 
@@ -1579,7 +1559,6 @@ function ViewForce() {
         for (linkIndex = linksLength; linkIndex >= 0; linkIndex -= 1) {
           var link = links[linkIndex];
           if (link.sessionId == sessionId) {
-            // console.warn("XXX SESS LINK " + link.linkId);
             deadLinksHash[link.linkId] = 1;
           }
         }
@@ -1598,12 +1577,6 @@ function ViewForce() {
   }
 
   this.addNode = function(newNode) {
-    // console.error("addNode\n" + jsonPrint(newNode));
-    // console.log("addNode"
-    //   + " | " + newNode.nodeId 
-    //   + " | " + newNode.mentions 
-    //   + " | " + newNode.wordChainIndex
-    // );
     force.stop();
     forceStopped = true;
     nodes.push(newNode);
@@ -1642,7 +1615,6 @@ function ViewForce() {
   }
 
   this.deleteNode = function(nodeId) {
-    // console.log("deleteNode " + nodeId);
 
     force.stop();
     forceStopped = true;
@@ -1716,8 +1688,6 @@ function ViewForce() {
       return;
     }
   }
-
-  // function initD3timer() {
   this.initD3timer = function() {
 
   force = d3.layout.force()
@@ -1756,7 +1726,6 @@ function ViewForce() {
       width = document.documentElement.clientWidth;
       height = document.documentElement.clientHeight;
     }
-
     // older versions of IE
     else {
       width = document.getElementsByTagName('body')[0].clientWidth;
@@ -1775,18 +1744,14 @@ function ViewForce() {
     svgForceLayoutAreaWidth = d3LayoutWidth * FORCE_LAYOUT_WIDTH_RATIO;
     svgForceLayoutAreaHeight = d3LayoutHeight * FORCE_LAYOUT_HEIGHT_RATIO;
 
-
     svgForceLayoutArea.attr("width", svgForceLayoutAreaWidth)
       .attr("height", svgForceLayoutAreaHeight);
 
     svgForceLayoutArea.attr("x", 0);
     svgForceLayoutArea.attr("y", 0);
 
-
     force.size([svgForceLayoutAreaWidth, svgForceLayoutAreaHeight]);
   }
-
-
 
   // ==========================================
   var testAddNodeInterval;

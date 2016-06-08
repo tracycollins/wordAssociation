@@ -175,7 +175,6 @@ var mouseMovingFlag = false;
 var mouseMoveTimeoutInterval = 1000;
 
 var mouseMoveTimeout = setTimeout(function() {
-  // console.warn("mouseMoveTimeout");
   d3.select("body").style("cursor", "none");
   if (!config.showStatsFlag && !pageLoadedTimeIntervalFlag) {
     displayInfo(false);
@@ -184,7 +183,6 @@ var mouseMoveTimeout = setTimeout(function() {
 }, mouseMoveTimeoutInterval);
 
 function resetMouseMoveTimer() {
-  // console.warn("resetMouseMoveTimer");
   clearTimeout(mouseMoveTimeout);
 
   displayControl(true);
@@ -2272,7 +2270,6 @@ requirejs.onError = function(err) {
   if (err.requireType === 'timeout') {
     console.log('modules: ' + err.requireModules);
   }
-
   throw err;
 };
 
@@ -2385,11 +2382,12 @@ function initialize() {
             setTimeout(function() {
               console.log("END PAGE LOAD TIMEOUT");
               pageLoadedTimeIntervalFlag = false;
-              if (config.showStatsFlag) displayInfo(false);
-              if (config.showStatsFlag) displayControl(false);
+              if (!config.showStatsFlag) displayInfo(false);
+              if (!config.showStatsFlag) displayControl(false);
             }, 5000);
           });
-        } else {
+        }
+        else {
 
           config.sessionViewType = DEFAULT_SESSION_VIEW;
 

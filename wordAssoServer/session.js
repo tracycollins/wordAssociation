@@ -1248,6 +1248,11 @@ socket.on("USER_SESSION", function(rxSessionObject) {
 });
 
 socket.on("SESSION_UPDATE", function(rxSessionObject) {
+
+
+  // console.log("rxSessionObject\n" + jsonPrint(rxSessionObject));
+
+
   var rxObj = rxSessionObject;
   if (!windowVisible) {
     rxSessionUpdateQueue = [];
@@ -1323,10 +1328,15 @@ var processSessionQueues = function(callback) {
     return (callback(null, null));
   } else {
     var session = rxSessionUpdateQueue.shift();
+
     session.nodeId = session.tags.entity.toLowerCase() + "_" + session.tags.channel.toLowerCase();
+    session.tags.entity = session.tags.entity.toLowerCase();
+    session.tags.channel = session.tags.channel.toLowerCase();
+    session.tags.group = session.tags.group.toLowerCase();
+
     // console.log("R< | " + "\n" + jsonPrint(session));
     groupCreateQueue.push(session);
-    // sessionCreateQueue.push(session);
+
     return (callback(null, session.sessionId));
   }
 }
@@ -1656,16 +1666,16 @@ var createSession = function(callback) {
 
       sessionsCreated += 1;
 
-      // console.log("CREATE SESS" 
-      //   + " [" + sessUpdate.wordChainIndex + "]" 
-      //   // + " [" + sessUpdate.mentions + "]" 
-      //   + " | UID: " + sessUpdate.userId 
-      //   + " | ENT: " + sessUpdate.tags.entity 
-      //   + " | CH: " + sessUpdate.tags.channel 
-      //   + " | " + sessUpdate.source.nodeId 
-      //   + " > " + sessUpdate.target.nodeId
-      //   // + "\n" + jsonPrint(sessUpdate)
-      // );
+      console.log("CREATE SESS" 
+        + " [" + sessUpdate.wordChainIndex + "]" 
+        // + " [" + sessUpdate.mentions + "]" 
+        + " | UID: " + sessUpdate.userId 
+        + " | ENT: " + sessUpdate.tags.entity 
+        + " | CH: " + sessUpdate.tags.channel 
+        + " | " + sessUpdate.source.nodeId 
+        + " > " + sessUpdate.target.nodeId
+        // + "\n" + jsonPrint(sessUpdate)
+      );
 
       currentSession.age = 0;
       currentSession.mentions = 1;

@@ -62,10 +62,7 @@ function ViewTicker() {
   var defaultTimePeriodFormat = "HH:mm:ss";
 
   var mouseFreezeEnabled = true;
-  var mouseMovingFlag = false;
   var mouseHoverFlag = false;
-  var mouseOverRadius = 10;
-  var mouseMoveTimeoutInterval = 1000;
   var mouseHoverNodeId;
 
   var updateTickerDisplayReady = true;
@@ -86,7 +83,6 @@ function ViewTicker() {
   var previousConfig = [];
 
   var defaultTextFill = "#888888";
-
 
   var DEFAULT_TICKER_CONFIG = {
     'ageRate': window.DEFAULT_AGE_RATE,
@@ -110,10 +106,6 @@ function ViewTicker() {
   var deadNodesHash = {};
 
   var newNodes = [];
-
-  var mouseHoverFlag = false;
-  var mouseHoverNodeId;
-
 
   var d3LayoutWidth = width * D3_LAYOUT_WIDTH_RATIO;
   var d3LayoutHeight = height * D3_LAYOUT_HEIGHT_RATIO;
@@ -198,51 +190,30 @@ function ViewTicker() {
   var svgTickerLayoutAreaHeight = d3LayoutHeight * TICKER_LAYOUT_HEIGHT_RATIO;
 
   self.reset = function() {
-    console.error("RESET");
+     console.error("RESET");
+
+    updateNodeFlag = false;
+
+    groups = [];
+    sessions = [];
     nodes = [];
-    createNodeQueue = [];
 
     deadNodesHash = {};
 
     newNodes = [];
+    resetMouseMoveTimer();
+    mouseMovingFlag = false;
+    self.resize();
+    updateTickerDisplayReady = true;  
   }
 
   this.getSessionsLength = function() {
     return sessions.length;
   }
 
-
   this.setNodeMaxAge = function(maxAge) {
     nodeMaxAge = maxAge;
     console.warn("SET NODE MAX AGE: " + nodeMaxAge);
-  }
-
-  this.displayControlOverlay = function(vis) {
-    var visible = "visible";
-    if (vis) {
-      visible = "visible";
-    } else {
-      visible = "hidden";
-    }
-  }
-
-  var mouseMoveTimeout = setTimeout(function() {
-    d3.select("body").style("cursor", "none");
-    if (!showStatsFlag && !pageLoadedTimeIntervalFlag) {
-    }
-  }, mouseMoveTimeoutInterval);
-
-  function resetMouseMoveTimer() {
-    clearTimeout(mouseMoveTimeout);
-
-    mouseMoveTimeout = setTimeout(function() {
-      d3.select("body").style("cursor", "none");
-
-      if (!showStatsFlag && !pageLoadedTimeIntervalFlag) {
-      }
-
-      mouseMovingFlag = false;
-    }, mouseMoveTimeoutInterval);
   }
 
   var d3image = d3.select("#d3group");
@@ -1079,12 +1050,10 @@ function ViewTicker() {
         processDeadNodesHash,
         processDeadGroupsHash,
         rankGroups,
-        // rankSessions,
         rankNodes,
         updateGroups,
         updateGroupWords,
         updateSessions,
-        // updateSessionWords,
         updateNodes,
         updateNodeWords,
       ],
@@ -1127,7 +1096,12 @@ function ViewTicker() {
       .duration(defaultFadeDuration)
       .style("opacity", 1.0);
 
-    var tooltipString = nodeId + "<br>GROUP: " + d.groupId + "<br>CHAN: " + d.channel + "<br>MENTIONS: " + mentions + "<br>AGE: " + d.age + "<br>RANK: " + rank;
+    var tooltipString = nodeId 
+      + "<br>GROUP: " + d.groupId 
+      + "<br>CHAN: " + d.channel 
+      + "<br>MENTIONS: " + mentions 
+      + "<br>AGE: " + d.age 
+      + "<br>RANK: " + rank;
 
     divTooltip.html(tooltipString)
       .style("left", (d3.event.pageX - 40) + "px")
@@ -1254,7 +1228,6 @@ function ViewTicker() {
       width = document.documentElement.clientWidth;
       height = document.documentElement.clientHeight;
     }
-
     // older versions of IE
     else {
       width = document.getElementsByTagName('body')[0].clientWidth;
@@ -1262,9 +1235,6 @@ function ViewTicker() {
     }
 
     console.log("width: " + width + " | height: " + height);
-
-    // radiusX = 0.5 * width;
-    // radiusY = 0.5 * height;
 
     d3LayoutWidth = width * D3_LAYOUT_WIDTH_RATIO; // double the width for now
     d3LayoutHeight = height * D3_LAYOUT_HEIGHT_RATIO;
@@ -1276,15 +1246,11 @@ function ViewTicker() {
     svgTickerLayoutAreaWidth = d3LayoutWidth * TICKER_LAYOUT_WIDTH_RATIO;
     svgTickerLayoutAreaHeight = d3LayoutHeight * TICKER_LAYOUT_HEIGHT_RATIO;
 
-
     svgTickerLayoutArea.attr("width", svgTickerLayoutAreaWidth)
       .attr("height", svgTickerLayoutAreaHeight);
 
     svgTickerLayoutArea.attr("x", 0);
     svgTickerLayoutArea.attr("y", 0);
-
-    // nodeInitialX = INITIAL_X_RATIO * svgTickerLayoutAreaWidth;
-    // nodeInitialY = INITIAL_Y_RATIO * svgTickerLayoutAreaHeight;
   }
 
   // ===================================================================
@@ -1368,12 +1334,9 @@ function ViewTicker() {
     });
   }
 
-  // var previousWordShiftX = {};
-
   function xposition(d, i) {
 
     if (d.isGroup) {
-      // previousWordShiftX[d.groupId] = 0;
       return marginRightGroups + "%";
     }
     else if (d.isSession) {
@@ -1384,19 +1347,7 @@ function ViewTicker() {
       var value;
 
       var currentWord = d3.select(this);
-
-      // console.log("currentWord[0][0]\n" + jsonPrint(currentWord[0][0]));
-
-      // var bbox = currentWord[0][0].getBBox();
-      // var xShiftRatio = bbox.width/window.innerWidth;
-
-
-      // console.warn("BBOX " + d.text + " | W: " + bbox.width + " | H: " + bbox.height);
-
-      // value = marginRightWords - 100.0*((d.age/nodeMaxAge) - previousWordShiftX[d.groupId]);
       value = marginRightWords - 100.0*(d.age/nodeMaxAge);
-
-      // previousWordShiftX[d.groupId] = xShiftRatio;
 
       return value + "%";
     }
@@ -1409,8 +1360,6 @@ function ViewTicker() {
   function ypositionGroup(d, i) {
 
     var value;
-
-    // value = groupYpositionHash[d.groupId] + (d.rank * 0.5);
     value = groupYpositionHash[d.groupId] + (0.5 * d.randomYoffset);
 
     if (typeof groupYpositionHash[d.groupId] == 'undefined') {
@@ -1421,7 +1370,6 @@ function ViewTicker() {
     else {
       return value + "%";
     }
-    // console.error("ypositionGroup: " + ypositionGroup);
 
   }
 
@@ -1450,7 +1398,6 @@ function ViewTicker() {
       return value + "%";
     }
    }
-
 
   var divTooltip = d3.select("body").append("div")
     .attr("class", "tooltip")

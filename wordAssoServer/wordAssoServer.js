@@ -696,14 +696,6 @@ function updateStatsInterval(statsFile, interval){
       wordCacheTtl: wordCacheTtl
     });
 
-    // var statsFile;
-
-    // if (OFFLINE_MODE) {
-    //   statsFile = OFFLINE_WORD_ASSO_STATS_FILE;
-    // } else {
-    //   statsFile = dropboxHostStatsFile;
-    // }
-
     saveStats(statsFile, statsObj, function(status) {
       if (status != 'OK') {
         console.log("!!! ERROR: SAVE STATUS | FILE: " + statsFile + "\n" + status);

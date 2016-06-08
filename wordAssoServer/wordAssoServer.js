@@ -11,7 +11,7 @@ var quitOnError = false;
 var serverReady = false;
 var internetReady = false;
 
-var minServerResponseTime = 147;
+var minServerResponseTime = 247;
 var maxServerResponseTime = 1447;
 
 var SESSION_CACHE_DEFAULT_TTL = 300; // seconds
@@ -1118,6 +1118,7 @@ var readUpdateSessionViewQueue = setInterval(function() {
 
       if (typeof sessionUpdateObj.tags !== 'undefined') {
         sessionSmallObj.tags = sessionUpdateObj.tags;
+        console.log("readUpdateSessionViewQueue | sessionSmallObj.tags\n" + jsonPrint(sessionSmallObj.tags));
       }
 
       sessionSmallObj.source = {
@@ -1169,7 +1170,13 @@ var readUpdateSessionViewQueue = setInterval(function() {
 
 function updateSessionViews(sessionUpdateObj) {
 
-  updateSessionViewQueue.push(sessionUpdateObj);
+  console.log(chalkRed("updateSessionViews | sessionUpdateObj\n" + jsonPrint(sessionUpdateObj)));
+
+  if (entityChannelGroupHashMap.has(sessionUpdateObj.tags.entity)){
+    sessionUpdateObj.tags.group = entityChannelGroupHashMap.get(sessionUpdateObj.tags.entity);
+    updateSessionViewQueue.push(sessionUpdateObj);
+  }
+
 
 }
 
@@ -1183,7 +1190,7 @@ var simpleChain = function(chain) {
 
 function sendPrompt(sessionObj, sourceWordObj) {
 
-  debug("sendPrompt: sessionObj\n" + jsonPrint(sessionObj));
+  // console.log("sendPrompt: sessionObj\n" + jsonPrint(sessionObj));
 
   var currentSession = sessionCache.get(sessionObj.sessionId);
   var currentUser = userCache.get(sessionObj.userId);
@@ -1199,6 +1206,10 @@ function sendPrompt(sessionObj, sourceWordObj) {
       );
     return;
   } else {
+
+
+    console.log("sendPrompt: currentSession\n" + jsonPrint(currentSession));
+    console.log("sendPrompt: currentUser\n" + jsonPrint(currentUser));
 
     var sourceWordObj;
 
@@ -1230,7 +1241,7 @@ function sendPrompt(sessionObj, sourceWordObj) {
 
           debug("CHAIN: " + currentSession.wordChain);
 
-          debug(chalkPrompt("P>" + " | " + currentUser.userId
+          console.log(chalkPrompt("P>" + " | " + currentUser.userId
             // + " | " + sessionObj.sessionId 
             // + " | TYPE: " + sessionObj.config.type 
             // + " | MODE: " + sessionObj.config.mode 
@@ -1239,7 +1250,6 @@ function sendPrompt(sessionObj, sourceWordObj) {
 
           var sessionUpdateObj = {
             action: 'PROMPT',
-            tags: {},
             userId: currentUser.userId,
             sessionId: currentSession.sessionId,
             wordChainIndex: currentSession.wordChainIndex,
@@ -1247,12 +1257,31 @@ function sendPrompt(sessionObj, sourceWordObj) {
             target: targetWordObj
           };
 
-          // sessionUpdateObj.tags.entity = currentUser.userId.toLowerCase();
-          sessionUpdateObj.tags = currentSession.tags;
+          sessionUpdateObj.tags = {};
 
-        } else {
+          if ((typeof currentUser.tags !== 'undefined') && (typeof currentSession.tags === 'undefined')){
+            currentSession.tags = {};
+            currentSession.tags.entity = currentUser.tags.entity;
+            currentSession.tags.channel = currentUser.tags.channel;
 
-          debug(chalkPrompt("P>" + " | " + currentUser.userId
+            sessionUpdateObj.tags.entity = currentUser.tags.entity;
+            sessionUpdateObj.tags.channel = currentUser.tags.channel;
+
+            sessionUpdateObj.tags.group = entityChannelGroupHashMap.get(currentUser.tags.entity);
+            // updateSessionViews(sessionUpdateObj);
+          }
+          else if (typeof currentSession.tags !== 'undefined'){
+            sessionUpdateObj.tags.entity = currentSession.tags.entity;
+            sessionUpdateObj.tags.channel = currentSession.tags.channel;
+            sessionUpdateObj.tags.group = currentSession.tags.group;
+            // updateSessionViews(sessionUpdateObj);
+          }
+
+        } 
+
+        else {
+
+          console.log(chalkPrompt("P>" + " | " + currentUser.userId
             // + " | " + sessionObj.sessionId 
             // + " | TYPE: " + sessionObj.config.type 
             // + " | MODE: " + sessionObj.config.mode 
@@ -1260,7 +1289,6 @@ function sendPrompt(sessionObj, sourceWordObj) {
 
           var sessionUpdateObj = {
             action: 'PROMPT',
-            tags: {},
             userId: currentUser.userId,
             sessionId: currentSession.sessionId,
             wordChainIndex: currentSession.wordChainIndex,
@@ -1268,8 +1296,24 @@ function sendPrompt(sessionObj, sourceWordObj) {
             target: 0
           };
 
-          // sessionUpdateObj.tags.entity = currentUser.userId.toLowerCase();
-          sessionUpdateObj.tags = currentSession.tags;
+          sessionUpdateObj.tags = {};
+
+          if ((typeof currentUser.tags !== 'undefined') && (typeof currentSession.tags === 'undefined')){
+            currentSession.tags = {};
+            currentSession.tags.entity = currentUser.tags.entity;
+            currentSession.tags.channel = currentUser.tags.channel;
+
+            sessionUpdateObj.tags.entity = currentUser.tags.entity;
+            sessionUpdateObj.tags.channel = currentUser.tags.channel;
+            sessionUpdateObj.tags.group = entityChannelGroupHashMap.get(currentUser.tags.entity);
+            // updateSessionViews(sessionUpdateObj);
+          }
+          else if (typeof currentSession.tags !== 'undefined'){
+            sessionUpdateObj.tags.entity = currentSession.tags.entity;
+            sessionUpdateObj.tags.channel = currentSession.tags.channel;
+            sessionUpdateObj.tags.group = currentSession.tags.group;
+            // updateSessionViews(sessionUpdateObj);
+          }
 
         }
 
@@ -3880,11 +3924,12 @@ function handleSessionEvent(sesObj, callback) {
         + " | TYPE: " + sesObj.session.config.type 
         + " | MODE: " + sesObj.session.config.mode 
         + "\nSID: " + sesObj.session.sessionId 
-        + " | ENT: " + sesObj.session.tags.entity 
-        + " | CH: " + sesObj.session.tags.channel 
+        + " | ENT: " + sesObj.user.tags.entity 
+        + " | CH: " + sesObj.user.tags.channel 
         + " | UID: " + sesObj.user.userId 
         + " | IP: " + sesObj.session.ip 
         + " | DOM: " + sesObj.session.domain
+        // + "\n" + jsonPrint(sesObj)
       ));
 
       userCache.set(sesObj.user.userId, sesObj.user, function(err, success) {
@@ -3896,13 +3941,13 @@ function handleSessionEvent(sesObj, callback) {
       if (typeof currentSession !== 'undefined') {
         currentSession.config.type = sesObj.session.config.type;
         currentSession.config.mode = sesObj.session.config.mode;
-        currentSession.nodeId = sesObj.session.tags.entity + '_' + sesObj.session.tags.channel;
+        currentSession.nodeId = sesObj.user.tags.entity.toLowerCase() + '_' + sesObj.user.tags.channel.toLowerCase();
         currentSession.userId = sesObj.user.userId;
         currentSession.user = sesObj.user;
       } else {
         currentSession = {};
         currentSession = sesObj.session;
-        currentSession.nodeId = sesObj.session.tags.entity + '_' + sesObj.session.tags.channel;
+        currentSession.nodeId = sesObj.user.tags.entity.toLowerCase() + '_' + sesObj.user.tags.channel.toLowerCase();
         currentSession.userId = sesObj.user.userId;
         currentSession.user = sesObj.user;
       }
@@ -4126,6 +4171,9 @@ var readResponseQueue = setInterval(function() {
 
     var rxInObj = responseQueue.dequeue();
 
+
+    // console.log(chalkRed("rxInObj\n" + jsonPrint(rxInObj)));
+
     if ((typeof rxInObj.nodeId === 'undefined') || (typeof rxInObj.nodeId !== 'string')) {
       debug(chalkError("*** ILLEGAL RESPONSE ... SKIPPING" + "\nTYPE: " + typeof rxInObj.nodeId 
         + "\n" + jsonPrint(rxInObj)));
@@ -4264,8 +4312,14 @@ var readResponseQueue = setInterval(function() {
       if (typeof responseInObj.tags.entity === 'undefined') {
         responseInObj.tags.entity = 'unknown_entity';
       }
+      else {
+        responseInObj.tags.entity = responseInObj.tags.entity.toLowerCase();
+      }
       if (typeof responseInObj.tags.channel === 'undefined') {
         responseInObj.tags.channel = 'unknown_channel';
+      }
+      else {
+        responseInObj.tags.channel = responseInObj.tags.channel.toLowerCase();
       }
     }
 
@@ -4277,11 +4331,11 @@ var readResponseQueue = setInterval(function() {
     }
 
     console.log(chalkResponse("R<" 
-      + " " + responseInObj.tags.group 
+      + " GRP: " + responseInObj.tags.group 
       // + " | U: " + currentSessionObj.userId
-      + " | " + responseInObj.tags.entity 
-      + " | " + responseInObj.tags.channel 
-      + " | " + responseInObj.nodeId 
+      + " | ENT: " + responseInObj.tags.entity 
+      + " | CH: " + responseInObj.tags.channel 
+      + " | NID: " + responseInObj.nodeId 
       + " [" + currentSessionObj.wordChainIndex + "]" 
       + " < " + previousPrompt
     ));
@@ -4292,7 +4346,9 @@ var readResponseQueue = setInterval(function() {
     dbUpdateObj.tags = {};
 
     if (responseInObj.tags){
-      dbUpdateObj.tags = responseInObj.tags;
+      dbUpdateObj.tags.entity = responseInObj.tags.entity;
+      dbUpdateObj.tags.channel = responseInObj.tags.channel;
+      dbUpdateObj.tags.group = responseInObj.tags.group;
     }
 
     dbUpdateQueue.enqueue(dbUpdateObj);
@@ -4306,11 +4362,21 @@ var readDbUpdateQueue = setInterval(function() {
   if (!dbUpdateQueue.isEmpty()) {
 
     var dbUpdateObj = dbUpdateQueue.dequeue();
+
+
     var currentSessionObj = dbUpdateObj.session;
 
     dbUpdateObj.word.wordChainIndex = currentSessionObj.wordChainIndex;
+
     currentSessionObj.wordChain.push(dbUpdateObj.word.nodeId);
     currentSessionObj.wordChainIndex++;
+
+    if (entityChannelGroupHashMap.has(dbUpdateObj.tags.entity)){
+      currentSessionObj.tags.entity = dbUpdateObj.tags.entity;
+      currentSessionObj.tags.channel = dbUpdateObj.tags.channel;
+      currentSessionObj.tags.group = entityChannelGroupHashMap.get(dbUpdateObj.tags.entity);
+    }
+
 
     dbUpdateWord(dbUpdateObj.word, true, function(status, updatedWordObj) {
 
@@ -4340,6 +4406,10 @@ var readDbUpdateQueue = setInterval(function() {
         if (!err && success) {
 
           promptQueue.enqueue(currentSessionObj.sessionId);
+
+
+          console.log(chalkRed("readDbUpdateQueue | currentSessionObj\n" + jsonPrint(currentSessionObj)));
+          console.log(chalkRed("readDbUpdateQueue | dbUpdateObj\n" + jsonPrint(dbUpdateObj)));
 
           var sessionUpdateObj = {
             action: 'RESPONSE',
@@ -5266,10 +5336,28 @@ function createSession(newSessionObj) {
         tags: {}
       }
 
-      if (typeof userObj.tags !== 'undefined') sessionObj.tags = userObj.tags;
+      if (typeof userObj.tags !== 'undefined') {
 
-      createSession(sessionObj);
-      return;
+        var tagKeys = Object.keys(userObj.tags);
+
+        var i = 0;
+
+        for (i=0; i<tagKeys.length; i++){
+          sessionObj.tags[tagKey] = userObj.tags[tagKey].toLowerCase();
+          console.log(chalkRed("sessionObj " + tagKey + " > " + sessionObj.tags[tagKey]));
+        }
+
+        if (i == tagKeys) {
+          createSession(sessionObj);
+          return;
+        }
+
+      }
+      else {
+        createSession(sessionObj);
+        return;
+       }
+
     }
     debug(chalkLog("@@@ SESSION_KEEPALIVE"
       + " | " + userObj.userId 
@@ -5297,7 +5385,9 @@ function createSession(newSessionObj) {
   });
 
   socket.on("USER_READY", function(userObj) {
+
     statsObj.socket.USER_READYS++;
+
     console.log(chalkUser("USER READY"
       + " | NID: " + userObj.nodeId
       + " | UID: " + userObj.userId
@@ -5319,22 +5409,51 @@ function createSession(newSessionObj) {
     }
 
     if (typeof userObj.tags !== 'undefined') {
-      if (typeof sessionObj.tags === 'undefined') sessionObj.tags = {};
-      sessionObj.tags = userObj.tags;
-      if (sessionObj.tags.entity) {
-        if (entityChannelGroupHashMap.has(sessionObj.tags.entity)){
-          delete statsObj.entityChannelGroup.hashMiss[sessionObj.tags.entity];
-          console.log(chalkRed("### ENTITY CHANNEL GROUP HASHMAP HIT"
-            + " | " + sessionObj.tags.entity
-            + " > " + entityChannelGroupHashMap.get(sessionObj.tags.entity)
-          ));
+
+      console.log(chalkRed("userObj.tags\n" + jsonPrint(userObj)));
+
+
+      if (typeof sessionObj.tags === 'undefined') {
+        console.log(chalkRed("sessionObj.tags UNDEFINED"));
+        sessionObj.tags = {};
+        sessionObj.tags.entity = userObj.tags.entity.toLowerCase();
+        sessionObj.tags.channel = userObj.tags.channel.toLowerCase();
+      }
+      else {
+        if (typeof sessionObj.tags.entity !== 'undefined') {
+
+          console.log(chalkRed("sessionObj.tags.entity: " + sessionObj.tags.entity));
+          sessionObj.tags.entity = sessionObj.tags.entity.toLowerCase();
+
+          if (entityChannelGroupHashMap.has(sessionObj.tags.entity)){
+
+            delete statsObj.entityChannelGroup.hashMiss[sessionObj.tags.entity];
+            console.log(chalkRed("### ENTITY CHANNEL GROUP HASHMAP HIT"
+              + " | " + sessionObj.tags.entity
+              + " > " + entityChannelGroupHashMap.get(sessionObj.tags.entity)
+            ));
+          }
+          else {
+            statsObj.entityChannelGroup.hashMiss[sessionObj.tags.entity] = 1;
+            console.log(chalkRed("--- ENTITY CHANNEL GROUP HASHMAP MISS"
+              + " | " + sessionObj.tags.entity
+              // + "\n" + jsonPrint(statsObj.entityChannelGroup.hashMiss)
+            ));
+          }
         }
         else {
-          statsObj.entityChannelGroup.hashMiss[sessionObj.tags.entity] = 1;
-          console.log(chalkRed("--- ENTITY CHANNEL GROUP HASHMAP MISS"
-            + " | " + sessionObj.tags.entity
-            // + "\n" + jsonPrint(statsObj.entityChannelGroup.hashMiss)
-          ));
+          console.log(chalkRed("sessionObj.tags\n" + jsonPrint(sessionObj.tags)));
+          sessionObj.tags.entity = userObj.tags.entity.toLowerCase();
+        }
+        if (typeof sessionObj.tags.channel !== 'undefined') {
+
+          console.log(chalkRed("sessionObj.tags.channel: " + sessionObj.tags.channel));
+          sessionObj.tags.channel = sessionObj.tags.channel.toLowerCase();
+
+        }
+        else {
+          console.log(chalkRed("sessionObj.tags\n" + jsonPrint(sessionObj.tags)));
+          sessionObj.tags.channel = userObj.tags.channel.toLowerCase();
         }
       }
     }
@@ -5345,7 +5464,7 @@ function createSession(newSessionObj) {
       sessionObj.config.mode = userObj.mode;
     }
 
-    debug(chalkConnect("--- USER READY   | " + userObj.userId 
+    console.log(chalkConnect("--- USER READY   | " + userObj.userId 
       + " | SID: " + sessionObj.sessionId 
       + " | TYPE: " + sessionObj.config.type 
       + " | MODE: " + sessionObj.config.mode 

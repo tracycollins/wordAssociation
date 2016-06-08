@@ -1145,6 +1145,8 @@ function ViewTicker() {
 
   // ===================================================================
 
+
+
   this.addGroup = function(newGroup) {
     groups.push(newGroup);
   }
@@ -1152,7 +1154,6 @@ function ViewTicker() {
   this.addSession = function(newSession) {
     sessions.push(newSession);
   }
-
 
   this.addNode = function(newNode) {
     if (!newNode.isSession 
@@ -1200,6 +1201,9 @@ function ViewTicker() {
   }
 
   this.deleteLink = function(delLink) {
+  }
+
+  this.deleteSessionLinks = function(sessionId) {
   }
 
   // ===================================================================

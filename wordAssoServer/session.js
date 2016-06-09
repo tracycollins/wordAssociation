@@ -2093,7 +2093,9 @@ var createLink = function(callback) {
 
     // if (!session.node.isGroupNode && (currentGroup.node.nodeId != session.node.nodeId)){
     // if (session.node.isSessionNode && (currentGroup.node.nodeId != session.node.nodeId)){
-    if (currentGroup.node.nodeId != session.node.nodeId){
+    if (typeof currentGroup === 'undefined'){
+    }
+    else if (currentGroup.node.nodeId != session.node.nodeId){
 
       var groupLinkId = currentGroup.node.nodeId + "_" + session.node.nodeId;
 

@@ -140,11 +140,11 @@ function ViewForce() {
 
 
   var adjustedAgeRateScale = d3.scale.linear().domain([1, 500]).range([1.0, 100.0]);
-  var fontSizeScale = d3.scale.linear().domain([1, 100000000]).range([35.0, 70]);
+  var fontSizeScale = d3.scale.linear().domain([1, 1000000]).range([40.0, 150]);
 
-  var groupCircleRadiusScale = d3.scale.log().domain([1, 2000000]).range([50.0, 150.0]); // uses wordChainIndex
-  var sessionCircleRadiusScale = d3.scale.linear().domain([1, 2000000]).range([40.0, 100.0]); // uses wordChainIndex
-  var defaultRadiusScale = d3.scale.log().domain([1, 2000000]).range([1.0, 40.0]);
+  var groupCircleRadiusScale = d3.scale.linear().domain([1, 100000]).range([50.0, 350.0]); // uses wordChainIndex
+  var sessionCircleRadiusScale = d3.scale.linear().domain([1, 100000]).range([40.0, 200.0]); // uses wordChainIndex
+  var defaultRadiusScale = d3.scale.linear().domain([1, 1000000]).range([20.0, 50.0]);
 
   var fillColorScale = d3.scale.linear()
     .domain([0, 30000, 60000])
@@ -263,12 +263,9 @@ function ViewForce() {
   var groupLabelSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "groupLabelSvgGroup");
   var groupGnode = groupSvgGroup.selectAll("g.group");
   var groupCircles = groupSvgGroup.selectAll("circle");
-  var groupLabels = groupLabelSvgGroup.selectAll(".groupLabel");
 
   var sessionSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "sessionSvgGroup");
-  var sessionLabelSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "sessionLabelSvgGroup");
   var sessionCircles = sessionSvgGroup.selectAll("circle");
-  var sessionLabels = sessionLabelSvgGroup.selectAll(".sessionLabel");
 
   var nodeSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "nodeSvgGroup");
   var nodeLabelSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "nodeLabelSvgGroup");
@@ -277,6 +274,9 @@ function ViewForce() {
   var nodeCircles = nodeSvgGroup.selectAll("circle");
   var nodeLabels = nodeSvgGroup.selectAll(".nodeLabel");
 
+  var groupLabels = groupLabelSvgGroup.selectAll(".groupLabel");
+  var sessionLabelSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "sessionLabelSvgGroup");
+  var sessionLabels = sessionLabelSvgGroup.selectAll(".sessionLabel");
   var link = linkSvgGroup.selectAll("line");
 
   var divTooltip = d3.select("body").append("div")
@@ -372,41 +372,6 @@ function ViewForce() {
   //
 
   function tick() {
-    groupGnode
-      .attr("x", function(d) {
-        return d.x;
-      })
-      .attr("y", function(d) {
-        return d.y;
-      });
-
-    node
-      .attr("x", function(d) {
-        return d.x;
-      })
-      .attr("y", function(d) {
-        return d.y;
-      });
-
-    groupCircles
-      .attr("r", function(d) {
-        return groupCircleRadiusScale(d.mentions + 1);
-      })
-      .attr("cx", function(d) {
-        return d.x;
-      })
-      .attr("cy", function(d) {
-        return d.y;
-      });
-
-    groupLabels
-      .attr("x", function(d) {
-        return d.x;
-      })
-      .attr("y", function(d) {
-        var shiftY = -1.4 * (groupCircleRadiusScale(d.mentions + 1));
-        return d.y + shiftY;
-      });
 
     link
       .attr("x1", function(d) {
@@ -421,7 +386,6 @@ function ViewForce() {
       .attr("y2", function(d) {
         return d.target.y;
       });
-
   }
 
   self.setPause = function(pause){
@@ -594,17 +558,7 @@ function ViewForce() {
       if (deadNodesHash[node.nodeId]) {
         nodeDeleteQueue.push(node.nodeId);
         nodes.splice(ageNodesIndex, 1);
-        // force.nodes(nodes);
         delete deadNodesHash[node.nodeId];
-        // delete deadNodesHash[node.groupId];
-        // if (node.isSessionNode){
-        //   for (var i=sessions.length-1; i >= 0; i -= 1) {
-        //     if (node.nodeId == sessions[i].node.nodeId) {
-        //       console.warn("XXX SESSION\n" + jsonPrint(node));
-        //       sessions.splice(i, 1);
-        //     }
-        //   }
-        // }
         if (node.isGroupNode){
           for (var i=groups.length-1; i >= 0; i -= 1) {
             if (node.nodeId == groups[i].node.nodeId) {
@@ -612,7 +566,6 @@ function ViewForce() {
               groups.splice(i, 1);
               var deadLinkIds = Object.keys(node.links);
               deadLinkIds.forEach(function(deadLink){
-                // console.warn("XXX GROUP LINK | " + jsonPrint(deadLink));
                 deadLinksHash[deadLink] = 'DEAD';
               });
             }
@@ -625,7 +578,6 @@ function ViewForce() {
               sessions.splice(i, 1);
               var deadLinkIds = Object.keys(node.links);
               deadLinkIds.forEach(function(deadLink){
-                // console.warn("XXX SESSION LINK | " + jsonPrint(deadLink));
                 deadLinksHash[deadLink] = 'DEAD';
               });
             }
@@ -645,21 +597,6 @@ function ViewForce() {
 
     node = node.data(force.nodes(), function(d) {
         return d.nodeId;
-      })
-      .attr("userId", function(d) {
-        return d.userId;
-      })
-      .attr("groupId", function(d) {
-        return d.groupId;
-      })
-      .attr("sessionId", function(d) {
-        return d.sessionId;
-      })
-      .attr("mentions", function(d) {
-        return d.mentions;
-      })
-      .attr("lastSeen", function(d) {
-        return d.lastSeen;
       });
 
     node.enter()
@@ -667,24 +604,6 @@ function ViewForce() {
       .attr("class", "node")
       .attr("id", function(d) {
         return d.nodeId;
-      })
-      .attr("nodeId", function(d) {
-        return d.nodeId;
-      })
-      .attr("groupId", function(d) {
-        return d.groupId;
-      })
-      .attr("sessionId", function(d) {
-        return d.sessionId;
-      })
-      .attr("userId", function(d) {
-        return d.userId;
-      })
-      .attr("mentions", function(d) {
-        return d.mentions;
-      })
-      .attr("lastSeen", function(d) {
-        return d.lastSeen;
       });
 
     node
@@ -767,7 +686,8 @@ function ViewForce() {
         return d.nodeId;
       })
       .attr("r", function(d) {
-        return groupCircleRadiusScale(d.mentions + 1);
+        return groupCircleRadiusScale(d.wordChainIndex + 1);
+        // return groupCircleRadiusScale(d.mentions + 1);
       })
       .attr("cx", function(d) {
         return d.x;
@@ -798,7 +718,7 @@ function ViewForce() {
           return d.interpolateColor(0.95*(nodeMaxAge - (dateNow - d.lastSeen)) / nodeMaxAge);
       })
       .style('stroke-width', function(d) {
-        return 2.5;
+        return 3.5;
       })
       .style("stroke-opacity", function(d) {
           return d.interpolateColor((nodeMaxAge - (dateNow - d.lastSeen)) / nodeMaxAge);
@@ -850,7 +770,7 @@ function ViewForce() {
       .transition()
         .duration(defaultFadeDuration)
         .attr("r", function(d) {
-          return 10;
+          return groupCircleRadiusScale(d.wordChainIndex + 1);
         })
         .style('opacity', 1.0);
 
@@ -866,13 +786,20 @@ function ViewForce() {
         return d.text;
       })
       .style("font-size", function(d) {
-        return fontSizeScale(1000.1) + "px";
+        return fontSizeScale(d.totalWordChainIndex) + "px";
       })
       .style('opacity', function(d) {
         if (d3.select(this).attr("mouseover") == 1) {
           return 1.0;
         }
         return (nodeMaxAge - (dateNow - d.lastSeen)) / nodeMaxAge;
+      })
+      .attr("x", function(d) {
+        return d.x;
+      })
+      .attr("y", function(d) {
+        var shiftY = -1.5 * (groupCircleRadiusScale(d.totalWordChainIndex + 1));
+        return d.y + shiftY;
       });
 
     groupLabels.enter()
@@ -881,27 +808,28 @@ function ViewForce() {
         return d.x;
       })
       .attr("y", function(d) {
-        var shiftY = -1.4 * (groupCircleRadiusScale(d.mentions + 1));
+        var shiftY = -1.6 * (groupCircleRadiusScale(d.totalWordChainIndex + 1));
         return d.y + shiftY;
       })
       .attr("class", "groupLabel")
       .attr("id", function(d) {
         return d.groupId;
       })
-      .attr("nodeId", function(d) {
-        return d.nodeId;
-      })
-      .attr("sessionId", function(d) {
-        return d.sessionId;
-      })
+      // .attr("nodeId", function(d) {
+      //   return d.nodeId;
+      // })
+      // .attr("sessionId", function(d) {
+      //   return d.sessionId;
+      // })
       .text(function(d) {
         return d.text;
       })
       .style("text-anchor", "middle")
+      .style("alignment-baseline", "middle")
       .style("opacity", 1e-6)
       .style('fill', "#ffffff")
       .style("font-size", function(d) {
-        return fontSizeScale(1000.1) + "px";
+        return fontSizeScale(d.totalWordChainIndex) + "px";
       })
       .transition()
       .duration(defaultFadeDuration)
@@ -1044,6 +972,7 @@ function ViewForce() {
       })
       .text(function(d) {
         return d.text;
+        // return d.wordChainIndex;
       })
       .attr("x", function(d) {
         var cnode = nodeHashMap.get(d.nodeId);
@@ -1051,13 +980,13 @@ function ViewForce() {
         return cnode.x;
       })
       .attr("y", function(d) {
-        var shiftY = -2.5 * (sessionCircleRadiusScale(d.wordChainIndex + 1));
+        var shiftY = -2.2 * (sessionCircleRadiusScale(d.wordChainIndex + 1));
         var cnode = nodeHashMap.get(d.nodeId);
         if (typeof cnode === 'undefined') return 0;
         return cnode.y + shiftY;
       })
       .style("font-size", function(d) {
-        return fontSizeScale(1000.1) + "px";
+        return fontSizeScale(d.wordChainIndex) + "px";
       })
       .style('opacity', function(d) {
         if (d3.select(this).attr("mouseover") == 1) {
@@ -1077,12 +1006,14 @@ function ViewForce() {
       })
       .text(function(d) {
         return d.text;
+        return d.wordChainIndex;
       })
       .style("text-anchor", "middle")
+      .style("alignment-baseline", "middle")
       .style("opacity", 1e-6)
       .style('fill', "#ffffff")
       .style("font-size", function(d) {
-        return fontSizeScale(1000.1) + "px";
+        return fontSizeScale(d.wordChainIndex) + "px";
       })
       .attr("x", function(d) {
         var cnode = nodeHashMap.get(d.nodeId);
@@ -1123,6 +1054,8 @@ function ViewForce() {
             return defaultRadiusScale(1);
           }
           else {
+            if (d.isGroupNode) return groupCircleRadiusScale(d.totalWordChainIndex + 1) ;
+            if (d.isSessionNode) return groupCircleRadiusScale(d.wordChainIndex + 1) ;
             return defaultRadiusScale(parseInt(d.mentions) + 1);
           }
       })
@@ -1151,6 +1084,11 @@ function ViewForce() {
       })
       .style('stroke', function(d) {
         return strokeColorScale(d.age);
+      })
+      .style("stroke-width", function(d) {
+        if (d.isGroupNode) return 5;
+        if (d.isSessionNode) return 4;
+        return 2.5;
       })
       .style('stroke-opacity', function(d) {
         return (nodeMaxAge - d.age) / nodeMaxAge;
@@ -1203,25 +1141,28 @@ function ViewForce() {
           return d.nodeId;
         })
       .text(function(d) {
+        if (d.isGroupNode) return d.totalWordChainIndex;
         if (d.isSessionNode) return d.wordChainIndex;
-        // if (d.isGroupNode) return d.groupId;
-        if (d.isGroupNode) return d.mentions;
         return d.text;
       })
       .attr("x", function(d) {
         return d.x;
       })
       .attr("y", function(d) {
-        if (d.isSessionNode) {
-          var shiftY = -10 - 1.1 * (sessionCircleRadiusScale(parseInt(d.wordChainIndex) + 1));
-          return d.y + shiftY;
+        if (d.isGroupNode) {
+          return d.y;
+        }
+        else if (d.isSessionNode) {
+          return d.y;
         }
         else{
-          var shiftY = -10 - 1.1 * (defaultRadiusScale(parseInt(d.mentions) + 1));
+          var shiftY = -20 - 1.15 * (defaultRadiusScale(parseInt(d.mentions) + 1));
           return d.y + shiftY;
         }
       })
       .style("font-size", function(d) {
+        if (d.isGroupNode) return fontSizeScale(d.totalWordChainIndex + 1.1) + "px";
+        if (d.isSessionNode) return fontSizeScale(d.wordChainIndex + 1.1) + "px";
         return fontSizeScale(d.mentions + 1.1) + "px";
       })
       .style('opacity', function(d) {
@@ -1234,30 +1175,16 @@ function ViewForce() {
         return d.x;
       })
       .attr("y", function(d) {
-        if (d.isSessionNode) {
+        if (d.isGroupNode) {
+          var shiftY = -10 - 1.1 * (groupCircleRadiusScale(parseInt(d.totalWordChainIndex) + 1));
+          return d.y + shiftY;
+        }
+        else if (d.isSessionNode) {
           var shiftY = -10 - 1.1 * (sessionCircleRadiusScale(parseInt(d.wordChainIndex) + 1));
-          // console.log("nodeLabels"
-          // + " | d.nodeId: " + d.nodeId
-          // + " | d.isGroupNode: " + d.isGroupNode
-          // + " | d.isSessionNode: " + d.isSessionNode
-          // + " | d.y: " + d.y 
-          // + " | WCI: " + d.wordChainIndex 
-          // + " | M: " + d.mentions 
-          // + " | " + shiftY
-          // );
           return d.y + shiftY;
         }
         else{
           var shiftY = -10 - 1.1 * (defaultRadiusScale(parseInt(d.mentions) + 1));
-          // console.log("nodeLabels"
-          // + " | d.nodeId: " + d.nodeId
-          // + " | d.isGroupNode: " + d.isGroupNode
-          // + " | d.isSessionNode: " + d.isSessionNode
-          // + " | d.y: " + d.y 
-          // + " | WCI: " + d.wordChainIndex 
-          // + " | M: " + d.mentions 
-          // + " | " + shiftY
-          // );
           return d.y + shiftY;
         }
       })
@@ -1272,14 +1199,17 @@ function ViewForce() {
         return d.sessionId;
       })
       .text(function(d) {
-        if (d.isGroupNode) return d.groupId;
+        if (d.isGroupNode) return d.totalWordChainIndex;
         if (d.isSessionNode) return d.wordChainIndex;
         return d.text;
       })
       .style("text-anchor", "middle")
+      .style("alignment-baseline", "middle")
       .style("opacity", 1e-6)
       .style("fill", "#ffffff")
       .style("font-size", function(d) {
+        if (d.isGroupNode) return fontSizeScale(d.totalWordChainIndex + 1.1) + "px";
+        if (d.isSessionNode) return fontSizeScale(d.wordChainIndex + 1.1) + "px";
         return fontSizeScale(d.mentions + 1.1) + "px";
       })
       .transition()

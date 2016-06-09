@@ -418,7 +418,8 @@ function ViewTicker() {
 
   function rankGroups(callback) {
     if (groups.length == 0) return (callback());
-    var sortedGroupArray = sortByProperty(groups, 'mentions');
+    // var sortedGroupArray = sortByProperty(groups, 'mentions');
+    var sortedGroupArray = sortByProperty(groups, 'totalWordChainIndex');
 
     // console.warn("sortedNodeArray\n" + jsonPrint(sortedNodeArray));
     // console.error("RANKING " + sortedNodeArray.length + " nodes");
@@ -661,6 +662,9 @@ function ViewTicker() {
       })
       .attr("wordChainIndex", function(d) {
         return d.wordChainIndex;
+      })
+      .attr("totalWordChainIndex", function(d) {
+        return d.totalWordChainIndex;
       })
       .attr("lastSeen", function(d) {
         return d.lastSeen;
@@ -1097,6 +1101,8 @@ function ViewTicker() {
     var tooltipString = nodeId 
       + "<br>GROUP: " + d.groupId 
       + "<br>CHAN: " + d.channel 
+      + "<br>TWCI: " + d.totalWordChainIndex 
+      + "<br>WCI: " + d.wordChainIndex 
       + "<br>MENTIONS: " + mentions 
       + "<br>AGE: " + d.age 
       + "<br>RANK: " + rank;

@@ -142,11 +142,11 @@ function ViewForce() {
 
 
   var adjustedAgeRateScale = d3.scale.linear().domain([1, 500]).range([1.0, 100.0]);
-  var fontSizeScale = d3.scale.linear().domain([1, 1000000]).range([40.0, 100]).clamp(true);
+  var fontSizeScale = d3.scale.linear().domain([1, 1000000]).range([40.0, 80]).clamp(true);
 
   var groupCircleRadiusScale = d3.scale.log().domain([1, 1000000]).range([10.0, 100.0]).clamp(true); // uses wordChainIndex
   var sessionCircleRadiusScale = d3.scale.log().domain([1, 1000000]).range([10.0, 100.0]).clamp(true); // uses wordChainIndex
-  var defaultRadiusScale = d3.scale.log().domain([1, 1000000]).range([10.0, 50.0]).clamp(true);
+  var defaultRadiusScale = d3.scale.log().domain([1, 10000000]).range([4.0, 40.0]).clamp(true);
 
   var fillColorScale = d3.scale.linear()
     .domain([0, 30000, 60000])
@@ -720,7 +720,7 @@ function ViewForce() {
           return d.interpolateColor(0.95*(nodeMaxAge - (dateNow - d.lastSeen)) / nodeMaxAge);
       })
       .style('stroke-width', function(d) {
-        return 3.5;
+        return 5;
       })
       .style("stroke-opacity", function(d) {
           return d.interpolateColor((nodeMaxAge - (dateNow - d.lastSeen)) / nodeMaxAge);
@@ -982,7 +982,7 @@ function ViewForce() {
         return cnode.x;
       })
       .attr("y", function(d) {
-        var shiftY = -2.2 * (sessionCircleRadiusScale(d.wordChainIndex + 1));
+        var shiftY = -1.5 * (sessionCircleRadiusScale(d.wordChainIndex + 1));
         var cnode = nodeHashMap.get(d.nodeId);
         if (typeof cnode === 'undefined') return 0;
         return cnode.y + shiftY;
@@ -1088,8 +1088,8 @@ function ViewForce() {
         return strokeColorScale(d.age);
       })
       .style("stroke-width", function(d) {
-        if (d.isGroupNode) return 5;
-        if (d.isSessionNode) return 4;
+        if (d.isGroupNode) return 8;
+        if (d.isSessionNode) return 6;
         return 2.5;
       })
       .style('stroke-opacity', function(d) {

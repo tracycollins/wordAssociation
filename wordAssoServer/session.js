@@ -1401,6 +1401,16 @@ var processLinkDeleteQueue = function(callback) {
   return (callback(null, "processNodeDeleteQueue"));
 }
 
+function sum( obj ) {
+  var sum = 0;
+  for( var el in obj ) {
+    if( obj.hasOwnProperty( el ) ) {
+      sum += parseFloat( obj[el] );
+    }
+  }
+  return sum;
+}
+
 var createGroup = function(callback) {
   if (groupCreateQueue.length == 0) {
     return (callback(null, null));
@@ -1449,14 +1459,25 @@ var createGroup = function(callback) {
       currentGroup.age = 0;
       currentGroup.lastSeen = dateNow;
       currentGroup.text = groupId;
+      currentGroup.wordChainIndex = sessUpdate.wordChainIndex;
 
+
+      // GROUP NODE
       currentGroup.node.text = groupId;
+
       currentGroup.node.age = 0;
-      currentGroup.node.isDead = false;
-      currentGroup.node.mentions++;
       currentGroup.node.ageUpdated = dateNow;
       currentGroup.node.lastSeen = dateNow;
-      // currentGroup.node.interpolateColor = currentGroup.interpolateColor;
+      currentGroup.node.isDead = false;
+
+      currentGroup.node.mentions++;
+
+      currentGroup.node.wordChainIndex = sessUpdate.wordChainIndex;
+      currentGroup.node.sessionWordChainIndex[sessUpdate.nodeId] = sessUpdate.wordChainIndex;  // per session wci
+      currentGroup.node.totalWordChainIndex = sum(currentGroup.node.sessionWordChainIndex);  // aggregate wci
+
+      // update group totalWordChainIndex
+      currentGroup.totalWordChainIndex = currentGroup.node.totalWordChainIndex;
 
       if (sessionHashMap.has(sessUpdate.nodeId)) {
         currentSession = sessionHashMap.get(sessUpdate.nodeId);
@@ -1498,6 +1519,8 @@ var createGroup = function(callback) {
       currentGroup.isGroup = true;
       currentGroup.isSession = false;
       currentGroup.mentions = 1;
+      currentGroup.wordChainIndex = sessUpdate.wordChainIndex;
+      currentGroup.totalWordChainIndex = sessUpdate.wordChainIndex;
       currentGroup.tags = {};
       currentGroup.tags = sessUpdate.tags;
       currentGroup.text = groupId;
@@ -1527,7 +1550,12 @@ var createGroup = function(callback) {
       currentGroup.node.isDead = false;
       currentGroup.node.ageUpdated = dateNow;
       currentGroup.node.lastSeen = dateNow;
-      currentGroup.node.wordChainIndex = sessUpdate.source.wordChainIndex;
+
+      currentGroup.node.wordChainIndex = sessUpdate.wordChainIndex;
+      currentGroup.node.sessionWordChainIndex = {};  // per session wci
+      currentGroup.node.sessionWordChainIndex[sessUpdate.nodeId] = sessUpdate.wordChainIndex;  // per session wci
+      currentGroup.node.totalWordChainIndex = sum(currentGroup.node.sessionWordChainIndex);  // aggregate wci
+
       currentGroup.node.mentions = 1;
       currentGroup.node.text = groupId;
       currentGroup.node.x = currentGroup.initialPosition.x;
@@ -1597,6 +1625,17 @@ var createSession = function(callback) {
     else if (sessionHashMap.has(sessUpdate.nodeId)) {
 
       currentSession = sessionHashMap.get(sessUpdate.nodeId);
+
+      // console.log("UPDATE SESS" 
+      //   + " [" + sessUpdate.wordChainIndex + "]" 
+      //   // + " [" + sessUpdate.mentions + "]" 
+      //   + " | UID: " + sessUpdate.userId 
+      //   + " | ENT: " + sessUpdate.tags.entity 
+      //   + " | CH: " + sessUpdate.tags.channel 
+      //   + " | " + sessUpdate.source.nodeId 
+      //   + " > " + sessUpdate.target.nodeId
+      //   // + "\n" + jsonPrint(sessUpdate)
+      // );
 
       if (typeof currentSession.wordChainIndex === 'undefined'){
         console.error("*** currentSession.wordChainIndex UNDEFINED");

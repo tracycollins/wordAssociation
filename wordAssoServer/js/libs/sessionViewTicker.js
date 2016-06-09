@@ -1392,7 +1392,9 @@ function ViewTicker() {
         return value + "%";
       }
       else {
-        value = marginTopSessions + (8 * (d.rank % maxSessionRows));
+        // value = marginTopSessions + (8 * (d.rank % maxSessionRows));
+
+        value = marginTopSessions + ((100-marginTopSessions) * d.rank / (groups.length + 1))
         groupYpositionHash[d.groupId] = value;
         return value + "%";
       }

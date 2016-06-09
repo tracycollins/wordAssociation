@@ -697,13 +697,18 @@ function ViewTicker() {
         return d.text;
       })
       .style("fill", function(d) {
-        return d.interpolateColor(1.0);
+        if (d.age < 0.01*nodeMaxAge) {
+          return "FFFFFF";
+        }
+        else {
+          return d.interpolateColor(1.0);
+        }
       })
       .transition()
         .duration(defaultFadeDuration)
         // .attr("x", xposition)
         .style("fill-opacity", function(d){
-          return ((nodeMaxAge - d.age)/nodeMaxAge)
+          return ((nodeMaxAge - (dateNow - d.lastSeen))/nodeMaxAge);
         })
         .attr("y", yposition);
 
@@ -729,8 +734,8 @@ function ViewTicker() {
       .text(function(d) {
         return d.text;
       })
-      // .style("fill", "FFFFFF")
-      .style("fill-opacity", 0)
+      .style("fill", "FFFFFF")
+      .style("fill-opacity", 1e-6)
       .style("font-size", "2.1vmin")
       .on("mouseout", nodeMouseOut)
       .on("mouseover", nodeMouseOver);

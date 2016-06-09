@@ -853,18 +853,18 @@ function ViewForce() {
       });
 
     sessionCircles
-      .attr("id", function(d) {
-        return d.nodeId;
-      })
-      .attr("nodeId", function(d) {
-        return d.nodeId;
-      })
-      .attr("groupId", function(d) {
-        return d.groupId;
-      })
-      .attr("sessionId", function(d) {
-        return d.sessionId;
-      })
+      // .attr("id", function(d) {
+      //   return d.nodeId;
+      // })
+      // .attr("nodeId", function(d) {
+      //   return d.nodeId;
+      // })
+      // .attr("groupId", function(d) {
+      //   return d.groupId;
+      // })
+      // .attr("sessionId", function(d) {
+      //   return d.sessionId;
+      // })
       .attr("r", function(d) {
         return sessionCircleRadiusScale(d.wordChainIndex + 1);
       })
@@ -1087,11 +1087,6 @@ function ViewForce() {
       .style('stroke', function(d) {
         return strokeColorScale(d.age);
       })
-      .style("stroke-width", function(d) {
-        if (d.isGroupNode) return 8;
-        if (d.isSessionNode) return 6;
-        return 2.5;
-      })
       .style('stroke-opacity', function(d) {
         return (nodeMaxAge - d.age) / nodeMaxAge;
       });
@@ -1102,9 +1097,9 @@ function ViewForce() {
       .attr("id", function(d) {
         return d.nodeId;
       })
-      .attr("sessionId", function(d) {
-        return d.sessionId;
-      })
+      // .attr("sessionId", function(d) {
+      //   return d.sessionId;
+      // })
       .attr("cx", function(d) {
         return d.x;
       })
@@ -1121,7 +1116,11 @@ function ViewForce() {
       .style('stroke', function(d) {
         return strokeColorScale(d.age);
       })
-      .style("stroke-width", 2.5)
+      .style("stroke-width", function(d) {
+        if (d.isGroupNode) return 8;
+        if (d.isSessionNode) return 6;
+        return 2.5;
+      })
       .style("fill", "#FFFFFF")
       .transition()
         .duration(defaultFadeDuration)
@@ -1194,12 +1193,12 @@ function ViewForce() {
       .attr("id", function(d) {
         return d.nodeId;
       })
-      .attr("nodeId", function(d) {
-        return d.nodeId;
-      })
-      .attr("sessionId", function(d) {
-        return d.sessionId;
-      })
+      // .attr("nodeId", function(d) {
+      //   return d.nodeId;
+      // })
+      // .attr("sessionId", function(d) {
+      //   return d.sessionId;
+      // })
       .text(function(d) {
         if (d.isGroupNode) return d.totalWordChainIndex;
         if (d.isSessionNode) return d.wordChainIndex;

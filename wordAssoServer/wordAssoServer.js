@@ -3293,10 +3293,10 @@ function handleSessionEvent(sesObj, callback) {
 
       console.log(chalkSession(
         "XXX " + sesObj.sessionEvent
-        + "\n" + jsonPrint(sesObj)
-        // + " | " + moment().format(defaultDateTimeFormat) 
+        // + "\n" + jsonPrint(sesObj)
+        + " | " + moment().format(defaultDateTimeFormat) 
         // + " | NSP: " + sesObj.session.namespace 
-        // + " | SID: " + sesObj.session.sessionId 
+        + " | SID: " + sesObj.session.sessionId 
         // + " | UID: " + sesObj.session.userId 
         // + " | IP: " + sesObj.session.ip 
         // + " | DOMAIN: " + sesObj.session.domain

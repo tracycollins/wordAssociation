@@ -701,7 +701,7 @@ function computeInitialPosition(index) {
 
 var randomColorQueue = [];
 var randomNumber360 = randomIntFromInterval(0, 360);
-var startColor = "hsl(" + randomNumber360 + ",100%,50%)";
+var startColor = "hsl(" + randomNumber360 + ",100%,70%)";
 var endColor = "hsl(" + randomNumber360 + ",100%,0%)";
 
 randomColorQueue.push({
@@ -712,7 +712,7 @@ randomColorQueue.push({
 setInterval(function() { // randomColorQueue
 
   randomNumber360 += randomIntFromInterval(61, 117);
-  startColor = "hsl(" + randomNumber360 + ",100%,50%)";
+  startColor = "hsl(" + randomNumber360 + ",100%,70%)";
   endColor = "hsl(" + randomNumber360 + ",100%,0%)";
 
   if (randomColorQueue.length < 50) {

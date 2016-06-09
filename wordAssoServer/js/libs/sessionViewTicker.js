@@ -11,6 +11,7 @@ function ViewTicker() {
   // GLOBAL VARS
   // ==============================================
   var groupYpositionHash = {};
+  var groupsLengthYposition = 0;
 
   var minFontSize = 20;
   var maxFontSize = 48;
@@ -24,7 +25,7 @@ function ViewTicker() {
   // var removeDeadNodes = false;
   var maxOpacity = 1.0;
   var minOpacity = 0.3;
-  var defaultFadeDuration = 250;
+  var defaultFadeDuration = 150;
 
   var testModeEnabled = false;
 
@@ -612,70 +613,71 @@ function ViewTicker() {
 
   // ===================================================================
 
-  function updateGroups(callback) {
+  // function updateGroups(callback) {
 
-    // console.log("updateSessions");
 
-    groupGnode = groupGnode.data(groups, function(d) {
-        return d.groupId;
-      })
-      .attr("rank", function(d) {
-        return d.rank;
-      })
-      .attr("x", function(d) {
-        return d.x;
-      })
-      .attr("y", function(d) {
-        return d.y;
-      })
-      .attr("wordChainIndex", function(d) {
-        return d.wordChainIndex;
-      })
-      .attr("lastSeen", function(d) {
-        return d.lastSeen;
-      });
+  //   // console.log("updateSessions");
 
-    groupGnode
-      .enter()
-      .append("svg:g")
-      .attr("class", "group")
-      .attr("id", function(d) {
-        return d.groupId;
-      })
-      .attr("sessionId", function(d) {
-        return d.sessionId;
-      })
-      .attr("nodeId", function(d) {
-        return d.nodeId;
-      })
-      .attr("userId", function(d) {
-        return d.userId;
-      })
-      .attr("rank", function(d) {
-        return d.rank;
-      })
-      .attr("x", function(d) {
-        return d.x;
-      })
-      .attr("y", function(d) {
-        return d.y;
-      })
-      .attr("wordChainIndex", function(d) {
-        return d.wordChainIndex;
-      })
-      .attr("totalWordChainIndex", function(d) {
-        return d.totalWordChainIndex;
-      })
-      .attr("lastSeen", function(d) {
-        return d.lastSeen;
-      });
+  //   groupGnode = groupGnode.data(groups, function(d) {
+  //       return d.groupId;
+  //     });
+  //     // .attr("rank", function(d) {
+  //     //   return d.rank;
+  //     // })
+  //     // .attr("x", function(d) {
+  //     //   return d.x;
+  //     // })
+  //     // .attr("y", function(d) {
+  //     //   return d.y;
+  //     // })
+  //     // .attr("wordChainIndex", function(d) {
+  //     //   return d.wordChainIndex;
+  //     // })
+  //     // .attr("lastSeen", function(d) {
+  //     //   return d.lastSeen;
+  //     // });
 
-    groupGnode
-      .exit()
-      .remove();
+  //   groupGnode
+  //     .enter()
+  //     .append("svg:g")
+  //     .attr("class", "group")
+  //     .attr("id", function(d) {
+  //       return d.groupId;
+  //     })
+  //     .attr("sessionId", function(d) {
+  //       return d.sessionId;
+  //     })
+  //     .attr("nodeId", function(d) {
+  //       return d.nodeId;
+  //     })
+  //     .attr("userId", function(d) {
+  //       return d.userId;
+  //     })
+  //     // .attr("rank", function(d) {
+  //     //   return d.rank;
+  //     // })
+  //     // .attr("x", function(d) {
+  //     //   return d.x;
+  //     // })
+  //     // .attr("y", function(d) {
+  //     //   return d.y;
+  //     // })
+  //     // .attr("wordChainIndex", function(d) {
+  //     //   return d.wordChainIndex;
+  //     // })
+  //     // .attr("totalWordChainIndex", function(d) {
+  //     //   return d.totalWordChainIndex;
+  //     // });
+  //     // .attr("lastSeen", function(d) {
+  //     //   return d.lastSeen;
+  //     // });
 
-    return (callback(null, "updateGroups"));
-  }
+  //   groupGnode
+  //     .exit()
+  //     .remove();
+
+  //   return (callback(null, "updateGroups"));
+  // }
 
   function updateGroupWords(callback) {
 
@@ -685,27 +687,25 @@ function ViewTicker() {
       });
 
     groupWords
-      .attr("class", function(d) {
-        return d.newFlag ? "updateNew" : "update";
-      })
-      .attr("rank", function(d) {
-        return d.rank;
-      })
+      // .attr("class", function(d) {
+      //   return d.newFlag ? "updateNew" : "update";
+      // })
+      // .attr("rank", function(d) {
+      //   return d.rank;
+      // })
       .text(function(d) {
         return d.text;
       })
       .style("fill", function(d) {
-        if (d.newFlag) {
-          return "white";
-        } else {
-          return d.interpolateColor((nodeMaxAge - d.age) / nodeMaxAge);
-          // return d.interpolateColor(1.0);
-        }
+        return d.interpolateColor(1.0);
       })
       .transition()
-      .duration(defaultFadeDuration)
-      // .attr("x", xposition)
-      .attr("y", yposition);
+        .duration(defaultFadeDuration)
+        // .attr("x", xposition)
+        .style("fill-opacity", function(d){
+          return ((nodeMaxAge - d.age)/nodeMaxAge)
+        })
+        .attr("y", yposition);
 
     groupWords
       .enter()
@@ -720,20 +720,24 @@ function ViewTicker() {
       .attr("userId", function(d) {
         return d.userId;
       })
-      .attr("class", "enter")
-      .attr("rank", function(d) {
-        return d.rank;
-      })
+      // .attr("class", "enter")
+      // .attr("rank", function(d) {
+      //   return d.rank;
+      // })
       .attr("x", xposition)
-      .attr("y", yposition)
+        .attr("y", yposition)
       .text(function(d) {
         return d.text;
       })
-      .style("fill", "FFFFFF")
-      .style("fill-opacity", 1)
+      // .style("fill", "FFFFFF")
+      .style("fill-opacity", 0)
       .style("font-size", "2.1vmin")
       .on("mouseout", nodeMouseOut)
       .on("mouseover", nodeMouseOver);
+      // .transition()
+      //   .duration(defaultFadeDuration)
+      //   // .attr("x", xposition)
+      //   .attr("y", yposition);
 
     groupWords
       .exit()
@@ -742,195 +746,195 @@ function ViewTicker() {
     return (callback(null, "updateGroupWords"));
   }
 
-  function updateSessions(callback) {
+  // function updateSessions(callback) {
 
-    // console.log("updateSessions");
+  //   // console.log("updateSessions");
 
-    sessionGnode = sessionGnode.data(sessions, function(d) {
-        return d.sessionId;
-      })
-      .attr("rank", function(d) {
-        return d.rank;
-      })
-      .attr("x", function(d) {
-        return d.x;
-      })
-      .attr("y", function(d) {
-        return d.y;
-      })
-      .attr("wordChainIndex", function(d) {
-        return d.wordChainIndex;
-      })
-      .attr("lastSeen", function(d) {
-        return d.lastSeen;
-      });
+  //   sessionGnode = sessionGnode.data(sessions, function(d) {
+  //       return d.sessionId;
+  //     })
+  //     .attr("rank", function(d) {
+  //       return d.rank;
+  //     })
+  //     .attr("x", function(d) {
+  //       return d.x;
+  //     })
+  //     .attr("y", function(d) {
+  //       return d.y;
+  //     })
+  //     .attr("wordChainIndex", function(d) {
+  //       return d.wordChainIndex;
+  //     })
+  //     .attr("lastSeen", function(d) {
+  //       return d.lastSeen;
+  //     });
 
-    sessionGnode
-      .enter()
-      .append("svg:g")
-      .attr("class", "session")
-      .attr("id", function(d) {
-        return d.userId;
-      })
-      .attr("sessionId", function(d) {
-        return d.sessionId;
-      })
-      .attr("nodeId", function(d) {
-        return d.nodeId;
-      })
-      .attr("userId", function(d) {
-        return d.userId;
-      })
-      .attr("rank", function(d) {
-        return d.rank;
-      })
-      .attr("x", function(d) {
-        return d.x;
-      })
-      .attr("y", function(d) {
-        return d.y;
-      })
-      .attr("wordChainIndex", function(d) {
-        return d.wordChainIndex;
-      })
-      .attr("lastSeen", function(d) {
-        return d.lastSeen;
-      });
+  //   sessionGnode
+  //     .enter()
+  //     .append("svg:g")
+  //     .attr("class", "session")
+  //     .attr("id", function(d) {
+  //       return d.userId;
+  //     })
+  //     .attr("sessionId", function(d) {
+  //       return d.sessionId;
+  //     })
+  //     .attr("nodeId", function(d) {
+  //       return d.nodeId;
+  //     })
+  //     .attr("userId", function(d) {
+  //       return d.userId;
+  //     })
+  //     .attr("rank", function(d) {
+  //       return d.rank;
+  //     })
+  //     .attr("x", function(d) {
+  //       return d.x;
+  //     })
+  //     .attr("y", function(d) {
+  //       return d.y;
+  //     })
+  //     .attr("wordChainIndex", function(d) {
+  //       return d.wordChainIndex;
+  //     })
+  //     .attr("lastSeen", function(d) {
+  //       return d.lastSeen;
+  //     });
 
-    sessionGnode
-      .exit()
-      .remove();
+  //   sessionGnode
+  //     .exit()
+  //     .remove();
 
-    return (callback(null, "updateSessions"));
-  }
+  //   return (callback(null, "updateSessions"));
+  // }
 
-  function updateSessionWords(callback) {
+  // function updateSessionWords(callback) {
 
-    var sessionWords = sessionSvgGroup.selectAll("#session")
-      .data(sessions, function(d) {
-        return d.userId;
-      });
+  //   var sessionWords = sessionSvgGroup.selectAll("#session")
+  //     .data(sessions, function(d) {
+  //       return d.userId;
+  //     });
 
-    sessionWords
-      .attr("class", function(d) {
-        return d.newFlag ? "updateNew" : "update";
-      })
-      .attr("rank", function(d) {
-        return d.rank;
-      })
-      .text(function(d) {
-        return d.text;
-      })
-      .style("fill", function(d) {
-        if (d.newFlag) {
-          return "white";
-        } else {
-          // return d.interpolateColor((nodeMaxAge - d.age) / nodeMaxAge);
-          return d.interpolateColor(1.0);
-        }
-      })
-      .style("fill-opacity", function(d) {
-        if (self.removeDeadNodes) {
-          return wordOpacityScale(d.age + 1);
-        } else {
-          return Math.max(wordOpacityScale(d.age + 1), minOpacity)
-        }
-      })
-      .transition()
-      .duration(defaultFadeDuration)
-      .attr("x", xposition)
-      .attr("y", yposition);
+  //   sessionWords
+  //     .attr("class", function(d) {
+  //       return d.newFlag ? "updateNew" : "update";
+  //     })
+  //     // .attr("rank", function(d) {
+  //     //   return d.rank;
+  //     // })
+  //     .text(function(d) {
+  //       return d.text;
+  //     })
+  //     .style("fill", function(d) {
+  //       if (d.newFlag) {
+  //         return "white";
+  //       } else {
+  //         // return d.interpolateColor((nodeMaxAge - d.age) / nodeMaxAge);
+  //         return d.interpolateColor(1.0);
+  //       }
+  //     })
+  //     .style("fill-opacity", function(d) {
+  //       if (self.removeDeadNodes) {
+  //         return wordOpacityScale(d.age + 1);
+  //       } else {
+  //         return Math.max(wordOpacityScale(d.age + 1), minOpacity)
+  //       }
+  //     })
+  //     .transition()
+  //     .duration(defaultFadeDuration)
+  //     .attr("x", xposition)
+  //     .attr("y", yposition);
 
-    sessionWords
-      .enter()
-      .append("svg:text")
-      .attr("id", "session")
-      .attr("nodeId", function(d) {
-        return d.nodeId;
-      })
-      .attr("userId", function(d) {
-        return d.userId;
-      })
-      .attr("sessionId", function(d) {
-        return d.sessionId;
-      })
-      .attr("class", "enter")
-      .attr("rank", function(d) {
-        return d.rank;
-      })
-      .attr("x", xposition)
-      .attr("y", yposition)
-      .text(function(d) {
-        return d.text;
-      })
-      .style("fill", "FFFFFF")
-      .style("fill-opacity", 1)
-      .style("font-size", "2.2vmin");
+  //   sessionWords
+  //     .enter()
+  //     .append("svg:text")
+  //     .attr("id", "session")
+  //     .attr("nodeId", function(d) {
+  //       return d.nodeId;
+  //     })
+  //     .attr("userId", function(d) {
+  //       return d.userId;
+  //     })
+  //     .attr("sessionId", function(d) {
+  //       return d.sessionId;
+  //     })
+  //     .attr("class", "enter")
+  //     .attr("rank", function(d) {
+  //       return d.rank;
+  //     })
+  //     .attr("x", xposition)
+  //     .attr("y", yposition)
+  //     .text(function(d) {
+  //       return d.text;
+  //     })
+  //     .style("fill", "FFFFFF")
+  //     .style("fill-opacity", 1)
+  //     .style("font-size", "2.2vmin");
 
-    sessionWords
-      .exit()
-      .remove();
+  //   sessionWords
+  //     .exit()
+  //     .remove();
 
-    return (callback(null, "updateSessionWords"));
-  }
+  //   return (callback(null, "updateSessionWords"));
+  // }
 
-  function updateNodes(callback) {
+  // function updateNodes(callback) {
 
-    // console.log("updateNodes");
+  //   // console.log("updateNodes");
 
-    node = node.data(nodes, function(d) {
-        return d.nodeId;
-      })
-      .attr("rank", function(d) {
-        return d.rank;
-      })
-      .attr("x", function(d) {
-        return d.x;
-      })
-      .attr("y", function(d) {
-        return d.y;
-      })
-      .attr("mentions", function(d) {
-        return d.mentions;
-      })
-      .attr("lastSeen", function(d) {
-        return d.lastSeen;
-      });
+  //   node = node.data(nodes, function(d) {
+  //       return d.nodeId;
+  //     })
+  //     .attr("rank", function(d) {
+  //       return d.rank;
+  //     })
+  //     .attr("x", function(d) {
+  //       return d.x;
+  //     })
+  //     .attr("y", function(d) {
+  //       return d.y;
+  //     })
+  //     .attr("mentions", function(d) {
+  //       return d.mentions;
+  //     })
+  //     .attr("lastSeen", function(d) {
+  //       return d.lastSeen;
+  //     });
 
-    node
-      .enter()
-      .append("svg:g")
-      .attr("class", "node")
-      .attr("id", function(d) {
-        return d.nodeId;
-      })
-      .attr("nodeId", function(d) {
-        return d.nodeId;
-      })
-      .attr("sessionId", function(d) {
-        return d.sessionId;
-      })
-      .attr("userId", function(d) {
-        return d.userId;
-      })
-      .attr("x", xposition)
-      .attr("y", yposition)
-      .attr("rank", function(d) {
-        return d.rank;
-      })
-      .attr("mentions", function(d) {
-        return d.mentions;
-      })
-      .attr("lastSeen", function(d) {
-        return d.lastSeen;
-      });
+  //   node
+  //     .enter()
+  //     .append("svg:g")
+  //     .attr("class", "node")
+  //     .attr("id", function(d) {
+  //       return d.nodeId;
+  //     })
+  //     .attr("nodeId", function(d) {
+  //       return d.nodeId;
+  //     })
+  //     .attr("sessionId", function(d) {
+  //       return d.sessionId;
+  //     })
+  //     .attr("userId", function(d) {
+  //       return d.userId;
+  //     })
+  //     .attr("x", xposition)
+  //     .attr("y", yposition)
+  //     .attr("rank", function(d) {
+  //       return d.rank;
+  //     })
+  //     .attr("mentions", function(d) {
+  //       return d.mentions;
+  //     })
+  //     .attr("lastSeen", function(d) {
+  //       return d.lastSeen;
+  //     });
 
-    node
-      .exit()
-      .remove();
+  //   node
+  //     .exit()
+  //     .remove();
 
-    return (callback(null, "updateNodes"));
-  }
+  //   return (callback(null, "updateNodes"));
+  // }
 
   function updateNodeWords(callback) {
 
@@ -945,9 +949,9 @@ function ViewTicker() {
       })
       .attr("x", xposition)
       // .attr("y", ypositionGroup)
-      .attr("rank", function(d) {
-        return d.rank;
-      })
+      // .attr("rank", function(d) {
+      //   return d.rank;
+      // })
       .text(function(d) {
         return d.text;
       })
@@ -994,10 +998,10 @@ function ViewTicker() {
       .attr("nodeId", function(d) {
         return d.nodeId;
       })
-      .attr("class", "enter")
-      .attr("rank", function(d) {
-        return d.rank;
-      })
+      // .attr("class", "enter")
+      // .attr("rank", function(d) {
+      //   return d.rank;
+      // })
       .attr("x", xposition)
       .attr("y", ypositionGroup)
       .text(function(d) {
@@ -1052,11 +1056,11 @@ function ViewTicker() {
         processDeadNodesHash,
         processDeadGroupsHash,
         rankGroups,
-        rankNodes,
-        updateGroups,
+        // rankNodes,
+        // updateGroups,
         updateGroupWords,
-        updateSessions,
-        updateNodes,
+        // updateSessions,
+        // updateNodes,
         updateNodeWords,
       ],
 
@@ -1065,6 +1069,7 @@ function ViewTicker() {
           console.error("*** ERROR: updateTickerDisplayReady *** \nERROR: " + err);
         }
         updateTickerDisplayReady = true;
+        groupsLengthYposition = groups.length;
       }
     );
   }
@@ -1387,14 +1392,14 @@ function ViewTicker() {
 
     if (d.isGroup) {
       if (typeof d.rank === 'undefined') {
-        value = marginTopSessions + (8 * maxSessionRows);
+        value = marginTopSessions + ((100-marginTopSessions) * 10 / (groups.length))
         groupYpositionHash[d.groupId] = value;
         return value + "%";
       }
       else {
         // value = marginTopSessions + (8 * (d.rank % maxSessionRows));
 
-        value = marginTopSessions + ((100-marginTopSessions) * d.rank / (groups.length + 1))
+        value = marginTopSessions + ((100-marginTopSessions) * d.rank / (groups.length))
         groupYpositionHash[d.groupId] = value;
         return value + "%";
       }

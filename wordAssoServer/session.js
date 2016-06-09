@@ -1757,8 +1757,8 @@ var createSession = function(callback) {
       currentSession.node.wordChainIndex = sessUpdate.wordChainIndex;
       currentSession.node.mentions = sessUpdate.wordChainIndex;
       currentSession.node.text = sessUpdate.tags.entity + "[" + sessUpdate.tags.channel + "]";
-      currentSession.node.x = currentSession.initialPosition.x + 10;
-      currentSession.node.y = currentSession.initialPosition.y + 10;
+      currentSession.node.x = currentSession.initialPosition.x + randomIntFromInterval(-10,10);
+      currentSession.node.y = currentSession.initialPosition.y + randomIntFromInterval(-10,10);
       currentSession.node.colors = currentSession.colors;
       currentSession.node.interpolateColor = currentSession.interpolateColor;
 
@@ -1849,8 +1849,8 @@ var createNode = function(callback) {
       session.node.isDead = false;
       session.node.wordChainIndex = session.wordChainIndex;
       session.node.mentions = session.wordChainIndex+1;
-      session.node.x = session.initialPosition.x+10;
-      session.node.y = session.initialPosition.y+10;
+      session.node.x = session.initialPosition.x + randomIntFromInterval(-10,10);
+      session.node.y = session.initialPosition.y + randomIntFromInterval(-10,10);
       session.node.colors = session.colors;
       session.node.interpolateColor = session.interpolateColor;
 
@@ -1938,8 +1938,8 @@ var createNode = function(callback) {
             sourceNode.ageUpdated = dateNow;
             sourceNode.colors = session.colors;
             sourceNode.interpolateColor = session.interpolateColor;
-            sourceNode.x = session.node.x+10;
-            sourceNode.y = session.node.y+10;
+            sourceNode.x = session.node.x+randomIntFromInterval(-10,10);;
+            sourceNode.y = session.node.y+randomIntFromInterval(-10,10);;
             if (sourceNode.isSessionNode){
               sourceNode.text = session.tags.entity + "[" + session.tags.channel + "]";
               sourceNode.wordChainIndex = session.source.wordChainIndex;

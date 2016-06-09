@@ -443,7 +443,7 @@ function ViewHistogram() {
 
   function rankGroups(callback) {
     if (groups.length == 0) return (callback());
-    var sortedGroupArray = sortByProperty(groups, 'mentions');
+    var sortedGroupArray = sortByProperty(groups, 'totalWordChainIndex');
 
     // console.warn("sortedNodeArray\n" + jsonPrint(sortedNodeArray));
     // console.error("RANKING " + sortedNodeArray.length + " nodes");

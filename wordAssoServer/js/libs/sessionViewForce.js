@@ -18,6 +18,8 @@ function ViewForce() {
   // ==============================================
   // var testModeEnabled = false;
 
+  var maxTotalWordChainIndex ;
+
   var tickNumber = 0;
   var width = window.innerWidth * 1;
   var height = window.innerHeight * 1;
@@ -142,9 +144,9 @@ function ViewForce() {
   var adjustedAgeRateScale = d3.scale.linear().domain([1, 500]).range([1.0, 100.0]);
   var fontSizeScale = d3.scale.linear().domain([1, 1000000]).range([40.0, 150]);
 
-  var groupCircleRadiusScale = d3.scale.linear().domain([1, 100000]).range([50.0, 350.0]); // uses wordChainIndex
-  var sessionCircleRadiusScale = d3.scale.linear().domain([1, 100000]).range([40.0, 200.0]); // uses wordChainIndex
-  var defaultRadiusScale = d3.scale.linear().domain([1, 1000000]).range([20.0, 50.0]);
+  var groupCircleRadiusScale = d3.scale.linear().domain([1, 100000]).range([50.0, 350.0]).clamp(true); // uses wordChainIndex
+  var sessionCircleRadiusScale = d3.scale.linear().domain([1, 100000]).range([40.0, 200.0]).clamp(true); // uses wordChainIndex
+  var defaultRadiusScale = d3.scale.linear().domain([1, 1000000]).range([20.0, 50.0]).clamp(true);
 
   var fillColorScale = d3.scale.linear()
     .domain([0, 30000, 60000])

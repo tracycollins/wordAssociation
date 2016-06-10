@@ -14,6 +14,8 @@ var internetReady = false;
 var minServerResponseTime = 247;
 var maxServerResponseTime = 1447;
 
+var GROUP_CACHE_DEFAULT_TTL = 300; // seconds
+var ENTITY_CACHE_DEFAULT_TTL = 300; // seconds
 var SESSION_CACHE_DEFAULT_TTL = 300; // seconds
 var WORD_CACHE_TTL = 60; // seconds
 
@@ -96,6 +98,7 @@ var HashMap = require('hashmap').HashMap;
 var EventEmitter2 = require('eventemitter2').EventEmitter2;
 var EventEmitter = require("events").EventEmitter;
 
+var groupHashMap = new HashMap();
 var entityChannelGroupHashMap = new HashMap();
 
 // ==================================================================
@@ -162,6 +165,8 @@ var totalSessions = 0;
 var totalUsers = 0;
 var totalClients = 0;
 var totalWords = 0;
+var totalEntities = 0;
+var totalGroups = 0;
 
 var promptsSent = 0;
 var responsesReceived = 0;
@@ -199,7 +204,6 @@ var statsObj = {
   "sessionUpdatesSent": 0,
 
   "bhtRequests": 0,
-  "bhtWordsMiss": {},
   "bhtWordsNotFound": {},
 
   "mwRequests": 0,
@@ -215,7 +219,11 @@ var statsObj = {
   "heartbeat": txHeartbeat
 };
 
-statsObj.session.error = 0;
+statsObj.group = {};
+statsObj.group.errors = 0;
+statsObj.group.hashMiss = {};
+
+statsObj.session.errors = 0;
 statsObj.session.previousPromptNotFound = 0;
 statsObj.session.responseError = 0;
 
@@ -315,6 +323,22 @@ localHostHashMap.set('10.0.1.27', 'threeceelabs.com');
 
 localHostHashMap.set('104.197.93.13', 'threeceelabs.com');
 
+
+// ==================================================================
+// GROUP CACHE
+// ==================================================================
+var groupCacheTtl = process.env.GROUP_CACHE_DEFAULT_TTL;
+
+if (typeof groupCacheTtl === 'undefined') groupCacheTtl = GROUP_CACHE_DEFAULT_TTL;
+console.log("GROUP CACHE TTL: " + groupCacheTtl + " SECONDS");
+
+// ==================================================================
+// ENTITY CACHE
+// ==================================================================
+var entityCacheTtl = process.env.ENTITY_CACHE_DEFAULT_TTL;
+
+if (typeof entityCacheTtl === 'undefined') entityCacheTtl = ENTITY_CACHE_DEFAULT_TTL;
+console.log("ENTITY CACHE TTL: " + entityCacheTtl + " SECONDS");
 
 // ==================================================================
 // SESSION CACHE
@@ -686,6 +710,12 @@ function updateStatsInterval(statsFile, interval){
       mwErrors: mwErrors,
       mwRequests: mwRequests,
 
+      totalEntities: totalEntities,
+      entityCacheTtl: entityCacheTtl,
+
+      totalGroups: totalGroups,
+      groupCacheTtl: groupCacheTtl,
+
       totalSessions: totalSessions,
       sessionUpdatesSent: sessionUpdatesSent,
       sessionCacheTtl: sessionCacheTtl,
@@ -707,10 +737,10 @@ function updateStatsInterval(statsFile, interval){
   }, interval);
 }
 
-var initEntityChannelGroupsInterval;
 
-function updateEntityChannelGroups(configFile){
-  initEntityChannelGroups(configFile, function(err, entityChannelGroups){
+function updateGroups(configFile, callback){
+
+  initGroups(configFile, function(err, groups){
     if (err){
       console.log(chalkError("*** ERROR initEntityChannelGroups"
         + " | CONFIG FILE: " + configFile
@@ -718,33 +748,174 @@ function updateEntityChannelGroups(configFile){
       ));
     }
     else {
-      console.log(chalkLog("ENTITY CHANNEL GROUPS CONFIG INIT COMPLETE"
+      console.log(chalkLog("GROUPS CONFIG INIT COMPLETE"
         // + "\n" + jsonPrint(entityChannelGroups)
       ));
-      Object.keys(entityChannelGroups).forEach(function(entityChannel) {
-        var entityGroup = entityChannelGroups[entityChannel];
 
-        if (entityChannelGroupHashMap.has(entityChannel)){
-          entityChannelGroupHashMap.set(entityChannel, entityGroup);
-          delete statsObj.entityChannelGroup.hashMiss[entityChannel];
-          debug(chalkRed("--- UPDATED ENTITY CHANNEL"
-            + " | " + entityChannel
-            + " | " + entityChannelGroupHashMap.get(entityChannel)
-          ));
-        }
-        else {
-          entityChannelGroupHashMap.set(entityChannel, entityGroup);
-          console.log(chalkLog("+++ ADDED ENTITY CHANNEL  "
-            + " | " + entityChannel
-            + " | " + entityChannelGroupHashMap.get(entityChannel)
-          ));
-        }
+      var groupIds = Object.keys(groups) ;
 
-      });
+      async.forEach(groupIds, 
+
+        function(groupId, cb){
+
+          if (groupHashMap.has(groupId)){
+
+            groupHashMap.set(groupId, groups[groupId]);
+
+            delete statsObj.group.hashMiss[groupId];
+
+            console.log(chalkLog("--- UPDATED GROUP"
+              + " | " + groupId
+              + " | " + groupHashMap.get(groupId).name
+            ));
+
+            cb(null, "HIT");
+            return;
+
+          }
+
+          else {
+
+            groupHashMap.set(groupId, groups[groupId]);
+
+            console.log(chalkLog("+++ ADDED GROUP  "
+              + " | " + groupId
+              + " | " + groupHashMap.get(groupId).name
+            ));
+
+            statsObj.group.hashMiss[groupId] = 1;
+
+            cb(null, "MISS");
+            return;
+          }
+
+        },
+
+        function(err) {
+          if (err) {
+            console.error("*** ERROR  updateGroups: " + err);
+            callback(err, null);
+            return;
+          } else {
+            debug("FOUND " + groups.length + " GROUPS");
+            console.log(chalkLog("GROUPS CONFIG INIT COMPLETE"
+              // + "\n" + jsonPrint(entityChannelGroups)
+            ));
+
+            updateEntityChannelGroups(defaultDropboxEntityChannelGroupsConfigFile, function(err, results){
+              callback(null, groups.length);
+              return;
+            });
+
+          }
+        }
+      );
+
     }
   });  
 }
 
+
+function updateEntityChannelGroups(configFile, callback){
+
+  initEntityChannelGroups(configFile, function(err, entityChannelGroups){
+    if (err){
+      console.log(chalkError("*** ERROR initEntityChannelGroups"
+        + " | CONFIG FILE: " + configFile
+        + "\n" + jsonPrint(err)
+      ));
+
+      callback(err, null);
+    }
+    else {
+
+      var entityChannelIds = Object.keys(entityChannelGroups) ;
+
+      async.forEach(entityChannelIds, 
+
+        function(entityChannelId, cb){
+
+          if (entityChannelGroupHashMap.has(entityChannelId)){
+
+            entityChannelGroupHashMap.set(entityChannelId, entityChannelGroups[entityChannelId]);
+
+            delete statsObj.entityChannelGroup.hashMiss[entityChannelId];
+
+            console.log(chalkRed("--- UPDATED ENTITY CHANNEL"
+              + " | " + entityChannelId
+              + " | " + entityChannelGroupHashMap.get(entityChannelId).groupId
+              + " | " + entityChannelGroupHashMap.get(entityChannelId).name
+              // + " | " + jsonPrint(entityChannelGroupHashMap.get(entityChannelId))
+            ));
+
+            if (groupHashMap.has(entityChannelGroupHashMap.get(entityChannelId).groupId)){
+              cb(null, "HIT");
+              return;
+            }
+            else{
+              cb(err, "GROUP NOT FOUND: " + entityChannelGroupHashMap.get(entityChannelId).groupId);
+              return;
+            }
+
+          }
+
+          else {
+
+            entityChannelGroupHashMap.set(entityChannelId, entityChannelGroups[entityChannelId]);
+
+            console.log(chalkLog("+++ ADDED ENTITY CHANNEL  "
+              + " | " + entityChannelId
+              + " | GROUP ID: " + entityChannelGroupHashMap.get(entityChannelId).groupId
+              + " | ENTITY NAME: " + entityChannelGroupHashMap.get(entityChannelId).name
+              // + "\n" + jsonPrint(entityChannelGroupHashMap.get(entityChannelId))
+            ));
+
+            if (groupHashMap.has(entityChannelGroupHashMap.get(entityChannelId).groupId)){
+              cb(null, "MISS");
+              return;
+            }
+            else{
+              cb(err, "GROUP NOT FOUND: " + entityChannelGroupHashMap.get(entityChannelId).groupId);
+              return;
+            }
+          }
+
+        },
+
+        function(err) {
+          if (err) {
+            console.error("*** ERROR  updateEntityChannelGroups: " + err);
+            callback(err, null);
+            return;
+          } else {
+            debug("FOUND " + entityChannelIds.length + " ENTITIY CHANNELS");
+            console.log(chalkLog("ENTITY CHANNEL GROUPS CONFIG INIT COMPLETE"
+              // + "\n" + jsonPrint(entityChannelGroups)
+            ));
+            callback(null, entityChannelIds.length);
+            return;
+          }
+        }
+      );
+
+    }
+  });  
+}
+
+var initGroupsInterval;
+function updateGroupsInterval(configFile, interval){
+
+  console.log(chalkLog("updateGroupsInterval"
+    + " | INTERVAL: " + interval
+    + " | " + configFile
+  ));
+
+  initGroupsInterval = setInterval(function() {
+    updateGroups(configFile, function(err, results){});
+  }, interval);
+}
+
+var initEntityChannelGroupsInterval;
 function updateEntityChannelGroupsInterval(configFile, interval){
 
   console.log(chalkLog("updateEntityChannelGroupsInterval"
@@ -753,7 +924,7 @@ function updateEntityChannelGroupsInterval(configFile, interval){
   ));
 
   initEntityChannelGroupsInterval = setInterval(function() {
-    updateEntityChannelGroups(configFile);
+    updateEntityChannelGroups(configFile, function(err, results){});
   }, interval);
 }
 
@@ -768,12 +939,17 @@ var IpAddress = require('mongoose').model('IpAddress');
 
 var Admin = require('mongoose').model('Admin');
 var Viewer = require('mongoose').model('Viewer');
-
 var User = require('mongoose').model('User');
+
+var Group = require('mongoose').model('Group');
+var Entity = require('mongoose').model('Entity');
 var Session = require('mongoose').model('Session');
 var Word = require('mongoose').model('Word');
 
+var groups = require('./app/controllers/group.server.controller');
+var entities = require('./app/controllers/entity.server.controller');
 var words = require('./app/controllers/word.server.controller');
+
 var Oauth2credential = require('mongoose').model('Oauth2credential');
 
 // ==================================================================
@@ -796,7 +972,10 @@ var googleOauthEvents = new EventEmitter();
 var Queue = require('queue-fifo');
 var socketQueue = new Queue();
 var sessionQueue = new Queue();
-var dbUpdateQueue = new Queue();
+var dbUpdateGroupQueue = new Queue();
+var dbUpdateEntityQueue = new Queue();
+var dbUpdateSessionQueue = new Queue();
+var dbUpdateWordQueue = new Queue();
 
 var MAX_WORD_HASH_MAP_COUNT = 20;
 var wordArray = []; // used to keep wordHashMap.count() < MAX_WORD_HASH_MAP_COUNT
@@ -815,6 +994,16 @@ var wordCache = new NodeCache({
 
 var sessionCache = new NodeCache({
   stdTTL: sessionCacheTtl,
+  checkperiod: 30
+});
+
+var entityCache = new NodeCache({
+  stdTTL: entityCacheTtl,
+  checkperiod: 30
+});
+
+var groupCache = new NodeCache({
+  stdTTL: groupCacheTtl,
   checkperiod: 30
 });
 
@@ -1014,6 +1203,8 @@ function updateStatsCounts() {
     statsCountsComplete = false;
 
     var uComplete = false;
+    var gComplete = false;
+    var eComplete = false;
     var sComplete = false;
     var wComplete = false;
 
@@ -1044,13 +1235,48 @@ function updateStatsCounts() {
                   totalWords: totalWords
                 });
                 wComplete = true;
-                return;
+
+                Group.count({}, function(err, count) {
+                  statsCountsComplete = true;
+                  if (!err) {
+                    // debug("TOTAL WORDS: " + count);
+                    totalGroups = count;
+                    updateStats({
+                      totalGroups: totalGroups
+                    });
+                    gComplete = true;
+
+                    Entity.count({}, function(err, count) {
+                      statsCountsComplete = true;
+                      if (!err) {
+                        // debug("TOTAL WORDS: " + count);
+                        totalEntities = count;
+                        updateStats({
+                          totalEntities: totalEntities
+                        });
+                        eComplete = true;
+                        return;
+                      } else {
+                        debug(chalkError("\n*** DB Entity.count ERROR *** | " 
+                          + moment().format(defaultDateTimeFormat) + "\n" + err));
+                        return;
+                      }
+                    });
+
+                  } else {
+                    debug(chalkError("\n*** DB Group.count ERROR *** | " 
+                      + moment().format(defaultDateTimeFormat) + "\n" + err));
+                    return;
+                  }
+                });
+
               } else {
                 debug(chalkError("\n*** DB Word.count ERROR *** | " 
                   + moment().format(defaultDateTimeFormat) + "\n" + err));
                 return;
               }
             });
+
           } else {
             debug(chalkError("\n*** DB Session.count ERROR *** | " 
               + moment().format(defaultDateTimeFormat) + "\n" + err));
@@ -1173,11 +1399,9 @@ function updateSessionViews(sessionUpdateObj) {
   // console.log(chalkRed("updateSessionViews | sessionUpdateObj\n" + jsonPrint(sessionUpdateObj)));
 
   if (entityChannelGroupHashMap.has(sessionUpdateObj.tags.entity)){
-    sessionUpdateObj.tags.group = entityChannelGroupHashMap.get(sessionUpdateObj.tags.entity);
+    sessionUpdateObj.tags.group = entityChannelGroupHashMap.get(sessionUpdateObj.tags.entity).groupId;
     updateSessionViewQueue.push(sessionUpdateObj);
   }
-
-
 }
 
 var simpleChain = function(chain) {
@@ -1267,7 +1491,7 @@ function sendPrompt(sessionObj, sourceWordObj) {
             sessionUpdateObj.tags.entity = currentUser.tags.entity;
             sessionUpdateObj.tags.channel = currentUser.tags.channel;
 
-            sessionUpdateObj.tags.group = entityChannelGroupHashMap.get(currentUser.tags.entity);
+            sessionUpdateObj.tags.group = entityChannelGroupHashMap.get(currentUser.tags.entity).groupId;
             // updateSessionViews(sessionUpdateObj);
           }
           else if (typeof currentSession.tags !== 'undefined'){
@@ -1305,7 +1529,7 @@ function sendPrompt(sessionObj, sourceWordObj) {
 
             sessionUpdateObj.tags.entity = currentUser.tags.entity;
             sessionUpdateObj.tags.channel = currentUser.tags.channel;
-            sessionUpdateObj.tags.group = entityChannelGroupHashMap.get(currentUser.tags.entity);
+            sessionUpdateObj.tags.group = entityChannelGroupHashMap.get(currentUser.tags.entity).groupId;
             // updateSessionViews(sessionUpdateObj);
           }
           else if (typeof currentSession.tags !== 'undefined'){
@@ -1434,6 +1658,74 @@ function sendPrompt(sessionObj, sourceWordObj) {
 var wordTypes = ['noun', 'verb', 'adjective', 'adverb'];
 var wordVariations = ['syn', 'ant', 'rel', 'sim', 'usr'];
 
+function dbUpdateGroup(groupObj, incMentions, callback) {
+
+  if ((groupObj.groupId == null) || (typeof groupObj.groupId === 'undefined')) {
+    console.log(chalkError("\n***** dbUpdateGroup: NULL OR UNDEFINED groupId\n" + jsonPrint(groupObj)));
+    callback("NULL OR UNDEFINED groupId", groupObj);
+    return;
+  }
+
+  groups.findOneGroup(groupObj, incMentions, function(err, group) {
+    if (err) {
+      console.error(chalkError("dbUpdateGroup -- > findOneGroup ERROR" 
+        + "\n" + JSON.stringify(err) + "\n" + JSON.stringify(groupObj, null, 2)));
+      callback(err, groupObj);
+    } else {
+
+      console.log(chalkRed("->- GROUP DB UPDATE | " 
+        + group.groupId 
+        + " | NAME: " + group.name 
+        + " | CHANNELS: " + group.channels
+        + " | ENTITIES: " + group.entities
+        + " | CREATED: " + moment(group.createdAt).format(defaultDateTimeFormat)
+        + " | LAST: " + moment(group.lastSeen).format(defaultDateTimeFormat)
+        + " | MNS: " + group.mentions 
+        + "\nTAGS: " + jsonPrint(group.tags)
+      ));
+
+      // console.log(JSON.stringify(group, null, 3));
+
+      callback(null, group);
+    }
+  });
+}
+
+function dbUpdateEntity(entityObj, incMentions, callback) {
+
+  if ((entityObj.entityId == null) || (typeof entityObj.entityId === 'undefined')) {
+    console.log(chalkError("\n***** dbUpdateEntity: NULL OR UNDEFINED entityId\n" + jsonPrint(entityObj)));
+    callback("NULL OR UNDEFINED entityId", entityObj);
+    return;
+  }
+
+  entities.findOneEntity(entityObj, incMentions, function(err, entity) {
+    if (err) {
+      console.error(chalkError("dbUpdateEntity -- > findOneEntity ERROR" 
+        + "\n" + JSON.stringify(err) + "\n" + JSON.stringify(entityObj, null, 2)));
+      callback(err, entityObj);
+    } else {
+
+      console.log("->- ENTITY DB UPDATE | " 
+        + entity.entityId 
+        + " | NAME: " + entity.name 
+        + " | SNAME: " + entity.screenName 
+        + " | GROUPS: " + entity.groups
+        + " | CHAN: " + entity.tags.channel
+        + " | SESSIONS: " + entity.sessions 
+        + " | WORDS: " + entity.words 
+        + " | CREATED: " + moment(entity.createdAt).format(defaultDateTimeFormat)
+        + " | LAST: " + moment(entity.lastSeen).format(defaultDateTimeFormat)
+        + " | MNS: " + entity.mentions 
+      );
+
+      // console.log(JSON.stringify(entity, null, 3));
+
+      callback(null, entity);
+    }
+  });
+}
+
 function dbUpdateWord(wordObj, incMentions, callback) {
 
   if ((wordObj.nodeId == null) || (typeof wordObj.nodeId === 'undefined')) {
@@ -1486,9 +1778,9 @@ function dbUpdateWord(wordObj, incMentions, callback) {
             debug("Word CACHE SET5: " + bhtResponseObj.nodeId);
             wordCache.set(bhtResponseObj.nodeId, bhtResponseObj);
             bhtWordsMiss[word.nodeId] = word.nodeId;
-            updateStats({
-              bhtWordsMiss: bhtWordsMiss
-            });
+            // updateStats({
+            //   bhtWordsMiss: bhtWordsMiss
+            // });
             callback('BHT_MISS', bhtResponseObj);
           }
         });
@@ -1502,9 +1794,9 @@ function dbUpdateWord(wordObj, incMentions, callback) {
         debug("Word CACHE SET7: " + word.nodeId);
         wordCache.set(word.nodeId, word);
         bhtWordsNotFound[word.nodeId] = word.nodeId;
-        updateStats({
-          bhtWordsNotFound: bhtWordsNotFound
-        });
+        // updateStats({
+        //   bhtWordsNotFound: bhtWordsNotFound
+        // });
         callback('BHT_NOT_FOUND', word);
       }
     }
@@ -2113,6 +2405,119 @@ function findSessionById(sessionId, callback) {
   );
 }
 
+function groupUpdateDb(userObj, callback){
+
+  debug(chalkRed("groupUpdateDb\n" + jsonPrint(userObj)));
+
+  var groupUpdateObj = new Group();
+
+  if (entityChannelGroupHashMap.has(userObj.tags.entity.toLowerCase())) {
+
+    var entityObj = entityChannelGroupHashMap.get(userObj.tags.entity.toLowerCase());
+
+    if (groupHashMap.has(entityObj.groupId)) {
+
+      var groupObj = groupHashMap.get(entityObj.groupId);
+
+      groupUpdateObj.groupId = entityObj.groupId;
+      groupUpdateObj.name = groupObj.name;
+      groupUpdateObj.tags = userObj.tags;
+
+      groupUpdateObj.addEntityArray = [];
+      groupUpdateObj.addEntityArray.push(userObj.tags.entity.toLowerCase());
+      groupUpdateObj.addChannelArray = [];
+      groupUpdateObj.addChannelArray.push(userObj.tags.channel.toLowerCase());
+
+      console.log(chalkDb(moment().format(defaultDateTimeFormat) 
+        + " | GROUP HASH HIT"
+        + " | " + userObj.tags.entity.toLowerCase()
+        + " | " + groupObj.groupId
+        + " | " + groupObj.name
+      ));
+
+      dbUpdateGroupQueue.enqueue(groupUpdateObj);
+    }
+    else {
+      console.log(chalkError("*** GROUP HASH MISS ... SKIPPING DB GROUP UPDATE"
+        + " | GROUP HASH MISS"
+        + " | " + userObj.tags.entity.toLowerCase()
+      ));
+
+    }
+
+  }
+
+  else {
+
+    // groupUpdateObj.groupId = userObj.userId.toLowerCase();
+    // groupUpdateObj.name = userObj.userId;
+    // groupUpdateObj.tags = userObj.tags;
+
+    // groupUpdateObj.addEntityArray = [];
+    // groupUpdateObj.addEntityArray.push(userObj.tags.entity.toLowerCase());
+    // groupUpdateObj.addChannelArray = [];
+    // groupUpdateObj.addChannelArray.push(userObj.tags.channel.toLowerCase());
+    
+    console.log(chalkError("*** ENTITY HASH MISS ... SKIPPING DB GROUP UPDATE"
+      + " | " + userObj.tags.entity.toLowerCase()
+    ));
+
+    // dbUpdateGroupQueue.enqueue(groupUpdateObj);
+  }  
+}
+
+
+function entityUpdateDb(userObj, callback){
+
+  debug(chalkRed("entityUpdateDb\n" + jsonPrint(userObj)));
+
+  var entityObj = entityCache.get(userObj.tags.entity.toLowerCase());
+
+  if (!entityObj) {
+    console.log(chalkDb(moment().format(defaultDateTimeFormat) 
+      + " | ENTITY CACHE MISS ON USER READY"
+      + " | " + userObj.tags.entity.toLowerCase()
+    ));
+
+    entityObj = new Entity();
+    entityObj.entityId = userObj.tags.entity.toLowerCase();
+    entityObj.name = userObj.userId;
+    entityObj.screenName = userObj.screenName;
+    entityObj.tags = userObj.tags;
+
+    if (entityChannelGroupHashMap.has(userObj.tags.entity.toLowerCase())){
+      entityObj.name = entityChannelGroupHashMap.get(userObj.tags.entity.toLowerCase()).name;
+      entityObj.addGroupArray = [];
+      entityObj.addGroupArray.push(entityChannelGroupHashMap.get(userObj.tags.entity.toLowerCase()).groupId);
+    }
+
+    dbUpdateEntityQueue.enqueue(entityObj);
+
+  }
+  else {
+    entityObj.entityId = userObj.tags.entity.toLowerCase();
+    entityObj.name = userObj.userId;
+    entityObj.screenName = userObj.screenName;
+
+    if (entityChannelGroupHashMap.has(userObj.tags.entity.toLowerCase())){
+      entityObj.name = entityChannelGroupHashMap.get(userObj.tags.entity.toLowerCase()).name;
+      entityObj.addGroupArray = [];
+      entityObj.addGroupArray.push(entityChannelGroupHashMap.get(userObj.tags.entity.toLowerCase()).groupId);
+    }
+
+    console.log(chalkDb(moment().format(defaultDateTimeFormat) 
+      + " | ENTITY CACHE HIT ON USER READY"
+      + " | " + entityObj.entityId
+      + " | " + entityObj.name
+      + " | " + entityObj.screenName
+    ));
+
+    dbUpdateEntityQueue.enqueue(entityObj);
+  }  
+}
+
+
+
 function adminUpdateDb(adminObj, callback) {
 
   if (adminObj.ip && (typeof adminObj.domain === 'undefined')) {
@@ -2290,12 +2695,14 @@ function userUpdateDb(userObj, callback) {
       "domain": userObj.domain,
       "ip": userObj.ip,
       "sessionId": userObj.lastSession,
+      "name": userObj.name,
       "screenName": userObj.screenName,
       "description": userObj.description,
       "url": userObj.url,
       "profileUrl": userObj.profileUrl,
       "profileImageUrl": userObj.profileImageUrl,
       "verified": userObj.verified,
+      "tags": userObj.tags,
       "lastSeen": userObj.lastSeen,
       "lastSession": userObj.lastSession,
       "connected": userObj.connected
@@ -2326,14 +2733,16 @@ function userUpdateDb(userObj, callback) {
         );
         callback(err, userObj);
       } else {
-        debug(chalkUser(">>> USER UPDATED" 
+        console.log(chalkUser(">>> USER UPDATED" 
           + " | " + us.userId 
+          + "\nNAME: " + us.name 
           + "\nSN:   " + us.screenName 
           + "\nNSP:  " + us.namespace 
           + "\nIP:   " + us.ip 
           + "\nDOM:  " + us.domain 
           + "\nSID:  " + us.sessionId
           + "\nVER:  " + us.verified 
+          + "\nTAGS: " + jsonPrint(us.tags) 
           + "\nLS:   " + getTimeStamp(us.lastSeen) 
           + "\nSES:  " + us.sessions.length 
           + "\nLSES: " + us.lastSession 
@@ -3752,7 +4161,6 @@ function handleSessionEvent(sesObj, callback) {
         userUpdateDb(currentUser, function(err, updatedUserObj) {
           if (!err) {
             debug(chalkRed("TX USER SESSION (SOCKET ERROR): " + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"));
-
             adminNameSpace.emit('USER_SESSION', updatedUserObj);
           }
         });
@@ -3924,12 +4332,13 @@ function handleSessionEvent(sesObj, callback) {
         ">>> USER READY" 
         + " | " + moment().format(defaultDateTimeFormat) 
         + " | NSP: " + sesObj.session.namespace 
+        + " | UN: " + sesObj.user.name 
+        + " | UID: " + sesObj.user.userId 
         + " | TYPE: " + sesObj.session.config.type 
         + " | MODE: " + sesObj.session.config.mode 
         + "\nSID: " + sesObj.session.sessionId 
         + " | ENT: " + sesObj.user.tags.entity 
         + " | CH: " + sesObj.user.tags.channel 
-        + " | UID: " + sesObj.user.userId 
         + " | IP: " + sesObj.session.ip 
         + " | DOM: " + sesObj.session.domain
         // + "\n" + jsonPrint(sesObj)
@@ -3966,6 +4375,45 @@ function handleSessionEvent(sesObj, callback) {
 
       userUpdateDb(sesObj.user, function(err, updatedUserObj) {
         if (!err) {
+
+          // var dbUpdateGroupObj = entityChannelGroupHashMap.get(responseInObj.tags.entity);
+
+          // if (dbUpdateGroupObj) {
+          //   dbUpdateGroupObj.groupId = responseInObj.tags.group.toLowerCase();
+          //   dbUpdateGroupObj.addEntityArray = [];
+          //   dbUpdateGroupObj.addEntityArray.push(responseInObj.tags.entity.toLowerCase());
+          //   dbUpdateGroupObj.addChannelArray = [];
+          //   dbUpdateGroupObj.addChannelArray.push(responseInObj.tags.channel.toLowerCase());
+          //   dbUpdateGroupObj.tags = responseInObj.tags;
+
+          //   dbUpdateGroupQueue.enqueue(dbUpdateGroupObj);
+          // }
+          // else {
+          //   var dbUpdateGroupObj = new Group();
+          //   dbUpdateGroupObj.groupId = responseInObj.tags.group.toLowerCase();
+          //   dbUpdateGroupObj.name = responseInObj.tags.group;
+          //   dbUpdateGroupObj.addEntityArray = [];
+          //   dbUpdateGroupObj.addEntityArray.push(responseInObj.tags.entity.toLowerCase());
+          //   dbUpdateGroupObj.addChannelArray = [];
+          //   dbUpdateGroupObj.addChannelArray.push(responseInObj.tags.channel.toLowerCase());
+          //   dbUpdateGroupObj.tags = responseInObj.tags;
+
+          //   dbUpdateGroupQueue.enqueue(dbUpdateGroupObj);
+          // }
+
+          groupUpdateDb(updatedUserObj, function(err, entityObj){
+            if (err){
+            }
+            else {
+            }
+          });
+
+          entityUpdateDb(updatedUserObj, function(err, entityObj){
+            if (err){
+            }
+            else {
+            }
+          });
 
           if (sesObj.session.config.type == 'USER') {
             debug(chalkRed("TX USER SESSION (USER READY): " + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"));
@@ -4174,7 +4622,6 @@ var readResponseQueue = setInterval(function() {
 
     var rxInObj = responseQueue.dequeue();
 
-
     // console.log(chalkRed("rxInObj\n" + jsonPrint(rxInObj)));
 
     if ((typeof rxInObj.nodeId === 'undefined') || (typeof rxInObj.nodeId !== 'string')) {
@@ -4327,7 +4774,7 @@ var readResponseQueue = setInterval(function() {
     }
 
     if (entityChannelGroupHashMap.has(responseInObj.tags.entity)){
-      responseInObj.tags.group = entityChannelGroupHashMap.get(responseInObj.tags.entity);
+      responseInObj.tags.group = entityChannelGroupHashMap.get(responseInObj.tags.entity).groupId;
     }
     else {
       responseInObj.tags.group = 'unknown_group';
@@ -4349,22 +4796,109 @@ var readResponseQueue = setInterval(function() {
     dbUpdateObj.tags = {};
 
     if (responseInObj.tags){
+
       dbUpdateObj.tags.entity = responseInObj.tags.entity;
       dbUpdateObj.tags.channel = responseInObj.tags.channel;
       dbUpdateObj.tags.group = responseInObj.tags.group;
+
+      // var dbUpdateGroupObj = entityChannelGroupHashMap.get(responseInObj.tags.entity);
+
+      // if (dbUpdateGroupObj) {
+      //   dbUpdateGroupObj.groupId = responseInObj.tags.group.toLowerCase();
+      //   dbUpdateGroupObj.addEntityArray = [];
+      //   dbUpdateGroupObj.addEntityArray.push(responseInObj.tags.entity.toLowerCase());
+      //   dbUpdateGroupObj.addChannelArray = [];
+      //   dbUpdateGroupObj.addChannelArray.push(responseInObj.tags.channel.toLowerCase());
+      //   dbUpdateGroupObj.tags = responseInObj.tags;
+
+      //   dbUpdateGroupQueue.enqueue(dbUpdateGroupObj);
+      // }
+      // else {
+      //   var dbUpdateGroupObj = new Group();
+      //   dbUpdateGroupObj.groupId = responseInObj.tags.group.toLowerCase();
+      //   dbUpdateGroupObj.name = responseInObj.tags.group;
+      //   dbUpdateGroupObj.addEntityArray = [];
+      //   dbUpdateGroupObj.addEntityArray.push(responseInObj.tags.entity.toLowerCase());
+      //   dbUpdateGroupObj.addChannelArray = [];
+      //   dbUpdateGroupObj.addChannelArray.push(responseInObj.tags.channel.toLowerCase());
+      //   dbUpdateGroupObj.tags = responseInObj.tags;
+
+      //   dbUpdateGroupQueue.enqueue(dbUpdateGroupObj);
+      // }
+
     }
 
-    dbUpdateQueue.enqueue(dbUpdateObj);
+    dbUpdateWordQueue.enqueue(dbUpdateObj);
 
     ready = true;
   }
 }, 50);
 
-var readDbUpdateQueue = setInterval(function() {
+var dbUpdateGroupReady = true; 
 
-  if (!dbUpdateQueue.isEmpty()) {
+var readDbUpdateGroupQueue = setInterval(function() {
 
-    var dbUpdateObj = dbUpdateQueue.dequeue();
+  if (dbUpdateGroupReady && !dbUpdateGroupQueue.isEmpty()) {
+
+    dbUpdateGroupReady = false;
+
+    var groupObj = dbUpdateGroupQueue.dequeue();
+
+    dbUpdateGroup(groupObj, true, function(status, updatedGroupObj) {
+
+      groupCache.set(updatedGroupObj.groupId, updatedGroupObj, function(err, success) {
+        if (!err && success) {
+
+          dbUpdateGroupReady = true;
+
+        } else {
+          debug(chalkError("*** GROUP CACHE SET ERROR" + "\n" + jsonPrint(err)));
+
+          dbUpdateGroupReady = true;
+        }
+      });
+
+    });
+  }
+}, 50);
+
+var dbUpdateEntityReady = true; 
+
+var readDbUpdateEntityQueue = setInterval(function() {
+
+  if (dbUpdateEntityReady && !dbUpdateEntityQueue.isEmpty()) {
+
+    dbUpdateEntityReady = false;
+
+    var entityObj = dbUpdateEntityQueue.dequeue();
+
+    dbUpdateEntity(entityObj, true, function(status, updatedEntityObj) {
+
+      entityCache.set(updatedEntityObj.entityId, updatedEntityObj, function(err, success) {
+        if (!err && success) {
+
+          dbUpdateEntityReady = true;
+
+        } else {
+          debug(chalkError("*** ENTITY CACHE SET ERROR" + "\n" + jsonPrint(err)));
+
+          dbUpdateEntityReady = true;
+        }
+      });
+
+    });
+  }
+}, 50);
+
+var dbUpdateWordReady = true;
+
+var readDbUpdateWordQueue = setInterval(function() {
+
+  if (dbUpdateWordReady && !dbUpdateWordQueue.isEmpty()) {
+
+    dbUpdateWordReady = false;
+
+    var dbUpdateObj = dbUpdateWordQueue.dequeue();
 
 
     var currentSessionObj = dbUpdateObj.session;
@@ -4377,9 +4911,8 @@ var readDbUpdateQueue = setInterval(function() {
     if (entityChannelGroupHashMap.has(dbUpdateObj.tags.entity)){
       currentSessionObj.tags.entity = dbUpdateObj.tags.entity;
       currentSessionObj.tags.channel = dbUpdateObj.tags.channel;
-      currentSessionObj.tags.group = entityChannelGroupHashMap.get(dbUpdateObj.tags.entity);
+      currentSessionObj.tags.group = entityChannelGroupHashMap.get(dbUpdateObj.tags.entity).groupId;
     }
-
 
     dbUpdateWord(dbUpdateObj.word, true, function(status, updatedWordObj) {
 
@@ -4410,9 +4943,8 @@ var readDbUpdateQueue = setInterval(function() {
 
           promptQueue.enqueue(currentSessionObj.sessionId);
 
-
-          // console.log(chalkRed("readDbUpdateQueue | currentSessionObj\n" + jsonPrint(currentSessionObj)));
-          // console.log(chalkRed("readDbUpdateQueue | dbUpdateObj\n" + jsonPrint(dbUpdateObj)));
+          // console.log(chalkRed("readDbUpdateWordQueue | currentSessionObj\n" + jsonPrint(currentSessionObj)));
+          // console.log(chalkRed("readDbUpdateWordQueue | dbUpdateObj\n" + jsonPrint(dbUpdateObj)));
 
           var sessionUpdateObj = {
             action: 'RESPONSE',
@@ -4426,8 +4958,13 @@ var readDbUpdateQueue = setInterval(function() {
 
           // if (updatedWordObj.tags) sessionUpdateObj.tags = updatedWordObj.tags;
           updateSessionViews(sessionUpdateObj);
+
+          dbUpdateWordReady = true;
+
         } else {
           debug(chalkError("*** SESSION CACHE SET ERROR" + "\n" + jsonPrint(err)));
+
+          dbUpdateWordReady = true;
         }
       });
 
@@ -4763,8 +5300,11 @@ function initializeConfiguration(callback) {
     ],
     function(err, results) {
 
-      updateEntityChannelGroups(defaultDropboxEntityChannelGroupsConfigFile);
-      updateEntityChannelGroupsInterval(defaultDropboxEntityChannelGroupsConfigFile, 5*ONE_MINUTE);
+      updateGroups(defaultDropboxGroupsConfigFile, function(err, results){});
+      updateGroupsInterval(defaultDropboxGroupsConfigFile, 5*ONE_MINUTE);
+
+      // updateEntityChannelGroups(defaultDropboxEntityChannelGroupsConfigFile, function(err, results){});
+      // updateEntityChannelGroupsInterval(defaultDropboxEntityChannelGroupsConfigFile, 5*ONE_MINUTE);
 
       updateStatsInterval(dropboxHostStatsFile, ONE_MINUTE);
 
@@ -5394,6 +5934,7 @@ function createSession(newSessionObj) {
     console.log(chalkUser("USER READY"
       + " | NID: " + userObj.nodeId
       + " | UID: " + userObj.userId
+      + " | N: " + userObj.name
       + " | SCN: " + userObj.screenName
       + " | ENT: " + userObj.tags.entity
       + " | CH: " + userObj.tags.channel
@@ -5415,7 +5956,6 @@ function createSession(newSessionObj) {
 
       // console.log(chalkRed("userObj.tags\n" + jsonPrint(userObj)));
 
-
       if (typeof sessionObj.tags === 'undefined') {
         console.log(chalkRed("sessionObj.tags UNDEFINED"));
         sessionObj.tags = {};
@@ -5433,7 +5973,7 @@ function createSession(newSessionObj) {
             delete statsObj.entityChannelGroup.hashMiss[sessionObj.tags.entity];
             console.log(chalkRed("### ENTITY CHANNEL GROUP HASHMAP HIT"
               + " | " + sessionObj.tags.entity
-              + " > " + entityChannelGroupHashMap.get(sessionObj.tags.entity)
+              + " > " + entityChannelGroupHashMap.get(sessionObj.tags.entity).groupId
             ));
           }
           else {
@@ -5480,6 +6020,7 @@ function createSession(newSessionObj) {
       session: sessionObj,
       user: userObj
     });
+
   });
 
   socket.on("RESPONSE_WORD_OBJ", function(rxInObj) {
@@ -5734,7 +6275,12 @@ var rateQinterval = setInterval(function() {
   }
 }, 50);
 
+var DROPBOX_WA_GROUPS_CONFIG_FILE = process.env.DROPBOX_WA_GROUPS_CONFIG_FILE || 'groups.json';
 var DROPBOX_WA_ENTITY_CHANNEL_GROUPS_CONFIG_FILE = process.env.DROPBOX_WA_ENTITY_CHANNEL_GROUPS_CONFIG_FILE || 'entityChannelGroups.json';
+
+var defaultDropboxGroupsConfigFile = DROPBOX_WA_GROUPS_CONFIG_FILE;
+var dropboxGroupsConfigFile = os.hostname() +  "_" + DROPBOX_WA_GROUPS_CONFIG_FILE;
+
 var defaultDropboxEntityChannelGroupsConfigFile = DROPBOX_WA_ENTITY_CHANNEL_GROUPS_CONFIG_FILE;
 var dropboxEntityChannelGroupsConfigFile = os.hostname() +  "_" + DROPBOX_WA_ENTITY_CHANNEL_GROUPS_CONFIG_FILE;
 
@@ -5760,6 +6306,21 @@ function loadConfig(file, callback){
 
     return(callback(null, configObj));
 
+  });
+}
+
+function initGroups(dropboxConfigFile, callback){
+  loadConfig(dropboxConfigFile, function(err, loadedConfigObj){
+    if (!err) {
+      console.log("LOADED "
+        + " | " + dropboxConfigFile
+        );
+      return(callback(err, loadedConfigObj));
+    }
+    else {
+      console.error(dropboxConfigFile + "\n" + jsonPrint(err));
+      return(callback(err, loadedConfigObj));
+     }
   });
 }
 

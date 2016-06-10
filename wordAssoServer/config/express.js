@@ -28,6 +28,9 @@ module.exports = function() {
 
 	require('../app/routes/admin.server.routes.js')(app);
 	require('../app/routes/index.server.routes.js')(app);
+
+	require('../app/routes/group.server.routes.js')(app);
+	require('../app/routes/entity.server.routes.js')(app);
 	require('../app/routes/word.server.routes.js')(app);
 
 	app.use(express.static('./public'));

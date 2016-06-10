@@ -345,7 +345,7 @@ function ViewTicker() {
     for (ageSessionsIndex = ageSessionsLength; ageSessionsIndex >= 0; ageSessionsIndex -= 1) {
       session = sessions[ageSessionsIndex];
       if (deadSessionsHash[session.sessionId]) {
-        sessionDeleteQueue.push(session.sessionId);
+        // sessionDeleteQueue.push(session.sessionId);
         sessions.splice(ageSessionsIndex, 1);
         delete deadSessionsHash[session.sessionId];
         // console.log("XXX SESSION: " + session.sessionId);
@@ -512,35 +512,6 @@ function ViewTicker() {
     }
   }
 
-  // function processDeadNodesHash(callback) {
-
-  //   if (Object.keys(deadNodesHash).length == 0) {
-  //     // console.warn("NO DEAD NODES");
-  //     return (callback());
-  //   }
-  //   // console.error("processDeadNodesHash\n" + jsonPrint(deadNodesHash));
-
-  //   var ageNodesLength = nodes.length - 1;
-  //   var ageNodesIndex = nodes.length - 1;
-  //   var node;
-
-  //   for (ageNodesIndex = ageNodesLength; ageNodesIndex >= 0; ageNodesIndex -= 1) {
-  //     node = nodes[ageNodesIndex];
-  //     if ((typeof node != 'undefined') && deadNodesHash[node.nodeId]) {
-  //       nodeDeleteQueue.push(node.nodeId);
-  //       nodes.splice(ageNodesIndex, 1);
-  //       delete deadNodesHash[node.nodeId];
-  //       self.deleteNode(node.nodeId);
-  //       // console.log("XXX NODE: " + node.nodeId);
-  //     } else if (typeof node == 'undefined') {
-  //       nodes.splice(ageNodesIndex, 1);
-  //     }
-  //   }
-
-  //   if (ageNodesIndex < 0) {
-  //     return (callback());
-  //   }
-  // }
   function processDeadGroupsHash(callback) {
 
     if (Object.keys(deadGroupsHash).length == 0) {
@@ -613,72 +584,6 @@ function ViewTicker() {
 
   // ===================================================================
 
-  // function updateGroups(callback) {
-
-
-  //   // console.log("updateSessions");
-
-  //   groupGnode = groupGnode.data(groups, function(d) {
-  //       return d.groupId;
-  //     });
-  //     // .attr("rank", function(d) {
-  //     //   return d.rank;
-  //     // })
-  //     // .attr("x", function(d) {
-  //     //   return d.x;
-  //     // })
-  //     // .attr("y", function(d) {
-  //     //   return d.y;
-  //     // })
-  //     // .attr("wordChainIndex", function(d) {
-  //     //   return d.wordChainIndex;
-  //     // })
-  //     // .attr("lastSeen", function(d) {
-  //     //   return d.lastSeen;
-  //     // });
-
-  //   groupGnode
-  //     .enter()
-  //     .append("svg:g")
-  //     .attr("class", "group")
-  //     .attr("id", function(d) {
-  //       return d.groupId;
-  //     })
-  //     .attr("sessionId", function(d) {
-  //       return d.sessionId;
-  //     })
-  //     .attr("nodeId", function(d) {
-  //       return d.nodeId;
-  //     })
-  //     .attr("userId", function(d) {
-  //       return d.userId;
-  //     })
-  //     // .attr("rank", function(d) {
-  //     //   return d.rank;
-  //     // })
-  //     // .attr("x", function(d) {
-  //     //   return d.x;
-  //     // })
-  //     // .attr("y", function(d) {
-  //     //   return d.y;
-  //     // })
-  //     // .attr("wordChainIndex", function(d) {
-  //     //   return d.wordChainIndex;
-  //     // })
-  //     // .attr("totalWordChainIndex", function(d) {
-  //     //   return d.totalWordChainIndex;
-  //     // });
-  //     // .attr("lastSeen", function(d) {
-  //     //   return d.lastSeen;
-  //     // });
-
-  //   groupGnode
-  //     .exit()
-  //     .remove();
-
-  //   return (callback(null, "updateGroups"));
-  // }
-
   function updateGroupWords(callback) {
 
     var groupWords = groupSvgGroup.selectAll("#group")
@@ -750,196 +655,6 @@ function ViewTicker() {
 
     return (callback(null, "updateGroupWords"));
   }
-
-  // function updateSessions(callback) {
-
-  //   // console.log("updateSessions");
-
-  //   sessionGnode = sessionGnode.data(sessions, function(d) {
-  //       return d.sessionId;
-  //     })
-  //     .attr("rank", function(d) {
-  //       return d.rank;
-  //     })
-  //     .attr("x", function(d) {
-  //       return d.x;
-  //     })
-  //     .attr("y", function(d) {
-  //       return d.y;
-  //     })
-  //     .attr("wordChainIndex", function(d) {
-  //       return d.wordChainIndex;
-  //     })
-  //     .attr("lastSeen", function(d) {
-  //       return d.lastSeen;
-  //     });
-
-  //   sessionGnode
-  //     .enter()
-  //     .append("svg:g")
-  //     .attr("class", "session")
-  //     .attr("id", function(d) {
-  //       return d.userId;
-  //     })
-  //     .attr("sessionId", function(d) {
-  //       return d.sessionId;
-  //     })
-  //     .attr("nodeId", function(d) {
-  //       return d.nodeId;
-  //     })
-  //     .attr("userId", function(d) {
-  //       return d.userId;
-  //     })
-  //     .attr("rank", function(d) {
-  //       return d.rank;
-  //     })
-  //     .attr("x", function(d) {
-  //       return d.x;
-  //     })
-  //     .attr("y", function(d) {
-  //       return d.y;
-  //     })
-  //     .attr("wordChainIndex", function(d) {
-  //       return d.wordChainIndex;
-  //     })
-  //     .attr("lastSeen", function(d) {
-  //       return d.lastSeen;
-  //     });
-
-  //   sessionGnode
-  //     .exit()
-  //     .remove();
-
-  //   return (callback(null, "updateSessions"));
-  // }
-
-  // function updateSessionWords(callback) {
-
-  //   var sessionWords = sessionSvgGroup.selectAll("#session")
-  //     .data(sessions, function(d) {
-  //       return d.userId;
-  //     });
-
-  //   sessionWords
-  //     .attr("class", function(d) {
-  //       return d.newFlag ? "updateNew" : "update";
-  //     })
-  //     // .attr("rank", function(d) {
-  //     //   return d.rank;
-  //     // })
-  //     .text(function(d) {
-  //       return d.text;
-  //     })
-  //     .style("fill", function(d) {
-  //       if (d.newFlag) {
-  //         return "white";
-  //       } else {
-  //         // return d.interpolateColor((nodeMaxAge - d.age) / nodeMaxAge);
-  //         return d.interpolateColor(1.0);
-  //       }
-  //     })
-  //     .style("fill-opacity", function(d) {
-  //       if (self.removeDeadNodes) {
-  //         return wordOpacityScale(d.age + 1);
-  //       } else {
-  //         return Math.max(wordOpacityScale(d.age + 1), minOpacity)
-  //       }
-  //     })
-  //     .transition()
-  //     .duration(defaultFadeDuration)
-  //     .attr("x", xposition)
-  //     .attr("y", yposition);
-
-  //   sessionWords
-  //     .enter()
-  //     .append("svg:text")
-  //     .attr("id", "session")
-  //     .attr("nodeId", function(d) {
-  //       return d.nodeId;
-  //     })
-  //     .attr("userId", function(d) {
-  //       return d.userId;
-  //     })
-  //     .attr("sessionId", function(d) {
-  //       return d.sessionId;
-  //     })
-  //     .attr("class", "enter")
-  //     .attr("rank", function(d) {
-  //       return d.rank;
-  //     })
-  //     .attr("x", xposition)
-  //     .attr("y", yposition)
-  //     .text(function(d) {
-  //       return d.text;
-  //     })
-  //     .style("fill", "FFFFFF")
-  //     .style("fill-opacity", 1)
-  //     .style("font-size", "2.2vmin");
-
-  //   sessionWords
-  //     .exit()
-  //     .remove();
-
-  //   return (callback(null, "updateSessionWords"));
-  // }
-
-  // function updateNodes(callback) {
-
-  //   // console.log("updateNodes");
-
-  //   node = node.data(nodes, function(d) {
-  //       return d.nodeId;
-  //     })
-  //     .attr("rank", function(d) {
-  //       return d.rank;
-  //     })
-  //     .attr("x", function(d) {
-  //       return d.x;
-  //     })
-  //     .attr("y", function(d) {
-  //       return d.y;
-  //     })
-  //     .attr("mentions", function(d) {
-  //       return d.mentions;
-  //     })
-  //     .attr("lastSeen", function(d) {
-  //       return d.lastSeen;
-  //     });
-
-  //   node
-  //     .enter()
-  //     .append("svg:g")
-  //     .attr("class", "node")
-  //     .attr("id", function(d) {
-  //       return d.nodeId;
-  //     })
-  //     .attr("nodeId", function(d) {
-  //       return d.nodeId;
-  //     })
-  //     .attr("sessionId", function(d) {
-  //       return d.sessionId;
-  //     })
-  //     .attr("userId", function(d) {
-  //       return d.userId;
-  //     })
-  //     .attr("x", xposition)
-  //     .attr("y", yposition)
-  //     .attr("rank", function(d) {
-  //       return d.rank;
-  //     })
-  //     .attr("mentions", function(d) {
-  //       return d.mentions;
-  //     })
-  //     .attr("lastSeen", function(d) {
-  //       return d.lastSeen;
-  //     });
-
-  //   node
-  //     .exit()
-  //     .remove();
-
-  //   return (callback(null, "updateNodes"));
-  // }
 
   function updateNodeWords(callback) {
 
@@ -1059,6 +774,7 @@ function ViewTicker() {
         ageSessions,
         ageNodes,
         processDeadNodesHash,
+        processDeadSessionsHash,
         processDeadGroupsHash,
         rankGroups,
         // rankNodes,

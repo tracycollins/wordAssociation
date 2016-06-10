@@ -9,6 +9,9 @@ var UserSchema = new Schema({
 		trim: true,
 		unique: true
 	},
+	name: {
+		type: String
+	},
 	screenName: {
 		type: String,
 		trim: true
@@ -28,6 +31,10 @@ var UserSchema = new Schema({
 	profileImageUrl: { 
 		type: String,
 		trim: true
+	},
+	tags: { 
+		type: Object,
+		default: {}
 	},
 	verified: { 
 		type: Boolean,

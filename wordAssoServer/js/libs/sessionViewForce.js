@@ -843,130 +843,205 @@ function ViewForce() {
     return (callback(null, "updateGroupsCircles"));
   }
 
-  function updateSessionCircles(callback) {
+  // function updateSessionCircles(callback) {
+
+  //   var dateNow = moment().valueOf();
+
+  //   sessionCircles = sessionSvgGroup.selectAll("circle")
+  //     .data(sessions, function(d) {
+  //       return d.nodeId;
+  //     });
+
+  //   sessionCircles
+  //     // .attr("id", function(d) {
+  //     //   return d.nodeId;
+  //     // })
+  //     // .attr("nodeId", function(d) {
+  //     //   return d.nodeId;
+  //     // })
+  //     // .attr("groupId", function(d) {
+  //     //   return d.groupId;
+  //     // })
+  //     // .attr("sessionId", function(d) {
+  //     //   return d.sessionId;
+  //     // })
+  //     .attr("r", function(d) {
+  //       return sessionCircleRadiusScale(d.wordChainIndex + 1);
+  //     })
+  //     .attr("cx", function(d) {
+  //       var cnode = nodeHashMap.get(d.nodeId);
+  //       if (typeof cnode === 'undefined') return 0;
+  //       return cnode.x;
+  //     })
+  //     .attr("cy", function(d) {
+  //       var cnode = nodeHashMap.get(d.nodeId);
+  //       if (typeof cnode === 'undefined') return 0;
+  //       return cnode.y;
+  //     })
+  //     .style("fill", function(d) {
+  //       if (d3.select(this).attr("mouseover") == 1) {
+  //         return palette.red;
+  //       }
+  //       // return d.interpolateColor(0.5 * (nodeMaxAge - d.age) / nodeMaxAge);
+  //       return d.interpolateColor(0.5 * (nodeMaxAge - (dateNow - d.lastSeen)) / nodeMaxAge);
+  //     })
+  //     .style('opacity', function(d) {
+  //       if ((dateNow - d.lastSeen) >= nodeMaxAge) {
+  //         return 1e-6;
+  //       }
+  //       else {
+  //         return 1.0;
+  //       }
+  //     })
+  //     .style('stroke', function(d) {
+  //       if (d3.select(this).attr("mouseover") == 1) {
+  //         return palette.white;
+  //       }
+  //       return d.interpolateColor(0.95);
+  //     })
+  //     .style('stroke-width', function(d) {
+  //       if (d3.select(this).attr("mouseover") == 1) {
+  //         return 8;
+  //       }
+  //       return 2.5;
+  //     })
+  //     .style("stroke-opacity", function(d) {
+  //       if (d3.select(this).attr("mouseover") == 1) {
+  //         return 1.0;
+  //       }
+  //       if ((dateNow - d.lastSeen) >= nodeMaxAge) {
+  //         return 1e-6;
+  //       }
+  //       else {
+  //         return (nodeMaxAge - (dateNow - d.lastSeen)) / nodeMaxAge;
+  //       }
+  //     });
+
+  //   sessionCircles
+  //     .enter()
+  //     .append("svg:circle")
+  //     .attr("id", function(d) {
+  //       return d.nodeId;
+  //     })
+  //     .attr("groupId", function(d) {
+  //       return d.groupId;
+  //     })
+  //     .attr("sessionId", function(d) {
+  //       return d.sessionId;
+  //     })
+  //     .attr("class", "sessionCircleClass")
+  //     .attr("cx", function(d) {
+  //       var cnode = nodeHashMap.get(d.nodeId);
+  //       if (typeof cnode === 'undefined') return 0;
+  //       return cnode.x;
+  //     })
+  //     .attr("cy", function(d) {
+  //       var cnode = nodeHashMap.get(d.nodeId);
+  //       if (typeof cnode === 'undefined') return 0;
+  //       return cnode.y;
+  //     })
+  //     .attr("mouseover", 0)
+  //     .on("mouseover", sessionCircleMouseOver)
+  //     .on("mouseout", sessionCircleMouseOut)
+  //     .on("dblclick", sessionCircleClick)
+  //     .call(drag)
+  //     .attr("r", 1e-6)
+  //     .style("visibility", "visible")
+  //     .style("fill", function(d) {
+  //       return d.interpolateColor(0.25);
+  //     })
+  //     .style("opacity", 1e-6)
+  //     .style('stroke', function(d) {
+  //       return d.interpolateColor(0.75);
+  //     })
+  //     .style("stroke-width", 2.5)
+  //     .style("stroke-opacity", 0.8)
+  //     .transition()
+  //       .duration(defaultFadeDuration)
+  //       .attr("r", function(d) {
+  //         return sessionCircleRadiusScale(d.wordChainIndex + 1);
+  //       })
+  //       .style('opacity', 0.5);
+
+  //   sessionCircles
+  //     .exit()
+  //     .remove();
+
+
+  //   sessionLabels = sessionLabelSvgGroup.selectAll(".sessionLabel")
+  //     .data(sessions, function(d) {
+  //       return d.nodeId;
+  //     })
+  //     .text(function(d) {
+  //       return d.text;
+  //       // return d.wordChainIndex;
+  //     })
+  //     .attr("x", function(d) {
+  //       var cnode = nodeHashMap.get(d.nodeId);
+  //       if (typeof cnode === 'undefined') return 0;
+  //       return cnode.x;
+  //     })
+  //     .attr("y", function(d) {
+  //       var shiftY = -1.5 * (sessionCircleRadiusScale(d.wordChainIndex + 1));
+  //       var cnode = nodeHashMap.get(d.nodeId);
+  //       if (typeof cnode === 'undefined') return 0;
+  //       return cnode.y + shiftY;
+  //     })
+  //     .style("font-size", function(d) {
+  //       return fontSizeScale(d.wordChainIndex) + "px";
+  //     })
+  //     .style('opacity', function(d) {
+  //       if (d3.select(this).attr("mouseover") == 1) {
+  //         return 1.0;
+  //       }
+  //       return (nodeMaxAge - (dateNow - d.lastSeen)) / nodeMaxAge;
+  //     });
+
+  //   sessionLabels.enter()
+  //     .append("text")
+  //     .attr("class", "sessionLabel")
+  //     .attr("id", function(d) {
+  //       return d.nodeId;
+  //     })
+  //     .attr("sessionId", function(d) {
+  //       return d.sessionId;
+  //     })
+  //     .text(function(d) {
+  //       return d.text;
+  //       return d.wordChainIndex;
+  //     })
+  //     .style("text-anchor", "middle")
+  //     .style("alignment-baseline", "middle")
+  //     .style("opacity", 1e-6)
+  //     .style('fill', "#ffffff")
+  //     .style("font-size", function(d) {
+  //       return fontSizeScale(d.wordChainIndex) + "px";
+  //     })
+  //     .attr("x", function(d) {
+  //       var cnode = nodeHashMap.get(d.nodeId);
+  //       if (typeof cnode === 'undefined') return 0;
+  //       return cnode.x;
+  //     })
+  //     .attr("y", function(d) {
+  //       var shiftY = -2.5 * (sessionCircleRadiusScale(d.wordChainIndex + 1));
+  //       var cnode = nodeHashMap.get(d.nodeId);
+  //       if (typeof cnode === 'undefined') return 0;
+  //       return cnode.y + shiftY;
+  //     })
+  //     .transition()
+  //       .duration(defaultFadeDuration)
+  //       .style("opacity", 1.0);
+
+  //   sessionLabels
+  //     .exit().remove();
+
+
+  //   return (callback(null, "updateSessionCircles"));
+  // }
+
+  function updateSessionLabels(callback) {
 
     var dateNow = moment().valueOf();
-
-    sessionCircles = sessionSvgGroup.selectAll("circle")
-      .data(sessions, function(d) {
-        return d.nodeId;
-      });
-
-    sessionCircles
-      // .attr("id", function(d) {
-      //   return d.nodeId;
-      // })
-      // .attr("nodeId", function(d) {
-      //   return d.nodeId;
-      // })
-      // .attr("groupId", function(d) {
-      //   return d.groupId;
-      // })
-      // .attr("sessionId", function(d) {
-      //   return d.sessionId;
-      // })
-      .attr("r", function(d) {
-        return sessionCircleRadiusScale(d.wordChainIndex + 1);
-      })
-      .attr("cx", function(d) {
-        var cnode = nodeHashMap.get(d.nodeId);
-        if (typeof cnode === 'undefined') return 0;
-        return cnode.x;
-      })
-      .attr("cy", function(d) {
-        var cnode = nodeHashMap.get(d.nodeId);
-        if (typeof cnode === 'undefined') return 0;
-        return cnode.y;
-      })
-      .style("fill", function(d) {
-        if (d3.select(this).attr("mouseover") == 1) {
-          return palette.red;
-        }
-        // return d.interpolateColor(0.5 * (nodeMaxAge - d.age) / nodeMaxAge);
-        return d.interpolateColor(0.5 * (nodeMaxAge - (dateNow - d.lastSeen)) / nodeMaxAge);
-      })
-      .style('opacity', function(d) {
-        if ((dateNow - d.lastSeen) >= nodeMaxAge) {
-          return 1e-6;
-        }
-        else {
-          return 1.0;
-        }
-      })
-      .style('stroke', function(d) {
-        if (d3.select(this).attr("mouseover") == 1) {
-          return palette.white;
-        }
-        return d.interpolateColor(0.95);
-      })
-      .style('stroke-width', function(d) {
-        if (d3.select(this).attr("mouseover") == 1) {
-          return 8;
-        }
-        return 2.5;
-      })
-      .style("stroke-opacity", function(d) {
-        if (d3.select(this).attr("mouseover") == 1) {
-          return 1.0;
-        }
-        if ((dateNow - d.lastSeen) >= nodeMaxAge) {
-          return 1e-6;
-        }
-        else {
-          return (nodeMaxAge - (dateNow - d.lastSeen)) / nodeMaxAge;
-        }
-      });
-
-    sessionCircles
-      .enter()
-      .append("svg:circle")
-      .attr("id", function(d) {
-        return d.nodeId;
-      })
-      .attr("groupId", function(d) {
-        return d.groupId;
-      })
-      .attr("sessionId", function(d) {
-        return d.sessionId;
-      })
-      .attr("class", "sessionCircleClass")
-      .attr("cx", function(d) {
-        var cnode = nodeHashMap.get(d.nodeId);
-        if (typeof cnode === 'undefined') return 0;
-        return cnode.x;
-      })
-      .attr("cy", function(d) {
-        var cnode = nodeHashMap.get(d.nodeId);
-        if (typeof cnode === 'undefined') return 0;
-        return cnode.y;
-      })
-      .attr("mouseover", 0)
-      .on("mouseover", sessionCircleMouseOver)
-      .on("mouseout", sessionCircleMouseOut)
-      .on("dblclick", sessionCircleClick)
-      .call(drag)
-      .attr("r", 1e-6)
-      .style("visibility", "visible")
-      .style("fill", function(d) {
-        return d.interpolateColor(0.25);
-      })
-      .style("opacity", 1e-6)
-      .style('stroke', function(d) {
-        return d.interpolateColor(0.75);
-      })
-      .style("stroke-width", 2.5)
-      .style("stroke-opacity", 0.8)
-      .transition()
-        .duration(defaultFadeDuration)
-        .attr("r", function(d) {
-          return sessionCircleRadiusScale(d.wordChainIndex + 1);
-        })
-        .style('opacity', 0.5);
-
-    sessionCircles
-      .exit()
-      .remove();
-
 
     sessionLabels = sessionLabelSvgGroup.selectAll(".sessionLabel")
       .data(sessions, function(d) {
@@ -1036,7 +1111,7 @@ function ViewForce() {
       .exit().remove();
 
 
-    return (callback(null, "updateSessionCircles"));
+    return (callback(null, "updateSessionLabels"));
   }
 
   function updateNodeCircles(callback) {
@@ -1075,6 +1150,8 @@ function ViewForce() {
           return "#ffffff";
         }
         else {
+          if (d.isGroupNode) return "#000000";
+          if (d.isSessionNode) return "#000000";
           return d.interpolateColor((nodeMaxAge - d.age) / nodeMaxAge);
         }
       })
@@ -1085,6 +1162,8 @@ function ViewForce() {
         return 1
       })
       .style('stroke', function(d) {
+        if (d.isGroupNode) return d.interpolateColor((nodeMaxAge - d.age) / nodeMaxAge);
+        if (d.isSessionNode) return d.interpolateColor((nodeMaxAge - d.age) / nodeMaxAge);
         return strokeColorScale(d.age);
       })
       .style('stroke-opacity', function(d) {
@@ -1237,7 +1316,8 @@ function ViewForce() {
         updateLinks,
         updateNodes,
         updateGroupsCircles,
-        updateSessionCircles,
+        // updateSessionCircles,
+        updateSessionLabels,
         updateNodeCircles,
         updateNodeLabels,
       ],

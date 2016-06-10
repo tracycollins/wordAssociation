@@ -1259,8 +1259,10 @@ socket.on("SESSION_UPDATE", function(rxSessionObject) {
     if (debug) {
       console.log("... SKIP SESSION_UPDATE ... WINDOW NOT VISIBLE");
     }
-  } else if (sessionDeleteHashMap.has(rxObj.sessionId)) {
-    console.warn("... SKIP SESSION_UPDATE ... DELETED SESSION: " + rxObj.sessionId);
+  // } else if (sessionDeleteHashMap.has(rxObj.sessionId)) {
+
+  //   console.warn("... SKIP SESSION_UPDATE ... DELETED SESSION: " + rxObj.sessionId);
+    
   } else if (sessionMode && (rxObj.sessionId !== currentSession.sessionId)) {
     if (debug) {
       console.log("SKIP SESSION_UPDATE: " + rxObj.sessionId + " | CURRENT: " + currentSession.sessionId);

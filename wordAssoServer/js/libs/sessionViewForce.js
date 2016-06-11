@@ -72,7 +72,7 @@ function ViewForce() {
 
   var charge = DEFAULT_CHARGE;
   var gravity = DEFAULT_GRAVITY;
-  var linkStrength = DEFAULT_LINK_STRENGTH;
+  var globalLinkStrength = DEFAULT_LINK_STRENGTH;
   var friction = DEFAULT_FRICTION;
 
   var palette = {
@@ -370,6 +370,14 @@ function ViewForce() {
 
   function tick() {
 
+    force.linkStrength(
+      function(d,i){
+        if(d.isGroupLink)
+          return 1.0;//calculate your charge for other nodes
+        else
+          return globalLinkStrength;//calculate your charge for the clicked node
+      });
+
     link
       .attr("x1", function(d) {
         return d.source.x;
@@ -396,8 +404,8 @@ function ViewForce() {
 
   self.updateLinkStrength = function(value) {
     console.log("updateLinkStrength: " + value + " | forceStopped: " + forceStopped);
-    linkStrength = value;
-    force.linkStrength(linkStrength);
+    globalLinkStrength = value;
+    force.linkStrength(globalLinkStrength);
     force.start();
   }
 
@@ -1414,7 +1422,7 @@ function ViewForce() {
     .gravity(gravity)
     .friction(friction)
     .charge(charge)
-    .linkStrength(linkStrength)
+    .linkStrength(globalLinkStrength)
     .size([svgForceLayoutAreaWidth, svgForceLayoutAreaHeight])
     .on("tick", tick);
 

@@ -1458,6 +1458,7 @@ var createGroup = function(callback) {
 
       currentGroup.mentions++;
       currentGroup.age = 0;
+      currentGroup.ageMaxRatio = 1;
       currentGroup.lastSeen = dateNow;
       currentGroup.text = groupId;
       currentGroup.wordChainIndex = sessUpdate.wordChainIndex;
@@ -1467,6 +1468,7 @@ var createGroup = function(callback) {
       currentGroup.node.text = groupId;
 
       currentGroup.node.age = 0;
+      currentGroup.node.ageMaxRatio = 1;
       currentGroup.node.ageUpdated = dateNow;
       currentGroup.node.lastSeen = dateNow;
       currentGroup.node.isDead = false;
@@ -1523,6 +1525,7 @@ var createGroup = function(callback) {
       currentGroup.groupId = groupId;
       currentGroup.nodeId = groupId;
       currentGroup.age = 0;
+      currentGroup.ageMaxRatio = 1;
       currentGroup.lastSeen = dateNow;
       currentGroup.isGroup = true;
       currentGroup.isSession = false;
@@ -1544,7 +1547,7 @@ var createGroup = function(callback) {
       currentGroup.y = currentInitialPosition.y;
       currentGroup.colors = {"startColor": startColor, "endColor": endColor};
 
-      var interpolateNodeColor = d3.interpolateHsl(endColor, startColor);
+      var interpolateNodeColor = d3.interpolateHsl(startColor, endColor);
       currentGroup.interpolateColor = interpolateNodeColor;
 
       // CREATE GROUP NODE
@@ -1554,6 +1557,7 @@ var createGroup = function(callback) {
       currentGroup.node.groupId = groupId;
       currentGroup.node.nodeId = groupId;
       currentGroup.node.age = 0;
+      currentGroup.node.ageMaxRatio = 1;
       currentGroup.node.isDead = false;
       currentGroup.node.ageUpdated = dateNow;
       currentGroup.node.lastSeen = dateNow;
@@ -1569,7 +1573,7 @@ var createGroup = function(callback) {
       currentGroup.node.y = currentGroup.initialPosition.y;
       currentGroup.node.fixed = true;
       currentGroup.node.colors = {"startColor": startColor, "endColor": endColor};
-      currentGroup.node.interpolateColor = d3.interpolateHsl(endColor, startColor);
+      currentGroup.node.interpolateColor = d3.interpolateHsl(startColor, endColor);
 
       currentGroup.node.links = {};
 
@@ -1670,6 +1674,7 @@ var createSession = function(callback) {
 
       currentSession.groupId = currentGroup.groupId;
       currentSession.age = 0;
+      currentSession.ageMaxRatio = 1;
       currentSession.mentions++;
       currentSession.lastSeen = dateNow;
       currentSession.userId = sessUpdate.userId;
@@ -1683,6 +1688,7 @@ var createSession = function(callback) {
 
       currentSession.node.text = sessUpdate.tags.entity + "[" + sessUpdate.tags.channel + "]";
       currentSession.node.age = 0;
+      currentSession.node.ageMaxRatio = 1;
       currentSession.node.isGroupNode = false;
       currentSession.node.isSessionNode = true;
       currentSession.node.isDead = false;
@@ -1724,6 +1730,7 @@ var createSession = function(callback) {
       );
 
       currentSession.age = 0;
+      currentSession.ageMaxRatio = 1;
       currentSession.mentions = 1;
       currentSession.lastSeen = dateNow;
       currentSession.rank = -1;
@@ -1759,6 +1766,7 @@ var createSession = function(callback) {
       currentSession.node.userId = sessUpdate.userId;
       currentSession.node.sessionId = sessUpdate.sessionId;
       currentSession.node.age = 0;
+      currentSession.node.ageMaxRatio = 1;
       currentSession.node.ageUpdated = dateNow;
       currentSession.node.lastSeen = dateNow;
       currentSession.node.wordChainIndex = sessUpdate.wordChainIndex;
@@ -1827,6 +1835,7 @@ var createNode = function(callback) {
       // );
 
       sessionNode.age = 0;
+      sessionNode.ageMaxRatio = 1.0;
       sessionNode.isDead = false;
       sessionNode.wordChainIndex = session.wordChainIndex;
       sessionNode.mentions = session.wordChainIndex;
@@ -1853,6 +1862,7 @@ var createNode = function(callback) {
       session.node.userId = session.userId;
       session.node.sessionId = session.sessionId;
       session.node.age = 0;
+      session.node.ageMaxRatio = 1.0;
       session.node.isDead = false;
       session.node.wordChainIndex = session.wordChainIndex;
       session.node.mentions = session.wordChainIndex+1;
@@ -1903,6 +1913,7 @@ var createNode = function(callback) {
             sourceNode.groupId = session.groupId;
             sourceNode.channel = session.tags.channel;
             sourceNode.age = 0;
+            sourceNode.ageMaxRatio = 1;
             sourceNode.isDead = false;
             sourceNode.ageUpdated = dateNow;
             sourceNode.lastSeen = dateNow;
@@ -1940,6 +1951,7 @@ var createNode = function(callback) {
             sourceNode.links = {};
             sourceNode.rank = -1;
             sourceNode.age = 0;
+            sourceNode.ageMaxRatio = 1.0;
             sourceNode.isDead = false;
             sourceNode.lastSeen = dateNow;
             sourceNode.ageUpdated = dateNow;
@@ -1986,6 +1998,7 @@ var createNode = function(callback) {
             targetNode.groupId = session.groupId;
             targetNode.channel = session.tags.channel;
             targetNode.age = 0;
+            targetNode.ageMaxRatio = 1;
             targetNode.isDead = false;
             targetNode.ageUpdated = dateNow;
             targetNode.lastSeen = dateNow;
@@ -2024,6 +2037,7 @@ var createNode = function(callback) {
             targetNode.links = {};
             targetNode.rank = -1;
             targetNode.age = 0;
+            targetNode.ageMaxRatio = 1;
             targetNode.isDead = false;
             targetNode.lastSeen = dateNow;
             targetNode.ageUpdated = dateNow;
@@ -2131,6 +2145,7 @@ var createLink = function(callback) {
         var groupLink = linkHashMap.get(groupLinkId);
         // console.log("*** GROUP LINK HASH HIT | " + groupLinkId);
         groupLink.age = 0;
+        groupLink.ageMaxRatio = 1.0;
         addToHashMap(linkHashMap, groupLinkId, groupLink, function(grpLink) {
           // console.log("grpLink\n" + jsonPrint(grpLink));
           // currentSessionView.addLink(grpLink);

@@ -699,32 +699,29 @@ function computeInitialPosition(index) {
   return pos;
 }
 
-var randomColorQueue = [];
-var randomNumber360 = randomIntFromInterval(0, 360);
-var startColor = "hsl(" + randomNumber360 + ",100%,70%)";
-var endColor = "hsl(" + randomNumber360 + ",100%,0%)";
+// var randomColorQueue = [];
+// var randomNumber360 = randomIntFromInterval(0, 360);
+// var startColor = "hsl(" + randomNumber360 + ",100%,70%)";
+// var endColor = "hsl(" + randomNumber360 + ",100%,0%)";
 
-randomColorQueue.push({
-  "startColor": startColor,
-  "endColor": endColor
-});
+// randomColorQueue.push({
+//   "startColor": startColor,
+//   "endColor": endColor
+// });
 
-setInterval(function() { // randomColorQueue
+// setInterval(function() { // randomColorQueue
+//   randomNumber360 += randomIntFromInterval(61, 117);
+//   startColor = "hsl(" + randomNumber360 + ",100%,70%)";
+//   endColor = "hsl(" + randomNumber360 + ",100%,0%)";
 
-  randomNumber360 += randomIntFromInterval(61, 117);
-  startColor = "hsl(" + randomNumber360 + ",100%,70%)";
-  endColor = "hsl(" + randomNumber360 + ",100%,0%)";
-
-  if (randomColorQueue.length < 50) {
-    randomColorQueue.push({
-      "startColor": startColor,
-      "endColor": endColor
-    });
-    // initialPositionArray.push(computeInitialPosition(initialPositionIndex++));
-  }
-}, 50);
-
-
+//   if (randomColorQueue.length < 50) {
+//     randomColorQueue.push({
+//       "startColor": startColor,
+//       "endColor": endColor
+//     });
+//     // initialPositionArray.push(computeInitialPosition(initialPositionIndex++));
+//   }
+// }, 50);
 
 function getSortedKeys(hmap, sortProperty) {
   var keys = [];
@@ -1413,6 +1410,8 @@ function sum( obj ) {
   return sum;
 }
 
+var randomNumber360 = 180;
+
 var createGroup = function(callback) {
   if (groupCreateQueue.length == 0) {
     return (callback(null, null));
@@ -1501,6 +1500,13 @@ var createGroup = function(callback) {
 
       groupsCreated += 1;
 
+      var currentInitialPosition = computeInitialPosition(initialPositionIndex);
+      initialPositionIndex++;
+
+      randomNumber360 = (randomNumber360 + randomIntFromInterval(61, 117))%360;
+      var startColor = "hsl(" + randomNumber360 + ",100%,70%)";
+      var endColor = "hsl(" + randomNumber360 + ",100%,0%)";
+
       var currentGroup = {};
       var currentSession = {};
 
@@ -1533,13 +1539,12 @@ var createGroup = function(callback) {
 
       currentGroup.node = {};
       currentGroup.linkHashMap = new HashMap();
-      currentGroup.initialPosition = computeInitialPosition(initialPositionIndex++);
-      currentGroup.x = currentGroup.initialPosition.x;
-      currentGroup.y = currentGroup.initialPosition.y;
-      currentGroup.colors = {};
-      currentGroup.colors = randomColorQueue.shift();
+      currentGroup.initialPosition = currentInitialPosition;
+      currentGroup.x = currentInitialPosition.x;
+      currentGroup.y = currentInitialPosition.y;
+      currentGroup.colors = {"startColor": startColor, "endColor": endColor};
 
-      var interpolateNodeColor = d3.interpolateHsl(currentGroup.colors.endColor, currentGroup.colors.startColor);
+      var interpolateNodeColor = d3.interpolateHsl(endColor, startColor);
       currentGroup.interpolateColor = interpolateNodeColor;
 
       // CREATE GROUP NODE
@@ -1563,8 +1568,8 @@ var createGroup = function(callback) {
       currentGroup.node.x = currentGroup.initialPosition.x;
       currentGroup.node.y = currentGroup.initialPosition.y;
       currentGroup.node.fixed = true;
-      currentGroup.node.colors = currentGroup.colors;
-      currentGroup.node.interpolateColor = currentGroup.interpolateColor;
+      currentGroup.node.colors = {"startColor": startColor, "endColor": endColor};
+      currentGroup.node.interpolateColor = d3.interpolateHsl(endColor, startColor);
 
       currentGroup.node.links = {};
 

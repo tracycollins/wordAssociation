@@ -508,24 +508,24 @@ function ViewTicker() {
           node.newFlag = false;
         }
 
-        if ((typeof node.prevNodeId !== 'undefined') && (nodeHashMap.has(node.prevNodeId))){
-          var prevNode = nodeHashMap.get(node.prevNodeId);
-          if (typeof prevNode.bboxWidth !== 'undefined'){
-            node.widthOffset = prevNode.bboxWidth;
-            nodeHashMap.set(node.nodeId, node);
-            nodes[ageNodesIndex] = node;
-          }
-          else {
-            node.widthOffset = 20;
-            nodeHashMap.set(node.nodeId, node);
-            nodes[ageNodesIndex] = node;
-          }
-        }
-        else {
-          node.widthOffset = 20;
-          nodeHashMap.set(node.nodeId, node);
-          nodes[ageNodesIndex] = node;
-        }
+        // if ((typeof node.prevNodeId !== 'undefined') && (nodeHashMap.has(node.prevNodeId))){
+        //   var prevNode = nodeHashMap.get(node.prevNodeId);
+        //   if (typeof prevNode.bboxWidth !== 'undefined'){
+        //     node.widthOffset = prevNode.bboxWidth;
+        //     nodeHashMap.set(node.nodeId, node);
+        //     nodes[ageNodesIndex] = node;
+        //   }
+        //   else {
+        //     node.widthOffset = 20;
+        //     nodeHashMap.set(node.nodeId, node);
+        //     nodes[ageNodesIndex] = node;
+        //   }
+        // }
+        // else {
+        //   node.widthOffset = 20;
+        //   nodeHashMap.set(node.nodeId, node);
+        //   nodes[ageNodesIndex] = node;
+        // }
       }
     }
 
@@ -812,7 +812,7 @@ function ViewTicker() {
     var tooltipString = nodeId 
       + "<br>GROUP: " + d.groupId 
       + "<br>CHAN: " + d.channel 
-      + "<br>WO: " + d.widthOffset 
+      // + "<br>WO: " + d.widthOffset 
       + "<br>WCI: " + d.wordChainIndex 
       + "<br>MENTIONS: " + mentions 
       + "<br>AGE: " + d.age 
@@ -899,16 +899,15 @@ function ViewTicker() {
         if (nodeHashMap.has(prevNodeId)){
           var prevNode = nodeHashMap.get(prevNodeId);
           newNode.prevNodeId = prevNodeId;
-          if (typeof prevNode.bboxWidth !== 'undefined') {
-            newNode.widthOffset = prevNode.bboxWidth;
+
+          if (typeof prevNode.randomYoffset !== 'undefined') {
+            while (Math.abs(newNode.randomYoffset - prevNode.randomYoffset) < 5){
+              newNode.randomYoffset = randomIntFromInterval(-10,10);
+              console.log("while randomYoffset | prevNode: " + prevNode.randomYoffset + " | newNode: " + newNode.randomYoffset);
+            }
+            console.log("randomYoffset | prevNode: " + prevNode.randomYoffset + " | newNode: " + newNode.randomYoffset);
           }
         }
-        else {
-
-        }
-      }
-      else {
-
       }
 
       nodeMouseOut.y = height;
@@ -1087,24 +1086,24 @@ function ViewTicker() {
     }
     else {
 
-      var prevNodeEnd = 0;
+      // var prevNodeEnd = 0;
 
-      if ((typeof d.prevNodeId !== 'undefined') && (nodeHashMap.has(d.prevNodeId))){
-        var prevNode = nodeHashMap.get(d.prevNodeId);
-        prevNodeEnd = prevNode.bboxWidth + prevNode.x;
-        nodeHashMap.set(d.nodeId, d);
-      }
+      // if ((typeof d.prevNodeId !== 'undefined') && (nodeHashMap.has(d.prevNodeId))){
+      //   var prevNode = nodeHashMap.get(d.prevNodeId);
+      //   prevNodeEnd = prevNode.bboxWidth + prevNode.x;
+      //   nodeHashMap.set(d.nodeId, d);
+      // }
 
       var value;
 
-      if (typeof d.widthOffset !== 'undefined') {
-        value = marginRightWords - (100.0*(d.ageMaxRatio)) + (100.0*d.widthOffset/width);
-        return value + "%";
-      }
-      else {
+      // if (typeof d.widthOffset !== 'undefined') {
+      //   value = marginRightWords - (100.0*(d.ageMaxRatio)) + (100.0*d.widthOffset/width);
+      //   return value + "%";
+      // }
+      // else {
         value = marginRightWords - (100.0*(d.ageMaxRatio));
         return value + "%";
-      }
+      // }
 
     }
   }

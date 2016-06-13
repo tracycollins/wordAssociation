@@ -3705,11 +3705,13 @@ function handleSessionEvent(sesObj, callback) {
         // + "\n" + jsonPrint(sesObj)
         + " | " + moment().format(defaultDateTimeFormat) 
         // + " | NSP: " + sesObj.session.namespace 
-        + " | SID: " + sesObj.session.sessionId 
+        // + " | SID: " + sesObj.session.sessionId 
         // + " | UID: " + sesObj.session.userId 
         // + " | IP: " + sesObj.session.ip 
         // + " | DOMAIN: " + sesObj.session.domain
       ));
+
+      console.log(chalkSession("SESSION\n" + jsonPrint(sesObj)));
 
       sesObj.sessionEvent = 'SESSION_DELETE';
       viewNameSpace.emit('SESSION_DELETE', sesObj);

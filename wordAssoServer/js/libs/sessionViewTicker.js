@@ -508,7 +508,24 @@ function ViewTicker() {
           node.newFlag = false;
         }
 
-        nodes[ageNodesIndex] = node;
+        if ((typeof node.prevNodeId !== 'undefined') && (nodeHashMap.has(node.prevNodeId))){
+          var prevNode = nodeHashMap.get(node.prevNodeId);
+          if (typeof prevNode.bboxWidth !== 'undefined'){
+            node.widthOffset = prevNode.bboxWidth;
+            nodeHashMap.set(node.nodeId, node);
+            nodes[ageNodesIndex] = node;
+          }
+          else {
+            node.widthOffset = 20;
+            nodeHashMap.set(node.nodeId, node);
+            nodes[ageNodesIndex] = node;
+          }
+        }
+        else {
+          node.widthOffset = 20;
+          nodeHashMap.set(node.nodeId, node);
+          nodes[ageNodesIndex] = node;
+        }
       }
     }
 
@@ -658,6 +675,11 @@ function ViewTicker() {
           return fontSizeScale(d.mentions) + "px";
         }
       })
+      .attr("bboxWidth", function(d, i){
+        nodes[i].bboxWidth = this.getBBox().width;
+        // console.log("bboxWidth " + nodes[i].bboxWidth);
+        return this.getBBox().width;
+      })
       .style("fill", function(d) {
         if (d.age < 0.01*nodeMaxAge) {
           return "FFFFFF";
@@ -672,7 +694,6 @@ function ViewTicker() {
         } else {
           return Math.max(wordOpacityScale(d.age + 1), minOpacity)
         }
-        // return d.ageMaxRatio;
       });
 
     nodeWords
@@ -690,6 +711,11 @@ function ViewTicker() {
       .style("fill", "#FFFFFF")
       .style("fill-opacity", 1)
       .style("font-size", minFontSize + "px")
+      .attr("bboxWidth", function(d, i){
+        nodes[i].bboxWidth = this.getBBox().width;
+        // console.log("bboxWidth " + nodes[i].bboxWidth);
+        return this.getBBox().width;
+      })
       .on("mouseout", nodeMouseOut)
       .on("mouseover", nodeMouseOver);
 
@@ -786,7 +812,7 @@ function ViewTicker() {
     var tooltipString = nodeId 
       + "<br>GROUP: " + d.groupId 
       + "<br>CHAN: " + d.channel 
-      + "<br>TWCI: " + d.totalWordChainIndex 
+      + "<br>WO: " + d.widthOffset 
       + "<br>WCI: " + d.wordChainIndex 
       + "<br>MENTIONS: " + mentions 
       + "<br>AGE: " + d.age 
@@ -846,6 +872,9 @@ function ViewTicker() {
     sessions.push(newSession);
   }
 
+
+  var sessionPreviousNode = {};
+
   this.addNode = function(newNode) {
     if (!newNode.isSession 
       && !newNode.isSessionNode 
@@ -864,7 +893,28 @@ function ViewTicker() {
 
       newNode.x = 0;
       newNode.randomYoffset = randomIntFromInterval(-10,10);
+
+      if (typeof sessionPreviousNode[newNode.sessionId] !== 'undefined'){
+        var prevNodeId = sessionPreviousNode[newNode.sessionId];
+        if (nodeHashMap.has(prevNodeId)){
+          var prevNode = nodeHashMap.get(prevNodeId);
+          newNode.prevNodeId = prevNodeId;
+          if (typeof prevNode.bboxWidth !== 'undefined') {
+            newNode.widthOffset = prevNode.bboxWidth;
+          }
+        }
+        else {
+
+        }
+      }
+      else {
+
+      }
+
       nodeMouseOut.y = height;
+
+      sessionPreviousNode[newNode.sessionId] = newNode.nodeId;
+
       nodes.push(newNode);
       // console.log("NEW NODE\n" + jsonPrint(newNode));
     }
@@ -974,7 +1024,7 @@ function ViewTicker() {
     var startColor = "hsl(" + randomNumber360 + ",100%,50%)";
     var endColor = "hsl(" + randomNumber360 + ",100%,30%)";
 
-    var interpolateNodeColor = d3.interpolateHcl(endColor, startColor);
+    var interpolateNodeColor = d3.interpolateRgb(startColor, endColor);
 
     var newNode = {
       nodeId: nodeId,
@@ -1037,12 +1087,25 @@ function ViewTicker() {
     }
     else {
 
+      var prevNodeEnd = 0;
+
+      if ((typeof d.prevNodeId !== 'undefined') && (nodeHashMap.has(d.prevNodeId))){
+        var prevNode = nodeHashMap.get(d.prevNodeId);
+        prevNodeEnd = prevNode.bboxWidth + prevNode.x;
+        nodeHashMap.set(d.nodeId, d);
+      }
+
       var value;
 
-      var currentWord = d3.select(this);
-      value = marginRightWords - 100.0*(d.ageMaxRatio);
+      if (typeof d.widthOffset !== 'undefined') {
+        value = marginRightWords - (100.0*(d.ageMaxRatio)) + (100.0*d.widthOffset/width);
+        return value + "%";
+      }
+      else {
+        value = marginRightWords - (100.0*(d.ageMaxRatio));
+        return value + "%";
+      }
 
-      return value + "%";
     }
   }
 
@@ -1077,8 +1140,6 @@ function ViewTicker() {
         return value + "%";
       }
       else {
-        // value = marginTopSessions + (8 * (d.rank % maxSessionRows));
-
         value = marginTopSessions + ((100-marginTopSessions) * d.rank / (groups.length))
         groupYpositionHash[d.groupId] = value;
         return value + "%";

@@ -903,9 +903,9 @@ function ViewTicker() {
           if (typeof prevNode.randomYoffset !== 'undefined') {
             while (Math.abs(newNode.randomYoffset - prevNode.randomYoffset) < 5){
               newNode.randomYoffset = randomIntFromInterval(-10,10);
-              console.log("while randomYoffset | prevNode: " + prevNode.randomYoffset + " | newNode: " + newNode.randomYoffset);
+              // console.log("while randomYoffset | prevNode: " + prevNode.randomYoffset + " | newNode: " + newNode.randomYoffset);
             }
-            console.log("randomYoffset | prevNode: " + prevNode.randomYoffset + " | newNode: " + newNode.randomYoffset);
+            // console.log("randomYoffset | prevNode: " + prevNode.randomYoffset + " | newNode: " + newNode.randomYoffset);
           }
         }
       }

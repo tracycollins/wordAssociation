@@ -1547,7 +1547,7 @@ var createGroup = function(callback) {
       currentGroup.y = currentInitialPosition.y;
       currentGroup.colors = {"startColor": startColor, "endColor": endColor};
 
-      var interpolateNodeColor = d3.interpolateHsl(startColor, endColor);
+      var interpolateNodeColor = d3.interpolateRgb(startColor, endColor);
       currentGroup.interpolateColor = interpolateNodeColor;
 
       // CREATE GROUP NODE
@@ -1573,7 +1573,7 @@ var createGroup = function(callback) {
       currentGroup.node.y = currentGroup.initialPosition.y;
       currentGroup.node.fixed = true;
       currentGroup.node.colors = {"startColor": startColor, "endColor": endColor};
-      currentGroup.node.interpolateColor = d3.interpolateHsl(startColor, endColor);
+      currentGroup.node.interpolateColor = d3.interpolateRgb(startColor, endColor);
 
       currentGroup.node.links = {};
 
@@ -1853,6 +1853,7 @@ var createNode = function(callback) {
         // + "\n" + jsonPrint(session)
       );
 
+      session.node.bboxWidth = 0;
       session.node.isSessionNode = true;
       session.node.isGroupNode = false;
       session.node.nodeId = session.tags.entity + "_" + session.tags.channel;
@@ -1939,6 +1940,7 @@ var createNode = function(callback) {
           } else {
             sourceNode = session.source;
             sourceNode.nodeId = sourceNodeId;
+            sourceNode.bboxWidth = 0;
             sourceNode.isIgnored = ignoreWordHashMap.has(sourceText);
             sourceNode.newFlag = true;
             sourceNode.latestNode = true;
@@ -2027,6 +2029,7 @@ var createNode = function(callback) {
           } else {
             targetNode = session.target;
             targetNode.nodeId = targetNodeId;
+            targetNode.bboxWidth = 0;
             targetNode.newFlag = true;
             targetNode.isSessionNode = false;
             targetNode.isGroupNode = false;

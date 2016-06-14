@@ -373,7 +373,7 @@ function ViewForce() {
     force.linkStrength(
       function(d,i){
         if(d.isGroupLink)
-          return 0.75;//calculate your charge for other nodes
+          return 0.1;//calculate your charge for other nodes
         else
           return globalLinkStrength;//calculate your charge for the clicked node
       });

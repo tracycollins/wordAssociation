@@ -159,7 +159,7 @@ function ViewHistogram() {
   var sessions = [];
   var nodes = [];
 
-  this.removeDeadNodes = true;
+  // this.removeDeadNodes = true;
 
   this.groupsLength = function() {
     return groups.length;
@@ -653,7 +653,8 @@ function ViewHistogram() {
           return "white";
         } else {
           // return d.interpolateColor((nodeMaxAge - d.age) / nodeMaxAge);
-          return d.interpolateColor(1.0);
+          // return d.interpolateColor(1e-6);
+          return d.interpolateColor(d.age/nodeMaxAge);
         }
       })
       .transition()
@@ -781,7 +782,8 @@ function ViewHistogram() {
       .style("fill", function(d) {
         if (d.newFlag) {
           return "white";
-        } else {
+        }
+        else {
           // return d.interpolateColor((nodeMaxAge - d.age) / nodeMaxAge);
           return d.interpolateColor(1.0);
         }
@@ -789,7 +791,8 @@ function ViewHistogram() {
       .style("fill-opacity", function(d) {
         if (self.removeDeadNodes) {
           return wordOpacityScale(d.age + 1);
-        } else {
+        }
+        else {
           return Math.max(wordOpacityScale(d.age + 1), minOpacity)
         }
       })
@@ -909,15 +912,20 @@ function ViewHistogram() {
       .style("fill", function(d) {
         if (d.newFlag) {
           return "white";
-        } else {
+        }
+        else if (self.removeDeadNodes) {
+          return d.interpolateColor(d.age/nodeMaxAge);
+        }
+        else {
           // return d.interpolateColor((nodeMaxAge - d.age) / nodeMaxAge);
-          return d.interpolateColor(1.0);
+          return d.interpolateColor(1e-6);
         }
       })
       .style("fill-opacity", function(d) {
         if (self.removeDeadNodes) {
           return wordOpacityScale(d.age + 1);
-        } else {
+        } 
+        else {
           return Math.max(wordOpacityScale(d.age + 1), minOpacity)
         }
       })

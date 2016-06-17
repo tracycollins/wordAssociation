@@ -145,8 +145,8 @@ function ViewForce() {
   var adjustedAgeRateScale = d3.scale.linear().domain([1, 500]).range([1.0, 100.0]);
   var fontSizeScale = d3.scale.linear().domain([1, 1000000]).range([40.0, 80]).clamp(true);
 
-  var groupCircleRadiusScale = d3.scale.log().domain([1, 1000000]).range([10.0, 160.0]).clamp(true); // uses wordChainIndex
-  var sessionCircleRadiusScale = d3.scale.log().domain([1, 1000000]).range([10.0, 160.0]).clamp(true); // uses wordChainIndex
+  var groupCircleRadiusScale = d3.scale.log().domain([1, 1000000]).range([10.0, 120.0]).clamp(true); // uses wordChainIndex
+  var sessionCircleRadiusScale = d3.scale.log().domain([1, 1000000]).range([10.0, 120.0]).clamp(true); // uses wordChainIndex
   var defaultRadiusScale = d3.scale.log().domain([1, 10000000]).range([4.0, 40.0]).clamp(true);
 
   var fillColorScale = d3.scale.linear().domain([1e-6, 0.5, 1.0]).range(["#555555", "#111111", "#000000"]);

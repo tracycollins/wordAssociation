@@ -292,7 +292,7 @@ function tableCreateRow(parentTable, options, cells) {
 
 function reset() {
   console.error("*** RESET ***");
-  if (config.sessionViewType == 'force') {
+  if ((config.sessionViewType == 'force') || (config.sessionViewType == 'ticker')) {
 
     currentSessionView.resetDefaultForce();
 
@@ -364,7 +364,7 @@ function updateControlPanel() {
     document.getElementById("removeDeadNodeButton").style.color = "#888888";
     document.getElementById("removeDeadNodeButton").style.border = "1px solid white";
   }
-  if (config.sessionViewType == 'force'){  
+  if ((config.sessionViewType == 'force') || (config.sessionViewType == 'ticker')){  
     if (config.disableLinks) {
       document.getElementById("disableLinksButton").style.color = "red";
       document.getElementById("disableLinksButton").style.border = "2px solid red";
@@ -537,9 +537,13 @@ function createControlPanel() {
       // tableCreateRow(controlTableHead, optionsHead, ['HISTOGRAM VIEW CONROL TABLE']);
       tableCreateRow(controlTableBody, optionsBody, [status]);
       tableCreateRow(controlTableBody, optionsBody, [status2]);
-      tableCreateRow(controlTableBody, optionsBody, [fullscreenButton, pauseButton, statsButton, testModeButton, resetButton, nodeCreateButton, removeDeadNodeButton]);
+      tableCreateRow(controlTableBody, optionsBody, [fullscreenButton, pauseButton, statsButton, testModeButton, resetButton, nodeCreateButton, removeDeadNodeButton, disableLinksButton]);
       tableCreateRow(controlSliderTable, optionsBody, [resetButton]);
       tableCreateRow(controlSliderTable, optionsBody, ['MAX AGE', maxAgeSlider]);
+      tableCreateRow(controlSliderTable, optionsBody, ['CHARGE', chargeSlider]);
+      tableCreateRow(controlSliderTable, optionsBody, ['GRAVITY', gravitySlider]);
+      tableCreateRow(controlSliderTable, optionsBody, ['FRICTION', frictionSlider]);
+      tableCreateRow(controlSliderTable, optionsBody, ['LINK STRENGTH', linkStrengthSlider]);
 
       break;
     case 'histogram':
@@ -1088,7 +1092,7 @@ function deleteSession(nodeId, callback) {
     return (callback(nodeId));
   }
 
-  if (currentSessionView == 'force') currentSessionView.force.stop();
+  if ((currentSessionView == 'force') || (currentSessionView == 'ticker')) currentSessionView.force.stop();
 
   var deletedSession = sessionHashMap.get(nodeId);
   var groupLinkId = deletedSession.groupId + "_" + deletedSession.node.nodeId;
@@ -1873,7 +1877,8 @@ var createNode = function(callback) {
 
     async.parallel({
         source: function(cb) {
-          if ((config.sessionViewType != 'ticker') && ignoreWordHashMap.has(sourceText)) {
+          // if ((config.sessionViewType != 'ticker') && ignoreWordHashMap.has(sourceText)) {
+          if (ignoreWordHashMap.has(sourceText)) {
             // console.warn("sourceNodeId IGNORED: " + sourceNodeId);
             cb(null, {
               node: sourceNodeId,
@@ -1958,7 +1963,8 @@ var createNode = function(callback) {
         },
 
         target: function(cb) {
-          if (typeof targetNodeId === 'undefined' || (config.sessionViewType == 'ticker')) {
+          // if (typeof targetNodeId === 'undefined' || (config.sessionViewType == 'ticker')) {
+          if (typeof targetNodeId === 'undefined') {
             // console.warn("targetNodeId UNDEFINED ... SKIPPING CREATE NODE");
             cb("TARGET UNDEFINED", null);
           } else if (ignoreWordHashMap.has(targetNodeId)) {
@@ -2069,7 +2075,8 @@ var createNode = function(callback) {
 
         addToHashMap(sessionHashMap, session.nodeId, session, function(cSession) {
     // console.warn("cSession\n" + jsonPrint(session));
-          if (!results.source.isIgnored && (config.sessionViewType != 'ticker')) linkCreateQueue.push(cSession);
+          // if (!results.source.isIgnored && (config.sessionViewType != 'ticker')) linkCreateQueue.push(cSession);
+          if (!results.source.isIgnored) linkCreateQueue.push(cSession);
         });
       });
   }

@@ -36,7 +36,7 @@ exports.findOneEntity = function(entity, incMentions, callback) {
 				};
 
 	if (entity.addGroupArray) {
-		console.log(chalkDb("ADD VIDEO ARRAY: " + entity.addGroupArray.length));
+		// console.log(chalkDb("ADD VIDEO ARRAY: " + entity.addGroupArray.length));
 		update['$addToSet'] = {groups: { $each: entity.addGroupArray }};
 	}
 
@@ -56,7 +56,7 @@ exports.findOneEntity = function(entity, incMentions, callback) {
 				callback("ERROR " + err, null);
 			}
 			else {
-				console.log(chalkDb("->- DB UPDATE" 
+				debug(chalkDb("->- DB UPDATE" 
 					+ " | " + ent.entityId 
 					+ " | NAME: " + ent.name 
 					+ " | SNAME: " + ent.screenName 

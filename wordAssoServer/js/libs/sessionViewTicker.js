@@ -7,6 +7,8 @@ function ViewTicker() {
 
   var self = this;
 
+  var force;
+
   // ==============================================
   // GLOBAL VARS
   // ==============================================
@@ -70,6 +72,8 @@ function ViewTicker() {
   var updateTickerDisplayReady = true;
 
   var showStatsFlag = false;
+  var pauseFlag = false;
+  var updateNodeFlag = false;
 
   var groupMaxAge = window.DEFAULT_MAX_AGE;
   var sessionMaxAge = window.DEFAULT_MAX_AGE;
@@ -78,6 +82,19 @@ function ViewTicker() {
   var DEFAULT_CONFIG = {
     'nodeMaxAge': window.DEFAULT_MAX_AGE
   };
+
+  var DEFAULT_FORCE_CONFIG = {
+    'charge': DEFAULT_CHARGE,
+    'friction': DEFAULT_FRICTION,
+    'linkStrength': DEFAULT_LINK_STRENGTH,
+    'gravity': DEFAULT_GRAVITY,
+    'ageRate': window.DEFAULT_AGE_RATE,
+  };
+  var charge = DEFAULT_CHARGE;
+  var gravity = DEFAULT_GRAVITY;
+  var globalLinkStrength = DEFAULT_LINK_STRENGTH;
+  var friction = DEFAULT_FRICTION;
+  var forceStopped = true;
 
   var config = DEFAULT_CONFIG;
   self.removeDeadNodes = true;
@@ -106,8 +123,7 @@ function ViewTicker() {
   var deadGroupsHash = {};
   var deadSessionsHash = {};
   var deadNodesHash = {};
-
-  var newNodes = [];
+  var deadLinksHash = {};
 
   var d3LayoutWidth = width * D3_LAYOUT_WIDTH_RATIO;
   var d3LayoutHeight = height * D3_LAYOUT_HEIGHT_RATIO;
@@ -149,6 +165,7 @@ function ViewTicker() {
     .domain([0, 30000, 60000])
     .range(["#cccccc", "#444444", "#000000"]);
 
+  var linkColorScale = d3.scale.linear().domain([1e-6, 0.5, 1.0]).range(["#cccccc", "#666666", "#444444"]);
 
   console.log("@@@@@@@ CLIENT @@@@@@@@");
 
@@ -158,6 +175,7 @@ function ViewTicker() {
   var groups = [];
   var sessions = [];
   var nodes = [];
+  var links = [];
 
   this.removeDeadNodes = true;
 
@@ -192,7 +210,11 @@ function ViewTicker() {
   var svgTickerLayoutAreaHeight = d3LayoutHeight * TICKER_LAYOUT_HEIGHT_RATIO;
 
   self.reset = function() {
-     console.error("RESET");
+    console.error("RESET");
+
+    force.stop();
+
+    forceStopped = true;
 
     groups = [];
     sessions = [];
@@ -200,13 +222,60 @@ function ViewTicker() {
 
     deadNodesHash = {};
 
-    newNodes = [];
+    // newNodes = [];
     resetMouseMoveTimer();
     mouseMovingFlag = false;
     self.resize();
+    self.resetDefaultForce();
+    force.nodes(nodes);
+    if (!self.disableLinks) force.links(links);
+    force.start;
+    forceStopped = false;
+
     updateTickerDisplayReady = true;  
   }
 
+  self.setPause = function(pause){
+    pauseFlag = pause;
+    console.error("PAUSE: " + pauseFlag);
+    if (pauseFlag){
+      force.stop();
+      forceStopped = true;
+    }
+  }
+
+  self.updateLinkStrength = function(value) {
+    console.log("updateLinkStrength: " + value + " | forceStopped: " + forceStopped);
+    globalLinkStrength = value;
+    force.linkStrength(globalLinkStrength);
+    force.start();
+  }
+
+  self.updateFriction = function(value) {
+    friction = value;
+    force.friction(friction);
+    force.start();
+  }
+
+  self.updateGravity = function(value) {
+    gravity = value;
+    force.gravity(gravity);
+    force.start();
+  }
+
+  self.updateCharge = function(value) {
+    charge = value;
+    force.charge(charge);
+    force.start();
+  }
+
+  self.resetDefaultForce = function() {
+    console.log("RESET FORCE LAYOUT DEFAULTS");
+    self.updateCharge(DEFAULT_CHARGE);
+    self.updateFriction(DEFAULT_FRICTION);
+    self.updateGravity(DEFAULT_GRAVITY);
+    self.updateLinkStrength(DEFAULT_LINK_STRENGTH);
+  }
   this.getSessionsLength = function() {
     return sessions.length;
   }
@@ -226,6 +295,7 @@ function ViewTicker() {
   var svgTickerLayoutArea = svgcanvas.append("g")
     .attr("id", "svgTickerLayoutArea");
 
+  var linkSvgGroup = svgTickerLayoutArea.append("svg:g").attr("id", "linkSvgGroup");
 
   var groupSvgGroup = svgTickerLayoutArea.append("svg:g").attr("id", "groupSvgGroup");
   var groupLabelSvgGroup = svgTickerLayoutArea.append("svg:g").attr("id", "groupLabelSvgGroup");
@@ -242,10 +312,14 @@ function ViewTicker() {
   var node = nodeSvgGroup.selectAll("g.node");
   var nodeLabels = nodeSvgGroup.selectAll(".nodeLabel");
 
+  var link = linkSvgGroup.selectAll("line");
+
   var divTooltip = d3.select("body").append("div")
     .attr("class", "tooltip")
     .style("opacity", 1e-6);
 
+
+  // ===================================================================
 
   function ageGroups(callback) {
 
@@ -358,103 +432,22 @@ function ViewTicker() {
     }
   }
 
-  // ===================================================================
-  function compareMentions(a, b) {
-    if (a.mentions > b.mentions)
-      return -1;
-    else if (a.mentions < b.mentions)
-      return 1;
-    else
-      return 0;
-  }
+  function tick() {
 
-  function pad(num, size) {
-    var s = "0000000000" + num;
-    return s.substr(s.length - size);
-  }
-
-  function sortByProperty(array, property) {
-
-    // console.log("array\n" + jsonPrint(array));
-
-    var mapped = array.map(function(node, i) {
-      return { index: i, value: pad(node[property], 10) + "_" + node.text };
-    });
-
-    mapped.sort(function(a, b) {
-      // return +(a.value > b.value) || +(a.value === b.value) - 1;
-      if (a.value > b.value)
-        return -1;
-      else if (a.value < b.value)
-        return 1;
-      else
-        return 0;
-    });
-
-    var result = mapped.map(function(node) {
-      // console.log("node.index: " + node.index);
-      return array[node.index];
-    });
-
-    return result;
-  }
-
-  function rankNodes(callback) {
-    if (nodes.length == 0) return (callback());
-    var sortedNodeArray = sortByProperty(nodes, 'mentions');
-
-    // console.warn("sortedNodeArray\n" + jsonPrint(sortedNodeArray));
-    // console.error("RANKING " + sortedNodeArray.length + " nodes");
-    var node;
-
-    async.forEachOf(sortedNodeArray, function(node, rank, cb) {
-      node.rank = rank;
-      nodes[rank] = node;
-      // console.error("RANK " + rank + " | " + node.mentions + " | " + nodeId);
-      cb();
-    }, function(err) {
-      // console.warn("RANKING COMPLETE | " + sortedNodeIds.length + " nodes");
-      return (callback());
-    });
-  }
-
-  function rankGroups(callback) {
-    if (groups.length == 0) return (callback());
-    // var sortedGroupArray = sortByProperty(groups, 'mentions');
-    var sortedGroupArray = sortByProperty(groups, 'totalWordChainIndex');
-
-    // console.warn("sortedNodeArray\n" + jsonPrint(sortedNodeArray));
-    // console.error("RANKING " + sortedNodeArray.length + " nodes");
-    var group;
-
-    async.forEachOf(sortedGroupArray, function(group, rank, cb) {
-      group.rank = rank;
-      groups[rank] = group;
-      // console.error("RANK " + rank + " | " + node.mentions + " | " + nodeId);
-      cb();
-    }, function(err) {
-      // console.warn("RANKING COMPLETE | " + sortedNodeIds.length + " nodes");
-      return (callback());
-    });
-  }
-
-  function rankSessions(callback) {
-    if (sessions.length == 0) return (callback());
-    var sortedSessionArray = sortByProperty(sessions, 'wordChainIndex');
-
-    // console.warn("sortedNodeArray\n" + jsonPrint(sortedNodeArray));
-    // console.error("RANKING " + sortedNodeArray.length + " nodes");
-    var session;
-
-    async.forEachOf(sortedSessionArray, function(session, rank, cb) {
-      session.rank = rank;
-      sessions[rank] = session;
-      // console.error("RANK " + rank + " | " + node.mentions + " | " + nodeId);
-      cb();
-    }, function(err) {
-      // console.warn("RANKING COMPLETE | " + sortedNodeIds.length + " nodes");
-      return (callback());
-    });
+    link
+      .attr("x1", function(d) {
+        // console.log("source\n" + jsonPrint(d.source));
+        return d.source.x;
+      })
+      .attr("y1", function(d) {
+        return d.source.y;
+      })
+      .attr("x2", function(d) {
+        return d.target.x;
+      })
+      .attr("y2", function(d) {
+        return d.target.y;
+      });
   }
 
   function ageNodes(callback) {
@@ -534,6 +527,48 @@ function ViewTicker() {
     }
   }
 
+  function ageLinks(callback) {
+
+    if (self.disableLinks)  return (callback(null, null));
+
+    var ageLinksLength = links.length - 1;
+    var ageLinksIndex = links.length - 1;
+
+    var currentSession;
+    var currentLinkObject = {};
+    var dateNow = moment().valueOf();
+
+    for (ageLinksIndex = ageLinksLength; ageLinksIndex >= 0; ageLinksIndex -= 1) {
+
+      currentLinkObject = links[ageLinksIndex];
+
+      if ((typeof currentLinkObject !== 'undefined') && currentLinkObject.isDead) {
+        deadLinksHash[currentLinkObject.linkId] = 'DEAD';
+      } else if ((typeof currentLinkObject !== 'undefined') && currentLinkObject.source.isDead) {
+        deadLinksHash[currentLinkObject.linkId] = 'DEAD SOURCE';
+      } else if ((typeof currentLinkObject !== 'undefined') && currentLinkObject.target.isDead) {
+        deadLinksHash[currentLinkObject.linkId] = 'DEAD TARGET';
+      } else if (!nodeHashMap.has(currentLinkObject.source.nodeId)) {
+        deadLinksHash[currentLinkObject.linkId] = 'UNDEFINED SOURCE';
+      } else if (!nodeHashMap.has(currentLinkObject.target.nodeId)) {
+        deadLinksHash[currentLinkObject.linkId] = 'UNDEFINED TARGET';
+      } else {
+        if (currentLinkObject.source.age > currentLinkObject.target.age) {
+          currentLinkObject.age = currentLinkObject.source.age;
+          currentLinkObject.ageMaxRatio = currentLinkObject.source.ageMaxRatio;
+        } else {
+          currentLinkObject.age = currentLinkObject.target.age;
+          currentLinkObject.ageMaxRatio = currentLinkObject.target.ageMaxRatio;
+          links[ageLinksIndex] = currentLinkObject;
+        }
+      }
+    }
+
+    if ((links.length == 0) || (ageLinksIndex < 0)) {
+      return (callback(null, null));
+    }
+  }
+
   function processDeadGroupsHash(callback) {
 
     if (Object.keys(deadGroupsHash).length == 0) {
@@ -561,6 +596,7 @@ function ViewTicker() {
     }
   }
 
+
   function processDeadNodesHash(callback) {
 
     if (Object.keys(deadNodesHash).length == 0) {
@@ -568,6 +604,9 @@ function ViewTicker() {
     }
 
     var deadNodeIds = Object.keys(deadNodesHash);
+
+    force.stop();
+    forceStopped = true;
 
     var ageNodesLength = nodes.length - 1;
     var ageNodesIndex = nodes.length - 1;
@@ -584,6 +623,10 @@ function ViewTicker() {
             if (node.nodeId == groups[i].node.nodeId) {
               console.log("XXX GROUP | " + groups[i].node.nodeId);
               groups.splice(i, 1);
+              var deadLinkIds = Object.keys(node.links);
+              deadLinkIds.forEach(function(deadLink){
+                deadLinksHash[deadLink] = 'DEAD';
+              });
             }
           }
         }
@@ -592,6 +635,10 @@ function ViewTicker() {
             if (node.nodeId == sessions[i].node.nodeId) {
               console.log("XXX SESSION | " + sessions[i].node.nodeId);
               sessions.splice(i, 1);
+              var deadLinkIds = Object.keys(node.links);
+              deadLinkIds.forEach(function(deadLink){
+                deadLinksHash[deadLink] = 'DEAD';
+              });
             }
           }
         }
@@ -600,6 +647,43 @@ function ViewTicker() {
     }
 
     if ((nodes.length == 0) || (deadNodeIds.length == 0) || (ageNodesIndex < 0)) {
+      force.nodes(nodes);
+      return (callback());
+    }
+  }
+
+  function processDeadLinksHash(callback) {
+
+    if (self.disableLinks){
+      if (links.length > 0) {
+        force.stop();
+        forceStopped = true;
+        links = [];
+        force.links(links);
+        return (callback());
+      }
+      return (callback());
+    }
+
+    force.stop();
+    forceStopped = true;
+
+    var ageLinksLength = links.length - 1;
+    var ageLinksIndex = links.length - 1;
+    var link;
+
+    for (ageLinksIndex = ageLinksLength; ageLinksIndex >= 0; ageLinksIndex -= 1) {
+      link = links[ageLinksIndex];
+      if (deadLinksHash[link.linkId]) {
+        // console.warn("XXX DEAD LINK | " + link.linkId);
+        linkDeleteQueue.push(link.linkId);
+        links.splice(ageLinksIndex, 1);
+        force.links(links);
+        delete deadLinksHash[link.linkId];
+      }
+    }
+
+    if ((links.length == 0) || (ageLinksIndex < 0)) {
       return (callback());
     }
   }
@@ -638,7 +722,7 @@ function ViewTicker() {
       .append("svg:text")
       .attr("id", "group")
       .attr("x", xposition)
-        .attr("y", yposition)
+      .attr("y", yposition)
       .text(function(d) {
         return d.text;
       })
@@ -653,6 +737,33 @@ function ViewTicker() {
       .remove();
 
     return (callback(null, "updateGroupWords"));
+  }
+
+  function updateNodes(callback) {
+
+    node = node.data(force.nodes(), function(d) {
+        return d.nodeId;
+      });
+
+
+    node
+      .attr("x", xposition)
+      .attr("y", yposition);
+
+    node.enter()
+      .append("svg:g")
+      .attr("class", "node")
+      .attr("id", function(d) {
+        return d.nodeId;
+      })
+      .attr("x", xposition)
+      .attr("y", yposition);
+
+    node
+      .exit()
+      .remove();
+
+    return (callback(null, "updateNodes"));
   }
 
   function updateNodeWords(callback) {
@@ -727,6 +838,43 @@ function ViewTicker() {
     return (callback(null, "updateNodeWords"));
   }
 
+  function updateLinks(callback) {
+
+    // console.log("updateLinks");
+
+    link = linkSvgGroup.selectAll("line").data(force.links(),
+      function(d) {
+        return d.source.nodeId + "-" + d.target.nodeId;
+      });
+
+    link
+      .style('stroke', function(d) {
+        return linkColorScale(d.ageMaxRatio);
+      })
+      .style('opacity', function(d) {
+        return 1.0 - d.ageMaxRatio;
+      });
+
+    link.enter()
+      .append("svg:line")
+      .attr("class", "link")
+      .style('stroke', function(d) {
+        return linkColorScale(1.0);
+      })
+      .style('stroke-width', 1.75)
+      .style('opacity', 1e-6)
+      .transition()
+      .duration(defaultFadeDuration)
+      .style('opacity', 1.0);
+
+    link
+      .exit()
+      .remove();
+
+    return (callback(null, "updateLinks"));
+  }
+
+
   function updateRecentNodes(node) {
 
     var newNodeFlag = true;
@@ -758,6 +906,7 @@ function ViewTicker() {
         ageGroups,
         ageSessions,
         ageNodes,
+        ageLinks,
         processDeadNodesHash,
         processDeadSessionsHash,
         processDeadGroupsHash,
@@ -766,18 +915,128 @@ function ViewTicker() {
         // updateGroups,
         updateGroupWords,
         // updateSessions,
-        // updateNodes,
+        updateNodes,
         updateNodeWords,
+        updateLinks,
       ],
 
       function(err, result) {
         if (err) {
           console.error("*** ERROR: updateTickerDisplayReady *** \nERROR: " + err);
         }
+
+        if (forceStopped) {
+          force.start();
+          forceStopped = false;
+        }
+
         updateTickerDisplayReady = true;
         groupsLengthYposition = groups.length;
       }
     );
+  }
+
+
+  // ===================================================================
+
+  function rankNodes(callback) {
+    if (nodes.length == 0) return (callback());
+    var sortedNodeArray = sortByProperty(nodes, 'mentions');
+
+    // console.warn("sortedNodeArray\n" + jsonPrint(sortedNodeArray));
+    // console.error("RANKING " + sortedNodeArray.length + " nodes");
+    var node;
+
+    async.forEachOf(sortedNodeArray, function(node, rank, cb) {
+      node.rank = rank;
+      nodes[rank] = node;
+      // console.error("RANK " + rank + " | " + node.mentions + " | " + nodeId);
+      cb();
+    }, function(err) {
+      // console.warn("RANKING COMPLETE | " + sortedNodeIds.length + " nodes");
+      return (callback());
+    });
+  }
+
+  function rankGroups(callback) {
+    if (groups.length == 0) return (callback());
+    // var sortedGroupArray = sortByProperty(groups, 'mentions');
+    var sortedGroupArray = sortByProperty(groups, 'totalWordChainIndex');
+
+    // console.warn("sortedNodeArray\n" + jsonPrint(sortedNodeArray));
+    // console.error("RANKING " + sortedNodeArray.length + " nodes");
+    var group;
+
+    async.forEachOf(sortedGroupArray, function(group, rank, cb) {
+      group.rank = rank;
+      groups[rank] = group;
+      // console.error("RANK " + rank + " | " + node.mentions + " | " + nodeId);
+      cb();
+    }, function(err) {
+      // console.warn("RANKING COMPLETE | " + sortedNodeIds.length + " nodes");
+      return (callback());
+    });
+  }
+
+  function rankSessions(callback) {
+    if (sessions.length == 0) return (callback());
+    var sortedSessionArray = sortByProperty(sessions, 'wordChainIndex');
+
+    // console.warn("sortedNodeArray\n" + jsonPrint(sortedNodeArray));
+    // console.error("RANKING " + sortedNodeArray.length + " nodes");
+    var session;
+
+    async.forEachOf(sortedSessionArray, function(session, rank, cb) {
+      session.rank = rank;
+      sessions[rank] = session;
+      // console.error("RANK " + rank + " | " + node.mentions + " | " + nodeId);
+      cb();
+    }, function(err) {
+      // console.warn("RANKING COMPLETE | " + sortedNodeIds.length + " nodes");
+      return (callback());
+    });
+  }
+
+  // ===================================================================
+
+  function compareMentions(a, b) {
+    if (a.mentions > b.mentions)
+      return -1;
+    else if (a.mentions < b.mentions)
+      return 1;
+    else
+      return 0;
+  }
+
+  function pad(num, size) {
+    var s = "0000000000" + num;
+    return s.substr(s.length - size);
+  }
+
+  function sortByProperty(array, property) {
+
+    // console.log("array\n" + jsonPrint(array));
+
+    var mapped = array.map(function(node, i) {
+      return { index: i, value: pad(node[property], 10) + "_" + node.text };
+    });
+
+    mapped.sort(function(a, b) {
+      // return +(a.value > b.value) || +(a.value === b.value) - 1;
+      if (a.value > b.value)
+        return -1;
+      else if (a.value < b.value)
+        return 1;
+      else
+        return 0;
+    });
+
+    var result = mapped.map(function(node) {
+      // console.log("node.index: " + node.index);
+      return array[node.index];
+    });
+
+    return result;
   }
 
   // ===================================================================
@@ -864,14 +1123,19 @@ function ViewTicker() {
 
 
 
-  this.addGroup = function(newGroup) {
-    groups.push(newGroup);
-  }
-
   this.addSession = function(newSession) {
+    if (!forceStopped){
+      force.stop();
+      forceStopped = true;
+    }
     sessions.push(newSession);
   }
 
+  this.addGroup = function(newGroup) {
+    force.stop();
+    forceStopped = true;
+    groups.push(newGroup);
+  }
 
   var sessionPreviousNode = {};
 
@@ -914,7 +1178,10 @@ function ViewTicker() {
 
       sessionPreviousNode[newNode.sessionId] = newNode.nodeId;
 
+      force.stop();
+      forceStopped = true;
       nodes.push(newNode);
+      force.nodes(nodes);
       // console.log("NEW NODE\n" + jsonPrint(newNode));
     }
     updateRecentNodes(newNode);
@@ -938,22 +1205,110 @@ function ViewTicker() {
   }
 
   this.addLink = function(newLink) {
+
+    // console.warn("addLink\n" + jsonPrint(newLink));
+
+    if (self.disableLinks)  return ;
+    force.stop();
+    forceStopped = true;
+    links.push(newLink);
+    if (newLink.isGroupLink){
+      // console.error("ADD GROUP LINK | " + newLink.linkId);
+    }
+    force.links(links);
   }
 
-  this.deleteLink = function(delLink) {
+  this.deleteLink = function(linkId) {
+
+    force.stop();
+    forceStopped = true;
+
+    var linksLength = links.length - 1;
+
+    var linkIndex = linksLength;
+
+    for (linkIndex = linksLength; linkIndex >= 0; linkIndex -= 1) {
+      if (linkId == links[linkIndex].linkId) {
+        links.splice(linkIndex, 1);
+        force.links(links);
+        return;
+      }
+    }
+
+    if (linkIndex < 0) {
+      return;
+    }
   }
 
   this.deleteSessionLinks = function(sessionId) {
+    if (self.disableLinks)  return ;
+
+    var deletedSession;
+    var deadSessionFlag = false;
+
+    var sessionsLength = sessions.length - 1;
+    var sessionIndex = sessions.length - 1;
+
+    for (sessionIndex = sessionsLength; sessionIndex >= 0; sessionIndex -= 1) {
+      deletedSession = sessions[sessionIndex];
+      if (deletedSession.sessionId == sessionId) {
+
+        var linksLength = links.length - 1;
+        var linkIndex = links.length - 1;
+
+
+        for (linkIndex = linksLength; linkIndex >= 0; linkIndex -= 1) {
+          var link = links[linkIndex];
+          if (link.sessionId == sessionId) {
+            deadLinksHash[link.linkId] = 1;
+          }
+        }
+
+        if (linkIndex < 0) {
+          console.log("XXX SESS NODE " + deletedSession.node.nodeId);
+          self.deleteNode(deletedSession.node.nodeId);
+          sessions.splice(sessionIndex, 1);
+          return;
+        }
+      }
+    }
+    if ((sessionIndex < 0) && (linkIndex < 0)) {
+      return;
+    }
   }
 
   // ===================================================================
 
+  // this.initD3timer = function() {
+  //   d3.timer(function() {
+  //     tickNumber++;
+  //     dateNow = moment().valueOf();
+  //     if (updateTickerDisplayReady && !mouseMovingFlag) updateTickerDisplay();
+  //   });
+  // }
+
   this.initD3timer = function() {
-    d3.timer(function() {
-      tickNumber++;
-      dateNow = moment().valueOf();
-      if (updateTickerDisplayReady && !mouseMovingFlag) updateTickerDisplay();
-    });
+
+    force = d3.layout.force()
+      .nodes(nodes)
+      .links(links)
+      .gravity(gravity)
+      .friction(friction)
+      .charge(charge)
+      .linkStrength(globalLinkStrength)
+      .size([svgTickerLayoutAreaWidth, svgTickerLayoutAreaHeight])
+      .on("tick", tick);
+
+      d3.timer(function() {
+        tickNumber++;
+        dateNow = moment().valueOf();
+        if (!pauseFlag 
+          && !updateNodeFlag 
+          && updateTickerDisplayReady 
+          && (!mouseFreezeEnabled || (mouseFreezeEnabled && !mouseMovingFlag))){
+          updateTickerDisplay();
+        }
+      });
   }
 
   // ===================================================================

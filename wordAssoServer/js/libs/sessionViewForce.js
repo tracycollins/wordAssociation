@@ -143,7 +143,7 @@ function ViewForce() {
 
 
   var adjustedAgeRateScale = d3.scale.linear().domain([1, 500]).range([1.0, 100.0]);
-  var fontSizeScale = d3.scale.linear().domain([1, 1000000]).range([40.0, 72]).clamp(true);
+  var fontSizeScale = d3.scale.linear().domain([1, 1000000]).range([32.0, 64]).clamp(true);
 
   var groupCircleRadiusScale = d3.scale.log().domain([1, 1000000]).range([10.0, 120.0]).clamp(true); // uses wordChainIndex
   var sessionCircleRadiusScale = d3.scale.log().domain([1, 1000000]).range([10.0, 120.0]).clamp(true); // uses wordChainIndex

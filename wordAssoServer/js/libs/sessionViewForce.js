@@ -36,8 +36,8 @@ function ViewForce() {
   var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
   var defaultTimePeriodFormat = "HH:mm:ss";
 
-  var ageSessionsReady = true;
-  var ageNodesReady = true;
+  // var ageSessionsReady = true;
+  // var ageNodesReady = true;
 
   var minSessionNodeOpacity = 0.2;
 
@@ -113,8 +113,8 @@ function ViewForce() {
   var deadNodesHash = {};
   var deadLinksHash = {};
 
-  var newNodes = [];
-  var newLinks = [];
+  // var newNodes = [];
+  // var newLinks = [];
 
   var translate = [0, 0];
 
@@ -488,8 +488,6 @@ function ViewForce() {
       return (callback());
     }
   }
-
-  function initDeadNodesInterval(interval) {}
 
   function processDeadLinksHash(callback) {
 
@@ -1414,28 +1412,29 @@ function ViewForce() {
       return;
     }
   }
+
   this.initD3timer = function() {
 
-  force = d3.layout.force()
-    .nodes(nodes)
-    .links(links)
-    .gravity(gravity)
-    .friction(friction)
-    .charge(charge)
-    .linkStrength(globalLinkStrength)
-    .size([svgForceLayoutAreaWidth, svgForceLayoutAreaHeight])
-    .on("tick", tick);
+    force = d3.layout.force()
+      .nodes(nodes)
+      .links(links)
+      .gravity(gravity)
+      .friction(friction)
+      .charge(charge)
+      .linkStrength(globalLinkStrength)
+      .size([svgForceLayoutAreaWidth, svgForceLayoutAreaHeight])
+      .on("tick", tick);
 
-    d3.timer(function() {
-      tickNumber++;
-      dateNow = moment().valueOf();
-      if (!pauseFlag 
-        && !updateNodeFlag 
-        && updateForceDisplayReady 
-        && (!mouseFreezeEnabled || (mouseFreezeEnabled && !mouseMovingFlag))){
-        updateForceDisplay();
-      }
-    });
+      d3.timer(function() {
+        tickNumber++;
+        dateNow = moment().valueOf();
+        if (!pauseFlag 
+          && !updateNodeFlag 
+          && updateForceDisplayReady 
+          && (!mouseFreezeEnabled || (mouseFreezeEnabled && !mouseMovingFlag))){
+          updateForceDisplay();
+        }
+      });
   }
 
   this.resize = function() {
@@ -1634,8 +1633,8 @@ function ViewForce() {
     deadNodesHash = {};
     deadLinksHash = {};
 
-    newNodes = [];
-    newLinks = [];
+    // newNodes = [];
+    // newLinks = [];
     resetMouseMoveTimer();
     mouseMovingFlag = false;
     self.resize();
@@ -1644,8 +1643,8 @@ function ViewForce() {
     if (!self.disableLinks) force.links(links);
     force.start;
     forceStopped = false;
-    ageSessionsReady = true;
-    ageNodesReady = true;
+    // ageSessionsReady = true;
+    // ageNodesReady = true;
     updateForceDisplayReady = true;
   }
 

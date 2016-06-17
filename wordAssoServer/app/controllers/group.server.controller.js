@@ -33,12 +33,12 @@ exports.findOneGroup = function(group, incMentions, callback) {
 				};
 
 	if (group.addEntityArray) {
-		console.log(chalkDb("ADD ENTITY ARRAY: " + group.addEntityArray.length));
+		// console.log(chalkDb("ADD ENTITY ARRAY: " + group.addEntityArray.length));
 		update['$addToSet'] = {entities: { $each: group.addEntityArray }};
 	}
 
 	if (group.addChannelArray) {
-		console.log(chalkDb("ADD CHANNEL ARRAY: " + group.addChannelArray.length));
+		// console.log(chalkDb("ADD CHANNEL ARRAY: " + group.addChannelArray.length));
 		update['$addToSet'] = {channels: { $each: group.addChannelArray }};
 	}
 
@@ -58,7 +58,7 @@ exports.findOneGroup = function(group, incMentions, callback) {
 				callback("ERROR " + err, null);
 			}
 			else {
-				console.log(chalkDb("->- DB UPDATE" 
+				debug(chalkDb("->- DB UPDATE" 
 					+ " | " + grp.groupId 
 					+ " | NAME: " + grp.name 
 					+ " | ENTITIES: " + grp.entities

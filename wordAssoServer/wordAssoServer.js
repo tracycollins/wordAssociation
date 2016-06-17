@@ -1673,7 +1673,7 @@ function dbUpdateGroup(groupObj, incMentions, callback) {
       callback(err, groupObj);
     } else {
 
-      console.log(chalkRed("->- GROUP DB UPDATE | " 
+      debug(chalkRed("->- GROUP DB UPDATE | " 
         + group.groupId 
         + " | NAME: " + group.name 
         + " | CHANNELS: " + group.channels
@@ -1706,7 +1706,7 @@ function dbUpdateEntity(entityObj, incMentions, callback) {
       callback(err, entityObj);
     } else {
 
-      console.log("->- ENTITY DB UPDATE | " 
+      debug("->- ENTITY DB UPDATE | " 
         + entity.entityId 
         + " | NAME: " + entity.name 
         + " | SNAME: " + entity.screenName 
@@ -2733,7 +2733,7 @@ function userUpdateDb(userObj, callback) {
         );
         callback(err, userObj);
       } else {
-        console.log(chalkUser(">>> USER UPDATED" 
+        debug(chalkUser(">>> USER UPDATED" 
           + " | " + us.userId 
           + "\nNAME: " + us.name 
           + "\nSN:   " + us.screenName 
@@ -6014,8 +6014,9 @@ function createSession(newSessionObj) {
       + " | TYPE: " + sessionObj.config.type 
       + " | MODE: " + sessionObj.config.mode 
       + " | " + moment().format(defaultDateTimeFormat) 
-      + "\nSESSION OBJ\n" + jsonPrint(sessionObj) 
-      + "\nUSER OBJ\n" + jsonPrint(userObj)));
+      // + "\nSESSION OBJ\n" + jsonPrint(sessionObj) 
+      // + "\nUSER OBJ\n" + jsonPrint(userObj)
+    ));
 
     sessionQueue.enqueue({
       sessionEvent: "USER_READY",

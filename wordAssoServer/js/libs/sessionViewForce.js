@@ -660,9 +660,9 @@ function ViewForce() {
         if (this.getAttribute("mouseover") == 1) {
           return "#ffffff";
         }
-        else if (d.ageMaxRatio < 0.01) {
-          return "#ffffff";
-        }
+        // else if (d.ageMaxRatio < 0.01) {
+        //   return "#ffffff";
+        // }
         else {
           return d.interpolateColor(d.ageMaxRatio);
         }
@@ -698,7 +698,7 @@ function ViewForce() {
       .attr("mouseover", 0)
       .attr("r", 1e-6)
       .style("visibility", "visible")
-      .style("fill", "#ffffff")
+      .style("fill", "#000000")
       .style("opacity", 1e-6)
       .style('stroke', function(d) {
         return d.interpolateColor(0.75);
@@ -871,9 +871,9 @@ function ViewForce() {
         if (this.getAttribute("mouseover") == 1) {
           return "#ffffff";
         }
-        else if (d.ageMaxRatio < 0.01) {
-          return "#ffffff";
-        }
+        // else if (d.ageMaxRatio < 0.01) {
+        //   return "#000000";
+        // }
         else {
           if (d.isGroupNode) return "#000000";
           if (d.isSessionNode) return "#000000";
@@ -887,8 +887,10 @@ function ViewForce() {
         return 1
       })
       .style('stroke', function(d) {
-        if (d.isGroupNode) return d.interpolateColor(d.ageMaxRatio);
-        if (d.isSessionNode) return d.interpolateColor(d.ageMaxRatio);
+        if (d.ageMaxRatio < 0.01) {
+          return "#FFFFFF";
+        }
+        if (d.isGroupNode || d.isSessionNode) return d.interpolateColor(d.ageMaxRatio);
         return strokeColorScale(d.ageMaxRatio);
       })
       .style('stroke-opacity', function(d) {
@@ -917,13 +919,13 @@ function ViewForce() {
       .style("stroke-width", function(d) {
         if (d.isGroupNode) return 8;
         if (d.isSessionNode) return 6;
-        return 2.5;
+        return 4;
       })
-      .style("fill", "#FFFFFF")
-      .transition()
-        .duration(defaultFadeDuration)
-        .style("fill", "#ffffff")
-        .style('opacity', 1.0);
+      .style("fill", "#000000");
+      // .transition()
+      //   .duration(defaultFadeDuration)
+      //   .style("fill", "#ffffff")
+      //   .style('opacity', 1.0);
 
     nodeCircles
       .exit().remove();
@@ -1100,8 +1102,12 @@ function ViewForce() {
 
     d3.select(this)
       .style("fill", fillColor)
-      .style("stroke", "#eeeeee")
-      .style("stroke-width", 1.5)
+      .style("stroke", "#FFFFFF")
+      .style("stroke-width", function(d) {
+        if (d.isGroupNode) return 8;
+        if (d.isSessionNode) return 6;
+        return 4;
+      })
       .attr("mouseover", 0)
       .attr("r", function(d) {
         return defaultRadiusScale(d.mentions + 1);

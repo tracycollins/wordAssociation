@@ -145,8 +145,8 @@ function ViewForce() {
   var adjustedAgeRateScale = d3.scale.linear().domain([1, 500]).range([1.0, 100.0]);
   var fontSizeScale = d3.scale.linear().domain([1, 1000000]).range([40.0, 80]).clamp(true);
 
-  var groupCircleRadiusScale = d3.scale.log().domain([1, 1000000]).range([10.0, 100.0]).clamp(true); // uses wordChainIndex
-  var sessionCircleRadiusScale = d3.scale.log().domain([1, 1000000]).range([10.0, 100.0]).clamp(true); // uses wordChainIndex
+  var groupCircleRadiusScale = d3.scale.log().domain([1, 1000000]).range([10.0, 160.0]).clamp(true); // uses wordChainIndex
+  var sessionCircleRadiusScale = d3.scale.log().domain([1, 1000000]).range([10.0, 160.0]).clamp(true); // uses wordChainIndex
   var defaultRadiusScale = d3.scale.log().domain([1, 10000000]).range([4.0, 40.0]).clamp(true);
 
   var fillColorScale = d3.scale.linear().domain([1e-6, 0.5, 1.0]).range(["#555555", "#111111", "#000000"]);
@@ -624,10 +624,10 @@ function ViewForce() {
         return linkColorScale(1.0);
       })
       .style('stroke-width', 1.75)
-      .style('opacity', 1e-6)
-      .transition()
-      .duration(defaultFadeDuration)
-      .style('opacity', 1.0);
+      .style('opacity', 1e-6);
+      // .transition()
+      // .duration(defaultFadeDuration)
+      // .style('opacity', 1.0);
 
     link
       .exit()
@@ -704,13 +704,13 @@ function ViewForce() {
         return d.interpolateColor(0.75);
       })
       .style("stroke-width", 2.5)
-      .style("stroke-opacity", 0.8)
-      .transition()
-        .duration(defaultFadeDuration)
-        .attr("r", function(d) {
-          return groupCircleRadiusScale(d.wordChainIndex + 1);
-        })
-        .style('opacity', 1.0);
+      .style("stroke-opacity", 0.8);
+      // .transition()
+      //   .duration(defaultFadeDuration)
+      //   .attr("r", function(d) {
+      //     return groupCircleRadiusScale(d.wordChainIndex + 1);
+      //   })
+      //   .style('opacity', 1.0);
 
     groupCircles
       .exit()
@@ -759,10 +759,10 @@ function ViewForce() {
       .style('fill', "#ffffff")
       .style("font-size", function(d) {
         return fontSizeScale(d.totalWordChainIndex) + "px";
-      })
-      .transition()
-      .duration(defaultFadeDuration)
-      .style("opacity", 1.0);
+      });
+      // .transition()
+      // .duration(defaultFadeDuration)
+      // .style("opacity", 1.0);
 
     groupLabels
       .exit().remove();
@@ -1004,10 +1004,10 @@ function ViewForce() {
         if (d.isGroupNode) return fontSizeScale(d.totalWordChainIndex + 1.1) + "px";
         if (d.isSessionNode) return fontSizeScale(d.wordChainIndex + 1.1) + "px";
         return fontSizeScale(d.mentions + 1.1) + "px";
-      })
-      .transition()
-      .duration(defaultFadeDuration)
-      .style("opacity", 1.0);
+      });
+      // .transition()
+      // .duration(defaultFadeDuration)
+      // .style("opacity", 1.0);
 
     nodeLabels
       .exit().remove();

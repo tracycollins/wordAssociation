@@ -6,6 +6,8 @@
 function ViewTicker() {
 
   var self = this;
+  self.disableLinks = false;
+
 
   var force;
 
@@ -437,16 +439,25 @@ function ViewTicker() {
     link
       .attr("x1", function(d) {
         // console.log("source\n" + jsonPrint(d.source));
-        return d.source.x;
+        var sourceNode = nodeHashMap.get(d.source.nodeId);
+        if (sourceNode) return sourceNode.x;
+        return 0;
       })
       .attr("y1", function(d) {
-        return d.source.y;
+        var sourceNode = nodeHashMap.get(d.source.nodeId);
+        if (sourceNode) return sourceNode.y;
+        return 0;
       })
       .attr("x2", function(d) {
-        return d.target.x;
+        var targetNode = nodeHashMap.get(d.target.nodeId);
+        if (targetNode) return targetNode.x;
+        return 0;
+        
       })
       .attr("y2", function(d) {
-        return d.target.y;
+        var targetNode = nodeHashMap.get(d.target.nodeId);
+        if (targetNode) return targetNode.y;
+        return 0;
       });
   }
 
@@ -542,9 +553,13 @@ function ViewTicker() {
 
       currentLinkObject = links[ageLinksIndex];
 
-      if ((typeof currentLinkObject !== 'undefined') && currentLinkObject.isDead) {
+      if ((typeof currentLinkObject !== 'undefined') && self.disableLinks) {
         deadLinksHash[currentLinkObject.linkId] = 'DEAD';
-      } else if ((typeof currentLinkObject !== 'undefined') && currentLinkObject.source.isDead) {
+      } 
+      else if ((typeof currentLinkObject !== 'undefined') && currentLinkObject.isDead) {
+        deadLinksHash[currentLinkObject.linkId] = 'DEAD';
+      } 
+      else if ((typeof currentLinkObject !== 'undefined') && currentLinkObject.source.isDead) {
         deadLinksHash[currentLinkObject.linkId] = 'DEAD SOURCE';
       } else if ((typeof currentLinkObject !== 'undefined') && currentLinkObject.target.isDead) {
         deadLinksHash[currentLinkObject.linkId] = 'DEAD TARGET';
@@ -741,14 +756,15 @@ function ViewTicker() {
 
   function updateNodes(callback) {
 
-    node = node.data(force.nodes(), function(d) {
+    // node = node.data(force.nodes(), function(d) {
+    node = node.data(nodes, function(d) {
         return d.nodeId;
       });
 
 
     node
       .attr("x", xposition)
-      .attr("y", yposition);
+      .attr("y", ypositionGroup);
 
     node.enter()
       .append("svg:g")
@@ -757,7 +773,7 @@ function ViewTicker() {
         return d.nodeId;
       })
       .attr("x", xposition)
-      .attr("y", yposition);
+      .attr("y", ypositionGroup);
 
     node
       .exit()
@@ -848,6 +864,27 @@ function ViewTicker() {
       });
 
     link
+      .attr("x1", function(d) {
+        // console.log("source\n" + jsonPrint(d.source));
+        var sourceNode = nodeHashMap.get(d.source.nodeId);
+        if (sourceNode) return sourceNode.x;
+        return 0;
+      })
+      .attr("y1", function(d) {
+        var sourceNode = nodeHashMap.get(d.source.nodeId);
+        if (sourceNode) return sourceNode.y;
+        return 0;
+      })
+      .attr("x2", function(d) {
+        var targetNode = nodeHashMap.get(d.target.nodeId);
+        if (targetNode) return targetNode.x;
+        return 0;
+      })
+      .attr("y2", function(d) {
+        var targetNode = nodeHashMap.get(d.target.nodeId);
+        if (targetNode) return targetNode.y;
+        return 0;
+      })
       .style('stroke', function(d) {
         return linkColorScale(d.ageMaxRatio);
       })
@@ -858,6 +895,27 @@ function ViewTicker() {
     link.enter()
       .append("svg:line")
       .attr("class", "link")
+      .attr("x1", function(d) {
+        // console.log("source\n" + jsonPrint(d.source));
+        var sourceNode = nodeHashMap.get(d.source.nodeId);
+        if (sourceNode) return sourceNode.x;
+        return 0;
+      })
+      .attr("y1", function(d) {
+        var sourceNode = nodeHashMap.get(d.source.nodeId);
+        if (sourceNode) return sourceNode.y;
+        return 0;
+      })
+      .attr("x2", function(d) {
+        var targetNode = nodeHashMap.get(d.target.nodeId);
+        if (targetNode) return targetNode.x;
+        return 0;
+      })
+      .attr("y2", function(d) {
+        var targetNode = nodeHashMap.get(d.target.nodeId);
+        if (targetNode) return targetNode.y;
+        return 0;
+      })
       .style('stroke', function(d) {
         return linkColorScale(1.0);
       })
@@ -910,6 +968,7 @@ function ViewTicker() {
         processDeadNodesHash,
         processDeadSessionsHash,
         processDeadGroupsHash,
+        processDeadLinksHash,
         rankGroups,
         // rankNodes,
         // updateGroups,
@@ -1139,6 +1198,8 @@ function ViewTicker() {
 
   var sessionPreviousNode = {};
 
+  var wordNodeHashMap = {};
+
   this.addNode = function(newNode) {
     if (!newNode.isSession 
       && !newNode.isSessionNode 
@@ -1182,6 +1243,36 @@ function ViewTicker() {
       forceStopped = true;
       nodes.push(newNode);
       force.nodes(nodes);
+
+      if (!newNode.isGroupNode && !newNode.isSessionNode && !ignoreWordHashMap.has(newNode.text) && (typeof wordNodeHashMap[newNode.text] === 'undefined')){
+        wordNodeHashMap[newNode.text] = [];
+        wordNodeHashMap[newNode.text].push(newNode.nodeId);
+      }
+      else if (!newNode.isGroupNode && !newNode.isSessionNode && !ignoreWordHashMap.has(newNode.text)) {
+        for (var i=0; i < wordNodeHashMap[newNode.text].length; i++){
+          var cNodeId = wordNodeHashMap[newNode.text][i];
+          if (nodeHashMap.has(cNodeId)) {
+            var cNode = nodeHashMap.get(cNodeId);
+
+            if (cNode.isGroupNode || cNode.isSessionNode || ignoreWordHashMap.has(cNode.text)) return;
+            var linkId = cNodeId + "_" + newNode.nodeId;
+            var newLink = {
+              linkId: linkId,
+              groupId: newNode.groupId,
+              age: 0,
+              isDead: false,
+              source: newNode,
+              target: cNode,
+              isGroupLink: false
+            };
+            self.addLink(newLink);
+            // force.links(links);
+          }
+
+        }
+        wordNodeHashMap[newNode.text].push(newNode.nodeId);
+      }
+
       // console.log("NEW NODE\n" + jsonPrint(newNode));
     }
     updateRecentNodes(newNode);
@@ -1200,6 +1291,7 @@ function ViewTicker() {
       node = nodes[nodeIndex];
       if (node.nodeId == nodeId) {
           nodes.splice(nodeIndex, 1);
+          delete wordNodeHashMap[node.text];
         }
       }
   }
@@ -1296,8 +1388,8 @@ function ViewTicker() {
       .friction(friction)
       .charge(charge)
       .linkStrength(globalLinkStrength)
-      .size([svgTickerLayoutAreaWidth, svgTickerLayoutAreaHeight])
-      .on("tick", tick);
+      .size([svgTickerLayoutAreaWidth, svgTickerLayoutAreaHeight]);
+      // .on("tick", tick);
 
       d3.timer(function() {
         tickNumber++;
@@ -1457,6 +1549,7 @@ function ViewTicker() {
       // }
       // else {
         value = marginRightWords - (100.0*(d.ageMaxRatio));
+        d.x = value * width / 100;
         return value + "%";
       // }
 
@@ -1475,9 +1568,11 @@ function ViewTicker() {
     if (typeof groupYpositionHash[d.groupId] == 'undefined') {
       value = 25;
       groupYpositionHash[d.groupId] = value;
+      d.y = value * height / 100;
       return value + "%";
     }
     else {
+      d.y = value * height / 100;
       return value + "%";
     }
 

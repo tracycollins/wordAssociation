@@ -2,6 +2,22 @@
 /*jslint node: true */
 "use strict";
 
+/*
+
+to create links in ticker view, need a way to track which words are the same in all streams/groups/sessions.
+then just create links between the common words in each stream
+
+should all instances of the word to be linked to all of the others? 
+
+
+hashmap
+
+word -> array of nodes
+
+when new instance of word arrives, iterate thru array of nodes and create linkskk
+
+*/
+
 requirejs(["http://d3js.org/d3.v3.min.js"], function(d3) {
     console.log("d3 LOADED");
     initialize();
@@ -44,7 +60,12 @@ config.maxWords = 100;
 config.testMode = false;
 config.showStatsFlag = false;
 config.removeDeadNodes = true;
-config.disableLinks = false;
+if (config.sessionViewType == 'ticker') {
+  config.disableLinks = true;
+}
+else{
+  config.disableLinks = false;
+}
 
 var statsObj = {};
 statsObj.socketId = null;
@@ -1877,8 +1898,8 @@ var createNode = function(callback) {
 
     async.parallel({
         source: function(cb) {
-          // if ((config.sessionViewType != 'ticker') && ignoreWordHashMap.has(sourceText)) {
-          if (ignoreWordHashMap.has(sourceText)) {
+          if ((config.sessionViewType != 'ticker') && ignoreWordHashMap.has(sourceText)) {
+          // if (ignoreWordHashMap.has(sourceText)) {
             // console.warn("sourceNodeId IGNORED: " + sourceNodeId);
             cb(null, {
               node: sourceNodeId,
@@ -1963,8 +1984,8 @@ var createNode = function(callback) {
         },
 
         target: function(cb) {
-          // if (typeof targetNodeId === 'undefined' || (config.sessionViewType == 'ticker')) {
-          if (typeof targetNodeId === 'undefined') {
+          if (typeof targetNodeId === 'undefined' || (config.sessionViewType == 'ticker')) {
+          // if (typeof targetNodeId === 'undefined') {
             // console.warn("targetNodeId UNDEFINED ... SKIPPING CREATE NODE");
             cb("TARGET UNDEFINED", null);
           } else if (ignoreWordHashMap.has(targetNodeId)) {
@@ -2075,8 +2096,8 @@ var createNode = function(callback) {
 
         addToHashMap(sessionHashMap, session.nodeId, session, function(cSession) {
     // console.warn("cSession\n" + jsonPrint(session));
-          // if (!results.source.isIgnored && (config.sessionViewType != 'ticker')) linkCreateQueue.push(cSession);
-          if (!results.source.isIgnored) linkCreateQueue.push(cSession);
+          if (!results.source.isIgnored && (config.sessionViewType != 'ticker')) linkCreateQueue.push(cSession);
+          // if (!results.source.isIgnored) linkCreateQueue.push(cSession);
         });
       });
   }
@@ -2085,7 +2106,7 @@ var createNode = function(callback) {
 
 var createLink = function(callback) {
 
-  if (!config.disableLinks && (linkCreateQueue.length > 0)) {
+  if ((config.sessionViewType !== 'ticker') && !config.disableLinks && (linkCreateQueue.length > 0)) {
 
     var session = linkCreateQueue.shift();
 

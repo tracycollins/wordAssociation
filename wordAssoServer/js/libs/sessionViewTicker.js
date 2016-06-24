@@ -343,15 +343,25 @@ function ViewTicker() {
       group = groups[ageGroupsIndex];
 
       age = group.age + (ageRate * (dateNow - group.ageUpdated));
+      ageMaxRatio = age/nodeMaxAge ;
 
       if (group.isDead) {
         deadGroupsHash[group.groupId] = 1;
+        group.ageMaxRatio = ageMaxRatio;
+        group.ageUpdated = moment().valueOf();
+        groups[ageGroupsIndex] = group;
       } else if (age >= groupMaxAge) {
         group.isDead = true;
+        group.age = nodeMaxAge;
+        group.ageMaxRatio = 0;
+        group.ageUpdated = moment().valueOf();
+        groups[ageGroupsIndex] = group;
         deadGroupsHash[group.groupId] = 1;
       } else {
-        group.ageUpdated = dateNow;
         group.age = age;
+        group.ageMaxRatio = ageMaxRatio;
+        group.ageUpdated = moment().valueOf();
+
         if (age < newFlagRatio * groupMaxAge) {
           group.newFlag = true;
         } else {
@@ -511,25 +521,6 @@ function ViewTicker() {
         } else {
           node.newFlag = false;
         }
-
-        // if ((typeof node.prevNodeId !== 'undefined') && (nodeHashMap.has(node.prevNodeId))){
-        //   var prevNode = nodeHashMap.get(node.prevNodeId);
-        //   if (typeof prevNode.bboxWidth !== 'undefined'){
-        //     node.widthOffset = prevNode.bboxWidth;
-        //     nodeHashMap.set(node.nodeId, node);
-        //     nodes[ageNodesIndex] = node;
-        //   }
-        //   else {
-        //     node.widthOffset = 20;
-        //     nodeHashMap.set(node.nodeId, node);
-        //     nodes[ageNodesIndex] = node;
-        //   }
-        // }
-        // else {
-        //   node.widthOffset = 20;
-        //   nodeHashMap.set(node.nodeId, node);
-        //   nodes[ageNodesIndex] = node;
-        // }
       }
     }
 
@@ -724,12 +715,15 @@ function ViewTicker() {
           return d.interpolateColor(1e-6);
         }
       })
+      .style("fill-opacity", function(d){
+        return 1.0 - d.ageMaxRatio;
+      })
       .transition()
         .duration(defaultFadeDuration)
         // .attr("x", xposition)
-        .style("fill-opacity", function(d){
-          return (d.ageMaxRatio);
-        })
+        // .style("fill-opacity", function(d){
+        //   return 1.0 - d.ageMaxRatio;
+        // })
         .attr("y", yposition);
 
     groupWords
@@ -742,7 +736,7 @@ function ViewTicker() {
         return d.text;
       })
       .style("fill", "FFFFFF")
-      .style("fill-opacity", 1e-6)
+      .style("fill-opacity", 1.0)
       .style("font-size", "2.1vmin")
       .on("mouseout", nodeMouseOut)
       .on("mouseover", nodeMouseOver);
@@ -1533,25 +1527,10 @@ function ViewTicker() {
     }
     else {
 
-      // var prevNodeEnd = 0;
-
-      // if ((typeof d.prevNodeId !== 'undefined') && (nodeHashMap.has(d.prevNodeId))){
-      //   var prevNode = nodeHashMap.get(d.prevNodeId);
-      //   prevNodeEnd = prevNode.bboxWidth + prevNode.x;
-      //   nodeHashMap.set(d.nodeId, d);
-      // }
-
       var value;
-
-      // if (typeof d.widthOffset !== 'undefined') {
-      //   value = marginRightWords - (100.0*(d.ageMaxRatio)) + (100.0*d.widthOffset/width);
-      //   return value + "%";
-      // }
-      // else {
-        value = marginRightWords - (100.0*(d.ageMaxRatio));
-        d.x = value * width / 100;
-        return value + "%";
-      // }
+      value = marginRightWords - (100.0*(d.ageMaxRatio));
+      d.x = value * width / 100;
+      return value + "%";
 
     }
   }

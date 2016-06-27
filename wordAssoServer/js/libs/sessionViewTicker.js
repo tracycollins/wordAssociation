@@ -1234,6 +1234,12 @@ function ViewTicker() {
         );
       }
 
+      var cGroup = groupHashMap.get(newNode.groupId);
+      newNode.colors = {};
+      newNode.colors = cGroup.colors;
+      newNode.interpolateColor = cGroup.interpolateColor;
+
+
       newNode.x = width;
       newNode.randomYoffset = randomIntFromInterval(-10,10);
 

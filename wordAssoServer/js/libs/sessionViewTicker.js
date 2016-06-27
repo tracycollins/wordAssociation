@@ -1497,7 +1497,7 @@ function ViewTicker() {
     var startColor = "hsl(" + randomNumber360 + ",100%,50%)";
     var endColor = "hsl(" + randomNumber360 + ",100%,30%)";
 
-    var interpolateNodeColor = d3.interpolateRgb(startColor, endColor);
+    var interpolateNodeColor = d3.interpolateHsl(startColor, endColor);
 
     var newNode = {
       nodeId: nodeId,

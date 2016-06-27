@@ -1548,7 +1548,7 @@ var createGroup = function(callback) {
       currentGroup.y = currentInitialPosition.y;
       currentGroup.colors = {"startColor": startColor, "endColor": endColor};
 
-      var interpolateNodeColor = d3.interpolateRgb(startColor, endColor);
+      var interpolateNodeColor = d3.interpolateHsl(startColor, endColor);
       currentGroup.interpolateColor = interpolateNodeColor;
 
       // CREATE GROUP NODE

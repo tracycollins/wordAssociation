@@ -29,7 +29,7 @@ function ViewTicker() {
   var maxWords = 100;
   // var removeDeadNodes = false;
   var maxOpacity = 1.0;
-  var minOpacity = 0.3;
+  var minOpacity = 0.1;
   var defaultFadeDuration = 150;
 
   var testModeEnabled = false;
@@ -53,13 +53,15 @@ function ViewTicker() {
 
   var marginTopWords = 15; // %
   var marginLeftWords = 15;
-  var marginRightWords = 75;
+  var marginRightWords = 80;
 
   var colSpacing = 20;
 
   var maxRecentWords = maxWordRows;
-  var wordArray = [];
-  var recentNodeArray = [];
+
+  // index = sessionId; elements = array of session nodeWords in chron order (old>new)
+  var sessionNodeArrayHash = {};  
+
   var wordMentionsArray = [];
   var recentWordMentionsArray = [];
 
@@ -510,6 +512,10 @@ function ViewTicker() {
         deadNodesHash[node.nodeId] = 1;
         if (node.isGroupNode) console.warn("XXX NODE " + node.nodeId + " | " + node.isGroupNode);
         nodes[ageNodesIndex] = node;
+        if (!node.isGroupNode && !node.isSessionNode && (sessionNodeArrayHash[node.sessionId].length > 0)){
+          var shiftNodeId = sessionNodeArrayHash[node.sessionId].shift();
+          console.warn("shift NODE " + shiftNodeId);
+        }
       } 
       else {
         node.age = age;
@@ -715,8 +721,11 @@ function ViewTicker() {
           return d.interpolateColor(1e-6);
         }
       })
-      .style("fill-opacity", function(d){
-        return 1.0 - d.ageMaxRatio;
+      // .style("fill-opacity", function(d){
+      //   return 1.0 - d.ageMaxRatio;
+      // })
+      .style("fill-opacity", function(d) {
+        return Math.max(wordOpacityScale(d.age + 1), minOpacity)
       })
       .transition()
         .duration(defaultFadeDuration)
@@ -784,7 +793,8 @@ function ViewTicker() {
       });
 
     nodeWords
-      .attr("x", xposition)
+      // .attr("x", xposition)
+      // .attr("y", ypositionGroup)
       .text(function(d) {
         return d.text;
       })
@@ -798,6 +808,9 @@ function ViewTicker() {
       })
       .attr("bboxWidth", function(d, i){
         nodes[i].bboxWidth = this.getBBox().width;
+        var cNode = nodeHashMap.get(d.nodeId);
+        cNode.bboxWidth = this.getBBox().width;
+        nodeHashMap.set(d.nodeId, cNode);
         // console.log("bboxWidth " + nodes[i].bboxWidth);
         return this.getBBox().width;
       })
@@ -815,7 +828,11 @@ function ViewTicker() {
         } else {
           return Math.max(wordOpacityScale(d.age + 1), minOpacity)
         }
-      });
+      })
+      .transition()
+        .duration(defaultFadeDuration)
+        .attr("x", xposition)
+        .attr("y", ypositionGroup);
 
     nodeWords
       .enter()
@@ -824,11 +841,12 @@ function ViewTicker() {
       .attr("nodeId", function(d) {
         return d.nodeId;
       })
-      .attr("x", xposition)
+      .attr("x", marginRightWords)
       .attr("y", ypositionGroup)
       .text(function(d) {
         return d.text;
       })
+      .style("text-anchor", "end")
       .style("fill", "#FFFFFF")
       .style("fill-opacity", 1)
       .style("font-size", minFontSize + "px")
@@ -838,7 +856,12 @@ function ViewTicker() {
         return this.getBBox().width;
       })
       .on("mouseout", nodeMouseOut)
-      .on("mouseover", nodeMouseOver);
+      .on("mouseover", nodeMouseOver)
+      .transition()
+        .duration(defaultFadeDuration)
+        .attr("x", xposition)
+        .attr("y", ypositionGroup);
+
 
     nodeWords
       .exit()
@@ -927,27 +950,27 @@ function ViewTicker() {
   }
 
 
-  function updateRecentNodes(node) {
+  // function updateRecentNodes(node) {
 
-    var newNodeFlag = true;
-    var i = 0;
-    for (i = recentNodeArray.length - 1; i >= 0; i--) {
+  //   var newNodeFlag = true;
+  //   var i = 0;
+  //   for (i = recentNodeArray.length - 1; i >= 0; i--) {
 
-      if (recentNodeArray[i].nodeId == node.nodeId) {
-        newNodeFlag = false;
-        recentNodeArray.splice(i, 1);
-      }
-    }
+  //     if (recentNodeArray[i].nodeId == node.nodeId) {
+  //       newNodeFlag = false;
+  //       recentNodeArray.splice(i, 1);
+  //     }
+  //   }
 
-    if ((i < 0) && (newNodeFlag)) {
-      newNodeFlag = false;
-      recentNodeArray.unshift(node);
-    }
+  //   if ((i < 0) && (newNodeFlag)) {
+  //     newNodeFlag = false;
+  //     recentNodeArray.unshift(node);
+  //   }
 
-    if (recentNodeArray.length > maxRecentWords) {
-      recentNodeArray.pop();
-    };
-  }
+  //   if (recentNodeArray.length > maxRecentWords) {
+  //     recentNodeArray.pop();
+  //   };
+  // }
 
   function updateTickerDisplay() {
 
@@ -1210,8 +1233,17 @@ function ViewTicker() {
         );
       }
 
-      newNode.x = 0;
+      newNode.x = width;
       newNode.randomYoffset = randomIntFromInterval(-10,10);
+
+      if (typeof sessionNodeArrayHash[newNode.sessionId] !== 'undefined'){
+        sessionNodeArrayHash[newNode.sessionId].push(newNode.nodeId);
+      }
+      else {
+        sessionNodeArrayHash[newNode.sessionId] = [];
+        sessionNodeArrayHash[newNode.sessionId].push(newNode.nodeId);
+      }
+
 
       if (typeof sessionPreviousNode[newNode.sessionId] !== 'undefined'){
         var prevNodeId = sessionPreviousNode[newNode.sessionId];
@@ -1259,7 +1291,7 @@ function ViewTicker() {
               target: cNode,
               isGroupLink: false
             };
-            self.addLink(newLink);
+            // self.addLink(newLink);
             // force.links(links);
           }
 
@@ -1269,7 +1301,7 @@ function ViewTicker() {
 
       // console.log("NEW NODE\n" + jsonPrint(newNode));
     }
-    updateRecentNodes(newNode);
+    // updateRecentNodes(newNode);
   }
 
   this.deleteNode = function(nodeId) {
@@ -1527,12 +1559,41 @@ function ViewTicker() {
     }
     else {
 
-      var value;
-      value = marginRightWords - (100.0*(d.ageMaxRatio));
-      d.x = value * width / 100;
-      return value + "%";
+      var value = marginRightWords * width / 100;
+      var nodeSeen = false;
+      var length = sessionNodeArrayHash[d.sessionId].length;
+      var i;
+      // value = marginRightWords - (100.0*(d.ageMaxRatio));
+
+      for (i=0; i<length; i++){
+        var cNodeId = sessionNodeArrayHash[d.sessionId][i];
+        if (d.nodeId == cNodeId){
+          nodeSeen = true;
+          // if (typeof d.bboxWidth !== 'undefined') value = value+d.bboxWidth;
+          if (nodeHashMap.has(cNodeId)){
+            var cNode = nodeHashMap.get(cNodeId);
+            if (typeof cNode.bboxWidth !== 'undefined') value = value+cNode.bboxWidth;
+          }
+        }
+        if (nodeSeen){
+          if (nodeHashMap.has(cNodeId)){
+            var cNode = nodeHashMap.get(cNodeId);
+            if (typeof cNode.bboxWidth !== 'undefined') value = value-cNode.bboxWidth-10;
+          }
+        }
+      }
+
+      if (i == length){
+        // d.x = value;
+        return (value/width)*100 + "%";
+      }
 
     }
+  }
+
+  function xpositionGroup(d, i) {
+    var value;
+    value = groupXpositionArray[i];
   }
 
   var rows = maxWordRows;
@@ -1542,16 +1603,20 @@ function ViewTicker() {
   function ypositionGroup(d, i) {
 
     var value;
-    value = groupYpositionHash[d.groupId] + (0.5 * d.randomYoffset);
+    // value = groupYpositionHash[d.groupId] + (0.5 * d.randomYoffset);
+    // value = groupYpositionHash[d.groupId] + (0.1 * d.randomYoffset);
+    value = groupYpositionHash[d.groupId];
 
-    if (typeof groupYpositionHash[d.groupId] == 'undefined') {
+    if (typeof groupYpositionHash[d.groupId] === 'undefined') {
       value = 25;
-      groupYpositionHash[d.groupId] = value;
+      // groupYpositionHash[d.groupId] = value;
       d.y = value * height / 100;
       return value + "%";
     }
     else {
       d.y = value * height / 100;
+      nodes[i] = d;
+      nodeHashMap.set(d.nodeId, d);
       return value + "%";
     }
 

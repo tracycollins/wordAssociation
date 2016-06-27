@@ -1730,6 +1730,7 @@ var createSession = function(callback) {
         // + "\n" + jsonPrint(sessUpdate)
       );
 
+      currentSession.groupId = currentGroup.groupId;
       currentSession.age = 0;
       currentSession.ageMaxRatio = 1;
       currentSession.mentions = 1;

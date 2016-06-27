@@ -1697,7 +1697,7 @@ var createSession = function(callback) {
       currentSession.node.lastSeen = dateNow;
       currentSession.node.wordChainIndex = sessUpdate.wordChainIndex;
       currentSession.node.mentions = sessUpdate.wordChainIndex;
-      currentSession.node.interpolateColor = currentSession.interpolateColor;
+      currentSession.node.interpolateColor = currentGroup.interpolateColor;
 
       var sessionLinkId = currentSession.node.nodeId + "_" + sessUpdate.source.nodeId;
       
@@ -1776,8 +1776,8 @@ var createSession = function(callback) {
       currentSession.node.text = sessUpdate.tags.entity + "[" + sessUpdate.tags.channel + "]";
       currentSession.node.x = currentSession.initialPosition.x + randomIntFromInterval(-10,10);
       currentSession.node.y = currentSession.initialPosition.y + randomIntFromInterval(-10,10);
-      currentSession.node.colors = currentSession.colors;
-      currentSession.node.interpolateColor = currentSession.interpolateColor;
+      currentSession.node.colors = currentGroup.colors;
+      currentSession.node.interpolateColor = currentGroup.interpolateColor;
 
       currentSession.node.links = {};
 

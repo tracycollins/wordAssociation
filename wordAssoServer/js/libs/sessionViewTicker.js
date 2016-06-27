@@ -513,8 +513,9 @@ function ViewTicker() {
         if (node.isGroupNode) console.warn("XXX NODE " + node.nodeId + " | " + node.isGroupNode);
         nodes[ageNodesIndex] = node;
         if (!node.isGroupNode && !node.isSessionNode && (sessionNodeArrayHash[node.sessionId].length > 0)){
-          var shiftNodeId = sessionNodeArrayHash[node.sessionId].shift();
-          console.warn("shift NODE " + shiftNodeId);
+          // var shiftNodeId = sessionNodeArrayHash[node.sessionId].shift();
+          sessionNodeArrayHash[node.sessionId].shift();
+          // console.warn("shift NODE " + shiftNodeId);
         }
       } 
       else {

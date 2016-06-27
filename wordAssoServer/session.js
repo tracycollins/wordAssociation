@@ -1573,8 +1573,8 @@ var createGroup = function(callback) {
       currentGroup.node.x = currentGroup.initialPosition.x;
       currentGroup.node.y = currentGroup.initialPosition.y;
       currentGroup.node.fixed = true;
-      currentGroup.node.colors = {"startColor": startColor, "endColor": endColor};
-      currentGroup.node.interpolateColor = d3.interpolateRgb(startColor, endColor);
+      currentGroup.node.colors = currentGroup.colors;
+      currentGroup.node.interpolateColor = interpolateNodeColor;
 
       currentGroup.node.links = {};
 
@@ -1697,6 +1697,7 @@ var createSession = function(callback) {
       currentSession.node.lastSeen = dateNow;
       currentSession.node.wordChainIndex = sessUpdate.wordChainIndex;
       currentSession.node.mentions = sessUpdate.wordChainIndex;
+      currentSession.node.colors = currentGroup.colors;
       currentSession.node.interpolateColor = currentGroup.interpolateColor;
 
       var sessionLinkId = currentSession.node.nodeId + "_" + sessUpdate.source.nodeId;

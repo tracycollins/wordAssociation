@@ -1199,75 +1199,75 @@ function ViewHistogram() {
   }
 
   // ===================================================================
-  var testAddNodeInterval;
-  var testSessionIndex = 0;
-  var testDeleteNodeInterval;
+  // var testAddNodeInterval;
+  // var testSessionIndex = 0;
+  // var testDeleteNodeInterval;
 
-  function deleteRandomNode() {
-    if (nodes.length == 0) return;
-    if ((nodes.length < 5) && (randomIntFromInterval(0, 100) < 80)) return;
-    if (randomIntFromInterval(0, 100) < 5) return;
-    var index = randomIntFromInterval(0, nodes.length - 1);
-    var node = nodes[index];
-    self.deleteNode(node.nodeId);
-  }
+  // function deleteRandomNode() {
+  //   if (nodes.length == 0) return;
+  //   if ((nodes.length < 5) && (randomIntFromInterval(0, 100) < 80)) return;
+  //   if (randomIntFromInterval(0, 100) < 5) return;
+  //   var index = randomIntFromInterval(0, nodes.length - 1);
+  //   var node = nodes[index];
+  //   self.deleteNode(node.nodeId);
+  // }
 
-  function addRandomNode() {
+  // function addRandomNode() {
 
-    var randomNumber360 = randomIntFromInterval(0, 360);
+  //   var randomNumber360 = randomIntFromInterval(0, 360);
 
-    var sessionId = 'session_' + randomNumber360;
-    var userId = 'user_' + randomNumber360;
-    var nodeId = 'testNode' + tickNumber;
-    var mentions = randomIntFromInterval(0, 1000000);
-    var wordChainIndex = tickNumber;
-    var text = randomNumber360 + ' | ' + mentions;
+  //   var sessionId = 'session_' + randomNumber360;
+  //   var userId = 'user_' + randomNumber360;
+  //   var nodeId = 'testNode' + tickNumber;
+  //   var mentions = randomIntFromInterval(0, 1000000);
+  //   var wordChainIndex = tickNumber;
+  //   var text = randomNumber360 + ' | ' + mentions;
 
-    var startColor = "hsl(" + randomNumber360 + ",100%,50%)";
-    var endColor = "hsl(" + randomNumber360 + ",100%,30%)";
+  //   var startColor = "hsl(" + randomNumber360 + ",100%,50%)";
+  //   var endColor = "hsl(" + randomNumber360 + ",100%,30%)";
 
-    var interpolateNodeColor = d3.interpolateHcl(endColor, startColor);
+  //   var interpolateNodeColor = d3.interpolateHcl(endColor, startColor);
 
-    var newNode = {
-      nodeId: nodeId,
-      sessionId: sessionId,
-      userId: userId,
-      text: text,
-      mentions: mentions,
-      wordChainIndex: wordChainIndex,
-      startColor: startColor,
-      endColor: endColor,
-      interpolateColor: interpolateNodeColor,
-      x: 0.5 * width + randomIntFromInterval(0, 100),
-      y: 0.5 * height + randomIntFromInterval(0, 100),
-      age: 0,
-      lastSeen: dateNow,
-    }
+  //   var newNode = {
+  //     nodeId: nodeId,
+  //     sessionId: sessionId,
+  //     userId: userId,
+  //     text: text,
+  //     mentions: mentions,
+  //     wordChainIndex: wordChainIndex,
+  //     startColor: startColor,
+  //     endColor: endColor,
+  //     interpolateColor: interpolateNodeColor,
+  //     x: 0.5 * width + randomIntFromInterval(0, 100),
+  //     y: 0.5 * height + randomIntFromInterval(0, 100),
+  //     age: 0,
+  //     lastSeen: dateNow,
+  //   }
 
-    self.addNode(newNode);
-  }
+  //   self.addNode(newNode);
+  // }
 
-  this.clearTestAddNodeInterval = function () {
-    clearInterval(testAddNodeInterval);
-  }
+  // this.clearTestAddNodeInterval = function () {
+  //   clearInterval(testAddNodeInterval);
+  // }
 
-  this.initTestAddNodeInterval = function (interval) {
-    clearInterval(testAddNodeInterval);
-    testAddNodeInterval = setInterval(function() {
-      addRandomNode();
-    }, interval);
-  }
+  // this.initTestAddNodeInterval = function (interval) {
+  //   clearInterval(testAddNodeInterval);
+  //   testAddNodeInterval = setInterval(function() {
+  //     addRandomNode();
+  //   }, interval);
+  // }
 
-  this.clearTestDeleteNodeInterval = function () {
-    clearInterval(testDeleteNodeInterval);
-  }
+  // this.clearTestDeleteNodeInterval = function () {
+  //   clearInterval(testDeleteNodeInterval);
+  // }
 
-  this.initTestDeleteNodeInterval = function (interval) {
-    clearInterval(testDeleteNodeInterval);
-    testDeleteNodeInterval = setInterval(function() {
-      deleteRandomNode();
-    }, interval);
-  }
+  // this.initTestDeleteNodeInterval = function (interval) {
+  //   clearInterval(testDeleteNodeInterval);
+  //   testDeleteNodeInterval = setInterval(function() {
+  //     deleteRandomNode();
+  //   }, interval);
+  // }
 
   function getSortedKeys(hmap) {
     var keys = [];

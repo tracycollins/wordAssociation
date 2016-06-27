@@ -1546,6 +1546,7 @@ var createGroup = function(callback) {
       currentGroup.initialPosition = currentInitialPosition;
       currentGroup.x = currentInitialPosition.x;
       currentGroup.y = currentInitialPosition.y;
+      currentGroup.colors = {};
       currentGroup.colors = {"startColor": startColor, "endColor": endColor};
 
       var interpolateNodeColor = d3.interpolateHsl(startColor, endColor);
@@ -1573,6 +1574,7 @@ var createGroup = function(callback) {
       currentGroup.node.x = currentGroup.initialPosition.x;
       currentGroup.node.y = currentGroup.initialPosition.y;
       currentGroup.node.fixed = true;
+      currentGroup.node.colors = {};
       currentGroup.node.colors = currentGroup.colors;
       currentGroup.node.interpolateColor = interpolateNodeColor;
 
@@ -1697,6 +1699,7 @@ var createSession = function(callback) {
       currentSession.node.lastSeen = dateNow;
       currentSession.node.wordChainIndex = sessUpdate.wordChainIndex;
       currentSession.node.mentions = sessUpdate.wordChainIndex;
+      currentSession.node.colors = {};
       currentSession.node.colors = currentGroup.colors;
       currentSession.node.interpolateColor = currentGroup.interpolateColor;
 
@@ -1752,9 +1755,9 @@ var createSession = function(callback) {
       currentSession.initialPosition = currentGroup.initialPosition;
       currentSession.x = currentGroup.x;
       currentSession.y = currentGroup.y;
+
       currentSession.colors = {};
       currentSession.colors = currentGroup.colors;
-
       currentSession.interpolateColor = currentGroup.interpolateColor;
 
       // CREATE SESSION NODE
@@ -1777,6 +1780,8 @@ var createSession = function(callback) {
       currentSession.node.text = sessUpdate.tags.entity + "[" + sessUpdate.tags.channel + "]";
       currentSession.node.x = currentSession.initialPosition.x + randomIntFromInterval(-10,10);
       currentSession.node.y = currentSession.initialPosition.y + randomIntFromInterval(-10,10);
+
+      currentSession.node.colors = {};
       currentSession.node.colors = currentGroup.colors;
       currentSession.node.interpolateColor = currentGroup.interpolateColor;
 
@@ -1872,6 +1877,7 @@ var createNode = function(callback) {
       session.node.mentions = session.wordChainIndex+1;
       session.node.x = session.initialPosition.x + randomIntFromInterval(-10,10);
       session.node.y = session.initialPosition.y + randomIntFromInterval(-10,10);
+      session.node.colors = {};
       session.node.colors = session.colors;
       session.node.interpolateColor = session.interpolateColor;
 
@@ -1922,6 +1928,7 @@ var createNode = function(callback) {
             sourceNode.isDead = false;
             sourceNode.ageUpdated = dateNow;
             sourceNode.lastSeen = dateNow;
+            sourceNode.colors = {};
             sourceNode.colors = session.colors;
             sourceNode.interpolateColor = session.interpolateColor;
             if (sourceNode.isSessionNode){
@@ -1961,6 +1968,7 @@ var createNode = function(callback) {
             sourceNode.isDead = false;
             sourceNode.lastSeen = dateNow;
             sourceNode.ageUpdated = dateNow;
+            sourceNode.colors = {};
             sourceNode.colors = session.colors;
             sourceNode.interpolateColor = session.interpolateColor;
             sourceNode.x = session.node.x+randomIntFromInterval(-10,10);;
@@ -2009,6 +2017,7 @@ var createNode = function(callback) {
             targetNode.isDead = false;
             targetNode.ageUpdated = dateNow;
             targetNode.lastSeen = dateNow;
+            targetNode.colors = {};
             targetNode.colors = session.colors;
             targetNode.interpolateColor = session.interpolateColor;
             targetNode.latestNode = false;
@@ -2049,6 +2058,7 @@ var createNode = function(callback) {
             targetNode.isDead = false;
             targetNode.lastSeen = dateNow;
             targetNode.ageUpdated = dateNow;
+            targetNode.colors = {};
             targetNode.colors = session.colors;
             targetNode.interpolateColor = session.interpolateColor;
             targetNode.latestNode = false;

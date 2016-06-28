@@ -438,7 +438,10 @@ function ViewTicker() {
         delete deadSessionsHash[session.sessionId];
         var groupIds = Object.keys(groupYpositionHash);
         groupIds.forEach(function(groupId){
-          delete groupYpositionHash[groupId][session.sessionId];
+          if (typeof groupYpositionHash[groupId][session.sessionId] !== 'undefined'){
+          console.log("groupYpositionHash XXX SESSION: " + session.sessionId);
+            delete groupYpositionHash[groupId][session.sessionId];
+          }
         });
         // console.log("XXX SESSION: " + session.sessionId);
       }
@@ -604,7 +607,7 @@ function ViewTicker() {
         groups.splice(ageGroupsIndex, 1);
         delete deadGroupsHash[group.groupId];
         delete groupYpositionHash[group.groupId];
-        // console.log("XXX GROUP: " + group.groupId);
+        console.log("XXX GROUP: " + group.groupId);
       }
     }
 
@@ -1228,11 +1231,11 @@ function ViewTicker() {
       if (!newNode.isIgnored && (newNode.mentions > currentMaxMentions)) {
         currentMaxMentions = newNode.mentions;
         fontSizeScale = d3.scale.linear().domain([1, currentMaxMentions]).range([minFontSize, maxFontSize]);
-        console.log("NEW MAX MENTIONS" 
-          + " | " + newNode.text 
-          + " | " + currentMaxMentions 
-          + " | " + fontSizeScale(currentMaxMentions)
-        );
+        // console.log("NEW MAX MENTIONS" 
+        //   + " | " + newNode.text 
+        //   + " | " + currentMaxMentions 
+        //   + " | " + fontSizeScale(currentMaxMentions)
+        // );
       }
 
       var cGroup = groupHashMap.get(newNode.groupId);
@@ -1641,6 +1644,7 @@ function ViewTicker() {
     }
     else {
       groupYpositionHash[d.groupId] = {};
+      groupYpositionHash[d.groupId][d.groupId] = 25;
       groupYpositionHash[d.groupId][d.sessionId] = groupYpositionHash[d.groupId][d.groupId];
       value = groupYpositionHash[d.groupId][d.groupId];
       d.y = value * height / 100;

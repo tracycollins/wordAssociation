@@ -1807,13 +1807,15 @@ var createSession = function(callback) {
         currentSessionView.addNode(sesNode);
 
         addToHashMap(sessionHashMap, currentSession.nodeId, currentSession, function(cSession) {
-          console.log("NEW SESSION " + cSession.userId 
-            + " | NID: " + cSession.nodeId 
-            + " | SID: " + cSession.sessionId 
-            + " | SNID: " + cSession.node.nodeId
-            + " | LNID: " + cSession.latestNodeId
-            + " | WCI:" + cSession.wordChainIndex 
-            + " | M:" + cSession.mentions 
+          console.log("\nNEW SESSION"
+            + "\nGRP: " + currentGroup.groupId
+            + "\nUID: " + cSession.userId 
+            + "\nNID: " + cSession.nodeId 
+            + "\nSID: " + cSession.sessionId 
+            + "\nSNID: " + cSession.node.nodeId
+            + "\nLNID: " + cSession.latestNodeId
+            + "\nWCI:" + cSession.wordChainIndex 
+            + "\nM:" + cSession.mentions 
             // + "\n" + jsonPrint(cSession) 
           );
           currentSessionView.addSession(cSession);

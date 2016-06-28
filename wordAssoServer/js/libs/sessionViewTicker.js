@@ -8,6 +8,7 @@ function ViewTicker() {
   var self = this;
   self.disableLinks = false;
 
+  var lineHeight = 3;
 
   var force;
 
@@ -732,14 +733,14 @@ function ViewTicker() {
         // .style("fill-opacity", function(d){
         //   return 1.0 - d.ageMaxRatio;
         // })
-        .attr("y", yposition);
+        .attr("y", ypositionGroup);
 
     groupWords
       .enter()
       .append("svg:text")
       .attr("id", "group")
       .attr("x", xposition)
-      .attr("y", yposition)
+      .attr("y", ypositionGroup)
       .text(function(d) {
         return d.text;
       })
@@ -766,7 +767,7 @@ function ViewTicker() {
 
     // node
     //   .attr("x", xposition)
-    //   .attr("y", ypositionGroup);
+    //   .attr("y", ypositionWord);
 
     node.enter()
       .append("svg:g")
@@ -775,7 +776,7 @@ function ViewTicker() {
         return d.nodeId;
       });
       // .attr("x", xposition)
-      // .attr("y", ypositionGroup);
+      // .attr("y", ypositionWord);
 
     node
       .exit()
@@ -793,7 +794,7 @@ function ViewTicker() {
 
     nodeWords
       // .attr("x", xposition)
-      // .attr("y", ypositionGroup)
+      // .attr("y", ypositionWord)
       .text(function(d) {
         return d.text;
       })
@@ -838,7 +839,7 @@ function ViewTicker() {
           }
         })
         .attr("x", xposition)
-        .attr("y", ypositionGroup);
+        .attr("y", ypositionWord);
 
     nodeWords
       .enter()
@@ -848,7 +849,7 @@ function ViewTicker() {
         return d.nodeId;
       })
       .attr("x", marginRightWords)
-      .attr("y", ypositionGroup)
+      .attr("y", ypositionWord)
       .text(function(d) {
         return d.text;
       })
@@ -866,7 +867,7 @@ function ViewTicker() {
       .transition()
         .duration(defaultFadeDuration)
         .attr("x", xposition)
-        .attr("y", ypositionGroup);
+        .attr("y", ypositionWord);
 
 
     nodeWords
@@ -1604,22 +1605,49 @@ function ViewTicker() {
     }
   }
 
-  function ypositionGroup(d, i) {
+
+
+  function ypositionWord(d, i) {
+
+    // console.error("ypositionWord d.sessionId: " + d.sessionId);
 
     var value;
     // value = groupYpositionHash[d.groupId] + (0.5 * d.randomYoffset);
     // value = groupYpositionHash[d.groupId] + (0.1 * d.randomYoffset);
-    value = groupYpositionHash[d.groupId];
+    // value = groupYpositionHash[d.groupId][d.sessionId];
 
     // if (d.age < 0.01*nodeMaxAge) value -= 5;
 
-    if (typeof groupYpositionHash[d.groupId] === 'undefined') {
-      value = 25;
-      // groupYpositionHash[d.groupId] = value;
-      d.y = value * height / 100;
-      return value + "%";
+    if (typeof groupYpositionHash[d.groupId] !== 'undefined') {
+      var groupYpos = groupYpositionHash[d.groupId][d.groupId];
+      groupYpositionHash[d.groupId][d.sessionId] = groupYpos;
+      var sessionIds = Object.keys(groupYpositionHash[d.groupId]);
+      sessionIds.sort();
+      var numSessions = sessionIds.length;
+      var index = 0;
+      sessionIds.forEach(function(sessionId){
+        if (sessionId == d.groupId) {
+          numSessions--;
+        }
+        else {
+          var tempValue = groupYpos + (lineHeight * index);
+          groupYpositionHash[d.groupId][sessionId] = tempValue;
+          index++;
+          numSessions--;
+        }
+      });
+      if (numSessions <= 0) {
+        value = groupYpositionHash[d.groupId][d.sessionId];
+        d.y = value * height / 100;
+        nodes[i] = d;
+        nodeHashMap.set(d.nodeId, d);
+        return value + "%";
+      }
     }
     else {
+      groupYpositionHash[d.groupId] = {};
+      groupYpositionHash[d.groupId][d.sessionId] = groupYpositionHash[d.groupId][d.groupId];
+      value = groupYpositionHash[d.groupId][d.groupId];
       d.y = value * height / 100;
       nodes[i] = d;
       nodeHashMap.set(d.nodeId, d);
@@ -1628,31 +1656,28 @@ function ViewTicker() {
 
   }
 
-  function yposition(d, i) {
+  function ypositionGroup(d, i) {
 
     var value;
 
-    if (d.isGroup) {
-      if (typeof d.rank === 'undefined') {
-        value = marginTopSessions + ((100-marginTopSessions) * 10 / (groups.length))
-        groupYpositionHash[d.groupId] = value;
-        return value + "%";
+    if (typeof d.rank === 'undefined') {
+      value = marginTopSessions + ((100-marginTopSessions) * 10 / (groups.length))
+      if (typeof groupYpositionHash[d.groupId] === 'undefined') {
+        groupYpositionHash[d.groupId] = {};
+        groupYpositionHash[d.groupId][d.groupId] = value;
       }
       else {
-        value = marginTopSessions + ((100-marginTopSessions) * d.rank / (groups.length))
-        groupYpositionHash[d.groupId] = value;
-        return value + "%";
+        groupYpositionHash[d.groupId][d.groupId] = value;
       }
-    }
-    else if (typeof d.rank === 'undefined') {
-      value = marginTopWords + (3 * maxWordRows);
       return value + "%";
     }
     else {
-      value = marginTopWords + (3 * (d.rank % maxWordRows));
+      value = marginTopSessions + ((100-marginTopSessions) * d.rank / (groups.length))
+      if (typeof groupYpositionHash[d.groupId] === 'undefined') groupYpositionHash[d.groupId] = {};
+      groupYpositionHash[d.groupId][d.groupId] = value;
       return value + "%";
     }
-   }
+  }
 
   var divTooltip = d3.select("body").append("div")
     .attr("class", "tooltip")

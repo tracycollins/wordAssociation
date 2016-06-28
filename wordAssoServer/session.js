@@ -561,10 +561,10 @@ function createControlPanel() {
       tableCreateRow(controlTableBody, optionsBody, [fullscreenButton, pauseButton, statsButton, testModeButton, resetButton, nodeCreateButton, removeDeadNodeButton, disableLinksButton]);
       tableCreateRow(controlSliderTable, optionsBody, [resetButton]);
       tableCreateRow(controlSliderTable, optionsBody, ['MAX AGE', maxAgeSlider]);
-      tableCreateRow(controlSliderTable, optionsBody, ['CHARGE', chargeSlider]);
-      tableCreateRow(controlSliderTable, optionsBody, ['GRAVITY', gravitySlider]);
-      tableCreateRow(controlSliderTable, optionsBody, ['FRICTION', frictionSlider]);
-      tableCreateRow(controlSliderTable, optionsBody, ['LINK STRENGTH', linkStrengthSlider]);
+      // tableCreateRow(controlSliderTable, optionsBody, ['CHARGE', chargeSlider]);
+      // tableCreateRow(controlSliderTable, optionsBody, ['GRAVITY', gravitySlider]);
+      // tableCreateRow(controlSliderTable, optionsBody, ['FRICTION', frictionSlider]);
+      // tableCreateRow(controlSliderTable, optionsBody, ['LINK STRENGTH', linkStrengthSlider]);
 
       break;
     case 'histogram':

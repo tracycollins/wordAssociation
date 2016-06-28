@@ -436,6 +436,10 @@ function ViewTicker() {
         // sessionDeleteQueue.push(session.sessionId);
         sessions.splice(ageSessionsIndex, 1);
         delete deadSessionsHash[session.sessionId];
+        var groupIds = Object.keys(groupYpositionHash);
+        groupIds.forEach(function(groupId){
+          delete groupYpositionHash[groupId][session.sessionId];
+        });
         // console.log("XXX SESSION: " + session.sessionId);
       }
     }
@@ -599,6 +603,7 @@ function ViewTicker() {
         nodeDeleteQueue.push(group.groupId);
         groups.splice(ageGroupsIndex, 1);
         delete deadGroupsHash[group.groupId];
+        delete groupYpositionHash[group.groupId];
         // console.log("XXX GROUP: " + group.groupId);
       }
     }
@@ -759,15 +764,9 @@ function ViewTicker() {
 
   function updateNodes(callback) {
 
-    // node = node.data(force.nodes(), function(d) {
     node = node.data(nodes, function(d) {
         return d.nodeId;
       });
-
-
-    // node
-    //   .attr("x", xposition)
-    //   .attr("y", ypositionWord);
 
     node.enter()
       .append("svg:g")
@@ -775,8 +774,6 @@ function ViewTicker() {
       .attr("id", function(d) {
         return d.nodeId;
       });
-      // .attr("x", xposition)
-      // .attr("y", ypositionWord);
 
     node
       .exit()
@@ -793,8 +790,6 @@ function ViewTicker() {
       });
 
     nodeWords
-      // .attr("x", xposition)
-      // .attr("y", ypositionWord)
       .text(function(d) {
         return d.text;
       })
@@ -998,7 +993,7 @@ function ViewTicker() {
         // updateGroups,
         updateGroupWords,
         // updateSessions,
-        updateNodes,
+        // updateNodes,
         updateNodeWords,
         updateLinks,
       ],
@@ -1233,7 +1228,7 @@ function ViewTicker() {
       if (!newNode.isIgnored && (newNode.mentions > currentMaxMentions)) {
         currentMaxMentions = newNode.mentions;
         fontSizeScale = d3.scale.linear().domain([1, currentMaxMentions]).range([minFontSize, maxFontSize]);
-        console.warn("NEW MAX MENTIONS" 
+        console.log("NEW MAX MENTIONS" 
           + " | " + newNode.text 
           + " | " + currentMaxMentions 
           + " | " + fontSizeScale(currentMaxMentions)

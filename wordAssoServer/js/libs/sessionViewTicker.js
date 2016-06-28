@@ -10,6 +10,11 @@ function ViewTicker() {
 
   var lineHeight = 3;
 
+  var defaulStartColor = "hsl(90,100%,70%)";
+  var defaultEndColor = "hsl(90,100%,0%)";
+  var defaultColors = {"startColor": defaulStartColor, "endColor": defaultEndColor};
+  var defaultInterpolateNodeColor = d3.interpolateHsl(defaulStartColor, defaultEndColor);
+
   var force;
 
   // ==============================================
@@ -439,7 +444,7 @@ function ViewTicker() {
         var groupIds = Object.keys(groupYpositionHash);
         groupIds.forEach(function(groupId){
           if (typeof groupYpositionHash[groupId][session.sessionId] !== 'undefined'){
-          console.log("groupYpositionHash XXX SESSION: " + session.sessionId);
+            console.log("groupYpositionHash XXX SESSION: " + session.sessionId);
             delete groupYpositionHash[groupId][session.sessionId];
           }
         });
@@ -1238,11 +1243,18 @@ function ViewTicker() {
         // );
       }
 
-      var cGroup = groupHashMap.get(newNode.groupId);
-      newNode.colors = {};
-      newNode.colors = cGroup.colors;
-      newNode.interpolateColor = cGroup.interpolateColor;
 
+      if (groupHashMap.has(newNode.groupId)){
+        var cGroup = groupHashMap.get(newNode.groupId);
+        newNode.colors = {};
+        newNode.colors = cGroup.colors;
+        newNode.interpolateColor = cGroup.interpolateColor;
+      }
+      else {
+        newNode.colors = {};
+        newNode.colors = defaultColors;
+        newNode.interpolateColor = defaultInterpolateColor;
+      }
 
       newNode.x = width;
       newNode.randomYoffset = randomIntFromInterval(-10,10);
@@ -1607,14 +1619,7 @@ function ViewTicker() {
 
   function ypositionWord(d, i) {
 
-    // console.error("ypositionWord d.sessionId: " + d.sessionId);
-
     var value;
-    // value = groupYpositionHash[d.groupId] + (0.5 * d.randomYoffset);
-    // value = groupYpositionHash[d.groupId] + (0.1 * d.randomYoffset);
-    // value = groupYpositionHash[d.groupId][d.sessionId];
-
-    // if (d.age < 0.01*nodeMaxAge) value -= 5;
 
     if (typeof groupYpositionHash[d.groupId] !== 'undefined') {
       var groupYpos = groupYpositionHash[d.groupId][d.groupId];
@@ -1634,7 +1639,7 @@ function ViewTicker() {
           numSessions--;
         }
       });
-      if (numSessions <= 0) {
+      if (numSessions == 0) {
         value = groupYpositionHash[d.groupId][d.sessionId];
         d.y = value * height / 100;
         nodes[i] = d;
@@ -1652,7 +1657,6 @@ function ViewTicker() {
       nodeHashMap.set(d.nodeId, d);
       return value + "%";
     }
-
   }
 
   function ypositionGroup(d, i) {

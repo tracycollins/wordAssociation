@@ -3,19 +3,12 @@
 "use strict";
 
 /*
-
 to create links in ticker view, need a way to track which words are the same in all streams/groups/sessions.
 then just create links between the common words in each stream
-
 should all instances of the word to be linked to all of the others? 
-
-
 hashmap
-
 word -> array of nodes
-
 when new instance of word arrives, iterate thru array of nodes and create linkskk
-
 */
 
 requirejs(["http://d3js.org/d3.v3.min.js"], function(d3) {
@@ -1526,6 +1519,7 @@ var createGroup = function(callback) {
       currentGroup.groupId = groupId;
       currentGroup.nodeId = groupId;
       currentGroup.age = 0;
+      currentGroup.ageUpdated = dateNow;
       currentGroup.ageMaxRatio = 1;
       currentGroup.lastSeen = dateNow;
       currentGroup.isGroup = true;
@@ -1677,6 +1671,7 @@ var createSession = function(callback) {
 
       currentSession.groupId = currentGroup.groupId;
       currentSession.age = 0;
+      currentSession.ageUpdated = dateNow;
       currentSession.ageMaxRatio = 1;
       currentSession.mentions++;
       currentSession.lastSeen = dateNow;

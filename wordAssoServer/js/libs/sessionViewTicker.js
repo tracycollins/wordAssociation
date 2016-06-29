@@ -28,8 +28,8 @@ function ViewTicker() {
 
   var currentMaxMentions = 2;
 
-  var age;
-  var ageMaxRatio;
+  // var age;
+  // var ageMaxRatio;
 
   var newFlagRatio = 0.01;
   var maxWords = 100;
@@ -49,15 +49,15 @@ function ViewTicker() {
   var maxSessionRows = 25;
   var maxWordRows = 25;
 
-  var marginTopGroups = 15; // %
+  var marginTopGroups = 10; // %
   var marginLeftGroups = 5;
   var marginRightGroups = 82;
 
-  var marginTopSessions = 15; // %
+  var marginTopSessions = 10; // %
   var marginLeftSessions = 5;
   var marginRightSessions = 85;
 
-  var marginTopWords = 15; // %
+  var marginTopWords = 10; // %
   var marginLeftWords = 15;
   var marginRightWords = 80;
 
@@ -221,7 +221,6 @@ function ViewTicker() {
     console.error("RESET");
 
     force.stop();
-
     forceStopped = true;
 
     groups = [];

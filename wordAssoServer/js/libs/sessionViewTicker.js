@@ -228,6 +228,8 @@ function ViewTicker() {
     nodes = [];
 
     deadNodesHash = {};
+    groupHashMap.clear();
+    groupYpositionHash = {};
 
     // newNodes = [];
     resetMouseMoveTimer();
@@ -445,7 +447,10 @@ function ViewTicker() {
         var groupIds = Object.keys(groupYpositionHash);
         groupIds.forEach(function(groupId){
           if (typeof groupYpositionHash[groupId][session.sessionId] !== 'undefined'){
-            console.log("groupYpositionHash XXX SESSION: " + session.sessionId);
+            console.log("groupYpositionHash XXX SESSION"
+              + " | " + session.groupId
+              + " | " + session.sessionId
+            );
             delete groupYpositionHash[groupId][session.sessionId];
           }
         });

@@ -340,6 +340,8 @@ function ViewTicker() {
     }
 
     var group;
+    var age;
+    var ageMaxRatio;
 
     var ageGroupsLength = groups.length - 1;
     var ageGroupsIndex = groups.length - 1;
@@ -392,6 +394,7 @@ function ViewTicker() {
     }
 
     var session;
+    var age;
 
     var ageSessionsLength = sessions.length - 1;
     var ageSessionsIndex = sessions.length - 1;
@@ -399,7 +402,6 @@ function ViewTicker() {
     for (ageSessionsIndex = ageSessionsLength; ageSessionsIndex >= 0; ageSessionsIndex -= 1) {
 
       session = sessions[ageSessionsIndex];
-
       age = session.age + (ageRate * (dateNow - session.ageUpdated));
 
       if (session.isDead) {
@@ -497,6 +499,8 @@ function ViewTicker() {
     }
 
     var node;
+    var age;
+    var ageMaxRatio;
 
     var ageNodesLength = nodes.length - 1;
     var ageNodesIndex = nodes.length - 1;
@@ -606,7 +610,7 @@ function ViewTicker() {
     var group;
 
     for (ageGroupsIndex = ageGroupsLength; ageGroupsIndex >= 0; ageGroupsIndex -= 1) {
-      group = groups[ageGroupsIndex];
+      var group = groups[ageGroupsIndex];
       if (deadGroupsHash[group.groupId]) {
         nodeDeleteQueue.push(group.groupId);
         groups.splice(ageGroupsIndex, 1);

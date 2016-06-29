@@ -650,6 +650,7 @@ function ViewTicker() {
           for (var i=groups.length-1; i >= 0; i -= 1) {
             if (node.nodeId == groups[i].node.nodeId) {
               console.log("XXX GROUP | " + groups[i].node.nodeId);
+              delete groupYpositionHash[groups[i].groupId];
               groups.splice(i, 1);
               var deadLinkIds = Object.keys(node.links);
               deadLinkIds.forEach(function(deadLink){

@@ -222,6 +222,7 @@ var statsObj = {
 statsObj.group = {};
 statsObj.group.errors = 0;
 statsObj.group.hashMiss = {};
+statsObj.group.allHashMisses = {};
 
 statsObj.session.errors = 0;
 statsObj.session.previousPromptNotFound = 0;
@@ -234,6 +235,7 @@ statsObj.socket.errors = 0;
 
 statsObj.entityChannelGroup = {};
 statsObj.entityChannelGroup.hashMiss = {};
+statsObj.entityChannelGroup.allHashMisses = {};
 // ==================================================================
 // LOGS, STATS
 // ==================================================================
@@ -784,6 +786,7 @@ function updateGroups(configFile, callback){
             ));
 
             statsObj.group.hashMiss[groupId] = 1;
+            statsObj.group.allHashMisses[groupId] = 1;
 
             cb(null, "MISS");
             return;
@@ -1078,13 +1081,15 @@ function msToTime(duration) {
   var milliseconds = parseInt((duration % 1000) / 100),
     seconds = parseInt((duration / 1000) % 60),
     minutes = parseInt((duration / (1000 * 60)) % 60),
-    hours = parseInt((duration / (1000 * 60 * 60)) % 24);
+    hours = parseInt((duration / (1000 * 60 * 60)) % 24),
+    days = parseInt(duration / (1000 * 60 * 60 * 24));
 
+  days = (days < 10) ? "0" + days : days;
   hours = (hours < 10) ? "0" + hours : hours;
   minutes = (minutes < 10) ? "0" + minutes : minutes;
   seconds = (seconds < 10) ? "0" + seconds : seconds;
 
-  return hours + ":" + minutes + ":" + seconds;
+  return days + ":" + hours + ":" + minutes + ":" + seconds;
 }
 
 function msToMinutes(duration) {
@@ -5980,6 +5985,7 @@ function createSession(newSessionObj) {
           }
           else {
             statsObj.entityChannelGroup.hashMiss[sessionObj.tags.entity] = 1;
+            statsObj.entityChannelGroup.allHashMisses[sessionObj.tags.entity] = 1;
             console.log(chalkRed("--- ENTITY CHANNEL GROUP HASHMAP MISS"
               + " | " + sessionObj.tags.entity
               // + "\n" + jsonPrint(statsObj.entityChannelGroup.hashMiss)

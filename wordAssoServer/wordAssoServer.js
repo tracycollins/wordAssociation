@@ -2410,6 +2410,57 @@ function findSessionById(sessionId, callback) {
   );
 }
 
+function groupFindAllDb(options, callback) {
+
+  debug("\n=============================\nGROUPS IN DB\n----------");
+  if (options) debug("OPTIONS\n" + jsonPrint(options));
+
+  var query = {};
+
+  Group.find(query, options, function(err, groups) {
+    if (err) {
+      callback(err, null);
+      return;
+    }
+    if (groups) {
+
+      async.forEach(
+
+        groups,
+
+        function(group, callback) {
+
+          console.log(chalkDb("GID: " + group.groupId 
+            + " | N: " + group.name 
+            + " | LS: " + getTimeStamp(group.lastSeen)
+          ));
+
+          groupHashMap.set(group.groupId, group);
+          callback(null);
+
+        },
+
+        function(err) {
+          if (err) {
+            console.error("*** ERROR  groupFindAllDb\n" + err);
+            callback(err, null);
+            return;
+          } else {
+            console.log("FOUND " + groups.length + " GROUPS");
+            callback(null, groups.length);
+            return;
+          }
+        }
+      );
+
+    } else {
+      console.log("NO GROUPS FOUND");
+      callback(null, 0);
+      return;
+    }
+  });
+}
+
 function groupUpdateDb(userObj, callback){
 
   debug(chalkRed("groupUpdateDb\n" + jsonPrint(userObj)));
@@ -2471,7 +2522,6 @@ function groupUpdateDb(userObj, callback){
   }  
 }
 
-
 function entityUpdateDb(userObj, callback){
 
   debug(chalkRed("entityUpdateDb\n" + jsonPrint(userObj)));
@@ -2520,8 +2570,6 @@ function entityUpdateDb(userObj, callback){
     dbUpdateEntityQueue.enqueue(entityObj);
   }  
 }
-
-
 
 function adminUpdateDb(adminObj, callback) {
 
@@ -5216,7 +5264,17 @@ function initializeConfiguration(callback) {
                   + " | ADMIN UNIQUE IP ADDRESSES: " + numberOfAdminIps));
                 callbackParallel();
               });
+            },
+            
+            function(callbackParallel) {
+              debug(chalkInfo(moment().format(defaultDateTimeFormat) + " | GROUP HASHMAP INIT"));
+              groupFindAllDb(null, function(numberOfGroups) {
+                console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
+                  + " | GROUPS IN DB: " + numberOfGroups));
+                callbackParallel();
+              });
             }
+            
           ],
           function(err, results) { //async.parallel callbac
             if (err) {

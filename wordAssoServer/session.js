@@ -1325,10 +1325,19 @@ var processSessionQueues = function(callback) {
     session.nodeId = session.tags.entity.toLowerCase() + "_" + session.tags.channel.toLowerCase();
     session.tags.entity = session.tags.entity.toLowerCase();
     session.tags.channel = session.tags.channel.toLowerCase();
-    session.tags.group = session.tags.group.toLowerCase();
+
+    if (session.tags.group) {
+      session.tags.group = session.tags.group.toLowerCase();
+      groupCreateQueue.push(session);
+    }
+    else {
+      console.error("??? GROUP UNDEFINED ... SKIPPING"
+        + " | " + session.nodeId
+        + "\nTAGS\n" + jsonPrint(session.tags)
+      );
+    }
 
     // console.log("R< | " + "\n" + jsonPrint(session));
-    groupCreateQueue.push(session);
 
     return (callback(null, session.sessionId));
   }

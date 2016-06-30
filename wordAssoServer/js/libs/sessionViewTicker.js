@@ -24,7 +24,7 @@ function ViewTicker() {
   var groupsLengthYposition = 0;
 
   var minFontSize = 20;
-  var maxFontSize = 48;
+  var maxFontSize = 80;
 
   var currentMaxMentions = 2;
 

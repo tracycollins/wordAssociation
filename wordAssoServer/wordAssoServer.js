@@ -2834,6 +2834,7 @@ function adminFindAllDb(options, callback) {
   Admin.find(query, projections, options, function(err, admins) {
     if (err) {
       console.error(err, null);
+      callback(err);
       return;
     }
     if (admins) {

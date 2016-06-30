@@ -2522,6 +2522,57 @@ function groupUpdateDb(userObj, callback){
   }  
 }
 
+function entityFindAllDb(options, callback) {
+
+  debug("\n=============================\nENTITIES IN DB\n----------");
+  if (options) debug("OPTIONS\n" + jsonPrint(options));
+
+  var query = {};
+
+  Entity.find(query, options, function(err, entities) {
+    if (err) {
+      callback(err, null);
+      return;
+    }
+    if (groups) {
+
+      async.forEach(
+
+        entities,
+
+        function(entity, cb) {
+
+          console.log(chalkDb("GID: " + entity.entityId 
+            + " | N: " + entity.name 
+            + " | LS: " + getTimeStamp(entity.lastSeen)
+          ));
+
+          entityChannelGroupHashMap.set(entity.entityId, entity);
+          cb(null);
+
+        },
+
+        function(err) {
+          if (err) {
+            console.error("*** ERROR  entityFindAllDb\n" + err);
+            callback(err, null);
+            return;
+          } else {
+            console.log("FOUND " + entities.length + " ENTITIES");
+            callback(null, entities.length);
+            return;
+          }
+        }
+      );
+
+    } else {
+      console.log("NO ENTITIES FOUND");
+      callback(null, 0);
+      return;
+    }
+  });
+}
+
 function entityUpdateDb(userObj, callback){
 
   debug(chalkRed("entityUpdateDb\n" + jsonPrint(userObj)));
@@ -5278,6 +5329,22 @@ function initializeConfiguration(callback) {
                 else {
                   console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
                     + " | GROUPS IN DB: " + numberOfGroups));
+                  callbackParallel();
+                }
+               });
+            },
+            
+            function(callbackParallel) {
+              debug(chalkInfo(moment().format(defaultDateTimeFormat) + " | ENTITIY HASHMAP INIT"));
+              entityFindAllDb(null, function(err, numberOfEntities) {
+                if (err){
+                  console.log(chalkError(moment().format(defaultDateTimeFormat) 
+                    + " | *** entityFindAllDb ERROR: " + err));
+                  callbackParallel();
+                }
+                else {
+                  console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
+                    + " | ENTITIES IN DB: " + numberOfEntities));
                   callbackParallel();
                 }
                });

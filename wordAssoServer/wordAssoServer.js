@@ -2428,7 +2428,7 @@ function groupFindAllDb(options, callback) {
 
         groups,
 
-        function(group, callback) {
+        function(group, cb) {
 
           console.log(chalkDb("GID: " + group.groupId 
             + " | N: " + group.name 
@@ -2436,7 +2436,7 @@ function groupFindAllDb(options, callback) {
           ));
 
           groupHashMap.set(group.groupId, group);
-          callback(null);
+          cb(null);
 
         },
 
@@ -5268,11 +5268,18 @@ function initializeConfiguration(callback) {
             
             function(callbackParallel) {
               debug(chalkInfo(moment().format(defaultDateTimeFormat) + " | GROUP HASHMAP INIT"));
-              groupFindAllDb(null, function(numberOfGroups) {
-                console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
-                  + " | GROUPS IN DB: " + numberOfGroups));
-                callbackParallel();
-              });
+              groupFindAllDb(null, function(err, numberOfGroups) {
+                if (err){
+                  console.log(chalkError(moment().format(defaultDateTimeFormat) 
+                    + " | *** groupFindAllDb ERROR: " + err));
+                  callbackParallel();
+                }
+                else {
+                  console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
+                    + " | GROUPS IN DB: " + numberOfGroups));
+                  callbackParallel();
+                }
+               });
             }
             
           ],

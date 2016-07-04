@@ -69,12 +69,12 @@ exports.getWordVariation = function(word, wordTypeArray, wordVariation, callback
 	debug("getWordVariation | word: " + word);
 
 	var query = { nodeId: word };
-  var projections = {
-    noun: true,
-    verb: true,
-    adjective: true,
-    adverb: true
-  };
+	var projections = {
+		noun: true,
+		verb: true,
+		adjective: true,
+		adverb: true
+	};
 
 	Word.findOne(query, function(err, wordObj) {
 		if (err) {
@@ -143,6 +143,8 @@ exports.getRandomWord = function(callback){
 
 exports.findOneWord = function(word, incMentions, callback) {
 
+	if (typeof word.raw === 'undefined') word.raw = word.nodeId;
+
 	debug("findOneWord:" + JSON.stringify(word, null, 2));
 
 	var inc = 0;
@@ -153,10 +155,7 @@ exports.findOneWord = function(word, incMentions, callback) {
 					$inc: { mentions: inc }, 
 					$set: { 
 						nodeId: word.nodeId,
-						// noun: word.noun,
-						// verb: word.verb,
-						// adjective: word.adjective,
-						// adverb: word.adverb,
+						raw: word.raw,
 						lastSeen: moment(),
 						bhtAlt: word.bhtAlt
 					},

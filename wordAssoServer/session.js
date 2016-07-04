@@ -1326,8 +1326,8 @@ var processSessionQueues = function(callback) {
     session.tags.entity = session.tags.entity.toLowerCase();
     session.tags.channel = session.tags.channel.toLowerCase();
 
-    if (session.tags.group) {
-      session.tags.group = session.tags.group.toLowerCase();
+    if (typeof session.tags.group !== 'undefined') {
+      session.tags.group = session.tags.group;
       groupCreateQueue.push(session);
     }
     else {
@@ -1424,7 +1424,9 @@ var createGroup = function(callback) {
     var dateNow = moment().valueOf();
     var sessUpdate = groupCreateQueue.shift();
 
-    var groupId = sessUpdate.tags.group.toLowerCase();
+    // var groupId = sessUpdate.tags.group.toLowerCase();
+    var groupId = sessUpdate.tags.group.groupId;
+    var groupName = sessUpdate.tags.group.name;
 
     // console.warn("createGroup" + " | " + groupId);
 
@@ -1433,7 +1435,7 @@ var createGroup = function(callback) {
 
     if (groupDeleteHashMap.has(groupId)) {
       console.warn("createGroup: " 
-        + groupId 
+        + groupId + " | " + groupName + " | "
         + " GROUP IN DELETE HASH MAP ... SKIPPING"
       );
       return (callback(null, null));
@@ -1463,7 +1465,8 @@ var createGroup = function(callback) {
       currentGroup.age = 0;
       currentGroup.ageMaxRatio = 1;
       currentGroup.lastSeen = dateNow;
-      currentGroup.text = groupId;
+      // currentGroup.text = groupId;
+      currentGroup.text = groupName;
       currentGroup.wordChainIndex = sessUpdate.wordChainIndex;
 
 
@@ -1526,6 +1529,7 @@ var createGroup = function(callback) {
       // );
 
       currentGroup.groupId = groupId;
+      currentGroup.name = groupName;
       currentGroup.nodeId = groupId;
       currentGroup.age = 0;
       currentGroup.ageUpdated = dateNow;
@@ -1538,7 +1542,7 @@ var createGroup = function(callback) {
       currentGroup.totalWordChainIndex = sessUpdate.wordChainIndex;
       currentGroup.tags = {};
       currentGroup.tags = sessUpdate.tags;
-      currentGroup.text = groupId;
+      currentGroup.text = groupName;
       currentGroup.source = sessUpdate.source;
       currentGroup.source.lastSeen = dateNow;
       currentGroup.target = sessUpdate.target;
@@ -1627,8 +1631,12 @@ var createSession = function(callback) {
     var currentGroup = {};
     var currentSession = {};
 
-    if (groupHashMap.has(sessUpdate.tags.group)) {
-      currentGroup = groupHashMap.get(sessUpdate.tags.group);
+    if (groupHashMap.has(sessUpdate.tags.group.groupId)) {
+      currentGroup = groupHashMap.get(sessUpdate.tags.group.groupId);
+      // console.warn("currentGroup\n" + jsonPrint(currentGroup)); 
+    }
+    else {
+      console.error("currentGroup\n" + jsonPrint(currentGroup)); 
     }
 
     if (sessionDeleteHashMap.has(sessUpdate.sessionId)) {
@@ -1665,8 +1673,8 @@ var createSession = function(callback) {
       if (nodeHashMap.has(currentSession.node.nodeId)) {
         currentSession.node = nodeHashMap.get(currentSession.node.nodeId);
       }
-      if (nodeHashMap.has(sessUpdate.tags.group)) {
-        currentGroup.node = nodeHashMap.get(sessUpdate.tags.group);
+      if (nodeHashMap.has(sessUpdate.tags.group.groupId)) {
+        currentGroup.node = nodeHashMap.get(sessUpdate.tags.group.groupId);
       }
 
       var prevLatestNodeId = currentSession.latestNodeId;
@@ -1782,8 +1790,8 @@ var createSession = function(callback) {
       currentSession.node.wordChainIndex = sessUpdate.wordChainIndex;
       currentSession.node.mentions = sessUpdate.wordChainIndex;
       currentSession.node.text = sessUpdate.tags.entity + "[" + sessUpdate.tags.channel + "]";
-      currentSession.node.x = currentSession.initialPosition.x + randomIntFromInterval(-10,10);
-      currentSession.node.y = currentSession.initialPosition.y + randomIntFromInterval(-10,10);
+      currentSession.node.x = currentGroup.initialPosition.x + randomIntFromInterval(-10,10);
+      currentSession.node.y = currentGroup.initialPosition.y + randomIntFromInterval(-10,10);
 
       currentSession.node.colors = {};
       currentSession.node.colors = currentGroup.colors;
@@ -1813,6 +1821,7 @@ var createSession = function(callback) {
         addToHashMap(sessionHashMap, currentSession.nodeId, currentSession, function(cSession) {
           console.log("\nNEW SESSION"
             + "\nGRP: " + currentGroup.groupId
+            + "\nGRPN: " + currentGroup.name
             + "\nUID: " + cSession.userId 
             + "\nNID: " + cSession.nodeId 
             + "\nSID: " + cSession.sessionId 
@@ -2130,7 +2139,7 @@ var createLink = function(callback) {
 
     // console.warn("createLink session\n" + jsonPrint(session));
 
-    var currentGroup = groupHashMap.get(session.tags.group);
+    var currentGroup = groupHashMap.get(session.tags.group.groupId);
 
     // console.warn("createLink currentGroup\n" + jsonPrint(currentGroup));
 
@@ -2188,7 +2197,7 @@ var createLink = function(callback) {
       var sessionLinkId = session.node.nodeId + "_" + session.latestNodeId;
       var prevSessionLinkId = session.node.nodeId + "_" + session.prevLatestNodeId;
       if (linkHashMap.has(prevSessionLinkId)){
-        console.log("prevSessionLinkId: " + jsonPrint(prevSessionLinkId));
+        // console.log("prevSessionLinkId: " + jsonPrint(prevSessionLinkId));
       }
       if (!linkHashMap.has(sessionLinkId)){
         var newSessionLink = {

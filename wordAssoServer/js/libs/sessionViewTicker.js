@@ -733,7 +733,7 @@ function ViewTicker() {
 
     groupWords
       .text(function(d) {
-        return d.text;
+        return d.name;
       })
       .style("fill", function(d) {
         if (d.age < 0.01*nodeMaxAge) {
@@ -764,7 +764,8 @@ function ViewTicker() {
       .attr("x", xposition)
       .attr("y", ypositionGroup)
       .text(function(d) {
-        return d.text;
+        // return d.text;
+        return d.name;
       })
       .style("fill", "FFFFFF")
       .style("fill-opacity", 1.0)
@@ -1232,6 +1233,7 @@ function ViewTicker() {
   }
 
   this.addGroup = function(newGroup) {
+    console.log("addGroup\n" + jsonPrint(newGroup));
     force.stop();
     forceStopped = true;
     groups.push(newGroup);

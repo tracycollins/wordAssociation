@@ -808,7 +808,7 @@ function ViewTicker() {
 
     nodeWords
       .text(function(d) {
-        return d.text;
+        return d.raw;
       })
       .style("font-size", function(d){
         if (d.isIgnored) {

@@ -1354,6 +1354,7 @@ var readUpdateSessionViewQueue = setInterval(function() {
 
       sessionSmallObj.source = {
         nodeId: sessionUpdateObj.source.nodeId,
+        raw: sessionUpdateObj.source.raw,
         wordChainIndex: sessionUpdateObj.source.wordChainIndex,
         links: {},
         mentions: sessionUpdateObj.source.mentions
@@ -1362,6 +1363,7 @@ var readUpdateSessionViewQueue = setInterval(function() {
       if (sessionUpdateObj.target) {
         sessionSmallObj.target = {
           nodeId: sessionUpdateObj.target.nodeId,
+          raw: sessionUpdateObj.target.raw,
           wordChainIndex: sessionUpdateObj.target.wordChainIndex,
           links: {},
           mentions: sessionUpdateObj.target.mentions
@@ -1372,9 +1374,9 @@ var readUpdateSessionViewQueue = setInterval(function() {
         debug(chalkLog("S>" + " | " + sessionUpdateObj.userId
           // + " | " + sessionUpdateObj.sessionId
           // + " | WCI: " + sessionUpdateObj.wordChainIndex
-          + " | " + sessionUpdateObj.source.nodeId 
+          + " | " + sessionUpdateObj.source.raw 
           + " [" + sessionUpdateObj.source.wordChainIndex + "]" 
-          + " > " + sessionUpdateObj.target.nodeId 
+          + " > " + sessionUpdateObj.target.raw 
           + " [" + sessionUpdateObj.target.wordChainIndex + "]"
         ));
       } else {
@@ -4745,7 +4747,8 @@ var readResponseQueue = setInterval(function() {
     var currentSessionObj = sessionCache.get(socketId);
 
     if (typeof currentSessionObj === 'undefined') {
-      console.log(chalkWarn("??? SESSION NOT IN CACHE ON RESPONSE Q READ" + " | responseQueue: " + responseQueue.size() 
+      console.log(chalkWarn("??? SESSION NOT IN CACHE ON RESPONSE Q READ" 
+        + " | responseQueue: " + responseQueue.size() 
         + " | " + socketId + " | ABORTING SESSION"));
 
       sessionQueue.enqueue({
@@ -6166,6 +6169,7 @@ function createSession(newSessionObj) {
   });
 
   socket.on("RESPONSE_WORD_OBJ", function(rxInObj) {
+    console.log("rxInObj\n" + jsonPrint(rxInObj));
     if (responseQueue.size() < MAX_RESPONSE_QUEUE_SIZE) {
       var responseInObj = rxInObj;
       responseInObj.socketId = socket.id;

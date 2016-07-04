@@ -6169,7 +6169,7 @@ function createSession(newSessionObj) {
   });
 
   socket.on("RESPONSE_WORD_OBJ", function(rxInObj) {
-    console.log("rxInObj\n" + jsonPrint(rxInObj));
+    // console.log("rxInObj\n" + jsonPrint(rxInObj));
     if (responseQueue.size() < MAX_RESPONSE_QUEUE_SIZE) {
       var responseInObj = rxInObj;
       responseInObj.socketId = socket.id;

@@ -7,6 +7,9 @@ var WordSchema = new Schema({
 		type: String,
 		unique: true
 	},
+	raw: { 
+		type: String
+	},
 	createdAt: { 
 		type: Date
 	},

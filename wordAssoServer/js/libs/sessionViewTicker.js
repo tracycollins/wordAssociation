@@ -808,7 +808,12 @@ function ViewTicker() {
 
     nodeWords
       .text(function(d) {
-        return d.raw;
+        if (d.raw == '&amp;') {
+          return '&';
+        }
+        else {
+          return d.raw;
+        }
       })
       .style("font-size", function(d){
         if (d.isIgnored) {

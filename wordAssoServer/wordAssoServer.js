@@ -1406,7 +1406,7 @@ function updateSessionViews(sessionUpdateObj) {
   // console.log(chalkRed("updateSessionViews | sessionUpdateObj\n" + jsonPrint(sessionUpdateObj)));
 
   if (entityChannelGroupHashMap.has(sessionUpdateObj.tags.entity)){
-    sessionUpdateObj.tags.group = entityChannelGroupHashMap.get(sessionUpdateObj.tags.entity).groupId;
+    sessionUpdateObj.tags.group = entityChannelGroupHashMap.get(sessionUpdateObj.tags.entity);
     updateSessionViewQueue.push(sessionUpdateObj);
   }
 }

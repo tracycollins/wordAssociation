@@ -860,6 +860,9 @@ socket.on("disconnect", function() {
   console.log("*** DISCONNECTED FROM HOST ... DELETING ALL SESSIONS ...");
   deleteAllSessions(function() {
     console.log("DELETED ALL SESSIONS");
+    groupHashMap.clear();
+    sessionDeleteHashMap.clear();
+    currentSessionView.resize();
     updateSessionsReady = true;
   });
 });
@@ -873,6 +876,9 @@ socket.on("error", function(error) {
   console.error("*** SOCKET ERROR\n" + error);
   deleteAllSessions(function() {
     console.log("DELETED ALL SESSIONS");
+    groupHashMap.clear();
+    sessionDeleteHashMap.clear();
+    currentSessionView.resize();
     updateSessionsReady = true;
   });
 });
@@ -886,6 +892,9 @@ socket.on("connect_error", function(error) {
   console.error("*** SOCKET CONNECT ERROR\n" + error);
   deleteAllSessions(function() {
     console.log("DELETED ALL SESSIONS");
+    groupHashMap.clear();
+    sessionDeleteHashMap.clear();
+    currentSessionView.resize();
     updateSessionsReady = true;
   });
 });
@@ -899,7 +908,10 @@ socket.on("reconnect_error", function(error) {
   console.error("*** SOCKET RECONNECT ERROR\n" + error);
   deleteAllSessions(function() {
     console.log("DELETED ALL SESSIONS");
-    updateSessionsReady = true;
+    groupHashMap.clear();
+    sessionDeleteHashMap.clear();
+    currentSessionView.resize();
+  updateSessionsReady = true;
   });
 });
 

@@ -1355,6 +1355,7 @@ var readUpdateSessionViewQueue = setInterval(function() {
       sessionSmallObj.source = {
         nodeId: sessionUpdateObj.source.nodeId,
         raw: sessionUpdateObj.source.raw,
+        url: sessionUpdateObj.source.url,
         wordChainIndex: sessionUpdateObj.source.wordChainIndex,
         links: {},
         mentions: sessionUpdateObj.source.mentions
@@ -1364,6 +1365,7 @@ var readUpdateSessionViewQueue = setInterval(function() {
         sessionSmallObj.target = {
           nodeId: sessionUpdateObj.target.nodeId,
           raw: sessionUpdateObj.target.raw,
+          url: sessionUpdateObj.target.url,
           wordChainIndex: sessionUpdateObj.target.wordChainIndex,
           links: {},
           mentions: sessionUpdateObj.target.mentions
@@ -1371,19 +1373,22 @@ var readUpdateSessionViewQueue = setInterval(function() {
       }
 
       if (sessionUpdateObj.target) {
-        debug(chalkLog("S>" + " | " + sessionUpdateObj.userId
+        console.log(chalkLog("S>" + " | " + sessionUpdateObj.userId
           // + " | " + sessionUpdateObj.sessionId
           // + " | WCI: " + sessionUpdateObj.wordChainIndex
+          + " | URL: " + sessionUpdateObj.source.url
           + " | " + sessionUpdateObj.source.raw 
           + " [" + sessionUpdateObj.source.wordChainIndex + "]" 
           + " > " + sessionUpdateObj.target.raw 
           + " [" + sessionUpdateObj.target.wordChainIndex + "]"
         ));
       } else {
-        debug(chalkLog("SNT>" + " | " + sessionUpdateObj.userId
+        console.log(chalkLog("SNT>" + " | " + sessionUpdateObj.userId
           // + " | " + sessionUpdateObj.sessionId
           // + " | WCI: " + sessionUpdateObj.wordChainIndex
-          + " | " + sessionUpdateObj.source.nodeId + " [" + sessionUpdateObj.source.wordChainIndex + "]"
+          + " | URL: " + sessionUpdateObj.source.url
+          + " | " + sessionUpdateObj.source.nodeId 
+          + " [" + sessionUpdateObj.source.wordChainIndex + "]"
         ));
       }
 
@@ -1748,11 +1753,13 @@ function dbUpdateWord(wordObj, incMentions, callback) {
       callback(err, wordObj);
     } else {
 
-      debug("dbUpdateWord ->- DB UPDATE | " 
+      console.log("dbUpdateWord ->- DB UPDATE | " 
         + word.nodeId 
         + " | MNS: " + word.mentions 
+        + " | URL: " + word.url 
         + " | BHT SEARCHED: " + word.bhtSearched 
-        + " | BHT FOUND: " + word.bhtFound);
+        + " | BHT FOUND: " + word.bhtFound
+      );
 
       debug(JSON.stringify(word, null, 3));
 
@@ -4897,6 +4904,7 @@ var readResponseQueue = setInterval(function() {
       + " | ENT: " + responseInObj.tags.entity 
       + " | CH: " + responseInObj.tags.channel 
       + " | NID: " + responseInObj.nodeId 
+      + " | URL: " + responseInObj.url 
       + " [" + currentSessionObj.wordChainIndex + "]" 
       + " < " + previousPrompt
     ));

@@ -156,6 +156,7 @@ exports.findOneWord = function(word, incMentions, callback) {
 					$set: { 
 						nodeId: word.nodeId,
 						raw: word.raw,
+						url: word.url,
 						lastSeen: moment(),
 						bhtAlt: word.bhtAlt
 					},

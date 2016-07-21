@@ -1329,6 +1329,7 @@ function createSession (callback){
       currentSession.nodeId = sessUpdate.userId;
       currentSession.userId = sessUpdate.userId;
       currentSession.text =  sessUpdate.userId;
+      currentSession.url =  sessUpdate.url;
       currentSession.source = sessUpdate.source;
       currentSession.target = sessUpdate.target;
       currentSession.latestNodeId = sessUpdate.source.nodeId;
@@ -1443,6 +1444,7 @@ function createNode (sessionId, callback) {
           sourceNode.ageUpdated = dateNow;
           sourceNode.lastSeen = dateNow;
           sourceNode.mentions = session.source.mentions;
+          if (typeof session.source.url !== 'undefined') sourceNode.url = session.source.url;
           sourceNode.text = sourceNodeId;
           sourceNode.latestNode = true;
           sourceNode.colors = session.colors;
@@ -1464,6 +1466,7 @@ function createNode (sessionId, callback) {
           sourceNode.ageUpdated = dateNow;
           sourceNode.colors = session.colors;
           sourceNode.interpolateColor = session.interpolateColor;
+          if (typeof session.source.url !== 'undefined') sourceNode.url = session.source.url;
           sourceNode.text = sourceNodeId ;
           sourceNode.latestNode = true;
 
@@ -1487,6 +1490,7 @@ function createNode (sessionId, callback) {
           targetNode.lastSeen = dateNow;
           targetNode.mentions = session.target.mentions;
           targetNode.text = targetNodeId;
+          if (typeof session.target.url !== 'undefined') targetNode.url = session.target.url;
           targetNode.colors = session.colors;
           targetNode.interpolateColor = session.interpolateColor;
           targetNode.latestNode = false;
@@ -1507,6 +1511,7 @@ function createNode (sessionId, callback) {
           targetNode.ageUpdated = dateNow;
           targetNode.colors = session.colors;
           targetNode.interpolateColor = session.interpolateColor;
+          if (typeof session.target.url !== 'undefined') targetNode.url = session.target.url;
           targetNode.text = targetNodeId ;
           targetNode.latestNode = false;
 

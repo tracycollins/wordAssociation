@@ -10,6 +10,9 @@ var WordSchema = new Schema({
 	raw: { 
 		type: String
 	},
+	url: { 
+		type: String
+	},
 	createdAt: { 
 		type: Date
 	},

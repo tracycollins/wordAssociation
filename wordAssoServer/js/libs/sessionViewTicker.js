@@ -629,7 +629,6 @@ function ViewTicker() {
     }
   }
 
-
   function processDeadNodesHash(callback) {
 
     if (Object.keys(deadNodesHash).length == 0) {
@@ -882,6 +881,7 @@ function ViewTicker() {
       })
       .on("mouseout", nodeMouseOut)
       .on("mouseover", nodeMouseOver)
+      .on("click", nodeClick)
       .transition()
         .duration(defaultFadeDuration)
         .attr("x", xposition)
@@ -973,29 +973,6 @@ function ViewTicker() {
 
     return (callback(null, "updateLinks"));
   }
-
-
-  // function updateRecentNodes(node) {
-
-  //   var newNodeFlag = true;
-  //   var i = 0;
-  //   for (i = recentNodeArray.length - 1; i >= 0; i--) {
-
-  //     if (recentNodeArray[i].nodeId == node.nodeId) {
-  //       newNodeFlag = false;
-  //       recentNodeArray.splice(i, 1);
-  //     }
-  //   }
-
-  //   if ((i < 0) && (newNodeFlag)) {
-  //     newNodeFlag = false;
-  //     recentNodeArray.unshift(node);
-  //   }
-
-  //   if (recentNodeArray.length > maxRecentWords) {
-  //     recentNodeArray.pop();
-  //   };
-  // }
 
   function updateTickerDisplay() {
 
@@ -1172,6 +1149,7 @@ function ViewTicker() {
     var tooltipString = nodeId 
       + "<br>GROUP: " + d.groupId 
       + "<br>CHAN: " + d.channel 
+      + "<br>URL: " + d.url 
       // + "<br>WO: " + d.widthOffset 
       + "<br>WCI: " + d.wordChainIndex 
       + "<br>MENTIONS: " + mentions 
@@ -1218,6 +1196,10 @@ function ViewTicker() {
 
   function nodeFill(age) {
     return fillColorScale(age);
+  }
+
+  function nodeClick(d) {
+    window.open(d.url, '_blank');
   }
 
   // ===================================================================

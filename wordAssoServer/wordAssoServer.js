@@ -1373,7 +1373,7 @@ var readUpdateSessionViewQueue = setInterval(function() {
       }
 
       if (sessionUpdateObj.target) {
-        console.log(chalkLog("S>" + " | " + sessionUpdateObj.userId
+        debug(chalkLog("S>" + " | " + sessionUpdateObj.userId
           // + " | " + sessionUpdateObj.sessionId
           // + " | WCI: " + sessionUpdateObj.wordChainIndex
           + " | URL: " + sessionUpdateObj.source.url
@@ -1383,7 +1383,7 @@ var readUpdateSessionViewQueue = setInterval(function() {
           + " [" + sessionUpdateObj.target.wordChainIndex + "]"
         ));
       } else {
-        console.log(chalkLog("SNT>" + " | " + sessionUpdateObj.userId
+        debug(chalkLog("SNT>" + " | " + sessionUpdateObj.userId
           // + " | " + sessionUpdateObj.sessionId
           // + " | WCI: " + sessionUpdateObj.wordChainIndex
           + " | URL: " + sessionUpdateObj.source.url
@@ -1753,7 +1753,7 @@ function dbUpdateWord(wordObj, incMentions, callback) {
       callback(err, wordObj);
     } else {
 
-      console.log("dbUpdateWord ->- DB UPDATE | " 
+      debug("dbUpdateWord ->- DB UPDATE | " 
         + word.nodeId 
         + " | MNS: " + word.mentions 
         + " | URL: " + word.url 
@@ -4904,7 +4904,7 @@ var readResponseQueue = setInterval(function() {
       + " | ENT: " + responseInObj.tags.entity 
       + " | CH: " + responseInObj.tags.channel 
       + " | NID: " + responseInObj.nodeId 
-      + " | URL: " + responseInObj.url 
+      // + " | URL: " + responseInObj.url 
       + " [" + currentSessionObj.wordChainIndex + "]" 
       + " < " + previousPrompt
     ));

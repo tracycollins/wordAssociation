@@ -350,6 +350,13 @@ function setMaxAgeSliderValue(value) {
 
 
 function updateControlPanel() {
+  if (config.antonymFlag) {
+    document.getElementById("antonymButton").style.color = "red";
+    document.getElementById("antonymButton").style.border = "2px solid red";
+  } else {
+    document.getElementById("antonymButton").style.color = "#888888";
+    document.getElementById("antonymButton").style.border = "1px solid white";
+  }
   if (config.pauseFlag) {
     document.getElementById("pauseToggleButton").style.color = "red";
     document.getElementById("pauseToggleButton").style.border = "2px solid red";
@@ -378,7 +385,8 @@ function updateControlPanel() {
     document.getElementById("removeDeadNodeButton").style.color = "#888888";
     document.getElementById("removeDeadNodeButton").style.border = "1px solid white";
   }
-  if ((config.sessionViewType == 'force') || (config.sessionViewType == 'ticker')){  
+  // if ((config.sessionViewType == 'force') || (config.sessionViewType == 'ticker')){  
+  if (config.sessionViewType == 'force'){  
     if (config.disableLinks) {
       document.getElementById("disableLinksButton").style.color = "red";
       document.getElementById("disableLinksButton").style.border = "2px solid red";
@@ -449,6 +457,14 @@ function createControlPanel() {
     id: 'statusSession2Id',
     class: 'statusText',
     text: 'NODES: ' + 0
+  }
+
+  var antonymButton = {
+    type: 'BUTTON',
+    id: 'antonymButton',
+    class: 'button',
+    onclick: 'toggleAntonym()',
+    text: 'ANT'
   }
 
   var resetButton = {
@@ -535,11 +551,17 @@ function createControlPanel() {
 
   switch (config.sessionViewType) {
     case 'force':
-      // tableCreateRow(controlTableHead, optionsHead, ['FORCE VIEW CONROL TABLE']);
-      // tableCreateRow(controlTableBody, optionsBody, ['FULLSCREEN', 'STATS', 'TEST', 'RESET', 'NODE', 'LINK']);
+// tableCreateRow(controlTableHead, optionsHead, ['FORCE VIEW CONROL TABLE']);
+// tableCreateRow(controlTableBody, optionsBody, ['FULLSCREEN', 'STATS', 'TEST', 'RESET', 'NODE', 'LINK']);
       tableCreateRow(controlTableBody, optionsBody, [status]);
       tableCreateRow(controlTableBody, optionsBody, [status2]);
-      tableCreateRow(controlTableBody, optionsBody, [fullscreenButton, pauseButton, statsButton, testModeButton, nodeCreateButton, removeDeadNodeButton, disableLinksButton]);
+      tableCreateRow(controlTableBody, 
+        optionsBody, 
+        [
+          fullscreenButton, 
+          pauseButton, 
+          statsButton, 
+          testModeButton, nodeCreateButton, removeDeadNodeButton, disableLinksButton]);
       tableCreateRow(controlSliderTable, optionsBody, [resetButton]);
       tableCreateRow(controlSliderTable, optionsBody, ['MAX AGE', maxAgeSlider]);
       tableCreateRow(controlSliderTable, optionsBody, ['CHARGE', chargeSlider]);
@@ -551,7 +573,19 @@ function createControlPanel() {
       // tableCreateRow(controlTableHead, optionsHead, ['HISTOGRAM VIEW CONROL TABLE']);
       tableCreateRow(controlTableBody, optionsBody, [status]);
       tableCreateRow(controlTableBody, optionsBody, [status2]);
-      tableCreateRow(controlTableBody, optionsBody, [fullscreenButton, pauseButton, statsButton, testModeButton, resetButton, nodeCreateButton, removeDeadNodeButton, disableLinksButton]);
+      tableCreateRow(controlTableBody, 
+        optionsBody, 
+        [
+          fullscreenButton, 
+          pauseButton, 
+          statsButton, 
+          testModeButton, 
+          resetButton, 
+          nodeCreateButton, 
+          removeDeadNodeButton,
+          antonymButton
+        ]
+      );
       tableCreateRow(controlSliderTable, optionsBody, [resetButton]);
       tableCreateRow(controlSliderTable, optionsBody, ['MAX AGE', maxAgeSlider]);
       // tableCreateRow(controlSliderTable, optionsBody, ['CHARGE', chargeSlider]);
@@ -564,7 +598,12 @@ function createControlPanel() {
       // tableCreateRow(controlTableHead, optionsHead, ['HISTOGRAM VIEW CONROL TABLE']);
       tableCreateRow(controlTableBody, optionsBody, [status]);
       tableCreateRow(controlTableBody, optionsBody, [status2]);
-      tableCreateRow(controlTableBody, optionsBody, [fullscreenButton, pauseButton, statsButton, testModeButton, resetButton, nodeCreateButton, removeDeadNodeButton]);
+      tableCreateRow(controlTableBody, 
+        optionsBody, 
+        [
+          fullscreenButton, 
+          pauseButton, 
+          statsButton, testModeButton, resetButton, nodeCreateButton, removeDeadNodeButton]);
       tableCreateRow(controlSliderTable, optionsBody, [resetButton]);
       tableCreateRow(controlSliderTable, optionsBody, ['MAX AGE', maxAgeSlider]);
 
@@ -572,10 +611,22 @@ function createControlPanel() {
     default:
       // tableCreateRow(controlTableHead, optionsHead, ['CONROL TABLE HEAD']);
       tableCreateRow(controlTableBody, optionsBody, [status]);
-      tableCreateRow(controlTableBody, optionsBody, [fullscreenButton, pauseButton, statsButton, testModeButton, resetButton, nodeCreateButton, removeDeadNodeButton]);
+      tableCreateRow(controlTableBody, 
+        optionsBody, 
+        [
+          fullscreenButton, 
+          pauseButton, 
+          statsButton, testModeButton, resetButton, nodeCreateButton, removeDeadNodeButton]);
       break;
   }
 
+  updateControlPanel(config.sessionViewType);
+}
+
+function toggleAntonym() {
+  config.antonymFlag = !config.antonymFlag;
+  currentSessionView.setAntonym(config.antonymFlag);
+  console.warn("TOGGLE ANT: " + config.antonymFlag);
   updateControlPanel(config.sessionViewType);
 }
 
@@ -1189,23 +1240,27 @@ socket.on("HEARTBEAT", function(heartbeat) {
 
 socket.on("CONFIG_CHANGE", function(rxConfig) {
 
-  console.log("\n-----------------------\nRX CONFIG_CHANGE\n" + JSON.stringify(rxConfig, null, 3) + "\n------------------------\n");
+  console.log("\n-----------------------\nRX CONFIG_CHANGE\n" 
+    + JSON.stringify(rxConfig, null, 3) + "\n------------------------\n");
 
   if (rxConfig.testMode !== 'undefined') {
     config.testMode = rxConfig.testMode;
-    console.log("\n*** ENV CHANGE: TEST_MODE:  WAS: " + previousConfig.testMode + " | NOW: " + config.testMode + "\n");
+    console.log("\n*** ENV CHANGE: TEST_MODE:  WAS: " 
+      + previousConfig.testMode + " | NOW: " + config.testMode + "\n");
     previousConfig.testMode = config.testMode;
   }
 
   if (rxConfig.testSendInterval !== 'undefined') {
     config.testSendInterval = rxConfig.testSendInterval;
-    console.log("\n*** ENV CHANGE: TEST_SEND_INTERVAL: WAS: " + previousConfig.testSendInterval + " | NOW: " + config.testSendInterval + "\n");
+    console.log("\n*** ENV CHANGE: TEST_SEND_INTERVAL: WAS: " 
+      + previousConfig.testSendInterval + " | NOW: " + config.testSendInterval + "\n");
     previousConfig.testSendInterval = config.testSendInterval;
   }
 
   if (rxConfig.nodeMaxAge !== 'undefined') {
     config.nodeMaxAge = rxConfig.nodeMaxAge;
-    console.log("\n*** ENV CHANGE: NODE_MAX_AGE: WAS: " + previousConfig.nodeMaxAge + " | NOW: " + config.nodeMaxAge + "\n");
+    console.log("\n*** ENV CHANGE: NODE_MAX_AGE: WAS: " 
+      + previousConfig.nodeMaxAge + " | NOW: " + config.nodeMaxAge + "\n");
     nodeMaxAge = config.nodeMaxAge;
     currentSessionView.setMaxAge(rxConfig.nodeMaxAge);
     previousConfig.nodeMaxAge = config.nodeMaxAge;
@@ -1230,7 +1285,8 @@ socket.on("SESSION_ABORT", function(rxSessionObject) {
 
 socket.on("SESSION_DELETE", function(rxSessionObject) {
   var rxObj = rxSessionObject;
-  rxObj.session.nodeId = rxObj.session.user.tags.entity.toLowerCase() + "_" + rxObj.session.user.tags.channel.toLowerCase();
+  rxObj.session.nodeId = rxObj.session.user.tags.entity.toLowerCase() 
+    + "_" + rxObj.session.user.tags.channel.toLowerCase();
   if (sessionHashMap.has(rxObj.session.nodeId)) {
     console.log("SESSION_DELETE" 
       + " | " + rxObj.session.nodeId
@@ -1273,7 +1329,8 @@ socket.on("SESSION_UPDATE", function(rxSessionObject) {
     
   } else if (sessionMode && (rxObj.sessionId !== currentSession.sessionId)) {
     if (debug) {
-      console.log("SKIP SESSION_UPDATE: " + rxObj.sessionId + " | CURRENT: " + currentSession.sessionId);
+      console.log("SKIP SESSION_UPDATE: " + rxObj.sessionId 
+        + " | CURRENT: " + currentSession.sessionId);
     }
   } else if (rxSessionUpdateQueue.length < MAX_RX_QUEUE) {
 
@@ -1499,8 +1556,8 @@ var createGroup = function(callback) {
       currentGroup.node.mentions++;
 
       currentGroup.node.wordChainIndex = sessUpdate.wordChainIndex;
-      currentGroup.node.sessionWordChainIndex[sessUpdate.nodeId] = sessUpdate.wordChainIndex;  // per session wci
-      currentGroup.node.totalWordChainIndex = sum(currentGroup.node.sessionWordChainIndex);  // aggregate wci
+      currentGroup.node.sessionWordChainIndex[sessUpdate.nodeId] = sessUpdate.wordChainIndex; 
+      currentGroup.node.totalWordChainIndex = sum(currentGroup.node.sessionWordChainIndex);
 
       // update group totalWordChainIndex
       currentGroup.totalWordChainIndex = currentGroup.node.totalWordChainIndex;
@@ -1590,8 +1647,8 @@ var createGroup = function(callback) {
 
       currentGroup.node.wordChainIndex = sessUpdate.wordChainIndex;
       currentGroup.node.sessionWordChainIndex = {};  // per session wci
-      currentGroup.node.sessionWordChainIndex[sessUpdate.nodeId] = sessUpdate.wordChainIndex;  // per session wci
-      currentGroup.node.totalWordChainIndex = sum(currentGroup.node.sessionWordChainIndex);  // aggregate wci
+      currentGroup.node.sessionWordChainIndex[sessUpdate.nodeId] = sessUpdate.wordChainIndex; 
+      currentGroup.node.totalWordChainIndex = sum(currentGroup.node.sessionWordChainIndex);  
 
       currentGroup.node.mentions = 1;
       currentGroup.node.text = groupId;
@@ -2140,7 +2197,9 @@ var createNode = function(callback) {
 
         addToHashMap(sessionHashMap, session.nodeId, session, function(cSession) {
     // console.warn("cSession\n" + jsonPrint(session));
-          if (!results.source.isIgnored && (config.sessionViewType != 'ticker')) linkCreateQueue.push(cSession);
+          if (!results.source.isIgnored && (config.sessionViewType != 'ticker')) {
+            linkCreateQueue.push(cSession);
+          }
           // if (!results.source.isIgnored) linkCreateQueue.push(cSession);
         });
       });
@@ -2150,7 +2209,9 @@ var createNode = function(callback) {
 
 var createLink = function(callback) {
 
-  if ((config.sessionViewType !== 'ticker') && !config.disableLinks && (linkCreateQueue.length > 0)) {
+  if ((config.sessionViewType !== 'ticker') 
+    && !config.disableLinks 
+    && (linkCreateQueue.length > 0)) {
 
     var session = linkCreateQueue.shift();
 
@@ -2288,8 +2349,6 @@ var createLink = function(callback) {
           currentSessionView.addLink(nLink);
         });
       } else {
-        // console.warn("SESSION TARGET UNDEFINED" + " | " + sessionId)
-        // console.warn("??? TARGET " + targetWordId + " NOT IN HASH MAP ... SKIPPING NEW LINK: SOURCE: " + sourceWordId);
       }
     } else {
       console.warn("SESSION TARGET UNDEFINED" + " | " + sessionId)
@@ -2346,7 +2405,9 @@ function updateSessions() {
 
 function toggleFullScreen() {
   if (!document.fullscreenElement &&
-    !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
+    !document.mozFullScreenElement && 
+    !document.webkitFullscreenElement && 
+    !document.msFullscreenElement) {
 
     if (document.documentElement.requestFullscreen) {
       document.documentElement.requestFullscreen();

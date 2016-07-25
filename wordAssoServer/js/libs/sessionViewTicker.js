@@ -80,6 +80,7 @@ function ViewTicker() {
   var updateTickerDisplayReady = true;
 
   var showStatsFlag = false;
+  var antonymFlag = false;
   var pauseFlag = false;
   var updateNodeFlag = false;
 
@@ -242,6 +243,11 @@ function ViewTicker() {
     forceStopped = false;
 
     updateTickerDisplayReady = true;  
+  }
+
+  self.setAntonym = function(antonym){
+    antonymFlag = antonym;
+    console.error("ANTONYM: " + antonymFlag);
   }
 
   self.setPause = function(pause){
@@ -808,7 +814,10 @@ function ViewTicker() {
 
     nodeWords
       .text(function(d) {
-        if (d.raw == '&amp;') {
+        if (antonymFlag && d.antonym) {
+          return '[' + d.antonym + ']';
+        }
+        else if (d.raw == '&amp;') {
           return '&';
         }
         else {

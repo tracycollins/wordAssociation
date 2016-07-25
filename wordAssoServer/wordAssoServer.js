@@ -1361,6 +1361,10 @@ var readUpdateSessionViewQueue = setInterval(function() {
         mentions: sessionUpdateObj.source.mentions
       };
 
+      if (sessionUpdateObj.source.antonym) {
+        sessionSmallObj.source.antonym = sessionUpdateObj.source.antonym;
+      }
+
       if (sessionUpdateObj.target) {
         sessionSmallObj.target = {
           nodeId: sessionUpdateObj.target.nodeId,
@@ -5009,6 +5013,56 @@ var readDbUpdateWordQueue = setInterval(function() {
     }
 
     dbUpdateWord(dbUpdateObj.word, true, function(status, updatedWordObj) {
+
+      // var wordTypes = ['noun', 'verb', 'adjective', 'adverb'];
+      // var wordVariations = ['syn', 'ant', 'rel', 'sim', 'usr'];
+
+      // console.log(chalkDb("UPDATED WORD"
+      //   + " | " + status
+      //   // + "\n" + jsonPrint(updatedWordObj)
+      // ));
+
+      if (status == 'BHT_FOUND'){
+        wordTypes.forEach(function(wordType){
+          if (updatedWordObj[wordType]){
+                // console.log("updatedWordObj"
+                //   + " | " + updatedWordObj.nodeId
+                //   + " | TYPE: " + wordType
+                //   + " | " + updatedWordObj[wordType]
+                // );
+
+            if (updatedWordObj[wordType].ant){
+              updatedWordObj.antonym = updatedWordObj[wordType].ant[0];
+              updatedWordObj[wordType].ant.forEach(function(antonym){
+                console.log("updatedWordObj"
+                  + " | " + updatedWordObj.nodeId
+                  + " | TYPE: " + wordType
+                  + " | ANT: " + antonym
+                );
+              });
+            }
+
+            // wordVariations.forEach(function(wordVariation){
+            //   if (updatedWordObj[wordType][wordVariation]){
+            //     // console.log("updatedWordObj"
+            //     //   + " | " + updatedWordObj.nodeId
+            //     //   + " | TYPE: " + wordType
+            //     //   + " | VAR: " + wordVariation
+            //     //   // + " | " + updatedWordObj[wordType][wordVariation]
+            //     // );
+            //     // updatedWordObj[wordType][wordVariation].forEach(function(variation){
+            //     //   console.log("updatedWordObj"
+            //     //     + " | " + updatedWordObj.nodeId
+            //     //     + " | TYPE: " + wordType
+            //     //     + " | VAR: " + wordVariation
+            //     //     + " | " + variation
+            //     //   );
+            //     // });
+            //   }
+            // });
+          }
+        });
+      }
 
       updatedWordObj.wordChainIndex = dbUpdateObj.word.wordChainIndex;
       // wordCache.set(updatedWordObj.nodeId, updatedWordObj);

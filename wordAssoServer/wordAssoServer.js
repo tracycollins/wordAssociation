@@ -5032,7 +5032,7 @@ var readDbUpdateWordQueue = setInterval(function() {
                 // );
 
             if (updatedWordObj[wordType].ant){
-              updatedWordObj.antonym = updatedWordObj[wordType].ant[0];
+              updatedWordObj.antonym = updatedWordObj[wordType].ant[randomIntInc(0,updatedWordObj[wordType].ant.length-1)];
               updatedWordObj[wordType].ant.forEach(function(antonym){
                 console.log("updatedWordObj"
                   + " | " + updatedWordObj.nodeId

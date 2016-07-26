@@ -1586,8 +1586,8 @@ var createGroup = function(callback) {
       initialPositionIndex++;
 
       randomNumber360 = (randomNumber360 + randomIntFromInterval(61, 117))%360;
-      var startColor = "hsl(" + randomNumber360 + ",100%,70%)";
-      var endColor = "hsl(" + randomNumber360 + ",100%,0%)";
+      var startColor = "hsl(" + randomNumber360 + ",0%,100%)";
+      var endColor = "hsl(" + randomNumber360 + ",0%,0%)";
 
       var currentGroup = {};
       var currentSession = {};

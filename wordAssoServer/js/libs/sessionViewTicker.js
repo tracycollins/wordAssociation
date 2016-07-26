@@ -10,8 +10,8 @@ function ViewTicker() {
 
   var lineHeight = 3;
 
-  var defaulStartColor = "hsl(90,100%,70%)";
-  var defaultEndColor = "hsl(90,100%,0%)";
+  var defaulStartColor = "hsl(90,0%,100%)";
+  var defaultEndColor = "hsl(90,0%,0%)";
   var defaultColors = {"startColor": defaulStartColor, "endColor": defaultEndColor};
   var defaultInterpolateColor = d3.interpolateHsl(defaulStartColor, defaultEndColor);
 

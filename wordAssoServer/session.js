@@ -564,7 +564,13 @@ function createControlPanel() {
           fullscreenButton, 
           pauseButton, 
           statsButton, 
-          testModeButton, nodeCreateButton, removeDeadNodeButton, disableLinksButton]);
+          testModeButton, 
+          nodeCreateButton, 
+          removeDeadNodeButton, 
+          disableLinksButton,
+          antonymButton
+        ]
+      );
       tableCreateRow(controlSliderTable, optionsBody, [resetButton]);
       tableCreateRow(controlSliderTable, optionsBody, ['MAX AGE', maxAgeSlider]);
       tableCreateRow(controlSliderTable, optionsBody, ['CHARGE', chargeSlider]);

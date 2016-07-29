@@ -11,8 +11,11 @@ word -> array of nodes
 when new instance of word arrives, iterate thru array of nodes and create linkskk
 */
 
-requirejs(["http://d3js.org/d3.v3.min.js"], function(d3) {
+var d3;
+
+requirejs(["http://d3js.org/d3.v4.min.js"], function(d3Loaded) {
     console.log("d3 LOADED");
+    d3 = d3Loaded;
     initialize();
   },
   function(error) {
@@ -44,7 +47,7 @@ var DEFAULT_CHARGE = -350;
 var DEFAULT_GRAVITY = 0.05;
 var DEFAULT_LINK_STRENGTH = 0.1;
 var DEFAULT_FRICTION = 0.75;
-
+var DEFAULT_VELOCITY_DECAY = 0.75;
 
 var config = {};
 config.pauseFlag = false;
@@ -1174,7 +1177,7 @@ function deleteSession(nodeId, callback) {
     return (callback(nodeId));
   }
 
-  if ((currentSessionView == 'force') || (currentSessionView == 'ticker')) currentSessionView.force.stop();
+  // if ((currentSessionView == 'force') || (currentSessionView == 'ticker')) currentSessionView.force.stop();
 
   var deletedSession = sessionHashMap.get(nodeId);
   var groupLinkId = deletedSession.groupId + "_" + deletedSession.node.nodeId;
@@ -2468,7 +2471,7 @@ function loadViewType(svt, callback) {
   switch (svt) {
     case 'ticker':
       config.sessionViewType = 'ticker';
-      requirejs(["js/libs/sessionViewTicker"], function() {
+      requirejs(["js/libs/sessionViewTicker_v4"], function() {
         console.log("sessionViewTicker LOADED");
         currentSessionView = new ViewTicker();
         callback();
@@ -2484,7 +2487,7 @@ function loadViewType(svt, callback) {
       break;
     default:
       config.sessionViewType = 'force';
-      requirejs(["js/libs/sessionViewForce"], function() {
+      requirejs(["js/libs/sessionViewForce_v4"], function() {
         console.log("sessionViewForce LOADED");
         currentSessionView = new ViewForce();
         callback();

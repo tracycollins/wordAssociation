@@ -554,8 +554,6 @@ function createControlPanel() {
 
   switch (config.sessionViewType) {
     case 'force':
-// tableCreateRow(controlTableHead, optionsHead, ['FORCE VIEW CONROL TABLE']);
-// tableCreateRow(controlTableBody, optionsBody, ['FULLSCREEN', 'STATS', 'TEST', 'RESET', 'NODE', 'LINK']);
       tableCreateRow(controlTableBody, optionsBody, [status]);
       tableCreateRow(controlTableBody, optionsBody, [status2]);
       tableCreateRow(controlTableBody, 
@@ -579,7 +577,6 @@ function createControlPanel() {
       tableCreateRow(controlSliderTable, optionsBody, ['LINK STRENGTH', linkStrengthSlider]);
       break;
     case 'ticker':
-      // tableCreateRow(controlTableHead, optionsHead, ['HISTOGRAM VIEW CONROL TABLE']);
       tableCreateRow(controlTableBody, optionsBody, [status]);
       tableCreateRow(controlTableBody, optionsBody, [status2]);
       tableCreateRow(controlTableBody, 
@@ -597,14 +594,9 @@ function createControlPanel() {
       );
       tableCreateRow(controlSliderTable, optionsBody, [resetButton]);
       tableCreateRow(controlSliderTable, optionsBody, ['MAX AGE', maxAgeSlider]);
-      // tableCreateRow(controlSliderTable, optionsBody, ['CHARGE', chargeSlider]);
-      // tableCreateRow(controlSliderTable, optionsBody, ['GRAVITY', gravitySlider]);
-      // tableCreateRow(controlSliderTable, optionsBody, ['FRICTION', frictionSlider]);
-      // tableCreateRow(controlSliderTable, optionsBody, ['LINK STRENGTH', linkStrengthSlider]);
 
       break;
     case 'histogram':
-      // tableCreateRow(controlTableHead, optionsHead, ['HISTOGRAM VIEW CONROL TABLE']);
       tableCreateRow(controlTableBody, optionsBody, [status]);
       tableCreateRow(controlTableBody, optionsBody, [status2]);
       tableCreateRow(controlTableBody, 
@@ -618,7 +610,6 @@ function createControlPanel() {
 
       break;
     default:
-      // tableCreateRow(controlTableHead, optionsHead, ['CONROL TABLE HEAD']);
       tableCreateRow(controlTableBody, optionsBody, [status]);
       tableCreateRow(controlTableBody, 
         optionsBody, 

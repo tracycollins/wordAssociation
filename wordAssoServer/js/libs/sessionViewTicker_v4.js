@@ -232,6 +232,13 @@ function ViewTicker() {
     }
   }
 
+  self.setAntonym = function(ant){
+    antonymFlag = ant;
+    console.error("ANTONYM: " + antonymFlag);
+    if (antonymFlag){
+    }
+  }
+
   self.updateLinkStrength = function(value) {
     console.log("updateLinkStrength: " + value);
     globalLinkStrength = value;
@@ -323,6 +330,9 @@ function ViewTicker() {
   var DEFAULT_DRAW_SIMULATION_INTERVAL = 100;
   var drawSimulationIntervalTime = DEFAULT_DRAW_SIMULATION_INTERVAL;
 
+
+  // used when simulation is paused
+
   this.initDrawSimulationInverval = function(itvl){
 
     var interval = drawSimulationIntervalTime;
@@ -360,7 +370,7 @@ function ViewTicker() {
         // self.initD3timer();
         console.warn("SIMULATION CONTROL | OP: " + op);
         self.clearDrawSimulationInterval();
-        simulation.reset();
+        simulation.stop();
         runningFlag = false;
         // simulation.stop();
       break;
@@ -395,7 +405,7 @@ function ViewTicker() {
         simulation.stop();
       break;
       case 'RESTART':
-        // console.warn("SIMULATION CONTROL | OP: " + op);
+        console.warn("SIMULATION CONTROL | OP: " + op);
         simulation.alphaTarget(0.7).restart();
         runningFlag = true;
       break;
@@ -409,18 +419,18 @@ function ViewTicker() {
 
     async.series(
       {
-        deadNode: processDeadNodesHash,
-        deadSession: processDeadSessionsHash,
-        deadGroup: processDeadGroupsHash,
-        deadLink: processDeadLinksHash,
+        // deadLink: processDeadLinksHash,
         group: processGroupUpdateQ,
         session: processSessionUpdateQ,
         node: processNodeUpdateQ,
-        link: processLinkUpdateQ,
+        // link: processLinkUpdateQ,
         ageGroup: ageGroups,
         ageSession: ageSessions,
         ageNode: ageNodes,
-        ageLink: ageLinks,
+        // ageLink: ageLinks,
+        deadNode: processDeadNodesHash,
+        deadSession: processDeadSessionsHash,
+        deadGroup: processDeadGroupsHash,
         rankGroup: rankGroups
       },
 
@@ -434,7 +444,7 @@ function ViewTicker() {
           for (var i=0; i<keys.length; i++){
             if (results[keys[i]]) {
               simulation.nodes(nodes);
-              if (runningFlag) self.simulationControl('RESTART');
+              if (!runningFlag) self.simulationControl('RESTART');
               break;
             }
           }
@@ -859,8 +869,8 @@ function ViewTicker() {
       //   // .style("fill-opacity", function(d) {
       //   //   return Math.max(wordOpacityScale(d.age + 1), minOpacity)
       //   // })
-        .transition()
-        .duration(50)
+        // .transition()
+        // .duration(50)
         .attr("y", ypositionGroup);
 
     groupWords
@@ -898,13 +908,17 @@ function ViewTicker() {
         if (d.isIgnored) { return minFontSize + "px"; }
         else { return fontSizeScale(d.mentions) + "px"; }
       })
-      .attr("bboxWidth", function(d, i){
-        nodes[i].bboxWidth = this.getBBox().width;
-        var cNode = nodeHashMap.get(d.nodeId);
-        cNode.bboxWidth = this.getBBox().width;
-        nodeHashMap.set(d.nodeId, cNode);
-        return this.getBBox().width;
+      .attr("bboxWidth", function(d){
+        d.bboxWidth = this.getBBox().width;
       })
+      // .attr("bboxWidth", function(d, i){
+      //   return d.bboxWidth;
+      //   // nodes[i].bboxWidth = this.getBBox().width;
+      //   // var cNode = nodeHashMap.get(d.nodeId);
+      //   // cNode.bboxWidth = this.getBBox().width;
+      //   // nodeHashMap.set(d.nodeId, cNode);
+      //   // return this.getBBox().width;
+      // })
       .style("fill", function(d) {
         if (d.age < 0.01*nodeMaxAge) { return "FFFFFF";  }
         else { return d.interpolateNodeColor(1e-6); }
@@ -916,10 +930,11 @@ function ViewTicker() {
           return Math.max(wordOpacityScale(d.age + 1), minOpacity)
         }
       })
+      .attr("y", ypositionWord)
       .transition()
       .duration(50)
-      .attr("x", xposition)
-      .attr("y", ypositionWord);
+      // .easeBounce
+      .attr("x", xposition);
 
     nodeWords
       .enter()
@@ -937,11 +952,14 @@ function ViewTicker() {
       .style("fill", "#FFFFFF")
       .style("fill-opacity", 1e-6)
       .style("font-size", minFontSize + "px")
-      .attr("bboxWidth", function(d, i){
-        nodes[i].bboxWidth = this.getBBox().width;
-        // console.log("bboxWidth " + nodes[i].bboxWidth);
-        return this.getBBox().width;
+      .attr("bboxWidth", function(d){
+        d.bboxWidth = this.getBBox().width;
       })
+      // .attr("bboxWidth", function(d, i){
+      //   nodes[i].bboxWidth = this.getBBox().width;
+      //   // console.log("bboxWidth " + nodes[i].bboxWidth);
+      //   return this.getBBox().width;
+      // })
       .on("mouseout", nodeMouseOut)
       .on("mouseover", nodeMouseOver)
       .on("click", nodeClick)
@@ -1601,6 +1619,7 @@ function ViewTicker() {
 
   // ===================================================================
   var testAddNodeInterval;
+  var testAddLinkInterval;
   var testSessionIndex = 0;
   var testDeleteNodeInterval;
 
@@ -1639,7 +1658,7 @@ function ViewTicker() {
       wordChainIndex: wordChainIndex,
       startColor: startColor,
       endColor: endColor,
-      interpolateColor: interpolateNodeColor,
+      interpolateNodeColor: interpolateNodeColor,
       x: 0.5 * width + randomIntFromInterval(0, 100),
       y: 0.5 * height + randomIntFromInterval(0, 100),
       age: 0,
@@ -1647,6 +1666,14 @@ function ViewTicker() {
     }
 
     self.addNode(newNode);
+  }
+
+  function deleteRandomLink(){
+    
+  }
+
+  function addRandomLink(){
+    
   }
 
   this.clearTestAddNodeInterval = function () {
@@ -1657,6 +1684,17 @@ function ViewTicker() {
     clearInterval(testAddNodeInterval);
     testAddNodeInterval = setInterval(function() {
       addRandomNode();
+    }, interval);
+  }
+
+  this.clearTestAddLinkInterval = function () {
+    clearInterval(testAddLinkInterval);
+  }
+
+  this.initTestAddLinkInterval = function (interval) {
+    clearInterval(testAddLinkInterval);
+    testAddLinkInterval = setInterval(function() {
+      addRandomLink();
     }, interval);
   }
 

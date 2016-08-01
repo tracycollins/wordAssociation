@@ -20,6 +20,10 @@ var GroupSchema = new Schema({
 	name: {
 		type: String
 	},
+	colors: {
+		type: Object,
+		default: {}
+	},
 	mentions: { // number of times mentioned, by self or others
 		type: Number,
 		default: 0

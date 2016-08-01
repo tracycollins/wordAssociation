@@ -311,7 +311,6 @@ function ControlPanel() {
         self.tableCreateRow(infoTable, optionsBody, [status]);
         self.tableCreateRow(infoTable, optionsBody, [status2]);
         self.tableCreateRow(controlTable, optionsBody, [fullscreenButton, pauseButton, statsButton, testModeButton, nodeCreateButton, removeDeadNodeButton, disableLinksButton, antonymButton]);
-        // self.tableCreateRow(controlTable, optionsBody, [nodeCreateButton, removeDeadNodeButton, disableLinksButton, antonymButton]);
         self.tableCreateRow(controlTable, optionsBody, [resetButton]);
         self.tableCreateRow(controlSliderTable, optionsBody, ['MAX AGE', maxAgeSlider, maxAgeSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ['CHARGE', chargeSlider, chargeSliderText]);
@@ -323,21 +322,9 @@ function ControlPanel() {
       case 'ticker':
         self.tableCreateRow(controlTable, optionsBody, [status]);
         self.tableCreateRow(controlTable, optionsBody, [status2]);
-        self.tableCreateRow(controlTable, 
-          optionsBody, 
-          [
-            fullscreenButton, 
-            pauseButton, 
-            statsButton, 
-            testModeButton, 
-            resetButton, 
-            nodeCreateButton, 
-            removeDeadNodeButton,
-            antonymButton
-          ]
-        );
+        self.tableCreateRow(controlTable, optionsBody, [fullscreenButton, pauseButton, statsButton, testModeButton, nodeCreateButton, removeDeadNodeButton, disableLinksButton, antonymButton]);
         self.tableCreateRow(controlSliderTable, optionsBody, [resetButton]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ['MAX AGE', maxAgeSlider]);
+        self.tableCreateRow(controlSliderTable, optionsBody, ['MAX AGE', maxAgeSlider, maxAgeSliderText]);
         break;
 
       case 'histogram':

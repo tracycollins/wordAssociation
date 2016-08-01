@@ -27,6 +27,7 @@ exports.findOneGroup = function(group, incMentions, callback) {
 					$set: { 
 						groupId: group.groupId,
 						name: group.name,
+						colors: group.colors,
 						tags: group.tags,
 						lastSeen: moment()
 					},

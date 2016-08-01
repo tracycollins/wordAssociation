@@ -6,11 +6,12 @@
 function ViewForce() {
 
   var self = this;
+  var simulation;
 
   var showStatsFlag = false;
   var fixedGroupsFlag = true;
 
-  var pauseFlag = false;
+  var runningFlag = false;
   var updateNodeFlag = false;
 
 
@@ -36,23 +37,23 @@ function ViewForce() {
     return window.innerHeight;
   }
 
-  var dateNow;
+  // var dateNow;
 
-  setInterval(function(){
-    dateNow = moment().valueOf();
-  }, 50);
+  // setInterval(function(){
+  //   dateNow = moment().valueOf();
+  // }, 50);
 
   var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
   var defaultTimePeriodFormat = "HH:mm:ss";
 
   var minSessionNodeOpacity = 0.2;
 
-  var mouseFreezeEnabled = false;
+  var mouseFreezeEnabled = true;
   var mouseHoverFlag = false;
   var mouseOverRadius = 10;
+  var mouseHoverGroupId;
+  var mouseHoverSessionId;
   var mouseHoverNodeId;
-
-  var updateForceDisplayReady = true;
 
   var nodeMaxAge = 60000;
 
@@ -60,13 +61,11 @@ function ViewForce() {
   var config = DEFAULT_CONFIG;
   var previousConfig = [];
 
-  var defaultTextFill = "#888888";
-
   var defaultFadeDuration = 250;
 
   var DEFAULT_FORCE_CONFIG = {
     'charge': DEFAULT_CHARGE,
-    'friction': DEFAULT_FRICTION,
+    'velocityDecay': DEFAULT_FRICTION,
     'linkStrength': DEFAULT_LINK_STRENGTH,
     'gravity': DEFAULT_GRAVITY,
     'ageRate': window.DEFAULT_AGE_RATE,
@@ -77,7 +76,7 @@ function ViewForce() {
   var charge = DEFAULT_CHARGE;
   var gravity = DEFAULT_GRAVITY;
   var globalLinkStrength = DEFAULT_LINK_STRENGTH;
-  var friction = DEFAULT_FRICTION;
+  var velocityDecay = DEFAULT_FRICTION;
 
   var palette = {
     "black": "#000000",
@@ -127,25 +126,22 @@ function ViewForce() {
     } else {
       d3.select("body").style("cursor", "default");
     }
-
-    resetMouseMoveTimer();
-    mouseMovingFlag = true;
-
-    if (mouseFreezeEnabled) {
-    }
+    // if (mouseFreezeEnabled) {
+    //   // self.simulation.stop();
+    // }
   }, true);
 
 
   var adjustedAgeRateScale = d3.scaleLinear().domain([1, 500]).range([1.0, 100.0]);
 
-  var fontSizeScale = d3.scaleLinear().domain([1, 1000000]).range([32.0, 64]).clamp(true);
+  var fontSizeScale = d3.scaleLinear().domain([1, 1000000]).range([16.0, 32]).clamp(true);
 
-  var groupCircleRadiusScale = d3.scaleLog().domain([1, 1000000]).range([10.0, 100.0]).clamp(true); // uses wordChainIndex
-  var sessionCircleRadiusScale = d3.scaleLog().domain([1, 1000000]).range([10.0, 60.0]).clamp(true); // uses wordChainIndex
-  var defaultRadiusScale = d3.scaleLog().domain([1, 10000000]).range([4.0, 40.0]).clamp(true);
+  var groupCircleRadiusScale = d3.scaleLog().domain([1, 1000000]).range([5.0, 40.0]).clamp(true); // uses wordChainIndex
+  var sessionCircleRadiusScale = d3.scaleLog().domain([1, 1000000]).range([5.0, 40.0]).clamp(true); // uses wordChainIndex
+  var defaultRadiusScale = d3.scaleLog().domain([1, 10000000]).range([2.0, 30.0]).clamp(true);
 
-  var fillColorScale = d3.scaleLinear().domain([1e-6, 0.5, 1.0]).range(["#555555", "#111111", "#000000"]);
-  var strokeColorScale = d3.scaleLinear().domain([1e-6, 0.5, 1.0]).range(["#cccccc", "#444444", "#000000"]);
+  var fillColorScale = d3.scaleLinear().domain([1e-6, 0.1, 1.0]).range([palette.gray, palette.darkgray, palette.black]);
+  var strokeColorScale = d3.scaleLog().domain([1e-6, 0.15, 1.0]).range([palette.white, palette.darkgray, palette.black]);
   var linkColorScale = d3.scaleLinear().domain([1e-6, 0.5, 1.0]).range(["#cccccc", "#666666", "#444444"]);
 
 
@@ -260,20 +256,30 @@ function ViewForce() {
   panzoom(panzoomElement);
 
 
-
   function generateLinkId(callback) {
     globalLinkIndex++;
     return "LNK" + globalLinkIndex;
   }
 
-  self.setPause = function(pause){
-    pauseFlag = pause;
-    console.error("PAUSE: " + pauseFlag);
-    if (pauseFlag){
-      simulation.stop();
+  self.togglePause = function(){
+    // runningFlag = pause;
+    if (runningFlag){
+      // runningFlag = false;
+      self.simulationControl('PAUSE');
     }
     else{
-      simulation.restart();
+      // runningFlag = true;
+      self.simulationControl('RESUME');
+    }
+  }
+
+  self.updateParam = function(param, value) {
+    console.log("updateParam: " + param + " = " + value);
+    switch(param){
+      case "linkStrength" :
+        globalLinkStrength = value;
+        simulation.force("link", d3.forceLink(links).id(function(d) { return d.linkId; }).distance(20).strength(globalLinkStrength));
+      break;
     }
   }
 
@@ -283,9 +289,9 @@ function ViewForce() {
     simulation.force("link", d3.forceLink(links).id(function(d) { return d.linkId; }).distance(20).strength(globalLinkStrength));
   }
 
-  self.updateFriction = function(value) {
-    friction = value;
-    simulation.velocityDecay(friction);
+  self.updateVelocityDecay = function(value) {
+    velocityDecay = value;
+    simulation.velocityDecay(velocityDecay);
   }
 
   self.updateGravity = function(value) {
@@ -302,7 +308,7 @@ function ViewForce() {
   self.resetDefaultForce = function() {
     console.log("RESET FORCE LAYOUT DEFAULTS");
     self.updateCharge(DEFAULT_CHARGE);
-    self.updateFriction(DEFAULT_FRICTION);
+    self.updateVelocityDecay(DEFAULT_FRICTION);
     self.updateGravity(DEFAULT_GRAVITY);
     self.updateLinkStrength(DEFAULT_LINK_STRENGTH);
   }
@@ -457,29 +463,34 @@ function ViewForce() {
   }
 
   var processGroupUpdateQ = function(callback) {
-    var groupsModifiedFlag = false;
-    while (groupUpdateQ.length > 0){
-      var groupUpdateObj = groupUpdateQ.shift();
-      switch (groupUpdateObj.op) {
-        case "add":
-          groupsModifiedFlag = true;
-          if (fixedGroupsFlag) {
-            groupUpdateObj.group.node.fx = groupUpdateObj.group.node.x;
-            groupUpdateObj.group.node.fy = groupUpdateObj.group.node.y;
-          }
-          console.log("ADD GROUP | " + groupUpdateObj.group.groupId);
-          groups.push(groupUpdateObj.group);
-        break;
-        case "delete":
-          console.warn("DEL GROUP | " + groupUpdateObj.groupId);
-          deleteGroupQ(groupUpdateObj.groupId, function(err, deadGroupFlag){
-            if (deadGroupFlag) groupsModifiedFlag = true;
-          });
-        break;
-      }
+    if (!runningFlag) {
+      callback(null, false);
     }
-    if (groupUpdateQ.length == 0){
-      callback(null, groupsModifiedFlag);
+    else {
+      var groupsModifiedFlag = false;
+      while (groupUpdateQ.length > 0){
+        var groupUpdateObj = groupUpdateQ.shift();
+        switch (groupUpdateObj.op) {
+          case "add":
+            groupsModifiedFlag = true;
+            if (fixedGroupsFlag) {
+              groupUpdateObj.group.node.fx = groupUpdateObj.group.node.x;
+              groupUpdateObj.group.node.fy = groupUpdateObj.group.node.y;
+            }
+            console.log("ADD GROUP | " + groupUpdateObj.group.groupId);
+            groups.push(groupUpdateObj.group);
+          break;
+          case "delete":
+            console.warn("DEL GROUP | " + groupUpdateObj.groupId);
+            deleteGroupQ(groupUpdateObj.groupId, function(err, deadGroupFlag){
+              if (deadGroupFlag) groupsModifiedFlag = true;
+            });
+          break;
+        }
+      }
+      if (groupUpdateQ.length == 0){
+        callback(null, groupsModifiedFlag);
+      }
     }
   }
 
@@ -592,8 +603,6 @@ function ViewForce() {
       ageRate = DEFAULT_AGE_RATE;
     }
 
-    var node;
-
     var ageNodesLength = nodes.length - 1;
     var ageNodesIndex = nodes.length - 1;
 
@@ -601,24 +610,26 @@ function ViewForce() {
 
       node = nodes[ageNodesIndex];
 
-      age = node.age + (ageRate * (dateNow - node.ageUpdated));
+      age = node.age + (ageRate * (moment().valueOf() - node.ageUpdated));
       ageMaxRatio = age/nodeMaxAge ;
+
 
       if (node.isDead) {
         deadNodesHash[node.nodeId] = 1;
+        node.ageMaxRatio = 1.0;
         deadNodeFlag = true;
       } 
       else if (age >= nodeMaxAge) {
-        node.ageUpdated = dateNow;
+        node.ageUpdated = moment().valueOf();
         node.age = age;
-        node.ageMaxRatio = ageMaxRatio;
+        node.ageMaxRatio = 1.0;
         node.isDead = true;
         nodes[ageNodesIndex] = node;
         deadNodesHash[node.nodeId] = 1;
         deadNodeFlag = true;
       } 
       else {
-        node.ageUpdated = dateNow;
+        node.ageUpdated = moment().valueOf();
         node.age = age;
         node.ageMaxRatio = ageMaxRatio;
         nodes[ageNodesIndex] = node;
@@ -767,26 +778,26 @@ function ViewForce() {
     }
   }
 
-  function updateNodes() {
+  // function updateNodes() {
 
-    node = nodeSvgGroup.selectAll("g").data(nodes, function(d) { return d.nodeId; });
+  //   node = nodeSvgGroup.selectAll("g").data(nodes, function(d) { return d.nodeId; });
 
-    node
-      .attr("x", function(d) { return d.x; })
-      .attr("y", function(d) { return d.y; });
+  //   node
+  //     .attr("x", function(d) { return d.x; })
+  //     .attr("y", function(d) { return d.y; });
 
-    node
-      .enter()
-      .append("svg:g")
-      .attr("class", "node")
-      .attr("x", function(d) { return d.x; })
-      .attr("y", function(d) { return d.y; })
-      .merge(node);
+  //   node
+  //     .enter()
+  //     .append("svg:g")
+  //     .attr("class", "node")
+  //     .attr("x", function(d) { return d.x; })
+  //     .attr("y", function(d) { return d.y; })
+  //     .merge(node);
 
-    node
-      .exit()
-      .remove();
-  }
+  //   node
+  //     .exit()
+  //     .remove();
+  // }
 
   function updateLinks() {
 
@@ -823,17 +834,17 @@ function ViewForce() {
       .attr("cy", function(d) { return d.y; })
       .attr("r", function(d) { return groupCircleRadiusScale(d.wordChainIndex + 1); })
       .style("fill", function(d) {
-        if (this.getAttribute("mouseover") == 1) { return "#ffffff"; }
-        else { return d.interpolateColor(d.ageMaxRatio); }
+        if (d.mouseHoverFlag) { return palette.blue; }
+        else { return d.interpolateGroupColor(1-d.node.ageMaxRatio); }
       })
       .style('opacity', function(d) {
-        if ((dateNow - d.lastSeen) >= nodeMaxAge) {  return 1e-6; }
-        else { return 1.0; }
+        if (d.mouseHoverFlag) { return 1.0; }
+        else { return 1-d.node.ageMaxRatio; }
       })
-      .style('stroke', function(d) { return d.interpolateColor(d.ageMaxRatio); })
+      .style('stroke', function(d) { return d.interpolateGroupColor(d.node.ageMaxRatio); })
       .style('stroke-width', function(d) { return 5; })
       .style("stroke-opacity", function(d) {
-          return d.interpolateColor(d.ageMaxRatio);
+          return d.interpolateGroupColor(1-d.node.ageMaxRatio);
       });
 
     groupCircles
@@ -842,13 +853,19 @@ function ViewForce() {
       .attr("class", "groupCircle")
       .attr("cx", function(d) { return d.x; })
       .attr("cy", function(d) { return d.y; })
-      .attr("mouseover", 0)
+      // .attr("mouseover", 0)
+      .on("mouseout", nodeMouseOut)
+      .on("mouseover", nodeMouseOver)
+      .on("click", nodeClick)
       .attr("r", 1e-6)
       .style("visibility", "visible")
-      .style("fill", "#000000")
+      .style("fill", function(d) {
+        if (d.mouseHoverFlag) { return palette.blue; }
+        else { return d.interpolateGroupColor(1-d.node.ageMaxRatio); }
+      })
       .style("opacity", 1e-6)
       .style('stroke', function(d) {
-        return d.interpolateColor(0.75);
+        return d.interpolateGroupColor(0.75);
       })
       .style("stroke-width", 2.5)
       .style("stroke-opacity", 0.8)
@@ -858,26 +875,30 @@ function ViewForce() {
       .exit()
       .remove();
 
+  }
+
+  function updateGroupLabels() {    
 
     groupLabels = groupLabelSvgGroup.selectAll("text").data(groups ,function(d) { return d.groupId; });
 
     groupLabels
       .text(function(d) { return d.text; })
+      .style("fill", function(d) {
+        if (d.mouseHoverFlag) { return palette.blue; }
+        // else { return d.interpolateGroupColor(d.node.ageMaxRatio); }
+        else { return strokeColorScale(d.node.ageMaxRatio); }
+      })
       .style("font-size", function(d) { return fontSizeScale(d.totalWordChainIndex) + "px"; })
       .style('opacity', function(d) {
-        if (d3.select(this).attr("mouseover") == 1) { return 1.0; }
-        return 1.0-((dateNow-d.lastSeen)/nodeMaxAge);
+        if (d.mouseHoverFlag) { return 1.0; }
+        return 1.0-d.node.ageMaxRatio;
       })
       .attr("x", function(d) {
-        var cnode = nodeHashMap.get(d.nodeId);
-        if (typeof cnode === 'undefined') return 0;
-        return cnode.x;
+        return d.node.x;
       })
       .attr("y", function(d) {
         var shiftY = -1.5 * (groupCircleRadiusScale(d.wordChainIndex + 1));
-        var cnode = nodeHashMap.get(d.nodeId);
-        if (typeof cnode === 'undefined') return 0;
-        return cnode.y + shiftY;
+        return d.node.y + shiftY;
       });
 
     groupLabels.enter()
@@ -885,15 +906,11 @@ function ViewForce() {
       .attr("class", "groupLabel")
       .attr("groupId", function(d) { return d.groupId; })
       .attr("x", function(d) {
-        var cnode = nodeHashMap.get(d.nodeId);
-        if (typeof cnode === 'undefined') return 0;
-        return cnode.x;
+        return d.node.x;
       })
       .attr("y", function(d) {
         var shiftY = -1.5 * (groupCircleRadiusScale(d.wordChainIndex + 1));
-        var cnode = nodeHashMap.get(d.nodeId);
-        if (typeof cnode === 'undefined') return 0;
-        return cnode.y + shiftY;
+        return d.node.y + shiftY;
       })
       .text(function(d) { return d.text; })
       .style("text-anchor", "middle")
@@ -901,11 +918,13 @@ function ViewForce() {
       .style("opacity", 1e-6)
       .style('fill', "#ffffff")
       .style("font-size", function(d) { return fontSizeScale(d.totalWordChainIndex) + "px"; })
+      .on("mouseout", nodeMouseOut)
+      .on("mouseover", nodeMouseOver)
+      .on("click", nodeClick)
       .merge(groupLabels);
 
     groupLabels
-      .exit().remove();
-  }
+      .exit().remove();}
 
   function updateSessionLabels() {
 
@@ -914,20 +933,25 @@ function ViewForce() {
     sessionLabels
       .text(function(d) { return d.text; })
       .attr("x", function(d) {
-        var cnode = nodeHashMap.get(d.nodeId);
-        if (typeof cnode === 'undefined') return 0;
-        return cnode.x;
+        // var cnode = nodeHashMap.get(d.nodeId);
+        // if (typeof cnode === 'undefined') return 0;
+        return d.node.x;
       })
       .attr("y", function(d) {
         var shiftY = -1.5 * (sessionCircleRadiusScale(d.wordChainIndex + 1));
-        var cnode = nodeHashMap.get(d.nodeId);
-        if (typeof cnode === 'undefined') return 0;
-        return cnode.y + shiftY;
+        // var cnode = nodeHashMap.get(d.nodeId);
+        // if (typeof cnode === 'undefined') return 0;
+        return d.node.y + shiftY;
       })
       .style("font-size", function(d) { return fontSizeScale(d.wordChainIndex) + "px"; })
+      .style('fill', function(d) { 
+        if (d.mouseHoverFlag || d.node.mouseHoverFlag) { return palette.white; }
+        return palette.yellow; 
+      })
       .style('opacity', function(d) {
-        if (d3.select(this).attr("mouseover") == 1) { return 1.0; }
-        return 1.0-((dateNow-d.lastSeen)/nodeMaxAge);
+        if (d.mouseHoverFlag || d.node.mouseHoverFlag) { return 1.0; }
+        // return 1.0-((moment().valueOf()-d.lastSeen)/nodeMaxAge);
+        return 1.0-d.node.ageMaxRatio;
       });
 
     sessionLabels
@@ -938,20 +962,19 @@ function ViewForce() {
       .text(function(d) { return d.text;  })
       .style("text-anchor", "middle")
       .style("alignment-baseline", "middle")
-      .style("opacity", 1)
+      .style("opacity", 1.0)
       .style('fill', "#ffffff")
       .style("font-size", function(d) { return fontSizeScale(d.wordChainIndex) + "px"; })
       .attr("x", function(d) {
-        var cnode = nodeHashMap.get(d.nodeId);
-        if (typeof cnode === 'undefined') return 0;
-        return cnode.x;
+         return d.node.x;
       })
       .attr("y", function(d) {
         var shiftY = -2.5 * (sessionCircleRadiusScale(d.wordChainIndex + 1));
-        var cnode = nodeHashMap.get(d.nodeId);
-        if (typeof cnode === 'undefined') return 0;
-        return cnode.y + shiftY;
+        return d.node.y + shiftY;
       })
+      .on("mouseout", nodeMouseOut)
+      .on("mouseover", nodeMouseOver)
+      .on("click", nodeClick)
       .merge(sessionLabels);
 
     sessionLabels
@@ -970,51 +993,59 @@ function ViewForce() {
             return defaultRadiusScale(1);
           }
           else {
-            if (d.isGroupNode) return groupCircleRadiusScale(d.totalWordChainIndex + 1) ;
-            if (d.isSessionNode) return sessionCircleRadiusScale(d.wordChainIndex + 1) ;
-            return defaultRadiusScale(parseInt(d.mentions) + 1);
+            if (d.isGroupNode) return groupCircleRadiusScale(d.totalWordChainIndex + 1.0) ;
+            if (d.isSessionNode) return sessionCircleRadiusScale(d.wordChainIndex + 1.0) ;
+            return defaultRadiusScale(parseInt(d.mentions) + 1.0);
           }
       })
       .attr("cx", function(d) { return d.x; })
       .attr("cy", function(d) { return d.y; })
       .style("fill", function(d) {
-        if (this.getAttribute("mouseover") == 1) { return "#ffffff"; }
+        if (d.mouseHoverFlag) {
+          return palette.blue; 
+        }
         else {
-          if (d.isGroupNode) return "#000000";
-          if (d.isSessionNode) return "#000000";
-          return d.interpolateColor(d.ageMaxRatio);
+          if (d.isGroupNode ) return d.interpolateGroupColor(d.ageMaxRatio);
+          if (d.isSessionNode) return d.interpolateSessionColor(d.ageMaxRatio);
+          // return d.interpolateNodeColor(d.ageMaxRatio);
+          return d.interpolateNodeColor(d.ageMaxRatio);
         }
       })
       .style('opacity', function(d) {
-        if (d.ageMaxRatio >= 1.0) { return 0; }
-        return 1
+        // if (d.ageMaxRatio >= 1.0) { return 0; }
+        return 1.0;
       })
       .style('stroke', function(d) {
-        if (d.ageMaxRatio < 0.01) { return "#FFFFFF"; }
-        if (d.isGroupNode || d.isSessionNode) return d.interpolateColor(d.ageMaxRatio);
-        return strokeColorScale(d.ageMaxRatio);
+        if (d.ageMaxRatio < 0.01) return palette.white;
+        // if (d.isGroupNode || d.isSessionNode) return d.interpolateNodeColor(d.ageMaxRatio);
+        // return strokeColorScale(d.ageMaxRatio);
+          // if (d.isGroupNode ) return d.interpolateGroupColor(d.ageMaxRatio);
+          if (d.isGroupNode ) return strokeColorScale(d.ageMaxRatio);
+          // if (d.isSessionNode) return d.interpolateSessionColor(d.ageMaxRatio);
+          if (d.isSessionNode) return strokeColorScale(d.ageMaxRatio);
+          return d.interpolateNodeColor(d.ageMaxRatio);
       })
-      .style('stroke-opacity', function(d) { return 1.0 - d.ageMaxRatio; });
+      // .style('stroke-opacity', function(d) { return Math.max(0.2, 1.0 - d.ageMaxRatio); });
+      .style('stroke-opacity', 1.0);
 
     nodeCircles
       .enter()
       .append("svg:circle")
       .attr("cx", function(d) { return d.x; })
       .attr("cy", function(d) { return d.y; })
-      .attr("mouseover", 0)
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)
-      .on("dblclick", nodeClick)
+      .on("click", nodeClick)
       .attr("r", 1e-6)
       .style("visibility", "visible")
+      .style("fill", palette.black)
       .style("opacity", 1e-6)
-      .style('stroke', function(d) { return strokeColorScale(d.ageMaxRatio); })
+      .style('stroke', palette.red)
       .style("stroke-width", function(d) {
-        if (d.isGroupNode) return 6;
-        if (d.isSessionNode) return 4;
-        return 4;
+        if (d.isGroupNode) return 6.0;
+        // if (d.isSessionNode) return 4.0;
+        return 4.0;
       })
-      .style("fill", "#000000")
       .merge(nodeCircles);
 
     nodeCircles
@@ -1045,7 +1076,14 @@ function ViewForce() {
         if (d.isSessionNode) return fontSizeScale(d.wordChainIndex + 1.1) + "px";
         return fontSizeScale(d.mentions + 1.1) + "px";
       })
-      .style('opacity', function(d) { return 1.0 - d.ageMaxRatio; });
+      .style('fill', function(d) { 
+        if (d.mouseHoverFlag) { return palette.blue; }
+        return palette.white; 
+      })
+      .style('opacity', function(d) { 
+        if (d.mouseHoverFlag) { return 1.0; }
+        return 1.0 - d.ageMaxRatio; 
+      });
 
     nodeLabels
       .enter()
@@ -1068,20 +1106,36 @@ function ViewForce() {
       .style("text-anchor", "middle")
       .style("alignment-baseline", "middle")
       .style("opacity", 1e-6)
-      .style("fill", "#ffffff")
+      .style("fill", palette.white)
       .style("font-size", function(d) {
         if (d.isGroupNode) return fontSizeScale(d.totalWordChainIndex + 1.1) + "px";
         if (d.isSessionNode) return fontSizeScale(d.wordChainIndex + 1.1) + "px";
         return fontSizeScale(d.mentions + 1.1) + "px";
       })
+      .on("mouseover", nodeMouseOver)
+      .on("mouseout", nodeMouseOut)
+      .on("click", nodeClick)
       .merge(nodeLabels);
 
     nodeLabels
       .exit().remove();
   }
 
-  function updateSimulation(callback) {
+  function drawSimulation(){
+    updateLinks();
+    updateNodeCircles();
+    updateNodeLabels();
+    // updateGroupsCircles();
+    updateSessionLabels();
+    updateGroupLabels();
+  }
 
+  function ticked() {
+    drawSimulation();
+    updateSimulation();
+  }
+
+  function updateSimulation(callback) {
     async.series(
       {
         group: processGroupUpdateQ,
@@ -1097,54 +1151,54 @@ function ViewForce() {
       function(err, results) {
         if (err) {
           console.error("*** ERROR: updateSimulation *** \nERROR: " + err);
+          callback(err);
         }
         else if (results) {
+
           var keys = Object.keys(results);
-          var simulationUpdated = false;
-          keys.forEach(function(key){
-            if (results[key] && !simulationUpdated) {
-              simulationUpdated = true;
-              // console.log("RESULT | " + key);
+          for (var i=0; i<keys.length; i++){
+            if (results[keys[i]]) {
               simulation.nodes(nodes);
-              simulation.alphaTarget(0.7).restart();
+              if (runningFlag) self.simulationControl('RESTART');
+              // simulation.alphaTarget(0.7).restart();
+              if (typeof callback !== 'undefined') return(callback());
+              break;
             }
-          });
-         }
-
-        callback(err);
-
+          }
+        }
+        else {
+          if (typeof callback !== 'undefined') callback();
+        }
       }
+
     );
   }
 
   // ===================================================================
 
-  function nodeFill(age) {
-    return fillColorScale(age);
-  }
-
   function nodeMouseOver(d) {
 
     mouseHoverFlag = true;
+    d.mouseHoverFlag = true;
     mouseHoverNodeId = d.nodeId;
+
+    if (d.isSessionNode) {
+      sessions.forEach(function(session){
+        if (session.sessionId == d.sessionId){
+          session.mouseHoverFlag = true;
+          mouseHoverSessionId = d.sessionId;
+        }
+      });
+    }
+
+    d.fx = d.x;
+    d.fy = d.y;
 
     var nodeId = d.nodeId;
     var sId = d.sessionId;
     var uId = d.userId;
     var mentions = d.mentions;
     var currentR = d3.select(this).attr("r");
-
-    d3.select("body").style("cursor", "pointer");
-
-    d3.select(this)
-      .attr("mouseover", 1)
-      .style("fill", palette.blue)
-      .style("opacity", 1)
-      .style("stroke", palette.red)
-      .style("stroke-width", 3)
-      .attr("r", function() {
-        return Math.max(mouseOverRadius, currentR);
-      });
 
     divTooltip.transition()
       .duration(defaultFadeDuration)
@@ -1160,26 +1214,15 @@ function ViewForce() {
       .style("top", (d3.event.pageY - 50) + "px");
   }
 
-  function nodeMouseOut() {
+  function nodeMouseOut(d) {
 
     mouseHoverFlag = false;
+    d.mouseHoverFlag = false;
 
-    var fillColor = nodeFill(age);
-
-    d3.select("body").style("cursor", "default");
-
-    d3.select(this)
-      .style("fill", fillColor)
-      .style("stroke", "#FFFFFF")
-      .style("stroke-width", function(d) {
-        if (d.isGroupNode) return 8;
-        if (d.isSessionNode) return 6;
-        return 4;
-      })
-      .attr("mouseover", 0)
-      .attr("r", function(d) {
-        return defaultRadiusScale(d.mentions + 1);
-      });
+    if (!d.isGroupNode){
+      d.fx = null;
+      d.fy = null;
+    }
 
     divTooltip.transition()
       .duration(defaultFadeDuration)
@@ -1189,94 +1232,7 @@ function ViewForce() {
   function nodeClick(d) {
     launchSessionView(d.sessionId);
   }
-  // SESSION CIRCLE
-  function sessionCircleMouseOver(d) {
-
-    console.log("MOUSE OVER" + " | ID: " + d.nodeId
-      // + " | NID: " + d.nodeId
-      // + " | UID: " + d.userId
-      // + jsonPrint(d)
-    );
-
-    mouseHoverFlag = true;
-    mouseHoverNodeId = d.sessionId;
-
-    var sId = d.sessionId;
-    var uId = d.userId;
-    var wordChainIndex = d.wordChainIndex;
-    var currentR = d3.select(this).attr("r");
-
-    d3.select("body").style("cursor", "pointer");
-
-    d3.select(this)
-      .attr("mouseover", 1)
-      .style("fill", palette.red)
-      .style("opacity", 1)
-      .style("stroke", palette.white)
-      .style("stroke-width", 8)
-      .attr("r", function() {
-        return Math.max(mouseOverRadius, currentR);
-      });
-
-    sessionLabelSvgGroup.select('#' + d.nodeId)
-      .attr("mouseover", 1)
-      .style("opacity", 1);
-
-    nodeSvgGroup.select('#' + d.nodeId)
-      .attr("mouseover", 1)
-      .style("fill", palette.yellow)
-      .style("opacity", 1)
-      .style("stroke", palette.red)
-      .style("stroke-width", 3)
-      .attr("r", function() {
-        return Math.max(mouseOverRadius, currentR);
-      });
-
-    divTooltip.transition()
-      .duration(defaultFadeDuration)
-      .style("opacity", 1.0);
-
-    var tooltipString = "ENT: " + d.tags.entity
-      + "<br>CH: " + d.tags.channel
-      + "<br>WORDS: " + wordChainIndex
-      + "<br>" + sId;
-
-    divTooltip.html(tooltipString)
-      .style("left", (d3.event.pageX - 40) + "px")
-      .style("top", (d3.event.pageY - 50) + "px");
-  }
-
-  function sessionCircleMouseOut(d) {
-
-    mouseHoverFlag = false;
-
-    d3.select("body").style("cursor", "default");
-
-    d3.select(this)
-      .style("fill", function(d) {
-        return d.interpolateColor(0.25);
-      })
-      .style("opacity", 1)
-      .style('stroke', function(d) {
-        return d.interpolateColor(0.95);
-      })
-      .style("stroke-width", 2.5)
-      .attr("mouseover", 0)
-      .attr("r", function(d) {
-        return sessionCircleRadiusScale(d.wordChainIndex + 1);
-      });
-
-    sessionLabelSvgGroup.select('#' + d.nodeId)
-      .attr("mouseover", 0);
-
-    nodeSvgGroup.select('#' + d.nodeId)
-      .attr("mouseover", 0);
-
-    divTooltip.transition()
-      .duration(defaultFadeDuration)
-      .style("opacity", 1e-6);
-  }
-
+ 
   function sessionCircleClick(d) {
     launchSessionView(d.sessionId);
   }
@@ -1301,6 +1257,7 @@ function ViewForce() {
   }
 
   this.addNode = function(newNode) {
+    // console.warn("ADD NODE\n" + jsonPrint(newNode));
     nodeUpdateQ.push({op:'add', node: newNode});
   }
 
@@ -1323,20 +1280,27 @@ function ViewForce() {
   }
 
 
-  var simulation;
+  var drawSimulationInterval;
+  var DEFAULT_DRAW_SIMULATION_INTERVAL = 100;
+  var drawSimulationIntervalTime = DEFAULT_DRAW_SIMULATION_INTERVAL;
 
-  function ticked() {
+  this.initDrawSimulationInverval = function(itvl){
 
-    updateLinks();
-    updateNodeCircles();
-    updateNodeLabels();
-    updateGroupsCircles();
-    updateSessionLabels();
+    var interval = drawSimulationIntervalTime;
 
-    // if (!mouseMovingFlag){
-      updateSimulation(function(){
-      });
-    // }
+    clearInterval(drawSimulationInterval);
+
+    if (typeof itvl !== 'undefined'){
+      interval = itvl;
+    }
+
+    drawSimulationInterval = setInterval(function(){
+      drawSimulation();
+    }, interval);
+  }
+
+  this.clearDrawSimulationInterval = function(){
+    clearInterval(drawSimulationInterval);
   }
 
   this.initD3timer = function() {
@@ -1344,11 +1308,62 @@ function ViewForce() {
     simulation = d3.forceSimulation(nodes)
       .force("link", d3.forceLink(links).id(function(d) { return d.linkId; }).distance(20).strength(DEFAULT_LINK_STRENGTH))
       .force("charge", d3.forceManyBody().strength(DEFAULT_CHARGE))
-      // .force("center", d3.forceCenter(svgForceLayoutAreaWidth/2, svgForceLayoutAreaHeight/2))
       .force("forceX", d3.forceX(svgForceLayoutAreaWidth/2).strength(DEFAULT_GRAVITY))
       .force("forceY", d3.forceY(svgForceLayoutAreaHeight/2).strength(DEFAULT_GRAVITY))
       .velocityDecay(DEFAULT_VELOCITY_DECAY)
       .on("tick", ticked);
+  }
+
+  this.simulationControl = function(op) {
+    // console.warn("SIMULATION CONTROL | OP: " + op);
+    switch (op) {
+      case 'RESET':
+        // self.initD3timer();
+        console.warn("SIMULATION CONTROL | OP: " + op);
+        self.clearDrawSimulationInterval();
+        simulation.reset();
+        runningFlag = false;
+        // simulation.stop();
+      break;
+      case 'START':
+        console.warn("SIMULATION CONTROL | OP: " + op);
+        self.initD3timer();
+        simulation.alphaTarget(0.7).restart();
+        runningFlag = true;
+      break;
+      case 'RESUME':
+        if (!runningFlag){
+          console.warn("SIMULATION CONTROL | OP: " + op);
+          runningFlag = true;
+          self.clearDrawSimulationInterval();
+          simulation.alphaTarget(0.7).restart();
+        }
+      break;
+      case 'PAUSE':
+        if (runningFlag){
+          console.warn("SIMULATION CONTROL | OP: " + op);
+          runningFlag = false;
+          simulation.alpha(0);
+          simulation.stop();
+          self.initDrawSimulationInverval();
+        }
+      break;
+      case 'STOP':
+        runningFlag = false;
+        console.warn("SIMULATION CONTROL | OP: " + op);
+        self.clearDrawSimulationInterval();
+        simulation.alpha(0);
+        simulation.stop();
+      break;
+      case 'RESTART':
+        console.warn("SIMULATION CONTROL | OP: " + op);
+        simulation.alphaTarget(0.7).restart();
+        runningFlag = true;
+      break;
+      default:
+        console.warn("???? SIMULATION CONTROL | UNKNOWN OP: " + op);
+      break;
+    }
   }
 
   this.resize = function() {
@@ -1428,11 +1443,11 @@ function ViewForce() {
       wordChainIndex: wordChainIndex,
       startColor: startColor,
       endColor: endColor,
-      interpolateColor: interpolateNodeColor,
+      interpolateNodeColor: interpolateNodeColor,
       x: 0.5 * window.innerWidth + randomIntFromInterval(0, 100),
       y: 0.5 * window.innerHeight + randomIntFromInterval(0, 100),
       age: 0,
-      lastSeen: dateNow,
+      lastSeen: moment().valueOf(),
     }
 
     newNode.links = {};
@@ -1533,11 +1548,8 @@ function ViewForce() {
 
     deadNodesHash = {};
     deadLinksHash = {};
-    resetMouseMoveTimer();
     mouseMovingFlag = false;
     self.resize();
     self.resetDefaultForce();
-    updateForceDisplayReady = true;
   }
-
 }

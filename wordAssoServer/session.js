@@ -69,7 +69,7 @@ config.sessionViewType = DEFAULT_SESSION_VIEW; // options: force, histogram ??
 config.maxWords = 100;
 config.testMode = false;
 config.showStatsFlag = false;
-config.removeDeadNodes = true;
+config.removeDeadNodesFlag = true;
 if (config.sessionViewType == 'ticker') {
   config.disableLinks = true;
 }
@@ -194,8 +194,7 @@ function msToTime(duration) {
 function displayControl(isVisible) {
   var v = 'hidden';
   if (isVisible) v = 'visible';
-  // controlPanel.document.getElementById('controlDiv').style.visibility = v;
-  //  controlPanel.document.getElementById('controlSliderDiv').style.visibility = v;
+  document.getElementById('controlDiv').style.visibility = v;
 }
 
 function displayInfo(isVisible) {
@@ -501,7 +500,7 @@ var createPopUpControlPanel = function (cnf) {
 
   controlPanelWindow = window.open("controlPanel.html", "CONTROL", "width=800,height=600");
 
-  controlPanelWindow.addEventListener('onbeforeunload', function(){
+  controlPanelWindow.addEventListener('beforeunload', function(){
     console.log("CONTROL POP UP CLOSING...");
     controlPanelFlag = false;
     updateControlButton(controlPanelFlag);
@@ -510,84 +509,6 @@ var createPopUpControlPanel = function (cnf) {
   controlPanelWindow.addEventListener('load', function(cnf){
     controlPanel = new controlPanelWindow.ControlPanel(cnf);
     initLsBridge();
-    // lsbridge.subscribe('controlPanel', function(data) {
-    //   console.error("CONTROL PANEL: " + jsonPrint(data)); // prints: { message: 'Hello world!'} 
-
-    //   switch (data.op) {
-    //     case 'READY' :
-    //       console.warn("CONTROL PANEL READY");
-    //     break;
-    //     case 'CLOSE' :
-    //       console.warn("CONTROL PANEL CLOSING...");
-    //     break;
-    //     case 'MOMENT' :
-    //       console.warn("CONTROL PANEL MOMENT...");
-    //       switch (data.id) {
-    //         case 'resetButton' :
-    //           reset();
-    //         break;
-    //         default:
-    //           console.error("CONTROL PANEL UNKNOWN MOMENT BUTTON");
-    //         break;
-    //       }
-    //     break;
-    //     case 'TOGGLE' :
-    //       console.warn("CONTROL PANEL TOGGLE");
-    //       switch (data.id) {
-    //         case 'fullscreenToggleButton' :
-    //           toggleFullScreen();
-    //         break;
-    //         case 'pauseToggleButton' :
-    //           togglePause();
-    //         break;
-    //         case 'statsToggleButton' :
-    //           toggleStats();
-    //         break;
-    //         case 'testModeToggleButton' :
-    //           toggleTestMode();
-    //         break;
-    //         case 'disableLinksToggleButton' :
-    //           toggleDisableLinks();
-    //         break;
-    //         case 'nodeCreateButton' :
-    //           // createTextNode;
-    //         break;
-    //         case 'antonymToggleButton' :
-    //           toggleAntonym();
-    //         break;
-    //         case 'removeDeadNodeToogleButton' :
-    //           toggleRemoveDeadNode();
-    //         break;
-    //         default:
-    //           console.error("CONTROL PANEL UNKNOWN TOGGLE BUTTON");
-    //         break;
-    //       }
-    //     break;
-    //     case 'UPDATE' :
-    //       console.warn("CONTROL PANEL UPDATE");
-    //       switch (data.id) {
-    //         case 'linkStrengthSlider' :
-    //           currentSessionView.updateLinkStrength(data.value/1000);
-    //         break;
-    //         case 'velocityDecaySlider' :
-    //           currentSessionView.updateVelocityDecay(data.value/1000);
-    //         break;
-    //         case 'gravitySlider' :
-    //           currentSessionView.updateGravity(data.value/1000);
-    //         break;
-    //         case 'chargeSlider' :
-    //           currentSessionView.updateCharge(data.value);
-    //         break;
-    //         case 'maxAgeSlider' :
-    //           currentSessionView.setNodeMaxAge(data.value);
-    //         break;
-    //       }
-    //     break;
-    //     default :
-    //       console.error("CONTROL PANEL OP UNDEFINED");
-    //     break;
-    //   }
-    // });
   }, false);
 
   controlPanelFlag = true;
@@ -608,9 +529,9 @@ function togglePause() {
 }
 
 function toggleRemoveDeadNode() {
-  config.removeDeadNodes = !config.removeDeadNodes;
-  currentSessionView.removeDeadNodes = config.removeDeadNodes;
-  console.warn("TOGGLE REMOVE DEAD NODES: " + config.removeDeadNodes);
+  config.removeDeadNodesFlag = !config.removeDeadNodesFlag;
+  currentSessionView.removeDeadNodesFlag = config.removeDeadNodesFlag;
+  console.warn("TOGGLE REMOVE DEAD NODES: " + config.removeDeadNodesFlag);
   controlPanel.updateControlPanel(config);
 }
 

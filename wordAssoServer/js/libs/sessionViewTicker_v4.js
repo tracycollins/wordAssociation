@@ -8,6 +8,8 @@ function ViewTicker() {
   var self = this;
   self.disableLinks = true;
 
+  var runningFlag = false;
+
   var antonymFlag = false;
   var fixedGroupsFlag = false;
   var lineHeight = 3;
@@ -303,11 +305,44 @@ function ViewTicker() {
   // ===================================================================
   var simulation;
 
-  function ticked() {
+  function drawSimulation(){
     updateGroupWords();
     updateNodeWords();
-    updateLinks();
-    updateSimulation(function(){});
+  }
+
+  // function ticked() {
+  //   updateGroupWords();
+  //   updateNodeWords();
+  //   updateLinks();
+  //   updateSimulation(function(){});
+  // }
+
+  function ticked() {
+    drawSimulation();
+    updateSimulation();
+  }
+
+  var drawSimulationInterval;
+  var DEFAULT_DRAW_SIMULATION_INTERVAL = 100;
+  var drawSimulationIntervalTime = DEFAULT_DRAW_SIMULATION_INTERVAL;
+
+  this.initDrawSimulationInverval = function(itvl){
+
+    var interval = drawSimulationIntervalTime;
+
+    clearInterval(drawSimulationInterval);
+
+    if (typeof itvl !== 'undefined'){
+      interval = itvl;
+    }
+
+    drawSimulationInterval = setInterval(function(){
+      drawSimulation();
+    }, interval);
+  }
+
+  this.clearDrawSimulationInterval = function(){
+    clearInterval(drawSimulationInterval);
   }
 
   this.initD3timer = function() {
@@ -319,6 +354,58 @@ function ViewTicker() {
       .force("forceY", d3.forceY(svgTickerLayoutAreaHeight/2).strength(DEFAULT_GRAVITY))
       .velocityDecay(DEFAULT_VELOCITY_DECAY)
       .on("tick", ticked);
+  }
+
+  this.simulationControl = function(op) {
+    // console.warn("SIMULATION CONTROL | OP: " + op);
+    switch (op) {
+      case 'RESET':
+        // self.initD3timer();
+        console.warn("SIMULATION CONTROL | OP: " + op);
+        self.clearDrawSimulationInterval();
+        simulation.reset();
+        runningFlag = false;
+        // simulation.stop();
+      break;
+      case 'START':
+        console.warn("SIMULATION CONTROL | OP: " + op);
+        self.initD3timer();
+        simulation.alphaTarget(0.7).restart();
+        runningFlag = true;
+      break;
+      case 'RESUME':
+        if (!runningFlag){
+          console.warn("SIMULATION CONTROL | OP: " + op);
+          runningFlag = true;
+          self.clearDrawSimulationInterval();
+          simulation.alphaTarget(0.7).restart();
+        }
+      break;
+      case 'PAUSE':
+        if (runningFlag){
+          console.warn("SIMULATION CONTROL | OP: " + op);
+          runningFlag = false;
+          simulation.alpha(0);
+          simulation.stop();
+          self.initDrawSimulationInverval();
+        }
+      break;
+      case 'STOP':
+        runningFlag = false;
+        console.warn("SIMULATION CONTROL | OP: " + op);
+        self.clearDrawSimulationInterval();
+        simulation.alpha(0);
+        simulation.stop();
+      break;
+      case 'RESTART':
+        console.warn("SIMULATION CONTROL | OP: " + op);
+        simulation.alphaTarget(0.7).restart();
+        runningFlag = true;
+      break;
+      default:
+        console.warn("???? SIMULATION CONTROL | UNKNOWN OP: " + op);
+      break;
+    }
   }
 
   function updateSimulation(callback) {
@@ -359,7 +446,7 @@ function ViewTicker() {
 
         groupsLengthYposition = groups.length;
 
-        callback(err);
+        if (typeof callback !== 'undefined') callback(err);
       }
     );
   }
@@ -818,7 +905,7 @@ function ViewTicker() {
       })
       .style("fill", function(d) {
         if (d.age < 0.01*nodeMaxAge) { return "FFFFFF";  }
-        else { return d.interpolateColor(1e-6); }
+        else { return d.interpolateNodeColor(1e-6); }
       })
       .transition()
         .duration(defaultFadeDuration)

@@ -919,7 +919,7 @@ function ViewTicker() {
           }
         })
         .transition()
-        .duration(100)
+        .duration(50)
         .attr("x", xposition)
         .attr("y", ypositionWord);
 

@@ -12,6 +12,13 @@ when new instance of word arrives, iterate thru array of nodes and create linksk
 */
 
 var d3;
+var controlPanel;
+var controlTableHead;
+var controlTableBody;
+var controlSliderTable;
+
+var statusSessionId;
+var statusSession2Id;
 
 requirejs(["http://d3js.org/d3.v4.min.js"], function(d3Loaded) {
     console.log("d3 LOADED");
@@ -50,6 +57,8 @@ var DEFAULT_FRICTION = 0.75;
 var DEFAULT_VELOCITY_DECAY = 0.75;
 
 var config = {};
+
+config.antonymFlag = false;
 config.pauseFlag = false;
 config.sessionViewType = DEFAULT_SESSION_VIEW; // options: force, histogram ??
 config.maxWords = 100;
@@ -180,49 +189,56 @@ function msToTime(duration) {
 function displayControl(isVisible) {
   var v = 'hidden';
   if (isVisible) v = 'visible';
-  document.getElementById('controlDiv').style.visibility = v;
-  document.getElementById('controlSliderDiv').style.visibility = v;
+  // controlPanel.document.getElementById('controlDiv').style.visibility = v;
+  //  controlPanel.document.getElementById('controlSliderDiv').style.visibility = v;
 }
 
 function displayInfo(isVisible) {
   var v = 'hidden';
   if (isVisible) v = 'visible';
-  document.getElementById('infoDiv').style.visibility = v;
+  // controlPanel.document.getElementById('infoDiv').style.visibility = v;
 }
 
 var mouseMoveTimeout;
 var mouseMovingFlag = false;
-var mouseMoveTimeoutInterval = 1000;
+var mouseMoveTimeoutInterval = 2000;
 
-var mouseMoveTimeout = setTimeout(function() {
-  d3.select("body").style("cursor", "none");
-  if (!config.showStatsFlag && !pageLoadedTimeIntervalFlag) {
-    displayInfo(false);
-    displayControl(false);
-  }
-}, mouseMoveTimeoutInterval);
+var mouseMoveTimeout;
+
+// var mouseMoveTimeout = setTimeout(function() {
+//   currentSessionView.simulationControl('RESUME');
+//   d3.select("body").style("cursor", "none");
+//   if (!config.showStatsFlag && !pageLoadedTimeIntervalFlag) {
+//     displayInfo(false);
+//     displayControl(false);
+//   }
+// }, mouseMoveTimeoutInterval);
 
 function resetMouseMoveTimer() {
+
   clearTimeout(mouseMoveTimeout);
 
-  displayControl(true);
-  displayInfo(true);
-
   mouseMoveTimeout = setTimeout(function() {
+
+    mouseMovingFlag = false;
     d3.select("body").style("cursor", "none");
+
+    currentSessionView.simulationControl('RESUME');
 
     if (!config.showStatsFlag && !pageLoadedTimeIntervalFlag) {
       displayInfo(false);
       displayControl(false);
     }
 
-    mouseMovingFlag = false;
   }, mouseMoveTimeoutInterval);
 }
 
 document.addEventListener("mousemove", function() {
-  resetMouseMoveTimer();
+  currentSessionView.simulationControl('PAUSE');
   mouseMovingFlag = true;
+  displayControl(true);
+  displayInfo(true);
+  resetMouseMoveTimer();
 }, true);
 
 var dragEndPosition = { 'id': 'ID', 'x': 47, 'y': 147};
@@ -261,7 +277,7 @@ function tableCreateRow(parentTable, options, cells) {
   if (options.headerFlag) {
     cells.forEach(function(content) {
       var th = tr.insertCell();
-      th.appendChild(document.createTextNode(content));
+      th.appendChild(parentTable.parentNode.createTextNode(content));
       th.style.color = tdTextColor;
       th.style.backgroundColor = tdBgColor;
     });
@@ -313,335 +329,102 @@ function reset() {
 
     currentSessionView.resetDefaultForce();
 
-    setLinkStrengthSliderValue(DEFAULT_LINK_STRENGTH);
-    setFrictionSliderValue(DEFAULT_FRICTION);
-    setGravitySliderValue(DEFAULT_GRAVITY);
-    setChargeSliderValue(DEFAULT_CHARGE);
-    setMaxAgeSliderValue(DEFAULT_MAX_AGE);
+    // setLinkStrengthSliderValue(DEFAULT_LINK_STRENGTH);
+    // setvelocityDecaySliderValue(DEFAULT_FRICTION);
+    // setGravitySliderValue(DEFAULT_GRAVITY);
+    // setChargeSliderValue(DEFAULT_CHARGE);
+    // setMaxAgeSliderValue(DEFAULT_MAX_AGE);
   }
 }
 
 function setLinkStrengthSliderValue(value) {
-  document.getElementById("linkStrengthSlider").value = value * 1000;
+  controlPanel.document.getElementById("linkStrengthSlider").value = value * 1000;
   currentSessionView.updateLinkStrength(value);
-  // document.getElementById("linkStrengthSliderText").innerHTML = value.toFixed(3);
 }
 
-function setFrictionSliderValue(value) {
-  document.getElementById("frictionSlider").value = value * 1000;
-  currentSessionView.updateFriction(value);
-  // document.getElementById("frictionSliderText").innerHTML = value.toFixed(3);
+function setvelocityDecaySliderValue(value) {
+  controlPanel.document.getElementById("velocityDecaySlider").value = value * 1000;
+  currentSessionView.updateVelocityDecay(value);
 }
 
 function setGravitySliderValue(value) {
-  document.getElementById("gravitySlider").value = value * 1000;
+  controlPanel.document.getElementById("gravitySlider").value = value * 1000;
   currentSessionView.updateGravity(value);
-  // document.getElementById("gravitySliderText").innerHTML = value.toFixed(3);
 }
 
 function setChargeSliderValue(value) {
-  document.getElementById("chargeSlider").value = value;
+  controlPanel.document.getElementById("chargeSlider").value = value;
   currentSessionView.updateCharge(value);
-  // document.getElementById("chargeSliderText").innerHTML = value;
 }
 
 function setMaxAgeSliderValue(value) {
-  document.getElementById("maxAgeSlider").value = value;
+  controlPanel.document.getElementById("maxAgeSlider").value = value;
   currentSessionView.setNodeMaxAge(value);
-  // document.getElementById("chargeSliderText").innerHTML = value;
 }
 
 
-function updateControlPanel() {
-  if (config.antonymFlag) {
-    document.getElementById("antonymButton").style.color = "red";
-    document.getElementById("antonymButton").style.border = "2px solid red";
-  } else {
-    document.getElementById("antonymButton").style.color = "#888888";
-    document.getElementById("antonymButton").style.border = "1px solid white";
-  }
-  if (config.pauseFlag) {
-    document.getElementById("pauseToggleButton").style.color = "red";
-    document.getElementById("pauseToggleButton").style.border = "2px solid red";
-  } else {
-    document.getElementById("pauseToggleButton").style.color = "#888888";
-    document.getElementById("pauseToggleButton").style.border = "1px solid white";
-  }
-  if (config.showStatsFlag) {
-    document.getElementById("statsToggleButton").style.color = "red";
-    document.getElementById("statsToggleButton").style.border = "2px solid red";
-  } else {
-    document.getElementById("statsToggleButton").style.color = "#888888";
-    document.getElementById("statsToggleButton").style.border = "1px solid white";
-  }
-  if (config.testModeEnabled) {
-    document.getElementById("testModeButton").style.color = "red";
-    document.getElementById("testModeButton").style.border = "2px solid red";
-  } else {
-    document.getElementById("testModeButton").style.color = "#888888";
-    document.getElementById("testModeButton").style.border = "1px solid white";
-  }
-  if (config.removeDeadNodes) {
-    document.getElementById("removeDeadNodeButton").style.color = "red";
-    document.getElementById("removeDeadNodeButton").style.border = "2px solid red";
-  } else {
-    document.getElementById("removeDeadNodeButton").style.color = "#888888";
-    document.getElementById("removeDeadNodeButton").style.border = "1px solid white";
-  }
-  // if ((config.sessionViewType == 'force') || (config.sessionViewType == 'ticker')){  
-  if (config.sessionViewType == 'force'){  
-    if (config.disableLinks) {
-      document.getElementById("disableLinksButton").style.color = "red";
-      document.getElementById("disableLinksButton").style.border = "2px solid red";
-    } else {
-      document.getElementById("disableLinksButton").style.color = "#888888";
-      document.getElementById("disableLinksButton").style.border = "1px solid white";
+var controlPanelWindow; 
+
+var tempControlPanel;
+
+
+var createPopUpControlPanel = function (config) {
+
+  console.warn("createPopUpControlPanel\nconfig\n" + jsonPrint(config));
+
+  config.defaultMaxAge = DEFAULT_MAX_AGE;
+
+  controlPanelWindow = window.open("controlPanel.html", "CONTROL", "width=800,height=600");
+
+  controlPanelWindow.addEventListener('load', function(config){
+    controlPanel = new controlPanelWindow.ControlPanel(config);
+
+  lsbridge.subscribe('controlPanel', function(data) {
+    console.warn("CONTROL PANEL: " + jsonPrint(data)); // prints: { message: 'Hello world!'} 
+
+    switch (data.id) {
+      case 'linkStrengthSlider' :
+        currentSessionView.updateLinkStrength(data.value/1000);
+      break;
+      case 'velocityDecaySlider' :
+        currentSessionView.updateVelocityDecay(data.value/1000);
+      break;
+      case 'gravitySlider' :
+        currentSessionView.updateGravity(data.value/1000);
+      break;
+      case 'chargeSlider' :
+        currentSessionView.updateCharge(data.value);
+      break;
+      case 'maxAgeSlider' :
+        currentSessionView.setNodeMaxAge(data.value);
+      break;
     }
-  }
-}
+  });
 
-function createControlPanel() {
-  var controlTableHead = document.getElementById('controlTableHead');
-  var controlTableBody = document.getElementById('controlTableBody');
+  });
 
-  var optionsHead = {
-    headerFlag: true,
-    textColor: '#CCCCCC',
-    backgroundColor: '#222222'
-  };
+};
 
-  var optionsBody = {
-    headerFlag: false,
-    textColor: '#BBBBBB',
-    backgroundColor: '#111111'
-  };
-
-  var fullscreenButton = {
-    type: 'BUTTON',
-    id: 'fullscreenToggleButton',
-    class: 'button',
-    onclick: 'toggleFullScreen()',
-    text: 'FULLSCREEN'
-  }
-
-  var pauseButton = {
-    type: 'BUTTON',
-    id: 'pauseToggleButton',
-    class: 'button',
-    onclick: 'togglePause()',
-    text: 'PAUSE'
-  }
-
-  var statsButton = {
-    type: 'BUTTON',
-    id: 'statsToggleButton',
-    class: 'button',
-    onclick: 'toggleStats()',
-    text: 'STATS'
-  }
-
-  var testModeButton = {
-    type: 'BUTTON',
-    id: 'testModeButton',
-    class: 'button',
-    onclick: 'toggleTestMode()',
-    text: 'TEST'
-  }
-
-  var status = {
-    type: 'TEXT',
-    id: 'statusSessionId',
-    class: 'statusText',
-    text: 'SESSION ID: ' + statsObj.socketId
-  }
-
-  var status2 = {
-    type: 'TEXT',
-    id: 'statusSession2Id',
-    class: 'statusText',
-    text: 'NODES: ' + 0
-  }
-
-  var antonymButton = {
-    type: 'BUTTON',
-    id: 'antonymButton',
-    class: 'button',
-    onclick: 'toggleAntonym()',
-    text: 'ANT'
-  }
-
-  var resetButton = {
-    type: 'BUTTON',
-    id: 'resetButton',
-    class: 'button',
-    onclick: 'reset()',
-    text: 'RESET'
-  }
-
-  var disableLinksButton = {
-    type: 'BUTTON',
-    id: 'disableLinksButton',
-    class: 'button',
-    onclick: 'toggleDisableLinks()',
-    text: 'LINKS'
-  }
-
-  var removeDeadNodeButton = {
-    type: 'BUTTON',
-    id: 'removeDeadNodeButton',
-    class: 'button',
-    onclick: 'toggleRemoveDeadNode()',
-    text: 'DEAD'
-  }
-
-  var nodeCreateButton = {
-    type: 'BUTTON',
-    id: 'nodeCreateButton',
-    class: 'button',
-    onclick: 'currentSessionView.addRandomNode()',
-    text: 'NODE'
-  }
-
-  var maxAgeSlider = {
-    type: 'SLIDER',
-    id: 'maxAgeSlider',
-    class: 'slider',
-    oninput: 'setMaxAgeSliderValue(this.value)',
-    min: 500,
-    max: 120000,
-    value: DEFAULT_MAX_AGE,
-  }
-
-  var chargeSlider = {
-    type: 'SLIDER',
-    id: 'chargeSlider',
-    class: 'slider',
-    oninput: 'setChargeSliderValue(this.value)',
-    min: -2000,
-    max: 2000,
-    value: -300,
-  }
-
-  var gravitySlider = {
-    type: 'SLIDER',
-    id: 'gravitySlider',
-    class: 'slider',
-    oninput: 'setGravitySliderValue(this.value/1000)',
-    min: -200,
-    max: 200,
-    value: 50,
-  }
-
-  var frictionSlider = {
-    type: 'SLIDER',
-    id: 'frictionSlider',
-    class: 'slider',
-    oninput: 'setFrictionSliderValue(this.value/1000)',
-    min: 0,
-    max: 1000,
-    value: 300,
-  }
-
-  var linkStrengthSlider = {
-    type: 'SLIDER',
-    id: 'linkStrengthSlider',
-    class: 'slider',
-    oninput: 'setLinkStrengthSliderValue(this.value/1000)',
-    min: 0,
-    max: 1000,
-    value: 747,
-  }
-
-  switch (config.sessionViewType) {
-    case 'force':
-      tableCreateRow(controlTableBody, optionsBody, [status]);
-      tableCreateRow(controlTableBody, optionsBody, [status2]);
-      tableCreateRow(controlTableBody, 
-        optionsBody, 
-        [
-          fullscreenButton, 
-          pauseButton, 
-          statsButton, 
-          testModeButton, 
-          nodeCreateButton, 
-          removeDeadNodeButton, 
-          disableLinksButton,
-          antonymButton
-        ]
-      );
-      tableCreateRow(controlSliderTable, optionsBody, [resetButton]);
-      tableCreateRow(controlSliderTable, optionsBody, ['MAX AGE', maxAgeSlider]);
-      tableCreateRow(controlSliderTable, optionsBody, ['CHARGE', chargeSlider]);
-      tableCreateRow(controlSliderTable, optionsBody, ['GRAVITY', gravitySlider]);
-      tableCreateRow(controlSliderTable, optionsBody, ['FRICTION', frictionSlider]);
-      tableCreateRow(controlSliderTable, optionsBody, ['LINK STRENGTH', linkStrengthSlider]);
-      break;
-    case 'ticker':
-      tableCreateRow(controlTableBody, optionsBody, [status]);
-      tableCreateRow(controlTableBody, optionsBody, [status2]);
-      tableCreateRow(controlTableBody, 
-        optionsBody, 
-        [
-          fullscreenButton, 
-          pauseButton, 
-          statsButton, 
-          testModeButton, 
-          resetButton, 
-          nodeCreateButton, 
-          removeDeadNodeButton,
-          antonymButton
-        ]
-      );
-      tableCreateRow(controlSliderTable, optionsBody, [resetButton]);
-      tableCreateRow(controlSliderTable, optionsBody, ['MAX AGE', maxAgeSlider]);
-
-      break;
-    case 'histogram':
-      tableCreateRow(controlTableBody, optionsBody, [status]);
-      tableCreateRow(controlTableBody, optionsBody, [status2]);
-      tableCreateRow(controlTableBody, 
-        optionsBody, 
-        [
-          fullscreenButton, 
-          pauseButton, 
-          statsButton, testModeButton, resetButton, nodeCreateButton, removeDeadNodeButton]);
-      tableCreateRow(controlSliderTable, optionsBody, [resetButton]);
-      tableCreateRow(controlSliderTable, optionsBody, ['MAX AGE', maxAgeSlider]);
-
-      break;
-    default:
-      tableCreateRow(controlTableBody, optionsBody, [status]);
-      tableCreateRow(controlTableBody, 
-        optionsBody, 
-        [
-          fullscreenButton, 
-          pauseButton, 
-          statsButton, testModeButton, resetButton, nodeCreateButton, removeDeadNodeButton]);
-      break;
-  }
-
-  updateControlPanel(config.sessionViewType);
-}
 
 function toggleAntonym() {
   config.antonymFlag = !config.antonymFlag;
   currentSessionView.setAntonym(config.antonymFlag);
   console.warn("TOGGLE ANT: " + config.antonymFlag);
-  updateControlPanel(config.sessionViewType);
+  controlPanel.updateControlPanel(config);
 }
 
 function togglePause() {
   config.pauseFlag = !config.pauseFlag;
   currentSessionView.setPause(config.pauseFlag);
   console.warn("TOGGLE PAUSE: " + config.pauseFlag);
-  updateControlPanel(config.sessionViewType);
+  controlPanel.updateControlPanel(config);
 }
 
 function toggleRemoveDeadNode() {
   config.removeDeadNodes = !config.removeDeadNodes;
   currentSessionView.removeDeadNodes = config.removeDeadNodes;
   console.warn("TOGGLE REMOVE DEAD NODES: " + config.removeDeadNodes);
-  updateControlPanel(config.sessionViewType);
+  controlPanel.updateControlPanel(config);
 }
 
 function toggleDisableLinks() {
@@ -649,7 +432,7 @@ function toggleDisableLinks() {
   currentSessionView.disableLinks = config.disableLinks;
   if (config.disableLinks) linkHashMap.clear();
   console.warn("TOGGLE DISABLE LINKS: " + config.disableLinks);
-  updateControlPanel(config.sessionViewType);
+  controlPanel.updateControlPanel(config);
 }
 
 function toggleStats() {
@@ -661,7 +444,7 @@ function toggleStats() {
     displayInfo(0);
   }
   console.warn("TOGGLE STATS: " + config.showStatsFlag);
-  updateControlPanel(config.sessionViewType);
+  controlPanel.updateControlPanel(config);
 }
 
 function toggleTestMode() {
@@ -679,7 +462,7 @@ function toggleTestMode() {
     currentSessionView.clearTestDeleteNodeInterval();
   }
 
-  updateControlPanel(config.sessionViewType);
+  controlPanel.updateControlPanel(config);
 }
 
 var serverConnected = false;
@@ -758,11 +541,11 @@ var viewerObj = {
 var initialPositionIndex = 0;
 
 function computeInitialPosition(index) {
-  var radiusX = 0.5 * window.innerWidth;
-  var radiusY = 0.5 * window.innerHeight;
+  var radiusX = 0.4 * window.innerWidth;
+  var radiusY = 0.4 * window.innerHeight;
   var pos = {
-    x: (radiusX - (2 * radiusX * Math.cos(index))),
-    y: (radiusY - (2 * radiusY * Math.sin(index)))
+    x: (0.5*window.innerWidth + (radiusX * Math.cos(index))),
+    y: (0.5*window.innerHeight + (radiusY * Math.sin(index)))
   };
 
   return pos;
@@ -851,15 +634,16 @@ socket.on("VIEWER_ACK", function(vSesKey) {
 
   console.log("RX VIEWER_ACK | SESSION KEY: " + vSesKey);
 
-  viewerSessionKey = vSesKey;
+  statsObj.viewerSessionKey = vSesKey;
 
-  var statusSessionId = document.getElementById("statusSessionId");
+  store.set('stats', statsObj);
 
-  if (typeof statusSessionId !== 'undefined') {
-    statusSessionId.innerHTML = 'SOCKET: ' + statsObj.socketId;
-  } else {
-    console.warn("statusSessionId element is undefined");
-  }
+  // if (typeof statusSessionId !== 'undefined') {
+  // if (statusSessionId) {
+  //   statusSessionId.innerHTML = 'SOCKET: ' + statsObj.socketId;
+  // } else {
+  //   console.warn("statusSessionId element is undefined");
+  // }
 
   if (sessionMode) {
     console.log("SESSION MODE" + " | SID: " + sessionId + " | NSP: " + namespace);
@@ -875,6 +659,7 @@ socket.on("VIEWER_ACK", function(vSesKey) {
 socket.on("reconnect", function() {
 
   statsObj.socketId = socket.id;
+  store.set('stats', statsObj);
 
   serverConnected = true;
 
@@ -883,7 +668,7 @@ socket.on("reconnect", function() {
     console.log("SESSION MODE" + " | SID: " + sessionId + " | NSP: " + namespace);
     var tempSessionId = "/" + namespace + "#" + sessionId;
     currentSession.sessionId = tempSessionId;
-    document.getElementById("statusSessionId").innerHTML = 'SOCKET: ' + statsObj.socketId;
+    controlPanel.document.getElementById("statusSessionId").innerHTML = 'SOCKET: ' + statsObj.socketId;
     socket.emit("GET_SESSION", currentSession.sessionId);
   } else {
     // socket.emit("REQ_USER_SESSION");
@@ -892,6 +677,7 @@ socket.on("reconnect", function() {
 
 socket.on("connect", function() {
   statsObj.socketId = socket.id;
+  store.set('stats', statsObj);
   serverConnected = true;
   console.log("CONNECTED TO HOST | SOCKET ID: " + socket.id);
   // document.getElementById("statusSessionId").innerHTML = socket.id;
@@ -899,6 +685,7 @@ socket.on("connect", function() {
 
 socket.on("reconnect", function() {
   statsObj.socketId = socket.id;
+  store.set('stats', statsObj);
   serverConnected = true;
   console.log("RECONNECTED TO HOST | SOCKET ID: " + socket.id);
   // document.getElementById("statusSessionId").innerHTML = socket.id;
@@ -916,6 +703,7 @@ socket.on("disconnect", function() {
     sessionDeleteHashMap.clear();
     currentSessionView.resize();
     updateSessionsReady = true;
+    store.set('stats', statsObj);
   });
 });
 
@@ -933,6 +721,7 @@ socket.on("error", function(error) {
     sessionDeleteHashMap.clear();
     currentSessionView.resize();
     updateSessionsReady = true;
+    store.set('stats', statsObj);
   });
 });
 
@@ -950,6 +739,7 @@ socket.on("connect_error", function(error) {
     sessionDeleteHashMap.clear();
     currentSessionView.resize();
     updateSessionsReady = true;
+    store.set('stats', statsObj);
   });
 });
 
@@ -966,7 +756,8 @@ socket.on("reconnect_error", function(error) {
     groupHashMap.clear();
     sessionDeleteHashMap.clear();
     currentSessionView.resize();
-  updateSessionsReady = true;
+    store.set('stats', statsObj);
+    updateSessionsReady = true;
   });
 });
 
@@ -1089,7 +880,7 @@ function getUrlVariables(callbackMain) {
 
   async.parallel(asyncTasks, function(err, results) {
 
-    console.log("results\n" + results);
+    // console.log("results\n" + results);
 
     var urlConfig = {};
 
@@ -1280,6 +1071,7 @@ socket.on("SESSION_ABORT", function(rxSessionObject) {
     serverConnected = false;
     statsObj.socketId = 'ABORTED';
     socket.disconnect();
+    store.set('stats', statsObj);
   }
 });
 
@@ -1298,6 +1090,7 @@ socket.on("SESSION_DELETE", function(rxSessionObject) {
     sessionDeleteHashMap.set(rxObj.session.nodeId, 1);
     session.sessionEvent = "SESSION_DELETE";
     rxSessionDeleteQueue.push(session);
+    store.set('stats', statsObj);
   }
 });
 
@@ -1312,10 +1105,6 @@ socket.on("USER_SESSION", function(rxSessionObject) {
 });
 
 socket.on("SESSION_UPDATE", function(rxSessionObject) {
-
-
-  // console.log("rxSessionObject\n" + jsonPrint(rxSessionObject));
-
 
   var rxObj = rxSessionObject;
   if (!windowVisible) {
@@ -1536,8 +1325,8 @@ var createGroup = function(callback) {
       // );
 
       currentGroup.mentions++;
-      currentGroup.age = 0;
-      currentGroup.ageMaxRatio = 1;
+      currentGroup.age = 1e-6;
+      currentGroup.ageMaxRatio = 1e-6;
       currentGroup.lastSeen = dateNow;
       // currentGroup.text = groupId;
       currentGroup.text = groupName;
@@ -1547,8 +1336,8 @@ var createGroup = function(callback) {
       // GROUP NODE
       currentGroup.node.text = groupId;
 
-      currentGroup.node.age = 0;
-      currentGroup.node.ageMaxRatio = 1;
+      currentGroup.node.age = 1e-6;
+      currentGroup.node.ageMaxRatio = 1e-6;
       currentGroup.node.ageUpdated = dateNow;
       currentGroup.node.lastSeen = dateNow;
       currentGroup.node.isDead = false;
@@ -1586,8 +1375,15 @@ var createGroup = function(callback) {
       initialPositionIndex++;
 
       randomNumber360 = (randomNumber360 + randomIntFromInterval(61, 117))%360;
-      var startColor = "hsl(" + randomNumber360 + ",0%,100%)";
-      var endColor = "hsl(" + randomNumber360 + ",0%,0%)";
+
+      var groupStartColor = "hsl(" + randomNumber360 + ",0%,10%)";
+      var groupEndColor = "hsl(" + randomNumber360 + ",0%,0%)";
+
+      var sessionStartColor = "hsl(" + randomNumber360 + ",0%,10%)";
+      var sessionEndColor = "hsl(" + randomNumber360 + ",0%,0%)";
+
+      var nodeStartColor = "hsl(" + randomNumber360 + ",0%,100%)";
+      var nodeEndColor = "hsl(" + randomNumber360 + ",0%,0%)";
 
       var currentGroup = {};
       var currentSession = {};
@@ -1605,9 +1401,9 @@ var createGroup = function(callback) {
       currentGroup.groupId = groupId;
       currentGroup.name = groupName;
       currentGroup.nodeId = groupId;
-      currentGroup.age = 0;
+      currentGroup.age = 1e-6;
       currentGroup.ageUpdated = dateNow;
-      currentGroup.ageMaxRatio = 1;
+      currentGroup.ageMaxRatio = 1e-6;
       currentGroup.lastSeen = dateNow;
       currentGroup.isGroup = true;
       currentGroup.isSession = false;
@@ -1627,11 +1423,22 @@ var createGroup = function(callback) {
       currentGroup.initialPosition = currentInitialPosition;
       currentGroup.x = currentInitialPosition.x;
       currentGroup.y = currentInitialPosition.y;
-      currentGroup.colors = {};
-      currentGroup.colors = {"startColor": startColor, "endColor": endColor};
 
-      var interpolateNodeColor = d3.interpolateHsl(startColor, endColor);
-      currentGroup.interpolateColor = interpolateNodeColor;
+      currentGroup.groupColors = {};
+      currentGroup.groupColors = {"startColor": groupStartColor, "endColor": groupEndColor};
+      currentGroup.sessionColors = {};
+      currentGroup.sessionColors = {"startColor": sessionStartColor, "endColor": sessionEndColor};
+      currentGroup.nodeColors = {};
+      currentGroup.nodeColors = {"startColor": nodeStartColor, "endColor": nodeEndColor};
+
+      var interpolateGroupColor = d3.interpolateHsl(groupStartColor, groupEndColor);
+      currentGroup.interpolateGroupColor = interpolateGroupColor;
+
+      var interpolateSessionColor = d3.interpolateHsl(sessionStartColor, sessionEndColor);
+      currentGroup.interpolateSessionColor = interpolateSessionColor;
+
+      var interpolateNodeColor = d3.interpolateHsl(nodeStartColor, nodeEndColor);
+      currentGroup.interpolateNodeColor = interpolateNodeColor;
 
       // CREATE GROUP NODE
 
@@ -1639,8 +1446,8 @@ var createGroup = function(callback) {
       currentGroup.node.isSessionNode = false;
       currentGroup.node.groupId = groupId;
       currentGroup.node.nodeId = groupId;
-      currentGroup.node.age = 0;
-      currentGroup.node.ageMaxRatio = 1;
+      currentGroup.node.age = 1e-6;
+      currentGroup.node.ageMaxRatio = 1e-6;
       currentGroup.node.isDead = false;
       currentGroup.node.ageUpdated = dateNow;
       currentGroup.node.lastSeen = dateNow;
@@ -1655,9 +1462,10 @@ var createGroup = function(callback) {
       currentGroup.node.x = currentGroup.initialPosition.x;
       currentGroup.node.y = currentGroup.initialPosition.y;
       currentGroup.node.fixed = true;
-      currentGroup.node.colors = {};
-      currentGroup.node.colors = currentGroup.colors;
-      currentGroup.node.interpolateColor = interpolateNodeColor;
+
+      currentGroup.node.groupColors = {};
+      currentGroup.node.groupColors = currentGroup.groupColors;
+      currentGroup.node.interpolateGroupColor = interpolateGroupColor;
 
       currentGroup.node.links = {};
 
@@ -1668,13 +1476,14 @@ var createGroup = function(callback) {
       }
 
       addToHashMap(nodeHashMap, currentGroup.node.nodeId, currentGroup.node, function(grpNode) {
-        // console.log("NEW GROUP NODE" 
-        //   + " | " + grpNode.nodeId
-        //   + " | " + grpNode.groupId
-        //   + " | isGroupNode: " + grpNode.isGroupNode
-        //   + " | isSessionNode: " + grpNode.isSessionNode
-        //   // + "\n" + jsonPrint(grpNode)
-        // );
+
+        console.log("NEW GROUP NODE" 
+          + " | " + grpNode.nodeId
+          + " | " + grpNode.groupId
+          + " | isGroupNode: " + grpNode.isGroupNode
+          + " | isSessionNode: " + grpNode.isSessionNode
+          // + "\n" + jsonPrint(grpNode)
+        );
 
         currentSessionView.addNode(grpNode);
 
@@ -1744,6 +1553,8 @@ var createSession = function(callback) {
 
       currentSession.tags = sessUpdate.tags;
 
+      currentSession.colors = currentGroup.sessionColors;
+
       if (nodeHashMap.has(currentSession.node.nodeId)) {
         currentSession.node = nodeHashMap.get(currentSession.node.nodeId);
       }
@@ -1761,9 +1572,9 @@ var createSession = function(callback) {
       });
 
       currentSession.groupId = currentGroup.groupId;
-      currentSession.age = 0;
+      currentSession.age = 1e-6;
       currentSession.ageUpdated = dateNow;
-      currentSession.ageMaxRatio = 1;
+      currentSession.ageMaxRatio = 1e-6;
       currentSession.mentions++;
       currentSession.lastSeen = dateNow;
       currentSession.userId = sessUpdate.userId;
@@ -1774,10 +1585,11 @@ var createSession = function(callback) {
       currentSession.target = sessUpdate.target;
       currentSession.target.lastSeen = dateNow;
       currentSession.latestNodeId = sessUpdate.source.nodeId;
+      currentSession.interpolateSessionColor = currentGroup.interpolateSessionColor;
 
       currentSession.node.text = sessUpdate.tags.entity + "[" + sessUpdate.tags.channel + "]";
-      currentSession.node.age = 0;
-      currentSession.node.ageMaxRatio = 1;
+      currentSession.node.age = 1e-6;
+      currentSession.node.ageMaxRatio = 1e-6;
       currentSession.node.isGroupNode = false;
       currentSession.node.isSessionNode = true;
       currentSession.node.isDead = false;
@@ -1785,10 +1597,19 @@ var createSession = function(callback) {
       currentSession.node.lastSeen = dateNow;
       currentSession.node.wordChainIndex = sessUpdate.wordChainIndex;
       currentSession.node.mentions = sessUpdate.wordChainIndex;
-      currentSession.node.colors = {};
-      currentSession.node.colors = currentGroup.colors;
-      currentSession.node.interpolateColor = currentGroup.interpolateColor;
 
+      currentSession.node.groupColors = {};
+      currentSession.node.groupColors = currentGroup.groupColors;
+      currentSession.node.interpolateGroupColor = currentGroup.interpolateGroupColor;
+      
+      currentSession.node.sessionColors = {};
+      currentSession.node.sessionColors = currentGroup.sessionColors;
+      currentSession.node.interpolateSessionColor = currentGroup.interpolateSessionColor;
+      
+      currentSession.node.nodeColors = {};
+      currentSession.node.nodeColors = currentGroup.nodeColors;
+      currentSession.node.interpolateNodeColor = currentGroup.interpolateNodeColor;
+      
       var sessionLinkId = currentSession.node.nodeId + "_" + sessUpdate.source.nodeId;
       
       currentSession.node.links = {};
@@ -1821,8 +1642,8 @@ var createSession = function(callback) {
       );
 
       currentSession.groupId = currentGroup.groupId;
-      currentSession.age = 0;
-      currentSession.ageMaxRatio = 1;
+      currentSession.age = 1e-6;
+      currentSession.ageMaxRatio = 1e-6;
       currentSession.mentions = 1;
       currentSession.lastSeen = dateNow;
       currentSession.rank = -1;
@@ -1842,9 +1663,17 @@ var createSession = function(callback) {
       currentSession.x = currentGroup.x;
       currentSession.y = currentGroup.y;
 
-      currentSession.colors = {};
-      currentSession.colors = currentGroup.colors;
-      currentSession.interpolateColor = currentGroup.interpolateColor;
+      currentSession.sessionColors = {};
+      currentSession.sessionColors = currentGroup.sessionColors;
+      currentSession.interpolateSessionColor = currentGroup.interpolateSessionColor;
+
+      currentSession.groupColors = {};
+      currentSession.groupColors = currentGroup.groupColors;
+      currentSession.interpolateGroupColor = currentGroup.interpolateGroupColor;
+
+      currentSession.nodeColors = {};
+      currentSession.nodeColors = currentGroup.nodeColors;
+      currentSession.interpolateNodeColor = currentGroup.interpolateNodeColor;
 
       // CREATE SESSION NODE
 
@@ -1857,8 +1686,8 @@ var createSession = function(callback) {
       currentSession.node.channel = sessUpdate.tags.channel;
       currentSession.node.userId = sessUpdate.userId;
       currentSession.node.sessionId = sessUpdate.sessionId;
-      currentSession.node.age = 0;
-      currentSession.node.ageMaxRatio = 1;
+      currentSession.node.age = 1e-6;
+      currentSession.node.ageMaxRatio = 1e-6;
       currentSession.node.ageUpdated = dateNow;
       currentSession.node.lastSeen = dateNow;
       currentSession.node.wordChainIndex = sessUpdate.wordChainIndex;
@@ -1867,9 +1696,17 @@ var createSession = function(callback) {
       currentSession.node.x = currentGroup.initialPosition.x + randomIntFromInterval(-10,10);
       currentSession.node.y = currentGroup.initialPosition.y + randomIntFromInterval(-10,10);
 
-      currentSession.node.colors = {};
-      currentSession.node.colors = currentGroup.colors;
-      currentSession.node.interpolateColor = currentGroup.interpolateColor;
+      currentSession.node.sessionColors = {};
+      currentSession.node.sessionColors = currentGroup.sessionColors;
+      currentSession.node.interpolateSessionColor = currentGroup.interpolateSessionColor;
+
+      currentSession.node.groupColors = {};
+      currentSession.node.groupColors = currentGroup.groupColors;
+      currentSession.node.interpolateGroupColor = currentGroup.interpolateGroupColor;
+
+      currentSession.node.nodeColors = {};
+      currentSession.node.nodeColors = currentGroup.nodeColors;
+      currentSession.node.interpolateNodeColor = currentGroup.interpolateNodeColor;
 
       currentSession.node.links = {};
 
@@ -1893,18 +1730,18 @@ var createSession = function(callback) {
         currentSessionView.addNode(sesNode);
 
         addToHashMap(sessionHashMap, currentSession.nodeId, currentSession, function(cSession) {
-          console.log("\nNEW SESSION"
-            + "\nGRP: " + currentGroup.groupId
-            + "\nGRPN: " + currentGroup.name
-            + "\nUID: " + cSession.userId 
-            + "\nNID: " + cSession.nodeId 
-            + "\nSID: " + cSession.sessionId 
-            + "\nSNID: " + cSession.node.nodeId
-            + "\nLNID: " + cSession.latestNodeId
-            + "\nWCI:" + cSession.wordChainIndex 
-            + "\nM:" + cSession.mentions 
-            // + "\n" + jsonPrint(cSession) 
-          );
+          // console.log("\nNEW SESSION"
+          //   + "\nGRP: " + currentGroup.groupId
+          //   + "\nGRPN: " + currentGroup.name
+          //   + "\nUID: " + cSession.userId 
+          //   + "\nNID: " + cSession.nodeId 
+          //   + "\nSID: " + cSession.sessionId 
+          //   + "\nSNID: " + cSession.node.nodeId
+          //   + "\nLNID: " + cSession.latestNodeId
+          //   + "\nWCI:" + cSession.wordChainIndex 
+          //   + "\nM:" + cSession.mentions 
+          //   // + "\n" + jsonPrint(cSession) 
+          // );
           currentSessionView.addSession(cSession);
           nodeCreateQueue.push(cSession);
           return (callback(null, cSession.nodeId));
@@ -1931,8 +1768,8 @@ var createNode = function(callback) {
       //   // + "\n" + jsonPrint(session)
       // );
 
-      sessionNode.age = 0;
-      sessionNode.ageMaxRatio = 1.0;
+      sessionNode.age = 1e-6;
+      sessionNode.ageMaxRatio = 1e-6;
       sessionNode.isDead = false;
       sessionNode.wordChainIndex = session.wordChainIndex;
       sessionNode.mentions = session.wordChainIndex;
@@ -1950,7 +1787,7 @@ var createNode = function(callback) {
         // + "\n" + jsonPrint(session)
       );
 
-      session.node.bboxWidth = 0;
+      session.node.bboxWidth = 1e-6;
       session.node.isSessionNode = true;
       session.node.isGroupNode = false;
       session.node.nodeId = session.tags.entity + "_" + session.tags.channel;
@@ -1959,16 +1796,21 @@ var createNode = function(callback) {
       session.node.text = session.tags.entity + "[" + session.tags.channel + "]";
       session.node.userId = session.userId;
       session.node.sessionId = session.sessionId;
-      session.node.age = 0;
-      session.node.ageMaxRatio = 1.0;
+      session.node.age = 1e-6;
+      session.node.ageMaxRatio = 1e-6;
       session.node.isDead = false;
       session.node.wordChainIndex = session.wordChainIndex;
       session.node.mentions = session.wordChainIndex+1;
       session.node.x = session.initialPosition.x + randomIntFromInterval(-10,10);
       session.node.y = session.initialPosition.y + randomIntFromInterval(-10,10);
-      session.node.colors = {};
-      session.node.colors = session.colors;
-      session.node.interpolateColor = session.interpolateColor;
+
+      // session.node.colors = {};
+      session.node.groupColors = session.groupColors;
+      session.node.sessionColors = session.sessionColors;
+      session.node.nodeColors = session.nodeColors;
+      session.node.interpolateGroupColor = session.interpolateGroupColor;
+      session.node.interpolateNodeColor = session.interpolateNodeColor;
+      session.node.interpolateSessionColor = session.interpolateSessionColor;
 
       addToHashMap(nodeHashMap, session.node.nodeId, session.node, function(sNode) {
         currentSessionView.addNode(sNode);
@@ -2012,14 +1854,17 @@ var createNode = function(callback) {
             sourceNode.sessionId = session.sessionId;
             sourceNode.groupId = session.groupId;
             sourceNode.channel = session.tags.channel;
-            sourceNode.age = 0;
-            sourceNode.ageMaxRatio = 1;
+            sourceNode.age = 1e-6;
+            sourceNode.ageMaxRatio = 1e-6;
             sourceNode.isDead = false;
             sourceNode.ageUpdated = dateNow;
             sourceNode.lastSeen = dateNow;
-            sourceNode.colors = {};
-            sourceNode.colors = session.colors;
-            sourceNode.interpolateColor = session.interpolateColor;
+            sourceNode.groupColors = session.groupColors;
+            sourceNode.sessionColors = session.sessionColors;
+            sourceNode.nodeColors = session.nodeColors;
+            sourceNode.interpolateGroupColor = session.interpolateGroupColor;
+            sourceNode.interpolateNodeColor = session.interpolateNodeColor;
+            sourceNode.interpolateSessionColor = session.interpolateSessionColor;
             if (sourceNode.isSessionNode){
               sourceNode.text = session.tags.entity + "[" + session.tags.channel + "]";
               sourceNode.wordChainIndex = session.source.wordChainIndex;
@@ -2040,7 +1885,7 @@ var createNode = function(callback) {
           } else {
             sourceNode = session.source;
             sourceNode.nodeId = sourceNodeId;
-            sourceNode.bboxWidth = 0;
+            sourceNode.bboxWidth = 1e-6;
             sourceNode.isIgnored = ignoreWordHashMap.has(sourceText);
             sourceNode.newFlag = true;
             sourceNode.latestNode = true;
@@ -2052,14 +1897,17 @@ var createNode = function(callback) {
             sourceNode.sessionId = session.sessionId;
             sourceNode.links = {};
             sourceNode.rank = -1;
-            sourceNode.age = 0;
-            sourceNode.ageMaxRatio = 1.0;
+            sourceNode.age = 1e-6;
+            sourceNode.ageMaxRatio = 1e-6;
             sourceNode.isDead = false;
             sourceNode.lastSeen = dateNow;
             sourceNode.ageUpdated = dateNow;
-            sourceNode.colors = {};
-            sourceNode.colors = session.colors;
-            sourceNode.interpolateColor = session.interpolateColor;
+            sourceNode.groupColors = session.groupColors;
+            sourceNode.sessionColors = session.sessionColors;
+            sourceNode.nodeColors = session.nodeColors;
+            sourceNode.interpolateGroupColor = session.interpolateGroupColor;
+            sourceNode.interpolateNodeColor = session.interpolateNodeColor;
+            sourceNode.interpolateSessionColor = session.interpolateSessionColor;
             sourceNode.x = session.node.x+randomIntFromInterval(-10,10);;
             sourceNode.y = session.node.y+randomIntFromInterval(-10,10);;
             if (sourceNode.isSessionNode){
@@ -2101,14 +1949,19 @@ var createNode = function(callback) {
             targetNode.sessionId = session.sessionId;
             targetNode.groupId = session.groupId;
             targetNode.channel = session.tags.channel;
-            targetNode.age = 0;
-            targetNode.ageMaxRatio = 1;
+            targetNode.age = 1e-6;
+            targetNode.ageMaxRatio = 1e-6;
             targetNode.isDead = false;
             targetNode.ageUpdated = dateNow;
             targetNode.lastSeen = dateNow;
-            targetNode.colors = {};
-            targetNode.colors = session.colors;
-            targetNode.interpolateColor = session.interpolateColor;
+
+            targetNode.groupColors = session.groupColors;
+            targetNode.sessionColors = session.sessionColors;
+            targetNode.nodeColors = session.nodeColors;
+            targetNode.interpolateGroupColor = session.interpolateGroupColor;
+            targetNode.interpolateNodeColor = session.interpolateNodeColor;
+            targetNode.interpolateSessionColor = session.interpolateSessionColor;
+
             targetNode.latestNode = false;
             if (targetNode.isSessionNode){
               targetNode.text = session.tags.entity + "[" + session.tags.channel + "]";
@@ -2132,7 +1985,7 @@ var createNode = function(callback) {
           } else {
             targetNode = session.target;
             targetNode.nodeId = targetNodeId;
-            targetNode.bboxWidth = 0;
+            targetNode.bboxWidth = 1e-6;
             targetNode.newFlag = true;
             targetNode.isSessionNode = false;
             targetNode.isGroupNode = false;
@@ -2142,13 +1995,19 @@ var createNode = function(callback) {
             targetNode.sessionId = session.sessionId;
             targetNode.links = {};
             targetNode.rank = -1;
-            targetNode.age = 0;
-            targetNode.ageMaxRatio = 1;
+            targetNode.age = 1e-6;
+            targetNode.ageMaxRatio = 1e-6;
             targetNode.isDead = false;
             targetNode.lastSeen = dateNow;
             targetNode.ageUpdated = dateNow;
-            targetNode.colors = {};
-            targetNode.colors = session.colors;
+
+            targetNode.groupColors = session.groupColors;
+            targetNode.sessionColors = session.sessionColors;
+            targetNode.nodeColors = session.nodeColors;
+            targetNode.interpolateGroupColor = session.interpolateGroupColor;
+            targetNode.interpolateNodeColor = session.interpolateNodeColor;
+            targetNode.interpolateSessionColor = session.interpolateSessionColor;
+
             targetNode.interpolateColor = session.interpolateColor;
             targetNode.latestNode = false;
             if (targetNode.isSessionNode){
@@ -2200,7 +2059,6 @@ var createNode = function(callback) {
           if (!results.source.isIgnored && (config.sessionViewType != 'ticker')) {
             linkCreateQueue.push(cSession);
           }
-          // if (!results.source.isIgnored) linkCreateQueue.push(cSession);
         });
       });
   }
@@ -2256,8 +2114,8 @@ var createLink = function(callback) {
       else {
         var groupLink = linkHashMap.get(groupLinkId);
         // console.log("*** GROUP LINK HASH HIT | " + groupLinkId);
-        groupLink.age = 0;
-        groupLink.ageMaxRatio = 1.0;
+        groupLink.age = 1e-6;
+        groupLink.ageMaxRatio = 1e-6;
         addToHashMap(linkHashMap, groupLinkId, groupLink, function(grpLink) {
           // console.log("grpLink\n" + jsonPrint(grpLink));
           // currentSessionView.addLink(grpLink);
@@ -2361,8 +2219,6 @@ var createLink = function(callback) {
 }
 
 var updateSessionsReady = true;
-var statusSession2Id = document.getElementById("statusSession2Id");
-
 function updateSessions() {
 
   updateSessionsReady = false;
@@ -2384,20 +2240,23 @@ function updateSessions() {
         console.error("*** ERROR: updateSessions *** \nERROR: " + err);
       }
       updateSessionsReady = true;
-      statusSession2Id = document.getElementById("statusSession2Id");
-      if (typeof statusSession2Id !== 'undefined') {
-        statusSession2Id.innerHTML = 'NODES: ' + currentSessionView.nodesLength() 
-        + '<br>' + 'NHM K: ' + nodeHashMap.keys().length
-        + '<br>' + 'SESSIONS: ' + currentSessionView.sessionsLength()
-        + '<br>' + 'SHM K: ' + sessionHashMap.keys().length
-        + '<br>' + 'GROUPS: ' + currentSessionView.groupsLength()
-        + '<br>' + 'GHM K: ' + groupHashMap.keys().length
-        + '<br>' + 'LINKS: ' + currentSessionView.linksLength()
-        + '<br>' + 'LHM K: ' + linkHashMap.keys().length
-        + '<br>' + 'AGE RATE: ' + currentSessionView.ageRate();
-      } else {
-        console.warn("statusSession2Id element is undefined");
-      }
+
+      // statusSession2Id = controlPanel.document.getElementById("statusSession2Id");
+
+      // // if (typeof statusSession2Id !== 'undefined') {
+      // if (statusSession2Id) {
+      //   statusSession2Id.innerHTML = 'NODES: ' + currentSessionView.nodesLength() 
+      //   + '<br>' + 'NHM K: ' + nodeHashMap.keys().length
+      //   + '<br>' + 'SESSIONS: ' + currentSessionView.sessionsLength()
+      //   + '<br>' + 'SHM K: ' + sessionHashMap.keys().length
+      //   + '<br>' + 'GROUPS: ' + currentSessionView.groupsLength()
+      //   + '<br>' + 'GHM K: ' + groupHashMap.keys().length
+      //   + '<br>' + 'LINKS: ' + currentSessionView.linksLength()
+      //   + '<br>' + 'LHM K: ' + linkHashMap.keys().length
+      //   + '<br>' + 'AGE RATE: ' + currentSessionView.ageRate();
+      // } else {
+      //   console.warn("statusSession2Id element is undefined");
+      // }
 
     }
   );
@@ -2454,7 +2313,7 @@ function initUpdateSessionsInterval(interval) {
 }
 
 requirejs.onError = function(err) {
-  console.log(err.requireType);
+  console.error("*** REQUIRE ERROR\n" + err);
   if (err.requireType === 'timeout') {
     console.log('modules: ' + err.requireModules);
   }
@@ -2505,8 +2364,7 @@ function initIgnoreWordsHashMap(callback) {
 
 function initialize() {
 
-  console.log("initialize");
-
+  console.log("INITIALIZE ...");
 
   getUrlVariables(function(err, urlVariablesObj) {
 
@@ -2516,7 +2374,6 @@ function initialize() {
 
     var sessionId;
     var namespace;
-    // var sessionViewType;
 
     if (!err) {
 
@@ -2548,6 +2405,8 @@ function initialize() {
 
           loadViewType(config.sessionViewType, function() {
 
+            console.warn(config.sessionViewType);
+
             if (config.sessionViewType == 'ticker') {
               currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
             }
@@ -2558,6 +2417,9 @@ function initialize() {
               currentSessionView.setNodeMaxAge(FORCE_MAX_AGE);
             }
 
+            store.set('config', config);
+
+            createPopUpControlPanel(config);
             currentSessionView.initD3timer();
             currentSessionView.resize();
 
@@ -2565,7 +2427,6 @@ function initialize() {
 
             console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
             socket.emit("VIEWER_READY", viewerObj);
-            createControlPanel(config.sessionViewType);
 
             setTimeout(function() {
               console.log("END PAGE LOAD TIMEOUT");
@@ -2576,6 +2437,8 @@ function initialize() {
           });
         }
         else {
+
+          console.warn("DEFAULT_SESSION_VIEW");
 
           config.sessionViewType = DEFAULT_SESSION_VIEW;
 
@@ -2591,14 +2454,17 @@ function initialize() {
               currentSessionView.setNodeMaxAge(FORCE_MAX_AGE);
             }
 
-            currentSessionView.initD3timer();
+            store.set('config', config);
+
+            createPopUpControlPanel(config);
+            // currentSessionView.initD3timer();
+            currentSessionView.simulationControl('START');
             currentSessionView.resize();
 
             initUpdateSessionsInterval(50);
 
             console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
             socket.emit("VIEWER_READY", viewerObj);
-            createControlPanel(config.sessionViewType);
 
             setTimeout(function() {
               console.log("END PAGE LOAD");
@@ -2609,6 +2475,8 @@ function initialize() {
           });
         }
       } else {
+
+        console.warn("DEFAULT_SESSION_VIEW");
 
         config.sessionViewType = DEFAULT_SESSION_VIEW;
 
@@ -2624,6 +2492,9 @@ function initialize() {
             currentSessionView.setNodeMaxAge(FORCE_MAX_AGE);
           }
 
+          store.set('config', config);
+
+          createPopUpControlPanel(config);
           currentSessionView.initD3timer();
           currentSessionView.resize();
 
@@ -2631,7 +2502,6 @@ function initialize() {
 
           console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
           socket.emit("VIEWER_READY", viewerObj);
-          createControlPanel(config.sessionViewType);
 
           setTimeout(function() {
             console.error("END PAGE LOAD TIMEOUT");

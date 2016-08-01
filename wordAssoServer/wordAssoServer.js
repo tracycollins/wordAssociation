@@ -2490,6 +2490,7 @@ function groupUpdateDb(userObj, callback){
 
       groupUpdateObj.groupId = entityObj.groupId;
       groupUpdateObj.name = groupObj.name;
+      groupUpdateObj.colors = groupObj.colors;
       groupUpdateObj.tags = userObj.tags;
 
       groupUpdateObj.addEntityArray = [];
@@ -6542,6 +6543,12 @@ function initAppRouting(callback) {
     return;
   });
 
+  app.get('/node_modules/util/util.js', function(req, res) {
+    debugAppGet("LOADING FILE: /node_modules/util/util.js");
+    res.sendFile(__dirname + '/node_modules/util/util.js');
+    return;
+  });
+
   app.get('/js/libs/d3.js', function(req, res) {
     debugAppGet("LOADING FILE: /js/libs/d3.jss");
     res.sendFile(__dirname + '/js/libs/d3.js');
@@ -6596,6 +6603,18 @@ function initAppRouting(callback) {
     return;
   });
 
+  app.get('/controlPanel.html', function(req, res) {
+    debugAppGet("LOADING PAGE: /controlPanel.html");
+    res.sendFile(__dirname + '/controlPanel.html');
+    return;
+  });
+
+  app.get('/js/libs/controlPanel.js', function(req, res) {
+    debugAppGet("LOADING PAGE: /js/libs/controlPanel.js");
+    res.sendFile(__dirname + '/js/libs/controlPanel.js');
+    return;
+  });
+
   app.get('/admin', function(req, res) {
     debugAppGet("LOADING PAGE: /admin/admin.html");
     res.sendFile(__dirname + '/admin/admin.html');
@@ -6615,6 +6634,21 @@ function initAppRouting(callback) {
 
   app.get('/js/libs/progressbar.min.js', function(req, res) {
     res.sendFile(__dirname + '/js/libs/progressbar.min.js');
+    return;
+  });
+
+  app.get('/node_modules/crosstab/src/crosstab.js', function(req, res) {
+    res.sendFile(__dirname + '/node_modules/crosstab/src/crosstab.js');
+    return;
+  });
+
+  app.get('/node_modules/lsbridge/src/lsbridge.js', function(req, res) {
+    res.sendFile(__dirname + '/node_modules/lsbridge/src/lsbridge.js');
+    return;
+  });
+
+  app.get('/css/rangeslider.css', function(req, res) {
+    res.sendFile(__dirname + '/css/rangeslider.css');
     return;
   });
 

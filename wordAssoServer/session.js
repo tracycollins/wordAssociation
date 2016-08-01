@@ -20,10 +20,15 @@ var controlSliderTable;
 var statusSessionId;
 var statusSession2Id;
 
+var initializedFlag = false;
+
 requirejs(["http://d3js.org/d3.v4.min.js"], function(d3Loaded) {
     console.log("d3 LOADED");
     d3 = d3Loaded;
-    initialize();
+    initialize(function(){
+      initializedFlag = true;
+      addControlButton();
+    });
   },
   function(error) {
     console.log('REQUIREJS ERROR handler', error);
@@ -323,19 +328,19 @@ function tableCreateRow(parentTable, options, cells) {
   }
 }
 
-function reset() {
-  console.error("*** RESET ***");
-  if ((config.sessionViewType == 'force') || (config.sessionViewType == 'ticker')) {
+// function reset() {
+//   console.error("*** RESET ***");
+//   if ((config.sessionViewType == 'force') || (config.sessionViewType == 'ticker')) {
 
-    currentSessionView.resetDefaultForce();
+//     currentSessionView.resetDefaultForce();
 
-    // setLinkStrengthSliderValue(DEFAULT_LINK_STRENGTH);
-    // setvelocityDecaySliderValue(DEFAULT_FRICTION);
-    // setGravitySliderValue(DEFAULT_GRAVITY);
-    // setChargeSliderValue(DEFAULT_CHARGE);
-    // setMaxAgeSliderValue(DEFAULT_MAX_AGE);
-  }
-}
+//     // setLinkStrengthSliderValue(DEFAULT_LINK_STRENGTH);
+//     // setvelocityDecaySliderValue(DEFAULT_FRICTION);
+//     // setGravitySliderValue(DEFAULT_GRAVITY);
+//     // setChargeSliderValue(DEFAULT_CHARGE);
+//     // setMaxAgeSliderValue(DEFAULT_MAX_AGE);
+//   }
+// }
 
 function setLinkStrengthSliderValue(value) {
   controlPanel.document.getElementById("linkStrengthSlider").value = value * 1000;
@@ -364,47 +369,229 @@ function setMaxAgeSliderValue(value) {
 
 
 var controlPanelWindow; 
+var controlPanelFlag = false;
 
-var tempControlPanel;
+window.onbeforeunload = function() {
+  controlPanelFlag = false;
+  controlPanelWindow.close();
+}
 
+function toggleControlPanel(){
+  console.warn("toggleControlPanel: " + controlPanelFlag);
 
-var createPopUpControlPanel = function (config) {
+  if (controlPanelFlag){
+    controlPanelWindow.close();
+    controlPanelFlag = false;
+    updateControlButton(controlPanelFlag);
+  }
+  else {
+    createPopUpControlPanel();
+    controlPanelFlag = true;
+    updateControlButton(controlPanelFlag);
+  }
 
-  console.warn("createPopUpControlPanel\nconfig\n" + jsonPrint(config));
+  console.warn("toggleControlPanel: " + controlPanelFlag);
+}
 
-  config.defaultMaxAge = DEFAULT_MAX_AGE;
+function updateControlButton(controlPanelFlag){
+  var cpButton = document.getElementById('controlPanelButton');
+  cpButton.innerHTML = controlPanelFlag ? 'HIDE CONTROL' : 'SHOW CONTROL';
+}
+
+function addControlButton(){
+  var controlDiv = document.getElementById('controlDiv');
+  var controlPanelButton = document.createElement("BUTTON");
+  controlPanelButton.className = 'button';
+  controlPanelButton.setAttribute('id', 'controlPanelButton');
+  controlPanelButton.setAttribute('onclick', 'toggleControlPanel()');
+  controlPanelButton.innerHTML = controlPanelFlag ? 'HIDE CONTROL' : 'SHOW CONTROL';
+  controlDiv.appendChild(controlPanelButton);
+}
+
+function initLsBridge(){
+  lsbridge.subscribe('controlPanel', function(data) {
+    console.error("CONTROL PANEL: " + jsonPrint(data)); // prints: { message: 'Hello world!'} 
+
+    switch (data.op) {
+      case 'READY' :
+        console.warn("CONTROL PANEL READY");
+      break;
+      case 'CLOSE' :
+        console.warn("CONTROL PANEL CLOSING...");
+      break;
+      case 'MOMENT' :
+        console.warn("CONTROL PANEL MOMENT...");
+        switch (data.id) {
+          case 'resetButton' :
+            reset();
+          break;
+          default:
+            console.error("CONTROL PANEL UNKNOWN MOMENT BUTTON");
+          break;
+        }
+      break;
+      case 'TOGGLE' :
+        console.warn("CONTROL PANEL TOGGLE");
+        switch (data.id) {
+          case 'fullscreenToggleButton' :
+            toggleFullScreen();
+          break;
+          case 'pauseToggleButton' :
+            togglePause();
+          break;
+          case 'statsToggleButton' :
+            toggleStats();
+          break;
+          case 'testModeToggleButton' :
+            toggleTestMode();
+          break;
+          case 'disableLinksToggleButton' :
+            toggleDisableLinks();
+          break;
+          case 'nodeCreateButton' :
+            // createTextNode;
+          break;
+          case 'antonymToggleButton' :
+            toggleAntonym();
+          break;
+          case 'removeDeadNodeToogleButton' :
+            toggleRemoveDeadNode();
+          break;
+          default:
+            console.error("CONTROL PANEL UNKNOWN TOGGLE BUTTON");
+          break;
+        }
+      break;
+      case 'UPDATE' :
+        console.warn("CONTROL PANEL UPDATE");
+        switch (data.id) {
+          case 'linkStrengthSlider' :
+            currentSessionView.updateLinkStrength(data.value/1000);
+          break;
+          case 'velocityDecaySlider' :
+            currentSessionView.updateVelocityDecay(data.value/1000);
+          break;
+          case 'gravitySlider' :
+            currentSessionView.updateGravity(data.value/1000);
+          break;
+          case 'chargeSlider' :
+            currentSessionView.updateCharge(data.value);
+          break;
+          case 'maxAgeSlider' :
+            currentSessionView.setNodeMaxAge(data.value);
+          break;
+        }
+      break;
+      default :
+        console.error("CONTROL PANEL OP UNDEFINED");
+      break;
+    }
+  });  
+}
+
+var createPopUpControlPanel = function (cnf) {
+
+  if (typeof cnf === 'undefined'){
+    cnf = config;
+  }
+
+  console.warn("createPopUpControlPanel\ncnf\n" + jsonPrint(cnf));
+
+  cnf.defaultMaxAge = DEFAULT_MAX_AGE;
 
   controlPanelWindow = window.open("controlPanel.html", "CONTROL", "width=800,height=600");
 
-  controlPanelWindow.addEventListener('load', function(config){
-    controlPanel = new controlPanelWindow.ControlPanel(config);
+  controlPanelWindow.addEventListener('onbeforeunload', function(){
+    console.log("CONTROL POP UP CLOSING...");
+    controlPanelFlag = false;
+    updateControlButton(controlPanelFlag);
+  }, false);
 
-  lsbridge.subscribe('controlPanel', function(data) {
-    console.warn("CONTROL PANEL: " + jsonPrint(data)); // prints: { message: 'Hello world!'} 
+  controlPanelWindow.addEventListener('load', function(cnf){
+    controlPanel = new controlPanelWindow.ControlPanel(cnf);
+    initLsBridge();
+    // lsbridge.subscribe('controlPanel', function(data) {
+    //   console.error("CONTROL PANEL: " + jsonPrint(data)); // prints: { message: 'Hello world!'} 
 
-    switch (data.id) {
-      case 'linkStrengthSlider' :
-        currentSessionView.updateLinkStrength(data.value/1000);
-      break;
-      case 'velocityDecaySlider' :
-        currentSessionView.updateVelocityDecay(data.value/1000);
-      break;
-      case 'gravitySlider' :
-        currentSessionView.updateGravity(data.value/1000);
-      break;
-      case 'chargeSlider' :
-        currentSessionView.updateCharge(data.value);
-      break;
-      case 'maxAgeSlider' :
-        currentSessionView.setNodeMaxAge(data.value);
-      break;
-    }
-  });
+    //   switch (data.op) {
+    //     case 'READY' :
+    //       console.warn("CONTROL PANEL READY");
+    //     break;
+    //     case 'CLOSE' :
+    //       console.warn("CONTROL PANEL CLOSING...");
+    //     break;
+    //     case 'MOMENT' :
+    //       console.warn("CONTROL PANEL MOMENT...");
+    //       switch (data.id) {
+    //         case 'resetButton' :
+    //           reset();
+    //         break;
+    //         default:
+    //           console.error("CONTROL PANEL UNKNOWN MOMENT BUTTON");
+    //         break;
+    //       }
+    //     break;
+    //     case 'TOGGLE' :
+    //       console.warn("CONTROL PANEL TOGGLE");
+    //       switch (data.id) {
+    //         case 'fullscreenToggleButton' :
+    //           toggleFullScreen();
+    //         break;
+    //         case 'pauseToggleButton' :
+    //           togglePause();
+    //         break;
+    //         case 'statsToggleButton' :
+    //           toggleStats();
+    //         break;
+    //         case 'testModeToggleButton' :
+    //           toggleTestMode();
+    //         break;
+    //         case 'disableLinksToggleButton' :
+    //           toggleDisableLinks();
+    //         break;
+    //         case 'nodeCreateButton' :
+    //           // createTextNode;
+    //         break;
+    //         case 'antonymToggleButton' :
+    //           toggleAntonym();
+    //         break;
+    //         case 'removeDeadNodeToogleButton' :
+    //           toggleRemoveDeadNode();
+    //         break;
+    //         default:
+    //           console.error("CONTROL PANEL UNKNOWN TOGGLE BUTTON");
+    //         break;
+    //       }
+    //     break;
+    //     case 'UPDATE' :
+    //       console.warn("CONTROL PANEL UPDATE");
+    //       switch (data.id) {
+    //         case 'linkStrengthSlider' :
+    //           currentSessionView.updateLinkStrength(data.value/1000);
+    //         break;
+    //         case 'velocityDecaySlider' :
+    //           currentSessionView.updateVelocityDecay(data.value/1000);
+    //         break;
+    //         case 'gravitySlider' :
+    //           currentSessionView.updateGravity(data.value/1000);
+    //         break;
+    //         case 'chargeSlider' :
+    //           currentSessionView.updateCharge(data.value);
+    //         break;
+    //         case 'maxAgeSlider' :
+    //           currentSessionView.setNodeMaxAge(data.value);
+    //         break;
+    //       }
+    //     break;
+    //     default :
+    //       console.error("CONTROL PANEL OP UNDEFINED");
+    //     break;
+    //   }
+    // });
+  }, false);
 
-  });
-
+  controlPanelFlag = true;
 };
-
 
 function toggleAntonym() {
   config.antonymFlag = !config.antonymFlag;
@@ -790,23 +977,32 @@ var prefix = getBrowserPrefix();
 var hidden = hiddenProperty(prefix);
 var visibilityEvent = getVisibilityEvent(prefix);
 
+
+function reset(){
+  currentSessionView.simulationControl('RESET');
+  windowVisible = true;
+  currentSessionView.reset();
+  nodeHashMap.clear();
+  linkHashMap.clear();
+  deleteAllSessions(function() {
+    console.log("DELETED ALL SESSIONS ON WINDOW HIDDEN");
+    sessionCreateQueue = [];
+    groupHashMap.clear();
+    sessionDeleteHashMap.clear();
+    currentSessionView.resize();
+    if ((config.sessionViewType == 'force') || (config.sessionViewType == 'ticker')) currentSessionView.resetDefaultForce();
+    currentSessionView.simulationControl('START');
+  });  
+}
+
+
 document.addEventListener(visibilityEvent, function() {
   console.log("visibilityEvent");
   if (!document[hidden]) {
     windowVisible = true;
     currentSessionView.resize();
   } else {
-    windowVisible = false;
-    currentSessionView.reset();
-    nodeHashMap.clear();
-    linkHashMap.clear();
-    deleteAllSessions(function() {
-      console.log("DELETED ALL SESSIONS ON WINDOW HIDDEN");
-      sessionCreateQueue = [];
-      groupHashMap.clear();
-      sessionDeleteHashMap.clear();
-      currentSessionView.resize();
-    });
+    reset();
   }
 });
 
@@ -2263,6 +2459,9 @@ function updateSessions() {
 }
 
 function toggleFullScreen() {
+
+  console.warn("toggleFullScreen");
+
   if (!document.fullscreenElement &&
     !document.mozFullScreenElement && 
     !document.webkitFullscreenElement && 
@@ -2362,7 +2561,7 @@ function initIgnoreWordsHashMap(callback) {
   });
 }
 
-function initialize() {
+function initialize(callback) {
 
   console.log("INITIALIZE ...");
 
@@ -2419,7 +2618,7 @@ function initialize() {
 
             store.set('config', config);
 
-            createPopUpControlPanel(config);
+            // createPopUpControlPanel(config);
             currentSessionView.initD3timer();
             currentSessionView.resize();
 
@@ -2434,6 +2633,8 @@ function initialize() {
               if (!config.showStatsFlag) displayInfo(false);
               if (!config.showStatsFlag) displayControl(false);
             }, 5000);
+
+            callback();
           });
         }
         else {
@@ -2456,7 +2657,7 @@ function initialize() {
 
             store.set('config', config);
 
-            createPopUpControlPanel(config);
+            // createPopUpControlPanel(config);
             // currentSessionView.initD3timer();
             currentSessionView.simulationControl('START');
             currentSessionView.resize();
@@ -2472,9 +2673,13 @@ function initialize() {
               if (!config.showStatsFlag) displayInfo(false);
               if (!config.showStatsFlag) displayControl(false);
             }, 5000);
+
+            callback();
+
           });
         }
-      } else {
+      } 
+      else {
 
         console.warn("DEFAULT_SESSION_VIEW");
 
@@ -2494,7 +2699,7 @@ function initialize() {
 
           store.set('config', config);
 
-          createPopUpControlPanel(config);
+          // createPopUpControlPanel(config);
           currentSessionView.initD3timer();
           currentSessionView.resize();
 
@@ -2511,9 +2716,14 @@ function initialize() {
           }, 5000);
         });
 
+        callback();
+
       }
-    } else {
+
+    } 
+    else {
       console.error("GET URL VARIABLES ERROR\n" + jsonPrint(err));
+      callback(err);
     }
   });
 };

@@ -9,6 +9,8 @@ function ControlPanel() {
 
   var config = {};
 
+  var controlIdHash = {};
+
   var dashboardMain;
   var infoTable;
   var controlTable;
@@ -23,8 +25,38 @@ function ControlPanel() {
   $( document ).ready(function() {
     console.log( "ready!" );
     self.createControlPanel();
-    lsbridge.send('controlPanel', { message: 'HEY' });
+    lsbridge.send('controlPanel', {op: 'READY'});
   });
+
+  window.onbeforeunload = function() {
+    lsbridge.send('controlPanel', {op:'CLOSE'});
+  }
+
+  function buttonHandler(e) {
+
+    var currentButton = document.getElementById(e.target.id);
+
+      console.warn("BUTTON"
+       + " | ID: " + e.target.id
+       + "\n HASH\n" + jsonPrint(controlIdHash[e.target.id])
+       + "\n" + jsonPrint(e.target)
+      );
+
+    if (!currentButton){
+      console.error("UNKNOWN BUTTON\n" + jsonPrint(e));
+    }
+    else if (typeof controlIdHash[currentButton.id] === 'undefined') {
+      console.error("UNKNOWN BUTTON NOT IN HASH\n" + jsonPrint(e));
+    }
+    else {
+      var buttonConfig = controlIdHash[currentButton.id];
+      console.log("BUTTON " + currentButton.id 
+        + " : " + buttonConfig.mode
+      );
+      lsbridge.send('controlPanel', {op: buttonConfig.mode, id: currentButton.id});
+    }
+
+  };
 
   window.addEventListener('input', function (e) {
     // console.log("keyup event detected! coming from this element:", e.target);
@@ -34,7 +66,8 @@ function ControlPanel() {
     var currentSliderTextId = currentSlider.id + 'Text';
     document.getElementById(currentSliderTextId).innerHTML = currentSlider.value;
 
-    lsbridge.send('controlPanel', {id: currentSlider.id, value: currentSlider.value});
+    lsbridge.send('controlPanel', {op:'UPDATE', id: currentSlider.id, value: currentSlider.value});
+    
   }, false);
 
   function jsonPrint(obj) {
@@ -93,9 +126,14 @@ function ControlPanel() {
           var buttonElement = document.createElement("BUTTON");
           buttonElement.className = content.class;
           buttonElement.setAttribute('id', content.id);
-          buttonElement.setAttribute('onclick', content.onclick);
+          buttonElement.setAttribute('mode', content.mode);
+          // buttonElement.onclick = function(buttonElement) {buttonHandler(buttonElement)};
+          buttonElement.addEventListener('click', function(e){
+            buttonHandler(e);
+          }, false);
           buttonElement.innerHTML = content.text;
           td.appendChild(buttonElement);
+          controlIdHash[content.id] = content;
         } else if (content.type == 'SLIDER') {
           var sliderElement = document.createElement("INPUT");
           sliderElement.type = 'range';
@@ -106,6 +144,7 @@ function ControlPanel() {
           sliderElement.setAttribute('oninput', content.oninput);
           sliderElement.value = content.value;
           td.appendChild(sliderElement);
+          controlIdHash[content.id] = content;
         }
       });
     }
@@ -137,89 +176,84 @@ function ControlPanel() {
       backgroundColor: '#111111'
     };
 
+    var resetButton = {
+      type: 'BUTTON',
+      mode: 'MOMENT',
+      id: 'resetButton',
+      class: 'button',
+      // onclick: 'buttonHandler()',
+      text: 'RESET'
+    }
+
     var fullscreenButton = {
       type: 'BUTTON',
+      mode: 'TOGGLE',
       id: 'fullscreenToggleButton',
       class: 'button',
-      onclick: 'toggleFullScreen()',
+      // onclick: 'buttonHandler()',
       text: 'FULLSCREEN'
     }
 
     var pauseButton = {
       type: 'BUTTON',
+      mode: 'TOGGLE',
       id: 'pauseToggleButton',
       class: 'button',
-      onclick: 'togglePause()',
+      // onclick: 'buttonHandler()',
       text: 'PAUSE'
     }
 
     var statsButton = {
       type: 'BUTTON',
+      mode: 'TOGGLE',
       id: 'statsToggleButton',
       class: 'button',
-      onclick: 'toggleStats()',
+      // onclick: 'buttonHandler()',
       text: 'STATS'
     }
 
     var testModeButton = {
       type: 'BUTTON',
-      id: 'testModeButton',
+      mode: 'TOGGLE',
+      id: 'testModeToggleButton',
       class: 'button',
-      onclick: 'toggleTestMode()',
+      // onclick: 'buttonHandler()',
       text: 'TEST'
-    }
-
-    var status = {
-      type: 'TEXT',
-      id: 'statusSessionId',
-      class: 'statusText',
-      text: 'SESSION ID: ' + statsObj.socketId
-    }
-
-    var status2 = {
-      type: 'TEXT',
-      id: 'statusSession2Id',
-      class: 'statusText',
-      text: 'NODES: ' + 0
     }
 
     var antonymButton = {
       type: 'BUTTON',
-      id: 'antonymButton',
+      mode: 'TOGGLE',
+      id: 'antonymToggleButton',
       class: 'button',
-      onclick: 'toggleAntonym()',
+      // onclick: 'buttonHandler()',
       text: 'ANT'
-    }
-
-    var resetButton = {
-      type: 'BUTTON',
-      id: 'resetButton',
-      class: 'button',
-      onclick: 'reset()',
-      text: 'RESET'
     }
 
     var disableLinksButton = {
       type: 'BUTTON',
-      id: 'disableLinksButton',
+      mode: 'TOGGLE',
+      id: 'disableLinksToggleButton',
       class: 'button',
-      onclick: 'toggleDisableLinks()',
+      // onclick: 'buttonHandler()',
       text: 'LINKS'
     }
 
     var removeDeadNodeButton = {
       type: 'BUTTON',
-      id: 'removeDeadNodeButton',
+      mode: 'TOGGLE',
+      id: 'removeDeadNodeToogleButton',
       class: 'button',
-      onclick: 'toggleRemoveDeadNode()',
+      // onclick: 'buttonHandler()',
       text: 'DEAD'
     }
 
     var nodeCreateButton = {
       type: 'BUTTON',
+      mode: 'MOMENT',
       id: 'nodeCreateButton',
       class: 'button',
-      onclick: 'currentSessionView.addRandomNode()',
+      // onclick: 'buttonHandler()',
       text: 'NODE'
     }
 
@@ -304,6 +338,20 @@ function ControlPanel() {
       text: linkStrengthSlider.value
     }
 
+    var status = {
+      type: 'TEXT',
+      id: 'statusSessionId',
+      class: 'statusText',
+      text: 'SESSION ID: ' + statsObj.socketId
+    }
+
+    var status2 = {
+      type: 'TEXT',
+      id: 'statusSession2Id',
+      class: 'statusText',
+      text: 'NODES: ' + 0
+    }
+
 
     switch (config.sessionViewType) {
 
@@ -320,10 +368,10 @@ function ControlPanel() {
         break;
 
       case 'ticker':
-        self.tableCreateRow(controlTable, optionsBody, [status]);
-        self.tableCreateRow(controlTable, optionsBody, [status2]);
+        self.tableCreateRow(infoTable, optionsBody, [status]);
+        self.tableCreateRow(infoTable, optionsBody, [status2]);
         self.tableCreateRow(controlTable, optionsBody, [fullscreenButton, pauseButton, statsButton, testModeButton, nodeCreateButton, removeDeadNodeButton, disableLinksButton, antonymButton]);
-        self.tableCreateRow(controlSliderTable, optionsBody, [resetButton]);
+        self.tableCreateRow(controlTable, optionsBody, [resetButton]);
         self.tableCreateRow(controlSliderTable, optionsBody, ['MAX AGE', maxAgeSlider, maxAgeSliderText]);
         break;
 
@@ -360,11 +408,11 @@ function ControlPanel() {
     console.log("UPDATE CONTROL PANEL");
 
     if (config.antonymFlag) {
-      document.getElementById("antonymButton").style.color = "red";
-      document.getElementById("antonymButton").style.border = "2px solid red";
+      document.getElementById("antonymToggleButton").style.color = "red";
+      document.getElementById("antonymToggleButton").style.border = "2px solid red";
     } else {
-      document.getElementById("antonymButton").style.color = "#888888";
-      document.getElementById("antonymButton").style.border = "1px solid white";
+      document.getElementById("antonymToggleButton").style.color = "#888888";
+      document.getElementById("antonymToggleButton").style.border = "1px solid white";
     }
     if (config.pauseFlag) {
       document.getElementById("pauseToggleButton").style.color = "red";
@@ -381,26 +429,26 @@ function ControlPanel() {
       document.getElementById("statsToggleButton").style.border = "1px solid white";
     }
     if (config.testModeEnabled) {
-      document.getElementById("testModeButton").style.color = "red";
-      document.getElementById("testModeButton").style.border = "2px solid red";
+      document.getElementById("testModeToggleButton").style.color = "red";
+      document.getElementById("testModeToggleButton").style.border = "2px solid red";
     } else {
-      document.getElementById("testModeButton").style.color = "#888888";
-      document.getElementById("testModeButton").style.border = "1px solid white";
+      document.getElementById("testModeToggleButton").style.color = "#888888";
+      document.getElementById("testModeToggleButton").style.border = "1px solid white";
     }
     if (config.removeDeadNodes) {
-      document.getElementById("removeDeadNodeButton").style.color = "red";
-      document.getElementById("removeDeadNodeButton").style.border = "2px solid red";
+      document.getElementById("removeDeadNodeToogleButton").style.color = "red";
+      document.getElementById("removeDeadNodeToogleButton").style.border = "2px solid red";
     } else {
-      document.getElementById("removeDeadNodeButton").style.color = "#888888";
-      document.getElementById("removeDeadNodeButton").style.border = "1px solid white";
+      document.getElementById("removeDeadNodeToogleButton").style.color = "#888888";
+      document.getElementById("removeDeadNodeToogleButton").style.border = "1px solid white";
     }
     if (config.sessionViewType == 'force'){  
       if (config.disableLinks) {
-        document.getElementById("disableLinksButton").style.color = "red";
-        document.getElementById("disableLinksButton").style.border = "2px solid red";
+        document.getElementById("disableLinksToggleButton").style.color = "red";
+        document.getElementById("disableLinksToggleButton").style.border = "2px solid red";
       } else {
-        document.getElementById("disableLinksButton").style.color = "#888888";
-        document.getElementById("disableLinksButton").style.border = "1px solid white";
+        document.getElementById("disableLinksToggleButton").style.color = "#888888";
+        document.getElementById("disableLinksToggleButton").style.border = "1px solid white";
       }
     }
   }

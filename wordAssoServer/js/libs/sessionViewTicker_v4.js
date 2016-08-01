@@ -14,15 +14,12 @@ function ViewTicker() {
   var fixedGroupsFlag = false;
   var lineHeight = 3;
 
-  // var force;
-
   // ==============================================
   // GLOBAL VARS
   // ==============================================
   var sessionNodeArrayHash = {};  
 
   var groupYpositionHash = {};
-  var groupsLengthYposition = 0;
 
   var minFontSize = 20;
   var maxFontSize = 48;
@@ -398,7 +395,7 @@ function ViewTicker() {
         simulation.stop();
       break;
       case 'RESTART':
-        console.warn("SIMULATION CONTROL | OP: " + op);
+        // console.warn("SIMULATION CONTROL | OP: " + op);
         simulation.alphaTarget(0.7).restart();
         runningFlag = true;
       break;
@@ -433,18 +430,16 @@ function ViewTicker() {
         }
         else if (results) {
           var keys = Object.keys(results);
-          var simulationUpdated = false;
-          keys.forEach(function(key){
-            if (results[key] && !simulationUpdated) {
-              simulationUpdated = true;
-              // console.log("RESULT | " + key);
+
+          for (var i=0; i<keys.length; i++){
+            if (results[keys[i]]) {
               simulation.nodes(nodes);
-              simulation.alphaTarget(0.7).restart();
+              if (runningFlag) self.simulationControl('RESTART');
+              break;
             }
-          });
+          }
         }
 
-        groupsLengthYposition = groups.length;
 
         if (typeof callback !== 'undefined') callback(err);
       }
@@ -845,6 +840,11 @@ function ViewTicker() {
 
   // ===================================================================
 
+  var t = d3.transition()
+    .duration(100);
+    // .ease(d3.easeLinear);
+
+
   function updateGroupWords() {
 
     var groupWords = groupSvgGroup.selectAll("text").data(groups, function(d) { return d.nodeId; });
@@ -854,11 +854,13 @@ function ViewTicker() {
         .style("fill-opacity", function(d) {
           return Math.max(wordOpacityScale(d.age + 1), minOpacity)
         })
-      .transition()
-        .duration(defaultFadeDuration)
-        // .style("fill-opacity", function(d) {
-        //   return Math.max(wordOpacityScale(d.age + 1), minOpacity)
-        // })
+      // .transition()
+      //   .duration(defaultFadeDuration)
+      //   // .style("fill-opacity", function(d) {
+      //   //   return Math.max(wordOpacityScale(d.age + 1), minOpacity)
+      //   // })
+        .transition()
+        .duration(50)
         .attr("y", ypositionGroup);
 
     groupWords
@@ -907,8 +909,8 @@ function ViewTicker() {
         if (d.age < 0.01*nodeMaxAge) { return "FFFFFF";  }
         else { return d.interpolateNodeColor(1e-6); }
       })
-      .transition()
-        .duration(defaultFadeDuration)
+      // .transition()
+      //   .duration(defaultFadeDuration)
         .style("fill-opacity", function(d) {
           if (self.removeDeadNodes) {
             return wordOpacityScale(d.age + 1);
@@ -916,6 +918,8 @@ function ViewTicker() {
             return Math.max(wordOpacityScale(d.age + 1), minOpacity)
           }
         })
+        .transition()
+        .duration(100)
         .attr("x", xposition)
         .attr("y", ypositionWord);
 

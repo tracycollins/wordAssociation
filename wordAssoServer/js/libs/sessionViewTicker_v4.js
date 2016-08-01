@@ -909,19 +909,17 @@ function ViewTicker() {
         if (d.age < 0.01*nodeMaxAge) { return "FFFFFF";  }
         else { return d.interpolateNodeColor(1e-6); }
       })
-      // .transition()
-      //   .duration(defaultFadeDuration)
-        .style("fill-opacity", function(d) {
-          if (self.removeDeadNodes) {
-            return wordOpacityScale(d.age + 1);
-          } else {
-            return Math.max(wordOpacityScale(d.age + 1), minOpacity)
-          }
-        })
-        .transition()
-        .duration(50)
-        .attr("x", xposition)
-        .attr("y", ypositionWord);
+      .style("fill-opacity", function(d) {
+        if (self.removeDeadNodes) {
+          return wordOpacityScale(d.age + 1);
+        } else {
+          return Math.max(wordOpacityScale(d.age + 1), minOpacity)
+        }
+      })
+      .transition()
+      .duration(50)
+      .attr("x", xposition)
+      .attr("y", ypositionWord);
 
     nodeWords
       .enter()

@@ -400,6 +400,8 @@ function ControlPanel() {
         break;
     }
 
+    self.updateControlPanel(config);
+
     if (callback) callback(dashboardMain);
   }
 
@@ -435,7 +437,7 @@ function ControlPanel() {
       document.getElementById("testModeToggleButton").style.color = "#888888";
       document.getElementById("testModeToggleButton").style.border = "1px solid white";
     }
-    if (config.removeDeadNodes) {
+    if (config.removeDeadNodesFlag) {
       document.getElementById("removeDeadNodeToogleButton").style.color = "red";
       document.getElementById("removeDeadNodeToogleButton").style.border = "2px solid red";
     } else {

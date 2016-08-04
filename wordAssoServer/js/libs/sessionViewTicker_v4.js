@@ -130,6 +130,11 @@ function ViewTicker() {
 
   console.log("width: " + width + " | height: " + height);
 
+  
+  var tran = d3.transition()
+    .duration(50)
+    .ease(d3.easeLinear);
+
   document.addEventListener("mousemove", function() {
     if (mouseHoverFlag) {
       d3.select("body").style("cursor", "pointer");
@@ -283,19 +288,9 @@ function ViewTicker() {
     .attr("id", "svgTickerLayoutArea");
 
   var linkSvgGroup = svgTickerLayoutArea.append("svg:g").attr("id", "linkSvgGroup");
-
   var groupSvgGroup = svgTickerLayoutArea.append("svg:g").attr("id", "groupSvgGroup");
-  // var groupLabelSvgGroup = svgTickerLayoutArea.append("svg:g").attr("id", "groupLabelSvgGroup");
-  // var groupGnode = groupSvgGroup.selectAll("g.group");
-  // var groupLabels = groupLabelSvgGroup.selectAll(".groupLabel");
-  
-  // var sessionSvgGroup = svgTickerLayoutArea.append("svg:g").attr("id", "sessionSvgGroup");
-  // var sessionLabelSvgGroup = svgTickerLayoutArea.append("svg:g").attr("id", "sessionLabelSvgGroup");
-  // var sessionGnode = sessionSvgGroup.selectAll("g.session");
-  // var sessionLabels = sessionLabelSvgGroup.selectAll(".sessionLabel");
-  
   var nodeSvgGroup = svgTickerLayoutArea.append("svg:g").attr("id", "nodeSvgGroup");
-  // var nodeLabelSvgGroup = svgTickerLayoutArea.append("svg:g").attr("id", "nodeLabelSvgGroup");
+
   var node = nodeSvgGroup.selectAll("g.node");
   var nodeLabels = nodeSvgGroup.selectAll(".nodeLabel");
 
@@ -313,13 +308,6 @@ function ViewTicker() {
     updateGroupWords();
     updateNodeWords();
   }
-
-  // function ticked() {
-  //   updateGroupWords();
-  //   updateNodeWords();
-  //   updateLinks();
-  //   updateSimulation(function(){});
-  // }
 
   function ticked() {
     drawSimulation();
@@ -836,7 +824,6 @@ function ViewTicker() {
     for (ageLinksIndex = ageLinksLength; ageLinksIndex >= 0; ageLinksIndex -= 1) {
       link = links[ageLinksIndex];
       if (deadLinksHash[link.linkId]) {
-        // console.warn("XXX DEAD LINK | " + link.linkId);
         linkDeleteQueue.push(link.linkId);
         links.splice(ageLinksIndex, 1);
         delete deadLinksHash[link.linkId];
@@ -850,10 +837,6 @@ function ViewTicker() {
 
   // ===================================================================
 
-  var t = d3.transition()
-    .duration(100);
-    // .ease(d3.easeLinear);
-
 
   function updateGroupWords() {
 
@@ -861,17 +844,11 @@ function ViewTicker() {
 
     groupWords
       .text(function(d) { return d.text; })
-        .style("fill-opacity", function(d) {
-          return Math.max(wordOpacityScale(d.age + 1), minOpacity)
-        })
-      // .transition()
-      //   .duration(defaultFadeDuration)
-      //   // .style("fill-opacity", function(d) {
-      //   //   return Math.max(wordOpacityScale(d.age + 1), minOpacity)
-      //   // })
-        // .transition()
-        // .duration(50)
-        .attr("y", ypositionGroup);
+      .style("fill-opacity", function(d) {
+        return Math.max(wordOpacityScale(d.age + 1), minOpacity)
+      })
+      .transition().duration(100).ease(d3.easeQuadOut)
+      .attr("y", ypositionGroup);
 
     groupWords
       .enter()
@@ -911,14 +888,6 @@ function ViewTicker() {
       .attr("bboxWidth", function(d){
         d.bboxWidth = this.getBBox().width;
       })
-      // .attr("bboxWidth", function(d, i){
-      //   return d.bboxWidth;
-      //   // nodes[i].bboxWidth = this.getBBox().width;
-      //   // var cNode = nodeHashMap.get(d.nodeId);
-      //   // cNode.bboxWidth = this.getBBox().width;
-      //   // nodeHashMap.set(d.nodeId, cNode);
-      //   // return this.getBBox().width;
-      // })
       .style("fill", function(d) {
         if (d.age < 0.01*nodeMaxAge) { return "FFFFFF";  }
         else { return d.interpolateNodeColor(1e-6); }
@@ -930,36 +899,23 @@ function ViewTicker() {
           return Math.max(wordOpacityScale(d.age + 1), minOpacity)
         }
       })
+      .transition().duration(100).ease(d3.easeQuadOut)
       .attr("y", ypositionWord)
-      .transition()
-      .duration(50)
-      // .easeBounce
       .attr("x", xposition);
 
     nodeWords
       .enter()
       .append("svg:text")
       .attr("id", "word")
-      .attr("nodeId", function(d) {
-        return d.nodeId;
-      })
+      .attr("nodeId", function(d) { return d.nodeId; })
       .attr("x", marginRightWords)
       .attr("y", ypositionWord)
-      .text(function(d) {
-        return d.text;
-      })
+      .text(function(d) { return d.text; })
       .style("text-anchor", "end")
       .style("fill", "#FFFFFF")
       .style("fill-opacity", 1e-6)
       .style("font-size", minFontSize + "px")
-      .attr("bboxWidth", function(d){
-        d.bboxWidth = this.getBBox().width;
-      })
-      // .attr("bboxWidth", function(d, i){
-      //   nodes[i].bboxWidth = this.getBBox().width;
-      //   // console.log("bboxWidth " + nodes[i].bboxWidth);
-      //   return this.getBBox().width;
-      // })
+      .attr("bboxWidth", function(d){d.bboxWidth = this.getBBox().width; })
       .on("mouseout", nodeMouseOut)
       .on("mouseover", nodeMouseOver)
       .on("click", nodeClick)
@@ -1148,14 +1104,12 @@ function ViewTicker() {
       .style("fill", "yellow")
       .style("fill-opacity", 1);
 
-    divTooltip.transition()
-      .duration(defaultFadeDuration)
+    divTooltip
       .style("opacity", 1.0);
 
     var tooltipString = nodeId 
       + "<br>GROUP: " + d.groupId 
       + "<br>CHAN: " + d.channel 
-      // + "<br>WO: " + d.widthOffset 
       + "<br>WCI: " + d.wordChainIndex 
       + "<br>MENTIONS: " + mentions 
       + "<br>AGE: " + d.age 
@@ -1190,8 +1144,7 @@ function ViewTicker() {
         }
       });
 
-    divTooltip.transition()
-      .duration(defaultFadeDuration)
+    divTooltip
       .style("opacity", 1e-6);
   }
 

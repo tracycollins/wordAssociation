@@ -5,7 +5,7 @@
     "cwd"         : "/home/tc/wordAssociation/wordAssoServer",
     "autorestart" : false,
     "env": {
-        "WA_NODE_ENV": "production",
+        "NODE_ENV": "production",
         "SOCKET_IDLE_TIMEOUT" : 60,
         "WORD_CACHE_TTL" : 10,
         "SESSION_CACHE_DEFAULT_TTL": 300,

@@ -416,11 +416,11 @@ if (debug.enabled) {
   console.log("\n%%%%%%%%%%%%%%\n%%%%%%% DEBUG ENABLED %%%%%%%\n%%%%%%%%%%%%%%\n");
 }
 
-console.log('WORDASSO_NODE_ENV BEFORE: ' + process.env.WORDASSO_NODE_ENV);
+console.log('NODE_ENV BEFORE: ' + process.env.NODE_ENV);
 
-process.env.WORDASSO_NODE_ENV = process.env.WORDASSO_NODE_ENV || 'development';
+process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 
-console.log('WORDASSO_NODE_ENV : ' + process.env.WORDASSO_NODE_ENV);
+console.log('NODE_ENV : ' + process.env.NODE_ENV);
 console.log('CLIENT HOST + PORT: ' + 'http://localhost:' + config.port);
 
 

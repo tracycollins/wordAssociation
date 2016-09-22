@@ -37,12 +37,6 @@ function ViewForce() {
     return window.innerHeight;
   }
 
-  // var dateNow;
-
-  // setInterval(function(){
-  //   dateNow = moment().valueOf();
-  // }, 50);
-
   var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
   var defaultTimePeriodFormat = "HH:mm:ss";
 

@@ -746,13 +746,6 @@ socket.on("VIEWER_ACK", function(vSesKey) {
 
   store.set('stats', statsObj);
 
-  // if (typeof statusSessionId !== 'undefined') {
-  // if (statusSessionId) {
-  //   statusSessionId.innerHTML = 'SOCKET: ' + statsObj.socketId;
-  // } else {
-  //   console.warn("statusSessionId element is undefined");
-  // }
-
   if (sessionMode) {
     console.log("SESSION MODE" + " | SID: " + sessionId + " | NSP: " + namespace);
     var tempSessionId = "/" + namespace + "#" + sessionId;
@@ -765,12 +758,10 @@ socket.on("VIEWER_ACK", function(vSesKey) {
 });
 
 socket.on("reconnect", function() {
-
   statsObj.socketId = socket.id;
   store.set('stats', statsObj);
-
   serverConnected = true;
-
+  console.log("RECONNECTED TO HOST | SOCKET ID: " + socket.id);
   socket.emit("VIEWER_READY", viewerObj);
   if (sessionMode) {
     console.log("SESSION MODE" + " | SID: " + sessionId + " | NSP: " + namespace);
@@ -778,9 +769,7 @@ socket.on("reconnect", function() {
     currentSession.sessionId = tempSessionId;
     controlPanel.document.getElementById("statusSessionId").innerHTML = 'SOCKET: ' + statsObj.socketId;
     socket.emit("GET_SESSION", currentSession.sessionId);
-  } else {
-    // socket.emit("REQ_USER_SESSION");
-  }
+  } 
 });
 
 socket.on("connect", function() {
@@ -788,15 +777,6 @@ socket.on("connect", function() {
   store.set('stats', statsObj);
   serverConnected = true;
   console.log("CONNECTED TO HOST | SOCKET ID: " + socket.id);
-  // document.getElementById("statusSessionId").innerHTML = socket.id;
-});
-
-socket.on("reconnect", function() {
-  statsObj.socketId = socket.id;
-  store.set('stats', statsObj);
-  serverConnected = true;
-  console.log("RECONNECTED TO HOST | SOCKET ID: " + socket.id);
-  // document.getElementById("statusSessionId").innerHTML = socket.id;
 });
 
 socket.on("disconnect", function() {

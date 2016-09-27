@@ -3835,8 +3835,6 @@ function handleSessionEvent(sesObj, callback) {
       sesObj.sessionEvent = 'SESSION_DELETE';
       viewNameSpace.emit('SESSION_DELETE', sesObj);
 
-      // sessionCache.del(sesObj.session.sessionId);
-
       if (sesObj.session) {
 
         sessionCache.del(sesObj.session.sessionId);
@@ -4403,7 +4401,6 @@ function handleSessionEvent(sesObj, callback) {
 
       viewerCache.set(sesObj.viewer.viewerId, sesObj.viewer);
 
-
       viewerUpdateDb(sesObj.viewer, function(err, updatedViewerObj) {
         if (err) {
           console.error(chalkError("*** ERROR viewerUpdateDb\n" + jsonPrint(err)))
@@ -4417,8 +4414,6 @@ function handleSessionEvent(sesObj, callback) {
             if (err) {
               console.error(chalkError("*** ERROR sessionUpdateDb\n" + jsonPrint(err)))
             } else {
-              // viewerCache.set(sessionUpdatedObj.userId, sessionUpdatedObj.viewer);
-
               var viewer = viewerCache.get(sessionUpdatedObj.userId);
 
               debug("viewer\n" + jsonPrint(viewer));
@@ -4496,32 +4491,6 @@ function handleSessionEvent(sesObj, callback) {
 
       userUpdateDb(sesObj.user, function(err, updatedUserObj) {
         if (!err) {
-
-          // var dbUpdateGroupObj = entityChannelGroupHashMap.get(responseInObj.tags.entity);
-
-          // if (dbUpdateGroupObj) {
-          //   dbUpdateGroupObj.groupId = responseInObj.tags.group.toLowerCase();
-          //   dbUpdateGroupObj.addEntityArray = [];
-          //   dbUpdateGroupObj.addEntityArray.push(responseInObj.tags.entity.toLowerCase());
-          //   dbUpdateGroupObj.addChannelArray = [];
-          //   dbUpdateGroupObj.addChannelArray.push(responseInObj.tags.channel.toLowerCase());
-          //   dbUpdateGroupObj.tags = responseInObj.tags;
-
-          //   dbUpdateGroupQueue.enqueue(dbUpdateGroupObj);
-          // }
-          // else {
-          //   var dbUpdateGroupObj = new Group();
-          //   dbUpdateGroupObj.groupId = responseInObj.tags.group.toLowerCase();
-          //   dbUpdateGroupObj.name = responseInObj.tags.group;
-          //   dbUpdateGroupObj.addEntityArray = [];
-          //   dbUpdateGroupObj.addEntityArray.push(responseInObj.tags.entity.toLowerCase());
-          //   dbUpdateGroupObj.addChannelArray = [];
-          //   dbUpdateGroupObj.addChannelArray.push(responseInObj.tags.channel.toLowerCase());
-          //   dbUpdateGroupObj.tags = responseInObj.tags;
-
-          //   dbUpdateGroupQueue.enqueue(dbUpdateGroupObj);
-          // }
-
           groupUpdateDb(updatedUserObj, function(err, entityObj){
             if (err){
             }
@@ -4743,8 +4712,6 @@ var readResponseQueue = setInterval(function() {
 
     var rxInObj = responseQueue.dequeue();
 
-    // console.log(chalkRed("rxInObj\n" + jsonPrint(rxInObj)));
-
     if ((typeof rxInObj.nodeId === 'undefined') || (typeof rxInObj.nodeId !== 'string')) {
       debug(chalkError("*** ILLEGAL RESPONSE ... SKIPPING" + "\nTYPE: " + typeof rxInObj.nodeId 
         + "\n" + jsonPrint(rxInObj)));
@@ -4805,7 +4772,6 @@ var readResponseQueue = setInterval(function() {
     var previousPromptObj;
 
     if ((typeof currentSessionObj.wordChain !== 'undefined') && (currentSessionObj.wordChainIndex > 0)) {
-      // previousPrompt = currentSessionObj.wordChain[currentSessionObj.wordChainIndex - 1];
       previousPrompt = currentSessionObj.wordChain[currentSessionObj.wordChain.length - 1].nodeId;
       previousPromptObj = wordCache.get(previousPrompt);
       if (!previousPromptObj) {
@@ -4824,8 +4790,6 @@ var readResponseQueue = setInterval(function() {
           nodeId: previousPrompt
         };
 
-        // ready = true;
-        // return;
       } else {
         debug(chalkResponse("... previousPromptObj: " + previousPromptObj.nodeId));
       }
@@ -4864,8 +4828,6 @@ var readResponseQueue = setInterval(function() {
         previousPrompt = responseInObj.nodeId;
 
         currentSessionObj.wordChain.push({nodeId: responseInObj.nodeId, timeStamp:moment().valueOf()});
-        // currentSessionObj.wordChain.push(responseInObj.nodeId);
-        // currentSessionObj.wordChainIndex++;
 
         previousPromptObj = {
           nodeId: previousPrompt
@@ -4998,13 +4960,11 @@ var readDbUpdateWordQueue = setInterval(function() {
 
     var dbUpdateObj = dbUpdateWordQueue.dequeue();
 
-
     var currentSessionObj = dbUpdateObj.session;
 
     dbUpdateObj.word.wordChainIndex = currentSessionObj.wordChainIndex;
 
     currentSessionObj.wordChain.push({nodeId: dbUpdateObj.word.nodeId, timeStamp:moment().valueOf()});
-    // currentSessionObj.wordChain.push(dbUpdateObj.word.nodeId);
     currentSessionObj.wordChainIndex++;
 
     if (entityChannelGroupHashMap.has(dbUpdateObj.tags.entity)){
@@ -5014,14 +4974,6 @@ var readDbUpdateWordQueue = setInterval(function() {
     }
 
     dbUpdateWord(dbUpdateObj.word, true, function(status, updatedWordObj) {
-
-      // var wordTypes = ['noun', 'verb', 'adjective', 'adverb'];
-      // var wordVariations = ['syn', 'ant', 'rel', 'sim', 'usr'];
-
-      // console.log(chalkDb("UPDATED WORD"
-      //   + " | " + status
-      //   // + "\n" + jsonPrint(updatedWordObj)
-      // ));
 
       if (status == 'BHT_FOUND'){
         wordTypes.forEach(function(wordType){
@@ -5035,38 +4987,18 @@ var readDbUpdateWordQueue = setInterval(function() {
             if (updatedWordObj[wordType].ant){
               updatedWordObj.antonym = updatedWordObj[wordType].ant[randomIntInc(0,updatedWordObj[wordType].ant.length-1)];
               updatedWordObj[wordType].ant.forEach(function(antonym){
-                console.log("updatedWordObj"
+                debug("updatedWordObj"
                   + " | " + updatedWordObj.nodeId
                   + " | TYPE: " + wordType
                   + " | ANT: " + antonym
                 );
               });
             }
-
-            // wordVariations.forEach(function(wordVariation){
-            //   if (updatedWordObj[wordType][wordVariation]){
-            //     // console.log("updatedWordObj"
-            //     //   + " | " + updatedWordObj.nodeId
-            //     //   + " | TYPE: " + wordType
-            //     //   + " | VAR: " + wordVariation
-            //     //   // + " | " + updatedWordObj[wordType][wordVariation]
-            //     // );
-            //     // updatedWordObj[wordType][wordVariation].forEach(function(variation){
-            //     //   console.log("updatedWordObj"
-            //     //     + " | " + updatedWordObj.nodeId
-            //     //     + " | TYPE: " + wordType
-            //     //     + " | VAR: " + wordVariation
-            //     //     + " | " + variation
-            //     //   );
-            //     // });
-            //   }
-            // });
           }
         });
       }
 
       updatedWordObj.wordChainIndex = dbUpdateObj.word.wordChainIndex;
-      // wordCache.set(updatedWordObj.nodeId, updatedWordObj);
 
       var previousPromptNodeId;
       var previousPromptObj;
@@ -5075,7 +5007,6 @@ var readDbUpdateWordQueue = setInterval(function() {
         previousPromptObj == null
         debug(chalkRed("CHAIN START"));
       } else if (currentSessionObj.wordChain.length > 1) {
-        // previousPromptNodeId = currentSessionObj.wordChain[dbUpdateObj.word.wordChainIndex - 1];
         previousPromptNodeId = currentSessionObj.wordChain[currentSessionObj.wordChain.length - 2].nodeId;
         previousPromptObj = wordCache.get(previousPromptNodeId);
         if (!previousPromptObj) {
@@ -5092,9 +5023,6 @@ var readDbUpdateWordQueue = setInterval(function() {
 
           promptQueue.enqueue(currentSessionObj.sessionId);
 
-          // console.log(chalkRed("readDbUpdateWordQueue | currentSessionObj\n" + jsonPrint(currentSessionObj)));
-          // console.log(chalkRed("readDbUpdateWordQueue | dbUpdateObj\n" + jsonPrint(dbUpdateObj)));
-
           var sessionUpdateObj = {
             action: 'RESPONSE',
             userId: currentSessionObj.userId,
@@ -5105,7 +5033,6 @@ var readDbUpdateWordQueue = setInterval(function() {
             tags: dbUpdateObj.tags
           };
 
-          // if (updatedWordObj.tags) sessionUpdateObj.tags = updatedWordObj.tags;
           updateSessionViews(sessionUpdateObj);
 
           dbUpdateWordReady = true;

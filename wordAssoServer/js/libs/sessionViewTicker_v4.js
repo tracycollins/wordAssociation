@@ -132,8 +132,8 @@ function ViewTicker() {
 
   
   var tran = d3.transition()
-    .duration(50)
-    .ease(d3.easeLinear);
+    .duration(defaultFadeDuration);
+    // .ease(d3.easeLinear);
 
   document.addEventListener("mousemove", function() {
     if (mouseHoverFlag) {

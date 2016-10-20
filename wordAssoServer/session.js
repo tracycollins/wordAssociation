@@ -1523,6 +1523,8 @@ var createGroup = function(callback) {
       var interpolateNodeColor = d3.interpolateHsl(nodeStartColor, nodeEndColor);
       currentGroup.interpolateNodeColor = interpolateNodeColor;
 
+      currentGroup.interpolateColor = interpolateNodeColor;
+
       // CREATE GROUP NODE
 
       currentGroup.node.isGroupNode = true;
@@ -1549,6 +1551,8 @@ var createGroup = function(callback) {
       currentGroup.node.groupColors = {};
       currentGroup.node.groupColors = currentGroup.groupColors;
       currentGroup.node.interpolateGroupColor = interpolateGroupColor;
+
+      currentGroup.interpolateColor = interpolateGroupColor;
 
       currentGroup.node.links = {};
 
@@ -1669,6 +1673,7 @@ var createSession = function(callback) {
       currentSession.target.lastSeen = dateNow;
       currentSession.latestNodeId = sessUpdate.source.nodeId;
       currentSession.interpolateSessionColor = currentGroup.interpolateSessionColor;
+      currentSession.interpolateColor = currentGroup.interpolateSessionColor;
 
       currentSession.node.text = sessUpdate.tags.entity + "[" + sessUpdate.tags.channel + "]";
       currentSession.node.age = 1e-6;
@@ -1684,6 +1689,7 @@ var createSession = function(callback) {
       currentSession.node.groupColors = {};
       currentSession.node.groupColors = currentGroup.groupColors;
       currentSession.node.interpolateGroupColor = currentGroup.interpolateGroupColor;
+      currentSession.node.interpolateColor = currentGroup.interpolateGroupColor;
       
       currentSession.node.sessionColors = {};
       currentSession.node.sessionColors = currentGroup.sessionColors;
@@ -1749,6 +1755,7 @@ var createSession = function(callback) {
       currentSession.sessionColors = {};
       currentSession.sessionColors = currentGroup.sessionColors;
       currentSession.interpolateSessionColor = currentGroup.interpolateSessionColor;
+      currentSession.interpolateColor = currentGroup.interpolateSessionColor;
 
       currentSession.groupColors = {};
       currentSession.groupColors = currentGroup.groupColors;
@@ -1782,6 +1789,7 @@ var createSession = function(callback) {
       currentSession.node.sessionColors = {};
       currentSession.node.sessionColors = currentGroup.sessionColors;
       currentSession.node.interpolateSessionColor = currentGroup.interpolateSessionColor;
+      currentSession.node.interpolateColor = currentGroup.interpolateSessionColor;
 
       currentSession.node.groupColors = {};
       currentSession.node.groupColors = currentGroup.groupColors;
@@ -1894,6 +1902,7 @@ var createNode = function(callback) {
       session.node.interpolateGroupColor = session.interpolateGroupColor;
       session.node.interpolateNodeColor = session.interpolateNodeColor;
       session.node.interpolateSessionColor = session.interpolateSessionColor;
+      session.node.interpolateColor = session.interpolateSessionColor;
 
       addToHashMap(nodeHashMap, session.node.nodeId, session.node, function(sNode) {
         currentSessionView.addNode(sNode);
@@ -1942,12 +1951,15 @@ var createNode = function(callback) {
             sourceNode.isDead = false;
             sourceNode.ageUpdated = dateNow;
             sourceNode.lastSeen = dateNow;
+
             sourceNode.groupColors = session.groupColors;
             sourceNode.sessionColors = session.sessionColors;
             sourceNode.nodeColors = session.nodeColors;
             sourceNode.interpolateGroupColor = session.interpolateGroupColor;
             sourceNode.interpolateNodeColor = session.interpolateNodeColor;
             sourceNode.interpolateSessionColor = session.interpolateSessionColor;
+            sourceNode.interpolateColor = session.interpolateSessionColor;
+
             if (sourceNode.isSessionNode){
               sourceNode.text = session.tags.entity + "[" + session.tags.channel + "]";
               sourceNode.wordChainIndex = session.source.wordChainIndex;
@@ -1985,12 +1997,15 @@ var createNode = function(callback) {
             sourceNode.isDead = false;
             sourceNode.lastSeen = dateNow;
             sourceNode.ageUpdated = dateNow;
+
             sourceNode.groupColors = session.groupColors;
             sourceNode.sessionColors = session.sessionColors;
             sourceNode.nodeColors = session.nodeColors;
             sourceNode.interpolateGroupColor = session.interpolateGroupColor;
             sourceNode.interpolateNodeColor = session.interpolateNodeColor;
             sourceNode.interpolateSessionColor = session.interpolateSessionColor;
+            sourceNode.interpolateColor = session.interpolateSessionColor;
+
             sourceNode.x = session.node.x+randomIntFromInterval(-10,10);;
             sourceNode.y = session.node.y+randomIntFromInterval(-10,10);;
             if (sourceNode.isSessionNode){
@@ -2044,6 +2059,7 @@ var createNode = function(callback) {
             targetNode.interpolateGroupColor = session.interpolateGroupColor;
             targetNode.interpolateNodeColor = session.interpolateNodeColor;
             targetNode.interpolateSessionColor = session.interpolateSessionColor;
+            targetNode.interpolateColor = session.interpolateSessionColor;
 
             targetNode.latestNode = false;
             if (targetNode.isSessionNode){
@@ -2090,8 +2106,8 @@ var createNode = function(callback) {
             targetNode.interpolateGroupColor = session.interpolateGroupColor;
             targetNode.interpolateNodeColor = session.interpolateNodeColor;
             targetNode.interpolateSessionColor = session.interpolateSessionColor;
+            targetNode.interpolateColor = session.interpolateSessionColor;
 
-            targetNode.interpolateColor = session.interpolateColor;
             targetNode.latestNode = false;
             if (targetNode.isSessionNode){
               targetNode.text = session.tags.entity + "[" + session.tags.channel + "]";

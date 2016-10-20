@@ -22,7 +22,7 @@ var statusSession2Id;
 
 var initializedFlag = false;
 
-requirejs(["http://d3js.org/d3.v4.min.js"], function(d3Loaded) {
+requirejs(["https://cdnjs.cloudflare.com/ajax/libs/d3/4.2.7/d3.min.js"], function(d3Loaded) {
     console.log("d3 LOADED");
     d3 = d3Loaded;
     initialize(function(){

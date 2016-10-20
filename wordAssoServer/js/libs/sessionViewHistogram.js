@@ -16,7 +16,6 @@ function ViewHistogram() {
 
   var newFlagRatio = 0.01;
   var maxWords = 100;
-  // var removeDeadNodes = false;
   var maxOpacity = 0.9;
   var minOpacity = 0.3;
   var defaultFadeDuration = 50;
@@ -1153,12 +1152,10 @@ function ViewHistogram() {
     // console.warn("SIMULATION CONTROL | OP: " + op);
     switch (op) {
       case 'RESET':
-        // self.initD3timer();
         console.warn("SIMULATION CONTROL | OP: " + op);
         self.clearDrawSimulationInterval();
         simulation.stop();
         runningFlag = false;
-        // simulation.stop();
       break;
       case 'START':
         console.warn("SIMULATION CONTROL | OP: " + op);

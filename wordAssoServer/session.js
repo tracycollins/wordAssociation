@@ -22,7 +22,7 @@ var statusSession2Id;
 
 var initializedFlag = false;
 
-requirejs(["https://cdnjs.cloudflare.com/ajax/libs/d3/4.2.7/d3.min.js"], function(d3Loaded) {
+requirejs(["http://d3js.org/d3.v4.min.js"], function(d3Loaded) {
     console.log("d3 LOADED");
     d3 = d3Loaded;
     initialize(function(){
@@ -208,15 +208,6 @@ var mouseMovingFlag = false;
 var mouseMoveTimeoutInterval = 2000;
 
 var mouseMoveTimeout;
-
-// var mouseMoveTimeout = setTimeout(function() {
-//   currentSessionView.simulationControl('RESUME');
-//   d3.select("body").style("cursor", "none");
-//   if (!config.showStatsFlag && !pageLoadedTimeIntervalFlag) {
-//     displayInfo(false);
-//     displayControl(false);
-//   }
-// }, mouseMoveTimeoutInterval);
 
 function resetMouseMoveTimer() {
 
@@ -605,7 +596,6 @@ var groupDeleteQueue = []; // gets a hash of nodes deleted by sessionViewForce f
 var nodeDeleteQueue = []; // gets a hash of nodes deleted by sessionViewForce for each d3 timer cycle.
 var linkDeleteQueue = []; // gets a hash of nodes deleted by sessionViewForce for each d3 timer cycle.
 
-
 var urlRoot = "http://localhost:9997/session?session=";
 
 var currentSession = {};
@@ -613,10 +603,6 @@ var sessionId;
 var namespace;
 var sessionMode = false;
 var monitorMode = false;
-
-// var config = DEFAULT_CONFIG;
-// var previousConfig = [];
-
 
 function jp(s, obj) {
   console.warn(s + "\n" + jsonPrint(obj));
@@ -2519,7 +2505,6 @@ function initialize(callback) {
 
             store.set('config', config);
 
-            // createPopUpControlPanel(config);
             currentSessionView.initD3timer();
             currentSessionView.resize();
 
@@ -2558,8 +2543,6 @@ function initialize(callback) {
 
             store.set('config', config);
 
-            // createPopUpControlPanel(config);
-            // currentSessionView.initD3timer();
             currentSessionView.simulationControl('START');
             currentSessionView.resize();
 
@@ -2600,7 +2583,6 @@ function initialize(callback) {
 
           store.set('config', config);
 
-          // createPopUpControlPanel(config);
           currentSessionView.initD3timer();
           currentSessionView.resize();
 

@@ -1148,6 +1148,10 @@ function ViewHistogram() {
     });
   }
 
+  this.clearDrawSimulationInterval = function(){
+    clearInterval(drawSimulationInterval);
+  }
+
   this.simulationControl = function(op) {
     // console.warn("SIMULATION CONTROL | OP: " + op);
     switch (op) {

@@ -11,6 +11,7 @@ function ViewHistogram() {
   // GLOBAL VARS
   // ==============================================
 
+  var runningFlag = false;
   var age;
 
   var newFlagRatio = 0.01;

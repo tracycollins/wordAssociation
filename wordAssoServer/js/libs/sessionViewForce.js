@@ -142,18 +142,15 @@ function ViewForce() {
   }, true);
 
 
-  var adjustedAgeRateScale = d3.scale.linear().domain([1, 500]).range([1.0, 100.0]);
-  var fontSizeScale = d3.scale.linear().domain([1, 1000000]).range([32.0, 64]).clamp(true);
+  var adjustedAgeRateScale = d3.scaleLinear().domain([1, 500]).range([1.0, 100.0]);
+  var fontSizeScale = d3.scaleLinear().domain([1, 1000000]).range([32.0, 64]).clamp(true);
 
-  var groupCircleRadiusScale = d3.scale.log().domain([1, 1000000]).range([10.0, 120.0]).clamp(true); // uses wordChainIndex
-  var sessionCircleRadiusScale = d3.scale.log().domain([1, 1000000]).range([10.0, 120.0]).clamp(true); // uses wordChainIndex
-  var defaultRadiusScale = d3.scale.log().domain([1, 10000000]).range([4.0, 40.0]).clamp(true);
-
-  var fillColorScale = d3.scale.linear().domain([1e-6, 0.5, 1.0]).range(["#555555", "#111111", "#000000"]);
-
-  var strokeColorScale = d3.scale.linear().domain([1e-6, 0.5, 1.0]).range(["#cccccc", "#444444", "#000000"]);
-
-  var linkColorScale = d3.scale.linear().domain([1e-6, 0.5, 1.0]).range(["#cccccc", "#666666", "#444444"]);
+  var groupCircleRadiusScale = d3.scaleLog().domain([1, 1000000]).range([10.0, 120.0]).clamp(true); // uses wordChainIndex
+  var sessionCircleRadiusScale = d3.scaleLog().domain([1, 1000000]).range([10.0, 120.0]).clamp(true); // uses wordChainIndex
+  var defaultRadiusScale = d3.scaleLog().domain([1, 10000000]).range([4.0, 40.0]).clamp(true);
+  var fillColorScale = d3.scaleLinear().domain([1e-6, 0.5, 1.0]).range(["#555555", "#111111", "#000000"]);
+  var strokeColorScale = d3.scaleLinear().domain([1e-6, 0.5, 1.0]).range(["#cccccc", "#444444", "#000000"]);
+  var linkColorScale = d3.scaleLinear().domain([1e-6, 0.5, 1.0]).range(["#cccccc", "#666666", "#444444"]);
 
 
   console.log("@@@@@@@ CLIENT @@@@@@@@");

@@ -1276,7 +1276,6 @@ function createSession (callback){
     if (sessUpdate.sessionEvent == 'SESSION_DELETE'){
       console.warn("DELETE SESSION: " + sessUpdate.sessionId);
       deleteSession(sessUpdate.sessionId, function(sessionId){
-        // sessionHashMap.remove(sessionId);
         callback(null,null);
       });
     }
@@ -2007,10 +2006,6 @@ function updateSessionCircles (sessionId, callback) {
 
   sessionLabels
     .exit().remove();
-    // .transition()
-    //   .duration(defaultFadeDuration)      
-    //   .style("opacity", 1e-6)
-
 
   callback(null, sessionId);
 }

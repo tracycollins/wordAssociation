@@ -913,8 +913,8 @@ function ViewHistogram() {
           return "white";
         }
         else if (self.removeDeadNodes) {
-          // return d.interpolateColor(d.age/nodeMaxAge);
-          return "red";
+          return d.interpolateNodeColor(d.age/nodeMaxAge);
+          // return "red";
         }
         else {
           // return d.interpolateColor(1e-6);

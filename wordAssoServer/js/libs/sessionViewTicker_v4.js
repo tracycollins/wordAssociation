@@ -131,8 +131,8 @@ function ViewTicker() {
   console.log("width: " + width + " | height: " + height);
 
   
-  var tran = d3.transition()
-    .duration(defaultFadeDuration);
+  var tran = d3.transition();
+    // .duration(defaultFadeDuration);
     // .ease(d3.easeLinear);
 
   document.addEventListener("mousemove", function() {

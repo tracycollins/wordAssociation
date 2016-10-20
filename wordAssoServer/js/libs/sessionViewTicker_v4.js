@@ -30,7 +30,7 @@ function ViewTicker() {
   var maxWords = 100;
   var maxOpacity = 1.0;
   var minOpacity = 0.3;
-  var defaultFadeDuration = 50;
+  var defaultFadeDuration = 20;
 
   var testModeEnabled = false;
 
@@ -848,8 +848,8 @@ function ViewTicker() {
         return Math.max(wordOpacityScale(d.age + 1), minOpacity)
       })
       // .transition().duration(defaultFadeDuration).ease(d3.easeQuadOut)
-      .transition()
-        .duration(defaultFadeDuration)
+      .transition(tran)
+        // .duration(defaultFadeDuration)
         .attr("y", ypositionGroup);
 
     groupWords
@@ -901,8 +901,8 @@ function ViewTicker() {
           return Math.max(wordOpacityScale(d.age + 1), minOpacity)
         }
       })
-      .transition()
-        .duration(defaultFadeDuration)
+      .transition(tran)
+        // .duration(defaultFadeDuration)
         .attr("y", ypositionWord)
         .attr("x", xposition);
 

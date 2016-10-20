@@ -14,6 +14,8 @@ function ViewHistogram() {
   var runningFlag = false;
   var age;
 
+  var drawSimulationInterval;
+
   var newFlagRatio = 0.01;
   var maxWords = 100;
   var maxOpacity = 0.9;
@@ -1148,16 +1150,16 @@ function ViewHistogram() {
     });
   }
 
-  this.clearDrawSimulationInterval = function(){
-    clearInterval(drawSimulationInterval);
-  }
+  // this.clearDrawSimulationInterval = function(){
+  //   clearInterval(drawSimulationInterval);
+  // }
 
   this.simulationControl = function(op) {
     // console.warn("SIMULATION CONTROL | OP: " + op);
     switch (op) {
       case 'RESET':
         console.warn("SIMULATION CONTROL | OP: " + op);
-        self.clearDrawSimulationInterval();
+        // self.clearDrawSimulationInterval();
         simulation.stop();
         runningFlag = false;
       break;
@@ -1171,7 +1173,7 @@ function ViewHistogram() {
         if (!runningFlag){
           console.warn("SIMULATION CONTROL | OP: " + op);
           runningFlag = true;
-          self.clearDrawSimulationInterval();
+          // self.clearDrawSimulationInterval();
           simulation.alphaTarget(0.7).restart();
         }
       break;
@@ -1181,13 +1183,13 @@ function ViewHistogram() {
           runningFlag = false;
           simulation.alpha(0);
           simulation.stop();
-          self.initDrawSimulationInverval();
+          // self.initDrawSimulationInverval();
         }
       break;
       case 'STOP':
         runningFlag = false;
         console.warn("SIMULATION CONTROL | OP: " + op);
-        self.clearDrawSimulationInterval();
+        // self.clearDrawSimulationInterval();
         simulation.alpha(0);
         simulation.stop();
       break;

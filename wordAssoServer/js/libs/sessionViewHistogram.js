@@ -1160,13 +1160,13 @@ function ViewHistogram() {
       case 'RESET':
         console.warn("SIMULATION CONTROL | OP: " + op);
         // self.clearDrawSimulationInterval();
-        simulation.stop();
+        // simulation.stop();
         runningFlag = false;
       break;
       case 'START':
         console.warn("SIMULATION CONTROL | OP: " + op);
         self.initD3timer();
-        simulation.alphaTarget(0.7).restart();
+        // simulation.alphaTarget(0.7).restart();
         runningFlag = true;
       break;
       case 'RESUME':
@@ -1174,15 +1174,15 @@ function ViewHistogram() {
           console.warn("SIMULATION CONTROL | OP: " + op);
           runningFlag = true;
           // self.clearDrawSimulationInterval();
-          simulation.alphaTarget(0.7).restart();
+          // simulation.alphaTarget(0.7).restart();
         }
       break;
       case 'PAUSE':
         if (runningFlag){
           console.warn("SIMULATION CONTROL | OP: " + op);
           runningFlag = false;
-          simulation.alpha(0);
-          simulation.stop();
+          // simulation.alpha(0);
+          // simulation.stop();
           // self.initDrawSimulationInverval();
         }
       break;
@@ -1190,12 +1190,12 @@ function ViewHistogram() {
         runningFlag = false;
         console.warn("SIMULATION CONTROL | OP: " + op);
         // self.clearDrawSimulationInterval();
-        simulation.alpha(0);
-        simulation.stop();
+        // simulation.alpha(0);
+        // simulation.stop();
       break;
       case 'RESTART':
         console.warn("SIMULATION CONTROL | OP: " + op);
-        simulation.alphaTarget(0.7).restart();
+        // simulation.alphaTarget(0.7).restart();
         runningFlag = true;
       break;
       default:

@@ -848,7 +848,7 @@ function ViewTicker() {
         return Math.max(wordOpacityScale(d.age + 1), minOpacity)
       })
       // .transition().duration(defaultFadeDuration).ease(d3.easeQuadOut)
-      .transition(tran)
+      // .transition(tran)
         // .duration(defaultFadeDuration)
         .attr("y", ypositionGroup);
 
@@ -901,7 +901,7 @@ function ViewTicker() {
           return Math.max(wordOpacityScale(d.age + 1), minOpacity)
         }
       })
-      .transition(tran)
+      // .transition(tran)
         // .duration(defaultFadeDuration)
         .attr("y", ypositionWord)
         .attr("x", xposition);

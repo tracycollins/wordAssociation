@@ -783,7 +783,8 @@ function ViewHistogram() {
           return "white";
         }
         else {
-          return d.interpolateColor(1.0);
+          // return d.interpolateColor(1.0);
+          return "white";
         }
       })
       .style("fill-opacity", function(d) {
@@ -912,10 +913,12 @@ function ViewHistogram() {
           return "white";
         }
         else if (self.removeDeadNodes) {
-          return d.interpolateColor(d.age/nodeMaxAge);
+          // return d.interpolateColor(d.age/nodeMaxAge);
+          return "red";
         }
         else {
-          return d.interpolateColor(1e-6);
+          // return d.interpolateColor(1e-6);
+          return "black";
         }
       })
       .style("fill-opacity", function(d) {

@@ -652,7 +652,8 @@ function ViewHistogram() {
         if (d.newFlag) {
           return "white";
         } else {
-          return d.interpolateColor(d.age/nodeMaxAge);
+          // return d.interpolateColor(d.age/nodeMaxAge);
+          return "red";
         }
       })
       .transition()

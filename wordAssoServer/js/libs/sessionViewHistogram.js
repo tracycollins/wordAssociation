@@ -1151,6 +1151,58 @@ function ViewHistogram() {
     });
   }
 
+  this.simulationControl = function(op) {
+    // console.warn("SIMULATION CONTROL | OP: " + op);
+    switch (op) {
+      case 'RESET':
+        // self.initD3timer();
+        console.warn("SIMULATION CONTROL | OP: " + op);
+        self.clearDrawSimulationInterval();
+        simulation.stop();
+        runningFlag = false;
+        // simulation.stop();
+      break;
+      case 'START':
+        console.warn("SIMULATION CONTROL | OP: " + op);
+        self.initD3timer();
+        simulation.alphaTarget(0.7).restart();
+        runningFlag = true;
+      break;
+      case 'RESUME':
+        if (!runningFlag){
+          console.warn("SIMULATION CONTROL | OP: " + op);
+          runningFlag = true;
+          self.clearDrawSimulationInterval();
+          simulation.alphaTarget(0.7).restart();
+        }
+      break;
+      case 'PAUSE':
+        if (runningFlag){
+          console.warn("SIMULATION CONTROL | OP: " + op);
+          runningFlag = false;
+          simulation.alpha(0);
+          simulation.stop();
+          self.initDrawSimulationInverval();
+        }
+      break;
+      case 'STOP':
+        runningFlag = false;
+        console.warn("SIMULATION CONTROL | OP: " + op);
+        self.clearDrawSimulationInterval();
+        simulation.alpha(0);
+        simulation.stop();
+      break;
+      case 'RESTART':
+        console.warn("SIMULATION CONTROL | OP: " + op);
+        simulation.alphaTarget(0.7).restart();
+        runningFlag = true;
+      break;
+      default:
+        console.warn("???? SIMULATION CONTROL | UNKNOWN OP: " + op);
+      break;
+    }
+  }
+
   // ===================================================================
 
   this.resize = function() {

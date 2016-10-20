@@ -847,8 +847,10 @@ function ViewTicker() {
       .style("fill-opacity", function(d) {
         return Math.max(wordOpacityScale(d.age + 1), minOpacity)
       })
-      .transition().duration(100).ease(d3.easeQuadOut)
-      .attr("y", ypositionGroup);
+      // .transition().duration(defaultFadeDuration).ease(d3.easeQuadOut)
+      .transition()
+        .duration(defaultFadeDuration)
+        .attr("y", ypositionGroup);
 
     groupWords
       .enter()
@@ -899,9 +901,10 @@ function ViewTicker() {
           return Math.max(wordOpacityScale(d.age + 1), minOpacity)
         }
       })
-      .transition().duration(100).ease(d3.easeQuadOut)
-      .attr("y", ypositionWord)
-      .attr("x", xposition);
+      .transition()
+        .duration(defaultFadeDuration)
+        .attr("y", ypositionWord)
+        .attr("x", xposition);
 
     nodeWords
       .enter()

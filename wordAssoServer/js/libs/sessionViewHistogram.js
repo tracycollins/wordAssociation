@@ -18,7 +18,7 @@ function ViewHistogram() {
   // var removeDeadNodes = false;
   var maxOpacity = 0.9;
   var minOpacity = 0.3;
-  var defaultFadeDuration = 80;
+  var defaultFadeDuration = 50;
 
   var testModeEnabled = false;
 
@@ -38,7 +38,7 @@ function ViewHistogram() {
   var marginLeftSessions = 5;
 
   var marginTopWords = 15; // %
-  var marginLeftWords = 15;
+  var marginLeftWords = 20;
 
   var colSpacing = 20;
 
@@ -652,9 +652,9 @@ function ViewHistogram() {
         }
       })
       .transition()
-      .duration(defaultFadeDuration)
-      .attr("x", xposition)
-      .attr("y", yposition);
+        .duration(defaultFadeDuration)
+        .attr("x", xposition)
+        .attr("y", yposition);
 
     groupWords
       .enter()
@@ -684,8 +684,8 @@ function ViewHistogram() {
       .on("mouseout", nodeMouseOut)
       .on("mouseover", nodeMouseOver)
       .transition()
-      .duration(defaultFadeDuration)
-      .style("fill", "#FF0000");
+        .duration(defaultFadeDuration)
+        .style("fill", "#FF0000");
 
     groupWords
       .exit()
@@ -791,9 +791,9 @@ function ViewHistogram() {
         }
       })
       .transition()
-      .duration(defaultFadeDuration)
-      .attr("x", xposition)
-      .attr("y", yposition);
+        .duration(defaultFadeDuration)
+        .attr("x", xposition)
+        .attr("y", yposition);
 
     sessionWords
       .enter()
@@ -925,9 +925,9 @@ function ViewHistogram() {
         }
       })
       .transition()
-      .duration(defaultFadeDuration)
-      .attr("x", xposition)
-      .attr("y", yposition);
+        .duration(defaultFadeDuration)
+        .attr("x", xposition)
+        .attr("y", yposition);
 
     nodeWords
       .enter()
@@ -951,8 +951,8 @@ function ViewHistogram() {
       .on("mouseout", nodeMouseOut)
       .on("mouseover", nodeMouseOver)
       .transition()
-      .duration(defaultFadeDuration)
-      .style("fill", "#FF0000");
+        .duration(defaultFadeDuration)
+        .style("fill", "#FF0000");
 
     nodeWords
       .exit()
@@ -1039,9 +1039,10 @@ function ViewHistogram() {
       .style("fill", "yellow")
       .style("fill-opacity", 1);
 
-    divTooltip.transition()
-      .duration(defaultFadeDuration)
-      .style("opacity", 1.0);
+    divTooltip
+      .transition()
+        .duration(defaultFadeDuration)
+        .style("opacity", 1.0);
 
     var tooltipString = "<bold>" + nodeId + "</bold>" + "<br>MENTIONS: " + mentions + "<br>RANK: " + rank;
 
@@ -1074,9 +1075,10 @@ function ViewHistogram() {
         }
       });
 
-    divTooltip.transition()
-      .duration(defaultFadeDuration)
-      .style("opacity", 1e-6);
+    divTooltip
+      .transition()
+        .duration(defaultFadeDuration)
+        .style("opacity", 1e-6);
   }
 
   function nodeClick(d) {

@@ -1140,6 +1140,9 @@ function ViewHistogram() {
   this.deleteLink = function(delLink) {
   }
 
+  this.deleteSessionLinks = function(sessionId) {
+  }
+
   // ===================================================================
 
   this.initD3timer = function() {

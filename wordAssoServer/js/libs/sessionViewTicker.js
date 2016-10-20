@@ -153,28 +153,28 @@ function ViewTicker() {
   }, true);
 
 
-  var wordBarWidthScale = d3.scale.linear().domain([1, 2e6]).range([0.1, 65]);
-  var wordOpacityScale = d3.scale.linear().domain([1e-6, 0.1*nodeMaxAge, nodeMaxAge]).range([maxOpacity, 0.4*maxOpacity, 0.2*maxOpacity]);
-  var placeOpacityScale = d3.scale.linear().domain([0, DEFAULT_MAX_AGE]).range([0.9, 0.15]);
-  var wordBarOpacityScale = d3.scale.linear().domain([0, DEFAULT_MAX_AGE]).range([0.9, 0.15]);
-  var wordCloudFontScale = d3.scale.linear().domain([1, 2e6]).range([2, 8]);
-  var wordCloudAgeScale = d3.scale.linear().domain([1, DEFAULT_MAX_AGE]).range([1, 1e-6]);
+  var wordBarWidthScale = d3.scaleLinear().domain([1, 2e6]).range([0.1, 65]);
+  var wordOpacityScale = d3.scaleLinear().domain([1e-6, 0.1*nodeMaxAge, nodeMaxAge]).range([maxOpacity, 0.4*maxOpacity, 0.2*maxOpacity]);
+  var placeOpacityScale = d3.scaleLinear().domain([0, DEFAULT_MAX_AGE]).range([0.9, 0.15]);
+  var wordBarOpacityScale = d3.scaleLinear().domain([0, DEFAULT_MAX_AGE]).range([0.9, 0.15]);
+  var wordCloudFontScale = d3.scaleLinear().domain([1, 2e6]).range([2, 8]);
+  var wordCloudAgeScale = d3.scaleLinear().domain([1, DEFAULT_MAX_AGE]).range([1, 1e-6]);
 
-  var adjustedAgeRateScale = d3.scale.pow().domain([1, 500]).range([1.0, 100.0]);
-  var fontSizeScale = d3.scale.linear().domain([1, currentMaxMentions]).range([minFontSize, maxFontSize]);
+  var adjustedAgeRateScale = d3.scalePow().domain([1, 500]).range([1.0, 100.0]);
+  var fontSizeScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minFontSize, maxFontSize]);
 
-  var sessionCircleRadiusScale = d3.scale.linear().domain([1, 100000000]).range([5.0, 100.0]); // uses wordChainIndex
-  var defaultRadiusScale = d3.scale.linear().domain([1, 100000000]).range([1.0, 30.0]);
+  var sessionCircleRadiusScale = d3.scaleLinear().domain([1, 100000000]).range([5.0, 100.0]); // uses wordChainIndex
+  var defaultRadiusScale = d3.scaleLinear().domain([1, 100000000]).range([1.0, 30.0]);
 
-  var fillColorScale = d3.scale.linear()
+  var fillColorScale = d3.scaleLinear()
     .domain([0, 30000, 60000])
     .range(["#555555", "#222222", "#000000"]);
 
-  var strokeColorScale = d3.scale.linear()
+  var strokeColorScale = d3.scaleLinear()
     .domain([0, 30000, 60000])
     .range(["#cccccc", "#444444", "#000000"]);
 
-  var linkColorScale = d3.scale.linear().domain([1e-6, 0.5, 1.0]).range(["#cccccc", "#666666", "#444444"]);
+  var linkColorScale = d3.scaleLinear().domain([1e-6, 0.5, 1.0]).range(["#cccccc", "#666666", "#444444"]);
 
   console.log("@@@@@@@ CLIENT @@@@@@@@");
 
@@ -1242,7 +1242,7 @@ function ViewTicker() {
 
       if (!newNode.isIgnored && (newNode.mentions > currentMaxMentions)) {
         currentMaxMentions = newNode.mentions;
-        fontSizeScale = d3.scale.linear().domain([1, currentMaxMentions]).range([minFontSize, maxFontSize]);
+        fontSizeScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minFontSize, maxFontSize]);
         // console.log("NEW MAX MENTIONS" 
         //   + " | " + newNode.text 
         //   + " | " + currentMaxMentions 

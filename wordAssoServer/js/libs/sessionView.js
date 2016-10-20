@@ -591,21 +591,21 @@ function launchSessionView(sessionId) {
   window.open(url, 'SESSION VIEW', '_new');
 }
 
-var adjustedAgeRateScale = d3.scale.pow().domain([1,500]).range([1.0,100.0]);
-var fontSizeScale = d3.scale.log().domain([1,100000]).range([1.6,3.2]);
+var adjustedAgeRateScale = d3.scalePow().domain([1,500]).range([1.0,100.0]);
+var fontSizeScale = d3.scaleLog().domain([1,100000]).range([1.6,3.2]);
 
-var sessionCircleRadiusScale = d3.scale.log().domain([1,2000000]).range([40.0,100.0]);  // uses wordChainIndex
-var defaultRadiusScale = d3.scale.log().domain([1,2000000]).range([1.0,40.0]);
+var sessionCircleRadiusScale = d3.scaleLog().domain([1,2000000]).range([40.0,100.0]);  // uses wordChainIndex
+var defaultRadiusScale = d3.scaleLog().domain([1,2000000]).range([1.0,40.0]);
 
-var fillColorScale = d3.scale.linear()
+var fillColorScale = d3.scaleLinear()
     .domain([0, 30000, 60000])
     .range(["#555555", "#222222", "#000000"]);
 
-var strokeColorScale = d3.scale.linear()
+var strokeColorScale = d3.scaleLinear()
     .domain([0, 30000, 60000])
     .range(["#cccccc", "#444444", "#000000"]);
 
-var linkColorScale = d3.scale.linear()
+var linkColorScale = d3.scaleLinear()
     .domain([0, 30000, 60000])
     .range(["#cccccc", "#666666", "#444444"]);
 

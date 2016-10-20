@@ -127,25 +127,25 @@ function ViewHistogram() {
   }, true);
 
 
-  var wordBarWidthScale = d3.scale.linear().domain([1, 2e6]).range([0.1, 65]);
-  var wordOpacityScale = d3.scale.linear().domain([0, DEFAULT_MAX_AGE]).range([maxOpacity, minOpacity]);
-  var placeOpacityScale = d3.scale.linear().domain([0, DEFAULT_MAX_AGE]).range([0.9, 0.15]);
-  var wordBarOpacityScale = d3.scale.linear().domain([0, DEFAULT_MAX_AGE]).range([0.9, 0.15]);
-  var wordCloudFontScale = d3.scale.linear().domain([1, 2e6]).range([2, 8]);
-  var wordCloudAgeScale = d3.scale.linear().domain([1, DEFAULT_MAX_AGE]).range([1, 1e-6]);
+  var wordBarWidthScale = d3.scaleLinear().domain([1, 2e6]).range([0.1, 65]);
+  var wordOpacityScale = d3.scaleLinear().domain([0, DEFAULT_MAX_AGE]).range([maxOpacity, minOpacity]);
+  var placeOpacityScale = d3.scaleLinear().domain([0, DEFAULT_MAX_AGE]).range([0.9, 0.15]);
+  var wordBarOpacityScale = d3.scaleLinear().domain([0, DEFAULT_MAX_AGE]).range([0.9, 0.15]);
+  var wordCloudFontScale = d3.scaleLinear().domain([1, 2e6]).range([2, 8]);
+  var wordCloudAgeScale = d3.scaleLinear().domain([1, DEFAULT_MAX_AGE]).range([1, 1e-6]);
 
 
-  var adjustedAgeRateScale = d3.scale.pow().domain([1, 500]).range([1.0, 100.0]);
-  var fontSizeScale = d3.scale.linear().domain([1, 100000000]).range([20.0, 30]);
+  var adjustedAgeRateScale = d3.scalePow().domain([1, 500]).range([1.0, 100.0]);
+  var fontSizeScale = d3.scaleLinear().domain([1, 100000000]).range([20.0, 30]);
 
-  var sessionCircleRadiusScale = d3.scale.linear().domain([1, 100000000]).range([5.0, 100.0]); // uses wordChainIndex
-  var defaultRadiusScale = d3.scale.linear().domain([1, 100000000]).range([1.0, 30.0]);
+  var sessionCircleRadiusScale = d3.scaleLinear().domain([1, 100000000]).range([5.0, 100.0]); // uses wordChainIndex
+  var defaultRadiusScale = d3.scaleLinear().domain([1, 100000000]).range([1.0, 30.0]);
 
-  var fillColorScale = d3.scale.linear()
+  var fillColorScale = d3.scaleLinear()
     .domain([0, 30000, 60000])
     .range(["#555555", "#222222", "#000000"]);
 
-  var strokeColorScale = d3.scale.linear()
+  var strokeColorScale = d3.scaleLinear()
     .domain([0, 30000, 60000])
     .range(["#cccccc", "#444444", "#000000"]);
 

@@ -18,7 +18,7 @@ function ViewHistogram() {
   // var removeDeadNodes = false;
   var maxOpacity = 0.9;
   var minOpacity = 0.3;
-  var defaultFadeDuration = 150;
+  var defaultFadeDuration = 80;
 
   var testModeEnabled = false;
 
@@ -159,8 +159,6 @@ function ViewHistogram() {
   var sessions = [];
   var nodes = [];
 
-  // this.removeDeadNodes = true;
-
   this.groupsLength = function() {
     return groups.length;
   }
@@ -195,16 +193,13 @@ function ViewHistogram() {
     console.error("RESET");
     nodes = [];
     createNodeQueue = [];
-
     deadNodesHash = {};
-
     newNodes = [];
   }
 
   this.getSessionsLength = function() {
     return sessions.length;
   }
-
 
   this.setNodeMaxAge = function(maxAge) {
     nodeMaxAge = maxAge;

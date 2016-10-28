@@ -30,7 +30,7 @@ function ViewTicker() {
   var maxWords = 100;
   var maxOpacity = 1.0;
   var minOpacity = 0.3;
-  var defaultFadeDuration = 20;
+  var defaultFadeDuration = 50;
 
   var testModeEnabled = false;
 
@@ -131,9 +131,9 @@ function ViewTicker() {
   console.log("width: " + width + " | height: " + height);
 
   
-  var tran = d3.transition();
-    // .duration(defaultFadeDuration);
-    // .ease(d3.easeLinear);
+  var tran = d3.transition()
+    // .duration(defaultFadeDuration)
+    .ease(d3.easeLinear);
 
   document.addEventListener("mousemove", function() {
     if (mouseHoverFlag) {
@@ -847,9 +847,11 @@ function ViewTicker() {
       .style("fill-opacity", function(d) {
         return Math.max(wordOpacityScale(d.age + 1), minOpacity)
       })
-      // .transition().duration(defaultFadeDuration).ease(d3.easeQuadOut)
+      .transition()
+      //   .duration(defaultFadeDuration)
+      //   .ease(d3.easeQuadOut)
       // .transition(tran)
-        // .duration(defaultFadeDuration)
+        .duration(defaultFadeDuration)
         .attr("y", ypositionGroup);
 
     groupWords
@@ -901,8 +903,8 @@ function ViewTicker() {
           return Math.max(wordOpacityScale(d.age + 1), minOpacity)
         }
       })
-      // .transition(tran)
-        // .duration(defaultFadeDuration)
+      .transition()
+        .duration(defaultFadeDuration)
         .attr("y", ypositionWord)
         .attr("x", xposition);
 

@@ -892,7 +892,7 @@ function reset(){
   deleteAllSessions(function() {
     console.log("DELETED ALL SESSIONS ON WINDOW HIDDEN");
     sessionCreateQueue = [];
-    groupHashMap.clear();
+    // groupHashMap.clear();
     sessionDeleteHashMap.clear();
     // currentSe÷ssionView.resize();
     // currentSessionView.reset();

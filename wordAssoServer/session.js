@@ -887,14 +887,14 @@ function reset(){
   currentSessionView.simulationControl('RESET');
   windowVisible = true;
   // currentSessionView.reset();
-  nodeHashMap.clear();
-  linkHashMap.clear();
+  // nodeHashMap.clear();
+  // linkHashMap.clear();
   deleteAllSessions(function() {
     console.log("DELETED ALL SESSIONS ON WINDOW HIDDEN");
     sessionCreateQueue = [];
     groupHashMap.clear();
     sessionDeleteHashMap.clear();
-    // currentSessionView.resize();
+    // currentSe÷ssionView.resize();
     // currentSessionView.reset();
     if ((config.sessionViewType == 'force') 
       || (config.sessionViewType == 'ticker')
@@ -903,6 +903,7 @@ function reset(){
       currentSessionView.resetDefaultForce();
     }
     currentSessionView.simulationControl('START');
+    updateSessionsReady = true;
   });  
 }
 

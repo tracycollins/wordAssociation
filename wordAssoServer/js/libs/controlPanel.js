@@ -388,7 +388,7 @@ function ControlPanel() {
       min: 0.0,
       max: 1000,
       value: 100,
-      multiplier: 0.001,
+      multiplier: 0.0001,
     }
 
     var gravitySliderText = {

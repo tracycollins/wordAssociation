@@ -5,6 +5,9 @@
 
 function ControlPanel() {
 
+  var DEFAULT_SOURCE = "http://localhost:9997";
+
+  var parentWindow;
   var self = this;
 
   var config = {};
@@ -21,15 +24,49 @@ function ControlPanel() {
   var statsObj = {};
   statsObj.socketId = 'NOT SET';
 
+  this.setVelocityDecaySliderValue = function (value) {
+    console.log("setVelocityDecaySliderValue: " + value);
+    document.getElementById("velocityDecaySlider").value = (value/document.getElementById("velocityDecaySlider").getAttribute("multiplier"));
+    document.getElementById("velocityDecaySliderText").innerHTML = value.toFixed(2);
+  }
+
+  this.setLinkStrengthSliderValue = function (value) {
+    console.log("setLinkStrengthSliderValue: " + value);
+    document.getElementById("linkStrengthSlider").value = (value/document.getElementById("linkStrengthSlider").getAttribute("multiplier"));
+    document.getElementById("linkStrengthSliderText").innerHTML = value.toFixed(2);
+  }
+
+  this.setGravitySliderValue = function (value) {
+    console.log("setGravitySliderValue: " + value);
+    document.getElementById("gravitySlider").value = (value/document.getElementById("gravitySlider").getAttribute("multiplier"));
+    document.getElementById("gravitySliderText").innerHTML = value.toFixed(2);
+  }
+
+  this.setChargeSliderValue = function (value) {
+    console.log("setChargeSliderValue: " + value);
+    document.getElementById("chargeSlider").value = value;
+    document.getElementById("chargeSliderText").innerHTML = value;
+  }
+
+  this.setMaxAgeSliderValue = function (value) {
+    console.log("setMaxAgeSliderValue: " + value);
+    document.getElementById("maxAgeSlider").value = value;
+    document.getElementById("maxAgeSliderText").innerHTML = value;
+  }
+
+
 
   $( document ).ready(function() {
     console.log( "ready!" );
-    self.createControlPanel();
-    lsbridge.send('controlPanel', {op: 'READY'});
+    self.createControlPanel(function(dashboard){
+      // parentWindow.postMessage({op:'READY'}, DEFAULT_SOURCE);
+    });
+    // lsbridge.send('controlPanel', {op: 'READY'});
   });
 
   window.onbeforeunload = function() {
-    lsbridge.send('controlPanel', {op:'CLOSE'});
+    // lsbridge.send('controlPanel', {op:'CLOSE'});
+    parentWindow.postMessage({op:'CLOSE'}, DEFAULT_SOURCE);
   }
 
   function buttonHandler(e) {
@@ -53,21 +90,77 @@ function ControlPanel() {
       console.log("BUTTON " + currentButton.id 
         + " : " + buttonConfig.mode
       );
-      lsbridge.send('controlPanel', {op: buttonConfig.mode, id: currentButton.id});
+      // lsbridge.send('controlPanel', {op: buttonConfig.mode, id: currentButton.id});
+      parentWindow.postMessage({op: buttonConfig.mode, id: currentButton.id}, DEFAULT_SOURCE);
+
+      if (currentButton.id == 'resetButton'){
+        self.setLinkStrengthSliderValue(config.defaultLinkStrength);
+        self.setGravitySliderValue(config.defaultGravity);
+        self.setChargeSliderValue(config.defaultCharge);
+        self.setVelocityDecaySliderValue(config.defaultVelocityDecay);
+        self.setMaxAgeSliderValue(config.defaultMaxAge);
+      }
     }
   };
 
   window.addEventListener('input', function (e) {
     // console.log("keyup event detected! coming from this element:", e.target);
-    // controlPanel.document.getElementById(e.target.id);
     var currentSlider = document.getElementById(e.target.id);
-    console.log("SLIDER " + currentSlider.id + " : " + currentSlider.value);
-    var currentSliderTextId = currentSlider.id + 'Text';
-    document.getElementById(currentSliderTextId).innerHTML = currentSlider.value;
+    currentSlider.multiplier = currentSlider.getAttribute("multiplier");
 
-    lsbridge.send('controlPanel', {op:'UPDATE', id: currentSlider.id, value: currentSlider.value});
+    console.log("SLIDER " + currentSlider.id + " : " + currentSlider.value);
+
+    var currentSliderTextId = currentSlider.id + 'Text';
+
+    document.getElementById(currentSliderTextId).innerHTML = (currentSlider.value * currentSlider.multiplier).toFixed(2);
+
+    parentWindow.postMessage({op:'UPDATE', id: currentSlider.id, value: (currentSlider.value * currentSlider.multiplier)}, DEFAULT_SOURCE);
     
   }, false);
+
+  function receiveMessage(event){
+
+    console.log("receiveMessage " + event.source);
+
+    // Do we trust the sender of this message?
+    if (event.origin !== DEFAULT_SOURCE)
+      return;
+
+    parentWindow = event.source;
+
+    var op = event.data.op;
+
+    switch (op) {
+      case 'INIT':
+        var cnf = event.data.config;
+        console.debug("CONTROL PANEL INIT\n" + jsonPrint(cnf));
+
+        for (var prop in cnf) {
+          config[prop] = cnf[prop];
+
+          console.info("CNF | " + prop 
+            + " | " + config[prop]
+          );
+        }
+
+
+
+
+        self.setLinkStrengthSliderValue(cnf.defaultLinkStrength);
+        self.setGravitySliderValue(cnf.defaultGravity);
+        self.setChargeSliderValue(cnf.defaultCharge);
+        self.setVelocityDecaySliderValue(cnf.defaultVelocityDecay);
+        self.setMaxAgeSliderValue(cnf.defaultMaxAge);
+      break;
+    }
+
+    // event.source is window.opener
+    // event.data "
+
+  }
+
+
+  window.addEventListener("message", receiveMessage, false);
 
   function jsonPrint(obj) {
     if ((obj) || (obj === 0)) {
@@ -77,12 +170,6 @@ function ControlPanel() {
       return "UNDEFINED";
     }
   }
-
-  // function sliderUpdate (sliderId, value){
-  //   console.log("sliderUpdate " + sliderId + " " + value);
-  //   controlPanel.document.getElementById(sliderId).value = value * 1000;
-  //   currentSessionView.updateParam('linkStrength', value);
-  // }
 
   this.tableCreateRow = function (parentTable, options, cells) {
 
@@ -108,42 +195,44 @@ function ControlPanel() {
 
         var td = tr.insertCell();
         if (typeof content.type === 'undefined') {
-          // var td2 = td.insertCell();
+
           td.appendChild(document.createTextNode(content));
           td.style.color = tdTextColor;
           td.style.backgroundColor = tdBgColor;
+
         } else if (content.type == 'TEXT') {
-          // console.warn("tableCreateRow\n" + content);
-          // var td2 = td.insertCell();
+
           td.className = content.class;
           td.setAttribute('id', content.id);
-          // td.appendChild(document.createTextNode(content.text));
           td.style.color = tdTextColor;
           td.style.backgroundColor = tdBgColor;
           td.innerHTML = content.text;
+
         } else if (content.type == 'BUTTON') {
+
           var buttonElement = document.createElement("BUTTON");
           buttonElement.className = content.class;
           buttonElement.setAttribute('id', content.id);
           buttonElement.setAttribute('mode', content.mode);
-          // buttonElement.onclick = function(buttonElement) {buttonHandler(buttonElement)};
-          buttonElement.addEventListener('click', function(e){
-            buttonHandler(e);
-          }, false);
+          buttonElement.addEventListener('click', function(e){ buttonHandler(e); }, false);
           buttonElement.innerHTML = content.text;
           td.appendChild(buttonElement);
           controlIdHash[content.id] = content;
+
         } else if (content.type == 'SLIDER') {
+
           var sliderElement = document.createElement("INPUT");
           sliderElement.type = 'range';
           sliderElement.className = content.class;
           sliderElement.setAttribute('id', content.id);
           sliderElement.setAttribute('min', content.min);
           sliderElement.setAttribute('max', content.max);
+          sliderElement.setAttribute('multiplier', content.multiplier);
           sliderElement.setAttribute('oninput', content.oninput);
           sliderElement.value = content.value;
           td.appendChild(sliderElement);
           controlIdHash[content.id] = content;
+
         }
       });
     }
@@ -264,6 +353,7 @@ function ControlPanel() {
       max: 120000,
       // value: config.defaultMaxAge,
       value: 60000,
+      multiplier: 1,
     }
 
     var maxAgeSliderText = {
@@ -280,61 +370,65 @@ function ControlPanel() {
       min: -1000,
       max: 10,
       value: -30,
+      multiplier: 1,
     }
 
     var chargeSliderText = {
       type: 'TEXT',
       id: 'chargeSliderText',
       class: 'sliderText',
-      text: chargeSlider.value
+      text: (chargeSlider.value * chargeSlider.multiplier),
     }
 
     var gravitySlider = {
       type: 'SLIDER',
       id: 'gravitySlider',
       class: 'slider',
-      min: 0,
+      min: 0.0,
       max: 1000,
       value: 100,
+      multiplier: 0.001,
     }
 
     var gravitySliderText = {
       type: 'TEXT',
       id: 'gravitySliderText',
       class: 'sliderText',
-      text: gravitySlider.value
+      text: (gravitySlider.value * gravitySlider.multiplier),
     }
 
     var velocityDecaySlider = {
       type: 'SLIDER',
       id: 'velocityDecaySlider',
       class: 'slider',
-      min: 0,
+      min: 0.0,
       max: 1000,
-      value: 300,
+      value: 200,
+      multiplier: 0.001,
     }
 
     var velocityDecaySliderText = {
       type: 'TEXT',
       id: 'velocityDecaySliderText',
       class: 'sliderText',
-      text: velocityDecaySlider.value
+      text: (velocityDecaySlider.value * velocityDecaySlider.multiplier),
     }
 
     var linkStrengthSlider = {
       type: 'SLIDER',
       id: 'linkStrengthSlider',
       class: 'slider',
-      min: -100,
+      min: 0.0,
       max: 1000,
       value: 747,
+      multiplier: 0.001,
     }
 
     var linkStrengthSliderText = {
       type: 'TEXT',
       id: 'linkStrengthSliderText',
       class: 'sliderText',
-      text: linkStrengthSlider.value
+      text: (linkStrengthSlider.value * linkStrengthSlider.multiplier),
     }
 
     var status = {

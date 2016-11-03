@@ -5,7 +5,8 @@
 
 function ControlPanel() {
 
-  var DEFAULT_SOURCE = "http://localhost:9997";
+  // var DEFAULT_SOURCE = "http://localhost:9997";
+  var DEFAULT_SOURCE = "http://word.threeceelabs.com";
 
   var parentWindow;
   var self = this;

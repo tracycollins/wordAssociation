@@ -355,6 +355,7 @@ function ControlPanel() {
     switch (config.sessionViewType) {
 
       case 'force':
+      case 'flow':
         self.tableCreateRow(infoTable, optionsBody, [status]);
         self.tableCreateRow(infoTable, optionsBody, [status2]);
         self.tableCreateRow(controlTable, optionsBody, [fullscreenButton, pauseButton, statsButton, testModeButton, nodeCreateButton, removeDeadNodeButton, disableLinksButton, antonymButton]);
@@ -443,7 +444,7 @@ function ControlPanel() {
       document.getElementById("removeDeadNodeToogleButton").style.color = "#888888";
       document.getElementById("removeDeadNodeToogleButton").style.border = "1px solid white";
     }
-    if (config.sessionViewType == 'force'){  
+    if ((config.sessionViewType == 'force') || (config.sessionViewType == 'flow')){  
       if (config.disableLinks) {
         document.getElementById("disableLinksToggleButton").style.color = "red";
         document.getElementById("disableLinksToggleButton").style.border = "2px solid red";

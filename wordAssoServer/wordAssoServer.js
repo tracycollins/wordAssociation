@@ -6631,6 +6631,12 @@ function initAppRouting(callback) {
     return;
   });
 
+  app.get('/js/libs/sessionViewFlow.js', function(req, res) {
+    debugAppGet("LOADING FILE: sessionViewFlow.js");
+    res.sendFile(__dirname + '/js/libs/sessionViewFlow.js');
+    return;
+  });
+
   app.get('/js/libs/sessionViewHistogram.js', function(req, res) {
     debugAppGet("LOADING FILE: sessionViewHistogram.js");
     res.sendFile(__dirname + '/js/libs/sessionViewHistogram.js');

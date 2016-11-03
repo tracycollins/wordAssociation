@@ -15,6 +15,7 @@ function ViewFlow() {
   var updateNodeFlag = false;
 
 
+
   // ==============================================
   // GLOBAL VARS
   // ==============================================
@@ -24,6 +25,8 @@ function ViewFlow() {
   var deadNodeFlag = false;
 
   var maxTotalWordChainIndex ;
+
+  var sliderPercision = 3;
 
   var tickNumber = 0;
   var width = window.innerWidth * 1;
@@ -59,7 +62,7 @@ function ViewFlow() {
 
   var DEFAULT_FLOW_CONFIG = {
     'charge': DEFAULT_CHARGE,
-    'velocityDecay': DEFAULT_FRICTION,
+    'velocityDecay': DEFAULT_VELOCITY_DECAY,
     'linkStrength': DEFAULT_LINK_STRENGTH,
     'gravity': DEFAULT_GRAVITY,
     'ageRate': window.DEFAULT_AGE_RATE,
@@ -70,7 +73,7 @@ function ViewFlow() {
   var charge = DEFAULT_CHARGE;
   var gravity = DEFAULT_GRAVITY;
   var globalLinkStrength = DEFAULT_LINK_STRENGTH;
-  var velocityDecay = DEFAULT_FRICTION;
+  var velocityDecay = DEFAULT_VELOCITY_DECAY;
 
   var palette = {
     "black": "#000000",
@@ -278,19 +281,19 @@ function ViewFlow() {
   }
 
   self.updateLinkStrength = function(value) {
-    console.debug("UPDATE LINK STRENGTH: " + value.toFixed(2));
+    console.debug("UPDATE LINK STRENGTH: " + value.toFixed(sliderPercision));
     globalLinkStrength = value;
     simulation.force("link", d3.forceLink(links).id(function(d) { return d.linkId; }).distance(20).strength(globalLinkStrength));
   }
 
   self.updateVelocityDecay = function(value) {
-    console.debug("UPDATE VEL DECAY: " + value.toFixed(2));
+    console.debug("UPDATE VEL DECAY: " + value.toFixed(sliderPercision));
     velocityDecay = value;
     simulation.velocityDecay(velocityDecay);
   }
 
   self.updateGravity = function(value) {
-    console.debug("UPDATE GRAVITY: " + value.toFixed(2));
+    console.debug("UPDATE GRAVITY: " + value.toFixed(sliderPercision));
     gravity = value;
     simulation.force("forceX", d3.forceX(-10000).strength(value));
     // simulation.force("forceY", d3.forceY(svgForceLayoutAreaHeight/2).strength(gravity));

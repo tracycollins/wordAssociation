@@ -11,8 +11,8 @@ word -> array of nodes
 when new instance of word arrives, iterate thru array of nodes and create linkskk
 */
 
-// var DEFAULT_SOURCE = "http://localhost:9997";
-var DEFAULT_SOURCE = "http://word.threeceelabs.com";
+var DEFAULT_SOURCE = "http://localhost:9997";
+// var DEFAULT_SOURCE = "http://word.threeceelabs.com";
 
 var d3;
 var controlPanel;
@@ -32,6 +32,7 @@ requirejs(["https://cdnjs.cloudflare.com/ajax/libs/d3/4.3.0/d3.min.js"], functio
     initialize(function(){
       initializedFlag = true;
       addControlButton();
+      if (!config.pauseFlag) currentSessionView.simulationControl('RESUME');
     });
   },
   function(error) {
@@ -60,10 +61,9 @@ var FORCE_MAX_AGE = 10347;
 var DEFAULT_AGE_RATE = 1.0;
 
 var DEFAULT_CHARGE = -50;
-var DEFAULT_GRAVITY = 0.05;
+var DEFAULT_GRAVITY = 0.010;
 var DEFAULT_LINK_STRENGTH = 0.80;
-var DEFAULT_FRICTION = 0.75;
-var DEFAULT_VELOCITY_DECAY = 0.75;
+var DEFAULT_VELOCITY_DECAY = 0.950;
 
 var config = {};
 
@@ -74,6 +74,14 @@ config.maxWords = 100;
 config.testMode = false;
 config.showStatsFlag = false;
 config.removeDeadNodesFlag = true;
+
+config.defaultMultiplier = 1000.0;
+config.defaultCharge = DEFAULT_CHARGE;
+config.defaultGravity = DEFAULT_GRAVITY;
+config.defaultLinkStrength = DEFAULT_LINK_STRENGTH;
+config.defaultVelocityDecay = DEFAULT_VELOCITY_DECAY;
+
+
 if ((config.sessionViewType == 'ticker') 
   // || (config.sessionViewType == 'flow')
   ) {
@@ -265,65 +273,6 @@ var sessionDragEndEvent = new CustomEvent(
 );
 
 
-// function tableCreateRow(parentTable, options, cells) {
-
-//   var tr = parentTable.insertRow();
-//   var tdTextColor = options.textColor;
-//   var tdBgColor = options.backgroundColor || '#222222';
-
-//   if (options.trClass) {
-//     tr.className = options.trClass;
-//   }
-
-//   if (options.headerFlag) {
-//     cells.forEach(function(content) {
-//       var th = tr.insertCell();
-//       th.appendChild(parentTable.parentNode.createTextNode(content));
-//       th.style.color = tdTextColor;
-//       th.style.backgroundColor = tdBgColor;
-//     });
-//   } else {
-//     cells.forEach(function(content) {
-
-//       // console.warn("tableCreateRow\n" + jsonPrint(content));
-
-//       var td = tr.insertCell();
-//       if (typeof content.type === 'undefined') {
-//         // var td2 = td.insertCell();
-//         td.appendChild(document.createTextNode(content));
-//         td.style.color = tdTextColor;
-//         td.style.backgroundColor = tdBgColor;
-//       } else if (content.type == 'TEXT') {
-//         // console.warn("tableCreateRow\n" + content);
-//         // var td2 = td.insertCell();
-//         td.className = content.class;
-//         td.setAttribute('id', content.id);
-//         // td.appendChild(document.createTextNode(content.text));
-//         td.style.color = tdTextColor;
-//         td.style.backgroundColor = tdBgColor;
-//         td.innerHTML = content.text;
-//       } else if (content.type == 'BUTTON') {
-//         var buttonElement = document.createElement("BUTTON");
-//         buttonElement.className = content.class;
-//         buttonElement.setAttribute('id', content.id);
-//         buttonElement.setAttribute('onclick', content.onclick);
-//         buttonElement.innerHTML = content.text;
-//         td.appendChild(buttonElement);
-//       } else if (content.type == 'SLIDER') {
-//         var sliderElement = document.createElement("INPUT");
-//         sliderElement.type = 'range';
-//         sliderElement.className = content.class;
-//         sliderElement.setAttribute('id', content.id);
-//         sliderElement.setAttribute('min', content.min);
-//         sliderElement.setAttribute('max', content.max);
-//         sliderElement.setAttribute('oninput', content.oninput);
-//         sliderElement.value = content.value;
-//         td.appendChild(sliderElement);
-//       }
-//     });
-//   }
-// }
-
 function setLinkStrengthSliderValue(value) {
   controlPanel.document.getElementById("linkStrengthSlider").value = value * controlPanel.document.getElementById("linkStrengthSlider").getAttribute("multiplier");
   currentSessionView.updateLinkStrength(value);
@@ -372,7 +321,6 @@ function toggleControlPanel(){
     var cnf = {};
 
     cnf.defaultMaxAge = DEFAULT_MAX_AGE;
-    cnf.defaultFriction = DEFAULT_FRICTION;
     cnf.defaultGravity = DEFAULT_GRAVITY;
     cnf.defaultCharge = DEFAULT_CHARGE;
     cnf.defaultLinkStrength = DEFAULT_LINK_STRENGTH;
@@ -426,8 +374,6 @@ function createPopUpControlPanel (cnf, callback) {
     callback(controlPanelWindow);
   }, false);
 
-  // controlPanelWindow.postMessage({op: 'INIT'}, DEFAULT_SOURCE);
-  // callback(controlPanelWindow);
 };
 
 function controlPanelComm(event) {

@@ -6607,9 +6607,30 @@ function initAppRouting(callback) {
     return;
   });
 
+
+/*
+// var DEFAULT_SOURCE = "http://localhost:9997";
+// var DEFAULT_SOURCE = "http://word.threeceelabs.com";
+var DEFAULT_SOURCE = "==SOURCE==";
+*/
+
   app.get('/session.js', function(req, res) {
-    debugAppGet("LOADING FILE: /session.js");
-    res.sendFile(__dirname + '/session.js');
+    console.log("LOADING FILE: /session.js");
+
+    fs.open(__dirname + '/session.js', "r", function(error, fd) {
+      fs.readFile(__dirname + '/session.js', function(error, data) {
+        // var newData = data.toString().replace(/REPLACE_THIS/g, "REPLACED THAT");
+        var newData;
+        if (os.hostname().includes('word')){
+          newData = data.toString().replace(/==SOURCE==/g, "http://word.threeceelabs.com");
+        }
+        else {
+          newData = data.toString().replace(/==SOURCE==/g, "http://localhost:9997");
+        }
+        res.send(newData);
+        fs.close(fd);
+      });
+    });
     return;
   });
 

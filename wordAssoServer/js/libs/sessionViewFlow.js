@@ -292,14 +292,14 @@ function ViewFlow() {
   self.updateGravity = function(value) {
     console.debug("UPDATE GRAVITY: " + value.toFixed(2));
     gravity = value;
-    simulation.force("forceX", d3.forceX(-10000).strength(gravity));
+    simulation.force("forceX", d3.forceX(-10000).strength(value));
     // simulation.force("forceY", d3.forceY(svgForceLayoutAreaHeight/2).strength(gravity));
  }
 
   self.updateCharge = function(value) {
     console.debug("UPDATE CHARGE: " + value);
     charge = value;
-    simulation.force("charge", d3.forceManyBody().strength(charge))
+    simulation.force("charge", d3.forceManyBody().strength(value));
   }
 
   self.resetDefaultForce = function() {

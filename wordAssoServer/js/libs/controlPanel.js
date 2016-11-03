@@ -36,11 +36,11 @@ function ControlPanel() {
 
     var currentButton = document.getElementById(e.target.id);
 
-      console.warn("BUTTON"
-       + " | ID: " + e.target.id
-       + "\n HASH\n" + jsonPrint(controlIdHash[e.target.id])
-       + "\n" + jsonPrint(e.target)
-      );
+    console.warn("BUTTON"
+     + " | ID: " + e.target.id
+     + "\n HASH\n" + jsonPrint(controlIdHash[e.target.id])
+     + "\n" + jsonPrint(e.target)
+    );
 
     if (!currentButton){
       console.error("UNKNOWN BUTTON\n" + jsonPrint(e));
@@ -55,7 +55,6 @@ function ControlPanel() {
       );
       lsbridge.send('controlPanel', {op: buttonConfig.mode, id: currentButton.id});
     }
-
   };
 
   window.addEventListener('input', function (e) {

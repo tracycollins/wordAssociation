@@ -1732,6 +1732,7 @@ function ViewTicker() {
     if (typeof groupYpositionHash[d.groupId] === 'undefined') {
       value = 25;
       groupYpositionHash[d.groupId] = {};
+      groupYpositionHash[d.groupId]["sessions"] = {};
       groupYpositionHash[d.groupId][d.groupId] = value;
       d.fy = value * height / 100;
       return value + "%";
@@ -1748,35 +1749,44 @@ function ypositionWord(d, i) {
     var value;
 
     if (typeof groupYpositionHash[d.groupId] !== 'undefined') {
+
       var groupYpos = groupYpositionHash[d.groupId][d.groupId];
-      groupYpositionHash[d.groupId][d.sessionId] = groupYpos;
-      var sessionIds = Object.keys(groupYpositionHash[d.groupId]);
+
+      groupYpositionHash[d.groupId]["sessions"][d.sessionId] = groupYpos;
+
+      var sessionIds = Object.keys(groupYpositionHash[d.groupId]["sessions"]);
+
       sessionIds.sort();
+
       var numSessions = sessionIds.length;
       var index = 0;
+
       sessionIds.forEach(function(sessionId){
         if (sessionId == d.groupId) {
           numSessions--;
         }
         else {
           var tempValue = groupYpos + (lineHeight * index);
-          groupYpositionHash[d.groupId][sessionId] = tempValue;
+          groupYpositionHash[d.groupId]["sessions"][sessionId] = tempValue;
           index++;
           numSessions--;
         }
       });
+
       if (numSessions == 0) {
-        value = groupYpositionHash[d.groupId][d.sessionId];
+        value = groupYpositionHash[d.groupId]["sessions"][d.sessionId];
         d.y = value * height / 100;
         nodes[i] = d;
         nodeHashMap.set(d.nodeId, d);
         return value + "%";
       }
+
     }
     else {
       groupYpositionHash[d.groupId] = {};
+      groupYpositionHash[d.groupId]["sessions"] = {};
       groupYpositionHash[d.groupId][d.groupId] = 25;
-      groupYpositionHash[d.groupId][d.sessionId] = groupYpositionHash[d.groupId][d.groupId];
+      groupYpositionHash[d.groupId]["sessions"][d.sessionId] = 25;
       value = groupYpositionHash[d.groupId][d.groupId];
       d.y = value * height / 100;
       nodes[i] = d;
@@ -1794,6 +1804,7 @@ function ypositionWord(d, i) {
       value = marginTopSessions + ((100-marginTopSessions) * 10 / (groups.length))
       if (typeof groupYpositionHash[d.groupId] === 'undefined') {
         groupYpositionHash[d.groupId] = {};
+        groupYpositionHash[d.groupId]["sessions"] = {};
         groupYpositionHash[d.groupId][d.groupId] = value;
       }
       else {
@@ -1802,9 +1813,12 @@ function ypositionWord(d, i) {
       return value + "%";
     }
     else {
+
       value = marginTopSessions + ((100-marginTopSessions) * d.rank / (groups.length))
+
       if (typeof groupYpositionHash[d.groupId] === 'undefined') {
         groupYpositionHash[d.groupId] = {};
+        groupYpositionHash[d.groupId]["sessions"] = {};
         groupYpositionHash[d.groupId][d.groupId] = value;
       }
       else {

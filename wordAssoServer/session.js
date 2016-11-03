@@ -11,6 +11,8 @@ word -> array of nodes
 when new instance of word arrives, iterate thru array of nodes and create linkskk
 */
 
+  var DEFAULT_SOURCE = "http://localhost:9997";
+
 var d3;
 var controlPanel;
 var controlTableHead;
@@ -262,77 +264,77 @@ var sessionDragEndEvent = new CustomEvent(
 );
 
 
-function tableCreateRow(parentTable, options, cells) {
+// function tableCreateRow(parentTable, options, cells) {
 
-  var tr = parentTable.insertRow();
-  var tdTextColor = options.textColor;
-  var tdBgColor = options.backgroundColor || '#222222';
+//   var tr = parentTable.insertRow();
+//   var tdTextColor = options.textColor;
+//   var tdBgColor = options.backgroundColor || '#222222';
 
-  if (options.trClass) {
-    tr.className = options.trClass;
-  }
+//   if (options.trClass) {
+//     tr.className = options.trClass;
+//   }
 
-  if (options.headerFlag) {
-    cells.forEach(function(content) {
-      var th = tr.insertCell();
-      th.appendChild(parentTable.parentNode.createTextNode(content));
-      th.style.color = tdTextColor;
-      th.style.backgroundColor = tdBgColor;
-    });
-  } else {
-    cells.forEach(function(content) {
+//   if (options.headerFlag) {
+//     cells.forEach(function(content) {
+//       var th = tr.insertCell();
+//       th.appendChild(parentTable.parentNode.createTextNode(content));
+//       th.style.color = tdTextColor;
+//       th.style.backgroundColor = tdBgColor;
+//     });
+//   } else {
+//     cells.forEach(function(content) {
 
-      // console.warn("tableCreateRow\n" + jsonPrint(content));
+//       // console.warn("tableCreateRow\n" + jsonPrint(content));
 
-      var td = tr.insertCell();
-      if (typeof content.type === 'undefined') {
-        // var td2 = td.insertCell();
-        td.appendChild(document.createTextNode(content));
-        td.style.color = tdTextColor;
-        td.style.backgroundColor = tdBgColor;
-      } else if (content.type == 'TEXT') {
-        // console.warn("tableCreateRow\n" + content);
-        // var td2 = td.insertCell();
-        td.className = content.class;
-        td.setAttribute('id', content.id);
-        // td.appendChild(document.createTextNode(content.text));
-        td.style.color = tdTextColor;
-        td.style.backgroundColor = tdBgColor;
-        td.innerHTML = content.text;
-      } else if (content.type == 'BUTTON') {
-        var buttonElement = document.createElement("BUTTON");
-        buttonElement.className = content.class;
-        buttonElement.setAttribute('id', content.id);
-        buttonElement.setAttribute('onclick', content.onclick);
-        buttonElement.innerHTML = content.text;
-        td.appendChild(buttonElement);
-      } else if (content.type == 'SLIDER') {
-        var sliderElement = document.createElement("INPUT");
-        sliderElement.type = 'range';
-        sliderElement.className = content.class;
-        sliderElement.setAttribute('id', content.id);
-        sliderElement.setAttribute('min', content.min);
-        sliderElement.setAttribute('max', content.max);
-        sliderElement.setAttribute('oninput', content.oninput);
-        sliderElement.value = content.value;
-        td.appendChild(sliderElement);
-      }
-    });
-  }
-}
+//       var td = tr.insertCell();
+//       if (typeof content.type === 'undefined') {
+//         // var td2 = td.insertCell();
+//         td.appendChild(document.createTextNode(content));
+//         td.style.color = tdTextColor;
+//         td.style.backgroundColor = tdBgColor;
+//       } else if (content.type == 'TEXT') {
+//         // console.warn("tableCreateRow\n" + content);
+//         // var td2 = td.insertCell();
+//         td.className = content.class;
+//         td.setAttribute('id', content.id);
+//         // td.appendChild(document.createTextNode(content.text));
+//         td.style.color = tdTextColor;
+//         td.style.backgroundColor = tdBgColor;
+//         td.innerHTML = content.text;
+//       } else if (content.type == 'BUTTON') {
+//         var buttonElement = document.createElement("BUTTON");
+//         buttonElement.className = content.class;
+//         buttonElement.setAttribute('id', content.id);
+//         buttonElement.setAttribute('onclick', content.onclick);
+//         buttonElement.innerHTML = content.text;
+//         td.appendChild(buttonElement);
+//       } else if (content.type == 'SLIDER') {
+//         var sliderElement = document.createElement("INPUT");
+//         sliderElement.type = 'range';
+//         sliderElement.className = content.class;
+//         sliderElement.setAttribute('id', content.id);
+//         sliderElement.setAttribute('min', content.min);
+//         sliderElement.setAttribute('max', content.max);
+//         sliderElement.setAttribute('oninput', content.oninput);
+//         sliderElement.value = content.value;
+//         td.appendChild(sliderElement);
+//       }
+//     });
+//   }
+// }
 
 function setLinkStrengthSliderValue(value) {
-  controlPanel.document.getElementById("linkStrengthSlider").value = value * 1000;
+  controlPanel.document.getElementById("linkStrengthSlider").value = value * controlPanel.document.getElementById("linkStrengthSlider").getAttribute("multiplier");
   currentSessionView.updateLinkStrength(value);
 }
 
 function setvelocityDecaySliderValue(value) {
-  controlPanel.document.getElementById("velocityDecaySlider").value = value * 1000;
+  controlPanel.document.getElementById("velocityDecaySlider").value = value;
   currentSessionView.updateVelocityDecay(value);
 }
 
 function setGravitySliderValue(value) {
-  controlPanel.document.getElementById("gravitySlider").value = value * 1000;
+  controlPanel.document.getElementById("gravitySlider").value = value;
   currentSessionView.updateGravity(value);
 }
 
@@ -356,20 +358,35 @@ window.onbeforeunload = function() {
 }
 
 function toggleControlPanel(){
-  console.warn("toggleControlPanel: " + controlPanelFlag);
+  // console.warn("toggleControlPanel: " + controlPanelFlag);
 
   if (controlPanelFlag){
     controlPanelWindow.close();
     controlPanelFlag = false;
     updateControlButton(controlPanelFlag);
+    console.debug("toggleControlPanel: " + controlPanelFlag);
   }
   else {
-    createPopUpControlPanel();
-    controlPanelFlag = true;
-    updateControlButton(controlPanelFlag);
+
+    var cnf = {};
+
+    cnf.defaultMaxAge = DEFAULT_MAX_AGE;
+    cnf.defaultFriction = DEFAULT_FRICTION;
+    cnf.defaultGravity = DEFAULT_GRAVITY;
+    cnf.defaultCharge = DEFAULT_CHARGE;
+    cnf.defaultLinkStrength = DEFAULT_LINK_STRENGTH;
+    cnf.defaultVelocityDecay = DEFAULT_VELOCITY_DECAY;
+
+    createPopUpControlPanel(cnf, function(cpw){
+      controlPanelFlag = true;
+      updateControlButton(controlPanelFlag);
+      console.debug("createPopUpControlPanel toggleControlPanel: " + controlPanelFlag);
+      setTimeout(function(){
+        cpw.postMessage({op: 'INIT', config: cnf}, DEFAULT_SOURCE);
+      }, 200);
+    });
   }
 
-  console.warn("toggleControlPanel: " + controlPanelFlag);
 }
 
 function updateControlButton(controlPanelFlag){
@@ -387,98 +404,11 @@ function addControlButton(){
   controlDiv.appendChild(controlPanelButton);
 }
 
-function initLsBridge(){
 
-  lsbridge.subscribe('controlPanel', function(data) {
+function createPopUpControlPanel (cnf, callback) {
 
-    console.debug("CONTROL PANEL: " + jsonPrint(data)); // prints: { message: 'Hello world!'} 
+  console.debug("createPopUpControlPanel\ncnf\n" + jsonPrint(cnf));
 
-    switch (data.op) {
-      case 'READY' :
-        console.warn("CONTROL PANEL READY");
-      break;
-      case 'CLOSE' :
-        console.warn("CONTROL PANEL CLOSING...");
-      break;
-      case 'MOMENT' :
-        console.warn("CONTROL PANEL MOMENT...");
-        switch (data.id) {
-          case 'resetButton' :
-            reset();
-          break;
-          default:
-            console.error("CONTROL PANEL UNKNOWN MOMENT BUTTON");
-          break;
-        }
-      break;
-      case 'TOGGLE' :
-        console.warn("CONTROL PANEL TOGGLE");
-        switch (data.id) {
-          case 'fullscreenToggleButton' :
-            toggleFullScreen();
-          break;
-          case 'pauseToggleButton' :
-            togglePause();
-          break;
-          case 'statsToggleButton' :
-            toggleStats();
-          break;
-          case 'testModeToggleButton' :
-            toggleTestMode();
-          break;
-          case 'disableLinksToggleButton' :
-            toggleDisableLinks();
-          break;
-          case 'nodeCreateButton' :
-            // createTextNode;
-          break;
-          case 'antonymToggleButton' :
-            toggleAntonym();
-          break;
-          case 'removeDeadNodeToogleButton' :
-            toggleRemoveDeadNode();
-          break;
-          default:
-            console.error("CONTROL PANEL UNKNOWN TOGGLE BUTTON");
-          break;
-        }
-      break;
-      case 'UPDATE' :
-        console.warn("CONTROL PANEL UPDATE");
-        switch (data.id) {
-          case 'linkStrengthSlider' :
-            currentSessionView.updateLinkStrength(data.value/1000);
-          break;
-          case 'velocityDecaySlider' :
-            currentSessionView.updateVelocityDecay(data.value/1000);
-          break;
-          case 'gravitySlider' :
-            currentSessionView.updateGravity(data.value/10000);
-          break;
-          case 'chargeSlider' :
-            currentSessionView.updateCharge(data.value);
-          break;
-          case 'maxAgeSlider' :
-            currentSessionView.setNodeMaxAge(data.value);
-          break;
-        }
-      break;
-      default :
-        console.error("CONTROL PANEL OP UNDEFINED");
-      break;
-    }
-  });  
-}
-
-var createPopUpControlPanel = function (cnf) {
-
-  if (typeof cnf === 'undefined'){
-    cnf = config;
-  }
-
-  console.warn("createPopUpControlPanel\ncnf\n" + jsonPrint(cnf));
-
-  cnf.defaultMaxAge = DEFAULT_MAX_AGE;
 
   controlPanelWindow = window.open("controlPanel.html", "CONTROL", "width=800,height=600");
 
@@ -490,11 +420,107 @@ var createPopUpControlPanel = function (cnf) {
 
   controlPanelWindow.addEventListener('load', function(cnf){
     controlPanel = new controlPanelWindow.ControlPanel(cnf);
-    initLsBridge();
+    initControlPanelComm(cnf);
+    controlPanelFlag = true;
+    callback(controlPanelWindow);
   }, false);
 
-  controlPanelFlag = true;
+  // controlPanelWindow.postMessage({op: 'INIT'}, DEFAULT_SOURCE);
+  // callback(controlPanelWindow);
 };
+
+function controlPanelComm(event) {
+  // console.debug("CONTROL PANEL: " + jsonPrint(event)); // prints: { message: 'Hello world!'} 
+
+  var data = event.data;
+
+  // Do we trust the sender of this message?
+  // if (event.origin !== "http://example.com:8080")
+  //   return;
+
+  switch (data.op) {
+    case 'READY' :
+      console.warn("CONTROL PANEL READY");
+    break;
+    case 'CLOSE' :
+      console.warn("CONTROL PANEL CLOSING...");
+    break;
+    case 'MOMENT' :
+      console.warn("CONTROL PANEL MOMENT...");
+      switch (data.id) {
+        case 'resetButton' :
+          reset();
+        break;
+        default:
+          console.error("CONTROL PANEL UNKNOWN MOMENT BUTTON");
+        break;
+      }
+    break;
+    case 'TOGGLE' :
+      console.warn("CONTROL PANEL TOGGLE");
+      switch (data.id) {
+        case 'fullscreenToggleButton' :
+          toggleFullScreen();
+        break;
+        case 'pauseToggleButton' :
+          togglePause();
+        break;
+        case 'statsToggleButton' :
+          toggleStats();
+        break;
+        case 'testModeToggleButton' :
+          toggleTestMode();
+        break;
+        case 'disableLinksToggleButton' :
+          toggleDisableLinks();
+        break;
+        case 'nodeCreateButton' :
+          // createTextNode;
+        break;
+        case 'antonymToggleButton' :
+          toggleAntonym();
+        break;
+        case 'removeDeadNodeToogleButton' :
+          toggleRemoveDeadNode();
+        break;
+        default:
+          console.error("CONTROL PANEL UNKNOWN TOGGLE BUTTON");
+        break;
+      }
+    break;
+    case 'UPDATE' :
+      console.warn("CONTROL PANEL UPDATE");
+      switch (data.id) {
+        case 'linkStrengthSlider' :
+          currentSessionView.updateLinkStrength(data.value);
+        break;
+        case 'velocityDecaySlider' :
+          currentSessionView.updateVelocityDecay(data.value);
+        break;
+        case 'gravitySlider' :
+          currentSessionView.updateGravity(data.value);
+        break;
+        case 'chargeSlider' :
+          currentSessionView.updateCharge(data.value);
+        break;
+        case 'maxAgeSlider' :
+          currentSessionView.setNodeMaxAge(data.value);
+        break;
+      }
+    break;
+    default :
+      console.error("CONTROL PANEL OP UNDEFINED: " + jsonPrint(data));
+    break;
+  }
+}
+
+function initControlPanelComm(cnf){
+
+  // lsbridge.subscribe('controlPanel', function(data) {
+
+  window.addEventListener("message", controlPanelComm, false);
+
+}
 
 function toggleAntonym() {
   config.antonymFlag = !config.antonymFlag;
@@ -587,7 +613,7 @@ var groupDeleteQueue = []; // gets a hash of nodes deleted by sessionViewForce f
 var nodeDeleteQueue = []; // gets a hash of nodes deleted by sessionViewForce for each d3 timer cycle.
 var linkDeleteQueue = []; // gets a hash of nodes deleted by sessionViewForce for each d3 timer cycle.
 
-var urlRoot = "http://localhost:9997/session?session=";
+var urlRoot = DEFAULT_SOURCE + "/session?session=";
 
 var currentSession = {};
 var sessionId;
@@ -859,7 +885,7 @@ var visibilityEvent = getVisibilityEvent(prefix);
 function reset(){
   currentSessionView.simulationControl('RESET');
   windowVisible = true;
-  currentSessionView.reset();
+  // currentSessionView.reset();
   nodeHashMap.clear();
   linkHashMap.clear();
   deleteAllSessions(function() {
@@ -867,13 +893,14 @@ function reset(){
     sessionCreateQueue = [];
     groupHashMap.clear();
     sessionDeleteHashMap.clear();
-    currentSessionView.resize();
+    // currentSessionView.resize();
+    // currentSessionView.reset();
     if ((config.sessionViewType == 'force') 
       || (config.sessionViewType == 'ticker')
       || (config.sessionViewType == 'flow')
     ) {
       currentSessionView.resetDefaultForce();
-  }
+    }
     currentSessionView.simulationControl('START');
   });  
 }
@@ -885,7 +912,7 @@ document.addEventListener(visibilityEvent, function() {
     windowVisible = true;
     currentSessionView.resize();
   } else {
-    reset();
+    // reset();
   }
 });
 

@@ -11,8 +11,8 @@ word -> array of nodes
 when new instance of word arrives, iterate thru array of nodes and create linkskk
 */
 
-var DEFAULT_SOURCE = "http://localhost:9997";
-// var DEFAULT_SOURCE = "http://word.threeceelabs.com";
+// var DEFAULT_SOURCE = "http://localhost:9997";
+var DEFAULT_SOURCE = "http://word.threeceelabs.com";
 
 var d3;
 var controlPanel;

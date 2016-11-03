@@ -191,7 +191,7 @@ function ViewFlow() {
   
   this.setNodeMaxAge = function(maxAge) {
     nodeMaxAge = maxAge;
-    console.warn("SET NODE MAX AGE: " + nodeMaxAge);
+    console.debug("SET NODE MAX AGE: " + nodeMaxAge);
   }
 
   this.getSession = function(index) {
@@ -278,24 +278,26 @@ function ViewFlow() {
   }
 
   self.updateLinkStrength = function(value) {
-    console.log("updateLinkStrength: " + value);
+    console.debug("UPDATE LINK STRENGTH: " + value.toFixed(2));
     globalLinkStrength = value;
     simulation.force("link", d3.forceLink(links).id(function(d) { return d.linkId; }).distance(20).strength(globalLinkStrength));
   }
 
   self.updateVelocityDecay = function(value) {
+    console.debug("UPDATE VEL DECAY: " + value.toFixed(2));
     velocityDecay = value;
     simulation.velocityDecay(velocityDecay);
   }
 
   self.updateGravity = function(value) {
-    console.debug("UPDATE GRAVITY: " + value);
+    console.debug("UPDATE GRAVITY: " + value.toFixed(2));
     gravity = value;
     simulation.force("forceX", d3.forceX(-10000).strength(gravity));
     // simulation.force("forceY", d3.forceY(svgForceLayoutAreaHeight/2).strength(gravity));
  }
 
   self.updateCharge = function(value) {
+    console.debug("UPDATE CHARGE: " + value);
     charge = value;
     simulation.force("charge", d3.forceManyBody().strength(charge))
   }
@@ -1314,9 +1316,9 @@ function ViewFlow() {
     switch (op) {
       case 'RESET':
         // self.initD3timer();
-        // console.warn("SIMULATION CONTROL | OP: " + op);
+        console.warn("SIMULATION CONTROL | OP: " + op);
         self.clearDrawSimulationInterval();
-        simulation.reset();
+        self.reset();
         runningFlag = false;
         // simulation.stop();
       break;

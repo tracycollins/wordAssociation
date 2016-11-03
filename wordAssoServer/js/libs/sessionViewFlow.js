@@ -14,6 +14,7 @@ function ViewFlow() {
   var runningFlag = false;
   var updateNodeFlag = false;
 
+  var groupCircleVisibility = "visible";
 
 
   // ==============================================
@@ -858,7 +859,7 @@ function ViewFlow() {
       .on("mouseover", nodeMouseOver)
       .on("click", nodeClick)
       .attr("r", 1e-6)
-      .style("visibility", "visible")
+      .style("visibility", groupCircleVisibility)
       .style("fill", function(d) {
         if (d.mouseHoverFlag) { return palette.blue; }
         else { return d.interpolateGroupColor(1-d.node.ageMaxRatio); }
@@ -1037,7 +1038,7 @@ function ViewFlow() {
       .on("mouseout", nodeMouseOut)
       .on("click", nodeClick)
       .attr("r", 1e-6)
-      .style("visibility", "visible")
+      .style("visibility", groupCircleVisibility)
       .style("fill", palette.black)
       .style("opacity", 1e-6)
       .style('stroke', palette.red)

@@ -5,13 +5,20 @@
 
 function ControlPanel() {
 
-  // var DEFAULT_SOURCE = "http://localhost:9997";
-  var DEFAULT_SOURCE = "http://word.threeceelabs.com";
+  var DEFAULT_SOURCE = "http://localhost:9997";
+  // var DEFAULT_SOURCE = "http://word.threeceelabs.com";
 
   var parentWindow;
   var self = this;
 
   var config = {};
+
+  config.defaultMultiplier = 1000.0;
+
+  config.defaultCharge = window.opener.DEFAULT_CHARGE;
+  config.defaultGravity = window.opener.DEFAULT_GRAVITY;
+  config.defaultLinkStrength = window.opener.DEFAULT_LINK_STRENGTH;
+  config.defaultVelocityDecay = window.opener.DEFAULT_VELOCITY_DECAY;
 
   var controlIdHash = {};
 
@@ -27,20 +34,20 @@ function ControlPanel() {
 
   this.setVelocityDecaySliderValue = function (value) {
     console.log("setVelocityDecaySliderValue: " + value);
-    document.getElementById("velocityDecaySlider").value = (value/document.getElementById("velocityDecaySlider").getAttribute("multiplier"));
-    document.getElementById("velocityDecaySliderText").innerHTML = value.toFixed(2);
+    document.getElementById("velocityDecaySlider").value = (value * document.getElementById("velocityDecaySlider").getAttribute("multiplier"));
+    document.getElementById("velocityDecaySliderText").innerHTML = value.toFixed(3);
   }
 
   this.setLinkStrengthSliderValue = function (value) {
     console.log("setLinkStrengthSliderValue: " + value);
-    document.getElementById("linkStrengthSlider").value = (value/document.getElementById("linkStrengthSlider").getAttribute("multiplier"));
-    document.getElementById("linkStrengthSliderText").innerHTML = value.toFixed(2);
+    document.getElementById("linkStrengthSlider").value = (value * document.getElementById("linkStrengthSlider").getAttribute("multiplier"));
+    document.getElementById("linkStrengthSliderText").innerHTML = value.toFixed(3);
   }
 
   this.setGravitySliderValue = function (value) {
     console.log("setGravitySliderValue: " + value);
-    document.getElementById("gravitySlider").value = (value/document.getElementById("gravitySlider").getAttribute("multiplier"));
-    document.getElementById("gravitySliderText").innerHTML = value.toFixed(2);
+    document.getElementById("gravitySlider").value = (value* document.getElementById("gravitySlider").getAttribute("multiplier"));
+    document.getElementById("gravitySliderText").innerHTML = value.toFixed(3);
   }
 
   this.setChargeSliderValue = function (value) {
@@ -58,7 +65,8 @@ function ControlPanel() {
 
 
   $( document ).ready(function() {
-    console.log( "ready!" );
+    console.log( "CONTROL PANEL READY" );
+    console.log( "CONTROL PANEL CONFIG\n" + jsonPrint(config) );
     self.createControlPanel(function(dashboard){
       // parentWindow.postMessage({op:'READY'}, DEFAULT_SOURCE);
     });
@@ -109,13 +117,17 @@ function ControlPanel() {
     var currentSlider = document.getElementById(e.target.id);
     currentSlider.multiplier = currentSlider.getAttribute("multiplier");
 
-    console.log("SLIDER " + currentSlider.id + " : " + currentSlider.value);
+    console.log("SLIDER " + currentSlider.id 
+      + " | " + currentSlider.value 
+      + " | " + currentSlider.multiplier 
+      + " | " + (currentSlider.value/currentSlider.multiplier).toFixed(3)
+    );
 
     var currentSliderTextId = currentSlider.id + 'Text';
 
-    document.getElementById(currentSliderTextId).innerHTML = (currentSlider.value * currentSlider.multiplier).toFixed(2);
+    document.getElementById(currentSliderTextId).innerHTML = (currentSlider.value/currentSlider.multiplier).toFixed(3);
 
-    parentWindow.postMessage({op:'UPDATE', id: currentSlider.id, value: (currentSlider.value * currentSlider.multiplier)}, DEFAULT_SOURCE);
+    parentWindow.postMessage({op:'UPDATE', id: currentSlider.id, value: (currentSlider.value/currentSlider.multiplier)}, DEFAULT_SOURCE);
     
   }, false);
 
@@ -132,11 +144,15 @@ function ControlPanel() {
     var op = event.data.op;
 
     switch (op) {
+
       case 'INIT':
+
         var cnf = event.data.config;
+
         console.debug("CONTROL PANEL INIT\n" + jsonPrint(cnf));
 
         for (var prop in cnf) {
+
           config[prop] = cnf[prop];
 
           console.info("CNF | " + prop 
@@ -144,14 +160,12 @@ function ControlPanel() {
           );
         }
 
-
-
-
         self.setLinkStrengthSliderValue(cnf.defaultLinkStrength);
         self.setGravitySliderValue(cnf.defaultGravity);
         self.setChargeSliderValue(cnf.defaultCharge);
         self.setVelocityDecaySliderValue(cnf.defaultVelocityDecay);
         self.setMaxAgeSliderValue(cnf.defaultMaxAge);
+
       break;
     }
 
@@ -221,6 +235,8 @@ function ControlPanel() {
           controlIdHash[content.id] = content;
 
         } else if (content.type == 'SLIDER') {
+
+        console.warn("tableCreateRow\n" + jsonPrint(content));
 
           var sliderElement = document.createElement("INPUT");
           sliderElement.type = 'range';
@@ -352,9 +368,8 @@ function ControlPanel() {
       class: 'slider',
       min: 500,
       max: 120000,
-      // value: config.defaultMaxAge,
-      value: 60000,
-      multiplier: 1,
+      value: config.defaultMaxAge,
+      multiplier: 1.0
     }
 
     var maxAgeSliderText = {
@@ -370,15 +385,15 @@ function ControlPanel() {
       class: 'slider',
       min: -1000,
       max: 10,
-      value: -30,
-      multiplier: 1,
+      value: config.defaultCharge,
+      multiplier: 1.0
     }
 
     var chargeSliderText = {
       type: 'TEXT',
       id: 'chargeSliderText',
       class: 'sliderText',
-      text: (chargeSlider.value * chargeSlider.multiplier),
+      text: (chargeSlider.value * chargeSlider.multiplier)
     }
 
     var gravitySlider = {
@@ -387,15 +402,16 @@ function ControlPanel() {
       class: 'slider',
       min: 0.0,
       max: 1000,
-      value: 100,
-      multiplier: 0.0001,
+      // value: (config.defaultGravity * config.defaultMultiplier),
+      value: config.defaultGravity * config.defaultMultiplier,
+      multiplier: 1000
     }
 
     var gravitySliderText = {
       type: 'TEXT',
       id: 'gravitySliderText',
       class: 'sliderText',
-      text: (gravitySlider.value * gravitySlider.multiplier),
+      text: (gravitySlider.value * gravitySlider.multiplier)
     }
 
     var velocityDecaySlider = {
@@ -403,16 +419,16 @@ function ControlPanel() {
       id: 'velocityDecaySlider',
       class: 'slider',
       min: 0.0,
-      max: 1000,
-      value: 200,
-      multiplier: 0.001,
+      max: 1000.0,
+      value: config.defaultVelocityDecay * config.defaultMultiplier,
+      multiplier: config.defaultMultiplier
     }
 
     var velocityDecaySliderText = {
       type: 'TEXT',
       id: 'velocityDecaySliderText',
       class: 'sliderText',
-      text: (velocityDecaySlider.value * velocityDecaySlider.multiplier),
+      text: (velocityDecaySlider.value * velocityDecaySlider.multiplier)
     }
 
     var linkStrengthSlider = {
@@ -421,15 +437,15 @@ function ControlPanel() {
       class: 'slider',
       min: 0.0,
       max: 1000,
-      value: 747,
-      multiplier: 0.001,
+      value: config.defaultLinkStrength * config.defaultMultiplier,
+      multiplier: config.defaultMultiplier
     }
 
     var linkStrengthSliderText = {
       type: 'TEXT',
       id: 'linkStrengthSliderText',
       class: 'sliderText',
-      text: (linkStrengthSlider.value * linkStrengthSlider.multiplier),
+      text: (linkStrengthSlider.value * linkStrengthSlider.multiplier)
     }
 
     var status = {

@@ -1305,8 +1305,8 @@ function ViewFlow() {
     simulation = d3.forceSimulation(nodes)
       .force("link", d3.forceLink(links).id(function(d) { return d.linkId; }).distance(20).strength(DEFAULT_LINK_STRENGTH))
       .force("charge", d3.forceManyBody().strength(DEFAULT_CHARGE))
-      .force("forceX", d3.forceX(svgFlowLayoutAreaWidth/2).strength(DEFAULT_GRAVITY))
-      .force("forceY", d3.forceY(svgFlowLayoutAreaHeight/2).strength(DEFAULT_GRAVITY))
+      .force("forceX", d3.forceX(-10000).strength(DEFAULT_GRAVITY))
+      // .force("forceY", d3.forceY(svgFlowLayoutAreaHeight/2).strength(DEFAULT_GRAVITY))
       .velocityDecay(DEFAULT_VELOCITY_DECAY)
       .on("tick", ticked);
   }

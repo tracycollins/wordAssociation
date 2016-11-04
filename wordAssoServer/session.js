@@ -61,10 +61,13 @@ var DEFAULT_MAX_AGE = 20000;
 var FORCE_MAX_AGE = 10347;
 var DEFAULT_AGE_RATE = 1.0;
 
-var DEFAULT_CHARGE = -50;
-var DEFAULT_GRAVITY = 0.010;
+var DEFAULT_CHARGE = 5;
+var DEFAULT_GRAVITY = 0.005;
 var DEFAULT_LINK_STRENGTH = 0.80;
+var DEFAULT_LINK_DISTANCE = 10.0;
 var DEFAULT_VELOCITY_DECAY = 0.950;
+
+var DEFAULT_NODE_RADIUS = 20.0;
 
 var config = {};
 
@@ -80,7 +83,9 @@ config.defaultMultiplier = 1000.0;
 config.defaultCharge = DEFAULT_CHARGE;
 config.defaultGravity = DEFAULT_GRAVITY;
 config.defaultLinkStrength = DEFAULT_LINK_STRENGTH;
+config.defaultLinkDistance = DEFAULT_LINK_DISTANCE;
 config.defaultVelocityDecay = DEFAULT_VELOCITY_DECAY;
+config.defaultNodeRadius = DEFAULT_NODE_RADIUS;
 
 
 if ((config.sessionViewType == 'ticker') 
@@ -325,7 +330,9 @@ function toggleControlPanel(){
     cnf.defaultGravity = DEFAULT_GRAVITY;
     cnf.defaultCharge = DEFAULT_CHARGE;
     cnf.defaultLinkStrength = DEFAULT_LINK_STRENGTH;
+    cnf.defaultLinkDistance = DEFAULT_LINK_DISTANCE;
     cnf.defaultVelocityDecay = DEFAULT_VELOCITY_DECAY;
+    cnf.defaultNodeRadius = DEFAULT_NODE_RADIUS;
 
     createPopUpControlPanel(cnf, function(cpw){
       controlPanelFlag = true;
@@ -374,7 +381,6 @@ function createPopUpControlPanel (cnf, callback) {
     controlPanelFlag = true;
     callback(controlPanelWindow);
   }, false);
-
 };
 
 function controlPanelComm(event) {
@@ -441,6 +447,9 @@ function controlPanelComm(event) {
       switch (data.id) {
         case 'linkStrengthSlider' :
           currentSessionView.updateLinkStrength(data.value);
+        break;
+        case 'linkDistanceSlider' :
+          currentSessionView.updateLinkDistance(data.value);
         break;
         case 'velocityDecaySlider' :
           currentSessionView.updateVelocityDecay(data.value);
@@ -600,10 +609,10 @@ var viewerObj = {
 var initialPositionIndex = 0;
 
 function computeInitialPosition(index) {
-  var radiusX = 0.05 * window.innerWidth;
+  var radiusX = 0.01 * window.innerWidth;
   var radiusY = 0.4 * window.innerHeight;
   var pos = {
-    x: (0.9*window.innerWidth + (radiusX * Math.cos(index))),
+    x: (0.85*window.innerWidth + (radiusX * Math.cos(index))),
     y: (0.5*window.innerHeight + (radiusY * Math.sin(index)))
   };
 
@@ -1523,9 +1532,10 @@ var createGroup = function(callback) {
 
       currentGroup.node.mentions = 1;
       currentGroup.node.text = groupId;
+      currentGroup.node.r = config.defaultNodeRadius;
       currentGroup.node.x = currentGroup.initialPosition.x;
       currentGroup.node.y = currentGroup.initialPosition.y;
-      currentGroup.node.fixed = true;
+      currentGroup.node.fixed = false;
 
       currentGroup.node.groupColors = {};
       currentGroup.node.groupColors = currentGroup.groupColors;
@@ -1762,6 +1772,7 @@ var createSession = function(callback) {
       currentSession.node.wordChainIndex = sessUpdate.wordChainIndex;
       currentSession.node.mentions = sessUpdate.wordChainIndex;
       currentSession.node.text = sessUpdate.tags.entity + "[" + sessUpdate.tags.channel + "]";
+      currentSession.node.r = config.defaultNodeRadius;
       currentSession.node.x = currentGroup.initialPosition.x + randomIntFromInterval(-10,10);
       currentSession.node.y = currentGroup.initialPosition.y + randomIntFromInterval(-10,10);
 
@@ -1871,6 +1882,7 @@ var createNode = function(callback) {
       session.node.isDead = false;
       session.node.wordChainIndex = session.wordChainIndex;
       session.node.mentions = session.wordChainIndex+1;
+      session.node.r = config.defaultNodeRadius;
       session.node.x = session.initialPosition.x + randomIntFromInterval(-10,10);
       session.node.y = session.initialPosition.y + randomIntFromInterval(-10,10);
 
@@ -1985,6 +1997,7 @@ var createNode = function(callback) {
             sourceNode.interpolateSessionColor = session.interpolateSessionColor;
             sourceNode.interpolateColor = session.interpolateSessionColor;
 
+            sourceNode.r = config.defaultNodeRadius;
             sourceNode.x = session.node.x+randomIntFromInterval(-10,10);;
             sourceNode.y = session.node.y+randomIntFromInterval(-10,10);;
             if (sourceNode.isSessionNode){
@@ -2045,6 +2058,7 @@ var createNode = function(callback) {
               targetNode.text = session.tags.entity + "[" + session.tags.channel + "]";
               targetNode.wordChainIndex = session.target.wordChainIndex;
               targetNode.mentions = session.target.wordChainIndex;
+              targetNode.r = config.defaultNodeRadius;
               targetNode.x = session.node.x;
               targetNode.y = session.node.y;
             }
@@ -2092,12 +2106,14 @@ var createNode = function(callback) {
               targetNode.text = session.tags.entity + "[" + session.tags.channel + "]";
               targetNode.wordChainIndex = session.target.wordChainIndex;
               targetNode.mentions = session.target.wordChainIndex;
+              targetNode.r = config.defaultNodeRadius;
               targetNode.x = session.node.x;
               targetNode.y = session.node.y;
             }
             else {
               targetNode.text = targetText;
               targetNode.mentions = session.target.mentions;
+              targetNode.r = config.defaultNodeRadius;
               targetNode.x = session.node.x - (100 - 100 * Math.random());
               targetNode.y = session.node.y - (100 - 100 * Math.random());
             }

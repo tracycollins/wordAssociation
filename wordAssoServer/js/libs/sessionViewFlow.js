@@ -100,6 +100,11 @@ function ViewFlow() {
   };
 
   var currentScale = 0.4;
+  var currentMaxMentions = 2;
+
+  var minFontSize = 20;
+  var maxFontSize = 60;
+
 
   var D3_LAYOUT_WIDTH_RATIO = 1.0;
   var D3_LAYOUT_HEIGHT_RATIO = 1.0;
@@ -134,9 +139,10 @@ function ViewFlow() {
 
   var adjustedAgeRateScale = d3.scaleLinear().domain([1, 500]).range([1.0, 100.0]);
 
-  var fontSizeScale = d3.scaleLinear().domain([1, 1000000]).range([16.0, 32]).clamp(true);
+  var sessionFontSizeScale = d3.scaleLinear().domain([1, 10000000]).range([16.0, 24]).clamp(true);
+  var nodeFontSizeScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minFontSize, maxFontSize]).clamp(true);
 
-  var groupCircleRadiusScale = d3.scaleLog().domain([1, 1000000]).range([5.0, 40.0]).clamp(true); // uses wordChainIndex
+  var groupCircleRadiusScale = d3.scaleLog().domain([1, 10000000]).range([10.0, 50.0]).clamp(true); // uses wordChainIndex
   var sessionCircleRadiusScale = d3.scaleLog().domain([1, 1000000]).range([5.0, 40.0]).clamp(true); // uses wordChainIndex
   var defaultRadiusScale = d3.scaleLog().domain([1, 10000000]).range([2.0, 30.0]).clamp(true);
 
@@ -542,6 +548,20 @@ function ViewFlow() {
 
         case "add":
           nodesModifiedFlag = true;
+
+          if (!nodeUpdateObj.node.isGroupNode 
+            && !nodeUpdateObj.node.isSessionNode 
+            && !nodeUpdateObj.node.isIgnored 
+            && (nodeUpdateObj.node.mentions > currentMaxMentions)) {
+            currentMaxMentions = nodeUpdateObj.node.mentions;
+            nodeFontSizeScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minFontSize, maxFontSize]).clamp(true);
+            console.warn("NEW MAX MENTIONS" 
+              + " | " + nodeUpdateObj.node.text 
+              + " | isIgnored: " + nodeUpdateObj.node.isIgnored 
+              + " | " + currentMaxMentions 
+            );
+          }
+
           nodes.push(nodeUpdateObj.node);
         break;
 
@@ -902,7 +922,7 @@ function ViewFlow() {
         // else { return d.interpolateGroupColor(d.node.ageMaxRatio); }
         else { return strokeColorScale(d.node.ageMaxRatio); }
       })
-      .style("font-size", function(d) { return fontSizeScale(d.totalWordChainIndex) + "px"; })
+      .style("font-size", function(d) { return sessionFontSizeScale(d.totalWordChainIndex) + "px"; })
       .style('opacity', function(d) {
         if (d.mouseHoverFlag) { return 1.0; }
         return 1.0-d.node.ageMaxRatio;
@@ -911,7 +931,7 @@ function ViewFlow() {
         return d.node.x;
       })
       .attr("y", function(d) {
-        var shiftY = -1.5 * (groupCircleRadiusScale(d.wordChainIndex + 1));
+        var shiftY = -1.6 * (groupCircleRadiusScale(d.wordChainIndex + 1));
         return d.node.y + shiftY;
       });
 
@@ -931,7 +951,7 @@ function ViewFlow() {
       .style("alignment-baseline", "middle")
       .style("opacity", 1e-6)
       .style('fill', "#ffffff")
-      .style("font-size", function(d) { return fontSizeScale(d.totalWordChainIndex) + "px"; })
+      .style("font-size", function(d) { return sessionFontSizeScale(d.totalWordChainIndex) + "px"; })
       .on("mouseout", nodeMouseOut)
       .on("mouseover", nodeMouseOver)
       .on("click", nodeClick)
@@ -957,7 +977,7 @@ function ViewFlow() {
         // if (typeof cnode === 'undefined') return 0;
         return d.node.y + shiftY;
       })
-      .style("font-size", function(d) { return fontSizeScale(d.wordChainIndex) + "px"; })
+      .style("font-size", function(d) { return sessionFontSizeScale(d.totalWordChainIndex) + "px"; })
       .style('fill', function(d) { 
         if (d.mouseHoverFlag || d.node.mouseHoverFlag) { return palette.white; }
         return palette.yellow; 
@@ -978,7 +998,7 @@ function ViewFlow() {
       .style("alignment-baseline", "middle")
       .style("opacity", 1.0)
       .style('fill', "#ffffff")
-      .style("font-size", function(d) { return fontSizeScale(d.wordChainIndex) + "px"; })
+      .style("font-size", function(d) { return sessionFontSizeScale(d.totalWordChainIndex) + "px"; })
       .attr("x", function(d) {
          return d.node.x;
       })
@@ -1007,9 +1027,15 @@ function ViewFlow() {
             return defaultRadiusScale(1);
           }
           else {
-            if (d.isGroupNode) return groupCircleRadiusScale(d.totalWordChainIndex + 1.0) ;
-            if (d.isSessionNode) return sessionCircleRadiusScale(d.wordChainIndex + 1.0) ;
-            return defaultRadiusScale(parseInt(d.mentions) + 1.0);
+            if (d.isGroupNode) {
+              return groupCircleRadiusScale(d.totalWordChainIndex + 1.0) ;
+            }
+            else if (d.isSessionNode) {
+              return sessionCircleRadiusScale(d.wordChainIndex + 1.0) ;
+            }
+            else {
+              return defaultRadiusScale(parseInt(d.mentions) + 1.0);
+            }
           }
       })
       .attr("cx", function(d) { return d.x; })
@@ -1074,6 +1100,7 @@ function ViewFlow() {
       .text(function(d) {
         if (d.isGroupNode) return d.totalWordChainIndex;
         if (d.isSessionNode) return d.wordChainIndex;
+        if (d.isKeyword) return d.text.toUpperCase();
         return d.text;
       })
       .attr("x", function(d) { return d.x; })
@@ -1089,12 +1116,22 @@ function ViewFlow() {
         // }
       })
       .style("font-size", function(d) {
-        if (d.isGroupNode) return fontSizeScale(d.totalWordChainIndex + 1.1) + "px";
-        if (d.isSessionNode) return fontSizeScale(d.wordChainIndex + 1.1) + "px";
-        return fontSizeScale(d.mentions + 1.1) + "px";
+        if (d.isGroupNode) {
+          return sessionFontSizeScale(d.totalWordChainIndex + 1.1) + "px";
+        }
+        else if (d.isSessionNode) {
+          return sessionFontSizeScale(d.wordChainIndex + 1.1) + "px";
+        }
+        else if (d.isIgnored) {
+          return nodeFontSizeScale(10) + "px";
+        }
+        else {
+          return nodeFontSizeScale(d.mentions + 1.1) + "px";
+        }
       })
       .style('fill', function(d) { 
         if (d.mouseHoverFlag) { return palette.blue; }
+        if (d.isKeyword) { return d.keywordColor; }
         return palette.white; 
       })
       .style('opacity', function(d) { 
@@ -1125,9 +1162,9 @@ function ViewFlow() {
       .style("opacity", 1e-6)
       .style("fill", palette.white)
       .style("font-size", function(d) {
-        if (d.isGroupNode) return fontSizeScale(d.totalWordChainIndex + 1.1) + "px";
-        if (d.isSessionNode) return fontSizeScale(d.wordChainIndex + 1.1) + "px";
-        return fontSizeScale(d.mentions + 1.1) + "px";
+        if (d.isGroupNode) return sessionFontSizeScale(d.totalWordChainIndex + 1.1) + "px";
+        if (d.isSessionNode) return sessionFontSizeScale(d.wordChainIndex + 1.1) + "px";
+        return nodeFontSizeScale(d.mentions + 1.1) + "px";
       })
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)
@@ -1326,7 +1363,7 @@ function ViewFlow() {
       .force("link", d3.forceLink(links).id(function(d) { return d.linkId; }).distance(globalLinkDistance).strength(globalLinkStrength))
       .force("charge", d3.forceManyBody().strength(charge))
       .force("forceX", d3.forceX(-10000).strength(gravity))
-      .force("collide", d3.forceCollide().radius(function(d) { return 1.5*d.r ; }).iterations(2))
+      .force("collide", d3.forceCollide().radius(function(d) { return 2.0*d.r ; }).iterations(2))
       // .force("forceY", d3.forceY(svgFlowLayoutAreaHeight/2).strength(DEFAULT_GRAVITY))
       .velocityDecay(velocityDecay)
       .on("tick", ticked);

@@ -100,87 +100,146 @@ else{
 var statsObj = {};
 statsObj.socketId = null;
 
+var palette = {
+  "black": "#000000",
+  "white": "#FFFFFF",
+  "lightgray": "#819090",
+  "gray": "#708284",
+  "mediumgray": "#536870",
+  "darkgray": "#475B62",
+  "darkblue": "#0A2933",
+  "darkerblue": "#042029",
+  "paleryellow": "#FCF4DC",
+  "paleyellow": "#EAE3CB",
+  "yellow": "#A57706",
+  "orange": "#BD3613",
+  "red": "#D11C24",
+  "pink": "#C61C6F",
+  "purple": "#595AB7",
+  "blue": "#2176C7",
+  "green": "#259286",
+  "yellowgreen": "#738A05"
+};
+
 var ignoreWordsArray = [
-  "m",
   "'",
-  "ve",
-  "...",
-  "s",
-  "s",
-  "|",
-  "htt...",
-  "rt",
-  "–",
   "-",
+  "...",
   "a",
   "about",
   "across",
+  "after",
   "all",
   "also",
   "an",
+  "and",
   "ao",
   "aos",
-  "and",
+  "applause",
   "are",
   "as",
   "at",
   "b",
   "be",
+  "because",
   "been",
+  "before",
+  "being",
   "but",
   "by",
   "can",
+  "can",
+  "could",
   "could",
   "da",
+  "day",
   "de",
+  "did",
   "do",
   "dont",
   "e",
-  "é",
   "else",
   "em",
   "for",
   "from",
+  "get",
+  "go",
+  "going",
   "had",
   "has",
   "hasnt",
   "have",
   "havent",
+  "he",
+  "her",
   "here",
+  "him",
+  "his",
   "how",
+  "htt...",
+  "i",
   "if",
+  "im",
   "in",
   "into",
   "is",
   "isnt",
   "it",
   "its",
-  "no",
+  "just",
+  "less",
+  "like",
+  "lot",
+  "m",
+  "may",
+  "me",
+  "more",
+  "my",
   "nas",
+  "new",
+  "no",
   "nos",
   "not",
   "of",
+  "old",
   "on",
   "or",
   "os",
   "ou",
+  "our",
+  "out",
+  "over",
+  "rt",
+  "s",
+  "said",
+  "say",
+  "saying",
+  "she",
   "should",
   "so",
+  "some",
   "than",
   "that",
   "thats",
   "the",
+  "their",
+  "them",
   "then",
   "there",
   "these",
+  "they",
   "this",
   "those",
   "though",
   "to",
   "too",
   "upon",
+  "us",
+  "ve",
+  "want",
   "was",
   "wasnt",
+  "we",
   "were",
   "what",
   "when",
@@ -193,6 +252,11 @@ var ignoreWordsArray = [
   "with",
   "wont",
   "would",
+  "you",
+  "your",
+  "|",
+  "é",
+  "–",
 ];
 
 ignoreWordsArray.push('"');
@@ -553,6 +617,371 @@ var linkHashMap = new HashMap();
 var nodeHashMap = new HashMap();
 
 var ignoreWordHashMap = new HashMap();
+
+var keywordHashMap = new HashMap();
+
+keywordHashMap.set('aid', palette.green);
+keywordHashMap.set('assist', palette.green);
+keywordHashMap.set('birth', palette.green);
+keywordHashMap.set('blacklivesmatter', palette.green);
+keywordHashMap.set('care', palette.green);
+keywordHashMap.set('constitution', palette.green);
+keywordHashMap.set('constitutional', palette.green);
+keywordHashMap.set('defend', palette.green);
+keywordHashMap.set('democracy', palette.green);
+keywordHashMap.set('dependable', palette.green);
+keywordHashMap.set('donate', palette.green);
+keywordHashMap.set('dream', palette.green);
+keywordHashMap.set('education', palette.green);
+keywordHashMap.set('empathetic', palette.green);
+keywordHashMap.set('empathy', palette.green);
+keywordHashMap.set('equality', palette.green);
+keywordHashMap.set('faith', palette.green);
+keywordHashMap.set('heal', palette.green);
+keywordHashMap.set('help', palette.green);
+keywordHashMap.set('thank', palette.green);
+keywordHashMap.set('pray', palette.green);
+keywordHashMap.set('bless', palette.green);
+keywordHashMap.set('thanks', palette.green);
+keywordHashMap.set('honest', palette.green);
+keywordHashMap.set('honestly', palette.green);
+keywordHashMap.set('honesty', palette.green);
+keywordHashMap.set('hope', palette.green);
+keywordHashMap.set('independence', palette.green);
+keywordHashMap.set('integracy', palette.green);
+keywordHashMap.set('justice', palette.green);
+keywordHashMap.set('life', palette.green);
+keywordHashMap.set('libery', palette.green);
+keywordHashMap.set('freedom', palette.green);
+keywordHashMap.set('love', palette.green);
+keywordHashMap.set('patriotic', palette.green);
+keywordHashMap.set('protect', palette.green);
+keywordHashMap.set('protector', palette.green);
+keywordHashMap.set('protectors', palette.green);
+keywordHashMap.set('protects', palette.green);
+keywordHashMap.set('protest', palette.green);
+keywordHashMap.set('rebuild', palette.green);
+keywordHashMap.set('reliable', palette.green);
+keywordHashMap.set('restore', palette.green);
+keywordHashMap.set('rights', palette.green);
+keywordHashMap.set('trust', palette.green);
+keywordHashMap.set('trustworthy', palette.green);
+keywordHashMap.set('water', palette.green);
+keywordHashMap.set('sustainable', palette.green);
+keywordHashMap.set('renewable', palette.green);
+keywordHashMap.set('growth', palette.green);
+keywordHashMap.set('healthy', palette.green);
+keywordHashMap.set('happy', palette.green);
+keywordHashMap.set('future', palette.green);
+keywordHashMap.set('earth', palette.green);
+keywordHashMap.set('terra', palette.green);
+keywordHashMap.set('citizen', palette.green);
+keywordHashMap.set('citizenship', palette.green);
+keywordHashMap.set('america', palette.green);
+keywordHashMap.set('american', palette.green);
+keywordHashMap.set('americans', palette.green);
+keywordHashMap.set('vote', palette.green);
+keywordHashMap.set('votes', palette.green);
+keywordHashMap.set('voters', palette.green);
+keywordHashMap.set('voter', palette.green);
+keywordHashMap.set('voting', palette.green);
+keywordHashMap.set('children', palette.green);
+keywordHashMap.set('friend', palette.green);
+keywordHashMap.set('friends', palette.green);
+keywordHashMap.set('grateful', palette.green);
+keywordHashMap.set('activist', palette.green);
+keywordHashMap.set('social', palette.green);
+keywordHashMap.set('reform', palette.green);
+keywordHashMap.set('correct', palette.green);
+keywordHashMap.set('stronger', palette.green);
+keywordHashMap.set('strong', palette.green);
+keywordHashMap.set('positive', palette.green);
+keywordHashMap.set('health', palette.green);
+keywordHashMap.set('healthy', palette.green);
+keywordHashMap.set('marijuana', palette.green);
+keywordHashMap.set('cannibis', palette.green);
+keywordHashMap.set('housing', palette.green);
+keywordHashMap.set('community', palette.green);
+keywordHashMap.set('communities', palette.green);
+keywordHashMap.set('diverse', palette.green);
+keywordHashMap.set('diversity', palette.green);
+keywordHashMap.set('sensitive', palette.green);
+keywordHashMap.set('sensitivity', palette.green);
+
+keywordHashMap.set('trillion', palette.yellow);
+keywordHashMap.set('billion', palette.yellow);
+keywordHashMap.set('million', palette.yellow);
+keywordHashMap.set('trial', palette.yellow);
+keywordHashMap.set('sexual', palette.yellow);
+keywordHashMap.set('harrassment', palette.yellow);
+keywordHashMap.set('harrass', palette.yellow);
+keywordHashMap.set('indict', palette.yellow);
+keywordHashMap.set('impeach', palette.yellow);
+keywordHashMap.set('indictment', palette.yellow);
+keywordHashMap.set('parole', palette.yellow);
+keywordHashMap.set('massacre', palette.yellow);
+keywordHashMap.set('gun', palette.yellow);
+keywordHashMap.set('guns', palette.yellow);
+keywordHashMap.set('molest', palette.yellow);
+keywordHashMap.set('molests', palette.yellow);
+keywordHashMap.set('molested', palette.yellow);
+keywordHashMap.set('molesting', palette.yellow);
+keywordHashMap.set('important', palette.yellow);
+keywordHashMap.set('crisis', palette.yellow);
+keywordHashMap.set('homeless', palette.yellow);
+keywordHashMap.set('foreclosure', palette.yellow);
+keywordHashMap.set('foreclosures', palette.yellow);
+keywordHashMap.set('crime', palette.yellow);
+keywordHashMap.set('criminal', palette.yellow);
+keywordHashMap.set('poison', palette.yellow);
+keywordHashMap.set('poisons', palette.yellow);
+keywordHashMap.set('poisoned', palette.yellow);
+keywordHashMap.set('toxic', palette.yellow);
+keywordHashMap.set('toxins', palette.yellow);
+keywordHashMap.set('pollute', palette.yellow);
+keywordHashMap.set('pollutes', palette.yellow);
+keywordHashMap.set('polluter', palette.yellow);
+keywordHashMap.set('polluters', palette.yellow);
+keywordHashMap.set('polluted', palette.yellow);
+keywordHashMap.set('pollution', palette.yellow);
+keywordHashMap.set('poison', palette.yellow);
+keywordHashMap.set('execution', palette.yellow);
+keywordHashMap.set('executions', palette.yellow);
+keywordHashMap.set('queer', palette.yellow);
+keywordHashMap.set('gay', palette.yellow);
+keywordHashMap.set('transgender', palette.yellow);
+keywordHashMap.set('lgbt', palette.yellow);
+keywordHashMap.set('lgbtq', palette.yellow);
+keywordHashMap.set('asian', palette.yellow);
+keywordHashMap.set('latino', palette.yellow);
+keywordHashMap.set('united', palette.yellow);
+keywordHashMap.set('states', palette.yellow);
+keywordHashMap.set('campaign', palette.yellow);
+keywordHashMap.set('trade', palette.yellow);
+keywordHashMap.set('economy', palette.yellow);
+keywordHashMap.set('market', palette.yellow);
+keywordHashMap.set('investment', palette.yellow);
+keywordHashMap.set('banks', palette.yellow);
+keywordHashMap.set('banker', palette.yellow);
+keywordHashMap.set('bankers', palette.yellow);
+keywordHashMap.set('billionaires', palette.yellow);
+keywordHashMap.set('billionaire', palette.yellow);
+keywordHashMap.set('partisan', palette.yellow);
+keywordHashMap.set('attack', palette.yellow);
+keywordHashMap.set('attacks', palette.yellow);
+keywordHashMap.set('attacked', palette.yellow);
+keywordHashMap.set('attacking', palette.yellow);
+keywordHashMap.set('9-11', palette.yellow);
+keywordHashMap.set('911', palette.yellow);
+keywordHashMap.set('money', palette.yellow);
+keywordHashMap.set('work', palette.yellow);
+keywordHashMap.set('job', palette.yellow);
+keywordHashMap.set('poll', palette.yellow);
+keywordHashMap.set('polls', palette.yellow);
+keywordHashMap.set('win', palette.yellow);
+keywordHashMap.set('winning', palette.yellow);
+keywordHashMap.set('losing', palette.yellow);
+keywordHashMap.set('loser', palette.yellow);
+keywordHashMap.set('debates', palette.yellow);
+keywordHashMap.set('debate', palette.yellow);
+keywordHashMap.set('discrimination', palette.yellow);
+keywordHashMap.set('discriminating', palette.yellow);
+keywordHashMap.set('discriminate', palette.yellow);
+keywordHashMap.set('discriminatory', palette.yellow);
+keywordHashMap.set('prejudice', palette.yellow);
+keywordHashMap.set('race', palette.yellow);
+keywordHashMap.set('shot', palette.yellow);
+keywordHashMap.set('shoot', palette.yellow);
+keywordHashMap.set('shoots', palette.yellow);
+keywordHashMap.set('shooting', palette.yellow);
+keywordHashMap.set('shootings', palette.yellow);
+keywordHashMap.set('wounded', palette.yellow);
+keywordHashMap.set('electoral', palette.yellow);
+keywordHashMap.set('frack', palette.yellow);
+keywordHashMap.set('ballot', palette.yellow);
+keywordHashMap.set('fracking', palette.yellow);
+keywordHashMap.set('dapl', palette.yellow);
+keywordHashMap.set('dakota', palette.yellow);
+keywordHashMap.set('nodapl', palette.yellow);
+keywordHashMap.set('pipeline', palette.yellow);
+keywordHashMap.set('bigot', palette.yellow);
+keywordHashMap.set('bigotry', palette.yellow);
+keywordHashMap.set('hate', palette.yellow);
+keywordHashMap.set('misogeny', palette.yellow);
+keywordHashMap.set('sexist', palette.yellow);
+keywordHashMap.set('upset', palette.yellow);
+keywordHashMap.set('upsets', palette.yellow);
+keywordHashMap.set('unconstitutional', palette.yellow);
+keywordHashMap.set('china', palette.yellow);
+keywordHashMap.set('afghanistan', palette.yellow);
+keywordHashMap.set('pakistan', palette.yellow);
+keywordHashMap.set('oil', palette.yellow);
+keywordHashMap.set('saudi', palette.yellow);
+keywordHashMap.set('korea', palette.yellow);
+keywordHashMap.set('iran', palette.yellow);
+keywordHashMap.set('iraq', palette.yellow);
+keywordHashMap.set('syria', palette.yellow);
+keywordHashMap.set('middle-eastern', palette.yellow);
+keywordHashMap.set('middleeastern', palette.yellow);
+keywordHashMap.set('russia', palette.yellow);
+keywordHashMap.set('mexico', palette.yellow);
+keywordHashMap.set('aborion', palette.yellow);
+keywordHashMap.set('assault', palette.yellow);
+keywordHashMap.set('bankrupt', palette.yellow);
+keywordHashMap.set('bankruptcy', palette.yellow);
+keywordHashMap.set('black', palette.yellow);
+keywordHashMap.set('brutality', palette.yellow);
+keywordHashMap.set('california', palette.yellow);
+keywordHashMap.set('christian', palette.yellow);
+keywordHashMap.set('class', palette.yellow);
+keywordHashMap.set('conflict', palette.yellow);
+keywordHashMap.set('crooked', palette.yellow);
+keywordHashMap.set('danger', palette.yellow);
+keywordHashMap.set('dangers', palette.yellow);
+keywordHashMap.set('climate', palette.yellow);
+keywordHashMap.set('change', palette.yellow);
+keywordHashMap.set('dangerous', palette.yellow);
+keywordHashMap.set('problem', palette.yellow);
+keywordHashMap.set('problems', palette.yellow);
+keywordHashMap.set('danger', palette.yellow);
+keywordHashMap.set('death', palette.yellow);
+keywordHashMap.set('debt', palette.yellow);
+keywordHashMap.set('debts', palette.yellow);
+keywordHashMap.set('tax', palette.yellow);
+keywordHashMap.set('taxes', palette.yellow);
+keywordHashMap.set('regulation', palette.yellow);
+keywordHashMap.set('regulations', palette.yellow);
+keywordHashMap.set('fossil', palette.yellow);
+keywordHashMap.set('fossil-fuel', palette.yellow);
+keywordHashMap.set('fuel', palette.yellow);
+keywordHashMap.set('fuels', palette.yellow);
+keywordHashMap.set('economic', palette.yellow);
+keywordHashMap.set('economy', palette.yellow);
+keywordHashMap.set('election', palette.yellow);
+keywordHashMap.set('empire', palette.yellow);
+keywordHashMap.set('entitlement', palette.yellow);
+keywordHashMap.set('ethical', palette.yellow);
+keywordHashMap.set('ethics', palette.yellow);
+keywordHashMap.set('family', palette.yellow);
+keywordHashMap.set('families', palette.yellow);
+keywordHashMap.set('mother', palette.yellow);
+keywordHashMap.set('father', palette.yellow);
+keywordHashMap.set('sister', palette.yellow);
+keywordHashMap.set('brother', palette.yellow);
+keywordHashMap.set('son', palette.yellow);
+keywordHashMap.set('daughter', palette.yellow);
+keywordHashMap.set('federal', palette.yellow);
+keywordHashMap.set('fraud', palette.yellow);
+keywordHashMap.set('global', palette.yellow);
+keywordHashMap.set('government', palette.yellow);
+keywordHashMap.set('guilty', palette.yellow);
+keywordHashMap.set('gun', palette.yellow);
+keywordHashMap.set('healthcare', palette.yellow);
+keywordHashMap.set('hegemonic', palette.yellow);
+keywordHashMap.set('hegemony', palette.yellow);
+keywordHashMap.set('human', palette.yellow);
+keywordHashMap.set('incarcerate', palette.yellow);
+keywordHashMap.set('income', palette.yellow);
+keywordHashMap.set('inequality', palette.yellow);
+keywordHashMap.set('infrastructure', palette.yellow);
+keywordHashMap.set('innocent', palette.yellow);
+keywordHashMap.set('insurance', palette.yellow);
+keywordHashMap.set('invade', palette.yellow);
+keywordHashMap.set('invasion', palette.yellow);
+keywordHashMap.set('isis', palette.yellow);
+keywordHashMap.set('jihad', palette.yellow);
+keywordHashMap.set('jihadist', palette.yellow);
+keywordHashMap.set('job', palette.yellow);
+keywordHashMap.set('kill', palette.yellow);
+keywordHashMap.set('killed', palette.yellow);
+keywordHashMap.set('killer', palette.yellow);
+keywordHashMap.set('killing', palette.yellow);
+keywordHashMap.set('kills', palette.yellow);
+keywordHashMap.set('liar', palette.yellow);
+keywordHashMap.set('lied', palette.yellow);
+keywordHashMap.set('lies', palette.yellow);
+keywordHashMap.set('medical', palette.yellow);
+keywordHashMap.set('michigan', palette.yellow);
+keywordHashMap.set('military', palette.yellow);
+keywordHashMap.set('moral', palette.yellow);
+keywordHashMap.set('morals', palette.yellow);
+keywordHashMap.set('muslim', palette.yellow);
+keywordHashMap.set('nation', palette.yellow);
+keywordHashMap.set('nuclear', palette.yellow);
+keywordHashMap.set('occupiers', palette.yellow);
+keywordHashMap.set('occupy', palette.yellow);
+keywordHashMap.set('oligarchic', palette.yellow);
+keywordHashMap.set('oligarchies', palette.yellow);
+keywordHashMap.set('oligarchy', palette.yellow);
+keywordHashMap.set('peace', palette.yellow);
+keywordHashMap.set('people', palette.yellow);
+keywordHashMap.set('police', palette.yellow);
+keywordHashMap.set('political', palette.yellow);
+keywordHashMap.set('politically', palette.yellow);
+keywordHashMap.set('politics', palette.yellow);
+keywordHashMap.set('poor', palette.yellow);
+keywordHashMap.set('presidency', palette.yellow);
+keywordHashMap.set('president', palette.yellow);
+keywordHashMap.set('presidential', palette.yellow);
+keywordHashMap.set('prison', palette.yellow);
+keywordHashMap.set('racism', palette.yellow);
+keywordHashMap.set('racist', palette.yellow);
+keywordHashMap.set('rape', palette.yellow);
+keywordHashMap.set('religion', palette.yellow);
+keywordHashMap.set('retiree', palette.yellow);
+keywordHashMap.set('security', palette.yellow);
+keywordHashMap.set('social', palette.yellow);
+keywordHashMap.set('student', palette.yellow);
+keywordHashMap.set('terror', palette.yellow);
+keywordHashMap.set('terrorism', palette.yellow);
+keywordHashMap.set('terrorist', palette.yellow);
+keywordHashMap.set('thief', palette.yellow);
+keywordHashMap.set('unemployed', palette.yellow);
+keywordHashMap.set('unequal', palette.yellow);
+keywordHashMap.set('values', palette.yellow);
+keywordHashMap.set('violence', palette.yellow);
+keywordHashMap.set('vote', palette.yellow);
+keywordHashMap.set('voter', palette.yellow);
+keywordHashMap.set('wage', palette.yellow);
+keywordHashMap.set('war', palette.yellow);
+keywordHashMap.set('weapon', palette.yellow);
+keywordHashMap.set('white', palette.yellow);
+keywordHashMap.set('congress', palette.yellow);
+keywordHashMap.set('representative', palette.yellow);
+keywordHashMap.set('house', palette.yellow);
+keywordHashMap.set('senate', palette.yellow);
+
+keywordHashMap.set('hillaryclinton', palette.blue);
+keywordHashMap.set('hillary', palette.blue);
+keywordHashMap.set('clinton', palette.blue);
+keywordHashMap.set('bernie', palette.blue);
+keywordHashMap.set('sanders', palette.blue);
+keywordHashMap.set('socialist', palette.blue);
+keywordHashMap.set('left', palette.blue);
+keywordHashMap.set('liberal', palette.blue);
+keywordHashMap.set('democratic', palette.blue);
+keywordHashMap.set('democrat', palette.blue);
+keywordHashMap.set('dems', palette.blue);
+keywordHashMap.set('democrats', palette.blue);
+keywordHashMap.set('barack', palette.blue);
+keywordHashMap.set('obama', palette.blue);
+keywordHashMap.set('kaine', palette.blue);
+keywordHashMap.set('dnc', palette.blue);
+keywordHashMap.set('dnc', palette.blue);
+
+keywordHashMap.set('donald', palette.red);
+keywordHashMap.set('trump', palette.red);
+keywordHashMap.set('trumps', palette.red);
+keywordHashMap.set('drumpf', palette.red);
+keywordHashMap.set('drumpfs', palette.red);
+keywordHashMap.set('pence', palette.red);
+keywordHashMap.set('conservative', palette.red);
+keywordHashMap.set('conservatives', palette.red);
+keywordHashMap.set('republican', palette.red);
+keywordHashMap.set('republicans', palette.red);
+keywordHashMap.set('right', palette.red);
+keywordHashMap.set('gop', palette.red);
+
 
 var rxSessionUpdateQueue = [];
 var rxSessionDeleteQueue = [];
@@ -1920,17 +2349,26 @@ var createNode = function(callback) {
 
     async.parallel({
         source: function(cb) {
+          if (ignoreWordHashMap.has(sourceText)) {
+            console.debug("IGNORED SOURCE: " + sourceText);
+          }
+          if (keywordHashMap.has(sourceText)) {
+            console.error("TARGET SOURCE: " + sourceText);
+          }
           if ((config.sessionViewType != 'ticker') && (config.sessionViewType != 'flow') && ignoreWordHashMap.has(sourceText)) {
-          // if (ignoreWordHashMap.has(sourceText)) {
+            // if (ignoreWordHashMap.has(sourceText)) {
             // console.warn("sourceNodeId IGNORED: " + sourceNodeId);
             cb(null, {
               node: sourceNodeId,
               isIgnored: true,
               isNew: false
             });
-          } else if (nodeHashMap.has(sourceNodeId)) {
+          } 
+          else if (nodeHashMap.has(sourceNodeId)) {
             sourceNode = nodeHashMap.get(sourceNodeId);
             sourceNode.isIgnored = ignoreWordHashMap.has(sourceText);
+            sourceNode.isKeyword = keywordHashMap.has(sourceText);
+            sourceNode.keywordColor = keywordHashMap.get(sourceText);
             sourceNode.latestNode = true;
             sourceNode.newFlag = false;
             sourceNode.userId = session.userId;
@@ -1968,11 +2406,13 @@ var createNode = function(callback) {
                 isNew: false
               });
             });
-          } else {
+          } 
+          else {
             sourceNode = session.source;
             sourceNode.nodeId = sourceNodeId;
             sourceNode.bboxWidth = 1e-6;
             sourceNode.isIgnored = ignoreWordHashMap.has(sourceText);
+            sourceNode.isKeyword = keywordHashMap.has(sourceText);
             sourceNode.newFlag = true;
             sourceNode.latestNode = true;
             sourceNode.isSessionNode = false;
@@ -1992,14 +2432,17 @@ var createNode = function(callback) {
             sourceNode.groupColors = session.groupColors;
             sourceNode.sessionColors = session.sessionColors;
             sourceNode.nodeColors = session.nodeColors;
+            sourceNode.keywordColor = keywordHashMap.get(sourceText);
+
             sourceNode.interpolateGroupColor = session.interpolateGroupColor;
             sourceNode.interpolateNodeColor = session.interpolateNodeColor;
             sourceNode.interpolateSessionColor = session.interpolateSessionColor;
             sourceNode.interpolateColor = session.interpolateSessionColor;
 
             sourceNode.r = config.defaultNodeRadius;
-            sourceNode.x = session.node.x+randomIntFromInterval(-10,10);;
-            sourceNode.y = session.node.y+randomIntFromInterval(-10,10);;
+            sourceNode.x = session.node.x+randomIntFromInterval(-10,10);
+            sourceNode.y = session.node.y+randomIntFromInterval(-10,10);
+
             if (sourceNode.isSessionNode){
               sourceNode.text = session.tags.entity + "[" + session.tags.channel + "]";
               sourceNode.wordChainIndex = session.source.wordChainIndex;
@@ -2018,9 +2461,15 @@ var createNode = function(callback) {
               });
             });
           }
+
         },
 
         target: function(cb) {
+
+          if (ignoreWordHashMap.has(targetText)) {
+            console.debug("IGNORED TARGET: " + targetText);
+          }
+
           if (typeof targetNodeId === 'undefined' || (config.sessionViewType == 'ticker') || (config.sessionViewType == 'flow')) {
           // if (typeof targetNodeId === 'undefined') {
             // console.warn("targetNodeId UNDEFINED ... SKIPPING CREATE NODE");
@@ -2035,6 +2484,8 @@ var createNode = function(callback) {
           } else if (nodeHashMap.has(targetNodeId)) {
             targetNode = nodeHashMap.get(targetNodeId);
             targetNode.newFlag = false;
+            targetNode.isIgnored = ignoreWordHashMap.has(targetText);
+            targetNode.isKeyword = keywordHashMap.has(targetText);
             targetNode.userId = session.userId;
             targetNode.sessionId = session.sessionId;
             targetNode.groupId = session.groupId;
@@ -2081,6 +2532,8 @@ var createNode = function(callback) {
             targetNode.newFlag = true;
             targetNode.isSessionNode = false;
             targetNode.isGroupNode = false;
+            targetNode.isIgnored = ignoreWordHashMap.has(targetText);
+            targetNode.isKeyword = keywordHashMap.has(targetText);
             targetNode.userId = session.userId;
             targetNode.groupId = session.groupId;
             targetNode.channel = session.tags.channel;

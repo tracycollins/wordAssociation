@@ -18,6 +18,7 @@ var GROUP_CACHE_DEFAULT_TTL = 300; // seconds
 var ENTITY_CACHE_DEFAULT_TTL = 300; // seconds
 var SESSION_CACHE_DEFAULT_TTL = 300; // seconds
 var WORD_CACHE_TTL = 60; // seconds
+var MONITOR_CACHE_TTL = 300; // seconds
 
 var MAX_WORDCHAIN_LENGTH = 10;
 var MIN_CHAIN_FREEZE_LENGTH = 20;
@@ -357,6 +358,14 @@ var wordCacheTtl = process.env.WORD_CACHE_TTL;
 
 if (typeof wordCacheTtl === 'undefined') wordCacheTtl = WORD_CACHE_TTL;
 console.log("WORD CACHE TTL: " + wordCacheTtl + " SECONDS");
+
+// // ==================================================================
+// // MONITOR CACHE
+// // ==================================================================
+// var monitorCacheTtl = process.env.MONITOR_CACHE_TTL;
+
+// if (typeof monitorCacheTtl === 'undefined') monitorCacheTtl = MONITOR_CACHE_TTL;
+// console.log("MONITOR CACHE TTL: " + monitorCacheTtl + " SECONDS");
 
 // ==================================================================
 // BIG HUGE THESAURUS
@@ -989,6 +998,9 @@ var adminCache = new NodeCache();
 var viewerCache = new NodeCache();
 var userCache = new NodeCache();
 var utilCache = new NodeCache();
+// var monitorCache = new NodeCache();
+
+var monitorHashMap = {};
 
 var wordCache = new NodeCache({
   stdTTL: wordCacheTtl,
@@ -1336,7 +1348,8 @@ var readUpdateSessionViewQueue = setInterval(function() {
         mentions: sessionUpdateObj.wordChainIndex
       };
 
-    } else {
+    } 
+    else {
       sessionSmallObj = {
         tags: {},
         action: sessionUpdateObj.action,
@@ -1395,11 +1408,23 @@ var readUpdateSessionViewQueue = setInterval(function() {
           + " [" + sessionUpdateObj.source.wordChainIndex + "]"
         ));
       }
-
     }
 
     viewNameSpace.emit("SESSION_UPDATE", sessionSmallObj);
     testViewersNameSpace.emit("SESSION_UPDATE", sessionSmallObj);
+
+    var key = sessionUpdateObj.tags.entity + '_' + sessionUpdateObj.tags.channel;
+
+    if (monitorHashMap[key] && sessionUpdateObj.action == "RESPONSE"){
+      console.log(chalkRed("R< MONITOR"
+        + " | " + monitorHashMap[key].session.sessionId
+        + " | " + sessionUpdateObj.source.nodeId
+        + " | " + sessionUpdateObj.source.raw
+        // + " | " + jsonPrint(monitorHashMap[key])
+      ));
+      utilNameSpace.to(monitorHashMap[key].session.sessionId).emit("SESSION_UPDATE",sessionSmallObj);
+    }
+
     sessionUpdatesSent++;
     updateStats({
       sessionUpdatesSent: sessionUpdatesSent
@@ -4460,6 +4485,18 @@ function handleSessionEvent(sesObj, callback) {
         // + "\n" + jsonPrint(sesObj)
       ));
 
+      if (sesObj.session.config.mode == 'MONITOR'){
+
+        var key = sesObj.user.tags.entity + '_' + sesObj.user.tags.channel;
+
+        monitorHashMap[key] = sesObj;
+        console.log(chalkRed("ADDDED MONITOR"
+          + " | " + key
+          + " | " + sesObj.session.sessionId
+        ));
+
+      }
+
       userCache.set(sesObj.user.userId, sesObj.user, function(err, success) {
         debug(chalkLog("USER CACHE RESULTS" + "\n" + err + "\n" + success));
       });
@@ -6052,7 +6089,7 @@ function createSession(newSessionObj) {
       + " | CH: " + userObj.tags.channel
       + " | TYPE: " + userObj.type
       + " | MODE: " + userObj.mode
-      // + "\n" + jsonPrint(userObj)
+      + "\n" + jsonPrint(userObj)
     ));
 
     var socketId = socket.id;

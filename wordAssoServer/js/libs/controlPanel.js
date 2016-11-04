@@ -19,6 +19,7 @@ function ControlPanel() {
   config.defaultCharge = window.opener.DEFAULT_CHARGE;
   config.defaultGravity = window.opener.DEFAULT_GRAVITY;
   config.defaultLinkStrength = window.opener.DEFAULT_LINK_STRENGTH;
+  config.defaultLinkDistance = window.opener.DEFAULT_LINK_DISTANCE;
   config.defaultVelocityDecay = window.opener.DEFAULT_VELOCITY_DECAY;
 
   var controlIdHash = {};
@@ -43,6 +44,12 @@ function ControlPanel() {
     console.log("setLinkStrengthSliderValue: " + value);
     document.getElementById("linkStrengthSlider").value = (value * document.getElementById("linkStrengthSlider").getAttribute("multiplier"));
     document.getElementById("linkStrengthSliderText").innerHTML = value.toFixed(3);
+  }
+
+  this.setLinkDistanceSliderValue = function (value) {
+    console.log("setLinkDistanceSliderValue: " + value);
+    document.getElementById("linkDistanceSlider").value = (value * document.getElementById("linkDistanceSlider").getAttribute("multiplier"));
+    document.getElementById("linkDistanceSliderText").innerHTML = value.toFixed(3);
   }
 
   this.setGravitySliderValue = function (value) {
@@ -105,6 +112,7 @@ function ControlPanel() {
 
       if (currentButton.id == 'resetButton'){
         self.setLinkStrengthSliderValue(config.defaultLinkStrength);
+        self.setLinkDistanceSliderValue(config.defaultLinkDistance);
         self.setGravitySliderValue(config.defaultGravity);
         self.setChargeSliderValue(config.defaultCharge);
         self.setVelocityDecaySliderValue(config.defaultVelocityDecay);
@@ -162,6 +170,7 @@ function ControlPanel() {
         }
 
         self.setLinkStrengthSliderValue(cnf.defaultLinkStrength);
+        self.setLinkDistanceSliderValue(cnf.defaultLinkDistance);
         self.setGravitySliderValue(cnf.defaultGravity);
         self.setChargeSliderValue(cnf.defaultCharge);
         self.setVelocityDecaySliderValue(cnf.defaultVelocityDecay);
@@ -402,10 +411,10 @@ function ControlPanel() {
       id: 'gravitySlider',
       class: 'slider',
       min: 0.0,
-      max: 1000,
+      max: 50,
       // value: (config.defaultGravity * config.defaultMultiplier),
       value: config.defaultGravity * config.defaultMultiplier,
-      multiplier: 1000
+      multiplier: config.defaultMultiplier
     }
 
     var gravitySliderText = {
@@ -449,6 +458,23 @@ function ControlPanel() {
       text: (linkStrengthSlider.value * linkStrengthSlider.multiplier)
     }
 
+    var linkDistanceSlider = {
+      type: 'SLIDER',
+      id: 'linkDistanceSlider',
+      class: 'slider',
+      min: 0.0,
+      max: 100,
+      value: config.defaultLinkDistance,
+      multiplier: 1.0
+    }
+
+    var linkDistanceSliderText = {
+      type: 'TEXT',
+      id: 'linkDistanceSliderText',
+      class: 'sliderText',
+      text: (linkDistanceSlider.value * linkDistanceSlider.multiplier)
+    }
+
     var status = {
       type: 'TEXT',
       id: 'statusSessionId',
@@ -477,6 +503,7 @@ function ControlPanel() {
         self.tableCreateRow(controlSliderTable, optionsBody, ['GRAVITY', gravitySlider, gravitySliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ['VEL DECAY', velocityDecaySlider, velocityDecaySliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ['LINK STRENGTH', linkStrengthSlider, linkStrengthSliderText]);
+        self.tableCreateRow(controlSliderTable, optionsBody, ['LINK DISTANCE', linkDistanceSlider, linkDistanceSliderText]);
         break;
 
       case 'ticker':

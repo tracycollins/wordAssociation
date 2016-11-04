@@ -65,6 +65,7 @@ function ViewFlow() {
     'charge': DEFAULT_CHARGE,
     'velocityDecay': DEFAULT_VELOCITY_DECAY,
     'linkStrength': DEFAULT_LINK_STRENGTH,
+    'linkDistance': DEFAULT_LINK_DISTANCE,
     'gravity': DEFAULT_GRAVITY,
     'ageRate': window.DEFAULT_AGE_RATE,
   };
@@ -74,6 +75,7 @@ function ViewFlow() {
   var charge = DEFAULT_CHARGE;
   var gravity = DEFAULT_GRAVITY;
   var globalLinkStrength = DEFAULT_LINK_STRENGTH;
+  var globalLinkDistance = DEFAULT_LINK_DISTANCE;
   var velocityDecay = DEFAULT_VELOCITY_DECAY;
 
   var palette = {
@@ -276,7 +278,11 @@ function ViewFlow() {
     switch(param){
       case "linkStrength" :
         globalLinkStrength = value;
-        simulation.force("link", d3.forceLink(links).id(function(d) { return d.linkId; }).distance(20).strength(globalLinkStrength));
+        simulation.force("link", d3.forceLink(links).id(function(d) { return d.linkId; }).distance(globalLinkDistance).strength(globalLinkStrength));
+      break;
+      case "linkDistance" :
+        globalLinkDistance = value;
+        simulation.force("link", d3.forceLink(links).id(function(d) { return d.linkId; }).distance(globalLinkDistance).strength(globalLinkStrength));
       break;
     }
   }
@@ -284,7 +290,13 @@ function ViewFlow() {
   self.updateLinkStrength = function(value) {
     console.debug("UPDATE LINK STRENGTH: " + value.toFixed(sliderPercision));
     globalLinkStrength = value;
-    simulation.force("link", d3.forceLink(links).id(function(d) { return d.linkId; }).distance(20).strength(globalLinkStrength));
+    simulation.force("link", d3.forceLink(links).id(function(d) { return d.linkId; }).distance(globalLinkDistance).strength(globalLinkStrength));
+  }
+
+  self.updateLinkDistance = function(value) {
+    console.debug("UPDATE LINK DISTANCE: " + value.toFixed(sliderPercision));
+    globalLinkDistance = value;
+    simulation.force("link", d3.forceLink(links).id(function(d) { return d.linkId; }).distance(globalLinkDistance).strength(globalLinkStrength));
   }
 
   self.updateVelocityDecay = function(value) {
@@ -312,6 +324,7 @@ function ViewFlow() {
     self.updateVelocityDecay(DEFAULT_FRICTION);
     self.updateGravity(DEFAULT_GRAVITY);
     self.updateLinkStrength(DEFAULT_LINK_STRENGTH);
+    self.updateLinkDistance(DEFAULT_LINK_DISTANCE);
   }
 
   //================================
@@ -474,9 +487,9 @@ function ViewFlow() {
         switch (groupUpdateObj.op) {
           case "add":
             groupsModifiedFlag = true;
-            if (fixedGroupsFlag) {
+            if (fixedGroupsFlag || groupUpdateObj.group.node.fixed) {
               groupUpdateObj.group.node.fx = groupUpdateObj.group.node.x;
-              groupUpdateObj.group.node.fy = groupUpdateObj.group.node.y;
+              // groupUpdateObj.group.node.fy = groupUpdateObj.group.node.y;
             }
             console.log("ADD GROUP | " + groupUpdateObj.group.groupId);
             groups.push(groupUpdateObj.group);
@@ -1038,7 +1051,7 @@ function ViewFlow() {
       .on("mouseout", nodeMouseOut)
       .on("click", nodeClick)
       .attr("r", 1e-6)
-      .style("visibility", groupCircleVisibility)
+      .style("visibility", function(d) { return (d.isGroupNode || d.isSessionNode) ? groupCircleVisibility : "hidden"; })
       .style("fill", palette.black)
       .style("opacity", 1e-6)
       .style('stroke', palette.red)
@@ -1068,9 +1081,12 @@ function ViewFlow() {
         if (d.isGroupNode) { return d.y; }
         else if (d.isSessionNode) { return d.y; }
         else{
-          var shiftY = -20 - 1.15 * (defaultRadiusScale(parseInt(d.mentions) + 1));
-          return d.y + shiftY;
+          return d.y;
         }
+        // else{
+        //   var shiftY = -20 - 1.15 * (defaultRadiusScale(parseInt(d.mentions) + 1));
+        //   return d.y + shiftY;
+        // }
       })
       .style("font-size", function(d) {
         if (d.isGroupNode) return fontSizeScale(d.totalWordChainIndex + 1.1) + "px";
@@ -1126,7 +1142,7 @@ function ViewFlow() {
     updateLinks();
     updateNodeCircles();
     updateNodeLabels();
-    // updateGroupsCircles();
+    updateGroupsCircles();
     updateSessionLabels();
     updateGroupLabels();
   }
@@ -1307,12 +1323,15 @@ function ViewFlow() {
   this.initD3timer = function() {
 
     simulation = d3.forceSimulation(nodes)
-      .force("link", d3.forceLink(links).id(function(d) { return d.linkId; }).distance(20).strength(DEFAULT_LINK_STRENGTH))
-      .force("charge", d3.forceManyBody().strength(DEFAULT_CHARGE))
-      .force("forceX", d3.forceX(-10000).strength(DEFAULT_GRAVITY))
+      .force("link", d3.forceLink(links).id(function(d) { return d.linkId; }).distance(globalLinkDistance).strength(globalLinkStrength))
+      .force("charge", d3.forceManyBody().strength(charge))
+      .force("forceX", d3.forceX(-10000).strength(gravity))
+      .force("collide", d3.forceCollide().radius(function(d) { return 1.5*d.r ; }).iterations(2))
       // .force("forceY", d3.forceY(svgFlowLayoutAreaHeight/2).strength(DEFAULT_GRAVITY))
-      .velocityDecay(DEFAULT_VELOCITY_DECAY)
+      .velocityDecay(velocityDecay)
       .on("tick", ticked);
+
+      d3.forceCenter([0.5*width, 0.5*height]);
   }
 
   this.simulationControl = function(op) {
@@ -1445,6 +1464,7 @@ function ViewFlow() {
       startColor: startColor,
       endColor: endColor,
       interpolateNodeColor: interpolateNodeColor,
+      r: 100,
       x: 0.5 * window.innerWidth + randomIntFromInterval(0, 100),
       y: 0.5 * window.innerHeight + randomIntFromInterval(0, 100),
       age: 0,

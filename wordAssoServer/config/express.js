@@ -32,6 +32,7 @@ module.exports = function() {
 	require('../app/routes/group.server.routes.js')(app);
 	require('../app/routes/entity.server.routes.js')(app);
 	require('../app/routes/word.server.routes.js')(app);
+	require('../app/routes/phrase.server.routes.js')(app);
 
 	app.use(express.static('./public'));
 

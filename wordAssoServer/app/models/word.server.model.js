@@ -30,6 +30,14 @@ var WordSchema = new Schema({
 		type: Number,
 		default: 0
 	},
+	isKeyword: {
+		type: Boolean,
+		default: false
+	},
+	isIgnored: {
+		type: Boolean,
+		default: false
+	},
 	noun: {
 		type: Object
 	},

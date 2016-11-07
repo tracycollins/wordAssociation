@@ -315,7 +315,7 @@ function ViewFlow() {
     console.debug("UPDATE GRAVITY: " + value.toFixed(sliderPercision));
     gravity = value;
     simulation.force("forceX", d3.forceX(-10000).strength(value));
-    // simulation.force("forceY", d3.forceY(svgForceLayoutAreaHeight/2).strength(gravity));
+    simulation.force("forceY", d3.forceY(svgForceLayoutAreaHeight/2).strength(gravity));
  }
 
   self.updateCharge = function(value) {
@@ -557,8 +557,10 @@ function ViewFlow() {
             nodeFontSizeScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minFontSize, maxFontSize]).clamp(true);
             console.warn("NEW MAX MENTIONS" 
               + " | " + nodeUpdateObj.node.text 
-              + " | isIgnored: " + nodeUpdateObj.node.isIgnored 
-              + " | " + currentMaxMentions 
+              + " | I: " + nodeUpdateObj.node.isIgnored 
+              + " | Ms " + currentMaxMentions 
+              + " | K: " + nodeUpdateObj.node.isKeyword 
+              + " | KWs: " + jsonPrint(nodeUpdateObj.node.keywords) 
             );
           }
 
@@ -892,7 +894,8 @@ function ViewFlow() {
       .on("mouseover", nodeMouseOver)
       .on("click", nodeClick)
       .attr("r", 1e-6)
-      .style("visibility", groupCircleVisibility)
+      // .style("visibility", groupCircleVisibility)
+      .style("visibility", "hidden")
       .style("fill", function(d) {
         if (d.mouseHoverFlag) { return palette.blue; }
         else { return d.interpolateGroupColor(1-d.node.ageMaxRatio); }
@@ -1311,7 +1314,22 @@ function ViewFlow() {
   }
 
   this.addNode = function(newNode) {
-    // console.warn("ADD NODE\n" + jsonPrint(newNode));
+    if (newNode.isKeyword){
+      console.debug("ADD NODE" 
+        + " | " + newNode.text
+        + " | K: " + newNode.isKeyword
+        + " | KWs: " + jsonPrint(newNode.keywords)
+        // + jsonPrint(newNode)
+      );
+    }
+    else{
+      console.info("ADD NODE" 
+        + " | " + newNode.text
+        + " | K: " + newNode.isKeyword
+        + " | KWs: " + jsonPrint(newNode.keywords)
+        // + jsonPrint(newNode)
+      );
+    }
     nodeUpdateQ.push({op:'add', node: newNode});
   }
 
@@ -1363,8 +1381,8 @@ function ViewFlow() {
       .force("link", d3.forceLink(links).id(function(d) { return d.linkId; }).distance(globalLinkDistance).strength(globalLinkStrength))
       .force("charge", d3.forceManyBody().strength(charge))
       .force("forceX", d3.forceX(-10000).strength(gravity))
+      .force("forceY", d3.forceY(svgFlowLayoutAreaHeight/2).strength(gravity))
       .force("collide", d3.forceCollide().radius(function(d) { return 2.0*d.r ; }).iterations(2))
-      // .force("forceY", d3.forceY(svgFlowLayoutAreaHeight/2).strength(DEFAULT_GRAVITY))
       .velocityDecay(velocityDecay)
       .on("tick", ticked);
 

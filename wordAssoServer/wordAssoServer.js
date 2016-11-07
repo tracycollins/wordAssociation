@@ -102,6 +102,8 @@ var EventEmitter = require("events").EventEmitter;
 var groupHashMap = new HashMap();
 var entityChannelGroupHashMap = new HashMap();
 
+var keywordHashMap = new HashMap();
+
 // ==================================================================
 // SERVER STATUS
 // ==================================================================
@@ -359,19 +361,11 @@ var wordCacheTtl = process.env.WORD_CACHE_TTL;
 if (typeof wordCacheTtl === 'undefined') wordCacheTtl = WORD_CACHE_TTL;
 console.log("WORD CACHE TTL: " + wordCacheTtl + " SECONDS");
 
-// // ==================================================================
-// // MONITOR CACHE
-// // ==================================================================
-// var monitorCacheTtl = process.env.MONITOR_CACHE_TTL;
-
-// if (typeof monitorCacheTtl === 'undefined') monitorCacheTtl = MONITOR_CACHE_TTL;
-// console.log("MONITOR CACHE TTL: " + monitorCacheTtl + " SECONDS");
-
 // ==================================================================
 // BIG HUGE THESAURUS
 // ==================================================================
 var bigHugeLabsApiKey = "e1b4564ec38d2db399dabdf83a8beeeb";
-var bigHugeThesaurusUrl = "http://words.bighugelabs.com/api/2/" + bigHugeLabsApiKey + "/";
+// var bigHugeThesaurusUrl = "http://words.bighugelabs.com/api/2/" + bigHugeLabsApiKey + "/";
 var bhtEvents = new EventEmitter();
 var bhtErrors = 0;
 var bhtRequests = 0;
@@ -522,6 +516,7 @@ function saveStats(statsFile, statsObj, callback) {
       }
     });
   } else {
+
     dropboxClient.writeFile(statsFile, JSON.stringify(statsObj, null, 2), function(error, stat) {
       if (error) {
         console.error(chalkError(moment().format(defaultDateTimeFormat) 
@@ -533,6 +528,7 @@ function saveStats(statsFile, statsObj, callback) {
         callback('OK');
       }
     });
+
   }
 }
 
@@ -924,6 +920,7 @@ function updateGroupsInterval(configFile, interval){
 
   initGroupsInterval = setInterval(function() {
     updateGroups(configFile, function(err, results){});
+    initKeywords(defaultDropboxKeywordFile);
   }, interval);
 }
 
@@ -958,9 +955,9 @@ var Entity = require('mongoose').model('Entity');
 var Session = require('mongoose').model('Session');
 var Word = require('mongoose').model('Word');
 
-var groups = require('./app/controllers/group.server.controller');
-var entities = require('./app/controllers/entity.server.controller');
-var words = require('./app/controllers/word.server.controller');
+var groupServer = require('./app/controllers/group.server.controller');
+var entityServer = require('./app/controllers/entity.server.controller');
+var wordServer = require('./app/controllers/word.server.controller');
 
 var Oauth2credential = require('mongoose').model('Oauth2credential');
 
@@ -1368,11 +1365,18 @@ var readUpdateSessionViewQueue = setInterval(function() {
       sessionSmallObj.source = {
         nodeId: sessionUpdateObj.source.nodeId,
         raw: sessionUpdateObj.source.raw,
+        isIgnored: sessionUpdateObj.source.isIgnored,
+        isKeyword: keywordHashMap.has(sessionUpdateObj.source.nodeId),
+        keywords: {},
         url: sessionUpdateObj.source.url,
         wordChainIndex: sessionUpdateObj.source.wordChainIndex,
         links: {},
         mentions: sessionUpdateObj.source.mentions
       };
+
+      if (keywordHashMap.has(sessionUpdateObj.source.nodeId)) {
+        sessionSmallObj.source.keywords = keywordHashMap.get(sessionUpdateObj.source.nodeId);
+      }
 
       if (sessionUpdateObj.source.antonym) {
         sessionSmallObj.source.antonym = sessionUpdateObj.source.antonym;
@@ -1382,12 +1386,20 @@ var readUpdateSessionViewQueue = setInterval(function() {
         sessionSmallObj.target = {
           nodeId: sessionUpdateObj.target.nodeId,
           raw: sessionUpdateObj.target.raw,
+          isIgnored: sessionUpdateObj.target.isIgnored,
+          isKeyword: sessionUpdateObj.target.isKeyword,
+          keywords: {},
           url: sessionUpdateObj.target.url,
           wordChainIndex: sessionUpdateObj.target.wordChainIndex,
           links: {},
           mentions: sessionUpdateObj.target.mentions
         };
+
+        if (sessionUpdateObj.target.keywords) {
+          sessionSmallObj.target.keywords = sessionUpdateObj.target.keywords;
+        }
       }
+
 
       if (sessionUpdateObj.target) {
         debug(chalkLog("S>" + " | " + sessionUpdateObj.userId
@@ -1707,7 +1719,7 @@ function dbUpdateGroup(groupObj, incMentions, callback) {
     return;
   }
 
-  groups.findOneGroup(groupObj, incMentions, function(err, group) {
+  groupServer.findOneGroup(groupObj, incMentions, function(err, group) {
     if (err) {
       console.error(chalkError("dbUpdateGroup -- > findOneGroup ERROR" 
         + "\n" + JSON.stringify(err) + "\n" + JSON.stringify(groupObj, null, 2)));
@@ -1740,7 +1752,7 @@ function dbUpdateEntity(entityObj, incMentions, callback) {
     return;
   }
 
-  entities.findOneEntity(entityObj, incMentions, function(err, entity) {
+  entityServer.findOneEntity(entityObj, incMentions, function(err, entity) {
     if (err) {
       console.error(chalkError("dbUpdateEntity -- > findOneEntity ERROR" 
         + "\n" + JSON.stringify(err) + "\n" + JSON.stringify(entityObj, null, 2)));
@@ -1775,20 +1787,43 @@ function dbUpdateWord(wordObj, incMentions, callback) {
     return;
   }
 
-  words.findOneWord(wordObj, incMentions, function(err, word) {
+  if (keywordHashMap.has(wordObj.nodeId)) {
+    // console.log(chalkRed("KWHM HIT\n" + jsonPrint(wordObj)));
+    wordObj.isKeyword = true;
+    var kw = keywordHashMap.get(wordObj.nodeId);
+    wordObj.keywords = {};    
+    wordObj.keywords[kw] = true;    
+  }
+
+  wordServer.findOneWord(wordObj, incMentions, function(err, word) {
     if (err) {
       console.error(chalkError("dbUpdateWord -- > findOneWord ERROR" 
         + "\n" + JSON.stringify(err) + "\n" + JSON.stringify(wordObj, null, 2)));
       callback(err, wordObj);
     } else {
 
-      debug("dbUpdateWord ->- DB UPDATE | " 
+      console.log("dbUpdateWord ->- DB UPDATE | " 
         + word.nodeId 
+        + " | I: " + word.isIgnored 
+        + " | K: " + word.isKeyword 
+        + " | KWs: " + jsonPrint(word.keywords) 
         + " | MNS: " + word.mentions 
         + " | URL: " + word.url 
         + " | BHT SEARCHED: " + word.bhtSearched 
-        + " | BHT FOUND: " + word.bhtFound
+        + " FOUND: " + word.bhtFound
+        + " | MWD SEARCHED: " + word.mwDictSearched 
+        + " FOUND: " + word.mwDictFound
       );
+
+      // if (word.isKeyword && word.mwDictFound) {
+      if (word.isKeyword && word.bhtFound && (typeof word.adjective !== 'undefined')) {
+        console.log(chalkRed("BHT ADJ"
+          // + "\n" + jsonPrint(word.mwSuggestion) 
+          // + "\n" + word.mwSuggestion
+          // + "\n" + jsonPrint(word.mwEntry) 
+          + "\n" + jsonPrint(word.adjective) 
+        ));
+      }
 
       debug(JSON.stringify(word, null, 3));
 
@@ -1933,7 +1968,7 @@ function bhtHttpGet(host, path, wordObj, callback) {
       debug("bhtHttpGet: \'" + wordObj.nodeId + "\' NOT FOUND");
       wordObj.bhtSearched = true;
       wordObj.bhtFound = false;
-      words.findOneWord(wordObj, true, function(err, wordUpdatedObj) {
+      wordServer.findOneWord(wordObj, true, function(err, wordUpdatedObj) {
         debug(chalkBht("bhtHttpGet: ->- DB UPDATE | " + wordUpdatedObj.nodeId 
           + " | MNS: " + wordUpdatedObj.mentions));
         debug(chalkBht(JSON.stringify(wordUpdatedObj, null, 3)));
@@ -1946,7 +1981,7 @@ function bhtHttpGet(host, path, wordObj, callback) {
       + " | ALT: " + response.statusMessage // alternative word
         + " | " + response.headers.location
       ));
-      words.findOneWord(wordObj, true, function(err, wordUpdatedObj) {
+      wordServer.findOneWord(wordObj, true, function(err, wordUpdatedObj) {
         if (err) {
           console.error(chalkError("bhtHttpGet: findOneWord: DB ERROR\n" + "\n" + util.inspect(err, {
             showHidden: false,
@@ -2002,7 +2037,7 @@ function bhtHttpGet(host, path, wordObj, callback) {
           wordObj.bhtFound = false;
         }
 
-        words.findOneWord(wordObj, true, function(err, wordUpdatedObj) {
+        wordServer.findOneWord(wordObj, true, function(err, wordUpdatedObj) {
           debug(chalkBht("bhtHttpGet: ->- DB UPDATE | " + wordUpdatedObj.nodeId 
             + " | MNS: " + wordUpdatedObj.mentions));
           debug(chalkBht(JSON.stringify(wordUpdatedObj, null, 3)));
@@ -2034,7 +2069,7 @@ function generatePrompt(query, callback) {
 
   switch (query.algorithm) {
     case 'antonym':
-      words.getWordVariation(query.input, wordTypes, ['ant'], function(status, antWordObj) {
+      wordServer.getWordVariation(query.input, wordTypes, ['ant'], function(status, antWordObj) {
         if (status == 'BHT_VAR_HIT') {
           // debug("randomWordObj: " + randomWordObj.nodeId);
           debug("Word CACHE SET8: " + antWordObj.nodeId);
@@ -2042,7 +2077,7 @@ function generatePrompt(query, callback) {
           callback('OK', antWordObj);
           return;
         } else if (status == 'BHT_VAR_MISS') {
-          words.getRandomWord(function(err, randomWordObj) {
+          wordServer.getRandomWord(function(err, randomWordObj) {
             if (!err) {
               debug("-G- GEN RANDOM - ANT MISS: " + randomWordObj.nodeId);
               debug("Word CACHE SET9: " + randomWordObj.nodeId);
@@ -2063,7 +2098,7 @@ function generatePrompt(query, callback) {
       });
       break;
     case 'synonym':
-      words.getWordVariation(query.input, wordTypes, ['syn', 'sim'], function(status, synWordObj) {
+      wordServer.getWordVariation(query.input, wordTypes, ['syn', 'sim'], function(status, synWordObj) {
         if (status == 'BHT_VAR_HIT') {
           // debug("randomWordObj: " + randomWordObj.nodeId);
           debug("Word CACHE SET10: " + synWordObj.nodeId);
@@ -2071,7 +2106,7 @@ function generatePrompt(query, callback) {
           callback('OK', synWordObj);
           return;
         } else if (status == 'BHT_VAR_MISS') {
-          words.getRandomWord(function(err, randomWordObj) {
+          wordServer.getRandomWord(function(err, randomWordObj) {
             if (!err) {
               debug("-G- GEN RANDOM - SYN MISS: " + randomWordObj.nodeId);
               debug("Word CACHE SET11: " + randomWordObj.nodeId);
@@ -2092,7 +2127,7 @@ function generatePrompt(query, callback) {
       });
       break;
     default: // 'random':
-      words.getRandomWord(function(err, randomWordObj) {
+      wordServer.getRandomWord(function(err, randomWordObj) {
         if (!err) {
           // debug("randomWordObj: " + randomWordObj.nodeId);
           debug("Word CACHE SET12: " + randomWordObj.nodeId);
@@ -2573,7 +2608,7 @@ function entityFindAllDb(options, callback) {
       callback(err, null);
       return;
     }
-    if (groups) {
+    if (entities) {
 
       async.forEach(
 
@@ -4580,7 +4615,7 @@ function handleSessionEvent(sesObj, callback) {
                     case 'RANDOM':
                     case 'ANTONYM':
                     case 'SYNONYM':
-                      words.getRandomWord(function(err, randomWordObj) {
+                      wordServer.getRandomWord(function(err, randomWordObj) {
                         if (!err) {
 
                           randomWordObj.wordChainIndex = currentSession.wordChainIndex;
@@ -4748,6 +4783,8 @@ var readResponseQueue = setInterval(function() {
     ready = false;
 
     var rxInObj = responseQueue.dequeue();
+
+    debug(chalkWarn("RXINOBJ\n" + jsonPrint(rxInObj)));
 
     if ((typeof rxInObj.nodeId === 'undefined') || (typeof rxInObj.nodeId !== 'string')) {
       debug(chalkError("*** ILLEGAL RESPONSE ... SKIPPING" + "\nTYPE: " + typeof rxInObj.nodeId 
@@ -5010,6 +5047,8 @@ var readDbUpdateWordQueue = setInterval(function() {
       currentSessionObj.tags.group = entityChannelGroupHashMap.get(dbUpdateObj.tags.entity).groupId;
     }
 
+    // console.log("dbUpdateObj.word\n" + jsonPrint(dbUpdateObj.word));
+
     dbUpdateWord(dbUpdateObj.word, true, function(status, updatedWordObj) {
 
       if (status == 'BHT_FOUND'){
@@ -5246,7 +5285,7 @@ var generatePromptQueueInterval = setInterval(function() {
         var currentResponseWordObj = {};
         currentResponseWordObj.nodeId = currentResponse;
 
-        words.findOneWord(currentResponseWordObj, true, function(err, responseWordObj) {
+        wordServer.findOneWord(currentResponseWordObj, true, function(err, responseWordObj) {
           if (err) {
             console.error(chalkError("**** USER_USER generatePrompt ERROR\n" + jsonPrint(err)))
           } else {
@@ -5305,6 +5344,61 @@ var generatePromptQueueInterval = setInterval(function() {
   }
 }, 50);
 
+function initKeywords(file, callback){
+  loadDropboxJsonFile(file, function(err, kwordsObj){
+
+    if (!err) {
+
+      var words = Object.keys(kwordsObj);
+
+      async.forEach(words,
+
+        function(w, cb) {
+
+          var wd = w.toLowerCase();
+          var keyWordType = kwordsObj[w];
+
+          console.log(chalkRed("UPDATING KEYWORD | " + wd + ": " + keyWordType));
+
+          var wordObj = new Word();
+
+          wordObj.nodeId = wd;
+          wordObj.isKeyword = true;
+          wordObj.keywords[keyWordType] = true;
+          keywordHashMap.set(wordObj.nodeId, keyWordType);
+
+          wordServer.findOneWord(wordObj, false, function(err, updatedWordObj) {
+            if (err){
+              console.log(chalkError("ERROR: UPDATING KEYWORD | " + wd + ": " + kwordsObj[wd]));
+              cb(err);
+            }
+            else {
+              console.log(chalkLog("+++ UPDATED KEYWORD"
+                + " | " + updatedWordObj.nodeId 
+                + " | " + updatedWordObj.raw 
+                + " | M " + updatedWordObj.mentions 
+                + " | I " + updatedWordObj.isIgnored 
+                + " | K " + updatedWordObj.isKeyword 
+                + " | K " + jsonPrint(updatedWordObj.keywords) 
+              ));
+              cb();
+            }
+          });
+
+        },
+
+        function(err) {
+          if (err) {
+            console.log(chalkError("initKeywords ERROR! " + err));
+          }
+          else {
+            console.log(chalkInfo("initKeywords COMPLETE"));
+          }
+        }
+      )
+    }
+  });
+}
 
 function initializeConfiguration(callback) {
 
@@ -5450,11 +5544,8 @@ function initializeConfiguration(callback) {
     function(err, results) {
 
       updateGroups(defaultDropboxGroupsConfigFile, function(err, results){});
-      updateGroupsInterval(defaultDropboxGroupsConfigFile, 5*ONE_MINUTE);
-
-      // updateEntityChannelGroups(defaultDropboxEntityChannelGroupsConfigFile, function(err, results){});
-      // updateEntityChannelGroupsInterval(defaultDropboxEntityChannelGroupsConfigFile, 5*ONE_MINUTE);
-
+      updateGroupsInterval(defaultDropboxGroupsConfigFile, ONE_MINUTE);
+      initKeywords(defaultDropboxKeywordFile);
       updateStatsInterval(dropboxHostStatsFile, ONE_MINUTE);
 
       if (err) {
@@ -6188,7 +6279,7 @@ function createSession(newSessionObj) {
 
     var randWordSession = sessionCache.get(socket.id);
 
-    words.getRandomWord(function(err, randomWordObj) {
+    wordServer.getRandomWord(function(err, randomWordObj) {
       socket.emit("RANDOM_WORD", randomWordObj.nodeId);
     });
   });
@@ -6428,9 +6519,12 @@ var rateQinterval = setInterval(function() {
 }, 50);
 
 var DROPBOX_WA_GROUPS_CONFIG_FILE = process.env.DROPBOX_WA_GROUPS_CONFIG_FILE || 'groups.json';
+var DROPBOX_WA_KEYWORDS_FILE = process.env.DROPBOX_WA_KEYWORDS_FILE || 'keywords.json';
 var DROPBOX_WA_ENTITY_CHANNEL_GROUPS_CONFIG_FILE = process.env.DROPBOX_WA_ENTITY_CHANNEL_GROUPS_CONFIG_FILE || 'entityChannelGroups.json';
 
 var defaultDropboxGroupsConfigFile = DROPBOX_WA_GROUPS_CONFIG_FILE;
+var defaultDropboxKeywordFile = DROPBOX_WA_KEYWORDS_FILE;
+
 var dropboxGroupsConfigFile = os.hostname() +  "_" + DROPBOX_WA_GROUPS_CONFIG_FILE;
 
 var defaultDropboxEntityChannelGroupsConfigFile = DROPBOX_WA_ENTITY_CHANNEL_GROUPS_CONFIG_FILE;
@@ -6457,6 +6551,45 @@ function loadConfig(file, callback){
     debug(chalkLog(getTimeStamp() + " | FOUND " + configObj.timeStamp));
 
     return(callback(null, configObj));
+
+  });
+}
+
+function saveDropboxJsonFile(file, jsonObj, callback){
+
+  dropboxClient.writeFile(file, JSON.stringify(jsonObj, null, 2), function(error, stat) {
+    if (error) {
+      console.error(chalkError(moment().format(defaultDateTimeFormat) 
+        + " | !!! ERROR DROBOX JSON WRITE | FILE: " + file 
+        + " ERROR: " + error));
+      callback(error);
+    } else {
+      debug(chalkLog("... SAVED DROPBOX JSON | " + file));
+      callback('OK');
+    }
+  });
+
+}
+
+function loadDropboxJsonFile(file, callback){
+
+  dropboxClient.readFile(file, function(err, dropboxFileData) {
+
+    if (err) {
+      console.error(chalkError("!!! DROPBOX READ JSON FILE ERROR: " + file));
+      debug(chalkError(jsonPrint(err)));
+      return(callback(err, null));
+    }
+
+    console.log(chalkLog(getTimeStamp()
+      + " | LOADING DROPBOX JSON FILE: " + file
+    ));
+
+    var dropboxFileObj = JSON.parse(dropboxFileData);
+
+    debug("DROPBOX JSON\n" + JSON.stringify(dropboxFileObj, null, 3));
+
+    return(callback(null, dropboxFileObj));
 
   });
 }

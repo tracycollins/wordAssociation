@@ -34,6 +34,10 @@ var WordSchema = new Schema({
 		type: Boolean,
 		default: false
 	},
+	keywords: {
+		type: Object,
+		default: {}
+	},
 	isIgnored: {
 		type: Boolean,
 		default: false
@@ -83,6 +87,7 @@ var WordSchema = new Schema({
 	mwSuggestion: { // mw dictionary
 		type: Object
 	}
+// }, { minimize: false });
 });
 
 mongoose.model('Word', WordSchema);

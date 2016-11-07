@@ -145,7 +145,7 @@ exports.findOneWord = function(word, incMentions, callback) {
 
 	if (typeof word.raw === 'undefined') word.raw = word.nodeId;
 
-	debug("findOneWord:" + JSON.stringify(word, null, 2));
+	// console.log("findOneWord:" + JSON.stringify(word, null, 2));
 
 	var inc = 0;
 	if (incMentions) inc = 1 ;
@@ -156,6 +156,9 @@ exports.findOneWord = function(word, incMentions, callback) {
 					$set: { 
 						nodeId: word.nodeId,
 						raw: word.raw,
+						isKeyword: word.isKeyword,
+						keywords: word.keywords,
+						isIgnored: word.isIgnored,
 						url: word.url,
 						lastSeen: moment(),
 						bhtAlt: word.bhtAlt

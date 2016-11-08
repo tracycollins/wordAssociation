@@ -1858,7 +1858,7 @@ var createSession = function(callback) {
       currentSession.node.mentions = sessUpdate.wordChainIndex;
       currentSession.node.text = sessUpdate.tags.entity + "[" + sessUpdate.tags.channel + "]";
       currentSession.node.r = config.defaultNodeRadius;
-      currentSession.node.x = currentGroup.initialPosition.x + randomIntFromInterval(-10,10);
+      currentSession.node.x = currentGroup.initialPosition.x + randomIntFromInterval(-10,-20);
       currentSession.node.y = currentGroup.initialPosition.y + randomIntFromInterval(-10,10);
 
       currentSession.node.sessionColors = {};
@@ -1968,7 +1968,7 @@ var createNode = function(callback) {
       session.node.wordChainIndex = session.wordChainIndex;
       session.node.mentions = session.wordChainIndex+1;
       session.node.r = config.defaultNodeRadius;
-      session.node.x = session.initialPosition.x + randomIntFromInterval(-10,10);
+      session.node.x = session.initialPosition.x + randomIntFromInterval(-10,-20);
       session.node.y = session.initialPosition.y + randomIntFromInterval(-10,10);
 
       // session.node.colors = {};
@@ -2101,7 +2101,7 @@ var createNode = function(callback) {
             sourceNode.interpolateColor = session.interpolateSessionColor;
 
             sourceNode.r = config.defaultNodeRadius;
-            sourceNode.x = session.node.x+randomIntFromInterval(-10,10);
+            sourceNode.x = session.node.x+randomIntFromInterval(-10,-20);
             sourceNode.y = session.node.y+randomIntFromInterval(-10,10);
 
             if (sourceNode.isSessionNode){
@@ -2234,8 +2234,8 @@ var createNode = function(callback) {
               targetNode.text = targetText;
               targetNode.mentions = session.target.mentions;
               targetNode.r = config.defaultNodeRadius;
-              targetNode.x = session.node.x - (100 - 100 * Math.random());
-              targetNode.y = session.node.y - (100 - 100 * Math.random());
+              targetNode.x = session.node.x - (100 * Math.random());
+              targetNode.y = session.node.y - (20 - 20 * Math.random());
             }
 
             addToHashMap(nodeHashMap, targetNodeId, targetNode, function(tNode) {

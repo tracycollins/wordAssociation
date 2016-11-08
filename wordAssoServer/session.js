@@ -1344,6 +1344,10 @@ var processSessionQueues = function(callback) {
       );
     }
 
+    if (typeof session.tags.url !== 'undefined') {
+      session.tags.url = "http://threeceemedia.com";
+      groupCreateQueue.push(session);
+    }
     // console.log("R< | " + "\n" + jsonPrint(session));
 
     return (callback(null, session.sessionId));
@@ -1446,6 +1450,7 @@ var createGroup = function(callback) {
     // var groupId = sessUpdate.tags.group.toLowerCase();
     var groupId = sessUpdate.tags.group.groupId;
     var groupName = sessUpdate.tags.group.name;
+    var groupUrl = sessUpdate.tags.group.url;
 
     // console.warn("createGroup" + " | " + groupId);
 
@@ -1480,6 +1485,7 @@ var createGroup = function(callback) {
       //   // + "\n" + jsonPrint(currentGroup)
       // );
 
+      currentGroup.url = groupUrl;
       currentGroup.mentions++;
       currentGroup.age = 1e-6;
       currentGroup.ageMaxRatio = 1e-6;
@@ -1491,6 +1497,7 @@ var createGroup = function(callback) {
 
       // GROUP NODE
       currentGroup.node.text = groupId;
+      currentGroup.node.url = groupUrl;
 
       currentGroup.node.age = 1e-6;
       currentGroup.node.ageMaxRatio = 1e-6;
@@ -1555,6 +1562,7 @@ var createGroup = function(callback) {
       // );
 
       currentGroup.groupId = groupId;
+      currentGroup.url = groupUrl;
       currentGroup.name = groupName;
       currentGroup.nodeId = groupId;
       currentGroup.age = 1e-6;
@@ -1604,6 +1612,7 @@ var createGroup = function(callback) {
       currentGroup.node.isSessionNode = false;
       currentGroup.node.groupId = groupId;
       currentGroup.node.nodeId = groupId;
+      currentGroup.node.url = groupUrl;
       currentGroup.node.age = 1e-6;
       currentGroup.node.ageMaxRatio = 1e-6;
       currentGroup.node.isDead = false;
@@ -1799,12 +1808,14 @@ var createSession = function(callback) {
         + " | UID: " + sessUpdate.userId 
         + " | ENT: " + sessUpdate.tags.entity 
         + " | CH: " + sessUpdate.tags.channel 
+        + " | URL: " + sessUpdate.tags.url 
         + " | " + sessUpdate.source.nodeId 
         + " > " + sessUpdate.target.nodeId
         // + "\n" + jsonPrint(sessUpdate)
       );
 
       currentSession.groupId = currentGroup.groupId;
+      currentSession.url = sessUpdate.tags.url;
       currentSession.age = 1e-6;
       currentSession.ageMaxRatio = 1e-6;
       currentSession.mentions = 1;
@@ -1850,6 +1861,7 @@ var createSession = function(callback) {
       currentSession.node.channel = sessUpdate.tags.channel;
       currentSession.node.userId = sessUpdate.userId;
       currentSession.node.sessionId = sessUpdate.sessionId;
+      currentSession.node.url = sessUpdate.tags.url;
       currentSession.node.age = 1e-6;
       currentSession.node.ageMaxRatio = 1e-6;
       currentSession.node.ageUpdated = dateNow;
@@ -1959,6 +1971,7 @@ var createNode = function(callback) {
       session.node.nodeId = session.tags.entity + "_" + session.tags.channel;
       session.node.entity = session.tags.entity;
       session.node.channel = session.tags.channel;
+      session.node.url = session.tags.url;
       session.node.text = session.tags.entity + "[" + session.tags.channel + "]";
       session.node.userId = session.userId;
       session.node.sessionId = session.sessionId;
@@ -2030,6 +2043,7 @@ var createNode = function(callback) {
             sourceNode.sessionId = session.sessionId;
             sourceNode.groupId = session.groupId;
             sourceNode.channel = session.tags.channel;
+            sourceNode.url = session.tags.url;
             sourceNode.age = 1e-6;
             sourceNode.ageMaxRatio = 1e-6;
             sourceNode.isDead = false;
@@ -2083,6 +2097,7 @@ var createNode = function(callback) {
             sourceNode.groupId = session.groupId;
             sourceNode.channel = session.tags.channel;
             sourceNode.sessionId = session.sessionId;
+            sourceNode.url = session.tags.url;
             sourceNode.links = {};
             sourceNode.rank = -1;
             sourceNode.age = 1e-6;
@@ -2204,6 +2219,7 @@ var createNode = function(callback) {
             targetNode.userId = session.userId;
             targetNode.groupId = session.groupId;
             targetNode.channel = session.tags.channel;
+            targetNode.url = session.tags.url;
             targetNode.sessionId = session.sessionId;
             targetNode.links = {};
             targetNode.rank = -1;

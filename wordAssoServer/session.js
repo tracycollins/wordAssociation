@@ -941,9 +941,10 @@ document.addEventListener(visibilityEvent, function() {
   console.log("visibilityEvent");
   if (!document[hidden]) {
     windowVisible = true;
-    currentSessionView.resize();
+    currentSessionView.setPause(false);
   } else {
-    // reset();
+    windowVisible = false;
+    currentSessionView.setPause(true);
   }
 });
 
@@ -1333,8 +1334,19 @@ var processSessionQueues = function(callback) {
     session.tags.entity = session.tags.entity.toLowerCase();
     session.tags.channel = session.tags.channel.toLowerCase();
 
+    switch (session.tags.channel){
+      case "twitter":
+        session.tags.url = "https://twitter.com/" + session.tags.entity.toLowerCase();
+      break;
+      case "livestream":
+        if (session.tags.entity == 'cspan'){
+          session.tags.url = "https://www.c-span.org/networks/";          
+        }
+      break;
+    }
+
     if (typeof session.tags.group !== 'undefined') {
-      session.tags.group = session.tags.group;
+      // session.tags.group = session.tags.group;
       groupCreateQueue.push(session);
     }
     else {
@@ -1344,10 +1356,10 @@ var processSessionQueues = function(callback) {
       );
     }
 
-    if (typeof session.tags.url === 'undefined') {
-      session.tags.url = "http://threeceemedia.com";
-      groupCreateQueue.push(session);
-    }
+    // if (typeof session.tags.url === 'undefined') {
+    //   session.tags.url = "http://threeceemedia.com";
+    //   groupCreateQueue.push(session);
+    // }
     // console.log("R< | " + "\n" + jsonPrint(session));
 
     return (callback(null, session.sessionId));

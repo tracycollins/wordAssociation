@@ -13,6 +13,7 @@
         "DROPBOX_WORD_ASSO_APP_KEY" : "qlb9k4dp01t9iqk",
         "DROPBOX_WORD_ASSO_APP_SECRET" : "wqslhe2t95zfn19",
         "WA_STATS_FILE" : "wordAssociationStats.json",
+        "WAPI_REQ_RESERVE_PRCNT": 0.95,
         "GOOGLE_PROJECT_ID": "graphic-tangent-627",
         "GOOGLE_APPLICATION_CREDENTIALS": "/home/tc/forceDirectedJs/auth/threeceeTwitterStream-3b8b488ee9f4.json",
         "GOOGLE_SERVICE_ACCOUNT_CLIENT_ID": "584836433218-toensh76eq0cep7sponieimsq4c2g8hm.apps.googleusercontent.com",

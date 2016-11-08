@@ -1,7 +1,12 @@
 /*jslint node: true */
 "use strict";
 
+var wapiForceSearch = true;
+
+var unirest = require('unirest');
+
 var debug = require('debug')('wa');
+var debugWapi = require('debug')('wapi');
 var debugAppGet = require('debug')('appGet');
 
 var MAX_RESPONSE_QUEUE_SIZE = 250;
@@ -26,6 +31,8 @@ var MIN_CHAIN_FREEZE_UNIQUE_NODES = 10;
 
 var BHT_REQUEST_LIMIT = 250000;
 var MW_REQUEST_LIMIT = 250000;
+var WAPI_REQUEST_LIMIT = 25000;
+var WAPI_REQ_RESERVE_PRCNT = 0.60;
 
 var SESSION_WORDCHAIN_REQUEST_LIMIT = 25;
 
@@ -36,6 +43,7 @@ var saveStatsInterval = 10000; // millis
 // ==================================================================
 var testMode = false;
 var bhtOverLimitTestFlag = false;
+var wapiOverLimitTestFlag = false;
 
 // ==================================================================
 // SESSION MODES: RANDOM, ANTONYM, SYNONYM, SCRIPT, USER_USER, GROUP, STREAM  ( session.config.mode )
@@ -48,6 +56,14 @@ var enabledSessionModes = ["ANTONYM", "SYNONYM"];
 var DEFAULT_SESSION_MODE = 'RANDOM';
 var defaultSessionMode = DEFAULT_SESSION_MODE;
 
+var jsonPrint = function(obj) {
+  if (obj) {
+    return JSON.stringify(obj, null, 2);
+  } else {
+    return obj;
+  }
+}
+
 
 function quit(message) {
   console.log("\n... QUITTING ...");
@@ -56,6 +72,7 @@ function quit(message) {
   console.log("QUIT MESSAGE\n" + msg);
   process.exit();
 }
+
 
 process.on('SIGINT', function() {
   quit('SIGINT');
@@ -222,6 +239,10 @@ var statsObj = {
   "heartbeat": txHeartbeat
 };
 
+statsObj.wapi = {};
+statsObj.wapi.totalRequests = 0;
+statsObj.wapi.requestLimit = 25000;
+
 statsObj.group = {};
 statsObj.group.errors = 0;
 statsObj.group.hashMiss = {};
@@ -244,6 +265,8 @@ statsObj.entityChannelGroup.allHashMisses = {};
 // ==================================================================
 var chalk = require('chalk');
 
+var chalkWapi = chalk.red;
+var chalkWapiBold = chalk.bold.red;
 var chalkViewer = chalk.cyan;
 var chalkUser = chalk.green;
 var chalkUtil = chalk.blue;
@@ -360,6 +383,29 @@ var wordCacheTtl = process.env.WORD_CACHE_TTL;
 
 if (typeof wordCacheTtl === 'undefined') wordCacheTtl = WORD_CACHE_TTL;
 console.log("WORD CACHE TTL: " + wordCacheTtl + " SECONDS");
+
+// ==================================================================
+// WORDS API
+// ==================================================================
+var wordsApiKey = "e1b4564ec38d2db399dabdf83a8beeeb";
+var wapiEvents = new EventEmitter();
+var wapiErrors = 0;
+var wapiRequests = 0;
+var wapiOverLimits = 0;
+
+var wapiOverLimitTime = moment.utc().endOf('day');
+var wapiLimitResetTime = moment.utc().endOf('day');
+var wapiTimeToReset = moment.utc().endOf('day').valueOf() - moment.utc().valueOf();
+var wapiOverLimitFlag = false;
+
+debug("WAPI OVER LIMIT TIME:  " + wapiOverLimitTime.format(defaultDateTimeFormat));
+debug("WAPI OVER LIMIT RESET: " + wapiOverLimitTime.format(defaultDateTimeFormat));
+debug("WAPI TIME TO RESET: " + msToTime(wapiTimeToReset));
+
+var wapiOverLimitTimeOut = setTimeout(function() {
+  wapiEvents.emit("WAPI_OVER_LIMIT_TIMEOUT");
+}, wapiTimeToReset);
+
 
 // ==================================================================
 // BIG HUGE THESAURUS
@@ -771,10 +817,10 @@ function updateGroups(configFile, callback){
 
             delete statsObj.group.hashMiss[groupId];
 
-            console.log(chalkLog("--- UPDATED GROUP"
-              + " | " + groupId
-              + " | " + groupHashMap.get(groupId).name
-            ));
+            // console.log(chalkLog("--- UPDATED GROUP"
+            //   + " | " + groupId
+            //   + " | " + groupHashMap.get(groupId).name
+            // ));
 
             cb(null, "HIT");
             return;
@@ -849,12 +895,12 @@ function updateEntityChannelGroups(configFile, callback){
 
             delete statsObj.entityChannelGroup.hashMiss[entityChannelId];
 
-            console.log(chalkRed("--- UPDATED ENTITY CHANNEL"
-              + " | " + entityChannelId
-              + " | " + entityChannelGroupHashMap.get(entityChannelId).groupId
-              + " | " + entityChannelGroupHashMap.get(entityChannelId).name
-              // + " | " + jsonPrint(entityChannelGroupHashMap.get(entityChannelId))
-            ));
+            // console.log(chalkRed("--- UPDATED ENTITY CHANNEL"
+            //   + " | " + entityChannelId
+            //   + " | " + entityChannelGroupHashMap.get(entityChannelId).groupId
+            //   + " | " + entityChannelGroupHashMap.get(entityChannelId).name
+            //   // + " | " + jsonPrint(entityChannelGroupHashMap.get(entityChannelId))
+            // ));
 
             if (groupHashMap.has(entityChannelGroupHashMap.get(entityChannelId).groupId)){
               cb(null, "HIT");
@@ -871,12 +917,12 @@ function updateEntityChannelGroups(configFile, callback){
 
             entityChannelGroupHashMap.set(entityChannelId, entityChannelGroups[entityChannelId]);
 
-            console.log(chalkLog("+++ ADDED ENTITY CHANNEL  "
-              + " | " + entityChannelId
-              + " | GROUP ID: " + entityChannelGroupHashMap.get(entityChannelId).groupId
-              + " | ENTITY NAME: " + entityChannelGroupHashMap.get(entityChannelId).name
-              // + "\n" + jsonPrint(entityChannelGroupHashMap.get(entityChannelId))
-            ));
+            // console.log(chalkLog("+++ ADDED ENTITY CHANNEL  "
+            //   + " | " + entityChannelId
+            //   + " | GROUP ID: " + entityChannelGroupHashMap.get(entityChannelId).groupId
+            //   + " | ENTITY NAME: " + entityChannelGroupHashMap.get(entityChannelId).name
+            //   // + "\n" + jsonPrint(entityChannelGroupHashMap.get(entityChannelId))
+            // ));
 
             if (groupHashMap.has(entityChannelGroupHashMap.get(entityChannelId).groupId)){
               cb(null, "MISS");
@@ -985,6 +1031,7 @@ var dbUpdateGroupQueue = new Queue();
 var dbUpdateEntityQueue = new Queue();
 var dbUpdateSessionQueue = new Queue();
 var dbUpdateWordQueue = new Queue();
+var wapiSearchQueue = new Queue();
 
 var MAX_WORD_HASH_MAP_COUNT = 20;
 var wordArray = []; // used to keep wordHashMap.count() < MAX_WORD_HASH_MAP_COUNT
@@ -1140,14 +1187,6 @@ function randomIntInc(low, high) {
 
 function randomInt(low, high) {
   return Math.floor(Math.random() * (high - low) + low);
-}
-
-var jsonPrint = function(obj) {
-  if (obj) {
-    return JSON.stringify(obj, null, 2);
-  } else {
-    return "UNDEFINED";
-  }
 }
 
 function readFileIntoArray(path, callback) {
@@ -1802,28 +1841,18 @@ function dbUpdateWord(wordObj, incMentions, callback) {
       callback(err, wordObj);
     } else {
 
-      console.log("dbUpdateWord ->- DB UPDATE | " 
+      console.log("> DB UPDATE | " 
         + word.nodeId 
         + " | I: " + word.isIgnored 
         + " | K: " + word.isKeyword 
-        + " | KWs: " + jsonPrint(word.keywords) 
         + " | MNS: " + word.mentions 
         + " | URL: " + word.url 
         + " | BHT SEARCHED: " + word.bhtSearched 
         + " FOUND: " + word.bhtFound
         + " | MWD SEARCHED: " + word.mwDictSearched 
         + " FOUND: " + word.mwDictFound
+        + "\nKWs: " + jsonPrint(word.keywords) 
       );
-
-      // if (word.isKeyword && word.mwDictFound) {
-      if (word.isKeyword && word.bhtFound && (typeof word.adjective !== 'undefined')) {
-        console.log(chalkRed("BHT ADJ"
-          // + "\n" + jsonPrint(word.mwSuggestion) 
-          // + "\n" + word.mwSuggestion
-          // + "\n" + jsonPrint(word.mwEntry) 
-          + "\n" + jsonPrint(word.adjective) 
-        ));
-      }
 
       debug(JSON.stringify(word, null, 3));
 
@@ -1903,6 +1932,163 @@ function loadBhtResponseHash(bhtResponseObj, callback) {
     }
   });
   callback(bhtWordHashMap);
+}
+
+function wordsapiHttpGet(host, path, wordObj, callback) {
+
+  http.get({
+    host: host,
+    path: path
+  }, function(response) {
+
+    debugWapi("wordsapiHttpGet: " + host + "/" + path);
+
+    response.on('error', function(err) {
+      wapiErrors++;
+      debugWapi(chalkError("WAPI ERROR" 
+        + " | TOTAL ERRORS: " + wapiErrors 
+        + " | WORD: " + wordObj.nodeId 
+        + " | STATUS CODE: " + response.statusCode 
+        + " | STATUS MESSAGE: " + response.statusMessage 
+        + "\n" + util.inspect(err, {
+          showHidden: false,
+          depth: 3
+        })
+      ));
+      callback("WAPI_ERROR | " + err, wordObj);
+      return;
+    });
+
+    var body = '';
+    var status = '';
+
+    if ((response.statusCode == 500) && (response.statusMessage == 'Usage Exceeded')) {
+      wapiErrors++;
+      debugWapi(chalkError("WAPI ERROR" 
+        + " | TOTAL ERRORS: " + wapiErrors 
+        + " | WORD: " + wordObj.nodeId 
+        + " | STATUS CODE: " + response.statusCode 
+        + " | STATUS MESSAGE: " + response.statusMessage
+        // + "\n" + util.inspect(response, {showHidden: false, depth: 3})
+      ));
+      wapiEvents.emit("WAPI_OVER_LIMIT", wapiRequests);
+      callback("WAPI_OVER_LIMIT", wordObj);
+      return;
+    } else if ((response.statusCode == 500) && (response.statusMessage == 'Inactive key')) {
+      wapiErrors++;
+      debugWapi(chalkError("WAPI ERROR" 
+        + " | TOTAL ERRORS: " + wapiErrors 
+        + " | WORD: " + wordObj.nodeId 
+        + " | STATUS CODE: " + response.statusCode 
+        + " | STATUS MESSAGE: " + response.statusMessage 
+        + "\n" + util.inspect(response, {
+        showHidden: false,
+        depth: 3
+      })));
+      wapiEvents.emit("WAPI_INACTIVE_KEY", wapiRequests);
+      callback("WAPI_INACTIVE_KEY", wordObj);
+      return;
+    } else if (wapiOverLimitTestFlag) {
+      debugWapi(chalkWapi("WAPI OVER LIMIT TEST FLAG SET"));
+      wapiEvents.emit("WAPI_OVER_LIMIT", wapiRequests);
+      callback("WAPI_OVER_LIMIT", wordObj);
+      return;
+    } else if (response.statusCode == 404) {
+      debugWapi("wordsapiHttpGet: \'" + wordObj.nodeId + "\' NOT FOUND");
+      wordObj.wapiSearched = true;
+      wordObj.wapiFound = false;
+      wordServer.findOneWord(wordObj, true, function(err, wordUpdatedObj) {
+        debugWapi(chalkWapi("wordsapiHttpGet: ->- DB UPDATE | " + wordUpdatedObj.nodeId 
+          + " | MNS: " + wordUpdatedObj.mentions));
+        debugWapi(chalkWapi(JSON.stringify(wordUpdatedObj, null, 3)));
+        callback("WAPI_NOT_FOUND", wordUpdatedObj);
+        return;
+      });
+    } else if (response.statusCode == 303) {
+      wordObj.wapiAlt = response.statusMessage;
+      debugWapi(chalkWapi("WAPI REDIRECT" + " | WORD: " + wordObj.nodeId 
+      + " | ALT: " + response.statusMessage // alternative word
+        + " | " + response.headers.location
+      ));
+      wordServer.findOneWord(wordObj, true, function(err, wordUpdatedObj) {
+        if (err) {
+          console.error(chalkError("wordsapiHttpGet: findOneWord: DB ERROR\n" + "\n" + util.inspect(err, {
+            showHidden: false,
+            depth: 3
+          })));
+          callback("WAPI_ERROR | " + err, wordObj);
+          return;
+        } else {
+          debugWapi(chalkWapi("wordsapiHttpGet: ->- DB ALT UPDATE | " + wordUpdatedObj.nodeId 
+          + " | ALT: " + wordUpdatedObj.wapiAlt // alternative word
+            + " | MNS: " + wordUpdatedObj.mentions
+          ));
+          debugWapi(chalkWapi(JSON.stringify(wordUpdatedObj, null, 3)));
+          callback('WAPI_REDIRECT', wordUpdatedObj);
+          return;
+        }
+      });
+    } else if (response.statusCode != 200) {
+      wapiErrors++;
+      debugWapi(chalkError("WAPI ERROR" 
+        + " | TOTAL ERRORS: " + wapiErrors 
+        + " | WORD: " + wordObj.nodeId 
+        + " | STATUS CODE: " + response.statusCode 
+        + " | STATUS MESSAGE: " + response.statusMessage 
+        + "\n" + util.inspect(response, {
+        showHidden: false,
+        depth: 3
+      })));
+      wapiEvents.emit("WAPI_UNKNOWN_STATUS", wapiRequests);
+      callback("WAPI_UNKNOWN_STATUS", wordObj);
+      return;
+    } else {
+      response.on('data', function(d) {
+        body += d;
+      });
+
+      response.on('end', function() {
+
+        if (body != '') {
+          var parsed = JSON.parse(body);
+          debugWapi("wordsapiHttpGet: " + JSON.stringify(parsed, null, 3));
+          if (typeof parsed.noun !== null) wordObj.noun = parsed.noun;
+          if (typeof parsed.verb !== null) wordObj.verb = parsed.verb;
+          if (typeof parsed.adjective !== null) wordObj.adjective = parsed.adjective;
+          if (typeof parsed.adverb !== null) wordObj.adverb = parsed.adverb;
+          status = "WAPI_HIT";
+          wordObj.wapiSearched = true;
+          wordObj.wapiFound = true;
+        } else {
+          debugWapi("wordsapiHttpGet: \'" + wordObj.nodeId + "\' NOT FOUND");
+          status = "WAPI_MISS";
+          wordObj.wapiSearched = true;
+          wordObj.wapiFound = false;
+        }
+
+        wordServer.findOneWord(wordObj, true, function(err, wordUpdatedObj) {
+          debugWapi(chalkWapi("wordsapiHttpGet: ->- DB UPDATE | " + wordUpdatedObj.nodeId 
+            + " | MNS: " + wordUpdatedObj.mentions));
+          debugWapi(chalkWapi(JSON.stringify(wordUpdatedObj, null, 3)));
+          callback(status, wordUpdatedObj);
+          return;
+        });
+      });
+    }
+  }).on('error', function(e) {
+    wapiErrors++;
+    debugWapi(chalkError("WAPI ERROR" 
+      + " | TOTAL ERRORS: " + wapiErrors 
+      + " | WORD: " + wordObj.nodeId
+      // + " | STATUS CODE: " + response.statusCode
+      // + " | STATUS MESSAGE: " + response.statusMessage
+      + "\n" + util.inspect(e, {
+        showHidden: false,
+        depth: 3
+      })
+    ));
+    callback("WAPI_ERROR", wordObj);
+  });
 }
 
 function bhtHttpGet(host, path, wordObj, callback) {
@@ -2143,6 +2329,82 @@ function generatePrompt(query, callback) {
   }
 }
 
+wapiEvents.on("WAPI_OVER_LIMIT_TIMEOUT", function() {
+  if (wapiOverLimitFlag) {
+    debug(chalkWapi("*** WAPI_OVER_LIMIT_TIMEOUT END *** | " 
+      + moment().format(defaultDateTimeFormat)));
+  } else {
+    debug(chalkWapi(" WAPI_OVER_LIMIT_TIMEOUT END (NO OVER LIMIT) | " 
+      + moment().format(defaultDateTimeFormat)));
+  }
+
+  wapiOverLimitFlag = false;
+  wapiOverLimitTestFlag = false;
+
+  wapiOverLimitTime = moment.utc();
+
+  wapiLimitResetTime = moment.utc();
+  wapiLimitResetTime.endOf("day");
+
+  updateStats({
+    wapiRequests: wapiRequests,
+    wapiOverLimitTime: wapiOverLimitTime,
+    wapiLimitResetTime: wapiLimitResetTime,
+    wapiOverLimitFlag: wapiOverLimitFlag
+  });
+
+  wapiTimeToReset = wapiLimitResetTime.valueOf() - wapiOverLimitTime.valueOf();
+
+  clearTimeout(wapiOverLimitTimeOut);
+
+  wapiOverLimitTimeOut = setTimeout(function() {
+    wapiEvents.emit("WAPI_OVER_LIMIT_TIMEOUT");
+  }, wapiTimeToReset);
+});
+
+wapiEvents.on("WAPI_OVER_LIMIT", function() {
+
+  io.of(adminNameSpace).emit('WAPI_OVER_LIMIT', wapiRequests);
+  io.of(utilNameSpace).emit('WAPI_OVER_LIMIT', wapiRequests);
+  io.of(testUsersNameSpace).emit('WAPI_OVER_LIMIT', wapiRequests);
+  io.of(userNameSpace).emit('WAPI_OVER_LIMIT', wapiRequests);
+
+  wapiOverLimits++;
+  wapiOverLimitFlag = true;
+  wapiOverLimitTestFlag = false;
+
+  wapiOverLimitTime = moment.utc();
+
+  wapiLimitResetTime = moment.utc();
+  wapiLimitResetTime.endOf("day");
+
+  // wapiTimeToReset = moment(wapiLimitResetTime);
+  // wapiTimeToReset.subtract(wapiOverLimitTime);
+  wapiTimeToReset = wapiLimitResetTime.valueOf() - wapiOverLimitTime.valueOf();
+
+  debug(chalkWapi("wapiSearchWord: *** OVER LIMIT *** | " + wapiRequests + " REQUESTS"));
+  debug(chalkWapi("wapiSearchWord: *** OVER LIMIT *** | WAPI OVER LIMIT TIME:      " + wapiOverLimitTime.format(defaultDateTimeFormat)));
+  debug(chalkWapi("wapiSearchWord: *** OVER LIMIT *** | WAPI LIMIT RESET TIME:     " + wapiLimitResetTime.format(defaultDateTimeFormat)));
+  debug(chalkWapi("wapiSearchWord: *** OVER LIMIT *** | WAPI OVER LIMIT REMAINING: " + msToTime(wapiTimeToReset)));
+
+  debug("SET WAPI REQUESTS TO LIMIT: " + statsObj.wapi.requestLimit);
+  wapiRequests = statsObj.wapi.requestLimit;
+  debug("SET wapiOverLimitTimeOut = " + msToTime(wapiTimeToReset) + " | " + wapiTimeToReset + " ms");
+
+  updateStats({
+    "wapiOverLimits": wapiOverLimits,
+    "wapiOverLimitTime": wapiOverLimitTime,
+    "wapiOverLimitFlag": wapiOverLimitFlag,
+    "wapiRequests": statsObj.wapi.requestLimit
+  });
+
+  clearTimeout(wapiOverLimitTimeOut);
+
+  wapiOverLimitTimeOut = setTimeout(function() {
+    wapiEvents.emit("WAPI_OVER_LIMIT_TIMEOUT");
+  }, wapiTimeToReset);
+});
+
 bhtEvents.on("BHT_OVER_LIMIT_TIMEOUT", function() {
   if (bhtOverLimitFlag) {
     debug(chalkBht("*** BHT_OVER_LIMIT_TIMEOUT END *** | " 
@@ -2177,7 +2439,6 @@ bhtEvents.on("BHT_OVER_LIMIT_TIMEOUT", function() {
   bhtOverLimitTimeOut = setTimeout(function() {
     bhtEvents.emit("BHT_OVER_LIMIT_TIMEOUT");
   }, bhtTimeToReset);
-
 });
 
 bhtEvents.on("BHT_OVER_LIMIT", function() {
@@ -2503,10 +2764,10 @@ function groupFindAllDb(options, callback) {
 
         function(group, cb) {
 
-          console.log(chalkDb("GID: " + group.groupId 
-            + " | N: " + group.name 
-            + " | LS: " + getTimeStamp(group.lastSeen)
-          ));
+          // console.log(chalkDb("GID: " + group.groupId 
+          //   + " | N: " + group.name 
+          //   + " | LS: " + getTimeStamp(group.lastSeen)
+          // ));
 
           groupHashMap.set(group.groupId, group);
           cb(null);
@@ -2616,10 +2877,10 @@ function entityFindAllDb(options, callback) {
 
         function(entity, cb) {
 
-          console.log(chalkDb("GID: " + entity.entityId 
-            + " | N: " + entity.name 
-            + " | LS: " + getTimeStamp(entity.lastSeen)
-          ));
+          // console.log(chalkDb("GID: " + entity.entityId 
+          //   + " | N: " + entity.name 
+          //   + " | LS: " + getTimeStamp(entity.lastSeen)
+          // ));
 
           entityChannelGroupHashMap.set(entity.entityId, entity);
           cb(null);
@@ -5026,6 +5287,20 @@ var readDbUpdateEntityQueue = setInterval(function() {
 
 var dbUpdateWordReady = true;
 
+var printWapiResults = function(results){
+  if (!results.body.results || (results.body.results.length == 0)) {
+    return "";
+  }
+  switch (results.variation){
+    case "ALL":
+      return results.body.results[0].definition;
+    break;
+    case "antonyms":
+      return results.body.results[0].antonyms;
+    break;
+  }
+}
+
 var readDbUpdateWordQueue = setInterval(function() {
 
   if (dbUpdateWordReady && !dbUpdateWordQueue.isEmpty()) {
@@ -5046,8 +5321,6 @@ var readDbUpdateWordQueue = setInterval(function() {
       currentSessionObj.tags.channel = dbUpdateObj.tags.channel;
       currentSessionObj.tags.group = entityChannelGroupHashMap.get(dbUpdateObj.tags.entity).groupId;
     }
-
-    // console.log("dbUpdateObj.word\n" + jsonPrint(dbUpdateObj.word));
 
     dbUpdateWord(dbUpdateObj.word, true, function(status, updatedWordObj) {
 
@@ -5080,9 +5353,13 @@ var readDbUpdateWordQueue = setInterval(function() {
       var previousPromptObj;
 
       if (dbUpdateObj.word.wordChainIndex == 0) {
+
         previousPromptObj == null
         debug(chalkRed("CHAIN START"));
-      } else if (currentSessionObj.wordChain.length > 1) {
+
+      } 
+      else if (currentSessionObj.wordChain.length > 1) {
+
         previousPromptNodeId = currentSessionObj.wordChain[currentSessionObj.wordChain.length - 2].nodeId;
         previousPromptObj = wordCache.get(previousPromptNodeId);
         if (!previousPromptObj) {
@@ -5092,6 +5369,7 @@ var readDbUpdateWordQueue = setInterval(function() {
           previousPromptObj.wordChainIndex = dbUpdateObj.word.wordChainIndex - 1;
           debug(chalkRed("CHAIN previousPromptObj: " + previousPromptNodeId));
         }
+
       }
 
       sessionCache.set(currentSessionObj.sessionId, currentSessionObj, function(err, success) {
@@ -5119,9 +5397,8 @@ var readDbUpdateWordQueue = setInterval(function() {
           dbUpdateWordReady = true;
         }
       });
-
-
     });
+
   }
 }, 50);
 
@@ -5358,7 +5635,7 @@ function initKeywords(file, callback){
           var wd = w.toLowerCase();
           var keyWordType = kwordsObj[w];
 
-          console.log(chalkRed("UPDATING KEYWORD | " + wd + ": " + keyWordType));
+          // console.log(chalkRed("UPDATING KEYWORD | " + wd + ": " + keyWordType));
 
           var wordObj = new Word();
 
@@ -5373,14 +5650,14 @@ function initKeywords(file, callback){
               cb(err);
             }
             else {
-              console.log(chalkLog("+++ UPDATED KEYWORD"
-                + " | " + updatedWordObj.nodeId 
-                + " | " + updatedWordObj.raw 
-                + " | M " + updatedWordObj.mentions 
-                + " | I " + updatedWordObj.isIgnored 
-                + " | K " + updatedWordObj.isKeyword 
-                + " | K " + jsonPrint(updatedWordObj.keywords) 
-              ));
+              // console.log(chalkLog("+++ UPDATED KEYWORD"
+              //   + " | " + updatedWordObj.nodeId 
+              //   + " | " + updatedWordObj.raw 
+              //   + " | M " + updatedWordObj.mentions 
+              //   + " | I " + updatedWordObj.isIgnored 
+              //   + " | K " + updatedWordObj.isKeyword 
+              //   + " | K " + jsonPrint(updatedWordObj.keywords) 
+              // ));
               cb();
             }
           });
@@ -5558,7 +5835,115 @@ function initializeConfiguration(callback) {
     });
 }
 
+var wapiSearchQueueReady = true;
 
+var wapiSearchQueueInterval = setInterval(function() {
+
+  if (!wapiOverLimitFlag && wapiSearchQueueReady && !wapiSearchQueue.isEmpty()) {
+
+    wapiSearchQueueReady = false;
+
+    var wordObj = wapiSearchQueue.dequeue();
+
+    wapiSearch(wordObj.nodeId, "ALL", function(results){
+      if (results.err){
+        console.log(chalkError("WAPI ERROR:"
+          // + " | " + word.toLowerCase() 
+          + " | " + results.err
+          // + " | " + results.variation
+          + "\n" + jsonPrint(results)
+        ));
+
+        wapiSearchQueueReady = true;
+      }
+      else if (results.wapiFound) {
+        console.log(chalkWapi("* WAPI HIT"
+          + " [ " + statsObj.wapi.totalRequests
+          + " / " + statsObj.wapi.requestLimit
+          + " | " + (100*(statsObj.wapi.totalRequests/statsObj.wapi.requestLimit)).toFixed(2) + "% ]"
+          // + " | " + word.toLowerCase() 
+          + " | " + results.word
+          + " | " + results.variation
+          + " | " + printWapiResults(results)
+          // + "\n" + jsonPrint(results.body)
+        ));
+
+        wordObj.wapiSearched = true;
+        wordObj.wapiResults = results;
+        wordObj.wapiFound = results.found ;
+
+        wordServer.findOneWord(wordObj, false, function(err, word) {
+
+          wapiSearchQueueReady = true;
+
+          if (err) {
+            console.error(chalkError("wapiSearch -- > findOneWord ERROR" 
+              + "\n" + JSON.stringify(err) + "\n" + JSON.stringify(wordObj, null, 2)));
+            callback(err, wordObj);
+          } 
+          else {
+            console.log("WAPI > DB | " 
+              + word.nodeId 
+              + " | I: " + word.isIgnored 
+              + " | K: " + word.isKeyword 
+              + " | MNS: " + word.mentions 
+              + " | URL: " + word.url 
+              + " | WAPI SEARCHED: " + word.wapiSearched 
+              + " FOUND: " + word.wapiFound
+              + " | BHT SEARCHED: " + word.bhtSearched 
+              + " FOUND: " + word.bhtFound
+              + " | MWD SEARCHED: " + word.mwDictSearched 
+              + " FOUND: " + word.mwDictFound
+              + "\nKWs: " + jsonPrint(word.keywords) 
+            );
+          }
+        });
+      }
+      else {
+        console.log(chalkWapi("- WAPI MISS"
+          + " [ " + statsObj.wapi.totalRequests
+          + " / " + statsObj.wapi.requestLimit
+          + " | " + (100*(statsObj.wapi.totalRequests/statsObj.wapi.requestLimit)).toFixed(2) + "% ]"
+          // + " | " + word.toLowerCase() 
+          + " | " + results.word
+          + " | " + results.variation
+        ));
+
+        wordObj.wapiSearched = true;
+        wordObj.wapiFound = false ;
+
+        wordServer.findOneWord(wordObj, false, function(err, word) {
+
+          wapiSearchQueueReady = true;
+
+          if (err) {
+            console.error(chalkError("wapiSearch -- > findOneWord ERROR" 
+              + "\n" + JSON.stringify(err) + "\n" + JSON.stringify(wordObj, null, 2)));
+            callback(err, wordObj);
+          } 
+          else {
+            console.log("WAPI > DB | " 
+              + word.nodeId 
+              + " | I: " + word.isIgnored 
+              + " | K: " + word.isKeyword 
+              + " | MNS: " + word.mentions 
+              + " | URL: " + word.url 
+              + " | WAPI SEARCHED: " + word.wapiSearched 
+              + " FOUND: " + word.wapiFound
+              + " | BHT SEARCHED: " + word.bhtSearched 
+              + " FOUND: " + word.bhtFound
+              + " | MWD SEARCHED: " + word.mwDictSearched 
+              + " FOUND: " + word.mwDictFound
+              + "\nKWs: " + jsonPrint(word.keywords) 
+            );
+          }
+        });
+        wapiSearchQueueReady = true;
+      }
+    });
+  }
+
+}, 50);
 
 // ==================================================================
 // CACHE HANDLERS
@@ -5590,9 +5975,29 @@ sessionCache.on("expired", function(sessionId, sessionObj) {
     + " | M: " + sessionCache.getStats().misses));
 });
 
+wordCache.on("set", function(word, wordObj) {
+  // debugWapi("CACHE WORD EXPIRED\n" + jsonPrint(wordObj));
+  debugWapi(chalkWapi("CACHE WORD SET"
+    + " [ Q: " + wapiSearchQueue.size() 
+    + " ] " + wordObj.nodeId 
+    + " | LS: " + getTimeStamp(wordObj.lastSeen) 
+    + " | " + msToTime(moment().valueOf() - wordObj.lastSeen) 
+    + " | M: " + wordObj.mentions 
+    + " | WAPIS: " + wordObj.wapiSearched 
+    + " | WAPIF: " + wordObj.wapiFound 
+    + " | K: " + wordCache.getStats().keys 
+    + " | H: " + wordCache.getStats().hits 
+    + " | M: " + wordCache.getStats().misses
+  ));
+
+  if (!wapiOverLimitFlag && (wapiForceSearch || !wordObj.wapiSearched)){
+    wapiSearchQueue.enqueue(wordObj);
+  }
+});
+
 wordCache.on("expired", function(word, wordObj) {
   if (typeof wordObj !== 'undefined') {
-    debug("CACHE WORD EXPIRED\n" + jsonPrint(wordObj));
+    // debug("CACHE WORD EXPIRED\n" + jsonPrint(wordObj));
     debug("... CACHE WORD EXPIRED"
       + " | " + wordObj.nodeId 
       + " | LS: " + getTimeStamp(wordObj.lastSeen) 
@@ -6180,7 +6585,7 @@ function createSession(newSessionObj) {
       + " | CH: " + userObj.tags.channel
       + " | TYPE: " + userObj.type
       + " | MODE: " + userObj.mode
-      + "\n" + jsonPrint(userObj)
+      // + "\n" + jsonPrint(userObj)
     ));
 
     var socketId = socket.id;
@@ -6248,14 +6653,14 @@ function createSession(newSessionObj) {
       sessionObj.config.mode = userObj.mode;
     }
 
-    console.log(chalkConnect("--- USER READY   | " + userObj.userId 
-      + " | SID: " + sessionObj.sessionId 
-      + " | TYPE: " + sessionObj.config.type 
-      + " | MODE: " + sessionObj.config.mode 
-      + " | " + moment().format(defaultDateTimeFormat) 
-      // + "\nSESSION OBJ\n" + jsonPrint(sessionObj) 
-      // + "\nUSER OBJ\n" + jsonPrint(userObj)
-    ));
+    // console.log(chalkConnect("--- USER READY   | " + userObj.userId 
+    //   + " | SID: " + sessionObj.sessionId 
+    //   + " | TYPE: " + sessionObj.config.type 
+    //   + " | MODE: " + sessionObj.config.mode 
+    //   + " | " + moment().format(defaultDateTimeFormat) 
+    //   // + "\nSESSION OBJ\n" + jsonPrint(sessionObj) 
+    //   // + "\nUSER OBJ\n" + jsonPrint(userObj)
+    // ));
 
     sessionQueue.enqueue({
       sessionEvent: "USER_READY",
@@ -6568,7 +6973,6 @@ function saveDropboxJsonFile(file, jsonObj, callback){
       callback('OK');
     }
   });
-
 }
 
 function loadDropboxJsonFile(file, callback){
@@ -6939,6 +7343,97 @@ var DEFAULT_SOURCE = "==SOURCE==";
   callback(null, "INIT_APP_ROUTING_COMPLETE");
 }
 
+var wordsApiKey = 'RWwyknmI1OmshYkPUYAQyHVv1Cbup1ptubzjsn2F19wbnAlSEf';
+var wapiUrlRoot = 'https://wordsapiv1.p.mashape.com/words/';
+
+function wapiSearch(word, variation, callback){
+
+  if (wapiOverLimitFlag || (statsObj.wapi.requestsRemaining < WAPI_REQ_RESERVE_PRCNT * statsObj.wapi.requestLimit)) {
+    return(callback({err: "WAPI_OVER_LIMIT", 
+      totalRequests: statsObj.wapi.totalRequests, 
+      requestsRemaining: statsObj.wapi.requestsRemaining, 
+      requestLimit: statsObj.wapi.requestLimit}
+    ));
+    wapiOverLimitFlag = true;
+    wapiEvents.emit("WAPI_OVER_LIMIT", wapiRequests);
+  }
+
+  var wapiUrl;
+
+  if (variation == "ALL"){
+    wapiUrl = wapiUrlRoot + word.toLowerCase();
+  }
+  else {
+    wapiUrl = wapiUrlRoot + word.toLowerCase() + '/' + variation;
+  }
+
+  unirest.get(wapiUrl)
+  .header("X-Mashape-Key", wordsApiKey)
+  .header("Accept", "application/json")
+  .end(function (response) {
+
+    debugWapi(chalkWapi("WAPI RESPONSE\n" + jsonPrint(response.headers)));
+
+    if (response.headers['x-ratelimit-requests-limit']){
+      statsObj.wapi.requestLimit = parseInt(response.headers['x-ratelimit-requests-limit']);
+      statsObj.wapi.requestsRemaining = parseInt(response.headers['x-ratelimit-requests-remaining']);
+      if (statsObj.wapi.requestsRemaining > 0) {
+        statsObj.wapi.totalRequests = statsObj.wapi.requestLimit - statsObj.wapi.requestsRemaining;
+      }
+      else {
+        statsObj.wapi.totalRequests = statsObj.wapi.requestLimit + statsObj.wapi.requestsRemaining;
+      }
+    }
+
+    if (statsObj.wapi.requestsRemaining < WAPI_REQ_RESERVE_PRCNT * statsObj.wapi.requestLimit) {
+      return(callback({
+        err: "WAPI_OVER_LIMIT", 
+        totalRequests: statsObj.wapi.totalRequests, 
+        requestsRemaining: statsObj.wapi.requestsRemaining,
+        requestLimit: statsObj.wapi.requestLimit
+      }));
+    }
+
+    var results = {};
+
+    if (response.statusCode == 404){
+      results.word = word;
+      results.variation = variation;
+      results.wapiSearched = true;
+      results.wapiFound = false;
+
+      debugWapi(chalkWapi("WAPI"
+        + " [ " + statsObj.wapi.totalRequests 
+        + " / " + statsObj.wapi.requestLimit 
+        + " | " + (100*(statsObj.wapi.totalRequests/statsObj.wapi.requestLimit)).toFixed(2) + "% ]"
+        // + "\n" + jsonPrint(results) 
+        // + "\n" + jsonPrint(statsObj.wapi) 
+      //   + " | " + response.body[variation]
+      ));
+      callback(results);
+    }
+    else {
+      results.word = word;
+      results.body = response.body;
+      results.variation = variation;
+      results.wapiSearched = true;
+      results.wapiFound = true;
+
+      debugWapi(chalkWapi("WAPI"
+        + " [ " + statsObj.wapi.totalRequests 
+        + " / " + statsObj.wapi.requestLimit 
+        + " | " + (100*(statsObj.wapi.totalRequests/statsObj.wapi.requestLimit)).toFixed(2) + "% ]"
+        // + "\n" + jsonPrint(results) 
+        // + "\n" + jsonPrint(statsObj.wapi) 
+      //   + " | " + response.body[variation]
+      ));
+      callback(results);
+    }
+
+
+  });
+
+}
 //=================================
 // PROCESS HANDLERS
 //=================================
@@ -6970,6 +7465,12 @@ process.on("message", function(msg) {
 // BEGIN !!
 //=================================
 initializeConfiguration(function(err, results) {
+
+  wordServer.getRandomWord(function(err, randomWordObj) {
+    console.log("RANDOM WORD " + randomWordObj.nodeId);
+    wapiSearchQueue.enqueue(randomWordObj);
+  });
+
   if (err) {
     console.error(chalkError("*** INITIALIZE CONFIGURATION ERROR ***\n" + jsonPrint(err)));
   } else {

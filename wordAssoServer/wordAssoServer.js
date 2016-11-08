@@ -34,6 +34,14 @@ var MW_REQUEST_LIMIT = 250000;
 var WAPI_REQUEST_LIMIT = 25000;
 var WAPI_REQ_RESERVE_PRCNT = 0.40;
 
+// ==================================================================
+// WAPI WAPI_REQ_RESERVE_PRCNT
+// ==================================================================
+var wapiReqReservePercent = process.env.WAPI_REQ_RESERVE_PRCNT;
+
+if (typeof wapiReqReservePercent === 'undefined') wapiReqReservePercent = WAPI_REQ_RESERVE_PRCNT;
+console.log("WAPI_REQ_RESERVE_PRCNT: " + wapiReqReservePercent);
+
 var SESSION_WORDCHAIN_REQUEST_LIMIT = 25;
 
 var saveStatsInterval = 10000; // millis
@@ -351,14 +359,6 @@ localHostHashMap.set('10.0.1.27', 'threeceelabs.com');
 
 localHostHashMap.set('104.197.93.13', 'threeceelabs.com');
 
-
-// ==================================================================
-// WAPI WAPI_REQ_RESERVE_PRCNT
-// ==================================================================
-var wapiReqReservePercent = process.env.WAPI_REQ_RESERVE_PRCNT;
-
-if (typeof wapiReqReservePercent === 'undefined') wapiReqReservePercent = WAPI_REQ_RESERVE_PRCNT;
-console.log("WAPI_REQ_RESERVE_PRCNT: " + wapiReqReservePercent);
 
 // ==================================================================
 // GROUP CACHE

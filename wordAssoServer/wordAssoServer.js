@@ -32,15 +32,8 @@ var MIN_CHAIN_FREEZE_UNIQUE_NODES = 10;
 var BHT_REQUEST_LIMIT = 250000;
 var MW_REQUEST_LIMIT = 250000;
 var WAPI_REQUEST_LIMIT = 25000;
-var WAPI_REQ_RESERVE_PRCNT = 0.40;
+var WAPI_REQ_RESERVE_PRCNT = 0.35;
 
-// ==================================================================
-// WAPI WAPI_REQ_RESERVE_PRCNT
-// ==================================================================
-var wapiReqReservePercent = process.env.WAPI_REQ_RESERVE_PRCNT;
-
-if (typeof wapiReqReservePercent === 'undefined') wapiReqReservePercent = WAPI_REQ_RESERVE_PRCNT;
-console.log("WAPI_REQ_RESERVE_PRCNT: " + wapiReqReservePercent);
 
 var SESSION_WORDCHAIN_REQUEST_LIMIT = 25;
 
@@ -250,6 +243,7 @@ var statsObj = {
 statsObj.wapi = {};
 statsObj.wapi.totalRequests = 0;
 statsObj.wapi.requestLimit = 25000;
+statsObj.wapi.requestsRemaining = 25000;
 
 statsObj.group = {};
 statsObj.group.errors = 0;
@@ -359,6 +353,13 @@ localHostHashMap.set('10.0.1.27', 'threeceelabs.com');
 
 localHostHashMap.set('104.197.93.13', 'threeceelabs.com');
 
+// ==================================================================
+// WAPI WAPI_REQ_RESERVE_PRCNT
+// ==================================================================
+var wapiReqReservePercent = process.env.WAPI_REQ_RESERVE_PRCNT;
+
+if (typeof wapiReqReservePercent === 'undefined') wapiReqReservePercent = WAPI_REQ_RESERVE_PRCNT;
+console.log("WAPI_REQ_RESERVE_PRCNT: " + wapiReqReservePercent);
 
 // ==================================================================
 // GROUP CACHE
@@ -7210,12 +7211,11 @@ function initAppRouting(callback) {
     return;
   });
 
-
-/*
-// var DEFAULT_SOURCE = "http://localhost:9997";
-// var DEFAULT_SOURCE = "http://word.threeceelabs.com";
-var DEFAULT_SOURCE = "==SOURCE==";
-*/
+  /*
+  // var DEFAULT_SOURCE = "http://localhost:9997";
+  // var DEFAULT_SOURCE = "http://word.threeceelabs.com";
+  var DEFAULT_SOURCE = "==SOURCE==";
+  */
 
   app.get('/session.js', function(req, res) {
     console.log("LOADING FILE: /session.js");

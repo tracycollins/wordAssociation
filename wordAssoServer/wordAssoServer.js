@@ -32,7 +32,7 @@ var MIN_CHAIN_FREEZE_UNIQUE_NODES = 10;
 var BHT_REQUEST_LIMIT = 250000;
 var MW_REQUEST_LIMIT = 250000;
 var WAPI_REQUEST_LIMIT = 25000;
-var WAPI_REQ_RESERVE_PRCNT = 0.35;
+var WAPI_REQ_RESERVE_PRCNT = 0.30;
 
 
 var SESSION_WORDCHAIN_REQUEST_LIMIT = 25;
@@ -5300,6 +5300,8 @@ var printWapiResults = function(results){
   if (!results.body.results
     || (typeof results.body === 'undefined')
     || (typeof results.body.results === 'undefined')
+    || (typeof results.body.results[0] === 'undefined')
+    || (!results.body.results[0])
     || (results.body.results.length == 0)
   ) {
     return "";

@@ -1344,7 +1344,7 @@ var processSessionQueues = function(callback) {
       );
     }
 
-    if (typeof session.tags.url !== 'undefined') {
+    if (typeof session.tags.url === 'undefined') {
       session.tags.url = "http://threeceemedia.com";
       groupCreateQueue.push(session);
     }

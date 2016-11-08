@@ -1103,8 +1103,8 @@ function ViewFlow() {
       .text(function(d) {
         if (d.isGroupNode) return d.totalWordChainIndex;
         if (d.isSessionNode) return d.wordChainIndex;
-        if (d.isKeyword) return d.text.toUpperCase();
-        return d.text;
+        if (d.isKeyword) return d.raw.toUpperCase();
+        return d.raw;
       })
       .attr("x", function(d) { return d.x; })
       .attr("y", function(d) {
@@ -1149,7 +1149,7 @@ function ViewFlow() {
       .text(function(d) {
         if (d.isGroupNode) return d.totalWordChainIndex;
         if (d.isSessionNode) return d.wordChainIndex;
-        return d.text;
+        return d.raw;
       })
       .attr("x", function(d) { return d.x; })
       .attr("y", function(d) {

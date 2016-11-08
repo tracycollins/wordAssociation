@@ -54,6 +54,17 @@ var WordSchema = new Schema({
 	adverb: {
 		type: Object
 	},
+	wapiSearched: {
+		type: Boolean,
+		default: false
+	},
+	wapiFound: {
+		type: Boolean,
+		default: false
+	},
+	wapiResults: {
+		type: Object,
+	},
 	bhtSearched: {
 		type: Boolean,
 		default: false

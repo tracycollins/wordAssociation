@@ -1381,7 +1381,7 @@ function ViewFlow() {
       .force("link", d3.forceLink(links).id(function(d) { return d.linkId; }).distance(globalLinkDistance).strength(globalLinkStrength))
       .force("charge", d3.forceManyBody().strength(charge))
       .force("forceX", d3.forceX(-10000).strength(gravity))
-      .force("forceY", d3.forceY(svgFlowLayoutAreaHeight/2).strength(1.5*gravity))
+      .force("forceY", d3.forceY(svgFlowLayoutAreaHeight/2).strength(1.25*gravity))
       .force("collide", d3.forceCollide().radius(function(d) { return 2.0*d.r ; }).iterations(2))
       .velocityDecay(velocityDecay)
       .on("tick", ticked);

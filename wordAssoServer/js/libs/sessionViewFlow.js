@@ -814,27 +814,6 @@ function ViewFlow() {
     }
   }
 
-  // function updateNodes() {
-
-  //   node = nodeSvgGroup.selectAll("g").data(nodes, function(d) { return d.nodeId; });
-
-  //   node
-  //     .attr("x", function(d) { return d.x; })
-  //     .attr("y", function(d) { return d.y; });
-
-  //   node
-  //     .enter()
-  //     .append("svg:g")
-  //     .attr("class", "node")
-  //     .attr("x", function(d) { return d.x; })
-  //     .attr("y", function(d) { return d.y; })
-  //     .merge(node);
-
-  //   node
-  //     .exit()
-  //     .remove();
-  // }
-
   function updateLinks() {
 
     link = linkSvgGroup.selectAll("line").data(links, 
@@ -1287,11 +1266,46 @@ function ViewFlow() {
   }
 
   function nodeClick(d) {
-    launchSessionView(d.sessionId);
+
+    window.open(d.url, '_blank');
+
+    // var url = "";
+
+    // switch (d.nodeType) {
+    //   case "tweet" :
+    //   break;
+
+    //   case "user" :
+    //     window.open(d.profileUrl, '_blank');
+    //   break;
+
+    //   case "hashtag" :
+    //     url = "https://twitter.com/search?f=realtime&q=%23" + d.text ;
+    //     window.open(url, '_blank');
+    //   break;
+
+    //   case "place" :
+    //     url = d.sourceUrl ;
+    //     window.open(url, '_blank');
+    //   break;
+
+    //   case "url" :
+    //     url = d.expandedUrl ;
+    //     window.open(url, '_blank');
+    //   break;
+
+    //   case "media" :
+    //     url = d.sourceUrl ;
+    //     window.open(url, '_blank');
+    //   break;
+
+    //   default:
+    //   break;
+    // }
   }
  
   function sessionCircleClick(d) {
-    launchSessionView(d.sessionId);
+    window.open(d.url, '_blank');
   }
 
 

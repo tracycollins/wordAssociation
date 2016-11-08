@@ -5297,16 +5297,23 @@ var readDbUpdateEntityQueue = setInterval(function() {
 var dbUpdateWordReady = true;
 
 var printWapiResults = function(results){
-  if (!results.body.results || (results.body.results.length == 0)) {
+  if (!results.body.results
+    || (typeof results.body === 'undefined')
+    || (typeof results.body.results === 'undefined')
+    || (results.body.results.length == 0)
+  ) {
     return "";
   }
-  switch (results.variation){
-    case "ALL":
-      return results.body.results[0].definition;
-    break;
-    case "antonyms":
-      return results.body.results[0].antonyms;
-    break;
+  else {
+    switch (results.variation){
+      case "ALL":
+        debugWapi(chalkRed("results.body.results[0]: " + jsonPrint(results.body.results[0])));
+        return results.body.results[0].definition;
+      break;
+      case "antonyms":
+        return results.body.results[0].antonyms;
+      break;
+    }
   }
 }
 

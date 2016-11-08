@@ -353,6 +353,14 @@ localHostHashMap.set('104.197.93.13', 'threeceelabs.com');
 
 
 // ==================================================================
+// WAPI WAPI_REQ_RESERVE_PRCNT
+// ==================================================================
+var wapiReqReservePercent = process.env.WAPI_REQ_RESERVE_PRCNT;
+
+if (typeof wapiReqReservePercent === 'undefined') wapiReqReservePercent = WAPI_REQ_RESERVE_PRCNT;
+console.log("WAPI_REQ_RESERVE_PRCNT: " + wapiReqReservePercent);
+
+// ==================================================================
 // GROUP CACHE
 // ==================================================================
 var groupCacheTtl = process.env.GROUP_CACHE_DEFAULT_TTL;
@@ -7348,7 +7356,7 @@ var wapiUrlRoot = 'https://wordsapiv1.p.mashape.com/words/';
 
 function wapiSearch(word, variation, callback){
 
-  if (wapiOverLimitFlag || (statsObj.wapi.requestsRemaining < WAPI_REQ_RESERVE_PRCNT * statsObj.wapi.requestLimit)) {
+  if (wapiOverLimitFlag || (statsObj.wapi.requestsRemaining < wapiReqReservePercent * statsObj.wapi.requestLimit)) {
     return(callback({err: "WAPI_OVER_LIMIT", 
       totalRequests: statsObj.wapi.totalRequests, 
       requestsRemaining: statsObj.wapi.requestsRemaining, 
@@ -7385,7 +7393,7 @@ function wapiSearch(word, variation, callback){
       }
     }
 
-    if (statsObj.wapi.requestsRemaining < WAPI_REQ_RESERVE_PRCNT * statsObj.wapi.requestLimit) {
+    if (statsObj.wapi.requestsRemaining < wapiReqReservePercent * statsObj.wapi.requestLimit) {
       return(callback({
         err: "WAPI_OVER_LIMIT", 
         totalRequests: statsObj.wapi.totalRequests, 

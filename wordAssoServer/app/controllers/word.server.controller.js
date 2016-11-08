@@ -161,7 +161,9 @@ exports.findOneWord = function(word, incMentions, callback) {
 						isIgnored: word.isIgnored,
 						url: word.url,
 						lastSeen: moment(),
-						bhtAlt: word.bhtAlt
+						bhtAlt: word.bhtAlt,
+						wapiSearched: word.wapiSearched,
+						wapiFound: word.wapiFound
 					},
 					$max: { noun: word.noun },
 					$max: { verb: word.verb },
@@ -169,6 +171,8 @@ exports.findOneWord = function(word, incMentions, callback) {
 					$max: { adverb: word.adverb },
 					$max: { bhtSearched: word.bhtSearched },
 					$max: { bhtFound: word.bhtFound }
+					// $max: { wapiSearched: word.wapiSearched },
+					// $max: { wapiFound: word.wapiFound }
 				};
 	var options = { 
 		setDefaultsOnInsert: true,

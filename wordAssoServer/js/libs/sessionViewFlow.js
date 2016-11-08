@@ -267,14 +267,20 @@ function ViewFlow() {
     return "LNK" + globalLinkIndex;
   }
 
-  self.togglePause = function(){
-    // runningFlag = pause;
-    if (runningFlag){
-      // runningFlag = false;
+  self.setPause = function(pauseState){
+    if (pauseState){
       self.simulationControl('PAUSE');
     }
     else{
-      // runningFlag = true;
+      self.simulationControl('RESUME');
+    }
+  }
+
+  self.togglePause = function(){
+    if (runningFlag){
+      self.simulationControl('PAUSE');
+    }
+    else{
       self.simulationControl('RESUME');
     }
   }
@@ -1083,7 +1089,8 @@ function ViewFlow() {
         if (d.isGroupNode) return d.totalWordChainIndex;
         if (d.isSessionNode) return d.wordChainIndex;
         if (d.isKeyword) return d.raw.toUpperCase();
-        return d.raw;
+        // return d.raw.toUpperCase();
+        return d.text.toUpperCase();
       })
       .attr("x", function(d) { return d.x; })
       .attr("y", function(d) {
@@ -1128,7 +1135,8 @@ function ViewFlow() {
       .text(function(d) {
         if (d.isGroupNode) return d.totalWordChainIndex;
         if (d.isSessionNode) return d.wordChainIndex;
-        return d.raw;
+        // return d.raw;
+        return d.text;
       })
       .attr("x", function(d) { return d.x; })
       .attr("y", function(d) {

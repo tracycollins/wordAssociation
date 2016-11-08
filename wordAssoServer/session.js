@@ -1337,16 +1337,16 @@ var processSessionQueues = function(callback) {
     switch (session.tags.channel){
       case "twitter":
         session.tags.url = "https://twitter.com/" + session.tags.entity.toLowerCase();
+        session.tags.group.url = "https://twitter.com/" + session.tags.entity.toLowerCase();
       break;
       case "livestream":
         if (session.tags.entity == 'cspan'){
-          session.tags.url = "https://www.c-span.org/networks/";          
+          session.tags.group.url = "https://www.c-span.org/networks/";          
         }
       break;
     }
 
     if (typeof session.tags.group !== 'undefined') {
-      // session.tags.group = session.tags.group;
       groupCreateQueue.push(session);
     }
     else {

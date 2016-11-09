@@ -1943,162 +1943,162 @@ function loadBhtResponseHash(bhtResponseObj, callback) {
   callback(bhtWordHashMap);
 }
 
-function wordsapiHttpGet(host, path, wordObj, callback) {
+// function wordsapiHttpGet(host, path, wordObj, callback) {
 
-  http.get({
-    host: host,
-    path: path
-  }, function(response) {
+//   http.get({
+//     host: host,
+//     path: path
+//   }, function(response) {
 
-    debugWapi("wordsapiHttpGet: " + host + "/" + path);
+//     debugWapi("wordsapiHttpGet: " + host + "/" + path);
 
-    response.on('error', function(err) {
-      wapiErrors++;
-      debugWapi(chalkError("WAPI ERROR" 
-        + " | TOTAL ERRORS: " + wapiErrors 
-        + " | WORD: " + wordObj.nodeId 
-        + " | STATUS CODE: " + response.statusCode 
-        + " | STATUS MESSAGE: " + response.statusMessage 
-        + "\n" + util.inspect(err, {
-          showHidden: false,
-          depth: 3
-        })
-      ));
-      callback("WAPI_ERROR | " + err, wordObj);
-      return;
-    });
+//     response.on('error', function(err) {
+//       wapiErrors++;
+//       debugWapi(chalkError("WAPI ERROR" 
+//         + " | TOTAL ERRORS: " + wapiErrors 
+//         + " | WORD: " + wordObj.nodeId 
+//         + " | STATUS CODE: " + response.statusCode 
+//         + " | STATUS MESSAGE: " + response.statusMessage 
+//         + "\n" + util.inspect(err, {
+//           showHidden: false,
+//           depth: 3
+//         })
+//       ));
+//       callback("WAPI_ERROR | " + err, wordObj);
+//       return;
+//     });
 
-    var body = '';
-    var status = '';
+//     var body = '';
+//     var status = '';
 
-    if ((response.statusCode == 500) && (response.statusMessage == 'Usage Exceeded')) {
-      wapiErrors++;
-      debugWapi(chalkError("WAPI ERROR" 
-        + " | TOTAL ERRORS: " + wapiErrors 
-        + " | WORD: " + wordObj.nodeId 
-        + " | STATUS CODE: " + response.statusCode 
-        + " | STATUS MESSAGE: " + response.statusMessage
-        // + "\n" + util.inspect(response, {showHidden: false, depth: 3})
-      ));
-      wapiEvents.emit("WAPI_OVER_LIMIT", wapiRequests);
-      callback("WAPI_OVER_LIMIT", wordObj);
-      return;
-    } else if ((response.statusCode == 500) && (response.statusMessage == 'Inactive key')) {
-      wapiErrors++;
-      debugWapi(chalkError("WAPI ERROR" 
-        + " | TOTAL ERRORS: " + wapiErrors 
-        + " | WORD: " + wordObj.nodeId 
-        + " | STATUS CODE: " + response.statusCode 
-        + " | STATUS MESSAGE: " + response.statusMessage 
-        + "\n" + util.inspect(response, {
-        showHidden: false,
-        depth: 3
-      })));
-      wapiEvents.emit("WAPI_INACTIVE_KEY", wapiRequests);
-      callback("WAPI_INACTIVE_KEY", wordObj);
-      return;
-    } else if (wapiOverLimitTestFlag) {
-      debugWapi(chalkWapi("WAPI OVER LIMIT TEST FLAG SET"));
-      wapiEvents.emit("WAPI_OVER_LIMIT", wapiRequests);
-      callback("WAPI_OVER_LIMIT", wordObj);
-      return;
-    } else if (response.statusCode == 404) {
-      debugWapi("wordsapiHttpGet: \'" + wordObj.nodeId + "\' NOT FOUND");
-      wordObj.wapiSearched = true;
-      wordObj.wapiFound = false;
-      wordServer.findOneWord(wordObj, true, function(err, wordUpdatedObj) {
-        debugWapi(chalkWapi("wordsapiHttpGet: ->- DB UPDATE | " + wordUpdatedObj.nodeId 
-          + " | MNS: " + wordUpdatedObj.mentions));
-        debugWapi(chalkWapi(JSON.stringify(wordUpdatedObj, null, 3)));
-        callback("WAPI_NOT_FOUND", wordUpdatedObj);
-        return;
-      });
-    } else if (response.statusCode == 303) {
-      wordObj.wapiAlt = response.statusMessage;
-      debugWapi(chalkWapi("WAPI REDIRECT" + " | WORD: " + wordObj.nodeId 
-      + " | ALT: " + response.statusMessage // alternative word
-        + " | " + response.headers.location
-      ));
-      wordServer.findOneWord(wordObj, true, function(err, wordUpdatedObj) {
-        if (err) {
-          console.error(chalkError("wordsapiHttpGet: findOneWord: DB ERROR\n" + "\n" + util.inspect(err, {
-            showHidden: false,
-            depth: 3
-          })));
-          callback("WAPI_ERROR | " + err, wordObj);
-          return;
-        } else {
-          debugWapi(chalkWapi("wordsapiHttpGet: ->- DB ALT UPDATE | " + wordUpdatedObj.nodeId 
-          + " | ALT: " + wordUpdatedObj.wapiAlt // alternative word
-            + " | MNS: " + wordUpdatedObj.mentions
-          ));
-          debugWapi(chalkWapi(JSON.stringify(wordUpdatedObj, null, 3)));
-          callback('WAPI_REDIRECT', wordUpdatedObj);
-          return;
-        }
-      });
-    } else if (response.statusCode != 200) {
-      wapiErrors++;
-      debugWapi(chalkError("WAPI ERROR" 
-        + " | TOTAL ERRORS: " + wapiErrors 
-        + " | WORD: " + wordObj.nodeId 
-        + " | STATUS CODE: " + response.statusCode 
-        + " | STATUS MESSAGE: " + response.statusMessage 
-        + "\n" + util.inspect(response, {
-        showHidden: false,
-        depth: 3
-      })));
-      wapiEvents.emit("WAPI_UNKNOWN_STATUS", wapiRequests);
-      callback("WAPI_UNKNOWN_STATUS", wordObj);
-      return;
-    } else {
-      response.on('data', function(d) {
-        body += d;
-      });
+//     if ((response.statusCode == 500) && (response.statusMessage == 'Usage Exceeded')) {
+//       wapiErrors++;
+//       debugWapi(chalkError("WAPI ERROR" 
+//         + " | TOTAL ERRORS: " + wapiErrors 
+//         + " | WORD: " + wordObj.nodeId 
+//         + " | STATUS CODE: " + response.statusCode 
+//         + " | STATUS MESSAGE: " + response.statusMessage
+//         // + "\n" + util.inspect(response, {showHidden: false, depth: 3})
+//       ));
+//       wapiEvents.emit("WAPI_OVER_LIMIT", wapiRequests);
+//       callback("WAPI_OVER_LIMIT", wordObj);
+//       return;
+//     } else if ((response.statusCode == 500) && (response.statusMessage == 'Inactive key')) {
+//       wapiErrors++;
+//       debugWapi(chalkError("WAPI ERROR" 
+//         + " | TOTAL ERRORS: " + wapiErrors 
+//         + " | WORD: " + wordObj.nodeId 
+//         + " | STATUS CODE: " + response.statusCode 
+//         + " | STATUS MESSAGE: " + response.statusMessage 
+//         + "\n" + util.inspect(response, {
+//         showHidden: false,
+//         depth: 3
+//       })));
+//       wapiEvents.emit("WAPI_INACTIVE_KEY", wapiRequests);
+//       callback("WAPI_INACTIVE_KEY", wordObj);
+//       return;
+//     } else if (wapiOverLimitTestFlag) {
+//       debugWapi(chalkWapi("WAPI OVER LIMIT TEST FLAG SET"));
+//       wapiEvents.emit("WAPI_OVER_LIMIT", wapiRequests);
+//       callback("WAPI_OVER_LIMIT", wordObj);
+//       return;
+//     } else if (response.statusCode == 404) {
+//       debugWapi("wordsapiHttpGet: \'" + wordObj.nodeId + "\' NOT FOUND");
+//       wordObj.wapiSearched = true;
+//       wordObj.wapiFound = false;
+//       wordServer.findOneWord(wordObj, true, function(err, wordUpdatedObj) {
+//         debugWapi(chalkWapi("wordsapiHttpGet: ->- DB UPDATE | " + wordUpdatedObj.nodeId 
+//           + " | MNS: " + wordUpdatedObj.mentions));
+//         debugWapi(chalkWapi(JSON.stringify(wordUpdatedObj, null, 3)));
+//         callback("WAPI_NOT_FOUND", wordUpdatedObj);
+//         return;
+//       });
+//     } else if (response.statusCode == 303) {
+//       wordObj.wapiAlt = response.statusMessage;
+//       debugWapi(chalkWapi("WAPI REDIRECT" + " | WORD: " + wordObj.nodeId 
+//       + " | ALT: " + response.statusMessage // alternative word
+//         + " | " + response.headers.location
+//       ));
+//       wordServer.findOneWord(wordObj, true, function(err, wordUpdatedObj) {
+//         if (err) {
+//           console.error(chalkError("wordsapiHttpGet: findOneWord: DB ERROR\n" + "\n" + util.inspect(err, {
+//             showHidden: false,
+//             depth: 3
+//           })));
+//           callback("WAPI_ERROR | " + err, wordObj);
+//           return;
+//         } else {
+//           debugWapi(chalkWapi("wordsapiHttpGet: ->- DB ALT UPDATE | " + wordUpdatedObj.nodeId 
+//           + " | ALT: " + wordUpdatedObj.wapiAlt // alternative word
+//             + " | MNS: " + wordUpdatedObj.mentions
+//           ));
+//           debugWapi(chalkWapi(JSON.stringify(wordUpdatedObj, null, 3)));
+//           callback('WAPI_REDIRECT', wordUpdatedObj);
+//           return;
+//         }
+//       });
+//     } else if (response.statusCode != 200) {
+//       wapiErrors++;
+//       debugWapi(chalkError("WAPI ERROR" 
+//         + " | TOTAL ERRORS: " + wapiErrors 
+//         + " | WORD: " + wordObj.nodeId 
+//         + " | STATUS CODE: " + response.statusCode 
+//         + " | STATUS MESSAGE: " + response.statusMessage 
+//         + "\n" + util.inspect(response, {
+//         showHidden: false,
+//         depth: 3
+//       })));
+//       wapiEvents.emit("WAPI_UNKNOWN_STATUS", wapiRequests);
+//       callback("WAPI_UNKNOWN_STATUS", wordObj);
+//       return;
+//     } else {
+//       response.on('data', function(d) {
+//         body += d;
+//       });
 
-      response.on('end', function() {
+//       response.on('end', function() {
 
-        if (body != '') {
-          var parsed = JSON.parse(body);
-          debugWapi("wordsapiHttpGet: " + JSON.stringify(parsed, null, 3));
-          if (typeof parsed.noun !== null) wordObj.noun = parsed.noun;
-          if (typeof parsed.verb !== null) wordObj.verb = parsed.verb;
-          if (typeof parsed.adjective !== null) wordObj.adjective = parsed.adjective;
-          if (typeof parsed.adverb !== null) wordObj.adverb = parsed.adverb;
-          status = "WAPI_HIT";
-          wordObj.wapiSearched = true;
-          wordObj.wapiFound = true;
-        } else {
-          debugWapi("wordsapiHttpGet: \'" + wordObj.nodeId + "\' NOT FOUND");
-          status = "WAPI_MISS";
-          wordObj.wapiSearched = true;
-          wordObj.wapiFound = false;
-        }
+//         if (body != '') {
+//           var parsed = JSON.parse(body);
+//           debugWapi("wordsapiHttpGet: " + JSON.stringify(parsed, null, 3));
+//           if (typeof parsed.noun !== null) wordObj.noun = parsed.noun;
+//           if (typeof parsed.verb !== null) wordObj.verb = parsed.verb;
+//           if (typeof parsed.adjective !== null) wordObj.adjective = parsed.adjective;
+//           if (typeof parsed.adverb !== null) wordObj.adverb = parsed.adverb;
+//           status = "WAPI_HIT";
+//           wordObj.wapiSearched = true;
+//           wordObj.wapiFound = true;
+//         } else {
+//           debugWapi("wordsapiHttpGet: \'" + wordObj.nodeId + "\' NOT FOUND");
+//           status = "WAPI_MISS";
+//           wordObj.wapiSearched = true;
+//           wordObj.wapiFound = false;
+//         }
 
-        wordServer.findOneWord(wordObj, true, function(err, wordUpdatedObj) {
-          debugWapi(chalkWapi("wordsapiHttpGet: ->- DB UPDATE | " + wordUpdatedObj.nodeId 
-            + " | MNS: " + wordUpdatedObj.mentions));
-          debugWapi(chalkWapi(JSON.stringify(wordUpdatedObj, null, 3)));
-          callback(status, wordUpdatedObj);
-          return;
-        });
-      });
-    }
-  }).on('error', function(e) {
-    wapiErrors++;
-    debugWapi(chalkError("WAPI ERROR" 
-      + " | TOTAL ERRORS: " + wapiErrors 
-      + " | WORD: " + wordObj.nodeId
-      // + " | STATUS CODE: " + response.statusCode
-      // + " | STATUS MESSAGE: " + response.statusMessage
-      + "\n" + util.inspect(e, {
-        showHidden: false,
-        depth: 3
-      })
-    ));
-    callback("WAPI_ERROR", wordObj);
-  });
-}
+//         wordServer.findOneWord(wordObj, true, function(err, wordUpdatedObj) {
+//           debugWapi(chalkWapi("wordsapiHttpGet: ->- DB UPDATE | " + wordUpdatedObj.nodeId 
+//             + " | MNS: " + wordUpdatedObj.mentions));
+//           debugWapi(chalkWapi(JSON.stringify(wordUpdatedObj, null, 3)));
+//           callback(status, wordUpdatedObj);
+//           return;
+//         });
+//       });
+//     }
+//   }).on('error', function(e) {
+//     wapiErrors++;
+//     debugWapi(chalkError("WAPI ERROR" 
+//       + " | TOTAL ERRORS: " + wapiErrors 
+//       + " | WORD: " + wordObj.nodeId
+//       // + " | STATUS CODE: " + response.statusCode
+//       // + " | STATUS MESSAGE: " + response.statusMessage
+//       + "\n" + util.inspect(e, {
+//         showHidden: false,
+//         depth: 3
+//       })
+//     ));
+//     callback("WAPI_ERROR", wordObj);
+//   });
+// }
 
 function bhtHttpGet(host, path, wordObj, callback) {
 
@@ -7366,13 +7366,18 @@ var wapiUrlRoot = 'https://wordsapiv1.p.mashape.com/words/';
 function wapiSearch(word, variation, callback){
 
   if (wapiOverLimitFlag || (statsObj.wapi.requestsRemaining < wapiReqReservePercent * statsObj.wapi.requestLimit)) {
-    return(callback({err: "WAPI_OVER_LIMIT", 
-      totalRequests: statsObj.wapi.totalRequests, 
-      requestsRemaining: statsObj.wapi.requestsRemaining, 
-      requestLimit: statsObj.wapi.requestLimit}
+    if (!wapiOverLimitFlag) {
+      wapiOverLimitFlag = true;
+      wapiEvents.emit("WAPI_OVER_LIMIT", wapiRequests);
+    }
+    return(callback(
+      {
+        err: "WAPI_OVER_LIMIT", 
+        totalRequests: statsObj.wapi.totalRequests, 
+        requestsRemaining: statsObj.wapi.requestsRemaining, 
+        requestLimit: statsObj.wapi.requestLimit
+      }
     ));
-    wapiOverLimitFlag = true;
-    wapiEvents.emit("WAPI_OVER_LIMIT", wapiRequests);
   }
 
   var wapiUrl;

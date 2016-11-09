@@ -620,11 +620,11 @@ var ignoreWordHashMap = new HashMap();
 
 var keywordColorHashMap = new HashMap();
 
-keywordColorHashMap.set("positive", "green");
-keywordColorHashMap.set("left", "blue");
-keywordColorHashMap.set("negative", "red");
-keywordColorHashMap.set("right", "red");
-keywordColorHashMap.set("neutral", "yellow");
+keywordColorHashMap.set("positive", palette.green);
+keywordColorHashMap.set("left", palette.blue);
+keywordColorHashMap.set("negative", palette.red);
+keywordColorHashMap.set("right", palette.red);
+keywordColorHashMap.set("neutral", palette.white);
 
 
 var rxSessionUpdateQueue = [];
@@ -882,26 +882,6 @@ socket.on("reconnect_error", function(error) {
   });
 });
 
-var palette = {
-  "black": "#000000",
-  "white": "#FFFFFF",
-  "lightgray": "#819090",
-  "gray": "#708284",
-  "mediumgray": "#536870",
-  "darkgray": "#475B62",
-  "darkblue": "#0A2933",
-  "darkerblue": "#042029",
-  "paleryellow": "#FCF4DC",
-  "paleyellow": "#EAE3CB",
-  "yellow": "#A57706",
-  "orange": "#BD3613",
-  "red": "#D11C24",
-  "pink": "#C61C6F",
-  "purple": "#595AB7",
-  "blue": "#2176C7",
-  "green": "#259286",
-  "yellowgreen": "#738A05"
-};
 
 var windowVisible = true;
 

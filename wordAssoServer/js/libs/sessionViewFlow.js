@@ -96,6 +96,7 @@ function ViewFlow() {
     "purple": "#595AB7",
     "blue": "#2176C7",
     "green": "#259286",
+    "lightgreen": "#35A296",
     "yellowgreen": "#738A05"
   };
 

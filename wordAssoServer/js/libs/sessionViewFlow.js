@@ -1121,7 +1121,7 @@ function ViewFlow() {
       .style('fill', function(d) { 
         if (d.mouseHoverFlag) { return palette.blue; }
         if (d.isKeyword) { return d.keywordColor; }
-        return palette.white; 
+        return palette.gray; 
       })
       .style('opacity', function(d) { 
         if (d.mouseHoverFlag) { return 1.0; }

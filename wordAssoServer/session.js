@@ -118,6 +118,7 @@ var palette = {
   "purple": "#595AB7",
   "blue": "#2176C7",
   "green": "#259286",
+  "lightgreen": "#35F096",
   "yellowgreen": "#738A05"
 };
 
@@ -620,7 +621,7 @@ var ignoreWordHashMap = new HashMap();
 
 var keywordColorHashMap = new HashMap();
 
-keywordColorHashMap.set("positive", palette.green);
+keywordColorHashMap.set("positive", palette.lightgreen);
 keywordColorHashMap.set("left", palette.blue);
 keywordColorHashMap.set("negative", palette.red);
 keywordColorHashMap.set("right", palette.red);

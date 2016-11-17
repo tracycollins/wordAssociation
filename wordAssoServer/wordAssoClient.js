@@ -8,6 +8,7 @@ var defaultTimePeriodFormat = "HH:mm:ss";
 
 var statsObj = {};
 statsObj.userReadyAck = false;
+statsObj.serverConnected = false ;
 
 var debug = false;
 var testMode = false;
@@ -46,7 +47,6 @@ var mouseHoverFlag = false;
 var namespace = 'user'
 var socket = io('/' + namespace);
 var socketId;
-var connectedFlag = false;
 
 var jsonPrint = function(obj) {
     if (obj) {
@@ -78,14 +78,26 @@ var SCREEN_NAME = USER_ID;
 
 var userObj = {};
 userObj.tags = {};
-
-userObj.userId = USER_ID;
-userObj.screenName = SCREEN_NAME;
-userObj.type = "USER";
-userObj.mode = sessionMode;
-userObj.streamSource = "USER";
 userObj.tags.entity = USER_ID;
 userObj.tags.channel = "userInput";
+userObj.userId = USER_ID;
+userObj.screenName = SCREEN_NAME;
+// userObj.type = "USER";
+userObj.type = "UTIL";
+// userObj.mode = sessionMode;
+userObj.mode = "STREAM";
+userObj.streamSource = "USER";
+userObj.nodeId = USER_ID + '_userInput';
+
+// var entityUserObj = {};
+// entityUserObj.tags = {};
+// entityUserObj.tags.entity = entity;
+// entityUserObj.tags.channel = 'twitter';
+// entityUserObj.userId = entity;
+// entityUserObj.screenName = entity;
+// entityUserObj.type = "UTIL";
+// entityUserObj.mode = "STREAM";
+// entityUserObj.nodeId = entity + '_twitter';
 
 function getUrlVariables(callback) {
 
@@ -117,15 +129,35 @@ function getUrlVariables(callback) {
 
 var transmitDataQueue = [];
 
-setInterval(function() {
+function sendKeepAlive(userObj, callback){
+  var entity = userObj.tags.entity.toLowerCase();
+  if (statsObj.userReadyAck 
+    && statsObj.serverConnected){
+    console.log("TX KEEPALIVE"
+      + " | " + entity
+      + " | " + moment().format(defaultDateTimeFormat)
+    );
     socket.emit("SESSION_KEEPALIVE", userObj);
+    callback(null, null);
+  }
+  else {
+    // socketReconnect(configuration, socketEntity[entity].socket);
+    callback("ERROR", null);
+  }
+}
+
+setInterval(function() {
+    sendKeepAlive(userObj, function(){});
 }, 60000);
+
 
 setInterval(function() {
     if (transmitDataQueue.length > 0) {
         var txWordObj = {};
         txWordObj = userObj
         txWordObj.nodeId = transmitDataQueue.shift();
+        txWordObj.tags.entity = userObj.tags.entity;
+        txWordObj.tags.channel = userObj.tags.channel;
         socket.emit("RESPONSE_WORD_OBJ", txWordObj);
     }
 }, 447);
@@ -387,7 +419,7 @@ function addUserResponsePrompt() {
     clearInterval(checkInputTextInterval);
 
     checkInputTextInterval = setInterval(function() {
-        if (connectedFlag && userResponseEnabled) {
+        if (statsObj.serverConnected && userResponseEnabled) {
             currentInput = document.getElementById("userResponseInput").value.toLowerCase();;
             if (!currentInput || typeof currentInput === 'undefined') {
                 clearTimeout(inputChangedTimeout);
@@ -406,7 +438,7 @@ function addUserResponsePrompt() {
                 }, responseTimeoutInterval);
             }
             previousInput = document.getElementById("userResponseInput").value.toLowerCase();
-        } else if (connectedFlag && !userResponseEnabled) {
+        } else if (statsObj.serverConnected && !userResponseEnabled) {
             clearTimeout(inputChangedTimeout);
             currentInput = document.getElementById("userResponseInput");
             currentInput.value = '';
@@ -416,7 +448,7 @@ function addUserResponsePrompt() {
 
 function sendUserResponseOnEnter() {
     console.log("sendUserResponseOnEnter");
-    if (connectedFlag && userResponseEnabled) {
+    if (statsObj.serverConnected && userResponseEnabled) {
         enterKeyDownFlag = true;
         clearTimeout(inputStreamChangedTimeout);
         clearInterval(checkStreamInputTextInterval);
@@ -447,7 +479,7 @@ function sendUserResponseOnEnter() {
 
 function checkStreamInputText() {
     checkStreamInputTextInterval = setInterval(function() {
-        if (connectedFlag && userResponseEnabled) {
+        if (statsObj.serverConnected && userResponseEnabled) {
             var currentStreamInputData = document.getElementById("userResponseStreamInput").value.toLowerCase();;
             if (!currentStreamInputData || currentStreamInputData == '') {
                 clearTimeout(inputStreamChangedTimeout);
@@ -700,7 +732,7 @@ socket.on("PAIRED_USER_END", function(pairedUserSessionId) {
 });
 
 socket.on('connect', function() {
-    connectedFlag = true;
+    statsObj.serverConnected = true;
 
     socketId = socket.id;
     console.log(">>> CONNECTED TO HOST | SOCKET ID: " + socketId);
@@ -717,7 +749,7 @@ socket.on('connect', function() {
 });
 
 socket.on('reconnect', function() {
-    connectedFlag = true;
+    statsObj.serverConnected = true;
     socketId = socket.id;
     console.log(">-> RECONNECTED TO HOST | SOCKET ID: " + socketId);
     removeSessionMode();
@@ -734,7 +766,7 @@ socket.on('reconnect', function() {
 });
 
 socket.on('disconnect', function() {
-    connectedFlag = false;
+    statsObj.serverConnected = false;
     console.error("*** DISCONNECTED FROM HOST | SOCKET ID: " + socketId);
     socketIdLabel.style.color = "red";
     socketIdLabel.innerHTML = "SERVER DISCONNECTED";
@@ -743,8 +775,8 @@ socket.on('disconnect', function() {
 
 var data = [];
 
-var fill = d3.scale.category10();
-var color = d3.scale.category10();
+// var fill = d3.scale.category10();
+// var color = d3.scale.category10();
 
 var palette = {
     "black": "#000000",

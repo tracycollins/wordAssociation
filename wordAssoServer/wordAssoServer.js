@@ -5142,8 +5142,7 @@ var readDbUpdateEntityQueue = setInterval(function() {
 var dbUpdateWordReady = true;
 
 var printWapiResults = function(results){
-  if (!results.body.results
-    || (typeof results.body === 'undefined')
+  if ( (typeof results.body === 'undefined')
     || (typeof results.body.results === 'undefined')
     || (typeof results.body.results[0] === 'undefined')
     || (!results.body.results[0])

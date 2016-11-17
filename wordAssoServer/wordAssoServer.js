@@ -1497,16 +1497,12 @@ var readUpdateSessionViewQueue = setInterval(function() {
 
 function updateSessionViews(sessionUpdateObj) {
 
-  console.log(chalkRed("updateSessionViews | sessionUpdateObj\n" + jsonPrint(sessionUpdateObj)));
+  debug(chalkRed("updateSessionViews | sessionUpdateObj\n" + jsonPrint(sessionUpdateObj)));
 
   if (entityChannelGroupHashMap.has(sessionUpdateObj.tags.entity)){
     sessionUpdateObj.tags.group = entityChannelGroupHashMap.get(sessionUpdateObj.tags.entity);
     updateSessionViewQueue.push(sessionUpdateObj);
   }
-  // else if (sessionUpdateObj.tags.entity){
-  //   sessionUpdateObj.tags.group = entityChannelGroupHashMap.get(sessionUpdateObj.tags.entity);
-  //   updateSessionViewQueue.push(sessionUpdateObj);
-  // }
 }
 
 var simpleChain = function(chain) {

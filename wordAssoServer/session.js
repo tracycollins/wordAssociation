@@ -62,7 +62,8 @@ var FORCE_MAX_AGE = 10347;
 var DEFAULT_AGE_RATE = 1.0;
 
 var DEFAULT_CHARGE = -30;
-var DEFAULT_GRAVITY = 0.006;
+var DEFAULT_GRAVITY = 0.008;
+var DEFAULT_FORCEY_MULTIPLIER = 2.0;
 var DEFAULT_VELOCITY_DECAY = 0.965;
 var DEFAULT_LINK_DISTANCE = 10.0;
 var DEFAULT_LINK_STRENGTH = 0.80;
@@ -82,6 +83,7 @@ config.removeDeadNodesFlag = true;
 config.defaultMultiplier = 1000.0;
 config.defaultCharge = DEFAULT_CHARGE;
 config.defaultGravity = DEFAULT_GRAVITY;
+config.defaultForceYmultiplier = DEFAULT_FORCEY_MULTIPLIER;
 config.defaultLinkStrength = DEFAULT_LINK_STRENGTH;
 config.defaultLinkDistance = DEFAULT_LINK_DISTANCE;
 config.defaultVelocityDecay = DEFAULT_VELOCITY_DECAY;
@@ -393,6 +395,7 @@ function toggleControlPanel(){
 
     cnf.defaultMaxAge = DEFAULT_MAX_AGE;
     cnf.defaultGravity = DEFAULT_GRAVITY;
+    cnf.defaultForceYmultiplier = DEFAULT_FORCEY_MULTIPLIER;
     cnf.defaultCharge = DEFAULT_CHARGE;
     cnf.defaultLinkStrength = DEFAULT_LINK_STRENGTH;
     cnf.defaultLinkDistance = DEFAULT_LINK_DISTANCE;

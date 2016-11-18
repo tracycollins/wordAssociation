@@ -966,6 +966,7 @@ function updateEntityChannelGroups(configFile, callback){
 }
 
 var initGroupsInterval;
+
 function updateGroupsInterval(configFile, interval){
 
   console.log(chalkLog("updateGroupsInterval"

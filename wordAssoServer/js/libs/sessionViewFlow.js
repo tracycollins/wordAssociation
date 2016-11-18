@@ -833,7 +833,11 @@ function ViewFlow() {
       .attr("y1", function(d) { return d.source.y; })
       .attr("x2", function(d) { return d.target.x; })
       .attr("y2", function(d) { return d.target.y; })
-      .style('stroke', function(d) { return linkColorScale(d.ageMaxRatio); })
+      .style('stroke', function(d) { 
+        if (d.ageMaxRatio < 0.01) { return palette.white; }
+        // return linkColorScale(d.ageMaxRatio); 
+        return palette.lightgray; 
+      })
       .style('opacity', function(d) { return 1.0 - d.ageMaxRatio; });
 
     link.enter()
@@ -910,8 +914,10 @@ function ViewFlow() {
       .text(function(d) { return d.text; })
       .style("fill", function(d) {
         if (d.mouseHoverFlag) { return palette.blue; }
+        else if (d.node.ageMaxRatio < 0.01) { return palette.white; }
         // else { return d.interpolateGroupColor(d.node.ageMaxRatio); }
-        else { return strokeColorScale(d.node.ageMaxRatio); }
+        // else { return strokeColorScale(d.node.ageMaxRatio); }
+        return palette.lightgray; 
       })
       .style("font-size", function(d) { return sessionFontSizeScale(d.totalWordChainIndex) + "px"; })
       .style('opacity', function(d) {
@@ -971,6 +977,7 @@ function ViewFlow() {
       .style("font-size", function(d) { return sessionFontSizeScale(d.totalWordChainIndex) + "px"; })
       .style('fill', function(d) { 
         if (d.mouseHoverFlag || d.node.mouseHoverFlag) { return palette.white; }
+        else if (d.node.ageMaxRatio < 0.01) { return palette.white; }
         return palette.yellow; 
       })
       .style('opacity', function(d) {
@@ -1124,6 +1131,7 @@ function ViewFlow() {
       .style('fill', function(d) { 
         if (d.mouseHoverFlag) { return palette.blue; }
         if (d.isKeyword) { return d.keywordColor; }
+        if ((d.isGroupNode || d.isSessionNode) && (d.ageMaxRatio < 0.01)) { return palette.white; }
         return palette.gray; 
       })
       .style('opacity', function(d) { 

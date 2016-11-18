@@ -76,6 +76,8 @@ function ViewFlow() {
   var charge = DEFAULT_CHARGE;
   var gravity = DEFAULT_GRAVITY;
   var forceYmultiplier = DEFAULT_FORCEY_MULTIPLIER;
+  var collisionRadiusMultiplier = DEFAULT_COLLISION_RADIUS_MULTIPLIER;
+  var collisionIterations = DEFAULT_COLLISION_ITERATIONS;
   var globalLinkStrength = DEFAULT_LINK_STRENGTH;
   var globalLinkDistance = DEFAULT_LINK_DISTANCE;
   var velocityDecay = DEFAULT_VELOCITY_DECAY;
@@ -1415,7 +1417,7 @@ function ViewFlow() {
       .force("charge", d3.forceManyBody().strength(charge))
       .force("forceX", d3.forceX(-10000).strength(gravity))
       .force("forceY", d3.forceY(svgFlowLayoutAreaHeight/2).strength(forceYmultiplier * gravity))
-      .force("collide", d3.forceCollide().radius(function(d) { return 2.0*d.r ; }).iterations(2))
+      .force("collide", d3.forceCollide().radius(function(d) { return collisionRadiusMultiplier * d.r ; }).iterations(collisionIterations))
       .velocityDecay(velocityDecay)
       .on("tick", ticked);
 

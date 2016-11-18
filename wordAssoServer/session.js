@@ -61,12 +61,14 @@ var DEFAULT_MAX_AGE = 40000;
 var FORCE_MAX_AGE = 10347;
 var DEFAULT_AGE_RATE = 1.0;
 
-var DEFAULT_CHARGE = -100;
+var DEFAULT_CHARGE = -20;
 var DEFAULT_GRAVITY = 0.008;
-var DEFAULT_FORCEY_MULTIPLIER = 2.0;
+var DEFAULT_FORCEY_MULTIPLIER = 10.0;
 var DEFAULT_VELOCITY_DECAY = 0.965;
 var DEFAULT_LINK_DISTANCE = 10.0;
 var DEFAULT_LINK_STRENGTH = 0.80;
+var DEFAULT_COLLISION_RADIUS_MULTIPLIER = 2.5;
+var DEFAULT_COLLISION_ITERATIONS = 2;
 
 var DEFAULT_NODE_RADIUS = 20.0;
 
@@ -84,6 +86,8 @@ config.defaultMultiplier = 1000.0;
 config.defaultCharge = DEFAULT_CHARGE;
 config.defaultGravity = DEFAULT_GRAVITY;
 config.defaultForceYmultiplier = DEFAULT_FORCEY_MULTIPLIER;
+config.defaultCollisionRadiusMultiplier = DEFAULT_COLLISION_RADIUS_MULTIPLIER;
+config.defaultCollisionIterations = DEFAULT_COLLISION_ITERATIONS;
 config.defaultLinkStrength = DEFAULT_LINK_STRENGTH;
 config.defaultLinkDistance = DEFAULT_LINK_DISTANCE;
 config.defaultVelocityDecay = DEFAULT_VELOCITY_DECAY;
@@ -396,6 +400,8 @@ function toggleControlPanel(){
     cnf.defaultMaxAge = DEFAULT_MAX_AGE;
     cnf.defaultGravity = DEFAULT_GRAVITY;
     cnf.defaultForceYmultiplier = DEFAULT_FORCEY_MULTIPLIER;
+    cnf.defaultCollisionRadiusMultiplier = DEFAULT_COLLISION_RADIUS_MULTIPLIER;
+    cnf.defaultCollisionIterations = DEFAULT_COLLISION_ITERATIONS;
     cnf.defaultCharge = DEFAULT_CHARGE;
     cnf.defaultLinkStrength = DEFAULT_LINK_STRENGTH;
     cnf.defaultLinkDistance = DEFAULT_LINK_DISTANCE;

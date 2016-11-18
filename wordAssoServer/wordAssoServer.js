@@ -2364,6 +2364,7 @@ function bhtSearchWord(wordObj, callback) {
     wordObj.nodeId = wordObj.nodeId.replace(/\s+/g, ' ');
     wordObj.nodeId = wordObj.nodeId.replace(/^-+|-+$/g, '');
     wordObj.nodeId = wordObj.nodeId.replace(/^\s+|\s+$/g, '');
+    wordObj.nodeId = wordObj.nodeId.replace(/^\'+/g, '');
     wordObj.nodeId = wordObj.nodeId.replace(/\'+/g, "'");
     wordObj.nodeId = wordObj.nodeId.toLowerCase();
 

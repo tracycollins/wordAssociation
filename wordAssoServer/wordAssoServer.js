@@ -1847,7 +1847,7 @@ function dbUpdateWord(wordObj, incMentions, callback) {
       callback(err, wordObj);
     } else {
 
-      console.log("> DB UPDATE | " 
+      debug("> DB UPDATE | " 
         + word.nodeId 
         + " | I: " + word.isIgnored 
         + " | K: " + word.isKeyword 
@@ -2658,6 +2658,8 @@ function groupUpdateDb(userObj, callback){
     if (groupHashMap.has(entityObj.groupId)) {
 
       var groupObj = groupHashMap.get(entityObj.groupId);
+
+      groupObj.groupId = entityObj.groupId;
 
       groupUpdateObj.groupId = entityObj.groupId;
       groupUpdateObj.name = groupObj.name;
@@ -5053,14 +5055,14 @@ var readResponseQueue = setInterval(function() {
     }
 
     console.log(chalkResponse("R<" 
-      + " GRP: " + responseInObj.tags.group 
+      + " G: " + responseInObj.tags.group 
       // + " | U: " + currentSessionObj.userId
-      + " | ENT: " + responseInObj.tags.entity 
-      + " | CH: " + responseInObj.tags.channel 
-      + " | NID: " + responseInObj.nodeId 
+      + " E: " + responseInObj.tags.entity 
+      + " C: " + responseInObj.tags.channel 
+      + " N: " + responseInObj.nodeId 
       // + " | URL: " + responseInObj.url 
       + " [" + currentSessionObj.wordChainIndex + "]" 
-      + " < " + previousPrompt
+      // + " < " + previousPrompt
     ));
 
     var dbUpdateObj = {};
@@ -5717,14 +5719,14 @@ var wapiSearchQueueInterval = setInterval(function() {
         wapiSearchQueueReady = true;
       }
       else if (results.wapiFound) {
-        console.log(chalkWapi("* WAPI HIT"
+        debug(chalkWapi("* WAPI HIT"
           + " [ " + statsObj.wapi.totalRequests
           + " / " + statsObj.wapi.requestLimit
           + " | " + (100*(statsObj.wapi.totalRequests/statsObj.wapi.requestLimit)).toFixed(2) + "% ]"
           // + " | " + word.toLowerCase() 
           + " | " + results.word
           + " | " + results.variation
-          + " | " + printWapiResults(results)
+          // + " | " + printWapiResults(results)
           // + "\n" + jsonPrint(results.body)
         ));
 
@@ -5742,25 +5744,25 @@ var wapiSearchQueueInterval = setInterval(function() {
             callback(err, wordObj);
           } 
           else {
-            console.log("WAPI > DB | " 
+            debug("WAPI > DB | " 
               + word.nodeId 
               + " | I: " + word.isIgnored 
               + " | K: " + word.isKeyword 
               + " | MNS: " + word.mentions 
-              + " | URL: " + word.url 
-              + " | WAPI SEARCHED: " + word.wapiSearched 
-              + " FOUND: " + word.wapiFound
-              + " | BHT SEARCHED: " + word.bhtSearched 
-              + " FOUND: " + word.bhtFound
-              + " | MWD SEARCHED: " + word.mwDictSearched 
-              + " FOUND: " + word.mwDictFound
-              + "\nKWs: " + jsonPrint(word.keywords) 
+              // + " | URL: " + word.url 
+              + " | WAPI S: " + word.wapiSearched 
+              + " F: " + word.wapiFound
+              + " | BHT S: " + word.bhtSearched 
+              + " F: " + word.bhtFound
+              + " | MWD S: " + word.mwDictSearched 
+              + " F: " + word.mwDictFound
+              // + "\nKWs: " + jsonPrint(word.keywords) 
             );
           }
         });
       }
       else {
-        console.log(chalkWapi("- WAPI MISS"
+        debug(chalkWapi("- WAPI MISS"
           + " [ " + statsObj.wapi.totalRequests
           + " / " + statsObj.wapi.requestLimit
           + " | " + (100*(statsObj.wapi.totalRequests/statsObj.wapi.requestLimit)).toFixed(2) + "% ]"
@@ -5782,19 +5784,19 @@ var wapiSearchQueueInterval = setInterval(function() {
             callback(err, wordObj);
           } 
           else {
-            console.log("WAPI > DB | " 
+            debug("WAPI > DB | " 
               + word.nodeId 
               + " | I: " + word.isIgnored 
               + " | K: " + word.isKeyword 
               + " | MNS: " + word.mentions 
-              + " | URL: " + word.url 
-              + " | WAPI SEARCHED: " + word.wapiSearched 
-              + " FOUND: " + word.wapiFound
-              + " | BHT SEARCHED: " + word.bhtSearched 
-              + " FOUND: " + word.bhtFound
-              + " | MWD SEARCHED: " + word.mwDictSearched 
-              + " FOUND: " + word.mwDictFound
-              + "\nKWs: " + jsonPrint(word.keywords) 
+              // + " | URL: " + word.url 
+              + " | WAPI S: " + word.wapiSearched 
+              + " F: " + word.wapiFound
+              + " | BHT S: " + word.bhtSearched 
+              + " F: " + word.bhtFound
+              + " | MWD S: " + word.mwDictSearched 
+              + " F: " + word.mwDictFound
+              // + "\nKWs: " + jsonPrint(word.keywords) 
             );
           }
         });

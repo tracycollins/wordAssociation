@@ -1205,7 +1205,14 @@ socket.on("SESSION_DELETE", function(rxSessionObject) {
 
   var rxObj = rxSessionObject;
 
-  if (typeof rxObj.session.user !== 'undefined'){
+  console.log("SESSION_DELETE" 
+    // + " | " + rxObj.session.nodeId
+    // // + " | " + rxSessionObject.sessionId 
+    // + " | " + rxObj.sessionEvent
+    + "\n" + jsonPrint(rxSessionObject)
+  );
+
+  if ((typeof rxObj.session !== 'undefined') && (typeof rxObj.session.tags !== 'undefined')){
 
     // rxObj.session.nodeId = rxObj.session.user.tags.entity.toLowerCase() + "_" + rxObj.session.user.tags.channel.toLowerCase();
     rxObj.session.nodeId = rxObj.session.tags.entity.toLowerCase() + "_" + rxObj.session.tags.channel.toLowerCase();
@@ -1265,11 +1272,17 @@ socket.on("SESSION_UPDATE", function(rxSessionObject) {
       // console.log("KEEPALIVE" + " | " + rxObj.userId);
     } else {
       rxSessionUpdateQueue.push(rxSessionObject);
+
+      if (rxObj.tags.trending) {
+        console.error("TTT" + rxObj.source.nodeId 
+          + " | T: " + rxObj.tags.trending
+        );
+      }
       console.log("UID: " + rxObj.userId 
         // + " | " + jsonPrint(rxObj.tags) 
         + " | G: " + rxObj.tags.group
-        + " | ENT: " + rxObj.tags.entity
-        + " | CH: " + rxObj.tags.channel
+        + " | E: " + rxObj.tags.entity
+        + " | C: " + rxObj.tags.channel
         + " | " + rxObj.wordChainIndex 
         + " | " + rxObj.source.nodeId 
         + " > " + rxObj.target.nodeId
@@ -1430,8 +1443,8 @@ function sum( obj ) {
 var randomNumber360 = 180;
 
 var getKeywordColor = function(keywordsObj){
-  console.debug("keywordsObj: " + jsonPrint(keywordsObj));
-  console.debug("keywordsObj: " + keywordsObj);
+  // console.debug("keywordsObj: " + jsonPrint(keywordsObj));
+  // console.debug("keywordsObj: " + keywordsObj);
   return keywordColorHashMap.get(keywordsObj);
   // for( var kw in keywordsObj ) {
   //   console.debug("kw: " + kw);

@@ -469,7 +469,7 @@ function ViewFlow() {
     }
     if ((nodeIndex < 0) && (linkIndex < 0)) {
       nodes.splice(nodeIndex, 1);
-      console.error("XXX NODE NOT FOUND ??? " + nodeId);
+      console.debug("XXX NODE NOT FOUND ??? " + nodeId);
       return(callback(null, deadNodeFlag));
     }
   }

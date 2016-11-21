@@ -1280,7 +1280,7 @@ socket.on("SESSION_UPDATE", function(rxSessionObject) {
       }
       console.log("UID: " + rxObj.userId 
         // + " | " + jsonPrint(rxObj.tags) 
-        + " | G: " + rxObj.tags.group
+        + " | G: " + rxObj.tags.group.groupId
         + " | E: " + rxObj.tags.entity
         + " | C: " + rxObj.tags.channel
         + " | " + rxObj.wordChainIndex 

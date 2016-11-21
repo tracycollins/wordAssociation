@@ -504,6 +504,8 @@ function ViewFlow() {
         switch (groupUpdateObj.op) {
           case "add":
             groupsModifiedFlag = true;
+            if (typeof groupUpdateObj.group.node.x === 'undefined') groupUpdateObj.group.node.x = 100;
+            if (typeof groupUpdateObj.group.node.y === 'undefined') groupUpdateObj.group.node.y = 100;
             if (fixedGroupsFlag || groupUpdateObj.group.node.fixed) {
               groupUpdateObj.group.node.fx = groupUpdateObj.group.node.x;
               // groupUpdateObj.group.node.fy = groupUpdateObj.group.node.y;
@@ -1287,42 +1289,7 @@ function ViewFlow() {
   }
 
   function nodeClick(d) {
-
     window.open(d.url, '_blank');
-
-    // var url = "";
-
-    // switch (d.nodeType) {
-    //   case "tweet" :
-    //   break;
-
-    //   case "user" :
-    //     window.open(d.profileUrl, '_blank');
-    //   break;
-
-    //   case "hashtag" :
-    //     url = "https://twitter.com/search?f=realtime&q=%23" + d.text ;
-    //     window.open(url, '_blank');
-    //   break;
-
-    //   case "place" :
-    //     url = d.sourceUrl ;
-    //     window.open(url, '_blank');
-    //   break;
-
-    //   case "url" :
-    //     url = d.expandedUrl ;
-    //     window.open(url, '_blank');
-    //   break;
-
-    //   case "media" :
-    //     url = d.sourceUrl ;
-    //     window.open(url, '_blank');
-    //   break;
-
-    //   default:
-    //   break;
-    // }
   }
  
   function sessionCircleClick(d) {
@@ -1365,10 +1332,14 @@ function ViewFlow() {
         // + jsonPrint(newNode)
       );
     }
+    if (newNode.x === 'undefined') newNode.x = 100;
+    if (newNode.y === 'undefined') newNode.y = 100;
     nodeUpdateQ.push({op:'add', node: newNode});
   }
 
   this.updateNode = function(uNode) {
+    if (uNode.x === 'undefined') uNode.x = 100;
+    if (uNode.y === 'undefined') uNode.y = 100;
     console.error("updateNode\n" + jsonPrint(uNode));
     nodeUpdateQ.push({op:'update', node: uNode});
   }

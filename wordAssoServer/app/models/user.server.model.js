@@ -80,6 +80,22 @@ var UserSchema = new Schema({
 		type: String,
 		trim: true
 	},
+	statusesCount: {
+		type: Number,
+		default: 0
+	},
+	followersCount: {
+		type: Number,
+		default: 0
+	},
+	friendsCount: {
+		type: Number,
+		default: 0
+	},
+	mentions: {
+		type: Number,
+		default: 0
+	},
 	sessions: {  
 		type: [String],// Session objects
 		trim: true

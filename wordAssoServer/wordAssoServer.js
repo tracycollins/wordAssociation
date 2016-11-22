@@ -821,33 +821,20 @@ function updateGroups(configFile, callback){
         function(groupId, cb){
 
           if (groupHashMap.has(groupId)){
-
             groupHashMap.set(groupId, groups[groupId]);
-
             delete statsObj.group.hashMiss[groupId];
-
-            // console.log(chalkLog("--- UPDATED GROUP"
-            //   + " | " + groupId
-            //   + " | " + groupHashMap.get(groupId).name
-            // ));
-
             cb(null, "HIT");
             return;
-
           }
 
           else {
-
             groupHashMap.set(groupId, groups[groupId]);
-
             console.log(chalkLog("+++ ADDED GROUP  "
               + " | " + groupId
               + " | " + groupHashMap.get(groupId).name
             ));
-
             statsObj.group.hashMiss[groupId] = 1;
             statsObj.group.allHashMisses[groupId] = 1;
-
             cb(null, "MISS");
             return;
           }
@@ -861,8 +848,7 @@ function updateGroups(configFile, callback){
             return;
           } else {
             debug("FOUND " + groups.length + " GROUPS");
-            console.log(chalkLog("GROUPS CONFIG INIT COMPLETE"
-              // + "\n" + jsonPrint(entityChannelGroups)
+            console.log(chalkLog("GROUPS CONFIG UPDATE COMPLETE"
             ));
 
             updateEntityChannelGroups(defaultDropboxEntityChannelGroupsConfigFile, function(err, results){
@@ -969,6 +955,8 @@ var initGroupsInterval;
 
 function updateGroupsInterval(configFile, interval){
 
+  clearInterval(updateGroupsInterval);
+
   console.log(chalkLog("updateGroupsInterval"
     + " | INTERVAL: " + interval
     + " | " + configFile
@@ -982,6 +970,8 @@ function updateGroupsInterval(configFile, interval){
 
 var initEntityChannelGroupsInterval;
 function updateEntityChannelGroupsInterval(configFile, interval){
+
+  clearInterval(initEntityChannelGroupsInterval);
 
   console.log(chalkLog("updateEntityChannelGroupsInterval"
     + " | INTERVAL: " + interval

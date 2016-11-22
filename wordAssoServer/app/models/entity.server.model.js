@@ -9,9 +9,8 @@ var EntitySchema = new Schema({
 		trim: true,
 		unique: true
 	},
-	groups: {
-		type: Object,
-		default: []
+	groupId: {
+		type: String
 	},
 	screenName: {
 		type: String

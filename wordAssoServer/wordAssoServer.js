@@ -955,8 +955,6 @@ var initGroupsInterval;
 
 function updateGroupsInterval(configFile, interval){
 
-  clearInterval(updateGroupsInterval);
-
   console.log(chalkLog("updateGroupsInterval"
     + " | INTERVAL: " + interval
     + " | " + configFile
@@ -970,8 +968,6 @@ function updateGroupsInterval(configFile, interval){
 
 var initEntityChannelGroupsInterval;
 function updateEntityChannelGroupsInterval(configFile, interval){
-
-  clearInterval(initEntityChannelGroupsInterval);
 
   console.log(chalkLog("updateEntityChannelGroupsInterval"
     + " | INTERVAL: " + interval

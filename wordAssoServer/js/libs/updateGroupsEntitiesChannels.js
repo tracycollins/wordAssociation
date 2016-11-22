@@ -1,7 +1,9 @@
 /*jslint node: true */
 "use strict";
 
+var OFFLINE_MODE = false;
 var debug = require('debug')('wa');
+var moment = require('moment');
 
 var jsonPrint = function(obj) {
   if (obj) {
@@ -44,6 +46,11 @@ var HashMap = require('hashmap').HashMap;
 var groupHashMap = new HashMap();
 var entityChannelGroupHashMap = new HashMap();
 var keywordHashMap = new HashMap();
+
+var mongoose = require('../../config/mongoose');
+var db = mongoose();
+var Word = require('mongoose').model('Word');
+var wordServer = require('../../app/controllers/word.server.controller');
 
 
 console.log(
@@ -89,9 +96,9 @@ var DROPBOX_WORD_ASSO_APP_SECRET = process.env.DROPBOX_WORD_ASSO_APP_SECRET;
 
 var Dropbox = require("dropbox");
 
-console.log("DROPBOX_WORD_ASSO_ACCESS_TOKEN :" + DROPBOX_WORD_ASSO_ACCESS_TOKEN);
-console.log("DROPBOX_WORD_ASSO_APP_KEY :" + DROPBOX_WORD_ASSO_APP_KEY);
-console.log("DROPBOX_WORD_ASSO_APP_SECRET :" + DROPBOX_WORD_ASSO_APP_SECRET);
+debug("DROPBOX_WORD_ASSO_ACCESS_TOKEN :" + DROPBOX_WORD_ASSO_ACCESS_TOKEN);
+debug("DROPBOX_WORD_ASSO_APP_KEY :" + DROPBOX_WORD_ASSO_APP_KEY);
+debug("DROPBOX_WORD_ASSO_APP_SECRET :" + DROPBOX_WORD_ASSO_APP_SECRET);
 
 var dropboxClient = new Dropbox.Client({
   token: DROPBOX_WORD_ASSO_ACCESS_TOKEN,
@@ -99,24 +106,29 @@ var dropboxClient = new Dropbox.Client({
   secret: DROPBOX_WORD_ASSO_APP_SECRET
 });
 
-if (OFFLINE_MODE) {
-  statsFile = offlineStatsFile;
-} else {
-  statsFile = dropboxHostStatsFile;
+var groupsConfigFile;
+var entityChannelGroupsConfigFile;
+var keywordFile;
 
-  dropboxClient.authDriver(new Dropbox.AuthDriver.NodeServer(8191));
+var statsObj = {};
+statsObj.group = {};
+statsObj.group.errors = 0;
+statsObj.group.hashMiss = {};
+statsObj.group.allHashMisses = {};
+statsObj.entityChannelGroup = {};
+statsObj.entityChannelGroup.hashMiss = {};
+statsObj.entityChannelGroup.allHashMisses = {};
 
-  dropboxClient.getAccountInfo(function(error, accountInfo) {
-    if (error) {
-      console.error("\n*** DROPBOX getAccountInfo ERROR ***\n" + JSON.stringify(error, null, 3));
-      return error; // Something went wrong.
-    }
-    console.log(chalkInfo("DROPBOX ACCOUNT INFO: " + JSON.stringify(accountInfo, null, 3)));
-    console.log(chalkInfo("DROPBOX ACCOUNT INFO: " + accountInfo.name));
-  });
-}
+process.on('message', function(m) {
 
+  console.log(chalkRed("RX MESSAGE\n" + jsonPrint(m)));
 
+  groupsConfigFile = m.groupsConfigFile;
+  entityChannelGroupsConfigFile = m.entityChannelGroupsConfigFile;
+  keywordFile = m.keywordFile;
+
+  updateGroupsInterval(groupsConfigFile, m.interval);
+});
 
 function updateGroups(configFile, callback){
 
@@ -147,7 +159,7 @@ function updateGroups(configFile, callback){
 
           else {
             groupHashMap.set(groupId, groups[groupId]);
-            console.log(chalkLog("+++ ADDED GROUP  "
+            debug(chalkLog("+++ ADDED GROUP  "
               + " | " + groupId
               + " | " + groupHashMap.get(groupId).name
             ));
@@ -165,12 +177,17 @@ function updateGroups(configFile, callback){
             callback(err, null);
             return;
           } else {
-            debug("FOUND " + groups.length + " GROUPS");
+            console.log(chalkLog("FOUND " + groupIds.length + " GROUPS"));
             console.log(chalkLog("GROUPS CONFIG UPDATE COMPLETE"
             ));
 
-            updateEntityChannelGroups(defaultDropboxEntityChannelGroupsConfigFile, function(err, results){
-              callback(null, groups.length);
+            updateEntityChannelGroups(entityChannelGroupsConfigFile, function(err, results){
+              callback(null, groupIds.length);
+              // process.send({ 
+              //   groupHashMap: groupHashMap, 
+              //   entityChannelGroupHashMap: entityChannelGroupHashMap,
+              //   keywordHashMap: keywordHashMap
+              // });
               return;
             });
 
@@ -279,24 +296,75 @@ function updateGroupsInterval(configFile, interval){
   ));
 
   initGroupsInterval = setInterval(function() {
-    updateGroups(configFile, function(err, results){});
-    initKeywords(defaultDropboxKeywordFile);
+    updateGroups(configFile, function(err, results){
+      initKeywords(keywordFile, function(err, results2){
+        // process.send()
+        process.send({ 
+          groupHashMap: groupHashMap, 
+          entityChannelGroupHashMap: entityChannelGroupHashMap,
+          keywordHashMap: keywordHashMap
+        });
+      });
+    });
   }, interval);
 }
 
-var initEntityChannelGroupsInterval;
-function updateEntityChannelGroupsInterval(configFile, interval){
+function initKeywords(file, callback){
+  loadDropboxJsonFile(file, function(err, kwordsObj){
 
-  clearInterval(initEntityChannelGroupsInterval);
+    if (!err) {
 
-  console.log(chalkLog("updateEntityChannelGroupsInterval"
-    + " | INTERVAL: " + interval
-    + " | " + configFile
-  ));
+      var words = Object.keys(kwordsObj);
 
-  initEntityChannelGroupsInterval = setInterval(function() {
-    updateEntityChannelGroups(configFile, function(err, results){});
-  }, interval);
+      async.forEach(words,
+
+        function(w, cb) {
+
+          var wd = w.toLowerCase();
+          var keyWordType = kwordsObj[w];
+
+          // console.log(chalkRed("UPDATING KEYWORD | " + wd + ": " + keyWordType));
+
+          var wordObj = new Word();
+
+          wordObj.nodeId = wd;
+          wordObj.isKeyword = true;
+          wordObj.keywords[keyWordType] = true;
+          keywordHashMap.set(wordObj.nodeId, keyWordType);
+
+          wordServer.findOneWord(wordObj, false, function(err, updatedWordObj) {
+            if (err){
+              console.log(chalkError("ERROR: UPDATING KEYWORD | " + wd + ": " + kwordsObj[wd]));
+              cb(err);
+            }
+            else {
+              // console.log(chalkLog("+++ UPDATED KEYWORD"
+              //   + " | " + updatedWordObj.nodeId 
+              //   + " | " + updatedWordObj.raw 
+              //   + " | M " + updatedWordObj.mentions 
+              //   + " | I " + updatedWordObj.isIgnored 
+              //   + " | K " + updatedWordObj.isKeyword 
+              //   + " | K " + jsonPrint(updatedWordObj.keywords) 
+              // ));
+              cb();
+            }
+          });
+
+        },
+
+        function(err) {
+          if (err) {
+            console.log(chalkError("initKeywords ERROR! " + err));
+            callback(err, null);
+          }
+          else {
+            console.log(chalkInfo("initKeywords COMPLETE"));
+            callback(null, words.length);
+          }
+        }
+      )
+    }
+  });
 }
 
 
@@ -351,17 +419,17 @@ function getTimeStamp(inputTime) {
   return currentTimeStamp.format("YYYY-MM-DD HH:mm:ss ZZ");
 }
 
-var DROPBOX_WA_GROUPS_CONFIG_FILE = process.env.DROPBOX_WA_GROUPS_CONFIG_FILE || 'groups.json';
-var DROPBOX_WA_KEYWORDS_FILE = process.env.DROPBOX_WA_KEYWORDS_FILE || 'keywords.json';
-var DROPBOX_WA_ENTITY_CHANNEL_GROUPS_CONFIG_FILE = process.env.DROPBOX_WA_ENTITY_CHANNEL_GROUPS_CONFIG_FILE || 'entityChannelGroups.json';
+// var DROPBOX_WA_GROUPS_CONFIG_FILE = process.env.DROPBOX_WA_GROUPS_CONFIG_FILE || 'groups.json';
+// var DROPBOX_WA_KEYWORDS_FILE = process.env.DROPBOX_WA_KEYWORDS_FILE || 'keywords.json';
+// var DROPBOX_WA_ENTITY_CHANNEL_GROUPS_CONFIG_FILE = process.env.DROPBOX_WA_ENTITY_CHANNEL_GROUPS_CONFIG_FILE || 'entityChannelGroups.json';
 
-var defaultDropboxGroupsConfigFile = DROPBOX_WA_GROUPS_CONFIG_FILE;
-var defaultDropboxKeywordFile = DROPBOX_WA_KEYWORDS_FILE;
+// var defaultDropboxGroupsConfigFile = DROPBOX_WA_GROUPS_CONFIG_FILE;
+// var defaultDropboxKeywordFile = DROPBOX_WA_KEYWORDS_FILE;
 
-var dropboxGroupsConfigFile = os.hostname() +  "_" + DROPBOX_WA_GROUPS_CONFIG_FILE;
+// var dropboxGroupsConfigFile = os.hostname() +  "_" + DROPBOX_WA_GROUPS_CONFIG_FILE;
 
-var defaultDropboxEntityChannelGroupsConfigFile = DROPBOX_WA_ENTITY_CHANNEL_GROUPS_CONFIG_FILE;
-var dropboxEntityChannelGroupsConfigFile = os.hostname() +  "_" + DROPBOX_WA_ENTITY_CHANNEL_GROUPS_CONFIG_FILE;
+// var defaultDropboxEntityChannelGroupsConfigFile = DROPBOX_WA_ENTITY_CHANNEL_GROUPS_CONFIG_FILE;
+// var dropboxEntityChannelGroupsConfigFile = os.hostname() +  "_" + DROPBOX_WA_ENTITY_CHANNEL_GROUPS_CONFIG_FILE;
 
 function loadConfig(file, callback){
 
@@ -459,4 +527,3 @@ function initEntityChannelGroups(dropboxConfigFile, callback){
 //=================================
 // BEGIN !!
 //=================================
-updateGroupsInterval(defaultDropboxGroupsConfigFile, ONE_MINUTE);

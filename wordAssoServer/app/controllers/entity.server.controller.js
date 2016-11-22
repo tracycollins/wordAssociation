@@ -26,6 +26,7 @@ exports.findOneEntity = function(entity, incMentions, callback) {
 					$inc: { mentions: inc }, 
 					$set: { 
 						entityId: entity.entityId,
+						groupId: entity.groupId,
 						name: entity.name,
 						screenName: entity.screenName,
 						sessions: entity.sessions,
@@ -35,10 +36,10 @@ exports.findOneEntity = function(entity, incMentions, callback) {
 					},
 				};
 
-	if (entity.addGroupArray) {
-		// console.log(chalkDb("ADD VIDEO ARRAY: " + entity.addGroupArray.length));
-		update['$addToSet'] = {groups: { $each: entity.addGroupArray }};
-	}
+	// if (entity.addGroupArray) {
+	// 	// console.log(chalkDb("ADD VIDEO ARRAY: " + entity.addGroupArray.length));
+	// 	update['$addToSet'] = {groups: { $each: entity.addGroupArray }};
+	// }
 
 	var options = { 
 		setDefaultsOnInsert: true,
@@ -60,7 +61,7 @@ exports.findOneEntity = function(entity, incMentions, callback) {
 					+ " | " + ent.entityId 
 					+ " | NAME: " + ent.name 
 					+ " | SNAME: " + ent.screenName 
-					+ " | GROUPS: " + Object.keys(ent.groups) 
+					+ " | GROUP: " + ent.groupId 
 					+ " | CHAN: " + ent.tags.channel
 					+ " | SESSIONS: " + ent.sessions 
 					+ " | WORDS: " + ent.words 

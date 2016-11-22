@@ -1361,8 +1361,7 @@ var updateSessionViewQueue = [];
 var updateSessionViewReady = true;
 
 var readUpdateSessionViewQueue = setInterval(function() {
-
-  while (updateSessionViewReady && (updateSessionViewQueue.length > 0)) {
+  if (updateSessionViewReady && (updateSessionViewQueue.length > 0)) {
 
     updateSessionViewReady = false;
 
@@ -1460,7 +1459,8 @@ var readUpdateSessionViewQueue = setInterval(function() {
           + " > " + sessionUpdateObj.target.raw 
           + " [" + sessionUpdateObj.target.wordChainIndex + "]"
         ));
-      } else {
+      } 
+      else {
         debug(chalkLog("SNT>" + " | " + sessionUpdateObj.userId
           // + " | " + sessionUpdateObj.sessionId
           // + " | WCI: " + sessionUpdateObj.wordChainIndex
@@ -1486,14 +1486,13 @@ var readUpdateSessionViewQueue = setInterval(function() {
       utilNameSpace.to(monitorHashMap[key].session.sessionId).emit("SESSION_UPDATE",sessionSmallObj);
     }
 
-    sessionUpdatesSent++;
-    updateStats({
-      sessionUpdatesSent: sessionUpdatesSent
-    });
+    updateStats({ sessionUpdatesSent: sessionUpdatesSent });
     updatePromptResponseMetric(sessionUpdateObj);
+
+    sessionUpdatesSent++;
     updateSessionViewReady = true;
   }
-}, 50);
+}, 20);
 
 
 function updateSessionViews(sessionUpdateObj) {

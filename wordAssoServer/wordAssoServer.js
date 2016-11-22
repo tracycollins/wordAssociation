@@ -962,7 +962,7 @@ function updateGroupsInterval(configFile, interval){
 
   initGroupsInterval = setInterval(function() {
     updateGroups(configFile, function(err, results){});
-    initKeywords(defaultDropboxKeywordFile);
+    initKeywords(defaultDropboxKeywordFile, function(err, results){});
   }, interval);
 }
 
@@ -5668,8 +5668,9 @@ function initializeConfiguration(callback) {
     function(err, results) {
 
       updateGroups(defaultDropboxGroupsConfigFile, function(err, results){});
+      initKeywords(defaultDropboxKeywordFile, function(err, results){});
+
       updateGroupsInterval(defaultDropboxGroupsConfigFile, ONE_MINUTE);
-      initKeywords(defaultDropboxKeywordFile);
       updateStatsInterval(dropboxHostStatsFile, ONE_MINUTE);
 
       if (err) {

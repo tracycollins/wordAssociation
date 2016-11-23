@@ -338,7 +338,7 @@ function ViewFlow() {
   self.resetDefaultForce = function() {
     console.log("RESET FLOW LAYOUT DEFAULTS");
     self.updateCharge(DEFAULT_CHARGE);
-    self.updateVelocityDecay(DEFAULT_FRICTION);
+    self.updateVelocityDecay(DEFAULT_VELOCITY_DECAY);
     self.updateGravity(DEFAULT_GRAVITY);
     self.updateLinkStrength(DEFAULT_LINK_STRENGTH);
     self.updateLinkDistance(DEFAULT_LINK_DISTANCE);

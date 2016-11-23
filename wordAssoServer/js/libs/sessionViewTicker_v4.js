@@ -86,7 +86,7 @@ function ViewTicker() {
 
   var DEFAULT_FORCE_CONFIG = {
     'charge': DEFAULT_CHARGE,
-    'friction': DEFAULT_FRICTION,
+    'velocityDecay': DEFAULT_VELOCITY_DECAY,
     'linkStrength': DEFAULT_LINK_STRENGTH,
     'gravity': DEFAULT_GRAVITY,
     'ageRate': window.DEFAULT_AGE_RATE,
@@ -94,7 +94,7 @@ function ViewTicker() {
   var charge = DEFAULT_CHARGE;
   var gravity = DEFAULT_GRAVITY;
   var globalLinkStrength = DEFAULT_LINK_STRENGTH;
-  var friction = DEFAULT_FRICTION;
+  var velocityDecay = DEFAULT_VELOCITY_DECAY;
 
   var config = DEFAULT_CONFIG;
   self.removeDeadNodes = true;
@@ -249,8 +249,8 @@ function ViewTicker() {
     globalLinkStrength = value;
   }
 
-  self.updateFriction = function(value) {
-    friction = value;
+  self.updateVelocityDecay = function(value) {
+    velocityDecay = value;
   }
 
   self.updateGravity = function(value) {
@@ -264,7 +264,7 @@ function ViewTicker() {
   self.resetDefaultForce = function() {
     console.log("RESET FORCE LAYOUT DEFAULTS");
     self.updateCharge(DEFAULT_CHARGE);
-    self.updateFriction(DEFAULT_FRICTION);
+    self.updateVelocityDecay(DEFAULT_VELOCITY_DECAY);
     self.updateGravity(DEFAULT_GRAVITY);
     self.updateLinkStrength(DEFAULT_LINK_STRENGTH);
   }

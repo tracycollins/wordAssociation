@@ -128,6 +128,7 @@ process.on('message', function(m) {
   keywordFile = m.keywordFile;
 
   updateGroupsInterval(groupsConfigFile, m.interval);
+
 });
 
 function updateGroups(configFile, callback){
@@ -183,11 +184,6 @@ function updateGroups(configFile, callback){
 
             updateEntityChannelGroups(entityChannelGroupsConfigFile, function(err, results){
               callback(null, groupIds.length);
-              // process.send({ 
-              //   groupHashMap: groupHashMap, 
-              //   entityChannelGroupHashMap: entityChannelGroupHashMap,
-              //   keywordHashMap: keywordHashMap
-              // });
               return;
             });
 
@@ -285,27 +281,138 @@ function updateEntityChannelGroups(configFile, callback){
   });  
 }
 
+function sendHashMaps(callback){
+  sendGroups(function(){
+    sendEntities(function(){
+      sendKeywords(function(){
+        callback();
+      });
+    });
+  });
+}
+
+
+function sendGroups(callback){
+
+  var groupIds = groupHashMap.keys();
+
+  async.forEachSeries(groupIds, function(groupId, cb) {
+
+      var groupObj = groupHashMap.get(groupId);
+
+      setTimeout(function(){
+        process.send({ type: 'group', groupId: groupId, group: groupObj});
+        debug(chalkAlert("UPDATER SENT GROUP"
+          + " | " + groupId
+        ));
+
+        cb();
+      }, 10);
+
+    },
+
+    function(err) {
+      if (err) {
+        console.log(chalkError("sendGroups ERROR! " + err));
+        callback(err, null);
+      }
+      else {
+        console.log(chalkInfo("sendGroups COMPLETE"));
+        callback(null, null);
+      }
+    }
+  )
+}
+
+function sendEntities(callback){
+
+  var entityIds = entityChannelGroupHashMap.keys();
+
+  async.forEachSeries(entityIds, function(entityId, cb) {
+
+      var entityObj = entityChannelGroupHashMap.get(entityId);
+
+      setTimeout(function(){
+        process.send({ type: 'entity', entityId: entityId, entity: entityObj});
+        debug(chalkAlert("UPDATER SENT ENTITY"
+          + " | " + entityId
+        ));
+
+        cb();
+      }, 10);
+
+    },
+
+    function(err) {
+      if (err) {
+        console.log(chalkError("sendEntities ERROR! " + err));
+        callback(err, null);
+      }
+      else {
+        console.log(chalkInfo("sendEntities COMPLETE"));
+        callback(null, null);
+      }
+    }
+  )
+}
+
+function sendKeywords(callback){
+
+  var words = keywordHashMap.keys();
+
+  async.forEachSeries(words, function(word, cb) {
+
+      var keyWordType = keywordHashMap.get(word);
+
+      setTimeout(function(){
+        process.send({ type: 'keyword', keyword: word, keyWordType: keyWordType});
+        debug(chalkAlert("UPDATER SEND KEYWORD"
+          + " | " + word
+          + " | " + keyWordType
+        ));
+
+        cb();
+      }, 10);
+
+    },
+
+    function(err) {
+      if (err) {
+        console.log(chalkError("sendKeywords ERROR! " + err));
+        callback(err, null);
+      }
+      else {
+        console.log(chalkInfo("sendKeywords COMPLETE"));
+        callback(null, null);
+      }
+    }
+  )
+}
+
 var initGroupsInterval;
-function updateGroupsInterval(configFile, interval){
+var initGroupsReady = true;
+
+function updateGroupsInterval(interval){
 
   clearInterval(initGroupsInterval);
 
-  console.log(chalkLog("updateGroupsInterval"
+  console.log(chalkRed("updateGroupsInterval"
     + " | INTERVAL: " + interval
-    + " | " + configFile
   ));
 
+
   initGroupsInterval = setInterval(function() {
-    updateGroups(configFile, function(err, results){
-      initKeywords(keywordFile, function(err, results2){
-        // process.send()
-        process.send({ 
-          groupHashMap: groupHashMap, 
-          entityChannelGroupHashMap: entityChannelGroupHashMap,
-          keywordHashMap: keywordHashMap
+
+    if (initGroupsReady) {
+      initGroupsReady = false;
+      updateGroups(groupsConfigFile, function(err, results){
+        initKeywords(keywordFile, function(err, results2){
+          sendHashMaps(function(err, results3){
+            initGroupsReady = true;
+          });
         });
       });
-    });
+    }
   }, interval);
 }
 
@@ -313,6 +420,10 @@ function initKeywords(file, callback){
   loadDropboxJsonFile(file, function(err, kwordsObj){
 
     if (!err) {
+
+      console.log(chalkRed("UPDATER | LOADED"
+        + " | " + file
+      ));
 
       var words = Object.keys(kwordsObj);
 
@@ -419,18 +530,6 @@ function getTimeStamp(inputTime) {
   return currentTimeStamp.format("YYYY-MM-DD HH:mm:ss ZZ");
 }
 
-// var DROPBOX_WA_GROUPS_CONFIG_FILE = process.env.DROPBOX_WA_GROUPS_CONFIG_FILE || 'groups.json';
-// var DROPBOX_WA_KEYWORDS_FILE = process.env.DROPBOX_WA_KEYWORDS_FILE || 'keywords.json';
-// var DROPBOX_WA_ENTITY_CHANNEL_GROUPS_CONFIG_FILE = process.env.DROPBOX_WA_ENTITY_CHANNEL_GROUPS_CONFIG_FILE || 'entityChannelGroups.json';
-
-// var defaultDropboxGroupsConfigFile = DROPBOX_WA_GROUPS_CONFIG_FILE;
-// var defaultDropboxKeywordFile = DROPBOX_WA_KEYWORDS_FILE;
-
-// var dropboxGroupsConfigFile = os.hostname() +  "_" + DROPBOX_WA_GROUPS_CONFIG_FILE;
-
-// var defaultDropboxEntityChannelGroupsConfigFile = DROPBOX_WA_ENTITY_CHANNEL_GROUPS_CONFIG_FILE;
-// var dropboxEntityChannelGroupsConfigFile = os.hostname() +  "_" + DROPBOX_WA_ENTITY_CHANNEL_GROUPS_CONFIG_FILE;
-
 function loadConfig(file, callback){
 
   dropboxClient.readFile(file, function(err, configJson) {
@@ -497,9 +596,9 @@ function loadDropboxJsonFile(file, callback){
 function initGroups(dropboxConfigFile, callback){
   loadConfig(dropboxConfigFile, function(err, loadedConfigObj){
     if (!err) {
-      console.log("LOADED "
+      console.log(chalkAlert("UPDATER | LOADED"
         + " | " + dropboxConfigFile
-        );
+      ));
       return(callback(err, loadedConfigObj));
     }
     else {
@@ -512,9 +611,9 @@ function initGroups(dropboxConfigFile, callback){
 function initEntityChannelGroups(dropboxConfigFile, callback){
   loadConfig(dropboxConfigFile, function(err, loadedConfigObj){
     if (!err) {
-      console.log("LOADED "
+      console.log(chalkAlert("UPDATER | LOADED"
         + " | " + dropboxConfigFile
-        );
+      ));
       return(callback(err, loadedConfigObj));
     }
     else {

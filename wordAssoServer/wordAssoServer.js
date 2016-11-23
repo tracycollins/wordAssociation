@@ -3,6 +3,9 @@
 
 var wapiForceSearch = true;
 
+var cp = require('child_process');
+var updater;
+
 var unirest = require('unirest');
 
 var debug = require('debug')('wa');
@@ -864,7 +867,6 @@ function updateGroups(configFile, callback){
   });  
 }
 
-
 function updateEntityChannelGroups(configFile, callback){
 
   initEntityChannelGroups(configFile, function(err, entityChannelGroups){
@@ -962,7 +964,7 @@ function updateGroupsInterval(configFile, interval){
 
   initGroupsInterval = setInterval(function() {
     updateGroups(configFile, function(err, results){});
-    initKeywords(defaultDropboxKeywordFile, function(err, results){});
+    // initKeywords(defaultDropboxKeywordFile, function(err, results){});
   }, interval);
 }
 
@@ -1028,6 +1030,7 @@ var dbUpdateEntityQueue = new Queue();
 var dbUpdateSessionQueue = new Queue();
 var dbUpdateWordQueue = new Queue();
 var wapiSearchQueue = new Queue();
+var updaterMessageQueue = new Queue();
 
 var MAX_WORD_HASH_MAP_COUNT = 20;
 var wordArray = []; // used to keep wordHashMap.count() < MAX_WORD_HASH_MAP_COUNT
@@ -5068,8 +5071,45 @@ var readResponseQueue = setInterval(function() {
   }
 }, 50);
 
-var dbUpdateGroupReady = true; 
+var updaterMessageReady = true; 
 
+var readUpdaterMessageQueue = setInterval(function() {
+
+  if (updaterMessageReady && !updaterMessageQueue.isEmpty()) {
+
+    updaterMessageReady = false;
+
+    var updaterObj = updaterMessageQueue.dequeue();
+
+    switch (updaterObj.type){
+      case 'group':
+        groupHashMap.set(updaterObj.groupId, updaterObj.group);
+        debug(chalkError("UPDATE GROUP\n" + jsonPrint(updaterObj)));
+        debug(chalkError("UPDATE GROUP | " + updaterObj.groupId));
+        updaterMessageReady = true;
+      break;
+      case 'entity':
+        entityChannelGroupHashMap.set(updaterObj.entityId, updaterObj.entity);
+        debug(chalkError("UPDATE ENTITIY\n" + jsonPrint(updaterObj)));
+        debug(chalkError("UPDATE ENTITIY | " + updaterObj.entityId));
+        updaterMessageReady = true;
+      break;
+      case 'keyword':
+        keywordHashMap.set(updaterObj.keyword, updaterObj.keyWordType);
+        debug(chalkError("UPDATE KEYWORD\n" + jsonPrint(updaterObj)));
+        debug(chalkError("UPDATE KEYWORD | " + updaterObj.keyword));
+        updaterMessageReady = true;
+      break;
+      default:
+        console.log(chalkError("??? UPDATE UNKNOWN TYPE\n" + jsonPrint(updaterObj)));
+        updaterMessageReady = true;
+      break;
+    }
+
+  }
+}, 10);
+
+var dbUpdateGroupReady = true; 
 var readDbUpdateGroupQueue = setInterval(function() {
 
   if (dbUpdateGroupReady && !dbUpdateGroupQueue.isEmpty()) {
@@ -5124,7 +5164,6 @@ var readDbUpdateEntityQueue = setInterval(function() {
   }
 }, 50);
 
-var dbUpdateWordReady = true;
 
 var printWapiResults = function(results){
   if ( (typeof results.body === 'undefined')
@@ -5148,6 +5187,7 @@ var printWapiResults = function(results){
   }
 }
 
+var dbUpdateWordReady = true;
 var readDbUpdateWordQueue = setInterval(function() {
 
   if (dbUpdateWordReady && !dbUpdateWordQueue.isEmpty()) {
@@ -5667,10 +5707,10 @@ function initializeConfiguration(callback) {
     ],
     function(err, results) {
 
-      updateGroups(defaultDropboxGroupsConfigFile, function(err, results){});
-      initKeywords(defaultDropboxKeywordFile, function(err, results){});
+      // updateGroups(defaultDropboxGroupsConfigFile, function(err, results){});
+      // initKeywords(defaultDropboxKeywordFile, function(err, results){});
 
-      updateGroupsInterval(defaultDropboxGroupsConfigFile, ONE_MINUTE);
+      // updateGroupsInterval(defaultDropboxGroupsConfigFile, ONE_MINUTE);
       updateStatsInterval(dropboxHostStatsFile, ONE_MINUTE);
 
       if (err) {
@@ -7319,15 +7359,25 @@ process.on("message", function(msg) {
 //=================================
 initializeConfiguration(function(err, results) {
 
-  wordServer.getRandomWord(function(err, randomWordObj) {
-    console.log("RANDOM WORD " + randomWordObj.nodeId);
-    wapiSearchQueue.enqueue(randomWordObj);
-  });
-
   if (err) {
     console.error(chalkError("*** INITIALIZE CONFIGURATION ERROR ***\n" + jsonPrint(err)));
   } else {
     debug(chalkLog("INITIALIZE CONFIGURATION COMPLETE\n" + jsonPrint(results)));
+    updater = cp.fork(`${__dirname}/js/libs/updateGroupsEntitiesChannels.js`);
+
+    updater.on('message', function(m){
+      debug(chalkWarn("UPDATER RX\n" + jsonPrint(m)));
+      updaterMessageQueue.enqueue(m);
+    });
+
+    updater.send({
+      groupsConfigFile: defaultDropboxGroupsConfigFile,
+      entityChannelGroupsConfigFile: defaultDropboxEntityChannelGroupsConfigFile,
+      keywordFile: defaultDropboxKeywordFile,
+      interval: 60000
+    });
+
+
   }
 });
 

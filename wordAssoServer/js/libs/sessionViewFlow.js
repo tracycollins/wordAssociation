@@ -142,7 +142,7 @@ function ViewFlow() {
   }, true);
 
 
-  var adjustedAgeRateScale = d3.scaleLinear().domain([1, 1000]).range([1.0, 10.0]).clamp(true);
+  var adjustedAgeRateScale = d3.scaleLinear().domain([1, 1000]).range([1.0, 20.0]).clamp(true);
 
   var sessionFontSizeScale = d3.scaleLinear().domain([1, 10000000]).range([16.0, 24]).clamp(true);
   var nodeFontSizeScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minFontSize, maxFontSize]).clamp(true);

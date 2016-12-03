@@ -566,8 +566,11 @@ function ViewFlow() {
             && !nodeUpdateObj.node.isSessionNode 
             && !nodeUpdateObj.node.isIgnored 
             && (nodeUpdateObj.node.mentions > currentMaxMentions)) {
+
             currentMaxMentions = nodeUpdateObj.node.mentions;
+
             nodeFontSizeScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minFontSize, maxFontSize]).clamp(true);
+
             console.warn("NEW MAX MENTIONS" 
               + " | " + nodeUpdateObj.node.text 
               + " | I: " + nodeUpdateObj.node.isIgnored 
@@ -1100,6 +1103,7 @@ function ViewFlow() {
 
     nodeLabels
       .text(function(d) {
+        d.textLength = this.getComputedTextLength();
         if (d.isGroupNode) return d.totalWordChainIndex;
         if (d.isSessionNode) return d.wordChainIndex;
         // if (d.isKeyword) return d.raw.toUpperCase();
@@ -1129,6 +1133,8 @@ function ViewFlow() {
           return nodeFontSizeScale(10) + "px";
         }
         else {
+          // return this.getComputedTextLength() + "px";
+          // return this.getComputedTextLength() * nodeFontSizeScale(d.mentions + 1.1) / 1000 + "px";
           return nodeFontSizeScale(d.mentions + 1.1) + "px";
         }
       })
@@ -1148,6 +1154,7 @@ function ViewFlow() {
       .append("svg:text")
       .attr("nodeId", function(d) { return d.nodeId; })
       .text(function(d) {
+        d.textLength = this.getComputedTextLength();
         if (d.isGroupNode) return d.totalWordChainIndex;
         if (d.isSessionNode) return d.wordChainIndex;
         return d.raw;
@@ -1169,6 +1176,7 @@ function ViewFlow() {
       .style("font-size", function(d) {
         if (d.isGroupNode) return sessionFontSizeScale(d.totalWordChainIndex + 1.1) + "px";
         if (d.isSessionNode) return sessionFontSizeScale(d.wordChainIndex + 1.1) + "px";
+        // return this.getComputedTextLength() * nodeFontSizeScale(d.mentions + 1.1) / 1000 + "px";
         return nodeFontSizeScale(d.mentions + 1.1) + "px";
       })
       .on("mouseover", nodeMouseOver)
@@ -1316,7 +1324,9 @@ function ViewFlow() {
   }
 
   this.addNode = function(newNode) {
+      newNode.textLength = 100;
     if (newNode.isKeyword){
+      newNode.textLength = 100;
       console.debug("ADD NODE" 
         + " | " + newNode.text
         + " | K: " + newNode.isKeyword
@@ -1388,7 +1398,11 @@ function ViewFlow() {
       .force("charge", d3.forceManyBody().strength(charge))
       .force("forceX", d3.forceX(-10000).strength(gravity))
       .force("forceY", d3.forceY(svgFlowLayoutAreaHeight/2).strength(forceYmultiplier * gravity))
-      .force("collide", d3.forceCollide().radius(function(d) { return collisionRadiusMultiplier * d.r ; }).iterations(collisionIterations))
+      .force("collide", d3.forceCollide().radius(function(d) { 
+          if (d.isGroupNode) return 4.5 * collisionRadiusMultiplier * d.r ; 
+          if (d.isSessionNode) return 4.5 * collisionRadiusMultiplier * d.r ; 
+          return collisionRadiusMultiplier * d.textLength ; 
+        }).iterations(collisionIterations))
       .velocityDecay(velocityDecay)
       .on("tick", ticked);
 

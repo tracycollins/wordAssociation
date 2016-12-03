@@ -12,7 +12,11 @@ var debug = require('debug')('wa');
 var debugWapi = require('debug')('wapi');
 var debugAppGet = require('debug')('appGet');
 
+var GROUP_UPDATE_INTERVAL = 60000;
+var saveStatsInterval = 10000; // millis
+
 var MAX_RESPONSE_QUEUE_SIZE = 250;
+
 var OFFLINE_MODE = false;
 var quitOnError = false;
 
@@ -40,7 +44,6 @@ var WAPI_REQ_RESERVE_PRCNT = 0.30;
 
 var SESSION_WORDCHAIN_REQUEST_LIMIT = 25;
 
-var saveStatsInterval = 10000; // millis
 
 // ==================================================================
 // TEST CONFIG
@@ -504,7 +507,7 @@ var DROPBOX_WORD_ASSO_APP_KEY = process.env.DROPBOX_WORD_ASSO_APP_KEY;
 var DROPBOX_WORD_ASSO_APP_SECRET = process.env.DROPBOX_WORD_ASSO_APP_SECRET;
 var WA_STATS_FILE = process.env.WA_STATS_FILE;
 
-var dropboxHostStatsFile = "/stats/" + os.hostname() + "_" + process.pid + "_" + WA_STATS_FILE;
+var dropboxHostStatsFile = "/stats/" + os.hostname() + "/" + os.hostname() + "_" + process.pid + "_" + WA_STATS_FILE;
 
 var Dropbox = require("dropbox");
 
@@ -512,27 +515,40 @@ console.log("DROPBOX_WORD_ASSO_ACCESS_TOKEN :" + DROPBOX_WORD_ASSO_ACCESS_TOKEN)
 console.log("DROPBOX_WORD_ASSO_APP_KEY :" + DROPBOX_WORD_ASSO_APP_KEY);
 console.log("DROPBOX_WORD_ASSO_APP_SECRET :" + DROPBOX_WORD_ASSO_APP_SECRET);
 
-var dropboxClient = new Dropbox.Client({
-  token: DROPBOX_WORD_ASSO_ACCESS_TOKEN,
-  key: DROPBOX_WORD_ASSO_APP_KEY,
-  secret: DROPBOX_WORD_ASSO_APP_SECRET
-});
+// var dropboxClient = new Dropbox.Client({
+//   token: DROPBOX_WORD_ASSO_ACCESS_TOKEN,
+//   key: DROPBOX_WORD_ASSO_APP_KEY,
+//   secret: DROPBOX_WORD_ASSO_APP_SECRET
+// });
+
+
+
+var dropboxClient = new Dropbox({ accessToken: DROPBOX_WORD_ASSO_ACCESS_TOKEN });
+
+      // dropboxClient.filesListFolder({path: ''})
+      //   .then(function(response) {
+      //     // displayFiles(response.entries);
+      //     console.log(response);
+      //   })
+      //   .catch(function(error) {
+      //     console.error(error);
+      //   });
 
 if (OFFLINE_MODE) {
   statsFile = offlineStatsFile;
 } else {
   statsFile = dropboxHostStatsFile;
 
-  dropboxClient.authDriver(new Dropbox.AuthDriver.NodeServer(8191));
+  // dropboxClient.authDriver(new Dropbox.AuthDriver.NodeServer(8191));
 
-  dropboxClient.getAccountInfo(function(error, accountInfo) {
-    if (error) {
-      console.error("\n*** DROPBOX getAccountInfo ERROR ***\n" + JSON.stringify(error, null, 3));
-      return error; // Something went wrong.
-    }
-    console.log(chalkInfo("DROPBOX ACCOUNT INFO: " + JSON.stringify(accountInfo, null, 3)));
-    console.log(chalkInfo("DROPBOX ACCOUNT INFO: " + accountInfo.name));
-  });
+  // dropboxClient.getAccountInfo(function(error, accountInfo) {
+  //   if (error) {
+  //     console.error("\n*** DROPBOX getAccountInfo ERROR ***\n" + JSON.stringify(error, null, 3));
+  //     return error; // Something went wrong.
+  //   }
+  //   console.log(chalkInfo("DROPBOX ACCOUNT INFO: " + JSON.stringify(accountInfo, null, 3)));
+  //   console.log(chalkInfo("DROPBOX ACCOUNT INFO: " + accountInfo.name));
+  // });
 }
 
 function dropboxWriteArrayToFile(filePath, dataArray, callback) {
@@ -545,17 +561,37 @@ function dropboxWriteArrayToFile(filePath, dataArray, callback) {
 
   var dataString = dataArray.join('\n');
 
-  dropboxClient.writeFile(filePath, dataString, function(error, stat) {
-    if (error) {
+  var options = {};
+
+  options.contents = dataString;
+  options.path = filePath;
+  options.mode = "overwrite";
+  options.autorename = false;
+
+  dropboxClient.filesUpload(options)
+    .then(function(response){
+      debug(chalkLog("... SAVED DROPBOX JSON | " + options.path));
+      callback(null, response);
+    })
+    .catch(function(error){
       console.error(chalkError(moment().format(defaultDateTimeFormat) 
-        + " | !!! DROPBOX WRITE FILE ERROR: " + error));
-      callback(error, filePath);
-    } else {
-      console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
-        + " | DROPBOX FILE WRITE: " + filePath));
-      callback(null, stat);
-    }
-  });
+        + " | !!! ERROR DROBOX JSON WRITE | FILE: " + file 
+        + " ERROR: " + error));
+      callback(error, null);
+    });
+
+
+  // dropboxClient.writeFile(filePath, dataString, function(error, stat) {
+  //   if (error) {
+  //     console.error(chalkError(moment().format(defaultDateTimeFormat) 
+  //       + " | !!! DROPBOX WRITE FILE ERROR: " + error));
+  //     callback(error, filePath);
+  //   } else {
+  //     console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
+  //       + " | DROPBOX FILE WRITE: " + filePath));
+  //     callback(null, stat);
+  //   }
+  // });
 }
 
 function saveStats(statsFile, statsObj, callback) {
@@ -575,17 +611,36 @@ function saveStats(statsFile, statsObj, callback) {
     });
   } else {
 
-    dropboxClient.writeFile(statsFile, JSON.stringify(statsObj, null, 2), function(error, stat) {
-      if (error) {
-        console.error(chalkError(moment().format(defaultDateTimeFormat) 
-          + " | !!! ERROR STATUS WRITE | FILE: " + statsFile 
-          + " ERROR: " + error));
-        callback(error);
-      } else {
-        debug(chalkLog("... SAVED STATS | " + statsFile));
-        callback('OK');
-      }
+  var options = {};
+
+  options.contents = JSON.stringify(statsObj, null, 2);
+  options.path = statsFile;
+  options.mode = "overwrite";
+  options.autorename = false;
+
+  dropboxClient.filesUpload(options)
+    .then(function(response){
+      debug(chalkLog("... SAVED DROPBOX JSON | " + options.path));
+      callback('OK');
+    })
+    .catch(function(error){
+      console.error(chalkError(moment().format(defaultDateTimeFormat) 
+        + " | !!! ERROR DROBOX JSON WRITE | FILE: " + file 
+        + " ERROR: " + error));
+      callback(error);
     });
+
+    // dropboxClient.writeFile(statsFile, JSON.stringify(statsObj, null, 2), function(error, stat) {
+    //   if (error) {
+    //     console.error(chalkError(moment().format(defaultDateTimeFormat) 
+    //       + " | !!! ERROR STATUS WRITE | FILE: " + statsFile 
+    //       + " ERROR: " + error));
+    //     callback(error);
+    //   } else {
+    //     debug(chalkLog("... SAVED STATS | " + statsFile));
+    //     callback('OK');
+    //   }
+    // });
 
   }
 }
@@ -600,6 +655,97 @@ function updateStats(updateObj) {
 }
 
 function loadStats(callback) {
+
+
+      dropboxClient.filesDownload({path: statsFile})
+        .then(function(statsJson) {
+          debug(chalkInfo("DROPBOX DROPBOX_NEW_SEARCH_TERMS_FILE\n" + jsonPrint(data)));
+          var dataNoSpaces = data.fileBinary.toString().replace(/ /g, "");
+          var dataConvertAccent = dataNoSpaces.toString().replace(/Ã©/g, "é");
+          var dataConvertTilde = dataConvertAccent.toString().replace(/Ã£/g, "ã");
+          var dataArray = dataConvertTilde.toString().split("\n");
+          dataArray.forEach(function(searchTerm){
+            if (!searchTermHashMap.has(searchTerm)
+              && !S(searchTerm).startsWith('#')
+              && !S(searchTerm).isEmpty()
+              && !searchTerm.match(mangledRegEx)
+            ){
+              newSearchTermHashMap.set(searchTerm, 1);
+              searchTermHashMap.set(searchTerm, 1);
+              console.log("+def+ ADDED NEW SEARCH TERM [DROPBOX]: " + searchTerm);
+            }
+          });
+          callbackSeries();
+         })
+        .catch(function(error) {
+          console.error(chalkError("!!! DROPBOX READ WA_STATS_FILE ERROR: " + statsFile));
+          console.error(chalkError(jsonPrint(err)));
+
+          if (err.status != 404) {
+            console.error(chalkError(jsonPrint(err)));
+          } 
+          else if (err.status = 404) {
+
+            console.log(chalkError("FILE NOT FOUND ... TRYING DROPBOX READ OF DEFAULT WA_STATS_FILE " + WA_STATS_FILE));
+
+            dropboxClient.filesDownload({path: WA_STATS_FILE})
+              .then(function(statsJson) {
+                console.log(chalkInfo(
+                  moment().format(defaultDateTimeFormat) 
+                  + " | ... LOADING STATS FROM DROPBOX FILE: " + WA_STATS_FILE
+                ));
+
+                var statsObj = JSON.parse(statsJson);
+
+                debug("DROPBOX STATS\n" + JSON.stringify(statsObj, null, 3));
+
+                if (typeof statsObj.name === 'undefined') statsObj.name = 'Word Assocition Server Status | ' + os.hostname()
+
+                console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
+                  + " | FOUND " + statsObj.name));
+
+                if (typeof statsObj.bhtRequests !== 'undefined') {
+                  console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
+                    + " | SET DAILY BHT REQUESTS: " + statsObj.bhtRequests));
+                  bhtRequests = statsObj.bhtRequests;
+                }
+
+                if (typeof statsObj.promptsSent !== 'undefined') {
+                  console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
+                    + " | SET PROMPTS SENT: " + statsObj.promptsSent));
+                  promptsSent = statsObj.promptsSent;
+                }
+
+                if (typeof statsObj.responsesReceived !== 'undefined') {
+                  console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
+                    + " | SET RESPONSES RECEIVED: " + statsObj.responsesReceived));
+                  responsesReceived = statsObj.responsesReceived;
+                }
+
+                statsObj.bhtRequests = bhtRequests;
+                statsObj.promptsSent = promptsSent;
+                statsObj.responsesReceived = responsesReceived;
+
+                saveStats(statsFile, statsObj, function(status) {
+                  if (status != 'OK') {
+                    console.log("!!! ERROR: saveStats " + status);
+                  } else {
+                    console.log(chalkLog("UPDATE DROPBOX STATUS OK"));
+                  }
+              });
+              })
+              .catch(function(error) {
+                console.log(chalkError("DROPBOX READ ERROR " + WA_STATS_FILE + " ... SKIPPING"));
+                console.log(chalkError(jsonPrint(error)));
+                return(error);
+              });
+
+          }
+
+          return; //It's important to return so that the task callback isn't called twice
+        });
+
+
 
   dropboxClient.readFile(statsFile, function(err, statsJson, callback) {
 
@@ -813,11 +959,14 @@ function updateGroups(configFile, callback){
       ));
     }
     else {
+
+      var groupIds = Object.keys(groups) ;
+
       console.log(chalkLog("GROUPS CONFIG INIT COMPLETE"
+        + " | " + groupIds.length + " GROUPS"
         // + "\n" + jsonPrint(entityChannelGroups)
       ));
 
-      var groupIds = Object.keys(groups) ;
 
       async.forEach(groupIds, 
 
@@ -886,25 +1035,29 @@ function updateEntityChannelGroups(configFile, callback){
 
         function(entityChannelId, cb){
 
+          var entity = entityChannelGroups[entityChannelId];
+
           if (entityChannelGroupHashMap.has(entityChannelId)){
 
-            entityChannelGroupHashMap.set(entityChannelId, entityChannelGroups[entityChannelId]);
+            entityChannelGroupHashMap.set(entityChannelId, entity);
 
             delete statsObj.entityChannelGroup.hashMiss[entityChannelId];
 
-            // console.log(chalkRed("--- UPDATED ENTITY CHANNEL"
-            //   + " | " + entityChannelId
-            //   + " | " + entityChannelGroupHashMap.get(entityChannelId).groupId
-            //   + " | " + entityChannelGroupHashMap.get(entityChannelId).name
-            //   // + " | " + jsonPrint(entityChannelGroupHashMap.get(entityChannelId))
-            // ));
+            console.log(chalkRed("--- UPDATED ENTITY CHANNEL"
+              + " | ECID: " + entityChannelId
+              + " | EGID: " + entityChannelGroupHashMap.get(entityChannelId).groupId
+              + " | EGN: " + entityChannelGroupHashMap.get(entityChannelId).name
+              // + " | " + jsonPrint(entityChannelGroupHashMap.get(entityChannelId))
+            ));
 
-            if (groupHashMap.has(entityChannelGroupHashMap.get(entityChannelId).groupId)){
+            if (groupHashMap.has(entity.groupId)){
               cb(null, "HIT");
               return;
             }
             else{
-              cb(err, "GROUP NOT FOUND: " + entityChannelGroupHashMap.get(entityChannelId).groupId);
+              statsObj.group.hashMiss[entity.groupId] = 1;
+              statsObj.group.allHashMisses[entity.groupId] = 1;
+              cb(err, "GROUP NOT FOUND: " + entity.groupId);
               return;
             }
 
@@ -912,21 +1065,23 @@ function updateEntityChannelGroups(configFile, callback){
 
           else {
 
-            entityChannelGroupHashMap.set(entityChannelId, entityChannelGroups[entityChannelId]);
+            entityChannelGroupHashMap.set(entityChannelId, entity);
 
-            // console.log(chalkLog("+++ ADDED ENTITY CHANNEL  "
-            //   + " | " + entityChannelId
-            //   + " | GROUP ID: " + entityChannelGroupHashMap.get(entityChannelId).groupId
-            //   + " | ENTITY NAME: " + entityChannelGroupHashMap.get(entityChannelId).name
-            //   // + "\n" + jsonPrint(entityChannelGroupHashMap.get(entityChannelId))
-            // ));
+            console.log(chalkLog("+++ ADDED ENTITY CHANNEL  "
+              + " | ECID: " + entityChannelId
+              + " | EGID " + entityChannelGroupHashMap.get(entityChannelId).groupId
+              + " | EGN: " + entityChannelGroupHashMap.get(entityChannelId).name
+              // + "\n" + jsonPrint(entityChannelGroupHashMap.get(entityChannelId))
+            ));
 
-            if (groupHashMap.has(entityChannelGroupHashMap.get(entityChannelId).groupId)){
+            if (groupHashMap.has(entity.groupId)){
               cb(null, "MISS");
               return;
             }
             else{
-              cb(err, "GROUP NOT FOUND: " + entityChannelGroupHashMap.get(entityChannelId).groupId);
+              statsObj.group.hashMiss[entity.groupId] = 1;
+              statsObj.group.allHashMisses[entity.groupId] = 1;
+              cb(err, "GROUP NOT FOUND: " + entity.groupId);
               return;
             }
           }
@@ -977,7 +1132,9 @@ function updateEntityChannelGroupsInterval(configFile, interval){
   ));
 
   initEntityChannelGroupsInterval = setInterval(function() {
-    updateEntityChannelGroups(configFile, function(err, results){});
+    updateEntityChannelGroups(configFile, function(err, results){
+
+    });
   }, interval);
 }
 
@@ -1492,6 +1649,10 @@ function updateSessionViews(sessionUpdateObj) {
     sessionUpdateObj.tags.group = entityChannelGroupHashMap.get(sessionUpdateObj.tags.entity);
     updateSessionViewQueue.push(sessionUpdateObj);
   }
+  else{
+    statsObj.entity.hashMiss[sessionUpdateObj.tags.entity] = 1;
+    statsObj.entity.allHashMisses[sessionUpdateObj.tags.entity] = 1;
+  }
 }
 
 var simpleChain = function(chain) {
@@ -1759,7 +1920,7 @@ function dbUpdateGroup(groupObj, incMentions, callback) {
       callback(err, groupObj);
     } else {
 
-      debug(chalkRed("->- GROUP DB UPDATE | " 
+      console.log(chalkRed("->- GROUP DB UPDATE | " 
         + group.groupId 
         + " | NAME: " + group.name 
         + " | CHANNELS: " + group.channels
@@ -2602,10 +2763,11 @@ function groupFindAllDb(options, callback) {
 
         function(group, cb) {
 
-          // console.log(chalkDb("GID: " + group.groupId 
-          //   + " | N: " + group.name 
-          //   + " | LS: " + getTimeStamp(group.lastSeen)
-          // ));
+          console.log(chalkDb("GID: " + group.groupId 
+            + " | N: " + group.name 
+            + " | LS: " + getTimeStamp(group.lastSeen)
+            + "\n" + jsonPrint(group)
+          ));
 
           groupHashMap.set(group.groupId, group);
           cb(null);
@@ -2674,6 +2836,8 @@ function groupUpdateDb(userObj, callback){
         + " | GROUP HASH MISS"
         + " | " + userObj.tags.entity.toLowerCase()
       ));
+      statsObj.group.hashMiss[entityObj.groupId] = 1;
+      statsObj.group.allHashMisses[entityObj.groupId] = 1;
       callback(null, entityObj);
 
     }
@@ -7363,6 +7527,7 @@ initializeConfiguration(function(err, results) {
     console.error(chalkError("*** INITIALIZE CONFIGURATION ERROR ***\n" + jsonPrint(err)));
   } else {
     debug(chalkLog("INITIALIZE CONFIGURATION COMPLETE\n" + jsonPrint(results)));
+
     updater = cp.fork(`${__dirname}/js/libs/updateGroupsEntitiesChannels.js`);
 
     updater.on('message', function(m){
@@ -7374,7 +7539,7 @@ initializeConfiguration(function(err, results) {
       groupsConfigFile: defaultDropboxGroupsConfigFile,
       entityChannelGroupsConfigFile: defaultDropboxEntityChannelGroupsConfigFile,
       keywordFile: defaultDropboxKeywordFile,
-      interval: 60000
+      interval: GROUP_UPDATE_INTERVAL
     });
 
 

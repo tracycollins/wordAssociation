@@ -1920,7 +1920,7 @@ function dbUpdateGroup(groupObj, incMentions, callback) {
       callback(err, groupObj);
     } else {
 
-      console.log(chalkRed("->- GROUP DB UPDATE | " 
+      console.log(chalkRed("->- DB UPDATE GROUP | " 
         + group.groupId 
         + " | NAME: " + group.name 
         + " | CHANNELS: " + group.channels
@@ -1928,7 +1928,7 @@ function dbUpdateGroup(groupObj, incMentions, callback) {
         + " | CREATED: " + moment(group.createdAt).format(defaultDateTimeFormat)
         + " | LAST: " + moment(group.lastSeen).format(defaultDateTimeFormat)
         + " | MNS: " + group.mentions 
-        + "\nTAGS: " + jsonPrint(group.tags)
+        // + "\nTAGS: " + jsonPrint(group.tags)
       ));
 
       // console.log(JSON.stringify(group, null, 3));
@@ -1946,6 +1946,11 @@ function dbUpdateEntity(entityObj, incMentions, callback) {
     return;
   }
 
+  // if ((typeof entityObj.groupId === 'undefined') && (typeof entityObj.groups !== 'undefined')){
+  //   console.log(chalkWarn("! SET UNDEFINED ENTITY GROUP ID: " + entityObj.groups[0]));
+  //   entityObj.groupId = entityObj.groups[0];
+  // }
+
   entityServer.findOneEntity(entityObj, incMentions, function(err, entity) {
     if (err) {
       console.error(chalkError("dbUpdateEntity -- > findOneEntity ERROR" 
@@ -1953,11 +1958,11 @@ function dbUpdateEntity(entityObj, incMentions, callback) {
       callback(err, entityObj);
     } else {
 
-      debug("->- ENTITY DB UPDATE | " 
+      console.log("->- DB UPDATE ENTITY| " 
         + entity.entityId 
         + " | NAME: " + entity.name 
         + " | SNAME: " + entity.screenName 
-        + " | GROUPS: " + entity.groups
+        + " | GROUP: " + entity.groupId
         + " | CHAN: " + entity.tags.channel
         + " | SESSIONS: " + entity.sessions 
         + " | WORDS: " + entity.words 
@@ -2763,7 +2768,7 @@ function groupFindAllDb(options, callback) {
 
         function(group, cb) {
 
-          console.log(chalkDb("GID: " + group.groupId 
+          debug(chalkDb("GID: " + group.groupId 
             + " | N: " + group.name 
             + " | LS: " + getTimeStamp(group.lastSeen)
             + "\n" + jsonPrint(group)
@@ -2821,11 +2826,12 @@ function groupUpdateDb(userObj, callback){
       groupUpdateObj.addChannelArray = [];
       groupUpdateObj.addChannelArray.push(userObj.tags.channel.toLowerCase());
 
-      console.log(chalkDb(moment().format(defaultDateTimeFormat) 
-        + " | GROUP HASH HIT"
+      console.log(chalkDb("GROUP HASH HIT"
         + " | " + userObj.tags.entity.toLowerCase()
-        + " | " + groupObj.groupId
-        + " | " + groupObj.name
+        + " | " + groupUpdateObj.groupId
+        + " | " + groupUpdateObj.name
+        + " | +ENT: " + groupUpdateObj.addEntityArray
+        + " | +CH: " + groupUpdateObj.addChannelArray
       ));
 
       dbUpdateGroupQueue.enqueue(groupUpdateObj);
@@ -2845,21 +2851,9 @@ function groupUpdateDb(userObj, callback){
   }
 
   else {
-
-    // groupUpdateObj.groupId = userObj.userId.toLowerCase();
-    // groupUpdateObj.name = userObj.userId;
-    // groupUpdateObj.tags = userObj.tags;
-
-    // groupUpdateObj.addEntityArray = [];
-    // groupUpdateObj.addEntityArray.push(userObj.tags.entity.toLowerCase());
-    // groupUpdateObj.addChannelArray = [];
-    // groupUpdateObj.addChannelArray.push(userObj.tags.channel.toLowerCase());
-    
     console.log(chalkError("*** ENTITY HASH MISS ... SKIPPING DB GROUP UPDATE"
       + " | " + userObj.tags.entity.toLowerCase()
     ));
-
-    // dbUpdateGroupQueue.enqueue(groupUpdateObj);
   }  
 }
 
@@ -2921,22 +2915,25 @@ function entityUpdateDb(userObj, callback){
   var entityObj = entityCache.get(userObj.tags.entity.toLowerCase());
 
   if (!entityObj) {
-    console.log(chalkDb(moment().format(defaultDateTimeFormat) 
-      + " | ENTITY CACHE MISS ON USER READY"
-      + " | " + userObj.tags.entity.toLowerCase()
-    ));
 
     entityObj = new Entity();
     entityObj.entityId = userObj.tags.entity.toLowerCase();
+    entityObj.groupId = userObj.userId;
     entityObj.name = userObj.userId;
     entityObj.screenName = userObj.screenName;
     entityObj.tags = userObj.tags;
 
     if (entityChannelGroupHashMap.has(userObj.tags.entity.toLowerCase())){
       entityObj.name = entityChannelGroupHashMap.get(userObj.tags.entity.toLowerCase()).name;
-      entityObj.addGroupArray = [];
-      entityObj.addGroupArray.push(entityChannelGroupHashMap.get(userObj.tags.entity.toLowerCase()).groupId);
+      entityObj.groupId = entityChannelGroupHashMap.get(userObj.tags.entity.toLowerCase()).groupId;
     }
+
+    console.log(chalkDb("ENTITY CACHE MISS ON USER READY"
+      + " | EID: " + entityObj.entityId
+      + " | GID: " + entityObj.groupId
+      + " | N: " + entityObj.name
+      + " | SN: " + entityObj.screenName
+    ));
 
     dbUpdateEntityQueue.enqueue(entityObj);
 
@@ -2948,15 +2945,14 @@ function entityUpdateDb(userObj, callback){
 
     if (entityChannelGroupHashMap.has(userObj.tags.entity.toLowerCase())){
       entityObj.name = entityChannelGroupHashMap.get(userObj.tags.entity.toLowerCase()).name;
-      entityObj.addGroupArray = [];
-      entityObj.addGroupArray.push(entityChannelGroupHashMap.get(userObj.tags.entity.toLowerCase()).groupId);
+      entityObj.groupId = entityChannelGroupHashMap.get(userObj.tags.entity.toLowerCase()).groupId;
     }
 
-    console.log(chalkDb(moment().format(defaultDateTimeFormat) 
-      + " | ENTITY CACHE HIT ON USER READY"
-      + " | " + entityObj.entityId
-      + " | " + entityObj.name
-      + " | " + entityObj.screenName
+    console.log(chalkDb("ENTITY CACHE HIT ON USER READY"
+      + " | EID: " + entityObj.entityId
+      + " | GID: " + entityObj.groupId
+      + " | N: " + entityObj.name
+      + " | SN: " + entityObj.screenName
     ));
 
     dbUpdateEntityQueue.enqueue(entityObj);
@@ -4833,25 +4829,26 @@ function handleSessionEvent(sesObj, callback) {
             if (err){
             }
             else {
+              updatedUserObj.groupId = entityObj.groupId;
+              entityUpdateDb(updatedUserObj, function(err, entityObj){
+                if (err){
+                }
+                else {
+                  if (sesObj.session.config.type == 'USER') {
+                    debug(chalkRed("TX USER SESSION (USER READY): " + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"));
+                    adminNameSpace.emit('USER_SESSION', updatedUserObj);
+                  } else if (sesObj.session.config.type == 'UTIL') {
+                    debug(chalkRed("TX UTIL SESSION (UTIL READY): " + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"));
+                    adminNameSpace.emit('UTIL_SESSION', updatedUserObj);
+                  }
+
+                  io.of(sesObj.session.namespace).to(sesObj.session.sessionId).emit('USER_READY_ACK', updatedUserObj.userId);
+                }
+              });
             }
           });
 
-          entityUpdateDb(updatedUserObj, function(err, entityObj){
-            if (err){
-            }
-            else {
-            }
-          });
 
-          if (sesObj.session.config.type == 'USER') {
-            debug(chalkRed("TX USER SESSION (USER READY): " + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"));
-            adminNameSpace.emit('USER_SESSION', updatedUserObj);
-          } else if (sesObj.session.config.type == 'UTIL') {
-            debug(chalkRed("TX UTIL SESSION (UTIL READY): " + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"));
-            adminNameSpace.emit('UTIL_SESSION', updatedUserObj);
-          }
-
-          io.of(sesObj.session.namespace).to(sesObj.session.sessionId).emit('USER_READY_ACK', updatedUserObj.userId);
 
         } else {
           debug(chalkError("*** USER UPDATE DB ERROR\n" + jsonPrint(err)));

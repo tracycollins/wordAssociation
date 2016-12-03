@@ -13,7 +13,15 @@ var GroupSchema = new Schema({
 		type: Object,
 		default: []
 	},
+	addChannelArray: {
+		type: Object,
+		default: []
+	},
 	entities: {
+		type: Object,
+		default: []
+	},
+	addEntityArray: {
 		type: Object,
 		default: []
 	},

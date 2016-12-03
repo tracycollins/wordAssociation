@@ -1512,7 +1512,8 @@ var createGroup = function(callback) {
 
 
       // GROUP NODE
-      currentGroup.node.text = groupId;
+      // currentGroup.node.text = groupId;
+      currentGroup.node.text = groupName;
       currentGroup.node.url = groupUrl;
 
       currentGroup.node.age = 1e-6;
@@ -1641,7 +1642,7 @@ var createGroup = function(callback) {
       currentGroup.node.totalWordChainIndex = sum(currentGroup.node.sessionWordChainIndex);  
 
       currentGroup.node.mentions = 1;
-      currentGroup.node.text = groupId;
+      currentGroup.node.text = groupName;
       currentGroup.node.r = config.defaultNodeRadius;
       currentGroup.node.x = currentGroup.initialPosition.x;
       currentGroup.node.y = currentGroup.initialPosition.y;
@@ -1774,7 +1775,7 @@ var createSession = function(callback) {
       currentSession.interpolateSessionColor = currentGroup.interpolateSessionColor;
       currentSession.interpolateColor = currentGroup.interpolateSessionColor;
 
-      currentSession.node.text = sessUpdate.tags.entity + "[" + sessUpdate.tags.channel + "]";
+      currentSession.node.text = sessUpdate.tags.entity + "|" + sessUpdate.tags.channel;
       currentSession.node.age = 1e-6;
       currentSession.node.ageMaxRatio = 1e-6;
       currentSession.node.isGroupNode = false;
@@ -1884,7 +1885,7 @@ var createSession = function(callback) {
       currentSession.node.lastSeen = dateNow;
       currentSession.node.wordChainIndex = sessUpdate.wordChainIndex;
       currentSession.node.mentions = sessUpdate.wordChainIndex;
-      currentSession.node.text = sessUpdate.tags.entity + "[" + sessUpdate.tags.channel + "]";
+      currentSession.node.text = sessUpdate.tags.entity + "|" + sessUpdate.tags.channel;
       currentSession.node.r = config.defaultNodeRadius;
       currentSession.node.x = currentGroup.initialPosition.x + randomIntFromInterval(-10,-20);
       currentSession.node.y = currentGroup.initialPosition.y + randomIntFromInterval(-10,10);
@@ -1988,7 +1989,7 @@ var createNode = function(callback) {
       session.node.entity = session.tags.entity;
       session.node.channel = session.tags.channel;
       session.node.url = session.tags.url;
-      session.node.text = session.tags.entity + "[" + session.tags.channel + "]";
+      session.node.text = session.tags.entity + "|" + session.tags.channel;
       session.node.userId = session.userId;
       session.node.sessionId = session.sessionId;
       session.node.age = 1e-6;
@@ -2079,7 +2080,7 @@ var createNode = function(callback) {
             sourceNode.interpolateColor = session.interpolateSessionColor;
 
             if (sourceNode.isSessionNode){
-              sourceNode.text = session.tags.entity + "[" + session.tags.channel + "]";
+              sourceNode.text = session.tags.entity + "|" + session.tags.channel;
               sourceNode.wordChainIndex = session.source.wordChainIndex;
               sourceNode.mentions = session.source.wordChainIndex;
             }
@@ -2136,7 +2137,7 @@ var createNode = function(callback) {
             sourceNode.y = session.node.y+randomIntFromInterval(-10,10);
 
             if (sourceNode.isSessionNode){
-              sourceNode.text = session.tags.entity + "[" + session.tags.channel + "]";
+              sourceNode.text = session.tags.entity + "|" + session.tags.channel;
               sourceNode.wordChainIndex = session.source.wordChainIndex;
               sourceNode.mentions = session.source.wordChainIndex;
             }
@@ -2201,7 +2202,7 @@ var createNode = function(callback) {
 
             targetNode.latestNode = false;
             if (targetNode.isSessionNode){
-              targetNode.text = session.tags.entity + "[" + session.tags.channel + "]";
+              targetNode.text = session.tags.entity + "|" + session.tags.channel;
               targetNode.wordChainIndex = session.target.wordChainIndex;
               targetNode.mentions = session.target.wordChainIndex;
               targetNode.r = config.defaultNodeRadius;
@@ -2255,7 +2256,7 @@ var createNode = function(callback) {
 
             targetNode.latestNode = false;
             if (targetNode.isSessionNode){
-              targetNode.text = session.tags.entity + "[" + session.tags.channel + "]";
+              targetNode.text = session.tags.entity + "|" + session.tags.channel;
               targetNode.wordChainIndex = session.target.wordChainIndex;
               targetNode.mentions = session.target.wordChainIndex;
               targetNode.r = config.defaultNodeRadius;

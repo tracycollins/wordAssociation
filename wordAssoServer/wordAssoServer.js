@@ -579,19 +579,6 @@ function dropboxWriteArrayToFile(filePath, dataArray, callback) {
         + " ERROR: " + error));
       callback(error, null);
     });
-
-
-  // dropboxClient.writeFile(filePath, dataString, function(error, stat) {
-  //   if (error) {
-  //     console.error(chalkError(moment().format(defaultDateTimeFormat) 
-  //       + " | !!! DROPBOX WRITE FILE ERROR: " + error));
-  //     callback(error, filePath);
-  //   } else {
-  //     console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
-  //       + " | DROPBOX FILE WRITE: " + filePath));
-  //     callback(null, stat);
-  //   }
-  // });
 }
 
 function saveStats(statsFile, statsObj, callback) {
@@ -630,18 +617,6 @@ function saveStats(statsFile, statsObj, callback) {
       callback(error);
     });
 
-    // dropboxClient.writeFile(statsFile, JSON.stringify(statsObj, null, 2), function(error, stat) {
-    //   if (error) {
-    //     console.error(chalkError(moment().format(defaultDateTimeFormat) 
-    //       + " | !!! ERROR STATUS WRITE | FILE: " + statsFile 
-    //       + " ERROR: " + error));
-    //     callback(error);
-    //   } else {
-    //     debug(chalkLog("... SAVED STATS | " + statsFile));
-    //     callback('OK');
-    //   }
-    // });
-
   }
 }
 
@@ -655,97 +630,93 @@ function updateStats(updateObj) {
 }
 
 function loadStats(callback) {
+  dropboxClient.filesDownload({path: statsFile})
+    .then(function(statsJson) {
+      debug(chalkInfo("DROPBOX DROPBOX_NEW_SEARCH_TERMS_FILE\n" + jsonPrint(data)));
+      var dataNoSpaces = data.fileBinary.toString().replace(/ /g, "");
+      var dataConvertAccent = dataNoSpaces.toString().replace(/Ã©/g, "é");
+      var dataConvertTilde = dataConvertAccent.toString().replace(/Ã£/g, "ã");
+      var dataArray = dataConvertTilde.toString().split("\n");
+      dataArray.forEach(function(searchTerm){
+        if (!searchTermHashMap.has(searchTerm)
+          && !S(searchTerm).startsWith('#')
+          && !S(searchTerm).isEmpty()
+          && !searchTerm.match(mangledRegEx)
+        ){
+          newSearchTermHashMap.set(searchTerm, 1);
+          searchTermHashMap.set(searchTerm, 1);
+          console.log("+def+ ADDED NEW SEARCH TERM [DROPBOX]: " + searchTerm);
+        }
+      });
+      callbackSeries();
+     })
+    .catch(function(error) {
+      console.error(chalkError("!!! DROPBOX READ WA_STATS_FILE ERROR: " + statsFile));
+      console.error(chalkError(jsonPrint(err)));
 
+      if (err.status != 404) {
+        console.error(chalkError(jsonPrint(err)));
+      } 
+      else if (err.status = 404) {
 
-      dropboxClient.filesDownload({path: statsFile})
-        .then(function(statsJson) {
-          debug(chalkInfo("DROPBOX DROPBOX_NEW_SEARCH_TERMS_FILE\n" + jsonPrint(data)));
-          var dataNoSpaces = data.fileBinary.toString().replace(/ /g, "");
-          var dataConvertAccent = dataNoSpaces.toString().replace(/Ã©/g, "é");
-          var dataConvertTilde = dataConvertAccent.toString().replace(/Ã£/g, "ã");
-          var dataArray = dataConvertTilde.toString().split("\n");
-          dataArray.forEach(function(searchTerm){
-            if (!searchTermHashMap.has(searchTerm)
-              && !S(searchTerm).startsWith('#')
-              && !S(searchTerm).isEmpty()
-              && !searchTerm.match(mangledRegEx)
-            ){
-              newSearchTermHashMap.set(searchTerm, 1);
-              searchTermHashMap.set(searchTerm, 1);
-              console.log("+def+ ADDED NEW SEARCH TERM [DROPBOX]: " + searchTerm);
+        console.log(chalkError("FILE NOT FOUND ... TRYING DROPBOX READ OF DEFAULT WA_STATS_FILE " + WA_STATS_FILE));
+
+        dropboxClient.filesDownload({path: WA_STATS_FILE})
+          .then(function(statsJson) {
+            console.log(chalkInfo(
+              moment().format(defaultDateTimeFormat) 
+              + " | ... LOADING STATS FROM DROPBOX FILE: " + WA_STATS_FILE
+            ));
+
+            var statsObj = JSON.parse(statsJson);
+
+            debug("DROPBOX STATS\n" + JSON.stringify(statsObj, null, 3));
+
+            if (typeof statsObj.name === 'undefined') statsObj.name = 'Word Assocition Server Status | ' + os.hostname()
+
+            console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
+              + " | FOUND " + statsObj.name));
+
+            if (typeof statsObj.bhtRequests !== 'undefined') {
+              console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
+                + " | SET DAILY BHT REQUESTS: " + statsObj.bhtRequests));
+              bhtRequests = statsObj.bhtRequests;
             }
+
+            if (typeof statsObj.promptsSent !== 'undefined') {
+              console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
+                + " | SET PROMPTS SENT: " + statsObj.promptsSent));
+              promptsSent = statsObj.promptsSent;
+            }
+
+            if (typeof statsObj.responsesReceived !== 'undefined') {
+              console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
+                + " | SET RESPONSES RECEIVED: " + statsObj.responsesReceived));
+              responsesReceived = statsObj.responsesReceived;
+            }
+
+            statsObj.bhtRequests = bhtRequests;
+            statsObj.promptsSent = promptsSent;
+            statsObj.responsesReceived = responsesReceived;
+
+            saveStats(statsFile, statsObj, function(status) {
+              if (status != 'OK') {
+                console.log("!!! ERROR: saveStats " + status);
+              } else {
+                console.log(chalkLog("UPDATE DROPBOX STATUS OK"));
+              }
           });
-          callbackSeries();
-         })
-        .catch(function(error) {
-          console.error(chalkError("!!! DROPBOX READ WA_STATS_FILE ERROR: " + statsFile));
-          console.error(chalkError(jsonPrint(err)));
+          })
+          .catch(function(error) {
+            console.log(chalkError("DROPBOX READ ERROR " + WA_STATS_FILE + " ... SKIPPING"));
+            console.log(chalkError(jsonPrint(error)));
+            return(error);
+          });
 
-          if (err.status != 404) {
-            console.error(chalkError(jsonPrint(err)));
-          } 
-          else if (err.status = 404) {
+      }
 
-            console.log(chalkError("FILE NOT FOUND ... TRYING DROPBOX READ OF DEFAULT WA_STATS_FILE " + WA_STATS_FILE));
-
-            dropboxClient.filesDownload({path: WA_STATS_FILE})
-              .then(function(statsJson) {
-                console.log(chalkInfo(
-                  moment().format(defaultDateTimeFormat) 
-                  + " | ... LOADING STATS FROM DROPBOX FILE: " + WA_STATS_FILE
-                ));
-
-                var statsObj = JSON.parse(statsJson);
-
-                debug("DROPBOX STATS\n" + JSON.stringify(statsObj, null, 3));
-
-                if (typeof statsObj.name === 'undefined') statsObj.name = 'Word Assocition Server Status | ' + os.hostname()
-
-                console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
-                  + " | FOUND " + statsObj.name));
-
-                if (typeof statsObj.bhtRequests !== 'undefined') {
-                  console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
-                    + " | SET DAILY BHT REQUESTS: " + statsObj.bhtRequests));
-                  bhtRequests = statsObj.bhtRequests;
-                }
-
-                if (typeof statsObj.promptsSent !== 'undefined') {
-                  console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
-                    + " | SET PROMPTS SENT: " + statsObj.promptsSent));
-                  promptsSent = statsObj.promptsSent;
-                }
-
-                if (typeof statsObj.responsesReceived !== 'undefined') {
-                  console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
-                    + " | SET RESPONSES RECEIVED: " + statsObj.responsesReceived));
-                  responsesReceived = statsObj.responsesReceived;
-                }
-
-                statsObj.bhtRequests = bhtRequests;
-                statsObj.promptsSent = promptsSent;
-                statsObj.responsesReceived = responsesReceived;
-
-                saveStats(statsFile, statsObj, function(status) {
-                  if (status != 'OK') {
-                    console.log("!!! ERROR: saveStats " + status);
-                  } else {
-                    console.log(chalkLog("UPDATE DROPBOX STATUS OK"));
-                  }
-              });
-              })
-              .catch(function(error) {
-                console.log(chalkError("DROPBOX READ ERROR " + WA_STATS_FILE + " ... SKIPPING"));
-                console.log(chalkError(jsonPrint(error)));
-                return(error);
-              });
-
-          }
-
-          return; //It's important to return so that the task callback isn't called twice
-        });
-
-
+      return; //It's important to return so that the task callback isn't called twice
+  });
 
   dropboxClient.readFile(statsFile, function(err, statsJson, callback) {
 
@@ -805,7 +776,7 @@ function loadStats(callback) {
           statsObj.promptsSent = promptsSent;
           statsObj.responsesReceived = responsesReceived;
 
-          saveStats(statsFile, statsObj, function(status) {
+          saveFile(statsFile, statsObj, function(status) {
             if (status != 'OK') {
               console.log("!!! ERROR: saveStats " + status);
             } else {
@@ -852,7 +823,7 @@ function loadStats(callback) {
     statsObj.promptsSent = promptsSent;
     statsObj.responsesReceived = responsesReceived;
 
-    saveStats(statsFile, statsObj, function(status) {
+    saveFile(statsFile, statsObj, function(status) {
       if (status != 'OK') {
         console.log("!!! ERROR: saveStats " + status);
       } else {
@@ -937,7 +908,7 @@ function updateStatsInterval(statsFile, interval){
       wordCacheTtl: wordCacheTtl
     });
 
-    saveStats(statsFile, statsObj, function(status) {
+    saveFile(statsFile, statsObj, function(status) {
       if (status != 'OK') {
         console.log("!!! ERROR: SAVE STATUS | FILE: " + statsFile + "\n" + status);
       } else {
@@ -7501,7 +7472,7 @@ process.on("message", function(msg) {
     debug('\n\n!!!!! RECEIVED PM2 SHUTDOWN !!!!!\n\n***** Closing all connections *****\n\n');
     debug("... SAVING STATS");
 
-    saveStats(statsFile, statsObj, function(status) {
+    saveFile(statsFile, statsObj, function(status) {
       if (status != 'OK') {
         debug("!!! ERROR: saveStats " + status);
       } else {

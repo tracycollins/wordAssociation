@@ -12,6 +12,7 @@
     "connect-mongo": "^1.1.0",
     "crosstab": "^0.2.12",
     "dns": "^0.2.2",
+    "dropbox": "^2.4.0",
     "express": "^4.14.0",
     "express-session": "^1.13.0",
     "hashmap": "^2.0.4",

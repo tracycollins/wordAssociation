@@ -13,7 +13,7 @@ var debugWapi = require('debug')('wapi');
 var debugAppGet = require('debug')('appGet');
 
 var GROUP_UPDATE_INTERVAL = 60000;
-var saveStatsInterval = 10000; // millis
+var saveStatsInterval = 60000; // millis
 
 var MAX_RESPONSE_QUEUE_SIZE = 250;
 

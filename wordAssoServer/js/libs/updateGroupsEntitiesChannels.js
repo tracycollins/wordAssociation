@@ -96,15 +96,17 @@ var DROPBOX_WORD_ASSO_APP_SECRET = process.env.DROPBOX_WORD_ASSO_APP_SECRET;
 
 var Dropbox = require("dropbox");
 
-debug("DROPBOX_WORD_ASSO_ACCESS_TOKEN :" + DROPBOX_WORD_ASSO_ACCESS_TOKEN);
+console.log("DROPBOX_WORD_ASSO_ACCESS_TOKEN :" + DROPBOX_WORD_ASSO_ACCESS_TOKEN);
 debug("DROPBOX_WORD_ASSO_APP_KEY :" + DROPBOX_WORD_ASSO_APP_KEY);
 debug("DROPBOX_WORD_ASSO_APP_SECRET :" + DROPBOX_WORD_ASSO_APP_SECRET);
 
-var dropboxClient = new Dropbox.Client({
-  token: DROPBOX_WORD_ASSO_ACCESS_TOKEN,
-  key: DROPBOX_WORD_ASSO_APP_KEY,
-  secret: DROPBOX_WORD_ASSO_APP_SECRET
-});
+var dropboxClient = new Dropbox({ accessToken: DROPBOX_WORD_ASSO_ACCESS_TOKEN });
+
+// var dropboxClient = new Dropbox.Client({
+//   token: DROPBOX_WORD_ASSO_ACCESS_TOKEN,
+//   key: DROPBOX_WORD_ASSO_APP_KEY,
+//   secret: DROPBOX_WORD_ASSO_APP_SECRET
+// });
 
 var groupsConfigFile;
 var entityChannelGroupsConfigFile;
@@ -133,6 +135,8 @@ process.on('message', function(m) {
 
 function updateGroups(configFile, callback){
 
+  console.log(chalkWarn("UPDATE GROUPS " + configFile));
+
   initGroups(configFile, function(err, groups){
     if (err){
       console.log(chalkError("*** ERROR initEntityChannelGroups"
@@ -142,7 +146,7 @@ function updateGroups(configFile, callback){
     }
     else {
       console.log(chalkLog("GROUPS CONFIG INIT COMPLETE"
-        // + "\n" + jsonPrint(entityChannelGroups)
+        + " | " + groupIds.length + " GROUPS"
       ));
 
       var groupIds = Object.keys(groups) ;
@@ -154,7 +158,7 @@ function updateGroups(configFile, callback){
           if (groupHashMap.has(groupId)){
             groupHashMap.set(groupId, groups[groupId]);
             delete statsObj.group.hashMiss[groupId];
-            cb(null, "HIT");
+            cb(null, "HIT " + groupId);
             return;
           }
 
@@ -166,7 +170,7 @@ function updateGroups(configFile, callback){
             ));
             statsObj.group.hashMiss[groupId] = 1;
             statsObj.group.allHashMisses[groupId] = 1;
-            cb(null, "MISS");
+            cb(null, "MISS " + groupId);
             return;
           }
 
@@ -392,7 +396,7 @@ function sendKeywords(callback){
 var initGroupsInterval;
 var initGroupsReady = true;
 
-function updateGroupsInterval(interval){
+function updateGroupsInterval(file, interval){
 
   clearInterval(initGroupsInterval);
 
@@ -400,12 +404,19 @@ function updateGroupsInterval(interval){
     + " | INTERVAL: " + interval
   ));
 
+  updateGroups(file, function(err, results){
+    initKeywords(keywordFile, function(err, results2){
+      sendHashMaps(function(err, results3){
+        initGroupsReady = true;
+      });
+    });
+  });
 
   initGroupsInterval = setInterval(function() {
 
     if (initGroupsReady) {
       initGroupsReady = false;
-      updateGroups(groupsConfigFile, function(err, results){
+      updateGroups(file, function(err, results){
         initKeywords(keywordFile, function(err, results2){
           sendHashMaps(function(err, results3){
             initGroupsReady = true;
@@ -417,7 +428,7 @@ function updateGroupsInterval(interval){
 }
 
 function initKeywords(file, callback){
-  loadDropboxJsonFile(file, function(err, kwordsObj){
+  loadConfig(file, function(err, kwordsObj){
 
     if (!err) {
 
@@ -434,7 +445,7 @@ function initKeywords(file, callback){
           var wd = w.toLowerCase();
           var keyWordType = kwordsObj[w];
 
-          // console.log(chalkRed("UPDATING KEYWORD | " + wd + ": " + keyWordType));
+          debug(chalkRed("UPDATING KEYWORD | " + wd + ": " + keyWordType));
 
           var wordObj = new Word();
 
@@ -532,68 +543,110 @@ function getTimeStamp(inputTime) {
 
 function loadConfig(file, callback){
 
-  dropboxClient.readFile(file, function(err, configJson) {
+  console.log(chalkWarn("LOADING CONFIG " + file));
 
-    if (err) {
+  var options = {};
+  options.path = '/' + file;
+
+  dropboxClient.filesDownload(options)
+    .then(function(configJson) {
+      console.log(chalkLog(getTimeStamp()
+        + " | LOADING CONFIG FROM DROPBOX FILE: " + file
+      ));
+
+      var configObj = JSON.parse(configJson.fileBinary);
+
+      // console.log("DROPBOX CONFIG\n" + JSON.stringify(configObj, null, 3));
+
+      debug(chalkLog(getTimeStamp() + " | FOUND " + configObj.timeStamp));
+
+      return(callback(null, configObj));
+    })
+    .catch(function(error) {
       console.error(chalkError("!!! DROPBOX READ " + file + " ERROR"));
-      debug(chalkError(jsonPrint(err)));
-      return(callback(err, null));
-    }
-
-    console.log(chalkLog(getTimeStamp()
-      + " | LOADING CONFIG FROM DROPBOX FILE: " + file
-    ));
-
-    var configObj = JSON.parse(configJson);
-
-    debug("DROPBOX CONFIG\n" + JSON.stringify(configObj, null, 3));
-
-    debug(chalkLog(getTimeStamp() + " | FOUND " + configObj.timeStamp));
-
-    return(callback(null, configObj));
-
-  });
+      console.error(error);
+      return(callback(error, null));
+    });
 }
 
 function saveDropboxJsonFile(file, jsonObj, callback){
 
-  dropboxClient.writeFile(file, JSON.stringify(jsonObj, null, 2), function(error, stat) {
-    if (error) {
+  var options = {};
+
+  options.contents = jsonObj;
+  options.path = file;
+  options.mode = "overwrite";
+  options.autorename = false;
+
+  dropboxClient.filesUpload(options)
+    .then(function(response){
+      debug(chalkLog("... SAVED DROPBOX JSON | " + file));
+      callback('OK');
+    })
+    .catch(function(error){
       console.error(chalkError(moment().format(defaultDateTimeFormat) 
         + " | !!! ERROR DROBOX JSON WRITE | FILE: " + file 
         + " ERROR: " + error));
       callback(error);
-    } else {
-      debug(chalkLog("... SAVED DROPBOX JSON | " + file));
-      callback('OK');
-    }
-  });
+    });
+
+  // dropboxClient.writeFile(file, JSON.stringify(jsonObj, null, 2), function(error, stat) {
+  //   if (error) {
+  //     console.error(chalkError(moment().format(defaultDateTimeFormat) 
+  //       + " | !!! ERROR DROBOX JSON WRITE | FILE: " + file 
+  //       + " ERROR: " + error));
+  //     callback(error);
+  //   } else {
+  //     debug(chalkLog("... SAVED DROPBOX JSON | " + file));
+  //     callback('OK');
+  //   }
+  // });
 }
 
 function loadDropboxJsonFile(file, callback){
 
-  dropboxClient.readFile(file, function(err, dropboxFileData) {
+  // dropboxClient.readFile(file, function(err, dropboxFileData) {
+  dropboxClient.filesDownload({path: file})
+    .then(function(dropboxFileData) {
+      console.log(chalkLog(getTimeStamp()
+        + " | LOADING DROPBOX JSON FILE: " + file
+      ));
 
-    if (err) {
+      var dropboxFileObj = JSON.parse(dropboxFileData);
+
+      debug("DROPBOX JSON\n" + JSON.stringify(dropboxFileObj, null, 3));
+
+      return(callback(null, dropboxFileObj));
+    })
+    .catch(function(error){
       console.error(chalkError("!!! DROPBOX READ JSON FILE ERROR: " + file));
-      debug(chalkError(jsonPrint(err)));
-      return(callback(err, null));
-    }
+      debug(chalkError(jsonPrint(error)));
+      return(callback(error, null));
+    });
 
-    console.log(chalkLog(getTimeStamp()
-      + " | LOADING DROPBOX JSON FILE: " + file
-    ));
+    // if (err) {
+    //   console.error(chalkError("!!! DROPBOX READ JSON FILE ERROR: " + file));
+    //   debug(chalkError(jsonPrint(err)));
+    //   return(callback(err, null));
+    // }
 
-    var dropboxFileObj = JSON.parse(dropboxFileData);
+    // console.log(chalkLog(getTimeStamp()
+    //   + " | LOADING DROPBOX JSON FILE: " + file
+    // ));
 
-    debug("DROPBOX JSON\n" + JSON.stringify(dropboxFileObj, null, 3));
+    // var dropboxFileObj = JSON.parse(dropboxFileData);
 
-    return(callback(null, dropboxFileObj));
+    // debug("DROPBOX JSON\n" + JSON.stringify(dropboxFileObj, null, 3));
 
-  });
+    // return(callback(null, dropboxFileObj));
+
+  // });
 }
 
 function initGroups(dropboxConfigFile, callback){
+
+  console.log(chalkWarn("INIT GROUPS"));
+
   loadConfig(dropboxConfigFile, function(err, loadedConfigObj){
     if (!err) {
       console.log(chalkAlert("UPDATER | LOADED"

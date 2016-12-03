@@ -515,40 +515,13 @@ console.log("DROPBOX_WORD_ASSO_ACCESS_TOKEN :" + DROPBOX_WORD_ASSO_ACCESS_TOKEN)
 console.log("DROPBOX_WORD_ASSO_APP_KEY :" + DROPBOX_WORD_ASSO_APP_KEY);
 console.log("DROPBOX_WORD_ASSO_APP_SECRET :" + DROPBOX_WORD_ASSO_APP_SECRET);
 
-// var dropboxClient = new Dropbox.Client({
-//   token: DROPBOX_WORD_ASSO_ACCESS_TOKEN,
-//   key: DROPBOX_WORD_ASSO_APP_KEY,
-//   secret: DROPBOX_WORD_ASSO_APP_SECRET
-// });
-
-
 
 var dropboxClient = new Dropbox({ accessToken: DROPBOX_WORD_ASSO_ACCESS_TOKEN });
-
-      // dropboxClient.filesListFolder({path: ''})
-      //   .then(function(response) {
-      //     // displayFiles(response.entries);
-      //     console.log(response);
-      //   })
-      //   .catch(function(error) {
-      //     console.error(error);
-      //   });
 
 if (OFFLINE_MODE) {
   statsFile = offlineStatsFile;
 } else {
   statsFile = dropboxHostStatsFile;
-
-  // dropboxClient.authDriver(new Dropbox.AuthDriver.NodeServer(8191));
-
-  // dropboxClient.getAccountInfo(function(error, accountInfo) {
-  //   if (error) {
-  //     console.error("\n*** DROPBOX getAccountInfo ERROR ***\n" + JSON.stringify(error, null, 3));
-  //     return error; // Something went wrong.
-  //   }
-  //   console.log(chalkInfo("DROPBOX ACCOUNT INFO: " + JSON.stringify(accountInfo, null, 3)));
-  //   console.log(chalkInfo("DROPBOX ACCOUNT INFO: " + accountInfo.name));
-  // });
 }
 
 function dropboxWriteArrayToFile(filePath, dataArray, callback) {

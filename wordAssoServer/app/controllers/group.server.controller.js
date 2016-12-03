@@ -16,31 +16,33 @@ var debug = require('debug')('group');
 
 exports.findOneGroup = function(group, incMentions, callback) {
 
-	debug("findOneGroup:" + JSON.stringify(group, null, 2));
+	debug(chalkError("findOneGroup:" + JSON.stringify(group, null, 2)));
 
 	var inc = 0;
 	if (incMentions) inc = 1 ;
 
 	var query = { groupId: group.groupId  };
-	var update = { 
-					$inc: { mentions: inc }, 
-					$set: { 
-						groupId: group.groupId,
-						name: group.name,
-						colors: group.colors,
-						tags: group.tags,
-						lastSeen: moment()
-					},
-				};
+	
+	var update = {};
+	update['$addToSet'] = {};
+	update['$inc'] = { mentions: inc };
+	update['$set'] = { 
+		groupId: group.groupId,
+		name: group.name,
+		colors: group.colors,
+		tags: group.tags,
+		lastSeen: moment()
+	};
+
 
 	if (group.addEntityArray) {
-		// console.log(chalkDb("ADD ENTITY ARRAY: " + group.addEntityArray.length));
-		update['$addToSet'] = {entities: { $each: group.addEntityArray }};
+		debug(chalkDb("ADD ENTITY ARRAY: " + group.addEntityArray));
+		update['$addToSet'].entities = { $each: group.addEntityArray };
 	}
 
 	if (group.addChannelArray) {
-		// console.log(chalkDb("ADD CHANNEL ARRAY: " + group.addChannelArray.length));
-		update['$addToSet'] = {channels: { $each: group.addChannelArray }};
+		debug(chalkDb("ADD CHANNEL ARRAY: " + group.addChannelArray));
+		update['$addToSet'].channels = { $each: group.addChannelArray };
 	}
 
 	var options = { 
@@ -59,7 +61,7 @@ exports.findOneGroup = function(group, incMentions, callback) {
 				callback("ERROR " + err, null);
 			}
 			else {
-				debug(chalkDb("->- DB UPDATE" 
+				debug(chalkDb("->- DB GROUP UPDATE" 
 					+ " | " + grp.groupId 
 					+ " | NAME: " + grp.name 
 					+ " | ENTITIES: " + grp.entities

@@ -2936,6 +2936,7 @@ function entityUpdateDb(userObj, callback){
     ));
 
     dbUpdateEntityQueue.enqueue(entityObj);
+    callback(null, entityObj);
 
   }
   else {
@@ -2956,6 +2957,7 @@ function entityUpdateDb(userObj, callback){
     ));
 
     dbUpdateEntityQueue.enqueue(entityObj);
+    callback(null, entityObj);
   }  
 }
 
@@ -3174,7 +3176,7 @@ function userUpdateDb(userObj, callback) {
         );
         callback(err, userObj);
       } else {
-        debug(chalkUser(">>> USER UPDATED" 
+        console.log(chalkUser(">>> USER UPDATED" 
           + " | " + us.userId 
           + "\nNAME: " + us.name 
           + "\nSN:   " + us.screenName 
@@ -4827,18 +4829,20 @@ function handleSessionEvent(sesObj, callback) {
         if (!err) {
           groupUpdateDb(updatedUserObj, function(err, entityObj){
             if (err){
+              console.log(chalkError("GROUP UPDATE DB ERROR: " + err));
             }
             else {
               updatedUserObj.groupId = entityObj.groupId;
               entityUpdateDb(updatedUserObj, function(err, entityObj){
                 if (err){
+                  console.log(chalkError("ENTITY UPDATE DB ERROR: " + err));
                 }
                 else {
                   if (sesObj.session.config.type == 'USER') {
-                    debug(chalkRed("TX USER SESSION (USER READY): " + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"));
+                    console.log(chalkRed("TX USER SESSION (USER READY): " + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"));
                     adminNameSpace.emit('USER_SESSION', updatedUserObj);
                   } else if (sesObj.session.config.type == 'UTIL') {
-                    debug(chalkRed("TX UTIL SESSION (UTIL READY): " + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"));
+                    console.log(chalkRed("TX UTIL SESSION (UTIL READY): " + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"));
                     adminNameSpace.emit('UTIL_SESSION', updatedUserObj);
                   }
 
@@ -4847,11 +4851,9 @@ function handleSessionEvent(sesObj, callback) {
               });
             }
           });
-
-
-
-        } else {
-          debug(chalkError("*** USER UPDATE DB ERROR\n" + jsonPrint(err)));
+        } 
+        else {
+          console.log(chalkError("*** USER UPDATE DB ERROR\n" + jsonPrint(err)));
           if (quitOnError) quit(err);
         }
       });

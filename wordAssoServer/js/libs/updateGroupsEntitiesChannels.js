@@ -145,11 +145,12 @@ function updateGroups(configFile, callback){
       ));
     }
     else {
+
+      var groupIds = Object.keys(groups) ;
+
       console.log(chalkLog("GROUPS CONFIG INIT COMPLETE"
         + " | " + groupIds.length + " GROUPS"
       ));
-
-      var groupIds = Object.keys(groups) ;
 
       async.forEach(groupIds, 
 
@@ -164,7 +165,7 @@ function updateGroups(configFile, callback){
 
           else {
             groupHashMap.set(groupId, groups[groupId]);
-            debug(chalkLog("+++ ADDED GROUP  "
+            console.log(chalkLog("+++ ADDED GROUP  "
               + " | " + groupId
               + " | " + groupHashMap.get(groupId).name
             ));

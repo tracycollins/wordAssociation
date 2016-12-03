@@ -776,7 +776,7 @@ function loadStats(callback) {
           statsObj.promptsSent = promptsSent;
           statsObj.responsesReceived = responsesReceived;
 
-          saveFile(statsFile, statsObj, function(status) {
+          saveStats(statsFile, statsObj, function(status) {
             if (status != 'OK') {
               console.log("!!! ERROR: saveStats " + status);
             } else {
@@ -823,7 +823,7 @@ function loadStats(callback) {
     statsObj.promptsSent = promptsSent;
     statsObj.responsesReceived = responsesReceived;
 
-    saveFile(statsFile, statsObj, function(status) {
+    saveStats(statsFile, statsObj, function(status) {
       if (status != 'OK') {
         console.log("!!! ERROR: saveStats " + status);
       } else {
@@ -908,7 +908,7 @@ function updateStatsInterval(statsFile, interval){
       wordCacheTtl: wordCacheTtl
     });
 
-    saveFile(statsFile, statsObj, function(status) {
+    saveStats(statsFile, statsObj, function(status) {
       if (status != 'OK') {
         console.log("!!! ERROR: SAVE STATUS | FILE: " + statsFile + "\n" + status);
       } else {
@@ -7472,7 +7472,7 @@ process.on("message", function(msg) {
     debug('\n\n!!!!! RECEIVED PM2 SHUTDOWN !!!!!\n\n***** Closing all connections *****\n\n');
     debug("... SAVING STATS");
 
-    saveFile(statsFile, statsObj, function(status) {
+    saveStats(statsFile, statsObj, function(status) {
       if (status != 'OK') {
         debug("!!! ERROR: saveStats " + status);
       } else {

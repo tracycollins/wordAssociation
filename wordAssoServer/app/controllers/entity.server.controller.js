@@ -22,23 +22,25 @@ exports.findOneEntity = function(entity, incMentions, callback) {
 	if (incMentions) inc = 1 ;
 
 	var query = { entityId: entity.entityId  };
-	var update = { 
-					$inc: { mentions: inc }, 
-					$set: { 
-						entityId: entity.entityId,
-						groupId: entity.groupId,
-						name: entity.name,
-						screenName: entity.screenName,
-						sessions: entity.sessions,
-						words: entity.words,
-						tags: entity.tags,
-						lastSeen: moment()
-					},
-				};
+
+	var update = {};
+	// update['$addToSet'] = {};
+	update['$inc'] = { mentions: inc };
+	update['$set'] = { 
+		entityId: entity.entityId,
+		groupId: entity.groupId,
+		name: entity.name,
+		screenName: entity.screenName,
+		sessions: entity.sessions,
+		words: entity.words,
+		tags: entity.tags,
+		lastSeen: moment()
+	};
+
 
 	// if (entity.addGroupArray) {
-	// 	// console.log(chalkDb("ADD VIDEO ARRAY: " + entity.addGroupArray.length));
-	// 	update['$addToSet'] = {groups: { $each: entity.addGroupArray }};
+	// 	debug(chalkDb("ADD GROUP ARRAY: " + entity.addGroupArray));
+	// 	update['$addToSet'].entities = { $each: entity.addGroupArray };
 	// }
 
 	var options = { 
@@ -57,7 +59,7 @@ exports.findOneEntity = function(entity, incMentions, callback) {
 				callback("ERROR " + err, null);
 			}
 			else {
-				debug(chalkDb("->- DB UPDATE" 
+				debug(chalkDb("->- DB UPDATE ENTITY" 
 					+ " | " + ent.entityId 
 					+ " | NAME: " + ent.name 
 					+ " | SNAME: " + ent.screenName 

@@ -3,6 +3,14 @@
 
 var wapiForceSearch = true;
 
+var ioReady = false
+var groupsUpdateComplete = false;
+var entitiesUpdateComplete = false;
+var keywordsUpdateComplete = false;
+var updateComplete = groupsUpdateComplete && entitiesUpdateComplete && keywordsUpdateComplete;
+
+var serverHeartbeatInterval;
+
 var cp = require('child_process');
 var updater;
 
@@ -71,7 +79,6 @@ var jsonPrint = function(obj) {
   }
 }
 
-
 function quit(message) {
   console.log("\n... QUITTING ...");
   var msg = '';
@@ -79,7 +86,6 @@ function quit(message) {
   console.log("QUIT MESSAGE\n" + msg);
   process.exit();
 }
-
 
 process.on('SIGINT', function() {
   quit('SIGINT');
@@ -925,7 +931,7 @@ function updateGroups(configFile, callback){
 
           else {
             groupHashMap.set(groupId, groups[groupId]);
-            console.log(chalkLog("+++ ADDED GROUP  "
+            debug(chalkLog("+++ ADDED GROUP  "
               + " | " + groupId
               + " | " + groupHashMap.get(groupId).name
             ));
@@ -1113,9 +1119,9 @@ var app = express();
 
 var http = require('http');
 var httpServer = require('http').Server(app);
-var io = require('socket.io')(httpServer, {
-  reconnection: false
-});
+// var io = require('socket.io')(httpServer, { reconnection: false });
+
+var io;
 var dns = require('dns');
 var path = require('path');
 var net = require('net');
@@ -1221,14 +1227,106 @@ if (!disableGoogleMetrics) {
 }
 
 
-var adminNameSpace = io.of("/admin");
-var utilNameSpace = io.of("/util");
-var userNameSpace = io.of("/user");
-var viewNameSpace = io.of("/view");
-var testUsersNameSpace = io.of("/test-user");
-var testViewersNameSpace = io.of("/test-view");
+var adminNameSpace;
+var utilNameSpace;
+var userNameSpace;
+var viewNameSpace;
+var testUsersNameSpace;
+var testViewersNameSpace;
 
 
+
+var initNameSpacesInterval = setInterval(function(){
+
+  if (updateComplete) {
+
+    console.log(chalkAlert("INIT SOCKET NAMESPACES"));
+
+    io = require('socket.io')(httpServer, { reconnection: false });
+
+    adminNameSpace = io.of("/admin");
+    utilNameSpace = io.of("/util");
+    userNameSpace = io.of("/user");
+    viewNameSpace = io.of("/view");
+    testUsersNameSpace = io.of("/test-user");
+    testViewersNameSpace = io.of("/test-view");
+
+    adminNameSpace.on('connect', function(socket) {
+      socket.setMaxListeners(0);
+      debug(chalkAdmin("ADMIN CONNECT"));
+      createSession({
+        namespace: "admin",
+        socket: socket,
+        type: "ADMIN",
+        tags: {}
+      });
+      socket.on('SET_WORD_CACHE_TTL', function(value) {
+        setWordCacheTtl(value);
+      });
+    });
+
+    utilNameSpace.on('connect', function(socket) {
+      socket.setMaxListeners(0);
+      debug(chalkAdmin("UTIL CONNECT"));
+      createSession({
+        namespace: "util",
+        socket: socket,
+        type: "UTIL",
+        mode: "UNKNOWN",
+        tags: {}
+      });
+    });
+
+    userNameSpace.on('connect', function(socket) {
+      socket.setMaxListeners(0);
+      debug(chalkAdmin("USER CONNECT"));
+      createSession({
+        namespace: "user",
+        socket: socket,
+        type: "UTIL",
+        mode: "UNKNOWN",
+        tags: {}
+      });
+    });
+
+    viewNameSpace.on('connect', function(socket) {
+      socket.setMaxListeners(0);
+      debug(chalkAdmin("VIEWER CONNECT"));
+      createSession({
+        namespace: "view",
+        socket: socket,
+        type: "VIEWER",
+        tags: {}
+      });
+    });
+
+    testUsersNameSpace.on('connect', function(socket) {
+      socket.setMaxListeners(0);
+      debug(chalkAdmin("TEST USER CONNECT"));
+      createSession({
+        namespace: "test-user",
+        socket: socket,
+        type: "TEST_USER",
+        tags: {}
+      });
+    });
+
+    testViewersNameSpace.on('connect', function(socket) {
+      socket.setMaxListeners(0);
+      debug(chalkAdmin("TEST VIEWER CONNECT"));
+      createSession({
+        namespace: "test-view",
+        socket: socket,
+        type: "TEST_VIEWER",
+        tags: {}
+      });
+    });
+
+    clearInterval(initNameSpacesInterval);
+
+    ioReady = true;
+  }
+}, 500);
 
 // ==================================================================
 // FUNCTIONS
@@ -5302,6 +5400,21 @@ var readUpdaterMessageQueue = setInterval(function() {
     var updaterObj = updaterMessageQueue.dequeue();
 
     switch (updaterObj.type){
+      case 'sendGroupsComplete':
+        console.log(chalkError("UPDATE GROUPS COMPLETE"));
+        updaterMessageReady = true;
+        groupsUpdateComplete = true;
+      break;
+      case 'sendEntitiesComplete':
+        console.log(chalkError("UPDATE ENTITIES COMPLETE"));
+        updaterMessageReady = true;
+        entitiesUpdateComplete = true;
+      break;
+      case 'sendKeywordsComplete':
+        console.log(chalkError("UPDATE KEYWORDS COMPLETE"));
+        updaterMessageReady = true;
+        keywordsUpdateComplete = true;
+      break;
       case 'group':
         groupHashMap.set(updaterObj.groupId, updaterObj.group);
         debug(chalkError("UPDATE GROUP\n" + jsonPrint(updaterObj)));
@@ -5325,6 +5438,8 @@ var readUpdaterMessageQueue = setInterval(function() {
         updaterMessageReady = true;
       break;
     }
+
+    updateComplete = groupsUpdateComplete && entitiesUpdateComplete && keywordsUpdateComplete;
 
   }
 }, 10);
@@ -6183,7 +6298,7 @@ configEvents.on("SERVER_READY", function() {
       + "/" + txHeartbeat.memoryTotal));
   }
 
-  var serverHeartbeatInterval = setInterval(function() {
+  serverHeartbeatInterval = setInterval(function() {
 
     // debug(util.inspect(userNameSpace.connected, {
     //   showHidden: false,
@@ -6198,7 +6313,7 @@ configEvents.on("SERVER_READY", function() {
     // SERVER HEARTBEAT
     //
 
-    if (internetReady) {
+    if (internetReady && ioReady) {
 
       heartbeatsSent++;
 
@@ -6645,12 +6760,14 @@ function createSession(newSessionObj) {
         }
 
         if (i == tagKeys) {
+          console.log(chalkRed("SESSION_KEEPALIVE createSession"));
           createSession(sessionObj);
           return;
         }
 
       }
       else {
+        console.log(chalkRed("SESSION_KEEPALIVE createSession"));
         createSession(sessionObj);
         return;
        }
@@ -6777,7 +6894,6 @@ function createSession(newSessionObj) {
       session: sessionObj,
       user: userObj
     });
-
   });
 
   socket.on("RESPONSE_WORD_OBJ", function(rxInObj) {
@@ -6888,76 +7004,76 @@ function createSession(newSessionObj) {
   });
 }
 
-adminNameSpace.on('connect', function(socket) {
-  socket.setMaxListeners(0);
-  debug(chalkAdmin("ADMIN CONNECT"));
-  createSession({
-    namespace: "admin",
-    socket: socket,
-    type: "ADMIN",
-    tags: {}
-  });
-  socket.on('SET_WORD_CACHE_TTL', function(value) {
-    setWordCacheTtl(value);
-  });
-});
+// adminNameSpace.on('connect', function(socket) {
+//   socket.setMaxListeners(0);
+//   debug(chalkAdmin("ADMIN CONNECT"));
+//   createSession({
+//     namespace: "admin",
+//     socket: socket,
+//     type: "ADMIN",
+//     tags: {}
+//   });
+//   socket.on('SET_WORD_CACHE_TTL', function(value) {
+//     setWordCacheTtl(value);
+//   });
+// });
 
-utilNameSpace.on('connect', function(socket) {
-  socket.setMaxListeners(0);
-  debug(chalkAdmin("UTIL CONNECT"));
-  createSession({
-    namespace: "util",
-    socket: socket,
-    type: "UTIL",
-    mode: "UNKNOWN",
-    tags: {}
-  });
-});
+// utilNameSpace.on('connect', function(socket) {
+//   socket.setMaxListeners(0);
+//   debug(chalkAdmin("UTIL CONNECT"));
+//   createSession({
+//     namespace: "util",
+//     socket: socket,
+//     type: "UTIL",
+//     mode: "UNKNOWN",
+//     tags: {}
+//   });
+// });
 
-userNameSpace.on('connect', function(socket) {
-  socket.setMaxListeners(0);
-  debug(chalkAdmin("USER CONNECT"));
-  createSession({
-    namespace: "user",
-    socket: socket,
-    type: "UTIL",
-    mode: "UNKNOWN",
-    tags: {}
-  });
-});
+// userNameSpace.on('connect', function(socket) {
+//   socket.setMaxListeners(0);
+//   debug(chalkAdmin("USER CONNECT"));
+//   createSession({
+//     namespace: "user",
+//     socket: socket,
+//     type: "UTIL",
+//     mode: "UNKNOWN",
+//     tags: {}
+//   });
+// });
 
-viewNameSpace.on('connect', function(socket) {
-  socket.setMaxListeners(0);
-  debug(chalkAdmin("VIEWER CONNECT"));
-  createSession({
-    namespace: "view",
-    socket: socket,
-    type: "VIEWER",
-    tags: {}
-  });
-});
+// viewNameSpace.on('connect', function(socket) {
+//   socket.setMaxListeners(0);
+//   debug(chalkAdmin("VIEWER CONNECT"));
+//   createSession({
+//     namespace: "view",
+//     socket: socket,
+//     type: "VIEWER",
+//     tags: {}
+//   });
+// });
 
-testUsersNameSpace.on('connect', function(socket) {
-  socket.setMaxListeners(0);
-  debug(chalkAdmin("TEST USER CONNECT"));
-  createSession({
-    namespace: "test-user",
-    socket: socket,
-    type: "TEST_USER",
-    tags: {}
-  });
-});
+// testUsersNameSpace.on('connect', function(socket) {
+//   socket.setMaxListeners(0);
+//   debug(chalkAdmin("TEST USER CONNECT"));
+//   createSession({
+//     namespace: "test-user",
+//     socket: socket,
+//     type: "TEST_USER",
+//     tags: {}
+//   });
+// });
 
-testViewersNameSpace.on('connect', function(socket) {
-  socket.setMaxListeners(0);
-  debug(chalkAdmin("TEST VIEWER CONNECT"));
-  createSession({
-    namespace: "test-view",
-    socket: socket,
-    type: "TEST_VIEWER",
-    tags: {}
-  });
-});
+// testViewersNameSpace.on('connect', function(socket) {
+//   socket.setMaxListeners(0);
+//   debug(chalkAdmin("TEST VIEWER CONNECT"));
+//   createSession({
+//     namespace: "test-view",
+//     socket: socket,
+//     type: "TEST_VIEWER",
+//     tags: {}
+//   });
+// });
 
 var databaseEnabled = false;
 
@@ -6975,12 +7091,14 @@ var numberViewersTotal = 0;
 
 var metricsInterval = setInterval(function() {
 
-  numberAdmins = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
-  numberUtils = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
-  numberUsers = Object.keys(userNameSpace.connected).length; // userNameSpace.sockets.length ;
-  numberTestUsers = Object.keys(testUsersNameSpace.connected).length; // userNameSpace.sockets.length ;
-  numberViewers = Object.keys(viewNameSpace.connected).length; // userNameSpace.sockets.length ;
-  numberTestViewers = Object.keys(testViewersNameSpace.connected).length; // userNameSpace.sockets.length ;
+  if (updateComplete) {
+    numberAdmins = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
+    numberUtils = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
+    numberUsers = Object.keys(userNameSpace.connected).length; // userNameSpace.sockets.length ;
+    numberTestUsers = Object.keys(testUsersNameSpace.connected).length; // userNameSpace.sockets.length ;
+    numberViewers = Object.keys(viewNameSpace.connected).length; // userNameSpace.sockets.length ;
+    numberTestViewers = Object.keys(testViewersNameSpace.connected).length; // userNameSpace.sockets.length ;
+  }
 
   numberUsersTotal = numberUsers + numberTestUsers;
   numberViewersTotal = numberViewers + numberTestViewers;
@@ -7612,8 +7730,6 @@ initializeConfiguration(function(err, results) {
       keywordFile: defaultDropboxKeywordFile,
       interval: GROUP_UPDATE_INTERVAL
     });
-
-
   }
 });
 

@@ -1721,7 +1721,7 @@ var createSession = function(callback) {
 
       var currentSession = sessionHashMap.get(sessUpdate.nodeId);
 
-      console.warn("UPDATE SESS" 
+      console.info("UPDATE SESS" 
         + " [" + sessUpdate.wordChainIndex + "]" 
         // + " [" + sessUpdate.mentions + "]" 
         + " | UID: " + sessUpdate.userId 

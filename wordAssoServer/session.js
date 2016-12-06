@@ -1341,7 +1341,7 @@ var processSessionQueues = function(callback) {
     switch (session.tags.channel){
       case "twitter":
         session.tags.url = "https://twitter.com/" + session.tags.entity.toLowerCase();
-        session.tags.group.url = "https://twitter.com/" + session.tags.entity.toLowerCase();
+        if (typeof session.tags.group.url !== 'undefined') session.tags.group.url = "https://twitter.com/" + session.tags.entity.toLowerCase();
       break;
       case "livestream":
         if (session.tags.entity == 'cspan'){

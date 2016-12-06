@@ -1027,7 +1027,8 @@ function updateEntityChannelGroups(configFile, callback){
             else{
               statsObj.group.hashMiss[entity.groupId] = 1;
               statsObj.group.allHashMisses[entity.groupId] = 1;
-              configEvents.emit("HASH_MISS", {group: entity.groupId});
+              // configEvents.emit("HASH_MISS", {group: entity.groupId});
+              configEvents.emit("HASH_MISS", {type: "group", value: entity.groupId});
               cb(err, "GROUP NOT FOUND: " + entity.groupId);
               return;
             }
@@ -1052,7 +1053,7 @@ function updateEntityChannelGroups(configFile, callback){
             else{
               statsObj.group.hashMiss[entity.groupId] = 1;
               statsObj.group.allHashMisses[entity.groupId] = 1;
-              configEvents.emit("HASH_MISS", {group: entity.groupId});
+              configEvents.emit("HASH_MISS", {type: "group", value: entity.groupId});
               cb(err, "GROUP NOT FOUND: " + entity.groupId);
               return;
             }
@@ -1713,10 +1714,10 @@ function updateSessionViews(sessionUpdateObj) {
     sessionUpdateObj.tags.group = entityChannelGroupHashMap.get(sessionUpdateObj.tags.entity);
     updateSessionViewQueue.push(sessionUpdateObj);
   }
-  else{
+  else if (typeof sessionUpdateObj.tags.entity !== 'undefined') {
     statsObj.entityChannelGroup.hashMiss[sessionUpdateObj.tags.entity] = 1;
     statsObj.entityChannelGroup.allHashMisses[sessionUpdateObj.tags.entity] = 1;
-    configEvents.emit("HASH_MISS", {entity: sessionUpdateObj.tags.entity});
+    configEvents.emit("HASH_MISS", {type: "entity", value: essionUpdateObj.tags.entity});
   }
 }
 
@@ -2899,7 +2900,7 @@ function groupUpdateDb(userObj, callback){
       ));
       statsObj.group.hashMiss[entityObj.groupId] = 1;
       statsObj.group.allHashMisses[entityObj.groupId] = 1;
-      configEvents.emit("HASH_MISS", {group: entityObj.groupId});
+      configEvents.emit("HASH_MISS", {type: "group", value: entityObj.groupId});
       callback(null, entityObj);
 
     }
@@ -6346,7 +6347,14 @@ configEvents.on("INIT_TWIT_FOR_DM_COMPLETE", function() {
       console.log(chalkTwitter("SENT TWITTER DM: " + dmString));
     }
     else {
-      console.log(chalkError("DM SEND ERROR:" + err));
+      switch (err.code) {
+        case 226:
+          console.log(chalkError("*** TWITTER DM SEND ERROR: LOOKS LIKE AUTOMATED TX: CODE: " + err.code));
+        break;
+        default:
+          console.log(chalkError("*** TWITTER DM SEND ERROR: " + jsonPrint(err)));
+        break;
+      }
     }
   });
 });
@@ -6363,16 +6371,32 @@ configEvents.on("UNKNOWN_SESSION", function(socketId) {
   });
 });
 
+var directMessageHash = {};
+
 configEvents.on("HASH_MISS", function(missObj) {
-  var dmString = os.hostname() + "\nwordAssoServer\nPID: " + process.pid + "\nMISS: " + jsonPrint(missObj);
-  sendDirectMessage('threecee', dmString, function(err, res){
-    if (!err) {
-      console.log(chalkTwitter("SENT TWITTER DM: " + dmString));
-    }
-    else {
-      console.log(chalkError("DM SEND ERROR:" + err));
-    }
-  });
+
+  var dmString = os.hostname() 
+  + "\n wordAssoServer"
+  + "\nPID: " + process.pid 
+  + "\nMISS: " + missObj.type + missObj.value;
+
+  var sendDirectMessageHashKey = missObj.type + "-" + missObj.value;
+
+  if (directMessageHash[sendDirectMessageHashKey] === 'undefined') {
+    directMessageHash[sendDirectMessageHashKey] = missObj;
+    sendDirectMessage('threecee', dmString, function(err, res){
+      if (!err) {
+        console.log(chalkTwitter("SENT TWITTER DM\n" + dmString + "\n" + jsonPrint(res)));
+      }
+      else {
+        console.log(chalkError("DM SEND ERROR:" + err));
+      }
+    });
+  }
+  else {
+    console.log(chalkError("SKIP DM ... PREV SENT | " + missObj.type + " | " + missObj.value));
+  }
+
 });
 
 
@@ -7003,7 +7027,8 @@ function createSession(newSessionObj) {
               // + "\n" + jsonPrint(statsObj.entityChannelGroup.hashMiss)
             ));
 
-            configEvents.emit("HASH_MISS", {entity: sessionObj.tags.entity});
+            configEvents.emit("HASH_MISS", {type: "entity", value: sessionObj.tags.entity});
+            // configEvents.emit("HASH_MISS", {entity: sessionObj.tags.entity});
           }
         }
         else {
@@ -7837,12 +7862,15 @@ function sendDirectMessage(user, message, callback) {
   twit.post('direct_messages/new', {screen_name: user, text:message}, function(error, response){
 
     if(error) {
-      console.log("!!!!! TWITTER SEND DIRECT MESSAGE ERROR: " 
+      debug(chalkError("!!!!! TWITTER SEND DIRECT MESSAGE ERROR: " 
         + getTimeStamp() 
-        + '\n'  + jsonPrint(error));
+        + '\nERROR\n'  + jsonPrint(error)
+        + '\nRESPONSE\n'  + jsonPrint(response)
+      ));
+      callback(error, message) ;
     }
     else{
-      console.log(chalkTwitter(getTimeStamp() + " | SENT TWITTER DM TO " + user + ": " + response.text));
+      debug(chalkTwitter(getTimeStamp() + " | SENT TWITTER DM TO " + user + ": " + response.text));
       callback(null, message) ;
     }
 

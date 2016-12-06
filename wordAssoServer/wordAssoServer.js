@@ -2795,9 +2795,11 @@ function groupUpdateDb(userObj, callback){
   }
 
   else {
+    userObj.groupId = 'unknown_group';
     console.log(chalkError("*** ENTITY HASH MISS ... SKIPPING DB GROUP UPDATE"
       + " | " + userObj.tags.entity.toLowerCase()
     ));
+    callback(null, entityObj);
   }  
 }
 
@@ -4379,10 +4381,21 @@ function handleSessionEvent(sesObj, callback) {
               + " | FIRST WORD: " + sessionUpdatedObj.wordChain[0].nodeId
               + " | LAST WORD: " + sessionUpdatedObj.wordChain[sessionUpdatedObj.wordChain.length-1].nodeId
             ));
-            sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
+
+            if (typeof sessionUpdatedObj.subSessionId !== 'undefined') {
+              sessionCache.set(sessionUpdatedObj.subSessionId, sessionUpdatedObj);
+            }
+            else {
+              sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
+            }
           }
           else {
-            sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
+            if (typeof sessionUpdatedObj.subSessionId !== 'undefined') {
+              sessionCache.set(sessionUpdatedObj.subSessionId, sessionUpdatedObj);
+            }
+            else {
+              sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
+            }
           }
 
           // sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
@@ -4397,7 +4410,7 @@ function handleSessionEvent(sesObj, callback) {
 
           userCache.set(sessionUpdatedObj.userId, sessionUpdatedObj.user, function(err, success) {});
 
-          debug(chalkLog(
+          console.log(chalkLog(
             "K>" + " | " + sessionUpdatedObj.userId 
             + " | T " + sessionUpdatedObj.config.type 
             + " | M " + sessionUpdatedObj.config.mode 
@@ -4721,12 +4734,32 @@ function handleSessionEvent(sesObj, callback) {
         + " | TYPE: " + sesObj.session.config.type 
         + " | MODE: " + sesObj.session.config.mode 
         + "\nSID: " + sesObj.session.sessionId 
+        + " | UMODE: " + sesObj.user.tags.mode 
+        + " | GRP: " + sesObj.user.tags.group 
         + " | ENT: " + sesObj.user.tags.entity 
         + " | CH: " + sesObj.user.tags.channel 
         + " | IP: " + sesObj.session.ip 
         + " | DOM: " + sesObj.session.domain
         // + "\n" + jsonPrint(sesObj)
       ));
+
+      if (sesObj.session.config.mode == 'MUXSTREAM'){
+
+        console.log(chalkRed("MUXSTREAM"
+          + " | " + sesObj.session.sessionId
+        ));
+
+      }
+
+      if (sesObj.session.config.mode == 'SUBSTREAM'){
+
+        sesObj.session.sessionId = sesObj.session.sessionId + "#" + sesObj.user.tags.entity;
+
+        console.log(chalkRed("SUBSTREAM"
+          + " | " + sesObj.session.sessionId
+        ));
+
+      }
 
       if (sesObj.session.config.mode == 'MONITOR'){
 
@@ -4775,8 +4808,25 @@ function handleSessionEvent(sesObj, callback) {
             if (err){
               console.log(chalkError("GROUP UPDATE DB ERROR: " + err));
             }
+            else if ((updatedUserObj.tags.mode !== 'undefined') && (updatedUserObj.tags.mode == 'substream')) {
+
+              updatedUserObj.isMuxed = true;
+
+              console.log(chalkRed("TX UTIL SESSION (UTIL READY): " + updatedUserObj.lastSession  + " | " + updatedUserObj.userId + " TO ADMIN NAMESPACE"));
+              adminNameSpace.emit('UTIL_SESSION', updatedUserObj);
+
+              io.of(sesObj.session.namespace).to(sesObj.session.sessionId).emit('USER_READY_ACK', updatedUserObj.userId);
+            }
             else {
-              updatedUserObj.groupId = entityObj.groupId;
+              if (updatedUserObj.groupId === 'undefined') {
+                if (sesObj.user.tags.group !== 'undefined') {
+                  updatedUserObj.groupId = sesObj.user.tags.group.toLowerCase();
+                }
+                else {
+                  updatedUserObj.groupId = 'unknown_group';
+                }
+              }
+
               entityUpdateDb(updatedUserObj, function(err, entityObj){
                 if (err){
                   console.log(chalkError("ENTITY UPDATE DB ERROR: " + err));
@@ -4806,7 +4856,12 @@ function handleSessionEvent(sesObj, callback) {
           ROUTING OF PROMPT/RESPONSE BASED ON SESSION TYPE
       */
 
-      sessionCache.set(currentSession.sessionId, currentSession, function(err, success) {
+      var sessionCacheKey = currentSession.sessionId;
+
+      if (typeof currentSession.subSessionId !== 'undefined') sessionCacheKey = currentSession.subSessionId;
+
+
+      sessionCache.set(sessionCacheKey, currentSession, function(err, success) {
         if (!err && success) {
 
           userCache.set(currentSession.userId, sesObj.user, function(err, success) {
@@ -4885,6 +4940,45 @@ function handleSessionEvent(sesObj, callback) {
                     case 'GROUP':
                       break;
 
+                    case 'MUXSTREAM':
+                      console.log(chalkSession("... MULTIPLEXED STREAM USER " + currentSession.userId));
+
+                      sessionUpdateDb(currentSession, function(err, sessionUpdatedObj) {
+                        if (!err) {
+                          if (typeof sessionCache.wordChain !== 'undefined'
+                            && (sessionCache.wordChain.length > MAX_WORDCHAIN_LENGTH)) {
+                            console.log(chalkSession("SHORTEN WC TO " + MAX_WORDCHAIN_LENGTH
+                              + " | UID: " + sessionUpdatedObj.userId
+                              + " | CURR LEN: " + sessionUpdatedObj.wordChain.length
+                              + " | FIRST WORD: " + sessionUpdatedObj.wordChain[0].nodeId
+                              + " | LAST WORD: " + sessionUpdatedObj.wordChain[sessionUpdatedObj.wordChain.length-1].nodeId
+                            ));
+                            sessionUpdatedObj.wordChain = sessionUpdatedObj.wordChain.slice(-MAX_WORDCHAIN_LENGTH);
+                            console.log(chalkSession("NEW WC"
+                              + " | UID: " + sessionUpdatedObj.userId
+                              + " | CURR LEN: " + sessionUpdatedObj.wordChain.length
+                              + " | FIRST WORD: " + sessionUpdatedObj.wordChain[0].nodeId
+                              + " | LAST WORD: " + sessionUpdatedObj.wordChain[sessionUpdatedObj.wordChain.length-1].nodeId
+                            ));
+                            // sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
+                            sessionCache.set(sessionCacheKey, sessionUpdatedObj);
+                          }
+                          else {
+                            sessionCache.set(sessionCacheKey, sessionUpdatedObj);
+                          }
+                          console.log(chalkInfo("-S- DB UPDATE" 
+                            + " | " + sessionUpdatedObj.sessionId 
+                            + " | TYPE: " + sessionUpdatedObj.config.type 
+                            + " | MODE: " + sessionUpdatedObj.config.mode 
+                            + " | WCI: " + sessionUpdatedObj.wordChainIndex 
+                            + " | WCL: " + sessionUpdatedObj.wordChain.length));
+                        } else {
+                          console.log(chalkError("*** ERROR DB UPDATE SESSION\n" + err));
+                        }
+                      });
+                      break;
+
+                    case 'SUBSTREAM':
                     case 'STREAM':
                       debug(chalkSession("... STREAM USER " + currentSession.userId));
                       sessionUpdateDb(currentSession, function(err, sessionUpdatedObj) {
@@ -4904,10 +4998,10 @@ function handleSessionEvent(sesObj, callback) {
                               + " | FIRST WORD: " + sessionUpdatedObj.wordChain[0].nodeId
                               + " | LAST WORD: " + sessionUpdatedObj.wordChain[sessionUpdatedObj.wordChain.length-1].nodeId
                             ));
-                            sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
+                            sessionCache.set(sessionCacheKey, sessionUpdatedObj);
                           }
                           else {
-                            sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
+                            sessionCache.set(sessionCacheKey, sessionUpdatedObj);
                           }
                           debug(chalkInfo("-S- DB UPDATE" 
                             + " | " + sessionUpdatedObj.sessionId 
@@ -4940,6 +5034,7 @@ function handleSessionEvent(sesObj, callback) {
                 case 'TEST_VIEWER':
                   break;
 
+                case 'SUBSTREAM':
                 case 'STREAM':
                   break;
 
@@ -4993,10 +5088,10 @@ var readResponseQueue = setInterval(function() {
 
     var rxInObj = responseQueue.dequeue();
 
-    debug(chalkWarn("RXINOBJ\n" + jsonPrint(rxInObj)));
+    // console.log(chalkWarn("RXINOBJ\n" + jsonPrint(rxInObj)));
 
     if ((typeof rxInObj.nodeId === 'undefined') || (typeof rxInObj.nodeId !== 'string')) {
-      debug(chalkError("*** ILLEGAL RESPONSE ... SKIPPING" + "\nTYPE: " + typeof rxInObj.nodeId 
+      console.log(chalkError("*** ILLEGAL RESPONSE ... SKIPPING" + "\nTYPE: " + typeof rxInObj.nodeId 
         + "\n" + jsonPrint(rxInObj)));
       ready = true;
       statsObj.session.error++;
@@ -5020,6 +5115,9 @@ var readResponseQueue = setInterval(function() {
       ready = true;
       return;
     }
+    // else {
+    //   console.log(chalkError("currentSessionObj\n" + jsonPrint(currentSessionObj)));
+    // }
 
     debug(chalkBht(">>> RESPONSE (before replace): " + responseInObj.nodeId));
     responseInObj.nodeId = responseInObj.nodeId.replace(/\s+/g, ' ');
@@ -5076,18 +5174,33 @@ var readResponseQueue = setInterval(function() {
       } else {
         debug(chalkResponse("... previousPromptObj: " + previousPromptObj.nodeId));
       }
-    } else if (currentSessionObj.config.mode == 'STREAM') {
+    } 
+    else if (currentSessionObj.config.mode == 'STREAM') {
       previousPromptObj = {
         nodeId: 'STREAM'
       };
       debug(chalkWarn("STREAM WORD CHAIN\n" + jsonPrint(currentSessionObj.wordChain)));
-    } else if (currentSessionObj.config.mode == 'USER_USER') {
+    } 
+    else if (currentSessionObj.config.mode == 'MUXSTREAM') {
+      previousPromptObj = {
+        nodeId: 'MUXSTREAM'
+      };
+      debug(chalkWarn("MUXSTREAM WORD CHAIN\n" + jsonPrint(currentSessionObj.wordChain)));
+    } 
+    else if (currentSessionObj.config.mode == 'SUBSTREAM') {
+      previousPromptObj = {
+        nodeId: 'SUBSTREAM'
+      };
+      debug(chalkWarn("SUBSTREAM WORD CHAIN\n" + jsonPrint(currentSessionObj.wordChain)));
+    } 
+    else if (currentSessionObj.config.mode == 'USER_USER') {
       previousPromptObj = {
         nodeId: 'USER_USER'
       };
       debug(chalkWarn("USER_USER WORD CHAIN\n" + jsonPrint(currentSessionObj.wordChain)));
-    } else {
-      debug(chalkWarn("??? EMPTY WORD CHAIN ... PREVIOUS PROMPT NOT IN CACHE ... ABORTING SESSION" 
+    } 
+    else {
+      console.log(chalkWarn("??? EMPTY WORD CHAIN ... PREVIOUS PROMPT NOT IN CACHE ... ABORTING SESSION" 
         + " | " + socketId));
 
       ready = true;
@@ -5603,6 +5716,7 @@ var generatePromptQueueInterval = setInterval(function() {
       case 'BHT_CRAWLER':
       case 'MW_CRAWLER':
         break;
+      case 'SUBSTREAM':
       case 'STREAM':
         break;
 
@@ -6670,7 +6784,12 @@ function createSession(newSessionObj) {
     // console.log("rxInObj\n" + jsonPrint(rxInObj));
     if (responseQueue.size() < MAX_RESPONSE_QUEUE_SIZE) {
       var responseInObj = rxInObj;
-      responseInObj.socketId = socket.id;
+      if (rxInObj.tags.mode == 'substream') {
+        responseInObj.socketId = socket.id + "#" + rxInObj.tags.entity;
+      }
+      else {
+        responseInObj.socketId = socket.id;
+      }
       responseQueue.enqueue(responseInObj);
     }
   });
@@ -6786,7 +6905,7 @@ utilNameSpace.on('connect', function(socket) {
     namespace: "util",
     socket: socket,
     type: "UTIL",
-    mode: "STREAM",
+    mode: "UNKNOWN",
     tags: {}
   });
 });
@@ -6798,7 +6917,7 @@ userNameSpace.on('connect', function(socket) {
     namespace: "user",
     socket: socket,
     type: "UTIL",
-    mode: "STREAM",
+    mode: "UNKNOWN",
     tags: {}
   });
 });
@@ -7304,6 +7423,11 @@ function initAppRouting(callback) {
 
   app.get('/css/base.css', function(req, res) {
     res.sendFile(__dirname + '/css/base.css');
+    return;
+  });
+
+  app.get('/node_modules/panzoom/dist/panzoom.min.js', function(req, res) {
+    res.sendFile(__dirname + '/node_modules/panzoom/dist/panzoom.min.js');
     return;
   });
 

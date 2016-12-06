@@ -612,6 +612,7 @@ function ViewForce() {
         deadNodesHash[node.nodeId] = 1;
         node.ageMaxRatio = 1.0;
         deadNodeFlag = true;
+        console.debug("XXX DEAD NODE FLAG: " + node.nodeId);
       } 
       else if (age >= nodeMaxAge) {
         node.ageUpdated = moment().valueOf();
@@ -621,6 +622,7 @@ function ViewForce() {
         nodes[ageNodesIndex] = node;
         deadNodesHash[node.nodeId] = 1;
         deadNodeFlag = true;
+        console.debug("XXX DEAD NODE " + node.nodeId);
       } 
       else {
         node.ageUpdated = moment().valueOf();
@@ -760,7 +762,7 @@ function ViewForce() {
     for (ageLinksIndex = ageLinksLength; ageLinksIndex >= 0; ageLinksIndex -= 1) {
       link = links[ageLinksIndex];
       if (deadLinksHash[link.linkId]) {
-        // console.warn("XXX DEAD LINK | " + link.linkId);
+        console.warn("XXX DEAD LINK | " + link.linkId);
         linkDeleteQueue.push(link.linkId);
         links.splice(ageLinksIndex, 1);
         delete deadLinksHash[link.linkId];
@@ -1115,6 +1117,12 @@ function ViewForce() {
       .exit().remove();
   }
 
+  function ticked() {
+    updateSimulation(function(){
+      drawSimulation();
+    });
+  }
+
   function drawSimulation(){
     updateLinks();
     updateNodeCircles();
@@ -1122,11 +1130,6 @@ function ViewForce() {
     // updateGroupsCircles();
     updateSessionLabels();
     updateGroupLabels();
-  }
-
-  function ticked() {
-    drawSimulation();
-    updateSimulation();
   }
 
   function updateSimulation(callback) {
@@ -1274,28 +1277,28 @@ function ViewForce() {
   }
 
 
-  var drawSimulationInterval;
-  var DEFAULT_DRAW_SIMULATION_INTERVAL = 100;
-  var drawSimulationIntervalTime = DEFAULT_DRAW_SIMULATION_INTERVAL;
+  // var drawSimulationInterval;
+  // var DEFAULT_DRAW_SIMULATION_INTERVAL = 100;
+  // var drawSimulationIntervalTime = DEFAULT_DRAW_SIMULATION_INTERVAL;
 
-  this.initDrawSimulationInverval = function(itvl){
+  // this.initDrawSimulationInverval = function(itvl){
 
-    var interval = drawSimulationIntervalTime;
+  //   var interval = drawSimulationIntervalTime;
 
-    clearInterval(drawSimulationInterval);
+  //   clearInterval(drawSimulationInterval);
 
-    if (typeof itvl !== 'undefined'){
-      interval = itvl;
-    }
+  //   if (typeof itvl !== 'undefined'){
+  //     interval = itvl;
+  //   }
 
-    drawSimulationInterval = setInterval(function(){
-      drawSimulation();
-    }, interval);
-  }
+  //   drawSimulationInterval = setInterval(function(){
+  //     drawSimulation();
+  //   }, interval);
+  // }
 
-  this.clearDrawSimulationInterval = function(){
-    clearInterval(drawSimulationInterval);
-  }
+  // this.clearDrawSimulationInterval = function(){
+  //   clearInterval(drawSimulationInterval);
+  // }
 
   this.initD3timer = function() {
 
@@ -1339,13 +1342,13 @@ function ViewForce() {
           runningFlag = false;
           simulation.alpha(0);
           simulation.stop();
-          self.initDrawSimulationInverval();
+          // self.initDrawSimulationInverval();
         }
       break;
       case 'STOP':
         runningFlag = false;
         console.warn("SIMULATION CONTROL | OP: " + op);
-        self.clearDrawSimulationInterval();
+        // self.clearDrawSimulationInterval();
         simulation.alpha(0);
         simulation.stop();
       break;

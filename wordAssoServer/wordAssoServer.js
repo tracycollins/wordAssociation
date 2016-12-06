@@ -6734,10 +6734,15 @@ function createSession(newSessionObj) {
     console.log(chalkUser("SESSION_KEEPALIVE\n" + jsonPrint(userObj)));
 
     var socketId = socket.id;
-    if ((userObj.tags.monde == 'substream') && (userObj.tags.monde == 'substream')) {
+    var sessionObj = {};
+    
+    if ((typeof userObj.tags.monde !== 'undefined') && (userObj.tags.monde == 'substream')) {
       socketId = socket.id + "#" + userObj.tags.entity;
+      sessionObj = sessionCache.get(socketId);
     }
-    var sessionObj = sessionCache.get(socketId);
+    else {
+      sessionObj = sessionCache.get(socketId);
+    }
 
     if (!sessionObj) {
       debug(chalkError(moment().format(defaultDateTimeFormat) 

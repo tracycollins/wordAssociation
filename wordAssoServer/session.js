@@ -27,7 +27,7 @@ var statusSession2Id;
 var initializedFlag = false;
 
 // requirejs(["http://d3js.org/d3.v4.min.js"], function(d3Loaded) {
-requirejs(["https://cdnjs.cloudflare.com/ajax/libs/d3/4.3.0/d3.min.js"], function(d3Loaded) {
+requirejs(["https://cdnjs.cloudflare.com/ajax/libs/d3/4.4.0/d3.min.js"], function(d3Loaded) {
     console.log("d3 LOADED");
     d3 = d3Loaded;
     initialize(function(){
@@ -1699,7 +1699,7 @@ var createSession = function(callback) {
     var sessUpdate = sessionCreateQueue.shift();
 
     var currentGroup = {};
-    var currentSession = {};
+    // var currentSession = {};
 
     if (groupHashMap.has(sessUpdate.tags.group.groupId)) {
       currentGroup = groupHashMap.get(sessUpdate.tags.group.groupId);
@@ -1719,18 +1719,18 @@ var createSession = function(callback) {
     } 
     else if (sessionHashMap.has(sessUpdate.nodeId)) {
 
-      currentSession = sessionHashMap.get(sessUpdate.nodeId);
+      var currentSession = sessionHashMap.get(sessUpdate.nodeId);
 
-      // console.log("UPDATE SESS" 
-      //   + " [" + sessUpdate.wordChainIndex + "]" 
-      //   // + " [" + sessUpdate.mentions + "]" 
-      //   + " | UID: " + sessUpdate.userId 
-      //   + " | ENT: " + sessUpdate.tags.entity 
-      //   + " | CH: " + sessUpdate.tags.channel 
-      //   + " | " + sessUpdate.source.nodeId 
-      //   + " > " + sessUpdate.target.nodeId
-      //   // + "\n" + jsonPrint(sessUpdate)
-      // );
+      console.warn("UPDATE SESS" 
+        + " [" + sessUpdate.wordChainIndex + "]" 
+        // + " [" + sessUpdate.mentions + "]" 
+        + " | UID: " + sessUpdate.userId 
+        + " | ENT: " + sessUpdate.tags.entity 
+        + " | CH: " + sessUpdate.tags.channel 
+        + " | " + sessUpdate.source.nodeId 
+        + " > " + sessUpdate.target.nodeId
+        // + "\n" + jsonPrint(sessUpdate)
+      );
 
       if (typeof currentSession.wordChainIndex === 'undefined'){
         console.error("*** currentSession.wordChainIndex UNDEFINED");
@@ -1831,6 +1831,7 @@ var createSession = function(callback) {
         // + "\n" + jsonPrint(sessUpdate)
       );
 
+      var currentSession = {};
       currentSession.groupId = currentGroup.groupId;
       currentSession.url = sessUpdate.tags.url;
       currentSession.age = 1e-6;
@@ -1915,28 +1916,28 @@ var createSession = function(callback) {
       }
 
       addToHashMap(nodeHashMap, currentSession.node.nodeId, currentSession.node, function(sesNode) {
-        // console.log("NEW SESSION NODE" 
-        //   + " | " + sesNode.nodeId
-        //   + " | " + sesNode.text
-        //   + " | WCI: " + sesNode.wordChainIndex
-        //   + " | M: " + sesNode.wordChainIndex
-        // );
+        console.log("NEW SESSION NODE" 
+          + " | " + sesNode.nodeId
+          + " | " + sesNode.text
+          + " | WCI: " + sesNode.wordChainIndex
+          + " | M: " + sesNode.wordChainIndex
+        );
 
         currentSessionView.addNode(sesNode);
 
         addToHashMap(sessionHashMap, currentSession.nodeId, currentSession, function(cSession) {
-          // console.log("\nNEW SESSION"
-          //   + "\nGRP: " + currentGroup.groupId
-          //   + "\nGRPN: " + currentGroup.name
-          //   + "\nUID: " + cSession.userId 
-          //   + "\nNID: " + cSession.nodeId 
-          //   + "\nSID: " + cSession.sessionId 
-          //   + "\nSNID: " + cSession.node.nodeId
-          //   + "\nLNID: " + cSession.latestNodeId
-          //   + "\nWCI:" + cSession.wordChainIndex 
-          //   + "\nM:" + cSession.mentions 
-          //   // + "\n" + jsonPrint(cSession) 
-          // );
+          console.log("\nNEW SESSION"
+            + "\nGRP: " + currentGroup.groupId
+            + "\nGRPN: " + currentGroup.name
+            + "\nUID: " + cSession.userId 
+            + "\nNID: " + cSession.nodeId 
+            + "\nSID: " + cSession.sessionId 
+            + "\nSNID: " + cSession.node.nodeId
+            + "\nLNID: " + cSession.latestNodeId
+            + "\nWCI:" + cSession.wordChainIndex 
+            + "\nM:" + cSession.mentions 
+            // + "\n" + jsonPrint(cSession) 
+          );
           currentSessionView.addSession(cSession);
           nodeCreateQueue.push(cSession);
           return (callback(null, cSession.nodeId));

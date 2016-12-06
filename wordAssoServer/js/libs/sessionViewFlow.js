@@ -241,6 +241,7 @@ function ViewFlow() {
 
   var groupSvgGroup = svgFlowLayoutArea.append("svg:g").attr("id", "groupSvgGroup");
   var groupLabelSvgGroup = svgFlowLayoutArea.append("svg:g").attr("id", "groupLabelSvgGroup");
+  var groupLabels = groupLabelSvgGroup.selectAll(".groupLabel");
   var groupGnode = groupSvgGroup.selectAll("g.group");
   var groupCircles = groupSvgGroup.selectAll("circle");
 
@@ -251,7 +252,6 @@ function ViewFlow() {
   var nodeCircles = nodeSvgGroup.selectAll("circle");
   var nodeLabels = nodeSvgGroup.selectAll(".nodeLabel");
 
-  var groupLabels = groupLabelSvgGroup.selectAll(".groupLabel");
   var sessionLabelSvgGroup = svgFlowLayoutArea.append("svg:g").attr("id", "sessionLabelSvgGroup");
   var sessionLabels = sessionLabelSvgGroup.selectAll(".sessionLabel");
   var link = linkSvgGroup.selectAll("line");
@@ -534,6 +534,7 @@ function ViewFlow() {
       switch (sessionUpdateObj.op) {
         case "add":
           sessionsModifiedFlag = true;
+          console.log("ADD SESSION | " + sessionUpdateObj.sessionId);
           sessions.push(sessionUpdateObj.session);
         break;
         case "delete":
@@ -561,6 +562,7 @@ function ViewFlow() {
 
         case "add":
           nodesModifiedFlag = true;
+          nodeUpdateObj.node.ageMaxRatio = 1e-6;
 
           if (!nodeUpdateObj.node.isGroupNode 
             && !nodeUpdateObj.node.isSessionNode 
@@ -664,6 +666,11 @@ function ViewFlow() {
 
       age = node.age + (ageRate * (moment().valueOf() - node.ageUpdated));
       ageMaxRatio = age/nodeMaxAge ;
+
+      if (node.isSessionNode) {
+        var isSessionNodeFlag = true
+        // console.warn("AGE SESSION NODE " + node.nodeId + " | " + node.age.toFixed(0) + " | " + node.ageMaxRatio.toFixed(0));
+      }
 
 
       if (node.isDead) {
@@ -830,7 +837,10 @@ function ViewFlow() {
     }
   }
 
-  function updateLinks() {
+  // function updateLinks() {
+  var updateLinks = function(callback) {
+
+    // console.log("updateLinks");
 
     link = linkSvgGroup.selectAll("line").data(links, 
       function(d) { return d.source.nodeId + "-" + d.target.nodeId; });
@@ -842,8 +852,8 @@ function ViewFlow() {
       .attr("y2", function(d) { return d.target.y; })
       .style('stroke', function(d) { 
         if (d.ageMaxRatio < 0.01) { return palette.white; }
-        // return linkColorScale(d.ageMaxRatio); 
-        return palette.lightgray; 
+        return linkColorScale(d.ageMaxRatio); 
+        // return palette.lightgray; 
       })
       .style('opacity', function(d) { return 1.0 - d.ageMaxRatio; });
 
@@ -858,9 +868,14 @@ function ViewFlow() {
     link
       .exit()
       .remove();
+
+    callback();
   }
 
-  function updateGroupsCircles() {
+  // function updateGroupsCircles() {
+  var updateGroupsCircles = function(callback) {
+
+    // console.log("updateGroupsCircles");
 
     groupCircles = groupSvgGroup.selectAll("circle").data(groups ,function(d) { return d.groupId; })
 
@@ -870,16 +885,17 @@ function ViewFlow() {
       .attr("r", function(d) { return groupCircleRadiusScale(d.wordChainIndex + 1); })
       .style("fill", function(d) {
         if (d.mouseHoverFlag) { return palette.blue; }
-        else { return d.interpolateGroupColor(1-d.node.ageMaxRatio); }
+        // else { return d.interpolateGroupColor(1-d.node.ageMaxRatio); }
+        else { return d.interpolateGroupColor(1-d.ageMaxRatio); }
       })
       .style('opacity', function(d) {
         if (d.mouseHoverFlag) { return 1.0; }
-        else { return 1-d.node.ageMaxRatio; }
+        else { return 1-d.ageMaxRatio; }
       })
-      .style('stroke', function(d) { return d.interpolateGroupColor(d.node.ageMaxRatio); })
+      .style('stroke', function(d) { return d.interpolateGroupColor(d.ageMaxRatio); })
       .style('stroke-width', function(d) { return 5; })
       .style("stroke-opacity", function(d) {
-          return d.interpolateGroupColor(1-d.node.ageMaxRatio);
+          return d.interpolateGroupColor(1-d.ageMaxRatio);
       });
 
     groupCircles
@@ -897,7 +913,7 @@ function ViewFlow() {
       .style("visibility", "hidden")
       .style("fill", function(d) {
         if (d.mouseHoverFlag) { return palette.blue; }
-        else { return d.interpolateGroupColor(1-d.node.ageMaxRatio); }
+        else { return d.interpolateGroupColor(1-d.ageMaxRatio); }
       })
       .style("opacity", 1e-6)
       .style('stroke', function(d) {
@@ -911,14 +927,21 @@ function ViewFlow() {
       .exit()
       .remove();
 
+    callback();
   }
 
-  function updateGroupLabels() {    
+  // function updateGroupLabels() {    
+  var updateGroupLabels = function(callback) {
+
+    // console.log("updateGroupLabels");
 
     groupLabels = groupLabelSvgGroup.selectAll("text").data(groups ,function(d) { return d.groupId; });
 
     groupLabels
-      .text(function(d) { return d.text; })
+      .text(function(d) { 
+        // return d.text + '_' + d.node.age.toFixed(0); 
+        return d.text; 
+      })
       .style("fill", function(d) {
         if (d.mouseHoverFlag) { return palette.blue; }
         else if (d.node.ageMaxRatio < 0.01) { return palette.white; }
@@ -962,14 +985,44 @@ function ViewFlow() {
       .merge(groupLabels);
 
     groupLabels
-      .exit().remove();}
+      .exit().remove();
 
-  function updateSessionLabels() {
+    callback();
+  }
+
+  // function updateSessionLabels() {
+  var updateSessionLabels = function(callback) {
+
+    // console.log("updateSessionLabels");
 
     sessionLabels = sessionLabelSvgGroup.selectAll("text").data(sessions ,function(d) { return d.sessionId; });
 
     sessionLabels
-      .text(function(d) { return d.text; })
+      .text(function(d) { 
+        // return d.text + '_' + d.node.age.toFixed(0); 
+        return d.text; 
+      })
+      .style('fill', function(d) { 
+        if (d.mouseHoverFlag || d.node.mouseHoverFlag) { 
+          return palette.red; 
+        }
+        else if (d.node.ageMaxRatio < 0.01) { 
+          return palette.white; 
+        }
+        else { 
+          return palette.yellow 
+        }; 
+      })
+      .style("font-size", function(d) { return sessionFontSizeScale(d.totalWordChainIndex) + "px"; })
+      // .style('opacity', function(d) {
+      //   if (d.mouseHoverFlag || d.node.mouseHoverFlag) { return 1.0; }
+      //   // return 1.0-((moment().valueOf()-d.lastSeen)/nodeMaxAge);
+      //   return 1.0-d.node.ageMaxRatio;
+      // })
+      .style('opacity', function(d) {
+        if (d.mouseHoverFlag) { return 1.0; }
+        return 1.0-d.node.ageMaxRatio;
+      })
       .attr("x", function(d) {
         // var cnode = nodeHashMap.get(d.nodeId);
         // if (typeof cnode === 'undefined') return 0;
@@ -980,30 +1033,12 @@ function ViewFlow() {
         // var cnode = nodeHashMap.get(d.nodeId);
         // if (typeof cnode === 'undefined') return 0;
         return d.node.y + shiftY;
-      })
-      .style("font-size", function(d) { return sessionFontSizeScale(d.totalWordChainIndex) + "px"; })
-      .style('fill', function(d) { 
-        if (d.mouseHoverFlag || d.node.mouseHoverFlag) { return palette.white; }
-        else if (d.node.ageMaxRatio < 0.01) { return palette.white; }
-        return palette.yellow; 
-      })
-      .style('opacity', function(d) {
-        if (d.mouseHoverFlag || d.node.mouseHoverFlag) { return 1.0; }
-        // return 1.0-((moment().valueOf()-d.lastSeen)/nodeMaxAge);
-        return 1.0-d.node.ageMaxRatio;
       });
 
-    sessionLabels
-      .enter()
-      .append("text")
+    sessionLabels.enter()
+      .append("svg:text")
       .attr("class", "sessionLabel")
       .attr("sessionId", function(d) { return d.sessionId; })
-      .text(function(d) { return d.text;  })
-      .style("text-anchor", "middle")
-      .style("alignment-baseline", "middle")
-      .style("opacity", 1.0)
-      .style('fill', "#ffffff")
-      .style("font-size", function(d) { return sessionFontSizeScale(d.totalWordChainIndex) + "px"; })
       .attr("x", function(d) {
          return d.node.x;
       })
@@ -1011,6 +1046,12 @@ function ViewFlow() {
         var shiftY = -2.5 * (sessionCircleRadiusScale(d.wordChainIndex + 1));
         return d.node.y + shiftY;
       })
+      .text(function(d) { return d.text;  })
+      .style("text-anchor", "middle")
+      .style("alignment-baseline", "middle")
+      .style("opacity", 1e-6)
+      .style('fill', "#ffffff")
+      .style("font-size", function(d) { return sessionFontSizeScale(d.totalWordChainIndex) + "px"; })
       .on("mouseout", nodeMouseOut)
       .on("mouseover", nodeMouseOver)
       .on("click", nodeClick)
@@ -1018,9 +1059,14 @@ function ViewFlow() {
 
     sessionLabels
       .exit().remove();
+
+    callback();
   }
 
-  function updateNodeCircles() {
+  // function updateNodeCircles() {
+  var updateNodeCircles = function(callback) {
+
+    // console.log("updateNodeCircles");
 
     nodeCircles = nodeSvgGroup.selectAll("circle").data(nodes ,function(d) { return d.nodeId; })
 
@@ -1095,9 +1141,14 @@ function ViewFlow() {
 
     nodeCircles
       .exit().remove();
+
+    callback();
   }
 
-  function updateNodeLabels() {
+  // function updateNodeLabels() {
+  var updateNodeLabels = function(callback) {
+
+    // console.log("updateNodeLabels");
 
     nodeLabels = nodeLabelSvgGroup.selectAll("text").data(nodes ,function(d) { return d.nodeId; });
 
@@ -1186,23 +1237,54 @@ function ViewFlow() {
 
     nodeLabels
       .exit().remove();
-  }
 
-  function drawSimulation(){
-    updateLinks();
-    updateNodeCircles();
-    updateNodeLabels();
-    updateGroupsCircles();
-    updateSessionLabels();
-    updateGroupLabels();
+    callback();
   }
 
   function ticked() {
-    drawSimulation();
-    updateSimulation();
+    drawSimulation(function(){
+      updateSimulation(function(){});
+    });
+  }
+
+  function drawSimulation(callback){
+
+    // console.log("drawSimulation ");
+    // updateLinks();
+    // updateNodeCircles();
+    // updateNodeLabels();
+    // updateGroupsCircles();
+    // updateSessionLabels();
+    // updateGroupLabels();
+
+    async.series(
+      {
+        udl: updateLinks,
+        udnc: updateNodeCircles,
+        udnl: updateNodeLabels,
+        ugc: updateGroupsCircles,
+        usl: updateSessionLabels,
+        ugl: updateGroupLabels
+      },
+
+      function(err, results) {
+        if (err) {
+          console.error("*** ERROR: drawSimulation *** \nERROR: " + err);
+          return(callback(err));
+        }
+        else {
+          // console.debug("results\n" + jsonPrint(results));
+          callback();
+        }
+      }
+
+    );
   }
 
   function updateSimulation(callback) {
+
+    // console.log("updateSimulation ");
+
     async.series(
       {
         group: processGroupUpdateQ,
@@ -1316,6 +1398,10 @@ function ViewFlow() {
   }
 
   this.addSession = function(newSession) {
+      console.info("ADD SESSION" 
+        + " | " + newSession.sessionId
+        // + jsonPrint(newSession)
+      );
     sessionUpdateQ.push({op:'add', session: newSession});
   }
 
@@ -1324,15 +1410,17 @@ function ViewFlow() {
   }
 
   this.addNode = function(newNode) {
-      newNode.textLength = 100;
+
+    newNode.textLength = 100;
+
     if (newNode.isKeyword){
       newNode.textLength = 100;
-      console.debug("ADD NODE" 
-        + " | " + newNode.text
-        + " | K: " + newNode.isKeyword
-        + " | KWs: " + jsonPrint(newNode.keywords)
-        // + jsonPrint(newNode)
-      );
+      // console.debug("ADD NODE" 
+      //   + " | " + newNode.text
+      //   + " | K: " + newNode.isKeyword
+      //   + " | KWs: " + jsonPrint(newNode.keywords)
+      //   // + jsonPrint(newNode)
+      // );
     }
     else{
       console.info("ADD NODE" 
@@ -1342,8 +1430,10 @@ function ViewFlow() {
         // + jsonPrint(newNode)
       );
     }
+
     if (newNode.x === 'undefined') newNode.x = 100;
     if (newNode.y === 'undefined') newNode.y = 100;
+
     nodeUpdateQ.push({op:'add', node: newNode});
   }
 
@@ -1368,28 +1458,28 @@ function ViewFlow() {
   }
 
 
-  var drawSimulationInterval;
-  var DEFAULT_DRAW_SIMULATION_INTERVAL = 100;
-  var drawSimulationIntervalTime = DEFAULT_DRAW_SIMULATION_INTERVAL;
+  // var drawSimulationInterval;
+  // var DEFAULT_DRAW_SIMULATION_INTERVAL = 100;
+  // var drawSimulationIntervalTime = DEFAULT_DRAW_SIMULATION_INTERVAL;
 
-  this.initDrawSimulationInverval = function(itvl){
+  // this.initDrawSimulationInverval = function(itvl){
 
-    var interval = drawSimulationIntervalTime;
+  //   var interval = drawSimulationIntervalTime;
 
-    clearInterval(drawSimulationInterval);
+  //   clearInterval(drawSimulationInterval);
 
-    if (typeof itvl !== 'undefined'){
-      interval = itvl;
-    }
+  //   if (typeof itvl !== 'undefined'){
+  //     interval = itvl;
+  //   }
 
-    drawSimulationInterval = setInterval(function(){
-      drawSimulation();
-    }, interval);
-  }
+  //   drawSimulationInterval = setInterval(function(){
+  //     drawSimulation();
+  //   }, interval);
+  // }
 
-  this.clearDrawSimulationInterval = function(){
-    clearInterval(drawSimulationInterval);
-  }
+  // this.clearDrawSimulationInterval = function(){
+  //   clearInterval(drawSimulationInterval);
+  // }
 
   this.initD3timer = function() {
 
@@ -1415,7 +1505,7 @@ function ViewFlow() {
       case 'RESET':
         // self.initD3timer();
         console.warn("SIMULATION CONTROL | OP: " + op);
-        self.clearDrawSimulationInterval();
+        // self.clearDrawSimulationInterval();
         self.reset();
         runningFlag = false;
         // simulation.stop();
@@ -1430,7 +1520,7 @@ function ViewFlow() {
         if (!runningFlag){
           // console.warn("SIMULATION CONTROL | OP: " + op);
           runningFlag = true;
-          self.clearDrawSimulationInterval();
+          // self.clearDrawSimulationInterval();
           simulation.alphaTarget(0.7).restart();
         }
       break;
@@ -1440,13 +1530,13 @@ function ViewFlow() {
           runningFlag = false;
           simulation.alpha(0);
           simulation.stop();
-          self.initDrawSimulationInverval();
+          // self.initDrawSimulationInverval();
         }
       break;
       case 'STOP':
         runningFlag = false;
         // console.warn("SIMULATION CONTROL | OP: " + op);
-        self.clearDrawSimulationInterval();
+        // self.clearDrawSimulationInterval();
         simulation.alpha(0);
         simulation.stop();
       break;

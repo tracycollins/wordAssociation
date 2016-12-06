@@ -1717,7 +1717,6 @@ function updateSessionViews(sessionUpdateObj) {
   else if (typeof sessionUpdateObj.tags.entity !== 'undefined') {
     statsObj.entityChannelGroup.hashMiss[sessionUpdateObj.tags.entity] = 1;
     statsObj.entityChannelGroup.allHashMisses[sessionUpdateObj.tags.entity] = 1;
-    configEvents.emit("HASH_MISS", {type: "entity", value: essionUpdateObj.tags.entity});
   }
 }
 

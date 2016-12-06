@@ -6736,7 +6736,9 @@ function createSession(newSessionObj) {
     var socketId = socket.id;
     var sessionObj = {};
 
-    if ((typeof userObj.tags.mode !== 'undefined') && (userObj.tags.mode == 'substream')) {
+    if ((typeof userObj.tags !== 'undefined')
+      && (typeof userObj.tags.mode !== 'undefined') 
+      && (userObj.tags.mode == 'substream')) {
       socketId = socket.id + "#" + userObj.tags.entity;
       sessionObj = sessionCache.get(socketId);
     }

@@ -1567,7 +1567,7 @@ var readUpdateSessionViewQueue = setInterval(function() {
     var key = sessionUpdateObj.tags.entity + '_' + sessionUpdateObj.tags.channel;
 
     if (monitorHashMap[key] && sessionUpdateObj.action == "RESPONSE"){
-      console.log(chalkRed("R< MONITOR"
+      console.log(chalkRed("R< M"
         + " | " + monitorHashMap[key].session.sessionId
         + " | " + sessionUpdateObj.source.nodeId
         + " | " + sessionUpdateObj.source.raw
@@ -6071,7 +6071,7 @@ sessionCache.on("expired", function(sessionId, sessionObj) {
   viewNameSpace.emit("SESSION_DELETE", sessionObj);
 
   debug("CACHE SESSION EXPIRED\n" + jsonPrint(sessionObj));
-  debug(chalkRed("... CACHE SESS EXPIRED"
+  console.log(chalkRed("... CACHE SESS EXPIRED"
     + " | " + sessionObj.sessionId 
     + " | NSP: " + sessionObj.namespace 
     + " | NOW: " + getTimeStamp() 

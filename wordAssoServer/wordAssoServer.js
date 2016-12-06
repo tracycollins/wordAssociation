@@ -4171,7 +4171,8 @@ function pairUser(sessionObj, callback) {
 
 function handleSessionEvent(sesObj, callback) {
 
-  console.log(chalkRed("handleSessionEvent sesObj\n" + jsonPrint(sesObj)));
+  // console.log(chalkRed("handleSessionEvent sesObj\n" + jsonPrint(sesObj)));
+
   switch (sesObj.sessionEvent) {
 
     case 'SESSION_ABORT':
@@ -6731,7 +6732,7 @@ function createSession(newSessionObj) {
 
   socket.on("SESSION_KEEPALIVE", function(userObj) {
     statsObj.socket.SESSION_KEEPALIVES++;
-    console.log(chalkUser("SESSION_KEEPALIVE\n" + jsonPrint(userObj)));
+    debug(chalkUser("SESSION_KEEPALIVE\n" + jsonPrint(userObj)));
 
     var socketId = socket.id;
     var sessionObj = {};

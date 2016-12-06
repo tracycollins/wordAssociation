@@ -165,7 +165,7 @@ function updateGroups(configFile, callback){
 
           else {
             groupHashMap.set(groupId, groups[groupId]);
-            console.log(chalkLog("+++ ADDED GROUP  "
+            debug(chalkLog("+++ ADDED GROUP  "
               + " | " + groupId
               + " | " + groupHashMap.get(groupId).name
             ));
@@ -323,6 +323,7 @@ function sendGroups(callback){
       }
       else {
         console.log(chalkInfo("sendGroups COMPLETE"));
+        process.send({ type: 'sendGroupsComplete'});
         callback(null, null);
       }
     }
@@ -355,6 +356,7 @@ function sendEntities(callback){
       }
       else {
         console.log(chalkInfo("sendEntities COMPLETE"));
+        process.send({ type: 'sendEntitiesComplete'});
         callback(null, null);
       }
     }
@@ -388,6 +390,7 @@ function sendKeywords(callback){
       }
       else {
         console.log(chalkInfo("sendKeywords COMPLETE"));
+        process.send({ type: 'sendKeywordsComplete'});
         callback(null, null);
       }
     }

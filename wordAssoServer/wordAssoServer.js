@@ -6359,15 +6359,26 @@ configEvents.on("INIT_TWIT_FOR_DM_COMPLETE", function() {
 });
 
 configEvents.on("UNKNOWN_SESSION", function(socketId) {
+
   var dmString = os.hostname() + "\nwordAssoServer\nPID: " + process.pid + "\nUNKNOWN SESSION: " + socketId;
-  sendDirectMessage('threecee', dmString, function(err, res){
-    if (!err) {
-      console.log(chalkTwitter("SENT TWITTER DM: " + dmString));
-    }
-    else {
-      console.log(chalkError("DM SEND ERROR:" + err));
-    }
-  });
+
+  if (directMessageHash[socketId] === 'undefined') {
+
+    directMessageHash[socketId] = socketId;
+
+    sendDirectMessage('threecee', dmString, function(err, res){
+      if (!err) {
+        console.log(chalkTwitter("SENT TWITTER DM\n" + dmString + "\n" + jsonPrint(res)));
+      }
+      else {
+        console.log(chalkError("DM SEND ERROR:" + err));
+      }
+    });
+  }
+  else {
+    console.log(chalkError("SKIP DM ... PREV SENT UNKNOWN_SESSION | " + socketId));
+  }
+
 });
 
 var directMessageHash = {};
@@ -6377,7 +6388,7 @@ configEvents.on("HASH_MISS", function(missObj) {
   var dmString = os.hostname() 
   + "\n wordAssoServer"
   + "\nPID: " + process.pid 
-  + "\nMISS: " + missObj.type + missObj.value;
+  + "\nMISS: " + missObj.type + " " + missObj.value;
 
   var sendDirectMessageHashKey = missObj.type + "-" + missObj.value;
 
@@ -6393,7 +6404,7 @@ configEvents.on("HASH_MISS", function(missObj) {
     });
   }
   else {
-    console.log(chalkError("SKIP DM ... PREV SENT | " + missObj.type + " | " + missObj.value));
+    console.log(chalkError("SKIP DM ... PREV SENT | " + missObj.type + " | " + sendDirectMessageHashKey));
   }
 
 });

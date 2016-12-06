@@ -14,6 +14,10 @@ var serverHeartbeatInterval;
 var cp = require('child_process');
 var updater;
 
+var Twit = require('twit');
+var twit;
+var twitterDirectMessageEnabled = false;
+
 var unirest = require('unirest');
 
 var debug = require('debug')('wa');
@@ -279,6 +283,7 @@ statsObj.entityChannelGroup.allHashMisses = {};
 // ==================================================================
 var chalk = require('chalk');
 
+var chalkTwitter = chalk.red;
 var chalkWapi = chalk.red;
 var chalkWapiBold = chalk.bold.red;
 var chalkViewer = chalk.cyan;
@@ -528,6 +533,21 @@ if (OFFLINE_MODE) {
   statsFile = offlineStatsFile;
 } else {
   statsFile = dropboxHostStatsFile;
+}
+
+function loadYamlConfig(yamlFile, callback){
+  console.log(chalkInfo("LOADING YAML CONFIG FILE: " + yamlFile));
+  fs.exists(yamlFile, function(exists) {
+    if (exists) {
+      var cnf = yaml.load(yamlFile);
+      console.log(chalkInfo("FOUND FILE " + yamlFile));
+      callback(null, cnf);
+    }
+    else {
+      var err = "FILE DOES NOT EXIST: " + yamlFile ;
+      callback(err, null);
+    }
+  });
 }
 
 function dropboxWriteArrayToFile(filePath, dataArray, callback) {
@@ -1007,6 +1027,7 @@ function updateEntityChannelGroups(configFile, callback){
             else{
               statsObj.group.hashMiss[entity.groupId] = 1;
               statsObj.group.allHashMisses[entity.groupId] = 1;
+              configEvents.emit("HASH_MISS", {group: entity.groupId});
               cb(err, "GROUP NOT FOUND: " + entity.groupId);
               return;
             }
@@ -1031,6 +1052,7 @@ function updateEntityChannelGroups(configFile, callback){
             else{
               statsObj.group.hashMiss[entity.groupId] = 1;
               statsObj.group.allHashMisses[entity.groupId] = 1;
+              configEvents.emit("HASH_MISS", {group: entity.groupId});
               cb(err, "GROUP NOT FOUND: " + entity.groupId);
               return;
             }
@@ -1238,7 +1260,8 @@ var testViewersNameSpace;
 
 var initNameSpacesInterval = setInterval(function(){
 
-  if (updateComplete) {
+  // if (updateComplete) {
+  if (true) {
 
     console.log(chalkAlert("INIT SOCKET NAMESPACES"));
 
@@ -1693,6 +1716,7 @@ function updateSessionViews(sessionUpdateObj) {
   else{
     statsObj.entityChannelGroup.hashMiss[sessionUpdateObj.tags.entity] = 1;
     statsObj.entityChannelGroup.allHashMisses[sessionUpdateObj.tags.entity] = 1;
+    configEvents.emit("HASH_MISS", {entity: sessionUpdateObj.tags.entity});
   }
 }
 
@@ -1961,18 +1985,16 @@ function dbUpdateGroup(groupObj, incMentions, callback) {
       callback(err, groupObj);
     } else {
 
-      console.log(chalkRed("->- DB UPDATE GROUP | " 
-        + group.groupId 
+      console.log(chalkRed("->- DB GR" 
+        + " | " + group.groupId 
         + " | NAME: " + group.name 
-        + " | CHANNELS: " + group.channels
-        + " | ENTITIES: " + group.entities
         + " | CREATED: " + moment(group.createdAt).format(defaultDateTimeFormat)
         + " | LAST: " + moment(group.lastSeen).format(defaultDateTimeFormat)
-        + " | MNS: " + group.mentions 
+        + "MNS: " + group.mentions 
+        + "\nCHANNELS: " + group.channels
+        + "\nENTITIES: " + group.entities
         // + "\nTAGS: " + jsonPrint(group.tags)
       ));
-
-      // console.log(JSON.stringify(group, null, 3));
 
       callback(null, group);
     }
@@ -1987,11 +2009,6 @@ function dbUpdateEntity(entityObj, incMentions, callback) {
     return;
   }
 
-  // if ((typeof entityObj.groupId === 'undefined') && (typeof entityObj.groups !== 'undefined')){
-  //   console.log(chalkWarn("! SET UNDEFINED ENTITY GROUP ID: " + entityObj.groups[0]));
-  //   entityObj.groupId = entityObj.groups[0];
-  // }
-
   entityServer.findOneEntity(entityObj, incMentions, function(err, entity) {
     if (err) {
       console.error(chalkError("dbUpdateEntity -- > findOneEntity ERROR" 
@@ -1999,7 +2016,7 @@ function dbUpdateEntity(entityObj, incMentions, callback) {
       callback(err, entityObj);
     } else {
 
-      console.log("->- DB UPDATE ENTITY| " 
+      console.log("->- DB EN" 
         + entity.entityId 
         + " | NAME: " + entity.name 
         + " | SNAME: " + entity.screenName 
@@ -2011,8 +2028,6 @@ function dbUpdateEntity(entityObj, incMentions, callback) {
         + " | LAST: " + moment(entity.lastSeen).format(defaultDateTimeFormat)
         + " | MNS: " + entity.mentions 
       );
-
-      // console.log(JSON.stringify(entity, null, 3));
 
       callback(null, entity);
     }
@@ -2028,7 +2043,6 @@ function dbUpdateWord(wordObj, incMentions, callback) {
   }
 
   if (keywordHashMap.has(wordObj.nodeId)) {
-    // console.log(chalkRed("KWHM HIT\n" + jsonPrint(wordObj)));
     wordObj.isKeyword = true;
     var kw = keywordHashMap.get(wordObj.nodeId);
     wordObj.keywords = {};    
@@ -2666,7 +2680,7 @@ function incrementSocketBhtReqs(delta) {
   } else if (delta > 0) {
     bhtRequests += delta;
     var remain = BHT_REQUEST_LIMIT - bhtRequests;
-    console.log(chalkInfo("-#- BHT REQS: " + bhtRequests 
+    debug(chalkInfo("-#- BHT REQS: " + bhtRequests 
       + " | DELTA: " + delta 
       + " | LIMIT: " + BHT_REQUEST_LIMIT 
       + " | REMAIN: " + remain
@@ -2885,6 +2899,7 @@ function groupUpdateDb(userObj, callback){
       ));
       statsObj.group.hashMiss[entityObj.groupId] = 1;
       statsObj.group.allHashMisses[entityObj.groupId] = 1;
+      configEvents.emit("HASH_MISS", {group: entityObj.groupId});
       callback(null, entityObj);
 
     }
@@ -4171,16 +4186,45 @@ function pairUser(sessionObj, callback) {
 
 function handleSessionEvent(sesObj, callback) {
 
-  // console.log(chalkRed("handleSessionEvent sesObj\n" + jsonPrint(sesObj)));
 
   switch (sesObj.sessionEvent) {
 
     case 'SESSION_ABORT':
-      debug(chalkSession(
-        "*** ABT SESSION ABORTED" + " | ID: " + sesObj.sessionId
-      ));
 
-      io.to(sesObj.sessionId).emit('SESSION_ABORT', sesObj.sessionId);
+      console.log(chalkRed("SESSION_ABORT sesObj\n" + jsonPrint(sesObj)));
+      
+      var socketId;
+
+      var entityRegEx = /#(\w+)$/ ;
+      var namespaceRegEx = /^\/(\w+)#/ ;
+
+      var entity = sesObj.sessionId.match(entityRegEx)[1];
+      var namespaceMatchArray = sesObj.sessionId.match(namespaceRegEx);
+
+      var namespace;
+
+      if (namespaceMatchArray[1] !== 'undefined') namespace = namespaceMatchArray[1];
+
+      if (sesObj.sessionId.match(entityRegEx)) {
+        socketId = sesObj.sessionId.replace(entityRegEx, '');
+        // socketId = socketId.replace(namespaceRegEx, '');
+      }
+      else {
+        socketId = sesObj.sessionId;
+      }
+
+      var abortObj = {};
+      abortObj.entity = entity;
+
+      // io.of(namespace).emit('SESSION_ABORT', sesObj.sessionId);
+      utilNameSpace.to(sesObj.sessionId.replace(entityRegEx, '')).emit('SESSION_ABORT', entity);
+
+      console.log(chalkWarn("ABORT SESSION"
+        + " | NSP: " + namespace 
+        + " | TX SOCKET: " + socketId 
+        + " | ENTITY: " + entity 
+        + " | SESS ID: " + sesObj.sessionId 
+      ));
 
       sesObj.sessionEvent = 'SESSION_DELETE';
       viewNameSpace.emit('SESSION_DELETE', sesObj);
@@ -4195,13 +4239,13 @@ function handleSessionEvent(sesObj, callback) {
         // + "\n" + jsonPrint(sesObj)
         + " | " + moment().format(defaultDateTimeFormat) 
         // + " | NSP: " + sesObj.session.namespace 
-        // + " | SID: " + sesObj.session.sessionId 
-        // + " | UID: " + sesObj.session.userId 
+        + " | SID: " + sesObj.session.sessionId 
+        + " | UID: " + sesObj.session.userId 
         // + " | IP: " + sesObj.session.ip 
         // + " | DOMAIN: " + sesObj.session.domain
       ));
 
-      console.log(chalkSession("SESSION\n" + jsonPrint(sesObj)));
+      debug(chalkSession("SESSION\n" + jsonPrint(sesObj)));
 
       sesObj.sessionEvent = 'SESSION_DELETE';
       viewNameSpace.emit('SESSION_DELETE', sesObj);
@@ -4510,7 +4554,7 @@ function handleSessionEvent(sesObj, callback) {
 
           userCache.set(sessionUpdatedObj.userId, sessionUpdatedObj.user, function(err, success) {});
 
-          console.log(chalkLog(
+          debug(chalkLog(
             "K>" + " | " + sessionUpdatedObj.userId 
             + " | SID " + sessionUpdatedObj.sessionId 
             + " | T " + sessionUpdatedObj.config.type 
@@ -5205,9 +5249,16 @@ var readResponseQueue = setInterval(function() {
     var currentSessionObj = sessionCache.get(socketId);
 
     if (typeof currentSessionObj === 'undefined') {
+
       console.log(chalkWarn("??? SESSION NOT IN CACHE ON RESPONSE Q READ" 
         + " | responseQueue: " + responseQueue.size() 
-        + " | " + socketId + " | ABORTING SESSION"));
+        + " | " + socketId + " | ABORTING SESSION"
+        + jsonPrint(responseInObj)
+      ));
+
+      // var entity = socketId.match(entityRegEx)[1];
+
+      configEvents.emit("UNKNOWN_SESSION", socketId);
 
       sessionQueue.enqueue({
         sessionEvent: "SESSION_ABORT",
@@ -6042,14 +6093,60 @@ function initializeConfiguration(callback) {
             + " | GOOGLE INIT *** SKIPPED *** | GOOGLE METRICS DISABLED"));
           callbackSeries(null, "INIT_GOOGLE_METRICS_SKIPPED");
         }
+      },
+
+      // TWIT FOR DM INIT
+      function(callbackSeries) {
+
+        loadYamlConfig(twitterYamlConfigFile, function(err, twitterConfig){
+
+          if (err) {
+            console.log(chalkError("*** LOADED TWITTER YAML CONFIG ERROR: FILE:  " + twitterYamlConfigFile));
+            console.log(chalkError("*** LOADED TWITTER YAML CONFIG ERROR: ERROR: " + err));
+            callbackSeries(null, "INIT_TWIT_FOR_DM_ERROR");
+          }
+          else {
+            console.log(chalkTwitter("LOADED TWITTER YAML CONFIG\n" + jsonPrint(twitterConfig)));
+
+            twit = new Twit({
+              consumer_key: twitterConfig.CONSUMER_KEY,
+              consumer_secret: twitterConfig.CONSUMER_SECRET,
+              access_token: twitterConfig.TOKEN,
+              access_token_secret: twitterConfig.TOKEN_SECRET
+            });
+
+            twit.get('account/settings', function(err, data, response) {
+              if (err){
+                console.log('!!!!! TWITTER ACCOUNT ERROR | ' + getTimeStamp() + '\n' + jsonPrint(err));
+                callbackSeries(null, "INIT_TWIT_FOR_DM_ERROR");
+              }
+              else {
+                console.log(chalkInfo(getTimeStamp() + " | TWITTER ACCOUNT: " + data.screen_name))
+                console.log(chalkTwitter('TWITTER ACCOUNT SETTINGS\n' 
+                  + jsonPrint(data)));
+
+                twit.get('application/rate_limit_status', function(err, data, response) {
+                  if (err){
+                    console.log('!!!!! TWITTER ACCOUNT ERROR | ' + getTimeStamp() 
+                      + '\n' + jsonPrint(err));
+                    callbackSeries(null, "INIT_TWIT_FOR_DM_ERROR");
+                  }
+                  else{
+                    callbackSeries(null, "INIT_TWIT_FOR_DM_COMPLETE");
+                    configEvents.emit("INIT_TWIT_FOR_DM_COMPLETE");
+                  }
+                });
+              }
+            });
+
+          }
+
+        });
+
       }
     ],
     function(err, results) {
 
-      // updateGroups(defaultDropboxGroupsConfigFile, function(err, results){});
-      // initKeywords(defaultDropboxKeywordFile, function(err, results){});
-
-      // updateGroupsInterval(defaultDropboxGroupsConfigFile, ONE_MINUTE);
       updateStatsInterval(dropboxHostStatsFile, ONE_MINUTE);
 
       if (err) {
@@ -6242,6 +6339,43 @@ wordCache.on("expired", function(word, wordObj) {
 // ==================================================================
 // CONNECT TO INTERNET, START SERVER HEARTBEAT
 // ==================================================================
+configEvents.on("INIT_TWIT_FOR_DM_COMPLETE", function() {
+  var dmString = os.hostname() + "\nwordAssoServer\nPID: " + process.pid + "\nINITIALIZE CONFIGURATION COMPLETE";
+  sendDirectMessage('threecee', dmString, function(err, res){
+    if (!err) {
+      console.log(chalkTwitter("SENT TWITTER DM: " + dmString));
+    }
+    else {
+      console.log(chalkError("DM SEND ERROR:" + err));
+    }
+  });
+});
+
+configEvents.on("UNKNOWN_SESSION", function(socketId) {
+  var dmString = os.hostname() + "\nwordAssoServer\nPID: " + process.pid + "\nUNKNOWN SESSION: " + socketId;
+  sendDirectMessage('threecee', dmString, function(err, res){
+    if (!err) {
+      console.log(chalkTwitter("SENT TWITTER DM: " + dmString));
+    }
+    else {
+      console.log(chalkError("DM SEND ERROR:" + err));
+    }
+  });
+});
+
+configEvents.on("HASH_MISS", function(missObj) {
+  var dmString = os.hostname() + "\nwordAssoServer\nPID: " + process.pid + "\nMISS: " + jsonPrint(missObj);
+  sendDirectMessage('threecee', dmString, function(err, res){
+    if (!err) {
+      console.log(chalkTwitter("SENT TWITTER DM: " + dmString));
+    }
+    else {
+      console.log(chalkError("DM SEND ERROR:" + err));
+    }
+  });
+});
+
+
 configEvents.on("SERVER_READY", function() {
 
   serverReady = true;
@@ -6868,6 +7002,8 @@ function createSession(newSessionObj) {
               + " | " + sessionObj.tags.entity
               // + "\n" + jsonPrint(statsObj.entityChannelGroup.hashMiss)
             ));
+
+            configEvents.emit("HASH_MISS", {entity: sessionObj.tags.entity});
           }
         }
         else {
@@ -7184,6 +7320,8 @@ var dropboxGroupsConfigFile = os.hostname() +  "_" + DROPBOX_WA_GROUPS_CONFIG_FI
 
 var defaultDropboxEntityChannelGroupsConfigFile = DROPBOX_WA_ENTITY_CHANNEL_GROUPS_CONFIG_FILE;
 var dropboxEntityChannelGroupsConfigFile = os.hostname() +  "_" + DROPBOX_WA_ENTITY_CHANNEL_GROUPS_CONFIG_FILE;
+
+var twitterYamlConfigFile = process.env.DEFAULT_TWITTER_CONFIG;
 
 function loadConfig(file, callback){
 
@@ -7691,8 +7829,26 @@ function wapiSearch(word, variation, callback){
 
 
   });
-
 }
+
+ 
+function sendDirectMessage(user, message, callback) {
+  
+  twit.post('direct_messages/new', {screen_name: user, text:message}, function(error, response){
+
+    if(error) {
+      console.log("!!!!! TWITTER SEND DIRECT MESSAGE ERROR: " 
+        + getTimeStamp() 
+        + '\n'  + jsonPrint(error));
+    }
+    else{
+      console.log(chalkTwitter(getTimeStamp() + " | SENT TWITTER DM TO " + user + ": " + response.text));
+      callback(null, message) ;
+    }
+
+  });
+}
+
 //=================================
 // PROCESS HANDLERS
 //=================================
@@ -7727,8 +7883,11 @@ initializeConfiguration(function(err, results) {
 
   if (err) {
     console.error(chalkError("*** INITIALIZE CONFIGURATION ERROR ***\n" + jsonPrint(err)));
-  } else {
-    debug(chalkLog("INITIALIZE CONFIGURATION COMPLETE\n" + jsonPrint(results)));
+  } 
+  else {
+
+    console.log(chalkLog("INITIALIZE CONFIGURATION COMPLETE\n" + jsonPrint(results)));
+
 
     updater = cp.fork(`${__dirname}/js/libs/updateGroupsEntitiesChannels.js`);
 

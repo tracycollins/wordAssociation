@@ -1580,7 +1580,6 @@ var readUpdateSessionViewQueue = setInterval(function() {
         links: {},
         mentions: sessionUpdateObj.wordChainIndex
       };
-
     } 
     else {
       sessionSmallObj = {
@@ -4171,6 +4170,8 @@ function pairUser(sessionObj, callback) {
 }
 
 function handleSessionEvent(sesObj, callback) {
+
+  console.log(chalkRed("handleSessionEvent sesObj\n" + jsonPrint(sesObj)));
   switch (sesObj.sessionEvent) {
 
     case 'SESSION_ABORT':
@@ -4510,6 +4511,7 @@ function handleSessionEvent(sesObj, callback) {
 
           console.log(chalkLog(
             "K>" + " | " + sessionUpdatedObj.userId 
+            + " | SID " + sessionUpdatedObj.sessionId 
             + " | T " + sessionUpdatedObj.config.type 
             + " | M " + sessionUpdatedObj.config.mode 
             + " | NS " + sessionUpdatedObj.namespace 
@@ -6729,9 +6731,10 @@ function createSession(newSessionObj) {
 
   socket.on("SESSION_KEEPALIVE", function(userObj) {
     statsObj.socket.SESSION_KEEPALIVES++;
-    debug(chalkUser("SESSION_KEEPALIVE\n" + jsonPrint(userObj)));
+    console.log(chalkUser("SESSION_KEEPALIVE\n" + jsonPrint(userObj)));
 
     var socketId = socket.id;
+    if (userObj.tags.monde == 'substream') socketId = socket.id + "#" + userObj.tags.entity
     var sessionObj = sessionCache.get(socketId);
 
     if (!sessionObj) {

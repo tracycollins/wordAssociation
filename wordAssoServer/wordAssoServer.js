@@ -1594,8 +1594,8 @@ function updateSessionViews(sessionUpdateObj) {
     updateSessionViewQueue.push(sessionUpdateObj);
   }
   else{
-    statsObj.entity.hashMiss[sessionUpdateObj.tags.entity] = 1;
-    statsObj.entity.allHashMisses[sessionUpdateObj.tags.entity] = 1;
+    statsObj.entityChannelGroup.hashMiss[sessionUpdateObj.tags.entity] = 1;
+    statsObj.entityChannelGroup.allHashMisses[sessionUpdateObj.tags.entity] = 1;
   }
 }
 
@@ -6786,6 +6786,10 @@ function createSession(newSessionObj) {
       var responseInObj = rxInObj;
       if (rxInObj.tags.mode == 'substream') {
         responseInObj.socketId = socket.id + "#" + rxInObj.tags.entity;
+        debug("SUBS" 
+          // + " | " + jsonPrint(rxInObj.tags)
+          + "\n" + jsonPrint(rxInObj.tags)
+        );
       }
       else {
         responseInObj.socketId = socket.id;

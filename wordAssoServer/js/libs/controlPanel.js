@@ -300,6 +300,15 @@ function ControlPanel() {
       text: 'RESET'
     }
 
+    var blahButton = {
+      type: 'BUTTON',
+      mode: 'TOGGLE',
+      id: 'blahToggleButton',
+      class: 'button',
+      // onclick: 'buttonHandler()',
+      text: 'BLAH'
+    }
+
     var fullscreenButton = {
       type: 'BUTTON',
       mode: 'TOGGLE',
@@ -393,8 +402,8 @@ function ControlPanel() {
       type: 'SLIDER',
       id: 'chargeSlider',
       class: 'slider',
-      min: -1000,
-      max: 10,
+      min: -20,
+      max: 20,
       value: config.defaultCharge,
       multiplier: 1.0
     }
@@ -496,8 +505,19 @@ function ControlPanel() {
       case 'flow':
         self.tableCreateRow(infoTable, optionsBody, [status]);
         self.tableCreateRow(infoTable, optionsBody, [status2]);
-        self.tableCreateRow(controlTable, optionsBody, [fullscreenButton, pauseButton, statsButton, testModeButton, nodeCreateButton, removeDeadNodeButton, disableLinksButton, antonymButton]);
-        self.tableCreateRow(controlTable, optionsBody, [resetButton]);
+        self.tableCreateRow(controlTable, 
+          optionsBody, 
+          [
+            pauseButton, 
+            statsButton, 
+            testModeButton, 
+            nodeCreateButton, 
+            removeDeadNodeButton, 
+            disableLinksButton, 
+            antonymButton,
+            fullscreenButton, 
+          ]);
+        self.tableCreateRow(controlTable, optionsBody, [blahButton, resetButton]);
         self.tableCreateRow(controlSliderTable, optionsBody, ['MAX AGE', maxAgeSlider, maxAgeSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ['CHARGE', chargeSlider, chargeSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ['GRAVITY', gravitySlider, gravitySliderText]);
@@ -509,7 +529,19 @@ function ControlPanel() {
       case 'ticker':
         self.tableCreateRow(infoTable, optionsBody, [status]);
         self.tableCreateRow(infoTable, optionsBody, [status2]);
-        self.tableCreateRow(controlTable, optionsBody, [fullscreenButton, pauseButton, statsButton, testModeButton, nodeCreateButton, removeDeadNodeButton, disableLinksButton, antonymButton]);
+        self.tableCreateRow(controlTable, 
+          optionsBody, 
+          [
+            fullscreenButton, 
+            pauseButton, 
+            statsButton, 
+            testModeButton, 
+            nodeCreateButton, 
+            removeDeadNodeButton, 
+            disableLinksButton, 
+            antonymButton
+          ]
+        );
         self.tableCreateRow(controlTable, optionsBody, [resetButton]);
         self.tableCreateRow(controlSliderTable, optionsBody, ['MAX AGE', maxAgeSlider, maxAgeSliderText]);
         break;
@@ -522,7 +554,9 @@ function ControlPanel() {
           [
             fullscreenButton, 
             pauseButton, 
-            statsButton, testModeButton, resetButton, nodeCreateButton, removeDeadNodeButton]);
+            statsButton, testModeButton, resetButton, nodeCreateButton, removeDeadNodeButton
+          ]
+        );
         self.tableCreateRow(controlSliderTable, optionsBody, [resetButton]);
         self.tableCreateRow(controlSliderTable, optionsBody, ['MAX AGE', maxAgeSlider]);
 
@@ -548,6 +582,13 @@ function ControlPanel() {
 
     console.log("UPDATE CONTROL PANEL");
 
+    if (config.blahMode) {
+      document.getElementById("blahToggleButton").style.color = "red";
+      document.getElementById("blahToggleButton").style.border = "2px solid red";
+    } else {
+      document.getElementById("blahToggleButton").style.color = "#888888";
+      document.getElementById("blahToggleButton").style.border = "1px solid white";
+    }
     if (config.antonymFlag) {
       document.getElementById("antonymToggleButton").style.color = "red";
       document.getElementById("antonymToggleButton").style.border = "2px solid red";

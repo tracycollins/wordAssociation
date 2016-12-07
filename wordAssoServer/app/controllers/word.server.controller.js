@@ -156,6 +156,7 @@ exports.findOneWord = function(word, incMentions, callback) {
 					$set: { 
 						nodeId: word.nodeId,
 						raw: word.raw,
+						isTrendingTopic: word.isTrendingTopic,
 						isKeyword: word.isKeyword,
 						keywords: word.keywords,
 						isIgnored: word.isIgnored,
@@ -192,6 +193,8 @@ exports.findOneWord = function(word, incMentions, callback) {
 			else {
 				debug(chalkDb("->- DB UPDATE" 
 					+ " | " + wd.nodeId 
+					+ " | KW: " + wd.isKeyword 
+					+ " | TT: " + wd.isTrendingTopic 
 					+ " | MENTIONS: " + wd.mentions 
 					+ " | LAST SEEN: " + Date(wd.lastSeen) 
 					+ " | BHT SEARCHED: " + wd.bhtSearched 

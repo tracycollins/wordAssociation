@@ -1153,6 +1153,7 @@ var heartBeatsReceived = 0;
 socket.on("HEARTBEAT", function(heartbeat) {
   heartBeatsReceived++;
   serverConnected = true;
+  lastHeartbeatReceived = moment().valueOf();
 });
 
 socket.on("CONFIG_CHANGE", function(rxConfig) {

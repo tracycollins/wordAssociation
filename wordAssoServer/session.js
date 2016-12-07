@@ -309,6 +309,8 @@ function resetMouseMoveTimer() {
     mouseMovingFlag = false;
     d3.select("body").style("cursor", "none");
 
+    currentSessionView.toolTipVisibility(false);
+
     if (!config.pauseFlag) currentSessionView.simulationControl('RESUME');
 
     if (!config.showStatsFlag && !pageLoadedTimeIntervalFlag) {

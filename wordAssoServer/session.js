@@ -54,6 +54,7 @@ var defaultTimePeriodFormat = "HH:mm:ss";
 var pageLoadedTimeIntervalFlag = true;
 
 var debug = false;
+var DEFAULT_BLAH_MODE = true;
 var MAX_RX_QUEUE = 250;
 var QUEUE_MAX = 200;
 var MAX_WORDCHAIN_LENGTH = 100;
@@ -61,19 +62,20 @@ var DEFAULT_MAX_AGE = 30000;
 var FORCE_MAX_AGE = 10347;
 var DEFAULT_AGE_RATE = 1.0;
 
-var DEFAULT_CHARGE = -20;
+var DEFAULT_CHARGE = 0.0;
 var DEFAULT_GRAVITY = 0.008;
 var DEFAULT_FORCEY_MULTIPLIER = 10.0;
 var DEFAULT_VELOCITY_DECAY = 0.965;
 var DEFAULT_LINK_DISTANCE = 10.0;
 var DEFAULT_LINK_STRENGTH = 0.80;
 var DEFAULT_COLLISION_RADIUS_MULTIPLIER = 0.6;
-var DEFAULT_COLLISION_ITERATIONS = 4;
+var DEFAULT_COLLISION_ITERATIONS = 5;
 
 var DEFAULT_NODE_RADIUS = 20.0;
 
 var config = {};
 
+config.blahMode = DEFAULT_BLAH_MODE;
 config.antonymFlag = false;
 config.pauseFlag = false;
 config.sessionViewType = DEFAULT_SESSION_VIEW; // options: force, histogram ??
@@ -83,6 +85,7 @@ config.showStatsFlag = false;
 config.removeDeadNodesFlag = true;
 
 config.defaultMultiplier = 1000.0;
+config.defaultBlahMode = DEFAULT_BLAH_MODE;
 config.defaultCharge = DEFAULT_CHARGE;
 config.defaultGravity = DEFAULT_GRAVITY;
 config.defaultForceYmultiplier = DEFAULT_FORCEY_MULTIPLIER;
@@ -489,6 +492,9 @@ function controlPanelComm(event) {
     case 'TOGGLE' :
       console.warn("CONTROL PANEL TOGGLE");
       switch (data.id) {
+        case 'blahToggleButton' :
+          toggleBlah();
+        break;
         case 'fullscreenToggleButton' :
           toggleFullScreen();
         break;
@@ -553,6 +559,13 @@ function initControlPanelComm(cnf){
 
   window.addEventListener("message", controlPanelComm, false);
 
+}
+
+function toggleBlah() {
+  config.blahMode = !config.blahMode;
+  currentSessionView.setBlah(config.blahMode);
+  console.warn("TOGGLE BLAH: " + config.blahMode);
+  controlPanel.updateControlPanel(config);
 }
 
 function toggleAntonym() {
@@ -1277,7 +1290,7 @@ socket.on("SESSION_UPDATE", function(rxSessionObject) {
       rxSessionUpdateQueue.push(rxSessionObject);
 
       if (rxObj.tags.trending) {
-        console.error("TTT" + rxObj.source.nodeId 
+        console.debug("TTT" + rxObj.source.nodeId 
           + " | T: " + rxObj.tags.trending
         );
       }
@@ -2043,7 +2056,10 @@ var createNode = function(callback) {
             console.debug("IGNORED SOURCE: " + sourceText);
           }
           if (session.source.isKeyword) {
-            console.debug("KEYWORD SOURCE: " + sourceText + ": " + jsonPrint(session.source.keywords));
+            console.info("KEYWORD SOURCE: " + sourceText + ": " + jsonPrint(session.source.keywords));
+          }
+          if (session.source.isTrendingTopic) {
+            console.debug("TRENDING TOPIC SOURCE: " + sourceText + ": " + jsonPrint(session.source.isTrendingTopic));
           }
           if ((config.sessionViewType != 'ticker') && (config.sessionViewType != 'flow') && session.source.isIgnored) {
             // if (ignoreWordHashMap.has(sourceText)) {
@@ -2057,6 +2073,7 @@ var createNode = function(callback) {
           else if (nodeHashMap.has(sourceNodeId)) {
             sourceNode = nodeHashMap.get(sourceNodeId);
             sourceNode.isKeyword = session.source.isKeyword;
+            sourceNode.isTrendingTopic = session.source.isTrendingTopic;
             sourceNode.keywordColor = getKeywordColor(session.source.keywords);
             sourceNode.latestNode = true;
             sourceNode.newFlag = false;
@@ -2109,6 +2126,8 @@ var createNode = function(callback) {
             if (ignoreWordHashMap.has(sourceText)) {
               sourceNode.isIgnored = true;
             }
+            sourceNode.isKeyword = session.source.isKeyword;
+            sourceNode.isTrendingTopic = session.source.isTrendingTopic;
             sourceNode.keywordColor = getKeywordColor(session.source.keywords);
             sourceNode.newFlag = true;
             sourceNode.latestNode = true;
@@ -2166,7 +2185,12 @@ var createNode = function(callback) {
           if (session.target.isIgnored) {
             console.debug("IGNORED TARGET: " + targetText);
           }
-
+          if (session.target.isKeyword) {
+            console.info("KEYWORD TARGET: " + sourceText + ": " + jsonPrint(session.target.keywords));
+          }
+          if (session.target.isTrendingTopic) {
+            console.debug("TRENDING TOPIC TARGET: " + sourceText + ": " + jsonPrint(session.target.isTrendingTopic));
+          }
           if (typeof targetNodeId === 'undefined' || (config.sessionViewType == 'ticker') || (config.sessionViewType == 'flow')) {
           // if (typeof targetNodeId === 'undefined') {
             // console.warn("targetNodeId UNDEFINED ... SKIPPING CREATE NODE");
@@ -2184,6 +2208,7 @@ var createNode = function(callback) {
             if (ignoreWordHashMap.has(targetText)) {
               targetNode.isIgnored = true;
             }
+            targetNode.isTrendingTopic = session.target.isTrendingTopic;
             targetNode.isKeyword = session.target.isKeyword;
             targetNode.keywordColor = getKeywordColor(session.target.keywords);
             targetNode.userId = session.userId;
@@ -2235,6 +2260,7 @@ var createNode = function(callback) {
             if (ignoreWordHashMap.has(targetText)) {
               targetNode.isIgnored = true;
             }
+            targetNode.isTrendingTopic = session.target.isTrendingTopic;
             targetNode.isKeyword = session.target.isKeyword;
             targetNode.keywordColor = getKeywordColor(session.target.keywords);
             targetNode.userId = session.userId;

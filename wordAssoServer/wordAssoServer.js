@@ -39,6 +39,7 @@ var internetReady = false;
 var minServerResponseTime = 247;
 var maxServerResponseTime = 1447;
 
+var TRENDING_CACHE_DEFAULT_TTL = 300; // seconds
 var GROUP_CACHE_DEFAULT_TTL = 300; // seconds
 var ENTITY_CACHE_DEFAULT_TTL = 300; // seconds
 var SESSION_CACHE_DEFAULT_TTL = 300; // seconds
@@ -138,6 +139,7 @@ var groupHashMap = new HashMap();
 var entityChannelGroupHashMap = new HashMap();
 
 var keywordHashMap = new HashMap();
+var topicHashMap = new HashMap();
 
 // ==================================================================
 // SERVER STATUS
@@ -284,6 +286,7 @@ statsObj.entityChannelGroup.allHashMisses = {};
 // ==================================================================
 var chalk = require('chalk');
 
+var chalkRedBold = chalk.bold.red;
 var chalkTwitter = chalk.red;
 var chalkWapi = chalk.red;
 var chalkWapiBold = chalk.bold.red;
@@ -378,6 +381,14 @@ var wapiReqReservePercent = process.env.WAPI_REQ_RESERVE_PRCNT;
 
 if (typeof wapiReqReservePercent === 'undefined') wapiReqReservePercent = WAPI_REQ_RESERVE_PRCNT;
 console.log("WAPI_REQ_RESERVE_PRCNT: " + wapiReqReservePercent);
+
+// ==================================================================
+// TWITTER TRENDING TOPIC CACHE
+// ==================================================================
+var trendingCacheTtl = process.env.TRENDING_CACHE_DEFAULT_TTL;
+
+if (typeof trendingCacheTtl === 'undefined') trendingCacheTtl = TRENDING_CACHE_DEFAULT_TTL;
+console.log("TRENDING CACHE TTL: " + trendingCacheTtl + " SECONDS");
 
 // ==================================================================
 // GROUP CACHE
@@ -1176,6 +1187,11 @@ var utilCache = new NodeCache();
 
 var monitorHashMap = {};
 
+var trendingCache = new NodeCache({
+  stdTTL: trendingCacheTtl,
+  checkperiod: 10
+});
+
 var wordCache = new NodeCache({
   stdTTL: wordCacheTtl,
   checkperiod: 10
@@ -1752,7 +1768,7 @@ function sendPrompt(sessionObj, sourceWordObj) {
     // console.log("sendPrompt: currentSession\n" + jsonPrint(currentSession));
     // console.log("sendPrompt: currentUser\n" + jsonPrint(currentUser));
 
-    var sourceWordObj;
+    // var sourceWordObj;
 
     switch (sessionObj.config.mode) {
       case 'PROMPT':
@@ -2866,7 +2882,7 @@ function groupUpdateDb(userObj, callback){
 
     var entityObj = entityChannelGroupHashMap.get(userObj.tags.entity.toLowerCase());
 
-    if (groupHashMap.has(entityObj.groupId)) {
+    if ((typeof entityObj !== 'undefined') && groupHashMap.has(entityObj.groupId)) {
 
       var groupObj = groupHashMap.get(entityObj.groupId);
 
@@ -2893,7 +2909,7 @@ function groupUpdateDb(userObj, callback){
       dbUpdateGroupQueue.enqueue(groupUpdateObj);
       callback(null, entityObj);
     }
-    else {
+    else if (typeof entityObj !== 'undefined') {
       console.log(chalkError("*** GROUP HASH MISS ... SKIPPING DB GROUP UPDATE"
         + " | GROUP HASH MISS"
         + " | " + userObj.tags.entity.toLowerCase()
@@ -2904,11 +2920,20 @@ function groupUpdateDb(userObj, callback){
       callback(null, entityObj);
 
     }
-
+    else if (typeof entityObj === 'undefined') {
+      console.log(chalkError("*** ENTITY HASH MISS ... SKIPPING DB GROUP UPDATE"
+        + " | ENTITY HASH MISS"
+        + " | " + userObj.tags.entity.toLowerCase()
+      ));
+      statsObj.entityChannelGroup.hashMiss[userObj.tags.entity.toLowerCase()] = 1;
+      statsObj.entityChannelGroup.allHashMisses[userObj.tags.entity.toLowerCase()] = 1;
+      configEvents.emit("HASH_MISS", {type: "entity", value: userObj.tags.entity.toLowerCase()});
+      callback(null, entityObj);
+    }
   }
-
   else {
-    userObj.groupId = 'unknown_group';
+    userObj.groupId = userObj.tags.entity.toLowerCase();
+    configEvents.emit("HASH_MISS", {type: "entity", value: userObj.tags.entity.toLowerCase()});
     console.log(chalkError("*** ENTITY HASH MISS ... SKIPPING DB GROUP UPDATE"
       + " | " + userObj.tags.entity.toLowerCase()
     ));
@@ -5225,6 +5250,8 @@ var readSessionQueue = setInterval(function() {
 }, 20);
 
 var ready = true;
+var trendingTopicsArray = [];
+var trendingTopicHitArray = [];
 
 var readResponseQueue = setInterval(function() {
 
@@ -5246,6 +5273,7 @@ var readResponseQueue = setInterval(function() {
     }
 
     var responseInObj = rxInObj;
+
     var socketId = responseInObj.socketId;
     var currentSessionObj = sessionCache.get(socketId);
 
@@ -5272,175 +5300,212 @@ var readResponseQueue = setInterval(function() {
     //   console.log(chalkError("currentSessionObj\n" + jsonPrint(currentSessionObj)));
     // }
 
-    debug(chalkBht(">>> RESPONSE (before replace): " + responseInObj.nodeId));
-    responseInObj.nodeId = responseInObj.nodeId.replace(/\s+/g, ' ');
-    responseInObj.nodeId = responseInObj.nodeId.replace(/[\n\r\[\]\{\}\<\>\/\;\:\"\'\`\~\?\!\@\#\$\%\^\&\*\(\)\_\+\=]+/g, '');
-    responseInObj.nodeId = responseInObj.nodeId.replace(/\s+/g, ' ');
-    responseInObj.nodeId = responseInObj.nodeId.replace(/^\s+|\s+$/g, '');
-    responseInObj.nodeId = responseInObj.nodeId.replace(/^\,+|\,+$/g, '');
-    responseInObj.nodeId = responseInObj.nodeId.replace(/^\.+|\.+$/g, '');
-    responseInObj.nodeId = responseInObj.nodeId.replace(/^\-*|\-+$/g, '');
-    responseInObj.nodeId = responseInObj.nodeId.toLowerCase();
-    debug(chalkBht(">>> RESPONSE: " + responseInObj.nodeId));
 
-    if (responseInObj.nodeId == '') {
-      debug("EMPTY RESPONSE: " + responseInObj.nodeId);
-      ready = true;
-      return;
-    }
-
-    if (!responseInObj.mentions) responseInObj.mentions = 1;
-
-    responsesReceived++;
-    deltaResponsesReceived++;
-
-    updateStats({
-      responsesReceived: responsesReceived,
-      deltaResponsesReceived: deltaResponsesReceived
-    });
-
-    currentSessionObj.lastSeen = moment().valueOf();
-
-    var promptWordObj;
-    var previousPrompt;
-    var previousPromptObj;
-
-    if ((typeof currentSessionObj.wordChain !== 'undefined') && (currentSessionObj.wordChainIndex > 0)) {
-      previousPrompt = currentSessionObj.wordChain[currentSessionObj.wordChain.length - 1].nodeId;
-      previousPromptObj = wordCache.get(previousPrompt);
-      if (!previousPromptObj) {
-        console.log(chalkError(socketId 
-          + " | " + currentSessionObj.userId 
-          + " | WCI: " + currentSessionObj.wordChainIndex 
-          + " | WCL: " + currentSessionObj.wordChain.length
-          + " | ??? previousPrompt NOT IN CACHE: " + previousPrompt
-          // + " ... ABORTING SESSION"
-        ));
-
-        statsObj.session.error++;
-        statsObj.session.previousPromptNotFound++;
-
-        previousPromptObj = {
-          nodeId: previousPrompt
-        };
-
-      } else {
-        debug(chalkResponse("... previousPromptObj: " + previousPromptObj.nodeId));
-      }
-    } 
-    else if (currentSessionObj.config.mode == 'STREAM') {
-      previousPromptObj = {
-        nodeId: 'STREAM'
-      };
-      debug(chalkWarn("STREAM WORD CHAIN\n" + jsonPrint(currentSessionObj.wordChain)));
-    } 
-    else if (currentSessionObj.config.mode == 'MUXSTREAM') {
-      previousPromptObj = {
-        nodeId: 'MUXSTREAM'
-      };
-      debug(chalkWarn("MUXSTREAM WORD CHAIN\n" + jsonPrint(currentSessionObj.wordChain)));
-    } 
-    else if (currentSessionObj.config.mode == 'SUBSTREAM') {
-      previousPromptObj = {
-        nodeId: 'SUBSTREAM'
-      };
-      debug(chalkWarn("SUBSTREAM WORD CHAIN\n" + jsonPrint(currentSessionObj.wordChain)));
-    } 
-    else if (currentSessionObj.config.mode == 'USER_USER') {
-      previousPromptObj = {
-        nodeId: 'USER_USER'
-      };
-      debug(chalkWarn("USER_USER WORD CHAIN\n" + jsonPrint(currentSessionObj.wordChain)));
-    } 
-    else {
-      console.log(chalkWarn("??? EMPTY WORD CHAIN ... PREVIOUS PROMPT NOT IN CACHE ... ABORTING SESSION" 
-        + " | " + socketId));
-
-      ready = true;
-
-      return;
-    }
+    responseInObj.isKeyword = (typeof rxInObj.isKeyword !== 'undefined') ? rxInObj.isKeyword : false;
+    responseInObj.isTrendingTopic = (typeof rxInObj.isTrendingTopic !== 'undefined') ? rxInObj.isTrendingTopic : false;
 
 
-    if (currentSessionObj.config.mode == 'USER_USER') {
+    trendingTopicsArray = trendingCache.keys();
+    trendingTopicHitArray = [];
 
-      debug(chalkResponse("---------- USER_USER ----------"));
+    async.each(trendingTopicsArray, function(topic, cb) {
 
-      var respondentSessionId = currentSessionObj.sessionId;
-      var targetSessionId = sessionRouteHashMap.get(currentSessionObj.sessionId);
+      if (responseInObj.nodeId.toLowerCase().includes(topic.toLowerCase())){
 
-      debug(chalkResponse("USER_USER ROUTE" + " | " + respondentSessionId + " -> " + targetSessionId));
+        var topicObj = trendingCache.get(topic);
 
-      if ((typeof currentSessionObj.wordChain === 'undefined') || (currentSessionObj.wordChainIndex == 0)) {
-        debug(chalkResponse("START OF USER_USER SESSION | ADDING " + responseInObj.nodeId + " TO WORDCHAIN"));
+        trendingTopicHitArray.push(topic);
 
-        previousPrompt = responseInObj.nodeId;
+        if (typeof topicObj !== 'undefined'){ // may have expired out of cache, so check
+          console.log(chalkRedBold("TOPIC HIT: " + topic));
+          topicObj.hit = true;
+          trendingCache.set(topic, topicObj);
+          topicHashMap.set(topic.toLowerCase(), true);
+          responseInObj.isTrendingTopic = true;
+        }
 
-        currentSessionObj.wordChain.push({nodeId: responseInObj.nodeId, timeStamp:moment().valueOf()});
-
-        previousPromptObj = {
-          nodeId: previousPrompt
-        };
-        debug("Word CACHE SET14: " + previousPromptObj.nodeId);
-        wordCache.set(previousPromptObj.nodeId, previousPrompt);
-      } else {
+        cb();
 
       }
-    }
+      else {
+        cb();
+      }
 
-    if (typeof responseInObj.tags === 'undefined') {
-      responseInObj.tags = {};
-      responseInObj.tags.entity = 'unknown_entity';
-      responseInObj.tags.channel = 'unknown_channel';
-    } else {
-      if (typeof responseInObj.tags.entity === 'undefined') {
+    }, function(err) {
+
+      debug(chalkBht(">>> RESPONSE (before replace): " + responseInObj.nodeId));
+      responseInObj.nodeId = responseInObj.nodeId.replace(/\s+/g, ' ');
+      responseInObj.nodeId = responseInObj.nodeId.replace(/[\n\r\[\]\{\}\<\>\/\;\:\"\'\`\~\?\!\@\#\$\%\^\&\*\(\)\_\+\=]+/g, '');
+      responseInObj.nodeId = responseInObj.nodeId.replace(/\s+/g, ' ');
+      responseInObj.nodeId = responseInObj.nodeId.replace(/^\s+|\s+$/g, '');
+      responseInObj.nodeId = responseInObj.nodeId.replace(/^\,+|\,+$/g, '');
+      responseInObj.nodeId = responseInObj.nodeId.replace(/^\.+|\.+$/g, '');
+      responseInObj.nodeId = responseInObj.nodeId.replace(/^\-*|\-+$/g, '');
+      responseInObj.nodeId = responseInObj.nodeId.toLowerCase();
+      debug(chalkBht(">>> RESPONSE: " + responseInObj.nodeId));
+
+      if (responseInObj.nodeId == '') {
+        debug("EMPTY RESPONSE: " + responseInObj.nodeId);
+        ready = true;
+        return;
+      }
+
+      if (!responseInObj.mentions) responseInObj.mentions = 1;
+
+      responsesReceived++;
+      deltaResponsesReceived++;
+
+      updateStats({
+        responsesReceived: responsesReceived,
+        deltaResponsesReceived: deltaResponsesReceived
+      });
+
+      currentSessionObj.lastSeen = moment().valueOf();
+
+      var promptWordObj;
+      var previousPrompt;
+      var previousPromptObj;
+
+      if ((typeof currentSessionObj.wordChain !== 'undefined') && (currentSessionObj.wordChainIndex > 0)) {
+        previousPrompt = currentSessionObj.wordChain[currentSessionObj.wordChain.length - 1].nodeId;
+        previousPromptObj = wordCache.get(previousPrompt);
+        if (!previousPromptObj) {
+          console.log(chalkError(socketId 
+            + " | " + currentSessionObj.userId 
+            + " | WCI: " + currentSessionObj.wordChainIndex 
+            + " | WCL: " + currentSessionObj.wordChain.length
+            + " | ??? previousPrompt NOT IN CACHE: " + previousPrompt
+            // + " ... ABORTING SESSION"
+          ));
+
+          statsObj.session.error++;
+          statsObj.session.previousPromptNotFound++;
+
+          previousPromptObj = {
+            nodeId: previousPrompt
+          };
+
+        } else {
+          debug(chalkResponse("... previousPromptObj: " + previousPromptObj.nodeId));
+        }
+      } 
+      else if (currentSessionObj.config.mode == 'STREAM') {
+        previousPromptObj = {
+          nodeId: 'STREAM'
+        };
+        debug(chalkWarn("STREAM WORD CHAIN\n" + jsonPrint(currentSessionObj.wordChain)));
+      } 
+      else if (currentSessionObj.config.mode == 'MUXSTREAM') {
+        previousPromptObj = {
+          nodeId: 'MUXSTREAM'
+        };
+        debug(chalkWarn("MUXSTREAM WORD CHAIN\n" + jsonPrint(currentSessionObj.wordChain)));
+      } 
+      else if (currentSessionObj.config.mode == 'SUBSTREAM') {
+        previousPromptObj = {
+          nodeId: 'SUBSTREAM'
+        };
+        debug(chalkWarn("SUBSTREAM WORD CHAIN\n" + jsonPrint(currentSessionObj.wordChain)));
+      } 
+      else if (currentSessionObj.config.mode == 'USER_USER') {
+        previousPromptObj = {
+          nodeId: 'USER_USER'
+        };
+        debug(chalkWarn("USER_USER WORD CHAIN\n" + jsonPrint(currentSessionObj.wordChain)));
+      } 
+      else {
+        console.log(chalkWarn("??? EMPTY WORD CHAIN ... PREVIOUS PROMPT NOT IN CACHE ... ABORTING SESSION" 
+          + " | " + socketId));
+
+        ready = true;
+
+        return;
+      }
+
+
+      if (currentSessionObj.config.mode == 'USER_USER') {
+
+        debug(chalkResponse("---------- USER_USER ----------"));
+
+        var respondentSessionId = currentSessionObj.sessionId;
+        var targetSessionId = sessionRouteHashMap.get(currentSessionObj.sessionId);
+
+        debug(chalkResponse("USER_USER ROUTE" + " | " + respondentSessionId + " -> " + targetSessionId));
+
+        if ((typeof currentSessionObj.wordChain === 'undefined') || (currentSessionObj.wordChainIndex == 0)) {
+          debug(chalkResponse("START OF USER_USER SESSION | ADDING " + responseInObj.nodeId + " TO WORDCHAIN"));
+
+          previousPrompt = responseInObj.nodeId;
+
+          currentSessionObj.wordChain.push({nodeId: responseInObj.nodeId, timeStamp:moment().valueOf()});
+
+          previousPromptObj = {
+            nodeId: previousPrompt
+          };
+          debug("Word CACHE SET14: " + previousPromptObj.nodeId);
+          wordCache.set(previousPromptObj.nodeId, previousPrompt);
+        } else {
+
+        }
+      }
+
+      if (typeof responseInObj.tags === 'undefined') {
+        responseInObj.tags = {};
         responseInObj.tags.entity = 'unknown_entity';
-      }
-      else {
-        responseInObj.tags.entity = responseInObj.tags.entity.toLowerCase();
-      }
-      if (typeof responseInObj.tags.channel === 'undefined') {
         responseInObj.tags.channel = 'unknown_channel';
+      } else {
+        if (typeof responseInObj.tags.entity === 'undefined') {
+          responseInObj.tags.entity = 'unknown_entity';
+        }
+        else {
+          responseInObj.tags.entity = responseInObj.tags.entity.toLowerCase();
+        }
+        if (typeof responseInObj.tags.channel === 'undefined') {
+          responseInObj.tags.channel = 'unknown_channel';
+        }
+        else {
+          responseInObj.tags.channel = responseInObj.tags.channel.toLowerCase();
+        }
+      }
+
+      if (entityChannelGroupHashMap.has(responseInObj.tags.entity)){
+        responseInObj.tags.group = entityChannelGroupHashMap.get(responseInObj.tags.entity).groupId;
       }
       else {
-        responseInObj.tags.channel = responseInObj.tags.channel.toLowerCase();
+        responseInObj.tags.group = responseInObj.tags.entity;
+        entityChannelGroupHashMap.set(responseInObj.tags.entity, responseInObj.tags.group);
       }
-    }
 
-    if (entityChannelGroupHashMap.has(responseInObj.tags.entity)){
-      responseInObj.tags.group = entityChannelGroupHashMap.get(responseInObj.tags.entity).groupId;
-    }
-    else {
-      responseInObj.tags.group = responseInObj.tags.entity;
-      entityChannelGroupHashMap.set(responseInObj.tags.entity, responseInObj.tags.group);
-    }
+      console.log(chalkResponse("R<" 
+        + " G: " + responseInObj.tags.group 
+        // + " | U: " + currentSessionObj.userId
+        + " E: " + responseInObj.tags.entity 
+        + " C: " + responseInObj.tags.channel 
+        + " KW: " + responseInObj.isKeyword 
+        + " TT: " + responseInObj.isTrendingTopic 
+        // + " | URL: " + responseInObj.url 
+        + " [" + currentSessionObj.wordChainIndex + "]" 
+        + " | " + responseInObj.nodeId 
+        // + " < " + previousPrompt
+      ));
 
-    console.log(chalkResponse("R<" 
-      + " G: " + responseInObj.tags.group 
-      // + " | U: " + currentSessionObj.userId
-      + " E: " + responseInObj.tags.entity 
-      + " C: " + responseInObj.tags.channel 
-      + " N: " + responseInObj.nodeId 
-      // + " | URL: " + responseInObj.url 
-      + " [" + currentSessionObj.wordChainIndex + "]" 
-      // + " < " + previousPrompt
-    ));
+      var dbUpdateObj = {};
+      dbUpdateObj.word = responseInObj;
+      dbUpdateObj.session = currentSessionObj;
+      dbUpdateObj.tags = {};
 
-    var dbUpdateObj = {};
-    dbUpdateObj.word = responseInObj;
-    dbUpdateObj.session = currentSessionObj;
-    dbUpdateObj.tags = {};
+      if (responseInObj.tags){
 
-    if (responseInObj.tags){
+        dbUpdateObj.tags.entity = responseInObj.tags.entity;
+        dbUpdateObj.tags.channel = responseInObj.tags.channel;
+        dbUpdateObj.tags.group = responseInObj.tags.group;
+      }
 
-      dbUpdateObj.tags.entity = responseInObj.tags.entity;
-      dbUpdateObj.tags.channel = responseInObj.tags.channel;
-      dbUpdateObj.tags.group = responseInObj.tags.group;
-    }
+      dbUpdateWordQueue.enqueue(dbUpdateObj);
 
-    dbUpdateWordQueue.enqueue(dbUpdateObj);
+      ready = true;
 
-    ready = true;
+    });
   }
 }, 50);
 
@@ -5480,6 +5545,16 @@ var readUpdaterMessageQueue = setInterval(function() {
         entityChannelGroupHashMap.set(updaterObj.entityId, updaterObj.entity);
         debug(chalkError("UPDATE ENTITIY\n" + jsonPrint(updaterObj)));
         debug(chalkError("UPDATE ENTITIY | " + updaterObj.entityId));
+        updaterMessageReady = true;
+      break;
+      case 'keywordHashMapClear':
+        keywordHashMap.clear();
+        console.log(chalkError("KEYWORD HASHMAP CLEAR"));
+        updaterMessageReady = true;
+      break;
+      case 'keywordRemove':
+        keywordHashMap.remove(updaterObj.keyword);
+        console.log(chalkError("KEYWORD REMOVE: " + updaterObj.keyword));
         updaterMessageReady = true;
       break;
       case 'keyword':
@@ -6433,6 +6508,70 @@ wordCache.on("expired", function(word, wordObj) {
   }
 });
 
+trendingCache.on( "expired", function(topic, topicObj){
+  debug("CACHE TOPIC EXPIRED\n" + jsonPrint(topicObj));
+  console.log("CACHE TOPIC EXPIRED | " + topicObj.name);
+});
+
+
+function updateTrends(){
+  twit.get('trends/place', {id: 1}, function (err, data, response){
+    if (err){
+      console.log(chalkError("*** TWITTER ERROR ***"
+        + " | " + err
+      ));
+    }
+    else if (data){
+      console.log(chalkInfo("... TWITTER TREND - WORLDWIDE"
+        // + "\n" + jsonPrint(data)
+      ));
+      data.forEach(function(element){
+        // console.log(chalkError("... TWITTER TREND - US"
+          // + " | element\n" + jsonPrint(element)
+        // ));
+        element.trends.forEach(function(topic){
+          console.log(chalkError(
+            topic.name
+          ));
+          trendingCache.set(topic.name, topic);
+        });
+      });
+    }
+  });
+  
+  twit.get('trends/place', {id: 23424977}, function (err, data, response){
+    if (err){
+      console.log(chalkError("*** TWITTER ERROR ***"
+        + " | " + err
+      ));
+    }
+    else if (data){
+
+      trendingCache.set("america", {name: "america"});
+
+      console.log(chalkInfo("... TWITTER TREND - US"
+        // + "\n" + jsonPrint(data)
+      ));
+      data.forEach(function(element){
+        // console.log(chalkError("... TWITTER TREND - US"
+          // + " | element\n" + jsonPrint(element)
+        // ));
+        element.trends.forEach(function(topic){
+          console.log(chalkError(
+            topic.name
+          ));
+          trendingCache.set(topic.name, topic);
+        });
+      });
+    }
+  });
+}
+
+function initUpdateTrendsInterval(interval){
+  setInterval(function () {
+    updateTrends();
+  }, interval);
+}
 
 // ==================================================================
 // CONNECT TO INTERNET, START SERVER HEARTBEAT
@@ -6460,7 +6599,7 @@ configEvents.on("UNKNOWN_SESSION", function(socketId) {
 
   var dmString = os.hostname() + "\nwordAssoServer\nPID: " + process.pid + "\nUNKNOWN SESSION: " + socketId;
 
-  if (directMessageHash[socketId] === 'undefined') {
+  if (typeof directMessageHash[socketId] === 'undefined') {
 
     directMessageHash[socketId] = socketId;
 
@@ -6483,6 +6622,8 @@ var directMessageHash = {};
 
 configEvents.on("HASH_MISS", function(missObj) {
 
+  console.log(chalkError("CONFIG EVENT - HASH_MISS\n" + jsonPrint(missObj)));
+
   var dmString = os.hostname() 
   + "\n wordAssoServer"
   + "\nPID: " + process.pid 
@@ -6490,7 +6631,7 @@ configEvents.on("HASH_MISS", function(missObj) {
 
   var sendDirectMessageHashKey = missObj.type + "-" + missObj.value;
 
-  if (directMessageHash[sendDirectMessageHashKey] === 'undefined') {
+  if (typeof directMessageHash[sendDirectMessageHashKey] === 'undefined') {
     directMessageHash[sendDirectMessageHashKey] = missObj;
     sendDirectMessage('threecee', dmString, function(err, res){
       if (!err) {
@@ -7135,7 +7276,7 @@ function createSession(newSessionObj) {
               // + "\n" + jsonPrint(statsObj.entityChannelGroup.hashMiss)
             ));
 
-            configEvents.emit("HASH_MISS", {type: "entity", value: sessionObj.tags.entity});
+            configEvents.emit("HASH_MISS", {type: "entity", value: sessionObj.tags.entity.toLowerCase()});
             // configEvents.emit("HASH_MISS", {entity: sessionObj.tags.entity});
           }
         }
@@ -7953,6 +8094,9 @@ initializeConfiguration(function(err, results) {
 
     console.log(chalkLog("INITIALIZE CONFIGURATION COMPLETE\n" + jsonPrint(results)));
 
+
+    updateTrends();
+    initUpdateTrendsInterval(ONE_MINUTE);
 
     updater = cp.fork(`${__dirname}/js/libs/updateGroupsEntitiesChannels.js`);
 

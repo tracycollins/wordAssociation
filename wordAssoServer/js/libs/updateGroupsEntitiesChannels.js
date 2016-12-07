@@ -46,6 +46,7 @@ var HashMap = require('hashmap').HashMap;
 var groupHashMap = new HashMap();
 var entityChannelGroupHashMap = new HashMap();
 var keywordHashMap = new HashMap();
+var previousKeywordHashMap = new HashMap();
 
 var mongoose = require('../../config/mongoose');
 var db = mongoose();
@@ -409,6 +410,7 @@ function updateGroupsInterval(file, interval){
   ));
 
   updateGroups(file, function(err, results){
+
     initKeywords(keywordFile, function(err, results2){
       sendHashMaps(function(err, results3){
         initGroupsReady = true;
@@ -442,6 +444,10 @@ function initKeywords(file, callback){
 
       var words = Object.keys(kwordsObj);
 
+      previousKeywordHashMap.copy(keywordHashMap);
+      keywordHashMap.clear();
+      // process.send({ type: 'keywordHashMapClear'});
+
       async.forEach(words,
 
         function(w, cb) {
@@ -456,7 +462,9 @@ function initKeywords(file, callback){
           wordObj.nodeId = wd;
           wordObj.isKeyword = true;
           wordObj.keywords[keyWordType] = true;
+
           keywordHashMap.set(wordObj.nodeId, keyWordType);
+          previousKeywordHashMap.remove(wordObj.nodeId);
 
           wordServer.findOneWord(wordObj, false, function(err, updatedWordObj) {
             if (err){
@@ -484,7 +492,29 @@ function initKeywords(file, callback){
             callback(err, null);
           }
           else {
-            console.log(chalkInfo("initKeywords COMPLETE"));
+            console.log(chalkInfo("initKeywords COMPLETE"
+              + " | TOTAL KEYWORDS:   " + keywordHashMap.count()
+              + " | (DELETED KEYWORDS:) " + previousKeywordHashMap.count()
+            ));
+
+            if (previousKeywordHashMap.count() > 0) {
+              console.log(chalkAlert(
+                "DELETED KEYWORDS\n" + jsonPrint(previousKeywordHashMap.keys())
+              ));
+
+              var deletedKeyWords = previousKeywordHashMap.keys();
+
+              deletedKeyWords.forEach(function (deleteKeyWord){
+                setTimeout(function(){
+                  process.send({ type: 'keywordRemove', keyword: deleteKeyWord});
+                  console.log(chalkAlert("UPDATER SEND KEYWORD REMOVE"
+                    + " | " + deleteKeyWord
+                  ));
+                }, 10);
+              });
+              
+            }
+
             callback(null, words.length);
           }
         }

@@ -30,6 +30,10 @@ var WordSchema = new Schema({
 		type: Number,
 		default: 0
 	},
+	isTrendingTopic: {
+		type: Boolean,
+		default: false
+	},
 	isKeyword: {
 		type: Boolean,
 		default: false

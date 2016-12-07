@@ -258,7 +258,8 @@ function ViewFlow() {
 
   var divTooltip = d3.select("body").append("div")
     .attr("class", "tooltip")
-    .style("opacity", 1e-6);
+    .style("visibility", "hidden");
+    // .style("opacity", 1e-6);
 
   var globalLinkIndex = 0;
 
@@ -1349,9 +1350,10 @@ function ViewFlow() {
     var mentions = d.mentions;
     var currentR = d3.select(this).attr("r");
 
-    divTooltip.transition()
-      .duration(defaultFadeDuration)
-      .style("opacity", 1.0);
+    divTooltip
+      // .duration(defaultFadeDuration)
+      .style("visibility", "visible");
+      // .style("opacity", 1.0);
 
     var tooltipString = "<bold>" + nodeId + "</bold>" 
       + "<br>MENTIONS: " + mentions 
@@ -1373,9 +1375,10 @@ function ViewFlow() {
       d.fy = null;
     }
 
-    divTooltip.transition()
-      .duration(defaultFadeDuration)
-      .style("opacity", 1e-6);
+    divTooltip
+      // .duration(defaultFadeDuration)
+      // .style("opacity", 1e-6);
+      .style("visibility", "hidden");
   }
 
   function nodeClick(d) {

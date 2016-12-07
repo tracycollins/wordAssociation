@@ -51,7 +51,7 @@ function ViewFlow() {
   var mouseOverRadius = 10;
   var mouseHoverGroupId;
   var mouseHoverSessionId;
-  var mouseHoverNodeId;
+  var mouseHoverNodeId = false;
 
   var nodeMaxAge = 60000;
 
@@ -263,6 +263,14 @@ function ViewFlow() {
 
   var globalLinkIndex = 0;
 
+  function toolTipVisibility(isVisible){
+    if (isVisible) {
+      divTooltip.style("visibility", "visible");
+    }
+    else {
+      divTooltip.style("visibility", "hidden");
+    }
+  }
 
   var panzoomElement = document.getElementById('svgFlowLayoutArea')
   panzoom(panzoomElement);
@@ -1350,10 +1358,12 @@ function ViewFlow() {
     var mentions = d.mentions;
     var currentR = d3.select(this).attr("r");
 
-    divTooltip
-      // .duration(defaultFadeDuration)
-      .style("visibility", "visible");
-      // .style("opacity", 1.0);
+    // divTooltip
+    //   // .duration(defaultFadeDuration)
+    //   .style("visibility", "visible");
+    //   // .style("opacity", 1.0);
+
+    toolTipVisibility(true);
 
     var tooltipString = "<bold>" + nodeId + "</bold>" 
       + "<br>MENTIONS: " + mentions 
@@ -1369,16 +1379,20 @@ function ViewFlow() {
 
     mouseHoverFlag = false;
     d.mouseHoverFlag = false;
+    mouseHoverNodeId = false;
 
     if (!d.isGroupNode){
       d.fx = null;
       d.fy = null;
     }
 
-    divTooltip
-      // .duration(defaultFadeDuration)
-      // .style("opacity", 1e-6);
-      .style("visibility", "hidden");
+    // divTooltip
+    //   // .duration(defaultFadeDuration)
+    //   // .style("opacity", 1e-6);
+    //   .style("visibility", "hidden");
+
+    toolTipVisibility(false);
+
   }
 
   function nodeClick(d) {

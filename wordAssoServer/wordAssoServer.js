@@ -5488,13 +5488,13 @@ var readUpdaterMessageQueue = setInterval(function() {
         debug(chalkError("UPDATE KEYWORD\n" + jsonPrint(updaterObj)));
 
         if (updaterObj.twitter) {
-
+          
           keywordUpdateDb(updaterObj, function(err, updatedWordObj){
 
             var dmString = "UPDATE KEYWORD"
               + "\n" + updatedWordObj.nodeId 
               + "\n" + updatedWordObj.mentions + " Ms" 
-              + "\n" + jsonPrint(updatedWordObj);
+              + "\n" + jsonPrint(updatedWordObj.keywords);
 
             console.log(chalkError(dmString));
 

@@ -5484,8 +5484,38 @@ var readUpdaterMessageQueue = setInterval(function() {
       break;
       case 'keyword':
         keywordHashMap.set(updaterObj.keyword, updaterObj.keyWordType);
+
         debug(chalkError("UPDATE KEYWORD\n" + jsonPrint(updaterObj)));
-        if (updaterObj.twitter) console.log(chalkError("UPDATE KEYWORD | " + updaterObj.keyWordType + " | " + updaterObj.keyword));
+
+        if (updaterObj.twitter) {
+          keywordUpdateDb(updaterObj, function(err, updatedWordObj){
+
+            var dmString = "UPDATE KEYWORD"
+              + "\n" + updatedWordObj.nodeId 
+              + "\n" + updatedWordObj.mentions + " Ms" 
+              + "\n" + jsonPrint(updatedWordObj.keywords);
+
+            console.log(chalkError(dmString));
+
+            sendDirectMessage('threecee', dmString, function(err, res){
+              if (!err) {
+                console.log(chalkTwitter("SENT TWITTER DM: " + dmString));
+              }
+              else {
+                switch (err.code) {
+                  case 226:
+                    console.log(chalkError("*** TWITTER DM SEND ERROR: LOOKS LIKE AUTOMATED TX: CODE: " + err.code));
+                  break;
+                  default:
+                    console.log(chalkError("*** TWITTER DM SEND ERROR: " + jsonPrint(err)));
+                  break;
+                }
+              }
+            });
+
+          });
+        }
+
         updaterMessageReady = true;
       break;
       default:
@@ -5898,6 +5928,37 @@ var generatePromptQueueInterval = setInterval(function() {
 
   }
 }, 50);
+
+function keywordUpdateDb(keywordObj, callback){
+
+  console.log(chalkRed("UPDATING KEYWORD | " + keywordObj.keyword + ": " + keywordObj.keyWordType));
+
+  var wordObj = new Word();
+
+  wordObj.nodeId = keywordObj.keyword.toLowerCase();
+  wordObj.isKeyword = true;
+  wordObj.keywords[keywordObj.keyWordType] = true;
+
+  keywordHashMap.set(wordObj.nodeId, keywordObj.keyWordType);
+
+  wordServer.findOneWord(wordObj, false, function(err, updatedWordObj) {
+    if (err){
+      console.log(chalkError("ERROR: UPDATING KEYWORD | " + wd + ": " + kwordsObj[wd]));
+      callback(err, wordObj);
+    }
+    else {
+      console.log(chalkLog("+++ UPDATED KEYWORD"
+        + " | " + updatedWordObj.nodeId 
+        + " | " + updatedWordObj.raw 
+        + " | M " + updatedWordObj.mentions 
+        + " | I " + updatedWordObj.isIgnored 
+        + " | K " + updatedWordObj.isKeyword 
+        + " | K " + jsonPrint(updatedWordObj.keywords) 
+      ));
+      callback(null, updatedWordObj);
+    }
+  });
+}
 
 function initKeywords(file, callback){
   loadDropboxJsonFile(file, function(err, kwordsObj){
@@ -7223,77 +7284,6 @@ function createSession(newSessionObj) {
     testUsersNameSpace.emit("SOCKET_TEST_MODE", serverSessionConfig);
   });
 }
-
-// adminNameSpace.on('connect', function(socket) {
-//   socket.setMaxListeners(0);
-//   debug(chalkAdmin("ADMIN CONNECT"));
-//   createSession({
-//     namespace: "admin",
-//     socket: socket,
-//     type: "ADMIN",
-//     tags: {}
-//   });
-//   socket.on('SET_WORD_CACHE_TTL', function(value) {
-//     setWordCacheTtl(value);
-//   });
-// });
-
-// utilNameSpace.on('connect', function(socket) {
-//   socket.setMaxListeners(0);
-//   debug(chalkAdmin("UTIL CONNECT"));
-//   createSession({
-//     namespace: "util",
-//     socket: socket,
-//     type: "UTIL",
-//     mode: "UNKNOWN",
-//     tags: {}
-//   });
-// });
-
-// userNameSpace.on('connect', function(socket) {
-//   socket.setMaxListeners(0);
-//   debug(chalkAdmin("USER CONNECT"));
-//   createSession({
-//     namespace: "user",
-//     socket: socket,
-//     type: "UTIL",
-//     mode: "UNKNOWN",
-//     tags: {}
-//   });
-// });
-
-// viewNameSpace.on('connect', function(socket) {
-//   socket.setMaxListeners(0);
-//   debug(chalkAdmin("VIEWER CONNECT"));
-//   createSession({
-//     namespace: "view",
-//     socket: socket,
-//     type: "VIEWER",
-//     tags: {}
-//   });
-// });
-
-// testUsersNameSpace.on('connect', function(socket) {
-//   socket.setMaxListeners(0);
-//   debug(chalkAdmin("TEST USER CONNECT"));
-//   createSession({
-//     namespace: "test-user",
-//     socket: socket,
-//     type: "TEST_USER",
-//     tags: {}
-//   });
-// });
-
-// testViewersNameSpace.on('connect', function(socket) {
-//   socket.setMaxListeners(0);
-//   debug(chalkAdmin("TEST VIEWER CONNECT"));
-//   createSession({
-//     namespace: "test-view",
-//     socket: socket,
-//     type: "TEST_VIEWER",
-//     tags: {}
-//   });
-// });
 
 var databaseEnabled = false;
 

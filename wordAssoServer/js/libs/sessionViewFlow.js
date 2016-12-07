@@ -49,8 +49,8 @@ function ViewFlow() {
   var mouseFreezeEnabled = true;
   var mouseHoverFlag = false;
   var mouseOverRadius = 10;
-  var mouseHoverGroupId;
-  var mouseHoverSessionId;
+  var mouseHoverGroupId = false;
+  var mouseHoverSessionId = false;
   var mouseHoverNodeId = false;
 
   var nodeMaxAge = 60000;
@@ -263,7 +263,7 @@ function ViewFlow() {
 
   var globalLinkIndex = 0;
 
-  function toolTipVisibility(isVisible){
+  self.toolTipVisibility = function(isVisible){
     if (isVisible) {
       divTooltip.style("visibility", "visible");
     }
@@ -1363,7 +1363,7 @@ function ViewFlow() {
     //   .style("visibility", "visible");
     //   // .style("opacity", 1.0);
 
-    toolTipVisibility(true);
+    self.toolTipVisibility(true);
 
     var tooltipString = "<bold>" + nodeId + "</bold>" 
       + "<br>MENTIONS: " + mentions 
@@ -1391,7 +1391,7 @@ function ViewFlow() {
     //   // .style("opacity", 1e-6);
     //   .style("visibility", "hidden");
 
-    toolTipVisibility(false);
+    self.toolTipVisibility(false);
 
   }
 
@@ -1752,6 +1752,12 @@ function ViewFlow() {
     deadNodesHash = {};
     deadLinksHash = {};
     mouseMovingFlag = false;
+    mouseHoverFlag = false;
+    mouseHoverGroupId = false;
+    mouseHoverSessionId = false;
+    mouseHoverNodeId = false;
+    self.toolTipVisibility(false);
+
     self.resize();
     self.resetDefaultForce();
   }

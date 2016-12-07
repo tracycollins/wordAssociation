@@ -877,6 +877,7 @@ function ViewFlow() {
     link.enter()
       .append("svg:line")
       .attr("class", "link")
+      .style("visibility", "hidden")
       .style('stroke', function(d) { return linkColorScale(1.0); })
       .style('stroke-width', 1.75)
       .style('opacity', 1e-6)
@@ -987,6 +988,7 @@ function ViewFlow() {
         return d.node.y + shiftY;
       })
       .text(function(d) { return d.text; })
+      .style("visibility", "hidden")
       .style("text-anchor", "middle")
       .style("alignment-baseline", "middle")
       .style("opacity", 1e-6)
@@ -1049,6 +1051,7 @@ function ViewFlow() {
         return d.node.y + shiftY;
       })
       .text(function(d) { return d.text;  })
+      .style("visibility", "hidden")
       .style("text-anchor", "middle")
       .style("alignment-baseline", "middle")
       .style("opacity", 1e-6)
@@ -1120,7 +1123,8 @@ function ViewFlow() {
       .on("mouseout", nodeMouseOut)
       .on("click", nodeClick)
       .attr("r", 1e-6)
-      .style("visibility", function(d) { return (d.isGroupNode || d.isSessionNode) ? groupCircleVisibility : "hidden"; })
+      // .style("visibility", function(d) { return (d.isGroupNode || d.isSessionNode) ? groupCircleVisibility : "hidden"; })
+      .style("visibility", "hidden")
       .style("fill", palette.black)
       .style("opacity", 1e-6)
       .style('stroke', palette.red)
@@ -1191,6 +1195,7 @@ function ViewFlow() {
           return d.y + shiftY;
         }
       })
+      .style("visibility", function(d) { return (d.isGroupNode || d.isSessionNode) ? "hidden" : "visible"; })
       .style("text-anchor", "middle")
       .style("alignment-baseline", "middle")
       .style("opacity", 1e-6)

@@ -706,12 +706,15 @@ var viewerObj = {
 
 var initialPositionIndex = 0;
 
+var initialXpositionRatio = 1.1;
+var initialYpositionRatio = 0.5;
+
 function computeInitialPosition(index) {
   var radiusX = 0.01 * window.innerWidth;
   var radiusY = 0.4 * window.innerHeight;
   var pos = {
-    x: (0.85*window.innerWidth + (radiusX * Math.cos(index))),
-    y: (0.5*window.innerHeight + (radiusY * Math.sin(index)))
+    x: (initialXpositionRatio * window.innerWidth + (radiusX * Math.cos(index))),
+    y: (initialYpositionRatio * window.innerHeight + (radiusY * Math.sin(index)))
   };
 
   return pos;
@@ -1904,8 +1907,10 @@ var createSession = function(callback) {
       currentSession.node.mentions = sessUpdate.wordChainIndex;
       currentSession.node.text = sessUpdate.tags.entity + "|" + sessUpdate.tags.channel;
       currentSession.node.r = config.defaultNodeRadius;
-      currentSession.node.x = currentGroup.initialPosition.x + randomIntFromInterval(-10,-20);
-      currentSession.node.y = currentGroup.initialPosition.y + randomIntFromInterval(-10,10);
+      // currentSession.node.x = currentGroup.initialPosition.x + randomIntFromInterval(-10,-20);
+      // currentSession.node.y = currentGroup.initialPosition.y + randomIntFromInterval(-10,10);
+      currentSession.node.x = currentGroup.initialPosition.x;
+      currentSession.node.y = currentGroup.initialPosition.y;
 
       currentSession.node.sessionColors = {};
       currentSession.node.sessionColors = currentGroup.sessionColors;
@@ -2015,8 +2020,10 @@ var createNode = function(callback) {
       session.node.wordChainIndex = session.wordChainIndex;
       session.node.mentions = session.wordChainIndex+1;
       session.node.r = config.defaultNodeRadius;
-      session.node.x = session.initialPosition.x + randomIntFromInterval(-10,-20);
-      session.node.y = session.initialPosition.y + randomIntFromInterval(-10,10);
+      // session.node.x = session.initialPosition.x + randomIntFromInterval(-10,-20);
+      // session.node.y = session.initialPosition.y + randomIntFromInterval(-10,10);
+      session.node.x = session.initialPosition.x;
+      session.node.y = session.initialPosition.y;
 
       // session.node.colors = {};
       session.node.groupColors = session.groupColors;

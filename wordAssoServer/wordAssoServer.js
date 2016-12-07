@@ -119,6 +119,11 @@ var defaultTimePeriodFormat = "HH:mm:ss";
 var S = require('string');
 
 var os = require('os');
+
+var hostname = os.hostname();
+hostname = hostname.replace(/.local/g, '');
+hostname = hostname.replace(/word0-instance-1/g, 'google');
+
 var config = require('./config/config');
 var util = require('util');
 
@@ -1036,11 +1041,12 @@ function updateEntityChannelGroups(configFile, callback){
               cb(null, "HIT");
               return;
             }
-            else{
+            else if (!entity.groupId.match(hostname)) {
               statsObj.group.hashMiss[entity.groupId] = 1;
               statsObj.group.allHashMisses[entity.groupId] = 1;
-              // configEvents.emit("HASH_MISS", {group: entity.groupId});
+
               configEvents.emit("HASH_MISS", {type: "group", value: entity.groupId});
+
               cb(err, "GROUP NOT FOUND: " + entity.groupId);
               return;
             }
@@ -1062,7 +1068,7 @@ function updateEntityChannelGroups(configFile, callback){
               cb(null, "MISS");
               return;
             }
-            else{
+            else if (!entity.groupId.match(hostname)) {
               statsObj.group.hashMiss[entity.groupId] = 1;
               statsObj.group.allHashMisses[entity.groupId] = 1;
               configEvents.emit("HASH_MISS", {type: "group", value: entity.groupId});
@@ -2909,7 +2915,7 @@ function groupUpdateDb(userObj, callback){
       dbUpdateGroupQueue.enqueue(groupUpdateObj);
       callback(null, entityObj);
     }
-    else if (typeof entityObj !== 'undefined') {
+    else if ((typeof entityObj !== 'undefined') && (entityObj.groupId) && !entityObj.groupId.match(hostname)) {
       console.log(chalkError("*** GROUP HASH MISS ... SKIPPING DB GROUP UPDATE"
         + " | GROUP HASH MISS"
         + " | " + userObj.tags.entity.toLowerCase()
@@ -2918,7 +2924,6 @@ function groupUpdateDb(userObj, callback){
       statsObj.group.allHashMisses[entityObj.groupId] = 1;
       configEvents.emit("HASH_MISS", {type: "group", value: entityObj.groupId});
       callback(null, entityObj);
-
     }
     else if (typeof entityObj === 'undefined') {
       console.log(chalkError("*** ENTITY HASH MISS ... SKIPPING DB GROUP UPDATE"
@@ -6576,8 +6581,18 @@ function initUpdateTrendsInterval(interval){
 // ==================================================================
 // CONNECT TO INTERNET, START SERVER HEARTBEAT
 // ==================================================================
+
+//                + ' | ' + '<a href="' + tweetUrl + '" target="_blank">' + 'tweet' + '</a>'
+
+
 configEvents.on("INIT_TWIT_FOR_DM_COMPLETE", function() {
-  var dmString = os.hostname() + "\nwordAssoServer\nPID: " + process.pid + "\nINITIALIZE CONFIGURATION COMPLETE";
+
+  var dmString = hostname 
+    + '\nSTARTED wordAssoServer'
+    + '\n' + getTimeStamp()
+    + '\nPID: ' + process.pid
+    + '\n' + 'http://threeceemedia.com';
+
   sendDirectMessage('threecee', dmString, function(err, res){
     if (!err) {
       console.log(chalkTwitter("SENT TWITTER DM: " + dmString));
@@ -6597,7 +6612,7 @@ configEvents.on("INIT_TWIT_FOR_DM_COMPLETE", function() {
 
 configEvents.on("UNKNOWN_SESSION", function(socketId) {
 
-  var dmString = os.hostname() + "\nwordAssoServer\nPID: " + process.pid + "\nUNKNOWN SESSION: " + socketId;
+  var dmString = hostname + "\nwordAssoServer\nPID: " + process.pid + "\nUNKNOWN SESSION: " + socketId;
 
   if (typeof directMessageHash[socketId] === 'undefined') {
 
@@ -6624,10 +6639,11 @@ configEvents.on("HASH_MISS", function(missObj) {
 
   console.log(chalkError("CONFIG EVENT - HASH_MISS\n" + jsonPrint(missObj)));
 
-  var dmString = os.hostname() 
-  + "\nwordAssoServer"
-  // + "\nPID: " + process.pid 
-  + "\nMISS: " + missObj.type + ": https://twitter.com/" + missObj.value;
+  var dmString = hostname
+  + ' | wordAssoServer'
+  + '\nMISS: ' + missObj.type.toUpperCase()
+  // + '\nhttps://twitter.com/' + missObj.value
+  + '\n@' + missObj.value;
 
   var sendDirectMessageHashKey = missObj.type + "-" + missObj.value;
 
@@ -6728,7 +6744,7 @@ configEvents.on("SERVER_READY", function() {
       heartbeatsSent++;
 
       txHeartbeat = {
-        serverHostName: os.hostname(),
+        serverHostName: hostname,
         timeStamp: getTimeNow(),
         startTime: startTime.valueOf(),
         upTime: upTime,

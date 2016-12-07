@@ -1394,6 +1394,17 @@ function ViewFlow() {
       // + jsonPrint(newNode)
     );
 
+    if (newNode.isTrendingTopic) {
+      console.error("TRENDING TOPIC NODE" 
+        + " | " + newNode.text
+        + " | " + newNode.raw
+        // + " | K: " + newNode.isKeyword
+        // + " | TT: " + newNode.isTrendingTopic
+        // + " | KWs: " + jsonPrint(newNode.keywords)
+        // + jsonPrint(newNode)
+      );
+    }
+
     if (newNode.x === 'undefined') newNode.x = 100;
     if (newNode.y === 'undefined') newNode.y = 100;
 

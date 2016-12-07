@@ -6625,9 +6625,9 @@ configEvents.on("HASH_MISS", function(missObj) {
   console.log(chalkError("CONFIG EVENT - HASH_MISS\n" + jsonPrint(missObj)));
 
   var dmString = os.hostname() 
-  + "\n wordAssoServer"
-  + "\nPID: " + process.pid 
-  + "\nMISS: " + missObj.type + " " + missObj.value;
+  + "\nwordAssoServer"
+  // + "\nPID: " + process.pid 
+  + "\nMISS: " + missObj.type + ": https://twitter.com/" + missObj.value;
 
   var sendDirectMessageHashKey = missObj.type + "-" + missObj.value;
 

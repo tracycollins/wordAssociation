@@ -16,6 +16,7 @@ var updater;
 
 var Twit = require('twit');
 var twit;
+var twitterStream;
 var twitterDirectMessageEnabled = false;
 
 var unirest = require('unirest');
@@ -5484,7 +5485,7 @@ var readUpdaterMessageQueue = setInterval(function() {
       case 'keyword':
         keywordHashMap.set(updaterObj.keyword, updaterObj.keyWordType);
         debug(chalkError("UPDATE KEYWORD\n" + jsonPrint(updaterObj)));
-        debug(chalkError("UPDATE KEYWORD | " + updaterObj.keyword));
+        if (updaterObj.twitter) console.log(chalkError("UPDATE KEYWORD | " + updaterObj.keyWordType + " | " + updaterObj.keyword));
         updaterMessageReady = true;
       break;
       default:
@@ -6113,6 +6114,41 @@ function initializeConfiguration(callback) {
               consumer_secret: twitterConfig.CONSUMER_SECRET,
               access_token: twitterConfig.TOKEN,
               access_token_secret: twitterConfig.TOKEN_SECRET
+            });
+
+            twitterStream = twit.stream('user');
+
+            twitterStream.on('direct_message', function (message) {
+              console.log(chalkTwitter("R< TWITTER DIRECT MESSAGE"
+                + " | " + message.direct_message.sender_screen_name
+                + " | " + message.direct_message.text
+                // + "\nMESSAGE\n" + jsonPrint(message)
+              ));
+
+              if (message.direct_message.sender_screen_name == 'threecee') {
+
+                if (message.direct_message.entities.hashtags.length > 0) {
+
+                  var hashtags = message.direct_message.entities.hashtags;
+
+                  var op = hashtags[0].text;
+
+                  switch (op) {
+                    case 'key':
+                      if (hashtags.length == 3) {
+                        var keyWordType = hashtags[1].text;
+                        var keyword = hashtags[2].text;
+                        console.log(chalkTwitter("ADD KEYWORD | " + keyWordType + " | " + keyword));
+                        updaterMessageQueue.enqueue({ twitter: true, type: 'keyword', keyword: keyword, keyWordType: keyWordType});
+                      }
+                     break;
+                    default:
+                      console.log(chalkTwitter("??? UNKNOWN DM OP: " + op));
+                    break;
+                  }
+                }
+
+              }
             });
 
             twit.get('account/settings', function(err, data, response) {

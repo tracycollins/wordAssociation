@@ -26,7 +26,7 @@ var debugWapi = require('debug')('wapi');
 var debugAppGet = require('debug')('appGet');
 
 var GROUP_UPDATE_INTERVAL = 60000;
-var saveStatsInterval = 60000; // millis
+var saveStatsInterval = 10000; // millis
 
 var MAX_RESPONSE_QUEUE_SIZE = 250;
 
@@ -144,7 +144,10 @@ var groupHashMap = new HashMap();
 var entityChannelGroupHashMap = new HashMap();
 
 var keywordHashMap = new HashMap();
+var serverKeywordHashMap = new HashMap(); // server specific keywords
 var topicHashMap = new HashMap();
+
+var serverKeywordsJsonObj = {};
 
 // ==================================================================
 // SERVER STATUS
@@ -543,6 +546,8 @@ console.log("DROPBOX_WORD_ASSO_ACCESS_TOKEN :" + DROPBOX_WORD_ASSO_ACCESS_TOKEN)
 console.log("DROPBOX_WORD_ASSO_APP_KEY :" + DROPBOX_WORD_ASSO_APP_KEY);
 console.log("DROPBOX_WORD_ASSO_APP_SECRET :" + DROPBOX_WORD_ASSO_APP_SECRET);
 
+var serverKeywordsFile = hostname + '_keywords.json';
+
 
 var dropboxClient = new Dropbox({ accessToken: DROPBOX_WORD_ASSO_ACCESS_TOKEN });
 
@@ -566,6 +571,35 @@ function loadYamlConfig(yamlFile, callback){
     }
   });
 }
+
+function saveFile (path, file, jsonObj, callback){
+
+  var fullPath = path + "/" + file;
+
+  console.log(chalkInfo("LOAD FOLDER " + path));
+  console.log(chalkInfo("LOAD FILE " + file));
+  console.log(chalkInfo("FULL PATH " + fullPath));
+
+  var options = {};
+
+  options.contents = JSON.stringify(jsonObj, null, 2);;
+  options.path = fullPath;
+  options.mode = "overwrite";
+  options.autorename = false;
+
+  dropboxClient.filesUpload(options)
+    .then(function(response){
+      debug(chalkLog("... SAVED DROPBOX JSON | " + options.path));
+      callback(null, response);
+    })
+    .catch(function(error){
+      console.error(chalkError(moment().format(defaultDateTimeFormat) 
+        + " | !!! ERROR DROBOX JSON WRITE | FILE: " + fullPath 
+        + " ERROR: " + error));
+      callback(error, null);
+    });
+}
+
 
 function dropboxWriteArrayToFile(filePath, dataArray, callback) {
 
@@ -924,13 +958,30 @@ function updateStatsInterval(statsFile, interval){
       wordCacheTtl: wordCacheTtl
     });
 
-    saveStats(statsFile, statsObj, function(status) {
-      if (status != 'OK') {
-        console.log("!!! ERROR: SAVE STATUS | FILE: " + statsFile + "\n" + status);
-      } else {
-        debug(chalkLog("SAVE STATUS OK | FILE: " + statsFile));
+    var hmKeys = serverKeywordHashMap.keys();
+
+    async.each(hmKeys, function(keyword, cb){
+      serverKeywordsJsonObj[keyword] = serverKeywordHashMap.get(keyword);
+      cb();
+    },
+      function(err){
+
+        saveFile("", serverKeywordsFile, serverKeywordsJsonObj, function(err, results){
+          if (err){
+            console.log(chalkError("SAVE SERVER KEYWORD FILE ERROR " + serverKeywordsFile 
+              + "\n" + jsonPrint(err)
+            ));
+          }
+          else {
+            console.log(chalkError("SAVE SERVER KEYWORD FILE " 
+              + serverKeywordsFile 
+              // + "\n" + jsonPrint(results)
+            ));
+          }
+        });
+
       }
-    });
+    );
 
   }, interval);
 }
@@ -5559,16 +5610,54 @@ var readUpdaterMessageQueue = setInterval(function() {
       break;
       case 'keywordRemove':
         keywordHashMap.remove(updaterObj.keyword);
+        serverKeywordHashMap.remove(updaterObj.keyword);
         console.log(chalkError("KEYWORD REMOVE: " + updaterObj.keyword));
         updaterMessageReady = true;
       break;
       case 'keyword':
-        keywordHashMap.set(updaterObj.keyword, updaterObj.keyWordType);
+
+        if ((typeof updaterObj.target !== 'undefined') && (updaterObj.target == 'server')) {
+          serverKeywordHashMap.set(updaterObj.keyword, updaterObj.keyWordType);
+          serverKeywordsJsonObj[updaterObj.keyword] = updaterObj.keyWordType;
+        }
+        else {
+          keywordHashMap.set(updaterObj.keyword, updaterObj.keyWordType);
+        }
 
         debug(chalkError("UPDATE KEYWORD\n" + jsonPrint(updaterObj)));
 
         if (updaterObj.twitter) {
-          
+
+          console.log(chalkAlert("UPDATE SERVER KEYWORD\n" + jsonPrint(updaterObj)));
+
+          serverKeywordHashMap.set(updaterObj.keyword, updaterObj.keyWordType);
+
+          var hmKeys = serverKeywordHashMap.keys();
+
+          async.each(hmKeys, function(keyword, cb){
+            serverKeywordsJsonObj[keyword] = serverKeywordHashMap.get(keyword);
+            cb();
+          },
+            function(err){
+
+              saveFile("", serverKeywordsFile, serverKeywordsJsonObj, function(err, results){
+                if (err){
+                  console.log(chalkError("SAVE SERVER KEYWORD FILE ERROR " + serverKeywordsFile 
+                    + "\n" + jsonPrint(err)
+                  ));
+                }
+                else {
+                  console.log(chalkError("SAVE SERVER KEYWORD FILE " 
+                    + serverKeywordsFile 
+                    // + "\n" + jsonPrint(results)
+                  ));
+                }
+              });
+
+            }
+          );
+
+
           keywordUpdateDb(updaterObj, function(err, updatedWordObj){
 
             var dmString = "UPDATE KEYWORD"
@@ -6021,6 +6110,7 @@ function keywordUpdateDb(keywordObj, callback){
   wordObj.keywords[keywordObj.keyWordType] = true;
 
   keywordHashMap.set(wordObj.nodeId, keywordObj.keyWordType);
+  serverKeywordHashMap.set(wordObj.nodeId, keywordObj.keyWordType);
 
   wordServer.findOneWord(wordObj, false, function(err, updatedWordObj) {
     if (err){
@@ -6041,7 +6131,8 @@ function keywordUpdateDb(keywordObj, callback){
   });
 }
 
-function initKeywords(file, callback){
+function initKeywords(file, kwHashMap, callback){
+
   loadDropboxJsonFile(file, function(err, kwordsObj){
 
     if (!err) {
@@ -6062,7 +6153,7 @@ function initKeywords(file, callback){
           wordObj.nodeId = wd;
           wordObj.isKeyword = true;
           wordObj.keywords[keyWordType] = true;
-          keywordHashMap.set(wordObj.nodeId, keyWordType);
+          kwHashMap.set(wordObj.nodeId, keyWordType);
 
           wordServer.findOneWord(wordObj, false, function(err, updatedWordObj) {
             if (err){
@@ -8357,6 +8448,7 @@ initializeConfiguration(function(err, results) {
     });
 
     updater.send({
+      folder: ".",
       groupsConfigFile: defaultDropboxGroupsConfigFile,
       entityChannelGroupsConfigFile: defaultDropboxEntityChannelGroupsConfigFile,
       keywordFile: defaultDropboxKeywordFile,

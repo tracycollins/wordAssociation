@@ -13,7 +13,8 @@ function ViewFlow() {
 
   var runningFlag = false;
   var updateNodeFlag = false;
-
+  var antonymFlag = false;
+  
   var groupCircleVisibility = "visible";
 
 
@@ -286,6 +287,13 @@ function ViewFlow() {
   self.setBlah = function(value){
     blahMode = value;
     console.log("BLAH: " + value);
+  }
+
+  self.setAntonym = function(ant){
+    antonymFlag = ant;
+    console.error("ANTONYM: " + antonymFlag);
+    if (antonymFlag){
+    }
   }
 
   self.setPause = function(value){
@@ -1150,6 +1158,7 @@ function ViewFlow() {
         if (d.isGroupNode) return d.totalWordChainIndex;
         if (d.isSessionNode) return d.wordChainIndex;
         if (!mouseMovingFlag && blahMode && !d.isKeyword) return "blah";
+        if (antonymFlag && d.antonym) { return '[' + d.antonym + ']';  }
         return d.raw.toUpperCase();
       })
       .attr("x", function(d) { return d.x; })

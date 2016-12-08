@@ -6606,6 +6606,15 @@ function updateGroupEntity(entityObj, callback){
     //   callback(null, updatedEntityObj);
     // }
     else {
+
+      console.log("updateGroupEntity updatedEntityObj\n" + jsonPrint(updatedEntityObj));
+
+      if (typeof updatedEntityObj.tags === 'undefined'){
+        updatedEntityObj.tags = {};
+        updatedEntityObj.tags.entity = entityObj.entityId;
+        updatedEntityObj.tags.name = entityObj.name;
+      } 
+
       entityUpdateDb(updatedEntityObj, function(err, updatedEntity2Obj){
         if (err){
           console.log(chalkError("ENTITY UPDATE DB ERROR: " + err));

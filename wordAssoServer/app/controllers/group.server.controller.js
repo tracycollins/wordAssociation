@@ -61,7 +61,7 @@ exports.findOneGroup = function(group, incMentions, callback) {
 				callback("ERROR " + err, null);
 			}
 			else {
-				debug(chalkDb("->- DB GROUP UPDATE" 
+				debug(chalkDb("->- DB GR" 
 					+ " | " + grp.groupId 
 					+ " | NAME: " + grp.name 
 					+ " | ENTITIES: " + grp.entities

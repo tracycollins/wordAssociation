@@ -75,6 +75,7 @@ var DEFAULT_NODE_RADIUS = 20.0;
 
 var config = {};
 
+config.pauseOnMouseMove = false;
 config.blahMode = DEFAULT_BLAH_MODE;
 config.antonymFlag = false;
 config.pauseFlag = false;
@@ -314,7 +315,7 @@ function resetMouseMoveTimer() {
 
     currentSessionView.toolTipVisibility(false);
 
-    if (!config.pauseFlag) currentSessionView.simulationControl('RESUME');
+    if (config.pauseOnMouseMove && !config.pauseFlag) currentSessionView.simulationControl('RESUME');
 
     if (!config.showStatsFlag && !pageLoadedTimeIntervalFlag) {
       displayInfo(false);
@@ -325,7 +326,7 @@ function resetMouseMoveTimer() {
 }
 
 document.addEventListener("mousemove", function() {
-  currentSessionView.simulationControl('PAUSE');
+  if (config.pauseOnMouseMove) currentSessionView.simulationControl('PAUSE');
   mouseMovingFlag = true;
   displayControl(true);
   displayInfo(true);

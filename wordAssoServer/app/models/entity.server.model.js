@@ -18,6 +18,9 @@ var EntitySchema = new Schema({
 	name: {
 		type: String
 	},
+	url: {
+		type: String
+	},
 	sessions: {  // number of sessions transmitted
 		type: Number,
 		default: 0

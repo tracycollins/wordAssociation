@@ -8033,7 +8033,9 @@ function initAppRouting(callback) {
 
   app.get('/', function(req, res) {
     debugAppGet("LOADING PAGE: /");
-    res.sendFile(__dirname + '/index.html');
+    debugAppGet("LOADING FILE: /sessionModular.html");
+    res.sendFile(__dirname + '/sessionModular.html');
+    // res.sendFile(__dirname + '/index.html');
     return;
   });
 

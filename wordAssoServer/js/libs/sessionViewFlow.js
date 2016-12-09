@@ -1187,8 +1187,8 @@ function ViewFlow() {
       .style('fill', function(d) { 
         if (d.mouseHoverFlag) { return palette.blue; }
         if (d.isKeyword) { return d.keywordColor; }
-        if ((d.isGroupNode || d.isSessionNode) && (d.ageMaxRatio < 0.01)) { return palette.white; }
-        return palette.darkgray; 
+        if ((d.isGroupNode || d.isSessionNode) && (d.ageMaxRatio < 0.01)) { return palette.yellow; }
+        return palette.lightgray; 
       })
       .style('opacity', function(d) { 
         if (d.mouseHoverFlag) { return 1.0; }

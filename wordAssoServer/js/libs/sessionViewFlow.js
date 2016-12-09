@@ -111,7 +111,7 @@ function ViewFlow() {
   var currentMaxMentions = 2;
 
   var minFontSize = 20;
-  var maxFontSize = 60;
+  var maxFontSize = 80;
 
 
   var D3_LAYOUT_WIDTH_RATIO = 1.0;
@@ -233,12 +233,19 @@ function ViewFlow() {
   var d3image = d3.select("#d3group");
 
   var svgcanvas = d3image.append("svg:svg")
-    .attr("id", "svgcanvas")
-    .attr("x", 0)
-    .attr("y", 0);
+    .attr("id", "svgcanvas");
+
+  // var svgcanvasBackground = svgcanvas.append("svg:rect")
+  //   .attr("id", "svgcanvasBackground")
+  //   .attr("x", 0)
+  //   .attr("y", 0)
+  //   .attr("width", width)
+  //   .attr("height", height)
+  //   .style("fill", palette.white);
 
   var svgFlowLayoutArea = svgcanvas.append("g")
-    .attr("id", "svgFlowLayoutArea");
+    .attr("id", "svgFlowLayoutArea")
+    .style("fill", palette.white);
 
   var linkSvgGroup = svgFlowLayoutArea.append("svg:g").attr("id", "linkSvgGroup");
 
@@ -1173,6 +1180,10 @@ function ViewFlow() {
         else if (d.isIgnored) { return nodeFontSizeScale(10) + "px";  }
         else { return nodeFontSizeScale(d.mentions + 1.1) + "px"; }
       })
+      .style("font-weight", function(d) {
+        if (d.isKeyword) return "bold";
+        return "normal";
+      })
       .style('fill', function(d) { 
         if (d.mouseHoverFlag) { return palette.blue; }
         if (d.isKeyword) { return d.keywordColor; }
@@ -1351,7 +1362,6 @@ function ViewFlow() {
     }
 
     self.toolTipVisibility(false);
-
   }
 
   function nodeClick(d) {
@@ -1546,6 +1556,10 @@ function ViewFlow() {
     svgcanvas
       .attr("width", SVGCANVAS_WIDTH_RATIO * window.innerWidth)
       .attr("height", SVGCANVAS_HEIGHT_RATIO * window.innerHeight);
+
+    // svgcanvasBackground
+    //   .attr("width", "100%")
+    //   .attr("height", "100%");
 
     svgFlowLayoutAreaWidth = d3LayoutWidth * FLOW_LAYOUT_WIDTH_RATIO;
     svgFlowLayoutAreaHeight = d3LayoutHeight * FLOW_LAYOUT_HEIGHT_RATIO;

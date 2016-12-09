@@ -542,11 +542,11 @@ function ViewFlow() {
               groupUpdateObj.group.node.fx = groupUpdateObj.group.node.x;
               // groupUpdateObj.group.node.fy = groupUpdateObj.group.node.y;
             }
-            console.log("ADD GROUP | " + groupUpdateObj.group.groupId);
+            // console.log("ADD GROUP | " + groupUpdateObj.group.groupId);
             groups.push(groupUpdateObj.group);
           break;
           case "delete":
-            console.warn("DEL GROUP | " + groupUpdateObj.groupId);
+            // console.warn("DEL GROUP | " + groupUpdateObj.groupId);
             deleteGroupQ(groupUpdateObj.groupId, function(err, deadGroupFlag){
               if (deadGroupFlag) groupsModifiedFlag = true;
             });
@@ -566,7 +566,7 @@ function ViewFlow() {
       switch (sessionUpdateObj.op) {
         case "add":
           sessionsModifiedFlag = true;
-          console.log("ADD SESSION | " + sessionUpdateObj.sessionId);
+          // console.log("ADD SESSION | " + sessionUpdateObj.sessionId);
           sessions.push(sessionUpdateObj.session);
         break;
         case "delete":
@@ -605,7 +605,7 @@ function ViewFlow() {
 
             nodeFontSizeScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minFontSize, maxFontSize]).clamp(true);
 
-            console.warn("NEW MAX MENTIONS" 
+            console.info("NEW MAX Ms" 
               + " | " + nodeUpdateObj.node.text 
               + " | I: " + nodeUpdateObj.node.isIgnored 
               + " | Ms " + currentMaxMentions 
@@ -1410,13 +1410,13 @@ function ViewFlow() {
 
     newNode.text = newNode.text.replace(/\&amp\;/gi, "&");
 
-    console.info("ADD NODE" 
-      + " | " + newNode.text
-      + " | K: " + newNode.isKeyword
-      + " | TT: " + newNode.isTrendingTopic
-      + " | KWs: " + jsonPrint(newNode.keywords)
-      // + jsonPrint(newNode)
-    );
+    // console.info("ADD NODE" 
+    //   + " | " + newNode.text
+    //   + " | K: " + newNode.isKeyword
+    //   + " | TT: " + newNode.isTrendingTopic
+    //   + " | KWs: " + jsonPrint(newNode.keywords)
+    //   // + jsonPrint(newNode)
+    // );
 
     if (newNode.isTrendingTopic) {
       console.error("TRENDING TOPIC NODE" 

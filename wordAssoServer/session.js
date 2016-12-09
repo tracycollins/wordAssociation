@@ -45,7 +45,7 @@ requirejs(["https://cdnjs.cloudflare.com/ajax/libs/d3/4.4.0/d3.min.js"], functio
   }
 );
 
-var DEFAULT_SESSION_VIEW = 'force';
+var DEFAULT_SESSION_VIEW = 'flow';
 var currentSessionView;
 
 var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";

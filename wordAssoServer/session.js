@@ -650,7 +650,7 @@ keywordColorHashMap.set("positive", palette.green);
 keywordColorHashMap.set("left", palette.blue);
 keywordColorHashMap.set("negative", palette.red);
 keywordColorHashMap.set("right", palette.red);
-keywordColorHashMap.set("neutral", palette.white);
+keywordColorHashMap.set("neutral", palette.black);
 
 
 var rxSessionUpdateQueue = [];

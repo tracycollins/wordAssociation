@@ -646,7 +646,7 @@ var ignoreWordHashMap = new HashMap();
 
 var keywordColorHashMap = new HashMap();
 
-keywordColorHashMap.set("positive", palette.lightgreen);
+keywordColorHashMap.set("positive", palette.green);
 keywordColorHashMap.set("left", palette.blue);
 keywordColorHashMap.set("negative", palette.red);
 keywordColorHashMap.set("right", palette.red);

@@ -707,7 +707,7 @@ var viewerObj = {
 
 var initialPositionIndex = 0;
 
-var initialXpositionRatio = 0.95;
+var initialXpositionRatio = 0.9;
 var initialYpositionRatio = 0.5;
 
 function computeInitialPosition(index) {

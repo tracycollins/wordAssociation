@@ -6735,7 +6735,7 @@ configEvents.on("TWITTER_FOLLOW", function(followEvent){
   var entityObj = new Entity();
 
   entityObj.entityId = followEvent.target.screen_name.toLowerCase();
-  entityObj.name = followEvent.target.name.toLowerCase();
+  entityObj.name = followEvent.target.name;
   entityObj.userId = followEvent.target.screen_name.toLowerCase();
   entityObj.groupId = entityObj.entityId;
   entityObj.screenName = entityObj.entityId;
@@ -6751,8 +6751,8 @@ configEvents.on("TWITTER_FOLLOW", function(followEvent){
 
       if (entityChannelGroupHashMap.has(entityObj.entityId)) {
 
-        entityObj.groupId = entityChannelGroupHashMap.get(entityObj.entityId).groupId;
-        entityObj.name = entityChannelGroupHashMap.get(entityObj.entityId).name;
+        // entityObj.groupId = entityChannelGroupHashMap.get(entityObj.entityId).groupId;
+        // entityObj.name = entityChannelGroupHashMap.get(entityObj.entityId).name;
 
         console.log(chalkRed("### ENTITY CHANNEL GROUP HASHMAP HIT"
           + " | " + entityObj.entityId
@@ -6814,7 +6814,7 @@ configEvents.on("TWITTER_FOLLOW", function(followEvent){
           groupObj.addChannelArray = [];
           groupObj.addChannelArray.push('twitter');
 
-          groupHashMap.set(groupObj.groupId, groupObj);
+          groupHashMap.set(entityObj.entityId, groupObj);
 
           cb(null, entityObj, groupObj);
 
@@ -6892,7 +6892,7 @@ configEvents.on("TWITTER_FOLLOW", function(followEvent){
           groupObj.addChannelArray = [];
           groupObj.addChannelArray.push('twitter');
 
-          groupHashMap.set(groupObj.groupId, groupObj);
+          groupHashMap.set(entityObj.entityId, groupObj);
 
           cb(null, entityObj, groupObj);
 

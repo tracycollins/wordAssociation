@@ -2663,6 +2663,22 @@ function initialize(callback) {
               currentSessionView.setNodeMaxAge(FORCE_MAX_AGE);
             }
 
+            if (config.sessionViewType == 'ticker') {
+              initIgnoreWordsHashMap(function() {
+                console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+              });
+            }
+            if (config.sessionViewType == 'flow') {
+              initIgnoreWordsHashMap(function() {
+                console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+              });
+            }
+            if (config.sessionViewType == 'histogram') {
+              initIgnoreWordsHashMap(function() {
+                console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+              });
+            }
+
             store.set('config', config);
 
             currentSessionView.simulationControl('START');
@@ -2687,7 +2703,7 @@ function initialize(callback) {
       } 
       else {
 
-        console.warn("DEFAULT_SESSION_VIEW");
+        console.warn("DEFAULT_SESSION_VIEW *");
 
         config.sessionViewType = DEFAULT_SESSION_VIEW;
 
@@ -2704,6 +2720,22 @@ function initialize(callback) {
           }
           if (config.sessionViewType == 'force') {
             currentSessionView.setNodeMaxAge(FORCE_MAX_AGE);
+          }
+
+          if (config.sessionViewType == 'ticker') {
+            initIgnoreWordsHashMap(function() {
+              console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+            });
+          }
+          if (config.sessionViewType == 'flow') {
+            initIgnoreWordsHashMap(function() {
+              console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+            });
+          }
+          if (config.sessionViewType == 'histogram') {
+            initIgnoreWordsHashMap(function() {
+              console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+            });
           }
 
           store.set('config', config);

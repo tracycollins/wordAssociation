@@ -1298,15 +1298,15 @@ socket.on("SESSION_UPDATE", function(rxSessionObject) {
           + " | T: " + rxObj.tags.trending
         );
       }
-      console.log("UID: " + rxObj.userId 
-        // + " | " + jsonPrint(rxObj.tags) 
-        + " | G: " + rxObj.tags.group.groupId
-        + " | E: " + rxObj.tags.entity
-        + " | C: " + rxObj.tags.channel
-        + " | " + rxObj.wordChainIndex 
-        + " | " + rxObj.source.nodeId 
-        + " > " + rxObj.target.nodeId
-      );
+      // console.log("UID: " + rxObj.userId 
+      //   // + " | " + jsonPrint(rxObj.tags) 
+      //   + " | G: " + rxObj.tags.group.groupId
+      //   + " | E: " + rxObj.tags.entity
+      //   + " | C: " + rxObj.tags.channel
+      //   + " | " + rxObj.wordChainIndex 
+      //   + " | " + rxObj.source.nodeId 
+      //   + " > " + rxObj.target.nodeId
+      // );
     }
   }
 });
@@ -1741,16 +1741,16 @@ var createSession = function(callback) {
 
       var currentSession = sessionHashMap.get(sessUpdate.nodeId);
 
-      console.info("UPDATE SESS" 
-        + " [" + sessUpdate.wordChainIndex + "]" 
-        // + " [" + sessUpdate.mentions + "]" 
-        + " | UID: " + sessUpdate.userId 
-        + " | ENT: " + sessUpdate.tags.entity 
-        + " | CH: " + sessUpdate.tags.channel 
-        + " | " + sessUpdate.source.nodeId 
-        + " > " + sessUpdate.target.nodeId
-        // + "\n" + jsonPrint(sessUpdate)
-      );
+      // console.info("UPDATE SESS" 
+      //   + " [" + sessUpdate.wordChainIndex + "]" 
+      //   // + " [" + sessUpdate.mentions + "]" 
+      //   + " | UID: " + sessUpdate.userId 
+      //   + " | ENT: " + sessUpdate.tags.entity 
+      //   + " | CH: " + sessUpdate.tags.channel 
+      //   + " | " + sessUpdate.source.nodeId 
+      //   + " > " + sessUpdate.target.nodeId
+      //   // + "\n" + jsonPrint(sessUpdate)
+      // );
 
       if (typeof currentSession.wordChainIndex === 'undefined'){
         console.error("*** currentSession.wordChainIndex UNDEFINED");
@@ -1948,18 +1948,32 @@ var createSession = function(callback) {
         currentSessionView.addNode(sesNode);
 
         addToHashMap(sessionHashMap, currentSession.nodeId, currentSession, function(cSession) {
-          console.log("\nNEW SESSION"
-            + "\nGRP: " + currentGroup.groupId
-            + "\nGRPN: " + currentGroup.name
-            + "\nUID: " + cSession.userId 
-            + "\nNID: " + cSession.nodeId 
-            + "\nSID: " + cSession.sessionId 
-            + "\nSNID: " + cSession.node.nodeId
-            + "\nLNID: " + cSession.latestNodeId
-            + "\nWCI:" + cSession.wordChainIndex 
-            + "\nM:" + cSession.mentions 
+          // console.log("\nNEW SESSION"
+          //   + "\nGRP: " + currentGroup.groupId
+          //   + "\nGRPN: " + currentGroup.name
+          //   + "\nUID: " + cSession.userId 
+          //   + "\nNID: " + cSession.nodeId 
+          //   + "\nSID: " + cSession.sessionId 
+          //   + "\nSNID: " + cSession.node.nodeId
+          //   + "\nLNID: " + cSession.latestNodeId
+          //   + "\nWCI:" + cSession.wordChainIndex 
+          //   + "\nM:" + cSession.mentions 
+          //   // + "\n" + jsonPrint(cSession) 
+          // );
+
+          console.log("NEW SESS"
+            + " | G: " + currentGroup.groupId
+            + " | GN: " + currentGroup.name
+            + " | UID: " + cSession.userId 
+            // + " | NID: " + cSession.nodeId 
+            // + "\nSID: " + cSession.sessionId 
+            // + "\nSNID: " + cSession.node.nodeId
+            // + "\nLNID: " + cSession.latestNodeId
+            // + "\nWCI:" + cSession.wordChainIndex 
+            + " | Ms:" + cSession.mentions 
             // + "\n" + jsonPrint(cSession) 
           );
+
           currentSessionView.addSession(cSession);
           nodeCreateQueue.push(cSession);
           return (callback(null, cSession.nodeId));
@@ -2064,10 +2078,10 @@ var createNode = function(callback) {
             console.debug("IGNORED SOURCE: " + sourceText);
           }
           if (session.source.isKeyword) {
-            console.info("KEYWORD SOURCE: " + sourceText + ": " + jsonPrint(session.source.keywords));
+            console.info("KEY S: " + sourceText);
           }
           if (session.source.isTrendingTopic) {
-            console.debug("TRENDING TOPIC SOURCE: " + sourceText + ": " + jsonPrint(session.source.isTrendingTopic));
+            console.debug("TT S: " + sourceText);
           }
           if ((config.sessionViewType != 'ticker') && (config.sessionViewType != 'flow') && session.source.isIgnored) {
             // if (ignoreWordHashMap.has(sourceText)) {
@@ -2194,10 +2208,11 @@ var createNode = function(callback) {
             console.debug("IGNORED TARGET: " + targetText);
           }
           if (session.target.isKeyword) {
-            console.info("KEYWORD TARGET: " + sourceText + ": " + jsonPrint(session.target.keywords));
+            // console.info("KEY T: " + sourceText + ": " + jsonPrint(session.target.keywords));
+            console.info("KEY T: " + sourceText);
           }
           if (session.target.isTrendingTopic) {
-            console.debug("TRENDING TOPIC TARGET: " + sourceText + ": " + jsonPrint(session.target.isTrendingTopic));
+            console.debug("TT T: " + sourceText);
           }
           if (typeof targetNodeId === 'undefined' || (config.sessionViewType == 'ticker') || (config.sessionViewType == 'flow')) {
           // if (typeof targetNodeId === 'undefined') {

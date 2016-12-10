@@ -10,6 +10,7 @@ var keywordsUpdateComplete = false;
 var updateComplete = groupsUpdateComplete && entitiesUpdateComplete && keywordsUpdateComplete;
 
 var serverHeartbeatInterval;
+var pollGetTwitterFriendsInterval;
 
 var cp = require('child_process');
 var updater;
@@ -973,7 +974,7 @@ function updateStatsInterval(statsFile, interval){
             ));
           }
           else {
-            console.log(chalkError("SAVE SERVER KEYWORD FILE " 
+            console.log(chalkInfo("SAVE SERVER KEYWORD FILE " 
               + serverKeywordsFile 
               // + "\n" + jsonPrint(results)
             ));
@@ -1081,7 +1082,7 @@ function updateEntityChannelGroups(configFile, callback){
 
             delete statsObj.entityChannelGroup.hashMiss[entityChannelId];
 
-            console.log(chalkRed("--- UPDATED ENTITY CHANNEL"
+            console.log(chalkInfo("--- UPDATED ENTITY CHANNEL"
               + " | ECID: " + entityChannelId
               + " | EGID: " + entityChannelGroupHashMap.get(entityChannelId).groupId
               + " | EGN: " + entityChannelGroupHashMap.get(entityChannelId).name
@@ -1089,12 +1090,16 @@ function updateEntityChannelGroups(configFile, callback){
             ));
 
             if (groupHashMap.has(entity.groupId)){
-              cb(null, "HIT");
+              cb(null, "ENTITY HIT: " + entityChannelId);
               return;
             }
             else if (!entity.groupId.match(hostname)) {
               statsObj.group.hashMiss[entity.groupId] = 1;
               statsObj.group.allHashMisses[entity.groupId] = 1;
+
+              console.log(chalkInfo("-0- GROUP HASHMAP MISS"
+                + " | " + entity.groupId
+              ));
 
               configEvents.emit("HASH_MISS", {type: "group", value: entity.groupId});
 
@@ -1116,14 +1121,20 @@ function updateEntityChannelGroups(configFile, callback){
             ));
 
             if (groupHashMap.has(entity.groupId)){
-              cb(null, "MISS");
+              cb(null, "ENTITY MISS: " + entityChannelId);
               return;
             }
             else if (!entity.groupId.match(hostname)) {
               statsObj.group.hashMiss[entity.groupId] = 1;
               statsObj.group.allHashMisses[entity.groupId] = 1;
+
+              console.log(chalkInfo("-1- GROUP HASHMAP MISS"
+                + " | " + entity.groupId
+              ));
+
               configEvents.emit("HASH_MISS", {type: "group", value: entity.groupId});
-              cb(err, "GROUP NOT FOUND: " + entity.groupId);
+
+              cb(err, "GROUP MISS: " + entity.groupId);
               return;
             }
           }
@@ -1230,6 +1241,7 @@ var dbUpdateSessionQueue = new Queue();
 var dbUpdateWordQueue = new Queue();
 var wapiSearchQueue = new Queue();
 var updaterMessageQueue = new Queue();
+var followerUpdateQueue = new Queue();
 
 var MAX_WORD_HASH_MAP_COUNT = 20;
 var wordArray = []; // used to keep wordHashMap.count() < MAX_WORD_HASH_MAP_COUNT
@@ -1762,7 +1774,7 @@ var readUpdateSessionViewQueue = setInterval(function() {
     var key = sessionUpdateObj.tags.entity + '_' + sessionUpdateObj.tags.channel;
 
     if (monitorHashMap[key] && sessionUpdateObj.action == "RESPONSE"){
-      console.log(chalkRed("R< M"
+      console.log(chalkInfo("R< M"
         + " | " + monitorHashMap[key].session.sessionId
         + " | " + sessionUpdateObj.source.nodeId
         + " | " + sessionUpdateObj.source.raw
@@ -2059,7 +2071,7 @@ function dbUpdateGroup(groupObj, incMentions, callback) {
       callback(err, groupObj);
     } else {
 
-      console.log(chalkRed("->- DB GR" 
+      console.log(chalkInfo("->- DB GR" 
         + " | " + group.groupId 
         + " | NAME: " + group.name 
         + " | CREATED: " + moment(group.createdAt).format(defaultDateTimeFormat)
@@ -2964,35 +2976,51 @@ function groupUpdateDb(userObj, callback){
       ));
 
       dbUpdateGroupQueue.enqueue(groupUpdateObj);
+
       callback(null, entityObj);
     }
-    else if ((typeof entityObj !== 'undefined') && (entityObj.groupId) && !entityObj.groupId.match(hostname)) {
+    else if (
+      (typeof entityObj !== 'undefined') 
+      && (entityObj.groupId) 
+      && !entityObj.groupId.match(hostname)) {
+
       console.log(chalkError("*** GROUP HASH MISS ... SKIPPING DB GROUP UPDATE"
         + " | GROUP HASH MISS"
+        + " | " + entityObj.groupId
         + " | " + userObj.tags.entity.toLowerCase()
       ));
+
       statsObj.group.hashMiss[entityObj.groupId] = 1;
       statsObj.group.allHashMisses[entityObj.groupId] = 1;
+
       configEvents.emit("HASH_MISS", {type: "group", value: entityObj.groupId});
+
       callback(null, entityObj);
     }
     else if (typeof entityObj === 'undefined') {
-      console.log(chalkError("*** ENTITY HASH MISS ... SKIPPING DB GROUP UPDATE"
+
+      console.log(chalkError("*0* ENTITY HASH MISS ... SKIPPING DB GROUP UPDATE"
         + " | ENTITY HASH MISS"
         + " | " + userObj.tags.entity.toLowerCase()
       ));
+
       statsObj.entityChannelGroup.hashMiss[userObj.tags.entity.toLowerCase()] = 1;
       statsObj.entityChannelGroup.allHashMisses[userObj.tags.entity.toLowerCase()] = 1;
+
       configEvents.emit("HASH_MISS", {type: "entity", value: userObj.tags.entity.toLowerCase()});
+
       callback(null, entityObj);
     }
   }
   else {
     userObj.groupId = userObj.tags.entity.toLowerCase();
+
     configEvents.emit("HASH_MISS", {type: "entity", value: userObj.tags.entity.toLowerCase()});
-    console.log(chalkError("*** ENTITY HASH MISS ... SKIPPING DB GROUP UPDATE"
+
+    console.log(chalkError("*1* ENTITY HASH MISS ... SKIPPING DB GROUP UPDATE"
       + " | " + userObj.tags.entity.toLowerCase()
     ));
+
     callback(null, entityObj);
   }  
 }
@@ -3318,18 +3346,18 @@ function userUpdateDb(userObj, callback) {
       } else {
         console.log(chalkUser(">>> USER UPDATED" 
           + " | " + us.userId 
-          + "\nNAME: " + us.name 
-          + "\nSN:   " + us.screenName 
-          + "\nNSP:  " + us.namespace 
-          + "\nIP:   " + us.ip 
-          + "\nDOM:  " + us.domain 
+          + " | N: " + us.name 
+          + " | SN:   " + us.screenName 
+          + " | NSP:  " + us.namespace 
+          + " | IP:   " + us.ip 
+          + " | DOM:  " + us.domain 
           + "\nSID:  " + us.sessionId
-          + "\nVER:  " + us.verified 
-          + "\nTAGS: " + jsonPrint(us.tags) 
-          + "\nLS:   " + getTimeStamp(us.lastSeen) 
-          + "\nSES:  " + us.sessions.length 
-          + "\nLSES: " + us.lastSession 
-          + "\nCON:  " + us.connected
+          + " | VER:  " + us.verified 
+          + " | LS:   " + getTimeStamp(us.lastSeen) 
+          + " | SES:  " + us.sessions.length 
+          + " | LSES: " + us.lastSession 
+          + " | CON:  " + us.connected
+          + " \nTAGS: " + jsonPrint(us.tags) 
         ));
         callback(null, us);
       }
@@ -4972,7 +5000,7 @@ function handleSessionEvent(sesObj, callback) {
 
       if (sesObj.session.config.mode == 'MUXSTREAM'){
 
-        console.log(chalkRed("MUXSTREAM"
+        console.log(chalkInfo("MUXSTREAM"
           + " | " + sesObj.session.sessionId
         ));
 
@@ -4982,7 +5010,7 @@ function handleSessionEvent(sesObj, callback) {
 
         sesObj.session.sessionId = sesObj.session.sessionId + "#" + sesObj.user.tags.entity;
 
-        console.log(chalkRed("SUBSTREAM"
+        console.log(chalkInfo("SUBSTREAM"
           + " | " + sesObj.session.sessionId
         ));
 
@@ -5039,7 +5067,7 @@ function handleSessionEvent(sesObj, callback) {
 
               updatedUserObj.isMuxed = true;
 
-              console.log(chalkRed("TX UTIL SESSION (UTIL READY): " + updatedUserObj.lastSession  + " | " + updatedUserObj.userId + " TO ADMIN NAMESPACE"));
+              console.log(chalkInfo("TX UTIL SESSION (UTIL READY): " + updatedUserObj.lastSession  + " | " + updatedUserObj.userId + " TO ADMIN NAMESPACE"));
               adminNameSpace.emit('UTIL_SESSION', updatedUserObj);
 
               io.of(sesObj.session.namespace).to(sesObj.session.sessionId).emit('USER_READY_ACK', updatedUserObj.userId);
@@ -5060,10 +5088,10 @@ function handleSessionEvent(sesObj, callback) {
                 }
                 else {
                   if (sesObj.session.config.type == 'USER') {
-                    console.log(chalkRed("TX USER SESSION (USER READY): " + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"));
+                    console.log(chalkInfo("TX USER SESSION (USER READY): " + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"));
                     adminNameSpace.emit('USER_SESSION', updatedUserObj);
                   } else if (sesObj.session.config.type == 'UTIL') {
-                    console.log(chalkRed("TX UTIL SESSION (UTIL READY): " + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"));
+                    console.log(chalkInfo("TX UTIL SESSION (UTIL READY): " + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"));
                     adminNameSpace.emit('UTIL_SESSION', updatedUserObj);
                   }
 
@@ -5532,7 +5560,7 @@ var readResponseQueue = setInterval(function() {
         entityChannelGroupHashMap.set(responseInObj.tags.entity, responseInObj.tags.group);
       }
 
-      console.log(chalkResponse("R<" 
+      console.log(chalkInfo("R<" 
         + " G: " + responseInObj.tags.group 
         // + " | U: " + currentSessionObj.userId
         + " E: " + responseInObj.tags.entity 
@@ -5577,41 +5605,41 @@ var readUpdaterMessageQueue = setInterval(function() {
 
     switch (updaterObj.type){
       case 'sendGroupsComplete':
-        console.log(chalkError("UPDATE GROUPS COMPLETE"));
+        console.log(chalkLog("UPDATE GROUPS COMPLETE"));
         updaterMessageReady = true;
         groupsUpdateComplete = true;
       break;
       case 'sendEntitiesComplete':
-        console.log(chalkError("UPDATE ENTITIES COMPLETE"));
+        console.log(chalkLog("UPDATE ENTITIES COMPLETE"));
         updaterMessageReady = true;
         entitiesUpdateComplete = true;
       break;
       case 'sendKeywordsComplete':
-        console.log(chalkError("UPDATE KEYWORDS COMPLETE"));
+        console.log(chalkLog("UPDATE KEYWORDS COMPLETE"));
         updaterMessageReady = true;
         keywordsUpdateComplete = true;
       break;
       case 'group':
         groupHashMap.set(updaterObj.groupId, updaterObj.group);
-        debug(chalkError("UPDATE GROUP\n" + jsonPrint(updaterObj)));
-        debug(chalkError("UPDATE GROUP | " + updaterObj.groupId));
+        debug(chalkLog("UPDATE GROUP\n" + jsonPrint(updaterObj)));
+        debug(chalkLog("UPDATE GROUP | " + updaterObj.groupId));
         updaterMessageReady = true;
       break;
       case 'entity':
         entityChannelGroupHashMap.set(updaterObj.entityId, updaterObj.entity);
-        debug(chalkError("UPDATE ENTITIY\n" + jsonPrint(updaterObj)));
-        debug(chalkError("UPDATE ENTITIY | " + updaterObj.entityId));
+        debug(chalkLog("UPDATE ENTITIY\n" + jsonPrint(updaterObj)));
+        debug(chalkLog("UPDATE ENTITIY | " + updaterObj.entityId));
         updaterMessageReady = true;
       break;
       case 'keywordHashMapClear':
         keywordHashMap.clear();
-        console.log(chalkError("KEYWORD HASHMAP CLEAR"));
+        console.log(chalkLog("KEYWORD HASHMAP CLEAR"));
         updaterMessageReady = true;
       break;
       case 'keywordRemove':
         keywordHashMap.remove(updaterObj.keyword);
         serverKeywordHashMap.remove(updaterObj.keyword);
-        console.log(chalkError("KEYWORD REMOVE: " + updaterObj.keyword));
+        console.log(chalkLog("KEYWORD REMOVE: " + updaterObj.keyword));
         updaterMessageReady = true;
       break;
       case 'keyword':
@@ -5628,7 +5656,7 @@ var readUpdaterMessageQueue = setInterval(function() {
 
         if (updaterObj.twitter) {
 
-          console.log(chalkAlert("UPDATE SERVER KEYWORD\n" + jsonPrint(updaterObj)));
+          console.log(chalkLog("UPDATE SERVER KEYWORD\n" + jsonPrint(updaterObj)));
 
           serverKeywordHashMap.set(updaterObj.keyword, updaterObj.keyWordType);
 
@@ -5647,7 +5675,7 @@ var readUpdaterMessageQueue = setInterval(function() {
                   ));
                 }
                 else {
-                  console.log(chalkError("SAVE SERVER KEYWORD FILE " 
+                  console.log(chalkLog("SAVE SERVER KEYWORD FILE " 
                     + serverKeywordsFile 
                     // + "\n" + jsonPrint(results)
                   ));
@@ -5665,11 +5693,11 @@ var readUpdaterMessageQueue = setInterval(function() {
               + "\n" + updatedWordObj.mentions + " Ms" 
               + "\n" + jsonPrint(updatedWordObj.keywords);
 
-            console.log(chalkError(dmString));
+            console.log(chalkLog(dmString));
 
             sendDirectMessage('threecee', dmString, function(err, res){
               if (!err) {
-                console.log(chalkTwitter("SENT TWITTER DM: " + dmString));
+                console.log(chalkLog("SENT TWITTER DM: " + dmString));
               }
               else {
                 switch (err.code) {
@@ -6099,6 +6127,98 @@ var generatePromptQueueInterval = setInterval(function() {
   }
 }, 50);
 
+
+var getTwitterFriendsInterval;
+
+function getTwitterFriends(callback){
+
+  var nextCursorValid = false;
+  var totalFriends = 0;
+  var nextCursor = false;
+  var count = 200;
+
+  var twitPromise;
+
+  clearInterval(getTwitterFriendsInterval);
+
+  getTwitterFriendsInterval = setInterval(function() {
+
+    var params = {};
+    params.count = count;
+    if (nextCursorValid) params.cursor = parseInt(nextCursor);
+
+    twitPromise = twit.get('friends/list', params, function(err, data, response){
+
+      if (err) {
+        console.log(chalkError("*** ERROR GET TWITTER FRIENDS: " + err));
+        clearInterval(getTwitterFriendsInterval);
+        return(callback(err, null));
+      }
+
+      nextCursor = data.next_cursor_str;
+
+      console.log(chalkRed("\nFRIENDS"
+        + " | COUNT: " + count
+        + " | TOTAL: " + totalFriends
+        + " | NEXT CURSOR VALID: " + nextCursorValid
+        + " | NEXT CURSOR: " + nextCursor
+        + "\nparams: " + jsonPrint(params)
+        // + "\ndata: " + jsonPrint(data)
+        // + "\nresponse: " + jsonPrint(response)
+      ));
+
+      var friends = data.users;
+      totalFriends += friends.length;
+
+      if (data.next_cursor_str > 0) {
+        nextCursorValid = true;
+      }
+      else {
+        nextCursorValid = false;
+      }
+
+      friends.forEach(function(friend){
+
+        console.log(chalkTwitter("FRIEND"
+          + "[" + totalFriends + "]"
+          + " " + friend.screen_name
+          + " | " + friend.name
+        ));
+
+        var entityObj = new Entity();
+
+        entityObj.entityId = friend.screen_name.toLowerCase();
+        entityObj.name = friend.name;
+        entityObj.userId = friend.screen_name.toLowerCase();
+        entityObj.groupId = entityObj.entityId;
+        entityObj.screenName = entityObj.entityId;
+        entityObj.url = friend.url;
+        entityObj.tags = {};
+        entityObj.tags.entity = entityObj.entityId;
+        entityObj.tags.channel = 'twitter';
+        entityObj.tags.mode = 'substream';
+        entityObj.tags.group = '';
+
+        followerUpdateQueue.enqueue(entityObj);
+
+      });
+
+      if (!nextCursorValid) {
+        console.log(chalkTwitter("END GET FRIENDS"
+          + "[" + totalFriends + "]"
+        ));
+        console.log("FRIENDS NEXT CURSOR: " + nextCursor);
+        clearInterval(getTwitterFriendsInterval);
+        return callback(err, totalFriends);
+      }
+
+    });
+
+  }, 15000);
+
+}
+
+
 function keywordUpdateDb(keywordObj, callback){
 
   console.log(chalkRed("UPDATING KEYWORD | " + keywordObj.keyword + ": " + keywordObj.keyWordType));
@@ -6349,14 +6469,45 @@ function initializeConfiguration(callback) {
               access_token_secret: twitterConfig.TOKEN_SECRET
             });
 
+            getTwitterFriends(function(err, totalFriends){});
+
+            pollGetTwitterFriendsInterval = setInterval(function(){
+              getTwitterFriends(function(err, totalFriends){
+                if (err) {
+                  console.log(chalkError("*** GET TWITTER FRIENDS ERROR: " + err));
+                }
+                else {
+                  console.log(chalkError("TWITTER FRIENDS: " + totalFriends));
+                }
+              });
+            }, ONE_MINUTE);
+
             twitterStream = twit.stream('user');
 
             twitterStream.on('follow', function(followEvent){
+
               debug(chalkTwitter("FOLLOW EVENT\n" + jsonPrint(followEvent)));
-              configEvents.emit("TWITTER_FOLLOW", followEvent);
+
+              var entityObj = new Entity();
+
+              entityObj.entityId = followEvent.target.screen_name.toLowerCase();
+              entityObj.name = followEvent.target.name;
+              entityObj.userId = followEvent.target.screen_name.toLowerCase();
+              entityObj.groupId = entityObj.entityId;
+              entityObj.screenName = entityObj.entityId;
+              entityObj.url = followEvent.target.url;
+              entityObj.tags = {};
+              entityObj.tags.entity = entityObj.entityId;
+              entityObj.tags.channel = 'twitter';
+              entityObj.tags.mode = 'substream';
+              entityObj.tags.group = '';
+
+              followerUpdateQueue.enqueue(entityObj);
+
             });
 
             twitterStream.on('direct_message', function (message) {
+
               console.log(chalkTwitter("R< TWITTER DIRECT MESSAGE"
                 + " | " + message.direct_message.sender_screen_name
                 + " | " + message.direct_message.text
@@ -6560,7 +6711,7 @@ sessionCache.on("expired", function(sessionId, sessionObj) {
   viewNameSpace.emit("SESSION_DELETE", sessionObj);
 
   debug("CACHE SESSION EXPIRED\n" + jsonPrint(sessionObj));
-  console.log(chalkRed("... CACHE SESS EXPIRED"
+  console.log(chalkInfo("... CACHE SESS EXPIRED"
     + " | " + sessionObj.sessionId 
     + " | NSP: " + sessionObj.namespace 
     + " | NOW: " + getTimeStamp() 
@@ -6631,7 +6782,7 @@ function updateTrends(){
           // + " | element\n" + jsonPrint(element)
         // ));
         element.trends.forEach(function(topic){
-          console.log(chalkError(
+          console.log(chalkInfo(
             topic.name
           ));
           trendingCache.set(topic.name, topic);
@@ -6658,7 +6809,7 @@ function updateTrends(){
           // + " | element\n" + jsonPrint(element)
         // ));
         element.trends.forEach(function(topic){
-          console.log(chalkError(
+          console.log(chalkInfo(
             topic.name
           ));
           trendingCache.set(topic.name, topic);
@@ -6666,6 +6817,200 @@ function updateTrends(){
       });
     }
   });
+}
+
+var followerUpdateQueueReady = true;
+
+function initFollowerUpdateQueueInterval(interval){
+
+  console.log(chalkInfo("INIT FOLLOWER UPDATE QUEUE INTERVAL: " + interval + " ms"));
+
+  setInterval(function () {
+
+    if (followerUpdateQueueReady && !followerUpdateQueue.isEmpty()) {
+
+      followerUpdateQueueReady = false;
+
+      var entityObj = followerUpdateQueue.dequeue();
+
+      console.log(chalkInfo("FOLLOWER"
+        + " [ Q: " + followerUpdateQueue.size() + "]"
+        + " | " + entityObj.screenName
+        + " | " + entityObj.name
+      ));
+
+      var groupObj = new Group();
+
+      async.waterfall([
+        function(cb){
+
+          if (entityChannelGroupHashMap.has(entityObj.entityId)) {
+
+            console.log(chalkInfo("### ENTITY CHANNEL GROUP HASHMAP HIT"
+              + " | " + entityObj.entityId
+              + " | " + entityObj.name
+              + " | GRP: " + entityObj.groupId
+            ));
+
+            if (groupHashMap.has(entityObj.groupId)) {
+
+              var group = groupHashMap.get(entityObj.groupId);
+
+              groupObj.groupId = group.groupId;
+              groupObj.name = group.name;
+              groupObj.colors = group.colors;
+              groupObj.tags.entity = entityObj.entityId;
+              groupObj.tags.channel = 'twitter';
+              groupObj.tags.mode = 'substream';
+
+              groupObj.addEntityArray = [];
+              groupObj.addEntityArray.push(entityObj.entityId);
+              groupObj.addChannelArray = [];
+              groupObj.addChannelArray.push('twitter');
+
+              console.log(chalkDb("GROUP HASH HIT"
+                + " | ENT: " + entityObj.entityId
+                + " | GRP: " + groupObj.groupId
+                + " | GRP NAME: " + groupObj.name
+                + " | +ENT: " + groupObj.addEntityArray
+                + " | +CH: " + groupObj.addChannelArray
+              ));
+
+              console.log(chalkInfo("### GROUP HASHMAP HIT"
+                + " | " + groupObj.groupId
+                + " | " + groupObj.name
+              ));
+
+              cb(null, entityObj, groupObj);
+            }
+            else {
+
+              console.log(chalkInfo("--- GROUP HASHMAP MISS"
+                + " | " + entityObj.entityId
+                + " | " + entityObj.name
+              ));
+
+              console.log(chalkInfo("+++ CREATING GROUP"
+                + " | NEW GROUP: " + entityObj.entityId
+                + " | " + entityObj.name
+              ));
+
+              groupObj.groupId = entityObj.entityId;
+              groupObj.name = entityObj.name;
+              groupObj.tags.entity = entityObj.entityId;
+              groupObj.tags.channel = 'twitter';
+              groupObj.tags.mode = 'substream';
+
+              groupObj.addEntityArray = [];
+              groupObj.addEntityArray.push(entityObj.entityId);
+              groupObj.addChannelArray = [];
+              groupObj.addChannelArray.push('twitter');
+
+              groupHashMap.set(entityObj.entityId, groupObj);
+
+              cb(null, entityObj, groupObj);
+
+            }
+          }
+          else {
+            console.log(chalkInfo("--- ENTITY CHANNEL GROUP HASHMAP MISS"
+              + " | " + entityObj.entityId
+              + " | " + entityObj.name
+            ));
+
+            console.log(chalkInfo("+++ CREATING ENTITY"
+              + " | NEW ENTITY: " + entityObj.entityId
+              + " | " + entityObj.name
+            ));
+
+            entityChannelGroupHashMap.set(entityObj.entityId, entityObj);
+
+            if (groupHashMap.has(entityObj.groupId)) {
+
+              var group = groupHashMap.get(entityObj.groupId);
+
+              entityObj.tags.group = group.groupId;
+
+              groupObj.groupId = group.groupId;
+              groupObj.name = group.name;
+              groupObj.colors = group.colors;
+              groupObj.tags.entity = entityObj.entityId;
+              groupObj.tags.channel = 'twitter';
+              groupObj.tags.mode = 'substream';
+
+              groupObj.addEntityArray = [];
+              groupObj.addEntityArray.push(entityObj.entityId);
+              groupObj.addChannelArray = [];
+              groupObj.addChannelArray.push('twitter');
+
+              console.log(chalkDb("GROUP HASH HIT"
+                + " | ENT: " + entityObj.entityId
+                + " | GRP: " + groupObj.groupId
+                + " | GRP NAME: " + groupObj.name
+                + " | +ENT: " + groupObj.addEntityArray
+                + " | +CH: " + groupObj.addChannelArray
+              ));
+
+              console.log(chalkInfo("### GROUP HASHMAP HIT"
+                + " | " + groupObj.groupId
+                + " | " + groupObj.name
+              ));
+
+              cb(null, entityObj, groupObj);
+
+            }
+            else {
+
+              console.log(chalkInfo("--- GROUP HASHMAP MISS"
+                + " | " + entityObj.entityId
+                + " | " + entityObj.name
+              ));
+
+              console.log(chalkInfo("+++ CREATING GROUP"
+                + " | NEW GROUP: " + entityObj.entityId
+                + " | " + entityObj.name
+              ));
+
+              entityObj.tags.group = entityObj.entityId;
+
+              groupObj.groupId = entityObj.entityId;
+              groupObj.name = entityObj.name;
+              groupObj.tags.entity = entityObj.entityId;
+              groupObj.tags.channel = 'twitter';
+              groupObj.tags.mode = 'substream';
+
+              groupObj.addEntityArray = [];
+              groupObj.addEntityArray.push(entityObj.entityId);
+              groupObj.addChannelArray = [];
+              groupObj.addChannelArray.push('twitter');
+
+              groupHashMap.set(entityObj.entityId, groupObj);
+
+              cb(null, entityObj, groupObj);
+
+            }
+          }
+
+        },
+        function(entityObj, groupObj, cb){
+
+          updateGroupEntity(entityObj, function(err, updatedEntityObj){
+            cb(err, updatedEntityObj);
+          });
+
+        }
+      ],
+        function(err, results){
+          debug(chalkTwitter("TWITTER_FOLLOW UPDATE COMPLETE"));
+
+          followerUpdateQueueReady = true;
+
+        }
+      );
+
+
+    }
+  }, interval);
 }
 
 function initUpdateTrendsInterval(interval){
@@ -6680,25 +7025,16 @@ function initUpdateTrendsInterval(interval){
 
 function updateGroupEntity(entityObj, callback){
 
-  console.log("updateGroupEntity\n" + jsonPrint(entityObj));
+  debug("updateGroupEntity\n" + jsonPrint(entityObj));
 
   groupUpdateDb(entityObj, function(err, updatedEntityObj){
     if (err){
       console.log(chalkError("GROUP UPDATE DB ERROR: " + err));
       callback(err, entityObj);
     }
-    // else if ((updatedEntityObj.tags.mode !== 'undefined') && (updatedEntityObj.tags.mode == 'substream')) {
-
-    //   updatedEntityObj.isMuxed = true;
-
-    //   console.log(chalkRed("TX UTIL SESSION (UTIL READY): " + updatedEntityObj.lastSession  + " | " + updatedEntityObj.userId + " TO ADMIN NAMESPACE"));
-    //   adminNameSpace.emit('UTIL_SESSION', updatedEntityObj);
-
-    //   callback(null, updatedEntityObj);
-    // }
     else {
 
-      console.log("updateGroupEntity updatedEntityObj\n" + jsonPrint(updatedEntityObj));
+      debug("updateGroupEntity updatedEntityObj\n" + jsonPrint(updatedEntityObj));
 
       if (typeof updatedEntityObj.tags === 'undefined'){
         updatedEntityObj.tags = {};
@@ -6712,7 +7048,7 @@ function updateGroupEntity(entityObj, callback){
           callback(err, updatedEntityObj);
         }
         else {
-          console.log(chalkRed("TX UTIL SESSION (UTIL READY): " + updatedEntity2Obj.lastSession + " TO ADMIN NAMESPACE"));
+          console.log(chalkInfo("TX UTIL SESSION (UTIL READY): " + updatedEntity2Obj.lastSession + " TO ADMIN NAMESPACE"));
           adminNameSpace.emit('UTIL_SESSION', updatedEntity2Obj);
           callback(null, updatedEntity2Obj);
         }
@@ -6723,195 +7059,181 @@ function updateGroupEntity(entityObj, callback){
   });
 }
 
-configEvents.on("TWITTER_FOLLOW", function(followEvent){
+configEvents.on("TWITTER_FOLLOW", function(entityObj){
 
-  console.log(chalkTwitter("TWITTER FOLLOW EVENT"
-    + " | " + followEvent.target.screen_name
-    + " | " + followEvent.target.name
-    // + "\n" + jsonPrint(followEvent)
+  console.log(chalkTwitter("TWITTER FOLLOW"
+    + " | " + entityObj.screenName
+    + " | " + entityObj.name
+    // + "\n" + jsonPrint(entityObj)
   ));
 
-  var groupObj = new Group();
-  var entityObj = new Entity();
+  // var groupObj = new Group();
 
-  entityObj.entityId = followEvent.target.screen_name.toLowerCase();
-  entityObj.name = followEvent.target.name;
-  entityObj.userId = followEvent.target.screen_name.toLowerCase();
-  entityObj.groupId = entityObj.entityId;
-  entityObj.screenName = entityObj.entityId;
-  entityObj.url = followEvent.target.url;
-  entityObj.tags = {};
-  entityObj.tags.entity = entityObj.entityId;
-  entityObj.tags.channel = 'twitter';
-  entityObj.tags.mode = 'substream';
-  entityObj.tags.group = '';
+  // async.waterfall([
+  //   function(cb){
 
-  async.waterfall([
-    function(cb){
+  //     if (entityChannelGroupHashMap.has(entityObj.entityId)) {
 
-      if (entityChannelGroupHashMap.has(entityObj.entityId)) {
+  //       console.log(chalkInfo("### ENTITY CHANNEL GROUP HASHMAP HIT"
+  //         + " | " + entityObj.entityId
+  //         + " | " + entityObj.name
+  //         + " | GRP: " + entityObj.groupId
+  //       ));
 
-        // entityObj.groupId = entityChannelGroupHashMap.get(entityObj.entityId).groupId;
-        // entityObj.name = entityChannelGroupHashMap.get(entityObj.entityId).name;
+  //       if (groupHashMap.has(entityObj.groupId)) {
 
-        console.log(chalkRed("### ENTITY CHANNEL GROUP HASHMAP HIT"
-          + " | " + entityObj.entityId
-          + " | " + entityObj.name
-          + " | GRP: " + entityObj.groupId
-        ));
+  //         var group = groupHashMap.get(entityObj.groupId);
 
-        if (groupHashMap.has(entityObj.groupId)) {
+  //         groupObj.groupId = group.groupId;
+  //         groupObj.name = group.name;
+  //         groupObj.colors = group.colors;
+  //         groupObj.tags.entity = entityObj.entityId;
+  //         groupObj.tags.channel = 'twitter';
+  //         groupObj.tags.mode = 'substream';
 
-          var group = groupHashMap.get(entityObj.groupId);
+  //         groupObj.addEntityArray = [];
+  //         groupObj.addEntityArray.push(entityObj.entityId);
+  //         groupObj.addChannelArray = [];
+  //         groupObj.addChannelArray.push('twitter');
 
-          groupObj.groupId = group.groupId;
-          groupObj.name = group.name;
-          groupObj.colors = group.colors;
-          groupObj.tags.entity = entityObj.entityId;
-          groupObj.tags.channel = 'twitter';
-          groupObj.tags.mode = 'substream';
+  //         console.log(chalkDb("GROUP HASH HIT"
+  //           + " | ENT: " + entityObj.entityId
+  //           + " | GRP: " + groupObj.groupId
+  //           + " | GRP NAME: " + groupObj.name
+  //           + " | +ENT: " + groupObj.addEntityArray
+  //           + " | +CH: " + groupObj.addChannelArray
+  //         ));
 
-          groupObj.addEntityArray = [];
-          groupObj.addEntityArray.push(entityObj.entityId);
-          groupObj.addChannelArray = [];
-          groupObj.addChannelArray.push('twitter');
+  //         console.log(chalkInfo("### GROUP HASHMAP HIT"
+  //           + " | " + groupObj.groupId
+  //           + " | " + groupObj.name
+  //         ));
 
-          console.log(chalkDb("GROUP HASH HIT"
-            + " | ENT: " + entityObj.entityId
-            + " | GRP: " + groupObj.groupId
-            + " | GRP NAME: " + groupObj.name
-            + " | +ENT: " + groupObj.addEntityArray
-            + " | +CH: " + groupObj.addChannelArray
-          ));
+  //         cb(null, entityObj, groupObj);
+  //       }
+  //       else {
 
-          console.log(chalkRed("### GROUP HASHMAP HIT"
-            + " | " + groupObj.groupId
-            + " | " + groupObj.name
-          ));
+  //         console.log(chalkInfo("--- GROUP HASHMAP MISS"
+  //           + " | " + entityObj.entityId
+  //           + " | " + entityObj.name
+  //         ));
 
-          cb(null, entityObj, groupObj);
-        }
-        else {
+  //         console.log(chalkInfo("+++ CREATING GROUP"
+  //           + " | NEW GROUP: " + entityObj.entityId
+  //           + " | " + entityObj.name
+  //         ));
 
-          console.log(chalkRed("--- GROUP HASHMAP MISS"
-            + " | " + entityObj.entityId
-            + " | " + entityObj.name
-          ));
+  //         groupObj.groupId = entityObj.entityId;
+  //         groupObj.name = entityObj.name;
+  //         groupObj.tags.entity = entityObj.entityId;
+  //         groupObj.tags.channel = 'twitter';
+  //         groupObj.tags.mode = 'substream';
 
-          console.log(chalkRed("+++ CREATING GROUP"
-            + " | NEW GROUP: " + entityObj.entityId
-            + " | " + entityObj.name
-          ));
+  //         groupObj.addEntityArray = [];
+  //         groupObj.addEntityArray.push(entityObj.entityId);
+  //         groupObj.addChannelArray = [];
+  //         groupObj.addChannelArray.push('twitter');
 
-          groupObj.groupId = entityObj.entityId;
-          groupObj.name = entityObj.name;
-          groupObj.tags.entity = entityObj.entityId;
-          groupObj.tags.channel = 'twitter';
-          groupObj.tags.mode = 'substream';
+  //         groupHashMap.set(entityObj.entityId, groupObj);
 
-          groupObj.addEntityArray = [];
-          groupObj.addEntityArray.push(entityObj.entityId);
-          groupObj.addChannelArray = [];
-          groupObj.addChannelArray.push('twitter');
+  //         cb(null, entityObj, groupObj);
 
-          groupHashMap.set(entityObj.entityId, groupObj);
+  //       }
+  //     }
+  //     else {
+  //       console.log(chalkInfo("--- ENTITY CHANNEL GROUP HASHMAP MISS"
+  //         + " | " + entityObj.entityId
+  //         + " | " + entityObj.name
+  //       ));
 
-          cb(null, entityObj, groupObj);
+  //       console.log(chalkInfo("+++ CREATING ENTITY"
+  //         + " | NEW ENTITY: " + entityObj.entityId
+  //         + " | " + entityObj.name
+  //       ));
 
-        }
-      }
-      else {
-        console.log(chalkRed("--- ENTITY CHANNEL GROUP HASHMAP MISS"
-          + " | " + entityObj.entityId
-          + " | " + entityObj.name
-        ));
+  //       entityChannelGroupHashMap.set(entityObj.entityId, entityObj);
 
-        console.log(chalkRed("+++ CREATING ENTITY"
-          + " | NEW ENTITY: " + entityObj.entityId
-          + " | " + entityObj.name
-        ));
+  //       if (groupHashMap.has(entityObj.groupId)) {
 
-        entityChannelGroupHashMap.set(entityObj.entityId, entityObj);
+  //         var group = groupHashMap.get(entityObj.groupId);
 
-        if (groupHashMap.has(entityObj.groupId)) {
+  //         entityObj.tags.group = group.groupId;
 
-          var group = groupHashMap.get(entityObj.groupId);
+  //         groupObj.groupId = group.groupId;
+  //         groupObj.name = group.name;
+  //         groupObj.colors = group.colors;
+  //         groupObj.tags.entity = entityObj.entityId;
+  //         groupObj.tags.channel = 'twitter';
+  //         groupObj.tags.mode = 'substream';
 
-          entityObj.tags.group = group.groupId;
+  //         groupObj.addEntityArray = [];
+  //         groupObj.addEntityArray.push(entityObj.entityId);
+  //         groupObj.addChannelArray = [];
+  //         groupObj.addChannelArray.push('twitter');
 
-          groupObj.groupId = group.groupId;
-          groupObj.name = group.name;
-          groupObj.colors = group.colors;
-          groupObj.tags.entity = entityObj.entityId;
-          groupObj.tags.channel = 'twitter';
-          groupObj.tags.mode = 'substream';
+  //         console.log(chalkDb("GROUP HASH HIT"
+  //           + " | ENT: " + entityObj.entityId
+  //           + " | GRP: " + groupObj.groupId
+  //           + " | GRP NAME: " + groupObj.name
+  //           + " | +ENT: " + groupObj.addEntityArray
+  //           + " | +CH: " + groupObj.addChannelArray
+  //         ));
 
-          groupObj.addEntityArray = [];
-          groupObj.addEntityArray.push(entityObj.entityId);
-          groupObj.addChannelArray = [];
-          groupObj.addChannelArray.push('twitter');
+  //         console.log(chalkInfo("### GROUP HASHMAP HIT"
+  //           + " | " + groupObj.groupId
+  //           + " | " + groupObj.name
+  //         ));
 
-          console.log(chalkDb("GROUP HASH HIT"
-            + " | ENT: " + entityObj.entityId
-            + " | GRP: " + groupObj.groupId
-            + " | GRP NAME: " + groupObj.name
-            + " | +ENT: " + groupObj.addEntityArray
-            + " | +CH: " + groupObj.addChannelArray
-          ));
+  //         cb(null, entityObj, groupObj);
 
-          console.log(chalkRed("### GROUP HASHMAP HIT"
-            + " | " + groupObj.groupId
-            + " | " + groupObj.name
-          ));
+  //       }
+  //       else {
 
-          cb(null, entityObj, groupObj);
+  //         console.log(chalkInfo("--- GROUP HASHMAP MISS"
+  //           + " | " + entityObj.entityId
+  //           + " | " + entityObj.name
+  //         ));
 
-        }
-        else {
+  //         console.log(chalkInfo("+++ CREATING GROUP"
+  //           + " | NEW GROUP: " + entityObj.entityId
+  //           + " | " + entityObj.name
+  //         ));
 
-          console.log(chalkRed("--- GROUP HASHMAP MISS"
-            + " | " + entityObj.entityId
-            + " | " + entityObj.name
-          ));
+  //         entityObj.tags.group = entityObj.entityId;
 
-          console.log(chalkRed("+++ CREATING GROUP"
-            + " | NEW GROUP: " + entityObj.entityId
-            + " | " + entityObj.name
-          ));
+  //         groupObj.groupId = entityObj.entityId;
+  //         groupObj.name = entityObj.name;
+  //         groupObj.tags.entity = entityObj.entityId;
+  //         groupObj.tags.channel = 'twitter';
+  //         groupObj.tags.mode = 'substream';
 
-          entityObj.tags.group = entityObj.entityId;
+  //         groupObj.addEntityArray = [];
+  //         groupObj.addEntityArray.push(entityObj.entityId);
+  //         groupObj.addChannelArray = [];
+  //         groupObj.addChannelArray.push('twitter');
 
-          groupObj.groupId = entityObj.entityId;
-          groupObj.name = entityObj.name;
-          groupObj.tags.entity = entityObj.entityId;
-          groupObj.tags.channel = 'twitter';
-          groupObj.tags.mode = 'substream';
+  //         groupHashMap.set(entityObj.entityId, groupObj);
 
-          groupObj.addEntityArray = [];
-          groupObj.addEntityArray.push(entityObj.entityId);
-          groupObj.addChannelArray = [];
-          groupObj.addChannelArray.push('twitter');
+  //         cb(null, entityObj, groupObj);
 
-          groupHashMap.set(entityObj.entityId, groupObj);
+  //       }
+  //     }
 
-          cb(null, entityObj, groupObj);
+  //   },
+  //   function(entityObj, groupObj, cb){
 
-        }
-      }
+  //     updateGroupEntity(entityObj, function(err, updatedEntityObj){
+  //       cb(err, updatedEntityObj);
+  //     });
 
-    },
-    function(entityObj, groupObj, cb){
+  //   }
+  // ],
+  //   function(err, results){
+  //     console.log(chalkTwitter("TWITTER_FOLLOW UPDATE COMPLETE"));
+  //   }
+  // );
 
-      updateGroupEntity(entityObj, function(err, updatedEntityObj){
-        cb(err, updatedEntityObj);
-      });
 
-    }
-  ],
-    function(err, results){
-      console.log(chalkTwitter("TWITTER_FOLLOW UPDATE COMPLETE"));
-    }
-  );
 });
 
 configEvents.on("INIT_TWIT_FOR_DM_COMPLETE", function() {
@@ -7522,14 +7844,14 @@ function createSession(newSessionObj) {
         }
 
         if (i == tagKeys) {
-          console.log(chalkRed("SESSION_KEEPALIVE createSession"));
+          console.log(chalkInfo("SESSION_KEEPALIVE createSession"));
           createSession(sessionObj);
           return;
         }
 
       }
       else {
-        console.log(chalkRed("SESSION_KEEPALIVE createSession"));
+        console.log(chalkInfo("SESSION_KEEPALIVE createSession"));
         createSession(sessionObj);
         return;
        }
@@ -7605,7 +7927,7 @@ function createSession(newSessionObj) {
 
             delete statsObj.entityChannelGroup.hashMiss[sessionObj.tags.entity];
 
-            console.log(chalkRed("### ENTITY CHANNEL GROUP HASHMAP HIT"
+            console.log(chalkInfo("### ENTITY CHANNEL GROUP HASHMAP HIT"
               + " | " + sessionObj.tags.entity
               + " > " + entityChannelGroupHashMap.get(sessionObj.tags.entity).groupId
             ));
@@ -7613,7 +7935,7 @@ function createSession(newSessionObj) {
           else {
             statsObj.entityChannelGroup.hashMiss[sessionObj.tags.entity] = 1;
             statsObj.entityChannelGroup.allHashMisses[sessionObj.tags.entity] = 1;
-            console.log(chalkRed("--- ENTITY CHANNEL GROUP HASHMAP MISS"
+            console.log(chalkInfo("-0- ENTITY CHANNEL GROUP HASHMAP MISS"
               + " | " + sessionObj.tags.entity
               // + "\n" + jsonPrint(statsObj.entityChannelGroup.hashMiss)
             ));
@@ -8212,24 +8534,24 @@ function initAppRouting(callback) {
     return;
   });
 
-  app.get('/js/libs/SpriteText2D.js', function(req, res) {
-    debugAppGet("LOADING FILE: SpriteText2D.js");
-    res.sendFile(__dirname + '/js/libs/SpriteText2D.js');
-    return;
-  });
+  // app.get('/js/libs/SpriteText2D.js', function(req, res) {
+  //   debugAppGet("LOADING FILE: SpriteText2D.js");
+  //   res.sendFile(__dirname + '/js/libs/SpriteText2D.js');
+  //   return;
+  // });
 
-  app.get('/js/libs/three-text2d.js', function(req, res) {
-    debugAppGet("LOADING FILE: three-text2d.js");
-    res.sendFile(__dirname + '/js/libs/three-text2d.js');
-    return;
-  });
+  // app.get('/js/libs/three-text2d.js', function(req, res) {
+  //   debugAppGet("LOADING FILE: three-text2d.js");
+  //   res.sendFile(__dirname + '/js/libs/three-text2d.js');
+  //   return;
+  // });
 
 
-  app.get('/js/libs/three.min.js', function(req, res) {
-    debugAppGet("LOADING FILE: three.min.js");
-    res.sendFile(__dirname + '/js/libs/three.min.js');
-    return;
-  });
+  // app.get('/js/libs/three.min.js', function(req, res) {
+  //   debugAppGet("LOADING FILE: three.min.js");
+  //   res.sendFile(__dirname + '/js/libs/three.min.js');
+  //   return;
+  // });
 
   app.get('/css/main.css', function(req, res) {
     res.sendFile(__dirname + '/css/main.css');
@@ -8318,7 +8640,7 @@ function wapiSearch(word, variation, callback){
 
     debugWapi(chalkWapi("WAPI RESPONSE\n" + jsonPrint(response.headers)));
 
-    if (response.headers['x-ratelimit-requests-limit']){
+    if (typeof response.headers['x-ratelimit-requests-limit'] !== 'undefined'){
       statsObj.wapi.requestLimit = parseInt(response.headers['x-ratelimit-requests-limit']);
       statsObj.wapi.requestsRemaining = parseInt(response.headers['x-ratelimit-requests-remaining']);
       if (statsObj.wapi.requestsRemaining > 0) {
@@ -8441,6 +8763,7 @@ initializeConfiguration(function(err, results) {
 
     updateTrends();
     initUpdateTrendsInterval(ONE_MINUTE);
+    initFollowerUpdateQueueInterval(100);
 
     updater = cp.fork(`${__dirname}/js/libs/updateGroupsEntitiesChannels.js`);
 

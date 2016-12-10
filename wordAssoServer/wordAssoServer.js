@@ -142,12 +142,16 @@ var EventEmitter2 = require('eventemitter2').EventEmitter2;
 var EventEmitter = require("events").EventEmitter;
 
 var groupHashMap = new HashMap();
+var serverGroupHashMap = new HashMap(); // server specific keywords
+
 var entityChannelGroupHashMap = new HashMap();
+var serverEntityChannelGroupHashMap = new HashMap();
 
 var keywordHashMap = new HashMap();
 var serverKeywordHashMap = new HashMap(); // server specific keywords
 var topicHashMap = new HashMap();
 
+var serverGroupsJsonObj = {};
 var serverKeywordsJsonObj = {};
 
 // ==================================================================
@@ -547,8 +551,9 @@ console.log("DROPBOX_WORD_ASSO_ACCESS_TOKEN :" + DROPBOX_WORD_ASSO_ACCESS_TOKEN)
 console.log("DROPBOX_WORD_ASSO_APP_KEY :" + DROPBOX_WORD_ASSO_APP_KEY);
 console.log("DROPBOX_WORD_ASSO_APP_SECRET :" + DROPBOX_WORD_ASSO_APP_SECRET);
 
+var serverGroupsFile = hostname + '_groups.json';
+var serverEntitiesFile = hostname + '_entities.json';
 var serverKeywordsFile = hostname + '_keywords.json';
-
 
 var dropboxClient = new Dropbox({ accessToken: DROPBOX_WORD_ASSO_ACCESS_TOKEN });
 
@@ -958,6 +963,31 @@ function updateStatsInterval(statsFile, interval){
       wordCacheMisses: wordCache.getStats().misses,
       wordCacheTtl: wordCacheTtl
     });
+
+    var gKeys = serverGroupHashMap.keys();
+
+    async.each(gKeys, function(groupId, cb){
+      serverGroupsJsonObj[groupId] = serverGroupHashMap.get(groupId);
+      cb();
+    },
+      function(err){
+
+        saveFile("", serverGroupsFile, serverGroupsJsonObj, function(err, results){
+          if (err){
+            console.log(chalkError("SAVE SERVER GROUP FILE ERROR " + serverGroupsFile 
+              + "\n" + jsonPrint(err)
+            ));
+          }
+          else {
+            console.log(chalkInfo("SAVE SERVER GROUP FILE " 
+              + serverGroupsFile 
+              // + "\n" + jsonPrint(results)
+            ));
+          }
+        });
+
+      }
+    );
 
     var hmKeys = serverKeywordHashMap.keys();
 
@@ -5609,39 +5639,56 @@ var readUpdaterMessageQueue = setInterval(function() {
         updaterMessageReady = true;
         groupsUpdateComplete = true;
       break;
+
       case 'sendEntitiesComplete':
         console.log(chalkLog("UPDATE ENTITIES COMPLETE"));
         updaterMessageReady = true;
         entitiesUpdateComplete = true;
       break;
+
       case 'sendKeywordsComplete':
         console.log(chalkLog("UPDATE KEYWORDS COMPLETE"));
         updaterMessageReady = true;
         keywordsUpdateComplete = true;
       break;
+
       case 'group':
-        groupHashMap.set(updaterObj.groupId, updaterObj.group);
+
+        if ((typeof updaterObj.target !== 'undefined') && (updaterObj.target == 'server')) {
+          console.log(chalkRed("UPDATER GROUP\n" + jsonPrint(updaterObj)));
+          serverGroupHashMap.set(updaterObj.groupId, updaterObj.group);
+          serverGroupsJsonObj[updaterObj.groupId] = updaterObj.group;
+        }
+        else {
+          groupHashMap.set(updaterObj.groupId, updaterObj.group);
+        }
+
         debug(chalkLog("UPDATE GROUP\n" + jsonPrint(updaterObj)));
         debug(chalkLog("UPDATE GROUP | " + updaterObj.groupId));
         updaterMessageReady = true;
+
       break;
+
       case 'entity':
         entityChannelGroupHashMap.set(updaterObj.entityId, updaterObj.entity);
         debug(chalkLog("UPDATE ENTITIY\n" + jsonPrint(updaterObj)));
         debug(chalkLog("UPDATE ENTITIY | " + updaterObj.entityId));
         updaterMessageReady = true;
       break;
+
       case 'keywordHashMapClear':
         keywordHashMap.clear();
         console.log(chalkLog("KEYWORD HASHMAP CLEAR"));
         updaterMessageReady = true;
       break;
+
       case 'keywordRemove':
         keywordHashMap.remove(updaterObj.keyword);
         serverKeywordHashMap.remove(updaterObj.keyword);
         console.log(chalkLog("KEYWORD REMOVE: " + updaterObj.keyword));
         updaterMessageReady = true;
       break;
+
       case 'keyword':
 
         if ((typeof updaterObj.target !== 'undefined') && (updaterObj.target == 'server')) {
@@ -6135,7 +6182,7 @@ function getTwitterFriends(callback){
   var nextCursorValid = false;
   var totalFriends = 0;
   var nextCursor = false;
-  var count = 200;
+  var count = 250;
 
   var twitPromise;
 
@@ -6168,7 +6215,6 @@ function getTwitterFriends(callback){
       ));
 
       var friends = data.users;
-      totalFriends += friends.length;
 
       if (data.next_cursor_str > 0) {
         nextCursorValid = true;
@@ -6178,6 +6224,8 @@ function getTwitterFriends(callback){
       }
 
       friends.forEach(function(friend){
+
+        totalFriends++;
 
         console.log(chalkTwitter("FRIEND"
           + "[" + totalFriends + "]"
@@ -6214,7 +6262,7 @@ function getTwitterFriends(callback){
 
     });
 
-  }, 15000);
+  }, 1000);
 
 }
 
@@ -6523,6 +6571,7 @@ function initializeConfiguration(callback) {
                   var op = hashtags[0].text;
 
                   switch (op) {
+                    case 'k':
                     case 'key':
                       if (hashtags.length == 3) {
                         var keyWordType = hashtags[1].text;
@@ -6907,6 +6956,7 @@ function initFollowerUpdateQueueInterval(interval){
               groupObj.addChannelArray.push('twitter');
 
               groupHashMap.set(entityObj.entityId, groupObj);
+              serverGroupHashMap.set(entityObj.entityId, groupObj);
 
               cb(null, entityObj, groupObj);
 
@@ -6924,6 +6974,7 @@ function initFollowerUpdateQueueInterval(interval){
             ));
 
             entityChannelGroupHashMap.set(entityObj.entityId, entityObj);
+            serverEntityChannelGroupHashMap.set(entityObj.entityId, entityObj);
 
             if (groupHashMap.has(entityObj.groupId)) {
 
@@ -6985,6 +7036,7 @@ function initFollowerUpdateQueueInterval(interval){
               groupObj.addChannelArray.push('twitter');
 
               groupHashMap.set(entityObj.entityId, groupObj);
+              serverGroupHashMap.set(entityObj.entityId, groupObj);
 
               cb(null, entityObj, groupObj);
 
@@ -8195,7 +8247,7 @@ function loadConfig(file, callback){
   dropboxClient.readFile(file, function(err, configJson) {
 
     if (err) {
-      console.error(chalkError("!!! DROPBOX READ " + file + " ERROR"));
+      console.error(chalkError("!!! DROPBOX READ " + file + " ERROR: " + err.error));
       debug(chalkError(jsonPrint(err)));
       return(callback(err, null));
     }

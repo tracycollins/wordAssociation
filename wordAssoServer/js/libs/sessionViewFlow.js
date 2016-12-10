@@ -1164,7 +1164,7 @@ function ViewFlow() {
         d.textLength = this.getComputedTextLength();
         if (d.isGroupNode) return d.totalWordChainIndex;
         if (d.isSessionNode) return d.wordChainIndex;
-        if (!mouseMovingFlag && blahMode && !d.isKeyword && !d.isCurrency && !d.isNumber) return "blah";
+        if (!mouseMovingFlag && blahMode && !d.isKeyword && !d.isCurrency && !d.isNumber && !d.isTrendingTopic) return "blah";
         if (antonymFlag && d.antonym) { return '[' + d.antonym + ']';  }
         return d.raw.toUpperCase();
       })
@@ -1177,15 +1177,21 @@ function ViewFlow() {
       .style("font-size", function(d) {
         if (d.isGroupNode) { return sessionFontSizeScale(d.totalWordChainIndex + 1.1) + "px";  }
         else if (d.isSessionNode) { return sessionFontSizeScale(d.wordChainIndex + 1.1) + "px";  }
+        else if (d.isTrendingTopic) { return nodeFontSizeScale(1.5*d.mentions + 1.1) + "px"; }
         else if (d.isIgnored) { return nodeFontSizeScale(10) + "px";  }
         else { return nodeFontSizeScale(d.mentions + 1.1) + "px"; }
       })
       .style("font-weight", function(d) {
-        if (d.isKeyword || d.isNumber || d.isCurrency) return "bold";
+        if (d.isKeyword || d.isNumber || d.isCurrency || d.isTrendingTopic) return "bold";
         return "normal";
+      })
+      .style("text-decoration", function(d) {
+        if (d.isTrendingTopic) return "underline";
+        return "none";
       })
       .style('fill', function(d) { 
         if (d.mouseHoverFlag) { return palette.blue; }
+        if (d.isTrendingTopic) { return palette.orange; }
         if (d.isKeyword) { return d.keywordColor; }
         if (d.isNumber || d.isCurrency) { return palette.black; }
         if ((d.isGroupNode || d.isSessionNode) && (d.ageMaxRatio < 0.01)) { return palette.yellow; }
@@ -1448,7 +1454,7 @@ function ViewFlow() {
     // );
 
     if (newNode.isTrendingTopic) {
-      console.error("TRENDING TOPIC NODE" 
+      console.debug("TRENDING TOPIC NODE" 
         + " | " + newNode.text
         + " | " + newNode.raw
         // + " | K: " + newNode.isKeyword

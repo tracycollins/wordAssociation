@@ -33,6 +33,7 @@ requirejs(["https://cdnjs.cloudflare.com/ajax/libs/d3/4.4.0/d3.min.js"], functio
     initialize(function(){
       initializedFlag = true;
       addControlButton();
+      addBlahButton();
       if (!config.pauseFlag) currentSessionView.simulationControl('RESUME');
     });
   },
@@ -385,6 +386,7 @@ function setMaxAgeSliderValue(value) {
 var controlPanelWindow; 
 var controlPanelFlag = false;
 
+
 window.onbeforeunload = function() {
   controlPanelFlag = false;
   controlPanelWindow.close();
@@ -439,6 +441,21 @@ function addControlButton(){
   controlPanelButton.setAttribute('onclick', 'toggleControlPanel()');
   controlPanelButton.innerHTML = controlPanelFlag ? 'HIDE CONTROL' : 'SHOW CONTROL';
   controlDiv.appendChild(controlPanelButton);
+}
+
+function updateBlahButton(){
+  var bButton = document.getElementById('blahButton');
+  bButton.innerHTML = config.blahMode ? 'HIDE BLAH' : 'SHOW BLAH';
+}
+
+function addBlahButton(){
+  var controlDiv = document.getElementById('controlDiv');
+  var blahButton = document.createElement("BUTTON");
+  blahButton.className = 'button';
+  blahButton.setAttribute('id', 'blahButton');
+  blahButton.setAttribute('onclick', 'toggleBlah()');
+  blahButton.innerHTML = config.blahMode ? 'HIDE BLAH' : 'SHOW BLAH';
+  controlDiv.appendChild(blahButton);
 }
 
 
@@ -566,7 +583,8 @@ function toggleBlah() {
   config.blahMode = !config.blahMode;
   currentSessionView.setBlah(config.blahMode);
   console.warn("TOGGLE BLAH: " + config.blahMode);
-  controlPanel.updateControlPanel(config);
+  updateBlahButton();
+  if (controlPanelFlag) controlPanel.updateControlPanel(config);
 }
 
 function toggleAntonym() {

@@ -40,6 +40,8 @@ var internetReady = false;
 var minServerResponseTime = 247;
 var maxServerResponseTime = 1447;
 
+var pollTwitterFriendsIntervalTime = 5*ONE_MINUTE;
+
 var TRENDING_CACHE_DEFAULT_TTL = 300; // seconds
 var GROUP_CACHE_DEFAULT_TTL = 300; // seconds
 var ENTITY_CACHE_DEFAULT_TTL = 300; // seconds
@@ -6528,7 +6530,7 @@ function initializeConfiguration(callback) {
                   console.log(chalkError("TWITTER FRIENDS: " + totalFriends));
                 }
               });
-            }, ONE_MINUTE);
+            }, pollTwitterFriendsIntervalTime);
 
             twitterStream = twit.stream('user');
 

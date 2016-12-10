@@ -510,7 +510,7 @@ function sendGroups(callback){
 
       setTimeout(function(){
         process.send({ type: 'group', groupId: groupId, group: groupObj});
-        console.log(chalkInfo("UPDATER SENT GROUP"
+        debug(chalkInfo("UPDATER SENT GROUP"
           + " | " + groupId
         ));
 
@@ -538,7 +538,7 @@ function sendGroups(callback){
                 group: group
               });
 
-              console.log(chalkInfo("UPDATER SENT GROUP"
+              debug(chalkInfo("UPDATER SENT GROUP"
                 + " | SERVER"
                 + " | " + groupId
               ));
@@ -577,7 +577,7 @@ function sendEntities(callback){
 
       setTimeout(function(){
         process.send({ type: 'entity', entityId: entityId, entity: entityObj});
-        console.log(chalkInfo("UPDATER SENT ENTITY"
+        debug(chalkInfo("UPDATER SENT ENTITY"
           + " | " + entityId
         ));
 
@@ -605,7 +605,7 @@ function sendEntities(callback){
                 entityId: entityId, 
                 entity: entity
               });
-              console.log(chalkInfo("UPDATER SENT ENTITY"
+              debug(chalkInfo("UPDATER SENT ENTITY"
                 + " | SERVER"
                 + " | " + entityId
               ));

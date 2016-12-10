@@ -580,6 +580,75 @@ function loadYamlConfig(yamlFile, callback){
   });
 }
 
+function loadFile(path, file, callback) {
+
+  console.log(chalkInfo("LOAD FOLDER " + path));
+  console.log(chalkInfo("LOAD FILE " + file));
+  console.log(chalkInfo("FULL PATH " + path + "/" + file));
+
+  var fileExists = false;
+
+  dropboxClient.filesListFolder({path: path, recursive: false})
+    .then(function(response) {
+
+        async.each(response.entries, function(folderFile, cb) {
+
+          if (folderFile.name == file) {
+            console.log(chalkInfo("SOURCE FILE EXISTS: " + file));
+            fileExists = true;
+            return cb();
+          }
+          cb();
+
+        }, function(err) {
+
+          if (fileExists) {
+
+            dropboxClient.filesDownload({path: path + "/" + file})
+              .then(function(data) {
+                console.log(chalkLog(getTimeStamp()
+                  + " | LOADING FILE FROM DROPBOX FILE: " + path + "/" + file
+                ));
+
+                var payload = data.fileBinary;
+
+                debug(payload);
+
+                var fileObj = JSON.parse(payload);
+
+                return(callback(null, fileObj));
+               })
+              .catch(function(error) {
+                console.log(chalkAlert("DROPBOX loadFile ERROR: " + file + "\n" + error));
+                console.log(chalkError("!!! DROPBOX READ " + file + " ERROR: " + error.error));
+                console.log(chalkError(jsonPrint(error)));
+
+                if (error["status"] === 404) {
+                  console.error(chalkError("!!! DROPBOX READ FILE " + file + " NOT FOUND ... SKIPPING ..."));
+                  return(callback(null, null));
+                }
+                if (error["status"] === 0) {
+                  console.error(chalkError("!!! DROPBOX NO RESPONSE ... NO INTERNET CONNECTION? ... SKIPPING ..."));
+                  return(callback(null, null));
+                }
+                return(callback(error, null));
+              });
+          }
+          else {
+            console.log(chalkError("*** FILE DOES NOT EXIST: " + path + "/" + file));
+            var err = {};
+            err.status = "FILE DOES NOT EXIST";
+            return(callback(err, null));
+          }
+        });
+    })
+    .catch(function(error) {
+      console.log(chalkError("LOAD FILE ERROR\n" + jsonPrint(error)));
+      return(callback(error, null));
+    });
+}
+
+
 function saveFile (path, file, jsonObj, callback){
 
   var fullPath = path + "/" + file;
@@ -966,55 +1035,59 @@ function updateStatsInterval(statsFile, interval){
       wordCacheTtl: wordCacheTtl
     });
 
-    var gKeys = serverGroupHashMap.keys();
+    if (groupsUpdateComplete) {
+      var gKeys = serverGroupHashMap.keys();
 
-    async.each(gKeys, function(groupId, cb){
-      serverGroupsJsonObj[groupId] = serverGroupHashMap.get(groupId);
-      cb();
-    },
-      function(err){
+      async.each(gKeys, function(groupId, cb){
+        serverGroupsJsonObj[groupId] = serverGroupHashMap.get(groupId);
+        cb();
+      },
+        function(err){
 
-        saveFile("", serverGroupsFile, serverGroupsJsonObj, function(err, results){
-          if (err){
-            console.log(chalkError("SAVE SERVER GROUP FILE ERROR " + serverGroupsFile 
-              + "\n" + jsonPrint(err)
-            ));
-          }
-          else {
-            console.log(chalkInfo("SAVE SERVER GROUP FILE " 
-              + serverGroupsFile 
-              // + "\n" + jsonPrint(results)
-            ));
-          }
-        });
+          saveFile("", serverGroupsFile, serverGroupsJsonObj, function(err, results){
+            if (err){
+              console.log(chalkError("SAVE SERVER GROUP FILE ERROR " + serverGroupsFile 
+                + "\n" + jsonPrint(err)
+              ));
+            }
+            else {
+              console.log(chalkInfo("SAVE SERVER GROUP FILE " 
+                + serverGroupsFile 
+                // + "\n" + jsonPrint(results)
+              ));
+            }
+          });
 
-      }
-    );
+        }
+      );
+    }
 
-    var hmKeys = serverKeywordHashMap.keys();
+    if (entitiesUpdateComplete) {
+      var hmKeys = serverKeywordHashMap.keys();
 
-    async.each(hmKeys, function(keyword, cb){
-      serverKeywordsJsonObj[keyword] = serverKeywordHashMap.get(keyword);
-      cb();
-    },
-      function(err){
+      async.each(hmKeys, function(keyword, cb){
+        serverKeywordsJsonObj[keyword] = serverKeywordHashMap.get(keyword);
+        cb();
+      },
+        function(err){
 
-        saveFile("", serverKeywordsFile, serverKeywordsJsonObj, function(err, results){
-          if (err){
-            console.log(chalkError("SAVE SERVER KEYWORD FILE ERROR " + serverKeywordsFile 
-              + "\n" + jsonPrint(err)
-            ));
-          }
-          else {
-            console.log(chalkInfo("SAVE SERVER KEYWORD FILE " 
-              + serverKeywordsFile 
-              // + "\n" + jsonPrint(results)
-            ));
-          }
-        });
+          saveFile("", serverKeywordsFile, serverKeywordsJsonObj, function(err, results){
+            if (err){
+              console.log(chalkError("SAVE SERVER KEYWORD FILE ERROR " + serverKeywordsFile 
+                + "\n" + jsonPrint(err)
+              ));
+            }
+            else {
+              console.log(chalkInfo("SAVE SERVER KEYWORD FILE " 
+                + serverKeywordsFile 
+                // + "\n" + jsonPrint(results)
+              ));
+            }
+          });
 
-      }
-    );
+        }
+      );
+    }
 
   }, interval);
 }
@@ -5637,19 +5710,19 @@ var readUpdaterMessageQueue = setInterval(function() {
 
     switch (updaterObj.type){
       case 'sendGroupsComplete':
-        console.log(chalkLog("UPDATE GROUPS COMPLETE"));
+        console.log(chalkRed("UPDATE GROUPS COMPLETE"));
         updaterMessageReady = true;
         groupsUpdateComplete = true;
       break;
 
       case 'sendEntitiesComplete':
-        console.log(chalkLog("UPDATE ENTITIES COMPLETE"));
+        console.log(chalkRed("UPDATE ENTITIES COMPLETE"));
         updaterMessageReady = true;
         entitiesUpdateComplete = true;
       break;
 
       case 'sendKeywordsComplete':
-        console.log(chalkLog("UPDATE KEYWORDS COMPLETE"));
+        console.log(chalkRed("UPDATE KEYWORDS COMPLETE"));
         updaterMessageReady = true;
         keywordsUpdateComplete = true;
       break;
@@ -5709,30 +5782,32 @@ var readUpdaterMessageQueue = setInterval(function() {
 
           serverKeywordHashMap.set(updaterObj.keyword, updaterObj.keyWordType);
 
-          var hmKeys = serverKeywordHashMap.keys();
+          if (keywordsUpdateComplete) {
+            var hmKeys = serverKeywordHashMap.keys();
 
-          async.each(hmKeys, function(keyword, cb){
-            serverKeywordsJsonObj[keyword] = serverKeywordHashMap.get(keyword);
-            cb();
-          },
-            function(err){
+            async.each(hmKeys, function(keyword, cb){
+              serverKeywordsJsonObj[keyword] = serverKeywordHashMap.get(keyword);
+              cb();
+            },
+              function(err){
 
-              saveFile("", serverKeywordsFile, serverKeywordsJsonObj, function(err, results){
-                if (err){
-                  console.log(chalkError("SAVE SERVER KEYWORD FILE ERROR " + serverKeywordsFile 
-                    + "\n" + jsonPrint(err)
-                  ));
-                }
-                else {
-                  console.log(chalkLog("SAVE SERVER KEYWORD FILE " 
-                    + serverKeywordsFile 
-                    // + "\n" + jsonPrint(results)
-                  ));
-                }
-              });
+                saveFile("", serverKeywordsFile, serverKeywordsJsonObj, function(err, results){
+                  if (err){
+                    console.log(chalkError("SAVE SERVER KEYWORD FILE ERROR " + serverKeywordsFile 
+                      + "\n" + jsonPrint(err)
+                    ));
+                  }
+                  else {
+                    console.log(chalkLog("SAVE SERVER KEYWORD FILE " 
+                      + serverKeywordsFile 
+                      // + "\n" + jsonPrint(results)
+                    ));
+                  }
+                });
 
-            }
-          );
+              }
+            );
+          }
 
 
           keywordUpdateDb(updaterObj, function(err, updatedWordObj){

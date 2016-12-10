@@ -717,7 +717,6 @@ function updateGroupsInterval(options){
 
   updateGroupsEntitiesKeywords(options, function(err, results){
     sendHashMaps(function(err2, results2){
-      // initGroupsReady = true;
     });
   });
   // updateGroups(file, function(err, results){
@@ -733,13 +732,10 @@ function updateGroupsInterval(options){
 
     if (initGroupsReady) {
       initGroupsReady = false;
-      // updateGroups(file, function(err, results){
-      //   initKeywords(keywordFile, function(err, results2){
-      //     sendHashMaps(function(err, results3){
-      //       initGroupsReady = true;
-      //     });
-      //   });
-      // });
+      updateGroupsEntitiesKeywords(options, function(err, results){
+        sendHashMaps(function(err2, results2){
+        });
+      });
     }
   }, options.interval);
 }

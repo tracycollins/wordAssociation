@@ -644,7 +644,7 @@ function sendKeywords(callback){
 
       setTimeout(function(){
         process.send({ type: 'keyword', keyword: word, keyWordType: keyWordType});
-        console.log(chalkInfo("UPDATER SEND KEYWORD"
+        debug(chalkInfo("UPDATER SEND KEYWORD"
           + " | " + word
           + " | " + keyWordType
         ));
@@ -672,7 +672,7 @@ function sendKeywords(callback){
                 keyword: word, 
                 keyWordType: keyWordType
               });
-              console.log(chalkInfo("UPDATER SEND KEYWORD"
+              debug(chalkInfo("UPDATER SEND KEYWORD"
                 + " | SERVER"
                 + " | " + word
                 + " | " + keyWordType

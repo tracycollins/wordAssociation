@@ -1820,6 +1820,7 @@ var readUpdateSessionViewQueue = setInterval(function() {
         nodeId: sessionUpdateObj.source.nodeId,
         raw: sessionUpdateObj.source.raw,
         isIgnored: sessionUpdateObj.source.isIgnored,
+        isTrendingTopic: sessionUpdateObj.source.isTrendingTopic,
         isKeyword: keywordHashMap.has(sessionUpdateObj.source.nodeId),
         keywords: {},
         url: sessionUpdateObj.source.url,
@@ -1842,6 +1843,7 @@ var readUpdateSessionViewQueue = setInterval(function() {
           raw: sessionUpdateObj.target.raw,
           isIgnored: sessionUpdateObj.target.isIgnored,
           isKeyword: sessionUpdateObj.target.isKeyword,
+          isTrendingTopic: sessionUpdateObj.target.isTrendingTopic,
           keywords: {},
           url: sessionUpdateObj.target.url,
           wordChainIndex: sessionUpdateObj.target.wordChainIndex,
@@ -2255,6 +2257,7 @@ function dbUpdateWord(wordObj, incMentions, callback) {
         + word.nodeId 
         + " | I: " + word.isIgnored 
         + " | K: " + word.isKeyword 
+        + " | TT: " + word.isTrendingTopic 
         + " | MNS: " + word.mentions 
         + " | URL: " + word.url 
         + " | BHT SEARCHED: " + word.bhtSearched 
@@ -2275,22 +2278,26 @@ function dbUpdateWord(wordObj, incMentions, callback) {
             debug("Word CACHE SET1: " + word.nodeId);
             wordCache.set(word.nodeId, word);
             callback('BHT_OVER_LIMIT', word);
-          } else if (status.indexOf("BHT_ERROR") >= 0) {
+          } 
+          else if (status.indexOf("BHT_ERROR") >= 0) {
             debug(chalkError("bhtSearchWord dbUpdateWord findOneWord ERROR\n" + JSON.stringify(status)));
             debug("Word CACHE SET2: " + word.nodeId);
             wordCache.set(word.nodeId, word);
             callback('BHT_ERROR', word);
-          } else if (bhtResponseObj.bhtFound) {
+          } 
+          else if (bhtResponseObj.bhtFound) {
             debug(chalkBht("-*- BHT HIT   | " + bhtResponseObj.nodeId));
             debug("Word CACHE SET3: " + bhtResponseObj.nodeId);
             wordCache.set(bhtResponseObj.nodeId, bhtResponseObj);
             callback('BHT_HIT', bhtResponseObj);
-          } else if (status == 'BHT_REDIRECT') {
+          } 
+          else if (status == 'BHT_REDIRECT') {
             debug(chalkBht("-A- BHT REDIRECT  | " + wordObj.nodeId));
             debug("Word CACHE SET4: " + bhtResponseObj.nodeId);
             wordCache.set(bhtResponseObj.nodeId, bhtResponseObj);
             callback('BHT_REDIRECT', bhtResponseObj);
-          } else {
+          } 
+          else {
             debug(chalkBht("-O- BHT MISS  | " + wordObj.nodeId));
             debug("Word CACHE SET5: " + bhtResponseObj.nodeId);
             wordCache.set(bhtResponseObj.nodeId, bhtResponseObj);
@@ -2301,12 +2308,14 @@ function dbUpdateWord(wordObj, incMentions, callback) {
             callback('BHT_MISS', bhtResponseObj);
           }
         });
-      } else if (word.bhtFound) {
+      } 
+      else if (word.bhtFound) {
         debug(chalkBht("-F- BHT FOUND | " + word.nodeId));
         debug("Word CACHE SET6: " + word.nodeId);
         wordCache.set(word.nodeId, word);
         callback('BHT_FOUND', word);
-      } else {
+      } 
+      else {
         debug(chalkBht("-N- BHT NOT FOUND  | " + word.nodeId));
         debug("Word CACHE SET7: " + word.nodeId);
         wordCache.set(word.nodeId, word);
@@ -2384,7 +2393,8 @@ function bhtHttpGet(host, path, wordObj, callback) {
       bhtEvents.emit("BHT_OVER_LIMIT", bhtRequests);
       callback("BHT_OVER_LIMIT", wordObj);
       return;
-    } else if ((response.statusCode == 500) && (response.statusMessage == 'Inactive key')) {
+    } 
+    else if ((response.statusCode == 500) && (response.statusMessage == 'Inactive key')) {
       bhtErrors++;
       debug(chalkError("BHT ERROR" 
         + " | TOTAL ERRORS: " + bhtErrors 
@@ -2398,12 +2408,14 @@ function bhtHttpGet(host, path, wordObj, callback) {
       bhtEvents.emit("BHT_INACTIVE_KEY", bhtRequests);
       callback("BHT_INACTIVE_KEY", wordObj);
       return;
-    } else if (bhtOverLimitTestFlag) {
+    } 
+    else if (bhtOverLimitTestFlag) {
       debug(chalkBht("BHT OVER LIMIT TEST FLAG SET"));
       bhtEvents.emit("BHT_OVER_LIMIT", bhtRequests);
       callback("BHT_OVER_LIMIT", wordObj);
       return;
-    } else if (response.statusCode == 404) {
+    } 
+    else if (response.statusCode == 404) {
       debug("bhtHttpGet: \'" + wordObj.nodeId + "\' NOT FOUND");
       wordObj.bhtSearched = true;
       wordObj.bhtFound = false;
@@ -2414,7 +2426,8 @@ function bhtHttpGet(host, path, wordObj, callback) {
         callback("BHT_NOT_FOUND", wordUpdatedObj);
         return;
       });
-    } else if (response.statusCode == 303) {
+    } 
+    else if (response.statusCode == 303) {
       wordObj.bhtAlt = response.statusMessage;
       debug(chalkBht("BHT REDIRECT" + " | WORD: " + wordObj.nodeId 
       + " | ALT: " + response.statusMessage // alternative word
@@ -2438,7 +2451,8 @@ function bhtHttpGet(host, path, wordObj, callback) {
           return;
         }
       });
-    } else if (response.statusCode != 200) {
+    } 
+    else if (response.statusCode != 200) {
       bhtErrors++;
       debug(chalkError("BHT ERROR" 
         + " | TOTAL ERRORS: " + bhtErrors 
@@ -2452,7 +2466,8 @@ function bhtHttpGet(host, path, wordObj, callback) {
       bhtEvents.emit("BHT_UNKNOWN_STATUS", bhtRequests);
       callback("BHT_UNKNOWN_STATUS", wordObj);
       return;
-    } else {
+    } 
+    else {
       response.on('data', function(d) {
         body += d;
       });
@@ -2744,7 +2759,8 @@ function bhtSearchWord(wordObj, callback) {
   if (wordObj.bhtFound) {
     callback("BHT_FOUND", wordObj);
     return;
-  } else if (bhtOverLimitFlag) {
+  } 
+  else if (bhtOverLimitFlag) {
 
     var now = moment.utc();
     now.utcOffset("-07:00");
@@ -2758,7 +2774,8 @@ function bhtSearchWord(wordObj, callback) {
     ));
     callback("BHT_OVER_LIMIT", wordObj);
     return;
-  } else {
+  } 
+  else {
 
     incrementSocketBhtReqs(1);
 
@@ -5442,6 +5459,45 @@ var readSessionQueue = setInterval(function() {
   }
 }, 20);
 
+function getTags(wordObj, callback){
+  if (typeof wordObj.tags === 'undefined') {
+    wordObj.tags = {};
+    wordObj.tags.entity = 'unknown_entity';
+    wordObj.tags.channel = 'unknown_channel';
+    wordObj.tags.group = 'unknown_group';
+
+    entityChannelGroupHashMap.set('unknown_entity', { groupId: 'unknown_group', name: 'UNKNOWN GROUP'});
+
+    callback(wordObj);
+  } 
+  else {
+    if (typeof wordObj.tags.entity === 'undefined') {
+      wordObj.tags.entity = 'unknown_entity';
+    }
+    else {
+      wordObj.tags.entity = wordObj.tags.entity.toLowerCase();
+    }
+    if (typeof wordObj.tags.channel === 'undefined') {
+      wordObj.tags.channel = 'unknown_channel';
+    }
+    else {
+      wordObj.tags.channel = wordObj.tags.channel.toLowerCase();
+    }
+
+    if (entityChannelGroupHashMap.has(wordObj.tags.entity.toLowerCase())){
+      wordObj.tags.group = entityChannelGroupHashMap.get(wordObj.tags.entity.toLowerCase()).groupId;
+      callback(wordObj);
+    }
+    else {
+      wordObj.tags.group = wordObj.tags.entity.toLowerCase();
+      entityChannelGroupHashMap.set(wordObj.tags.entity.toLowerCase(), { groupId: wordObj.tags.group, name: wordObj.tags.entity.toLowerCase() } );
+      callback(wordObj);
+    }
+
+
+  }
+}
+
 var ready = true;
 var trendingTopicsArray = [];
 var trendingTopicHitArray = [];
@@ -5642,61 +5698,62 @@ var readResponseQueue = setInterval(function() {
         }
       }
 
-      if (typeof responseInObj.tags === 'undefined') {
-        responseInObj.tags = {};
-        responseInObj.tags.entity = 'unknown_entity';
-        responseInObj.tags.channel = 'unknown_channel';
-      } else {
-        if (typeof responseInObj.tags.entity === 'undefined') {
-          responseInObj.tags.entity = 'unknown_entity';
+ 
+
+      getTags(responseInObj, function(updatedWordObj){
+        
+        var dbUpdateObj = {};
+        dbUpdateObj.word = updatedWordObj;
+        dbUpdateObj.session = currentSessionObj;
+        dbUpdateObj.tags = {};
+
+        if (updatedWordObj.tags){
+
+          dbUpdateObj.tags.entity = updatedWordObj.tags.entity;
+          dbUpdateObj.tags.channel = updatedWordObj.tags.channel;
+          dbUpdateObj.tags.group = updatedWordObj.tags.group;
+
+          console.log(chalkInfo("R<" 
+            + " G: " + updatedWordObj.tags.group 
+            // + " | U: " + currentSessionObj.userId
+            + " E: " + updatedWordObj.tags.entity 
+            + " C: " + updatedWordObj.tags.channel 
+            + " KW: " + updatedWordObj.isKeyword 
+            + " TT: " + updatedWordObj.isTrendingTopic 
+            // + " | URL: " + updatedWordObj.url 
+            + " [" + currentSessionObj.wordChainIndex + "]" 
+            + " | " + updatedWordObj.nodeId 
+            // + " < " + previousPrompt
+          ));
+
+          if (typeof updatedWordObj.tags.group === 'undefined') quit();
+
+          dbUpdateWordQueue.enqueue(dbUpdateObj);
+          ready = true;
+
         }
         else {
-          responseInObj.tags.entity = responseInObj.tags.entity.toLowerCase();
+          console.log(chalkInfo("R<" 
+            + " G: " + updatedWordObj.tags.group 
+            // + " | U: " + currentSessionObj.userId
+            + " E: " + updatedWordObj.tags.entity 
+            + " C: " + updatedWordObj.tags.channel 
+            + " KW: " + updatedWordObj.isKeyword 
+            + " TT: " + updatedWordObj.isTrendingTopic 
+            // + " | URL: " + updatedWordObj.url 
+            + " [" + currentSessionObj.wordChainIndex + "]" 
+            + " | " + updatedWordObj.nodeId 
+            // + " < " + previousPrompt
+          ));
+
+          if (typeof updatedWordObj.tags.group === 'undefined') quit();
+
+          dbUpdateWordQueue.enqueue(dbUpdateObj);
+          ready = true;
+
         }
-        if (typeof responseInObj.tags.channel === 'undefined') {
-          responseInObj.tags.channel = 'unknown_channel';
-        }
-        else {
-          responseInObj.tags.channel = responseInObj.tags.channel.toLowerCase();
-        }
-      }
 
-      if (entityChannelGroupHashMap.has(responseInObj.tags.entity)){
-        responseInObj.tags.group = entityChannelGroupHashMap.get(responseInObj.tags.entity).groupId;
-      }
-      else {
-        responseInObj.tags.group = responseInObj.tags.entity;
-        entityChannelGroupHashMap.set(responseInObj.tags.entity, responseInObj.tags.group);
-      }
-
-      console.log(chalkInfo("R<" 
-        + " G: " + responseInObj.tags.group 
-        // + " | U: " + currentSessionObj.userId
-        + " E: " + responseInObj.tags.entity 
-        + " C: " + responseInObj.tags.channel 
-        + " KW: " + responseInObj.isKeyword 
-        + " TT: " + responseInObj.isTrendingTopic 
-        // + " | URL: " + responseInObj.url 
-        + " [" + currentSessionObj.wordChainIndex + "]" 
-        + " | " + responseInObj.nodeId 
-        // + " < " + previousPrompt
-      ));
-
-      var dbUpdateObj = {};
-      dbUpdateObj.word = responseInObj;
-      dbUpdateObj.session = currentSessionObj;
-      dbUpdateObj.tags = {};
-
-      if (responseInObj.tags){
-
-        dbUpdateObj.tags.entity = responseInObj.tags.entity;
-        dbUpdateObj.tags.channel = responseInObj.tags.channel;
-        dbUpdateObj.tags.group = responseInObj.tags.group;
-      }
-
-      dbUpdateWordQueue.enqueue(dbUpdateObj);
-
-      ready = true;
+      });
 
     });
   }

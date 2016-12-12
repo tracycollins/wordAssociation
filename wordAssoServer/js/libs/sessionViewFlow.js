@@ -1489,7 +1489,7 @@ function ViewFlow() {
     }
 
     if (newNode.isTrendingTopic) {
-      console.debug("TRENDING TOPIC NODE" 
+      console.error("TRENDING TOPIC NODE" 
         + " | " + newNode.text
         + " | " + newNode.raw
       );

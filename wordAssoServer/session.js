@@ -1484,15 +1484,10 @@ var getKeywordColor = function(keywordsObj){
   // console.debug("keywordsObj: " + jsonPrint(keywordsObj));
   // console.debug("keywordsObj: " + keywordsObj);
   return keywordColorHashMap.get(keywordsObj);
-  // for( var kw in keywordsObj ) {
-  //   console.debug("kw: " + kw);
-  //   if( keywordsObj.hasOwnProperty( kw ) ) {
-  //     return keywordColorHashMap.get(kw);
-  //   }
-  // }
 }
 
 var createGroup = function(callback) {
+
   if (groupCreateQueue.length == 0) {
     return (callback(null, null));
   } 
@@ -1501,15 +1496,9 @@ var createGroup = function(callback) {
     var dateNow = moment().valueOf();
     var sessUpdate = groupCreateQueue.shift();
 
-    // var groupId = sessUpdate.tags.group.toLowerCase();
     var groupId = sessUpdate.tags.group.groupId;
     var groupName = sessUpdate.tags.group.name;
     var groupUrl = sessUpdate.tags.group.url;
-
-    // console.warn("createGroup" + " | " + groupId);
-
-    // var currentGroup = {};
-    // var currentSession = {};
 
     if (groupDeleteHashMap.has(groupId)) {
       console.warn("createGroup: " 
@@ -1529,28 +1518,15 @@ var createGroup = function(callback) {
         currentGroup.node = nodeHashMap.get(currentGroup.node.nodeId);
       }
 
-      // console.warn("FOUND GROUP" + " [" + sessUpdate.wordChainIndex + "]" 
-      //   + " | G: " + sessUpdate.tags.group 
-      //   + " | C: " + sessUpdate.tags.channel 
-      //   + " | E: " + sessUpdate.tags.entity 
-      //   + " | U: " + sessUpdate.userId 
-      //   + " | " + sessUpdate.source.nodeId 
-      //   + " > " + sessUpdate.target.nodeId
-      //   // + "\n" + jsonPrint(currentGroup)
-      // );
-
       currentGroup.url = groupUrl;
       currentGroup.mentions++;
       currentGroup.age = 1e-6;
       currentGroup.ageMaxRatio = 1e-6;
       currentGroup.lastSeen = dateNow;
-      // currentGroup.text = groupId;
       currentGroup.text = groupName;
       currentGroup.wordChainIndex = sessUpdate.wordChainIndex;
 
-
       // GROUP NODE
-      // currentGroup.node.text = groupId;
       currentGroup.node.text = groupName;
       currentGroup.node.url = groupUrl;
 
@@ -1605,16 +1581,6 @@ var createGroup = function(callback) {
 
       var currentGroup = {};
       var currentSession = {};
-
-      // console.log("CREATE GROUP" + " [" + sessUpdate.wordChainIndex + "]" 
-      //   + " | G: " + groupId 
-      //   + " | C: " + sessUpdate.tags.channel 
-      //   + " | E: " + sessUpdate.tags.entity 
-      //   + " | U: " + sessUpdate.userId 
-      //   + " | " + sessUpdate.source.nodeId 
-      //   + " > " + sessUpdate.target.nodeId
-      //   // + "\n" + jsonPrint(sessUpdate)
-      // );
 
       currentGroup.groupId = groupId;
       currentGroup.url = groupUrl;
@@ -1707,7 +1673,6 @@ var createGroup = function(callback) {
           + " | " + grpNode.groupId
           + " | isGroupNode: " + grpNode.isGroupNode
           + " | isSessionNode: " + grpNode.isSessionNode
-          // + "\n" + jsonPrint(grpNode)
         );
 
         currentSessionView.addNode(grpNode);
@@ -1718,7 +1683,6 @@ var createGroup = function(callback) {
           );
           sessionCreateQueue.push(sessUpdate);
           currentSessionView.addGroup(cGroup);
-          // nodeCreateQueue.push(cGroup);
           return (callback(null, cGroup.groupId));
         });
       });
@@ -1737,7 +1701,6 @@ var createSession = function(callback) {
     var sessUpdate = sessionCreateQueue.shift();
 
     var currentGroup = {};
-    // var currentSession = {};
 
     if (groupHashMap.has(sessUpdate.tags.group.groupId)) {
       currentGroup = groupHashMap.get(sessUpdate.tags.group.groupId);
@@ -1758,17 +1721,6 @@ var createSession = function(callback) {
     else if (sessionHashMap.has(sessUpdate.nodeId)) {
 
       var currentSession = sessionHashMap.get(sessUpdate.nodeId);
-
-      // console.info("UPDATE SESS" 
-      //   + " [" + sessUpdate.wordChainIndex + "]" 
-      //   // + " [" + sessUpdate.mentions + "]" 
-      //   + " | UID: " + sessUpdate.userId 
-      //   + " | ENT: " + sessUpdate.tags.entity 
-      //   + " | CH: " + sessUpdate.tags.channel 
-      //   + " | " + sessUpdate.source.nodeId 
-      //   + " > " + sessUpdate.target.nodeId
-      //   // + "\n" + jsonPrint(sessUpdate)
-      // );
 
       if (typeof currentSession.wordChainIndex === 'undefined'){
         console.error("*** currentSession.wordChainIndex UNDEFINED");
@@ -1846,9 +1798,6 @@ var createSession = function(callback) {
         addToHashMap(sessionHashMap, currentSession.nodeId, currentSession, function(cSession) {
           nodeCreateQueue.push(cSession);
           return (callback(null, cSession.nodeId));
-          // removeFromHashMap(linkHashMap, sessionId, function() {
-            // return (callback(null, cSession.sessionId));
-          // });
         });
       });
 
@@ -1859,14 +1808,12 @@ var createSession = function(callback) {
 
       console.log("CREATE SESS" 
         + " [" + sessUpdate.wordChainIndex + "]" 
-        // + " [" + sessUpdate.mentions + "]" 
         + " | UID: " + sessUpdate.userId 
         + " | ENT: " + sessUpdate.tags.entity 
         + " | CH: " + sessUpdate.tags.channel 
         + " | URL: " + sessUpdate.tags.url 
         + " | " + sessUpdate.source.nodeId 
         + " > " + sessUpdate.target.nodeId
-        // + "\n" + jsonPrint(sessUpdate)
       );
 
       var currentSession = {};
@@ -1926,8 +1873,6 @@ var createSession = function(callback) {
       currentSession.node.mentions = sessUpdate.wordChainIndex;
       currentSession.node.text = sessUpdate.tags.entity + "|" + sessUpdate.tags.channel;
       currentSession.node.r = config.defaultNodeRadius;
-      // currentSession.node.x = currentGroup.initialPosition.x + randomIntFromInterval(-10,-20);
-      // currentSession.node.y = currentGroup.initialPosition.y + randomIntFromInterval(-10,10);
       currentSession.node.x = currentGroup.initialPosition.x;
       currentSession.node.y = currentGroup.initialPosition.y;
 
@@ -1966,30 +1911,11 @@ var createSession = function(callback) {
         currentSessionView.addNode(sesNode);
 
         addToHashMap(sessionHashMap, currentSession.nodeId, currentSession, function(cSession) {
-          // console.log("\nNEW SESSION"
-          //   + "\nGRP: " + currentGroup.groupId
-          //   + "\nGRPN: " + currentGroup.name
-          //   + "\nUID: " + cSession.userId 
-          //   + "\nNID: " + cSession.nodeId 
-          //   + "\nSID: " + cSession.sessionId 
-          //   + "\nSNID: " + cSession.node.nodeId
-          //   + "\nLNID: " + cSession.latestNodeId
-          //   + "\nWCI:" + cSession.wordChainIndex 
-          //   + "\nM:" + cSession.mentions 
-          //   // + "\n" + jsonPrint(cSession) 
-          // );
-
           console.log("NEW SESS"
             + " | G: " + currentGroup.groupId
             + " | GN: " + currentGroup.name
             + " | UID: " + cSession.userId 
-            // + " | NID: " + cSession.nodeId 
-            // + "\nSID: " + cSession.sessionId 
-            // + "\nSNID: " + cSession.node.nodeId
-            // + "\nLNID: " + cSession.latestNodeId
-            // + "\nWCI:" + cSession.wordChainIndex 
             + " | Ms:" + cSession.mentions 
-            // + "\n" + jsonPrint(cSession) 
           );
 
           currentSessionView.addSession(cSession);
@@ -2012,12 +1938,6 @@ var createNode = function(callback) {
     if (nodeHashMap.has(session.node.nodeId)) {
 
       var sessionNode = nodeHashMap.get(session.node.nodeId);
-
-      // console.log("FOUND NODE" 
-      //   + " | " + session.node.nodeId
-      //   // + "\n" + jsonPrint(session)
-      // );
-
       sessionNode.age = 1e-6;
       sessionNode.ageMaxRatio = 1e-6;
       sessionNode.isDead = false;
@@ -2034,7 +1954,6 @@ var createNode = function(callback) {
 
       console.log("CREATE SESSION NODE" 
         + " | " + session.node.nodeId
-        // + "\n" + jsonPrint(session)
       );
 
       session.node.bboxWidth = 1e-6;
@@ -2053,12 +1972,9 @@ var createNode = function(callback) {
       session.node.wordChainIndex = session.wordChainIndex;
       session.node.mentions = session.wordChainIndex+1;
       session.node.r = config.defaultNodeRadius;
-      // session.node.x = session.initialPosition.x + randomIntFromInterval(-10,-20);
-      // session.node.y = session.initialPosition.y + randomIntFromInterval(-10,10);
       session.node.x = session.initialPosition.x;
       session.node.y = session.initialPosition.y;
 
-      // session.node.colors = {};
       session.node.groupColors = session.groupColors;
       session.node.sessionColors = session.sessionColors;
       session.node.nodeColors = session.nodeColors;
@@ -2102,8 +2018,6 @@ var createNode = function(callback) {
             console.debug("TT S: " + sourceText);
           }
           if ((config.sessionViewType != 'ticker') && (config.sessionViewType != 'flow') && session.source.isIgnored) {
-            // if (ignoreWordHashMap.has(sourceText)) {
-            // console.warn("sourceNodeId IGNORED: " + sourceNodeId);
             cb(null, {
               node: sourceNodeId,
               isIgnored: true,
@@ -2226,18 +2140,14 @@ var createNode = function(callback) {
             console.debug("IGNORED TARGET: " + targetText);
           }
           if (session.target.isKeyword) {
-            // console.info("KEY T: " + sourceText + ": " + jsonPrint(session.target.keywords));
             console.info("KEY T: " + sourceText);
           }
           if (session.target.isTrendingTopic) {
             console.debug("TT T: " + sourceText);
           }
           if (typeof targetNodeId === 'undefined' || (config.sessionViewType == 'ticker') || (config.sessionViewType == 'flow')) {
-          // if (typeof targetNodeId === 'undefined') {
-            // console.warn("targetNodeId UNDEFINED ... SKIPPING CREATE NODE");
             cb("TARGET UNDEFINED", null);
           } else if (session.target.isIgnored) {
-            // console.warn("targetNodeId IGNORED: " + targetNodeId);
             cb(null, {
               node: targetNodeId,
               isIgnored: true,
@@ -2354,8 +2264,6 @@ var createNode = function(callback) {
       },
       function(err, results) {
 
-        // console.warn("results\n" + jsonPrint(results));
-
         if (!results.source.isIgnored) {
           session.source = results.source.node;
           session.source.isNew = results.source.isNew;
@@ -2373,7 +2281,6 @@ var createNode = function(callback) {
         }
 
         addToHashMap(sessionHashMap, session.nodeId, session, function(cSession) {
-    // console.warn("cSession\n" + jsonPrint(session));
           if (!results.source.isIgnored && (config.sessionViewType != 'ticker')) {
             linkCreateQueue.push(cSession);
           }
@@ -2386,23 +2293,16 @@ var createNode = function(callback) {
 var createLink = function(callback) {
 
   if ((config.sessionViewType !== 'ticker') 
-    // && (config.sessionViewType !== 'flow') 
     && !config.disableLinks 
     && (linkCreateQueue.length > 0)) {
 
     var session = linkCreateQueue.shift();
 
-    // console.warn("createLink session\n" + jsonPrint(session));
-
     var currentGroup = groupHashMap.get(session.tags.group.groupId);
-
-    // console.warn("createLink currentGroup\n" + jsonPrint(currentGroup));
 
     var groupLinkId;
     var sessionLinkId;
 
-    // if (!session.node.isGroupNode && (currentGroup.node.nodeId != session.node.nodeId)){
-    // if (session.node.isSessionNode && (currentGroup.node.nodeId != session.node.nodeId)){
     if (typeof currentGroup === 'undefined'){
     }
     else if (currentGroup.node.nodeId != session.node.nodeId){
@@ -2413,7 +2313,6 @@ var createLink = function(callback) {
       session.node.links[groupLinkId] = 1;
 
       if (!linkHashMap.has(groupLinkId)){
-        // console.error("-M- GROUP LINK HASH MISS | " + groupLinkId);
         var newGroupLink = {
           linkId: groupLinkId,
           groupId: currentGroup.groupId,
@@ -2424,20 +2323,15 @@ var createLink = function(callback) {
           isGroupLink: true
         };
 
-
         addToHashMap(linkHashMap, groupLinkId, newGroupLink, function(grpLink) {
-          // console.log("grpLink\n" + jsonPrint(grpLink));
           currentSessionView.addLink(grpLink);
         });
       }
       else {
         var groupLink = linkHashMap.get(groupLinkId);
-        // console.log("*** GROUP LINK HASH HIT | " + groupLinkId);
         groupLink.age = 1e-6;
         groupLink.ageMaxRatio = 1e-6;
         addToHashMap(linkHashMap, groupLinkId, groupLink, function(grpLink) {
-          // console.log("grpLink\n" + jsonPrint(grpLink));
-          // currentSessionView.addLink(grpLink);
         });
       }
     }
@@ -2447,8 +2341,6 @@ var createLink = function(callback) {
         + " | " + session.node.nodeId
       );
     }
-
-
 
     addToHashMap(sessionHashMap, session.nodeId, session, function(sess) {});
   }

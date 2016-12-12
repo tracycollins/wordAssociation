@@ -1473,7 +1473,7 @@ function ViewFlow() {
       //     + " | TT: " + newNode.isTrendingTopic
       //     + " | KWs: " + jsonPrint(newNode.keywords)
       //   );
-      // }
+      }
 
       if (newNode.raw.match(/^\$/gi)){
         newNode.isCurrency = true;

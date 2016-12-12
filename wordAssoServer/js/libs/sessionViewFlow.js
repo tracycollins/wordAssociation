@@ -1449,7 +1449,7 @@ function ViewFlow() {
   this.addNode = function(newNode) {
 
     if (typeof newNode.text === 'undefined') {
-      console.debug("NEW NODE TEXT UNDEFINED\n" + jsonPrint(newNode));
+      // console.debug("NEW NODE TEXT UNDEFINED\n" + jsonPrint(newNode));
       newNode.text = "== UNDEFINED ==";
     }
 

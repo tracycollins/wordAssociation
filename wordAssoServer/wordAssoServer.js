@@ -1821,7 +1821,8 @@ var readUpdateSessionViewQueue = setInterval(function() {
         raw: sessionUpdateObj.source.raw,
         isIgnored: sessionUpdateObj.source.isIgnored,
         isTrendingTopic: sessionUpdateObj.source.isTrendingTopic,
-        isKeyword: keywordHashMap.has(sessionUpdateObj.source.nodeId),
+        // isKeyword: keywordHashMap.has(sessionUpdateObj.source.nodeId),
+        isKeyword: sessionUpdateObj.source.isKeyword,
         keywords: {},
         url: sessionUpdateObj.source.url,
         wordChainIndex: sessionUpdateObj.source.wordChainIndex,
@@ -5819,20 +5820,22 @@ var readUpdaterMessageQueue = setInterval(function() {
       break;
 
       case 'keywordRemove':
-        keywordHashMap.remove(updaterObj.keyword);
-        serverKeywordHashMap.remove(updaterObj.keyword);
-        console.log(chalkLog("KEYWORD REMOVE: " + updaterObj.keyword));
+        keywordHashMap.remove(updaterObj.keyword.toLowerCase());
+        serverKeywordHashMap.remove(updaterObj.keyword.toLowerCase());
+        console.log(chalkLog("KEYWORD REMOVE: " + updaterObj.keyword.toLowerCase()));
         updaterMessageReady = true;
       break;
 
       case 'keyword':
 
+        var keywordId = updaterObj.keyword.toLowerCase();
+
         if ((typeof updaterObj.target !== 'undefined') && (updaterObj.target == 'server')) {
-          serverKeywordHashMap.set(updaterObj.keyword, updaterObj.keyWordType);
-          serverKeywordsJsonObj[updaterObj.keyword] = updaterObj.keyWordType;
+          serverKeywordHashMap.set(keywordId, updaterObj.keyWordType);
+          serverKeywordsJsonObj[keywordId] = updaterObj.keyWordType;
         }
         else {
-          keywordHashMap.set(updaterObj.keyword, updaterObj.keyWordType);
+          keywordHashMap.set(keywordId, updaterObj.keyWordType);
         }
 
         debug(chalkError("UPDATE KEYWORD\n" + jsonPrint(updaterObj)));
@@ -5841,7 +5844,7 @@ var readUpdaterMessageQueue = setInterval(function() {
 
           console.log(chalkLog("UPDATE SERVER KEYWORD\n" + jsonPrint(updaterObj)));
 
-          serverKeywordHashMap.set(updaterObj.keyword, updaterObj.keyWordType);
+          serverKeywordHashMap.set(keywordId, updaterObj.keyWordType);
 
           if (keywordsUpdateComplete) {
             var hmKeys = serverKeywordHashMap.keys();

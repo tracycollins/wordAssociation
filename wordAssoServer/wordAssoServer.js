@@ -1080,7 +1080,6 @@ function updateStatsInterval(statsFile, interval){
               else {
                 console.log(chalkError(jsonPrint(err));
               }
-              ));
             }
             else {
               console.log(chalkInfo("SAVE SERVER KEYWORD FILE " 
@@ -5798,9 +5797,13 @@ var readUpdaterMessageQueue = setInterval(function() {
 
                 saveFile("", serverKeywordsFile, serverKeywordsJsonObj, function(err, results){
                   if (err){
-                    console.log(chalkError("SAVE SERVER KEYWORD FILE ERROR " + serverKeywordsFile 
-                      + "\n" + jsonPrint(err)
-                    ));
+                    console.log(chalkError("SAVE SERVER KEYWORD FILE ERROR " + serverKeywordsFile));
+                    if (err.status == 429) {
+                      console.log(chalkError("SAVE SERVER KEYWORD FILE ERROR: TOO MANY WRITES"));
+                    }
+                    else {
+                      console.log(chalkError(jsonPrint(err));
+                    }
                   }
                   else {
                     console.log(chalkLog("SAVE SERVER KEYWORD FILE " 

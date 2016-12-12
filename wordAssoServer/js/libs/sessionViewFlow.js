@@ -594,6 +594,7 @@ function ViewFlow() {
       switch (nodeAddObj.op) {
 
         case "add":
+
           nodesModifiedFlag = true;
           nodeAddObj.node.age = 0;
           nodeAddObj.node.ageMaxRatio = 1e-6;

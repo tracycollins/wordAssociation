@@ -2008,15 +2008,15 @@ var createNode = function(callback) {
 
     async.parallel({
         source: function(cb) {
-          if (session.source.isIgnored) {
-            console.debug("IGNORED SOURCE: " + sourceText);
-          }
-          if (session.source.isKeyword) {
-            console.info("KEY S: " + sourceText);
-          }
-          if (session.source.isTrendingTopic) {
-            console.debug("TT S: " + sourceText);
-          }
+          // if (session.source.isIgnored) {
+          //   console.debug("IGNORED SOURCE: " + sourceText);
+          // }
+          // if (session.source.isKeyword) {
+          //   console.info("KEY S: " + sourceText);
+          // }
+          // if (session.source.isTrendingTopic) {
+          //   console.debug("TT S: " + sourceText);
+          // }
           if ((config.sessionViewType != 'ticker') && (config.sessionViewType != 'flow') && session.source.isIgnored) {
             cb(null, {
               node: sourceNodeId,
@@ -2136,15 +2136,15 @@ var createNode = function(callback) {
 
         target: function(cb) {
 
-          if (session.target.isIgnored) {
-            console.debug("IGNORED TARGET: " + targetText);
-          }
-          if (session.target.isKeyword) {
-            console.info("KEY T: " + sourceText);
-          }
-          if (session.target.isTrendingTopic) {
-            console.debug("TT T: " + sourceText);
-          }
+          // if (session.target.isIgnored) {
+          //   console.debug("IGNORED TARGET: " + targetText);
+          // }
+          // if (session.target.isKeyword) {
+          //   console.info("KEY T: " + sourceText);
+          // }
+          // if (session.target.isTrendingTopic) {
+          //   console.debug("TT T: " + sourceText);
+          // }
           if (typeof targetNodeId === 'undefined' || (config.sessionViewType == 'ticker') || (config.sessionViewType == 'flow')) {
             cb("TARGET UNDEFINED", null);
           } else if (session.target.isIgnored) {

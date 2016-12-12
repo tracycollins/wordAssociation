@@ -1465,31 +1465,31 @@ function ViewFlow() {
       newNode.raw = newNode.raw.replace(/\&amp\;/gi, "&");
       if (newNode.raw.match(/^\d+/gi)){
         newNode.isNumber = true;
-        console.debug("ADD NODE" 
-          + " | " + newNode.text
-          + " | K: " + newNode.isKeyword
-          + " | NUMBER: " + newNode.isNumber
-          + " | CURRENCY: " + newNode.isCurrency
-          + " | TT: " + newNode.isTrendingTopic
-          + " | KWs: " + jsonPrint(newNode.keywords)
-        );
-      }
+      //   console.debug("ADD NODE" 
+      //     + " | " + newNode.text
+      //     + " | K: " + newNode.isKeyword
+      //     + " | NUMBER: " + newNode.isNumber
+      //     + " | CURRENCY: " + newNode.isCurrency
+      //     + " | TT: " + newNode.isTrendingTopic
+      //     + " | KWs: " + jsonPrint(newNode.keywords)
+      //   );
+      // }
 
       if (newNode.raw.match(/^\$/gi)){
         newNode.isCurrency = true;
-        console.debug("ADD NODE" 
-          + " | " + newNode.text
-          + " | K: " + newNode.isKeyword
-          + " | NUMBER: " + newNode.isNumber
-          + " | CURRENCY: " + newNode.isCurrency
-          + " | TT: " + newNode.isTrendingTopic
-          + " | KWs: " + jsonPrint(newNode.keywords)
-        );
+        // console.debug("ADD NODE" 
+        //   + " | " + newNode.text
+        //   + " | K: " + newNode.isKeyword
+        //   + " | NUMBER: " + newNode.isNumber
+        //   + " | CURRENCY: " + newNode.isCurrency
+        //   + " | TT: " + newNode.isTrendingTopic
+        //   + " | KWs: " + jsonPrint(newNode.keywords)
+        // );
       }
     }
 
     if (newNode.isTrendingTopic) {
-      console.error("TRENDING TOPIC NODE" 
+      console.debug("TRENDING TOPIC NODE" 
         + " | " + newNode.text
         + " | " + newNode.raw
       );

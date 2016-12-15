@@ -659,7 +659,7 @@ function saveFile (path, file, jsonObj, callback){
 
   var options = {};
 
-  options.contents = JSON.stringify(jsonObj, null, 2);;
+  options.contents = JSON.stringify(jsonObj, null, 2);
   options.path = fullPath;
   options.mode = "overwrite";
   options.autorename = false;

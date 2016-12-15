@@ -420,7 +420,7 @@ function addUserResponsePrompt() {
 
     checkInputTextInterval = setInterval(function() {
         if (statsObj.serverConnected && userResponseEnabled) {
-            currentInput = document.getElementById("userResponseInput").value.toLowerCase();;
+            currentInput = document.getElementById("userResponseInput").value.toLowerCase();
             if (!currentInput || typeof currentInput === 'undefined') {
                 clearTimeout(inputChangedTimeout);
             } else if (enterKeyDownFlag || (previousInput != currentInput)) {
@@ -480,7 +480,7 @@ function sendUserResponseOnEnter() {
 function checkStreamInputText() {
     checkStreamInputTextInterval = setInterval(function() {
         if (statsObj.serverConnected && userResponseEnabled) {
-            var currentStreamInputData = document.getElementById("userResponseStreamInput").value.toLowerCase();;
+            var currentStreamInputData = document.getElementById("userResponseStreamInput").value.toLowerCase();
             if (!currentStreamInputData || currentStreamInputData == '') {
                 clearTimeout(inputStreamChangedTimeout);
             } else if (!enterKeyDownFlag && (previousStreamInputData != currentStreamInputData)) {

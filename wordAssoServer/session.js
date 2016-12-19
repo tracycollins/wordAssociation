@@ -33,6 +33,7 @@ requirejs(["https://cdnjs.cloudflare.com/ajax/libs/d3/4.4.0/d3.min.js"], functio
     initialize(function(){
       initializedFlag = true;
       addControlButton();
+      addInfoText();
       addBlahButton();
       if (!config.pauseFlag) currentSessionView.simulationControl('RESUME');
     });
@@ -296,7 +297,7 @@ function displayControl(isVisible) {
 function displayInfo(isVisible) {
   var v = 'hidden';
   if (isVisible) v = 'visible';
-  // controlPanel.document.getElementById('infoDiv').style.visibility = v;
+  document.getElementById('infoDiv').style.visibility = v;
 }
 
 var mouseMoveTimeout;
@@ -441,6 +442,17 @@ function addControlButton(){
   controlPanelButton.setAttribute('onclick', 'toggleControlPanel()');
   controlPanelButton.innerHTML = controlPanelFlag ? 'HIDE CONTROL' : 'SHOW CONTROL';
   controlDiv.appendChild(controlPanelButton);
+}
+
+function addInfoText(){
+  var infoDiv = document.getElementById('infoDiv');
+  var infoText = document.createTextNode("INFO");
+  infoDiv.appendChild(infoText);
+}
+
+function updateInfoText(infoText){
+  var infoDiv = document.getElementById('infoDiv');
+  infoDiv.innerHTML = infoText;
 }
 
 function updateBlahButton(){
@@ -965,13 +977,14 @@ function reset(){
 
 
 document.addEventListener(visibilityEvent, function() {
-  console.log("visibilityEvent");
   if (!document[hidden]) {
     windowVisible = true;
     currentSessionView.setPause(false);
+    console.debug("visibilityEvent: " + windowVisible);
   } else {
     windowVisible = false;
     currentSessionView.setPause(true);
+    console.debug("visibilityEvent: " + windowVisible);
   }
 });
 
@@ -1191,6 +1204,16 @@ socket.on("HEARTBEAT", function(heartbeat) {
   heartBeatsReceived++;
   serverConnected = true;
   lastHeartbeatReceived = moment().valueOf();
+  console.info("HEARTBEAT\n" + jsonPrint(heartbeat));
+  updateInfoText(
+    heartbeat.serverHostName 
+    + '<br>' + getTimeStamp(heartbeat.timeStamp)
+    + '<br>UPTIME ' + msToTime(heartbeat.upTime)
+    + '<br>STARTED ' + getTimeStamp(heartbeat.startTime)
+    + '<br>RUNTIME ' + msToTime(heartbeat.runTime)
+    + '<hr>NODES: ' + currentSessionView.getNodesLength() + ' | MAX: ' + currentSessionView.getMaxNodes()
+    + '<br>ADD NODE Q: ' + currentSessionView.getNodeAddQlength() + ' | MAX: ' + currentSessionView.getMaxNodeAddQ()
+  );
 });
 
 socket.on("CONFIG_CHANGE", function(rxConfig) {
@@ -1288,6 +1311,7 @@ socket.on("USER_SESSION", function(rxSessionObject) {
 socket.on("SESSION_UPDATE", function(rxSessionObject) {
 
   var rxObj = rxSessionObject;
+
   if (!windowVisible) {
     rxSessionUpdateQueue = [];
     if (debug) {

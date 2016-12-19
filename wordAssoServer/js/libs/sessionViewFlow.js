@@ -5,7 +5,11 @@
 
 function ViewFlow() {
 
-  var MAX_NODES = 150;
+  var MAX_NODES = 50;
+  var processNodeCount = 0;
+  var processNodeModulus = 3;
+
+  var maxNodeAddQ = 0;
 
   var self = this;
   var simulation;
@@ -410,7 +414,7 @@ function ViewFlow() {
         }
 
         if (linkIndex < 0) {
-          console.log("XXX GROUP NODE " + deletedGroup.node.nodeId);
+          console.log("X GRP " + deletedGroup.node.nodeId);
           deadGroupFlag = true;
           nodeDeleteQ.push({op:'delete', nodeId: deletedGroup.node.nodeId});
           groups.splice(groupIndex, 1);
@@ -449,7 +453,7 @@ function ViewFlow() {
         }
 
         if (linkIndex < 0) {
-          console.log("XXX SESS NODE " + deletedSession.node.nodeId);
+          console.log("X SES " + deletedSession.node.nodeId);
           deadSessionFlag = true;
           nodeDeleteQ.push({op:'delete', nodeId: deletedSession.node.nodeId});
           sessions.splice(sessionIndex, 1);
@@ -581,13 +585,51 @@ function ViewFlow() {
     }
   }
 
+  function addNodeEnabled (){
+    if (nodes.length < MAX_NODES) {
+      // console.debug("processNodeCount"
+      //   + " | Ns: "  + nodes.length
+      //   + " | NQ: "  + nodeAddQ.length
+      //   + " | PNC: "  + processNodeCount
+      // );
+      return true;
+    }
+    else if ((nodes.length < 2*MAX_NODES) && (processNodeCount % processNodeModulus != 0)) {
+      // console.debug("processNodeCount MAX_NODES MOD"
+      //   + " | Ns: "  + nodes.length
+      //   + " | NQ: "  + nodeAddQ.length
+      //   + " | PNC: "  + processNodeCount
+      // );
+      return true;
+    }
+    else if ((nodes.length < 3*MAX_NODES) && (processNodeCount % processNodeModulus == 0)) {
+      // console.debug("processNodeCount MAX_NODES MOD 2"
+      //   + " | Ns: "  + nodes.length
+      //   + " | NQ: "  + nodeAddQ.length
+      //   + " | PNC: "  + processNodeCount
+      // );
+      return true;
+    }
+    else {
+      // console.info("processNodeCount MAX_NODES"
+      //   + " | Ns: "  + nodes.length
+      //   + " | NQ: "  + nodeAddQ.length
+      //   + " | PNC: "  + processNodeCount
+      // );
+      return false;
+    }
+  }
+
   var processNodeAddQ = function(callback) {
+
+    processNodeCount++;
 
     var nodesModifiedFlag = false;
 
     // if (nodes.length >= MAX_NODES) console.debug("NODES [" + nodes.length + "] >= MAX_NODES: " + MAX_NODES);
 
-    if ((nodeAddQ.length > 0) && (nodes.length < MAX_NODES)) {
+    // if ((nodeAddQ.length > 0) && (nodes.length < MAX_NODES)) {
+    if ((nodeAddQ.length > 0) && addNodeEnabled()) {
 
       var nodeAddObj = nodeAddQ.shift();
 
@@ -872,7 +914,7 @@ function ViewFlow() {
           for (var i=groups.length-1; i >= 0; i -= 1) {
             if (node.nodeId == groups[i].node.nodeId) {
 
-              console.log("XXX GROUP | " + groups[i].node.nodeId);
+              console.log("X GRP | " + groups[i].node.nodeId);
 
               groupUpdateQ.push({op:'delete', groupId: groups[i].groupId});
 
@@ -886,7 +928,7 @@ function ViewFlow() {
         if (node.isSessionNode){
           for (var i=sessions.length-1; i >= 0; i -= 1) {
             if (node.nodeId == sessions[i].node.nodeId) {
-              console.log("XXX SESSION | " + sessions[i].node.nodeId);
+              console.log("X SES | " + sessions[i].node.nodeId);
               sessionUpdateQ.push({op:'delete', sessionId: sessionId});
               var deadLinkIds = Object.keys(node.links);
               deadLinkIds.forEach(function(deadLink){
@@ -1145,17 +1187,17 @@ function ViewFlow() {
             console.error(d.nodeId + " | NODE CIRCLE d.mentions UNDEFINED");
             return defaultRadiusScale(1);
           }
-          else {
-            if (d.isGroupNode) {
-              return groupCircleRadiusScale(d.totalWordChainIndex + 1.0) ;
-            }
-            else if (d.isSessionNode) {
-              return sessionCircleRadiusScale(d.wordChainIndex + 1.0) ;
-            }
-            else {
-              return defaultRadiusScale(parseInt(d.mentions) + 1.0);
-            }
+        else {
+          if (d.isGroupNode) {
+            return groupCircleRadiusScale(d.totalWordChainIndex + 1.0) ;
           }
+          else if (d.isSessionNode) {
+            return sessionCircleRadiusScale(d.wordChainIndex + 1.0) ;
+          }
+          else {
+            return defaultRadiusScale(parseInt(d.mentions) + 1.0);
+          }
+        }
       })
       .attr("cx", function(d) { return d.x; })
       .attr("cy", function(d) { return d.y; })
@@ -1303,7 +1345,7 @@ function ViewFlow() {
 
     async.series(
       {
-        udl: updateLinks,
+        // udl: updateLinks,
         udnc: updateNodeCircles,
         udnl: updateNodeLabels,
         ugc: updateGroupsCircles,
@@ -1436,8 +1478,8 @@ function ViewFlow() {
   }
 
   this.addSession = function(newSession) {
-      console.info("ADD SESSION" 
-        + " | " + newSession.sessionId
+      console.info("+ SES" 
+        + " " + newSession.sessionId
         // + jsonPrint(newSession)
       );
     sessionUpdateQ.push({op:'add', session: newSession});
@@ -1489,9 +1531,9 @@ function ViewFlow() {
     }
 
     if (newNode.isTrendingTopic) {
-      console.debug("TRENDING TOPIC NODE" 
-        + " | " + newNode.text
-        + " | " + newNode.raw
+      console.log("TT" 
+        + " " + newNode.text
+        + " " + newNode.raw
       );
     }
 
@@ -1499,6 +1541,11 @@ function ViewFlow() {
     if (newNode.y === 'undefined') newNode.y = 100;
 
     nodeAddQ.push({op:'add', node: newNode});
+
+    if (nodeAddQ.length > maxNodeAddQ) {
+      maxNodeAddQ = nodeAddQ.length;
+      console.warn("NEW MAX NODE ADD Q: " + maxNodeAddQ);
+    }
   }
 
   this.updateNode = function(uNode) {

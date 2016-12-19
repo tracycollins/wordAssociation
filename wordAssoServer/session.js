@@ -70,7 +70,7 @@ var DEFAULT_VELOCITY_DECAY = 0.965;
 var DEFAULT_LINK_DISTANCE = 10.0;
 var DEFAULT_LINK_STRENGTH = 0.80;
 var DEFAULT_COLLISION_RADIUS_MULTIPLIER = 0.6;
-var DEFAULT_COLLISION_ITERATIONS = 5;
+var DEFAULT_COLLISION_ITERATIONS = 1;
 
 var DEFAULT_NODE_RADIUS = 20.0;
 
@@ -1133,15 +1133,15 @@ function deleteSession(nodeId, callback) {
   var deletedSession = sessionHashMap.get(nodeId);
   var groupLinkId = deletedSession.groupId + "_" + deletedSession.node.nodeId;
 
-  console.log("XXX DELETE SESSION"
+  console.log("X SES"
     // + " [" + currentSessionView.getSessionsLength() + "]"
-    + " | GID: " + deletedSession.groupId 
-    + " | NID: " + deletedSession.nodeId 
-    + " | SID: " + deletedSession.sessionId 
-    + " | UID: " + deletedSession.userId
-    + " | SNID: " + deletedSession.linkHashMap.keys()
-    + " | SNID: " + deletedSession.node.nodeId
-    + " | LINKS: " + jsonPrint(deletedSession.node.links)
+    + " G: " + deletedSession.groupId 
+    + " N: " + deletedSession.nodeId 
+    + " S: " + deletedSession.sessionId 
+    + " U: " + deletedSession.userId
+    + " SN: " + deletedSession.linkHashMap.keys()
+    + " SN: " + deletedSession.node.nodeId
+    + " Ls: " + jsonPrint(deletedSession.node.links)
   );
 
   var sessionLinks = deletedSession.linkHashMap.keys();
@@ -1174,7 +1174,7 @@ function deleteAllSessions(callback) {
 
   async.each(nodeIds, function(nodeId, cb) {
       deleteSession(nodeId, function(nId) {
-        console.log("XXX DELETED SESSION " + nId);
+        console.log("X SES " + nId);
         cb();
       });
     },
@@ -1668,7 +1668,7 @@ var createGroup = function(callback) {
 
       addToHashMap(nodeHashMap, currentGroup.node.nodeId, currentGroup.node, function(grpNode) {
 
-        console.log("NEW GROUP NODE" 
+        console.log("+ GRP" 
           + " | " + grpNode.nodeId
           + " | " + grpNode.groupId
           + " | isGroupNode: " + grpNode.isGroupNode
@@ -1678,7 +1678,7 @@ var createGroup = function(callback) {
         currentSessionView.addNode(grpNode);
 
         addToHashMap(groupHashMap, currentGroup.groupId, currentGroup, function(cGroup) {
-          console.log("NEW GROUP " + cGroup.groupId 
+          console.log("+ GRP " + cGroup.groupId 
             + " | GNID: " + cGroup.node.nodeId
           );
           sessionCreateQueue.push(sessUpdate);
@@ -1806,13 +1806,13 @@ var createSession = function(callback) {
 
       sessionsCreated += 1;
 
-      console.log("CREATE SESS" 
+      console.log("+ SES" 
         + " [" + sessUpdate.wordChainIndex + "]" 
-        + " | UID: " + sessUpdate.userId 
-        + " | ENT: " + sessUpdate.tags.entity 
-        + " | CH: " + sessUpdate.tags.channel 
-        + " | URL: " + sessUpdate.tags.url 
-        + " | " + sessUpdate.source.nodeId 
+        + " U: " + sessUpdate.userId 
+        + " E: " + sessUpdate.tags.entity 
+        + " C: " + sessUpdate.tags.channel 
+        + " URL: " + sessUpdate.tags.url 
+        + " " + sessUpdate.source.nodeId 
         + " > " + sessUpdate.target.nodeId
       );
 
@@ -1901,21 +1901,21 @@ var createSession = function(callback) {
       }
 
       addToHashMap(nodeHashMap, currentSession.node.nodeId, currentSession.node, function(sesNode) {
-        console.log("NEW SESSION NODE" 
-          + " | " + sesNode.nodeId
-          + " | " + sesNode.text
-          + " | WCI: " + sesNode.wordChainIndex
-          + " | M: " + sesNode.wordChainIndex
+        console.log("+ SES" 
+          + " " + sesNode.nodeId
+          + " " + sesNode.text
+          + " WCI: " + sesNode.wordChainIndex
+          + " M: " + sesNode.wordChainIndex
         );
 
         currentSessionView.addNode(sesNode);
 
         addToHashMap(sessionHashMap, currentSession.nodeId, currentSession, function(cSession) {
-          console.log("NEW SESS"
-            + " | G: " + currentGroup.groupId
-            + " | GN: " + currentGroup.name
-            + " | UID: " + cSession.userId 
-            + " | Ms:" + cSession.mentions 
+          console.log("+ SES"
+            + " G: " + currentGroup.groupId
+            + " GN: " + currentGroup.name
+            + " U: " + cSession.userId 
+            + " Ms:" + cSession.mentions 
           );
 
           currentSessionView.addSession(cSession);
@@ -1952,8 +1952,8 @@ var createNode = function(callback) {
     } 
     else {
 
-      console.log("CREATE SESSION NODE" 
-        + " | " + session.node.nodeId
+      console.log("+ SES" 
+        + " " + session.node.nodeId
       );
 
       session.node.bboxWidth = 1e-6;

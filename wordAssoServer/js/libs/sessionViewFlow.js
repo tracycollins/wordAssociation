@@ -1285,8 +1285,8 @@ function ViewFlow() {
       .style("font-size", function(d) {
         if (d.isGroupNode) { return sessionFontSizeScale(d.totalWordChainIndex + 1.1) + "px";  }
         else if (d.isSessionNode) { return sessionFontSizeScale(d.wordChainIndex + 1.1) + "px";  }
-        else if (d.isTrendingTopic) { return nodeFontSizeScale(1.5*d.mentions + 1.1) + "px"; }
         else if (d.isIgnored) { return nodeFontSizeScale(10) + "px";  }
+        else if (d.isTrendingTopic) { return nodeFontSizeScale(1.5*d.mentions + 1.1) + "px"; }
         else { return nodeFontSizeScale(d.mentions + 1.1) + "px"; }
       })
       .style("font-weight", function(d) {

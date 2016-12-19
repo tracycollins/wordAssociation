@@ -1201,6 +1201,12 @@ function deleteAllSessions(callback) {
 var heartBeatsReceived = 0;
 
 socket.on("HEARTBEAT", function(heartbeat) {
+
+  var nodesLength = (typeof currentSessionView === 'undefined') ? 0 : currentSessionView.getNodesLength();
+  var maxNodes = (typeof currentSessionView === 'undefined') ? 0 : currentSessionView.getMaxNodes();
+  var nodeAddQLength = (typeof currentSessionView === 'undefined') ? 0 : currentSessionView.getNodeAddQlength();
+  var maxNodeAddQ = (typeof currentSessionView === 'undefined') ? 0 : currentSessionView.getMaxNodeAddQ();
+
   heartBeatsReceived++;
   serverConnected = true;
   lastHeartbeatReceived = moment().valueOf();
@@ -1211,8 +1217,8 @@ socket.on("HEARTBEAT", function(heartbeat) {
     + '<br>UPTIME ' + msToTime(heartbeat.upTime)
     + '<br>STARTED ' + getTimeStamp(heartbeat.startTime)
     + '<br>RUNTIME ' + msToTime(heartbeat.runTime)
-    + '<hr>NODES: ' + currentSessionView.getNodesLength() + ' | MAX: ' + currentSessionView.getMaxNodes()
-    + '<br>ADD NODE Q: ' + currentSessionView.getNodeAddQlength() + ' | MAX: ' + currentSessionView.getMaxNodeAddQ()
+    + '<hr>NODES: ' + nodesLength + ' | MAX: ' + maxNodes
+    + '<br>ADD NODE Q: ' + nodeAddQLength + ' | MAX: ' + maxNodeAddQ
   );
 });
 
@@ -1266,11 +1272,11 @@ socket.on("SESSION_DELETE", function(rxSessionObject) {
 
   var rxObj = rxSessionObject;
 
-  console.log("SESSION_DELETE" 
+  console.log("X SES" 
     // + " | " + rxObj.session.nodeId
-    // // + " | " + rxSessionObject.sessionId 
+    + " " + rxSessionObject.sessionId 
     // + " | " + rxObj.sessionEvent
-    + "\n" + jsonPrint(rxSessionObject)
+    // + "\n" + jsonPrint(rxSessionObject)
   );
 
   if ((typeof rxObj.session !== 'undefined') && (typeof rxObj.session.tags !== 'undefined')){

@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- SESSION MODULAR -->
 <html>
 
 <head>
@@ -28,6 +29,20 @@
     
     .exit {
       fill: blue;
+    }
+    
+    #infoDiv {
+      font-family: "Lucida Console", Monaco, monospace;
+      background-color: #222222;
+      border: 1px solid #aaaaaa;
+      color: #cccccc;
+      margin: 20px;
+      padding: 10px;
+      overflow: hidden;
+      position: absolute;
+      bottom: 10%;
+      left: 0;
+      z-index: 10;
     }
     
     #controlDiv {
@@ -220,7 +235,8 @@
 
 <body style="overflow:hidden;">
   <div id="d3group" style="overflow:hidden;"></div>
-  <div id="controlDiv" style="overflow:hidden;">
+  <div id="infoDiv" style="overflow:hidden;"></div>
+  <div id="controlDiv" style="overflow:hidden;"></div>
   <!-- <div id="main" style="overflow:hidden;"> -->
 </body>
 

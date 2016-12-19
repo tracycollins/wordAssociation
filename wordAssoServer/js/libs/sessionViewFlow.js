@@ -158,7 +158,7 @@ function ViewFlow() {
   }, true);
 
 
-  var adjustedAgeRateScale = d3.scaleLinear().domain([1, 1000]).range([1.0, 20.0]).clamp(true);
+  var adjustedAgeRateScale = d3.scaleLinear().domain([1, 200]).range([1.0, 20.0]).clamp(true);
 
   var sessionFontSizeScale = d3.scaleLinear().domain([1, 10000000]).range([16.0, 24]).clamp(true);
   var nodeFontSizeScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minFontSize, maxFontSize]).clamp(true);
@@ -202,23 +202,36 @@ function ViewFlow() {
   var nodes = [];
   var links = [];
 
-  this.groupsLength = function() {
+  this.getGroupsLength = function() {
     return groups.length;
   }
   
-  this.sessionsLength = function() {
+  this.getSessionsLength = function() {
     return sessions.length;
   }
   
-  this.nodesLength = function() {
+  this.getNodesLength = function() {
     return nodes.length;
   }
   
-  this.linksLength = function() {
+  this.getMaxNodes = function() {
+    return maxNumberNodes;
+  }
+  
+  this.getNodeAddQlength = function() {
+    return nodeAddQ.length;
+  }
+  
+  this.getMaxNodeAddQ = function() {
+    return maxNodeAddQ;
+  }
+  
+
+  this.getLinksLength = function() {
     return links.length;
   }
   
-  this.ageRate = function() {
+  this.getAgeRate = function() {
     return ageRate;
   }
   
@@ -237,11 +250,6 @@ function ViewFlow() {
 
   var svgFlowLayoutAreaWidth = d3LayoutWidth * FLOW_LAYOUT_WIDTH_RATIO;
   var svgFlowLayoutAreaHeight = d3LayoutHeight * FLOW_LAYOUT_HEIGHT_RATIO;
-
-  this.getSessionsLength = function() {
-    return sessions.length;
-  }
-
 
   var d3image = d3.select("#d3group");
 
@@ -308,8 +316,9 @@ function ViewFlow() {
   }
 
   self.setPause = function(value){
-    runningFlag = value;
-    if (runningFlag){
+    console.debug("SET PAUSE: " + value);
+    runningFlag = !value;
+    if (value){
       self.simulationControl('PAUSE');
     }
     else{
@@ -661,7 +670,14 @@ function ViewFlow() {
           }
 
           nodes.push(nodeAddObj.node);
+
+          if (nodes.length > maxNumberNodes) {
+            console.info("MAX NODES: " + maxNumberNodes);
+            maxNumberNodes = nodes.length;
+          }
+
           callback(null, nodesModifiedFlag);
+
         break;
 
         default:
@@ -1602,11 +1618,11 @@ function ViewFlow() {
         runningFlag = true;
       break;
       case 'RESUME':
-        if (!runningFlag){
+        // if (!runningFlag){
           // console.warn("SIMULATION CONTROL | OP: " + op);
           runningFlag = true;
           simulation.alphaTarget(0.7).restart();
-        }
+        // }
       break;
       case 'FREEZE':
         if (!freezeFlag){
@@ -1617,12 +1633,12 @@ function ViewFlow() {
         }
       break;
       case 'PAUSE':
-        if (runningFlag){
+        // if (runningFlag){
           // console.warn("SIMULATION CONTROL | OP: " + op);
           runningFlag = false;
           simulation.alpha(0);
           simulation.stop();
-        }
+        // }
       break;
       case 'STOP':
         runningFlag = false;

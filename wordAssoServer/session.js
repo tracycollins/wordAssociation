@@ -1204,7 +1204,7 @@ socket.on("HEARTBEAT", function(heartbeat) {
   heartBeatsReceived++;
   serverConnected = true;
   lastHeartbeatReceived = moment().valueOf();
-  console.info("HEARTBEAT\n" + jsonPrint(heartbeat));
+  // console.info("HEARTBEAT\n" + jsonPrint(heartbeat));
   updateInfoText(
     heartbeat.serverHostName 
     + '<br>' + getTimeStamp(heartbeat.timeStamp)

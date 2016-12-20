@@ -4915,9 +4915,9 @@ function handleSessionEvent(sesObj, callback) {
           // sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
 
           if (!sessionUpdatedObj.userId) {
-            debug(chalkError("SESSION_KEEPALIVE: UNDEFINED USER ID" 
+            console.log(chalkError("SESSION_KEEPALIVE: UNDEFINED USER ID" 
               + "\nsessionUpdatedObj\n" + jsonPrint(sessionUpdatedObj)));
-            debug(chalkError("SESSION_KEEPALIVE: UNDEFINED USER ID" 
+            console.log(chalkError("SESSION_KEEPALIVE: UNDEFINED USER ID" 
               + "\nsesObj\n" + jsonPrint(sesObj)));
             quit("UNDEFINED USER ID: " + sessionUpdatedObj.sessionId);
           }
@@ -8194,7 +8194,7 @@ function createSession(newSessionObj) {
 
         for (i=0; i<tagKeys.length; i++){
           sessionObj.tags[tagKeys[i]] = userObj.tags[tagKeys[i]].toLowerCase();
-          console.log(chalkRed("sessionObj " + tagKeys[i] + " > " + sessionObj.tags[tagKeys[i]]));
+          debug(chalkRed("sessionObj " + tagKeys[i] + " > " + sessionObj.tags[tagKeys[i]]));
         }
 
         if (i == tagKeys.length) {
@@ -8211,6 +8211,7 @@ function createSession(newSessionObj) {
        }
 
     }
+    
     debug(chalkLog("@@@ SESSION_KEEPALIVE"
       + " | " + userObj.userId 
       + " | " + sessionObj.sessionId 

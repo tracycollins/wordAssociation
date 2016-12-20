@@ -4596,6 +4596,8 @@ function handleSessionEvent(sesObj, callback) {
 
       sesObj.sessionEvent = 'SESSION_DELETE';
       viewNameSpace.emit('SESSION_DELETE', sesObj);
+
+      quit();
       break;
 
     case 'SESSION_EXPIRED':
@@ -8189,8 +8191,8 @@ function createSession(newSessionObj) {
         var i = 0;
 
         for (i=0; i<tagKeys.length; i++){
-          sessionObj.tags[tagKey[i]] = userObj.tags[tagKey[i]].toLowerCase();
-          console.log(chalkRed("sessionObj " + tagKey + " > " + sessionObj.tags[tagKey[i]]));
+          sessionObj.tags[tagKeys[i]] = userObj.tags[tagKeys[i]].toLowerCase();
+          console.log(chalkRed("sessionObj " + tagKey + " > " + sessionObj.tags[tagKeys[i]]));
         }
 
         if (i == tagKeys.length) {

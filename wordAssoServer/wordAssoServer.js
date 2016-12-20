@@ -8149,12 +8149,14 @@ function createSession(newSessionObj) {
   socket.on("SESSION_KEEPALIVE", function(userObj) {
     statsObj.socket.SESSION_KEEPALIVES++;
     debug(chalkUser("SESSION_KEEPALIVE\n" + jsonPrint(userObj)));
-    debug(chalkUser("SESSION_KEEPALIVE" 
-      + " | " + userObj.userId
-      + " | " + userObj.screenName
-      // + "\n" + jsonPrint(userObj)
-    ));
-
+    if (userObj.userId.match(/TMS_/g)){
+      console.log(chalkRedBold("SESSION_KEEPALIVE" 
+        + " | " + userObj.userId
+        + " | " + moment().format(defaultDateTimeFormat)
+        // + "\n" + jsonPrint(userObj)
+      ));
+    }
+ 
     var socketId = socket.id;
     var sessionObj = {};
 
@@ -8176,7 +8178,7 @@ function createSession(newSessionObj) {
         + " | CREATING SESSION" + "\n" + jsonPrint(userObj)));
 
       sessionObj = {
-        namespace: "view",
+        namespace: userObj.namespace,
         socket: socket,
         type: userObj.type,
         mode: userObj.mode,

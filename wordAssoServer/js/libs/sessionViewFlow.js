@@ -5,6 +5,8 @@
 
 function ViewFlow() {
 
+  var hideNodeCirclesFlag = true;
+
   var MAX_NODES = 50;
   var processNodeCount = 0;
   var processNodeModulus = 3;
@@ -784,6 +786,7 @@ function ViewFlow() {
         case "add":
           linksModifiedFlag = true;
           links.push(linkUpdateObj.link);
+          console.debug("+ LINK: " + linkUpdateObj.link.source.nodeId + " > " + linkUpdateObj.link.target.nodeId);
         break;
         case "delete":
           deleteLinkQ(linkUpdateObj.linkId, function(err, deadLinkFlag){
@@ -1144,7 +1147,7 @@ function ViewFlow() {
           return palette.red; 
         }
         else if (d.node.ageMaxRatio < 0.01) { 
-          return palette.white; 
+          return palette.black; 
         }
         else { 
           return palette.yellow 
@@ -1153,7 +1156,8 @@ function ViewFlow() {
       .style("font-size", function(d) { return sessionFontSizeScale(d.totalWordChainIndex) + "px"; })
       .style('opacity', function(d) {
         if (d.mouseHoverFlag) { return 1.0; }
-        return 1.0-d.node.ageMaxRatio;
+        return 1.0;
+        // return 1.0-d.node.ageMaxRatio;
       })
       .attr("x", function(d) {
         return d.node.x;
@@ -1175,7 +1179,11 @@ function ViewFlow() {
         return d.node.y + shiftY;
       })
       .text(function(d) { return d.text;  })
-      .style("visibility", "hidden")
+      .style("visibility", function(d){
+        // if (d.isGroupNode ) return d.interpolateGroupColor(d.ageMaxRatio);
+        // if (d.node.isSessionNode) return "visible";
+        return "hidden";
+      })
       .style("text-anchor", "middle")
       .style("alignment-baseline", "middle")
       .style("opacity", 1e-6)
@@ -1218,7 +1226,10 @@ function ViewFlow() {
       .attr("cx", function(d) { return d.x; })
       .attr("cy", function(d) { return d.y; })
       .style("fill", function(d) {
-        if (d.mouseHoverFlag) {
+        if (hideNodeCirclesFlag) {
+          return "none"; 
+        }
+        else if (d.mouseHoverFlag) {
           return palette.blue; 
         }
         else {
@@ -1228,15 +1239,21 @@ function ViewFlow() {
         }
       })
       .style('opacity', function(d) {
+        if (hideNodeCirclesFlag) return 1e-6;
         return 1.0;
       })
       .style('stroke', function(d) {
+        if (hideNodeCirclesFlag) return "none";
         if (d.ageMaxRatio < 0.01) return palette.white;
         if (d.isGroupNode ) return strokeColorScale(d.ageMaxRatio);
         if (d.isSessionNode) return strokeColorScale(d.ageMaxRatio);
         return d.interpolateNodeColor(d.ageMaxRatio);
       })
-      .style('stroke-opacity', 1.0);
+      .style('stroke-opacity', function(d) {
+        if (hideNodeCirclesFlag) return 1e-6;
+        return 1.0;
+      });
+      // .style('stroke-opacity', 1.0);
 
     nodeCircles
       .enter()
@@ -1247,7 +1264,11 @@ function ViewFlow() {
       .on("mouseout", nodeMouseOut)
       .on("click", nodeClick)
       .attr("r", 1e-6)
-      .style("visibility", "hidden")
+      .style("visibility", function(d){
+        // if (d.isGroupNode ) return d.interpolateGroupColor(d.ageMaxRatio);
+        // if (d.isSessionNode) return "visible";
+        return "hidden";
+      })
       .style("fill", palette.black)
       .style("opacity", 1e-6)
       .style('stroke', palette.red)
@@ -1278,9 +1299,10 @@ function ViewFlow() {
       })
       .attr("x", function(d) { return d.x; })
       .attr("y", function(d) {
-        if (d.isGroupNode) { return d.y; }
-        else if (d.isSessionNode) { return d.y; }
-        else { return d.y; }
+        // if (d.isGroupNode) { return d.y; }
+        // else if (d.isSessionNode) { return d.y; }
+        // else { return d.y; }
+        return d.y;
       })
       .style("font-size", function(d) {
         if (d.isGroupNode) { return sessionFontSizeScale(d.totalWordChainIndex + 1.1) + "px";  }
@@ -1330,7 +1352,10 @@ function ViewFlow() {
           return d.y + shiftY;
         }
       })
-      .style("visibility", function(d) { return (d.isGroupNode || d.isSessionNode) ? "hidden" : "visible"; })
+      .style("visibility", function(d) { 
+        return (d.isGroupNode || d.isSessionNode) ? "hidden" : "visible"; 
+        // return (d.isGroupNode) ? "hidden" : "visible"; 
+      })
       .style("text-anchor", "middle")
       .style("alignment-baseline", "middle")
       .style("opacity", 1e-6)
@@ -1361,7 +1386,7 @@ function ViewFlow() {
 
     async.series(
       {
-        // udl: updateLinks,
+        udl: updateLinks,
         udnc: updateNodeCircles,
         udnl: updateNodeLabels,
         ugc: updateGroupsCircles,
@@ -1724,8 +1749,10 @@ function ViewFlow() {
     var wordChainIndex = tickNumber;
     var text = randomNumber360 + ' | ' + mentions;
 
-    var startColor = "hsl(" + randomNumber360 + ",0.8,0.5)";
-    var endColor = "black";
+    // var startColor = "hsl(" + randomNumber360 + ",0.8,0.5)";
+    // var endColor = "black";
+    var startColor = "black";
+    var endColor = "white";
 
     var interpolateNodeColor = d3.interpolateRgb(startColor, endColor);
 

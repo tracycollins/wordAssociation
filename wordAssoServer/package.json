@@ -8,6 +8,7 @@
     "bluebird": "^3.1.5",
     "body-parser": "^1.14.2",
     "bson": "^0.4.21",
+    "clone": "^2.1.0",
     "connect-flash": "^0.1.1",
     "connect-mongo": "^1.1.0",
     "crosstab": "^0.2.12",

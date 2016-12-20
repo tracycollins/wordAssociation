@@ -5232,6 +5232,7 @@ function handleSessionEvent(sesObj, callback) {
 
     case 'USER_READY':
 
+
       if (typeof sesObj.session.ip !== 'undefined') {
         if (dnsHostHashMap.has(sesObj.session.ip)) {
           sesObj.session.domain = dnsHostHashMap.get(sesObj.session.ip);
@@ -5258,6 +5259,8 @@ function handleSessionEvent(sesObj, callback) {
         // + "\n" + jsonPrint(sesObj)
       ));
 
+      var sessionId = sesObj.session.sessionId;
+
       if (sesObj.session.config.mode == 'MUXSTREAM'){
 
         console.log(chalkInfo("MUXSTREAM"
@@ -5268,7 +5271,7 @@ function handleSessionEvent(sesObj, callback) {
 
       if (sesObj.session.config.mode == 'SUBSTREAM'){
 
-        sesObj.session.sessionId = sesObj.session.sessionId + "#" + sesObj.user.tags.entity;
+        sessionId = sesObj.session.sessionId + "#" + sesObj.user.tags.entity;
 
         console.log(chalkInfo("SUBSTREAM"
           + " | " + sesObj.session.sessionId
@@ -5292,18 +5295,24 @@ function handleSessionEvent(sesObj, callback) {
         debug(chalkLog("USER CACHE RESULTS" + "\n" + err + "\n" + success));
       });
 
-      var currentSession = sessionCache.get(sesObj.session.sessionId);
+      var currentSession = sessionCache.get(sessionId);
 
       if (typeof currentSession !== 'undefined') {
         currentSession.config.type = sesObj.session.config.type;
         currentSession.config.mode = sesObj.session.config.mode;
         currentSession.nodeId = sesObj.user.tags.entity.toLowerCase() + '_' + sesObj.user.tags.channel.toLowerCase();
+        currentSession.sessionId = sesObj.session.sessionId;
+        currentSession.entity = sesObj.user.tags.entity.toLowerCase();
         currentSession.userId = sesObj.user.userId;
         currentSession.user = sesObj.user;
       } else {
         currentSession = {};
         currentSession = sesObj.session;
+        currentSession.config.type = sesObj.session.config.type;
+        currentSession.config.mode = sesObj.session.config.mode;
         currentSession.nodeId = sesObj.user.tags.entity.toLowerCase() + '_' + sesObj.user.tags.channel.toLowerCase();
+        currentSession.sessionId = sesObj.session.sessionId;
+        currentSession.entity = sesObj.user.tags.entity.toLowerCase();
         currentSession.userId = sesObj.user.userId;
         currentSession.user = sesObj.user;
       }
@@ -5371,9 +5380,9 @@ function handleSessionEvent(sesObj, callback) {
           ROUTING OF PROMPT/RESPONSE BASED ON SESSION TYPE
       */
 
-      var sessionCacheKey = currentSession.sessionId;
+      var sessionCacheKey = (currentSession.config.mode == 'SUBSTREAM') ? currentSession.sessionId + "#" + currentSession.entity : currentSession.sessionId;
 
-      if (typeof currentSession.subSessionId !== 'undefined') sessionCacheKey = currentSession.subSessionId;
+      // if (typeof currentSession.subSessionId !== 'undefined') sessionCacheKey = currentSession.subSessionId;
 
 
       sessionCache.set(sessionCacheKey, currentSession, function(err, success) {
@@ -8211,7 +8220,7 @@ function createSession(newSessionObj) {
        }
 
     }
-    
+
     debug(chalkLog("@@@ SESSION_KEEPALIVE"
       + " | " + userObj.userId 
       + " | " + sessionObj.sessionId 

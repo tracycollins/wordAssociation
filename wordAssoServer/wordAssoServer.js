@@ -8160,11 +8160,11 @@ function createSession(newSessionObj) {
       && (typeof userObj.tags.mode !== 'undefined') 
       && (userObj.tags.mode == 'substream')) {
       socketId = socket.id + "#" + userObj.tags.entity;
-      console.log(chalkRedBold("KEEPALIVE socketId: " + socketId));
+      debug(chalkRedBold("KEEPALIVE socketId: " + socketId));
       sessionObj = sessionCache.get(socketId);
     }
     else {
-      console.log(chalkRedBold("KEEPALIVE socketId: " + socketId));
+      debug(chalkRedBold("KEEPALIVE socketId: " + socketId));
       sessionObj = sessionCache.get(socketId);
     }
 
@@ -8194,14 +8194,14 @@ function createSession(newSessionObj) {
         }
 
         if (i == tagKeys.length) {
-          console.log(chalkInfo("SESSION_KEEPALIVE createSession"));
+          debug(chalkInfo("SESSION_KEEPALIVE createSession"));
           createSession(sessionObj);
           return;
         }
 
       }
       else {
-        console.log(chalkInfo("SESSION_KEEPALIVE createSession"));
+        debug(chalkInfo("SESSION_KEEPALIVE createSession"));
         createSession(sessionObj);
         return;
        }

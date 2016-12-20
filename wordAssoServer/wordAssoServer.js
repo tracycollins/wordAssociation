@@ -8185,7 +8185,8 @@ function createSession(newSessionObj) {
     if (!sessionObj) {
       debug(chalkError(moment().format(defaultDateTimeFormat) 
         + " | ??? SESSION NOT FOUND ON SESSION_KEEPALIVE | " + socketId 
-        + " | CREATING SESSION" + "\n" + jsonPrint(userObj)));
+        // + " | CREATING SESSION" + "\n" + jsonPrint(userObj)
+      ));
 
       sessionObj = {
         namespace: userObj.namespace,
@@ -8208,15 +8209,15 @@ function createSession(newSessionObj) {
         }
 
         if (i == tagKeys.length) {
-          debug(chalkInfo("SESSION_KEEPALIVE createSession"));
-          createSession(sessionObj);
+          debug(chalkInfo("SESSION_KEEPALIVE"));
+          // createSession(sessionObj);
           return;
         }
 
       }
       else {
-        debug(chalkInfo("SESSION_KEEPALIVE createSession"));
-        createSession(sessionObj);
+        debug(chalkInfo("SESSION_KEEPALIVE"));
+        // createSession(sessionObj);
         return;
        }
 

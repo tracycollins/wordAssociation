@@ -1353,7 +1353,7 @@ function updateEntityChannelGroups(configFile, callback){
 
             entityChannelGroupHashMap.set(entityChannelId, entity);
 
-            console.log(chalkLog("+++ ADDED ENTITY CHANNEL  "
+            console.log(chalkLog("+++ ADDED ENTITY CHANNEL"
               + " | ECID: " + entityChannelId
               + " | EGID " + entityChannelGroupHashMap.get(entityChannelId).groupId
               + " | EGN: " + entityChannelGroupHashMap.get(entityChannelId).name
@@ -2284,6 +2284,7 @@ function sendPrompt(sessionObj, sourceWordObj) {
         });
         break;
 
+      case 'MUXSTREAM':
       case 'GROUP':
         break;
       default:

@@ -8194,7 +8194,7 @@ function createSession(newSessionObj) {
 
         for (i=0; i<tagKeys.length; i++){
           sessionObj.tags[tagKeys[i]] = userObj.tags[tagKeys[i]].toLowerCase();
-          console.log(chalkRed("sessionObj " + tagKey + " > " + sessionObj.tags[tagKeys[i]]));
+          console.log(chalkRed("sessionObj " + tagKeys[i] + " > " + sessionObj.tags[tagKeys[i]]));
         }
 
         if (i == tagKeys.length) {

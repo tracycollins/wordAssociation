@@ -6,9 +6,9 @@
     "autorestart" : false,
     "env": {
         "NODE_ENV": "production",
-        "SOCKET_IDLE_TIMEOUT" : 60,
-        "WORD_CACHE_TTL" : 10,
-        "SESSION_CACHE_DEFAULT_TTL": 300,
+        "SOCKET_IDLE_TIMEOUT" : 120,
+        "WORD_CACHE_TTL" : 15,
+        "SESSION_CACHE_DEFAULT_TTL": 600,
         "DROPBOX_WORD_ASSO_ACCESS_TOKEN": "nknEWsIkD5UAAAAAAAQouTDFRBKfwsFzuS8PPi2Q_JVYnpotNuaHiddNtmG4mUTi",
         "DROPBOX_WORD_ASSO_APP_KEY": "qlb9k4dp01t9iqk",
         "DROPBOX_WORD_ASSO_APP_SECRET": "wqslhe2t95zfn19",

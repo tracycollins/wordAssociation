@@ -1217,6 +1217,7 @@ socket.on("HEARTBEAT", function(heartbeat) {
     + '<br>UPTIME ' + msToTime(heartbeat.upTime)
     + '<br>STARTED ' + getTimeStamp(heartbeat.startTime)
     + '<br>RUNTIME ' + msToTime(heartbeat.runTime)
+    + '<br>PRIMARY SOCKET: ' + statsObj.socketId
     + '<hr>NODES: ' + nodesLength + ' | MAX: ' + maxNodes
     + '<br>ADD NODE Q: ' + nodeAddQLength + ' | MAX: ' + maxNodeAddQ
   );
@@ -1396,10 +1397,12 @@ var processSessionQueues = function(callback) {
       // sessionHashMap.remove(sessionId);
       return (callback(null, null));
     });
-  } else if (rxSessionUpdateQueue.length == 0) {
+  } 
+  else if (rxSessionUpdateQueue.length == 0) {
     // console.log("sessionObject\n");
     return (callback(null, null));
-  } else {
+  } 
+  else {
     var session = rxSessionUpdateQueue.shift();
 
     session.nodeId = session.tags.entity.toLowerCase() + "_" + session.tags.channel.toLowerCase();
@@ -1418,11 +1421,25 @@ var processSessionQueues = function(callback) {
       break;
     }
 
-    if (typeof session.tags.group !== 'undefined') {
+    if (typeof session.tags.group.groupId !== 'undefined') {
+      console.log("GROUP"
+        + " | " + session.nodeId
+        + " | " + session.tags.group.groupId
+        // + "\nTAGS\n" + jsonPrint(session.tags)
+      );
+      groupCreateQueue.push(session);
+    }
+    else if (session.tags.group.entityId) {
+      console.warn("??? GROUP ID UNDEFINED ... CREATE GROUP FROM ENTITY ID"
+        + " | N: " + session.nodeId
+        + " | E: " + session.tags.group.entityId
+        // + "\nTAGS\n" + jsonPrint(session.tags)
+      );
+      session.tags.group.groupId = session.tags.group.entityId;
       groupCreateQueue.push(session);
     }
     else {
-      console.error("??? GROUP UNDEFINED ... SKIPPING"
+      console.error("??? GROUP & ENTITY IDs UNDEFINED ... SKIPPING"
         + " | " + session.nodeId
         + "\nTAGS\n" + jsonPrint(session.tags)
       );
@@ -1606,8 +1623,8 @@ var createGroup = function(callback) {
       var sessionStartColor = "hsl(" + randomNumber360 + ",0%,10%)";
       var sessionEndColor = "hsl(" + randomNumber360 + ",0%,0%)";
 
-      var nodeStartColor = "hsl(" + randomNumber360 + ",0%,100%)";
-      var nodeEndColor = "hsl(" + randomNumber360 + ",0%,0%)";
+      var nodeStartColor = "hsl(" + randomNumber360 + ",0%,0%)";
+      var nodeEndColor = "hsl(" + randomNumber360 + ",0%,100%)";
 
       var currentGroup = {};
       var currentSession = {};
@@ -1698,7 +1715,7 @@ var createGroup = function(callback) {
 
       addToHashMap(nodeHashMap, currentGroup.node.nodeId, currentGroup.node, function(grpNode) {
 
-        console.log("+ GRP" 
+        console.debug("+ GRP" 
           + " | " + grpNode.nodeId
           + " | " + grpNode.groupId
           + " | isGroupNode: " + grpNode.isGroupNode

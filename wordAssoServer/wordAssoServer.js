@@ -45,7 +45,7 @@ var pollTwitterFriendsIntervalTime = 5*ONE_MINUTE;
 var TRENDING_CACHE_DEFAULT_TTL = 300; // seconds
 var GROUP_CACHE_DEFAULT_TTL = 300; // seconds
 var ENTITY_CACHE_DEFAULT_TTL = 300; // seconds
-var SESSION_CACHE_DEFAULT_TTL = 300; // seconds
+var SESSION_CACHE_DEFAULT_TTL = 600; // seconds
 var WORD_CACHE_TTL = 60; // seconds
 var MONITOR_CACHE_TTL = 300; // seconds
 
@@ -462,7 +462,7 @@ var wordCache = new NodeCache({
 var sessionCache = new NodeCache({
   useClones: false,
   stdTTL: sessionCacheTtl,
-  checkperiod: 30
+  checkperiod: 10
 });
 
 var entityCache = new NodeCache({

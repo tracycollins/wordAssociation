@@ -397,6 +397,15 @@ var wapiReqReservePercent = process.env.WAPI_REQ_RESERVE_PRCNT;
 if (typeof wapiReqReservePercent === 'undefined') wapiReqReservePercent = WAPI_REQ_RESERVE_PRCNT;
 console.log("WAPI_REQ_RESERVE_PRCNT: " + wapiReqReservePercent);
 
+
+var NodeCache = require("node-cache");
+
+var adminCache = new NodeCache();
+var viewerCache = new NodeCache();
+var userCache = new NodeCache();
+var utilCache = new NodeCache();
+// var monitorCache = new NodeCache();
+
 // ==================================================================
 // TWITTER TRENDING TOPIC CACHE
 // ==================================================================
@@ -436,6 +445,115 @@ var wordCacheTtl = process.env.WORD_CACHE_TTL;
 
 if (typeof wordCacheTtl === 'undefined') wordCacheTtl = WORD_CACHE_TTL;
 console.log("WORD CACHE TTL: " + wordCacheTtl + " SECONDS");
+
+
+var monitorHashMap = {};
+
+var trendingCache = new NodeCache({
+  stdTTL: trendingCacheTtl,
+  checkperiod: 10
+});
+
+var wordCache = new NodeCache({
+  stdTTL: wordCacheTtl,
+  checkperiod: 10
+});
+
+var sessionCache = new NodeCache({
+  useClones: false,
+  stdTTL: sessionCacheTtl,
+  checkperiod: 30
+});
+
+var entityCache = new NodeCache({
+  stdTTL: entityCacheTtl,
+  checkperiod: 30
+});
+
+var groupCache = new NodeCache({
+  stdTTL: groupCacheTtl,
+  checkperiod: 30
+});
+
+// ==================================================================
+// CACHE HANDLERS
+// ==================================================================
+sessionCache.on("set", function(sessionId, sessionObj) {
+  // console.log(chalkRedBold("sessionCache SET: "
+  //   + sessionId 
+  //   + " \n" + jsonPrint(sessionObj.tags)
+  // ));
+});
+
+sessionCache.on("expired", function(sessionId, sessionObj) {
+  sessionQueue.enqueue({
+    sessionEvent: "SESSION_EXPIRED",
+    sessionId: sessionId,
+    session: sessionObj
+  });
+
+  io.of(sessionObj.namespace).to(sessionId).emit('SESSION_EXPIRED', sessionId);
+
+  sessionObj.sessionEvent = 'SESSION_DELETE';
+
+  viewNameSpace.emit("SESSION_DELETE", sessionObj);
+
+  debug("CACHE SESSION EXPIRED\n" + jsonPrint(sessionObj));
+  console.log(chalkInfo("... CACHE SESS EXPIRED"
+    + " | " + sessionObj.sessionId 
+    + " | NSP: " + sessionObj.namespace 
+    + " | NOW: " + getTimeStamp() 
+    + " | LS: " + getTimeStamp(sessionObj.lastSeen) 
+    + " | " + msToTime(moment().valueOf() - sessionObj.lastSeen) 
+    + " | WCI: " + sessionObj.wordChainIndex 
+    + " | WCL: " + sessionObj.wordChain.length 
+    + " | K: " + sessionCache.getStats().keys 
+    + " | H: " + sessionCache.getStats().hits 
+    + " | M: " + sessionCache.getStats().misses));
+});
+
+wordCache.on("set", function(word, wordObj) {
+  // debugWapi("CACHE WORD EXPIRED\n" + jsonPrint(wordObj));
+  debugWapi(chalkWapi("CACHE WORD SET"
+    + " [ Q: " + wapiSearchQueue.size() 
+    + " ] " + wordObj.nodeId 
+    + " | LS: " + getTimeStamp(wordObj.lastSeen) 
+    + " | " + msToTime(moment().valueOf() - wordObj.lastSeen) 
+    + " | M: " + wordObj.mentions 
+    + " | WAPIS: " + wordObj.wapiSearched 
+    + " | WAPIF: " + wordObj.wapiFound 
+    + " | K: " + wordCache.getStats().keys 
+    + " | H: " + wordCache.getStats().hits 
+    + " | M: " + wordCache.getStats().misses
+  ));
+
+  if (!wapiOverLimitFlag && (wapiForceSearch || !wordObj.wapiSearched)){
+    wapiSearchQueue.enqueue(wordObj);
+  }
+});
+
+wordCache.on("expired", function(word, wordObj) {
+  if (typeof wordObj !== 'undefined') {
+    // debug("CACHE WORD EXPIRED\n" + jsonPrint(wordObj));
+    debug("... CACHE WORD EXPIRED"
+      + " | " + wordObj.nodeId 
+      + " | LS: " + getTimeStamp(wordObj.lastSeen) 
+      + " | " + msToTime(moment().valueOf() - wordObj.lastSeen) 
+      + " | M: " + wordObj.mentions 
+      + " | K: " + wordCache.getStats().keys 
+      + " | H: " + wordCache.getStats().hits 
+      + " | M: " + wordCache.getStats().misses);
+  } else {
+    debug(chalkError("??? UNDEFINED wordObj on wordCache expired ???"));
+  }
+});
+
+trendingCache.on( "expired", function(topic, topicObj){
+  debug("CACHE TOPIC EXPIRED\n" + jsonPrint(topicObj));
+  console.log("CACHE TOPIC EXPIRED | " + topicObj.name);
+});
+
+
 
 // ==================================================================
 // WORDS API
@@ -972,6 +1090,9 @@ function loadStats(callback) {
 var statsInterval;
 
 function updateStatsInterval(statsFile, interval){
+
+  clearInterval(statsInterval);
+
   statsInterval = setInterval(function() {
     updateStats({
       timeStamp: moment().format(defaultDateTimeFormat),
@@ -1044,19 +1165,29 @@ function updateStatsInterval(statsFile, interval){
       },
         function(err){
 
-          saveFile("", serverGroupsFile, serverGroupsJsonObj, function(err, results){
-            if (err){
-              console.log(chalkError("SAVE SERVER GROUP FILE ERROR " + serverGroupsFile 
-                + "\n" + jsonPrint(err)
-              ));
-            }
-            else {
-              console.log(chalkInfo("SAVE SERVER GROUP FILE " 
-                + serverGroupsFile 
-                // + "\n" + jsonPrint(results)
-              ));
-            }
-          });
+          if (gKeys.length > 0) {
+            saveFile("", serverGroupsFile, serverGroupsJsonObj, function(err, results){
+              if (err){
+                console.log(chalkError("SAVE SERVER GROUP FILE ERROR " + serverGroupsFile 
+                  + "\n" + jsonPrint(err)
+                ));
+              }
+              else {
+                console.log(chalkRed("SAVE SERVER GROUP FILE " 
+                  + serverGroupsFile 
+                  + " | " + gKeys.length + " GROUPS"
+                  // + "\n" + jsonPrint(results)
+                ));
+              }
+            });
+          }
+          else {
+            console.log(chalkRed("SKIPPED SAVE SERVER GROUP FILE " 
+              + serverGroupsFile 
+              + " | " + gKeys.length + " GROUPS"
+              // + "\n" + jsonPrint(results)
+            ));
+          }
 
         }
       );
@@ -1092,8 +1223,8 @@ function updateStatsInterval(statsFile, interval){
         }
       );
     }
-
   }, interval);
+
 }
 
 
@@ -1355,40 +1486,40 @@ var followerUpdateQueue = new Queue();
 var MAX_WORD_HASH_MAP_COUNT = 20;
 var wordArray = []; // used to keep wordHashMap.count() < MAX_WORD_HASH_MAP_COUNT
 
-var NodeCache = require("node-cache");
+// var NodeCache = require("node-cache");
 
-var adminCache = new NodeCache();
-var viewerCache = new NodeCache();
-var userCache = new NodeCache();
-var utilCache = new NodeCache();
-// var monitorCache = new NodeCache();
+// var adminCache = new NodeCache();
+// var viewerCache = new NodeCache();
+// var userCache = new NodeCache();
+// var utilCache = new NodeCache();
+// // var monitorCache = new NodeCache();
 
-var monitorHashMap = {};
+// var monitorHashMap = {};
 
-var trendingCache = new NodeCache({
-  stdTTL: trendingCacheTtl,
-  checkperiod: 10
-});
+// var trendingCache = new NodeCache({
+//   stdTTL: trendingCacheTtl,
+//   checkperiod: 10
+// });
 
-var wordCache = new NodeCache({
-  stdTTL: wordCacheTtl,
-  checkperiod: 10
-});
+// var wordCache = new NodeCache({
+//   stdTTL: wordCacheTtl,
+//   checkperiod: 10
+// });
 
-var sessionCache = new NodeCache({
-  stdTTL: sessionCacheTtl,
-  checkperiod: 30
-});
+// var sessionCache = new NodeCache({
+//   stdTTL: sessionCacheTtl,
+//   checkperiod: 30
+// });
 
-var entityCache = new NodeCache({
-  stdTTL: entityCacheTtl,
-  checkperiod: 30
-});
+// var entityCache = new NodeCache({
+//   stdTTL: entityCacheTtl,
+//   checkperiod: 30
+// });
 
-var groupCache = new NodeCache({
-  stdTTL: groupCacheTtl,
-  checkperiod: 30
-});
+// var groupCache = new NodeCache({
+//   stdTTL: groupCacheTtl,
+//   checkperiod: 30
+// });
 
 var promptQueue = new Queue();
 var responseQueue = new Queue();
@@ -5451,7 +5582,7 @@ var readSessionQueue = setInterval(function() {
 
     sesObj = sessionQueue.dequeue();
 
-    debug(chalkSession("----------\nREAD SESSION QUEUE" + " | " + sesObj.sessionEvent + "\n" + jsonPrint(sesObj)));
+    // debug(chalkSession("----------\nREAD SESSION QUEUE" + " | " + sesObj.sessionEvent + "\n" + jsonPrint(sesObj)));
 
     handleSessionEvent(sesObj, function(rSesObj) {
       readSessionQueueReady = true;
@@ -5467,6 +5598,7 @@ function getTags(wordObj, callback){
     wordObj.tags.channel = 'unknown_channel';
     wordObj.tags.group = 'unknown_group';
 
+    console.log(chalkError("SET UNKNOWN WORDOBJ TAGS\n" + jsonPrint(wordObj)));
     entityChannelGroupHashMap.set('unknown_entity', { groupId: 'unknown_group', name: 'UNKNOWN GROUP'});
 
     callback(wordObj);
@@ -5474,12 +5606,15 @@ function getTags(wordObj, callback){
   else {
     if (!wordObj.tags.entity || (typeof wordObj.tags.entity === 'undefined')) {
       wordObj.tags.entity = 'unknown_entity';
+      console.log(chalkError("SET UNKNOWN WORDOBJ ENTITY\n" + jsonPrint(wordObj)));
     }
     else {
       wordObj.tags.entity = wordObj.tags.entity.toLowerCase();
     }
+
     if (!wordObj.tags.channel || (typeof wordObj.tags.channel === 'undefined')) {
       wordObj.tags.channel = 'unknown_channel';
+      console.log(chalkError("SET UNKNOWN WORDOBJ CHANNEL\n" + jsonPrint(wordObj)));
     }
     else {
       wordObj.tags.channel = wordObj.tags.channel.toLowerCase();
@@ -5490,6 +5625,7 @@ function getTags(wordObj, callback){
       callback(wordObj);
     }
     else {
+      debug(chalkError("entityChannelGroupHashMap MISS \n" + jsonPrint(wordObj)));
       wordObj.tags.group = wordObj.tags.entity.toLowerCase();
       entityChannelGroupHashMap.set(wordObj.tags.entity.toLowerCase(), { groupId: wordObj.tags.group, name: wordObj.tags.entity.toLowerCase() } );
       callback(wordObj);
@@ -5532,7 +5668,7 @@ var readResponseQueue = setInterval(function() {
       console.log(chalkWarn("??? SESSION NOT IN CACHE ON RESPONSE Q READ" 
         + " | responseQueue: " + responseQueue.size() 
         + " | " + socketId + " | ABORTING SESSION"
-        + jsonPrint(responseInObj)
+        + "\n" + jsonPrint(responseInObj)
       ));
 
       // var entity = socketId.match(entityRegEx)[1];
@@ -5617,8 +5753,10 @@ var readResponseQueue = setInterval(function() {
       var previousPromptObj;
 
       if ((typeof currentSessionObj.wordChain !== 'undefined') && (currentSessionObj.wordChainIndex > 0)) {
+
         previousPrompt = currentSessionObj.wordChain[currentSessionObj.wordChain.length - 1].nodeId;
         previousPromptObj = wordCache.get(previousPrompt);
+
         if (!previousPromptObj) {
           console.log(chalkError(socketId 
             + " | " + currentSessionObj.userId 
@@ -6892,76 +7030,80 @@ var wapiSearchQueueInterval = setInterval(function() {
 
 }, 50);
 
-// ==================================================================
-// CACHE HANDLERS
-// ==================================================================
-sessionCache.on("expired", function(sessionId, sessionObj) {
-  sessionQueue.enqueue({
-    sessionEvent: "SESSION_EXPIRED",
-    sessionId: sessionId,
-    session: sessionObj
-  });
+// // ==================================================================
+// // CACHE HANDLERS
+// // ==================================================================
+// sessionCache.on("set", function(sessionId, sessionObj) {
+//   console.log(chalkRedBold("sessionCache SET: " + sessionId + "\n" + jsonPrint(sessionObj)));
+// });
 
-  io.of(sessionObj.namespace).to(sessionId).emit('SESSION_EXPIRED', sessionId);
+// sessionCache.on("expired", function(sessionId, sessionObj) {
+//   sessionQueue.enqueue({
+//     sessionEvent: "SESSION_EXPIRED",
+//     sessionId: sessionId,
+//     session: sessionObj
+//   });
 
-  sessionObj.sessionEvent = 'SESSION_DELETE';
+//   io.of(sessionObj.namespace).to(sessionId).emit('SESSION_EXPIRED', sessionId);
 
-  viewNameSpace.emit("SESSION_DELETE", sessionObj);
+//   sessionObj.sessionEvent = 'SESSION_DELETE';
 
-  debug("CACHE SESSION EXPIRED\n" + jsonPrint(sessionObj));
-  console.log(chalkInfo("... CACHE SESS EXPIRED"
-    + " | " + sessionObj.sessionId 
-    + " | NSP: " + sessionObj.namespace 
-    + " | NOW: " + getTimeStamp() 
-    + " | LS: " + getTimeStamp(sessionObj.lastSeen) 
-    + " | " + msToTime(moment().valueOf() - sessionObj.lastSeen) 
-    + " | WCI: " + sessionObj.wordChainIndex 
-    + " | WCL: " + sessionObj.wordChain.length 
-    + " | K: " + sessionCache.getStats().keys 
-    + " | H: " + sessionCache.getStats().hits 
-    + " | M: " + sessionCache.getStats().misses));
-});
+//   viewNameSpace.emit("SESSION_DELETE", sessionObj);
 
-wordCache.on("set", function(word, wordObj) {
-  // debugWapi("CACHE WORD EXPIRED\n" + jsonPrint(wordObj));
-  debugWapi(chalkWapi("CACHE WORD SET"
-    + " [ Q: " + wapiSearchQueue.size() 
-    + " ] " + wordObj.nodeId 
-    + " | LS: " + getTimeStamp(wordObj.lastSeen) 
-    + " | " + msToTime(moment().valueOf() - wordObj.lastSeen) 
-    + " | M: " + wordObj.mentions 
-    + " | WAPIS: " + wordObj.wapiSearched 
-    + " | WAPIF: " + wordObj.wapiFound 
-    + " | K: " + wordCache.getStats().keys 
-    + " | H: " + wordCache.getStats().hits 
-    + " | M: " + wordCache.getStats().misses
-  ));
+//   debug("CACHE SESSION EXPIRED\n" + jsonPrint(sessionObj));
+//   console.log(chalkInfo("... CACHE SESS EXPIRED"
+//     + " | " + sessionObj.sessionId 
+//     + " | NSP: " + sessionObj.namespace 
+//     + " | NOW: " + getTimeStamp() 
+//     + " | LS: " + getTimeStamp(sessionObj.lastSeen) 
+//     + " | " + msToTime(moment().valueOf() - sessionObj.lastSeen) 
+//     + " | WCI: " + sessionObj.wordChainIndex 
+//     + " | WCL: " + sessionObj.wordChain.length 
+//     + " | K: " + sessionCache.getStats().keys 
+//     + " | H: " + sessionCache.getStats().hits 
+//     + " | M: " + sessionCache.getStats().misses));
+// });
 
-  if (!wapiOverLimitFlag && (wapiForceSearch || !wordObj.wapiSearched)){
-    wapiSearchQueue.enqueue(wordObj);
-  }
-});
+// wordCache.on("set", function(word, wordObj) {
+//   // debugWapi("CACHE WORD EXPIRED\n" + jsonPrint(wordObj));
+//   debugWapi(chalkWapi("CACHE WORD SET"
+//     + " [ Q: " + wapiSearchQueue.size() 
+//     + " ] " + wordObj.nodeId 
+//     + " | LS: " + getTimeStamp(wordObj.lastSeen) 
+//     + " | " + msToTime(moment().valueOf() - wordObj.lastSeen) 
+//     + " | M: " + wordObj.mentions 
+//     + " | WAPIS: " + wordObj.wapiSearched 
+//     + " | WAPIF: " + wordObj.wapiFound 
+//     + " | K: " + wordCache.getStats().keys 
+//     + " | H: " + wordCache.getStats().hits 
+//     + " | M: " + wordCache.getStats().misses
+//   ));
 
-wordCache.on("expired", function(word, wordObj) {
-  if (typeof wordObj !== 'undefined') {
-    // debug("CACHE WORD EXPIRED\n" + jsonPrint(wordObj));
-    debug("... CACHE WORD EXPIRED"
-      + " | " + wordObj.nodeId 
-      + " | LS: " + getTimeStamp(wordObj.lastSeen) 
-      + " | " + msToTime(moment().valueOf() - wordObj.lastSeen) 
-      + " | M: " + wordObj.mentions 
-      + " | K: " + wordCache.getStats().keys 
-      + " | H: " + wordCache.getStats().hits 
-      + " | M: " + wordCache.getStats().misses);
-  } else {
-    debug(chalkError("??? UNDEFINED wordObj on wordCache expired ???"));
-  }
-});
+//   if (!wapiOverLimitFlag && (wapiForceSearch || !wordObj.wapiSearched)){
+//     wapiSearchQueue.enqueue(wordObj);
+//   }
+// });
 
-trendingCache.on( "expired", function(topic, topicObj){
-  debug("CACHE TOPIC EXPIRED\n" + jsonPrint(topicObj));
-  console.log("CACHE TOPIC EXPIRED | " + topicObj.name);
-});
+// wordCache.on("expired", function(word, wordObj) {
+//   if (typeof wordObj !== 'undefined') {
+//     // debug("CACHE WORD EXPIRED\n" + jsonPrint(wordObj));
+//     debug("... CACHE WORD EXPIRED"
+//       + " | " + wordObj.nodeId 
+//       + " | LS: " + getTimeStamp(wordObj.lastSeen) 
+//       + " | " + msToTime(moment().valueOf() - wordObj.lastSeen) 
+//       + " | M: " + wordObj.mentions 
+//       + " | K: " + wordCache.getStats().keys 
+//       + " | H: " + wordCache.getStats().hits 
+//       + " | M: " + wordCache.getStats().misses);
+//   } else {
+//     debug(chalkError("??? UNDEFINED wordObj on wordCache expired ???"));
+//   }
+// });
+
+// trendingCache.on( "expired", function(topic, topicObj){
+//   debug("CACHE TOPIC EXPIRED\n" + jsonPrint(topicObj));
+//   console.log("CACHE TOPIC EXPIRED | " + topicObj.name);
+// });
 
 
 function updateTrends(){
@@ -8005,6 +8147,11 @@ function createSession(newSessionObj) {
   socket.on("SESSION_KEEPALIVE", function(userObj) {
     statsObj.socket.SESSION_KEEPALIVES++;
     debug(chalkUser("SESSION_KEEPALIVE\n" + jsonPrint(userObj)));
+    debug(chalkUser("SESSION_KEEPALIVE" 
+      + " | " + userObj.userId
+      + " | " + userObj.screenName
+      // + "\n" + jsonPrint(userObj)
+    ));
 
     var socketId = socket.id;
     var sessionObj = {};
@@ -8013,9 +8160,11 @@ function createSession(newSessionObj) {
       && (typeof userObj.tags.mode !== 'undefined') 
       && (userObj.tags.mode == 'substream')) {
       socketId = socket.id + "#" + userObj.tags.entity;
+      console.log(chalkRedBold("KEEPALIVE socketId: " + socketId));
       sessionObj = sessionCache.get(socketId);
     }
     else {
+      console.log(chalkRedBold("KEEPALIVE socketId: " + socketId));
       sessionObj = sessionCache.get(socketId);
     }
 
@@ -8040,11 +8189,11 @@ function createSession(newSessionObj) {
         var i = 0;
 
         for (i=0; i<tagKeys.length; i++){
-          sessionObj.tags[tagKey] = userObj.tags[tagKey].toLowerCase();
-          console.log(chalkRed("sessionObj " + tagKey + " > " + sessionObj.tags[tagKey]));
+          sessionObj.tags[tagKey[i]] = userObj.tags[tagKey[i]].toLowerCase();
+          console.log(chalkRed("sessionObj " + tagKey + " > " + sessionObj.tags[tagKey[i]]));
         }
 
-        if (i == tagKeys) {
+        if (i == tagKeys.length) {
           console.log(chalkInfo("SESSION_KEEPALIVE createSession"));
           createSession(sessionObj);
           return;
@@ -8085,9 +8234,27 @@ function createSession(newSessionObj) {
 
   socket.on("USER_READY", function(userObj) {
 
+  // entityUserObj.name = entity;
+  // entityUserObj.tags = {};
+  // entityUserObj.tags.entity = entity;
+  // entityUserObj.tags.channel = channel;
+  // entityUserObj.tags.mode = 'substream';
+  // entityUserObj.userId = entity;
+  // entityUserObj.screenName = entity;
+  // entityUserObj.type = "UTIL";
+  // entityUserObj.mode = "SUBSTREAM";
+  // entityUserObj.nodeId = entityChannelId;
+
+    var socketId = socket.id;
+    var primarySessionObj = sessionCache.get(socket.id);
+    // var sessionObj ;
+
+    var sessionCacheKey = socket.id ;
+
     statsObj.socket.USER_READYS++;
 
-    console.log(chalkUser("USER READY"
+    console.log(chalkUser(">RX USER_READY"
+      + " | SID: " + socket.id
       + " | NID: " + userObj.nodeId
       + " | UID: " + userObj.userId
       + " | N: " + userObj.name
@@ -8099,89 +8266,156 @@ function createSession(newSessionObj) {
       // + "\n" + jsonPrint(userObj)
     ));
 
-    var socketId = socket.id;
-    var sessionObj = sessionCache.get(socketId);
+    if ((typeof userObj.tags !== 'undefined')
+      && (typeof userObj.tags.entity !== 'undefined') 
+      && (typeof userObj.tags.mode !== 'undefined') 
+      && (userObj.tags.mode.toLowerCase() == 'substream')) {
 
-    if (!sessionObj) {
-      debug(chalkError(moment().format(defaultDateTimeFormat) 
-        + " | ??? SESSION NOT FOUND ON USER READY | " + socketId));
-      return;
+      sessionCacheKey = socket.id + "#" + userObj.tags.entity;
+      // sessionCacheKey = userObj.tags.entity.toLowerCase();
+
+      console.log(chalkRedBold("USER_READY SUBSTREAM sessionCacheKey: " + sessionCacheKey));
+    }
+    else {
+      console.log(chalkRedBold("USER_READY sessionCacheKey: " + sessionCacheKey));
     }
 
-    if (typeof userObj.tags !== 'undefined') {
 
-      // console.log(chalkRed("userObj.tags\n" + jsonPrint(userObj)));
-
-      if (typeof sessionObj.tags === 'undefined') {
-        console.log(chalkRed("sessionObj.tags UNDEFINED"));
-        sessionObj.tags = {};
-        sessionObj.tags.entity = userObj.tags.entity.toLowerCase();
-        sessionObj.tags.channel = userObj.tags.channel.toLowerCase();
+    sessionCache.get(sessionCacheKey, function(err, sessionObj){
+      if (err){
+        console.log(chalkError(moment().format(defaultDateTimeFormat) 
+          + " | ??? SESSION CACHE ERROR ON USER READY | " + err
+        ));
       }
       else {
-        if (typeof sessionObj.tags.entity !== 'undefined') {
+        if (!sessionObj) {
 
-          // console.log(chalkRed("sessionObj.tags.entity: " + sessionObj.tags.entity));
-          sessionObj.tags.entity = sessionObj.tags.entity.toLowerCase();
+          var sessionObj = new Session({
+            sessionId: sessionCacheKey,
+            tags: {},
+            // ip: ipAddress,
+            namespace: "util",
+            createAt: moment().valueOf(),
+            lastSeen: moment().valueOf(),
+            connected: true,
+            connectTime: moment().valueOf(),
+            disconnectTime: 0
+          });
 
-          if (entityChannelGroupHashMap.has(sessionObj.tags.entity)){
+          sessionObj.config = {};
 
-            delete statsObj.entityChannelGroup.hashMiss[sessionObj.tags.entity];
+          console.log(chalkError(moment().format(defaultDateTimeFormat) 
+            + " | ??? SESSION NOT FOUND ON USER READY | " + sessionCacheKey
+          ));
 
-            console.log(chalkInfo("### ENTITY CHANNEL GROUP HASHMAP HIT"
-              + " | " + sessionObj.tags.entity
-              + " > " + entityChannelGroupHashMap.get(sessionObj.tags.entity).groupId
+          if (!primarySessionObj) {
+            console.log(chalkError(moment().format(defaultDateTimeFormat) 
+              + " | ??? PRIMARY SESSION NOT FOUND ON USER READY"
+              + " | " + sessionCacheKey
+              + " | SKIPPING "
             ));
+            return;
+          }
+          else if (userObj.tags.mode.toLowerCase() == 'substream') {
+
+            if (typeof userObj.type !== 'undefined') {
+              sessionObj.config.type = userObj.type;
+              sessionObj.type = userObj.type;
+            }
+            if (typeof userObj.mode !== 'undefined') {
+              sessionObj.config.mode = userObj.mode;
+              sessionObj.mode = userObj.mode;
+            }
+
+            sessionObj.namespace = "util";
+            sessionObj.socket = socket;
+            // sessionObj.user = userObj;
+            sessionObj.tags.entity = userObj.tags.entity.toLowerCase();
+            sessionObj.tags.channel = userObj.tags.channel.toLowerCase();
+
+            sessionCache.set(sessionCacheKey, sessionObj);
+          }
+        }
+        if (typeof userObj.tags !== 'undefined') {
+
+          // console.log(chalkRed("userObj.tags\n" + jsonPrint(userObj)));
+
+          if (typeof sessionObj.tags === 'undefined') {
+            console.log(chalkRed("sessionObj.tags UNDEFINED"));
+            sessionObj.tags = {};
+            sessionObj.tags.entity = userObj.tags.entity.toLowerCase();
+            sessionObj.tags.channel = userObj.tags.channel.toLowerCase();
           }
           else {
-            statsObj.entityChannelGroup.hashMiss[sessionObj.tags.entity] = 1;
-            statsObj.entityChannelGroup.allHashMisses[sessionObj.tags.entity] = 1;
-            console.log(chalkInfo("-0- ENTITY CHANNEL GROUP HASHMAP MISS"
-              + " | " + sessionObj.tags.entity
-              // + "\n" + jsonPrint(statsObj.entityChannelGroup.hashMiss)
-            ));
+            if (typeof sessionObj.tags.entity !== 'undefined') {
 
-            configEvents.emit("HASH_MISS", {type: "entity", value: sessionObj.tags.entity.toLowerCase()});
-            // configEvents.emit("HASH_MISS", {entity: sessionObj.tags.entity});
+              // console.log(chalkRed("sessionObj.tags.entity: " + sessionObj.tags.entity));
+              sessionObj.tags.entity = sessionObj.tags.entity.toLowerCase();
+
+              if (entityChannelGroupHashMap.has(sessionObj.tags.entity)){
+
+                delete statsObj.entityChannelGroup.hashMiss[sessionObj.tags.entity];
+
+                console.log(chalkInfo("### ENTITY CHANNEL GROUP HASHMAP HIT"
+                  + " | " + sessionObj.tags.entity
+                  + " > " + entityChannelGroupHashMap.get(sessionObj.tags.entity).groupId
+                ));
+              }
+              else {
+                statsObj.entityChannelGroup.hashMiss[sessionObj.tags.entity] = 1;
+                statsObj.entityChannelGroup.allHashMisses[sessionObj.tags.entity] = 1;
+                console.log(chalkInfo("-0- ENTITY CHANNEL GROUP HASHMAP MISS"
+                  + " | " + sessionObj.tags.entity
+                  // + "\n" + jsonPrint(statsObj.entityChannelGroup.hashMiss)
+                ));
+
+                configEvents.emit("HASH_MISS", {type: "entity", value: sessionObj.tags.entity.toLowerCase()});
+                // configEvents.emit("HASH_MISS", {entity: sessionObj.tags.entity});
+              }
+            }
+            else {
+              // console.log(chalkRed("sessionObj.tags\n" + jsonPrint(sessionObj.tags)));
+              sessionObj.tags.entity = userObj.tags.entity.toLowerCase();
+            }
+            if (typeof sessionObj.tags.channel !== 'undefined') {
+
+              // console.log(chalkRed("sessionObj.tags.channel: " + sessionObj.tags.channel));
+              sessionObj.tags.channel = sessionObj.tags.channel.toLowerCase();
+
+            }
+            else {
+              // console.log(chalkRed("sessionObj.tags\n" + jsonPrint(sessionObj.tags)));
+              sessionObj.tags.channel = userObj.tags.channel.toLowerCase();
+            }
           }
         }
-        else {
-          // console.log(chalkRed("sessionObj.tags\n" + jsonPrint(sessionObj.tags)));
-          sessionObj.tags.entity = userObj.tags.entity.toLowerCase();
+        if (typeof userObj.type !== 'undefined') {
+          sessionObj.config.type = userObj.type;
         }
-        if (typeof sessionObj.tags.channel !== 'undefined') {
+        if (typeof userObj.mode !== 'undefined') {
+          sessionObj.config.mode = userObj.mode;
+        }
 
-          // console.log(chalkRed("sessionObj.tags.channel: " + sessionObj.tags.channel));
-          sessionObj.tags.channel = sessionObj.tags.channel.toLowerCase();
+        console.log(chalkConnect("--- USER READY   | " + userObj.userId 
+          + " | SID: " + sessionObj.sessionId 
+          + " | TYPE: " + sessionObj.config.type 
+          + " | MODE: " + sessionObj.config.mode 
+          + " | " + moment().format(defaultDateTimeFormat) 
+          // + "\nSESSION OBJ\n" + jsonPrint(sessionObj) 
+          // + "\nUSER OBJ\n" + jsonPrint(userObj)
+        ));
 
-        }
-        else {
-          // console.log(chalkRed("sessionObj.tags\n" + jsonPrint(sessionObj.tags)));
-          sessionObj.tags.channel = userObj.tags.channel.toLowerCase();
-        }
+        sessionQueue.enqueue({
+          sessionEvent: "USER_READY",
+          session: sessionObj,
+          user: userObj
+        });
       }
-    }
-    if (typeof userObj.type !== 'undefined') {
-      sessionObj.config.type = userObj.type;
-    }
-    if (typeof userObj.mode !== 'undefined') {
-      sessionObj.config.mode = userObj.mode;
-    }
-
-    // console.log(chalkConnect("--- USER READY   | " + userObj.userId 
-    //   + " | SID: " + sessionObj.sessionId 
-    //   + " | TYPE: " + sessionObj.config.type 
-    //   + " | MODE: " + sessionObj.config.mode 
-    //   + " | " + moment().format(defaultDateTimeFormat) 
-    //   // + "\nSESSION OBJ\n" + jsonPrint(sessionObj) 
-    //   // + "\nUSER OBJ\n" + jsonPrint(userObj)
-    // ));
-
-    sessionQueue.enqueue({
-      sessionEvent: "USER_READY",
-      session: sessionObj,
-      user: userObj
     });
+
+
+
+
   });
 
   socket.on("RESPONSE_WORD_OBJ", function(rxInObj) {

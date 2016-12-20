@@ -2,7 +2,7 @@
 "use strict";
 
 var wapiForceSearch = true;
-
+var dmOnUnknownSession = false;
 var ioReady = false
 var groupsUpdateComplete = false;
 var entitiesUpdateComplete = false;
@@ -5005,8 +5005,8 @@ function handleSessionEvent(sesObj, callback) {
         case 'TEST_VIEWER':
           break;
         default:
-          debug(chalkError(" 1 ????? UNKNOWN SESSION TYPE: " + sesObj.session.config.type));
-          quit(" 1 ????? UNKNOWN SESSION TYPE: " + sesObj.session.config.type);
+          console.log(chalkError("??? UNKNOWN SESSION EVENT handleSessionEvent\n" + jsonPrint(sesObj)));
+          // quit(" 1 ????? UNKNOWN SESSION TYPE: " + sesObj.session.config.type);
           break;
       }
 
@@ -5541,8 +5541,8 @@ function handleSessionEvent(sesObj, callback) {
                       break;
 
                     default:
-                      debug(chalkError("2  ????? UNKNOWN SESSION MODE: " + sesObj.session.config.mode));
-                      quit(" 2 ????? UNKNOWN SESSION TYPE: " + sesObj.session.config.type);
+                      console.log(chalkError("??? UNKNOWN SESSION EVENT handleSessionEvent\n" + jsonPrint(sesObj)));
+                      // quit(" 2 ????? UNKNOWN SESSION TYPE: " + sesObj.session.config.type);
                       break;
                   }
                   break;
@@ -5564,8 +5564,8 @@ function handleSessionEvent(sesObj, callback) {
                   break;
 
                 default:
-                  debug("???? UNKNOWN SESSION TYPE: " + sesObj.session.config.type);
-                  quit("???? UNKNOWN SESSION TYPE: " + sesObj.session.config.type);
+                  console.log(chalkError("??? UNKNOWN SESSION EVENT handleSessionEvent\n" + jsonPrint(sesObj)));
+                  // quit("???? UNKNOWN SESSION TYPE: " + sesObj.session.config.type);
               }
 
             }
@@ -5576,7 +5576,8 @@ function handleSessionEvent(sesObj, callback) {
       break;
 
     default:
-      debug(chalkError("??? UNKNOWN SESSION EVENT\n" + jsonPrint(sesObj)));
+      console.log(chalkError("??? UNKNOWN SESSION EVENT handleSessionEvent\n" + jsonPrint(sesObj)));
+    break;
   }
 
   return (callback(null, sesObj));
@@ -6460,13 +6461,14 @@ var generatePromptQueueInterval = setInterval(function() {
       case 'BHT_CRAWLER':
       case 'MW_CRAWLER':
         break;
+
       case 'SUBSTREAM':
       case 'STREAM':
         break;
 
       default:
-        debug(chalkError("3  ????? UNKNOWN SESSION MODE: " + currentSession.config.mode));
-        quit("3  ????? UNKNOWN SESSION MODE: " + currentSession.config.mode);
+        console.log(chalkError("????? UNKNOWN SESSION MODE generatePromptQueueInterval\n" + jsonPrint(currentSession)));
+        // quit("3  ????? UNKNOWN SESSION MODE: " + currentSession.config.mode);
         break;
     }
 
@@ -7618,23 +7620,25 @@ configEvents.on("INIT_TWIT_FOR_DM_COMPLETE", function() {
 
 configEvents.on("UNKNOWN_SESSION", function(socketId) {
 
-  var dmString = hostname + "\nwordAssoServer\nPID: " + process.pid + "\nUNKNOWN SESSION: " + socketId;
+  if (dmOnUnknownSession) {
+    var dmString = hostname + "\nwordAssoServer\nPID: " + process.pid + "\nUNKNOWN SESSION: " + socketId;
 
-  if (typeof directMessageHash[socketId] === 'undefined') {
+    if (typeof directMessageHash[socketId] === 'undefined') {
 
-    directMessageHash[socketId] = socketId;
+      directMessageHash[socketId] = socketId;
 
-    sendDirectMessage('threecee', dmString, function(err, res){
-      if (!err) {
-        console.log(chalkTwitter("SENT TWITTER DM\n" + dmString + "\n" + jsonPrint(res)));
-      }
-      else {
-        console.log(chalkError("DM SEND ERROR:" + err));
-      }
-    });
-  }
-  else {
-    console.log(chalkError("SKIP DM ... PREV SENT UNKNOWN_SESSION | " + socketId));
+      sendDirectMessage('threecee', dmString, function(err, res){
+        if (!err) {
+          console.log(chalkTwitter("SENT TWITTER DM\n" + dmString + "\n" + jsonPrint(res)));
+        }
+        else {
+          console.log(chalkError("DM SEND ERROR:" + err));
+        }
+      });
+    }
+    else {
+      console.log(chalkError("SKIP DM ... PREV SENT UNKNOWN_SESSION | " + socketId));
+    }
   }
 });
 

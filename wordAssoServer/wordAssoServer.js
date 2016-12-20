@@ -4597,7 +4597,7 @@ function handleSessionEvent(sesObj, callback) {
       sesObj.sessionEvent = 'SESSION_DELETE';
       viewNameSpace.emit('SESSION_DELETE', sesObj);
 
-      quit();
+      // quit();
       break;
 
     case 'SESSION_EXPIRED':
@@ -5891,7 +5891,7 @@ var readResponseQueue = setInterval(function() {
             // + " < " + previousPrompt
           ));
 
-          if (typeof updatedWordObj.tags.group === 'undefined') quit();
+          // if (typeof updatedWordObj.tags.group === 'undefined') quit();
 
           dbUpdateWordQueue.enqueue(dbUpdateObj);
           ready = true;

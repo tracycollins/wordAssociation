@@ -1335,12 +1335,37 @@ function createStatsTable(callback) {
     text: statsObj.heartbeat.runTime
   };
 
-  var statsEntitiesLabel = {
+  var statsServerTotalWordsLabel = {
     type: 'TEXT',
-    id: 'statsEntitiesLabel',
+    id: 'statsServerTotalWordsLabel',
     class: 'statsTableText',
-    text: 'ENTITIES'
+    text: 'TOTAL UNIQUE WORDS'
   };
+
+  var statsServerTotalWords = {
+    type: 'TEXT',
+    id: 'statsServerTotalWords',
+    class: 'statsTableText',
+    text: statsObj.heartbeat.totalWords
+  };
+
+
+  var statsServerWordsReceivedLabel = {
+    type: 'TEXT',
+    id: 'statsServerWordsReceivedLabel',
+    class: 'statsTableText',
+    text: 'WORDS RCVD'
+  };
+
+  var statsServerWordsReceived = {
+    type: 'TEXT',
+    id: 'statsServerWordsReceived',
+    class: 'statsTableText',
+    text: statsObj.heartbeat.responsesReceived
+  };
+
+
+
 
   //   + '<br>SERVER TIME: ' + getTimeStamp(heartbeat.timeStamp)
   //   + '<br>UPTIME:      ' + msToTime(heartbeat.upTime)
@@ -1360,6 +1385,8 @@ function createStatsTable(callback) {
       tableCreateRow(statsTableServer, optionsBody, [statsServerTimeLabel, statsServerTime]);
       tableCreateRow(statsTableServer, optionsBody, [statsServerUpTimeLabel, statsServerUpTime]);
       tableCreateRow(statsTableServer, optionsBody, [statsServerRunTimeLabel, statsServerRunTime]);
+      tableCreateRow(statsTableServer, optionsBody, [statsServerTotalWordsLabel, statsServerTotalWords]);
+      tableCreateRow(statsTableServer, optionsBody, [statsServerWordsReceivedLabel, statsServerWordsReceived]);
       tableCreateRow(statsTableClient, optionsHead, ['CLIENT']);
       tableCreateRow(statsTableClient, optionsBody, [statsClientSessionIdLabel, statsClientSessionId]);
       tableCreateRow(statsTableClient, optionsBody, [statsClientNumberNodesLabel, statsClientNumberNodes, statsClientNumberMaxNodesLabel, statsClientNumberMaxNodes]);
@@ -1474,6 +1501,8 @@ function updateStatsTable(statsObj){
   document.getElementById("statsServerTime").innerHTML = moment(statsObj.heartbeat.timeStamp).format(defaultDateTimeFormat);
   document.getElementById("statsServerUpTime").innerHTML = msToTime(statsObj.heartbeat.upTime);
   document.getElementById("statsServerRunTime").innerHTML = msToTime(statsObj.heartbeat.runTime);
+  document.getElementById("statsServerTotalWords").innerHTML = statsObj.heartbeat.totalWords;
+  document.getElementById("statsServerWordsReceived").innerHTML = statsObj.heartbeat.responsesReceived;
   document.getElementById("statsClientNumberNodes").innerHTML = currentSessionView.getNodesLength();
   document.getElementById("statsClientNumberMaxNodes").innerHTML = statsObj.maxNodes;
   document.getElementById("statsClientNumberEntities").innerHTML = sessionHashMap.count();

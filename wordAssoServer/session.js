@@ -17,14 +17,13 @@ var DEFAULT_SOURCE = "==SOURCE==";  // will be updated by wordAssoServer.js on a
 
 var d3;
 var controlPanel;
-var controlTableHead;
-var controlTableBody;
-var controlSliderTable;
+var controlPanelWindow; 
+var controlPanelFlag = false;
 
-var statusSessionId;
-var statusSession2Id;
+var statsTable ;
 
 var initializedFlag = false;
+var statsTableFlag = false;
 
 // requirejs(["http://d3js.org/d3.v4.min.js"], function(d3Loaded) {
 requirejs(["https://cdnjs.cloudflare.com/ajax/libs/d3/4.4.0/d3.min.js"], function(d3Loaded) {
@@ -32,9 +31,12 @@ requirejs(["https://cdnjs.cloudflare.com/ajax/libs/d3/4.4.0/d3.min.js"], functio
     d3 = d3Loaded;
     initialize(function(){
       initializedFlag = true;
+      createStatsTable(function(){
+        statsTableFlag = true;
+      });
       addControlButton();
-      addInfoText();
       addBlahButton();
+      addStatsButton();
       if (!config.pauseFlag) currentSessionView.simulationControl('RESUME');
     });
   },
@@ -78,13 +80,13 @@ var DEFAULT_NODE_RADIUS = 20.0;
 var config = {};
 
 config.pauseOnMouseMove = false;
+config.showStatsFlag = false;
 config.blahMode = DEFAULT_BLAH_MODE;
 config.antonymFlag = false;
 config.pauseFlag = false;
 config.sessionViewType = DEFAULT_SESSION_VIEW; // options: force, histogram ??
 config.maxWords = 100;
 config.testMode = false;
-config.showStatsFlag = false;
 config.removeDeadNodesFlag = true;
 
 config.defaultMultiplier = 1000.0;
@@ -111,6 +113,14 @@ else{
 
 var statsObj = {};
 statsObj.socketId = null;
+statsObj.socketErrors = 0;
+statsObj.heartbeat = {};
+statsObj.serverConnected = false;
+
+var serverHeartbeatTimeout = 30000;
+var serverCheckInterval = 30000;
+var serverKeepaliveInteval = 10000;
+
 
 var palette = {
   "black": "#000000",
@@ -294,10 +304,11 @@ function displayControl(isVisible) {
   document.getElementById('controlDiv').style.visibility = v;
 }
 
-function displayInfo(isVisible) {
+function displayStats(isVisible, dColor) {
   var v = 'hidden';
   if (isVisible) v = 'visible';
-  document.getElementById('infoDiv').style.visibility = v;
+  document.getElementById('statsDiv').style.visibility = v;
+  if (typeof dColor !== 'undefined') document.getElementById('statsDiv').style.color = dColor;
 }
 
 var mouseMoveTimeout;
@@ -320,7 +331,7 @@ function resetMouseMoveTimer() {
     if (config.pauseOnMouseMove && !config.pauseFlag) currentSessionView.simulationControl('RESUME');
 
     if (!config.showStatsFlag && !pageLoadedTimeIntervalFlag) {
-      displayInfo(false);
+      displayStats(false, palette.white);
       displayControl(false);
     }
 
@@ -331,7 +342,7 @@ document.addEventListener("mousemove", function() {
   if (config.pauseOnMouseMove) currentSessionView.simulationControl('PAUSE');
   mouseMovingFlag = true;
   displayControl(true);
-  displayInfo(true);
+  displayStats(true, palette.blue);
   resetMouseMoveTimer();
 }, true);
 
@@ -382,11 +393,6 @@ function setMaxAgeSliderValue(value) {
   controlPanel.document.getElementById("maxAgeSlider").value = value;
   currentSessionView.setNodeMaxAge(value);
 }
-
-
-var controlPanelWindow; 
-var controlPanelFlag = false;
-
 
 window.onbeforeunload = function() {
   controlPanelFlag = false;
@@ -444,15 +450,30 @@ function addControlButton(){
   controlDiv.appendChild(controlPanelButton);
 }
 
-function addInfoText(){
-  var infoDiv = document.getElementById('infoDiv');
-  var infoText = document.createTextNode("INFO");
-  infoDiv.appendChild(infoText);
+function addStatsText(){
+  var statsDiv = document.getElementById('statsDiv');
+  var statsText = document.createTextNode("STATS");
+  statsDiv.appendChild(statsText);
 }
 
-function updateInfoText(infoText){
-  var infoDiv = document.getElementById('infoDiv');
-  infoDiv.innerHTML = infoText;
+function updateStatsText(statsText){
+  var statsDiv = document.getElementById('statsDiv');
+  statsDiv.innerHTML = statsText;
+}
+
+function addStatsButton(){
+  var controlDiv = document.getElementById('controlDiv');
+  var statsButton = document.createElement("BUTTON");
+  statsButton.className = 'button';
+  statsButton.setAttribute('id', 'statsButton');
+  statsButton.setAttribute('onclick', 'toggleStats()');
+  statsButton.innerHTML = config.showStats ? 'HIDE STATS' : 'SHOW STATS';
+  controlDiv.appendChild(statsButton);
+}
+
+function updateStatsButton(){
+  var statsButton = document.getElementById('statsButton');
+  statsButton.innerHTML = config.showStatsFlag ? 'HIDE STATS' : 'SHOW STATS';
 }
 
 function updateBlahButton(){
@@ -630,14 +651,16 @@ function toggleDisableLinks() {
 
 function toggleStats() {
   config.showStatsFlag = !config.showStatsFlag;
+  console.warn("TOGGLE STATS: " + config.showStatsFlag);
 
   if (config.showStatsFlag) {
-    displayInfo(1);
+    displayStats(config.showStatsFlag);
   } else {
-    displayInfo(0);
+    displayStats(false, palette.white);
   }
-  console.warn("TOGGLE STATS: " + config.showStatsFlag);
-  controlPanel.updateControlPanel(config);
+
+  updateStatsButton();
+  if (controlPanelFlag) controlPanel.updateControlPanel(config);
 }
 
 function toggleTestMode() {
@@ -657,11 +680,6 @@ function toggleTestMode() {
 
   controlPanel.updateControlPanel(config);
 }
-
-var serverConnected = false;
-var serverHeartbeatTimeout = 30000;
-var serverCheckInterval = 30000;
-var serverKeepaliveInteval = 10000;
 
 var groupHashMap = new HashMap();
 var groupDeleteHashMap = new HashMap();
@@ -830,7 +848,7 @@ var socket = io('/view');
 
 socket.on("VIEWER_ACK", function(vSesKey) {
 
-  serverConnected = true;
+  statsObj.serverConnected = true;
 
   console.log("RX VIEWER_ACK | SESSION KEY: " + vSesKey);
 
@@ -852,7 +870,9 @@ socket.on("VIEWER_ACK", function(vSesKey) {
 socket.on("reconnect", function() {
   statsObj.socketId = socket.id;
   store.set('stats', statsObj);
-  serverConnected = true;
+  statsObj.serverConnected = true;
+  displayStats(true, 'white');
+  if (statsTableFlag) updateStatsTable(statsObj);
   console.log("RECONNECTED TO HOST | SOCKET ID: " + socket.id);
   socket.emit("VIEWER_READY", viewerObj);
   if (sessionMode) {
@@ -867,14 +887,17 @@ socket.on("reconnect", function() {
 socket.on("connect", function() {
   statsObj.socketId = socket.id;
   store.set('stats', statsObj);
-  serverConnected = true;
+  statsObj.serverConnected = true;
+  if (statsTableFlag) updateStatsTable(statsObj);
+  displayStats(true, 'white');
   console.log("CONNECTED TO HOST | SOCKET ID: " + socket.id);
 });
 
 socket.on("disconnect", function() {
-  serverConnected = false;
+  statsObj.serverConnected = false;
   statsObj.socketId = null;
-  displayInfo(1.0, 'red');
+  if (statsTableFlag) updateStatsTable(statsObj);
+  displayStats(true, 'red');
   console.log("*** DISCONNECTED FROM HOST ... DELETING ALL SESSIONS ...");
   deleteAllSessions(function() {
     console.log("DELETED ALL SESSIONS");
@@ -889,9 +912,11 @@ socket.on("disconnect", function() {
 
 socket.on("error", function(error) {
   socket.disconnect();
-  serverConnected = false;
+  statsObj.serverConnected = false;
   statsObj.socketId = null;
-  displayInfo(1.0, 'red');
+  statsObj.socketErrors++;
+  displayStats(true, 'red');
+  if (statsTableFlag) updateStatsTable(statsObj);
   console.log("*** SOCKET ERROR ... DELETING ALL SESSIONS ...");
   console.error("*** SOCKET ERROR\n" + error);
   deleteAllSessions(function() {
@@ -907,9 +932,10 @@ socket.on("error", function(error) {
 
 socket.on("connect_error", function(error) {
   socket.disconnect();
-  serverConnected = false;
+  statsObj.serverConnected = false;
   statsObj.socketId = null;
-  displayInfo(1.0, 'red');
+  statsObj.socketErrors++;
+  displayStats(true, 'red');
   console.log("*** SOCKET CONNECT ERROR ... DELETING ALL SESSIONS ...");
   console.error("*** SOCKET CONNECT ERROR\n" + error);
   deleteAllSessions(function() {
@@ -925,9 +951,10 @@ socket.on("connect_error", function(error) {
 
 socket.on("reconnect_error", function(error) {
   socket.disconnect();
-  serverConnected = false;
+  statsObj.serverConnected = false;
   statsObj.socketId = null;
-  displayInfo(1.0, 'red');
+  statsObj.socketErrors++;
+  displayStats(true, 'red');
   console.log("*** SOCKET RECONNECT ERROR ... DELETING ALL SESSIONS ...");
   console.error("*** SOCKET RECONNECT ERROR\n" + error);
   deleteAllSessions(function() {
@@ -1107,10 +1134,222 @@ function generateLinkId(callback) {
   return "LNK" + globalLinkIndex;
 }
 
+function tableCreateRow(parentTable, options, cells) {
+
+  var tr = parentTable.insertRow();
+  var tdTextColor = options.textColor;
+  var tdBgColor = options.backgroundColor || '#222222';
+
+  if (options.trClass) {
+    tr.className = options.trClass;
+  }
+
+  if (options.headerFlag) {
+    cells.forEach(function(content) {
+      var th = tr.insertCell();
+      th.appendChild(document.createTextNode(content));
+      th.style.color = tdTextColor;
+      th.style.backgroundColor = tdBgColor;
+    });
+  } else {
+    cells.forEach(function(content) {
+
+      // console.warn("tableCreateRow\n" + jsonPrint(content));
+
+      var td = tr.insertCell();
+      if (typeof content.type === 'undefined') {
+
+        td.appendChild(document.createTextNode(content));
+        td.style.color = tdTextColor;
+        td.style.backgroundColor = tdBgColor;
+
+      } else if (content.type == 'TEXT') {
+
+        td.className = content.class;
+        td.setAttribute('id', content.id);
+        td.style.color = tdTextColor;
+        td.style.backgroundColor = tdBgColor;
+        td.innerHTML = content.text;
+
+      } else if (content.type == 'BUTTON') {
+
+        var buttonElement = document.createElement("BUTTON");
+        buttonElement.className = content.class;
+        buttonElement.setAttribute('id', content.id);
+        buttonElement.setAttribute('mode', content.mode);
+        buttonElement.addEventListener('click', function(e){ buttonHandler(e); }, false);
+        buttonElement.innerHTML = content.text;
+        td.appendChild(buttonElement);
+        controlIdHash[content.id] = content;
+
+      } else if (content.type == 'SLIDER') {
+
+      console.warn("tableCreateRow\n" + jsonPrint(content));
+
+        var sliderElement = document.createElement("INPUT");
+        sliderElement.type = 'range';
+        sliderElement.className = content.class;
+        sliderElement.setAttribute('id', content.id);
+        sliderElement.setAttribute('min', content.min);
+        sliderElement.setAttribute('max', content.max);
+        sliderElement.setAttribute('multiplier', content.multiplier);
+        sliderElement.setAttribute('oninput', content.oninput);
+        sliderElement.value = content.value;
+        td.appendChild(sliderElement);
+        controlIdHash[content.id] = content;
+
+      }
+    });
+  }
+}
+
+function createStatsTable(callback) {
+
+  console.log("CREATE STATS TABLE\n" + jsonPrint(config));
+
+  var statsDiv = document.getElementById('statsDiv');
+  statsDiv.style.border = "2px solid black ";
+  statsDiv.style.backgroundColor = palette.white;
+  statsDiv.style.textColor = palette.black;
+  var statsTableServer = document.createElement('TABLE');
+  var statsTableClient = document.createElement('TABLE');
+  var br = document.createElement('br');
+
+  statsTableServer.className = 'table';
+  statsTableServer.setAttribute('id', 'statsTableServer');
+  statsTableServer.style.border = "1px solid black ";
+
+  statsDiv.appendChild(statsTableServer);
+  statsDiv.appendChild(br);
+
+  statsTableClient.className = 'table';
+  statsTableClient.setAttribute('id', 'statsTableClient');
+  statsDiv.appendChild(statsTableClient);
+
+  var optionsHead = {
+    headerFlag: true,
+    textColor: palette.black,
+    backgroundColor: palette.white
+  };
+
+  var optionsBody = {
+    headerFlag: false,
+    textColor: palette.black,
+    border: "2px solid red",
+    backgroundColor: palette.white
+  };
+
+  var statsClientSessionIdLabel = {
+    type: 'TEXT',
+    id: 'statsClientSessionIdLabel',
+    class: 'statsTableText',
+    text: 'SESSION'
+  };
+
+  var statsClientSessionId = {
+    type: 'TEXT',
+    id: 'statsClientSessionId',
+    class: 'statsTableText',
+    text: statsObj.socketId
+  };
+
+  var statsClientNumberNodesLabel = {
+    type: 'TEXT',
+    id: 'statsClientNumberNodesLabel',
+    class: 'statsTableText',
+    text: 'NODES'
+  };
+
+  var statsClientNumberNodes = {
+    type: 'TEXT',
+    id: 'statsClientNumberNodes',
+    class: 'statsTableText',
+    text: '---'
+  };
+
+  var statsNumberNodes = {
+    type: 'TEXT',
+    id: 'statsNumberNodes',
+    class: 'statsTableText',
+    text: 'NODES: ' + 0
+  };
+
+  var statsServerTimeLabel = {
+    type: 'TEXT',
+    id: 'statsServerTimeLabel',
+    class: 'statsTableText',
+    text: 'TIME'
+  };
+
+  var statsServerTime = {
+    type: 'TEXT',
+    id: 'statsServerTime',
+    class: 'statsTableText',
+    text: statsObj.heartbeat.timeStamp
+  };
+
+  var statsServerUpTimeLabel = {
+    type: 'TEXT',
+    id: 'statsServerTimeLabel',
+    class: 'statsTableText',
+    text: 'UPTIME'
+  };
+
+  var statsServerUpTime = {
+    type: 'TEXT',
+    id: 'statsServerUpTime',
+    class: 'statsTableText',
+    text: statsObj.heartbeat.upTime
+  };
+
+  var statsServerRunTimeLabel = {
+    type: 'TEXT',
+    id: 'statsServerRunTimeLabel',
+    class: 'statsTableText',
+    text: 'RUN TIME'
+  };
+
+  var statsServerRunTime = {
+    type: 'TEXT',
+    id: 'statsServerRunTime',
+    class: 'statsTableText',
+    text: statsObj.heartbeat.runTime
+  };
+
+  //   + '<br>SERVER TIME: ' + getTimeStamp(heartbeat.timeStamp)
+  //   + '<br>UPTIME:      ' + msToTime(heartbeat.upTime)
+  //   + '<br>STARTED:     ' + getTimeStamp(heartbeat.startTime)
+  //   + '<br>RUNTIME:     ' + msToTime(heartbeat.runTime)
+  //   + '<br>SOCKET:      ' + statsObj.socketId
+  //   + '<hr>NODES:       ' + nodesLength + ' | MAX: ' + maxNodes
+  //   + '<br>ADD NODE Q:  ' + nodeAddQLength + ' | MAX: ' + maxNodeAddQ
+
+
+  switch (config.sessionViewType) {
+
+    case 'force':
+    case 'flow':
+    case 'histogram':
+      tableCreateRow(statsTableServer, optionsHead, ['SERVER']);
+      tableCreateRow(statsTableServer, optionsBody, [statsServerTimeLabel, statsServerTime]);
+      tableCreateRow(statsTableServer, optionsBody, [statsServerUpTimeLabel, statsServerUpTime]);
+      tableCreateRow(statsTableServer, optionsBody, [statsServerRunTimeLabel, statsServerRunTime]);
+      tableCreateRow(statsTableClient, optionsBody, [statsClientSessionIdLabel, statsClientSessionId]);
+      tableCreateRow(statsTableClient, optionsBody, [statsClientNumberNodesLabel, statsClientNumberNodes]);
+      // tableCreateRow(infoTable, optionsBody, [status2]);
+      break;
+
+    default:
+      break;
+  }
+
+
+  if (callback) callback(statsTable);
+}
 
 //  KEEPALIVE
 setInterval(function() {
-  if (serverConnected) {
+  if (statsObj.serverConnected) {
     socket.emit("SESSION_KEEPALIVE", viewerObj);
     // console.log("SESSION_KEEPALIVE | " + moment());
   }
@@ -1120,7 +1359,7 @@ var lastHeartbeatReceived = 0;
 
 // CHECK FOR SERVER HEARTBEAT
 setInterval(function() {
-  if (!serverConnected) {
+  if (!statsObj.serverConnected) {
     console.error("\n????? SERVER DOWN ????? | | LAST HEARTBEAT: " 
       + getTimeStamp(lastHeartbeatReceived) 
       + " | " + moment().format(defaultDateTimeFormat) 
@@ -1134,6 +1373,7 @@ setInterval(function() {
       + " | AGO: " + msToTime(moment().valueOf() - lastHeartbeatReceived));
     socket.connect();
   }
+   if (statsTableFlag) updateStatsTable(statsObj);
 }, serverCheckInterval);
 
 function deleteSession(nodeId, callback) {
@@ -1198,6 +1438,20 @@ function deleteAllSessions(callback) {
   );
 }
 
+function updateStatsTable(statsObj){
+  document.getElementById("statsServerTime").innerHTML = moment(statsObj.heartbeat.timeStamp).format(defaultDateTimeFormat);
+  document.getElementById("statsServerUpTime").innerHTML = msToTime(statsObj.heartbeat.upTime);
+  document.getElementById("statsServerRunTime").innerHTML = msToTime(statsObj.heartbeat.runTime);
+  document.getElementById("statsClientNumberNodes").innerHTML = currentSessionView.getNodesLength();
+
+  if (statsObj.serverConnected) {
+    document.getElementById("statsClientSessionId").innerHTML = statsObj.socketId;
+  }
+  else {
+    document.getElementById("statsClientSessionId").innerHTML = "*** CANNOT CONNECT TO SERVER ***";
+  }
+}
+
 var heartBeatsReceived = 0;
 
 socket.on("HEARTBEAT", function(heartbeat) {
@@ -1207,20 +1461,25 @@ socket.on("HEARTBEAT", function(heartbeat) {
   var nodeAddQLength = (typeof currentSessionView === 'undefined') ? 0 : currentSessionView.getNodeAddQlength();
   var maxNodeAddQ = (typeof currentSessionView === 'undefined') ? 0 : currentSessionView.getMaxNodeAddQ();
 
+  statsObj.heartbeat = heartbeat;
+
   heartBeatsReceived++;
-  serverConnected = true;
+  statsObj.serverConnected = true;
   lastHeartbeatReceived = moment().valueOf();
   // console.info("HEARTBEAT\n" + jsonPrint(heartbeat));
-  updateInfoText(
-    heartbeat.serverHostName 
-    + '<br>' + getTimeStamp(heartbeat.timeStamp)
-    + '<br>UPTIME ' + msToTime(heartbeat.upTime)
-    + '<br>STARTED ' + getTimeStamp(heartbeat.startTime)
-    + '<br>RUNTIME ' + msToTime(heartbeat.runTime)
-    + '<br>PRIMARY SOCKET: ' + statsObj.socketId
-    + '<hr>NODES: ' + nodesLength + ' | MAX: ' + maxNodes
-    + '<br>ADD NODE Q: ' + nodeAddQLength + ' | MAX: ' + maxNodeAddQ
-  );
+  // updateStatsText(
+  //   heartbeat.serverHostName 
+  //   + '<br>SERVER TIME: ' + getTimeStamp(heartbeat.timeStamp)
+  //   + '<br>UPTIME:      ' + msToTime(heartbeat.upTime)
+  //   + '<br>STARTED:     ' + getTimeStamp(heartbeat.startTime)
+  //   + '<br>RUNTIME:     ' + msToTime(heartbeat.runTime)
+  //   + '<br>SOCKET:      ' + statsObj.socketId
+  //   + '<hr>NODES:       ' + nodesLength + ' | MAX: ' + maxNodes
+  //   + '<br>ADD NODE Q:  ' + nodeAddQLength + ' | MAX: ' + maxNodeAddQ
+  // );
+
+  if (statsTableFlag) updateStatsTable(statsObj);
+
 });
 
 socket.on("CONFIG_CHANGE", function(rxConfig) {
@@ -1262,7 +1521,7 @@ socket.on("SESSION_ABORT", function(rxSessionObject) {
     console.error("SESSION_ABORT" 
       + " | " + rxSessionObject.sessionId 
       + " | " + rxSessionObject.sessionEvent);
-    serverConnected = false;
+    statsObj.serverConnected = false;
     statsObj.socketId = 'ABORTED';
     socket.disconnect();
     store.set('stats', statsObj);
@@ -2607,7 +2866,7 @@ function initialize(callback) {
             setTimeout(function() {
               console.log("END PAGE LOAD TIMEOUT");
               pageLoadedTimeIntervalFlag = false;
-              if (!config.showStatsFlag) displayInfo(false);
+              if (!config.showStatsFlag) displayStats(false, palette.white);
               if (!config.showStatsFlag) displayControl(false);
             }, 5000);
 
@@ -2664,7 +2923,7 @@ function initialize(callback) {
             setTimeout(function() {
               console.log("END PAGE LOAD");
               pageLoadedTimeIntervalFlag = false;
-              if (!config.showStatsFlag) displayInfo(false);
+              if (!config.showStatsFlag) displayStats(false, palette.white);
               if (!config.showStatsFlag) displayControl(false);
             }, 5000);
 
@@ -2723,7 +2982,7 @@ function initialize(callback) {
           setTimeout(function() {
             console.error("END PAGE LOAD TIMEOUT");
             pageLoadedTimeIntervalFlag = false;
-            if (!config.showStatsFlag) displayInfo(false);
+            if (!config.showStatsFlag) displayStats(false, palette.white);
             if (!config.showStatsFlag) displayControl(false);
           }, 5000);
         });

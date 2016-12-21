@@ -114,6 +114,8 @@ else{
 var statsObj = {};
 statsObj.socketId = null;
 statsObj.socketErrors = 0;
+statsObj.maxNodes = 0;
+statsObj.maxNodeAddQ = 0;
 statsObj.heartbeat = {};
 statsObj.serverConnected = false;
 
@@ -872,7 +874,6 @@ socket.on("reconnect", function() {
   store.set('stats', statsObj);
   statsObj.serverConnected = true;
   displayStats(true, 'white');
-  if (statsTableFlag) updateStatsTable(statsObj);
   console.log("RECONNECTED TO HOST | SOCKET ID: " + socket.id);
   socket.emit("VIEWER_READY", viewerObj);
   if (sessionMode) {
@@ -888,7 +889,6 @@ socket.on("connect", function() {
   statsObj.socketId = socket.id;
   store.set('stats', statsObj);
   statsObj.serverConnected = true;
-  if (statsTableFlag) updateStatsTable(statsObj);
   displayStats(true, 'white');
   console.log("CONNECTED TO HOST | SOCKET ID: " + socket.id);
 });
@@ -896,7 +896,6 @@ socket.on("connect", function() {
 socket.on("disconnect", function() {
   statsObj.serverConnected = false;
   statsObj.socketId = null;
-  if (statsTableFlag) updateStatsTable(statsObj);
   displayStats(true, 'red');
   console.log("*** DISCONNECTED FROM HOST ... DELETING ALL SESSIONS ...");
   deleteAllSessions(function() {
@@ -916,7 +915,6 @@ socket.on("error", function(error) {
   statsObj.socketId = null;
   statsObj.socketErrors++;
   displayStats(true, 'red');
-  if (statsTableFlag) updateStatsTable(statsObj);
   console.log("*** SOCKET ERROR ... DELETING ALL SESSIONS ...");
   console.error("*** SOCKET ERROR\n" + error);
   deleteAllSessions(function() {
@@ -1267,11 +1265,32 @@ function createStatsTable(callback) {
     text: '---'
   };
 
-  var statsNumberNodes = {
+  var statsClientNumberMaxNodesLabel = {
     type: 'TEXT',
-    id: 'statsNumberNodes',
+    id: 'statsClientNumberMaxNodesLabel',
     class: 'statsTableText',
-    text: 'NODES: ' + 0
+    text: 'MAX'
+  };
+
+  var statsClientNumberMaxNodes = {
+    type: 'TEXT',
+    id: 'statsClientNumberMaxNodes',
+    class: 'statsTableText',
+    text: '---'
+  };
+
+  var statsClientNumberEntitiesLabel = {
+    type: 'TEXT',
+    id: 'statsClientNumberEntitiesLabel',
+    class: 'statsTableText',
+    text: 'ENTITIES'
+  };
+
+  var statsClientNumberEntities = {
+    type: 'TEXT',
+    id: 'statsClientNumberEntities',
+    class: 'statsTableText',
+    text: '---'
   };
 
   var statsServerTimeLabel = {
@@ -1316,6 +1335,13 @@ function createStatsTable(callback) {
     text: statsObj.heartbeat.runTime
   };
 
+  var statsEntitiesLabel = {
+    type: 'TEXT',
+    id: 'statsEntitiesLabel',
+    class: 'statsTableText',
+    text: 'ENTITIES'
+  };
+
   //   + '<br>SERVER TIME: ' + getTimeStamp(heartbeat.timeStamp)
   //   + '<br>UPTIME:      ' + msToTime(heartbeat.upTime)
   //   + '<br>STARTED:     ' + getTimeStamp(heartbeat.startTime)
@@ -1334,8 +1360,10 @@ function createStatsTable(callback) {
       tableCreateRow(statsTableServer, optionsBody, [statsServerTimeLabel, statsServerTime]);
       tableCreateRow(statsTableServer, optionsBody, [statsServerUpTimeLabel, statsServerUpTime]);
       tableCreateRow(statsTableServer, optionsBody, [statsServerRunTimeLabel, statsServerRunTime]);
+      tableCreateRow(statsTableClient, optionsHead, ['CLIENT']);
       tableCreateRow(statsTableClient, optionsBody, [statsClientSessionIdLabel, statsClientSessionId]);
-      tableCreateRow(statsTableClient, optionsBody, [statsClientNumberNodesLabel, statsClientNumberNodes]);
+      tableCreateRow(statsTableClient, optionsBody, [statsClientNumberNodesLabel, statsClientNumberNodes, statsClientNumberMaxNodesLabel, statsClientNumberMaxNodes]);
+      tableCreateRow(statsTableClient, optionsBody, [statsClientNumberEntitiesLabel, statsClientNumberEntities]);
       // tableCreateRow(infoTable, optionsBody, [status2]);
       break;
 
@@ -1346,6 +1374,11 @@ function createStatsTable(callback) {
 
   if (callback) callback(statsTable);
 }
+
+//  STATS UPDATE
+setInterval(function() {
+ if (statsTableFlag) updateStatsTable(statsObj);
+}, 1000);
 
 //  KEEPALIVE
 setInterval(function() {
@@ -1373,7 +1406,6 @@ setInterval(function() {
       + " | AGO: " + msToTime(moment().valueOf() - lastHeartbeatReceived));
     socket.connect();
   }
-   if (statsTableFlag) updateStatsTable(statsObj);
 }, serverCheckInterval);
 
 function deleteSession(nodeId, callback) {
@@ -1443,6 +1475,8 @@ function updateStatsTable(statsObj){
   document.getElementById("statsServerUpTime").innerHTML = msToTime(statsObj.heartbeat.upTime);
   document.getElementById("statsServerRunTime").innerHTML = msToTime(statsObj.heartbeat.runTime);
   document.getElementById("statsClientNumberNodes").innerHTML = currentSessionView.getNodesLength();
+  document.getElementById("statsClientNumberMaxNodes").innerHTML = statsObj.maxNodes;
+  document.getElementById("statsClientNumberEntities").innerHTML = sessionHashMap.count();
 
   if (statsObj.serverConnected) {
     document.getElementById("statsClientSessionId").innerHTML = statsObj.socketId;
@@ -1457,9 +1491,9 @@ var heartBeatsReceived = 0;
 socket.on("HEARTBEAT", function(heartbeat) {
 
   var nodesLength = (typeof currentSessionView === 'undefined') ? 0 : currentSessionView.getNodesLength();
-  var maxNodes = (typeof currentSessionView === 'undefined') ? 0 : currentSessionView.getMaxNodes();
+  statsObj.maxNodes = (typeof currentSessionView === 'undefined') ? 0 : currentSessionView.getMaxNodes();
   var nodeAddQLength = (typeof currentSessionView === 'undefined') ? 0 : currentSessionView.getNodeAddQlength();
-  var maxNodeAddQ = (typeof currentSessionView === 'undefined') ? 0 : currentSessionView.getMaxNodeAddQ();
+  statsObj.maxNodeAddQ = (typeof currentSessionView === 'undefined') ? 0 : currentSessionView.getMaxNodeAddQ();
 
   statsObj.heartbeat = heartbeat;
 
@@ -1477,8 +1511,6 @@ socket.on("HEARTBEAT", function(heartbeat) {
   //   + '<hr>NODES:       ' + nodesLength + ' | MAX: ' + maxNodes
   //   + '<br>ADD NODE Q:  ' + nodeAddQLength + ' | MAX: ' + maxNodeAddQ
   // );
-
-  if (statsTableFlag) updateStatsTable(statsObj);
 
 });
 

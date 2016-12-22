@@ -1323,6 +1323,20 @@ function createStatsTable(callback) {
     text: statsObj.heartbeat.upTime
   };
 
+  var statsServerStartTimeLabel = {
+    type: 'TEXT',
+    id: 'statsServerStartTimeLabel',
+    class: 'statsTableText',
+    text: 'START'
+  };
+
+  var statsServerStartTime = {
+    type: 'TEXT',
+    id: 'statsServerStartTime',
+    class: 'statsTableText',
+    text: statsObj.heartbeat.startTime
+  };
+
   var statsServerRunTimeLabel = {
     type: 'TEXT',
     id: 'statsServerRunTimeLabel',
@@ -1366,18 +1380,6 @@ function createStatsTable(callback) {
     text: statsObj.heartbeat.responsesReceived
   };
 
-
-
-
-  //   + '<br>SERVER TIME: ' + getTimeStamp(heartbeat.timeStamp)
-  //   + '<br>UPTIME:      ' + msToTime(heartbeat.upTime)
-  //   + '<br>STARTED:     ' + getTimeStamp(heartbeat.startTime)
-  //   + '<br>RUNTIME:     ' + msToTime(heartbeat.runTime)
-  //   + '<br>SOCKET:      ' + statsObj.socketId
-  //   + '<hr>NODES:       ' + nodesLength + ' | MAX: ' + maxNodes
-  //   + '<br>ADD NODE Q:  ' + nodeAddQLength + ' | MAX: ' + maxNodeAddQ
-
-
   switch (config.sessionViewType) {
 
     case 'force':
@@ -1386,6 +1388,7 @@ function createStatsTable(callback) {
       tableCreateRow(statsTableServer, optionsHead, ['SERVER']);
       tableCreateRow(statsTableServer, optionsBody, [statsServerTimeLabel, statsServerTime]);
       tableCreateRow(statsTableServer, optionsBody, [statsServerUpTimeLabel, statsServerUpTime]);
+      tableCreateRow(statsTableServer, optionsBody, [statsServerStartTimeLabel, statsServerStartTime]);
       tableCreateRow(statsTableServer, optionsBody, [statsServerRunTimeLabel, statsServerRunTime]);
       tableCreateRow(statsTableServer, optionsBody, [statsServerTotalWordsLabel, statsServerTotalWords]);
       tableCreateRow(statsTableServer, optionsBody, [statsServerWordsReceivedLabel, statsServerWordsReceived]);
@@ -1502,6 +1505,7 @@ function deleteAllSessions(callback) {
 function updateStatsTable(statsObj){
   document.getElementById("statsServerTime").innerHTML = moment(statsObj.heartbeat.timeStamp).format(defaultDateTimeFormat);
   document.getElementById("statsServerUpTime").innerHTML = msToTime(statsObj.heartbeat.upTime);
+  document.getElementById("statsServerStartTime").innerHTML = moment(statsObj.heartbeat.startTime).format(defaultDateTimeFormat);
   document.getElementById("statsServerRunTime").innerHTML = msToTime(statsObj.heartbeat.runTime);
   document.getElementById("statsServerTotalWords").innerHTML = statsObj.heartbeat.totalWords;
   document.getElementById("statsServerWordsReceived").innerHTML = statsObj.heartbeat.responsesReceived;
@@ -1531,18 +1535,6 @@ socket.on("HEARTBEAT", function(heartbeat) {
   heartBeatsReceived++;
   statsObj.serverConnected = true;
   lastHeartbeatReceived = moment().valueOf();
-  // console.info("HEARTBEAT\n" + jsonPrint(heartbeat));
-  // updateStatsText(
-  //   heartbeat.serverHostName 
-  //   + '<br>SERVER TIME: ' + getTimeStamp(heartbeat.timeStamp)
-  //   + '<br>UPTIME:      ' + msToTime(heartbeat.upTime)
-  //   + '<br>STARTED:     ' + getTimeStamp(heartbeat.startTime)
-  //   + '<br>RUNTIME:     ' + msToTime(heartbeat.runTime)
-  //   + '<br>SOCKET:      ' + statsObj.socketId
-  //   + '<hr>NODES:       ' + nodesLength + ' | MAX: ' + maxNodes
-  //   + '<br>ADD NODE Q:  ' + nodeAddQLength + ' | MAX: ' + maxNodeAddQ
-  // );
-
 });
 
 socket.on("CONFIG_CHANGE", function(rxConfig) {

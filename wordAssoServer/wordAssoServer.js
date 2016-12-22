@@ -1594,7 +1594,7 @@ var testViewersNameSpace;
 
 
 
-var initNameSpacesInterval = setInterval(function(){
+var initNameSpacesTimeout = setTimeout(function(){
 
   // if (updateComplete) {
   if (true) {
@@ -1681,7 +1681,7 @@ var initNameSpacesInterval = setInterval(function(){
       });
     });
 
-    clearInterval(initNameSpacesInterval);
+    // clearInterval(initNameSpacesInterval);
 
     ioReady = true;
   }
@@ -3217,7 +3217,13 @@ function groupUpdateDb(userObj, callback){
 
   if (entityChannelGroupHashMap.has(userObj.tags.entity.toLowerCase())) {
 
+
     var entityObj = entityChannelGroupHashMap.get(userObj.tags.entity.toLowerCase());
+
+    // console.log(chalkRed("entityChannelGroupHashMap HIT: " + userObj.tags.entity.toLowerCase()));
+    // console.log(chalkRed("entityChannelGroupHashMap HIT entityObj.groupId.match(hostname): hostname: " + hostname + " | " + entityObj.groupId.match(hostname)));
+    // console.log(chalkRed("entityChannelGroupHashMap HIT groupHashMap.has(entityObj.groupId): " + groupHashMap.has(entityObj.groupId)));
+    // console.log(chalkRed("entityChannelGroupHashMap HIT\n" + jsonPrint(entityObj)));
 
     if ((typeof entityObj !== 'undefined') && groupHashMap.has(entityObj.groupId)) {
 
@@ -3265,7 +3271,18 @@ function groupUpdateDb(userObj, callback){
 
       callback(null, entityObj);
     }
-    else if (typeof entityObj === 'undefined') {
+    else if (entityObj.groupId && entityObj.groupId.match(hostname)) {
+
+      console.log(chalkError("GROUP HIT ON HOSTNAME"
+        + " | GID: " + entityObj.groupId
+        + " | HOSTNAME: " + hostname
+      ));
+
+      // configEvents.emit("HASH_MISS", {type: "entity", value: userObj.tags.entity.toLowerCase()});
+
+      callback(null, entityObj);
+    }
+    else {
 
       console.log(chalkError("*0* ENTITY HASH MISS ... SKIPPING DB GROUP UPDATE"
         + " | ENTITY HASH MISS"
@@ -3279,6 +3296,7 @@ function groupUpdateDb(userObj, callback){
 
       callback(null, entityObj);
     }
+
   }
   else {
     userObj.groupId = userObj.tags.entity.toLowerCase();
@@ -5337,8 +5355,15 @@ function handleSessionEvent(sesObj, callback) {
       sesObj.user.connected = true;
 
       userUpdateDb(sesObj.user, function(err, updatedUserObj) {
+
         if (!err) {
+
+          debug(chalkError("userUpdateDb CALLBACK\nERR\n" + jsonPrint(err) + "\nUSEROBJ\n" + jsonPrint(updatedUserObj)));
+
           groupUpdateDb(updatedUserObj, function(err, entityObj){
+
+            debug(chalkError("groupUpdateDb CALLBACK\nERR\n" + jsonPrint(err) + "\nentityObj\n" + jsonPrint(entityObj)));
+
             if (err){
               console.log(chalkError("GROUP UPDATE DB ERROR: " + err));
             }
@@ -8255,7 +8280,7 @@ function createSession(newSessionObj) {
 
           sessionObj.config = {};
 
-          console.log(chalkError(moment().format(defaultDateTimeFormat) 
+          console.log(chalkWarn(moment().format(defaultDateTimeFormat) 
             + " | ??? SESSION NOT FOUND ON USER READY | " + sessionCacheKey
           ));
 

@@ -1416,7 +1416,7 @@ function ViewFlow() {
       {
         group: processGroupUpdateQ,
         session: processSessionUpdateQ,
-        deleteNoode: processNodeDeleteQ,
+        deleteNode: processNodeDeleteQ,
         addNoode: processNodeAddQ,
         updateNode: processNodeUpdateQ,
         link: processLinkUpdateQ,

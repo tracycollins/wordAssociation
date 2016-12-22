@@ -241,7 +241,7 @@ var statsObj = {
   "timeStamp": moment().format(defaultDateTimeFormat),
   "runTimeArgs": process.argv,
 
-  "startTime": moment(),
+  "startTime": moment().valueOf(),
   "runTime": 0,
 
   "totalClients": 0,
@@ -1098,7 +1098,7 @@ function updateStatsInterval(statsFile, interval){
   statsInterval = setInterval(function() {
 
     statsObj.upTime = os.uptime() * 1000;
-    statsObj.runTime = moment().valueOf() - statsObj.startTime.valueOf();
+    statsObj.runTime = moment().valueOf() - statsObj.startTime;
     statsObj.memoryTotal = os.totalmem();
     statsObj.memoryAvailable = os.freemem();
 
@@ -7666,7 +7666,7 @@ configEvents.on("SERVER_READY", function() {
 
   serverHeartbeatInterval = setInterval(function() {
 
-    statsObj.runTime = moment().valueOf() - statsObj.startTime.valueOf();
+    statsObj.runTime = moment().valueOf() - statsObj.startTime;
     statsObj.upTime = os.uptime() * 1000;
     statsObj.memoryTotal = os.totalmem();
     statsObj.memoryAvailable = os.freemem();
@@ -7684,7 +7684,7 @@ configEvents.on("SERVER_READY", function() {
       txHeartbeat = {
         serverHostName: hostname,
         timeStamp: getTimeNow(),
-        startTime: statsObj.startTime.valueOf(),
+        startTime: statsObj.startTime,
         upTime: statsObj.upTime,
         runTime: statsObj.runTime,
         heartbeatsSent: heartbeatsSent,

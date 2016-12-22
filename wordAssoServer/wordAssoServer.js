@@ -8884,9 +8884,9 @@ function initAppRouting(callback) {
     return;
   });
 
-  app.get('/js/libs/sessionViewTicker_v4.js', function(req, res) {
-    debugAppGet("LOADING FILE: sessionViewTicker_v4.js");
-    res.sendFile(__dirname + '/js/libs/sessionViewTicker_v4.js');
+  app.get('/js/libs/sessionViewTicker.js', function(req, res) {
+    debugAppGet("LOADING FILE: sessionViewTicker.js");
+    res.sendFile(__dirname + '/js/libs/sessionViewTicker.js');
     return;
   });
 
@@ -8902,9 +8902,9 @@ function initAppRouting(callback) {
     return;
   });
 
-  app.get('/js/libs/sessionViewForce_v4.js', function(req, res) {
-    debugAppGet("LOADING FILE: sessionViewForce_v4.js");
-    res.sendFile(__dirname + '/js/libs/sessionViewForce_v4.js');
+  app.get('/js/libs/sessionViewForce.js', function(req, res) {
+    debugAppGet("LOADING FILE: sessionViewForce.js");
+    res.sendFile(__dirname + '/js/libs/sessionViewForce.js');
     return;
   });
 
@@ -8919,25 +8919,6 @@ function initAppRouting(callback) {
     res.sendFile(__dirname + '/js/libs/sessionView.js');
     return;
   });
-
-  // app.get('/js/libs/SpriteText2D.js', function(req, res) {
-  //   debugAppGet("LOADING FILE: SpriteText2D.js");
-  //   res.sendFile(__dirname + '/js/libs/SpriteText2D.js');
-  //   return;
-  // });
-
-  // app.get('/js/libs/three-text2d.js', function(req, res) {
-  //   debugAppGet("LOADING FILE: three-text2d.js");
-  //   res.sendFile(__dirname + '/js/libs/three-text2d.js');
-  //   return;
-  // });
-
-
-  // app.get('/js/libs/three.min.js', function(req, res) {
-  //   debugAppGet("LOADING FILE: three.min.js");
-  //   res.sendFile(__dirname + '/js/libs/three.min.js');
-  //   return;
-  // });
 
   app.get('/css/main.css', function(req, res) {
     res.sendFile(__dirname + '/css/main.css');

@@ -1384,6 +1384,7 @@ function createStatsTable(callback) {
 
     case 'force':
     case 'flow':
+    case 'ticker':
     case 'histogram':
       tableCreateRow(statsTableServer, optionsHead, ['SERVER']);
       tableCreateRow(statsTableServer, optionsBody, [statsServerTimeLabel, statsServerTime]);
@@ -1443,7 +1444,7 @@ setInterval(function() {
 function deleteSession(nodeId, callback) {
 
   if (!sessionHashMap.has(nodeId)) {
-    console.error("deleteSession: SID NOT IN HASH: " + nodeId + " ... SKIPPING DELETE");
+    console.warn("deleteSession: SID NOT IN HASH: " + nodeId + " ... SKIPPING DELETE");
     return (callback(nodeId));
   }
 
@@ -1736,21 +1737,43 @@ var processSessionQueues = function(callback) {
     }
 
     if (typeof session.tags.group.groupId !== 'undefined') {
-      console.log("GROUP"
+      console.log("G"
         + " | " + session.nodeId
         + " | " + session.tags.group.groupId
         // + "\nTAGS\n" + jsonPrint(session.tags)
       );
       groupCreateQueue.push(session);
     }
-    else if (session.tags.group.entityId) {
-      console.warn("??? GROUP ID UNDEFINED ... CREATE GROUP FROM ENTITY ID"
-        + " | N: " + session.nodeId
-        + " | E: " + session.tags.group.entityId
-        // + "\nTAGS\n" + jsonPrint(session.tags)
-      );
-      session.tags.group.groupId = session.tags.group.entityId;
-      groupCreateQueue.push(session);
+    else if (session.tags.group.entityId){
+
+      if (!groupHashMap.has(session.tags.group.entityId)) {
+        // console.warn("??? GROUP ID UNDEFINED ... CREATE GROUP FROM ENTITY ID"
+        //   + " | N: " + session.nodeId
+        //   + " | E: " + session.tags.group.entityId
+        //   // + "\nTAGS\n" + jsonPrint(session.tags)
+        // );
+        session.tags.group.groupId = session.tags.group.entityId;
+        console.warn("+ G FROM ENT ID"
+          + " | N: " + session.nodeId
+          + " | E: " + session.tags.group.entityId
+          // + "\nTAGS\n" + jsonPrint(session.tags)
+        );
+        groupCreateQueue.push(session);
+      }
+      else {
+        // console.log("... GROUP ID UNDEFINED ... ENTITY GROUP HASHMAP HIT"
+        //   + " | N: " + session.nodeId
+        //   + " | E: " + session.tags.group.entityId
+        //   // + "\nTAGS\n" + jsonPrint(session.tags)
+        // );
+        session.tags.group.groupId = groupHashMap.get(session.tags.group.entityId);
+        // console.warn("CREATE GROUP FROM ENTITY ID"
+        //   + " | N: " + session.nodeId
+        //   + " | E: " + session.tags.group.entityId
+        //   // + "\nTAGS\n" + jsonPrint(session.tags)
+        // );
+        // groupCreateQueue.push(session);
+      }
     }
     else {
       console.error("??? GROUP & ENTITY IDs UNDEFINED ... SKIPPING"
@@ -2029,7 +2052,7 @@ var createGroup = function(callback) {
 
       addToHashMap(nodeHashMap, currentGroup.node.nodeId, currentGroup.node, function(grpNode) {
 
-        console.debug("+ GRP" 
+        console.debug("+ G" 
           + " | " + grpNode.nodeId
           + " | " + grpNode.groupId
           + " | isGroupNode: " + grpNode.isGroupNode
@@ -2039,7 +2062,7 @@ var createGroup = function(callback) {
         currentSessionView.addNode(grpNode);
 
         addToHashMap(groupHashMap, currentGroup.groupId, currentGroup, function(cGroup) {
-          console.log("+ GRP " + cGroup.groupId 
+          console.log("+ G " + cGroup.groupId 
             + " | GNID: " + cGroup.node.nodeId
           );
           sessionCreateQueue.push(sessUpdate);
@@ -2802,7 +2825,7 @@ function loadViewType(svt, callback) {
   switch (svt) {
     case 'ticker':
       config.sessionViewType = 'ticker';
-      requirejs(["js/libs/sessionViewTicker_v4"], function() {
+      requirejs(["js/libs/sessionViewTicker"], function() {
         console.log("sessionViewTicker LOADED");
         currentSessionView = new ViewTicker();
         callback();
@@ -2826,7 +2849,7 @@ function loadViewType(svt, callback) {
       break;
     default:
       config.sessionViewType = 'force';
-      requirejs(["js/libs/sessionViewForce_v4"], function() {
+      requirejs(["js/libs/sessionViewForce"], function() {
         console.log("sessionViewForce LOADED");
         currentSessionView = new ViewForce();
         callback();

@@ -1691,7 +1691,7 @@ var initNameSpacesInterval = setInterval(function(){
 // FUNCTIONS
 // ==================================================================
 function msToTime(duration) {
-  var milliseconds = parseInt((duration % 1000) / 100),
+  var milliseconds = parseInt((duration % 1000) / 1000),
     seconds = parseInt((duration / 1000) % 60),
     minutes = parseInt((duration / (1000 * 60)) % 60),
     hours = parseInt((duration / (1000 * 60 * 60)) % 24),
@@ -7053,82 +7053,6 @@ var wapiSearchQueueInterval = setInterval(function() {
 
 }, 50);
 
-// // ==================================================================
-// // CACHE HANDLERS
-// // ==================================================================
-// sessionCache.on("set", function(sessionId, sessionObj) {
-//   console.log(chalkRedBold("sessionCache SET: " + sessionId + "\n" + jsonPrint(sessionObj)));
-// });
-
-// sessionCache.on("expired", function(sessionId, sessionObj) {
-//   sessionQueue.enqueue({
-//     sessionEvent: "SESSION_EXPIRED",
-//     sessionId: sessionId,
-//     session: sessionObj
-//   });
-
-//   io.of(sessionObj.namespace).to(sessionId).emit('SESSION_EXPIRED', sessionId);
-
-//   sessionObj.sessionEvent = 'SESSION_DELETE';
-
-//   viewNameSpace.emit("SESSION_DELETE", sessionObj);
-
-//   debug("CACHE SESSION EXPIRED\n" + jsonPrint(sessionObj));
-//   console.log(chalkInfo("... CACHE SESS EXPIRED"
-//     + " | " + sessionObj.sessionId 
-//     + " | NSP: " + sessionObj.namespace 
-//     + " | NOW: " + getTimeStamp() 
-//     + " | LS: " + getTimeStamp(sessionObj.lastSeen) 
-//     + " | " + msToTime(moment().valueOf() - sessionObj.lastSeen) 
-//     + " | WCI: " + sessionObj.wordChainIndex 
-//     + " | WCL: " + sessionObj.wordChain.length 
-//     + " | K: " + sessionCache.getStats().keys 
-//     + " | H: " + sessionCache.getStats().hits 
-//     + " | M: " + sessionCache.getStats().misses));
-// });
-
-// wordCache.on("set", function(word, wordObj) {
-//   // debugWapi("CACHE WORD EXPIRED\n" + jsonPrint(wordObj));
-//   debugWapi(chalkWapi("CACHE WORD SET"
-//     + " [ Q: " + wapiSearchQueue.size() 
-//     + " ] " + wordObj.nodeId 
-//     + " | LS: " + getTimeStamp(wordObj.lastSeen) 
-//     + " | " + msToTime(moment().valueOf() - wordObj.lastSeen) 
-//     + " | M: " + wordObj.mentions 
-//     + " | WAPIS: " + wordObj.wapiSearched 
-//     + " | WAPIF: " + wordObj.wapiFound 
-//     + " | K: " + wordCache.getStats().keys 
-//     + " | H: " + wordCache.getStats().hits 
-//     + " | M: " + wordCache.getStats().misses
-//   ));
-
-//   if (!wapiOverLimitFlag && (wapiForceSearch || !wordObj.wapiSearched)){
-//     wapiSearchQueue.enqueue(wordObj);
-//   }
-// });
-
-// wordCache.on("expired", function(word, wordObj) {
-//   if (typeof wordObj !== 'undefined') {
-//     // debug("CACHE WORD EXPIRED\n" + jsonPrint(wordObj));
-//     debug("... CACHE WORD EXPIRED"
-//       + " | " + wordObj.nodeId 
-//       + " | LS: " + getTimeStamp(wordObj.lastSeen) 
-//       + " | " + msToTime(moment().valueOf() - wordObj.lastSeen) 
-//       + " | M: " + wordObj.mentions 
-//       + " | K: " + wordCache.getStats().keys 
-//       + " | H: " + wordCache.getStats().hits 
-//       + " | M: " + wordCache.getStats().misses);
-//   } else {
-//     debug(chalkError("??? UNDEFINED wordObj on wordCache expired ???"));
-//   }
-// });
-
-// trendingCache.on( "expired", function(topic, topicObj){
-//   debug("CACHE TOPIC EXPIRED\n" + jsonPrint(topicObj));
-//   console.log("CACHE TOPIC EXPIRED | " + topicObj.name);
-// });
-
-
 function updateTrends(){
   twit.get('trends/place', {id: 1}, function (err, data, response){
     if (err){
@@ -7741,11 +7665,6 @@ configEvents.on("SERVER_READY", function() {
   }
 
   serverHeartbeatInterval = setInterval(function() {
-
-    // debug(util.inspect(userNameSpace.connected, {
-    //   showHidden: false,
-    //   depth: 1
-    // }));
 
     statsObj.runTime = moment().valueOf() - statsObj.startTime.valueOf();
     statsObj.upTime = os.uptime() * 1000;

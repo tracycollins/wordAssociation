@@ -481,10 +481,14 @@ var groupCache = new NodeCache({
 // CACHE HANDLERS
 // ==================================================================
 sessionCache.on("set", function(sessionId, sessionObj) {
-  // console.log(chalkRedBold("sessionCache SET: "
-  //   + sessionId 
-  //   + " \n" + jsonPrint(sessionObj.tags)
-  // ));
+  if (sessionObj.userId && sessionObj.userId.match('TMS_')){
+    console.log(chalkSession("SESS CACHE SET"
+      + " | " + moment().format(defaultDateTimeFormat) 
+      + " | SESSION ID: " + sessionId 
+      + " | USER ID: " + sessionObj.userId
+      // + " \n" + jsonPrint(sessionObj)
+    ));
+  }
 });
 
 sessionCache.on("expired", function(sessionId, sessionObj) {
@@ -1494,41 +1498,6 @@ var followerUpdateQueue = new Queue();
 
 var MAX_WORD_HASH_MAP_COUNT = 20;
 var wordArray = []; // used to keep wordHashMap.count() < MAX_WORD_HASH_MAP_COUNT
-
-// var NodeCache = require("node-cache");
-
-// var adminCache = new NodeCache();
-// var viewerCache = new NodeCache();
-// var userCache = new NodeCache();
-// var utilCache = new NodeCache();
-// // var monitorCache = new NodeCache();
-
-// var monitorHashMap = {};
-
-// var trendingCache = new NodeCache({
-//   stdTTL: trendingCacheTtl,
-//   checkperiod: 10
-// });
-
-// var wordCache = new NodeCache({
-//   stdTTL: wordCacheTtl,
-//   checkperiod: 10
-// });
-
-// var sessionCache = new NodeCache({
-//   stdTTL: sessionCacheTtl,
-//   checkperiod: 30
-// });
-
-// var entityCache = new NodeCache({
-//   stdTTL: entityCacheTtl,
-//   checkperiod: 30
-// });
-
-// var groupCache = new NodeCache({
-//   stdTTL: groupCacheTtl,
-//   checkperiod: 30
-// });
 
 var promptQueue = new Queue();
 var responseQueue = new Queue();
@@ -3241,7 +3210,7 @@ function groupUpdateDb(userObj, callback){
       groupUpdateObj.addChannelArray = [];
       groupUpdateObj.addChannelArray.push(userObj.tags.channel.toLowerCase());
 
-      console.log(chalkDb("GROUP HASH HIT"
+      debug(chalkDb("GROUP HASH HIT"
         + " | " + userObj.tags.entity.toLowerCase()
         + " | " + groupUpdateObj.groupId
         + " | " + groupUpdateObj.name
@@ -3258,7 +3227,7 @@ function groupUpdateDb(userObj, callback){
       && (entityObj.groupId) 
       && !entityObj.groupId.match(hostname)) {
 
-      console.log(chalkError("*** GROUP HASH MISS ... SKIPPING DB GROUP UPDATE"
+      debug(chalkError("*** GROUP HASH MISS ... SKIPPING DB GROUP UPDATE"
         + " | GROUP HASH MISS"
         + " | " + entityObj.groupId
         + " | " + userObj.tags.entity.toLowerCase()
@@ -3273,7 +3242,7 @@ function groupUpdateDb(userObj, callback){
     }
     else if (entityObj.groupId && entityObj.groupId.match(hostname)) {
 
-      console.log(chalkError("GROUP HIT ON HOSTNAME"
+      debug(chalkError("GROUP HIT ON HOSTNAME"
         + " | GID: " + entityObj.groupId
         + " | HOSTNAME: " + hostname
       ));
@@ -3284,7 +3253,7 @@ function groupUpdateDb(userObj, callback){
     }
     else {
 
-      console.log(chalkError("*0* ENTITY HASH MISS ... SKIPPING DB GROUP UPDATE"
+      debug(chalkRed("*0* ENTITY HASH MISS ... SKIPPING DB GROUP UPDATE"
         + " | ENTITY HASH MISS"
         + " | " + userObj.tags.entity.toLowerCase()
       ));
@@ -3303,7 +3272,7 @@ function groupUpdateDb(userObj, callback){
 
     configEvents.emit("HASH_MISS", {type: "entity", value: userObj.tags.entity.toLowerCase()});
 
-    console.log(chalkError("*1* ENTITY HASH MISS ... SKIPPING DB GROUP UPDATE"
+    debug(chalkError("*1* ENTITY HASH MISS ... SKIPPING DB GROUP UPDATE"
       + " | " + userObj.tags.entity.toLowerCase()
     ));
 
@@ -3382,7 +3351,7 @@ function entityUpdateDb(userObj, callback){
       entityObj.groupId = entityChannelGroupHashMap.get(userObj.tags.entity.toLowerCase()).groupId;
     }
 
-    console.log(chalkDb("ENTITY CACHE MISS ON USER READY"
+    debug(chalkDb("ENTITY CACHE MISS ON USER READY"
       + " | EID: " + entityObj.entityId
       + " | GID: " + entityObj.groupId
       + " | N: " + entityObj.name
@@ -3403,7 +3372,7 @@ function entityUpdateDb(userObj, callback){
       entityObj.groupId = entityChannelGroupHashMap.get(userObj.tags.entity.toLowerCase()).groupId;
     }
 
-    console.log(chalkDb("ENTITY CACHE HIT ON USER READY"
+    debug(chalkDb("ENTITY CACHE HIT ON USER READY"
       + " | EID: " + entityObj.entityId
       + " | GID: " + entityObj.groupId
       + " | N: " + entityObj.name
@@ -3630,7 +3599,7 @@ function userUpdateDb(userObj, callback) {
         );
         callback(err, userObj);
       } else {
-        console.log(chalkUser(">>> USER UPDATED" 
+        debug(chalkUser(">>> USER UPDATED" 
           + " | " + us.userId 
           + " | N: " + us.name 
           + " | SN:   " + us.screenName 
@@ -3643,7 +3612,7 @@ function userUpdateDb(userObj, callback) {
           + " | SES:  " + us.sessions.length 
           + " | LSES: " + us.lastSession 
           + " | CON:  " + us.connected
-          + " \nTAGS: " + jsonPrint(us.tags) 
+          // + " \nTAGS: " + jsonPrint(us.tags) 
         ));
         callback(null, us);
       }
@@ -5277,7 +5246,7 @@ function handleSessionEvent(sesObj, callback) {
         + " | UID: " + sesObj.user.userId 
         + " | TYPE: " + sesObj.session.config.type 
         + " | MODE: " + sesObj.session.config.mode 
-        + "\nSID: " + sesObj.session.sessionId 
+        + "\n                 SID: " + sesObj.session.sessionId 
         + " | UMODE: " + sesObj.user.tags.mode 
         + " | GRP: " + sesObj.user.tags.group 
         + " | ENT: " + sesObj.user.tags.entity 
@@ -5291,7 +5260,7 @@ function handleSessionEvent(sesObj, callback) {
 
       if (sesObj.session.config.mode == 'MUXSTREAM'){
 
-        console.log(chalkInfo("MUXSTREAM"
+        debug(chalkInfo("MUXSTREAM"
           + " | " + sesObj.session.sessionId
         ));
 
@@ -5301,7 +5270,7 @@ function handleSessionEvent(sesObj, callback) {
 
         sessionId = sesObj.session.sessionId + "#" + sesObj.user.tags.entity;
 
-        console.log(chalkInfo("SUBSTREAM"
+        debug(chalkInfo("SUBSTREAM"
           + " | " + sesObj.session.sessionId
         ));
 
@@ -5312,7 +5281,7 @@ function handleSessionEvent(sesObj, callback) {
         var key = sesObj.user.tags.entity + '_' + sesObj.user.tags.channel;
 
         monitorHashMap[key] = sesObj;
-        console.log(chalkRed("ADDDED MONITOR"
+        debug(chalkRed("ADDDED MONITOR"
           + " | " + key
           + " | " + sesObj.session.sessionId
         ));
@@ -7604,7 +7573,7 @@ var directMessageHash = {};
 
 configEvents.on("HASH_MISS", function(missObj) {
 
-  console.log(chalkError("CONFIG EVENT - HASH_MISS\n" + jsonPrint(missObj)));
+  debug(chalkError("CONFIG EVENT - HASH_MISS\n" + jsonPrint(missObj)));
 
   var dmString = hostname
   + ' | wordAssoServer'
@@ -8120,8 +8089,9 @@ function createSession(newSessionObj) {
     statsObj.socket.SESSION_KEEPALIVES++;
     debug(chalkUser("SESSION_KEEPALIVE\n" + jsonPrint(userObj)));
     if (userObj.userId.match(/TMS_/g)){
-      console.log(chalkRedBold("SESSION_KEEPALIVE" 
+      console.log(chalkSession("SESSION_KEEPALIVE" 
         + " | " + userObj.userId
+        + " | " + socket.id
         + " | " + moment().format(defaultDateTimeFormat)
         // + "\n" + jsonPrint(userObj)
       ));
@@ -8210,20 +8180,8 @@ function createSession(newSessionObj) {
 
   socket.on("USER_READY", function(userObj) {
 
-  // entityUserObj.name = entity;
-  // entityUserObj.tags = {};
-  // entityUserObj.tags.entity = entity;
-  // entityUserObj.tags.channel = channel;
-  // entityUserObj.tags.mode = 'substream';
-  // entityUserObj.userId = entity;
-  // entityUserObj.screenName = entity;
-  // entityUserObj.type = "UTIL";
-  // entityUserObj.mode = "SUBSTREAM";
-  // entityUserObj.nodeId = entityChannelId;
-
     var socketId = socket.id;
     var primarySessionObj = sessionCache.get(socket.id);
-    // var sessionObj ;
 
     var sessionCacheKey = socket.id ;
 
@@ -8250,11 +8208,11 @@ function createSession(newSessionObj) {
       sessionCacheKey = socket.id + "#" + userObj.tags.entity;
       // sessionCacheKey = userObj.tags.entity.toLowerCase();
 
-      console.log(chalkRedBold("USER_READY SUBSTREAM sessionCacheKey: " + sessionCacheKey));
+      debug(chalkRedBold("USER_READY SUBSTREAM sessionCacheKey: " + sessionCacheKey));
     }
-    else {
-      console.log(chalkRedBold("USER_READY sessionCacheKey: " + sessionCacheKey));
-    }
+    // else {
+    //   console.log(chalkRedBold("USER_READY sessionCacheKey: " + sessionCacheKey));
+    // }
 
 
     sessionCache.get(sessionCacheKey, function(err, sessionObj){
@@ -8280,8 +8238,9 @@ function createSession(newSessionObj) {
 
           sessionObj.config = {};
 
-          console.log(chalkWarn(moment().format(defaultDateTimeFormat) 
-            + " | ??? SESSION NOT FOUND ON USER READY | " + sessionCacheKey
+          console.log(chalkSession("SESSION CACHE MISS USER READY"
+            + " | " + sessionCacheKey
+            + " | " + moment().format(defaultDateTimeFormat) 
           ));
 
           if (!primarySessionObj) {
@@ -8372,7 +8331,8 @@ function createSession(newSessionObj) {
           sessionObj.config.mode = userObj.mode;
         }
 
-        console.log(chalkConnect("--- USER READY   | " + userObj.userId 
+        debug(chalkSession("--- USER READY"
+          + " | " + userObj.userId 
           + " | SID: " + sessionObj.sessionId 
           + " | TYPE: " + sessionObj.config.type 
           + " | MODE: " + sessionObj.config.mode 

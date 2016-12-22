@@ -5,38 +5,47 @@
 
 function ViewTicker() {
 
-  var self = this;
-  self.disableLinks = false;
-
-  var lineHeight = 3;
-
-  var defaulStartColor = "hsl(90,0%,100%)";
-  var defaultEndColor = "hsl(90,0%,0%)";
-  var defaultColors = {"startColor": defaulStartColor, "endColor": defaultEndColor};
-  var defaultInterpolateColor = d3.interpolateHsl(defaulStartColor, defaultEndColor);
-
-  var force;
-
   // ==============================================
   // GLOBAL VARS
   // ==============================================
+
+  var self = this;
+  self.disableLinks = true;
+
+  var runningFlag = false;
+
+  var antonymFlag = false;
+  var fixedGroupsFlag = false;
+  var lineHeight = 3;
+
+  var MAX_NODES = 50;
+  var processNodeCount = 0;
+  var processNodeModulus = 3;
+
+
+  var maxNodeAddQ = 0;
+  var nodeAddQ = [];
+  var groupUpdateQ = [];
+  var sessionUpdateQ = [];
+  var nodeUpdateQ = [];
+  var nodeDeleteQ = [];
+  var linkUpdateQ = [];
+
+  var wordNodeHashMap = {};
+  var sessionPreviousNode = {};
+  var sessionNodeArrayHash = {};  
   var groupYpositionHash = {};
-  var groupsLengthYposition = 0;
 
   var minFontSize = 20;
-  var maxFontSize = 80;
+  var maxFontSize = 48;
 
   var currentMaxMentions = 2;
 
-  // var age;
-  // var ageMaxRatio;
-
   var newFlagRatio = 0.01;
   var maxWords = 100;
-  // var removeDeadNodes = false;
   var maxOpacity = 1.0;
-  var minOpacity = 0.1;
-  var defaultFadeDuration = 150;
+  var minOpacity = 0.3;
+  var defaultFadeDuration = 50;
 
   var testModeEnabled = false;
 
@@ -49,27 +58,26 @@ function ViewTicker() {
   var maxSessionRows = 25;
   var maxWordRows = 25;
 
-  var marginTopGroups = 10; // %
+  var marginTopGroups = 15; // %
   var marginLeftGroups = 5;
   var marginRightGroups = 82;
 
-  var marginTopSessions = 10; // %
+  var marginTopSessions = 15; // %
   var marginLeftSessions = 5;
   var marginRightSessions = 85;
 
-  var marginTopWords = 10; // %
+  var marginTopWords = 15; // %
   var marginLeftWords = 15;
-  var marginRightWords = 80;
+  var marginRightWords = 75;
+
+  var colSpacing = 20;
 
   var maxRecentWords = maxWordRows;
-
-  // index = sessionId; elements = array of session nodeWords in chron order (old>new)
-  var sessionNodeArrayHash = {};  
-
+  var wordArray = [];
+  var recentNodeArray = [];
   var wordMentionsArray = [];
   var recentWordMentionsArray = [];
 
-  var dateNow = moment().valueOf();
   var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
   var defaultTimePeriodFormat = "HH:mm:ss";
 
@@ -80,7 +88,6 @@ function ViewTicker() {
   var updateTickerDisplayReady = true;
 
   var showStatsFlag = false;
-  var antonymFlag = false;
   var pauseFlag = false;
   var updateNodeFlag = false;
 
@@ -94,7 +101,7 @@ function ViewTicker() {
 
   var DEFAULT_FORCE_CONFIG = {
     'charge': DEFAULT_CHARGE,
-    'friction': DEFAULT_FRICTION,
+    'velocityDecay': DEFAULT_VELOCITY_DECAY,
     'linkStrength': DEFAULT_LINK_STRENGTH,
     'gravity': DEFAULT_GRAVITY,
     'ageRate': window.DEFAULT_AGE_RATE,
@@ -102,8 +109,7 @@ function ViewTicker() {
   var charge = DEFAULT_CHARGE;
   var gravity = DEFAULT_GRAVITY;
   var globalLinkStrength = DEFAULT_LINK_STRENGTH;
-  var friction = DEFAULT_FRICTION;
-  var forceStopped = true;
+  var velocityDecay = DEFAULT_VELOCITY_DECAY;
 
   var config = DEFAULT_CONFIG;
   self.removeDeadNodes = true;
@@ -139,6 +145,11 @@ function ViewTicker() {
 
   console.log("width: " + width + " | height: " + height);
 
+  
+  var tran = d3.transition()
+    // .duration(defaultFadeDuration)
+    .ease(d3.easeLinear);
+
   document.addEventListener("mousemove", function() {
     if (mouseHoverFlag) {
       d3.select("body").style("cursor", "pointer");
@@ -151,7 +162,6 @@ function ViewTicker() {
 
     if (mouseFreezeEnabled) {}
   }, true);
-
 
   var wordBarWidthScale = d3.scaleLinear().domain([1, 2e6]).range([0.1, 65]);
   var wordOpacityScale = d3.scaleLinear().domain([1e-6, 0.1*nodeMaxAge, nodeMaxAge]).range([maxOpacity, 0.4*maxOpacity, 0.2*maxOpacity]);
@@ -188,23 +198,35 @@ function ViewTicker() {
 
   this.removeDeadNodes = true;
 
-  this.groupsLength = function() {
+  this.getGroupsLength = function() {
     return groups.length;
   }
   
-  this.sessionsLength = function() {
+  this.getSessionsLength = function() {
     return sessions.length;
   }
   
-  this.nodesLength = function() {
+  this.getNodesLength = function() {
     return nodes.length;
   }
   
-  this.linksLength = function() {
+  this.getMaxNodes = function() {
+    return maxNumberNodes;
+  }
+
+  this.getNodeAddQlength = function() {
+    return nodeAddQ.length;
+  }
+  
+  this.getMaxNodeAddQ = function() {
+    return maxNodeAddQ;
+  }
+
+  this.getLinksLength = function() {
     return 0;
   }
 
-  this.ageRate = function() {
+  this.getAgeRate = function() {
     return ageRate;
   }
 
@@ -221,73 +243,55 @@ function ViewTicker() {
   self.reset = function() {
     console.error("RESET");
 
-    force.stop();
-    forceStopped = true;
-
     groups = [];
     sessions = [];
     nodes = [];
 
     deadNodesHash = {};
-    groupHashMap.clear();
-    groupYpositionHash = {};
 
-    // newNodes = [];
     resetMouseMoveTimer();
     mouseMovingFlag = false;
     self.resize();
     self.resetDefaultForce();
-    force.nodes(nodes);
-    if (!self.disableLinks) force.links(links);
-    force.start;
-    forceStopped = false;
 
     updateTickerDisplayReady = true;  
-  }
-
-  self.setAntonym = function(antonym){
-    antonymFlag = antonym;
-    console.error("ANTONYM: " + antonymFlag);
   }
 
   self.setPause = function(pause){
     pauseFlag = pause;
     console.error("PAUSE: " + pauseFlag);
     if (pauseFlag){
-      force.stop();
-      forceStopped = true;
+    }
+  }
+
+  self.setAntonym = function(ant){
+    antonymFlag = ant;
+    console.error("ANTONYM: " + antonymFlag);
+    if (antonymFlag){
     }
   }
 
   self.updateLinkStrength = function(value) {
-    console.log("updateLinkStrength: " + value + " | forceStopped: " + forceStopped);
+    console.log("updateLinkStrength: " + value);
     globalLinkStrength = value;
-    force.linkStrength(globalLinkStrength);
-    force.start();
   }
 
-  self.updateFriction = function(value) {
-    friction = value;
-    force.friction(friction);
-    force.start();
+  self.updateVelocityDecay = function(value) {
+    velocityDecay = value;
   }
 
   self.updateGravity = function(value) {
     gravity = value;
-    force.gravity(gravity);
-    force.start();
   }
 
   self.updateCharge = function(value) {
     charge = value;
-    force.charge(charge);
-    force.start();
   }
 
   self.resetDefaultForce = function() {
     console.log("RESET FORCE LAYOUT DEFAULTS");
     self.updateCharge(DEFAULT_CHARGE);
-    self.updateFriction(DEFAULT_FRICTION);
+    self.updateVelocityDecay(DEFAULT_VELOCITY_DECAY);
     self.updateGravity(DEFAULT_GRAVITY);
     self.updateLinkStrength(DEFAULT_LINK_STRENGTH);
   }
@@ -311,19 +315,9 @@ function ViewTicker() {
     .attr("id", "svgTickerLayoutArea");
 
   var linkSvgGroup = svgTickerLayoutArea.append("svg:g").attr("id", "linkSvgGroup");
-
   var groupSvgGroup = svgTickerLayoutArea.append("svg:g").attr("id", "groupSvgGroup");
-  var groupLabelSvgGroup = svgTickerLayoutArea.append("svg:g").attr("id", "groupLabelSvgGroup");
-  var groupGnode = groupSvgGroup.selectAll("g.group");
-  var groupLabels = groupLabelSvgGroup.selectAll(".groupLabel");
-  
-  var sessionSvgGroup = svgTickerLayoutArea.append("svg:g").attr("id", "sessionSvgGroup");
-  var sessionLabelSvgGroup = svgTickerLayoutArea.append("svg:g").attr("id", "sessionLabelSvgGroup");
-  var sessionGnode = sessionSvgGroup.selectAll("g.session");
-  var sessionLabels = sessionLabelSvgGroup.selectAll(".sessionLabel");
-  
   var nodeSvgGroup = svgTickerLayoutArea.append("svg:g").attr("id", "nodeSvgGroup");
-  var nodeLabelSvgGroup = svgTickerLayoutArea.append("svg:g").attr("id", "nodeLabelSvgGroup");
+
   var node = nodeSvgGroup.selectAll("g.node");
   var nodeLabels = nodeSvgGroup.selectAll(".nodeLabel");
 
@@ -333,22 +327,185 @@ function ViewTicker() {
     .attr("class", "tooltip")
     .style("opacity", 1e-6);
 
+  self.toolTipVisibility = function(isVisible){
+    if (isVisible) {
+      divTooltip.style("visibility", "visible");
+    }
+    else {
+      divTooltip.style("visibility", "hidden");
+    }
+  }
 
   // ===================================================================
+  var simulation;
+
+  function drawSimulation(){
+    updateGroupWords();
+    updateNodeWords();
+  }
+
+  function ticked() {
+    drawSimulation();
+    updateSimulation();
+  }
+
+  var drawSimulationInterval;
+  var DEFAULT_DRAW_SIMULATION_INTERVAL = 100;
+  var drawSimulationIntervalTime = DEFAULT_DRAW_SIMULATION_INTERVAL;
+
+
+  // used when simulation is paused
+
+  this.initDrawSimulationInverval = function(itvl){
+
+    var interval = drawSimulationIntervalTime;
+
+    clearInterval(drawSimulationInterval);
+
+    if (typeof itvl !== 'undefined'){
+      interval = itvl;
+    }
+
+    drawSimulationInterval = setInterval(function(){
+      drawSimulation();
+    }, interval);
+  }
+
+  this.clearDrawSimulationInterval = function(){
+    clearInterval(drawSimulationInterval);
+  }
+
+  this.initD3timer = function() {
+
+    simulation = d3.forceSimulation(nodes)
+      .force("link", d3.forceLink(links).id(function(d) { return d.linkId; }).distance(20).strength(DEFAULT_LINK_STRENGTH))
+      .force("charge", d3.forceManyBody().strength(DEFAULT_CHARGE))
+      .force("forceX", d3.forceX(svgTickerLayoutAreaWidth/2).strength(DEFAULT_GRAVITY))
+      .force("forceY", d3.forceY(svgTickerLayoutAreaHeight/2).strength(DEFAULT_GRAVITY))
+      .velocityDecay(DEFAULT_VELOCITY_DECAY)
+      .on("tick", ticked);
+  }
+
+  this.simulationControl = function(op) {
+    // console.warn("SIMULATION CONTROL | OP: " + op);
+    switch (op) {
+      case 'RESET':
+        // self.initD3timer();
+        console.warn("SIMULATION CONTROL | OP: " + op);
+        self.clearDrawSimulationInterval();
+        simulation.stop();
+        runningFlag = false;
+        // simulation.stop();
+      break;
+      case 'START':
+        console.warn("SIMULATION CONTROL | OP: " + op);
+        self.initD3timer();
+        simulation.alphaTarget(0.7).restart();
+        runningFlag = true;
+      break;
+      case 'RESUME':
+        if (!runningFlag){
+          console.warn("SIMULATION CONTROL | OP: " + op);
+          runningFlag = true;
+          self.clearDrawSimulationInterval();
+          simulation.alphaTarget(0.7).restart();
+        }
+      break;
+      case 'PAUSE':
+        if (runningFlag){
+          console.warn("SIMULATION CONTROL | OP: " + op);
+          runningFlag = false;
+          simulation.alpha(0);
+          simulation.stop();
+          self.initDrawSimulationInverval();
+        }
+      break;
+      case 'STOP':
+        runningFlag = false;
+        console.warn("SIMULATION CONTROL | OP: " + op);
+        self.clearDrawSimulationInterval();
+        simulation.alpha(0);
+        simulation.stop();
+      break;
+      case 'RESTART':
+        console.warn("SIMULATION CONTROL | OP: " + op);
+        simulation.alphaTarget(0.7).restart();
+        runningFlag = true;
+      break;
+      default:
+        console.warn("???? SIMULATION CONTROL | UNKNOWN OP: " + op);
+      break;
+    }
+  }
+
+  function updateSimulation(callback) {
+
+    async.series(
+      {
+        group: processGroupUpdateQ,
+        session: processSessionUpdateQ,
+        deleteNode: processNodeDeleteQ,
+        addNoode: processNodeAddQ,
+        updateNode: processNodeUpdateQ,
+        ageNode: ageNodes,
+        deadNode: processDeadNodesHash,
+        rankGroup: rankGroups
+
+        // // deadLink: processDeadLinksHash,
+        // group: processGroupUpdateQ,
+        // session: processSessionUpdateQ,
+        // node: processNodeUpdateQ,
+        // // link: processLinkUpdateQ,
+        // ageGroup: ageGroups,
+        // ageSession: ageSessions,
+        // ageNode: ageNodes,
+        // // ageLink: ageLinks,
+        // deadSession: processDeadSessionsHash,
+        // deadGroup: processDeadGroupsHash,
+        // rankGroup: rankGroups
+      },
+
+      function(err, results) {
+        if (err) {
+          console.error("*** ERROR: updateSimulation *** \nERROR: " + err);
+        }
+        else if (results) {
+          var keys = Object.keys(results);
+
+          for (var i=0; i<keys.length; i++){
+            if (results[keys[i]]) {
+              simulation.nodes(nodes);
+              if (!runningFlag) self.simulationControl('RESTART');
+              break;
+            }
+          }
+        }
+
+
+        if (typeof callback !== 'undefined') callback(err);
+      }
+    );
+  }
 
   function ageGroups(callback) {
-
-    if (groups.length === 0) {
-      ageRate = DEFAULT_AGE_RATE;
-    } else if (groups.length > 500) {
-      ageRate = adjustedAgeRateScale(groups.length - 500);
-    } else {
-      ageRate = DEFAULT_AGE_RATE;
-    }
 
     var group;
     var age;
     var ageMaxRatio;
+    var ageRate;
+
+    var deadGroupFlag = false ;
+
+    var dateNow = moment().valueOf();
+
+    if (groups.length === 0) {
+      ageRate = DEFAULT_AGE_RATE;
+    } else if (groups.length > 50) {
+      ageRate = adjustedAgeRateScale(groups.length - 50);
+    } else {
+      ageRate = DEFAULT_AGE_RATE;
+    }
+
 
     var ageGroupsLength = groups.length - 1;
     var ageGroupsIndex = groups.length - 1;
@@ -361,36 +518,46 @@ function ViewTicker() {
       ageMaxRatio = age/nodeMaxAge ;
 
       if (group.isDead) {
+        deadGroupFlag = true;
         deadGroupsHash[group.groupId] = 1;
-        group.ageMaxRatio = ageMaxRatio;
-        group.ageUpdated = moment().valueOf();
         groups[ageGroupsIndex] = group;
-      } else if (age >= groupMaxAge) {
+      } 
+      else if (age >= groupMaxAge) {
+        deadGroupFlag = true;
         group.isDead = true;
-        group.age = nodeMaxAge;
-        group.ageMaxRatio = 0;
-        group.ageUpdated = moment().valueOf();
-        groups[ageGroupsIndex] = group;
         deadGroupsHash[group.groupId] = 1;
-      } else {
+        groups[ageGroupsIndex] = group;
+      } 
+      else {
+        group.ageUpdated = dateNow;
         group.age = age;
         group.ageMaxRatio = ageMaxRatio;
-        group.ageUpdated = moment().valueOf();
 
         if (age < newFlagRatio * groupMaxAge) {
           group.newFlag = true;
-        } else {
+        } 
+        else {
           group.newFlag = false;
         }
+        groups[ageGroupsIndex] = group;
       }
     }
 
     if (ageGroupsIndex < 0) {
-      return (callback());
+      callback(null, deadGroupFlag);
     }
   }
 
-  function ageSessions(callback) {
+  var ageSessions = function (callback) {
+
+    var session;
+    var age;
+    var ageMaxRatio;
+    var ageRate;
+
+    var deadSessionFlag = false ;
+
+    var dateNow = moment().valueOf();
 
     if (sessions.length === 0) {
       ageRate = DEFAULT_AGE_RATE;
@@ -400,8 +567,6 @@ function ViewTicker() {
       ageRate = DEFAULT_AGE_RATE;
     }
 
-    var session;
-    var age;
 
     var ageSessionsLength = sessions.length - 1;
     var ageSessionsIndex = sessions.length - 1;
@@ -409,11 +574,14 @@ function ViewTicker() {
     for (ageSessionsIndex = ageSessionsLength; ageSessionsIndex >= 0; ageSessionsIndex -= 1) {
 
       session = sessions[ageSessionsIndex];
+
       age = session.age + (ageRate * (dateNow - session.ageUpdated));
 
       if (session.isDead) {
+        deadSessionFlag = true;
         deadSessionsHash[session.sessionId] = 1;
       } else if (age >= sessionMaxAge) {
+        deadSessionFlag = true;
         session.isDead = true;
         deadSessionsHash[session.sessionId] = 1;
       } else {
@@ -425,10 +593,117 @@ function ViewTicker() {
           session.newFlag = false;
         }
       }
-    }
+        sessions[ageSessionsIndex] = session;
+   }
 
     if (ageSessionsIndex < 0) {
-      return (callback());
+      callback(null, deadSessionFlag);
+    }
+  }
+
+  var ageNodes = function (callback) {
+
+    var node;
+    var age;
+    var ageMaxRatio;
+    var ageRate;
+
+    var deadNodeFlag = false ;
+
+    var dateNow = moment().valueOf();
+
+    if (nodes.length === 0) {
+      ageRate = DEFAULT_AGE_RATE;
+      return (callback(null, deadNodeFlag));
+    } 
+    else if (nodes.length > 100) {
+      ageRate = adjustedAgeRateScale(nodes.length - 100);
+    } 
+    else {
+      ageRate = DEFAULT_AGE_RATE;
+    }
+
+
+    var ageNodesLength = nodes.length - 1;
+    var ageNodesIndex = nodes.length - 1;
+
+    for (ageNodesIndex = ageNodesLength; ageNodesIndex >= 0; ageNodesIndex -= 1) {
+
+      node = nodes[ageNodesIndex];
+
+      age = node.age + (ageRate * (dateNow - node.ageUpdated));
+      ageMaxRatio = age/nodeMaxAge ;
+
+      if (node.isDead) {
+        deadNodesHash[node.nodeId] = 1;
+        deadNodeFlag = true;
+      } 
+      else if (age >= nodeMaxAge) {
+        node.ageUpdated = dateNow;
+        node.age = age;
+        node.ageMaxRatio = ageMaxRatio;
+        node.isDead = true;
+        nodes[ageNodesIndex] = node;
+        deadNodesHash[node.nodeId] = 1;
+        deadNodeFlag = true;
+      } 
+      else {
+        node.ageUpdated = dateNow;
+        node.age = age;
+        node.ageMaxRatio = ageMaxRatio;
+        nodes[ageNodesIndex] = node;
+      }
+    }
+
+    if (ageNodesIndex < 0) {
+      callback(null, deadNodeFlag);
+    }
+  }
+
+
+  var ageLinks = function(callback) {
+
+    var deadLinksFlag = false;
+
+    if (self.disableLinks)  return (callback(null, deadLinksFlag));
+
+    var ageLinksLength = links.length - 1;
+    var ageLinksIndex = links.length - 1;
+
+    var currentSession;
+    var currentLinkObject = {};
+
+    for (ageLinksIndex = ageLinksLength; ageLinksIndex >= 0; ageLinksIndex -= 1) {
+
+      currentLinkObject = links[ageLinksIndex];
+
+      if ((typeof currentLinkObject !== 'undefined') && currentLinkObject.isDead) {
+        deadLinksHash[currentLinkObject.linkId] = 'DEAD';
+        deadLinksFlag = true;
+      } else if ((typeof currentLinkObject !== 'undefined') && currentLinkObject.source.isDead) {
+        deadLinksHash[currentLinkObject.linkId] = 'DEAD SOURCE';
+        deadLinksFlag = true;
+      } else if ((typeof currentLinkObject !== 'undefined') && currentLinkObject.target.isDead) {
+        deadLinksHash[currentLinkObject.linkId] = 'DEAD TARGET';
+        deadLinksFlag = true;
+      } else if (!nodeHashMap.has(currentLinkObject.source.nodeId)) {
+        deadLinksHash[currentLinkObject.linkId] = 'UNDEFINED SOURCE';
+      } else if (!nodeHashMap.has(currentLinkObject.target.nodeId)) {
+        deadLinksHash[currentLinkObject.linkId] = 'UNDEFINED TARGET';
+      } else {
+        if (currentLinkObject.source.age > currentLinkObject.target.age) {
+          currentLinkObject.age = currentLinkObject.source.age;
+          currentLinkObject.ageMaxRatio = currentLinkObject.source.ageMaxRatio;
+        } else {
+          currentLinkObject.age = currentLinkObject.target.age;
+          currentLinkObject.ageMaxRatio = currentLinkObject.target.ageMaxRatio;
+          links[ageLinksIndex] = currentLinkObject;
+        }
+      }
+    }
+
+    if ((links.length == 0) || (ageLinksIndex < 0)) {
+      callback(null, deadLinksFlag);
     }
   }
 
@@ -450,16 +725,6 @@ function ViewTicker() {
         // sessionDeleteQueue.push(session.sessionId);
         sessions.splice(ageSessionsIndex, 1);
         delete deadSessionsHash[session.sessionId];
-        var groupIds = Object.keys(groupYpositionHash);
-        groupIds.forEach(function(groupId){
-          if (typeof groupYpositionHash[groupId][session.sessionId] !== 'undefined'){
-            console.log("groupYpositionHash XXX SESSION"
-              + " | " + session.groupId
-              + " | " + session.sessionId
-            );
-            delete groupYpositionHash[groupId][session.sessionId];
-          }
-        });
         // console.log("XXX SESSION: " + session.sessionId);
       }
     }
@@ -496,117 +761,6 @@ function ViewTicker() {
       });
   }
 
-  function ageNodes(callback) {
-
-    var dateNow = moment().valueOf();
-
-    if (nodes.length === 0) {
-      ageRate = DEFAULT_AGE_RATE;
-    } else if (nodes.length > 500) {
-      ageRate = adjustedAgeRateScale(nodes.length - 500);
-    } else {
-      ageRate = DEFAULT_AGE_RATE;
-    }
-
-    var node;
-    var age;
-    var ageMaxRatio;
-
-    var ageNodesLength = nodes.length - 1;
-    var ageNodesIndex = nodes.length - 1;
-
-    for (ageNodesIndex = ageNodesLength; ageNodesIndex >= 0; ageNodesIndex -= 1) {
-
-      node = nodes[ageNodesIndex];
-
-      age = node.age + (ageRate * (moment().valueOf() - node.ageUpdated));
-      ageMaxRatio = age/nodeMaxAge ;
-
-      if (self.removeDeadNodes && node.isDead) {
-        deadNodesHash[node.nodeId] = 1;
-        node.age = age;
-        node.ageMaxRatio = ageMaxRatio;
-        node.ageUpdated = moment().valueOf();
-        nodes[ageNodesIndex] = node;
-      } 
-      else if (self.removeDeadNodes && (age >= nodeMaxAge)) {
-        node.age = nodeMaxAge;
-        node.ageMaxRatio = 0;
-        node.ageUpdated = moment().valueOf();
-        node.isDead = true;
-        deadNodesHash[node.nodeId] = 1;
-        if (node.isGroupNode) console.warn("XXX NODE " + node.nodeId + " | " + node.isGroupNode);
-        nodes[ageNodesIndex] = node;
-        if (!node.isGroupNode && !node.isSessionNode && (sessionNodeArrayHash[node.sessionId].length > 0)){
-          // var shiftNodeId = sessionNodeArrayHash[node.sessionId].shift();
-          sessionNodeArrayHash[node.sessionId].shift();
-          // console.warn("shift NODE " + shiftNodeId);
-        }
-      } 
-      else {
-        node.age = age;
-        node.ageMaxRatio = ageMaxRatio;
-        node.ageUpdated = moment().valueOf();
-
-        if (age < newFlagRatio * nodeMaxAge) {
-          node.newFlag = true;
-        } else {
-          node.newFlag = false;
-        }
-      }
-    }
-
-    if (ageNodesIndex < 0) {
-      return (callback());
-    }
-  }
-
-  function ageLinks(callback) {
-
-    if (self.disableLinks)  return (callback(null, null));
-
-    var ageLinksLength = links.length - 1;
-    var ageLinksIndex = links.length - 1;
-
-    var currentSession;
-    var currentLinkObject = {};
-    var dateNow = moment().valueOf();
-
-    for (ageLinksIndex = ageLinksLength; ageLinksIndex >= 0; ageLinksIndex -= 1) {
-
-      currentLinkObject = links[ageLinksIndex];
-
-      if ((typeof currentLinkObject !== 'undefined') && self.disableLinks) {
-        deadLinksHash[currentLinkObject.linkId] = 'DEAD';
-      } 
-      else if ((typeof currentLinkObject !== 'undefined') && currentLinkObject.isDead) {
-        deadLinksHash[currentLinkObject.linkId] = 'DEAD';
-      } 
-      else if ((typeof currentLinkObject !== 'undefined') && currentLinkObject.source.isDead) {
-        deadLinksHash[currentLinkObject.linkId] = 'DEAD SOURCE';
-      } else if ((typeof currentLinkObject !== 'undefined') && currentLinkObject.target.isDead) {
-        deadLinksHash[currentLinkObject.linkId] = 'DEAD TARGET';
-      } else if (!nodeHashMap.has(currentLinkObject.source.nodeId)) {
-        deadLinksHash[currentLinkObject.linkId] = 'UNDEFINED SOURCE';
-      } else if (!nodeHashMap.has(currentLinkObject.target.nodeId)) {
-        deadLinksHash[currentLinkObject.linkId] = 'UNDEFINED TARGET';
-      } else {
-        if (currentLinkObject.source.age > currentLinkObject.target.age) {
-          currentLinkObject.age = currentLinkObject.source.age;
-          currentLinkObject.ageMaxRatio = currentLinkObject.source.ageMaxRatio;
-        } else {
-          currentLinkObject.age = currentLinkObject.target.age;
-          currentLinkObject.ageMaxRatio = currentLinkObject.target.ageMaxRatio;
-          links[ageLinksIndex] = currentLinkObject;
-        }
-      }
-    }
-
-    if ((links.length == 0) || (ageLinksIndex < 0)) {
-      return (callback(null, null));
-    }
-  }
-
   function processDeadGroupsHash(callback) {
 
     if (Object.keys(deadGroupsHash).length == 0) {
@@ -620,13 +774,12 @@ function ViewTicker() {
     var group;
 
     for (ageGroupsIndex = ageGroupsLength; ageGroupsIndex >= 0; ageGroupsIndex -= 1) {
-      var group = groups[ageGroupsIndex];
+      group = groups[ageGroupsIndex];
       if (deadGroupsHash[group.groupId]) {
         nodeDeleteQueue.push(group.groupId);
         groups.splice(ageGroupsIndex, 1);
         delete deadGroupsHash[group.groupId];
-        delete groupYpositionHash[group.groupId];
-        console.log("XXX GROUP: " + group.groupId);
+        // console.log("XXX GROUP: " + group.groupId);
       }
     }
 
@@ -635,16 +788,44 @@ function ViewTicker() {
     }
   }
 
-  function processDeadNodesHash(callback) {
+  var processNodeDeleteQ = function(callback) {
+
+    var nodesModifiedFlag = false;
+
+    while (nodeDeleteQ.length > 0){
+
+      var nodeDeleteObj = nodeDeleteQ.shift();
+
+      switch (nodeDeleteObj.op) {
+
+        case "delete":
+          deleteNodeQ(nodeDeleteObj.nodeId, function(err, deadNodeFlag){
+            if (deadNodeFlag) nodesModifiedFlag = true;
+          });
+        break;
+
+        default:
+          console.error("??? UNKNOWN NODE DELETE Q OP: " + nodeDeleteObj.op);
+        break;
+
+      }
+    }
+
+    if (nodeDeleteQ.length == 0){
+      callback(null, nodesModifiedFlag);
+    }
+  }
+
+
+  var processDeadNodesHash = function (callback) {
+
+    var deadNodeFlag = false;
 
     if (Object.keys(deadNodesHash).length == 0) {
-      return (callback());
+      return (callback(null, deadNodeFlag));
     }
 
     var deadNodeIds = Object.keys(deadNodesHash);
-
-    force.stop();
-    forceStopped = true;
 
     var ageNodesLength = nodes.length - 1;
     var ageNodesIndex = nodes.length - 1;
@@ -653,15 +834,22 @@ function ViewTicker() {
     for (ageNodesIndex = ageNodesLength; ageNodesIndex >= 0; ageNodesIndex -= 1) {
       node = nodes[ageNodesIndex];
       if (deadNodesHash[node.nodeId]) {
+
+        nodeUpdateQ.push({op:'delete', nodeId: node.nodeId});
         nodeDeleteQueue.push(node.nodeId);
-        nodes.splice(ageNodesIndex, 1);
+
+        deadNodeFlag = true;
+
         delete deadNodesHash[node.nodeId];
+
         if (node.isGroupNode){
           for (var i=groups.length-1; i >= 0; i -= 1) {
             if (node.nodeId == groups[i].node.nodeId) {
+
               console.log("XXX GROUP | " + groups[i].node.nodeId);
-              delete groupYpositionHash[groups[i].groupId];
-              groups.splice(i, 1);
+
+              groupUpdateQ.push({op:'delete', groupId: groups[i].groupId});
+
               var deadLinkIds = Object.keys(node.links);
               deadLinkIds.forEach(function(deadLink){
                 deadLinksHash[deadLink] = 'DEAD';
@@ -673,7 +861,7 @@ function ViewTicker() {
           for (var i=sessions.length-1; i >= 0; i -= 1) {
             if (node.nodeId == sessions[i].node.nodeId) {
               console.log("XXX SESSION | " + sessions[i].node.nodeId);
-              sessions.splice(i, 1);
+              sessionUpdateQ.push({op:'delete', sessionId: sessionId});
               var deadLinkIds = Object.keys(node.links);
               deadLinkIds.forEach(function(deadLink){
                 deadLinksHash[deadLink] = 'DEAD';
@@ -686,26 +874,20 @@ function ViewTicker() {
     }
 
     if ((nodes.length == 0) || (deadNodeIds.length == 0) || (ageNodesIndex < 0)) {
-      force.nodes(nodes);
-      return (callback());
+      return (callback(null, deadNodeFlag));
     }
   }
 
-  function processDeadLinksHash(callback) {
+  var processDeadLinksHash = function(callback) {
 
     if (self.disableLinks){
       if (links.length > 0) {
-        force.stop();
-        forceStopped = true;
         links = [];
-        force.links(links);
         return (callback());
       }
       return (callback());
     }
 
-    force.stop();
-    forceStopped = true;
 
     var ageLinksLength = links.length - 1;
     var ageLinksIndex = links.length - 1;
@@ -714,52 +896,34 @@ function ViewTicker() {
     for (ageLinksIndex = ageLinksLength; ageLinksIndex >= 0; ageLinksIndex -= 1) {
       link = links[ageLinksIndex];
       if (deadLinksHash[link.linkId]) {
-        // console.warn("XXX DEAD LINK | " + link.linkId);
         linkDeleteQueue.push(link.linkId);
         links.splice(ageLinksIndex, 1);
-        force.links(links);
         delete deadLinksHash[link.linkId];
       }
     }
 
     if ((links.length == 0) || (ageLinksIndex < 0)) {
-      return (callback());
+      return (callback(null));
     }
   }
 
   // ===================================================================
 
-  function updateGroupWords(callback) {
 
-    var groupWords = groupSvgGroup.selectAll("#group")
-      .data(groups, function(d) {
-        return d.nodeId;
-      });
+  function updateGroupWords() {
+
+    var groupWords = groupSvgGroup.selectAll("text").data(groups, function(d) { return d.nodeId; });
 
     groupWords
-      .text(function(d) {
-        return d.name;
-      })
-      .style("fill", function(d) {
-        if (d.age < 0.01*nodeMaxAge) {
-          return "FFFFFF";
-        }
-        else {
-          return d.interpolateColor(1e-6);
-        }
-      })
-      // .style("fill-opacity", function(d){
-      //   return 1.0 - d.ageMaxRatio;
-      // })
+      .text(function(d) { return d.text; })
       .style("fill-opacity", function(d) {
         return Math.max(wordOpacityScale(d.age + 1), minOpacity)
       })
       .transition()
+      //   .duration(defaultFadeDuration)
+      //   .ease(d3.easeQuadOut)
+      // .transition(tran)
         .duration(defaultFadeDuration)
-        // .attr("x", xposition)
-        // .style("fill-opacity", function(d){
-        //   return 1.0 - d.ageMaxRatio;
-        // })
         .attr("y", ypositionGroup);
 
     groupWords
@@ -768,259 +932,125 @@ function ViewTicker() {
       .attr("id", "group")
       .attr("x", xposition)
       .attr("y", ypositionGroup)
-      .text(function(d) {
-        // return d.text;
-        return d.name;
-      })
+      .text(function(d) { return d.text; })
       .style("fill", "FFFFFF")
-      .style("fill-opacity", 1.0)
+      .style("fill-opacity", 1e-6)
       .style("font-size", "2.1vmin")
       .on("mouseout", nodeMouseOut)
-      .on("mouseover", nodeMouseOver);
+      .on("mouseover", nodeMouseOver)
+      .merge(groupWords);
 
     groupWords
       .exit()
       .remove();
 
-    return (callback(null, "updateGroupWords"));
   }
 
-  function updateNodes(callback) {
 
-    node = node.data(nodes, function(d) {
-        return d.nodeId;
-      });
+  function updateNodeWords() {
 
-    node.enter()
-      .append("svg:g")
-      .attr("class", "node")
-      .attr("id", function(d) {
-        return d.nodeId;
-      });
-
-    node
-      .exit()
-      .remove();
-
-    return (callback(null, "updateNodes"));
-  }
-
-  function updateNodeWords(callback) {
-
-    var nodeWords = nodeSvgGroup.selectAll("#word")
-      .data(nodes, function(d) {
-        return d.nodeId;
-      });
+    var nodeWords = nodeSvgGroup.selectAll("text").data(nodes, function(d) { return d.nodeId; });
 
     nodeWords
-      .text(function(d) {
-        if (antonymFlag && d.antonym) {
-          return '[' + d.antonym + ']';
-        }
-        else if (d.raw == '&amp;') {
-          return '&';
-        }
-        else {
-          return d.raw;
-        }
+     .text(function(d) {
+        if (antonymFlag && d.antonym) { return '[' + d.antonym + ']';  }
+        else if (d.raw == '&amp;') { return '&'; }
+        else { return d.raw; }
       })
       .style("font-size", function(d){
-        if (d.isIgnored) {
-          return minFontSize + "px";
-        }
-        else {
-          return fontSizeScale(d.mentions) + "px";
-        }
+        if (d.isIgnored) { return minFontSize + "px"; }
+        else { return fontSizeScale(d.mentions) + "px"; }
       })
-      .attr("bboxWidth", function(d, i){
-        nodes[i].bboxWidth = this.getBBox().width;
-        var cNode = nodeHashMap.get(d.nodeId);
-        cNode.bboxWidth = this.getBBox().width;
-        nodeHashMap.set(d.nodeId, cNode);
-        // console.log("bboxWidth " + nodes[i].bboxWidth);
-        return this.getBBox().width;
+      .attr("bboxWidth", function(d){
+        d.bboxWidth = this.getBBox().width;
       })
       .style("fill", function(d) {
-        if (d.age < 0.01*nodeMaxAge) {
-          return "FFFFFF";
-        }
-        else {
-          return d.interpolateColor(1e-6);
+        if (d.age < 0.01*nodeMaxAge) { return "FFFFFF";  }
+        else { return d.interpolateNodeColor(1e-6); }
+      })
+      .style("fill-opacity", function(d) {
+        if (self.removeDeadNodes) {
+          return wordOpacityScale(d.age + 1);
+        } else {
+          return Math.max(wordOpacityScale(d.age + 1), minOpacity)
         }
       })
-      // .style("fill-opacity", function(d) {
-      //   if (self.removeDeadNodes) {
-      //     return wordOpacityScale(d.age + 1);
-      //   } else {
-      //     return Math.max(wordOpacityScale(d.age + 1), minOpacity)
-      //   }
-      // })
       .transition()
         .duration(defaultFadeDuration)
-        .style("fill-opacity", function(d) {
-          if (self.removeDeadNodes) {
-            return wordOpacityScale(d.age + 1);
-          } else {
-            return Math.max(wordOpacityScale(d.age + 1), minOpacity)
-          }
-        })
-        .attr("x", xposition)
-        .attr("y", ypositionWord);
+        .attr("y", ypositionWord)
+        .attr("x", xposition);
 
     nodeWords
       .enter()
       .append("svg:text")
       .attr("id", "word")
-      .attr("nodeId", function(d) {
-        return d.nodeId;
-      })
+      .attr("nodeId", function(d) { return d.nodeId; })
       .attr("x", marginRightWords)
       .attr("y", ypositionWord)
-      .text(function(d) {
-        return d.text;
-      })
+      .text(function(d) { return d.text; })
       .style("text-anchor", "end")
       .style("fill", "#FFFFFF")
       .style("fill-opacity", 1e-6)
       .style("font-size", minFontSize + "px")
-      .attr("bboxWidth", function(d, i){
-        nodes[i].bboxWidth = this.getBBox().width;
-        // console.log("bboxWidth " + nodes[i].bboxWidth);
-        return this.getBBox().width;
-      })
+      .attr("bboxWidth", function(d){d.bboxWidth = this.getBBox().width; })
       .on("mouseout", nodeMouseOut)
       .on("mouseover", nodeMouseOver)
       .on("click", nodeClick)
-      .transition()
-        .duration(defaultFadeDuration)
-        .attr("x", xposition)
-        .attr("y", ypositionWord);
-
+      .merge(nodeWords);
 
     nodeWords
       .exit()
-      // .attr("class", "exit")
       .remove();
 
-    return (callback(null, "updateNodeWords"));
   }
 
-  function updateLinks(callback) {
+  function updateLinks() {
 
-    // console.log("updateLinks");
-
-    link = linkSvgGroup.selectAll("line").data(force.links(),
-      function(d) {
-        return d.source.nodeId + "-" + d.target.nodeId;
-      });
+    link = linkSvgGroup.selectAll("line").data(links, 
+      function(d) { return d.source.nodeId + "-" + d.target.nodeId; });
 
     link
-      .attr("x1", function(d) {
-        // console.log("source\n" + jsonPrint(d.source));
-        var sourceNode = nodeHashMap.get(d.source.nodeId);
-        if (sourceNode) return sourceNode.x;
-        return 0;
-      })
-      .attr("y1", function(d) {
-        var sourceNode = nodeHashMap.get(d.source.nodeId);
-        if (sourceNode) return sourceNode.y;
-        return 0;
-      })
-      .attr("x2", function(d) {
-        var targetNode = nodeHashMap.get(d.target.nodeId);
-        if (targetNode) return targetNode.x;
-        return 0;
-      })
-      .attr("y2", function(d) {
-        var targetNode = nodeHashMap.get(d.target.nodeId);
-        if (targetNode) return targetNode.y;
-        return 0;
-      })
-      .style('stroke', function(d) {
-        return linkColorScale(d.ageMaxRatio);
-      })
-      .style('opacity', function(d) {
-        return 1.0 - d.ageMaxRatio;
-      });
+      .attr("x1", function(d) { return d.source.x; })
+      .attr("y1", function(d) { return d.source.y; })
+      .attr("x2", function(d) { return d.target.x; })
+      .attr("y2", function(d) { return d.target.y; })
+      .style('stroke', function(d) { return linkColorScale(d.ageMaxRatio); })
+      .style('opacity', function(d) { return 1.0 - d.ageMaxRatio; });
 
     link.enter()
       .append("svg:line")
       .attr("class", "link")
-      .attr("x1", function(d) {
-        // console.log("source\n" + jsonPrint(d.source));
-        var sourceNode = nodeHashMap.get(d.source.nodeId);
-        if (sourceNode) return sourceNode.x;
-        return 0;
-      })
-      .attr("y1", function(d) {
-        var sourceNode = nodeHashMap.get(d.source.nodeId);
-        if (sourceNode) return sourceNode.y;
-        return 0;
-      })
-      .attr("x2", function(d) {
-        var targetNode = nodeHashMap.get(d.target.nodeId);
-        if (targetNode) return targetNode.x;
-        return 0;
-      })
-      .attr("y2", function(d) {
-        var targetNode = nodeHashMap.get(d.target.nodeId);
-        if (targetNode) return targetNode.y;
-        return 0;
-      })
-      .style('stroke', function(d) {
-        return linkColorScale(1.0);
-      })
+      .style('stroke', function(d) { return linkColorScale(1.0); })
       .style('stroke-width', 1.75)
       .style('opacity', 1e-6)
-      .transition()
-      .duration(defaultFadeDuration)
-      .style('opacity', 1.0);
+      .merge(link);
 
     link
       .exit()
       .remove();
-
-    return (callback(null, "updateLinks"));
   }
 
-  function updateTickerDisplay() {
 
-    updateTickerDisplayReady = false;
+  function updateRecentNodes(node) {
 
-    async.series(
-      [
-        ageGroups,
-        ageSessions,
-        ageNodes,
-        ageLinks,
-        processDeadNodesHash,
-        processDeadSessionsHash,
-        processDeadGroupsHash,
-        processDeadLinksHash,
-        rankGroups,
-        // rankNodes,
-        // updateGroups,
-        updateGroupWords,
-        // updateSessions,
-        // updateNodes,
-        updateNodeWords,
-        updateLinks,
-      ],
+    var newNodeFlag = true;
+    var i = 0;
+    for (i = recentNodeArray.length - 1; i >= 0; i--) {
 
-      function(err, result) {
-        if (err) {
-          console.error("*** ERROR: updateTickerDisplayReady *** \nERROR: " + err);
-        }
-
-        if (forceStopped) {
-          force.start();
-          forceStopped = false;
-        }
-
-        updateTickerDisplayReady = true;
-        groupsLengthYposition = groups.length;
+      if (recentNodeArray[i].nodeId == node.nodeId) {
+        newNodeFlag = false;
+        recentNodeArray.splice(i, 1);
       }
-    );
+    }
+
+    if ((i < 0) && (newNodeFlag)) {
+      newNodeFlag = false;
+      recentNodeArray.unshift(node);
+    }
+
+    if (recentNodeArray.length > maxRecentWords) {
+      recentNodeArray.pop();
+    };
   }
 
 
@@ -1041,7 +1071,7 @@ function ViewTicker() {
       cb();
     }, function(err) {
       // console.warn("RANKING COMPLETE | " + sortedNodeIds.length + " nodes");
-      return (callback());
+      callback(null, null);
     });
   }
 
@@ -1061,7 +1091,7 @@ function ViewTicker() {
       cb();
     }, function(err) {
       // console.warn("RANKING COMPLETE | " + sortedNodeIds.length + " nodes");
-      return (callback());
+      callback(null, null);
     });
   }
 
@@ -1151,15 +1181,12 @@ function ViewTicker() {
       .style("fill", "yellow")
       .style("fill-opacity", 1);
 
-    divTooltip.transition()
-      .duration(defaultFadeDuration)
+    divTooltip
       .style("opacity", 1.0);
 
     var tooltipString = nodeId 
       + "<br>GROUP: " + d.groupId 
       + "<br>CHAN: " + d.channel 
-      + "<br>URL: " + d.url 
-      // + "<br>WO: " + d.widthOffset 
       + "<br>WCI: " + d.wordChainIndex 
       + "<br>MENTIONS: " + mentions 
       + "<br>AGE: " + d.age 
@@ -1194,8 +1221,7 @@ function ViewTicker() {
         }
       });
 
-    divTooltip.transition()
-      .duration(defaultFadeDuration)
+    divTooltip
       .style("opacity", 1e-6);
   }
 
@@ -1207,190 +1233,346 @@ function ViewTicker() {
     return fillColorScale(age);
   }
 
-  function nodeClick(d) {
-    window.open(d.url, '_blank');
-  }
-
   // ===================================================================
 
+  // var groupUpdateQ = [];
+  // var sessionUpdateQ = [];
+  // var nodeUpdateQ = [];
+  // var linkUpdateQ = [];
 
-
-  this.addSession = function(newSession) {
-    if (!forceStopped){
-      force.stop();
-      forceStopped = true;
+  var processGroupUpdateQ = function(callback) {
+    var groupsModifiedFlag = false;
+    while (groupUpdateQ.length > 0){
+      var groupUpdateObj = groupUpdateQ.shift();
+      switch (groupUpdateObj.op) {
+        case "add":
+          groupsModifiedFlag = true;
+          if (fixedGroupsFlag) {
+            groupUpdateObj.group.node.fx = groupUpdateObj.group.node.x;
+            groupUpdateObj.group.node.fy = groupUpdateObj.group.node.y;
+          }
+          console.log("+ G | " + groupUpdateObj.group.groupId);
+          groups.push(groupUpdateObj.group);
+        break;
+        case "delete":
+          console.warn("X G | " + groupUpdateObj.groupId);
+          deleteGroupQ(groupUpdateObj.groupId, function(err, deadGroupFlag){
+            if (deadGroupFlag) groupsModifiedFlag = true;
+          });
+        break;
+      }
     }
-    sessions.push(newSession);
+    if (groupUpdateQ.length == 0){
+      callback(null, groupsModifiedFlag);
+    }
   }
 
-  this.addGroup = function(newGroup) {
-    console.log("addGroup\n" + jsonPrint(newGroup));
-    force.stop();
-    forceStopped = true;
-    groups.push(newGroup);
+  var processSessionUpdateQ = function(callback) {
+    var sessionsModifiedFlag = false;
+    while (sessionUpdateQ.length > 0){
+      var sessionUpdateObj = sessionUpdateQ.shift();
+      switch (sessionUpdateObj.op) {
+        case "add":
+          sessionsModifiedFlag = true;
+          sessions.push(sessionUpdateObj.session);
+        break;
+        case "delete":
+          deleteSessionQ(sessionUpdateObj.sessionId, function(err, deadSessionFlag){
+            if (deadSessionFlag) sessionsModifiedFlag = true;
+          });
+        break;
+      }
+    }
+    if (sessionUpdateQ.length == 0){
+      callback(null, sessionsModifiedFlag);
+    }
   }
 
-  var sessionPreviousNode = {};
+  function addNodeEnabled (){
+    if (nodes.length < MAX_NODES) {
+      // console.debug("processNodeCount"
+      //   + " | Ns: "  + nodes.length
+      //   + " | NQ: "  + nodeAddQ.length
+      //   + " | PNC: "  + processNodeCount
+      // );
+      return true;
+    }
+    else if ((nodes.length < 2*MAX_NODES) && (processNodeCount % processNodeModulus != 0)) {
+      // console.debug("processNodeCount MAX_NODES MOD"
+      //   + " | Ns: "  + nodes.length
+      //   + " | NQ: "  + nodeAddQ.length
+      //   + " | PNC: "  + processNodeCount
+      // );
+      return true;
+    }
+    else if ((nodes.length < 3*MAX_NODES) && (processNodeCount % processNodeModulus == 0)) {
+      // console.debug("processNodeCount MAX_NODES MOD 2"
+      //   + " | Ns: "  + nodes.length
+      //   + " | NQ: "  + nodeAddQ.length
+      //   + " | PNC: "  + processNodeCount
+      // );
+      return true;
+    }
+    else {
+      // console.info("processNodeCount MAX_NODES"
+      //   + " | Ns: "  + nodes.length
+      //   + " | NQ: "  + nodeAddQ.length
+      //   + " | PNC: "  + processNodeCount
+      // );
+      return false;
+    }
+  }
 
-  var wordNodeHashMap = {};
+  var processNodeAddQ = function(callback) {
 
-  this.addNode = function(newNode) {
-    if (!newNode.isSession 
-      && !newNode.isSessionNode 
-      && !newNode.isGroup 
-      && !newNode.isGroupNode) {
+    processNodeCount++;
 
-      if (!newNode.isIgnored && (newNode.mentions > currentMaxMentions)) {
-        currentMaxMentions = newNode.mentions;
-        fontSizeScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minFontSize, maxFontSize]);
-        // console.log("NEW MAX MENTIONS" 
-        //   + " | " + newNode.text 
-        //   + " | " + currentMaxMentions 
-        //   + " | " + fontSizeScale(currentMaxMentions)
-        // );
+    var nodesModifiedFlag = false;
+
+    // if (nodes.length >= MAX_NODES) console.debug("NODES [" + nodes.length + "] >= MAX_NODES: " + MAX_NODES);
+
+    // if ((nodeAddQ.length > 0) && (nodes.length < MAX_NODES)) {
+    if ((nodeAddQ.length > 0) && addNodeEnabled()) {
+
+      var nodeAddObj = nodeAddQ.shift();
+
+      switch (nodeAddObj.op) {
+
+        case "add":
+
+          nodesModifiedFlag = true;
+          nodeAddObj.node.age = 0;
+          nodeAddObj.node.ageMaxRatio = 1e-6;
+          nodeAddObj.node.ageUpdated = moment().valueOf();
+
+          if (!nodeAddObj.node.isGroupNode 
+            && !nodeAddObj.node.isSessionNode 
+            && !nodeAddObj.node.isIgnored 
+            && (nodeAddObj.node.mentions > currentMaxMentions)) {
+
+            currentMaxMentions = nodeAddObj.node.mentions;
+
+            nodeFontSizeScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minFontSize, maxFontSize]).clamp(true);
+
+            console.info("NEW MAX Ms" 
+              + " | " + nodeAddObj.node.text 
+              + " | I: " + nodeAddObj.node.isIgnored 
+              + " | Ms " + currentMaxMentions 
+              + " | K: " + nodeAddObj.node.isKeyword 
+              + " | KWs: " + jsonPrint(nodeAddObj.node.keywords) 
+            );
+          }
+
+          nodes.push(nodeAddObj.node);
+
+          if (nodes.length > maxNumberNodes) {
+            console.info("MAX NODES: " + maxNumberNodes);
+            maxNumberNodes = nodes.length;
+          }
+
+          callback(null, nodesModifiedFlag);
+
+        break;
+
+        default:
+          console.error("??? UNKNOWN NODE UPDATE Q OP: " + nodeUpdateObj.op);
+          callback(null, nodesModifiedFlag);
+        break;
+
       }
+    }
+    else {
+      callback(null, nodesModifiedFlag);
+    }
 
+    // if ((nodeAddQ.length == 0) || (nodes.length >= MAX_NODES)) {
+    //   callback(null, nodesModifiedFlag);
+    // }
+  }
 
-      if (groupHashMap.has(newNode.groupId)){
-        var cGroup = groupHashMap.get(newNode.groupId);
-        newNode.colors = {};
-        newNode.colors = cGroup.colors;
-        newNode.interpolateColor = cGroup.interpolateColor;
-      }
-      else {
-        newNode.colors = {};
-        newNode.colors = defaultColors;
-        newNode.interpolateColor = defaultInterpolateColor;
-      }
+  var processNodeUpdateQ = function(callback) {
 
-      newNode.x = width;
-      newNode.randomYoffset = randomIntFromInterval(-10,10);
+    var nodesModifiedFlag = false;
 
-      if (typeof sessionNodeArrayHash[newNode.sessionId] !== 'undefined'){
-        sessionNodeArrayHash[newNode.sessionId].push(newNode.nodeId);
-      }
-      else {
-        sessionNodeArrayHash[newNode.sessionId] = [];
-        sessionNodeArrayHash[newNode.sessionId].push(newNode.nodeId);
-      }
+    while (nodeUpdateQ.length > 0){
 
+      var nodeUpdateObj = nodeUpdateQ.shift();
 
-      if (typeof sessionPreviousNode[newNode.sessionId] !== 'undefined'){
-        var prevNodeId = sessionPreviousNode[newNode.sessionId];
-        if (nodeHashMap.has(prevNodeId)){
-          var prevNode = nodeHashMap.get(prevNodeId);
-          newNode.prevNodeId = prevNodeId;
+      switch (nodeUpdateObj.op) {
 
-          if (typeof prevNode.randomYoffset !== 'undefined') {
-            while (Math.abs(newNode.randomYoffset - prevNode.randomYoffset) < 5){
-              newNode.randomYoffset = randomIntFromInterval(-10,10);
-              // console.log("while randomYoffset | prevNode: " + prevNode.randomYoffset + " | newNode: " + newNode.randomYoffset);
+        case "add":
+
+          var newNode = nodeUpdateObj.node;
+          nodesModifiedFlag = true;
+
+          if (!newNode.isSession 
+            && !newNode.isSessionNode 
+            && !newNode.isGroup 
+            && !newNode.isGroupNode) {
+
+            if (!newNode.isIgnored && (newNode.mentions > currentMaxMentions)) {
+              currentMaxMentions = newNode.mentions;
+              fontSizeScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minFontSize, maxFontSize]);
+              console.info("NEW MAX Ms" 
+                + " | " + newNode.text 
+                + " | " + currentMaxMentions 
+              );
             }
-            // console.log("randomYoffset | prevNode: " + prevNode.randomYoffset + " | newNode: " + newNode.randomYoffset);
+
+            newNode.x = width;
+
+            if (typeof sessionNodeArrayHash[newNode.sessionId] !== 'undefined'){
+              sessionNodeArrayHash[newNode.sessionId].push(newNode.nodeId);
+            }
+            else {
+              sessionNodeArrayHash[newNode.sessionId] = [];
+              sessionNodeArrayHash[newNode.sessionId].push(newNode.nodeId);
+            }
+
+            if (typeof sessionPreviousNode[newNode.sessionId] !== 'undefined'){
+              var prevNodeId = sessionPreviousNode[newNode.sessionId];
+              if (nodeHashMap.has(prevNodeId)){
+                var prevNode = nodeHashMap.get(prevNodeId);
+                newNode.prevNodeId = prevNodeId;
+              }
+            }
+
+            nodeMouseOut.y = height;
+
+            sessionPreviousNode[newNode.sessionId] = newNode.nodeId;
+
+            nodes.push(newNode);
+
+            if (!newNode.isGroupNode && !newNode.isSessionNode && !ignoreWordHashMap.has(newNode.text) && (typeof wordNodeHashMap[newNode.text] === 'undefined')){
+              wordNodeHashMap[newNode.text] = [];
+              wordNodeHashMap[newNode.text].push(newNode.nodeId);
+            }
+            else if (!newNode.isGroupNode && !newNode.isSessionNode && !ignoreWordHashMap.has(newNode.text)) {
+              for (var i=0; i < wordNodeHashMap[newNode.text].length; i++){
+                var cNodeId = wordNodeHashMap[newNode.text][i];
+                if (!self.disableLinks && nodeHashMap.has(cNodeId)) {
+                  var cNode = nodeHashMap.get(cNodeId);
+
+                  if (cNode.isGroupNode || cNode.isSessionNode || ignoreWordHashMap.has(cNode.text)) return;
+                  var linkId = cNodeId + "_" + newNode.nodeId;
+                  var newLink = {
+                    linkId: linkId,
+                    groupId: newNode.groupId,
+                    age: 0,
+                    isDead: false,
+                    source: newNode,
+                    target: cNode,
+                    isGroupLink: false
+                  };
+                  self.addLink(newLink);
+                }
+
+              }
+              wordNodeHashMap[newNode.text].push(newNode.nodeId);
+            }
+          }
+
+          updateRecentNodes(newNode);
+
+        break;
+
+        case "update":
+          nodesModifiedFlag = true;
+
+          var node;
+          var nodesLength = nodes.length - 1;
+          var nodeIndex = nodesLength;
+
+          for (nodeIndex = nodesLength; nodeIndex >= 0; nodeIndex -= 1) {
+            node = nodes[nodeIndex];
+            if (node.nodeId == uNode.nodeId) {
+              console.error("updateNode PREVIOUS\n" + jsonPrint(node));
+              nodes[nodeIndex] = uNode;
+              console.error("updateNode UPDATED\n" + jsonPrint(uNode));
+            }
+          }
+
+          if (nodeIndex < 0) {
+            updateNodeFlag = false;
+            console.error("updateNode DONE");
+            return;
+          }
+        break;
+
+        case "delete":
+          deleteNodeQ(nodeUpdateObj.nodeId, function(err, deadNodeFlag){
+            if (deadNodeFlag) nodesModifiedFlag = true;
+          });
+        break;
+
+      }
+    }
+    if (nodeUpdateQ.length == 0){
+      callback(null, nodesModifiedFlag);
+    }
+  }
+
+  var processLinkUpdateQ = function(callback) {
+    var linksModifiedFlag = false;
+    while (linkUpdateQ.length > 0){
+      var linkUpdateObj = linkUpdateQ.shift();
+      switch (linkUpdateObj.op) {
+        case "add":
+          linksModifiedFlag = true;
+          links.push(linkUpdateObj.link);
+        break;
+        case "delete":
+          deleteLinkQ(linkUpdateObj.linkId, function(err, deadLinkFlag){
+            if (deadLinkFlag) linksModifiedFlag = true;
+          });
+        break;
+      }
+    }
+    if (linkUpdateQ.length == 0){
+      callback(null, linksModifiedFlag);
+    }
+  }
+
+  function deleteGroupQ(groupId, callback){
+    var deletedGroup;
+    var deadGroupFlag = false;
+
+    var groupsLength = groups.length - 1;
+    var groupIndex = groups.length - 1;
+
+    for (groupIndex = groupsLength; groupIndex >= 0; groupIndex -= 1) {
+
+      deletedGroup = groups[groupIndex];
+
+      if (deletedGroup.groupId == groupId) {
+
+        deadGroupFlag = true;
+
+        var linksLength = links.length - 1;
+        var linkIndex = links.length - 1;
+
+        for (linkIndex = linksLength; linkIndex >= 0; linkIndex -= 1) {
+          var link = links[linkIndex];
+          if (link.groupId == groupId) {
+            deadLinksHash[link.linkId] = 1;
           }
         }
-      }
 
-      nodeMouseOut.y = height;
-
-      sessionPreviousNode[newNode.sessionId] = newNode.nodeId;
-
-      force.stop();
-      forceStopped = true;
-      nodes.push(newNode);
-      force.nodes(nodes);
-
-      if (!newNode.isGroupNode && !newNode.isSessionNode && !ignoreWordHashMap.has(newNode.text) && (typeof wordNodeHashMap[newNode.text] === 'undefined')){
-        wordNodeHashMap[newNode.text] = [];
-        wordNodeHashMap[newNode.text].push(newNode.nodeId);
-      }
-      else if (!newNode.isGroupNode && !newNode.isSessionNode && !ignoreWordHashMap.has(newNode.text)) {
-        for (var i=0; i < wordNodeHashMap[newNode.text].length; i++){
-          var cNodeId = wordNodeHashMap[newNode.text][i];
-          if (nodeHashMap.has(cNodeId)) {
-            var cNode = nodeHashMap.get(cNodeId);
-
-            if (cNode.isGroupNode || cNode.isSessionNode || ignoreWordHashMap.has(cNode.text)) return;
-            var linkId = cNodeId + "_" + newNode.nodeId;
-            var newLink = {
-              linkId: linkId,
-              groupId: newNode.groupId,
-              age: 0,
-              isDead: false,
-              source: newNode,
-              target: cNode,
-              isGroupLink: false
-            };
-            // self.addLink(newLink);
-            // force.links(links);
-          }
-
-        }
-        wordNodeHashMap[newNode.text].push(newNode.nodeId);
-      }
-
-      // console.log("NEW NODE\n" + jsonPrint(newNode));
-    }
-    // updateRecentNodes(newNode);
-  }
-
-  this.deleteNode = function(nodeId) {
-
-    var nodesLength = nodes.length - 1;
-
-    var node;
-    var deadNodeFlag = false;
-
-    var nodeIndex = nodesLength;
-
-    for (nodeIndex = nodesLength; nodeIndex >= 0; nodeIndex -= 1) {
-      node = nodes[nodeIndex];
-      if (node.nodeId == nodeId) {
-          nodes.splice(nodeIndex, 1);
-          delete wordNodeHashMap[node.text];
+        if (linkIndex < 0) {
+          console.log("XXX GROUP NODE " + deletedGroup.node.nodeId);
+          deadGroupFlag = true;
+          nodeUpdateQ.push({op:'delete', nodeId: deletedGroup.node.nodeId});
+          groups.splice(groupIndex, 1);
+          return(callback(null, deadGroupFlag));
         }
       }
-  }
-
-  this.addLink = function(newLink) {
-
-    // console.warn("addLink\n" + jsonPrint(newLink));
-
-    if (self.disableLinks)  return ;
-    force.stop();
-    forceStopped = true;
-    links.push(newLink);
-    if (newLink.isGroupLink){
-      // console.error("ADD GROUP LINK | " + newLink.linkId);
     }
-    force.links(links);
-  }
-
-  this.deleteLink = function(linkId) {
-
-    force.stop();
-    forceStopped = true;
-
-    var linksLength = links.length - 1;
-
-    var linkIndex = linksLength;
-
-    for (linkIndex = linksLength; linkIndex >= 0; linkIndex -= 1) {
-      if (linkId == links[linkIndex].linkId) {
-        links.splice(linkIndex, 1);
-        force.links(links);
-        return;
-      }
-    }
-
-    if (linkIndex < 0) {
-      return;
+    if ((groupIndex < 0) && (linkIndex < 0)) {
+      return(callback(null, deadGroupFlag));
     }
   }
 
-  this.deleteSessionLinks = function(sessionId) {
-    if (self.disableLinks)  return ;
-
+  function deleteSessionQ(sessionId, callback){
     var deletedSession;
     var deadSessionFlag = false;
 
@@ -1398,12 +1580,15 @@ function ViewTicker() {
     var sessionIndex = sessions.length - 1;
 
     for (sessionIndex = sessionsLength; sessionIndex >= 0; sessionIndex -= 1) {
+
       deletedSession = sessions[sessionIndex];
+
       if (deletedSession.sessionId == sessionId) {
+
+        deadSessionFlag = true;
 
         var linksLength = links.length - 1;
         var linkIndex = links.length - 1;
-
 
         for (linkIndex = linksLength; linkIndex >= 0; linkIndex -= 1) {
           var link = links[linkIndex];
@@ -1414,50 +1599,112 @@ function ViewTicker() {
 
         if (linkIndex < 0) {
           console.log("XXX SESS NODE " + deletedSession.node.nodeId);
-          self.deleteNode(deletedSession.node.nodeId);
+          deadSessionFlag = true;
+          nodeUpdateQ.push({op:'delete', nodeId: deletedSession.node.nodeId});
           sessions.splice(sessionIndex, 1);
-          return;
+          return(callback(null, deadSessionFlag));
         }
       }
     }
     if ((sessionIndex < 0) && (linkIndex < 0)) {
-      return;
+      return(callback(null, deadSessionFlag));
     }
   }
 
-  // ===================================================================
+  function deleteNodeQ(nodeId, callback){
 
-  // this.initD3timer = function() {
-  //   d3.timer(function() {
-  //     tickNumber++;
-  //     dateNow = moment().valueOf();
-  //     if (updateTickerDisplayReady && !mouseMovingFlag) updateTickerDisplay();
-  //   });
-  // }
+    var deadNodeFlag = false;
 
-  this.initD3timer = function() {
+    var nodesLength = nodes.length - 1;
+    var linksLength = links.length - 1;
 
-    force = d3.layout.force()
-      .nodes(nodes)
-      .links(links)
-      .gravity(gravity)
-      .friction(friction)
-      .charge(charge)
-      .linkStrength(globalLinkStrength)
-      .size([svgTickerLayoutAreaWidth, svgTickerLayoutAreaHeight]);
-      // .on("tick", tick);
+    var node;
 
-      d3.timer(function() {
-        tickNumber++;
-        dateNow = moment().valueOf();
-        if (!pauseFlag 
-          && !updateNodeFlag 
-          && updateTickerDisplayReady 
-          && (!mouseFreezeEnabled || (mouseFreezeEnabled && !mouseMovingFlag))){
-          updateTickerDisplay();
+    var nodeIndex = nodesLength;
+    var linkIndex = linksLength;
+
+    for (nodeIndex = nodesLength; nodeIndex >= 0; nodeIndex -= 1) {
+
+      node = nodes[nodeIndex];
+
+      if (node.nodeId == nodeId) {
+
+        if (node.isSessionNode) {
+          sessionUpdateQ.push({op:'delete', sessionId: node.sessionId});
         }
-      });
+
+        for (linkIndex = linksLength; linkIndex >= 0; linkIndex -= 1) {
+          var link = links[linkIndex];
+          var linkId = link.linkId;
+          if (node.links[linkId]) {
+          }
+        }
+
+        if (linkIndex < 0) {
+          nodes.splice(nodeIndex, 1);
+          deadNodeFlag = true;
+          // console.warn("XXX NODE " + nodeId);
+          return(callback(null, deadNodeFlag));
+        }
+      }
+    }
+    if ((nodeIndex < 0) && (linkIndex < 0)) {
+      nodes.splice(nodeIndex, 1);
+      console.error("XXX NODE NOT FOUND ??? " + nodeId);
+      return(callback(null, deadNodeFlag));
+    }
   }
+
+  function deleteLinkQ(linkId, callback){
+    var deadLinkFlag = false;
+
+    var linksLength = links.length - 1;
+    var linkIndex = linksLength;
+
+    for (linkIndex = linksLength; linkIndex >= 0; linkIndex -= 1) {
+      if (linkId == links[linkIndex].linkId) {
+        deadLinkFlag = true;
+        links.splice(linkIndex, 1);
+        return(callback(null, deadLinkFlag));
+      }
+    }
+
+    if (linkIndex < 0) {
+      return(callback(null, deadLinkFlag));
+    }
+  }
+
+  this.addSession = function(newSession) {
+    sessionUpdateQ.push({op:'add', session: newSession});
+  }
+
+  this.addGroup = function(newGroup) {
+    console.log("groupUpdateQ");
+    groupUpdateQ.push({op:'add', group:newGroup});
+  }
+
+  this.addNode = function(newNode) {
+    nodeUpdateQ.push({op:'add', node: newNode});
+  }
+
+  this.deleteNode = function(nodeId) {
+    nodeUpdateQ.push({op:'delete', nodeId: nodeId});
+  }
+
+  this.addLink = function(newLink) {
+    if (self.disableLinks)  return ;
+    linkUpdateQ.push({op:'add', link: newLink});
+  }
+
+  this.deleteLink = function(linkId) {
+    linkUpdateQ.push({op:'delete', linkId: linkId});
+  }
+
+  this.deleteSessionLinks = function(sessionId) {
+    sessionUpdateQ.push({op:'delete', sessionId: sessionId});
+  }
+
+  // ===================================================================
 
   // ===================================================================
 
@@ -1500,6 +1747,7 @@ function ViewTicker() {
 
   // ===================================================================
   var testAddNodeInterval;
+  var testAddLinkInterval;
   var testSessionIndex = 0;
   var testDeleteNodeInterval;
 
@@ -1515,6 +1763,7 @@ function ViewTicker() {
   function addRandomNode() {
 
     var randomNumber360 = randomIntFromInterval(0, 360);
+    var dateNow = moment().valueOf();
 
     var sessionId = 'session_' + randomNumber360;
     var userId = 'user_' + randomNumber360;
@@ -1526,7 +1775,7 @@ function ViewTicker() {
     var startColor = "hsl(" + randomNumber360 + ",100%,50%)";
     var endColor = "hsl(" + randomNumber360 + ",100%,30%)";
 
-    var interpolateNodeColor = d3.interpolateHsl(startColor, endColor);
+    var interpolateNodeColor = d3.interpolateRgb(startColor, endColor);
 
     var newNode = {
       nodeId: nodeId,
@@ -1537,7 +1786,7 @@ function ViewTicker() {
       wordChainIndex: wordChainIndex,
       startColor: startColor,
       endColor: endColor,
-      interpolateColor: interpolateNodeColor,
+      interpolateNodeColor: interpolateNodeColor,
       x: 0.5 * width + randomIntFromInterval(0, 100),
       y: 0.5 * height + randomIntFromInterval(0, 100),
       age: 0,
@@ -1545,6 +1794,14 @@ function ViewTicker() {
     }
 
     self.addNode(newNode);
+  }
+
+  function deleteRandomLink(){
+    
+  }
+
+  function addRandomLink(){
+    
   }
 
   this.clearTestAddNodeInterval = function () {
@@ -1555,6 +1812,17 @@ function ViewTicker() {
     clearInterval(testAddNodeInterval);
     testAddNodeInterval = setInterval(function() {
       addRandomNode();
+    }, interval);
+  }
+
+  this.clearTestAddLinkInterval = function () {
+    clearInterval(testAddLinkInterval);
+  }
+
+  this.initTestAddLinkInterval = function (interval) {
+    clearInterval(testAddLinkInterval);
+    testAddLinkInterval = setInterval(function() {
+      addRandomLink();
     }, interval);
   }
 
@@ -1622,42 +1890,73 @@ function ViewTicker() {
     }
   }
 
+  var rows = maxWordRows;
+  var cols = 5;
 
 
-  function ypositionWord(d, i) {
+  function ypositionGroup(d, i) {
+
+    var value;
+    // value = groupYpositionHash[d.groupId] + (0.5 * d.randomYoffset);
+
+    if (typeof groupYpositionHash[d.groupId] === 'undefined') {
+      value = 25;
+      groupYpositionHash[d.groupId] = {};
+      groupYpositionHash[d.groupId]["sessions"] = {};
+      groupYpositionHash[d.groupId][d.groupId] = value;
+      d.fy = value * height / 100;
+      return value + "%";
+    }
+    else {
+      value = groupYpositionHash[d.groupId][d.groupId];
+      d.fy = value * height / 100;
+      return value + "%";
+    }
+  }
+
+function ypositionWord(d, i) {
 
     var value;
 
     if (typeof groupYpositionHash[d.groupId] !== 'undefined') {
+
       var groupYpos = groupYpositionHash[d.groupId][d.groupId];
-      groupYpositionHash[d.groupId][d.sessionId] = groupYpos;
-      var sessionIds = Object.keys(groupYpositionHash[d.groupId]);
+
+      groupYpositionHash[d.groupId]["sessions"][d.sessionId] = groupYpos;
+
+      var sessionIds = Object.keys(groupYpositionHash[d.groupId]["sessions"]);
+
       sessionIds.sort();
+
       var numSessions = sessionIds.length;
       var index = 0;
+
       sessionIds.forEach(function(sessionId){
         if (sessionId == d.groupId) {
           numSessions--;
         }
         else {
           var tempValue = groupYpos + (lineHeight * index);
-          groupYpositionHash[d.groupId][sessionId] = tempValue;
+          groupYpositionHash[d.groupId]["sessions"][sessionId] = tempValue;
           index++;
           numSessions--;
         }
       });
+
       if (numSessions == 0) {
-        value = groupYpositionHash[d.groupId][d.sessionId];
+        value = groupYpositionHash[d.groupId]["sessions"][d.sessionId];
         d.y = value * height / 100;
         nodes[i] = d;
         nodeHashMap.set(d.nodeId, d);
         return value + "%";
       }
+
     }
     else {
       groupYpositionHash[d.groupId] = {};
+      groupYpositionHash[d.groupId]["sessions"] = {};
       groupYpositionHash[d.groupId][d.groupId] = 25;
-      groupYpositionHash[d.groupId][d.sessionId] = groupYpositionHash[d.groupId][d.groupId];
+      groupYpositionHash[d.groupId]["sessions"][d.sessionId] = 25;
       value = groupYpositionHash[d.groupId][d.groupId];
       d.y = value * height / 100;
       nodes[i] = d;
@@ -1665,6 +1964,7 @@ function ViewTicker() {
       return value + "%";
     }
   }
+
 
   function ypositionGroup(d, i) {
 
@@ -1674,6 +1974,7 @@ function ViewTicker() {
       value = marginTopSessions + ((100-marginTopSessions) * 10 / (groups.length))
       if (typeof groupYpositionHash[d.groupId] === 'undefined') {
         groupYpositionHash[d.groupId] = {};
+        groupYpositionHash[d.groupId]["sessions"] = {};
         groupYpositionHash[d.groupId][d.groupId] = value;
       }
       else {
@@ -1682,9 +1983,17 @@ function ViewTicker() {
       return value + "%";
     }
     else {
+
       value = marginTopSessions + ((100-marginTopSessions) * d.rank / (groups.length))
-      if (typeof groupYpositionHash[d.groupId] === 'undefined') groupYpositionHash[d.groupId] = {};
-      groupYpositionHash[d.groupId][d.groupId] = value;
+
+      if (typeof groupYpositionHash[d.groupId] === 'undefined') {
+        groupYpositionHash[d.groupId] = {};
+        groupYpositionHash[d.groupId]["sessions"] = {};
+        groupYpositionHash[d.groupId][d.groupId] = value;
+      }
+      else {
+        groupYpositionHash[d.groupId][d.groupId] = value;
+      }
       return value + "%";
     }
   }

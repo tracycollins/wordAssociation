@@ -159,13 +159,11 @@ var serverKeywordsJsonObj = {};
 // ==================================================================
 // SERVER STATUS
 // ==================================================================
-var upTime = os.uptime() * 1000;
-var memoryTotal = os.totalmem();
-var memoryAvailable = os.freemem();
+// var upTime = os.uptime() * 1000;
+// var memoryTotal = os.totalmem();
+// var memoryAvailable = os.freemem();
 
 var currentTime = moment();
-var startTime = moment();
-var runTime = 0;
 
 var currentTimeInteval = setInterval(function() {
   currentTime = moment();
@@ -243,8 +241,8 @@ var statsObj = {
   "timeStamp": moment().format(defaultDateTimeFormat),
   "runTimeArgs": process.argv,
 
-  "startTime": startTime,
-  "runTime": runTime,
+  "startTime": moment(),
+  "runTime": 0,
 
   "totalClients": 0,
   "totalUsers": 0,
@@ -273,6 +271,10 @@ var statsObj = {
 
   "heartbeat": txHeartbeat
 };
+
+statsObj.upTime = os.uptime() * 1000;
+statsObj.memoryTotal = os.totalmem();
+statsObj.memoryAvailable = os.freemem();
 
 statsObj.wapi = {};
 statsObj.wapi.totalRequests = 0;
@@ -1094,10 +1096,17 @@ function updateStatsInterval(statsFile, interval){
   clearInterval(statsInterval);
 
   statsInterval = setInterval(function() {
+
+    statsObj.upTime = os.uptime() * 1000;
+    statsObj.runTime = moment().valueOf() - statsObj.startTime.valueOf();
+    statsObj.memoryTotal = os.totalmem();
+    statsObj.memoryAvailable = os.freemem();
+
+
     updateStats({
       timeStamp: moment().format(defaultDateTimeFormat),
-      upTime: msToTime(upTime),
-      runTime: msToTime(runTime),
+      upTime: msToTime(statsObj.upTime),
+      runTime: msToTime(statsObj.runTime),
       heartbeat: txHeartbeat,
 
       numberAdmins: numberAdmins,
@@ -4206,7 +4215,7 @@ function updateMetrics(googleMetricsUpdateFlag) {
 
           {
             "point": {
-              "int64Value": parseInt(100.0 * (memoryTotal - memoryAvailable) / memoryTotal),
+              "int64Value": parseInt(100.0 * (statsObj.memoryTotal - statsObj.memoryAvailable) / statsObj.memoryTotal),
               "start": metricDateStart,
               "end": metricDateEnd
             },
@@ -7738,7 +7747,10 @@ configEvents.on("SERVER_READY", function() {
     //   depth: 1
     // }));
 
-    runTime = moment() - startTime;
+    statsObj.runTime = moment().valueOf() - statsObj.startTime.valueOf();
+    statsObj.upTime = os.uptime() * 1000;
+    statsObj.memoryTotal = os.totalmem();
+    statsObj.memoryAvailable = os.freemem();
 
     bhtTimeToReset = moment.utc().utcOffset("-07:00").endOf('day').valueOf() - moment.utc().utcOffset("-07:00").valueOf();
 
@@ -7753,12 +7765,12 @@ configEvents.on("SERVER_READY", function() {
       txHeartbeat = {
         serverHostName: hostname,
         timeStamp: getTimeNow(),
-        startTime: startTime.valueOf(),
-        upTime: upTime,
-        runTime: runTime,
+        startTime: statsObj.startTime.valueOf(),
+        upTime: statsObj.upTime,
+        runTime: statsObj.runTime,
         heartbeatsSent: heartbeatsSent,
-        memoryAvailable: memoryAvailable,
-        memoryTotal: memoryTotal,
+        memoryAvailable: statsObj.memoryAvailable,
+        memoryTotal: statsObj.memoryTotal,
 
         wordCacheStats: wordCache.getStats(),
         wordCacheTtl: wordCacheTtl,

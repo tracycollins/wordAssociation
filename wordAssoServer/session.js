@@ -446,6 +446,7 @@ function updateControlButton(controlPanelFlag){
 
 function addControlButton(){
   var controlDiv = document.getElementById('controlDiv');
+  controlDiv.style.visibility = 'hidden';
   var controlPanelButton = document.createElement("BUTTON");
   controlPanelButton.className = 'button';
   controlPanelButton.setAttribute('id', 'controlPanelButton');
@@ -875,7 +876,7 @@ socket.on("reconnect", function() {
   statsObj.socketId = socket.id;
   store.set('stats', statsObj);
   statsObj.serverConnected = true;
-  displayStats(true, 'white');
+  // displayStats(true, 'white');
   console.log("RECONNECTED TO HOST | SOCKET ID: " + socket.id);
   socket.emit("VIEWER_READY", viewerObj);
   if (sessionMode) {
@@ -891,7 +892,7 @@ socket.on("connect", function() {
   statsObj.socketId = socket.id;
   store.set('stats', statsObj);
   statsObj.serverConnected = true;
-  displayStats(true, 'white');
+  // displayStats(true, 'white');
   console.log("CONNECTED TO HOST | SOCKET ID: " + socket.id);
 });
 
@@ -1208,6 +1209,7 @@ function createStatsTable(callback) {
   console.log("CREATE STATS TABLE\n" + jsonPrint(config));
 
   var statsDiv = document.getElementById('statsDiv');
+  statsDiv.style.visibility = 'hidden';
   statsDiv.style.border = "2px solid black ";
   statsDiv.style.backgroundColor = palette.white;
   statsDiv.style.textColor = palette.black;

@@ -6855,7 +6855,6 @@ function initializeConfiguration(callback) {
               entityObj.tags.group = '';
 
               followerUpdateQueue.enqueue(entityObj);
-
             });
 
             twitterStream.on('direct_message', function (message) {
@@ -6915,6 +6914,10 @@ function initializeConfiguration(callback) {
                   }
                 });
               }
+            });
+
+            twitterStream.on('error', function(err){
+              console.log(chalkError("*** TWITTER ERROR\n" + jsonPrint(err)));
             });
 
           }

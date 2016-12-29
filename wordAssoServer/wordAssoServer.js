@@ -5818,8 +5818,10 @@ var readResponseQueue = setInterval(function() {
         debug(chalkWarn("USER_USER WORD CHAIN\n" + jsonPrint(currentSessionObj.wordChain)));
       } 
       else {
-        console.log(chalkWarn("??? EMPTY WORD CHAIN ... PREVIOUS PROMPT NOT IN CACHE ... ABORTING SESSION" 
-          + " | " + socketId));
+        console.log(chalkError("??? EMPTY WORD CHAIN ... PREVIOUS PROMPT NOT IN CACHE ... ABORTING SESSION" 
+          + " | " + socketId
+          + "\nrxInObj" + jsonPrint(rxInObj)
+        ));
 
         ready = true;
 
@@ -6053,6 +6055,45 @@ var readUpdaterMessageQueue = setInterval(function() {
                 switch (err.code) {
                   case 226:
                     console.log(chalkError("*** TWITTER DM SEND ERROR: LOOKS LIKE AUTOMATED TX: CODE: " + err.code));
+
+                    setTimeout(function(){
+                      console.log(chalkError("... RETRY #1 TWITTER DM " + dmString));
+                      sendDirectMessage('threecee', dmString, function(err, res){
+                        if (!err) {
+                          console.log(chalkLog("SENT TWITTER DM: " + dmString));
+                        }
+                        else {
+                          switch (err.code) {
+                            case 226:
+                              console.log(chalkError("*** TWITTER DM SEND ERROR: LOOKS LIKE AUTOMATED TX: CODE: " + err.code));
+
+                              setTimeout(function(){
+                                console.log(chalkError("... RETRY #2 TWITTER DM " + dmString));
+                                sendDirectMessage('threecee', dmString, function(err, res){
+                                  if (!err) {
+                                    console.log(chalkLog("SENT TWITTER DM: " + dmString));
+                                  }
+                                  else {
+                                    switch (err.code) {
+                                      case 226:
+                                        console.log(chalkError("*** TWITTER DM SEND ERROR: LOOKS LIKE AUTOMATED TX: CODE: " + err.code));
+                                      break;
+                                      default:
+                                        console.log(chalkError("*** TWITTER DM SEND ERROR: " + jsonPrint(err)));
+                                      break;
+                                    }
+                                  }
+
+                                });
+                              }, randomInt(14700,34470));
+                            break;
+                            default:
+                              console.log(chalkError("*** TWITTER DM SEND ERROR: " + jsonPrint(err)));
+                            break;
+                          }
+                        }
+                      });
+                    }, randomInt(14700,34470));
                   break;
                   default:
                     console.log(chalkError("*** TWITTER DM SEND ERROR: " + jsonPrint(err)));

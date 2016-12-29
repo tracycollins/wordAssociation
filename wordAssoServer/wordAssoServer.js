@@ -8393,9 +8393,6 @@ function createSession(newSessionObj) {
       }
     });
 
-
-
-
   });
 
   socket.on("RESPONSE_WORD_OBJ", function(rxInObj) {

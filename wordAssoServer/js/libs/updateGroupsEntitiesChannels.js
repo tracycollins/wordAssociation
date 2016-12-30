@@ -61,6 +61,7 @@ var serverEntityChannelGroupHashMap = new HashMap();
 var keywordHashMap = new HashMap();
 var serverKeywordHashMap = new HashMap();
 var previousKeywordHashMap = new HashMap();
+var previousServerKeywordHashMap = new HashMap();
 
 var mongoose = require('../../config/mongoose');
 var db = mongoose();
@@ -367,7 +368,7 @@ var updateEntityChannelGroups = function (configFile, callback){
   });  
 }
 
-var updateKeywords = function (folder, file, kwHashMap, callback){
+var updateKeywords = function (folder, file, kwHashMap, prevKwHashMap, callback){
 
   console.log(chalkWarn("UPDATE KEYWORDS " + file));
 
@@ -388,7 +389,7 @@ var updateKeywords = function (folder, file, kwHashMap, callback){
 
       var words = Object.keys(kwordsObj);
 
-      previousKeywordHashMap.copy(kwHashMap);
+      prevKwHashMap.copy(kwHashMap);
       kwHashMap.clear();
       // process.send({ type: 'keywordHashMapClear'});
 
@@ -408,7 +409,7 @@ var updateKeywords = function (folder, file, kwHashMap, callback){
           wordObj.keywords[keyWordType] = true;
 
           kwHashMap.set(wordObj.nodeId, keyWordType);
-          previousKeywordHashMap.remove(wordObj.nodeId);
+          prevKwHashMap.remove(wordObj.nodeId);
 
           wordServer.findOneWord(wordObj, false, function(err, updatedWordObj) {
             if (err){
@@ -436,17 +437,17 @@ var updateKeywords = function (folder, file, kwHashMap, callback){
             callback(err, null);
           }
           else {
-            console.log(chalkInfo("initKeywords COMPLETE"
+            console.log(chalkAlert("initKeywords COMPLETE"
               + " | TOTAL KEYWORDS:   " + kwHashMap.count()
-              + " | (DELETED KEYWORDS:) " + previousKeywordHashMap.count()
+              + " | (DELETED KEYWORDS:) " + prevKwHashMap.count()
             ));
 
-            if (previousKeywordHashMap.count() > 0) {
+            if (prevKwHashMap.count() > 0) {
               console.log(chalkInfo(
-                "DELETED KEYWORDS\n" + jsonPrint(previousKeywordHashMap.keys())
+                "DELETED KEYWORDS\n" + jsonPrint(prevKwHashMap.keys())
               ));
 
-              var deletedKeyWords = previousKeywordHashMap.keys();
+              var deletedKeyWords = prevKwHashMap.keys();
 
               deletedKeyWords.forEach(function (deleteKeyWord){
                 setTimeout(function(){
@@ -474,8 +475,8 @@ function updateGroupsEntitiesKeywords(options, callback){
     function(cb){ updateGroups(options.serverGroupsFile, cb) },
     function(cb){ updateEntityChannelGroups(options.entitiesFile, cb) },
     function(cb){ updateEntityChannelGroups(options.serverEntitiesFile, cb) },
-    function(cb){ updateKeywords("", options.keywordsFile, keywordHashMap, cb) },
-    function(cb){ updateKeywords("", options.serverKeywordsFile, serverKeywordHashMap, cb) }
+    function(cb){ updateKeywords("", options.keywordsFile, keywordHashMap, previousKeywordHashMap, cb) },
+    function(cb){ updateKeywords("", options.serverKeywordsFile, serverKeywordHashMap, previousServerKeywordHashMap, cb) }
   ],
     function(err, results){
       if (err) {

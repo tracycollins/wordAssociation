@@ -6040,7 +6040,8 @@ var readUpdaterMessageQueue = setInterval(function() {
 
           keywordUpdateDb(updaterObj, function(err, updatedWordObj){
 
-            var dmString = "UPDATE KEYWORD"
+            var dmString = "KEYWORD"
+              + " | " + hostname 
               + "\n" + updatedWordObj.nodeId 
               + "\n" + updatedWordObj.mentions + " Ms" 
               + "\n" + jsonPrint(updatedWordObj.keywords);
@@ -6918,8 +6919,36 @@ function initializeConfiguration(callback) {
                     case 'k':
                     case 'key':
                       if (hashtags.length == 3) {
-                        var keyWordType = hashtags[1].text;
+                        var keyWordType;
+                        var kwt = hashtags[1].text;
                         var keyword = hashtags[2].text;
+
+                        switch(kwt) {
+                          case 'p':
+                          case 'pos':
+                          case 'positive':
+                            keyWordType = 'positive';
+                          break;
+                          case 'n':
+                          case 'neg':
+                          case 'negative':
+                            keyWordType = 'negative';
+                          break;
+                          case 'o':
+                          case 'neu':
+                          case 'neutral':
+                            keyWordType = 'neutral';
+                          break;
+                          case 'l':
+                          case 'left':
+                            keyWordType = 'left';
+                          break;
+                          case 'r':
+                          case 'right':
+                            keyWordType = 'right';
+                          break;
+                        }
+
                         console.log(chalkTwitter("ADD KEYWORD | " + keyWordType + " | " + keyword));
                         updaterMessageQueue.enqueue({ twitter: true, type: 'keyword', keyword: keyword, keyWordType: keyWordType});
                       }

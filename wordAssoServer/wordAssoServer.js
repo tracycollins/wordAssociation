@@ -9062,14 +9062,16 @@ function wapiSearch(word, variation, callback){
 
     debugWapi(chalkWapi("WAPI RESPONSE\n" + jsonPrint(response.headers)));
 
-    if (typeof response.headers['x-ratelimit-requests-limit'] !== 'undefined'){
-      statsObj.wapi.requestLimit = parseInt(response.headers['x-ratelimit-requests-limit']);
-      statsObj.wapi.requestsRemaining = parseInt(response.headers['x-ratelimit-requests-remaining']);
-      if (statsObj.wapi.requestsRemaining > 0) {
-        statsObj.wapi.totalRequests = statsObj.wapi.requestLimit - statsObj.wapi.requestsRemaining;
-      }
-      else {
-        statsObj.wapi.totalRequests = statsObj.wapi.requestLimit + statsObj.wapi.requestsRemaining;
+    if (typeof response.headers !== 'undefined'){
+      if (typeof response.headers['x-ratelimit-requests-limit'] !== 'undefined'){
+        statsObj.wapi.requestLimit = parseInt(response.headers['x-ratelimit-requests-limit']);
+        statsObj.wapi.requestsRemaining = parseInt(response.headers['x-ratelimit-requests-remaining']);
+        if (statsObj.wapi.requestsRemaining > 0) {
+          statsObj.wapi.totalRequests = statsObj.wapi.requestLimit - statsObj.wapi.requestsRemaining;
+        }
+        else {
+          statsObj.wapi.totalRequests = statsObj.wapi.requestLimit + statsObj.wapi.requestsRemaining;
+        }
       }
     }
 

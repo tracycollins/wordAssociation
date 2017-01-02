@@ -1,5 +1,6 @@
 var mongoose = require('mongoose'),
 	crypto = require('crypto'),
+	moment = require('moment'),
 	Schema = mongoose.Schema;
 
 var WordSchema = new Schema({
@@ -14,7 +15,12 @@ var WordSchema = new Schema({
 		type: String
 	},
 	createdAt: { 
-		type: Date
+		type: Number,
+		default: moment().valueOf()
+	},
+	lastSeen: {   
+		type: Number,
+		default: moment().valueOf()
 	},
 	wordChainIndex: {   
 		type: Number,
@@ -22,9 +28,6 @@ var WordSchema = new Schema({
 	},
 	links: {   
 		type: Object
-	},
-	lastSeen: {   
-		type: Number
 	},
 	mentions: {
 		type: Number,

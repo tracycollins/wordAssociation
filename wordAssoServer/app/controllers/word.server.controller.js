@@ -152,29 +152,28 @@ exports.findOneWord = function(word, incMentions, callback) {
 
 	var query = { nodeId: word.nodeId  };
 	var update = { 
-					$inc: { mentions: inc }, 
-					$set: { 
-						nodeId: word.nodeId,
-						raw: word.raw,
-						isTrendingTopic: word.isTrendingTopic,
-						isKeyword: word.isKeyword,
-						keywords: word.keywords,
-						isIgnored: word.isIgnored,
-						url: word.url,
-						lastSeen: moment(),
-						bhtAlt: word.bhtAlt,
-						wapiSearched: word.wapiSearched,
-						wapiFound: word.wapiFound
-					},
-					$max: { noun: word.noun },
-					$max: { verb: word.verb },
-					$max: { adjective: word.adjective },
-					$max: { adverb: word.adverb },
-					$max: { bhtSearched: word.bhtSearched },
-					$max: { bhtFound: word.bhtFound }
-					// $max: { wapiSearched: word.wapiSearched },
-					// $max: { wapiFound: word.wapiFound }
-				};
+		$inc: { mentions: inc }, 
+		$set: { 
+			nodeId: word.nodeId,
+			raw: word.raw,
+			isTrendingTopic: word.isTrendingTopic,
+			isKeyword: word.isKeyword,
+			keywords: word.keywords,
+			isIgnored: word.isIgnored,
+			url: word.url,
+			lastSeen: moment(),
+			bhtAlt: word.bhtAlt,
+			wapiSearched: word.wapiSearched,
+			wapiFound: word.wapiFound
+		},
+		$max: { noun: word.noun },
+		$max: { verb: word.verb },
+		$max: { adjective: word.adjective },
+		$max: { adverb: word.adverb },
+		$max: { bhtSearched: word.bhtSearched },
+		$max: { bhtFound: word.bhtFound }
+	};
+
 	var options = { 
 		setDefaultsOnInsert: true,
 		upsert: true, 

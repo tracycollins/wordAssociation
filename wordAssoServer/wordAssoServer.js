@@ -6108,6 +6108,78 @@ var readUpdaterMessageQueue = setInterval(function() {
 
         updaterMessageReady = true;
       break;
+
+      case 'query':
+        queryDb(updaterObj, function(err, queryWordObj){
+
+            var dmString = "QUERY"
+              + " | " + hostname 
+              + "\n" + queryWordObj.nodeId 
+              + "\n" + queryWordObj.mentions + " Ms" 
+              + "\nCREATED: " + getTimeStamp(queryWordObj.createdAt) 
+              + "\nLAST: " + getTimeStamp(queryWordObj.lastSeen)
+              + "\n" + jsonPrint(queryWordObj.keywords);
+
+            console.log(chalkLog(dmString));
+
+            sendDirectMessage('threecee', dmString, function(err, res){
+              if (!err) {
+                console.log(chalkLog("SENT TWITTER DM: " + dmString));
+              }
+              else {
+                switch (err.code) {
+                  case 226:
+                    console.log(chalkError("*** TWITTER DM SEND ERROR: LOOKS LIKE AUTOMATED TX: CODE: " + err.code));
+
+                    setTimeout(function(){
+                      console.log(chalkError("... RETRY #1 TWITTER DM " + dmString));
+                      sendDirectMessage('threecee', dmString, function(err, res){
+                        if (!err) {
+                          console.log(chalkLog("SENT TWITTER DM: " + dmString));
+                        }
+                        else {
+                          switch (err.code) {
+                            case 226:
+                              console.log(chalkError("*** TWITTER DM SEND ERROR: LOOKS LIKE AUTOMATED TX: CODE: " + err.code));
+
+                              setTimeout(function(){
+                                console.log(chalkError("... RETRY #2 TWITTER DM " + dmString));
+                                sendDirectMessage('threecee', dmString, function(err, res){
+                                  if (!err) {
+                                    console.log(chalkLog("SENT TWITTER DM: " + dmString));
+                                  }
+                                  else {
+                                    switch (err.code) {
+                                      case 226:
+                                        console.log(chalkError("*** TWITTER DM SEND ERROR: LOOKS LIKE AUTOMATED TX: CODE: " + err.code));
+                                      break;
+                                      default:
+                                        console.log(chalkError("*** TWITTER DM SEND ERROR: " + jsonPrint(err)));
+                                      break;
+                                    }
+                                  }
+
+                                });
+                              }, randomInt(14700,34470));
+                            break;
+                            default:
+                              console.log(chalkError("*** TWITTER DM SEND ERROR: " + jsonPrint(err)));
+                            break;
+                          }
+                        }
+                      });
+                    }, randomInt(14700,34470));
+                  break;
+                  default:
+                    console.log(chalkError("*** TWITTER DM SEND ERROR: " + jsonPrint(err)));
+                  break;
+                }
+              }
+            });
+
+        });
+      break;
+
       default:
         console.log(chalkError("??? UPDATE UNKNOWN TYPE\n" + jsonPrint(updaterObj)));
         updaterMessageReady = true;
@@ -6613,6 +6685,33 @@ function getTwitterFriends(callback){
 }
 
 
+function queryDb(queryObj, callback){
+  console.log(chalkRed("QUERY | " + queryObj.query));
+
+  var wordObj = new Word();
+
+  wordObj.nodeId = queryObj.query.toLowerCase();
+  // wordObj.isKeyword = false;
+ 
+  wordServer.findOneWord(wordObj, false, function(err, queryWordObj) {
+    if (err){
+      console.log(chalkError("ERROR: QUERY\n" + jsonPrint(queryObj)));
+      callback(err, wordObj);
+    }
+    else {
+      console.log(chalkLog("... QUERY KEYWORD"
+        + " | " + queryWordObj.nodeId 
+        + " | " + queryWordObj.raw 
+        + " | M " + queryWordObj.mentions 
+        + " | I " + queryWordObj.isIgnored 
+        + " | K " + queryWordObj.isKeyword 
+        + " | K " + jsonPrint(queryWordObj.keywords) 
+      ));
+      callback(null, queryWordObj);
+    }
+  });
+}
+
 function keywordUpdateDb(keywordObj, callback){
 
   console.log(chalkRed("UPDATING KEYWORD | " + keywordObj.keyword + ": " + keywordObj.keyWordType));
@@ -6920,8 +7019,8 @@ function initializeConfiguration(callback) {
                     case 'key':
                       if (hashtags.length == 3) {
                         var keyWordType;
-                        var kwt = hashtags[1].text;
-                        var keyword = hashtags[2].text;
+                        var kwt = hashtags[1].text.toLowerCase();
+                        var keyword = hashtags[2].text.toLowerCase();
 
                         switch(kwt) {
                           case 'p':
@@ -6947,12 +7046,24 @@ function initializeConfiguration(callback) {
                           case 'right':
                             keyWordType = 'right';
                           break;
+                          default:
+                            keyWordType = kwt;
+                            console.log(chalkWarn("??? UNKNOWN KEYWORD TYPE: " + kwt));
+                          break;
                         }
 
                         console.log(chalkTwitter("ADD KEYWORD | " + keyWordType + " | " + keyword));
                         updaterMessageQueue.enqueue({ twitter: true, type: 'keyword', keyword: keyword, keyWordType: keyWordType});
                       }
                      break;
+                    case 'q':
+                    case 'query':
+                      if (hashtags.length == 2) {
+                        var query = hashtags[1].text.toLowerCase();
+                        console.log(chalkTwitter("QUERY: " + query));
+                        updaterMessageQueue.enqueue({ twitter: true, type: 'query', query: query});
+                      }
+                    break;
                     default:
                       console.log(chalkTwitter("??? UNKNOWN DM OP: " + op));
                     break;

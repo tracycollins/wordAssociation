@@ -369,9 +369,22 @@ var updateEntityChannelGroups = function (configFile, callback){
   });  
 }
 
-var updateKeywords = function (folder, file, kwHashMap, prevKwHashMap, callback){
+var updateKeywords = function (folder, file, serverHashMapFlag, callback){
 
-  console.log(chalkWarn("UPDATE KEYWORDS " + file));
+  var kwHashMap = new HashMap();
+  var prevKwHashMap = new HashMap();
+
+  if (serverHashMapFlag){
+    kwHashMap.copy(serverKeywordHashMap);
+    prevKwHashMap.copy(previousServerKeywordHashMap);
+    console.log(chalkWarn("UPDATE SERVER KEYWORDS " + file));
+  }
+  else {
+    kwHashMap.copy(serverKeywordHashMap);
+    prevKwHashMap.copy(previousKeywordHashMap);
+    console.log(chalkWarn("UPDATE GLOBAL KEYWORDS " + file));
+  }
+
 
   loadFile(folder, file, function(err, kwordsObj){
 
@@ -476,8 +489,8 @@ function updateGroupsEntitiesKeywords(options, callback){
     function(cb){ updateGroups(options.serverGroupsFile, cb) },
     function(cb){ updateEntityChannelGroups(options.entitiesFile, cb) },
     function(cb){ updateEntityChannelGroups(options.serverEntitiesFile, cb) },
-    function(cb){ updateKeywords("", options.keywordsFile, keywordHashMap, previousKeywordHashMap, cb) },
-    function(cb){ updateKeywords("", options.serverKeywordsFile, serverKeywordHashMap, previousServerKeywordHashMap, cb) }
+    function(cb){ updateKeywords("", options.keywordsFile, false, cb) },
+    function(cb){ updateKeywords("", options.serverKeywordsFile, true, cb) }
   ],
     function(err, results){
       if (err) {

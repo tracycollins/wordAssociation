@@ -70,15 +70,8 @@ var bhtOverLimitTestFlag = false;
 var wapiOverLimitTestFlag = false;
 
 // ==================================================================
-// SESSION MODES: RANDOM, ANTONYM, SYNONYM, SCRIPT, USER_USER, GROUP, STREAM  ( session.config.mode )
+// SESSION MODES: STREAM  ( session.config.mode )
 // ==================================================================
-
-var sessionModes = ["RANDOM", "ANTONYM", "SYNONYM", "SCRIPT", "USER_USER", "GROUP"];
-var enabledSessionModes = ["ANTONYM", "SYNONYM"];
-// var enabledSessionModes = [ "USER_USER" ];
-
-var DEFAULT_SESSION_MODE = 'RANDOM';
-var defaultSessionMode = DEFAULT_SESSION_MODE;
 
 var jsonPrint = function(obj) {
   if (obj) {
@@ -116,6 +109,7 @@ var ONE_DAY = ONE_HOUR * 24;
 
 var moment = require('moment');
 
+var compactDateTimeFormat = "YYYYMMDD HHmmss";
 var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
 var defaultTimePeriodFormat = "HH:mm:ss";
 
@@ -159,9 +153,6 @@ var serverKeywordsJsonObj = {};
 // ==================================================================
 // SERVER STATUS
 // ==================================================================
-// var upTime = os.uptime() * 1000;
-// var memoryTotal = os.totalmem();
-// var memoryAvailable = os.freemem();
 
 var currentTime = moment();
 
@@ -238,7 +229,7 @@ var statsObj = {
 
   "name": "Word Association Server Status",
   "host": os.hostname(),
-  "timeStamp": moment().format(defaultDateTimeFormat),
+  "timeStamp": moment().format(compactDateTimeFormat),
   "runTimeArgs": process.argv,
 
   "startTime": moment().valueOf(),
@@ -483,7 +474,7 @@ var groupCache = new NodeCache({
 sessionCache.on("set", function(sessionId, sessionObj) {
   if (sessionObj.userId && sessionObj.userId.match('TMS_')){
     console.log(chalkSession("SESS CACHE SET"
-      + " | " + moment().format(defaultDateTimeFormat) 
+      + " | " + moment().format(compactDateTimeFormat) 
       + " | SESSION ID: " + sessionId 
       + " | USER ID: " + sessionObj.userId
       // + " \n" + jsonPrint(sessionObj)
@@ -576,8 +567,8 @@ var wapiLimitResetTime = moment.utc().endOf('day');
 var wapiTimeToReset = moment.utc().endOf('day').valueOf() - moment.utc().valueOf();
 var wapiOverLimitFlag = false;
 
-debug("WAPI OVER LIMIT TIME:  " + wapiOverLimitTime.format(defaultDateTimeFormat));
-debug("WAPI OVER LIMIT RESET: " + wapiOverLimitTime.format(defaultDateTimeFormat));
+debug("WAPI OVER LIMIT TIME:  " + wapiOverLimitTime.format(compactDateTimeFormat));
+debug("WAPI OVER LIMIT RESET: " + wapiOverLimitTime.format(compactDateTimeFormat));
 debug("WAPI TIME TO RESET: " + msToTime(wapiTimeToReset));
 
 var wapiOverLimitTimeOut = setTimeout(function() {
@@ -600,8 +591,8 @@ var bhtLimitResetTime = moment.utc().utcOffset("-07:00").endOf('day');
 var bhtTimeToReset = moment.utc().utcOffset("-07:00").endOf('day').valueOf() - moment.utc().utcOffset("-07:00").valueOf();
 var bhtOverLimitFlag = false;
 
-debug("BHT OVER LIMIT TIME:  " + bhtOverLimitTime.format(defaultDateTimeFormat));
-debug("BHT OVER LIMIT RESET: " + bhtOverLimitTime.format(defaultDateTimeFormat));
+debug("BHT OVER LIMIT TIME:  " + bhtOverLimitTime.format(compactDateTimeFormat));
+debug("BHT OVER LIMIT RESET: " + bhtOverLimitTime.format(compactDateTimeFormat));
 debug("BHT TIME TO RESET: " + msToTime(bhtTimeToReset));
 
 var bhtOverLimitTimeOut = setTimeout(function() {
@@ -623,8 +614,8 @@ var mwLimitResetTime = moment.utc().utcOffset("-05:00").endOf('day');
 var mwTimeToReset = moment.utc().utcOffset("-05:00").endOf('day').valueOf() - moment.utc().utcOffset("-05:00").valueOf();
 var mwOverLimitFlag = false;
 
-debug("MW OVER LIMIT TIME:  " + mwOverLimitTime.format(defaultDateTimeFormat));
-debug("MW OVER LIMIT RESET: " + mwOverLimitTime.format(defaultDateTimeFormat));
+debug("MW OVER LIMIT TIME:  " + mwOverLimitTime.format(compactDateTimeFormat));
+debug("MW OVER LIMIT RESET: " + mwOverLimitTime.format(compactDateTimeFormat));
 debug("MW TIME TO RESET: " + msToTime(mwTimeToReset));
 
 var mwOverLimitTimeOut = setTimeout(function() {
@@ -773,7 +764,6 @@ function loadFile(path, file, callback) {
     });
 }
 
-
 function saveFile (path, file, jsonObj, callback){
 
   var fullPath = path + "/" + file;
@@ -795,18 +785,17 @@ function saveFile (path, file, jsonObj, callback){
       callback(null, response);
     })
     .catch(function(error){
-      console.log(chalkError(moment().format(defaultDateTimeFormat) 
+      console.log(chalkError(moment().format(compactDateTimeFormat) 
         + " | !!! ERROR DROBOX JSON WRITE | FILE: " + fullPath 
         + " ERROR: " + jsonPrint(error)));
       callback(error, null);
     });
 }
 
-
 function dropboxWriteArrayToFile(filePath, dataArray, callback) {
 
   if (typeof filePath === 'undefined') {
-    console.log(chalkError(moment().format(defaultDateTimeFormat) 
+    console.log(chalkError(moment().format(compactDateTimeFormat) 
       + " | !!! DROPBOX WRITE FILE ERROR: FILE PATH UNDEFINED"));
     callback('FILE PATH UNDEFINED', null);
   }
@@ -826,7 +815,7 @@ function dropboxWriteArrayToFile(filePath, dataArray, callback) {
       callback(null, response);
     })
     .catch(function(error){
-      console.log(chalkError(moment().format(defaultDateTimeFormat) 
+      console.log(chalkError(moment().format(compactDateTimeFormat) 
         + " | !!! ERROR DROBOX JSON WRITE | FILE: " + file 
         + " ERROR: " + error));
       callback(error, null);
@@ -863,7 +852,7 @@ function saveStats(statsFile, statsObj, callback) {
       callback('OK');
     })
     .catch(function(error){
-      console.log(chalkError(moment().format(defaultDateTimeFormat) 
+      console.log(chalkError(moment().format(compactDateTimeFormat) 
         + " | !!! ERROR DROBOX JSON WRITE | FILE: " + file 
         + " ERROR: " + error));
       callback(error);
@@ -916,7 +905,7 @@ function loadStats(callback) {
         dropboxClient.filesDownload({path: WA_STATS_FILE})
           .then(function(statsJson) {
             console.log(chalkInfo(
-              moment().format(defaultDateTimeFormat) 
+              moment().format(compactDateTimeFormat) 
               + " | ... LOADING STATS FROM DROPBOX FILE: " + WA_STATS_FILE
             ));
 
@@ -926,23 +915,23 @@ function loadStats(callback) {
 
             if (typeof statsObj.name === 'undefined') statsObj.name = 'Word Assocition Server Status | ' + os.hostname()
 
-            console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
+            console.log(chalkInfo(moment().format(compactDateTimeFormat) 
               + " | FOUND " + statsObj.name));
 
             if (typeof statsObj.bhtRequests !== 'undefined') {
-              console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
+              console.log(chalkInfo(moment().format(compactDateTimeFormat) 
                 + " | SET DAILY BHT REQUESTS: " + statsObj.bhtRequests));
               bhtRequests = statsObj.bhtRequests;
             }
 
             if (typeof statsObj.promptsSent !== 'undefined') {
-              console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
+              console.log(chalkInfo(moment().format(compactDateTimeFormat) 
                 + " | SET PROMPTS SENT: " + statsObj.promptsSent));
               promptsSent = statsObj.promptsSent;
             }
 
             if (typeof statsObj.responsesReceived !== 'undefined') {
-              console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
+              console.log(chalkInfo(moment().format(compactDateTimeFormat) 
                 + " | SET RESPONSES RECEIVED: " + statsObj.responsesReceived));
               responsesReceived = statsObj.responsesReceived;
             }
@@ -993,7 +982,7 @@ function loadStats(callback) {
           }
 
           console.log(chalkInfo(
-            moment().format(defaultDateTimeFormat) 
+            moment().format(compactDateTimeFormat) 
             + " | ... LOADING STATS FROM DROPBOX FILE: " + WA_STATS_FILE
           ));
 
@@ -1003,23 +992,23 @@ function loadStats(callback) {
 
           if (typeof statsObj.name === 'undefined') statsObj.name = 'Word Assocition Server Status | ' + os.hostname()
 
-          console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
+          console.log(chalkInfo(moment().format(compactDateTimeFormat) 
             + " | FOUND " + statsObj.name));
 
           if (typeof statsObj.bhtRequests !== 'undefined') {
-            console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
+            console.log(chalkInfo(moment().format(compactDateTimeFormat) 
               + " | SET DAILY BHT REQUESTS: " + statsObj.bhtRequests));
             bhtRequests = statsObj.bhtRequests;
           }
 
           if (typeof statsObj.promptsSent !== 'undefined') {
-            console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
+            console.log(chalkInfo(moment().format(compactDateTimeFormat) 
               + " | SET PROMPTS SENT: " + statsObj.promptsSent));
             promptsSent = statsObj.promptsSent;
           }
 
           if (typeof statsObj.responsesReceived !== 'undefined') {
-            console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
+            console.log(chalkInfo(moment().format(compactDateTimeFormat) 
               + " | SET RESPONSES RECEIVED: " + statsObj.responsesReceived));
             responsesReceived = statsObj.responsesReceived;
           }
@@ -1043,30 +1032,30 @@ function loadStats(callback) {
       return; //It's important to return so that the task callback isn't called twice
     }
 
-    console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
+    console.log(chalkInfo(moment().format(compactDateTimeFormat) 
       + " | ... LOADING STATS FROM FILE: " + statsFile));
 
     var statsObj = JSON.parse(statsJson);
 
     console.log("DROPBOX STATS\n" + JSON.stringify(statsObj, null, 3));
 
-    console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
+    console.log(chalkInfo(moment().format(compactDateTimeFormat) 
       + " | FOUND " + statsObj.name));
 
     if (typeof statsObj.bhtRequests !== 'undefined') {
-      console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
+      console.log(chalkInfo(moment().format(compactDateTimeFormat) 
         + " | SET DAILY BHT REQUESTS: " + statsObj.bhtRequests));
       bhtRequests = statsObj.bhtRequests;
     }
 
     if (typeof statsObj.promptsSent !== 'undefined') {
-      console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
+      console.log(chalkInfo(moment().format(compactDateTimeFormat) 
         + " | SET PROMPTS SENT: " + statsObj.promptsSent));
       promptsSent = statsObj.promptsSent;
     }
 
     if (typeof statsObj.responsesReceived !== 'undefined') {
-      console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
+      console.log(chalkInfo(moment().format(compactDateTimeFormat) 
         + " | SET RESPONSES RECEIVED: " + statsObj.responsesReceived));
       responsesReceived = statsObj.responsesReceived;
     }
@@ -1085,15 +1074,6 @@ function loadStats(callback) {
   });
 }
 
-//=================================
-//  UPDATE STATUS
-//=================================
-// if (OFFLINE_MODE) {
-
-// } else {
-//   loadStats(function(err, file){});
-// }
-
 var statsInterval;
 
 function updateStatsInterval(statsFile, interval){
@@ -1109,7 +1089,7 @@ function updateStatsInterval(statsFile, interval){
 
 
     updateStats({
-      timeStamp: moment().format(defaultDateTimeFormat),
+      timeStamp: moment().format(compactDateTimeFormat),
       upTime: msToTime(statsObj.upTime),
       runTime: msToTime(statsObj.runTime),
       heartbeat: txHeartbeat,
@@ -1238,213 +1218,7 @@ function updateStatsInterval(statsFile, interval){
       );
     }
   }, interval);
-
 }
-
-
-function updateGroups(configFile, callback){
-
-  initGroups(configFile, function(err, groups){
-    if (err){
-      console.log(chalkError("*** ERROR initEntityChannelGroups"
-        + " | CONFIG FILE: " + configFile
-        + "\n" + jsonPrint(err)
-      ));
-    }
-    else {
-
-      var groupIds = Object.keys(groups) ;
-
-      console.log(chalkLog("GROUPS CONFIG INIT COMPLETE"
-        + " | " + groupIds.length + " GROUPS"
-        // + "\n" + jsonPrint(entityChannelGroups)
-      ));
-
-
-      async.forEach(groupIds, 
-
-        function(groupId, cb){
-
-          if (groupHashMap.has(groupId)){
-            groupHashMap.set(groupId, groups[groupId]);
-            delete statsObj.group.hashMiss[groupId];
-            cb(null, "HIT");
-            return;
-          }
-
-          else {
-            groupHashMap.set(groupId, groups[groupId]);
-            debug(chalkLog("+++ ADDED GROUP  "
-              + " | " + groupId
-              + " | " + groupHashMap.get(groupId).name
-            ));
-            statsObj.group.hashMiss[groupId] = 1;
-            statsObj.group.allHashMisses[groupId] = 1;
-            cb(null, "MISS");
-            return;
-          }
-
-        },
-
-        function(err) {
-          if (err) {
-            console.log("*** ERROR  updateGroups: " + err);
-            callback(err, null);
-            return;
-          } else {
-            debug("FOUND " + groups.length + " GROUPS");
-            console.log(chalkLog("GROUPS CONFIG UPDATE COMPLETE"
-            ));
-
-            updateEntityChannelGroups(defaultDropboxEntityChannelGroupsConfigFile, function(err, results){
-              callback(null, groups.length);
-              return;
-            });
-
-          }
-        }
-      );
-
-    }
-  });  
-}
-
-function updateEntityChannelGroups(configFile, callback){
-
-  initEntityChannelGroups(configFile, function(err, entityChannelGroups){
-    if (err){
-      console.log(chalkError("*** ERROR initEntityChannelGroups"
-        + " | CONFIG FILE: " + configFile
-        + "\n" + jsonPrint(err)
-      ));
-
-      callback(err, null);
-    }
-    else {
-
-      var entityChannelIds = Object.keys(entityChannelGroups) ;
-
-      async.forEach(entityChannelIds, 
-
-        function(entityChannelId, cb){
-
-          var entity = entityChannelGroups[entityChannelId];
-
-          if (entityChannelGroupHashMap.has(entityChannelId)){
-
-            entityChannelGroupHashMap.set(entityChannelId, entity);
-
-            delete statsObj.entityChannelGroup.hashMiss[entityChannelId];
-
-            console.log(chalkInfo("--- UPDATED ENTITY CHANNEL"
-              + " | ECID: " + entityChannelId
-              + " | EGID: " + entityChannelGroupHashMap.get(entityChannelId).groupId
-              + " | EGN: " + entityChannelGroupHashMap.get(entityChannelId).name
-              // + " | " + jsonPrint(entityChannelGroupHashMap.get(entityChannelId))
-            ));
-
-            if (groupHashMap.has(entity.groupId)){
-              cb(null, "ENTITY HIT: " + entityChannelId);
-              return;
-            }
-            else if (!entity.groupId.match(hostname)) {
-              statsObj.group.hashMiss[entity.groupId] = 1;
-              statsObj.group.allHashMisses[entity.groupId] = 1;
-
-              console.log(chalkInfo("-0- GROUP HASHMAP MISS"
-                + " | " + entity.groupId
-              ));
-
-              configEvents.emit("HASH_MISS", {type: "group", value: entity.groupId});
-
-              cb(err, "GROUP NOT FOUND: " + entity.groupId);
-              return;
-            }
-
-          }
-
-          else {
-
-            entityChannelGroupHashMap.set(entityChannelId, entity);
-
-            console.log(chalkLog("+++ ADDED ENTITY CHANNEL"
-              + " | ECID: " + entityChannelId
-              + " | EGID " + entityChannelGroupHashMap.get(entityChannelId).groupId
-              + " | EGN: " + entityChannelGroupHashMap.get(entityChannelId).name
-              // + "\n" + jsonPrint(entityChannelGroupHashMap.get(entityChannelId))
-            ));
-
-            if (groupHashMap.has(entity.groupId)){
-              cb(null, "ENTITY MISS: " + entityChannelId);
-              return;
-            }
-            else if (!entity.groupId.match(hostname)) {
-              statsObj.group.hashMiss[entity.groupId] = 1;
-              statsObj.group.allHashMisses[entity.groupId] = 1;
-
-              console.log(chalkInfo("-1- GROUP HASHMAP MISS"
-                + " | " + entity.groupId
-              ));
-
-              configEvents.emit("HASH_MISS", {type: "group", value: entity.groupId});
-
-              cb(err, "GROUP MISS: " + entity.groupId);
-              return;
-            }
-          }
-
-        },
-
-        function(err) {
-          if (err) {
-            console.log("*** ERROR  updateEntityChannelGroups: " + err);
-            callback(err, null);
-            return;
-          } else {
-            debug("FOUND " + entityChannelIds.length + " ENTITIY CHANNELS");
-            console.log(chalkLog("ENTITY CHANNEL GROUPS CONFIG INIT COMPLETE"
-              // + "\n" + jsonPrint(entityChannelGroups)
-            ));
-            callback(null, entityChannelIds.length);
-            return;
-          }
-        }
-      );
-
-    }
-  });  
-}
-
-var initGroupsInterval;
-
-function updateGroupsInterval(configFile, interval){
-
-  console.log(chalkLog("updateGroupsInterval"
-    + " | INTERVAL: " + interval
-    + " | " + configFile
-  ));
-
-  initGroupsInterval = setInterval(function() {
-    updateGroups(configFile, function(err, results){});
-    // initKeywords(defaultDropboxKeywordFile, function(err, results){});
-  }, interval);
-}
-
-var initEntityChannelGroupsInterval;
-function updateEntityChannelGroupsInterval(configFile, interval){
-
-  console.log(chalkLog("updateEntityChannelGroupsInterval"
-    + " | INTERVAL: " + interval
-    + " | " + configFile
-  ));
-
-  initEntityChannelGroupsInterval = setInterval(function() {
-    updateEntityChannelGroups(configFile, function(err, results){
-
-    });
-  }, interval);
-}
-
 
 // ==================================================================
 // MONGO DATABASE CONFIG
@@ -1838,34 +1612,34 @@ function updateStatsCounts() {
                         return;
                       } else {
                         debug(chalkError("\n*** DB Entity.count ERROR *** | " 
-                          + moment().format(defaultDateTimeFormat) + "\n" + err));
+                          + moment().format(compactDateTimeFormat) + "\n" + err));
                         return;
                       }
                     });
 
                   } else {
                     debug(chalkError("\n*** DB Group.count ERROR *** | " 
-                      + moment().format(defaultDateTimeFormat) + "\n" + err));
+                      + moment().format(compactDateTimeFormat) + "\n" + err));
                     return;
                   }
                 });
 
               } else {
                 debug(chalkError("\n*** DB Word.count ERROR *** | " 
-                  + moment().format(defaultDateTimeFormat) + "\n" + err));
+                  + moment().format(compactDateTimeFormat) + "\n" + err));
                 return;
               }
             });
 
           } else {
             debug(chalkError("\n*** DB Session.count ERROR *** | " 
-              + moment().format(defaultDateTimeFormat) + "\n" + err));
+              + moment().format(compactDateTimeFormat) + "\n" + err));
             return;
           }
         });
       } else {
         debug(chalkError("\n*** DB User.count ERROR *** | " 
-          + moment().format(defaultDateTimeFormat) + "\n" + err));
+          + moment().format(compactDateTimeFormat) + "\n" + err));
         return;
       }
     });
@@ -2036,245 +1810,6 @@ var simpleChain = function(chain) {
   return chainArray;
 }
 
-function sendPrompt(sessionObj, sourceWordObj) {
-
-  // console.log("sendPrompt: sessionObj\n" + jsonPrint(sessionObj));
-
-  var currentSession = sessionCache.get(sessionObj.sessionId);
-  var currentUser = userCache.get(sessionObj.userId);
-
-  if (!currentSession) {
-    debug("sendPrompt | sessionObj.sessionId NOT FOUND IN SESSION CACHE ... SKIPPING | " + sessionObj.sessionId);
-    return;
-  } else if (!currentUser) {
-    debug("sendPrompt | " 
-      + sessionObj.userId + " NOT FOUND IN USER CACHE ... SKIPPING | " 
-      + sessionObj.sessionId
-      + "\n" + jsonPrint(currentUser)
-      );
-    return;
-  } else {
-
-
-    // console.log("sendPrompt: currentSession\n" + jsonPrint(currentSession));
-    // console.log("sendPrompt: currentUser\n" + jsonPrint(currentUser));
-
-    // var sourceWordObj;
-
-    switch (sessionObj.config.mode) {
-      case 'PROMPT':
-      case 'RANDOM':
-      case 'ANTONYM':
-      case 'SYNONYM':
-
-        if (currentSession.wordChainIndex >= 2) {
-
-          // var targetWordId = currentSession.wordChain[currentSession.wordChainIndex - 2];
-          var targetWordId = currentSession.wordChain[currentSession.wordChain.length - 2];
-          var targetWordObj = wordCache.get(targetWordId);
-
-          if (!targetWordObj) {
-            console.log(chalkWarn("sendPrompt" 
-              + " | " + sessionObj.sessionId 
-              + " | " + targetWordId + " NOT FOUND IN WORD CACHE (EXPIRED?) ... SKIPPING"));
-            return;
-            // KLUDGE??? WILL THIS STALL SESSION?
-          }
-
-          // targetWordObj.wordChainIndex = currentSession.wordChainIndex - 2;
-          targetWordObj.wordChainIndex = currentSession.wordChain.length - 2;
-          debug("Word CACHE SET0: " + targetWordObj.nodeId);
-          wordCache.set(targetWordId, targetWordObj);
-
-
-          debug("CHAIN: " + currentSession.wordChain);
-
-          console.log(chalkPrompt("P>" + " | " + currentUser.userId
-            // + " | " + sessionObj.sessionId 
-            // + " | TYPE: " + sessionObj.config.type 
-            // + " | MODE: " + sessionObj.config.mode 
-            + " | " + sourceWordObj.nodeId + " > " + targetWordObj.nodeId
-          ));
-
-          var sessionUpdateObj = {
-            action: 'PROMPT',
-            userId: currentUser.userId,
-            sessionId: currentSession.sessionId,
-            wordChainIndex: currentSession.wordChainIndex,
-            source: sourceWordObj,
-            target: targetWordObj
-          };
-
-          sessionUpdateObj.tags = {};
-
-          if ((typeof currentUser.tags !== 'undefined') && (typeof currentSession.tags === 'undefined')){
-            currentSession.tags = {};
-            currentSession.tags.entity = currentUser.tags.entity;
-            currentSession.tags.channel = currentUser.tags.channel;
-
-            sessionUpdateObj.tags.entity = currentUser.tags.entity;
-            sessionUpdateObj.tags.channel = currentUser.tags.channel;
-
-            sessionUpdateObj.tags.group = entityChannelGroupHashMap.get(currentUser.tags.entity).groupId;
-          }
-          else if (typeof currentSession.tags !== 'undefined'){
-            sessionUpdateObj.tags.entity = currentSession.tags.entity;
-            sessionUpdateObj.tags.channel = currentSession.tags.channel;
-            sessionUpdateObj.tags.group = currentSession.tags.group;
-          }
-
-        } 
-
-        else {
-
-          console.log(chalkPrompt("P>" + " | " + currentUser.userId
-            // + " | " + sessionObj.sessionId 
-            // + " | TYPE: " + sessionObj.config.type 
-            // + " | MODE: " + sessionObj.config.mode 
-            + " | START -> " + sourceWordObj.nodeId));
-
-          var sessionUpdateObj = {
-            action: 'PROMPT',
-            userId: currentUser.userId,
-            sessionId: currentSession.sessionId,
-            wordChainIndex: currentSession.wordChainIndex,
-            source: sourceWordObj,
-            target: 0
-          };
-
-          sessionUpdateObj.tags = {};
-
-          if ((typeof currentUser.tags !== 'undefined') && (typeof currentSession.tags === 'undefined')){
-            currentSession.tags = {};
-            currentSession.tags.entity = currentUser.tags.entity;
-            currentSession.tags.channel = currentUser.tags.channel;
-
-            sessionUpdateObj.tags.entity = currentUser.tags.entity;
-            sessionUpdateObj.tags.channel = currentUser.tags.channel;
-            sessionUpdateObj.tags.group = entityChannelGroupHashMap.get(currentUser.tags.entity).groupId;
-          }
-          else if (typeof currentSession.tags !== 'undefined'){
-            sessionUpdateObj.tags.entity = currentSession.tags.entity;
-            sessionUpdateObj.tags.channel = currentSession.tags.channel;
-            sessionUpdateObj.tags.group = currentSession.tags.group;
-          }
-
-        }
-
-        setTimeout(function() {
-
-          io.of(currentSession.namespace).to(currentSession.sessionId).emit('PROMPT_WORD_OBJ', sourceWordObj);
-
-          updateSessionViews(sessionUpdateObj);
-
-          promptsSent++;
-          deltaPromptsSent++;
-          updateStats({
-            promptsSent: promptsSent
-          });
-
-        }, randomInt(minServerResponseTime, maxServerResponseTime));
-
-        break;
-
-      case 'SCRIPT':
-        break;
-
-      case 'USER_USER':
-
-        var currentSession = sessionCache.get(sessionObj.sessionId);
-        var currentUser = userCache.get(sessionObj.userId);
-
-        var targetSessionId = sessionRouteHashMap.get(currentSession.sessionId);
-        var targetSession = sessionCache.get(targetSessionId);
-
-        debug(chalkRed("currentSession\n" + jsonPrint(currentSession)));
-        debug(chalkRed("targetSession\n" + jsonPrint(targetSession)));
-
-        var promptWordObj;
-
-        if (currentSession.wordChain.length >= 2) {
-
-          var promptWord = currentSession.wordChain[currentSession.wordChain.length - 1].nodeId;
-          var previousResponse = currentSession.wordChain[currentSession.wordChain.length - 2].nodeId;
-
-          promptWordObj = wordCache.get(promptWord);
-          var targetWordObj = wordCache.get(previousResponse);
-
-          debug(chalkPrompt("P-> " + currentUser.userId 
-            + " | " + sessionObj.sessionId 
-            + " | TYPE: " + sessionObj.config.type 
-            + " | MODE: " + sessionObj.config.mode 
-            + " | " + targetWordObj.nodeId 
-            + " --> " + promptWordObj.nodeId 
-            + " | " + targetSessionId));
-
-        } else if (currentSession.wordChainIndex >= 1) {
-
-          var previousResponse = currentSession.wordChain[currentSession.wordChain.length - 1].nodeId;
-
-          var targetWordObj = wordCache.get(previousResponse);
-          promptWordObj = targetWordObj;
-
-          debug(chalkPrompt("P-> " + currentUser.userId 
-            + " | " + sessionObj.sessionId 
-            + " | TYPE: " + sessionObj.config.type 
-            + " | MODE: " + sessionObj.config.mode 
-            + " | START --> " + targetWordObj.nodeId));
-
-        } else {
-
-          promptWordObj = {
-            nodeId: "START"
-          };
-
-          debug(chalkPrompt("P-> " + currentUser.userId 
-            + " | " + targetSession.sessionId 
-            + " | TYPE: " + sessionObj.config.type 
-            + " | MODE: " + sessionObj.config.mode 
-            + " | START --> " + promptWordObj.nodeId));
-        }
-
-        sessionCache.set(currentSession.sessionId, currentSession);
-        sessionCache.set(targetSession.sessionId, targetSession);
-
-        io.of(currentSession.namespace).to(targetSession.sessionId).emit('PROMPT_WORD_OBJ', promptWordObj);
-
-        promptsSent++;
-        deltaPromptsSent++;
-
-        var sessionUpdateObj = {
-          action: 'PROMPT',
-          tags: {},
-          userId: currentUser.userId,
-          sessionId: currentSession.sessionId,
-          wordChainIndex: currentSession.wordChainIndex,
-          source: promptWordObj,
-          target: targetWordObj
-        };
-
-        // sessionUpdateObj.tags.entity = currentUser.userId.toLowerCase();
-        sessionUpdateObj.tags = currentSession.tags;
-
-        updateSessionViews(sessionUpdateObj);
-
-        updateStats({
-          promptsSent: promptsSent
-        });
-        break;
-
-      case 'MUXSTREAM':
-      case 'GROUP':
-        break;
-      default:
-        debug(chalkError(" 1 ????? UNKNOWN SESSION TYPE: " + sessionObj.config.mode));
-        quit(" 1 ????? UNKNOWN SESSION TYPE: " + sessionObj.config.mode);
-        break;
-    }
-
-  }
-}
-
 // BHT
 var wordTypes = ['noun', 'verb', 'adjective', 'adverb'];
 var wordVariations = ['syn', 'ant', 'rel', 'sim', 'usr'];
@@ -2297,8 +1832,8 @@ function dbUpdateGroup(groupObj, incMentions, callback) {
       console.log(chalkInfo("->- DB GR" 
         + " | " + group.groupId 
         + " | NAME: " + group.name 
-        + " | CREATED: " + moment(group.createdAt).format(defaultDateTimeFormat)
-        + " | LAST: " + moment(group.lastSeen).format(defaultDateTimeFormat)
+        + " | CREATED: " + moment(group.createdAt).format(compactDateTimeFormat)
+        + " | LAST: " + moment(group.lastSeen).format(compactDateTimeFormat)
         + " | MNS: " + group.mentions 
         + "\nCHANNELS: " + group.channels
         + "\nENTITIES: " + group.entities
@@ -2327,14 +1862,14 @@ function dbUpdateEntity(entityObj, incMentions, callback) {
 
       console.log("->- DB EN" 
         + " | " + entity.entityId 
-        + " | N: " + entity.name 
-        + " | SN: " + entity.screenName 
-        + " | GR: " + entity.groupId
-        + " | CH: " + entity.tags.channel
-        + " | SESS: " + entity.sessions 
+        + " | " + entity.name 
+        // + " | SN: " + entity.screenName 
+        + " | G: " + entity.groupId
+        + " | C: " + entity.tags.channel
+        + " | S: " + entity.sessions 
         + " | Ws: " + entity.words 
-        + " | CR: " + moment(entity.createdAt).format(defaultDateTimeFormat)
-        + " | LAST: " + moment(entity.lastSeen).format(defaultDateTimeFormat)
+        + " | CR: " + moment(entity.createdAt).format(compactDateTimeFormat)
+        + " | L: " + moment(entity.lastSeen).format(compactDateTimeFormat)
         + " | Ms: " + entity.mentions 
       );
 
@@ -2628,94 +2163,14 @@ function bhtHttpGet(host, path, wordObj, callback) {
   });
 }
 
-function generatePrompt(query, callback) {
-  debug("->- GEN PROMPT | " + query.input + " | " + query.algorithm.toUpperCase());
-
-  // wordVariations = [ 'syn', 'ant', 'rel', 'sim', 'usr' ]
-
-  switch (query.algorithm) {
-    case 'antonym':
-      wordServer.getWordVariation(query.input, wordTypes, ['ant'], function(status, antWordObj) {
-        if (status == 'BHT_VAR_HIT') {
-          // debug("randomWordObj: " + randomWordObj.nodeId);
-          debug("Word CACHE SET8: " + antWordObj.nodeId);
-          wordCache.set(antWordObj.nodeId, antWordObj);
-          callback('OK', antWordObj);
-          return;
-        } else if (status == 'BHT_VAR_MISS') {
-          wordServer.getRandomWord(function(err, randomWordObj) {
-            if (!err) {
-              debug("-G- GEN RANDOM - ANT MISS: " + randomWordObj.nodeId);
-              debug("Word CACHE SET9: " + randomWordObj.nodeId);
-              wordCache.set(randomWordObj.nodeId, randomWordObj);
-              callback('OK', randomWordObj);
-              return;
-            } else {
-              debug("*** GENERATE PROMPT ERROR | " + status);
-              callback('ERROR', status);
-              return;
-            }
-          });
-        } else {
-          debug("*** GENERATE PROMPT ERROR | " + status);
-          callback('ERROR', status);
-          return;
-        }
-      });
-      break;
-    case 'synonym':
-      wordServer.getWordVariation(query.input, wordTypes, ['syn', 'sim'], function(status, synWordObj) {
-        if (status == 'BHT_VAR_HIT') {
-          // debug("randomWordObj: " + randomWordObj.nodeId);
-          debug("Word CACHE SET10: " + synWordObj.nodeId);
-          wordCache.set(synWordObj.nodeId, synWordObj);
-          callback('OK', synWordObj);
-          return;
-        } else if (status == 'BHT_VAR_MISS') {
-          wordServer.getRandomWord(function(err, randomWordObj) {
-            if (!err) {
-              debug("-G- GEN RANDOM - SYN MISS: " + randomWordObj.nodeId);
-              debug("Word CACHE SET11: " + randomWordObj.nodeId);
-              wordCache.set(randomWordObj.nodeId, randomWordObj);
-              callback('OK', randomWordObj);
-              return;
-            } else {
-              debug("*** GENERATE PROMPT ERROR | " + status);
-              callback('ERROR', status);
-              return;
-            }
-          });
-        } else {
-          debug("*** GENERATE PROMPT ERROR | " + status);
-          callback('ERROR', status);
-          return;
-        }
-      });
-      break;
-    default: // 'random':
-      wordServer.getRandomWord(function(err, randomWordObj) {
-        if (!err) {
-          // debug("randomWordObj: " + randomWordObj.nodeId);
-          debug("Word CACHE SET12: " + randomWordObj.nodeId);
-          wordCache.set(randomWordObj.nodeId, randomWordObj);
-          callback('OK', randomWordObj);
-          return;
-        } else {
-          callback('ERROR', err);
-          return;
-        }
-      });
-      break;
-  }
-}
 
 wapiEvents.on("WAPI_OVER_LIMIT_TIMEOUT", function() {
   if (wapiOverLimitFlag) {
     debug(chalkWapi("*** WAPI_OVER_LIMIT_TIMEOUT END *** | " 
-      + moment().format(defaultDateTimeFormat)));
+      + moment().format(compactDateTimeFormat)));
   } else {
     debug(chalkWapi(" WAPI_OVER_LIMIT_TIMEOUT END (NO OVER LIMIT) | " 
-      + moment().format(defaultDateTimeFormat)));
+      + moment().format(compactDateTimeFormat)));
   }
 
   wapiOverLimitFlag = false;
@@ -2763,8 +2218,8 @@ wapiEvents.on("WAPI_OVER_LIMIT", function() {
   wapiTimeToReset = wapiLimitResetTime.valueOf() - wapiOverLimitTime.valueOf();
 
   debug(chalkWapi("wapiSearchWord: *** OVER LIMIT *** | " + wapiRequests + " REQUESTS"));
-  debug(chalkWapi("wapiSearchWord: *** OVER LIMIT *** | WAPI OVER LIMIT TIME:      " + wapiOverLimitTime.format(defaultDateTimeFormat)));
-  debug(chalkWapi("wapiSearchWord: *** OVER LIMIT *** | WAPI LIMIT RESET TIME:     " + wapiLimitResetTime.format(defaultDateTimeFormat)));
+  debug(chalkWapi("wapiSearchWord: *** OVER LIMIT *** | WAPI OVER LIMIT TIME:      " + wapiOverLimitTime.format(compactDateTimeFormat)));
+  debug(chalkWapi("wapiSearchWord: *** OVER LIMIT *** | WAPI LIMIT RESET TIME:     " + wapiLimitResetTime.format(compactDateTimeFormat)));
   debug(chalkWapi("wapiSearchWord: *** OVER LIMIT *** | WAPI OVER LIMIT REMAINING: " + msToTime(wapiTimeToReset)));
 
   debug("SET WAPI REQUESTS TO LIMIT: " + statsObj.wapi.requestLimit);
@@ -2788,10 +2243,10 @@ wapiEvents.on("WAPI_OVER_LIMIT", function() {
 bhtEvents.on("BHT_OVER_LIMIT_TIMEOUT", function() {
   if (bhtOverLimitFlag) {
     debug(chalkBht("*** BHT_OVER_LIMIT_TIMEOUT END *** | " 
-      + moment().format(defaultDateTimeFormat)));
+      + moment().format(compactDateTimeFormat)));
   } else {
     debug(chalkBht(" BHT_OVER_LIMIT_TIMEOUT END (NO OVER LIMIT) | " 
-      + moment().format(defaultDateTimeFormat)));
+      + moment().format(compactDateTimeFormat)));
   }
 
   bhtOverLimitFlag = false;
@@ -2844,8 +2299,8 @@ bhtEvents.on("BHT_OVER_LIMIT", function() {
   bhtTimeToReset = bhtLimitResetTime.valueOf() - bhtOverLimitTime.valueOf();
 
   debug(chalkBht("bhtSearchWord: *** OVER LIMIT *** | " + bhtRequests + " REQUESTS"));
-  debug(chalkBht("bhtSearchWord: *** OVER LIMIT *** | BHT OVER LIMIT TIME:      " + bhtOverLimitTime.format(defaultDateTimeFormat)));
-  debug(chalkBht("bhtSearchWord: *** OVER LIMIT *** | BHT LIMIT RESET TIME:     " + bhtLimitResetTime.format(defaultDateTimeFormat)));
+  debug(chalkBht("bhtSearchWord: *** OVER LIMIT *** | BHT OVER LIMIT TIME:      " + bhtOverLimitTime.format(compactDateTimeFormat)));
+  debug(chalkBht("bhtSearchWord: *** OVER LIMIT *** | BHT LIMIT RESET TIME:     " + bhtLimitResetTime.format(compactDateTimeFormat)));
   debug(chalkBht("bhtSearchWord: *** OVER LIMIT *** | BHT OVER LIMIT REMAINING: " + msToTime(bhtTimeToReset)));
 
   debug("SET BHT REQUESTS TO LIMIT: " + BHT_REQUEST_LIMIT);
@@ -2880,8 +2335,8 @@ function bhtSearchWord(wordObj, callback) {
     debug(chalkBht("*** BHT OVER LIMIT" 
       + " | LIMIT: " + BHT_REQUEST_LIMIT 
       + " | REQS: " + bhtRequests 
-      + " | OVER: " + bhtOverLimitTime.format(defaultDateTimeFormat) 
-      + " | RESET: " + bhtLimitResetTime.format(defaultDateTimeFormat) 
+      + " | OVER: " + bhtOverLimitTime.format(compactDateTimeFormat) 
+      + " | RESET: " + bhtLimitResetTime.format(compactDateTimeFormat) 
       + " | REMAIN: " + msToTime(bhtLimitResetTime.diff(now))
     ));
     callback("BHT_OVER_LIMIT", wordObj);
@@ -3077,7 +2532,7 @@ function sessionUpdateDb(sessionObj, callback) {
     options,
     function(err, ses) {
       if (err) {
-        console.log("!!! SESSION FINDONE ERROR: " + moment().format(defaultDateTimeFormat) 
+        console.log("!!! SESSION FINDONE ERROR: " + moment().format(compactDateTimeFormat) 
           + " | " + sessionObj.sessionId + "\n" + err);
         callback(err, sessionObj);
       } else {
@@ -3109,17 +2564,17 @@ function findSessionById(sessionId, callback) {
     function(err, session) {
       if (err) {
         console.log(chalkError("!!! SESSION FINDONE ERROR: " 
-          + moment().format(defaultDateTimeFormat) 
+          + moment().format(compactDateTimeFormat) 
           + "\nSESSION ID: " + sessionId 
           + "\n" + err
         ));
         callback(err, null);
       } else if (session) {
-        debug(chalkInfo(moment().format(defaultDateTimeFormat) 
+        debug(chalkInfo(moment().format(compactDateTimeFormat) 
           + " | SESSION FOUND\n" + jsonPrint(session)));
         callback(null, session);
       } else {
-        debug(chalkAlert(moment().format(defaultDateTimeFormat) 
+        debug(chalkAlert(moment().format(compactDateTimeFormat) 
           + " | SESSION NOT FOUND"));
         callback(null, null);
       }
@@ -3444,7 +2899,7 @@ function adminUpdateDb(adminObj, callback) {
     function(err, ad) {
       if (err) {
         console.log("!!! ADMIN FINDONE ERROR: " 
-          + moment().format(defaultDateTimeFormat) 
+          + moment().format(compactDateTimeFormat) 
           + " | " + adminObj.adminId 
           + "\nQUERY: " + jsonPrint(query) 
           + "\nUPDATE: " + jsonPrint(update) 
@@ -3514,7 +2969,7 @@ function viewerUpdateDb(viewerObj, callback) {
     function(err, vw) {
       if (err) {
         console.log("!!! VIEWER FINDONE ERROR: " 
-          + moment().format(defaultDateTimeFormat) 
+          + moment().format(compactDateTimeFormat) 
           + " | " + viewerObj.viewerId 
           + "\n" + err
         );
@@ -3594,7 +3049,7 @@ function userUpdateDb(userObj, callback) {
     function(err, us) {
       if (err) {
         console.log("!!! USER FINDONE ERROR: " 
-          + moment().format(defaultDateTimeFormat) 
+          + moment().format(compactDateTimeFormat) 
           + " | " + userObj.userId 
           + "\n" + err
         );
@@ -3912,7 +3367,7 @@ function oauthExpiryTimer(endTime) {
   var remainingTime = msToTime(endTime - getTimeNow());
 
   debug("\nSET oauthExpiryTimer: " + getTimeStamp(endTime));
-  debug(chalkInfo(moment().format(defaultDateTimeFormat) 
+  debug(chalkInfo(moment().format(compactDateTimeFormat) 
     + " | GOOGLE OAUTH2 CREDENTIAL EXPIRES IN: " + remainingTime + " AT " + endTime));
 
   var oauthInterval = setInterval(function() {
@@ -3920,12 +3375,12 @@ function oauthExpiryTimer(endTime) {
     remainingTime = msToTime(endTime - getTimeNow());
 
     if (endTime - getTimeNow() < 60000) {
-      debug(chalkAlert(moment().format(defaultDateTimeFormat) 
+      debug(chalkAlert(moment().format(compactDateTimeFormat) 
         + " | GOOGLE OAUTH2 CREDENTIAL EXPIRING IN " + remainingTime));
     }
 
     if (getTimeNow() >= endTime) {
-      debug(chalkAlert(moment().format(defaultDateTimeFormat) 
+      debug(chalkAlert(moment().format(compactDateTimeFormat) 
         + " | GOOGLE OAUTH2 CREDENTIAL EXPIRED: " 
         + " | " + getTimeStamp(endTime)));
       clearInterval(oauthInterval);
@@ -3941,9 +3396,9 @@ function oauthExpiryTimer(endTime) {
 function authorizeGoogle() {
   googleOauthClient.authorize(function(err, tokens) {
     if (err) {
-      console.log(chalkError(moment().format(defaultDateTimeFormat) 
+      console.log(chalkError(moment().format(compactDateTimeFormat) 
         + " | ***** GOOGLE OAUTH ERROR: googleOauthClient " 
-        + " | " + moment().format(defaultDateTimeFormat) 
+        + " | " + moment().format(compactDateTimeFormat) 
         + "\n" + err + "\n"));
       googleOauthEvents.emit('GOOGLE OAUTH ERROR', err);
     } else {
@@ -3975,7 +3430,7 @@ function authorizeGoogle() {
       googleMetricsEnabled = true;
       oauthExpiryTimer(tokens.expiry_date);
 
-      debug(chalkInfo(moment().format(defaultDateTimeFormat) 
+      debug(chalkInfo(moment().format(compactDateTimeFormat) 
         + " | GOOGLE OAUTH2 AUTHORIZED: ExpiryDate: " + getTimeStamp(googleAuthExpiryDate)));
       googleOauthEvents.emit('GOOGLE AUTHORIZED', credential);
     }
@@ -4016,13 +3471,13 @@ function findOneOauth2Credential(credential) {
     options,
     function(err, cred) {
       if (err) {
-        console.log(chalkError(moment().format(defaultDateTimeFormat) 
+        console.log(chalkError(moment().format(compactDateTimeFormat) 
           + " | !!! OAUTH2 CREDENTIAL FINDONE ERROR" 
           + "\nCLIENT ID: " + credential.clientId 
           + "\nERROR" + err));
         return credential;
       } else {
-        debug(chalkInfo(moment().format(defaultDateTimeFormat) 
+        debug(chalkInfo(moment().format(compactDateTimeFormat) 
           + " | GOOGLE CREDENTIAL UPDATED" 
           + " | EXPIRES AT " + cred.expiryDate
         ));
@@ -4059,7 +3514,7 @@ function findCredential(clientId, callback) {
     function(err, cred) {
       if (err) {
         console.log(chalkError("!!! OAUTH2 CREDENTIAL FINDONE ERROR: " 
-          + moment().format(defaultDateTimeFormat) 
+          + moment().format(compactDateTimeFormat) 
           + "\nCLIENT ID: " + clientId 
           + "\n" + err
         ));
@@ -4067,7 +3522,7 @@ function findCredential(clientId, callback) {
         callback(err);
         // return;    
       } else if (cred) {
-        debug(chalkInfo(moment().format(defaultDateTimeFormat) + " | GOOGLE OAUTH2 CREDENTIAL FOUND"));
+        debug(chalkInfo(moment().format(compactDateTimeFormat) + " | GOOGLE OAUTH2 CREDENTIAL FOUND"));
         debug(chalkGoogle("GOOGLE OAUTH2 CREDENTIAL\n--------------------------------\n" 
           + "\nCREDENTIAL TYPE: " + cred.credentialType 
           + "\nCLIENT ID:       " + cred.clientId 
@@ -4085,7 +3540,7 @@ function findCredential(clientId, callback) {
         googleOauthEvents.emit('GOOGLE CREDENTIAL FOUND', cred);
         callback(cred);
       } else {
-        debug(chalkAlert(moment().format(defaultDateTimeFormat) + " | GOOGLE OAUTH2 CREDENTIAL NOT FOUND"));
+        debug(chalkAlert(moment().format(compactDateTimeFormat) + " | GOOGLE OAUTH2 CREDENTIAL NOT FOUND"));
         googleOauthEvents.emit('GOOGLE CREDENTIAL NOT FOUND', clientId);
         callback(null);
       }
@@ -4109,7 +3564,7 @@ function updateMetrics(googleMetricsUpdateFlag) {
   metricDateEnd = moment().toJSON();
   // hopefully will avoid Google metric error Timeseries data must be more recent than previously-written data
 
-  debug(moment().format(defaultDateTimeFormat) 
+  debug(moment().format(compactDateTimeFormat) 
     + " | updateMetrics USERS: " + numberUsers 
     + " | PTX: " + promptsSent 
     + " | RRX: " + responsesReceived 
@@ -4402,7 +3857,7 @@ function updateMetrics(googleMetricsUpdateFlag) {
     }, function(err, res) {
       if (err) {
         console.log("!!! GOOGLE CLOUD MONITORING ERROR " 
-          + " | " + moment().format(defaultDateTimeFormat) 
+          + " | " + moment().format(compactDateTimeFormat) 
           + " | " + statArray 
           + "\n" + util.inspect(err, {
           showHidden: false,
@@ -4461,95 +3916,6 @@ var readDnsQueue = setInterval(function() {
 var unpairedUserHashMap = new HashMap();
 var sessionRouteHashMap = new HashMap();
 
-function pairUser(sessionObj, callback) {
-
-  sessionObj.config.mode = 'USER_USER'; // should already be set
-  debug(unpairedUserHashMap.count() + " PAIRING USER " + sessionObj.userId + " | SID: " + sessionObj.sessionId);
-
-  if (unpairedUserHashMap.count() > 0) {
-
-    var sessionIds = unpairedUserHashMap.keys();
-
-
-    async.detect(
-
-      sessionIds, // iterate over sessionId array
-
-      function(sessionId, callback) {
-
-        var userId = unpairedUserHashMap.get(sessionId);
-
-        debug(chalkSession("UNPAIRED USER | " + userId + " | SID: " + sessionId));
-
-        if (sessionId != sessionObj.sessionId) {
-          callback(true);
-        } else {
-          callback(false);
-        }
-
-      },
-
-      function(foundPairSessionId) {
-        if (foundPairSessionId) {
-
-          debug(chalkSession("PPP FOUND USER TO PAIR | A: " + foundPairSessionId 
-            + " <-> B: " + sessionObj.sessionId));
-
-          sessionObj.config.userB = sessionObj.sessionId;
-          sessionObj.config.userA = foundPairSessionId;
-          sessionObj.wordChain = [];
-          sessionObj.wordChainIndex = 0;
-
-          // add both A -> B and B -> A to sessionRouteHashMap
-
-          sessionRouteHashMap.set(sessionObj.sessionId, foundPairSessionId);
-          sessionRouteHashMap.set(foundPairSessionId, sessionObj.sessionId);
-
-          unpairedUserHashMap.remove(sessionObj.sessionId);
-          unpairedUserHashMap.remove(foundPairSessionId);
-
-
-          sessionUpdateDb(sessionObj, function(err, updatedSessionObj) {
-            sessionCache.set(updatedSessionObj.sessionId, updatedSessionObj);
-
-            // update session for userA
-            var sessionUserA = sessionCache.get(foundPairSessionId);
-            sessionUserA.wordChain = [];
-            sessionUserA.wordChainIndex = 0;
-
-            debug("sessionUserA\n" + jsonPrint(sessionUserA));
-
-            sessionUserA.config.userB = sessionObj.sessionId;
-            sessionUserA.config.userA = foundPairSessionId;
-
-            sessionUpdateDb(sessionUserA, function(err, updatedSessionObj) {
-              sessionCache.set(updatedSessionObj.sessionId, updatedSessionObj);
-              callback(null, sessionObj);
-              return;
-            });
-
-          });
-        } else {
-          debug("NPF NO PAIR FOUND | " + sessionObj.sessionId);
-          callback(null, sessionObj);
-          return;
-        }
-      }
-    );
-  } 
-  else {
-    sessionObj.config.userA = sessionObj.sessionId;
-    debug(chalkSession("NO UNPAIRED USER FOUND " + sessionObj.userId 
-      + " | " + sessionObj.sessionId + " ... ADDING TO unpairedUserHashMap"));
-    unpairedUserHashMap.set(sessionObj.sessionId, sessionObj.userId);
-    sessionUpdateDb(sessionObj, function(err, updatedSessionObj) {
-      sessionCache.set(updatedSessionObj.sessionId, updatedSessionObj);
-      callback(null, sessionObj);
-      return;
-    });
-  }
-}
-
 function handleSessionEvent(sesObj, callback) {
 
 
@@ -4605,7 +3971,7 @@ function handleSessionEvent(sesObj, callback) {
       console.log(chalkSession(
         "XXX " + sesObj.sessionEvent
         // + "\n" + jsonPrint(sesObj)
-        + " | " + moment().format(defaultDateTimeFormat) 
+        + " | " + moment().format(compactDateTimeFormat) 
         // + " | NSP: " + sesObj.session.namespace 
         + " | SID: " + sesObj.session.sessionId 
         + " | UID: " + sesObj.session.userId 
@@ -4658,24 +4024,6 @@ function handleSessionEvent(sesObj, callback) {
             io.of(sesObj.session.namespace).to(sesObj.session.config.userA).emit('PAIRED_USER_END', sesObj.session.config.userB);
           }
 
-          pairUser(unpairedSessionObj, function(err, updatedSessionObj) {
-            if (err) {
-              console.log(chalkError("*** pairUser ERROR\n" + jsonPrint(err)));
-            } else if (updatedSessionObj.config.userA && updatedSessionObj.config.userB) {
-
-              debug(chalkSession("U_U CREATED USER_USER PAIR" 
-                + " | " + moment().valueOf() 
-                + " | " + sesObj.session.sessionId 
-                + "\n" + jsonPrint(updatedSessionObj.config)));
-
-              io.of(updatedSessionObj.namespace).to(updatedSessionObj.config.userA).emit('PAIRED_USER', updatedSessionObj.config.userB);
-              io.of(updatedSessionObj.namespace).to(updatedSessionObj.config.userB).emit('PAIRED_USER', updatedSessionObj.config.userA);
-
-            } else {
-              debug(chalkSession("U-? WAITING TO COMPLETE PAIR\n" + jsonPrint(updatedSessionObj.config)));
-              return (callback(null, sesObj));
-            }
-          });
         }
 
         sessionRouteHashMap.remove(sesObj.session.config.userA);
@@ -4959,15 +4307,6 @@ function handleSessionEvent(sesObj, callback) {
 
     case 'SESSION_CREATE':
 
-      if (typeof sesObj.session.config.mode !== 'undefined') {
-        debug(chalkSession("... SESSION MODE SET:    " + sesObj.session.config.mode));
-      } else {
-        sesObj.session.config.mode = enabledSessionModes[randomInt(0, enabledSessionModes.length)];
-        debug(chalkSession("... SESSION MODE RANDOM: " + sesObj.session.config.mode));
-      }
-
-      // sesObj.session.config.mode = defaultSessionType ;
-
       if (typeof sesObj.session.tags === 'undefined') {
         sesObj.session.tags = {};
         sesObj.session.tags.entity = 'UNKNOWN_ENTITY';
@@ -4976,7 +4315,7 @@ function handleSessionEvent(sesObj, callback) {
 
       console.log(chalkSession(
         ">>> SESS CREATE" 
-        + " | " + moment().format(defaultDateTimeFormat) 
+        + " | " + moment().format(compactDateTimeFormat) 
         + " | NSP: " + sesObj.session.namespace 
         + " | TYPE: " + sesObj.session.config.type 
         + " | MODE: " + sesObj.session.config.mode 
@@ -4985,8 +4324,6 @@ function handleSessionEvent(sesObj, callback) {
         + " | CH: " + sesObj.session.tags.channel
         + " | SIP: " + sesObj.session.ip
       ));
-
-      // SESSION TYPES: RANDOM, ANTONYM, SYNONYM, SCRIPT, USER_USER, GROUP 
 
       switch (sesObj.session.config.type) {
         case 'ADMIN':
@@ -5045,7 +4382,7 @@ function handleSessionEvent(sesObj, callback) {
 
       debug(chalkSession(
         "<-> SOCKET RECONNECT" 
-        + " | " + moment().format(defaultDateTimeFormat) 
+        + " | " + moment().format(compactDateTimeFormat) 
         + " | NSP: " + sesObj.session.namespace 
         + " | SID: " + sesObj.session.sessionId 
         + " | IP: " + sesObj.session.ip 
@@ -5105,7 +4442,7 @@ function handleSessionEvent(sesObj, callback) {
 
       debug(chalkSession(
         ">>> SESSION ADMIN READY" 
-        + " | " + moment().format(defaultDateTimeFormat) 
+        + " | " + moment().format(compactDateTimeFormat) 
         + " | SID: " + sesObj.session.sessionId 
         + " | UID: " + sesObj.admin.adminId 
         + " | NSP: " + sesObj.session.namespace 
@@ -5168,7 +4505,7 @@ function handleSessionEvent(sesObj, callback) {
 
       debug(chalkSession(
         ">>> SESSION VIEWER READY" 
-        + " | " + moment().format(defaultDateTimeFormat) 
+        + " | " + moment().format(compactDateTimeFormat) 
         + " | SID: " + sesObj.session.sessionId 
         + " | UID: " + sesObj.viewer.viewerId 
         + " | NSP: " + sesObj.session.namespace 
@@ -5241,7 +4578,7 @@ function handleSessionEvent(sesObj, callback) {
 
       console.log(chalkSession(
         ">>> USER READY" 
-        + " | " + moment().format(defaultDateTimeFormat) 
+        + " | " + moment().format(compactDateTimeFormat) 
         + " | NSP: " + sesObj.session.namespace 
         + " | UN: " + sesObj.user.name 
         + " | UID: " + sesObj.user.userId 
@@ -5397,159 +4734,6 @@ function handleSessionEvent(sesObj, callback) {
             if (!err && success) {
 
               switch (sesObj.session.config.type) {
-                case 'USER':
-                case 'TEST':
-                case 'TEST_USER':
-                  switch (sesObj.session.config.mode) {
-
-                    // start with a random word for these session modes
-
-                    case 'PROMPT':
-                    case 'RANDOM':
-                    case 'ANTONYM':
-                    case 'SYNONYM':
-                      wordServer.getRandomWord(function(err, randomWordObj) {
-                        if (!err) {
-
-                          randomWordObj.wordChainIndex = currentSession.wordChainIndex;
-
-                          debug("Word CACHE SET13: " + randomWordObj.nodeId);
-                          wordCache.set(randomWordObj.nodeId, randomWordObj);
-
-                          currentSession.wordChain.push({nodeId: randomWordObj.nodeId, timeStamp:moment().valueOf()});
-                          currentSession.wordChainIndex++;
-
-                          sessionUpdateDb(currentSession, function(err, sessionUpdatedObj) {
-                            if (!err) {
-                              sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
-                              debug(chalkInfo("-S- DB UPDATE" 
-                                + " | " + sessionUpdatedObj.sessionId 
-                                + " | WCI: " + sessionUpdatedObj.wordChainIndex 
-                                + " | WCL: " + sessionUpdatedObj.wordChain.length));
-                              // sendPrompt(currentSession, randomWordObj);
-                              sendPrompt(sessionUpdatedObj, randomWordObj);
-                            } else {
-                              debug(chalkError("*** ERROR DB UPDATE SESSION\n" + err));
-                            }
-                          });
-                        } else {
-                          debug(chalkError("*** ERROR GET RANDOM WORD\n" + err));
-                        }
-                      });
-                      break;
-
-                    case 'SCRIPT':
-                      break;
-
-                    case 'USER_USER':
-
-                      debug(chalkSession("... PAIRING USER " + currentSession.userId));
-
-                      pairUser(currentSession, function(err, updatedSessionObj) {
-                        if (err) {
-                          console.log(chalkError("*** pairUser ERROR\n" + jsonPrint(err)));
-                        } else if (updatedSessionObj.config.userA && updatedSessionObj.config.userB) {
-
-                          debug(chalkSession("U_U CREATED USER_USER PAIR" 
-                            + " | " + moment().valueOf() 
-                            + " | " + sesObj.session.sessionId 
-                            + "\n" + jsonPrint(updatedSessionObj.config)
-                          ));
-
-                          io.of(currentSession.namespace).to(updatedSessionObj.config.userA).emit('PAIRED_USER', updatedSessionObj.config.userB);
-                          io.of(currentSession.namespace).to(updatedSessionObj.config.userB).emit('PAIRED_USER', updatedSessionObj.config.userA);
-
-                        } else {
-                          debug(chalkSession("U-? WAITING TO COMPLETE PAIR\n" + jsonPrint(updatedSessionObj.config)));
-                          return (callback(null, sesObj));
-                        }
-                      });
-                      break;
-
-                    case 'GROUP':
-                      break;
-
-                    case 'MUXSTREAM':
-                      console.log(chalkSession("... MULTIPLEXED STREAM USER " + currentSession.userId));
-
-                      sessionUpdateDb(currentSession, function(err, sessionUpdatedObj) {
-                        if (!err) {
-                          if (typeof sessionCache.wordChain !== 'undefined'
-                            && (sessionCache.wordChain.length > MAX_WORDCHAIN_LENGTH)) {
-                            console.log(chalkSession("SHORTEN WC TO " + MAX_WORDCHAIN_LENGTH
-                              + " | UID: " + sessionUpdatedObj.userId
-                              + " | CURR LEN: " + sessionUpdatedObj.wordChain.length
-                              + " | FIRST WORD: " + sessionUpdatedObj.wordChain[0].nodeId
-                              + " | LAST WORD: " + sessionUpdatedObj.wordChain[sessionUpdatedObj.wordChain.length-1].nodeId
-                            ));
-                            sessionUpdatedObj.wordChain = sessionUpdatedObj.wordChain.slice(-MAX_WORDCHAIN_LENGTH);
-                            console.log(chalkSession("NEW WC"
-                              + " | UID: " + sessionUpdatedObj.userId
-                              + " | CURR LEN: " + sessionUpdatedObj.wordChain.length
-                              + " | FIRST WORD: " + sessionUpdatedObj.wordChain[0].nodeId
-                              + " | LAST WORD: " + sessionUpdatedObj.wordChain[sessionUpdatedObj.wordChain.length-1].nodeId
-                            ));
-                            // sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
-                            sessionCache.set(sessionCacheKey, sessionUpdatedObj);
-                          }
-                          else {
-                            sessionCache.set(sessionCacheKey, sessionUpdatedObj);
-                          }
-                          console.log(chalkInfo("-S- DB UPDATE" 
-                            + " | " + sessionUpdatedObj.sessionId 
-                            + " | TYPE: " + sessionUpdatedObj.config.type 
-                            + " | MODE: " + sessionUpdatedObj.config.mode 
-                            + " | WCI: " + sessionUpdatedObj.wordChainIndex 
-                            + " | WCL: " + sessionUpdatedObj.wordChain.length));
-                        } else {
-                          console.log(chalkError("*** ERROR DB UPDATE SESSION\n" + err));
-                        }
-                      });
-                      break;
-
-                    case 'SUBSTREAM':
-                    case 'STREAM':
-                      debug(chalkSession("... STREAM USER " + currentSession.userId));
-                      sessionUpdateDb(currentSession, function(err, sessionUpdatedObj) {
-                        if (!err) {
-                          if (typeof sessionCache.wordChain !== 'undefined'
-                            && (sessionCache.wordChain.length > MAX_WORDCHAIN_LENGTH)) {
-                            console.log(chalkSession("SHORTEN WC TO " + MAX_WORDCHAIN_LENGTH
-                              + " | UID: " + sessionUpdatedObj.userId
-                              + " | CURR LEN: " + sessionUpdatedObj.wordChain.length
-                              + " | FIRST WORD: " + sessionUpdatedObj.wordChain[0].nodeId
-                              + " | LAST WORD: " + sessionUpdatedObj.wordChain[sessionUpdatedObj.wordChain.length-1].nodeId
-                            ));
-                            sessionUpdatedObj.wordChain = sessionUpdatedObj.wordChain.slice(-MAX_WORDCHAIN_LENGTH);
-                            console.log(chalkSession("NEW WC"
-                              + " | UID: " + sessionUpdatedObj.userId
-                              + " | CURR LEN: " + sessionUpdatedObj.wordChain.length
-                              + " | FIRST WORD: " + sessionUpdatedObj.wordChain[0].nodeId
-                              + " | LAST WORD: " + sessionUpdatedObj.wordChain[sessionUpdatedObj.wordChain.length-1].nodeId
-                            ));
-                            sessionCache.set(sessionCacheKey, sessionUpdatedObj);
-                          }
-                          else {
-                            sessionCache.set(sessionCacheKey, sessionUpdatedObj);
-                          }
-                          debug(chalkInfo("-S- DB UPDATE" 
-                            + " | " + sessionUpdatedObj.sessionId 
-                            + " | TYPE: " + sessionUpdatedObj.config.type 
-                            + " | MODE: " + sessionUpdatedObj.config.mode 
-                            + " | WCI: " + sessionUpdatedObj.wordChainIndex 
-                            + " | WCL: " + sessionUpdatedObj.wordChain.length));
-                        } else {
-                          debug(chalkError("*** ERROR DB UPDATE SESSION\n" + err));
-                        }
-                      });
-                      break;
-
-                    default:
-                      console.log(chalkError("??? UNKNOWN SESSION EVENT handleSessionEvent\n" + jsonPrint(sesObj)));
-                      // quit(" 2 ????? UNKNOWN SESSION TYPE: " + sesObj.session.config.type);
-                      break;
-                  }
-                  break;
 
                 case 'VIEWER':
                   break;
@@ -5609,6 +4793,13 @@ var readSessionQueue = setInterval(function() {
 }, 20);
 
 function getTags(wordObj, callback){
+
+
+  if (keywordHashMap.has(wordObj.nodeId) || serverKeywordHashMap.has(wordObj.nodeId)) {
+    debug("KW HIT: " + wordObj.nodeId);
+    wordObj.isKeyword = true;
+  }
+
   if (!wordObj.tags || (typeof wordObj.tags === 'undefined')) {
     wordObj.tags = {};
     wordObj.tags.entity = 'unknown_entity';
@@ -5812,12 +5003,6 @@ var readResponseQueue = setInterval(function() {
         };
         debug(chalkWarn("SUBSTREAM WORD CHAIN\n" + jsonPrint(currentSessionObj.wordChain)));
       } 
-      else if (currentSessionObj.config.mode == 'USER_USER') {
-        previousPromptObj = {
-          nodeId: 'USER_USER'
-        };
-        debug(chalkWarn("USER_USER WORD CHAIN\n" + jsonPrint(currentSessionObj.wordChain)));
-      } 
       else {
         console.log(chalkError("??? EMPTY WORD CHAIN ... PREVIOUS PROMPT NOT IN CACHE ... ABORTING SESSION" 
           + " | " + socketId
@@ -5829,35 +5014,7 @@ var readResponseQueue = setInterval(function() {
         return;
       }
 
-
-      if (currentSessionObj.config.mode == 'USER_USER') {
-
-        debug(chalkResponse("---------- USER_USER ----------"));
-
-        var respondentSessionId = currentSessionObj.sessionId;
-        var targetSessionId = sessionRouteHashMap.get(currentSessionObj.sessionId);
-
-        debug(chalkResponse("USER_USER ROUTE" + " | " + respondentSessionId + " -> " + targetSessionId));
-
-        if ((typeof currentSessionObj.wordChain === 'undefined') || (currentSessionObj.wordChainIndex == 0)) {
-          debug(chalkResponse("START OF USER_USER SESSION | ADDING " + responseInObj.nodeId + " TO WORDCHAIN"));
-
-          previousPrompt = responseInObj.nodeId;
-
-          currentSessionObj.wordChain.push({nodeId: responseInObj.nodeId, timeStamp:moment().valueOf()});
-
-          previousPromptObj = {
-            nodeId: previousPrompt
-          };
-          debug("Word CACHE SET14: " + previousPromptObj.nodeId);
-          wordCache.set(previousPromptObj.nodeId, previousPrompt);
-        } else {
-
-        }
-      }
-
  
-
       getTags(responseInObj, function(updatedWordObj){
         
         var dbUpdateObj = {};
@@ -5889,7 +5046,6 @@ var readResponseQueue = setInterval(function() {
             // + " < " + previousPrompt
           ));
 
-
           dbUpdateWordQueue.enqueue(dbUpdateObj);
           ready = true;
 
@@ -5900,7 +5056,7 @@ var readResponseQueue = setInterval(function() {
             // + " | U: " + currentSessionObj.userId
             + " E: " + updatedWordObj.tags.entity 
             + " C: " + updatedWordObj.tags.channel 
-            + " KW: " + updatedWordObj.isKeyword 
+            // + " KW: " + updatedWordObj.isKeyword 
             + " TT: " + updatedWordObj.isTrendingTopic 
             // + " | URL: " + updatedWordObj.url 
             + " [" + currentSessionObj.wordChainIndex + "]" 
@@ -6377,227 +5533,6 @@ var readDbUpdateWordQueue = setInterval(function() {
 }, 50);
 
 
-var algorithms = ['antonym', 'synonym', 'related', 'similar', 'user'];
-var currentAlgorithm = 'antonym'; // random, antonym, synonym, ??
-// wordVariations = [ 'syn', 'ant', 'rel', 'sim', 'usr' ]
-
-
-var generatePromptQueueInterval = setInterval(function() {
-
-  if (!promptQueue.isEmpty()) {
-
-    var currentSessionId = promptQueue.dequeue();
-
-    var currentSession = sessionCache.get(currentSessionId);
-
-    if (!currentSession || (typeof currentSession === 'undefined')) {
-      console.log(chalkWarn("??? SESSION EXPIRED ??? ... SKIPPING SEND PROMPT | " + currentSessionId));
-      return;
-    }
-    else if (currentSession.wordChain.length == 0) {
-      console.log(chalkWarn("*** EMPTY SESSION WORDCHAIN *** ... SKIPPING SEND PROMPT" 
-        + "\n" + jsonPrint(currentSession)
-      ));
-      return;
-    }
-
-    debug("generatePromptQueueInterval currentSession\n" + jsonPrint(currentSession));
-
-    // var currentResponse = currentSession.wordChain[currentSession.wordChainIndex];
-    // var currentResponse = currentSession.wordChain[currentSession.wordChainIndex - 1].toLowerCase();
-    var currentResponse = currentSession.wordChain[currentSession.wordChain.length - 1].nodeId.toLowerCase();
-
-
-    if (!currentResponse) {
-      debug("??? currentResponse UNDEFINED" 
-        + " | SID: " + currentSession.sessionId 
-        + " | WCI: " + currentSession.wordChainIndex 
-        + " | CHAIN\n" + jsonPrint(currentSession.wordChain));
-      if (quitOnError) quit("??? currentResponse UNDEFINED " + currentSession.sessionId);
-    }
-
-    var targetWordObj = wordCache.get(currentResponse);
-    /*
-    This is where routing of response -> prompt happens
-    */
-    switch (currentSession.config.mode) {
-
-      case 'RANDOM':
-        var randomIndex = randomInt(0, algorithms.length);
-        currentAlgorithm = algorithms[randomIndex];
-        // debug("[-] CURRENT ALGORITHM: " + currentAlgorithm);
-
-        var query = {
-          input: currentResponse,
-          algorithm: currentAlgorithm
-        };
-
-        generatePrompt(query, function(status, responseObj) {
-          if (status == 'ERROR') {
-            debug(chalkError("**** generatePrompt ERROR\n" + jsonPrint(responseObj)))
-          } else if (status == 'OK') {
-
-            responseObj.wordChainIndex = currentSession.wordChainIndex;
-
-            debug("Word CACHE SET15: " + responseObj.nodeId);
-            wordCache.set(responseObj.nodeId, responseObj);
-
-            currentSession.wordChain.push({nodeId: responseObj.nodeId, timeStamp: moment().valueOf()});
-            // currentSession.wordChain.push(responseObj.nodeId);
-            currentSession.wordChainIndex++;
-
-            sessionUpdateDb(currentSession, function(err, sessionUpdatedObj) {
-              if (!err) {
-                sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
-                debug(chalkInfo("-S- DB UPDATE" 
-                  + " | " + sessionUpdatedObj.sessionId 
-                  + " | WCI: " + sessionUpdatedObj.wordChainIndex 
-                  + " | WCL: " + sessionUpdatedObj.wordChainLength));
-                sendPrompt(sessionUpdatedObj, responseObj);
-              } else {
-                debug(chalkError("*** ERROR DB UPDATE SESSION\n" + err));
-              }
-            });
-          }
-        });
-        break;
-
-      case 'PROMPT':
-      case 'ANTONYM':
-      case 'SYNONYM':
-
-        if (chainDeadEnd(currentSession.wordChain)) {
-          currentAlgorithm = 'random';
-          debug("[-] CHAIN DEADEND ... USING RANDOM ALGORITHM: " + currentAlgorithm);
-        } else {
-          debug("NO CHAIN DEADEND (last 10): " + currentSession.wordChain.slice(Math.max(currentSession.wordChain.length - 10, 1)));
-          currentAlgorithm = currentSession.config.mode.toLowerCase();
-        }
-
-
-        var query = {
-          input: currentResponse,
-          algorithm: currentAlgorithm
-        };
-
-        generatePrompt(query, function(status, responseObj) {
-          if (status == 'ERROR') {
-            debug(chalkError("**** generatePrompt ERROR\n" + jsonPrint(responseObj)))
-          } else if (status == 'OK') {
-
-            responseObj.wordChainIndex = currentSession.wordChainIndex;
-
-            debug("Word CACHE SET16: " + responseObj.nodeId);
-            wordCache.set(responseObj.nodeId, responseObj);
-
-            currentSession.wordChain.push({nodeId: responseObj.nodeId, timeStamp: moment().valueOf()});
-            // currentSession.wordChain.push(responseObj.nodeId);
-            currentSession.wordChainIndex++;
-
-            sessionUpdateDb(currentSession, function(err, sessionUpdateObj) {
-
-              if (!err) {
-
-                sessionCache.set(sessionUpdateObj.sessionId, sessionUpdateObj);
-
-                debug(chalkInfo("-S- DB UPDATE" 
-                  + " | " + sessionUpdateObj.sessionId 
-                  + " | WCI: " + sessionUpdateObj.wordChainIndex 
-                  + " | WCL: " + sessionUpdateObj.wordChain.length));
-
-                sendPrompt(sessionUpdateObj, responseObj);
-              } else {
-                debug(chalkError("*** ERROR DB UPDATE SESSION\n" + err));
-              }
-
-            });
-          }
-        });
-        break;
-
-      case 'USER_USER':
-
-        var targetSessionId = sessionRouteHashMap.get(currentSession.sessionId);
-        var targetSession = sessionCache.get(targetSessionId);
-
-        if (!targetSession || !targetSessionId) {
-          debug(chalkWarn("??? TARGET SESSION EXPIRED ??? ... SKIPPING SEND PROMPT | CURRENT: " + currentSession.sessionId));
-          return;
-        }
-
-        debug("USER_USER | SEND PROMPT" 
-          + " | " + currentSession.sessionId 
-          + " -> " + currentResponse 
-          + " -> " + targetSessionId
-          // + "\ncurrentSession\n" + jsonPrint(currentSession)
-          // + "\ntargetSession\n" + jsonPrint(targetSession.sessionId)
-        );
-
-        var currentResponseWordObj = {};
-        currentResponseWordObj.nodeId = currentResponse;
-
-        wordServer.findOneWord(currentResponseWordObj, true, function(err, responseWordObj) {
-          if (err) {
-            console.log(chalkError("**** USER_USER generatePrompt ERROR\n" + jsonPrint(err)))
-          } else {
-
-            responseWordObj.wordChainIndex = targetSession.wordChainIndex;
-
-            debug("Word CACHE SET17: " + responseWordObj.nodeId);
-            wordCache.set(responseWordObj.nodeId, responseWordObj);
-
-            targetSession.wordChain.push({nodeId: responseWordObj.nodeId, timeStamp: moment().valueOf()});
-            // targetSession.wordChain.push(responseWordObj.nodeId);
-            targetSession.wordChainIndex++;
-
-            sessionUpdateDb(currentSession, function(err, sessionUpdatedObj) {
-              if (!err) {
-                sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
-                debug(chalkInfo("-S- DB UPDATE SOURCE SESSION" 
-                  + " | " + sessionUpdatedObj.sessionId 
-                  + " | WCI: " + sessionUpdatedObj.wordChainIndex 
-                  + " | WCL: " + sessionUpdatedObj.wordChain.length));
-
-                sessionUpdateDb(targetSession, function(err, targetSessionUpdatedObj) {
-                  if (!err) {
-                    sessionCache.set(targetSessionUpdatedObj.sessionId, targetSessionUpdatedObj);
-                    debug(chalkInfo("-S- DB UPDATE TARGET SESSION" 
-                      + " | " + targetSessionUpdatedObj.sessionId 
-                      + " | WCI: " + targetSessionUpdatedObj.wordChainIndex 
-                      + " | WCL: " + targetSessionUpdatedObj.wordChain.length));
-
-                    sendPrompt(sessionUpdatedObj, responseWordObj);
-
-                  } else {
-                    debug(chalkError("*** ERROR DB UPDATE TARGET SESSION\n" + err));
-                  }
-                });
-              } else {
-                debug(chalkError("*** ERROR DB UPDATE SOURCE SESSION\n" + err));
-              }
-            });
-          }
-        });
-        break;
-
-      case 'BHT_CRAWLER':
-      case 'MW_CRAWLER':
-        break;
-
-      case 'SUBSTREAM':
-      case 'STREAM':
-        break;
-
-      default:
-        console.log(chalkError("????? UNKNOWN SESSION MODE generatePromptQueueInterval\n" + jsonPrint(currentSession)));
-        // quit("3  ????? UNKNOWN SESSION MODE: " + currentSession.config.mode);
-        break;
-    }
-
-  }
-}, 50);
-
-
 var getTwitterFriendsInterval;
 
 function getTwitterFriends(callback){
@@ -6686,9 +5621,7 @@ function getTwitterFriends(callback){
     });
 
   }, 1000);
-
 }
-
 
 function queryDb(queryObj, callback){
   console.log(chalkRed("QUERY | " + queryObj.query));
@@ -6808,35 +5741,35 @@ function initKeywords(file, kwHashMap, callback){
 
 function initializeConfiguration(callback) {
 
-  debug(chalkInfo(moment().format(defaultDateTimeFormat) + " | initializeConfiguration ..."));
+  debug(chalkInfo(moment().format(compactDateTimeFormat) + " | initializeConfiguration ..."));
 
   async.series([
       // DATABASE INIT
       function(callbackSeries) {
-        debug(chalkInfo(moment().format(defaultDateTimeFormat) + " | START DATABASE INIT"));
+        debug(chalkInfo(moment().format(compactDateTimeFormat) + " | START DATABASE INIT"));
 
         async.parallel(
           [
 
             function(callbackParallel) {
-              debug(chalkInfo(moment().format(defaultDateTimeFormat) + " | ADMIN IP INIT"));
+              debug(chalkInfo(moment().format(compactDateTimeFormat) + " | ADMIN IP INIT"));
               adminFindAllDb(null, function(numberOfAdminIps) {
-                debug(chalkInfo(moment().format(defaultDateTimeFormat) 
+                debug(chalkInfo(moment().format(compactDateTimeFormat) 
                   + " | ADMIN UNIQUE IP ADDRESSES: " + numberOfAdminIps));
                 callbackParallel();
               });
             },
             
             function(callbackParallel) {
-              debug(chalkInfo(moment().format(defaultDateTimeFormat) + " | GROUP HASHMAP INIT"));
+              debug(chalkInfo(moment().format(compactDateTimeFormat) + " | GROUP HASHMAP INIT"));
               groupFindAllDb(null, function(err, numberOfGroups) {
                 if (err){
-                  console.log(chalkError(moment().format(defaultDateTimeFormat) 
+                  console.log(chalkError(moment().format(compactDateTimeFormat) 
                     + " | *** groupFindAllDb ERROR: " + err));
                   callbackParallel();
                 }
                 else {
-                  console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
+                  console.log(chalkInfo(moment().format(compactDateTimeFormat) 
                     + " | GROUPS IN DB: " + numberOfGroups));
                   callbackParallel();
                 }
@@ -6844,15 +5777,15 @@ function initializeConfiguration(callback) {
             },
             
             function(callbackParallel) {
-              debug(chalkInfo(moment().format(defaultDateTimeFormat) + " | ENTITIY HASHMAP INIT"));
+              debug(chalkInfo(moment().format(compactDateTimeFormat) + " | ENTITIY HASHMAP INIT"));
               entityFindAllDb(null, function(err, numberOfEntities) {
                 if (err){
-                  console.log(chalkError(moment().format(defaultDateTimeFormat) 
+                  console.log(chalkError(moment().format(compactDateTimeFormat) 
                     + " | *** entityFindAllDb ERROR: " + err));
                   callbackParallel();
                 }
                 else {
-                  console.log(chalkInfo(moment().format(defaultDateTimeFormat) 
+                  console.log(chalkInfo(moment().format(compactDateTimeFormat) 
                     + " | ENTITIES IN DB: " + numberOfEntities));
                   callbackParallel();
                 }
@@ -6862,13 +5795,13 @@ function initializeConfiguration(callback) {
           ],
           function(err, results) { //async.parallel callbac
             if (err) {
-              console.log(chalkError("\n" + moment().format(defaultDateTimeFormat) 
+              console.log(chalkError("\n" + moment().format(compactDateTimeFormat) 
                 + "!!! DATABASE INIT ERROR: " + err));
               callbackSeries(err, null);
               return;
             } else {
-              debug(chalkInfo(moment().format(defaultDateTimeFormat) + " | DATABASE INIT COMPLETE"));
-              configEvents.emit('INIT_DATABASE_COMPLETE', moment().format(defaultDateTimeFormat));
+              debug(chalkInfo(moment().format(compactDateTimeFormat) + " | DATABASE INIT COMPLETE"));
+              configEvents.emit('INIT_DATABASE_COMPLETE', moment().format(compactDateTimeFormat));
               callbackSeries(null, 'INIT_DATABASE_COMPLETE');
             }
           }
@@ -6877,7 +5810,7 @@ function initializeConfiguration(callback) {
 
       // APP ROUTING INIT
       function(callbackSeries) {
-        debug(chalkInfo(moment().format(defaultDateTimeFormat) + " | APP ROUTING INIT"));
+        debug(chalkInfo(moment().format(compactDateTimeFormat) + " | APP ROUTING INIT"));
         initAppRouting(function(err, results) {
           callbackSeries(err, results);
         });
@@ -6885,7 +5818,7 @@ function initializeConfiguration(callback) {
 
       // CONFIG EVENT
       function(callbackSeries) {
-        debug(chalkInfo(moment().format(defaultDateTimeFormat) + " | INIT CONFIG COMPLETE"));
+        debug(chalkInfo(moment().format(compactDateTimeFormat) + " | INIT CONFIG COMPLETE"));
         var serverSessionConfig = {
           configOrigin: 'SERVER',
           testMode: testMode
@@ -6898,8 +5831,8 @@ function initializeConfiguration(callback) {
       function(callbackSeries) {
 
         if (OFFLINE_MODE) {
-          debug(chalkInfo(moment().format(defaultDateTimeFormat) + ' | OFFLINE MODE ... SKIPPING SERVER READY'));
-          debug(chalkInfo(moment().format(defaultDateTimeFormat) + " | SEND SERVER_NOT_READY"));
+          debug(chalkInfo(moment().format(compactDateTimeFormat) + ' | OFFLINE MODE ... SKIPPING SERVER READY'));
+          debug(chalkInfo(moment().format(compactDateTimeFormat) + " | SEND SERVER_NOT_READY"));
           internetReady = true;
           configEvents.emit("SERVER_READY");
           callbackSeries(null, "SERVER_READY");
@@ -6913,8 +5846,8 @@ function initializeConfiguration(callback) {
 
         testClient.on('connect', function() {
           statsObj.socket.connects++;
-          debug(chalkInfo(moment().format(defaultDateTimeFormat) + ' | CONNECTED TO GOOGLE: OK'));
-          debug(chalkInfo(moment().format(defaultDateTimeFormat) + " | SEND SERVER_READY"));
+          debug(chalkInfo(moment().format(compactDateTimeFormat) + ' | CONNECTED TO GOOGLE: OK'));
+          debug(chalkInfo(moment().format(compactDateTimeFormat) + " | SEND SERVER_READY"));
           internetReady = true;
           configEvents.emit("SERVER_READY");
           testClient.destroy();
@@ -6923,8 +5856,8 @@ function initializeConfiguration(callback) {
 
         testClient.on('error', function(err) {
           statsObj.socket.errors++;
-          debug(chalkError(moment().format(defaultDateTimeFormat) + ' | **** GOOGLE CONNECT ERROR ****\n' + err));
-          debug(chalkError(moment().format(defaultDateTimeFormat) + " | **** SERVER_NOT_READY ****"));
+          debug(chalkError(moment().format(compactDateTimeFormat) + ' | **** GOOGLE CONNECT ERROR ****\n' + err));
+          debug(chalkError(moment().format(compactDateTimeFormat) + " | **** SERVER_NOT_READY ****"));
           internetReady = false;
           testClient.destroy();
           configEvents.emit("SERVER_NOT_READY");
@@ -6935,13 +5868,13 @@ function initializeConfiguration(callback) {
       // GOOGLE INIT
       function(callbackSeries) {
         if (!disableGoogleMetrics) {
-          debug(chalkInfo(moment().format(defaultDateTimeFormat) + " | GOOGLE INIT"));
+          debug(chalkInfo(moment().format(compactDateTimeFormat) + " | GOOGLE INIT"));
           findCredential(GOOGLE_SERVICE_ACCOUNT_CLIENT_ID, function() {
             callbackSeries(null, "INIT_GOOGLE_METRICS_COMPLETE");
             return;
           });
         } else {
-          debug(chalkInfo(moment().format(defaultDateTimeFormat) 
+          debug(chalkInfo(moment().format(compactDateTimeFormat) 
             + " | GOOGLE INIT *** SKIPPED *** | GOOGLE METRICS DISABLED"));
           callbackSeries(null, "INIT_GOOGLE_METRICS_SKIPPED");
         }
@@ -7543,173 +6476,6 @@ configEvents.on("TWITTER_FOLLOW", function(entityObj){
     // + "\n" + jsonPrint(entityObj)
   ));
 
-  // var groupObj = new Group();
-
-  // async.waterfall([
-  //   function(cb){
-
-  //     if (entityChannelGroupHashMap.has(entityObj.entityId)) {
-
-  //       console.log(chalkInfo("### ENTITY CHANNEL GROUP HASHMAP HIT"
-  //         + " | " + entityObj.entityId
-  //         + " | " + entityObj.name
-  //         + " | GRP: " + entityObj.groupId
-  //       ));
-
-  //       if (groupHashMap.has(entityObj.groupId)) {
-
-  //         var group = groupHashMap.get(entityObj.groupId);
-
-  //         groupObj.groupId = group.groupId;
-  //         groupObj.name = group.name;
-  //         groupObj.colors = group.colors;
-  //         groupObj.tags.entity = entityObj.entityId;
-  //         groupObj.tags.channel = 'twitter';
-  //         groupObj.tags.mode = 'substream';
-
-  //         groupObj.addEntityArray = [];
-  //         groupObj.addEntityArray.push(entityObj.entityId);
-  //         groupObj.addChannelArray = [];
-  //         groupObj.addChannelArray.push('twitter');
-
-  //         console.log(chalkDb("GROUP HASH HIT"
-  //           + " | ENT: " + entityObj.entityId
-  //           + " | GRP: " + groupObj.groupId
-  //           + " | GRP NAME: " + groupObj.name
-  //           + " | +ENT: " + groupObj.addEntityArray
-  //           + " | +CH: " + groupObj.addChannelArray
-  //         ));
-
-  //         console.log(chalkInfo("### GROUP HASHMAP HIT"
-  //           + " | " + groupObj.groupId
-  //           + " | " + groupObj.name
-  //         ));
-
-  //         cb(null, entityObj, groupObj);
-  //       }
-  //       else {
-
-  //         console.log(chalkInfo("--- GROUP HASHMAP MISS"
-  //           + " | " + entityObj.entityId
-  //           + " | " + entityObj.name
-  //         ));
-
-  //         console.log(chalkInfo("+++ CREATING GROUP"
-  //           + " | NEW GROUP: " + entityObj.entityId
-  //           + " | " + entityObj.name
-  //         ));
-
-  //         groupObj.groupId = entityObj.entityId;
-  //         groupObj.name = entityObj.name;
-  //         groupObj.tags.entity = entityObj.entityId;
-  //         groupObj.tags.channel = 'twitter';
-  //         groupObj.tags.mode = 'substream';
-
-  //         groupObj.addEntityArray = [];
-  //         groupObj.addEntityArray.push(entityObj.entityId);
-  //         groupObj.addChannelArray = [];
-  //         groupObj.addChannelArray.push('twitter');
-
-  //         groupHashMap.set(entityObj.entityId, groupObj);
-
-  //         cb(null, entityObj, groupObj);
-
-  //       }
-  //     }
-  //     else {
-  //       console.log(chalkInfo("--- ENTITY CHANNEL GROUP HASHMAP MISS"
-  //         + " | " + entityObj.entityId
-  //         + " | " + entityObj.name
-  //       ));
-
-  //       console.log(chalkInfo("+++ CREATING ENTITY"
-  //         + " | NEW ENTITY: " + entityObj.entityId
-  //         + " | " + entityObj.name
-  //       ));
-
-  //       entityChannelGroupHashMap.set(entityObj.entityId, entityObj);
-
-  //       if (groupHashMap.has(entityObj.groupId)) {
-
-  //         var group = groupHashMap.get(entityObj.groupId);
-
-  //         entityObj.tags.group = group.groupId;
-
-  //         groupObj.groupId = group.groupId;
-  //         groupObj.name = group.name;
-  //         groupObj.colors = group.colors;
-  //         groupObj.tags.entity = entityObj.entityId;
-  //         groupObj.tags.channel = 'twitter';
-  //         groupObj.tags.mode = 'substream';
-
-  //         groupObj.addEntityArray = [];
-  //         groupObj.addEntityArray.push(entityObj.entityId);
-  //         groupObj.addChannelArray = [];
-  //         groupObj.addChannelArray.push('twitter');
-
-  //         console.log(chalkDb("GROUP HASH HIT"
-  //           + " | ENT: " + entityObj.entityId
-  //           + " | GRP: " + groupObj.groupId
-  //           + " | GRP NAME: " + groupObj.name
-  //           + " | +ENT: " + groupObj.addEntityArray
-  //           + " | +CH: " + groupObj.addChannelArray
-  //         ));
-
-  //         console.log(chalkInfo("### GROUP HASHMAP HIT"
-  //           + " | " + groupObj.groupId
-  //           + " | " + groupObj.name
-  //         ));
-
-  //         cb(null, entityObj, groupObj);
-
-  //       }
-  //       else {
-
-  //         console.log(chalkInfo("--- GROUP HASHMAP MISS"
-  //           + " | " + entityObj.entityId
-  //           + " | " + entityObj.name
-  //         ));
-
-  //         console.log(chalkInfo("+++ CREATING GROUP"
-  //           + " | NEW GROUP: " + entityObj.entityId
-  //           + " | " + entityObj.name
-  //         ));
-
-  //         entityObj.tags.group = entityObj.entityId;
-
-  //         groupObj.groupId = entityObj.entityId;
-  //         groupObj.name = entityObj.name;
-  //         groupObj.tags.entity = entityObj.entityId;
-  //         groupObj.tags.channel = 'twitter';
-  //         groupObj.tags.mode = 'substream';
-
-  //         groupObj.addEntityArray = [];
-  //         groupObj.addEntityArray.push(entityObj.entityId);
-  //         groupObj.addChannelArray = [];
-  //         groupObj.addChannelArray.push('twitter');
-
-  //         groupHashMap.set(entityObj.entityId, groupObj);
-
-  //         cb(null, entityObj, groupObj);
-
-  //       }
-  //     }
-
-  //   },
-  //   function(entityObj, groupObj, cb){
-
-  //     updateGroupEntity(entityObj, function(err, updatedEntityObj){
-  //       cb(err, updatedEntityObj);
-  //     });
-
-  //   }
-  // ],
-  //   function(err, results){
-  //     console.log(chalkTwitter("TWITTER_FOLLOW UPDATE COMPLETE"));
-  //   }
-  // );
-
-
 });
 
 configEvents.on("INIT_TWIT_FOR_DM_COMPLETE", function() {
@@ -7781,8 +6547,11 @@ configEvents.on("HASH_MISS", function(missObj) {
       if (!err) {
         console.log(chalkTwitter("SENT TWITTER DM\n" + dmString + "\n" + jsonPrint(res)));
       }
+      else if (err.code == 226) {
+        console.log(chalkError("DM SEND ERROR: AUTOMATED TX"));
+      }
       else {
-        console.log(chalkError("DM SEND ERROR:" + err));
+        console.log(chalkError("DM SEND ERROR: " + err));
       }
     });
   }
@@ -7795,34 +6564,34 @@ configEvents.on("SERVER_READY", function() {
 
   serverReady = true;
 
-  debug(chalkInfo(moment().format(defaultDateTimeFormat) + " | SERVER_READY EVENT"));
+  debug(chalkInfo(moment().format(compactDateTimeFormat) + " | SERVER_READY EVENT"));
 
   httpServer.on("reconnect", function() {
     internetReady = true;
-    console.log(chalkConnect(moment().format(defaultDateTimeFormat) + ' | PORT RECONNECT: ' + config.port));
+    console.log(chalkConnect(moment().format(compactDateTimeFormat) + ' | PORT RECONNECT: ' + config.port));
     // initializeConfiguration();
   });
 
   httpServer.on('connect', function() {
     statsObj.socket.connects++;
     internetReady = true;
-    console.log(chalkConnect(moment().format(defaultDateTimeFormat) + ' | PORT CONNECT: ' + config.port));
+    console.log(chalkConnect(moment().format(compactDateTimeFormat) + ' | PORT CONNECT: ' + config.port));
 
     httpServer.on("disconnect", function() {
       internetReady = false;
-      console.log(chalkError('\n***** PORT DISCONNECTED | ' + moment().format(defaultDateTimeFormat) 
+      console.log(chalkError('\n***** PORT DISCONNECTED | ' + moment().format(compactDateTimeFormat) 
         + ' | ' + config.port));
     });
   });
 
   httpServer.listen(config.port, function() {
-    console.log(chalkInfo(moment().format(defaultDateTimeFormat) + " | LISTENING ON PORT " + config.port));
+    console.log(chalkInfo(moment().format(compactDateTimeFormat) + " | LISTENING ON PORT " + config.port));
   });
 
   httpServer.on("error", function(err) {
     statsObj.socket.errors++;
     internetReady = false;
-    console.log(chalkError('??? HTTP ERROR | ' + moment().format(defaultDateTimeFormat) + '\n' + err));
+    console.log(chalkError('??? HTTP ERROR | ' + moment().format(compactDateTimeFormat) + '\n' + err));
     if (err.code == 'EADDRINUSE') {
       console.log(chalkError('??? HTTP ADDRESS IN USE: ' + config.port + ' ... RETRYING...'));
       setTimeout(function() {
@@ -7953,7 +6722,7 @@ configEvents.on("SERVER_READY", function() {
     } else {
       tempDateTime = moment();
       if (tempDateTime.seconds() % 10 == 0) {
-        debug(chalkError("!!!! INTERNET DOWN?? !!!!! " + moment().format(defaultDateTimeFormat)));
+        debug(chalkError("!!!! INTERNET DOWN?? !!!!! " + moment().format(compactDateTimeFormat)));
       }
     }
   }, 1000);
@@ -7966,7 +6735,7 @@ configEvents.on("SERVER_READY", function() {
 // ==================================================================
 configEvents.on("CONFIG_CHANGE", function(serverSessionConfig) {
 
-  debug(chalkAlert(moment().format(defaultDateTimeFormat) + " | CONFIG_CHANGE EVENT"));
+  debug(chalkAlert(moment().format(compactDateTimeFormat) + " | CONFIG_CHANGE EVENT"));
   debug("==> CONFIG_CHANGE EVENT: " + JSON.stringify(serverSessionConfig, null, 3));
 
   if (typeof serverSessionConfig.testMode !== 'undefined') {
@@ -7988,7 +6757,7 @@ configEvents.on("CONFIG_CHANGE", function(serverSessionConfig) {
     });
   }
 
-  debug(chalkInfo(moment().format(defaultDateTimeFormat) + ' | >>> SENT CONFIG_CHANGE'));
+  debug(chalkInfo(moment().format(compactDateTimeFormat) + ' | >>> SENT CONFIG_CHANGE'));
 });
 
 
@@ -8012,12 +6781,12 @@ googleOauthEvents.on("GOOGLE CREDENTIAL FOUND", function(credential) {
     googleMetricsEnabled = true;
     googleOauthEvents.emit('GOOGLE AUTHORIZED');
     oauthExpiryTimer(credential.expiryDate);
-    debug(chalkInfo(moment().format(defaultDateTimeFormat) 
+    debug(chalkInfo(moment().format(compactDateTimeFormat) 
       + " | GOOGLE OAUTH2 CREDENTIAL EXPIRES IN: " + remainingTime 
       + " AT " + credential.expiryDate + " ... AUTHORIZING ANYWAY ..."));
     googleOauthEvents.emit('AUTHORIZE GOOGLE');
   } else {
-    debug(chalkAlert(moment().format(defaultDateTimeFormat) 
+    debug(chalkAlert(moment().format(compactDateTimeFormat) 
       + " | !!! GOOGLE OAUTH2 CREDENTIAL EXPIRED AT " + credential.expiryDate 
       + " | " + msToTime(currentTime - credential.expiryDate) + " AGO ... AUTHORIZING ..."));
     googleOauthEvents.emit('AUTHORIZE GOOGLE');
@@ -8025,7 +6794,7 @@ googleOauthEvents.on("GOOGLE CREDENTIAL FOUND", function(credential) {
 });
 
 googleOauthEvents.on("GOOGLE CREDENTIAL NOT FOUND", function(credentialId) {
-  debug(chalkAlert(moment().format(defaultDateTimeFormat) + " | GOOGLE CREDENTIAL NOT FOUND: " + credentialId));
+  debug(chalkAlert(moment().format(compactDateTimeFormat) + " | GOOGLE CREDENTIAL NOT FOUND: " + credentialId));
   googleOauthEvents.emit("AUTHORIZE GOOGLE");
 });
 // RE-ENABLE METRICS PERIODICALLY TO CHECK DAILY LIMIT
@@ -8038,7 +6807,7 @@ googleOauthEvents.on("DAILY LIMIT EXCEEDED", function() {
 });
 // RE-ENABLE METRICS PERIODICALLY TO CHECK IF SOCKET IS UP
 googleOauthEvents.on("SOCKET HUNG UP", function() {
-  debug(chalkGoogle("GOOGLE SOCKET HUNG UP ... CLEARING TWEET RATE QUEUE " + moment().format(defaultDateTimeFormat)));
+  debug(chalkGoogle("GOOGLE SOCKET HUNG UP ... CLEARING TWEET RATE QUEUE " + moment().format(compactDateTimeFormat)));
   debug(chalkGoogle("RE-TRYING GOOGLE METRICS IN " + msToTime(googleCheckSocketUpInterval)));
 
   setTimeout(function() {
@@ -8110,31 +6879,31 @@ function createSession(newSessionObj) {
 
   socket.on('reconnect_error', function(errorObj) {
     statsObj.socket.reconnect_errors++;
-    debug(chalkError(moment().format(defaultDateTimeFormat) 
+    debug(chalkError(moment().format(compactDateTimeFormat) 
       + " | SOCKET RECONNECT ERROR: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
   });
 
   socket.on('reconnect_failed', function(errorObj) {
     statsObj.socket.reconnect_fails++;
-    debug(chalkError(moment().format(defaultDateTimeFormat) 
+    debug(chalkError(moment().format(compactDateTimeFormat) 
       + " | SOCKET RECONNECT FAILED: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
   });
 
   socket.on('connect_error', function(errorObj) {
     statsObj.socket.connect_errors++;
-    debug(chalkError(moment().format(defaultDateTimeFormat) 
+    debug(chalkError(moment().format(compactDateTimeFormat) 
       + " | SOCKET CONNECT ERROR: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
   });
 
   socket.on('connect_timeout', function(errorObj) {
     statsObj.socket.connect_timeouts++;
-    debug(chalkError(moment().format(defaultDateTimeFormat) 
+    debug(chalkError(moment().format(compactDateTimeFormat) 
       + " | SOCKET CONNECT TIMEOUT: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
   });
 
   socket.on("error", function(error) {
     statsObj.socket.errors++;
-    debug(chalkError(moment().format(defaultDateTimeFormat) 
+    debug(chalkError(moment().format(compactDateTimeFormat) 
       + " | *** SOCKET ERROR" + " | " + socket.id + " | " + error));
     sessionQueue.enqueue({
       sessionEvent: "SOCKET_ERROR",
@@ -8146,7 +6915,7 @@ function createSession(newSessionObj) {
   socket.on("reconnect", function(err) {
     statsObj.socket.reconnects++;
     sessionObj.connected = true;
-    debug(chalkConnect(moment().format(defaultDateTimeFormat) + " | SOCKET RECONNECT: " + socket.id));
+    debug(chalkConnect(moment().format(compactDateTimeFormat) + " | SOCKET RECONNECT: " + socket.id));
     sessionQueue.enqueue({
       sessionEvent: "SOCKET_RECONNECT",
       sessionId: socket.id
@@ -8155,7 +6924,7 @@ function createSession(newSessionObj) {
 
   socket.on("disconnect", function(status) {
     statsObj.socket.disconnects++;
-    debug(chalkDisconnect(moment().format(defaultDateTimeFormat) 
+    debug(chalkDisconnect(moment().format(compactDateTimeFormat) 
       + " | SOCKET DISCONNECT: " + socket.id + "\nstatus\n" + jsonPrint(status)));
     var sessionObj = sessionCache.get(socket.id);
     if (sessionObj) {
@@ -8175,7 +6944,7 @@ function createSession(newSessionObj) {
   });
 
   socket.on("REQ_ADMIN_SESSION", function(options) {
-    debug(chalkAdmin(moment().format(defaultDateTimeFormat) 
+    debug(chalkAdmin(moment().format(compactDateTimeFormat) 
       + " | REQ_ADMIN_SESSION: " + socketId 
       + " | IP: " + ipAddress 
       + " | SID: " + sessionObj.sessionId 
@@ -8189,7 +6958,7 @@ function createSession(newSessionObj) {
   });
 
   socket.on("REQ_USER_SESSION", function(options) {
-    debug(chalkUser(moment().format(defaultDateTimeFormat) 
+    debug(chalkUser(moment().format(compactDateTimeFormat) 
       + " | REQ_USER_SESSION: " + socketId 
       + " | IP: " + ipAddress 
       + " | SID: " + sessionObj.sessionId 
@@ -8204,7 +6973,7 @@ function createSession(newSessionObj) {
   });
 
   socket.on("REQ_VIEWER_SESSION", function(options) {
-    debug(chalkViewer(moment().format(defaultDateTimeFormat) 
+    debug(chalkViewer(moment().format(compactDateTimeFormat) 
       + " | REQ_VIEWER_SESSION: " + socketId 
       + " | IP: " + ipAddress 
       + " | SID: " + sessionObj.sessionId 
@@ -8218,7 +6987,7 @@ function createSession(newSessionObj) {
   });
 
   socket.on("REQ_UTIL_SESSION", function(options) {
-    debug(chalkUtil(moment().format(defaultDateTimeFormat) 
+    debug(chalkUtil(moment().format(compactDateTimeFormat) 
       + " | REQ_UTIL_SESSION: " + socketId 
       + " | IP: " + ipAddress 
       + " | SID: " + sessionObj.sessionId 
@@ -8239,13 +7008,13 @@ function createSession(newSessionObj) {
     var sessionObj = sessionCache.get(socketId);
 
     if (!sessionObj) {
-      debug(chalkError(moment().format(defaultDateTimeFormat) 
+      debug(chalkError(moment().format(compactDateTimeFormat) 
         + " | ??? SESSION NOT FOUND ON ADMIN READY | " + socketId));
       return;
     }
 
     debug(chalkConnect("--- ADMIN READY   | " + adminObj.adminId 
-      + " | SID: " + sessionObj.sessionId + " | " + moment().format(defaultDateTimeFormat)));
+      + " | SID: " + sessionObj.sessionId + " | " + moment().format(compactDateTimeFormat)));
 
     sessionQueue.enqueue({
       sessionEvent: "ADMIN_READY",
@@ -8262,13 +7031,13 @@ function createSession(newSessionObj) {
     var sessionObj = sessionCache.get(socketId);
 
     if (!sessionObj) {
-      debug(chalkError(moment().format(defaultDateTimeFormat) 
+      debug(chalkError(moment().format(compactDateTimeFormat) 
         + " | ??? SESSION NOT FOUND ON VIEWER READY | " + socketId));
       return;
     }
     debug(chalkConnect("--- VIEWER READY   | " + viewerObj.viewerId 
       + " | SID: " + sessionObj.sessionId 
-      + " | " + moment().format(defaultDateTimeFormat)));
+      + " | " + moment().format(compactDateTimeFormat)));
 
     sessionQueue.enqueue({
       sessionEvent: "VIEWER_READY",
@@ -8284,7 +7053,7 @@ function createSession(newSessionObj) {
       console.log(chalkSession("SESSION_KEEPALIVE" 
         + " | " + userObj.userId
         + " | " + socket.id
-        + " | " + moment().format(defaultDateTimeFormat)
+        + " | " + moment().format(compactDateTimeFormat)
         // + "\n" + jsonPrint(userObj)
       ));
     }
@@ -8305,7 +7074,7 @@ function createSession(newSessionObj) {
     }
 
     if (!sessionObj) {
-      debug(chalkError(moment().format(defaultDateTimeFormat) 
+      debug(chalkError(moment().format(compactDateTimeFormat) 
         + " | ??? SESSION NOT FOUND ON SESSION_KEEPALIVE | " + socketId 
         // + " | CREATING SESSION" + "\n" + jsonPrint(userObj)
       ));
@@ -8348,7 +7117,7 @@ function createSession(newSessionObj) {
     debug(chalkLog("@@@ SESSION_KEEPALIVE"
       + " | " + userObj.userId 
       + " | " + sessionObj.sessionId 
-      + " | " + moment().format(defaultDateTimeFormat)));
+      + " | " + moment().format(compactDateTimeFormat)));
 
     if (typeof userObj.userId !== 'undefined') {
       sessionObj.userId = userObj.userId;
@@ -8380,14 +7149,14 @@ function createSession(newSessionObj) {
     statsObj.socket.USER_READYS++;
 
     console.log(chalkUser(">RX USER_READY"
-      + " | SID: " + socket.id
+      + " | " + socket.id
       + " | NID: " + userObj.nodeId
-      + " | UID: " + userObj.userId
+      + " | U: " + userObj.userId
       + " | N: " + userObj.name
-      + " | SCN: " + userObj.screenName
-      + " | ENT: " + userObj.tags.entity
-      + " | CH: " + userObj.tags.channel
-      + " | TYPE: " + userObj.type
+      // + " | SCN: " + userObj.screenName
+      + " | E: " + userObj.tags.entity
+      + "\nC: " + userObj.tags.channel
+      + " | T: " + userObj.type
       + " | MODE: " + userObj.mode
       // + "\n" + jsonPrint(userObj)
     ));
@@ -8409,7 +7178,7 @@ function createSession(newSessionObj) {
 
     sessionCache.get(sessionCacheKey, function(err, sessionObj){
       if (err){
-        console.log(chalkError(moment().format(defaultDateTimeFormat) 
+        console.log(chalkError(moment().format(compactDateTimeFormat) 
           + " | ??? SESSION CACHE ERROR ON USER READY | " + err
         ));
       }
@@ -8432,11 +7201,11 @@ function createSession(newSessionObj) {
 
           console.log(chalkSession("SESSION CACHE MISS USER READY"
             + " | " + sessionCacheKey
-            + " | " + moment().format(defaultDateTimeFormat) 
+            + " | " + moment().format(compactDateTimeFormat) 
           ));
 
           if (!primarySessionObj) {
-            console.log(chalkError(moment().format(defaultDateTimeFormat) 
+            console.log(chalkError(moment().format(compactDateTimeFormat) 
               + " | ??? PRIMARY SESSION NOT FOUND ON USER READY"
               + " | " + sessionCacheKey
               + " | SKIPPING "
@@ -8528,7 +7297,7 @@ function createSession(newSessionObj) {
           + " | SID: " + sessionObj.sessionId 
           + " | TYPE: " + sessionObj.config.type 
           + " | MODE: " + sessionObj.config.mode 
-          + " | " + moment().format(defaultDateTimeFormat) 
+          + " | " + moment().format(compactDateTimeFormat) 
           // + "\nSESSION OBJ\n" + jsonPrint(sessionObj) 
           // + "\nUSER OBJ\n" + jsonPrint(userObj)
         ));
@@ -8559,16 +7328,6 @@ function createSession(newSessionObj) {
       }
       responseQueue.enqueue(responseInObj);
     }
-  });
-
-  socket.on("GET_RANDOM_WORD", function() {
-    debug(chalkTest("RX GET_RANDOM_WORD | " + socket.id));
-
-    var randWordSession = sessionCache.get(socket.id);
-
-    wordServer.getRandomWord(function(err, randomWordObj) {
-      socket.emit("RANDOM_WORD", randomWordObj.nodeId);
-    });
   });
 
   socket.on("GET_SESSION", function(sessionId) {
@@ -8655,7 +7414,7 @@ var databaseEnabled = false;
 
 configEvents.on("INIT_DATABASE_COMPLETE", function(tweetCount) {
   databaseEnabled = true;
-  debug(chalkInfo(moment().format(defaultDateTimeFormat) + " | DATABASE ENABLED"));
+  debug(chalkInfo(moment().format(compactDateTimeFormat) + " | DATABASE ENABLED"));
 });
 
 
@@ -8682,37 +7441,37 @@ var metricsInterval = setInterval(function() {
   if (numberViewersTotal > numberViewersTotalMax) {
     numberViewersTotalMaxTime = moment().valueOf();
     numberViewersTotalMax = numberViewersTotal;
-    debug(chalkAlert("... NEW TOTAL MAX VIEWERS" + " | " + moment().format(defaultDateTimeFormat)));
+    debug(chalkAlert("... NEW TOTAL MAX VIEWERS" + " | " + moment().format(compactDateTimeFormat)));
   }
 
   if (numberViewers > numberViewersMax) {
     numberViewersMaxTime = moment().valueOf();
     numberViewersMax = numberViewers;
-    debug(chalkAlert("... NEW MAX VIEWERS" + " | " + moment().format(defaultDateTimeFormat)));
+    debug(chalkAlert("... NEW MAX VIEWERS" + " | " + moment().format(compactDateTimeFormat)));
   }
 
   if (numberUsersTotal > numberUsersTotalMax) {
     numberUsersTotalMaxTime = moment().valueOf();
     numberUsersTotalMax = numberUsersTotal;
-    debug(chalkAlert("... NEW TOTAL MAX USERS" + " | " + moment().format(defaultDateTimeFormat)));
+    debug(chalkAlert("... NEW TOTAL MAX USERS" + " | " + moment().format(compactDateTimeFormat)));
   }
 
   if (numberUsers > numberUsersMax) {
     numberUsersMaxTime = moment().valueOf();
     numberUsersMax = numberUsers;
-    debug(chalkAlert("... NEW MAX USERS" + " | " + moment().format(defaultDateTimeFormat)));
+    debug(chalkAlert("... NEW MAX USERS" + " | " + moment().format(compactDateTimeFormat)));
   }
 
   if (numberTestUsers > numberTestUsersMax) {
     numberTestUsersMaxTime = moment().valueOf();
     numberTestUsersMax = numberTestUsers;
-    debug(chalkAlert("... NEW MAX TEST USERS" + " | " + moment().format(defaultDateTimeFormat)));
+    debug(chalkAlert("... NEW MAX TEST USERS" + " | " + moment().format(compactDateTimeFormat)));
   }
 
   if (numberUtils > numberUtilsMax) {
     numberUtilsMaxTime = moment().valueOf();
     numberUtilsMax = numberUtils;
-    debug(chalkAlert("... NEW MAX UTILS" + " | " + moment().format(defaultDateTimeFormat)));
+    debug(chalkAlert("... NEW MAX UTILS" + " | " + moment().format(compactDateTimeFormat)));
   }
 
   var googleMetricsUpdateFlag = !disableGoogleMetrics && googleMetricsEnabled;
@@ -8779,7 +7538,7 @@ function saveDropboxJsonFile(file, jsonObj, callback){
 
   dropboxClient.writeFile(file, JSON.stringify(jsonObj, null, 2), function(error, stat) {
     if (error) {
-      console.log(chalkError(moment().format(defaultDateTimeFormat) 
+      console.log(chalkError(moment().format(compactDateTimeFormat) 
         + " | !!! ERROR DROBOX JSON WRITE | FILE: " + file 
         + " ERROR: " + error));
       callback(error);
@@ -8850,7 +7609,7 @@ function initEntityChannelGroups(dropboxConfigFile, callback){
 
 function initAppRouting(callback) {
 
-  debugAppGet(chalkInfo(moment().format(defaultDateTimeFormat) + " | INIT APP ROUTING"));
+  debugAppGet(chalkInfo(moment().format(compactDateTimeFormat) + " | INIT APP ROUTING"));
 
 
   app.get('/js/require.js', function(req, res) {
@@ -9243,7 +8002,7 @@ function wapiSearch(word, variation, callback){
   });
 }
 
- 
+
 function sendDirectMessage(user, message, callback) {
   
   twit.post('direct_messages/new', {screen_name: user, text:message}, function(error, response){

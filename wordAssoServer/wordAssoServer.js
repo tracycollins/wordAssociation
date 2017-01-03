@@ -507,15 +507,15 @@ sessionCache.on("expired", function(sessionId, sessionObj) {
   debug("CACHE SESSION EXPIRED\n" + jsonPrint(sessionObj));
   console.log(chalkInfo("... CACHE SESS EXPIRED"
     + " | " + sessionObj.sessionId 
-    + " | NSP: " + sessionObj.namespace 
-    + " | NOW: " + getTimeStamp() 
+    // + " | NSP: " + sessionObj.namespace 
+    // + " | NOW: " + getTimeStamp() 
     + " | LS: " + getTimeStamp(sessionObj.lastSeen) 
     + " | " + msToTime(moment().valueOf() - sessionObj.lastSeen) 
-    + " | WCI: " + sessionObj.wordChainIndex 
+    // + " | WCI: " + sessionObj.wordChainIndex 
     + " | WCL: " + sessionObj.wordChain.length 
-    + " | K: " + sessionCache.getStats().keys 
-    + " | H: " + sessionCache.getStats().hits 
-    + " | M: " + sessionCache.getStats().misses));
+    // + " | K: " + sessionCache.getStats().keys 
+    // + " | H: " + sessionCache.getStats().hits 
+    // + " | M: " + sessionCache.getStats().misses));
 });
 
 wordCache.on("set", function(word, wordObj) {

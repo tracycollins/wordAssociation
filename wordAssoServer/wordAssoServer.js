@@ -2797,7 +2797,7 @@ function entityUpdateDb(userObj, callback){
 
     entityObj = new Entity();
     entityObj.entityId = userObj.tags.entity.toLowerCase();
-    entityObj.groupId = userObj.userId;
+    entityObj.groupId = typeof userObj.userId !== 'undefined' ? userObj.userId : userObj.tags.entity.toLowerCase();
     entityObj.name = userObj.userId;
     entityObj.screenName = userObj.screenName;
     entityObj.tags = userObj.tags;
@@ -3591,299 +3591,6 @@ function updateMetrics(googleMetricsUpdateFlag) {
     totalWords
   ];
 
-  if (googleMetricsUpdateFlag && (typeof googleMonitoring !== 'undefined')) {
-    googleMonitoring.timeseries.write({
-
-      'project': GOOGLE_PROJECT_ID,
-
-      'resource': {
-
-        "timeseries": [
-
-          {
-            "point": {
-              "int64Value": numberUsers,
-              "start": metricDateStart,
-              "end": metricDateEnd
-            },
-            "timeseriesDesc": {
-              "labels": {
-                "custom.cloudmonitoring.googleapis.com/word-asso/users/numberUsers": "NUMBER USERS"
-              },
-              "metric": "custom.cloudmonitoring.googleapis.com/word-asso/users"
-            }
-          },
-
-          {
-            "point": {
-              "int64Value": numberTestUsers,
-              "start": metricDateStart,
-              "end": metricDateEnd
-            },
-            "timeseriesDesc": {
-              "labels": {
-                "custom.cloudmonitoring.googleapis.com/word-asso/users/numberTestUsers": "NUMBER TEST USERS"
-              },
-              "metric": "custom.cloudmonitoring.googleapis.com/word-asso/users"
-            }
-          },
-
-          {
-            "point": {
-              "int64Value": numberViewers,
-              "start": metricDateStart,
-              "end": metricDateEnd
-            },
-            "timeseriesDesc": {
-              "labels": {
-                "custom.cloudmonitoring.googleapis.com/word-asso/viewers/numberViewers": "NUMBER VIEWERS"
-              },
-              "metric": "custom.cloudmonitoring.googleapis.com/word-asso/viewers"
-            }
-          },
-
-          {
-            "point": {
-              "int64Value": numberTestViewers,
-              "start": metricDateStart,
-              "end": metricDateEnd
-            },
-            "timeseriesDesc": {
-              "labels": {
-                "custom.cloudmonitoring.googleapis.com/word-asso/viewers/numberTestViewers": "NUMBER TEST VIEWERS"
-              },
-              "metric": "custom.cloudmonitoring.googleapis.com/word-asso/viewers"
-            }
-          },
-
-          {
-            "point": {
-              "int64Value": parseInt(100.0 * (statsObj.memoryTotal - statsObj.memoryAvailable) / statsObj.memoryTotal),
-              "start": metricDateStart,
-              "end": metricDateEnd
-            },
-            "timeseriesDesc": {
-              "labels": {
-                "custom.cloudmonitoring.googleapis.com/word-asso/memory/memoryUsed": "MEMORY USED"
-              },
-              "metric": "custom.cloudmonitoring.googleapis.com/word-asso/memory/memoryUsed"
-            }
-          },
-
-          {
-            "point": {
-              "int64Value": wordCache.getStats().keys,
-              "start": metricDateStart,
-              "end": metricDateEnd
-            },
-            "timeseriesDesc": {
-              "labels": {
-                "custom.cloudmonitoring.googleapis.com/word-asso/word-cache/wordCacheKeys": "WORD CACHE KEYS"
-              },
-              "metric": "custom.cloudmonitoring.googleapis.com/word-asso/word-cache/wordCacheKeys"
-            }
-          },
-
-          {
-            "point": {
-              "int64Value": wordCache.getStats().hits,
-              "start": metricDateStart,
-              "end": metricDateEnd
-            },
-            "timeseriesDesc": {
-              "labels": {
-                "custom.cloudmonitoring.googleapis.com/word-asso/word-cache/wordCacheHits": "WORD CACHE HITS"
-              },
-              "metric": "custom.cloudmonitoring.googleapis.com/word-asso/word-cache"
-            }
-          },
-
-          {
-            "point": {
-              "int64Value": wordCache.getStats().misses,
-              "start": metricDateStart,
-              "end": metricDateEnd
-            },
-            "timeseriesDesc": {
-              "labels": {
-                "custom.cloudmonitoring.googleapis.com/word-asso/word-cache/wordCacheMisses": "WORD CACHE MISSES"
-              },
-              "metric": "custom.cloudmonitoring.googleapis.com/word-asso/word-cache"
-            }
-          },
-
-          {
-            "point": {
-              "int64Value": parseInt(100 * wordCache.getStats().hits / (1 + wordCache.getStats().misses)),
-              "start": metricDateStart,
-              "end": metricDateEnd
-            },
-            "timeseriesDesc": {
-              "labels": {
-                "custom.cloudmonitoring.googleapis.com/word-asso/word-cache/wordCacheHitMissRatio": "WORD CACHE HIT/MISS RATIO"
-              },
-              "metric": "custom.cloudmonitoring.googleapis.com/word-asso/word-cache/wordCacheHitMissRatio"
-            }
-          },
-
-          {
-            "point": {
-              "int64Value": promptsSent,
-              "start": metricDateStart,
-              "end": metricDateEnd
-            },
-            "timeseriesDesc": {
-              "labels": {
-                "custom.cloudmonitoring.googleapis.com/word-asso/prompts/totalPromptsSent": "PROMPTS SENT"
-              },
-              "metric": "custom.cloudmonitoring.googleapis.com/word-asso/prompts/totalPromptsSent"
-            }
-          },
-
-          {
-            "point": {
-              "int64Value": deltaPromptsSent,
-              "start": metricDateStart,
-              "end": metricDateEnd
-            },
-            "timeseriesDesc": {
-              "labels": {
-                "custom.cloudmonitoring.googleapis.com/word-asso/prompts/deltaPromptsSent": "DELTA PROMPTS SENT"
-              },
-              "metric": "custom.cloudmonitoring.googleapis.com/word-asso/prompts/deltaPromptsSent"
-            }
-          },
-
-          {
-            "point": {
-              "int64Value": responsesReceived,
-              "start": metricDateStart,
-              "end": metricDateEnd
-            },
-            "timeseriesDesc": {
-              "labels": {
-                "custom.cloudmonitoring.googleapis.com/word-asso/responses/totalResponsesReceived": "RESPONSES RECEIVED"
-              },
-              "metric": "custom.cloudmonitoring.googleapis.com/word-asso/responses/totalResponsesReceived"
-            }
-          },
-
-          {
-            "point": {
-              "int64Value": deltaResponsesReceived,
-              "start": metricDateStart,
-              "end": metricDateEnd
-            },
-            "timeseriesDesc": {
-              "labels": {
-                "custom.cloudmonitoring.googleapis.com/word-asso/responses/deltaResponsesReceived": "DELTA RESPONSES RECEIVED"
-              },
-              "metric": "custom.cloudmonitoring.googleapis.com/word-asso/responses/deltaResponsesReceived"
-            }
-          },
-
-          {
-            "point": {
-              "int64Value": deltaMwRequests,
-              "start": metricDateStart,
-              "end": metricDateEnd
-            },
-            "timeseriesDesc": {
-              "labels": {
-                "custom.cloudmonitoring.googleapis.com/word-asso/mw/deltaMwRequests": "DELTA MW REQUESTS"
-              },
-              "metric": "custom.cloudmonitoring.googleapis.com/word-asso/mw/deltaMwRequests"
-            }
-          },
-
-          {
-            "point": {
-              "int64Value": mwRequests,
-              "start": metricDateStart,
-              "end": metricDateEnd
-            },
-            "timeseriesDesc": {
-              "labels": {
-                "custom.cloudmonitoring.googleapis.com/word-asso/mw/numberMwRequests": "TOTAL DAILY MW REQUESTS"
-              },
-              "metric": "custom.cloudmonitoring.googleapis.com/word-asso/mw/numberMwRequests"
-            }
-          },
-
-          {
-            "point": {
-              "int64Value": deltaBhtRequests,
-              "start": metricDateStart,
-              "end": metricDateEnd
-            },
-            "timeseriesDesc": {
-              "labels": {
-                "custom.cloudmonitoring.googleapis.com/word-asso/bht/deltaBhtRequests": "DELTA BHT REQUESTS"
-              },
-              "metric": "custom.cloudmonitoring.googleapis.com/word-asso/bht/deltaBhtRequests"
-            }
-          },
-
-          {
-            "point": {
-              "int64Value": bhtRequests,
-              "start": metricDateStart,
-              "end": metricDateEnd
-            },
-            "timeseriesDesc": {
-              "labels": {
-                "custom.cloudmonitoring.googleapis.com/word-asso/bht/numberBhtRequests": "TOTAL DAILY BHT REQUESTS"
-              },
-              "metric": "custom.cloudmonitoring.googleapis.com/word-asso/bht/numberBhtRequests"
-            }
-          },
-
-          {
-            "point": {
-              "int64Value": totalWords,
-              "start": metricDateStart,
-              "end": metricDateEnd
-            },
-            "timeseriesDesc": {
-              "labels": {
-                "custom.cloudmonitoring.googleapis.com/word-asso/words/totalWords": "TOTAL WORDS IN DB"
-              },
-              "metric": "custom.cloudmonitoring.googleapis.com/word-asso/words/totalWords"
-            }
-          }
-
-        ]
-      }
-    }, function(err, res) {
-      if (err) {
-        console.log("!!! GOOGLE CLOUD MONITORING ERROR " 
-          + " | " + moment().format(compactDateTimeFormat) 
-          + " | " + statArray 
-          + "\n" + util.inspect(err, {
-          showHidden: false,
-          depth: 3
-        }));
-
-        if (err.code == 500) {
-          console.log(chalkGoogle("??? GOOGLE CLOUD MONITORING INTERNAL SERVER ERROR (CODE: 500)"));
-        }
-
-        if (err.toString().indexOf("Daily Limit Exceeded") >= 0) {
-          console.log(chalkGoogle("!!! GOOGLE CLOUD MONITORING DAILY LIMIT EXCEEDED ... DISABLING METRICS"));
-          googleMetricsEnabled = false;
-          googleOauthEvents.emit("DAILY LIMIT EXCEEDED");
-        }
-        if (err.toString().indexOf("socket hang up") >= 0) {
-          console.log(chalkGoogle("!!! GOOGLE CLOUD MONITORING SOCKET HUNG UP ... DISABLING METRICS"));
-          googleMetricsEnabled = false;
-          googleOauthEvents.emit("SOCKET HUNG UP");
-        }
-      } else {
-        debug("GOOGLE MONITORING RESULT: " + jsonPrint(res));
-      }
-    });
-  }
-
   updateStats({
     deltaResponsesReceived: deltaResponsesReceived
   });
@@ -4314,15 +4021,15 @@ function handleSessionEvent(sesObj, callback) {
       }
 
       console.log(chalkSession(
-        ">>> SESS CREATE" 
-        + " | " + moment().format(compactDateTimeFormat) 
-        + " | NSP: " + sesObj.session.namespace 
-        + " | TYPE: " + sesObj.session.config.type 
-        + " | MODE: " + sesObj.session.config.mode 
-        + " | SID: " + sesObj.session.sessionId 
-        + " | ENT: " + sesObj.session.tags.entity
-        + " | CH: " + sesObj.session.tags.channel
-        + " | SIP: " + sesObj.session.ip
+        "+ SES" 
+        // + " | " + moment().format(compactDateTimeFormat) 
+        // + " | NSP: " + sesObj.session.namespace 
+        + " | " + sesObj.session.sessionId 
+        + " | T " + sesObj.session.config.type 
+        + " | M " + sesObj.session.config.mode 
+        + " | E " + sesObj.session.tags.entity
+        + " | C " + sesObj.session.tags.channel
+        // + " | SIP: " + sesObj.session.ip
       ));
 
       switch (sesObj.session.config.type) {
@@ -4576,25 +4283,17 @@ function handleSessionEvent(sesObj, callback) {
         }
       }
 
-      console.log(chalkSession(
-        ">>> USER READY" 
-        + " | " + moment().format(compactDateTimeFormat) 
-        + " | NSP: " + sesObj.session.namespace 
-        + " | UN: " + sesObj.user.name 
-        + " | UID: " + sesObj.user.userId 
-        + " | TYPE: " + sesObj.session.config.type 
-        + " | MODE: " + sesObj.session.config.mode 
-        + "\n                 SID: " + sesObj.session.sessionId 
-        + " | UMODE: " + sesObj.user.tags.mode 
-        + " | GRP: " + sesObj.user.tags.group 
-        + " | ENT: " + sesObj.user.tags.entity 
-        + " | CH: " + sesObj.user.tags.channel 
-        + " | IP: " + sesObj.session.ip 
-        + " | DOM: " + sesObj.session.domain
-        // + "\n" + jsonPrint(sesObj)
+      debug(chalkSession("> USR RDY" 
+        + " | " + sesObj.session.sessionId 
+        + " | U " + sesObj.user.userId 
+        + " | N " + sesObj.user.name 
+        + " | M " + sesObj.session.config.mode 
+        + " | G " + sesObj.user.tags.group 
+        + " | E " + sesObj.user.tags.entity 
+        + " | C " + sesObj.user.tags.channel 
       ));
 
-      var sessionId = sesObj.session.sessionId;
+       var sessionId = sesObj.session.sessionId;
 
       if (sesObj.session.config.mode == 'MUXSTREAM'){
 
@@ -4678,7 +4377,7 @@ function handleSessionEvent(sesObj, callback) {
 
               updatedUserObj.isMuxed = true;
 
-              console.log(chalkInfo("TX UTIL SESSION (UTIL READY): " + updatedUserObj.lastSession  + " | " + updatedUserObj.userId + " TO ADMIN NAMESPACE"));
+              debug(chalkInfo("TX UTIL SESSION (UTIL READY): " + updatedUserObj.lastSession  + " | " + updatedUserObj.userId + " TO ADMIN NAMESPACE"));
               adminNameSpace.emit('UTIL_SESSION', updatedUserObj);
 
               io.of(sesObj.session.namespace).to(sesObj.session.sessionId).emit('USER_READY_ACK', updatedUserObj.userId);
@@ -4835,7 +4534,12 @@ function getTags(wordObj, callback){
     else {
       debug(chalkError("entityChannelGroupHashMap MISS \n" + jsonPrint(wordObj)));
       wordObj.tags.group = wordObj.tags.entity.toLowerCase();
-      entityChannelGroupHashMap.set(wordObj.tags.entity.toLowerCase(), { groupId: wordObj.tags.group, name: wordObj.tags.entity.toLowerCase() } );
+      entityChannelGroupHashMap.set(
+        wordObj.tags.entity.toLowerCase(), 
+        { groupId: wordObj.tags.group, 
+          name: wordObj.tags.entity.toLowerCase() 
+        } 
+      );
       callback(wordObj);
     }
 
@@ -4966,12 +4670,13 @@ var readResponseQueue = setInterval(function() {
         previousPromptObj = wordCache.get(previousPrompt);
 
         if (!previousPromptObj) {
-          console.log(chalkError(socketId 
+          console.log(chalkAlert("PREV PROMPT $ MISS"
+            + " | " + socketId 
             + " | " + currentSessionObj.userId 
             + " | WCI: " + currentSessionObj.wordChainIndex 
             + " | WCL: " + currentSessionObj.wordChain.length
-            + " | ??? previousPrompt NOT IN CACHE: " + previousPrompt
-            // + " ... ABORTING SESSION"
+            + " | " + responseInObj.nodeId 
+            + " > " + previousPrompt 
           ));
 
           statsObj.session.error++;
@@ -4980,6 +4685,8 @@ var readResponseQueue = setInterval(function() {
           previousPromptObj = {
             nodeId: previousPrompt
           };
+
+          wordCache.set(previousPrompt, previousPromptObj);
 
         } else {
           debug(chalkResponse("... previousPromptObj: " + previousPromptObj.nodeId));
@@ -5034,13 +4741,13 @@ var readResponseQueue = setInterval(function() {
           dbUpdateObj.tags.group = updatedWordObj.tags.group;
 
           console.log(chalkInfo("R_a<" 
-            + " G: " + updatedWordObj.tags.group 
-            // + " | U: " + currentSessionObj.userId
-            + " E: " + updatedWordObj.tags.entity 
-            + " C: " + updatedWordObj.tags.channel 
-            + " KW: " + updatedWordObj.isKeyword 
-            + " TT: " + updatedWordObj.isTrendingTopic 
-            // + " | URL: " + updatedWordObj.url 
+            + " G " + updatedWordObj.tags.group 
+            // + " | U " + currentSessionObj.userId
+            + " E " + updatedWordObj.tags.entity 
+            + " C " + updatedWordObj.tags.channel 
+            + " KW " + updatedWordObj.isKeyword 
+            + " TT " + updatedWordObj.isTrendingTopic 
+            // + " | URL " + updatedWordObj.url 
             + " [" + currentSessionObj.wordChainIndex + "]" 
             + " | " + updatedWordObj.nodeId 
             // + " < " + previousPrompt
@@ -5052,13 +4759,13 @@ var readResponseQueue = setInterval(function() {
         }
         else {
           console.log(chalkInfo("R_b<" 
-            + " G: " + updatedWordObj.tags.group 
-            // + " | U: " + currentSessionObj.userId
-            + " E: " + updatedWordObj.tags.entity 
-            + " C: " + updatedWordObj.tags.channel 
-            // + " KW: " + updatedWordObj.isKeyword 
-            + " TT: " + updatedWordObj.isTrendingTopic 
-            // + " | URL: " + updatedWordObj.url 
+            + " G " + updatedWordObj.tags.group 
+            // + " | U " + currentSessionObj.userId
+            + " E " + updatedWordObj.tags.entity 
+            + " C " + updatedWordObj.tags.channel 
+            // + " KW " + updatedWordObj.isKeyword 
+            + " TT " + updatedWordObj.isTrendingTopic 
+            // + " | URL " + updatedWordObj.url 
             + " [" + currentSessionObj.wordChainIndex + "]" 
             + " | " + updatedWordObj.nodeId 
             // + " < " + previousPrompt
@@ -6252,10 +5959,10 @@ function initFollowerUpdateQueueInterval(interval){
 
           if (entityChannelGroupHashMap.has(entityObj.entityId)) {
 
-            console.log(chalkInfo("### ENTITY CHANNEL GROUP HASHMAP HIT"
+            console.log(chalkInfo("### E CH GRP HM HIT"
               + " | " + entityObj.entityId
               + " | " + entityObj.name
-              + " | GRP: " + entityObj.groupId
+              + " | G " + entityObj.groupId
             ));
 
             if (groupHashMap.has(entityObj.groupId)) {
@@ -6274,15 +5981,15 @@ function initFollowerUpdateQueueInterval(interval){
               groupObj.addChannelArray = [];
               groupObj.addChannelArray.push('twitter');
 
-              console.log(chalkDb("GROUP HASH HIT"
-                + " | ENT: " + entityObj.entityId
-                + " | GRP: " + groupObj.groupId
-                + " | GRP NAME: " + groupObj.name
-                + " | +ENT: " + groupObj.addEntityArray
-                + " | +CH: " + groupObj.addChannelArray
+              console.log(chalkDb("G HM HIT"
+                + " | E " + entityObj.entityId
+                + " | G " + groupObj.groupId
+                + " | GN " + groupObj.name
+                + " | +E " + groupObj.addEntityArray
+                + " | +C " + groupObj.addChannelArray
               ));
 
-              console.log(chalkInfo("### GROUP HASHMAP HIT"
+              console.log(chalkInfo("### G HM HIT"
                 + " | " + groupObj.groupId
                 + " | " + groupObj.name
               ));
@@ -6291,13 +5998,13 @@ function initFollowerUpdateQueueInterval(interval){
             }
             else {
 
-              console.log(chalkInfo("--- GROUP HASHMAP MISS"
+              console.log(chalkInfo("--- G HM MISS"
                 + " | " + entityObj.entityId
                 + " | " + entityObj.name
               ));
 
-              console.log(chalkInfo("+++ CREATING GROUP"
-                + " | NEW GROUP: " + entityObj.entityId
+              console.log(chalkInfo("+ G"
+                + " | " + entityObj.entityId
                 + " | " + entityObj.name
               ));
 
@@ -6320,13 +6027,13 @@ function initFollowerUpdateQueueInterval(interval){
             }
           }
           else {
-            console.log(chalkInfo("--- ENTITY CHANNEL GROUP HASHMAP MISS"
+            console.log(chalkInfo("--- E CH G HM MISS"
               + " | " + entityObj.entityId
               + " | " + entityObj.name
             ));
 
-            console.log(chalkInfo("+++ CREATING ENTITY"
-              + " | NEW ENTITY: " + entityObj.entityId
+            console.log(chalkInfo("+ E"
+              + " | NEW E " + entityObj.entityId
               + " | " + entityObj.name
             ));
 
@@ -6351,15 +6058,15 @@ function initFollowerUpdateQueueInterval(interval){
               groupObj.addChannelArray = [];
               groupObj.addChannelArray.push('twitter');
 
-              console.log(chalkDb("GROUP HASH HIT"
-                + " | ENT: " + entityObj.entityId
-                + " | GRP: " + groupObj.groupId
-                + " | GRP NAME: " + groupObj.name
-                + " | +ENT: " + groupObj.addEntityArray
-                + " | +CH: " + groupObj.addChannelArray
+              console.log(chalkDb("G HM HIT"
+                + " | E " + entityObj.entityId
+                + " | G " + groupObj.groupId
+                + " | GN " + groupObj.name
+                + " | +E " + groupObj.addEntityArray
+                + " | +C " + groupObj.addChannelArray
               ));
 
-              console.log(chalkInfo("### GROUP HASHMAP HIT"
+              console.log(chalkInfo("### G HM HIT"
                 + " | " + groupObj.groupId
                 + " | " + groupObj.name
               ));
@@ -6369,13 +6076,13 @@ function initFollowerUpdateQueueInterval(interval){
             }
             else {
 
-              console.log(chalkInfo("--- GROUP HASHMAP MISS"
+              console.log(chalkInfo("--- G HM MISS"
                 + " | " + entityObj.entityId
                 + " | " + entityObj.name
               ));
 
-              console.log(chalkInfo("+++ CREATING GROUP"
-                + " | NEW GROUP: " + entityObj.entityId
+              console.log(chalkInfo("+ G"
+                + " | NEW G " + entityObj.entityId
                 + " | " + entityObj.name
               ));
 
@@ -6457,7 +6164,7 @@ function updateGroupEntity(entityObj, callback){
           callback(err, updatedEntityObj);
         }
         else {
-          console.log(chalkInfo("TX UTIL SESSION (UTIL READY): " + updatedEntity2Obj.lastSession + " TO ADMIN NAMESPACE"));
+          console.log(chalkInfo("TX UTIL SES (UTIL RDY): " + updatedEntity2Obj.lastSession + " TO ADMIN NAMESPACE"));
           adminNameSpace.emit('UTIL_SESSION', updatedEntity2Obj);
           callback(null, updatedEntity2Obj);
         }
@@ -7148,17 +6855,15 @@ function createSession(newSessionObj) {
 
     statsObj.socket.USER_READYS++;
 
-    console.log(chalkUser(">RX USER_READY"
+    console.log(chalkUser(">RX USR RDY"
       + " | " + socket.id
-      + " | NID: " + userObj.nodeId
-      + " | U: " + userObj.userId
-      + " | N: " + userObj.name
-      // + " | SCN: " + userObj.screenName
-      + " | E: " + userObj.tags.entity
-      + "\nC: " + userObj.tags.channel
-      + " | T: " + userObj.type
-      + " | MODE: " + userObj.mode
-      // + "\n" + jsonPrint(userObj)
+      + " | " + userObj.nodeId
+      + " | U " + userObj.userId
+      + " | N " + userObj.name
+      + " | E " + userObj.tags.entity
+      + " | C " + userObj.tags.channel
+      + " | T " + userObj.type
+      + " | M " + userObj.mode
     ));
 
     if ((typeof userObj.tags !== 'undefined')
@@ -7167,7 +6872,6 @@ function createSession(newSessionObj) {
       && (userObj.tags.mode.toLowerCase() == 'substream')) {
 
       sessionCacheKey = socket.id + "#" + userObj.tags.entity;
-      // sessionCacheKey = userObj.tags.entity.toLowerCase();
 
       debug(chalkRedBold("USER_READY SUBSTREAM sessionCacheKey: " + sessionCacheKey));
     }
@@ -7199,7 +6903,7 @@ function createSession(newSessionObj) {
 
           sessionObj.config = {};
 
-          console.log(chalkSession("SESSION CACHE MISS USER READY"
+          console.log(chalkSession("SES $ MISS USR RDY"
             + " | " + sessionCacheKey
             + " | " + moment().format(compactDateTimeFormat) 
           ));
@@ -7252,7 +6956,7 @@ function createSession(newSessionObj) {
 
                 delete statsObj.entityChannelGroup.hashMiss[sessionObj.tags.entity];
 
-                console.log(chalkInfo("### ENTITY CHANNEL GROUP HASHMAP HIT"
+                console.log(chalkInfo("### E CH HM HIT"
                   + " | " + sessionObj.tags.entity
                   + " > " + entityChannelGroupHashMap.get(sessionObj.tags.entity).groupId
                 ));
@@ -7260,13 +6964,12 @@ function createSession(newSessionObj) {
               else {
                 statsObj.entityChannelGroup.hashMiss[sessionObj.tags.entity] = 1;
                 statsObj.entityChannelGroup.allHashMisses[sessionObj.tags.entity] = 1;
-                console.log(chalkInfo("-0- ENTITY CHANNEL GROUP HASHMAP MISS"
+                console.log(chalkInfo("-0- E CH HM MISS"
                   + " | " + sessionObj.tags.entity
                   // + "\n" + jsonPrint(statsObj.entityChannelGroup.hashMiss)
                 ));
 
                 configEvents.emit("HASH_MISS", {type: "entity", value: sessionObj.tags.entity.toLowerCase()});
-                // configEvents.emit("HASH_MISS", {entity: sessionObj.tags.entity});
               }
             }
             else {

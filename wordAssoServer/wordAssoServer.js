@@ -1196,23 +1196,33 @@ function updateStatsInterval(statsFile, interval){
       },
         function(err){
 
-          saveFile("", serverKeywordsFile, serverKeywordsJsonObj, function(err, results){
-            if (err){
-              console.log(chalkError("SAVE SERVER KEYWORD FILE ERROR " + serverKeywordsFile));
-              if (err.status == 429) {
-                console.log(chalkError("SAVE SERVER KEYWORD FILE ERROR: TOO MANY WRITES"));
+          if (hmKeys.length > 0) {
+            saveFile("", serverKeywordsFile, serverKeywordsJsonObj, function(err, results){
+              if (err){
+                console.log(chalkError("SAVE SERVER KEYWORD FILE ERROR " + serverKeywordsFile));
+                if (err.status == 429) {
+                  console.log(chalkError("SAVE SERVER KEYWORD FILE ERROR: TOO MANY WRITES"));
+                }
+                else {
+                  console.log(chalkError(jsonPrint(err)));
+                }
               }
               else {
-                console.log(chalkError(jsonPrint(err)));
+                console.log(chalkInfo("SAVE SERVER KEYWORD FILE " 
+                  + serverKeywordsFile 
+                  + " | " + hmKeys.length + " KEYWORDS"
+                  // + "\n" + jsonPrint(results)
+                ));
               }
-            }
-            else {
-              console.log(chalkInfo("SAVE SERVER KEYWORD FILE " 
-                + serverKeywordsFile 
-                // + "\n" + jsonPrint(results)
-              ));
-            }
-          });
+            });
+          }
+          else {
+            console.log(chalkRed("SKIPPED SAVE SERVER KEYWORDS FILE " 
+              + serverKeywordsFile 
+              + " | " + hmKeys.length + " KEYWORDS"
+              // + "\n" + jsonPrint(results)
+            ));
+          }
 
         }
       );
@@ -4890,8 +4900,9 @@ var readUpdaterMessageQueue = setInterval(function() {
                     }
                   }
                   else {
-                    console.log(chalkLog("SAVE SERVER KEYWORD FILE " 
-                      + serverKeywordsFile 
+                    console.log(chalkLog("TWITTER - SAVE SERVER KEYWORD FILE " 
+                      + serverKeywordsFile
+                      + " | " + hmKeys.length + " KEYWORDS"
                       // + "\n" + jsonPrint(results)
                     ));
                   }
@@ -5055,7 +5066,6 @@ var readUpdaterMessageQueue = setInterval(function() {
     }
 
     updateComplete = groupsUpdateComplete && entitiesUpdateComplete && keywordsUpdateComplete;
-
   }
 }, 10);
 
@@ -5376,13 +5386,13 @@ function keywordUpdateDb(keywordObj, callback){
       callback(err, wordObj);
     }
     else {
-      console.log(chalkLog("+++ UPDATED KEYWORD"
+      console.log(chalkAlert("+ KEYWORD"
         + " | " + updatedWordObj.nodeId 
         + " | " + updatedWordObj.raw 
         + " | M " + updatedWordObj.mentions 
         + " | I " + updatedWordObj.isIgnored 
         + " | K " + updatedWordObj.isKeyword 
-        + " | K " + jsonPrint(updatedWordObj.keywords) 
+        + "\nK " + jsonPrint(updatedWordObj.keywords) 
       ));
       callback(null, updatedWordObj);
     }
@@ -5698,8 +5708,12 @@ function initializeConfiguration(callback) {
                           break;
                         }
 
-                        console.log(chalkTwitter("ADD KEYWORD | " + keyWordType + " | " + keyword));
                         updaterMessageQueue.enqueue({ twitter: true, type: 'keyword', keyword: keyword, keyWordType: keyWordType});
+                        console.log(chalkTwitter("ADD KEYWORD"
+                          + " [" + updaterMessageQueue.size() + "]"
+                          + " | " + keyWordType 
+                          + " | " + keyword
+                        ));
                       }
                      break;
                     case 'q':

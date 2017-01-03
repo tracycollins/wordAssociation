@@ -33,6 +33,10 @@ var WordSchema = new Schema({
 		type: Number,
 		default: 0
 	},
+	isTwitterUser: {
+		type: Boolean,
+		default: false
+	},
 	isTrendingTopic: {
 		type: Boolean,
 		default: false

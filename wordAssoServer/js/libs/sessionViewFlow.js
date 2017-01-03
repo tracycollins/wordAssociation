@@ -1293,7 +1293,16 @@ function ViewFlow() {
         d.textLength = this.getComputedTextLength();
         if (d.isGroupNode) return d.totalWordChainIndex;
         if (d.isSessionNode) return d.wordChainIndex;
-        if (!mouseMovingFlag && blahMode && !d.isKeyword && !d.isCurrency && !d.isNumber && !d.isTrendingTopic) return "blah";
+        if (d.isTwitterUser) return d.raw;
+        if (!mouseMovingFlag 
+          && blahMode 
+          && !d.isTwitterUser 
+          && !d.isKeyword 
+          && !d.isCurrency 
+          && !d.isNumber 
+          && !d.isTrendingTopic) {
+          return "blah";
+        }
         if (antonymFlag && d.antonym) { return '[' + d.antonym + ']';  }
         return d.raw.toUpperCase();
       })
@@ -1312,7 +1321,7 @@ function ViewFlow() {
         else { return nodeFontSizeScale(d.mentions + 1.1) + "px"; }
       })
       .style("font-weight", function(d) {
-        if (d.isKeyword || d.isNumber || d.isCurrency || d.isTrendingTopic) return "bold";
+        if (d.isTwitterUser || d.isKeyword || d.isNumber || d.isCurrency || d.isTrendingTopic) return "bold";
         return "normal";
       })
       .style("text-decoration", function(d) {
@@ -1323,7 +1332,7 @@ function ViewFlow() {
         if (d.mouseHoverFlag) { return palette.blue; }
         if (d.isTrendingTopic) { return palette.orange; }
         if (d.isKeyword) { return d.keywordColor; }
-        if (d.isNumber || d.isCurrency) { return palette.black; }
+        if (d.isTwitterUser || d.isNumber || d.isCurrency) { return palette.black; }
         if ((d.isGroupNode || d.isSessionNode) && (d.ageMaxRatio < 0.01)) { return palette.yellow; }
         return palette.lightgray; 
       })
@@ -1546,6 +1555,7 @@ function ViewFlow() {
     if (typeof newNode.raw !== 'undefined') {
 
       newNode.raw = newNode.raw.replace(/\&amp\;/gi, "&");
+
       if (newNode.raw.match(/^\d+/gi)){
         newNode.isNumber = true;
       //   console.debug("ADD NODE" 
@@ -1569,6 +1579,19 @@ function ViewFlow() {
         //   + " | KWs: " + jsonPrint(newNode.keywords)
         // );
       }
+      
+      if (newNode.raw.match(/^@/gi)){
+        newNode.isTwitterUser = true;
+        // console.debug("ADD NODE" 
+        //   + " | " + newNode.text
+        //   + " | K: " + newNode.isKeyword
+        //   + " | NUMBER: " + newNode.isNumber
+        //   + " | CURRENCY: " + newNode.isCurrency
+        //   + " | TT: " + newNode.isTrendingTopic
+        //   + " | KWs: " + jsonPrint(newNode.keywords)
+        // );
+      }
+      
     }
 
     if (newNode.isTrendingTopic) {

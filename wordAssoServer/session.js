@@ -1298,6 +1298,20 @@ function createStatsTable(callback) {
     text: '---'
   };
 
+  var statsClientMaxAddNodeQLabel = {
+    type: 'TEXT',
+    id: 'statsClientMaxAddNodeQLabel',
+    class: 'statsTableText',
+    text: 'MAX'
+  };
+
+  var statsClientMaxAddNodeQ = {
+    type: 'TEXT',
+    id: 'statsClientMaxAddNodeQ',
+    class: 'statsTableText',
+    text: '---'
+  };
+
   var statsClientNumberEntitiesLabel = {
     type: 'TEXT',
     id: 'statsClientNumberEntitiesLabel',
@@ -1413,7 +1427,7 @@ function createStatsTable(callback) {
       tableCreateRow(statsTableClient, optionsHead, ['CLIENT']);
       tableCreateRow(statsTableClient, optionsBody, [statsClientSessionIdLabel, statsClientSessionId]);
       tableCreateRow(statsTableClient, optionsBody, [statsClientNumberNodesLabel, statsClientNumberNodes, statsClientNumberMaxNodesLabel, statsClientNumberMaxNodes]);
-      tableCreateRow(statsTableClient, optionsBody, [statsClientAddNodeQLabel, statsClientAddNodeQ]);
+      tableCreateRow(statsTableClient, optionsBody, [statsClientAddNodeQLabel, statsClientAddNodeQ, statsClientMaxAddNodeQLabel, statsClientMaxAddNodeQ]);
       tableCreateRow(statsTableClient, optionsBody, [statsClientNumberEntitiesLabel, statsClientNumberEntities]);
       // tableCreateRow(infoTable, optionsBody, [status2]);
       break;
@@ -1532,6 +1546,7 @@ function updateStatsTable(statsObj){
   document.getElementById("statsClientNumberMaxNodes").innerHTML = statsObj.maxNodes;
   document.getElementById("statsClientNumberEntities").innerHTML = sessionHashMap.count();
   document.getElementById("statsClientAddNodeQ").innerHTML = currentSessionView.getNodeAddQlength();
+  document.getElementById("statsClientMaxAddNodeQ").innerHTML = currentSessionView.getMaxNodeAddQ();
 
   if (statsObj.serverConnected) {
     document.getElementById("statsClientSessionId").innerHTML = statsObj.socketId;

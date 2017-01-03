@@ -6112,6 +6112,10 @@ var readUpdaterMessageQueue = setInterval(function() {
       case 'query':
         queryDb(updaterObj, function(err, queryWordObj){
 
+            if (err){
+              console.log(chalkError("QUERY DB ERROR\n" + jsonPrint(err)));
+            }
+
             var dmString = "QUERY"
               + " | " + hostname 
               + "\n" + queryWordObj.nodeId 
@@ -7002,11 +7006,12 @@ function initializeConfiguration(callback) {
 
               console.log(chalkTwitter("R< TWITTER DIRECT MESSAGE"
                 + " | " + message.direct_message.sender_screen_name
+                + " | " + message.direct_message.entities.hashtags.length + " Hs"
                 + " | " + message.direct_message.text
                 // + "\nMESSAGE\n" + jsonPrint(message)
               ));
 
-              if (message.direct_message.sender_screen_name == 'threecee') {
+              if (message.direct_message.sender_screen_name == 'threecee' || message.direct_message.sender_screen_name == 'ninjathreecee') {
 
                 if (message.direct_message.entities.hashtags.length > 0) {
 
@@ -7069,7 +7074,9 @@ function initializeConfiguration(callback) {
                     break;
                   }
                 }
-
+              }
+              else {
+                console.log(chalkAlert("UNKNOWN TWITTER DM SENDER: " + message.direct_message.sender_screen_name));
               }
             });
 

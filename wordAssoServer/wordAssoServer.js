@@ -515,7 +515,8 @@ sessionCache.on("expired", function(sessionId, sessionObj) {
     + " | WCL: " + sessionObj.wordChain.length 
     // + " | K: " + sessionCache.getStats().keys 
     // + " | H: " + sessionCache.getStats().hits 
-    // + " | M: " + sessionCache.getStats().misses));
+    // + " | M: " + sessionCache.getStats().misses
+  ));
 });
 
 wordCache.on("set", function(word, wordObj) {

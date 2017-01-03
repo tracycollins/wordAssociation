@@ -335,7 +335,8 @@ var updateEntityChannelGroups = function (configFile, callback){
 
           else {
 
-            entityChannelGroupHashMap.set(entityChannelId, entityChannelGroups[entityChannelId])
+            entityChannelGroupHashMap.set(entityChannelId, entityChannelGroups[entityChannelId]);
+            
             if (groupHashMap.has(entityChannelGroupHashMap.get(entityChannelId).groupId)){
               cb(null, "MISS");
               return;

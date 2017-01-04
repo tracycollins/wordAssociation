@@ -689,6 +689,7 @@ function toggleTestMode() {
 var groupHashMap = new HashMap();
 var groupDeleteHashMap = new HashMap();
 
+var maxSessions = 0;
 var sessionHashMap = new HashMap();
 var sessionDeleteHashMap = new HashMap();
 
@@ -983,16 +984,10 @@ var visibilityEvent = getVisibilityEvent(prefix);
 function reset(){
   currentSessionView.simulationControl('RESET');
   windowVisible = true;
-  // currentSessionView.reset();
-  // nodeHashMap.clear();
-  // linkHashMap.clear();
   deleteAllSessions(function() {
     console.log("DELETED ALL SESSIONS ON WINDOW HIDDEN");
     sessionCreateQueue = [];
-    // groupHashMap.clear();
     sessionDeleteHashMap.clear();
-    // currentSe÷ssionView.resize();
-    // currentSessionView.reset();
     if ((config.sessionViewType == 'force') 
       || (config.sessionViewType == 'ticker')
       || (config.sessionViewType == 'flow')
@@ -1326,6 +1321,20 @@ function createStatsTable(callback) {
     text: '---'
   };
 
+  var statsClientNumberMaxEntitiesLabel = {
+    type: 'TEXT',
+    id: 'statsClientNumberMaxEntitiesLabel',
+    class: 'statsTableText',
+    text: 'MAX'
+  };
+
+  var statsClientNumberMaxEntities = {
+    type: 'TEXT',
+    id: 'statsClientNumberMaxEntities',
+    class: 'statsTableText',
+    text: '---'
+  };
+
   var statsServerTimeLabel = {
     type: 'TEXT',
     id: 'statsServerTimeLabel',
@@ -1428,7 +1437,7 @@ function createStatsTable(callback) {
       tableCreateRow(statsTableClient, optionsBody, [statsClientSessionIdLabel, statsClientSessionId]);
       tableCreateRow(statsTableClient, optionsBody, [statsClientNumberNodesLabel, statsClientNumberNodes, statsClientNumberMaxNodesLabel, statsClientNumberMaxNodes]);
       tableCreateRow(statsTableClient, optionsBody, [statsClientAddNodeQLabel, statsClientAddNodeQ, statsClientMaxAddNodeQLabel, statsClientMaxAddNodeQ]);
-      tableCreateRow(statsTableClient, optionsBody, [statsClientNumberEntitiesLabel, statsClientNumberEntities]);
+      tableCreateRow(statsTableClient, optionsBody, [statsClientNumberEntitiesLabel, statsClientNumberEntities, statsClientNumberMaxEntitiesLabel, statsClientNumberMaxEntities]);
       // tableCreateRow(infoTable, optionsBody, [status2]);
       break;
 
@@ -1442,7 +1451,8 @@ function createStatsTable(callback) {
 
 //  STATS UPDATE
 setInterval(function() {
- if (statsTableFlag) updateStatsTable(statsObj);
+  if (sessionHashMap.count() > maxSessions) maxSessions = sessionHashMap.count();
+  if (statsTableFlag) updateStatsTable(statsObj);
 }, 1000);
 
 //  KEEPALIVE
@@ -1545,6 +1555,7 @@ function updateStatsTable(statsObj){
   document.getElementById("statsClientNumberNodes").innerHTML = currentSessionView.getNodesLength();
   document.getElementById("statsClientNumberMaxNodes").innerHTML = statsObj.maxNodes;
   document.getElementById("statsClientNumberEntities").innerHTML = sessionHashMap.count();
+  document.getElementById("statsClientNumberMaxEntities").innerHTML = maxSessions;
   document.getElementById("statsClientAddNodeQ").innerHTML = currentSessionView.getNodeAddQlength();
   document.getElementById("statsClientMaxAddNodeQ").innerHTML = currentSessionView.getMaxNodeAddQ();
 

@@ -382,11 +382,10 @@ var updateKeywords = function (folder, file, serverHashMapFlag, callback){
     console.log(chalkWarn("UPDATE SERVER KEYWORDS " + file));
   }
   else {
-    kwHashMap.copy(serverKeywordHashMap);
+    kwHashMap.copy(keywordHashMap);
     prevKwHashMap.copy(previousKeywordHashMap);
     console.log(chalkWarn("UPDATE GLOBAL KEYWORDS " + file));
   }
-
 
   loadFile(folder, file, function(err, kwordsObj){
 
@@ -457,6 +456,16 @@ var updateKeywords = function (folder, file, serverHashMapFlag, callback){
               + " | TOTAL KEYWORDS:   " + kwHashMap.count()
               + " | (DELETED KEYWORDS:) " + prevKwHashMap.count()
             ));
+
+            if (serverHashMapFlag){
+              serverKeywordHashMap.copy(kwHashMap);
+              previousServerKeywordHashMap.copy(prevKwHashMap);
+            }
+            else {
+              keywordHashMap.copy(kwHashMap);
+              previousKeywordHashMap.copy(prevKwHashMap);
+              console.log(chalkWarn("UPDATE GLOBAL KEYWORDS " + file));
+            }
 
             if (deleteKeywordsEnabled && (prevKwHashMap.count() > 0)) {
               console.log(chalkInfo(

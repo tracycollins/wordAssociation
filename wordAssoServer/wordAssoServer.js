@@ -4752,15 +4752,12 @@ var readResponseQueue = setInterval(function() {
 
           console.log(chalkInfo("R_a<" 
             + " G " + updatedWordObj.tags.group 
-            // + " | U " + currentSessionObj.userId
             + " E " + updatedWordObj.tags.entity 
             + " C " + updatedWordObj.tags.channel 
             + " KW " + updatedWordObj.isKeyword 
             + " TT " + updatedWordObj.isTrendingTopic 
-            // + " | URL " + updatedWordObj.url 
             + " [" + currentSessionObj.wordChainIndex + "]" 
             + " | " + updatedWordObj.nodeId 
-            // + " < " + previousPrompt
           ));
 
           dbUpdateWordQueue.enqueue(dbUpdateObj);
@@ -4770,18 +4767,12 @@ var readResponseQueue = setInterval(function() {
         else {
           console.log(chalkInfo("R_b<" 
             + " G " + updatedWordObj.tags.group 
-            // + " | U " + currentSessionObj.userId
             + " E " + updatedWordObj.tags.entity 
             + " C " + updatedWordObj.tags.channel 
-            // + " KW " + updatedWordObj.isKeyword 
             + " TT " + updatedWordObj.isTrendingTopic 
-            // + " | URL " + updatedWordObj.url 
             + " [" + currentSessionObj.wordChainIndex + "]" 
             + " | " + updatedWordObj.nodeId 
-            // + " < " + previousPrompt
           ));
-
-          // if (typeof updatedWordObj.tags.group === 'undefined') quit();
 
           dbUpdateWordQueue.enqueue(dbUpdateObj);
           ready = true;
@@ -5346,7 +5337,6 @@ function queryDb(queryObj, callback){
   var wordObj = new Word();
 
   wordObj.nodeId = queryObj.query.toLowerCase();
-  // wordObj.isKeyword = false;
  
   wordServer.findOneWord(wordObj, false, function(err, queryWordObj) {
     if (err){
@@ -6256,9 +6246,9 @@ configEvents.on("HASH_MISS", function(missObj) {
 
   var dmString = hostname
   + ' | wordAssoServer'
-  + '\nMISS: ' + missObj.type.toUpperCase()
+  + '\nMISS ' + missObj.type.toUpperCase()
   // + '\nhttps://twitter.com/' + missObj.value
-  + '\n@' + missObj.value;
+  + ' @' + missObj.value;
 
   var sendDirectMessageHashKey = missObj.type + "-" + missObj.value;
 

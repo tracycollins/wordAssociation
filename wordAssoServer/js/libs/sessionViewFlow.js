@@ -89,6 +89,7 @@ function ViewFlow() {
   };
 
   var ageRate = DEFAULT_FLOW_CONFIG.ageRate;
+  var maxAgeRate = 0;
 
   var blahMode = DEFAULT_BLAH_MODE;
   var charge = DEFAULT_CHARGE;
@@ -235,6 +236,10 @@ function ViewFlow() {
   
   this.getAgeRate = function() {
     return ageRate;
+  }
+  
+  this.getMaxAgeRate = function() {
+    return maxAgeRate;
   }
   
   this.setNodeMaxAge = function(maxAge) {
@@ -686,16 +691,12 @@ function ViewFlow() {
           console.error("??? UNKNOWN NODE UPDATE Q OP: " + nodeUpdateObj.op);
           callback(null, nodesModifiedFlag);
         break;
-
       }
     }
     else {
       callback(null, nodesModifiedFlag);
     }
 
-    // if ((nodeAddQ.length == 0) || (nodes.length >= MAX_NODES)) {
-    //   callback(null, nodesModifiedFlag);
-    // }
   }
 
   var processNodeUpdateQ = function(callback) {
@@ -809,12 +810,17 @@ function ViewFlow() {
       ageRate = DEFAULT_AGE_RATE;
       return (callback(null, deadNodeFlag));
     } 
+    else if (nodeAddQ.length > 100) {
+      ageRate = adjustedAgeRateScale(nodeAddQ.length - 100);
+    } 
     else if (nodes.length > 100) {
       ageRate = adjustedAgeRateScale(nodes.length - 100);
     } 
     else {
       ageRate = DEFAULT_AGE_RATE;
     }
+
+    maxAgeRate = Math.max(ageRate, maxAgeRate);
 
     var ageNodesLength = nodes.length - 1;
     var ageNodesIndex = nodes.length - 1;
@@ -1542,7 +1548,6 @@ function ViewFlow() {
   this.addNode = function(newNode) {
 
     if (typeof newNode.text === 'undefined') {
-      // console.debug("NEW NODE TEXT UNDEFINED\n" + jsonPrint(newNode));
       newNode.text = "== UNDEFINED ==";
     }
 
@@ -1558,40 +1563,15 @@ function ViewFlow() {
 
       if (newNode.raw.match(/^\d+/gi)){
         newNode.isNumber = true;
-      //   console.debug("ADD NODE" 
-      //     + " | " + newNode.text
-      //     + " | K: " + newNode.isKeyword
-      //     + " | NUMBER: " + newNode.isNumber
-      //     + " | CURRENCY: " + newNode.isCurrency
-      //     + " | TT: " + newNode.isTrendingTopic
-      //     + " | KWs: " + jsonPrint(newNode.keywords)
-      //   );
       }
 
       if (newNode.raw.match(/^\$/gi)){
         newNode.isCurrency = true;
-        // console.debug("ADD NODE" 
-        //   + " | " + newNode.text
-        //   + " | K: " + newNode.isKeyword
-        //   + " | NUMBER: " + newNode.isNumber
-        //   + " | CURRENCY: " + newNode.isCurrency
-        //   + " | TT: " + newNode.isTrendingTopic
-        //   + " | KWs: " + jsonPrint(newNode.keywords)
-        // );
       }
       
       if (newNode.raw.match(/^@/gi)){
         newNode.isTwitterUser = true;
-        // console.debug("ADD NODE" 
-        //   + " | " + newNode.text
-        //   + " | K: " + newNode.isKeyword
-        //   + " | NUMBER: " + newNode.isNumber
-        //   + " | CURRENCY: " + newNode.isCurrency
-        //   + " | TT: " + newNode.isTrendingTopic
-        //   + " | KWs: " + jsonPrint(newNode.keywords)
-        // );
       }
-      
     }
 
     if (newNode.isTrendingTopic) {
@@ -1651,51 +1631,39 @@ function ViewFlow() {
   }
 
   this.simulationControl = function(op) {
-    // console.warn("SIMULATION CONTROL | OP: " + op);
     switch (op) {
       case 'RESET':
         console.debug("SIMULATION CONTROL | OP: " + op);
         self.reset();
         runningFlag = false;
-        // simulation.stop();
       break;
       case 'START':
-        // console.warn("SIMULATION CONTROL | OP: " + op);
         self.initD3timer();
         simulation.alphaTarget(0.7).restart();
         runningFlag = true;
       break;
       case 'RESUME':
-        // if (!runningFlag){
-          // console.warn("SIMULATION CONTROL | OP: " + op);
-          runningFlag = true;
-          simulation.alphaTarget(0.7).restart();
-        // }
+        runningFlag = true;
+        simulation.alphaTarget(0.7).restart();
       break;
       case 'FREEZE':
         if (!freezeFlag){
-          // console.warn("SIMULATION CONTROL | OP: " + op);
           freezeFlag = true;
           simulation.alpha(0);
           simulation.stop();
         }
       break;
       case 'PAUSE':
-        // if (runningFlag){
-          // console.warn("SIMULATION CONTROL | OP: " + op);
-          runningFlag = false;
-          simulation.alpha(0);
-          simulation.stop();
-        // }
+        runningFlag = false;
+        simulation.alpha(0);
+        simulation.stop();
       break;
       case 'STOP':
         runningFlag = false;
-        // console.warn("SIMULATION CONTROL | OP: " + op);
         simulation.alpha(0);
         simulation.stop();
       break;
       case 'RESTART':
-        // console.warn("SIMULATION CONTROL | OP: " + op);
         simulation.alphaTarget(0.7).restart();
         runningFlag = true;
       break;
@@ -1734,10 +1702,6 @@ function ViewFlow() {
       .attr("width", SVGCANVAS_WIDTH_RATIO * window.innerWidth)
       .attr("height", SVGCANVAS_HEIGHT_RATIO * window.innerHeight);
 
-    // svgcanvasBackground
-    //   .attr("width", "100%")
-    //   .attr("height", "100%");
-
     svgFlowLayoutAreaWidth = d3LayoutWidth * FLOW_LAYOUT_WIDTH_RATIO;
     svgFlowLayoutAreaHeight = d3LayoutHeight * FLOW_LAYOUT_HEIGHT_RATIO;
 
@@ -1772,8 +1736,6 @@ function ViewFlow() {
     var wordChainIndex = tickNumber;
     var text = randomNumber360 + ' | ' + mentions;
 
-    // var startColor = "hsl(" + randomNumber360 + ",0.8,0.5)";
-    // var endColor = "black";
     var startColor = "black";
     var endColor = "white";
 

@@ -610,11 +610,7 @@ function controlPanelComm(event) {
 }
 
 function initControlPanelComm(cnf){
-
-  // lsbridge.subscribe('controlPanel', function(data) {
-
   window.addEventListener("message", controlPanelComm, false);
-
 }
 
 function toggleBlah() {
@@ -1293,6 +1289,34 @@ function createStatsTable(callback) {
     text: '---'
   };
 
+  var statsClientAgeRateLabel = {
+    type: 'TEXT',
+    id: 'statsClientAgeRateLabel',
+    class: 'statsTableText',
+    text: 'AGE RATE'
+  };
+
+  var statsClientAgeRate = {
+    type: 'TEXT',
+    id: 'statsClientAgeRate',
+    class: 'statsTableText',
+    text: '---'
+  };
+
+  var statsClientMaxAgeRateLabel = {
+    type: 'TEXT',
+    id: 'statsClientMaxAgeRateLabel',
+    class: 'statsTableText',
+    text: 'MAX'
+  };
+
+  var statsClientMaxAgeRate = {
+    type: 'TEXT',
+    id: 'statsClientMaxAgeRate',
+    class: 'statsTableText',
+    text: '---'
+  };
+
   var statsClientMaxAddNodeQLabel = {
     type: 'TEXT',
     id: 'statsClientMaxAddNodeQLabel',
@@ -1436,9 +1460,9 @@ function createStatsTable(callback) {
       tableCreateRow(statsTableClient, optionsHead, ['CLIENT']);
       tableCreateRow(statsTableClient, optionsBody, [statsClientSessionIdLabel, statsClientSessionId]);
       tableCreateRow(statsTableClient, optionsBody, [statsClientNumberNodesLabel, statsClientNumberNodes, statsClientNumberMaxNodesLabel, statsClientNumberMaxNodes]);
+      tableCreateRow(statsTableClient, optionsBody, [statsClientAgeRateLabel, statsClientAgeRate, statsClientMaxAgeRateLabel, statsClientMaxAgeRate]);
       tableCreateRow(statsTableClient, optionsBody, [statsClientAddNodeQLabel, statsClientAddNodeQ, statsClientMaxAddNodeQLabel, statsClientMaxAddNodeQ]);
       tableCreateRow(statsTableClient, optionsBody, [statsClientNumberEntitiesLabel, statsClientNumberEntities, statsClientNumberMaxEntitiesLabel, statsClientNumberMaxEntities]);
-      // tableCreateRow(infoTable, optionsBody, [status2]);
       break;
 
     default:
@@ -1558,6 +1582,8 @@ function updateStatsTable(statsObj){
   document.getElementById("statsClientNumberMaxEntities").innerHTML = maxSessions;
   document.getElementById("statsClientAddNodeQ").innerHTML = currentSessionView.getNodeAddQlength();
   document.getElementById("statsClientMaxAddNodeQ").innerHTML = currentSessionView.getMaxNodeAddQ();
+  document.getElementById("statsClientAgeRate").innerHTML = currentSessionView.getAgeRate().toFixed(2);
+  document.getElementById("statsClientMaxAgeRate").innerHTML = currentSessionView.getMaxAgeRate().toFixed(2);
 
   if (statsObj.serverConnected) {
     document.getElementById("statsClientSessionId").innerHTML = statsObj.socketId;
@@ -1611,7 +1637,6 @@ socket.on("CONFIG_CHANGE", function(rxConfig) {
     previousConfig.nodeMaxAge = config.nodeMaxAge;
   }
 
-  // resetMouseMoveTimer();
 });
 
 socket.on("SESSION_ABORT", function(rxSessionObject) {
@@ -1684,9 +1709,6 @@ socket.on("SESSION_UPDATE", function(rxSessionObject) {
     if (debug) {
       console.log("... SKIP SESSION_UPDATE ... WINDOW NOT VISIBLE");
     }
-  // } else if (sessionDeleteHashMap.has(rxObj.sessionId)) {
-
-  //   console.warn("... SKIP SESSION_UPDATE ... DELETED SESSION: " + rxObj.sessionId);
     
   } else if (sessionMode && (rxObj.sessionId !== currentSession.sessionId)) {
     if (debug) {
@@ -1695,10 +1717,7 @@ socket.on("SESSION_UPDATE", function(rxSessionObject) {
     }
   } else if (rxSessionUpdateQueue.length < MAX_RX_QUEUE) {
 
-    // rxSessionUpdateQueue.push(rxSessionObject);
-
     if (rxObj.action == 'KEEPALIVE') {
-      // console.log("KEEPALIVE" + " | " + rxObj.userId);
     } else {
       rxSessionUpdateQueue.push(rxSessionObject);
 
@@ -1707,15 +1726,6 @@ socket.on("SESSION_UPDATE", function(rxSessionObject) {
           + " | T: " + rxObj.tags.trending
         );
       }
-      // console.log("UID: " + rxObj.userId 
-      //   // + " | " + jsonPrint(rxObj.tags) 
-      //   + " | G: " + rxObj.tags.group.groupId
-      //   + " | E: " + rxObj.tags.entity
-      //   + " | C: " + rxObj.tags.channel
-      //   + " | " + rxObj.wordChainIndex 
-      //   + " | " + rxObj.source.nodeId 
-      //   + " > " + rxObj.target.nodeId
-      // );
     }
   }
 });
@@ -1754,7 +1764,6 @@ var processSessionQueues = function(callback) {
     console.log("DELETE SESSION: " + deleteSessUpdate.sessionId);
     sessionDeleteHashMap.set(deleteSessUpdate.sessionId, 1);
     deleteSession(deleteSessUpdate.sessionId, function(sessionId) {
-      // sessionHashMap.remove(sessionId);
       return (callback(null, null));
     });
   } 
@@ -1792,11 +1801,6 @@ var processSessionQueues = function(callback) {
     else if (session.tags.group.entityId){
 
       if (!groupHashMap.has(session.tags.group.entityId)) {
-        // console.warn("??? GROUP ID UNDEFINED ... CREATE GROUP FROM ENTITY ID"
-        //   + " | N: " + session.nodeId
-        //   + " | E: " + session.tags.group.entityId
-        //   // + "\nTAGS\n" + jsonPrint(session.tags)
-        // );
         session.tags.group.groupId = session.tags.group.entityId;
         console.warn("+ G FROM ENT ID"
           + " | N: " + session.nodeId
@@ -1806,18 +1810,7 @@ var processSessionQueues = function(callback) {
         groupCreateQueue.push(session);
       }
       else {
-        // console.log("... GROUP ID UNDEFINED ... ENTITY GROUP HASHMAP HIT"
-        //   + " | N: " + session.nodeId
-        //   + " | E: " + session.tags.group.entityId
-        //   // + "\nTAGS\n" + jsonPrint(session.tags)
-        // );
         session.tags.group.groupId = groupHashMap.get(session.tags.group.entityId);
-        // console.warn("CREATE GROUP FROM ENTITY ID"
-        //   + " | N: " + session.nodeId
-        //   + " | E: " + session.tags.group.entityId
-        //   // + "\nTAGS\n" + jsonPrint(session.tags)
-        // );
-        // groupCreateQueue.push(session);
       }
     }
     else {
@@ -1826,12 +1819,6 @@ var processSessionQueues = function(callback) {
         + "\nTAGS\n" + jsonPrint(session.tags)
       );
     }
-
-    // if (typeof session.tags.url === 'undefined') {
-    //   session.tags.url = "http://threeceemedia.com";
-    //   groupCreateQueue.push(session);
-    // }
-    // console.log("R< | " + "\n" + jsonPrint(session));
 
     return (callback(null, session.sessionId));
   }
@@ -1910,8 +1897,6 @@ function sum( obj ) {
 var randomNumber360 = 180;
 
 var getKeywordColor = function(keywordsObj){
-  // console.debug("keywordsObj: " + jsonPrint(keywordsObj));
-  // console.debug("keywordsObj: " + keywordsObj);
   return keywordColorHashMap.get(keywordsObj);
 }
 

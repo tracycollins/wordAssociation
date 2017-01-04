@@ -1,6 +1,8 @@
 /*jslint node: true */
 "use strict";
 
+var deleteKeywordsEnabled = false;
+
 var OFFLINE_MODE = false;
 var debug = require('debug')('wa');
 var moment = require('moment');
@@ -456,7 +458,7 @@ var updateKeywords = function (folder, file, serverHashMapFlag, callback){
               + " | (DELETED KEYWORDS:) " + prevKwHashMap.count()
             ));
 
-            if (prevKwHashMap.count() > 0) {
+            if (deleteKeywordsEnabled && (prevKwHashMap.count() > 0)) {
               console.log(chalkInfo(
                 "DELETED KEYWORDS\n" + jsonPrint(prevKwHashMap.keys())
               ));

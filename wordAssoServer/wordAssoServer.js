@@ -1,6 +1,8 @@
 /*jslint node: true */
 "use strict";
 
+var moment = require('moment');
+
 var wapiForceSearch = true;
 var dmOnUnknownSession = false;
 var ioReady = false
@@ -8,6 +10,14 @@ var groupsUpdateComplete = false;
 var entitiesUpdateComplete = false;
 var keywordsUpdateComplete = false;
 var updateComplete = groupsUpdateComplete && entitiesUpdateComplete && keywordsUpdateComplete;
+
+var wordPerSecQueue = [];
+var wordPerMinQueue = [];
+var wordsPerMinute = 0.0;
+var wordsPerSecond = 0.0;
+var rateQinterval;
+var maxWordsPerMin = 0;
+var maxWordsPerMinTime = moment.utc();
 
 var serverHeartbeatInterval;
 var pollGetTwitterFriendsInterval;
@@ -107,7 +117,6 @@ var ONE_DAY = ONE_HOUR * 24;
 // NODE MODULE DECLARATIONS
 // ==================================================================
 
-var moment = require('moment');
 
 var compactDateTimeFormat = "YYYYMMDD HHmmss";
 var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
@@ -6353,7 +6362,13 @@ configEvents.on("SERVER_READY", function() {
         startTime: statsObj.startTime,
         upTime: statsObj.upTime,
         runTime: statsObj.runTime,
+
         heartbeatsSent: heartbeatsSent,
+
+        wordsPerMinute: wordsPerMinute,
+        maxWordsPerMin: maxWordsPerMin,
+        maxWordsPerMinTime: maxWordsPerMinTime.valueOf(),
+
         memoryAvailable: statsObj.memoryAvailable,
         memoryTotal: statsObj.memoryTotal,
 
@@ -7020,19 +7035,25 @@ function createSession(newSessionObj) {
   });
 
   socket.on("RESPONSE_WORD_OBJ", function(rxInObj) {
-    // console.log("rxInObj\n" + jsonPrint(rxInObj));
+
+    debug("rxInObj\n" + jsonPrint(rxInObj));
+
+    wordPerSecQueue.push(moment.utc().valueOf());
+
     if (responseQueue.size() < MAX_RESPONSE_QUEUE_SIZE) {
+
       var responseInObj = rxInObj;
+
       if (rxInObj.tags.mode == 'substream') {
         responseInObj.socketId = socket.id + "#" + rxInObj.tags.entity;
         debug("SUBS" 
-          // + " | " + jsonPrint(rxInObj.tags)
           + "\n" + jsonPrint(rxInObj.tags)
         );
       }
       else {
         responseInObj.socketId = socket.id;
       }
+
       responseQueue.enqueue(responseInObj);
     }
   });
@@ -7189,18 +7210,67 @@ var metricsInterval = setInterval(function() {
 //=================================
 //  RATE CALC
 //=================================
-var responseRateQhead;
-var rateQinterval = setInterval(function() {
+// var responseRateQhead;
+// var rateQinterval = setInterval(function() {
 
-  if (!responseRate1minQ.isEmpty()) {
-    responseRateQhead = new Date(responseRate1minQ.peek());
-    if ((responseRateQhead.getTime() + 60000 < currentTime)) {
-      debug("<<< --- responseRate1minQ deQ: " + responseRateQhead.getTime() + " | NOW: " + moment.utc().format());
-      responseRateQhead = responseRate1minQ.dequeue();
-      debug("responseRate1minQ Q size: " + responseRate1minQ.size());
+//   if (!responseRate1minQ.isEmpty()) {
+//     responseRateQhead = new Date(responseRate1minQ.peek());
+//     if ((responseRateQhead.getTime() + 60000 < currentTime)) {
+//       debug("<<< --- responseRate1minQ deQ: " + responseRateQhead.getTime() + " | NOW: " + moment.utc().format());
+//       responseRateQhead = responseRate1minQ.dequeue();
+//       debug("responseRate1minQ Q size: " + responseRate1minQ.size());
+//     }
+//   }
+// }, 50);
+
+function initRateQinterval(interval){
+
+  console.log(chalkAlert("INIT RATE QUEUE INTERVAL"));
+
+  clearInterval(rateQinterval);
+
+  wordPerSecQueue = [];
+  wordPerMinQueue = [];
+  wordsPerMinute = 0.0;
+  wordsPerSecond = 0.0;
+
+  maxWordsPerMin = 0.0;
+
+  rateQinterval = setInterval(function () {
+
+    wordsPerSecond = parseFloat(wordPerSecQueue.length);
+
+    wordPerMinQueue.push(wordsPerSecond);
+
+    while (wordPerMinQueue.length > 120) wordPerMinQueue.shift();
+
+    var minSum = wordPerMinQueue.reduce(function(a, b){return a+b;});
+
+    if (wordPerMinQueue.length > 0) {
+      wordsPerMinute = parseFloat(minSum * 60.0 / wordPerMinQueue.length);
     }
-  }
-}, 50);
+    else {
+      wordsPerMinute = 0.0;
+    }
+
+    debug(chalkWarn(moment.utc().format(compactDateTimeFormat)
+      + " | WPS: " + wordsPerSecond 
+      + " | WPM [" + wordPerMinQueue.length + "] " + wordsPerMinute.toFixed(2)
+    ));
+
+    var shiftIndex = wordsPerSecond;
+    while (shiftIndex-- > 0) wordPerSecQueue.shift();
+
+    if ((wordPerMinQueue.length > 30) && (wordsPerMinute > maxWordsPerMin)) {
+      maxWordsPerMin = wordsPerMinute;
+      maxWordsPerMinTime = moment.utc();
+      console.log(chalkAlert("NEW MAX WPM: " + wordsPerMinute.toFixed(2)));
+      statsObj.maxWordsPerMin = wordsPerMinute;
+      statsObj.maxWordsPerMinTime = moment.utc();
+    }
+
+  }, interval);
+}
 
 var DROPBOX_WA_GROUPS_CONFIG_FILE = process.env.DROPBOX_WA_GROUPS_CONFIG_FILE || 'groups.json';
 var DROPBOX_WA_KEYWORDS_FILE = process.env.DROPBOX_WA_KEYWORDS_FILE || 'keywords.json';
@@ -7773,6 +7843,7 @@ initializeConfiguration(function(err, results) {
     updateTrends();
     initUpdateTrendsInterval(ONE_MINUTE);
     initFollowerUpdateQueueInterval(100);
+    initRateQinterval(1000);
 
     updater = cp.fork(`${__dirname}/js/libs/updateGroupsEntitiesChannels.js`);
 

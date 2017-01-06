@@ -89,6 +89,10 @@ output[type="text"]{
   width: 20%;
 }
 
+.statsTableText {
+  font-size: 0.2em;
+}
+
 .button {
   background-color:black;
   /*opacity: 0.6;*/

@@ -1444,6 +1444,41 @@ function createStatsTable(callback) {
     text: statsObj.heartbeat.responsesReceived
   };
 
+  var statsServerWordsPerMinLabel = {
+    type: 'TEXT',
+    id: 'statsServerWordsPerMinLabel',
+    class: 'statsTableText',
+    text: 'WPM'
+  };
+
+  var statsServerWordsPerMin = {
+    type: 'TEXT',
+    id: 'statsServerWordsPerMin',
+    class: 'statsTableText',
+    text: statsObj.heartbeat.wordsPerMinute
+  };
+
+  var statsServerMaxWordsPerMinLabel = {
+    type: 'TEXT',
+    id: 'statsServerMaxWordsPerMinLabel',
+    class: 'statsTableText',
+    text: 'MAX'
+  };
+
+  var statsServerMaxWordsPerMin = {
+    type: 'TEXT',
+    id: 'statsServerMaxWordsPerMin',
+    class: 'statsTableText',
+    text: statsObj.heartbeat.maxWordsPerMin
+  };
+
+  var statsServerMaxWordsPerMinTime = {
+    type: 'TEXT',
+    id: 'statsServerMaxWordsPerMinTime',
+    class: 'statsTableText',
+    text: moment(statsObj.heartbeat.maxWordsPerMinTime).format(defaultDateTimeFormat)
+  };
+
   switch (config.sessionViewType) {
 
     case 'force':
@@ -1457,6 +1492,14 @@ function createStatsTable(callback) {
       tableCreateRow(statsTableServer, optionsBody, [statsServerRunTimeLabel, statsServerRunTime]);
       tableCreateRow(statsTableServer, optionsBody, [statsServerTotalWordsLabel, statsServerTotalWords]);
       tableCreateRow(statsTableServer, optionsBody, [statsServerWordsReceivedLabel, statsServerWordsReceived]);
+      tableCreateRow(statsTableServer, optionsBody, 
+        [
+          statsServerWordsPerMinLabel, 
+          statsServerWordsPerMin, 
+          statsServerMaxWordsPerMinLabel, 
+          statsServerMaxWordsPerMin, 
+          statsServerMaxWordsPerMinTime
+        ]);
       tableCreateRow(statsTableClient, optionsHead, ['CLIENT']);
       tableCreateRow(statsTableClient, optionsBody, [statsClientSessionIdLabel, statsClientSessionId]);
       tableCreateRow(statsTableClient, optionsBody, [statsClientNumberNodesLabel, statsClientNumberNodes, statsClientNumberMaxNodesLabel, statsClientNumberMaxNodes]);
@@ -1576,6 +1619,9 @@ function updateStatsTable(statsObj){
   document.getElementById("statsServerRunTime").innerHTML = msToTime(statsObj.heartbeat.runTime);
   document.getElementById("statsServerTotalWords").innerHTML = statsObj.heartbeat.totalWords;
   document.getElementById("statsServerWordsReceived").innerHTML = statsObj.heartbeat.responsesReceived;
+  document.getElementById("statsServerWordsPerMin").innerHTML = statsObj.heartbeat.wordsPerMinute.toFixed(2);
+  document.getElementById("statsServerMaxWordsPerMin").innerHTML = statsObj.heartbeat.maxWordsPerMin.toFixed(2);
+  document.getElementById("statsServerMaxWordsPerMinTime").innerHTML = moment(statsObj.heartbeat.maxWordsPerMinTime).format(defaultDateTimeFormat);
   document.getElementById("statsClientNumberNodes").innerHTML = currentSessionView.getNodesLength();
   document.getElementById("statsClientNumberMaxNodes").innerHTML = statsObj.maxNodes;
   document.getElementById("statsClientNumberEntities").innerHTML = sessionHashMap.count();

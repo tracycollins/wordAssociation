@@ -123,7 +123,6 @@ function ViewFlow() {
     "yellowgreen": "#738A05"
   };
 
-  var currentScale = 0.4;
   var currentMaxMentions = 2;
 
   var minFontSize = 20;
@@ -1705,11 +1704,11 @@ function ViewFlow() {
     svgFlowLayoutAreaWidth = d3LayoutWidth * FLOW_LAYOUT_WIDTH_RATIO;
     svgFlowLayoutAreaHeight = d3LayoutHeight * FLOW_LAYOUT_HEIGHT_RATIO;
 
-    svgFlowLayoutArea.attr("width", svgFlowLayoutAreaWidth)
-      .attr("height", svgFlowLayoutAreaHeight);
+    svgFlowLayoutArea.attr("width", svgFlowLayoutAreaWidth).attr("height", svgFlowLayoutAreaHeight);
 
     svgFlowLayoutArea.attr("x", 0);
     svgFlowLayoutArea.attr("y", 0);
+
   }
 
   // ==========================================

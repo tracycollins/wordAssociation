@@ -261,9 +261,17 @@ function ViewFlow() {
 
   var svgcanvas = d3image.append("svg:svg")
     .attr("id", "svgcanvas");
+
   var svgFlowLayoutArea = svgcanvas.append("g")
     .attr("id", "svgFlowLayoutArea")
     .style("fill", palette.white);
+     // .call(d3.zoom()
+     //      .scaleExtent([1 / 2, 4])
+     //      .on("zoom", zoomed));
+
+  // function zoomed() {
+  //   svgFlowLayoutArea.attr("transform", d3.event.transform);
+  // }
 
   var linkSvgGroup = svgFlowLayoutArea.append("svg:g").attr("id", "linkSvgGroup");
 
@@ -303,7 +311,6 @@ function ViewFlow() {
   var panzoomElement = document.getElementById('svgFlowLayoutArea')
   panzoom(panzoomElement);
 
-
   function generateLinkId(callback) {
     globalLinkIndex++;
     return "LNK" + globalLinkIndex;
@@ -312,6 +319,9 @@ function ViewFlow() {
   self.setBlah = function(value){
     blahMode = value;
     console.log("BLAH: " + value);
+    // svgFlowLayoutArea.attr("transform", "scale(" + 0.5 + ")");
+    // panzoom.transform.scale = 0.5;
+    svgFlowLayoutArea.attr("transform", "translate(0 0)" + " scale(" + 0.5 + ")");
   }
 
   self.setAntonym = function(ant){
@@ -377,7 +387,7 @@ function ViewFlow() {
     console.debug("UPDATE GRAVITY: " + value.toFixed(sliderPercision));
     gravity = value;
     simulation.force("forceX", d3.forceX(-10000).strength(value));
-    simulation.force("forceY", d3.forceY(svgForceLayoutAreaHeight/2).strength(forceYmultiplier * value));
+    simulation.force("forceY", d3.forceY(svgFlowLayoutAreaHeight/2).strength(forceYmultiplier * value));
  }
 
   self.updateCharge = function(value) {
@@ -695,7 +705,6 @@ function ViewFlow() {
     else {
       callback(null, nodesModifiedFlag);
     }
-
   }
 
   var processNodeUpdateQ = function(callback) {

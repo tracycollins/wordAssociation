@@ -7652,6 +7652,11 @@ function initAppRouting(callback) {
     return;
   });
 
+  app.get('/node_modules/panzoom/dist/panzoom.js', function(req, res) {
+    res.sendFile(__dirname + '/node_modules/panzoom/dist/panzoom.js');
+    return;
+  });
+
   app.get('/node_modules/async/lib/async.js', function(req, res) {
     res.sendFile(__dirname + '/node_modules/async/lib/async.js');
     return;

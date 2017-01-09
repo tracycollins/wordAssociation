@@ -4763,10 +4763,11 @@ var readResponseQueue = setInterval(function() {
             + " G " + updatedWordObj.tags.group 
             + " E " + updatedWordObj.tags.entity 
             + " C " + updatedWordObj.tags.channel 
-            + " KW " + updatedWordObj.isKeyword 
-            + " TT " + updatedWordObj.isTrendingTopic 
-            + " [" + currentSessionObj.wordChainIndex + "]" 
+            // + " KW " + updatedWordObj.isKeyword 
+            // + " TT " + updatedWordObj.isTrendingTopic 
+            // + " [" + currentSessionObj.wordChainIndex + "]" 
             + " | " + updatedWordObj.nodeId 
+            + " | " + updatedWordObj.raw 
           ));
 
           dbUpdateWordQueue.enqueue(dbUpdateObj);
@@ -4778,9 +4779,10 @@ var readResponseQueue = setInterval(function() {
             + " G " + updatedWordObj.tags.group 
             + " E " + updatedWordObj.tags.entity 
             + " C " + updatedWordObj.tags.channel 
-            + " TT " + updatedWordObj.isTrendingTopic 
-            + " [" + currentSessionObj.wordChainIndex + "]" 
+            // + " TT " + updatedWordObj.isTrendingTopic 
+            // + " [" + currentSessionObj.wordChainIndex + "]" 
             + " | " + updatedWordObj.nodeId 
+            + " | " + updatedWordObj.raw 
           ));
 
           dbUpdateWordQueue.enqueue(dbUpdateObj);

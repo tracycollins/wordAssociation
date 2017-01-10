@@ -319,9 +319,6 @@ function ViewFlow() {
   self.setBlah = function(value){
     blahMode = value;
     console.log("BLAH: " + value);
-    // svgFlowLayoutArea.attr("transform", "scale(" + 0.5 + ")");
-    // panzoom.transform.scale = 0.5;
-    svgFlowLayoutArea.attr("transform", "translate(0 0)" + " scale(" + 0.5 + ")");
   }
 
   self.setAntonym = function(ant){

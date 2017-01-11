@@ -568,13 +568,18 @@
             if (options.ignore) {
                 console.warn("ignore: " + options.ignore);
                 var tempObj = obj;
-                options.ignore.forEach(function(ignoreWord) {
-                    if (tempObj.hasOwnProperty(ignoreWord)) {
-                        console.log("delete: " + ignoreWord);
-                        tempObj.ignoreWord = [];
-                    }
-                });
-                return JSON.stringify(tempObj, null, 2);
+                var i = 0;
+                var ignoreWord;
+                for (i=0; i<options.ignore.length; i++){
+                  ignoreWord = options.ignore[i];
+                  if (tempObj.hasOwnProperty(ignoreWord)) {
+                      console.log("delete: " + ignoreWord);
+                      tempObj[ignoreWord] = [];
+                  }
+                }
+                // options.ignore.forEach(function(ignoreWord) {
+                // });
+                if (i == options.ignore.length) return JSON.stringify(tempObj, null, 2);
             }
         }
         return JSON.stringify(obj, null, 2);
@@ -817,7 +822,7 @@
     socket.on('ADMIN_SESSION', function(adminSessionObj) {
 
         console.log("adminSessionObj\n" + jsonPrint(adminSessionObj, {
-            ignore: ['wordChain']
+            ignore: ['wordChain', 'sessions']
         }));
 
         console.log("RX ADMIN SESSION: " + adminSessionObj.sessionId + " | UID: " + adminSessionObj.userId);
@@ -834,7 +839,7 @@
     socket.on('USER_SESSION', function(userSessionObj) {
 
         console.log("userSessionObj\n" + jsonPrint(userSessionObj, {
-            ignore: ['wordChain']
+            ignore: ['wordChain', 'sessions']
         }));
 
         console.log("RX USER SESSION: " + userSessionObj.sessionId + " | UID: " + userSessionObj.userId);
@@ -855,7 +860,7 @@
     socket.on('VIEWER_SESSION', function(viewerSessionObj) {
 
         console.log("viewerSessionObj\n" + jsonPrint(viewerSessionObj, {
-            ignore: ['wordChain']
+            ignore: ['wordChain', 'sessions']
         }));
 
         console.log("RX VIEWER SESSION: " + viewerSessionObj.sessionId + " | UID: " + viewerSessionObj.userId);

@@ -878,7 +878,7 @@
     socket.on('UTIL_SESSION', function(utilSessionObj) {
 
         console.log("utilSessionObj\n" + jsonPrint(utilSessionObj, {
-            ignore: ['wordChain']
+            ignore: ['wordChain', 'sessions']
         }));
 
         console.log("RX UTIL SESSION: " + utilSessionObj.sessionId + " | UID: " + utilSessionObj.userId);

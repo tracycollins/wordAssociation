@@ -1897,7 +1897,9 @@
             deltaResponseBar.path.setAttribute('stroke', startColor);
         }
 
-        deltaResponseBarText.innerHTML = heartBeat.wordsPerMinute + ' WPM | ' + heartBeat.maxWordsPerMin + ' MAX';
+        deltaResponseBarText.innerHTML = heartBeat.wordsPerMinute 
+            + ' WPM | ' + heartBeat.maxWordsPerMin + ' MAX'
+            + ' | ' + moment(heartBeat.maxWordsPerMinTime).format(defaultDateTimeFormat);
 
 
         var heatbeatTable = document.getElementById('heartbeat_table');

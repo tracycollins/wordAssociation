@@ -660,7 +660,8 @@
     function tableCreateRow(parentTable, options, cells) {
 
         var tr = parentTable.insertRow();
-        var tdTextColor = options.textColor;
+        var thTextColor = options.thTextColor;
+        var tdTextColor = options.tdTextColor;
         var tdBgColor = options.backgroundColor || '#222222';
 
         if (options.trClass) {
@@ -671,7 +672,8 @@
             cells.forEach(function(content) {
                 var th = tr.insertCell();
                 th.appendChild(document.createTextNode(content));
-                th.style.color = tdTextColor;
+                th.style.fontSize = "1em";
+                th.style.color = thTextColor;
                 th.style.backgroundColor = tdBgColor;
             });
         } else {
@@ -679,6 +681,7 @@
                 var td = tr.insertCell();
                 // var td2 = td.insertCell();
                 td.appendChild(document.createTextNode(content));
+                td.style.fontSize = "1em";
                 td.style.color = tdTextColor;
                 td.style.backgroundColor = tdBgColor;
             });
@@ -767,12 +770,27 @@
     });
 
     socket.on('ADMIN IP', function(rxIpObj) {
-        var ipObj = JSON.parse(rxIpObj);
-        console.log("RXCD ADMIN IP  " + ipObj.ip + " | " + ipObj.domain);
-        adminIpHashMap.set(ipObj.ip, ipObj);
+
+        var adminSessionObj = JSON.parse(rxIpObj);
+
+        console.log("RXCD ADMIN IP  " + adminSessionObj.ip + " | " + adminSessionObj.domain);
+
+        var adminIpObj = {};
+        adminIpObj.ip = adminSessionObj.ip;
+        adminIpObj.domain = adminSessionObj.domain;
+        adminIpObj.sessions = {};
+
+        adminIpObj.sessions[adminSessionObj.sessionId] = adminSessionObj;
+
+        adminIpHashMap.set(adminIpObj.ip, adminIpObj);
+
         numberAdminIpAddresses = adminIpHashMap.count();
         adminIpHashMapKeys = adminIpHashMap.keys();
         adminIpHashMapKeys.sort();
+
+        adminSocketIdHashMap.set(adminSessionObj.sessionId, adminIpObj);
+        adminSocketIdHashMapKeys = adminSocketIdHashMap.keys();
+        adminSocketIdHashMapKeys.sort();
     });
 
     socket.on('USER IP', function(rxIpObj) {
@@ -821,16 +839,24 @@
 
     socket.on('ADMIN_SESSION', function(adminSessionObj) {
 
-        console.log("adminSessionObj\n" + jsonPrint(adminSessionObj, {
-            ignore: ['wordChain', 'sessions']
-        }));
+        // console.log("adminSessionObj\n" + jsonPrint(adminSessionObj, {
+        //     ignore: ['wordChain', 'sessions']
+        // }));
 
         console.log("RX ADMIN SESSION: " + adminSessionObj.sessionId + " | UID: " + adminSessionObj.userId);
 
-        adminIpHashMap.set(adminSessionObj.ip, adminSessionObj);
+        var adminIpObj = {};
+        adminIpObj.ip = adminSessionObj.ip;
+        adminIpObj.domain = adminSessionObj.domain;
+        adminIpObj.sessions = {};
+
+        adminIpObj.sessions[adminSessionObj.sessionId] = adminSessionObj;
+
+        adminIpHashMap.set(adminIpObj.ip, adminIpObj);
+
         numberAdminIpAddresses = adminIpHashMap.count();
 
-        adminSocketIdHashMap.set(adminSessionObj.sessionId, adminSessionObj);
+        adminSocketIdHashMap.set(adminSessionObj.sessionId, adminIpObj);
         adminSocketIdHashMapKeys = adminSocketIdHashMap.keys();
         adminSocketIdHashMapKeys.sort();
         updateAdminConnect(adminSessionObj);
@@ -838,9 +864,9 @@
 
     socket.on('USER_SESSION', function(userSessionObj) {
 
-        console.log("userSessionObj\n" + jsonPrint(userSessionObj, {
-            ignore: ['wordChain', 'sessions']
-        }));
+        // console.log("userSessionObj\n" + jsonPrint(userSessionObj, {
+        //     ignore: ['wordChain', 'sessions']
+        // }));
 
         console.log("RX USER SESSION: " + userSessionObj.sessionId + " | UID: " + userSessionObj.userId);
 
@@ -880,9 +906,9 @@
 
     socket.on('UTIL_SESSION', function(utilSessionObj) {
 
-        console.log("utilSessionObj\n" + jsonPrint(utilSessionObj, {
-            ignore: ['wordChain', 'sessions']
-        }));
+        // console.log("utilSessionObj\n" + jsonPrint(utilSessionObj, {
+        //     ignore: ['wordChain', 'sessions']
+        // }));
 
         console.log("RX UTIL SESSION: " + utilSessionObj.sessionId + " | UID: " + utilSessionObj.userId);
 
@@ -1143,7 +1169,7 @@
 
                 adminIpListElement.appendChild(adminIpListItem);
                 adminIpListItem.innerHTML = adminIpListItem.innerHTML + (
-                    key + ' | ' + value.domain + ' | LAST SEEN: ' + getTimeStamp(value.lastSeen) + ' | CONNECTIONS: ' + value.sessions
+                    key + ' | ' + value.domain + ' | LAST SEEN: ' + getTimeStamp(value.lastSeen) + ' | CONNECTIONS: ' + Object.keys(value.sessions).length
                 );
             });
         }
@@ -1194,13 +1220,13 @@
 
         var userIpTableBodyOptions = {
             headerFlag: false,
-            textColor: '#AAAAAA',
+            tdTextColor: '#BBBBBB',
             backgroundColor: 'black'
         };
 
         var userSessionTableBodyOptions = {
             headerFlag: false,
-            textColor: '#AAAAAA',
+            tdTextColor: '#BBBBBB',
             backgroundColor: 'black'
         };
 
@@ -1254,9 +1280,9 @@
                 } else {
 
                     if (value.namespace == 'test-user') {
-                        userIpTableBodyOptions.textColor = testUserConnectedColor;
+                        userIpTableBodyOptions.tdTextColor = testUserConnectedColor;
                     } else {
-                        userIpTableBodyOptions.textColor = userConnectedColor;
+                        userIpTableBodyOptions.tdTextColor = userConnectedColor;
                     }
 
                     numberUniqueUsers++;
@@ -1283,7 +1309,7 @@
 
         if (showConnectedUsers) {
 
-            userSessionTableBodyOptions.textColor = userConnectedColor;
+            userSessionTableBodyOptions.tdTextColor = userConnectedColor;
 
             var numberConnected = 0;
             var connectTime = 0;
@@ -1309,13 +1335,13 @@
                         numberConnected++;
 
                         if (sessionObj.namespace == 'test-user') {
-                            userSessionTableBodyOptions.textColor = testUserConnectedColor;
+                            userSessionTableBodyOptions.tdTextColor = testUserConnectedColor;
                         } else if (sessionObj.domain.indexOf("googlebot") >= 0) {
-                            userSessionTableBodyOptions.textColor = testUserConnectedColor;
+                            userSessionTableBodyOptions.tdTextColor = testUserConnectedColor;
                         } else if (sessionObj.domain.indexOf("googleusercontent") >= 0) {
-                            userSessionTableBodyOptions.textColor = testUserConnectedColor;
+                            userSessionTableBodyOptions.tdTextColor = testUserConnectedColor;
                         } else {
-                            userSessionTableBodyOptions.textColor = userConnectedColor;
+                            userSessionTableBodyOptions.tdTextColor = userConnectedColor;
                         }
 
                         // console.log("sessionId: " + sessionId + "\n" + jsonPrint(sessionObj));
@@ -1390,13 +1416,13 @@
 
         var viewerIpTableBodyOptions = {
             headerFlag: false,
-            textColor: '#AAAAAA',
+            textColor: '#BBBBBB',
             backgroundColor: 'black'
         };
 
         var viewerSessionTableBodyOptions = {
             headerFlag: false,
-            textColor: '#AAAAAA',
+            textColor: '#BBBBBB',
             backgroundColor: 'black'
         };
 
@@ -1475,7 +1501,7 @@
 
         if (showConnectedViewers) {
 
-            viewerSessionTableBodyOptions.textColor = viewerConnectedColor;
+            viewerSessionTableBodyOptions.tdTextColor = viewerConnectedColor;
 
             var numberConnected = 0;
             var connectTime = 0;
@@ -1532,7 +1558,7 @@
 
         if (showDisconnectedViewers) {
 
-            viewerSessionTableBodyOptions.textColor = viewerDisconnectedColor;
+            viewerSessionTableBodyOptions.tdTextColor = viewerDisconnectedColor;
 
             var numberDisconnected = 0;
             var connectedTime = 0;
@@ -1566,9 +1592,6 @@
         }
     }
 
-
-
-
     function initUtilConnect(options) {
         // tableCreateRow(utilIpTableHead, options, ['UNIQUE UTILS']);  // 2nd arg is headerFlag
         tableCreateRow(utilIpTableHead, options, ['UTILS', 'IP', 'DOMAIN', 'LAST SEEN', 'AGO', 'SESSIONS']); // 2nd arg is headerFlag
@@ -1583,13 +1606,13 @@
 
         var utilIpTableBodyOptions = {
             headerFlag: false,
-            textColor: '#AAAAAA',
+            textColor: '#BBBBBB',
             backgroundColor: 'black'
         };
 
         var utilSessionTableBodyOptions = {
             headerFlag: false,
-            textColor: '#AAAAAA',
+            textColor: '#BBBBBB',
             backgroundColor: 'black'
         };
 
@@ -1727,8 +1750,6 @@
             }
         }
     }
-
-
 
     function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
@@ -2018,44 +2039,43 @@
         serverHeartbeatElement.appendChild(serverHeartbeatElement.ownerDocument
             .createTextNode(numberViewerIpAddresses + " VIEWER UNIQUE IP " + " | " + heartBeat.numberViewers + " VIEWERS" + " | " + heartBeat.numberTestViewers + " TEST VIEWERS")
         );
-
     }
 
     initUserConnect({
         headerFlag: true,
-        textColor: '#CCCCCC',
+        thTextColor: '#CCCCCC',
         backgroundColor: '#222222'
     });
 
     initUserSession({
         headerFlag: true,
-        textColor: '#CCCCCC',
+        thTextColor: '#CCCCCC',
         backgroundColor: '#222222'
     });
 
 
     initViewerConnect({
         headerFlag: true,
-        textColor: '#CCCCCC',
+        thTextColor: '#CCCCCC',
         backgroundColor: '#222222'
     });
 
     initViewerSession({
         headerFlag: true,
-        textColor: '#CCCCCC',
+        thTextColor: '#CCCCCC',
         backgroundColor: '#222222'
     });
 
 
     initUtilConnect({
         headerFlag: true,
-        textColor: '#CCCCCC',
+        thTextColor: '#CCCCCC',
         backgroundColor: '#222222'
     });
 
     initUtilSession({
         headerFlag: true,
-        textColor: '#CCCCCC',
+        thTextColor: '#CCCCCC',
         backgroundColor: '#222222'
     });
 

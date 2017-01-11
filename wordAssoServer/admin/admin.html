@@ -1887,7 +1887,7 @@
 
 
         // deltaResponseBar.animate(heartBeat.deltaResponsesReceived / deltaResponsesMax);
-        deltaResponseBar.animate(heartBeat.wordsPerMinute / wordsPerMinuteMax);
+        deltaResponseBar.animate(heartBeat.wordsPerMinute / heartBeat.maxWordsPerMin);
 
         if (heartBeat.wordsPerMinute >= 90) {
             deltaResponseBar.path.setAttribute('stroke', endColor);
@@ -1897,7 +1897,7 @@
             deltaResponseBar.path.setAttribute('stroke', startColor);
         }
 
-        deltaResponseBarText.innerHTML = heartBeat.wordsPerMinute + ' WPM | ' + wordsPerMinuteMax + ' MAX';
+        deltaResponseBarText.innerHTML = heartBeat.wordsPerMinute + ' WPM | ' + heartBeat.maxWordsPerMin + ' MAX';
 
 
         var heatbeatTable = document.getElementById('heartbeat_table');

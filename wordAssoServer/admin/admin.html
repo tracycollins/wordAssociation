@@ -1889,15 +1889,15 @@
         // deltaResponseBar.animate(heartBeat.deltaResponsesReceived / deltaResponsesMax);
         deltaResponseBar.animate(heartBeat.wordsPerMinute / wordsPerMinuteMax);
 
-        if (heartBeat.deltaResponsesReceived >= 90) {
+        if (heartBeat.wordsPerMinute >= 90) {
             deltaResponseBar.path.setAttribute('stroke', endColor);
-        } else if (heartBeat.deltaResponsesReceived >= 50) {
+        } else if (heartBeat.wordsPerMinute >= 50) {
             deltaResponseBar.path.setAttribute('stroke', midColor);
         } else {
             deltaResponseBar.path.setAttribute('stroke', startColor);
         }
 
-        deltaResponseBarText.innerHTML = heartBeat.deltaResponsesReceived + ' RESPONSES/SEC | ' + deltaResponsesMax + ' MAX';
+        deltaResponseBarText.innerHTML = heartBeat.wordsPerMinute + ' RESPONSES/SEC | ' + deltaResponsesMax + ' MAX';
 
 
         var heatbeatTable = document.getElementById('heartbeat_table');

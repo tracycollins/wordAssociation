@@ -363,7 +363,7 @@
     var heartBeatTimeoutFlag = false;
     var serverCheckInterval = 1000;
     var maxServerHeartBeatWait = 30000;
-
+    var wordsPerMinuteMax = 1;
 
     console.log("ADMIN PAGE");
 
@@ -907,6 +907,9 @@
         heartBeat = rxHeartbeat;
         // console.log("... HB\n" + jsonPrint(heartBeat));
         if (rxHeartbeat.deltaResponsesReceived > deltaResponsesMax) deltaResponsesMax = rxHeartbeat.deltaResponsesReceived;
+        
+        if (rxHeartbeat.wordsPerMinute > wordsPerMinuteMax) wordsPerMinuteMax = rxHeartbeat.wordsPerMinute;
+        
         heartBeatTimeoutFlag = false;
         updateUserConnect();
         updateViewerConnect();
@@ -1883,7 +1886,8 @@
         utilsBarText.innerHTML = (heartBeat.numberUtils) + ' UTILS | ' + (heartBeat.numberUtilsMax) + ' MAX | ' + moment(heartBeat.numberUtilsMaxTime).format(defaultDateTimeFormat);
 
 
-        deltaResponseBar.animate(heartBeat.deltaResponsesReceived / deltaResponsesMax);
+        // deltaResponseBar.animate(heartBeat.deltaResponsesReceived / deltaResponsesMax);
+        deltaResponseBar.animate(heartBeat.wordsPerMinute / wordsPerMinuteMax);
 
         if (heartBeat.deltaResponsesReceived >= 90) {
             deltaResponseBar.path.setAttribute('stroke', endColor);

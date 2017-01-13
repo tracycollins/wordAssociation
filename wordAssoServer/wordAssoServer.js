@@ -1724,7 +1724,6 @@ var readUpdateSessionViewQueue = setInterval(function() {
         raw: sessionUpdateObj.source.raw,
         isIgnored: sessionUpdateObj.source.isIgnored,
         isTrendingTopic: sessionUpdateObj.source.isTrendingTopic,
-        // isKeyword: keywordHashMap.has(sessionUpdateObj.source.nodeId),
         isKeyword: sessionUpdateObj.source.isKeyword,
         keywords: {},
         url: sessionUpdateObj.source.url,
@@ -4511,7 +4510,6 @@ var readSessionQueue = setInterval(function() {
 }, 20);
 
 function getTags(wordObj, callback){
-
 
   if (keywordHashMap.has(wordObj.nodeId) || serverKeywordHashMap.has(wordObj.nodeId)) {
     debug("KW HIT: " + wordObj.nodeId);

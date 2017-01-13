@@ -70,19 +70,7 @@ function ControlPanel() {
     document.getElementById("maxAgeSliderText").innerHTML = value;
   }
 
-
-
-  $( document ).ready(function() {
-    console.log( "CONTROL PANEL READY" );
-    console.log( "CONTROL PANEL CONFIG\n" + jsonPrint(config) );
-    self.createControlPanel(function(dashboard){
-      // parentWindow.postMessage({op:'READY'}, DEFAULT_SOURCE);
-    });
-    // lsbridge.send('controlPanel', {op: 'READY'});
-  });
-
   window.onbeforeunload = function() {
-    // lsbridge.send('controlPanel', {op:'CLOSE'});
     parentWindow.postMessage({op:'CLOSE'}, DEFAULT_SOURCE);
   }
 
@@ -107,7 +95,6 @@ function ControlPanel() {
       console.log("BUTTON " + currentButton.id 
         + " : " + buttonConfig.mode
       );
-      // lsbridge.send('controlPanel', {op: buttonConfig.mode, id: currentButton.id});
       parentWindow.postMessage({op: buttonConfig.mode, id: currentButton.id}, DEFAULT_SOURCE);
 
       if (currentButton.id == 'resetButton'){
@@ -137,7 +124,6 @@ function ControlPanel() {
     document.getElementById(currentSliderTextId).innerHTML = (currentSlider.value/currentSlider.multiplier).toFixed(3);
 
     parentWindow.postMessage({op:'UPDATE', id: currentSlider.id, value: (currentSlider.value/currentSlider.multiplier)}, DEFAULT_SOURCE);
-    
   }, false);
 
   function receiveMessage(event){
@@ -178,12 +164,7 @@ function ControlPanel() {
 
       break;
     }
-
-    // event.source is window.opener
-    // event.data "
-
   }
-
 
   window.addEventListener("message", receiveMessage, false);
 
@@ -634,5 +615,15 @@ function ControlPanel() {
       }
     }
   }
+
+  $( document ).ready(function() {
+    console.log( "CONTROL PANEL DOCUMENT READY" );
+    console.log( "CONTROL PANEL CONFIG\n" + jsonPrint(config) );
+    self.createControlPanel(function(dashboard){
+      parentWindow.postMessage({op:'READY'}, DEFAULT_SOURCE);
+    });
+  });
+
+
 
 }

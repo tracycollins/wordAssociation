@@ -745,14 +745,6 @@ function updateGroupsInterval(options){
     sendHashMaps(function(err2, results2){
     });
   });
-  // updateGroups(file, function(err, results){
-
-  //   initKeywords(keywordFile, function(err, results2){
-  //     sendHashMaps(function(err, results3){
-  //       initGroupsReady = true;
-  //     });
-  //   });
-  // });
 
   initGroupsInterval = setInterval(function() {
 

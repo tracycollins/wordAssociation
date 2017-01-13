@@ -742,7 +742,9 @@ function updateGroupsInterval(options){
   ));
 
   updateGroupsEntitiesKeywords(options, function(err, results){
+    initGroupsReady = false;
     sendHashMaps(function(err2, results2){
+      initGroupsReady = true;
     });
   });
 
@@ -752,6 +754,7 @@ function updateGroupsInterval(options){
       initGroupsReady = false;
       updateGroupsEntitiesKeywords(options, function(err, results){
         sendHashMaps(function(err2, results2){
+          initGroupsReady = true;
         });
       });
     }

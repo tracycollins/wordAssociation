@@ -7465,18 +7465,11 @@ function initAppRouting(callback) {
     return;
   });
 
-  // app.get('/js/libs/controlPanel.js', function(req, res) {
-  //   debugAppGet("LOADING PAGE: /js/libs/controlPanel.js");
-  //   res.sendFile(__dirname + '/js/libs/controlPanel.js');
-  //   return;
-  // });
-
   app.get('/js/libs/controlPanel.js', function(req, res) {
     console.log("LOADING PAGE: /js/libs/controlPanel.js");
 
     fs.open(__dirname + '/js/libs/controlPanel.js', "r", function(error, fd) {
       fs.readFile(__dirname + '/js/libs/controlPanel.js', function(error, data) {
-        // var newData = data.toString().replace(/REPLACE_THIS/g, "REPLACED THAT");
         var newData;
         if (os.hostname().includes('word')){
           newData = data.toString().replace(/==SOURCE==/g, "http://word.threeceelabs.com");

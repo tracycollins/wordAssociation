@@ -28,7 +28,7 @@ var updater;
 var Twit = require('twit');
 var twit;
 var twitterStream;
-var twitterDirectMessageEnabled = false;
+var twitterDMenabled = false;
 
 var unirest = require('unirest');
 
@@ -6261,7 +6261,10 @@ configEvents.on("HASH_MISS", function(missObj) {
 
   var sendDirectMessageHashKey = missObj.type + "-" + missObj.value;
 
-  if (typeof directMessageHash[sendDirectMessageHashKey] === 'undefined') {
+  if (!twitterDMenabled){
+    debug(chalkTwitter("... SKIP TWITTER DM\n" + dmString));
+  }
+  else if (typeof directMessageHash[sendDirectMessageHashKey] === 'undefined') {
     directMessageHash[sendDirectMessageHashKey] = missObj;
     sendDirectMessage('threecee', dmString, function(err, res){
       if (!err) {

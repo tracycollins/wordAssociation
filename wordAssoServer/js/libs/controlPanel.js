@@ -277,7 +277,6 @@ function ControlPanel() {
       mode: 'MOMENT',
       id: 'resetButton',
       class: 'button',
-      // onclick: 'buttonHandler()',
       text: 'RESET'
     }
 
@@ -286,7 +285,6 @@ function ControlPanel() {
       mode: 'TOGGLE',
       id: 'blahToggleButton',
       class: 'button',
-      // onclick: 'buttonHandler()',
       text: 'BLAH'
     }
 
@@ -295,7 +293,6 @@ function ControlPanel() {
       mode: 'TOGGLE',
       id: 'fullscreenToggleButton',
       class: 'button',
-      // onclick: 'buttonHandler()',
       text: 'FULLSCREEN'
     }
 
@@ -304,7 +301,6 @@ function ControlPanel() {
       mode: 'TOGGLE',
       id: 'pauseToggleButton',
       class: 'button',
-      // onclick: 'buttonHandler()',
       text: 'PAUSE'
     }
 
@@ -313,7 +309,6 @@ function ControlPanel() {
       mode: 'TOGGLE',
       id: 'statsToggleButton',
       class: 'button',
-      // onclick: 'buttonHandler()',
       text: 'STATS'
     }
 
@@ -322,7 +317,6 @@ function ControlPanel() {
       mode: 'TOGGLE',
       id: 'testModeToggleButton',
       class: 'button',
-      // onclick: 'buttonHandler()',
       text: 'TEST'
     }
 
@@ -331,7 +325,6 @@ function ControlPanel() {
       mode: 'TOGGLE',
       id: 'antonymToggleButton',
       class: 'button',
-      // onclick: 'buttonHandler()',
       text: 'ANT'
     }
 
@@ -340,7 +333,6 @@ function ControlPanel() {
       mode: 'TOGGLE',
       id: 'disableLinksToggleButton',
       class: 'button',
-      // onclick: 'buttonHandler()',
       text: 'LINKS'
     }
 
@@ -349,7 +341,6 @@ function ControlPanel() {
       mode: 'TOGGLE',
       id: 'removeDeadNodeToogleButton',
       class: 'button',
-      // onclick: 'buttonHandler()',
       text: 'DEAD'
     }
 
@@ -358,7 +349,6 @@ function ControlPanel() {
       mode: 'MOMENT',
       id: 'nodeCreateButton',
       class: 'button',
-      // onclick: 'buttonHandler()',
       text: 'NODE'
     }
 

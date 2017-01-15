@@ -322,20 +322,6 @@ var mouseMoveTimeoutInterval = 2000;
 
 var mouseMoveTimeout;
 
-// document.onkeydown = function(evt) {
-//   evt = evt || window.event;
-//   var isEscape = false;
-//   if ("key" in evt) {
-//       isEscape = (evt.key == "Escape" || evt.key == "Esc");
-//   } else {
-//       isEscape = (evt.keyCode == 27);
-//   }
-//   if (isEscape) {
-//     console.error("Escape");
-//     config.fullscreenMode = false;
-//     updateFullscreenButton();
-//   }
-// };
 function resetMouseMoveTimer() {
 
   clearTimeout(mouseMoveTimeout);
@@ -361,7 +347,7 @@ document.addEventListener("mousemove", function() {
   if (config.pauseOnMouseMove) currentSessionView.simulationControl('PAUSE');
   mouseMovingFlag = true;
   displayControl(true);
-  displayStats(true, palette.blue);
+  // displayStats(true, palette.blue);
   resetMouseMoveTimer();
 }, true);
 

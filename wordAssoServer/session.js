@@ -36,6 +36,7 @@ requirejs(["https://cdnjs.cloudflare.com/ajax/libs/d3/4.4.0/d3.min.js"], functio
       });
       addControlButton();
       addBlahButton();
+      addFullscreenButton();
       addStatsButton();
       if (!config.pauseFlag) currentSessionView.simulationControl('RESUME');
     });
@@ -78,7 +79,7 @@ var DEFAULT_COLLISION_ITERATIONS = 1;
 var DEFAULT_NODE_RADIUS = 20.0;
 
 var config = {};
-
+config.fullscreenMode = false;
 config.pauseOnMouseMove = false;
 config.showStatsFlag = false;
 config.blahMode = DEFAULT_BLAH_MODE;
@@ -321,6 +322,20 @@ var mouseMoveTimeoutInterval = 2000;
 
 var mouseMoveTimeout;
 
+// document.onkeydown = function(evt) {
+//   evt = evt || window.event;
+//   var isEscape = false;
+//   if ("key" in evt) {
+//       isEscape = (evt.key == "Escape" || evt.key == "Esc");
+//   } else {
+//       isEscape = (evt.keyCode == 27);
+//   }
+//   if (isEscape) {
+//     console.error("Escape");
+//     config.fullscreenMode = false;
+//     updateFullscreenButton();
+//   }
+// };
 function resetMouseMoveTimer() {
 
   clearTimeout(mouseMoveTimeout);
@@ -496,6 +511,20 @@ function addBlahButton(){
   controlDiv.appendChild(blahButton);
 }
 
+function updateFullscreenButton(){
+  var bButton = document.getElementById('fullscreenButton');
+  bButton.innerHTML = config.fullscreenMode ? 'EXIT FULLSCREEN' : 'FULLSCREEN';
+}
+
+function addFullscreenButton(){
+  var controlDiv = document.getElementById('controlDiv');
+  var fullscreenButton = document.createElement("BUTTON");
+  fullscreenButton.className = 'button';
+  fullscreenButton.setAttribute('id', 'fullscreenButton');
+  fullscreenButton.setAttribute('onclick', 'toggleFullScreen()');
+  fullscreenButton.innerHTML = config.fullscreenMode ? 'EXIT FULLSCREEN' : 'FULLSCREEN';
+  controlDiv.appendChild(fullscreenButton);
+}
 
 function createPopUpControlPanel (cnf, callback) {
 
@@ -620,6 +649,14 @@ function toggleBlah() {
   updateBlahButton();
   if (controlPanelFlag) controlPanel.updateControlPanel(config);
 }
+
+// function toggleFullscreen() {
+//   config.fullscreenMode = !config.fullscreenMode;
+//   currentSessionView.setFullscreen(config.fullscreenMode);
+//   console.warn("TOGGLE FULLSCREEN: " + config.fullscreenMode);
+//   updateFullscreenButton();
+//   if (controlPanelFlag) controlPanel.updateControlPanel(config);
+// }
 
 function toggleAntonym() {
   config.antonymFlag = !config.antonymFlag;
@@ -2844,31 +2881,22 @@ function toggleFullScreen() {
 
     if (document.documentElement.requestFullscreen) {
       document.documentElement.requestFullscreen();
-      currentSessionView.resize();
     } else if (document.documentElement.msRequestFullscreen) {
       document.documentElement.msRequestFullscreen();
-      currentSessionView.resize();
     } else if (document.documentElement.mozRequestFullScreen) {
       document.documentElement.mozRequestFullScreen();
-      currentSessionView.resize();
     } else if (document.documentElement.webkitRequestFullscreen) {
       document.documentElement.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
-      currentSessionView.resize();
     }
   } else {
-
     if (document.exitFullscreen) {
       document.exitFullscreen();
-      currentSessionView.resize();
     } else if (document.msExitFullscreen) {
       document.msExitFullscreen();
-      currentSessionView.resize();
     } else if (document.mozCancelFullScreen) {
       document.mozCancelFullScreen();
-      currentSessionView.resize();
     } else if (document.webkitExitFullscreen) {
       document.webkitExitFullscreen();
-      currentSessionView.resize();
     }
   }
 }
@@ -2944,9 +2972,22 @@ function initIgnoreWordsHashMap(callback) {
   });
 }
 
+function onFullScreenChange() {
+  var fullscreenElement = document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement;
+  // if in fullscreen mode fullscreenElement won't be null
+  currentSessionView.resize();
+  config.fullscreenMode = (fullscreenElement) ? true : false;
+  console.log("FULLSCREEN: " + config.fullscreenMode);
+  updateFullscreenButton();
+}
+
 function initialize(callback) {
 
   console.log("INITIALIZE ...");
+
+  document.addEventListener("fullscreenchange", onFullScreenChange, false);
+  document.addEventListener("webkitfullscreenchange", onFullScreenChange, false);
+  document.addEventListener("mozfullscreenchange", onFullScreenChange, false);
 
   getUrlVariables(function(err, urlVariablesObj) {
 

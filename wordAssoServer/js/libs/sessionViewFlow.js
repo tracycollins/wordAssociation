@@ -1715,6 +1715,8 @@ function ViewFlow() {
     svgFlowLayoutArea.attr("x", 0);
     svgFlowLayoutArea.attr("y", 0);
 
+    simulation.force("forceY", d3.forceY(svgFlowLayoutAreaHeight/2));
+
   }
 
   // ==========================================

@@ -1110,6 +1110,7 @@ function ViewFlow() {
       // })
       .style('opacity', function(d) {
         if (hideNodeCirclesFlag) return 1e-6;
+        if (d.mouseHoverFlag) return 1.0;
         // return 1.0;
         // return 1.0 - d.ageMaxRatio; 
         return sessionOpacityScale(d.ageMaxRatio);

@@ -38,6 +38,7 @@ requirejs(["https://cdnjs.cloudflare.com/ajax/libs/d3/4.4.0/d3.min.js"], functio
       addBlahButton();
       addFullscreenButton();
       addStatsButton();
+      // window.addEventListener("resize", currentSessionView.resize(), false);
       if (!config.pauseFlag) currentSessionView.simulationControl('RESUME');
     });
   },
@@ -67,14 +68,14 @@ var DEFAULT_MAX_AGE = 10000;
 var FORCE_MAX_AGE = 10347;
 var DEFAULT_AGE_RATE = 1.0;
 
-var DEFAULT_CHARGE = 0.0;
-var DEFAULT_GRAVITY = 0.008;
-var DEFAULT_FORCEY_MULTIPLIER = 10.0;
-var DEFAULT_VELOCITY_DECAY = 0.965;
+var DEFAULT_CHARGE = -40.0;
+var DEFAULT_GRAVITY = 0.015;
+var DEFAULT_FORCEY_MULTIPLIER = 50.0;
+var DEFAULT_VELOCITY_DECAY = 0.99;
 var DEFAULT_LINK_DISTANCE = 10.0;
 var DEFAULT_LINK_STRENGTH = 0.80;
 var DEFAULT_COLLISION_RADIUS_MULTIPLIER = 0.6;
-var DEFAULT_COLLISION_ITERATIONS = 1;
+var DEFAULT_COLLISION_ITERATIONS = 2;
 
 var DEFAULT_NODE_RADIUS = 20.0;
 
@@ -398,6 +399,7 @@ function setMaxAgeSliderValue(value) {
   controlPanel.document.getElementById("maxAgeSlider").value = value;
   currentSessionView.setNodeMaxAge(value);
 }
+
 
 window.onbeforeunload = function() {
   controlPanelFlag = false;
@@ -781,15 +783,19 @@ var viewerObj = {
 
 var initialPositionIndex = 0;
 
-var initialXpositionRatio = 0.9;
+var initialXpositionRatio = 0.8;
 var initialYpositionRatio = 0.5;
 
 function computeInitialPosition(index) {
-  var radiusX = 0.01 * window.innerWidth;
-  var radiusY = 0.4 * window.innerHeight;
+  // var radiusX = 0.01 * window.innerWidth;
+  // var radiusY = 0.4 * window.innerHeight;
+  var radiusX = 20;
+  var radiusY = 0.2*window.innerHeight;
   var pos = {
-    x: (initialXpositionRatio * window.innerWidth + (radiusX * Math.cos(index))),
-    y: (initialYpositionRatio * window.innerHeight + (radiusY * Math.sin(index)))
+    // x: (initialXpositionRatio * window.innerWidth + (radiusX * Math.cos(index))),
+    // y: (initialYpositionRatio * window.innerHeight + (radiusY * Math.sin(index)))
+    x: ((initialXpositionRatio * 1000) + Math.abs(radiusX * Math.cos(index))),
+    y: ((initialYpositionRatio * window.innerHeight) + (radiusY * Math.cos(index)))
   };
 
   return pos;
@@ -1018,10 +1024,15 @@ function reset(){
   });  
 }
 
+window.addEventListener('resize', function() {
+  console.error("resize");
+  currentSessionView.resize();
+});
 
 document.addEventListener(visibilityEvent, function() {
   if (!document[hidden]) {
     windowVisible = true;
+    currentSessionView.resize();
     currentSessionView.setPause(false);
     console.debug("visibilityEvent: " + windowVisible);
   } else {
@@ -1843,6 +1854,8 @@ var processSessionQueues = function(callback) {
   else {
     var session = rxSessionUpdateQueue.shift();
 
+    // console.warn("session\n" + jsonPrint(session));
+
     session.nodeId = session.tags.entity.toLowerCase() + "_" + session.tags.channel.toLowerCase();
     session.tags.entity = session.tags.entity.toLowerCase();
     session.tags.channel = session.tags.channel.toLowerCase();
@@ -2131,8 +2144,8 @@ var createGroup = function(callback) {
       currentGroup.node.mentions = 1;
       currentGroup.node.text = groupName;
       currentGroup.node.r = config.defaultNodeRadius;
-      currentGroup.node.x = currentGroup.initialPosition.x;
-      currentGroup.node.y = currentGroup.initialPosition.y;
+      currentGroup.node.x = currentInitialPosition.x;
+      currentGroup.node.y = currentInitialPosition.y;
       currentGroup.node.fixed = false;
 
       currentGroup.node.groupColors = {};
@@ -2158,7 +2171,7 @@ var createGroup = function(callback) {
           + " | isSessionNode: " + grpNode.isSessionNode
         );
 
-        currentSessionView.addNode(grpNode);
+        // currentSessionView.addNode(grpNode);
 
         addToHashMap(groupHashMap, currentGroup.groupId, currentGroup, function(cGroup) {
           console.log("+ G " + cGroup.groupId 
@@ -2182,6 +2195,8 @@ var createSession = function(callback) {
 
     var dateNow = moment().valueOf();
     var sessUpdate = sessionCreateQueue.shift();
+
+    // console.warn("sessUpdate\n" + jsonPrint(sessUpdate)); 
 
     var currentGroup = {};
 
@@ -2249,6 +2264,8 @@ var createSession = function(callback) {
       currentSession.interpolateColor = currentGroup.interpolateSessionColor;
 
       currentSession.node.text = sessUpdate.tags.entity + "|" + sessUpdate.tags.channel;
+      // currentSession.node.x = currentGroup.initialPosition.x;
+      // currentSession.node.y = currentGroup.initialPosition.y;
       currentSession.node.age = 1e-6;
       currentSession.node.ageMaxRatio = 1e-6;
       currentSession.node.isGroupNode = false;
@@ -2292,6 +2309,7 @@ var createSession = function(callback) {
       console.log("+ SES" 
         + " [" + sessUpdate.wordChainIndex + "]" 
         + " U: " + sessUpdate.userId 
+        // + " P: " + sessUpdate.profileImageUrl 
         + " E: " + sessUpdate.tags.entity 
         + " C: " + sessUpdate.tags.channel 
         + " URL: " + sessUpdate.tags.url 
@@ -2320,8 +2338,8 @@ var createSession = function(callback) {
       currentSession.latestNodeId = sessUpdate.source.nodeId;
       currentSession.linkHashMap = new HashMap();
       currentSession.initialPosition = currentGroup.initialPosition;
-      currentSession.x = currentGroup.x;
-      currentSession.y = currentGroup.y;
+      currentSession.x = currentGroup.initialPosition.x;
+      currentSession.y = currentGroup.initialPosition.y;
 
       currentSession.sessionColors = {};
       currentSession.sessionColors = currentGroup.sessionColors;
@@ -2347,6 +2365,8 @@ var createSession = function(callback) {
       currentSession.node.channel = sessUpdate.tags.channel;
       currentSession.node.userId = sessUpdate.userId;
       currentSession.node.sessionId = sessUpdate.sessionId;
+      currentSession.node.imageUrl = sessUpdate.imageUrl;
+      currentSession.node.profileImageUrl = sessUpdate.profileImageUrl;
       currentSession.node.url = sessUpdate.tags.url;
       currentSession.node.age = 1e-6;
       currentSession.node.ageMaxRatio = 1e-6;
@@ -2357,6 +2377,7 @@ var createSession = function(callback) {
       currentSession.node.text = sessUpdate.tags.entity + "|" + sessUpdate.tags.channel;
       currentSession.node.r = config.defaultNodeRadius;
       currentSession.node.x = currentGroup.initialPosition.x;
+      // currentSession.node.fx = currentGroup.initialPosition.x;
       currentSession.node.y = currentGroup.initialPosition.y;
 
       currentSession.node.sessionColors = {};
@@ -2385,8 +2406,10 @@ var createSession = function(callback) {
 
       addToHashMap(nodeHashMap, currentSession.node.nodeId, currentSession.node, function(sesNode) {
         console.log("+ SES" 
+          + " " + sesNode.entity
           + " " + sesNode.nodeId
           + " " + sesNode.text
+          + " " + sesNode.imageUrl
           + " WCI: " + sesNode.wordChainIndex
           + " M: " + sesNode.wordChainIndex
         );
@@ -2402,6 +2425,7 @@ var createSession = function(callback) {
           );
 
           currentSessionView.addSession(cSession);
+
           nodeCreateQueue.push(cSession);
           return (callback(null, cSession.nodeId));
         });
@@ -2491,15 +2515,6 @@ var createNode = function(callback) {
 
     async.parallel({
         source: function(cb) {
-          // if (session.source.isIgnored) {
-          //   console.debug("IGNORED SOURCE: " + sourceText);
-          // }
-          // if (session.source.isKeyword) {
-          //   console.info("KEY S: " + sourceText);
-          // }
-          // if (session.source.isTrendingTopic) {
-          //   console.debug("TT S: " + sourceText);
-          // }
           if ((config.sessionViewType != 'ticker') && (config.sessionViewType != 'flow') && session.source.isIgnored) {
             cb(null, {
               node: sourceNodeId,
@@ -2518,6 +2533,7 @@ var createNode = function(callback) {
             sourceNode.sessionId = session.sessionId;
             sourceNode.groupId = session.groupId;
             sourceNode.channel = session.tags.channel;
+            sourceNode.entity = session.tags.entity;
             sourceNode.url = session.tags.url;
             sourceNode.age = 1e-6;
             sourceNode.ageMaxRatio = 1e-6;
@@ -2573,6 +2589,7 @@ var createNode = function(callback) {
             sourceNode.userId = session.userId;
             sourceNode.groupId = session.groupId;
             sourceNode.channel = session.tags.channel;
+            sourceNode.entity = session.tags.entity;
             sourceNode.sessionId = session.sessionId;
             sourceNode.url = session.tags.url;
             sourceNode.links = {};
@@ -2619,15 +2636,6 @@ var createNode = function(callback) {
 
         target: function(cb) {
 
-          // if (session.target.isIgnored) {
-          //   console.debug("IGNORED TARGET: " + targetText);
-          // }
-          // if (session.target.isKeyword) {
-          //   console.info("KEY T: " + sourceText);
-          // }
-          // if (session.target.isTrendingTopic) {
-          //   console.debug("TT T: " + sourceText);
-          // }
           if (typeof targetNodeId === 'undefined' || (config.sessionViewType == 'ticker') || (config.sessionViewType == 'flow')) {
             cb("TARGET UNDEFINED", null);
           } else if (session.target.isIgnored) {
@@ -2649,6 +2657,7 @@ var createNode = function(callback) {
             targetNode.sessionId = session.sessionId;
             targetNode.groupId = session.groupId;
             targetNode.channel = session.tags.channel;
+            targetNode.entity = session.tags.entity;
             targetNode.age = 1e-6;
             targetNode.ageMaxRatio = 1e-6;
             targetNode.isDead = false;
@@ -2700,6 +2709,7 @@ var createNode = function(callback) {
             targetNode.userId = session.userId;
             targetNode.groupId = session.groupId;
             targetNode.channel = session.tags.channel;
+            targetNode.entity = session.tags.entity;
             targetNode.url = session.tags.url;
             targetNode.sessionId = session.sessionId;
             targetNode.links = {};
@@ -2842,8 +2852,8 @@ function updateSessions() {
       processSessionQueues,
       createGroup,
       createSession,
-      createNode,
-      createLink,
+      createNode
+      // createLink,
     ],
 
     function(err, result) {
@@ -2971,6 +2981,7 @@ function initialize(callback) {
 
   console.log("INITIALIZE ...");
 
+  // document.addEventListener("resize", currentSessionView.resize(), false);
   document.addEventListener("fullscreenchange", onFullScreenChange, false);
   document.addEventListener("webkitfullscreenchange", onFullScreenChange, false);
   document.addEventListener("mozfullscreenchange", onFullScreenChange, false);

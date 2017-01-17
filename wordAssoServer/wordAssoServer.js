@@ -1708,6 +1708,7 @@ var readUpdateSessionViewQueue = setInterval(function() {
         tags: {},
         action: sessionUpdateObj.action,
         userId: sessionUpdateObj.userId,
+        profileImageUrl: sessionUpdateObj.profileImageUrl,
         sessionId: sessionUpdateObj.sessionId,
         wordChainIndex: sessionUpdateObj.wordChainIndex,
         source: {},
@@ -4013,6 +4014,7 @@ function handleSessionEvent(sesObj, callback) {
               nodeId: sessionUpdatedObj.tags.entity + '_' + sessionUpdatedObj.tags.channel,
               tags: {},
               userId: sessionUpdatedObj.userId,
+              profileImageUrl: sessionUpdatedObj.profileImageUrl,
               sessionId: sessionUpdatedObj.sessionId,
               wordChainIndex: sessionUpdatedObj.wordChainIndex,
               source: {},
@@ -4764,6 +4766,7 @@ var readResponseQueue = setInterval(function() {
             // + " KW " + updatedWordObj.isKeyword 
             // + " TT " + updatedWordObj.isTrendingTopic 
             // + " [" + currentSessionObj.wordChainIndex + "]" 
+            + " | " + updatedWordObj.profileImageUrl 
             + " | " + updatedWordObj.nodeId 
             + " | " + updatedWordObj.raw 
           ));
@@ -4779,6 +4782,7 @@ var readResponseQueue = setInterval(function() {
             + " C " + updatedWordObj.tags.channel 
             // + " TT " + updatedWordObj.isTrendingTopic 
             // + " [" + currentSessionObj.wordChainIndex + "]" 
+            + " | " + updatedWordObj.profileImageUrl 
             + " | " + updatedWordObj.nodeId 
             + " | " + updatedWordObj.raw 
           ));
@@ -5158,6 +5162,8 @@ var readDbUpdateWordQueue = setInterval(function() {
 
     var currentSessionObj = dbUpdateObj.session;
 
+    currentSessionObj.profileImageUrl = dbUpdateObj.word.profileImageUrl;
+
     dbUpdateObj.word.wordChainIndex = currentSessionObj.wordChainIndex;
 
     currentSessionObj.wordChain.push({nodeId: dbUpdateObj.word.nodeId, timeStamp:moment().valueOf()});
@@ -5209,6 +5215,7 @@ var readDbUpdateWordQueue = setInterval(function() {
 
         previousPromptNodeId = currentSessionObj.wordChain[currentSessionObj.wordChain.length - 2].nodeId;
         previousPromptObj = wordCache.get(previousPromptNodeId);
+
         if (!previousPromptObj) {
           debug(chalkWarn("??? PREVIOUS PROMPT NOT IN CACHE: " + previousPromptNodeId));
           if (quitOnError) quit("??? PREVIOUS PROMPT NOT IN CACHE: " + previousPromptNodeId);
@@ -5227,6 +5234,7 @@ var readDbUpdateWordQueue = setInterval(function() {
           var sessionUpdateObj = {
             action: 'RESPONSE',
             userId: currentSessionObj.userId,
+            profileImageUrl: currentSessionObj.profileImageUrl,
             sessionId: currentSessionObj.sessionId,
             wordChainIndex: dbUpdateObj.word.wordChainIndex,
             source: updatedWordObj,

@@ -167,13 +167,15 @@ function ViewFlow() {
   var nodeFontSizeScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minFontSize, maxFontSize]).clamp(true);
 
   var groupCircleRadiusScale = d3.scaleLog().domain([1, 10000000]).range([10.0, 50.0]).clamp(true); // uses wordChainIndex
-  var sessionCircleRadiusScale = d3.scaleLog().domain([1, 1000000]).range([5.0, 40.0]).clamp(true); // uses wordChainIndex
+  var sessionCircleRadiusScale = d3.scaleLog().domain([1, 1000000]).range([10.0, 50.0]).clamp(true); // uses wordChainIndex
   var defaultRadiusScale = d3.scaleLog().domain([1, 10000000]).range([2.0, 30.0]).clamp(true);
 
   var fillColorScale = d3.scaleLinear().domain([1e-6, 0.1, 1.0]).range([palette.gray, palette.darkgray, palette.black]);
   var strokeColorScale = d3.scaleLog().domain([1e-6, 0.15, 1.0]).range([palette.white, palette.darkgray, palette.black]);
   var linkColorScale = d3.scaleLinear().domain([1e-6, 0.5, 1.0]).range(["#000000", "#000000", "#000000"]);
 
+  var sessionOpacityScale = d3.scaleLinear().domain([1e-6, 0.05, 1.0]).range([1.0, 0.2, 1e-6]);
+  // var sessionOpacityScale = d3.scaleLog().domain([1e-6, 1.0]).range([1.0, 1e-6]);
 
   console.log("@@@@@@@ CLIENT @@@@@@@@");
 
@@ -260,13 +262,6 @@ function ViewFlow() {
   var svgMain = d3image.append("svg:svg")
     .attr("id", "svgMain")
     .attr("viewBox", "0 0 1000 1000");
-
-  // var svgRect = svgMain.append("svg:image")
-  //   .attr("id", "svgRect")
-  //   .attr("width", 500)
-  //   .style("opacity", 0.5)
-  //   .attr("xlink:href", "http://farm8.staticflickr.com/7477/15590904733_8d750dbb64_z.jpg");
-
   var svgFlowLayoutArea = svgMain.append("g")
     .attr("id", "svgFlowLayoutArea")
     .attr("viewBox", "0 0 1000 1000");
@@ -276,10 +271,6 @@ function ViewFlow() {
      // .call(d3.zoom()
      //      .scaleExtent([1 / 2, 4])
      //      .on("zoom", zoomed));
-
-  // function zoomed() {
-  //   svgFlowLayoutArea.attr("transform", d3.event.transform);
-  // }
 
   var linkSvgGroup = svgFlowLayoutArea.append("svg:g").attr("id", "linkSvgGroup");
 
@@ -392,14 +383,11 @@ function ViewFlow() {
   self.updateGravity = function(value) {
     console.debug("UPDATE GRAVITY: " + value.toFixed(sliderPercision));
     gravity = value;
-    // simulation.force("forceX", d3.forceX(-10000).strength(value));
-    // simulation.force("forceY", d3.forceY(height/2).strength(forceYmultiplier * value));
-
     simulation.force("forceX", d3.forceX().x(function(d) { 
-        if (d.isSessionNode) return 0.8*width;
-        return -10000; 
+        if (d.isSessionNode) return 0.6*width;
+        return -20*width; 
       }).strength(function(d){
-        if (d.isSessionNode) return 100*gravity;
+        if (d.isSessionNode) return 50*gravity;
         return gravity; 
       }));
     simulation.force("forceY", d3.forceY().y(function(d) { 
@@ -1097,12 +1085,16 @@ function ViewFlow() {
           }
         }
       })
-      .attr("x", function(d) {return d.x - 20;})
-      .attr("y", function(d) {return d.y - 20;})
+      .attr("x", function(d) {return d.x - 0.5*(sessionCircleRadiusScale(d.wordChainIndex + 1.0));})
+      .attr("y", function(d) {return d.y - 0.5*(sessionCircleRadiusScale(d.wordChainIndex + 1.0));})
       // .attr("cx", function(d) {return d.x;})
       // .attr("cy", function(d) {return d.y;})
-      .attr("width", 40)
-      .attr("height", 40)
+      .attr("width", function(d){
+        return sessionCircleRadiusScale(d.wordChainIndex + 1.0);
+      })
+      .attr("height", function(d){
+        return sessionCircleRadiusScale(d.wordChainIndex + 1.0);
+      })
       // .style("fill", function(d) {
       //   if (hideNodeCirclesFlag) {
       //     return "none"; 
@@ -1119,7 +1111,8 @@ function ViewFlow() {
       .style('opacity', function(d) {
         if (hideNodeCirclesFlag) return 1e-6;
         // return 1.0;
-        return 1.0 - d.ageMaxRatio; 
+        // return 1.0 - d.ageMaxRatio; 
+        return sessionOpacityScale(d.ageMaxRatio);
         // return d.interpolateNodeColor(d.ageMaxRatio);
       });
       // .style('stroke', function(d) {
@@ -1146,8 +1139,8 @@ function ViewFlow() {
       // .attr("cx", function(d) {return d.x;})
       // .attr("cy", function(d) {return d.y;})
       .attr("xlink:href", function(d) { return d.profileImageUrl; })
-      .attr("width", 1e-6)
-      .attr("height", 1e-6)
+      .attr("width", 80)
+      .attr("height", 80)
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)
       .on("click", nodeClick)
@@ -1488,7 +1481,7 @@ function ViewFlow() {
       .force("link", d3.forceLink(links).id(function(d) { return d.linkId; }).distance(globalLinkDistance).strength(globalLinkStrength))
       .force("charge", d3.forceManyBody().strength(charge))
       .force("forceX", d3.forceX().x(function(d) { 
-        if (d.isSessionNode) return 0.8*width;
+        if (d.isSessionNode) return 0.6*width;
         return -20*width; 
       }).strength(function(d){
         if (d.isSessionNode) return 50*gravity;

@@ -4766,7 +4766,7 @@ var readResponseQueue = setInterval(function() {
             // + " KW " + updatedWordObj.isKeyword 
             // + " TT " + updatedWordObj.isTrendingTopic 
             // + " [" + currentSessionObj.wordChainIndex + "]" 
-            + " | " + updatedWordObj.profileImageUrl 
+            // + " | " + updatedWordObj.profileImageUrl 
             + " | " + updatedWordObj.nodeId 
             + " | " + updatedWordObj.raw 
           ));
@@ -4782,7 +4782,7 @@ var readResponseQueue = setInterval(function() {
             + " C " + updatedWordObj.tags.channel 
             // + " TT " + updatedWordObj.isTrendingTopic 
             // + " [" + currentSessionObj.wordChainIndex + "]" 
-            + " | " + updatedWordObj.profileImageUrl 
+            // + " | " + updatedWordObj.profileImageUrl 
             + " | " + updatedWordObj.nodeId 
             + " | " + updatedWordObj.raw 
           ));

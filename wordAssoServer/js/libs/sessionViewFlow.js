@@ -175,6 +175,7 @@ function ViewFlow() {
   var linkColorScale = d3.scaleLinear().domain([1e-6, 0.5, 1.0]).range(["#000000", "#000000", "#000000"]);
 
   var sessionOpacityScale = d3.scaleLinear().domain([1e-6, 0.05, 1.0]).range([1.0, 0.2, 1e-6]);
+  var fontScale = d3.scaleLinear().domain([1e-6, 1.0]).range([0.5, 1.0]);
   // var sessionOpacityScale = d3.scaleLog().domain([1e-6, 1.0]).range([1.0, 1e-6]);
 
   console.log("@@@@@@@ CLIENT @@@@@@@@");
@@ -285,6 +286,7 @@ function ViewFlow() {
 
   var nodeGs = nodeSvgGroup.selectAll("g.node");
   // var nodeCircles = nodeSvgGroup.selectAll("circle");
+  var nodeRects = nodeSvgGroup.selectAll("rect");
   var nodeCircles = nodeSvgGroup.selectAll("image");
   var nodeLabels = nodeSvgGroup.selectAll(".nodeLabel");
 
@@ -1063,7 +1065,47 @@ function ViewFlow() {
 
   var updateNodeCircles = function(callback) {
 
-    // nodeCircles = nodeSvgGroup.selectAll("circle").data(nodes ,function(d) { return d.nodeId; })
+    nodeRects = nodeSvgGroup.selectAll("rect").data(nodes ,function(d) { return d.nodeId; })
+
+    nodeRects
+      .attr("x", function(d) {return d.x - 0.5*(sessionCircleRadiusScale(d.wordChainIndex + 1.0));})
+      .attr("y", function(d) {return d.y - 0.5*(sessionCircleRadiusScale(d.wordChainIndex + 1.0));})
+      .attr("width", function(d){
+        return sessionCircleRadiusScale(d.wordChainIndex + 1.0);
+      })
+      .attr("height", function(d){
+        return sessionCircleRadiusScale(d.wordChainIndex + 1.0);
+      })
+      .style('opacity', function(d) {
+        if (hideNodeCirclesFlag) return 1e-6;
+        if (d.mouseHoverFlag) return 1.0;
+        return sessionOpacityScale(d.ageMaxRatio);
+      });
+
+    nodeRects
+      .enter()
+      .append("svg:rect")
+      .attr("width", 0)
+      .attr("height", 0)
+      .attr("x", function(d) {return d.x;})
+      .attr("y", function(d) {return d.y;})
+      .attr("fill", "none")
+      .style('stroke', function(d) {
+        // if (d.isSessionNode) return strokeColorScale(d.ageMaxRatio);
+        return palette.black;
+      })
+      .style('stroke-width', 1)
+      .style('stroke-opacity', function(d) {
+        return 1.0 - d.ageMaxRatio; 
+      })
+      .style("visibility", function(d) { 
+        return (d.isSessionNode) ? "visible" : "hidden"; 
+      });
+
+    nodeRects
+      .exit().remove();
+
+
     nodeCircles = nodeSvgGroup.selectAll("image").data(nodes ,function(d) { return d.nodeId; })
 
     nodeCircles
@@ -1087,46 +1129,17 @@ function ViewFlow() {
       })
       .attr("x", function(d) {return d.x - 0.5*(sessionCircleRadiusScale(d.wordChainIndex + 1.0));})
       .attr("y", function(d) {return d.y - 0.5*(sessionCircleRadiusScale(d.wordChainIndex + 1.0));})
-      // .attr("cx", function(d) {return d.x;})
-      // .attr("cy", function(d) {return d.y;})
       .attr("width", function(d){
         return sessionCircleRadiusScale(d.wordChainIndex + 1.0);
       })
       .attr("height", function(d){
         return sessionCircleRadiusScale(d.wordChainIndex + 1.0);
       })
-      // .style("fill", function(d) {
-      //   if (hideNodeCirclesFlag) {
-      //     return "none"; 
-      //   }
-      //   else if (d.mouseHoverFlag) {
-      //     return palette.blue; 
-      //   }
-      //   else {
-      //     if (d.isGroupNode ) return d.interpolateGroupColor(d.ageMaxRatio);
-      //     if (d.isSessionNode) return d.interpolateSessionColor(d.ageMaxRatio);
-      //     return d.interpolateNodeColor(d.ageMaxRatio);
-      //   }
-      // })
       .style('opacity', function(d) {
         if (hideNodeCirclesFlag) return 1e-6;
         if (d.mouseHoverFlag) return 1.0;
-        // return 1.0;
-        // return 1.0 - d.ageMaxRatio; 
         return sessionOpacityScale(d.ageMaxRatio);
-        // return d.interpolateNodeColor(d.ageMaxRatio);
       });
-      // .style('stroke', function(d) {
-      //   if (hideNodeCirclesFlag) return "none";
-      //   if (d.ageMaxRatio < 0.01) return palette.red;
-      //   if (d.isGroupNode ) return strokeColorScale(d.ageMaxRatio);
-      //   if (d.isSessionNode) return strokeColorScale(d.ageMaxRatio);
-      //   return d.interpolateNodeColor(d.ageMaxRatio);
-      // })
-      // .style('stroke-opacity', function(d) {
-      //   if (hideNodeCirclesFlag) return 1e-6;
-      //   return 1.0 - d.ageMaxRatio; 
-      // });
 
     nodeCircles
       .enter()
@@ -1153,16 +1166,7 @@ function ViewFlow() {
         return "hidden";
       })
       // .style("fill", palette.black)
-      .style("opacity", 1);
-      // .style('stroke', palette.red)
-      // .style('stroke-opacity', function(d) {
-      //   if (hideNodeCirclesFlag) return 1e-6;
-      //   return 1.0;
-      // })
-      // .style("stroke-width", function(d) {
-      //   if (d.isGroupNode) return 6.0;
-      //   return 4.0;
-      // });
+      .style("opacity", 1)
 
     nodeCircles
       .exit().remove();
@@ -1197,13 +1201,6 @@ function ViewFlow() {
         if (d.isSessionNode) return d.y - 2*d.r; 
         return d.y;
       })
-      .style("font-size", function(d) {
-        if (d.isGroupNode) { return sessionFontSizeScale(d.totalWordChainIndex + 1.1) + "px";  }
-        else if (d.isSessionNode) { return sessionFontSizeScale(d.wordChainIndex + 1.1) + "px";  }
-        else if (d.isIgnored) { return nodeFontSizeScale(10) + "px";  }
-        else if (d.isTrendingTopic) { return nodeFontSizeScale(1.5*d.mentions + 1.1) + "px"; }
-        else { return nodeFontSizeScale(d.mentions + 1.1) + "px"; }
-      })
       .style("font-weight", function(d) {
         if (d.isTwitterUser || d.isKeyword || d.isNumber || d.isCurrency || d.isTrendingTopic) return "bold";
         return "normal";
@@ -1222,7 +1219,17 @@ function ViewFlow() {
       .style('opacity', function(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
         return 1.0 - d.ageMaxRatio; 
-      });
+      })
+      // .transition()
+      // .duration(50)
+      // .ease("quad")
+      .style("font-size", function(d) {
+          // if (d.isGroupNode) { return sessionFontSizeScale(d.totalWordChainIndex + 1.1) + "px";  }
+          // if (d.isSessionNode) { return sessionFontSizeScale(d.wordChainIndex + 1.1) + "px";  }
+          if (d.isIgnored) { return nodeFontSizeScale(10) + "px";  }
+          if (d.isTrendingTopic) { return nodeFontSizeScale(1.5*d.mentions + 1.1) + "px"; }
+          return (nodeFontSizeScale(d.mentions + 1.1)) + "px";
+        });
 
     nodeLabels
       .enter()
@@ -1242,21 +1249,15 @@ function ViewFlow() {
       })
       .style("visibility", function(d) { 
         return (d.isGroupNode || d.isSessionNode) ? "hidden" : "visible"; 
-        // return (d.isGroupNode) ? "hidden" : "visible"; 
       })
       .style("text-anchor", "middle")
       .style("alignment-baseline", "middle")
       .style("opacity", 1e-6)
       .style("fill", palette.white)
-      .style("font-size", function(d) {
-        if (d.isGroupNode) return sessionFontSizeScale(d.totalWordChainIndex + 1.1) + "px";
-        if (d.isSessionNode) return sessionFontSizeScale(d.wordChainIndex + 1.1) + "px";
-        return nodeFontSizeScale(d.mentions + 1.1) + "px";
-      })
+      .style("font-size", "1px")
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)
       .on("click", nodeClick);
-      // .merge(nodeLabels);
 
     nodeLabels
       .exit().remove();
@@ -1341,14 +1342,6 @@ function ViewFlow() {
     d.mouseHoverFlag = true;
     mouseHoverNodeId = d.nodeId;
 
-    if (d.isSessionNode) {
-      sessions.forEach(function(session){
-        if (session.sessionId == d.sessionId){
-          session.mouseHoverFlag = true;
-          mouseHoverSessionId = d.sessionId;
-        }
-      });
-    }
 
     d.fx = d.x;
     d.fy = d.y;
@@ -1361,11 +1354,27 @@ function ViewFlow() {
 
     self.toolTipVisibility(true);
 
-    var tooltipString = d.raw
-      + "<br>" + nodeId 
-      + "<br>MENTIONS: " + mentions 
-      + "<br>" + uId 
-      + "<br>" + sId;
+    var tooltipString;
+
+    if (d.isSessionNode) {
+      sessions.forEach(function(session){
+        if (session.sessionId == d.sessionId){
+          session.mouseHoverFlag = true;
+          mouseHoverSessionId = d.sessionId;
+        }
+      });
+
+      tooltipString = uId 
+        + "<br>MENTIONS: " + mentions;
+    }
+    else {
+      tooltipString = d.raw
+        + "<br>" + nodeId 
+        + "<br>MENTIONS: " + mentions 
+        + "<br>" + uId 
+        + "<br>" + sId;
+    }
+
 
     divTooltip.html(tooltipString)
       .style("left", (d3.event.pageX - 40) + "px")

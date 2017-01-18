@@ -781,19 +781,15 @@ var viewerObj = {
   type: "VIEWER",
 };
 
-var initialPositionIndex = 0;
+// var initialPositionIndex = 0;
 
 var initialXpositionRatio = 0.8;
 var initialYpositionRatio = 0.5;
 
 function computeInitialPosition(index) {
-  // var radiusX = 0.01 * window.innerWidth;
-  // var radiusY = 0.4 * window.innerHeight;
   var radiusX = 20;
   var radiusY = 0.2*window.innerHeight;
   var pos = {
-    // x: (initialXpositionRatio * window.innerWidth + (radiusX * Math.cos(index))),
-    // y: (initialYpositionRatio * window.innerHeight + (radiusY * Math.sin(index)))
     x: ((initialXpositionRatio * 1000) + Math.abs(radiusX * Math.cos(index))),
     y: ((initialYpositionRatio * window.innerHeight) + (radiusY * Math.cos(index)))
   };
@@ -2061,8 +2057,10 @@ var createGroup = function(callback) {
 
       groupsCreated += 1;
 
-      var currentInitialPosition = computeInitialPosition(initialPositionIndex);
-      initialPositionIndex++;
+      // var currentInitialPosition = computeInitialPosition(initialPositionIndex);
+      // initialPositionIndex++;
+
+      var currentInitialPosition = computeInitialPosition(randomIntFromInterval(0,359));
 
       randomNumber360 = (randomNumber360 + randomIntFromInterval(61, 117))%360;
 

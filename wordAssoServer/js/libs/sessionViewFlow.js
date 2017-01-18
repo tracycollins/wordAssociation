@@ -384,7 +384,7 @@ function ViewFlow() {
     console.debug("UPDATE GRAVITY: " + value.toFixed(sliderPercision));
     gravity = value;
     simulation.force("forceX", d3.forceX().x(function(d) { 
-        if (d.isSessionNode) return 0.75*width;
+        if (d.isSessionNode) return 0.65*width;
         return -20*width; 
       }).strength(function(d){
         if (d.isSessionNode) return 70*gravity;
@@ -1482,7 +1482,7 @@ function ViewFlow() {
       .force("link", d3.forceLink(links).id(function(d) { return d.linkId; }).distance(globalLinkDistance).strength(globalLinkStrength))
       .force("charge", d3.forceManyBody().strength(charge))
       .force("forceX", d3.forceX().x(function(d) { 
-        if (d.isSessionNode) return 0.75*width;
+        if (d.isSessionNode) return 0.65*width;
         return -20*width; 
       }).strength(function(d){
         if (d.isSessionNode) return 70*gravity;

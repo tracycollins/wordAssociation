@@ -784,7 +784,7 @@ var viewerObj = {
 // var initialPositionIndex = 0;
 
 var initialXpositionRatio = 0.8;
-var initialYpositionRatio = 0.5;
+var initialYpositionRatio = 0.4;
 
 function computeInitialPosition(index) {
   var radiusX = 20;

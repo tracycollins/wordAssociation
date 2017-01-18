@@ -387,7 +387,7 @@ function ViewFlow() {
         if (d.isSessionNode) return 0.75*width;
         return -20*width; 
       }).strength(function(d){
-        if (d.isSessionNode) return 50*gravity;
+        if (d.isSessionNode) return 70*gravity;
         return gravity; 
       }));
     simulation.force("forceY", d3.forceY().y(function(d) { 
@@ -1485,7 +1485,7 @@ function ViewFlow() {
         if (d.isSessionNode) return 0.75*width;
         return -20*width; 
       }).strength(function(d){
-        if (d.isSessionNode) return 50*gravity;
+        if (d.isSessionNode) return 70*gravity;
         return gravity; 
       }))
       .force("forceY", d3.forceY().y(function(d) { 

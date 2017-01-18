@@ -1369,10 +1369,8 @@ function ViewFlow() {
     }
     else {
       tooltipString = d.raw
-        + "<br>" + nodeId 
         + "<br>MENTIONS: " + mentions 
-        + "<br>" + uId 
-        + "<br>" + sId;
+        + "<br>" + uId;
     }
 
 

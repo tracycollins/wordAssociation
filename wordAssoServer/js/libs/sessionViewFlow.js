@@ -167,7 +167,7 @@ function ViewFlow() {
   var nodeFontSizeScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minFontSize, maxFontSize]).clamp(true);
 
   var groupCircleRadiusScale = d3.scaleLog().domain([1, 10000000]).range([10.0, 50.0]).clamp(true); // uses wordChainIndex
-  var sessionCircleRadiusScale = d3.scaleLog().domain([1, 1000000]).range([10.0, 50.0]).clamp(true); // uses wordChainIndex
+  var sessionCircleRadiusScale = d3.scaleLog().domain([1, 1000000]).range([15.0, 50.0]).clamp(true); // uses wordChainIndex
   var defaultRadiusScale = d3.scaleLog().domain([1, 10000000]).range([2.0, 30.0]).clamp(true);
 
   var fillColorScale = d3.scaleLinear().domain([1e-6, 0.1, 1.0]).range([palette.gray, palette.darkgray, palette.black]);
@@ -1007,7 +1007,6 @@ function ViewFlow() {
       return (callback());
     }
 
-
     var ageLinksLength = links.length - 1;
     var ageLinksIndex = links.length - 1;
     var link;
@@ -1042,10 +1041,8 @@ function ViewFlow() {
       .attr("y2", function(d) { return d.target.y; })
       .style('stroke', function(d) { 
         if (d.ageMaxRatio < 0.01) { return palette.red; }
-        // return linkColorScale(d.ageMaxRatio); 
         return palette.blue; 
       });
-      // .style('opacity', function(d) { return 1.0 - d.ageMaxRatio; });
 
     link.enter()
       .append("svg:line")
@@ -1054,7 +1051,6 @@ function ViewFlow() {
       .style('stroke', function(d) { return linkColorScale(1.0); })
       .style('stroke-width', 1.75)
       .style('opacity', 1);
-      // .merge(link);
 
     link
       .exit()
@@ -1091,7 +1087,6 @@ function ViewFlow() {
       .attr("y", function(d) {return d.y;})
       .attr("fill", "none")
       .style('stroke', function(d) {
-        // if (d.isSessionNode) return strokeColorScale(d.ageMaxRatio);
         return palette.black;
       })
       .style('stroke-width', 1)
@@ -1143,15 +1138,12 @@ function ViewFlow() {
 
     nodeCircles
       .enter()
-      // .append("svg:circle")
       .append("svg:image")
       .attr("nodeId", function(d) { return d.nodeId;})
       .attr("isSessionNode", function(d) { return d.isSessionNode;})
       .attr("sessionId", function(d) { return d.sessionId;})
       .attr("x", function(d) {return d.x;})
       .attr("y", function(d) {return d.y;})
-      // .attr("cx", function(d) {return d.x;})
-      // .attr("cy", function(d) {return d.y;})
       .attr("xlink:href", function(d) { return d.profileImageUrl; })
       .attr("width", 80)
       .attr("height", 80)
@@ -1165,7 +1157,6 @@ function ViewFlow() {
         if (d.isSessionNode) return "visible";
         return "hidden";
       })
-      // .style("fill", palette.black)
       .style("opacity", 1)
 
     nodeCircles
@@ -1220,12 +1211,7 @@ function ViewFlow() {
         if (d.mouseHoverFlag) { return 1.0; }
         return 1.0 - d.ageMaxRatio; 
       })
-      // .transition()
-      // .duration(50)
-      // .ease("quad")
       .style("font-size", function(d) {
-          // if (d.isGroupNode) { return sessionFontSizeScale(d.totalWordChainIndex + 1.1) + "px";  }
-          // if (d.isSessionNode) { return sessionFontSizeScale(d.wordChainIndex + 1.1) + "px";  }
           if (d.isIgnored) { return nodeFontSizeScale(10) + "px";  }
           if (d.isTrendingTopic) { return nodeFontSizeScale(1.5*d.mentions + 1.1) + "px"; }
           return (nodeFontSizeScale(d.mentions + 1.1)) + "px";
@@ -1286,7 +1272,6 @@ function ViewFlow() {
           return(callback(err));
         }
         else {
-          // console.debug("results\n" + jsonPrint(results));
           callback();
         }
       }
@@ -1295,9 +1280,7 @@ function ViewFlow() {
   }
 
   function updateSimulation(callback) {
-
-    // console.log("updateSimulation ");
-
+    
     async.series(
       {
         deleteNode: processNodeDeleteQ,

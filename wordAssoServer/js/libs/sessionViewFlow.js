@@ -384,16 +384,16 @@ function ViewFlow() {
     console.debug("UPDATE GRAVITY: " + value.toFixed(sliderPercision));
     gravity = value;
     simulation.force("forceX", d3.forceX().x(function(d) { 
-        if (d.isSessionNode) return 0.6*width;
+        if (d.isSessionNode) return 0.75*width;
         return -20*width; 
       }).strength(function(d){
         if (d.isSessionNode) return 50*gravity;
         return gravity; 
       }));
     simulation.force("forceY", d3.forceY().y(function(d) { 
-        return 0.5*height; 
+        return 0.4*height; 
       }).strength(function(d){
-        if (d.isSessionNode) return forceYmultiplier*gravity;
+        if (d.isSessionNode) return 0.75*forceYmultiplier*gravity;
         return forceYmultiplier * gravity; 
       }));
 
@@ -1482,7 +1482,7 @@ function ViewFlow() {
       .force("link", d3.forceLink(links).id(function(d) { return d.linkId; }).distance(globalLinkDistance).strength(globalLinkStrength))
       .force("charge", d3.forceManyBody().strength(charge))
       .force("forceX", d3.forceX().x(function(d) { 
-        if (d.isSessionNode) return 0.6*width;
+        if (d.isSessionNode) return 0.75*width;
         return -20*width; 
       }).strength(function(d){
         if (d.isSessionNode) return 50*gravity;
@@ -1491,7 +1491,7 @@ function ViewFlow() {
       .force("forceY", d3.forceY().y(function(d) { 
         return 0.4*height; 
       }).strength(function(d){
-        if (d.isSessionNode) return forceYmultiplier * gravity;
+        if (d.isSessionNode) return 0.75*forceYmultiplier * gravity;
         return forceYmultiplier * gravity; 
       }))
       .force("collide", d3.forceCollide().radius(function(d) { 

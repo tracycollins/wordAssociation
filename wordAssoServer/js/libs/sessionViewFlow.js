@@ -1188,10 +1188,7 @@ function ViewFlow() {
         return d.raw.toUpperCase();
       })
       .attr("x", function(d) { return d.x; })
-      .attr("y", function(d) { 
-        if (d.isSessionNode) return d.y - 2*d.r; 
-        return d.y;
-      })
+      .attr("y", function(d) { return d.y; })
       .style("font-weight", function(d) {
         if (d.isTwitterUser || d.isKeyword || d.isNumber || d.isCurrency || d.isTrendingTopic) return "bold";
         return "normal";
@@ -1228,11 +1225,8 @@ function ViewFlow() {
         if (!mouseMovingFlag && blahMode && !d.isKeyword) return "blah";
         return d.raw;
       })
-      .attr("x", function(d) {return d.x;})
-      .attr("y", function(d) { 
-        if (d.isSessionNode) return d.y - 2*d.r; 
-        return d.y;
-      })
+      .attr("x", function(d) { return d.x; })
+      .attr("y", function(d) { return d.y; })
       .style("visibility", function(d) { 
         return (d.isGroupNode || d.isSessionNode) ? "hidden" : "visible"; 
       })
@@ -1280,7 +1274,7 @@ function ViewFlow() {
   }
 
   function updateSimulation(callback) {
-    
+
     async.series(
       {
         deleteNode: processNodeDeleteQ,

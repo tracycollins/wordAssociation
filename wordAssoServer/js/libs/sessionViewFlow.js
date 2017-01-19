@@ -1479,8 +1479,8 @@ function ViewFlow() {
         return forceYmultiplier * gravity; 
       }))
       .force("collide", d3.forceCollide().radius(function(d) { 
-          if (d.isGroupNode) return 4.5 * collisionRadiusMultiplier * d.r ; 
-          if (d.isSessionNode) return 3.5 * collisionRadiusMultiplier * d.r ; 
+          if (d.isGroupNode) return 4.5 * collisionRadiusMultiplier * sessionCircleRadiusScale(d.wordChainIndex + 1.0) ; 
+          if (d.isSessionNode) return 3.5 * collisionRadiusMultiplier * sessionCircleRadiusScale(d.wordChainIndex + 1.0) ; 
           return collisionRadiusMultiplier * d.textLength ; 
         }).iterations(collisionIterations))
       .velocityDecay(velocityDecay)

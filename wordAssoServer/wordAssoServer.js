@@ -1686,6 +1686,7 @@ var readUpdateSessionViewQueue = setInterval(function() {
         tags: {},
         action: sessionUpdateObj.action,
         userId: sessionUpdateObj.userId,
+        url: sessionUpdateObj.url,
         sessionId: sessionUpdateObj.sessionId,
         wordChainIndex: sessionUpdateObj.wordChainIndex,
         source: {},
@@ -1708,6 +1709,7 @@ var readUpdateSessionViewQueue = setInterval(function() {
         tags: {},
         action: sessionUpdateObj.action,
         userId: sessionUpdateObj.userId,
+        url: sessionUpdateObj.url,
         profileImageUrl: sessionUpdateObj.profileImageUrl,
         sessionId: sessionUpdateObj.sessionId,
         wordChainIndex: sessionUpdateObj.wordChainIndex,
@@ -4013,6 +4015,7 @@ function handleSessionEvent(sesObj, callback) {
               nodeId: sessionUpdatedObj.tags.entity + '_' + sessionUpdatedObj.tags.channel,
               tags: {},
               userId: sessionUpdatedObj.userId,
+              url: sessionUpdatedObj.url,
               profileImageUrl: sessionUpdatedObj.profileImageUrl,
               sessionId: sessionUpdatedObj.sessionId,
               wordChainIndex: sessionUpdatedObj.wordChainIndex,
@@ -4292,7 +4295,6 @@ function handleSessionEvent(sesObj, callback) {
       break;
 
     case 'USER_READY':
-
 
       if (typeof sesObj.session.ip !== 'undefined') {
         if (dnsHostHashMap.has(sesObj.session.ip)) {
@@ -5161,6 +5163,7 @@ var readDbUpdateWordQueue = setInterval(function() {
 
     var currentSessionObj = dbUpdateObj.session;
 
+    currentSessionObj.url = dbUpdateObj.word.url;
     currentSessionObj.profileImageUrl = dbUpdateObj.word.profileImageUrl;
 
     dbUpdateObj.word.wordChainIndex = currentSessionObj.wordChainIndex;
@@ -5233,6 +5236,7 @@ var readDbUpdateWordQueue = setInterval(function() {
           var sessionUpdateObj = {
             action: 'RESPONSE',
             userId: currentSessionObj.userId,
+            url: currentSessionObj.url,
             profileImageUrl: currentSessionObj.profileImageUrl,
             sessionId: currentSessionObj.sessionId,
             wordChainIndex: dbUpdateObj.word.wordChainIndex,
@@ -6888,6 +6892,7 @@ function createSession(newSessionObj) {
       + " | " + socket.id
       + " | " + userObj.nodeId
       + " | U " + userObj.userId
+      + " | N " + userObj.url
       + " | N " + userObj.name
       + " | E " + userObj.tags.entity
       + " | C " + userObj.tags.channel

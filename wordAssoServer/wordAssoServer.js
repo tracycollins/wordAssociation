@@ -3618,7 +3618,6 @@ function updateMetrics(googleMetricsUpdateFlag) {
   deltaResponsesReceived = 0;
   incrementDeltaBhtReqs(0);
   incrementDeltaMwReqs(0);
-
 }
 
 var readDnsQueue = setInterval(function() {
@@ -7216,23 +7215,6 @@ var metricsInterval = setInterval(function() {
   var googleMetricsUpdateFlag = !disableGoogleMetrics && googleMetricsEnabled;
   updateMetrics(googleMetricsUpdateFlag);
 }, 10000);
-
-
-//=================================
-//  RATE CALC
-//=================================
-// var responseRateQhead;
-// var rateQinterval = setInterval(function() {
-
-//   if (!responseRate1minQ.isEmpty()) {
-//     responseRateQhead = new Date(responseRate1minQ.peek());
-//     if ((responseRateQhead.getTime() + 60000 < currentTime)) {
-//       debug("<<< --- responseRate1minQ deQ: " + responseRateQhead.getTime() + " | NOW: " + moment.utc().format());
-//       responseRateQhead = responseRate1minQ.dequeue();
-//       debug("responseRate1minQ Q size: " + responseRate1minQ.size());
-//     }
-//   }
-// }, 50);
 
 function initRateQinterval(interval){
 

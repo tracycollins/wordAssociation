@@ -1844,13 +1844,10 @@ var processSessionQueues = function(callback) {
     });
   } 
   else if (rxSessionUpdateQueue.length == 0) {
-    // console.log("sessionObject\n");
     return (callback(null, null));
   } 
   else {
     var session = rxSessionUpdateQueue.shift();
-
-    // console.warn("session\n" + jsonPrint(session));
 
     session.nodeId = session.tags.entity.toLowerCase() + "_" + session.tags.channel.toLowerCase();
     session.tags.entity = session.tags.entity.toLowerCase();
@@ -1871,6 +1868,7 @@ var processSessionQueues = function(callback) {
     if (typeof session.tags.group.groupId !== 'undefined') {
       console.log("G"
         + " | " + session.nodeId
+        // + " | " + session.tags.group.url
         + " | " + session.tags.group.groupId
         // + "\nTAGS\n" + jsonPrint(session.tags)
       );
@@ -1882,6 +1880,7 @@ var processSessionQueues = function(callback) {
         session.tags.group.groupId = session.tags.group.entityId;
         console.warn("+ G FROM ENT ID"
           + " | N: " + session.nodeId
+          // + " | " + session.tags.group.url
           + " | E: " + session.tags.group.entityId
           // + "\nTAGS\n" + jsonPrint(session.tags)
         );
@@ -2165,6 +2164,7 @@ var createGroup = function(callback) {
         console.debug("+ G" 
           + " | " + grpNode.nodeId
           + " | " + grpNode.groupId
+          // + " | " + grpNode.url
           + " | isGroupNode: " + grpNode.isGroupNode
           + " | isSessionNode: " + grpNode.isSessionNode
         );
@@ -2193,14 +2193,13 @@ var createSession = function(callback) {
 
     var dateNow = moment().valueOf();
     var sessUpdate = sessionCreateQueue.shift();
-
-    // console.warn("sessUpdate\n" + jsonPrint(sessUpdate)); 
-
     var currentGroup = {};
+
+
+    // console.warn("sessUpdate\n" + jsonPrint(sessUpdate));
 
     if (groupHashMap.has(sessUpdate.tags.group.groupId)) {
       currentGroup = groupHashMap.get(sessUpdate.tags.group.groupId);
-      // console.warn("currentGroup\n" + jsonPrint(currentGroup)); 
     }
     else {
       console.error("currentGroup\n" + jsonPrint(currentGroup)); 
@@ -2251,6 +2250,7 @@ var createSession = function(callback) {
       currentSession.mentions++;
       currentSession.lastSeen = dateNow;
       currentSession.userId = sessUpdate.userId;
+      currentSession.url = sessUpdate.url;
       currentSession.text = sessUpdate.tags.entity + " | " + sessUpdate.tags.channel;
       currentSession.wordChainIndex = sessUpdate.wordChainIndex;
       currentSession.source = sessUpdate.source;
@@ -2261,6 +2261,7 @@ var createSession = function(callback) {
       currentSession.interpolateSessionColor = currentGroup.interpolateSessionColor;
       currentSession.interpolateColor = currentGroup.interpolateSessionColor;
 
+      currentSession.node.url = sessUpdate.url;
       currentSession.node.text = sessUpdate.tags.entity + "|" + sessUpdate.tags.channel;
       // currentSession.node.x = currentGroup.initialPosition.x;
       // currentSession.node.y = currentGroup.initialPosition.y;
@@ -2310,14 +2311,14 @@ var createSession = function(callback) {
         // + " P: " + sessUpdate.profileImageUrl 
         + " E: " + sessUpdate.tags.entity 
         + " C: " + sessUpdate.tags.channel 
-        + " URL: " + sessUpdate.tags.url 
+        // + " URL: " + sessUpdate.url 
         + " " + sessUpdate.source.nodeId 
         + " > " + sessUpdate.target.nodeId
       );
 
       var currentSession = {};
       currentSession.groupId = currentGroup.groupId;
-      currentSession.url = sessUpdate.tags.url;
+      currentSession.url = sessUpdate.url;
       currentSession.age = 1e-6;
       currentSession.ageMaxRatio = 1e-6;
       currentSession.mentions = 1;
@@ -2363,9 +2364,9 @@ var createSession = function(callback) {
       currentSession.node.channel = sessUpdate.tags.channel;
       currentSession.node.userId = sessUpdate.userId;
       currentSession.node.sessionId = sessUpdate.sessionId;
+      currentSession.node.url = sessUpdate.url;
       currentSession.node.imageUrl = sessUpdate.imageUrl;
       currentSession.node.profileImageUrl = sessUpdate.profileImageUrl;
-      currentSession.node.url = sessUpdate.tags.url;
       currentSession.node.age = 1e-6;
       currentSession.node.ageMaxRatio = 1e-6;
       currentSession.node.ageUpdated = dateNow;
@@ -2407,7 +2408,7 @@ var createSession = function(callback) {
           + " " + sesNode.entity
           + " " + sesNode.nodeId
           + " " + sesNode.text
-          + " " + sesNode.imageUrl
+          + " " + sesNode.url
           + " WCI: " + sesNode.wordChainIndex
           + " M: " + sesNode.wordChainIndex
         );
@@ -2467,7 +2468,7 @@ var createNode = function(callback) {
       session.node.nodeId = session.tags.entity + "_" + session.tags.channel;
       session.node.entity = session.tags.entity;
       session.node.channel = session.tags.channel;
-      session.node.url = session.tags.url;
+      session.node.url = session.url;
       session.node.text = session.tags.entity + "|" + session.tags.channel;
       session.node.userId = session.userId;
       session.node.sessionId = session.sessionId;
@@ -2532,7 +2533,7 @@ var createNode = function(callback) {
             sourceNode.groupId = session.groupId;
             sourceNode.channel = session.tags.channel;
             sourceNode.entity = session.tags.entity;
-            sourceNode.url = session.tags.url;
+            sourceNode.url = session.url;
             sourceNode.age = 1e-6;
             sourceNode.ageMaxRatio = 1e-6;
             sourceNode.isDead = false;
@@ -2589,7 +2590,7 @@ var createNode = function(callback) {
             sourceNode.channel = session.tags.channel;
             sourceNode.entity = session.tags.entity;
             sourceNode.sessionId = session.sessionId;
-            sourceNode.url = session.tags.url;
+            sourceNode.url = session.url;
             sourceNode.links = {};
             sourceNode.rank = -1;
             sourceNode.age = 1e-6;
@@ -2656,6 +2657,7 @@ var createNode = function(callback) {
             targetNode.groupId = session.groupId;
             targetNode.channel = session.tags.channel;
             targetNode.entity = session.tags.entity;
+            targetNode.url = session.url;
             targetNode.age = 1e-6;
             targetNode.ageMaxRatio = 1e-6;
             targetNode.isDead = false;
@@ -2708,7 +2710,7 @@ var createNode = function(callback) {
             targetNode.groupId = session.groupId;
             targetNode.channel = session.tags.channel;
             targetNode.entity = session.tags.entity;
-            targetNode.url = session.tags.url;
+            targetNode.url = session.url;
             targetNode.sessionId = session.sessionId;
             targetNode.links = {};
             targetNode.rank = -1;

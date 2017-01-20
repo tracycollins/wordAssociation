@@ -1968,7 +1968,7 @@
       utilsBarText.innerHTML = (heartBeat.numberUtils) + ' UTILS | ' + (heartBeat.numberUtilsMax) + ' MAX | ' + moment(heartBeat.numberUtilsMaxTime).format(defaultDateTimeFormat);
 
 
-      wordsPerMinBar.animate(heartBeat.wordsPerMinute / heartBeat.maxWordsPerMin);
+      wordsPerMinBar.animate(parseInt(heartBeat.wordsPerMinute / heartBeat.maxWordsPerMin));
 
       if (heartBeat.wordsPerMinute >= 0.85 * heartBeat.maxWordsPerMin) {
         wordsPerMinBar.path.setAttribute('stroke', endColor);

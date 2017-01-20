@@ -1968,7 +1968,7 @@
       utilsBarText.innerHTML = (heartBeat.numberUtils) + ' UTILS | ' + (heartBeat.numberUtilsMax) + ' MAX | ' + moment(heartBeat.numberUtilsMaxTime).format(defaultDateTimeFormat);
 
 
-      wordsPerMinBar.animate(parseInt(heartBeat.wordsPerMinute / heartBeat.maxWordsPerMin));
+      wordsPerMinBar.animate(heartBeat.wordsPerMinute / heartBeat.maxWordsPerMin);
 
       if (heartBeat.wordsPerMinute >= 0.85 * heartBeat.maxWordsPerMin) {
         wordsPerMinBar.path.setAttribute('stroke', endColor);
@@ -1978,7 +1978,7 @@
         wordsPerMinBar.path.setAttribute('stroke', startColor);
       }
 
-      wordsPerMinBarText.innerHTML = heartBeat.wordsPerMinute + ' WPM | ' + heartBeat.maxWordsPerMin + ' MAX' + ' | ' + moment(heartBeat.maxWordsPerMinTime).format(defaultDateTimeFormat);
+      wordsPerMinBarText.innerHTML = parseInt(heartBeat.wordsPerMinute) + ' WPM | ' + parseInt(heartBeat.maxWordsPerMin) + ' MAX' + ' | ' + moment(heartBeat.maxWordsPerMinTime).format(defaultDateTimeFormat);
 
 
       var heatbeatTable = document.getElementById('heartbeat_table');

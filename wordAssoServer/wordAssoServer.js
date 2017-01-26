@@ -406,7 +406,6 @@ var adminCache = new NodeCache();
 var viewerCache = new NodeCache();
 var userCache = new NodeCache();
 var utilCache = new NodeCache();
-// var monitorCache = new NodeCache();
 
 // ==================================================================
 // TWITTER TRENDING TOPIC CACHE
@@ -503,24 +502,18 @@ sessionCache.on("expired", function(sessionId, sessionObj) {
   sessionObj.sessionEvent = 'SESSION_DELETE';
 
   viewNameSpace.emit("SESSION_DELETE", sessionObj);
+  testViewersNameSpace.emit("SESSION_DELETE", sessionObj);
 
   debug("CACHE SESSION EXPIRED\n" + jsonPrint(sessionObj));
   console.log(chalkInfo("... CACHE SESS EXPIRED"
     + " | " + sessionObj.sessionId 
-    // + " | NSP: " + sessionObj.namespace 
-    // + " | NOW: " + getTimeStamp() 
     + " | LS: " + getTimeStamp(sessionObj.lastSeen) 
     + " | " + msToTime(moment().valueOf() - sessionObj.lastSeen) 
-    // + " | WCI: " + sessionObj.wordChainIndex 
     + " | WCL: " + sessionObj.wordChain.length 
-    // + " | K: " + sessionCache.getStats().keys 
-    // + " | H: " + sessionCache.getStats().hits 
-    // + " | M: " + sessionCache.getStats().misses
   ));
 });
 
 wordCache.on("set", function(word, wordObj) {
-  // debugWapi("CACHE WORD EXPIRED\n" + jsonPrint(wordObj));
   debugWapi(chalkWapi("CACHE WORD SET"
     + " [ Q: " + wapiSearchQueue.size() 
     + " ] " + wordObj.nodeId 
@@ -1899,102 +1892,141 @@ function dbUpdateEntity(entityObj, incMentions, callback) {
   });
 }
 
-function dbUpdateWord(wordObj, incMentions, callback) {
-
-  if ((wordObj.nodeId == null) || (typeof wordObj.nodeId === 'undefined')) {
-    debug(chalkError("\n***** dbUpdateWord: NULL OR UNDEFINED nodeId\n" + jsonPrint(wordObj)));
-    callback("NULL OR UNDEFINED nodeId", wordObj);
-    return;
-  }
+function checkKeyword(wordObj, callback) {
+  // keywordCache.get(wordObj.nodeId, function(err, kw){
+  //   if( !err ){
+  //     if (typeof kw !== 'undefined'){
+  //       wordObj.isKeyword = true;
+  //       wordObj.keywords = {};    
+  //       wordObj.keywords[kw] = true;
+  //       callback(err, wordObj);
+  //     }
+  //     else {
+  //       wordObj.isKeyword = false;
+  //       callback(err, wordObj);
+  //     }
+  //   }
+  // });
 
   if (keywordHashMap.has(wordObj.nodeId)) {
-    wordObj.isKeyword = true;
     var kw = keywordHashMap.get(wordObj.nodeId);
+    wordObj.isKeyword = true;
     wordObj.keywords = {};    
     wordObj.keywords[kw] = true;    
+    callback(wordObj);
+  }
+  else if (serverKeywordHashMap.has(wordObj.nodeId)) {
+    var kw = serverKeywordHashMap.get(wordObj.nodeId);
+    wordObj.isKeyword = true;
+    wordObj.keywords = {};    
+    wordObj.keywords[kw] = true;    
+    callback(wordObj);
+  }
+  else {
+    wordObj.isKeyword = false;
+    callback(wordObj);
+  }
+}
+
+function dbUpdateWord(wObj, incMentions, callback) {
+
+  if ((wObj.nodeId == null) || (typeof wObj.nodeId === 'undefined')) {
+    debug(chalkError("\n***** dbUpdateWord: NULL OR UNDEFINED nodeId\n" + jsonPrint(wObj)));
+    return(callback("NULL OR UNDEFINED nodeId", wObj));
   }
 
-  wordServer.findOneWord(wordObj, incMentions, function(err, word) {
-    if (err) {
-      console.log(chalkError("dbUpdateWord -- > findOneWord ERROR" 
-        + "\n" + JSON.stringify(err) + "\n" + JSON.stringify(wordObj, null, 2)));
-      callback(err, wordObj);
-    } else {
+  // if (keywordHashMap.has(wordObj.nodeId)) {
+  //   wordObj.isKeyword = true;
+  //   var kw = keywordHashMap.get(wordObj.nodeId);
+  //   wordObj.keywords = {};    
+  //   wordObj.keywords[kw] = true;    
+  // }
 
-      debug("> DB UPDATE | " 
-        + word.nodeId 
-        + " | I: " + word.isIgnored 
-        + " | K: " + word.isKeyword 
-        + " | TT: " + word.isTrendingTopic 
-        + " | MNS: " + word.mentions 
-        + " | URL: " + word.url 
-        + " | BHT SEARCHED: " + word.bhtSearched 
-        + " FOUND: " + word.bhtFound
-        + " | MWD SEARCHED: " + word.mwDictSearched 
-        + " FOUND: " + word.mwDictFound
-        + "\nKWs: " + jsonPrint(word.keywords) 
-      );
+  checkKeyword(wObj, function(wordObj){
 
-      debug(JSON.stringify(word, null, 3));
+    wordServer.findOneWord(wordObj, incMentions, function(err, word) {
+      if (err) {
+        console.log(chalkError("dbUpdateWord -- > findOneWord ERROR" 
+          + "\n" + JSON.stringify(err) + "\n" + JSON.stringify(wordObj, null, 2)));
+        callback(err, wordObj);
+      } else {
 
-      if (!word.bhtSearched) { // not yet bht searched
-        debug("word.bhtSearched: " + word.bhtSearched);
+        debug("> DB UPDATE | " 
+          + word.nodeId 
+          + " | I: " + word.isIgnored 
+          + " | K: " + word.isKeyword 
+          + " | TT: " + word.isTrendingTopic 
+          + " | MNS: " + word.mentions 
+          + " | URL: " + word.url 
+          + " | BHT SEARCHED: " + word.bhtSearched 
+          + " FOUND: " + word.bhtFound
+          + " | MWD SEARCHED: " + word.mwDictSearched 
+          + " FOUND: " + word.mwDictFound
+          + "\nKWs: " + jsonPrint(word.keywords) 
+        );
 
-        bhtSearchWord(word, function(status, bhtResponseObj) {
-          if (status.indexOf("BHT_OVER_LIMIT") >= 0) {
-            debug(chalkError("bhtSearchWord BHT OVER LIMI"));
-            debug("Word CACHE SET1: " + word.nodeId);
-            wordCache.set(word.nodeId, word);
-            callback('BHT_OVER_LIMIT', word);
-          } 
-          else if (status.indexOf("BHT_ERROR") >= 0) {
-            debug(chalkError("bhtSearchWord dbUpdateWord findOneWord ERROR\n" + JSON.stringify(status)));
-            debug("Word CACHE SET2: " + word.nodeId);
-            wordCache.set(word.nodeId, word);
-            callback('BHT_ERROR', word);
-          } 
-          else if (bhtResponseObj.bhtFound) {
-            debug(chalkBht("-*- BHT HIT   | " + bhtResponseObj.nodeId));
-            debug("Word CACHE SET3: " + bhtResponseObj.nodeId);
-            wordCache.set(bhtResponseObj.nodeId, bhtResponseObj);
-            callback('BHT_HIT', bhtResponseObj);
-          } 
-          else if (status == 'BHT_REDIRECT') {
-            debug(chalkBht("-A- BHT REDIRECT  | " + wordObj.nodeId));
-            debug("Word CACHE SET4: " + bhtResponseObj.nodeId);
-            wordCache.set(bhtResponseObj.nodeId, bhtResponseObj);
-            callback('BHT_REDIRECT', bhtResponseObj);
-          } 
-          else {
-            debug(chalkBht("-O- BHT MISS  | " + wordObj.nodeId));
-            debug("Word CACHE SET5: " + bhtResponseObj.nodeId);
-            wordCache.set(bhtResponseObj.nodeId, bhtResponseObj);
-            bhtWordsMiss[word.nodeId] = word.nodeId;
-            // updateStats({
-            //   bhtWordsMiss: bhtWordsMiss
-            // });
-            callback('BHT_MISS', bhtResponseObj);
-          }
-        });
-      } 
-      else if (word.bhtFound) {
-        debug(chalkBht("-F- BHT FOUND | " + word.nodeId));
-        debug("Word CACHE SET6: " + word.nodeId);
-        wordCache.set(word.nodeId, word);
-        callback('BHT_FOUND', word);
-      } 
-      else {
-        debug(chalkBht("-N- BHT NOT FOUND  | " + word.nodeId));
-        debug("Word CACHE SET7: " + word.nodeId);
-        wordCache.set(word.nodeId, word);
-        bhtWordsNotFound[word.nodeId] = word.nodeId;
-        // updateStats({
-        //   bhtWordsNotFound: bhtWordsNotFound
-        // });
-        callback('BHT_NOT_FOUND', word);
+        debug(JSON.stringify(word, null, 3));
+
+        if (!word.bhtSearched) { // not yet bht searched
+          debug("word.bhtSearched: " + word.bhtSearched);
+
+          bhtSearchWord(word, function(status, bhtResponseObj) {
+            if (status.indexOf("BHT_OVER_LIMIT") >= 0) {
+              debug(chalkError("bhtSearchWord BHT OVER LIMI"));
+              debug("Word CACHE SET1: " + word.nodeId);
+              wordCache.set(word.nodeId, word);
+              callback('BHT_OVER_LIMIT', word);
+            } 
+            else if (status.indexOf("BHT_ERROR") >= 0) {
+              debug(chalkError("bhtSearchWord dbUpdateWord findOneWord ERROR\n" + JSON.stringify(status)));
+              debug("Word CACHE SET2: " + word.nodeId);
+              wordCache.set(word.nodeId, word);
+              callback('BHT_ERROR', word);
+            } 
+            else if (bhtResponseObj.bhtFound) {
+              debug(chalkBht("-*- BHT HIT   | " + bhtResponseObj.nodeId));
+              debug("Word CACHE SET3: " + bhtResponseObj.nodeId);
+              wordCache.set(bhtResponseObj.nodeId, bhtResponseObj);
+              callback('BHT_HIT', bhtResponseObj);
+            } 
+            else if (status == 'BHT_REDIRECT') {
+              debug(chalkBht("-A- BHT REDIRECT  | " + wordObj.nodeId));
+              debug("Word CACHE SET4: " + bhtResponseObj.nodeId);
+              wordCache.set(bhtResponseObj.nodeId, bhtResponseObj);
+              callback('BHT_REDIRECT', bhtResponseObj);
+            } 
+            else {
+              debug(chalkBht("-O- BHT MISS  | " + wordObj.nodeId));
+              debug("Word CACHE SET5: " + bhtResponseObj.nodeId);
+              wordCache.set(bhtResponseObj.nodeId, bhtResponseObj);
+              bhtWordsMiss[word.nodeId] = word.nodeId;
+              // updateStats({
+              //   bhtWordsMiss: bhtWordsMiss
+              // });
+              callback('BHT_MISS', bhtResponseObj);
+            }
+          });
+        } 
+        else if (word.bhtFound) {
+          debug(chalkBht("-F- BHT FOUND | " + word.nodeId));
+          debug("Word CACHE SET6: " + word.nodeId);
+          wordCache.set(word.nodeId, word);
+          callback('BHT_FOUND', word);
+        } 
+        else {
+          debug(chalkBht("-N- BHT NOT FOUND  | " + word.nodeId));
+          debug("Word CACHE SET7: " + word.nodeId);
+          wordCache.set(word.nodeId, word);
+          bhtWordsNotFound[word.nodeId] = word.nodeId;
+          // updateStats({
+          //   bhtWordsNotFound: bhtWordsNotFound
+          // });
+          callback('BHT_NOT_FOUND', word);
+        }
       }
-    }
+    });
   });
+
 }
 
 function loadBhtResponseHash(bhtResponseObj, callback) {
@@ -3687,6 +3719,7 @@ function handleSessionEvent(sesObj, callback) {
 
       sesObj.sessionEvent = 'SESSION_DELETE';
       viewNameSpace.emit('SESSION_DELETE', sesObj);
+      testViewersNameSpace.emit('SESSION_DELETE', sesObj);
 
       // quit();
       break;
@@ -3710,6 +3743,7 @@ function handleSessionEvent(sesObj, callback) {
 
       sesObj.sessionEvent = 'SESSION_DELETE';
       viewNameSpace.emit('SESSION_DELETE', sesObj);
+      testViewersNameSpace.emit('SESSION_DELETE', sesObj);
 
       if (sesObj.session) {
 
@@ -3878,6 +3912,9 @@ function handleSessionEvent(sesObj, callback) {
           if (sesObj.session.namespace == 'view') {
             viewNameSpace.to(sesObj.session.sessionId).emit('USER_SESSION', userSessionObj);
           }
+          if (sesObj.session.namespace == 'test-view') {
+            testViewersNameSpace.to(sesObj.session.sessionId).emit('USER_SESSION', userSessionObj);
+          }
           adminNameSpace.to(sesObj.session.sessionId).emit('USER_SESSION', userSessionObj);
         }
       });
@@ -3891,6 +3928,9 @@ function handleSessionEvent(sesObj, callback) {
 
           if (sesObj.session.namespace == 'view') {
             viewNameSpace.to(sesObj.session.sessionId).emit('USER_SESSION', userSessionObj);
+          }
+          if (sesObj.session.namespace == 'test-view') {
+            testViewersNameSpace.to(sesObj.session.sessionId).emit('USER_SESSION', userSessionObj);
           }
           adminNameSpace.to(sesObj.session.sessionId).emit('USER_SESSION', userSessionObj);
         }
@@ -4512,59 +4552,60 @@ var readSessionQueue = setInterval(function() {
   }
 }, 20);
 
-function getTags(wordObj, callback){
+function getTags(wObj, callback){
 
-  if (keywordHashMap.has(wordObj.nodeId) || serverKeywordHashMap.has(wordObj.nodeId)) {
-    debug("KW HIT: " + wordObj.nodeId);
-    wordObj.isKeyword = true;
-  }
+  // if (keywordHashMap.has(wordObj.nodeId) || serverKeywordHashMap.has(wordObj.nodeId)) {
+  //   debug("KW HIT: " + wordObj.nodeId);
+  //   wordObj.isKeyword = true;
+  // }
 
-  if (!wordObj.tags || (typeof wordObj.tags === 'undefined')) {
-    wordObj.tags = {};
-    wordObj.tags.entity = 'unknown_entity';
-    wordObj.tags.channel = 'unknown_channel';
-    wordObj.tags.group = 'unknown_group';
-
-    console.log(chalkError("SET UNKNOWN WORDOBJ TAGS\n" + jsonPrint(wordObj)));
-    entityChannelGroupHashMap.set('unknown_entity', { groupId: 'unknown_group', name: 'UNKNOWN GROUP'});
-
-    callback(wordObj);
-  } 
-  else {
-    if (!wordObj.tags.entity || (typeof wordObj.tags.entity === 'undefined')) {
+  checkKeyword(wObj, function(wordObj){
+    if (!wordObj.tags || (typeof wordObj.tags === 'undefined')) {
+      wordObj.tags = {};
       wordObj.tags.entity = 'unknown_entity';
-      console.log(chalkError("SET UNKNOWN WORDOBJ ENTITY\n" + jsonPrint(wordObj)));
-    }
-    else {
-      wordObj.tags.entity = wordObj.tags.entity.toLowerCase();
-    }
-
-    if (!wordObj.tags.channel || (typeof wordObj.tags.channel === 'undefined')) {
       wordObj.tags.channel = 'unknown_channel';
-      console.log(chalkError("SET UNKNOWN WORDOBJ CHANNEL\n" + jsonPrint(wordObj)));
-    }
-    else {
-      wordObj.tags.channel = wordObj.tags.channel.toLowerCase();
-    }
+      wordObj.tags.group = 'unknown_group';
 
-    if (entityChannelGroupHashMap.has(wordObj.tags.entity.toLowerCase())){
-      wordObj.tags.group = entityChannelGroupHashMap.get(wordObj.tags.entity.toLowerCase()).groupId;
+      console.log(chalkError("SET UNKNOWN WORDOBJ TAGS\n" + jsonPrint(wordObj)));
+      entityChannelGroupHashMap.set('unknown_entity', { groupId: 'unknown_group', name: 'UNKNOWN GROUP'});
+
       callback(wordObj);
-    }
+    } 
     else {
-      debug(chalkError("entityChannelGroupHashMap MISS \n" + jsonPrint(wordObj)));
-      wordObj.tags.group = wordObj.tags.entity.toLowerCase();
-      entityChannelGroupHashMap.set(
-        wordObj.tags.entity.toLowerCase(), 
-        { groupId: wordObj.tags.group, 
-          name: wordObj.tags.entity.toLowerCase() 
-        } 
-      );
-      callback(wordObj);
+      if (!wordObj.tags.entity || (typeof wordObj.tags.entity === 'undefined')) {
+        wordObj.tags.entity = 'unknown_entity';
+        console.log(chalkError("SET UNKNOWN WORDOBJ ENTITY\n" + jsonPrint(wordObj)));
+      }
+      else {
+        wordObj.tags.entity = wordObj.tags.entity.toLowerCase();
+      }
+
+      if (!wordObj.tags.channel || (typeof wordObj.tags.channel === 'undefined')) {
+        wordObj.tags.channel = 'unknown_channel';
+        console.log(chalkError("SET UNKNOWN WORDOBJ CHANNEL\n" + jsonPrint(wordObj)));
+      }
+      else {
+        wordObj.tags.channel = wordObj.tags.channel.toLowerCase();
+      }
+
+      if (entityChannelGroupHashMap.has(wordObj.tags.entity.toLowerCase())){
+        wordObj.tags.group = entityChannelGroupHashMap.get(wordObj.tags.entity.toLowerCase()).groupId;
+        callback(wordObj);
+      }
+      else {
+        debug(chalkError("entityChannelGroupHashMap MISS \n" + jsonPrint(wordObj)));
+        wordObj.tags.group = wordObj.tags.entity.toLowerCase();
+        entityChannelGroupHashMap.set(
+          wordObj.tags.entity.toLowerCase(), 
+          { groupId: wordObj.tags.group, 
+            name: wordObj.tags.entity.toLowerCase() 
+          } 
+        );
+        callback(wordObj);
+      }
     }
+  });
 
-
-  }
 }
 
 var ready = true;

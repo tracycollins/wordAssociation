@@ -52,6 +52,7 @@ requirejs(["https://cdnjs.cloudflare.com/ajax/libs/d3/4.4.0/d3.min.js"], functio
 );
 
 var DEFAULT_SESSION_VIEW = 'flow';
+// var DEFAULT_SESSION_VIEW = 'force';
 var currentSessionView;
 
 var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
@@ -68,12 +69,21 @@ var DEFAULT_MAX_AGE = 10000;
 var FORCE_MAX_AGE = 10347;
 var DEFAULT_AGE_RATE = 1.0;
 
+var FORCEVIEW_DEFAULT = {};
+// FORCEVIEW_DEFAULT.FRICTION = 0.5;
+FORCEVIEW_DEFAULT.CHARGE = -100;
+FORCEVIEW_DEFAULT.GRAVITY = 0.1;
+FORCEVIEW_DEFAULT.VELOCITY_DECAY = 0.85;
+FORCEVIEW_DEFAULT.LINK_DISTANCE = 10;
+FORCEVIEW_DEFAULT.LINK_STRENGTH = 0.50;
+
+// var DEFAULT_FRICTION = 0.9;
 var DEFAULT_CHARGE = 0.0;
 var DEFAULT_GRAVITY = 0.015;
 var DEFAULT_FORCEY_MULTIPLIER = 25.0;
 var DEFAULT_VELOCITY_DECAY = 0.99;
-var DEFAULT_LINK_DISTANCE = 10.0;
-var DEFAULT_LINK_STRENGTH = 0.80;
+var DEFAULT_LINK_DISTANCE = 100.0;
+var DEFAULT_LINK_STRENGTH = 0.50;
 var DEFAULT_COLLISION_RADIUS_MULTIPLIER = 0.6;
 var DEFAULT_COLLISION_ITERATIONS = 2;
 
@@ -407,7 +417,7 @@ window.onbeforeunload = function() {
 }
 
 function toggleControlPanel(){
-  // console.warn("toggleControlPanel: " + controlPanelFlag);
+  console.warn("toggleControlPanel config.sessionViewType: " + config.sessionViewType);
 
   if (controlPanelFlag){
     controlPanelWindow.close();
@@ -433,7 +443,7 @@ function toggleControlPanel(){
     createPopUpControlPanel(cnf, function(cpw){
       controlPanelFlag = true;
       updateControlButton(controlPanelFlag);
-      console.debug("createPopUpControlPanel toggleControlPanel: " + controlPanelFlag);
+      console.warn("createPopUpControlPanel toggleControlPanel: " + controlPanelFlag);
       setTimeout(function(){
         cpw.postMessage({op: 'INIT', config: cnf}, DEFAULT_SOURCE);
       }, 200);
@@ -638,14 +648,6 @@ function toggleBlah() {
   if (controlPanelFlag) controlPanel.updateControlPanel(config);
 }
 
-// function toggleFullscreen() {
-//   config.fullscreenMode = !config.fullscreenMode;
-//   currentSessionView.setFullscreen(config.fullscreenMode);
-//   console.warn("TOGGLE FULLSCREEN: " + config.fullscreenMode);
-//   updateFullscreenButton();
-//   if (controlPanelFlag) controlPanel.updateControlPanel(config);
-// }
-
 function toggleAntonym() {
   config.antonymFlag = !config.antonymFlag;
   currentSessionView.setAntonym(config.antonymFlag);
@@ -723,7 +725,7 @@ var keywordColorHashMap = new HashMap();
 
 keywordColorHashMap.set("positive", palette.green);
 keywordColorHashMap.set("negative", palette.red);
-keywordColorHashMap.set("neutral", palette.black);
+keywordColorHashMap.set("neutral", palette.yellow);
 
 keywordColorHashMap.set("left", palette.blue);
 keywordColorHashMap.set("right", palette.red);
@@ -1093,7 +1095,7 @@ function getUrlVariables(callbackMain) {
           }
           if (keyValuePair[0] === 'viewtype') {
             config.sessionViewType = keyValuePair[1];
-            console.log("SESSION VIEW TYPE | sessionViewType: " + config.sessionViewType);
+            console.error("SESSION VIEW TYPE | sessionViewType: " + config.sessionViewType);
             return (callback2(null, {
               sessionViewType: config.sessionViewType
             }));
@@ -2238,11 +2240,13 @@ var createSession = function(callback) {
       currentSession.prevLatestNodeId = prevLatestNodeId;
       var prevSessionLinkId = currentSession.node.nodeId + "_" + prevLatestNodeId;
 
-      // console.warn("REMOVE LINK " + prevSessionLinkId);
-      removeFromHashMap(linkHashMap, prevSessionLinkId, function() {
-        currentSessionView.deleteLink(prevSessionLinkId);
-      });
-
+      if (config.sessionViewType !== 'force'){
+        // console.warn("REMOVE LINK " + prevSessionLinkId);
+        removeFromHashMap(linkHashMap, prevSessionLinkId, function() {
+          currentSessionView.deleteLink(prevSessionLinkId);
+        });
+      }
+ 
       currentSession.groupId = currentGroup.groupId;
       currentSession.age = 1e-6;
       currentSession.ageUpdated = dateNow;
@@ -2514,7 +2518,9 @@ var createNode = function(callback) {
 
     async.parallel({
         source: function(cb) {
-          if ((config.sessionViewType != 'ticker') && (config.sessionViewType != 'flow') && session.source.isIgnored) {
+          if ((config.sessionViewType != 'ticker') 
+            && (config.sessionViewType != 'flow') 
+            && session.source.isIgnored) {
             cb(null, {
               node: sourceNodeId,
               isIgnored: true,
@@ -2525,7 +2531,7 @@ var createNode = function(callback) {
             sourceNode = nodeHashMap.get(sourceNodeId);
             sourceNode.isKeyword = session.source.isKeyword;
             sourceNode.isTrendingTopic = session.source.isTrendingTopic;
-            sourceNode.keywordColor = getKeywordColor(session.source.keywords);
+            // sourceNode.keywordColor = getKeywordColor(session.source.keywords);
             sourceNode.latestNode = true;
             sourceNode.newFlag = false;
             sourceNode.userId = session.userId;
@@ -2635,15 +2641,19 @@ var createNode = function(callback) {
 
         target: function(cb) {
 
-          if (typeof targetNodeId === 'undefined' || (config.sessionViewType == 'ticker') || (config.sessionViewType == 'flow')) {
+          if (typeof targetNodeId === 'undefined' 
+            || (config.sessionViewType == 'ticker') 
+            || (config.sessionViewType == 'flow')) {
             cb("TARGET UNDEFINED", null);
-          } else if (session.target.isIgnored) {
+          } 
+          else if (session.target.isIgnored) {
             cb(null, {
               node: targetNodeId,
               isIgnored: true,
               isNew: false
             });
-          } else if (nodeHashMap.has(targetNodeId)) {
+          } 
+          else if (nodeHashMap.has(targetNodeId)) {
             targetNode = nodeHashMap.get(targetNodeId);
             targetNode.newFlag = false;
             if (ignoreWordHashMap.has(targetText)) {
@@ -2651,7 +2661,7 @@ var createNode = function(callback) {
             }
             targetNode.isTrendingTopic = session.target.isTrendingTopic;
             targetNode.isKeyword = session.target.isKeyword;
-            targetNode.keywordColor = getKeywordColor(session.target.keywords);
+            // targetNode.keywordColor = getKeywordColor(session.target.keywords);
             targetNode.userId = session.userId;
             targetNode.sessionId = session.sessionId;
             targetNode.groupId = session.groupId;
@@ -2796,9 +2806,83 @@ var createLink = function(callback) {
     var groupLinkId;
     var sessionLinkId;
 
-    if (typeof currentGroup === 'undefined'){
+    if (config.sessionViewType == 'force') {
+
+      // var sessionLinkId = session.node.nodeId + "_" + session.source.nodeId;
+
+
+      // session.node.links[sessionLinkId] = 1;
+      // session.source.links[sessionLinkId] = 1;
+
+      // if (!linkHashMap.has(sessionLinkId)){
+
+      //   var newSessionLink = {
+      //     linkId: sessionLinkId,
+      //     sessionId: session.node.nodeId,
+      //     age: 0,
+      //     isDead: false,
+      //     source: session.node,
+      //     target: session.source,
+      //     isGroupLink: false,
+      //     isSessionLink: true
+      //   };
+
+      //   addToHashMap(linkHashMap, sessionLinkId, newSessionLink, function(sesLink) {
+      //     currentSessionView.addLink(sesLink);
+      //   });
+      // }
+      // else {
+      //   var sessionLink = linkHashMap.get(sessionLinkId);
+      //   sessionLink.age = 0;
+      //   sessionLink.isDead = false;
+
+      //   addToHashMap(linkHashMap, sessionLinkId, sessionLink, function(sesLink) {
+      //     currentSessionView.addLink(sesLink);
+      //   });
+      // }
+
+      if (typeof session.target !== 'undefined'){
+
+        var sourceTargetLinkId = session.source.nodeId + "_" + session.target.nodeId;
+
+        if (typeof session.target.links === 'undefined') session.target.links = {};
+
+        session.source.links[sourceTargetLinkId] = 1;
+        session.target.links[sourceTargetLinkId] = 1;
+
+        if (!linkHashMap.has(sourceTargetLinkId)){
+
+          var newSourceTargetLink = {
+            linkId: sourceTargetLinkId,
+            sessionId: session.node.nodeId,
+            age: 0,
+            isDead: false,
+            source: session.source,
+            target: session.target,
+            isGroupLink: false,
+            isSessionLink: false
+          };
+
+          addToHashMap(linkHashMap, sourceTargetLinkId, newSourceTargetLink, function(srcTgtLink) {
+            currentSessionView.addLink(srcTgtLink);
+          });
+        }
+        else {
+          var sourceTargetLink = linkHashMap.get(sourceTargetLinkId);
+          sourceTargetLink.age = 0;
+          sourceTargetLink.isDead = false;
+
+          addToHashMap(linkHashMap, sourceTargetLinkId, sourceTargetLink, function(srcTgtLink) {
+            currentSessionView.addLink(srcTgtLink);
+          });
+        }
+      }
+
+
     }
-    else if (currentGroup.node.nodeId != session.node.nodeId){
+    else if (typeof currentGroup === 'undefined'){
+    }
+    else if ((config.sessionViewType == 'force') && (currentGroup.node.nodeId != session.node.nodeId)){
 
       var groupLinkId = currentGroup.node.nodeId + "_" + session.node.nodeId;
 
@@ -2852,8 +2936,8 @@ function updateSessions() {
       processSessionQueues,
       createGroup,
       createSession,
-      createNode
-      // createLink,
+      createNode,
+      createLink
     ],
 
     function(err, result) {
@@ -2951,7 +3035,16 @@ function loadViewType(svt, callback) {
       config.sessionViewType = 'force';
       requirejs(["js/libs/sessionViewForce"], function() {
         console.log("sessionViewForce LOADED");
+
+        // DEFAULT_FRICTION = FORCEVIEW_DEFAULT.FRICTION;
+        DEFAULT_CHARGE = FORCEVIEW_DEFAULT.CHARGE;
+        DEFAULT_GRAVITY = FORCEVIEW_DEFAULT.GRAVITY;
+        DEFAULT_VELOCITY_DECAY = FORCEVIEW_DEFAULT.VELOCITY_DECAY;
+        DEFAULT_LINK_DISTANCE= FORCEVIEW_DEFAULT.LINK_DISTANCE;
+        DEFAULT_LINK_STRENGTH = FORCEVIEW_DEFAULT.LINK_STRENGTH;
+
         currentSessionView = new ViewForce();
+
         callback();
       });
       break;
@@ -3012,6 +3105,11 @@ function initialize(callback) {
 
           console.log("ON LOAD getUrlVariables: sessionViewType:" + config.sessionViewType);
 
+          if (config.sessionViewType == 'force') {
+            initIgnoreWordsHashMap(function() {
+              console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+            });
+          }
           if (config.sessionViewType == 'ticker') {
             initIgnoreWordsHashMap(function() {
               console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
@@ -3067,7 +3165,7 @@ function initialize(callback) {
         }
         else {
 
-          console.warn("DEFAULT_SESSION_VIEW");
+          console.warn("DEFAULT_SESSION_VIEW: " + DEFAULT_SESSION_VIEW);
 
           config.sessionViewType = DEFAULT_SESSION_VIEW;
 
@@ -3086,6 +3184,11 @@ function initialize(callback) {
               currentSessionView.setNodeMaxAge(FORCE_MAX_AGE);
             }
 
+            if (config.sessionViewType == 'force') {
+              initIgnoreWordsHashMap(function() {
+                console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+              });
+            }
             if (config.sessionViewType == 'ticker') {
               initIgnoreWordsHashMap(function() {
                 console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
@@ -3145,6 +3248,11 @@ function initialize(callback) {
             currentSessionView.setNodeMaxAge(FORCE_MAX_AGE);
           }
 
+          if (config.sessionViewType == 'force') {
+            initIgnoreWordsHashMap(function() {
+              console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+            });
+          }
           if (config.sessionViewType == 'ticker') {
             initIgnoreWordsHashMap(function() {
               console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");

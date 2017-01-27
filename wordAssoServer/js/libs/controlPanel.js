@@ -16,7 +16,7 @@ function ControlPanel() {
 
   config.defaultMultiplier = 1000.0;
 
-  config.defaultMaxAge = window.opener.DEFAULT_MAX_AGE
+  config.defaultMaxAge = window.opener.DEFAULT_MAX_AGE;
   config.defaultCharge = window.opener.DEFAULT_CHARGE;
   config.defaultGravity = window.opener.DEFAULT_GRAVITY;
   config.defaultLinkStrength = window.opener.DEFAULT_LINK_STRENGTH;

@@ -128,6 +128,7 @@ var os = require('os');
 
 var hostname = os.hostname();
 hostname = hostname.replace(/.local/g, '');
+hostname = hostname.replace(/.fios-router.home/g, '');
 hostname = hostname.replace(/word0-instance-1/g, 'google');
 
 var config = require('./config/config');
@@ -201,6 +202,7 @@ console.log(
   + '========================================= ***START*** ==============================================\n' 
   + '====================================================================================================\n' 
   + process.argv[1] 
+  + '\nHOST        ' + hostname
   + '\nPROCESS ID  ' + process.pid 
   + '\nSTARTED     ' + Date() 
   + '\n' + '====================================================================================================\n' 
@@ -237,7 +239,7 @@ var mwThesWordsNotFound = {};
 var statsObj = {
 
   "name": "Word Association Server Status",
-  "host": os.hostname(),
+  "host": hostname,
   "timeStamp": moment().format(compactDateTimeFormat),
   "runTimeArgs": process.argv,
 
@@ -652,7 +654,7 @@ var statsFile;
 // ==================================================================
 var OFFLINE_WORD_ASSO_STATS_FILE = process.env.OFFLINE_WORD_ASSO_STATS_FILE || 'wordAssociationStats.json';
 console.log("OFFLINE_WORD_ASSO_STATS_FILE :" + OFFLINE_WORD_ASSO_STATS_FILE);
-var offlineStatsFile = os.hostname() + "_" + OFFLINE_WORD_ASSO_STATS_FILE;
+var offlineStatsFile = hostname + "_" + OFFLINE_WORD_ASSO_STATS_FILE;
 console.log("offlineStatsFile: " + offlineStatsFile);
 
 // ==================================================================
@@ -663,7 +665,7 @@ var DROPBOX_WORD_ASSO_APP_KEY = process.env.DROPBOX_WORD_ASSO_APP_KEY;
 var DROPBOX_WORD_ASSO_APP_SECRET = process.env.DROPBOX_WORD_ASSO_APP_SECRET;
 var WA_STATS_FILE = process.env.WA_STATS_FILE;
 
-var dropboxHostStatsFile = "/stats/" + os.hostname() + "/" + os.hostname() + "_" + process.pid + "_" + WA_STATS_FILE;
+var dropboxHostStatsFile = "/stats/" + hostname + "/" + hostname + "_" + process.pid + "_" + WA_STATS_FILE;
 
 var Dropbox = require("dropbox");
 
@@ -915,7 +917,7 @@ function loadStats(callback) {
 
             debug("DROPBOX STATS\n" + JSON.stringify(statsObj, null, 3));
 
-            if (typeof statsObj.name === 'undefined') statsObj.name = 'Word Assocition Server Status | ' + os.hostname()
+            if (typeof statsObj.name === 'undefined') statsObj.name = 'Word Assocition Server Status | ' + hostname
 
             console.log(chalkInfo(moment().format(compactDateTimeFormat) 
               + " | FOUND " + statsObj.name));
@@ -992,7 +994,7 @@ function loadStats(callback) {
 
           debug("DROPBOX STATS\n" + JSON.stringify(statsObj, null, 3));
 
-          if (typeof statsObj.name === 'undefined') statsObj.name = 'Word Assocition Server Status | ' + os.hostname()
+          if (typeof statsObj.name === 'undefined') statsObj.name = 'Word Assocition Server Status | ' + hostname
 
           console.log(chalkInfo(moment().format(compactDateTimeFormat) 
             + " | FOUND " + statsObj.name));
@@ -1529,13 +1531,13 @@ function readFileIntoArray(path, callback) {
 
 function dnsReverseLookup(ip, callback) {
   if (localHostHashMap.has(ip)) {
-    debug("dnsReverseLookup: DEVELOPMENT HOST: " + os.hostname() + " | " + ip);
+    debug("dnsReverseLookup: DEVELOPMENT HOST: " + hostname + " | " + ip);
     var domains = [];
     domains.push(localHostHashMap.get(ip));
     callback(null, domains);
   } else if (dnsHostHashMap.has(ip)) {
     var domains = dnsHostHashMap.get(ip);
-    debug("dnsReverseLookup: HOST IN HASHMAP : " + os.hostname() + " | " + ip + " | " + domains);
+    debug("dnsReverseLookup: HOST IN HASHMAP : " + hostname + " | " + ip + " | " + domains);
     callback(null, domains);
   } else {
     dns.reverse(ip, function(err, domains) {
@@ -4694,7 +4696,7 @@ var readResponseQueue = setInterval(function() {
 
       debug(chalkBht(">>> RESPONSE (before replace): " + responseInObj.nodeId));
       responseInObj.nodeId = responseInObj.nodeId.replace(/\s+/g, ' ');
-      responseInObj.nodeId = responseInObj.nodeId.replace(/[\n\r\[\]\{\}\<\>\/\;\:\"\'\`\~\?\!\@\#\$\%\^\&\*\(\)\_\+\=]+/g, '');
+      responseInObj.nodeId = responseInObj.nodeId.replace(/[\n\r\[\]\{\}\<\>\/\;\:\"\”\’\'\`\~\?\!\@\#\$\%\^\&\*\(\)\_\+\=]+/g, '');
       responseInObj.nodeId = responseInObj.nodeId.replace(/\s+/g, ' ');
       responseInObj.nodeId = responseInObj.nodeId.replace(/^\s+|\s+$/g, '');
       responseInObj.nodeId = responseInObj.nodeId.replace(/^\,+|\,+$/g, '');
@@ -7087,7 +7089,6 @@ function createSession(newSessionObj) {
         });
       }
     });
-
   });
 
   socket.on("RESPONSE_WORD_OBJ", function(rxInObj) {
@@ -7318,10 +7319,10 @@ var DROPBOX_WA_ENTITY_CHANNEL_GROUPS_CONFIG_FILE = process.env.DROPBOX_WA_ENTITY
 var defaultDropboxGroupsConfigFile = DROPBOX_WA_GROUPS_CONFIG_FILE;
 var defaultDropboxKeywordFile = DROPBOX_WA_KEYWORDS_FILE;
 
-var dropboxGroupsConfigFile = os.hostname() +  "_" + DROPBOX_WA_GROUPS_CONFIG_FILE;
+var dropboxGroupsConfigFile = hostname +  "_" + DROPBOX_WA_GROUPS_CONFIG_FILE;
 
 var defaultDropboxEntityChannelGroupsConfigFile = DROPBOX_WA_ENTITY_CHANNEL_GROUPS_CONFIG_FILE;
-var dropboxEntityChannelGroupsConfigFile = os.hostname() +  "_" + DROPBOX_WA_ENTITY_CHANNEL_GROUPS_CONFIG_FILE;
+var dropboxEntityChannelGroupsConfigFile = hostname +  "_" + DROPBOX_WA_ENTITY_CHANNEL_GROUPS_CONFIG_FILE;
 
 var twitterYamlConfigFile = process.env.DEFAULT_TWITTER_CONFIG;
 
@@ -7508,7 +7509,7 @@ function initAppRouting(callback) {
     fs.open(__dirname + '/js/libs/controlPanel.js', "r", function(error, fd) {
       fs.readFile(__dirname + '/js/libs/controlPanel.js', function(error, data) {
         var newData;
-        if (os.hostname().includes('word')){
+        if (hostname.includes('word')){
           newData = data.toString().replace(/==SOURCE==/g, "http://word.threeceelabs.com");
         }
         else {
@@ -7600,7 +7601,7 @@ function initAppRouting(callback) {
       fs.readFile(__dirname + '/session.js', function(error, data) {
         // var newData = data.toString().replace(/REPLACE_THIS/g, "REPLACED THAT");
         var newData;
-        if (os.hostname().includes('word')){
+        if (hostname.includes('word')){
           newData = data.toString().replace(/==SOURCE==/g, "http://word.threeceelabs.com");
         }
         else {

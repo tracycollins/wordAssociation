@@ -610,7 +610,7 @@ function ControlPanel() {
     console.log( "CONTROL PANEL DOCUMENT READY" );
     console.log( "CONTROL PANEL CONFIG\n" + jsonPrint(config) );
     self.createControlPanel(function(dashboard){
-      parentWindow.postMessage({op:'READY'}, DEFAULT_SOURCE);
+      if (typeof parentWindow !== 'undefined') parentWindow.postMessage({op:'READY'}, DEFAULT_SOURCE);
     });
   });
 

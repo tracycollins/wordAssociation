@@ -66,11 +66,12 @@ var MAX_RX_QUEUE = 250;
 var QUEUE_MAX = 200;
 var MAX_WORDCHAIN_LENGTH = 100;
 var DEFAULT_MAX_AGE = 10000;
-var FORCE_MAX_AGE = 10347;
+var FORCE_MAX_AGE = DEFAULT_MAX_AGE;
 var DEFAULT_AGE_RATE = 1.0;
 
 var FORCEVIEW_DEFAULT = {};
 // FORCEVIEW_DEFAULT.FRICTION = 0.5;
+FORCEVIEW_DEFAULT.MAX_AGE = FORCE_MAX_AGE;
 FORCEVIEW_DEFAULT.CHARGE = -100;
 FORCEVIEW_DEFAULT.GRAVITY = 0.1;
 FORCEVIEW_DEFAULT.VELOCITY_DECAY = 0.85;
@@ -101,6 +102,7 @@ config.maxWords = 100;
 config.testMode = false;
 config.removeDeadNodesFlag = true;
 
+config.defaultMaxAge = DEFAULT_MAX_AGE;
 config.defaultMultiplier = 1000.0;
 config.defaultBlahMode = DEFAULT_BLAH_MODE;
 config.defaultCharge = DEFAULT_CHARGE;

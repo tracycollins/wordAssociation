@@ -7601,7 +7601,7 @@ function initAppRouting(callback) {
       fs.readFile(__dirname + '/session.js', function(error, data) {
         // var newData = data.toString().replace(/REPLACE_THIS/g, "REPLACED THAT");
         var newData;
-        if (hostname.includes('word')){
+        if (hostname.includes('google')){
           newData = data.toString().replace(/==SOURCE==/g, "http://word.threeceelabs.com");
         }
         else {

@@ -128,7 +128,7 @@ function ControlPanel() {
 
   function receiveMessage(event){
 
-    console.log("receiveMessage " + jsonPrint(event.source));
+    console.log("receiveMessage " + jsonPrint(event.data));
 
     // Do we trust the sender of this message?
     if (event.origin !== DEFAULT_SOURCE)

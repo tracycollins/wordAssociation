@@ -1074,44 +1074,44 @@ function ViewFlow() {
 
   var updateNodeCircles = function(callback) {
 
-    nodeRects = nodeSvgGroup.selectAll("rect").data(nodes ,function(d) { return d.nodeId; })
+    // nodeRects = nodeSvgGroup.selectAll("rect").data(nodes ,function(d) { return d.nodeId; })
 
-    nodeRects
-      .attr("x", function(d) {return d.x - 0.5*(sessionCircleRadiusScale(d.wordChainIndex + 1.0));})
-      .attr("y", function(d) {return d.y - 0.5*(sessionCircleRadiusScale(d.wordChainIndex + 1.0));})
-      .attr("width", function(d){
-        return sessionCircleRadiusScale(d.wordChainIndex + 1.0);
-      })
-      .attr("height", function(d){
-        return sessionCircleRadiusScale(d.wordChainIndex + 1.0);
-      })
-      .style('opacity', function(d) {
-        if (hideNodeCirclesFlag) return 1e-6;
-        if (d.mouseHoverFlag) return 1.0;
-        return sessionOpacityScale(d.ageMaxRatio);
-      });
+    // nodeRects
+    //   .attr("x", function(d) {return d.x - 0.5*(sessionCircleRadiusScale(d.wordChainIndex + 1.0));})
+    //   .attr("y", function(d) {return d.y - 0.5*(sessionCircleRadiusScale(d.wordChainIndex + 1.0));})
+    //   .attr("width", function(d){
+    //     return sessionCircleRadiusScale(d.wordChainIndex + 1.0);
+    //   })
+    //   .attr("height", function(d){
+    //     return sessionCircleRadiusScale(d.wordChainIndex + 1.0);
+    //   })
+    //   .style('opacity', function(d) {
+    //     if (hideNodeCirclesFlag) return 1e-6;
+    //     if (d.mouseHoverFlag) return 1.0;
+    //     return sessionOpacityScale(d.ageMaxRatio);
+    //   });
 
-    nodeRects
-      .enter()
-      .append("svg:rect")
-      .attr("width", 0)
-      .attr("height", 0)
-      .attr("x", function(d) {return d.x;})
-      .attr("y", function(d) {return d.y;})
-      .attr("fill", "none")
-      .style('stroke', function(d) {
-        return palette.black;
-      })
-      .style('stroke-width', 1)
-      .style('stroke-opacity', function(d) {
-        return 1.0 - d.ageMaxRatio; 
-      })
-      .style("visibility", function(d) { 
-        return (d.isSessionNode) ? "visible" : "hidden"; 
-      });
+    // nodeRects
+    //   .enter()
+    //   .append("svg:rect")
+    //   .attr("width", 0)
+    //   .attr("height", 0)
+    //   .attr("x", function(d) {return d.x;})
+    //   .attr("y", function(d) {return d.y;})
+    //   .attr("fill", "none")
+    //   .style('stroke', function(d) {
+    //     return palette.black;
+    //   })
+    //   .style('stroke-width', 1)
+    //   .style('stroke-opacity', function(d) {
+    //     return 1.0 - d.ageMaxRatio; 
+    //   })
+    //   .style("visibility", function(d) { 
+    //     return (d.isSessionNode) ? "visible" : "hidden"; 
+    //   });
 
-    nodeRects
-      .exit().remove();
+    // nodeRects
+    //   .exit().remove();
 
 
     nodeCircles = nodeSvgGroup.selectAll("image").data(nodes ,function(d) { return d.nodeId; })

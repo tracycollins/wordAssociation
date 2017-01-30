@@ -1032,12 +1032,16 @@ window.addEventListener('resize', function() {
 document.addEventListener(visibilityEvent, function() {
   if (!document[hidden]) {
     windowVisible = true;
-    currentSessionView.resize();
-    currentSessionView.setPause(false);
+    if (typeof currentSessionView !== 'undefined') {
+      currentSessionView.resize();
+      currentSessionView.setPause(false);
+    }
     console.debug("visibilityEvent: " + windowVisible);
   } else {
     windowVisible = false;
-    currentSessionView.setPause(true);
+    if (typeof currentSessionView !== 'undefined') {
+      currentSessionView.setPause(true);
+    }
     console.debug("visibilityEvent: " + windowVisible);
   }
 });
@@ -2510,9 +2514,9 @@ var createNode = function(callback) {
 
     if ((config.sessionViewType == 'ticker') || (config.sessionViewType == 'flow')){
       sourceNodeId = session.source.nodeId + "_" + moment().valueOf();
-      session.source.nodeId = sourceNodeId;
+      // session.source.nodeId = sourceNodeId;
       targetNodeId = session.target.nodeId + "_" + moment().valueOf();
-      session.target.nodeId = targetNodeId;
+      // session.target.nodeId = targetNodeId;
     }
     else {
       sourceNodeId = session.source.nodeId;
@@ -2555,9 +2559,9 @@ var createNode = function(callback) {
             sourceNode.ageUpdated = dateNow;
             sourceNode.lastSeen = dateNow;
 
-            // if (ignoreWordHashMap.has(sourceText)) {
-            //   sourceNode.isIgnored = true;
-            // }
+            if (ignoreWordHashMap.has(sourceText)) {
+              sourceNode.isIgnored = true;
+            }
 
             sourceNode.groupColors = session.groupColors;
             sourceNode.sessionColors = session.sessionColors;
@@ -2651,23 +2655,23 @@ var createNode = function(callback) {
         target: function(cb) {
 
           if (typeof targetNodeId === 'undefined' 
-            // || (config.sessionViewType == 'flow') 
+            || (config.sessionViewType == 'flow') 
             || (config.sessionViewType == 'ticker')) {
             cb("TARGET UNDEFINED", null);
           } 
-          // else if (session.target.isIgnored) {
-          //   cb(null, {
-          //     node: targetNodeId,
-          //     isIgnored: true,
-          //     isNew: false
-          //   });
-          // } 
+          else if (session.target.isIgnored) {
+            cb(null, {
+              node: targetNodeId,
+              isIgnored: true,
+              isNew: false
+            });
+          } 
           else if (nodeHashMap.has(targetNodeId)) {
             targetNode = nodeHashMap.get(targetNodeId);
             targetNode.newFlag = false;
-            // if (ignoreWordHashMap.has(targetText)) {
-            //   targetNode.isIgnored = true;
-            // }
+            if (ignoreWordHashMap.has(targetText)) {
+              targetNode.isIgnored = true;
+            }
             targetNode.isTrendingTopic = session.target.isTrendingTopic;
             targetNode.isKeyword = session.target.isKeyword;
             // targetNode.keywordColor = getKeywordColor(session.target.keywords);
@@ -2702,7 +2706,13 @@ var createNode = function(callback) {
             }
             else {
               targetNode.text = targetText;
-              targetNode.mentions = session.target.mentions;
+              if (typeof session.target.mentions !== 'undefined') {
+                targetNode.mentions = session.target.mentions;
+              }
+              else {
+                console.debug("??? TARGET MENTIONS UNDEFINED\n" + jsonPrint(session.target));
+                targetNode.mentions = 1;
+              } 
             }
 
             addToHashMap(nodeHashMap, targetNodeId, targetNode, function(tNode) {
@@ -2719,9 +2729,9 @@ var createNode = function(callback) {
             targetNode.newFlag = true;
             targetNode.isSessionNode = false;
             targetNode.isGroupNode = false;
-            // if (ignoreWordHashMap.has(targetText)) {
-            //   targetNode.isIgnored = true;
-            // }
+            if (ignoreWordHashMap.has(targetText)) {
+              targetNode.isIgnored = true;
+            }
             targetNode.isTrendingTopic = session.target.isTrendingTopic;
             targetNode.isKeyword = session.target.isKeyword;
             targetNode.keywordColor = getKeywordColor(session.target.keywords);
@@ -2794,7 +2804,9 @@ var createNode = function(callback) {
         }
 
         addToHashMap(sessionHashMap, session.nodeId, session, function(cSession) {
-          if (!results.source.isIgnored && (config.sessionViewType != 'ticker')) {
+          if (!results.source.isIgnored 
+            && (config.sessionViewType != 'ticker') 
+            && (config.sessionViewType != 'flow')) {
             linkCreateQueue.push(cSession);
           }
         });
@@ -2806,6 +2818,7 @@ var createNode = function(callback) {
 var createLink = function(callback) {
 
   if ((config.sessionViewType !== 'ticker') 
+    && (config.sessionViewType !== 'flow') 
     && !config.disableLinks 
     && (linkCreateQueue.length > 0)) {
 

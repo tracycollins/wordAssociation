@@ -727,7 +727,7 @@ var keywordColorHashMap = new HashMap();
 
 keywordColorHashMap.set("positive", palette.green);
 keywordColorHashMap.set("negative", palette.red);
-keywordColorHashMap.set("neutral", palette.yellow);
+keywordColorHashMap.set("neutral", palette.black);
 
 keywordColorHashMap.set("left", palette.blue);
 keywordColorHashMap.set("right", palette.red);
@@ -2238,16 +2238,21 @@ var createSession = function(callback) {
         currentGroup.node = nodeHashMap.get(sessUpdate.tags.group.groupId);
       }
 
-      var prevLatestNodeId = currentSession.latestNodeId;
-      currentSession.prevLatestNodeId = prevLatestNodeId;
-      var prevSessionLinkId = currentSession.node.nodeId + "_" + prevLatestNodeId;
+      // var prevLatestNodeId = currentSession.latestNodeId;
+      // currentSession.prevLatestNodeId = prevLatestNodeId;
+      // var prevSessionLinkId = currentSession.node.nodeId + "_" + prevLatestNodeId;
+      // // var sessionLinkId = session.node.nodeId + "_" + session.source.nodeId;
 
-      if (config.sessionViewType !== 'force'){
-        // console.warn("REMOVE LINK " + prevSessionLinkId);
-        removeFromHashMap(linkHashMap, prevSessionLinkId, function() {
-          currentSessionView.deleteLink(prevSessionLinkId);
-        });
-      }
+      // console.warn("prevLatestNodeId " + prevLatestNodeId);
+      // console.warn("prevSessionLinkId " + prevSessionLinkId);
+
+      // if (config.sessionViewType !== 'force'){
+      //   if (linkHashMap.has(prevSessionLinkId)) console.warn("REMOVE LINK " + prevSessionLinkId);
+      //   removeFromHashMap(linkHashMap, prevSessionLinkId, function() {
+      //     // currentSessionView.addLink(prevSessionLinkId);
+      //     currentSessionView.deleteLink(prevSessionLinkId);
+      //   });
+      // }
  
       currentSession.groupId = currentGroup.groupId;
       currentSession.age = 1e-6;
@@ -2263,7 +2268,7 @@ var createSession = function(callback) {
       currentSession.source.lastSeen = dateNow;
       currentSession.target = sessUpdate.target;
       currentSession.target.lastSeen = dateNow;
-      currentSession.latestNodeId = sessUpdate.source.nodeId;
+      // currentSession.latestNodeId = sessUpdate.source.nodeId;
       currentSession.interpolateSessionColor = currentGroup.interpolateSessionColor;
       currentSession.interpolateColor = currentGroup.interpolateSessionColor;
 
@@ -2340,7 +2345,7 @@ var createSession = function(callback) {
       currentSession.text = sessUpdate.tags.entity + "[" + sessUpdate.tags.channel + "]";
       currentSession.source = sessUpdate.source;
       currentSession.target = sessUpdate.target;
-      currentSession.latestNodeId = sessUpdate.source.nodeId;
+      // currentSession.latestNodeId = sessUpdate.source.nodeId;
       currentSession.linkHashMap = new HashMap();
       currentSession.initialPosition = currentGroup.initialPosition;
       currentSession.x = currentGroup.initialPosition.x;
@@ -2400,9 +2405,9 @@ var createSession = function(callback) {
 
       currentSession.node.links = {};
 
-      var sessionLinkId = currentSession.node.nodeId + "_" + currentSession.latestNodeId;
-      currentSession.node.links[sessionLinkId] = 1;
-      currentSession.node.link = sessionLinkId;
+      // var sessionLinkId = currentSession.node.nodeId + "_" + currentSession.latestNodeId;
+      // currentSession.node.links[sessionLinkId] = 1;
+      // currentSession.node.link = sessionLinkId;
 
       currentSession.source.lastSeen = dateNow;
       if (typeof currentSession.target !== 'undefined') {
@@ -2505,7 +2510,9 @@ var createNode = function(callback) {
 
     if ((config.sessionViewType == 'ticker') || (config.sessionViewType == 'flow')){
       sourceNodeId = session.source.nodeId + "_" + moment().valueOf();
+      session.source.nodeId = sourceNodeId;
       targetNodeId = session.target.nodeId + "_" + moment().valueOf();
+      session.target.nodeId = targetNodeId;
     }
     else {
       sourceNodeId = session.source.nodeId;
@@ -2548,9 +2555,9 @@ var createNode = function(callback) {
             sourceNode.ageUpdated = dateNow;
             sourceNode.lastSeen = dateNow;
 
-            if (ignoreWordHashMap.has(sourceText)) {
-              sourceNode.isIgnored = true;
-            }
+            // if (ignoreWordHashMap.has(sourceText)) {
+            //   sourceNode.isIgnored = true;
+            // }
 
             sourceNode.groupColors = session.groupColors;
             sourceNode.sessionColors = session.sessionColors;
@@ -2644,23 +2651,23 @@ var createNode = function(callback) {
         target: function(cb) {
 
           if (typeof targetNodeId === 'undefined' 
-            || (config.sessionViewType == 'ticker') 
-            || (config.sessionViewType == 'flow')) {
+            // || (config.sessionViewType == 'flow') 
+            || (config.sessionViewType == 'ticker')) {
             cb("TARGET UNDEFINED", null);
           } 
-          else if (session.target.isIgnored) {
-            cb(null, {
-              node: targetNodeId,
-              isIgnored: true,
-              isNew: false
-            });
-          } 
+          // else if (session.target.isIgnored) {
+          //   cb(null, {
+          //     node: targetNodeId,
+          //     isIgnored: true,
+          //     isNew: false
+          //   });
+          // } 
           else if (nodeHashMap.has(targetNodeId)) {
             targetNode = nodeHashMap.get(targetNodeId);
             targetNode.newFlag = false;
-            if (ignoreWordHashMap.has(targetText)) {
-              targetNode.isIgnored = true;
-            }
+            // if (ignoreWordHashMap.has(targetText)) {
+            //   targetNode.isIgnored = true;
+            // }
             targetNode.isTrendingTopic = session.target.isTrendingTopic;
             targetNode.isKeyword = session.target.isKeyword;
             // targetNode.keywordColor = getKeywordColor(session.target.keywords);
@@ -2712,9 +2719,9 @@ var createNode = function(callback) {
             targetNode.newFlag = true;
             targetNode.isSessionNode = false;
             targetNode.isGroupNode = false;
-            if (ignoreWordHashMap.has(targetText)) {
-              targetNode.isIgnored = true;
-            }
+            // if (ignoreWordHashMap.has(targetText)) {
+            //   targetNode.isIgnored = true;
+            // }
             targetNode.isTrendingTopic = session.target.isTrendingTopic;
             targetNode.isKeyword = session.target.isKeyword;
             targetNode.keywordColor = getKeywordColor(session.target.keywords);
@@ -2741,6 +2748,7 @@ var createNode = function(callback) {
             targetNode.interpolateColor = session.interpolateSessionColor;
 
             targetNode.latestNode = false;
+            
             if (targetNode.isSessionNode){
               targetNode.text = session.tags.entity + "|" + session.tags.channel;
               targetNode.wordChainIndex = session.target.wordChainIndex;
@@ -2808,42 +2816,45 @@ var createLink = function(callback) {
     var groupLinkId;
     var sessionLinkId;
 
-    if (config.sessionViewType == 'force') {
+    if (config.sessionViewType == 'flow') {
 
-      // var sessionLinkId = session.node.nodeId + "_" + session.source.nodeId;
+      var sessionLinkId = session.node.nodeId + "_" + session.source.nodeId;
 
+      console.debug("sessionLinkId: " + sessionLinkId);
 
-      // session.node.links[sessionLinkId] = 1;
-      // session.source.links[sessionLinkId] = 1;
+      session.node.links[sessionLinkId] = 1;
+      session.source.links[sessionLinkId] = 1;
 
-      // if (!linkHashMap.has(sessionLinkId)){
+      if (!linkHashMap.has(sessionLinkId)){
 
-      //   var newSessionLink = {
-      //     linkId: sessionLinkId,
-      //     sessionId: session.node.nodeId,
-      //     age: 0,
-      //     isDead: false,
-      //     source: session.node,
-      //     target: session.source,
-      //     isGroupLink: false,
-      //     isSessionLink: true
-      //   };
+        var newSessionLink = {
+          linkId: sessionLinkId,
+          sessionId: session.node.nodeId,
+          age: 0,
+          isDead: false,
+          source: session.node,
+          target: session.source,
+          isGroupLink: false,
+          isSessionLink: true
+        };
 
-      //   addToHashMap(linkHashMap, sessionLinkId, newSessionLink, function(sesLink) {
-      //     currentSessionView.addLink(sesLink);
-      //   });
-      // }
-      // else {
-      //   var sessionLink = linkHashMap.get(sessionLinkId);
-      //   sessionLink.age = 0;
-      //   sessionLink.isDead = false;
+        addToHashMap(linkHashMap, sessionLinkId, newSessionLink, function(sesLink) {
+          currentSessionView.addLink(sesLink);
+        });
+      }
+      else {
+        var sessionLink = linkHashMap.get(sessionLinkId);
+        sessionLink.age = 0;
+        sessionLink.isDead = false;
 
-      //   addToHashMap(linkHashMap, sessionLinkId, sessionLink, function(sesLink) {
-      //     currentSessionView.addLink(sesLink);
-      //   });
-      // }
+        addToHashMap(linkHashMap, sessionLinkId, sessionLink, function(sesLink) {
+          // currentSessionView.addLink(sesLink);
+        });
+      }
 
       if (typeof session.target !== 'undefined'){
+
+        console.debug("TARGET: " + session.target.nodeId);
 
         var sourceTargetLinkId = session.source.nodeId + "_" + session.target.nodeId;
 

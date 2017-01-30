@@ -805,25 +805,33 @@ function ViewFlow() {
 
     var linksModifiedFlag = false;
 
-    while (linkUpdateQ.length > 0){
+    if (linkUpdateQ.length > 0){
       var linkUpdateObj = linkUpdateQ.shift();
       switch (linkUpdateObj.op) {
         case "add":
           linksModifiedFlag = true;
           links.push(linkUpdateObj.link);
           console.debug("+ LINK: " + linkUpdateObj.link.source.nodeId + " > " + linkUpdateObj.link.target.nodeId);
+          callback(null, linksModifiedFlag);
         break;
         case "delete":
           deleteLinkQ(linkUpdateObj.linkId, function(err, deadLinkFlag){
             if (deadLinkFlag) linksModifiedFlag = true;
           });
+          callback(null, linksModifiedFlag);
+        break;
+        default:
+          callback(null, linksModifiedFlag);
         break;
       }
     }
-
-    if (linkUpdateQ.length == 0){
+    else {
       callback(null, linksModifiedFlag);
     }
+
+    // if (linkUpdateQ.length == 0){
+    //   callback(null, linksModifiedFlag);
+    // }
   }
 
   var ageNodes = function (callback) {
@@ -907,17 +915,22 @@ function ViewFlow() {
       // );
 
       if ((typeof currentLinkObject !== 'undefined') && currentLinkObject.isDead) {
+        // console.info("DEAD");
         deadLinksHash[currentLinkObject.linkId] = 'DEAD';
         deadLinksFlag = true;
       } else if ((typeof currentLinkObject !== 'undefined') && currentLinkObject.source.isDead) {
+        // console.info("DEAD SOURCE");
         deadLinksHash[currentLinkObject.linkId] = 'DEAD SOURCE';
         deadLinksFlag = true;
       } else if ((typeof currentLinkObject !== 'undefined') && currentLinkObject.target.isDead) {
+        // console.info("DEAD TARGET: " + currentLinkObject.linkId);
         deadLinksHash[currentLinkObject.linkId] = 'DEAD TARGET';
         deadLinksFlag = true;
       } else if ((currentLinkObject.source.nodeId !== 'anchor') && !nodeHashMap.has(currentLinkObject.source.nodeId)) {
+        // console.info("UNDEFINED SOURCE");
         deadLinksHash[currentLinkObject.linkId] = 'UNDEFINED SOURCE';
       } else if (!nodeHashMap.has(currentLinkObject.target.nodeId)) {
+        // console.info("UNDEFINED TARGET: " + currentLinkObject.target.nodeId + " | " + currentLinkObject.linkId);
         deadLinksHash[currentLinkObject.linkId] = 'UNDEFINED TARGET';
       } else {
         if (currentLinkObject.source.age > currentLinkObject.target.age) {
@@ -1030,7 +1043,7 @@ function ViewFlow() {
 
     link = linkSvgGroup.selectAll("line").data(links, 
       function(d) { 
-        console.info("link\n" + jsonPrint(d));
+        // console.info("link\n" + jsonPrint(d));
         return d.source.nodeId + "-" + d.target.nodeId; 
       });
 
@@ -1347,7 +1360,8 @@ function ViewFlow() {
     else {
       tooltipString = d.raw
         + "<br>MENTIONS: " + mentions 
-        + "<br>" + uId;
+        + "<br>" + uId
+        + "<br>" + nodeId;
     }
 
 

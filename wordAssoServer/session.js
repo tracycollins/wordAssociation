@@ -797,10 +797,10 @@ var initialYpositionRatio = 0.4;
 
 function computeInitialPosition(index) {
   var radiusX = 0.2*currentSessionView.getWidth();
-  var radiusY = 0.2*window.innerHeight;
+  var radiusY = 0.2*currentSessionView.getHeight();
   var pos = {
     x: ((initialXpositionRatio * currentSessionView.getWidth()) - (radiusX * Math.abs(Math.cos(index)))),
-    y: ((initialYpositionRatio * window.innerHeight) + (radiusY * Math.cos(index)))
+    y: ((initialYpositionRatio * currentSessionView.getHeight()) + (radiusY * Math.cos(index)))
   };
 
   return pos;
@@ -3214,6 +3214,7 @@ function initialize(callback) {
           loadViewType(config.sessionViewType, function() {
 
             console.warn(config.sessionViewType);
+            currentSessionView.resize();
 
             if (config.sessionViewType == 'ticker') {
               currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
@@ -3231,7 +3232,6 @@ function initialize(callback) {
             store.set('config', config);
 
             currentSessionView.initD3timer();
-            currentSessionView.resize();
 
             initUpdateSessionsInterval(50);
 

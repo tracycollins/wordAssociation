@@ -51,11 +51,13 @@ function ViewFlow() {
   var height = window.innerHeight * 1;
 
   this.getWidth = function() {
-    return window.innerWidth;
+    // return window.innerWidth;
+    return width;
   }
 
   this.getHeight = function() {
-    return window.innerHeight;
+    // return window.innerHeight;
+    return height;
   }
 
   var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
@@ -144,10 +146,10 @@ function ViewFlow() {
 
   var translate = [0, 0];
 
-  var d3LayoutWidth = window.innerWidth * D3_LAYOUT_WIDTH_RATIO;
-  var d3LayoutHeight = window.innerHeight * D3_LAYOUT_HEIGHT_RATIO;
+  var d3LayoutWidth = width * D3_LAYOUT_WIDTH_RATIO;
+  var d3LayoutHeight = height * D3_LAYOUT_HEIGHT_RATIO;
 
-  console.log("width: " + window.innerWidth + " | height: " + window.innerHeight);
+  console.log("width: " + width + " | height: " + height);
 
   document.addEventListener("mousemove", function() {
     if (mouseHoverFlag) {

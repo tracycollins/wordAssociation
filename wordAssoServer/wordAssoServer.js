@@ -7740,11 +7740,13 @@ function initAppRouting(callback) {
     fs.open(__dirname + '/js/libs/controlPanel.js', "r", function(error, fd) {
       fs.readFile(__dirname + '/js/libs/controlPanel.js', function(error, data) {
         var newData;
-        if (hostname.includes('word')){
+        if (hostname.includes('google')){
           newData = data.toString().replace(/==SOURCE==/g, "http://word.threeceelabs.com");
+          console.log(chalkRed("UPDATE DEFAULT_SOURCE controlPanel.js: " + "http://word.threeceelabs.com"));
         }
         else {
           newData = data.toString().replace(/==SOURCE==/g, "http://localhost:9997");
+          console.log(chalkRed("UPDATE DEFAULT_SOURCE controlPanel.js: " + "http://localhost:9997"));
         }
         res.send(newData);
         fs.close(fd);

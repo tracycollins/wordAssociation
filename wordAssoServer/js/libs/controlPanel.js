@@ -129,11 +129,16 @@ function ControlPanel() {
 
   function receiveMessage(event){
 
-    console.log("receiveMessage " + jsonPrint(event.data));
+    console.log("RX MESSAGE\n" + jsonPrint(event.data));
 
     // Do we trust the sender of this message?
-    if (event.origin !== DEFAULT_SOURCE)
+    if (event.origin !== DEFAULT_SOURCE){
+      console.error("NOT TRUSTED SOURCE"
+        + " | ORIGIN: " + event.origin 
+        + " | DEFAULT_SOURCE: " + DEFAULT_SOURCE
+      );
       return;
+    }
 
     parentWindow = event.source;
 

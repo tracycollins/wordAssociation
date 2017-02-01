@@ -1566,7 +1566,7 @@ function ViewForce() {
       .velocityDecay(velocityDecay)
       .on("tick", ticked);
 
-      d3.forceCenter([0.5*width, 0.5*height]);
+      // d3.forceCenter([0.5*width, 0.5*height]);
   }
 
   this.simulationControl = function(op) {

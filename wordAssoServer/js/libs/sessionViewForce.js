@@ -356,13 +356,27 @@ function ViewForce() {
     switch(param){
       case "linkStrength" :
         globalLinkStrength = value;
-        // simulation.force("link", d3.forceLink(links).id(function(d) { return d.linkId; }).distance(globalLinkDistance).strength(globalLinkStrength));
-        simulation.force("link", d3.forceLink(links).distance(globalLinkDistance).strength(globalLinkStrength));
+        simulation.force("link", d3.forceLink(links)
+          .distance(function(d){
+            if (d.isSessionNode) return 0.1*globalLinkDistance;
+            return globalLinkDistance; 
+          })
+          .strength(function(d){
+          if (d.isSessionNode) return 10.0*globalLinkStrength;
+          return 0.5*globalLinkStrength; 
+        }))
       break;
       case "linkDistance" :
         globalLinkDistance = value;
-        // simulation.force("link", d3.forceLink(links).id(function(d) { return d.linkId; }).distance(globalLinkDistance).strength(globalLinkStrength));
-        simulation.force("link", d3.forceLink(links).distance(globalLinkDistance).strength(globalLinkStrength));
+        simulation.force("link", d3.forceLink(links)
+          .distance(function(d){
+            if (d.isSessionNode) return 0.1*globalLinkDistance;
+            return globalLinkDistance; 
+          })
+          .strength(function(d){
+          if (d.isSessionNode) return 10.0*globalLinkStrength;
+          return 0.5*globalLinkStrength; 
+        }))
       break;
     }
   }
@@ -371,14 +385,32 @@ function ViewForce() {
     console.debug("UPDATE LINK STRENGTH: " + value.toFixed(sliderPercision));
     globalLinkStrength = value;
     // simulation.force("link", d3.forceLink(links).id(function(d) { return d.linkId; }).distance(globalLinkDistance).strength(globalLinkStrength));
-    simulation.force("link", d3.forceLink(links).distance(globalLinkDistance).strength(globalLinkStrength));
+    // simulation.force("link", d3.forceLink(links).distance(globalLinkDistance).strength(globalLinkStrength));
+    simulation.force("link", d3.forceLink(links)
+      .distance(function(d){
+        if (d.isSessionNode) return 0.1*globalLinkDistance;
+        return globalLinkDistance; 
+      })
+      .strength(function(d){
+      if (d.isSessionNode) return 10.0*globalLinkStrength;
+      return 0.5*globalLinkStrength; 
+    }))
   }
 
   self.updateLinkDistance = function(value) {
     console.debug("UPDATE LINK DISTANCE: " + value.toFixed(sliderPercision));
     globalLinkDistance = value;
     // simulation.force("link", d3.forceLink(links).id(function(d) { return d.linkId; }).distance(globalLinkDistance).strength(globalLinkStrength));
-    simulation.force("link", d3.forceLink(links).distance(globalLinkDistance).strength(globalLinkStrength));
+    // simulation.force("link", d3.forceLink(links).distance(globalLinkDistance).strength(globalLinkStrength));
+    simulation.force("link", d3.forceLink(links)
+      .distance(function(d){
+        if (d.isSessionNode) return 0.1*globalLinkDistance;
+        return globalLinkDistance; 
+      })
+      .strength(function(d){
+      if (d.isSessionNode) return 10.0*globalLinkStrength;
+      return 0.5*globalLinkStrength; 
+    }))
   }
 
   self.updateVelocityDecay = function(value) {
@@ -390,8 +422,21 @@ function ViewForce() {
   self.updateGravity = function(value) {
     console.debug("UPDATE GRAVITY: " + value.toFixed(sliderPercision));
     gravity = value;
-    simulation.force("forceX", d3.forceX().x(0.5*width).strength(gravity));
-    simulation.force("forceY", d3.forceY().y(0.5*height).strength(gravity));
+
+    simulation.force("forceX", d3.forceX().x(function(d) { 
+        if (d.isSessionNode) return 0.9*width;
+        return -0.8*width; 
+      }).strength(function(d){
+        if (d.isSessionNode) return 5.0*gravity;
+        return 0.5*gravity; 
+      }));
+
+    simulation.force("forceY", d3.forceY().y(function(d) { 
+        return 0.4*height; 
+      }).strength(function(d){
+        if (d.isSessionNode) return gravity;
+        return forceYmultiplier * gravity; 
+      }));
   }
 
   self.updateCharge = function(value) {
@@ -805,7 +850,7 @@ function ViewForce() {
         case "add":
           linksModifiedFlag = true;
           links.push(linkUpdateObj.link);
-          console.debug("+ LINK: " + linkUpdateObj.link.source.nodeId + " > " + linkUpdateObj.link.target.nodeId);
+          console.debug("+ L " + linkUpdateObj.link.source.nodeId + " > " + linkUpdateObj.link.target.nodeId);
           callback(null, linksModifiedFlag);
         break;
         case "delete":
@@ -906,18 +951,18 @@ function ViewForce() {
       // );
 
       if ((typeof currentLinkObject !== 'undefined') && currentLinkObject.isDead) {
-        deadLinksHash[currentLinkObject.linkId] = 'DEAD';
+        deadLinksHash[currentLinkObject.linkId] = 'X';
         deadLinksFlag = true;
       } else if ((typeof currentLinkObject !== 'undefined') && currentLinkObject.source.isDead) {
-        deadLinksHash[currentLinkObject.linkId] = 'DEAD SOURCE';
+        deadLinksHash[currentLinkObject.linkId] = 'X SOURCE';
         deadLinksFlag = true;
       } else if ((typeof currentLinkObject !== 'undefined') && currentLinkObject.target.isDead) {
-        deadLinksHash[currentLinkObject.linkId] = 'DEAD TARGET';
+        deadLinksHash[currentLinkObject.linkId] = 'X TARGET';
         deadLinksFlag = true;
       } else if ((currentLinkObject.source.nodeId !== 'anchor') && !nodeHashMap.has(currentLinkObject.source.nodeId)) {
-        deadLinksHash[currentLinkObject.linkId] = 'UNDEFINED SOURCE';
+        deadLinksHash[currentLinkObject.linkId] = 'NO SOURCE';
       } else if (!nodeHashMap.has(currentLinkObject.target.nodeId)) {
-        deadLinksHash[currentLinkObject.linkId] = 'UNDEFINED TARGET';
+        deadLinksHash[currentLinkObject.linkId] = 'NO TARGET';
       } else {
         if (currentLinkObject.source.age > currentLinkObject.target.age) {
           currentLinkObject.age = currentLinkObject.source.age;
@@ -1015,7 +1060,7 @@ function ViewForce() {
       if (deadLinksHash[link.linkId]) {
         linkDeleteQueue.push(link.linkId);
         links.splice(ageLinksIndex, 1);
-        console.debug("XXX LINK " + link.linkId + " | " + deadLinksHash[link.linkId]);
+        console.debug("X L " + link.linkId + " | " + deadLinksHash[link.linkId]);
         delete deadLinksHash[link.linkId];
       }
     }
@@ -1113,8 +1158,8 @@ function ViewForce() {
       .style('stroke-width', 1)
       .style('stroke-opacity', function(d) {
         return 1.0 - d.ageMaxRatio; 
-      })
-      .style("visibility", "hidden");
+      });
+      // .style("visibility", "hidden");
 
     nodeCircles
       .exit().remove();
@@ -1158,7 +1203,7 @@ function ViewForce() {
         if (d.isSessionNode) return "visible";
         return "hidden";
       })
-      .style("opacity", 1)
+      .style("opacity", 1);
 
     nodeImages
       .exit().remove();
@@ -1412,7 +1457,8 @@ function ViewForce() {
   this.addNode = function(newNode) {
 
     if (typeof newNode.mentions === 'undefined') {
-      console.error("MENTIONS UNDEFINED " + newNode.nodeId);
+      // console.error("MENTIONS UNDEFINED " + newNode.nodeId);
+      console.error("MENTIONS UNDEFINED\n" + jsonPrint(newNode));
       newNode.mentions = 1;
     }
 
@@ -1479,11 +1525,29 @@ function ViewForce() {
   this.initD3timer = function() {
 
     simulation = d3.forceSimulation(nodes)
-      // .force("link", d3.forceLink(links).id(function(d) { return d.linkId; }).distance(globalLinkDistance).strength(globalLinkStrength))
-      .force("link", d3.forceLink(links).distance(globalLinkDistance).strength(globalLinkStrength))
+      .force("link", d3.forceLink(links)
+        .distance(function(d){
+          if (d.isSessionNode) return 0.1*globalLinkDistance;
+          return globalLinkDistance; 
+        })
+        .strength(function(d){
+        if (d.isSessionNode) return 10.0*globalLinkStrength;
+        return 0.5*globalLinkStrength; 
+      }))
       .force("charge", d3.forceManyBody().strength(charge))
-      .force("forceX", d3.forceX().x(0.5*width).strength(gravity))
-      .force("forceY", d3.forceY().y(0.5*height).strength(gravity))
+      .force("forceX", d3.forceX().x(function(d) { 
+        if (d.isSessionNode) return 0.9*width;
+        return -0.8*width; 
+      }).strength(function(d){
+        if (d.isSessionNode) return 5.0*gravity;
+        return 0.5*gravity; 
+      }))
+      .force("forceY", d3.forceY().y(function(d) { 
+        return 0.4*height; 
+      }).strength(function(d){
+        if (d.isSessionNode) return gravity;
+        return forceYmultiplier * gravity; 
+      }))
       .force("collide", d3.forceCollide().radius(function(d) { 
           if (d.isGroupNode) return 4.5 * collisionRadiusMultiplier * sessionCircleRadiusScale(d.wordChainIndex + 1.0) ; 
           if (d.isSessionNode) return 3.5 * collisionRadiusMultiplier * sessionCircleRadiusScale(d.wordChainIndex + 1.0) ; 

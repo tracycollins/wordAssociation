@@ -1639,6 +1639,23 @@ function ViewForce() {
     d3LayoutWidth = width; // double the width for now
     d3LayoutHeight = height;
 
+    if (simulation){
+      simulation.force("forceX", d3.forceX().x(function(d) { 
+          if (d.isSessionNode) return 0.7*width;
+          return -0.8*width; 
+        }).strength(function(d){
+          if (d.isSessionNode) return 50.0*gravity;
+          return 1*gravity; 
+        }));
+
+      simulation.force("forceY", d3.forceY().y(function(d) { 
+          return 0.4*height; 
+        }).strength(function(d){
+          if (d.isSessionNode) return gravity;
+          return forceYmultiplier * gravity; 
+        }));
+    }
+
   }
 
   // ==========================================

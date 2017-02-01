@@ -66,18 +66,20 @@ var MAX_RX_QUEUE = 250;
 var QUEUE_MAX = 200;
 var MAX_WORDCHAIN_LENGTH = 100;
 var DEFAULT_MAX_AGE = 10000;
-var FORCE_MAX_AGE = DEFAULT_MAX_AGE;
+var FORCE_MAX_AGE = 4000;
 var DEFAULT_AGE_RATE = 1.0;
 
 var FORCEVIEW_DEFAULT = {};
 // FORCEVIEW_DEFAULT.FRICTION = 0.5;
 FORCEVIEW_DEFAULT.MAX_AGE = FORCE_MAX_AGE;
-FORCEVIEW_DEFAULT.CHARGE = 0;
+FORCEVIEW_DEFAULT.CHARGE = -10;
 FORCEVIEW_DEFAULT.GRAVITY = 0.015;
 FORCEVIEW_DEFAULT.FORCEY_MULTIPLIER = 0.0;
 FORCEVIEW_DEFAULT.VELOCITY_DECAY = 0.85;
 FORCEVIEW_DEFAULT.LINK_DISTANCE = 10;
 FORCEVIEW_DEFAULT.LINK_STRENGTH = 0.50;
+FORCEVIEW_DEFAULT.COLLISION_RADIUS_MULTIPLIER = 0.25;
+FORCEVIEW_DEFAULT.COLLISION_ITERATIONS = 1;
 
 // var DEFAULT_FRICTION = 0.9;
 var DEFAULT_CHARGE = 0.0;
@@ -790,14 +792,14 @@ var viewerObj = {
 
 // var initialPositionIndex = 0;
 
-var initialXpositionRatio = 0.8;
+var initialXpositionRatio = 0.7;
 var initialYpositionRatio = 0.4;
 
 function computeInitialPosition(index) {
-  var radiusX = 20;
+  var radiusX = 0.2*currentSessionView.getWidth();
   var radiusY = 0.2*window.innerHeight;
   var pos = {
-    x: ((initialXpositionRatio * 1000) + Math.abs(radiusX * Math.cos(index))),
+    x: ((initialXpositionRatio * currentSessionView.getWidth()) - (radiusX * Math.abs(Math.cos(index)))),
     y: ((initialYpositionRatio * window.innerHeight) + (radiusY * Math.cos(index)))
   };
 
@@ -2251,22 +2253,6 @@ var createSession = function(callback) {
         currentGroup.node = nodeHashMap.get(sessUpdate.tags.group.groupId);
       }
 
-      // var prevLatestNodeId = currentSession.latestNodeId;
-      // currentSession.prevLatestNodeId = prevLatestNodeId;
-      // var prevSessionLinkId = currentSession.node.nodeId + "_" + prevLatestNodeId;
-      // // var sessionLinkId = session.node.nodeId + "_" + session.source.nodeId;
-
-      // console.warn("prevLatestNodeId " + prevLatestNodeId);
-      // console.warn("prevSessionLinkId " + prevSessionLinkId);
-
-      // if (config.sessionViewType !== 'force'){
-      //   if (linkHashMap.has(prevSessionLinkId)) console.warn("REMOVE LINK " + prevSessionLinkId);
-      //   removeFromHashMap(linkHashMap, prevSessionLinkId, function() {
-      //     // currentSessionView.addLink(prevSessionLinkId);
-      //     currentSessionView.deleteLink(prevSessionLinkId);
-      //   });
-      // }
- 
       currentSession.groupId = currentGroup.groupId;
       currentSession.age = 1e-6;
       currentSession.ageUpdated = dateNow;
@@ -2279,16 +2265,13 @@ var createSession = function(callback) {
       currentSession.wordChainIndex = sessUpdate.wordChainIndex;
       currentSession.source = sessUpdate.source;
       currentSession.source.lastSeen = dateNow;
-      currentSession.target = sessUpdate.target;
-      currentSession.target.lastSeen = dateNow;
-      // currentSession.latestNodeId = sessUpdate.source.nodeId;
+      if (sessUpdate.target) currentSession.target = sessUpdate.target;
+      if (sessUpdate.target) currentSession.target.lastSeen = dateNow;
       currentSession.interpolateSessionColor = currentGroup.interpolateSessionColor;
       currentSession.interpolateColor = currentGroup.interpolateSessionColor;
 
       currentSession.node.url = sessUpdate.url;
       currentSession.node.text = sessUpdate.tags.entity + "|" + sessUpdate.tags.channel;
-      // currentSession.node.x = currentGroup.initialPosition.x;
-      // currentSession.node.y = currentGroup.initialPosition.y;
       currentSession.node.age = 1e-6;
       currentSession.node.ageMaxRatio = 1e-6;
       currentSession.node.isGroupNode = false;
@@ -2373,7 +2356,6 @@ var createSession = function(callback) {
       currentSession.text = sessUpdate.tags.entity + "[" + sessUpdate.tags.channel + "]";
       currentSession.source = sessUpdate.source;
       currentSession.target = sessUpdate.target;
-      // currentSession.latestNodeId = sessUpdate.source.nodeId;
       currentSession.linkHashMap = new HashMap();
       currentSession.initialPosition = currentGroup.initialPosition;
       currentSession.x = currentGroup.initialPosition.x;
@@ -2411,7 +2393,7 @@ var createSession = function(callback) {
       currentSession.node.text = sessUpdate.tags.entity + "|" + sessUpdate.tags.channel;
       currentSession.node.r = config.defaultNodeRadius;
       currentSession.node.x = currentGroup.initialPosition.x;
-      currentSession.node.fx = currentGroup.initialPosition.x;
+      // currentSession.node.fx = currentGroup.initialPosition.x;
       currentSession.node.y = currentGroup.initialPosition.y;
 
       currentSession.node.sessionColors = currentGroup.sessionColors;
@@ -3136,6 +3118,8 @@ function loadViewType(svt, callback) {
         console.log("sessionViewForce LOADED");
 
         // DEFAULT_FRICTION = FORCEVIEW_DEFAULT.FRICTION;
+        DEFAULT_COLLISION_RADIUS_MULTIPLIER = FORCEVIEW_DEFAULT.COLLISION_RADIUS_MULTIPLIER;
+        DEFAULT_COLLISION_ITERATIONS = FORCEVIEW_DEFAULT.COLLISION_ITERATIONS;
         DEFAULT_MAX_AGE = FORCEVIEW_DEFAULT.MAX_AGE;
         DEFAULT_CHARGE = FORCEVIEW_DEFAULT.CHARGE;
         DEFAULT_GRAVITY = FORCEVIEW_DEFAULT.GRAVITY;

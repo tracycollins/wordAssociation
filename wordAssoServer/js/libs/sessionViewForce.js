@@ -424,11 +424,11 @@ function ViewForce() {
     gravity = value;
 
     simulation.force("forceX", d3.forceX().x(function(d) { 
-        if (d.isSessionNode) return 0.9*width;
+        if (d.isSessionNode) return 0.7*width;
         return -0.8*width; 
       }).strength(function(d){
-        if (d.isSessionNode) return 5.0*gravity;
-        return 0.5*gravity; 
+        if (d.isSessionNode) return 50.0*gravity;
+        return 1*gravity; 
       }));
 
     simulation.force("forceY", d3.forceY().y(function(d) { 
@@ -704,11 +704,13 @@ function ViewForce() {
 
   var processNodeAddQ = function(callback) {
 
-    processNodeCount++;
+    // processNodeCount++;
 
     var nodesModifiedFlag = false;
 
-    if ((nodeAddQ.length > 0) && addNodeEnabled()) {
+    while ((nodeAddQ.length > 0) && addNodeEnabled()) {
+
+      processNodeCount++;
 
       var nodeAddObj = nodeAddQ.shift();
 
@@ -746,17 +748,21 @@ function ViewForce() {
             maxNumberNodes = nodes.length;
           }
 
-          callback(null, nodesModifiedFlag);
+          // callback(null, nodesModifiedFlag);
 
         break;
 
         default:
           console.error("??? UNKNOWN NODE UPDATE Q OP: " + nodeUpdateObj.op);
-          callback(null, nodesModifiedFlag);
+          // callback(null, nodesModifiedFlag);
         break;
       }
     }
-    else {
+    // else {
+    //   callback(null, nodesModifiedFlag);
+    // }
+
+    if ((nodeAddQ.length == 0) || !addNodeEnabled()){
       callback(null, nodesModifiedFlag);
     }
   }
@@ -843,7 +849,7 @@ function ViewForce() {
 
     var linksModifiedFlag = false;
 
-    if (linkUpdateQ.length > 0) {
+    while (linkUpdateQ.length > 0) {
 
       var linkUpdateObj = linkUpdateQ.shift();
       switch (linkUpdateObj.op) {
@@ -851,21 +857,25 @@ function ViewForce() {
           linksModifiedFlag = true;
           links.push(linkUpdateObj.link);
           console.debug("+ L " + linkUpdateObj.link.source.nodeId + " > " + linkUpdateObj.link.target.nodeId);
-          callback(null, linksModifiedFlag);
+          // callback(null, linksModifiedFlag);
         break;
         case "delete":
           deleteLinkQ(linkUpdateObj.linkId, function(err, deadLinkFlag){
             if (deadLinkFlag) linksModifiedFlag = true;
-            callback(null, linksModifiedFlag);
+            // callback(null, linksModifiedFlag);
           });
         break;
         default:
           console.error("UNKNOWN LINK OP: " + linkUpdateObj.op);
-          callback(null, linksModifiedFlag);
+          // callback(null, linksModifiedFlag);
         break;
       }
     }
-    else {
+    // else {
+    //   callback(null, linksModifiedFlag);
+    // }
+
+    if (linkUpdateQ.length == 0){
       callback(null, linksModifiedFlag);
     }
   }
@@ -1191,8 +1201,8 @@ function ViewForce() {
       .attr("x", function(d) {return d.x;})
       .attr("y", function(d) {return d.y;})
       .attr("xlink:href", function(d) { return d.profileImageUrl; })
-      .attr("width", 80)
-      .attr("height", 80)
+      .attr("width", 1e-6)
+      .attr("height", 1e-6)
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)
       .on("click", nodeClick)
@@ -1536,11 +1546,11 @@ function ViewForce() {
       }))
       .force("charge", d3.forceManyBody().strength(charge))
       .force("forceX", d3.forceX().x(function(d) { 
-        if (d.isSessionNode) return 0.9*width;
+        if (d.isSessionNode) return 0.7*width;
         return -0.8*width; 
       }).strength(function(d){
-        if (d.isSessionNode) return 5.0*gravity;
-        return 0.5*gravity; 
+        if (d.isSessionNode) return 50.0*gravity;
+        return 1*gravity; 
       }))
       .force("forceY", d3.forceY().y(function(d) { 
         return 0.4*height; 
@@ -1550,7 +1560,7 @@ function ViewForce() {
       }))
       .force("collide", d3.forceCollide().radius(function(d) { 
           if (d.isGroupNode) return 4.5 * collisionRadiusMultiplier * sessionCircleRadiusScale(d.wordChainIndex + 1.0) ; 
-          if (d.isSessionNode) return 3.5 * collisionRadiusMultiplier * sessionCircleRadiusScale(d.wordChainIndex + 1.0) ; 
+          if (d.isSessionNode) return collisionRadiusMultiplier * sessionCircleRadiusScale(d.wordChainIndex + 1.0) ; 
           return collisionRadiusMultiplier * d.textLength ; 
         }).iterations(collisionIterations))
       .velocityDecay(velocityDecay)

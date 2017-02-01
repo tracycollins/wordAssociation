@@ -128,7 +128,7 @@ function ViewForce() {
   var currentMaxMentions = 2;
 
   var minFontSize = 10;
-  var maxFontSize = 60;
+  var maxFontSize = 20;
 
 
   var D3_LAYOUT_WIDTH_RATIO = 1.0;
@@ -175,7 +175,8 @@ function ViewForce() {
   var strokeColorScale = d3.scaleLog().domain([1e-6, 0.15, 1.0]).range([palette.white, palette.darkgray, palette.black]);
   var linkColorScale = d3.scaleLinear().domain([1e-6, 0.5, 1.0]).range(["#000000", "#000000", "#000000"]);
 
-  var sessionOpacityScale = d3.scaleLinear().domain([1e-6, 0.05, 1.0]).range([1.0, 0.2, 1e-6]);
+  // var sessionOpacityScale = d3.scaleLinear().domain([1e-6, 0.05, 1.0]).range([1.0, 0.2, 1e-6]);
+  var sessionOpacityScale = d3.scaleLinear().domain([1e-6, 1.0]).range([1.0, 1e-6]);
   var fontScale = d3.scaleLinear().domain([1e-6, 1.0]).range([0.5, 1.0]);
   // var sessionOpacityScale = d3.scaleLog().domain([1e-6, 1.0]).range([1.0, 1e-6]);
 
@@ -1093,13 +1094,6 @@ function ViewForce() {
       .attr("y1", function(d) { return d.source.y; })
       .attr("x2", function(d) { return d.target.x; })
       .attr("y2", function(d) { return d.target.y; })
-      // .style('stroke', function(d) { 
-      //   if (d.ageMaxRatio < 0.01) { return palette.red; }
-      //   return palette.blue; 
-      // });
-      // .style('opacity', function(d) {
-      //   return sessionOpacityScale(1 - d.ageMaxRatio);
-      // });
       .style('opacity', function(d) { return sessionOpacityScale(d.ageMaxRatio); });
 
     link.enter()
@@ -1123,7 +1117,8 @@ function ViewForce() {
 
     nodeCircles
       .attr("r", function(d) {
-        if (typeof d.isIgnored === 'undefined') {
+        // if (typeof d.isIgnored === 'undefined') {
+        if (d.isIgnored) {
           // console.debug(d.nodeId + " | NODE CIRCLE d.mentions UNDEFINED");
           return defaultRadiusScale(1);
         }
@@ -1139,14 +1134,6 @@ function ViewForce() {
       })
       .attr("cx", function(d) { return d.x; })
       .attr("cy", function(d) { return d.y; })
-      // .attr("x", function(d) {return d.x - 0.5*(sessionCircleRadiusScale(d.wordChainIndex + 1.0));})
-      // .attr("y", function(d) {return d.y - 0.5*(sessionCircleRadiusScale(d.wordChainIndex + 1.0));})
-      // .attr("width", function(d){
-      //   return sessionCircleRadiusScale(d.wordChainIndex + 1.0);
-      // })
-      // .attr("height", function(d){
-      //   return sessionCircleRadiusScale(d.wordChainIndex + 1.0);
-      // })
       .style('opacity', function(d) {
         if (hideNodeCirclesFlag) return 1e-6;
         if (d.mouseHoverFlag) return 1.0;
@@ -1161,7 +1148,20 @@ function ViewForce() {
       .attr("height", 0)
       .attr("cx", function(d) { return d.x; })
       .attr("cy", function(d) { return d.y; })
-      .attr("fill", "none")
+      .style('fill', function(d) { 
+        if (d.mouseHoverFlag) { return palette.blue; }
+        if (d.isKeyword) { return d.keywordColor; }
+        if ( d.isTrendingTopic 
+          || d.isTwitterUser 
+          || d.isNumber 
+          || d.isCurrency) { return palette.black; }
+        if ((d.isGroupNode || d.isSessionNode) && (d.ageMaxRatio < 0.01)) { return palette.yellow; }
+        return palette.lightgray; 
+      })
+      .style('visibility', function(d) {
+        if (d.isSessionNode) { return "hidden"; }
+        return "visible";
+      })
       .style('stroke', function(d) {
         return palette.black;
       })
@@ -1169,7 +1169,6 @@ function ViewForce() {
       .style('stroke-opacity', function(d) {
         return 1.0 - d.ageMaxRatio; 
       });
-      // .style("visibility", "hidden");
 
     nodeCircles
       .exit().remove();
@@ -1245,7 +1244,12 @@ function ViewForce() {
         return d.nodeId.toUpperCase();
       })
       .attr("x", function(d) { return d.x; })
-      .attr("y", function(d) { return d.y; })
+      // .attr("y", function(d) { return d.y; })
+      .attr("y", function(d) { 
+        // var shiftY = -1.5 * (nodeFontSizeScale(d.mentions + 1));
+        if (d.isIgnored) return d.y - 1.5 * (nodeFontSizeScale(10));
+        return d.y -1.5 * (nodeFontSizeScale(d.mentions + 1));
+      })
       .style("font-weight", function(d) {
         if (d.isTwitterUser 
           || d.isKeyword 
@@ -1273,9 +1277,9 @@ function ViewForce() {
         return 1.0 - d.ageMaxRatio; 
       })
       .style("font-size", function(d) {
-          if (d.isIgnored) { return nodeFontSizeScale(10) + "px";  }
-          if (d.isTrendingTopic) { return nodeFontSizeScale(1.5*d.mentions + 1.1) + "px"; }
-          return (nodeFontSizeScale(d.mentions + 1.1)) + "px";
+          if (d.isIgnored) { return nodeFontSizeScale(10);  }
+          if (d.isTrendingTopic) { return nodeFontSizeScale(1.5*d.mentions + 1.1); }
+          return (nodeFontSizeScale(d.mentions + 1.1));
         });
 
     nodeLabels
@@ -1295,7 +1299,7 @@ function ViewForce() {
         return (d.isGroupNode || d.isSessionNode) ? "hidden" : "visible"; 
       })
       .style("text-anchor", "middle")
-      .style("alignment-baseline", "middle")
+      .style("alignment-baseline", "bottom")
       .style("opacity", 1e-6)
       .style("fill", palette.white)
       .style("font-size", "1px")

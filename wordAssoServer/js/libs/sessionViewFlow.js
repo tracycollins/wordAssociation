@@ -1575,6 +1575,22 @@ function ViewFlow() {
     d3LayoutWidth = width; // double the width for now
     d3LayoutHeight = height;
 
+    if (simulation){
+    simulation.force("forceX", d3.forceX().x(function(d) { 
+        if (d.isSessionNode) return 0.65*width;
+        return -20*width; 
+      }).strength(function(d){
+        if (d.isSessionNode) return 70*gravity;
+        return gravity; 
+      }));
+    simulation.force("forceY", d3.forceY().y(function(d) { 
+        return 0.4*height; 
+      }).strength(function(d){
+        if (d.isSessionNode) return 0.75*forceYmultiplier*gravity;
+        return forceYmultiplier * gravity; 
+      }));
+    }
+
   }
 
   // ==========================================

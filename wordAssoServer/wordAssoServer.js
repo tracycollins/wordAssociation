@@ -22,6 +22,9 @@ var maxWordsPerMinTime = moment.utc();
 var serverHeartbeatInterval;
 var pollGetTwitterFriendsInterval;
 
+var clone = require('clone');
+var deepcopy = require("deepcopy");
+
 var cp = require('child_process');
 var updater;
 
@@ -85,7 +88,7 @@ var wapiOverLimitTestFlag = false;
 
 var jsonPrint = function(obj) {
   if (obj) {
-    return JSON.stringify(obj, null, 2);
+     return JSON.stringify(obj, null, 2);
   } else {
     return obj;
   }
@@ -1665,7 +1668,171 @@ var updateSessionViewQueue = [];
 
 var updateSessionViewReady = true;
 
+function createSmallSessionUpdateObj (updateObj, callback){
+
+  var sessionSmallObj = {};
+
+  if (updateObj.action == 'KEEPALIVE') {
+    // sessionSmallObj = {
+    //   tags: {},
+    //   action: sessionUpdateObj.action,
+    //   userId: sessionUpdateObj.userId,
+    //   url: sessionUpdateObj.url,
+    //   sessionId: sessionUpdateObj.sessionId,
+    //   wordChainIndex: sessionUpdateObj.wordChainIndex,
+    //   source: {},
+    //   target: {}
+    // };
+
+    sessionSmallObj.tags = {};
+    sessionSmallObj.action = updateObj.action;
+    sessionSmallObj.userId = updateObj.userId;
+    sessionSmallObj.url = updateObj.url;
+    sessionSmallObj.sessionId = updateObj.sessionId;
+    sessionSmallObj.wordChainIndex = updateObj.wordChainIndex;
+    sessionSmallObj.mentions = updateObj.wordChainIndex;
+    sessionSmallObj.source = {};
+    sessionSmallObj.target = null;
+
+    if (typeof updateObj.tags !== 'undefined') {
+      sessionSmallObj.tags = updateObj.tags;
+    }
+
+    sessionSmallObj.source = {
+      nodeId: updateObj.userId,
+      wordChainIndex: updateObj.wordChainIndex,
+      links: {},
+      mentions: updateObj.wordChainIndex
+    };
+
+    return(callback(sessionSmallObj));
+  } 
+  else {
+    // sessionSmallObj = {
+    //   tags: {},
+    //   action: sessionUpdateObj.action,
+    //   userId: sessionUpdateObj.userId,
+    //   url: sessionUpdateObj.url,
+    //   profileImageUrl: sessionUpdateObj.profileImageUrl,
+    //   sessionId: sessionUpdateObj.sessionId,
+    //   wordChainIndex: sessionUpdateObj.wordChainIndex,
+    //   source: {},
+    //   target: {}
+    // };
+
+    sessionSmallObj.tags = {};
+    sessionSmallObj.action = updateObj.action;
+    sessionSmallObj.userId = updateObj.userId;
+    sessionSmallObj.url = updateObj.url;
+    sessionSmallObj.profileImageUrl = updateObj.profileImageUrl;
+    sessionSmallObj.sessionId = updateObj.sessionId;
+    sessionSmallObj.wordChainIndex = updateObj.wordChainIndex;
+    sessionSmallObj.mentions = updateObj.wordChainIndex;
+    sessionSmallObj.source = {};
+    sessionSmallObj.target = {};
+
+    if (typeof updateObj.tags !== 'undefined') {
+      sessionSmallObj.tags = updateObj.tags;
+      // console.log("readUpdateSessionViewQueue | sessionSmallObj.tags\n" + jsonPrint(sessionSmallObj.tags));
+    }
+
+    // sessionSmallObj.source = {
+    //   nodeId: sessionUpdateObj.source.nodeId,
+    //   raw: sessionUpdateObj.source.raw,
+    //   isIgnored: sessionUpdateObj.source.isIgnored,
+    //   isTrendingTopic: sessionUpdateObj.source.isTrendingTopic,
+    //   isKeyword: sessionUpdateObj.source.isKeyword,
+    //   keywords: {},
+    //   url: sessionUpdateObj.source.url,
+    //   wordChainIndex: sessionUpdateObj.source.wordChainIndex,
+    //   links: {},
+    //   mentions: sessionUpdateObj.source.mentions
+    // };
+
+    sessionSmallObj.source.nodeId = updateObj.source.nodeId;
+    sessionSmallObj.source.raw = updateObj.source.raw;
+    sessionSmallObj.source.isIgnored = updateObj.source.isIgnored;
+    sessionSmallObj.source.isTrendingTopic = updateObj.source.isTrendingTopic;
+    sessionSmallObj.source.isKeyword = updateObj.source.isKeyword;
+    sessionSmallObj.source.keywords = {};
+    sessionSmallObj.source.url = updateObj.source.url;
+    sessionSmallObj.source.wordChainIndex = updateObj.source.wordChainIndex;
+    sessionSmallObj.source.links = {};
+    sessionSmallObj.source.mentions = updateObj.source.mentions;
+
+
+    if (keywordHashMap.has(updateObj.source.nodeId)) {
+      sessionSmallObj.source.keywords = keywordHashMap.get(updateObj.source.nodeId);
+    }
+
+    if (updateObj.source.antonym) {
+      sessionSmallObj.source.antonym = updateObj.source.antonym;
+    }
+
+    if (typeof updateObj.target !== 'undefined') {
+      // sessionSmallObj.target = {
+      //   nodeId: sessionUpdateObj.target.nodeId,
+      //   raw: sessionUpdateObj.target.raw,
+      //   isIgnored: sessionUpdateObj.target.isIgnored,
+      //   isKeyword: sessionUpdateObj.target.isKeyword,
+      //   isTrendingTopic: sessionUpdateObj.target.isTrendingTopic,
+      //   keywords: {},
+      //   url: sessionUpdateObj.target.url,
+      //   wordChainIndex: sessionUpdateObj.target.wordChainIndex,
+      //   links: {},
+      //   mentions: sessionUpdateObj.target.mentions
+      // };
+
+      sessionSmallObj.target.nodeId = updateObj.target.nodeId;
+      sessionSmallObj.target.raw = updateObj.target.raw;
+      sessionSmallObj.target.isIgnored = updateObj.target.isIgnored;
+      sessionSmallObj.target.isTrendingTopic = updateObj.target.isTrendingTopic;
+      sessionSmallObj.target.isKeyword = updateObj.target.isKeyword;
+      sessionSmallObj.target.keywords = {};
+      sessionSmallObj.target.url = updateObj.target.url;
+      sessionSmallObj.target.wordChainIndex = updateObj.target.wordChainIndex;
+      sessionSmallObj.target.links = {};
+      sessionSmallObj.target.mentions = updateObj.target.mentions;
+
+      if (updateObj.target.keywords) {
+        sessionSmallObj.target.keywords = updateObj.target.keywords;
+        return(callback(sessionSmallObj));
+      }
+      else{
+        return(callback(sessionSmallObj));
+      }
+    }
+    else {
+      sessionSmallObj.target = null;
+      return(callback(sessionSmallObj));
+    }
+
+
+    // if (updateObj.target) {
+    //   console.log(chalkRed("S>" + " | " + updateObj.userId
+    //     // + " | " + updateObj.sessionId
+    //     + " | WCI: " + updateObj.wordChainIndex
+    //     + " | URL: " + updateObj.source.url
+    //     + " | " + updateObj.source.raw 
+    //     + " [" + updateObj.source.wordChainIndex + "]" 
+    //     + " > " + updateObj.target.raw 
+    //     + " [" + updateObj.target.wordChainIndex + "]"
+    //   ));
+    // } 
+    // else {
+    //   console.log(chalkRed("SNT>" + " | " + updateObj.userId
+    //     // + " | " + updateObj.sessionId
+    //     + " | WCI: " + updateObj.wordChainIndex
+    //     + " | URL: " + updateObj.source.url
+    //     + " | " + updateObj.source.nodeId 
+    //     + " [" + updateObj.source.wordChainIndex + "]"
+    //   ));
+    // }
+  }
+}
+
 var readUpdateSessionViewQueue = setInterval(function() {
+
   if (updateSessionViewReady && (updateSessionViewQueue.length > 0)) {
 
     updateSessionViewReady = false;
@@ -1676,145 +1843,197 @@ var readUpdateSessionViewQueue = setInterval(function() {
 
     var sessionSmallObj;
 
-    if (sessionUpdateObj.action == 'KEEPALIVE') {
-      sessionSmallObj = {
-        tags: {},
-        action: sessionUpdateObj.action,
-        userId: sessionUpdateObj.userId,
-        url: sessionUpdateObj.url,
-        sessionId: sessionUpdateObj.sessionId,
-        wordChainIndex: sessionUpdateObj.wordChainIndex,
-        source: {},
-        target: {}
-      };
+    // if (sessionUpdateObj.action == 'KEEPALIVE') {
+    //   sessionSmallObj = {
+    //     tags: {},
+    //     action: sessionUpdateObj.action,
+    //     userId: sessionUpdateObj.userId,
+    //     url: sessionUpdateObj.url,
+    //     sessionId: sessionUpdateObj.sessionId,
+    //     wordChainIndex: sessionUpdateObj.wordChainIndex,
+    //     source: {},
+    //     target: {}
+    //   };
 
-      if (typeof sessionUpdateObj.tags !== 'undefined') {
-        sessionSmallObj.tags = sessionUpdateObj.tags;
+    //   if (typeof sessionUpdateObj.tags !== 'undefined') {
+    //     sessionSmallObj.tags = sessionUpdateObj.tags;
+    //   }
+
+    //   sessionSmallObj.source = {
+    //     nodeId: sessionUpdateObj.userId,
+    //     wordChainIndex: sessionUpdateObj.wordChainIndex,
+    //     links: {},
+    //     mentions: sessionUpdateObj.wordChainIndex
+    //   };
+    // } 
+    // else {
+    //   sessionSmallObj = {
+    //     tags: {},
+    //     action: sessionUpdateObj.action,
+    //     userId: sessionUpdateObj.userId,
+    //     url: sessionUpdateObj.url,
+    //     profileImageUrl: sessionUpdateObj.profileImageUrl,
+    //     sessionId: sessionUpdateObj.sessionId,
+    //     wordChainIndex: sessionUpdateObj.wordChainIndex,
+    //     source: {},
+    //     target: {}
+    //   };
+
+    //   if (typeof sessionUpdateObj.tags !== 'undefined') {
+    //     sessionSmallObj.tags = sessionUpdateObj.tags;
+    //     // console.log("readUpdateSessionViewQueue | sessionSmallObj.tags\n" + jsonPrint(sessionSmallObj.tags));
+    //   }
+
+    //   sessionSmallObj.source = {
+    //     nodeId: sessionUpdateObj.source.nodeId,
+    //     raw: sessionUpdateObj.source.raw,
+    //     isIgnored: sessionUpdateObj.source.isIgnored,
+    //     isTrendingTopic: sessionUpdateObj.source.isTrendingTopic,
+    //     isKeyword: sessionUpdateObj.source.isKeyword,
+    //     keywords: {},
+    //     url: sessionUpdateObj.source.url,
+    //     wordChainIndex: sessionUpdateObj.source.wordChainIndex,
+    //     links: {},
+    //     mentions: sessionUpdateObj.source.mentions
+    //   };
+
+    //   if (keywordHashMap.has(sessionUpdateObj.source.nodeId)) {
+    //     sessionSmallObj.source.keywords = keywordHashMap.get(sessionUpdateObj.source.nodeId);
+    //   }
+
+    //   if (sessionUpdateObj.source.antonym) {
+    //     sessionSmallObj.source.antonym = sessionUpdateObj.source.antonym;
+    //   }
+
+    //   if (sessionUpdateObj.target) {
+    //     sessionSmallObj.target = {
+    //       nodeId: sessionUpdateObj.target.nodeId,
+    //       raw: sessionUpdateObj.target.raw,
+    //       isIgnored: sessionUpdateObj.target.isIgnored,
+    //       isKeyword: sessionUpdateObj.target.isKeyword,
+    //       isTrendingTopic: sessionUpdateObj.target.isTrendingTopic,
+    //       keywords: {},
+    //       url: sessionUpdateObj.target.url,
+    //       wordChainIndex: sessionUpdateObj.target.wordChainIndex,
+    //       links: {},
+    //       mentions: sessionUpdateObj.target.mentions
+    //     };
+
+    //     if (sessionUpdateObj.target.keywords) {
+    //       sessionSmallObj.target.keywords = sessionUpdateObj.target.keywords;
+    //     }
+    //   }
+
+
+    //   if (sessionUpdateObj.target) {
+    //     console.log(chalkRed("S>" + " | " + sessionUpdateObj.userId
+    //       // + " | " + sessionUpdateObj.sessionId
+    //       + " | WCI: " + sessionUpdateObj.wordChainIndex
+    //       + " | URL: " + sessionUpdateObj.source.url
+    //       + " | " + sessionUpdateObj.source.raw 
+    //       + " [" + sessionUpdateObj.source.wordChainIndex + "]" 
+    //       + " > " + sessionUpdateObj.target.raw 
+    //       + " [" + sessionUpdateObj.target.wordChainIndex + "]"
+    //     ));
+    //   } 
+    //   else {
+    //     console.log(chalkRed("SNT>" + " | " + sessionUpdateObj.userId
+    //       // + " | " + sessionUpdateObj.sessionId
+    //       + " | WCI: " + sessionUpdateObj.wordChainIndex
+    //       + " | URL: " + sessionUpdateObj.source.url
+    //       + " | " + sessionUpdateObj.source.nodeId 
+    //       + " [" + sessionUpdateObj.source.wordChainIndex + "]"
+    //     ));
+    //   }
+    // }
+
+
+    createSmallSessionUpdateObj(sessionUpdateObj, function(sessionSmallObj){
+
+      var key = sessionSmallObj.tags.entity + '_' + sessionSmallObj.tags.channel;
+
+      if (monitorHashMap[key] && sessionSmallObj.action == "RESPONSE"){
+        console.log(chalkInfo("R< M"
+          + " | " + monitorHashMap[key].session.sessionId
+          + " | " + sessionSmallObj.source.nodeId
+          + " | " + sessionSmallObj.source.raw
+          // + " | " + jsonPrint(monitorHashMap[key])
+        ));
+        utilNameSpace.to(monitorHashMap[key].session.sessionId).emit("SESSION_UPDATE",sessionSmallObj);
       }
 
-      sessionSmallObj.source = {
-        nodeId: sessionUpdateObj.userId,
-        wordChainIndex: sessionUpdateObj.wordChainIndex,
-        links: {},
-        mentions: sessionUpdateObj.wordChainIndex
-      };
-    } 
-    else {
-      sessionSmallObj = {
-        tags: {},
-        action: sessionUpdateObj.action,
-        userId: sessionUpdateObj.userId,
-        url: sessionUpdateObj.url,
-        profileImageUrl: sessionUpdateObj.profileImageUrl,
-        sessionId: sessionUpdateObj.sessionId,
-        wordChainIndex: sessionUpdateObj.wordChainIndex,
-        source: {},
-        target: {}
-      };
-
-      if (typeof sessionUpdateObj.tags !== 'undefined') {
-        sessionSmallObj.tags = sessionUpdateObj.tags;
-        // console.log("readUpdateSessionViewQueue | sessionSmallObj.tags\n" + jsonPrint(sessionSmallObj.tags));
-      }
-
-      sessionSmallObj.source = {
-        nodeId: sessionUpdateObj.source.nodeId,
-        raw: sessionUpdateObj.source.raw,
-        isIgnored: sessionUpdateObj.source.isIgnored,
-        isTrendingTopic: sessionUpdateObj.source.isTrendingTopic,
-        isKeyword: sessionUpdateObj.source.isKeyword,
-        keywords: {},
-        url: sessionUpdateObj.source.url,
-        wordChainIndex: sessionUpdateObj.source.wordChainIndex,
-        links: {},
-        mentions: sessionUpdateObj.source.mentions
-      };
-
-      if (keywordHashMap.has(sessionUpdateObj.source.nodeId)) {
-        sessionSmallObj.source.keywords = keywordHashMap.get(sessionUpdateObj.source.nodeId);
-      }
-
-      if (sessionUpdateObj.source.antonym) {
-        sessionSmallObj.source.antonym = sessionUpdateObj.source.antonym;
-      }
-
-      if (sessionUpdateObj.target) {
-        sessionSmallObj.target = {
-          nodeId: sessionUpdateObj.target.nodeId,
-          raw: sessionUpdateObj.target.raw,
-          isIgnored: sessionUpdateObj.target.isIgnored,
-          isKeyword: sessionUpdateObj.target.isKeyword,
-          isTrendingTopic: sessionUpdateObj.target.isTrendingTopic,
-          keywords: {},
-          url: sessionUpdateObj.target.url,
-          wordChainIndex: sessionUpdateObj.target.wordChainIndex,
-          links: {},
-          mentions: sessionUpdateObj.target.mentions
-        };
-
-        if (sessionUpdateObj.target.keywords) {
-          sessionSmallObj.target.keywords = sessionUpdateObj.target.keywords;
+      if (sessionSmallObj.target){ 
+        if (typeof sessionSmallObj.target.mentions === 'undefined'){
+        console.log(chalkError("sessionSmallObj.target.mentions UNDEFINED\n" + jsonPrint(sessionSmallObj)));
         }
       }
 
+      viewNameSpace.emit("SESSION_UPDATE", sessionSmallObj);
+      testViewersNameSpace.emit("SESSION_UPDATE", sessionSmallObj);
 
-      if (sessionUpdateObj.target) {
-        debug(chalkLog("S>" + " | " + sessionUpdateObj.userId
-          // + " | " + sessionUpdateObj.sessionId
-          // + " | WCI: " + sessionUpdateObj.wordChainIndex
-          + " | URL: " + sessionUpdateObj.source.url
-          + " | " + sessionUpdateObj.source.raw 
-          + " [" + sessionUpdateObj.source.wordChainIndex + "]" 
-          + " > " + sessionUpdateObj.target.raw 
-          + " [" + sessionUpdateObj.target.wordChainIndex + "]"
-        ));
-      } 
-      else {
-        debug(chalkLog("SNT>" + " | " + sessionUpdateObj.userId
-          // + " | " + sessionUpdateObj.sessionId
-          // + " | WCI: " + sessionUpdateObj.wordChainIndex
-          + " | URL: " + sessionUpdateObj.source.url
-          + " | " + sessionUpdateObj.source.nodeId 
-          + " [" + sessionUpdateObj.source.wordChainIndex + "]"
-        ));
-      }
-    }
+      updateStats({ sessionUpdatesSent: sessionUpdatesSent });
+      updatePromptResponseMetric(sessionSmallObj);
 
-    viewNameSpace.emit("SESSION_UPDATE", sessionSmallObj);
-    testViewersNameSpace.emit("SESSION_UPDATE", sessionSmallObj);
+      sessionUpdatesSent++;
+      updateSessionViewReady = true;
 
-    var key = sessionUpdateObj.tags.entity + '_' + sessionUpdateObj.tags.channel;
+    });
 
-    if (monitorHashMap[key] && sessionUpdateObj.action == "RESPONSE"){
-      console.log(chalkInfo("R< M"
-        + " | " + monitorHashMap[key].session.sessionId
-        + " | " + sessionUpdateObj.source.nodeId
-        + " | " + sessionUpdateObj.source.raw
-        // + " | " + jsonPrint(monitorHashMap[key])
-      ));
-      utilNameSpace.to(monitorHashMap[key].session.sessionId).emit("SESSION_UPDATE",sessionSmallObj);
-    }
+    // var key = sessionUpdateObj.tags.entity + '_' + sessionUpdateObj.tags.channel;
 
-    updateStats({ sessionUpdatesSent: sessionUpdatesSent });
-    updatePromptResponseMetric(sessionUpdateObj);
+    // if (monitorHashMap[key] && sessionUpdateObj.action == "RESPONSE"){
+    //   console.log(chalkInfo("R< M"
+    //     + " | " + monitorHashMap[key].session.sessionId
+    //     + " | " + sessionUpdateObj.source.nodeId
+    //     + " | " + sessionUpdateObj.source.raw
+    //     // + " | " + jsonPrint(monitorHashMap[key])
+    //   ));
+    //   utilNameSpace.to(monitorHashMap[key].session.sessionId).emit("SESSION_UPDATE",sessionSmallObj);
+    // }
 
-    sessionUpdatesSent++;
-    updateSessionViewReady = true;
+
+    // viewNameSpace.emit("SESSION_UPDATE", sessionSmallObj);
+    // testViewersNameSpace.emit("SESSION_UPDATE", sessionSmallObj);
+
+    // updateStats({ sessionUpdatesSent: sessionUpdatesSent });
+    // updatePromptResponseMetric(sessionUpdateObj);
+
+    // sessionUpdatesSent++;
+    // updateSessionViewReady = true;
   }
 }, 20);
 
 
 function updateSessionViews(sessionUpdateObj) {
 
-  debug(chalkRed("updateSessionViews | sessionUpdateObj\n" + jsonPrint(sessionUpdateObj)));
+  var obj = {};
+  // // obj = clone(sessionUpdateObj, true, 1);
+  obj = sessionUpdateObj;
 
-  if (entityChannelGroupHashMap.has(sessionUpdateObj.tags.entity)){
-    sessionUpdateObj.tags.group = entityChannelGroupHashMap.get(sessionUpdateObj.tags.entity);
-    updateSessionViewQueue.push(sessionUpdateObj);
+  if (typeof obj.source !== 'undefined') {
+    obj.source.mwEntry = null;
+    obj.source.noun = null;
+    obj.source.verb = null;
+    obj.source.adverb = null;
+    obj.source.adjective = null;
+    if (obj.source.mentions === 'undefined') console.log(chalkRed("updateSessionViews | obj | SOURCE\n" + jsonPrint(obj.source)));
   }
-  else if (typeof sessionUpdateObj.tags.entity !== 'undefined') {
-    statsObj.entityChannelGroup.hashMiss[sessionUpdateObj.tags.entity] = 1;
-    statsObj.entityChannelGroup.allHashMisses[sessionUpdateObj.tags.entity] = 1;
+  if (typeof obj.target !== 'undefined') {
+    obj.target.mwEntry = null;
+    obj.target.noun = null;
+    obj.target.verb = null;
+    obj.target.adverb = null;
+    obj.target.adjective = null;
+    if (obj.target.mentions === 'undefined') console.log(chalkRed("updateSessionViews | obj | TARGET\n" + jsonPrint(obj.target)));
+  }
+
+  if (entityChannelGroupHashMap.has(obj.tags.entity)){
+    obj.tags.group = entityChannelGroupHashMap.get(obj.tags.entity);
+    updateSessionViewQueue.push(obj);
+  }
+  else if (typeof obj.tags.entity !== 'undefined') {
+    statsObj.entityChannelGroup.hashMiss[obj.tags.entity] = 1;
+    statsObj.entityChannelGroup.allHashMisses[obj.tags.entity] = 1;
   }
 }
 
@@ -1937,13 +2156,6 @@ function dbUpdateWord(wObj, incMentions, callback) {
     return(callback("NULL OR UNDEFINED nodeId", wObj));
   }
 
-  // if (keywordHashMap.has(wordObj.nodeId)) {
-  //   wordObj.isKeyword = true;
-  //   var kw = keywordHashMap.get(wordObj.nodeId);
-  //   wordObj.keywords = {};    
-  //   wordObj.keywords[kw] = true;    
-  // }
-
   checkKeyword(wObj, function(wordObj){
 
     wordServer.findOneWord(wordObj, incMentions, function(err, word) {
@@ -1955,16 +2167,16 @@ function dbUpdateWord(wObj, incMentions, callback) {
 
         debug("> DB UPDATE | " 
           + word.nodeId 
-          + " | I: " + word.isIgnored 
-          + " | K: " + word.isKeyword 
-          + " | TT: " + word.isTrendingTopic 
-          + " | MNS: " + word.mentions 
-          + " | URL: " + word.url 
-          + " | BHT SEARCHED: " + word.bhtSearched 
-          + " FOUND: " + word.bhtFound
-          + " | MWD SEARCHED: " + word.mwDictSearched 
-          + " FOUND: " + word.mwDictFound
-          + "\nKWs: " + jsonPrint(word.keywords) 
+          + " | I " + word.isIgnored 
+          + " | K " + word.isKeyword 
+          + " | TT " + word.isTrendingTopic 
+          + " | M " + word.mentions 
+          // + " | U: " + word.url 
+          // + " | BHT: " + word.bhtSearched 
+          // + " FOUND: " + word.bhtFound
+          // + " | MWD: " + word.mwDictSearched 
+          // + " FOUND: " + word.mwDictFound
+          + "\nKW: " + jsonPrint(word.keywords) 
         );
 
         debug(JSON.stringify(word, null, 3));
@@ -2816,7 +3028,7 @@ function entityFindAllDb(options, callback) {
           //   + " | LS: " + getTimeStamp(entity.lastSeen)
           // ));
 
-          entityChannelGroupHashMap.set(entity.entityId, entity);
+          entityChannelGroupHashMap.set(entity.entityId.toLowerCase(), entity);
           cb(null);
 
         },
@@ -4061,8 +4273,8 @@ function handleSessionEvent(sesObj, callback) {
               profileImageUrl: sessionUpdatedObj.profileImageUrl,
               sessionId: sessionUpdatedObj.sessionId,
               wordChainIndex: sessionUpdatedObj.wordChainIndex,
-              source: {},
-              target: 0
+              source: {}
+              // target: 0
             };
 
             sessionUpdateObj.tags = sessionUpdatedObj.tags;
@@ -4746,7 +4958,8 @@ var readResponseQueue = setInterval(function() {
           statsObj.session.previousPromptNotFound++;
 
           previousPromptObj = {
-            nodeId: previousPrompt
+            nodeId: previousPrompt,
+            mentions: 1 // !!!!!! KLUDGE !!!!!!
           };
 
           wordCache.set(previousPrompt, previousPromptObj);
@@ -4889,7 +5102,7 @@ var readUpdaterMessageQueue = setInterval(function() {
       break;
 
       case 'entity':
-        entityChannelGroupHashMap.set(updaterObj.entityId, updaterObj.entity);
+        entityChannelGroupHashMap.set(updaterObj.entityId.toLowerCase(), updaterObj.entity);
         debug(chalkLog("UPDATE ENTITIY\n" + jsonPrint(updaterObj)));
         debug(chalkLog("UPDATE ENTITIY | " + updaterObj.entityId));
         updaterMessageReady = true;
@@ -5195,6 +5408,38 @@ var printWapiResults = function(results){
   }
 }
 
+function updatePreviousPrompt(sessionObj, wordObj, callback){
+
+  var previousPromptNodeId;
+  var previousPromptObj;
+
+  if (wordObj.word.wordChainIndex == 0) {
+
+    previousPromptObj = null;
+    debug(chalkRed("CHAIN START"));
+    callback(previousPromptObj);
+  } 
+  else if (sessionObj.wordChain.length > 1) {
+
+    previousPromptNodeId = sessionObj.wordChain[sessionObj.wordChain.length - 2].nodeId;
+    previousPromptObj = wordCache.get(previousPromptNodeId);
+
+    if (!previousPromptObj) {
+      debug(chalkWarn("??? PREVIOUS PROMPT NOT IN CACHE: " + previousPromptNodeId));
+      if (quitOnError) quit("??? PREVIOUS PROMPT NOT IN CACHE: " + previousPromptNodeId);
+      callback(previousPromptObj);
+    } else {
+      previousPromptObj.wordChainIndex = wordObj.word.wordChainIndex - 1;
+      debug(chalkRed("CHAIN previousPromptObj: " + previousPromptNodeId));
+      callback(previousPromptObj);
+    }
+
+  }
+  else {
+    callback(previousPromptObj);
+  }
+}
+
 var dbUpdateWordReady = true;
 var readDbUpdateWordQueue = setInterval(function() {
 
@@ -5247,56 +5492,42 @@ var readDbUpdateWordQueue = setInterval(function() {
 
       updatedWordObj.wordChainIndex = dbUpdateObj.word.wordChainIndex;
 
-      var previousPromptNodeId;
-      var previousPromptObj;
+      updatePreviousPrompt(currentSessionObj, dbUpdateObj, function(previousPromptObj){
 
-      if (dbUpdateObj.word.wordChainIndex == 0) {
-
-        previousPromptObj == null
-        debug(chalkRed("CHAIN START"));
-
-      } 
-      else if (currentSessionObj.wordChain.length > 1) {
-
-        previousPromptNodeId = currentSessionObj.wordChain[currentSessionObj.wordChain.length - 2].nodeId;
-        previousPromptObj = wordCache.get(previousPromptNodeId);
-
-        if (!previousPromptObj) {
-          debug(chalkWarn("??? PREVIOUS PROMPT NOT IN CACHE: " + previousPromptNodeId));
-          if (quitOnError) quit("??? PREVIOUS PROMPT NOT IN CACHE: " + previousPromptNodeId);
-        } else {
-          previousPromptObj.wordChainIndex = dbUpdateObj.word.wordChainIndex - 1;
-          debug(chalkRed("CHAIN previousPromptObj: " + previousPromptNodeId));
+        if (typeof previousPromptObj === 'undefined') {
+          console.log(chalkError("previousPromptObj UNDEFINED"));
+          // quit();
         }
 
-      }
+        sessionCache.set(currentSessionObj.sessionId, currentSessionObj, function(err, success) {
+          if (!err && success) {
 
-      sessionCache.set(currentSessionObj.sessionId, currentSessionObj, function(err, success) {
-        if (!err && success) {
+            promptQueue.enqueue(currentSessionObj.sessionId);
 
-          promptQueue.enqueue(currentSessionObj.sessionId);
+            var sessionUpdateObj = {
+              action: 'RESPONSE',
+              userId: currentSessionObj.userId,
+              url: currentSessionObj.url,
+              profileImageUrl: currentSessionObj.profileImageUrl,
+              sessionId: currentSessionObj.sessionId,
+              wordChainIndex: dbUpdateObj.word.wordChainIndex,
+              source: updatedWordObj,
+              // target: previousPromptObj,
+              tags: dbUpdateObj.tags
+            };
 
-          var sessionUpdateObj = {
-            action: 'RESPONSE',
-            userId: currentSessionObj.userId,
-            url: currentSessionObj.url,
-            profileImageUrl: currentSessionObj.profileImageUrl,
-            sessionId: currentSessionObj.sessionId,
-            wordChainIndex: dbUpdateObj.word.wordChainIndex,
-            source: updatedWordObj,
-            target: previousPromptObj,
-            tags: dbUpdateObj.tags
-          };
+            if (previousPromptObj) sessionUpdateObj.target = previousPromptObj;
 
-          updateSessionViews(sessionUpdateObj);
+            updateSessionViews(sessionUpdateObj);
 
-          dbUpdateWordReady = true;
+            dbUpdateWordReady = true;
 
-        } else {
-          debug(chalkError("*** SESSION CACHE SET ERROR" + "\n" + jsonPrint(err)));
+          } else {
+            debug(chalkError("*** SESSION CACHE SET ERROR" + "\n" + jsonPrint(err)));
 
-          dbUpdateWordReady = true;
-        }
+            dbUpdateWordReady = true;
+          }
+        });
       });
     });
 
@@ -6104,8 +6335,8 @@ function initFollowerUpdateQueueInterval(interval){
               + " | " + entityObj.name
             ));
 
-            entityChannelGroupHashMap.set(entityObj.entityId, entityObj);
-            serverEntityChannelGroupHashMap.set(entityObj.entityId, entityObj);
+            entityChannelGroupHashMap.set(entityObj.entityId.toLowerCase(), entityObj);
+            serverEntityChannelGroupHashMap.set(entityObj.entityId.toLowerCase(), entityObj);
 
             if (groupHashMap.has(entityObj.groupId)) {
 

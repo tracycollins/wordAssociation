@@ -72,8 +72,9 @@ var DEFAULT_AGE_RATE = 1.0;
 var FORCEVIEW_DEFAULT = {};
 // FORCEVIEW_DEFAULT.FRICTION = 0.5;
 FORCEVIEW_DEFAULT.MAX_AGE = FORCE_MAX_AGE;
-FORCEVIEW_DEFAULT.CHARGE = -100;
-FORCEVIEW_DEFAULT.GRAVITY = 0.1;
+FORCEVIEW_DEFAULT.CHARGE = 0;
+FORCEVIEW_DEFAULT.GRAVITY = 0.015;
+FORCEVIEW_DEFAULT.FORCEY_MULTIPLIER = 0.0;
 FORCEVIEW_DEFAULT.VELOCITY_DECAY = 0.85;
 FORCEVIEW_DEFAULT.LINK_DISTANCE = 10;
 FORCEVIEW_DEFAULT.LINK_STRENGTH = 0.50;
@@ -300,6 +301,53 @@ var ignoreWordsArray = [
 
 ignoreWordsArray.push('"');
 ignoreWordsArray.push("'");
+
+
+var groupHashMap = new HashMap();
+var groupDeleteHashMap = new HashMap();
+
+var maxSessions = 0;
+var sessionHashMap = new HashMap();
+var sessionDeleteHashMap = new HashMap();
+
+var linkHashMap = new HashMap();
+var nodeHashMap = new HashMap();
+
+var ignoreWordHashMap = new HashMap();
+
+var keywordColorHashMap = new HashMap();
+
+keywordColorHashMap.set("positive", palette.green);
+keywordColorHashMap.set("negative", palette.red);
+keywordColorHashMap.set("neutral", palette.black);
+
+keywordColorHashMap.set("left", palette.blue);
+keywordColorHashMap.set("right", palette.red);
+
+
+var rxSessionUpdateQueue = [];
+var rxSessionDeleteQueue = [];
+
+var groupCreateQueue = [];
+var groupsCreated = 0;
+
+var sessionCreateQueue = [];
+var sessionsCreated = 0;
+
+var nodeCreateQueue = [];
+var linkCreateQueue = [];
+
+var groupDeleteQueue = []; // gets a hash of nodes deleted by sessionViewForce for each d3 timer cycle.
+var nodeDeleteQueue = []; // gets a hash of nodes deleted by sessionViewForce for each d3 timer cycle.
+var linkDeleteQueue = []; // gets a hash of nodes deleted by sessionViewForce for each d3 timer cycle.
+
+var urlRoot = DEFAULT_SOURCE + "/session?session=";
+
+var currentSession = {};
+var sessionId;
+var namespace;
+var sessionMode = false;
+var monitorMode = false;
 
 function msToTime(duration) {
   var milliseconds = parseInt((duration % 1000) / 1000),
@@ -711,51 +759,6 @@ function toggleTestMode() {
   controlPanel.updateControlPanel(config);
 }
 
-var groupHashMap = new HashMap();
-var groupDeleteHashMap = new HashMap();
-
-var maxSessions = 0;
-var sessionHashMap = new HashMap();
-var sessionDeleteHashMap = new HashMap();
-
-var linkHashMap = new HashMap();
-var nodeHashMap = new HashMap();
-
-var ignoreWordHashMap = new HashMap();
-
-var keywordColorHashMap = new HashMap();
-
-keywordColorHashMap.set("positive", palette.green);
-keywordColorHashMap.set("negative", palette.red);
-keywordColorHashMap.set("neutral", palette.black);
-
-keywordColorHashMap.set("left", palette.blue);
-keywordColorHashMap.set("right", palette.red);
-
-
-var rxSessionUpdateQueue = [];
-var rxSessionDeleteQueue = [];
-
-var groupCreateQueue = [];
-var groupsCreated = 0;
-
-var sessionCreateQueue = [];
-var sessionsCreated = 0;
-
-var nodeCreateQueue = [];
-var linkCreateQueue = [];
-
-var groupDeleteQueue = []; // gets a hash of nodes deleted by sessionViewForce for each d3 timer cycle.
-var nodeDeleteQueue = []; // gets a hash of nodes deleted by sessionViewForce for each d3 timer cycle.
-var linkDeleteQueue = []; // gets a hash of nodes deleted by sessionViewForce for each d3 timer cycle.
-
-var urlRoot = DEFAULT_SOURCE + "/session?session=";
-
-var currentSession = {};
-var sessionId;
-var namespace;
-var sessionMode = false;
-var monitorMode = false;
 
 function jp(s, obj) {
   console.warn(s + "\n" + jsonPrint(obj));
@@ -1826,6 +1829,12 @@ var tempMentions;
 var numberSessionsUpdated = 0;
 
 function addToHashMap(hm, key, value, callback) {
+  if (typeof key === 'undefined') {
+    console.error("*** ERROR addToHashMap KEY UNDEFINED ***\nVALUE\n" + jsonPrint(value));
+  }
+  if (key == 'undefined') {
+    console.error("*** ERROR addToHashMap KEY UNDEFINED ***\nVALUE\n" + jsonPrint(value));
+  }
   hm.set(key, value);
   var v = hm.get(key);
   callback(v);
@@ -1874,12 +1883,12 @@ var processSessionQueues = function(callback) {
     }
 
     if (typeof session.tags.group.groupId !== 'undefined') {
-      console.log("G"
-        + " | " + session.nodeId
-        // + " | " + session.tags.group.url
-        + " | " + session.tags.group.groupId
-        // + "\nTAGS\n" + jsonPrint(session.tags)
-      );
+      // console.log("G"
+      //   + " | " + session.nodeId
+      //   // + " | " + session.tags.group.url
+      //   + " | " + session.tags.group.groupId
+      //   // + "\nTAGS\n" + jsonPrint(session.tags)
+      // );
       groupCreateQueue.push(session);
     }
     else if (session.tags.group.entityId){
@@ -2102,7 +2111,7 @@ var createGroup = function(callback) {
       currentGroup.source = sessUpdate.source;
       currentGroup.source.lastSeen = dateNow;
       currentGroup.target = sessUpdate.target;
-      currentGroup.target.lastSeen = dateNow;
+      if (currentGroup.target) currentGroup.target.lastSeen = dateNow;
 
       currentGroup.node = {};
       currentGroup.linkHashMap = new HashMap();
@@ -2180,9 +2189,9 @@ var createGroup = function(callback) {
         // currentSessionView.addNode(grpNode);
 
         addToHashMap(groupHashMap, currentGroup.groupId, currentGroup, function(cGroup) {
-          console.log("+ G " + cGroup.groupId 
-            + " | GNID: " + cGroup.node.nodeId
-          );
+          // console.log("+ G " + cGroup.groupId 
+          //   + " | GNID: " + cGroup.node.nodeId
+          // );
           sessionCreateQueue.push(sessUpdate);
           currentSessionView.addGroup(cGroup);
           return (callback(null, cGroup.groupId));
@@ -2313,12 +2322,15 @@ var createSession = function(callback) {
           nodeCreateQueue.push(cSession);
           return (callback(null, cSession.nodeId));
         });
-      });
-
-      
-    } else {
+      });      
+    } 
+    else {
 
       sessionsCreated += 1;
+
+      var tarNodId = '<null>';
+
+      if (sessUpdate.target) tarNodId = sessUpdate.target.nodeId;
 
       console.log("+ SES" 
         + " [" + sessUpdate.wordChainIndex + "]" 
@@ -2328,10 +2340,23 @@ var createSession = function(callback) {
         + " C: " + sessUpdate.tags.channel 
         // + " URL: " + sessUpdate.url 
         + " " + sessUpdate.source.nodeId 
-        + " > " + sessUpdate.target.nodeId
+        + " > " + tarNodId
       );
 
       var currentSession = {};
+
+      currentSession.tags = {};
+
+      currentSession.groupColors = {};
+      currentSession.sessionColors = {};
+      currentSession.nodeColors = {};
+
+      currentSession.node = {};
+      currentSession.node.sessionColors = {};
+      currentSession.node.groupColors = {};
+      currentSession.node.nodeColors = {};
+      currentSession.node.links = {};
+
       currentSession.groupId = currentGroup.groupId;
       currentSession.url = sessUpdate.url;
       currentSession.age = 1e-6;
@@ -2342,7 +2367,6 @@ var createSession = function(callback) {
       currentSession.isSession = true;
       currentSession.nodeId = sessUpdate.tags.entity + "_" + sessUpdate.tags.channel;
       currentSession.sessionId = sessUpdate.sessionId;
-      currentSession.tags = {};
       currentSession.tags = sessUpdate.tags;
       currentSession.userId = sessUpdate.userId;
       currentSession.wordChainIndex = sessUpdate.wordChainIndex;
@@ -2355,22 +2379,18 @@ var createSession = function(callback) {
       currentSession.x = currentGroup.initialPosition.x;
       currentSession.y = currentGroup.initialPosition.y;
 
-      currentSession.sessionColors = {};
       currentSession.sessionColors = currentGroup.sessionColors;
       currentSession.interpolateSessionColor = currentGroup.interpolateSessionColor;
       currentSession.interpolateColor = currentGroup.interpolateSessionColor;
 
-      currentSession.groupColors = {};
       currentSession.groupColors = currentGroup.groupColors;
       currentSession.interpolateGroupColor = currentGroup.interpolateGroupColor;
 
-      currentSession.nodeColors = {};
       currentSession.nodeColors = currentGroup.nodeColors;
       currentSession.interpolateNodeColor = currentGroup.interpolateNodeColor;
 
       // CREATE SESSION NODE
 
-      currentSession.node = {};
       currentSession.node.isSessionNode = true;
       currentSession.node.isGroupNode = false;
       currentSession.node.isDead = false;
@@ -2391,52 +2411,48 @@ var createSession = function(callback) {
       currentSession.node.text = sessUpdate.tags.entity + "|" + sessUpdate.tags.channel;
       currentSession.node.r = config.defaultNodeRadius;
       currentSession.node.x = currentGroup.initialPosition.x;
-      // currentSession.node.fx = currentGroup.initialPosition.x;
+      currentSession.node.fx = currentGroup.initialPosition.x;
       currentSession.node.y = currentGroup.initialPosition.y;
 
-      currentSession.node.sessionColors = {};
       currentSession.node.sessionColors = currentGroup.sessionColors;
       currentSession.node.interpolateSessionColor = currentGroup.interpolateSessionColor;
       currentSession.node.interpolateColor = currentGroup.interpolateSessionColor;
 
-      currentSession.node.groupColors = {};
       currentSession.node.groupColors = currentGroup.groupColors;
       currentSession.node.interpolateGroupColor = currentGroup.interpolateGroupColor;
 
-      currentSession.node.nodeColors = {};
       currentSession.node.nodeColors = currentGroup.nodeColors;
       currentSession.node.interpolateNodeColor = currentGroup.interpolateNodeColor;
 
-      currentSession.node.links = {};
 
       // var sessionLinkId = currentSession.node.nodeId + "_" + currentSession.latestNodeId;
       // currentSession.node.links[sessionLinkId] = 1;
       // currentSession.node.link = sessionLinkId;
 
       currentSession.source.lastSeen = dateNow;
-      if (typeof currentSession.target !== 'undefined') {
+      if (currentSession.target) {
         currentSession.target.lastSeen = dateNow;
       }
 
       addToHashMap(nodeHashMap, currentSession.node.nodeId, currentSession.node, function(sesNode) {
-        console.log("+ SES" 
-          + " " + sesNode.entity
-          + " " + sesNode.nodeId
-          + " " + sesNode.text
-          + " " + sesNode.url
-          + " WCI: " + sesNode.wordChainIndex
-          + " M: " + sesNode.wordChainIndex
-        );
+        // console.log("+ SES" 
+        //   + " " + sesNode.entity
+        //   + " " + sesNode.nodeId
+        //   + " " + sesNode.text
+        //   + " " + sesNode.url
+        //   + " WCI: " + sesNode.wordChainIndex
+        //   + " M: " + sesNode.wordChainIndex
+        // );
 
         currentSessionView.addNode(sesNode);
 
         addToHashMap(sessionHashMap, currentSession.nodeId, currentSession, function(cSession) {
-          console.log("+ SES"
-            + " G: " + currentGroup.groupId
-            + " GN: " + currentGroup.name
-            + " U: " + cSession.userId 
-            + " Ms:" + cSession.mentions 
-          );
+          // console.log("+ SES"
+          //   + " G: " + currentGroup.groupId
+          //   + " GN: " + currentGroup.name
+          //   + " U: " + cSession.userId 
+          //   + " Ms:" + cSession.mentions 
+          // );
 
           currentSessionView.addSession(cSession);
 
@@ -2474,7 +2490,8 @@ var createNode = function(callback) {
     else {
 
       console.log("+ SES" 
-        + " " + session.node.nodeId
+        + " | " + session.node.nodeId
+        + " | Ms: " + session.node.mentions
       );
 
       session.node.bboxWidth = 1e-6;
@@ -2512,11 +2529,19 @@ var createNode = function(callback) {
     var sourceNodeId;
     var targetNodeId;
 
-    if ((config.sessionViewType == 'ticker') || (config.sessionViewType == 'flow')){
+    if (config.sessionViewType == 'force') {
+      sourceNodeId = session.node.nodeId + "_" + session.source.nodeId;
+      if (session.target) {
+        targetNodeId = session.node.nodeId + "_" + session.target.nodeId;
+      }
+    }
+    else if ((config.sessionViewType == 'ticker') 
+      || (config.sessionViewType == 'flow')
+      ){
       sourceNodeId = session.source.nodeId + "_" + moment().valueOf();
-      // session.source.nodeId = sourceNodeId;
-      targetNodeId = session.target.nodeId + "_" + moment().valueOf();
-      // session.target.nodeId = targetNodeId;
+      if (session.target) {
+        targetNodeId = session.target.nodeId + "_" + moment().valueOf();
+      }
     }
     else {
       sourceNodeId = session.source.nodeId;
@@ -2524,7 +2549,7 @@ var createNode = function(callback) {
     }
 
     var sourceText = session.source.nodeId;
-    var targetText = session.target.nodeId;
+    var targetText = session.target ? session.target.nodeId : null;
 
     var targetNode = {};
     var sourceNode = {};
@@ -2533,6 +2558,7 @@ var createNode = function(callback) {
         source: function(cb) {
           if ((config.sessionViewType != 'ticker') 
             && (config.sessionViewType != 'flow') 
+            && (config.sessionViewType != 'force') 
             && session.source.isIgnored) {
             cb(null, {
               node: sourceNodeId,
@@ -2656,6 +2682,7 @@ var createNode = function(callback) {
 
           if (typeof targetNodeId === 'undefined' 
             || (config.sessionViewType == 'flow') 
+            // || (config.sessionViewType == 'force') 
             || (config.sessionViewType == 'ticker')) {
             cb("TARGET UNDEFINED", null);
           } 
@@ -2696,6 +2723,7 @@ var createNode = function(callback) {
             targetNode.interpolateColor = session.interpolateSessionColor;
 
             targetNode.latestNode = false;
+
             if (targetNode.isSessionNode){
               targetNode.text = session.tags.entity + "|" + session.tags.channel;
               targetNode.wordChainIndex = session.target.wordChainIndex;
@@ -2707,6 +2735,7 @@ var createNode = function(callback) {
             else {
               targetNode.text = targetText;
               if (typeof session.target.mentions !== 'undefined') {
+                console.debug("--- TARGET MENTIONS: " + session.target.mentions);
                 targetNode.mentions = session.target.mentions;
               }
               else {
@@ -2722,7 +2751,8 @@ var createNode = function(callback) {
                 isNew: false
               });
             });
-          } else {
+          } 
+          else {
             targetNode = session.target;
             targetNode.nodeId = targetNodeId;
             targetNode.bboxWidth = 1e-6;
@@ -2762,6 +2792,7 @@ var createNode = function(callback) {
             if (targetNode.isSessionNode){
               targetNode.text = session.tags.entity + "|" + session.tags.channel;
               targetNode.wordChainIndex = session.target.wordChainIndex;
+              if (typeof session.target.wordChainIndex === 'undefined') console.error("session.target.wordChainIndex UNDEFINED");
               targetNode.mentions = session.target.wordChainIndex;
               targetNode.r = config.defaultNodeRadius;
               targetNode.x = session.node.x;
@@ -2769,6 +2800,7 @@ var createNode = function(callback) {
             }
             else {
               targetNode.text = targetText;
+              if (typeof session.target.mentions === 'undefined') console.error("session.target.mentions UNDEFINED");
               targetNode.mentions = session.target.mentions;
               targetNode.r = config.defaultNodeRadius;
               targetNode.x = session.node.x - (100 * Math.random());
@@ -2791,6 +2823,9 @@ var createNode = function(callback) {
           session.source = results.source.node;
           session.source.isNew = results.source.isNew;
           if (results.source.isNew) {
+            if (typeof results.source.node.mentions === 'undefined') {
+              console.error("source MENTIONS UNDEFINED\n" + jsonPrint(results.source.node));
+            }
             currentSessionView.addNode(results.source.node);
           }
         }
@@ -2799,6 +2834,9 @@ var createNode = function(callback) {
           session.target = results.target.node;
           session.target.isNew = results.target.isNew;
           if (results.target.isNew) {
+            if (typeof results.target.node.mentions === 'undefined') {
+              console.error("target MENTIONS UNDEFINED\n" + jsonPrint(results.target.node));
+            }
             currentSessionView.addNode(results.target.node);
           }
         }
@@ -2815,6 +2853,8 @@ var createNode = function(callback) {
   return (callback(null, sessionId));
 }
 
+var prevSessionLinkIdHash = {};
+
 var createLink = function(callback) {
 
   if ((config.sessionViewType !== 'ticker') 
@@ -2829,14 +2869,43 @@ var createLink = function(callback) {
     var groupLinkId;
     var sessionLinkId;
 
-    if (config.sessionViewType == 'flow') {
+    if (config.sessionViewType == 'force') {
+
+      // var groupLinkId = currentGroup.node.nodeId + "_" + session.node.nodeId;
+      // console.debug("groupLinkId: " + groupLinkId);
+
+      // currentGroup.node.links[groupLinkId] = 1;
+      // session.node.links[groupLinkId] = 1;
 
       var sessionLinkId = session.node.nodeId + "_" + session.source.nodeId;
-
       console.debug("sessionLinkId: " + sessionLinkId);
 
       session.node.links[sessionLinkId] = 1;
       session.source.links[sessionLinkId] = 1;
+
+      // if (!linkHashMap.has(groupLinkId)){
+      //   var newGroupLink = {
+      //     linkId: groupLinkId,
+      //     groupId: currentGroup.groupId,
+      //     age: 0,
+      //     isDead: false,
+      //     source: currentGroup.node,
+      //     target: session.node,
+      //     isGroupLink: true
+      //   };
+
+      //   addToHashMap(linkHashMap, groupLinkId, newGroupLink, function(grpLink) {
+      //     currentSessionView.addLink(grpLink);
+      //   });
+      // }
+      // else {
+      //   var groupLink = linkHashMap.get(groupLinkId);
+      //   groupLink.age = 1e-6;
+      //   groupLink.ageMaxRatio = 1e-6;
+      //   addToHashMap(linkHashMap, groupLinkId, groupLink, function(grpLink) {
+      //   });
+      // }
+
 
       if (!linkHashMap.has(sessionLinkId)){
 
@@ -2853,6 +2922,8 @@ var createLink = function(callback) {
 
         addToHashMap(linkHashMap, sessionLinkId, newSessionLink, function(sesLink) {
           currentSessionView.addLink(sesLink);
+          currentSessionView.deleteLink(prevSessionLinkIdHash[session.node.nodeId]);
+          prevSessionLinkIdHash[session.node.nodeId] = sessionLinkId;
         });
       }
       else {
@@ -2861,13 +2932,16 @@ var createLink = function(callback) {
         sessionLink.isDead = false;
 
         addToHashMap(linkHashMap, sessionLinkId, sessionLink, function(sesLink) {
+          currentSessionView.addLink(sesLink);
+          currentSessionView.deleteLink(prevSessionLinkIdHash[session.node.nodeId]);
+          prevSessionLinkIdHash[session.node.nodeId] = sessionLinkId;
           // currentSessionView.addLink(sesLink);
         });
       }
 
-      if (typeof session.target !== 'undefined'){
+      if (session.target){
 
-        console.debug("TARGET: " + session.target.nodeId);
+        // console.debug("TARGET: " + session.target.nodeId);
 
         var sourceTargetLinkId = session.source.nodeId + "_" + session.target.nodeId;
 
@@ -2899,45 +2973,44 @@ var createLink = function(callback) {
           sourceTargetLink.isDead = false;
 
           addToHashMap(linkHashMap, sourceTargetLinkId, sourceTargetLink, function(srcTgtLink) {
-            currentSessionView.addLink(srcTgtLink);
+            // currentSessionView.addLink(srcTgtLink);
           });
         }
       }
-
-
     }
     else if (typeof currentGroup === 'undefined'){
+      console.warn("currentGroup UNDEFINED");
     }
-    else if ((config.sessionViewType == 'force') && (currentGroup.node.nodeId != session.node.nodeId)){
+    // else if ((config.sessionViewType == 'force') && (currentGroup.node.nodeId != session.node.nodeId)){
 
-      var groupLinkId = currentGroup.node.nodeId + "_" + session.node.nodeId;
+    //   var groupLinkId = currentGroup.node.nodeId + "_" + session.node.nodeId;
 
-      currentGroup.node.links[groupLinkId] = 1;
-      session.node.links[groupLinkId] = 1;
+    //   currentGroup.node.links[groupLinkId] = 1;
+    //   session.node.links[groupLinkId] = 1;
 
-      if (!linkHashMap.has(groupLinkId)){
-        var newGroupLink = {
-          linkId: groupLinkId,
-          groupId: currentGroup.groupId,
-          age: 0,
-          isDead: false,
-          source: currentGroup.node,
-          target: session.node,
-          isGroupLink: true
-        };
+    //   if (!linkHashMap.has(groupLinkId)){
+    //     var newGroupLink = {
+    //       linkId: groupLinkId,
+    //       groupId: currentGroup.groupId,
+    //       age: 0,
+    //       isDead: false,
+    //       source: currentGroup.node,
+    //       target: session.node,
+    //       isGroupLink: true
+    //     };
 
-        addToHashMap(linkHashMap, groupLinkId, newGroupLink, function(grpLink) {
-          currentSessionView.addLink(grpLink);
-        });
-      }
-      else {
-        var groupLink = linkHashMap.get(groupLinkId);
-        groupLink.age = 1e-6;
-        groupLink.ageMaxRatio = 1e-6;
-        addToHashMap(linkHashMap, groupLinkId, groupLink, function(grpLink) {
-        });
-      }
-    }
+    //     addToHashMap(linkHashMap, groupLinkId, newGroupLink, function(grpLink) {
+    //       currentSessionView.addLink(grpLink);
+    //     });
+    //   }
+    //   else {
+    //     var groupLink = linkHashMap.get(groupLinkId);
+    //     groupLink.age = 1e-6;
+    //     groupLink.ageMaxRatio = 1e-6;
+    //     addToHashMap(linkHashMap, groupLinkId, groupLink, function(grpLink) {
+    //     });
+    //   }
+    // }
     else {
       console.warn("SOURCE == TARGET ?"
         + " | " + currentGroup.node.nodeId
@@ -3063,11 +3136,13 @@ function loadViewType(svt, callback) {
         console.log("sessionViewForce LOADED");
 
         // DEFAULT_FRICTION = FORCEVIEW_DEFAULT.FRICTION;
+        DEFAULT_MAX_AGE = FORCEVIEW_DEFAULT.MAX_AGE;
         DEFAULT_CHARGE = FORCEVIEW_DEFAULT.CHARGE;
         DEFAULT_GRAVITY = FORCEVIEW_DEFAULT.GRAVITY;
         DEFAULT_VELOCITY_DECAY = FORCEVIEW_DEFAULT.VELOCITY_DECAY;
         DEFAULT_LINK_DISTANCE= FORCEVIEW_DEFAULT.LINK_DISTANCE;
         DEFAULT_LINK_STRENGTH = FORCEVIEW_DEFAULT.LINK_STRENGTH;
+        DEFAULT_FORCEY_MULTIPLIER = FORCEVIEW_DEFAULT.FORCEY_MULTIPLIER;
 
         currentSessionView = new ViewForce();
 

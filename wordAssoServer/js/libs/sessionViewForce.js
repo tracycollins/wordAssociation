@@ -264,7 +264,7 @@ function ViewForce() {
   var svgMain = d3image.append("svg:svg")
     .attr("id", "svgMain")
     .attr("viewBox", "0 0 1000 1000");
-  var svgForceLayoutArea = svgMain.append("g")
+  var svgForceLayoutArea = svgMain.append("svg:svg")
     .attr("id", "svgForceLayoutArea")
     .attr("viewBox", "0 0 1000 1000");
     // .attr("width", 900)

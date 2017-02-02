@@ -262,12 +262,6 @@ function ViewFlow() {
 
   var d3image = d3.select("#d3group");
 
-  // var svgMain = d3image.append("svg:svg")
-  //   .attr("id", "svgMain")
-  //   .attr("viewBox", "0 0 1600 900");
-  // var svgFlowLayoutArea = svgMain.append("g")
-  //   .attr("id", "svgFlowLayoutArea");
-
   var svgMain = d3image.append("svg:svg")
     .attr("id", "svgMain")
     .attr("width", width)

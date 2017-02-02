@@ -4,6 +4,7 @@
 
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="css/base.css">
   <link rel="icon" type="image/png" href="favicon.png" />
   <style>
@@ -80,8 +81,17 @@
     #d3group {
       background: #ffffff;
       text-align: center;
-      margin: 0;
-      padding: 0;
+      margin: 10px;
+      padding: 0px;
+      /*height: 600px;*/
+      overflow: hidden;
+      position: relative;
+    }
+    
+    #svgMain {
+      background: #ffffff;
+      /*text-align: center;*/
+      margin: auto;
       width: 100%;
       height: auto;
       overflow: hidden;
@@ -236,7 +246,7 @@
 </head>
 
 <body style="overflow:hidden;">
-  <div id="d3group" style="overflow:hidden;"></div>
+  <div id="d3group"></div>
   <!-- <canvas id="d3group"></canvas> -->
   <div id="statsDiv" style="overflow:hidden;"></div>
   <div id="controlDiv" style="overflow:hidden;"></div>

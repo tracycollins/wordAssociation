@@ -20,7 +20,6 @@
     "kerberos": "^0.0.18",
     "lsbridge": "^0.1.0",
     "moment": "^2.17.1",
-    "mongoose": "^4.8.1",
     "mw-dictionary": "^0.0.4",
     "node-cache": "^3.2.1",
     "panzoom": "^2.5.0",

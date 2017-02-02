@@ -7039,7 +7039,7 @@ function createSession(newSessionObj) {
 
   socket.on("VIEWER_READY", function(viewerObj) {
 
-    debug(chalkViewer("VIEWER READY\n" + jsonPrint(viewerObj)));
+    console.log(chalkViewer("VIEWER READY\n" + jsonPrint(viewerObj)));
 
     var socketId = socket.id;
     var sessionObj = sessionCache.get(socketId);

@@ -7165,8 +7165,8 @@ function createSession(newSessionObj) {
     console.log(chalkUser(">RX USR RDY"
       + " | " + socket.id
       + " | " + userObj.nodeId
-      + " | U " + userObj.userId
-      + " | N " + userObj.url
+      + " | ID " + userObj.userId
+      + " | U " + userObj.url
       + " | N " + userObj.name
       + " | E " + userObj.tags.entity
       + " | C " + userObj.tags.channel

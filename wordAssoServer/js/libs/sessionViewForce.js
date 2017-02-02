@@ -267,6 +267,12 @@ function ViewForce() {
     .attr("viewBox", "0 0 1600 900");
   var svgForceLayoutArea = svgMain.append("g")
     .attr("id", "svgForceLayoutArea");
+    .attr("width", svgForceLayoutAreaWidth)
+    .attr("height", svgForceLayoutAreaHeight)
+    .attr("viewbox", 1e-6, 1e-6, width, height)
+    .attr("preserveAspectRatio", "none")
+    .attr("x", 1e-6)
+    .attr("y", 1e-6);
 
   var linkSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "linkSvgGroup");
 
@@ -1632,6 +1638,13 @@ function ViewForce() {
 
     d3LayoutWidth = width; // double the width for now
     d3LayoutHeight = height;
+
+    svgForceLayoutArea
+      .attr("width", width)
+      .attr("height", height)
+      .attr("viewbox", 1e-6, 1e-6, width, height)
+      .attr("x", 1e-6)
+      .attr("y", 1e-6);
 
     if (simulation){
       simulation.force("forceX", d3.forceX().x(function(d) { 

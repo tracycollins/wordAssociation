@@ -322,7 +322,7 @@ function ViewFlow() {
     }
   }
 
-  var panzoomElement = document.getElementById('svgFlowLayoutArea')
+  var panzoomElement = document.getElementById('svgFlowLayoutArea');
   panzoom(panzoomElement, {zoomSpeed: 0.030});
 
   function generateLinkId(callback) {
@@ -1592,21 +1592,18 @@ function ViewFlow() {
     d3LayoutHeight = height;
 
     svgMain
-      .attr("id", "svgMain")
       .attr("width", width)
       .attr("height", height)
       .attr("x", 1e-6)
       .attr("y", 1e-6);
 
-    svgFlowLayoutArea
-      .attr("id", "svgForceLayoutArea")
+
+    svgForceLayoutArea
       .attr("width", width)
       .attr("height", height)
       .attr("viewbox", 1e-6, 1e-6, width, height)
-      .attr("preserveAspectRatio", "none")
       .attr("x", 1e-6)
       .attr("y", 1e-6);
-
 
     if (simulation){
     simulation.force("forceX", d3.forceX().x(function(d) { 

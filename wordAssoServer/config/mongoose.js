@@ -1,20 +1,23 @@
 var config = require('./config'),
 	mongoose = require('mongoose');
 
+
 module.exports = function() {
+
 	var options = { 
 		server: { 
       auto_reconnect: true,
-			poolSize: 50,
+			poolSize: 5,
+			reconnectTries: 14000,
 			socketOptions: { 
-				reconnectTries: 1000,
-				keepAlive: 1000,
+				// reconnectTries: 14000,
+				keepAlive: 1,
 				socketTimeoutMS: 180000,
 				connectTimeoutMS: 180000 
 			},
 		},
     db: {
-	    numberOfRetries: 20,
+	    numberOfRetries: 1000,
 	    retryMiliSeconds: 1000
     }
 	};
@@ -47,8 +50,8 @@ module.exports = function() {
 	});
 
 	// When the connection is disconnected
-	wordAssoDb.connection.on('disconnected', function (err) {  
-	  console.log('MONGOOSE default connection disconnected\n' + err);
+	wordAssoDb.connection.on('disconnected', function () {  
+	  console.log('MONGOOSE default connection disconnected');
 	});
 
 

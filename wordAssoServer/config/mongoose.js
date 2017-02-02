@@ -1,8 +1,26 @@
 var config = require('./config'),
 	mongoose = require('mongoose');
 
+var options = { 
+	server: { 
+		auto_reconnect: true,
+		poolSize: 20,
+		socketOptions: { 
+			// reconnectTries: Number.MAX_VALUE,
+			keepAlive: 1,
+			// keepAlive: 300000,
+			// socketTimeoutMS: 180000,
+			// connectTimeoutMS: 180000 
+		},
+	},
+	db: {
+	    numberOfRetries: 20,
+	    retryMiliSeconds: 1000
+	}
+};
+
 module.exports = function() {
-	var wordAssoDb = mongoose.connect(config.wordAssoDb);
+	var wordAssoDb = mongoose.connect(config.wordAssoDb, options);
 
 	require('../app/models/admin.server.model');  
 	require('../app/models/viewer.server.model');  

@@ -264,10 +264,9 @@ function ViewForce() {
 
   var svgMain = d3image.append("svg:svg")
     .attr("id", "svgMain")
-    .attr("viewBox", "0 0 1000 1000");
+    .attr("viewBox", "0 0 1600 900");
   var svgForceLayoutArea = svgMain.append("g")
-    .attr("id", "svgForceLayoutArea")
-    .attr("viewBox", "0 0 1000 1000");
+    .attr("id", "svgForceLayoutArea");
 
   var linkSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "linkSvgGroup");
 
@@ -304,7 +303,7 @@ function ViewForce() {
   }
 
   var panzoomElement = document.getElementById('svgForceLayoutArea')
-  panzoom(panzoomElement);
+  panzoom(panzoomElement, {zoomSpeed: 0.030});
 
   function generateLinkId(callback) {
     globalLinkIndex++;
@@ -416,7 +415,7 @@ function ViewForce() {
     gravity = value;
 
     simulation.force("forceX", d3.forceX().x(function(d) { 
-        if (d.isSessionNode) return 0.7*width;
+        if (d.isSessionNode) return 0.5*width;
         return -0.8*width; 
       }).strength(function(d){
         if (d.isSessionNode) return 50.0*gravity;
@@ -1541,7 +1540,7 @@ function ViewForce() {
       }))
       .force("charge", d3.forceManyBody().strength(charge))
       .force("forceX", d3.forceX().x(function(d) { 
-        if (d.isSessionNode) return 0.7*width;
+        if (d.isSessionNode) return 0.5*width;
         return -0.8*width; 
       }).strength(function(d){
         if (d.isSessionNode) return 50.0*gravity;
@@ -1636,7 +1635,7 @@ function ViewForce() {
 
     if (simulation){
       simulation.force("forceX", d3.forceX().x(function(d) { 
-          if (d.isSessionNode) return 0.7*width;
+          if (d.isSessionNode) return 0.5*width;
           return -0.8*width; 
         }).strength(function(d){
           if (d.isSessionNode) return 50.0*gravity;

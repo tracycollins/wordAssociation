@@ -271,7 +271,7 @@ function ViewForce() {
     .attr("y", 1e-6);
 
   var svgForceLayoutArea = svgMain.append("g")
-    .attr("id", "svgForceLayoutArea");
+    .attr("id", "svgForceLayoutArea")
     .attr("width", width)
     .attr("height", height)
     .attr("viewbox", 1e-6, 1e-6, width, height)

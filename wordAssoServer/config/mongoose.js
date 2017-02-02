@@ -22,32 +22,32 @@ module.exports = function() {
 // module.exports = function() {
 	// var wordAssoDbwordAssoDb = mongoose.connect(config.wordAssoDb, options);
 
-	var wordassOdb = mongoose.connect(config.wordassOdb, options, function(error){
+	var wordAssoDb = mongoose.connect(config.wordAssoDb, options, function(error){
 		if (error) {
-			console.log('CONNECT FAILED: ERROR: MONGOOSE default connection open to ' + config.wordassOdb);
+			console.log('CONNECT FAILED: ERROR: MONGOOSE default connection open to ' + config.wordAssoDb);
 		}
 		else {
-			console.log('CONNECT: MONGOOSE default connection open to ' + config.wordassOdb);
+			console.log('CONNECT: MONGOOSE default connection open to ' + config.wordAssoDb);
 		}
 	});
 
 	// CONNECTION EVENTS
 	// When successfully connected
-	wordassOdb.connection.on('connected', function () {  
-	  console.log('MONGOOSE default connection OPEN to ' + config.wordassOdb);
+	wordAssoDb.connection.on('connected', function () {  
+	  console.log('MONGOOSE default connection OPEN to ' + config.wordAssoDb);
 	}); 
 
-	wordassOdb.connection.on('close', function () {  
-	  console.log('MONGOOSE default connection CLOSED to ' + config.wordassOdb);
+	wordAssoDb.connection.on('close', function () {  
+	  console.log('MONGOOSE default connection CLOSED to ' + config.wordAssoDb);
 	}); 
 
-	wordassOdb.connection.on('error', function (err) {
+	wordAssoDb.connection.on('error', function (err) {
 		console.log("MONGOOSE ERROR\n" + err);
-		// if (mongoose.connection.readyState == 0) wordassOdb = mongoose.connect(config.wordassOdb, options);
+		// if (mongoose.connection.readyState == 0) wordAssoDb = mongoose.connect(config.wordAssoDb, options);
 	});
 
 	// When the connection is disconnected
-	wordassOdb.connection.on('disconnected', function (err) {  
+	wordAssoDb.connection.on('disconnected', function (err) {  
 	  console.log('MONGOOSE default connection disconnected\n' + err);
 	});
 

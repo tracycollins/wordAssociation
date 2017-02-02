@@ -262,11 +262,28 @@ function ViewFlow() {
 
   var d3image = d3.select("#d3group");
 
+  // var svgMain = d3image.append("svg:svg")
+  //   .attr("id", "svgMain")
+  //   .attr("viewBox", "0 0 1600 900");
+  // var svgFlowLayoutArea = svgMain.append("g")
+  //   .attr("id", "svgFlowLayoutArea");
+
   var svgMain = d3image.append("svg:svg")
     .attr("id", "svgMain")
-    .attr("viewBox", "0 0 1600 900");
+    .attr("width", width)
+    .attr("height", height)
+    .attr("x", 1e-6)
+    .attr("y", 1e-6);
+
   var svgFlowLayoutArea = svgMain.append("g")
-    .attr("id", "svgFlowLayoutArea");
+    .attr("id", "svgForceLayoutArea")
+    .attr("width", width)
+    .attr("height", height)
+    .attr("viewbox", 1e-6, 1e-6, width, height)
+    .attr("preserveAspectRatio", "none")
+    .attr("x", 1e-6)
+    .attr("y", 1e-6);
+
 
   var linkSvgGroup = svgFlowLayoutArea.append("svg:g").attr("id", "linkSvgGroup");
 
@@ -1573,6 +1590,23 @@ function ViewFlow() {
 
     d3LayoutWidth = width; // double the width for now
     d3LayoutHeight = height;
+
+    svgMain
+      .attr("id", "svgMain")
+      .attr("width", width)
+      .attr("height", height)
+      .attr("x", 1e-6)
+      .attr("y", 1e-6);
+
+    svgFlowLayoutArea
+      .attr("id", "svgForceLayoutArea")
+      .attr("width", width)
+      .attr("height", height)
+      .attr("viewbox", 1e-6, 1e-6, width, height)
+      .attr("preserveAspectRatio", "none")
+      .attr("x", 1e-6)
+      .attr("y", 1e-6);
+
 
     if (simulation){
     simulation.force("forceX", d3.forceX().x(function(d) { 

@@ -270,7 +270,7 @@ function ViewFlow() {
     .attr("y", 1e-6);
 
   var svgFlowLayoutArea = svgMain.append("g")
-    .attr("id", "svgForceLayoutArea")
+    .attr("id", "svgFlowLayoutArea")
     .attr("width", width)
     .attr("height", height)
     .attr("viewbox", 1e-6, 1e-6, width, height)
@@ -1592,7 +1592,7 @@ function ViewFlow() {
       .attr("y", 1e-6);
 
 
-    svgForceLayoutArea
+    svgFlowLayoutArea
       .attr("width", width)
       .attr("height", height)
       .attr("viewbox", 1e-6, 1e-6, width, height)

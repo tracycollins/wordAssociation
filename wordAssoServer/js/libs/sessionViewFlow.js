@@ -264,16 +264,9 @@ function ViewFlow() {
 
   var svgMain = d3image.append("svg:svg")
     .attr("id", "svgMain")
-    .attr("viewBox", "0 0 1000 1000");
+    .attr("viewBox", "0 0 1600 900");
   var svgFlowLayoutArea = svgMain.append("g")
-    .attr("id", "svgFlowLayoutArea")
-    .attr("viewBox", "0 0 1000 1000");
-    // .attr("width", 900)
-    // .attr("width", "100%");
-    // .attr("height", 900);
-     // .call(d3.zoom()
-     //      .scaleExtent([1 / 2, 4])
-     //      .on("zoom", zoomed));
+    .attr("id", "svgFlowLayoutArea");
 
   var linkSvgGroup = svgFlowLayoutArea.append("svg:g").attr("id", "linkSvgGroup");
 
@@ -313,7 +306,7 @@ function ViewFlow() {
   }
 
   var panzoomElement = document.getElementById('svgFlowLayoutArea')
-  panzoom(panzoomElement);
+  panzoom(panzoomElement, {zoomSpeed: 0.030});
 
   function generateLinkId(callback) {
     globalLinkIndex++;
@@ -388,7 +381,7 @@ function ViewFlow() {
     console.debug("UPDATE GRAVITY: " + value.toFixed(sliderPercision));
     gravity = value;
     simulation.force("forceX", d3.forceX().x(function(d) { 
-        if (d.isSessionNode) return 0.65*width;
+        if (d.isSessionNode) return 0.5*width;
         return -20*width; 
       }).strength(function(d){
         if (d.isSessionNode) return 70*gravity;
@@ -1479,15 +1472,21 @@ function ViewFlow() {
   this.initD3timer = function() {
 
     simulation = d3.forceSimulation(nodes)
-      .force("link", d3.forceLink(links).id(function(d) { return d.linkId; }).distance(globalLinkDistance).strength(globalLinkStrength))
-      .force("charge", d3.forceManyBody().strength(charge))
-      .force("forceX", d3.forceX().x(function(d) { 
-        if (d.isSessionNode) return 0.65*width;
-        return -20*width; 
-      }).strength(function(d){
-        if (d.isSessionNode) return 70*gravity;
-        return gravity; 
-      }))
+      .force("link", d3.forceLink(links)
+        .id(function(d) { return d.linkId; })
+        .distance(globalLinkDistance)
+        .strength(globalLinkStrength))
+      .force("charge", d3.forceManyBody()
+        .strength(charge))
+      .force("forceX", d3.forceX()
+        .x(function(d) { 
+          if (d.isSessionNode) return 0.5*width;
+          return -20*width; 
+        })
+        .strength(function(d){
+          if (d.isSessionNode) return 70*gravity;
+          return gravity; 
+        }))
       .force("forceY", d3.forceY().y(function(d) { 
         return 0.4*height; 
       }).strength(function(d){
@@ -1577,7 +1576,7 @@ function ViewFlow() {
 
     if (simulation){
     simulation.force("forceX", d3.forceX().x(function(d) { 
-        if (d.isSessionNode) return 0.65*width;
+        if (d.isSessionNode) return 0.5*width;
         return -20*width; 
       }).strength(function(d){
         if (d.isSessionNode) return 70*gravity;

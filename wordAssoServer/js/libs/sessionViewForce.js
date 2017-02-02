@@ -313,7 +313,7 @@ function ViewForce() {
     }
   }
 
-  var panzoomElement = document.getElementById('svgForceLayoutArea')
+  var panzoomElement = document.getElementById('svgForceLayoutArea');
   panzoom(panzoomElement, {zoomSpeed: 0.030});
 
   function generateLinkId(callback) {

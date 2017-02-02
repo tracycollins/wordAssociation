@@ -264,11 +264,16 @@ function ViewForce() {
 
   var svgMain = d3image.append("svg:svg")
     .attr("id", "svgMain")
-    .attr("viewBox", "0 0 1600 900");
+    // .attr("viewBox", "0 0 1600 900");
+    .attr("width", width)
+    .attr("height", height)
+    .attr("x", 1e-6)
+    .attr("y", 1e-6);
+
   var svgForceLayoutArea = svgMain.append("g")
     .attr("id", "svgForceLayoutArea");
-    .attr("width", svgForceLayoutAreaWidth)
-    .attr("height", svgForceLayoutAreaHeight)
+    .attr("width", width)
+    .attr("height", height)
     .attr("viewbox", 1e-6, 1e-6, width, height)
     .attr("preserveAspectRatio", "none")
     .attr("x", 1e-6)

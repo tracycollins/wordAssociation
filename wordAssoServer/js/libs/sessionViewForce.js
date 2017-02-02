@@ -265,15 +265,9 @@ function ViewForce() {
   var svgMain = d3image.append("svg:svg")
     .attr("id", "svgMain")
     .attr("viewBox", "0 0 1000 1000");
-  var svgForceLayoutArea = svgMain.append("svg:svg")
+  var svgForceLayoutArea = svgMain.append("g")
     .attr("id", "svgForceLayoutArea")
     .attr("viewBox", "0 0 1000 1000");
-    // .attr("width", 900)
-    // .attr("width", "100%");
-    // .attr("height", 900);
-     // .call(d3.zoom()
-     //      .scaleExtent([1 / 2, 4])
-     //      .on("zoom", zoomed));
 
   var linkSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "linkSvgGroup");
 
@@ -288,8 +282,6 @@ function ViewForce() {
 
   var nodeGs = nodeSvgGroup.selectAll("g.node");
   var nodeCircles = nodeSvgGroup.selectAll("circle");
-  // var nodeCircles = nodeSvgGroup.selectAll("rect");
-  // var nodeCircles = nodeSvgGroup.selectAll("image");
   var nodeLabels = nodeSvgGroup.selectAll(".nodeLabel");
 
   var sessionLabelSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "sessionLabelSvgGroup");
@@ -299,7 +291,6 @@ function ViewForce() {
   var divTooltip = d3.select("body").append("div")
     .attr("class", "tooltip")
     .style("visibility", "hidden");
-    // .style("opacity", 1e-6);
 
   var globalLinkIndex = 0;
 

@@ -28,6 +28,12 @@ var SessionSchema = new Schema({
 	user: { 
 		type: Object
 	},
+	url: { 
+		type: String
+	},
+	profileImageUrl: { 
+		type: String
+	},
 	tags: { 
 		type: Object
 	},

@@ -1687,6 +1687,7 @@ function createSmallSessionUpdateObj (updateObj, callback){
     sessionSmallObj.tags = {};
     sessionSmallObj.action = updateObj.action;
     sessionSmallObj.userId = updateObj.userId;
+    sessionSmallObj.profileImageUrl = updateObj.profileImageUrl;
     sessionSmallObj.url = updateObj.url;
     sessionSmallObj.sessionId = updateObj.sessionId;
     sessionSmallObj.wordChainIndex = updateObj.wordChainIndex;
@@ -1723,6 +1724,7 @@ function createSmallSessionUpdateObj (updateObj, callback){
     sessionSmallObj.tags = {};
     sessionSmallObj.action = updateObj.action;
     sessionSmallObj.userId = updateObj.userId;
+    sessionSmallObj.profileImageUrl = updateObj.profileImageUrl;
     sessionSmallObj.url = updateObj.url;
     sessionSmallObj.profileImageUrl = updateObj.profileImageUrl;
     sessionSmallObj.sessionId = updateObj.sessionId;
@@ -1807,27 +1809,6 @@ function createSmallSessionUpdateObj (updateObj, callback){
       return(callback(sessionSmallObj));
     }
 
-
-    // if (updateObj.target) {
-    //   console.log(chalkRed("S>" + " | " + updateObj.userId
-    //     // + " | " + updateObj.sessionId
-    //     + " | WCI: " + updateObj.wordChainIndex
-    //     + " | URL: " + updateObj.source.url
-    //     + " | " + updateObj.source.raw 
-    //     + " [" + updateObj.source.wordChainIndex + "]" 
-    //     + " > " + updateObj.target.raw 
-    //     + " [" + updateObj.target.wordChainIndex + "]"
-    //   ));
-    // } 
-    // else {
-    //   console.log(chalkRed("SNT>" + " | " + updateObj.userId
-    //     // + " | " + updateObj.sessionId
-    //     + " | WCI: " + updateObj.wordChainIndex
-    //     + " | URL: " + updateObj.source.url
-    //     + " | " + updateObj.source.nodeId 
-    //     + " [" + updateObj.source.wordChainIndex + "]"
-    //   ));
-    // }
   }
 }
 
@@ -1842,111 +1823,6 @@ var readUpdateSessionViewQueue = setInterval(function() {
     updateStatsCounts();
 
     var sessionSmallObj;
-
-    // if (sessionUpdateObj.action == 'KEEPALIVE') {
-    //   sessionSmallObj = {
-    //     tags: {},
-    //     action: sessionUpdateObj.action,
-    //     userId: sessionUpdateObj.userId,
-    //     url: sessionUpdateObj.url,
-    //     sessionId: sessionUpdateObj.sessionId,
-    //     wordChainIndex: sessionUpdateObj.wordChainIndex,
-    //     source: {},
-    //     target: {}
-    //   };
-
-    //   if (typeof sessionUpdateObj.tags !== 'undefined') {
-    //     sessionSmallObj.tags = sessionUpdateObj.tags;
-    //   }
-
-    //   sessionSmallObj.source = {
-    //     nodeId: sessionUpdateObj.userId,
-    //     wordChainIndex: sessionUpdateObj.wordChainIndex,
-    //     links: {},
-    //     mentions: sessionUpdateObj.wordChainIndex
-    //   };
-    // } 
-    // else {
-    //   sessionSmallObj = {
-    //     tags: {},
-    //     action: sessionUpdateObj.action,
-    //     userId: sessionUpdateObj.userId,
-    //     url: sessionUpdateObj.url,
-    //     profileImageUrl: sessionUpdateObj.profileImageUrl,
-    //     sessionId: sessionUpdateObj.sessionId,
-    //     wordChainIndex: sessionUpdateObj.wordChainIndex,
-    //     source: {},
-    //     target: {}
-    //   };
-
-    //   if (typeof sessionUpdateObj.tags !== 'undefined') {
-    //     sessionSmallObj.tags = sessionUpdateObj.tags;
-    //     // console.log("readUpdateSessionViewQueue | sessionSmallObj.tags\n" + jsonPrint(sessionSmallObj.tags));
-    //   }
-
-    //   sessionSmallObj.source = {
-    //     nodeId: sessionUpdateObj.source.nodeId,
-    //     raw: sessionUpdateObj.source.raw,
-    //     isIgnored: sessionUpdateObj.source.isIgnored,
-    //     isTrendingTopic: sessionUpdateObj.source.isTrendingTopic,
-    //     isKeyword: sessionUpdateObj.source.isKeyword,
-    //     keywords: {},
-    //     url: sessionUpdateObj.source.url,
-    //     wordChainIndex: sessionUpdateObj.source.wordChainIndex,
-    //     links: {},
-    //     mentions: sessionUpdateObj.source.mentions
-    //   };
-
-    //   if (keywordHashMap.has(sessionUpdateObj.source.nodeId)) {
-    //     sessionSmallObj.source.keywords = keywordHashMap.get(sessionUpdateObj.source.nodeId);
-    //   }
-
-    //   if (sessionUpdateObj.source.antonym) {
-    //     sessionSmallObj.source.antonym = sessionUpdateObj.source.antonym;
-    //   }
-
-    //   if (sessionUpdateObj.target) {
-    //     sessionSmallObj.target = {
-    //       nodeId: sessionUpdateObj.target.nodeId,
-    //       raw: sessionUpdateObj.target.raw,
-    //       isIgnored: sessionUpdateObj.target.isIgnored,
-    //       isKeyword: sessionUpdateObj.target.isKeyword,
-    //       isTrendingTopic: sessionUpdateObj.target.isTrendingTopic,
-    //       keywords: {},
-    //       url: sessionUpdateObj.target.url,
-    //       wordChainIndex: sessionUpdateObj.target.wordChainIndex,
-    //       links: {},
-    //       mentions: sessionUpdateObj.target.mentions
-    //     };
-
-    //     if (sessionUpdateObj.target.keywords) {
-    //       sessionSmallObj.target.keywords = sessionUpdateObj.target.keywords;
-    //     }
-    //   }
-
-
-    //   if (sessionUpdateObj.target) {
-    //     console.log(chalkRed("S>" + " | " + sessionUpdateObj.userId
-    //       // + " | " + sessionUpdateObj.sessionId
-    //       + " | WCI: " + sessionUpdateObj.wordChainIndex
-    //       + " | URL: " + sessionUpdateObj.source.url
-    //       + " | " + sessionUpdateObj.source.raw 
-    //       + " [" + sessionUpdateObj.source.wordChainIndex + "]" 
-    //       + " > " + sessionUpdateObj.target.raw 
-    //       + " [" + sessionUpdateObj.target.wordChainIndex + "]"
-    //     ));
-    //   } 
-    //   else {
-    //     console.log(chalkRed("SNT>" + " | " + sessionUpdateObj.userId
-    //       // + " | " + sessionUpdateObj.sessionId
-    //       + " | WCI: " + sessionUpdateObj.wordChainIndex
-    //       + " | URL: " + sessionUpdateObj.source.url
-    //       + " | " + sessionUpdateObj.source.nodeId 
-    //       + " [" + sessionUpdateObj.source.wordChainIndex + "]"
-    //     ));
-    //   }
-    // }
-
 
     createSmallSessionUpdateObj(sessionUpdateObj, function(sessionSmallObj){
 
@@ -1979,27 +1855,6 @@ var readUpdateSessionViewQueue = setInterval(function() {
 
     });
 
-    // var key = sessionUpdateObj.tags.entity + '_' + sessionUpdateObj.tags.channel;
-
-    // if (monitorHashMap[key] && sessionUpdateObj.action == "RESPONSE"){
-    //   console.log(chalkInfo("R< M"
-    //     + " | " + monitorHashMap[key].session.sessionId
-    //     + " | " + sessionUpdateObj.source.nodeId
-    //     + " | " + sessionUpdateObj.source.raw
-    //     // + " | " + jsonPrint(monitorHashMap[key])
-    //   ));
-    //   utilNameSpace.to(monitorHashMap[key].session.sessionId).emit("SESSION_UPDATE",sessionSmallObj);
-    // }
-
-
-    // viewNameSpace.emit("SESSION_UPDATE", sessionSmallObj);
-    // testViewersNameSpace.emit("SESSION_UPDATE", sessionSmallObj);
-
-    // updateStats({ sessionUpdatesSent: sessionUpdatesSent });
-    // updatePromptResponseMetric(sessionUpdateObj);
-
-    // sessionUpdatesSent++;
-    // updateSessionViewReady = true;
   }
 }, 20);
 
@@ -2774,6 +2629,8 @@ function sessionUpdateDb(sessionObj, callback) {
       "userId": sessionObj.userId,
       "tags": sessionObj.tags,
       "user": sessionObj.user,
+      "url": sessionObj.url,
+      "profileImageUrl": sessionObj.profileImageUrl,
       "namespace": sessionObj.namespace,
       "ip": sessionObj.ip,
       "domain": sessionObj.domain,
@@ -4614,6 +4471,7 @@ function handleSessionEvent(sesObj, callback) {
         currentSession.entity = sesObj.user.tags.entity.toLowerCase();
         currentSession.userId = sesObj.user.userId;
         currentSession.user = sesObj.user;
+        currentSession.profileImageUrl = sesObj.session.profileImageUrl;
       } else {
         currentSession = {};
         currentSession = sesObj.session;
@@ -4624,9 +4482,11 @@ function handleSessionEvent(sesObj, callback) {
         currentSession.entity = sesObj.user.tags.entity.toLowerCase();
         currentSession.userId = sesObj.user.userId;
         currentSession.user = sesObj.user;
+        currentSession.profileImageUrl = sesObj.session.profileImageUrl;
       }
 
       sesObj.user.ip = sesObj.session.ip;
+      sesObj.user.profileImageUrl = sesObj.session.profileImageUrl;
       sesObj.user.namespace = sesObj.session.namespace;
       sesObj.user.domain = sesObj.session.domain;
       sesObj.user.lastSession = sesObj.session.sessionId;
@@ -4696,7 +4556,8 @@ function handleSessionEvent(sesObj, callback) {
           ROUTING OF PROMPT/RESPONSE BASED ON SESSION TYPE
       */
 
-      var sessionCacheKey = (currentSession.config.mode == 'SUBSTREAM') ? currentSession.sessionId + "#" + currentSession.entity : currentSession.sessionId;
+      // var sessionCacheKey = (currentSession.config.mode == 'SUBSTREAM') ? currentSession.sessionId + "#" + currentSession.entity : currentSession.sessionId;
+      var sessionCacheKey = currentSession.sessionId;
 
       // if (typeof currentSession.subSessionId !== 'undefined') sessionCacheKey = currentSession.subSessionId;
 
@@ -4869,9 +4730,9 @@ var readResponseQueue = setInterval(function() {
       ready = true;
       return;
     }
-    // else {
-    //   console.log(chalkError("currentSessionObj\n" + jsonPrint(currentSessionObj)));
-    // }
+    else {
+      debug(chalkError("currentSessionObj\n" + jsonPrint(currentSessionObj)));
+    }
 
 
     responseInObj.isKeyword = (typeof rxInObj.isKeyword !== 'undefined') ? rxInObj.isKeyword : false;
@@ -5023,7 +4884,7 @@ var readResponseQueue = setInterval(function() {
             // + " KW " + updatedWordObj.isKeyword 
             // + " TT " + updatedWordObj.isTrendingTopic 
             // + " [" + currentSessionObj.wordChainIndex + "]" 
-            // + " | " + updatedWordObj.profileImageUrl 
+            + " | " + currentSessionObj.profileImageUrl 
             + " | " + updatedWordObj.nodeId 
             + " | " + updatedWordObj.raw 
           ));
@@ -5039,7 +4900,7 @@ var readResponseQueue = setInterval(function() {
             + " C " + updatedWordObj.tags.channel 
             // + " TT " + updatedWordObj.isTrendingTopic 
             // + " [" + currentSessionObj.wordChainIndex + "]" 
-            // + " | " + updatedWordObj.profileImageUrl 
+            + " | " + currentSessionObj.profileImageUrl 
             + " | " + updatedWordObj.nodeId 
             + " | " + updatedWordObj.raw 
           ));
@@ -5451,8 +5312,8 @@ var readDbUpdateWordQueue = setInterval(function() {
 
     var currentSessionObj = dbUpdateObj.session;
 
-    currentSessionObj.url = dbUpdateObj.word.url;
-    currentSessionObj.profileImageUrl = dbUpdateObj.word.profileImageUrl;
+    // currentSessionObj.url = dbUpdateObj.word.url;
+    // currentSessionObj.profileImageUrl = dbUpdateObj.word.profileImageUrl;
 
     dbUpdateObj.word.wordChainIndex = currentSessionObj.wordChainIndex;
 
@@ -6861,6 +6722,8 @@ function createSession(newSessionObj) {
     tags: {},
     ip: ipAddress,
     namespace: namespace,
+    url: newSessionObj.url,
+    profileImageUrl: newSessionObj.profileImageUrl,
     createAt: moment().valueOf(),
     lastSeen: moment().valueOf(),
     connected: true,
@@ -7166,12 +7029,13 @@ function createSession(newSessionObj) {
       + " | " + socket.id
       + " | " + userObj.nodeId
       + " | ID " + userObj.userId
-      + " | U " + userObj.url
       + " | N " + userObj.name
       + " | E " + userObj.tags.entity
       + " | C " + userObj.tags.channel
       + " | T " + userObj.type
       + " | M " + userObj.mode
+      + "\nU " + userObj.url
+      + "\nP " + userObj.profileImageUrl
     ));
 
     if ((typeof userObj.tags !== 'undefined')
@@ -7183,9 +7047,9 @@ function createSession(newSessionObj) {
 
       debug(chalkRedBold("USER_READY SUBSTREAM sessionCacheKey: " + sessionCacheKey));
     }
-    // else {
-    //   console.log(chalkRedBold("USER_READY sessionCacheKey: " + sessionCacheKey));
-    // }
+    else {
+      console.log(chalkRedBold("USER_READY sessionCacheKey: " + sessionCacheKey));
+    }
 
 
     sessionCache.get(sessionCacheKey, function(err, sessionObj){
@@ -7202,6 +7066,8 @@ function createSession(newSessionObj) {
             tags: {},
             // ip: ipAddress,
             namespace: "util",
+            url: userObj.url,
+            profileImageUrl: userObj.profileImageUrl,
             createAt: moment().valueOf(),
             lastSeen: moment().valueOf(),
             connected: true,
@@ -7241,8 +7107,16 @@ function createSession(newSessionObj) {
             sessionObj.tags.entity = userObj.tags.entity.toLowerCase();
             sessionObj.tags.channel = userObj.tags.channel.toLowerCase();
 
+            sessionObj.url = (typeof userObj.url !== undefined) ? userObj.url : "http://www.threeceemedia.com";
+            sessionObj.profileImageUrl = (typeof userObj.profileImageUrl !== undefined) ? userObj.profileImageUrl : null ;
+
             sessionCache.set(sessionCacheKey, sessionObj);
           }
+        }
+        else {
+          sessionObj.url = (typeof userObj.url !== undefined) ? userObj.url : "http://www.threeceemedia.com";
+          sessionObj.profileImageUrl = (typeof userObj.profileImageUrl !== undefined) ? userObj.profileImageUrl : null ;
+          sessionCache.set(sessionCacheKey, sessionObj);
         }
         if (typeof userObj.tags !== 'undefined') {
 

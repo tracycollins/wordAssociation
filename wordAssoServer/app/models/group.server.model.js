@@ -13,6 +13,12 @@ var GroupSchema = new Schema({
 		type: Object,
 		default: []
 	},
+	url: { 
+		type: String
+	},
+	profileImageUrl: { 
+		type: String
+	},
 	addChannelArray: {
 		type: Object,
 		default: []

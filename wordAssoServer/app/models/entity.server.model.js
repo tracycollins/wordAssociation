@@ -21,6 +21,9 @@ var EntitySchema = new Schema({
 	url: {
 		type: String
 	},
+	profileImageUrl: { 
+		type: String
+	},
 	sessions: {  // number of sessions transmitted
 		type: Number,
 		default: 0

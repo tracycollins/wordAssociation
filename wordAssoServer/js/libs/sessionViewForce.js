@@ -156,9 +156,6 @@ function ViewForce() {
     } else {
       d3.select("body").style("cursor", "default");
     }
-    // if (mouseFreezeEnabled) {
-    //   // self.simulation.stop();
-    // }
   }, true);
 
 
@@ -175,10 +172,8 @@ function ViewForce() {
   var strokeColorScale = d3.scaleLog().domain([1e-6, 0.15, 1.0]).range([palette.white, palette.darkgray, palette.black]);
   var linkColorScale = d3.scaleLinear().domain([1e-6, 0.5, 1.0]).range(["#000000", "#000000", "#000000"]);
 
-  // var sessionOpacityScale = d3.scaleLinear().domain([1e-6, 0.05, 1.0]).range([1.0, 0.2, 1e-6]);
   var sessionOpacityScale = d3.scaleLinear().domain([1e-6, 1.0]).range([1.0, 1e-6]);
   var fontScale = d3.scaleLinear().domain([1e-6, 1.0]).range([0.5, 1.0]);
-  // var sessionOpacityScale = d3.scaleLog().domain([1e-6, 1.0]).range([1.0, 1e-6]);
 
   console.log("@@@@@@@ CLIENT @@@@@@@@");
 
@@ -264,7 +259,6 @@ function ViewForce() {
 
   var svgMain = d3image.append("svg:svg")
     .attr("id", "svgMain")
-    // .attr("viewBox", "0 0 1600 900");
     .attr("width", width)
     .attr("height", height)
     .attr("x", 1e-6)

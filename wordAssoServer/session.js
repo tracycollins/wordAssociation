@@ -2825,41 +2825,11 @@ var createLink = function(callback) {
 
     if (config.sessionViewType == 'force') {
 
-      // var groupLinkId = currentGroup.node.nodeId + "_" + session.node.nodeId;
-      // console.debug("groupLinkId: " + groupLinkId);
-
-      // currentGroup.node.links[groupLinkId] = 1;
-      // session.node.links[groupLinkId] = 1;
-
       var sessionLinkId = session.node.nodeId + "_" + session.source.nodeId;
       console.debug("sessionLinkId: " + sessionLinkId);
 
       session.node.links[sessionLinkId] = 1;
       session.source.links[sessionLinkId] = 1;
-
-      // if (!linkHashMap.has(groupLinkId)){
-      //   var newGroupLink = {
-      //     linkId: groupLinkId,
-      //     groupId: currentGroup.groupId,
-      //     age: 0,
-      //     isDead: false,
-      //     source: currentGroup.node,
-      //     target: session.node,
-      //     isGroupLink: true
-      //   };
-
-      //   addToHashMap(linkHashMap, groupLinkId, newGroupLink, function(grpLink) {
-      //     currentSessionView.addLink(grpLink);
-      //   });
-      // }
-      // else {
-      //   var groupLink = linkHashMap.get(groupLinkId);
-      //   groupLink.age = 1e-6;
-      //   groupLink.ageMaxRatio = 1e-6;
-      //   addToHashMap(linkHashMap, groupLinkId, groupLink, function(grpLink) {
-      //   });
-      // }
-
 
       if (!linkHashMap.has(sessionLinkId)){
 
@@ -2889,7 +2859,6 @@ var createLink = function(callback) {
           currentSessionView.addLink(sesLink);
           currentSessionView.deleteLink(prevSessionLinkIdHash[session.node.nodeId]);
           prevSessionLinkIdHash[session.node.nodeId] = sessionLinkId;
-          // currentSessionView.addLink(sesLink);
         });
       }
 
@@ -2935,36 +2904,6 @@ var createLink = function(callback) {
     else if (typeof currentGroup === 'undefined'){
       console.warn("currentGroup UNDEFINED");
     }
-    // else if ((config.sessionViewType == 'force') && (currentGroup.node.nodeId != session.node.nodeId)){
-
-    //   var groupLinkId = currentGroup.node.nodeId + "_" + session.node.nodeId;
-
-    //   currentGroup.node.links[groupLinkId] = 1;
-    //   session.node.links[groupLinkId] = 1;
-
-    //   if (!linkHashMap.has(groupLinkId)){
-    //     var newGroupLink = {
-    //       linkId: groupLinkId,
-    //       groupId: currentGroup.groupId,
-    //       age: 0,
-    //       isDead: false,
-    //       source: currentGroup.node,
-    //       target: session.node,
-    //       isGroupLink: true
-    //     };
-
-    //     addToHashMap(linkHashMap, groupLinkId, newGroupLink, function(grpLink) {
-    //       currentSessionView.addLink(grpLink);
-    //     });
-    //   }
-    //   else {
-    //     var groupLink = linkHashMap.get(groupLinkId);
-    //     groupLink.age = 1e-6;
-    //     groupLink.ageMaxRatio = 1e-6;
-    //     addToHashMap(linkHashMap, groupLinkId, groupLink, function(grpLink) {
-    //     });
-    //   }
-    // }
     else {
       console.warn("SOURCE == TARGET ?"
         + " | " + currentGroup.node.nodeId

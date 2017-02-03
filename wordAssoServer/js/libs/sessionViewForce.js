@@ -845,9 +845,11 @@ function ViewForce() {
 
     var linksModifiedFlag = false;
 
+    // while ((linkUpdateQ.length > 0) && addNodeEnabled()) {
     while (linkUpdateQ.length > 0) {
 
       var linkUpdateObj = linkUpdateQ.shift();
+
       switch (linkUpdateObj.op) {
         case "add":
           linksModifiedFlag = true;
@@ -1081,7 +1083,12 @@ function ViewForce() {
     link = linkSvgGroup.selectAll("line").data(links, 
       function(d) { 
         // console.info("link\n" + jsonPrint(d));
-        return d.source.nodeId + "-" + d.target.nodeId; 
+        if ((typeof d.source !== 'undefined') && (typeof d.target !== 'undefined')) {
+          return d.source.nodeId + "-" + d.target.nodeId; 
+        }
+        else {
+          console.error("UNDEFINED SRC OR TRG: " + d.source.nodeId + "-" + d.target.nodeId);
+        }
       });
 
     link

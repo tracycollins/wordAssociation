@@ -426,7 +426,7 @@ function ViewForce() {
     gravity = value;
 
     simulation.force("forceX", d3.forceX().x(function(d) { 
-        if (d.isSessionNode) return 0.5*width;
+        if (d.isSessionNode) return 0.7*width;
         return -0.8*width; 
       }).strength(function(d){
         if (d.isSessionNode) return 50.0*gravity;
@@ -1551,7 +1551,7 @@ function ViewForce() {
       }))
       .force("charge", d3.forceManyBody().strength(charge))
       .force("forceX", d3.forceX().x(function(d) { 
-        if (d.isSessionNode) return 0.5*width;
+        if (d.isSessionNode) return 0.7*width;
         return -0.8*width; 
       }).strength(function(d){
         if (d.isSessionNode) return 50.0*gravity;
@@ -1653,7 +1653,7 @@ function ViewForce() {
 
     if (simulation){
       simulation.force("forceX", d3.forceX().x(function(d) { 
-          if (d.isSessionNode) return 0.5*width;
+          if (d.isSessionNode) return 0.7*width;
           return -0.8*width; 
         }).strength(function(d){
           if (d.isSessionNode) return 50.0*gravity;

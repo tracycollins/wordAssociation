@@ -67,7 +67,6 @@ var FORCE_MAX_AGE = 4000;
 var DEFAULT_AGE_RATE = 1.0;
 
 var FORCEVIEW_DEFAULT = {};
-// FORCEVIEW_DEFAULT.FRICTION = 0.5;
 FORCEVIEW_DEFAULT.MAX_AGE = FORCE_MAX_AGE;
 FORCEVIEW_DEFAULT.CHARGE = -10;
 FORCEVIEW_DEFAULT.GRAVITY = 0.005;
@@ -78,7 +77,6 @@ FORCEVIEW_DEFAULT.LINK_STRENGTH = 0.50;
 FORCEVIEW_DEFAULT.COLLISION_RADIUS_MULTIPLIER = 0.25;
 FORCEVIEW_DEFAULT.COLLISION_ITERATIONS = 1;
 
-// var DEFAULT_FRICTION = 0.9;
 var DEFAULT_CHARGE = 0.0;
 var DEFAULT_GRAVITY = 0.005;
 var DEFAULT_FORCEY_MULTIPLIER = 25.0;
@@ -117,7 +115,6 @@ config.defaultNodeRadius = DEFAULT_NODE_RADIUS;
 
 
 if ((config.sessionViewType == 'ticker') 
-  // || (config.sessionViewType == 'flow')
   ) {
   config.disableLinks = true;
 }
@@ -921,7 +918,6 @@ socket.on("connect", function() {
   statsObj.socketId = socket.id;
   store.set('stats', statsObj);
   statsObj.serverConnected = true;
-  // displayStats(true, 'white');
   console.log("CONNECTED TO HOST | SOCKET ID: " + socket.id);
 });
 

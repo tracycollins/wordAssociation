@@ -25,8 +25,7 @@ var statsTable ;
 var initializedFlag = false;
 var statsTableFlag = false;
 
-// requirejs(["http://d3js.org/d3.v4.min.js"], function(d3Loaded) {
-requirejs(["https://cdnjs.cloudflare.com/ajax/libs/d3/4.4.0/d3.min.js"], function(d3Loaded) {
+requirejs(["https://cdnjs.cloudflare.com/ajax/libs/d3/4.5.0/d3.min.js"], function(d3Loaded) {
     console.log("d3 LOADED");
     d3 = d3Loaded;
     initialize(function(){
@@ -38,7 +37,6 @@ requirejs(["https://cdnjs.cloudflare.com/ajax/libs/d3/4.4.0/d3.min.js"], functio
       addBlahButton();
       addFullscreenButton();
       addStatsButton();
-      // window.addEventListener("resize", currentSessionView.resize(), false);
       if (!config.pauseFlag) currentSessionView.simulationControl('RESUME');
     });
   },
@@ -52,7 +50,6 @@ requirejs(["https://cdnjs.cloudflare.com/ajax/libs/d3/4.4.0/d3.min.js"], functio
 );
 
 var DEFAULT_SESSION_VIEW = 'flow';
-// var DEFAULT_SESSION_VIEW = 'force';
 var currentSessionView;
 
 var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
@@ -2075,9 +2072,6 @@ var createGroup = function(callback) {
 
       groupsCreated += 1;
 
-      // var currentInitialPosition = computeInitialPosition(initialPositionIndex);
-      // initialPositionIndex++;
-
       var currentInitialPosition = computeInitialPosition(randomIntFromInterval(0,359));
 
       randomNumber360 = (randomNumber360 + randomIntFromInterval(61, 117))%360;
@@ -2407,34 +2401,16 @@ var createSession = function(callback) {
       currentSession.node.interpolateNodeColor = currentGroup.interpolateNodeColor;
 
 
-      // var sessionLinkId = currentSession.node.nodeId + "_" + currentSession.latestNodeId;
-      // currentSession.node.links[sessionLinkId] = 1;
-      // currentSession.node.link = sessionLinkId;
-
       currentSession.source.lastSeen = dateNow;
       if (currentSession.target) {
         currentSession.target.lastSeen = dateNow;
       }
 
       addToHashMap(nodeHashMap, currentSession.node.nodeId, currentSession.node, function(sesNode) {
-        // console.log("+ SES" 
-        //   + " " + sesNode.entity
-        //   + " " + sesNode.nodeId
-        //   + " " + sesNode.text
-        //   + " " + sesNode.url
-        //   + " WCI: " + sesNode.wordChainIndex
-        //   + " M: " + sesNode.wordChainIndex
-        // );
-
+ 
         currentSessionView.addNode(sesNode);
 
         addToHashMap(sessionHashMap, currentSession.nodeId, currentSession, function(cSession) {
-          // console.log("+ SES"
-          //   + " G: " + currentGroup.groupId
-          //   + " GN: " + currentGroup.name
-          //   + " U: " + cSession.userId 
-          //   + " Ms:" + cSession.mentions 
-          // );
 
           currentSessionView.addSession(cSession);
 
@@ -3159,7 +3135,6 @@ function initialize(callback) {
 
   console.log("INITIALIZE ...");
 
-  // document.addEventListener("resize", currentSessionView.resize(), false);
   document.addEventListener("fullscreenchange", onFullScreenChange, false);
   document.addEventListener("webkitfullscreenchange", onFullScreenChange, false);
   document.addEventListener("mozfullscreenchange", onFullScreenChange, false);

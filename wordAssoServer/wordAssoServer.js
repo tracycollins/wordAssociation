@@ -486,10 +486,10 @@ var groupCache = new NodeCache({
 // ==================================================================
 sessionCache.on("set", function(sessionId, sessionObj) {
   if (sessionObj.userId && sessionObj.userId.match('TMS_')){
-    console.log(chalkSession("SESS CACHE SET"
+    console.log(chalkSession("SES $"
       + " | " + moment().format(compactDateTimeFormat) 
-      + " | SESSION ID: " + sessionId 
-      + " | USER ID: " + sessionObj.userId
+      + " | ID: " + sessionId 
+      + " | U: " + sessionObj.userId
       // + " \n" + jsonPrint(sessionObj)
     ));
   }
@@ -1673,16 +1673,6 @@ function createSmallSessionUpdateObj (updateObj, callback){
   var sessionSmallObj = {};
 
   if (updateObj.action == 'KEEPALIVE') {
-    // sessionSmallObj = {
-    //   tags: {},
-    //   action: sessionUpdateObj.action,
-    //   userId: sessionUpdateObj.userId,
-    //   url: sessionUpdateObj.url,
-    //   sessionId: sessionUpdateObj.sessionId,
-    //   wordChainIndex: sessionUpdateObj.wordChainIndex,
-    //   source: {},
-    //   target: {}
-    // };
 
     sessionSmallObj.tags = {};
     sessionSmallObj.action = updateObj.action;
@@ -1709,18 +1699,6 @@ function createSmallSessionUpdateObj (updateObj, callback){
     return(callback(sessionSmallObj));
   } 
   else {
-    // sessionSmallObj = {
-    //   tags: {},
-    //   action: sessionUpdateObj.action,
-    //   userId: sessionUpdateObj.userId,
-    //   url: sessionUpdateObj.url,
-    //   profileImageUrl: sessionUpdateObj.profileImageUrl,
-    //   sessionId: sessionUpdateObj.sessionId,
-    //   wordChainIndex: sessionUpdateObj.wordChainIndex,
-    //   source: {},
-    //   target: {}
-    // };
-
     sessionSmallObj.tags = {};
     sessionSmallObj.action = updateObj.action;
     sessionSmallObj.userId = updateObj.userId;
@@ -1737,19 +1715,6 @@ function createSmallSessionUpdateObj (updateObj, callback){
       sessionSmallObj.tags = updateObj.tags;
       // console.log("readUpdateSessionViewQueue | sessionSmallObj.tags\n" + jsonPrint(sessionSmallObj.tags));
     }
-
-    // sessionSmallObj.source = {
-    //   nodeId: sessionUpdateObj.source.nodeId,
-    //   raw: sessionUpdateObj.source.raw,
-    //   isIgnored: sessionUpdateObj.source.isIgnored,
-    //   isTrendingTopic: sessionUpdateObj.source.isTrendingTopic,
-    //   isKeyword: sessionUpdateObj.source.isKeyword,
-    //   keywords: {},
-    //   url: sessionUpdateObj.source.url,
-    //   wordChainIndex: sessionUpdateObj.source.wordChainIndex,
-    //   links: {},
-    //   mentions: sessionUpdateObj.source.mentions
-    // };
 
     sessionSmallObj.source.nodeId = updateObj.source.nodeId;
     sessionSmallObj.source.raw = updateObj.source.raw;
@@ -1772,18 +1737,6 @@ function createSmallSessionUpdateObj (updateObj, callback){
     }
 
     if (typeof updateObj.target !== 'undefined') {
-      // sessionSmallObj.target = {
-      //   nodeId: sessionUpdateObj.target.nodeId,
-      //   raw: sessionUpdateObj.target.raw,
-      //   isIgnored: sessionUpdateObj.target.isIgnored,
-      //   isKeyword: sessionUpdateObj.target.isKeyword,
-      //   isTrendingTopic: sessionUpdateObj.target.isTrendingTopic,
-      //   keywords: {},
-      //   url: sessionUpdateObj.target.url,
-      //   wordChainIndex: sessionUpdateObj.target.wordChainIndex,
-      //   links: {},
-      //   mentions: sessionUpdateObj.target.mentions
-      // };
 
       sessionSmallObj.target.nodeId = updateObj.target.nodeId;
       sessionSmallObj.target.raw = updateObj.target.raw;
@@ -1862,7 +1815,6 @@ var readUpdateSessionViewQueue = setInterval(function() {
 function updateSessionViews(sessionUpdateObj) {
 
   var obj = {};
-  // // obj = clone(sessionUpdateObj, true, 1);
   obj = sessionUpdateObj;
 
   if (typeof obj.source !== 'undefined') {
@@ -1969,20 +1921,6 @@ function dbUpdateEntity(entityObj, incMentions, callback) {
 }
 
 function checkKeyword(wordObj, callback) {
-  // keywordCache.get(wordObj.nodeId, function(err, kw){
-  //   if( !err ){
-  //     if (typeof kw !== 'undefined'){
-  //       wordObj.isKeyword = true;
-  //       wordObj.keywords = {};    
-  //       wordObj.keywords[kw] = true;
-  //       callback(err, wordObj);
-  //     }
-  //     else {
-  //       wordObj.isKeyword = false;
-  //       callback(err, wordObj);
-  //     }
-  //   }
-  // });
 
   if (keywordHashMap.has(wordObj.nodeId)) {
     var kw = keywordHashMap.get(wordObj.nodeId);
@@ -2026,11 +1964,6 @@ function dbUpdateWord(wObj, incMentions, callback) {
           + " | K " + word.isKeyword 
           + " | TT " + word.isTrendingTopic 
           + " | M " + word.mentions 
-          // + " | U: " + word.url 
-          // + " | BHT: " + word.bhtSearched 
-          // + " FOUND: " + word.bhtFound
-          // + " | MWD: " + word.mwDictSearched 
-          // + " FOUND: " + word.mwDictFound
           + "\nKW: " + jsonPrint(word.keywords) 
         );
 
@@ -2069,9 +2002,6 @@ function dbUpdateWord(wObj, incMentions, callback) {
               debug("Word CACHE SET5: " + bhtResponseObj.nodeId);
               wordCache.set(bhtResponseObj.nodeId, bhtResponseObj);
               bhtWordsMiss[word.nodeId] = word.nodeId;
-              // updateStats({
-              //   bhtWordsMiss: bhtWordsMiss
-              // });
               callback('BHT_MISS', bhtResponseObj);
             }
           });
@@ -2087,9 +2017,6 @@ function dbUpdateWord(wObj, incMentions, callback) {
           debug("Word CACHE SET7: " + word.nodeId);
           wordCache.set(word.nodeId, word);
           bhtWordsNotFound[word.nodeId] = word.nodeId;
-          // updateStats({
-          //   bhtWordsNotFound: bhtWordsNotFound
-          // });
           callback('BHT_NOT_FOUND', word);
         }
       }
@@ -2335,8 +2262,6 @@ wapiEvents.on("WAPI_OVER_LIMIT", function() {
   wapiLimitResetTime = moment.utc();
   wapiLimitResetTime.endOf("day");
 
-  // wapiTimeToReset = moment(wapiLimitResetTime);
-  // wapiTimeToReset.subtract(wapiOverLimitTime);
   wapiTimeToReset = wapiLimitResetTime.valueOf() - wapiOverLimitTime.valueOf();
 
   debug(chalkWapi("wapiSearchWord: *** OVER LIMIT *** | " + wapiRequests + " REQUESTS"));
@@ -2614,10 +2539,7 @@ function sessionUpdateDb(sessionObj, callback) {
     + " | UID: " + sessionObj.userId
     + " | WCI: " + sessionObj.wordChainIndex
     + " | WCL: " + sessionObj.wordChain.length
-  ))
-
-  // debug("sessionUpdateDb: sessionObj: " + JSON.stringify(sessionObj, null, 3));
-  // console.log("sessionUpdateDb: sessionObj: " + util.inspect(sessionObj, {showHidden: false, depth: 2}));
+  ));
 
   var query = {
     sessionId: sessionObj.sessionId
@@ -4131,7 +4053,6 @@ function handleSessionEvent(sesObj, callback) {
               sessionId: sessionUpdatedObj.sessionId,
               wordChainIndex: sessionUpdatedObj.wordChainIndex,
               source: {}
-              // target: 0
             };
 
             sessionUpdateObj.tags = sessionUpdatedObj.tags;
@@ -4556,11 +4477,7 @@ function handleSessionEvent(sesObj, callback) {
           ROUTING OF PROMPT/RESPONSE BASED ON SESSION TYPE
       */
 
-      // var sessionCacheKey = (currentSession.config.mode == 'SUBSTREAM') ? currentSession.sessionId + "#" + currentSession.entity : currentSession.sessionId;
       var sessionCacheKey = currentSession.sessionId;
-
-      // if (typeof currentSession.subSessionId !== 'undefined') sessionCacheKey = currentSession.subSessionId;
-
 
       sessionCache.set(sessionCacheKey, currentSession, function(err, success) {
         if (!err && success) {
@@ -4877,14 +4794,10 @@ var readResponseQueue = setInterval(function() {
           dbUpdateObj.tags.channel = updatedWordObj.tags.channel;
           dbUpdateObj.tags.group = updatedWordObj.tags.group;
 
-          console.log(chalkInfo("R_a<" 
+          console.log(chalkInfo("R<" 
             + " G " + updatedWordObj.tags.group 
             + " E " + updatedWordObj.tags.entity 
             + " C " + updatedWordObj.tags.channel 
-            // + " KW " + updatedWordObj.isKeyword 
-            // + " TT " + updatedWordObj.isTrendingTopic 
-            // + " [" + currentSessionObj.wordChainIndex + "]" 
-            + " | " + currentSessionObj.profileImageUrl 
             + " | " + updatedWordObj.nodeId 
             + " | " + updatedWordObj.raw 
           ));
@@ -4894,13 +4807,10 @@ var readResponseQueue = setInterval(function() {
 
         }
         else {
-          console.log(chalkInfo("R_b<" 
+          console.log(chalkInfo("R<" 
             + " G " + updatedWordObj.tags.group 
             + " E " + updatedWordObj.tags.entity 
             + " C " + updatedWordObj.tags.channel 
-            // + " TT " + updatedWordObj.isTrendingTopic 
-            // + " [" + currentSessionObj.wordChainIndex + "]" 
-            + " | " + currentSessionObj.profileImageUrl 
             + " | " + updatedWordObj.nodeId 
             + " | " + updatedWordObj.raw 
           ));
@@ -5309,11 +5219,7 @@ var readDbUpdateWordQueue = setInterval(function() {
     dbUpdateWordReady = false;
 
     var dbUpdateObj = dbUpdateWordQueue.dequeue();
-
     var currentSessionObj = dbUpdateObj.session;
-
-    // currentSessionObj.url = dbUpdateObj.word.url;
-    // currentSessionObj.profileImageUrl = dbUpdateObj.word.profileImageUrl;
 
     dbUpdateObj.word.wordChainIndex = currentSessionObj.wordChainIndex;
 
@@ -5331,12 +5237,6 @@ var readDbUpdateWordQueue = setInterval(function() {
       if (status == 'BHT_FOUND'){
         wordTypes.forEach(function(wordType){
           if (updatedWordObj[wordType]){
-                // console.log("updatedWordObj"
-                //   + " | " + updatedWordObj.nodeId
-                //   + " | TYPE: " + wordType
-                //   + " | " + updatedWordObj[wordType]
-                // );
-
             if (updatedWordObj[wordType].ant){
               updatedWordObj.antonym = updatedWordObj[wordType].ant[randomIntInc(0,updatedWordObj[wordType].ant.length-1)];
               updatedWordObj[wordType].ant.forEach(function(antonym){
@@ -5357,7 +5257,6 @@ var readDbUpdateWordQueue = setInterval(function() {
 
         if (typeof previousPromptObj === 'undefined') {
           console.log(chalkError("previousPromptObj UNDEFINED"));
-          // quit();
         }
 
         sessionCache.set(currentSessionObj.sessionId, currentSessionObj, function(err, success) {
@@ -5373,7 +5272,6 @@ var readDbUpdateWordQueue = setInterval(function() {
               sessionId: currentSessionObj.sessionId,
               wordChainIndex: dbUpdateObj.word.wordChainIndex,
               source: updatedWordObj,
-              // target: previousPromptObj,
               tags: dbUpdateObj.tags
             };
 
@@ -5431,8 +5329,6 @@ function getTwitterFriends(callback){
         + " | NEXT CURSOR VALID: " + nextCursorValid
         + " | NEXT CURSOR: " + nextCursor
         + "\nparams: " + jsonPrint(params)
-        // + "\ndata: " + jsonPrint(data)
-        // + "\nresponse: " + jsonPrint(response)
       ));
 
       var friends = data.users;
@@ -5558,9 +5454,6 @@ function initKeywords(file, kwHashMap, callback){
 
           var wd = w.toLowerCase();
           var keyWordType = kwordsObj[w];
-
-          // console.log(chalkRed("UPDATING KEYWORD | " + wd + ": " + keyWordType));
-
           var wordObj = new Word();
 
           wordObj.nodeId = wd;
@@ -5574,14 +5467,6 @@ function initKeywords(file, kwHashMap, callback){
               cb(err);
             }
             else {
-              // console.log(chalkLog("+++ UPDATED KEYWORD"
-              //   + " | " + updatedWordObj.nodeId 
-              //   + " | " + updatedWordObj.raw 
-              //   + " | M " + updatedWordObj.mentions 
-              //   + " | I " + updatedWordObj.isIgnored 
-              //   + " | K " + updatedWordObj.isKeyword 
-              //   + " | K " + jsonPrint(updatedWordObj.keywords) 
-              // ));
               cb();
             }
           });
@@ -6927,7 +6812,7 @@ function createSession(newSessionObj) {
     statsObj.socket.SESSION_KEEPALIVES++;
     debug(chalkUser("SESSION_KEEPALIVE\n" + jsonPrint(userObj)));
     if (userObj.userId.match(/TMS_/g)){
-      console.log(chalkSession("SESSION_KEEPALIVE" 
+      console.log(chalkSession("K-" 
         + " | " + userObj.userId
         + " | " + socket.id
         + " | " + moment().format(compactDateTimeFormat)
@@ -7034,8 +6919,8 @@ function createSession(newSessionObj) {
       + " | C " + userObj.tags.channel
       + " | T " + userObj.type
       + " | M " + userObj.mode
-      + "\nU " + userObj.url
-      + "\nP " + userObj.profileImageUrl
+      // + "\nU " + userObj.url
+      // + "\nP " + userObj.profileImageUrl
     ));
 
     if ((typeof userObj.tags !== 'undefined')

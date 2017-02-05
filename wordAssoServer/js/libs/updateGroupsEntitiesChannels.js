@@ -688,24 +688,19 @@ function sendKeywords(callback){
       }
       else {
 
-        async.forEachSeries(serverWwords, function(word, cb) {
+        async.forEachSeries(serverWwords, function(word, cb2) {
 
             var keyWordType = serverKeywordHashMap.get(word);
 
             setTimeout(function(){
-              process.send({ 
-                target: 'server',
-                type: 'keyword', 
-                keyword: word, 
-                keyWordType: keyWordType
-              });
+              process.send({ target: 'server', type: 'keyword', keyword: word, keyWordType: keyWordType });
               debug(chalkInfo("UPDATER SEND KEYWORD"
                 + " | SERVER"
                 + " | " + word
                 + " | " + keyWordType
               ));
 
-              cb();
+              cb2();
             }, 10);
 
           },
@@ -752,6 +747,7 @@ function updateGroupsInterval(options){
   initGroupsInterval = setInterval(function() {
 
     if (initGroupsReady) {
+      console.log(chalkInfo("updateGroupsInterval"+ "\n" + jsonPrint(options)));
       initGroupsReady = false;
       updateGroupsEntitiesKeywords(options, function(err, results){
         sendHashMaps(function(err2, results2){

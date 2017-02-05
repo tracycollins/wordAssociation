@@ -53,6 +53,14 @@ function ViewTicker() {
   var width = window.innerWidth * 1;
   var height = window.innerHeight * 1;
 
+  this.getWidth = function() {
+    return width;
+  }
+
+  this.getHeight = function() {
+    return height;
+  }
+
   var newWordFlag = false;
 
   var maxSessionRows = 25;
@@ -230,6 +238,10 @@ function ViewTicker() {
     return ageRate;
   }
 
+  this.getMaxAgeRate = function() {
+    return maxAgeRate;
+  }
+  
   this.getSession = function(index) {
     return sessions[index];
   }

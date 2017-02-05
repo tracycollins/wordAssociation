@@ -4838,19 +4838,19 @@ var readUpdaterMessageQueue = setInterval(function() {
 
     switch (updaterObj.type){
       case 'sendGroupsComplete':
-        console.log(chalkRed("UPDATE GROUPS COMPLETE"));
+        console.log(chalkRed("UPDATE GROUPS COMPLETE | " + getTimeStamp()));
         updaterMessageReady = true;
         groupsUpdateComplete = true;
       break;
 
       case 'sendEntitiesComplete':
-        console.log(chalkRed("UPDATE ENTITIES COMPLETE"));
+        console.log(chalkRed("UPDATE ENTITIES COMPLETE | " + getTimeStamp()));
         updaterMessageReady = true;
         entitiesUpdateComplete = true;
       break;
 
       case 'sendKeywordsComplete':
-        console.log(chalkRed("UPDATE KEYWORDS COMPLETE"));
+        console.log(chalkRed("UPDATE KEYWORDS COMPLETE | " + getTimeStamp()));
         updaterMessageReady = true;
         keywordsUpdateComplete = true;
       break;
@@ -4944,7 +4944,6 @@ var readUpdaterMessageQueue = setInterval(function() {
             );
           }
 
-
           keywordUpdateDb(updaterObj, function(err, updatedWordObj){
 
             var dmString = "KEYWORD"
@@ -5009,7 +5008,10 @@ var readUpdaterMessageQueue = setInterval(function() {
                 }
               }
             });
-
+          });
+        }
+        else {
+          keywordUpdateDb(updaterObj, function(err, updatedWordObj){
           });
         }
 
@@ -5410,7 +5412,7 @@ function queryDb(queryObj, callback){
 
 function keywordUpdateDb(keywordObj, callback){
 
-  console.log(chalkRed("UPDATING KEYWORD | " + keywordObj.keyword + ": " + keywordObj.keyWordType));
+  debug(chalkRed("UPDATING KEYWORD | " + keywordObj.keyword + ": " + keywordObj.keyWordType));
 
   var wordObj = new Word();
 
@@ -5427,7 +5429,7 @@ function keywordUpdateDb(keywordObj, callback){
       callback(err, wordObj);
     }
     else {
-      console.log(chalkAlert("+ KEYWORD"
+      debug(chalkAlert("+ KEYWORD"
         + " | " + updatedWordObj.nodeId 
         + " | " + updatedWordObj.raw 
         + " | M " + updatedWordObj.mentions 
@@ -7868,7 +7870,6 @@ initializeConfiguration(function(err, results) {
   else {
 
     console.log(chalkLog("INITIALIZE CONFIGURATION COMPLETE\n" + jsonPrint(results)));
-
 
     updateTrends();
     initUpdateTrendsInterval(ONE_MINUTE);

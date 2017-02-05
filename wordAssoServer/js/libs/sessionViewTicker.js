@@ -131,6 +131,7 @@ function ViewTicker() {
   };
 
   var ageRate = DEFAULT_TICKER_CONFIG.ageRate;
+  var maxAgeRate = 0;
 
   var D3_LAYOUT_WIDTH_RATIO = 1.0;
   var D3_LAYOUT_HEIGHT_RATIO = 1.0;
@@ -462,19 +463,6 @@ function ViewTicker() {
         ageNode: ageNodes,
         deadNode: processDeadNodesHash,
         rankGroup: rankGroups
-
-        // // deadLink: processDeadLinksHash,
-        // group: processGroupUpdateQ,
-        // session: processSessionUpdateQ,
-        // node: processNodeUpdateQ,
-        // // link: processLinkUpdateQ,
-        // ageGroup: ageGroups,
-        // ageSession: ageSessions,
-        // ageNode: ageNodes,
-        // // ageLink: ageLinks,
-        // deadSession: processDeadSessionsHash,
-        // deadGroup: processDeadGroupsHash,
-        // rankGroup: rankGroups
       },
 
       function(err, results) {
@@ -635,6 +623,7 @@ function ViewTicker() {
       ageRate = DEFAULT_AGE_RATE;
     }
 
+    maxAgeRate = Math.max(ageRate, maxAgeRate);
 
     var ageNodesLength = nodes.length - 1;
     var ageNodesIndex = nodes.length - 1;

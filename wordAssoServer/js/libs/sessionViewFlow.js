@@ -1219,7 +1219,7 @@ function ViewFlow() {
       .style('fill', function(d) { 
         if (d.mouseHoverFlag) { return palette.blue; }
         if (d.isKeyword) { return d.keywordColor; }
-        if (d.isTrendingTopic || d.isTwitterUser || d.isNumber || d.isCurrency) { return palette.black; }
+        if (d.isTrendingTopic || d.isTwitterUser || d.isNumber || d.isCurrency) { return palette.white; }
         if ((d.isGroupNode || d.isSessionNode) && (d.ageMaxRatio < 0.01)) { return palette.yellow; }
         return palette.lightgray; 
       })

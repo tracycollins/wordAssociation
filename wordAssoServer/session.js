@@ -15,6 +15,7 @@ when new instance of word arrives, iterate thru array of nodes and create linksk
 // var DEFAULT_SOURCE = "http://word.threeceelabs.com";
 var DEFAULT_SOURCE = "==SOURCE==";  // will be updated by wordAssoServer.js on app.get
 
+var DEFAULT_FORCEVIEW_MODE = "web";
 var DEFAULT_SESSION_VIEW = 'flow';
 
 var d3;
@@ -60,15 +61,18 @@ var defaultTimePeriodFormat = "HH:mm:ss";
 var pageLoadedTimeIntervalFlag = true;
 
 var debug = false;
-var MAX_RX_QUEUE = 250;
-var QUEUE_MAX = 200;
 var DEFAULT_BLAH_MODE = false;
+var MAX_RX_QUEUE = 50;
 var MAX_WORDCHAIN_LENGTH = 100;
 var DEFAULT_MAX_AGE = 10000;
+var FORCE_MAX_AGE = 10000;
 var DEFAULT_AGE_RATE = 1.0;
 
 var FORCEVIEW_DEFAULT = {};
 FORCEVIEW_DEFAULT.MAX_AGE = FORCE_MAX_AGE;
+FORCEVIEW_DEFAULT.CHARGE = -200;
+FORCEVIEW_DEFAULT.GRAVITY = 0.1;
+FORCEVIEW_DEFAULT.FORCEY_MULTIPLIER = 1.0;
 FORCEVIEW_DEFAULT.VELOCITY_DECAY = 0.85;
 FORCEVIEW_DEFAULT.LINK_DISTANCE = 10;
 FORCEVIEW_DEFAULT.LINK_STRENGTH = 0.50;
@@ -87,6 +91,7 @@ var DEFAULT_COLLISION_ITERATIONS = 2;
 var DEFAULT_NODE_RADIUS = 20.0;
 
 var config = {};
+config.forceViewMode = DEFAULT_FORCEVIEW_MODE;
 config.fullscreenMode = false;
 config.pauseOnMouseMove = false;
 config.showStatsFlag = false;
@@ -456,8 +461,8 @@ function setMaxAgeSliderValue(value) {
 
 
 window.onbeforeunload = function() {
+  if (controlPanelFlag) controlPanelWindow.close();
   controlPanelFlag = false;
-  controlPanelWindow.close();
 }
 
 function toggleControlPanel(){
@@ -790,9 +795,15 @@ var initialYpositionRatio = 0.4;
 function computeInitialPosition(index) {
   var radiusX = 0.2*currentSessionView.getWidth();
   var radiusY = 0.2*currentSessionView.getHeight();
+  // var radiusX = 0.1*width;
+  // var radiusY = 0.1*height;
   var pos = {
+    // x: ((initialXpositionRatio * 1000) + (radiusX * Math.cos(index))),
+    // y: ((initialYpositionRatio * 1000) + (radiusY * Math.cos(index)))
     x: ((initialXpositionRatio * currentSessionView.getWidth()) - (radiusX * Math.abs(Math.cos(index)))),
     y: ((initialYpositionRatio * currentSessionView.getHeight()) + (radiusY * Math.cos(index)))
+    // x: 500,
+    // y: 500
   };
 
   return pos;
@@ -892,6 +903,7 @@ socket.on("VIEWER_ACK", function(vSesKey) {
     console.log("TX GET_SESSION | " + currentSession.sessionId);
     socket.emit("GET_SESSION", currentSession.sessionId);
   } else {
+    console.log("TX REQ_USER_SESSION");
     socket.emit("REQ_USER_SESSION");
   }
 });
@@ -1029,7 +1041,7 @@ document.addEventListener(visibilityEvent, function() {
   if (!document[hidden]) {
     windowVisible = true;
     if (typeof currentSessionView !== 'undefined') {
-      currentSessionView.resize();
+      // currentSessionView.resize();
       currentSessionView.setPause(false);
     }
     console.debug("visibilityEvent: " + windowVisible);
@@ -1097,6 +1109,7 @@ function getUrlVariables(callbackMain) {
           }
           if (keyValuePair[0] === 'viewtype') {
             config.sessionViewType = keyValuePair[1];
+            console.info("SESSION VIEW TYPE | sessionViewType: " + config.sessionViewType);
             return (callback2(null, {
               sessionViewType: config.sessionViewType
             }));
@@ -1593,16 +1606,16 @@ function deleteSession(nodeId, callback) {
   var deletedSession = sessionHashMap.get(nodeId);
   var groupLinkId = deletedSession.groupId + "_" + deletedSession.node.nodeId;
 
-  console.log("X SES"
-    // + " [" + currentSessionView.getSessionsLength() + "]"
-    + " G: " + deletedSession.groupId 
-    + " N: " + deletedSession.nodeId 
-    + " S: " + deletedSession.sessionId 
-    + " U: " + deletedSession.userId
-    + " SN: " + deletedSession.linkHashMap.keys()
-    + " SN: " + deletedSession.node.nodeId
-    + " Ls: " + jsonPrint(deletedSession.node.links)
-  );
+  // console.log("X SES"
+  //   // + " [" + currentSessionView.getSessionsLength() + "]"
+  //   + " G: " + deletedSession.groupId 
+  //   + " N: " + deletedSession.nodeId 
+  //   + " S: " + deletedSession.sessionId 
+  //   + " U: " + deletedSession.userId
+  //   + " SN: " + deletedSession.linkHashMap.keys()
+  //   + " SN: " + deletedSession.node.nodeId
+  //   + " Ls: " + jsonPrint(deletedSession.node.links)
+  // );
 
   var sessionLinks = deletedSession.linkHashMap.keys();
 
@@ -1634,7 +1647,7 @@ function deleteAllSessions(callback) {
 
   async.each(nodeIds, function(nodeId, cb) {
       deleteSession(nodeId, function(nId) {
-        console.log("X SES " + nId);
+        // console.log("X SES " + nId);
         cb();
       });
     },
@@ -1652,6 +1665,8 @@ function updateStatsTable(statsObj){
   document.getElementById("statsServerRunTime").innerHTML = msToTime(statsObj.heartbeat.runTime);
   document.getElementById("statsServerTotalWords").innerHTML = statsObj.heartbeat.totalWords;
   document.getElementById("statsServerWordsReceived").innerHTML = statsObj.heartbeat.responsesReceived;
+  // document.getElementById("statsServerWordsPerMin").innerHTML = statsObj.heartbeat.wordsPerMinute.toFixed(2);
+  // document.getElementById("statsServerMaxWordsPerMin").innerHTML = statsObj.heartbeat.maxWordsPerMin.toFixed(2);
   document.getElementById("statsServerMaxWordsPerMinTime").innerHTML = moment(statsObj.heartbeat.maxWordsPerMinTime).format(defaultDateTimeFormat);
   document.getElementById("statsClientNumberNodes").innerHTML = currentSessionView.getNodesLength();
   document.getElementById("statsClientNumberMaxNodes").innerHTML = statsObj.maxNodes;
@@ -1735,16 +1750,20 @@ socket.on("SESSION_DELETE", function(rxSessionObject) {
 
   var rxObj = rxSessionObject;
 
-  console.log("X SES" 
-    // + " | " + rxObj.session.nodeId
-    + " " + rxSessionObject.sessionId 
-    // + " | " + rxObj.sessionEvent
-    // + "\n" + jsonPrint(rxSessionObject)
-  );
+  // console.log("X SES" 
+  //   // + " | " + rxObj.session.nodeId
+  //   + " " + rxSessionObject.sessionId 
+  //   // + " | " + rxObj.sessionEvent
+  //   + "\n" + jsonPrint(rxSessionObject)
+  // );
 
   if ((typeof rxObj.session !== 'undefined') && (typeof rxObj.session.tags !== 'undefined')){
 
     // rxObj.session.nodeId = rxObj.session.user.tags.entity.toLowerCase() + "_" + rxObj.session.user.tags.channel.toLowerCase();
+    // rxObj.session.nodeId = rxObj.session.tags.entity.toLowerCase() + "_" + rxObj.session.tags.channel.toLowerCase();
+
+    rxObj.session.nodeId = (config.forceViewMode == 'web') ? rxObj.session.tags.entity.toLowerCase() : rxObj.session.tags.entity.toLowerCase() + "_" + rxObj.session.tags.channel.toLowerCase();
+
 
     if (sessionHashMap.has(rxObj.session.nodeId)) {
 
@@ -1778,6 +1797,8 @@ socket.on("USER_SESSION", function(rxSessionObject) {
 
 socket.on("SESSION_UPDATE", function(rxSessionObject) {
 
+  // console.debug("SES UPDATE: " + rxSessionObject.action + " | " + rxSessionObject.sessionId);
+
   var rxObj = rxSessionObject;
 
   if (!windowVisible) {
@@ -1805,6 +1826,57 @@ socket.on("SESSION_UPDATE", function(rxSessionObject) {
     }
   }
 });
+
+function initSocketNodeRx(){
+  
+  socket.on("node", function(nNode) {
+
+    // console.log("N< " + nNode.nodeType + " | " + nNode.nodeId + " | " + nNode.mentions);
+
+    var dateNow = moment().valueOf();
+
+    var newNode = {};
+
+    newNode.age = 1e-6;
+    newNode.ageMaxRatio = 1e-6;
+    newNode.mouseHoverFlag = false;
+    newNode.isKeyword = nNode.isKeyword || false;
+    newNode.nodeId = (nNode.nodeType == 'url') ? nNode.nodeId : nNode.nodeId.toString().toLowerCase();  // urls must be case sensitive
+    newNode.nodeType = nNode.nodeType;
+    newNode.isDead = false;
+    newNode.isIgnored = false;
+    newNode.isSessionNode = false;
+    newNode.isGroupNode = false;
+    newNode.r = 0;
+    newNode.links = [];
+    newNode.mentions = (nNode.mentions > 0) ? nNode.mentions : 10;
+    newNode.raw = nNode.nodeId;
+    newNode.text = nNode.nodeId;
+    newNode.textLength = 100;
+
+    if (nNode.nodeType == "tweet"){
+      newNode.url = nNode.url;
+      newNode.user = nNode.user;
+      newNode.hashtags = nNode.hashtags;
+      newNode.media = nNode.media;
+      newNode.urls = nNode.urls;
+      newNode.place = nNode.place;
+      newNode.userMentions = nNode.userMentions;
+    }
+    if (nNode.nodeType == "user"){
+      newNode.userId = nNode.userId;
+      newNode.profileUrl = nNode.profileUrl;
+      newNode.profileImageUrl = nNode.profileImageUrl;
+    }
+    if (nNode.nodeType == "media"){
+      newNode.mediaId = nNode.mediaId;
+      newNode.sourceUrl = nNode.sourceUrl;
+    }
+
+    if (currentSessionView) currentSessionView.addNode(newNode);
+  });
+}
+
 
 
 //================================
@@ -1841,6 +1913,7 @@ function removeFromHashMap(hm, key, callback) {
 }
 
 var processSessionQueues = function(callback) {
+
   if (rxSessionDeleteQueue.length > 0) {
     var deleteSessUpdate = rxSessionDeleteQueue.shift();
     console.log("DELETE SESSION: " + deleteSessUpdate.sessionId);
@@ -1855,6 +1928,16 @@ var processSessionQueues = function(callback) {
   else {
     var session = rxSessionUpdateQueue.shift();
 
+    if (config.forceViewMode == 'web') {
+      // session.nodeId = session.tags.entity.toLowerCase();
+      session.tags.entity = session.tags.entity.toLowerCase();
+      session.tags.channel = session.tags.channel.toLowerCase();
+    }
+    else {
+      session.nodeId = session.tags.entity.toLowerCase() + "_" + session.tags.channel.toLowerCase();
+      session.tags.entity = session.tags.entity.toLowerCase();
+      session.tags.channel = session.tags.channel.toLowerCase();
+    }
 
     switch (session.tags.channel){
       case "twitter":
@@ -2276,6 +2359,7 @@ var createSession = function(callback) {
       currentSession.node.nodeColors = currentGroup.nodeColors;
       currentSession.node.interpolateNodeColor = currentGroup.interpolateNodeColor;
       
+      var sessionLinkId = (config.forceViewMode == 'web') ? currentSession.node.nodeId : currentSession.node.nodeId + "_" + sessUpdate.source.nodeId;
       
       currentSession.node.links = {};
       currentSession.node.links[sessionLinkId] = 1;
@@ -2328,6 +2412,8 @@ var createSession = function(callback) {
       currentSession.lastSeen = dateNow;
       currentSession.rank = -1;
       currentSession.isSession = true;
+      // currentSession.nodeId = sessUpdate.tags.entity + "_" + sessUpdate.tags.channel;
+      currentSession.nodeId = (config.forceViewMode == 'web') ? sessUpdate.tags.entity : sessUpdate.tags.entity + "_" + sessUpdate.tags.channel;
       currentSession.sessionId = sessUpdate.sessionId;
       currentSession.tags = sessUpdate.tags;
       currentSession.userId = sessUpdate.userId;
@@ -2440,6 +2526,8 @@ var createNode = function(callback) {
       session.node.bboxWidth = 1e-6;
       session.node.isSessionNode = true;
       session.node.isGroupNode = false;
+      // session.node.nodeId = session.tags.entity + "_" + session.tags.channel;
+      session.node.nodeId = (config.forceViewMode == 'web') ? session.tags.entity : session.tags.entity + "_" + session.tags.channel;
       session.node.entity = session.tags.entity;
       session.node.channel = session.tags.channel;
       session.node.url = session.url;
@@ -2472,7 +2560,11 @@ var createNode = function(callback) {
     var targetNodeId;
 
     if (config.sessionViewType == 'force') {
+      // sourceNodeId = session.node.nodeId + "_" + session.source.nodeId;
+      sourceNodeId = session.node.nodeId;
       if (session.target) {
+        // targetNodeId = session.node.nodeId + "_" + session.target.nodeId;
+        targetNodeId = session.node.nodeId;
       }
     }
     else if ((config.sessionViewType == 'ticker') 
@@ -2811,7 +2903,10 @@ var createLink = function(callback) {
 
     if (config.sessionViewType == 'force') {
 
+      // var sessionLinkId = (config.forceViewMode == 'web') ? session.node.nodeId : currentSession.node.nodeId + "_" + session.source.nodeId;
+
       var sessionLinkId = session.node.nodeId + "_" + session.source.nodeId;
+
       console.debug("sessionLinkId: " + sessionLinkId);
 
       session.node.links[sessionLinkId] = 1;
@@ -2903,11 +2998,35 @@ var createLink = function(callback) {
 }
 
 var updateSessionsReady = true;
+
 function updateSessions() {
 
   updateSessionsReady = false;
 
+  if (config.forceViewMode == 'web') {
+
+  }
+  else {
+    async.series(
+      [
+        processLinkDeleteQueue,
+        processNodeDeleteQueue,
+        processSessionQueues,
+        createGroup,
+        createSession,
+        createNode,
+        createLink
+      ],
+
+      function(err, result) {
+        if (err) {
+          console.error("*** ERROR: updateSessions *** \nERROR: " + err);
+        }
+        updateSessionsReady = true;
+
       }
+    );
+  }
 
 }
 
@@ -2969,7 +3088,8 @@ function loadViewType(svt, callback) {
 
   switch (svt) {
     case 'ticker':
-      config.sessionViewType = 'ticker';
+      config.sessionViewType = "ticker";
+      config.forceViewMode = "flow";
       requirejs(["js/libs/sessionViewTicker"], function() {
         console.log("sessionViewTicker LOADED");
         currentSessionView = new ViewTicker();
@@ -2977,7 +3097,8 @@ function loadViewType(svt, callback) {
       });
       break;
     case 'flow':
-      config.sessionViewType = 'flow';
+      config.sessionViewType = "flow";
+      config.forceViewMode = "flow";
       requirejs(["js/libs/sessionViewFlow"], function() {
         console.log("sessionViewFlow LOADED");
         currentSessionView = new ViewFlow();
@@ -2985,7 +3106,8 @@ function loadViewType(svt, callback) {
       });
       break;
     case 'histogram':
-      config.sessionViewType = 'histogram';
+      config.sessionViewType = "histogram";
+      config.forceViewMode = "flow";
       requirejs(["js/libs/sessionViewHistogram"], function() {
         console.log("sessionViewHistogram LOADED");
         currentSessionView = new ViewHistogram();
@@ -2993,9 +3115,11 @@ function loadViewType(svt, callback) {
       });
       break;
     default:
-      config.sessionViewType = 'force';
+      config.sessionViewType = "force";
+      config.forceViewMode = "web";
       requirejs(["js/libs/sessionViewForce"], function() {
         console.log("sessionViewForce LOADED");
+
 
         // DEFAULT_FRICTION = FORCEVIEW_DEFAULT.FRICTION;
         DEFAULT_COLLISION_RADIUS_MULTIPLIER = FORCEVIEW_DEFAULT.COLLISION_RADIUS_MULTIPLIER;
@@ -3009,7 +3133,7 @@ function loadViewType(svt, callback) {
         DEFAULT_FORCEY_MULTIPLIER = FORCEVIEW_DEFAULT.FORCEY_MULTIPLIER;
 
         currentSessionView = new ViewForce();
-
+        initSocketNodeRx();
         callback();
       });
       break;
@@ -3180,7 +3304,7 @@ function initialize(callback) {
             socket.emit("VIEWER_READY", viewerObj);
 
             setTimeout(function() {
-              console.log("END PAGE LOAD");
+              console.log("END PAGE LOAD TIMEOUT");
               pageLoadedTimeIntervalFlag = false;
               if (!config.showStatsFlag) displayStats(false, palette.white);
               if (!config.showStatsFlag) displayControl(false);

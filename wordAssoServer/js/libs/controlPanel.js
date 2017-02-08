@@ -379,8 +379,8 @@ function ControlPanel() {
       type: 'SLIDER',
       id: 'chargeSlider',
       class: 'slider',
-      min: -20,
-      max: 20,
+      min: -500,
+      max: 500,
       value: config.defaultCharge,
       multiplier: 1.0
     }
@@ -396,8 +396,8 @@ function ControlPanel() {
       type: 'SLIDER',
       id: 'gravitySlider',
       class: 'slider',
-      min: 0.0,
-      max: 50,
+      min: -10.0,
+      max: 500,
       // value: (config.defaultGravity * config.defaultMultiplier),
       value: config.defaultGravity * config.defaultMultiplier,
       multiplier: config.defaultMultiplier

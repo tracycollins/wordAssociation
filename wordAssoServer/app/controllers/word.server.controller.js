@@ -143,6 +143,13 @@ exports.getRandomWord = function(callback){
 
 exports.findOneWord = function(word, incMentions, callback) {
 
+	if (word.nodeId.length > 250){
+    console.log(chalkError("*** ILLEGAL WORD NODE ID (> 250 CHARS) ... SKIPPING ***" + "\nTYPE: " + typeof word.nodeId 
+      + "\n" + jsonPrint(word)
+    ));
+    quit();
+	}
+
 	if (typeof word.raw === 'undefined') word.raw = word.nodeId;
 
 	// console.log("findOneWord:" + JSON.stringify(word, null, 2));

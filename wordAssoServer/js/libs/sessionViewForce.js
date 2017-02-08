@@ -5,6 +5,9 @@
 
 function ViewForce() {
 
+  var newAgeRatio = 0.01;
+  var nodeNewAge = 700;
+
   var disableLinks = false;
   var hideNodeCirclesFlag = false;
   var hideNodeImagesFlag = false;
@@ -129,11 +132,10 @@ function ViewForce() {
     "yellowgreen": "#738A05"
   };
 
-  var currentMaxMentions = 2;
+  var currentHashtagMaxMentions = 2;
 
   var minFontSize = 10;
-  var maxFontSize = 20;
-
+  var maxFontSize = 40;
 
   var D3_LAYOUT_WIDTH_RATIO = 1.0;
   var D3_LAYOUT_HEIGHT_RATIO = 1.0;
@@ -166,12 +168,12 @@ function ViewForce() {
   var adjustedAgeRateScale = d3.scaleLinear().domain([1, 200]).range([1.0, 20.0]).clamp(true);
 
   var sessionFontSizeScale = d3.scaleLinear().domain([1, 10000000]).range([16.0, 24]).clamp(true);
-  var nodeFontSizeScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minFontSize, maxFontSize]).clamp(true);
+  var nodeFontSizeScale = d3.scaleLinear().domain([1, currentHashtagMaxMentions]).range([minFontSize, maxFontSize]).clamp(true);
 
   var groupCircleRadiusScale = d3.scaleLog().domain([1, 10000000]).range([10.0, 50.0]).clamp(true); // uses wordChainIndex
   var sessionCircleRadiusScale = d3.scaleLog().domain([1, 1000000]).range([15.0, 50.0]).clamp(true); // uses wordChainIndex
   var imageSizeScale = d3.scaleLog().domain([1, 10000000]).range([20.0, 60.0]).clamp(true);
-  var defaultRadiusScale = d3.scaleLog().domain([1, 10000000]).range([10.0, 30.0]).clamp(true);
+  var defaultRadiusScale = d3.scaleLog().domain([1, 10000000]).range([10, 40]).clamp(true);
 
   var fillColorScale = d3.scaleLinear().domain([1e-6, 0.1, 1.0]).range([palette.gray, palette.darkgray, palette.black]);
   var strokeColorScale = d3.scaleLog().domain([1e-6, 0.15, 1.0]).range([palette.white, palette.darkgray, palette.black]);
@@ -720,11 +722,6 @@ function ViewForce() {
 
       var currentNode = {};
 
-      // currentNode.links = {};
-      // currentNode.x = 0.5*width;
-      // currentNode.y = 0.5*height;
-      // currentNode.age = 0;
-      // currentNode.ageMaxRatio = 1e-6;
 
       switch (nodeAddObj.op) {
 
@@ -739,31 +736,26 @@ function ViewForce() {
           else {
             // console.error("localNodeHashMap MISS: " + newNode.nodeId);
             currentNode = newNode;
-            currentNode.x = 0.2*width;
-            currentNode.y = 0.5*height;
+            currentNode.x = randomIntFromInterval(0.1 * width, 0.15 * width);
+            currentNode.y = randomIntFromInterval(0.3 * height, 0.7 * height);
             if (newNode.nodeType == "tweet"){
             }
           }
 
           nodesModifiedFlag = true;
           currentNode.mentions = newNode.mentions;
-          // currentNode.age = 0;
-          // currentNode.ageMaxRatio = 1e-6;
           currentNode.ageUpdated = moment().valueOf();
 
-          if (!newNode.isGroupNode 
-            && !newNode.isSessionNode 
-            && !newNode.isIgnored 
-            && (newNode.mentions > currentMaxMentions)) {
+          if ((newNode.nodeType == "hashtag") && (newNode.mentions > currentHashtagMaxMentions)){
 
-            currentMaxMentions = newNode.mentions;
+            currentHashtagMaxMentions = newNode.mentions;
 
-            nodeFontSizeScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minFontSize, maxFontSize]).clamp(true);
+            nodeFontSizeScale = d3.scaleLinear().domain([1, currentHashtagMaxMentions]).range([minFontSize, maxFontSize]).clamp(true);
 
             console.info("NEW MAX Ms" 
               + " | " + currentNode.text 
               + " | I: " + currentNode.isIgnored 
-              + " | Ms " + currentMaxMentions 
+              + " | Ms " + currentHashtagMaxMentions 
               + " | K: " + currentNode.isKeyword 
               + " | KWs: " + jsonPrint(currentNode.keywords) 
             );
@@ -1439,13 +1431,26 @@ function ViewForce() {
       .attr("y1", function(d) { return d.source.y; })
       .attr("x2", function(d) { return d.target.x; })
       .attr("y2", function(d) { return d.target.y; })
-      .style('opacity', function(d) { return sessionOpacityScale(d.ageMaxRatio); });
+      // .style('opacity', function(d) { return sessionOpacityScale(d.ageMaxRatio); });
+      .style('stroke', function(d) {
+        if ((d.source.age < nodeNewAge) && (d.target.age < nodeNewAge)) return palette.white;
+        return "aaaaaa";
+      })
+      .style('stroke-width', function(d) {
+        if ((d.source.age < nodeNewAge) && (d.target.age < nodeNewAge)) return 3.5;
+        return 1.5;
+      })
+      .style('opacity', function(d){
+        if ((d.source.age < nodeNewAge) && (d.target.age < nodeNewAge)) return 1.0;
+        // return 0.5*(nodeMaxAge - d.source.age) / nodeMaxAge ;
+        return sessionOpacityScale(d.ageMaxRatio);
+      });
 
     link.enter()
       .append("svg:line")
       .attr("class", "link")
       .style("visibility", "visible")
-      .style('stroke', palette.black )
+      .style('stroke', palette.lightgray )
       .style('stroke-width', 1)
       .style('opacity', 1);
 
@@ -1472,13 +1477,21 @@ function ViewForce() {
           return defaultRadiusScale(1);
         }
         else {
-          if (d.isGroupNode) return groupCircleRadiusScale(d.totalWordChainIndex + 1.0) ;
-          if (d.isSessionNode) return sessionCircleRadiusScale(d.wordChainIndex + 1.0) ;
+          // if (d.isGroupNode) return groupCircleRadiusScale(d.totalWordChainIndex + 1.0) ;
+          // if (d.isSessionNode) return sessionCircleRadiusScale(d.wordChainIndex + 1.0) ;
           return defaultRadiusScale(parseInt(d.mentions) + 1.0);
         }
       })
       .attr("cx", function(d) { return d.x; })
       .attr("cy", function(d) { return d.y; })
+      .style('stroke', function(d) {
+        if (d.age < nodeNewAge) return palette.white;
+        return "aaaaaa";
+      })
+      .style('stroke-width', function(d) {
+        if (d.age < nodeNewAge) return 3.5;
+        return 1.5;
+      })
       .style('opacity', function(d) {
         if (hideNodeCirclesFlag) return 1e-6;
         if (d.mouseHoverFlag) return 1.0;
@@ -1497,7 +1510,7 @@ function ViewForce() {
         if (d.nodeType == 'tweet') { return palette.red; }
         if (d.nodeType == 'hashtag') { return palette.blue; }
         if (d.nodeType == 'user') { return palette.green; }
-        if (d.nodeType == 'url') { return palette.pink; }
+        if (d.nodeType == 'url') { return palette.green; }
         if (d.nodeType == 'media') { return palette.yellow; }
         if (d.nodeType == 'place') { return palette.purple; }
         if ( d.isTrendingTopic 
@@ -1507,6 +1520,8 @@ function ViewForce() {
         if ((d.isGroupNode || d.isSessionNode) && (d.ageMaxRatio < 0.01)) { return palette.yellow; }
         return palette.black; 
       })
+      .style('stroke', palette.lightgray )
+      .style('stroke-width', 1)
       .style('visibility', function(d) {
         if (hideNodeCirclesFlag) { return "hidden"; }
         if (d.nodeType == "media") { return "hidden"; }
@@ -1547,6 +1562,9 @@ function ViewForce() {
     nodeImages
       .enter()
       .append("svg:image")
+      .filter(function(d) { 
+        return ((d.nodeType == "media") || (d.nodeType == "user")); 
+      })
       .attr("x", function(d) {return d.x;})
       .attr("y", function(d) {return d.y;})
       .attr("xlink:href", function(d) { 
@@ -1604,8 +1622,8 @@ function ViewForce() {
       // .attr("y", function(d) { return d.y; })
       .attr("y", function(d) { 
         // var shiftY = -1.5 * (nodeFontSizeScale(d.mentions + 1));
-        if (d.isIgnored) return d.y - 1.5 * (nodeFontSizeScale(10));
-        return d.y -1.5 * (nodeFontSizeScale(d.mentions + 1));
+        if (d.isIgnored) return d.y - 1.8 * (defaultRadiusScale(10));
+        return d.y - 1.5 * (defaultRadiusScale(d.mentions + 1));
       })
       .style("font-weight", function(d) {
         if (d.isTwitterUser 
@@ -1625,9 +1643,9 @@ function ViewForce() {
         if ( d.isTrendingTopic 
           || d.isTwitterUser 
           || d.isNumber 
-          || d.isCurrency) { return palette.black; }
+          || d.isCurrency) { return palette.white; }
         if ((d.isGroupNode || d.isSessionNode) && (d.ageMaxRatio < 0.01)) { return palette.yellow; }
-        return palette.lightgray; 
+        return palette.white; 
       })
       .style('opacity', function(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
@@ -1635,8 +1653,8 @@ function ViewForce() {
       })
       .style("font-size", function(d) {
           if (d.isIgnored) { return nodeFontSizeScale(10);  }
-          if (d.isTrendingTopic) { return nodeFontSizeScale(1.5*d.mentions + 1.1); }
-          return (nodeFontSizeScale(d.mentions + 1.1));
+          if (d.isTrendingTopic) { return nodeFontSizeScale(1.5*(d.mentions + 1)); }
+          return (nodeFontSizeScale(d.mentions + 1));
         });
 
     nodeLabels
@@ -1973,7 +1991,7 @@ function ViewForce() {
       .force("collide", d3.forceCollide().radius(function(d) { 
           if (d.isGroupNode) return 4.5 * collisionRadiusMultiplier * sessionCircleRadiusScale(d.wordChainIndex + 1.0) ; 
           if (d.isSessionNode) return collisionRadiusMultiplier * sessionCircleRadiusScale(d.wordChainIndex + 1.0) ; 
-          return collisionRadiusMultiplier * d.textLength ; 
+          return collisionRadiusMultiplier * defaultRadiusScale(d.mentions + 1.0) ; 
         }).iterations(collisionIterations))
       .velocityDecay(velocityDecay)
       .on("tick", ticked);

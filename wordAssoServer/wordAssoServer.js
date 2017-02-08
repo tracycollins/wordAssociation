@@ -4,7 +4,7 @@
 var moment = require('moment');
 
 // MONGO DB doesn't like indexes/keys > 1024 characters
-var MAX_DB_KEY_LENGTH = 1024;
+var MAX_DB_KEY_LENGTH = 200;
 
 var wapiForceSearch = true;
 var dmOnUnknownSession = false;

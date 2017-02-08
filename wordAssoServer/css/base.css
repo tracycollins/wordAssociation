@@ -14,7 +14,7 @@ mark, audio, video {
     vertical-align: baseline;
     margin: 0;
     padding: 0;
-    background: #ffffff;
+    background: #000000;
 }
 
 article, aside, details, figcaption, figure, footer, header, hgroup,
@@ -27,7 +27,8 @@ body {
     font-weight: 100;
     font-size: 100%;
     line-height: 100%;
-    background: #ffffff;
+    /*background: #ffffff;*/
+    background: #000000;
     color: #000000;
     width: 100%;
     /*max-width: 1000px;*/

@@ -318,7 +318,7 @@ var keywordColorHashMap = new HashMap();
 
 keywordColorHashMap.set("positive", palette.green);
 keywordColorHashMap.set("negative", palette.red);
-keywordColorHashMap.set("neutral", palette.black);
+keywordColorHashMap.set("neutral", palette.white);
 
 keywordColorHashMap.set("left", palette.blue);
 keywordColorHashMap.set("right", palette.red);

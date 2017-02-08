@@ -3,6 +3,9 @@
 
 var moment = require('moment');
 
+// MONGO DB doesn't like indexes/keys > 1024 characters
+var MAX_DB_KEY_LENGTH = 1024;
+
 var wapiForceSearch = true;
 var dmOnUnknownSession = false;
 var ioReady = false
@@ -4614,12 +4617,16 @@ var readResponseQueue = setInterval(function() {
 
     // console.log(chalkWarn("RXINOBJ\n" + jsonPrint(rxInObj)));
 
-    if ((typeof rxInObj.nodeId === 'undefined') || (typeof rxInObj.nodeId !== 'string')) {
+    if ((typeof rxInObj.nodeId === 'undefined') 
+      || (typeof rxInObj.nodeId !== 'string'
+      || (typeof rxInObj.nodeId.length >  MAX_DB_KEY_LENGTH)
+      )) {
       console.log(chalkError("*** ILLEGAL RESPONSE ... SKIPPING" + "\nTYPE: " + typeof rxInObj.nodeId 
         + "\n" + jsonPrint(rxInObj)));
       ready = true;
       statsObj.session.error++;
       statsObj.session.responseError++;
+      statsObj.session.responseErrorType["NODE_ID_MAX"] = (typeof statsObj.session.responseErrorType["NODE_ID_MAX"] === 'undefined') ? statsObj.session.responseErrorType["NODE_ID_MAX"] = 1 : statsObj.session.responseErrorType["NODE_ID_MAX"]++;
       return;
     }
 
@@ -6938,7 +6945,6 @@ function createSession(newSessionObj) {
       console.log(chalkRedBold("USER_READY sessionCacheKey: " + sessionCacheKey));
     }
 
-
     sessionCache.get(sessionCacheKey, function(err, sessionObj){
       if (err){
         console.log(chalkError(moment().format(compactDateTimeFormat) 
@@ -7081,6 +7087,11 @@ function createSession(newSessionObj) {
         });
       }
     });
+  });
+
+  socket.on("node", function(nodeObj) {
+    console.log("TW< " + nodeObj.nodeType + " | " + nodeObj.nodeId + " | " + nodeObj.mentions);
+    viewNameSpace.emit("node", nodeObj);
   });
 
   socket.on("RESPONSE_WORD_OBJ", function(rxInObj) {

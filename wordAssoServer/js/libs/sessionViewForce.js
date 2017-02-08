@@ -7,10 +7,14 @@ function ViewForce() {
 
   var disableLinks = false;
   var hideNodeCirclesFlag = false;
+  var hideNodeImagesFlag = false;
 
   var sPosHashMap = {};
 
-  var MAX_NODES = 50;
+  var localNodeHashMap = new HashMap();
+  var localLinkHashMap = new HashMap();
+
+  var MAX_NODES = 70;
   var processNodeCount = 0;
   var processNodeModulus = 3;
 
@@ -166,7 +170,8 @@ function ViewForce() {
 
   var groupCircleRadiusScale = d3.scaleLog().domain([1, 10000000]).range([10.0, 50.0]).clamp(true); // uses wordChainIndex
   var sessionCircleRadiusScale = d3.scaleLog().domain([1, 1000000]).range([15.0, 50.0]).clamp(true); // uses wordChainIndex
-  var defaultRadiusScale = d3.scaleLog().domain([1, 10000000]).range([2.0, 30.0]).clamp(true);
+  var imageSizeScale = d3.scaleLog().domain([1, 10000000]).range([20.0, 60.0]).clamp(true);
+  var defaultRadiusScale = d3.scaleLog().domain([1, 10000000]).range([10.0, 30.0]).clamp(true);
 
   var fillColorScale = d3.scaleLinear().domain([1e-6, 0.1, 1.0]).range([palette.gray, palette.darkgray, palette.black]);
   var strokeColorScale = d3.scaleLog().domain([1e-6, 0.15, 1.0]).range([palette.white, palette.darkgray, palette.black]);
@@ -287,6 +292,7 @@ function ViewForce() {
   var nodeGs = nodeSvgGroup.selectAll("g.node");
   var nodeCircles = nodeSvgGroup.selectAll("circle");
   var nodeLabels = nodeSvgGroup.selectAll(".nodeLabel");
+  var nodeImages = nodeSvgGroup.selectAll("image");
 
   var sessionLabelSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "sessionLabelSvgGroup");
   var sessionLabels = sessionLabelSvgGroup.selectAll(".sessionLabel");
@@ -421,9 +427,9 @@ function ViewForce() {
 
     simulation.force("forceX", d3.forceX().x(function(d) { 
         if (d.isSessionNode) return 0.7*width;
-        return -0.8*width; 
+        return 0.5*width; 
       }).strength(function(d){
-        if (d.isSessionNode) return 50.0*gravity;
+        if (d.isSessionNode) return 1.0*gravity;
         return 1*gravity; 
       }));
 
@@ -523,7 +529,7 @@ function ViewForce() {
         }
 
         if (linkIndex < 0) {
-          console.log("X SES " + deletedSession.node.nodeId);
+          // console.log("X SES " + deletedSession.node.nodeId);
           deadSessionFlag = true;
           nodeDeleteQ.push({op:'delete', nodeId: deletedSession.node.nodeId});
           sessions.splice(sessionIndex, 1);
@@ -710,37 +716,64 @@ function ViewForce() {
 
       var nodeAddObj = nodeAddQ.shift();
 
+      var newNode = nodeAddObj.node;
+
+      var currentNode = {};
+
+      // currentNode.links = {};
+      // currentNode.x = 0.5*width;
+      // currentNode.y = 0.5*height;
+      // currentNode.age = 0;
+      // currentNode.ageMaxRatio = 1e-6;
+
       switch (nodeAddObj.op) {
 
         case "add":
 
+          if (localNodeHashMap.has(newNode.nodeId)){
+            // console.error("localNodeHashMap HIT: " + newNode.nodeId);
+            currentNode = localNodeHashMap.get(newNode.nodeId);
+            currentNode.newFlag = true;
+            currentNode.age = 0;
+          }
+          else {
+            // console.error("localNodeHashMap MISS: " + newNode.nodeId);
+            currentNode = newNode;
+            currentNode.x = 0.2*width;
+            currentNode.y = 0.5*height;
+            if (newNode.nodeType == "tweet"){
+            }
+          }
+
           nodesModifiedFlag = true;
-          nodeAddObj.node.age = 0;
-          nodeAddObj.node.ageMaxRatio = 1e-6;
-          nodeAddObj.node.ageUpdated = moment().valueOf();
+          currentNode.mentions = newNode.mentions;
+          // currentNode.age = 0;
+          // currentNode.ageMaxRatio = 1e-6;
+          currentNode.ageUpdated = moment().valueOf();
 
-          if (!nodeAddObj.node.isGroupNode 
-            && !nodeAddObj.node.isSessionNode 
-            && !nodeAddObj.node.isIgnored 
-            && (nodeAddObj.node.mentions > currentMaxMentions)) {
+          if (!newNode.isGroupNode 
+            && !newNode.isSessionNode 
+            && !newNode.isIgnored 
+            && (newNode.mentions > currentMaxMentions)) {
 
-            currentMaxMentions = nodeAddObj.node.mentions;
+            currentMaxMentions = newNode.mentions;
 
             nodeFontSizeScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minFontSize, maxFontSize]).clamp(true);
 
             console.info("NEW MAX Ms" 
-              + " | " + nodeAddObj.node.text 
-              + " | I: " + nodeAddObj.node.isIgnored 
+              + " | " + currentNode.text 
+              + " | I: " + currentNode.isIgnored 
               + " | Ms " + currentMaxMentions 
-              + " | K: " + nodeAddObj.node.isKeyword 
-              + " | KWs: " + jsonPrint(nodeAddObj.node.keywords) 
+              + " | K: " + currentNode.isKeyword 
+              + " | KWs: " + jsonPrint(currentNode.keywords) 
             );
           }
 
-          nodes.push(nodeAddObj.node);
+          nodes.push(currentNode);
+          localNodeHashMap.set(currentNode.nodeId, currentNode);
 
           if (nodes.length > maxNumberNodes) {
-            console.info("MAX NODES: " + maxNumberNodes);
+            // console.info("MAX NODES: " + maxNumberNodes);
             maxNumberNodes = nodes.length;
           }
 
@@ -749,7 +782,7 @@ function ViewForce() {
         break;
 
         default:
-          console.error("??? UNKNOWN NODE UPDATE Q OP: " + nodeUpdateObj.op);
+          console.error("??? UNKNOWN NODE UPDATE Q OP: " + nodeAddObj.op);
           // callback(null, nodesModifiedFlag);
         break;
       }
@@ -844,21 +877,24 @@ function ViewForce() {
   var processLinkUpdateQ = function(callback) {
 
     var linksModifiedFlag = false;
+    var linkUpdateObj;
 
     // while ((linkUpdateQ.length > 0) && addNodeEnabled()) {
     while (linkUpdateQ.length > 0) {
 
-      var linkUpdateObj = linkUpdateQ.shift();
+      linkUpdateObj = linkUpdateQ.shift();
 
       switch (linkUpdateObj.op) {
         case "add":
           linksModifiedFlag = true;
           links.push(linkUpdateObj.link);
-          console.debug("+ L " + linkUpdateObj.link.source.nodeId + " > " + linkUpdateObj.link.target.nodeId);
+          // localLinkHashMap.set(linkUpdateObj.link, linkUpdateObj);
+          // console.debug("+ L " + linkUpdateObj.link.source.nodeId + " > " + linkUpdateObj.link.target.nodeId);
           // callback(null, linksModifiedFlag);
         break;
         case "delete":
           deleteLinkQ(linkUpdateObj.linkId, function(err, deadLinkFlag){
+            localLinkHashMap.remove(linkUpdateObj.link);
             if (deadLinkFlag) linksModifiedFlag = true;
             // callback(null, linksModifiedFlag);
           });
@@ -876,6 +912,290 @@ function ViewForce() {
     if (linkUpdateQ.length == 0){
       callback(null, linksModifiedFlag);
     }
+  }
+
+
+  var createTweetLinksQueue = [];
+  var createTweetLinksHashMap = new HashMap();
+  var createTweetLinksInterval;
+  var createTweetLinksReady = true;
+
+  function initCreateTweetLinksInterval (interval){
+
+    clearInterval(createTweetLinksInterval);
+    createTweetLinksQueue = [];
+
+    var node;
+
+    createTweetLinksInterval = setInterval(function(){
+
+      // if (createTweetLinksReady && (createTweetLinksQueue.length > 0)) {
+      // if (createTweetLinksQueue.length > 0) {
+      while (createTweetLinksQueue.length > 0) {
+
+        // createTweetLinksReady = false;
+
+        node = createTweetLinksQueue.shift();
+
+        createTweetLinks(node, function(){
+
+          createTweetLinksHashMap.remove(node.nodeId);
+          // if (createTweetLinksQueue.length == 0) createTweetLinksReady = true;
+
+        });
+      }
+
+    }, interval);
+  }
+
+
+  function createTweetLinks(node, callback){
+
+    async.parallel({
+
+      user: function(cb) {
+
+        if (!node.user) return(cb());
+
+        if (localNodeHashMap.has(node.user.nodeId)) {
+
+          var usNode = localNodeHashMap.get(node.user.nodeId);
+          var linkId = node.nodeId + "_" + usNode.nodeId;
+
+          if (!localLinkHashMap.has(linkId)) {
+
+            var newLink = {
+              sessionId: socket.id,
+              linkId: linkId,
+              age: 0,
+              source: node,
+              target: usNode,
+              sourceAndTarget: true
+            }
+
+            localLinkHashMap.set(linkId, newLink);
+
+            self.addLink(newLink);
+
+          }
+        }
+
+        cb();
+      },
+
+      userMentions: function(cb) {
+
+        if (node.userMentions) {
+
+          if (node.userMentions.length == 0) return(cb());
+
+          var usNode, linkId, newLink;
+
+          async.each(node.userMentions, function (usObj, cb2) {
+
+            if (localNodeHashMap.has(usObj.nodeId)) {
+
+              usNode = localNodeHashMap.get(usObj.nodeId);
+              linkId = node.nodeId + "_" + usNode.nodeId;
+
+              if (!localLinkHashMap.has(linkId)) {
+
+                newLink = {
+                  sessionId: socket.id,
+                  linkId: linkId,
+                  age: 0,
+                  source: node,
+                  target: usNode,
+                  sourceAndTarget: true
+                }
+
+                localLinkHashMap.set(linkId, newLink);
+
+                self.addLink(newLink);
+
+              }
+            }
+
+            cb2();
+
+          }, function () {
+            return(cb());
+          });
+        }
+        else {
+          cb();
+        }
+      },
+
+      hashtags: function(cb) {
+
+        if (node.hashtags) {
+
+          if (node.hashtags.length == 0) return(cb());
+
+          var htNode, linkId, newLink;
+
+          async.each(node.hashtags, function (htObj, cb2) {
+
+            if (localNodeHashMap.has(htObj.nodeId)) {
+
+              htNode = localNodeHashMap.get(htObj.nodeId);
+              linkId = node.nodeId + "_" + htNode.nodeId;
+
+              if (!localLinkHashMap.has(linkId)) {
+
+                newLink = {
+                  sessionId: socket.id,
+                  linkId: linkId,
+                  age: 0,
+                  source: node,
+                  target: htNode,
+                  sourceAndTarget: true
+                }
+
+                localLinkHashMap.set(linkId, newLink);
+
+                self.addLink(newLink);
+
+              }
+            }
+
+            cb2();
+
+          }, function () {
+            return(cb());
+          });
+        }
+        else {
+          cb();
+        }
+      },
+
+      media: function(cb) {
+
+        if (node.media) {
+
+          if (node.media.length == 0) return(cb());
+
+          var meNode, linkId, newLink;
+
+          async.each(node.media, function (meObj, cb2) {
+
+            if (localNodeHashMap.has(meObj.nodeId)) {
+
+              meNode = localNodeHashMap.get(meObj.nodeId);
+              linkId = node.nodeId + "_" + meNode.nodeId;
+
+              if (!localLinkHashMap.has(linkId)) {
+
+                newLink = {
+                  sessionId: socket.id,
+                  linkId: linkId,
+                  age: 0,
+                  source: node,
+                  target: meNode,
+                  sourceAndTarget: true
+                }
+
+                localLinkHashMap.set(linkId, newLink);
+
+                self.addLink(newLink);
+
+              }
+            }
+
+            cb2();
+
+          }, function () {
+            return(cb());
+          });
+        }
+        else {
+          cb();
+        }
+      },
+
+      urls: function(cb) {
+
+        if (node.urls) {
+
+
+          if (node.urls.length == 0) return(cb());
+
+          var urlNode, linkId, newLink;
+
+          async.each(node.urls, function (urlObj, cb2) {
+
+            if (localNodeHashMap.has(urlObj.nodeId)) {
+
+              // console.debug("+ L URL\n" + jsonPrint(urlObj));
+
+              urlNode = localNodeHashMap.get(urlObj.nodeId);
+              linkId = node.nodeId + "_" + urlNode.nodeId;
+
+              if (!localLinkHashMap.has(linkId)) {
+
+                newLink = {
+                  sessionId: socket.id,
+                  linkId: linkId,
+                  age: 0,
+                  source: node,
+                  target: urlNode,
+                  sourceAndTarget: true
+                }
+
+                localLinkHashMap.set(linkId, newLink);
+
+                // console.debug("+ L URL: " + linkId);
+                self.addLink(newLink);
+
+              }
+            }
+
+            cb2();
+
+          }, function () {
+            return(cb());
+          });
+        }
+        else {
+          cb();
+        }
+      },
+
+      place: function(cb) {
+
+        if (!node.place) return(cb());
+
+        if (localNodeHashMap.has(node.place.nodeId)) {
+
+          var plNode = localNodeHashMap.get(node.place.nodeId);
+          var linkId = node.nodeId + "_" + plNode.nodeId;
+
+          if (!localLinkHashMap.has(linkId)) {
+
+            var newLink = {
+              sessionId: socket.id,
+              linkId: linkId,
+              age: 0,
+              source: node,
+              target: plNode,
+              sourceAndTarget: true
+            }
+
+            localLinkHashMap.set(linkId, newLink);
+
+            self.addLink(newLink);
+
+          }
+        }
+
+        cb();
+      },
+
+    }, function(err, results) {
+      callback();
+    });
   }
 
   var ageNodes = function (callback) {
@@ -900,10 +1220,23 @@ function ViewForce() {
 
     var ageNodesLength = nodes.length - 1;
     var ageNodesIndex = nodes.length - 1;
+    var node;
+    var nodeObj;
 
     for (ageNodesIndex = ageNodesLength; ageNodesIndex >= 0; ageNodesIndex -= 1) {
 
-      var node = nodes[ageNodesIndex];
+      node = nodes[ageNodesIndex];
+
+      if (localNodeHashMap.has(node.nodeId)){
+        nodeObj = localNodeHashMap.get(node.nodeId);
+        if (nodeObj.newFlag) {
+          node.age = 1e-6;
+          node.ageUpdated = moment().valueOf();
+          node.isDead = false;
+          node.newFlag = false;
+          localNodeHashMap.set(node.nodeId, node);
+        }
+      }
 
       age = node.age + (ageRate * (moment().valueOf() - node.ageUpdated));
       ageMaxRatio = age/nodeMaxAge ;
@@ -926,7 +1259,14 @@ function ViewForce() {
         node.ageUpdated = moment().valueOf();
         node.age = age;
         node.ageMaxRatio = ageMaxRatio;
+        node.isDead = false;
         nodes[ageNodesIndex] = node;
+
+        if ((node.nodeType == "tweet") && (!createTweetLinksHashMap.has(node.nodeId))) {
+          createTweetLinksQueue.push(node);
+          createTweetLinksHashMap.set(node.nodeId, node);
+          // console.warn("createTweetLinksQueue: " + createTweetLinksQueue.length);
+        }
       }
     }
 
@@ -967,9 +1307,9 @@ function ViewForce() {
       } else if ((typeof currentLinkObject !== 'undefined') && currentLinkObject.target.isDead) {
         deadLinksHash[currentLinkObject.linkId] = 'X TARGET';
         deadLinksFlag = true;
-      } else if ((currentLinkObject.source.nodeId !== 'anchor') && !nodeHashMap.has(currentLinkObject.source.nodeId)) {
+      } else if ((currentLinkObject.source.nodeId !== 'anchor') && !localNodeHashMap.has(currentLinkObject.source.nodeId)) {
         deadLinksHash[currentLinkObject.linkId] = 'NO SOURCE';
-      } else if (!nodeHashMap.has(currentLinkObject.target.nodeId)) {
+      } else if (!localNodeHashMap.has(currentLinkObject.target.nodeId)) {
         deadLinksHash[currentLinkObject.linkId] = 'NO TARGET';
       } else {
         if (currentLinkObject.source.age > currentLinkObject.target.age) {
@@ -1013,6 +1353,8 @@ function ViewForce() {
 
         delete deadNodesHash[node.nodeId];
 
+        localNodeHashMap.remove(node.nodeId);
+
         if (node.isGroupNode){
           for (var i=groups.length-1; i >= 0; i -= 1) {
             if (node.nodeId == groups[i].node.nodeId) {
@@ -1031,7 +1373,7 @@ function ViewForce() {
         if (node.isSessionNode){
           for (var i=sessions.length-1; i >= 0; i -= 1) {
             if (node.nodeId == sessions[i].node.nodeId) {
-              console.log("X SES | " + sessions[i].node.nodeId);
+              // console.log("X SES | " + sessions[i].node.nodeId);
               sessionUpdateQ.push({op:'delete', sessionId: sessionId});
               var deadLinkIds = Object.keys(node.links);
               deadLinkIds.forEach(function(deadLink){
@@ -1068,7 +1410,7 @@ function ViewForce() {
       if (deadLinksHash[link.linkId]) {
         linkDeleteQueue.push(link.linkId);
         links.splice(ageLinksIndex, 1);
-        console.debug("X L " + link.linkId + " | " + deadLinksHash[link.linkId]);
+        // console.debug("X L [ " + links.length  + " | " + Object.keys(deadLinksHash).length + " ] " + link.linkId + " | " + deadLinksHash[link.linkId]);
         delete deadLinksHash[link.linkId];
       }
     }
@@ -1083,7 +1425,8 @@ function ViewForce() {
     link = linkSvgGroup.selectAll("line").data(links, 
       function(d) { 
         // console.info("link\n" + jsonPrint(d));
-        if ((typeof d.source !== 'undefined') && (typeof d.target !== 'undefined')) {
+        // if ((typeof d.source !== 'undefined') && (typeof d.target !== 'undefined')) {
+        if (d.sourceAndTarget) {
           return d.source.nodeId + "-" + d.target.nodeId; 
         }
         else {
@@ -1115,7 +1458,7 @@ function ViewForce() {
 
   var updateNodeCircles = function(callback) {
 
-    nodeCircles = nodeSvgGroup.selectAll("circle").data(nodes ,function(d) { return d.nodeId; })
+    nodeCircles = nodeSvgGroup.selectAll("circle").data(nodes ,function(d) { return d.nodeId; });
 
     nodeCircles
       .attr("r", function(d) {
@@ -1145,50 +1488,58 @@ function ViewForce() {
     nodeCircles
       .enter()
       .append("svg:circle")
-      .attr("r", 0)
-      .attr("width", 0)
-      .attr("height", 0)
+      .attr("r", 1e-6)
       .attr("cx", function(d) { return d.x; })
       .attr("cy", function(d) { return d.y; })
       .style('fill', function(d) { 
         if (d.mouseHoverFlag) { return palette.blue; }
         if (d.isKeyword) { return d.keywordColor; }
+        if (d.nodeType == 'tweet') { return palette.red; }
+        if (d.nodeType == 'hashtag') { return palette.blue; }
+        if (d.nodeType == 'user') { return palette.green; }
+        if (d.nodeType == 'url') { return palette.pink; }
+        if (d.nodeType == 'media') { return palette.yellow; }
+        if (d.nodeType == 'place') { return palette.purple; }
         if ( d.isTrendingTopic 
           || d.isTwitterUser 
           || d.isNumber 
           || d.isCurrency) { return palette.black; }
         if ((d.isGroupNode || d.isSessionNode) && (d.ageMaxRatio < 0.01)) { return palette.yellow; }
-        return palette.lightgray; 
+        return palette.black; 
       })
       .style('visibility', function(d) {
-        if (d.isSessionNode) { return "hidden"; }
+        if (hideNodeCirclesFlag) { return "hidden"; }
+        if (d.nodeType == "media") { return "hidden"; }
+        if (d.nodeType == "user") { return "hidden"; }
         return "visible";
       })
-      .style('stroke', function(d) {
-        return palette.black;
-      })
-      .style('stroke-width', 1)
-      .style('stroke-opacity', function(d) {
-        return 1.0 - d.ageMaxRatio; 
-      });
+      .on("mouseover", nodeMouseOver)
+      .on("mouseout", nodeMouseOut)
+      .on("click", nodeClick);
 
     nodeCircles
-      .exit().remove();
+      .exit()
+      .remove();
 
+    callback();
+  }
 
-    var nodeImages = nodeSvgGroup.selectAll("image").data(nodes ,function(d) { return d.nodeId; })
+  var updateNodeImages = function(callback) {
+
+   var nodeImages = nodeSvgGroup.selectAll("image").data(nodes, function(d) { return d.nodeId; })
 
     nodeImages
-      .attr("x", function(d) {return d.x - 0.5*(sessionCircleRadiusScale(d.wordChainIndex + 1.0));})
-      .attr("y", function(d) {return d.y - 0.5*(sessionCircleRadiusScale(d.wordChainIndex + 1.0));})
-      .attr("width", function(d){
-        return sessionCircleRadiusScale(d.wordChainIndex + 1.0);
-      })
-      .attr("height", function(d){
-        return sessionCircleRadiusScale(d.wordChainIndex + 1.0);
+      .attr("x", function(d) { return d.x - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0)); })
+      .attr("y", function(d) { return d.y - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0)); })
+      .attr("width", function(d){ return imageSizeScale(parseInt(d.mentions) + 1.0); })
+      .attr("height", function(d){ return imageSizeScale(parseInt(d.mentions) + 1.0); })
+      .style("visibility", function(d){
+        if (hideNodeImagesFlag) return "hidden";
+        if (d.nodeType == "media") return "visible";
+        if (d.nodeType == "user") return "visible";
+        return "hidden";
       })
       .style('opacity', function(d) {
-        if (hideNodeCirclesFlag) return 1e-6;
         if (d.mouseHoverFlag) return 1.0;
         return sessionOpacityScale(d.ageMaxRatio);
       });
@@ -1196,28 +1547,29 @@ function ViewForce() {
     nodeImages
       .enter()
       .append("svg:image")
-      .attr("nodeId", function(d) { return d.nodeId;})
-      .attr("isSessionNode", function(d) { return d.isSessionNode;})
-      .attr("sessionId", function(d) { return d.sessionId;})
       .attr("x", function(d) {return d.x;})
       .attr("y", function(d) {return d.y;})
-      .attr("xlink:href", function(d) { return d.profileImageUrl; })
+      .attr("xlink:href", function(d) { 
+        if (d.nodeType == "media") return d.sourceUrl;
+        if (d.nodeType == "user") return d.profileImageUrl;
+        return d.url; 
+      })
       .attr("width", 1e-6)
       .attr("height", 1e-6)
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)
       .on("click", nodeClick)
-      // .attr("r", 1e-6)
       .style("visibility", function(d){
-        if (hideNodeCirclesFlag) return "hidden";
-        if (d.isGroupNode ) return "hidden";
-        if (d.isSessionNode) return "visible";
+        if (hideNodeImagesFlag) return "hidden";
+        if (d.nodeType == "media") return "visible";
+        if (d.nodeType == "user") return "visible";
         return "hidden";
       })
       .style("opacity", 1);
 
     nodeImages
-      .exit().remove();
+      .exit()
+      .remove();
 
     callback();
   }
@@ -1229,6 +1581,9 @@ function ViewForce() {
     nodeLabels
       .text(function(d) {
         d.textLength = this.getComputedTextLength();
+        if (d.nodeType == 'hashtag') return d.nodeId;
+        if (d.nodeType == 'user') return "";
+        if (d.nodeType == 'tweet') return "";
         if (d.isGroupNode) return d.totalWordChainIndex;
         if (d.isSessionNode) return d.entity;
         if (d.isTwitterUser) return d.raw;
@@ -1290,14 +1645,19 @@ function ViewForce() {
       .attr("nodeId", function(d) { return d.nodeId; })
       .text(function(d) {
         d.textLength = this.getComputedTextLength();
-        if (d.isGroupNode) return d.totalWordChainIndex;
-        if (d.isSessionNode) return d.wordChainIndex + ' | ' + d.y.toFixed(0);
+        // if (d.isGroupNode) return d.totalWordChainIndex;
+        // if (d.isSessionNode) return d.wordChainIndex + ' | ' + d.y.toFixed(0);
+        if (d.nodeType == 'hashtag') return d.nodeId;
+        if (d.nodeType == 'user') return "";
+        if (d.nodeType == 'tweet') return "";
         if (!mouseMovingFlag && blahMode && !d.isKeyword) return "blah";
         return d.raw;
       })
       .attr("x", function(d) { return d.x; })
       .attr("y", function(d) { return d.y; })
       .style("visibility", function(d) { 
+        if (d.nodeType == "media") return "hidden";
+        if (d.nodeType == "url") return "hidden";
         return (d.isGroupNode || d.isSessionNode) ? "hidden" : "visible"; 
       })
       .style("text-anchor", "middle")
@@ -1327,6 +1687,7 @@ function ViewForce() {
       {
         udl: updateLinks,
         udnc: updateNodeCircles,
+        udni: updateNodeImages,
         udnl: updateNodeLabels
       },
 
@@ -1364,6 +1725,7 @@ function ViewForce() {
         else if (results) {
 
           var keys = Object.keys(results);
+
           for (var i=0; i<keys.length; i++){
             if (results[keys[i]]) {
               simulation.nodes(nodes);
@@ -1444,10 +1806,49 @@ function ViewForce() {
     self.toolTipVisibility(false);
   }
 
+
   function nodeClick(d) {
-    window.open(d.url, '_blank');
+
+    var url = "";
+
+    switch (d.nodeType) {
+      case "tweet" :
+        console.warn("OPEN TWEET URL: " + d.url);
+        window.open(d.url, '_blank');
+      break;
+
+      case "user" :
+        console.warn("OPEN USER URL: " + d.profileUrl);
+        window.open(d.profileUrl, '_blank');
+      break;
+
+      case "hashtag" :
+        url = "https://twitter.com/search?f=realtime&q=%23" + d.text ;
+        window.open(url, '_blank');
+      break;
+
+      case "place" :
+        url = d.sourceUrl ;
+        window.open(url, '_blank');
+      break;
+
+      case "url" :
+        url = d.expandedUrl ;
+        window.open(url, '_blank');
+      break;
+
+      case "media" :
+        url = d.sourceUrl ;
+        window.open(url, '_blank');
+      break;
+
+      default:
+      break;
+    }
   }
- 
+
+
+
   function sessionCircleClick(d) {
     window.open(d.url, '_blank');
   }
@@ -1470,11 +1871,15 @@ function ViewForce() {
     sessionUpdateQ.push({op:'delete', sessionId: sessionId});
   }
 
-  this.addNode = function(newNode) {
+  this.addNode = function(nNode) {
 
-    if (typeof newNode.mentions === 'undefined') {
+    var newNode = nNode;
+    newNode.newFlag = true;
+
+
+    if (typeof nNode.mentions === 'undefined') {
       // console.error("MENTIONS UNDEFINED " + newNode.nodeId);
-      console.error("MENTIONS UNDEFINED\n" + jsonPrint(newNode));
+      console.error("MENTIONS UNDEFINED\n" + jsonPrint(nNode));
       newNode.mentions = 1;
     }
 
@@ -1512,16 +1917,14 @@ function ViewForce() {
       );
     }
 
-    if (newNode.isSessionNode) {
-      nodeAddQ.push({op:'add', node: newNode});
-    }
-    else {
-      nodeAddQ.push({op:'add', node: newNode});
-    }
+    if (nodeAddQ.length < MAX_RX_QUEUE) nodeAddQ.push({op:'add', node: newNode});
 
     if (nodeAddQ.length > maxNodeAddQ) {
       maxNodeAddQ = nodeAddQ.length;
       console.warn("NEW MAX NODE ADD Q: " + maxNodeAddQ);
+    }
+    else {
+
     }
   }
 
@@ -1531,6 +1934,7 @@ function ViewForce() {
 
   this.addLink = function(newLink) {
     if (self.disableLinks)  return ;
+    // console.debug("+ L | " + newLink.linkId);
     linkUpdateQ.push({op:'add', link: newLink});
   }
 
@@ -1540,8 +1944,10 @@ function ViewForce() {
 
   this.initD3timer = function() {
 
+    initCreateTweetLinksInterval(20);
+
     simulation = d3.forceSimulation(nodes)
-      .force("link", d3.forceLink(links)
+      .force("link", d3.forceLink(links).id(function(d) { return d.linkId; })
         .distance(function(d){
           if (d.isSessionNode) return 0.1*globalLinkDistance;
           return globalLinkDistance; 
@@ -1553,9 +1959,9 @@ function ViewForce() {
       .force("charge", d3.forceManyBody().strength(charge))
       .force("forceX", d3.forceX().x(function(d) { 
         if (d.isSessionNode) return 0.7*width;
-        return -0.8*width; 
+        return 0.5*width; 
       }).strength(function(d){
-        if (d.isSessionNode) return 50.0*gravity;
+        if (d.isSessionNode) return 1.0*gravity;
         return 1*gravity; 
       }))
       .force("forceY", d3.forceY().y(function(d) { 
@@ -1583,15 +1989,19 @@ function ViewForce() {
         runningFlag = false;
       break;
       case 'START':
+        console.debug("SIMULATION CONTROL | OP: " + op);
         self.initD3timer();
         simulation.alphaTarget(0.7).restart();
         runningFlag = true;
       break;
       case 'RESUME':
+        console.debug("SIMULATION CONTROL | OP: " + op);
+        // self.initD3timer();
         runningFlag = true;
         simulation.alphaTarget(0.7).restart();
       break;
       case 'FREEZE':
+        console.debug("SIMULATION CONTROL | OP: " + op);
         if (!freezeFlag){
           freezeFlag = true;
           simulation.alpha(0);
@@ -1599,16 +2009,19 @@ function ViewForce() {
         }
       break;
       case 'PAUSE':
+        console.debug("SIMULATION CONTROL | OP: " + op);
         runningFlag = false;
         simulation.alpha(0);
         simulation.stop();
       break;
       case 'STOP':
+        console.debug("SIMULATION CONTROL | OP: " + op);
         runningFlag = false;
         simulation.alpha(0);
         simulation.stop();
       break;
       case 'RESTART':
+        // console.debug("SIMULATION CONTROL | OP: " + op);
         simulation.alphaTarget(0.7).restart();
         runningFlag = true;
       break;
@@ -1655,9 +2068,9 @@ function ViewForce() {
     if (simulation){
       simulation.force("forceX", d3.forceX().x(function(d) { 
           if (d.isSessionNode) return 0.7*width;
-          return -0.8*width; 
+          return 0.5*width; 
         }).strength(function(d){
-          if (d.isSessionNode) return 50.0*gravity;
+          if (d.isSessionNode) return 1.0*gravity;
           return 1*gravity; 
         }));
 
@@ -1668,7 +2081,6 @@ function ViewForce() {
           return forceYmultiplier * gravity; 
         }));
     }
-
   }
 
   // ==========================================

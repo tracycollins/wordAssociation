@@ -70,7 +70,7 @@ var DEFAULT_AGE_RATE = 1.0;
 
 var FORCEVIEW_DEFAULT = {};
 FORCEVIEW_DEFAULT.MAX_AGE = FORCE_MAX_AGE;
-FORCEVIEW_DEFAULT.CHARGE = -200;
+FORCEVIEW_DEFAULT.CHARGE = -400;
 FORCEVIEW_DEFAULT.GRAVITY = 0.1;
 FORCEVIEW_DEFAULT.FORCEY_MULTIPLIER = 1.0;
 FORCEVIEW_DEFAULT.VELOCITY_DECAY = 0.85;
@@ -1828,7 +1828,7 @@ socket.on("SESSION_UPDATE", function(rxSessionObject) {
 });
 
 function initSocketNodeRx(){
-  
+
   socket.on("node", function(nNode) {
 
     // console.log("N< " + nNode.nodeType + " | " + nNode.nodeId + " | " + nNode.mentions);

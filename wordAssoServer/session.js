@@ -15,6 +15,8 @@ when new instance of word arrives, iterate thru array of nodes and create linksk
 // var DEFAULT_SOURCE = "http://word.threeceelabs.com";
 var DEFAULT_SOURCE = "==SOURCE==";  // will be updated by wordAssoServer.js on app.get
 
+var DEFAULT_SESSION_VIEW = 'flow';
+
 var d3;
 var controlPanel;
 var controlPanelWindow; 
@@ -25,7 +27,8 @@ var statsTable ;
 var initializedFlag = false;
 var statsTableFlag = false;
 
-requirejs(["https://cdnjs.cloudflare.com/ajax/libs/d3/4.5.0/d3.min.js"], function(d3Loaded) {
+// requirejs(["https://cdnjs.cloudflare.com/ajax/libs/d3/4.5.0/d3.min.js"], function(d3Loaded) {
+requirejs(["https://d3js.org/d3.v4.min.js"], function(d3Loaded) {
     console.log("d3 LOADED");
     d3 = d3Loaded;
     initialize(function(){
@@ -49,7 +52,6 @@ requirejs(["https://cdnjs.cloudflare.com/ajax/libs/d3/4.5.0/d3.min.js"], functio
   }
 );
 
-var DEFAULT_SESSION_VIEW = 'flow';
 var currentSessionView;
 
 var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
@@ -58,19 +60,15 @@ var defaultTimePeriodFormat = "HH:mm:ss";
 var pageLoadedTimeIntervalFlag = true;
 
 var debug = false;
-var DEFAULT_BLAH_MODE = true;
 var MAX_RX_QUEUE = 250;
 var QUEUE_MAX = 200;
+var DEFAULT_BLAH_MODE = false;
 var MAX_WORDCHAIN_LENGTH = 100;
 var DEFAULT_MAX_AGE = 10000;
-var FORCE_MAX_AGE = 4000;
 var DEFAULT_AGE_RATE = 1.0;
 
 var FORCEVIEW_DEFAULT = {};
 FORCEVIEW_DEFAULT.MAX_AGE = FORCE_MAX_AGE;
-FORCEVIEW_DEFAULT.CHARGE = -10;
-FORCEVIEW_DEFAULT.GRAVITY = 0.005;
-FORCEVIEW_DEFAULT.FORCEY_MULTIPLIER = 0.0;
 FORCEVIEW_DEFAULT.VELOCITY_DECAY = 0.85;
 FORCEVIEW_DEFAULT.LINK_DISTANCE = 10;
 FORCEVIEW_DEFAULT.LINK_STRENGTH = 0.50;
@@ -1099,7 +1097,6 @@ function getUrlVariables(callbackMain) {
           }
           if (keyValuePair[0] === 'viewtype') {
             config.sessionViewType = keyValuePair[1];
-            console.error("SESSION VIEW TYPE | sessionViewType: " + config.sessionViewType);
             return (callback2(null, {
               sessionViewType: config.sessionViewType
             }));
@@ -1655,8 +1652,6 @@ function updateStatsTable(statsObj){
   document.getElementById("statsServerRunTime").innerHTML = msToTime(statsObj.heartbeat.runTime);
   document.getElementById("statsServerTotalWords").innerHTML = statsObj.heartbeat.totalWords;
   document.getElementById("statsServerWordsReceived").innerHTML = statsObj.heartbeat.responsesReceived;
-  document.getElementById("statsServerWordsPerMin").innerHTML = statsObj.heartbeat.wordsPerMinute.toFixed(2);
-  document.getElementById("statsServerMaxWordsPerMin").innerHTML = statsObj.heartbeat.maxWordsPerMin.toFixed(2);
   document.getElementById("statsServerMaxWordsPerMinTime").innerHTML = moment(statsObj.heartbeat.maxWordsPerMinTime).format(defaultDateTimeFormat);
   document.getElementById("statsClientNumberNodes").innerHTML = currentSessionView.getNodesLength();
   document.getElementById("statsClientNumberMaxNodes").innerHTML = statsObj.maxNodes;
@@ -1750,7 +1745,6 @@ socket.on("SESSION_DELETE", function(rxSessionObject) {
   if ((typeof rxObj.session !== 'undefined') && (typeof rxObj.session.tags !== 'undefined')){
 
     // rxObj.session.nodeId = rxObj.session.user.tags.entity.toLowerCase() + "_" + rxObj.session.user.tags.channel.toLowerCase();
-    rxObj.session.nodeId = rxObj.session.tags.entity.toLowerCase() + "_" + rxObj.session.tags.channel.toLowerCase();
 
     if (sessionHashMap.has(rxObj.session.nodeId)) {
 
@@ -1861,9 +1855,6 @@ var processSessionQueues = function(callback) {
   else {
     var session = rxSessionUpdateQueue.shift();
 
-    session.nodeId = session.tags.entity.toLowerCase() + "_" + session.tags.channel.toLowerCase();
-    session.tags.entity = session.tags.entity.toLowerCase();
-    session.tags.channel = session.tags.channel.toLowerCase();
 
     switch (session.tags.channel){
       case "twitter":
@@ -2285,7 +2276,6 @@ var createSession = function(callback) {
       currentSession.node.nodeColors = currentGroup.nodeColors;
       currentSession.node.interpolateNodeColor = currentGroup.interpolateNodeColor;
       
-      var sessionLinkId = currentSession.node.nodeId + "_" + sessUpdate.source.nodeId;
       
       currentSession.node.links = {};
       currentSession.node.links[sessionLinkId] = 1;
@@ -2338,7 +2328,6 @@ var createSession = function(callback) {
       currentSession.lastSeen = dateNow;
       currentSession.rank = -1;
       currentSession.isSession = true;
-      currentSession.nodeId = sessUpdate.tags.entity + "_" + sessUpdate.tags.channel;
       currentSession.sessionId = sessUpdate.sessionId;
       currentSession.tags = sessUpdate.tags;
       currentSession.userId = sessUpdate.userId;
@@ -2451,7 +2440,6 @@ var createNode = function(callback) {
       session.node.bboxWidth = 1e-6;
       session.node.isSessionNode = true;
       session.node.isGroupNode = false;
-      session.node.nodeId = session.tags.entity + "_" + session.tags.channel;
       session.node.entity = session.tags.entity;
       session.node.channel = session.tags.channel;
       session.node.url = session.url;
@@ -2484,9 +2472,7 @@ var createNode = function(callback) {
     var targetNodeId;
 
     if (config.sessionViewType == 'force') {
-      sourceNodeId = session.node.nodeId + "_" + session.source.nodeId;
       if (session.target) {
-        targetNodeId = session.node.nodeId + "_" + session.target.nodeId;
       }
     }
     else if ((config.sessionViewType == 'ticker') 
@@ -2921,25 +2907,8 @@ function updateSessions() {
 
   updateSessionsReady = false;
 
-  async.series(
-    [
-      processLinkDeleteQueue,
-      processNodeDeleteQueue,
-      processSessionQueues,
-      createGroup,
-      createSession,
-      createNode,
-      createLink
-    ],
-
-    function(err, result) {
-      if (err) {
-        console.error("*** ERROR: updateSessions *** \nERROR: " + err);
       }
-      updateSessionsReady = true;
 
-    }
-  );
 }
 
 function toggleFullScreen() {

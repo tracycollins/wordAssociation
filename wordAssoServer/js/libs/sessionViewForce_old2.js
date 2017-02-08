@@ -3,9 +3,10 @@
 
 "use strict";
 
-function ViewFlow() {
+function ViewForce() {
 
-  var hideNodeImagesFlag = false;
+  var disableLinks = false;
+  var hideNodeCirclesFlag = false;
 
   var sPosHashMap = {};
 
@@ -47,17 +48,15 @@ function ViewFlow() {
   var sliderPercision = 3;
 
   var tickNumber = 0;
-  var width = window.innerWidth * 1;
-  var height = window.innerHeight * 1;
+  var width = window.innerWidth * 0.9;
+  var height = window.innerHeight * 0.9;
 
   this.getWidth = function() {
-    // return window.innerWidth;
-    return width;
+    return window.innerWidth;
   }
 
   this.getHeight = function() {
-    // return window.innerHeight;
-    return height;
+    return window.innerHeight;
   }
 
   var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
@@ -129,7 +128,7 @@ function ViewFlow() {
   var currentMaxMentions = 2;
 
   var minFontSize = 10;
-  var maxFontSize = 60;
+  var maxFontSize = 20;
 
 
   var D3_LAYOUT_WIDTH_RATIO = 1.0;
@@ -146,10 +145,10 @@ function ViewFlow() {
 
   var translate = [0, 0];
 
-  var d3LayoutWidth = width * D3_LAYOUT_WIDTH_RATIO;
-  var d3LayoutHeight = height * D3_LAYOUT_HEIGHT_RATIO;
+  var d3LayoutWidth = window.innerWidth * D3_LAYOUT_WIDTH_RATIO;
+  var d3LayoutHeight = window.innerHeight * D3_LAYOUT_HEIGHT_RATIO;
 
-  console.log("width: " + width + " | height: " + height);
+  console.log("width: " + window.innerWidth + " | height: " + window.innerHeight);
 
   document.addEventListener("mousemove", function() {
     if (mouseHoverFlag) {
@@ -157,9 +156,6 @@ function ViewFlow() {
     } else {
       d3.select("body").style("cursor", "default");
     }
-    // if (mouseFreezeEnabled) {
-    //   // self.simulation.stop();
-    // }
   }, true);
 
 
@@ -176,9 +172,8 @@ function ViewFlow() {
   var strokeColorScale = d3.scaleLog().domain([1e-6, 0.15, 1.0]).range([palette.white, palette.darkgray, palette.black]);
   var linkColorScale = d3.scaleLinear().domain([1e-6, 0.5, 1.0]).range(["#000000", "#000000", "#000000"]);
 
-  var sessionOpacityScale = d3.scaleLinear().domain([1e-6, 0.05, 1.0]).range([1.0, 0.2, 1e-6]);
+  var sessionOpacityScale = d3.scaleLinear().domain([1e-6, 1.0]).range([1.0, 1e-6]);
   var fontScale = d3.scaleLinear().domain([1e-6, 1.0]).range([0.5, 1.0]);
-  // var sessionOpacityScale = d3.scaleLog().domain([1e-6, 1.0]).range([1.0, 1e-6]);
 
   console.log("@@@@@@@ CLIENT @@@@@@@@");
 
@@ -269,8 +264,8 @@ function ViewFlow() {
     .attr("x", 1e-6)
     .attr("y", 1e-6);
 
-  var svgFlowLayoutArea = svgMain.append("g")
-    .attr("id", "svgFlowLayoutArea")
+  var svgForceLayoutArea = svgMain.append("g")
+    .attr("id", "svgForceLayoutArea")
     .attr("width", width)
     .attr("height", height)
     .attr("viewbox", 1e-6, 1e-6, width, height)
@@ -278,32 +273,28 @@ function ViewFlow() {
     .attr("x", 1e-6)
     .attr("y", 1e-6);
 
+  var linkSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "linkSvgGroup");
 
-  var linkSvgGroup = svgFlowLayoutArea.append("svg:g").attr("id", "linkSvgGroup");
-
-  var groupSvgGroup = svgFlowLayoutArea.append("svg:g").attr("id", "groupSvgGroup");
-  var groupLabelSvgGroup = svgFlowLayoutArea.append("svg:g").attr("id", "groupLabelSvgGroup");
+  var groupSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "groupSvgGroup");
+  var groupLabelSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "groupLabelSvgGroup");
   var groupLabels = groupLabelSvgGroup.selectAll(".groupLabel");
   var groupGnode = groupSvgGroup.selectAll("g.group");
   var groupCircles = groupSvgGroup.selectAll("circle");
 
-  var nodeSvgGroup = svgFlowLayoutArea.append("svg:g").attr("id", "nodeSvgGroup");
-  var nodeLabelSvgGroup = svgFlowLayoutArea.append("svg:g").attr("id", "nodeLabelSvgGroup");
+  var nodeSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "nodeSvgGroup");
+  var nodeLabelSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "nodeLabelSvgGroup");
 
   var nodeGs = nodeSvgGroup.selectAll("g.node");
-  // var nodeCircles = nodeSvgGroup.selectAll("circle");
-  var nodeRects = nodeSvgGroup.selectAll("rect");
-  var nodeImages = nodeSvgGroup.selectAll("image");
+  var nodeCircles = nodeSvgGroup.selectAll("circle");
   var nodeLabels = nodeSvgGroup.selectAll(".nodeLabel");
 
-  var sessionLabelSvgGroup = svgFlowLayoutArea.append("svg:g").attr("id", "sessionLabelSvgGroup");
+  var sessionLabelSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "sessionLabelSvgGroup");
   var sessionLabels = sessionLabelSvgGroup.selectAll(".sessionLabel");
   var link = linkSvgGroup.selectAll("line");
 
   var divTooltip = d3.select("body").append("div")
     .attr("class", "tooltip")
     .style("visibility", "hidden");
-    // .style("opacity", 1e-6);
 
   var globalLinkIndex = 0;
 
@@ -316,7 +307,7 @@ function ViewFlow() {
     }
   }
 
-  var panzoomElement = document.getElementById('svgFlowLayoutArea');
+  var panzoomElement = document.getElementById('svgForceLayoutArea');
   panzoom(panzoomElement, {zoomSpeed: 0.030});
 
   function generateLinkId(callback) {
@@ -361,11 +352,27 @@ function ViewFlow() {
     switch(param){
       case "linkStrength" :
         globalLinkStrength = value;
-        simulation.force("link", d3.forceLink(links).id(function(d) { return d.linkId; }).distance(globalLinkDistance).strength(globalLinkStrength));
+        simulation.force("link", d3.forceLink(links)
+          .distance(function(d){
+            if (d.isSessionNode) return 0.1*globalLinkDistance;
+            return globalLinkDistance; 
+          })
+          .strength(function(d){
+          if (d.isSessionNode) return 10.0*globalLinkStrength;
+          return 0.5*globalLinkStrength; 
+        }))
       break;
       case "linkDistance" :
         globalLinkDistance = value;
-        simulation.force("link", d3.forceLink(links).id(function(d) { return d.linkId; }).distance(globalLinkDistance).strength(globalLinkStrength));
+        simulation.force("link", d3.forceLink(links)
+          .distance(function(d){
+            if (d.isSessionNode) return 0.1*globalLinkDistance;
+            return globalLinkDistance; 
+          })
+          .strength(function(d){
+          if (d.isSessionNode) return 10.0*globalLinkStrength;
+          return 0.5*globalLinkStrength; 
+        }))
       break;
     }
   }
@@ -373,13 +380,33 @@ function ViewFlow() {
   self.updateLinkStrength = function(value) {
     console.debug("UPDATE LINK STRENGTH: " + value.toFixed(sliderPercision));
     globalLinkStrength = value;
-    simulation.force("link", d3.forceLink(links).id(function(d) { return d.linkId; }).distance(globalLinkDistance).strength(globalLinkStrength));
+    // simulation.force("link", d3.forceLink(links).id(function(d) { return d.linkId; }).distance(globalLinkDistance).strength(globalLinkStrength));
+    // simulation.force("link", d3.forceLink(links).distance(globalLinkDistance).strength(globalLinkStrength));
+    simulation.force("link", d3.forceLink(links)
+      .distance(function(d){
+        if (d.isSessionNode) return 0.1*globalLinkDistance;
+        return globalLinkDistance; 
+      })
+      .strength(function(d){
+      if (d.isSessionNode) return 10.0*globalLinkStrength;
+      return 0.5*globalLinkStrength; 
+    }))
   }
 
   self.updateLinkDistance = function(value) {
     console.debug("UPDATE LINK DISTANCE: " + value.toFixed(sliderPercision));
     globalLinkDistance = value;
-    simulation.force("link", d3.forceLink(links).id(function(d) { return d.linkId; }).distance(globalLinkDistance).strength(globalLinkStrength));
+    // simulation.force("link", d3.forceLink(links).id(function(d) { return d.linkId; }).distance(globalLinkDistance).strength(globalLinkStrength));
+    // simulation.force("link", d3.forceLink(links).distance(globalLinkDistance).strength(globalLinkStrength));
+    simulation.force("link", d3.forceLink(links)
+      .distance(function(d){
+        if (d.isSessionNode) return 0.1*globalLinkDistance;
+        return globalLinkDistance; 
+      })
+      .strength(function(d){
+      if (d.isSessionNode) return 10.0*globalLinkStrength;
+      return 0.5*globalLinkStrength; 
+    }))
   }
 
   self.updateVelocityDecay = function(value) {
@@ -391,21 +418,22 @@ function ViewFlow() {
   self.updateGravity = function(value) {
     console.debug("UPDATE GRAVITY: " + value.toFixed(sliderPercision));
     gravity = value;
+
     simulation.force("forceX", d3.forceX().x(function(d) { 
         if (d.isSessionNode) return 0.7*width;
-        return -20*width; 
+        return -0.8*width; 
       }).strength(function(d){
-        if (d.isSessionNode) return 70*gravity;
-        return gravity; 
+        if (d.isSessionNode) return 50.0*gravity;
+        return 1*gravity; 
       }));
+
     simulation.force("forceY", d3.forceY().y(function(d) { 
         return 0.4*height; 
       }).strength(function(d){
-        if (d.isSessionNode) return 0.75*forceYmultiplier*gravity;
+        if (d.isSessionNode) return gravity;
         return forceYmultiplier * gravity; 
       }));
-
- }
+  }
 
   self.updateCharge = function(value) {
     console.debug("UPDATE CHARGE: " + value);
@@ -672,11 +700,13 @@ function ViewFlow() {
 
   var processNodeAddQ = function(callback) {
 
-    processNodeCount++;
+    // processNodeCount++;
 
     var nodesModifiedFlag = false;
 
-    if ((nodeAddQ.length > 0) && addNodeEnabled()) {
+    while ((nodeAddQ.length > 0) && addNodeEnabled()) {
+
+      processNodeCount++;
 
       var nodeAddObj = nodeAddQ.shift();
 
@@ -714,17 +744,21 @@ function ViewFlow() {
             maxNumberNodes = nodes.length;
           }
 
-          callback(null, nodesModifiedFlag);
+          // callback(null, nodesModifiedFlag);
 
         break;
 
         default:
           console.error("??? UNKNOWN NODE UPDATE Q OP: " + nodeUpdateObj.op);
-          callback(null, nodesModifiedFlag);
+          // callback(null, nodesModifiedFlag);
         break;
       }
     }
-    else {
+    // else {
+    //   callback(null, nodesModifiedFlag);
+    // }
+
+    if ((nodeAddQ.length == 0) || !addNodeEnabled()){
       callback(null, nodesModifiedFlag);
     }
   }
@@ -811,33 +845,37 @@ function ViewFlow() {
 
     var linksModifiedFlag = false;
 
-    if (linkUpdateQ.length > 0){
+    // while ((linkUpdateQ.length > 0) && addNodeEnabled()) {
+    while (linkUpdateQ.length > 0) {
+
       var linkUpdateObj = linkUpdateQ.shift();
+
       switch (linkUpdateObj.op) {
         case "add":
           linksModifiedFlag = true;
           links.push(linkUpdateObj.link);
-          console.debug("+ LINK: " + linkUpdateObj.link.source.nodeId + " > " + linkUpdateObj.link.target.nodeId);
-          callback(null, linksModifiedFlag);
+          console.debug("+ L " + linkUpdateObj.link.source.nodeId + " > " + linkUpdateObj.link.target.nodeId);
+          // callback(null, linksModifiedFlag);
         break;
         case "delete":
           deleteLinkQ(linkUpdateObj.linkId, function(err, deadLinkFlag){
             if (deadLinkFlag) linksModifiedFlag = true;
+            // callback(null, linksModifiedFlag);
           });
-          callback(null, linksModifiedFlag);
         break;
         default:
-          callback(null, linksModifiedFlag);
+          console.error("UNKNOWN LINK OP: " + linkUpdateObj.op);
+          // callback(null, linksModifiedFlag);
         break;
       }
     }
-    else {
-      callback(null, linksModifiedFlag);
-    }
-
-    // if (linkUpdateQ.length == 0){
+    // else {
     //   callback(null, linksModifiedFlag);
     // }
+
+    if (linkUpdateQ.length == 0){
+      callback(null, linksModifiedFlag);
+    }
   }
 
   var ageNodes = function (callback) {
@@ -921,23 +959,18 @@ function ViewFlow() {
       // );
 
       if ((typeof currentLinkObject !== 'undefined') && currentLinkObject.isDead) {
-        // console.info("DEAD");
-        deadLinksHash[currentLinkObject.linkId] = 'DEAD';
+        deadLinksHash[currentLinkObject.linkId] = 'X';
         deadLinksFlag = true;
       } else if ((typeof currentLinkObject !== 'undefined') && currentLinkObject.source.isDead) {
-        // console.info("DEAD SOURCE");
-        deadLinksHash[currentLinkObject.linkId] = 'DEAD SOURCE';
+        deadLinksHash[currentLinkObject.linkId] = 'X SOURCE';
         deadLinksFlag = true;
       } else if ((typeof currentLinkObject !== 'undefined') && currentLinkObject.target.isDead) {
-        // console.info("DEAD TARGET: " + currentLinkObject.linkId);
-        deadLinksHash[currentLinkObject.linkId] = 'DEAD TARGET';
+        deadLinksHash[currentLinkObject.linkId] = 'X TARGET';
         deadLinksFlag = true;
       } else if ((currentLinkObject.source.nodeId !== 'anchor') && !nodeHashMap.has(currentLinkObject.source.nodeId)) {
-        // console.info("UNDEFINED SOURCE");
-        deadLinksHash[currentLinkObject.linkId] = 'UNDEFINED SOURCE';
+        deadLinksHash[currentLinkObject.linkId] = 'NO SOURCE';
       } else if (!nodeHashMap.has(currentLinkObject.target.nodeId)) {
-        // console.info("UNDEFINED TARGET: " + currentLinkObject.target.nodeId + " | " + currentLinkObject.linkId);
-        deadLinksHash[currentLinkObject.linkId] = 'UNDEFINED TARGET';
+        deadLinksHash[currentLinkObject.linkId] = 'NO TARGET';
       } else {
         if (currentLinkObject.source.age > currentLinkObject.target.age) {
           currentLinkObject.age = currentLinkObject.source.age;
@@ -1035,7 +1068,7 @@ function ViewFlow() {
       if (deadLinksHash[link.linkId]) {
         linkDeleteQueue.push(link.linkId);
         links.splice(ageLinksIndex, 1);
-        console.debug("XXX LINK " + link.linkId);
+        console.debug("X L " + link.linkId + " | " + deadLinksHash[link.linkId]);
         delete deadLinksHash[link.linkId];
       }
     }
@@ -1050,7 +1083,12 @@ function ViewFlow() {
     link = linkSvgGroup.selectAll("line").data(links, 
       function(d) { 
         // console.info("link\n" + jsonPrint(d));
-        return d.source.nodeId + "-" + d.target.nodeId; 
+        if ((typeof d.source !== 'undefined') && (typeof d.target !== 'undefined')) {
+          return d.source.nodeId + "-" + d.target.nodeId; 
+        }
+        else {
+          console.error("UNDEFINED SRC OR TRG: " + d.source.nodeId + "-" + d.target.nodeId);
+        }
       });
 
     link
@@ -1058,17 +1096,14 @@ function ViewFlow() {
       .attr("y1", function(d) { return d.source.y; })
       .attr("x2", function(d) { return d.target.x; })
       .attr("y2", function(d) { return d.target.y; })
-      .style('stroke', function(d) { 
-        if (d.ageMaxRatio < 0.01) { return palette.red; }
-        return palette.blue; 
-      });
+      .style('opacity', function(d) { return sessionOpacityScale(d.ageMaxRatio); });
 
     link.enter()
       .append("svg:line")
       .attr("class", "link")
       .style("visibility", "visible")
-      .style('stroke', function(d) { return linkColorScale(1.0); })
-      .style('stroke-width', 1.75)
+      .style('stroke', palette.black )
+      .style('stroke-width', 1)
       .style('opacity', 1);
 
     link
@@ -1078,69 +1113,72 @@ function ViewFlow() {
     callback();
   }
 
-  var updateNodes = function(callback) {
+  var updateNodeCircles = function(callback) {
 
-    // nodeRects = nodeSvgGroup.selectAll("rect").data(nodes ,function(d) { return d.nodeId; })
+    nodeCircles = nodeSvgGroup.selectAll("circle").data(nodes ,function(d) { return d.nodeId; })
 
-    // nodeRects
-    //   .attr("x", function(d) {return d.x - 0.5*(sessionCircleRadiusScale(d.wordChainIndex + 1.0));})
-    //   .attr("y", function(d) {return d.y - 0.5*(sessionCircleRadiusScale(d.wordChainIndex + 1.0));})
-    //   .attr("width", function(d){
-    //     return sessionCircleRadiusScale(d.wordChainIndex + 1.0);
-    //   })
-    //   .attr("height", function(d){
-    //     return sessionCircleRadiusScale(d.wordChainIndex + 1.0);
-    //   })
-    //   .style('opacity', function(d) {
-    //     if (hideNodeCirclesFlag) return 1e-6;
-    //     if (d.mouseHoverFlag) return 1.0;
-    //     return sessionOpacityScale(d.ageMaxRatio);
-    //   });
-
-    // nodeRects
-    //   .enter()
-    //   .append("svg:rect")
-    //   .attr("width", 0)
-    //   .attr("height", 0)
-    //   .attr("x", function(d) {return d.x;})
-    //   .attr("y", function(d) {return d.y;})
-    //   .attr("fill", "none")
-    //   .style('stroke', function(d) {
-    //     return palette.black;
-    //   })
-    //   .style('stroke-width', 1)
-    //   .style('stroke-opacity', function(d) {
-    //     return 1.0 - d.ageMaxRatio; 
-    //   })
-    //   .style("visibility", function(d) { 
-    //     return (d.isSessionNode) ? "visible" : "hidden"; 
-    //   });
-
-    // nodeRects
-    //   .exit().remove();
-
-
-    nodeImages = nodeSvgGroup.selectAll("image").data(nodes ,function(d) { return d.nodeId; })
-
-    nodeImages
+    nodeCircles
       .attr("r", function(d) {
-        if (typeof d.mentions === 'undefined') 
-          {
-            console.error(d.nodeId + " | NODE CIRCLE d.mentions UNDEFINED");
-            return defaultRadiusScale(1);
-          }
+        // if (typeof d.isIgnored === 'undefined') {
+        if (d.isIgnored) {
+          // console.debug(d.nodeId + " | NODE CIRCLE d.mentions UNDEFINED");
+          return defaultRadiusScale(1);
+        }
+        else if (typeof d.mentions === 'undefined') {
+          console.debug(d.nodeId + " | NODE CIRCLE d.mentions UNDEFINED");
+          return defaultRadiusScale(1);
+        }
         else {
-          if (d.isGroupNode) {
-            return groupCircleRadiusScale(d.totalWordChainIndex + 1.0) ;
-          }
-          else if (d.isSessionNode) {
-            return sessionCircleRadiusScale(d.wordChainIndex + 1.0) ;
-          }
-          else {
-            return defaultRadiusScale(parseInt(d.mentions) + 1.0);
-          }
+          if (d.isGroupNode) return groupCircleRadiusScale(d.totalWordChainIndex + 1.0) ;
+          if (d.isSessionNode) return sessionCircleRadiusScale(d.wordChainIndex + 1.0) ;
+          return defaultRadiusScale(parseInt(d.mentions) + 1.0);
         }
       })
+      .attr("cx", function(d) { return d.x; })
+      .attr("cy", function(d) { return d.y; })
+      .style('opacity', function(d) {
+        if (hideNodeCirclesFlag) return 1e-6;
+        if (d.mouseHoverFlag) return 1.0;
+        return sessionOpacityScale(d.ageMaxRatio);
+      });
+
+    nodeCircles
+      .enter()
+      .append("svg:circle")
+      .attr("r", 0)
+      .attr("width", 0)
+      .attr("height", 0)
+      .attr("cx", function(d) { return d.x; })
+      .attr("cy", function(d) { return d.y; })
+      .style('fill', function(d) { 
+        if (d.mouseHoverFlag) { return palette.blue; }
+        if (d.isKeyword) { return d.keywordColor; }
+        if ( d.isTrendingTopic 
+          || d.isTwitterUser 
+          || d.isNumber 
+          || d.isCurrency) { return palette.black; }
+        if ((d.isGroupNode || d.isSessionNode) && (d.ageMaxRatio < 0.01)) { return palette.yellow; }
+        return palette.lightgray; 
+      })
+      .style('visibility', function(d) {
+        if (d.isSessionNode) { return "hidden"; }
+        return "visible";
+      })
+      .style('stroke', function(d) {
+        return palette.black;
+      })
+      .style('stroke-width', 1)
+      .style('stroke-opacity', function(d) {
+        return 1.0 - d.ageMaxRatio; 
+      });
+
+    nodeCircles
+      .exit().remove();
+
+
+    var nodeImages = nodeSvgGroup.selectAll("image").data(nodes ,function(d) { return d.nodeId; })
+
+    nodeImages
       .attr("x", function(d) {return d.x - 0.5*(sessionCircleRadiusScale(d.wordChainIndex + 1.0));})
       .attr("y", function(d) {return d.y - 0.5*(sessionCircleRadiusScale(d.wordChainIndex + 1.0));})
       .attr("width", function(d){
@@ -1150,7 +1188,7 @@ function ViewFlow() {
         return sessionCircleRadiusScale(d.wordChainIndex + 1.0);
       })
       .style('opacity', function(d) {
-        if (hideNodeImagesFlag) return 1e-6;
+        if (hideNodeCirclesFlag) return 1e-6;
         if (d.mouseHoverFlag) return 1.0;
         return sessionOpacityScale(d.ageMaxRatio);
       });
@@ -1169,14 +1207,14 @@ function ViewFlow() {
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)
       .on("click", nodeClick)
-      .attr("r", 1e-6)
+      // .attr("r", 1e-6)
       .style("visibility", function(d){
-        if (hideNodeImagesFlag) return "hidden";
+        if (hideNodeCirclesFlag) return "hidden";
         if (d.isGroupNode ) return "hidden";
         if (d.isSessionNode) return "visible";
         return "hidden";
       })
-      .style("opacity", 1)
+      .style("opacity", 1);
 
     nodeImages
       .exit().remove();
@@ -1204,12 +1242,22 @@ function ViewFlow() {
           return "blah";
         }
         if (antonymFlag && d.antonym) { return '[' + d.antonym + ']';  }
-        return d.raw.toUpperCase();
+        if (typeof d.raw !== 'undefined') { return d.raw.toUpperCase();  }
+        return d.nodeId.toUpperCase();
       })
       .attr("x", function(d) { return d.x; })
-      .attr("y", function(d) { return d.y; })
+      // .attr("y", function(d) { return d.y; })
+      .attr("y", function(d) { 
+        // var shiftY = -1.5 * (nodeFontSizeScale(d.mentions + 1));
+        if (d.isIgnored) return d.y - 1.5 * (nodeFontSizeScale(10));
+        return d.y -1.5 * (nodeFontSizeScale(d.mentions + 1));
+      })
       .style("font-weight", function(d) {
-        if (d.isTwitterUser || d.isKeyword || d.isNumber || d.isCurrency || d.isTrendingTopic) return "bold";
+        if (d.isTwitterUser 
+          || d.isKeyword 
+          || d.isNumber 
+          || d.isCurrency 
+          || d.isTrendingTopic) return "bold";
         return "normal";
       })
       .style("text-decoration", function(d) {
@@ -1219,7 +1267,10 @@ function ViewFlow() {
       .style('fill', function(d) { 
         if (d.mouseHoverFlag) { return palette.blue; }
         if (d.isKeyword) { return d.keywordColor; }
-        if (d.isTrendingTopic || d.isTwitterUser || d.isNumber || d.isCurrency) { return palette.black; }
+        if ( d.isTrendingTopic 
+          || d.isTwitterUser 
+          || d.isNumber 
+          || d.isCurrency) { return palette.black; }
         if ((d.isGroupNode || d.isSessionNode) && (d.ageMaxRatio < 0.01)) { return palette.yellow; }
         return palette.lightgray; 
       })
@@ -1228,9 +1279,9 @@ function ViewFlow() {
         return 1.0 - d.ageMaxRatio; 
       })
       .style("font-size", function(d) {
-          if (d.isIgnored) { return nodeFontSizeScale(10) + "px";  }
-          if (d.isTrendingTopic) { return nodeFontSizeScale(1.5*d.mentions + 1.1) + "px"; }
-          return (nodeFontSizeScale(d.mentions + 1.1)) + "px";
+          if (d.isIgnored) { return nodeFontSizeScale(10);  }
+          if (d.isTrendingTopic) { return nodeFontSizeScale(1.5*d.mentions + 1.1); }
+          return (nodeFontSizeScale(d.mentions + 1.1));
         });
 
     nodeLabels
@@ -1250,7 +1301,7 @@ function ViewFlow() {
         return (d.isGroupNode || d.isSessionNode) ? "hidden" : "visible"; 
       })
       .style("text-anchor", "middle")
-      .style("alignment-baseline", "middle")
+      .style("alignment-baseline", "bottom")
       .style("opacity", 1e-6)
       .style("fill", palette.white)
       .style("font-size", "1px")
@@ -1275,7 +1326,7 @@ function ViewFlow() {
     async.series(
       {
         udl: updateLinks,
-        udnc: updateNodes,
+        udnc: updateNodeCircles,
         udnl: updateNodeLabels
       },
 
@@ -1313,7 +1364,6 @@ function ViewFlow() {
         else if (results) {
 
           var keys = Object.keys(results);
-
           for (var i=0; i<keys.length; i++){
             if (results[keys[i]]) {
               simulation.nodes(nodes);
@@ -1367,8 +1417,9 @@ function ViewFlow() {
     else {
       tooltipString = d.raw
         + "<br>MENTIONS: " + mentions 
-        + "<br>" + uId
-        + "<br>" + nodeId;
+        + "<br>KEYWORD: " + d.isKeyword 
+        + "<br>KEYWORD: " + jsonPrint(d.keywords) 
+        + "<br>" + uId;
     }
 
 
@@ -1420,6 +1471,12 @@ function ViewFlow() {
   }
 
   this.addNode = function(newNode) {
+
+    if (typeof newNode.mentions === 'undefined') {
+      // console.error("MENTIONS UNDEFINED " + newNode.nodeId);
+      console.error("MENTIONS UNDEFINED\n" + jsonPrint(newNode));
+      newNode.mentions = 1;
+    }
 
     if (typeof newNode.text === 'undefined') {
       newNode.text = "== UNDEFINED ==";
@@ -1485,29 +1542,31 @@ function ViewFlow() {
 
     simulation = d3.forceSimulation(nodes)
       .force("link", d3.forceLink(links)
-        .id(function(d) { return d.linkId; })
-        .distance(globalLinkDistance)
-        .strength(globalLinkStrength))
-      .force("charge", d3.forceManyBody()
-        .strength(charge))
-      .force("forceX", d3.forceX()
-        .x(function(d) { 
-          if (d.isSessionNode) return 0.7*width;
-          return -20*width; 
+        .distance(function(d){
+          if (d.isSessionNode) return 0.1*globalLinkDistance;
+          return globalLinkDistance; 
         })
         .strength(function(d){
-          if (d.isSessionNode) return 70*gravity;
-          return gravity; 
-        }))
+        if (d.isSessionNode) return 10.0*globalLinkStrength;
+        return 0.5*globalLinkStrength; 
+      }))
+      .force("charge", d3.forceManyBody().strength(charge))
+      .force("forceX", d3.forceX().x(function(d) { 
+        if (d.isSessionNode) return 0.7*width;
+        return -0.8*width; 
+      }).strength(function(d){
+        if (d.isSessionNode) return 50.0*gravity;
+        return 1*gravity; 
+      }))
       .force("forceY", d3.forceY().y(function(d) { 
         return 0.4*height; 
       }).strength(function(d){
-        if (d.isSessionNode) return 0.75*forceYmultiplier * gravity;
+        if (d.isSessionNode) return gravity;
         return forceYmultiplier * gravity; 
       }))
       .force("collide", d3.forceCollide().radius(function(d) { 
           if (d.isGroupNode) return 4.5 * collisionRadiusMultiplier * sessionCircleRadiusScale(d.wordChainIndex + 1.0) ; 
-          if (d.isSessionNode) return 3.5 * collisionRadiusMultiplier * sessionCircleRadiusScale(d.wordChainIndex + 1.0) ; 
+          if (d.isSessionNode) return collisionRadiusMultiplier * sessionCircleRadiusScale(d.wordChainIndex + 1.0) ; 
           return collisionRadiusMultiplier * d.textLength ; 
         }).iterations(collisionIterations))
       .velocityDecay(velocityDecay)
@@ -1586,14 +1645,7 @@ function ViewFlow() {
     d3LayoutWidth = width; // double the width for now
     d3LayoutHeight = height;
 
-    svgMain
-      .attr("width", width)
-      .attr("height", height)
-      .attr("x", 1e-6)
-      .attr("y", 1e-6);
-
-
-    svgFlowLayoutArea
+    svgForceLayoutArea
       .attr("width", width)
       .attr("height", height)
       .attr("viewbox", 1e-6, 1e-6, width, height)
@@ -1601,21 +1653,21 @@ function ViewFlow() {
       .attr("y", 1e-6);
 
     if (simulation){
-    simulation.force("forceX", d3.forceX().x(function(d) { 
-        if (d.isSessionNode) return 0.7*width;
-        return -20*width; 
-      }).strength(function(d){
-        if (d.isSessionNode) return 70*gravity;
-        return gravity; 
-      }));
-    simulation.force("forceY", d3.forceY().y(function(d) { 
-        return 0.4*height; 
-      }).strength(function(d){
-        if (d.isSessionNode) return 0.75*forceYmultiplier*gravity;
-        return forceYmultiplier * gravity; 
-      }));
-    }
+      simulation.force("forceX", d3.forceX().x(function(d) { 
+          if (d.isSessionNode) return 0.7*width;
+          return -0.8*width; 
+        }).strength(function(d){
+          if (d.isSessionNode) return 50.0*gravity;
+          return 1*gravity; 
+        }));
 
+      simulation.force("forceY", d3.forceY().y(function(d) { 
+          return 0.4*height; 
+        }).strength(function(d){
+          if (d.isSessionNode) return gravity;
+          return forceYmultiplier * gravity; 
+        }));
+    }
   }
 
   // ==========================================

@@ -1842,24 +1842,22 @@ function initSocketNodeRx(){
 
     var newNode = {};
 
+    newNode.createdAt = nNode.createdAt;
     newNode.age = 1e-6;
     newNode.ageMaxRatio = 1e-6;
     newNode.mouseHoverFlag = false;
-    newNode.isKeyword = nNode.isKeyword || false;
     newNode.nodeId = (nNode.nodeType == 'url') ? nNode.nodeId : nNode.nodeId.toString().toLowerCase();  // urls must be case sensitive
     newNode.nodeType = nNode.nodeType;
     newNode.isDead = false;
-    newNode.isIgnored = false;
-    newNode.isSessionNode = false;
-    newNode.isGroupNode = false;
     newNode.r = 0;
     newNode.links = [];
     newNode.mentions = (nNode.mentions > 0) ? nNode.mentions : 10;
-    newNode.raw = nNode.nodeId;
     newNode.text = nNode.nodeId;
-    newNode.textLength = 100;
 
     if (nNode.nodeType == "tweet"){
+      newNode.isRetweet = nNode.isRetweet;
+      newNode.retweetedId = nNode.retweetedId;
+      newNode.retweetedStatus = nNode.retweetedStatus;
       newNode.url = nNode.url;
       newNode.user = nNode.user;
       newNode.hashtags = nNode.hashtags;
@@ -1870,11 +1868,19 @@ function initSocketNodeRx(){
     }
     if (nNode.nodeType == "user"){
       newNode.userId = nNode.userId;
+      newNode.screenName = nNode.screenName;
+      newNode.name = nNode.name;
       newNode.profileUrl = nNode.profileUrl;
       newNode.profileImageUrl = nNode.profileImageUrl;
     }
     if (nNode.nodeType == "media"){
       newNode.mediaId = nNode.mediaId;
+      newNode.url = nNode.url;
+      newNode.sourceUrl = nNode.sourceUrl;
+    }
+    if (nNode.nodeType == "place"){
+      newNode.mediaId = nNode.mediaId;
+      newNode.fullName = nNode.fullName;
       newNode.sourceUrl = nNode.sourceUrl;
     }
 

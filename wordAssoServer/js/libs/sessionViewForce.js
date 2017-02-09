@@ -6,7 +6,7 @@
 function ViewForce() {
 
   var newAgeRatio = 0.01;
-  var nodeNewAge = 700;
+  var nodeNewAge = 200;
 
   var disableLinks = false;
   var hideNodeCirclesFlag = false;
@@ -31,12 +31,7 @@ function ViewForce() {
 
   var runningFlag = false;
   var updateNodeFlag = false;
-  var antonymFlag = false;
   
-  var groupCircleVisibility = "visible";
-
-  var groupUpdateQ = [];
-  var sessionUpdateQ = [];
   var nodeAddQ = [];
   var nodeUpdateQ = [];
   var nodeDeleteQ = [];
@@ -67,15 +62,13 @@ function ViewForce() {
   }
 
   var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
+  var compactDateTimeFormat = "YYYYMMDD HHmmss ZZ";
   var defaultTimePeriodFormat = "HH:mm:ss";
 
-  var minSessionNodeOpacity = 0.2;
 
   var mouseFreezeEnabled = true;
   var mouseHoverFlag = false;
   var mouseOverRadius = 10;
-  var mouseHoverGroupId = false;
-  var mouseHoverSessionId = false;
   var mouseHoverNodeId = false;
 
   var nodeMaxAge = 60000;
@@ -87,7 +80,6 @@ function ViewForce() {
   var defaultFadeDuration = 250;
 
   var DEFAULT_FLOW_CONFIG = {
-    'blahMode': DEFAULT_BLAH_MODE,
     'charge': DEFAULT_CHARGE,
     'velocityDecay': DEFAULT_VELOCITY_DECAY,
     'linkStrength': DEFAULT_LINK_STRENGTH,
@@ -134,8 +126,8 @@ function ViewForce() {
 
   var currentHashtagMaxMentions = 2;
 
-  var minFontSize = 10;
-  var maxFontSize = 40;
+  var minFontSize = 20;
+  var maxFontSize = 30;
 
   var D3_LAYOUT_WIDTH_RATIO = 1.0;
   var D3_LAYOUT_HEIGHT_RATIO = 1.0;
@@ -164,23 +156,16 @@ function ViewForce() {
     }
   }, true);
 
+  var nodeCircleOpacityScale = d3.scaleLinear().domain([1e-6, 1.0]).range([1.0, 1e-6]);
+  var nodeImageOpacityScale = d3.scaleLinear().domain([1e-6, 1.0]).range([1.0, 1e-6]);
+  var nodeLabelOpacityScale = d3.scaleLinear().domain([1e-6, 1.0]).range([1.0, 1e-6]);
+  var linkOpacityScale = d3.scaleLinear().domain([1e-6, 1.0]).range([1.0, 1e-6]);
 
   var adjustedAgeRateScale = d3.scaleLinear().domain([1, 200]).range([1.0, 20.0]).clamp(true);
 
-  var sessionFontSizeScale = d3.scaleLinear().domain([1, 10000000]).range([16.0, 24]).clamp(true);
   var nodeFontSizeScale = d3.scaleLinear().domain([1, currentHashtagMaxMentions]).range([minFontSize, maxFontSize]).clamp(true);
-
-  var groupCircleRadiusScale = d3.scaleLog().domain([1, 10000000]).range([10.0, 50.0]).clamp(true); // uses wordChainIndex
-  var sessionCircleRadiusScale = d3.scaleLog().domain([1, 1000000]).range([15.0, 50.0]).clamp(true); // uses wordChainIndex
   var imageSizeScale = d3.scaleLog().domain([1, 10000000]).range([20.0, 60.0]).clamp(true);
   var defaultRadiusScale = d3.scaleLog().domain([1, 10000000]).range([10, 40]).clamp(true);
-
-  var fillColorScale = d3.scaleLinear().domain([1e-6, 0.1, 1.0]).range([palette.gray, palette.darkgray, palette.black]);
-  var strokeColorScale = d3.scaleLog().domain([1e-6, 0.15, 1.0]).range([palette.white, palette.darkgray, palette.black]);
-  var linkColorScale = d3.scaleLinear().domain([1e-6, 0.5, 1.0]).range(["#000000", "#000000", "#000000"]);
-
-  var sessionOpacityScale = d3.scaleLinear().domain([1e-6, 1.0]).range([1.0, 1e-6]);
-  var fontScale = d3.scaleLinear().domain([1e-6, 1.0]).range([0.5, 1.0]);
 
   console.log("@@@@@@@ CLIENT @@@@@@@@");
 
@@ -207,18 +192,8 @@ function ViewForce() {
 
   d3.select("body").style("cursor", "default");
 
-  var groups = [];
-  var sessions = [];
   var nodes = [];
   var links = [];
-
-  this.getGroupsLength = function() {
-    return groups.length;
-  }
-  
-  this.getSessionsLength = function() {
-    return sessions.length;
-  }
   
   this.getNodesLength = function() {
     return nodes.length;
@@ -254,11 +229,6 @@ function ViewForce() {
     console.debug("SET NODE MAX AGE: " + nodeMaxAge);
   }
 
-  this.getSession = function(index) {
-    return sessions[index];
-  }
-
-  var maxNumberSessions = 0;
   var maxNumberNodes = 0;
   var maxNumberLinks = 0;
 
@@ -279,25 +249,14 @@ function ViewForce() {
     .attr("preserveAspectRatio", "none")
     .attr("x", 1e-6)
     .attr("y", 1e-6);
-
   var linkSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "linkSvgGroup");
-
-  var groupSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "groupSvgGroup");
-  var groupLabelSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "groupLabelSvgGroup");
-  var groupLabels = groupLabelSvgGroup.selectAll(".groupLabel");
-  var groupGnode = groupSvgGroup.selectAll("g.group");
-  var groupCircles = groupSvgGroup.selectAll("circle");
-
   var nodeSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "nodeSvgGroup");
   var nodeLabelSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "nodeLabelSvgGroup");
 
-  var nodeGs = nodeSvgGroup.selectAll("g.node");
   var nodeCircles = nodeSvgGroup.selectAll("circle");
   var nodeLabels = nodeSvgGroup.selectAll(".nodeLabel");
   var nodeImages = nodeSvgGroup.selectAll("image");
 
-  var sessionLabelSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "sessionLabelSvgGroup");
-  var sessionLabels = sessionLabelSvgGroup.selectAll(".sessionLabel");
   var link = linkSvgGroup.selectAll("line");
 
   var divTooltip = d3.select("body").append("div")
@@ -321,18 +280,6 @@ function ViewForce() {
   function generateLinkId(callback) {
     globalLinkIndex++;
     return "LNK" + globalLinkIndex;
-  }
-
-  self.setBlah = function(value){
-    blahMode = value;
-    console.log("BLAH: " + value);
-  }
-
-  self.setAntonym = function(ant){
-    antonymFlag = ant;
-    console.error("ANTONYM: " + antonymFlag);
-    if (antonymFlag){
-    }
   }
 
   self.setPause = function(value){
@@ -362,11 +309,9 @@ function ViewForce() {
         globalLinkStrength = value;
         simulation.force("link", d3.forceLink(links)
           .distance(function(d){
-            if (d.isSessionNode) return 0.1*globalLinkDistance;
             return globalLinkDistance; 
           })
           .strength(function(d){
-          if (d.isSessionNode) return 10.0*globalLinkStrength;
           return 0.5*globalLinkStrength; 
         }))
       break;
@@ -374,11 +319,9 @@ function ViewForce() {
         globalLinkDistance = value;
         simulation.force("link", d3.forceLink(links)
           .distance(function(d){
-            if (d.isSessionNode) return 0.1*globalLinkDistance;
             return globalLinkDistance; 
           })
           .strength(function(d){
-          if (d.isSessionNode) return 10.0*globalLinkStrength;
           return 0.5*globalLinkStrength; 
         }))
       break;
@@ -392,11 +335,9 @@ function ViewForce() {
     // simulation.force("link", d3.forceLink(links).distance(globalLinkDistance).strength(globalLinkStrength));
     simulation.force("link", d3.forceLink(links)
       .distance(function(d){
-        if (d.isSessionNode) return 0.1*globalLinkDistance;
         return globalLinkDistance; 
       })
       .strength(function(d){
-      if (d.isSessionNode) return 10.0*globalLinkStrength;
       return 0.5*globalLinkStrength; 
     }))
   }
@@ -408,11 +349,9 @@ function ViewForce() {
     // simulation.force("link", d3.forceLink(links).distance(globalLinkDistance).strength(globalLinkStrength));
     simulation.force("link", d3.forceLink(links)
       .distance(function(d){
-        if (d.isSessionNode) return 0.1*globalLinkDistance;
         return globalLinkDistance; 
       })
       .strength(function(d){
-      if (d.isSessionNode) return 10.0*globalLinkStrength;
       return 0.5*globalLinkStrength; 
     }))
   }
@@ -428,17 +367,14 @@ function ViewForce() {
     gravity = value;
 
     simulation.force("forceX", d3.forceX().x(function(d) { 
-        if (d.isSessionNode) return 0.7*width;
         return 0.5*width; 
       }).strength(function(d){
-        if (d.isSessionNode) return 1.0*gravity;
         return 1*gravity; 
       }));
 
     simulation.force("forceY", d3.forceY().y(function(d) { 
         return 0.4*height; 
       }).strength(function(d){
-        if (d.isSessionNode) return gravity;
         return forceYmultiplier * gravity; 
       }));
   }
@@ -466,84 +402,6 @@ function ViewForce() {
   var ageMaxRatio;  // 0.0 - 1.0 of nodeMaxAge
   var nodeIndex = 0;
 
-  function deleteGroupQ(groupId, callback){
-    var deletedGroup;
-    var deadGroupFlag = false;
-
-    var groupsLength = groups.length - 1;
-    var groupIndex = groups.length - 1;
-
-    for (groupIndex = groupsLength; groupIndex >= 0; groupIndex -= 1) {
-
-      deletedGroup = groups[groupIndex];
-
-      if (deletedGroup.groupId == groupId) {
-
-        deadGroupFlag = true;
-
-        var linksLength = links.length - 1;
-        var linkIndex = links.length - 1;
-
-        for (linkIndex = linksLength; linkIndex >= 0; linkIndex -= 1) {
-          var link = links[linkIndex];
-          if (link.groupId == groupId) {
-            deadLinksHash[link.linkId] = 1;
-          }
-        }
-
-        if (linkIndex < 0) {
-          console.log("X GRP " + deletedGroup.node.nodeId);
-          deadGroupFlag = true;
-          nodeDeleteQ.push({op:'delete', nodeId: deletedGroup.node.nodeId});
-          groups.splice(groupIndex, 1);
-          return(callback(null, deadGroupFlag));
-        }
-      }
-    }
-    if ((groupIndex < 0) && (linkIndex < 0)) {
-      return(callback(null, deadGroupFlag));
-    }
-  }
-
-  function deleteSessionQ(sessionId, callback){
-    var deletedSession;
-    var deadSessionFlag = false;
-
-    var sessionsLength = sessions.length - 1;
-    var sessionIndex = sessions.length - 1;
-
-    for (sessionIndex = sessionsLength; sessionIndex >= 0; sessionIndex -= 1) {
-
-      deletedSession = sessions[sessionIndex];
-
-      if (deletedSession.sessionId == sessionId) {
-
-        deadSessionFlag = true;
-
-        var linksLength = links.length - 1;
-        var linkIndex = links.length - 1;
-
-        for (linkIndex = linksLength; linkIndex >= 0; linkIndex -= 1) {
-          var link = links[linkIndex];
-          if (link.sessionId == sessionId) {
-            deadLinksHash[link.linkId] = 1;
-          }
-        }
-
-        if (linkIndex < 0) {
-          // console.log("X SES " + deletedSession.node.nodeId);
-          deadSessionFlag = true;
-          nodeDeleteQ.push({op:'delete', nodeId: deletedSession.node.nodeId});
-          sessions.splice(sessionIndex, 1);
-          return(callback(null, deadSessionFlag));
-        }
-      }
-    }
-    if ((sessionIndex < 0) && (linkIndex < 0)) {
-      return(callback(null, deadSessionFlag));
-    }
-  }
-
   function deleteNodeQ(nodeId, callback){
 
     var deadNodeFlag = false;
@@ -562,10 +420,6 @@ function ViewForce() {
 
       if (node.nodeId == nodeId) {
 
-        if (node.isSessionNode) {
-          sessionUpdateQ.push({op:'delete', sessionId: node.sessionId});
-        }
-
         for (linkIndex = linksLength; linkIndex >= 0; linkIndex -= 1) {
           var link = links[linkIndex];
           var linkId = link.linkId;
@@ -576,7 +430,6 @@ function ViewForce() {
         if (linkIndex < 0) {
           nodes.splice(nodeIndex, 1);
           deadNodeFlag = true;
-          // console.warn("XXX NODE " + nodeId);
           return(callback(null, deadNodeFlag));
         }
       }
@@ -604,70 +457,6 @@ function ViewForce() {
 
     if (linkIndex < 0) {
       return(callback(null, deadLinkFlag));
-    }
-  }
-
-  var processGroupUpdateQ = function(callback) {
-    if (!runningFlag) {
-      callback(null, false);
-    }
-    else {
-      var groupsModifiedFlag = false;
-      while (groupUpdateQ.length > 0){
-        var groupUpdateObj = groupUpdateQ.shift();
-        switch (groupUpdateObj.op) {
-          case "add":
-            groupsModifiedFlag = true;
-            if (typeof groupUpdateObj.group.node.x === 'undefined') groupUpdateObj.group.node.x = 100;
-            if (typeof groupUpdateObj.group.node.y === 'undefined') groupUpdateObj.group.node.y = 100;
-            if (fixedGroupsFlag || groupUpdateObj.group.node.fixed) {
-              groupUpdateObj.group.node.fx = groupUpdateObj.group.node.x;
-              // groupUpdateObj.group.node.fy = groupUpdateObj.group.node.y;
-            }
-            else {
-              groupUpdateObj.group.node.fx = null;
-            }
-            // console.log("ADD GROUP | " + groupUpdateObj.group.groupId);
-            groups.push(groupUpdateObj.group);
-          break;
-          case "delete":
-            // console.warn("DEL GROUP | " + groupUpdateObj.groupId);
-            deleteGroupQ(groupUpdateObj.groupId, function(err, deadGroupFlag){
-              if (deadGroupFlag) groupsModifiedFlag = true;
-            });
-          break;
-        }
-      }
-      if (groupUpdateQ.length == 0){
-        callback(null, groupsModifiedFlag);
-      }
-    }
-  }
-
-  var processSessionUpdateQ = function(callback) {
-    var sessionsModifiedFlag = false;
-    while (sessionUpdateQ.length > 0){
-      var sessionUpdateObj = sessionUpdateQ.shift();
-      switch (sessionUpdateObj.op) {
-        case "add":
-          sessionsModifiedFlag = true;
-          console.debug("ADD SESSION"
-            + " | " + sessionUpdateObj.session.sessionId
-            + " | x " + sessionUpdateObj.session.x
-            + " y " + sessionUpdateObj.session.y
-          );
-          sessionUpdateObj.session.fx = sessionUpdateObj.session.x;
-          sessions.push(sessionUpdateObj.session);
-        break;
-        case "delete":
-          deleteSessionQ(sessionUpdateObj.sessionId, function(err, deadSessionFlag){
-            if (deadSessionFlag) sessionsModifiedFlag = true;
-          });
-        break;
-      }
-    }
-    if (sessionUpdateQ.length == 0){
-      callback(null, sessionsModifiedFlag);
     }
   }
 
@@ -708,8 +497,6 @@ function ViewForce() {
 
   var processNodeAddQ = function(callback) {
 
-    // processNodeCount++;
-
     var nodesModifiedFlag = false;
 
     while ((nodeAddQ.length > 0) && addNodeEnabled()) {
@@ -717,11 +504,8 @@ function ViewForce() {
       processNodeCount++;
 
       var nodeAddObj = nodeAddQ.shift();
-
       var newNode = nodeAddObj.node;
-
       var currentNode = {};
-
 
       switch (nodeAddObj.op) {
 
@@ -734,54 +518,42 @@ function ViewForce() {
             currentNode.age = 0;
           }
           else {
-            // console.error("localNodeHashMap MISS: " + newNode.nodeId);
+            nodesModifiedFlag = true;
             currentNode = newNode;
-            currentNode.x = randomIntFromInterval(0.1 * width, 0.15 * width);
-            currentNode.y = randomIntFromInterval(0.3 * height, 0.7 * height);
+            currentNode.newFlag = true;
+            currentNode.age = 0;
+            currentNode.x = randomIntFromInterval(0.45 * width, 0.55 * width);
+            currentNode.y = randomIntFromInterval(0.45 * height, 0.55 * height);
             if (newNode.nodeType == "tweet"){
             }
           }
 
-          nodesModifiedFlag = true;
           currentNode.mentions = newNode.mentions;
           currentNode.ageUpdated = moment().valueOf();
 
           if ((newNode.nodeType == "hashtag") && (newNode.mentions > currentHashtagMaxMentions)){
-
             currentHashtagMaxMentions = newNode.mentions;
-
             nodeFontSizeScale = d3.scaleLinear().domain([1, currentHashtagMaxMentions]).range([minFontSize, maxFontSize]).clamp(true);
-
             console.info("NEW MAX Ms" 
+              + " | " + currentHashtagMaxMentions 
+              + " | " + currentNode.nodeType 
               + " | " + currentNode.text 
-              + " | I: " + currentNode.isIgnored 
-              + " | Ms " + currentHashtagMaxMentions 
-              + " | K: " + currentNode.isKeyword 
-              + " | KWs: " + jsonPrint(currentNode.keywords) 
             );
           }
 
-          nodes.push(currentNode);
+          if (nodesModifiedFlag) nodes.push(currentNode);
           localNodeHashMap.set(currentNode.nodeId, currentNode);
-
           if (nodes.length > maxNumberNodes) {
-            // console.info("MAX NODES: " + maxNumberNodes);
             maxNumberNodes = nodes.length;
           }
-
-          // callback(null, nodesModifiedFlag);
 
         break;
 
         default:
           console.error("??? UNKNOWN NODE UPDATE Q OP: " + nodeAddObj.op);
-          // callback(null, nodesModifiedFlag);
         break;
       }
     }
-    // else {
-    //   callback(null, nodesModifiedFlag);
-    // }
 
     if ((nodeAddQ.length == 0) || !addNodeEnabled()){
       callback(null, nodesModifiedFlag);
@@ -871,7 +643,6 @@ function ViewForce() {
     var linksModifiedFlag = false;
     var linkUpdateObj;
 
-    // while ((linkUpdateQ.length > 0) && addNodeEnabled()) {
     while (linkUpdateQ.length > 0) {
 
       linkUpdateObj = linkUpdateQ.shift();
@@ -880,26 +651,18 @@ function ViewForce() {
         case "add":
           linksModifiedFlag = true;
           links.push(linkUpdateObj.link);
-          // localLinkHashMap.set(linkUpdateObj.link, linkUpdateObj);
-          // console.debug("+ L " + linkUpdateObj.link.source.nodeId + " > " + linkUpdateObj.link.target.nodeId);
-          // callback(null, linksModifiedFlag);
         break;
         case "delete":
           deleteLinkQ(linkUpdateObj.linkId, function(err, deadLinkFlag){
             localLinkHashMap.remove(linkUpdateObj.link);
             if (deadLinkFlag) linksModifiedFlag = true;
-            // callback(null, linksModifiedFlag);
           });
         break;
         default:
           console.error("UNKNOWN LINK OP: " + linkUpdateObj.op);
-          // callback(null, linksModifiedFlag);
         break;
       }
     }
-    // else {
-    //   callback(null, linksModifiedFlag);
-    // }
 
     if (linkUpdateQ.length == 0){
       callback(null, linksModifiedFlag);
@@ -920,23 +683,12 @@ function ViewForce() {
     var node;
 
     createTweetLinksInterval = setInterval(function(){
-
-      // if (createTweetLinksReady && (createTweetLinksQueue.length > 0)) {
-      // if (createTweetLinksQueue.length > 0) {
       while (createTweetLinksQueue.length > 0) {
-
-        // createTweetLinksReady = false;
-
         node = createTweetLinksQueue.shift();
-
         createTweetLinks(node, function(){
-
           createTweetLinksHashMap.remove(node.nodeId);
-          // if (createTweetLinksQueue.length == 0) createTweetLinksReady = true;
-
         });
       }
-
     }, interval);
   }
 
@@ -945,34 +697,85 @@ function ViewForce() {
 
     async.parallel({
 
+      tweet: function(cb) {
+
+        if (node.isRetweet){
+
+          // console.info("RT"
+          //   + " | " + node.nodeId
+          //   + " | " + moment(node.createdAt).format(compactDateTimeFormat)
+          //   + " | " + node.retweetedId
+          //   + " | " + moment(new Date(node.retweetedStatus.created_at)).format(compactDateTimeFormat)
+          // );
+
+          if (localNodeHashMap.has(node.retweetedId)) {
+
+            // console.debug("RT"
+            //   + " | " + node.nodeId
+            //   + " | " + moment(node.createdAt).format(compactDateTimeFormat)
+            //   + " | " + node.retweetedId
+            //   + " | " + moment(new Date(node.retweetedStatus.created_at)).format(compactDateTimeFormat)
+            // );
+
+            var twNode = localNodeHashMap.get(node.retweetedId);
+            var linkId = node.nodeId + "_" + twNode.nodeId;
+
+            if (!localLinkHashMap.has(linkId)) {
+              var newLink = {
+                linkId: linkId,
+                age: 0,
+                source: node,
+                target: twNode,
+                sourceAndTarget: true
+              }
+              localLinkHashMap.set(linkId, newLink);
+              self.addLink(newLink);
+            }
+            else {
+              newLink = localLinkHashMap.get(linkId);
+              newLink.age = 0;
+              localLinkHashMap.set(linkId, newLink);
+            }
+          }
+          cb();
+        }
+        else {
+          cb();
+        }
+      },
+
       user: function(cb) {
 
-        if (!node.user) return(cb());
+        if (node.user){
 
-        if (localNodeHashMap.has(node.user.nodeId)) {
+          if (localNodeHashMap.has(node.user.nodeId)) {
 
-          var usNode = localNodeHashMap.get(node.user.nodeId);
-          var linkId = node.nodeId + "_" + usNode.nodeId;
+            var usNode = localNodeHashMap.get(node.user.nodeId);
+            var linkId = node.nodeId + "_" + usNode.nodeId;
 
-          if (!localLinkHashMap.has(linkId)) {
-
-            var newLink = {
-              sessionId: socket.id,
-              linkId: linkId,
-              age: 0,
-              source: node,
-              target: usNode,
-              sourceAndTarget: true
+            if (!localLinkHashMap.has(linkId)) {
+              var newLink = {
+                linkId: linkId,
+                age: 0,
+                source: node,
+                target: usNode,
+                sourceAndTarget: true
+              }
+              localLinkHashMap.set(linkId, newLink);
+              self.addLink(newLink);
             }
-
-            localLinkHashMap.set(linkId, newLink);
-
-            self.addLink(newLink);
-
+            else {
+              newLink = localLinkHashMap.get(linkId);
+              newLink.age = 0;
+              localLinkHashMap.set(linkId, newLink);
+            }
           }
+          cb();
+        }
+        else {
+          cb();
         }
 
-        cb();
       },
 
       userMentions: function(cb) {
@@ -991,20 +794,20 @@ function ViewForce() {
               linkId = node.nodeId + "_" + usNode.nodeId;
 
               if (!localLinkHashMap.has(linkId)) {
-
                 newLink = {
-                  sessionId: socket.id,
                   linkId: linkId,
                   age: 0,
                   source: node,
                   target: usNode,
                   sourceAndTarget: true
                 }
-
                 localLinkHashMap.set(linkId, newLink);
-
                 self.addLink(newLink);
-
+              }
+              else {
+                newLink = localLinkHashMap.get(linkId);
+                newLink.age = 0;
+                localLinkHashMap.set(linkId, newLink);
               }
             }
 
@@ -1035,20 +838,20 @@ function ViewForce() {
               linkId = node.nodeId + "_" + htNode.nodeId;
 
               if (!localLinkHashMap.has(linkId)) {
-
                 newLink = {
-                  sessionId: socket.id,
                   linkId: linkId,
                   age: 0,
                   source: node,
                   target: htNode,
                   sourceAndTarget: true
                 }
-
                 localLinkHashMap.set(linkId, newLink);
-
                 self.addLink(newLink);
-
+              }
+              else {
+                newLink = localLinkHashMap.get(linkId);
+                newLink.age = 0;
+                localLinkHashMap.set(linkId, newLink);
               }
             }
 
@@ -1079,20 +882,20 @@ function ViewForce() {
               linkId = node.nodeId + "_" + meNode.nodeId;
 
               if (!localLinkHashMap.has(linkId)) {
-
                 newLink = {
-                  sessionId: socket.id,
                   linkId: linkId,
                   age: 0,
                   source: node,
                   target: meNode,
                   sourceAndTarget: true
                 }
-
                 localLinkHashMap.set(linkId, newLink);
-
                 self.addLink(newLink);
-
+              }
+              else {
+                newLink = localLinkHashMap.get(linkId);
+                newLink.age = 0;
+                localLinkHashMap.set(linkId, newLink);
               }
             }
 
@@ -1111,7 +914,6 @@ function ViewForce() {
 
         if (node.urls) {
 
-
           if (node.urls.length == 0) return(cb());
 
           var urlNode, linkId, newLink;
@@ -1120,27 +922,24 @@ function ViewForce() {
 
             if (localNodeHashMap.has(urlObj.nodeId)) {
 
-              // console.debug("+ L URL\n" + jsonPrint(urlObj));
-
               urlNode = localNodeHashMap.get(urlObj.nodeId);
               linkId = node.nodeId + "_" + urlNode.nodeId;
 
               if (!localLinkHashMap.has(linkId)) {
-
                 newLink = {
-                  sessionId: socket.id,
                   linkId: linkId,
                   age: 0,
                   source: node,
                   target: urlNode,
                   sourceAndTarget: true
                 }
-
                 localLinkHashMap.set(linkId, newLink);
-
-                // console.debug("+ L URL: " + linkId);
                 self.addLink(newLink);
-
+              }
+              else {
+                newLink = localLinkHashMap.get(linkId);
+                newLink.age = 0;
+                localLinkHashMap.set(linkId, newLink);
               }
             }
 
@@ -1157,33 +956,36 @@ function ViewForce() {
 
       place: function(cb) {
 
-        if (!node.place) return(cb());
+        if (node.place){
 
-        if (localNodeHashMap.has(node.place.nodeId)) {
+          if (localNodeHashMap.has(node.place.nodeId)) {
 
-          var plNode = localNodeHashMap.get(node.place.nodeId);
-          var linkId = node.nodeId + "_" + plNode.nodeId;
+            var plNode = localNodeHashMap.get(node.place.nodeId);
+            var linkId = node.nodeId + "_" + plNode.nodeId;
 
-          if (!localLinkHashMap.has(linkId)) {
-
-            var newLink = {
-              sessionId: socket.id,
-              linkId: linkId,
-              age: 0,
-              source: node,
-              target: plNode,
-              sourceAndTarget: true
+            if (!localLinkHashMap.has(linkId)) {
+              var newLink = {
+                linkId: linkId,
+                age: 0,
+                source: node,
+                target: plNode,
+                sourceAndTarget: true
+              }
+              localLinkHashMap.set(linkId, newLink);
+              self.addLink(newLink);
             }
-
-            localLinkHashMap.set(linkId, newLink);
-
-            self.addLink(newLink);
-
+            else {
+              newLink = localLinkHashMap.get(linkId);
+              newLink.age = 0;
+              localLinkHashMap.set(linkId, newLink);
+            }
           }
+          cb();
         }
-
-        cb();
-      },
+        else{
+          cb();
+        }
+      }
 
     }, function(err, results) {
       callback();
@@ -1278,7 +1080,6 @@ function ViewForce() {
     var ageLinksLength = links.length - 1;
     var ageLinksIndex = links.length - 1;
 
-    var currentSession;
     var currentLinkObject = {};
 
     for (ageLinksIndex = ageLinksLength; ageLinksIndex >= 0; ageLinksIndex -= 1) {
@@ -1337,43 +1138,11 @@ function ViewForce() {
     for (ageNodesIndex = ageNodesLength; ageNodesIndex >= 0; ageNodesIndex -= 1) {
       node = nodes[ageNodesIndex];
       if (deadNodesHash[node.nodeId]) {
-
         nodeDeleteQ.push({op:'delete', nodeId: node.nodeId});
         nodeDeleteQueue.push(node.nodeId);
-
         deadNodeFlag = true;
-
         delete deadNodesHash[node.nodeId];
-
         localNodeHashMap.remove(node.nodeId);
-
-        if (node.isGroupNode){
-          for (var i=groups.length-1; i >= 0; i -= 1) {
-            if (node.nodeId == groups[i].node.nodeId) {
-
-              console.log("X GRP | " + groups[i].node.nodeId);
-
-              groupUpdateQ.push({op:'delete', groupId: groups[i].groupId});
-
-              var deadLinkIds = Object.keys(node.links);
-              deadLinkIds.forEach(function(deadLink){
-                deadLinksHash[deadLink] = 'DEAD';
-              });
-            }
-          }
-        }
-        if (node.isSessionNode){
-          for (var i=sessions.length-1; i >= 0; i -= 1) {
-            if (node.nodeId == sessions[i].node.nodeId) {
-              // console.log("X SES | " + sessions[i].node.nodeId);
-              sessionUpdateQ.push({op:'delete', sessionId: sessionId});
-              var deadLinkIds = Object.keys(node.links);
-              deadLinkIds.forEach(function(deadLink){
-                deadLinksHash[deadLink] = 'DEAD';
-              });
-            }
-          }
-        }
       }
       deadNodeIds = Object.keys(deadNodesHash);
     }
@@ -1416,8 +1185,6 @@ function ViewForce() {
 
     link = linkSvgGroup.selectAll("line").data(links, 
       function(d) { 
-        // console.info("link\n" + jsonPrint(d));
-        // if ((typeof d.source !== 'undefined') && (typeof d.target !== 'undefined')) {
         if (d.sourceAndTarget) {
           return d.source.nodeId + "-" + d.target.nodeId; 
         }
@@ -1431,19 +1198,19 @@ function ViewForce() {
       .attr("y1", function(d) { return d.source.y; })
       .attr("x2", function(d) { return d.target.x; })
       .attr("y2", function(d) { return d.target.y; })
-      // .style('opacity', function(d) { return sessionOpacityScale(d.ageMaxRatio); });
       .style('stroke', function(d) {
         if ((d.source.age < nodeNewAge) && (d.target.age < nodeNewAge)) return palette.white;
+        if ((d.source.nodeType == 'tweet') && (d.target.nodeType == 'tweet')) return palette.blue;
         return "aaaaaa";
       })
       .style('stroke-width', function(d) {
         if ((d.source.age < nodeNewAge) && (d.target.age < nodeNewAge)) return 3.5;
+        if ((d.source.nodeType == 'tweet') && (d.target.nodeType == 'tweet')) return 10;
         return 1.5;
       })
       .style('opacity', function(d){
         if ((d.source.age < nodeNewAge) && (d.target.age < nodeNewAge)) return 1.0;
-        // return 0.5*(nodeMaxAge - d.source.age) / nodeMaxAge ;
-        return sessionOpacityScale(d.ageMaxRatio);
+        return linkOpacityScale(d.ageMaxRatio);
       });
 
     link.enter()
@@ -1463,13 +1230,20 @@ function ViewForce() {
 
   var updateNodeCircles = function(callback) {
 
-    nodeCircles = nodeSvgGroup.selectAll("circle").data(nodes ,function(d) { return d.nodeId; });
+    nodeCircles = nodeSvgGroup.selectAll("circle")
+      .data(nodes.filter(function(d){
+        return ((d.nodeType == 'tweet') || (d.nodeType == 'hashtag') || (d.nodeType == 'url') || (d.nodeType == 'place')); 
+      }));
 
     nodeCircles
+      .enter()
+      .append("svg:circle")
+      .on("mouseover", nodeMouseOver)
+      .on("mouseout", nodeMouseOut)
+      .on("click", nodeClick)
+      .merge(nodeCircles)
       .attr("r", function(d) {
-        // if (typeof d.isIgnored === 'undefined') {
         if (d.isIgnored) {
-          // console.debug(d.nodeId + " | NODE CIRCLE d.mentions UNDEFINED");
           return defaultRadiusScale(1);
         }
         else if (typeof d.mentions === 'undefined') {
@@ -1477,13 +1251,23 @@ function ViewForce() {
           return defaultRadiusScale(1);
         }
         else {
-          // if (d.isGroupNode) return groupCircleRadiusScale(d.totalWordChainIndex + 1.0) ;
-          // if (d.isSessionNode) return sessionCircleRadiusScale(d.wordChainIndex + 1.0) ;
           return defaultRadiusScale(parseInt(d.mentions) + 1.0);
         }
       })
       .attr("cx", function(d) { return d.x; })
       .attr("cy", function(d) { return d.y; })
+      .style('fill', function(d) { 
+        if (d.mouseHoverFlag) { return palette.blue; }
+        if (d.age < nodeNewAge) { return palette.white; }
+        if (d.nodeType == 'tweet') { 
+          if (d.isRetweet) return palette.yellow;
+          return palette.red; 
+        }
+        if (d.nodeType == 'hashtag') { return palette.blue; }
+        if (d.nodeType == 'url') { return palette.green; }
+        if (d.nodeType == 'place') { return palette.purple; }
+        return palette.black; 
+      })
       .style('stroke', function(d) {
         if (d.age < nodeNewAge) return palette.white;
         return "aaaaaa";
@@ -1495,42 +1279,8 @@ function ViewForce() {
       .style('opacity', function(d) {
         if (hideNodeCirclesFlag) return 1e-6;
         if (d.mouseHoverFlag) return 1.0;
-        return sessionOpacityScale(d.ageMaxRatio);
+        return nodeCircleOpacityScale(d.ageMaxRatio);
       });
-
-    nodeCircles
-      .enter()
-      .append("svg:circle")
-      .attr("r", 1e-6)
-      .attr("cx", function(d) { return d.x; })
-      .attr("cy", function(d) { return d.y; })
-      .style('fill', function(d) { 
-        if (d.mouseHoverFlag) { return palette.blue; }
-        if (d.isKeyword) { return d.keywordColor; }
-        if (d.nodeType == 'tweet') { return palette.red; }
-        if (d.nodeType == 'hashtag') { return palette.blue; }
-        if (d.nodeType == 'user') { return palette.green; }
-        if (d.nodeType == 'url') { return palette.green; }
-        if (d.nodeType == 'media') { return palette.yellow; }
-        if (d.nodeType == 'place') { return palette.purple; }
-        if ( d.isTrendingTopic 
-          || d.isTwitterUser 
-          || d.isNumber 
-          || d.isCurrency) { return palette.black; }
-        if ((d.isGroupNode || d.isSessionNode) && (d.ageMaxRatio < 0.01)) { return palette.yellow; }
-        return palette.black; 
-      })
-      .style('stroke', palette.lightgray )
-      .style('stroke-width', 1)
-      .style('visibility', function(d) {
-        if (hideNodeCirclesFlag) { return "hidden"; }
-        if (d.nodeType == "media") { return "hidden"; }
-        if (d.nodeType == "user") { return "hidden"; }
-        return "visible";
-      })
-      .on("mouseover", nodeMouseOver)
-      .on("mouseout", nodeMouseOut)
-      .on("click", nodeClick);
 
     nodeCircles
       .exit()
@@ -1541,49 +1291,31 @@ function ViewForce() {
 
   var updateNodeImages = function(callback) {
 
-   var nodeImages = nodeSvgGroup.selectAll("image").data(nodes, function(d) { return d.nodeId; })
-
-    nodeImages
-      .attr("x", function(d) { return d.x - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0)); })
-      .attr("y", function(d) { return d.y - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0)); })
-      .attr("width", function(d){ return imageSizeScale(parseInt(d.mentions) + 1.0); })
-      .attr("height", function(d){ return imageSizeScale(parseInt(d.mentions) + 1.0); })
-      .style("visibility", function(d){
-        if (hideNodeImagesFlag) return "hidden";
-        if (d.nodeType == "media") return "visible";
-        if (d.nodeType == "user") return "visible";
-        return "hidden";
-      })
-      .style('opacity', function(d) {
-        if (d.mouseHoverFlag) return 1.0;
-        return sessionOpacityScale(d.ageMaxRatio);
-      });
+    var nodeImages = nodeSvgGroup.selectAll("image")
+      .data(nodes.filter(function(d){
+        return ((d.nodeType == 'media') || (d.nodeType == 'user')); 
+      }));
 
     nodeImages
       .enter()
       .append("svg:image")
-      .filter(function(d) { 
-        return ((d.nodeType == "media") || (d.nodeType == "user")); 
-      })
-      .attr("x", function(d) {return d.x;})
-      .attr("y", function(d) {return d.y;})
-      .attr("xlink:href", function(d) { 
-        if (d.nodeType == "media") return d.sourceUrl;
-        if (d.nodeType == "user") return d.profileImageUrl;
-        return d.url; 
-      })
-      .attr("width", 1e-6)
-      .attr("height", 1e-6)
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)
       .on("click", nodeClick)
-      .style("visibility", function(d){
-        if (hideNodeImagesFlag) return "hidden";
-        if (d.nodeType == "media") return "visible";
-        if (d.nodeType == "user") return "visible";
-        return "hidden";
+      .merge(nodeImages)
+      .attr("xlink:href", function(d) { 
+        if (d.nodeType == "media") return d.url;
+        if (d.nodeType == "user") return d.profileImageUrl;
+        return d.url; 
       })
-      .style("opacity", 1);
+      .attr("x", function(d) { return d.x - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0)); })
+      .attr("y", function(d) { return d.y - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0)); })
+      .attr("width", function(d){ return imageSizeScale(parseInt(d.mentions) + 1.0); })
+      .attr("height", function(d){ return imageSizeScale(parseInt(d.mentions) + 1.0); })
+      .style('opacity', function(d) {
+        if (d.mouseHoverFlag) return 1.0;
+        return nodeImageOpacityScale(d.ageMaxRatio);
+      });
 
     nodeImages
       .exit()
@@ -1594,98 +1326,39 @@ function ViewForce() {
 
   var updateNodeLabels = function(callback) {
 
-    nodeLabels = nodeLabelSvgGroup.selectAll("text").data(nodes ,function(d) { return d.nodeId; });
-
-    nodeLabels
-      .text(function(d) {
-        d.textLength = this.getComputedTextLength();
-        if (d.nodeType == 'hashtag') return d.nodeId;
-        if (d.nodeType == 'user') return "";
-        if (d.nodeType == 'tweet') return "";
-        if (d.isGroupNode) return d.totalWordChainIndex;
-        if (d.isSessionNode) return d.entity;
-        if (d.isTwitterUser) return d.raw;
-        if (!mouseMovingFlag 
-          && blahMode 
-          && !d.isTwitterUser 
-          && !d.isKeyword 
-          && !d.isCurrency 
-          && !d.isNumber 
-          && !d.isTrendingTopic) {
-          return "blah";
-        }
-        if (antonymFlag && d.antonym) { return '[' + d.antonym + ']';  }
-        if (typeof d.raw !== 'undefined') { return d.raw.toUpperCase();  }
-        return d.nodeId.toUpperCase();
-      })
-      .attr("x", function(d) { return d.x; })
-      // .attr("y", function(d) { return d.y; })
-      .attr("y", function(d) { 
-        // var shiftY = -1.5 * (nodeFontSizeScale(d.mentions + 1));
-        if (d.isIgnored) return d.y - 1.8 * (defaultRadiusScale(10));
-        return d.y - 1.5 * (defaultRadiusScale(d.mentions + 1));
-      })
-      .style("font-weight", function(d) {
-        if (d.isTwitterUser 
-          || d.isKeyword 
-          || d.isNumber 
-          || d.isCurrency 
-          || d.isTrendingTopic) return "bold";
-        return "normal";
-      })
-      .style("text-decoration", function(d) {
-        if (d.isTrendingTopic) return "underline";
-        return "none";
-      })
-      .style('fill', function(d) { 
-        if (d.mouseHoverFlag) { return palette.blue; }
-        if (d.isKeyword) { return d.keywordColor; }
-        if ( d.isTrendingTopic 
-          || d.isTwitterUser 
-          || d.isNumber 
-          || d.isCurrency) { return palette.white; }
-        if ((d.isGroupNode || d.isSessionNode) && (d.ageMaxRatio < 0.01)) { return palette.yellow; }
-        return palette.white; 
-      })
-      .style('opacity', function(d) { 
-        if (d.mouseHoverFlag) { return 1.0; }
-        return 1.0 - d.ageMaxRatio; 
-      })
-      .style("font-size", function(d) {
-          if (d.isIgnored) { return nodeFontSizeScale(10);  }
-          if (d.isTrendingTopic) { return nodeFontSizeScale(1.5*(d.mentions + 1)); }
-          return (nodeFontSizeScale(d.mentions + 1));
-        });
+    nodeLabels = nodeLabelSvgGroup.selectAll("text")
+      .data(nodes.filter(function(d){
+        return ((d.nodeType == 'hashtag') || (d.nodeType == 'place')); 
+      }));
 
     nodeLabels
       .enter()
       .append("svg:text")
-      .attr("nodeId", function(d) { return d.nodeId; })
-      .text(function(d) {
-        d.textLength = this.getComputedTextLength();
-        // if (d.isGroupNode) return d.totalWordChainIndex;
-        // if (d.isSessionNode) return d.wordChainIndex + ' | ' + d.y.toFixed(0);
-        if (d.nodeType == 'hashtag') return d.nodeId;
-        if (d.nodeType == 'user') return "";
-        if (d.nodeType == 'tweet') return "";
-        if (!mouseMovingFlag && blahMode && !d.isKeyword) return "blah";
-        return d.raw;
-      })
-      .attr("x", function(d) { return d.x; })
-      .attr("y", function(d) { return d.y; })
-      .style("visibility", function(d) { 
-        if (d.nodeType == "media") return "hidden";
-        if (d.nodeType == "url") return "hidden";
-        return (d.isGroupNode || d.isSessionNode) ? "hidden" : "visible"; 
-      })
       .style("text-anchor", "middle")
       .style("alignment-baseline", "bottom")
-      .style("opacity", 1e-6)
-      .style("fill", palette.white)
-      .style("font-size", "1px")
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)
-      .on("click", nodeClick);
+      .on("click", nodeClick)
+      .merge(nodeLabels)
+      .text(function(d) {
+        if (d.nodeType == 'hashtag') return d.nodeId;
+        if (d.nodeType == 'place') return d.fullName;
+      })
+      .attr("x", function(d) { return d.x; })
+      .attr("y", function(d) { 
+        return d.y - 1.5 * (defaultRadiusScale(d.mentions + 1));
+      })
+      .style('opacity', function(d) { 
+        if (d.mouseHoverFlag) { return 1.0; }
+        return nodeLabelOpacityScale(d.ageMaxRatio); 
+      })
+      .style('fill', function(d) { 
+        if (d.mouseHoverFlag) { return palette.blue; }
+        return palette.white; 
+      })
+      .style("font-size", function(d) {
+        return (nodeFontSizeScale(d.mentions + 1));
+      });
 
     nodeLabels
       .exit().remove();
@@ -1769,39 +1442,52 @@ function ViewForce() {
     d.mouseHoverFlag = true;
     mouseHoverNodeId = d.nodeId;
 
-
     d.fx = d.x;
     d.fy = d.y;
-
-    var nodeId = d.nodeId;
-    var sId = d.sessionId;
-    var uId = d.userId;
-    var mentions = d.mentions;
-    var currentR = d3.select(this).attr("r");
 
     self.toolTipVisibility(true);
 
     var tooltipString;
 
-    if (d.isSessionNode) {
-      sessions.forEach(function(session){
-        if (session.sessionId == d.sessionId){
-          session.mouseHoverFlag = true;
-          mouseHoverSessionId = d.sessionId;
-        }
-      });
-
-      tooltipString = uId 
-        + "<br>MENTIONS: " + mentions;
+    switch (d.nodeType) {
+      case 'tweet':
+        tooltipString = d.nodeId
+          + "<br>TYPE: " + d.nodeType 
+          + "<br>MENTIONS: " + d.mentions 
+          + "<br>@" + d.user.screenName
+          + "<br>" + d.user.name;
+      break;
+      case 'user':
+        tooltipString = d.nodeId
+          + "<br>TYPE: " + d.nodeType 
+          + "<br>" + d.name
+          + "<br>@" + d.screenName
+          + "<br>Ms: " + d.mentions;
+      break;
+      case 'media':
+        tooltipString = d.nodeId
+          + "<br>TYPE: " + d.nodeType 
+          + "<br>Ms: " + d.mentions
+          + "<br>URL: " + d.url;
+      break;
+      case 'hashtag':
+        tooltipString = "#" + d.nodeId
+          + "<br>TYPE: " + d.nodeType 
+          + "<br>Ms: " + d.mentions;
+      break;
+      case 'url':
+        tooltipString = d.nodeId
+          + "<br>TYPE: " + d.nodeType 
+          + "<br>Ms: " + d.mentions
+          + "<br>URL: " + d.url;
+      break;
+      case 'place':
+        tooltipString = d.nodeId
+          + "<br>TYPE: " + d.nodeType 
+          + "<br>Ms: " + d.mentions
+          + "<br>URL: " + d.fullName;
+      break;
     }
-    else {
-      tooltipString = d.raw
-        + "<br>MENTIONS: " + mentions 
-        + "<br>KEYWORD: " + d.isKeyword 
-        + "<br>KEYWORD: " + jsonPrint(d.keywords) 
-        + "<br>" + uId;
-    }
-
 
     divTooltip.html(tooltipString)
       .style("left", (d3.event.pageX - 40) + "px")
@@ -1811,19 +1497,11 @@ function ViewForce() {
   }
 
   function nodeMouseOut(d) {
-
     mouseHoverFlag = false;
     d.mouseHoverFlag = false;
     mouseHoverNodeId = false;
-
-    if (!d.isGroupNode){
-      d.fx = null;
-      d.fy = null;
-    }
-
     self.toolTipVisibility(false);
   }
-
 
   function nodeClick(d) {
 
@@ -1865,84 +1543,16 @@ function ViewForce() {
     }
   }
 
-
-
-  function sessionCircleClick(d) {
-    window.open(d.url, '_blank');
-  }
-
-  this.addGroup = function(newGroup) {
-    // groupUpdateQ.push({op:'add', group:newGroup});
-  }
-
-  this.addSession = function(newSession) {
-    console.debug("sPosHashMap ADD SES"
-      + " | " + newSession.sessionId
-    );
-    console.info("+ SES" 
-      + " " + newSession.sessionId
-    );
-    // sessionUpdateQ.push({op:'add', session: newSession});
-  }
-
-  this.deleteSessionLinks = function(sessionId) {
-    sessionUpdateQ.push({op:'delete', sessionId: sessionId});
-  }
-
   this.addNode = function(nNode) {
 
     var newNode = nNode;
     newNode.newFlag = true;
 
-
-    if (typeof nNode.mentions === 'undefined') {
-      // console.error("MENTIONS UNDEFINED " + newNode.nodeId);
-      console.error("MENTIONS UNDEFINED\n" + jsonPrint(nNode));
-      newNode.mentions = 1;
-    }
-
-    if (typeof newNode.text === 'undefined') {
-      newNode.text = "== UNDEFINED ==";
-    }
-
-    newNode.textLength = 100;
-
-    if (newNode.isKeyword){
-      newNode.textLength = 100;
-    }
-
-    if (typeof newNode.raw !== 'undefined') {
-
-      newNode.raw = newNode.raw.replace(/\&amp\;/gi, "&");
-
-      if (newNode.raw.match(/^\d+/gi)){
-        newNode.isNumber = true;
-      }
-
-      if (newNode.raw.match(/^\$/gi)){
-        newNode.isCurrency = true;
-      }
-      
-      if (newNode.raw.match(/^@/gi)){
-        newNode.isTwitterUser = true;
-      }
-    }
-
-    if (newNode.isTrendingTopic) {
-      console.log("TT" 
-        + " " + newNode.text
-        + " " + newNode.raw
-      );
-    }
-
     if (nodeAddQ.length < MAX_RX_QUEUE) nodeAddQ.push({op:'add', node: newNode});
 
     if (nodeAddQ.length > maxNodeAddQ) {
       maxNodeAddQ = nodeAddQ.length;
-      console.warn("NEW MAX NODE ADD Q: " + maxNodeAddQ);
-    }
-    else {
-
+      console.info("NEW MAX NODE ADD Q: " + maxNodeAddQ);
     }
   }
 
@@ -1967,30 +1577,23 @@ function ViewForce() {
     simulation = d3.forceSimulation(nodes)
       .force("link", d3.forceLink(links).id(function(d) { return d.linkId; })
         .distance(function(d){
-          if (d.isSessionNode) return 0.1*globalLinkDistance;
           return globalLinkDistance; 
         })
         .strength(function(d){
-        if (d.isSessionNode) return 10.0*globalLinkStrength;
         return 0.5*globalLinkStrength; 
       }))
       .force("charge", d3.forceManyBody().strength(charge))
       .force("forceX", d3.forceX().x(function(d) { 
-        if (d.isSessionNode) return 0.7*width;
         return 0.5*width; 
       }).strength(function(d){
-        if (d.isSessionNode) return 1.0*gravity;
         return 1*gravity; 
       }))
       .force("forceY", d3.forceY().y(function(d) { 
         return 0.4*height; 
       }).strength(function(d){
-        if (d.isSessionNode) return gravity;
         return forceYmultiplier * gravity; 
       }))
       .force("collide", d3.forceCollide().radius(function(d) { 
-          if (d.isGroupNode) return 4.5 * collisionRadiusMultiplier * sessionCircleRadiusScale(d.wordChainIndex + 1.0) ; 
-          if (d.isSessionNode) return collisionRadiusMultiplier * sessionCircleRadiusScale(d.wordChainIndex + 1.0) ; 
           return collisionRadiusMultiplier * defaultRadiusScale(d.mentions + 1.0) ; 
         }).iterations(collisionIterations))
       .velocityDecay(velocityDecay)
@@ -2085,17 +1688,14 @@ function ViewForce() {
 
     if (simulation){
       simulation.force("forceX", d3.forceX().x(function(d) { 
-          if (d.isSessionNode) return 0.7*width;
           return 0.5*width; 
         }).strength(function(d){
-          if (d.isSessionNode) return 1.0*gravity;
           return 1*gravity; 
         }));
 
       simulation.force("forceY", d3.forceY().y(function(d) { 
           return 0.4*height; 
         }).strength(function(d){
-          if (d.isSessionNode) return gravity;
           return forceYmultiplier * gravity; 
         }));
     }
@@ -2118,7 +1718,6 @@ function ViewForce() {
     var randomNumber360 = randomIntFromInterval(0, 360);
     var randomNumber256 = randomIntFromInterval(0, 256);
 
-    var sessionId = 'session_' + randomNumber360;
     var userId = 'user_' + randomNumber360;
     var nodeId = 'testNode' + tickNumber;
     var mentions = randomIntFromInterval(0, 1000000);
@@ -2132,7 +1731,6 @@ function ViewForce() {
 
     var newNode = {
       nodeId: nodeId,
-      sessionId: sessionId,
       userId: userId,
       text: text,
       mentions: mentions,
@@ -2152,7 +1750,6 @@ function ViewForce() {
     self.addNode(newNode);
   }
 
-  var testSessionIndex = 0;
 
   this.addRandomLink = function() {
 
@@ -2160,7 +1757,6 @@ function ViewForce() {
       return;
     }
 
-    var sessionId = 'testSession' + testSessionIndex;
     var linkId = 'testLink' + tickNumber;
 
     var sourceNodeIndex = randomIntFromInterval(0, nodes.length - 1);
@@ -2175,7 +1771,6 @@ function ViewForce() {
     var targetNode = nodes[targetNodeIndex];
 
     var newLink = {
-      sessionId: sessionId,
       linkId: linkId,
       age: 0,
       source: {},
@@ -2242,8 +1837,6 @@ function ViewForce() {
 
     updateNodeFlag = false;
 
-    groups = [];
-    sessions = [];
     nodes = [];
     links = [];
 
@@ -2251,8 +1844,6 @@ function ViewForce() {
     deadLinksHash = {};
     mouseMovingFlag = false;
     mouseHoverFlag = false;
-    mouseHoverGroupId = false;
-    mouseHoverSessionId = false;
     mouseHoverNodeId = false;
     self.toolTipVisibility(false);
 

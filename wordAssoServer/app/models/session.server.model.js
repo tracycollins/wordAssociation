@@ -6,7 +6,6 @@ var mongoose = require('mongoose'),
 var SessionSchema = new Schema({
 	sessionId: {   // just use socket.id???
 		type: String,
-		// trim: true,
 		unique: true
 	},
 	config: {
@@ -15,15 +14,15 @@ var SessionSchema = new Schema({
 	},
 	ip: { 
 		type: String,
-		trim: true
+		default: null
 	},
 	domain: { 
 		type: String,
-		trim: true
+		default: null
 	},
 	userId: { 
 		type: String,
-		trim: true
+		default: null
 	},
 	user: { 
 		type: Object
@@ -39,7 +38,7 @@ var SessionSchema = new Schema({
 	},
 	namespace: { 
 		type: String,
-		trim: true
+		default: null
 	},
 	createdAt: { 
 		type: Number,

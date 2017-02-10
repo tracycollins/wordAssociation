@@ -129,8 +129,8 @@
     </style>
     <link rel="stylesheet" href="css/progressbar.css" />
     <script src="/js/libs/progressbar.js"></script>
-    <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.14.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.6.0/socket.io.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.17.1/moment.min.js"></script>
     <script src="/node_modules/hashmap/hashmap.js"></script>
 </head>
 
@@ -547,6 +547,13 @@
         var heartBeat = {};
         var lastTimeoutHeartBeat = null;
 
+        var hbIndex = 0;
+        var tweetsPerMinServer;
+        var tweetsPerMin = 0;
+        var tweetsPerMinMax = 1;
+        var tweetsPerMinMaxTime = 0;
+
+
         function setValue(id, newvalue) {
             var s = document.getElementById(id);
             s.value = newvalue;
@@ -911,11 +918,20 @@
             utilIpHashMapKeys = utilIpHashMap.keys();
             utilIpHashMapKeys.sort();
             numberUtilIpAddresses = utilIpHashMapKeys.length;
-
             utilSessionHashMap.set(utilSessionObj.sessionId, utilSessionObj);
             utilSessionHashMapKeys = utilSessionHashMap.keys();
             utilSessionHashMapKeys.sort();
             numberUtilSessions = utilSessionHashMapKeys.length;
+
+            if (utilSessionObj.connected && utilSessionObj.userId.match(/TSS_/g)) {
+              console.info("UTIL SERVER CONNECTED: " + utilSessionObj.userId);
+              tweetsPerMinServer = utilSessionObj.userId;
+            }
+            else if (!utilSessionObj.connected && utilSessionObj.userId.match(/TSS_/g)) {
+              console.info("UTIL SERVER DISCONNECTED: " + utilSessionObj.userId);
+              tweetsPerMinServer = false;
+              tweetsPerMin = 0;
+            }
 
             updateUtilConnect(utilSessionObj);
         });
@@ -924,88 +940,72 @@
             console.log("> RX " + sessionObject.sourceWord.nodeId + " > " + sessionObject.targetWord.nodeId);
         });
 
-        var hbIndex = 0;
-        var tweetsPerMinServer;
-        var tweetsPerMin = 0;
-        var tweetsPerMinMax = 1;
-        var tweetsPerMinMaxTime = 0;
-
         socket.on('HEARTBEAT', function(rxHeartbeat) {
+          heartBeatTimeoutFlag = false;
+          hbIndex++;
+          heartBeat = rxHeartbeat;
 
-            hbIndex++;
-            heartBeat = rxHeartbeat;
+          if (tweetsPerMinServer && heartBeat.utilities[tweetsPerMinServer]) {
+            tweetsPerMin = heartBeat.utilities[tweetsPerMinServer].tweetsPerMinute;
+            tweetsPerMinMax = heartBeat.utilities[tweetsPerMinServer].maxTweetsPerMin;
+            tweetsPerMinMaxTime = heartBeat.utilities[tweetsPerMinServer].maxTweetsPerMinTime;
+          }
 
-            if (!tweetsPerMinServer) {
-              Object.keys(heartBeat.utilities).forEach(function(utilId){
-                if (utilId.match(/TSS_/g)){
-                  tweetsPerMinServer = utilId;
-                }
-              });
-            }
+          // console.log("... HB\n" + jsonPrint(heartBeat));
+          if (rxHeartbeat.deltaResponsesReceived > deltaResponsesMax) deltaResponsesMax = rxHeartbeat.deltaResponsesReceived;
 
-            if (tweetsPerMinServer) {
-              tweetsPerMin = heartBeat.utilities[tweetsPerMinServer].tweetsPerMinute;
-              tweetsPerMinMax = heartBeat.utilities[tweetsPerMinServer].maxTweetsPerMin;
-              tweetsPerMinMaxTime = heartBeat.utilities[tweetsPerMinServer].maxTweetsPerMinTime;
-            }
+          if (rxHeartbeat.wordsPerMinute > wordsPerMinuteMax) wordsPerMinuteMax = rxHeartbeat.wordsPerMinute;
 
-            // console.log("... HB\n" + jsonPrint(heartBeat));
-            if (rxHeartbeat.deltaResponsesReceived > deltaResponsesMax) deltaResponsesMax = rxHeartbeat.deltaResponsesReceived;
-
-            if (rxHeartbeat.wordsPerMinute > wordsPerMinuteMax) wordsPerMinuteMax = rxHeartbeat.wordsPerMinute;
-
-
-
-            heartBeatTimeoutFlag = false;
-            updateUserConnect();
-            updateViewerConnect();
-            updateUtilConnect();
+          heartBeatTimeoutFlag = false;
+          updateUserConnect();
+          updateViewerConnect();
+          updateUtilConnect();
         });
 
         // updateServerHeartbeat
         var serverCheckTimeout = setInterval(function() {
-            numberAdminIpAddresses = adminIpHashMap.count();
-            numberUserIpAddresses = userIpHashMap.count();
-            numberViewerIpAddresses = viewerIpHashMap.count();
-            numberUtilIpAddresses = utilIpHashMap.count();
+          numberAdminIpAddresses = adminIpHashMap.count();
+          numberUserIpAddresses = userIpHashMap.count();
+          numberViewerIpAddresses = viewerIpHashMap.count();
+          numberUtilIpAddresses = utilIpHashMap.count();
 
-            if (Date.now() > (heartBeat.timeStamp + maxServerHeartBeatWait)) {
-                heartBeatTimeoutFlag = true;
-                lastTimeoutHeartBeat = heartBeat;
-                console.error("***** SERVER HEARTBEAT TIMEOUT ***** " + getTimeStamp() + " | LAST SEEN: " + getTimeStamp(heartBeat.timeStamp) + msToTime(Date.now() - heartBeat.timeStamp) + " AGO");
-            }
-            updateServerHeartbeat(heartBeat, heartBeatTimeoutFlag, lastTimeoutHeartBeat);
+          if (Date.now() > (heartBeat.timeStamp + maxServerHeartBeatWait)) {
+              heartBeatTimeoutFlag = true;
+              lastTimeoutHeartBeat = heartBeat;
+              console.error("***** SERVER HEARTBEAT TIMEOUT ***** " + getTimeStamp() + " | LAST SEEN: " + getTimeStamp(heartBeat.timeStamp) + msToTime(Date.now() - heartBeat.timeStamp) + " AGO");
+          }
+          updateServerHeartbeat(heartBeat, heartBeatTimeoutFlag, lastTimeoutHeartBeat);
         }, serverCheckInterval);;
 
         function setTestMode(inputTestMode) {
 
-            var serverConfigUpdateFlag = false;
+          var serverConfigUpdateFlag = false;
 
-            if (typeof inputTestMode !== 'undefined') {
-                serverConfigUpdateFlag = true;
-                testMode = inputTestMode;
-            } else {
-                testMode = !testMode;
-            }
-            console.log("testMode: " + testMode);
+          if (typeof inputTestMode !== 'undefined') {
+              serverConfigUpdateFlag = true;
+              testMode = inputTestMode;
+          } else {
+              testMode = !testMode;
+          }
+          console.log("testMode: " + testMode);
 
-            var config = {
-                testMode: testMode
-            }
+          var config = {
+              testMode: testMode
+          }
 
-            if (testMode) {
-                document.getElementById("testModeButton").style.color = "red";
-                document.getElementById("testModeButton").style.border = "2px solid red";
-            } else {
-                document.getElementById("testModeButton").style.color = "white";
-                document.getElementById("testModeButton").style.border = "1px solid gray";
-            }
+          if (testMode) {
+              document.getElementById("testModeButton").style.color = "red";
+              document.getElementById("testModeButton").style.border = "2px solid red";
+          } else {
+              document.getElementById("testModeButton").style.color = "white";
+              document.getElementById("testModeButton").style.border = "1px solid gray";
+          }
 
-            if (!serverConfigUpdateFlag) {
-                console.log("***> SENT CONFIG: " + JSON.stringify(config, null, 3));
-            } else {
-                console.log("---> UPDATED CONFIG: " + JSON.stringify(config, null, 3));
-            }
+          if (!serverConfigUpdateFlag) {
+              console.log("***> SENT CONFIG: " + JSON.stringify(config, null, 3));
+          } else {
+              console.log("---> UPDATED CONFIG: " + JSON.stringify(config, null, 3));
+          }
         }
 
         function sendServerConfig(e) {

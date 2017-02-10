@@ -7431,6 +7431,18 @@ function initAppRouting(callback) {
 
   debugAppGet(chalkInfo(moment().format(compactDateTimeFormat) + " | INIT APP ROUTING"));
 
+  // app.get('/public/assets/images/userBackgroundBorder.png', function(req, res) {
+  //   debugAppGet("LOADING FILE: /assets/images/userBackgroundBorder.png");
+  //   res.sendFile(__dirname + '/assets/images/userBackgroundBorder.png');
+  //   return;
+  // });
+
+  // app.get('/public/assets/images/mediaBackgroundBorder.png', function(req, res) {
+  //   debugAppGet("LOADING FILE: /assets/images/mediaBackgroundBorder.png");
+  //   res.sendFile(__dirname + '/assets/images/mediaBackgroundBorder.png');
+  //   return;
+  // });
+
 
   app.get('/js/require.js', function(req, res) {
     debugAppGet("LOADING FILE: /js/require.js");

@@ -6848,7 +6848,7 @@ function createSession(newSessionObj) {
       console.log(chalkSession("K-" 
         + " | " + socket.id
         + " | " + userObj.userId
-        + " | " + userObj.stats.tweetsPerMinute + " TPM"
+        + " | " + userObj.stats.tweetsPerMinute.toFixed(1) + " TPM"
         + " | " + moment().format(compactDateTimeFormat)
         // + "\n" + jsonPrint(userObj)
       ));
@@ -7115,7 +7115,7 @@ function createSession(newSessionObj) {
   });
 
   socket.on("node", function(nodeObj) {
-    console.log("TW< " + nodeObj.nodeType + " | " + nodeObj.nodeId + " | " + nodeObj.mentions);
+    debug("TW< " + nodeObj.nodeType + " | " + nodeObj.nodeId + " | " + nodeObj.mentions);
     viewNameSpace.emit("node", nodeObj);
   });
 

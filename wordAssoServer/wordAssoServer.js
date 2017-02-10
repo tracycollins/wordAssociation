@@ -284,6 +284,8 @@ statsObj.upTime = os.uptime() * 1000;
 statsObj.memoryTotal = os.totalmem();
 statsObj.memoryAvailable = os.freemem();
 
+statsObj.utilities = {};
+
 statsObj.wapi = {};
 statsObj.wapi.totalRequests = 0;
 statsObj.wapi.requestLimit = 25000;
@@ -6470,9 +6472,13 @@ configEvents.on("SERVER_READY", function() {
         promptsSent: promptsSent,
         deltaPromptsSent: deltaPromptsSent,
         deltaResponsesReceived: statsObj.deltaResponsesReceived,
-        responsesReceived: responsesReceived
+        responsesReceived: responsesReceived,
+
+        utilities: {}
 
       };
+
+      txHeartbeat.utilities = statsObj.utilities;
 
       io.emit('HEARTBEAT', txHeartbeat);
 
@@ -6818,12 +6824,30 @@ function createSession(newSessionObj) {
   });
 
   socket.on("SESSION_KEEPALIVE", function(userObj) {
+
+    if (typeof statsObj.utilities[userObj.userId] === 'undefined') statsObj.utilities[userObj.userId] = {};
+
     statsObj.socket.SESSION_KEEPALIVES++;
+
+    console.log(chalkUser("SESSION_KEEPALIVE | " + userObj.userId));
     debug(chalkUser("SESSION_KEEPALIVE\n" + jsonPrint(userObj)));
+
+    if (userObj.stats) statsObj.utilities[userObj.userId] = userObj.stats;
+
     if (userObj.userId.match(/TMS_/g)){
       console.log(chalkSession("K-" 
         + " | " + userObj.userId
         + " | " + socket.id
+        + " | " + moment().format(compactDateTimeFormat)
+        // + "\n" + jsonPrint(userObj)
+      ));
+    }
+ 
+    if (userObj.userId.match(/TSS_/g)){
+      console.log(chalkSession("K-" 
+        + " | " + socket.id
+        + " | " + userObj.userId
+        + " | " + userObj.stats.tweetsPerMinute + " TPM"
         + " | " + moment().format(compactDateTimeFormat)
         // + "\n" + jsonPrint(userObj)
       ));

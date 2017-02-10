@@ -677,7 +677,7 @@ function sendKeywords(callback){
         ));
 
         cb();
-      }, 10);
+      }, 20);
 
     },
 

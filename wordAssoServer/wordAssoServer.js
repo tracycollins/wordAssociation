@@ -3730,7 +3730,7 @@ function handleSessionEvent(sesObj, callback) {
         "XXX " + sesObj.sessionEvent
         // + "\n" + jsonPrint(sesObj)
         + " | " + moment().format(compactDateTimeFormat) 
-        // + " | NSP: " + sesObj.session.namespace 
+        + " | NSP: " + sesObj.session.namespace 
         + " | SID: " + sesObj.session.sessionId 
         + " | UID: " + sesObj.session.userId 
         // + " | IP: " + sesObj.session.ip 
@@ -3741,6 +3741,7 @@ function handleSessionEvent(sesObj, callback) {
 
       sesObj.sessionEvent = 'SESSION_DELETE';
       viewNameSpace.emit('SESSION_DELETE', sesObj);
+      adminNameSpace.emit('SESSION_DELETE', sesObj);
       testViewersNameSpace.emit('SESSION_DELETE', sesObj);
 
       if (sesObj.session) {
@@ -3796,7 +3797,7 @@ function handleSessionEvent(sesObj, callback) {
           currentAdmin.disconnectTime = moment().valueOf();
           currentAdmin.connected = false;
 
-          debug(chalkRed("CONNECTION DURATION: " + currentAdmin.adminId 
+          console.log(chalkRed("CONNECTION DURATION: " + currentAdmin.adminId 
             + " | " + msToTime(moment().valueOf() - currentAdmin.connectTime)));
 
           adminUpdateDb(currentAdmin, function(err, updatedAdminObj) {
@@ -3825,7 +3826,7 @@ function handleSessionEvent(sesObj, callback) {
 
               updatedUserObj.sessionId = updatedUserObj.lastSession;
 
-              debug(chalkRed("TX USER SESSION (" + sesObj.sessionEvent + "): " + updatedUserObj.lastSession 
+              console.log(chalkRed("TX USER SESSION (" + sesObj.sessionEvent + "): " + updatedUserObj.lastSession 
                 + " TO ADMIN NAMESPACE"));
 
               adminNameSpace.emit('USER_SESSION', updatedUserObj);
@@ -3834,22 +3835,24 @@ function handleSessionEvent(sesObj, callback) {
         }
 
         if (currentUtil) {
-          debug("currentUtil\n" + jsonPrint(currentUtil));
-          utilCache.del(currentUtil.utilId);
+          console.log("currentUtil\n" + jsonPrint(currentUtil));
+          // utilCache.del(currentUtil.utilId);
+          userCache.del(currentUtil.userId);
 
           currentUtil.lastSeen = moment().valueOf();
           currentUtil.connected = false;
           currentUtil.disconnectTime = moment().valueOf();
 
-          debug(chalkRed("CONNECTION DURATION: " + currentUtil.utilId 
+          debug(chalkRed("CONNECTION DURATION: " + currentUtil.userId 
             + " | " + msToTime(moment().valueOf() - currentUtil.connectTime)));
 
-          utilUpdateDb(currentUtil, function(err, updatedUtilObj) {
+          // utilUpdateDb(currentUtil, function(err, updatedUtilObj) {
+          userUpdateDb(currentUtil, function(err, updatedUtilObj) {
             if (!err) {
 
               updatedUtilObj.sessionId = updatedUtilObj.lastSession;
 
-              debug(chalkRed("TX UTIL SESSION (DISCONNECT): " 
+              console.log(chalkRed("TX UTIL SESSION (DISCONNECT): " 
                 + updatedUtilObj.lastSession + " TO ADMIN NAMESPACE"));
 
               adminNameSpace.emit('UTIL_SESSION', updatedUtilObj);
@@ -4033,7 +4036,8 @@ function handleSessionEvent(sesObj, callback) {
             quit("UNDEFINED USER ID: " + sessionUpdatedObj.sessionId);
           }
 
-          userCache.set(sessionUpdatedObj.userId, sessionUpdatedObj.user, function(err, success) {});
+          // userCache.set(sessionUpdatedObj.userId, sessionUpdatedObj.user, function(err, success) {});
+          utilCache.set(sessionUpdatedObj.userId, sessionUpdatedObj.user, function(err, success) {});
 
           debug(chalkLog(
             "K>" + " | " + sessionUpdatedObj.userId 
@@ -4232,7 +4236,7 @@ function handleSessionEvent(sesObj, callback) {
         sesObj.admin.disconnectTime = moment().valueOf();
         sesObj.admin.connected = true;
 
-        debug("adminUpdateDb\n" + jsonPrint(sesObj));
+        console.log("adminUpdateDb\n" + jsonPrint(sesObj));
 
         adminUpdateDb(sesObj.admin, function(err, adminObj) {
           if (!err) {
@@ -6711,10 +6715,7 @@ function createSession(newSessionObj) {
         sessionId: socket.id,
         session: sessionObj
       });
-      debug(chalkDisconnect("\nDISCONNECTED SOCKET " + util.inspect(socket, {
-        showHidden: false,
-        depth: 1
-      })));
+      console.log(chalkDisconnect("\nDISCONNECTED SOCKET\n" + jsonPrint(sessionObj)));
     } else {
       debug(chalkWarn("??? DISCONNECTED SOCKET NOT IN CACHE ... TIMED OUT? | " + socket.id));
     }

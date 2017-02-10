@@ -159,7 +159,7 @@ function ViewForce() {
   var nodeCircleOpacityScale = d3.scaleLinear().domain([1e-6, 1.0]).range([1.0, 1e-6]);
   var nodeImageOpacityScale = d3.scaleLinear().domain([1e-6, 1.0]).range([1.0, 1e-6]);
   var nodeLabelOpacityScale = d3.scaleLinear().domain([1e-6, 1.0]).range([1.0, 1e-6]);
-  var linkOpacityScale = d3.scaleLinear().domain([1e-6, 1.0]).range([1.0, 1e-6]);
+  var linkOpacityScale = d3.scaleLinear().domain([1e-6, 1.0]).range([0.7, 1e-6]);
 
   var adjustedAgeRateScale = d3.scaleLinear().domain([1, 200]).range([1.0, 20.0]).clamp(true);
 
@@ -232,6 +232,7 @@ function ViewForce() {
   var maxNumberNodes = 0;
   var maxNumberLinks = 0;
 
+
   var d3image = d3.select("#d3group");
 
   var svgMain = d3image.append("svg:svg")
@@ -249,6 +250,7 @@ function ViewForce() {
     .attr("preserveAspectRatio", "none")
     .attr("x", 1e-6)
     .attr("y", 1e-6);
+
   var linkSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "linkSvgGroup");
   var nodeSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "nodeSvgGroup");
   var nodeLabelSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "nodeLabelSvgGroup");
@@ -256,6 +258,46 @@ function ViewForce() {
   var nodeCircles = nodeSvgGroup.selectAll("circle");
   var nodeLabels = nodeSvgGroup.selectAll(".nodeLabel");
   var nodeImages = nodeSvgGroup.selectAll("image");
+
+  var defs = nodeSvgGroup.append("defs");
+
+  var pattern = nodeSvgGroup.append("pattern")
+    .attr("id", "hash4_4")
+    .attr("width", 8)
+    .attr("height", 8)
+    .attr("patternUnits", "userSpaceOnUse")
+    .attr("patternTransform", "rotate(-45)")
+    .append("rect")
+    .attr("width", 4)
+    .attr("height", 8)
+    .attr("transform", "translate(0,0)")
+    .attr("fill", palette.yellow);
+
+  var filterBorderUser = nodeSvgGroup.append("defs")
+    .append("filter")
+      .attr("id", "borderUser");
+
+  filterBorderUser.append("feImage")
+    .attr("result", "bgBorder")
+    .attr("xlink:href", "/assets/images/userBackgroundBorder.png");
+  filterBorderUser.append("feBlend")
+    .attr("in", "SourceGraphic")
+    .attr("in1", "bgBorder")
+    .attr("mode", "normal");
+
+
+  var filterBorderMedia = nodeSvgGroup.append("defs")
+    .append("filter")
+      .attr("id", "borderMedia");
+
+  filterBorderMedia.append("feImage")
+    .attr("result", "bgBorder")
+    .attr("xlink:href", "/assets/images/mediaBackgroundBorder.png");
+  filterBorderMedia.append("feBlend")
+    .attr("in", "SourceGraphic")
+    .attr("in1", "bgBorder")
+    .attr("mode", "normal");
+
 
   var link = linkSvgGroup.selectAll("line");
 
@@ -669,7 +711,6 @@ function ViewForce() {
     }
   }
 
-
   var createTweetLinksQueue = [];
   var createTweetLinksHashMap = new HashMap();
   var createTweetLinksInterval;
@@ -691,7 +732,6 @@ function ViewForce() {
       }
     }, interval);
   }
-
 
   function createTweetLinks(node, callback){
 
@@ -1200,12 +1240,12 @@ function ViewForce() {
       .attr("y2", function(d) { return d.target.y; })
       .style('stroke', function(d) {
         if ((d.source.age < nodeNewAge) && (d.target.age < nodeNewAge)) return palette.white;
-        if ((d.source.nodeType == 'tweet') && (d.target.nodeType == 'tweet')) return palette.blue;
+        // if ((d.source.nodeType == 'tweet') && (d.target.nodeType == 'tweet')) return palette.blue;
         return "aaaaaa";
       })
       .style('stroke-width', function(d) {
-        if ((d.source.age < nodeNewAge) && (d.target.age < nodeNewAge)) return 3.5;
-        if ((d.source.nodeType == 'tweet') && (d.target.nodeType == 'tweet')) return 10;
+        if ((d.source.age < nodeNewAge) && (d.target.age < nodeNewAge)) return 4.5;
+        if ((d.source.nodeType == 'tweet') && (d.target.nodeType == 'tweet')) return 3.5;
         return 1.5;
       })
       .style('opacity', function(d){
@@ -1260,7 +1300,7 @@ function ViewForce() {
         if (d.mouseHoverFlag) { return palette.blue; }
         if (d.age < nodeNewAge) { return palette.white; }
         if (d.nodeType == 'tweet') { 
-          if (d.isRetweet) return palette.yellow;
+          if (d.isRetweet) return palette.pink;
           return palette.red; 
         }
         if (d.nodeType == 'hashtag') { return palette.blue; }
@@ -1274,7 +1314,7 @@ function ViewForce() {
       })
       .style('stroke-width', function(d) {
         if (d.age < nodeNewAge) return 3.5;
-        return 1.5;
+        return 2.5;
       })
       .style('opacity', function(d) {
         if (hideNodeCirclesFlag) return 1e-6;
@@ -1299,6 +1339,7 @@ function ViewForce() {
     nodeImages
       .enter()
       .append("svg:image")
+      .attr("class", "nodeImage")
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)
       .on("click", nodeClick)
@@ -1308,6 +1349,11 @@ function ViewForce() {
         if (d.nodeType == "user") return d.profileImageUrl;
         return d.url; 
       })
+      .style("filter", function(d) {
+        if (d.nodeType == "media") return "url(#borderMedia)";
+        if (d.nodeType == "user") return "url(#borderUser)";
+        return "url(#border)";
+      })
       .attr("x", function(d) { return d.x - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0)); })
       .attr("y", function(d) { return d.y - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0)); })
       .attr("width", function(d){ return imageSizeScale(parseInt(d.mentions) + 1.0); })
@@ -1315,7 +1361,8 @@ function ViewForce() {
       .style('opacity', function(d) {
         if (d.mouseHoverFlag) return 1.0;
         return nodeImageOpacityScale(d.ageMaxRatio);
-      });
+      })
+      .style("border", "2px solid #E8272C");
 
     nodeImages
       .exit()

@@ -1787,7 +1787,7 @@ var readUpdateSessionViewQueue = setInterval(function() {
       var key = sessionSmallObj.tags.entity + '_' + sessionSmallObj.tags.channel;
 
       if (monitorHashMap[key] && sessionSmallObj.action == "RESPONSE"){
-        console.log(chalkInfo("R< M"
+        debug(chalkInfo("R< M"
           + " | " + monitorHashMap[key].session.sessionId
           + " | " + sessionSmallObj.source.nodeId
           + " | " + sessionSmallObj.source.raw
@@ -4807,7 +4807,7 @@ var readResponseQueue = setInterval(function() {
           dbUpdateObj.tags.channel = updatedWordObj.tags.channel;
           dbUpdateObj.tags.group = updatedWordObj.tags.group;
 
-          console.log(chalkInfo("R<" 
+          debug(chalkInfo("R<" 
             + " G " + updatedWordObj.tags.group 
             + " E " + updatedWordObj.tags.entity 
             + " C " + updatedWordObj.tags.channel 
@@ -4820,7 +4820,7 @@ var readResponseQueue = setInterval(function() {
 
         }
         else {
-          console.log(chalkInfo("R<" 
+          debug(chalkInfo("R<" 
             + " G " + updatedWordObj.tags.group 
             + " E " + updatedWordObj.tags.entity 
             + " C " + updatedWordObj.tags.channel 
@@ -6830,7 +6830,7 @@ function createSession(newSessionObj) {
 
     statsObj.socket.SESSION_KEEPALIVES++;
 
-    console.log(chalkUser("SESSION_KEEPALIVE | " + userObj.userId));
+    debug(chalkUser("SESSION_KEEPALIVE | " + userObj.userId));
     debug(chalkUser("SESSION_KEEPALIVE\n" + jsonPrint(userObj)));
 
     if (userObj.stats) statsObj.utilities[userObj.userId] = userObj.stats;

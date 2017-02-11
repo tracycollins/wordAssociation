@@ -3059,7 +3059,8 @@ function toggleFullScreen() {
     } else if (document.documentElement.webkitRequestFullscreen) {
       document.documentElement.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
     }
-  } else {
+  } 
+  else {
     if (document.exitFullscreen) {
       document.exitFullscreen();
     } else if (document.msExitFullscreen) {
@@ -3070,6 +3071,8 @@ function toggleFullScreen() {
       document.webkitExitFullscreen();
     }
   }
+
+  // if (currentSessionView) currentSessionView.resize();
 }
 
 var updateSessionsInterval;

@@ -165,7 +165,7 @@ function ViewForce() {
 
   var nodeFontSizeScale = d3.scaleLinear().domain([1, currentHashtagMaxMentions]).range([minFontSize, maxFontSize]).clamp(true);
   var imageSizeScale = d3.scaleLog().domain([1, 10000000]).range([20.0, 60.0]).clamp(true);
-  var defaultRadiusScale = d3.scaleLog().domain([1, 10000000]).range([10, 40]).clamp(true);
+  var defaultRadiusScale = d3.scaleLog().domain([1, 10000000]).range([5, 30]).clamp(true);
 
   console.log("@@@@@@@ CLIENT @@@@@@@@");
 
@@ -247,7 +247,7 @@ function ViewForce() {
     .attr("width", width)
     .attr("height", height)
     .attr("viewbox", 1e-6, 1e-6, width, height)
-    .attr("preserveAspectRatio", "none")
+    // .attr("preserveAspectRatio", "none")
     .attr("x", 1e-6)
     .attr("y", 1e-6);
 
@@ -279,7 +279,7 @@ function ViewForce() {
 
   filterBorderUser.append("feImage")
     .attr("result", "bgBorder")
-    .attr("xlink:href", "/assets/images/userBackgroundBorder.png");
+    .attr("href", "/assets/images/userBackgroundBorder.png");
   filterBorderUser.append("feBlend")
     .attr("in", "SourceGraphic")
     .attr("in1", "bgBorder")
@@ -292,7 +292,7 @@ function ViewForce() {
 
   filterBorderMedia.append("feImage")
     .attr("result", "bgBorder")
-    .attr("xlink:href", "/assets/images/mediaBackgroundBorder.png");
+    .attr("href", "/assets/images/mediaBackgroundBorder.png");
   filterBorderMedia.append("feBlend")
     .attr("in", "SourceGraphic")
     .attr("in1", "bgBorder")
@@ -1332,20 +1332,22 @@ function ViewForce() {
   var updateNodeImages = function(callback) {
 
     var nodeImages = nodeSvgGroup.selectAll("image")
-      .data(nodes.filter(function(d){
-        return ((d.nodeType == 'media') || (d.nodeType == 'user')); 
+      .data(nodes.filter(function(d, i){
+        if ((d.nodeType == 'media') || (d.nodeType == 'user')) return d.nodeId;
       }));
 
     nodeImages
       .enter()
       .append("svg:image")
+      // .on('load', function(d) {
+      //   d.imageLoaded = true;
+      // })
       .attr("class", "nodeImage")
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)
       .on("click", nodeClick)
       .merge(nodeImages)
-      .attr("xlink:href", function(d) { 
-        if (d.nodeType == "media") return d.url;
+      .attr("href", function(d) { 
         if (d.nodeType == "user") return d.profileImageUrl;
         return d.url; 
       })
@@ -1359,10 +1361,10 @@ function ViewForce() {
       .attr("width", function(d){ return imageSizeScale(parseInt(d.mentions) + 1.0); })
       .attr("height", function(d){ return imageSizeScale(parseInt(d.mentions) + 1.0); })
       .style('opacity', function(d) {
+        // if (!d.imageLoaded) return 0.5;
         if (d.mouseHoverFlag) return 1.0;
         return nodeImageOpacityScale(d.ageMaxRatio);
-      })
-      .style("border", "2px solid #E8272C");
+      });
 
     nodeImages
       .exit()

@@ -1339,9 +1339,10 @@ function ViewForce() {
     nodeImages
       .enter()
       .append("svg:image")
-      // .on('load', function(d) {
-      //   d.imageLoaded = true;
-      // })
+      .attr("href", function(d) { 
+        if (d.nodeType == "user") return d.profileImageUrl;
+        return d.url; 
+      })
       .attr("class", "nodeImage")
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)

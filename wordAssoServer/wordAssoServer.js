@@ -2,6 +2,12 @@
 "use strict";
 
 var moment = require('moment');
+var Measured = require('measured');
+// var statsMeasured = Measured.createCollection();
+// statsMeasured.meter({rateUnit: 60000, tickInterval: 1000});
+
+var wpsMeter = new Measured.Meter({rateUnit: 1000, tickInterval: 1000});
+var wpmMeter = new Measured.Meter({rateUnit: 60000, tickInterval: 1000});
 
 // MONGO DB doesn't like indexes/keys > 1024 characters
 var MAX_DB_KEY_LENGTH = 200;
@@ -14,8 +20,8 @@ var entitiesUpdateComplete = false;
 var keywordsUpdateComplete = false;
 var updateComplete = groupsUpdateComplete && entitiesUpdateComplete && keywordsUpdateComplete;
 
-var wordPerSecQueue = [];
-var wordPerMinQueue = [];
+// var wordPerSecQueue = [];
+// var wordPerMinQueue = [];
 var wordsPerMinute = 0.0;
 var wordsPerSecond = 0.0;
 var rateQinterval;
@@ -7123,7 +7129,10 @@ function createSession(newSessionObj) {
 
     debug("rxInObj\n" + jsonPrint(rxInObj));
 
-    wordPerSecQueue.push(moment.utc().valueOf());
+    // wordPerSecQueue.push(moment.utc().valueOf());
+    // statsMeasured.meter('wordsPerSecond').mark();
+    wpsMeter.mark();
+    wpmMeter.mark();
 
     if (responseQueue.size() < MAX_RESPONSE_QUEUE_SIZE) {
 
@@ -7293,12 +7302,13 @@ var metricsInterval = setInterval(function() {
 
 function initRateQinterval(interval){
 
+  var rawWpsObj;
+  var rawWpmObj;
+
   console.log(chalkAlert("INIT RATE QUEUE INTERVAL"));
 
   clearInterval(rateQinterval);
 
-  wordPerSecQueue = [];
-  wordPerMinQueue = [];
   wordsPerMinute = 0.0;
   wordsPerSecond = 0.0;
 
@@ -7306,33 +7316,35 @@ function initRateQinterval(interval){
 
   rateQinterval = setInterval(function () {
 
-    wordsPerSecond = parseFloat(wordPerSecQueue.length);
+    rawWpsObj = wpsMeter.toJSON();
+    rawWpmObj = wpmMeter.toJSON();
 
-    wordPerMinQueue.push(wordsPerSecond);
+    if (!rawWpsObj) return;
+    if (!rawWpmObj) return;
 
-    while (wordPerMinQueue.length > 120) wordPerMinQueue.shift();
+    debug(chalkAlert("rawWpsObj\n" + jsonPrint(rawWpsObj)));
+    debug(chalkAlert("rawWpmObj\n" + jsonPrint(rawWpmObj)));
 
-    var minSum = wordPerMinQueue.reduce(function(a, b){return a+b;});
-
-    if (wordPerMinQueue.length > 0) {
-      wordsPerMinute = parseFloat(minSum * 60.0 / wordPerMinQueue.length);
+    if (rawWpsObj.wordsPerSecond) {
+      wordsPerSecond = rawWpsObj.currentRate;
     }
-    else {
-      wordsPerMinute = 0.0;
+
+    if (rawWpmObj['1MinuteRate']) {
+      wordsPerMinute = rawWpmObj['1MinuteRate'];
     }
 
     debug(chalkWarn(moment.utc().format(compactDateTimeFormat)
-      + " | WPS: " + wordsPerSecond 
-      + " | WPM [" + wordPerMinQueue.length + "] " + wordsPerMinute.toFixed(2)
+      + " | WPS: " + wordsPerSecond.toFixed(2)
+      + " | WPM: " + wordsPerMinute.toFixed(0)
     ));
 
-    var shiftIndex = wordsPerSecond;
-    while (shiftIndex-- > 0) wordPerSecQueue.shift();
+    statsObj.wordsPerSecond = wordsPerSecond;
+    statsObj.wordsPerMinute = wordsPerMinute;
 
-    if ((wordPerMinQueue.length > 30) && (wordsPerMinute > maxWordsPerMin)) {
+    if (wordsPerMinute > maxWordsPerMin) {
       maxWordsPerMin = wordsPerMinute;
       maxWordsPerMinTime = moment.utc();
-      console.log(chalkAlert("NEW MAX WPM: " + wordsPerMinute.toFixed(2)));
+      console.log(chalkAlert("NEW MAX WPM: " + wordsPerMinute.toFixed(0)));
       statsObj.maxWordsPerMin = wordsPerMinute;
       statsObj.maxWordsPerMinTime = moment.utc();
     }

@@ -14,6 +14,9 @@ function ViewHistogram() {
   var runningFlag = false;
   var age;
 
+  var maxNodeAddQ = 0;
+  var nodeAddQ = [];
+
   var drawSimulationInterval;
 
   var newFlagRatio = 0.01;
@@ -27,6 +30,15 @@ function ViewHistogram() {
   var tickNumber = 0;
   var width = window.innerWidth * 1;
   var height = window.innerHeight * 1;
+
+  this.getWidth = function() {
+    return window.innerWidth;
+  }
+
+  this.getHeight = function() {
+    return window.innerHeight;
+  }
+
 
   var newWordFlag = false;
 
@@ -88,6 +100,7 @@ function ViewHistogram() {
   };
 
   var ageRate = DEFAULT_HISTOGRAM_CONFIG.ageRate;
+  var maxAgeRate = 0;
 
   var D3_LAYOUT_WIDTH_RATIO = 1.0;
   var D3_LAYOUT_HEIGHT_RATIO = 1.0;
@@ -183,6 +196,40 @@ function ViewHistogram() {
 
   this.getSession = function(index) {
     return sessions[index];
+  }
+
+  this.getNodesLength = function() {
+    return nodes.length;
+  }
+  
+  this.getMaxNodes = function() {
+    return maxNumberNodes;
+  }
+  
+  this.getNodeAddQlength = function() {
+    return nodeAddQ.length;
+  }
+  
+  this.getMaxNodeAddQ = function() {
+    return maxNodeAddQ;
+  }
+  
+
+  this.getLinksLength = function() {
+    return links.length;
+  }
+  
+  this.getAgeRate = function() {
+    return ageRate;
+  }
+  
+  this.getMaxAgeRate = function() {
+    return maxAgeRate;
+  }
+  
+  this.setNodeMaxAge = function(maxAge) {
+    nodeMaxAge = maxAge;
+    console.debug("SET NODE MAX AGE: " + nodeMaxAge);
   }
 
   var maxNumberSessions = 0;
@@ -1097,21 +1144,35 @@ function ViewHistogram() {
     sessions.push(newSession);
   }
 
-  this.addNode = function(newNode) {
-    if (!newNode.isSession 
-      && !newNode.isSessionNode 
-      && !newNode.isGroup 
-      && !newNode.isGroupNode 
-      && ((nodes.length < maxWords - 1) || (newNode.rank < maxWords - 1))) {
-      newNode.x = 0;
-      nodeMouseOut.y = height;
-      nodes.push(newNode);
-      rankNodes(function() {
-        if (nodes.length > maxWords) nodes.pop();
-      });
+  // this.addNode = function(newNode) {
+  //   if (!newNode.isSession 
+  //     && !newNode.isSessionNode 
+  //     && !newNode.isGroup 
+  //     && !newNode.isGroupNode 
+  //     && ((nodes.length < maxWords - 1) || (newNode.rank < maxWords - 1))) {
+  //     newNode.x = 0;
+  //     nodeMouseOut.y = height;
+  //     nodes.push(newNode);
+  //     rankNodes(function() {
+  //       if (nodes.length > maxWords) nodes.pop();
+  //     });
+  //   }
+  //   updateRecentNodes(newNode);
+  // }
+
+  this.addNode = function(nNode) {
+
+    var newNode = nNode;
+    newNode.newFlag = true;
+
+    if (nodeAddQ.length < MAX_RX_QUEUE) nodeAddQ.push({op:'add', node: newNode});
+
+    if (nodeAddQ.length > maxNodeAddQ) {
+      maxNodeAddQ = nodeAddQ.length;
+      console.info("NEW MAX NODE ADD Q: " + maxNodeAddQ);
     }
-    updateRecentNodes(newNode);
   }
+
 
   this.deleteNode = function(nodeId) {
 

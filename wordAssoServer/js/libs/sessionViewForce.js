@@ -1333,7 +1333,8 @@ function ViewForce() {
 
     var nodeImages = nodeSvgGroup.selectAll("image")
       .data(nodes.filter(function(d, i){
-        if ((d.nodeType == 'media') || (d.nodeType == 'user')) return d.nodeId;
+        // if ((d.nodeType == 'media') || (d.nodeType == 'user')) return d.nodeId;
+        return ((d.nodeType == 'media') || (d.nodeType == 'user'));
       }));
 
     nodeImages
@@ -1799,7 +1800,6 @@ function ViewForce() {
 
     self.addNode(newNode);
   }
-
 
   this.addRandomLink = function() {
 

@@ -713,7 +713,6 @@ socket.on('UTIL_SESSION', function(utilSessionObj) {
   //     ignore: ['wordChain', 'sessions']
   // }));
 
-  console.log("RX UTIL SESSION: " + utilSessionObj.sessionId + " | UID: " + utilSessionObj.userId);
 
   utilIpHashMap.set(utilSessionObj.ip, utilSessionObj);
   utilIpHashMapKeys = utilIpHashMap.keys();
@@ -723,6 +722,10 @@ socket.on('UTIL_SESSION', function(utilSessionObj) {
   utilSessionHashMapKeys = utilSessionHashMap.keys();
   utilSessionHashMapKeys.sort();
   numberUtilSessions = utilSessionHashMapKeys.length;
+
+  console.log("RX UTIL SESSION[" + numberUtilSessions + "]: " + utilSessionObj.sessionId + " | UID: " + utilSessionObj.userId);
+
+  // console.debug("UTIL SESSION\n" + jsonPrint(utilSessionHashMap.get(utilSessionObj.sessionId)));
 
   if (utilSessionObj.connected && utilSessionObj.userId.match(/TSS_/g)) {
     console.info("UTIL SERVER CONNECTED: " + utilSessionObj.userId);
@@ -736,9 +739,16 @@ socket.on('UTIL_SESSION', function(utilSessionObj) {
   updateUtilConnect(utilSessionObj);
 });
 
-socket.on("SESSION_UPDATE", function(sessionObject) {
-  console.log("> RX " + sessionObject.sourceWord.nodeId + " > " + sessionObject.targetWord.nodeId);
+socket.on("SESSION_DELETE", function(sessionObject) {
+  console.debug("> RX DEL SESS | " + sessionObject.sessionId);
+  if (utilSessionHashMap.has(sessionObject.sessionId)){
+    console.error("* UTIL HM HIT " + sessionObject.sessionId);
+  } 
+  if (userSessionHashMap.has(sessionObject.sessionId)){
+    console.error("* USER HM HIT " + sessionObject.sessionId);
+  } 
 });
+
 
 socket.on('HEARTBEAT', function(rxHeartbeat) {
   heartBeatTimeoutFlag = false;

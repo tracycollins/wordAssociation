@@ -2578,6 +2578,9 @@ var createNode = function(callback) {
         targetNodeId = session.node.nodeId;
       }
     }
+    else if (config.sessionViewType == 'histogram'){
+      sourceNodeId = session.source.nodeId + "_" + moment().valueOf();
+    }
     else if ((config.sessionViewType == 'ticker') 
       || (config.sessionViewType == 'flow')
       ){
@@ -2725,7 +2728,7 @@ var createNode = function(callback) {
 
           if (typeof targetNodeId === 'undefined' 
             || (config.sessionViewType == 'flow') 
-            // || (config.sessionViewType == 'force') 
+            || (config.sessionViewType == 'histogram') 
             || (config.sessionViewType == 'ticker')) {
             cb("TARGET UNDEFINED", null);
           } 
@@ -2902,6 +2905,7 @@ var createLink = function(callback) {
 
   if ((config.sessionViewType !== 'ticker') 
     && (config.sessionViewType !== 'flow') 
+    && (config.sessionViewType !== 'histogram') 
     && !config.disableLinks 
     && (linkCreateQueue.length > 0)) {
 

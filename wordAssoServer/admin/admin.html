@@ -7,124 +7,124 @@
   <link rel="stylesheet" href="../css/main.css">
   <link rel="icon" type="image/png" href="../favicon.png" />
   <style>
-  .heartbeatTable {
-    background-color: red;
-    border: 1px solid gray;
-    cursor: pointer;
-    color: #888888;
-  }
-  
-  .defaultButton {
-    background-color: black;
-    border: 1px solid gray;
-    cursor: pointer;
-    color: #888888;
-  }
-  
-  .defaultButton:hover {
-    color: white;
-    background-color: gray;
-  }
-  
-  .defaultButton:focus {
-    outline: 0;
-  }
-  
-  .showHideButton {
-    background-color: black;
-    border: 1px solid gray;
-    cursor: pointer;
-    color: #888888;
-  }
-  
-  .showHideButton:hover {
-    color: white;
-    background-color: gray;
-  }
-  
-  .showHideButton:focus {
-    outline: 0;
-  }
-  
-  ul {
-    display: block;
-    list-style-position: inside;
-    list-style-type: disc;
-    margin-top: 1em;
-    margin-bottom: 1em;
-    margin-left: 0;
-    margin-right: 0;
-    padding-left: 2em;
-  }
-  
-  .admin {
-    font-size: 0.5em;
-    margin-top: 10px;
-    margin: 0.5em;
-    padding: 2em;
-    font-family: "Lucida Console", Monaco, monospace;
-    font-weight: 100;
-    line-height: 1.5em;
-    background: #000000;
-    color: #888888;
-  }
-  
-  .adminControlPanel {
-    margin-left: 0.5em;
-    margin-right: 0;
-    padding-left: 2em;
-    font-size: 0.5em;
-  }
-  
-  table,
-  td {
-    border: 1px solid #444444;
-    font-size: 1.2em;
-    margin-top: 1em;
-    margin-bottom: 1em;
-    padding: 0.7em;
-    font-family: "Lucida Console", Monaco, monospace;
-    font-weight: 100;
-    line-height: 1.2em;
-    background: #111111;
-    color: #999999;
-  }
-  
-  th {
-    border: 2px solid #880000;
-    font-size: 1.2em;
-    margin-top: 1em;
-    margin-bottom: 1em;
-    padding: 0.7em;
-    font-family: "Lucida Console", Monaco, monospace;
-    font-weight: 100;
-    line-height: 1.2em;
-    background: #000000;
-    color: #CCCCCC;
-  }
-  
-  label {
-    color: #888888;
-  }
-  
-  .bar-text {
-    color: #CCCCCC;
-    font-family: "Lucida Console", Monaco, monospace;
-    font-size: 1.5em;
-    font-weight: 100;
-    line-height: 1.2em;
-  }
-  
-  .bar {
-    height: 5px;
-    width: 500px;
-    background-color: #444444;
-  }
-  
-  .bar > svg {
-    height: 100%;
-    display: block;
-  }
+    .heartbeatTable {
+      background-color: red;
+      border: 1px solid gray;
+      cursor: pointer;
+      color: #888888;
+    }
+    
+    .defaultButton {
+      background-color: black;
+      border: 1px solid gray;
+      cursor: pointer;
+      color: #888888;
+    }
+    
+    .defaultButton:hover {
+      color: white;
+      background-color: gray;
+    }
+    
+    .defaultButton:focus {
+      outline: 0;
+    }
+    
+    .showHideButton {
+      background-color: black;
+      border: 1px solid gray;
+      cursor: pointer;
+      color: #888888;
+    }
+    
+    .showHideButton:hover {
+      color: white;
+      background-color: gray;
+    }
+    
+    .showHideButton:focus {
+      outline: 0;
+    }
+    
+    ul {
+      display: block;
+      list-style-position: inside;
+      list-style-type: disc;
+      margin-top: 1em;
+      margin-bottom: 1em;
+      margin-left: 0;
+      margin-right: 0;
+      padding-left: 2em;
+    }
+    
+    .admin {
+      font-size: 0.5em;
+      margin-top: 10px;
+      margin: 0.5em;
+      padding: 2em;
+      font-family: "Lucida Console", Monaco, monospace;
+      font-weight: 100;
+      line-height: 1.5em;
+      background: #000000;
+      color: #888888;
+    }
+    
+    .adminControlPanel {
+      margin-left: 0.5em;
+      margin-right: 0;
+      padding-left: 2em;
+      font-size: 0.5em;
+    }
+    
+    table,
+    td {
+      border: 1px solid #444444;
+      font-size: 1.2em;
+      margin-top: 1em;
+      margin-bottom: 1em;
+      padding: 0.7em;
+      font-family: "Lucida Console", Monaco, monospace;
+      font-weight: 100;
+      line-height: 1.2em;
+      background: #111111;
+      color: #999999;
+    }
+    
+    th {
+      border: 2px solid #880000;
+      font-size: 1.2em;
+      margin-top: 1em;
+      margin-bottom: 1em;
+      padding: 0.7em;
+      font-family: "Lucida Console", Monaco, monospace;
+      font-weight: 100;
+      line-height: 1.2em;
+      background: #000000;
+      color: #CCCCCC;
+    }
+    
+    label {
+      color: #888888;
+    }
+    
+    .bar-text {
+      color: #CCCCCC;
+      font-family: "Lucida Console", Monaco, monospace;
+      font-size: 1.5em;
+      font-weight: 100;
+      line-height: 1.2em;
+    }
+    
+    .bar {
+      height: 5px;
+      width: 500px;
+      background-color: #444444;
+    }
+    
+    .bar > svg {
+      height: 100%;
+      display: block;
+    }
   </style>
   <link rel="stylesheet" href="css/progressbar.css" />
   <script src="/js/libs/progressbar.js"></script>
@@ -372,8 +372,6 @@
 
     var adminIpHashMapKeys = [];
     var adminSocketIdHashMapKeys = [];
-
-
 
     // USERS ===============================
     var showConnectedUsers = true;
@@ -1282,10 +1280,12 @@
         var key;
         var value = {};
 
-        for (var i = 0; i < userIpHashMapKeys.length; i++) {
+        var ipHmKeys = userIpHashMap.keys();
 
-          key = userIpHashMapKeys[i];
-          value = userIpHashMap.get(userIpHashMapKeys[i]);
+        for (var i = 0; i < ipHmKeys.length; i++) {
+
+          key = ipHmKeys[i];
+          value = userIpHashMap.get(ipHmKeys[i]);
 
           if (!showBotUsers && ((value.domain.indexOf("googlebot") >= 0))) {
 

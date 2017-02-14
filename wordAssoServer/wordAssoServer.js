@@ -7578,13 +7578,19 @@ function initAppRouting(callback) {
   });
 
   app.get('/admin', function(req, res) {
-    debugAppGet("LOADING PAGE: /admin/admin.html");
+    console.warn("LOADING PAGE: /admin/admin.html");
     res.sendFile(__dirname + '/admin/admin.html');
     return;
   });
 
+  app.get('/admin/admin.js', function(req, res) {
+    console.warn("LOADING PAGE: /admin/admin.js");
+    res.sendFile(__dirname + '/admin/admin.js');
+    return;
+  });
+
   app.get('/admin/admin.html', function(req, res) {
-    debugAppGet("LOADING PAGE: /admin/admin.html");
+    console.warn("LOADING PAGE: /admin/admin.html");
     res.sendFile(__dirname + '/admin/admin.html');
     return;
   });

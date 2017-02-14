@@ -2,7 +2,6 @@
 /*jslint node: true */
 "use strict";
 
-var windowLoaded = false;
 var serverConnected = false;
 var sentAdminReady = false;
 var initializeComplete = false;
@@ -509,28 +508,31 @@ setInterval(function() {
     updateAdminConnect();
     updateUserConnect();
   }
-  if (windowLoaded && !sentAdminReady) {
+  if (initializeComplete && !sentAdminReady) {
     socket.emit("ADMIN_READY", mainAdminObj);
     sentAdminReady = true;
-    console.log("TX ADMIN_READY\n" + jsonPrint(mainAdminObj));
+    console.debug("TX ADMIN_READY\n" + jsonPrint(mainAdminObj));
   }
 }, 1000);
 
 
 setInterval(function() {
-  if (serverConnected && sentAdminReady) socket.emit("SESSION_KEEPALIVE", mainAdminObj);
+  if (serverConnected && sentAdminReady) {
+    socket.emit("SESSION_KEEPALIVE", mainAdminObj);
+    console.debug("SESSION_KEEPALIVE");
+  }
 }, 10000);
 
 
 socket.on('connect', function() {
   serverConnected = true;
   console.log("\n===== ADMIN SERVER CONNECTED =====\n" + getTimeStamp());
-  if (windowLoaded && !sentAdminReady) {
-    serverClear();
-    socket.emit("ADMIN_READY", mainAdminObj);
-    console.log("TX ADMIN_READY\n" + jsonPrint(mainAdminObj));
-    sentAdminReady = true;
-  }
+  // if (initializeComplete && !sentAdminReady) {
+  //   serverClear();
+  //   socket.emit("ADMIN_READY", mainAdminObj);
+  //   console.log("TX ADMIN_READY\n" + jsonPrint(mainAdminObj));
+  //   sentAdminReady = true;
+  // }
 });
 
 socket.on('reconnect', function() {
@@ -1123,11 +1125,12 @@ function updateUserConnect(req) {
     var sessionId;
     var sessionObj = {};
 
+    var hmKeys = userSessionHashMap.keys();
 
-    for (var j = 0; j < userSessionHashMapKeys.length; j++) {
+    for (var j = 0; j < hmKeys.length; j++) {
 
-      sessionId = userSessionHashMapKeys[j];
-      sessionObj = userSessionHashMap.get(userSessionHashMapKeys[j]);
+      sessionId = hmKeys[j];
+      sessionObj = userSessionHashMap.get(sessionId);
 
       if (typeof sessionObj.referer === 'undefined') {
         sessionObj.referer = '';
@@ -1917,10 +1920,4 @@ function initialize(callback){
   initBars(function(){
     callback();
   });
-}
-
-window.onload = function() {
-  console.log("WINNDOW LOADED");
-  windowLoaded = true;
-  // socket.emit("ADMIN_READY", mainAdminObj);
 }

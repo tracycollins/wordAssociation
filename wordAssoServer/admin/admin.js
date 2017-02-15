@@ -13,13 +13,16 @@ var defaultTimePeriodFormat = "HH:mm:ss";
   var midColor = '#F9CD2B';
   var endColor = '#CC0000';
 
+  var WARN_LIMIT_PERCENT = 80;
+  var ALERT_LIMIT_PERCENT = 95
+
 var ONE_MB = 1024 * 1024;
 var ONE_GB = ONE_MB * 1024;
 
 var d3;
 
 requirejs(["https://d3js.org/d3.v4.min.js"], function(d3Loaded) {
-    console.warn("d3 LOADED");
+    console.debug("d3 LOADED");
     d3 = d3Loaded;
     initialize(function(){
       initializeComplete = true;
@@ -223,7 +226,7 @@ var tweetsPerMinBarText;
 
 function initBars(callback){
  
-   console.warn("INIT BARS ...");
+   console.debug("INIT BARS ...");
 
   // USERS ===============================
 
@@ -358,14 +361,14 @@ var jsonPrint = function(obj, options) {
 
   if (options) {
     if (options.ignore) {
-      console.warn("ignore: " + options.ignore);
+      // console.debug("ignore: " + options.ignore);
       var tempObj = obj;
       var i = 0;
       var ignoreWord;
       for (i = 0; i < options.ignore.length; i++) {
         ignoreWord = options.ignore[i];
         if (tempObj.hasOwnProperty(ignoreWord)) {
-          console.log("delete: " + ignoreWord);
+          // console.error("delete: " + ignoreWord);
           tempObj[ignoreWord] = [];
         }
       }
@@ -374,7 +377,9 @@ var jsonPrint = function(obj, options) {
       if (i == options.ignore.length) return JSON.stringify(tempObj, null, 2);
     }
   }
-  return JSON.stringify(obj, null, 2);
+  else {
+    return JSON.stringify(obj, null, 2);
+  }
 }
 
 function getTimeStamp(inputTime) {
@@ -520,7 +525,7 @@ function ageHashMapEntries(hm, callback){
       hm.set(sessionId, sessionObj);
     }
     else if ((dateNow - sessionObj.seen) > MAX_SESSION_AGE){
-      console.warn("XXX SESSION | " + sessionId
+      console.debug("XXX SESSION | " + sessionId
         + " | " + sessionObj.userId
       );
       hm.remove(sessionId);
@@ -553,7 +558,7 @@ setInterval(function() {
 setInterval(function() {
   if (serverConnected && sentAdminReady) {
     socket.emit("SESSION_KEEPALIVE", mainAdminObj);
-    console.debug("SESSION_KEEPALIVE");
+    // console.debug("SESSION_KEEPALIVE");
   }
 }, 10000);
 
@@ -762,7 +767,7 @@ socket.on('UTIL_SESSION', function(utilSessionObj) {
     + " | UID: " + utilSessionObj.userId
     );
 
-  // console.debug("UTIL SESSION\n" + jsonPrint(utilSessionHashMap.get(utilSessionObj.sessionId)));
+  console.debug("UTIL SESSION\n" + jsonPrint( utilSessionHashMap.get(utilSessionObj.sessionId), {ignore: ["sessions"]} ));
 
   if (utilSessionObj.connected && utilSessionObj.userId.match(/TSS_/g)) {
     console.info("UTIL SERVER CONNECTED: " + utilSessionObj.userId);
@@ -779,10 +784,10 @@ socket.on('UTIL_SESSION', function(utilSessionObj) {
 socket.on("SESSION_DELETE", function(sessionObject) {
   console.debug("> RX DEL SESS | " + sessionObject.sessionId);
   if (utilSessionHashMap.has(sessionObject.sessionId)){
-    console.error("* UTIL HM HIT " + sessionObject.sessionId);
+    console.info("* UTIL HM HIT " + sessionObject.sessionId);
   } 
   if (userSessionHashMap.has(sessionObject.sessionId)){
-    console.error("* USER HM HIT " + sessionObject.sessionId);
+    console.info("* USER HM HIT " + sessionObject.sessionId);
   } 
 });
 
@@ -1386,7 +1391,7 @@ function updateViewerConnect(req) {
             numberConnected,
             sessionObj.ip,
             sessionObj.domain,
-            sessionObj.userId,
+            (sessionObj.viewerId || sessionObj.userId),
             sessionId,
             getTimeStamp(sessionObj.connectTime),
             '',
@@ -1566,7 +1571,7 @@ function updateUtilConnect(req) {
 
     for (var k = 0; k < keys.length; k++) {
 
-      var key = keus[k];
+      var key = keys[k];
       var value = utilSessionHashMap.get(key);
 
       if (value.connected == false) {
@@ -1602,9 +1607,9 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
   memoryUsed = (heartBeat.memoryTotal - heartBeat.memoryAvailable) / heartBeat.memoryTotal;
   if (memoryBar) memoryBar.animate(memoryUsed);
 
-  if (100 * memoryUsed >= 90) {
+  if (100 * memoryUsed >= ALERT_LIMIT_PERCENT) {
     memoryBar.path.setAttribute('stroke', endColor);
-  } else if (100 * memoryUsed >= 70) {
+  } else if (100 * memoryUsed >= WARN_LIMIT_PERCENT) {
     memoryBar.path.setAttribute('stroke', midColor);
   } else {
     memoryBar.path.setAttribute('stroke', startColor);
@@ -1616,9 +1621,9 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
   bhtRequestsBar.animate(heartBeat.bhtRequests / heartBeat.bhtRequestLimit);
 
-  if (100 * heartBeat.bhtRequests / heartBeat.bhtRequestLimit >= 90) {
+  if (100 * heartBeat.bhtRequests / heartBeat.bhtRequestLimit >= ALERT_LIMIT_PERCENT) {
     bhtRequestsBar.path.setAttribute('stroke', endColor);
-  } else if (100 * heartBeat.bhtRequests / heartBeat.bhtRequestLimit >= 50) {
+  } else if (100 * heartBeat.bhtRequests / heartBeat.bhtRequestLimit >= WARN_LIMIT_PERCENT) {
     bhtRequestsBar.path.setAttribute('stroke', midColor);
   } else {
     bhtRequestsBar.path.setAttribute('stroke', startColor);
@@ -1630,9 +1635,9 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
   mwRequestsBar.animate(heartBeat.mwRequests / heartBeat.mwRequestLimit);
 
-  if (100 * heartBeat.mwRequests / heartBeat.mwRequestLimit >= 90) {
+  if (100 * heartBeat.mwRequests / heartBeat.mwRequestLimit >= ALERT_LIMIT_PERCENT) {
     mwRequestsBar.path.setAttribute('stroke', endColor);
-  } else if (100 * heartBeat.mwRequests / heartBeat.mwRequestLimit >= 50) {
+  } else if (100 * heartBeat.mwRequests / heartBeat.mwRequestLimit >= WARN_LIMIT_PERCENT) {
     mwRequestsBar.path.setAttribute('stroke', midColor);
   } else {
     mwRequestsBar.path.setAttribute('stroke', startColor);
@@ -1645,9 +1650,9 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
   // TEST VIEWERS ==========================
   testViewersBar.animate(heartBeat.numberTestViewers / heartBeat.numberTestViewersMax);
 
-  if (100 * heartBeat.numberTestViewers / heartBeat.numberTestViewersMax >= 90) {
+  if (100 * heartBeat.numberTestViewers / heartBeat.numberTestViewersMax >= ALERT_LIMIT_PERCENT) {
     testViewersBar.path.setAttribute('stroke', endColor);
-  } else if (100 * heartBeat.numberTestViewers / heartBeat.numberTestViewersMax >= 50) {
+  } else if (100 * heartBeat.numberTestViewers / heartBeat.numberTestViewersMax >= WARN_LIMIT_PERCENT) {
     testViewersBar.path.setAttribute('stroke', midColor);
   } else {
     testViewersBar.path.setAttribute('stroke', startColor);
@@ -1659,9 +1664,9 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
   // VIEWERS ==========================
   viewersTotalBar.animate(heartBeat.numberViewersTotal / heartBeat.numberViewersTotalMax);
 
-  if (100 * heartBeat.numberViewersTotal / heartBeat.numberViewersTotalMax >= 90) {
+  if (100 * heartBeat.numberViewersTotal / heartBeat.numberViewersTotalMax >= ALERT_LIMIT_PERCENT) {
     viewersTotalBar.path.setAttribute('stroke', endColor);
-  } else if (100 * heartBeat.numberViewersTotal / heartBeat.numberViewersTotalMax >= 50) {
+  } else if (100 * heartBeat.numberViewersTotal / heartBeat.numberViewersTotalMax >= WARN_LIMIT_PERCENT) {
     viewersTotalBar.path.setAttribute('stroke', midColor);
   } else {
     viewersTotalBar.path.setAttribute('stroke', startColor);
@@ -1672,9 +1677,9 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
   viewersBar.animate(heartBeat.numberViewers / heartBeat.numberViewersMax);
 
-  if (100 * heartBeat.numberViewers / heartBeat.numberViewersMax >= 90) {
+  if (100 * heartBeat.numberViewers / heartBeat.numberViewersMax >= ALERT_LIMIT_PERCENT) {
     viewersBar.path.setAttribute('stroke', endColor);
-  } else if (100 * heartBeat.numberViewers / heartBeat.numberViewersMax >= 50) {
+  } else if (100 * heartBeat.numberViewers / heartBeat.numberViewersMax >= WARN_LIMIT_PERCENT) {
     viewersBar.path.setAttribute('stroke', midColor);
   } else {
     viewersBar.path.setAttribute('stroke', startColor);
@@ -1686,9 +1691,9 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
   // TEST USERS ==========================
   testUsersBar.animate(heartBeat.numberTestUsers / heartBeat.numberTestUsersMax);
 
-  if (100 * heartBeat.numberTestUsers / heartBeat.numberTestUsersMax >= 90) {
+  if (100 * heartBeat.numberTestUsers / heartBeat.numberTestUsersMax >= ALERT_LIMIT_PERCENT) {
     testUsersBar.path.setAttribute('stroke', endColor);
-  } else if (100 * heartBeat.numberTestUsers / heartBeat.numberTestUsersMax >= 50) {
+  } else if (100 * heartBeat.numberTestUsers / heartBeat.numberTestUsersMax >= WARN_LIMIT_PERCENT) {
     testUsersBar.path.setAttribute('stroke', midColor);
   } else {
     testUsersBar.path.setAttribute('stroke', startColor);
@@ -1700,9 +1705,9 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
   // USERS ==========================
   usersTotalBar.animate(heartBeat.numberUsersTotal / heartBeat.numberUsersTotalMax);
 
-  if (100 * heartBeat.numberUsersTotal / heartBeat.numberUsersTotalMax >= 90) {
+  if (100 * heartBeat.numberUsersTotal / heartBeat.numberUsersTotalMax >= ALERT_LIMIT_PERCENT) {
     usersTotalBar.path.setAttribute('stroke', endColor);
-  } else if (100 * heartBeat.numberUsersTotal / heartBeat.numberUsersTotalMax >= 50) {
+  } else if (100 * heartBeat.numberUsersTotal / heartBeat.numberUsersTotalMax >= WARN_LIMIT_PERCENT) {
     usersTotalBar.path.setAttribute('stroke', midColor);
   } else {
     usersTotalBar.path.setAttribute('stroke', startColor);
@@ -1713,9 +1718,9 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
   usersBar.animate(heartBeat.numberUsers / heartBeat.numberUsersMax);
 
-  if (100 * heartBeat.numberUsers / heartBeat.numberUsersMax >= 90) {
+  if (100 * heartBeat.numberUsers / heartBeat.numberUsersMax >= ALERT_LIMIT_PERCENT) {
     usersBar.path.setAttribute('stroke', endColor);
-  } else if (100 * heartBeat.numberUsers / heartBeat.numberUsersMax >= 50) {
+  } else if (100 * heartBeat.numberUsers / heartBeat.numberUsersMax >= WARN_LIMIT_PERCENT) {
     usersBar.path.setAttribute('stroke', midColor);
   } else {
     usersBar.path.setAttribute('stroke', startColor);
@@ -1727,9 +1732,9 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
   // TEST USERS ==========================
   testUsersBar.animate(heartBeat.numberTestUsers / heartBeat.numberTestUsersMax);
 
-  if (100 * heartBeat.numberTestUsers / heartBeat.numberTestUsersMax >= 90) {
+  if (100 * heartBeat.numberTestUsers / heartBeat.numberTestUsersMax >= ALERT_LIMIT_PERCENT) {
     testUsersBar.path.setAttribute('stroke', endColor);
-  } else if (100 * heartBeat.numberTestUsers / heartBeat.numberTestUsersMax >= 50) {
+  } else if (100 * heartBeat.numberTestUsers / heartBeat.numberTestUsersMax >= WARN_LIMIT_PERCENT) {
     testUsersBar.path.setAttribute('stroke', midColor);
   } else {
     testUsersBar.path.setAttribute('stroke', startColor);
@@ -1741,9 +1746,9 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
   // UTILS=========================
   utilsBar.animate(heartBeat.numberUtils / heartBeat.numberUtilsMax);
 
-  if (100 * heartBeat.numberUtils / heartBeat.numberUtilsMax >= 90) {
+  if (100 * heartBeat.numberUtils / heartBeat.numberUtilsMax >= ALERT_LIMIT_PERCENT) {
     utilsBar.path.setAttribute('stroke', endColor);
-  } else if (100 * heartBeat.numberUtils / heartBeat.numberUtilsMax >= 50) {
+  } else if (100 * heartBeat.numberUtils / heartBeat.numberUtilsMax >= WARN_LIMIT_PERCENT) {
     utilsBar.path.setAttribute('stroke', midColor);
   } else {
     utilsBar.path.setAttribute('stroke', startColor);
@@ -1754,9 +1759,9 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
   wordsPerMinBar.animate(heartBeat.wordsPerMinute / heartBeat.maxWordsPerMin);
 
-  if (heartBeat.wordsPerMinute >= 0.85 * heartBeat.maxWordsPerMin) {
+  if (heartBeat.wordsPerMinute >=  0.01*ALERT_LIMIT_PERCENT * heartBeat.maxWordsPerMin) {
     wordsPerMinBar.path.setAttribute('stroke', endColor);
-  } else if (heartBeat.wordsPerMinute >= 0.5 * heartBeat.maxWordsPerMin) {
+  } else if (heartBeat.wordsPerMinute >= 0.01*WARN_LIMIT_PERCENT * heartBeat.maxWordsPerMin) {
     wordsPerMinBar.path.setAttribute('stroke', midColor);
   } else {
     wordsPerMinBar.path.setAttribute('stroke', startColor);
@@ -1767,9 +1772,9 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
   tweetsPerMinBar.animate(tweetsPerMin / tweetsPerMinMax);
 
-  if (tweetsPerMin >= 0.85 * tweetsPerMinMax) {
+  if (tweetsPerMin >= 0.01*ALERT_LIMIT_PERCENT * tweetsPerMinMax) {
     tweetsPerMinBar.path.setAttribute('stroke', endColor);
-  } else if (tweetsPerMin >= 0.5 * tweetsPerMinMax) {
+  } else if (tweetsPerMin >= 0.01*WARN_LIMIT_PERCENT * tweetsPerMinMax) {
     tweetsPerMinBar.path.setAttribute('stroke', midColor);
   } else {
     tweetsPerMinBar.path.setAttribute('stroke', startColor);
@@ -1894,7 +1899,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 }
 
 function initialize(callback){
-  console.warn("INITIALIZE...");
+  console.debug("INITIALIZE...");
   initBars(function(){
     callback();
   });

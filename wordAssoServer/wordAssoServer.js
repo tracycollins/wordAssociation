@@ -3065,6 +3065,11 @@ function userUpdateDb(userObj, callback) {
     });
   }
 
+  userObj.mentions = userObj.mentions || 0;
+  userObj.followersCount = userObj.followersCount || 0;
+  userObj.friendsCount = userObj.friendsCount || 0;
+  userObj.statusesCount = userObj.statusesCount || 0;
+
   var query = {
     userId: userObj.userId
   };
@@ -3088,7 +3093,11 @@ function userUpdateDb(userObj, callback) {
     },
     $max: {
       "connectTime": userObj.connectTime,
-      "disconnectTime": userObj.disconnectTime
+      "disconnectTime": userObj.disconnectTime,
+      "mentions": userObj.mentions,
+      "followersCount": userObj.followersCount,
+      "friendsCount": userObj.friendsCount,
+      "statusesCount": userObj.statusesCount
     },
     $push: {
       "sessions": userObj.lastSession
@@ -3296,6 +3305,10 @@ function userFindAllDb(options, callback) {
     lastSeen: true,
     lastSession: true,
     connected: true,
+    mentions: true,
+    followersCount: true,
+    friendsCount: true,
+    statusesCount: true
   };
 
   User.find(query, projections, options, function(err, users) {

@@ -46,11 +46,11 @@ var utilIpHashMap = new HashMap();
 var utilSessionHashMap = new HashMap();
 
 var utilIpHashMapKeys = [];
-var utilSessionHashMapKeys = [];
+// var utilSessionHashMapKeys = [];
 var userIpHashMapKeys = [];
 var userSessionHashMapKeys = [];
- var adminIpHashMapKeys = [];
-  var adminSocketIdHashMapKeys = [];
+var adminIpHashMapKeys = [];
+var adminSocketIdHashMapKeys = [];
 
 var numberUtilIpAddresses = 0;
 var numberUtilSessions = 0;
@@ -115,66 +115,66 @@ var showDisconnectedUsers = false;
 var showIpUsers = true;
 var showTestUsers = true;
 var showBotUsers = true;
- var numberAdminIpAddresses = adminIpHashMap.count();
-  var showConnectedAdmins = true;
-  var showDisconnectedAdmins = false;
-  var showIpAdmins = true;
-  var numberUserSessions = 0;
-  var numberTestUserSessions = 0;
-  var numberUserIpAddresses = userIpHashMap.count();
+var numberAdminIpAddresses = adminIpHashMap.count();
+var showConnectedAdmins = true;
+var showDisconnectedAdmins = false;
+var showIpAdmins = true;
+var numberUserSessions = 0;
+var numberTestUserSessions = 0;
+var numberUserIpAddresses = userIpHashMap.count();
 
-  var userConnectedColor = "#00aa00";
-  var testUserConnectedColor = "#888888";
-  var userDisconnectedColor = "#aa0000";
-  var testUserDisonnectedColor = "#880000";
-  var showConnectedViewers = true;
-  var showDisconnectedViewers = false;
-  var showIpViewers = true;
-  var showTestViewers = true;
-  var showBotViewers = true;
+var userConnectedColor = "#00aa00";
+var testUserConnectedColor = "#888888";
+var userDisconnectedColor = "#aa0000";
+var testUserDisonnectedColor = "#880000";
+var showConnectedViewers = true;
+var showDisconnectedViewers = false;
+var showIpViewers = true;
+var showTestViewers = true;
+var showBotViewers = true;
 
-  var viewerIpHashMapKeys = [];
-  var viewerSessionHashMapKeys = [];
+var viewerIpHashMapKeys = [];
+var viewerSessionHashMapKeys = [];
 
-  var numberViewerSessions = 0;
-  var numberTestViewerSessions = 0;
-  var numberViewerIpAddresses = viewerIpHashMap.count();
+var numberViewerSessions = 0;
+var numberTestViewerSessions = 0;
+var numberViewerIpAddresses = viewerIpHashMap.count();
 
-  var viewerConnectedColor = "#00aa00";
-  var testViewerConnectedColor = "#888888";
-  var viewerDisconnectedColor = "#aa0000";
-  var testViewerDisonnectedColor = "#880000";
-  var showConnectedViewers = true;
-  var showDisconnectedViewers = false;
+var viewerConnectedColor = "#00aa00";
+var testViewerConnectedColor = "#888888";
+var viewerDisconnectedColor = "#aa0000";
+var testViewerDisonnectedColor = "#880000";
+var showConnectedViewers = true;
+var showDisconnectedViewers = false;
 var viewerIpTableBody;
 var viewerSessionTableBody;
 var viewerSessionTableHead;
-  var viewersBar;
-  var testViewersBar;
-  var testViewersBar;
-  var usersBar;
+var viewersBar;
+var testViewersBar;
+var testViewersBar;
+var usersBar;
 var userIpTableHead;
 var userSessionTableHead;
 var usersTotalTotalBar;
-  var utilConnectedColor = "#00aa00";
-  var testUtilConnectedColor = "#888888";
-  var utilDisconnectedColor = "#aa0000";
-  var testUtilDisonnectedColor = "#880000";
-  var showConnectedUtils = true;
-  var showDisconnectedUtils = false;
-  var showIpUtils = true;
-  var deltaTweetsMax = 1;
-  var tweetsPerMinBar;
+var utilConnectedColor = "#00aa00";
+var testUtilConnectedColor = "#888888";
+var utilDisconnectedColor = "#aa0000";
+var testUtilDisonnectedColor = "#880000";
+var showConnectedUtils = true;
+var showDisconnectedUtils = false;
+var showIpUtils = true;
+var deltaTweetsMax = 1;
+var tweetsPerMinBar;
 
 var utilSessionTableHead;
 var utilIpTableHead;
 
-  var utilIpTableBody;
-  var utilSessionTableBody;
+var utilIpTableBody;
+var utilSessionTableBody;
 
-  var utilsBarDiv;
-  var utilsBar;
-  var utilsBarText;
+var utilsBarDiv;
+var utilsBar;
+var utilsBarText;
 
 var usersBarDiv;
 var usersBarText;
@@ -235,20 +235,20 @@ function initBars(callback){
   userIpTableHead = document.getElementById('user_ip_table_head');
   userIpTableBody = document.getElementById('user_ip_table_body');
 
-   usersBarDiv = document.getElementById('users-bar');
+  usersBarDiv = document.getElementById('users-bar');
   usersBar = new ProgressBar.Line(usersBarDiv, {});
   usersBar.animate(0);
-   usersBarText = document.getElementById('users-bar-text');
+  usersBarText = document.getElementById('users-bar-text');
 
- testUsersBarDiv = document.getElementById('test-users-bar');
+  testUsersBarDiv = document.getElementById('test-users-bar');
   testUsersBar = new ProgressBar.Line(testUsersBarDiv, {});
   testUsersBar.animate(0);
-   testUsersBarText = document.getElementById('test-users-bar-text');
+  testUsersBarText = document.getElementById('test-users-bar-text');
 
-   usersTotalBarDiv = document.getElementById('users-total-bar');
+  usersTotalBarDiv = document.getElementById('users-total-bar');
   usersTotalBar = new ProgressBar.Line(usersTotalBarDiv, {});
   usersTotalBar.animate(0);
-   usersTotalBarText = document.getElementById('users-total-bar-text');
+  usersTotalBarText = document.getElementById('users-total-bar-text');
 
 
   // VIEWERS ===============================
@@ -314,16 +314,13 @@ function initBars(callback){
 
   wordsPerMinBarDiv = document.getElementById('delta-response-bar');
   wordsPerMinBarText = document.getElementById('delta-response-bar-text');
-  wordsPerMinBar = new ProgressBar.Line(wordsPerMinBarDiv, {
-    duration: 200
-  });
+  wordsPerMinBar = new ProgressBar.Line(wordsPerMinBarDiv, { duration: 200 });
   wordsPerMinBar.animate(0);
 
   tweetsPerMinBarDiv = document.getElementById('delta-tweet-bar');
   tweetsPerMinBarText = document.getElementById('delta-tweet-bar-text');
-  tweetsPerMinBar = new ProgressBar.Line(tweetsPerMinBarDiv, {
-    duration: 200
-  });
+  tweetsPerMinBar = new ProgressBar.Line(tweetsPerMinBarDiv, { duration: 200 });
+
   tweetsPerMinBar.animate(0);
 
   var options = {
@@ -502,11 +499,48 @@ function requestSessions(reqSessionsOptions) {
   socket.emit('REQ_UTIL_SESSION', reqSessionsOptions);
 }
 
+var MAX_SESSION_AGE = 60000;
+var dateNow = moment().valueOf();
+
+function ageHashMapEntries(hm, callback){
+
+  dateNow = moment().valueOf();
+
+  var keys = hm.keys();
+
+  async.each(keys, function(sessionId, cb) {
+
+    var sessionObj = hm.get(sessionId);
+
+    if (typeof sessionObj.seen === 'undefined'){
+      sessionObj.seen = dateNow;
+      console.debug("NEW SESSION | " + sessionId
+        + " | " + sessionObj.userId
+      );
+      hm.set(sessionId, sessionObj);
+    }
+    else if ((dateNow - sessionObj.seen) > MAX_SESSION_AGE){
+      console.warn("XXX SESSION | " + sessionId
+        + " | " + sessionObj.userId
+      );
+      hm.remove(sessionId);
+    }
+
+    cb();
+
+  }, function(err) {
+    callback();
+  });
+  
+}
+
 setInterval(function() {
   currentTime = getTimeNow();
   if (serverConnected && initializeComplete) {
-    updateAdminConnect();
-    updateUserConnect();
+    ageHashMapEntries(utilSessionHashMap, function(){
+      updateAdminConnect();
+      updateUserConnect();
+    })
   }
   if (initializeComplete && !sentAdminReady) {
     socket.emit("ADMIN_READY", mainAdminObj);
@@ -715,15 +749,18 @@ socket.on('UTIL_SESSION', function(utilSessionObj) {
 
 
   utilIpHashMap.set(utilSessionObj.ip, utilSessionObj);
-  utilIpHashMapKeys = utilIpHashMap.keys();
-  utilIpHashMapKeys.sort();
+  // utilIpHashMapKeys = utilIpHashMap.keys();
+  // utilIpHashMapKeys.sort();
   numberUtilIpAddresses = utilIpHashMapKeys.length;
   utilSessionHashMap.set(utilSessionObj.sessionId, utilSessionObj);
-  utilSessionHashMapKeys = utilSessionHashMap.keys();
-  utilSessionHashMapKeys.sort();
-  numberUtilSessions = utilSessionHashMapKeys.length;
+  // utilSessionHashMapKeys = utilSessionHashMap.keys();
+  // utilSessionHashMapKeys.sort();
+  numberUtilSessions = utilSessionHashMap.keys().length;
 
-  console.log("RX UTIL SESSION[" + numberUtilSessions + "]: " + utilSessionObj.sessionId + " | UID: " + utilSessionObj.userId);
+  console.log("RX UTIL SESSION[" + utilSessionHashMap.keys().length + "]: " + utilSessionObj.sessionId 
+    + " | C: " + utilSessionObj.connected
+    + " | UID: " + utilSessionObj.userId
+    );
 
   // console.debug("UTIL SESSION\n" + jsonPrint(utilSessionHashMap.get(utilSessionObj.sessionId)));
 
@@ -873,8 +910,6 @@ function toggleDisconnectedAdmins() {
   });
 }
 
-
-
 function toggleIpUsers() {
   updateUserConnect({
     showIp: "toggle"
@@ -1020,16 +1055,6 @@ function updateAdminConnect(req) {
     });
   }
 }
-
-// function initUserConnect(options) {
-//   // tableCreateRow(userIpTableHead, options, ['UNIQUE USERS']);  // 2nd arg is headerFlag
-//   tableCreateRow(userIpTableHead, options, ['USERS', 'IP', 'DOMAIN', 'LAST SEEN', 'AGO', 'SESSIONS']); // 2nd arg is headerFlag
-// }
-
-// function initUserSession(options) {
-//   // tableCreateRow(userSessionTableHead, options, ['USER SESSIONS']);  // 2nd arg is headerFlag
-//   tableCreateRow(userSessionTableHead, options, ['SESSIONS', 'IP', 'DOMAIN', 'USER', 'SESSION', 'CONNECT', 'DISCONNECT', 'TIME CONNECTED']); // 2nd arg is headerFlag
-// }
 
 function updateUserConnect(req) {
 
@@ -1222,16 +1247,6 @@ function updateUserConnect(req) {
   }
 }
 
-// function initViewerConnect(options) {
-//   // tableCreateRow(viewerIpTableHead, options, ['UNIQUE VIEWERS']);  // 2nd arg is headerFlag
-//   tableCreateRow(viewerIpTableHead, options, ['VIEWERS', 'IP', 'DOMAIN', 'LAST SEEN', 'AGO', 'SESSIONS']); // 2nd arg is headerFlag
-// }
-
-// function initViewerSession(options) {
-//   // tableCreateRow(viewerSessionTableHead, options, ['VIEWER SESSIONS']);  // 2nd arg is headerFlag
-//   tableCreateRow(viewerSessionTableHead, options, ['SESSIONS', 'IP', 'DOMAIN', 'USER', 'SESSION', 'CONNECT', 'DISCONNECT', 'TIME CONNECTED']); // 2nd arg is headerFlag
-// }
-
 function updateViewerConnect(req) {
 
   var viewerIpTableBodyOptions = {
@@ -1421,19 +1436,11 @@ function updateViewerConnect(req) {
   }
 }
 
-// function initUtilConnect(options) {
-//   // tableCreateRow(utilIpTableHead, options, ['UNIQUE UTILS']);  // 2nd arg is headerFlag
-//   tableCreateRow(utilIpTableHead, options, ['UTILS', 'IP', 'DOMAIN', 'LAST SEEN', 'AGO', 'SESSIONS']); // 2nd arg is headerFlag
-// }
-
-// function initUtilSession(options) {
-//   // tableCreateRow(utilSessionTableHead, options, ['UTIL SESSIONS']);  // 2nd arg is headerFlag
-//   tableCreateRow(utilSessionTableHead, options, ['SESSIONS', 'IP', 'DOMAIN', 'USER', 'SESSION', 'CONNECT', 'DISCONNECT', 'TIME CONNECTED']); // 2nd arg is headerFlag
-// }
-
 function updateUtilConnect(req) {
 
   if (!initializeComplete) return;
+
+  var keys = utilSessionHashMap.keys();
 
   var utilIpTableBodyOptions = {
     headerFlag: false,
@@ -1514,11 +1521,10 @@ function updateUtilConnect(req) {
     var sessionId;
     var sessionObj = {};
 
+    for (var j = 0; j < keys.length; j++) {
 
-    for (var j = 0; j < utilSessionHashMapKeys.length; j++) {
-
-      sessionId = utilSessionHashMapKeys[j];
-      sessionObj = utilSessionHashMap.get(utilSessionHashMapKeys[j]);
+      sessionId = keys[j];
+      sessionObj = utilSessionHashMap.get(sessionId);
 
       if (typeof sessionObj.referer === 'undefined') {
         sessionObj.referer = '';
@@ -1558,10 +1564,10 @@ function updateUtilConnect(req) {
     var numberDisconnected = 0;
     var connectedTime = 0;
 
-    for (var k = 0; k < utilSessionHashMapKeys.length; k++) {
+    for (var k = 0; k < keys.length; k++) {
 
-      var key = utilSessionHashMapKeys[k];
-      var value = utilSessionHashMap.get(utilSessionHashMapKeys[k]);
+      var key = keus[k];
+      var value = utilSessionHashMap.get(key);
 
       if (value.connected == false) {
 
@@ -1886,44 +1892,6 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
     .createTextNode(numberViewerIpAddresses + " VIEWER UNIQUE IP " + " | " + heartBeat.numberViewers + " VIEWERS" + " | " + heartBeat.numberTestViewers + " TEST VIEWERS")
   );
 }
-
-// initUserConnect({
-//   headerFlag: true,
-//   thTextColor: '#CCCCCC',
-//   backgroundColor: '#222222'
-// });
-
-// initUserSession({
-//   headerFlag: true,
-//   thTextColor: '#CCCCCC',
-//   backgroundColor: '#222222'
-// });
-
-
-// initViewerConnect({
-//   headerFlag: true,
-//   thTextColor: '#CCCCCC',
-//   backgroundColor: '#222222'
-// });
-
-// initViewerSession({
-//   headerFlag: true,
-//   thTextColor: '#CCCCCC',
-//   backgroundColor: '#222222'
-// });
-
-
-// initUtilConnect({
-//   headerFlag: true,
-//   thTextColor: '#CCCCCC',
-//   backgroundColor: '#222222'
-// });
-
-// initUtilSession({
-//   headerFlag: true,
-//   thTextColor: '#CCCCCC',
-//   backgroundColor: '#222222'
-// });
 
 function initialize(callback){
   console.warn("INITIALIZE...");

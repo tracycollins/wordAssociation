@@ -3835,6 +3835,7 @@ function handleSessionEvent(sesObj, callback) {
               console.log(chalkRed("TX USER SESSION (" + sesObj.sessionEvent + "): " + updatedUserObj.lastSession 
                 + " TO ADMIN NAMESPACE"));
 
+              adminNameSpace.emit('UTIL_SESSION', updatedUserObj); // KLUDGE: need to work out what's a USER and what's a UTIL
               adminNameSpace.emit('USER_SESSION', updatedUserObj);
             }
           });
@@ -3862,6 +3863,7 @@ function handleSessionEvent(sesObj, callback) {
                 + updatedUtilObj.lastSession + " TO ADMIN NAMESPACE"));
 
               adminNameSpace.emit('UTIL_SESSION', updatedUtilObj);
+              adminNameSpace.emit('USER_SESSION', updatedUtilObj);
             }
           });
         }

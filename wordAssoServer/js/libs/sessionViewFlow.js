@@ -163,7 +163,7 @@ function ViewFlow() {
   }, true);
 
 
-  var adjustedAgeRateScale = d3.scaleLinear().domain([1, 200]).range([1.0, 20.0]).clamp(true);
+  var adjustedAgeRateScale = d3.scaleLinear().domain([1, 300]).range([1.0, 20.0]).clamp(true);
 
   var sessionFontSizeScale = d3.scaleLinear().domain([1, 10000000]).range([16.0, 24]).clamp(true);
   var nodeFontSizeScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minFontSize, maxFontSize]).clamp(true);
@@ -683,6 +683,8 @@ function ViewFlow() {
       switch (nodeAddObj.op) {
 
         case "add":
+
+          // console.debug("add node\n" + jsonPrint(nodeAddObj));
 
           nodesModifiedFlag = true;
           nodeAddObj.node.age = 0;
@@ -1258,11 +1260,11 @@ function ViewFlow() {
       {
         deleteNode: processNodeDeleteQ,
         addNode: processNodeAddQ,
-        link: processLinkUpdateQ,
+        // link: processLinkUpdateQ,
         ageNode: ageNodes,
-        ageLinks: ageLinks,
-        deadNode: processDeadNodesHash,
-        deadLink: processDeadLinksHash
+        // ageLinks: ageLinks,
+        deadNode: processDeadNodesHash
+        // deadLink: processDeadLinksHash
       },
 
       function(err, results) {
@@ -1380,6 +1382,11 @@ function ViewFlow() {
   }
 
   this.addNode = function(newNode) {
+
+      // console.log("N>" 
+      //   + " " + newNode.nodeId
+      //   + " " + newNode.nodeType
+      // );
 
     if (typeof newNode.text === 'undefined') {
       newNode.text = "== UNDEFINED ==";

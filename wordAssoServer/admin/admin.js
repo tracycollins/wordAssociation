@@ -167,7 +167,6 @@ var showConnectedUtils = true;
 var showDisconnectedUtils = false;
 var showIpUtils = true;
 var deltaTweetsMax = 1;
-var tweetsPerMinBar;
 
 var utilSessionTableHead;
 var utilIpTableHead;
@@ -223,6 +222,10 @@ var wordsPerMinBarText;
 var tweetsPerMinBar;
 var tweetsPerMinBarDiv;
 var tweetsPerMinBarText;
+
+var twitterLimitBar;
+var twitterLimitBarDiv;
+var twitterLimitBarText;
 
 function initBars(callback){
  
@@ -323,8 +326,12 @@ function initBars(callback){
   tweetsPerMinBarDiv = document.getElementById('delta-tweet-bar');
   tweetsPerMinBarText = document.getElementById('delta-tweet-bar-text');
   tweetsPerMinBar = new ProgressBar.Line(tweetsPerMinBarDiv, { duration: 200 });
-
   tweetsPerMinBar.animate(0);
+
+  twitterLimitBarDiv = document.getElementById('twitter-limit-bar');
+  twitterLimitBarText = document.getElementById('twitter-limit-bar-text');
+  twitterLimitBar = new ProgressBar.Line(twitterLimitBarDiv, { duration: 200 });
+  twitterLimitBar.animate(0);
 
   var options = {
     headerFlag: true,
@@ -350,6 +357,10 @@ var tweetsPerMinServer;
 var tweetsPerMin = 0;
 var tweetsPerMinMax = 1;
 var tweetsPerMinMaxTime = 0;
+
+var twitterLimit = 0;
+var twitterLimitMax = 1;
+var twitterLimitMaxTime = 0;
 
 
 function setValue(id, newvalue) {
@@ -801,6 +812,10 @@ socket.on('HEARTBEAT', function(rxHeartbeat) {
     tweetsPerMin = heartBeat.utilities[tweetsPerMinServer].tweetsPerMinute;
     tweetsPerMinMax = heartBeat.utilities[tweetsPerMinServer].maxTweetsPerMin;
     tweetsPerMinMaxTime = heartBeat.utilities[tweetsPerMinServer].maxTweetsPerMinTime;
+
+    twitterLimit = heartBeat.utilities[tweetsPerMinServer].twitterLimit;
+    twitterLimitMax = heartBeat.utilities[tweetsPerMinServer].twitterLimitMax;
+    twitterLimitMaxTime = heartBeat.utilities[tweetsPerMinServer].twitterLimitMaxTime;
   }
 
   // console.log("... HB\n" + jsonPrint(heartBeat));
@@ -1781,6 +1796,19 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
   }
 
   tweetsPerMinBarText.innerHTML = parseInt(tweetsPerMin) + ' TPM | ' + parseInt(tweetsPerMinMax) + ' MAX' + ' | ' + moment(tweetsPerMinMaxTime).format(defaultDateTimeFormat);
+
+
+  twitterLimitBar.animate(twitterLimit / twitterLimitMax);
+
+  if (twitterLimit >= 0.01*ALERT_LIMIT_PERCENT * twitterLimitMax) {
+    twitterLimitBar.path.setAttribute('stroke', endColor);
+  } else if (twitterLimit >= 0.01*WARN_LIMIT_PERCENT * twitterLimitMax) {
+    twitterLimitBar.path.setAttribute('stroke', midColor);
+  } else {
+    twitterLimitBar.path.setAttribute('stroke', startColor);
+  }
+
+  twitterLimitBarText.innerHTML = parseInt(twitterLimit) + ' LIMIT | ' + parseInt(twitterLimitMax) + ' MAX' + ' | ' + moment(twitterLimitMaxTime).format(defaultDateTimeFormat);
 
 
   var heatbeatTable = document.getElementById('heartbeat_table');

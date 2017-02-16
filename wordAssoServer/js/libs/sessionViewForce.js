@@ -14,6 +14,7 @@ function ViewForce() {
 
   var sPosHashMap = {};
 
+  var localSessionHashMap = new HashMap();
   var localNodeHashMap = new HashMap();
   var localLinkHashMap = new HashMap();
 
@@ -161,7 +162,7 @@ function ViewForce() {
   var nodeLabelOpacityScale = d3.scaleLinear().domain([1e-6, 1.0]).range([1.0, 1e-6]);
   var linkOpacityScale = d3.scaleLinear().domain([1e-6, 1.0]).range([0.7, 1e-6]);
 
-  var adjustedAgeRateScale = d3.scaleLinear().domain([1, 200]).range([1.0, 20.0]).clamp(true);
+  var adjustedAgeRateScale = d3.scaleLinear().domain([1, 500]).range([1.0, 10.0]).clamp(true);
 
   var nodeFontSizeScale = d3.scaleLinear().domain([1, currentHashtagMaxMentions]).range([minFontSize, maxFontSize]).clamp(true);
   var imageSizeScale = d3.scaleLog().domain([1, 10000000]).range([20.0, 60.0]).clamp(true);
@@ -511,6 +512,14 @@ function ViewForce() {
       // );
       return true;
     }
+    else if (nodes.length < MAX_NODES) {
+      // console.debug("processNodeCount"
+      //   + " | Ns: "  + nodes.length
+      //   + " | NQ: "  + nodeAddQ.length
+      //   + " | PNC: "  + processNodeCount
+      // );
+      return true;
+    }
     else if ((nodes.length < 2*MAX_NODES) && (processNodeCount % processNodeModulus != 0)) {
       // console.debug("processNodeCount MAX_NODES MOD"
       //   + " | Ns: "  + nodes.length
@@ -541,13 +550,16 @@ function ViewForce() {
 
     var nodesModifiedFlag = false;
 
-    while ((nodeAddQ.length > 0) && addNodeEnabled()) {
+    while ((nodeAddQ.length > 0) && (addNodeEnabled() || (nodeAddQ[0].nodeType == "tweet"))) {
+
 
       processNodeCount++;
 
       var nodeAddObj = nodeAddQ.shift();
       var newNode = nodeAddObj.node;
       var currentNode = {};
+
+      // console.warn("processNodeAddQ | " + newNode.nodeType + " | " + newNode.nodeId);
 
       switch (nodeAddObj.op) {
 
@@ -562,12 +574,13 @@ function ViewForce() {
           else {
             nodesModifiedFlag = true;
             currentNode = newNode;
+            if (!newNode.links) currentNode.links = {};
             currentNode.newFlag = true;
             currentNode.age = 0;
             currentNode.x = randomIntFromInterval(0.45 * width, 0.55 * width);
             currentNode.y = randomIntFromInterval(0.45 * height, 0.55 * height);
-            if (newNode.nodeType == "tweet"){
-            }
+            // if (newNode.nodeType == "tweet"){
+            // }
           }
 
           currentNode.mentions = newNode.mentions;
@@ -584,7 +597,9 @@ function ViewForce() {
           }
 
           if (nodesModifiedFlag) nodes.push(currentNode);
+
           localNodeHashMap.set(currentNode.nodeId, currentNode);
+
           if (nodes.length > maxNumberNodes) {
             maxNumberNodes = nodes.length;
           }
@@ -727,7 +742,7 @@ function ViewForce() {
       while (createTweetLinksQueue.length > 0) {
         node = createTweetLinksQueue.shift();
         createTweetLinks(node, function(){
-          createTweetLinksHashMap.remove(node.nodeId);
+          // createTweetLinksHashMap.remove(node.nodeId);
         });
       }
     }, interval);
@@ -1032,6 +1047,75 @@ function ViewForce() {
     });
   }
 
+  var createSessionLinksQueue = [];
+  var createSessionLinksHashMap = new HashMap();
+  var createSessionLinksInterval;
+  var createSessionLinksReady = true;
+
+  function initCreateSessionLinksInterval (interval){
+
+    clearInterval(createSessionLinksInterval);
+    createSessionLinksQueue = [];
+
+    var node;
+
+    createSessionLinksInterval = setInterval(function(){
+
+      if (createSessionLinksReady && (createSessionLinksQueue.length > 0)) {
+
+        createSessionLinksReady = false;
+
+        node = createSessionLinksQueue.shift();
+
+        createSessionLinks(node, function(){
+
+          createSessionLinksHashMap.remove(node.nodeId);
+
+          createSessionLinksReady = true;
+
+        });
+
+      }
+
+    }, interval);
+
+  }
+
+  function createSessionLinks(node, callback){
+
+    console.log("createSessionLinks\n" + jsonPrint(node));
+
+
+    if (localNodeHashMap.has(node.sessionNodeId)) {
+
+      var sNode = localNodeHashMap.get(node.sessionNodeId);
+
+      console.debug("createSessionLinks sNode\n" + jsonPrint(sNode));
+
+      var linkId = sNode.nodeId + "_" + node.nodeId;
+
+      if (!localLinkHashMap.has(linkId)) {
+        var newLink = {
+          linkId: linkId,
+          age: 0,
+          source: sNode,
+          target: node,
+          sourceAndTarget: true
+        }
+        localLinkHashMap.set(linkId, newLink);
+        self.addLink(newLink);
+      }
+      else {
+        newLink = localLinkHashMap.get(linkId);
+        newLink.age = 0;
+        localLinkHashMap.set(linkId, newLink);
+      }
+    }
+
+    callback();
+
+  }
+
   var ageNodes = function (callback) {
 
     var deadNodeFlag = false ;
@@ -1040,9 +1124,9 @@ function ViewForce() {
       ageRate = DEFAULT_AGE_RATE;
       return (callback(null, deadNodeFlag));
     } 
-    else if (nodeAddQ.length > 100) {
-      ageRate = adjustedAgeRateScale(nodeAddQ.length - 100);
-    } 
+    // else if (nodeAddQ.length > 100) {
+    //   ageRate = adjustedAgeRateScale(nodeAddQ.length - 100);
+    // } 
     else if (nodes.length > 100) {
       ageRate = adjustedAgeRateScale(nodes.length - 100);
     } 
@@ -1072,13 +1156,14 @@ function ViewForce() {
         }
       }
 
-      age = node.age + (ageRate * (moment().valueOf() - node.ageUpdated));
+      age = node.age + randomIntFromInterval(10,100) + (ageRate * (moment().valueOf() - node.ageUpdated));
       ageMaxRatio = age/nodeMaxAge ;
 
       if (node.isDead) {
         deadNodesHash[node.nodeId] = 1;
         node.ageMaxRatio = 1.0;
         deadNodeFlag = true;
+        localNodeHashMap.set(node.nodeId, node);
       } 
       else if (age >= nodeMaxAge) {
         node.ageUpdated = moment().valueOf();
@@ -1088,6 +1173,7 @@ function ViewForce() {
         nodes[ageNodesIndex] = node;
         deadNodesHash[node.nodeId] = 1;
         deadNodeFlag = true;
+        localNodeHashMap.set(node.nodeId, node);
       } 
       else {
         node.ageUpdated = moment().valueOf();
@@ -1095,11 +1181,21 @@ function ViewForce() {
         node.ageMaxRatio = ageMaxRatio;
         node.isDead = false;
         nodes[ageNodesIndex] = node;
+        localNodeHashMap.set(node.nodeId, node);
 
-        if ((node.nodeType == "tweet") && (!createTweetLinksHashMap.has(node.nodeId))) {
+        // if ((node.nodeType == "tweet") && (!createTweetLinksHashMap.has(node.nodeId))) {
+        if (node.nodeType == "tweet") {
           createTweetLinksQueue.push(node);
-          createTweetLinksHashMap.set(node.nodeId, node);
+          // createTweetLinksHashMap.set(node.nodeId, node);
           // console.warn("createTweetLinksQueue: " + createTweetLinksQueue.length);
+        }
+        if (node.nodeType == "word"){
+          var sessionLinkId = node.sessionId + "_" + node.nodeId;
+          if (!createSessionLinksHashMap.has(sessionLinkId)) {
+            createSessionLinksQueue.push(node);
+            createSessionLinksHashMap.set(sessionLinkId, node);
+            console.warn("createSessionLinksQueue: " + sessionLinkId);
+          }
         }
       }
     }
@@ -1272,7 +1368,15 @@ function ViewForce() {
 
     nodeCircles = nodeSvgGroup.selectAll("circle")
       .data(nodes.filter(function(d){
-        return ((d.nodeType == 'tweet') || (d.nodeType == 'hashtag') || (d.nodeType == 'url') || (d.nodeType == 'place')); 
+        return (
+          (d.nodeType == 'group') 
+          || (d.nodeType == 'session') 
+          || (d.nodeType == 'word') 
+          || (d.nodeType == 'tweet') 
+          || (d.nodeType == 'hashtag') 
+          || (d.nodeType == 'url') 
+          || (d.nodeType == 'place')
+          ); 
       }));
 
     nodeCircles
@@ -1303,6 +1407,9 @@ function ViewForce() {
           if (d.isRetweet) return palette.pink;
           return palette.red; 
         }
+        if (d.nodeType == 'group') { return palette.green; }
+        if (d.nodeType == 'sesion') { return palette.purple; }
+        if (d.nodeType == 'word') { return palette.yellow; }
         if (d.nodeType == 'hashtag') { return palette.blue; }
         if (d.nodeType == 'url') { return palette.green; }
         if (d.nodeType == 'place') { return palette.purple; }
@@ -1379,7 +1486,13 @@ function ViewForce() {
 
     nodeLabels = nodeLabelSvgGroup.selectAll("text")
       .data(nodes.filter(function(d){
-        return ((d.nodeType == 'hashtag') || (d.nodeType == 'place')); 
+        return (
+          (d.nodeType == 'hashtag') 
+          || (d.nodeType == 'place')
+          || (d.nodeType == 'session')
+          || (d.nodeType == 'group')
+          || (d.nodeType == 'word')
+          ); 
       }));
 
     nodeLabels
@@ -1392,6 +1505,9 @@ function ViewForce() {
       .on("click", nodeClick)
       .merge(nodeLabels)
       .text(function(d) {
+        if (d.nodeType == 'group') return d.name;
+        if (d.nodeType == 'session') return d.entity.toUpperCase();
+        if (d.nodeType == 'word') return d.text;
         if (d.nodeType == 'hashtag') return d.nodeId;
         if (d.nodeType == 'place') return d.fullName;
       })
@@ -1405,7 +1521,7 @@ function ViewForce() {
       })
       .style('fill', function(d) { 
         if (d.mouseHoverFlag) { return palette.blue; }
-        return palette.white; 
+        return palette.lightgray; 
       })
       .style("font-size", function(d) {
         return (nodeFontSizeScale(d.mentions + 1));
@@ -1596,8 +1712,35 @@ function ViewForce() {
 
   this.addNode = function(nNode) {
 
+    // console.debug("N> " + nNode.nodeId + " | " + nNode.nodeType);
+
+    if ((nNode.nodeType == "session")|| (nNode.nodeType == "group")|| (nNode.nodeType == "word")) return;
+
     var newNode = nNode;
     newNode.newFlag = true;
+
+
+    // console.debug("N> " + newNode.nodeId 
+    //   + " | " + newNode.nodeId
+    //   // + "\n" + jsonPrint(newNode)
+    // );
+
+    if ((newNode.nodeType == "tweet") || (nodeAddQ.length < MAX_RX_QUEUE)) {
+      nodeAddQ.push({op:'add', node: newNode});
+    }
+
+    if (nodeAddQ.length > maxNodeAddQ) {
+      maxNodeAddQ = nodeAddQ.length;
+      console.info("NEW MAX NODE ADD Q: " + maxNodeAddQ);
+    }
+  }
+
+  this.addGroup = function(nNode) {
+
+    var newNode = nNode;
+    newNode.newFlag = true;
+
+      console.debug("N> " + newNode.nodeId + " | " + newNode.nodeType);
 
     if (nodeAddQ.length < MAX_RX_QUEUE) nodeAddQ.push({op:'add', node: newNode});
 
@@ -1605,6 +1748,29 @@ function ViewForce() {
       maxNodeAddQ = nodeAddQ.length;
       console.info("NEW MAX NODE ADD Q: " + maxNodeAddQ);
     }
+  }
+
+  var localSessionHashMap = {};
+  this.addSession = function(sess) {
+
+    // var newNode = sess.node;
+    // newNode.newFlag = true;
+
+    // console.debug("N> " + newNode.nodeId 
+    //   + " | " + newNode.nodeType
+    //   + "\n" + jsonPrint(newNode)
+    // );
+
+    // if (nodeAddQ.length < MAX_RX_QUEUE) {
+    //   nodeAddQ.push({op:'add', node: newNode});
+    //   if (!localSessionHashMap[sess.sessionId]) localSessionHashMap[sess.sessionId] = {};
+    //   localSessionHashMap[sess.sessionId][newNode.nodeId] = 1;
+    // }
+
+    // if (nodeAddQ.length > maxNodeAddQ) {
+    //   maxNodeAddQ = nodeAddQ.length;
+    //   console.info("NEW MAX NODE ADD Q: " + maxNodeAddQ);
+    // }
   }
 
   this.deleteNode = function(nodeId) {
@@ -1624,6 +1790,7 @@ function ViewForce() {
   this.initD3timer = function() {
 
     initCreateTweetLinksInterval(20);
+    initCreateSessionLinksInterval(20);
 
     simulation = d3.forceSimulation(nodes)
       .force("link", d3.forceLink(links).id(function(d) { return d.linkId; })

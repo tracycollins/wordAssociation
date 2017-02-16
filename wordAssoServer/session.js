@@ -64,7 +64,7 @@ var debug = false;
 var DEFAULT_BLAH_MODE = false;
 var MAX_RX_QUEUE = 50;
 var MAX_WORDCHAIN_LENGTH = 100;
-var DEFAULT_MAX_AGE = 10000;
+var DEFAULT_MAX_AGE = 30000;
 var FORCE_MAX_AGE = 30000;
 var DEFAULT_AGE_RATE = 1.0;
 
@@ -2115,6 +2115,7 @@ var createGroup = function(callback) {
       currentGroup.wordChainIndex = sessUpdate.wordChainIndex;
 
       // GROUP NODE
+      currentGroup.node.nodeType = "group";
       currentGroup.node.text = groupName;
       currentGroup.node.url = groupUrl;
 
@@ -2177,6 +2178,7 @@ var createGroup = function(callback) {
       currentGroup.ageUpdated = dateNow;
       currentGroup.ageMaxRatio = 1e-6;
       currentGroup.lastSeen = dateNow;
+      currentGroup.nodeType = "group";
       currentGroup.isGroup = true;
       currentGroup.isSession = false;
       currentGroup.mentions = 1;
@@ -2216,6 +2218,7 @@ var createGroup = function(callback) {
 
       // CREATE GROUP NODE
 
+      currentGroup.node.nodeType = "group"; // KLUDGE
       currentGroup.node.isGroupNode = true;
       currentGroup.node.isSessionNode = false;
       currentGroup.node.groupId = groupId;
@@ -2266,9 +2269,9 @@ var createGroup = function(callback) {
         // currentSessionView.addNode(grpNode);
 
         addToHashMap(groupHashMap, currentGroup.groupId, currentGroup, function(cGroup) {
-          // console.log("+ G " + cGroup.groupId 
-          //   + " | GNID: " + cGroup.node.nodeId
-          // );
+          console.log("+ G " + cGroup.groupId 
+            + " | GNID: " + cGroup.node.nodeId
+          );
           sessionCreateQueue.push(sessUpdate);
           currentSessionView.addGroup(cGroup);
           return (callback(null, cGroup.groupId));
@@ -2346,11 +2349,13 @@ var createSession = function(callback) {
       currentSession.interpolateColor = currentGroup.interpolateSessionColor;
 
       currentSession.node.url = sessUpdate.url;
+      currentSession.node.entity = sessUpdate.tags.entity;
       currentSession.node.text = sessUpdate.tags.entity + "|" + sessUpdate.tags.channel;
       currentSession.node.age = 1e-6;
       currentSession.node.ageMaxRatio = 1e-6;
       currentSession.node.isGroupNode = false;
       currentSession.node.isSessionNode = true;
+      currentSession.node.nodeType = "session"; // KLUDGE
       currentSession.node.isDead = false;
       currentSession.node.ageUpdated = dateNow;
       currentSession.node.lastSeen = dateNow;
@@ -2449,6 +2454,7 @@ var createSession = function(callback) {
 
       // CREATE SESSION NODE
 
+      currentSession.node.nodeType = "session";
       currentSession.node.isSessionNode = true;
       currentSession.node.isGroupNode = false;
       currentSession.node.isDead = false;
@@ -2524,17 +2530,19 @@ var createNode = function(callback) {
       session.node = sessionNode;
 
       addToHashMap(nodeHashMap, session.node.nodeId, sessionNode, function(sNode) {
+        // currentSessionView.addNode(sNode);
       });
 
     } 
     else {
 
-      console.log("+ SES" 
+      console.debug("+ SES" 
         + " | " + session.node.nodeId
         + " | Ms: " + session.node.mentions
       );
 
       session.node.bboxWidth = 1e-6;
+      session.node.nodeType = "session";
       session.node.isSessionNode = true;
       session.node.isGroupNode = false;
       // session.node.nodeId = session.tags.entity + "_" + session.tags.channel;
@@ -2572,10 +2580,10 @@ var createNode = function(callback) {
 
     if (config.sessionViewType == 'force') {
       // sourceNodeId = session.node.nodeId + "_" + session.source.nodeId;
-      sourceNodeId = session.node.nodeId;
+      sourceNodeId = session.source.nodeId;
       if (session.target) {
         // targetNodeId = session.node.nodeId + "_" + session.target.nodeId;
-        targetNodeId = session.node.nodeId;
+        targetNodeId = session.target.nodeId;
       }
     }
     else if (config.sessionViewType == 'histogram'){
@@ -2602,6 +2610,10 @@ var createNode = function(callback) {
 
     async.parallel({
         source: function(cb) {
+          // if ((config.sessionViewType == 'ticker') 
+          //   // || (config.sessionViewType == 'flow') 
+          //   // && (config.sessionViewType != 'force') 
+          //   || session.source.isIgnored) {
           if ((config.sessionViewType != 'ticker') 
             && (config.sessionViewType != 'flow') 
             && (config.sessionViewType != 'force') 
@@ -2614,6 +2626,7 @@ var createNode = function(callback) {
           } 
           else if (nodeHashMap.has(sourceNodeId)) {
             sourceNode = nodeHashMap.get(sourceNodeId);
+            sourceNode.sessionNodeId = session.node.nodeId;
             sourceNode.isKeyword = session.source.isKeyword;
             sourceNode.isTrendingTopic = session.source.isTrendingTopic;
             // sourceNode.keywordColor = getKeywordColor(session.source.keywords);
@@ -2644,11 +2657,13 @@ var createNode = function(callback) {
             sourceNode.interpolateColor = session.interpolateSessionColor;
 
             if (sourceNode.isSessionNode){
+              sourceNode.nodeType = "session";
               sourceNode.text = session.tags.entity + "|" + session.tags.channel;
               sourceNode.wordChainIndex = session.source.wordChainIndex;
               sourceNode.mentions = session.source.wordChainIndex;
             }
             else {
+              sourceNode.nodeType = "word"; // KLUDGE. really not hashtag
               sourceNode.text = sourceText;
               sourceNode.mentions = session.source.mentions;
             }
@@ -2664,6 +2679,7 @@ var createNode = function(callback) {
           else {
             sourceNode = session.source;
             sourceNode.nodeId = sourceNodeId;
+            sourceNode.sessionNodeId = session.node.nodeId;
             sourceNode.bboxWidth = 1e-6;
             sourceNode.isIgnored = session.source.isIgnored;
             if (ignoreWordHashMap.has(sourceText)) {
@@ -2674,6 +2690,7 @@ var createNode = function(callback) {
             sourceNode.keywordColor = getKeywordColor(session.source.keywords);
             sourceNode.newFlag = true;
             sourceNode.latestNode = true;
+            sourceNode.nodeType = "word"; // KLUDGE
             sourceNode.isSessionNode = false;
             sourceNode.isGroupNode = false;
             sourceNode.userId = session.userId;
@@ -2703,15 +2720,8 @@ var createNode = function(callback) {
             sourceNode.x = session.node.x+randomIntFromInterval(-10,-20);
             sourceNode.y = session.node.y+randomIntFromInterval(-10,10);
 
-            if (sourceNode.isSessionNode){
-              sourceNode.text = session.tags.entity + "|" + session.tags.channel;
-              sourceNode.wordChainIndex = session.source.wordChainIndex;
-              sourceNode.mentions = session.source.wordChainIndex;
-            }
-            else {
-              sourceNode.text = sourceText;
-              sourceNode.mentions = session.source.mentions;
-            }
+            sourceNode.text = sourceText;
+            sourceNode.mentions = session.source.mentions;
 
             addToHashMap(nodeHashMap, sourceNodeId, sourceNode, function(sNode) {
               cb(null, {
@@ -2741,10 +2751,12 @@ var createNode = function(callback) {
           } 
           else if (nodeHashMap.has(targetNodeId)) {
             targetNode = nodeHashMap.get(targetNodeId);
+            targetNode.sessionNodeId = session.node.nodeId;
             targetNode.newFlag = false;
             if (ignoreWordHashMap.has(targetText)) {
               targetNode.isIgnored = true;
             }
+            targetNode.nodeType = "word"; // KLUDGE
             targetNode.isTrendingTopic = session.target.isTrendingTopic;
             targetNode.isKeyword = session.target.isKeyword;
             // targetNode.keywordColor = getKeywordColor(session.target.keywords);
@@ -2771,6 +2783,7 @@ var createNode = function(callback) {
             targetNode.latestNode = false;
 
             if (targetNode.isSessionNode){
+              targetNode.nodeType = "session"; // KLUDGE
               targetNode.text = session.tags.entity + "|" + session.tags.channel;
               targetNode.wordChainIndex = session.target.wordChainIndex;
               targetNode.mentions = session.target.wordChainIndex;
@@ -2801,8 +2814,10 @@ var createNode = function(callback) {
           else {
             targetNode = session.target;
             targetNode.nodeId = targetNodeId;
+            targetNode.sessionNodeId = session.node.nodeId;
             targetNode.bboxWidth = 1e-6;
             targetNode.newFlag = true;
+            targetNode.nodeType = "word"; // KLUDGE
             targetNode.isSessionNode = false;
             targetNode.isGroupNode = false;
             if (ignoreWordHashMap.has(targetText)) {
@@ -2835,23 +2850,12 @@ var createNode = function(callback) {
 
             targetNode.latestNode = false;
             
-            if (targetNode.isSessionNode){
-              targetNode.text = session.tags.entity + "|" + session.tags.channel;
-              targetNode.wordChainIndex = session.target.wordChainIndex;
-              if (typeof session.target.wordChainIndex === 'undefined') console.error("session.target.wordChainIndex UNDEFINED");
-              targetNode.mentions = session.target.wordChainIndex;
-              targetNode.r = config.defaultNodeRadius;
-              targetNode.x = session.node.x;
-              targetNode.y = session.node.y;
-            }
-            else {
-              targetNode.text = targetText;
-              if (typeof session.target.mentions === 'undefined') console.error("session.target.mentions UNDEFINED");
-              targetNode.mentions = session.target.mentions;
-              targetNode.r = config.defaultNodeRadius;
-              targetNode.x = session.node.x - (100 * Math.random());
-              targetNode.y = session.node.y - (20 - 20 * Math.random());
-            }
+            targetNode.text = targetText;
+            if (typeof session.target.mentions === 'undefined') console.error("session.target.mentions UNDEFINED");
+            targetNode.mentions = session.target.mentions;
+            targetNode.r = config.defaultNodeRadius;
+            targetNode.x = session.node.x - (100 * Math.random());
+            targetNode.y = session.node.y - (20 - 20 * Math.random());
 
             addToHashMap(nodeHashMap, targetNodeId, targetNode, function(tNode) {
               cb(null, {
@@ -2864,6 +2868,8 @@ var createNode = function(callback) {
         }
       },
       function(err, results) {
+
+        // console.debug("createNode\n" + jsonPrint(results));
 
         if (!results.source.isIgnored) {
           session.source = results.source.node;
@@ -2942,7 +2948,7 @@ var createLink = function(callback) {
 
         addToHashMap(linkHashMap, sessionLinkId, newSessionLink, function(sesLink) {
           currentSessionView.addLink(sesLink);
-          currentSessionView.deleteLink(prevSessionLinkIdHash[session.node.nodeId]);
+          // currentSessionView.deleteLink(prevSessionLinkIdHash[session.node.nodeId]);
           prevSessionLinkIdHash[session.node.nodeId] = sessionLinkId;
         });
       }
@@ -2953,7 +2959,7 @@ var createLink = function(callback) {
 
         addToHashMap(linkHashMap, sessionLinkId, sessionLink, function(sesLink) {
           currentSessionView.addLink(sesLink);
-          currentSessionView.deleteLink(prevSessionLinkIdHash[session.node.nodeId]);
+          // currentSessionView.deleteLink(prevSessionLinkIdHash[session.node.nodeId]);
           prevSessionLinkIdHash[session.node.nodeId] = sessionLinkId;
         });
       }
@@ -2992,7 +2998,7 @@ var createLink = function(callback) {
           sourceTargetLink.isDead = false;
 
           addToHashMap(linkHashMap, sourceTargetLinkId, sourceTargetLink, function(srcTgtLink) {
-            // currentSessionView.addLink(srcTgtLink);
+            currentSessionView.addLink(srcTgtLink);
           });
         }
       }
@@ -3109,7 +3115,7 @@ function loadViewType(svt, callback) {
       config.sessionViewType = "ticker";
       config.forceViewMode = "flow";
       requirejs(["js/libs/sessionViewTicker"], function() {
-        console.log("sessionViewTicker LOADED");
+        console.debug("sessionViewTicker LOADED");
         currentSessionView = new ViewTicker();
         callback();
       });
@@ -3118,7 +3124,7 @@ function loadViewType(svt, callback) {
       config.sessionViewType = "flow";
       config.forceViewMode = "flow";
       requirejs(["js/libs/sessionViewFlow"], function() {
-        console.log("sessionViewFlow LOADED");
+        console.debug("sessionViewFlow LOADED");
         currentSessionView = new ViewFlow();
         callback();
       });
@@ -3127,7 +3133,7 @@ function loadViewType(svt, callback) {
       config.sessionViewType = "histogram";
       config.forceViewMode = "flow";
       requirejs(["js/libs/sessionViewHistogram"], function() {
-        console.log("sessionViewHistogram LOADED");
+        console.debug("sessionViewHistogram LOADED");
         currentSessionView = new ViewHistogram();
         callback();
       });
@@ -3136,7 +3142,7 @@ function loadViewType(svt, callback) {
       config.sessionViewType = "force";
       config.forceViewMode = "web";
       requirejs(["js/libs/sessionViewForce"], function() {
-        console.log("sessionViewForce LOADED");
+        console.debug("sessionViewForce LOADED");
 
 
         // DEFAULT_FRICTION = FORCEVIEW_DEFAULT.FRICTION;

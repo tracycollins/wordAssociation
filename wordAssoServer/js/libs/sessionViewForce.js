@@ -6,7 +6,7 @@
 function ViewForce() {
 
   var newAgeRatio = 0.01;
-  var nodeNewAge = 200;
+  var nodeNewAge = 800;
 
   var disableLinks = false;
   var hideNodeCirclesFlag = false;
@@ -18,7 +18,7 @@ function ViewForce() {
   var localNodeHashMap = new HashMap();
   var localLinkHashMap = new HashMap();
 
-  var MAX_NODES = 70;
+  var MAX_NODES = 47;
   var processNodeCount = 0;
   var processNodeModulus = 3;
 
@@ -27,7 +27,7 @@ function ViewForce() {
   var self = this;
   var simulation;
 
-  var showStatsFlag = false;
+  var showStatsFlag = true;
   var fixedGroupsFlag = false;
 
   var runningFlag = false;
@@ -160,12 +160,13 @@ function ViewForce() {
   var nodeCircleOpacityScale = d3.scaleLinear().domain([1e-6, 1.0]).range([1.0, 1e-6]);
   var nodeImageOpacityScale = d3.scaleLinear().domain([1e-6, 1.0]).range([1.0, 1e-6]);
   var nodeLabelOpacityScale = d3.scaleLinear().domain([1e-6, 1.0]).range([1.0, 1e-6]);
-  var linkOpacityScale = d3.scaleLinear().domain([1e-6, 1.0]).range([0.7, 1e-6]);
+  var linkOpacityScale = d3.scaleLinear().domain([1e-6, 1.0]).range([0.5, 1e-6]);
 
-  var adjustedAgeRateScale = d3.scaleLinear().domain([1, 500]).range([1.0, 10.0]).clamp(true);
+  // var adjustedAgeRateScale = d3.scaleLinear().domain([1, 500]).range([1.0, 10.0]).clamp(true);
+  var adjustedAgeRateScale = d3.scaleLinear().domain([1, MAX_NODES]).range([1.0, 10.0]);
 
   var nodeFontSizeScale = d3.scaleLinear().domain([1, currentHashtagMaxMentions]).range([minFontSize, maxFontSize]).clamp(true);
-  var imageSizeScale = d3.scaleLog().domain([1, 10000000]).range([20.0, 60.0]).clamp(true);
+  var imageSizeScale = d3.scaleLog().domain([1, 10000000]).range([10.0, 100.0]).clamp(true);
   var defaultRadiusScale = d3.scaleLog().domain([1, 10000000]).range([5, 30]).clamp(true);
 
   console.log("@@@@@@@ CLIENT @@@@@@@@");
@@ -512,15 +513,7 @@ function ViewForce() {
       // );
       return true;
     }
-    else if (nodes.length < MAX_NODES) {
-      // console.debug("processNodeCount"
-      //   + " | Ns: "  + nodes.length
-      //   + " | NQ: "  + nodeAddQ.length
-      //   + " | PNC: "  + processNodeCount
-      // );
-      return true;
-    }
-    else if ((nodes.length < 2*MAX_NODES) && (processNodeCount % processNodeModulus != 0)) {
+    else if ((nodes.length < 2*MAX_NODES) && (processNodeCount % processNodeModulus == 0)) {
       // console.debug("processNodeCount MAX_NODES MOD"
       //   + " | Ns: "  + nodes.length
       //   + " | NQ: "  + nodeAddQ.length
@@ -528,8 +521,24 @@ function ViewForce() {
       // );
       return true;
     }
-    else if ((nodes.length < 3*MAX_NODES) && (processNodeCount % processNodeModulus == 0)) {
+    else if ((nodes.length < 3*MAX_NODES) && (processNodeCount % (processNodeModulus+1) == 0)) {
+      // console.debug("processNodeCount MAX_NODES MOD"
+      //   + " | Ns: "  + nodes.length
+      //   + " | NQ: "  + nodeAddQ.length
+      //   + " | PNC: "  + processNodeCount
+      // );
+      return true;
+    }
+    else if ((nodes.length < 4*MAX_NODES) && (processNodeCount % (processNodeModulus+2) == 0)) {
       // console.debug("processNodeCount MAX_NODES MOD 2"
+      //   + " | Ns: "  + nodes.length
+      //   + " | NQ: "  + nodeAddQ.length
+      //   + " | PNC: "  + processNodeCount
+      // );
+      return true;
+    }
+    else if ((nodes.length < 8*MAX_NODES) && (processNodeCount % (processNodeModulus+3) == 0)) {
+      // console.debug("processNodeCount MAX_NODES MOD 8"
       //   + " | Ns: "  + nodes.length
       //   + " | NQ: "  + nodeAddQ.length
       //   + " | PNC: "  + processNodeCount
@@ -549,6 +558,8 @@ function ViewForce() {
   var processNodeAddQ = function(callback) {
 
     var nodesModifiedFlag = false;
+
+    processNodeCount++;
 
     while ((nodeAddQ.length > 0) && (addNodeEnabled() || (nodeAddQ[0].nodeType == "tweet"))) {
 
@@ -785,6 +796,8 @@ function ViewForce() {
               }
               localLinkHashMap.set(linkId, newLink);
               self.addLink(newLink);
+              twNode.age = 0;
+              localNodeHashMap.set(twNode.nodeId, twNode);
             }
             else {
               newLink = localLinkHashMap.get(linkId);
@@ -818,6 +831,8 @@ function ViewForce() {
               }
               localLinkHashMap.set(linkId, newLink);
               self.addLink(newLink);
+              usNode.age = 0;
+              localNodeHashMap.set(usNode.nodeId, usNode);
             }
             else {
               newLink = localLinkHashMap.get(linkId);
@@ -858,6 +873,8 @@ function ViewForce() {
                 }
                 localLinkHashMap.set(linkId, newLink);
                 self.addLink(newLink);
+                usNode.age = 0;
+                localNodeHashMap.set(usNode.nodeId, usNode);
               }
               else {
                 newLink = localLinkHashMap.get(linkId);
@@ -902,6 +919,8 @@ function ViewForce() {
                 }
                 localLinkHashMap.set(linkId, newLink);
                 self.addLink(newLink);
+                htNode.age = 0;
+                localNodeHashMap.set(htNode.nodeId, htNode);
               }
               else {
                 newLink = localLinkHashMap.get(linkId);
@@ -946,6 +965,8 @@ function ViewForce() {
                 }
                 localLinkHashMap.set(linkId, newLink);
                 self.addLink(newLink);
+                meNode.age = 0;
+                localNodeHashMap.set(meNode.nodeId, meNode);
               }
               else {
                 newLink = localLinkHashMap.get(linkId);
@@ -990,6 +1011,8 @@ function ViewForce() {
                 }
                 localLinkHashMap.set(linkId, newLink);
                 self.addLink(newLink);
+                urlNode.age = 0;
+                localNodeHashMap.set(urlNode.nodeId, urlNode);
               }
               else {
                 newLink = localLinkHashMap.get(linkId);
@@ -1028,6 +1051,8 @@ function ViewForce() {
               }
               localLinkHashMap.set(linkId, newLink);
               self.addLink(newLink);
+              plNode.age = 0;
+              localNodeHashMap.set(plNode.nodeId, plNode);
             }
             else {
               newLink = localLinkHashMap.get(linkId);
@@ -1124,11 +1149,11 @@ function ViewForce() {
       ageRate = DEFAULT_AGE_RATE;
       return (callback(null, deadNodeFlag));
     } 
-    // else if (nodeAddQ.length > 100) {
-    //   ageRate = adjustedAgeRateScale(nodeAddQ.length - 100);
-    // } 
-    else if (nodes.length > 100) {
-      ageRate = adjustedAgeRateScale(nodes.length - 100);
+    else if ((nodes.length > MAX_NODES) && (nodeAddQ.length <= MAX_RX_QUEUE)) {
+      ageRate = adjustedAgeRateScale(nodes.length - MAX_NODES);
+    } 
+    else if (nodeAddQ.length > MAX_RX_QUEUE) {
+      ageRate = adjustedAgeRateScale(nodeAddQ.length - MAX_RX_QUEUE);
     } 
     else {
       ageRate = DEFAULT_AGE_RATE;
@@ -1403,16 +1428,16 @@ function ViewForce() {
       .style('fill', function(d) { 
         if (d.mouseHoverFlag) { return palette.blue; }
         if (d.age < nodeNewAge) { return palette.white; }
-        if (d.nodeType == 'tweet') { 
-          if (d.isRetweet) return palette.pink;
-          return palette.red; 
-        }
-        if (d.nodeType == 'group') { return palette.green; }
-        if (d.nodeType == 'sesion') { return palette.purple; }
-        if (d.nodeType == 'word') { return palette.yellow; }
-        if (d.nodeType == 'hashtag') { return palette.blue; }
-        if (d.nodeType == 'url') { return palette.green; }
-        if (d.nodeType == 'place') { return palette.purple; }
+        // if (d.nodeType == 'tweet') { 
+        //   if (d.isRetweet) return palette.pink;
+        //   return palette.red; 
+        // }
+        // if (d.nodeType == 'group') { return palette.green; }
+        // if (d.nodeType == 'sesion') { return palette.purple; }
+        // if (d.nodeType == 'word') { return palette.yellow; }
+        // if (d.nodeType == 'hashtag') { return palette.blue; }
+        // if (d.nodeType == 'url') { return palette.green; }
+        // if (d.nodeType == 'place') { return palette.purple; }
         return palette.black; 
       })
       .style('stroke', function(d) {
@@ -1423,7 +1448,7 @@ function ViewForce() {
         if (d.age < nodeNewAge) return 3.5;
         return 2.5;
       })
-      .style('opacity', function(d) {
+      .style('stroke-opacity', function(d) {
         if (hideNodeCirclesFlag) return 1e-6;
         if (d.mouseHoverFlag) return 1.0;
         return nodeCircleOpacityScale(d.ageMaxRatio);
@@ -1460,11 +1485,11 @@ function ViewForce() {
         if (d.nodeType == "user") return d.profileImageUrl;
         return d.url; 
       })
-      .style("filter", function(d) {
-        if (d.nodeType == "media") return "url(#borderMedia)";
-        if (d.nodeType == "user") return "url(#borderUser)";
-        return "url(#border)";
-      })
+      // .style("filter", function(d) {
+      //   if (d.nodeType == "media") return "url(#borderMedia)";
+      //   if (d.nodeType == "user") return "url(#borderUser)";
+      //   return "url(#border)";
+      // })
       .attr("x", function(d) { return d.x - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0)); })
       .attr("y", function(d) { return d.y - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0)); })
       .attr("width", function(d){ return imageSizeScale(parseInt(d.mentions) + 1.0); })
@@ -1541,7 +1566,7 @@ function ViewForce() {
 
   function drawSimulation(callback){
 
-    async.series(
+    async.parallel(
       {
         udl: updateLinks,
         udnc: updateNodeCircles,
@@ -1576,26 +1601,34 @@ function ViewForce() {
       },
 
       function(err, results) {
-        if (err) {
-          console.error("*** ERROR: updateSimulation *** \nERROR: " + err);
-          callback(err);
-        }
-        else if (results) {
 
-          var keys = Object.keys(results);
 
-          for (var i=0; i<keys.length; i++){
-            if (results[keys[i]]) {
-              simulation.nodes(nodes);
-              if (runningFlag) self.simulationControl('RESTART');
-              if (typeof callback !== 'undefined') return(callback());
-              break;
-            }
-          }
-        }
-        else {
-          if (typeof callback !== 'undefined') callback();
-        }
+        simulation.nodes(nodes);
+        if (typeof callback !== 'undefined') callback();
+
+
+        // if (err) {
+        //   console.error("*** ERROR: updateSimulation *** \nERROR: " + err);
+        //   callback(err);
+        // }
+        // else if (results) {
+        //       simulation.nodes(nodes);
+        //       if (typeof callback !== 'undefined') return(callback());
+
+        //   // var keys = Object.keys(results);
+
+        //   // for (var i=0; i<keys.length; i++){
+        //   //   if (results[keys[i]]) {
+        //   //     // simulation.nodes(nodes);
+        //   //     // if (runningFlag) self.simulationControl('RESTART');
+        //   //     // if (typeof callback !== 'undefined') return(callback());
+        //   //     break;
+        //   //   }
+        //   // }
+        // }
+        // else {
+        //   if (typeof callback !== 'undefined') callback();
+        // }
       }
 
     );

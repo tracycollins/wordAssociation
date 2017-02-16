@@ -9,9 +9,9 @@ function ViewFlow() {
 
   var sPosHashMap = {};
 
-  var MAX_NODES = 50;
+  var MAX_NODES = 100;
   var processNodeCount = 0;
-  var processNodeModulus = 3;
+  var processNodeModulus = 2;
 
   var maxNodeAddQ = 0;
 
@@ -644,7 +644,7 @@ function ViewFlow() {
       // );
       return true;
     }
-    else if ((nodes.length < 2*MAX_NODES) && (processNodeCount % processNodeModulus != 0)) {
+    else if ((nodes.length < 2*MAX_NODES) && (processNodeCount % processNodeModulus == 0)) {
       // console.debug("processNodeCount MAX_NODES MOD"
       //   + " | Ns: "  + nodes.length
       //   + " | NQ: "  + nodeAddQ.length
@@ -652,7 +652,15 @@ function ViewFlow() {
       // );
       return true;
     }
-    else if ((nodes.length < 3*MAX_NODES) && (processNodeCount % processNodeModulus == 0)) {
+    else if ((nodes.length < 3*MAX_NODES) && (processNodeCount % (processNodeModulus+1) == 0)) {
+      // console.debug("processNodeCount MAX_NODES MOD 2"
+      //   + " | Ns: "  + nodes.length
+      //   + " | NQ: "  + nodeAddQ.length
+      //   + " | PNC: "  + processNodeCount
+      // );
+      return true;
+    }
+    else if ((nodes.length < 5*MAX_NODES) && (processNodeCount % (processNodeModulus+2) == 0)) {
       // console.debug("processNodeCount MAX_NODES MOD 2"
       //   + " | Ns: "  + nodes.length
       //   + " | NQ: "  + nodeAddQ.length
@@ -661,6 +669,7 @@ function ViewFlow() {
       return true;
     }
     else {
+      // return (processNodeCount % (processNodeModulus+3) == 0));
       // console.info("processNodeCount MAX_NODES"
       //   + " | Ns: "  + nodes.length
       //   + " | NQ: "  + nodeAddQ.length

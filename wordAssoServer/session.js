@@ -1837,6 +1837,7 @@ function initSocketNodeRx(){
 
   socket.on("node", function(nNode) {
 
+    if (config.pauseFlag) return;
     // console.log("N< " + nNode.nodeType + " | " + nNode.nodeId + " | " + nNode.mentions);
 
     var dateNow = moment().valueOf();

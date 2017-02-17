@@ -1361,8 +1361,9 @@ function ViewForce() {
       .attr("x2", function(d) { return d.target.x; })
       .attr("y2", function(d) { return d.target.y; })
       .style('stroke', function(d) {
-        if ((d.source.age < nodeNewAge) && (d.target.age < nodeNewAge)) return palette.white;
+        // if ((d.source.age < nodeNewAge) && (d.target.age < nodeNewAge)) return palette.white;
         // if ((d.source.nodeType == 'tweet') && (d.target.nodeType == 'tweet')) return palette.blue;
+        if (d.ageMaxRatio < 0.1) return palette.white;
         return "aaaaaa";
       })
       .style('stroke-width', function(d) {

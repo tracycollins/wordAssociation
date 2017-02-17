@@ -1216,9 +1216,12 @@ function ViewForce() {
 
         // if ((node.nodeType == "tweet") && (!createTweetLinksHashMap.has(node.nodeId))) {
         if (node.nodeType == "tweet") {
-          createTweetLinksQueue.push(node);
+          // createTweetLinksQueue.push(node);
           // createTweetLinksHashMap.set(node.nodeId, node);
           // console.warn("createTweetLinksQueue: " + createTweetLinksQueue.length);
+          createTweetLinks(node, function(){
+            // createTweetLinksQueueReady = true;
+          });
         }
         if (node.nodeType == "word"){
           var sessionLinkId = node.sessionId + "_" + node.nodeId;

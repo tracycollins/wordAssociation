@@ -1369,12 +1369,12 @@ function ViewForce() {
         if (d.ageMaxRatio < newAgeRatio) return palette.white;
         return "aaaaaa";
       })
-      .style('stroke-width', function(d) {
-        // if ((d.source.age <= nodeNewAge) && (d.target.age <= nodeNewAge)) return 4.5;
-        // if (d.ageMaxRatio < newAgeRatio) return 1.5;
-        if ((d.source.nodeType == 'tweet') && (d.target.nodeType == 'tweet')) return 1.5;
-        return 1.0;
-      })
+      // .style('stroke-width', function(d) {
+      //   // if ((d.source.age <= nodeNewAge) && (d.target.age <= nodeNewAge)) return 4.5;
+      //   // if (d.ageMaxRatio < newAgeRatio) return 1.5;
+      //   if ((d.source.nodeType == 'tweet') && (d.target.nodeType == 'tweet')) return 1.5;
+      //   return 1.0;
+      // })
       .style('opacity', function(d){
         // if ((d.source.age <= nodeNewAge) && (d.target.age <= nodeNewAge)) return 1.0;
         if (d.ageMaxRatio < newAgeRatio) return 1.0;

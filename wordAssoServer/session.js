@@ -1807,7 +1807,7 @@ socket.on("SESSION_UPDATE", function(rxSessionObject) {
   // console.debug("SES UPDATE: " + rxSessionObject.action + " | " + rxSessionObject.sessionId);
 
 
-  if (!windowVisible || !config.pauseFlag) {
+  if (!windowVisible || config.pauseFlag) {
     rxSessionUpdateQueue = [];
     if (debug) {
       console.log("... SKIP SESSION_UPDATE ... WINDOW NOT VISIBLE");

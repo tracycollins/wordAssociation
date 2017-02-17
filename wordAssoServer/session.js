@@ -1565,10 +1565,12 @@ function createStatsTable(callback) {
 }
 
 //  STATS UPDATE
-setInterval(function() {
-  if (sessionHashMap.count() > maxSessions) maxSessions = sessionHashMap.count();
-  if (statsTableFlag) updateStatsTable(statsObj);
-}, 1000);
+function initStatsUpdate(interval){
+  setInterval(function() {
+    if (sessionHashMap.count() > maxSessions) maxSessions = sessionHashMap.count();
+    if (statsTableFlag) updateStatsTable(statsObj);
+  }, interval);
+}
 
 //  KEEPALIVE
 setInterval(function() {
@@ -3260,6 +3262,7 @@ function initialize(callback) {
 
             currentSessionView.initD3timer();
 
+            initStatsUpdate(1000);
             initUpdateSessionsInterval(50);
 
             console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
@@ -3322,6 +3325,7 @@ function initialize(callback) {
             currentSessionView.simulationControl('START');
             currentSessionView.resize();
 
+            initStatsUpdate(1000);
             initUpdateSessionsInterval(50);
 
             console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
@@ -3386,6 +3390,7 @@ function initialize(callback) {
           currentSessionView.initD3timer();
           currentSessionView.resize();
 
+          initStatsUpdate(1000);
           initUpdateSessionsInterval(50);
 
           console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));

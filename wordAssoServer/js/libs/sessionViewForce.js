@@ -1373,7 +1373,7 @@ function ViewForce() {
         // if ((d.source.age < nodeNewAge) && (d.target.age < nodeNewAge)) return palette.white;
         // if ((d.source.nodeType == 'tweet') && (d.target.nodeType == 'tweet')) return palette.blue;
         if (d.ageMaxRatio < newAgeRatio) return palette.white;
-        return "aaaaaa";
+        return "cccccc";
       })
       // .style('stroke-width', function(d) {
       //   // if ((d.source.age <= nodeNewAge) && (d.target.age <= nodeNewAge)) return 4.5;

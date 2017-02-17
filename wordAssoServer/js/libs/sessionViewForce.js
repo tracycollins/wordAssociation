@@ -1386,7 +1386,7 @@ function ViewForce() {
       .attr("class", "link")
       .style("visibility", "visible")
       .style('stroke', palette.white )
-      .style('stroke-width', 2.5)
+      .style('stroke-width', 1.5)
       .style('opacity', 1);
 
     link

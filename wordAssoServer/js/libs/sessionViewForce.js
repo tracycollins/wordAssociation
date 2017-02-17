@@ -1366,12 +1366,13 @@ function ViewForce() {
         return "aaaaaa";
       })
       .style('stroke-width', function(d) {
-        if ((d.source.age <= nodeNewAge) && (d.target.age <= nodeNewAge)) return 4.5;
+        // if ((d.source.age <= nodeNewAge) && (d.target.age <= nodeNewAge)) return 4.5;
+        if (d.ageMaxRatio < 0.1) return 4.5;
         if ((d.source.nodeType == 'tweet') && (d.target.nodeType == 'tweet')) return 3.5;
         return 1.5;
       })
       .style('opacity', function(d){
-        if ((d.source.age <= nodeNewAge) && (d.target.age <= nodeNewAge)) return 1.0;
+        // if ((d.source.age <= nodeNewAge) && (d.target.age <= nodeNewAge)) return 1.0;
         return linkOpacityScale(d.ageMaxRatio);
       });
 

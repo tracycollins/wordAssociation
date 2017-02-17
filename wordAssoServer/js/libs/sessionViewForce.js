@@ -1464,27 +1464,34 @@ function ViewForce() {
   var updateNodeImages = function(callback) {
 
     var nodeImages = nodeSvgGroup.selectAll("image")
-      .data(nodes.filter(function(d, i){
-        // if ((d.nodeType == 'media') || (d.nodeType == 'user')) return d.nodeId;
-        return ((d.nodeType == 'media') || (d.nodeType == 'user'));
-      }));
+      .data(nodes, function(d){
+        // if ((d.nodeType == "user") || (d.nodeType == "media")) return d.nodeId;
+        // return null;
+        return d.nodeId;
+      });
 
     nodeImages
       .enter()
       .append("svg:image")
       .attr("href", function(d) { 
+        if (d.nodeType == "image") return d.url;
         if (d.nodeType == "user") return d.profileImageUrl;
-        return d.url; 
+        return null; 
       })
       .attr("class", "nodeImage")
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)
       .on("click", nodeClick)
-      .merge(nodeImages)
-      .attr("href", function(d) { 
-        if (d.nodeType == "user") return d.profileImageUrl;
-        return d.url; 
+      .style("visibility", function(d) {
+        if ((d.nodeType == "media") || (d.nodeType == "user")) return "visible";
+        return "hidden";
       })
+      .merge(nodeImages)
+      // .attr("href", function(d) { 
+      //   if (d.nodeType == "image") return d.url;
+      //   if (d.nodeType == "user") return d.profileImageUrl;
+      //   return null; 
+      // })
       // .style("filter", function(d) {
       //   if (d.nodeType == "media") return "url(#borderMedia)";
       //   if (d.nodeType == "user") return "url(#borderUser)";
@@ -1492,10 +1499,17 @@ function ViewForce() {
       // })
       .attr("x", function(d) { return d.x - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0)); })
       .attr("y", function(d) { return d.y - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0)); })
-      .attr("width", function(d){ return imageSizeScale(parseInt(d.mentions) + 1.0); })
-      .attr("height", function(d){ return imageSizeScale(parseInt(d.mentions) + 1.0); })
+      .attr("width", function(d){ 
+        if ((d.nodeType != "media") && (d.nodeType != "user")) return 0;
+        return imageSizeScale(parseInt(d.mentions) + 1.0); 
+      })
+      .attr("height", function(d){ 
+        if ((d.nodeType != "media") && (d.nodeType != "user")) return 0;
+        return imageSizeScale(parseInt(d.mentions) + 1.0); 
+      })
       .style('opacity', function(d) {
         // if (!d.imageLoaded) return 0.5;
+        if ((d.nodeType != "media") && (d.nodeType != "user")) return 0;
         if (d.mouseHoverFlag) return 1.0;
         return nodeImageOpacityScale(d.ageMaxRatio);
       });
@@ -1546,7 +1560,7 @@ function ViewForce() {
       })
       .style('fill', function(d) { 
         if (d.mouseHoverFlag) { return palette.blue; }
-        return palette.lightgray; 
+        return palette.white; 
       })
       .style("font-size", function(d) {
         return (nodeFontSizeScale(d.mentions + 1));

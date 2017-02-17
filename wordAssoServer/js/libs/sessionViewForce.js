@@ -5,7 +5,7 @@
 
 function ViewForce() {
 
-  var newAgeRatio = 0.01;
+  var newAgeRatio = 0.05;
   var nodeNewAge = 1000;
 
   var disableLinks = false;
@@ -1363,18 +1363,18 @@ function ViewForce() {
       .style('stroke', function(d) {
         // if ((d.source.age < nodeNewAge) && (d.target.age < nodeNewAge)) return palette.white;
         // if ((d.source.nodeType == 'tweet') && (d.target.nodeType == 'tweet')) return palette.blue;
-        if (d.ageMaxRatio < 0.1) return palette.white;
+        if (d.ageMaxRatio < newAgeRatio) return palette.white;
         return "aaaaaa";
       })
       .style('stroke-width', function(d) {
         // if ((d.source.age <= nodeNewAge) && (d.target.age <= nodeNewAge)) return 4.5;
-        if (d.ageMaxRatio < 0.1) return 4.5;
+        if (d.ageMaxRatio < newAgeRatio) return 4.5;
         if ((d.source.nodeType == 'tweet') && (d.target.nodeType == 'tweet')) return 3.5;
         return 1.5;
       })
       .style('opacity', function(d){
         // if ((d.source.age <= nodeNewAge) && (d.target.age <= nodeNewAge)) return 1.0;
-        if (d.ageMaxRatio < 0.1) return 1.0;
+        if (d.ageMaxRatio < newAgeRatio) return 1.0;
         return linkOpacityScale(d.ageMaxRatio);
       });
 

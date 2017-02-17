@@ -1371,7 +1371,7 @@ function ViewForce() {
       })
       .style('stroke-width', function(d) {
         // if ((d.source.age <= nodeNewAge) && (d.target.age <= nodeNewAge)) return 4.5;
-        if (d.ageMaxRatio < newAgeRatio) return 2.5;
+        // if (d.ageMaxRatio < newAgeRatio) return 1.5;
         if ((d.source.nodeType == 'tweet') && (d.target.nodeType == 'tweet')) return 1.5;
         return 1.0;
       })
@@ -1386,7 +1386,7 @@ function ViewForce() {
       .attr("class", "link")
       .style("visibility", "visible")
       .style('stroke', palette.white )
-      .style('stroke-width', 1.5)
+      .style('stroke-width', 1.0)
       .style('opacity', 1);
 
     link

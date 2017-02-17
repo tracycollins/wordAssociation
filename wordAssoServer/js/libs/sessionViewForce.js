@@ -1417,6 +1417,7 @@ function ViewForce() {
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)
       .on("click", nodeClick)
+      .style("fill", palette.white)
       .merge(nodeCircles)
       .attr("r", function(d) {
         if (d.isIgnored) {
@@ -1434,6 +1435,7 @@ function ViewForce() {
       .attr("cy", function(d) { return d.y; })
       .style('fill', function(d) { 
         if (d.mouseHoverFlag) { return palette.blue; }
+        if (d.newFlag) { return palette.white; }
         if (d.age < nodeNewAge) { return palette.white; }
         // if (d.nodeType == 'tweet') { 
         //   if (d.isRetweet) return palette.pink;

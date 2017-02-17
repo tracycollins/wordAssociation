@@ -6,7 +6,7 @@
 function ViewForce() {
 
   var newAgeRatio = 0.01;
-  var nodeNewAge = 800;
+  var nodeNewAge = 1000;
 
   var disableLinks = false;
   var hideNodeCirclesFlag = false;
@@ -563,6 +563,7 @@ function ViewForce() {
 
     while ((nodeAddQ.length > 0) && (addNodeEnabled() || (nodeAddQ[0].nodeType == "tweet"))) {
 
+      nodesModifiedFlag = false;
 
       processNodeCount++;
 

@@ -753,7 +753,8 @@ function ViewForce() {
     var node;
 
     createTweetLinksInterval = setInterval(function(){
-      while (createTweetLinksQueue.length > 0) {
+      // while (createTweetLinksQueue.length > 0) {
+      if (createTweetLinksQueue.length > 0) {
         node = createTweetLinksQueue.shift();
         createTweetLinks(node, function(){
           // createTweetLinksHashMap.remove(node.nodeId);

@@ -1270,6 +1270,7 @@ function ViewForce() {
         if (currentLinkObject.source.age > currentLinkObject.target.age) {
           currentLinkObject.age = currentLinkObject.source.age;
           currentLinkObject.ageMaxRatio = currentLinkObject.source.ageMaxRatio;
+          links[ageLinksIndex] = currentLinkObject;
         } else {
           currentLinkObject.age = currentLinkObject.target.age;
           currentLinkObject.ageMaxRatio = currentLinkObject.target.ageMaxRatio;

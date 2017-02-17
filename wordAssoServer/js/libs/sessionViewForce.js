@@ -751,15 +751,15 @@ function ViewForce() {
     createTweetLinksQueue = [];
 
     var node;
-    var createTweetLinksQueueReady = true;
+    // var createTweetLinksQueueReady = true;
 
     createTweetLinksInterval = setInterval(function(){
-      // while (createTweetLinksQueue.length > 0) {
-      if (createTweetLinksQueueReady && (createTweetLinksQueue.length > 0)) {
-        createTweetLinksQueueReady = false;
+      while (createTweetLinksQueue.length > 0) {
+      // if (createTweetLinksQueueReady && (createTweetLinksQueue.length > 0)) {
+        // createTweetLinksQueueReady = false;
         node = createTweetLinksQueue.shift();
         createTweetLinks(node, function(){
-          createTweetLinksQueueReady = true;
+          // createTweetLinksQueueReady = true;
         });
       }
     }, interval);
@@ -1848,8 +1848,8 @@ function ViewForce() {
 
   this.initD3timer = function() {
 
-    initCreateTweetLinksInterval(20);
-    initCreateSessionLinksInterval(20);
+    initCreateTweetLinksInterval(40);
+    initCreateSessionLinksInterval(40);
 
     simulation = d3.forceSimulation(nodes)
       .force("link", d3.forceLink(links).id(function(d) { return d.linkId; })

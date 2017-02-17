@@ -1277,26 +1277,30 @@ function ViewFlow() {
       },
 
       function(err, results) {
-        if (err) {
-          console.error("*** ERROR: updateSimulation *** \nERROR: " + err);
-          callback(err);
-        }
-        else if (results) {
 
-          var keys = Object.keys(results);
+        simulation.nodes(nodes);
+        if (typeof callback !== 'undefined') callback();
 
-          for (var i=0; i<keys.length; i++){
-            if (results[keys[i]]) {
-              simulation.nodes(nodes);
-              if (runningFlag) self.simulationControl('RESTART');
-              if (typeof callback !== 'undefined') return(callback());
-              break;
-            }
-          }
-        }
-        else {
-          if (typeof callback !== 'undefined') callback();
-        }
+        // if (err) {
+        //   console.error("*** ERROR: updateSimulation *** \nERROR: " + err);
+        //   callback(err);
+        // }
+        // else if (results) {
+
+        //   var keys = Object.keys(results);
+
+        //   for (var i=0; i<keys.length; i++){
+        //     if (results[keys[i]]) {
+        //       simulation.nodes(nodes);
+        //       if (runningFlag) self.simulationControl('RESTART');
+        //       if (typeof callback !== 'undefined') return(callback());
+        //       break;
+        //     }
+        //   }
+        // }
+        // else {
+        //   if (typeof callback !== 'undefined') callback();
+        // }
       }
 
     );

@@ -581,14 +581,16 @@ function ViewForce() {
             // console.error("localNodeHashMap HIT: " + newNode.nodeId);
             currentNode = localNodeHashMap.get(newNode.nodeId);
             currentNode.newFlag = true;
-            currentNode.age = 0;
+            currentNode.age = 1e-6;
+            currentNode.ageMaxRatio = 1e-6;
           }
           else {
             nodesModifiedFlag = true;
             currentNode = newNode;
             if (!newNode.links) currentNode.links = {};
             currentNode.newFlag = true;
-            currentNode.age = 0;
+            currentNode.age = 1e-6;
+            currentNode.ageMaxRatio = 1e-6;
             currentNode.x = randomIntFromInterval(0.45 * width, 0.55 * width);
             currentNode.y = randomIntFromInterval(0.45 * height, 0.55 * height);
             // if (newNode.nodeType == "tweet"){

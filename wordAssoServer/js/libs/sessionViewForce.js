@@ -165,7 +165,8 @@ function ViewForce() {
   // var adjustedAgeRateScale = d3.scaleLinear().domain([1, 500]).range([1.0, 10.0]).clamp(true);
   var adjustedAgeRateScale = d3.scaleLinear().domain([1, MAX_NODES]).range([1.0, 10.0]);
 
-  var nodeFontSizeScale = d3.scaleLinear().domain([1, currentHashtagMaxMentions]).range([minFontSize, maxFontSize]).clamp(true);
+  // var nodeFontSizeScale = d3.scaleLinear().domain([1, currentHashtagMaxMentions]).range([minFontSize, maxFontSize]).clamp(true);
+  var nodeFontSizeScale = d3.scaleLinear().domain([1, 1000000]).range([minFontSize, maxFontSize]);
   var imageSizeScale = d3.scaleLog().domain([1, 10000000]).range([20.0, 120.0]).clamp(true);
   var defaultRadiusScale = d3.scaleLog().domain([1, 10000000]).range([5, 30]).clamp(true);
 
@@ -602,7 +603,7 @@ function ViewForce() {
 
           if ((newNode.nodeType == "hashtag") && (newNode.mentions > currentHashtagMaxMentions)){
             currentHashtagMaxMentions = newNode.mentions;
-            nodeFontSizeScale = d3.scaleLinear().domain([1, currentHashtagMaxMentions]).range([minFontSize, maxFontSize]).clamp(true);
+            // nodeFontSizeScale = d3.scaleLinear().domain([1, currentHashtagMaxMentions]).range([minFontSize, maxFontSize]).clamp(true);
             console.info("NEW MAX Ms" 
               + " | " + currentHashtagMaxMentions 
               + " | " + currentNode.nodeType 
@@ -1787,7 +1788,8 @@ function ViewForce() {
     //   // + "\n" + jsonPrint(newNode)
     // );
 
-    if ((newNode.nodeType == "tweet") || (nodeAddQ.length < MAX_RX_QUEUE)) {
+    // if ((newNode.nodeType == "tweet") || (nodeAddQ.length < MAX_RX_QUEUE)) {
+    if (nodeAddQ.length < MAX_RX_QUEUE) {
       nodeAddQ.push({op:'add', node: newNode});
     }
 

@@ -751,13 +751,15 @@ function ViewForce() {
     createTweetLinksQueue = [];
 
     var node;
+    var createTweetLinksQueueReady = true;
 
     createTweetLinksInterval = setInterval(function(){
       // while (createTweetLinksQueue.length > 0) {
-      if (createTweetLinksQueue.length > 0) {
+      if (createTweetLinksQueueReady && (createTweetLinksQueue.length > 0)) {
+        createTweetLinksQueueReady = false;
         node = createTweetLinksQueue.shift();
         createTweetLinks(node, function(){
-          // createTweetLinksHashMap.remove(node.nodeId);
+          createTweetLinksQueueReady = true;
         });
       }
     }, interval);

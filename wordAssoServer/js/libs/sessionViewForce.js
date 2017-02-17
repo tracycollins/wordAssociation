@@ -1373,6 +1373,7 @@ function ViewForce() {
       })
       .style('opacity', function(d){
         // if ((d.source.age <= nodeNewAge) && (d.target.age <= nodeNewAge)) return 1.0;
+        if (d.ageMaxRatio < 0.1) return 1.0;
         return linkOpacityScale(d.ageMaxRatio);
       });
 

@@ -1755,34 +1755,34 @@ socket.on("SESSION_ABORT", function(rxSessionObject) {
 
 socket.on("SESSION_DELETE", function(rxSessionObject) {
 
-  var rxObj = rxSessionObject;
+  // var rxObj = rxSessionObject;
 
   // console.log("X SES" 
-  //   // + " | " + rxObj.session.nodeId
+  //   // + " | " + rxSessionObject.session.nodeId
   //   + " " + rxSessionObject.sessionId 
-  //   // + " | " + rxObj.sessionEvent
+  //   // + " | " + rxSessionObject.sessionEvent
   //   + "\n" + jsonPrint(rxSessionObject)
   // );
 
-  if ((typeof rxObj.session !== 'undefined') && (typeof rxObj.session.tags !== 'undefined')){
+  if ((typeof rxSessionObject.session !== 'undefined') && (typeof rxSessionObject.session.tags !== 'undefined')){
 
-    // rxObj.session.nodeId = rxObj.session.user.tags.entity.toLowerCase() + "_" + rxObj.session.user.tags.channel.toLowerCase();
-    // rxObj.session.nodeId = rxObj.session.tags.entity.toLowerCase() + "_" + rxObj.session.tags.channel.toLowerCase();
+    // rxSessionObject.session.nodeId = rxSessionObject.session.user.tags.entity.toLowerCase() + "_" + rxSessionObject.session.user.tags.channel.toLowerCase();
+    // rxSessionObject.session.nodeId = rxSessionObject.session.tags.entity.toLowerCase() + "_" + rxSessionObject.session.tags.channel.toLowerCase();
 
-    rxObj.session.nodeId = (config.forceViewMode == 'web') ? rxObj.session.tags.entity.toLowerCase() : rxObj.session.tags.entity.toLowerCase() + "_" + rxObj.session.tags.channel.toLowerCase();
+    rxSessionObject.session.nodeId = (config.forceViewMode == 'web') ? rxSessionObject.session.tags.entity.toLowerCase() : rxSessionObject.session.tags.entity.toLowerCase() + "_" + rxSessionObject.session.tags.channel.toLowerCase();
 
 
-    if (sessionHashMap.has(rxObj.session.nodeId)) {
+    if (sessionHashMap.has(rxSessionObject.session.nodeId)) {
 
       console.log("SESSION_DELETE" 
-        + " | " + rxObj.session.nodeId
+        + " | " + rxSessionObject.session.nodeId
         // + " | " + rxSessionObject.sessionId 
-        + " | " + rxObj.sessionEvent
+        + " | " + rxSessionObject.sessionEvent
         // + "\n" + jsonPrint(rxSessionObject)
       );
 
-      var session = sessionHashMap.get(rxObj.session.nodeId);
-      sessionDeleteHashMap.set(rxObj.session.nodeId, 1);
+      var session = sessionHashMap.get(rxSessionObject.session.nodeId);
+      sessionDeleteHashMap.set(rxSessionObject.session.nodeId, 1);
       session.sessionEvent = "SESSION_DELETE";
       rxSessionDeleteQueue.push(session);
       store.set('stats', statsObj);
@@ -1793,41 +1793,40 @@ socket.on("SESSION_DELETE", function(rxSessionObject) {
 });
 
 socket.on("USER_SESSION", function(rxSessionObject) {
-  var rxObj = rxSessionObject;
+  // var rxObj = rxSessionObject;
   console.log("USER_SESSION" 
-    + " | SID: " + rxObj.sessionId 
-    + " | UID: " + rxObj.userId 
-    + " | NSP: " + rxObj.namespace 
-    + " | WCI: " + rxObj.wordChainIndex 
-    + " | CONN: " + rxObj.connected);
+    + " | SID: " + rxSessionObject.sessionId 
+    + " | UID: " + rxSessionObject.userId 
+    + " | NSP: " + rxSessionObject.namespace 
+    + " | WCI: " + rxSessionObject.wordChainIndex 
+    + " | CONN: " + rxSessionObject.connected);
 });
 
 socket.on("SESSION_UPDATE", function(rxSessionObject) {
 
   // console.debug("SES UPDATE: " + rxSessionObject.action + " | " + rxSessionObject.sessionId);
 
-  var rxObj = rxSessionObject;
 
-  if (!windowVisible) {
+  if (!windowVisible || !config.pauseFlag) {
     rxSessionUpdateQueue = [];
     if (debug) {
       console.log("... SKIP SESSION_UPDATE ... WINDOW NOT VISIBLE");
     }
     
-  } else if (sessionMode && (rxObj.sessionId !== currentSession.sessionId)) {
+  } else if (sessionMode && (rxSessionObject.sessionId !== currentSession.sessionId)) {
     if (debug) {
-      console.log("SKIP SESSION_UPDATE: " + rxObj.sessionId 
+      console.log("SKIP SESSION_UPDATE: " + rxSessionObject.sessionId 
         + " | CURRENT: " + currentSession.sessionId);
     }
   } else if (rxSessionUpdateQueue.length < MAX_RX_QUEUE) {
 
-    if (rxObj.action == 'KEEPALIVE') {
+    if (rxSessionObject.action == 'KEEPALIVE') {
     } else {
       rxSessionUpdateQueue.push(rxSessionObject);
 
-      if (rxObj.tags.trending) {
-        console.debug("TTT" + rxObj.source.nodeId 
-          + " | T: " + rxObj.tags.trending
+      if (rxSessionObject.tags.trending) {
+        console.debug("TTT" + rxSessionObject.source.nodeId 
+          + " | T: " + rxSessionObject.tags.trending
         );
       }
     }

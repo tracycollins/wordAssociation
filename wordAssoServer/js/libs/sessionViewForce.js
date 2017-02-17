@@ -166,7 +166,7 @@ function ViewForce() {
   var adjustedAgeRateScale = d3.scaleLinear().domain([1, MAX_NODES]).range([1.0, 10.0]);
 
   var nodeFontSizeScale = d3.scaleLinear().domain([1, currentHashtagMaxMentions]).range([minFontSize, maxFontSize]).clamp(true);
-  var imageSizeScale = d3.scaleLog().domain([1, 10000000]).range([10.0, 100.0]).clamp(true);
+  var imageSizeScale = d3.scaleLog().domain([1, 10000000]).range([20.0, 120.0]).clamp(true);
   var defaultRadiusScale = d3.scaleLog().domain([1, 10000000]).range([5, 30]).clamp(true);
 
   console.log("@@@@@@@ CLIENT @@@@@@@@");

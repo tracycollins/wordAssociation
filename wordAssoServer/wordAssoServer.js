@@ -7610,6 +7610,12 @@ function initAppRouting(callback) {
     return;
   });
 
+  app.get('/admin/data/fake_users1.json', function(req, res) {
+    console.warn("LOADING PAGE: /admin/data/fake_users1.json");
+    res.sendFile(__dirname + '/admin/data/fake_users1.json');
+    return;
+  });
+
   app.get('/js/libs/progressbar.js', function(req, res) {
     res.sendFile(__dirname + '/js/libs/progressbar.js');
     return;

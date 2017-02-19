@@ -6856,24 +6856,24 @@ function createSession(newSessionObj) {
 
     if (userObj.stats) statsObj.utilities[userObj.userId] = userObj.stats;
 
-    if (userObj.userId.match(/TMS_/g)){
-      console.log(chalkSession("K-" 
-        + " | " + userObj.userId
-        + " | " + socket.id
-        + " | " + moment().format(compactDateTimeFormat)
-        // + "\n" + jsonPrint(userObj)
-      ));
-    }
+    // if (userObj.userId.match(/TMS_/g)){
+    //   console.log(chalkSession("K-" 
+    //     + " | " + userObj.userId
+    //     + " | " + socket.id
+    //     + " | " + moment().format(compactDateTimeFormat)
+    //     // + "\n" + jsonPrint(userObj)
+    //   ));
+    // }
  
-    if (userObj.userId.match(/TSS_/g)){
-      console.log(chalkSession("K-" 
-        + " | " + socket.id
-        + " | " + userObj.userId
-        + " | " + userObj.stats.tweetsPerMinute.toFixed(1) + " TPM"
-        + " | " + moment().format(compactDateTimeFormat)
-        // + "\n" + jsonPrint(userObj)
-      ));
-    }
+    // if (userObj.userId.match(/TSS_/g)){
+    //   console.log(chalkSession("K-" 
+    //     + " | " + socket.id
+    //     + " | " + userObj.userId
+    //     + " | " + userObj.stats.tweetsPerMinute.toFixed(1) + " TPM"
+    //     + " | " + moment().format(compactDateTimeFormat)
+    //     // + "\n" + jsonPrint(userObj)
+    //   ));
+    // }
  
     var socketId = socket.id;
     var sessionObj = {};

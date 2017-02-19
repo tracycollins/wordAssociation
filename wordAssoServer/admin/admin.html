@@ -5,7 +5,15 @@
   <meta charset="utf-8">
   <link rel="stylesheet" href="../css/base.css">
   <link rel="stylesheet" href="../css/main.css">
-  <link rel="icon" type="image/png" href="../favicon.png" />
+  <link rel="icon" type="image/png" href="../favicon.png">
+  <link rel="stylesheet" href="css/progressbar.css">
+<!--    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,300,700' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=PT+Serif:400,700,400italic' rel='stylesheet' type='text/css'>
+    <link href='https://netdna.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.css' rel='stylesheet' type='text/css'>
+ -->    <!-- <link href='https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css' rel='stylesheet' type='text/css'> -->
+
+    <!-- <link href='https://cdnjs.cloudflare.com/ajax/libs/metrics-graphics/2.11.0/metricsgraphics.css' rel='stylesheet' type='text/css'> -->
+    <!-- <link href='css/metricsgraphics-demo.css' rel='stylesheet' type='text/css'> -->
   <style>
     .heartbeatTable {
       background-color: red;
@@ -125,13 +133,17 @@
       height: 100%;
       display: block;
     }
+
   </style>
-  <link rel="stylesheet" href="css/progressbar.css" />
+
+  <script src="https://d3js.org/d3.v4.min.js"></script>
   <script src="/js/libs/progressbar.js"></script>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js'></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/async/2.1.4/async.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.6.0/socket.io.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.17.1/moment.min.js"></script>
   <script src="/node_modules/hashmap/hashmap.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/metrics-graphics/2.11.0/metricsgraphics.js"></script>
   <script data-main="/admin/admin" src="js/require.js"></script>
 </head>
 
@@ -140,21 +152,8 @@
     <br>
     <h1>WORD ASSOCIATION ADMIN</h1>
     <br>
-    <hr>
-    <br>
-    <input id="updateBhtReqs" type="number" name="bhtReqs">
-    <button id="updateBhtReqsButton" class="showHideButton" onclick="updateBhtReqs()">UPDATE BHT REQS</button>
-    <br>
-    <br>
-    <input id="setWordCacheTtl" type="number" name="wordCacheTtl">
-    <button id="setWordCacheTtlButton" class="showHideButton" onclick="setWordCacheTtl()">SET WORD CACHE TTL</button>
-    <br>
-    <br>
-    <hr>
-    <br>
-    <button id="testModeButton" class="showHideButton" onclick="toggleTestMode()">TEST MODE</button>
-    <br>
-    <br>
+    <div id='tpmDiv'></div>
+    <div id='wpmDiv'></div>
     <hr>
     <br>
     <br>
@@ -199,6 +198,21 @@
     <br>
     <br>
     <table id='heartbeat_table' class 'heartbeatTable'></table>
+    <br>
+    <input id="updateBhtReqs" type="number" name="bhtReqs">
+    <button id="updateBhtReqsButton" class="showHideButton" onclick="updateBhtReqs()">UPDATE BHT REQS</button>
+    <br>
+    <br>
+    <input id="setWordCacheTtl" type="number" name="wordCacheTtl">
+    <button id="setWordCacheTtlButton" class="showHideButton" onclick="setWordCacheTtl()">SET WORD CACHE TTL</button>
+    <br>
+    <br>
+    <hr>
+    <br>
+    <button id="testModeButton" class="showHideButton" onclick="toggleTestMode()">TEST MODE</button>
+    <br>
+    <hr>
+    <br>
     <div id='admin_panel'>
       <br/>
       <h2>ADMINS</h2>

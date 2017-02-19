@@ -18,14 +18,49 @@ var defaultTimePeriodFormat = "HH:mm:ss";
 
 var ONE_MB = 1024 * 1024;
 var ONE_GB = ONE_MB * 1024;
+var MAX_TIMELINE = 300;
 
-var d3;
+var tpmData =[];
+var wpmData =[];
+
 
 requirejs(["https://d3js.org/d3.v4.min.js"], function(d3Loaded) {
     console.debug("d3 LOADED");
-    d3 = d3Loaded;
     initialize(function(){
       initializeComplete = true;
+
+      setInterval(function(){
+        MG.data_graphic({
+            title: "TPM",
+            description: "TWEETS/MIN",
+            data: tpmData,
+            width: 500,
+            height: 200,
+            // right: 20,
+            target: '#tpmDiv',
+            x_accessor: 'date',
+            y_accessor: 'value',
+            min_y_from_data: true,
+            animate_on_load: false,
+            transition_on_update: false,
+            missing_is_zero: true
+        });
+        MG.data_graphic({
+            title: "WPM",
+            description: "WORDS/MIN",
+            data: wpmData,
+            width: 500,
+            height: 200,
+            // right: 20,
+            target: '#wpmDiv',
+            x_accessor: 'date',
+            y_accessor: 'value',
+            min_y_from_data: true,
+            animate_on_load: false,
+            transition_on_update: false
+        });
+      }, 1000);
+
     });
   },
   function(error) {
@@ -229,11 +264,9 @@ var twitterLimitBarText;
 
 function initBars(callback){
  
-   console.debug("INIT BARS ...");
+  console.debug("INIT BARS ...");
 
   // USERS ===============================
-
- 
 
   userSessionTableHead = document.getElementById('user_session_table_head');
   userSessionTableBody = document.getElementById('user_session_table_body');
@@ -778,7 +811,7 @@ socket.on('UTIL_SESSION', function(utilSessionObj) {
     + " | UID: " + utilSessionObj.userId
     );
 
-  console.debug("UTIL SESSION\n" + jsonPrint( utilSessionHashMap.get(utilSessionObj.sessionId), {ignore: ["sessions"]} ));
+  // console.debug("UTIL SESSION\n" + jsonPrint( utilSessionHashMap.get(utilSessionObj.sessionId), {ignore: ["sessions"]} ));
 
   if (utilSessionObj.connected && utilSessionObj.userId.match(/TSS_/g)) {
     console.info("UTIL SERVER CONNECTED: " + utilSessionObj.userId);
@@ -816,6 +849,10 @@ socket.on('HEARTBEAT', function(rxHeartbeat) {
     twitterLimit = heartBeat.utilities[tweetsPerMinServer].twitterLimit;
     twitterLimitMax = heartBeat.utilities[tweetsPerMinServer].twitterLimitMax;
     twitterLimitMaxTime = heartBeat.utilities[tweetsPerMinServer].twitterLimitMaxTime;
+
+    tpmData.push({date: new Date(), value: tweetsPerMin});
+    if (tpmData.length > MAX_TIMELINE) tpmData.shift();
+
   }
 
   // console.log("... HB\n" + jsonPrint(heartBeat));
@@ -827,6 +864,9 @@ socket.on('HEARTBEAT', function(rxHeartbeat) {
   updateUserConnect();
   updateViewerConnect();
   updateUtilConnect();
+
+  wpmData.push({date: new Date(), value: rxHeartbeat.wordsPerMinute});
+  if (wpmData.length > MAX_TIMELINE) wpmData.shift();
 });
 
 // updateServerHeartbeat
@@ -1926,9 +1966,29 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
   );
 }
 
+function initTimelineData(numDataPoints, callback){
+
+  var ts;
+
+  var currentMillis = moment().valueOf();
+
+  for (var i=0; i<numDataPoints; i++){
+    tpmData.unshift({date: new Date(parseInt(currentMillis-(1000*i))), value: 0});
+    wpmData.unshift({date: new Date(parseInt(currentMillis-(1000*i))), value: 0});
+  }
+
+  callback();
+}
+
 function initialize(callback){
+
   console.debug("INITIALIZE...");
-  initBars(function(){
-    callback();
+
+  initTimelineData(MAX_TIMELINE, function(){
+    initBars(function(){
+      callback();
+    });
   });
+
+
 }

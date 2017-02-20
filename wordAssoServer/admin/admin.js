@@ -449,11 +449,11 @@ var jsonPrint = function(obj, options) {
       }
       // options.ignore.forEach(function(ignoreWord) {
       // });
-      if (i == options.ignore.length) return JSON.stringify(tempObj, null, 2);
+      if (i == options.ignore.length) return JSON.stringify(tempObj, null, 3);
     }
   }
   else {
-    return JSON.stringify(obj, null, 2);
+    return JSON.stringify(obj, null, 3);
   }
 }
 
@@ -889,7 +889,7 @@ socket.on('HEARTBEAT', function(rxHeartbeat) {
 
   }
 
-  console.log("... HB\n" + jsonPrint(heartBeat));
+  // console.log("... HB | " + tweetsPerMin + "\n" + jsonPrint(heartBeat));
   if (rxHeartbeat.deltaResponsesReceived > deltaResponsesMax) deltaResponsesMax = rxHeartbeat.deltaResponsesReceived;
 
   if (rxHeartbeat.wordsPerMinute > wordsPerMinuteMax) wordsPerMinuteMax = rxHeartbeat.wordsPerMinute;
@@ -898,6 +898,12 @@ socket.on('HEARTBEAT', function(rxHeartbeat) {
   updateUserConnect();
   updateViewerConnect();
   updateUtilConnect();
+
+  tpmData.push({date: new Date(), value: tweetsPerMin});
+  if (tpmData.length > MAX_TIMELINE) tpmData.shift();
+
+  tLimitData.push({date: new Date(), value: twitterLimit});
+  if (tLimitData.length > MAX_TIMELINE) tLimitData.shift();
 
   wpmData.push({date: new Date(), value: rxHeartbeat.wordsPerMinute});
   if (wpmData.length > MAX_TIMELINE) wpmData.shift();

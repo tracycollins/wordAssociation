@@ -7164,10 +7164,37 @@ function createSession(newSessionObj) {
   });
 
   socket.on("node", function(nodeObj) {
-    debug("TW< " + nodeObj.nodeType + " | " + nodeObj.nodeId + " | " + nodeObj.mentions);
+
+    // console.log("TW< " + nodeObj.nodeType + " | " + nodeObj.nodeId + " | " + nodeObj.mentions);
+
     viewNameSpace.emit("node", nodeObj);
 
-    if (nodeObj.nodeId.includes("trump")) {
+    var trumpHit = false;
+
+    switch (nodeObj.nodeType) {
+      case "tweet":
+        if (nodeObj.text.toLowerCase().includes("trump")) {
+          trumpHit = nodeObj.text;
+        }
+      break;
+      case "user":
+        if (nodeObj.name.toLowerCase().includes("trump")) {
+          trumpHit = nodeObj.name;
+        }
+        if (nodeObj.screenName.toLowerCase().includes("trump")) {
+          trumpHit = nodeObj.screenName;
+        }
+      break;
+      case "hashtag":
+        if (nodeObj.nodeId.toLowerCase().includes("trump")) {
+          trumpHit = nodeObj.nodeId;
+        }
+      break;
+      default:
+      break;
+    }
+
+    if (trumpHit) {
 
       wordStats.meter('trumpPerSecond').mark();
       wordStats.meter('trumpPerMinute').mark();
@@ -7175,11 +7202,13 @@ function createSession(newSessionObj) {
       var wordStatsObj = wordStats.toJSON();
 
       debug(chalkAlert("TRUMP"
+        + " | " + nodeObj.nodeType
+        + " | " + nodeObj.nodeId
         + " | " + wordStatsObj.trumpPerSecond["1MinuteRate"].toFixed(0) 
         + " | " + wordStatsObj.trumpPerSecond.currentRate.toFixed(0) 
         + " | " + wordStatsObj.trumpPerMinute["1MinuteRate"].toFixed(0) 
         + " | " + wordStatsObj.trumpPerMinute.currentRate.toFixed(0) 
-        + " | " + nodeObj.nodeId
+        + " | " + trumpHit
       ));
     }
 

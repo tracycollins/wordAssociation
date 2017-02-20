@@ -4,14 +4,12 @@
 var moment = require('moment');
 var Measured = require('measured');
 
-var wpsMeter = new Measured.Meter({rateUnit: 1000, tickInterval: 1000});
-var wpmMeter = new Measured.Meter({rateUnit: 60000, tickInterval: 1000});
-var trumpPerMinMeter = new Measured.Meter({rateUnit: 60000, tickInterval: 1000});
-
 var wordStats = Measured.createCollection();
+wordStats.meter("wordsPerSecond", {rateUnit: 1000, tickInterval: 1000});
+wordStats.meter("wordsPerMinute", {rateUnit: 60000, tickInterval: 1000});
+
 wordStats.meter("trumpPerSecond", {rateUnit: 1000, tickInterval: 1000});
 wordStats.meter("trumpPerMinute", {rateUnit: 60000, tickInterval: 1000});
-      // wordStats.meter('trumpPerSecond').mark();
 
 // MONGO DB doesn't like indexes/keys > 1024 characters
 var MAX_DB_KEY_LENGTH = 200;
@@ -26,11 +24,17 @@ var updateComplete = groupsUpdateComplete && entitiesUpdateComplete && keywordsU
 
 var rateQinterval;
 
+var tweetsPerMinute = 0.0;
+var tweetsPerSecond = 0.0;
+var maxTweetsPerMin = 0;
+var maxTweetsPerMinTime = moment.utc();
+
 var wordsPerMinute = 0.0;
 var wordsPerSecond = 0.0;
 var maxWordsPerMin = 0;
 var maxWordsPerMinTime = moment.utc();
 
+var trumpPerSecond = 0.0;
 var trumpPerMinute = 0.0;
 var maxTrumpPerMin = 0;
 var maxTrumpPerMinTime = moment.utc();
@@ -190,7 +194,13 @@ var currentTimeInteval = setInterval(function() {
 }, 100);
 
 var tempDateTime = moment();
+
 var txHeartbeat = {};
+
+txHeartbeat.wordStats = {};
+
+var wordStatsObj = {};
+
 var heartbeatsSent = 0;
 
 var numberIpAddresses = 0;
@@ -6434,6 +6444,7 @@ configEvents.on("SERVER_READY", function() {
       heartbeatsSent++;
 
       txHeartbeat = {
+
         serverHostName: hostname,
         timeStamp: getTimeNow(),
         startTime: statsObj.startTime,
@@ -6442,6 +6453,10 @@ configEvents.on("SERVER_READY", function() {
 
         heartbeatsSent: heartbeatsSent,
 
+        tweetsPerMinute: tweetsPerMinute,
+        maxTweetsPerMin: maxTweetsPerMin,
+        maxTweetsPerMinTime: maxTweetsPerMinTime.valueOf(),
+
         wordsPerMinute: wordsPerMinute,
         maxWordsPerMin: maxWordsPerMin,
         maxWordsPerMinTime: maxWordsPerMinTime.valueOf(),
@@ -6449,6 +6464,8 @@ configEvents.on("SERVER_READY", function() {
         trumpPerMinute: trumpPerMinute,
         maxTrumpPerMin: maxTrumpPerMin,
         maxTrumpPerMinTime: maxTrumpPerMinTime.valueOf(),
+
+        wordStats: wordStats.toJSON(),
 
         memoryAvailable: statsObj.memoryAvailable,
         memoryTotal: statsObj.memoryTotal,
@@ -7151,25 +7168,19 @@ function createSession(newSessionObj) {
     viewNameSpace.emit("node", nodeObj);
 
     if (nodeObj.nodeId.includes("trump")) {
-      trumpPerMinMeter.mark();
-
-      // var rawTrumpPerMinObj = trumpPerMinMeter.toJSON();
 
       wordStats.meter('trumpPerSecond').mark();
       wordStats.meter('trumpPerMinute').mark();
 
       var wordStatsObj = wordStats.toJSON();
 
-      console.log(chalkAlert("TRUMP"
+      debug(chalkAlert("TRUMP"
         + " | " + wordStatsObj.trumpPerSecond["1MinuteRate"].toFixed(0) 
         + " | " + wordStatsObj.trumpPerSecond.currentRate.toFixed(0) 
         + " | " + wordStatsObj.trumpPerMinute["1MinuteRate"].toFixed(0) 
         + " | " + wordStatsObj.trumpPerMinute.currentRate.toFixed(0) 
-        // + " | " + rawTrumpPerMinObj["1MinuteRate"].toFixed(0) 
-        // + " | " + rawTrumpPerMinObj.currentRate.toFixed(0) 
         + " | " + nodeObj.nodeId
       ));
-      // console.log(chalkAlert("rawTrumpPerMinObj\n" + jsonPrint(rawTrumpPerMinObj)));
     }
 
   });
@@ -7178,28 +7189,21 @@ function createSession(newSessionObj) {
 
     debug("rxInObj\n" + jsonPrint(rxInObj));
 
-    // wordPerSecQueue.push(moment.utc().valueOf());
-    // statsMeasured.meter('wordsPerSecond').mark();
-    wpsMeter.mark();
-    wpmMeter.mark();
+    wordStats.meter('wordsPerSecond').mark();
+    wordStats.meter('wordsPerMinute').mark();
 
     if (rxInObj.nodeId.includes("trump")) {
-      // console.log(chalkAlert("TRUMP | " + rxInObj.nodeId));
-      trumpPerMinMeter.mark();
-      // var rawTrumpPerMinObj = trumpPerMinMeter.toJSON();
-
+ 
       wordStats.meter('trumpPerSecond').mark();
       wordStats.meter('trumpPerMinute').mark();
 
       var wordStatsObj = wordStats.toJSON();
 
-      console.log(chalkAlert("TRUMP"
+      debug(chalkAlert("TRUMP"
         + " | " + wordStatsObj.trumpPerSecond["1MinuteRate"].toFixed(0) 
         + " | " + wordStatsObj.trumpPerSecond.currentRate.toFixed(0) 
         + " | " + wordStatsObj.trumpPerMinute["1MinuteRate"].toFixed(0) 
         + " | " + wordStatsObj.trumpPerMinute.currentRate.toFixed(0) 
-        // + " | " + rawTrumpPerMinObj["1MinuteRate"].toFixed(0) 
-        // + " | " + rawTrumpPerMinObj.currentRate.toFixed(0) 
         + " | " + rxInObj.nodeId
       ));
 
@@ -7374,51 +7378,30 @@ var metricsInterval = setInterval(function() {
 function initRateQinterval(interval){
 
   var wordStatsObj;
-  var rawWpsObj;
-  var rawWpmObj;
-  // var rawTrumpPerMinObj = {};
-  // rawTrumpPerMinObj.trumpPerSecond = {};
 
   console.log(chalkAlert("INIT RATE QUEUE INTERVAL"));
 
   clearInterval(rateQinterval);
 
+  trumpPerSecond = 0.0;
   trumpPerMinute = 0.0;
 
   wordsPerMinute = 0.0;
   wordsPerSecond = 0.0;
 
   maxWordsPerMin = 0.0;
+  maxTweetsPerMin = 0.0;
 
   rateQinterval = setInterval(function () {
 
-    rawWpsObj = wpsMeter.toJSON();
-    rawWpmObj = wpmMeter.toJSON();
-    // rawTrumpPerMinObj = trumpPerMinMeter.toJSON();
-
     wordStatsObj = wordStats.toJSON();
+    if (!wordStatsObj) return;
 
-    if (!rawWpsObj) return;
-    if (!rawWpmObj) return;
-    // if (!rawTrumpPerMinObj) return;
+    wordsPerSecond = wordStatsObj.wordsPerSecond["1MinuteRate"];
+    wordsPerMinute = wordStatsObj.wordsPerMinute["1MinuteRate"];
 
-    // console.log(chalkAlert("rawWpsObj\n" + jsonPrint(rawWpsObj)));
-    // console.log(chalkAlert("rawWpmObj\n" + jsonPrint(rawWpmObj)));
-    // console.log(chalkAlert("rawTrumpPerMinObj\n" + jsonPrint(rawTrumpPerMinObj)));
-
-    if (rawWpsObj.wordsPerSecond) {
-      wordsPerSecond = rawWpsObj.currentRate;
-    }
-
-    if (rawWpmObj['1MinuteRate']) {
-      wordsPerMinute = rawWpmObj['1MinuteRate'];
-    }
-
-    // if (rawTrumpPerMinObj['1MinuteRate']) {
-    if (wordStatsObj.trumpPerMinute["1MinuteRate"]) {
-      // trumpPerMinute = rawTrumpPerMinObj.trumpPerSecond['1MinuteRate'];
-      trumpPerMinute = wordStatsObj.trumpPerMinute["1MinuteRate"];
-    }
+    trumpPerSecond = wordStatsObj.trumpPerSecond["1MinuteRate"];
+    trumpPerMinute = wordStatsObj.trumpPerMinute["1MinuteRate"];
 
     debug(chalkWarn(moment.utc().format(compactDateTimeFormat)
       + " | WPS: " + wordsPerSecond.toFixed(2)

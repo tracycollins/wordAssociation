@@ -3,11 +3,15 @@
 
 var moment = require('moment');
 var Measured = require('measured');
-// var statsMeasured = Measured.createCollection();
-// statsMeasured.meter({rateUnit: 60000, tickInterval: 1000});
 
 var wpsMeter = new Measured.Meter({rateUnit: 1000, tickInterval: 1000});
 var wpmMeter = new Measured.Meter({rateUnit: 60000, tickInterval: 1000});
+var trumpPerMinMeter = new Measured.Meter({rateUnit: 60000, tickInterval: 1000});
+
+var wordStats = Measured.createCollection();
+wordStats.meter("trumpPerSecond", {rateUnit: 1000, tickInterval: 1000});
+wordStats.meter("trumpPerMinute", {rateUnit: 60000, tickInterval: 1000});
+      // wordStats.meter('trumpPerSecond').mark();
 
 // MONGO DB doesn't like indexes/keys > 1024 characters
 var MAX_DB_KEY_LENGTH = 200;
@@ -20,13 +24,16 @@ var entitiesUpdateComplete = false;
 var keywordsUpdateComplete = false;
 var updateComplete = groupsUpdateComplete && entitiesUpdateComplete && keywordsUpdateComplete;
 
-// var wordPerSecQueue = [];
-// var wordPerMinQueue = [];
+var rateQinterval;
+
 var wordsPerMinute = 0.0;
 var wordsPerSecond = 0.0;
-var rateQinterval;
 var maxWordsPerMin = 0;
 var maxWordsPerMinTime = moment.utc();
+
+var trumpPerMinute = 0.0;
+var maxTrumpPerMin = 0;
+var maxTrumpPerMinTime = moment.utc();
 
 var serverHeartbeatInterval;
 var pollGetTwitterFriendsInterval;
@@ -320,7 +327,7 @@ statsObj.entityChannelGroup.allHashMisses = {};
 var chalk = require('chalk');
 
 var chalkRedBold = chalk.bold.red;
-var chalkTwitter = chalk.red;
+var chalkTwitter = chalk.blue;
 var chalkWapi = chalk.red;
 var chalkWapiBold = chalk.bold.red;
 var chalkViewer = chalk.cyan;
@@ -497,7 +504,7 @@ var groupCache = new NodeCache({
 // ==================================================================
 sessionCache.on("set", function(sessionId, sessionObj) {
   if (sessionObj.userId && sessionObj.userId.match('TMS_')){
-    console.log(chalkSession("SES $"
+    debug(chalkSession("SES $"
       + " | " + moment().format(compactDateTimeFormat) 
       + " | ID: " + sessionId 
       + " | U: " + sessionObj.userId
@@ -521,7 +528,7 @@ sessionCache.on("expired", function(sessionId, sessionObj) {
   testViewersNameSpace.emit("SESSION_DELETE", sessionObj);
 
   debug("CACHE SESSION EXPIRED\n" + jsonPrint(sessionObj));
-  console.log(chalkInfo("... CACHE SESS EXPIRED"
+  debug(chalkInfo("... CACHE SESS EXPIRED"
     + " | " + sessionObj.sessionId 
     + " | LS: " + getTimeStamp(sessionObj.lastSeen) 
     + " | " + msToTime(moment().valueOf() - sessionObj.lastSeen) 
@@ -566,7 +573,7 @@ wordCache.on("expired", function(word, wordObj) {
 
 trendingCache.on( "expired", function(topic, topicObj){
   debug("CACHE TOPIC EXPIRED\n" + jsonPrint(topicObj));
-  console.log("CACHE TOPIC EXPIRED | " + topicObj.name);
+  debug("CACHE TOPIC EXPIRED | " + topicObj.name);
 });
 
 
@@ -716,9 +723,9 @@ function loadYamlConfig(yamlFile, callback){
 
 function loadFile(path, file, callback) {
 
-  console.log(chalkInfo("LOAD FOLDER " + path));
-  console.log(chalkInfo("LOAD FILE " + file));
-  console.log(chalkInfo("FULL PATH " + path + "/" + file));
+  debug(chalkInfo("LOAD FOLDER " + path));
+  debug(chalkInfo("LOAD FILE " + file));
+  debug(chalkInfo("FULL PATH " + path + "/" + file));
 
   var fileExists = false;
 
@@ -728,7 +735,7 @@ function loadFile(path, file, callback) {
         async.each(response.entries, function(folderFile, cb) {
 
           if (folderFile.name == file) {
-            console.log(chalkInfo("SOURCE FILE EXISTS: " + file));
+            debug(chalkInfo("SOURCE FILE EXISTS: " + file));
             fileExists = true;
             return cb();
           }
@@ -740,7 +747,7 @@ function loadFile(path, file, callback) {
 
             dropboxClient.filesDownload({path: path + "/" + file})
               .then(function(data) {
-                console.log(chalkLog(getTimeStamp()
+                debug(chalkLog(getTimeStamp()
                   + " | LOADING FILE FROM DROPBOX FILE: " + path + "/" + file
                 ));
 
@@ -786,9 +793,9 @@ function saveFile (path, file, jsonObj, callback){
 
   var fullPath = path + "/" + file;
 
-  console.log(chalkInfo("LOAD FOLDER " + path));
-  console.log(chalkInfo("LOAD FILE " + file));
-  console.log(chalkInfo("FULL PATH " + fullPath));
+  debug(chalkInfo("LOAD FOLDER " + path));
+  debug(chalkInfo("LOAD FILE " + file));
+  debug(chalkInfo("FULL PATH " + fullPath));
 
   var options = {};
 
@@ -1185,7 +1192,7 @@ function updateStatsInterval(statsFile, interval){
                 ));
               }
               else {
-                console.log(chalkRed("SAVE SERVER GROUP FILE " 
+                console.log(chalkLog("SAVE SERVER GROUP FILE " 
                   + serverGroupsFile 
                   + " | " + gKeys.length + " GROUPS"
                   // + "\n" + jsonPrint(results)
@@ -1194,7 +1201,7 @@ function updateStatsInterval(statsFile, interval){
             });
           }
           else {
-            console.log(chalkRed("SKIPPED SAVE SERVER GROUP FILE " 
+            console.log(chalkLog("SKIPPED SAVE SERVER GROUP FILE " 
               + serverGroupsFile 
               + " | " + gKeys.length + " GROUPS"
               // + "\n" + jsonPrint(results)
@@ -1235,7 +1242,7 @@ function updateStatsInterval(statsFile, interval){
             });
           }
           else {
-            console.log(chalkRed("SKIPPED SAVE SERVER KEYWORDS FILE " 
+            console.log(chalkLog("SKIPPED SAVE SERVER KEYWORDS FILE " 
               + serverKeywordsFile 
               + " | " + hmKeys.length + " KEYWORDS"
               // + "\n" + jsonPrint(results)
@@ -1882,7 +1889,7 @@ function dbUpdateGroup(groupObj, incMentions, callback) {
       callback(err, groupObj);
     } else {
 
-      console.log(chalkInfo("->- DB GR" 
+      debug(chalkInfo("->- DB GR" 
         + " | " + group.groupId 
         + " | NAME: " + group.name 
         + " | CREATED: " + moment(group.createdAt).format(compactDateTimeFormat)
@@ -1913,7 +1920,7 @@ function dbUpdateEntity(entityObj, incMentions, callback) {
       callback(err, entityObj);
     } else {
 
-      console.log("->- DB EN" 
+      debug("->- DB EN" 
         + " | " + entity.entityId 
         + " | " + entity.name 
         // + " | SN: " + entity.screenName 
@@ -3816,7 +3823,7 @@ function handleSessionEvent(sesObj, callback) {
           currentAdmin.disconnectTime = moment().valueOf();
           currentAdmin.connected = false;
 
-          console.log(chalkRed("CONNECTION DURATION: " + currentAdmin.adminId 
+          console.log(chalkLog("CONNECTION DURATION: " + currentAdmin.adminId 
             + " | " + msToTime(moment().valueOf() - currentAdmin.connectTime)));
 
           adminUpdateDb(currentAdmin, function(err, updatedAdminObj) {
@@ -3845,7 +3852,7 @@ function handleSessionEvent(sesObj, callback) {
 
               updatedUserObj.sessionId = updatedUserObj.lastSession;
 
-              console.log(chalkRed("TX USER SESSION (" + sesObj.sessionEvent + "): " + updatedUserObj.lastSession 
+              console.log(chalkLog("TX USER SESSION (" + sesObj.sessionEvent + "): " + updatedUserObj.lastSession 
                 + " TO ADMIN NAMESPACE"));
 
               adminNameSpace.emit('UTIL_SESSION', updatedUserObj); // KLUDGE: need to work out what's a USER and what's a UTIL
@@ -3872,7 +3879,7 @@ function handleSessionEvent(sesObj, callback) {
 
               updatedUtilObj.sessionId = updatedUtilObj.lastSession;
 
-              console.log(chalkRed("TX UTIL SESSION (DISCONNECT): " 
+              console.log(chalkLog("TX UTIL SESSION (DISCONNECT): " 
                 + updatedUtilObj.lastSession + " TO ADMIN NAMESPACE"));
 
               adminNameSpace.emit('UTIL_SESSION', updatedUtilObj);
@@ -4702,7 +4709,7 @@ var readResponseQueue = setInterval(function() {
         trendingTopicHitArray.push(topic);
 
         if (typeof topicObj !== 'undefined'){ // may have expired out of cache, so check
-          console.log(chalkRedBold("TOPIC HIT: " + topic));
+          console.log(chalkTwitter("TOPIC HIT: " + topic));
           topicObj.hit = true;
           trendingCache.set(topic, topicObj);
           topicHashMap.set(topic.toLowerCase(), true);
@@ -4757,7 +4764,7 @@ var readResponseQueue = setInterval(function() {
         previousPromptObj = wordCache.get(previousPrompt);
 
         if (!previousPromptObj) {
-          console.log(chalkAlert("PREV PROMPT $ MISS"
+          debug(chalkAlert("PREV PROMPT $ MISS"
             + " | " + socketId 
             + " | " + currentSessionObj.userId 
             + " | WCI: " + currentSessionObj.wordChainIndex 
@@ -4872,19 +4879,19 @@ var readUpdaterMessageQueue = setInterval(function() {
 
     switch (updaterObj.type){
       case 'sendGroupsComplete':
-        console.log(chalkRed("UPDATE GROUPS COMPLETE | " + getTimeStamp()));
+        console.log(chalkLog("UPDATE GROUPS COMPLETE | " + getTimeStamp()));
         updaterMessageReady = true;
         groupsUpdateComplete = true;
       break;
 
       case 'sendEntitiesComplete':
-        console.log(chalkRed("UPDATE ENTITIES COMPLETE | " + getTimeStamp()));
+        console.log(chalkLog("UPDATE ENTITIES COMPLETE | " + getTimeStamp()));
         updaterMessageReady = true;
         entitiesUpdateComplete = true;
       break;
 
       case 'sendKeywordsComplete':
-        console.log(chalkRed("UPDATE KEYWORDS COMPLETE | " + getTimeStamp()));
+        console.log(chalkLog("UPDATE KEYWORDS COMPLETE | " + getTimeStamp()));
         updaterMessageReady = true;
         keywordsUpdateComplete = true;
       break;
@@ -4892,7 +4899,7 @@ var readUpdaterMessageQueue = setInterval(function() {
       case 'group':
 
         if ((typeof updaterObj.target !== 'undefined') && (updaterObj.target == 'server')) {
-          console.log(chalkRed("UPDATER GROUP\n" + jsonPrint(updaterObj)));
+          console.log(chalkLog("UPDATER GROUP\n" + jsonPrint(updaterObj)));
           serverGroupHashMap.set(updaterObj.groupId, updaterObj.group);
           serverGroupsJsonObj[updaterObj.groupId] = updaterObj.group;
         }
@@ -5359,7 +5366,7 @@ function getTwitterFriends(callback){
 
       nextCursor = data.next_cursor_str;
 
-      console.log(chalkRed("\nFRIENDS"
+      console.log(chalkLog("\nFRIENDS"
         + " | COUNT: " + count
         + " | TOTAL: " + totalFriends
         + " | NEXT CURSOR VALID: " + nextCursorValid
@@ -5419,7 +5426,7 @@ function getTwitterFriends(callback){
 }
 
 function queryDb(queryObj, callback){
-  console.log(chalkRed("QUERY | " + queryObj.query));
+  console.log(chalkLog("QUERY | " + queryObj.query));
 
   var wordObj = new Word();
 
@@ -6439,6 +6446,10 @@ configEvents.on("SERVER_READY", function() {
         maxWordsPerMin: maxWordsPerMin,
         maxWordsPerMinTime: maxWordsPerMinTime.valueOf(),
 
+        trumpPerMinute: trumpPerMinute,
+        maxTrumpPerMin: maxTrumpPerMin,
+        maxTrumpPerMinTime: maxTrumpPerMinTime.valueOf(),
+
         memoryAvailable: statsObj.memoryAvailable,
         memoryTotal: statsObj.memoryTotal,
 
@@ -6988,7 +6999,7 @@ function createSession(newSessionObj) {
       debug(chalkRedBold("USER_READY SUBSTREAM sessionCacheKey: " + sessionCacheKey));
     }
     else {
-      console.log(chalkRedBold("USER_READY sessionCacheKey: " + sessionCacheKey));
+      debug(chalkRedBold("USER_READY sessionCacheKey: " + sessionCacheKey));
     }
 
     sessionCache.get(sessionCacheKey, function(err, sessionObj){
@@ -7016,7 +7027,7 @@ function createSession(newSessionObj) {
 
           sessionObj.config = {};
 
-          console.log(chalkSession("SES $ MISS USR RDY"
+          debug(chalkSession("SES $ MISS USR RDY"
             + " | " + sessionCacheKey
             + " | " + moment().format(compactDateTimeFormat) 
           ));
@@ -7077,7 +7088,7 @@ function createSession(newSessionObj) {
 
                 delete statsObj.entityChannelGroup.hashMiss[sessionObj.tags.entity];
 
-                console.log(chalkInfo("### E CH HM HIT"
+                debug(chalkInfo("### E CH HM HIT"
                   + " | " + sessionObj.tags.entity
                   + " > " + entityChannelGroupHashMap.get(sessionObj.tags.entity).groupId
                 ));
@@ -7085,7 +7096,7 @@ function createSession(newSessionObj) {
               else {
                 statsObj.entityChannelGroup.hashMiss[sessionObj.tags.entity] = 1;
                 statsObj.entityChannelGroup.allHashMisses[sessionObj.tags.entity] = 1;
-                console.log(chalkInfo("-0- E CH HM MISS"
+                debug(chalkInfo("-0- E CH HM MISS"
                   + " | " + sessionObj.tags.entity
                   // + "\n" + jsonPrint(statsObj.entityChannelGroup.hashMiss)
                 ));
@@ -7138,6 +7149,29 @@ function createSession(newSessionObj) {
   socket.on("node", function(nodeObj) {
     debug("TW< " + nodeObj.nodeType + " | " + nodeObj.nodeId + " | " + nodeObj.mentions);
     viewNameSpace.emit("node", nodeObj);
+
+    if (nodeObj.nodeId.includes("trump")) {
+      trumpPerMinMeter.mark();
+
+      // var rawTrumpPerMinObj = trumpPerMinMeter.toJSON();
+
+      wordStats.meter('trumpPerSecond').mark();
+      wordStats.meter('trumpPerMinute').mark();
+
+      var wordStatsObj = wordStats.toJSON();
+
+      console.log(chalkAlert("TRUMP"
+        + " | " + wordStatsObj.trumpPerSecond["1MinuteRate"].toFixed(0) 
+        + " | " + wordStatsObj.trumpPerSecond.currentRate.toFixed(0) 
+        + " | " + wordStatsObj.trumpPerMinute["1MinuteRate"].toFixed(0) 
+        + " | " + wordStatsObj.trumpPerMinute.currentRate.toFixed(0) 
+        // + " | " + rawTrumpPerMinObj["1MinuteRate"].toFixed(0) 
+        // + " | " + rawTrumpPerMinObj.currentRate.toFixed(0) 
+        + " | " + nodeObj.nodeId
+      ));
+      // console.log(chalkAlert("rawTrumpPerMinObj\n" + jsonPrint(rawTrumpPerMinObj)));
+    }
+
   });
 
   socket.on("RESPONSE_WORD_OBJ", function(rxInObj) {
@@ -7148,6 +7182,28 @@ function createSession(newSessionObj) {
     // statsMeasured.meter('wordsPerSecond').mark();
     wpsMeter.mark();
     wpmMeter.mark();
+
+    if (rxInObj.nodeId.includes("trump")) {
+      // console.log(chalkAlert("TRUMP | " + rxInObj.nodeId));
+      trumpPerMinMeter.mark();
+      // var rawTrumpPerMinObj = trumpPerMinMeter.toJSON();
+
+      wordStats.meter('trumpPerSecond').mark();
+      wordStats.meter('trumpPerMinute').mark();
+
+      var wordStatsObj = wordStats.toJSON();
+
+      console.log(chalkAlert("TRUMP"
+        + " | " + wordStatsObj.trumpPerSecond["1MinuteRate"].toFixed(0) 
+        + " | " + wordStatsObj.trumpPerSecond.currentRate.toFixed(0) 
+        + " | " + wordStatsObj.trumpPerMinute["1MinuteRate"].toFixed(0) 
+        + " | " + wordStatsObj.trumpPerMinute.currentRate.toFixed(0) 
+        // + " | " + rawTrumpPerMinObj["1MinuteRate"].toFixed(0) 
+        // + " | " + rawTrumpPerMinObj.currentRate.toFixed(0) 
+        + " | " + rxInObj.nodeId
+      ));
+
+    }
 
     if (responseQueue.size() < MAX_RESPONSE_QUEUE_SIZE) {
 
@@ -7317,12 +7373,17 @@ var metricsInterval = setInterval(function() {
 
 function initRateQinterval(interval){
 
+  var wordStatsObj;
   var rawWpsObj;
   var rawWpmObj;
+  // var rawTrumpPerMinObj = {};
+  // rawTrumpPerMinObj.trumpPerSecond = {};
 
   console.log(chalkAlert("INIT RATE QUEUE INTERVAL"));
 
   clearInterval(rateQinterval);
+
+  trumpPerMinute = 0.0;
 
   wordsPerMinute = 0.0;
   wordsPerSecond = 0.0;
@@ -7333,12 +7394,17 @@ function initRateQinterval(interval){
 
     rawWpsObj = wpsMeter.toJSON();
     rawWpmObj = wpmMeter.toJSON();
+    // rawTrumpPerMinObj = trumpPerMinMeter.toJSON();
+
+    wordStatsObj = wordStats.toJSON();
 
     if (!rawWpsObj) return;
     if (!rawWpmObj) return;
+    // if (!rawTrumpPerMinObj) return;
 
-    debug(chalkAlert("rawWpsObj\n" + jsonPrint(rawWpsObj)));
-    debug(chalkAlert("rawWpmObj\n" + jsonPrint(rawWpmObj)));
+    // console.log(chalkAlert("rawWpsObj\n" + jsonPrint(rawWpsObj)));
+    // console.log(chalkAlert("rawWpmObj\n" + jsonPrint(rawWpmObj)));
+    // console.log(chalkAlert("rawTrumpPerMinObj\n" + jsonPrint(rawTrumpPerMinObj)));
 
     if (rawWpsObj.wordsPerSecond) {
       wordsPerSecond = rawWpsObj.currentRate;
@@ -7348,13 +7414,21 @@ function initRateQinterval(interval){
       wordsPerMinute = rawWpmObj['1MinuteRate'];
     }
 
+    // if (rawTrumpPerMinObj['1MinuteRate']) {
+    if (wordStatsObj.trumpPerMinute["1MinuteRate"]) {
+      // trumpPerMinute = rawTrumpPerMinObj.trumpPerSecond['1MinuteRate'];
+      trumpPerMinute = wordStatsObj.trumpPerMinute["1MinuteRate"];
+    }
+
     debug(chalkWarn(moment.utc().format(compactDateTimeFormat)
       + " | WPS: " + wordsPerSecond.toFixed(2)
       + " | WPM: " + wordsPerMinute.toFixed(0)
+      + " | TrPM: " + trumpPerMinute.toFixed(0)
     ));
 
     statsObj.wordsPerSecond = wordsPerSecond;
     statsObj.wordsPerMinute = wordsPerMinute;
+    statsObj.trumpPerMinute = trumpPerMinute;
 
     if (wordsPerMinute > maxWordsPerMin) {
       maxWordsPerMin = wordsPerMinute;
@@ -7362,6 +7436,14 @@ function initRateQinterval(interval){
       console.log(chalkAlert("NEW MAX WPM: " + wordsPerMinute.toFixed(0)));
       statsObj.maxWordsPerMin = wordsPerMinute;
       statsObj.maxWordsPerMinTime = moment.utc();
+    }
+
+    if (trumpPerMinute > maxTrumpPerMin) {
+      maxTrumpPerMin = trumpPerMinute;
+      maxTrumpPerMinTime = moment.utc();
+      console.log(chalkAlert("NEW MAX TrPM: " + trumpPerMinute.toFixed(0)));
+      statsObj.maxTrumpPerMin = trumpPerMinute;
+      statsObj.maxTrumpPerMinTime = moment.utc();
     }
 
   }, interval);
@@ -7431,7 +7513,7 @@ function loadDropboxJsonFile(file, callback){
       return(callback(err, null));
     }
 
-    console.log(chalkLog(getTimeStamp()
+    debug(chalkLog(getTimeStamp()
       + " | LOADING DROPBOX JSON FILE: " + file
     ));
 

@@ -18,7 +18,9 @@ var defaultTimePeriodFormat = "HH:mm:ss";
 
 var ONE_MB = 1024 * 1024;
 var ONE_GB = ONE_MB * 1024;
-var MAX_TIMELINE = 300;
+var TIMELINE_WIDTH = 600;
+var TIMELINE_HEIGHT = 250;
+var MAX_TIMELINE = 3600;
 
 var tpmData =[];
 var wpmData =[];
@@ -36,8 +38,8 @@ requirejs(["https://d3js.org/d3.v4.min.js"], function(d3Loaded) {
             title: "TPM",
             description: "TWEETS/MIN",
             data: tpmData,
-            width: 500,
-            height: 200,
+            width: TIMELINE_WIDTH,
+            height: TIMELINE_HEIGHT,
             // right: 20,
             target: '#tpmDiv',
             x_accessor: 'date',
@@ -51,8 +53,8 @@ requirejs(["https://d3js.org/d3.v4.min.js"], function(d3Loaded) {
             title: "T LIMIT",
             description: "TWITTER LIMIT",
             data: tLimitData,
-            width: 500,
-            height: 200,
+            width: TIMELINE_WIDTH,
+            height: TIMELINE_HEIGHT,
             // right: 20,
             target: '#tlimitDiv',
             x_accessor: 'date',
@@ -66,8 +68,8 @@ requirejs(["https://d3js.org/d3.v4.min.js"], function(d3Loaded) {
             title: "WPM",
             description: "WORDS/MIN",
             data: wpmData,
-            width: 500,
-            height: 200,
+            width: TIMELINE_WIDTH,
+            height: TIMELINE_HEIGHT,
             // right: 20,
             target: '#wpmDiv',
             x_accessor: 'date',
@@ -80,8 +82,8 @@ requirejs(["https://d3js.org/d3.v4.min.js"], function(d3Loaded) {
             title: "TrPM",
             description: "TRUMP/MIN",
             data: trpmData,
-            width: 500,
-            height: 200,
+            width: TIMELINE_WIDTH,
+            height: TIMELINE_HEIGHT,
             // right: 20,
             target: '#trpmDiv',
             x_accessor: 'date',

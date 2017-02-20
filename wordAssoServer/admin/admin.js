@@ -22,6 +22,8 @@ var MAX_TIMELINE = 300;
 
 var tpmData =[];
 var wpmData =[];
+var trpmData =[];
+var tLimitData = [];
 
 
 requirejs(["https://d3js.org/d3.v4.min.js"], function(d3Loaded) {
@@ -46,6 +48,21 @@ requirejs(["https://d3js.org/d3.v4.min.js"], function(d3Loaded) {
             missing_is_zero: true
         });
         MG.data_graphic({
+            title: "T LIMIT",
+            description: "TWITTER LIMIT",
+            data: tLimitData,
+            width: 500,
+            height: 200,
+            // right: 20,
+            target: '#tlimitDiv',
+            x_accessor: 'date',
+            y_accessor: 'value',
+            min_y_from_data: true,
+            animate_on_load: false,
+            transition_on_update: false,
+            missing_is_zero: true
+        });
+        MG.data_graphic({
             title: "WPM",
             description: "WORDS/MIN",
             data: wpmData,
@@ -53,6 +70,20 @@ requirejs(["https://d3js.org/d3.v4.min.js"], function(d3Loaded) {
             height: 200,
             // right: 20,
             target: '#wpmDiv',
+            x_accessor: 'date',
+            y_accessor: 'value',
+            min_y_from_data: true,
+            animate_on_load: false,
+            transition_on_update: false
+        });
+        MG.data_graphic({
+            title: "TrPM",
+            description: "TRUMP/MIN",
+            data: trpmData,
+            width: 500,
+            height: 200,
+            // right: 20,
+            target: '#trpmDiv',
             x_accessor: 'date',
             y_accessor: 'value',
             min_y_from_data: true,
@@ -853,9 +884,12 @@ socket.on('HEARTBEAT', function(rxHeartbeat) {
     tpmData.push({date: new Date(), value: tweetsPerMin});
     if (tpmData.length > MAX_TIMELINE) tpmData.shift();
 
+    tLimitData.push({date: new Date(), value: twitterLimit});
+    if (tLimitData.length > MAX_TIMELINE) tLimitData.shift();
+
   }
 
-  // console.log("... HB\n" + jsonPrint(heartBeat));
+  console.log("... HB\n" + jsonPrint(heartBeat));
   if (rxHeartbeat.deltaResponsesReceived > deltaResponsesMax) deltaResponsesMax = rxHeartbeat.deltaResponsesReceived;
 
   if (rxHeartbeat.wordsPerMinute > wordsPerMinuteMax) wordsPerMinuteMax = rxHeartbeat.wordsPerMinute;
@@ -867,6 +901,9 @@ socket.on('HEARTBEAT', function(rxHeartbeat) {
 
   wpmData.push({date: new Date(), value: rxHeartbeat.wordsPerMinute});
   if (wpmData.length > MAX_TIMELINE) wpmData.shift();
+
+  trpmData.push({date: new Date(), value: rxHeartbeat.trumpPerMinute});
+  if (trpmData.length > MAX_TIMELINE) trpmData.shift();
 });
 
 // updateServerHeartbeat
@@ -1975,6 +2012,7 @@ function initTimelineData(numDataPoints, callback){
   for (var i=0; i<numDataPoints; i++){
     tpmData.unshift({date: new Date(parseInt(currentMillis-(1000*i))), value: 0});
     wpmData.unshift({date: new Date(parseInt(currentMillis-(1000*i))), value: 0});
+    tLimitData.unshift({date: new Date(parseInt(currentMillis-(1000*i))), value: 0});
   }
 
   callback();

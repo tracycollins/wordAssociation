@@ -7,87 +7,87 @@ var tmsServer;
 var disableGoogleMetrics = false;
 var googleMetricsEnabled = true;
 
-const Monitoring = require('@google-cloud/monitoring');
+var Monitoring = require('@google-cloud/monitoring');
 var projectId = 'graphic-tangent-627';
-const googleMonitoringClient = Monitoring.v3().metricServiceClient();
+var googleMonitoringClient = Monitoring.v3().metricServiceClient();
 
-const googleRequest = {
-  name: googleMonitoringClient.projectPath(projectId),
-  metricDescriptor: {
-    description: 'Tweets Per Minute',
-    displayName: 'TPM',
-    type: 'custom.googleapis.com/twitter/tweets_per_minute',
-    metricKind: 'GAUGE',
-    valueType: 'DOUBLE',
-    unit: '{USD}',
-    labels: [
-      {
-        key: 'server_id',
-        valueType: 'STRING',
-        description: 'The ID of the server.'
-      }
-    ]
-  }
-};
+// var googleRequest = {
+//   name: googleMonitoringClient.projectPath(projectId),
+//   metricDescriptor: {
+//     description: 'Trump Per Minute',
+//     displayName: 'TrPM',
+//     type: 'custom.googleapis.com/word/trump_per_minute',
+//     metricKind: 'GAUGE',
+//     valueType: 'DOUBLE',
+//     unit: '{USD}',
+//     labels: [
+//       {
+//         key: 'server_id',
+//         valueType: 'STRING',
+//         description: 'The ID of the server.'
+//       }
+//     ]
+//   }
+// };
 
-// Creates a custom metric descriptor
-googleMonitoringClient.createMetricDescriptor(googleRequest)
-  .then((results) => {
-    const descriptor = results[0];
+// // Creates a custom metric descriptor
+// googleMonitoringClient.createMetricDescriptor(googleRequest)
+//   .then((results) => {
+//     const descriptor = results[0];
 
-    console.log('Created custom Metric:\n');
-    console.log(`Name: ${descriptor.displayName}`);
-    console.log(`Description: ${descriptor.description}`);
-    console.log(`Type: ${descriptor.type}`);
-    console.log(`Kind: ${descriptor.metricKind}`);
-    console.log(`Value Type: ${descriptor.valueType}`);
-    console.log(`Unit: ${descriptor.unit}`);
-    console.log('Labels:');
-    descriptor.labels.forEach((label) => {
-      console.log(`  ${label.key} (${label.valueType}) - ${label.description}`);
-    });
-  });
+//     console.log('Created custom Metric:\n');
+//     console.log(`Name: ${descriptor.displayName}`);
+//     console.log(`Description: ${descriptor.description}`);
+//     console.log(`Type: ${descriptor.type}`);
+//     console.log(`Kind: ${descriptor.metricKind}`);
+//     console.log(`Value Type: ${descriptor.valueType}`);
+//     console.log(`Unit: ${descriptor.unit}`);
+//     console.log('Labels:');
+//     descriptor.labels.forEach((label) => {
+//       console.log(`  ${label.key} (${label.valueType}) - ${label.description}`);
+//     });
+//   });
 
-var dp = {
-  interval: {
-    endTime: {
-      seconds: Date.now() / 1000
-    }
-  },
-  value: {
-    doubleValue: 123.45
-  }
-};
+// var dp = {
+//   interval: {
+//     endTime: {
+//       seconds: Date.now() / 1000
+//     }
+//   },
+//   value: {
+//     doubleValue: 123.45
+//   }
+// };
 
-var tsd = {
-  metric: {
-    type: 'custom.googleapis.com/twitter/tweets_per_minute',
-    labels: {
-      server_id: 'TMS'
-    }
-  },
-  resource: {
-    type: 'global',
-    labels: {
-      project_id: projectId
-    }
-  },
-  points: [
-    dp
-  ]
-};
+// var tsd = {
+//   metric: {
+//     type: 'custom.googleapis.com/word/trump_per_minute',
+//     labels: {
+//       server_id: 'WORD'
+//     }
+//   },
+//   resource: {
+//     type: 'global',
+//     labels: {
+//       project_id: projectId
+//     }
+//   },
+//   points: [
+//     dp
+//   ]
+// };
 
-var gr = {
-  name: googleMonitoringClient.projectPath(projectId),
-  timeSeries: [
-    tsd
-  ]
-};
+// var gr = {
+//   name: googleMonitoringClient.projectPath(projectId),
+//   timeSeries: [
+//     tsd
+//   ]
+// };
 
-googleMonitoringClient.createTimeSeries(gr)
-  .then((results) => {
-    console.log(`Done writing time series data.`);
-  });
+// googleMonitoringClient.createTimeSeries(gr)
+//   .then((results) => {
+//     console.log(`Done writing time series data.`);
+//   });
 
 var moment = require('moment');
 var Measured = require('measured');
@@ -1393,7 +1393,7 @@ var path = require('path');
 var net = require('net');
 // var testClient = new net.Socket();
 
-var googleOauthEvents = new EventEmitter();
+// var googleOauthEvents = new EventEmitter();
 
 var Queue = require('queue-fifo');
 var socketQueue = new Queue();
@@ -6447,64 +6447,6 @@ configEvents.on("CONFIG_CHANGE", function(serverSessionConfig) {
   debug(chalkInfo(moment().format(compactDateTimeFormat) + ' | >>> SENT CONFIG_CHANGE'));
 });
 
-
-// googleOauthEvents.on("AUTHORIZE GOOGLE", function() {
-//   authorizeGoogle();
-// });
-
-// googleOauthEvents.on("GOOGLE CREDENTIAL FOUND", function(credential) {
-
-//   var credentialExpiryDate = new Date(credential.expiryDate).getTime();
-//   var remainingTime = msToTime(credentialExpiryDate - currentTime);
-
-//   googleAuthExpiryDate = credential.expiryDate;
-
-//   debug(chalkGoogle("googleOauthEvents: GOOGLE CREDENTIAL FOUND: " + JSON.stringify(credential, null, 3)));
-
-//   debug("currentTime: " + currentTime + " | credentialExpiryDate: " + credentialExpiryDate);
-
-//   if (currentTime < credentialExpiryDate) {
-//     googleAuthorized = true;
-//     googleMetricsEnabled = true;
-//     googleOauthEvents.emit('GOOGLE AUTHORIZED');
-//     oauthExpiryTimer(credential.expiryDate);
-//     debug(chalkInfo(moment().format(compactDateTimeFormat) 
-//       + " | GOOGLE OAUTH2 CREDENTIAL EXPIRES IN: " + remainingTime 
-//       + " AT " + credential.expiryDate + " ... AUTHORIZING ANYWAY ..."));
-//     googleOauthEvents.emit('AUTHORIZE GOOGLE');
-//   } else {
-//     debug(chalkAlert(moment().format(compactDateTimeFormat) 
-//       + " | !!! GOOGLE OAUTH2 CREDENTIAL EXPIRED AT " + credential.expiryDate 
-//       + " | " + msToTime(currentTime - credential.expiryDate) + " AGO ... AUTHORIZING ..."));
-//     googleOauthEvents.emit('AUTHORIZE GOOGLE');
-//   }
-// });
-
-// googleOauthEvents.on("GOOGLE CREDENTIAL NOT FOUND", function(credentialId) {
-//   debug(chalkAlert(moment().format(compactDateTimeFormat) + " | GOOGLE CREDENTIAL NOT FOUND: " + credentialId));
-//   googleOauthEvents.emit("AUTHORIZE GOOGLE");
-// });
-// // RE-ENABLE METRICS PERIODICALLY TO CHECK DAILY LIMIT
-// googleOauthEvents.on("DAILY LIMIT EXCEEDED", function() {
-//   debug(chalkGoogle("RE-ENABLING GOOGLE METRICS IN " + msToTime(googleCheckDailyLimitInterval)));
-//   setTimeout(function() {
-//     googleMetricsEnabled = true;
-//     debug("RE-ENABLED GOOGLE METRICS AFTER DAILY LIMIT EXCEEDED");
-//   }, googleCheckDailyLimitInterval);
-// });
-// // RE-ENABLE METRICS PERIODICALLY TO CHECK IF SOCKET IS UP
-// googleOauthEvents.on("SOCKET HUNG UP", function() {
-//   debug(chalkGoogle("GOOGLE SOCKET HUNG UP ... CLEARING TWEET RATE QUEUE " + moment().format(compactDateTimeFormat)));
-//   debug(chalkGoogle("RE-TRYING GOOGLE METRICS IN " + msToTime(googleCheckSocketUpInterval)));
-
-//   setTimeout(function() {
-//     // googleMetricsEnabled = true ;
-//     googleOauthEvents.emit("AUTHORIZE GOOGLE");
-//     // debug(chalkGoogle("RE-ENABLING GOOGLE METRICS AFTER SOCKET HUNG UP..."));
-//   }, googleCheckSocketUpInterval);
-// });
-
-
 //=================================
 //  SERVER READY
 //=================================
@@ -7268,6 +7210,10 @@ var metricsInterval = setInterval(function() {
 
 }, 1000);
 
+
+var updateTimeSeriesCount = 0;
+var updateTimeSeries = false;
+
 function initRateQinterval(interval){
 
   var wordStatsObj;
@@ -7322,92 +7268,204 @@ function initRateQinterval(interval){
       statsObj.maxTrumpPerMinTime = moment.utc();
     }
 
-    if (!disableGoogleMetrics && tssServer) {
-      var dataPoint = {
-        interval: {
-          endTime: {
-            seconds: Date.now() / 1000
-          }
-        },
-        value: {
-          doubleValue: statsObj.utilities[tssServer].tweetsPerMinute
-        }
-      };
 
-      var timeSeriesData = {
-        metric: {
-          type: 'custom.googleapis.com/twitter/tweets_per_minute',
-          labels: {
-            server_id: 'TSS'
-          }
-        },
-        resource: {
-          type: 'global',
-          labels: {
-            project_id: projectId
-          }
-        },
-        points: [
-          dataPoint
-        ]
-      };
+      // console.log("updateTimeSeries: " + updateTimeSeries + " | C: " + updateTimeSeriesCount);
 
-      var googleRequest = {
-        name: googleMonitoringClient.projectPath(projectId),
-        timeSeries: [
-          timeSeriesData
-        ]
-      };
+    if (updateTimeSeriesCount == 0){
 
-      googleMonitoringClient.createTimeSeries(googleRequest)
-        .then((results) => {
-          debug(chalkTwitter("METRICS | TSS | " + statsObj.utilities[tssServer].tweetsPerMinute.toFixed(0) + " TPM"));
-        });
+      // console.log("updateTimeSeries: " + updateTimeSeries + " | C: " + updateTimeSeriesCount);
+
+      if (!disableGoogleMetrics && tssServer) {
+        var dataPoint = {
+          interval: {
+            endTime: {
+              seconds: Date.now() / 1000
+            }
+          },
+          value: {
+            doubleValue: statsObj.utilities[tssServer].tweetsPerMinute
+          }
+        };
+
+        var timeSeriesData = {
+          metric: {
+            type: 'custom.googleapis.com/twitter/tweets_per_minute',
+            labels: {
+              server_id: 'TSS'
+            }
+          },
+          resource: {
+            type: 'global',
+            labels: {
+              project_id: projectId
+            }
+          },
+          points: [
+            dataPoint
+          ]
+        };
+
+        var googleRequest = {
+          name: googleMonitoringClient.projectPath(projectId),
+          timeSeries: [
+            timeSeriesData
+          ]
+        };
+
+        googleMonitoringClient.createTimeSeries(googleRequest)
+          .then((results) => {
+            debug(chalkTwitter("METRICS | TSS | " + statsObj.utilities[tssServer].tweetsPerMinute.toFixed(0) + " TPM"));
+          })
+          .catch((results) => {
+            console.log(chalkError("*** ERROR METRICS | TSS | " + results));
+          });
+      }
+
+      if (!disableGoogleMetrics && tmsServer) {
+
+        var dataPointTMS = {
+          interval: {
+            endTime: {
+              seconds: Date.now() / 1000
+            }
+          },
+          value: {
+            doubleValue: statsObj.utilities[tmsServer].tweetsPerMinute
+          }
+        };
+
+        var timeSeriesDataTMS = {
+          metric: {
+            type: 'custom.googleapis.com/twitter/tweets_per_minute',
+            labels: {
+              server_id: 'TMS'
+            }
+          },
+          resource: {
+            type: 'global',
+            labels: {
+              project_id: projectId
+            }
+          },
+          points: [
+            dataPointTMS
+          ]
+        };
+
+        var googleRequestTMS = {
+          name: googleMonitoringClient.projectPath(projectId),
+          timeSeries: [
+            timeSeriesDataTMS
+          ]
+        };
+
+        googleMonitoringClient.createTimeSeries(googleRequestTMS)
+          .then((results) => {
+            debug(chalkTwitter("METRICS | TMS | " + statsObj.utilities[tmsServer].tweetsPerMinute.toFixed(0) + " TPM"));
+          })
+          .catch((results) => {
+            console.log(chalkError("*** ERROR METRICS | TMS | " + results));
+          });
+      }
+
+      if (!disableGoogleMetrics) {
+
+        var dataPoint = {
+          interval: {
+            endTime: {
+              seconds: Date.now() / 1000
+            }
+          },
+          value: {
+            doubleValue: wordsPerMinute
+          }
+        };
+
+        var timeSeriesData = {
+          metric: {
+            type: 'custom.googleapis.com/word/words_per_minute',
+            labels: {
+              server_id: 'WORD'
+            }
+          },
+          resource: {
+            type: 'global',
+            labels: {
+              project_id: projectId
+            }
+          },
+          points: [
+            dataPoint
+          ]
+        };
+
+        var googleRequest = {
+          name: googleMonitoringClient.projectPath(projectId),
+          timeSeries: [
+            timeSeriesData
+          ]
+        };
+
+        googleMonitoringClient.createTimeSeries(googleRequest)
+          .then((results) => {
+            debug(chalkTwitter("METRICS | WORD | " + wordsPerMinute.toFixed(0) + " WPM"));
+          })
+          .catch((results) => {
+            console.log(chalkError("*** ERROR METRICS | WORD | " + results));
+          });
+      }
+
+      if (!disableGoogleMetrics) {
+
+        var dataPoint = {
+          interval: {
+            endTime: {
+              seconds: Date.now() / 1000
+            }
+          },
+          value: {
+            doubleValue: trumpPerMinute
+          }
+        };
+
+        var timeSeriesData = {
+          metric: {
+            type: 'custom.googleapis.com/word/trump_per_minute',
+            labels: {
+              server_id: 'WORD'
+            }
+          },
+          resource: {
+            type: 'global',
+            labels: {
+              project_id: projectId
+            }
+          },
+          points: [
+            dataPoint
+          ]
+        };
+
+        var googleRequest = {
+          name: googleMonitoringClient.projectPath(projectId),
+          timeSeries: [
+            timeSeriesData
+          ]
+        };
+
+        googleMonitoringClient.createTimeSeries(googleRequest)
+          .then((results) => {
+            debug(chalkTwitter("METRICS | WORD | " + trumpPerMinute.toFixed(0) + " TrPM"));
+          })
+          .catch((results) => {
+            console.log(chalkError("*** ERROR METRICS | WORD - TRUMP | " + results));
+          });
+      }
     }
 
-    if (!disableGoogleMetrics && tmsServer) {
+    updateTimeSeriesCount++;
 
-      var dataPointTMS = {
-        interval: {
-          endTime: {
-            seconds: Date.now() / 1000
-          }
-        },
-        value: {
-          doubleValue: statsObj.utilities[tmsServer].tweetsPerMinute
-        }
-      };
-
-      var timeSeriesDataTMS = {
-        metric: {
-          type: 'custom.googleapis.com/twitter/tweets_per_minute',
-          labels: {
-            server_id: 'TMS'
-          }
-        },
-        resource: {
-          type: 'global',
-          labels: {
-            project_id: projectId
-          }
-        },
-        points: [
-          dataPointTMS
-        ]
-      };
-
-      var googleRequestTMS = {
-        name: googleMonitoringClient.projectPath(projectId),
-        timeSeries: [
-          timeSeriesDataTMS
-        ]
-      };
-
-      googleMonitoringClient.createTimeSeries(googleRequestTMS)
-        .then((results) => {
-          debug(chalkTwitter("METRICS | TMS | " + statsObj.utilities[tmsServer].tweetsPerMinute.toFixed(0) + " TPM"));
-        });
-    }
+    if (updateTimeSeriesCount > 5) updateTimeSeriesCount = 0;
 
   }, interval);
 }

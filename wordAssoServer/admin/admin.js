@@ -20,7 +20,7 @@ var ONE_MB = 1024 * 1024;
 var ONE_GB = ONE_MB * 1024;
 var TIMELINE_WIDTH = 600;
 var TIMELINE_HEIGHT = 250;
-var MAX_TIMELINE = 3600;
+var MAX_TIMELINE = 600;
 
 var tpmData =[];
 var wpmData =[];

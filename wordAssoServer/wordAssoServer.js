@@ -1,8 +1,98 @@
 /*jslint node: true */
 "use strict";
 
+var tssServer;
+var tmsServer;
+
+var disableGoogleMetrics = false;
+var googleMetricsEnabled = true;
+
+const Monitoring = require('@google-cloud/monitoring');
+var projectId = 'graphic-tangent-627';
+const googleMonitoringClient = Monitoring.v3().metricServiceClient();
+
+const googleRequest = {
+  name: googleMonitoringClient.projectPath(projectId),
+  metricDescriptor: {
+    description: 'Tweets Per Minute',
+    displayName: 'TPM',
+    type: 'custom.googleapis.com/twitter/tweets_per_minute',
+    metricKind: 'GAUGE',
+    valueType: 'DOUBLE',
+    unit: '{USD}',
+    labels: [
+      {
+        key: 'server_id',
+        valueType: 'STRING',
+        description: 'The ID of the server.'
+      }
+    ]
+  }
+};
+
+// Creates a custom metric descriptor
+googleMonitoringClient.createMetricDescriptor(googleRequest)
+  .then((results) => {
+    const descriptor = results[0];
+
+    console.log('Created custom Metric:\n');
+    console.log(`Name: ${descriptor.displayName}`);
+    console.log(`Description: ${descriptor.description}`);
+    console.log(`Type: ${descriptor.type}`);
+    console.log(`Kind: ${descriptor.metricKind}`);
+    console.log(`Value Type: ${descriptor.valueType}`);
+    console.log(`Unit: ${descriptor.unit}`);
+    console.log('Labels:');
+    descriptor.labels.forEach((label) => {
+      console.log(`  ${label.key} (${label.valueType}) - ${label.description}`);
+    });
+  });
+
+var dp = {
+  interval: {
+    endTime: {
+      seconds: Date.now() / 1000
+    }
+  },
+  value: {
+    doubleValue: 123.45
+  }
+};
+
+var tsd = {
+  metric: {
+    type: 'custom.googleapis.com/twitter/tweets_per_minute',
+    labels: {
+      server_id: 'TMS'
+    }
+  },
+  resource: {
+    type: 'global',
+    labels: {
+      project_id: projectId
+    }
+  },
+  points: [
+    dp
+  ]
+};
+
+var gr = {
+  name: googleMonitoringClient.projectPath(projectId),
+  timeSeries: [
+    tsd
+  ]
+};
+
+googleMonitoringClient.createTimeSeries(gr)
+  .then((results) => {
+    console.log(`Done writing time series data.`);
+  });
+
 var moment = require('moment');
 var Measured = require('measured');
+var StatsD = require('node-statsd');
+var statsdClient = new StatsD();
 
 var wordStats = Measured.createCollection();
 wordStats.meter("wordsPerSecond", {rateUnit: 1000, tickInterval: 1000});
@@ -1329,50 +1419,6 @@ var dnsReverseLookupQueue = new Queue();
 // ==================================================================
 // GOOGLE
 // ==================================================================
-// ==================================================================
-// GOOGLE INIT
-// ==================================================================
-var googleapis = require('googleapis');
-
-var GOOGLE_PROJECT_ID = process.env.GOOGLE_PROJECT_ID;
-var GOOGLE_SERVICE_ACCOUNT_CLIENT_ID = process.env.GOOGLE_SERVICE_ACCOUNT_CLIENT_ID;
-var GOOGLE_SERVICE_ACCOUNT_EMAIL = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-var GOOGLE_SERVICE_ACCOUNT_KEY_FILE = process.env.GOOGLE_SERVICE_ACCOUNT_KEY_FILE;
-var GOOGLE_MONITORING_SCOPE = process.env.GOOGLE_MONITORING_SCOPE;
-
-console.log("GOOGLE_PROJECT_ID: " + GOOGLE_PROJECT_ID);
-console.log("GOOGLE_SERVICE_ACCOUNT_CLIENT_ID: " + GOOGLE_SERVICE_ACCOUNT_CLIENT_ID);
-console.log("GOOGLE_SERVICE_ACCOUNT_EMAIL: " + GOOGLE_SERVICE_ACCOUNT_EMAIL);
-console.log("GOOGLE_SERVICE_ACCOUNT_KEY_FILE: " + GOOGLE_SERVICE_ACCOUNT_KEY_FILE);
-console.log("GOOGLE_MONITORING_SCOPE: " + GOOGLE_MONITORING_SCOPE);
-
-var disableGoogleMetrics = true;
-if (process.env.GOOGLE_METRICS_DISABLE > 0) {
-  disableGoogleMetrics = true;
-  console.log("GOOGLE_METRICS_DISABLE: " + disableGoogleMetrics);
-} else {
-  console.log("GOOGLE_METRICS_DISABLE: " + disableGoogleMetrics);
-}
-
-var googleAuthorized = false;
-var googleAuthCode = 0;
-var googleAuthExpiryDate = new Date();
-var googleMetricsEnabled = false;
-
-var googleCheckDailyLimitInterval = 10 * ONE_MINUTE; // check every 10 minutes
-var googleCheckSocketUpInterval = ONE_MINUTE;
-
-var googleMonitoring;
-var googleOauthClient;
-
-if (!disableGoogleMetrics) {
-  googleOauthClient = new googleapis.auth.JWT(
-    GOOGLE_SERVICE_ACCOUNT_EMAIL,
-    GOOGLE_SERVICE_ACCOUNT_KEY_FILE,
-    null, [GOOGLE_MONITORING_SCOPE]
-  );
-}
-
 
 var adminNameSpace;
 var utilNameSpace;
@@ -3449,193 +3495,6 @@ function dumpIoStats() {
     + "\n----------------------------");
 }
 
-function oauthExpiryTimer(endTime) {
-
-  var remainingTime = msToTime(endTime - getTimeNow());
-
-  debug("\nSET oauthExpiryTimer: " + getTimeStamp(endTime));
-  debug(chalkInfo(moment().format(compactDateTimeFormat) 
-    + " | GOOGLE OAUTH2 CREDENTIAL EXPIRES IN: " + remainingTime + " AT " + endTime));
-
-  var oauthInterval = setInterval(function() {
-
-    remainingTime = msToTime(endTime - getTimeNow());
-
-    if (endTime - getTimeNow() < 60000) {
-      debug(chalkAlert(moment().format(compactDateTimeFormat) 
-        + " | GOOGLE OAUTH2 CREDENTIAL EXPIRING IN " + remainingTime));
-    }
-
-    if (getTimeNow() >= endTime) {
-      debug(chalkAlert(moment().format(compactDateTimeFormat) 
-        + " | GOOGLE OAUTH2 CREDENTIAL EXPIRED: " 
-        + " | " + getTimeStamp(endTime)));
-      clearInterval(oauthInterval);
-      googleAuthorized = false;
-      googleMetricsEnabled = false;
-      googleOauthEvents.emit('GOOGLE OAUTH2 CREDENTIAL EXPIRED');
-      googleOauthEvents.emit('AUTHORIZE GOOGLE');
-    }
-
-  }, 10000);
-}
-
-function authorizeGoogle() {
-  googleOauthClient.authorize(function(err, tokens) {
-    if (err) {
-      console.log(chalkError(moment().format(compactDateTimeFormat) 
-        + " | ***** GOOGLE OAUTH ERROR: googleOauthClient " 
-        + " | " + moment().format(compactDateTimeFormat) 
-        + "\n" + err + "\n"));
-      googleOauthEvents.emit('GOOGLE OAUTH ERROR', err);
-    } else {
-
-      debug("GOOGLE TOKEN\n" + jsonPrint(tokens));
-      googleAuthExpiryDate = tokens.expiry_date;
-
-      googleMonitoring = googleapis.cloudmonitoring({
-        version: 'v2beta2',
-        auth: googleOauthClient
-      });
-
-
-      var credential = {
-        credentialType: 'SERVICE ACCOUNT',
-        clientId: GOOGLE_SERVICE_ACCOUNT_CLIENT_ID,
-        emailAddress: GOOGLE_SERVICE_ACCOUNT_EMAIL,
-        accessToken: tokens.access_token,
-        refreshToken: tokens.refresh_token,
-        tokenType: tokens.token_type,
-        expiryDate: googleAuthExpiryDate,
-        lastSeen: currentTime
-      }
-      debug(chalkGoogle("\nGOOGLE OAUTH2 AUTHORIZED"
-        + "\n----------------------\nCREDENTIAL\n" + JSON.stringify(tokens, null, 3)));
-
-      findOneOauth2Credential(credential);
-      googleAuthorized = true;
-      googleMetricsEnabled = true;
-      oauthExpiryTimer(tokens.expiry_date);
-
-      debug(chalkInfo(moment().format(compactDateTimeFormat) 
-        + " | GOOGLE OAUTH2 AUTHORIZED: ExpiryDate: " + getTimeStamp(googleAuthExpiryDate)));
-      googleOauthEvents.emit('GOOGLE AUTHORIZED', credential);
-    }
-  });
-}
-
-function findOneOauth2Credential(credential) {
-
-  debug("findOneOauth2Credential: credential\n" + jsonPrint(credential));
-
-  var query = {
-    clientId: credential.clientId
-  };
-  var update = {
-    $inc: {
-      mentions: 1
-    },
-    $set: {
-      credentialType: credential.credentialType,
-      clientId: credential.clientId,
-      clientSecret: credential.clientSecret,
-      emailAddress: credential.emailAddress,
-      accessToken: credential.accessToken,
-      refreshToken: credential.refreshToken,
-      tokenType: credential.tokenType,
-      expiryDate: credential.expiryDate,
-      lastSeen: currentTime
-    }
-  };
-  var options = {
-    upsert: true,
-    new: true
-  };
-
-  Oauth2credential.findOneAndUpdate(
-    query,
-    update,
-    options,
-    function(err, cred) {
-      if (err) {
-        console.log(chalkError(moment().format(compactDateTimeFormat) 
-          + " | !!! OAUTH2 CREDENTIAL FINDONE ERROR" 
-          + "\nCLIENT ID: " + credential.clientId 
-          + "\nERROR" + err));
-        return credential;
-      } else {
-        debug(chalkInfo(moment().format(compactDateTimeFormat) 
-          + " | GOOGLE CREDENTIAL UPDATED" 
-          + " | EXPIRES AT " + cred.expiryDate
-        ));
-        debug(chalkGoogle("\n\n--- OAUTH2 CREDENTIAL UPDATED---" 
-          + "\nCREDENTIAL TYPE: " + cred.credentialType 
-          + "\nCLIENT ID:       " + cred.clientId 
-          + "\nCLIENT SECRET:   " + cred.clientSecret 
-          + "\nEMAIL ADDR:      " + cred.emailAddress 
-          + "\nTOKEN TYPE:      " + cred.tokenType 
-          + "\nACCESS TOKEN:    " + cred.accessToken 
-          + "\nREFRESH TOKEN:   " + cred.refreshToken 
-          + "\nEXPIRY DATE:     " + cred.expiryDate
-          + "\nLAST SEEN:       " + cred.lastSeen 
-          + "\nMENTIONS:        " + cred.mentions 
-          + "\n--------------------------------\n\n"
-        ));
-        var mentionsString = cred.mentions.toString();
-        cred.mentions = mentionsString;
-        return cred;
-      }
-
-    }
-  );
-}
-
-function findCredential(clientId, callback) {
-
-  var query = {
-    clientId: clientId
-  };
-
-  Oauth2credential.findOne(
-    query,
-    function(err, cred) {
-      if (err) {
-        console.log(chalkError("!!! OAUTH2 CREDENTIAL FINDONE ERROR: " 
-          + moment().format(compactDateTimeFormat) 
-          + "\nCLIENT ID: " + clientId 
-          + "\n" + err
-        ));
-        googleOauthEvents.emit('credential error', clientId + "\n" + err);
-        callback(err);
-        // return;    
-      } else if (cred) {
-        debug(chalkInfo(moment().format(compactDateTimeFormat) + " | GOOGLE OAUTH2 CREDENTIAL FOUND"));
-        debug(chalkGoogle("GOOGLE OAUTH2 CREDENTIAL\n--------------------------------\n" 
-          + "\nCREDENTIAL TYPE: " + cred.credentialType 
-          + "\nCLIENT ID:       " + cred.clientId 
-          + "\nCLIENT SECRET:   " + cred.clientSecret 
-          + "\nEMAIL ADDR:      " + cred.emailAddress 
-          + "\nTOKEN TYPE:      " + cred.tokenType 
-          + "\nACCESS TOKEN:    " + cred.accessToken 
-          + "\nREFRESH TOKEN:   " + cred.refreshToken 
-          + "\nEXPIRY DATE:     " + cred.expiryDate 
-          + "\nLAST SEEN:       " + getTimeStamp(cred.lastSeen) 
-          + "\nMENTIONS:        " + cred.mentions 
-          + "\n--------------------------------\n\n"));
-        var mentionsString = cred.mentions.toString();
-        cred.mentions = mentionsString;
-        googleOauthEvents.emit('GOOGLE CREDENTIAL FOUND', cred);
-        callback(cred);
-      } else {
-        debug(chalkAlert(moment().format(compactDateTimeFormat) + " | GOOGLE OAUTH2 CREDENTIAL NOT FOUND"));
-        googleOauthEvents.emit('GOOGLE CREDENTIAL NOT FOUND', clientId);
-        callback(null);
-      }
-
-    }
-  );
-}
-
 var deltaPromptsSent = 0;
 var deltaResponsesReceived = 0;
 var deltaBhtRequests = 0;
@@ -5665,20 +5524,20 @@ function initializeConfiguration(callback) {
         });
       },
 
-      // GOOGLE INIT
-      function(callbackSeries) {
-        if (!disableGoogleMetrics) {
-          debug(chalkInfo(moment().format(compactDateTimeFormat) + " | GOOGLE INIT"));
-          findCredential(GOOGLE_SERVICE_ACCOUNT_CLIENT_ID, function() {
-            callbackSeries(null, "INIT_GOOGLE_METRICS_COMPLETE");
-            return;
-          });
-        } else {
-          debug(chalkInfo(moment().format(compactDateTimeFormat) 
-            + " | GOOGLE INIT *** SKIPPED *** | GOOGLE METRICS DISABLED"));
-          callbackSeries(null, "INIT_GOOGLE_METRICS_SKIPPED");
-        }
-      },
+      // // GOOGLE INIT
+      // function(callbackSeries) {
+      //   if (!disableGoogleMetrics) {
+      //     debug(chalkInfo(moment().format(compactDateTimeFormat) + " | GOOGLE INIT"));
+      //     findCredential(GOOGLE_SERVICE_ACCOUNT_CLIENT_ID, function() {
+      //       callbackSeries(null, "INIT_GOOGLE_METRICS_COMPLETE");
+      //       return;
+      //     });
+      //   } else {
+      //     debug(chalkInfo(moment().format(compactDateTimeFormat) 
+      //       + " | GOOGLE INIT *** SKIPPED *** | GOOGLE METRICS DISABLED"));
+      //     callbackSeries(null, "INIT_GOOGLE_METRICS_SKIPPED");
+      //   }
+      // },
 
       // TWIT FOR DM INIT
       function(callbackSeries) {
@@ -6589,61 +6448,61 @@ configEvents.on("CONFIG_CHANGE", function(serverSessionConfig) {
 });
 
 
-googleOauthEvents.on("AUTHORIZE GOOGLE", function() {
-  authorizeGoogle();
-});
+// googleOauthEvents.on("AUTHORIZE GOOGLE", function() {
+//   authorizeGoogle();
+// });
 
-googleOauthEvents.on("GOOGLE CREDENTIAL FOUND", function(credential) {
+// googleOauthEvents.on("GOOGLE CREDENTIAL FOUND", function(credential) {
 
-  var credentialExpiryDate = new Date(credential.expiryDate).getTime();
-  var remainingTime = msToTime(credentialExpiryDate - currentTime);
+//   var credentialExpiryDate = new Date(credential.expiryDate).getTime();
+//   var remainingTime = msToTime(credentialExpiryDate - currentTime);
 
-  googleAuthExpiryDate = credential.expiryDate;
+//   googleAuthExpiryDate = credential.expiryDate;
 
-  debug(chalkGoogle("googleOauthEvents: GOOGLE CREDENTIAL FOUND: " + JSON.stringify(credential, null, 3)));
+//   debug(chalkGoogle("googleOauthEvents: GOOGLE CREDENTIAL FOUND: " + JSON.stringify(credential, null, 3)));
 
-  debug("currentTime: " + currentTime + " | credentialExpiryDate: " + credentialExpiryDate);
+//   debug("currentTime: " + currentTime + " | credentialExpiryDate: " + credentialExpiryDate);
 
-  if (currentTime < credentialExpiryDate) {
-    googleAuthorized = true;
-    googleMetricsEnabled = true;
-    googleOauthEvents.emit('GOOGLE AUTHORIZED');
-    oauthExpiryTimer(credential.expiryDate);
-    debug(chalkInfo(moment().format(compactDateTimeFormat) 
-      + " | GOOGLE OAUTH2 CREDENTIAL EXPIRES IN: " + remainingTime 
-      + " AT " + credential.expiryDate + " ... AUTHORIZING ANYWAY ..."));
-    googleOauthEvents.emit('AUTHORIZE GOOGLE');
-  } else {
-    debug(chalkAlert(moment().format(compactDateTimeFormat) 
-      + " | !!! GOOGLE OAUTH2 CREDENTIAL EXPIRED AT " + credential.expiryDate 
-      + " | " + msToTime(currentTime - credential.expiryDate) + " AGO ... AUTHORIZING ..."));
-    googleOauthEvents.emit('AUTHORIZE GOOGLE');
-  }
-});
+//   if (currentTime < credentialExpiryDate) {
+//     googleAuthorized = true;
+//     googleMetricsEnabled = true;
+//     googleOauthEvents.emit('GOOGLE AUTHORIZED');
+//     oauthExpiryTimer(credential.expiryDate);
+//     debug(chalkInfo(moment().format(compactDateTimeFormat) 
+//       + " | GOOGLE OAUTH2 CREDENTIAL EXPIRES IN: " + remainingTime 
+//       + " AT " + credential.expiryDate + " ... AUTHORIZING ANYWAY ..."));
+//     googleOauthEvents.emit('AUTHORIZE GOOGLE');
+//   } else {
+//     debug(chalkAlert(moment().format(compactDateTimeFormat) 
+//       + " | !!! GOOGLE OAUTH2 CREDENTIAL EXPIRED AT " + credential.expiryDate 
+//       + " | " + msToTime(currentTime - credential.expiryDate) + " AGO ... AUTHORIZING ..."));
+//     googleOauthEvents.emit('AUTHORIZE GOOGLE');
+//   }
+// });
 
-googleOauthEvents.on("GOOGLE CREDENTIAL NOT FOUND", function(credentialId) {
-  debug(chalkAlert(moment().format(compactDateTimeFormat) + " | GOOGLE CREDENTIAL NOT FOUND: " + credentialId));
-  googleOauthEvents.emit("AUTHORIZE GOOGLE");
-});
-// RE-ENABLE METRICS PERIODICALLY TO CHECK DAILY LIMIT
-googleOauthEvents.on("DAILY LIMIT EXCEEDED", function() {
-  debug(chalkGoogle("RE-ENABLING GOOGLE METRICS IN " + msToTime(googleCheckDailyLimitInterval)));
-  setTimeout(function() {
-    googleMetricsEnabled = true;
-    debug("RE-ENABLED GOOGLE METRICS AFTER DAILY LIMIT EXCEEDED");
-  }, googleCheckDailyLimitInterval);
-});
-// RE-ENABLE METRICS PERIODICALLY TO CHECK IF SOCKET IS UP
-googleOauthEvents.on("SOCKET HUNG UP", function() {
-  debug(chalkGoogle("GOOGLE SOCKET HUNG UP ... CLEARING TWEET RATE QUEUE " + moment().format(compactDateTimeFormat)));
-  debug(chalkGoogle("RE-TRYING GOOGLE METRICS IN " + msToTime(googleCheckSocketUpInterval)));
+// googleOauthEvents.on("GOOGLE CREDENTIAL NOT FOUND", function(credentialId) {
+//   debug(chalkAlert(moment().format(compactDateTimeFormat) + " | GOOGLE CREDENTIAL NOT FOUND: " + credentialId));
+//   googleOauthEvents.emit("AUTHORIZE GOOGLE");
+// });
+// // RE-ENABLE METRICS PERIODICALLY TO CHECK DAILY LIMIT
+// googleOauthEvents.on("DAILY LIMIT EXCEEDED", function() {
+//   debug(chalkGoogle("RE-ENABLING GOOGLE METRICS IN " + msToTime(googleCheckDailyLimitInterval)));
+//   setTimeout(function() {
+//     googleMetricsEnabled = true;
+//     debug("RE-ENABLED GOOGLE METRICS AFTER DAILY LIMIT EXCEEDED");
+//   }, googleCheckDailyLimitInterval);
+// });
+// // RE-ENABLE METRICS PERIODICALLY TO CHECK IF SOCKET IS UP
+// googleOauthEvents.on("SOCKET HUNG UP", function() {
+//   debug(chalkGoogle("GOOGLE SOCKET HUNG UP ... CLEARING TWEET RATE QUEUE " + moment().format(compactDateTimeFormat)));
+//   debug(chalkGoogle("RE-TRYING GOOGLE METRICS IN " + msToTime(googleCheckSocketUpInterval)));
 
-  setTimeout(function() {
-    // googleMetricsEnabled = true ;
-    googleOauthEvents.emit("AUTHORIZE GOOGLE");
-    // debug(chalkGoogle("RE-ENABLING GOOGLE METRICS AFTER SOCKET HUNG UP..."));
-  }, googleCheckSocketUpInterval);
-});
+//   setTimeout(function() {
+//     // googleMetricsEnabled = true ;
+//     googleOauthEvents.emit("AUTHORIZE GOOGLE");
+//     // debug(chalkGoogle("RE-ENABLING GOOGLE METRICS AFTER SOCKET HUNG UP..."));
+//   }, googleCheckSocketUpInterval);
+// });
 
 
 //=================================
@@ -6884,24 +6743,27 @@ function createSession(newSessionObj) {
 
     if (userObj.stats) statsObj.utilities[userObj.userId] = userObj.stats;
 
-    // if (userObj.userId.match(/TMS_/g)){
-    //   console.log(chalkSession("K-" 
-    //     + " | " + userObj.userId
-    //     + " | " + socket.id
-    //     + " | " + moment().format(compactDateTimeFormat)
-    //     // + "\n" + jsonPrint(userObj)
-    //   ));
-    // }
+    if (userObj.userId.match(/TMS_/g)){
+      tmsServer = userObj.userId;
+      debug(chalkSession("K-" 
+        + " | " + userObj.userId
+        + " | " + socket.id
+        + " | " + userObj.stats.tweetsPerMinute.toFixed(0) + " TPM"
+        + " | " + moment().format(compactDateTimeFormat)
+        // + "\n" + jsonPrint(userObj)
+      ));
+    }
  
-    // if (userObj.userId.match(/TSS_/g)){
-    //   console.log(chalkSession("K-" 
-    //     + " | " + socket.id
-    //     + " | " + userObj.userId
-    //     + " | " + userObj.stats.tweetsPerMinute.toFixed(1) + " TPM"
-    //     + " | " + moment().format(compactDateTimeFormat)
-    //     // + "\n" + jsonPrint(userObj)
-    //   ));
-    // }
+    if (userObj.userId.match(/TSS_/g)){
+      tssServer = userObj.userId;
+      debug(chalkSession("K-" 
+        + " | " + userObj.userId
+        + " | " + socket.id
+        + " | " + userObj.stats.tweetsPerMinute.toFixed(0) + " TPM"
+        + " | " + moment().format(compactDateTimeFormat)
+        // + "\n" + jsonPrint(userObj)
+      ));
+    }
  
     var socketId = socket.id;
     var sessionObj = {};
@@ -7401,8 +7263,10 @@ var metricsInterval = setInterval(function() {
   }
 
   var googleMetricsUpdateFlag = !disableGoogleMetrics && googleMetricsEnabled;
+
   updateMetrics(googleMetricsUpdateFlag);
-}, 10000);
+
+}, 1000);
 
 function initRateQinterval(interval){
 
@@ -7456,6 +7320,93 @@ function initRateQinterval(interval){
       console.log(chalkAlert("NEW MAX TrPM: " + trumpPerMinute.toFixed(0)));
       statsObj.maxTrumpPerMin = trumpPerMinute;
       statsObj.maxTrumpPerMinTime = moment.utc();
+    }
+
+    if (!disableGoogleMetrics && tssServer) {
+      var dataPoint = {
+        interval: {
+          endTime: {
+            seconds: Date.now() / 1000
+          }
+        },
+        value: {
+          doubleValue: statsObj.utilities[tssServer].tweetsPerMinute
+        }
+      };
+
+      var timeSeriesData = {
+        metric: {
+          type: 'custom.googleapis.com/twitter/tweets_per_minute',
+          labels: {
+            server_id: 'TSS'
+          }
+        },
+        resource: {
+          type: 'global',
+          labels: {
+            project_id: projectId
+          }
+        },
+        points: [
+          dataPoint
+        ]
+      };
+
+      var googleRequest = {
+        name: googleMonitoringClient.projectPath(projectId),
+        timeSeries: [
+          timeSeriesData
+        ]
+      };
+
+      googleMonitoringClient.createTimeSeries(googleRequest)
+        .then((results) => {
+          debug(chalkTwitter("METRICS | TSS | " + statsObj.utilities[tssServer].tweetsPerMinute.toFixed(0) + " TPM"));
+        });
+    }
+
+    if (!disableGoogleMetrics && tmsServer) {
+
+      var dataPointTMS = {
+        interval: {
+          endTime: {
+            seconds: Date.now() / 1000
+          }
+        },
+        value: {
+          doubleValue: statsObj.utilities[tmsServer].tweetsPerMinute
+        }
+      };
+
+      var timeSeriesDataTMS = {
+        metric: {
+          type: 'custom.googleapis.com/twitter/tweets_per_minute',
+          labels: {
+            server_id: 'TMS'
+          }
+        },
+        resource: {
+          type: 'global',
+          labels: {
+            project_id: projectId
+          }
+        },
+        points: [
+          dataPointTMS
+        ]
+      };
+
+      var googleRequestTMS = {
+        name: googleMonitoringClient.projectPath(projectId),
+        timeSeries: [
+          timeSeriesDataTMS
+        ]
+      };
+
+      googleMonitoringClient.createTimeSeries(googleRequestTMS)
+        .then((results) => {
+          debug(chalkTwitter("METRICS | TMS | " + statsObj.utilities[tmsServer].tweetsPerMinute.toFixed(0) + " TPM"));
+        });
     }
 
   }, interval);
@@ -8040,6 +7991,68 @@ process.on("message", function(msg) {
   }
 });
 
+statsdClient.socket.on('error', function(error) {
+  return console.error(chalkError("Error in socket: ", error));
+  quit();
+});
+
+// function initStatsd(){
+//   // Timing: sends a timing command with the specified milliseconds
+//   statsdClient.timing('response_time', 42);
+
+//   // Increment: Increments a stat by a value (default is 1)
+//   statsdClient.increment('my_counter');
+
+//   // Decrement: Decrements a stat by a value (default is -1)
+//   statsdClient.decrement('my_counter');
+
+//   // Histogram: send data for histogram stat
+//   statsdClient.histogram('my_histogram', 42);
+
+//   // Gauge: Gauge a stat by a specified amount
+//   statsdClient.gauge('my_gauge', 123.45);
+
+//   // Set: Counts unique occurrences of a stat (alias of unique)
+//   statsdClient.set('my_unique', 'foobar');
+//   statsdClient.unique('my_unique', 'foobarbaz');
+
+//   // Incrementing multiple items
+//   statsdClient.increment(['these', 'are', 'different', 'stats']);
+
+//   // Sampling, this will sample 25% of the time the StatsD Daemon will compensate for sampling
+//   statsdClient.increment('my_counter', 1, 0.25);
+
+//   // Tags, this will add user-defined tags to the data
+//   statsdClient.histogram('my_histogram', 42, ['foo', 'bar']);
+
+//   // Using the callback
+//   statsdClient.set(['foo', 'bar'], 42, function(error, bytes){
+//     //this only gets called once after all messages have been sent
+//     if(error){
+//       console.log(chalkError('Oh noes! There was an error:', error));
+//     } else {
+//       console.log(chalkError('Successfully sent', bytes, 'bytes'));
+//     }
+//   });
+
+//   // Sampling, tags and callback are optional and could be used in any combination
+//   statsdClient.histogram('my_histogram', 42, 0.25); // 25% Sample Rate
+//   statsdClient.histogram('my_histogram', 42, ['tag']); // User-defined tag
+//   statsdClient.histogram('my_histogram', 42, function(error, bytes){
+//     console.log(chalkError("statd histogram"));
+//     if(error){
+//       console.log(chalkError('Oh noes! There was an error:', error));
+//     } else {
+//       console.log(chalkError('Successfully sent', bytes, 'bytes'));
+//     }
+//   }); // Callback
+//   statsdClient.histogram('my_histogram', 42, 0.25, ['tag']);
+//   statsdClient.histogram('my_histogram', 42, 0.25, function(){});
+//   statsdClient.histogram('my_histogram', 42, ['tag'], function(){});
+//   statsdClient.histogram('my_histogram', 42, 0.25, ['tag'], function(){});
+
+// }
+
 //=================================
 // BEGIN !!
 //=================================
@@ -8056,6 +8069,8 @@ initializeConfiguration(function(err, results) {
     initUpdateTrendsInterval(ONE_MINUTE);
     initFollowerUpdateQueueInterval(100);
     initRateQinterval(1000);
+
+    // initStatsd();
 
     updater = cp.fork(`${__dirname}/js/libs/updateGroupsEntitiesChannels.js`);
 

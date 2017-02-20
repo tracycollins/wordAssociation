@@ -91,8 +91,6 @@ var googleMonitoringClient = Monitoring.v3().metricServiceClient();
 
 var moment = require('moment');
 var Measured = require('measured');
-var StatsD = require('node-statsd');
-var statsdClient = new StatsD();
 
 var wordStats = Measured.createCollection();
 wordStats.meter("wordsPerSecond", {rateUnit: 1000, tickInterval: 1000});
@@ -8048,68 +8046,6 @@ process.on("message", function(msg) {
 
   }
 });
-
-statsdClient.socket.on('error', function(error) {
-  return console.error(chalkError("Error in socket: ", error));
-  quit();
-});
-
-// function initStatsd(){
-//   // Timing: sends a timing command with the specified milliseconds
-//   statsdClient.timing('response_time', 42);
-
-//   // Increment: Increments a stat by a value (default is 1)
-//   statsdClient.increment('my_counter');
-
-//   // Decrement: Decrements a stat by a value (default is -1)
-//   statsdClient.decrement('my_counter');
-
-//   // Histogram: send data for histogram stat
-//   statsdClient.histogram('my_histogram', 42);
-
-//   // Gauge: Gauge a stat by a specified amount
-//   statsdClient.gauge('my_gauge', 123.45);
-
-//   // Set: Counts unique occurrences of a stat (alias of unique)
-//   statsdClient.set('my_unique', 'foobar');
-//   statsdClient.unique('my_unique', 'foobarbaz');
-
-//   // Incrementing multiple items
-//   statsdClient.increment(['these', 'are', 'different', 'stats']);
-
-//   // Sampling, this will sample 25% of the time the StatsD Daemon will compensate for sampling
-//   statsdClient.increment('my_counter', 1, 0.25);
-
-//   // Tags, this will add user-defined tags to the data
-//   statsdClient.histogram('my_histogram', 42, ['foo', 'bar']);
-
-//   // Using the callback
-//   statsdClient.set(['foo', 'bar'], 42, function(error, bytes){
-//     //this only gets called once after all messages have been sent
-//     if(error){
-//       console.log(chalkError('Oh noes! There was an error:', error));
-//     } else {
-//       console.log(chalkError('Successfully sent', bytes, 'bytes'));
-//     }
-//   });
-
-//   // Sampling, tags and callback are optional and could be used in any combination
-//   statsdClient.histogram('my_histogram', 42, 0.25); // 25% Sample Rate
-//   statsdClient.histogram('my_histogram', 42, ['tag']); // User-defined tag
-//   statsdClient.histogram('my_histogram', 42, function(error, bytes){
-//     console.log(chalkError("statd histogram"));
-//     if(error){
-//       console.log(chalkError('Oh noes! There was an error:', error));
-//     } else {
-//       console.log(chalkError('Successfully sent', bytes, 'bytes'));
-//     }
-//   }); // Callback
-//   statsdClient.histogram('my_histogram', 42, 0.25, ['tag']);
-//   statsdClient.histogram('my_histogram', 42, 0.25, function(){});
-//   statsdClient.histogram('my_histogram', 42, ['tag'], function(){});
-//   statsdClient.histogram('my_histogram', 42, 0.25, ['tag'], function(){});
-
-// }
 
 //=================================
 // BEGIN !!

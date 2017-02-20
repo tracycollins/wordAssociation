@@ -2019,6 +2019,7 @@ function initTimelineData(numDataPoints, callback){
     tpmData.unshift({date: new Date(parseInt(currentMillis-(1000*i))), value: 0});
     wpmData.unshift({date: new Date(parseInt(currentMillis-(1000*i))), value: 0});
     tLimitData.unshift({date: new Date(parseInt(currentMillis-(1000*i))), value: 0});
+    trpmData.unshift({date: new Date(parseInt(currentMillis-(1000*i))), value: 0});
   }
 
   callback();

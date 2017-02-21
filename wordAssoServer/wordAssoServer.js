@@ -450,11 +450,11 @@ console.log("WAPI_REQ_RESERVE_PRCNT: " + wapiReqReservePercent);
 
 var NodeCache = require("node-cache");
 
-var adminCache = new NodeCache();
-var viewerCache = new NodeCache();
-var userCache = new NodeCache();
-var utilCache = new NodeCache();
-var ipAddressCache = new NodeCache();
+// var adminCache = new NodeCache();
+// var viewerCache = new NodeCache();
+// var userCache = new NodeCache();
+// var utilCache = new NodeCache();
+// var ipAddressCache = new NodeCache();
 
 // ==================================================================
 // IP ADDRESS CACHE
@@ -531,6 +531,12 @@ var groupCache = new NodeCache({
   stdTTL: groupCacheTtl,
   checkperiod: 30
 });
+
+var ipAddressCache = new NodeCache({
+  stdTTL: ipAddressCacheTtl,
+  checkperiod: 30
+});
+
 
 // ==================================================================
 // CACHE HANDLERS
@@ -7353,6 +7359,20 @@ function initRateQinterval(interval){
 
         addMetricDataPoint(dataPoint, function(err, results){
           // console.log("UTIL\n" + jsonPrint(results));
+        });
+      }
+
+      // user/global/number_of_viewers
+      if (!disableGoogleMetrics) {
+        var dataPoint = {};
+        
+        dataPoint.metricType = 'user/global/number_of_viewers';
+        // dataPoint.value = Object.keys(userNameSpace.connected).length;
+        dataPoint.value = statsObj.caches.viewerCache.keys;
+        dataPoint.metricLabels = {server_id: 'USER'};
+
+        addMetricDataPoint(dataPoint, function(err, results){
+          // console.log("USER\n" + jsonPrint(results));
         });
       }
 

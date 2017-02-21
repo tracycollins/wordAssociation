@@ -588,14 +588,26 @@ var ipAddressCache = new NodeCache({
 // ==================================================================
 // CACHE HANDLERS
 // ==================================================================
+entityCache.on("set", function(userId, entityObj) {
+    debug(chalkSession("ENT $"
+      + " | " + moment().format(compactDateTimeFormat) 
+      + " | ID: " + userId 
+      + " \n" + jsonPrint(entityObj)
+    ));
+});
+
 sessionCache.on("set", function(sessionId, sessionObj) {
-  if (sessionObj.userId && sessionObj.userId.match('TMS_')){
+  // if (sessionObj.userId && sessionObj.userId.match('TMS_')){
     debug(chalkSession("SES $"
       + " | " + moment().format(compactDateTimeFormat) 
       + " | ID: " + sessionId 
       + " | U: " + sessionObj.userId
-      // + " \n" + jsonPrint(sessionObj)
+      + " \n" + jsonPrint(sessionObj)
     ));
+  // }
+
+  if (sessionObj.user && (sessionObj.user.mode == "SUBSTREAM")){
+    entityCache.set(sessionObj.user.userId, sessionObj.user);
   }
 });
 
@@ -3869,7 +3881,7 @@ function handleSessionEvent(sesObj, callback) {
 
     case 'SESSION_KEEPALIVE':
 
-      console.log("KEEPALIVE\n" + jsonPrint(sesObj));
+      debug("KEEPALIVE\n" + jsonPrint(sesObj));
 
       sessionUpdateDb(sesObj.session, function(err, sessionUpdatedObj) {
         if (err) {

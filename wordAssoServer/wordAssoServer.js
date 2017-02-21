@@ -89,15 +89,15 @@ var maxServerResponseTime = 1447;
 var pollTwitterFriendsIntervalTime = 5*ONE_MINUTE;
 
 var TRENDING_CACHE_DEFAULT_TTL = 300; // seconds
-var VIEWER_CACHE_DEFAULT_TTL = 300; // seconds
-var UTIL_CACHE_DEFAULT_TTL = 300; // seconds
-var USER_CACHE_DEFAULT_TTL = 300; // seconds
-var GROUP_CACHE_DEFAULT_TTL = 300; // seconds
-var ENTITY_CACHE_DEFAULT_TTL = 300; // seconds
-var SESSION_CACHE_DEFAULT_TTL = 600; // seconds
+var VIEWER_CACHE_DEFAULT_TTL = 60; // seconds
+var UTIL_CACHE_DEFAULT_TTL = 60; // seconds
+var USER_CACHE_DEFAULT_TTL = 60; // seconds
+var GROUP_CACHE_DEFAULT_TTL = 60; // seconds
+var ENTITY_CACHE_DEFAULT_TTL = 60; // seconds
+var SESSION_CACHE_DEFAULT_TTL = 60; // seconds
 var WORD_CACHE_TTL = 60; // seconds
-var MONITOR_CACHE_TTL = 300; // seconds
-var IP_ADDRESS_CACHE_DEFAULT_TTL = 300;
+var MONITOR_CACHE_TTL = 60; // seconds
+var IP_ADDRESS_CACHE_DEFAULT_TTL = 60;
 
 var MAX_WORDCHAIN_LENGTH = 10;
 var MIN_CHAIN_FREEZE_LENGTH = 20;
@@ -479,7 +479,7 @@ console.log("TRENDING CACHE TTL: " + trendingCacheTtl + " SECONDS");
 // ==================================================================
 var utilCacheTtl = process.env.UTIL_CACHE_DEFAULT_TTL;
 
-if (typeof utilCacheTtl === 'undefined') userCacheTtl = UTIL_CACHE_DEFAULT_TTL;
+if (typeof utilCacheTtl === 'undefined') utilCacheTtl = UTIL_CACHE_DEFAULT_TTL;
 console.log("UTIL CACHE TTL: " + utilCacheTtl + " SECONDS");
 
 // ==================================================================
@@ -2651,6 +2651,7 @@ function sessionUpdateDb(sessionObj, callback) {
           + " | CON: " + ses.connected 
           + " | WCI: " + ses.wordChainIndex 
           // + " | WCL: " + ses.wordChain.length 
+          + "\nTAGS\n" + jsonPrint(ses.tags)
           + "\nCONFIG\n" + jsonPrint(ses.config)
         ));
         callback(null, ses);
@@ -3037,7 +3038,7 @@ function adminUpdateDb(adminObj, callback) {
 function viewerUpdateDb(viewerObj, callback) {
 
   var query = {
-    viewerId: viewerObj.viewerId
+    userId: viewerObj.userId
   };
   var update = {
     $set: {
@@ -3076,13 +3077,13 @@ function viewerUpdateDb(viewerObj, callback) {
       if (err) {
         console.log("!!! VIEWER FINDONE ERROR: " 
           + moment().format(compactDateTimeFormat) 
-          + " | " + viewerObj.viewerId 
+          + " | " + viewerObj.userId 
           + "\n" + err
         );
         callback(err, viewerObj);
       } else {
         debug(">>> VIEWER UPDATED" 
-          + " | " + vw.viewerId 
+          + " | " + vw.userId 
           + " | SN: " + vw.screenName 
           + " | NSP: " + vw.namespace 
           + " | IP: " + vw.ip 
@@ -3274,7 +3275,7 @@ function viewerFindAllDb(options, callback) {
 
   var query = {};
   var projections = {
-    viewerId: true,
+    userId: true,
     namespace: true,
     screenName: true,
     description: true,
@@ -3301,12 +3302,12 @@ function viewerFindAllDb(options, callback) {
 
         function(viewer, callback) {
 
-          debug(chalkViewer("UID: " + viewer.viewerId 
+          debug(chalkViewer("UID: " + viewer.userId 
             + " | SN: " + viewer.screenName 
             + " | LS: " + getTimeStamp(viewer.lastSeen)
           ));
 
-          viewerCache.set(viewer.viewerId, viewers);
+          viewerCache.set(viewer.userId, viewers);
           callback(null);
 
         },
@@ -3745,7 +3746,7 @@ function handleSessionEvent(sesObj, callback) {
 
         if (currentViewer) {
           debug("currentViewer\n" + jsonPrint(currentViewer));
-          viewerCache.del(currentViewer.viewerId);
+          viewerCache.del(currentViewer.userId);
 
           currentViewer.lastSeen = moment().valueOf();
           currentViewer.connected = false;
@@ -3921,6 +3922,11 @@ function handleSessionEvent(sesObj, callback) {
 
           // userCache.set(sessionUpdatedObj.userId, sessionUpdatedObj.user, function(err, success) {});
           utilCache.set(sessionUpdatedObj.userId, sessionUpdatedObj.user, function(err, success) {});
+
+          if (sessionUpdatedObj.config.type == "VIEWER") {
+            viewerCache.set(sessionUpdatedObj.userId, sessionUpdatedObj);
+            debug(chalkViewer("$ VIEWER: " + sessionUpdatedObj.userId + "\n" + jsonPrint(sessionUpdatedObj)));
+          }
 
           debug(chalkLog(
             "K>" + " | " + sessionUpdatedObj.userId 
@@ -4163,7 +4169,7 @@ function handleSessionEvent(sesObj, callback) {
         ">>> SESSION VIEWER READY" 
         + " | " + moment().format(compactDateTimeFormat) 
         + " | SID: " + sesObj.session.sessionId 
-        + " | UID: " + sesObj.viewer.viewerId 
+        + " | UID: " + sesObj.viewer.userId 
         + " | NSP: " + sesObj.session.namespace 
         + " | IP: " + sesObj.session.ip 
         + " | DOMAIN: " + sesObj.session.domain
@@ -4175,7 +4181,7 @@ function handleSessionEvent(sesObj, callback) {
         currentSession = sesObj.session;
       }
 
-      currentSession.userId = sesObj.viewer.viewerId;
+      currentSession.userId = sesObj.viewer.userId;
 
       sesObj.viewer.ip = sesObj.session.ip;
       sesObj.viewer.domain = sesObj.session.domain;
@@ -4186,7 +4192,7 @@ function handleSessionEvent(sesObj, callback) {
       sesObj.viewer.connectTime = moment().valueOf();
       sesObj.viewer.disconnectTime = 0;
 
-      viewerCache.set(sesObj.viewer.viewerId, sesObj.viewer);
+      viewerCache.set(sesObj.viewer.userId, sesObj.viewer);
 
       viewerUpdateDb(sesObj.viewer, function(err, updatedViewerObj) {
         if (err) {
@@ -6655,7 +6661,7 @@ function createSession(newSessionObj) {
         + " | ??? SESSION NOT FOUND ON VIEWER READY | " + socketId));
       return;
     }
-    debug(chalkConnect("--- VIEWER READY   | " + viewerObj.viewerId 
+    debug(chalkConnect("--- VIEWER READY   | " + viewerObj.userId 
       + " | SID: " + sessionObj.sessionId 
       + " | " + moment().format(compactDateTimeFormat)));
 

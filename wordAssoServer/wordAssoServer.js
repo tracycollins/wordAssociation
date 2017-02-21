@@ -89,6 +89,9 @@ var maxServerResponseTime = 1447;
 var pollTwitterFriendsIntervalTime = 5*ONE_MINUTE;
 
 var TRENDING_CACHE_DEFAULT_TTL = 300; // seconds
+var VIEWER_CACHE_DEFAULT_TTL = 300; // seconds
+var UTIL_CACHE_DEFAULT_TTL = 300; // seconds
+var USER_CACHE_DEFAULT_TTL = 300; // seconds
 var GROUP_CACHE_DEFAULT_TTL = 300; // seconds
 var ENTITY_CACHE_DEFAULT_TTL = 300; // seconds
 var SESSION_CACHE_DEFAULT_TTL = 600; // seconds
@@ -472,6 +475,30 @@ if (typeof trendingCacheTtl === 'undefined') trendingCacheTtl = TRENDING_CACHE_D
 console.log("TRENDING CACHE TTL: " + trendingCacheTtl + " SECONDS");
 
 // ==================================================================
+// UTIL CACHE
+// ==================================================================
+var utilCacheTtl = process.env.UTIL_CACHE_DEFAULT_TTL;
+
+if (typeof utilCacheTtl === 'undefined') userCacheTtl = UTIL_CACHE_DEFAULT_TTL;
+console.log("UTIL CACHE TTL: " + utilCacheTtl + " SECONDS");
+
+// ==================================================================
+// VIEWER CACHE
+// ==================================================================
+var viewerCacheTtl = process.env.VIEWER_CACHE_DEFAULT_TTL;
+
+if (typeof viewerCacheTtl === 'undefined') viewerCacheTtl = VIEWER_CACHE_DEFAULT_TTL;
+console.log("VIEWER CACHE TTL: " + viewerCacheTtl + " SECONDS");
+
+// ==================================================================
+// USER CACHE
+// ==================================================================
+var userCacheTtl = process.env.USER_CACHE_DEFAULT_TTL;
+
+if (typeof userCacheTtl === 'undefined') userCacheTtl = USER_CACHE_DEFAULT_TTL;
+console.log("USER CACHE TTL: " + userCacheTtl + " SECONDS");
+
+// ==================================================================
 // GROUP CACHE
 // ==================================================================
 var groupCacheTtl = process.env.GROUP_CACHE_DEFAULT_TTL;
@@ -505,6 +532,26 @@ console.log("WORD CACHE TTL: " + wordCacheTtl + " SECONDS");
 
 
 var monitorHashMap = {};
+
+var adminCache = new NodeCache({
+  stdTTL: ipAddressCacheTtl,
+  checkperiod: 10
+});
+
+var utilCache = new NodeCache({
+  stdTTL: utilCacheTtl,
+  checkperiod: 10
+});
+
+var viewerCache = new NodeCache({
+  stdTTL: viewerCacheTtl,
+  checkperiod: 10
+});
+
+var userCache = new NodeCache({
+  stdTTL: userCacheTtl,
+  checkperiod: 10
+});
 
 var trendingCache = new NodeCache({
   stdTTL: trendingCacheTtl,

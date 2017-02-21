@@ -7350,7 +7350,7 @@ function initRateQinterval(interval){
         dataPoint.metricLabels = {server_id: 'TSS'};
 
         addMetricDataPoint(dataPoint, function(err, results){
-          console.log("TSS\n" + jsonPrint(results));
+          // console.log("TSS\n" + jsonPrint(results));
         });
       }
 

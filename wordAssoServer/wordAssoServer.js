@@ -14,84 +14,6 @@ var googleMonitoringClient = Monitoring.v3().metricServiceClient();
 
 var defaults = require('object.defaults');
 
-// var googleRequest = {
-//   name: googleMonitoringClient.projectPath(projectId),
-//   metricDescriptor: {
-//     description: 'Trump Per Minute',
-//     displayName: 'TrPM',
-//     type: 'custom.googleapis.com/word/trump_per_minute',
-//     metricKind: 'GAUGE',
-//     valueType: 'DOUBLE',
-//     unit: '{USD}',
-//     labels: [
-//       {
-//         key: 'server_id',
-//         valueType: 'STRING',
-//         description: 'The ID of the server.'
-//       }
-//     ]
-//   }
-// };
-
-// // Creates a custom metric descriptor
-// googleMonitoringClient.createMetricDescriptor(googleRequest)
-//   .then((results) => {
-//     const descriptor = results[0];
-
-//     console.log('Created custom Metric:\n');
-//     console.log(`Name: ${descriptor.displayName}`);
-//     console.log(`Description: ${descriptor.description}`);
-//     console.log(`Type: ${descriptor.type}`);
-//     console.log(`Kind: ${descriptor.metricKind}`);
-//     console.log(`Value Type: ${descriptor.valueType}`);
-//     console.log(`Unit: ${descriptor.unit}`);
-//     console.log('Labels:');
-//     descriptor.labels.forEach((label) => {
-//       console.log(`  ${label.key} (${label.valueType}) - ${label.description}`);
-//     });
-//   });
-
-// var dp = {
-//   interval: {
-//     endTime: {
-//       seconds: Date.now() / 1000
-//     }
-//   },
-//   value: {
-//     doubleValue: 123.45
-//   }
-// };
-
-// var tsd = {
-//   metric: {
-//     type: 'custom.googleapis.com/word/trump_per_minute',
-//     labels: {
-//       server_id: 'WORD'
-//     }
-//   },
-//   resource: {
-//     type: 'global',
-//     labels: {
-//       project_id: projectId
-//     }
-//   },
-//   points: [
-//     dp
-//   ]
-// };
-
-// var gr = {
-//   name: googleMonitoringClient.projectPath(projectId),
-//   timeSeries: [
-//     tsd
-//   ]
-// };
-
-// googleMonitoringClient.createTimeSeries(gr)
-//   .then((results) => {
-//     console.log(`Done writing time series data.`);
-//   });
-
 var moment = require('moment');
 var Measured = require('measured');
 
@@ -172,6 +94,7 @@ var ENTITY_CACHE_DEFAULT_TTL = 300; // seconds
 var SESSION_CACHE_DEFAULT_TTL = 600; // seconds
 var WORD_CACHE_TTL = 60; // seconds
 var MONITOR_CACHE_TTL = 300; // seconds
+var IP_ADDRESS_CACHE_DEFAULT_TTL = 300;
 
 var MAX_WORDCHAIN_LENGTH = 10;
 var MIN_CHAIN_FREEZE_LENGTH = 20;
@@ -398,6 +321,7 @@ statsObj.upTime = os.uptime() * 1000;
 statsObj.memoryTotal = os.totalmem();
 statsObj.memoryAvailable = os.freemem();
 
+statsObj.caches = {};
 statsObj.utilities = {};
 
 statsObj.wapi = {};
@@ -530,6 +454,14 @@ var adminCache = new NodeCache();
 var viewerCache = new NodeCache();
 var userCache = new NodeCache();
 var utilCache = new NodeCache();
+var ipAddressCache = new NodeCache();
+
+// ==================================================================
+// IP ADDRESS CACHE
+// ==================================================================
+var ipAddressCacheTtl = process.env.IP_ADDRESS_CACHE_DEFAULT_TTL;
+if (typeof ipAddressCacheTtl === 'undefined') ipAddressCacheTtl = IP_ADDRESS_CACHE_DEFAULT_TTL;
+console.log("IP ADDRESS CACHE TTL: " + ipAddressCacheTtl + " SECONDS");
 
 // ==================================================================
 // TWITTER TRENDING TOPIC CACHE
@@ -4028,19 +3960,22 @@ function handleSessionEvent(sesObj, callback) {
 
         sessionUpdateDb(sesObj.session, function(err, sessionUpdatedObj) {
           if (!err) {
-            if (sessionUpdatedObj.namespace == 'admin') {
-              sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
-            } else if (sessionUpdatedObj.namespace == 'view') {
-              sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
-            } else if (sessionUpdatedObj.namespace == 'user') {
-              sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
-            } else if (sessionUpdatedObj.namespace == 'test-user') {
-              sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
-            } else if (sessionUpdatedObj.namespace == 'util') {
-              sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
-            } else {
-              sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
-            }
+
+            sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
+
+            // if (sessionUpdatedObj.namespace == 'admin') {
+            //   sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
+            // } else if (sessionUpdatedObj.namespace == 'view') {
+            //   sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
+            // } else if (sessionUpdatedObj.namespace == 'user') {
+            //   sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
+            // } else if (sessionUpdatedObj.namespace == 'test-user') {
+            //   sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
+            // } else if (sessionUpdatedObj.namespace == 'util') {
+            //   sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
+            // } else {
+            //   sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
+            // }
           }
         });
       });
@@ -6330,8 +6265,8 @@ configEvents.on("SERVER_READY", function() {
         memoryAvailable: statsObj.memoryAvailable,
         memoryTotal: statsObj.memoryTotal,
 
-        wordCacheStats: wordCache.getStats(),
-        wordCacheTtl: wordCacheTtl,
+        // wordCacheStats: wordCache.getStats(),
+        // wordCacheTtl: wordCacheTtl,
 
         numberAdmins: numberAdmins,
 
@@ -6382,6 +6317,8 @@ configEvents.on("SERVER_READY", function() {
         totalSessions: totalSessions,
         totalUsers: totalUsers,
 
+        caches: {},
+
         promptsSent: promptsSent,
         deltaPromptsSent: deltaPromptsSent,
         deltaResponsesReceived: statsObj.deltaResponsesReceived,
@@ -6392,6 +6329,7 @@ configEvents.on("SERVER_READY", function() {
       };
 
       txHeartbeat.utilities = statsObj.utilities;
+      txHeartbeat.caches = statsObj.caches;
 
       io.emit('HEARTBEAT', txHeartbeat);
 
@@ -7157,6 +7095,17 @@ var numberViewersTotal = 0;
 
 var metricsInterval = setInterval(function() {
 
+  statsObj.caches.adminCache = adminCache.getStats();
+  statsObj.caches.entityCache = entityCache.getStats();
+  statsObj.caches.groupCache = groupCache.getStats();
+  statsObj.caches.ipAddressCache = ipAddressCache.getStats();
+  statsObj.caches.sessionCache = sessionCache.getStats();
+  statsObj.caches.trendingCache = trendingCache.getStats();
+  statsObj.caches.userCache = userCache.getStats();
+  statsObj.caches.utilCache = utilCache.getStats();
+  statsObj.caches.viewerCache = viewerCache.getStats();
+  statsObj.caches.wordCache = wordCache.getStats();
+
   if (updateComplete) {
     numberAdmins = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
     numberUtils = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
@@ -7368,6 +7317,7 @@ function initRateQinterval(interval){
         });
       }
 
+      // word/words_per_minute
       if (!disableGoogleMetrics) {
         var dataPoint = {};
         
@@ -7380,6 +7330,7 @@ function initRateQinterval(interval){
         });
       }
 
+      // word/trump_per_minute
       if (!disableGoogleMetrics) {
         var dataPoint = {};
         
@@ -7392,6 +7343,7 @@ function initRateQinterval(interval){
         });
       }
 
+      // util/global/number_of_utils
       if (!disableGoogleMetrics) {
         var dataPoint = {};
         
@@ -7404,12 +7356,53 @@ function initRateQinterval(interval){
         });
       }
 
+      // user/global/number_of_users
       if (!disableGoogleMetrics) {
         var dataPoint = {};
         
         dataPoint.metricType = 'user/global/number_of_users';
-        dataPoint.value = Object.keys(userNameSpace.connected).length;
+        // dataPoint.value = Object.keys(userNameSpace.connected).length;
+        dataPoint.value = statsObj.caches.userCache.keys;
         dataPoint.metricLabels = {server_id: 'USER'};
+
+        addMetricDataPoint(dataPoint, function(err, results){
+          // console.log("USER\n" + jsonPrint(results));
+        });
+      }
+
+      // util/global/number_of_groups
+      if (!disableGoogleMetrics) {
+        var dataPoint = {};
+        
+        dataPoint.metricType = 'util/global/number_of_groups';
+        dataPoint.value = statsObj.caches.groupCache.keys;
+        dataPoint.metricLabels = {server_id: 'UTIL'};
+
+        addMetricDataPoint(dataPoint, function(err, results){
+          // console.log("USER\n" + jsonPrint(results));
+        });
+      }
+
+      // util/global/number_of_entities
+      if (!disableGoogleMetrics) {
+        var dataPoint = {};
+        
+        dataPoint.metricType = 'util/global/number_of_entities';
+        dataPoint.value = statsObj.caches.entityCache.keys;
+        dataPoint.metricLabels = {server_id: 'UTIL'};
+
+        addMetricDataPoint(dataPoint, function(err, results){
+          // console.log("USER\n" + jsonPrint(results));
+        });
+      }
+
+      // user/global/number_of_sessions
+      if (!disableGoogleMetrics) {
+        var dataPoint = {};
+        
+        dataPoint.metricType = 'util/global/number_of_sessions';
+        dataPoint.value = statsObj.caches.sessionCache.keys;
+        dataPoint.metricLabels = {server_id: 'UTIL'};
 
         addMetricDataPoint(dataPoint, function(err, results){
           // console.log("USER\n" + jsonPrint(results));

@@ -3869,6 +3869,8 @@ function handleSessionEvent(sesObj, callback) {
 
     case 'SESSION_KEEPALIVE':
 
+      console.log("KEEPALIVE\n" + jsonPrint(sesObj));
+
       sessionUpdateDb(sesObj.session, function(err, sessionUpdatedObj) {
         if (err) {
           console.log(chalkError(

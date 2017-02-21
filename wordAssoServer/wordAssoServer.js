@@ -4,6 +4,7 @@
 var tssServer;
 var tmsServer;
 
+var CUSTOM_GOOGLE_APIS_PREFIX = 'custom.googleapis.com';
 var disableGoogleMetrics = false;
 var googleMetricsEnabled = true;
 
@@ -11,6 +12,7 @@ var Monitoring = require('@google-cloud/monitoring');
 var projectId = 'graphic-tangent-627';
 var googleMonitoringClient = Monitoring.v3().metricServiceClient();
 
+var defaults = require('object.defaults');
 
 // var googleRequest = {
 //   name: googleMonitoringClient.projectPath(projectId),
@@ -7213,6 +7215,64 @@ var metricsInterval = setInterval(function() {
 var updateTimeSeriesCount = 0;
 var updateTimeSeries = false;
 
+function addMetricDataPoint(options, callback){
+
+  debug(chalkAlert("addMetricDataPoint\n" + jsonPrint(options)));
+
+  defaults(options, {
+    endTime: (Date.now() / 1000),
+    dataType: 'doubleValue',
+    resourceType: 'global',
+    projectId: process.env.GOOGLE_PROJECT_ID,
+    metricTypePrefix: CUSTOM_GOOGLE_APIS_PREFIX
+  });
+
+  debug(chalkAlert("addMetricDataPoint AFTER\n" + jsonPrint(options)));
+
+  var dataPoint = {
+    interval: { endTime: { seconds: options.endTime } },
+    value: {}
+  };
+
+  dataPoint.value[options.dataType] = options.value;
+
+  var timeSeriesData = {
+    metric: {
+      type: options.metricTypePrefix + '/' + options.metricType,
+      labels: options.metricLabels
+    },
+    resource: {
+      type: options.resourceType,
+      labels: { project_id: options.projectId }
+    },
+    points: [ dataPoint ]
+  };
+
+  var googleRequest = {
+    name: googleMonitoringClient.projectPath(options.projectId),
+    timeSeries: [
+      timeSeriesData
+    ]
+  };
+
+  googleMonitoringClient.createTimeSeries(googleRequest)
+    .then((results) => {
+      debug(chalkTwitter("METRICS"
+        + " | " + options.metricLabels.server_id 
+        + " | " + options.value
+      ));
+    })
+    .catch((results) => {
+      console.log(chalkError("*** ERROR METRICS"
+        + " | " + options.metricLabels.server_id 
+        + " | " + options.value
+        + "\n" + jsonPrint(results)
+      ));
+    });
+
+  callback(null,options);
+}
+
 function initRateQinterval(interval){
 
   var wordStatsObj;
@@ -7229,6 +7289,8 @@ function initRateQinterval(interval){
 
   maxWordsPerMin = 0.0;
   maxTweetsPerMin = 0.0;
+
+  var prevTestValue = 47;
 
   rateQinterval = setInterval(function () {
 
@@ -7266,200 +7328,94 @@ function initRateQinterval(interval){
       statsObj.maxTrumpPerMin = trumpPerMinute;
       statsObj.maxTrumpPerMinTime = moment.utc();
     }
-
-
       // console.log("updateTimeSeries: " + updateTimeSeries + " | C: " + updateTimeSeriesCount);
 
     if (updateTimeSeriesCount == 0){
 
-      // console.log("updateTimeSeries: " + updateTimeSeries + " | C: " + updateTimeSeriesCount);
+      var testDataPoint = {};
+      
+      testDataPoint.metricType = 'word/test/random';
+      testDataPoint.value = prevTestValue + randomInt(-20,20);
+      testDataPoint.metricLabels = {server_id: 'TEST'};
+
+      addMetricDataPoint(testDataPoint, function(err, results){
+        // console.log("AMDP\n" + jsonPrint(results));
+      });
 
       if (!disableGoogleMetrics && tssServer) {
-        var dataPoint = {
-          interval: {
-            endTime: {
-              seconds: Date.now() / 1000
-            }
-          },
-          value: {
-            doubleValue: statsObj.utilities[tssServer].tweetsPerMinute
-          }
-        };
+        var dataPoint = {};
+        
+        dataPoint.metricType = 'twitter/tweets_per_minute';
+        dataPoint.value = statsObj.utilities[tssServer].tweetsPerMinute;
+        dataPoint.metricLabels = {server_id: 'TSS'};
 
-        var timeSeriesData = {
-          metric: {
-            type: 'custom.googleapis.com/twitter/tweets_per_minute',
-            labels: {
-              server_id: 'TSS'
-            }
-          },
-          resource: {
-            type: 'global',
-            labels: {
-              project_id: projectId
-            }
-          },
-          points: [
-            dataPoint
-          ]
-        };
-
-        var googleRequest = {
-          name: googleMonitoringClient.projectPath(projectId),
-          timeSeries: [
-            timeSeriesData
-          ]
-        };
-
-        googleMonitoringClient.createTimeSeries(googleRequest)
-          .then((results) => {
-            debug(chalkTwitter("METRICS | TSS | " + statsObj.utilities[tssServer].tweetsPerMinute.toFixed(0) + " TPM"));
-          })
-          .catch((results) => {
-            console.log(chalkError("*** ERROR METRICS | TSS | " + results));
-          });
+        addMetricDataPoint(dataPoint, function(err, results){
+          console.log("TSS\n" + jsonPrint(results));
+        });
       }
+
+      // console.log("updateTimeSeries: " + updateTimeSeries + " | C: " + updateTimeSeriesCount);
 
       if (!disableGoogleMetrics && tmsServer) {
+        var dataPoint = {};
+        
+        dataPoint.metricType = 'twitter/tweets_per_minute';
+        dataPoint.value = statsObj.utilities[tmsServer].tweetsPerMinute;
+        dataPoint.metricLabels = {server_id: 'TMS'};
 
-        var dataPointTMS = {
-          interval: {
-            endTime: {
-              seconds: Date.now() / 1000
-            }
-          },
-          value: {
-            doubleValue: statsObj.utilities[tmsServer].tweetsPerMinute
-          }
-        };
-
-        var timeSeriesDataTMS = {
-          metric: {
-            type: 'custom.googleapis.com/twitter/tweets_per_minute',
-            labels: {
-              server_id: 'TMS'
-            }
-          },
-          resource: {
-            type: 'global',
-            labels: {
-              project_id: projectId
-            }
-          },
-          points: [
-            dataPointTMS
-          ]
-        };
-
-        var googleRequestTMS = {
-          name: googleMonitoringClient.projectPath(projectId),
-          timeSeries: [
-            timeSeriesDataTMS
-          ]
-        };
-
-        googleMonitoringClient.createTimeSeries(googleRequestTMS)
-          .then((results) => {
-            debug(chalkTwitter("METRICS | TMS | " + statsObj.utilities[tmsServer].tweetsPerMinute.toFixed(0) + " TPM"));
-          })
-          .catch((results) => {
-            console.log(chalkError("*** ERROR METRICS | TMS | " + results));
-          });
+        addMetricDataPoint(dataPoint, function(err, results){
+          // console.log("TMS\n" + jsonPrint(results));
+        });
       }
 
       if (!disableGoogleMetrics) {
+        var dataPoint = {};
+        
+        dataPoint.metricType = 'word/words_per_minute';
+        dataPoint.value = wordsPerMinute;
+        dataPoint.metricLabels = {server_id: 'WORD'};
 
-        var dataPoint = {
-          interval: {
-            endTime: {
-              seconds: Date.now() / 1000
-            }
-          },
-          value: {
-            doubleValue: wordsPerMinute
-          }
-        };
-
-        var timeSeriesData = {
-          metric: {
-            type: 'custom.googleapis.com/word/words_per_minute',
-            labels: {
-              server_id: 'WORD'
-            }
-          },
-          resource: {
-            type: 'global',
-            labels: {
-              project_id: projectId
-            }
-          },
-          points: [
-            dataPoint
-          ]
-        };
-
-        var googleRequest = {
-          name: googleMonitoringClient.projectPath(projectId),
-          timeSeries: [
-            timeSeriesData
-          ]
-        };
-
-        googleMonitoringClient.createTimeSeries(googleRequest)
-          .then((results) => {
-            debug(chalkTwitter("METRICS | WORD | " + wordsPerMinute.toFixed(0) + " WPM"));
-          })
-          .catch((results) => {
-            console.log(chalkError("*** ERROR METRICS | WORD | " + results));
-          });
+        addMetricDataPoint(dataPoint, function(err, results){
+          // console.log("WORD ALL\n" + jsonPrint(results));
+        });
       }
 
       if (!disableGoogleMetrics) {
+        var dataPoint = {};
+        
+        dataPoint.metricType = 'word/trump_per_minute';
+        dataPoint.value = trumpPerMinute;
+        dataPoint.metricLabels = {server_id: 'WORD'};
 
-        var dataPoint = {
-          interval: {
-            endTime: {
-              seconds: Date.now() / 1000
-            }
-          },
-          value: {
-            doubleValue: trumpPerMinute
-          }
-        };
-
-        var timeSeriesData = {
-          metric: {
-            type: 'custom.googleapis.com/word/trump_per_minute',
-            labels: {
-              server_id: 'WORD'
-            }
-          },
-          resource: {
-            type: 'global',
-            labels: {
-              project_id: projectId
-            }
-          },
-          points: [
-            dataPoint
-          ]
-        };
-
-        var googleRequest = {
-          name: googleMonitoringClient.projectPath(projectId),
-          timeSeries: [
-            timeSeriesData
-          ]
-        };
-
-        googleMonitoringClient.createTimeSeries(googleRequest)
-          .then((results) => {
-            debug(chalkTwitter("METRICS | WORD | " + trumpPerMinute.toFixed(0) + " TrPM"));
-          })
-          .catch((results) => {
-            console.log(chalkError("*** ERROR METRICS | WORD - TRUMP | " + results));
-          });
+        addMetricDataPoint(dataPoint, function(err, results){
+          // console.log("WORD TRUMP\n" + jsonPrint(results));
+        });
       }
+
+      if (!disableGoogleMetrics) {
+        var dataPoint = {};
+        
+        dataPoint.metricType = 'util/global/number_of_utils';
+        dataPoint.value = Object.keys(utilNameSpace.connected).length;
+        dataPoint.metricLabels = {server_id: 'UTIL'};
+
+        addMetricDataPoint(dataPoint, function(err, results){
+          // console.log("UTIL\n" + jsonPrint(results));
+        });
+      }
+
+      if (!disableGoogleMetrics) {
+        var dataPoint = {};
+        
+        dataPoint.metricType = 'user/global/number_of_users';
+        dataPoint.value = Object.keys(userNameSpace.connected).length;
+        dataPoint.metricLabels = {server_id: 'USER'};
+
+        addMetricDataPoint(dataPoint, function(err, results){
+          // console.log("USER\n" + jsonPrint(results));
+        });
+      }
+
     }
 
     updateTimeSeriesCount++;

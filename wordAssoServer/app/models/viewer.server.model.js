@@ -4,10 +4,12 @@ var mongoose = require('mongoose'),
 	Schema = mongoose.Schema;
 
 var ViewerSchema = new Schema({
-	viewerId: { 
+	userId: { 
 		type: String,
-		trim: true,
 		unique: true
+	},
+	viewerId: { 
+		type: String
 	},
 	screenName: {
 		type: String,

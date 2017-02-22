@@ -16,7 +16,7 @@ when new instance of word arrives, iterate thru array of nodes and create linksk
 var DEFAULT_SOURCE = "==SOURCE==";  // will be updated by wordAssoServer.js on app.get
 
 var DEFAULT_FORCEVIEW_MODE = "web";
-var DEFAULT_SESSION_VIEW = 'flow';
+var DEFAULT_SESSION_VIEW = "flow";
 
 var d3;
 var controlPanel;
@@ -66,6 +66,7 @@ var MAX_RX_QUEUE = 100;
 var MAX_WORDCHAIN_LENGTH = 100;
 var DEFAULT_MAX_AGE = 30000;
 var FORCE_MAX_AGE = 60000;
+var MEDIA_MAX_AGE = 60000;
 var DEFAULT_AGE_RATE = 1.0;
 
 var FORCEVIEW_DEFAULT = {};
@@ -78,6 +79,17 @@ FORCEVIEW_DEFAULT.LINK_DISTANCE = 5;
 FORCEVIEW_DEFAULT.LINK_STRENGTH = 0.95;
 FORCEVIEW_DEFAULT.COLLISION_RADIUS_MULTIPLIER = 2.50;
 FORCEVIEW_DEFAULT.COLLISION_ITERATIONS = 1;
+
+var MEDIAVIEW_DEFAULT = {};
+MEDIAVIEW_DEFAULT.MAX_AGE = MEDIA_MAX_AGE;
+MEDIAVIEW_DEFAULT.CHARGE = -400;
+MEDIAVIEW_DEFAULT.GRAVITY = 0.1;
+MEDIAVIEW_DEFAULT.FORCEY_MULTIPLIER = 1.0;
+MEDIAVIEW_DEFAULT.VELOCITY_DECAY = 0.75;
+MEDIAVIEW_DEFAULT.LINK_DISTANCE = 5;
+MEDIAVIEW_DEFAULT.LINK_STRENGTH = 0.95;
+MEDIAVIEW_DEFAULT.COLLISION_RADIUS_MULTIPLIER = 2.50;
+MEDIAVIEW_DEFAULT.COLLISION_ITERATIONS = 1;
 
 var DEFAULT_CHARGE = 0.0;
 var DEFAULT_GRAVITY = 0.005;
@@ -1026,6 +1038,7 @@ function reset(){
     if ((config.sessionViewType == 'force') 
       || (config.sessionViewType == 'ticker')
       || (config.sessionViewType == 'flow')
+      || (config.sessionViewType == 'media')
     ) {
       currentSessionView.resetDefaultForce();
     }
@@ -1529,6 +1542,7 @@ function createStatsTable(callback) {
 
   switch (config.sessionViewType) {
 
+    case 'media':
     case 'force':
     case 'flow':
     case 'ticker':
@@ -1837,7 +1851,9 @@ function initSocketNodeRx(){
 
   socket.on("node", function(nNode) {
 
+
     if (!windowVisible || config.pauseFlag) return;
+    if ((nNode.nodeType != "user") && (nNode.nodeType != "media") && (config.sessionViewType == "media")) return;
     // console.log("N< " + nNode.nodeType + " | " + nNode.nodeId + " | " + nNode.mentions);
 
     var dateNow = moment().valueOf();
@@ -1886,7 +1902,8 @@ function initSocketNodeRx(){
       newNode.sourceUrl = nNode.sourceUrl;
     }
 
-    if (currentSessionView) currentSessionView.addNode(newNode);
+    currentSessionView.addNode(newNode);
+    
   });
 }
 
@@ -2619,6 +2636,7 @@ var createNode = function(callback) {
           if ((config.sessionViewType != 'ticker') 
             && (config.sessionViewType != 'flow') 
             && (config.sessionViewType != 'force') 
+            && (config.sessionViewType != 'media') 
             && session.source.isIgnored) {
             cb(null, {
               node: sourceNodeId,
@@ -2739,6 +2757,7 @@ var createNode = function(callback) {
         target: function(cb) {
 
           if (typeof targetNodeId === 'undefined' 
+            || (config.sessionViewType == 'media') 
             || (config.sessionViewType == 'flow') 
             || (config.sessionViewType == 'histogram') 
             || (config.sessionViewType == 'ticker')) {
@@ -2897,7 +2916,9 @@ var createNode = function(callback) {
 
         addToHashMap(sessionHashMap, session.nodeId, session, function(cSession) {
           if (!results.source.isIgnored 
+            && (config.sessionViewType != 'media') 
             && (config.sessionViewType != 'ticker') 
+            && (config.sessionViewType != 'histogram') 
             && (config.sessionViewType != 'flow')) {
             linkCreateQueue.push(cSession);
           }
@@ -2914,6 +2935,7 @@ var createLink = function(callback) {
   if ((config.sessionViewType !== 'ticker') 
     && (config.sessionViewType !== 'flow') 
     && (config.sessionViewType !== 'histogram') 
+    && (config.sessionViewType !== 'media') 
     && !config.disableLinks 
     && (linkCreateQueue.length > 0)) {
 
@@ -3122,6 +3144,28 @@ function loadViewType(svt, callback) {
         callback();
       });
       break;
+    case 'media':
+      config.sessionViewType = "media";
+      requirejs(["js/libs/sessionViewMedia"], function() {
+        console.debug("sessionViewMedia LOADED");
+
+        // DEFAULT_FRICTION = FORCEVIEW_DEFAULT.FRICTION;
+        DEFAULT_COLLISION_RADIUS_MULTIPLIER = MEDIAVIEW_DEFAULT.COLLISION_RADIUS_MULTIPLIER;
+        DEFAULT_COLLISION_ITERATIONS = MEDIAVIEW_DEFAULT.COLLISION_ITERATIONS;
+        DEFAULT_MAX_AGE = MEDIAVIEW_DEFAULT.MAX_AGE;
+        DEFAULT_CHARGE = MEDIAVIEW_DEFAULT.CHARGE;
+        DEFAULT_GRAVITY = MEDIAVIEW_DEFAULT.GRAVITY;
+        DEFAULT_VELOCITY_DECAY = MEDIAVIEW_DEFAULT.VELOCITY_DECAY;
+        DEFAULT_LINK_DISTANCE= MEDIAVIEW_DEFAULT.LINK_DISTANCE;
+        DEFAULT_LINK_STRENGTH = MEDIAVIEW_DEFAULT.LINK_STRENGTH;
+        DEFAULT_FORCEY_MULTIPLIER = MEDIAVIEW_DEFAULT.FORCEY_MULTIPLIER;
+
+        currentSessionView = new ViewMedia();
+        initSocketNodeRx();
+
+        callback();
+      });
+      break;
     case 'flow':
       config.sessionViewType = "flow";
       config.forceViewMode = "flow";
@@ -3257,6 +3301,9 @@ function initialize(callback) {
             if (config.sessionViewType == 'force') {
               currentSessionView.setNodeMaxAge(FORCE_MAX_AGE);
             }
+            if (config.sessionViewType == 'media') {
+              currentSessionView.setNodeMaxAge(MEDIA_MAX_AGE);
+            }
 
             store.set('config', config);
 
@@ -3297,6 +3344,9 @@ function initialize(callback) {
             }
             if (config.sessionViewType == 'force') {
               currentSessionView.setNodeMaxAge(FORCE_MAX_AGE);
+            }
+            if (config.sessionViewType == 'media') {
+              currentSessionView.setNodeMaxAge(MEDIA_MAX_AGE);
             }
 
             if (config.sessionViewType == 'force') {
@@ -3362,6 +3412,9 @@ function initialize(callback) {
           }
           if (config.sessionViewType == 'force') {
             currentSessionView.setNodeMaxAge(FORCE_MAX_AGE);
+          }
+          if (config.sessionViewType == 'media') {
+            currentSessionView.setNodeMaxAge(MEDIA_MAX_AGE);
           }
 
           if (config.sessionViewType == 'force') {

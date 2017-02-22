@@ -1483,7 +1483,7 @@ var initNameSpacesTimeout = setTimeout(function(){
 
     viewNameSpace.on('connect', function(socket) {
       socket.setMaxListeners(0);
-      debug(chalkAdmin("VIEWER CONNECT"));
+      console.log(chalkAdmin("VIEWER CONNECT"));
       createSession({
         namespace: "view",
         socket: socket,
@@ -3049,11 +3049,14 @@ function adminUpdateDb(adminObj, callback) {
 
 function viewerUpdateDb(viewerObj, callback) {
 
+  console.log(chalkViewer("viewerUpdateDb\n" + jsonPrint(viewerObj)));
+
   var query = {
     userId: viewerObj.userId
   };
   var update = {
     $set: {
+      "viewerId": viewerObj.viewerId,
       "namespace": viewerObj.namespace,
       "domain": viewerObj.domain,
       "ip": viewerObj.ip,
@@ -3094,8 +3097,9 @@ function viewerUpdateDb(viewerObj, callback) {
         );
         callback(err, viewerObj);
       } else {
-        debug(">>> VIEWER UPDATED" 
-          + " | " + vw.userId 
+        console.log(chalkViewer(">>> VIEWER UPDATED" 
+          + " | VID: " + vw.viewerId 
+          + " | UID: " + vw.userId 
           + " | SN: " + vw.screenName 
           + " | NSP: " + vw.namespace 
           + " | IP: " + vw.ip 
@@ -3105,7 +3109,7 @@ function viewerUpdateDb(viewerObj, callback) {
           + " | LS: " + getTimeStamp(vw.lastSeen) 
           + " | SES: " + vw.sessions.length 
           + " | LSES: " + vw.lastSession
-        );
+        ));
         callback(null, vw);
       }
     }
@@ -3288,6 +3292,7 @@ function viewerFindAllDb(options, callback) {
   var query = {};
   var projections = {
     userId: true,
+    viewerId: true,
     namespace: true,
     screenName: true,
     description: true,
@@ -3757,9 +3762,10 @@ function handleSessionEvent(sesObj, callback) {
         }
 
         if (currentViewer) {
-          debug("currentViewer\n" + jsonPrint(currentViewer));
+          console.log(chalkViewer("currentViewer\n" + jsonPrint(currentViewer)));
           viewerCache.del(currentViewer.userId);
 
+          currentViewer.lastSession = sesObj.session.sessionId;
           currentViewer.lastSeen = moment().valueOf();
           currentViewer.connected = false;
           currentViewer.disconnectTime = moment().valueOf();
@@ -4196,6 +4202,7 @@ function handleSessionEvent(sesObj, callback) {
       }
 
       currentSession.userId = sesObj.viewer.userId;
+      currentSession.viewerId = sesObj.viewer.viewerId;
 
       sesObj.viewer.ip = sesObj.session.ip;
       sesObj.viewer.domain = sesObj.session.domain;
@@ -6981,7 +6988,7 @@ function createSession(newSessionObj) {
 
   socket.on("node", function(nodeObj) {
 
-    // console.log("TW< " + nodeObj.nodeType + " | " + nodeObj.nodeId + " | " + nodeObj.mentions);
+    debug("TW< " + nodeObj.nodeType + " | " + nodeObj.nodeId + " | " + nodeObj.mentions);
 
     viewNameSpace.emit("node", nodeObj);
 
@@ -7861,6 +7868,12 @@ function initAppRouting(callback) {
   app.get('/js/libs/sessionViewHistogram.js', function(req, res) {
     debugAppGet("LOADING FILE: sessionViewHistogram.js");
     res.sendFile(__dirname + '/js/libs/sessionViewHistogram.js');
+    return;
+  });
+
+  app.get('/js/libs/sessionViewMedia.js', function(req, res) {
+    debugAppGet("LOADING FILE: sessionViewMedia.js");
+    res.sendFile(__dirname + '/js/libs/sessionViewMedia.js');
     return;
   });
 

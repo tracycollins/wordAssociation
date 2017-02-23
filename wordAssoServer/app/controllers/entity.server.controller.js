@@ -18,6 +18,8 @@ exports.findOneEntity = function(entity, incMentions, callback) {
 
 	debug("findOneEntity:" + JSON.stringify(entity, null, 2));
 
+	if (!entity.sessions) entity.sessions = 0;
+
 	var inc = 0;
 	if (incMentions) inc = 1 ;
 

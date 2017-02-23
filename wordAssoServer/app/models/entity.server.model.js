@@ -6,7 +6,6 @@ var mongoose = require('mongoose'),
 var EntitySchema = new Schema({
 	entityId: {   // 
 		type: String,
-		trim: true,
 		unique: true
 	},
 	groupId: {

@@ -7005,11 +7005,16 @@ function createSession(newSessionObj) {
         }
       break;
       case "user":
-        if (nodeObj.name.toLowerCase().includes("trump")) {
-          trumpHit = nodeObj.name;
+        if (!nodeObj.name) {
+          console.log(chalkError("NODE NAME UNDEFINED?\n" + jsonPrint(nodeObj)));
         }
-        if (nodeObj.screenName.toLowerCase().includes("trump")) {
-          trumpHit = nodeObj.screenName;
+        else {
+          if (nodeObj.name.toLowerCase().includes("trump")) {
+            trumpHit = nodeObj.name;
+          }
+          if (nodeObj.screenName.toLowerCase().includes("trump")) {
+            trumpHit = nodeObj.screenName;
+          }
         }
       break;
       case "hashtag":

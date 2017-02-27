@@ -26,6 +26,14 @@ var HashMap = require('hashmap').HashMap;
 var wordTypes = [ 'noun', 'verb', 'adjective', 'adverb' ];
 var wordVariations = [ 'syn', 'ant', 'rel', 'sim', 'usr' ];
 
+var jsonPrint = function(obj) {
+  if (obj) {
+     return JSON.stringify(obj, null, 2);
+  } else {
+    return obj;
+  }
+}
+
 function randomIntInc (low, high) {
     return Math.floor(Math.random() * (high - low + 1) + low);
 }
@@ -147,7 +155,7 @@ exports.findOneWord = function(word, incMentions, callback) {
     console.log(chalkError("*** ILLEGAL WORD NODE ID (> 250 CHARS) ... SKIPPING ***" + "\nTYPE: " + typeof word.nodeId 
       + "\n" + jsonPrint(word)
     ));
-    quit();
+    // quit();
 	}
 
 	if (typeof word.raw === 'undefined') word.raw = word.nodeId;

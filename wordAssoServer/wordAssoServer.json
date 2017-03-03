@@ -6,6 +6,7 @@
     "autorestart" : false,
     "env": {
       "NODE_ENV": "production",
+      "ENABLE_GOOGLE_METRICS": true,
       "SOCKET_IDLE_TIMEOUT" : 60,
       "WORD_CACHE_TTL" : 300,
       "SESSION_CACHE_DEFAULT_TTL": 60,

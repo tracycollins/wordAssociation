@@ -3963,7 +3963,7 @@ function handleSessionEvent(sesObj, callback) {
         }
 
         if (currentUtil) {
-          console.log("currentUtil\n" + jsonPrint(currentUtil));
+          debug("currentUtil\n" + jsonPrint(currentUtil));
           // utilCache.del(currentUtil.utilId);
           userCache.del(currentUtil.userId);
 

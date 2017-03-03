@@ -7390,11 +7390,22 @@ function initRateQinterval(interval){
         addMetricDataPoint(dataPoint, function(err, results){
           // console.log("TSS\n" + jsonPrint(results));
         });
+
+        var dataPoint2 = {};
+
+        dataPoint2.metricType = 'twitter/tweet_limit';
+        dataPoint2.value = statsObj.utilities[tssServer].twitterLimit;
+        dataPoint2.metricLabels = {server_id: 'TSS'};
+
+        addMetricDataPoint(dataPoint2, function(err, results){
+          // console.log("TMS\n" + jsonPrint(results));
+        });
       }
 
       // console.log("updateTimeSeries: " + updateTimeSeries + " | C: " + updateTimeSeriesCount);
 
       if (!disableGoogleMetrics && tmsServer) {
+
         var dataPoint = {};
         
         dataPoint.metricType = 'twitter/tweets_per_minute';
@@ -7402,6 +7413,16 @@ function initRateQinterval(interval){
         dataPoint.metricLabels = {server_id: 'TMS'};
 
         addMetricDataPoint(dataPoint, function(err, results){
+          // console.log("TMS\n" + jsonPrint(results));
+        });
+        
+        var dataPoint2 = {};
+
+        dataPoint2.metricType = 'twitter/tweet_limit';
+        dataPoint2.value = statsObj.utilities[tmsServer].twitterLimit;
+        dataPoint2.metricLabels = {server_id: 'TMS'};
+
+        addMetricDataPoint(dataPoint2, function(err, results){
           // console.log("TMS\n" + jsonPrint(results));
         });
       }

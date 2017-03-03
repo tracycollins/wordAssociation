@@ -115,6 +115,7 @@ var WAPI_REQ_RESERVE_PRCNT = 0.30;
 var SESSION_WORDCHAIN_REQUEST_LIMIT = 25;
 
 var ignoreWordsArray = [
+  "el",
   "en",
   "la",
   "por",
@@ -3713,6 +3714,29 @@ var deltaBhtRequests = 0;
 var deltaMwRequests = 0;
 var metricDateStart = moment().toJSON();
 var metricDateEnd = moment().toJSON();
+
+function sortedObjectValues(obj, k, callback) {
+
+  // console.log("sortedObjectValues\n" + jsonPrint(obj));
+
+  var keys = Object.keys(obj);
+
+  var sortedKeys = keys.sort(function(a,b){
+    var objA = obj[a].toJSON();
+    var objB = obj[b].toJSON();
+    return objB[k] - objA[k];
+  });
+
+  var endIndex = sortedKeys.length < 10 ? sortedKeys.length : 10;
+  for (var i=0; i<endIndex; i++){
+    console.log("SORT"
+      + " | "  + obj[sortedKeys[i]].toJSON()[k].toFixed(3)
+      + " | "  + sortedKeys[i] 
+    );
+  }
+
+  callback(sortedKeys);
+}
 
 function updateMetrics(enableGoogleMetrics) {
 
@@ -7485,11 +7509,13 @@ function addMetricDataPoint(options, callback){
       ));
     })
     .catch((results) => {
-      console.log(chalkError("*** ERROR METRICS"
-        + " | " + options.metricLabels.server_id 
-        + " | " + options.value
-        + "\n" + jsonPrint(results)
-      ));
+      if (results.code !== 3) {
+        console.log(chalkError("*** ERROR METRICS"
+          + " | " + options.metricLabels.server_id 
+          + " | " + options.value
+          + "\n" + jsonPrint(results)
+        ));
+      }
     });
 
   callback(null,options);
@@ -7552,7 +7578,37 @@ function initRateQinterval(interval){
     }
       // console.log("updateTimeSeries: " + updateTimeSeries + " | C: " + updateTimeSeriesCount);
 
-    if (enableGoogleMetrics && (updateTimeSeriesCount == 0)){
+    // if (enableGoogleMetrics && (updateTimeSeriesCount == 0)){
+    if (updateTimeSeriesCount == 0){
+
+      var wordsPerMinuteTop10 = {};
+      // var wordMeterObj = wordMeter.toJSON();
+
+      sortedObjectValues(wordMeter, "1MinuteRate", function(sortedKeys){
+
+        var endIndex = (sortedKeys.length >= 10) ? 10 : sortedKeys.length;
+
+        for (var i=0; i<endIndex; i++){
+
+          var wmObj = wordMeter[sortedKeys[i]].toJSON();
+
+          wordsPerMinuteTop10[sortedKeys[i]] = wmObj["1MinuteRate"];
+
+          var top10dataPoint = {};
+
+          top10dataPoint.metricType = 'word/top10/' + sortedKeys[i];
+          top10dataPoint.value = wmObj["1MinuteRate"];
+          top10dataPoint.metricLabels = {server_id: 'WORD'};
+
+          addMetricDataPoint(top10dataPoint, function(err, results){
+            debug("top10dataPoint"
+              + " | " + sortedKeys[i] 
+              + "\n" + jsonPrint(results)
+            );
+          });
+
+        }
+      });
 
       var testDataPoint = {};
       
@@ -7585,8 +7641,6 @@ function initRateQinterval(interval){
           // console.log("TMS\n" + jsonPrint(results));
         });
       }
-
-      // console.log("updateTimeSeries: " + updateTimeSeries + " | C: " + updateTimeSeriesCount);
 
       if (enableGoogleMetrics && tmsServer) {
 

@@ -7416,15 +7416,17 @@ function initRateQinterval(interval){
           // console.log("TMS\n" + jsonPrint(results));
         });
         
-        var dataPoint2 = {};
+        if (statsObj.utilities[tmsServer].twitterLimit) {
+          var dataPoint2 = {};
 
-        dataPoint2.metricType = 'twitter/tweet_limit';
-        dataPoint2.value = statsObj.utilities[tmsServer].twitterLimit;
-        dataPoint2.metricLabels = {server_id: 'TMS'};
+          dataPoint2.metricType = 'twitter/tweet_limit';
+          dataPoint2.value = statsObj.utilities[tmsServer].twitterLimit;
+          dataPoint2.metricLabels = {server_id: 'TMS'};
 
-        addMetricDataPoint(dataPoint2, function(err, results){
-          // console.log("TMS\n" + jsonPrint(results));
-        });
+          addMetricDataPoint(dataPoint2, function(err, results){
+            // console.log("TMS\n" + jsonPrint(results));
+          });
+        }
       }
 
       // word/words_per_minute

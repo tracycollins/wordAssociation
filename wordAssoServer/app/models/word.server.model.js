@@ -109,7 +109,6 @@ var WordSchema = new Schema({
 	mwSuggestion: { // mw dictionary
 		type: Object
 	}
-// }, { minimize: false });
 });
 
 mongoose.model('Word', WordSchema);

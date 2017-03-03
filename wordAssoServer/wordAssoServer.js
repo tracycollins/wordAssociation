@@ -4,9 +4,11 @@
 var tssServer;
 var tmsServer;
 
+var MIN_WORD_METER_COUNT = 10;
+
 var CUSTOM_GOOGLE_APIS_PREFIX = 'custom.googleapis.com';
-var disableGoogleMetrics = false;
-var googleMetricsEnabled = true;
+
+var enableGoogleMetrics = process.env.ENABLE_GOOGLE_METRICS ? true : false;
 
 var Monitoring = require('@google-cloud/monitoring');
 var projectId = 'graphic-tangent-627';
@@ -16,6 +18,8 @@ var defaults = require('object.defaults');
 
 var moment = require('moment');
 var Measured = require('measured');
+
+var wordMeter = {};
 
 var wordStats = Measured.createCollection();
 wordStats.meter("wordsPerSecond", {rateUnit: 1000, tickInterval: 1000});
@@ -93,9 +97,9 @@ var VIEWER_CACHE_DEFAULT_TTL = 60; // seconds
 var UTIL_CACHE_DEFAULT_TTL = 60; // seconds
 var USER_CACHE_DEFAULT_TTL = 60; // seconds
 var GROUP_CACHE_DEFAULT_TTL = 60; // seconds
-var ENTITY_CACHE_DEFAULT_TTL = 60; // seconds
+var ENTITY_CACHE_DEFAULT_TTL = 120; // seconds
 var SESSION_CACHE_DEFAULT_TTL = 60; // seconds
-var WORD_CACHE_TTL = 60; // seconds
+var WORD_CACHE_TTL = 300; // seconds
 var MONITOR_CACHE_TTL = 60; // seconds
 var IP_ADDRESS_CACHE_DEFAULT_TTL = 60;
 
@@ -108,9 +112,154 @@ var MW_REQUEST_LIMIT = 250000;
 var WAPI_REQUEST_LIMIT = 25000;
 var WAPI_REQ_RESERVE_PRCNT = 0.30;
 
-
 var SESSION_WORDCHAIN_REQUEST_LIMIT = 25;
 
+var ignoreWordsArray = [
+  "en",
+  "la",
+  "por",
+  "que",
+  "es",
+  "los",
+  "las",
+  "y",
+  "в",
+  "'",
+  "-",
+  "...",
+  "a",
+  "about",
+  "across",
+  "after",
+  "all",
+  "also",
+  "an",
+  "and",
+  "ao",
+  "aos",
+  "applause",
+  "are",
+  "as",
+  "at",
+  "b",
+  "be",
+  "because",
+  "been",
+  "before",
+  "being",
+  "but",
+  "by",
+  "can",
+  "can",
+  "could",
+  "could",
+  "da",
+  "day",
+  "de",
+  "did",
+  "do",
+  "dont",
+  "e",
+  "else",
+  "em",
+  "for",
+  "from",
+  "get",
+  "go",
+  "going",
+  "had",
+  "has",
+  "hasnt",
+  "have",
+  "havent",
+  "he",
+  "her",
+  "here",
+  "him",
+  "his",
+  "how",
+  "htt...",
+  "i",
+  "if",
+  "im",
+  "in",
+  "into",
+  "is",
+  "isnt",
+  "it",
+  "its",
+  "just",
+  "less",
+  "like",
+  "lot",
+  "m",
+  "may",
+  "me",
+  "more",
+  "my",
+  "nas",
+  "new",
+  "no",
+  "nos",
+  "not",
+  "of",
+  "old",
+  "on",
+  "or",
+  "os",
+  "ou",
+  "our",
+  "out",
+  "over",
+  "rt",
+  "s",
+  "said",
+  "say",
+  "saying",
+  "she",
+  "should",
+  "so",
+  "some",
+  "than",
+  "that",
+  "thats",
+  "the",
+  "their",
+  "them",
+  "then",
+  "there",
+  "these",
+  "they",
+  "this",
+  "those",
+  "though",
+  "to",
+  "too",
+  "upon",
+  "us",
+  "ve",
+  "want",
+  "was",
+  "wasnt",
+  "we",
+  "were",
+  "what",
+  "when",
+  "where",
+  "which",
+  "who",
+  "whose",
+  "why",
+  "will",
+  "with",
+  "wont",
+  "would",
+  "you",
+  "your",
+  "|",
+  "é",
+  "–",
+];
 
 // ==================================================================
 // TEST CONFIG
@@ -193,6 +342,7 @@ var serverGroupHashMap = new HashMap(); // server specific keywords
 var entityChannelGroupHashMap = new HashMap();
 var serverEntityChannelGroupHashMap = new HashMap();
 
+var ignoreWordHashMap = new HashMap();
 var keywordHashMap = new HashMap();
 var serverKeywordHashMap = new HashMap(); // server specific keywords
 var topicHashMap = new HashMap();
@@ -248,9 +398,10 @@ console.log(
   + '========================================= ***START*** ==============================================\n' 
   + '====================================================================================================\n' 
   + process.argv[1] 
-  + '\nHOST        ' + hostname
-  + '\nPROCESS ID  ' + process.pid 
-  + '\nSTARTED     ' + Date() 
+  + '\nHOST           ' + hostname
+  + '\nPROCESS ID     ' + process.pid 
+  + '\nSTARTED        ' + Date()
+  + '\nGOOGLE METRICS ' + enableGoogleMetrics
   + '\n' + '====================================================================================================\n' 
   + '========================================= ***START*** ==============================================\n' 
   + '====================================================================================================\n\n'
@@ -530,7 +681,6 @@ var wordCacheTtl = process.env.WORD_CACHE_TTL;
 if (typeof wordCacheTtl === 'undefined') wordCacheTtl = WORD_CACHE_TTL;
 console.log("WORD CACHE TTL: " + wordCacheTtl + " SECONDS");
 
-
 var monitorHashMap = {};
 
 var adminCache = new NodeCache({
@@ -571,17 +721,17 @@ var sessionCache = new NodeCache({
 
 var entityCache = new NodeCache({
   stdTTL: entityCacheTtl,
-  checkperiod: 30
+  checkperiod: 10
 });
 
 var groupCache = new NodeCache({
   stdTTL: groupCacheTtl,
-  checkperiod: 30
+  checkperiod: 10
 });
 
 var ipAddressCache = new NodeCache({
   stdTTL: ipAddressCacheTtl,
-  checkperiod: 30
+  checkperiod: 10
 });
 
 
@@ -635,6 +785,20 @@ sessionCache.on("expired", function(sessionId, sessionObj) {
 });
 
 wordCache.on("set", function(word, wordObj) {
+
+  // if (!wordObj.meter) {
+  //   wordObj.meter = {};
+  //   wordObj.meter = new Measured.Meter({rateUnit: 60000, tickInterval: 1000});
+  // }
+  // wordObj.meter.mark();
+
+  // if (wordObj.meter.toJSON().count > 0) {
+  //   console.log(chalkAlert("wordObj.meter"
+  //     + " | " + wordObj.meter.toJSON().count
+  //     + " | " + wordObj.nodeId
+  //   ));
+  // }
+
   debugWapi(chalkWapi("CACHE WORD SET"
     + " [ Q: " + wapiSearchQueue.size() 
     + " ] " + wordObj.nodeId 
@@ -654,6 +818,10 @@ wordCache.on("set", function(word, wordObj) {
 });
 
 wordCache.on("expired", function(word, wordObj) {
+
+  wordMeter[wordObj.nodeId] = {};
+  delete wordMeter[wordObj.nodeId];
+
   if (typeof wordObj !== 'undefined') {
     // debug("CACHE WORD EXPIRED\n" + jsonPrint(wordObj));
     debug("... CACHE WORD EXPIRED"
@@ -675,6 +843,39 @@ trendingCache.on( "expired", function(topic, topicObj){
 });
 
 
+function updateWordMeter(wordObj){
+
+  if (ignoreWordHashMap.has(wordObj.nodeId)) {
+    debug(chalkInfo("IGNORE " + wordObj.nodeId));
+    wordCache.set(wordObj.nodeId, wordObj);
+    return;
+  }
+
+  if (!wordMeter[wordObj.nodeId]) {
+    // console.log(chalkAlert("+++\n" + jsonPrint(wordObj)));
+    wordMeter[wordObj.nodeId] = {};
+    wordMeter[wordObj.nodeId] = new Measured.Meter({rateUnit: 60000});
+    wordMeter[wordObj.nodeId].mark();
+    wordCache.set(wordObj.nodeId, wordObj);
+  }
+  else {
+    wordMeter[wordObj.nodeId].mark();
+    wordCache.set(wordObj.nodeId, wordObj);
+  }
+
+  if (wordMeter[wordObj.nodeId].toJSON().count > MIN_WORD_METER_COUNT) {
+
+    var meterObj = wordMeter[wordObj.nodeId].toJSON();
+
+    console.log(chalkAlert("WM"
+      + " | W: " + Object.keys(wordMeter).length
+      + " | C: " + meterObj.count
+      + " | 5: " + meterObj["5MinuteRate"].toFixed(2)
+      + " | 1: " + meterObj["1MinuteRate"].toFixed(2)
+      + " | " + wordObj.nodeId
+    ));
+  }
+}
 
 // ==================================================================
 // WORDS API
@@ -2048,30 +2249,35 @@ function dbUpdateWord(wObj, incMentions, callback) {
             if (status.indexOf("BHT_OVER_LIMIT") >= 0) {
               debug(chalkError("bhtSearchWord BHT OVER LIMI"));
               debug("Word CACHE SET1: " + word.nodeId);
+              // updateWordMeter(word);
               wordCache.set(word.nodeId, word);
               callback('BHT_OVER_LIMIT', word);
             } 
             else if (status.indexOf("BHT_ERROR") >= 0) {
               debug(chalkError("bhtSearchWord dbUpdateWord findOneWord ERROR\n" + JSON.stringify(status)));
               debug("Word CACHE SET2: " + word.nodeId);
+              // updateWordMeter(word);
               wordCache.set(word.nodeId, word);
               callback('BHT_ERROR', word);
             } 
             else if (bhtResponseObj.bhtFound) {
               debug(chalkBht("-*- BHT HIT   | " + bhtResponseObj.nodeId));
               debug("Word CACHE SET3: " + bhtResponseObj.nodeId);
+              // updateWordMeter(bhtResponseObj);
               wordCache.set(bhtResponseObj.nodeId, bhtResponseObj);
               callback('BHT_HIT', bhtResponseObj);
             } 
             else if (status == 'BHT_REDIRECT') {
               debug(chalkBht("-A- BHT REDIRECT  | " + wordObj.nodeId));
               debug("Word CACHE SET4: " + bhtResponseObj.nodeId);
+              // updateWordMeter(bhtResponseObj);
               wordCache.set(bhtResponseObj.nodeId, bhtResponseObj);
               callback('BHT_REDIRECT', bhtResponseObj);
             } 
             else {
               debug(chalkBht("-O- BHT MISS  | " + wordObj.nodeId));
               debug("Word CACHE SET5: " + bhtResponseObj.nodeId);
+              // updateWordMeter(bhtResponseObj);
               wordCache.set(bhtResponseObj.nodeId, bhtResponseObj);
               bhtWordsMiss[word.nodeId] = word.nodeId;
               callback('BHT_MISS', bhtResponseObj);
@@ -2081,12 +2287,14 @@ function dbUpdateWord(wObj, incMentions, callback) {
         else if (word.bhtFound) {
           debug(chalkBht("-F- BHT FOUND | " + word.nodeId));
           debug("Word CACHE SET6: " + word.nodeId);
+          // updateWordMeter(word);
           wordCache.set(word.nodeId, word);
           callback('BHT_FOUND', word);
         } 
         else {
           debug(chalkBht("-N- BHT NOT FOUND  | " + word.nodeId));
           debug("Word CACHE SET7: " + word.nodeId);
+          // updateWordMeter(word);
           wordCache.set(word.nodeId, word);
           bhtWordsNotFound[word.nodeId] = word.nodeId;
           callback('BHT_NOT_FOUND', word);
@@ -3506,7 +3714,7 @@ var deltaMwRequests = 0;
 var metricDateStart = moment().toJSON();
 var metricDateEnd = moment().toJSON();
 
-function updateMetrics(googleMetricsUpdateFlag) {
+function updateMetrics(enableGoogleMetrics) {
 
   if (heartbeatsSent % 100 == 0) updateStatsCounts();
 
@@ -3626,12 +3834,12 @@ function handleSessionEvent(sesObj, callback) {
     case 'SOCKET_DISCONNECT':
 
       console.log(chalkSession(
-        "XXX " + sesObj.sessionEvent
+        "X " + sesObj.sessionEvent
         // + "\n" + jsonPrint(sesObj)
         + " | " + moment().format(compactDateTimeFormat) 
-        + " | NSP: " + sesObj.session.namespace 
-        + " | SID: " + sesObj.session.sessionId 
-        + " | UID: " + sesObj.session.userId 
+        + " | " + sesObj.session.namespace 
+        + " | " + sesObj.session.sessionId 
+        + " | " + sesObj.session.userId 
         // + " | IP: " + sesObj.session.ip 
         // + " | DOMAIN: " + sesObj.session.domain
       ));
@@ -3917,17 +4125,17 @@ function handleSessionEvent(sesObj, callback) {
             if (typeof sessionUpdatedObj.subSessionId !== 'undefined') {
               sessionCache.set(sessionUpdatedObj.subSessionId, sessionUpdatedObj);
             }
-            else {
-              sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
-            }
+            // else {
+            sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
+            // }
           }
           else {
             if (typeof sessionUpdatedObj.subSessionId !== 'undefined') {
               sessionCache.set(sessionUpdatedObj.subSessionId, sessionUpdatedObj);
             }
-            else {
-              sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
-            }
+            // else {
+            sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
+            // }
           }
 
           // sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
@@ -4042,19 +4250,6 @@ function handleSessionEvent(sesObj, callback) {
 
             sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
 
-            // if (sessionUpdatedObj.namespace == 'admin') {
-            //   sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
-            // } else if (sessionUpdatedObj.namespace == 'view') {
-            //   sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
-            // } else if (sessionUpdatedObj.namespace == 'user') {
-            //   sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
-            // } else if (sessionUpdatedObj.namespace == 'test-user') {
-            //   sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
-            // } else if (sessionUpdatedObj.namespace == 'util') {
-            //   sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
-            // } else {
-            //   sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
-            // }
           }
         });
       });
@@ -4666,7 +4861,7 @@ var readResponseQueue = setInterval(function() {
             mentions: 1 // !!!!!! KLUDGE !!!!!!
           };
 
-          wordCache.set(previousPrompt, previousPromptObj);
+          wordCache.set(previousPromptObj.nodeId, previousPromptObj);
 
         } else {
           debug(chalkResponse("... previousPromptObj: " + previousPromptObj.nodeId));
@@ -4701,6 +4896,7 @@ var readResponseQueue = setInterval(function() {
         return;
       }
 
+      updateWordMeter(responseInObj);
  
       getTags(responseInObj, function(updatedWordObj){
         
@@ -5539,21 +5735,6 @@ function initializeConfiguration(callback) {
           callbackSeries(err, null);
         });
       },
-
-      // // GOOGLE INIT
-      // function(callbackSeries) {
-      //   if (!disableGoogleMetrics) {
-      //     debug(chalkInfo(moment().format(compactDateTimeFormat) + " | GOOGLE INIT"));
-      //     findCredential(GOOGLE_SERVICE_ACCOUNT_CLIENT_ID, function() {
-      //       callbackSeries(null, "INIT_GOOGLE_METRICS_COMPLETE");
-      //       return;
-      //     });
-      //   } else {
-      //     debug(chalkInfo(moment().format(compactDateTimeFormat) 
-      //       + " | GOOGLE INIT *** SKIPPED *** | GOOGLE METRICS DISABLED"));
-      //     callbackSeries(null, "INIT_GOOGLE_METRICS_SKIPPED");
-      //   }
-      // },
 
       // TWIT FOR DM INIT
       function(callbackSeries) {
@@ -6820,15 +7001,15 @@ function createSession(newSessionObj) {
 
     statsObj.socket.USER_READYS++;
 
-    console.log(chalkUser(">RX USR RDY"
-      + " | " + socket.id
-      + " | " + userObj.nodeId
-      + " | ID " + userObj.userId
-      + " | N " + userObj.name
-      + " | E " + userObj.tags.entity
-      + " | C " + userObj.tags.channel
-      + " | T " + userObj.type
-      + " | M " + userObj.mode
+    console.log(chalkUser("R< U RDY"
+      // + "  " + socket.id
+      + "  " + userObj.nodeId
+      + "  ID " + userObj.userId
+      + "  N " + userObj.name
+      + "  E " + userObj.tags.entity
+      + "  C " + userObj.tags.channel
+      + "  T " + userObj.type
+      + "  M " + userObj.mode
       // + "\nU " + userObj.url
       // + "\nP " + userObj.profileImageUrl
     ));
@@ -7009,6 +7190,10 @@ function createSession(newSessionObj) {
           console.log(chalkError("NODE NAME UNDEFINED?\n" + jsonPrint(nodeObj)));
         }
         else {
+
+          // if (typeof nodeObj.name !== 'undefined') updateWordMeter({nodeId: nodeObj.name.toLowerCase()});
+          // if (typeof nodeObj.screenName !== 'undefined') updateWordMeter({nodeId: nodeObj.screenName.toLowerCase()});
+
           if (nodeObj.name.toLowerCase().includes("trump")) {
             trumpHit = nodeObj.name;
           }
@@ -7021,6 +7206,7 @@ function createSession(newSessionObj) {
         if (nodeObj.nodeId.toLowerCase().includes("trump")) {
           trumpHit = nodeObj.nodeId;
         }
+        updateWordMeter({nodeId: nodeObj.nodeId.toLowerCase()});
       break;
       default:
       break;
@@ -7243,9 +7429,7 @@ var metricsInterval = setInterval(function() {
     debug(chalkAlert("... NEW MAX UTILS" + " | " + moment().format(compactDateTimeFormat)));
   }
 
-  var googleMetricsUpdateFlag = !disableGoogleMetrics && googleMetricsEnabled;
-
-  updateMetrics(googleMetricsUpdateFlag);
+  updateMetrics(enableGoogleMetrics);
 
 }, 1000);
 
@@ -7368,7 +7552,7 @@ function initRateQinterval(interval){
     }
       // console.log("updateTimeSeries: " + updateTimeSeries + " | C: " + updateTimeSeriesCount);
 
-    if (updateTimeSeriesCount == 0){
+    if (enableGoogleMetrics && (updateTimeSeriesCount == 0)){
 
       var testDataPoint = {};
       
@@ -7380,7 +7564,7 @@ function initRateQinterval(interval){
         // console.log("AMDP\n" + jsonPrint(results));
       });
 
-      if (!disableGoogleMetrics && tssServer) {
+      if (enableGoogleMetrics && tssServer) {
         var dataPoint = {};
         
         dataPoint.metricType = 'twitter/tweets_per_minute';
@@ -7404,7 +7588,7 @@ function initRateQinterval(interval){
 
       // console.log("updateTimeSeries: " + updateTimeSeries + " | C: " + updateTimeSeriesCount);
 
-      if (!disableGoogleMetrics && tmsServer) {
+      if (enableGoogleMetrics && tmsServer) {
 
         var dataPoint = {};
         
@@ -7430,7 +7614,7 @@ function initRateQinterval(interval){
       }
 
       // word/words_per_minute
-      if (!disableGoogleMetrics) {
+      if (enableGoogleMetrics) {
         var dataPoint = {};
         
         dataPoint.metricType = 'word/words_per_minute';
@@ -7438,12 +7622,12 @@ function initRateQinterval(interval){
         dataPoint.metricLabels = {server_id: 'WORD'};
 
         addMetricDataPoint(dataPoint, function(err, results){
-          // console.log("WORD ALL\n" + jsonPrint(results));
+          console.log("WORD ALL\n" + jsonPrint(results));
         });
       }
 
       // word/trump_per_minute
-      if (!disableGoogleMetrics) {
+      if (enableGoogleMetrics) {
         var dataPoint = {};
         
         dataPoint.metricType = 'word/trump_per_minute';
@@ -7456,7 +7640,7 @@ function initRateQinterval(interval){
       }
 
       // util/global/number_of_utils
-      if (!disableGoogleMetrics) {
+      if (enableGoogleMetrics) {
         var dataPoint = {};
         
         dataPoint.metricType = 'util/global/number_of_utils';
@@ -7469,7 +7653,7 @@ function initRateQinterval(interval){
       }
 
       // user/global/number_of_viewers
-      if (!disableGoogleMetrics) {
+      if (enableGoogleMetrics) {
         var dataPoint = {};
         
         dataPoint.metricType = 'user/global/number_of_viewers';
@@ -7483,7 +7667,7 @@ function initRateQinterval(interval){
       }
 
       // user/global/number_of_users
-      if (!disableGoogleMetrics) {
+      if (enableGoogleMetrics) {
         var dataPoint = {};
         
         dataPoint.metricType = 'user/global/number_of_users';
@@ -7497,7 +7681,7 @@ function initRateQinterval(interval){
       }
 
       // util/global/number_of_groups
-      if (!disableGoogleMetrics) {
+      if (enableGoogleMetrics) {
         var dataPoint = {};
         
         dataPoint.metricType = 'util/global/number_of_groups';
@@ -7510,7 +7694,7 @@ function initRateQinterval(interval){
       }
 
       // util/global/number_of_entities
-      if (!disableGoogleMetrics) {
+      if (enableGoogleMetrics) {
         var dataPoint = {};
         
         dataPoint.metricType = 'util/global/number_of_entities';
@@ -7523,7 +7707,7 @@ function initRateQinterval(interval){
       }
 
       // user/global/number_of_sessions
-      if (!disableGoogleMetrics) {
+      if (enableGoogleMetrics) {
         var dataPoint = {};
         
         dataPoint.metricType = 'util/global/number_of_sessions';
@@ -8129,6 +8313,15 @@ process.on("message", function(msg) {
   }
 });
 
+function initIgnoreWordsHashMap(callback) {
+  async.each(ignoreWordsArray, function(ignoreWord, cb) {
+    ignoreWordHashMap.set(ignoreWord, true);
+    cb();
+  }, function(err) {
+    callback();
+  });
+}
+
 //=================================
 // BEGIN !!
 //=================================
@@ -8145,6 +8338,8 @@ initializeConfiguration(function(err, results) {
     initUpdateTrendsInterval(ONE_MINUTE);
     initFollowerUpdateQueueInterval(100);
     initRateQinterval(1000);
+
+    initIgnoreWordsHashMap(function(){});
 
     // initStatsd();
 

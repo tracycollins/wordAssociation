@@ -173,6 +173,8 @@ var palette = {
 };
 
 var ignoreWordsArray = [
+  "в",
+  "en",
   "'",
   "-",
   "...",

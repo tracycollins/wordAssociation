@@ -2067,7 +2067,11 @@ var readUpdateSessionViewQueue = setInterval(function() {
 
       if (sessionSmallObj.target){ 
         if (typeof sessionSmallObj.target.mentions === 'undefined'){
-        console.log(chalkError("sessionSmallObj.target.mentions UNDEFINED\n" + jsonPrint(sessionSmallObj)));
+          // KLUDGE ??????
+          console.log(chalkError("sessionSmallObj.target.mentions UNDEFINED | SETTING = 1" 
+            + " | " + sessionSmallObj.target.nodeId;
+          ));
+          sessionSmallObj.target.mentions = 1;
         }
       }
 

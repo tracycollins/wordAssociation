@@ -7586,39 +7586,42 @@ function initRateQinterval(interval){
 
       sortedObjectValues(wordMeter, "1MinuteRate", function(sortedKeys){
 
-        var endIndex = (sortedKeys.length >= 10) ? 10 : sortedKeys.length;
+        if (enableGoogleMetrics) {
+          var endIndex = (sortedKeys.length >= 10) ? 10 : sortedKeys.length;
+          for (var i=0; i<endIndex; i++){
 
-        for (var i=0; i<endIndex; i++){
+            var wmObj = wordMeter[sortedKeys[i]].toJSON();
 
-          var wmObj = wordMeter[sortedKeys[i]].toJSON();
+            wordsPerMinuteTop10[sortedKeys[i]] = wmObj["1MinuteRate"];
 
-          wordsPerMinuteTop10[sortedKeys[i]] = wmObj["1MinuteRate"];
+            var top10dataPoint = {};
 
-          var top10dataPoint = {};
+            top10dataPoint.metricType = 'word/top10/' + sortedKeys[i];
+            top10dataPoint.value = wmObj["1MinuteRate"];
+            top10dataPoint.metricLabels = {server_id: 'WORD'};
 
-          top10dataPoint.metricType = 'word/top10/' + sortedKeys[i];
-          top10dataPoint.value = wmObj["1MinuteRate"];
-          top10dataPoint.metricLabels = {server_id: 'WORD'};
-
-          addMetricDataPoint(top10dataPoint, function(err, results){
-            debug("top10dataPoint"
-              + " | " + sortedKeys[i] 
-              + "\n" + jsonPrint(results)
-            );
-          });
-
+            addMetricDataPoint(top10dataPoint, function(err, results){
+              debug("top10dataPoint"
+                + " | " + sortedKeys[i] 
+                + "\n" + jsonPrint(results)
+              );
+            });
+          }
         }
+
       });
 
-      var testDataPoint = {};
-      
-      testDataPoint.metricType = 'word/test/random';
-      testDataPoint.value = prevTestValue + randomInt(-20,20);
-      testDataPoint.metricLabels = {server_id: 'TEST'};
+      if (enableGoogleMetrics) {
+        var testDataPoint = {};
+        
+        testDataPoint.metricType = 'word/test/random';
+        testDataPoint.value = prevTestValue + randomInt(-20,20);
+        testDataPoint.metricLabels = {server_id: 'TEST'};
 
-      addMetricDataPoint(testDataPoint, function(err, results){
-        // console.log("AMDP\n" + jsonPrint(results));
-      });
+        addMetricDataPoint(testDataPoint, function(err, results){
+          // console.log("AMDP\n" + jsonPrint(results));
+        });
+      }
 
       if (enableGoogleMetrics && tssServer) {
         var dataPoint = {};

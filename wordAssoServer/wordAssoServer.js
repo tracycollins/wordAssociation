@@ -3818,7 +3818,7 @@ function handleSessionEvent(sesObj, callback) {
       var entityRegEx = /#(\w+)$/ ;
       var namespaceRegEx = /^\/(\w+)#/ ;
 
-      var entity = sesObj.sessionId.match(entityRegEx)[1];
+      // var entity = sesObj.sessionId.match(entityRegEx)[1];
       var namespaceMatchArray = sesObj.sessionId.match(namespaceRegEx);
 
       var namespace;
@@ -3833,11 +3833,7 @@ function handleSessionEvent(sesObj, callback) {
         socketId = sesObj.sessionId;
       }
 
-      var abortObj = {};
-      abortObj.entity = entity;
-
-      // io.of(namespace).emit('SESSION_ABORT', sesObj.sessionId);
-      utilNameSpace.to(sesObj.sessionId.replace(entityRegEx, '')).emit('SESSION_ABORT', entity);
+      utilNameSpace.to(sesObj.sessionId.replace(entityRegEx, '')).emit('SESSION_ABORT', sesObj.sessionId);
 
       console.log(chalkWarn("ABORT SESSION"
         + " | NSP: " + namespace 

@@ -852,7 +852,7 @@ function updateWordMeter(wordObj){
     return;
   }
 
-  if (!wordMeter[wordObj.nodeId]) {
+  if (!wordMeter[wordObj.nodeId] || (typeof wordMeter[wordObj.nodeId] === 'undefined')) {
     // console.log(chalkAlert("+++\n" + jsonPrint(wordObj)));
     wordMeter[wordObj.nodeId] = {};
     wordMeter[wordObj.nodeId] = new Measured.Meter({rateUnit: 60000});
@@ -2069,7 +2069,7 @@ var readUpdateSessionViewQueue = setInterval(function() {
         if (typeof sessionSmallObj.target.mentions === 'undefined'){
           // KLUDGE ??????
           console.log(chalkError("sessionSmallObj.target.mentions UNDEFINED | SETTING = 1" 
-            + " | " + sessionSmallObj.target.nodeId;
+            + " | " + sessionSmallObj.target.nodeId
           ));
           sessionSmallObj.target.mentions = 1;
         }

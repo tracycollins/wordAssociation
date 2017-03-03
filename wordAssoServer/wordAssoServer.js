@@ -3838,7 +3838,7 @@ function handleSessionEvent(sesObj, callback) {
       console.log(chalkWarn("ABORT SESSION"
         + " | NSP: " + namespace 
         + " | TX SOCKET: " + socketId 
-        + " | ENTITY: " + entity 
+        // + " | ENTITY: " + entity 
         + " | SESS ID: " + sesObj.sessionId 
       ));
 

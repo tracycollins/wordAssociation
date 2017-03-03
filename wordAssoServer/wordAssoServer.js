@@ -7509,11 +7509,13 @@ function addMetricDataPoint(options, callback){
       ));
     })
     .catch((results) => {
-      if (results.code !== 3) {
-        console.log(chalkError("*** ERROR METRICS"
+      if (results.code !== 8) {
+        console.log(chalkError("*** ERROR GOOGLE METRICS"
           + " | " + options.metricLabels.server_id 
           + " | " + options.value
-          + "\n" + jsonPrint(results)
+          + " | ERR CODE: " + results.code
+          + " | META DATA: " + results.metadata
+          + " | META NODE: " + results.note
         ));
       }
     });

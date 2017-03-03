@@ -7622,7 +7622,7 @@ function initRateQinterval(interval){
         dataPoint.metricLabels = {server_id: 'WORD'};
 
         addMetricDataPoint(dataPoint, function(err, results){
-          console.log("WORD ALL\n" + jsonPrint(results));
+          debug("WORD ALL\n" + jsonPrint(results));
         });
       }
 

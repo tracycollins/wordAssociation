@@ -4920,10 +4920,12 @@ var readResponseQueue = setInterval(function() {
         return;
       }
 
-      updateWordMeter(responseInObj);
+      // updateWordMeter(responseInObj);
  
       getTags(responseInObj, function(updatedWordObj){
         
+        updateWordMeter(updatedWordObj);
+
         var dbUpdateObj = {};
         dbUpdateObj.word = updatedWordObj;
         dbUpdateObj.session = currentSessionObj;

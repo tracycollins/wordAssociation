@@ -852,7 +852,9 @@ function updateWordMeter(wordObj){
     return;
   }
 
-  if (!wordMeter[wordObj.nodeId] || (typeof wordMeter[wordObj.nodeId] === 'undefined')) {
+  if (!wordMeter[wordObj.nodeId] 
+    || (typeof wordMeter[wordObj.nodeId] === 'undefined') 
+    || (typeof wordMeter[wordObj.nodeId].mark() !== 'function')) {
     // console.log(chalkAlert("+++\n" + jsonPrint(wordObj)));
     wordMeter[wordObj.nodeId] = {};
     wordMeter[wordObj.nodeId] = new Measured.Meter({rateUnit: 60000});

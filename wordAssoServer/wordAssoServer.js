@@ -6800,7 +6800,7 @@ function createSession(newSessionObj) {
         sessionId: socket.id,
         session: sessionObj
       });
-      console.log(chalkDisconnect("\nDISCONNECTED SOCKET\n" + jsonPrint(sessionObj)));
+      debug(chalkDisconnect("\nDISCONNECTED SOCKET\n" + jsonPrint(sessionObj)));
     } else {
       debug(chalkWarn("??? DISCONNECTED SOCKET NOT IN CACHE ... TIMED OUT? | " + socket.id));
     }

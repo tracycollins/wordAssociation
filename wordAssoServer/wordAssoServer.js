@@ -854,11 +854,13 @@ function updateWordMeter(wordObj){
 
   if (!wordMeter[wordObj.nodeId] 
     || (typeof wordMeter[wordObj.nodeId] === 'undefined') 
-    || (typeof wordMeter[wordObj.nodeId].mark() !== 'function')) {
+    || (typeof wordMeter[wordObj.nodeId].mark !== 'function')) {
     // console.log(chalkAlert("+++\n" + jsonPrint(wordObj)));
     wordMeter[wordObj.nodeId] = {};
     wordMeter[wordObj.nodeId] = new Measured.Meter({rateUnit: 60000});
     wordMeter[wordObj.nodeId].mark();
+
+    // console.log(chalkAlert("typeof wordMeter[wordObj.nodeId].mark: " + typeof wordMeter[wordObj.nodeId].mark));
     wordCache.set(wordObj.nodeId, wordObj);
   }
   else {

@@ -28,8 +28,8 @@ var statsTable ;
 var initializedFlag = false;
 var statsTableFlag = false;
 
-// requirejs(["https://cdnjs.cloudflare.com/ajax/libs/d3/4.5.0/d3.min.js"], function(d3Loaded) {
-requirejs(["https://d3js.org/d3.v4.min.js"], function(d3Loaded) {
+requirejs(["https://cdnjs.cloudflare.com/ajax/libs/d3/4.7.1/d3.min.js"], function(d3Loaded) {
+// requirejs(["https://d3js.org/d3.v4.min.js"], function(d3Loaded) {
     console.log("d3 LOADED");
     d3 = d3Loaded;
     initialize(function(){
@@ -64,7 +64,7 @@ var debug = false;
 var DEFAULT_BLAH_MODE = false;
 var MAX_RX_QUEUE = 100;
 var MAX_WORDCHAIN_LENGTH = 100;
-var DEFAULT_MAX_AGE = 30000;
+var DEFAULT_MAX_AGE = 60000;
 var FORCE_MAX_AGE = 60000;
 var MEDIA_MAX_AGE = 60000;
 var DEFAULT_AGE_RATE = 1.0;
@@ -361,6 +361,52 @@ var sessionId;
 var namespace;
 var sessionMode = false;
 var monitorMode = false;
+
+
+var nodeHashMap = {};
+nodeHashMap.tweet = new HashMap();
+nodeHashMap.hashtag = new HashMap();
+nodeHashMap.media = new HashMap();
+nodeHashMap.user = new HashMap();
+nodeHashMap.place = new HashMap();
+
+var maxHashtagRows = 25;
+var maxPlaceRows = 25;
+var maxHashtagBarRows = 100;
+
+var tweetNodeQueue = [];
+var tweetNodeQueueMaxInQ = 0;
+var tweetNodeQueueMaxLength = 500 ;
+
+var hashtagNodeQueue = [];
+var hashtagNodeQueueMaxInQ = 0;
+var hashtagNodeQueueMaxLength = 500 ;
+var hashtagHashMap = nodeHashMap.hashtag;
+var maxRecentHashtags = maxHashtagRows ;
+var hashtagArray = [] ;
+var recentHashtagArray = [] ;
+var hashtagMentionsArray = [] ;
+var recentHashtagMentionsArray = [] ;
+
+var placeNodeQueue = [];
+var placeNodeQueueMaxInQ = 0;
+var placeNodeQueueMaxLength = 500 ;
+var placeHashMap = nodeHashMap.place;
+var maxRecentPlaces = maxPlaceRows ;
+var placeArray = [] ;
+var recentPlaceArray = [] ;
+var placeMentionsArray = [] ;
+var recentPlaceMentionsArray = [] ;
+
+var mediaNodeQueue = [];
+var mediaNodeQueueMaxInQ = 0;
+var mediaNodeQueueMaxLength = 500 ;
+var mediaHashMap = nodeHashMap.media;
+var mediaArray = [] ;
+var recentMediaArray = [] ;
+var latestMediaArray = [] ; // 1-element array
+var mediaMentionsArray = [] ;
+var recentMediaMentionsArray = [] ;
 
 function msToTime(duration) {
   var milliseconds = parseInt((duration % 1000) / 1000),
@@ -1905,7 +1951,31 @@ function initSocketNodeRx(){
     }
 
     currentSessionView.addNode(newNode);
-    
+
+  });
+
+  socket.on('STATS_HASHTAG', function(htStatsObj){
+      console.log(">>> RX STATS_HASHTAG");
+
+      var htObjArray = [];
+
+      for (var key in htStatsObj) {
+         if (htStatsObj.hasOwnProperty(key)) {
+          var htObj = htStatsObj[key];
+          var mntns = htObj.mentions.toString() ;
+          var numPadSpaces = 10 - mntns.length;
+          htObj.displaytext = new Array(numPadSpaces).join("\xa0") + mntns + " " + key ;
+          htObj.barlabel = key ;
+          getTimeNow(function(t){
+            htObj.seen = t ;
+            htObj.topHashtag = true ;
+            htObj.newFlag = false ;
+            htObjArray.push(htObj);
+            hashtagHashMap.set(key, htObj);
+          });
+          // console.log(htObj.mentions, htObj.text);
+        }
+      }
   });
 }
 

@@ -1,132 +1,94 @@
 /*ver 0.47*/
 /*jslint node: true */
 
-"use strict";
 
 function ViewHistogram() {
 
+  "use strict";
+
   var self = this;
 
-  // ==============================================
-  // GLOBAL VARS
-  // ==============================================
+  var maxHashtagRows = 25;
+  var maxRecentHashtags = maxHashtagRows ;
 
-  var runningFlag = false;
-  var age;
+  var DEFAULT_AGE_RATE = 1.0;
+  var MAX_RX_QUEUE = 100;
 
-  var maxNodeAddQ = 0;
-  var nodeAddQ = [];
+  var d3LayoutWidth;
+  var d3LayoutHeight;
 
-  var drawSimulationInterval;
-
-  var newFlagRatio = 0.01;
-  var maxWords = 100;
-  var maxOpacity = 0.9;
-  var minOpacity = 0.3;
-  var defaultFadeDuration = 50;
-
-  var testModeEnabled = false;
-
-  var tickNumber = 0;
-  var width = window.innerWidth * 1;
-  var height = window.innerHeight * 1;
-
-  this.getWidth = function() {
-    return window.innerWidth;
-  }
-
-  this.getHeight = function() {
-    return window.innerHeight;
-  }
-
-
-  var newWordFlag = false;
-
-  var maxSessionRows = 25;
-  var maxWordRows = 25;
-
-  var marginTopGroups = 15; // %
-  var marginLeftGroups = 5;
-
-  var marginTopSessions = 15; // %
-  var marginLeftSessions = 5;
-
-  var marginTopWords = 15; // %
-  var marginLeftWords = 20;
-
-  var colSpacing = 20;
-
-  var maxY = (marginTopWords + (2 * maxWordRows)) + "%";
-
-  var maxRecentWords = maxWordRows;
-  var wordArray = [];
-  var recentNodeArray = [];
-  var wordMentionsArray = [];
-  var recentWordMentionsArray = [];
-
-  var dateNow = moment().valueOf();
-  var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
-  var defaultTimePeriodFormat = "HH:mm:ss";
-
-  var mouseFreezeEnabled = true;
-  var mouseMovingFlag = false;
-  var mouseHoverFlag = false;
-  var mouseOverRadius = 10;
-  var mouseMoveTimeoutInterval = 1000;
   var mouseHoverNodeId;
 
-  var updateHistogramDisplayReady = true;
+  var localNodeHashMap = new HashMap();
 
-  var showStatsFlag = false;
+  var MAX_NODES = 47;
+  var processNodeCount = 0;
+  var processNodeModulus = 3;
 
-  var groupMaxAge = window.DEFAULT_MAX_AGE;
-  var sessionMaxAge = window.DEFAULT_MAX_AGE;
-  var nodeMaxAge = window.DEFAULT_MAX_AGE;
+  var maxNodeAddQ = 0;
+  var maxNumberNodes = 0;
 
-  var DEFAULT_CONFIG = {
-    'nodeMaxAge': window.DEFAULT_MAX_AGE
+  var simulation;
+  var gravity = 0;
+
+  var runningFlag = false;
+  
+  var nodeAddQ = [];
+  // var nodeUpdateQ = [];
+  var nodeDeleteQ = [];
+
+  var width = window.innerWidth * 0.9;
+  var height = window.innerHeight * 0.9;
+
+  self.getWidth = function() {
+    return window.innerWidth;
   };
 
-  var config = DEFAULT_CONFIG;
-  self.removeDeadNodes = true;
+  self.getHeight = function() {
+    return window.innerHeight;
+  };
 
-  var previousConfig = [];
+  var mouseHoverFlag = false;
 
-  var defaultTextFill = "#888888";
-
+  var nodeMaxAge = 60000;
 
   var DEFAULT_HISTOGRAM_CONFIG = {
-    'ageRate': window.DEFAULT_AGE_RATE,
+    'ageRate': window.DEFAULT_AGE_RATE
   };
 
   var ageRate = DEFAULT_HISTOGRAM_CONFIG.ageRate;
   var maxAgeRate = 0;
 
-  var D3_LAYOUT_WIDTH_RATIO = 1.0;
-  var D3_LAYOUT_HEIGHT_RATIO = 1.0;
+  var palette = {
+    "black": "#000000",
+    "white": "#FFFFFF",
+    "lightgray": "#819090",
+    "gray": "#708284",
+    "mediumgray": "#536870",
+    "darkgray": "#475B62",
+    "darkblue": "#0A2933",
+    "darkerblue": "#042029",
+    "paleryellow": "#FCF4DC",
+    "paleyellow": "#EAE3CB",
+    "yellow": "#A57706",
+    "orange": "#BD3613",
+    "red": "#D11C24",
+    "pink": "#C61C6F",
+    "purple": "#595AB7",
+    "blue": "#2176C7",
+    "green": "#259286",
+    "lightgreen": "#35A296",
+    "yellowgreen": "#738A05"
+  };
 
-  var HISTOGRAM_LAYOUT_WIDTH_RATIO = 1.0;
-  var HISTOGRAM_LAYOUT_HEIGHT_RATIO = 1.0;
+  var currentHashtagMaxMentions = 2;
 
-  var SVGCANVAS_WIDTH_RATIO = 1.0;
-  var SVGCANVAS_HEIGHT_RATIO = 1.0;
+  var minFontSize = 20;
+  var maxFontSize = 30;
 
-  var createNodeQueue = [];
-
-  var deadGroupsHash = {};
-  var deadSessionsHash = {};
   var deadNodesHash = {};
 
-  var newNodes = [];
-
-  var mouseHoverFlag = false;
-  var mouseHoverNodeId;
-
-
-  var d3LayoutWidth = width * D3_LAYOUT_WIDTH_RATIO;
-  var d3LayoutHeight = height * D3_LAYOUT_HEIGHT_RATIO;
-
-  console.log("width: " + width + " | height: " + height);
+  console.log("width: " + window.innerWidth + " | height: " + window.innerHeight);
 
   document.addEventListener("mousemove", function() {
     if (mouseHoverFlag) {
@@ -134,459 +96,266 @@ function ViewHistogram() {
     } else {
       d3.select("body").style("cursor", "default");
     }
-
-    resetMouseMoveTimer();
-    mouseMovingFlag = true;
-
-    if (mouseFreezeEnabled) {}
   }, true);
 
+  var nodeLabelOpacityScale = d3.scaleLinear().domain([1e-6, 1.0]).range([1.0, 1e-6]);
 
-  var wordBarWidthScale = d3.scaleLinear().domain([1, 2e6]).range([0.1, 65]);
-  var wordOpacityScale = d3.scaleLinear().domain([0, DEFAULT_MAX_AGE]).range([maxOpacity, minOpacity]);
-  var placeOpacityScale = d3.scaleLinear().domain([0, DEFAULT_MAX_AGE]).range([0.9, 0.15]);
-  var wordBarOpacityScale = d3.scaleLinear().domain([0, DEFAULT_MAX_AGE]).range([0.9, 0.15]);
-  var wordCloudFontScale = d3.scaleLinear().domain([1, 2e6]).range([2, 8]);
-  var wordCloudAgeScale = d3.scaleLinear().domain([1, DEFAULT_MAX_AGE]).range([1, 1e-6]);
+  var adjustedAgeRateScale = d3.scaleLinear().domain([1, MAX_NODES]).range([1.0, 10.0]);
 
-
-  var adjustedAgeRateScale = d3.scalePow().domain([1, 500]).range([1.0, 100.0]);
-  var fontSizeScale = d3.scaleLinear().domain([1, 100000000]).range([20.0, 30]);
-
-  var sessionCircleRadiusScale = d3.scaleLinear().domain([1, 100000000]).range([5.0, 100.0]); // uses wordChainIndex
-  var defaultRadiusScale = d3.scaleLinear().domain([1, 100000000]).range([1.0, 30.0]);
-
-  var fillColorScale = d3.scaleLinear()
-    .domain([0, 30000, 60000])
-    .range(["#555555", "#222222", "#000000"]);
-
-  var strokeColorScale = d3.scaleLinear()
-    .domain([0, 30000, 60000])
-    .range(["#cccccc", "#444444", "#000000"]);
-
+  var nodeFontSizeScale = d3.scaleLinear().domain([1, 1000000]).range([minFontSize, maxFontSize]);
+  var defaultRadiusScale = d3.scaleLog().domain([1, 10000000]).range([5, 30]).clamp(true);
 
   console.log("@@@@@@@ CLIENT @@@@@@@@");
 
+  function jsonPrint(obj) {
+    if ((obj) || (obj === 0)) {
+      var jsonString = JSON.stringify(obj, null, 2);
+      return jsonString;
+    } else {
+      return "UNDEFINED";
+    }
+  }
+
+  var randomIntFromInterval = function(min, max) {
+    var random = Math.random();
+    var randomInt = Math.floor((random * (max - min + 1)) + min);
+    return randomInt;
+  };
+
   d3.select("body").style("cursor", "default");
 
-
-  var groups = [];
-  var sessions = [];
   var nodes = [];
-
-  this.groupsLength = function() {
-    return groups.length;
-  }
   
-  this.sessionsLength = function() {
-    return sessions.length;
-  }
-  
-  this.nodesLength = function() {
-    return nodes.length;
-  }
-  
-  this.linksLength = function() {
-    return 0;
-  }
-
-  this.ageRate = function() {
-    return ageRate;
-  }
-
-  this.getSession = function(index) {
-    return sessions[index];
-  }
-
   this.getNodesLength = function() {
     return nodes.length;
-  }
+  };
   
   this.getMaxNodes = function() {
     return maxNumberNodes;
-  }
+  };
   
   this.getNodeAddQlength = function() {
     return nodeAddQ.length;
-  }
+  };
   
   this.getMaxNodeAddQ = function() {
     return maxNodeAddQ;
-  }
-  
-
-  this.getLinksLength = function() {
-    return links.length;
-  }
-  
+  };
+    
   this.getAgeRate = function() {
     return ageRate;
-  }
+  };
   
   this.getMaxAgeRate = function() {
     return maxAgeRate;
-  }
+  };
   
   this.setNodeMaxAge = function(maxAge) {
     nodeMaxAge = maxAge;
     console.debug("SET NODE MAX AGE: " + nodeMaxAge);
-  }
+  };
 
-  var maxNumberSessions = 0;
-  var maxNumberNodes = 0;
-
-  var svgHistogramLayoutAreaWidth = d3LayoutWidth * HISTOGRAM_LAYOUT_WIDTH_RATIO;
-  var svgHistogramLayoutAreaHeight = d3LayoutHeight * HISTOGRAM_LAYOUT_HEIGHT_RATIO;
-
-  self.reset = function() {
-    console.error("RESET");
-    nodes = [];
-    createNodeQueue = [];
-    deadNodesHash = {};
-    newNodes = [];
-  }
-
-  this.getSessionsLength = function() {
-    return sessions.length;
-  }
-
-  this.setNodeMaxAge = function(maxAge) {
-    nodeMaxAge = maxAge;
-    console.warn("SET NODE MAX AGE: " + nodeMaxAge);
-  }
-
-  this.displayControlOverlay = function(vis) {
-    var visible = "visible";
-    if (vis) {
-      visible = "visible";
-    } else {
-      visible = "hidden";
-    }
-  }
-
-  var mouseMoveTimeout = setTimeout(function() {
-    d3.select("body").style("cursor", "none");
-    if (!showStatsFlag && !pageLoadedTimeIntervalFlag) {
-    }
-  }, mouseMoveTimeoutInterval);
-
-  function resetMouseMoveTimer() {
-    clearTimeout(mouseMoveTimeout);
-
-    mouseMoveTimeout = setTimeout(function() {
-      d3.select("body").style("cursor", "none");
-
-      if (!showStatsFlag && !pageLoadedTimeIntervalFlag) {
-      }
-
-      mouseMovingFlag = false;
-    }, mouseMoveTimeoutInterval);
-  }
 
   var d3image = d3.select("#d3group");
 
-  var svgcanvas = d3image.append("svg:svg")
-    .attr("id", "svgcanvas")
-    .attr("x", 0)
-    .attr("y", 0);
+  var svgMain = d3image.append("svg:svg")
+    .attr("id", "svgMain")
+    .attr("width", width)
+    .attr("height", height)
+    .attr("x", 1e-6)
+    .attr("y", 1e-6);
 
-  var svgHistogramLayoutArea = svgcanvas.append("g")
-    .attr("id", "svgHistogramLayoutArea");
+  var svgForceLayoutArea = svgMain.append("g")
+    .attr("id", "svgForceLayoutArea")
+    .attr("width", width)
+    .attr("height", height)
+    .attr("viewbox", 1e-6, 1e-6, width, height)
+    // .attr("preserveAspectRatio", "none")
+    .attr("x", 1e-6)
+    .attr("y", 1e-6);
 
+  var nodeSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "nodeSvgGroup");
+  var nodeLabelSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "nodeLabelSvgGroup");
 
-  var groupSvgGroup = svgHistogramLayoutArea.append("svg:g").attr("id", "groupSvgGroup");
-  var groupLabelSvgGroup = svgHistogramLayoutArea.append("svg:g").attr("id", "groupLabelSvgGroup");
-  var groupGnode = groupSvgGroup.selectAll("g.group");
-  var groupLabels = groupLabelSvgGroup.selectAll(".groupLabel");
-  
-  var sessionSvgGroup = svgHistogramLayoutArea.append("svg:g").attr("id", "sessionSvgGroup");
-  var sessionLabelSvgGroup = svgHistogramLayoutArea.append("svg:g").attr("id", "sessionLabelSvgGroup");
-  var sessionGnode = sessionSvgGroup.selectAll("g.session");
-  var sessionLabels = sessionLabelSvgGroup.selectAll(".sessionLabel");
-  
-  var nodeSvgGroup = svgHistogramLayoutArea.append("svg:g").attr("id", "nodeSvgGroup");
-  var nodeLabelSvgGroup = svgHistogramLayoutArea.append("svg:g").attr("id", "nodeLabelSvgGroup");
-  var node = nodeSvgGroup.selectAll("g.node");
   var nodeLabels = nodeSvgGroup.selectAll(".nodeLabel");
 
   var divTooltip = d3.select("body").append("div")
     .attr("class", "tooltip")
-    .style("opacity", 1e-6);
+    .style("visibility", "hidden");
 
-
-  function ageGroups(callback) {
-
-    if (groups.length === 0) {
-      ageRate = DEFAULT_AGE_RATE;
-    } else if (groups.length > 100) {
-      ageRate = adjustedAgeRateScale(groups.length - 100);
-    } else {
-      ageRate = DEFAULT_AGE_RATE;
+  self.toolTipVisibility = function(isVisible){
+    if (isVisible) {
+      divTooltip.style("visibility", "visible");
     }
-
-    var group;
-
-    var ageGroupsLength = groups.length - 1;
-    var ageGroupsIndex = groups.length - 1;
-
-    for (ageGroupsIndex = ageGroupsLength; ageGroupsIndex >= 0; ageGroupsIndex -= 1) {
-
-      group = groups[ageGroupsIndex];
-
-      age = group.age + (ageRate * (dateNow - group.ageUpdated));
-
-      if (group.isDead) {
-        deadGroupsHash[group.groupId] = 1;
-      } else if (age >= groupMaxAge) {
-        group.isDead = true;
-        deadGroupsHash[group.groupId] = 1;
-      } else {
-        group.ageUpdated = dateNow;
-        group.age = age;
-        if (age < newFlagRatio * groupMaxAge) {
-          group.newFlag = true;
-        } else {
-          group.newFlag = false;
-        }
-      }
+    else {
+      divTooltip.style("visibility", "hidden");
     }
+  };
 
-    if (ageGroupsIndex < 0) {
-      return (callback());
+  self.setPause = function(value){
+    console.debug("SET PAUSE: " + value);
+    runningFlag = !value;
+    if (value){
+      self.simulationControl('PAUSE');
     }
-  }
-
-  function ageSessions(callback) {
-
-    if (sessions.length === 0) {
-      ageRate = DEFAULT_AGE_RATE;
-    } else if (sessions.length > 100) {
-      ageRate = adjustedAgeRateScale(sessions.length - 100);
-    } else {
-      ageRate = DEFAULT_AGE_RATE;
+    else{
+      self.simulationControl('RESUME');
     }
+  };
 
-    var session;
-
-    var ageSessionsLength = sessions.length - 1;
-    var ageSessionsIndex = sessions.length - 1;
-
-    for (ageSessionsIndex = ageSessionsLength; ageSessionsIndex >= 0; ageSessionsIndex -= 1) {
-
-      session = sessions[ageSessionsIndex];
-
-      age = session.age + (ageRate * (dateNow - session.ageUpdated));
-
-      if (session.isDead) {
-        deadSessionsHash[session.sessionId] = 1;
-      } else if (age >= sessionMaxAge) {
-        session.isDead = true;
-        deadSessionsHash[session.sessionId] = 1;
-      } else {
-        session.ageUpdated = dateNow;
-        session.age = age;
-        if (age < newFlagRatio * sessionMaxAge) {
-          session.newFlag = true;
-        } else {
-          session.newFlag = false;
-        }
-      }
+  self.togglePause = function(){
+    if (runningFlag){
+      self.simulationControl('PAUSE');
     }
-
-    if (ageSessionsIndex < 0) {
-      return (callback());
+    else{
+      self.simulationControl('RESUME');
     }
-  }
+  };
 
-  function processDeadSessionsHash(callback) {
+  self.updateParam = function(param, value) {
+    console.log("updateParam: " + param + " = " + value);
+    return;
+  };
 
-    if (Object.keys(deadSessionsHash).length == 0) {
-      // console.warn("NO DEAD SESSIONS");
-      return (callback());
-    }
-    // console.error("processDeadSessionsHash\n" + jsonPrint(deadSessionsHash));
+  var deleteNodeQ = function (nodeId){
 
-    var ageSessionsLength = sessions.length - 1;
-    var ageSessionsIndex = sessions.length - 1;
-    var session;
+    var deadNodeFlag = false;
 
-    for (ageSessionsIndex = ageSessionsLength; ageSessionsIndex >= 0; ageSessionsIndex -= 1) {
-      session = sessions[ageSessionsIndex];
-      if (deadSessionsHash[session.sessionId]) {
-        sessionDeleteQueue.push(session.sessionId);
-        sessions.splice(ageSessionsIndex, 1);
-        delete deadSessionsHash[session.sessionId];
-        // console.log("XXX SESSION: " + session.sessionId);
-      }
-    }
+    var nodesLength = nodes.length - 1;
 
-    if (ageSessionsIndex < 0) {
-      return (callback());
-    }
-  }
-
-  // ===================================================================
-  function compareMentions(a, b) {
-    if (a.mentions > b.mentions)
-      return -1;
-    else if (a.mentions < b.mentions)
-      return 1;
-    else
-      return 0;
-  }
-
-  function pad(num, size) {
-    var s = "0000000000" + num;
-    return s.substr(s.length - size);
-  }
-
-  function sortByProperty(array, property) {
-
-    // console.log("array\n" + jsonPrint(array));
-
-    var mapped = array.map(function(node, i) {
-      return { index: i, value: pad(node[property], 10) + "_" + node.text };
-    });
-
-    mapped.sort(function(a, b) {
-      // return +(a.value > b.value) || +(a.value === b.value) - 1;
-      if (a.value > b.value)
-        return -1;
-      else if (a.value < b.value)
-        return 1;
-      else
-        return 0;
-    });
-
-    var result = mapped.map(function(node) {
-      // console.log("node.index: " + node.index);
-      return array[node.index];
-    });
-
-    return result;
-  }
-
-  function rankNodes(callback) {
-    if (nodes.length == 0) return (callback());
-    var sortedNodeArray = sortByProperty(nodes, 'mentions');
-
-    // console.warn("sortedNodeArray\n" + jsonPrint(sortedNodeArray));
-    // console.error("RANKING " + sortedNodeArray.length + " nodes");
     var node;
 
-    async.forEachOf(sortedNodeArray, function(node, rank, cb) {
-      node.rank = rank;
-      nodes[rank] = node;
-      // console.error("RANK " + rank + " | " + node.mentions + " | " + nodeId);
-      cb();
-    }, function(err) {
-      // console.warn("RANKING COMPLETE | " + sortedNodeIds.length + " nodes");
-      return (callback());
-    });
-  }
+    var nodeIndex = nodesLength;
 
-  function rankGroups(callback) {
-    if (groups.length == 0) return (callback());
-    var sortedGroupArray = sortByProperty(groups, 'totalWordChainIndex');
+    for (nodeIndex = nodesLength; nodeIndex >= 0; nodeIndex -= 1) {
 
-    // console.warn("sortedNodeArray\n" + jsonPrint(sortedNodeArray));
-    // console.error("RANKING " + sortedNodeArray.length + " nodes");
-    var group;
+      node = nodes[nodeIndex];
 
-    async.forEachOf(sortedGroupArray, function(group, rank, cb) {
-      group.rank = rank;
-      groups[rank] = group;
-      // console.error("RANK " + rank + " | " + node.mentions + " | " + nodeId);
-      cb();
-    }, function(err) {
-      // console.warn("RANKING COMPLETE | " + sortedNodeIds.length + " nodes");
-      return (callback());
-    });
-  }
+      if (node.nodeId === nodeId) {
+        nodes.splice(nodeIndex, 1);
+        deadNodeFlag = true;
+        return deadNodeFlag;
+      }
+    }
+    if (nodeIndex < 0) {
+      nodes.splice(nodeIndex, 1);
+      console.debug("XXX NODE NOT FOUND ??? " + nodeId);
+      return deadNodeFlag;
+    }
+  };
 
-  function rankSessions(callback) {
-    if (sessions.length == 0) return (callback());
-    var sortedSessionArray = sortByProperty(sessions, 'wordChainIndex');
+  var processNodeDeleteQ = function(callback) {
 
-    // console.warn("sortedNodeArray\n" + jsonPrint(sortedNodeArray));
-    // console.error("RANKING " + sortedNodeArray.length + " nodes");
-    var session;
+    var nodesModifiedFlag = false;
+    var nodeDeleteObj;
 
-    async.forEachOf(sortedSessionArray, function(session, rank, cb) {
-      session.rank = rank;
-      sessions[rank] = session;
-      // console.error("RANK " + rank + " | " + node.mentions + " | " + nodeId);
-      cb();
-    }, function(err) {
-      // console.warn("RANKING COMPLETE | " + sortedNodeIds.length + " nodes");
-      return (callback());
-    });
-  }
+    while (nodeDeleteQ.length > 0){
 
-  function ageNodes(callback) {
+      nodeDeleteObj = nodeDeleteQ.shift();
 
-    var dateNow = moment().valueOf();
+      switch (nodeDeleteObj.op) {
+
+        case "delete":
+          nodesModifiedFlag = deleteNodeQ(nodeDeleteObj.nodeId);
+
+        break;
+
+        default:
+          console.error("??? UNKNOWN NODE DELETE Q OP: " + nodeDeleteObj.op);
+
+      }
+    }
+
+    if (nodeDeleteQ.length === 0){
+      callback(null, nodesModifiedFlag);
+    }
+  };
+
+  var ageNodes = function (callback) {
+
+    var age;
+    var ageMaxRatio = 1e-6;
+    var deadNodeFlag = false ;
+    var ageNodesLength = nodes.length - 1;
+    var ageNodesIndex = nodes.length - 1;
+    var node;
+    var nodeObj;
 
     if (nodes.length === 0) {
       ageRate = DEFAULT_AGE_RATE;
-    } else if (nodes.length > 100) {
-      ageRate = adjustedAgeRateScale(nodes.length - 100);
-    } else {
+      // return (callback(null, deadNodeFlag));
+    } 
+    else if ((nodes.length > MAX_NODES) && (nodeAddQ.length <= MAX_RX_QUEUE)) {
+      ageRate = adjustedAgeRateScale(nodes.length - MAX_NODES);
+    } 
+    else if (nodeAddQ.length > MAX_RX_QUEUE) {
+      ageRate = adjustedAgeRateScale(nodeAddQ.length - MAX_RX_QUEUE);
+    } 
+    else {
       ageRate = DEFAULT_AGE_RATE;
     }
 
-    var node;
+    maxAgeRate = Math.max(ageRate, maxAgeRate);
 
-    var ageNodesLength = nodes.length - 1;
-    var ageNodesIndex = nodes.length - 1;
 
     for (ageNodesIndex = ageNodesLength; ageNodesIndex >= 0; ageNodesIndex -= 1) {
 
       node = nodes[ageNodesIndex];
 
-      age = node.age + (ageRate * (dateNow - node.ageUpdated));
+      if (localNodeHashMap.has(node.nodeId)){
+        nodeObj = localNodeHashMap.get(node.nodeId);
+        if (nodeObj.newFlag) {
+          node.age = 1e-6;
+          node.ageUpdated = moment().valueOf();
+          node.isDead = false;
+          node.newFlag = false;
+          localNodeHashMap.set(node.nodeId, node);
+        }
+      }
 
-      if (node.isSessionNode) {
-        node.ageUpdated = dateNow;
+      age = node.age + randomIntFromInterval(10,100) + (ageRate * (moment().valueOf() - node.ageUpdated));
+      ageMaxRatio = age/nodeMaxAge ;
+
+      if (node.isDead) {
+        deadNodesHash[node.nodeId] = 1;
+        node.ageMaxRatio = 1.0;
+        deadNodeFlag = true;
+        localNodeHashMap.set(node.nodeId, node);
+      } 
+      else if (age >= nodeMaxAge) {
+        node.ageUpdated = moment().valueOf();
         node.age = age;
-        if (age < newFlagRatio * nodeMaxAge) {
-          node.newFlag = true;
-        } else {
-          node.newFlag = false;
-        }
-      } else if (self.removeDeadNodes && node.isDead) {
-        deadNodesHash[node.nodeId] = 1;
-      } else if (self.removeDeadNodes && (age >= nodeMaxAge)) {
-        age = nodeMaxAge;
+        node.ageMaxRatio = 1.0;
         node.isDead = true;
+        nodes[ageNodesIndex] = node;
         deadNodesHash[node.nodeId] = 1;
-      } else if ((nodes.length >= maxWords - 1) && (node.rank > maxWords)) {
-        deadNodesHash[node.nodeId] = 1;
-        // console.warn("XXX NODE " + node.nodeId);
-      } else {
-        node.ageUpdated = dateNow;
-        node.age = Math.min(age, nodeMaxAge);
-        if (age < newFlagRatio * nodeMaxAge) {
-          node.newFlag = true;
-        } else {
-          node.newFlag = false;
-        }
-        // nodes[ageNodesIndex] = node;
+        deadNodeFlag = true;
+        localNodeHashMap.set(node.nodeId, node);
+      } 
+      else {
+        node.ageUpdated = moment().valueOf();
+        node.age = age;
+        node.ageMaxRatio = ageMaxRatio;
+        node.isDead = false;
+        nodes[ageNodesIndex] = node;
+        localNodeHashMap.set(node.nodeId, node);
       }
     }
 
     if (ageNodesIndex < 0) {
-      return (callback());
+      callback(null, deadNodeFlag);
     }
-  }
+  };
 
-  function processDeadNodesHash(callback) {
+  var processDeadNodesHash = function (callback) {
 
-    if (Object.keys(deadNodesHash).length == 0) {
-      // console.warn("NO DEAD NODES");
-      return (callback());
+    var deadNodeFlag = false;
+
+    if (Object.keys(deadNodesHash).length === 0) {
+      return (callback(null, deadNodeFlag));
     }
-    // console.error("processDeadNodesHash\n" + jsonPrint(deadNodesHash));
+
+    var deadNodeIds = Object.keys(deadNodesHash);
 
     var ageNodesLength = nodes.length - 1;
     var ageNodesIndex = nodes.length - 1;
@@ -594,691 +363,672 @@ function ViewHistogram() {
 
     for (ageNodesIndex = ageNodesLength; ageNodesIndex >= 0; ageNodesIndex -= 1) {
       node = nodes[ageNodesIndex];
-      if ((typeof node != 'undefined') && deadNodesHash[node.nodeId]) {
-        nodeDeleteQueue.push(node.nodeId);
-        nodes.splice(ageNodesIndex, 1);
+      if (deadNodesHash[node.nodeId]) {
+        nodeDeleteQ.push({op:'delete', nodeId: node.nodeId});
+        deadNodeFlag = true;
         delete deadNodesHash[node.nodeId];
-        self.deleteNode(node.nodeId);
-        // console.log("XXX NODE: " + node.nodeId);
-      } else if (typeof node == 'undefined') {
-        nodes.splice(ageNodesIndex, 1);
+        localNodeHashMap.remove(node.nodeId);
       }
+      deadNodeIds = Object.keys(deadNodesHash);
     }
 
-    if (ageNodesIndex < 0) {
-      return (callback());
+    if ((nodes.length === 0) || (deadNodeIds.length === 0) || (ageNodesIndex < 0)) {
+      return (callback(null, deadNodeFlag));
     }
-  }
+  };
 
+  function updateHashtags(htMnObjData, recentHtObjData) {
+    
+    var hashtag = svgHashtag.selectAll("#hashtag")
+        .data(htMnObjData, function(d) { return (d.nodeId); });
 
-  // ===================================================================
+    var recentHashtag = svgRecentHashtag.selectAll("#recentHashtag")
+        .data(recentHtObjData, function(d) { return (d.nodeId); });
 
-  function updateGroups(callback) {
-
-    // console.log("updateSessions");
-
-    groupGnode = groupGnode.data(groups, function(d) {
-        return d.groupId;
-      })
-      .attr("rank", function(d) {
-        return d.rank;
-      })
-      .attr("x", function(d) {
-        return d.x;
-      })
-      .attr("y", function(d) {
-        return d.y;
-      })
-      .attr("wordChainIndex", function(d) {
-        return d.wordChainIndex;
-      })
-      .attr("lastSeen", function(d) {
-        return d.lastSeen;
-      });
-
-    groupGnode
-      .enter()
-      .append("svg:g")
-      .attr("class", "group")
-      .attr("id", function(d) {
-        return d.groupId;
-      })
-      .attr("sessionId", function(d) {
-        return d.sessionId;
-      })
-      .attr("nodeId", function(d) {
-        return d.nodeId;
-      })
-      .attr("userId", function(d) {
-        return d.userId;
-      })
-      .attr("rank", function(d) {
-        return d.rank;
-      })
-      .attr("x", function(d) {
-        return d.x;
-      })
-      .attr("y", function(d) {
-        return d.y;
-      })
-      .attr("wordChainIndex", function(d) {
-        return d.wordChainIndex;
-      })
-      .attr("lastSeen", function(d) {
-        return d.lastSeen;
-      });
-
-    groupGnode
-      .exit()
-      .remove();
-
-    return (callback(null, "updateGroups"));
-  }
-
-  function updateGroupWords(callback) {
-
-    var groupWords = groupSvgGroup.selectAll("#group")
-      .data(groups, function(d) {
-        return d.nodeId;
-      });
-
-    groupWords
-      .attr("class", function(d) {
-        return d.newFlag ? "updateNew" : "update";
-      })
-      .attr("rank", function(d) {
-        return d.rank;
-      })
-      .text(function(d) {
-        return d.text;
-      })
-      .style("fill", function(d) {
-        if (d.newFlag) {
-          return "white";
-        } else {
-          return d.interpolateColor(d.age/nodeMaxAge);
-        }
-      })
-      .transition()
-        .duration(defaultFadeDuration)
-        .attr("x", xposition)
-        .attr("y", yposition);
-
-    groupWords
-      .enter()
-      .append("svg:text")
-      .attr("id", "group")
-      .attr("groupId", function(d) {
-        return d.groupId;
-      })
-      .attr("nodeId", function(d) {
-        return d.nodeId;
-      })
-      .attr("userId", function(d) {
-        return d.userId;
-      })
-      .attr("class", "enter")
-      .attr("rank", function(d) {
-        return d.rank;
-      })
-      .attr("x", xposition)
-      .attr("y", yposition)
-      .text(function(d) {
-        return d.text;
-      })
-      .style("fill", "FFFFFF")
-      .style("fill-opacity", 1)
-      .style("font-size", "2.2vmin")
-      .on("mouseout", nodeMouseOut)
-      .on("mouseover", nodeMouseOver)
-      .transition()
-        .duration(defaultFadeDuration)
-        .style("fill", "#FF0000");
-
-    groupWords
-      .exit()
-      .remove();
-
-    return (callback(null, "updateGroupWords"));
-  }
-
-  function updateSessions(callback) {
-
-    // console.log("updateSessions");
-
-    sessionGnode = sessionGnode.data(sessions, function(d) {
-        return d.sessionId;
-      })
-      .attr("rank", function(d) {
-        return d.rank;
-      })
-      .attr("x", function(d) {
-        return d.x;
-      })
-      .attr("y", function(d) {
-        return d.y;
-      })
-      .attr("wordChainIndex", function(d) {
-        return d.wordChainIndex;
-      })
-      .attr("lastSeen", function(d) {
-        return d.lastSeen;
-      });
-
-    sessionGnode
-      .enter()
-      .append("svg:g")
-      .attr("class", "session")
-      .attr("id", function(d) {
-        return d.userId;
-      })
-      .attr("sessionId", function(d) {
-        return d.sessionId;
-      })
-      .attr("nodeId", function(d) {
-        return d.nodeId;
-      })
-      .attr("userId", function(d) {
-        return d.userId;
-      })
-      .attr("rank", function(d) {
-        return d.rank;
-      })
-      .attr("x", function(d) {
-        return d.x;
-      })
-      .attr("y", function(d) {
-        return d.y;
-      })
-      .attr("wordChainIndex", function(d) {
-        return d.wordChainIndex;
-      })
-      .attr("lastSeen", function(d) {
-        return d.lastSeen;
-      });
-
-    sessionGnode
-      .exit()
-      .remove();
-
-    return (callback(null, "updateSessions"));
-  }
-
-  function updateSessionWords(callback) {
-
-    var sessionWords = sessionSvgGroup.selectAll("#session")
-      .data(sessions, function(d) {
-        return d.userId;
-      });
-
-    sessionWords
-      .attr("class", function(d) {
-        return d.newFlag ? "updateNew" : "update";
-      })
-      .attr("rank", function(d) {
-        return d.rank;
-      })
-      .text(function(d) {
-        return d.text;
-      })
-      .style("fill", function(d) {
-        if (d.newFlag) {
-          return "white";
-        }
-        else {
-          return d.interpolateColor(1.0);
-        }
-      })
+    hashtag.attr("class", function(d) { return d.newFlag ? "updateNew" : "update"; })
+      .text(function(d) { return d.displaytext; })
+      .style("fill", function(d) { return d.newFlag ? "red" : "#ffffff"; })
       .style("fill-opacity", function(d) {
-        if (self.removeDeadNodes) {
-          return wordOpacityScale(d.age + 1);
+        if (d3.select(this).attr("mouseOverFlag") == "true") {
+          return 1;
         }
         else {
-          return Math.max(wordOpacityScale(d.age + 1), minOpacity)
+          return hashtagOpacityScale(d.age);
         }
       })
+      .on("mouseout", hashtagMouseOut)
+      .on("mouseover", hashtagMouseOver)
       .transition()
         .duration(defaultFadeDuration)
         .attr("x", xposition)
         .attr("y", yposition);
 
-    sessionWords
-      .enter()
-      .append("svg:text")
-      .attr("id", "session")
-      .attr("nodeId", function(d) {
-        return d.nodeId;
-      })
-      .attr("userId", function(d) {
-        return d.userId;
-      })
-      .attr("sessionId", function(d) {
-        return d.sessionId;
-      })
-      .attr("class", "enter")
-      .attr("rank", function(d) {
-        return d.rank;
-      })
-      .attr("x", xposition)
-      .attr("y", yposition)
-      .text(function(d) {
-        return d.text;
-      })
-      .style("fill", "FFFFFF")
-      .style("fill-opacity", 1)
-      .style("font-size", "2.2vmin");
-
-    sessionWords
-      .exit()
-      .remove();
-
-    return (callback(null, "updateSessionWords"));
-  }
-
-  function updateNodes(callback) {
-
-    // console.log("updateNodes");
-
-    node = node.data(nodes, function(d) {
-        return d.nodeId;
-      })
-      .attr("rank", function(d) {
-        return d.rank;
-      })
-      .attr("x", function(d) {
-        return d.x;
-      })
-      .attr("y", function(d) {
-        return d.y;
-      })
-      .attr("mentions", function(d) {
-        return d.mentions;
-      })
-      .attr("lastSeen", function(d) {
-        return d.lastSeen;
-      });
-
-    node
-      .enter()
-      .append("svg:g")
-      .attr("class", "node")
-      .attr("id", function(d) {
-        return d.nodeId;
-      })
-      .attr("nodeId", function(d) {
-        return d.nodeId;
-      })
-      .attr("sessionId", function(d) {
-        return d.sessionId;
-      })
-      .attr("userId", function(d) {
-        return d.userId;
-      })
-      .attr("x", xposition)
-      .attr("y", yposition)
-      .attr("rank", function(d) {
-        return d.rank;
-      })
-      .attr("mentions", function(d) {
-        return d.mentions;
-      })
-      .attr("lastSeen", function(d) {
-        return d.lastSeen;
-      });
-
-    node
-      .exit()
-      .remove();
-
-    return (callback(null, "updateNodes"));
-  }
-
-  function updateNodeWords(callback) {
-
-    var nodeWords = nodeSvgGroup.selectAll("#word")
-      .data(nodes, function(d) {
-        return d.nodeId;
-      });
-
-    nodeWords
-      .attr("class", function(d) {
-        return d.newFlag ? "updateNew" : "update";
-      })
-      .attr("rank", function(d) {
-        return d.rank;
-      })
-      .text(function(d) {
-        return d.text;
-      })
-      .style("fill", function(d) {
-        if (d.newFlag) {
-          return "white";
-        }
-        else if (self.removeDeadNodes) {
-          return d.interpolateNodeColor(d.age/nodeMaxAge);
-        }
-        else {
-          return d.interpolateColor(1e-6);
-        }
-      })
+    recentHashtag.attr("class", function(d) { return d.newFlag ? "updateNew" : "update"; })
+      .text(function(d) { return d.displaytext; })
+      .style("fill", function(d) { return d.newFlag ? "red" : "#ffffff"; })
       .style("fill-opacity", function(d) {
-        if (self.removeDeadNodes) {
-          return wordOpacityScale(d.age + 1);
-        } 
+        if (d3.select(this).attr("mouseOverFlag") == "true") {
+          return 1;
+        }
         else {
-          return Math.max(wordOpacityScale(d.age + 1), minOpacity)
+          return d.newFlag ? 1 : 0.75; 
         }
       })
+      .on("mouseout", hashtagMouseOut)
+      .on("mouseover", hashtagMouseOver)
       .transition()
         .duration(defaultFadeDuration)
         .attr("x", xposition)
         .attr("y", yposition);
 
-    nodeWords
-      .enter()
-      .append("svg:text")
-      .attr("id", "word")
-      .attr("nodeId", function(d) {
-        return d.nodeId;
-      })
+    // ENTER
+    // Create new elements as needed.
+    hashtag.enter().append("svg:text")
+      .attr("id", "hashtag")
       .attr("class", "enter")
-      .attr("rank", function(d) {
-        return d.rank;
-      })
       .attr("x", xposition)
       .attr("y", yposition)
-      .text(function(d) {
-        return d.text;
+      .on("click", function(d){
+        window.open("http://twitter.com/search?f=realtime&q=%23" + d.text, '_blank');
       })
-      .style("fill", "#FF0000")
-      .style("fill-opacity", 1)
-      .style("font-size", "2.2vmin")
-      .on("mouseout", nodeMouseOut)
-      .on("mouseover", nodeMouseOver)
+      .text(function(d) { return d.displaytext; })
+      .style("fill-opacity", 1e-6)
+      // .style("font-size", "2.0vmin")
+      .style("font-size", "1.0rem")
+      .on("mouseout", hashtagMouseOut)
+      .on("mouseover", hashtagMouseOver)
       .transition()
         .duration(defaultFadeDuration)
-        .style("fill", "#FF0000");
+        .style("fill-opacity", 1);
 
-    nodeWords
-      .exit()
+
+    recentHashtag.enter().append("svg:text")
+      .attr("id", "recentHashtag")
+      .attr("class", "enter")
+      .attr("x", xposition)
+      .attr("y", yposition)
+      .on("click", function(d){
+        window.open("http://twitter.com/search?f=realtime&q=%23" + d.text, '_blank');
+      })
+      .text(function(d) { return d.displaytext; })
+      .on("mouseout", hashtagMouseOut)
+      .on("mouseover", hashtagMouseOver)
+      .style("font-size", "1.0rem")
+      .style("fill-opacity", 1e-6)
+      .transition()
+        .duration(defaultFadeDuration)
+        .attr("x", xposition)
+        .attr("y", yposition)
+        .style("fill-opacity", 1);
+
+    // EXIT
+    // Remove old elements as needed.
+    hashtag.exit()
       .attr("class", "exit")
-      .remove();
+      .transition()
+        .duration(defaultFadeDuration)
+        .style("fill-opacity", 1e-6)
+        .remove();
 
-    return (callback(null, "updateNodeWords"));
+
+    recentHashtag.exit()
+      .attr("class", "exit")
+      .transition()
+        .duration(defaultFadeDuration)
+        .style("fill-opacity", 1e-6)
+        .remove();
   }
 
-  function updateRecentNodes(node) {
+  var updateNodeLabels = function(callback) {
 
-    var newNodeFlag = true;
-    var i = 0;
-    for (i = recentNodeArray.length - 1; i >= 0; i--) {
+    nodeLabels = nodeLabelSvgGroup.selectAll("text")
+      .data(nodes.filter(function(d){
+        return (
+          (d.nodeType === 'hashtag') 
+          || (d.nodeType === 'word')
+          ); 
+      }));
 
-      if (recentNodeArray[i].nodeId == node.nodeId) {
-        newNodeFlag = false;
-        recentNodeArray.splice(i, 1);
-      }
-    }
+    nodeLabels
+      .enter()
+      .append("svg:text")
+      .style("text-anchor", "middle")
+      .style("alignment-baseline", "bottom")
+      .on("mouseover", nodeMouseOver)
+      .on("mouseout", nodeMouseOut)
+      .on("click", nodeClick)
+      .merge(nodeLabels)
+      .text(function(d) {
+        if (d.nodeType === 'word') {return d.text;}
+        if (d.nodeType === 'hashtag') {return d.nodeId;}
+      })
+      .attr("x", function(d) { xposition })
+      .attr("y", function(d) { 
+        return d.y - 1.5 * (defaultRadiusScale(d.mentions + 1));
+      })
+      .style('opacity', function(d) { 
+        if (d.mouseHoverFlag) { return 1.0; }
+        return nodeLabelOpacityScale(d.ageMaxRatio); 
+      })
+      .style('fill', function(d) { 
+        if (d.mouseHoverFlag) { return palette.blue; }
+        return palette.white; 
+      })
+      .style("font-size", function(d) {
+        return (nodeFontSizeScale(d.mentions + 1));
+      });
 
-    if ((i < 0) && (newNodeFlag)) {
-      newNodeFlag = false;
-      recentNodeArray.unshift(node);
-    }
+    nodeLabels
+      .exit().remove();
 
-    if (recentNodeArray.length > maxRecentWords) {
-      recentNodeArray.pop();
-    };
-  }
+    callback();
+  };
 
-  function updateHistogramDisplay() {
-
-    updateHistogramDisplayReady = false;
-
-    async.series(
-      [
-        ageGroups,
-        ageSessions,
-        ageNodes,
-        processDeadNodesHash,
-        rankGroups,
-        // rankSessions,
-        rankNodes,
-        updateGroups,
-        updateGroupWords,
-        updateSessions,
-        // updateSessionWords,
-        updateNodes,
-        updateNodeWords,
-      ],
-
-      function(err, result) {
-        if (err) {
-          console.error("*** ERROR: updateHistogramDisplayReady *** \nERROR: " + err);
-        }
-        updateHistogramDisplayReady = true;
-      }
-    );
-  }
-
-  // ===================================================================
-
-  function nodeFill(age) {
-    return fillColorScale(age);
-  }
-
-  function nodeMouseOver(d) {
+  var nodeMouseOver = function (d) {
 
     mouseHoverFlag = true;
+    d.mouseHoverFlag = true;
     mouseHoverNodeId = d.nodeId;
 
-    var nodeId = d.nodeId;
-    var sId = d.sessionId;
-    var uId = d.userId;
-    var rank = d.rank;
-    var mentions = d.mentions;
+    d.fx = d.x;
+    d.fy = d.y;
 
-    d3.select("body").style("cursor", "pointer");
+    self.toolTipVisibility(true);
 
-    d3.select(this)
-      .attr("mouseover", true)
-      .style("opacity", 1)
-      .style("fill", "yellow")
-      .style("fill-opacity", 1);
+    var tooltipString;
 
-    divTooltip
-      .transition()
-        .duration(defaultFadeDuration)
-        .style("opacity", 1.0);
-
-    var tooltipString = "<bold>" + nodeId + "</bold>" + "<br>MENTIONS: " + mentions + "<br>RANK: " + rank;
+    switch (d.nodeType) {
+      case 'tweet':
+        tooltipString = d.nodeId
+          + "<br>TYPE: " + d.nodeType 
+          + "<br>MENTIONS: " + d.mentions 
+          + "<br>@" + d.user.screenName
+          + "<br>" + d.user.name;
+      break;
+      case 'user':
+        tooltipString = d.nodeId
+          + "<br>TYPE: " + d.nodeType 
+          + "<br>" + d.name
+          + "<br>@" + d.screenName
+          + "<br>Ms: " + d.mentions;
+      break;
+      case 'media':
+        tooltipString = d.nodeId
+          + "<br>TYPE: " + d.nodeType 
+          + "<br>Ms: " + d.mentions
+          + "<br>URL: " + d.url;
+      break;
+      case 'hashtag':
+        tooltipString = "#" + d.nodeId
+          + "<br>TYPE: " + d.nodeType 
+          + "<br>Ms: " + d.mentions;
+      break;
+      case 'url':
+        tooltipString = d.nodeId
+          + "<br>TYPE: " + d.nodeType 
+          + "<br>Ms: " + d.mentions
+          + "<br>URL: " + d.url;
+      break;
+      case 'place':
+        tooltipString = d.nodeId
+          + "<br>TYPE: " + d.nodeType 
+          + "<br>Ms: " + d.mentions
+          + "<br>URL: " + d.fullName;
+      break;
+    }
 
     divTooltip.html(tooltipString)
       .style("left", (d3.event.pageX - 40) + "px")
       .style("top", (d3.event.pageY - 50) + "px");
-  }
 
-  function nodeMouseOut() {
+    updateNodeLabels(function(){});
+  };
 
+  function nodeMouseOut(d) {
     mouseHoverFlag = false;
-
-    d3.select("body").style("cursor", "default");
-
-    d3.select(this)
-      .style("opacity", 1)
-      .attr("mouseover", false)
-      .style("fill", function(d) {
-        return d.newFlag ? "red" : "#ffffff";
-      })
-      .style("fill-opacity", function(d) {
-        if (d3.select(this).attr("mouseOverFlag") == "true") {
-          return 1;
-        } else {
-          if (self.removeDeadNodes) {
-            return wordOpacityScale(d.age + 1);
-          } else {
-            return Math.max(wordOpacityScale(d.age + 1), minOpacity)
-          }
-        }
-      });
-
-    divTooltip
-      .transition()
-        .duration(defaultFadeDuration)
-        .style("opacity", 1e-6);
+    d.mouseHoverFlag = false;
+    mouseHoverNodeId = false;
+    self.toolTipVisibility(false);
   }
 
   function nodeClick(d) {
-    launchSessionView(d.sessionId);
+
+    var url = "";
+
+    switch (d.nodeType) {
+      case "tweet" :
+        console.warn("OPEN TWEET URL: " + d.url);
+        window.open(d.url, '_blank');
+      break;
+
+      case "user" :
+        console.warn("OPEN USER URL: " + d.profileUrl);
+        window.open(d.profileUrl, '_blank');
+      break;
+
+      case "hashtag" :
+        url = "https://twitter.com/search?f=realtime&q=%23" + d.text ;
+        window.open(url, '_blank');
+      break;
+
+      case "place" :
+        url = d.sourceUrl ;
+        window.open(url, '_blank');
+      break;
+
+      case "url" :
+        url = d.expandedUrl ;
+        window.open(url, '_blank');
+      break;
+
+      case "media" :
+        url = d.sourceUrl ;
+        window.open(url, '_blank');
+      break;
+
+    }
   }
 
-  function nodeFill(age) {
-    return fillColorScale(age);
+
+  function addNodeEnabled (){
+    if (nodes.length < MAX_NODES) {
+      // console.debug("processNodeCount"
+      //   + " | Ns: "  + nodes.length
+      //   + " | NQ: "  + nodeAddQ.length
+      //   + " | PNC: "  + processNodeCount
+      // );
+      return true;
+    }
+    else if ((nodes.length < 2*MAX_NODES) && (processNodeCount % processNodeModulus === 0)) {
+      // console.debug("processNodeCount MAX_NODES MOD"
+      //   + " | Ns: "  + nodes.length
+      //   + " | NQ: "  + nodeAddQ.length
+      //   + " | PNC: "  + processNodeCount
+      // );
+      return true;
+    }
+    else if ((nodes.length < 3*MAX_NODES) && (processNodeCount % (processNodeModulus+1) === 0)) {
+      // console.debug("processNodeCount MAX_NODES MOD"
+      //   + " | Ns: "  + nodes.length
+      //   + " | NQ: "  + nodeAddQ.length
+      //   + " | PNC: "  + processNodeCount
+      // );
+      return true;
+    }
+    else if ((nodes.length < 4*MAX_NODES) && (processNodeCount % (processNodeModulus+2) === 0)) {
+      // console.debug("processNodeCount MAX_NODES MOD 2"
+      //   + " | Ns: "  + nodes.length
+      //   + " | NQ: "  + nodeAddQ.length
+      //   + " | PNC: "  + processNodeCount
+      // );
+      return true;
+    }
+    else if ((nodes.length < 8*MAX_NODES) && (processNodeCount % (processNodeModulus+3) === 0)) {
+      // console.debug("processNodeCount MAX_NODES MOD 8"
+      //   + " | Ns: "  + nodes.length
+      //   + " | NQ: "  + nodeAddQ.length
+      //   + " | PNC: "  + processNodeCount
+      // );
+      return true;
+    }
+    else {
+      // console.info("processNodeCount MAX_NODES"
+      //   + " | Ns: "  + nodes.length
+      //   + " | NQ: "  + nodeAddQ.length
+      //   + " | PNC: "  + processNodeCount
+      // );
+      return false;
+    }
   }
 
-  // ===================================================================
+  var processNodeAddQ = function(callback) {
 
-  this.addGroup = function(newGroup) {
-    groups.push(newGroup);
+    var nodesModifiedFlag = false;
+
+    processNodeCount = processNodeCount+1;
+
+    var nodeAddObj;
+    var newNode;
+    var currentNode;
+
+    while ((nodeAddQ.length > 0) && (addNodeEnabled() || (nodeAddQ[0].nodeType === "tweet"))) {
+
+      nodesModifiedFlag = false;
+
+      processNodeCount = processNodeCount+1;
+
+      nodeAddObj = nodeAddQ.shift();
+      newNode = nodeAddObj.node;
+      currentNode = {};
+
+      // console.warn("processNodeAddQ | " + newNode.nodeType + " | " + newNode.nodeId);
+
+      switch (nodeAddObj.op) {
+
+        case "add":
+
+          if (localNodeHashMap.has(newNode.nodeId)){
+            // console.error("localNodeHashMap HIT: " + newNode.nodeId);
+            currentNode = localNodeHashMap.get(newNode.nodeId);
+            currentNode.newFlag = true;
+            currentNode.age = 1e-6;
+            currentNode.ageMaxRatio = 1e-6;
+          }
+          else {
+            nodesModifiedFlag = true;
+            currentNode = newNode;
+            currentNode.newFlag = true;
+            currentNode.age = 1e-6;
+            currentNode.ageMaxRatio = 1e-6;
+            currentNode.x = randomIntFromInterval(0.45 * width, 0.55 * width);
+            currentNode.y = randomIntFromInterval(0.45 * height, 0.55 * height);
+            // if (newNode.nodeType === "tweet"){
+            // }
+          }
+
+          currentNode.mentions = newNode.mentions;
+          currentNode.ageUpdated = moment().valueOf();
+
+          if ((newNode.nodeType === "hashtag") && (newNode.mentions > currentHashtagMaxMentions)){
+            currentHashtagMaxMentions = newNode.mentions;
+            // nodeFontSizeScale = d3.scaleLinear().domain([1, currentHashtagMaxMentions]).range([minFontSize, maxFontSize]).clamp(true);
+            console.info("NEW MAX Ms" 
+              + " | " + currentHashtagMaxMentions 
+              + " | " + currentNode.nodeType 
+              + " | " + currentNode.text 
+            );
+          }
+
+          if (nodesModifiedFlag) {
+            nodes.push(currentNode);
+          }
+
+          localNodeHashMap.set(currentNode.nodeId, currentNode);
+
+          if (nodes.length > maxNumberNodes) {
+            maxNumberNodes = nodes.length;
+          }
+
+        break;
+
+        default:
+          console.error("??? UNKNOWN NODE UPDATE Q OP: " + nodeAddObj.op);
+      }
+    }
+
+    if ((nodeAddQ.length === 0) || !addNodeEnabled()){
+      callback(null, nodesModifiedFlag);
+    }
+  };
+
+  function xposition(d,i){
+    var value ;
+
+    switch (this.getAttribute("id")) {
+      case 'hashtag' :
+        if (i < maxHashtagRows) {
+          value = 3;
+        }
+        else {
+          value = 28;
+        }
+      break;
+
+      case 'place' :
+        if (i < maxPlaceRows) {
+          value = 5;
+        }
+        else {
+          value = 33;
+        }
+      break;
+
+      case 'hashtagbar' :
+        value = 75 - hashtagBarWidthScale(d.mentions.toString());
+      break;
+
+      case 'hashtagbarlabel' :
+        value = 5;
+        // value = hashtagBarWidthScale(d.mentions.toString());
+      break;
+
+      case 'recentHashtag' :
+        value = 66; 
+      break;
+
+      case 'recentPlace' :
+        value = 66; 
+      break;
+
+      case 'media':
+        value = 10 + (i * (mediaSize + mediaMargin))
+        return value + "px";
+      break;
+
+      case 'ig_media':
+        value = 10 + (i * (mediaSize + mediaMargin))
+        return value + "px";
+      break;
+
+      case 'recentMedia':
+        value = 10 + (i * (mediaSize + mediaMargin));
+        return value + "px";
+      break;
+
+      default:
+        value = 33;
+    }
+
+    return value + "%";
   }
 
-  this.addSession = function(newSession) {
-    sessions.push(newSession);
+  function yposition(d,i){
+    var value ;
+
+    switch (d.nodeType) {
+      case 'hashtag':
+        if (i < maxHashtagRows) {
+          value = hashtagTopMargin + (i * 3);
+        }
+        else {
+          value = hashtagTopMargin + ((i-maxHashtagRows) * 3)
+        }
+        return value + "%";
+      break;
+
+      case 'place':
+        if (i < maxPlaceRows) {
+          value = placeTopMargin + (i * 3);
+        }
+        else {
+          value = placeTopMargin + ((i-maxPlaceRows) * 3)
+        }
+        return value + "%";
+      break;
+
+     case 'media' :
+      if (this.getAttribute("id") == 'recentMedia') {
+        return "85%"; 
+      }
+      else {
+        return "90%"; 
+      }
+      break;
+
+     case 'ig_media' :
+      if (this.getAttribute("id") == 'recentMedia') {
+        return "85%"; 
+      }
+      else {
+        return "90%"; 
+      }
+      break;
+
+      default:
+    }
   }
 
-  // this.addNode = function(newNode) {
-  //   if (!newNode.isSession 
-  //     && !newNode.isSessionNode 
-  //     && !newNode.isGroup 
-  //     && !newNode.isGroupNode 
-  //     && ((nodes.length < maxWords - 1) || (newNode.rank < maxWords - 1))) {
-  //     newNode.x = 0;
-  //     nodeMouseOut.y = height;
-  //     nodes.push(newNode);
-  //     rankNodes(function() {
-  //       if (nodes.length > maxWords) nodes.pop();
-  //     });
-  //   }
-  //   updateRecentNodes(newNode);
-  // }
+  function ticked() {
+    drawSimulation(function(){
+      updateSimulation(function(){});
+    });
+  }
+  function drawSimulation(callback){
+
+    async.parallel(
+      {
+        udnl: updateNodeLabels
+      },
+
+      function(err, results) {
+        if (err) {
+          console.error("*** ERROR: drawSimulation *** \nERROR: " + err);
+          callback(err);
+        }
+        else {
+          callback();
+        }
+      }
+
+    );
+  }
+
+  function updateSimulation(callback) {
+
+    async.series(
+      {
+        deleteNode: processNodeDeleteQ,
+        addNode: processNodeAddQ,
+        ageNode: ageNodes,
+        deadNode: processDeadNodesHash
+      },
+
+      function(err, results) {
+        simulation.nodes(nodes);
+        if (typeof callback !== 'undefined') {callback();}
+      }
+
+    );
+  }
+
+  this.setChargeSliderValue = function(value){
+
+  };
 
   this.addNode = function(nNode) {
+
+    console.debug("addNode: " + jsonPrint(nNode));
+
+    if ((nNode.nodeType === "session")|| (nNode.nodeType === "group")|| (nNode.nodeType === "word")) {return;}
 
     var newNode = nNode;
     newNode.newFlag = true;
 
-    if (nodeAddQ.length < MAX_RX_QUEUE) nodeAddQ.push({op:'add', node: newNode});
+    if (nodeAddQ.length < MAX_RX_QUEUE) {
+      nodeAddQ.push({op:'add', node: newNode});
+    }
 
     if (nodeAddQ.length > maxNodeAddQ) {
       maxNodeAddQ = nodeAddQ.length;
       console.info("NEW MAX NODE ADD Q: " + maxNodeAddQ);
     }
-  }
+  };
 
+  this.addGroup = function(nNode) {
+
+    var newNode = nNode;
+    newNode.newFlag = true;
+
+      console.debug("N> " + newNode.nodeId + " | " + newNode.nodeType);
+
+    if (nodeAddQ.length < MAX_RX_QUEUE) {nodeAddQ.push({op:'add', node: newNode});}
+
+    if (nodeAddQ.length > maxNodeAddQ) {
+      maxNodeAddQ = nodeAddQ.length;
+      console.info("NEW MAX NODE ADD Q: " + maxNodeAddQ);
+    }
+  };
+
+  var localSessionHashMap = {};
+
+  this.addSession = function(sess) {
+  };
 
   this.deleteNode = function(nodeId) {
-
-    var nodesLength = nodes.length - 1;
-
-    var node;
-    var deadNodeFlag = false;
-
-    var nodeIndex = nodesLength;
-
-    for (nodeIndex = nodesLength; nodeIndex >= 0; nodeIndex -= 1) {
-      node = nodes[nodeIndex];
-      if (node.nodeId == nodeId) {
-          nodes.splice(nodeIndex, 1);
-        }
-      }
-  }
-
-  this.addLink = function(newLink) {
-  }
-
-  this.deleteLink = function(delLink) {
-  }
-
-  this.deleteSessionLinks = function(sessionId) {
-  }
-
-  // ===================================================================
+    nodeDeleteQ.push({op:'delete', nodeId: nodeId});
+  };
 
   this.initD3timer = function() {
-    d3.timer(function() {
-      tickNumber++;
-      dateNow = moment().valueOf();
-      if (updateHistogramDisplayReady && !mouseMovingFlag) updateHistogramDisplay();
-    });
-  }
 
-  // this.clearDrawSimulationInterval = function(){
-  //   clearInterval(drawSimulationInterval);
-  // }
+    simulation = d3.forceSimulation(nodes)
+      .on("tick", ticked);
+  };
 
   this.simulationControl = function(op) {
-    // console.warn("SIMULATION CONTROL | OP: " + op);
     switch (op) {
       case 'RESET':
-        console.warn("SIMULATION CONTROL | OP: " + op);
-        // self.clearDrawSimulationInterval();
-        // simulation.stop();
+        console.debug("SIMULATION CONTROL | OP: " + op);
+        self.reset();
         runningFlag = false;
       break;
       case 'START':
-        console.warn("SIMULATION CONTROL | OP: " + op);
+        console.debug("SIMULATION CONTROL | OP: " + op);
         self.initD3timer();
-        // simulation.alphaTarget(0.7).restart();
+        simulation.alphaTarget(0.7).restart();
         runningFlag = true;
       break;
       case 'RESUME':
-        if (!runningFlag){
-          console.warn("SIMULATION CONTROL | OP: " + op);
-          runningFlag = true;
-          // self.clearDrawSimulationInterval();
-          // simulation.alphaTarget(0.7).restart();
+        console.debug("SIMULATION CONTROL | OP: " + op);
+        // self.initD3timer();
+        runningFlag = true;
+        simulation.alphaTarget(0.7).restart();
+      break;
+      case 'FREEZE':
+        console.debug("SIMULATION CONTROL | OP: " + op);
+        if (!freezeFlag){
+          freezeFlag = true;
+          simulation.alpha(0);
+          simulation.stop();
         }
       break;
       case 'PAUSE':
-        if (runningFlag){
-          console.warn("SIMULATION CONTROL | OP: " + op);
-          runningFlag = false;
-          // simulation.alpha(0);
-          // simulation.stop();
-          // self.initDrawSimulationInverval();
-        }
+        console.debug("SIMULATION CONTROL | OP: " + op);
+        runningFlag = false;
+        simulation.alpha(0);
+        simulation.stop();
       break;
       case 'STOP':
+        console.debug("SIMULATION CONTROL | OP: " + op);
         runningFlag = false;
-        console.warn("SIMULATION CONTROL | OP: " + op);
-        // self.clearDrawSimulationInterval();
-        // simulation.alpha(0);
-        // simulation.stop();
+        simulation.alpha(0);
+        simulation.stop();
       break;
       case 'RESTART':
-        console.warn("SIMULATION CONTROL | OP: " + op);
-        // simulation.alphaTarget(0.7).restart();
+        // console.debug("SIMULATION CONTROL | OP: " + op);
+        simulation.alphaTarget(0.7).restart();
         runningFlag = true;
       break;
       default:
-        console.warn("???? SIMULATION CONTROL | UNKNOWN OP: " + op);
-      break;
+        console.error("???? SIMULATION CONTROL | UNKNOWN OP: " + op);
     }
-  }
-
-  // ===================================================================
+  };
 
   this.resize = function() {
-    console.log("RESIZE");
+    console.info("RESIZE");
+
+    d3image = d3.select("#d3group");
 
     if (window.innerWidth !== 'undefined') {
       width = window.innerWidth;
       height = window.innerHeight;
     }
     // IE6 in standards compliant mode (i.e. with a valid doctype as the first line in the document)
-    else if (document.documentElement !== 'undefined' && document.documentElement.clientWidth !== 'undefined' && document.documentElement.clientWidth !== 0) {
+    else if (document.documentElement !== 'undefined' 
+      && document.documentElement.clientWidth !== 'undefined' 
+      && document.documentElement.clientWidth !== 0) {
       width = document.documentElement.clientWidth;
       height = document.documentElement.clientHeight;
     }
-
     // older versions of IE
     else {
       width = document.getElementsByTagName('body')[0].clientWidth;
@@ -1287,85 +1037,49 @@ function ViewHistogram() {
 
     console.log("width: " + width + " | height: " + height);
 
-    d3LayoutWidth = width * D3_LAYOUT_WIDTH_RATIO; // double the width for now
-    d3LayoutHeight = height * D3_LAYOUT_HEIGHT_RATIO;
+    d3LayoutWidth = width; // double the width for now
+    d3LayoutHeight = height;
 
-    svgcanvas
-      .attr("width", SVGCANVAS_WIDTH_RATIO * width)
-      .attr("height", SVGCANVAS_HEIGHT_RATIO * height);
+    svgForceLayoutArea
+      .attr("width", width)
+      .attr("height", height)
+      .attr("viewbox", 1e-6, 1e-6, width, height)
+      .attr("x", 1e-6)
+      .attr("y", 1e-6);
 
-    svgHistogramLayoutAreaWidth = d3LayoutWidth * HISTOGRAM_LAYOUT_WIDTH_RATIO;
-    svgHistogramLayoutAreaHeight = d3LayoutHeight * HISTOGRAM_LAYOUT_HEIGHT_RATIO;
+    if (simulation){
+      simulation.force("forceX", d3.forceX().x(function(d) { 
+          return 0.5*width; 
+        }).strength(function(d){
+          return 1*gravity; 
+        }));
 
-
-    svgHistogramLayoutArea.attr("width", svgHistogramLayoutAreaWidth)
-      .attr("height", svgHistogramLayoutAreaHeight);
-
-    svgHistogramLayoutArea.attr("x", 0);
-    svgHistogramLayoutArea.attr("y", 0);
-  }
-
-
-  function getSortedKeys(hmap) {
-    var keys = [];
-    hmap.forEach(function(value, key) {
-      keys.push(key);
-    });
-    return keys.sort(function(a, b) {
-      return hmap.get(b).mentions - hmap.get(a).mentions
-    });
-  }
-
-  function xposition(d, i) {
-
-    if (d.isGroup) {
-      return marginLeftGroups;
+      simulation.force("forceY", d3.forceY().y(function(d) { 
+          return 0.4*height; 
+        }).strength(function(d){
+          return forceYmultiplier * gravity; 
+        }));
     }
-    if (d.isSession) {
-      return marginLeftSessions;
-    }
+  };
 
-    if (typeof d.rank === 'undefined') {
-      return marginLeftWords;
-    }
+  // ==========================================
 
-    var value;
-    var col = parseInt(d.rank / maxWordRows);
+  document.addEventListener("resize", function() {
+    self.resize();
+  }, true);
 
-    value = marginLeftWords + (colSpacing * col);
+  self.reset = function() {
+    console.info("RESET");
 
-    return value + "%";
-  }
+    nodes = [];
 
-  var rows = maxWordRows;
-  var cols = 5;
+    deadNodesHash = {};
+    mouseMovingFlag = false;
+    mouseHoverFlag = false;
+    mouseHoverNodeId = false;
+    self.toolTipVisibility(false);
 
-  function yposition(d, i) {
-
-    var value;
-
-    if (d.isSession) {
-
-      if (typeof d.rank === 'undefined') {
-        value = marginTopSessions + (3 * maxSessionRows);
-        return value + "%";
-      }
-
-      value = marginTopSessions + (3 * (d.rank % maxSessionRows));
-      return value + "%";
-    }
-
-    if (typeof d.rank === 'undefined') {
-      value = marginTopWords + (3 * maxWordRows);
-      return value + "%";
-    }
-
-    value = marginTopWords + (3 * (d.rank % maxWordRows));
-    return value + "%";
-  }
-
-
-  var divTooltip = d3.select("body").append("div")
-    .attr("class", "tooltip")
-    .style("opacity", 1e-6);
+    self.resize();
+    self.resetDefaultForce();
+  };
 }

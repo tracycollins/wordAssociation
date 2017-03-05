@@ -1853,10 +1853,10 @@ function initSocketNodeRx(){
 
   socket.on("node", function(nNode) {
 
-
-    if (!windowVisible || config.pauseFlag) return;
-    if ((nNode.nodeType != "user") && (nNode.nodeType != "media") && (config.sessionViewType == "media")) return;
-    // console.log("N< " + nNode.nodeType + " | " + nNode.nodeId + " | " + nNode.mentions);
+    if (!windowVisible || config.pauseFlag) {return;}
+    if ((nNode.nodeType !== "hashtag") && (config.sessionViewType === "histogram")) {return;}
+    if ((nNode.nodeType !== "user") && (nNode.nodeType !== "media") && (config.sessionViewType === "media")) {return;}
+    console.log("N< " + nNode.nodeType + " | " + nNode.nodeId + " | " + nNode.mentions);
 
     var dateNow = moment().valueOf();
 
@@ -3050,7 +3050,7 @@ function updateSessions() {
 
   updateSessionsReady = false;
 
-  if (config.forceViewMode == 'web') {
+  if ((config.sessionViewType === 'histogram') || (config.forceViewMode === 'web')) {
 
   }
   else {
@@ -3183,6 +3183,7 @@ function loadViewType(svt, callback) {
       requirejs(["js/libs/sessionViewHistogram"], function() {
         console.debug("sessionViewHistogram LOADED");
         currentSessionView = new ViewHistogram();
+        initSocketNodeRx();
         callback();
       });
       break;

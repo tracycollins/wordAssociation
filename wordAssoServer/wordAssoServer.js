@@ -1026,74 +1026,6 @@ function loadYamlConfig(yamlFile, callback){
   });
 }
 
-// function loadFile(path, file, callback) {
-
-//   debug(chalkInfo("LOAD FOLDER " + path));
-//   debug(chalkInfo("LOAD FILE " + file));
-//   debug(chalkInfo("FULL PATH " + path + "/" + file));
-
-//   var fileExists = false;
-
-//   dropboxClient.filesListFolder({path: path, recursive: false})
-//     .then(function(response) {
-
-//         async.each(response.entries, function(folderFile, cb) {
-
-//           if (folderFile.name == file) {
-//             debug(chalkInfo("SOURCE FILE EXISTS: " + file));
-//             fileExists = true;
-//             return cb();
-//           }
-//           cb();
-
-//         }, function(err) {
-
-//           if (fileExists) {
-
-//             dropboxClient.filesDownload({path: path + "/" + file})
-//               .then(function(data) {
-//                 debug(chalkLog(getTimeStamp()
-//                   + " | LOADING FILE FROM DROPBOX FILE: " + path + "/" + file
-//                 ));
-
-//                 var payload = data.fileBinary;
-
-//                 debug(payload);
-
-//                 var fileObj = JSON.parse(payload);
-
-//                 return(callback(null, fileObj));
-//                })
-//               .catch(function(error) {
-//                 console.log(chalkAlert("DROPBOX loadFile ERROR: " + file + "\n" + error));
-//                 console.log(chalkError("!!! DROPBOX READ " + file + " ERROR: " + error.error));
-//                 console.log(chalkError(jsonPrint(error)));
-
-//                 if (error["status"] === 404) {
-//                   console.log(chalkError("!!! DROPBOX READ FILE " + file + " NOT FOUND ... SKIPPING ..."));
-//                   return(callback(null, null));
-//                 }
-//                 if (error["status"] === 0) {
-//                   console.log(chalkError("!!! DROPBOX NO RESPONSE ... NO INTERNET CONNECTION? ... SKIPPING ..."));
-//                   return(callback(null, null));
-//                 }
-//                 return(callback(error, null));
-//               });
-//           }
-//           else {
-//             console.log(chalkError("*** FILE DOES NOT EXIST: " + path + "/" + file));
-//             var err = {};
-//             err.status = "FILE DOES NOT EXIST";
-//             return(callback(err, null));
-//           }
-//         });
-//     })
-//     .catch(function(error) {
-//       console.log(chalkError("LOAD FILE ERROR\n" + jsonPrint(error)));
-//       return(callback(error, null));
-//     });
-// }
-
 function saveFile (path, file, jsonObj, callback){
 
   var fullPath = path + "/" + file;
@@ -1117,7 +1049,8 @@ function saveFile (path, file, jsonObj, callback){
     .catch(function(error){
       console.log(chalkError(moment().format(compactDateTimeFormat) 
         + " | !!! ERROR DROBOX JSON WRITE | FILE: " + fullPath 
-        + " ERROR: " + jsonPrint(error)));
+        + " ERROR: " + error.error_summary
+      ));
       callback(error, null);
     });
 }
@@ -1147,7 +1080,8 @@ function dropboxWriteArrayToFile(filePath, dataArray, callback) {
     .catch(function(error){
       console.log(chalkError(moment().format(compactDateTimeFormat) 
         + " | !!! ERROR DROBOX JSON WRITE | FILE: " + file 
-        + " ERROR: " + error));
+        + " ERROR: " + error.error_summary
+      ));
       callback(error, null);
     });
 }
@@ -1184,7 +1118,8 @@ function saveStats(statsFile, statsObj, callback) {
     .catch(function(error){
       console.log(chalkError(moment().format(compactDateTimeFormat) 
         + " | !!! ERROR DROBOX JSON WRITE | FILE: " + file 
-        + " ERROR: " + error));
+        + " ERROR: " + error.error_summary
+      ));
       callback(error);
     });
 
@@ -7843,7 +7778,8 @@ function saveDropboxJsonFile(file, jsonObj, callback){
     if (error) {
       console.log(chalkError(moment().format(compactDateTimeFormat) 
         + " | !!! ERROR DROBOX JSON WRITE | FILE: " + file 
-        + " ERROR: " + error));
+        + " ERROR: " + error.error_summary
+      ));
       callback(error);
     } else {
       debug(chalkLog("... SAVED DROPBOX JSON | " + file));

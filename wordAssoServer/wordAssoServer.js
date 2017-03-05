@@ -873,7 +873,7 @@ function updateWordMeter(wordObj){
 
     var meterObj = wordMeter[wordObj.nodeId].toJSON();
 
-    console.log(chalkAlert("WM"
+    debug(chalkAlert("WM"
       + " | W: " + Object.keys(wordMeter).length
       + " | C: " + meterObj.count
       + " | 5: " + meterObj["5MinuteRate"].toFixed(2)
@@ -5972,7 +5972,7 @@ var wapiSearchQueueInterval = setInterval(function() {
           if (err) {
             console.log(chalkError("wapiSearch -- > findOneWord ERROR" 
               + "\n" + JSON.stringify(err) + "\n" + JSON.stringify(wordObj, null, 2)));
-            callback(err, wordObj);
+            // callback(err, wordObj);
           } 
           else {
             debug("WAPI > DB | " 

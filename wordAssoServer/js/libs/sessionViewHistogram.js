@@ -7,8 +7,16 @@ function ViewHistogram() {
   "use strict";
 
   var self = this;
+  var defaultFadeDuration = 50;
+
+  var t = d3.transition()
+      .duration(100)
+      .ease(d3.easeLinear);
+
+  var hashtagTopMargin = 10; // %
 
   var maxHashtagRows = 25;
+
   var maxRecentHashtags = maxHashtagRows ;
 
   var DEFAULT_AGE_RATE = 1.0;
@@ -216,6 +224,23 @@ function ViewHistogram() {
     return;
   };
 
+  function rankHashMapByValue(hmap, sortProperty, callback) {
+    // console.debug("rankHashMapByValue");
+    var keys = hmap.keys().sort(function(a,b){
+      return hmap.get(b)[sortProperty]-hmap.get(a)[sortProperty];
+    });
+
+    async.forEachOf(keys, function(key, index, cb) {
+      var entry = hmap.get(key);
+      entry.rank = index;
+      hmap.set(key, entry);
+      cb();
+      // console.debug("key " + key);
+    }, function(err) {
+      callback(hmap);
+    });
+  }
+
   var deleteNodeQ = function (nodeId){
 
     var deadNodeFlag = false;
@@ -269,6 +294,8 @@ function ViewHistogram() {
       callback(null, nodesModifiedFlag);
     }
   };
+
+  var allNodesArray = [];
 
   var ageNodes = function (callback) {
 
@@ -342,7 +369,13 @@ function ViewHistogram() {
     }
 
     if (ageNodesIndex < 0) {
-      callback(null, deadNodeFlag);
+      // console.debug("call rankHashMapByValue");
+      rankHashMapByValue(localNodeHashMap, "mentions", function(hmap){
+        hmap.forEach(function(value, key){
+          // console.info(hmap.get(key).rank + " | " + hmap.get(key).mentions + " | " + key);
+        });
+        callback(null, deadNodeFlag);
+      });
     }
   };
 
@@ -376,108 +409,6 @@ function ViewHistogram() {
     }
   };
 
-  function updateHashtags(htMnObjData, recentHtObjData) {
-
-    var hashtag = svgHashtag.selectAll("#hashtag")
-        .data(htMnObjData, function(d) { return (d.nodeId); });
-
-    var recentHashtag = svgRecentHashtag.selectAll("#recentHashtag")
-        .data(recentHtObjData, function(d) { return (d.nodeId); });
-
-    hashtag.attr("class", function(d) { return d.newFlag ? "updateNew" : "update"; })
-      .text(function(d) { return d.displaytext; })
-      .style("fill", function(d) { return d.newFlag ? "red" : "#ffffff"; })
-      .style("fill-opacity", function(d) {
-        if (d3.select(this).attr("mouseOverFlag") == "true") {
-          return 1;
-        }
-        else {
-          return hashtagOpacityScale(d.age);
-        }
-      })
-      .on("mouseout", hashtagMouseOut)
-      .on("mouseover", hashtagMouseOver)
-      .transition()
-        .duration(defaultFadeDuration)
-        .attr("x", xposition)
-        .attr("y", yposition);
-
-    recentHashtag.attr("class", function(d) { return d.newFlag ? "updateNew" : "update"; })
-      .text(function(d) { return d.displaytext; })
-      .style("fill", function(d) { return d.newFlag ? "red" : "#ffffff"; })
-      .style("fill-opacity", function(d) {
-        if (d3.select(this).attr("mouseOverFlag") == "true") {
-          return 1;
-        }
-        else {
-          return d.newFlag ? 1 : 0.75; 
-        }
-      })
-      .on("mouseout", hashtagMouseOut)
-      .on("mouseover", hashtagMouseOver)
-      .transition()
-        .duration(defaultFadeDuration)
-        .attr("x", xposition)
-        .attr("y", yposition);
-
-    // ENTER
-    // Create new elements as needed.
-    hashtag.enter().append("svg:text")
-      .attr("id", "hashtag")
-      .attr("class", "enter")
-      .attr("x", xposition)
-      .attr("y", yposition)
-      .on("click", function(d){
-        window.open("http://twitter.com/search?f=realtime&q=%23" + d.text, '_blank');
-      })
-      .text(function(d) { return d.displaytext; })
-      .style("fill-opacity", 1e-6)
-      // .style("font-size", "2.0vmin")
-      .style("font-size", "1.0rem")
-      .on("mouseout", hashtagMouseOut)
-      .on("mouseover", hashtagMouseOver)
-      .transition()
-        .duration(defaultFadeDuration)
-        .style("fill-opacity", 1);
-
-
-    recentHashtag.enter().append("svg:text")
-      .attr("id", "recentHashtag")
-      .attr("class", "enter")
-      .attr("x", xposition)
-      .attr("y", yposition)
-      .on("click", function(d){
-        window.open("http://twitter.com/search?f=realtime&q=%23" + d.text, '_blank');
-      })
-      .text(function(d) { return d.displaytext; })
-      .on("mouseout", hashtagMouseOut)
-      .on("mouseover", hashtagMouseOver)
-      .style("font-size", "1.0rem")
-      .style("fill-opacity", 1e-6)
-      .transition()
-        .duration(defaultFadeDuration)
-        .attr("x", xposition)
-        .attr("y", yposition)
-        .style("fill-opacity", 1);
-
-    // EXIT
-    // Remove old elements as needed.
-    hashtag.exit()
-      .attr("class", "exit")
-      .transition()
-        .duration(defaultFadeDuration)
-        .style("fill-opacity", 1e-6)
-        .remove();
-
-
-    recentHashtag.exit()
-      .attr("class", "exit")
-      .transition()
-        .duration(defaultFadeDuration)
-        .style("fill-opacity", 1e-6)
-        .remove();
-  }
-
   var updateNodeLabels = function(callback) {
 
     nodeLabels = nodeLabelSvgGroup.selectAll("text")
@@ -491,18 +422,20 @@ function ViewHistogram() {
     nodeLabels
       .enter()
       .append("svg:text")
-      .style("text-anchor", "middle")
+      .attr("id", function(d) {return d.nodeType})
+      .style("text-anchor", "left")
       .style("alignment-baseline", "bottom")
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)
       .on("click", nodeClick)
+      // .transition().attr("y", yposition)
       .merge(nodeLabels)
+      .attr("x", xposition)
+      .attr("y", yposition)
       .text(function(d) {
         if (d.nodeType === 'word') {return d.text;}
         if (d.nodeType === 'hashtag') {return d.nodeId;}
       })
-      .attr("x", function(d) { xposition })
-      .attr("y", function(d) { yposition })
       .style('opacity', function(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
         return nodeLabelOpacityScale(d.ageMaxRatio); 
@@ -535,42 +468,18 @@ function ViewHistogram() {
     var tooltipString;
 
     switch (d.nodeType) {
-      case 'tweet':
-        tooltipString = d.nodeId
-          + "<br>TYPE: " + d.nodeType 
-          + "<br>MENTIONS: " + d.mentions 
-          + "<br>@" + d.user.screenName
-          + "<br>" + d.user.name;
-      break;
-      case 'user':
-        tooltipString = d.nodeId
-          + "<br>TYPE: " + d.nodeType 
-          + "<br>" + d.name
-          + "<br>@" + d.screenName
-          + "<br>Ms: " + d.mentions;
-      break;
-      case 'media':
-        tooltipString = d.nodeId
-          + "<br>TYPE: " + d.nodeType 
-          + "<br>Ms: " + d.mentions
-          + "<br>URL: " + d.url;
-      break;
       case 'hashtag':
         tooltipString = "#" + d.nodeId
           + "<br>TYPE: " + d.nodeType 
+          + "<br>RANK: " + d.rank;
           + "<br>Ms: " + d.mentions;
       break;
-      case 'url':
+      case 'word':
         tooltipString = d.nodeId
           + "<br>TYPE: " + d.nodeType 
+          + "<br>RANK: " + d.rank;
           + "<br>Ms: " + d.mentions
           + "<br>URL: " + d.url;
-      break;
-      case 'place':
-        tooltipString = d.nodeId
-          + "<br>TYPE: " + d.nodeType 
-          + "<br>Ms: " + d.mentions
-          + "<br>URL: " + d.fullName;
       break;
     }
 
@@ -758,110 +667,45 @@ function ViewHistogram() {
     }
   };
 
-  function xposition(d,i){
+  var xposition = function (d){
     var value ;
 
     switch (this.getAttribute("id")) {
       case 'hashtag' :
-        if (i < maxHashtagRows) {
-          value = 3;
+      // console.debug("xposition\n" + jsonPrint(d));
+        if (d.rank < maxHashtagRows) {
+          value = 10;
         }
         else {
-          value = 28;
+          value = 50;
         }
       break;
 
-      case 'place' :
-        if (i < maxPlaceRows) {
-          value = 5;
+      case 'word' :
+        if (d.rank < maxHashtagRows) {
+          value = 10;
         }
         else {
-          value = 33;
+          value = 50;
         }
-      break;
-
-      case 'hashtagbar' :
-        value = 75 - hashtagBarWidthScale(d.mentions.toString());
-      break;
-
-      case 'hashtagbarlabel' :
-        value = 5;
-        // value = hashtagBarWidthScale(d.mentions.toString());
-      break;
-
-      case 'recentHashtag' :
-        value = 66; 
-      break;
-
-      case 'recentPlace' :
-        value = 66; 
-      break;
-
-      case 'media':
-        value = 10 + (i * (mediaSize + mediaMargin))
-        return value + "px";
-      break;
-
-      case 'ig_media':
-        value = 10 + (i * (mediaSize + mediaMargin))
-        return value + "px";
-      break;
-
-      case 'recentMedia':
-        value = 10 + (i * (mediaSize + mediaMargin));
-        return value + "px";
       break;
 
       default:
-        value = 33;
+        value = 10;
     }
 
     return value + "%";
   }
 
-  function yposition(d,i){
+  function yposition(d){
     var value ;
-
-    switch (d.nodeType) {
-      case 'hashtag':
-        if (i < maxHashtagRows) {
-          value = hashtagTopMargin + (i * 3);
-        }
-        else {
-          value = hashtagTopMargin + ((i-maxHashtagRows) * 3)
-        }
-        return value + "%";
-      break;
-
-      case 'place':
-        if (i < maxPlaceRows) {
-          value = placeTopMargin + (i * 3);
-        }
-        else {
-          value = placeTopMargin + ((i-maxPlaceRows) * 3)
-        }
-        return value + "%";
-      break;
-
-     case 'media' :
-      if (this.getAttribute("id") == 'recentMedia') {
-        return "85%"; 
-      }
-      else {
-        return "90%"; 
-      }
-      break;
-
-     case 'ig_media' :
-      if (this.getAttribute("id") == 'recentMedia') {
-        return "85%"; 
-      }
-      else {
-        return "90%"; 
-      }
-      break;
-
-      default:
+    if (d.rank < maxHashtagRows) {
+      value = hashtagTopMargin + (d.rank * 3);
+      return value + "%";
+    }
+    else {
+      value = hashtagTopMargin + ((d.rank-maxHashtagRows) * 3)
+      return value + "%";
     }
   }
 
@@ -914,7 +758,7 @@ function ViewHistogram() {
 
   this.addNode = function(nNode) {
 
-    console.debug("addNode: " + jsonPrint(nNode));
+    // console.debug("addNode: " + jsonPrint(nNode));
 
     if ((nNode.nodeType === "session")|| (nNode.nodeType === "group")|| (nNode.nodeType === "word")) {return;}
 
@@ -1045,17 +889,17 @@ function ViewHistogram() {
       .attr("y", 1e-6);
 
     if (simulation){
-      simulation.force("forceX", d3.forceX().x(function(d) { 
-          return 0.5*width; 
-        }).strength(function(d){
-          return 1*gravity; 
-        }));
+      // simulation.force("forceX", d3.forceX().x(function(d) { 
+      //     return 0.5*width; 
+      //   }).strength(function(d){
+      //     return 1*gravity; 
+      //   }));
 
-      simulation.force("forceY", d3.forceY().y(function(d) { 
-          return 0.4*height; 
-        }).strength(function(d){
-          return forceYmultiplier * gravity; 
-        }));
+      // simulation.force("forceY", d3.forceY().y(function(d) { 
+      //     return 0.4*height; 
+      //   }).strength(function(d){
+      //     return forceYmultiplier * gravity; 
+      //   }));
     }
   };
 

@@ -176,7 +176,6 @@ function ViewHistogram() {
 
   var nodeSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "nodeSvgGroup");
   var nodeLabelSvgGroup = svgForceLayoutArea.append("svg:g").attr("id", "nodeLabelSvgGroup");
-
   var nodeLabels = nodeSvgGroup.selectAll(".nodeLabel");
 
   var divTooltip = d3.select("body").append("div")
@@ -378,7 +377,7 @@ function ViewHistogram() {
   };
 
   function updateHashtags(htMnObjData, recentHtObjData) {
-    
+
     var hashtag = svgHashtag.selectAll("#hashtag")
         .data(htMnObjData, function(d) { return (d.nodeId); });
 
@@ -503,9 +502,7 @@ function ViewHistogram() {
         if (d.nodeType === 'hashtag') {return d.nodeId;}
       })
       .attr("x", function(d) { xposition })
-      .attr("y", function(d) { 
-        return d.y - 1.5 * (defaultRadiusScale(d.mentions + 1));
-      })
+      .attr("y", function(d) { yposition })
       .style('opacity', function(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
         return nodeLabelOpacityScale(d.ageMaxRatio); 

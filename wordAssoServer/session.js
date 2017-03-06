@@ -66,7 +66,7 @@ var MAX_RX_QUEUE = 100;
 var MAX_WORDCHAIN_LENGTH = 100;
 var DEFAULT_MAX_AGE = 60000;
 var FORCE_MAX_AGE = 60000;
-var HISTOGRAM_MAX_AGE = 60000;
+var HISTOGRAM_MAX_AGE = 30000;
 var MEDIA_MAX_AGE = 60000;
 var DEFAULT_AGE_RATE = 1.0;
 
@@ -1906,7 +1906,7 @@ function initSocketNodeRx(){
     if (!windowVisible || config.pauseFlag) {return;}
     if ((nNode.nodeType !== "hashtag") && (config.sessionViewType === "histogram")) {return;}
     if ((nNode.nodeType !== "user") && (nNode.nodeType !== "media") && (config.sessionViewType === "media")) {return;}
-    console.log("N< " + nNode.nodeType + " | " + nNode.nodeId + " | " + nNode.mentions);
+    // console.log("N< " + nNode.nodeType + " | " + nNode.nodeId + " | " + nNode.mentions);
 
     var dateNow = moment().valueOf();
 

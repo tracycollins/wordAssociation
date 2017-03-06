@@ -26,12 +26,20 @@ var jsonPrint = function(obj) {
 }
 
 function quit(message) {
-  console.log("\n... QUITTING ...");
   var msg = '';
   if (message) msg = message;
-  console.log("QUIT MESSAGE\n" + msg);
+  console.log("**** QUITTING"
+    + " | CAUSE: " + msg
+    + " | PID: " + process.pid
+    + "\n" + process.argv[1] 
+    
+  );
   process.exit();
 }
+
+process.on('SIGHUP', function() {
+  quit('SIGHUP');
+});
 
 process.on('SIGINT', function() {
   quit('SIGINT');

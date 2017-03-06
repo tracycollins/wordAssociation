@@ -1,6 +1,8 @@
 /*jslint node: true */
 "use strict";
 
+var configuration = {};
+
 var tssServer;
 var tmsServer;
 
@@ -94,15 +96,15 @@ var maxServerResponseTime = 1447;
 var pollTwitterFriendsIntervalTime = 5*ONE_MINUTE;
 
 var TRENDING_CACHE_DEFAULT_TTL = 300; // seconds
-var VIEWER_CACHE_DEFAULT_TTL = 60; // seconds
-var UTIL_CACHE_DEFAULT_TTL = 60; // seconds
-var USER_CACHE_DEFAULT_TTL = 60; // seconds
-var GROUP_CACHE_DEFAULT_TTL = 60; // seconds
+var VIEWER_CACHE_DEFAULT_TTL = 120; // seconds
+var UTIL_CACHE_DEFAULT_TTL = 120; // seconds
+var USER_CACHE_DEFAULT_TTL = 120; // seconds
+var GROUP_CACHE_DEFAULT_TTL = 120; // seconds
 var ENTITY_CACHE_DEFAULT_TTL = 120; // seconds
-var SESSION_CACHE_DEFAULT_TTL = 60; // seconds
+var SESSION_CACHE_DEFAULT_TTL = 120; // seconds
 var WORD_CACHE_TTL = 300; // seconds
-var MONITOR_CACHE_TTL = 60; // seconds
-var IP_ADDRESS_CACHE_DEFAULT_TTL = 60;
+var MONITOR_CACHE_TTL = 120; // seconds
+var IP_ADDRESS_CACHE_DEFAULT_TTL = 120;
 
 var MAX_WORDCHAIN_LENGTH = 10;
 var MIN_CHAIN_FREEZE_LENGTH = 20;
@@ -274,6 +276,35 @@ var wapiOverLimitTestFlag = false;
 // SESSION MODES: STREAM  ( session.config.mode )
 // ==================================================================
 
+var chalk = require('chalk');
+
+var chalkRedBold = chalk.bold.red;
+var chalkTwitter = chalk.blue;
+var chalkWapi = chalk.red;
+var chalkWapiBold = chalk.bold.red;
+var chalkViewer = chalk.cyan;
+var chalkUser = chalk.green;
+var chalkUtil = chalk.blue;
+var chalkRed = chalk.red;
+var chalkGreen = chalk.green;
+var chalkAdmin = chalk.bold.cyan;
+var chalkConnectAdmin = chalk.bold.cyan;
+var chalkConnect = chalk.green;
+var chalkDisconnect = chalk.red;
+var chalkInfo = chalk.gray;
+var chalkTest = chalk.bold.red;
+var chalkAlert = chalk.red;
+var chalkError = chalk.bold.red;
+var chalkWarn = chalk.bold.yellow;
+var chalkLog = chalk.gray;
+var chalkSession = chalk.blue;
+var chalkPrompt = chalk.blue;
+var chalkResponse = chalk.blue;
+var chalkBht = chalk.gray;
+var chalkMw = chalk.yellow;
+var chalkDb = chalk.gray;
+var chalkGoogle = chalk.green;
+
 var jsonPrint = function(obj) {
   if (obj) {
      return JSON.stringify(obj, null, 2);
@@ -284,6 +315,8 @@ var jsonPrint = function(obj) {
 
 function quit(message) {
   console.log("\n... QUITTING ...");
+  if (typeof updater !== 'undefined') updater.kill('SIGHUP');
+
   var msg = '';
   if (message) msg = message;
   console.log("QUIT MESSAGE\n" + msg);
@@ -293,6 +326,22 @@ function quit(message) {
 process.on('SIGINT', function() {
   quit('SIGINT');
 });
+
+
+var stdin;
+var commandLineArgs = require('command-line-args');
+
+var enableStdin = { name: "enableStdin", alias: "i", type: Boolean, defaultValue: true};
+var quitOnError = { name: "quitOnError", alias: "q", type: Boolean, defaultValue: true};
+var testMode = { name: "testMode", alias: "T", type: Boolean, defaultValue: false};
+
+var optionDefinitions = [enableStdin, quitOnError, testMode];
+
+var commandLineConfig = commandLineArgs(optionDefinitions);
+
+console.log(chalkInfo("COMMAND LINE CONFIG\n" + jsonPrint(commandLineConfig)));
+console.log("COMMAND LINE OPTIONS\n" + jsonPrint(commandLineConfig));
+
 
 
 // ==================================================================
@@ -505,34 +554,6 @@ statsObj.entityChannelGroup.allHashMisses = {};
 // ==================================================================
 // LOGS, STATS
 // ==================================================================
-var chalk = require('chalk');
-
-var chalkRedBold = chalk.bold.red;
-var chalkTwitter = chalk.blue;
-var chalkWapi = chalk.red;
-var chalkWapiBold = chalk.bold.red;
-var chalkViewer = chalk.cyan;
-var chalkUser = chalk.green;
-var chalkUtil = chalk.blue;
-var chalkRed = chalk.red;
-var chalkGreen = chalk.green;
-var chalkAdmin = chalk.bold.cyan;
-var chalkConnectAdmin = chalk.bold.cyan;
-var chalkConnect = chalk.green;
-var chalkDisconnect = chalk.red;
-var chalkInfo = chalk.gray;
-var chalkTest = chalk.bold.red;
-var chalkAlert = chalk.red;
-var chalkError = chalk.bold.red;
-var chalkWarn = chalk.bold.yellow;
-var chalkLog = chalk.gray;
-var chalkSession = chalk.blue;
-var chalkPrompt = chalk.blue;
-var chalkResponse = chalk.blue;
-var chalkBht = chalk.gray;
-var chalkMw = chalk.yellow;
-var chalkDb = chalk.gray;
-var chalkGoogle = chalk.green;
 
 var serverSessionConfig = {};
 var configChangeFlag = false;
@@ -5576,9 +5597,60 @@ function initKeywords(file, kwHashMap, callback){
   });
 }
 
-function initializeConfiguration(callback) {
+function initializeConfiguration(cnf, callback) {
 
   debug(chalkInfo(moment().format(compactDateTimeFormat) + " | initializeConfiguration ..."));
+
+  var commandArgs = Object.keys(commandLineConfig);
+
+  commandArgs.forEach(function(arg){
+    cnf[arg] = commandLineConfig[arg];
+    console.log("--> COMMAND LINE CONFIG | " + arg + ": " + cnf[arg]);
+  });
+
+  var configArgs = Object.keys(cnf);
+  configArgs.forEach(function(arg){
+    console.log("FINAL CONFIG | " + arg + ": " + cnf[arg]);
+  });
+
+  if (cnf.enableStdin){
+
+    console.log("STDIN ENABLED");
+
+    stdin = process.stdin;
+    if(typeof stdin.setRawMode !== 'undefined') {
+      stdin.setRawMode( true );
+    }
+    stdin.resume();
+    stdin.setEncoding( 'utf8' );
+    stdin.on( 'data', function( key ){
+
+      switch (key) {
+        case '\u0003':
+          process.exit();
+        break;
+        case 'q':
+          quit();
+        break;
+        case 'Q':
+          quit();
+        break;
+        case 's':
+          showStats();
+        break;
+        case 'S':
+          showStats(true);
+        break;
+        default:
+          console.log(
+            "\n" + "q/Q: quit"
+            + "\n" + "s: showStats"
+            + "\n" + "S: showStats verbose"
+            );
+        break;
+      }
+    });
+  }
 
   async.series([
       // DATABASE INIT
@@ -5871,7 +5943,6 @@ function initializeConfiguration(callback) {
           }
 
         });
-
       }
     ],
     function(err, results) {
@@ -6968,7 +7039,7 @@ function createSession(newSessionObj) {
     statsObj.socket.USER_READYS++;
 
     console.log(chalkUser("R< U RDY"
-      // + "  " + socket.id
+      + " | " + moment().format(compactDateTimeFormat) 
       + "  " + userObj.nodeId
       + "  ID " + userObj.userId
       + "  N " + userObj.name
@@ -8331,7 +8402,7 @@ function initIgnoreWordsHashMap(callback) {
 //=================================
 // BEGIN !!
 //=================================
-initializeConfiguration(function(err, results) {
+initializeConfiguration(configuration, function(err, results) {
 
   if (err) {
     console.log(chalkError("*** INITIALIZE CONFIGURATION ERROR ***\n" + jsonPrint(err)));

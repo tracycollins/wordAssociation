@@ -4732,207 +4732,217 @@ var readResponseQueue = setInterval(function() {
     var responseInObj = rxInObj;
 
     var socketId = responseInObj.socketId;
-    var currentSessionObj = sessionCache.get(socketId);
+    // var currentSessionObj = sessionCache.get(socketId);
 
-    if (typeof currentSessionObj === 'undefined') {
+    // var currentSessionObj = {};
 
-      console.log(chalkWarn("??? SESSION NOT IN CACHE ON RESPONSE Q READ" 
-        + " | responseQueue: " + responseQueue.size() 
-        + " | " + socketId + " | ABORTING SESSION"
-        + "\n" + jsonPrint(responseInObj)
-      ));
-
-      // var entity = socketId.match(entityRegEx)[1];
-
-      configEvents.emit("UNKNOWN_SESSION", socketId);
-
-      sessionQueue.enqueue({
-        sessionEvent: "SESSION_ABORT",
-        sessionId: socketId
-      });
-      ready = true;
-      return;
-    }
-    else {
-      debug(chalkError("currentSessionObj\n" + jsonPrint(currentSessionObj)));
-    }
-
-
-    responseInObj.isKeyword = (typeof rxInObj.isKeyword !== 'undefined') ? rxInObj.isKeyword : false;
-    responseInObj.isTrendingTopic = (typeof rxInObj.isTrendingTopic !== 'undefined') ? rxInObj.isTrendingTopic : false;
-
-
-    trendingTopicsArray = trendingCache.keys();
-    trendingTopicHitArray = [];
-
-    async.each(trendingTopicsArray, function(topic, cb) {
-
-      if (responseInObj.nodeId.toLowerCase().includes(topic.toLowerCase())){
-
-        var topicObj = trendingCache.get(topic);
-
-        trendingTopicHitArray.push(topic);
-
-        if (typeof topicObj !== 'undefined'){ // may have expired out of cache, so check
-          console.log(chalkTwitter("TOPIC HIT: " + topic));
-          topicObj.hit = true;
-          trendingCache.set(topic, topicObj);
-          topicHashMap.set(topic.toLowerCase(), true);
-          responseInObj.isTrendingTopic = true;
-        }
-
-        cb();
-
+    sessionCache.get(socketId, function(err, currentSessionObj){
+      if (err){
+        console.log(chalkError("*** ERROR SESSION CACHE GET " + socketId + "\n" + jsonPrint(err)));
+        quit("ERROR SESSION CACHE GET");
       }
-      else {
-        cb();
-      }
+      else if (typeof currentSessionObj === 'undefined') {
 
-    }, function(err) {
-
-      debug(chalkBht(">>> RESPONSE (before replace): " + responseInObj.nodeId));
-      responseInObj.nodeId = responseInObj.nodeId.replace(/\s+/g, ' ');
-      responseInObj.nodeId = responseInObj.nodeId.replace(/[\n\r\[\]\{\}\<\>\/\;\:\"\”\’\'\`\~\?\!\@\#\$\%\^\&\*\(\)\_\+\=]+/g, '');
-      responseInObj.nodeId = responseInObj.nodeId.replace(/\s+/g, ' ');
-      responseInObj.nodeId = responseInObj.nodeId.replace(/^\s+|\s+$/g, '');
-      responseInObj.nodeId = responseInObj.nodeId.replace(/^\,+|\,+$/g, '');
-      responseInObj.nodeId = responseInObj.nodeId.replace(/^\.+|\.+$/g, '');
-      responseInObj.nodeId = responseInObj.nodeId.replace(/^\-*|\-+$/g, '');
-      responseInObj.nodeId = responseInObj.nodeId.toLowerCase();
-      debug(chalkBht(">>> RESPONSE: " + responseInObj.nodeId));
-
-      if (responseInObj.nodeId == '') {
-        debug("EMPTY RESPONSE: " + responseInObj.nodeId);
-        ready = true;
-        return;
-      }
-
-      if (!responseInObj.mentions) responseInObj.mentions = 1;
-
-      responsesReceived++;
-      deltaResponsesReceived++;
-
-      updateStats({
-        responsesReceived: responsesReceived,
-        deltaResponsesReceived: deltaResponsesReceived
-      });
-
-      currentSessionObj.lastSeen = moment().valueOf();
-
-      var promptWordObj;
-      var previousPrompt;
-      var previousPromptObj;
-
-      if ((typeof currentSessionObj.wordChain !== 'undefined') && (currentSessionObj.wordChainIndex > 0)) {
-
-        previousPrompt = currentSessionObj.wordChain[currentSessionObj.wordChain.length - 1].nodeId;
-        previousPromptObj = wordCache.get(previousPrompt);
-
-        if (!previousPromptObj) {
-          debug(chalkAlert("PREV PROMPT $ MISS"
-            + " | " + socketId 
-            + " | " + currentSessionObj.userId 
-            + " | WCI: " + currentSessionObj.wordChainIndex 
-            + " | WCL: " + currentSessionObj.wordChain.length
-            + " | " + responseInObj.nodeId 
-            + " > " + previousPrompt 
-          ));
-
-          statsObj.session.error++;
-          statsObj.session.previousPromptNotFound++;
-
-          previousPromptObj = {
-            nodeId: previousPrompt,
-            mentions: 1 // !!!!!! KLUDGE !!!!!!
-          };
-
-          wordCache.set(previousPromptObj.nodeId, previousPromptObj);
-
-        } else {
-          debug(chalkResponse("... previousPromptObj: " + previousPromptObj.nodeId));
-        }
-      } 
-      else if (currentSessionObj.config.mode == 'STREAM') {
-        previousPromptObj = {
-          nodeId: 'STREAM'
-        };
-        debug(chalkWarn("STREAM WORD CHAIN\n" + jsonPrint(currentSessionObj.wordChain)));
-      } 
-      else if (currentSessionObj.config.mode == 'MUXSTREAM') {
-        previousPromptObj = {
-          nodeId: 'MUXSTREAM'
-        };
-        debug(chalkWarn("MUXSTREAM WORD CHAIN\n" + jsonPrint(currentSessionObj.wordChain)));
-      } 
-      else if (currentSessionObj.config.mode == 'SUBSTREAM') {
-        previousPromptObj = {
-          nodeId: 'SUBSTREAM'
-        };
-        debug(chalkWarn("SUBSTREAM WORD CHAIN\n" + jsonPrint(currentSessionObj.wordChain)));
-      } 
-      else {
-        console.log(chalkError("??? EMPTY WORD CHAIN ... PREVIOUS PROMPT NOT IN CACHE ... ABORTING SESSION" 
-          + " | " + socketId
-          + "\nrxInObj" + jsonPrint(rxInObj)
+        console.log(chalkWarn("??? SESSION NOT IN CACHE ON RESPONSE Q READ" 
+          + " | responseQueue: " + responseQueue.size() 
+          + " | " + socketId + " | ABORTING SESSION"
+          + "\n" + jsonPrint(responseInObj)
         ));
 
-        ready = true;
+        // var entity = socketId.match(entityRegEx)[1];
 
-        return;
+        configEvents.emit("UNKNOWN_SESSION", socketId);
+
+        sessionQueue.enqueue({
+          sessionEvent: "SESSION_ABORT",
+          sessionId: socketId
+        });
+        ready = true;
+        // return;
+      }
+      else {
+        debug(chalkError("currentSessionObj\n" + jsonPrint(currentSessionObj)));
       }
 
-      // updateWordMeter(responseInObj);
- 
-      getTags(responseInObj, function(updatedWordObj){
-        
-        updateWordMeter(updatedWordObj);
+      responseInObj.isKeyword = (typeof rxInObj.isKeyword !== 'undefined') ? rxInObj.isKeyword : false;
+      responseInObj.isTrendingTopic = (typeof rxInObj.isTrendingTopic !== 'undefined') ? rxInObj.isTrendingTopic : false;
 
-        var dbUpdateObj = {};
-        dbUpdateObj.word = updatedWordObj;
-        dbUpdateObj.session = currentSessionObj;
-        dbUpdateObj.tags = {};
 
-        if (updatedWordObj.tags){
+      trendingTopicsArray = trendingCache.keys();
+      trendingTopicHitArray = [];
 
-          if (!updatedWordObj.tags.group || (typeof updatedWordObj.tags.group === 'undefined')) {
-            updatedWordObj.tags.group = updatedWordObj.tags.entity;
-            dbUpdateObj.tags.group = updatedWordObj.tags.entity;
+      async.each(trendingTopicsArray, function(topic, cb) {
+
+        if (responseInObj.nodeId.toLowerCase().includes(topic.toLowerCase())){
+
+          var topicObj = trendingCache.get(topic);
+
+          trendingTopicHitArray.push(topic);
+
+          if (typeof topicObj !== 'undefined'){ // may have expired out of cache, so check
+            console.log(chalkTwitter("TOPIC HIT: " + topic));
+            topicObj.hit = true;
+            trendingCache.set(topic, topicObj);
+            topicHashMap.set(topic.toLowerCase(), true);
+            responseInObj.isTrendingTopic = true;
           }
 
-          dbUpdateObj.tags.entity = updatedWordObj.tags.entity;
-          dbUpdateObj.tags.channel = updatedWordObj.tags.channel;
-          dbUpdateObj.tags.group = updatedWordObj.tags.group;
-
-          debug(chalkInfo("R<" 
-            + " G " + updatedWordObj.tags.group 
-            + " E " + updatedWordObj.tags.entity 
-            + " C " + updatedWordObj.tags.channel 
-            + " | " + updatedWordObj.nodeId 
-            + " | " + updatedWordObj.raw 
-          ));
-
-          dbUpdateWordQueue.enqueue(dbUpdateObj);
-          ready = true;
+          cb();
 
         }
         else {
-          debug(chalkInfo("R<" 
-            + " G " + updatedWordObj.tags.group 
-            + " E " + updatedWordObj.tags.entity 
-            + " C " + updatedWordObj.tags.channel 
-            + " | " + updatedWordObj.nodeId 
-            + " | " + updatedWordObj.raw 
-          ));
-
-          dbUpdateWordQueue.enqueue(dbUpdateObj);
-          ready = true;
-
+          cb();
         }
 
-      });
+      }, function(err) {
 
+        debug(chalkBht(">>> RESPONSE (before replace): " + responseInObj.nodeId));
+        responseInObj.nodeId = responseInObj.nodeId.replace(/\s+/g, ' ');
+        responseInObj.nodeId = responseInObj.nodeId.replace(/[\n\r\[\]\{\}\<\>\/\;\:\"\”\’\'\`\~\?\!\@\#\$\%\^\&\*\(\)\_\+\=]+/g, '');
+        responseInObj.nodeId = responseInObj.nodeId.replace(/\s+/g, ' ');
+        responseInObj.nodeId = responseInObj.nodeId.replace(/^\s+|\s+$/g, '');
+        responseInObj.nodeId = responseInObj.nodeId.replace(/^\,+|\,+$/g, '');
+        responseInObj.nodeId = responseInObj.nodeId.replace(/^\.+|\.+$/g, '');
+        responseInObj.nodeId = responseInObj.nodeId.replace(/^\-*|\-+$/g, '');
+        responseInObj.nodeId = responseInObj.nodeId.toLowerCase();
+        debug(chalkBht(">>> RESPONSE: " + responseInObj.nodeId));
+
+        if (responseInObj.nodeId == '') {
+          debug("EMPTY RESPONSE: " + responseInObj.nodeId);
+          ready = true;
+          return;
+        }
+
+        if (!responseInObj.mentions) responseInObj.mentions = 1;
+
+        responsesReceived++;
+        deltaResponsesReceived++;
+
+        updateStats({
+          responsesReceived: responsesReceived,
+          deltaResponsesReceived: deltaResponsesReceived
+        });
+
+        currentSessionObj.lastSeen = moment().valueOf();
+
+        var promptWordObj;
+        var previousPrompt;
+        var previousPromptObj;
+
+        if ((typeof currentSessionObj.wordChain !== 'undefined') && (currentSessionObj.wordChainIndex > 0)) {
+
+          previousPrompt = currentSessionObj.wordChain[currentSessionObj.wordChain.length - 1].nodeId;
+          previousPromptObj = wordCache.get(previousPrompt);
+
+          if (!previousPromptObj) {
+            debug(chalkAlert("PREV PROMPT $ MISS"
+              + " | " + socketId 
+              + " | " + currentSessionObj.userId 
+              + " | WCI: " + currentSessionObj.wordChainIndex 
+              + " | WCL: " + currentSessionObj.wordChain.length
+              + " | " + responseInObj.nodeId 
+              + " > " + previousPrompt 
+            ));
+
+            statsObj.session.error++;
+            statsObj.session.previousPromptNotFound++;
+
+            previousPromptObj = {
+              nodeId: previousPrompt,
+              mentions: 1 // !!!!!! KLUDGE !!!!!!
+            };
+
+            wordCache.set(previousPromptObj.nodeId, previousPromptObj);
+
+          } else {
+            debug(chalkResponse("... previousPromptObj: " + previousPromptObj.nodeId));
+          }
+        } 
+        else if (currentSessionObj.config.mode == 'STREAM') {
+          previousPromptObj = {
+            nodeId: 'STREAM'
+          };
+          debug(chalkWarn("STREAM WORD CHAIN\n" + jsonPrint(currentSessionObj.wordChain)));
+        } 
+        else if (currentSessionObj.config.mode == 'MUXSTREAM') {
+          previousPromptObj = {
+            nodeId: 'MUXSTREAM'
+          };
+          debug(chalkWarn("MUXSTREAM WORD CHAIN\n" + jsonPrint(currentSessionObj.wordChain)));
+        } 
+        else if (currentSessionObj.config.mode == 'SUBSTREAM') {
+          previousPromptObj = {
+            nodeId: 'SUBSTREAM'
+          };
+          debug(chalkWarn("SUBSTREAM WORD CHAIN\n" + jsonPrint(currentSessionObj.wordChain)));
+        } 
+        else {
+          console.log(chalkError("??? EMPTY WORD CHAIN ... PREVIOUS PROMPT NOT IN CACHE ... ABORTING SESSION" 
+            + " | " + socketId
+            + "\nrxInObj" + jsonPrint(rxInObj)
+          ));
+
+          ready = true;
+
+          return;
+        }
+
+        // updateWordMeter(responseInObj);
+   
+        getTags(responseInObj, function(updatedWordObj){
+          
+          updateWordMeter(updatedWordObj);
+
+          var dbUpdateObj = {};
+          dbUpdateObj.word = updatedWordObj;
+          dbUpdateObj.session = currentSessionObj;
+          dbUpdateObj.tags = {};
+
+          if (updatedWordObj.tags){
+
+            if (!updatedWordObj.tags.group || (typeof updatedWordObj.tags.group === 'undefined')) {
+              updatedWordObj.tags.group = updatedWordObj.tags.entity;
+              dbUpdateObj.tags.group = updatedWordObj.tags.entity;
+            }
+
+            dbUpdateObj.tags.entity = updatedWordObj.tags.entity;
+            dbUpdateObj.tags.channel = updatedWordObj.tags.channel;
+            dbUpdateObj.tags.group = updatedWordObj.tags.group;
+
+            debug(chalkInfo("R<" 
+              + " G " + updatedWordObj.tags.group 
+              + " E " + updatedWordObj.tags.entity 
+              + " C " + updatedWordObj.tags.channel 
+              + " | " + updatedWordObj.nodeId 
+              + " | " + updatedWordObj.raw 
+            ));
+
+            dbUpdateWordQueue.enqueue(dbUpdateObj);
+            ready = true;
+
+          }
+          else {
+            debug(chalkInfo("R<" 
+              + " G " + updatedWordObj.tags.group 
+              + " E " + updatedWordObj.tags.entity 
+              + " C " + updatedWordObj.tags.channel 
+              + " | " + updatedWordObj.nodeId 
+              + " | " + updatedWordObj.raw 
+            ));
+
+            dbUpdateWordQueue.enqueue(dbUpdateObj);
+            ready = true;
+
+          }
+
+        });
+
+      });
     });
-  }
+
+
+
+   }
 }, 50);
 
 var updaterMessageReady = true; 

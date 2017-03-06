@@ -367,12 +367,12 @@ var sessionMode = false;
 var monitorMode = false;
 
 
-var nodeHashMap = {};
-nodeHashMap.tweet = new HashMap();
-nodeHashMap.hashtag = new HashMap();
-nodeHashMap.media = new HashMap();
-nodeHashMap.user = new HashMap();
-nodeHashMap.place = new HashMap();
+// var nodeHashMap = {};
+// nodeHashMap.tweet = new HashMap();
+// nodeHashMap.hashtag = new HashMap();
+// nodeHashMap.media = new HashMap();
+// nodeHashMap.user = new HashMap();
+// nodeHashMap.place = new HashMap();
 
 var maxHashtagRows = 25;
 var maxPlaceRows = 25;

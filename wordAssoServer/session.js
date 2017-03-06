@@ -66,8 +66,12 @@ var MAX_RX_QUEUE = 100;
 var MAX_WORDCHAIN_LENGTH = 100;
 var DEFAULT_MAX_AGE = 60000;
 var FORCE_MAX_AGE = 60000;
+var HISTOGRAM_MAX_AGE = 60000;
 var MEDIA_MAX_AGE = 60000;
 var DEFAULT_AGE_RATE = 1.0;
+
+var HISTOGRAMVIEW_DEFAULT = {};
+HISTOGRAMVIEW_DEFAULT.MAX_AGE = HISTOGRAM_MAX_AGE;
 
 var FORCEVIEW_DEFAULT = {};
 FORCEVIEW_DEFAULT.MAX_AGE = FORCE_MAX_AGE;
@@ -3221,7 +3225,6 @@ function loadViewType(svt, callback) {
       requirejs(["js/libs/sessionViewMedia"], function() {
         console.debug("sessionViewMedia LOADED");
 
-        // DEFAULT_FRICTION = FORCEVIEW_DEFAULT.FRICTION;
         DEFAULT_COLLISION_RADIUS_MULTIPLIER = MEDIAVIEW_DEFAULT.COLLISION_RADIUS_MULTIPLIER;
         DEFAULT_COLLISION_ITERATIONS = MEDIAVIEW_DEFAULT.COLLISION_ITERATIONS;
         DEFAULT_MAX_AGE = MEDIAVIEW_DEFAULT.MAX_AGE;
@@ -3252,6 +3255,7 @@ function loadViewType(svt, callback) {
       config.forceViewMode = "flow";
       requirejs(["js/libs/sessionViewHistogram"], function() {
         console.debug("sessionViewHistogram LOADED");
+        DEFAULT_MAX_AGE = HISTOGRAMVIEW_DEFAULT.MAX_AGE;
         currentSessionView = new ViewHistogram();
         initSocketNodeRx();
         callback();
@@ -3262,9 +3266,6 @@ function loadViewType(svt, callback) {
       config.forceViewMode = "web";
       requirejs(["js/libs/sessionViewForce"], function() {
         console.debug("sessionViewForce LOADED");
-
-
-        // DEFAULT_FRICTION = FORCEVIEW_DEFAULT.FRICTION;
         DEFAULT_COLLISION_RADIUS_MULTIPLIER = FORCEVIEW_DEFAULT.COLLISION_RADIUS_MULTIPLIER;
         DEFAULT_COLLISION_ITERATIONS = FORCEVIEW_DEFAULT.COLLISION_ITERATIONS;
         DEFAULT_MAX_AGE = FORCEVIEW_DEFAULT.MAX_AGE;
@@ -3274,7 +3275,6 @@ function loadViewType(svt, callback) {
         DEFAULT_LINK_DISTANCE= FORCEVIEW_DEFAULT.LINK_DISTANCE;
         DEFAULT_LINK_STRENGTH = FORCEVIEW_DEFAULT.LINK_STRENGTH;
         DEFAULT_FORCEY_MULTIPLIER = FORCEVIEW_DEFAULT.FORCEY_MULTIPLIER;
-
         currentSessionView = new ViewForce();
         initSocketNodeRx();
         callback();

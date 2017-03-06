@@ -8,7 +8,7 @@ function ViewHistogram() {
 
   var self = this;
   var defaultFadeDuration = 50;
-  var defaultPosDuration = 50;
+  var defaultPosDuration = 150;
 
   // var t = d3.transition()
   //     .duration(100);
@@ -109,9 +109,8 @@ function ViewHistogram() {
     }
   }, true);
 
-  var nodeLabelOpacityScale = d3.scaleLinear().domain([1e-6, 1.0]).range([1.0, 0.1]);
+  var nodeLabelOpacityScale = d3.scaleLinear().domain([1e-6, 0.1, 1.0]).range([1.0, 0.4, 0.1]);
   var adjustedAgeRateScale = d3.scaleLinear().domain([1, MAX_NODES]).range([1.0, 10.0]);
-  var nodeFontSizeScale = d3.scaleLinear().domain([1, 1000000]).range([minFontSize, maxFontSize]);
 
   console.log("@@@@@@@ CLIENT @@@@@@@@");
 
@@ -372,12 +371,7 @@ function ViewHistogram() {
     }
 
     if (ageNodesIndex < 0) {
-      // console.debug("call rankHashMapByValue");
       rankHashMapByValue(localNodeHashMap, "mentions", function(hmap){
-        // hmap.forEach(function(value, key){
-
-          // console.info(hmap.get(key).rank + " | " + hmap.get(key).mentions + " | " + key);
-        // });
         callback(null, deadNodeFlag);
       });
     }
@@ -413,10 +407,10 @@ function ViewHistogram() {
     }
   };
 
-  var updateNodeLabels = function() {
+  var updateNodeLabels = function(callback) {
 
     nodeLabels = nodeLabelSvgGroup.selectAll("text")
-      .data(nodes, function(d) { return d; });
+      .data(nodes, function(d) { return d.nodeId; });
 
     nodeLabels
       .exit()
@@ -427,8 +421,8 @@ function ViewHistogram() {
       .attr("class", "update")
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)
-      .attr("x", xposition)
-      .attr("y", yposition)
+      // .attr("x", xposition)
+      // .attr("y", yposition)
       .style('fill', function(d) { 
         if (d.mouseHoverFlag) { return palette.blue; }
         return palette.white; 
@@ -436,7 +430,11 @@ function ViewHistogram() {
       .style('opacity', function(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
         return nodeLabelOpacityScale(d.ageMaxRatio); 
-      });
+      })
+      .transition()
+        .duration(defaultPosDuration)
+        .attr("x", xposition)
+        .attr("y", yposition);
 
     nodeLabels
       .enter().append("text")
@@ -457,8 +455,12 @@ function ViewHistogram() {
         if (d.mouseHoverFlag) { return palette.blue; }
         return palette.white; 
       })
-      .style("font-size", minFontSize);
+      .style("font-size", minFontSize)
+      .transition()
+        .duration(defaultPosDuration)
+        .attr("y", yposition);
 
+      callback(null, null);
   };
 
   var nodeMouseOver = function (d) {
@@ -488,7 +490,6 @@ function ViewHistogram() {
     divTooltip.html(tooltipString)
       .style("left", (d3.event.pageX - 40) + "px")
       .style("top", (d3.event.pageY - 50) + "px");
-
   };
 
   function nodeMouseOut(d) {
@@ -507,7 +508,6 @@ function ViewHistogram() {
       break;
     }
   }
-
 
   function addNodeEnabled (){
     if (nodes.length < MAX_NODES) {
@@ -540,7 +540,8 @@ function ViewHistogram() {
     var newNode;
     var currentNode;
 
-    while ((nodeAddQ.length > 0) && (addNodeEnabled() || (nodeAddQ[0].nodeType === "tweet"))) {
+    // if ((nodeAddQ.length > 0) && addNodeEnabled()) {
+    if (nodeAddQ.length > 0) {
 
       nodesModifiedFlag = false;
 
@@ -550,62 +551,51 @@ function ViewHistogram() {
       newNode = nodeAddObj.node;
       currentNode = {};
 
-      switch (nodeAddObj.op) {
-
-        case "add":
-
-          if (localNodeHashMap.has(newNode.nodeId)){
-            currentNode = localNodeHashMap.get(newNode.nodeId);
-            currentNode.newFlag = true;
-            currentNode.age = 1e-6;
-            currentNode.ageMaxRatio = 1e-6;
-          }
-          else {
-            nodesModifiedFlag = true;
-            currentNode = newNode;
-            currentNode.rank = 100;
-            currentNode.newFlag = true;
-            currentNode.age = 1e-6;
-            currentNode.ageMaxRatio = 1e-6;
-            currentNode.x = randomIntFromInterval(0.45 * width, 0.55 * width);
-            currentNode.y = randomIntFromInterval(0.45 * height, 0.55 * height);
-          }
-
-          currentNode.mentions = newNode.mentions;
-          currentNode.ageUpdated = moment().valueOf();
-
-          if ((newNode.nodeType === "hashtag") && (newNode.mentions > currentHashtagMaxMentions)){
-            currentHashtagMaxMentions = newNode.mentions;
-            console.info("NEW MAX Ms" 
-              + " | " + currentHashtagMaxMentions 
-              + " | " + currentNode.nodeType 
-              + " | " + currentNode.text 
-            );
-          }
-
-          if (nodesModifiedFlag) {
-            nodes.push(currentNode);
-          }
-
-          localNodeHashMap.set(currentNode.nodeId, currentNode);
-
-          if (nodes.length > maxNumberNodes) {
-            maxNumberNodes = nodes.length;
-          }
-
-        break;
-
-        default:
-          console.error("??? UNKNOWN NODE UPDATE Q OP: " + nodeAddObj.op);
+      if (localNodeHashMap.has(newNode.nodeId)){
+        currentNode = localNodeHashMap.get(newNode.nodeId);
+        currentNode.newFlag = true;
+        currentNode.age = 1e-6;
+        currentNode.ageMaxRatio = 1e-6;
       }
+      else {
+        nodesModifiedFlag = true;
+        currentNode = newNode;
+        // currentNode.rank = 100;
+        currentNode.newFlag = true;
+        currentNode.age = 1e-6;
+        currentNode.ageMaxRatio = 1e-6;
+        // currentNode.x = randomIntFromInterval(0.45 * width, 0.55 * width);
+        // currentNode.y = randomIntFromInterval(0.45 * height, 0.55 * height);
+      }
+
+      currentNode.mentions = newNode.mentions;
+      currentNode.ageUpdated = moment().valueOf();
+
+      if ((newNode.nodeType === "hashtag") && (newNode.mentions > currentHashtagMaxMentions)){
+        currentHashtagMaxMentions = newNode.mentions;
+        console.info("NEW MAX Ms" 
+          + " | " + currentHashtagMaxMentions 
+          + " | " + currentNode.nodeType 
+          + " | " + currentNode.text 
+        );
+      }
+
+      if (nodesModifiedFlag) { nodes.push(currentNode); }
+
+      localNodeHashMap.set(currentNode.nodeId, currentNode);
+
+      if (nodes.length > maxNumberNodes) {
+        maxNumberNodes = nodes.length;
+      }
+
     }
 
-    if ((nodeAddQ.length === 0) || !addNodeEnabled()){
+    // if ((nodeAddQ.length === 0) || !addNodeEnabled()){
       callback(null, nodesModifiedFlag);
-    }
+    // }
   };
 
-  var yposition = function (d){
+  function yposition(d){
     var rowNum = d.rank % maxHashtagRows;
     var value = hashtagTopMargin + (rowNum * rowSpacing);
     return value + "%";
@@ -617,25 +607,31 @@ function ViewHistogram() {
     return value + "%" ;
   }
 
-  function ticked() {
-    drawSimulation(function(){
-      updateSimulation(function(){});
-    });
-  }
-  function drawSimulation(callback){
-    updateNodeLabels();
-    callback();
-  }
+  // function ticked() {
+  //   drawSimulation(function(){
+  //     updateSimulation();
+  //   });
+  // }
 
-  function updateSimulation(callback) {
+  // function drawSimulation(callback){
+  //   updateNodeLabels();
+  //   callback();
+  // }
+
+  var updateReady = true;
+
+  function update() {
+
+    updateReady = false;
+
     async.series(
       {
         addNode: processNodeAddQ,
         ageNode: ageNodes,
+        updateNodeLabels: updateNodeLabels
       },
       function(err, results) {
-        simulation.nodes(nodes);
-        if (typeof callback !== 'undefined') {callback();}
+        updateReady = true;
       }
     );
   }
@@ -660,33 +656,11 @@ function ViewHistogram() {
     }
   };
 
-  this.addGroup = function(nNode) {
-
-    var newNode = nNode;
-    newNode.newFlag = true;
-
-      console.debug("N> " + newNode.nodeId + " | " + newNode.nodeType);
-
-    if (nodeAddQ.length < MAX_RX_QUEUE) {nodeAddQ.push({op:'add', node: newNode});}
-
-    if (nodeAddQ.length > maxNodeAddQ) {
-      maxNodeAddQ = nodeAddQ.length;
-      console.info("NEW MAX NODE ADD Q: " + maxNodeAddQ);
-    }
-  };
-
   var localSessionHashMap = {};
 
-  this.addSession = function(sess) {
-  };
-
-  this.deleteNode = function(nodeId) {
-    nodeDeleteQ.push({op:'delete', nodeId: nodeId});
-  };
-
   this.initD3timer = function() {
-    simulation = d3.forceSimulation(nodes)
-      .on("tick", ticked);
+    // simulation = d3.forceSimulation(nodes)
+    //   .on("tick", ticked);
   };
 
   this.simulationControl = function(op) {
@@ -698,39 +672,28 @@ function ViewHistogram() {
       break;
       case 'START':
         console.debug("SIMULATION CONTROL | OP: " + op);
-        self.initD3timer();
-        simulation.alphaTarget(0.7).restart();
         runningFlag = true;
       break;
       case 'RESUME':
         console.debug("SIMULATION CONTROL | OP: " + op);
-        // self.initD3timer();
         runningFlag = true;
-        simulation.alphaTarget(0.7).restart();
       break;
       case 'FREEZE':
         console.debug("SIMULATION CONTROL | OP: " + op);
         if (!freezeFlag){
           freezeFlag = true;
-          simulation.alpha(0);
-          simulation.stop();
         }
       break;
       case 'PAUSE':
         console.debug("SIMULATION CONTROL | OP: " + op);
         runningFlag = false;
-        simulation.alpha(0);
-        simulation.stop();
       break;
       case 'STOP':
         console.debug("SIMULATION CONTROL | OP: " + op);
         runningFlag = false;
-        simulation.alpha(0);
-        simulation.stop();
       break;
       case 'RESTART':
         // console.debug("SIMULATION CONTROL | OP: " + op);
-        simulation.alphaTarget(0.7).restart();
         runningFlag = true;
       break;
       default:
@@ -806,4 +769,8 @@ function ViewHistogram() {
     self.resize();
     self.resetDefaultForce();
   };
+
+  setInterval(function(){
+    if (updateReady) update();
+  }, 100);
 }

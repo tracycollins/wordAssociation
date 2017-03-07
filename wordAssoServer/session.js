@@ -1901,12 +1901,12 @@ function initSocketNodeRx(){
     if (((nNode.nodeType !== "hashtag") && (nNode.nodeType !== "word")) && (config.sessionViewType === "histogram")) {return;}
     if ((nNode.nodeType !== "user") && (nNode.nodeType !== "media") && (config.sessionViewType === "media")) {return;}
 
-    console.log("N< " 
-      + nNode.nodeType 
-      + " | " + nNode.nodeId 
-      + " | " + nNode.isKeyword
-      + "\n" + jsonPrint(nNode.keywords)
-    );
+    // console.log("N< " 
+    //   + nNode.nodeType 
+    //   + " | " + nNode.nodeId 
+    //   + " | " + nNode.isKeyword
+    //   + "\n" + jsonPrint(nNode.keywords)
+    // );
 
     var dateNow = moment().valueOf();
 
@@ -2132,7 +2132,7 @@ function sum( obj ) {
 var randomNumber360 = 180;
 
 var getKeywordColor = function(keywordsObj){
-  console.log("getKeywordColor: " + keywordsObj);
+  // console.log("getKeywordColor: " + keywordsObj);
   return keywordColorHashMap.get(keywordsObj);
 }
 

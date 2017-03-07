@@ -2166,38 +2166,35 @@ function dbUpdateEntity(entityObj, incMentions, callback) {
 function checkKeyword(w, callback) {
 
   var wordObj = {};
+  wordObj.isKeyword = false;    
+  wordObj.keywords = {};    
   wordObj = w;
 
   if (keywordHashMap.has(wordObj.nodeId.toLowerCase())) {
     var kw = keywordHashMap.get(wordObj.nodeId.toLowerCase());
     wordObj.isKeyword = true;
-    wordObj.keywords = {};    
     wordObj.keywords[kw] = true;    
     callback(wordObj);
   }
   else if (wordObj.text && keywordHashMap.has(wordObj.text.toLowerCase())) {
     var kw = keywordHashMap.get(wordObj.text.toLowerCase());
     wordObj.isKeyword = true;
-    wordObj.keywords = {};    
     wordObj.keywords[kw] = true;    
     callback(wordObj);
   }
   else if (serverKeywordHashMap.has(wordObj.nodeId.toLowerCase())) {
     var kw = serverKeywordHashMap.get(wordObj.nodeId.toLowerCase());
     wordObj.isKeyword = true;
-    wordObj.keywords = {};    
     wordObj.keywords[kw] = true;    
     callback(wordObj);
   }
   else if (wordObj.text && serverKeywordHashMap.has(wordObj.text.toLowerCase())) {
     var kw = serverKeywordHashMap.get(wordObj.text.toLowerCase());
     wordObj.isKeyword = true;
-    wordObj.keywords = {};    
     wordObj.keywords[kw] = true;    
     callback(wordObj);
   }
   else {
-    wordObj.isKeyword = false;
     callback(wordObj);
   }
 }
@@ -7242,6 +7239,8 @@ function createSession(newSessionObj) {
   socket.on("node", function(rxNodeObj) {
 
     debug("TW< " + rxNodeObj.nodeType + " | " + rxNodeObj.nodeId + " | " + rxNodeObj.mentions);
+
+    if (!nodeObj.keywords) nodeObj.keywords = {};
 
     checkKeyword(rxNodeObj, function(nodeObj){
 

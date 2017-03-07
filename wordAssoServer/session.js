@@ -960,8 +960,6 @@ socket.on("VIEWER_ACK", function(vSesKey) {
 
   statsObj.viewerSessionKey = vSesKey;
 
-  store.set('stats', statsObj);
-
   if (sessionMode) {
     console.log("SESSION MODE" + " | SID: " + sessionId + " | NSP: " + namespace);
     var tempSessionId = "/" + namespace + "#" + sessionId;
@@ -976,7 +974,6 @@ socket.on("VIEWER_ACK", function(vSesKey) {
 
 socket.on("reconnect", function() {
   statsObj.socketId = socket.id;
-  store.set('stats', statsObj);
   statsObj.serverConnected = true;
   // displayStats(true, 'white');
   console.log("RECONNECTED TO HOST | SOCKET ID: " + socket.id);
@@ -992,7 +989,6 @@ socket.on("reconnect", function() {
 
 socket.on("connect", function() {
   statsObj.socketId = socket.id;
-  store.set('stats', statsObj);
   statsObj.serverConnected = true;
   console.log("CONNECTED TO HOST | SOCKET ID: " + socket.id);
 });
@@ -1009,7 +1005,6 @@ socket.on("disconnect", function() {
     sessionDeleteHashMap.clear();
     currentSessionView.resize();
     updateSessionsReady = true;
-    store.set('stats', statsObj);
   });
 });
 
@@ -1028,7 +1023,6 @@ socket.on("error", function(error) {
     sessionDeleteHashMap.clear();
     currentSessionView.resize();
     updateSessionsReady = true;
-    store.set('stats', statsObj);
   });
 });
 
@@ -1047,7 +1041,6 @@ socket.on("connect_error", function(error) {
     sessionDeleteHashMap.clear();
     currentSessionView.resize();
     updateSessionsReady = true;
-    store.set('stats', statsObj);
   });
 });
 
@@ -1065,7 +1058,6 @@ socket.on("reconnect_error", function(error) {
     groupHashMap.clear();
     sessionDeleteHashMap.clear();
     currentSessionView.resize();
-    store.set('stats', statsObj);
     updateSessionsReady = true;
   });
 });
@@ -1815,7 +1807,6 @@ socket.on("SESSION_ABORT", function(rxSessionObject) {
     statsObj.serverConnected = false;
     statsObj.socketId = 'ABORTED';
     socket.disconnect();
-    store.set('stats', statsObj);
   }
 });
 
@@ -1840,18 +1831,17 @@ socket.on("SESSION_DELETE", function(rxSessionObject) {
 
     if (sessionHashMap.has(rxSessionObject.session.nodeId)) {
 
+      var session = sessionHashMap.get(rxSessionObject.session.nodeId);
+      sessionDeleteHashMap.set(rxSessionObject.session.nodeId, 1);
+      session.sessionEvent = "SESSION_DELETE";
+      rxSessionDeleteQueue.push(session);
+
       console.log("SESSION_DELETE" 
         + " | " + rxSessionObject.session.nodeId
         // + " | " + rxSessionObject.sessionId 
         + " | " + rxSessionObject.sessionEvent
         // + "\n" + jsonPrint(rxSessionObject)
       );
-
-      var session = sessionHashMap.get(rxSessionObject.session.nodeId);
-      sessionDeleteHashMap.set(rxSessionObject.session.nodeId, 1);
-      session.sessionEvent = "SESSION_DELETE";
-      rxSessionDeleteQueue.push(session);
-      store.set('stats', statsObj);
 
     }
 
@@ -1870,7 +1860,7 @@ socket.on("USER_SESSION", function(rxSessionObject) {
 
 socket.on("SESSION_UPDATE", function(rxSessionObject) {
 
-  // console.debug("SES UPDATE: " + rxSessionObject.action + " | " + rxSessionObject.sessionId);
+  console.debug("SES UPDATE: " + rxSessionObject.action + " | " + rxSessionObject.sessionId);
 
 
   if (!windowVisible || config.pauseFlag) {
@@ -1904,9 +1894,10 @@ function initSocketNodeRx(){
   socket.on("node", function(nNode) {
 
     if (!windowVisible || config.pauseFlag) {return;}
-    if ((nNode.nodeType !== "hashtag") && (config.sessionViewType === "histogram")) {return;}
+    if (((nNode.nodeType !== "hashtag") && (nNode.nodeType !== "word")) && (config.sessionViewType === "histogram")) {return;}
     if ((nNode.nodeType !== "user") && (nNode.nodeType !== "media") && (config.sessionViewType === "media")) {return;}
-    // console.log("N< " + nNode.nodeType + " | " + nNode.nodeId + " | " + nNode.mentions);
+
+    console.log("N< " + nNode.nodeType + " | " + nNode.nodeId + " | " + nNode.mentions);
 
     var dateNow = moment().valueOf();
 
@@ -1955,7 +1946,6 @@ function initSocketNodeRx(){
     }
 
     currentSessionView.addNode(newNode);
-
   });
 
   socket.on('STATS_HASHTAG', function(htStatsObj){
@@ -2034,13 +2024,13 @@ var processSessionQueues = function(callback) {
   else {
     var session = rxSessionUpdateQueue.shift();
 
-    if (config.forceViewMode == 'web') {
+    if ((config.sessionViewType == 'histogram') || (config.forceViewMode == 'web')) {
       // session.nodeId = session.tags.entity.toLowerCase();
       session.tags.entity = session.tags.entity.toLowerCase();
       session.tags.channel = session.tags.channel.toLowerCase();
     }
     else {
-      session.nodeId = session.tags.entity.toLowerCase() + "_" + session.tags.channel.toLowerCase();
+      session.nodeId = session.tags.entity.toLowerCase() + "_delete+ session.tags.channel.toLowerCase()";
       session.tags.entity = session.tags.entity.toLowerCase();
       session.tags.channel = session.tags.channel.toLowerCase();
     }
@@ -2058,12 +2048,6 @@ var processSessionQueues = function(callback) {
     }
 
     if (typeof session.tags.group.groupId !== 'undefined') {
-      // console.log("G"
-      //   + " | " + session.nodeId
-      //   // + " | " + session.tags.group.url
-      //   + " | " + session.tags.group.groupId
-      //   // + "\nTAGS\n" + jsonPrint(session.tags)
-      // );
       groupCreateQueue.push(session);
     }
     else if (session.tags.group.entityId){
@@ -2096,38 +2080,15 @@ var processSessionQueues = function(callback) {
 var processNodeDeleteQueue = function(callback) {
   
   while (nodeDeleteQueue.length > 0) {
-  //   return (callback(null, "processNodeDeleteQueue"));
-  // } else {
-
     var deletedNodeId = nodeDeleteQueue.shift();
-
-    // console.error("processNodeDeleteQueue: DELETE NODE: " + deletedNodeId);
 
     removeFromHashMap(nodeHashMap, deletedNodeId, function(deletedNode) {
       if (deletedNode) {
-        // console.error("processNodeDeleteQueue: DELETED NODE: " + deletedNodeId);
-      // return (callback(null, "processNodeDeleteQueue"));
       }
     });
     removeFromHashMap(sessionHashMap, deletedNodeId, function(deletedSession) {
-      // if (deletedSession) {
-      //   console.error("processNodeDeleteQueue: DELETED SESSION: " + deletedNodeId);
-      //   // return (callback(null, "processNodeDeleteQueue"));
-      // }
     });
     removeFromHashMap(groupHashMap, deletedNodeId, function(deletedGroup) {
-      // if (deletedGroup) {
-        // console.error("processNodeDeleteQueue: DELETED GROUP: " + deletedNodeId);
-        // var linkKeys = Object.keys(deletedGroup.node.links);
-        // linkKeys.forEach(function(deadLinkId){
-        //   removeFromHashMap(linkHashMap, deadLinkId, function(deletedLink) {
-        //     console.error("processNodeDeleteQueue: DELETED GROUP LINK"
-        //       + " | " + deadLinkId
-        //       + "\n" + + jsonPrint(deletedLink)
-        //     );
-        //   });
-        // });
-      // }
     });
 
   }
@@ -2137,16 +2098,10 @@ var processNodeDeleteQueue = function(callback) {
 var processLinkDeleteQueue = function(callback) {
   
   while (linkDeleteQueue.length > 0) {
-  //   return (callback(null, "processNodeDeleteQueue"));
-  // } else {
 
     var deletedLinkId = linkDeleteQueue.shift();
 
-    // console.error("processNodeDeleteQueue: DELETE NODE: " + deletedNodeId);
-
     removeFromHashMap(linkHashMap, deletedLinkId, function() {
-      // console.error("processNodeDeleteQueue: DELETED: " + deletedNodeId);
-      // return (callback(null, "processNodeDeleteQueue"));
     });
 
   }
@@ -2682,7 +2637,7 @@ var createNode = function(callback) {
       }
     }
     else if (config.sessionViewType == 'histogram'){
-      sourceNodeId = session.source.nodeId + "_" + moment().valueOf();
+      sourceNodeId = session.source.nodeId;
     }
     else if ((config.sessionViewType == 'ticker') 
       || (config.sessionViewType == 'flow')
@@ -2710,6 +2665,7 @@ var createNode = function(callback) {
           //   // && (config.sessionViewType != 'force') 
           //   || session.source.isIgnored) {
           if ((config.sessionViewType != 'ticker') 
+            && (config.sessionViewType != 'histogram') 
             && (config.sessionViewType != 'flow') 
             && (config.sessionViewType != 'force') 
             && (config.sessionViewType != 'media') 
@@ -3124,7 +3080,8 @@ function updateSessions() {
 
   updateSessionsReady = false;
 
-  if ((config.sessionViewType === 'histogram') || (config.forceViewMode === 'web')) {
+  // if ((config.sessionViewType === 'histogram') || (config.forceViewMode === 'web')) {
+  if (config.forceViewMode === 'web') {
 
   }
   else {
@@ -3192,10 +3149,15 @@ function clearUpdateSessionsInterval() {
 }
 
 function initUpdateSessionsInterval(interval) {
+
+  console.debug("initUpdateSessionsInterval: " + interval);
+
   clearInterval(updateSessionsInterval);
+
   updateSessionsInterval = setInterval(function() {
     if (updateSessionsReady) updateSessions();
   }, interval);
+
 }
 
 requirejs.onError = function(err) {
@@ -3378,8 +3340,6 @@ function initialize(callback) {
               currentSessionView.setNodeMaxAge(MEDIA_MAX_AGE);
             }
 
-            store.set('config', config);
-
             currentSessionView.initD3timer();
 
             initStatsUpdate(1000);
@@ -3442,8 +3402,6 @@ function initialize(callback) {
                 console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
               });
             }
-
-            store.set('config', config);
 
             currentSessionView.simulationControl('START');
             currentSessionView.resize();
@@ -3510,8 +3468,6 @@ function initialize(callback) {
               console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
             });
           }
-
-          store.set('config', config);
 
           currentSessionView.initD3timer();
           currentSessionView.resize();

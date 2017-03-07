@@ -851,7 +851,7 @@ var viewerObj = {
   userId: 'VIEWER_RANDOM_' + randomId,
   viewerId: 'VIEWER_RANDOM_' + randomId,
   screenName: 'VIEWER RANDOM ' + randomId,
-  type: "VIEWER",
+  type: "VIEWER"
 };
 
 // var initialPositionIndex = 0;
@@ -860,17 +860,7 @@ var initialXpositionRatio = 0.7;
 var initialYpositionRatio = 0.4;
 
 function computeInitialPosition(index) {
-  // var radiusX = 0.2*currentSessionView.getWidth();
-  // var radiusY = 0.2*currentSessionView.getHeight();
-  // var radiusX = 0.1*width;
-  // var radiusY = 0.1*height;
   var pos = {
-    // x: ((initialXpositionRatio * 1000) + (radiusX * Math.cos(index))),
-    // y: ((initialYpositionRatio * 1000) + (radiusY * Math.cos(index)))
-    // x: ((initialXpositionRatio * currentSessionView.getWidth()) - (radiusX * Math.abs(Math.cos(index)))),
-    // y: ((initialYpositionRatio * currentSessionView.getHeight()) + (radiusY * Math.cos(index)))
-    // x: 500,
-    // y: 500
     x: randomIntFromInterval(0.7 * currentSessionView.getWidth(), 0.75 * currentSessionView.getWidth()),
     y: randomIntFromInterval(0.3 * currentSessionView.getHeight(), 0.7 * currentSessionView.getHeight())
   };

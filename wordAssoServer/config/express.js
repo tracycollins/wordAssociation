@@ -14,13 +14,6 @@ module.exports = function() {
 
 	app.use(bodyParser.json());
 
-	// app.use(session({
-	// 	saveUninitialized: true,
-	// 	resave: true,
-	// 	secret: 'OurSuperSecretCookieSecret',
-	//     store: new MongoStore({ db: config.wordAssoDb })  // should probably move MongoStore to separate database
-	// }));
-
 	app.set('views', './app/views');
 	app.set('view engine', 'ejs');
 

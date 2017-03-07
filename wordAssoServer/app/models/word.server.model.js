@@ -74,7 +74,7 @@ var WordSchema = new Schema({
 		default: false
 	},
 	wapiResults: {
-		type: Object,
+		type: Object
 	},
 	bhtSearched: {
 		type: Boolean,

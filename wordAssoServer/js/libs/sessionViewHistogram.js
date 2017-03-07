@@ -9,6 +9,7 @@ function ViewHistogram() {
   var self = this;
 
   var MAX_NODES = 125;
+  var NEW_NODE_AGE_RATIO = 0.1;
   var removeDeadNodesFlag = true;
 
   var defaultFadeDuration = 50;
@@ -354,6 +355,7 @@ function ViewHistogram() {
       else {
         node.ageUpdated = moment().valueOf();
         node.age = age;
+        node.newFlag = (ageMaxRatio > NEW_NODE_AGE_RATIO) ? false : true ;
         node.ageMaxRatio = ageMaxRatio;
         node.isDead = false;
         nodes[ageNodesIndex] = node;

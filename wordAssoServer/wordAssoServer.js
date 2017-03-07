@@ -2166,9 +2166,9 @@ function dbUpdateEntity(entityObj, incMentions, callback) {
 function checkKeyword(w, callback) {
 
   var wordObj = {};
+  wordObj = w;
   wordObj.isKeyword = false;    
   wordObj.keywords = {};    
-  wordObj = w;
 
   if (keywordHashMap.has(wordObj.nodeId.toLowerCase())) {
     var kw = keywordHashMap.get(wordObj.nodeId.toLowerCase());

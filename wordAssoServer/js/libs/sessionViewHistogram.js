@@ -18,9 +18,9 @@ function ViewHistogram() {
   var hashtagLeftMargin = 10; // %
   var hashtagColMargin = 10;
 
-  var maxHashtagRows = 20;
-  var maxHashtagCols = 4;
-  var rowSpacing = 4; // %
+  var maxHashtagRows = 25;
+  var maxHashtagCols = 5;
+  var rowSpacing = 3; // %
   var colSpacing = 90/maxHashtagCols; // %
 
   var maxRecentHashtags = maxHashtagRows ;
@@ -94,7 +94,7 @@ function ViewHistogram() {
 
   var currentHashtagMaxMentions = 2;
 
-  var minFontSize = "1em";
+  var minFontSize = "1.5em";
   var maxFontSize = 30;
 
   var deadNodesHash = {};
@@ -322,7 +322,6 @@ function ViewHistogram() {
 
     maxAgeRate = Math.max(ageRate, maxAgeRate);
 
-
     for (ageNodesIndex = ageNodesLength; ageNodesIndex >= 0; ageNodesIndex -= 1) {
 
       node = nodes[ageNodesIndex];
@@ -330,36 +329,15 @@ function ViewHistogram() {
       if (localNodeHashMap.has(node.nodeId)){
         nodeObj = localNodeHashMap.get(node.nodeId);
         node.rank = nodeObj.rank;
-        // if (nodeObj.newFlag) {
-        //   node.age = 1e-6;
-        //   node.rank = nodeObj.rank;
-        //   node.ageUpdated = moment().valueOf();
-        //   node.isDead = false;
-        //   node.newFlag = false;
-        //   localNodeHashMap.set(node.nodeId, node);
-        // }
       }
 
       age = node.age + randomIntFromInterval(10,100) + (ageRate * (moment().valueOf() - node.ageUpdated));
       ageMaxRatio = age/nodeMaxAge ;
 
       if (node.isDead || (age >= nodeMaxAge)) {
-        // deadNodesHash[node.nodeId] = 1;
-        // node.ageMaxRatio = 1.0;
-        // deadNodeFlag = true;
         localNodeHashMap.remove(node.nodeId);
         nodes.splice(ageNodesIndex, 1);
       } 
-      // else if (age >= nodeMaxAge) {
-        // node.ageUpdated = moment().valueOf();
-        // node.age = age;
-        // node.ageMaxRatio = 1.0;
-        // node.isDead = true;
-        // nodes[ageNodesIndex] = node;
-        // deadNodesHash[node.nodeId] = 1;
-        // deadNodeFlag = true;
-        // localNodeHashMap.set(node.nodeId, node);
-      // } 
       else {
         node.ageUpdated = moment().valueOf();
         node.age = age;
@@ -421,8 +399,6 @@ function ViewHistogram() {
       .attr("class", "update")
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)
-      // .attr("x", xposition)
-      // .attr("y", yposition)
       .style('fill', function(d) { 
         if (d.mouseHoverFlag) { return palette.blue; }
         return palette.white; 
@@ -540,7 +516,6 @@ function ViewHistogram() {
     var newNode;
     var currentNode;
 
-    // if ((nodeAddQ.length > 0) && addNodeEnabled()) {
     if (nodeAddQ.length > 0) {
 
       nodesModifiedFlag = false;
@@ -560,18 +535,15 @@ function ViewHistogram() {
       else {
         nodesModifiedFlag = true;
         currentNode = newNode;
-        // currentNode.rank = 100;
         currentNode.newFlag = true;
         currentNode.age = 1e-6;
         currentNode.ageMaxRatio = 1e-6;
-        // currentNode.x = randomIntFromInterval(0.45 * width, 0.55 * width);
-        // currentNode.y = randomIntFromInterval(0.45 * height, 0.55 * height);
       }
 
       currentNode.mentions = newNode.mentions;
       currentNode.ageUpdated = moment().valueOf();
 
-      if ((newNode.nodeType === "hashtag") && (newNode.mentions > currentHashtagMaxMentions)){
+      if (newNode.mentions > currentHashtagMaxMentions) {
         currentHashtagMaxMentions = newNode.mentions;
         console.info("NEW MAX Ms" 
           + " | " + currentHashtagMaxMentions 
@@ -590,9 +562,8 @@ function ViewHistogram() {
 
     }
 
-    // if ((nodeAddQ.length === 0) || !addNodeEnabled()){
-      callback(null, nodesModifiedFlag);
-    // }
+    callback(null, nodesModifiedFlag);
+
   };
 
   function yposition(d){
@@ -606,17 +577,6 @@ function ViewHistogram() {
     var value = hashtagLeftMargin + (colNum * colSpacing);
     return value + "%" ;
   }
-
-  // function ticked() {
-  //   drawSimulation(function(){
-  //     updateSimulation();
-  //   });
-  // }
-
-  // function drawSimulation(callback){
-  //   updateNodeLabels();
-  //   callback();
-  // }
 
   var updateReady = true;
 
@@ -641,7 +601,7 @@ function ViewHistogram() {
 
   this.addNode = function(nNode) {
 
-    if (nNode.nodeType !== "hashtag") { return;}
+    if (((nNode.nodeType !== "hashtag") && (nNode.nodeType !== "word")) || nNode.isIgnored) { return;}
 
     var newNode = nNode;
     newNode.newFlag = true;
@@ -654,6 +614,12 @@ function ViewHistogram() {
       maxNodeAddQ = nodeAddQ.length;
       console.info("NEW MAX NODE ADD Q: " + maxNodeAddQ);
     }
+  };
+
+  this.addGroup = function(gNode) {
+  };
+
+  this.addSession = function(gNode) {
   };
 
   var localSessionHashMap = {};

@@ -475,7 +475,6 @@ function ControlPanel() {
       text: 'NODES: ' + 0
     }
 
-
     switch (config.sessionViewType) {
 
       case 'force':
@@ -555,12 +554,11 @@ function ControlPanel() {
         break;
     }
 
-    self.updateControlPanel(config);
-
+    // self.updateControlPanel(config);
     if (callback) callback(dashboardMain);
   }
 
-  this.updateControlPanel = function (config) {
+  this.updateControlPanel = function (config, callback) {
 
     console.log("UPDATE CONTROL PANEL");
 
@@ -615,13 +613,19 @@ function ControlPanel() {
         document.getElementById("disableLinksToggleButton").style.border = "1px solid white";
       }
     }
+
+    if (callback) callback();
   }
 
   $( document ).ready(function() {
     console.log( "CONTROL PANEL DOCUMENT READY" );
     console.log( "CONTROL PANEL CONFIG\n" + jsonPrint(config) );
     self.createControlPanel(function(dashboard){
-      if (typeof parentWindow !== 'undefined') parentWindow.postMessage({op:'READY'}, DEFAULT_SOURCE);
+      self.updateControlPanel(config, function(){
+        if (typeof parentWindow !== 'undefined') {
+          parentWindow.postMessage({op:'READY'}, DEFAULT_SOURCE);
+        }
+      });
     });
   });
 

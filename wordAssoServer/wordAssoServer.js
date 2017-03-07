@@ -28,6 +28,9 @@ var wordStats = Measured.createCollection();
 wordStats.meter("wordsPerSecond", {rateUnit: 1000, tickInterval: 1000});
 wordStats.meter("wordsPerMinute", {rateUnit: 60000, tickInterval: 1000});
 
+wordStats.meter("obamaPerSecond", {rateUnit: 1000, tickInterval: 1000});
+wordStats.meter("obamaPerMinute", {rateUnit: 60000, tickInterval: 1000});
+
 wordStats.meter("trumpPerSecond", {rateUnit: 1000, tickInterval: 1000});
 wordStats.meter("trumpPerMinute", {rateUnit: 60000, tickInterval: 1000});
 
@@ -53,6 +56,11 @@ var wordsPerMinute = 0.0;
 var wordsPerSecond = 0.0;
 var maxWordsPerMin = 0;
 var maxWordsPerMinTime = moment.utc();
+
+var obamaPerSecond = 0.0;
+var obamaPerMinute = 0.0;
+var maxObamaPerMin = 0;
+var maxObamaPerMinTime = moment.utc();
 
 var trumpPerSecond = 0.0;
 var trumpPerMinute = 0.0;
@@ -2175,9 +2183,6 @@ function checkKeyword(w, callback) {
     var kwType = keywordHashMap.get(wordObj.nodeId.toLowerCase());
     wordObj.isKeyword = true;
     wordObj.keywords[wordObj.nodeId.toLowerCase()] = kwType;    
-    if (wordObj.nodeType == "hashtag") {
-      console.log("checkKeyword HT: " + jsonPrint(wordObj));
-    }
     callback(wordObj);
   }
   else if (wordObj.text && keywordHashMap.has(wordObj.text.toLowerCase())) {
@@ -6586,6 +6591,10 @@ configEvents.on("SERVER_READY", function() {
         maxWordsPerMin: maxWordsPerMin,
         maxWordsPerMinTime: maxWordsPerMinTime.valueOf(),
 
+        obamaPerMinute: obamaPerMinute,
+        maxObamaPerMin: maxObamaPerMin,
+        maxObamaPerMinTime: maxObamaPerMinTime.valueOf(),
+
         trumpPerMinute: trumpPerMinute,
         maxTrumpPerMin: maxTrumpPerMin,
         maxTrumpPerMinTime: maxTrumpPerMinTime.valueOf(),
@@ -7246,11 +7255,18 @@ function createSession(newSessionObj) {
 
     checkKeyword(rxNodeObj, function(nodeObj){
 
+      var obamaHit = false;
       var trumpHit = false;
 
       switch (nodeObj.nodeType) {
 
         case "tweet":
+          if (nodeObj.text.toLowerCase().includes("obama")) {
+            obamaHit = nodeObj.text;
+            nodeObj.isKeyword = true;
+            nodeObj.keywords[nodeObj.text.toLowerCase()] = "left";
+            console.log(chalkError("OBAMA: " + nodeObj.text));
+          }
           if (nodeObj.text.toLowerCase().includes("trump")) {
             trumpHit = nodeObj.text;
             nodeObj.isKeyword = true;
@@ -7264,6 +7280,16 @@ function createSession(newSessionObj) {
             console.log(chalkError("NODE NAME UNDEFINED?\n" + jsonPrint(nodeObj)));
           }
           else {
+            if (nodeObj.name.toLowerCase().includes("obama")) {
+              obamaHit = nodeObj.name;
+              nodeObj.isKeyword = true;
+              nodeObj.keywords[nodeObj.name.toLowerCase()] = "left";
+            }
+            if (nodeObj.screenName.toLowerCase().includes("obama")) {
+              obamaHit = nodeObj.screenName;
+              nodeObj.isKeyword = true;
+              nodeObj.keywords[nodeObj.screenName.toLowerCase()] = "left";
+            }
             if (nodeObj.name.toLowerCase().includes("trump")) {
               trumpHit = nodeObj.name;
               nodeObj.isKeyword = true;
@@ -7279,6 +7305,12 @@ function createSession(newSessionObj) {
         break;
 
         case "hashtag":
+          if (nodeObj.nodeId.toLowerCase().includes("obama")) {
+            obamaHit = nodeObj.nodeId;
+            nodeObj.isKeyword = true;
+            nodeObj.keywords[nodeObj.nodeId.toLowerCase()] = "left";
+            console.log(chalkError("OBAMA HT: " + nodeObj.nodeId));
+          }
           if (nodeObj.nodeId.toLowerCase().includes("trump")) {
             trumpHit = nodeObj.nodeId;
             nodeObj.isKeyword = true;
@@ -7286,13 +7318,30 @@ function createSession(newSessionObj) {
             console.log(chalkError("TRUMP HT: " + nodeObj.nodeId));
           }
           updateWordMeter({nodeId: nodeObj.nodeId.toLowerCase()});
-          console.log(chalkAlert("HT: " + jsonPrint(nodeObj)));
           viewNameSpace.emit("node", nodeObj);
         break;
 
         default:
           viewNameSpace.emit("node", nodeObj);
         break;
+      }
+
+      if (obamaHit) {
+
+        wordStats.meter('obamaPerSecond').mark();
+        wordStats.meter('obamaPerMinute').mark();
+
+        var wordStatsObj = wordStats.toJSON();
+
+        debug(chalkAlert("OBAMA"
+          + " | " + nodeObj.nodeType
+          + " | " + nodeObj.nodeId
+          + " | " + wordStatsObj.obamaPerSecond["1MinuteRate"].toFixed(0) 
+          + " | " + wordStatsObj.obamaPerSecond.currentRate.toFixed(0) 
+          + " | " + wordStatsObj.obamaPerMinute["1MinuteRate"].toFixed(0) 
+          + " | " + wordStatsObj.obamaPerMinute.currentRate.toFixed(0) 
+          + " | " + obamaHit
+        ));
       }
 
       if (trumpHit) {
@@ -7313,7 +7362,6 @@ function createSession(newSessionObj) {
         ));
       }
 
-
     });
 
   });
@@ -7324,6 +7372,23 @@ function createSession(newSessionObj) {
 
     wordStats.meter('wordsPerSecond').mark();
     wordStats.meter('wordsPerMinute').mark();
+
+    if (rxInObj.nodeId.includes("obama")) {
+ 
+      wordStats.meter('obamaPerSecond').mark();
+      wordStats.meter('obamaPerMinute').mark();
+
+      var wordStatsObj = wordStats.toJSON();
+
+      debug(chalkAlert("OBAMA"
+        + " | " + wordStatsObj.obamaPerSecond["1MinuteRate"].toFixed(0) 
+        + " | " + wordStatsObj.obamaPerSecond.currentRate.toFixed(0) 
+        + " | " + wordStatsObj.obamaPerMinute["1MinuteRate"].toFixed(0) 
+        + " | " + wordStatsObj.obamaPerMinute.currentRate.toFixed(0) 
+        + " | " + rxInObj.nodeId
+      ));
+
+    }
 
     if (rxInObj.nodeId.includes("trump")) {
  
@@ -7593,6 +7658,9 @@ function initRateQinterval(interval){
 
   clearInterval(rateQinterval);
 
+  obamaPerSecond = 0.0;
+  obamaPerMinute = 0.0;
+
   trumpPerSecond = 0.0;
   trumpPerMinute = 0.0;
 
@@ -7612,17 +7680,22 @@ function initRateQinterval(interval){
     wordsPerSecond = wordStatsObj.wordsPerSecond["1MinuteRate"];
     wordsPerMinute = wordStatsObj.wordsPerMinute["1MinuteRate"];
 
+    obamaPerSecond = wordStatsObj.obamaPerSecond["1MinuteRate"];
+    obamaPerMinute = wordStatsObj.obamaPerMinute["1MinuteRate"];
+
     trumpPerSecond = wordStatsObj.trumpPerSecond["1MinuteRate"];
     trumpPerMinute = wordStatsObj.trumpPerMinute["1MinuteRate"];
 
     debug(chalkWarn(moment.utc().format(compactDateTimeFormat)
       + " | WPS: " + wordsPerSecond.toFixed(2)
       + " | WPM: " + wordsPerMinute.toFixed(0)
+      + " | OPM: " + obamaPerMinute.toFixed(0)
       + " | TrPM: " + trumpPerMinute.toFixed(0)
     ));
 
     statsObj.wordsPerSecond = wordsPerSecond;
     statsObj.wordsPerMinute = wordsPerMinute;
+    statsObj.obamaPerMinute = obamaPerMinute;
     statsObj.trumpPerMinute = trumpPerMinute;
 
     if (wordsPerMinute > maxWordsPerMin) {
@@ -7631,6 +7704,14 @@ function initRateQinterval(interval){
       console.log(chalkAlert("NEW MAX WPM: " + wordsPerMinute.toFixed(0)));
       statsObj.maxWordsPerMin = wordsPerMinute;
       statsObj.maxWordsPerMinTime = moment.utc();
+    }
+
+    if (obamaPerMinute > maxObamaPerMin) {
+      maxObamaPerMin = obamaPerMinute;
+      maxObamaPerMinTime = moment.utc();
+      console.log(chalkAlert("NEW MAX OPM: " + obamaPerMinute.toFixed(0)));
+      statsObj.maxObamaPerMin = obamaPerMinute;
+      statsObj.maxObamaPerMinTime = moment.utc();
     }
 
     if (trumpPerMinute > maxTrumpPerMin) {
@@ -7748,6 +7829,19 @@ function initRateQinterval(interval){
 
         addMetricDataPoint(dataPoint, function(err, results){
           debug("WORD ALL\n" + jsonPrint(results));
+        });
+      }
+
+      // word/obama_per_minute
+      if (enableGoogleMetrics) {
+        var dataPoint = {};
+        
+        dataPoint.metricType = 'word/obama_per_minute';
+        dataPoint.value = obamaPerMinute;
+        dataPoint.metricLabels = {server_id: 'WORD'};
+
+        addMetricDataPoint(dataPoint, function(err, results){
+          // console.log("WORD OBAMA\n" + jsonPrint(results));
         });
       }
 

@@ -299,7 +299,7 @@ var viewerObj = {
   userId: 'VIEWER_RANDOM_' + randomId,
   viewerId: 'VIEWER_RANDOM_' + randomId,
   screenName: 'VIEWER RANDOM ' + randomId,
-  type: "VIEWER",
+  type: "VIEWER"
 };
 
 var mouseMoveTimeout = setTimeout(function(){

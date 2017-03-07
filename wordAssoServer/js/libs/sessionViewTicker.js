@@ -112,7 +112,7 @@ function ViewTicker() {
     'velocityDecay': DEFAULT_VELOCITY_DECAY,
     'linkStrength': DEFAULT_LINK_STRENGTH,
     'gravity': DEFAULT_GRAVITY,
-    'ageRate': window.DEFAULT_AGE_RATE,
+    'ageRate': window.DEFAULT_AGE_RATE
   };
   var charge = DEFAULT_CHARGE;
   var gravity = DEFAULT_GRAVITY;
@@ -127,7 +127,7 @@ function ViewTicker() {
   var defaultTextFill = "#888888";
 
   var DEFAULT_TICKER_CONFIG = {
-    'ageRate': window.DEFAULT_AGE_RATE,
+    'ageRate': window.DEFAULT_AGE_RATE
   };
 
   var ageRate = DEFAULT_TICKER_CONFIG.ageRate;
@@ -1791,7 +1791,7 @@ function ViewTicker() {
       x: 0.5 * width + randomIntFromInterval(0, 100),
       y: 0.5 * height + randomIntFromInterval(0, 100),
       age: 0,
-      lastSeen: dateNow,
+      lastSeen: dateNow
     }
 
     self.addNode(newNode);

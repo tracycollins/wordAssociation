@@ -7248,36 +7248,48 @@ function createSession(newSessionObj) {
       var trumpHit = false;
 
       switch (nodeObj.nodeType) {
+
         case "tweet":
           if (nodeObj.text.toLowerCase().includes("trump")) {
             trumpHit = nodeObj.text;
+            nodeObj.isKeyword = true;
+            nodeObj.keywords[nodeObj.text.toLowerCase()] = "right";
+            console.log(chalkError("TRUMP: " + nodeObj.text));
           }
         break;
+
         case "user":
           if (!nodeObj.name) {
             console.log(chalkError("NODE NAME UNDEFINED?\n" + jsonPrint(nodeObj)));
           }
           else {
-
-            // if (typeof nodeObj.name !== 'undefined') updateWordMeter({nodeId: nodeObj.name.toLowerCase()});
-            // if (typeof nodeObj.screenName !== 'undefined') updateWordMeter({nodeId: nodeObj.screenName.toLowerCase()});
-
             if (nodeObj.name.toLowerCase().includes("trump")) {
               trumpHit = nodeObj.name;
+              nodeObj.isKeyword = true;
+              nodeObj.keywords[nodeObj.name.toLowerCase()] = "right";
             }
             if (nodeObj.screenName.toLowerCase().includes("trump")) {
               trumpHit = nodeObj.screenName;
+              nodeObj.isKeyword = true;
+              nodeObj.keywords[nodeObj.screenName.toLowerCase()] = "right";
             }
+            viewNameSpace.emit("node", nodeObj);
           }
         break;
+
         case "hashtag":
           if (nodeObj.nodeId.toLowerCase().includes("trump")) {
             trumpHit = nodeObj.nodeId;
             nodeObj.isKeyword = true;
+            nodeObj.keywords[nodeObj.nodeId.toLowerCase()] = "right";
+            console.log(chalkError("TRUMP HT: " + nodeObj.nodeId));
           }
           updateWordMeter({nodeId: nodeObj.nodeId.toLowerCase()});
+          viewNameSpace.emit("node", nodeObj);
         break;
+
         default:
+          viewNameSpace.emit("node", nodeObj);
         break;
       }
 
@@ -7299,7 +7311,6 @@ function createSession(newSessionObj) {
         ));
       }
 
-      viewNameSpace.emit("node", nodeObj);
 
     });
 

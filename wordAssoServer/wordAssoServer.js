@@ -4785,7 +4785,7 @@ var readResponseQueue = setInterval(function() {
           sessionId: socketId
         });
         ready = true;
-        // return;
+        return;
       }
       else {
         debug(chalkError("currentSessionObj\n" + jsonPrint(currentSessionObj)));
@@ -7273,7 +7273,8 @@ function createSession(newSessionObj) {
             nodeObj.keywords[nodeObj.text.toLowerCase()] = "right";
             console.log(chalkError("TRUMP: " + nodeObj.text));
           }
-        break;
+          viewNameSpace.emit("node", nodeObj);
+      break;
 
         case "user":
           if (!nodeObj.name) {

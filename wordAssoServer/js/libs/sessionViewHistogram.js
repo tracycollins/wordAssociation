@@ -10,7 +10,7 @@ function ViewHistogram() {
 
   var MAX_NODES = 125;
   var NEW_NODE_AGE_RATIO = 0.02;
-  var fontSizeRatio = 0.01;
+  var fontSizeRatio = 0.025;
   var removeDeadNodesFlag = true;
 
   var defaultFadeDuration = 50;

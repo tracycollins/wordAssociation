@@ -94,11 +94,12 @@ function ViewHistogram() {
 
   var currentHashtagMaxMentions = 2;
 
-  var minFontSize = "1.5%";
 
   var deadNodesHash = {};
 
   console.log("width: " + window.innerWidth + " | height: " + window.innerHeight);
+
+  var minFontSize = 0.1 * window.innerHeight;
 
   document.addEventListener("mousemove", function() {
     if (mouseHoverFlag) {
@@ -721,6 +722,8 @@ function ViewHistogram() {
 
     console.log("width: " + width + " | height: " + height);
 
+    minFontSize = 0.1 * window.innerHeight;
+
     d3LayoutWidth = width; // double the width for now
     d3LayoutHeight = height;
 
@@ -731,19 +734,6 @@ function ViewHistogram() {
       .attr("x", 1e-6)
       .attr("y", 1e-6);
 
-    if (simulation){
-      // simulation.force("forceX", d3.forceX().x(function(d) { 
-      //     return 0.5*width; 
-      //   }).strength(function(d){
-      //     return 1*gravity; 
-      //   }));
-
-      // simulation.force("forceY", d3.forceY().y(function(d) { 
-      //     return 0.4*height; 
-      //   }).strength(function(d){
-      //     return forceYmultiplier * gravity; 
-      //   }));
-    }
   };
 
   // ==========================================

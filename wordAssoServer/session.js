@@ -178,6 +178,10 @@ var palette = {
 
 var ignoreWordsArray = [
   "в",
+  "e",
+  "o",
+  "del",
+  "un",
   "en",
   "'",
   "-",

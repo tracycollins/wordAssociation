@@ -2837,7 +2837,7 @@ function sessionUpdateDb(sessionObj, callback) {
     $max: {
       "connectTime": sessionObj.connectTime,
       "disconnectTime": sessionObj.disconnectTime
-    },
+    }
   };
 
   var options = {
@@ -3430,7 +3430,7 @@ function adminFindAllDb(options, callback) {
     createdAt: true,
     lastSeen: true,
     lastSession: true,
-    connected: true,
+    connected: true
   };
 
   Admin.find(query, projections, options, function(err, admins) {
@@ -3504,7 +3504,7 @@ function viewerFindAllDb(options, callback) {
     createdAt: true,
     lastSeen: true,
     lastSession: true,
-    connected: true,
+    connected: true
   };
 
   Viewer.find(query, projections, options, function(err, viewers) {

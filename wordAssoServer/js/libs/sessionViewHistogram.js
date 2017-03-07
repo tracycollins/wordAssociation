@@ -14,10 +14,6 @@ function ViewHistogram() {
   var defaultFadeDuration = 50;
   var defaultPosDuration = 150;
 
-  // var t = d3.transition()
-  //     .duration(100);
-      // .ease(d3.easeLinear);
-
   var hashtagTopMargin = 15; // %
   var hashtagLeftMargin = 10; // %
   var hashtagColMargin = 10;

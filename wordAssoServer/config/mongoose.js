@@ -14,17 +14,13 @@ module.exports = function() {
 				keepAlive: 1,
 				socketTimeoutMS: 180000,
 				connectTimeoutMS: 180000 
-			},
+			}
 		},
     db: {
 	    numberOfRetries: 1000,
 	    retryMiliSeconds: 1000
     }
 	};
-
-// module.exports = function() {
-	// var wordAssoDbwordAssoDb = mongoose.connect(config.wordAssoDb, options);
-
 	var wordAssoDb = mongoose.connect(config.wordAssoDb, options, function(error){
 		if (error) {
 			console.log('CONNECT FAILED: ERROR: MONGOOSE default connection open to ' + config.wordAssoDb);

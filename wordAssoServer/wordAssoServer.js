@@ -7240,8 +7240,6 @@ function createSession(newSessionObj) {
 
     debug("TW< " + rxNodeObj.nodeType + " | " + rxNodeObj.nodeId + " | " + rxNodeObj.mentions);
 
-    if (!nodeObj.keywords) nodeObj.keywords = {};
-
     checkKeyword(rxNodeObj, function(nodeObj){
 
       var trumpHit = false;

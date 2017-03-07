@@ -87,7 +87,7 @@ function ViewMedia() {
     'linkDistance': DEFAULT_LINK_DISTANCE,
     'gravity': DEFAULT_GRAVITY,
     'forceYmultiplier': DEFAULT_FORCEY_MULTIPLIER,
-    'ageRate': window.DEFAULT_AGE_RATE,
+    'ageRate': window.DEFAULT_AGE_RATE
   };
 
   var ageRate = DEFAULT_FLOW_CONFIG.ageRate;
@@ -2024,7 +2024,7 @@ function ViewMedia() {
       x: 0.5 * window.innerWidth + randomIntFromInterval(0, 100),
       y: 0.5 * window.innerHeight + randomIntFromInterval(0, 100),
       age: 0,
-      lastSeen: moment().valueOf(),
+      lastSeen: moment().valueOf()
     }
 
     newNode.links = {};

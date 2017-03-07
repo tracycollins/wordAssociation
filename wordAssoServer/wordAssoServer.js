@@ -118,6 +118,10 @@ var WAPI_REQ_RESERVE_PRCNT = 0.30;
 var SESSION_WORDCHAIN_REQUEST_LIMIT = 25;
 
 var ignoreWordsArray = [
+  "r",
+  "y",
+  "se",
+  "que",
   "el",
   "en",
   "la",
@@ -2159,17 +2163,34 @@ function dbUpdateEntity(entityObj, incMentions, callback) {
   });
 }
 
-function checkKeyword(wordObj, callback) {
+function checkKeyword(w, callback) {
 
-  if (keywordHashMap.has(wordObj.nodeId)) {
-    var kw = keywordHashMap.get(wordObj.nodeId);
+  var wordObj = {};
+  wordObj = w;
+
+  if (keywordHashMap.has(wordObj.nodeId.toLowerCase())) {
+    var kw = keywordHashMap.get(wordObj.nodeId.toLowerCase());
     wordObj.isKeyword = true;
     wordObj.keywords = {};    
     wordObj.keywords[kw] = true;    
     callback(wordObj);
   }
-  else if (serverKeywordHashMap.has(wordObj.nodeId)) {
-    var kw = serverKeywordHashMap.get(wordObj.nodeId);
+  else if (wordObj.text && keywordHashMap.has(wordObj.text.toLowerCase())) {
+    var kw = keywordHashMap.get(wordObj.text.toLowerCase());
+    wordObj.isKeyword = true;
+    wordObj.keywords = {};    
+    wordObj.keywords[kw] = true;    
+    callback(wordObj);
+  }
+  else if (serverKeywordHashMap.has(wordObj.nodeId.toLowerCase())) {
+    var kw = serverKeywordHashMap.get(wordObj.nodeId.toLowerCase());
+    wordObj.isKeyword = true;
+    wordObj.keywords = {};    
+    wordObj.keywords[kw] = true;    
+    callback(wordObj);
+  }
+  else if (wordObj.text && serverKeywordHashMap.has(wordObj.text.toLowerCase())) {
+    var kw = serverKeywordHashMap.get(wordObj.text.toLowerCase());
     wordObj.isKeyword = true;
     wordObj.keywords = {};    
     wordObj.keywords[kw] = true;    
@@ -7218,64 +7239,69 @@ function createSession(newSessionObj) {
     });
   });
 
-  socket.on("node", function(nodeObj) {
+  socket.on("node", function(rxNodeObj) {
 
-    debug("TW< " + nodeObj.nodeType + " | " + nodeObj.nodeId + " | " + nodeObj.mentions);
+    debug("TW< " + rxNodeObj.nodeType + " | " + rxNodeObj.nodeId + " | " + rxNodeObj.mentions);
 
-    viewNameSpace.emit("node", nodeObj);
+    checkKeyword(rxNodeObj, function(nodeObj){
 
-    var trumpHit = false;
+      var trumpHit = false;
 
-    switch (nodeObj.nodeType) {
-      case "tweet":
-        if (nodeObj.text.toLowerCase().includes("trump")) {
-          trumpHit = nodeObj.text;
-        }
-      break;
-      case "user":
-        if (!nodeObj.name) {
-          console.log(chalkError("NODE NAME UNDEFINED?\n" + jsonPrint(nodeObj)));
-        }
-        else {
-
-          // if (typeof nodeObj.name !== 'undefined') updateWordMeter({nodeId: nodeObj.name.toLowerCase()});
-          // if (typeof nodeObj.screenName !== 'undefined') updateWordMeter({nodeId: nodeObj.screenName.toLowerCase()});
-
-          if (nodeObj.name.toLowerCase().includes("trump")) {
-            trumpHit = nodeObj.name;
+      switch (nodeObj.nodeType) {
+        case "tweet":
+          if (nodeObj.text.toLowerCase().includes("trump")) {
+            trumpHit = nodeObj.text;
           }
-          if (nodeObj.screenName.toLowerCase().includes("trump")) {
-            trumpHit = nodeObj.screenName;
+        break;
+        case "user":
+          if (!nodeObj.name) {
+            console.log(chalkError("NODE NAME UNDEFINED?\n" + jsonPrint(nodeObj)));
           }
-        }
-      break;
-      case "hashtag":
-        if (nodeObj.nodeId.toLowerCase().includes("trump")) {
-          trumpHit = nodeObj.nodeId;
-        }
-        updateWordMeter({nodeId: nodeObj.nodeId.toLowerCase()});
-      break;
-      default:
-      break;
-    }
+          else {
 
-    if (trumpHit) {
+            // if (typeof nodeObj.name !== 'undefined') updateWordMeter({nodeId: nodeObj.name.toLowerCase()});
+            // if (typeof nodeObj.screenName !== 'undefined') updateWordMeter({nodeId: nodeObj.screenName.toLowerCase()});
 
-      wordStats.meter('trumpPerSecond').mark();
-      wordStats.meter('trumpPerMinute').mark();
+            if (nodeObj.name.toLowerCase().includes("trump")) {
+              trumpHit = nodeObj.name;
+            }
+            if (nodeObj.screenName.toLowerCase().includes("trump")) {
+              trumpHit = nodeObj.screenName;
+            }
+          }
+        break;
+        case "hashtag":
+          if (nodeObj.nodeId.toLowerCase().includes("trump")) {
+            trumpHit = nodeObj.nodeId;
+            nodeObj.isKeyword = true;
+          }
+          updateWordMeter({nodeId: nodeObj.nodeId.toLowerCase()});
+        break;
+        default:
+        break;
+      }
 
-      var wordStatsObj = wordStats.toJSON();
+      if (trumpHit) {
 
-      debug(chalkAlert("TRUMP"
-        + " | " + nodeObj.nodeType
-        + " | " + nodeObj.nodeId
-        + " | " + wordStatsObj.trumpPerSecond["1MinuteRate"].toFixed(0) 
-        + " | " + wordStatsObj.trumpPerSecond.currentRate.toFixed(0) 
-        + " | " + wordStatsObj.trumpPerMinute["1MinuteRate"].toFixed(0) 
-        + " | " + wordStatsObj.trumpPerMinute.currentRate.toFixed(0) 
-        + " | " + trumpHit
-      ));
-    }
+        wordStats.meter('trumpPerSecond').mark();
+        wordStats.meter('trumpPerMinute').mark();
+
+        var wordStatsObj = wordStats.toJSON();
+
+        debug(chalkAlert("TRUMP"
+          + " | " + nodeObj.nodeType
+          + " | " + nodeObj.nodeId
+          + " | " + wordStatsObj.trumpPerSecond["1MinuteRate"].toFixed(0) 
+          + " | " + wordStatsObj.trumpPerSecond.currentRate.toFixed(0) 
+          + " | " + wordStatsObj.trumpPerMinute["1MinuteRate"].toFixed(0) 
+          + " | " + wordStatsObj.trumpPerMinute.currentRate.toFixed(0) 
+          + " | " + trumpHit
+        ));
+      }
+
+      viewNameSpace.emit("node", nodeObj);
+
+    });
 
   });
 

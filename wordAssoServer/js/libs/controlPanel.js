@@ -531,11 +531,16 @@ function ControlPanel() {
           [
             fullscreenButton, 
             pauseButton, 
-            statsButton, testModeButton, resetButton, nodeCreateButton, removeDeadNodeButton
+            statsButton, 
+            testModeButton, 
+            nodeCreateButton, 
+            removeDeadNodeButton, 
+            disableLinksButton, 
+            antonymButton
           ]
         );
-        self.tableCreateRow(controlSliderTable, optionsBody, [resetButton]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ['MAX AGE', maxAgeSlider]);
+        self.tableCreateRow(controlSliderTable, optionsBody, [blahButton, resetButton]);
+        self.tableCreateRow(controlSliderTable, optionsBody, ['MAX AGE', maxAgeSlider, maxAgeSliderText]);
 
         break;
 

@@ -11,6 +11,7 @@ function ViewHistogram() {
   var MAX_NODES = 125;
   var NEW_NODE_AGE_RATIO = 0.02;
   var fontSizeRatio = 0.022;
+  var minOpacity = 0.25;
   var removeDeadNodesFlag = true;
 
   var defaultFadeDuration = 50;
@@ -110,7 +111,7 @@ function ViewHistogram() {
     }
   }, true);
 
-  var nodeLabelOpacityScale = d3.scaleLinear().domain([1e-6, 0.1, 1.0]).range([1.0, 0.4, 0.2]).clamp(true);
+  var nodeLabelOpacityScale = d3.scaleLinear().domain([1e-6, 0.1, 1.0]).range([1.0, 0.4, minOpacity]).clamp(true);
   var adjustedAgeRateScale = d3.scaleLinear().domain([1, MAX_NODES]).range([1.0, 10.0]);
 
   console.log("@@@@@@@ CLIENT @@@@@@@@");

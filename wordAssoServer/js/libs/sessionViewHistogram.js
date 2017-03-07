@@ -94,8 +94,7 @@ function ViewHistogram() {
 
   var currentHashtagMaxMentions = 2;
 
-  var minFontSize = "1.5em";
-  var maxFontSize = 30;
+  var minFontSize = "1.5%";
 
   var deadNodesHash = {};
 

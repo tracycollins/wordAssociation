@@ -66,7 +66,7 @@ var MAX_RX_QUEUE = 100;
 var MAX_WORDCHAIN_LENGTH = 100;
 var DEFAULT_MAX_AGE = 60000;
 var FORCE_MAX_AGE = 60000;
-var HISTOGRAM_MAX_AGE = 30000;
+var HISTOGRAM_MAX_AGE = 60000;
 var MEDIA_MAX_AGE = 60000;
 var DEFAULT_AGE_RATE = 1.0;
 
@@ -645,7 +645,6 @@ function createPopUpControlPanel (cnf, callback) {
 
   console.debug("createPopUpControlPanel\ncnf\n" + jsonPrint(cnf));
 
-
   controlPanelWindow = window.open("controlPanel.html", "CONTROL", "width=800,height=600");
 
   controlPanelWindow.addEventListener('beforeunload', function(){
@@ -781,7 +780,7 @@ function togglePause() {
 
 function toggleRemoveDeadNode() {
   config.removeDeadNodesFlag = !config.removeDeadNodesFlag;
-  currentSessionView.removeDeadNodesFlag = config.removeDeadNodesFlag;
+  currentSessionView.setRemoveDeadNodesFlag(config.removeDeadNodesFlag);
   console.warn("TOGGLE REMOVE DEAD NODES: " + config.removeDeadNodesFlag);
   controlPanel.updateControlPanel(config);
 }

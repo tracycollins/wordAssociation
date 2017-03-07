@@ -7,6 +7,10 @@ function ViewHistogram() {
   "use strict";
 
   var self = this;
+
+  var MAX_NODES = 100;
+  var removeDeadNodesFlag = true;
+
   var defaultFadeDuration = 50;
   var defaultPosDuration = 150;
 
@@ -33,7 +37,6 @@ function ViewHistogram() {
 
   var localNodeHashMap = new HashMap();
 
-  var MAX_NODES = 100;
   var processNodeCount = 0;
   var processNodeModulus = 3;
 
@@ -109,7 +112,7 @@ function ViewHistogram() {
     }
   }, true);
 
-  var nodeLabelOpacityScale = d3.scaleLinear().domain([1e-6, 0.1, 1.0]).range([1.0, 0.4, 0.2]);
+  var nodeLabelOpacityScale = d3.scaleLinear().domain([1e-6, 0.1, 1.0]).range([1.0, 0.4, 0.2]).clamp(true);
   var adjustedAgeRateScale = d3.scaleLinear().domain([1, MAX_NODES]).range([1.0, 10.0]);
 
   console.log("@@@@@@@ CLIENT @@@@@@@@");
@@ -160,6 +163,11 @@ function ViewHistogram() {
   this.setNodeMaxAge = function(maxAge) {
     nodeMaxAge = maxAge;
     console.debug("SET NODE MAX AGE: " + nodeMaxAge);
+  };
+
+  this.setRemoveDeadNodesFlag = function(flag) {
+    removeDeadNodesFlag = flag;
+    console.debug("SET REMOVE DEAD NODES: " + removeDeadNodesFlag);
   };
 
 
@@ -230,10 +238,19 @@ function ViewHistogram() {
     });
 
     async.forEachOf(keys, function(key, index, cb) {
-      var entry = hmap.get(key);
-      entry.rank = index;
-      hmap.set(key, entry);
-      cb();
+      if (index >= MAX_NODES){
+        var entry = hmap.get(key);
+        entry.rank = index;
+        entry.isDead = true;
+        hmap.set(key, entry);
+        cb();
+      }
+      else {
+        var entry = hmap.get(key);
+        entry.rank = index;
+        hmap.set(key, entry);
+        cb();
+      }
       // console.debug("key " + key);
     }, function(err) {
       callback(hmap);
@@ -334,7 +351,7 @@ function ViewHistogram() {
       age = node.age + randomIntFromInterval(10,100) + (ageRate * (moment().valueOf() - node.ageUpdated));
       ageMaxRatio = age/nodeMaxAge ;
 
-      if (node.isDead || (age >= nodeMaxAge)) {
+      if (node.isDead || (removeDeadNodesFlag && (age >= nodeMaxAge))) {
         localNodeHashMap.remove(node.nodeId);
         nodes.splice(ageNodesIndex, 1);
       } 
@@ -597,6 +614,7 @@ function ViewHistogram() {
 
     async.series(
       {
+        deadNode: processDeadNodesHash,
         addNode: processNodeAddQ,
         ageNode: ageNodes,
         updateNodeLabels: updateNodeLabels
@@ -614,7 +632,7 @@ function ViewHistogram() {
 
     if (((nNode.nodeType !== "hashtag") && (nNode.nodeType !== "word")) || nNode.isIgnored) { return;}
 
-    if (nNode.isKeyword) console.debug("KW: " + jsonPrint(nNode));
+    // if (nNode.isKeyword) console.debug("KW: " + jsonPrint(nNode));
 
     var newNode = {};
     newNode = nNode;

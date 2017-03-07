@@ -2165,6 +2165,7 @@ function dbUpdateEntity(entityObj, incMentions, callback) {
 
 function checkKeyword(w, callback) {
 
+
   var wordObj = {};
   wordObj = w;
   wordObj.isKeyword = false;    
@@ -2174,6 +2175,9 @@ function checkKeyword(w, callback) {
     var kwType = keywordHashMap.get(wordObj.nodeId.toLowerCase());
     wordObj.isKeyword = true;
     wordObj.keywords[wordObj.nodeId.toLowerCase()] = kwType;    
+    if (wordObj.nodeType == "hashtag") {
+      console.log("checkKeyword HT: " + jsonPrint(wordObj));
+    }
     callback(wordObj);
   }
   else if (wordObj.text && keywordHashMap.has(wordObj.text.toLowerCase())) {
@@ -7282,6 +7286,7 @@ function createSession(newSessionObj) {
             console.log(chalkError("TRUMP HT: " + nodeObj.nodeId));
           }
           updateWordMeter({nodeId: nodeObj.nodeId.toLowerCase()});
+          console.log(chalkAlert("HT: " + jsonPrint(nodeObj)));
           viewNameSpace.emit("node", nodeObj);
         break;
 

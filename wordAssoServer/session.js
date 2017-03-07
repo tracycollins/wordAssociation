@@ -1901,12 +1901,19 @@ function initSocketNodeRx(){
     if (((nNode.nodeType !== "hashtag") && (nNode.nodeType !== "word")) && (config.sessionViewType === "histogram")) {return;}
     if ((nNode.nodeType !== "user") && (nNode.nodeType !== "media") && (config.sessionViewType === "media")) {return;}
 
-    console.log("N< " + nNode.nodeType + " | " + nNode.nodeId + " | " + nNode.mentions);
+    console.log("N< " 
+      + nNode.nodeType 
+      + " | " + nNode.nodeId 
+      + " | " + nNode.isKeyword
+      + "\n" + jsonPrint(nNode.keywords)
+    );
 
     var dateNow = moment().valueOf();
 
     var newNode = {};
-
+    newNode.isKeyword = nNode.isKeyword;
+    newNode.keywords = nNode.keywords;
+    newNode.keywordColor = getKeywordColor(Object.values(nNode.keywords)[0]);  // KLUDGE!  need better way to do keywords
     newNode.createdAt = nNode.createdAt;
     newNode.age = 1e-6;
     newNode.ageMaxRatio = 1e-6;
@@ -2125,6 +2132,7 @@ function sum( obj ) {
 var randomNumber360 = 180;
 
 var getKeywordColor = function(keywordsObj){
+  console.log("getKeywordColor: " + keywordsObj);
   return keywordColorHashMap.get(keywordsObj);
 }
 

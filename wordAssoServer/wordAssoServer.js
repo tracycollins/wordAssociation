@@ -2171,27 +2171,27 @@ function checkKeyword(w, callback) {
   wordObj.keywords = {};    
 
   if (keywordHashMap.has(wordObj.nodeId.toLowerCase())) {
-    var kw = keywordHashMap.get(wordObj.nodeId.toLowerCase());
+    var kwType = keywordHashMap.get(wordObj.nodeId.toLowerCase());
     wordObj.isKeyword = true;
-    wordObj.keywords[kw] = true;    
+    wordObj.keywords[wordObj.nodeId.toLowerCase()] = kwType;    
     callback(wordObj);
   }
   else if (wordObj.text && keywordHashMap.has(wordObj.text.toLowerCase())) {
-    var kw = keywordHashMap.get(wordObj.text.toLowerCase());
+    var kwType = keywordHashMap.get(wordObj.text.toLowerCase());
     wordObj.isKeyword = true;
-    wordObj.keywords[kw] = true;    
+    wordObj.keywords[wordObj.text.toLowerCase()] = kwType;    
     callback(wordObj);
   }
   else if (serverKeywordHashMap.has(wordObj.nodeId.toLowerCase())) {
-    var kw = serverKeywordHashMap.get(wordObj.nodeId.toLowerCase());
+    var kwType = serverKeywordHashMap.get(wordObj.nodeId.toLowerCase());
     wordObj.isKeyword = true;
-    wordObj.keywords[kw] = true;    
+    wordObj.keywords[wordObj.nodeId.toLowerCase()] = kwType;    
     callback(wordObj);
   }
   else if (wordObj.text && serverKeywordHashMap.has(wordObj.text.toLowerCase())) {
-    var kw = serverKeywordHashMap.get(wordObj.text.toLowerCase());
+    var kwType = serverKeywordHashMap.get(wordObj.text.toLowerCase());
     wordObj.isKeyword = true;
-    wordObj.keywords[kw] = true;    
+    wordObj.keywords[wordObj.text.toLowerCase()] = kwType;    
     callback(wordObj);
   }
   else {

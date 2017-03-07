@@ -10,6 +10,7 @@ function ViewHistogram() {
 
   var MAX_NODES = 125;
   var NEW_NODE_AGE_RATIO = 0.02;
+  var fontSizeRatio = 0.01;
   var removeDeadNodesFlag = true;
 
   var defaultFadeDuration = 50;
@@ -99,7 +100,7 @@ function ViewHistogram() {
 
   console.log("width: " + window.innerWidth + " | height: " + window.innerHeight);
 
-  var minFontSize = 0.1 * window.innerHeight;
+  var fontSize = fontSizeRatio * window.innerHeight;
 
   document.addEventListener("mousemove", function() {
     if (mouseHoverFlag) {
@@ -458,7 +459,7 @@ function ViewHistogram() {
       //   if (d.mouseHoverFlag) { return palette.blue; }
       //   return palette.white; 
       // })
-      .style("font-size", minFontSize)
+      .style("font-size", fontSize)
       .transition()
         .duration(defaultPosDuration)
         .attr("y", yposition);
@@ -722,7 +723,7 @@ function ViewHistogram() {
 
     console.log("width: " + width + " | height: " + height);
 
-    minFontSize = 0.1 * window.innerHeight;
+    fontSize = fontSizeRatio * window.innerHeight;
 
     d3LayoutWidth = width; // double the width for now
     d3LayoutHeight = height;

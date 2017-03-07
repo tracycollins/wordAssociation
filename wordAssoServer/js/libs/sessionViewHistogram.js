@@ -401,7 +401,10 @@ function ViewHistogram() {
       .on("mouseout", nodeMouseOut)
       .style('fill', function(d) { 
         if (d.mouseHoverFlag) { return palette.blue; }
-        return palette.white; 
+        if (d.isKeyword) { return d.keywordColor; }
+        if (d.isTrendingTopic || d.isTwitterUser || d.isNumber || d.isCurrency) { return palette.white; }
+        if ((d.isGroupNode || d.isSessionNode) && (d.ageMaxRatio < 0.01)) { return palette.yellow; }
+        return palette.lightgray; 
       })
       .style('opacity', function(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
@@ -422,15 +425,23 @@ function ViewHistogram() {
       .on("click", nodeClick)
       .attr("x", xposition)
       .attr("y", yposition)
-      .text(function(d) { return d.nodeId; })
+      .text(function(d) {
+        if (d.isKeyword) { return d.nodeId.toUpperCase(); }
+        return d.nodeId; 
+      })
+      .style("font-weight", function(d) {
+        if (d.isTwitterUser || d.isKeyword || d.isNumber || d.isCurrency || d.isTrendingTopic) return "bold";
+        return "normal";
+      })
       .style('opacity', function(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
-      .style('fill', function(d) { 
-        if (d.mouseHoverFlag) { return palette.blue; }
-        return palette.white; 
-      })
+      .style('fill', palette.white)
+      // .style('fill', function(d) { 
+      //   if (d.mouseHoverFlag) { return palette.blue; }
+      //   return palette.white; 
+      // })
       .style("font-size", minFontSize)
       .transition()
         .duration(defaultPosDuration)
@@ -602,6 +613,8 @@ function ViewHistogram() {
   this.addNode = function(nNode) {
 
     if (((nNode.nodeType !== "hashtag") && (nNode.nodeType !== "word")) || nNode.isIgnored) { return;}
+
+    // if (nNode.isKeyword) console.debug("KW: " + nNode.nodeId);
 
     var newNode = nNode;
     newNode.newFlag = true;

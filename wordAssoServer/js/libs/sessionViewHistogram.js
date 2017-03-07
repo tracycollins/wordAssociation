@@ -614,7 +614,7 @@ function ViewHistogram() {
 
     if (((nNode.nodeType !== "hashtag") && (nNode.nodeType !== "word")) || nNode.isIgnored) { return;}
 
-    // if (nNode.isKeyword) console.debug("KW: " + nNode.nodeId);
+    if (nNode.isKeyword) console.debug("KW: " + jsonPrint(nNode));
 
     var newNode = {};
     newNode = nNode;

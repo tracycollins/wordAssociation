@@ -109,7 +109,7 @@ function ViewHistogram() {
     }
   }, true);
 
-  var nodeLabelOpacityScale = d3.scaleLinear().domain([1e-6, 0.1, 1.0]).range([1.0, 0.4, 0.1]);
+  var nodeLabelOpacityScale = d3.scaleLinear().domain([1e-6, 0.1, 1.0]).range([1.0, 0.4, 0.2]);
   var adjustedAgeRateScale = d3.scaleLinear().domain([1, MAX_NODES]).range([1.0, 10.0]);
 
   console.log("@@@@@@@ CLIENT @@@@@@@@");
@@ -426,7 +426,7 @@ function ViewHistogram() {
       .attr("x", xposition)
       .attr("y", yposition)
       .text(function(d) {
-        if (d.isKeyword) { return d.nodeId.toUpperCase(); }
+        if (d.isKeyword || d.isTrendingTopic || d.isTwitterUser) { return d.nodeId.toUpperCase(); }
         return d.nodeId; 
       })
       .style("font-weight", function(d) {
@@ -616,7 +616,8 @@ function ViewHistogram() {
 
     // if (nNode.isKeyword) console.debug("KW: " + nNode.nodeId);
 
-    var newNode = nNode;
+    var newNode = {};
+    newNode = nNode;
     newNode.newFlag = true;
 
     if (nodeAddQ.length < MAX_RX_QUEUE) {

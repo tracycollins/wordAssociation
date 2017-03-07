@@ -8,7 +8,7 @@ function ViewHistogram() {
 
   var self = this;
 
-  var MAX_NODES = 100;
+  var MAX_NODES = 125;
   var removeDeadNodesFlag = true;
 
   var defaultFadeDuration = 50;

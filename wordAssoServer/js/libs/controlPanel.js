@@ -36,36 +36,42 @@ function ControlPanel() {
   statsObj.socketId = 'NOT SET';
 
   this.setVelocityDecaySliderValue = function (value) {
+    if (!document.getElementById("velocityDecaySlider")) { return; }
     console.log("setVelocityDecaySliderValue: " + value);
     document.getElementById("velocityDecaySlider").value = (value * document.getElementById("velocityDecaySlider").getAttribute("multiplier"));
     document.getElementById("velocityDecaySliderText").innerHTML = value.toFixed(3);
   }
 
   this.setLinkStrengthSliderValue = function (value) {
+    if (!document.getElementById("linkStrengthSlider")) { return; }
     console.log("setLinkStrengthSliderValue: " + value);
     document.getElementById("linkStrengthSlider").value = (value * document.getElementById("linkStrengthSlider").getAttribute("multiplier"));
     document.getElementById("linkStrengthSliderText").innerHTML = value.toFixed(3);
   }
 
   this.setLinkDistanceSliderValue = function (value) {
+    if (!document.getElementById("linkDistanceSlider")) { return; }
     console.log("setLinkDistanceSliderValue: " + value);
     document.getElementById("linkDistanceSlider").value = (value * document.getElementById("linkDistanceSlider").getAttribute("multiplier"));
     document.getElementById("linkDistanceSliderText").innerHTML = value.toFixed(3);
   }
 
   this.setGravitySliderValue = function (value) {
+    if (!document.getElementById("gravitySlider")) { return; }
     console.log("setGravitySliderValue: " + value);
     document.getElementById("gravitySlider").value = (value* document.getElementById("gravitySlider").getAttribute("multiplier"));
     document.getElementById("gravitySliderText").innerHTML = value.toFixed(3);
   }
 
   this.setChargeSliderValue = function (value) {
+    if (!document.getElementById("chargeSlider")) { return; }
     console.log("setChargeSliderValue: " + value);
     document.getElementById("chargeSlider").value = value;
     document.getElementById("chargeSliderText").innerHTML = value;
   }
 
   this.setMaxAgeSliderValue = function (value) {
+    if (!document.getElementById("maxAgeSlider")) { return; }
     console.log("setMaxAgeSliderValue: " + value);
     document.getElementById("maxAgeSlider").value = value;
     document.getElementById("maxAgeSliderText").innerHTML = value;
@@ -96,6 +102,7 @@ function ControlPanel() {
       console.log("BUTTON " + currentButton.id 
         + " : " + buttonConfig.mode
       );
+      
       parentWindow.postMessage({op: buttonConfig.mode, id: currentButton.id}, DEFAULT_SOURCE);
 
       if (currentButton.id == 'resetButton'){
@@ -147,27 +154,20 @@ function ControlPanel() {
     switch (op) {
 
       case 'INIT':
-
         var cnf = event.data.config;
-
         console.debug("CONTROL PANEL INIT\n" + jsonPrint(cnf));
-
         for (var prop in cnf) {
-
           config[prop] = cnf[prop];
-
           console.info("CNF | " + prop 
             + " | " + config[prop]
           );
         }
-
         self.setLinkStrengthSliderValue(cnf.defaultLinkStrength);
         self.setLinkDistanceSliderValue(cnf.defaultLinkDistance);
         self.setGravitySliderValue(cnf.defaultGravity);
         self.setChargeSliderValue(cnf.defaultCharge);
         self.setVelocityDecaySliderValue(cnf.defaultVelocityDecay);
         self.setMaxAgeSliderValue(cnf.defaultMaxAge);
-
       break;
     }
   }
@@ -255,7 +255,7 @@ function ControlPanel() {
   this.createControlPanel = function(callback) {
 
     config = store.get('config');
-    statsObj = store.get('stats');
+    // statsObj = store.get('stats');
 
     console.log("CREATE CONTROL PANEL\n" + jsonPrint(config));
 
@@ -527,20 +527,19 @@ function ControlPanel() {
       case 'histogram':
         self.tableCreateRow(controlTable, optionsBody, [status]);
         self.tableCreateRow(controlTable, optionsBody, [status2]);
-        self.tableCreateRow(controlTable, 
-          optionsBody, 
+        self.tableCreateRow(controlTable, optionsBody, 
           [
+            blahButton,
+            resetButton,
             fullscreenButton, 
             pauseButton, 
             statsButton, 
+            removeDeadNodeButton,
             testModeButton, 
-            nodeCreateButton, 
-            removeDeadNodeButton, 
-            disableLinksButton, 
             antonymButton
           ]
         );
-        self.tableCreateRow(controlSliderTable, optionsBody, [blahButton, resetButton]);
+        // self.tableCreateRow(controlSliderTable, optionsBody, [blahButton, resetButton]);
         self.tableCreateRow(controlSliderTable, optionsBody, ['MAX AGE', maxAgeSlider, maxAgeSliderText]);
         if (callback) callback(dashboardMain);
 
@@ -629,8 +628,15 @@ function ControlPanel() {
         self.updateControlPanel(config, function(){
           if (typeof parentWindow !== 'undefined') {
             setTimeout(function(){
-              console.log("TX PARENT: READY " + DEFAULT_SOURCE);
-              parentWindow.postMessage({op:'READY'}, DEFAULT_SOURCE)
+              console.log("TX PARENT READY " + DEFAULT_SOURCE);
+      
+              // for (var prop in parentWindow) {
+              //   console.info("parentWindow | " + prop 
+              //     + " | " + parentWindow[prop]
+              //   );
+              // }
+
+              parentWindow.postMessage({op:'READY'}, DEFAULT_SOURCE);
             }, 1000);
           }
         });

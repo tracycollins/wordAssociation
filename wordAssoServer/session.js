@@ -651,30 +651,9 @@ function addFullscreenButton(){
   controlDiv.appendChild(fullscreenButton);
 }
 
-var controlPanelReadyFlag = false;
-
-function createPopUpControlPanel (cnf, callback) {
-
-  console.debug("createPopUpControlPanel\ncnf\n" + jsonPrint(cnf));
-
-  controlPanelWindow = window.open("controlPanel.html", "CONTROL", "width=800,height=600");
-
-  controlPanelWindow.addEventListener('beforeunload', function(){
-    console.log("CONTROL POP UP CLOSING...");
-    controlPanelFlag = false;
-    updateControlButton(controlPanelFlag);
-  }, false);
-
-  controlPanelWindow.addEventListener('load', function(cnf){
-    controlPanel = new controlPanelWindow.ControlPanel(cnf);
-    initControlPanelComm(cnf);
-    controlPanelFlag = true;
-    callback(controlPanelWindow);
-  }, false);
-};
-
 function controlPanelComm(event) {
-  // console.debug("CONTROL PANEL: " + jsonPrint(event)); // prints: { message: 'Hello world!'} 
+
+  console.debug("CONTROL PANEL: " + event.origin); // prints: { message: 'Hello world!'} 
 
   var data = event.data;
 
@@ -684,14 +663,14 @@ function controlPanelComm(event) {
 
   switch (data.op) {
     case 'READY' :
-      console.warn("CONTROL PANEL READY");
+      console.warn("R< CONTROL PANEL READY");
       controlPanelReadyFlag = true;
     break;
     case 'CLOSE' :
-      console.warn("CONTROL PANEL CLOSING...");
+      console.warn("R< CONTROL PANEL CLOSING...");
     break;
     case 'MOMENT' :
-      console.warn("CONTROL PANEL MOMENT...");
+      console.warn("R< CONTROL PANEL MOMENT...");
       switch (data.id) {
         case 'resetButton' :
           reset();
@@ -702,7 +681,7 @@ function controlPanelComm(event) {
       }
     break;
     case 'TOGGLE' :
-      console.warn("CONTROL PANEL TOGGLE");
+      console.warn("R< CONTROL PANEL TOGGLE");
       switch (data.id) {
         case 'blahToggleButton' :
           toggleBlah();
@@ -737,7 +716,7 @@ function controlPanelComm(event) {
       }
     break;
     case 'UPDATE' :
-      console.warn("CONTROL PANEL UPDATE");
+      console.warn("R< CONTROL PANEL UPDATE");
       switch (data.id) {
         case 'linkStrengthSlider' :
           currentSessionView.updateLinkStrength(data.value);
@@ -760,14 +739,34 @@ function controlPanelComm(event) {
       }
     break;
     default :
-      console.error("CONTROL PANEL OP UNDEFINED: " + jsonPrint(data));
+      console.error("R< ??? CONTROL PANEL OP UNDEFINED\n" + jsonPrint(data));
     break;
   }
 }
 
-function initControlPanelComm(cnf){
+var controlPanelReadyFlag = false;
+
+function createPopUpControlPanel (cnf, callback) {
+
+  console.debug("createPopUpControlPanel\ncnf\n" + jsonPrint(cnf));
+
+  controlPanelWindow = window.open("controlPanel.html", "CONTROL", "width=800,height=600");
+
+  controlPanelWindow.addEventListener("message", controlPanelComm, false);
   window.addEventListener("message", controlPanelComm, false);
-}
+
+  controlPanelWindow.addEventListener('beforeunload', function(){
+    console.log("CONTROL POP UP CLOSING...");
+    controlPanelFlag = false;
+    updateControlButton(controlPanelFlag);
+  }, false);
+
+  controlPanelWindow.addEventListener('load', function(cnf){
+    controlPanel = new controlPanelWindow.ControlPanel(cnf);
+    controlPanelFlag = true;
+    callback(controlPanelWindow);
+  }, false);
+};
 
 function toggleBlah() {
   config.blahMode = !config.blahMode;
@@ -3358,6 +3357,8 @@ function initialize(callback) {
               currentSessionView.setNodeMaxAge(MEDIA_MAX_AGE);
             }
 
+            store.set("config", config);
+
             currentSessionView.initD3timer();
 
             initStatsUpdate(1000);
@@ -3420,6 +3421,8 @@ function initialize(callback) {
                 console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
               });
             }
+
+            store.set("config", config);
 
             currentSessionView.simulationControl('START');
             currentSessionView.resize();
@@ -3486,6 +3489,8 @@ function initialize(callback) {
               console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
             });
           }
+
+          store.set("config", config);
 
           currentSessionView.initD3timer();
           currentSessionView.resize();

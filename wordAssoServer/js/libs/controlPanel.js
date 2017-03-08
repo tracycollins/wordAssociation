@@ -621,11 +621,13 @@ function ControlPanel() {
     console.log( "CONTROL PANEL DOCUMENT READY" );
     console.log( "CONTROL PANEL CONFIG\n" + jsonPrint(config) );
     self.createControlPanel(function(dashboard){
-      self.updateControlPanel(config, function(){
-        if (typeof parentWindow !== 'undefined') {
-          parentWindow.postMessage({op:'READY'}, DEFAULT_SOURCE);
-        }
-      });
+      setTimeout(function() {  // KLUDGE to insure table is created before update
+        self.updateControlPanel(config, function(){
+          if (typeof parentWindow !== 'undefined') {
+            parentWindow.postMessage({op:'READY'}, DEFAULT_SOURCE);
+          }
+        });
+      }, 1000);
     });
   });
 

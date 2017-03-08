@@ -34,7 +34,7 @@ function ViewForce() {
   var updateNodeFlag = false;
   
   var nodeAddQ = [];
-  var nodeUpdateQ = [];
+  // var nodeUpdateQ = [];
   var nodeDeleteQ = [];
   var linkUpdateQ = [];
 
@@ -572,14 +572,13 @@ function ViewForce() {
       var newNode = nodeAddObj.node;
       var currentNode = {};
 
-      // console.warn("processNodeAddQ | " + newNode.nodeType + " | " + newNode.nodeId);
+      // if (newNode.nodeType == "user") console.warn("processNodeAddQ | " + newNode.nodeType + " | " + newNode.nodeId);
 
       switch (nodeAddObj.op) {
 
         case "add":
 
           if (localNodeHashMap.has(newNode.nodeId)){
-            // console.error("localNodeHashMap HIT: " + newNode.nodeId);
             currentNode = localNodeHashMap.get(newNode.nodeId);
             currentNode.newFlag = true;
             currentNode.age = 1e-6;
@@ -588,14 +587,12 @@ function ViewForce() {
           else {
             nodesModifiedFlag = true;
             currentNode = newNode;
-            if (!newNode.links) currentNode.links = {};
+            if (!newNode.links) { currentNode.links = {}; }
             currentNode.newFlag = true;
             currentNode.age = 1e-6;
             currentNode.ageMaxRatio = 1e-6;
             currentNode.x = randomIntFromInterval(0.45 * width, 0.55 * width);
             currentNode.y = randomIntFromInterval(0.45 * height, 0.55 * height);
-            // if (newNode.nodeType == "tweet"){
-            // }
           }
 
           currentNode.mentions = newNode.mentions;
@@ -603,7 +600,6 @@ function ViewForce() {
 
           if ((newNode.nodeType == "hashtag") && (newNode.mentions > currentHashtagMaxMentions)){
             currentHashtagMaxMentions = newNode.mentions;
-            // nodeFontSizeScale = d3.scaleLinear().domain([1, currentHashtagMaxMentions]).range([minFontSize, maxFontSize]).clamp(true);
             console.info("NEW MAX Ms" 
               + " | " + currentHashtagMaxMentions 
               + " | " + currentNode.nodeType 
@@ -611,7 +607,7 @@ function ViewForce() {
             );
           }
 
-          if (nodesModifiedFlag) nodes.push(currentNode);
+          if (nodesModifiedFlag) { nodes.push(currentNode); }
 
           localNodeHashMap.set(currentNode.nodeId, currentNode);
 
@@ -628,56 +624,6 @@ function ViewForce() {
     }
 
     if ((nodeAddQ.length == 0) || !addNodeEnabled()){
-      callback(null, nodesModifiedFlag);
-    }
-  }
-
-  var processNodeUpdateQ = function(callback) {
-
-    var nodesModifiedFlag = false;
-
-
-    while (nodeUpdateQ.length > 0) {
-
-      var nodeUpdateObj = nodeUpdateQ.shift();
-
-      switch (nodeUpdateObj.op) {
-
-        case "update":
-          // nodesModifiedFlag = true;
-
-          var node;
-          var nodesLength = nodes.length - 1;
-          var nodeIndex = nodesLength;
-
-          for (nodeIndex = nodesLength; nodeIndex >= 0; nodeIndex -= 1) {
-            node = nodes[nodeIndex];
-            if (node.nodeId == uNode.nodeId) {
-              nodesModifiedFlag = true;
-              console.debug("updateNode PREVIOUS\n" + jsonPrint(node));
-              uNode.age = 0;
-              uNode.ageMaxRatio = 1e-6;
-              uNode.ageUpdated = moment().valueOf();
-              nodes[nodeIndex] = uNode;
-              console.debug("updateNode UPDATED\n" + jsonPrint(uNode));
-            }
-          }
-
-          if (nodeIndex < 0) {
-            updateNodeFlag = false;
-            console.debug("updateNode DONE");
-            return;
-          }
-        break;
-
-        default:
-          console.error("??? UNKNOWN NODE UPDATE Q OP: " + nodeUpdateObj.op);
-        break;
-
-      }
-    }
-
-    if (nodeUpdateQ.length == 0) {
       callback(null, nodesModifiedFlag);
     }
   }
@@ -741,32 +687,9 @@ function ViewForce() {
     }
   }
 
-  var createTweetLinksQueue = [];
-  var createTweetLinksHashMap = new HashMap();
-  var createTweetLinksInterval;
-  var createTweetLinksReady = true;
-
-  function initCreateTweetLinksInterval (interval){
-
-    clearInterval(createTweetLinksInterval);
-    createTweetLinksQueue = [];
-
-    var node;
-    // var createTweetLinksQueueReady = true;
-
-    createTweetLinksInterval = setInterval(function(){
-      while (createTweetLinksQueue.length > 0) {
-      // if (createTweetLinksQueueReady && (createTweetLinksQueue.length > 0)) {
-        // createTweetLinksQueueReady = false;
-        node = createTweetLinksQueue.shift();
-        createTweetLinks(node, function(){
-          // createTweetLinksQueueReady = true;
-        });
-      }
-    }, interval);
-  }
-
   function createTweetLinks(node, callback){
+
+    // console.debug("createTweetLinks");
 
     async.parallel({
 
@@ -824,7 +747,6 @@ function ViewForce() {
         if (node.user){
 
           if (localNodeHashMap.has(node.user.nodeId)) {
-
             var usNode = localNodeHashMap.get(node.user.nodeId);
             var linkId = node.nodeId + "_" + usNode.nodeId;
 
@@ -852,7 +774,6 @@ function ViewForce() {
         else {
           cb();
         }
-
       },
 
       userMentions: function(cb) {
@@ -958,6 +879,8 @@ function ViewForce() {
           async.each(node.media, function (meObj, cb2) {
 
             if (localNodeHashMap.has(meObj.nodeId)) {
+
+              // console.log("MEDIA | " + meObj.nodeId);
 
               meNode = localNodeHashMap.get(meObj.nodeId);
               linkId = node.nodeId + "_" + meNode.nodeId;
@@ -1444,16 +1367,6 @@ function ViewForce() {
         if (d.mouseHoverFlag) { return palette.blue; }
         if (d.newFlag) { return palette.white; }
         if (d.age < nodeNewAge) { return palette.white; }
-        // if (d.nodeType == 'tweet') { 
-        //   if (d.isRetweet) return palette.pink;
-        //   return palette.red; 
-        // }
-        // if (d.nodeType == 'group') { return palette.green; }
-        // if (d.nodeType == 'sesion') { return palette.purple; }
-        // if (d.nodeType == 'word') { return palette.yellow; }
-        // if (d.nodeType == 'hashtag') { return palette.blue; }
-        // if (d.nodeType == 'url') { return palette.green; }
-        // if (d.nodeType == 'place') { return palette.purple; }
         return palette.black; 
       })
       .style('stroke', function(d) {
@@ -1481,8 +1394,6 @@ function ViewForce() {
 
     var nodeImages = nodeSvgGroup.selectAll("image")
       .data(nodes, function(d){
-        // if ((d.nodeType == "user") || (d.nodeType == "media")) return d.nodeId;
-        // return null;
         return d.nodeId;
       });
 
@@ -1490,7 +1401,7 @@ function ViewForce() {
       .enter()
       .append("svg:image")
       .attr("href", function(d) { 
-        if (d.nodeType == "image") return d.url;
+        if (d.nodeType == "media") return d.url;
         if (d.nodeType == "user") return d.profileImageUrl;
         return null; 
       })
@@ -1499,33 +1410,22 @@ function ViewForce() {
       .on("mouseout", nodeMouseOut)
       .on("click", nodeClick)
       .style("visibility", function(d) {
-        if ((d.nodeType == "media") || (d.nodeType == "user")) return "visible";
+        if ((d.nodeType === "media") || (d.nodeType === "user")) return "visible";
         return "hidden";
       })
       .merge(nodeImages)
-      // .attr("href", function(d) { 
-      //   if (d.nodeType == "image") return d.url;
-      //   if (d.nodeType == "user") return d.profileImageUrl;
-      //   return null; 
-      // })
-      // .style("filter", function(d) {
-      //   if (d.nodeType == "media") return "url(#borderMedia)";
-      //   if (d.nodeType == "user") return "url(#borderUser)";
-      //   return "url(#border)";
-      // })
       .attr("x", function(d) { return d.x - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0)); })
       .attr("y", function(d) { return d.y - 0.5*(imageSizeScale(parseInt(d.mentions) + 1.0)); })
       .attr("width", function(d){ 
-        if ((d.nodeType != "media") && (d.nodeType != "user")) return 0;
+        if ((d.nodeType !== "media") && (d.nodeType !== "user")) return 0;
         return imageSizeScale(parseInt(d.mentions) + 1.0); 
       })
       .attr("height", function(d){ 
-        if ((d.nodeType != "media") && (d.nodeType != "user")) return 0;
+        if ((d.nodeType !== "media") && (d.nodeType !== "user")) return 0;
         return imageSizeScale(parseInt(d.mentions) + 1.0); 
       })
       .style('opacity', function(d) {
-        // if (!d.imageLoaded) return 0.5;
-        if ((d.nodeType != "media") && (d.nodeType != "user")) return 0;
+        if ((d.nodeType !== "media") && (d.nodeType !== "user")) return 0;
         if (d.mouseHoverFlag) return 1.0;
         return nodeImageOpacityScale(d.ageMaxRatio);
       });
@@ -1631,34 +1531,8 @@ function ViewForce() {
       },
 
       function(err, results) {
-
-
         simulation.nodes(nodes);
         if (typeof callback !== 'undefined') callback();
-
-
-        // if (err) {
-        //   console.error("*** ERROR: updateSimulation *** \nERROR: " + err);
-        //   callback(err);
-        // }
-        // else if (results) {
-        //       simulation.nodes(nodes);
-        //       if (typeof callback !== 'undefined') return(callback());
-
-        //   // var keys = Object.keys(results);
-
-        //   // for (var i=0; i<keys.length; i++){
-        //   //   if (results[keys[i]]) {
-        //   //     // simulation.nodes(nodes);
-        //   //     // if (runningFlag) self.simulationControl('RESTART');
-        //   //     // if (typeof callback !== 'undefined') return(callback());
-        //   //     break;
-        //   //   }
-        //   // }
-        // }
-        // else {
-        //   if (typeof callback !== 'undefined') callback();
-        // }
       }
 
     );
@@ -1775,21 +1649,20 @@ function ViewForce() {
 
   this.addNode = function(nNode) {
 
-    // console.debug("N> " + nNode.nodeId + " | " + nNode.nodeType);
+    // if (nNode.nodeType == "media") {
+    //   // console.debug("N>" 
+    //   //   + nNode.nodeId 
+    //   //   + " | Ms " + nNode.mentions
+    //   //   + " | " + nNode.url
+    //   // );
+    // }
 
     if ((nNode.nodeType == "session")|| (nNode.nodeType == "group")|| (nNode.nodeType == "word")) return;
 
     var newNode = nNode;
     newNode.newFlag = true;
 
-
-    // console.debug("N> " + newNode.nodeId 
-    //   + " | " + newNode.nodeId
-    //   // + "\n" + jsonPrint(newNode)
-    // );
-
-    // if ((newNode.nodeType == "tweet") || (nodeAddQ.length < MAX_RX_QUEUE)) {
-    if (nodeAddQ.length < MAX_RX_QUEUE) {
+    if ((nNode.nodeType == "tweet") || (nodeAddQ.length < MAX_RX_QUEUE)) {
       nodeAddQ.push({op:'add', node: newNode});
     }
 
@@ -1816,25 +1689,6 @@ function ViewForce() {
 
   var localSessionHashMap = {};
   this.addSession = function(sess) {
-
-    // var newNode = sess.node;
-    // newNode.newFlag = true;
-
-    // console.debug("N> " + newNode.nodeId 
-    //   + " | " + newNode.nodeType
-    //   + "\n" + jsonPrint(newNode)
-    // );
-
-    // if (nodeAddQ.length < MAX_RX_QUEUE) {
-    //   nodeAddQ.push({op:'add', node: newNode});
-    //   if (!localSessionHashMap[sess.sessionId]) localSessionHashMap[sess.sessionId] = {};
-    //   localSessionHashMap[sess.sessionId][newNode.nodeId] = 1;
-    // }
-
-    // if (nodeAddQ.length > maxNodeAddQ) {
-    //   maxNodeAddQ = nodeAddQ.length;
-    //   console.info("NEW MAX NODE ADD Q: " + maxNodeAddQ);
-    // }
   }
 
   this.deleteNode = function(nodeId) {
@@ -1853,8 +1707,8 @@ function ViewForce() {
 
   this.initD3timer = function() {
 
-    initCreateTweetLinksInterval(40);
-    initCreateSessionLinksInterval(40);
+    // initCreateTweetLinksInterval(40);
+    // initCreateSessionLinksInterval(40);
 
     simulation = d3.forceSimulation(nodes)
       .force("link", d3.forceLink(links).id(function(d) { return d.linkId; })
@@ -1983,131 +1837,6 @@ function ViewForce() {
     }
   }
 
-  // ==========================================
-  var testAddNodeInterval;
-
-  this.deleteRandomNode = function() {
-    if (nodes.length == 0) return;
-    if ((nodes.length < 5) && (randomIntFromInterval(0, 100) < 80)) return;
-    if (randomIntFromInterval(0, 100) < 5) return;
-    var index = randomIntFromInterval(0, nodes.length - 1);
-    var node = nodes[index];
-    self.deleteNode(node.nodeId);
-  }
-
-  this.addRandomNode = function() {
-
-    var randomNumber360 = randomIntFromInterval(0, 360);
-    var randomNumber256 = randomIntFromInterval(0, 256);
-
-    var userId = 'user_' + randomNumber360;
-    var nodeId = 'testNode' + tickNumber;
-    var mentions = randomIntFromInterval(0, 1000000);
-    var wordChainIndex = tickNumber;
-    var text = randomNumber360 + ' | ' + mentions;
-
-    var startColor = "black";
-    var endColor = "white";
-
-    var interpolateNodeColor = d3.interpolateRgb(startColor, endColor);
-
-    var newNode = {
-      nodeId: nodeId,
-      userId: userId,
-      text: text,
-      mentions: mentions,
-      wordChainIndex: wordChainIndex,
-      startColor: startColor,
-      endColor: endColor,
-      interpolateNodeColor: interpolateNodeColor,
-      r: 100,
-      x: 0.5 * window.innerWidth + randomIntFromInterval(0, 100),
-      y: 0.5 * window.innerHeight + randomIntFromInterval(0, 100),
-      age: 0,
-      lastSeen: moment().valueOf()
-    }
-
-    newNode.links = {};
-
-    self.addNode(newNode);
-  }
-
-  this.addRandomLink = function() {
-
-    if (nodes.length < 2) {
-      return;
-    }
-
-    var linkId = 'testLink' + tickNumber;
-
-    var sourceNodeIndex = randomIntFromInterval(0, nodes.length - 1);
-    var targetNodeIndex = randomIntFromInterval(0, nodes.length - 1);
-
-    while (sourceNodeIndex == targetNodeIndex) {
-      sourceNodeIndex = randomIntFromInterval(0, nodes.length - 1);
-      targetNodeIndex = randomIntFromInterval(0, nodes.length - 1);
-    }
-
-    var sourceNode = nodes[sourceNodeIndex];
-    var targetNode = nodes[targetNodeIndex];
-
-    var newLink = {
-      linkId: linkId,
-      age: 0,
-      source: {},
-      target: {}
-    }
-
-    sourceNode.links[linkId] = 1;
-    targetNode.links[linkId] = 1;
-
-    newLink.source = sourceNode;
-    newLink.target = targetNode;
-
-    nodes[sourceNodeIndex] = sourceNode;
-    nodes[targetNodeIndex] = targetNode;
-
-    self.addLink(newLink);
-  }
-
-  this.clearTestAddNodeInterval = function() {
-    clearInterval(testAddNodeInterval);
-  }
-
-  this.initTestAddNodeInterval = function(interval) {
-    clearInterval(testAddNodeInterval);
-    testAddNodeInterval = setInterval(function() {
-      self.addRandomNode();
-    }, interval);
-  }
-
-  var testAddLinkInterval;
-
-  this.clearTestAddLinkInterval = function() {
-    clearInterval(testAddLinkInterval);
-  }
-
-  this.initTestAddLinkInterval = function(interval) {
-    clearInterval(testAddLinkInterval);
-    testAddLinkInterval = setInterval(function() {
-      if (nodes.length > 1) {
-        self.addRandomLink();
-      }
-    }, interval);
-  }
-
-  var testDeleteNodeInterval;
-
-  this.clearTestDeleteNodeInterval = function() {
-    clearInterval(testDeleteNodeInterval);
-  }
-
-  this.initTestDeleteNodeInterval = function(interval) {
-    clearInterval(testDeleteNodeInterval);
-    testDeleteNodeInterval = setInterval(function() {
-      self.deleteRandomNode();
-    }, interval);
-  }
 
   document.addEventListener("resize", function() {
     self.resize();

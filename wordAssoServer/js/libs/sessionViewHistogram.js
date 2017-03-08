@@ -8,10 +8,14 @@ function ViewHistogram() {
 
   var self = this;
 
+  var testMode = false;
+
   var MAX_NODES = 125;
   var NEW_NODE_AGE_RATIO = 0.02;
   var fontSizeRatio = 0.022;
   var minOpacity = 0.25;
+  var blahFlag = false;
+  var antonymFlag = false;
   var removeDeadNodesFlag = true;
 
   var defaultFadeDuration = 50;
@@ -159,6 +163,16 @@ function ViewHistogram() {
     return maxAgeRate;
   };
   
+  this.setAntonym = function(flag) {
+    antonymFlag = flag;
+    console.debug("SET ANTONYM: " + antonymFlag);
+  };
+
+  this.setBlah = function(flag) {
+    blahFlag = flag;
+    console.debug("SET BLAH: " + blahFlag);
+  };
+
   this.setNodeMaxAge = function(maxAge) {
     nodeMaxAge = maxAge;
     console.debug("SET NODE MAX AGE: " + nodeMaxAge);
@@ -169,6 +183,10 @@ function ViewHistogram() {
     console.debug("SET REMOVE DEAD NODES: " + removeDeadNodesFlag);
   };
 
+  this.setTestMode = function(flag){
+    testMode = flag;
+    console.debug("SET TEST MODE: " + testMode);
+  }
 
   var d3image = d3.select("#d3group");
 
@@ -416,6 +434,12 @@ function ViewHistogram() {
       .attr("class", "update")
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)
+      .text(function(d) {
+        if (d.isTwitterUser) { return "@" + d.screenName.toUpperCase(); }
+        if (d.isKeyword || d.isTrendingTopic || d.isTwitterUser) { return d.nodeId.toUpperCase(); }
+        if (testMode) { return "blah"; }
+        return d.nodeId; 
+      })
       .style('fill', function(d) { 
         if (d.newFlag) { return palette.white; }
         if (d.mouseHoverFlag) { return palette.blue; }
@@ -446,6 +470,7 @@ function ViewHistogram() {
       .text(function(d) {
         if (d.isTwitterUser) { return "@" + d.screenName.toUpperCase(); }
         if (d.isKeyword || d.isTrendingTopic || d.isTwitterUser) { return d.nodeId.toUpperCase(); }
+        if (testMode) { return "blah"; }
         return d.nodeId; 
       })
       .style("font-weight", function(d) {
@@ -739,7 +764,6 @@ function ViewHistogram() {
       .attr("viewbox", 1e-6, 1e-6, width, height)
       .attr("x", 1e-6)
       .attr("y", 1e-6);
-
   };
 
   // ==========================================
@@ -757,9 +781,7 @@ function ViewHistogram() {
     mouseMovingFlag = false;
     mouseHoverFlag = false;
     self.toolTipVisibility(false);
-
     self.resize();
-    self.resetDefaultForce();
   };
 
   setInterval(function(){

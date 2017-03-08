@@ -15,6 +15,8 @@ when new instance of word arrives, iterate thru array of nodes and create linksk
 // var DEFAULT_SOURCE = "http://word.threeceelabs.com";
 var DEFAULT_SOURCE = "==SOURCE==";  // will be updated by wordAssoServer.js on app.get
 
+var PARENT_ID = "0047";
+
 var DEFAULT_FORCEVIEW_MODE = "web";
 var DEFAULT_SESSION_VIEW = "flow";
 
@@ -570,6 +572,7 @@ function toggleControlPanel(){
         if (controlPanelReadyFlag) {
           clearInterval(controlPanelInitWaitInterval);
           updateControlButton(controlPanelFlag);
+          console.debug("TX> CONTROL PANEL INIT | SOURCE: " + DEFAULT_SOURCE);
           cpw.postMessage({op: 'INIT', config: cnf}, DEFAULT_SOURCE);
         }
       }, 500);
@@ -738,6 +741,9 @@ function controlPanelComm(event) {
         break;
       }
     break;
+    case 'INIT':
+      console.info("TX> CONTROL PANEL LOOPBACK? | INIT ... IGNORING ...");
+      break;
     default :
       console.error("R< ??? CONTROL PANEL OP UNDEFINED\n" + jsonPrint(data));
     break;
@@ -824,15 +830,17 @@ function toggleTestMode() {
   config.testModeEnabled = config.testMode;
   console.warn("TEST MODE: " + config.testModeEnabled);
 
-  if (config.testModeEnabled) {
-    setTimeout(currentSessionView.initTestAddNodeInterval(1000), 1047);
-    setTimeout(currentSessionView.initTestAddLinkInterval(1000), 2047);
-    setTimeout(currentSessionView.initTestDeleteNodeInterval(1000), 5047);
-  } else {
-    currentSessionView.clearTestAddNodeInterval();
-    currentSessionView.clearTestAddLinkInterval();
-    currentSessionView.clearTestDeleteNodeInterval();
-  }
+  currentSessionView.setTestMode(config.testModeEnabled);
+
+  // if (config.testModeEnabled) {
+  //   setTimeout(currentSessionView.initTestAddNodeInterval(1000), 1047);
+  //   setTimeout(currentSessionView.initTestAddLinkInterval(1000), 2047);
+  //   setTimeout(currentSessionView.initTestDeleteNodeInterval(1000), 5047);
+  // } else {
+  //   currentSessionView.clearTestAddNodeInterval();
+  //   currentSessionView.clearTestAddLinkInterval();
+  //   currentSessionView.clearTestDeleteNodeInterval();
+  // }
 
   controlPanel.updateControlPanel(config);
 }

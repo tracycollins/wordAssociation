@@ -2173,13 +2173,18 @@ function dbUpdateEntity(entityObj, incMentions, callback) {
 
 function checkKeyword(w, callback) {
 
-
   var wordObj = {};
   wordObj = w;
   wordObj.isKeyword = false;    
   wordObj.keywords = {};    
 
-  if (keywordHashMap.has(wordObj.nodeId.toLowerCase())) {
+  if (keywordHashMap.has(wordObj.screenName.toLowerCase())) {
+    var kwType = keywordHashMap.get(wordObj.screenName.toLowerCase());
+    wordObj.isKeyword = true;
+    wordObj.keywords[wordObj.screenName.toLowerCase()] = kwType;    
+    callback(wordObj);
+  }
+  else if (keywordHashMap.has(wordObj.nodeId.toLowerCase())) {
     var kwType = keywordHashMap.get(wordObj.nodeId.toLowerCase());
     wordObj.isKeyword = true;
     wordObj.keywords[wordObj.nodeId.toLowerCase()] = kwType;    
@@ -7281,6 +7286,7 @@ function createSession(newSessionObj) {
             console.log(chalkError("NODE NAME UNDEFINED?\n" + jsonPrint(nodeObj)));
           }
           else {
+            nodeObj.isTwitterUser = true;
             if (nodeObj.name.toLowerCase().includes("obama")) {
               obamaHit = nodeObj.name;
               nodeObj.isKeyword = true;

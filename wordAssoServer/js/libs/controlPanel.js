@@ -500,6 +500,7 @@ function ControlPanel() {
         self.tableCreateRow(controlSliderTable, optionsBody, ['VEL DECAY', velocityDecaySlider, velocityDecaySliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ['LINK STRENGTH', linkStrengthSlider, linkStrengthSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ['LINK DISTANCE', linkDistanceSlider, linkDistanceSliderText]);
+        if (callback) callback(dashboardMain);
         break;
 
       case 'ticker':
@@ -520,6 +521,7 @@ function ControlPanel() {
         );
         self.tableCreateRow(controlTable, optionsBody, [resetButton]);
         self.tableCreateRow(controlSliderTable, optionsBody, ['MAX AGE', maxAgeSlider, maxAgeSliderText]);
+        if (callback) callback(dashboardMain);
         break;
 
       case 'histogram':
@@ -540,6 +542,7 @@ function ControlPanel() {
         );
         self.tableCreateRow(controlSliderTable, optionsBody, [blahButton, resetButton]);
         self.tableCreateRow(controlSliderTable, optionsBody, ['MAX AGE', maxAgeSlider, maxAgeSliderText]);
+        if (callback) callback(dashboardMain);
 
         break;
 
@@ -551,11 +554,12 @@ function ControlPanel() {
             fullscreenButton, 
             pauseButton, 
             statsButton, testModeButton, resetButton, nodeCreateButton, removeDeadNodeButton]);
+        if (callback) callback(dashboardMain);
         break;
     }
 
     // self.updateControlPanel(config);
-    if (callback) callback(dashboardMain);
+    // if (callback) callback(dashboardMain);
   }
 
   this.updateControlPanel = function (config, callback) {
@@ -624,10 +628,13 @@ function ControlPanel() {
       setTimeout(function() {  // KLUDGE to insure table is created before update
         self.updateControlPanel(config, function(){
           if (typeof parentWindow !== 'undefined') {
-            parentWindow.postMessage({op:'READY'}, DEFAULT_SOURCE);
+            setTimeout(function(){
+              console.log("TX PARENT: READY " + DEFAULT_SOURCE);
+              parentWindow.postMessage({op:'READY'}, DEFAULT_SOURCE)
+            }, 1000);
           }
         });
-      }, 1000);
+      }, 2000);
     });
   });
 

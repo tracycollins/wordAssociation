@@ -344,7 +344,7 @@ var stdin;
 var commandLineArgs = require('command-line-args');
 
 var enableStdin = { name: "enableStdin", alias: "i", type: Boolean, defaultValue: true};
-var quitOnError = { name: "quitOnError", alias: "q", type: Boolean, defaultValue: true};
+var quitOnError = { name: "quitOnError", alias: "q", type: Boolean, defaultValue: false};
 var testMode = { name: "testMode", alias: "T", type: Boolean, defaultValue: false};
 
 var optionDefinitions = [enableStdin, quitOnError, testMode];

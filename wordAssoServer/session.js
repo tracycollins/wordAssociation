@@ -541,6 +541,7 @@ function toggleControlPanel(){
   if (controlPanelFlag){
     controlPanelWindow.close();
     controlPanelFlag = false;
+    controlPanelReadyFlag = false;
     updateControlButton(controlPanelFlag);
     console.debug("toggleControlPanel: " + controlPanelFlag);
   }
@@ -559,13 +560,20 @@ function toggleControlPanel(){
     cnf.defaultVelocityDecay = DEFAULT_VELOCITY_DECAY;
     cnf.defaultNodeRadius = DEFAULT_NODE_RADIUS;
 
+    var controlPanelInitWaitInterval;
+
     createPopUpControlPanel(cnf, function(cpw){
+
       console.warn("createPopUpControlPanel toggleControlPanel: " + controlPanelFlag);
-      setTimeout(function(){
-        controlPanelFlag = true;
-        updateControlButton(controlPanelFlag);
-        cpw.postMessage({op: 'INIT', config: cnf}, DEFAULT_SOURCE);
+
+      controlPanelInitWaitInterval = setInterval(function(){
+        if (controlPanelReadyFlag) {
+          clearInterval(controlPanelInitWaitInterval);
+          updateControlButton(controlPanelFlag);
+          cpw.postMessage({op: 'INIT', config: cnf}, DEFAULT_SOURCE);
+        }
       }, 500);
+
     });
   }
 
@@ -643,6 +651,8 @@ function addFullscreenButton(){
   controlDiv.appendChild(fullscreenButton);
 }
 
+var controlPanelReadyFlag = false;
+
 function createPopUpControlPanel (cnf, callback) {
 
   console.debug("createPopUpControlPanel\ncnf\n" + jsonPrint(cnf));
@@ -675,6 +685,7 @@ function controlPanelComm(event) {
   switch (data.op) {
     case 'READY' :
       console.warn("CONTROL PANEL READY");
+      controlPanelReadyFlag = true;
     break;
     case 'CLOSE' :
       console.warn("CONTROL PANEL CLOSING...");

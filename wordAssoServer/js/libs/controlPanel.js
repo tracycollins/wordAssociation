@@ -102,7 +102,7 @@ function ControlPanel() {
       console.log("BUTTON " + currentButton.id 
         + " : " + buttonConfig.mode
       );
-      
+
       parentWindow.postMessage({op: buttonConfig.mode, id: currentButton.id}, DEFAULT_SOURCE);
 
       if (currentButton.id == 'resetButton'){
@@ -148,6 +148,12 @@ function ControlPanel() {
     }
 
     parentWindow = event.source;
+
+    console.debug("SOURCE"
+      + " | ORIGIN: " + event.origin 
+      + " | PARENT WINDOW: " + parentWindow.PARENT_ID
+      + " | DEFAULT_SOURCE: " + DEFAULT_SOURCE
+    );
 
     var op = event.data.op;
 

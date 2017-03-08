@@ -829,19 +829,7 @@ function toggleTestMode() {
   config.testMode = !config.testMode;
   config.testModeEnabled = config.testMode;
   console.warn("TEST MODE: " + config.testModeEnabled);
-
   currentSessionView.setTestMode(config.testModeEnabled);
-
-  // if (config.testModeEnabled) {
-  //   setTimeout(currentSessionView.initTestAddNodeInterval(1000), 1047);
-  //   setTimeout(currentSessionView.initTestAddLinkInterval(1000), 2047);
-  //   setTimeout(currentSessionView.initTestDeleteNodeInterval(1000), 5047);
-  // } else {
-  //   currentSessionView.clearTestAddNodeInterval();
-  //   currentSessionView.clearTestAddLinkInterval();
-  //   currentSessionView.clearTestDeleteNodeInterval();
-  // }
-
   controlPanel.updateControlPanel(config);
 }
 

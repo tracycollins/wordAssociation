@@ -18,6 +18,8 @@ var DEFAULT_SOURCE = "==SOURCE==";  // will be updated by wordAssoServer.js on a
 var DEFAULT_FORCEVIEW_MODE = "web";
 var DEFAULT_SESSION_VIEW = "flow";
 
+var enableUserNodes = false;
+
 var d3;
 var controlPanel;
 var controlPanelWindow; 
@@ -1947,7 +1949,9 @@ function initSocketNodeRx(){
       newNode.sourceUrl = nNode.sourceUrl;
     }
 
-    currentSessionView.addNode(newNode);
+    if ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user"))) {
+      currentSessionView.addNode(newNode);
+    }
   });
 
   socket.on('STATS_HASHTAG', function(htStatsObj){

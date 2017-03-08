@@ -444,6 +444,7 @@ function ViewHistogram() {
       .attr("x", xposition)
       .attr("y", yposition)
       .text(function(d) {
+        if (d.isTwitterUser) { return "@" + d.screenName.toUpperCase(); }
         if (d.isKeyword || d.isTrendingTopic || d.isTwitterUser) { return d.nodeId.toUpperCase(); }
         return d.nodeId; 
       })
@@ -631,9 +632,12 @@ function ViewHistogram() {
 
   this.addNode = function(nNode) {
 
-    if (((nNode.nodeType !== "hashtag") && (nNode.nodeType !== "word")) || nNode.isIgnored) { return;}
+    if (((nNode.nodeType !== "hashtag") && (nNode.nodeType !== "word") && (nNode.nodeType !== "user")) 
+      || nNode.isIgnored) { 
+      return;
+    }
 
-    // if (nNode.isKeyword) console.debug("KW: " + jsonPrint(nNode));
+    if (nNode.nodeType === "user") console.debug("USER: " + nNode.nodeId);
 
     var newNode = {};
     newNode = nNode;

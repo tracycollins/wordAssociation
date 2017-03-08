@@ -1887,7 +1887,7 @@ function initSocketNodeRx(){
   socket.on("node", function(nNode) {
 
     if (!windowVisible || config.pauseFlag) {return;}
-    if (((nNode.nodeType !== "hashtag") && (nNode.nodeType !== "word")) && (config.sessionViewType === "histogram")) {return;}
+    if (((nNode.nodeType !== "user") && (nNode.nodeType !== "hashtag") && (nNode.nodeType !== "word")) && (config.sessionViewType === "histogram")) {return;}
     if ((nNode.nodeType !== "user") && (nNode.nodeType !== "media") && (config.sessionViewType === "media")) {return;}
 
     // console.log("N< " 
@@ -1929,6 +1929,8 @@ function initSocketNodeRx(){
     }
     if (nNode.nodeType == "user"){
       newNode.userId = nNode.userId;
+      newNode.nodeId = nNode.screenName.toLowerCase();
+      newNode.isTwitterUser = nNode.isTwitterUser;
       newNode.screenName = nNode.screenName;
       newNode.name = nNode.name;
       newNode.profileUrl = nNode.profileUrl;

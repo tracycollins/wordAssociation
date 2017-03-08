@@ -9,7 +9,8 @@ function ControlPanel() {
   // var DEFAULT_SOURCE = "http://word.threeceelabs.com";
   var DEFAULT_SOURCE = "==SOURCE==";  // will be updated by wordAssoServer.js on app.get
 
-  var parentWindow;
+  var parentWindow = window.opener;
+  console.error(parentWindow.PARENT_ID);
   var self = this;
 
   var config = {};
@@ -149,7 +150,7 @@ function ControlPanel() {
       return;
     }
 
-    parentWindow = event.source;
+    // parentWindow = event.source;
 
     console.debug("SOURCE"
       + " | ORIGIN: " + event.origin 

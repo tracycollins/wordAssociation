@@ -66,7 +66,7 @@ var pageLoadedTimeIntervalFlag = true;
 
 var debug = false;
 var DEFAULT_BLAH_MODE = false;
-var MAX_RX_QUEUE = 100;
+var MAX_RX_QUEUE = 250;
 var MAX_WORDCHAIN_LENGTH = 100;
 var DEFAULT_MAX_AGE = 60000;
 var FORCE_MAX_AGE = 60000;
@@ -1183,9 +1183,6 @@ function getUrlVariables(callbackMain) {
   );
 
   async.parallel(asyncTasks, function(err, results) {
-
-    // console.log("results\n" + results);
-
     var urlConfig = {};
 
     // results is an array of objs:  results = [ {key0: val0}, ... {keyN: valN} ];
@@ -1196,18 +1193,12 @@ function getUrlVariables(callbackMain) {
       var urlVarKeys = Object.keys(urlVarObj);
 
       async.each(urlVarKeys, function(key, cb2) {
-
-
         urlConfig[key] = urlVarObj[key];
-
         console.log("key: " + key + " > urlVarObj[key]: " + urlVarObj[key]);
-
         cb2();
-
       }, function(err) {
         cb1();
       });
-
 
     }, function(err) {
       callbackMain(err, urlConfig);
@@ -1728,12 +1719,9 @@ function updateStatsTable(statsObj){
   document.getElementById("statsServerRunTime").innerHTML = msToTime(statsObj.heartbeat.runTime);
   document.getElementById("statsServerTotalWords").innerHTML = statsObj.heartbeat.totalWords;
   document.getElementById("statsServerWordsReceived").innerHTML = statsObj.heartbeat.responsesReceived;
-
   document.getElementById("statsServerWordsPerMin").innerHTML = statsObj.heartbeat.wordsPerMinute.toFixed(2);
   document.getElementById("statsServerMaxWordsPerMin").innerHTML = statsObj.heartbeat.maxWordsPerMin.toFixed(2);
-
   document.getElementById("statsServerMaxWordsPerMinTime").innerHTML = moment(statsObj.heartbeat.maxWordsPerMinTime).format(defaultDateTimeFormat);
-
   document.getElementById("statsClientNumberNodes").innerHTML = currentSessionView.getNodesLength();
   document.getElementById("statsClientNumberMaxNodes").innerHTML = statsObj.maxNodes;
   document.getElementById("statsClientNumberEntities").innerHTML = sessionHashMap.count();
@@ -1813,22 +1801,11 @@ socket.on("SESSION_ABORT", function(rxSessionObject) {
 
 socket.on("SESSION_DELETE", function(rxSessionObject) {
 
-  // var rxObj = rxSessionObject;
-
-  // console.log("X SES" 
-  //   // + " | " + rxSessionObject.session.nodeId
-  //   + " " + rxSessionObject.sessionId 
-  //   // + " | " + rxSessionObject.sessionEvent
-  //   + "\n" + jsonPrint(rxSessionObject)
-  // );
-
   if ((typeof rxSessionObject.session !== 'undefined') && (typeof rxSessionObject.session.tags !== 'undefined')){
 
-    // rxSessionObject.session.nodeId = rxSessionObject.session.user.tags.entity.toLowerCase() + "_" + rxSessionObject.session.user.tags.channel.toLowerCase();
-    // rxSessionObject.session.nodeId = rxSessionObject.session.tags.entity.toLowerCase() + "_" + rxSessionObject.session.tags.channel.toLowerCase();
-
-    rxSessionObject.session.nodeId = (config.forceViewMode == 'web') ? rxSessionObject.session.tags.entity.toLowerCase() : rxSessionObject.session.tags.entity.toLowerCase() + "_" + rxSessionObject.session.tags.channel.toLowerCase();
-
+    rxSessionObject.session.nodeId = (config.forceViewMode == 'web') 
+      ? rxSessionObject.session.tags.entity.toLowerCase() 
+      : rxSessionObject.session.tags.entity.toLowerCase() + "_" + rxSessionObject.session.tags.channel.toLowerCase();
 
     if (sessionHashMap.has(rxSessionObject.session.nodeId)) {
 
@@ -1863,22 +1840,24 @@ socket.on("SESSION_UPDATE", function(rxSessionObject) {
 
   console.debug("SES UPDATE: " + rxSessionObject.action + " | " + rxSessionObject.sessionId);
 
-
   if (!windowVisible || config.pauseFlag) {
     rxSessionUpdateQueue = [];
     if (debug) {
       console.log("... SKIP SESSION_UPDATE ... WINDOW NOT VISIBLE");
     }
     
-  } else if (sessionMode && (rxSessionObject.sessionId !== currentSession.sessionId)) {
+  } 
+  else if (sessionMode && (rxSessionObject.sessionId !== currentSession.sessionId)) {
     if (debug) {
       console.log("SKIP SESSION_UPDATE: " + rxSessionObject.sessionId 
         + " | CURRENT: " + currentSession.sessionId);
     }
-  } else if (rxSessionUpdateQueue.length < MAX_RX_QUEUE) {
+  } 
+  else if (rxSessionUpdateQueue.length < MAX_RX_QUEUE) {
 
     if (rxSessionObject.action == 'KEEPALIVE') {
-    } else {
+    } 
+    else {
       rxSessionUpdateQueue.push(rxSessionObject);
 
       if (rxSessionObject.tags.trending) {
@@ -1937,7 +1916,8 @@ function initSocketNodeRx(){
     }
     if (nNode.nodeType == "user"){
       newNode.userId = nNode.userId;
-      newNode.nodeId = nNode.screenName.toLowerCase();
+      // newNode.nodeId = nNode.screenName.toLowerCase();
+      newNode.nodeId = nNode.nodeId;
       newNode.isTwitterUser = nNode.isTwitterUser;
       newNode.screenName = nNode.screenName;
       newNode.name = nNode.name;
@@ -1955,9 +1935,14 @@ function initSocketNodeRx(){
       newNode.sourceUrl = nNode.sourceUrl;
     }
 
-    if ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user"))) {
+    if ((config.sessionViewType === "histogram")
+      && ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user")))) {
       currentSessionView.addNode(newNode);
     }
+    else if (config.sessionViewType !== "histogram") {
+      currentSessionView.addNode(newNode);
+    }
+
   });
 
   socket.on('STATS_HASHTAG', function(htStatsObj){
@@ -2993,8 +2978,6 @@ var createLink = function(callback) {
 
     if (config.sessionViewType == 'force') {
 
-      // var sessionLinkId = (config.forceViewMode == 'web') ? session.node.nodeId : currentSession.node.nodeId + "_" + session.source.nodeId;
-
       var sessionLinkId = session.node.nodeId + "_" + session.source.nodeId;
 
       console.debug("sessionLinkId: " + sessionLinkId);
@@ -3093,9 +3076,7 @@ function updateSessions() {
 
   updateSessionsReady = false;
 
-  // if ((config.sessionViewType === 'histogram') || (config.forceViewMode === 'web')) {
   if (config.forceViewMode === 'web') {
-
   }
   else {
     async.series(

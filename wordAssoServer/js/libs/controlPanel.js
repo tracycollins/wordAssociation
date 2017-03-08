@@ -77,6 +77,8 @@ function ControlPanel() {
     document.getElementById("maxAgeSliderText").innerHTML = value;
   }
 
+  window.addEventListener("message", receiveMessage, false);
+
   window.onbeforeunload = function() {
     parentWindow.postMessage({op:'CLOSE'}, DEFAULT_SOURCE);
   }
@@ -178,7 +180,6 @@ function ControlPanel() {
     }
   }
 
-  window.addEventListener("message", receiveMessage, false);
 
   function jsonPrint(obj) {
     if ((obj) || (obj === 0)) {
@@ -635,15 +636,11 @@ function ControlPanel() {
           if (typeof parentWindow !== 'undefined') {
             setTimeout(function(){
               console.log("TX PARENT READY " + DEFAULT_SOURCE);
-      
-              // for (var prop in parentWindow) {
-              //   console.info("parentWindow | " + prop 
-              //     + " | " + parentWindow[prop]
-              //   );
-              // }
-
               parentWindow.postMessage({op:'READY'}, DEFAULT_SOURCE);
             }, 1000);
+          }
+          else {
+            console.error("PARENT WINDOW UNDEFINED??");
           }
         });
       }, 2000);

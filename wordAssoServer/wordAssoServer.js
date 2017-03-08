@@ -2178,7 +2178,7 @@ function checkKeyword(w, callback) {
   wordObj.isKeyword = false;    
   wordObj.keywords = {};    
 
-  if (keywordHashMap.has(wordObj.screenName.toLowerCase())) {
+  if ((wordObj.nodeType === "user") && keywordHashMap.has(wordObj.screenName.toLowerCase())) {
     var kwType = keywordHashMap.get(wordObj.screenName.toLowerCase());
     wordObj.isKeyword = true;
     wordObj.keywords[wordObj.screenName.toLowerCase()] = kwType;    

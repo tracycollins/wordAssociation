@@ -560,12 +560,12 @@ function toggleControlPanel(){
     cnf.defaultNodeRadius = DEFAULT_NODE_RADIUS;
 
     createPopUpControlPanel(cnf, function(cpw){
-      controlPanelFlag = true;
-      updateControlButton(controlPanelFlag);
       console.warn("createPopUpControlPanel toggleControlPanel: " + controlPanelFlag);
       setTimeout(function(){
+        controlPanelFlag = true;
+        updateControlButton(controlPanelFlag);
         cpw.postMessage({op: 'INIT', config: cnf}, DEFAULT_SOURCE);
-      }, 200);
+      }, 500);
     });
   }
 

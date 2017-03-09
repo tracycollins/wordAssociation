@@ -4603,7 +4603,9 @@ function handleSessionEvent(sesObj, callback) {
         } 
         else {
           console.log(chalkError("*** USER UPDATE DB ERROR\n" + jsonPrint(err)));
-          if (quitOnError) quit(err);
+          if (quitOnError) {
+            quit(err);
+          }
         }
       });
 
@@ -5348,9 +5350,12 @@ function updatePreviousPrompt(sessionObj, wordObj, callback){
     previousPromptNodeId = sessionObj.wordChain[sessionObj.wordChain.length - 2].nodeId;
     previousPromptObj = wordCache.get(previousPromptNodeId);
 
-    if (!previousPromptObj) {
-      debug(chalkWarn("??? PREVIOUS PROMPT NOT IN CACHE: " + previousPromptNodeId));
-      if (quitOnError) quit("??? PREVIOUS PROMPT NOT IN CACHE: " + previousPromptNodeId);
+    if (typeof previousPromptObj === "undefined") {
+      console.log(chalkWarn("quitOnError: " + quitOnError));
+      console.log(chalkWarn("??? PREVIOUS PROMPT NOT IN CACHE: " + previousPromptNodeId));
+      if (quitOnError) {
+        quit("??? PREVIOUS PROMPT NOT IN CACHE: " + previousPromptNodeId);
+      }
       callback(previousPromptObj);
     } else {
       previousPromptObj.wordChainIndex = wordObj.word.wordChainIndex - 1;

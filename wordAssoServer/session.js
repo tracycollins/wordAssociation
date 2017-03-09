@@ -3322,6 +3322,7 @@ function initialize(callback) {
               currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
             }
             if (config.sessionViewType == 'flow') {
+              initUpdateSessionsInterval(50);
               currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
             }
             if (config.sessionViewType == 'histogram') {
@@ -3329,6 +3330,7 @@ function initialize(callback) {
             }
             if (config.sessionViewType == 'force') {
               currentSessionView.setNodeMaxAge(FORCE_MAX_AGE);
+              initUpdateSessionsInterval(50);
             }
             if (config.sessionViewType == 'media') {
               currentSessionView.setNodeMaxAge(MEDIA_MAX_AGE);
@@ -3339,7 +3341,7 @@ function initialize(callback) {
             currentSessionView.initD3timer();
 
             initStatsUpdate(1000);
-            initUpdateSessionsInterval(50);
+            // initUpdateSessionsInterval(50);
 
             console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
             socket.emit("VIEWER_READY", viewerObj);
@@ -3362,38 +3364,44 @@ function initialize(callback) {
 
           loadViewType(config.sessionViewType, function() {
 
-            if (config.sessionViewType == 'ticker') {
-              currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-            }
-            if (config.sessionViewType == 'flow') {
-              currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-            }
-            if (config.sessionViewType == 'histogram') {
-              currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-            }
-            if (config.sessionViewType == 'force') {
-              currentSessionView.setNodeMaxAge(FORCE_MAX_AGE);
-            }
-            if (config.sessionViewType == 'media') {
-              currentSessionView.setNodeMaxAge(MEDIA_MAX_AGE);
-            }
+            // if (config.sessionViewType == 'ticker') {
+            //   currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
+            // }
+            // if (config.sessionViewType == 'flow') {
+            //   currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
+            // }
+            // if (config.sessionViewType == 'histogram') {
+            //   currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
+            // }
+            // if (config.sessionViewType == 'force') {
+            //   currentSessionView.setNodeMaxAge(FORCE_MAX_AGE);
+            // }
+            // if (config.sessionViewType == 'media') {
+            //   currentSessionView.setNodeMaxAge(MEDIA_MAX_AGE);
+            // }
 
             if (config.sessionViewType == 'force') {
+              currentSessionView.setNodeMaxAge(FORCE_MAX_AGE);
               initIgnoreWordsHashMap(function() {
                 console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+                initUpdateSessionsInterval(50);
               });
             }
             if (config.sessionViewType == 'ticker') {
+              currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
               initIgnoreWordsHashMap(function() {
                 console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
               });
             }
             if (config.sessionViewType == 'flow') {
+              currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
+              initUpdateSessionsInterval(50);
               initIgnoreWordsHashMap(function() {
                 console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
               });
             }
             if (config.sessionViewType == 'histogram') {
+              currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
               initIgnoreWordsHashMap(function() {
                 console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
               });
@@ -3405,7 +3413,7 @@ function initialize(callback) {
             currentSessionView.resize();
 
             initStatsUpdate(1000);
-            initUpdateSessionsInterval(50);
+            // initUpdateSessionsInterval(50);
 
             console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
             socket.emit("VIEWER_READY", viewerObj);
@@ -3430,38 +3438,43 @@ function initialize(callback) {
 
         loadViewType(config.sessionViewType, function() {
 
-          if (config.sessionViewType == 'ticker') {
-            currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-          }
-          if (config.sessionViewType == 'flow') {
-            currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-          }
-          if (config.sessionViewType == 'histogram') {
-            currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-          }
-          if (config.sessionViewType == 'force') {
-            currentSessionView.setNodeMaxAge(FORCE_MAX_AGE);
-          }
-          if (config.sessionViewType == 'media') {
-            currentSessionView.setNodeMaxAge(MEDIA_MAX_AGE);
-          }
+          // if (config.sessionViewType == 'ticker') {
+          //   currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
+          // }
+          // if (config.sessionViewType == 'flow') {
+          //   currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
+          // }
+          // if (config.sessionViewType == 'histogram') {
+          //   currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
+          // }
+          // if (config.sessionViewType == 'force') {
+          //   currentSessionView.setNodeMaxAge(FORCE_MAX_AGE);
+          // }
+          // if (config.sessionViewType == 'media') {
+          //   currentSessionView.setNodeMaxAge(MEDIA_MAX_AGE);
+          // }
 
           if (config.sessionViewType == 'force') {
+            currentSessionView.setNodeMaxAge(FORCE_MAX_AGE);
+            initUpdateSessionsInterval(50);
             initIgnoreWordsHashMap(function() {
               console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
             });
           }
           if (config.sessionViewType == 'ticker') {
+            currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
             initIgnoreWordsHashMap(function() {
               console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
             });
           }
           if (config.sessionViewType == 'flow') {
+            currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
             initIgnoreWordsHashMap(function() {
               console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
             });
           }
           if (config.sessionViewType == 'histogram') {
+            currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
             initIgnoreWordsHashMap(function() {
               console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
             });
@@ -3473,7 +3486,7 @@ function initialize(callback) {
           currentSessionView.resize();
 
           initStatsUpdate(1000);
-          initUpdateSessionsInterval(50);
+          // initUpdateSessionsInterval(50);
 
           console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
           socket.emit("VIEWER_READY", viewerObj);

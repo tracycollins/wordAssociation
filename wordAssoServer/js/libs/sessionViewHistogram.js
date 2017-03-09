@@ -115,8 +115,13 @@ function ViewHistogram() {
     }
   }, true);
 
-  var nodeLabelOpacityScale = d3.scaleLinear().domain([1e-6, 0.1, 1.0]).range([1.0, 0.4, minOpacity]).clamp(true);
-  var adjustedAgeRateScale = d3.scaleLinear().domain([1, MAX_NODES]).range([1.0, 10.0]);
+  var nodeLabelOpacityScale = d3.scaleLinear()
+    .domain([1e-6, 0.1, 1.0])
+    .range([1.0, 0.4, minOpacity])
+    .clamp(true);
+  var adjustedAgeRateScale = d3.scaleLinear()
+    .domain([1, MAX_NODES])
+    .range([1.0, 10.0]);
 
   console.log("@@@@@@@ CLIENT @@@@@@@@");
 
@@ -314,12 +319,10 @@ function ViewHistogram() {
 
         case "delete":
           nodesModifiedFlag = deleteNodeQ(nodeDeleteObj.nodeId);
-
         break;
 
         default:
           console.error("??? UNKNOWN NODE DELETE Q OP: " + nodeDeleteObj.op);
-
       }
     }
 
@@ -365,7 +368,10 @@ function ViewHistogram() {
         node.rank = nodeObj.rank;
       }
 
-      age = node.age + randomIntFromInterval(10,100) + (ageRate * (moment().valueOf() - node.ageUpdated));
+      age = node.age 
+        + randomIntFromInterval(10,100) 
+        + (ageRate * (moment().valueOf() - node.ageUpdated));
+
       ageMaxRatio = age/nodeMaxAge ;
 
       if (node.isDead || (removeDeadNodesFlag && (age >= nodeMaxAge))) {
@@ -474,7 +480,13 @@ function ViewHistogram() {
         return d.nodeId; 
       })
       .style("font-weight", function(d) {
-        if (d.isTwitterUser || d.isKeyword || d.isNumber || d.isCurrency || d.isTrendingTopic) return "bold";
+        if (d.isTwitterUser 
+          || d.isKeyword 
+          || d.isNumber 
+          || d.isCurrency 
+          || d.isTrendingTopic) {
+          return "bold";
+        }
         return "normal";
       })
       .style('opacity', function(d) { 
@@ -482,10 +494,6 @@ function ViewHistogram() {
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
       .style('fill', palette.white)
-      // .style('fill', function(d) { 
-      //   if (d.mouseHoverFlag) { return palette.blue; }
-      //   return palette.white; 
-      // })
       .style("font-size", fontSize)
       .transition()
         .duration(defaultPosDuration)

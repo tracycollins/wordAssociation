@@ -5613,7 +5613,9 @@ function keywordUpdateDb(updateObj, callback){
   //    "left": 7
   //  }
 
-  debug(chalkRed("UPDATING KEYWORD | " + updateObj.keyword.keywordId + ": " + jsonPrint(updateObj)));
+  if (typeof updateObj.keyword.keywordId === 'undefined') {
+    console.log(chalkRed("UPDATING KEYWORD ERROR\n" + jsonPrint(updateObj)));
+  }
 
   var wordObj = new Word();
 

@@ -17,6 +17,8 @@ var DEFAULT_SOURCE = "==SOURCE==";  // will be updated by wordAssoServer.js on a
 
 var PARENT_ID = "0047";
 
+var KEYWORD_SCALE = { min: 0, max: 100 };
+
 var DEFAULT_FORCEVIEW_MODE = "web";
 var DEFAULT_SESSION_VIEW = "flow";
 
@@ -434,6 +436,67 @@ function msToTime(duration) {
 
   return days + ":" + hours + ":" + minutes + ":" + seconds;
 }
+
+function getKeywordColor(kwObj, callback){
+
+  var keywords = Object.keys(kwObj);
+
+  if (keywords.length === 0) {
+      // console.debug("COLOR"
+      //   + " | " + palette.white
+      //   // + " | R: " + c.r + " G: " + c.g + " B: " + c.b + " A: " + c.opacity
+      // );
+      callback(palette.white);
+  }
+
+  else {
+
+    var color = palette.white;
+
+    var keywordTypes = Object.keys(kwObj[keywords[0]]);
+
+    async.each(keywordTypes, function(kwType, cb){
+
+      if (kwType === "keywordId") {
+        cb();
+      }
+      else {
+        color = keywordColorHashMap.get(kwType);
+        cb();
+      }
+
+    }, function(err){
+      callback(color);
+    });
+
+    // keywordTypes.forEach(function(kwType){
+
+    //   if (kwType === "keywordId") {
+    //     if (keywordTypes.length === 1) {
+    //       return callback(palette.white);
+    //     }
+    //     else {
+    //       return;
+    //     }
+    //   }
+
+    //   var color = keywordColorHashMap.get(kwType);
+
+    //   var c = d3.rgb(color);
+
+    //   // console.debug("COLOR"
+    //   //   + " | " + keywords[0]
+    //   //   + " | " + kwType
+    //   //   + " | " + keywordColorHashMap.get(kwType)
+    //   //   + " | R: " + c.r + " G: " + c.g + " B: " + c.b + " A: " + c.opacity
+    //   // );
+
+    //   callback(color);
+    // });
+
+  }
+};
+
 
 function displayControl(isVisible) {
   var v = 'hidden';
@@ -1889,7 +1952,10 @@ function initSocketNodeRx(){
     var newNode = {};
     newNode.isKeyword = nNode.isKeyword;
     newNode.keywords = nNode.keywords;
-    newNode.keywordColor = getKeywordColor(Object.values(nNode.keywords)[0]);  // KLUDGE!  need better way to do keywords
+    // newNode.keywordColor = getKeywordColor(Object.values(nNode.keywords)[0]);  // KLUDGE!  need better way to do keywords
+    getKeywordColor(nNode.keywords, function(color){
+      newNode.keywordColor = color;
+    });  // KLUDGE!  need better way to do keywords
     newNode.createdAt = nNode.createdAt;
     newNode.age = 1e-6;
     newNode.ageMaxRatio = 1e-6;
@@ -2116,11 +2182,6 @@ function sum( obj ) {
 }
 
 var randomNumber360 = 180;
-
-var getKeywordColor = function(keywordsObj){
-  // console.log("getKeywordColor: " + keywordsObj);
-  return keywordColorHashMap.get(keywordsObj);
-}
 
 var createGroup = function(callback) {
 
@@ -2736,8 +2797,11 @@ var createNode = function(callback) {
               sourceNode.isIgnored = true;
             }
             sourceNode.isKeyword = session.source.isKeyword;
+            // sourceNode.keywordColor = getKeywordColor(session.source.keywords);
+            getKeywordColor(session.source.keywords, function(color){
+              sourceNode.keywordColor = color;
+            });  // KLUDGE!  need better way to do keywords
             sourceNode.isTrendingTopic = session.source.isTrendingTopic;
-            sourceNode.keywordColor = getKeywordColor(session.source.keywords);
             sourceNode.newFlag = true;
             sourceNode.latestNode = true;
             sourceNode.nodeType = "word"; // KLUDGE
@@ -2810,7 +2874,6 @@ var createNode = function(callback) {
             targetNode.nodeType = "word"; // KLUDGE
             targetNode.isTrendingTopic = session.target.isTrendingTopic;
             targetNode.isKeyword = session.target.isKeyword;
-            // targetNode.keywordColor = getKeywordColor(session.target.keywords);
             targetNode.userId = session.userId;
             targetNode.sessionId = session.sessionId;
             targetNode.groupId = session.groupId;
@@ -2876,7 +2939,10 @@ var createNode = function(callback) {
             }
             targetNode.isTrendingTopic = session.target.isTrendingTopic;
             targetNode.isKeyword = session.target.isKeyword;
-            targetNode.keywordColor = getKeywordColor(session.target.keywords);
+            // targetNode.keywordColor = getKeywordColor(session.target.keywords);
+            getKeywordColor(session.target.keywords, function(color){
+              targetNode.keywordColor = color;
+            });  // KLUDGE!  need better way to do keywords
             targetNode.userId = session.userId;
             targetNode.groupId = session.groupId;
             targetNode.channel = session.tags.channel;

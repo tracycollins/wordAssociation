@@ -1,6 +1,7 @@
 /*jslint node: true */
 "use strict";
 
+var DEFAULT_KEYWORD_VALUE = 100 // on scale of 1-100
 var deleteKeywordsEnabled = false;
 
 var OFFLINE_MODE = false;
@@ -28,7 +29,7 @@ var jsonPrint = function(obj) {
 function quit(message) {
   var msg = '';
   if (message) msg = message;
-  console.log("**** QUITTING"
+  console.log("UPDATER: **** QUITTING"
     + " | CAUSE: " + msg
     + " | PID: " + process.pid
     + "\n" + process.argv[1] 
@@ -111,7 +112,7 @@ var chalkLog = chalk.gray;
 // ENV INIT
 // ==================================================================
 if (debug.enabled) {
-  console.log("\n%%%%%%%%%%%%%%\n%%%%%%% DEBUG ENABLED %%%%%%%\n%%%%%%%%%%%%%%\n");
+  console.log("UPDATER: \n%%%%%%%%%%%%%%\n%%%%%%% DEBUG ENABLED %%%%%%%\n%%%%%%%%%%%%%%\n");
 }
 
 // ==================================================================
@@ -123,7 +124,7 @@ var DROPBOX_WORD_ASSO_APP_SECRET = process.env.DROPBOX_WORD_ASSO_APP_SECRET;
 
 var Dropbox = require("dropbox");
 
-console.log("DROPBOX_WORD_ASSO_ACCESS_TOKEN :" + DROPBOX_WORD_ASSO_ACCESS_TOKEN);
+console.log("UPDATER: DROPBOX_WORD_ASSO_ACCESS_TOKEN :" + DROPBOX_WORD_ASSO_ACCESS_TOKEN);
 debug("DROPBOX_WORD_ASSO_APP_KEY :" + DROPBOX_WORD_ASSO_APP_KEY);
 debug("DROPBOX_WORD_ASSO_APP_SECRET :" + DROPBOX_WORD_ASSO_APP_SECRET);
 
@@ -387,12 +388,10 @@ var updateKeywords = function (folder, file, serverHashMapFlag, callback){
 
   if (serverHashMapFlag){
     kwHashMap.copy(serverKeywordHashMap);
-    prevKwHashMap.copy(previousServerKeywordHashMap);
     console.log(chalkWarn("UPDATE SERVER KEYWORDS " + file));
   }
   else {
     kwHashMap.copy(keywordHashMap);
-    prevKwHashMap.copy(previousKeywordHashMap);
     console.log(chalkWarn("UPDATE GLOBAL KEYWORDS " + file));
   }
 
@@ -413,7 +412,6 @@ var updateKeywords = function (folder, file, serverHashMapFlag, callback){
 
       var words = Object.keys(kwordsObj);
 
-      prevKwHashMap.copy(kwHashMap);
       kwHashMap.clear();
       // process.send({ type: 'keywordHashMapClear'});
 
@@ -422,18 +420,30 @@ var updateKeywords = function (folder, file, serverHashMapFlag, callback){
         function(w, cb) {
 
           var wd = w.toLowerCase();
-          var keyWordType = kwordsObj[w];
+          wd = wd.replace(/\./g, "");  // KLUDGE:  better way to handle '.' in keywords?
+          // var keyWordType = kwordsObj[w];
+          var kwObj = kwordsObj[w];  // kwObj = { "negative": 10, "right": 7 }
 
-          debug(chalkInfo("UPDATING KEYWORD | " + wd + ": " + keyWordType));
+          // debug(chalkInfo("UPDATING KEYWORD | " + wd + ": " + keyWordType));
+          debug(chalkInfo("UPDATER: UPDATING KEYWORD | " + wd + ": " + jsonPrint(kwObj)));
 
           var wordObj = new Word();
 
           wordObj.nodeId = wd;
           wordObj.isKeyword = true;
-          wordObj.keywords[keyWordType] = true;
+          // wordObj.keywords[keyWordType] = true;
 
-          kwHashMap.set(wordObj.nodeId, keyWordType);
-          prevKwHashMap.remove(wordObj.nodeId);
+          // KLUDEGE: OVERWRITES ANY PREVIOUS KEYWORD SETTINGS FOR NOW
+          wordObj.keywords = {};
+
+          if (typeof kwObj === "string") {  // old style keyword: true/false; convert to new style
+            wordObj.keywords[kwObj.toLowerCase()] = DEFAULT_KEYWORD_VALUE;
+          }
+          else {
+            wordObj.keywords = kwObj;
+          }
+
+          kwHashMap.set(wordObj.nodeId, wordObj.keywords);
 
           wordServer.findOneWord(wordObj, false, function(err, updatedWordObj) {
             if (err){
@@ -463,36 +473,37 @@ var updateKeywords = function (folder, file, serverHashMapFlag, callback){
           else {
             console.log(chalkAlert("initKeywords COMPLETE"
               + " | TOTAL KEYWORDS:   " + kwHashMap.count()
-              + " | (DELETED KEYWORDS:) " + prevKwHashMap.count()
+              // + " | (DELETED KEYWORDS:) " + prevKwHashMap.count()
             ));
 
             if (serverHashMapFlag){
               serverKeywordHashMap.copy(kwHashMap);
-              previousServerKeywordHashMap.copy(prevKwHashMap);
+              // previousServerKeywordHashMap.copy(prevKwHashMap);
+              console.log(chalkWarn("UPDATE SERVER KEYWORDS " + file));
             }
             else {
               keywordHashMap.copy(kwHashMap);
-              previousKeywordHashMap.copy(prevKwHashMap);
+              // previousKeywordHashMap.copy(prevKwHashMap);
               console.log(chalkWarn("UPDATE GLOBAL KEYWORDS " + file));
             }
 
-            if (deleteKeywordsEnabled && (prevKwHashMap.count() > 0)) {
-              console.log(chalkInfo(
-                "DELETED KEYWORDS\n" + jsonPrint(prevKwHashMap.keys())
-              ));
+            // if (deleteKeywordsEnabled && (prevKwHashMap.count() > 0)) {
+            //   console.log(chalkInfo(
+            //     "DELETED KEYWORDS\n" + jsonPrint(prevKwHashMap.keys())
+            //   ));
 
-              var deletedKeyWords = prevKwHashMap.keys();
+            //   var deletedKeyWords = prevKwHashMap.keys();
 
-              deletedKeyWords.forEach(function (deleteKeyWord){
-                setTimeout(function(){
-                  process.send({ type: 'keywordRemove', keyword: deleteKeyWord});
-                  debug(chalkInfo("UPDATER SEND KEYWORD REMOVE"
-                    + " | " + deleteKeyWord
-                  ));
-                }, 10);
-              });
+            //   deletedKeyWords.forEach(function (deleteKeyWord){
+            //     setTimeout(function(){
+            //       process.send({ type: 'keywordRemove', keyword: deleteKeyWord});
+            //       debug(chalkInfo("UPDATER SEND KEYWORD REMOVE"
+            //         + " | " + deleteKeyWord
+            //       ));
+            //     }, 10);
+            //   });
               
-            }
+            // }
 
             callback(null, {numKeywords: words.length});
           }
@@ -550,7 +561,7 @@ function sendGroups(callback){
         ));
 
         cb();
-      }, 10);
+      }, 20);
 
     },
 
@@ -579,7 +590,7 @@ function sendGroups(callback){
               ));
 
               cb();
-            }, 10);
+            }, 20);
 
           },
 
@@ -675,13 +686,20 @@ function sendKeywords(callback){
 
   async.forEachSeries(words, function(word, cb) {
 
-      var keyWordType = keywordHashMap.get(word);
+      var kwObj = keywordHashMap.get(word);
+      var updateObj = {};
+      
+      updateObj.type = "keyword";
+      updateObj.keyword = {};
+      updateObj.keyword = kwObj;
+      updateObj.keyword.keywordId = word;
+
 
       setTimeout(function(){
-        process.send({ type: 'keyword', keyword: word, keyWordType: keyWordType});
-        debug(chalkInfo("UPDATER SEND KEYWORD"
+        process.send(updateObj);
+        debug(chalkAlert("UPDATER SEND KEYWORD"
           + " | " + word
-          + " | " + keyWordType
+          + " | " + jsonPrint(updateObj)
         ));
 
         cb();
@@ -698,14 +716,14 @@ function sendKeywords(callback){
 
         async.forEachSeries(serverWwords, function(word, cb2) {
 
-            var keyWordType = serverKeywordHashMap.get(word);
+            var kwObj = serverKeywordHashMap.get(word);
 
             setTimeout(function(){
-              process.send({ target: 'server', type: 'keyword', keyword: word, keyWordType: keyWordType });
+              process.send({ target: 'server', type: 'keyword', keyword: kwObj });
               debug(chalkInfo("UPDATER SEND KEYWORD"
                 + " | SERVER"
                 + " | " + word
-                + " | " + keyWordType
+                + " | " + jsonPrint(kwObj)
               ));
 
               cb2();
@@ -834,7 +852,7 @@ function loadConfig(file, callback){
 
       var configObj = JSON.parse(configJson.fileBinary);
 
-      // console.log("DROPBOX CONFIG\n" + JSON.stringify(configObj, null, 3));
+      // console.log("UPDATER: DROPBOX CONFIG\n" + JSON.stringify(configObj, null, 3));
 
       debug(chalkLog(getTimeStamp() + " | FOUND " + configObj.timeStamp));
 

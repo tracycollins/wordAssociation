@@ -6,6 +6,7 @@ var configuration = {};
 var tssServer;
 var tmsServer;
 
+var DEFAULT_KEYWORD_VALUE = 100 // on scale of 1-100
 var MIN_WORD_METER_COUNT = 10;
 var MIN_METRIC_VALUE = 5;
 
@@ -2173,39 +2174,68 @@ function dbUpdateEntity(entityObj, incMentions, callback) {
 
 function checkKeyword(w, callback) {
 
+  debug(chalkAlert("checkKeyword\n" + jsonPrint(w)));
+
   var wordObj = {};
   wordObj = w;
   wordObj.isKeyword = false;    
-  wordObj.keywords = {};    
+  wordObj.keywords = {};
+  var kwObj = {};  
 
-  if ((wordObj.nodeType === "user") && keywordHashMap.has(wordObj.screenName.toLowerCase())) {
-    var kwType = keywordHashMap.get(wordObj.screenName.toLowerCase());
+  if ((wordObj.nodeType === "user") && serverKeywordHashMap.has(wordObj.name.toLowerCase())) {
+    debug(chalkAlert("HIT SRVR USER NAME"));
+    kwObj = serverKeywordHashMap.get(wordObj.name.toLowerCase());
     wordObj.isKeyword = true;
-    wordObj.keywords[wordObj.screenName.toLowerCase()] = kwType;    
+    wordObj.keywords[wordObj.name.toLowerCase()] = kwObj;    
     callback(wordObj);
   }
-  else if (keywordHashMap.has(wordObj.nodeId.toLowerCase())) {
-    var kwType = keywordHashMap.get(wordObj.nodeId.toLowerCase());
+  else if ((wordObj.nodeType === "user") && serverKeywordHashMap.has(wordObj.screenName.toLowerCase())) {
+    debug(chalkAlert("HIT SRVR USER SNAME"));
+    kwObj = serverKeywordHashMap.get(wordObj.screenName.toLowerCase());
     wordObj.isKeyword = true;
-    wordObj.keywords[wordObj.nodeId.toLowerCase()] = kwType;    
-    callback(wordObj);
-  }
-  else if (wordObj.text && keywordHashMap.has(wordObj.text.toLowerCase())) {
-    var kwType = keywordHashMap.get(wordObj.text.toLowerCase());
-    wordObj.isKeyword = true;
-    wordObj.keywords[wordObj.text.toLowerCase()] = kwType;    
+    wordObj.keywords[wordObj.screenName.toLowerCase()] = kwObj;    
     callback(wordObj);
   }
   else if (serverKeywordHashMap.has(wordObj.nodeId.toLowerCase())) {
-    var kwType = serverKeywordHashMap.get(wordObj.nodeId.toLowerCase());
+    debug(chalkAlert("HIT SRVR NODE ID"));
+    kwObj = serverKeywordHashMap.get(wordObj.nodeId.toLowerCase());
     wordObj.isKeyword = true;
-    wordObj.keywords[wordObj.nodeId.toLowerCase()] = kwType;    
+    wordObj.keywords[wordObj.nodeId.toLowerCase()] = kwObj;    
     callback(wordObj);
   }
   else if (wordObj.text && serverKeywordHashMap.has(wordObj.text.toLowerCase())) {
-    var kwType = serverKeywordHashMap.get(wordObj.text.toLowerCase());
+    debug(chalkAlert("HIT SRVR TEXT"));
+    kwObj = serverKeywordHashMap.get(wordObj.text.toLowerCase());
     wordObj.isKeyword = true;
-    wordObj.keywords[wordObj.text.toLowerCase()] = kwType;    
+    wordObj.keywords[wordObj.text.toLowerCase()] = kwObj;    
+    callback(wordObj);
+  }
+  else if ((wordObj.nodeType === "user") && keywordHashMap.has(wordObj.name.toLowerCase())) {
+    debug(chalkAlert("HIT USER NAME"));
+    kwObj = keywordHashMap.get(wordObj.name.toLowerCase());
+    wordObj.isKeyword = true;
+    wordObj.keywords[wordObj.name.toLowerCase()] = kwObj;    
+    callback(wordObj);
+  }
+  else if ((wordObj.nodeType === "user") && keywordHashMap.has(wordObj.screenName.toLowerCase())) {
+    debug(chalkAlert("HIT USER SNAME"));
+    kwObj = keywordHashMap.get(wordObj.screenName.toLowerCase());
+    wordObj.isKeyword = true;
+    wordObj.keywords[wordObj.screenName.toLowerCase()] = kwObj;    
+    callback(wordObj);
+  }
+  else if (keywordHashMap.has(wordObj.nodeId.toLowerCase())) {
+    debug(chalkAlert("HIT NODE ID"));
+    kwObj = keywordHashMap.get(wordObj.nodeId.toLowerCase());
+    wordObj.isKeyword = true;
+    wordObj.keywords[wordObj.nodeId.toLowerCase()] = kwObj;    
+    callback(wordObj);
+  }
+  else if (wordObj.text && keywordHashMap.has(wordObj.text.toLowerCase())) {
+    debug(chalkAlert("HIT TEXT"));
+    kwObj = keywordHashMap.get(wordObj.text.toLowerCase());
+    wordObj.isKeyword = true;
+    wordObj.keywords[wordObj.text.toLowerCase()] = kwObj;    
     callback(wordObj);
   }
   else {
@@ -4688,6 +4718,7 @@ function getTags(wObj, callback){
   // }
 
   checkKeyword(wObj, function(wordObj){
+
     if (!wordObj.tags || (typeof wordObj.tags === 'undefined')) {
       wordObj.tags = {};
       wordObj.tags.entity = 'unknown_entity';
@@ -5047,14 +5078,22 @@ var readUpdaterMessageQueue = setInterval(function() {
 
       case 'keyword':
 
-        var keywordId = updaterObj.keyword.toLowerCase();
+        // updateObj = {
+        //  "type" : "keyword",
+        //  "target" : "server",
+        //  "keyword: { 
+        //    "keywordId": "obama",
+        //    "positive": 10, 
+        //    "left": 7
+        //  }
+        // };
 
         if ((typeof updaterObj.target !== 'undefined') && (updaterObj.target == 'server')) {
-          serverKeywordHashMap.set(keywordId, updaterObj.keyWordType);
-          serverKeywordsJsonObj[keywordId] = updaterObj.keyWordType;
+          serverKeywordHashMap.set(updaterObj.keyword.keywordId, updaterObj.keyword);
+          serverKeywordsJsonObj[updaterObj.keyword.keywordId] = updaterObj.keyword;
         }
         else {
-          keywordHashMap.set(keywordId, updaterObj.keyWordType);
+          keywordHashMap.set(updaterObj.keyword.keywordId, updaterObj.keyword);
         }
 
         debug(chalkError("UPDATE KEYWORD\n" + jsonPrint(updaterObj)));
@@ -5063,7 +5102,7 @@ var readUpdaterMessageQueue = setInterval(function() {
 
           console.log(chalkLog("UPDATE SERVER KEYWORD\n" + jsonPrint(updaterObj)));
 
-          serverKeywordHashMap.set(keywordId, updaterObj.keyWordType);
+          serverKeywordHashMap.set(updaterObj.keyword.keywordId, updaterObj.keyword);
 
           if (keywordsUpdateComplete) {
             var hmKeys = serverKeywordHashMap.keys();
@@ -5566,22 +5605,29 @@ function queryDb(queryObj, callback){
   });
 }
 
-function keywordUpdateDb(keywordObj, callback){
+function keywordUpdateDb(updateObj, callback){
 
-  debug(chalkRed("UPDATING KEYWORD | " + keywordObj.keyword + ": " + keywordObj.keyWordType));
+  //  "keywordObj = { 
+  //    "keywordId": "obama",
+  //    "positive": 10, 
+  //    "left": 7
+  //  }
+
+  debug(chalkRed("UPDATING KEYWORD | " + updateObj.keyword.keywordId + ": " + jsonPrint(updateObj)));
 
   var wordObj = new Word();
 
-  wordObj.nodeId = keywordObj.keyword.toLowerCase();
+  wordObj.nodeId = updateObj.keyword.keywordId.toLowerCase();
   wordObj.isKeyword = true;
-  wordObj.keywords[keywordObj.keyWordType] = true;
+  // wordObj.keywords[keywordObj.keyWordType] = true;
+  wordObj.keywords[updateObj.keyword.keywordId.toLowerCase()] = updateObj.keyword;
 
-  keywordHashMap.set(wordObj.nodeId, keywordObj.keyWordType);
-  serverKeywordHashMap.set(wordObj.nodeId, keywordObj.keyWordType);
+  keywordHashMap.set(wordObj.nodeId, updateObj.keyword);
+  serverKeywordHashMap.set(wordObj.nodeId, updateObj.keyword);
 
   wordServer.findOneWord(wordObj, false, function(err, updatedWordObj) {
     if (err){
-      console.log(chalkError("ERROR: UPDATING KEYWORD | " + wd + ": " + kwordsObj[wd]));
+      console.log(chalkError("ERROR: UPDATING KEYWORD | " + wordObj.nodeId + "\n" + jsonPrint(wordObj)));
       callback(err, wordObj);
     }
     else {
@@ -5606,18 +5652,18 @@ function initKeywords(file, kwHashMap, callback){
 
       var words = Object.keys(kwordsObj);
 
-      async.forEach(words,
+      async.forEachOf(words,
 
-        function(w, cb) {
+        function(w, kwObj, cb) {
 
           var wd = w.toLowerCase();
-          var keyWordType = kwordsObj[w];
+          // var keywordObj = kwordsObj[w];
           var wordObj = new Word();
 
           wordObj.nodeId = wd;
           wordObj.isKeyword = true;
-          wordObj.keywords[keyWordType] = true;
-          kwHashMap.set(wordObj.nodeId, keyWordType);
+          wordObj.keywords = kwObj;
+          kwHashMap.set(wd, kwObj);
 
           wordServer.findOneWord(wordObj, false, function(err, updatedWordObj) {
             if (err){
@@ -5932,11 +5978,28 @@ function initializeConfiguration(cnf, callback) {
                           break;
                         }
 
-                        updaterMessageQueue.enqueue({ twitter: true, type: 'keyword', keyword: keyword, keyWordType: keyWordType});
+                       // updateObj = {
+                        //  "type" : "keyword",
+                        //  "target" : "server",
+                        //  "keyword: { 
+                        //    "keywordId": "obama",
+                        //    "positive": 10, 
+                        //    "left": 7
+                        //  }
+                        // };
+
+                        var updateObj = {};
+
+                        updateObj.type = "keyword";
+                        updateObj.target = "twitter";
+                        updateObj.keyword = {};
+                        updateObj.keyword.keywordId = keyword; 
+                        updateObj.keyword[keyWordType] = DEFAULT_KEYWORD_VALUE; 
+
+                        updaterMessageQueue.enqueue(updateObj);
                         console.log(chalkTwitter("ADD KEYWORD"
                           + " [" + updaterMessageQueue.size() + "]"
-                          + " | " + keyWordType 
-                          + " | " + keyword
+                          + "\n" + jsonPrint(updateObj) 
                         ));
                       }
                      break;
@@ -7265,6 +7328,8 @@ function createSession(newSessionObj) {
 
     checkKeyword(rxNodeObj, function(nodeObj){
 
+      debug(chalkAlert("NODE | checkKeyword\n" + jsonPrint(nodeObj)));
+
       var obamaHit = false;
       var trumpHit = false;
 
@@ -7274,43 +7339,57 @@ function createSession(newSessionObj) {
           if (nodeObj.text.toLowerCase().includes("obama")) {
             obamaHit = nodeObj.text;
             nodeObj.isKeyword = true;
-            nodeObj.keywords[nodeObj.text.toLowerCase()] = "left";
+            // nodeObj.keywords[nodeObj.text.toLowerCase()] = "left";
+            nodeObj.keywords[nodeObj.text.toLowerCase()].left = DEFAULT_KEYWORD_VALUE;
             console.log(chalkError("OBAMA: " + nodeObj.text));
           }
           if (nodeObj.text.toLowerCase().includes("trump")) {
             trumpHit = nodeObj.text;
             nodeObj.isKeyword = true;
-            nodeObj.keywords[nodeObj.text.toLowerCase()] = "right";
+            // nodeObj.keywords[nodeObj.text.toLowerCase()] = "right";
+            nodeObj.keywords[nodeObj.text.toLowerCase()].right = DEFAULT_KEYWORD_VALUE;
             console.log(chalkError("TRUMP: " + nodeObj.text));
           }
           viewNameSpace.emit("node", nodeObj);
       break;
 
         case "user":
-          if (!nodeObj.name) {
-            console.log(chalkError("NODE NAME UNDEFINED?\n" + jsonPrint(nodeObj)));
+          if (!nodeObj.name && !nodeObj.screenName) {
+            console.log(chalkError("NODE NAME & SCREEN NAME UNDEFINED?\n" + jsonPrint(nodeObj)));
           }
-          else {
+          else if (nodeObj.name) {
             nodeObj.isTwitterUser = true;
             if (nodeObj.name.toLowerCase().includes("obama")) {
               obamaHit = nodeObj.name;
               nodeObj.isKeyword = true;
-              nodeObj.keywords[nodeObj.name.toLowerCase()] = "left";
-            }
-            if (nodeObj.screenName.toLowerCase().includes("obama")) {
-              obamaHit = nodeObj.screenName;
-              nodeObj.isKeyword = true;
-              nodeObj.keywords[nodeObj.screenName.toLowerCase()] = "left";
+              // nodeObj.keywords[nodeObj.name.toLowerCase()] = "left";
+              nodeObj.keywords[nodeObj.name.toLowerCase()] = {};
+              nodeObj.keywords[nodeObj.name.toLowerCase()].left = DEFAULT_KEYWORD_VALUE;
             }
             if (nodeObj.name.toLowerCase().includes("trump")) {
               trumpHit = nodeObj.name;
               nodeObj.isKeyword = true;
-              nodeObj.keywords[nodeObj.name.toLowerCase()] = "right";
+              // nodeObj.keywords[nodeObj.name.toLowerCase()] = "right";
+              nodeObj.keywords[nodeObj.name.toLowerCase()] = {};
+              nodeObj.keywords[nodeObj.name.toLowerCase()].right = DEFAULT_KEYWORD_VALUE;
+            }
+            viewNameSpace.emit("node", nodeObj);
+          }
+          else if (nodeObj.screenName){
+
+            if (nodeObj.screenName.toLowerCase().includes("obama")) {
+              obamaHit = nodeObj.screenName;
+              nodeObj.isKeyword = true;
+              // nodeObj.keywords[nodeObj.screenName.toLowerCase()] = "left";
+              nodeObj.keywords[nodeObj.screenName.toLowerCase()] = {};
+              nodeObj.keywords[nodeObj.screenName.toLowerCase()].left = DEFAULT_KEYWORD_VALUE;
             }
             if (nodeObj.screenName.toLowerCase().includes("trump")) {
               trumpHit = nodeObj.screenName;
               nodeObj.isKeyword = true;
-              nodeObj.keywords[nodeObj.screenName.toLowerCase()] = "right";
+              // nodeObj.keywords[nodeObj.screenName.toLowerCase()] = "right";
+              nodeObj.keywords[nodeObj.screenName.toLowerCase()] = {};
+              nodeObj.keywords[nodeObj.screenName.toLowerCase()].right = DEFAULT_KEYWORD_VALUE;
             }
             viewNameSpace.emit("node", nodeObj);
           }
@@ -7320,13 +7399,17 @@ function createSession(newSessionObj) {
           if (nodeObj.nodeId.toLowerCase().includes("obama")) {
             obamaHit = nodeObj.nodeId;
             nodeObj.isKeyword = true;
-            nodeObj.keywords[nodeObj.nodeId.toLowerCase()] = "left";
+            // nodeObj.keywords[nodeObj.nodeId.toLowerCase()] = "left";
+            nodeObj.keywords[nodeObj.nodeId.toLowerCase()] = {};
+            nodeObj.keywords[nodeObj.nodeId.toLowerCase()].left = DEFAULT_KEYWORD_VALUE;
             console.log(chalkError("OBAMA HT: " + nodeObj.nodeId));
           }
           if (nodeObj.nodeId.toLowerCase().includes("trump")) {
             trumpHit = nodeObj.nodeId;
             nodeObj.isKeyword = true;
-            nodeObj.keywords[nodeObj.nodeId.toLowerCase()] = "right";
+            // nodeObj.keywords[nodeObj.nodeId.toLowerCase()] = "right";
+            nodeObj.keywords[nodeObj.nodeId.toLowerCase()] = {};
+            nodeObj.keywords[nodeObj.nodeId.toLowerCase()].right = DEFAULT_KEYWORD_VALUE;
             console.log(chalkError("TRUMP HT: " + nodeObj.nodeId));
           }
           updateWordMeter({nodeId: nodeObj.nodeId.toLowerCase()});
@@ -7964,7 +8047,8 @@ var DROPBOX_WA_KEYWORDS_FILE = process.env.DROPBOX_WA_KEYWORDS_FILE || 'keywords
 var DROPBOX_WA_ENTITY_CHANNEL_GROUPS_CONFIG_FILE = process.env.DROPBOX_WA_ENTITY_CHANNEL_GROUPS_CONFIG_FILE || 'entityChannelGroups.json';
 
 var defaultDropboxGroupsConfigFile = DROPBOX_WA_GROUPS_CONFIG_FILE;
-var defaultDropboxKeywordFile = DROPBOX_WA_KEYWORDS_FILE;
+// var defaultDropboxKeywordFile = DROPBOX_WA_KEYWORDS_FILE;
+var defaultDropboxKeywordFile = "keywords.json";
 
 var dropboxGroupsConfigFile = hostname +  "_" + DROPBOX_WA_GROUPS_CONFIG_FILE;
 
@@ -7978,7 +8062,7 @@ function loadConfig(file, callback){
   dropboxClient.readFile(file, function(err, configJson) {
 
     if (err) {
-      console.error(chalkError("!!! DROPBOX READ " + file + " ERROR: " + err.error));
+      console.error(chalkError("UPDATER: !!! DROPBOX READ " + file + " ERROR: " + err.error));
       debug(chalkError(jsonPrint(err)));
       return(callback(err, null));
     }

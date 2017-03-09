@@ -1,5 +1,5 @@
-/*ver 0.47*/
-/*jslint node: true */
+/*jslint node: false */
+// "use strict";
 
 
 function ViewHistogram() {
@@ -9,6 +9,8 @@ function ViewHistogram() {
   var self = this;
 
   var testMode = false;
+  var freezeFlag = false;
+  // var mouseMovingFlag = false;
 
   var MAX_NODES = 125;
   var NEW_NODE_AGE_RATIO = 0.02;
@@ -18,36 +20,35 @@ function ViewHistogram() {
   var antonymFlag = false;
   var removeDeadNodesFlag = true;
 
-  var defaultFadeDuration = 50;
   var defaultPosDuration = 150;
 
   var hashtagTopMargin = 15; // %
   var hashtagLeftMargin = 10; // %
-  var hashtagColMargin = 10;
+  // var hashtagColMargin = 10;
 
   var maxHashtagRows = 25;
   var maxHashtagCols = 5;
   var rowSpacing = 3; // %
   var colSpacing = 90/maxHashtagCols; // %
 
-  var maxRecentHashtags = maxHashtagRows ;
+  // var maxRecentHashtags = maxHashtagRows ;
 
   var DEFAULT_AGE_RATE = 1.0;
   var MAX_RX_QUEUE = 100;
 
-  var d3LayoutWidth;
-  var d3LayoutHeight;
+  // var d3LayoutWidth;
+  // var d3LayoutHeight;
 
   var localNodeHashMap = new HashMap();
 
   var processNodeCount = 0;
-  var processNodeModulus = 3;
+  // var processNodeModulus = 3;
 
   var maxNodeAddQ = 0;
   var maxNumberNodes = 0;
 
-  var simulation;
-  var gravity = 0;
+  // var simulation;
+  // var gravity = 0;
 
   var runningFlag = false;
   
@@ -125,14 +126,14 @@ function ViewHistogram() {
 
   console.log("@@@@@@@ CLIENT @@@@@@@@");
 
-  function jsonPrint(obj) {
-    if ((obj) || (obj === 0)) {
-      var jsonString = JSON.stringify(obj, null, 2);
-      return jsonString;
-    } else {
-      return "UNDEFINED";
-    }
-  }
+  // function jsonPrint(obj) {
+  //   if ((obj) || (obj === 0)) {
+  //     var jsonString = JSON.stringify(obj, null, 2);
+  //     return jsonString;
+  //   } else {
+  //     return "UNDEFINED";
+  //   }
+  // }
 
   var randomIntFromInterval = function(min, max) {
     var random = Math.random();
@@ -191,7 +192,7 @@ function ViewHistogram() {
   this.setTestMode = function(flag){
     testMode = flag;
     console.debug("SET TEST MODE: " + testMode);
-  }
+  };
 
   var d3image = d3.select("#d3group");
 
@@ -260,78 +261,79 @@ function ViewHistogram() {
     });
 
     async.forEachOf(keys, function(key, index, cb) {
+
+      var entry = hmap.get(key);
+      entry.rank = index;
+
       if (index >= MAX_NODES){
-        var entry = hmap.get(key);
-        entry.rank = index;
         entry.isDead = true;
         hmap.set(key, entry);
         cb();
       }
       else {
-        var entry = hmap.get(key);
-        entry.rank = index;
         hmap.set(key, entry);
         cb();
       }
       // console.debug("key " + key);
     }, function(err) {
+      if (err) { console.error("rankHashMapByValue ERROR: " + err); }
       callback(hmap);
     });
   }
 
-  var deleteNodeQ = function (nodeId){
+  // var deleteNodeQ = function (nodeId){
 
-    var deadNodeFlag = false;
+  //   var deadNodeFlag = false;
 
-    var nodesLength = nodes.length - 1;
+  //   var nodesLength = nodes.length - 1;
 
-    var node;
+  //   var node;
 
-    var nodeIndex = nodesLength;
+  //   var nodeIndex = nodesLength;
 
-    for (nodeIndex = nodesLength; nodeIndex >= 0; nodeIndex -= 1) {
+  //   for (nodeIndex = nodesLength; nodeIndex >= 0; nodeIndex -= 1) {
 
-      node = nodes[nodeIndex];
+  //     node = nodes[nodeIndex];
 
-      if (node.nodeId === nodeId) {
-        nodes.splice(nodeIndex, 1);
-        deadNodeFlag = true;
-        return deadNodeFlag;
-      }
-    }
-    if (nodeIndex < 0) {
-      nodes.splice(nodeIndex, 1);
-      console.debug("XXX NODE NOT FOUND ??? " + nodeId);
-      return deadNodeFlag;
-    }
-  };
+  //     if (node.nodeId === nodeId) {
+  //       nodes.splice(nodeIndex, 1);
+  //       deadNodeFlag = true;
+  //       return deadNodeFlag;
+  //     }
+  //   }
+  //   if (nodeIndex < 0) {
+  //     nodes.splice(nodeIndex, 1);
+  //     console.debug("XXX NODE NOT FOUND ??? " + nodeId);
+  //     return deadNodeFlag;
+  //   }
+  // };
 
-  var processNodeDeleteQ = function(callback) {
+  // var processNodeDeleteQ = function(callback) {
 
-    var nodesModifiedFlag = false;
-    var nodeDeleteObj;
+  //   var nodesModifiedFlag = false;
+  //   var nodeDeleteObj;
 
-    while (nodeDeleteQ.length > 0){
+  //   while (nodeDeleteQ.length > 0){
 
-      nodeDeleteObj = nodeDeleteQ.shift();
+  //     nodeDeleteObj = nodeDeleteQ.shift();
 
-      switch (nodeDeleteObj.op) {
+  //     switch (nodeDeleteObj.op) {
 
-        case "delete":
-          nodesModifiedFlag = deleteNodeQ(nodeDeleteObj.nodeId);
-        break;
+  //       case "delete":
+  //         nodesModifiedFlag = deleteNodeQ(nodeDeleteObj.nodeId);
+  //       break;
 
-        default:
-          console.error("??? UNKNOWN NODE DELETE Q OP: " + nodeDeleteObj.op);
-      }
-    }
+  //       default:
+  //         console.error("??? UNKNOWN NODE DELETE Q OP: " + nodeDeleteObj.op);
+  //     }
+  //   }
 
-    if (nodeDeleteQ.length === 0){
-      callback(null, nodesModifiedFlag);
-    }
-  };
+  //   if (nodeDeleteQ.length === 0){
+  //     callback(null, nodesModifiedFlag);
+  //   }
+  // };
 
-  var allNodesArray = [];
+  // var allNodesArray = [];
 
   var ageNodes = function (callback) {
 
@@ -381,7 +383,13 @@ function ViewHistogram() {
       else {
         node.ageUpdated = moment().valueOf();
         node.age = age;
-        node.newFlag = (ageMaxRatio >= NEW_NODE_AGE_RATIO) ? false : true ;
+        // node.newFlag = (ageMaxRatio >= NEW_NODE_AGE_RATIO) ? false : true ;
+        if (ageMaxRatio < NEW_NODE_AGE_RATIO) { 
+          node.newFlag = true; 
+        }
+        else {
+          node.newFlag = false; 
+        }
         node.ageMaxRatio = ageMaxRatio;
         node.isDead = false;
         nodes[ageNodesIndex] = node;
@@ -390,7 +398,7 @@ function ViewHistogram() {
     }
 
     if (ageNodesIndex < 0) {
-      rankHashMapByValue(localNodeHashMap, "mentions", function(hmap){
+      rankHashMapByValue(localNodeHashMap, "mentions", function(){
         callback(null, deadNodeFlag);
       });
     }
@@ -425,6 +433,65 @@ function ViewHistogram() {
       return (callback(null, deadNodeFlag));
     }
   };
+
+  var nodeMouseOver = function (d) {
+
+    d.mouseHoverFlag = true;
+
+    self.toolTipVisibility(true);
+
+    var tooltipString;
+
+    switch (d.nodeType) {
+      case 'hashtag':
+        tooltipString = "#" + d.nodeId
+          + "<br>TYPE: " + d.nodeType 
+          + "<br>Ms: " + d.mentions
+          + "<br>RANK: " + d.rank;
+      break;
+      case 'word':
+        tooltipString = d.nodeId
+          + "<br>TYPE: " + d.nodeType 
+          + "<br>RANK: " + d.rank
+          + "<br>Ms: " + d.mentions
+          + "<br>URL: " + d.url;
+      break;
+    }
+
+    divTooltip.html(tooltipString)
+      .style("left", (d3.event.pageX - 40) + "px")
+      .style("top", (d3.event.pageY - 50) + "px");
+  };
+
+  function nodeMouseOut(d) {
+    d.mouseHoverFlag = false;
+    self.toolTipVisibility(false);
+  }
+
+  function nodeClick(d) {
+
+    var url = "";
+
+    switch (d.nodeType) {
+      case "hashtag" :
+        url = "https://twitter.com/search?f=realtime&q=%23" + d.text ;
+        window.open(url, '_blank');
+      break;
+    }
+  }
+
+  function yposition(d){
+    var rowNum = d.rank % maxHashtagRows;
+    var value = hashtagTopMargin + (rowNum * rowSpacing);
+    return value + "%";
+  }
+
+  function xposition(d){
+    var colNum = parseInt(d.rank / maxHashtagRows);        
+    var value = hashtagLeftMargin + (colNum * colSpacing);
+    return value + "%" ;
+  }
+
 
   var updateNodeLabels = function(callback) {
 
@@ -502,72 +569,27 @@ function ViewHistogram() {
       callback(null, null);
   };
 
-  var nodeMouseOver = function (d) {
 
-    d.mouseHoverFlag = true;
-
-    self.toolTipVisibility(true);
-
-    var tooltipString;
-
-    switch (d.nodeType) {
-      case 'hashtag':
-        tooltipString = "#" + d.nodeId
-          + "<br>TYPE: " + d.nodeType 
-          + "<br>Ms: " + d.mentions
-          + "<br>RANK: " + d.rank;
-      break;
-      case 'word':
-        tooltipString = d.nodeId
-          + "<br>TYPE: " + d.nodeType 
-          + "<br>RANK: " + d.rank
-          + "<br>Ms: " + d.mentions
-          + "<br>URL: " + d.url;
-      break;
-    }
-
-    divTooltip.html(tooltipString)
-      .style("left", (d3.event.pageX - 40) + "px")
-      .style("top", (d3.event.pageY - 50) + "px");
-  };
-
-  function nodeMouseOut(d) {
-    d.mouseHoverFlag = false;
-    self.toolTipVisibility(false);
-  }
-
-  function nodeClick(d) {
-
-    var url = "";
-
-    switch (d.nodeType) {
-      case "hashtag" :
-        url = "https://twitter.com/search?f=realtime&q=%23" + d.text ;
-        window.open(url, '_blank');
-      break;
-    }
-  }
-
-  function addNodeEnabled (){
-    if (nodes.length < MAX_NODES) {
-      return true;
-    }
-    else if ((nodes.length < 2*MAX_NODES) && (processNodeCount % processNodeModulus === 0)) {
-      return true;
-    }
-    else if ((nodes.length < 3*MAX_NODES) && (processNodeCount % (processNodeModulus+1) === 0)) {
-      return true;
-    }
-    else if ((nodes.length < 4*MAX_NODES) && (processNodeCount % (processNodeModulus+2) === 0)) {
-      return true;
-    }
-    else if ((nodes.length < 8*MAX_NODES) && (processNodeCount % (processNodeModulus+3) === 0)) {
-      return true;
-    }
-    else {
-      return false;
-    }
-  }
+  // function addNodeEnabled (){
+  //   if (nodes.length < MAX_NODES) {
+  //     return true;
+  //   }
+  //   else if ((nodes.length < 2*MAX_NODES) && (processNodeCount % processNodeModulus === 0)) {
+  //     return true;
+  //   }
+  //   else if ((nodes.length < 3*MAX_NODES) && (processNodeCount % (processNodeModulus+1) === 0)) {
+  //     return true;
+  //   }
+  //   else if ((nodes.length < 4*MAX_NODES) && (processNodeCount % (processNodeModulus+2) === 0)) {
+  //     return true;
+  //   }
+  //   else if ((nodes.length < 8*MAX_NODES) && (processNodeCount % (processNodeModulus+3) === 0)) {
+  //     return true;
+  //   }
+  //   else {
+  //     return false;
+  //   }
+  // }
 
   var processNodeAddQ = function(callback) {
 
@@ -626,20 +648,7 @@ function ViewHistogram() {
     }
 
     callback(null, nodesModifiedFlag);
-
   };
-
-  function yposition(d){
-    var rowNum = d.rank % maxHashtagRows;
-    var value = hashtagTopMargin + (rowNum * rowSpacing);
-    return value + "%";
-  }
-
-  function xposition(d){
-    var colNum = parseInt(d.rank / maxHashtagRows);        
-    var value = hashtagLeftMargin + (colNum * colSpacing);
-    return value + "%" ;
-  }
 
   var updateReady = true;
 
@@ -654,13 +663,14 @@ function ViewHistogram() {
         ageNode: ageNodes,
         updateNodeLabels: updateNodeLabels
       },
-      function(err, results) {
+      function(err) {
+        if (err) { console.error("update ERROR: " + err); }
         updateReady = true;
       }
     );
   }
 
-  this.setChargeSliderValue = function(value){
+  this.setChargeSliderValue = function(){
   };
 
   this.addNode = function(nNode) {
@@ -670,7 +680,7 @@ function ViewHistogram() {
       return;
     }
 
-    if (nNode.nodeType === "user") console.debug("USER: " + nNode.nodeId);
+    if (nNode.nodeType === "user") { console.debug("USER: " + nNode.nodeId); }
 
     var newNode = {};
     newNode = nNode;
@@ -686,13 +696,13 @@ function ViewHistogram() {
     }
   };
 
-  this.addGroup = function(gNode) {
+  this.addGroup = function() {
   };
 
-  this.addSession = function(gNode) {
+  this.addSession = function() {
   };
 
-  var localSessionHashMap = {};
+  // var localSessionHashMap = {};
 
   this.initD3timer = function() {
     // simulation = d3.forceSimulation(nodes)
@@ -763,8 +773,8 @@ function ViewHistogram() {
 
     fontSize = fontSizeRatio * window.innerHeight;
 
-    d3LayoutWidth = width; // double the width for now
-    d3LayoutHeight = height;
+    // d3LayoutWidth = width; // double the width for now
+    // d3LayoutHeight = height;
 
     svgForceLayoutArea
       .attr("width", width)
@@ -786,13 +796,13 @@ function ViewHistogram() {
     nodes = [];
 
     deadNodesHash = {};
-    mouseMovingFlag = false;
+    // mouseMovingFlag = false;
     mouseHoverFlag = false;
     self.toolTipVisibility(false);
     self.resize();
   };
 
   setInterval(function(){
-    if (updateReady) update();
+    if (updateReady) { update(); }
   }, 100);
 }

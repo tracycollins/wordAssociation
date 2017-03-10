@@ -282,7 +282,7 @@ function ViewMedia() {
 
   filterBorderUser.append("feImage")
     .attr("result", "bgBorder")
-    .attr("href", "/assets/images/userBackgroundBorder.png");
+    .attr("xlink:href", "/assets/images/userBackgroundBorder.png");
   filterBorderUser.append("feBlend")
     .attr("in", "SourceGraphic")
     .attr("in1", "bgBorder")
@@ -1489,7 +1489,7 @@ function ViewMedia() {
     nodeImages
       .enter()
       .append("svg:image")
-      .attr("href", function(d) { 
+      .attr("xlink:href", function(d) { 
         if (d.nodeType == "image") return d.url;
         if (d.nodeType == "user") return d.profileImageUrl;
         return null; 

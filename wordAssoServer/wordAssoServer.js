@@ -94,7 +94,7 @@ var saveStatsInterval = 10000; // millis
 var MAX_RESPONSE_QUEUE_SIZE = 250;
 
 var OFFLINE_MODE = false;
-var quitOnError = false;
+var quitOnErrorFlag = false;
 
 var serverReady = false;
 var internetReady = false;
@@ -3841,7 +3841,6 @@ var sessionRouteHashMap = new HashMap();
 
 function handleSessionEvent(sesObj, callback) {
 
-
   switch (sesObj.sessionEvent) {
 
     case 'SESSION_ABORT':
@@ -4641,7 +4640,7 @@ function handleSessionEvent(sesObj, callback) {
         } 
         else {
           console.log(chalkError("*** USER UPDATE DB ERROR\n" + jsonPrint(err)));
-          if (quitOnError) {
+          if (quitOnErrorFlag) {
             quit(err);
           }
         }
@@ -5398,9 +5397,9 @@ function updatePreviousPrompt(sessionObj, wordObj, callback){
     previousPromptObj = wordCache.get(previousPromptNodeId);
 
     if (typeof previousPromptObj === "undefined") {
-      console.log(chalkWarn("quitOnError: " + quitOnError));
+      console.log(chalkWarn("quitOnErrorFlag: " + quitOnErrorFlag));
       console.log(chalkWarn("??? PREVIOUS PROMPT NOT IN CACHE: " + previousPromptNodeId));
-      if (quitOnError) {
+      if (quitOnErrorFlag) {
         quit("??? PREVIOUS PROMPT NOT IN CACHE: " + previousPromptNodeId);
       }
       callback(previousPromptObj);
@@ -5715,6 +5714,8 @@ function initializeConfiguration(cnf, callback) {
   configArgs.forEach(function(arg){
     console.log("FINAL CONFIG | " + arg + ": " + cnf[arg]);
   });
+
+  if (cnf.quitOnError) { quitOnErrorFlag = true; }
 
   if (cnf.enableStdin){
 

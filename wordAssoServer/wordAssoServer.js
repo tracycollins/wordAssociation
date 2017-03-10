@@ -7343,14 +7343,14 @@ function createSession(newSessionObj) {
             nodeObj.isKeyword = true;
             // nodeObj.keywords[nodeObj.text.toLowerCase()] = "left";
             nodeObj.keywords[nodeObj.text.toLowerCase()].left = DEFAULT_KEYWORD_VALUE;
-            console.log(chalkError("OBAMA: " + nodeObj.text));
+            debug(chalkError("OBAMA: " + nodeObj.text));
           }
           if (nodeObj.text.toLowerCase().includes("trump")) {
             trumpHit = nodeObj.text;
             nodeObj.isKeyword = true;
             // nodeObj.keywords[nodeObj.text.toLowerCase()] = "right";
             nodeObj.keywords[nodeObj.text.toLowerCase()].right = DEFAULT_KEYWORD_VALUE;
-            console.log(chalkError("TRUMP: " + nodeObj.text));
+            debug(chalkError("TRUMP: " + nodeObj.text));
           }
           viewNameSpace.emit("node", nodeObj);
       break;
@@ -7404,7 +7404,7 @@ function createSession(newSessionObj) {
             // nodeObj.keywords[nodeObj.nodeId.toLowerCase()] = "left";
             nodeObj.keywords[nodeObj.nodeId.toLowerCase()] = {};
             nodeObj.keywords[nodeObj.nodeId.toLowerCase()].left = DEFAULT_KEYWORD_VALUE;
-            console.log(chalkError("OBAMA HT: " + nodeObj.nodeId));
+            debug(chalkError("OBAMA HT: " + nodeObj.nodeId));
           }
           if (nodeObj.nodeId.toLowerCase().includes("trump")) {
             trumpHit = nodeObj.nodeId;
@@ -7412,7 +7412,7 @@ function createSession(newSessionObj) {
             // nodeObj.keywords[nodeObj.nodeId.toLowerCase()] = "right";
             nodeObj.keywords[nodeObj.nodeId.toLowerCase()] = {};
             nodeObj.keywords[nodeObj.nodeId.toLowerCase()].right = DEFAULT_KEYWORD_VALUE;
-            console.log(chalkError("TRUMP HT: " + nodeObj.nodeId));
+            debug(chalkError("TRUMP HT: " + nodeObj.nodeId));
           }
           updateWordMeter({nodeId: nodeObj.nodeId.toLowerCase()});
           viewNameSpace.emit("node", nodeObj);

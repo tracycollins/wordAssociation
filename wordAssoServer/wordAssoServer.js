@@ -2182,14 +2182,18 @@ function checkKeyword(w, callback) {
   wordObj.keywords = {};
   var kwObj = {};  
 
-  if ((wordObj.nodeType === "user") && serverKeywordHashMap.has(wordObj.name.toLowerCase())) {
+  if ((wordObj.nodeType === "user") 
+    && (typeof wordObj.name !== 'undefined') 
+    && serverKeywordHashMap.has(wordObj.name.toLowerCase())) {
     debug(chalkAlert("HIT SRVR USER NAME"));
     kwObj = serverKeywordHashMap.get(wordObj.name.toLowerCase());
     wordObj.isKeyword = true;
     wordObj.keywords[wordObj.name.toLowerCase()] = kwObj;    
     callback(wordObj);
   }
-  else if ((wordObj.nodeType === "user") && serverKeywordHashMap.has(wordObj.screenName.toLowerCase())) {
+  else if ((wordObj.nodeType === "user") 
+    && (typeof wordObj.screenName !== 'undefined')  
+    && serverKeywordHashMap.has(wordObj.screenName.toLowerCase())) {
     debug(chalkAlert("HIT SRVR USER SNAME"));
     kwObj = serverKeywordHashMap.get(wordObj.screenName.toLowerCase());
     wordObj.isKeyword = true;
@@ -2210,14 +2214,18 @@ function checkKeyword(w, callback) {
     wordObj.keywords[wordObj.text.toLowerCase()] = kwObj;    
     callback(wordObj);
   }
-  else if ((wordObj.nodeType === "user") && keywordHashMap.has(wordObj.name.toLowerCase())) {
+  else if ((wordObj.nodeType === "user") 
+    && (typeof wordObj.name !== 'undefined') 
+    && keywordHashMap.has(wordObj.name.toLowerCase())) {
     debug(chalkAlert("HIT USER NAME"));
     kwObj = keywordHashMap.get(wordObj.name.toLowerCase());
     wordObj.isKeyword = true;
     wordObj.keywords[wordObj.name.toLowerCase()] = kwObj;    
     callback(wordObj);
   }
-  else if ((wordObj.nodeType === "user") && keywordHashMap.has(wordObj.screenName.toLowerCase())) {
+  else if ((wordObj.nodeType === "user") 
+    && (typeof wordObj.screenName !== 'undefined') 
+    && keywordHashMap.has(wordObj.screenName.toLowerCase())) {
     debug(chalkAlert("HIT USER SNAME"));
     kwObj = keywordHashMap.get(wordObj.screenName.toLowerCase());
     wordObj.isKeyword = true;

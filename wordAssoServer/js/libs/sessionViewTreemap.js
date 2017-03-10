@@ -12,7 +12,8 @@ function ViewTreemap() {
   var freezeFlag = false;
   // var mouseMovingFlag = false;
 
-  var MAX_NODES = 125;
+  var MAX_NODES = 100;
+
   var NEW_NODE_AGE_RATIO = 0.02;
   var fontSizeRatio = 0.022;
   var minOpacity = 0.25;
@@ -429,7 +430,11 @@ function ViewTreemap() {
 
       ageMaxRatio = age/nodeMaxAge ;
 
-      if (node.isDead || (removeDeadNodesFlag && (age >= nodeMaxAge))) {
+      if (node.isDead 
+        || (removeDeadNodesFlag && (node.rank > MAX_NODES))
+        || (removeDeadNodesFlag && (age >= nodeMaxAge))
+        ) {
+        // console.debug("X NODE\n" + jsonPrint(node));
         localNodeHashMap.remove(node.nodeId);
         nodes.splice(ageNodesIndex, 1);
       } 
@@ -555,8 +560,15 @@ function ViewTreemap() {
   }
 
   var root;
+  var cell;
 
   var updateTreemapData = function (callback){
+
+      treemapData.childrenKeywordTypeHashMap.right = {};
+      treemapData.childrenKeywordTypeHashMap.left = {};
+      treemapData.childrenKeywordTypeHashMap.positive = {};
+      treemapData.childrenKeywordTypeHashMap.neutral = {};
+      treemapData.childrenKeywordTypeHashMap.negative = {};
     // var treemapData = {
     //  "name": "word",
     //  "children": [
@@ -679,17 +691,29 @@ function ViewTreemap() {
 
         svgTreemapLayoutArea.selectAll("g").remove();
 
+        // root = d3.hierarchy({});
+
         root = d3.hierarchy(treemapData)
             .eachBefore(function(d) { d.data.id = (d.parent ? d.parent.data.id + "." : "") + d.data.name; })
             .sum(sumBySize)
             .sort(function(a, b) { return b.height - a.height || b.value - a.value; });
 
+        // treemap = d3.treemap()
+        //   .tile(d3.treemapResquarify)
+        //   .size([width, height])
+        //   .round(true)
+        //   .paddingInner(1);
+
         treemap(root);
 
-        var cell = svgTreemapLayoutArea.selectAll("g")
+        cell = svgTreemapLayoutArea.selectAll("g")
           .data(root.leaves())
           .enter().append("g")
+            .attr("nodeId", function(d) { return d.data.name; })
             .attr("transform", function(d) { return "translate(" + d.x0 + "," + d.y0 + ")"; });
+
+       cell.exit()
+            .remove();
 
         cell.append("rect")
             .attr("id", function(d) { return d.data.id; })
@@ -711,12 +735,13 @@ function ViewTreemap() {
           .enter().append("tspan")
             .attr("x", 4)
             .attr("y", function(d, i) { return 13 + i * 10; })
-            .text(function(d) { return d; })
-            .style('fill', palette.white);
+            .text(function(d) { return d.toUpperCase(); })
+            .style('fill', palette.black);
 
         cell.append("title")
             .text(function(d) { return d.data.id + "\n" + format(d.value); });
 
+ 
         d3.selectAll("input")
             .data([sumBySize, sumByCount], function(d) { return d ? d.name : this.value; })
             .on("change", changed);

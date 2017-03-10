@@ -1400,7 +1400,7 @@ function ViewForce() {
     nodeImages
       .enter()
       .append("svg:image")
-      .attr("href", function(d) { 
+      .attr("xlink:href", function(d) { 
         if (d.nodeType == "media") return d.url;
         if (d.nodeType == "user") return d.profileImageUrl;
         return null; 

@@ -73,8 +73,12 @@ var MAX_WORDCHAIN_LENGTH = 100;
 var DEFAULT_MAX_AGE = 60000;
 var FORCE_MAX_AGE = 60000;
 var HISTOGRAM_MAX_AGE = 60000;
+var TREEMAP_MAX_AGE = 60000;
 var MEDIA_MAX_AGE = 60000;
 var DEFAULT_AGE_RATE = 1.0;
+
+var TREEMAPVIEW_DEFAULT = {};
+TREEMAPVIEW_DEFAULT.MAX_AGE = TREEMAP_MAX_AGE;
 
 var HISTOGRAMVIEW_DEFAULT = {};
 HISTOGRAMVIEW_DEFAULT.MAX_AGE = HISTOGRAM_MAX_AGE;
@@ -1646,6 +1650,7 @@ function createStatsTable(callback) {
     case 'flow':
     case 'ticker':
     case 'histogram':
+    case 'treemap':
       tableCreateRow(statsTableServer, optionsHead, ['SERVER']);
       tableCreateRow(statsTableServer, optionsBody, [statsServerTimeLabel, statsServerTime]);
       tableCreateRow(statsTableServer, optionsBody, [statsServerUpTimeLabel, statsServerUpTime]);
@@ -1937,7 +1942,21 @@ function initSocketNodeRx(){
   socket.on("node", function(nNode) {
 
     if (!windowVisible || config.pauseFlag) {return;}
-    if (((nNode.nodeType !== "user") && (nNode.nodeType !== "hashtag") && (nNode.nodeType !== "word")) && (config.sessionViewType === "histogram")) {return;}
+
+    if (((nNode.nodeType !== "user") 
+      && (nNode.nodeType !== "hashtag") 
+      && (nNode.nodeType !== "word")) 
+      && (config.sessionViewType === "histogram")) {
+      return;
+    }
+
+    if (((nNode.nodeType !== "user") 
+      && (nNode.nodeType !== "hashtag") 
+      && (nNode.nodeType !== "word")) 
+      && (config.sessionViewType === "treemap")) {
+      return;
+    }
+
     if ((nNode.nodeType !== "user") && (nNode.nodeType !== "media") && (config.sessionViewType === "media")) {return;}
 
     // console.log("N< " 
@@ -2001,11 +2020,15 @@ function initSocketNodeRx(){
       newNode.sourceUrl = nNode.sourceUrl;
     }
 
-    if ((config.sessionViewType === "histogram")
+    if ((config.sessionViewType === "treemap")
       && ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user")))) {
       currentSessionView.addNode(newNode);
     }
-    else if (config.sessionViewType !== "histogram") {
+    else if ((config.sessionViewType === "histogram")
+      && ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user")))) {
+      currentSessionView.addNode(newNode);
+    }
+    else if ((config.sessionViewType !== "treemap") && (config.sessionViewType !== "histogram")) {
       currentSessionView.addNode(newNode);
     }
 
@@ -2087,7 +2110,7 @@ var processSessionQueues = function(callback) {
   else {
     var session = rxSessionUpdateQueue.shift();
 
-    if ((config.sessionViewType == 'histogram') || (config.forceViewMode == 'web')) {
+    if ((config.sessionViewType === 'treemap') || (config.sessionViewType === 'histogram') || (config.forceViewMode === 'web')) {
       // session.nodeId = session.tags.entity.toLowerCase();
       session.tags.entity = session.tags.entity.toLowerCase();
       session.tags.channel = session.tags.channel.toLowerCase();
@@ -2695,11 +2718,14 @@ var createNode = function(callback) {
         targetNodeId = session.target.nodeId;
       }
     }
-    else if (config.sessionViewType == 'histogram'){
+    else if (config.sessionViewType === 'treemap'){
       sourceNodeId = session.source.nodeId;
     }
-    else if ((config.sessionViewType == 'ticker') 
-      || (config.sessionViewType == 'flow')
+    else if (config.sessionViewType === 'histogram'){
+      sourceNodeId = session.source.nodeId;
+    }
+    else if ((config.sessionViewType === 'ticker') 
+      || (config.sessionViewType === 'flow')
       ){
       sourceNodeId = session.source.nodeId + "_" + moment().valueOf();
       if (session.target) {
@@ -2723,11 +2749,12 @@ var createNode = function(callback) {
           //   // || (config.sessionViewType == 'flow') 
           //   // && (config.sessionViewType != 'force') 
           //   || session.source.isIgnored) {
-          if ((config.sessionViewType != 'ticker') 
-            && (config.sessionViewType != 'histogram') 
-            && (config.sessionViewType != 'flow') 
-            && (config.sessionViewType != 'force') 
-            && (config.sessionViewType != 'media') 
+          if ((config.sessionViewType !== 'ticker') 
+            && (config.sessionViewType !== 'treemap') 
+            && (config.sessionViewType !== 'histogram') 
+            && (config.sessionViewType !== 'flow') 
+            && (config.sessionViewType !== 'force') 
+            && (config.sessionViewType !== 'media') 
             && session.source.isIgnored) {
             cb(null, {
               node: sourceNodeId,
@@ -2851,10 +2878,11 @@ var createNode = function(callback) {
         target: function(cb) {
 
           if (typeof targetNodeId === 'undefined' 
-            || (config.sessionViewType == 'media') 
-            || (config.sessionViewType == 'flow') 
-            || (config.sessionViewType == 'histogram') 
-            || (config.sessionViewType == 'ticker')) {
+            || (config.sessionViewType === 'media') 
+            || (config.sessionViewType === 'flow') 
+            || (config.sessionViewType === 'treemap') 
+            || (config.sessionViewType === 'histogram') 
+            || (config.sessionViewType === 'ticker')) {
             cb("TARGET UNDEFINED", null);
           } 
           else if (session.target.isIgnored) {
@@ -3012,10 +3040,11 @@ var createNode = function(callback) {
 
         addToHashMap(sessionHashMap, session.nodeId, session, function(cSession) {
           if (!results.source.isIgnored 
-            && (config.sessionViewType != 'media') 
-            && (config.sessionViewType != 'ticker') 
-            && (config.sessionViewType != 'histogram') 
-            && (config.sessionViewType != 'flow')) {
+            && (config.sessionViewType !== 'media') 
+            && (config.sessionViewType !== 'ticker') 
+            && (config.sessionViewType !== 'treemap') 
+            && (config.sessionViewType !== 'histogram') 
+            && (config.sessionViewType !== 'flow')) {
             linkCreateQueue.push(cSession);
           }
         });
@@ -3030,6 +3059,7 @@ var createLink = function(callback) {
 
   if ((config.sessionViewType !== 'ticker') 
     && (config.sessionViewType !== 'flow') 
+    && (config.sessionViewType !== 'treemap') 
     && (config.sessionViewType !== 'histogram') 
     && (config.sessionViewType !== 'media') 
     && !config.disableLinks 
@@ -3272,6 +3302,17 @@ function loadViewType(svt, callback) {
         callback();
       });
       break;
+    case 'treemap':
+      config.sessionViewType = "treemap";
+      config.forceViewMode = "flow";
+      requirejs(["js/libs/sessionViewTreemap"], function() {
+        console.debug("sessionViewTreemap LOADED");
+        DEFAULT_MAX_AGE = TREEMAPVIEW_DEFAULT.MAX_AGE;
+        currentSessionView = new ViewTreemap();
+        initSocketNodeRx();
+        callback();
+      });
+      break;
     case 'histogram':
       config.sessionViewType = "histogram";
       config.forceViewMode = "flow";
@@ -3373,6 +3414,11 @@ function initialize(callback) {
               console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
             });
           }
+          if (config.sessionViewType == 'treemap') {
+            initIgnoreWordsHashMap(function() {
+              console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+            });
+          }
           if (config.sessionViewType == 'histogram') {
             initIgnoreWordsHashMap(function() {
               console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
@@ -3389,6 +3435,9 @@ function initialize(callback) {
             }
             if (config.sessionViewType == 'flow') {
               initUpdateSessionsInterval(50);
+              currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
+            }
+            if (config.sessionViewType == 'treemap') {
               currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
             }
             if (config.sessionViewType == 'histogram') {
@@ -3466,6 +3515,12 @@ function initialize(callback) {
                 console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
               });
             }
+            if (config.sessionViewType == 'treemap') {
+              currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
+              initIgnoreWordsHashMap(function() {
+                console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+              });
+            }
             if (config.sessionViewType == 'histogram') {
               currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
               initIgnoreWordsHashMap(function() {
@@ -3534,6 +3589,12 @@ function initialize(callback) {
             });
           }
           if (config.sessionViewType == 'flow') {
+            currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
+            initIgnoreWordsHashMap(function() {
+              console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+            });
+          }
+          if (config.sessionViewType == 'treemap') {
             currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
             initIgnoreWordsHashMap(function() {
               console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");

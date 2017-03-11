@@ -119,7 +119,7 @@ var DEFAULT_NODE_RADIUS = 20.0;
 var config = {};
 config.forceViewMode = DEFAULT_FORCEVIEW_MODE;
 config.fullscreenMode = false;
-config.pauseOnMouseMove = false;
+config.pauseOnMouseMove = true;
 config.showStatsFlag = false;
 config.blahMode = DEFAULT_BLAH_MODE;
 config.antonymFlag = false;
@@ -350,7 +350,7 @@ var keywordColorHashMap = new HashMap();
 
 keywordColorHashMap.set("positive", palette.green);
 keywordColorHashMap.set("negative", palette.red);
-keywordColorHashMap.set("neutral", palette.white);
+keywordColorHashMap.set("neutral", palette.yellow);
 
 keywordColorHashMap.set("left", palette.blue);
 keywordColorHashMap.set("right", palette.red);

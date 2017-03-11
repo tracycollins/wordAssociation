@@ -487,42 +487,7 @@ function ViewTreemap() {
       treemapData.childrenKeywordTypeHashMap.positive = {};
       treemapData.childrenKeywordTypeHashMap.neutral = {};
       treemapData.childrenKeywordTypeHashMap.negative = {};
-    // var treemapData = {
-    //  "name": "word",
-    //  "children": [
-    //     {
-    //      "name": "right",
-    //      "children": [
-    //       {
-    //        "name": "Trump Family",
-    //        "children": [
-    //         {"name": "Donald", "size": 3938},
-    //         {"name": "Ivanka", "size": 3812},
-    //         {"name": "Melania", "size": 6714},
-    //         {"name": "Eric", "size": 6714},
-    //         {"name": "Don Jr", "size": 743}
-    //        ]
-    //       },
-    //       {
-    //        "name": "Trump Cabinet",
-    //        "children": [
-    //         {"name": "Sean Spicer", "size": 3534},
-    //         {"name": "Kellyanne Conway", "size": 5731},
-    //         {"name": "Steve Bannon", "size": 7840},
-    //         {"name": "Scott Pruitt", "size": 5914},
-    //         {"name": "What's His Face", "size": 3416}
-    //        ]
-    //       },
-    //       {
-    //        "name": "Senate",
-    //        "children": [
-    //         {"name": "Mitch McConnell", "size": 7074}
-    //        ]
-    //       }
-    //      ]
-    //     }
-    //   ]
-    // }
+
 
     async.forEach(nodes, function(node, cb) {
 
@@ -655,19 +620,23 @@ function ViewTreemap() {
 
         cell.append("text")
             .attr("id", function(d) { return "text-" + d.data.id; })
+            .attr("x", function(d) { 
+              return 0.5*(d.x1 - d.x0); 
+            })
+            .attr("y", function(d) { 
+              return 0.5*(d.y1 - d.y0); 
+            })
+            .text(function(d) { return d.data.name.toUpperCase(); })
+            .style("text-anchor", "middle")
             .attr("clip-path", function(d) { return "url(#clip-" + d.data.id + ")"; })
+            .attr("fill", function(d) { 
+              if (d.data.newFlag) { return palette.black; }
+              return palette.white; 
+            })
             .style('opacity', function(d) { 
               if (d.mouseHoverFlag) { return 1.0; }
               return nodeLabelOpacityScale(d.data.ageMaxRatio); 
-            })
-          .selectAll("tspan")
-            .data(function(d) { return d.data.name.split(/(?=[A-Z][^A-Z])/g); })
-            // .data(function(d) { return d; })
-          .enter().append("tspan")
-            .attr("x", 10)
-            .attr("y", function(d, i) { return 25 + i * 10; })
-            .text(function(d) { return d.toUpperCase(); })
-            .style('fill', palette.white);
+            });
 
         cell.append("title")
             .text(function(d) { return d.data.id + "\n" + format(d.value); });

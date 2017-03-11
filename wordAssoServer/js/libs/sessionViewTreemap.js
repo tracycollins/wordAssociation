@@ -644,7 +644,9 @@ function ViewTreemap() {
             .style('opacity', function(d) { 
               if (d.mouseHoverFlag) { return 1.0; }
               return nodeLabelOpacityScale(d.data.ageMaxRatio); 
-            });
+            })
+            .attr('stroke', palette.white)
+            .attr('stroke-width', '1.0');
 
         cell.append("clipPath")
             .attr("id", function(d) { return "clip-" + d.data.id; })
@@ -652,14 +654,20 @@ function ViewTreemap() {
             .attr("xlink:href", function(d) { return "#" + d.data.id; });
 
         cell.append("text")
+            .attr("id", function(d) { return "text-" + d.data.id; })
             .attr("clip-path", function(d) { return "url(#clip-" + d.data.id + ")"; })
+            .style('opacity', function(d) { 
+              if (d.mouseHoverFlag) { return 1.0; }
+              return nodeLabelOpacityScale(d.data.ageMaxRatio); 
+            })
           .selectAll("tspan")
             .data(function(d) { return d.data.name.split(/(?=[A-Z][^A-Z])/g); })
+            // .data(function(d) { return d; })
           .enter().append("tspan")
-            .attr("x", 4)
-            .attr("y", function(d, i) { return 13 + i * 10; })
+            .attr("x", 10)
+            .attr("y", function(d, i) { return 25 + i * 10; })
             .text(function(d) { return d.toUpperCase(); })
-            .style('fill', palette.black);
+            .style('fill', palette.white);
 
         cell.append("title")
             .text(function(d) { return d.data.id + "\n" + format(d.value); });

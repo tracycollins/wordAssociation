@@ -219,11 +219,11 @@ function ViewTreemap() {
   function changed() {
     // timeout.stop();
 
-    // treemap(root.sum(sum));
+    treemap(root.sum(sumBySize));
 
     cell.transition()
-        .duration(750)
-        .attr("transform", function(d) { return "translate(" + d.x0 + "," + d.y0 + ")"; })
+      .duration(750)
+      .attr("transform", function(d) { return "translate(" + d.x0 + "," + d.y0 + ")"; })
       .select("rect")
         .attr("width", function(d) { return d.x1 - d.x0; })
         .attr("height", function(d) { return d.y1 - d.y0; });
@@ -354,6 +354,16 @@ function ViewTreemap() {
         ) {
         // console.debug("X NODE\n" + jsonPrint(node));
         localNodeHashMap.remove(node.nodeId);
+        var keywordObjKeys = Object.keys(node.keywords);
+
+        keywordObjKeys.forEach(function(kwok){
+          var keywordObj = node.keywords[kwok];
+          var keywordTypeKeys = Object.keys(keywordObj);
+          keywordTypeKeys.forEach(function(keywordType){
+            delete treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId];
+          });
+        });
+
         nodes.splice(ageNodesIndex, 1);
       } 
       else {
@@ -410,6 +420,54 @@ function ViewTreemap() {
     }
   };
 
+  var cellMouseOver = function (d) {
+
+    console.debug("cellMouseOver", d);
+
+    d.data.mouseHoverFlag = true;
+
+    self.toolTipVisibility(true);
+
+    var tooltipString;
+
+    switch (d.data.nodeType) {
+      case 'hashtag':
+        tooltipString = "#" + d.data.name
+          + "<br>TYPE: " + d.data.nodeType 
+          + "<br>Ms: " + d.data.size
+          + "<br>RANK: " + d.data.rank;
+      break;
+      case 'word':
+        tooltipString = d.data.nodeId
+          + "<br>TYPE: " + d.data.nodeType 
+          + "<br>RANK: " + d.data.rank
+          + "<br>Ms: " + d.data.size
+          + "<br>URL: " + d.data.url;
+      break;
+    }
+
+    divTooltip.html(tooltipString)
+      // .style("left", (d.x0 + 0.5*(d.x1-d.x0)) + "px")
+      // .style("top", (d.y0 + 0.5*(d.y1-d.y0)) + "px");
+      // .style("left", 5 + "%")
+      // .style("top", 70 + "%");
+      .style("left", function(){
+        if ((d3.event.pageX - 20) > 0.9*width) { return 0.85*width; }
+        return ((d3.event.pageX - 20) + "px");
+      })
+      .style("top", function(){
+        if ((d3.event.pageY - 20) > 0.9*height) { return 0.5*height; }
+        return ((d3.event.pageY - 200) + "px");
+      });
+      // .style("top", (d3.event.pageY - 20) + "px");
+  };
+
+  var cellMouseOut = function (d) {
+    d.data.mouseHoverFlag = false;
+    self.toolTipVisibility(false);
+  }
+
+
   var nodeMouseOver = function (d) {
 
     d.mouseHoverFlag = true;
@@ -444,8 +502,14 @@ function ViewTreemap() {
     self.toolTipVisibility(false);
   }
 
-  function nodeClick(d) {
+  function cellClick(d) {
+    console.debug("cellClick", d);
+    var url = "https://twitter.com/search?f=realtime&q=%23" + d.data.name ;
+    window.open(url, '_blank');
+  }
 
+  function nodeClick(d) {
+    console.debug("nodeClick");
     var url = "";
 
     switch (d.nodeType) {
@@ -482,18 +546,17 @@ function ViewTreemap() {
 
   var updateTreemapData = function (callback){
 
-    treemapData.childrenKeywordTypeHashMap.right = {};
-    treemapData.childrenKeywordTypeHashMap.left = {};
-    treemapData.childrenKeywordTypeHashMap.positive = {};
-    treemapData.childrenKeywordTypeHashMap.neutral = {};
-    treemapData.childrenKeywordTypeHashMap.negative = {};
+    // treemapData.childrenKeywordTypeHashMap.right = {};
+    // treemapData.childrenKeywordTypeHashMap.left = {};
+    // treemapData.childrenKeywordTypeHashMap.positive = {};
+    // treemapData.childrenKeywordTypeHashMap.neutral = {};
+    // treemapData.childrenKeywordTypeHashMap.negative = {};
 
 
     async.forEach(nodes, function(node, cb) {
 
       var keywordObjKeys = Object.keys(node.keywords);
 
-      // console.debug("keywordObjKeys: " + keywordObjKeys);
 
       if (keywordObjKeys.length == 0) { return(cb()); }
 
@@ -511,19 +574,13 @@ function ViewTreemap() {
 
         keywordTypeKeys.forEach(function(keywordType){
 
-          var keywordValue = keywordObj[keywordType];
-
-          // console.debug("NODE"
-          //   + " | NID: " + node.nodeId
-          //   + " | Ms: " + node.mentions
-          //   + " | keywordType: " + keywordType + ": " + keywordValue
-          // );
-
+          if (!treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId]) treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId] = {};
           treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId] = {};
-          treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId].newFlag = node.newFlag;
-          treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId].ageMaxRatio = node.ageMaxRatio;
-          treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId].mentions = node.mentions;
-          treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId].keywordColor = node.keywordColor;
+          treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId] = node;
+          // treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId].newFlag = node.newFlag;
+          // treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId].ageMaxRatio = node.ageMaxRatio;
+          // treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId].mentions = node.mentions;
+          // treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId].keywordColor = node.keywordColor;
 
         });
 
@@ -541,7 +598,7 @@ function ViewTreemap() {
 
       treemapData.children = [];
 
-      var keywordTypeKeys = Object.keys(treemapData.childrenKeywordTypeHashMap);
+      var keywordTypeKeys = Object.keys(treemapData.childrenKeywordTypeHashMap).sort();
 
       async.forEachOf(keywordTypeKeys, function(keywordType, index, cb2) {
 
@@ -555,10 +612,9 @@ function ViewTreemap() {
 
           var keywordChild = {};
 
+          keywordChild = treemapData.childrenKeywordTypeHashMap[keywordType][keyword];
+
           keywordChild.name = keyword;
-          keywordChild.ageMaxRatio = treemapData.childrenKeywordTypeHashMap[keywordType][keyword].ageMaxRatio;
-          keywordChild.newFlag = treemapData.childrenKeywordTypeHashMap[keywordType][keyword].newFlag;
-          keywordChild.keywordColor = treemapData.childrenKeywordTypeHashMap[keywordType][keyword].keywordColor;
           keywordChild.size = treemapData.childrenKeywordTypeHashMap[keywordType][keyword].mentions;
 
           treemapData.children[index].children.push(keywordChild);
@@ -585,7 +641,7 @@ function ViewTreemap() {
             .sum(sumBySize)
             .sort(function(a, b) { return b.height - a.height || b.value - a.value; });
 
-        treemap(root);
+        treemap(root.sum(sumBySize));
 
         cell = svgTreemapLayoutArea.selectAll("g")
           .data(root.leaves())
@@ -593,14 +649,20 @@ function ViewTreemap() {
             .attr("nodeId", function(d) { return d.data.name; })
             .attr("transform", function(d) { return "translate(" + d.x0 + "," + d.y0 + ")"; });
 
-       cell.exit()
-        .remove();
+        cell
+          .exit()
+          .remove();
 
-        cell.append("rect")
+        cell
+          .append("rect")
           .attr("id", function(d) { return d.data.id; })
           .attr("width", function(d) { return d.x1 - d.x0; })
           .attr("height", function(d) { return d.y1 - d.y0; })
+          .on("mouseover", cellMouseOver)
+          .on("mouseout", cellMouseOut)
+          .on("click", cellClick)
           .attr("fill", function(d) { 
+            // if (d.data.mouseHoverFlag) { return palette.yellow; }
             if (d.data.newFlag) { return palette.white; }
             return d.data.keywordColor; 
           })
@@ -611,12 +673,14 @@ function ViewTreemap() {
           .attr('stroke', palette.white)
           .attr('stroke-width', '1.0');
 
-        cell.append("clipPath")
+        cell
+          .append("clipPath")
           .attr("id", function(d) { return "clip-" + d.data.id; })
           .append("use")
             .attr("xlink:href", function(d) { return "#" + d.data.id; });
 
-        cell.append("text")
+        cell
+          .append("text")
           .attr("id", function(d) { return "text-" + d.data.id; })
           .attr("x", function(d) { 
             return 0.5*(d.x1 - d.x0); 
@@ -636,8 +700,16 @@ function ViewTreemap() {
             return nodeLabelOpacityScale(d.data.ageMaxRatio); 
           });
 
-        cell.append("title")
-          .text(function(d) { return d.data.id + "\n" + format(d.value); });
+        // cell
+        //   .append("title")
+        //   .text(function(d) { return d.data.id + "\n" + format(d.value); });
+
+        cell.transition()
+          .duration(750)
+          .attr("transform", function(d) { return "translate(" + d.x0 + "," + d.y0 + ")"; })
+          .select("rect")
+            .attr("width", function(d) { return d.x1 - d.x0; })
+            .attr("height", function(d) { return d.y1 - d.y0; });
 
         // d3.selectAll("input")
         //     .data([sumBySize, sumByCount], function(d) { return d ? d.name : this.value; })
@@ -795,19 +867,32 @@ function ViewTreemap() {
 
     updateReady = false;
 
-    async.series(
-      {
-        deadNode: processDeadNodesHash,
-        addNode: processNodeAddQ,
-        ageNode: ageNodes,
-        // updateNodeLabels: updateNodeLabels,
-        updateTreemapData: updateTreemapData
-      },
-      function(err) {
-        if (err) { console.error("update ERROR: " + err); }
-        updateReady = true;
-      }
-    );
+    if (runningFlag){
+      async.series(
+        {
+          deadNode: processDeadNodesHash,
+          addNode: processNodeAddQ,
+          ageNode: ageNodes,
+          // updateNodeLabels: updateNodeLabels,
+          updateTreemapData: updateTreemapData
+        },
+        function(err) {
+          if (err) { console.error("update ERROR: " + err); }
+          updateReady = true;
+        }
+      );
+    }
+    else {
+      async.series(
+        {
+          updateTreemapData: updateTreemapData
+        },
+        function(err) {
+          if (err) { console.error("update ERROR: " + err); }
+          updateReady = true;
+        }
+      );
+    }
   }
 
   this.setChargeSliderValue = function(){
@@ -956,6 +1041,6 @@ function ViewTreemap() {
   };
 
   setInterval(function(){
-    if (runningFlag && updateReady) { update(); }
-  }, 100);
+    if (updateReady) { update(); }
+  }, 50);
 }

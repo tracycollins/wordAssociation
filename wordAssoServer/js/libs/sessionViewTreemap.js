@@ -556,6 +556,7 @@ function ViewTreemap() {
 
           treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId] = {};
           treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId].newFlag = node.newFlag;
+          treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId].ageMaxRatio = node.ageMaxRatio;
           treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId].mentions = node.mentions;
           treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId].keywordColor = node.keywordColor;
 
@@ -590,6 +591,7 @@ function ViewTreemap() {
           var keywordChild = {};
 
           keywordChild.name = keyword;
+          keywordChild.ageMaxRatio = treemapData.childrenKeywordTypeHashMap[keywordType][keyword].ageMaxRatio;
           keywordChild.newFlag = treemapData.childrenKeywordTypeHashMap[keywordType][keyword].newFlag;
           keywordChild.keywordColor = treemapData.childrenKeywordTypeHashMap[keywordType][keyword].keywordColor;
           keywordChild.size = treemapData.childrenKeywordTypeHashMap[keywordType][keyword].mentions;
@@ -628,7 +630,7 @@ function ViewTreemap() {
             .attr("transform", function(d) { return "translate(" + d.x0 + "," + d.y0 + ")"; });
 
        cell.exit()
-            .remove();
+        .remove();
 
         cell.append("rect")
             .attr("id", function(d) { return d.data.id; })
@@ -641,9 +643,13 @@ function ViewTreemap() {
               }
               // return color(d.parent.data.id); 
               return d.data.keywordColor; 
-            });
+            })
             // .attr("fill", function(d) { return color(d.keywordColor); });
             // .attr("fill", function(d) { return palette.red; });
+            .style('opacity', function(d) { 
+              if (d.mouseHoverFlag) { return 1.0; }
+              return nodeLabelOpacityScale(d.data.ageMaxRatio); 
+            });
 
         cell.append("clipPath")
             .attr("id", function(d) { return "clip-" + d.data.id; })
@@ -825,7 +831,7 @@ function ViewTreemap() {
         deadNode: processDeadNodesHash,
         addNode: processNodeAddQ,
         ageNode: ageNodes,
-        updateNodeLabels: updateNodeLabels,
+        // updateNodeLabels: updateNodeLabels,
         updateTreemapData: updateTreemapData
       },
       function(err) {

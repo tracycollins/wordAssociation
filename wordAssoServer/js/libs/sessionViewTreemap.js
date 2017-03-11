@@ -596,7 +596,6 @@ function ViewTreemap() {
           keywordChild.keywordColor = treemapData.childrenKeywordTypeHashMap[keywordType][keyword].keywordColor;
           keywordChild.size = treemapData.childrenKeywordTypeHashMap[keywordType][keyword].mentions;
 
-          // console.assert(!keywordChild.newFlag, "NEW NODE");
           treemapData.children[index].children.push(keywordChild);
                 
           cb3();
@@ -634,18 +633,14 @@ function ViewTreemap() {
 
         cell.append("rect")
             .attr("id", function(d) { return d.data.id; })
-            .attr("width", function(d) { return d.x1 - d.x0; })
+            .attr("width", function(d) { 
+              return d.x1 - d.x0; 
+            })
             .attr("height", function(d) { return d.y1 - d.y0; })
             .attr("fill", function(d) { 
-              if (d.data.newFlag) { 
-                // console.log("NEW NODE");
-                return palette.white;
-              }
-              // return color(d.parent.data.id); 
+              if (d.data.newFlag) { return palette.white; }
               return d.data.keywordColor; 
             })
-            // .attr("fill", function(d) { return color(d.keywordColor); });
-            // .attr("fill", function(d) { return palette.red; });
             .style('opacity', function(d) { 
               if (d.mouseHoverFlag) { return 1.0; }
               return nodeLabelOpacityScale(d.data.ageMaxRatio); 
@@ -669,7 +664,6 @@ function ViewTreemap() {
         cell.append("title")
             .text(function(d) { return d.data.id + "\n" + format(d.value); });
 
- 
         d3.selectAll("input")
             .data([sumBySize, sumByCount], function(d) { return d ? d.name : this.value; })
             .on("change", changed);

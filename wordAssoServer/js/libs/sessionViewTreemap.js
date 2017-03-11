@@ -45,8 +45,8 @@ function ViewTreemap() {
   var nodeAddQ = [];
   var nodeDeleteQ = [];
 
-  var width = window.innerWidth * 0.9;
-  var height = window.innerHeight * 0.9;
+  var width = window.innerWidth;
+  var height = window.innerHeight;
 
   self.getWidth = function() {
     return window.innerWidth;
@@ -188,7 +188,7 @@ function ViewTreemap() {
     .attr("id", "svgTreemapLayoutArea")
     .attr("width", width)
     .attr("height", height)
-    .attr("viewbox", 1e-6, 1e-6, width, height)
+    // .attr("viewbox", 1e-6, 1e-6, width, height)
     // .attr("preserveAspectRatio", "none")
     .attr("x", 1e-6)
     .attr("y", 1e-6);
@@ -215,42 +215,6 @@ function ViewTreemap() {
   treemapData.childrenKeywordTypeHashMap.positive = {};
   treemapData.childrenKeywordTypeHashMap.neutral = {};
   treemapData.childrenKeywordTypeHashMap.negative = {};
-
-  var flareJson = {
-   "name": "flare",
-   "children": [
-      {
-       "name": "analytics",
-       "children": [
-        {
-         "name": "cluster",
-         "children": [
-          {"name": "AgglomerativeCluster", "size": 3938},
-          {"name": "CommunityStructure", "size": 3812},
-          {"name": "HierarchicalCluster", "size": 6714},
-          {"name": "MergeEdge", "size": 743}
-         ]
-        },
-        {
-         "name": "graph",
-         "children": [
-          {"name": "BetweennessCentrality", "size": 3534},
-          {"name": "LinkDistance", "size": 5731},
-          {"name": "MaxFlowMinCut", "size": 7840},
-          {"name": "ShortestPaths", "size": 5914},
-          {"name": "SpanningTree", "size": 3416}
-         ]
-        },
-        {
-         "name": "optimization",
-         "children": [
-          {"name": "AspectRatioBanker", "size": 7074}
-         ]
-        }
-       ]
-      }
-    ]
-  }
 
   function changed(sum) {
     timeout.stop();
@@ -977,13 +941,26 @@ function ViewTreemap() {
     // d3LayoutWidth = width; // double the width for now
     // d3LayoutHeight = height;
 
+  svgMain
+    // .attr("id", "svgMain")
+    .attr("width", width)
+    .attr("height", height)
+    .attr("x", 1e-6)
+    .attr("y", 1e-6);
+
     svgTreemapLayoutArea
       .attr("width", width)
       .attr("height", height)
-      .attr("viewbox", 1e-6, 1e-6, width, height)
+      // .attr("viewbox", 1e-6, 1e-6, width, height)
       .attr("x", 1e-6)
       .attr("y", 1e-6);
-  };
+  
+    treemap
+      .tile(d3.treemapResquarify)
+      .size([width, height])
+      .round(true)
+      .paddingInner(1);
+};
 
   // ==========================================
 

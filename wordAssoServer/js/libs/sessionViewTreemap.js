@@ -98,6 +98,11 @@ function ViewTreemap() {
 
   var fontSize = fontSizeRatio * window.innerHeight;
 
+  // d3.select("body")
+  //   .on("touchstart", touch)
+  //   .on("touchmove", touch)
+  //   .on("touchend", touch);
+
   document.addEventListener("mousemove", function() {
     if (mouseHoverFlag) {
       d3.select("body").style("cursor", "pointer");
@@ -661,6 +666,9 @@ function ViewTreemap() {
           .on("mouseover", cellMouseOver)
           .on("mouseout", cellMouseOut)
           .on("click", cellClick)
+          .on("touchstart", cellMouseOver)
+          // .on("touchmove", touch)
+          .on("touchend", cellMouseOut);
           .attr("fill", function(d) { 
             // if (d.data.mouseHoverFlag) { return palette.yellow; }
             if (d.data.newFlag) { return palette.white; }

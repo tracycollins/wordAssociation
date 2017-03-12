@@ -668,7 +668,7 @@ function ViewTreemap() {
           .on("click", cellClick)
           .on("touchstart", cellMouseOver)
           // .on("touchmove", touch)
-          .on("touchend", cellMouseOut);
+          .on("touchend", cellMouseOut)
           .attr("fill", function(d) { 
             // if (d.data.mouseHoverFlag) { return palette.yellow; }
             if (d.data.newFlag) { return palette.white; }

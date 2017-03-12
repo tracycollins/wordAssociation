@@ -457,7 +457,7 @@ function ViewTreemap() {
       // .style("left", 5 + "%")
       // .style("top", 70 + "%");
       .style("left", function(){
-        if ((d3.event.pageX - 20) > 0.9*width) { return 0.85*width; }
+        if ((d3.event.pageX - 20) > 0.9*width) { return 0.5*width; }
         return ((d3.event.pageX - 20) + "px");
       })
       .style("top", function(){

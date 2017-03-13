@@ -2202,7 +2202,7 @@ function checkKeyword(w, callback) {
     wordObj.keywords[wordObj.screenName.toLowerCase()] = kwObj;    
     callback(wordObj);
   }
-  else if (serverKeywordHashMap.has(wordObj.nodeId.toLowerCase())) {
+  else if (wordObj.nodeId && serverKeywordHashMap.has(wordObj.nodeId.toLowerCase())) {
     debug(chalkAlert("HIT SRVR NODE ID"));
     kwObj = serverKeywordHashMap.get(wordObj.nodeId.toLowerCase());
     wordObj.isKeyword = true;
@@ -2236,7 +2236,7 @@ function checkKeyword(w, callback) {
     wordObj.keywords[wordObj.screenName.toLowerCase()] = kwObj;    
     callback(wordObj);
   }
-  else if (keywordHashMap.has(wordObj.nodeId.toLowerCase())) {
+  else if (wordObj.nodeId && keywordHashMap.has(wordObj.nodeId.toLowerCase())) {
     debug(chalkAlert("HIT NODE ID"));
     kwObj = keywordHashMap.get(wordObj.nodeId.toLowerCase());
     wordObj.isKeyword = true;

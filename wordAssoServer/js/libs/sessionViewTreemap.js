@@ -553,12 +553,7 @@ function ViewTreemap() {
 
   var updateTreemapData = function (callback){
 
-    // treemapData.childrenKeywordTypeHashMap.right = {};
-    // treemapData.childrenKeywordTypeHashMap.left = {};
-    // treemapData.childrenKeywordTypeHashMap.positive = {};
-    // treemapData.childrenKeywordTypeHashMap.neutral = {};
-    // treemapData.childrenKeywordTypeHashMap.negative = {};
-
+    if (nodes.length == 0){ return(callback()); }
 
     async.forEach(nodes, function(node, cb) {
 
@@ -630,7 +625,7 @@ function ViewTreemap() {
 
         }, function(err) {
 
-          if (err) { return(callback(err)); }
+          // if (err) { return(callback(err)); }
           cb2();
 
         });
@@ -866,9 +861,12 @@ function ViewTreemap() {
         maxNumberNodes = nodes.length;
       }
 
-    }
+      callback(null, nodesModifiedFlag);
 
-    callback(null, nodesModifiedFlag);
+    }
+    else {
+      callback(null, nodesModifiedFlag);
+    }
   };
 
   var updateReady = true;

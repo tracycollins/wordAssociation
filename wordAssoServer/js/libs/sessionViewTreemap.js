@@ -286,6 +286,8 @@ function ViewTreemap() {
   };
 
   function rankHashMapByValue(hmap, sortProperty, callback) {
+
+    if (hmap.count() === 0) { return(callback(hmap)); }
     // console.debug("rankHashMapByValue");
     var keys = hmap.keys().sort(function(a,b){
       return hmap.get(b)[sortProperty]-hmap.get(a)[sortProperty];

@@ -157,6 +157,7 @@ statsObj.socketErrors = 0;
 statsObj.maxNodes = 0;
 statsObj.maxNodeAddQ = 0;
 statsObj.heartbeat = {};
+statsObj.heartbeat.wordsPerMinute = 0;
 statsObj.serverConnected = false;
 
 var serverHeartbeatTimeout = 30000;

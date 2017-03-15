@@ -344,7 +344,7 @@ process.on('SIGINT', function() {
 var stdin;
 var commandLineArgs = require('command-line-args');
 
-var enableStdin = { name: "enableStdin", alias: "i", type: Boolean, defaultValue: true};
+var enableStdin = { name: "enableStdin", alias: "i", type: Boolean, defaultValue: false};
 var quitOnError = { name: "quitOnError", alias: "q", type: Boolean, defaultValue: false};
 var testMode = { name: "testMode", alias: "T", type: Boolean, defaultValue: false};
 
@@ -835,17 +835,17 @@ wordCache.on("set", function(word, wordObj) {
   //   ));
   // }
 
-  debugWapi(chalkWapi("CACHE WORD SET"
-    + " [ Q: " + wapiSearchQueue.size() 
-    + " ] " + wordObj.nodeId 
-    + " | LS: " + getTimeStamp(wordObj.lastSeen) 
-    + " | " + msToTime(moment().valueOf() - wordObj.lastSeen) 
-    + " | M: " + wordObj.mentions 
-    + " | WAPIS: " + wordObj.wapiSearched 
-    + " | WAPIF: " + wordObj.wapiFound 
-    + " | K: " + wordCache.getStats().keys 
-    + " | H: " + wordCache.getStats().hits 
-    + " | M: " + wordCache.getStats().misses
+  debug(chalkWapi("WORD CACHE SET"
+    // + " [ Q: " + wapiSearchQueue.size() 
+    + " | " + wordObj.nodeId 
+    // + " | LS: " + getTimeStamp(wordObj.lastSeen) 
+    // + " | " + msToTime(moment().valueOf() - wordObj.lastSeen) 
+    // + " | M: " + wordObj.mentions 
+    // + " | WAPIS: " + wordObj.wapiSearched 
+    // + " | WAPIF: " + wordObj.wapiFound 
+    // + " | K: " + wordCache.getStats().keys 
+    // + " | H: " + wordCache.getStats().hits 
+    // + " | M: " + wordCache.getStats().misses
   ));
 
   if (!wapiOverLimitFlag && (wapiForceSearch || !wordObj.wapiSearched)){

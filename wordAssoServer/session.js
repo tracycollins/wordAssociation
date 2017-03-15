@@ -158,6 +158,7 @@ statsObj.maxNodes = 0;
 statsObj.maxNodeAddQ = 0;
 statsObj.heartbeat = {};
 statsObj.heartbeat.wordsPerMinute = 0;
+statsObj.heartbeat.maxWordsPerMin = 0;
 statsObj.serverConnected = false;
 
 var serverHeartbeatTimeout = 30000;

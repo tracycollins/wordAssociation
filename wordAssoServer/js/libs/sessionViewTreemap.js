@@ -576,7 +576,14 @@ function ViewTreemap() {
 
         keywordTypeKeys.forEach(function(keywordType){
 
-          if (!treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId]) treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId] = {};
+          if (typeof treemapData.childrenKeywordTypeHashMap[keywordType] === 'undefined') {
+            treemapData.childrenKeywordTypeHashMap[keywordType] = {};
+            treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId] = {};
+          }
+          else if (typeof treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId] === 'undefined') {
+            treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId] = {};
+          }
+
           treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId] = {};
           treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId] = node;
           // treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId].newFlag = node.newFlag;

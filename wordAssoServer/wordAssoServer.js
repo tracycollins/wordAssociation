@@ -4778,39 +4778,37 @@ function getTags(wObj, callback){
 
 }
 
-var ready = true;
+var responseQueueReady = true;
 var trendingTopicsArray = [];
 var trendingTopicHitArray = [];
 
 var readResponseQueue = setInterval(function() {
 
-  if (ready && !responseQueue.isEmpty()) {
+  if (responseQueueReady && !responseQueue.isEmpty()) {
 
-    ready = false;
+    responseQueueReady = false;
 
-    var rxInObj = responseQueue.dequeue();
+    var responseInObj = responseQueue.dequeue();
 
-    // console.log(chalkWarn("RXINOBJ\n" + jsonPrint(rxInObj)));
+    debug(chalkWarn("responseInObj\n" + jsonPrint(responseInObj)));
 
-    if ((typeof rxInObj.nodeId === 'undefined') 
-      || (typeof rxInObj.nodeId !== 'string'
-      || (typeof rxInObj.nodeId.length >  MAX_DB_KEY_LENGTH)
+    if ((typeof responseInObj.nodeId === 'undefined') 
+      || (typeof responseInObj.nodeId !== 'string'
+      || (responseInObj.nodeId.length >  MAX_DB_KEY_LENGTH)
       )) {
-      console.log(chalkError("*** ILLEGAL RESPONSE ... SKIPPING" + "\nTYPE: " + typeof rxInObj.nodeId 
-        + "\n" + jsonPrint(rxInObj)));
-      ready = true;
+
+      console.log(chalkError("*** ILLEGAL RESPONSE ... SKIPPING" + "\nTYPE: " + typeof responseInObj.nodeId 
+        + "\n" + jsonPrint(responseInObj)));
+
+      responseQueueReady = true;
       statsObj.session.error++;
       statsObj.session.responseError++;
       statsObj.session.responseErrorType["NODE_ID_MAX"] = (typeof statsObj.session.responseErrorType["NODE_ID_MAX"] === 'undefined') ? statsObj.session.responseErrorType["NODE_ID_MAX"] = 1 : statsObj.session.responseErrorType["NODE_ID_MAX"]++;
+
       return;
     }
 
-    var responseInObj = rxInObj;
-
     var socketId = responseInObj.socketId;
-    // var currentSessionObj = sessionCache.get(socketId);
-
-    // var currentSessionObj = {};
 
     sessionCache.get(socketId, function(err, currentSessionObj){
       if (err){
@@ -4833,15 +4831,15 @@ var readResponseQueue = setInterval(function() {
           sessionEvent: "SESSION_ABORT",
           sessionId: socketId
         });
-        ready = true;
+        responseQueueReady = true;
         return;
       }
       else {
         debug(chalkError("currentSessionObj\n" + jsonPrint(currentSessionObj)));
       }
 
-      responseInObj.isKeyword = (typeof rxInObj.isKeyword !== 'undefined') ? rxInObj.isKeyword : false;
-      responseInObj.isTrendingTopic = (typeof rxInObj.isTrendingTopic !== 'undefined') ? rxInObj.isTrendingTopic : false;
+      responseInObj.isKeyword = (typeof responseInObj.isKeyword !== 'undefined') ? responseInObj.isKeyword : false;
+      responseInObj.isTrendingTopic = (typeof responseInObj.isTrendingTopic !== 'undefined') ? responseInObj.isTrendingTopic : false;
 
 
       trendingTopicsArray = trendingCache.keys();
@@ -4885,7 +4883,7 @@ var readResponseQueue = setInterval(function() {
 
         if (responseInObj.nodeId == '') {
           debug("EMPTY RESPONSE: " + responseInObj.nodeId);
-          ready = true;
+          responseQueueReady = true;
           return;
         }
 
@@ -4955,10 +4953,10 @@ var readResponseQueue = setInterval(function() {
         else {
           console.log(chalkError("??? EMPTY WORD CHAIN ... PREVIOUS PROMPT NOT IN CACHE ... ABORTING SESSION" 
             + " | " + socketId
-            + "\nrxInObj" + jsonPrint(rxInObj)
+            + "\nresponseInObj" + jsonPrint(responseInObj)
           ));
 
-          ready = true;
+          responseQueueReady = true;
 
           return;
         }
@@ -4994,7 +4992,7 @@ var readResponseQueue = setInterval(function() {
             ));
 
             dbUpdateWordQueue.enqueue(dbUpdateObj);
-            ready = true;
+            responseQueueReady = true;
 
           }
           else {
@@ -5007,7 +5005,7 @@ var readResponseQueue = setInterval(function() {
             ));
 
             dbUpdateWordQueue.enqueue(dbUpdateObj);
-            ready = true;
+            responseQueueReady = true;
 
           }
 
@@ -5019,7 +5017,7 @@ var readResponseQueue = setInterval(function() {
 
 
    }
-}, 50);
+}, 20);
 
 var updaterMessageReady = true; 
 
@@ -5401,7 +5399,7 @@ function updatePreviousPrompt(sessionObj, wordObj, callback){
     previousPromptObj = wordCache.get(previousPromptNodeId);
 
     if (typeof previousPromptObj === "undefined") {
-      console.log(chalkWarn("quitOnErrorFlag: " + quitOnErrorFlag));
+      debug(chalkWarn("quitOnErrorFlag: " + quitOnErrorFlag));
       console.log(chalkWarn("??? PREVIOUS PROMPT NOT IN CACHE: " + previousPromptNodeId));
       if (quitOnErrorFlag) {
         quit("??? PREVIOUS PROMPT NOT IN CACHE: " + previousPromptNodeId);
@@ -5427,6 +5425,7 @@ var readDbUpdateWordQueue = setInterval(function() {
     dbUpdateWordReady = false;
 
     var dbUpdateObj = dbUpdateWordQueue.dequeue();
+
     var currentSessionObj = dbUpdateObj.session;
 
     dbUpdateObj.word.wordChainIndex = currentSessionObj.wordChainIndex;
@@ -5499,7 +5498,7 @@ var readDbUpdateWordQueue = setInterval(function() {
     });
 
   }
-}, 50);
+}, 20);
 
 
 var getTwitterFriendsInterval;

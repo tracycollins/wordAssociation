@@ -1906,38 +1906,40 @@ socket.on("USER_SESSION", function(rxSessionObject) {
     + " | CONN: " + rxSessionObject.connected);
 });
 
-socket.on("SESSION_UPDATE", function(rxSessionObject) {
+function initSocketSessionUpdateRx(){
+  socket.on("SESSION_UPDATE", function(rxSessionObject) {
 
-  console.debug("SES UPDATE: " + rxSessionObject.action + " | " + rxSessionObject.sessionId);
+    console.debug("SES UPDATE: " + rxSessionObject.action + " | " + rxSessionObject.sessionId);
 
-  if (!windowVisible || config.pauseFlag) {
-    rxSessionUpdateQueue = [];
-    if (debug) {
-      console.log("... SKIP SESSION_UPDATE ... WINDOW NOT VISIBLE");
-    }
-    
-  } 
-  else if (sessionMode && (rxSessionObject.sessionId !== currentSession.sessionId)) {
-    if (debug) {
-      console.log("SKIP SESSION_UPDATE: " + rxSessionObject.sessionId 
-        + " | CURRENT: " + currentSession.sessionId);
-    }
-  } 
-  else if (rxSessionUpdateQueue.length < MAX_RX_QUEUE) {
-
-    if (rxSessionObject.action == 'KEEPALIVE') {
+    if (!windowVisible || config.pauseFlag) {
+      rxSessionUpdateQueue = [];
+      if (debug) {
+        console.log("... SKIP SESSION_UPDATE ... WINDOW NOT VISIBLE");
+      }
+      
     } 
-    else {
-      rxSessionUpdateQueue.push(rxSessionObject);
+    else if (sessionMode && (rxSessionObject.sessionId !== currentSession.sessionId)) {
+      if (debug) {
+        console.log("SKIP SESSION_UPDATE: " + rxSessionObject.sessionId 
+          + " | CURRENT: " + currentSession.sessionId);
+      }
+    } 
+    else if (rxSessionUpdateQueue.length < MAX_RX_QUEUE) {
 
-      if (rxSessionObject.tags.trending) {
-        console.debug("TTT" + rxSessionObject.source.nodeId 
-          + " | T: " + rxSessionObject.tags.trending
-        );
+      if (rxSessionObject.action == 'KEEPALIVE') {
+      } 
+      else {
+        rxSessionUpdateQueue.push(rxSessionObject);
+
+        if (rxSessionObject.tags.trending) {
+          console.debug("TTT" + rxSessionObject.source.nodeId 
+            + " | T: " + rxSessionObject.tags.trending
+          );
+        }
       }
     }
-  }
-});
+  });
+}
 
 function initSocketNodeRx(){
 
@@ -3271,6 +3273,7 @@ function loadViewType(svt, callback) {
       requirejs(["js/libs/sessionViewTicker"], function() {
         console.debug("sessionViewTicker LOADED");
         currentSessionView = new ViewTicker();
+        initSocketSessionUpdateRx();
         callback();
       });
       break;
@@ -3278,7 +3281,6 @@ function loadViewType(svt, callback) {
       config.sessionViewType = "media";
       requirejs(["js/libs/sessionViewMedia"], function() {
         console.debug("sessionViewMedia LOADED");
-
         DEFAULT_COLLISION_RADIUS_MULTIPLIER = MEDIAVIEW_DEFAULT.COLLISION_RADIUS_MULTIPLIER;
         DEFAULT_COLLISION_ITERATIONS = MEDIAVIEW_DEFAULT.COLLISION_ITERATIONS;
         DEFAULT_MAX_AGE = MEDIAVIEW_DEFAULT.MAX_AGE;
@@ -3288,7 +3290,6 @@ function loadViewType(svt, callback) {
         DEFAULT_LINK_DISTANCE= MEDIAVIEW_DEFAULT.LINK_DISTANCE;
         DEFAULT_LINK_STRENGTH = MEDIAVIEW_DEFAULT.LINK_STRENGTH;
         DEFAULT_FORCEY_MULTIPLIER = MEDIAVIEW_DEFAULT.FORCEY_MULTIPLIER;
-
         currentSessionView = new ViewMedia();
         initSocketNodeRx();
 
@@ -3301,6 +3302,7 @@ function loadViewType(svt, callback) {
       requirejs(["js/libs/sessionViewFlow"], function() {
         console.debug("sessionViewFlow LOADED");
         currentSessionView = new ViewFlow();
+        initSocketSessionUpdateRx();
         callback();
       });
       break;

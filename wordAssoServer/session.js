@@ -475,31 +475,6 @@ function getKeywordColor(kwObj, callback){
       callback(color);
     });
 
-    // keywordTypes.forEach(function(kwType){
-
-    //   if (kwType === "keywordId") {
-    //     if (keywordTypes.length === 1) {
-    //       return callback(palette.white);
-    //     }
-    //     else {
-    //       return;
-    //     }
-    //   }
-
-    //   var color = keywordColorHashMap.get(kwType);
-
-    //   var c = d3.rgb(color);
-
-    //   // console.debug("COLOR"
-    //   //   + " | " + keywords[0]
-    //   //   + " | " + kwType
-    //   //   + " | " + keywordColorHashMap.get(kwType)
-    //   //   + " | R: " + c.r + " G: " + c.g + " B: " + c.b + " A: " + c.opacity
-    //   // );
-
-    //   callback(color);
-    // });
-
   }
 };
 
@@ -548,7 +523,6 @@ document.addEventListener("mousemove", function() {
   if (config.pauseOnMouseMove) currentSessionView.simulationControl('PAUSE');
   mouseMovingFlag = true;
   displayControl(true);
-  // displayStats(true, palette.blue);
   resetMouseMoveTimer();
 }, true);
 
@@ -1045,7 +1019,6 @@ socket.on("VIEWER_ACK", function(vSesKey) {
 socket.on("reconnect", function() {
   statsObj.socketId = socket.id;
   statsObj.serverConnected = true;
-  // displayStats(true, 'white');
   console.log("RECONNECTED TO HOST | SOCKET ID: " + socket.id);
   socket.emit("VIEWER_READY", viewerObj);
   if (sessionMode) {
@@ -1066,7 +1039,6 @@ socket.on("connect", function() {
 socket.on("disconnect", function() {
   statsObj.serverConnected = false;
   statsObj.socketId = null;
-  displayStats(true, 'red');
   console.log("*** DISCONNECTED FROM HOST ... DELETING ALL SESSIONS ...");
   deleteAllSessions(function() {
     console.log("DELETED ALL SESSIONS");
@@ -1083,7 +1055,6 @@ socket.on("error", function(error) {
   statsObj.serverConnected = false;
   statsObj.socketId = null;
   statsObj.socketErrors++;
-  displayStats(true, 'red');
   console.log("*** SOCKET ERROR ... DELETING ALL SESSIONS ...");
   console.error("*** SOCKET ERROR\n" + error);
   deleteAllSessions(function() {
@@ -1101,7 +1072,6 @@ socket.on("connect_error", function(error) {
   statsObj.serverConnected = false;
   statsObj.socketId = null;
   statsObj.socketErrors++;
-  displayStats(true, 'red');
   console.log("*** SOCKET CONNECT ERROR ... DELETING ALL SESSIONS ...");
   console.error("*** SOCKET CONNECT ERROR\n" + error);
   deleteAllSessions(function() {
@@ -1119,7 +1089,6 @@ socket.on("reconnect_error", function(error) {
   statsObj.serverConnected = false;
   statsObj.socketId = null;
   statsObj.socketErrors++;
-  displayStats(true, 'red');
   console.log("*** SOCKET RECONNECT ERROR ... DELETING ALL SESSIONS ...");
   console.error("*** SOCKET RECONNECT ERROR\n" + error);
   deleteAllSessions(function() {
@@ -3483,22 +3452,6 @@ function initialize(callback) {
 
           loadViewType(config.sessionViewType, function() {
 
-            // if (config.sessionViewType == 'ticker') {
-            //   currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-            // }
-            // if (config.sessionViewType == 'flow') {
-            //   currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-            // }
-            // if (config.sessionViewType == 'histogram') {
-            //   currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-            // }
-            // if (config.sessionViewType == 'force') {
-            //   currentSessionView.setNodeMaxAge(FORCE_MAX_AGE);
-            // }
-            // if (config.sessionViewType == 'media') {
-            //   currentSessionView.setNodeMaxAge(MEDIA_MAX_AGE);
-            // }
-
             if (config.sessionViewType == 'force') {
               currentSessionView.setNodeMaxAge(FORCE_MAX_AGE);
               initIgnoreWordsHashMap(function() {
@@ -3538,7 +3491,6 @@ function initialize(callback) {
             currentSessionView.resize();
 
             initStatsUpdate(1000);
-            // initUpdateSessionsInterval(50);
 
             console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
             socket.emit("VIEWER_READY", viewerObj);
@@ -3562,22 +3514,6 @@ function initialize(callback) {
         config.sessionViewType = DEFAULT_SESSION_VIEW;
 
         loadViewType(config.sessionViewType, function() {
-
-          // if (config.sessionViewType == 'ticker') {
-          //   currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-          // }
-          // if (config.sessionViewType == 'flow') {
-          //   currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-          // }
-          // if (config.sessionViewType == 'histogram') {
-          //   currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-          // }
-          // if (config.sessionViewType == 'force') {
-          //   currentSessionView.setNodeMaxAge(FORCE_MAX_AGE);
-          // }
-          // if (config.sessionViewType == 'media') {
-          //   currentSessionView.setNodeMaxAge(MEDIA_MAX_AGE);
-          // }
 
           if (config.sessionViewType == 'force') {
             currentSessionView.setNodeMaxAge(FORCE_MAX_AGE);
@@ -3617,7 +3553,6 @@ function initialize(callback) {
           currentSessionView.resize();
 
           initStatsUpdate(1000);
-          // initUpdateSessionsInterval(50);
 
           console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
           socket.emit("VIEWER_READY", viewerObj);

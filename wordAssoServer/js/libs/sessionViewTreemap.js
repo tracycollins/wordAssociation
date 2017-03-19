@@ -193,8 +193,6 @@ function ViewTreemap() {
     .attr("id", "svgTreemapLayoutArea")
     .attr("width", width)
     .attr("height", height)
-    // .attr("viewbox", 1e-6, 1e-6, width, height)
-    // .attr("preserveAspectRatio", "none")
     .attr("x", 1e-6)
     .attr("y", 1e-6);
 
@@ -222,8 +220,7 @@ function ViewTreemap() {
   treemapData.childrenKeywordTypeHashMap.negative = {};
 
   function changed() {
-    // timeout.stop();
-
+    
     treemap(root.sum(sumBySize));
 
     cell.transition()
@@ -586,11 +583,6 @@ function ViewTreemap() {
 
           treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId] = {};
           treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId] = node;
-          // treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId].newFlag = node.newFlag;
-          // treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId].ageMaxRatio = node.ageMaxRatio;
-          // treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId].mentions = node.mentions;
-          // treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId].keywordColor = node.keywordColor;
-
         });
 
 

@@ -105,6 +105,7 @@ var maxServerResponseTime = 1447;
 var pollTwitterFriendsIntervalTime = 5*ONE_MINUTE;
 
 var TRENDING_CACHE_DEFAULT_TTL = 300; // seconds
+var ADMIN_CACHE_DEFAULT_TTL = 120; // seconds
 var VIEWER_CACHE_DEFAULT_TTL = 120; // seconds
 var UTIL_CACHE_DEFAULT_TTL = 120; // seconds
 var USER_CACHE_DEFAULT_TTL = 120; // seconds
@@ -629,6 +630,8 @@ localHostHashMap.set('10.0.1.27', 'threeceelabs.com');
 
 localHostHashMap.set('104.197.93.13', 'threeceelabs.com');
 
+var monitorHashMap = {};
+
 // ==================================================================
 // WAPI WAPI_REQ_RESERVE_PRCNT
 // ==================================================================
@@ -647,6 +650,13 @@ var NodeCache = require("node-cache");
 // var ipAddressCache = new NodeCache();
 
 // ==================================================================
+// ADMIN ADDRESS CACHE
+// ==================================================================
+var adminCacheTtl = process.env.ADMIN_CACHE_DEFAULT_TTL;
+if (typeof adminCacheTtl === 'undefined') adminCacheTtl = ADMIN_CACHE_DEFAULT_TTL;
+console.log("ADMIN CACHE TTL: " + adminCacheTtl + " SECONDS");
+
+// ==================================================================
 // IP ADDRESS CACHE
 // ==================================================================
 var ipAddressCacheTtl = process.env.IP_ADDRESS_CACHE_DEFAULT_TTL;
@@ -657,7 +667,6 @@ console.log("IP ADDRESS CACHE TTL: " + ipAddressCacheTtl + " SECONDS");
 // TWITTER TRENDING TOPIC CACHE
 // ==================================================================
 var trendingCacheTtl = process.env.TRENDING_CACHE_DEFAULT_TTL;
-
 if (typeof trendingCacheTtl === 'undefined') trendingCacheTtl = TRENDING_CACHE_DEFAULT_TTL;
 console.log("TRENDING CACHE TTL: " + trendingCacheTtl + " SECONDS");
 
@@ -665,7 +674,6 @@ console.log("TRENDING CACHE TTL: " + trendingCacheTtl + " SECONDS");
 // UTIL CACHE
 // ==================================================================
 var utilCacheTtl = process.env.UTIL_CACHE_DEFAULT_TTL;
-
 if (typeof utilCacheTtl === 'undefined') utilCacheTtl = UTIL_CACHE_DEFAULT_TTL;
 console.log("UTIL CACHE TTL: " + utilCacheTtl + " SECONDS");
 
@@ -673,7 +681,6 @@ console.log("UTIL CACHE TTL: " + utilCacheTtl + " SECONDS");
 // VIEWER CACHE
 // ==================================================================
 var viewerCacheTtl = process.env.VIEWER_CACHE_DEFAULT_TTL;
-
 if (typeof viewerCacheTtl === 'undefined') viewerCacheTtl = VIEWER_CACHE_DEFAULT_TTL;
 console.log("VIEWER CACHE TTL: " + viewerCacheTtl + " SECONDS");
 
@@ -681,7 +688,6 @@ console.log("VIEWER CACHE TTL: " + viewerCacheTtl + " SECONDS");
 // USER CACHE
 // ==================================================================
 var userCacheTtl = process.env.USER_CACHE_DEFAULT_TTL;
-
 if (typeof userCacheTtl === 'undefined') userCacheTtl = USER_CACHE_DEFAULT_TTL;
 console.log("USER CACHE TTL: " + userCacheTtl + " SECONDS");
 
@@ -689,7 +695,6 @@ console.log("USER CACHE TTL: " + userCacheTtl + " SECONDS");
 // GROUP CACHE
 // ==================================================================
 var groupCacheTtl = process.env.GROUP_CACHE_DEFAULT_TTL;
-
 if (typeof groupCacheTtl === 'undefined') groupCacheTtl = GROUP_CACHE_DEFAULT_TTL;
 console.log("GROUP CACHE TTL: " + groupCacheTtl + " SECONDS");
 
@@ -697,7 +702,6 @@ console.log("GROUP CACHE TTL: " + groupCacheTtl + " SECONDS");
 // ENTITY CACHE
 // ==================================================================
 var entityCacheTtl = process.env.ENTITY_CACHE_DEFAULT_TTL;
-
 if (typeof entityCacheTtl === 'undefined') entityCacheTtl = ENTITY_CACHE_DEFAULT_TTL;
 console.log("ENTITY CACHE TTL: " + entityCacheTtl + " SECONDS");
 
@@ -705,7 +709,6 @@ console.log("ENTITY CACHE TTL: " + entityCacheTtl + " SECONDS");
 // SESSION CACHE
 // ==================================================================
 var sessionCacheTtl = process.env.SESSION_CACHE_DEFAULT_TTL;
-
 if (typeof sessionCacheTtl === 'undefined') sessionCacheTtl = SESSION_CACHE_DEFAULT_TTL;
 console.log("SESSION CACHE TTL: " + sessionCacheTtl + " SECONDS");
 
@@ -713,14 +716,12 @@ console.log("SESSION CACHE TTL: " + sessionCacheTtl + " SECONDS");
 // WORD CACHE
 // ==================================================================
 var wordCacheTtl = process.env.WORD_CACHE_TTL;
-
 if (typeof wordCacheTtl === 'undefined') wordCacheTtl = WORD_CACHE_TTL;
 console.log("WORD CACHE TTL: " + wordCacheTtl + " SECONDS");
 
-var monitorHashMap = {};
 
 var adminCache = new NodeCache({
-  stdTTL: ipAddressCacheTtl,
+  stdTTL: adminCacheTtl,
   checkperiod: 10
 });
 

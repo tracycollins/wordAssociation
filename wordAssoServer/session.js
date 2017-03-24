@@ -34,7 +34,7 @@ var statsTable ;
 var initializedFlag = false;
 var statsTableFlag = false;
 
-requirejs(["https://cdnjs.cloudflare.com/ajax/libs/d3/4.7.1/d3.min.js"], function(d3Loaded) {
+requirejs(["https://cdnjs.cloudflare.com/ajax/libs/d3/4.7.4/d3.min.js"], function(d3Loaded) {
 // requirejs(["https://d3js.org/d3.v4.min.js"], function(d3Loaded) {
     console.log("d3 LOADED");
     d3 = d3Loaded;
@@ -509,7 +509,7 @@ function resetMouseMoveTimer() {
 
     currentSessionView.toolTipVisibility(false);
 
-    if (config.pauseOnMouseMove && !config.pauseFlag) currentSessionView.simulationControl('RESUME');
+    if (config.pauseOnMouseMove && !config.pauseFlag) {currentSessionView.simulationControl('RESUME');}
 
     if (!config.showStatsFlag && !pageLoadedTimeIntervalFlag) {
       displayStats(false, palette.white);
@@ -520,7 +520,7 @@ function resetMouseMoveTimer() {
 }
 
 document.addEventListener("mousemove", function() {
-  if (config.pauseOnMouseMove) currentSessionView.simulationControl('PAUSE');
+  if (config.pauseOnMouseMove && (currentSessionView)) {currentSessionView.simulationControl('PAUSE');}
   mouseMovingFlag = true;
   displayControl(true);
   resetMouseMoveTimer();
@@ -1131,7 +1131,6 @@ function reset(){
 }
 
 window.addEventListener('resize', function() {
-  console.error("resize");
   currentSessionView.resize();
 });
 
@@ -1139,11 +1138,11 @@ document.addEventListener(visibilityEvent, function() {
   if (!document[hidden]) {
     windowVisible = true;
     if (typeof currentSessionView !== 'undefined') {
-      // currentSessionView.resize();
       currentSessionView.setPause(false);
     }
     console.debug("visibilityEvent: " + windowVisible);
-  } else {
+  } 
+  else {
     windowVisible = false;
     if (typeof currentSessionView !== 'undefined') {
       currentSessionView.setPause(true);

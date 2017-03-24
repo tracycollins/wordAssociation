@@ -1,46 +1,57 @@
 /*jslint node: true */
 "use strict";
 
+// ==================================================================
+// GLOBAL VARIABLES
+// ==================================================================
+var ONE_SECOND = 1000;
+var ONE_MINUTE = ONE_SECOND * 60;
+var ONE_HOUR = ONE_MINUTE * 60;
+var ONE_DAY = ONE_HOUR * 24;
+var quitOnErrorFlag = false;
+
+// ==================================================================
+// TEST CONFIG
+// ==================================================================
+var bhtOverLimitTestFlag = false;
+
 var configuration = {};
 
 var tssServer;
 var tmsServer;
 
-var DEFAULT_KEYWORD_VALUE = 100 // on scale of 1-100
+var DEFAULT_KEYWORD_VALUE = 100; // on scale of 1-100
 var MIN_WORD_METER_COUNT = 10;
 var MIN_METRIC_VALUE = 5;
 
-var CUSTOM_GOOGLE_APIS_PREFIX = 'custom.googleapis.com';
+var CUSTOM_GOOGLE_APIS_PREFIX = "custom.googleapis.com";
 
-var enableGoogleMetrics = process.env.ENABLE_GOOGLE_METRICS ? true : false;
+var enableGoogleMetrics = (typeof process.env.ENABLE_GOOGLE_METRICS !== "undefined") ? process.env.ENABLE_GOOGLE_METRICS : false;
 
-var Monitoring = require('@google-cloud/monitoring');
-var projectId = 'graphic-tangent-627';
+var Monitoring = require("@google-cloud/monitoring");
 var googleMonitoringClient = Monitoring.v3().metricServiceClient();
 
-var defaults = require('object.defaults');
-
-var moment = require('moment');
-var Measured = require('measured');
+var defaults = require("object.defaults");
+var chalk = require("chalk");
+var moment = require("moment");
+var Measured = require("measured");
 
 var wordMeter = {};
 
 var wordStats = Measured.createCollection();
 wordStats.meter("wordsPerSecond", {rateUnit: 1000, tickInterval: 1000});
 wordStats.meter("wordsPerMinute", {rateUnit: 60000, tickInterval: 1000});
-
 wordStats.meter("obamaPerSecond", {rateUnit: 1000, tickInterval: 1000});
 wordStats.meter("obamaPerMinute", {rateUnit: 60000, tickInterval: 1000});
-
 wordStats.meter("trumpPerSecond", {rateUnit: 1000, tickInterval: 1000});
 wordStats.meter("trumpPerMinute", {rateUnit: 60000, tickInterval: 1000});
 
-// MONGO DB doesn't like indexes/keys > 1024 characters
+// MONGO DB doesn"t like indexes/keys > 1024 characters
 var MAX_DB_KEY_LENGTH = 200;
 
 var wapiForceSearch = true;
 var dmOnUnknownSession = false;
-var ioReady = false
+var ioReady = false;
 var groupsUpdateComplete = false;
 var entitiesUpdateComplete = false;
 var keywordsUpdateComplete = false;
@@ -49,7 +60,7 @@ var updateComplete = groupsUpdateComplete && entitiesUpdateComplete && keywordsU
 var rateQinterval;
 
 var tweetsPerMinute = 0.0;
-var tweetsPerSecond = 0.0;
+// var tweetsPerSecond = 0.0;
 var maxTweetsPerMin = 0;
 var maxTweetsPerMinTime = moment.utc();
 
@@ -58,12 +69,12 @@ var wordsPerSecond = 0.0;
 var maxWordsPerMin = 0;
 var maxWordsPerMinTime = moment.utc();
 
-var obamaPerSecond = 0.0;
+// var obamaPerSecond = 0.0;
 var obamaPerMinute = 0.0;
 var maxObamaPerMin = 0;
 var maxObamaPerMinTime = moment.utc();
 
-var trumpPerSecond = 0.0;
+// var trumpPerSecond = 0.0;
 var trumpPerMinute = 0.0;
 var maxTrumpPerMin = 0;
 var maxTrumpPerMinTime = moment.utc();
@@ -71,37 +82,68 @@ var maxTrumpPerMinTime = moment.utc();
 var serverHeartbeatInterval;
 var pollGetTwitterFriendsInterval;
 
-var clone = require('clone');
-var deepcopy = require("deepcopy");
+var config = require("./config/config");
+var util = require("util");
+var fs = require("fs");
+var S = require("string");
+var os = require("os");
+// var clone = require("clone");
+var async = require("async");
+var HashMap = require("hashmap").HashMap;
+var Dropbox = require("dropbox");
+// var deepcopy = require("deepcopy");
+var unirest = require("unirest");
+var debug = require("debug")("wa");
+var debugWapi = require("debug")("wapi");
+var debugAppGet = require("debug")("appGet");
+var commandLineArgs = require("command-line-args");
 
-var cp = require('child_process');
+var cp = require("child_process");
 var updater;
 
-var Twit = require('twit');
+var Twit = require("twit");
 var twit;
 var twitterStream;
 var twitterDMenabled = false;
 
-var unirest = require('unirest');
+var express = require("./config/express");
+var mongoose = require("./config/mongoose");
+// var request = require("request");
+var yaml = require("yamljs");
+var EventEmitter2 = require("eventemitter2").EventEmitter2;
+var EventEmitter = require("events").EventEmitter;
+var NodeCache = require("node-cache");
 
-var debug = require('debug')('wa');
-var debugWapi = require('debug')('wapi');
-var debugAppGet = require('debug')('appGet');
+var db = mongoose();
+
+var IpAddress = require("mongoose").model("IpAddress");
+var Admin = require("mongoose").model("Admin");
+var Viewer = require("mongoose").model("Viewer");
+var User = require("mongoose").model("User");
+var Group = require("mongoose").model("Group");
+var Entity = require("mongoose").model("Entity");
+var Session = require("mongoose").model("Session");
+var Word = require("mongoose").model("Word");
+// var Oauth2credential = require("mongoose").model("Oauth2credential");
+
+var groupServer = require("./app/controllers/group.server.controller");
+var entityServer = require("./app/controllers/entity.server.controller");
+var wordServer = require("./app/controllers/word.server.controller");
+
+var app = express();
+
+var http = require("http");
+var httpServer = require("http").Server(app);
+var io;
+var dns = require("dns");
+var path = require("path");
+var net = require("net");
+var Queue = require("queue-fifo");
 
 var GROUP_UPDATE_INTERVAL = 60000;
-var saveStatsInterval = 10000; // millis
-
 var MAX_RESPONSE_QUEUE_SIZE = 250;
-
 var OFFLINE_MODE = false;
-var quitOnErrorFlag = false;
-
-var serverReady = false;
 var internetReady = false;
-
-var minServerResponseTime = 247;
-var maxServerResponseTime = 1447;
-
 var pollTwitterFriendsIntervalTime = 5*ONE_MINUTE;
 
 var TRENDING_CACHE_DEFAULT_TTL = 300; // seconds
@@ -113,16 +155,16 @@ var GROUP_CACHE_DEFAULT_TTL = 120; // seconds
 var ENTITY_CACHE_DEFAULT_TTL = 120; // seconds
 var SESSION_CACHE_DEFAULT_TTL = 120; // seconds
 var WORD_CACHE_TTL = 300; // seconds
-var MONITOR_CACHE_TTL = 120; // seconds
+// var MONITOR_CACHE_TTL = 120; // seconds
 var IP_ADDRESS_CACHE_DEFAULT_TTL = 120;
 
 var MAX_WORDCHAIN_LENGTH = 10;
-var MIN_CHAIN_FREEZE_LENGTH = 20;
-var MIN_CHAIN_FREEZE_UNIQUE_NODES = 10;
+// var MIN_CHAIN_FREEZE_LENGTH = 20;
+// var MIN_CHAIN_FREEZE_UNIQUE_NODES = 10;
 
 var BHT_REQUEST_LIMIT = 1000;
 var MW_REQUEST_LIMIT = 250000;
-var WAPI_REQUEST_LIMIT = 25000;
+// var WAPI_REQUEST_LIMIT = 25000;
 var WAPI_REQ_RESERVE_PRCNT = 0.30;
 
 var SESSION_WORDCHAIN_REQUEST_LIMIT = 25;
@@ -276,33 +318,21 @@ var ignoreWordsArray = [
   "your",
   "|",
   "é",
-  "–",
+  "–"
 ];
-
-// ==================================================================
-// TEST CONFIG
-// ==================================================================
-var testMode = false;
-var bhtOverLimitTestFlag = false;
-var wapiOverLimitTestFlag = false;
 
 // ==================================================================
 // SESSION MODES: STREAM  ( session.config.mode )
 // ==================================================================
 
-var chalk = require('chalk');
-
 var chalkRedBold = chalk.bold.red;
 var chalkTwitter = chalk.blue;
 var chalkWapi = chalk.red;
-var chalkWapiBold = chalk.bold.red;
 var chalkViewer = chalk.cyan;
 var chalkUser = chalk.green;
 var chalkUtil = chalk.blue;
 var chalkRed = chalk.red;
-var chalkGreen = chalk.green;
 var chalkAdmin = chalk.bold.cyan;
-var chalkConnectAdmin = chalk.bold.cyan;
 var chalkConnect = chalk.green;
 var chalkDisconnect = chalk.red;
 var chalkInfo = chalk.gray;
@@ -312,38 +342,35 @@ var chalkError = chalk.bold.red;
 var chalkWarn = chalk.bold.yellow;
 var chalkLog = chalk.gray;
 var chalkSession = chalk.blue;
-var chalkPrompt = chalk.blue;
 var chalkResponse = chalk.blue;
 var chalkBht = chalk.gray;
 var chalkMw = chalk.yellow;
 var chalkDb = chalk.gray;
-var chalkGoogle = chalk.green;
 
 var jsonPrint = function(obj) {
   if (obj) {
-     return JSON.stringify(obj, null, 2);
-  } else {
+    return JSON.stringify(obj, null, 2);
+  } 
+  else {
     return obj;
   }
-}
+};
 
 function quit(message) {
   console.log("\n... QUITTING ...");
-  if (typeof updater !== 'undefined') updater.kill('SIGHUP');
-
-  var msg = '';
-  if (message) msg = message;
+  if (typeof updater !== "undefined") { updater.kill("SIGHUP"); }
+  var msg = "";
+  if (message) {msg = message;}
   console.log("QUIT MESSAGE\n" + msg);
   process.exit();
 }
 
-process.on('SIGINT', function() {
-  quit('SIGINT');
+process.on("SIGINT", function() {
+  quit("SIGINT");
 });
 
 
 var stdin;
-var commandLineArgs = require('command-line-args');
 
 var enableStdin = { name: "enableStdin", alias: "i", type: Boolean, defaultValue: false};
 var quitOnError = { name: "quitOnError", alias: "q", type: Boolean, defaultValue: false};
@@ -358,14 +385,6 @@ console.log("COMMAND LINE OPTIONS\n" + jsonPrint(commandLineConfig));
 
 
 
-// ==================================================================
-// GLOBAL VARIABLES
-// ==================================================================
-var ONE_SECOND = 1000;
-var ONE_MINUTE = ONE_SECOND * 60;
-var ONE_HOUR = ONE_MINUTE * 60;
-var ONE_DAY = ONE_HOUR * 24;
-
 
 // ==================================================================
 // NODE MODULE DECLARATIONS
@@ -376,31 +395,10 @@ var compactDateTimeFormat = "YYYYMMDD HHmmss";
 var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
 var defaultTimePeriodFormat = "HH:mm:ss";
 
-var S = require('string');
-
-var os = require('os');
-
 var hostname = os.hostname();
-hostname = hostname.replace(/.local/g, '');
-hostname = hostname.replace(/.fios-router.home/g, '');
-hostname = hostname.replace(/word0-instance-1/g, 'google');
-
-var config = require('./config/config');
-var util = require('util');
-
-var express = require('./config/express');
-var mongoose = require('./config/mongoose');
-
-var request = require('request');
-var fs = require('fs');
-var yaml = require('yamljs');
-
-var async = require('async');
-var HashMap = require('hashmap').HashMap;
-
-var EventEmitter2 = require('eventemitter2').EventEmitter2;
-var EventEmitter = require("events").EventEmitter;
-
+hostname = hostname.replace(/.local/g, "");
+hostname = hostname.replace(/.fios-router.home/g, "");
+hostname = hostname.replace(/word0-instance-1/g, "google");
 var groupHashMap = new HashMap();
 var serverGroupHashMap = new HashMap(); // server specific keywords
 
@@ -431,8 +429,6 @@ var txHeartbeat = {};
 
 txHeartbeat.wordStats = {};
 
-var wordStatsObj = {};
-
 var heartbeatsSent = 0;
 
 var numberIpAddresses = 0;
@@ -459,17 +455,17 @@ var numberViewersTotalMax = 0;
 var numberViewersTotalMaxTime = moment().valueOf();
 
 console.log(
-  '\n\n====================================================================================================\n' 
-  + '========================================= ***START*** ==============================================\n' 
-  + '====================================================================================================\n' 
+  "\n\n====================================================================================================\n" 
+  + "========================================= ***START*** ==============================================\n" 
+  + "====================================================================================================\n" 
   + process.argv[1] 
-  + '\nHOST           ' + hostname
-  + '\nPROCESS ID     ' + process.pid 
-  + '\nSTARTED        ' + Date()
-  + '\nGOOGLE METRICS ' + enableGoogleMetrics
-  + '\n' + '====================================================================================================\n' 
-  + '========================================= ***START*** ==============================================\n' 
-  + '====================================================================================================\n\n'
+  + "\nHOST           " + hostname
+  + "\nPROCESS ID     " + process.pid 
+  + "\nSTARTED        " + Date()
+  + "\nGOOGLE METRICS " + enableGoogleMetrics
+  + "\n" + "====================================================================================================\n" 
+  + "========================================= ***START*** ==============================================\n" 
+  + "====================================================================================================\n\n"
 );
 
 console.log("OFFLINE_MODE: " + OFFLINE_MODE);
@@ -570,8 +566,6 @@ statsObj.entityChannelGroup.allHashMisses = {};
 // ==================================================================
 
 var serverSessionConfig = {};
-var configChangeFlag = false;
-
 
 var configEvents = new EventEmitter2({
   wildcard: true,
@@ -579,7 +573,7 @@ var configEvents = new EventEmitter2({
   maxListeners: 20
 });
 
-configEvents.on('newListener', function(data) {
+configEvents.on("newListener", function(data) {
   debug("*** NEW CONFIG EVENT LISTENER: " + data);
 });
 
@@ -600,35 +594,51 @@ var dnsHostHashMap = new HashMap();
 var localHostHashMap = new HashMap();
 
 
+var socketQueue = new Queue();
+var sessionQueue = new Queue();
+var dbUpdateGroupQueue = new Queue();
+var dbUpdateEntityQueue = new Queue();
+var dbUpdateSessionQueue = new Queue();
+var dbUpdateWordQueue = new Queue();
+var wapiSearchQueue = new Queue();
+var updaterMessageQueue = new Queue();
+var followerUpdateQueue = new Queue();
+
+var promptQueue = new Queue();
+var responseQueue = new Queue();
+var responseRate1minQ = new Queue();
+
+var dnsReverseLookupQueue = new Queue();
+
 // ==================================================================
 // ADMIN
 // ==================================================================
 
-localHostHashMap.set('::ffff:127.0.0.1', 'threeceelabs.com');
-localHostHashMap.set('127.0.0.1', 'threeceelabs.com');
-localHostHashMap.set('::1', 'threeceelabs.com');
-localHostHashMap.set('::1', 'threeceelabs.com');
+localHostHashMap.set("::ffff:127.0.0.1", "threeceelabs.com");
+localHostHashMap.set("127.0.0.1", "threeceelabs.com");
+localHostHashMap.set("::1", "threeceelabs.com");
+localHostHashMap.set("::1", "threeceelabs.com");
 
-localHostHashMap.set('macpro.local', 'threeceelabs.com');
-localHostHashMap.set('macpro2.local', 'threeceelabs.com');
-localHostHashMap.set('mbp.local', 'threeceelabs.com');
-localHostHashMap.set('mbp2.local', 'threeceelabs.com');
-localHostHashMap.set('macminiserver0.local', 'threeceelabs.com');
-localHostHashMap.set('macminiserver1.local', 'threeceelabs.com');
-localHostHashMap.set('macminiserver2.local', 'threeceelabs.com');
-localHostHashMap.set('mms0.local', 'threeceelabs.com');
-localHostHashMap.set('mms1.local', 'threeceelabs.com');
-localHostHashMap.set('mms2.local', 'threeceelabs.com');
+localHostHashMap.set("macpro.local", "threeceelabs.com");
+localHostHashMap.set("macpro2.local", "threeceelabs.com");
+localHostHashMap.set("mbp.local", "threeceelabs.com");
+localHostHashMap.set("mbp2.local", "threeceelabs.com");
+localHostHashMap.set("macminiserver0.local", "threeceelabs.com");
+localHostHashMap.set("macminiserver1.local", "threeceelabs.com");
+localHostHashMap.set("macminiserver2.local", "threeceelabs.com");
+localHostHashMap.set("mms0.local", "threeceelabs.com");
+localHostHashMap.set("mms1.local", "threeceelabs.com");
+localHostHashMap.set("mms2.local", "threeceelabs.com");
 
-localHostHashMap.set('::ffff:10.0.1.4', 'threeceelabs.com');
-localHostHashMap.set('::ffff:10.0.1.10', 'threeceelabs.com');
-localHostHashMap.set('::ffff:10.0.1.27', 'threeceelabs.com');
-localHostHashMap.set('::ffff:10.0.1.45', 'threeceelabs.com');
-localHostHashMap.set('10.0.1.4', 'threeceelabs.com');
-localHostHashMap.set('10.0.1.10', 'threeceelabs.com');
-localHostHashMap.set('10.0.1.27', 'threeceelabs.com');
+localHostHashMap.set("::ffff:10.0.1.4", "threeceelabs.com");
+localHostHashMap.set("::ffff:10.0.1.10", "threeceelabs.com");
+localHostHashMap.set("::ffff:10.0.1.27", "threeceelabs.com");
+localHostHashMap.set("::ffff:10.0.1.45", "threeceelabs.com");
+localHostHashMap.set("10.0.1.4", "threeceelabs.com");
+localHostHashMap.set("10.0.1.10", "threeceelabs.com");
+localHostHashMap.set("10.0.1.27", "threeceelabs.com");
 
-localHostHashMap.set('104.197.93.13', 'threeceelabs.com');
+localHostHashMap.set("104.197.93.13", "threeceelabs.com");
 
 var monitorHashMap = {};
 
@@ -637,86 +647,77 @@ var monitorHashMap = {};
 // ==================================================================
 var wapiReqReservePercent = process.env.WAPI_REQ_RESERVE_PRCNT;
 
-if (typeof wapiReqReservePercent === 'undefined') wapiReqReservePercent = WAPI_REQ_RESERVE_PRCNT;
+if (typeof wapiReqReservePercent === "undefined") {wapiReqReservePercent = WAPI_REQ_RESERVE_PRCNT;}
 console.log("WAPI_REQ_RESERVE_PRCNT: " + wapiReqReservePercent);
-
-
-var NodeCache = require("node-cache");
-
-// var adminCache = new NodeCache();
-// var viewerCache = new NodeCache();
-// var userCache = new NodeCache();
-// var utilCache = new NodeCache();
-// var ipAddressCache = new NodeCache();
 
 // ==================================================================
 // ADMIN ADDRESS CACHE
 // ==================================================================
 var adminCacheTtl = process.env.ADMIN_CACHE_DEFAULT_TTL;
-if (typeof adminCacheTtl === 'undefined') adminCacheTtl = ADMIN_CACHE_DEFAULT_TTL;
+if (typeof adminCacheTtl === "undefined") {adminCacheTtl = ADMIN_CACHE_DEFAULT_TTL;}
 console.log("ADMIN CACHE TTL: " + adminCacheTtl + " SECONDS");
 
 // ==================================================================
 // IP ADDRESS CACHE
 // ==================================================================
 var ipAddressCacheTtl = process.env.IP_ADDRESS_CACHE_DEFAULT_TTL;
-if (typeof ipAddressCacheTtl === 'undefined') ipAddressCacheTtl = IP_ADDRESS_CACHE_DEFAULT_TTL;
+if (typeof ipAddressCacheTtl === "undefined") {ipAddressCacheTtl = IP_ADDRESS_CACHE_DEFAULT_TTL;}
 console.log("IP ADDRESS CACHE TTL: " + ipAddressCacheTtl + " SECONDS");
 
 // ==================================================================
 // TWITTER TRENDING TOPIC CACHE
 // ==================================================================
 var trendingCacheTtl = process.env.TRENDING_CACHE_DEFAULT_TTL;
-if (typeof trendingCacheTtl === 'undefined') trendingCacheTtl = TRENDING_CACHE_DEFAULT_TTL;
+if (typeof trendingCacheTtl === "undefined") {trendingCacheTtl = TRENDING_CACHE_DEFAULT_TTL;}
 console.log("TRENDING CACHE TTL: " + trendingCacheTtl + " SECONDS");
 
 // ==================================================================
 // UTIL CACHE
 // ==================================================================
 var utilCacheTtl = process.env.UTIL_CACHE_DEFAULT_TTL;
-if (typeof utilCacheTtl === 'undefined') utilCacheTtl = UTIL_CACHE_DEFAULT_TTL;
+if (typeof utilCacheTtl === "undefined") {utilCacheTtl = UTIL_CACHE_DEFAULT_TTL;}
 console.log("UTIL CACHE TTL: " + utilCacheTtl + " SECONDS");
 
 // ==================================================================
 // VIEWER CACHE
 // ==================================================================
 var viewerCacheTtl = process.env.VIEWER_CACHE_DEFAULT_TTL;
-if (typeof viewerCacheTtl === 'undefined') viewerCacheTtl = VIEWER_CACHE_DEFAULT_TTL;
+if (typeof viewerCacheTtl === "undefined") {viewerCacheTtl = VIEWER_CACHE_DEFAULT_TTL;}
 console.log("VIEWER CACHE TTL: " + viewerCacheTtl + " SECONDS");
 
 // ==================================================================
 // USER CACHE
 // ==================================================================
 var userCacheTtl = process.env.USER_CACHE_DEFAULT_TTL;
-if (typeof userCacheTtl === 'undefined') userCacheTtl = USER_CACHE_DEFAULT_TTL;
+if (typeof userCacheTtl === "undefined") {userCacheTtl = USER_CACHE_DEFAULT_TTL;}
 console.log("USER CACHE TTL: " + userCacheTtl + " SECONDS");
 
 // ==================================================================
 // GROUP CACHE
 // ==================================================================
 var groupCacheTtl = process.env.GROUP_CACHE_DEFAULT_TTL;
-if (typeof groupCacheTtl === 'undefined') groupCacheTtl = GROUP_CACHE_DEFAULT_TTL;
+if (typeof groupCacheTtl === "undefined") {groupCacheTtl = GROUP_CACHE_DEFAULT_TTL;}
 console.log("GROUP CACHE TTL: " + groupCacheTtl + " SECONDS");
 
 // ==================================================================
 // ENTITY CACHE
 // ==================================================================
 var entityCacheTtl = process.env.ENTITY_CACHE_DEFAULT_TTL;
-if (typeof entityCacheTtl === 'undefined') entityCacheTtl = ENTITY_CACHE_DEFAULT_TTL;
+if (typeof entityCacheTtl === "undefined") {entityCacheTtl = ENTITY_CACHE_DEFAULT_TTL;}
 console.log("ENTITY CACHE TTL: " + entityCacheTtl + " SECONDS");
 
 // ==================================================================
 // SESSION CACHE
 // ==================================================================
 var sessionCacheTtl = process.env.SESSION_CACHE_DEFAULT_TTL;
-if (typeof sessionCacheTtl === 'undefined') sessionCacheTtl = SESSION_CACHE_DEFAULT_TTL;
+if (typeof sessionCacheTtl === "undefined") {sessionCacheTtl = SESSION_CACHE_DEFAULT_TTL;}
 console.log("SESSION CACHE TTL: " + sessionCacheTtl + " SECONDS");
 
 // ==================================================================
 // WORD CACHE
 // ==================================================================
 var wordCacheTtl = process.env.WORD_CACHE_TTL;
-if (typeof wordCacheTtl === 'undefined') wordCacheTtl = WORD_CACHE_TTL;
+if (typeof wordCacheTtl === "undefined") {wordCacheTtl = WORD_CACHE_TTL;}
 console.log("WORD CACHE TTL: " + wordCacheTtl + " SECONDS");
 
 
@@ -784,14 +785,12 @@ entityCache.on("set", function(userId, entityObj) {
 });
 
 sessionCache.on("set", function(sessionId, sessionObj) {
-  // if (sessionObj.userId && sessionObj.userId.match('TMS_')){
-    debug(chalkSession("SES $"
-      + " | " + moment().format(compactDateTimeFormat) 
-      + " | ID: " + sessionId 
-      + " | U: " + sessionObj.userId
-      + " \n" + jsonPrint(sessionObj)
-    ));
-  // }
+  debug(chalkSession("SES $"
+    + " | " + moment().format(compactDateTimeFormat) 
+    + " | ID: " + sessionId 
+    + " | U: " + sessionObj.userId
+    + " \n" + jsonPrint(sessionObj)
+  ));
 
   if (sessionObj.user && (sessionObj.user.mode == "SUBSTREAM")){
     entityCache.set(sessionObj.user.userId, sessionObj.user);
@@ -805,9 +804,9 @@ sessionCache.on("expired", function(sessionId, sessionObj) {
     session: sessionObj
   });
 
-  io.of(sessionObj.namespace).to(sessionId).emit('SESSION_EXPIRED', sessionId);
+  io.of(sessionObj.namespace).to(sessionId).emit("SESSION_EXPIRED", sessionId);
 
-  sessionObj.sessionEvent = 'SESSION_DELETE';
+  sessionObj.sessionEvent = "SESSION_DELETE";
 
   viewNameSpace.emit("SESSION_DELETE", sessionObj);
   testViewersNameSpace.emit("SESSION_DELETE", sessionObj);
@@ -823,30 +822,8 @@ sessionCache.on("expired", function(sessionId, sessionObj) {
 
 wordCache.on("set", function(word, wordObj) {
 
-  // if (!wordObj.meter) {
-  //   wordObj.meter = {};
-  //   wordObj.meter = new Measured.Meter({rateUnit: 60000, tickInterval: 1000});
-  // }
-  // wordObj.meter.mark();
-
-  // if (wordObj.meter.toJSON().count > 0) {
-  //   console.log(chalkAlert("wordObj.meter"
-  //     + " | " + wordObj.meter.toJSON().count
-  //     + " | " + wordObj.nodeId
-  //   ));
-  // }
-
   debug(chalkWapi("WORD CACHE SET"
-    // + " [ Q: " + wapiSearchQueue.size() 
     + " | " + wordObj.nodeId 
-    // + " | LS: " + getTimeStamp(wordObj.lastSeen) 
-    // + " | " + msToTime(moment().valueOf() - wordObj.lastSeen) 
-    // + " | M: " + wordObj.mentions 
-    // + " | WAPIS: " + wordObj.wapiSearched 
-    // + " | WAPIF: " + wordObj.wapiFound 
-    // + " | K: " + wordCache.getStats().keys 
-    // + " | H: " + wordCache.getStats().hits 
-    // + " | M: " + wordCache.getStats().misses
   ));
 
   if (!wapiOverLimitFlag && (wapiForceSearch || !wordObj.wapiSearched)){
@@ -859,8 +836,7 @@ wordCache.on("expired", function(word, wordObj) {
   wordMeter[wordObj.nodeId] = {};
   delete wordMeter[wordObj.nodeId];
 
-  if (typeof wordObj !== 'undefined') {
-    // debug("CACHE WORD EXPIRED\n" + jsonPrint(wordObj));
+  if (typeof wordObj !== "undefined") {
     debug("... CACHE WORD EXPIRED"
       + " | " + wordObj.nodeId 
       + " | LS: " + getTimeStamp(wordObj.lastSeen) 
@@ -889,14 +865,11 @@ function updateWordMeter(wordObj){
   }
 
   if (!wordMeter[wordObj.nodeId] 
-    || (typeof wordMeter[wordObj.nodeId] === 'undefined') 
-    || (typeof wordMeter[wordObj.nodeId].mark !== 'function')) {
-    // console.log(chalkAlert("+++\n" + jsonPrint(wordObj)));
+    || (typeof wordMeter[wordObj.nodeId] === "undefined") 
+    || (typeof wordMeter[wordObj.nodeId].mark !== "function")) {
     wordMeter[wordObj.nodeId] = {};
     wordMeter[wordObj.nodeId] = new Measured.Meter({rateUnit: 60000});
     wordMeter[wordObj.nodeId].mark();
-
-    // console.log(chalkAlert("typeof wordMeter[wordObj.nodeId].mark: " + typeof wordMeter[wordObj.nodeId].mark));
     wordCache.set(wordObj.nodeId, wordObj);
   }
   else {
@@ -927,9 +900,9 @@ var wapiErrors = 0;
 var wapiRequests = 0;
 var wapiOverLimits = 0;
 
-var wapiOverLimitTime = moment.utc().endOf('day');
-var wapiLimitResetTime = moment.utc().endOf('day');
-var wapiTimeToReset = moment.utc().endOf('day').valueOf() - moment.utc().valueOf();
+var wapiOverLimitTime = moment.utc().endOf("day");
+var wapiLimitResetTime = moment.utc().endOf("day");
+var wapiTimeToReset = moment.utc().endOf("day").valueOf() - moment.utc().valueOf();
 var wapiOverLimitFlag = false;
 
 debug("WAPI OVER LIMIT TIME:  " + wapiOverLimitTime.format(compactDateTimeFormat));
@@ -945,15 +918,14 @@ var wapiOverLimitTimeOut = setTimeout(function() {
 // BIG HUGE THESAURUS
 // ==================================================================
 var bigHugeLabsApiKey = "e1b4564ec38d2db399dabdf83a8beeeb";
-// var bigHugeThesaurusUrl = "http://words.bighugelabs.com/api/2/" + bigHugeLabsApiKey + "/";
 var bhtEvents = new EventEmitter();
 var bhtErrors = 0;
 var bhtRequests = 0;
 var bhtOverLimits = 0;
 
-var bhtOverLimitTime = moment.utc().utcOffset("-07:00").endOf('day');
-var bhtLimitResetTime = moment.utc().utcOffset("-07:00").endOf('day');
-var bhtTimeToReset = moment.utc().utcOffset("-07:00").endOf('day').valueOf() - moment.utc().utcOffset("-07:00").valueOf();
+var bhtOverLimitTime = moment.utc().utcOffset("-07:00").endOf("day");
+var bhtLimitResetTime = moment.utc().utcOffset("-07:00").endOf("day");
+var bhtTimeToReset = moment.utc().utcOffset("-07:00").endOf("day").valueOf() - moment.utc().utcOffset("-07:00").valueOf();
 var bhtOverLimitFlag = false;
 
 debug("BHT OVER LIMIT TIME:  " + bhtOverLimitTime.format(compactDateTimeFormat));
@@ -974,9 +946,9 @@ var mwRequests = 0;
 var mwRequestLimit = MW_REQUEST_LIMIT;
 var mwOverLimits = 0;
 
-var mwOverLimitTime = moment.utc().utcOffset("-05:00").endOf('day');
-var mwLimitResetTime = moment.utc().utcOffset("-05:00").endOf('day');
-var mwTimeToReset = moment.utc().utcOffset("-05:00").endOf('day').valueOf() - moment.utc().utcOffset("-05:00").valueOf();
+var mwOverLimitTime = moment.utc().utcOffset("-05:00").endOf("day");
+var mwLimitResetTime = moment.utc().utcOffset("-05:00").endOf("day");
+var mwTimeToReset = moment.utc().utcOffset("-05:00").endOf("day").valueOf() - moment.utc().utcOffset("-05:00").valueOf();
 var mwOverLimitFlag = false;
 
 debug("MW OVER LIMIT TIME:  " + mwOverLimitTime.format(compactDateTimeFormat));
@@ -992,28 +964,22 @@ var mwOverLimitTimeOut = setTimeout(function() {
 // ==================================================================
 // ENV INIT
 // ==================================================================
-// var debug = require('debug')('wa');
-// var debugAppGet = require('debug')('wa:appGet');
 
 if (debug.enabled) {
   console.log("\n%%%%%%%%%%%%%%\n%%%%%%% DEBUG ENABLED %%%%%%%\n%%%%%%%%%%%%%%\n");
 }
 
-console.log('NODE_ENV BEFORE: ' + process.env.NODE_ENV);
+process.env.NODE_ENV = process.env.NODE_ENV || "development";
 
-process.env.NODE_ENV = process.env.NODE_ENV || 'development';
-
-console.log('NODE_ENV : ' + process.env.NODE_ENV);
-console.log('CLIENT HOST + PORT: ' + 'http://localhost:' + config.port);
-
-
+console.log("NODE_ENV : " + process.env.NODE_ENV);
+console.log("CLIENT HOST + PORT: " + "http://localhost:" + config.port);
 
 var statsFile;
 
 // ==================================================================
 // OFFLINE MODE
 // ==================================================================
-var OFFLINE_WORD_ASSO_STATS_FILE = process.env.OFFLINE_WORD_ASSO_STATS_FILE || 'wordAssociationStats.json';
+var OFFLINE_WORD_ASSO_STATS_FILE = process.env.OFFLINE_WORD_ASSO_STATS_FILE || "wordAssociationStats.json";
 console.log("OFFLINE_WORD_ASSO_STATS_FILE :" + OFFLINE_WORD_ASSO_STATS_FILE);
 var offlineStatsFile = hostname + "_" + OFFLINE_WORD_ASSO_STATS_FILE;
 console.log("offlineStatsFile: " + offlineStatsFile);
@@ -1028,21 +994,20 @@ var WA_STATS_FILE = process.env.WA_STATS_FILE;
 
 var dropboxHostStatsFile = "/stats/" + hostname + "/" + hostname + "_" + process.pid + "_" + WA_STATS_FILE;
 
-var Dropbox = require("dropbox");
-
 console.log("DROPBOX_WORD_ASSO_ACCESS_TOKEN :" + DROPBOX_WORD_ASSO_ACCESS_TOKEN);
 console.log("DROPBOX_WORD_ASSO_APP_KEY :" + DROPBOX_WORD_ASSO_APP_KEY);
 console.log("DROPBOX_WORD_ASSO_APP_SECRET :" + DROPBOX_WORD_ASSO_APP_SECRET);
 
-var serverGroupsFile = hostname + '_groups.json';
-var serverEntitiesFile = hostname + '_entities.json';
-var serverKeywordsFile = hostname + '_keywords.json';
+var serverGroupsFile = hostname + "_groups.json";
+var serverEntitiesFile = hostname + "_entities.json";
+var serverKeywordsFile = hostname + "_keywords.json";
 
 var dropboxClient = new Dropbox({ accessToken: DROPBOX_WORD_ASSO_ACCESS_TOKEN });
 
 if (OFFLINE_MODE) {
   statsFile = offlineStatsFile;
-} else {
+} 
+else {
   statsFile = dropboxHostStatsFile;
 }
 
@@ -1092,13 +1057,13 @@ function saveFile (path, file, jsonObj, callback){
 
 function dropboxWriteArrayToFile(filePath, dataArray, callback) {
 
-  if (typeof filePath === 'undefined') {
+  if (typeof filePath === "undefined") {
     console.log(chalkError(moment().format(compactDateTimeFormat) 
       + " | !!! DROPBOX WRITE FILE ERROR: FILE PATH UNDEFINED"));
-    callback('FILE PATH UNDEFINED', null);
+    callback("FILE PATH UNDEFINED", null);
   }
 
-  var dataString = dataArray.join('\n');
+  var dataString = dataArray.join("\n");
 
   var options = {};
 
@@ -1129,7 +1094,7 @@ function saveStats(statsFile, statsObj, callback) {
         fs.stat(statsFile, function(error, stats) {
           fs.open(statsFile, "w", function(error, fd) {
             fs.writeFile(path, statsObj, function(error) {
-              callback('OK');
+              callback("OK");
               fs.close(fd);
             });
           });
@@ -1148,7 +1113,7 @@ function saveStats(statsFile, statsObj, callback) {
   dropboxClient.filesUpload(options)
     .then(function(response){
       debug(chalkLog("... SAVED DROPBOX JSON | " + options.path));
-      callback('OK');
+      callback("OK");
     })
     .catch(function(error){
       console.log(chalkError(moment().format(compactDateTimeFormat) 
@@ -1162,25 +1127,27 @@ function saveStats(statsFile, statsObj, callback) {
 }
 
 function updateStats(updateObj) {
-  for (var key in updateObj) {
+  var keys = Object.keys(updateObj);
+  // for (var key in updateObj) {
+  keys.forEach(function(key){
     if (updateObj.hasOwnProperty(key)) {
       // debug("UPDATING WORD ASSO STATUS | " + key + ": " + updateObj[key]);
       statsObj[key] = updateObj[key];
     }
-  }
+  });
 }
 
 function loadStats(callback) {
   dropboxClient.filesDownload({path: statsFile})
     .then(function(statsJson) {
       debug(chalkInfo("DROPBOX DROPBOX_NEW_SEARCH_TERMS_FILE\n" + jsonPrint(data)));
-      var dataNoSpaces = data.fileBinary.toString().replace(/ /g, "");
+      var dataNoSpaces = data.fileBinary.toString().replace(/\s/g, "");
       var dataConvertAccent = dataNoSpaces.toString().replace(/Ã©/g, "é");
       var dataConvertTilde = dataConvertAccent.toString().replace(/Ã£/g, "ã");
       var dataArray = dataConvertTilde.toString().split("\n");
       dataArray.forEach(function(searchTerm){
         if (!searchTermHashMap.has(searchTerm)
-          && !S(searchTerm).startsWith('#')
+          && !S(searchTerm).startsWith("#")
           && !S(searchTerm).isEmpty()
           && !searchTerm.match(mangledRegEx)
         ){
@@ -1209,41 +1176,44 @@ function loadStats(callback) {
               + " | ... LOADING STATS FROM DROPBOX FILE: " + WA_STATS_FILE
             ));
 
-            var statsObj = JSON.parse(statsJson);
+            var sObj = JSON.parse(statsJson);
 
-            debug("DROPBOX STATS\n" + JSON.stringify(statsObj, null, 3));
+            debug("DROPBOX STATS\n" + JSON.stringify(sObj, null, 3));
 
-            if (typeof statsObj.name === 'undefined') statsObj.name = 'Word Assocition Server Status | ' + hostname
+            if (typeof sObj.name === "undefined") {
+              sObj.name = "Word Assocition Server Status | " + hostname;
+            }
 
             console.log(chalkInfo(moment().format(compactDateTimeFormat) 
-              + " | FOUND " + statsObj.name));
+              + " | FOUND " + sObj.name));
 
-            if (typeof statsObj.bhtRequests !== 'undefined') {
+            if (typeof sObj.bhtRequests !== "undefined") {
               console.log(chalkInfo(moment().format(compactDateTimeFormat) 
-                + " | SET DAILY BHT REQUESTS: " + statsObj.bhtRequests));
-              bhtRequests = statsObj.bhtRequests;
+                + " | SET DAILY BHT REQUESTS: " + sObj.bhtRequests));
+              bhtRequests = sObj.bhtRequests;
             }
 
-            if (typeof statsObj.promptsSent !== 'undefined') {
+            if (typeof sObj.promptsSent !== "undefined") {
               console.log(chalkInfo(moment().format(compactDateTimeFormat) 
-                + " | SET PROMPTS SENT: " + statsObj.promptsSent));
-              promptsSent = statsObj.promptsSent;
+                + " | SET PROMPTS SENT: " + sObj.promptsSent));
+              promptsSent = sObj.promptsSent;
             }
 
-            if (typeof statsObj.responsesReceived !== 'undefined') {
+            if (typeof sObj.responsesReceived !== "undefined") {
               console.log(chalkInfo(moment().format(compactDateTimeFormat) 
-                + " | SET RESPONSES RECEIVED: " + statsObj.responsesReceived));
-              responsesReceived = statsObj.responsesReceived;
+                + " | SET RESPONSES RECEIVED: " + sObj.responsesReceived));
+              responsesReceived = sObj.responsesReceived;
             }
 
-            statsObj.bhtRequests = bhtRequests;
-            statsObj.promptsSent = promptsSent;
-            statsObj.responsesReceived = responsesReceived;
+            sObj.bhtRequests = bhtRequests;
+            sObj.promptsSent = promptsSent;
+            sObj.responsesReceived = responsesReceived;
 
-            saveStats(statsFile, statsObj, function(status) {
-              if (status != 'OK') {
+            saveStats(statsFile, sObj, function(status) {
+              if (status != "OK") {
                 console.log("!!! ERROR: saveStats " + status);
-              } else {
+              } 
+              else {
                 console.log(chalkLog("UPDATE DROPBOX STATUS OK"));
               }
           });
@@ -1256,7 +1226,7 @@ function loadStats(callback) {
 
       }
 
-      return; //It's important to return so that the task callback isn't called twice
+      return; //It"s important to return so that the task callback isn"t called twice
   });
 
   dropboxClient.readFile(statsFile, function(err, statsJson, callback) {
@@ -1286,39 +1256,39 @@ function loadStats(callback) {
             + " | ... LOADING STATS FROM DROPBOX FILE: " + WA_STATS_FILE
           ));
 
-          var statsObj = JSON.parse(statsJson);
+          var sObj = JSON.parse(statsJson);
 
-          debug("DROPBOX STATS\n" + JSON.stringify(statsObj, null, 3));
+          debug("DROPBOX STATS\n" + JSON.stringify(sObj, null, 3));
 
-          if (typeof statsObj.name === 'undefined') statsObj.name = 'Word Assocition Server Status | ' + hostname
+          if (typeof sObj.name === "undefined") {sObj.name = "Word Assocition Server Status | " + hostname;}
 
           console.log(chalkInfo(moment().format(compactDateTimeFormat) 
-            + " | FOUND " + statsObj.name));
+            + " | FOUND " + sObj.name));
 
-          if (typeof statsObj.bhtRequests !== 'undefined') {
+          if (typeof sObj.bhtRequests !== "undefined") {
             console.log(chalkInfo(moment().format(compactDateTimeFormat) 
-              + " | SET DAILY BHT REQUESTS: " + statsObj.bhtRequests));
-            bhtRequests = statsObj.bhtRequests;
+              + " | SET DAILY BHT REQUESTS: " + sObj.bhtRequests));
+            bhtRequests = sObj.bhtRequests;
           }
 
-          if (typeof statsObj.promptsSent !== 'undefined') {
+          if (typeof sObj.promptsSent !== "undefined") {
             console.log(chalkInfo(moment().format(compactDateTimeFormat) 
-              + " | SET PROMPTS SENT: " + statsObj.promptsSent));
-            promptsSent = statsObj.promptsSent;
+              + " | SET PROMPTS SENT: " + sObj.promptsSent));
+            promptsSent = sObj.promptsSent;
           }
 
-          if (typeof statsObj.responsesReceived !== 'undefined') {
+          if (typeof sObj.responsesReceived !== "undefined") {
             console.log(chalkInfo(moment().format(compactDateTimeFormat) 
-              + " | SET RESPONSES RECEIVED: " + statsObj.responsesReceived));
-            responsesReceived = statsObj.responsesReceived;
+              + " | SET RESPONSES RECEIVED: " + sObj.responsesReceived));
+            responsesReceived = sObj.responsesReceived;
           }
 
-          statsObj.bhtRequests = bhtRequests;
-          statsObj.promptsSent = promptsSent;
-          statsObj.responsesReceived = responsesReceived;
+          sObj.bhtRequests = bhtRequests;
+          sObj.promptsSent = promptsSent;
+          sObj.responsesReceived = responsesReceived;
 
-          saveStats(statsFile, statsObj, function(status) {
-            if (status != 'OK') {
+          saveStats(statsFile, sObj, function(status) {
+            if (status != "OK") {
               console.log("!!! ERROR: saveStats " + status);
             } else {
               console.log(chalkLog("UPDATE DROPBOX STATUS OK"));
@@ -1329,45 +1299,46 @@ function loadStats(callback) {
 
       }
 
-      return; //It's important to return so that the task callback isn't called twice
+      return; //It"s important to return so that the task callback isn"t called twice
     }
 
     console.log(chalkInfo(moment().format(compactDateTimeFormat) 
       + " | ... LOADING STATS FROM FILE: " + statsFile));
 
-    var statsObj = JSON.parse(statsJson);
+    var sObj = JSON.parse(statsJson);
 
-    console.log("DROPBOX STATS\n" + JSON.stringify(statsObj, null, 3));
+    console.log("DROPBOX STATS\n" + JSON.stringify(sObj, null, 3));
 
     console.log(chalkInfo(moment().format(compactDateTimeFormat) 
-      + " | FOUND " + statsObj.name));
+      + " | FOUND " + sObj.name));
 
-    if (typeof statsObj.bhtRequests !== 'undefined') {
+    if (typeof sObj.bhtRequests !== "undefined") {
       console.log(chalkInfo(moment().format(compactDateTimeFormat) 
-        + " | SET DAILY BHT REQUESTS: " + statsObj.bhtRequests));
-      bhtRequests = statsObj.bhtRequests;
+        + " | SET DAILY BHT REQUESTS: " + sObj.bhtRequests));
+      bhtRequests = sObj.bhtRequests;
     }
 
-    if (typeof statsObj.promptsSent !== 'undefined') {
+    if (typeof sObj.promptsSent !== "undefined") {
       console.log(chalkInfo(moment().format(compactDateTimeFormat) 
-        + " | SET PROMPTS SENT: " + statsObj.promptsSent));
-      promptsSent = statsObj.promptsSent;
+        + " | SET PROMPTS SENT: " + sObj.promptsSent));
+      promptsSent = sObj.promptsSent;
     }
 
-    if (typeof statsObj.responsesReceived !== 'undefined') {
+    if (typeof sObj.responsesReceived !== "undefined") {
       console.log(chalkInfo(moment().format(compactDateTimeFormat) 
-        + " | SET RESPONSES RECEIVED: " + statsObj.responsesReceived));
-      responsesReceived = statsObj.responsesReceived;
+        + " | SET RESPONSES RECEIVED: " + sObj.responsesReceived));
+      responsesReceived = sObj.responsesReceived;
     }
 
-    statsObj.bhtRequests = bhtRequests;
-    statsObj.promptsSent = promptsSent;
-    statsObj.responsesReceived = responsesReceived;
+    sObj.bhtRequests = bhtRequests;
+    sObj.promptsSent = promptsSent;
+    sObj.responsesReceived = responsesReceived;
 
-    saveStats(statsFile, statsObj, function(status) {
-      if (status != 'OK') {
+    saveStats(statsFile, sObj, function(status) {
+      if (status != "OK") {
         console.log("!!! ERROR: saveStats " + status);
-      } else {
+      } 
+      else {
         console.log(chalkLog("UPDATE DROPBOX STATUS OK"));
       }
     });
@@ -1534,62 +1505,17 @@ function updateStatsInterval(statsFile, interval){
 // MONGO DATABASE CONFIG
 // ==================================================================
 
-var db = mongoose();
-
-var IpAddress = require('mongoose').model('IpAddress');
-
-var Admin = require('mongoose').model('Admin');
-var Viewer = require('mongoose').model('Viewer');
-var User = require('mongoose').model('User');
-
-var Group = require('mongoose').model('Group');
-var Entity = require('mongoose').model('Entity');
-var Session = require('mongoose').model('Session');
-var Word = require('mongoose').model('Word');
-
-var groupServer = require('./app/controllers/group.server.controller');
-var entityServer = require('./app/controllers/entity.server.controller');
-var wordServer = require('./app/controllers/word.server.controller');
-
-var Oauth2credential = require('mongoose').model('Oauth2credential');
 
 // ==================================================================
 // APP HTTP IO DNS CONFIG -- ?? order is important.
 // ==================================================================
-var app = express();
 
-var http = require('http');
-var httpServer = require('http').Server(app);
-// var io = require('socket.io')(httpServer, { reconnection: false });
-
-var io;
-var dns = require('dns');
-var path = require('path');
-var net = require('net');
-// var testClient = new net.Socket();
-
-// var googleOauthEvents = new EventEmitter();
-
-var Queue = require('queue-fifo');
-var socketQueue = new Queue();
-var sessionQueue = new Queue();
-var dbUpdateGroupQueue = new Queue();
-var dbUpdateEntityQueue = new Queue();
-var dbUpdateSessionQueue = new Queue();
-var dbUpdateWordQueue = new Queue();
-var wapiSearchQueue = new Queue();
-var updaterMessageQueue = new Queue();
-var followerUpdateQueue = new Queue();
 
 var MAX_WORD_HASH_MAP_COUNT = 20;
 var wordArray = []; // used to keep wordHashMap.count() < MAX_WORD_HASH_MAP_COUNT
 
-var promptQueue = new Queue();
-var responseQueue = new Queue();
-var responseRate1minQ = new Queue();
 var promptArray = ["black"];
 
-var dnsReverseLookupQueue = new Queue();
 
 // ==================================================================
 // GOOGLE
@@ -1605,13 +1531,11 @@ var testViewersNameSpace;
 
 
 var initNameSpacesTimeout = setTimeout(function(){
-
-  // if (updateComplete) {
   if (true) {
 
-    console.log(chalkAlert("INIT SOCKET NAMESPACES"));
+    console.log(chalkInfo("INIT SOCKET NAMESPACES"));
 
-    io = require('socket.io')(httpServer, { reconnection: false });
+    io = require("socket.io")(httpServer, { reconnection: false });
 
     adminNameSpace = io.of("/admin");
     utilNameSpace = io.of("/util");
@@ -1620,7 +1544,7 @@ var initNameSpacesTimeout = setTimeout(function(){
     testUsersNameSpace = io.of("/test-user");
     testViewersNameSpace = io.of("/test-view");
 
-    adminNameSpace.on('connect', function(socket) {
+    adminNameSpace.on("connect", function(socket) {
       socket.setMaxListeners(0);
       debug(chalkAdmin("ADMIN CONNECT"));
       createSession({
@@ -1629,12 +1553,12 @@ var initNameSpacesTimeout = setTimeout(function(){
         type: "ADMIN",
         tags: {}
       });
-      socket.on('SET_WORD_CACHE_TTL', function(value) {
+      socket.on("SET_WORD_CACHE_TTL", function(value) {
         setWordCacheTtl(value);
       });
     });
 
-    utilNameSpace.on('connect', function(socket) {
+    utilNameSpace.on("connect", function(socket) {
       socket.setMaxListeners(0);
       debug(chalkAdmin("UTIL CONNECT"));
       createSession({
@@ -1646,7 +1570,7 @@ var initNameSpacesTimeout = setTimeout(function(){
       });
     });
 
-    userNameSpace.on('connect', function(socket) {
+    userNameSpace.on("connect", function(socket) {
       socket.setMaxListeners(0);
       debug(chalkAdmin("USER CONNECT"));
       createSession({
@@ -1658,7 +1582,7 @@ var initNameSpacesTimeout = setTimeout(function(){
       });
     });
 
-    viewNameSpace.on('connect', function(socket) {
+    viewNameSpace.on("connect", function(socket) {
       socket.setMaxListeners(0);
       console.log(chalkAdmin("VIEWER CONNECT"));
       createSession({
@@ -1669,7 +1593,7 @@ var initNameSpacesTimeout = setTimeout(function(){
       });
     });
 
-    testUsersNameSpace.on('connect', function(socket) {
+    testUsersNameSpace.on("connect", function(socket) {
       socket.setMaxListeners(0);
       debug(chalkAdmin("TEST USER CONNECT"));
       createSession({
@@ -1680,7 +1604,7 @@ var initNameSpacesTimeout = setTimeout(function(){
       });
     });
 
-    testViewersNameSpace.on('connect', function(socket) {
+    testViewersNameSpace.on("connect", function(socket) {
       socket.setMaxListeners(0);
       debug(chalkAdmin("TEST VIEWER CONNECT"));
       createSession({
@@ -1691,8 +1615,6 @@ var initNameSpacesTimeout = setTimeout(function(){
       });
     });
 
-    // clearInterval(initNameSpacesInterval);
-
     ioReady = true;
   }
 }, 500);
@@ -1701,11 +1623,11 @@ var initNameSpacesTimeout = setTimeout(function(){
 // FUNCTIONS
 // ==================================================================
 function msToTime(duration) {
-  var milliseconds = parseInt((duration % 1000) / 1000),
-    seconds = parseInt((duration / 1000) % 60),
-    minutes = parseInt((duration / (1000 * 60)) % 60),
-    hours = parseInt((duration / (1000 * 60 * 60)) % 24),
-    days = parseInt(duration / (1000 * 60 * 60 * 24));
+  var milliseconds = parseInt((duration % 1000) / 1000);
+  var seconds = parseInt((duration / 1000) % 60);
+  var minutes = parseInt((duration / (1000 * 60)) % 60);
+  var hours = parseInt((duration / (1000 * 60 * 60)) % 24);
+  var days = parseInt(duration / (1000 * 60 * 60 * 24));
 
   days = (days < 10) ? "0" + days : days;
   hours = (hours < 10) ? "0" + hours : hours;
@@ -1738,11 +1660,13 @@ function getTimeStamp(inputTime) {
     minute: "2-digit"
   };
 
-  if (typeof inputTime === 'undefined') {
+  if (typeof inputTime === "undefined") {
     currentTimeStamp = moment();
-  } else if (moment.isMoment(inputTime)) {
+  } 
+  else if (moment.isMoment(inputTime)) {
     currentTimeStamp = moment(inputTime);
-  } else {
+  } 
+  else {
     currentTimeStamp = moment(parseInt(inputTime));
   }
   return currentTimeStamp.format("YYYY-MM-DD HH:mm:ss ZZ");
@@ -1768,7 +1692,7 @@ function readFileIntoArray(path, callback) {
 
           fs.readFile(path, function(error, data) {
             debug(data);
-            var dataNoSpaces = data.toString().replace(/ /g, "");
+            var dataNoSpaces = data.toString().replace(/\s/g, "");
             var dataArray = dataNoSpaces.toString().split("\n");
             callback(error, dataArray);
             fs.close(fd);
@@ -1782,22 +1706,26 @@ function readFileIntoArray(path, callback) {
 }
 
 function dnsReverseLookup(ip, callback) {
+
+  var domains = [];
+
   if (localHostHashMap.has(ip)) {
     debug("dnsReverseLookup: DEVELOPMENT HOST: " + hostname + " | " + ip);
-    var domains = [];
     domains.push(localHostHashMap.get(ip));
     callback(null, domains);
-  } else if (dnsHostHashMap.has(ip)) {
-    var domains = dnsHostHashMap.get(ip);
+  } 
+  else if (dnsHostHashMap.has(ip)) {
+    domains = dnsHostHashMap.get(ip);
     debug("dnsReverseLookup: HOST IN HASHMAP : " + hostname + " | " + ip + " | " + domains);
     callback(null, domains);
-  } else {
+  } 
+  else {
     dns.reverse(ip, function(err, domains) {
       if (err) {
-        console.log('\n\n***** ERROR: DNS REVERSE IP: ' + ip + '\n' + err + '\n');
+        console.log("\n\n***** ERROR: DNS REVERSE IP: " + ip + "\n" + err + "\n");
         callback(err, null);
       } else {
-        debug('DNS REVERSE IP: ' + ip);
+        debug("DNS REVERSE IP: " + ip);
         dnsHostHashMap.set(ip, domains);
         domains.forEach(function(domain) {
           debug("DOMAIN: " + domain);
@@ -1921,7 +1849,7 @@ function createSmallSessionUpdateObj (updateObj, callback){
 
   var sessionSmallObj = {};
 
-  if (updateObj.action == 'KEEPALIVE') {
+  if (updateObj.action == "KEEPALIVE") {
 
     sessionSmallObj.tags = {};
     sessionSmallObj.action = updateObj.action;
@@ -1934,7 +1862,7 @@ function createSmallSessionUpdateObj (updateObj, callback){
     sessionSmallObj.source = {};
     sessionSmallObj.target = null;
 
-    if (typeof updateObj.tags !== 'undefined') {
+    if (typeof updateObj.tags !== "undefined") {
       sessionSmallObj.tags = updateObj.tags;
     }
 
@@ -1960,7 +1888,7 @@ function createSmallSessionUpdateObj (updateObj, callback){
     sessionSmallObj.source = {};
     sessionSmallObj.target = {};
 
-    if (typeof updateObj.tags !== 'undefined') {
+    if (typeof updateObj.tags !== "undefined") {
       sessionSmallObj.tags = updateObj.tags;
       // console.log("readUpdateSessionViewQueue | sessionSmallObj.tags\n" + jsonPrint(sessionSmallObj.tags));
     }
@@ -1985,7 +1913,7 @@ function createSmallSessionUpdateObj (updateObj, callback){
       sessionSmallObj.source.antonym = updateObj.source.antonym;
     }
 
-    if (typeof updateObj.target !== 'undefined') {
+    if (typeof updateObj.target !== "undefined") {
 
       sessionSmallObj.target.nodeId = updateObj.target.nodeId;
       sessionSmallObj.target.raw = updateObj.target.raw;
@@ -2028,7 +1956,7 @@ var readUpdateSessionViewQueue = setInterval(function() {
 
     createSmallSessionUpdateObj(sessionUpdateObj, function(sessionSmallObj){
 
-      var key = sessionSmallObj.tags.entity + '_' + sessionSmallObj.tags.channel;
+      var key = sessionSmallObj.tags.entity + "_" + sessionSmallObj.tags.channel;
 
       if (monitorHashMap[key] && sessionSmallObj.action == "RESPONSE"){
         debug(chalkInfo("R< M"
@@ -2041,7 +1969,7 @@ var readUpdateSessionViewQueue = setInterval(function() {
       }
 
       if (sessionSmallObj.target){ 
-        if (typeof sessionSmallObj.target.mentions === 'undefined'){
+        if (typeof sessionSmallObj.target.mentions === "undefined"){
           // KLUDGE ??????
           console.log(chalkError("sessionSmallObj.target.mentions UNDEFINED | SETTING = 1" 
             + " | " + sessionSmallObj.target.nodeId
@@ -2056,7 +1984,7 @@ var readUpdateSessionViewQueue = setInterval(function() {
       updateStats({ sessionUpdatesSent: sessionUpdatesSent });
       updatePromptResponseMetric(sessionSmallObj);
 
-      sessionUpdatesSent++;
+      sessionUpdatesSent += 1;
       updateSessionViewReady = true;
 
     });
@@ -2070,48 +1998,38 @@ function updateSessionViews(sessionUpdateObj) {
   var obj = {};
   obj = sessionUpdateObj;
 
-  if (typeof obj.source !== 'undefined') {
+  if (typeof obj.source !== "undefined") {
     obj.source.mwEntry = null;
     obj.source.noun = null;
     obj.source.verb = null;
     obj.source.adverb = null;
     obj.source.adjective = null;
-    if (obj.source.mentions === 'undefined') console.log(chalkRed("updateSessionViews | obj | SOURCE\n" + jsonPrint(obj.source)));
   }
-  if (typeof obj.target !== 'undefined') {
+  if (typeof obj.target !== "undefined") {
     obj.target.mwEntry = null;
     obj.target.noun = null;
     obj.target.verb = null;
     obj.target.adverb = null;
     obj.target.adjective = null;
-    if (obj.target.mentions === 'undefined') console.log(chalkRed("updateSessionViews | obj | TARGET\n" + jsonPrint(obj.target)));
   }
 
   if (entityChannelGroupHashMap.has(obj.tags.entity)){
     obj.tags.group = entityChannelGroupHashMap.get(obj.tags.entity);
     updateSessionViewQueue.push(obj);
   }
-  else if (typeof obj.tags.entity !== 'undefined') {
+  else if (typeof obj.tags.entity !== "undefined") {
     statsObj.entityChannelGroup.hashMiss[obj.tags.entity] = 1;
     statsObj.entityChannelGroup.allHashMisses[obj.tags.entity] = 1;
   }
 }
 
-var simpleChain = function(chain) {
-  var chainArray = [];
-  for (var i = 0; i < chain.length; i++) {
-    chainArray.push(chain[i].nodeId);
-  }
-  return chainArray;
-}
-
 // BHT
-var wordTypes = ['noun', 'verb', 'adjective', 'adverb'];
-var wordVariations = ['syn', 'ant', 'rel', 'sim', 'usr'];
+var wordTypes = ["noun", "verb", "adjective", "adverb"];
+var wordVariations = ["syn", "ant", "rel", "sim", "usr"];
 
 function dbUpdateGroup(groupObj, incMentions, callback) {
 
-  if ((groupObj.groupId == null) || (typeof groupObj.groupId === 'undefined')) {
+  if ((groupObj.groupId === null) || (typeof groupObj.groupId === "undefined")) {
     console.log(chalkError("\n***** dbUpdateGroup: NULL OR UNDEFINED groupId\n" + jsonPrint(groupObj)));
     callback("NULL OR UNDEFINED groupId", groupObj);
     return;
@@ -2122,8 +2040,8 @@ function dbUpdateGroup(groupObj, incMentions, callback) {
       console.log(chalkError("dbUpdateGroup -- > findOneGroup ERROR" 
         + "\n" + JSON.stringify(err) + "\n" + JSON.stringify(groupObj, null, 2)));
       callback(err, groupObj);
-    } else {
-
+    } 
+    else {
       debug(chalkInfo("->- DB GR" 
         + " | " + group.groupId 
         + " | NAME: " + group.name 
@@ -2142,7 +2060,7 @@ function dbUpdateGroup(groupObj, incMentions, callback) {
 
 function dbUpdateEntity(entityObj, incMentions, callback) {
 
-  if ((entityObj.entityId == null) || (typeof entityObj.entityId === 'undefined')) {
+  if ((entityObj.entityId === null) || (typeof entityObj.entityId === "undefined")) {
     console.log(chalkError("\n***** dbUpdateEntity: NULL OR UNDEFINED entityId\n" + jsonPrint(entityObj)));
     callback("NULL OR UNDEFINED entityId", entityObj);
     return;
@@ -2153,8 +2071,8 @@ function dbUpdateEntity(entityObj, incMentions, callback) {
       console.log(chalkError("dbUpdateEntity -- > findOneEntity ERROR" 
         + "\n" + JSON.stringify(err) + "\n" + JSON.stringify(entityObj, null, 2)));
       callback(err, entityObj);
-    } else {
-
+    } 
+    else {
       debug("->- DB EN" 
         + " | " + entity.entityId 
         + " | " + entity.name 
@@ -2184,7 +2102,7 @@ function checkKeyword(w, callback) {
   var kwObj = {};  
 
   if ((wordObj.nodeType === "user") 
-    && (typeof wordObj.name !== 'undefined') 
+    && (typeof wordObj.name !== "undefined") 
     && (wordObj.name) 
     && serverKeywordHashMap.has(wordObj.name.toLowerCase())) {
     debug(chalkAlert("HIT SRVR USER NAME"));
@@ -2194,7 +2112,7 @@ function checkKeyword(w, callback) {
     callback(wordObj);
   }
   else if ((wordObj.nodeType === "user") 
-    && (typeof wordObj.screenName !== 'undefined')  
+    && (typeof wordObj.screenName !== "undefined")  
     && (wordObj.screenName) 
     && serverKeywordHashMap.has(wordObj.screenName.toLowerCase())) {
     debug(chalkAlert("HIT SRVR USER SNAME"));
@@ -2218,7 +2136,7 @@ function checkKeyword(w, callback) {
     callback(wordObj);
   }
   else if ((wordObj.nodeType === "user") 
-    && (typeof wordObj.name !== 'undefined') 
+    && (typeof wordObj.name !== "undefined") 
     && (wordObj.name) 
     && keywordHashMap.has(wordObj.name.toLowerCase())) {
     debug(chalkAlert("HIT USER NAME"));
@@ -2228,7 +2146,7 @@ function checkKeyword(w, callback) {
     callback(wordObj);
   }
   else if ((wordObj.nodeType === "user") 
-    && (typeof wordObj.screenName !== 'undefined') 
+    && (typeof wordObj.screenName !== "undefined") 
     && (wordObj.screenName) 
     && keywordHashMap.has(wordObj.screenName.toLowerCase())) {
     debug(chalkAlert("HIT USER SNAME"));
@@ -2258,7 +2176,7 @@ function checkKeyword(w, callback) {
 
 function dbUpdateWord(wObj, incMentions, callback) {
 
-  if ((wObj.nodeId == null) || (typeof wObj.nodeId === 'undefined')) {
+  if ((wObj.nodeId == null) || (typeof wObj.nodeId === "undefined")) {
     debug(chalkError("\n***** dbUpdateWord: NULL OR UNDEFINED nodeId\n" + jsonPrint(wObj)));
     return(callback("NULL OR UNDEFINED nodeId", wObj));
   }
@@ -2270,7 +2188,8 @@ function dbUpdateWord(wObj, incMentions, callback) {
         console.log(chalkError("dbUpdateWord -- > findOneWord ERROR" 
           + "\n" + JSON.stringify(err) + "\n" + JSON.stringify(wordObj, null, 2)));
         callback(err, wordObj);
-      } else {
+      } 
+      else {
 
         debug("> DB UPDATE | " 
           + word.nodeId 
@@ -2290,55 +2209,48 @@ function dbUpdateWord(wObj, incMentions, callback) {
             if (status.indexOf("BHT_OVER_LIMIT") >= 0) {
               debug(chalkError("bhtSearchWord BHT OVER LIMI"));
               debug("Word CACHE SET1: " + word.nodeId);
-              // updateWordMeter(word);
               wordCache.set(word.nodeId, word);
-              callback('BHT_OVER_LIMIT', word);
+              callback("BHT_OVER_LIMIT", word);
             } 
             else if (status.indexOf("BHT_ERROR") >= 0) {
               debug(chalkError("bhtSearchWord dbUpdateWord findOneWord ERROR\n" + JSON.stringify(status)));
               debug("Word CACHE SET2: " + word.nodeId);
-              // updateWordMeter(word);
               wordCache.set(word.nodeId, word);
-              callback('BHT_ERROR', word);
+              callback("BHT_ERROR", word);
             } 
             else if (bhtResponseObj.bhtFound) {
               debug(chalkBht("-*- BHT HIT   | " + bhtResponseObj.nodeId));
               debug("Word CACHE SET3: " + bhtResponseObj.nodeId);
-              // updateWordMeter(bhtResponseObj);
               wordCache.set(bhtResponseObj.nodeId, bhtResponseObj);
-              callback('BHT_HIT', bhtResponseObj);
+              callback("BHT_HIT", bhtResponseObj);
             } 
-            else if (status == 'BHT_REDIRECT') {
+            else if (status == "BHT_REDIRECT") {
               debug(chalkBht("-A- BHT REDIRECT  | " + wordObj.nodeId));
               debug("Word CACHE SET4: " + bhtResponseObj.nodeId);
-              // updateWordMeter(bhtResponseObj);
               wordCache.set(bhtResponseObj.nodeId, bhtResponseObj);
-              callback('BHT_REDIRECT', bhtResponseObj);
+              callback("BHT_REDIRECT", bhtResponseObj);
             } 
             else {
               debug(chalkBht("-O- BHT MISS  | " + wordObj.nodeId));
               debug("Word CACHE SET5: " + bhtResponseObj.nodeId);
-              // updateWordMeter(bhtResponseObj);
               wordCache.set(bhtResponseObj.nodeId, bhtResponseObj);
               bhtWordsMiss[word.nodeId] = word.nodeId;
-              callback('BHT_MISS', bhtResponseObj);
+              callback("BHT_MISS", bhtResponseObj);
             }
           });
         } 
         else if (word.bhtFound) {
           debug(chalkBht("-F- BHT FOUND | " + word.nodeId));
           debug("Word CACHE SET6: " + word.nodeId);
-          // updateWordMeter(word);
           wordCache.set(word.nodeId, word);
-          callback('BHT_FOUND', word);
+          callback("BHT_FOUND", word);
         } 
         else {
           debug(chalkBht("-N- BHT NOT FOUND  | " + word.nodeId));
           debug("Word CACHE SET7: " + word.nodeId);
-          // updateWordMeter(word);
           wordCache.set(word.nodeId, word);
           bhtWordsNotFound[word.nodeId] = word.nodeId;
-          callback('BHT_NOT_FOUND', word);
+          callback("BHT_NOT_FOUND", word);
         }
       }
     });
@@ -2352,19 +2264,19 @@ function loadBhtResponseHash(bhtResponseObj, callback) {
 
   wordTypes.forEach(function(wordType) {
     debug("wordType: " + wordType);
-    if ((typeof bhtResponseObj[wordType] !== 'undefined') && (bhtResponseObj[wordType] != null)) {
+    if ((typeof bhtResponseObj[wordType] !== "undefined") && (bhtResponseObj[wordType] != null)) {
       debug("FOUND wordType: " + wordType);
       wordVariations.forEach(function(wordVariation) {
         debug("wordVariation: " + wordVariation);
-        if ((typeof bhtResponseObj[wordType][wordVariation] !== 'undefined') && (bhtResponseObj[wordType][wordVariation] != null)) {
+        if ((typeof bhtResponseObj[wordType][wordVariation] !== "undefined") && (bhtResponseObj[wordType][wordVariation] != null)) {
           debug("FOUND wordVariation: " + wordVariation);
           var wordArry = bhtResponseObj[wordType][wordVariation];
           wordArry.forEach(function(word) {
             bhtWordHashMap.set(word, bhtResponseObj.nodeId);
             debug(bhtResponseObj.nodeId + " | " + wordType + " | " + wordVariation + " | " + word);
-          })
+          });
         }
-      })
+      });
     }
   });
   callback(bhtWordHashMap);
@@ -2379,8 +2291,8 @@ function bhtHttpGet(host, path, wordObj, callback) {
 
     debug("bhtHttpGet: " + host + "/" + path);
 
-    response.on('error', function(err) {
-      bhtErrors++;
+    response.on("error", function(err) {
+      bhtErrors += 1;
       debug(chalkError("BHT ERROR" 
         + " | TOTAL ERRORS: " + bhtErrors 
         + " | WORD: " + wordObj.nodeId 
@@ -2395,11 +2307,11 @@ function bhtHttpGet(host, path, wordObj, callback) {
       return;
     });
 
-    var body = '';
-    var status = '';
+    var body = "";
+    var status = "";
 
-    if ((response.statusCode == 500) && (response.statusMessage == 'Usage Exceeded')) {
-      bhtErrors++;
+    if ((response.statusCode == 500) && (response.statusMessage == "Usage Exceeded")) {
+      bhtErrors += 1;
       debug(chalkError("BHT ERROR" 
         + " | TOTAL ERRORS: " + bhtErrors 
         + " | WORD: " + wordObj.nodeId 
@@ -2409,10 +2321,9 @@ function bhtHttpGet(host, path, wordObj, callback) {
       ));
       bhtEvents.emit("BHT_OVER_LIMIT", bhtRequests);
       callback("BHT_OVER_LIMIT", wordObj);
-      return;
     } 
-    else if ((response.statusCode == 500) && (response.statusMessage == 'Inactive key')) {
-      bhtErrors++;
+    else if ((response.statusCode == 500) && (response.statusMessage == "Inactive key")) {
+      bhtErrors += 1;
       debug(chalkError("BHT ERROR" 
         + " | TOTAL ERRORS: " + bhtErrors 
         + " | WORD: " + wordObj.nodeId 
@@ -2424,16 +2335,14 @@ function bhtHttpGet(host, path, wordObj, callback) {
       })));
       bhtEvents.emit("BHT_INACTIVE_KEY", bhtRequests);
       callback("BHT_INACTIVE_KEY", wordObj);
-      return;
     } 
     else if (bhtOverLimitTestFlag) {
       debug(chalkBht("BHT OVER LIMIT TEST FLAG SET"));
       bhtEvents.emit("BHT_OVER_LIMIT", bhtRequests);
       callback("BHT_OVER_LIMIT", wordObj);
-      return;
     } 
     else if (response.statusCode == 404) {
-      debug("bhtHttpGet: \'" + wordObj.nodeId + "\' NOT FOUND");
+      debug("bhtHttpGet: \"" + wordObj.nodeId + "\" NOT FOUND");
       wordObj.bhtSearched = true;
       wordObj.bhtFound = false;
       wordServer.findOneWord(wordObj, true, function(err, wordUpdatedObj) {
@@ -2441,7 +2350,6 @@ function bhtHttpGet(host, path, wordObj, callback) {
           + " | MNS: " + wordUpdatedObj.mentions));
         debug(chalkBht(JSON.stringify(wordUpdatedObj, null, 3)));
         callback("BHT_NOT_FOUND", wordUpdatedObj);
-        return;
       });
     } 
     else if (response.statusCode == 303) {
@@ -2457,20 +2365,19 @@ function bhtHttpGet(host, path, wordObj, callback) {
             depth: 3
           })));
           callback("BHT_ERROR | " + err, wordObj);
-          return;
-        } else {
+        } 
+        else {
           debug(chalkBht("bhtHttpGet: ->- DB ALT UPDATE | " + wordUpdatedObj.nodeId 
           + " | ALT: " + wordUpdatedObj.bhtAlt // alternative word
             + " | MNS: " + wordUpdatedObj.mentions
           ));
           debug(chalkBht(JSON.stringify(wordUpdatedObj, null, 3)));
-          callback('BHT_REDIRECT', wordUpdatedObj);
-          return;
+          callback("BHT_REDIRECT", wordUpdatedObj);
         }
       });
     } 
     else if (response.statusCode != 200) {
-      bhtErrors++;
+      bhtErrors += 1;
       debug(chalkError("BHT ERROR" 
         + " | TOTAL ERRORS: " + bhtErrors 
         + " | WORD: " + wordObj.nodeId 
@@ -2482,27 +2389,26 @@ function bhtHttpGet(host, path, wordObj, callback) {
       })));
       bhtEvents.emit("BHT_UNKNOWN_STATUS", bhtRequests);
       callback("BHT_UNKNOWN_STATUS", wordObj);
-      return;
     } 
     else {
-      response.on('data', function(d) {
+      response.on("data", function(d) {
         body += d;
       });
 
-      response.on('end', function() {
+      response.on("end", function() {
 
-        if (body != '') {
+        if (body != "") {
           var parsed = JSON.parse(body);
           debug("bhtHttpGet: " + JSON.stringify(parsed, null, 3));
-          if (typeof parsed.noun !== null) wordObj.noun = parsed.noun;
-          if (typeof parsed.verb !== null) wordObj.verb = parsed.verb;
-          if (typeof parsed.adjective !== null) wordObj.adjective = parsed.adjective;
-          if (typeof parsed.adverb !== null) wordObj.adverb = parsed.adverb;
+          if (parsed.noun !== null) {wordObj.noun = parsed.noun;}
+          if (parsed.verb !== null) {wordObj.verb = parsed.verb;}
+          if (parsed.adjective !== null) {wordObj.adjective = parsed.adjective;}
+          if (parsed.adverb !== null) {wordObj.adverb = parsed.adverb;}
           status = "BHT_HIT";
           wordObj.bhtSearched = true;
           wordObj.bhtFound = true;
         } else {
-          debug("bhtHttpGet: \'" + wordObj.nodeId + "\' NOT FOUND");
+          debug("bhtHttpGet: \"" + wordObj.nodeId + "\" NOT FOUND");
           status = "BHT_MISS";
           wordObj.bhtSearched = true;
           wordObj.bhtFound = false;
@@ -2513,12 +2419,11 @@ function bhtHttpGet(host, path, wordObj, callback) {
             + " | MNS: " + wordUpdatedObj.mentions));
           debug(chalkBht(JSON.stringify(wordUpdatedObj, null, 3)));
           callback(status, wordUpdatedObj);
-          return;
         });
       });
     }
-  }).on('error', function(e) {
-    bhtErrors++;
+  }).on("error", function(e) {
+    bhtErrors += 1;
     debug(chalkError("BHT ERROR" 
       + " | TOTAL ERRORS: " + bhtErrors 
       + " | WORD: " + wordObj.nodeId
@@ -2538,13 +2443,14 @@ wapiEvents.on("WAPI_OVER_LIMIT_TIMEOUT", function() {
   if (wapiOverLimitFlag) {
     debug(chalkWapi("*** WAPI_OVER_LIMIT_TIMEOUT END *** | " 
       + moment().format(compactDateTimeFormat)));
-  } else {
+  } 
+  else {
     debug(chalkWapi(" WAPI_OVER_LIMIT_TIMEOUT END (NO OVER LIMIT) | " 
       + moment().format(compactDateTimeFormat)));
   }
 
   wapiOverLimitFlag = false;
-  wapiOverLimitTestFlag = false;
+  // wapiOverLimitTestFlag = false;
 
   wapiOverLimitTime = moment.utc();
 
@@ -2569,14 +2475,14 @@ wapiEvents.on("WAPI_OVER_LIMIT_TIMEOUT", function() {
 
 wapiEvents.on("WAPI_OVER_LIMIT", function() {
 
-  io.of(adminNameSpace).emit('WAPI_OVER_LIMIT', wapiRequests);
-  io.of(utilNameSpace).emit('WAPI_OVER_LIMIT', wapiRequests);
-  io.of(testUsersNameSpace).emit('WAPI_OVER_LIMIT', wapiRequests);
-  io.of(userNameSpace).emit('WAPI_OVER_LIMIT', wapiRequests);
+  io.of(adminNameSpace).emit("WAPI_OVER_LIMIT", wapiRequests);
+  io.of(utilNameSpace).emit("WAPI_OVER_LIMIT", wapiRequests);
+  io.of(testUsersNameSpace).emit("WAPI_OVER_LIMIT", wapiRequests);
+  io.of(userNameSpace).emit("WAPI_OVER_LIMIT", wapiRequests);
 
-  wapiOverLimits++;
+  wapiOverLimits += 1;
   wapiOverLimitFlag = true;
-  wapiOverLimitTestFlag = false;
+  // wapiOverLimitTestFlag = false;
 
   wapiOverLimitTime = moment.utc();
 
@@ -2612,7 +2518,8 @@ bhtEvents.on("BHT_OVER_LIMIT_TIMEOUT", function() {
   if (bhtOverLimitFlag) {
     debug(chalkBht("*** BHT_OVER_LIMIT_TIMEOUT END *** | " 
       + moment().format(compactDateTimeFormat)));
-  } else {
+  } 
+  else {
     debug(chalkBht(" BHT_OVER_LIMIT_TIMEOUT END (NO OVER LIMIT) | " 
       + moment().format(compactDateTimeFormat)));
   }
@@ -2646,12 +2553,12 @@ bhtEvents.on("BHT_OVER_LIMIT_TIMEOUT", function() {
 
 bhtEvents.on("BHT_OVER_LIMIT", function() {
 
-  io.of(adminNameSpace).emit('BHT_OVER_LIMIT', bhtRequests);
-  io.of(utilNameSpace).emit('BHT_OVER_LIMIT', bhtRequests);
-  io.of(testUsersNameSpace).emit('BHT_OVER_LIMIT', bhtRequests);
-  io.of(userNameSpace).emit('BHT_OVER_LIMIT', bhtRequests);
+  io.of(adminNameSpace).emit("BHT_OVER_LIMIT", bhtRequests);
+  io.of(utilNameSpace).emit("BHT_OVER_LIMIT", bhtRequests);
+  io.of(testUsersNameSpace).emit("BHT_OVER_LIMIT", bhtRequests);
+  io.of(userNameSpace).emit("BHT_OVER_LIMIT", bhtRequests);
 
-  bhtOverLimits++;
+  bhtOverLimits += 1;
   bhtOverLimitFlag = true;
   bhtOverLimitTestFlag = false;
 
@@ -2693,13 +2600,10 @@ function bhtSearchWord(wordObj, callback) {
 
   if (wordObj.bhtFound) {
     callback("BHT_FOUND", wordObj);
-    return;
   } 
   else if (bhtOverLimitFlag) {
-
     var now = moment.utc();
     now.utcOffset("-07:00");
-
     debug(chalkBht("*** BHT OVER LIMIT" 
       + " | LIMIT: " + BHT_REQUEST_LIMIT 
       + " | REQS: " + bhtRequests 
@@ -2708,75 +2612,34 @@ function bhtSearchWord(wordObj, callback) {
       + " | REMAIN: " + msToTime(bhtLimitResetTime.diff(now))
     ));
     callback("BHT_OVER_LIMIT", wordObj);
-    return;
   } 
   else {
-
     incrementSocketBhtReqs(1);
-
     debug(chalkBht(">>> BHT SEARCH (before replace): " + wordObj.nodeId));
-
-    wordObj.nodeId = wordObj.nodeId.replace(/\s+/g, ' ');
-    wordObj.nodeId = wordObj.nodeId.replace(/[\n\r\[\]\{\}\<\>\/\;\:\"\`\~\?\!\@\#\$\%\^\&\*\(\)\_\+\=\.\,]+/g, '');
-    wordObj.nodeId = wordObj.nodeId.replace(/\s+/g, ' ');
-    wordObj.nodeId = wordObj.nodeId.replace(/^-+|-+$/g, '');
-    wordObj.nodeId = wordObj.nodeId.replace(/^\s+|\s+$/g, '');
-    wordObj.nodeId = wordObj.nodeId.replace(/^\'+/g, '');
-    wordObj.nodeId = wordObj.nodeId.replace(/\'+/g, "'");
+    wordObj.nodeId = wordObj.nodeId.replace(/\s+/g, " ");
+    wordObj.nodeId = wordObj.nodeId.replace(/[\n\r{}<>\/;:"`~?!@#$%\^&*()_+=.,]+/g, "");
+    wordObj.nodeId = wordObj.nodeId.replace(/\s+/g, " ");
+    wordObj.nodeId = wordObj.nodeId.replace(/^-+|-+$/g, "");
+    wordObj.nodeId = wordObj.nodeId.replace(/^\s+|\s+$/g, "");
+    wordObj.nodeId = wordObj.nodeId.replace(/^"+/g, "");
+    wordObj.nodeId = wordObj.nodeId.replace(/"+/g, "'");
     wordObj.nodeId = wordObj.nodeId.toLowerCase();
-
     debug(chalkBht(">>> BHT SEARCH (after replace):  " + wordObj.nodeId));
 
     var bhtHost = "words.bighugelabs.com";
-    var path = "/api/2/" + bigHugeLabsApiKey + "/" + encodeURI(wordObj.nodeId) + "/json";
+    var bhtPath = "/api/2/" + bigHugeLabsApiKey + "/" + encodeURI(wordObj.nodeId) + "/json";
 
-    bhtHttpGet(bhtHost, path, wordObj, function(status, bhtResponseObj) {
-      if (status == 'BHT_REDIRECT') {
+    bhtHttpGet(bhtHost, bhtPath, wordObj, function(status, bhtResponseObj) {
+      if (status == "BHT_REDIRECT") {
         var pathRedirect = "/api/2/" + bigHugeLabsApiKey + "/" + encodeURI(bhtResponseObj.bhtAlt) + "/json";
         bhtHttpGet(bhtHost, pathRedirect, bhtResponseObj, function(statusRedirect, responseRedirectObj) {
           callback(statusRedirect, responseRedirectObj);
         });
-      } else {
+      } 
+      else {
         callback(status, bhtResponseObj);
       }
     });
-  }
-}
-
-function chainDeadEnd(chain) {
-
-  debug(chalkError("chainDeadEnd\n" + jsonPrint(chain)));
-
-  if (chain.length > MIN_CHAIN_FREEZE_LENGTH) {
-
-    var uniqueNodes = [];
-    var chainSegment = [];
-
-    for (var i = chain.length - 1; i >= chain.length - MIN_CHAIN_FREEZE_LENGTH; i--) {
-
-      chainSegment.push(chain[i]);
-
-      // if (uniqueNodes.indexOf(chain[i]) == -1){
-
-      if (uniqueNodes.length >= MIN_CHAIN_FREEZE_UNIQUE_NODES) {
-        debug(chalkError("... NO CHAIN FREEZE\n" + uniqueNodes));
-        return false;
-      } else if (i == chain.length - MIN_CHAIN_FREEZE_LENGTH) {
-        statsObj.chainFreezes++;
-        debug(chalkError("*** CHAIN FREEZE" 
-          + "\nSEG\n" + chainSegment 
-          + "\nUNIQUE\n" + uniqueNodes
-        ));
-        return true;
-      } else if (uniqueNodes.indexOf(chain[i]) == -1) {
-        uniqueNodes.push(chain[i]);
-        debug(chalkError("ADDED UNIQUE NODE\n" + uniqueNodes));
-      }
-      // }
-    }
-  } else {
-    debug(chalkError("... NO CHAIN FREEZE\nCHAIN\n" + chain));
-    return false;
   }
 }
 
@@ -2784,7 +2647,8 @@ function incrementDeltaBhtReqs(delta) {
   var d = parseInt(delta);
   if (d == 0) {
     deltaBhtRequests = 0;
-  } else {
+  } 
+  else {
     deltaBhtRequests += d;
   }
 }
@@ -2793,7 +2657,8 @@ function incrementDeltaMwReqs(delta) {
   var d = parseInt(delta);
   if (d == 0) {
     deltaMwRequests = 0;
-  } else {
+  } 
+  else {
     deltaMwRequests += d;
   }
 }
@@ -2820,11 +2685,12 @@ function incrementSocketBhtReqs(delta) {
     debug(chalkInfo("!!! incrementSocketBhtReqs: AT BHT_REQUEST_LIMIT: " + bhtRequests 
       + " | NOW: " + BHT_REQUEST_LIMIT));
     bhtRequests = BHT_REQUEST_LIMIT;
-    io.of(adminNameSpace).emit('BHT_OVER_LIMIT', bhtRequests);
-    io.of(utilNameSpace).emit('BHT_OVER_LIMIT', bhtRequests);
-    io.of(testUsersNameSpace).emit('BHT_OVER_LIMIT', bhtRequests);
-    io.of(userNameSpace).emit('BHT_OVER_LIMIT', bhtRequests);
-  } else if (delta > 0) {
+    io.of(adminNameSpace).emit("BHT_OVER_LIMIT", bhtRequests);
+    io.of(utilNameSpace).emit("BHT_OVER_LIMIT", bhtRequests);
+    io.of(testUsersNameSpace).emit("BHT_OVER_LIMIT", bhtRequests);
+    io.of(userNameSpace).emit("BHT_OVER_LIMIT", bhtRequests);
+  } 
+  else if (delta > 0) {
     bhtRequests += delta;
     var remain = BHT_REQUEST_LIMIT - bhtRequests;
     debug(chalkInfo("-#- BHT REQS: " + bhtRequests 
@@ -2842,7 +2708,8 @@ function incrementSocketMwReqs(delta) {
     debug(chalkInfo("!!! incrementSocketMwReqs: AT MW_REQUEST_LIMIT: " + mwRequests 
       + " | NOW: " + MW_REQUEST_LIMIT));
     mwRequests = MW_REQUEST_LIMIT;
-  } else if (delta > 0) {
+  } 
+  else if (delta > 0) {
     mwRequests += delta;
     var remain = MW_REQUEST_LIMIT - mwRequests;
     debug(chalkInfo("-#- MW  REQS: " + mwRequests 
@@ -2867,7 +2734,7 @@ function sessionUpdateDb(sessionObj, callback) {
   };
 
   var update = {
-    $set: {
+    "$set": {
       "config": sessionObj.config,
       "userId": sessionObj.userId,
       "tags": sessionObj.tags,
@@ -2882,7 +2749,7 @@ function sessionUpdateDb(sessionObj, callback) {
       "wordChainIndex": sessionObj.wordChainIndex,
       "wordChain": sessionObj.wordChain
     },
-    $max: {
+    "$max": {
       "connectTime": sessionObj.connectTime,
       "disconnectTime": sessionObj.disconnectTime
     }
@@ -2953,7 +2820,7 @@ function findSessionById(sessionId, callback) {
 function groupFindAllDb(options, callback) {
 
   debug("\n=============================\nGROUPS IN DB\n----------");
-  if (options) debug("OPTIONS\n" + jsonPrint(options));
+  if (options) {debug("OPTIONS\n" + jsonPrint(options));}
 
   var query = {};
 
@@ -3010,15 +2877,9 @@ function groupUpdateDb(userObj, callback){
 
   if (entityChannelGroupHashMap.has(userObj.tags.entity.toLowerCase())) {
 
-
     var entityObj = entityChannelGroupHashMap.get(userObj.tags.entity.toLowerCase());
 
-    // console.log(chalkRed("entityChannelGroupHashMap HIT: " + userObj.tags.entity.toLowerCase()));
-    // console.log(chalkRed("entityChannelGroupHashMap HIT entityObj.groupId.match(hostname): hostname: " + hostname + " | " + entityObj.groupId.match(hostname)));
-    // console.log(chalkRed("entityChannelGroupHashMap HIT groupHashMap.has(entityObj.groupId): " + groupHashMap.has(entityObj.groupId)));
-    // console.log(chalkRed("entityChannelGroupHashMap HIT\n" + jsonPrint(entityObj)));
-
-    if ((typeof entityObj !== 'undefined') && groupHashMap.has(entityObj.groupId)) {
+    if ((typeof entityObj !== "undefined") && groupHashMap.has(entityObj.groupId)) {
 
       var groupObj = groupHashMap.get(entityObj.groupId);
 
@@ -3047,7 +2908,7 @@ function groupUpdateDb(userObj, callback){
       callback(null, entityObj);
     }
     else if (
-      (typeof entityObj !== 'undefined') 
+      (typeof entityObj !== "undefined") 
       && (entityObj.groupId) 
       && !entityObj.groupId.match(hostname)) {
 
@@ -3065,41 +2926,29 @@ function groupUpdateDb(userObj, callback){
       callback(null, entityObj);
     }
     else if (entityObj.groupId && entityObj.groupId.match(hostname)) {
-
       debug(chalkError("GROUP HIT ON HOSTNAME"
         + " | GID: " + entityObj.groupId
         + " | HOSTNAME: " + hostname
       ));
-
-      // configEvents.emit("HASH_MISS", {type: "entity", value: userObj.tags.entity.toLowerCase()});
-
       callback(null, entityObj);
     }
     else {
-
       debug(chalkRed("*0* ENTITY HASH MISS ... SKIPPING DB GROUP UPDATE"
         + " | ENTITY HASH MISS"
         + " | " + userObj.tags.entity.toLowerCase()
       ));
-
       statsObj.entityChannelGroup.hashMiss[userObj.tags.entity.toLowerCase()] = 1;
       statsObj.entityChannelGroup.allHashMisses[userObj.tags.entity.toLowerCase()] = 1;
-
       configEvents.emit("HASH_MISS", {type: "entity", value: userObj.tags.entity.toLowerCase()});
-
       callback(null, entityObj);
     }
-
   }
   else {
     userObj.groupId = userObj.tags.entity.toLowerCase();
-
     configEvents.emit("HASH_MISS", {type: "entity", value: userObj.tags.entity.toLowerCase()});
-
     debug(chalkError("*1* ENTITY HASH MISS ... SKIPPING DB GROUP UPDATE"
       + " | " + userObj.tags.entity.toLowerCase()
     ));
-
     callback(null, entityObj);
   }  
 }
@@ -3107,7 +2956,7 @@ function groupUpdateDb(userObj, callback){
 function entityFindAllDb(options, callback) {
 
   debug("\n=============================\nENTITIES IN DB\n----------");
-  if (options) debug("OPTIONS\n" + jsonPrint(options));
+  if (options) {debug("OPTIONS\n" + jsonPrint(options));}
 
   var query = {};
 
@@ -3123,15 +2972,8 @@ function entityFindAllDb(options, callback) {
         entities,
 
         function(entity, cb) {
-
-          // console.log(chalkDb("GID: " + entity.entityId 
-          //   + " | N: " + entity.name 
-          //   + " | LS: " + getTimeStamp(entity.lastSeen)
-          // ));
-
           entityChannelGroupHashMap.set(entity.entityId.toLowerCase(), entity);
           cb(null);
-
         },
 
         function(err) {
@@ -3146,7 +2988,6 @@ function entityFindAllDb(options, callback) {
           }
         }
       );
-
     } else {
       console.log("NO ENTITIES FOUND");
       callback(null, 0);
@@ -3165,10 +3006,11 @@ function entityUpdateDb(userObj, callback){
 
     entityObj = new Entity();
     entityObj.entityId = userObj.tags.entity.toLowerCase();
-    entityObj.groupId = typeof userObj.userId !== 'undefined' ? userObj.userId : userObj.tags.entity.toLowerCase();
+    entityObj.groupId = (typeof userObj.userId !== "undefined") ? userObj.userId : userObj.tags.entity.toLowerCase();
     entityObj.name = userObj.userId;
     entityObj.screenName = userObj.screenName;
     entityObj.tags = userObj.tags;
+    entityObj.lastSeen = moment().valueOf();
 
     if (entityChannelGroupHashMap.has(userObj.tags.entity.toLowerCase())){
       entityObj.name = entityChannelGroupHashMap.get(userObj.tags.entity.toLowerCase()).name;
@@ -3190,6 +3032,7 @@ function entityUpdateDb(userObj, callback){
     entityObj.entityId = userObj.tags.entity.toLowerCase();
     entityObj.name = userObj.userId;
     entityObj.screenName = userObj.screenName;
+    entityObj.lastSeen = moment().valueOf();
 
     if (entityChannelGroupHashMap.has(userObj.tags.entity.toLowerCase())){
       entityObj.name = entityChannelGroupHashMap.get(userObj.tags.entity.toLowerCase()).name;
@@ -3210,10 +3053,10 @@ function entityUpdateDb(userObj, callback){
 
 function adminUpdateDb(adminObj, callback) {
 
-  if (adminObj.ip && (typeof adminObj.domain === 'undefined')) {
+  if (adminObj.ip && (typeof adminObj.domain === "undefined")) {
     dnsReverseLookup(adminObj.ip, function(err, domains) {
       if (err) {
-        adminObj.domain = 'DOMAIN NOT FOUND';
+        adminObj.domain = "DOMAIN NOT FOUND";
         console.log("adminUpdateDb: DOMAIN NOT FOUND"
           + " | " + adminObj.ip 
           + " | " + adminObj.userId
@@ -3232,7 +3075,7 @@ function adminUpdateDb(adminObj, callback) {
     adminId: adminObj.adminId
   };
   var update = {
-    $set: {
+    "$set": {
       "screenName": adminObj.screenName,
       "domain": adminObj.domain,
       "namespace": adminObj.namespace,
@@ -3247,11 +3090,11 @@ function adminUpdateDb(adminObj, callback) {
       "lastSession": adminObj.lastSession,
       "connected": adminObj.connected
     },
-    $max: {
+    "$max": {
       "connectTime": adminObj.connectTime,
       "disconnectTime": adminObj.disconnectTime
     },
-    $push: {
+    "$push": {
       "sessions": adminObj.lastSession
     }
   };
@@ -3304,7 +3147,7 @@ function viewerUpdateDb(viewerObj, callback) {
     userId: viewerObj.userId
   };
   var update = {
-    $set: {
+    "$set": {
       "viewerId": viewerObj.viewerId,
       "namespace": viewerObj.namespace,
       "domain": viewerObj.domain,
@@ -3320,11 +3163,11 @@ function viewerUpdateDb(viewerObj, callback) {
       "lastSession": viewerObj.lastSession,
       "connected": viewerObj.connected
     },
-    $max: {
+    "$max": {
       "connectTime": viewerObj.connectTime,
       "disconnectTime": viewerObj.disconnectTime
     },
-    $push: {
+    "$push": {
       "sessions": viewerObj.lastSession
     }
   };
@@ -3367,7 +3210,7 @@ function viewerUpdateDb(viewerObj, callback) {
 
 function userUpdateDb(userObj, callback) {
 
-  if (userObj.ip && (typeof userObj.domain === 'undefined')) {
+  if (userObj.ip && (typeof userObj.domain === "undefined")) {
     dnsReverseLookup(userObj.ip, function(err, domains) {
       if (err) {
         console.log(chalkError("*** dnsReverseLookup ERROR\n" + err));
@@ -3389,7 +3232,7 @@ function userUpdateDb(userObj, callback) {
     userId: userObj.userId
   };
   var update = {
-    $set: {
+    "$set": {
       "namespace": userObj.namespace,
       "domain": userObj.domain,
       "ip": userObj.ip,
@@ -3406,7 +3249,7 @@ function userUpdateDb(userObj, callback) {
       "lastSession": userObj.lastSession,
       "connected": userObj.connected
     },
-    $max: {
+    "$max": {
       "connectTime": userObj.connectTime,
       "disconnectTime": userObj.disconnectTime,
       "mentions": userObj.mentions,
@@ -3414,7 +3257,7 @@ function userUpdateDb(userObj, callback) {
       "friendsCount": userObj.friendsCount,
       "statusesCount": userObj.statusesCount
     },
-    $push: {
+    "$push": {
       "sessions": userObj.lastSession
     }
   };
@@ -3460,7 +3303,7 @@ function userUpdateDb(userObj, callback) {
 function adminFindAllDb(options, callback) {
 
   debug("\n=============================\nADMINS IN DB\n----------");
-  if (options) debug("OPTIONS\n" + jsonPrint(options));
+  if (options) {debug("OPTIONS\n" + jsonPrint(options));}
 
   var query = {};
   var projections = {
@@ -3500,7 +3343,7 @@ function adminFindAllDb(options, callback) {
             + " | LS: " + getTimeStamp(adminObj.lastSeen)
           ));
 
-          if (!adminObj.adminId || typeof adminObj.adminId === 'undefined' || adminObj.adminId == null) {
+          if (!adminObj.adminId || (typeof adminObj.adminId === "undefined") || adminObj.adminId == null) {
             debug(chalkError("*** ERROR: adminFindAllDb: ADMIN ID UNDEFINED *** | SKIPPING ADD TO CACHE"));
             callback("ERROR: ADMIN ID UNDEFINED", null);
             return;
@@ -3536,7 +3379,7 @@ function adminFindAllDb(options, callback) {
 function viewerFindAllDb(options, callback) {
 
   debug("\n=============================\nVIEWERS IN DB\n----------");
-  if (options) debug("OPTIONS\n" + jsonPrint(options));
+  if (options) {debug("OPTIONS\n" + jsonPrint(options));}
 
   var query = {};
   var projections = {
@@ -3602,7 +3445,7 @@ function viewerFindAllDb(options, callback) {
 function userFindAllDb(options, callback) {
 
   debug("\n=============================\nUSERS IN DB\n----------");
-  if (options) debug("OPTIONS\n" + jsonPrint(options));
+  if (options) {debug("OPTIONS\n" + jsonPrint(options));}
 
   var query = {};
   var projections = {
@@ -3674,7 +3517,7 @@ function userFindAllDb(options, callback) {
 function ipAddressFindAllDb(options, callback) {
 
   debug("\n=============================\nIP ADDRESSES IN DB\n----------");
-  if (options) debug("OPTIONS\n" + jsonPrint(options));
+  if (options) {debug("OPTIONS\n" + jsonPrint(options));}
 
   var query = {};
   var projections = {
@@ -3757,8 +3600,6 @@ var metricDateEnd = moment().toJSON();
 
 function sortedObjectValues(obj, k, callback) {
 
-  // console.log("sortedObjectValues\n" + jsonPrint(obj));
-
   var keys = Object.keys(obj);
 
   var sortedKeys = keys.sort(function(a,b){
@@ -3768,7 +3609,8 @@ function sortedObjectValues(obj, k, callback) {
   });
 
   var endIndex = sortedKeys.length < 10 ? sortedKeys.length : 10;
-  for (var i=0; i<endIndex; i++){
+  var i;
+  for (i=0; i<endIndex; i += 1){
     console.log("SORT"
       + " | "  + obj[sortedKeys[i]].toJSON()[k].toFixed(3)
       + " | "  + sortedKeys[i] 
@@ -3780,7 +3622,7 @@ function sortedObjectValues(obj, k, callback) {
 
 function updateMetrics(enableGoogleMetrics) {
 
-  if (heartbeatsSent % 100 == 0) updateStatsCounts();
+  if (heartbeatsSent % 100 == 0) {updateStatsCounts();}
 
   metricDateStart = moment().toJSON();
   metricDateEnd = moment().toJSON();
@@ -3826,6 +3668,7 @@ function updateMetrics(enableGoogleMetrics) {
 var readDnsQueue = setInterval(function() {
 
   if (!dnsReverseLookupQueue.isEmpty()) {
+
     var sessionObj = dnsReverseLookupQueue.dequeue();
 
     dnsReverseLookup(sessionObj.ip, function(err, domains) {
@@ -3846,33 +3689,45 @@ var sessionRouteHashMap = new HashMap();
 
 function handleSessionEvent(sesObj, callback) {
 
+  var socketId;
+  var entityRegEx = /#(\w+)$/ ;
+  var namespaceRegEx = /^\/(\w+)#/ ;
+  var namespace;
+  var namespaceMatchArray;
+  var unpairedSessionObj;
+  var currentAdmin;
+  var currentUser;
+  var currentUtil;
+  var currentViewer;
+  var adminSessionObj;
+  var userSessionObj;
+  var viewerSessionObj;
+  var utilSessionObj;
+  var sessionUpdateObj;
+  var currentSession;
+  var adminSessionKey;
+  var viewerSessionKey;
+  var sessionId;
+  var key;
+  var sessionCacheKey;
+
   switch (sesObj.sessionEvent) {
 
-    case 'SESSION_ABORT':
+    case "SESSION_ABORT":
 
       console.log(chalkRed("SESSION_ABORT sesObj\n" + jsonPrint(sesObj)));
-      
-      var socketId;
+      namespaceMatchArray = sesObj.sessionId.match(namespaceRegEx);
 
-      var entityRegEx = /#(\w+)$/ ;
-      var namespaceRegEx = /^\/(\w+)#/ ;
-
-      // var entity = sesObj.sessionId.match(entityRegEx)[1];
-      var namespaceMatchArray = sesObj.sessionId.match(namespaceRegEx);
-
-      var namespace;
-
-      if (namespaceMatchArray[1] !== 'undefined') namespace = namespaceMatchArray[1];
+      if (typeof namespaceMatchArray[1] !== "undefined") {namespace = namespaceMatchArray[1];}
 
       if (sesObj.sessionId.match(entityRegEx)) {
-        socketId = sesObj.sessionId.replace(entityRegEx, '');
-        // socketId = socketId.replace(namespaceRegEx, '');
+        socketId = sesObj.sessionId.replace(entityRegEx, "");
       }
       else {
         socketId = sesObj.sessionId;
       }
 
-      utilNameSpace.to(sesObj.sessionId.replace(entityRegEx, '')).emit('SESSION_ABORT', sesObj.sessionId);
+      utilNameSpace.to(sesObj.sessionId.replace(entityRegEx, "")).emit("SESSION_ABORT", sesObj.sessionId);
 
       console.log(chalkWarn("ABORT SESSION"
         + " | NSP: " + namespace 
@@ -3881,16 +3736,14 @@ function handleSessionEvent(sesObj, callback) {
         + " | SESS ID: " + sesObj.sessionId 
       ));
 
-      sesObj.sessionEvent = 'SESSION_DELETE';
-      viewNameSpace.emit('SESSION_DELETE', sesObj);
-      testViewersNameSpace.emit('SESSION_DELETE', sesObj);
-
-      // quit();
+      sesObj.sessionEvent = "SESSION_DELETE";
+      viewNameSpace.emit("SESSION_DELETE", sesObj);
+      testViewersNameSpace.emit("SESSION_DELETE", sesObj);
       break;
 
-    case 'SESSION_EXPIRED':
-    case 'SOCKET_ERROR':
-    case 'SOCKET_DISCONNECT':
+    case "SESSION_EXPIRED":
+    case "SOCKET_ERROR":
+    case "SOCKET_DISCONNECT":
 
       console.log(chalkSession(
         "X " + sesObj.sessionEvent
@@ -3905,10 +3758,10 @@ function handleSessionEvent(sesObj, callback) {
 
       debug(chalkSession("SESSION\n" + jsonPrint(sesObj)));
 
-      sesObj.sessionEvent = 'SESSION_DELETE';
-      viewNameSpace.emit('SESSION_DELETE', sesObj);
-      adminNameSpace.emit('SESSION_DELETE', sesObj);
-      testViewersNameSpace.emit('SESSION_DELETE', sesObj);
+      sesObj.sessionEvent = "SESSION_DELETE";
+      viewNameSpace.emit("SESSION_DELETE", sesObj);
+      adminNameSpace.emit("SESSION_DELETE", sesObj);
+      testViewersNameSpace.emit("SESSION_DELETE", sesObj);
 
       if (sesObj.session) {
 
@@ -3916,10 +3769,10 @@ function handleSessionEvent(sesObj, callback) {
 
         debug(sesObj.sessionEvent + "\n" + jsonPrint(sesObj));
 
-        var currentAdmin = adminCache.get(sesObj.session.userId);
-        var currentUser = userCache.get(sesObj.session.userId);
-        var currentUtil = utilCache.get(sesObj.session.userId);
-        var currentViewer = viewerCache.get(sesObj.session.userId);
+        currentAdmin = adminCache.get(sesObj.session.userId);
+        currentUser = userCache.get(sesObj.session.userId);
+        currentUtil = utilCache.get(sesObj.session.userId);
+        currentViewer = viewerCache.get(sesObj.session.userId);
 
         sesObj.session.disconnectTime = moment().valueOf();
         sessionUpdateDb(sesObj.session, function() {});
@@ -3938,16 +3791,14 @@ function handleSessionEvent(sesObj, callback) {
             + "\n" + jsonPrint(sesObj) 
             + "\n" + jsonPrint(sessionRouteHashMap.get(sesObj.session.sessionId))));
 
-          var unpairedSessionObj;
-
           if (sesObj.session.sessionId == sesObj.session.config.userA) {
             unpairedSessionObj = sessionCache.get(sesObj.session.config.userB);
             debug(chalkWarn(">>> TX PAIRED_USER_END TO USER B: " + sesObj.session.config.userB));
-            io.of(sesObj.session.namespace).to(sesObj.session.config.userB).emit('PAIRED_USER_END', sesObj.session.config.userA);
+            io.of(sesObj.session.namespace).to(sesObj.session.config.userB).emit("PAIRED_USER_END", sesObj.session.config.userA);
           } else {
             unpairedSessionObj = sessionCache.get(sesObj.session.config.userA);
             debug(chalkWarn(">>> TX PAIRED_USER_END TO USER A: " + sesObj.session.config.userA));
-            io.of(sesObj.session.namespace).to(sesObj.session.config.userA).emit('PAIRED_USER_END', sesObj.session.config.userB);
+            io.of(sesObj.session.namespace).to(sesObj.session.config.userA).emit("PAIRED_USER_END", sesObj.session.config.userB);
           }
 
         }
@@ -3971,7 +3822,7 @@ function handleSessionEvent(sesObj, callback) {
               debug(chalkRed("TX ADMIN SESSION (DISCONNECT): " 
                 + updatedAdminObj.lastSession + " TO ADMIN NAMESPACE"));
 
-              adminNameSpace.emit('ADMIN_SESSION', updatedAdminObj);
+              adminNameSpace.emit("ADMIN_SESSION", updatedAdminObj);
             }
           });
         }
@@ -3995,17 +3846,15 @@ function handleSessionEvent(sesObj, callback) {
               console.log(chalkLog("TX USER SESSION (" + sesObj.sessionEvent + "): " + updatedUserObj.lastSession 
                 + " TO ADMIN NAMESPACE"));
 
-              adminNameSpace.emit('UTIL_SESSION', updatedUserObj); // KLUDGE: need to work out what's a USER and what's a UTIL
-              adminNameSpace.emit('USER_SESSION', updatedUserObj);
+              adminNameSpace.emit("UTIL_SESSION", updatedUserObj); // KLUDGE: need to work out what"s a USER and what"s a UTIL
+              adminNameSpace.emit("USER_SESSION", updatedUserObj);
             }
           });
         }
 
         if (currentUtil) {
           debug("currentUtil\n" + jsonPrint(currentUtil));
-          // utilCache.del(currentUtil.utilId);
           userCache.del(currentUtil.userId);
-
           currentUtil.lastSeen = moment().valueOf();
           currentUtil.connected = false;
           currentUtil.disconnectTime = moment().valueOf();
@@ -4013,7 +3862,6 @@ function handleSessionEvent(sesObj, callback) {
           debug(chalkRed("CONNECTION DURATION: " + currentUtil.userId 
             + " | " + msToTime(moment().valueOf() - currentUtil.connectTime)));
 
-          // utilUpdateDb(currentUtil, function(err, updatedUtilObj) {
           userUpdateDb(currentUtil, function(err, updatedUtilObj) {
             if (!err) {
 
@@ -4022,8 +3870,8 @@ function handleSessionEvent(sesObj, callback) {
               console.log(chalkLog("TX UTIL SESSION (DISCONNECT): " 
                 + updatedUtilObj.lastSession + " TO ADMIN NAMESPACE"));
 
-              adminNameSpace.emit('UTIL_SESSION', updatedUtilObj);
-              adminNameSpace.emit('USER_SESSION', updatedUtilObj);
+              adminNameSpace.emit("UTIL_SESSION", updatedUtilObj);
+              adminNameSpace.emit("USER_SESSION", updatedUtilObj);
             }
           });
         }
@@ -4048,7 +3896,7 @@ function handleSessionEvent(sesObj, callback) {
               debug(chalkRed("TX VIEWER SESSION (DISCONNECT): " + updatedViewerObj.lastSession 
                 + " TO ADMIN NAMESPACE"));
 
-              adminNameSpace.emit('VIEWER_SESSION', updatedViewerObj);
+              adminNameSpace.emit("VIEWER_SESSION", updatedViewerObj);
             }
           });
         }
@@ -4056,89 +3904,89 @@ function handleSessionEvent(sesObj, callback) {
 
       break;
 
-    case 'REQ_ADMIN_SESSION':
+    case "REQ_ADMIN_SESSION":
       Object.keys(adminNameSpace.connected).forEach(function(adminSessionKey) {
-        var adminSessionObj = sessionCache.get(adminSessionKey);
+        adminSessionObj = sessionCache.get(adminSessionKey);
         if (adminSessionObj) {
           debug("FOUND ADMIN SESSION: " + adminSessionObj.sessionId);
           debug("TX ADMIN SESSION: " + adminSessionObj.sessionId 
             + " TO " + sesObj.options.requestNamespace 
             + "#" + sesObj.options.requestSocketId);
-          adminNameSpace.to(sesObj.session.sessionId).emit('ADMIN_SESSION', adminSessionObj);
+          adminNameSpace.to(sesObj.session.sessionId).emit("ADMIN_SESSION", adminSessionObj);
         }
       });
       break;
 
-    case 'REQ_USER_SESSION':
+    case "REQ_USER_SESSION":
       debug(chalkAlert("RX REQ_USER_SESSION\n" + jsonPrint(sesObj)));
       Object.keys(userNameSpace.connected).forEach(function(userSessionKey) {
-        var userSessionObj = sessionCache.get(userSessionKey);
+        userSessionObj = sessionCache.get(userSessionKey);
         if (userSessionObj) {
           debug("FOUND USER SESSION: " + userSessionObj.sessionId);
           debug(chalkRed("TX USER SESSION: " + userSessionObj.sessionId
             + " TO " + sesObj.session.namespace + "#" + sesObj.session.sessionId));
           delete userSessionObj.wordChain;
 
-          if (sesObj.session.namespace == 'view') {
-            viewNameSpace.to(sesObj.session.sessionId).emit('USER_SESSION', userSessionObj);
+          if (sesObj.session.namespace == "view") {
+            viewNameSpace.to(sesObj.session.sessionId).emit("USER_SESSION", userSessionObj);
           }
-          if (sesObj.session.namespace == 'test-view') {
-            testViewersNameSpace.to(sesObj.session.sessionId).emit('USER_SESSION', userSessionObj);
+          if (sesObj.session.namespace == "test-view") {
+            testViewersNameSpace.to(sesObj.session.sessionId).emit("USER_SESSION", userSessionObj);
           }
-          adminNameSpace.to(sesObj.session.sessionId).emit('USER_SESSION', userSessionObj);
+          adminNameSpace.to(sesObj.session.sessionId).emit("USER_SESSION", userSessionObj);
         }
       });
       Object.keys(testUsersNameSpace.connected).forEach(function(userSessionKey) {
-        var userSessionObj = sessionCache.get(userSessionKey);
+        userSessionObj = sessionCache.get(userSessionKey);
         if (userSessionObj) {
           debug("FOUND TEST USER SESSION: " + userSessionObj.sessionId);
           debug(chalkRed("TX USER SESSION: " + userSessionObj.sessionId
             + " TO " + sesObj.session.namespace + "#" + sesObj.session.sessionId));
           delete userSessionObj.wordChain;
 
-          if (sesObj.session.namespace == 'view') {
-            viewNameSpace.to(sesObj.session.sessionId).emit('USER_SESSION', userSessionObj);
+          if (sesObj.session.namespace == "view") {
+            viewNameSpace.to(sesObj.session.sessionId).emit("USER_SESSION", userSessionObj);
           }
-          if (sesObj.session.namespace == 'test-view') {
-            testViewersNameSpace.to(sesObj.session.sessionId).emit('USER_SESSION', userSessionObj);
+          if (sesObj.session.namespace == "test-view") {
+            testViewersNameSpace.to(sesObj.session.sessionId).emit("USER_SESSION", userSessionObj);
           }
-          adminNameSpace.to(sesObj.session.sessionId).emit('USER_SESSION', userSessionObj);
+          adminNameSpace.to(sesObj.session.sessionId).emit("USER_SESSION", userSessionObj);
         }
       });
       break;
 
-    case 'REQ_VIEWER_SESSION':
+    case "REQ_VIEWER_SESSION":
       debug(chalkAlert("RX REQ_VIEWER_SESSION\n" + jsonPrint(sesObj)));
       Object.keys(viewNameSpace.connected).forEach(function(viewerSessionKey) {
-        var viewerSessionObj = sessionCache.get(viewerSessionKey);
+        viewerSessionObj = sessionCache.get(viewerSessionKey);
         if (viewerSessionObj) {
           debug("FOUND VIEWER SESSION: " + viewerSessionObj.sessionId);
           debug(chalkRed("TX VIEWER SESSION: " + viewerSessionObj.sessionId 
             + " TO " + sesObj.options.requestNamespace + "#" + sesObj.options.requestSocketId));
           delete viewerSessionObj.wordChain;
 
-          adminNameSpace.to(sesObj.session.sessionId).emit('VIEWER_SESSION', viewerSessionObj);
+          adminNameSpace.to(sesObj.session.sessionId).emit("VIEWER_SESSION", viewerSessionObj);
         }
       });
       Object.keys(testViewersNameSpace.connected).forEach(function(viewerSessionKey) {
-        var viewerSessionObj = sessionCache.get(viewerSessionKey);
+        viewerSessionObj = sessionCache.get(viewerSessionKey);
         if (viewerSessionObj) {
           debug("FOUND TEST VIEWER SESSION: " + viewerSessionObj.sessionId);
           debug(chalkRed("TX VIEWER SESSION: " + viewerSessionObj.sessionId 
             + " TO " + sesObj.options.requestNamespace + "#" + sesObj.options.requestSocketId));
           delete viewerSessionObj.wordChain;
 
-          adminNameSpace.to(sesObj.session.sessionId).emit('VIEWER_SESSION', viewerSessionObj);
+          adminNameSpace.to(sesObj.session.sessionId).emit("VIEWER_SESSION", viewerSessionObj);
         }
       });
       break;
 
-    case 'REQ_UTIL_SESSION':
+    case "REQ_UTIL_SESSION":
       debug(chalkAlert("RX REQ_UTIL_SESSION\n" + jsonPrint(sesObj)));
 
       Object.keys(utilNameSpace.connected).forEach(function(utilSessionKey) {
 
-        var utilSessionObj = sessionCache.get(utilSessionKey);
+        utilSessionObj = sessionCache.get(utilSessionKey);
 
         if (utilSessionObj) {
           debug("FOUND UTIL SESSION: " + utilSessionObj.sessionId);
@@ -4146,13 +3994,13 @@ function handleSessionEvent(sesObj, callback) {
             + " TO " + sesObj.options.requestNamespace + "#" + sesObj.options.requestSocketId));
           delete utilSessionObj.wordChain;
 
-          adminNameSpace.to(sesObj.session.sessionId).emit('UTIL_SESSION', utilSessionObj);
+          adminNameSpace.to(sesObj.session.sessionId).emit("UTIL_SESSION", utilSessionObj);
         }
 
       });
       break;
 
-    case 'SESSION_KEEPALIVE':
+    case "SESSION_KEEPALIVE":
 
       debug("KEEPALIVE\n" + jsonPrint(sesObj));
 
@@ -4181,23 +4029,17 @@ function handleSessionEvent(sesObj, callback) {
               + " | LAST WORD: " + sessionUpdatedObj.wordChain[sessionUpdatedObj.wordChain.length-1].nodeId
             ));
 
-            if (typeof sessionUpdatedObj.subSessionId !== 'undefined') {
+            if (typeof sessionUpdatedObj.subSessionId !== "undefined") {
               sessionCache.set(sessionUpdatedObj.subSessionId, sessionUpdatedObj);
             }
-            // else {
             sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
-            // }
           }
           else {
-            if (typeof sessionUpdatedObj.subSessionId !== 'undefined') {
+            if (typeof sessionUpdatedObj.subSessionId !== "undefined") {
               sessionCache.set(sessionUpdatedObj.subSessionId, sessionUpdatedObj);
             }
-            // else {
             sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
-            // }
           }
-
-          // sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
 
           if (!sessionUpdatedObj.userId) {
             console.log(chalkError("SESSION_KEEPALIVE: UNDEFINED USER ID" 
@@ -4207,7 +4049,6 @@ function handleSessionEvent(sesObj, callback) {
             quit("UNDEFINED USER ID: " + sessionUpdatedObj.sessionId);
           }
 
-          // userCache.set(sessionUpdatedObj.userId, sessionUpdatedObj.user, function(err, success) {});
           utilCache.set(sessionUpdatedObj.userId, sessionUpdatedObj.user, function(err, success) {});
 
           if (sessionUpdatedObj.config.type == "VIEWER") {
@@ -4227,22 +4068,22 @@ function handleSessionEvent(sesObj, callback) {
             // + "\n" + jsonPrint(sessionUpdatedObj)
           ));
 
-          if (sessionUpdatedObj.namespace != 'view') {
-            var sessionUpdateObj = {
-              action: 'KEEPALIVE',
-              nodeId: sessionUpdatedObj.tags.entity + '_' + sessionUpdatedObj.tags.channel,
+          if (sessionUpdatedObj.namespace != "view") {
+            sessionUpdateObj = {
+              action: "KEEPALIVE",
+              nodeId: sessionUpdatedObj.tags.entity + "_" + sessionUpdatedObj.tags.channel,
               tags: {},
               userId: sessionUpdatedObj.userId,
               url: sessionUpdatedObj.url,
               profileImageUrl: sessionUpdatedObj.profileImageUrl,
               sessionId: sessionUpdatedObj.sessionId,
-              wordChainIndex: sessionUpdatedObj.wordChainIndex,
-              source: {}
+              wordChainIndex: sessionUpdatedObj.wordChainIndex
+              // source: {}
             };
 
             sessionUpdateObj.tags = sessionUpdatedObj.tags;
 
-            io.of(sessionUpdatedObj.namespace).to(sessionUpdatedObj.sessionId).emit('KEEPALIVE_ACK', sessionUpdatedObj.nodeId);
+            io.of(sessionUpdatedObj.namespace).to(sessionUpdatedObj.sessionId).emit("KEEPALIVE_ACK", sessionUpdatedObj.nodeId);
 
             updateSessionViews(sessionUpdateObj);
           }
@@ -4251,12 +4092,12 @@ function handleSessionEvent(sesObj, callback) {
 
       break;
 
-    case 'SESSION_CREATE':
+    case "SESSION_CREATE":
 
-      if (typeof sesObj.session.tags === 'undefined') {
+      if (typeof sesObj.session.tags === "undefined") {
         sesObj.session.tags = {};
-        sesObj.session.tags.entity = 'UNKNOWN_ENTITY';
-        sesObj.session.tags.channel = 'UNKNOWN_CHANNEL';
+        sesObj.session.tags.entity = "UNKNOWN_ENTITY";
+        sesObj.session.tags.channel = "UNKNOWN_CHANNEL";
       }
 
       console.log(chalkSession(
@@ -4272,22 +4113,21 @@ function handleSessionEvent(sesObj, callback) {
       ));
 
       switch (sesObj.session.config.type) {
-        case 'ADMIN':
+        case "ADMIN":
           break;
-        case 'USER':
+        case "USER":
           break;
-        case 'UTIL':
+        case "UTIL":
           break;
-        case 'VIEWER':
+        case "VIEWER":
           break;
-        case 'TEST_USER':
+        case "TEST_USER":
           break;
-        case 'TEST_VIEWER':
+        case "TEST_VIEWER":
           break;
         default:
           console.log(chalkError("??? UNKNOWN SESSION EVENT handleSessionEvent\n" + jsonPrint(sesObj)));
           // quit(" 1 ????? UNKNOWN SESSION TYPE: " + sesObj.session.config.type);
-          break;
       }
 
       dnsReverseLookup(sesObj.session.ip, function(err, domains) {
@@ -4297,7 +4137,7 @@ function handleSessionEvent(sesObj, callback) {
           debug(chalkSession("... SESSION CREATE | IP: " + sesObj.session.ip 
             + " | DOMAINS: " + domains.length + " | " + domains[0]));
         } else {
-          sesObj.session.domain = 'UNKNOWN';
+          sesObj.session.domain = "UNKNOWN";
           debug(chalkSession("... SESSION CREATE | IP: " + sesObj.session.ip 
             + " | DOMAINS: UNKNOWN"));
         }
@@ -4306,15 +4146,13 @@ function handleSessionEvent(sesObj, callback) {
 
         sessionUpdateDb(sesObj.session, function(err, sessionUpdatedObj) {
           if (!err) {
-
             sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
-
           }
         });
       });
       break;
 
-    case 'SOCKET_RECONNECT':
+    case "SOCKET_RECONNECT":
 
       debug(chalkSession(
         "<-> SOCKET RECONNECT" 
@@ -4328,9 +4166,9 @@ function handleSessionEvent(sesObj, callback) {
       sessionCache.set(sesObj.session.sessionId, sesObj.session);
       sessionUpdateDb(sesObj.session, function() {});
 
-      var currentUser = userCache.get(sesObj.session.userId);
-      var currentViewer = viewerCache.get(sesObj.session.userId);
-      var currentUtil = utilCache.get(sesObj.session.userId);
+      currentUser = userCache.get(sesObj.session.userId);
+      currentViewer = viewerCache.get(sesObj.session.userId);
+      currentUtil = utilCache.get(sesObj.session.userId);
 
       if (currentUtil) {
         currentUtil.connected = true;
@@ -4338,7 +4176,7 @@ function handleSessionEvent(sesObj, callback) {
         utilUpdateDb(currentUtil, function(err, updatedUtilObj) {
           if (!err) {
             debug(chalkRed("TX UTIL SESSION (SOCKET ERROR): " + updatedUtilObj.lastSession + " TO ADMIN NAMESPACE"));
-            adminNameSpace.emit('UTIL_SESSION', updatedUtilObj);
+            adminNameSpace.emit("UTIL_SESSION", updatedUtilObj);
           }
         });
       } else if (currentUser) {
@@ -4347,7 +4185,7 @@ function handleSessionEvent(sesObj, callback) {
         userUpdateDb(currentUser, function(err, updatedUserObj) {
           if (!err) {
             debug(chalkRed("TX USER SESSION (SOCKET ERROR): " + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"));
-            adminNameSpace.emit('USER_SESSION', updatedUserObj);
+            adminNameSpace.emit("USER_SESSION", updatedUserObj);
           }
         });
       } else if (currentViewer) {
@@ -4357,17 +4195,17 @@ function handleSessionEvent(sesObj, callback) {
           if (!err) {
             debug(chalkRed("TX VIEWER SESSION (SOCKET ERROR): " + updatedViewerObj.lastSession + " TO ADMIN NAMESPACE"));
 
-            adminNameSpace.emit('VIEWER_SESSION', updatedViewerObj);
+            adminNameSpace.emit("VIEWER_SESSION", updatedViewerObj);
           }
         });
       }
       break;
 
-    case 'ADMIN_READY':
+    case "ADMIN_READY":
 
       // ????? ADMIN VERIFICATION SHOULD HAPPEN HERE
 
-      if (typeof sesObj.session.ip !== 'undefined') {
+      if (typeof sesObj.session.ip !== "undefined") {
         if (dnsHostHashMap.has(sesObj.session.ip)) {
           sesObj.admin.domain = dnsHostHashMap.get(sesObj.session.ip);
           sesObj.session.domain = dnsHostHashMap.get(sesObj.session.ip);
@@ -4386,7 +4224,7 @@ function handleSessionEvent(sesObj, callback) {
         + " | DOMAIN: " + sesObj.session.domain
       ));
 
-      var currentSession = sessionCache.get(sesObj.session.sessionId);
+      currentSession = sessionCache.get(sesObj.session.sessionId);
 
 
       if (!currentSession) {
@@ -4407,7 +4245,7 @@ function handleSessionEvent(sesObj, callback) {
         adminUpdateDb(sesObj.admin, function(err, adminObj) {
           if (!err) {
 
-            var adminSessionKey = randomInt(1000000, 1999999);
+            adminSessionKey = randomInt(1000000, 1999999);
 
             currentSession.adminSessionKey = adminSessionKey;
             currentSession.connected = true;
@@ -4417,7 +4255,7 @@ function handleSessionEvent(sesObj, callback) {
                 sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
                 debug(chalkInfo("-S- DB UPDATE" + " | " + sessionUpdatedObj.sessionId));
                 debug("TX ADMIN_ACK", adminSessionKey);
-                io.of(currentSession.namespace).to(currentSession.sessionId).emit('ADMIN_ACK', adminSessionKey);
+                io.of(currentSession.namespace).to(currentSession.sessionId).emit("ADMIN_ACK", adminSessionKey);
               } else {
                 debug(chalkError("*** ERROR DB UPDATE SESSION\n" + err));
               }
@@ -4428,9 +4266,9 @@ function handleSessionEvent(sesObj, callback) {
 
       break;
 
-    case 'VIEWER_READY':
+    case "VIEWER_READY":
 
-      if (typeof sesObj.session.ip !== 'undefined') {
+      if (typeof sesObj.session.ip !== "undefined") {
         if (dnsHostHashMap.has(sesObj.session.ip)) {
           sesObj.session.domain = dnsHostHashMap.get(sesObj.session.ip);
           sesObj.viewer.domain = dnsHostHashMap.get(sesObj.session.ip);
@@ -4449,9 +4287,9 @@ function handleSessionEvent(sesObj, callback) {
         + " | DOMAIN: " + sesObj.session.domain
       ));
 
-      var currentSession = sessionCache.get(sesObj.session.sessionId);
+      currentSession = sessionCache.get(sesObj.session.sessionId);
 
-      if (typeof currentSession === 'undefined') {
+      if (typeof currentSession === "undefined") {
         currentSession = sesObj.session;
       }
 
@@ -4471,40 +4309,35 @@ function handleSessionEvent(sesObj, callback) {
 
       viewerUpdateDb(sesObj.viewer, function(err, updatedViewerObj) {
         if (err) {
-          console.log(chalkError("*** ERROR viewerUpdateDb\n" + jsonPrint(err)))
-        } else {
-          var viewerSessionKey = randomInt(1000000, 1999999);
-
+          console.log(chalkError("*** ERROR viewerUpdateDb\n" + jsonPrint(err)));
+        } 
+        else {
+          viewerSessionKey = randomInt(1000000, 1999999);
           currentSession.viewerSessionKey = viewerSessionKey;
           updatedViewerObj.viewerSessionKey = viewerSessionKey;
-
           sessionUpdateDb(currentSession, function(err, sessionUpdatedObj) {
             if (err) {
-              console.log(chalkError("*** ERROR sessionUpdateDb\n" + jsonPrint(err)))
-            } else {
-              var viewer = viewerCache.get(sessionUpdatedObj.userId);
-
-              debug("viewer\n" + jsonPrint(viewer));
-              debug("viewer\n" + jsonPrint(viewer));
-
+              console.log(chalkError("*** ERROR sessionUpdateDb\n" + jsonPrint(err)));
+            } 
+            else {
               sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
               debug(chalkInfo("-S- DB UPDATE" 
                 + " | " + sessionUpdatedObj.sessionId 
                 + " | " + sessionUpdatedObj.userId 
                 + "\n" + jsonPrint(sessionUpdatedObj)));
               debug("TX VIEWER_ACK", viewerSessionKey);
-              io.of(currentSession.namespace).to(currentSession.sessionId).emit('VIEWER_ACK', viewerSessionKey);
+              io.of(currentSession.namespace).to(currentSession.sessionId).emit("VIEWER_ACK", viewerSessionKey);
               debug(chalkRed("TX VIEWER SESSION (VIEWER READY): " + updatedViewerObj.lastSession + " TO ADMIN NAMESPACE"));
-              adminNameSpace.emit('VIEWER_SESSION', updatedViewerObj);
+              adminNameSpace.emit("VIEWER_SESSION", updatedViewerObj);
             }
           });
         }
       });
       break;
 
-    case 'USER_READY':
+    case "USER_READY":
 
-      if (typeof sesObj.session.ip !== 'undefined') {
+      if (typeof sesObj.session.ip !== "undefined") {
         if (dnsHostHashMap.has(sesObj.session.ip)) {
           sesObj.session.domain = dnsHostHashMap.get(sesObj.session.ip);
           sesObj.user.domain = dnsHostHashMap.get(sesObj.session.ip);
@@ -4522,48 +4355,40 @@ function handleSessionEvent(sesObj, callback) {
         + " | C " + sesObj.user.tags.channel 
       ));
 
-       var sessionId = sesObj.session.sessionId;
+       sessionId = sesObj.session.sessionId;
 
-      if (sesObj.session.config.mode == 'MUXSTREAM'){
-
+      if (sesObj.session.config.mode == "MUXSTREAM"){
         debug(chalkInfo("MUXSTREAM"
           + " | " + sesObj.session.sessionId
         ));
-
       }
 
-      if (sesObj.session.config.mode == 'SUBSTREAM'){
-
+      if (sesObj.session.config.mode == "SUBSTREAM"){
         sessionId = sesObj.session.sessionId + "#" + sesObj.user.tags.entity;
-
         debug(chalkInfo("SUBSTREAM"
           + " | " + sesObj.session.sessionId
         ));
-
       }
 
-      if (sesObj.session.config.mode == 'MONITOR'){
-
-        var key = sesObj.user.tags.entity + '_' + sesObj.user.tags.channel;
-
+      if (sesObj.session.config.mode == "MONITOR"){
+        key = sesObj.user.tags.entity + "_" + sesObj.user.tags.channel;
         monitorHashMap[key] = sesObj;
         debug(chalkRed("ADDDED MONITOR"
           + " | " + key
           + " | " + sesObj.session.sessionId
         ));
-
       }
 
       userCache.set(sesObj.user.userId, sesObj.user, function(err, success) {
         debug(chalkLog("USER CACHE RESULTS" + "\n" + err + "\n" + success));
       });
 
-      var currentSession = sessionCache.get(sessionId);
+      currentSession = sessionCache.get(sessionId);
 
-      if (typeof currentSession !== 'undefined') {
+      if (typeof currentSession !== "undefined") {
         currentSession.config.type = sesObj.session.config.type;
         currentSession.config.mode = sesObj.session.config.mode;
-        currentSession.nodeId = sesObj.user.tags.entity.toLowerCase() + '_' + sesObj.user.tags.channel.toLowerCase();
+        currentSession.nodeId = sesObj.user.tags.entity.toLowerCase() + "_" + sesObj.user.tags.channel.toLowerCase();
         currentSession.sessionId = sesObj.session.sessionId;
         currentSession.entity = sesObj.user.tags.entity.toLowerCase();
         currentSession.userId = sesObj.user.userId;
@@ -4574,7 +4399,7 @@ function handleSessionEvent(sesObj, callback) {
         currentSession = sesObj.session;
         currentSession.config.type = sesObj.session.config.type;
         currentSession.config.mode = sesObj.session.config.mode;
-        currentSession.nodeId = sesObj.user.tags.entity.toLowerCase() + '_' + sesObj.user.tags.channel.toLowerCase();
+        currentSession.nodeId = sesObj.user.tags.entity.toLowerCase() + "_" + sesObj.user.tags.channel.toLowerCase();
         currentSession.sessionId = sesObj.session.sessionId;
         currentSession.entity = sesObj.user.tags.entity.toLowerCase();
         currentSession.userId = sesObj.user.userId;
@@ -4595,32 +4420,26 @@ function handleSessionEvent(sesObj, callback) {
       userUpdateDb(sesObj.user, function(err, updatedUserObj) {
 
         if (!err) {
-
           debug(chalkError("userUpdateDb CALLBACK\nERR\n" + jsonPrint(err) + "\nUSEROBJ\n" + jsonPrint(updatedUserObj)));
-
           groupUpdateDb(updatedUserObj, function(err, entityObj){
 
             debug(chalkError("groupUpdateDb CALLBACK\nERR\n" + jsonPrint(err) + "\nentityObj\n" + jsonPrint(entityObj)));
-
             if (err){
               console.log(chalkError("GROUP UPDATE DB ERROR: " + err));
             }
-            else if ((updatedUserObj.tags.mode !== 'undefined') && (updatedUserObj.tags.mode == 'substream')) {
-
+            else if ((typeof updatedUserObj.tags.mode !== "undefined") && (updatedUserObj.tags.mode == "substream")) {
               updatedUserObj.isMuxed = true;
-
               debug(chalkInfo("TX UTIL SESSION (UTIL READY): " + updatedUserObj.lastSession  + " | " + updatedUserObj.userId + " TO ADMIN NAMESPACE"));
-              adminNameSpace.emit('UTIL_SESSION', updatedUserObj);
-
-              io.of(sesObj.session.namespace).to(sesObj.session.sessionId).emit('USER_READY_ACK', updatedUserObj.userId);
+              adminNameSpace.emit("UTIL_SESSION", updatedUserObj);
+              io.of(sesObj.session.namespace).to(sesObj.session.sessionId).emit("USER_READY_ACK", updatedUserObj.userId);
             }
             else {
-              if (updatedUserObj.groupId === 'undefined') {
-                if (sesObj.user.tags.group !== 'undefined') {
+              if (typeof updatedUserObj.groupId === "undefined") {
+                if (typeof sesObj.user.tags.group !== "undefined") {
                   updatedUserObj.groupId = sesObj.user.tags.group.toLowerCase();
                 }
                 else {
-                  updatedUserObj.groupId = 'unknown_group';
+                  updatedUserObj.groupId = "unknown_group";
                 }
               }
 
@@ -4629,15 +4448,15 @@ function handleSessionEvent(sesObj, callback) {
                   console.log(chalkError("ENTITY UPDATE DB ERROR: " + err));
                 }
                 else {
-                  if (sesObj.session.config.type == 'USER') {
+                  if (sesObj.session.config.type == "USER") {
                     console.log(chalkInfo("TX USER SESSION (USER READY): " + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"));
-                    adminNameSpace.emit('USER_SESSION', updatedUserObj);
-                  } else if (sesObj.session.config.type == 'UTIL') {
+                    adminNameSpace.emit("USER_SESSION", updatedUserObj);
+                  } else if (sesObj.session.config.type == "UTIL") {
                     console.log(chalkInfo("TX UTIL SESSION (UTIL READY): " + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"));
-                    adminNameSpace.emit('UTIL_SESSION', updatedUserObj);
+                    adminNameSpace.emit("UTIL_SESSION", updatedUserObj);
                   }
 
-                  io.of(sesObj.session.namespace).to(sesObj.session.sessionId).emit('USER_READY_ACK', updatedUserObj.userId);
+                  io.of(sesObj.session.namespace).to(sesObj.session.sessionId).emit("USER_READY_ACK", updatedUserObj.userId);
                 }
               });
             }
@@ -4655,47 +4474,37 @@ function handleSessionEvent(sesObj, callback) {
           ROUTING OF PROMPT/RESPONSE BASED ON SESSION TYPE
       */
 
-      var sessionCacheKey = currentSession.sessionId;
+      sessionCacheKey = currentSession.sessionId;
 
       sessionCache.set(sessionCacheKey, currentSession, function(err, success) {
         if (!err && success) {
 
           userCache.set(currentSession.userId, sesObj.user, function(err, success) {
             if (!err && success) {
-
               switch (sesObj.session.config.type) {
-
-                case 'VIEWER':
+                case "VIEWER":
                   break;
-
-                case 'ADMIN':
+                case "ADMIN":
                   break;
-
-                case 'UTIL':
+                case "UTIL":
                   break;
-
-                case 'TEST_VIEWER':
+                case "TEST_VIEWER":
                   break;
-
-                case 'SUBSTREAM':
-                case 'STREAM':
+                case "SUBSTREAM":
+                case "STREAM":
                   break;
-
                 default:
                   console.log(chalkError("??? UNKNOWN SESSION EVENT handleSessionEvent\n" + jsonPrint(sesObj)));
                   // quit("???? UNKNOWN SESSION TYPE: " + sesObj.session.config.type);
               }
-
             }
           });
-
         }
       });
       break;
 
     default:
       console.log(chalkError("??? UNKNOWN SESSION EVENT handleSessionEvent\n" + jsonPrint(sesObj)));
-    break;
   }
 
   return (callback(null, sesObj));
@@ -4724,35 +4533,30 @@ var readSessionQueue = setInterval(function() {
 
 function getTags(wObj, callback){
 
-  // if (keywordHashMap.has(wordObj.nodeId) || serverKeywordHashMap.has(wordObj.nodeId)) {
-  //   debug("KW HIT: " + wordObj.nodeId);
-  //   wordObj.isKeyword = true;
-  // }
-
   checkKeyword(wObj, function(wordObj){
 
-    if (!wordObj.tags || (typeof wordObj.tags === 'undefined')) {
+    if (!wordObj.tags || (typeof wordObj.tags === "undefined")) {
       wordObj.tags = {};
-      wordObj.tags.entity = 'unknown_entity';
-      wordObj.tags.channel = 'unknown_channel';
-      wordObj.tags.group = 'unknown_group';
+      wordObj.tags.entity = "unknown_entity";
+      wordObj.tags.channel = "unknown_channel";
+      wordObj.tags.group = "unknown_group";
 
       console.log(chalkError("SET UNKNOWN WORDOBJ TAGS\n" + jsonPrint(wordObj)));
-      entityChannelGroupHashMap.set('unknown_entity', { groupId: 'unknown_group', name: 'UNKNOWN GROUP'});
+      entityChannelGroupHashMap.set("unknown_entity", { groupId: "unknown_group", name: "UNKNOWN GROUP"});
 
       callback(wordObj);
     } 
     else {
-      if (!wordObj.tags.entity || (typeof wordObj.tags.entity === 'undefined')) {
-        wordObj.tags.entity = 'unknown_entity';
+      if (!wordObj.tags.entity || (typeof wordObj.tags.entity === "undefined")) {
+        wordObj.tags.entity = "unknown_entity";
         console.log(chalkError("SET UNKNOWN WORDOBJ ENTITY\n" + jsonPrint(wordObj)));
       }
       else {
         wordObj.tags.entity = wordObj.tags.entity.toLowerCase();
       }
 
-      if (!wordObj.tags.channel || (typeof wordObj.tags.channel === 'undefined')) {
-        wordObj.tags.channel = 'unknown_channel';
+      if (!wordObj.tags.channel || (typeof wordObj.tags.channel === "undefined")) {
+        wordObj.tags.channel = "unknown_channel";
         console.log(chalkError("SET UNKNOWN WORDOBJ CHANNEL\n" + jsonPrint(wordObj)));
       }
       else {
@@ -4793,8 +4597,8 @@ var readResponseQueue = setInterval(function() {
 
     debug(chalkWarn("responseInObj\n" + jsonPrint(responseInObj)));
 
-    if ((typeof responseInObj.nodeId === 'undefined') 
-      || (typeof responseInObj.nodeId !== 'string'
+    if ((typeof responseInObj.nodeId === "undefined") 
+      || (responseInObj.nodeId !== "string"
       || (responseInObj.nodeId.length >  MAX_DB_KEY_LENGTH)
       )) {
 
@@ -4802,9 +4606,11 @@ var readResponseQueue = setInterval(function() {
         + "\n" + jsonPrint(responseInObj)));
 
       responseQueueReady = true;
-      statsObj.session.error++;
-      statsObj.session.responseError++;
-      statsObj.session.responseErrorType["NODE_ID_MAX"] = (typeof statsObj.session.responseErrorType["NODE_ID_MAX"] === 'undefined') ? statsObj.session.responseErrorType["NODE_ID_MAX"] = 1 : statsObj.session.responseErrorType["NODE_ID_MAX"]++;
+      statsObj.session.error += 1;
+      statsObj.session.responseError += 1;
+      statsObj.session.responseErrorType.NODE_ID_MAX = (typeof statsObj.session.responseErrorType.NODE_ID_MAX === "undefined") 
+        ? 1 
+        : statsObj.session.responseErrorType.NODE_ID_MAX + 1;
 
       return;
     }
@@ -4816,15 +4622,13 @@ var readResponseQueue = setInterval(function() {
         console.log(chalkError("*** ERROR SESSION CACHE GET " + socketId + "\n" + jsonPrint(err)));
         quit("ERROR SESSION CACHE GET");
       }
-      else if (typeof currentSessionObj === 'undefined') {
+      else if (typeof currentSessionObj === "undefined") {
 
         console.log(chalkWarn("??? SESSION NOT IN CACHE ON RESPONSE Q READ" 
           + " | responseQueue: " + responseQueue.size() 
           + " | " + socketId + " | ABORTING SESSION"
           + "\n" + jsonPrint(responseInObj)
         ));
-
-        // var entity = socketId.match(entityRegEx)[1];
 
         configEvents.emit("UNKNOWN_SESSION", socketId);
 
@@ -4833,189 +4637,186 @@ var readResponseQueue = setInterval(function() {
           sessionId: socketId
         });
         responseQueueReady = true;
-        return;
       }
       else {
         debug(chalkError("currentSessionObj\n" + jsonPrint(currentSessionObj)));
-      }
 
-      responseInObj.isKeyword = (typeof responseInObj.isKeyword !== 'undefined') ? responseInObj.isKeyword : false;
-      responseInObj.isTrendingTopic = (typeof responseInObj.isTrendingTopic !== 'undefined') ? responseInObj.isTrendingTopic : false;
+        responseInObj.isKeyword = (typeof responseInObj.isKeyword !== "undefined") ? responseInObj.isKeyword : false;
+        responseInObj.isTrendingTopic = (typeof responseInObj.isTrendingTopic !== "undefined") ? responseInObj.isTrendingTopic : false;
 
 
-      trendingTopicsArray = trendingCache.keys();
-      trendingTopicHitArray = [];
+        trendingTopicsArray = trendingCache.keys();
+        trendingTopicHitArray = [];
 
-      async.each(trendingTopicsArray, function(topic, cb) {
+        async.each(trendingTopicsArray, function(topic, cb) {
 
-        if (responseInObj.nodeId.toLowerCase().includes(topic.toLowerCase())){
+          if (responseInObj.nodeId.toLowerCase().includes(topic.toLowerCase())){
 
-          var topicObj = trendingCache.get(topic);
+            var topicObj = trendingCache.get(topic);
+            trendingTopicHitArray.push(topic);
 
-          trendingTopicHitArray.push(topic);
-
-          if (typeof topicObj !== 'undefined'){ // may have expired out of cache, so check
-            console.log(chalkTwitter("TOPIC HIT: " + topic));
-            topicObj.hit = true;
-            trendingCache.set(topic, topicObj);
-            topicHashMap.set(topic.toLowerCase(), true);
-            responseInObj.isTrendingTopic = true;
-          }
-
-          cb();
-
-        }
-        else {
-          cb();
-        }
-
-      }, function(err) {
-
-        debug(chalkBht(">>> RESPONSE (before replace): " + responseInObj.nodeId));
-        responseInObj.nodeId = responseInObj.nodeId.replace(/\s+/g, ' ');
-        responseInObj.nodeId = responseInObj.nodeId.replace(/[\n\r\[\]\{\}\<\>\/\;\:\"\”\’\'\`\~\?\!\@\#\$\%\^\&\*\(\)\_\+\=]+/g, '');
-        responseInObj.nodeId = responseInObj.nodeId.replace(/\s+/g, ' ');
-        responseInObj.nodeId = responseInObj.nodeId.replace(/^\s+|\s+$/g, '');
-        responseInObj.nodeId = responseInObj.nodeId.replace(/^\,+|\,+$/g, '');
-        responseInObj.nodeId = responseInObj.nodeId.replace(/^\.+|\.+$/g, '');
-        responseInObj.nodeId = responseInObj.nodeId.replace(/^\-*|\-+$/g, '');
-        responseInObj.nodeId = responseInObj.nodeId.toLowerCase();
-        debug(chalkBht(">>> RESPONSE: " + responseInObj.nodeId));
-
-        if (responseInObj.nodeId == '') {
-          debug("EMPTY RESPONSE: " + responseInObj.nodeId);
-          responseQueueReady = true;
-          return;
-        }
-
-        if (!responseInObj.mentions) responseInObj.mentions = 1;
-
-        responsesReceived++;
-        deltaResponsesReceived++;
-
-        updateStats({
-          responsesReceived: responsesReceived,
-          deltaResponsesReceived: deltaResponsesReceived
-        });
-
-        currentSessionObj.lastSeen = moment().valueOf();
-
-        var promptWordObj;
-        var previousPrompt;
-        var previousPromptObj;
-
-        if ((typeof currentSessionObj.wordChain !== 'undefined') && (currentSessionObj.wordChainIndex > 0)) {
-
-          previousPrompt = currentSessionObj.wordChain[currentSessionObj.wordChain.length - 1].nodeId;
-          previousPromptObj = wordCache.get(previousPrompt);
-
-          if (!previousPromptObj) {
-            debug(chalkAlert("PREV PROMPT $ MISS"
-              + " | " + socketId 
-              + " | " + currentSessionObj.userId 
-              + " | WCI: " + currentSessionObj.wordChainIndex 
-              + " | WCL: " + currentSessionObj.wordChain.length
-              + " | " + responseInObj.nodeId 
-              + " > " + previousPrompt 
-            ));
-
-            statsObj.session.error++;
-            statsObj.session.previousPromptNotFound++;
-
-            previousPromptObj = {
-              nodeId: previousPrompt,
-              mentions: 1 // !!!!!! KLUDGE !!!!!!
-            };
-
-            wordCache.set(previousPromptObj.nodeId, previousPromptObj);
-
-          } else {
-            debug(chalkResponse("... previousPromptObj: " + previousPromptObj.nodeId));
-          }
-        } 
-        else if (currentSessionObj.config.mode == 'STREAM') {
-          previousPromptObj = {
-            nodeId: 'STREAM'
-          };
-          debug(chalkWarn("STREAM WORD CHAIN\n" + jsonPrint(currentSessionObj.wordChain)));
-        } 
-        else if (currentSessionObj.config.mode == 'MUXSTREAM') {
-          previousPromptObj = {
-            nodeId: 'MUXSTREAM'
-          };
-          debug(chalkWarn("MUXSTREAM WORD CHAIN\n" + jsonPrint(currentSessionObj.wordChain)));
-        } 
-        else if (currentSessionObj.config.mode == 'SUBSTREAM') {
-          previousPromptObj = {
-            nodeId: 'SUBSTREAM'
-          };
-          debug(chalkWarn("SUBSTREAM WORD CHAIN\n" + jsonPrint(currentSessionObj.wordChain)));
-        } 
-        else {
-          console.log(chalkError("??? EMPTY WORD CHAIN ... PREVIOUS PROMPT NOT IN CACHE ... ABORTING SESSION" 
-            + " | " + socketId
-            + "\nresponseInObj" + jsonPrint(responseInObj)
-          ));
-
-          responseQueueReady = true;
-
-          return;
-        }
-
-        // updateWordMeter(responseInObj);
-   
-        getTags(responseInObj, function(updatedWordObj){
-          
-          updateWordMeter(updatedWordObj);
-
-          var dbUpdateObj = {};
-          dbUpdateObj.word = updatedWordObj;
-          dbUpdateObj.session = currentSessionObj;
-          dbUpdateObj.tags = {};
-
-          if (updatedWordObj.tags){
-
-            if (!updatedWordObj.tags.group || (typeof updatedWordObj.tags.group === 'undefined')) {
-              updatedWordObj.tags.group = updatedWordObj.tags.entity;
-              dbUpdateObj.tags.group = updatedWordObj.tags.entity;
+            if (typeof topicObj !== "undefined"){ // may have expired out of cache, so check
+              console.log(chalkTwitter("TOPIC HIT: " + topic));
+              topicObj.hit = true;
+              trendingCache.set(topic, topicObj);
+              topicHashMap.set(topic.toLowerCase(), true);
+              responseInObj.isTrendingTopic = true;
             }
 
-            dbUpdateObj.tags.entity = updatedWordObj.tags.entity;
-            dbUpdateObj.tags.channel = updatedWordObj.tags.channel;
-            dbUpdateObj.tags.group = updatedWordObj.tags.group;
-
-            debug(chalkInfo("R<" 
-              + " G " + updatedWordObj.tags.group 
-              + " E " + updatedWordObj.tags.entity 
-              + " C " + updatedWordObj.tags.channel 
-              + " | " + updatedWordObj.nodeId 
-              + " | " + updatedWordObj.raw 
-            ));
-
-            dbUpdateWordQueue.enqueue(dbUpdateObj);
-            responseQueueReady = true;
+            cb();
 
           }
           else {
-            debug(chalkInfo("R<" 
-              + " G " + updatedWordObj.tags.group 
-              + " E " + updatedWordObj.tags.entity 
-              + " C " + updatedWordObj.tags.channel 
-              + " | " + updatedWordObj.nodeId 
-              + " | " + updatedWordObj.raw 
-            ));
-
-            dbUpdateWordQueue.enqueue(dbUpdateObj);
-            responseQueueReady = true;
-
+            cb();
           }
 
+        }, function(err) {
+
+          debug(chalkBht(">>> RESPONSE (before replace): " + responseInObj.nodeId));
+          responseInObj.nodeId = responseInObj.nodeId.replace(/\s+/g, " ");
+          responseInObj.nodeId = responseInObj.nodeId.replace(/[\n\r\[\]{}<>\/;:"”’`~?!@#$%\^&*()_+=]+/g, "");
+          responseInObj.nodeId = responseInObj.nodeId.replace(/\s+/g, " ");
+          responseInObj.nodeId = responseInObj.nodeId.replace(/^\s+|\s+$/g, "");
+          responseInObj.nodeId = responseInObj.nodeId.replace(/^,+|,+$/g, "");
+          responseInObj.nodeId = responseInObj.nodeId.replace(/^\.+|\.+$/g, "");
+          responseInObj.nodeId = responseInObj.nodeId.replace(/^\-*|\-+$/g, "");
+          responseInObj.nodeId = responseInObj.nodeId.toLowerCase();
+          debug(chalkBht(">>> RESPONSE: " + responseInObj.nodeId));
+
+          if (responseInObj.nodeId == "") {
+            debug("EMPTY RESPONSE: " + responseInObj.nodeId);
+            responseQueueReady = true;
+            return;
+          }
+
+          if (!responseInObj.mentions) {responseInObj.mentions = 1;}
+
+          responsesReceived += 1;
+          deltaResponsesReceived += 1;
+
+          updateStats({
+            responsesReceived: responsesReceived,
+            deltaResponsesReceived: deltaResponsesReceived
+          });
+
+          currentSessionObj.lastSeen = moment().valueOf();
+
+          var promptWordObj;
+          var previousPrompt;
+          var previousPromptObj;
+
+          if ((typeof currentSessionObj.wordChain !== "undefined") && (currentSessionObj.wordChainIndex > 0)) {
+
+            previousPrompt = currentSessionObj.wordChain[currentSessionObj.wordChain.length - 1].nodeId;
+            previousPromptObj = wordCache.get(previousPrompt);
+
+            if (!previousPromptObj) {
+              debug(chalkAlert("PREV PROMPT $ MISS"
+                + " | " + socketId 
+                + " | " + currentSessionObj.userId 
+                + " | WCI: " + currentSessionObj.wordChainIndex 
+                + " | WCL: " + currentSessionObj.wordChain.length
+                + " | " + responseInObj.nodeId 
+                + " > " + previousPrompt 
+              ));
+
+              statsObj.session.error += 1;
+              statsObj.session.previousPromptNotFound += 1;
+
+              previousPromptObj = {
+                nodeId: previousPrompt,
+                mentions: 1 // !!!!!! KLUDGE !!!!!!
+              };
+
+              wordCache.set(previousPromptObj.nodeId, previousPromptObj);
+
+            } else {
+              debug(chalkResponse("... previousPromptObj: " + previousPromptObj.nodeId));
+            }
+          } 
+          else if (currentSessionObj.config.mode == "STREAM") {
+            previousPromptObj = {
+              nodeId: "STREAM"
+            };
+            debug(chalkWarn("STREAM WORD CHAIN\n" + jsonPrint(currentSessionObj.wordChain)));
+          } 
+          else if (currentSessionObj.config.mode == "MUXSTREAM") {
+            previousPromptObj = {
+              nodeId: "MUXSTREAM"
+            };
+            debug(chalkWarn("MUXSTREAM WORD CHAIN\n" + jsonPrint(currentSessionObj.wordChain)));
+          } 
+          else if (currentSessionObj.config.mode == "SUBSTREAM") {
+            previousPromptObj = {
+              nodeId: "SUBSTREAM"
+            };
+            debug(chalkWarn("SUBSTREAM WORD CHAIN\n" + jsonPrint(currentSessionObj.wordChain)));
+          } 
+          else {
+            console.log(chalkError("??? EMPTY WORD CHAIN ... PREVIOUS PROMPT NOT IN CACHE ... ABORTING SESSION" 
+              + " | " + socketId
+              + "\nresponseInObj" + jsonPrint(responseInObj)
+            ));
+
+            responseQueueReady = true;
+
+            return;
+          }
+
+          // updateWordMeter(responseInObj);
+     
+          getTags(responseInObj, function(updatedWordObj){
+            
+            updateWordMeter(updatedWordObj);
+
+            var dbUpdateObj = {};
+            dbUpdateObj.word = updatedWordObj;
+            dbUpdateObj.session = currentSessionObj;
+            dbUpdateObj.tags = {};
+
+            if (updatedWordObj.tags){
+
+              if (!updatedWordObj.tags.group || (typeof updatedWordObj.tags.group === "undefined")) {
+                updatedWordObj.tags.group = updatedWordObj.tags.entity;
+                dbUpdateObj.tags.group = updatedWordObj.tags.entity;
+              }
+
+              dbUpdateObj.tags.entity = updatedWordObj.tags.entity;
+              dbUpdateObj.tags.channel = updatedWordObj.tags.channel;
+              dbUpdateObj.tags.group = updatedWordObj.tags.group;
+
+              debug(chalkInfo("R<" 
+                + " G " + updatedWordObj.tags.group 
+                + " E " + updatedWordObj.tags.entity 
+                + " C " + updatedWordObj.tags.channel 
+                + " | " + updatedWordObj.nodeId 
+                + " | " + updatedWordObj.raw 
+              ));
+
+              dbUpdateWordQueue.enqueue(dbUpdateObj);
+              responseQueueReady = true;
+
+            }
+            else {
+              debug(chalkInfo("R<" 
+                + " G " + updatedWordObj.tags.group 
+                + " E " + updatedWordObj.tags.entity 
+                + " C " + updatedWordObj.tags.channel 
+                + " | " + updatedWordObj.nodeId 
+                + " | " + updatedWordObj.raw 
+              ));
+
+              dbUpdateWordQueue.enqueue(dbUpdateObj);
+              responseQueueReady = true;
+
+            }
+
+          });
+
         });
+      }
 
-      });
     });
-
-
 
    }
 }, 20);
@@ -5029,29 +4830,30 @@ var readUpdaterMessageQueue = setInterval(function() {
     updaterMessageReady = false;
 
     var updaterObj = updaterMessageQueue.dequeue();
+    var hmKeys;
 
     switch (updaterObj.type){
-      case 'sendGroupsComplete':
-        console.log(chalkLog("UPDATE GROUPS COMPLETE | " + getTimeStamp()));
+      case "sendGroupsComplete":
+        console.log(chalkLog("UPDATE GROUPS COMPLETE | " + moment().format(compactDateTimeFormat)));
         updaterMessageReady = true;
         groupsUpdateComplete = true;
       break;
 
-      case 'sendEntitiesComplete':
-        console.log(chalkLog("UPDATE ENTITIES COMPLETE | " + getTimeStamp()));
+      case "sendEntitiesComplete":
+        console.log(chalkLog("UPDATE ENTITIES COMPLETE | " + moment().format(compactDateTimeFormat)));
         updaterMessageReady = true;
         entitiesUpdateComplete = true;
       break;
 
-      case 'sendKeywordsComplete':
-        console.log(chalkLog("UPDATE KEYWORDS COMPLETE | " + getTimeStamp()));
+      case "sendKeywordsComplete":
+        console.log(chalkLog("UPDATE KEYWORDS COMPLETE | " + moment().format(compactDateTimeFormat)));
         updaterMessageReady = true;
         keywordsUpdateComplete = true;
       break;
 
-      case 'group':
+      case "group":
 
-        if ((typeof updaterObj.target !== 'undefined') && (updaterObj.target == 'server')) {
+        if ((typeof updaterObj.target !== "undefined") && (updaterObj.target == "server")) {
           console.log(chalkLog("UPDATER GROUP\n" + jsonPrint(updaterObj)));
           serverGroupHashMap.set(updaterObj.groupId, updaterObj.group);
           serverGroupsJsonObj[updaterObj.groupId] = updaterObj.group;
@@ -5066,27 +4868,27 @@ var readUpdaterMessageQueue = setInterval(function() {
 
       break;
 
-      case 'entity':
+      case "entity":
         entityChannelGroupHashMap.set(updaterObj.entityId.toLowerCase(), updaterObj.entity);
         debug(chalkLog("UPDATE ENTITIY\n" + jsonPrint(updaterObj)));
         debug(chalkLog("UPDATE ENTITIY | " + updaterObj.entityId));
         updaterMessageReady = true;
       break;
 
-      case 'keywordHashMapClear':
+      case "keywordHashMapClear":
         keywordHashMap.clear();
         console.log(chalkLog("KEYWORD HASHMAP CLEAR"));
         updaterMessageReady = true;
       break;
 
-      case 'keywordRemove':
+      case "keywordRemove":
         keywordHashMap.remove(updaterObj.keyword.toLowerCase());
         serverKeywordHashMap.remove(updaterObj.keyword.toLowerCase());
         console.log(chalkLog("KEYWORD REMOVE: " + updaterObj.keyword.toLowerCase()));
         updaterMessageReady = true;
       break;
 
-      case 'keyword':
+      case "keyword":
 
         // updateObj = {
         //  "type" : "keyword",
@@ -5098,7 +4900,7 @@ var readUpdaterMessageQueue = setInterval(function() {
         //  }
         // };
 
-        if ((typeof updaterObj.target !== 'undefined') && (updaterObj.target == 'server')) {
+        if ((typeof updaterObj.target !== "undefined") && (updaterObj.target == "server")) {
           serverKeywordHashMap.set(updaterObj.keyword.keywordId, updaterObj.keyword);
           serverKeywordsJsonObj[updaterObj.keyword.keywordId] = updaterObj.keyword;
         }
@@ -5115,7 +4917,7 @@ var readUpdaterMessageQueue = setInterval(function() {
           serverKeywordHashMap.set(updaterObj.keyword.keywordId, updaterObj.keyword);
 
           if (keywordsUpdateComplete) {
-            var hmKeys = serverKeywordHashMap.keys();
+            hmKeys = serverKeywordHashMap.keys();
 
             async.each(hmKeys, function(keyword, cb){
               serverKeywordsJsonObj[keyword] = serverKeywordHashMap.get(keyword);
@@ -5156,7 +4958,7 @@ var readUpdaterMessageQueue = setInterval(function() {
 
             console.log(chalkLog(dmString));
 
-            sendDirectMessage('threecee', dmString, function(err, res){
+            sendDirectMessage("threecee", dmString, function(err, res){
               if (!err) {
                 console.log(chalkLog("SENT TWITTER DM: " + dmString));
               }
@@ -5167,7 +4969,7 @@ var readUpdaterMessageQueue = setInterval(function() {
 
                     setTimeout(function(){
                       console.log(chalkError("... RETRY #1 TWITTER DM " + dmString));
-                      sendDirectMessage('threecee', dmString, function(err, res){
+                      sendDirectMessage("threecee", dmString, function(err, res){
                         if (!err) {
                           console.log(chalkLog("SENT TWITTER DM: " + dmString));
                         }
@@ -5178,7 +4980,7 @@ var readUpdaterMessageQueue = setInterval(function() {
 
                               setTimeout(function(){
                                 console.log(chalkError("... RETRY #2 TWITTER DM " + dmString));
-                                sendDirectMessage('threecee', dmString, function(err, res){
+                                sendDirectMessage("threecee", dmString, function(err, res){
                                   if (!err) {
                                     console.log(chalkLog("SENT TWITTER DM: " + dmString));
                                   }
@@ -5189,7 +4991,6 @@ var readUpdaterMessageQueue = setInterval(function() {
                                       break;
                                       default:
                                         console.log(chalkError("*** TWITTER DM SEND ERROR: " + jsonPrint(err)));
-                                      break;
                                     }
                                   }
 
@@ -5198,7 +4999,6 @@ var readUpdaterMessageQueue = setInterval(function() {
                             break;
                             default:
                               console.log(chalkError("*** TWITTER DM SEND ERROR: " + jsonPrint(err)));
-                            break;
                           }
                         }
                       });
@@ -5206,7 +5006,6 @@ var readUpdaterMessageQueue = setInterval(function() {
                   break;
                   default:
                     console.log(chalkError("*** TWITTER DM SEND ERROR: " + jsonPrint(err)));
-                  break;
                 }
               }
             });
@@ -5220,7 +5019,7 @@ var readUpdaterMessageQueue = setInterval(function() {
         updaterMessageReady = true;
       break;
 
-      case 'query':
+      case "query":
         queryDb(updaterObj, function(err, queryWordObj){
 
             if (err){
@@ -5237,7 +5036,7 @@ var readUpdaterMessageQueue = setInterval(function() {
 
             console.log(chalkLog(dmString));
 
-            sendDirectMessage('threecee', dmString, function(err, res){
+            sendDirectMessage("threecee", dmString, function(err, res){
               if (!err) {
                 console.log(chalkLog("SENT TWITTER DM: " + dmString));
               }
@@ -5248,7 +5047,7 @@ var readUpdaterMessageQueue = setInterval(function() {
 
                     setTimeout(function(){
                       console.log(chalkError("... RETRY #1 TWITTER DM " + dmString));
-                      sendDirectMessage('threecee', dmString, function(err, res){
+                      sendDirectMessage("threecee", dmString, function(err, res){
                         if (!err) {
                           console.log(chalkLog("SENT TWITTER DM: " + dmString));
                         }
@@ -5259,7 +5058,7 @@ var readUpdaterMessageQueue = setInterval(function() {
 
                               setTimeout(function(){
                                 console.log(chalkError("... RETRY #2 TWITTER DM " + dmString));
-                                sendDirectMessage('threecee', dmString, function(err, res){
+                                sendDirectMessage("threecee", dmString, function(err, res){
                                   if (!err) {
                                     console.log(chalkLog("SENT TWITTER DM: " + dmString));
                                   }
@@ -5270,7 +5069,6 @@ var readUpdaterMessageQueue = setInterval(function() {
                                       break;
                                       default:
                                         console.log(chalkError("*** TWITTER DM SEND ERROR: " + jsonPrint(err)));
-                                      break;
                                     }
                                   }
 
@@ -5279,7 +5077,6 @@ var readUpdaterMessageQueue = setInterval(function() {
                             break;
                             default:
                               console.log(chalkError("*** TWITTER DM SEND ERROR: " + jsonPrint(err)));
-                            break;
                           }
                         }
                       });
@@ -5287,7 +5084,6 @@ var readUpdaterMessageQueue = setInterval(function() {
                   break;
                   default:
                     console.log(chalkError("*** TWITTER DM SEND ERROR: " + jsonPrint(err)));
-                  break;
                 }
               }
             });
@@ -5298,7 +5094,6 @@ var readUpdaterMessageQueue = setInterval(function() {
       default:
         console.log(chalkError("??? UPDATE UNKNOWN TYPE\n" + jsonPrint(updaterObj)));
         updaterMessageReady = true;
-      break;
     }
 
     updateComplete = groupsUpdateComplete && entitiesUpdateComplete && keywordsUpdateComplete;
@@ -5346,12 +5141,10 @@ var readDbUpdateEntityQueue = setInterval(function() {
 
       entityCache.set(updatedEntityObj.entityId, updatedEntityObj, function(err, success) {
         if (!err && success) {
-
           dbUpdateEntityReady = true;
-
-        } else {
+        } 
+        else {
           debug(chalkError("*** ENTITY CACHE SET ERROR" + "\n" + jsonPrint(err)));
-
           dbUpdateEntityReady = true;
         }
       });
@@ -5360,36 +5153,12 @@ var readDbUpdateEntityQueue = setInterval(function() {
   }
 }, 50);
 
-
-var printWapiResults = function(results){
-  if ( (typeof results.body === 'undefined')
-    || (typeof results.body.results === 'undefined')
-    || (typeof results.body.results[0] === 'undefined')
-    || (!results.body.results[0])
-    || (results.body.results.length == 0)
-  ) {
-    return "";
-  }
-  else {
-    switch (results.variation){
-      case "ALL":
-        debugWapi(chalkRed("results.body.results[0]: " + jsonPrint(results.body.results[0])));
-        return results.body.results[0].definition;
-      break;
-      case "antonyms":
-        return results.body.results[0].antonyms;
-      break;
-    }
-  }
-}
-
 function updatePreviousPrompt(sessionObj, wordObj, callback){
 
   var previousPromptNodeId;
   var previousPromptObj;
 
   if (wordObj.word.wordChainIndex == 0) {
-
     previousPromptObj = null;
     debug(chalkRed("CHAIN START"));
     callback(previousPromptObj);
@@ -5424,15 +5193,11 @@ var readDbUpdateWordQueue = setInterval(function() {
   if (dbUpdateWordReady && !dbUpdateWordQueue.isEmpty()) {
 
     dbUpdateWordReady = false;
-
     var dbUpdateObj = dbUpdateWordQueue.dequeue();
-
     var currentSessionObj = dbUpdateObj.session;
-
     dbUpdateObj.word.wordChainIndex = currentSessionObj.wordChainIndex;
-
     currentSessionObj.wordChain.push({nodeId: dbUpdateObj.word.nodeId, timeStamp:moment().valueOf()});
-    currentSessionObj.wordChainIndex++;
+    currentSessionObj.wordChainIndex += 1;
 
     if (entityChannelGroupHashMap.has(dbUpdateObj.tags.entity)){
       currentSessionObj.tags.entity = dbUpdateObj.tags.entity;
@@ -5442,7 +5207,7 @@ var readDbUpdateWordQueue = setInterval(function() {
 
     dbUpdateWord(dbUpdateObj.word, true, function(status, updatedWordObj) {
 
-      if (status == 'BHT_FOUND'){
+      if (status == "BHT_FOUND"){
         wordTypes.forEach(function(wordType){
           if (updatedWordObj[wordType]){
             if (updatedWordObj[wordType].ant){
@@ -5463,7 +5228,7 @@ var readDbUpdateWordQueue = setInterval(function() {
 
       updatePreviousPrompt(currentSessionObj, dbUpdateObj, function(previousPromptObj){
 
-        if (typeof previousPromptObj === 'undefined') {
+        if (typeof previousPromptObj === "undefined") {
           console.log(chalkError("previousPromptObj UNDEFINED"));
         }
 
@@ -5473,7 +5238,7 @@ var readDbUpdateWordQueue = setInterval(function() {
             promptQueue.enqueue(currentSessionObj.sessionId);
 
             var sessionUpdateObj = {
-              action: 'RESPONSE',
+              action: "RESPONSE",
               userId: currentSessionObj.userId,
               url: currentSessionObj.url,
               profileImageUrl: currentSessionObj.profileImageUrl,
@@ -5483,7 +5248,7 @@ var readDbUpdateWordQueue = setInterval(function() {
               tags: dbUpdateObj.tags
             };
 
-            if (previousPromptObj) sessionUpdateObj.target = previousPromptObj;
+            if (previousPromptObj) {sessionUpdateObj.target = previousPromptObj;}
 
             updateSessionViews(sessionUpdateObj);
 
@@ -5519,9 +5284,9 @@ function getTwitterFriends(callback){
 
     var params = {};
     params.count = count;
-    if (nextCursorValid) params.cursor = parseInt(nextCursor);
+    if (nextCursorValid) {params.cursor = parseInt(nextCursor);}
 
-    twitPromise = twit.get('friends/list', params, function(err, data, response){
+    twitPromise = twit.get("friends/list", params, function(err, data, response){
 
       if (err) {
         console.log(chalkError("*** ERROR GET TWITTER FRIENDS: " + err));
@@ -5550,7 +5315,7 @@ function getTwitterFriends(callback){
 
       friends.forEach(function(friend){
 
-        totalFriends++;
+        totalFriends += 1;
 
         console.log(chalkTwitter("FRIEND"
           + "[" + totalFriends + "]"
@@ -5568,9 +5333,9 @@ function getTwitterFriends(callback){
         entityObj.url = friend.url;
         entityObj.tags = {};
         entityObj.tags.entity = entityObj.entityId;
-        entityObj.tags.channel = 'twitter';
-        entityObj.tags.mode = 'substream';
-        entityObj.tags.group = '';
+        entityObj.tags.channel = "twitter";
+        entityObj.tags.mode = "substream";
+        entityObj.tags.group = "";
 
         followerUpdateQueue.enqueue(entityObj);
 
@@ -5624,7 +5389,7 @@ function keywordUpdateDb(updateObj, callback){
   //    "left": 7
   //  }
 
-  if (typeof updateObj.keyword.keywordId === 'undefined') {
+  if (typeof updateObj.keyword.keywordId === "undefined") {
     console.log(chalkRed("UPDATING KEYWORD ERROR\n" + jsonPrint(updateObj)));
   }
 
@@ -5632,9 +5397,7 @@ function keywordUpdateDb(updateObj, callback){
 
   wordObj.nodeId = updateObj.keyword.keywordId.toLowerCase();
   wordObj.isKeyword = true;
-  // wordObj.keywords[keywordObj.keyWordType] = true;
   wordObj.keywords[updateObj.keyword.keywordId.toLowerCase()] = updateObj.keyword;
-
   keywordHashMap.set(wordObj.nodeId, updateObj.keyword);
   serverKeywordHashMap.set(wordObj.nodeId, updateObj.keyword);
 
@@ -5666,13 +5429,10 @@ function initKeywords(file, kwHashMap, callback){
       var words = Object.keys(kwordsObj);
 
       async.forEachOf(words,
-
         function(w, kwObj, cb) {
 
           var wd = w.toLowerCase();
-          // var keywordObj = kwordsObj[w];
           var wordObj = new Word();
-
           wordObj.nodeId = wd;
           wordObj.isKeyword = true;
           wordObj.keywords = kwObj;
@@ -5687,9 +5447,7 @@ function initKeywords(file, kwHashMap, callback){
               cb();
             }
           });
-
         },
-
         function(err) {
           if (err) {
             console.log(chalkError("initKeywords ERROR! " + err));
@@ -5698,7 +5456,7 @@ function initKeywords(file, kwHashMap, callback){
             console.log(chalkInfo("initKeywords COMPLETE"));
           }
         }
-      )
+      );
     }
   });
 }
@@ -5726,27 +5484,25 @@ function initializeConfiguration(cnf, callback) {
     console.log("STDIN ENABLED");
 
     stdin = process.stdin;
-    if(typeof stdin.setRawMode !== 'undefined') {
-      stdin.setRawMode( true );
-    }
+    if (typeof stdin.setRawMode !== "undefined") { stdin.setRawMode(true); }
     stdin.resume();
-    stdin.setEncoding( 'utf8' );
-    stdin.on( 'data', function( key ){
+    stdin.setEncoding( "utf8" );
+    stdin.on( "data", function( key ){
 
       switch (key) {
-        case '\u0003':
+        case "\u0003":
           process.exit();
         break;
-        case 'q':
+        case "q":
           quit();
         break;
-        case 'Q':
+        case "Q":
           quit();
         break;
-        case 's':
+        case "s":
           showStats();
         break;
-        case 'S':
+        case "S":
           showStats(true);
         break;
         default:
@@ -5754,8 +5510,7 @@ function initializeConfiguration(cnf, callback) {
             "\n" + "q/Q: quit"
             + "\n" + "s: showStats"
             + "\n" + "S: showStats verbose"
-            );
-        break;
+          );
       }
     });
   }
@@ -5815,11 +5570,11 @@ function initializeConfiguration(cnf, callback) {
               console.log(chalkError("\n" + moment().format(compactDateTimeFormat) 
                 + "!!! DATABASE INIT ERROR: " + err));
               callbackSeries(err, null);
-              return;
-            } else {
+            } 
+            else {
               debug(chalkInfo(moment().format(compactDateTimeFormat) + " | DATABASE INIT COMPLETE"));
-              configEvents.emit('INIT_DATABASE_COMPLETE', moment().format(compactDateTimeFormat));
-              callbackSeries(null, 'INIT_DATABASE_COMPLETE');
+              configEvents.emit("INIT_DATABASE_COMPLETE", moment().format(compactDateTimeFormat));
+              callbackSeries(null, "INIT_DATABASE_COMPLETE");
             }
           }
         ); // async.parallel
@@ -5836,19 +5591,19 @@ function initializeConfiguration(cnf, callback) {
       // CONFIG EVENT
       function(callbackSeries) {
         debug(chalkInfo(moment().format(compactDateTimeFormat) + " | INIT CONFIG COMPLETE"));
-        var serverSessionConfig = {
-          configOrigin: 'SERVER',
+        var sConfig = {
+          configOrigin: "SERVER",
           testMode: testMode
         };
-        debug("SESSION CONFIGURATION\n" + JSON.stringify(serverSessionConfig, null, 3) + "\n");
-        callbackSeries(null, serverSessionConfig);
+        debug("SESSION CONFIGURATION\n" + JSON.stringify(sConfig, null, 3) + "\n");
+        callbackSeries(null, sConfig);
       },
 
       // SERVER READY
       function(callbackSeries) {
 
         if (OFFLINE_MODE) {
-          console.log(chalkInfo(moment().format(compactDateTimeFormat) + ' | OFFLINE MODE ... SKIPPING SERVER READY'));
+          console.log(chalkInfo(moment().format(compactDateTimeFormat) + " | OFFLINE MODE ... SKIPPING SERVER READY"));
           console.log(chalkInfo(moment().format(compactDateTimeFormat) + " | SEND SERVER_NOT_READY"));
           internetReady = true;
           configEvents.emit("SERVER_READY");
@@ -5859,11 +5614,11 @@ function initializeConfiguration(cnf, callback) {
         debug("... CHECKING INTERNET CONNECTION ...");
 
         // var testClient = new net.Socket();
-        var testClient = net.createConnection(80, 'www.google.com');
+        var testClient = net.createConnection(80, "www.google.com");
 
-        testClient.on('connect', function() {
-          statsObj.socket.connects++;
-          debug(chalkInfo(moment().format(compactDateTimeFormat) + ' | CONNECTED TO GOOGLE: OK'));
+        testClient.on("connect", function() {
+          statsObj.socket.connects += 1;
+          debug(chalkInfo(moment().format(compactDateTimeFormat) + " | CONNECTED TO GOOGLE: OK"));
           debug(chalkInfo(moment().format(compactDateTimeFormat) + " | SEND SERVER_READY"));
           internetReady = true;
           configEvents.emit("SERVER_READY");
@@ -5871,9 +5626,9 @@ function initializeConfiguration(cnf, callback) {
           callbackSeries(null, "SERVER_READY");
         });
 
-        testClient.on('error', function(err) {
-          statsObj.socket.errors++;
-          debug(chalkError(moment().format(compactDateTimeFormat) + ' | **** GOOGLE CONNECT ERROR ****\n' + err));
+        testClient.on("error", function(err) {
+          statsObj.socket.errors += 1;
+          debug(chalkError(moment().format(compactDateTimeFormat) + " | **** GOOGLE CONNECT ERROR ****\n" + err));
           debug(chalkError(moment().format(compactDateTimeFormat) + " | **** SERVER_NOT_READY ****"));
           internetReady = false;
           testClient.destroy();
@@ -5915,9 +5670,9 @@ function initializeConfiguration(cnf, callback) {
               });
             }, pollTwitterFriendsIntervalTime);
 
-            twitterStream = twit.stream('user');
+            twitterStream = twit.stream("user");
 
-            twitterStream.on('follow', function(followEvent){
+            twitterStream.on("follow", function(followEvent){
 
               debug(chalkTwitter("FOLLOW EVENT\n" + jsonPrint(followEvent)));
 
@@ -5931,14 +5686,14 @@ function initializeConfiguration(cnf, callback) {
               entityObj.url = followEvent.target.url;
               entityObj.tags = {};
               entityObj.tags.entity = entityObj.entityId;
-              entityObj.tags.channel = 'twitter';
-              entityObj.tags.mode = 'substream';
-              entityObj.tags.group = '';
+              entityObj.tags.channel = "twitter";
+              entityObj.tags.mode = "substream";
+              entityObj.tags.group = "";
 
               followerUpdateQueue.enqueue(entityObj);
             });
 
-            twitterStream.on('direct_message', function (message) {
+            twitterStream.on("direct_message", function (message) {
 
               console.log(chalkTwitter("R< TWITTER DIRECT MESSAGE"
                 + " | " + message.direct_message.sender_screen_name
@@ -5947,50 +5702,54 @@ function initializeConfiguration(cnf, callback) {
                 // + "\nMESSAGE\n" + jsonPrint(message)
               ));
 
-              if (message.direct_message.sender_screen_name == 'threecee' || message.direct_message.sender_screen_name == 'ninjathreecee') {
+              if (message.direct_message.sender_screen_name == "threecee" 
+                || message.direct_message.sender_screen_name == "ninjathreecee") {
 
                 if (message.direct_message.entities.hashtags.length > 0) {
 
                   var hashtags = message.direct_message.entities.hashtags;
 
                   var op = hashtags[0].text;
+                  var keyWordType;
+                  var kwt;
+                  var keyword;
+                  var updateObj = {};
+                  var query;
 
                   switch (op) {
-                    case 'k':
-                    case 'key':
+                    case "k":
+                    case "key":
                       if (hashtags.length == 3) {
-                        var keyWordType;
-                        var kwt = hashtags[1].text.toLowerCase();
-                        var keyword = hashtags[2].text.toLowerCase();
+                        kwt = hashtags[1].text.toLowerCase();
+                        keyword = hashtags[2].text.toLowerCase();
 
                         switch(kwt) {
-                          case 'p':
-                          case 'pos':
-                          case 'positive':
-                            keyWordType = 'positive';
+                          case "p":
+                          case "pos":
+                          case "positive":
+                            keyWordType = "positive";
                           break;
-                          case 'n':
-                          case 'neg':
-                          case 'negative':
-                            keyWordType = 'negative';
+                          case "n":
+                          case "neg":
+                          case "negative":
+                            keyWordType = "negative";
                           break;
-                          case 'o':
-                          case 'neu':
-                          case 'neutral':
-                            keyWordType = 'neutral';
+                          case "o":
+                          case "neu":
+                          case "neutral":
+                            keyWordType = "neutral";
                           break;
-                          case 'l':
-                          case 'left':
-                            keyWordType = 'left';
+                          case "l":
+                          case "left":
+                            keyWordType = "left";
                           break;
-                          case 'r':
-                          case 'right':
-                            keyWordType = 'right';
+                          case "r":
+                          case "right":
+                            keyWordType = "right";
                           break;
                           default:
                             keyWordType = kwt;
                             console.log(chalkWarn("??? UNKNOWN KEYWORD TYPE: " + kwt));
-                          break;
                         }
 
                        // updateObj = {
@@ -6003,7 +5762,6 @@ function initializeConfiguration(cnf, callback) {
                         //  }
                         // };
 
-                        var updateObj = {};
 
                         updateObj.type = "keyword";
                         updateObj.target = "twitter";
@@ -6017,18 +5775,17 @@ function initializeConfiguration(cnf, callback) {
                           + "\n" + jsonPrint(updateObj) 
                         ));
                       }
-                     break;
-                    case 'q':
-                    case 'query':
+                      break;
+                    case "q":
+                    case "query":
                       if (hashtags.length == 2) {
-                        var query = hashtags[1].text.toLowerCase();
+                        query = hashtags[1].text.toLowerCase();
                         console.log(chalkTwitter("QUERY: " + query));
-                        updaterMessageQueue.enqueue({ twitter: true, type: 'query', query: query});
+                        updaterMessageQueue.enqueue({ twitter: true, type: "query", query: query});
                       }
-                    break;
+                      break;
                     default:
                       console.log(chalkTwitter("??? UNKNOWN DM OP: " + op));
-                    break;
                   }
                 }
               }
@@ -6037,20 +5794,20 @@ function initializeConfiguration(cnf, callback) {
               }
             });
 
-            twit.get('account/settings', function(err, data, response) {
+            twit.get("account/settings", function(err, data, response) {
               if (err){
-                console.log('!!!!! TWITTER ACCOUNT ERROR | ' + getTimeStamp() + '\n' + jsonPrint(err));
+                console.log("!!!!! TWITTER ACCOUNT ERROR | " + getTimeStamp() + "\n" + jsonPrint(err));
                 callbackSeries(null, "INIT_TWIT_FOR_DM_ERROR");
               }
               else {
-                console.log(chalkInfo(getTimeStamp() + " | TWITTER ACCOUNT: " + data.screen_name))
-                console.log(chalkTwitter('TWITTER ACCOUNT SETTINGS\n' 
+                console.log(chalkInfo(getTimeStamp() + " | TWITTER ACCOUNT: " + data.screen_name));
+                console.log(chalkTwitter("TWITTER ACCOUNT SETTINGS\n" 
                   + jsonPrint(data)));
 
-                twit.get('application/rate_limit_status', function(err, data, response) {
+                twit.get("application/rate_limit_status", function(err, data, response) {
                   if (err){
-                    console.log('!!!!! TWITTER ACCOUNT ERROR | ' + getTimeStamp() 
-                      + '\n' + jsonPrint(err));
+                    console.log("!!!!! TWITTER ACCOUNT ERROR | " + getTimeStamp() 
+                      + "\n" + jsonPrint(err));
                     callbackSeries(null, "INIT_TWIT_FOR_DM_ERROR");
                   }
                   else{
@@ -6061,7 +5818,7 @@ function initializeConfiguration(cnf, callback) {
               }
             });
 
-            twitterStream.on('error', function(err){
+            twitterStream.on("error", function(err){
               console.log(chalkError("*** TWITTER ERROR\n" + jsonPrint(err)));
             });
 
@@ -6095,6 +5852,9 @@ var wapiSearchQueueInterval = setInterval(function() {
     var wordObj = wapiSearchQueue.dequeue();
 
     wapiSearch(wordObj.nodeId, "ALL", function(results){
+
+      var wapiRemainingRatio = 100*(statsObj.wapi.totalRequests/statsObj.wapi.requestLimit);
+
       if (results.err){
         console.log(chalkError("WAPI ERROR:"
           // + " | " + word.toLowerCase() 
@@ -6106,14 +5866,14 @@ var wapiSearchQueueInterval = setInterval(function() {
         wapiSearchQueueReady = true;
       }
       else if (results.wapiFound) {
+
         debug(chalkWapi("* WAPI HIT"
           + " [ " + statsObj.wapi.totalRequests
           + " / " + statsObj.wapi.requestLimit
-          + " | " + (100*(statsObj.wapi.totalRequests/statsObj.wapi.requestLimit)).toFixed(2) + "% ]"
+          + " | " + wapiRemainingRatio.toFixed(2) + "% ]"
           // + " | " + word.toLowerCase() 
           + " | " + results.word
           + " | " + results.variation
-          // + " | " + printWapiResults(results)
           // + "\n" + jsonPrint(results.body)
         ));
 
@@ -6152,7 +5912,7 @@ var wapiSearchQueueInterval = setInterval(function() {
         debug(chalkWapi("- WAPI MISS"
           + " [ " + statsObj.wapi.totalRequests
           + " / " + statsObj.wapi.requestLimit
-          + " | " + (100*(statsObj.wapi.totalRequests/statsObj.wapi.requestLimit)).toFixed(2) + "% ]"
+          + " | " + wapiRemainingRatio.toFixed(2) + "% ]"
           // + " | " + word.toLowerCase() 
           + " | " + results.word
           + " | " + results.variation
@@ -6168,7 +5928,6 @@ var wapiSearchQueueInterval = setInterval(function() {
           if (err) {
             console.log(chalkError("wapiSearch -- > findOneWord ERROR" 
               + "\n" + JSON.stringify(err) + "\n" + JSON.stringify(wordObj, null, 2)));
-            // callback(err, wordObj);
           } 
           else {
             debug("WAPI > DB | " 
@@ -6195,7 +5954,7 @@ var wapiSearchQueueInterval = setInterval(function() {
 }, 50);
 
 function updateTrends(){
-  twit.get('trends/place', {id: 1}, function (err, data, response){
+  twit.get("trends/place", {id: 1}, function (err, data, response){
     if (err){
       console.log(chalkError("*** TWITTER ERROR ***"
         + " | " + err
@@ -6219,7 +5978,7 @@ function updateTrends(){
     }
   });
   
-  twit.get('trends/place', {id: 23424977}, function (err, data, response){
+  twit.get("trends/place", {id: 23424977}, function (err, data, response){
     if (err){
       console.log(chalkError("*** TWITTER ERROR ***"
         + " | " + err
@@ -6274,29 +6033,31 @@ function initFollowerUpdateQueueInterval(interval){
 
           if (entityChannelGroupHashMap.has(entityObj.entityId)) {
 
-            console.log(chalkInfo("### E CH GRP HM HIT"
+            debug(chalkInfo("### E CH GRP HM HIT"
               + " | " + entityObj.entityId
               + " | " + entityObj.name
               + " | G " + entityObj.groupId
             ));
 
+            var group;
+
             if (groupHashMap.has(entityObj.groupId)) {
 
-              var group = groupHashMap.get(entityObj.groupId);
+              group = groupHashMap.get(entityObj.groupId);
 
               groupObj.groupId = group.groupId;
               groupObj.name = group.name;
               groupObj.colors = group.colors;
               groupObj.tags.entity = entityObj.entityId;
-              groupObj.tags.channel = 'twitter';
-              groupObj.tags.mode = 'substream';
+              groupObj.tags.channel = "twitter";
+              groupObj.tags.mode = "substream";
 
               groupObj.addEntityArray = [];
               groupObj.addEntityArray.push(entityObj.entityId);
               groupObj.addChannelArray = [];
-              groupObj.addChannelArray.push('twitter');
+              groupObj.addChannelArray.push("twitter");
 
-              console.log(chalkDb("G HM HIT"
+              debug(chalkDb("G HM HIT"
                 + " | E " + entityObj.entityId
                 + " | G " + groupObj.groupId
                 + " | GN " + groupObj.name
@@ -6304,7 +6065,7 @@ function initFollowerUpdateQueueInterval(interval){
                 + " | +C " + groupObj.addChannelArray
               ));
 
-              console.log(chalkInfo("### G HM HIT"
+              debug(chalkInfo("### G HM HIT"
                 + " | " + groupObj.groupId
                 + " | " + groupObj.name
               ));
@@ -6313,12 +6074,12 @@ function initFollowerUpdateQueueInterval(interval){
             }
             else {
 
-              console.log(chalkInfo("--- G HM MISS"
+              debug(chalkInfo("--- G HM MISS"
                 + " | " + entityObj.entityId
                 + " | " + entityObj.name
               ));
 
-              console.log(chalkInfo("+ G"
+              debug(chalkInfo("+ G"
                 + " | " + entityObj.entityId
                 + " | " + entityObj.name
               ));
@@ -6326,13 +6087,13 @@ function initFollowerUpdateQueueInterval(interval){
               groupObj.groupId = entityObj.entityId;
               groupObj.name = entityObj.name;
               groupObj.tags.entity = entityObj.entityId;
-              groupObj.tags.channel = 'twitter';
-              groupObj.tags.mode = 'substream';
+              groupObj.tags.channel = "twitter";
+              groupObj.tags.mode = "substream";
 
               groupObj.addEntityArray = [];
               groupObj.addEntityArray.push(entityObj.entityId);
               groupObj.addChannelArray = [];
-              groupObj.addChannelArray.push('twitter');
+              groupObj.addChannelArray.push("twitter");
 
               groupHashMap.set(entityObj.entityId, groupObj);
               serverGroupHashMap.set(entityObj.entityId, groupObj);
@@ -6342,12 +6103,12 @@ function initFollowerUpdateQueueInterval(interval){
             }
           }
           else {
-            console.log(chalkInfo("--- E CH G HM MISS"
+            debug(chalkInfo("--- E CH G HM MISS"
               + " | " + entityObj.entityId
               + " | " + entityObj.name
             ));
 
-            console.log(chalkInfo("+ E"
+            debug(chalkInfo("+ E"
               + " | NEW E " + entityObj.entityId
               + " | " + entityObj.name
             ));
@@ -6357,7 +6118,7 @@ function initFollowerUpdateQueueInterval(interval){
 
             if (groupHashMap.has(entityObj.groupId)) {
 
-              var group = groupHashMap.get(entityObj.groupId);
+              group = groupHashMap.get(entityObj.groupId);
 
               entityObj.tags.group = group.groupId;
 
@@ -6365,15 +6126,15 @@ function initFollowerUpdateQueueInterval(interval){
               groupObj.name = group.name;
               groupObj.colors = group.colors;
               groupObj.tags.entity = entityObj.entityId;
-              groupObj.tags.channel = 'twitter';
-              groupObj.tags.mode = 'substream';
+              groupObj.tags.channel = "twitter";
+              groupObj.tags.mode = "substream";
 
               groupObj.addEntityArray = [];
               groupObj.addEntityArray.push(entityObj.entityId);
               groupObj.addChannelArray = [];
-              groupObj.addChannelArray.push('twitter');
+              groupObj.addChannelArray.push("twitter");
 
-              console.log(chalkDb("G HM HIT"
+              debug(chalkDb("G HM HIT"
                 + " | E " + entityObj.entityId
                 + " | G " + groupObj.groupId
                 + " | GN " + groupObj.name
@@ -6381,7 +6142,7 @@ function initFollowerUpdateQueueInterval(interval){
                 + " | +C " + groupObj.addChannelArray
               ));
 
-              console.log(chalkInfo("### G HM HIT"
+              debug(chalkInfo("### G HM HIT"
                 + " | " + groupObj.groupId
                 + " | " + groupObj.name
               ));
@@ -6391,12 +6152,12 @@ function initFollowerUpdateQueueInterval(interval){
             }
             else {
 
-              console.log(chalkInfo("--- G HM MISS"
+              debug(chalkInfo("--- G HM MISS"
                 + " | " + entityObj.entityId
                 + " | " + entityObj.name
               ));
 
-              console.log(chalkInfo("+ G"
+              debug(chalkInfo("+ G"
                 + " | NEW G " + entityObj.entityId
                 + " | " + entityObj.name
               ));
@@ -6406,13 +6167,13 @@ function initFollowerUpdateQueueInterval(interval){
               groupObj.groupId = entityObj.entityId;
               groupObj.name = entityObj.name;
               groupObj.tags.entity = entityObj.entityId;
-              groupObj.tags.channel = 'twitter';
-              groupObj.tags.mode = 'substream';
+              groupObj.tags.channel = "twitter";
+              groupObj.tags.mode = "substream";
 
               groupObj.addEntityArray = [];
               groupObj.addEntityArray.push(entityObj.entityId);
               groupObj.addChannelArray = [];
-              groupObj.addChannelArray.push('twitter');
+              groupObj.addChannelArray.push("twitter");
 
               groupHashMap.set(entityObj.entityId, groupObj);
               serverGroupHashMap.set(entityObj.entityId, groupObj);
@@ -6467,7 +6228,7 @@ function updateGroupEntity(entityObj, callback){
 
       debug("updateGroupEntity updatedEntityObj\n" + jsonPrint(updatedEntityObj));
 
-      if (typeof updatedEntityObj.tags === 'undefined'){
+      if (typeof updatedEntityObj.tags === "undefined"){
         updatedEntityObj.tags = {};
         updatedEntityObj.tags.entity = entityObj.entityId;
         updatedEntityObj.tags.name = entityObj.name;
@@ -6480,7 +6241,7 @@ function updateGroupEntity(entityObj, callback){
         }
         else {
           console.log(chalkInfo("TX UTIL SES (UTIL RDY): " + updatedEntity2Obj.lastSession + " TO ADMIN NAMESPACE"));
-          adminNameSpace.emit('UTIL_SESSION', updatedEntity2Obj);
+          adminNameSpace.emit("UTIL_SESSION", updatedEntity2Obj);
           callback(null, updatedEntity2Obj);
         }
       });
@@ -6503,12 +6264,12 @@ configEvents.on("TWITTER_FOLLOW", function(entityObj){
 configEvents.on("INIT_TWIT_FOR_DM_COMPLETE", function() {
 
   var dmString = hostname 
-    + '\nSTARTED wordAssoServer'
-    + '\n' + getTimeStamp()
-    + '\nPID: ' + process.pid
-    + '\n' + 'http://threeceemedia.com';
+    + "\nSTARTED wordAssoServer"
+    + "\n" + moment().format(compactDateTimeFormat)
+    + "\nPID: " + process.pid
+    + "\n" + "http://threeceemedia.com";
 
-  sendDirectMessage('threecee', dmString, function(err, res){
+  sendDirectMessage("threecee", dmString, function(err, res){
     if (!err) {
       console.log(chalkTwitter("SENT TWITTER DM: " + dmString));
     }
@@ -6519,7 +6280,6 @@ configEvents.on("INIT_TWIT_FOR_DM_COMPLETE", function() {
         break;
         default:
           console.log(chalkError("*** TWITTER DM SEND ERROR: " + jsonPrint(err)));
-        break;
       }
     }
   });
@@ -6530,11 +6290,11 @@ configEvents.on("UNKNOWN_SESSION", function(socketId) {
   if (dmOnUnknownSession) {
     var dmString = hostname + "\nwordAssoServer\nPID: " + process.pid + "\nUNKNOWN SESSION: " + socketId;
 
-    if (typeof directMessageHash[socketId] === 'undefined') {
+    if (typeof directMessageHash[socketId] === "undefined") {
 
       directMessageHash[socketId] = socketId;
 
-      sendDirectMessage('threecee', dmString, function(err, res){
+      sendDirectMessage("threecee", dmString, function(err, res){
         if (!err) {
           console.log(chalkTwitter("SENT TWITTER DM\n" + dmString + "\n" + jsonPrint(res)));
         }
@@ -6556,19 +6316,18 @@ configEvents.on("HASH_MISS", function(missObj) {
   debug(chalkError("CONFIG EVENT - HASH_MISS\n" + jsonPrint(missObj)));
 
   var dmString = hostname
-  + ' | wordAssoServer'
-  + '\nMISS ' + missObj.type.toUpperCase()
-  // + '\nhttps://twitter.com/' + missObj.value
-  + ' @' + missObj.value;
+  + " | wordAssoServer"
+  + "\nMISS " + missObj.type.toUpperCase()
+  + " @" + missObj.value;
 
   var sendDirectMessageHashKey = missObj.type + "-" + missObj.value;
 
   if (!twitterDMenabled){
     debug(chalkTwitter("... SKIP TWITTER DM\n" + dmString));
   }
-  else if (typeof directMessageHash[sendDirectMessageHashKey] === 'undefined') {
+  else if (typeof directMessageHash[sendDirectMessageHashKey] === "undefined") {
     directMessageHash[sendDirectMessageHashKey] = missObj;
-    sendDirectMessage('threecee', dmString, function(err, res){
+    sendDirectMessage("threecee", dmString, function(err, res){
       if (!err) {
         console.log(chalkTwitter("SENT TWITTER DM\n" + dmString + "\n" + jsonPrint(res)));
       }
@@ -6587,25 +6346,24 @@ configEvents.on("HASH_MISS", function(missObj) {
 
 configEvents.on("SERVER_READY", function() {
 
-  serverReady = true;
+  // serverReady = true;
 
   debug(chalkInfo(moment().format(compactDateTimeFormat) + " | SERVER_READY EVENT"));
 
   httpServer.on("reconnect", function() {
     internetReady = true;
-    console.log(chalkConnect(moment().format(compactDateTimeFormat) + ' | PORT RECONNECT: ' + config.port));
-    // initializeConfiguration();
+    console.log(chalkConnect(moment().format(compactDateTimeFormat) + " | PORT RECONNECT: " + config.port));
   });
 
-  httpServer.on('connect', function() {
-    statsObj.socket.connects++;
+  httpServer.on("connect", function() {
+    statsObj.socket.connects += 1;
     internetReady = true;
-    console.log(chalkConnect(moment().format(compactDateTimeFormat) + ' | PORT CONNECT: ' + config.port));
+    console.log(chalkConnect(moment().format(compactDateTimeFormat) + " | PORT CONNECT: " + config.port));
 
     httpServer.on("disconnect", function() {
       internetReady = false;
-      console.log(chalkError('\n***** PORT DISCONNECTED | ' + moment().format(compactDateTimeFormat) 
-        + ' | ' + config.port));
+      console.log(chalkError("\n***** PORT DISCONNECTED | " + moment().format(compactDateTimeFormat) 
+        + " | " + config.port));
     });
   });
 
@@ -6614,14 +6372,14 @@ configEvents.on("SERVER_READY", function() {
   });
 
   httpServer.on("error", function(err) {
-    statsObj.socket.errors++;
+    statsObj.socket.errors += 1;
     internetReady = false;
-    console.log(chalkError('??? HTTP ERROR | ' + moment().format(compactDateTimeFormat) + '\n' + err));
-    if (err.code == 'EADDRINUSE') {
-      console.log(chalkError('??? HTTP ADDRESS IN USE: ' + config.port + ' ... RETRYING...'));
+    console.log(chalkError("??? HTTP ERROR | " + moment().format(compactDateTimeFormat) + "\n" + err));
+    if (err.code == "EADDRINUSE") {
+      console.log(chalkError("??? HTTP ADDRESS IN USE: " + config.port + " ... RETRYING..."));
       setTimeout(function() {
         httpServer.listen(config.port, function() {
-          debug('LISTENING ON PORT ' + config.port);
+          debug("LISTENING ON PORT " + config.port);
         });
       }, 5000);
     }
@@ -6651,7 +6409,7 @@ configEvents.on("SERVER_READY", function() {
     statsObj.memoryTotal = os.totalmem();
     statsObj.memoryAvailable = os.freemem();
 
-    bhtTimeToReset = moment.utc().utcOffset("-07:00").endOf('day').valueOf() - moment.utc().utcOffset("-07:00").valueOf();
+    bhtTimeToReset = moment.utc().utcOffset("-07:00").endOf("day").valueOf() - moment.utc().utcOffset("-07:00").valueOf();
 
     //
     // SERVER HEARTBEAT
@@ -6659,7 +6417,7 @@ configEvents.on("SERVER_READY", function() {
 
     if (internetReady && ioReady) {
 
-      heartbeatsSent++;
+      heartbeatsSent += 1;
 
       txHeartbeat = {
 
@@ -6758,21 +6516,19 @@ configEvents.on("SERVER_READY", function() {
       txHeartbeat.utilities = statsObj.utilities;
       txHeartbeat.caches = statsObj.caches;
 
-      io.emit('HEARTBEAT', txHeartbeat);
+      io.emit("HEARTBEAT", txHeartbeat);
 
-      utilNameSpace.emit('HEARTBEAT', txHeartbeat);
-      adminNameSpace.emit('HEARTBEAT', txHeartbeat);
-      userNameSpace.emit('HEARTBEAT', txHeartbeat);
-      viewNameSpace.emit('HEARTBEAT', txHeartbeat);
-      testUsersNameSpace.emit('HEARTBEAT', txHeartbeat);
-      testViewersNameSpace.emit('HEARTBEAT', txHeartbeat);
+      utilNameSpace.emit("HEARTBEAT", txHeartbeat);
+      adminNameSpace.emit("HEARTBEAT", txHeartbeat);
+      userNameSpace.emit("HEARTBEAT", txHeartbeat);
+      viewNameSpace.emit("HEARTBEAT", txHeartbeat);
+      testUsersNameSpace.emit("HEARTBEAT", txHeartbeat);
+      testViewersNameSpace.emit("HEARTBEAT", txHeartbeat);
 
-      if (heartbeatsSent % 60 == 0) {
-        logHeartbeat();
-      }
+      if (heartbeatsSent % 60 == 0) { logHeartbeat(); }
 
-
-    } else {
+    } 
+    else {
       tempDateTime = moment();
       if (tempDateTime.seconds() % 10 == 0) {
         console.log(chalkError("!!!! INTERNET DOWN?? !!!!! " 
@@ -6795,26 +6551,26 @@ configEvents.on("CONFIG_CHANGE", function(serverSessionConfig) {
   debug(chalkAlert(moment().format(compactDateTimeFormat) + " | CONFIG_CHANGE EVENT"));
   debug("==> CONFIG_CHANGE EVENT: " + JSON.stringify(serverSessionConfig, null, 3));
 
-  if (typeof serverSessionConfig.testMode !== 'undefined') {
+  if (typeof serverSessionConfig.testMode !== "undefined") {
     debug(chalkAlert("--> CONFIG_CHANGE: testMode: " + serverSessionConfig.testMode));
-    io.of("/admin").emit('CONFIG_CHANGE', {
+    io.of("/admin").emit("CONFIG_CHANGE", {
       testMode: serverSessionConfig.testMode
     });
-    io.of("/util").emit('CONFIG_CHANGE', {
+    io.of("/util").emit("CONFIG_CHANGE", {
       testMode: serverSessionConfig.testMode
     });
-    io.emit('CONFIG_CHANGE', {
+    io.emit("CONFIG_CHANGE", {
       testMode: serverSessionConfig.testMode
     });
-    io.of("/test-user").emit('CONFIG_CHANGE', {
+    io.of("/test-user").emit("CONFIG_CHANGE", {
       testMode: serverSessionConfig.testMode
     });
-    io.of("/test-view").emit('CONFIG_CHANGE', {
+    io.of("/test-view").emit("CONFIG_CHANGE", {
       testMode: serverSessionConfig.testMode
     });
   }
 
-  debug(chalkInfo(moment().format(compactDateTimeFormat) + ' | >>> SENT CONFIG_CHANGE'));
+  debug(chalkInfo(moment().format(compactDateTimeFormat) + " | >>> SENT CONFIG_CHANGE"));
 });
 
 //=================================
@@ -6830,8 +6586,8 @@ function createSession(newSessionObj) {
   var namespace = newSessionObj.namespace;
   var socket = newSessionObj.socket;
   var socketId = newSessionObj.socket.id;
-  var ipAddress = newSessionObj.socket.handshake.headers['x-real-ip'] || newSessionObj.socket.client.conn.remoteAddress;
-  var hostname = newSessionObj.socket.handshake.headers.host;
+  var ipAddress = newSessionObj.socket.handshake.headers["x-real-ip"] || newSessionObj.socket.client.conn.remoteAddress;
+  var clientHostname = newSessionObj.socket.handshake.headers.host;
   var domain = "UNKNOWN";
 
   numberAdmins = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
@@ -6855,13 +6611,9 @@ function createSession(newSessionObj) {
     disconnectTime: 0
   });
 
-  if (newSessionObj.tags) {
-    sessionObj.tags = newSessionObj.tags;
-  }
+  if (newSessionObj.tags) { sessionObj.tags = newSessionObj.tags; }
 
-  if (newSessionObj.user) {
-    sessionObj.userId = newSessionObj.user.userId;
-  }
+  if (newSessionObj.user) { sessionObj.userId = newSessionObj.user.userId; }
 
   sessionObj.config.type = newSessionObj.type;
   sessionObj.config.mode = newSessionObj.mode;
@@ -6878,32 +6630,32 @@ function createSession(newSessionObj) {
     session: sessionObj
   });
 
-  socket.on('reconnect_error', function(errorObj) {
-    statsObj.socket.reconnect_errors++;
+  socket.on("reconnect_error", function(errorObj) {
+    statsObj.socket.reconnect_errors += 1;
     debug(chalkError(moment().format(compactDateTimeFormat) 
       + " | SOCKET RECONNECT ERROR: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
   });
 
-  socket.on('reconnect_failed', function(errorObj) {
-    statsObj.socket.reconnect_fails++;
+  socket.on("reconnect_failed", function(errorObj) {
+    statsObj.socket.reconnect_fails += 1;
     debug(chalkError(moment().format(compactDateTimeFormat) 
       + " | SOCKET RECONNECT FAILED: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
   });
 
-  socket.on('connect_error', function(errorObj) {
-    statsObj.socket.connect_errors++;
+  socket.on("connect_error", function(errorObj) {
+    statsObj.socket.connect_errors += 1;
     debug(chalkError(moment().format(compactDateTimeFormat) 
       + " | SOCKET CONNECT ERROR: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
   });
 
-  socket.on('connect_timeout', function(errorObj) {
-    statsObj.socket.connect_timeouts++;
+  socket.on("connect_timeout", function(errorObj) {
+    statsObj.socket.connect_timeouts += 1;
     debug(chalkError(moment().format(compactDateTimeFormat) 
       + " | SOCKET CONNECT TIMEOUT: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
   });
 
   socket.on("error", function(error) {
-    statsObj.socket.errors++;
+    statsObj.socket.errors += 1;
     debug(chalkError(moment().format(compactDateTimeFormat) 
       + " | *** SOCKET ERROR" + " | " + socket.id + " | " + error));
     sessionQueue.enqueue({
@@ -6914,7 +6666,7 @@ function createSession(newSessionObj) {
   });
 
   socket.on("reconnect", function(err) {
-    statsObj.socket.reconnects++;
+    statsObj.socket.reconnects += 1;
     sessionObj.connected = true;
     debug(chalkConnect(moment().format(compactDateTimeFormat) + " | SOCKET RECONNECT: " + socket.id));
     sessionQueue.enqueue({
@@ -6924,19 +6676,24 @@ function createSession(newSessionObj) {
   });
 
   socket.on("disconnect", function(status) {
-    statsObj.socket.disconnects++;
+    statsObj.socket.disconnects += 1;
+
     debug(chalkDisconnect(moment().format(compactDateTimeFormat) 
-      + " | SOCKET DISCONNECT: " + socket.id + "\nstatus\n" + jsonPrint(status)));
-    var sessionObj = sessionCache.get(socket.id);
-    if (sessionObj) {
-      sessionObj.connected = false;
+      + " | SOCKET DISCONNECT: " + socket.id + "\nstatus\n" + jsonPrint(status)
+    ));
+
+    var sObj = sessionCache.get(socket.id);
+
+    if (sObj) {
+      sObj.connected = false;
       sessionQueue.enqueue({
         sessionEvent: "SOCKET_DISCONNECT",
         sessionId: socket.id,
-        session: sessionObj
+        session: sObj
       });
-      debug(chalkDisconnect("\nDISCONNECTED SOCKET\n" + jsonPrint(sessionObj)));
-    } else {
+      debug(chalkDisconnect("\nDISCONNECTED SOCKET\n" + jsonPrint(sObj)));
+    } 
+    else {
       debug(chalkWarn("??? DISCONNECTED SOCKET NOT IN CACHE ... TIMED OUT? | " + socket.id));
     }
   });
@@ -7002,21 +6759,20 @@ function createSession(newSessionObj) {
 
     debug(chalkAdmin("ADMIN READY\n" + jsonPrint(adminObj)));
 
-    var socketId = socket.id;
-    var sessionObj = sessionCache.get(socketId);
+    var sObj = sessionCache.get(socket.id);
 
-    if (!sessionObj) {
+    if (!sObj) {
       debug(chalkError(moment().format(compactDateTimeFormat) 
-        + " | ??? SESSION NOT FOUND ON ADMIN READY | " + socketId));
+        + " | ??? SESSION NOT FOUND ON ADMIN READY | " + socket.id));
       return;
     }
 
     debug(chalkConnect("--- ADMIN READY   | " + adminObj.adminId 
-      + " | SID: " + sessionObj.sessionId + " | " + moment().format(compactDateTimeFormat)));
+      + " | SID: " + sObj.sessionId + " | " + moment().format(compactDateTimeFormat)));
 
     sessionQueue.enqueue({
       sessionEvent: "ADMIN_READY",
-      session: sessionObj,
+      session: sObj,
       admin: adminObj
     });
   });
@@ -7025,35 +6781,36 @@ function createSession(newSessionObj) {
 
     console.log(chalkViewer("VIEWER READY\n" + jsonPrint(viewerObj)));
 
-    var socketId = socket.id;
-    var sessionObj = sessionCache.get(socketId);
+    var sObj = sessionCache.get(socket.id);
 
-    if (!sessionObj) {
+    if (!sObj) {
       debug(chalkError(moment().format(compactDateTimeFormat) 
-        + " | ??? SESSION NOT FOUND ON VIEWER READY | " + socketId));
+        + " | ??? SESSION NOT FOUND ON VIEWER READY | " + socket.id));
       return;
     }
     debug(chalkConnect("--- VIEWER READY   | " + viewerObj.userId 
-      + " | SID: " + sessionObj.sessionId 
+      + " | SID: " + sObj.sessionId 
       + " | " + moment().format(compactDateTimeFormat)));
 
     sessionQueue.enqueue({
       sessionEvent: "VIEWER_READY",
-      session: sessionObj,
+      session: sObj,
       viewer: viewerObj
     });
   });
 
   socket.on("SESSION_KEEPALIVE", function(userObj) {
 
-    if (typeof statsObj.utilities[userObj.userId] === 'undefined') statsObj.utilities[userObj.userId] = {};
+    if (typeof statsObj.utilities[userObj.userId] === "undefined") {
+      statsObj.utilities[userObj.userId] = {};
+    }
 
-    statsObj.socket.SESSION_KEEPALIVES++;
+    statsObj.socket.SESSION_KEEPALIVES += 1;
 
     debug(chalkUser("SESSION_KEEPALIVE | " + userObj.userId));
     debug(chalkUser("SESSION_KEEPALIVE\n" + jsonPrint(userObj)));
 
-    if (userObj.stats) statsObj.utilities[userObj.userId] = userObj.stats;
+    if (userObj.stats) {statsObj.utilities[userObj.userId] = userObj.stats;}
 
     if (userObj.userId.match(/TMS_/g)){
       tmsServer = userObj.userId;
@@ -7077,57 +6834,52 @@ function createSession(newSessionObj) {
       ));
     }
  
-    var socketId = socket.id;
-    var sessionObj = {};
+    var sObj;
 
-    if ((typeof userObj.tags !== 'undefined')
-      && (typeof userObj.tags.mode !== 'undefined') 
-      && (userObj.tags.mode == 'substream')) {
-      socketId = socket.id + "#" + userObj.tags.entity;
-      debug(chalkRedBold("KEEPALIVE socketId: " + socketId));
-      sessionObj = sessionCache.get(socketId);
+    if ((typeof userObj.tags !== "undefined")
+      && (typeof userObj.tags.mode !== "undefined") 
+      && (typeof userObj.tags.mode == "substream")) {
+      debug(chalkRedBold("KEEPALIVE socket.id: " + socket.id));
+      sObj = sessionCache.get(socket.id + "#" + userObj.tags.entity);
     }
     else {
-      debug(chalkRedBold("KEEPALIVE socketId: " + socketId));
-      sessionObj = sessionCache.get(socketId);
+      debug(chalkRedBold("KEEPALIVE socket.id: " + socket.id));
+      sObj = sessionCache.get(socket.id);
     }
 
-    if (!sessionObj) {
+    if (!sObj) {
       debug(chalkError(moment().format(compactDateTimeFormat) 
-        + " | ??? SESSION NOT FOUND ON SESSION_KEEPALIVE | " + socketId 
+        + " | ??? SESSION NOT FOUND ON SESSION_KEEPALIVE | " + socket.id
         // + " | CREATING SESSION" + "\n" + jsonPrint(userObj)
       ));
 
-      sessionObj = {
+      sObj = {
         namespace: userObj.namespace,
         socket: socket,
         type: userObj.type,
         mode: userObj.mode,
         user: userObj,
         tags: {}
-      }
+      };
 
-      if (typeof userObj.tags !== 'undefined') {
+      if (typeof userObj.tags !== "undefined") {
 
         var tagKeys = Object.keys(userObj.tags);
-
         var i = 0;
 
-        for (i=0; i<tagKeys.length; i++){
-          sessionObj.tags[tagKeys[i]] = userObj.tags[tagKeys[i]].toLowerCase();
-          debug(chalkRed("sessionObj " + tagKeys[i] + " > " + sessionObj.tags[tagKeys[i]]));
+        for (i=0; i<tagKeys.length; i += 1){
+          sObj.tags[tagKeys[i]] = userObj.tags[tagKeys[i]].toLowerCase();
+          debug(chalkRed("sObj " + tagKeys[i] + " > " + sObj.tags[tagKeys[i]]));
         }
 
         if (i == tagKeys.length) {
           debug(chalkInfo("SESSION_KEEPALIVE"));
-          // createSession(sessionObj);
           return;
         }
 
       }
       else {
         debug(chalkInfo("SESSION_KEEPALIVE"));
-        // createSession(sessionObj);
         return;
        }
 
@@ -7135,37 +6887,36 @@ function createSession(newSessionObj) {
 
     debug(chalkLog("@@@ SESSION_KEEPALIVE"
       + " | " + userObj.userId 
-      + " | " + sessionObj.sessionId 
+      + " | " + sObj.sessionId 
       + " | " + moment().format(compactDateTimeFormat)));
 
-    if (typeof userObj.userId !== 'undefined') {
-      sessionObj.userId = userObj.userId;
+    if (typeof userObj.userId !== "undefined") {
+      sObj.userId = userObj.userId;
     }
 
-    if (typeof userObj.tags !== 'undefined') {
-      sessionObj.tags = userObj.tags;
+    if (typeof userObj.tags !== "undefined") {
+      sObj.tags = userObj.tags;
     }
 
-   if (typeof userObj.mode !== 'undefined') {
+   if (typeof userObj.mode !== "undefined") {
       debug("USER MODE: " + userObj.mode);
-      sessionObj.config.type = userObj.mode;
+      sObj.config.type = userObj.mode;
     }
 
     sessionQueue.enqueue({
       sessionEvent: "SESSION_KEEPALIVE",
-      session: sessionObj,
+      session: sObj,
       user: userObj
     });
   });
 
   socket.on("USER_READY", function(userObj) {
 
-    var socketId = socket.id;
     var primarySessionObj = sessionCache.get(socket.id);
 
     var sessionCacheKey = socket.id ;
 
-    statsObj.socket.USER_READYS++;
+    statsObj.socket.USER_READYS += 1;
 
     console.log(chalkUser("R< U RDY"
       + " | " + moment().format(compactDateTimeFormat) 
@@ -7180,10 +6931,10 @@ function createSession(newSessionObj) {
       // + "\nP " + userObj.profileImageUrl
     ));
 
-    if ((typeof userObj.tags !== 'undefined')
-      && (typeof userObj.tags.entity !== 'undefined') 
-      && (typeof userObj.tags.mode !== 'undefined') 
-      && (userObj.tags.mode.toLowerCase() == 'substream')) {
+    if ((typeof userObj.tags !== "undefined")
+      && (typeof userObj.tags.entity !== "undefined") 
+      && (typeof userObj.tags.mode !== "undefined") 
+      && (userObj.tags.mode.toLowerCase() == "substream")) {
 
       sessionCacheKey = socket.id + "#" + userObj.tags.entity;
 
@@ -7193,16 +6944,16 @@ function createSession(newSessionObj) {
       debug(chalkRedBold("USER_READY sessionCacheKey: " + sessionCacheKey));
     }
 
-    sessionCache.get(sessionCacheKey, function(err, sessionObj){
+    sessionCache.get(sessionCacheKey, function(err, sObj){
       if (err){
         console.log(chalkError(moment().format(compactDateTimeFormat) 
           + " | ??? SESSION CACHE ERROR ON USER READY | " + err
         ));
       }
       else {
-        if (!sessionObj) {
+        if (!sObj) {
 
-          var sessionObj = new Session({
+          sObj = new Session({
             sessionId: sessionCacheKey,
             tags: {},
             // ip: ipAddress,
@@ -7216,7 +6967,7 @@ function createSession(newSessionObj) {
             disconnectTime: 0
           });
 
-          sessionObj.config = {};
+          sObj.config = {};
 
           debug(chalkSession("SES $ MISS USR RDY"
             + " | " + sessionCacheKey
@@ -7229,108 +6980,99 @@ function createSession(newSessionObj) {
               + " | " + sessionCacheKey
               + " | SKIPPING "
             ));
-            return;
+            // return;
           }
-          else if (userObj.tags.mode.toLowerCase() == 'substream') {
+          else if (userObj.tags.mode.toLowerCase() == "substream") {
 
-            if (typeof userObj.type !== 'undefined') {
-              sessionObj.config.type = userObj.type;
-              sessionObj.type = userObj.type;
+            if (typeof userObj.type !== "undefined") {
+              sObj.config.type = userObj.type;
+              sObj.type = userObj.type;
             }
-            if (typeof userObj.mode !== 'undefined') {
-              sessionObj.config.mode = userObj.mode;
-              sessionObj.mode = userObj.mode;
+            if (typeof userObj.mode !== "undefined") {
+              sObj.config.mode = userObj.mode;
+              sObj.mode = userObj.mode;
             }
 
-            sessionObj.namespace = "util";
-            sessionObj.socket = socket;
-            // sessionObj.user = userObj;
-            sessionObj.tags.entity = userObj.tags.entity.toLowerCase();
-            sessionObj.tags.channel = userObj.tags.channel.toLowerCase();
+            sObj.namespace = "util";
+            sObj.socket = socket;
+            sObj.tags.entity = userObj.tags.entity.toLowerCase();
+            sObj.tags.channel = userObj.tags.channel.toLowerCase();
 
-            sessionObj.url = (typeof userObj.url !== undefined) ? userObj.url : "http://www.threeceemedia.com";
-            sessionObj.profileImageUrl = (typeof userObj.profileImageUrl !== undefined) ? userObj.profileImageUrl : null ;
+            sObj.url = (typeof userObj.url !== "undefined") ? userObj.url : "http://www.threeceemedia.com";
+            sObj.profileImageUrl = (typeof userObj.profileImageUrl !== "undefined") ? userObj.profileImageUrl : null ;
 
-            sessionCache.set(sessionCacheKey, sessionObj);
+            sessionCache.set(sessionCacheKey, sObj);
           }
         }
         else {
-          sessionObj.url = (typeof userObj.url !== undefined) ? userObj.url : "http://www.threeceemedia.com";
-          sessionObj.profileImageUrl = (typeof userObj.profileImageUrl !== undefined) ? userObj.profileImageUrl : null ;
-          sessionCache.set(sessionCacheKey, sessionObj);
+          sObj.url = (typeof userObj.url !== "undefined") ? userObj.url : "http://www.threeceemedia.com";
+          sObj.profileImageUrl = (userObj.profileImageUrl !== "undefined") ? userObj.profileImageUrl : null ;
+          sessionCache.set(sessionCacheKey, sObj);
         }
-        if (typeof userObj.tags !== 'undefined') {
+        if (typeof userObj.tags !== "undefined") {
 
-          // console.log(chalkRed("userObj.tags\n" + jsonPrint(userObj)));
-
-          if (typeof sessionObj.tags === 'undefined') {
-            console.log(chalkRed("sessionObj.tags UNDEFINED"));
-            sessionObj.tags = {};
-            sessionObj.tags.entity = userObj.tags.entity.toLowerCase();
-            sessionObj.tags.channel = userObj.tags.channel.toLowerCase();
+          if (typeof sObj.tags === "undefined") {
+            console.log(chalkRed("sObj.tags UNDEFINED"));
+            sObj.tags = {};
+            sObj.tags.entity = userObj.tags.entity.toLowerCase();
+            sObj.tags.channel = userObj.tags.channel.toLowerCase();
           }
           else {
-            if (typeof sessionObj.tags.entity !== 'undefined') {
+            if (typeof sObj.tags.entity !== "undefined") {
 
-              // console.log(chalkRed("sessionObj.tags.entity: " + sessionObj.tags.entity));
-              sessionObj.tags.entity = sessionObj.tags.entity.toLowerCase();
+              sObj.tags.entity = sObj.tags.entity.toLowerCase();
 
-              if (entityChannelGroupHashMap.has(sessionObj.tags.entity)){
+              if (entityChannelGroupHashMap.has(sObj.tags.entity)){
 
-                delete statsObj.entityChannelGroup.hashMiss[sessionObj.tags.entity];
+                delete statsObj.entityChannelGroup.hashMiss[sObj.tags.entity];
 
                 debug(chalkInfo("### E CH HM HIT"
-                  + " | " + sessionObj.tags.entity
-                  + " > " + entityChannelGroupHashMap.get(sessionObj.tags.entity).groupId
+                  + " | " + sObj.tags.entity
+                  + " > " + entityChannelGroupHashMap.get(sObj.tags.entity).groupId
                 ));
               }
               else {
-                statsObj.entityChannelGroup.hashMiss[sessionObj.tags.entity] = 1;
-                statsObj.entityChannelGroup.allHashMisses[sessionObj.tags.entity] = 1;
+                statsObj.entityChannelGroup.hashMiss[sObj.tags.entity] = 1;
+                statsObj.entityChannelGroup.allHashMisses[sObj.tags.entity] = 1;
                 debug(chalkInfo("-0- E CH HM MISS"
-                  + " | " + sessionObj.tags.entity
+                  + " | " + sObj.tags.entity
                   // + "\n" + jsonPrint(statsObj.entityChannelGroup.hashMiss)
                 ));
 
-                configEvents.emit("HASH_MISS", {type: "entity", value: sessionObj.tags.entity.toLowerCase()});
+                configEvents.emit("HASH_MISS", {type: "entity", value: sObj.tags.entity.toLowerCase()});
               }
             }
             else {
-              // console.log(chalkRed("sessionObj.tags\n" + jsonPrint(sessionObj.tags)));
-              sessionObj.tags.entity = userObj.tags.entity.toLowerCase();
+              sObj.tags.entity = userObj.tags.entity.toLowerCase();
             }
-            if (typeof sessionObj.tags.channel !== 'undefined') {
-
-              // console.log(chalkRed("sessionObj.tags.channel: " + sessionObj.tags.channel));
-              sessionObj.tags.channel = sessionObj.tags.channel.toLowerCase();
-
+            if (typeof sObj.tags.channel !== "undefined") {
+              sObj.tags.channel = sObj.tags.channel.toLowerCase();
             }
             else {
-              // console.log(chalkRed("sessionObj.tags\n" + jsonPrint(sessionObj.tags)));
-              sessionObj.tags.channel = userObj.tags.channel.toLowerCase();
+              sObj.tags.channel = userObj.tags.channel.toLowerCase();
             }
           }
         }
-        if (typeof userObj.type !== 'undefined') {
-          sessionObj.config.type = userObj.type;
+        if (userObj.type !== "undefined") {
+          sObj.config.type = userObj.type;
         }
-        if (typeof userObj.mode !== 'undefined') {
-          sessionObj.config.mode = userObj.mode;
+        if (userObj.mode !== "undefined") {
+          sObj.config.mode = userObj.mode;
         }
 
         debug(chalkSession("--- USER READY"
           + " | " + userObj.userId 
-          + " | SID: " + sessionObj.sessionId 
-          + " | TYPE: " + sessionObj.config.type 
-          + " | MODE: " + sessionObj.config.mode 
+          + " | SID: " + sObj.sessionId 
+          + " | TYPE: " + sObj.config.type 
+          + " | MODE: " + sObj.config.mode 
           + " | " + moment().format(compactDateTimeFormat) 
-          // + "\nSESSION OBJ\n" + jsonPrint(sessionObj) 
+          // + "\nSESSION OBJ\n" + jsonPrint(sObj) 
           // + "\nUSER OBJ\n" + jsonPrint(userObj)
         ));
 
         sessionQueue.enqueue({
           sessionEvent: "USER_READY",
-          session: sessionObj,
+          session: sObj,
           user: userObj
         });
       }
@@ -7347,6 +7089,7 @@ function createSession(newSessionObj) {
 
       var obamaHit = false;
       var trumpHit = false;
+      var wsObj;
 
       switch (nodeObj.nodeType) {
 
@@ -7354,19 +7097,17 @@ function createSession(newSessionObj) {
           if (nodeObj.text.toLowerCase().includes("obama")) {
             obamaHit = nodeObj.text;
             nodeObj.isKeyword = true;
-            // nodeObj.keywords[nodeObj.text.toLowerCase()] = "left";
             nodeObj.keywords[nodeObj.text.toLowerCase()].left = DEFAULT_KEYWORD_VALUE;
             debug(chalkError("OBAMA: " + nodeObj.text));
           }
           if (nodeObj.text.toLowerCase().includes("trump")) {
             trumpHit = nodeObj.text;
             nodeObj.isKeyword = true;
-            // nodeObj.keywords[nodeObj.text.toLowerCase()] = "right";
             nodeObj.keywords[nodeObj.text.toLowerCase()].right = DEFAULT_KEYWORD_VALUE;
             debug(chalkError("TRUMP: " + nodeObj.text));
           }
           viewNameSpace.emit("node", nodeObj);
-      break;
+        break;
 
         case "user":
           if (!nodeObj.name && !nodeObj.screenName) {
@@ -7377,14 +7118,12 @@ function createSession(newSessionObj) {
             if (nodeObj.name.toLowerCase().includes("obama")) {
               obamaHit = nodeObj.name;
               nodeObj.isKeyword = true;
-              // nodeObj.keywords[nodeObj.name.toLowerCase()] = "left";
               nodeObj.keywords[nodeObj.name.toLowerCase()] = {};
               nodeObj.keywords[nodeObj.name.toLowerCase()].left = DEFAULT_KEYWORD_VALUE;
             }
             if (nodeObj.name.toLowerCase().includes("trump")) {
               trumpHit = nodeObj.name;
               nodeObj.isKeyword = true;
-              // nodeObj.keywords[nodeObj.name.toLowerCase()] = "right";
               nodeObj.keywords[nodeObj.name.toLowerCase()] = {};
               nodeObj.keywords[nodeObj.name.toLowerCase()].right = DEFAULT_KEYWORD_VALUE;
             }
@@ -7395,14 +7134,12 @@ function createSession(newSessionObj) {
             if (nodeObj.screenName.toLowerCase().includes("obama")) {
               obamaHit = nodeObj.screenName;
               nodeObj.isKeyword = true;
-              // nodeObj.keywords[nodeObj.screenName.toLowerCase()] = "left";
               nodeObj.keywords[nodeObj.screenName.toLowerCase()] = {};
               nodeObj.keywords[nodeObj.screenName.toLowerCase()].left = DEFAULT_KEYWORD_VALUE;
             }
             if (nodeObj.screenName.toLowerCase().includes("trump")) {
               trumpHit = nodeObj.screenName;
               nodeObj.isKeyword = true;
-              // nodeObj.keywords[nodeObj.screenName.toLowerCase()] = "right";
               nodeObj.keywords[nodeObj.screenName.toLowerCase()] = {};
               nodeObj.keywords[nodeObj.screenName.toLowerCase()].right = DEFAULT_KEYWORD_VALUE;
             }
@@ -7414,7 +7151,6 @@ function createSession(newSessionObj) {
           if (nodeObj.nodeId.toLowerCase().includes("obama")) {
             obamaHit = nodeObj.nodeId;
             nodeObj.isKeyword = true;
-            // nodeObj.keywords[nodeObj.nodeId.toLowerCase()] = "left";
             nodeObj.keywords[nodeObj.nodeId.toLowerCase()] = {};
             nodeObj.keywords[nodeObj.nodeId.toLowerCase()].left = DEFAULT_KEYWORD_VALUE;
             debug(chalkError("OBAMA HT: " + nodeObj.nodeId));
@@ -7422,7 +7158,6 @@ function createSession(newSessionObj) {
           if (nodeObj.nodeId.toLowerCase().includes("trump")) {
             trumpHit = nodeObj.nodeId;
             nodeObj.isKeyword = true;
-            // nodeObj.keywords[nodeObj.nodeId.toLowerCase()] = "right";
             nodeObj.keywords[nodeObj.nodeId.toLowerCase()] = {};
             nodeObj.keywords[nodeObj.nodeId.toLowerCase()].right = DEFAULT_KEYWORD_VALUE;
             debug(chalkError("TRUMP HT: " + nodeObj.nodeId));
@@ -7433,41 +7168,40 @@ function createSession(newSessionObj) {
 
         default:
           viewNameSpace.emit("node", nodeObj);
-        break;
       }
 
       if (obamaHit) {
 
-        wordStats.meter('obamaPerSecond').mark();
-        wordStats.meter('obamaPerMinute').mark();
+        wordStats.meter("obamaPerSecond").mark();
+        wordStats.meter("obamaPerMinute").mark();
 
-        var wordStatsObj = wordStats.toJSON();
+        wsObj = wordStats.toJSON();
 
         debug(chalkAlert("OBAMA"
           + " | " + nodeObj.nodeType
           + " | " + nodeObj.nodeId
-          + " | " + wordStatsObj.obamaPerSecond["1MinuteRate"].toFixed(0) 
-          + " | " + wordStatsObj.obamaPerSecond.currentRate.toFixed(0) 
-          + " | " + wordStatsObj.obamaPerMinute["1MinuteRate"].toFixed(0) 
-          + " | " + wordStatsObj.obamaPerMinute.currentRate.toFixed(0) 
+          + " | " + wsObj.obamaPerSecond["1MinuteRate"].toFixed(0) 
+          + " | " + wsObj.obamaPerSecond.currentRate.toFixed(0) 
+          + " | " + wsObj.obamaPerMinute["1MinuteRate"].toFixed(0) 
+          + " | " + wsObj.obamaPerMinute.currentRate.toFixed(0) 
           + " | " + obamaHit
         ));
       }
 
       if (trumpHit) {
 
-        wordStats.meter('trumpPerSecond').mark();
-        wordStats.meter('trumpPerMinute').mark();
+        wordStats.meter("trumpPerSecond").mark();
+        wordStats.meter("trumpPerMinute").mark();
 
-        var wordStatsObj = wordStats.toJSON();
+        wsObj = wordStats.toJSON();
 
         debug(chalkAlert("TRUMP"
           + " | " + nodeObj.nodeType
           + " | " + nodeObj.nodeId
-          + " | " + wordStatsObj.trumpPerSecond["1MinuteRate"].toFixed(0) 
-          + " | " + wordStatsObj.trumpPerSecond.currentRate.toFixed(0) 
-          + " | " + wordStatsObj.trumpPerMinute["1MinuteRate"].toFixed(0) 
-          + " | " + wordStatsObj.trumpPerMinute.currentRate.toFixed(0) 
+          + " | " + wsObj.trumpPerSecond["1MinuteRate"].toFixed(0) 
+          + " | " + wsObj.trumpPerSecond.currentRate.toFixed(0) 
+          + " | " + wsObj.trumpPerMinute["1MinuteRate"].toFixed(0) 
+          + " | " + wsObj.trumpPerMinute.currentRate.toFixed(0) 
           + " | " + trumpHit
         ));
       }
@@ -7478,23 +7212,25 @@ function createSession(newSessionObj) {
 
   socket.on("RESPONSE_WORD_OBJ", function(rxInObj) {
 
+    var wsObj;
+
     debug("rxInObj\n" + jsonPrint(rxInObj));
 
-    wordStats.meter('wordsPerSecond').mark();
-    wordStats.meter('wordsPerMinute').mark();
+    wordStats.meter("wordsPerSecond").mark();
+    wordStats.meter("wordsPerMinute").mark();
 
     if (rxInObj.nodeId.includes("obama")) {
  
-      wordStats.meter('obamaPerSecond').mark();
-      wordStats.meter('obamaPerMinute').mark();
+      wordStats.meter("obamaPerSecond").mark();
+      wordStats.meter("obamaPerMinute").mark();
 
-      var wordStatsObj = wordStats.toJSON();
+      wsObj = wordStats.toJSON();
 
       debug(chalkAlert("OBAMA"
-        + " | " + wordStatsObj.obamaPerSecond["1MinuteRate"].toFixed(0) 
-        + " | " + wordStatsObj.obamaPerSecond.currentRate.toFixed(0) 
-        + " | " + wordStatsObj.obamaPerMinute["1MinuteRate"].toFixed(0) 
-        + " | " + wordStatsObj.obamaPerMinute.currentRate.toFixed(0) 
+        + " | " + wsObj.obamaPerSecond["1MinuteRate"].toFixed(0) 
+        + " | " + wsObj.obamaPerSecond.currentRate.toFixed(0) 
+        + " | " + wsObj.obamaPerMinute["1MinuteRate"].toFixed(0) 
+        + " | " + wsObj.obamaPerMinute.currentRate.toFixed(0) 
         + " | " + rxInObj.nodeId
       ));
 
@@ -7502,16 +7238,16 @@ function createSession(newSessionObj) {
 
     if (rxInObj.nodeId.includes("trump")) {
  
-      wordStats.meter('trumpPerSecond').mark();
-      wordStats.meter('trumpPerMinute').mark();
+      wordStats.meter("trumpPerSecond").mark();
+      wordStats.meter("trumpPerMinute").mark();
 
-      var wordStatsObj = wordStats.toJSON();
+      wsObj = wordStats.toJSON();
 
       debug(chalkAlert("TRUMP"
-        + " | " + wordStatsObj.trumpPerSecond["1MinuteRate"].toFixed(0) 
-        + " | " + wordStatsObj.trumpPerSecond.currentRate.toFixed(0) 
-        + " | " + wordStatsObj.trumpPerMinute["1MinuteRate"].toFixed(0) 
-        + " | " + wordStatsObj.trumpPerMinute.currentRate.toFixed(0) 
+        + " | " + wsObj.trumpPerSecond["1MinuteRate"].toFixed(0) 
+        + " | " + wsObj.trumpPerSecond.currentRate.toFixed(0) 
+        + " | " + wsObj.trumpPerMinute["1MinuteRate"].toFixed(0) 
+        + " | " + wsObj.trumpPerMinute.currentRate.toFixed(0) 
         + " | " + rxInObj.nodeId
       ));
 
@@ -7521,7 +7257,7 @@ function createSession(newSessionObj) {
 
       var responseInObj = rxInObj;
 
-      if (rxInObj.tags.mode == 'substream') {
+      if (rxInObj.tags.mode == "substream") {
         responseInObj.socketId = socket.id + "#" + rxInObj.tags.entity;
         debug("SUBS" 
           + "\n" + jsonPrint(rxInObj.tags)
@@ -7543,12 +7279,11 @@ function createSession(newSessionObj) {
       + " | CHAIN LIMIT: " + SESSION_WORDCHAIN_REQUEST_LIMIT));
     findSessionById(sessionId, function(err, sessionObj) {
       if (err) {
-
-      } else if (sessionObj) {
+      } 
+      else if (sessionObj) {
 
         var wordChainIndex = 0;
         var wordChainSegment = sessionObj.wordChain.slice(-SESSION_WORDCHAIN_REQUEST_LIMIT);
-
 
         async.forEachOf(
 
@@ -7562,7 +7297,8 @@ function createSession(newSessionObj) {
               if (err) {
                 console.log("ERROR\n" + err);
                 callback(err);
-              } else if (!wordArray) {
+              } 
+              else if (!wordArray) {
                 callback(null);
               }
               debug("FOUND CHAIN WORD[" + wordChainIndex + "]: " + wordArray[0].nodeId);
@@ -7580,10 +7316,9 @@ function createSession(newSessionObj) {
           },
 
           function(err) {
-            if (!err) debug("TX SESSION COMPLETE: " + sessionId);
+            if (!err) {debug("TX SESSION COMPLETE: " + sessionId);}
           }
-        )
-
+        );
       }
     });
   });
@@ -7593,7 +7328,7 @@ function createSession(newSessionObj) {
     + " | " + socket.id
     + " | DELTA: " + deltaReqs
     ));
-    incrementSocketBhtReqs(deltaReqs)
+    incrementSocketBhtReqs(deltaReqs);
   });
 
   socket.on("MW_REQUESTS", function(deltaReqs) {
@@ -7601,7 +7336,7 @@ function createSession(newSessionObj) {
     + " | " + socket.id
     + " | DELTA: " + deltaReqs
     ));
-    incrementSocketMwReqs(deltaReqs)
+    incrementSocketMwReqs(deltaReqs);
   });
 
   socket.on("SOCKET_TEST_MODE", function(testMode) {
@@ -7704,8 +7439,8 @@ function addMetricDataPoint(options, callback){
 
   defaults(options, {
     endTime: (Date.now() / 1000),
-    dataType: 'doubleValue',
-    resourceType: 'global',
+    dataType: "doubleValue",
+    resourceType: "global",
     projectId: process.env.GOOGLE_PROJECT_ID,
     metricTypePrefix: CUSTOM_GOOGLE_APIS_PREFIX
   });
@@ -7721,7 +7456,7 @@ function addMetricDataPoint(options, callback){
 
   var timeSeriesData = {
     metric: {
-      type: options.metricTypePrefix + '/' + options.metricType,
+      type: options.metricTypePrefix + "/" + options.metricType,
       labels: options.metricLabels
     },
     resource: {
@@ -7739,13 +7474,14 @@ function addMetricDataPoint(options, callback){
   };
 
   googleMonitoringClient.createTimeSeries(googleRequest)
-    .then((results) => {
+    // .then((results) => {
+    .then(function(results){
       debug(chalkTwitter("METRICS"
         + " | " + options.metricLabels.server_id 
         + " | " + options.value
       ));
     })
-    .catch((results) => {
+    .catch(function(results){
       if (results.code !== 8) {
         console.log(chalkError("*** ERROR GOOGLE METRICS"
           + " | " + options.metricLabels.server_id 
@@ -7762,21 +7498,16 @@ function addMetricDataPoint(options, callback){
 
 function initRateQinterval(interval){
 
-  var wordStatsObj;
+  var wsObj;
 
-  console.log(chalkAlert("INIT RATE QUEUE INTERVAL"));
+  console.log(chalkInfo("INIT RATE QUEUE INTERVAL"));
 
   clearInterval(rateQinterval);
 
-  obamaPerSecond = 0.0;
   obamaPerMinute = 0.0;
-
-  trumpPerSecond = 0.0;
   trumpPerMinute = 0.0;
-
   wordsPerMinute = 0.0;
   wordsPerSecond = 0.0;
-
   maxWordsPerMin = 0.0;
   maxTweetsPerMin = 0.0;
 
@@ -7784,17 +7515,17 @@ function initRateQinterval(interval){
 
   rateQinterval = setInterval(function () {
 
-    wordStatsObj = wordStats.toJSON();
-    if (!wordStatsObj) return;
+    wsObj = wordStats.toJSON();
+    if (!wsObj) {return;}
 
-    wordsPerSecond = wordStatsObj.wordsPerSecond["1MinuteRate"];
-    wordsPerMinute = wordStatsObj.wordsPerMinute["1MinuteRate"];
+    wordsPerSecond = wsObj.wordsPerSecond["1MinuteRate"];
+    wordsPerMinute = wsObj.wordsPerMinute["1MinuteRate"];
 
-    obamaPerSecond = wordStatsObj.obamaPerSecond["1MinuteRate"];
-    obamaPerMinute = wordStatsObj.obamaPerMinute["1MinuteRate"];
+    // obamaPerSecond = wsObj.obamaPerSecond["1MinuteRate"];
+    obamaPerMinute = wsObj.obamaPerMinute["1MinuteRate"];
 
-    trumpPerSecond = wordStatsObj.trumpPerSecond["1MinuteRate"];
-    trumpPerMinute = wordStatsObj.trumpPerMinute["1MinuteRate"];
+    // trumpPerSecond = wsObj.trumpPerSecond["1MinuteRate"];
+    trumpPerMinute = wsObj.trumpPerMinute["1MinuteRate"];
 
     debug(chalkWarn(moment.utc().format(compactDateTimeFormat)
       + " | WPS: " + wordsPerSecond.toFixed(2)
@@ -7811,7 +7542,7 @@ function initRateQinterval(interval){
     if (wordsPerMinute > maxWordsPerMin) {
       maxWordsPerMin = wordsPerMinute;
       maxWordsPerMinTime = moment.utc();
-      console.log(chalkAlert("NEW MAX WPM: " + wordsPerMinute.toFixed(0)));
+      console.log(chalkLog("NEW MAX WPM: " + wordsPerMinute.toFixed(0)));
       statsObj.maxWordsPerMin = wordsPerMinute;
       statsObj.maxWordsPerMinTime = moment.utc();
     }
@@ -7819,7 +7550,7 @@ function initRateQinterval(interval){
     if (obamaPerMinute > maxObamaPerMin) {
       maxObamaPerMin = obamaPerMinute;
       maxObamaPerMinTime = moment.utc();
-      console.log(chalkAlert("NEW MAX OPM: " + obamaPerMinute.toFixed(0)));
+      console.log(chalkLog("NEW MAX OPM: " + obamaPerMinute.toFixed(0)));
       statsObj.maxObamaPerMin = obamaPerMinute;
       statsObj.maxObamaPerMinTime = moment.utc();
     }
@@ -7827,39 +7558,38 @@ function initRateQinterval(interval){
     if (trumpPerMinute > maxTrumpPerMin) {
       maxTrumpPerMin = trumpPerMinute;
       maxTrumpPerMinTime = moment.utc();
-      console.log(chalkAlert("NEW MAX TrPM: " + trumpPerMinute.toFixed(0)));
+      console.log(chalkLog("NEW MAX TrPM: " + trumpPerMinute.toFixed(0)));
       statsObj.maxTrumpPerMin = trumpPerMinute;
       statsObj.maxTrumpPerMinTime = moment.utc();
     }
-      // console.log("updateTimeSeries: " + updateTimeSeries + " | C: " + updateTimeSeriesCount);
 
-    // if (enableGoogleMetrics && (updateTimeSeriesCount == 0)){
     if (updateTimeSeriesCount == 0){
 
       var wordsPerMinuteTop10 = {};
-      // var wordMeterObj = wordMeter.toJSON();
 
       sortedObjectValues(wordMeter, "1MinuteRate", function(sortedKeys){
 
         if (enableGoogleMetrics) {
+
           var endIndex = (sortedKeys.length >= 10) ? 10 : sortedKeys.length;
 
-          for (var i=0; i<endIndex; i++){
+          var index;
 
-            var wmObj = wordMeter[sortedKeys[i]].toJSON();
+          for (index=0; index<endIndex; index += 1){
+
+            var wmObj = wordMeter[sortedKeys[index]].toJSON();
 
             if (wmObj["1MinuteRate"] > MIN_METRIC_VALUE) {
-              wordsPerMinuteTop10[sortedKeys[i]] = wmObj["1MinuteRate"];
+              wordsPerMinuteTop10[sortedKeys[index]] = wmObj["1MinuteRate"];
 
               var top10dataPoint = {};
-
-              top10dataPoint.metricType = 'word/top10/' + sortedKeys[i];
+              top10dataPoint.metricType = "word/top10/" + sortedKeys[i];
               top10dataPoint.value = wmObj["1MinuteRate"];
-              top10dataPoint.metricLabels = {server_id: 'WORD'};
+              top10dataPoint.metricLabels = {server_id: "WORD"};
 
               addMetricDataPoint(top10dataPoint, function(err, results){
                 debug("top10dataPoint"
-                  + " | " + sortedKeys[i] 
+                  + " | " + sortedKeys[index] 
                   + "\n" + jsonPrint(results)
                 );
               });
@@ -7872,201 +7602,133 @@ function initRateQinterval(interval){
 
       if (enableGoogleMetrics) {
         var testDataPoint = {};
-        
-        testDataPoint.metricType = 'word/test/random';
+        testDataPoint.metricType = "word/test/random";
         testDataPoint.value = prevTestValue + randomInt(-20,20);
-        testDataPoint.metricLabels = {server_id: 'TEST'};
-
-        addMetricDataPoint(testDataPoint, function(err, results){
-          // console.log("AMDP\n" + jsonPrint(results));
-        });
+        testDataPoint.metricLabels = {server_id: "TEST"};
+        addMetricDataPoint(testDataPoint, function(err, results){});
       }
 
       if (enableGoogleMetrics && tssServer) {
         var dataPoint = {};
-        
-        dataPoint.metricType = 'twitter/tweets_per_minute';
+        dataPoint.metricType = "twitter/tweets_per_minute";
         dataPoint.value = statsObj.utilities[tssServer].tweetsPerMinute;
-        dataPoint.metricLabels = {server_id: 'TSS'};
-
-        addMetricDataPoint(dataPoint, function(err, results){
-          // console.log("TSS\n" + jsonPrint(results));
-        });
+        dataPoint.metricLabels = {server_id: "TSS"};
+        addMetricDataPoint(dataPoint, function(err, results){});
 
         var dataPoint2 = {};
-
-        dataPoint2.metricType = 'twitter/tweet_limit';
+        dataPoint2.metricType = "twitter/tweet_limit";
         dataPoint2.value = statsObj.utilities[tssServer].twitterLimit;
-        dataPoint2.metricLabels = {server_id: 'TSS'};
-
-        addMetricDataPoint(dataPoint2, function(err, results){
-          // console.log("TMS\n" + jsonPrint(results));
-        });
+        dataPoint2.metricLabels = {server_id: "TSS"};
+        addMetricDataPoint(dataPoint2, function(err, results){});
       }
 
       if (enableGoogleMetrics && tmsServer) {
-
         var dataPoint = {};
-        
-        dataPoint.metricType = 'twitter/tweets_per_minute';
+        dataPoint.metricType = "twitter/tweets_per_minute";
         dataPoint.value = statsObj.utilities[tmsServer].tweetsPerMinute;
-        dataPoint.metricLabels = {server_id: 'TMS'};
-
-        addMetricDataPoint(dataPoint, function(err, results){
-          // console.log("TMS\n" + jsonPrint(results));
-        });
+        dataPoint.metricLabels = {server_id: "TMS"};
+        addMetricDataPoint(dataPoint, function(err, results){});
         
         if (statsObj.utilities[tmsServer].twitterLimit) {
           var dataPoint2 = {};
-
-          dataPoint2.metricType = 'twitter/tweet_limit';
+          dataPoint2.metricType = "twitter/tweet_limit";
           dataPoint2.value = statsObj.utilities[tmsServer].twitterLimit;
-          dataPoint2.metricLabels = {server_id: 'TMS'};
-
-          addMetricDataPoint(dataPoint2, function(err, results){
-            // console.log("TMS\n" + jsonPrint(results));
-          });
+          dataPoint2.metricLabels = {server_id: "TMS"};
+          addMetricDataPoint(dataPoint2, function(err, results){});
         }
       }
 
       // word/words_per_minute
       if (enableGoogleMetrics) {
         var dataPoint = {};
-        
-        dataPoint.metricType = 'word/words_per_minute';
+        dataPoint.metricType = "word/words_per_minute";
         dataPoint.value = wordsPerMinute;
-        dataPoint.metricLabels = {server_id: 'WORD'};
-
+        dataPoint.metricLabels = {server_id: "WORD"};
         addMetricDataPoint(dataPoint, function(err, results){
           debug("WORD ALL\n" + jsonPrint(results));
         });
       }
-
       // word/obama_per_minute
       if (enableGoogleMetrics) {
         var dataPoint = {};
-        
-        dataPoint.metricType = 'word/obama_per_minute';
+        dataPoint.metricType = "word/obama_per_minute";
         dataPoint.value = obamaPerMinute;
-        dataPoint.metricLabels = {server_id: 'WORD'};
-
-        addMetricDataPoint(dataPoint, function(err, results){
-          // console.log("WORD OBAMA\n" + jsonPrint(results));
-        });
+        dataPoint.metricLabels = {server_id: "WORD"};
+        addMetricDataPoint(dataPoint, function(err, results){});
       }
-
       // word/trump_per_minute
       if (enableGoogleMetrics) {
         var dataPoint = {};
-        
-        dataPoint.metricType = 'word/trump_per_minute';
+        dataPoint.metricType = "word/trump_per_minute";
         dataPoint.value = trumpPerMinute;
-        dataPoint.metricLabels = {server_id: 'WORD'};
-
-        addMetricDataPoint(dataPoint, function(err, results){
-          // console.log("WORD TRUMP\n" + jsonPrint(results));
-        });
+        dataPoint.metricLabels = {server_id: "WORD"};
+        addMetricDataPoint(dataPoint, function(err, results){});
       }
-
       // util/global/number_of_utils
       if (enableGoogleMetrics) {
         var dataPoint = {};
-        
-        dataPoint.metricType = 'util/global/number_of_utils';
+        dataPoint.metricType = "util/global/number_of_utils";
         dataPoint.value = Object.keys(utilNameSpace.connected).length;
-        dataPoint.metricLabels = {server_id: 'UTIL'};
-
-        addMetricDataPoint(dataPoint, function(err, results){
-          // console.log("UTIL\n" + jsonPrint(results));
-        });
+        dataPoint.metricLabels = {server_id: "UTIL"};
+        addMetricDataPoint(dataPoint, function(err, results){});
       }
-
       // user/global/number_of_viewers
       if (enableGoogleMetrics) {
         var dataPoint = {};
-        
-        dataPoint.metricType = 'user/global/number_of_viewers';
-        // dataPoint.value = Object.keys(userNameSpace.connected).length;
+        dataPoint.metricType = "user/global/number_of_viewers";
         dataPoint.value = statsObj.caches.viewerCache.keys;
-        dataPoint.metricLabels = {server_id: 'USER'};
-
+        dataPoint.metricLabels = {server_id: "USER"};
         addMetricDataPoint(dataPoint, function(err, results){
-          // console.log("USER\n" + jsonPrint(results));
         });
       }
-
       // user/global/number_of_users
       if (enableGoogleMetrics) {
         var dataPoint = {};
-        
-        dataPoint.metricType = 'user/global/number_of_users';
-        // dataPoint.value = Object.keys(userNameSpace.connected).length;
+        dataPoint.metricType = "user/global/number_of_users";
         dataPoint.value = statsObj.caches.userCache.keys;
-        dataPoint.metricLabels = {server_id: 'USER'};
-
-        addMetricDataPoint(dataPoint, function(err, results){
-          // console.log("USER\n" + jsonPrint(results));
-        });
+        dataPoint.metricLabels = {server_id: "USER"};
+        addMetricDataPoint(dataPoint, function(err, results){});
       }
-
       // util/global/number_of_groups
       if (enableGoogleMetrics) {
         var dataPoint = {};
-        
-        dataPoint.metricType = 'util/global/number_of_groups';
+        dataPoint.metricType = "util/global/number_of_groups";
         dataPoint.value = statsObj.caches.groupCache.keys;
-        dataPoint.metricLabels = {server_id: 'UTIL'};
-
-        addMetricDataPoint(dataPoint, function(err, results){
-          // console.log("USER\n" + jsonPrint(results));
-        });
+        dataPoint.metricLabels = {server_id: "UTIL"};
+        addMetricDataPoint(dataPoint, function(err, results){});
       }
-
       // util/global/number_of_entities
       if (enableGoogleMetrics) {
         var dataPoint = {};
-        
-        dataPoint.metricType = 'util/global/number_of_entities';
+        dataPoint.metricType = "util/global/number_of_entities";
         dataPoint.value = statsObj.caches.entityCache.keys;
-        dataPoint.metricLabels = {server_id: 'UTIL'};
-
-        addMetricDataPoint(dataPoint, function(err, results){
-          // console.log("USER\n" + jsonPrint(results));
-        });
+        dataPoint.metricLabels = {server_id: "UTIL"};
+        addMetricDataPoint(dataPoint, function(err, results){});
       }
-
       // user/global/number_of_sessions
       if (enableGoogleMetrics) {
         var dataPoint = {};
-        
-        dataPoint.metricType = 'util/global/number_of_sessions';
+        dataPoint.metricType = "util/global/number_of_sessions";
         dataPoint.value = statsObj.caches.sessionCache.keys;
-        dataPoint.metricLabels = {server_id: 'UTIL'};
-
-        addMetricDataPoint(dataPoint, function(err, results){
-          // console.log("USER\n" + jsonPrint(results));
-        });
+        dataPoint.metricLabels = {server_id: "UTIL"};
+        addMetricDataPoint(dataPoint, function(err, results){});
       }
-
     }
 
-    updateTimeSeriesCount++;
+    updateTimeSeriesCount += 1;
 
-    if (updateTimeSeriesCount > 5) updateTimeSeriesCount = 0;
+    if (updateTimeSeriesCount > 5) {updateTimeSeriesCount = 0;}
 
   }, interval);
 }
 
-var DROPBOX_WA_GROUPS_CONFIG_FILE = process.env.DROPBOX_WA_GROUPS_CONFIG_FILE || 'groups.json';
-var DROPBOX_WA_KEYWORDS_FILE = process.env.DROPBOX_WA_KEYWORDS_FILE || 'keywords.json';
-var DROPBOX_WA_ENTITY_CHANNEL_GROUPS_CONFIG_FILE = process.env.DROPBOX_WA_ENTITY_CHANNEL_GROUPS_CONFIG_FILE || 'entityChannelGroups.json';
+var DROPBOX_WA_GROUPS_CONFIG_FILE = process.env.DROPBOX_WA_GROUPS_CONFIG_FILE || "groups.json";
+var DROPBOX_WA_KEYWORDS_FILE = process.env.DROPBOX_WA_KEYWORDS_FILE || "keywords.json";
+var DROPBOX_WA_ENTITY_CHANNEL_GROUPS_CONFIG_FILE = process.env.DROPBOX_WA_ENTITY_CHANNEL_GROUPS_CONFIG_FILE || "entityChannelGroups.json";
 
 var defaultDropboxGroupsConfigFile = DROPBOX_WA_GROUPS_CONFIG_FILE;
-// var defaultDropboxKeywordFile = DROPBOX_WA_KEYWORDS_FILE;
 var defaultDropboxKeywordFile = "keywords.json";
-
 var dropboxGroupsConfigFile = hostname +  "_" + DROPBOX_WA_GROUPS_CONFIG_FILE;
-
 var defaultDropboxEntityChannelGroupsConfigFile = DROPBOX_WA_ENTITY_CHANNEL_GROUPS_CONFIG_FILE;
 var dropboxEntityChannelGroupsConfigFile = hostname +  "_" + DROPBOX_WA_ENTITY_CHANNEL_GROUPS_CONFIG_FILE;
 
@@ -8099,16 +7761,17 @@ function loadConfig(file, callback){
 
 function saveDropboxJsonFile(file, jsonObj, callback){
 
-  dropboxClient.writeFile(file, JSON.stringify(jsonObj, null, 2), function(error, stat) {
-    if (error) {
+  dropboxClient.writeFile(file, JSON.stringify(jsonObj, null, 2), function(err, stat) {
+    if (err) {
       console.log(chalkError(moment().format(compactDateTimeFormat) 
         + " | !!! ERROR DROBOX JSON WRITE | FILE: " + file 
         + " ERROR: " + error.error_summary
       ));
       callback(error);
-    } else {
+    } 
+    else {
       debug(chalkLog("... SAVED DROPBOX JSON | " + file));
-      callback('OK');
+      callback("OK");
     }
   });
 }
@@ -8128,11 +7791,8 @@ function loadDropboxJsonFile(file, callback){
     ));
 
     var dropboxFileObj = JSON.parse(dropboxFileData);
-
     debug("DROPBOX JSON\n" + JSON.stringify(dropboxFileObj, null, 3));
-
     return(callback(null, dropboxFileObj));
-
   });
 }
 
@@ -8175,105 +7835,90 @@ function initAppRouting(callback) {
 
   debugAppGet(chalkInfo(moment().format(compactDateTimeFormat) + " | INIT APP ROUTING"));
 
-  // app.get('/public/assets/images/userBackgroundBorder.png', function(req, res) {
-  //   debugAppGet("LOADING FILE: /assets/images/userBackgroundBorder.png");
-  //   res.sendFile(__dirname + '/assets/images/userBackgroundBorder.png');
-  //   return;
-  // });
-
-  // app.get('/public/assets/images/mediaBackgroundBorder.png', function(req, res) {
-  //   debugAppGet("LOADING FILE: /assets/images/mediaBackgroundBorder.png");
-  //   res.sendFile(__dirname + '/assets/images/mediaBackgroundBorder.png');
-  //   return;
-  // });
-
-
-  app.get('/js/require.js', function(req, res) {
+  app.get("/js/require.js", function(req, res) {
     debugAppGet("LOADING FILE: /js/require.js");
-    res.sendFile(__dirname + '/js/require.js');
+    res.sendFile(__dirname + "/js/require.js");
     return;
   });
 
-  app.get('/node_modules/util/util.js', function(req, res) {
+  app.get("/node_modules/util/util.js", function(req, res) {
     debugAppGet("LOADING FILE: /node_modules/util/util.js");
-    res.sendFile(__dirname + '/node_modules/util/util.js');
+    res.sendFile(__dirname + "/node_modules/util/util.js");
     return;
   });
 
-  app.get('/js/libs/d3.js', function(req, res) {
+  app.get("/js/libs/d3.js", function(req, res) {
     debugAppGet("LOADING FILE: /js/libs/d3.jss");
-    res.sendFile(__dirname + '/js/libs/d3.js');
+    res.sendFile(__dirname + "/js/libs/d3.js");
     return;
   });
 
-  app.get('/js/libs/stringmap.js', function(req, res) {
+  app.get("/js/libs/stringmap.js", function(req, res) {
     debugAppGet("LOADING FILE: /js/libs/stringmap.jss");
-    res.sendFile(__dirname + '/js/libs/stringmap.js');
+    res.sendFile(__dirname + "/js/libs/stringmap.js");
     return;
   });
 
-  app.get('/node_modules/moment/moment.js', function(req, res) {
+  app.get("/node_modules/moment/moment.js", function(req, res) {
     debugAppGet("LOADING FILE: /node_modules/moment/moment.js");
-    res.sendFile(__dirname + '/node_modules/moment/moment.js');
+    res.sendFile(__dirname + "/node_modules/moment/moment.js");
     return;
   });
 
-  app.get('/node_modules/moment/min/moment.min.js', function(req, res) {
+  app.get("/node_modules/moment/min/moment.min.js", function(req, res) {
     debugAppGet("LOADING FILE: /node_modules/moment/min/moment.min.js");
-    res.sendFile(__dirname + '/node_modules/moment/min/moment.min.js');
+    res.sendFile(__dirname + "/node_modules/moment/min/moment.min.js");
     return;
   });
 
-  app.get('/node_modules/node-cache/lib/node_cache.js', function(req, res) {
+  app.get("/node_modules/node-cache/lib/node_cache.js", function(req, res) {
     debugAppGet("LOADING FILE: /node_modules/node-cache/lib/node_cache.js");
-    res.sendFile(__dirname + '/node_modules/node-cache/lib/node_cache.js');
+    res.sendFile(__dirname + "/node_modules/node-cache/lib/node_cache.js");
     return;
   });
 
-  app.get('/node_modules/socket.io/lib/socket.js', function(req, res) {
+  app.get("/node_modules/socket.io/lib/socket.js", function(req, res) {
     debugAppGet("LOADING FILE: /node_modules/socket.io/lib/socket.js");
-    res.sendFile(__dirname + '/node_modules/socket.io/lib/socket.js');
+    res.sendFile(__dirname + "/node_modules/socket.io/lib/socket.js");
     return;
   });
 
-  app.get('/threecee.pem', function(req, res) {
+  app.get("/threecee.pem", function(req, res) {
     debugAppGet("LOADING FILE: threecee.pem");
-    res.sendFile(__dirname + '/threecee.pem');
+    res.sendFile(__dirname + "/threecee.pem");
     return;
   });
 
-  app.get('/instagram', function(req, res) {
+  app.get("/instagram", function(req, res) {
     debugAppGet("LOADING PAGE: /instagram");
-    // res.sendFile(__dirname + '/index.html');
     return;
   });
 
-  app.get('/', function(req, res) {
+  app.get("/", function(req, res) {
     debugAppGet("LOADING PAGE: /");
     debugAppGet("LOADING FILE: /sessionModular.html");
-    res.sendFile(__dirname + '/sessionModular.html');
-    // res.sendFile(__dirname + '/index.html');
+    res.sendFile(__dirname + "/sessionModular.html");
     return;
   });
 
-  app.get('/controlPanel.html', function(req, res) {
+  app.get("/controlPanel.html", function(req, res) {
     debugAppGet("LOADING PAGE: /controlPanel.html");
-    res.sendFile(__dirname + '/controlPanel.html');
+    res.sendFile(__dirname + "/controlPanel.html");
     return;
   });
 
-  app.get('/js/libs/controlPanel.js', function(req, res) {
+  app.get("/js/libs/controlPanel.js", function(req, res) {
     console.log("LOADING PAGE: /js/libs/controlPanel.js");
 
-    fs.open(__dirname + '/js/libs/controlPanel.js', "r", function(error, fd) {
-      fs.readFile(__dirname + '/js/libs/controlPanel.js', function(error, data) {
+    fs.open(__dirname + "/js/libs/controlPanel.js", "r", function(error, fd) {
+      fs.readFile(__dirname + "/js/libs/controlPanel.js", function(error, data) {
         var newData;
-        if (hostname.includes('google')){
-          newData = data.toString().replace(/==SOURCE==/g, "http://word.threeceelabs.com");
+        if (hostname.includes("google")){
+          newData = data.toString().replace("==SOURCE==", "http://word.threeceelabs.com");
           console.log(chalkRed("UPDATE DEFAULT_SOURCE controlPanel.js: " + "http://word.threeceelabs.com"));
         }
         else {
-          newData = data.toString().replace(/==SOURCE==/g, "http://localhost:9997");
+          newData = data.toString().replace("==SOURCE==", "http://localhost:9997");
           console.log(chalkRed("UPDATE DEFAULT_SOURCE controlPanel.js: " + "http://localhost:9997"));
         }
         res.send(newData);
@@ -8284,101 +7929,94 @@ function initAppRouting(callback) {
     return;
   });
 
-  app.get('/admin', function(req, res) {
+  app.get("/admin", function(req, res) {
     console.warn("LOADING PAGE: /admin/admin.html");
-    res.sendFile(__dirname + '/admin/admin.html');
+    res.sendFile(__dirname + "/admin/admin.html");
     return;
   });
 
-  app.get('/admin/admin.js', function(req, res) {
+  app.get("/admin/admin.js", function(req, res) {
     console.warn("LOADING PAGE: /admin/admin.js");
-    res.sendFile(__dirname + '/admin/admin.js');
+    res.sendFile(__dirname + "/admin/admin.js");
     return;
   });
 
-  app.get('/admin/admin.html', function(req, res) {
+  app.get("/admin/admin.html", function(req, res) {
     console.warn("LOADING PAGE: /admin/admin.html");
-    res.sendFile(__dirname + '/admin/admin.html');
+    res.sendFile(__dirname + "/admin/admin.html");
     return;
   });
 
-  app.get('/admin/data/fake_users1.json', function(req, res) {
+  app.get("/admin/data/fake_users1.json", function(req, res) {
     console.warn("LOADING PAGE: /admin/data/fake_users1.json");
-    res.sendFile(__dirname + '/admin/data/fake_users1.json');
+    res.sendFile(__dirname + "/admin/data/fake_users1.json");
     return;
   });
 
-  app.get('/js/libs/progressbar.js', function(req, res) {
-    res.sendFile(__dirname + '/js/libs/progressbar.js');
+  app.get("/js/libs/progressbar.js", function(req, res) {
+    res.sendFile(__dirname + "/js/libs/progressbar.js");
     return;
   });
 
-  app.get('/js/libs/progressbar.min.js', function(req, res) {
-    res.sendFile(__dirname + '/js/libs/progressbar.min.js');
+  app.get("/js/libs/progressbar.min.js", function(req, res) {
+    res.sendFile(__dirname + "/js/libs/progressbar.min.js");
     return;
   });
 
-  app.get('/node_modules/crosstab/src/crosstab.js', function(req, res) {
-    res.sendFile(__dirname + '/node_modules/crosstab/src/crosstab.js');
+  app.get("/node_modules/crosstab/src/crosstab.js", function(req, res) {
+    res.sendFile(__dirname + "/node_modules/crosstab/src/crosstab.js");
     return;
   });
 
-  app.get('/node_modules/lsbridge/src/lsbridge.js', function(req, res) {
-    res.sendFile(__dirname + '/node_modules/lsbridge/src/lsbridge.js');
+  app.get("/node_modules/lsbridge/src/lsbridge.js", function(req, res) {
+    res.sendFile(__dirname + "/node_modules/lsbridge/src/lsbridge.js");
     return;
   });
 
-  app.get('/css/rangeslider.css', function(req, res) {
-    res.sendFile(__dirname + '/css/rangeslider.css');
+  app.get("/css/rangeslider.css", function(req, res) {
+    res.sendFile(__dirname + "/css/rangeslider.css");
     return;
   });
 
-  app.get('/css/progressbar.css', function(req, res) {
-    res.sendFile(__dirname + '/css/progressbar.css');
+  app.get("/css/progressbar.css", function(req, res) {
+    res.sendFile(__dirname + "/css/progressbar.css");
     return;
   });
 
-  app.get('/node_modules/debug/node_modules/debug.js', function(req, res) {
-    res.sendFile(__dirname + '/node_modules/debug/node_modules/debug.js');
+  app.get("/node_modules/debug/node_modules/debug.js", function(req, res) {
+    res.sendFile(__dirname + "/node_modules/debug/node_modules/debug.js");
     return;
   });
 
-  app.get('/util', function(req, res) {
+  app.get("/util", function(req, res) {
     debugAppGet(chalkAlert("UTIL PAGE REQUEST ... RETURNING index.html ..."));
-    res.sendFile(__dirname + '/index.html');
+    res.sendFile(__dirname + "/index.html");
     return;
   });
 
-  app.get('/test-user', function(req, res) {
+  app.get("/test-user", function(req, res) {
     debugAppGet(chalkAlert("TEST USER PAGE REQUEST ... RETURNING index.html ..."));
-    res.sendFile(__dirname + '/index.html');
+    res.sendFile(__dirname + "/index.html");
     return;
   });
 
-  app.get('/wordAssoClient.js', function(req, res) {
+  app.get("/wordAssoClient.js", function(req, res) {
     debugAppGet("LOADING PAGE: /wordAssoClient.js");
-    res.sendFile(__dirname + '/wordAssoClient.js');
+    res.sendFile(__dirname + "/wordAssoClient.js");
     return;
   });
 
-  /*
-  // var DEFAULT_SOURCE = "http://localhost:9997";
-  // var DEFAULT_SOURCE = "http://word.threeceelabs.com";
-  var DEFAULT_SOURCE = "==SOURCE==";
-  */
-
-  app.get('/session.js', function(req, res) {
+  app.get("/session.js", function(req, res) {
     console.log("LOADING FILE: /session.js");
 
-    fs.open(__dirname + '/session.js', "r", function(error, fd) {
-      fs.readFile(__dirname + '/session.js', function(error, data) {
-        // var newData = data.toString().replace(/REPLACE_THIS/g, "REPLACED THAT");
+    fs.open(__dirname + "/session.js", "r", function(error, fd) {
+      fs.readFile(__dirname + "/session.js", function(error, data) {
         var newData;
-        if (hostname.includes('google')){
-          newData = data.toString().replace(/==SOURCE==/g, "http://word.threeceelabs.com");
+        if (hostname.includes("google")){
+          newData = data.toString().replace("==SOURCE==", "http://word.threeceelabs.com");
         }
         else {
-          newData = data.toString().replace(/==SOURCE==/g, "http://localhost:9997");
+          newData = data.toString().replace("==SOURCE==", "http://localhost:9997");
         }
         res.send(newData);
         fs.close(fd);
@@ -8388,115 +8026,115 @@ function initAppRouting(callback) {
     return;
   });
 
-  app.get('/session', function(req, res) {
+  app.get("/session", function(req, res) {
     debugAppGet("LOADING FILE: /sessionModular.html");
-    res.sendFile(__dirname + '/sessionModular.html');
+    res.sendFile(__dirname + "/sessionModular.html");
     return;
   });
 
-  app.get('/sessionModular', function(req, res) {
+  app.get("/sessionModular", function(req, res) {
     debugAppGet("LOADING FILE: /sessionModular.html");
-    res.sendFile(__dirname + '/sessionModular.html');
+    res.sendFile(__dirname + "/sessionModular.html");
     return;
   });
 
-  app.get('/js/libs/sessionViewTicker.js', function(req, res) {
+  app.get("/js/libs/sessionViewTicker.js", function(req, res) {
     debugAppGet("LOADING FILE: sessionViewTicker.js");
-    res.sendFile(__dirname + '/js/libs/sessionViewTicker.js');
+    res.sendFile(__dirname + "/js/libs/sessionViewTicker.js");
     return;
   });
 
-  app.get('/js/libs/sessionViewFlow.js', function(req, res) {
+  app.get("/js/libs/sessionViewFlow.js", function(req, res) {
     debugAppGet("LOADING FILE: sessionViewFlow.js");
-    res.sendFile(__dirname + '/js/libs/sessionViewFlow.js');
+    res.sendFile(__dirname + "/js/libs/sessionViewFlow.js");
     return;
   });
 
-  app.get('/js/libs/sessionViewTreemap.js', function(req, res) {
+  app.get("/js/libs/sessionViewTreemap.js", function(req, res) {
     debugAppGet("LOADING FILE: sessionViewTreemap.js");
-    res.sendFile(__dirname + '/js/libs/sessionViewTreemap.js');
+    res.sendFile(__dirname + "/js/libs/sessionViewTreemap.js");
     return;
   });
 
-  app.get('/js/libs/sessionViewHistogram.js', function(req, res) {
+  app.get("/js/libs/sessionViewHistogram.js", function(req, res) {
     debugAppGet("LOADING FILE: sessionViewHistogram.js");
-    res.sendFile(__dirname + '/js/libs/sessionViewHistogram.js');
+    res.sendFile(__dirname + "/js/libs/sessionViewHistogram.js");
     return;
   });
 
-  app.get('/js/libs/sessionViewMedia.js', function(req, res) {
+  app.get("/js/libs/sessionViewMedia.js", function(req, res) {
     debugAppGet("LOADING FILE: sessionViewMedia.js");
-    res.sendFile(__dirname + '/js/libs/sessionViewMedia.js');
+    res.sendFile(__dirname + "/js/libs/sessionViewMedia.js");
     return;
   });
 
-  app.get('/js/libs/sessionViewForce.js', function(req, res) {
+  app.get("/js/libs/sessionViewForce.js", function(req, res) {
     debugAppGet("LOADING FILE: sessionViewForce.js");
-    res.sendFile(__dirname + '/js/libs/sessionViewForce.js');
+    res.sendFile(__dirname + "/js/libs/sessionViewForce.js");
     return;
   });
 
-  app.get('/js/libs/sessionView3d.js', function(req, res) {
+  app.get("/js/libs/sessionView3d.js", function(req, res) {
     debugAppGet("LOADING FILE: sessionView3d.js");
-    res.sendFile(__dirname + '/js/libs/sessionView3d.js');
+    res.sendFile(__dirname + "/js/libs/sessionView3d.js");
     return;
   });
 
-  app.get('/js/libs/sessionView.js', function(req, res) {
+  app.get("/js/libs/sessionView.js", function(req, res) {
     debugAppGet("LOADING FILE: sessionView.js");
-    res.sendFile(__dirname + '/js/libs/sessionView.js');
+    res.sendFile(__dirname + "/js/libs/sessionView.js");
     return;
   });
 
-  app.get('/css/main.css', function(req, res) {
-    res.sendFile(__dirname + '/css/main.css');
+  app.get("/css/main.css", function(req, res) {
+    res.sendFile(__dirname + "/css/main.css");
     return;
   });
 
-  app.get('/css/style.css', function(req, res) {
-    res.sendFile(__dirname + '/css/style.css');
+  app.get("/css/style.css", function(req, res) {
+    res.sendFile(__dirname + "/css/style.css");
     return;
   });
 
-  app.get('/css/base.css', function(req, res) {
-    res.sendFile(__dirname + '/css/base.css');
+  app.get("/css/base.css", function(req, res) {
+    res.sendFile(__dirname + "/css/base.css");
     return;
   });
 
-  app.get('/node_modules/panzoom/dist/panzoom.min.js', function(req, res) {
-    res.sendFile(__dirname + '/node_modules/panzoom/dist/panzoom.min.js');
+  app.get("/node_modules/panzoom/dist/panzoom.min.js", function(req, res) {
+    res.sendFile(__dirname + "/node_modules/panzoom/dist/panzoom.min.js");
     return;
   });
 
-  app.get('/node_modules/panzoom/dist/panzoom.js', function(req, res) {
-    res.sendFile(__dirname + '/node_modules/panzoom/dist/panzoom.js');
+  app.get("/node_modules/panzoom/dist/panzoom.js", function(req, res) {
+    res.sendFile(__dirname + "/node_modules/panzoom/dist/panzoom.js");
     return;
   });
 
-  app.get('/node_modules/async/lib/async.js', function(req, res) {
-    res.sendFile(__dirname + '/node_modules/async/lib/async.js');
+  app.get("/node_modules/async/lib/async.js", function(req, res) {
+    res.sendFile(__dirname + "/node_modules/async/lib/async.js");
     return;
   });
 
-  app.get('/js/libs/Queue.js', function(req, res) {
-    res.sendFile(__dirname + '/js/libs/Queue.js');
+  app.get("/js/libs/Queue.js", function(req, res) {
+    res.sendFile(__dirname + "/js/libs/Queue.js");
     return;
   });
 
-  app.get('/node_modules/hashmap/hashmap.js', function(req, res) {
-    res.sendFile(__dirname + '/node_modules/hashmap/hashmap.js');
+  app.get("/node_modules/hashmap/hashmap.js", function(req, res) {
+    res.sendFile(__dirname + "/node_modules/hashmap/hashmap.js");
     return;
   });
 
-  app.get('/favicon.ico', function(req, res) {
+  app.get("/favicon.ico", function(req, res) {
     debugAppGet("LOADING PAGE: /favicon.ico");
-    res.sendFile(__dirname + '/favicon.png');
+    res.sendFile(__dirname + "/favicon.png");
     return;
   });
 
-  app.get('/favicon.png', function(req, res) {
+  app.get("/favicon.png", function(req, res) {
     debugAppGet("LOADING PAGE: /favicon.png");
-    res.sendFile(__dirname + '/favicon.png');
+    res.sendFile(__dirname + "/favicon.png");
     return;
   });
 
@@ -8504,12 +8142,13 @@ function initAppRouting(callback) {
   callback(null, "INIT_APP_ROUTING_COMPLETE");
 }
 
-var wordsApiKey = 'RWwyknmI1OmshYkPUYAQyHVv1Cbup1ptubzjsn2F19wbnAlSEf';
-var wapiUrlRoot = 'https://wordsapiv1.p.mashape.com/words/';
+var wordsApiKey = "RWwyknmI1OmshYkPUYAQyHVv1Cbup1ptubzjsn2F19wbnAlSEf";
+var wapiUrlRoot = "https://wordsapiv1.p.mashape.com/words/";
 
 function wapiSearch(word, variation, callback){
 
-  if (wapiOverLimitFlag || (statsObj.wapi.requestsRemaining < wapiReqReservePercent * statsObj.wapi.requestLimit)) {
+  if (wapiOverLimitFlag 
+    || (statsObj.wapi.requestsRemaining < wapiReqReservePercent * statsObj.wapi.requestLimit)) {
     if (!wapiOverLimitFlag) {
       wapiOverLimitFlag = true;
       wapiEvents.emit("WAPI_OVER_LIMIT", wapiRequests);
@@ -8530,7 +8169,7 @@ function wapiSearch(word, variation, callback){
     wapiUrl = wapiUrlRoot + word.toLowerCase();
   }
   else {
-    wapiUrl = wapiUrlRoot + word.toLowerCase() + '/' + variation;
+    wapiUrl = wapiUrlRoot + word.toLowerCase() + "/" + variation;
   }
 
   unirest.get(wapiUrl)
@@ -8540,10 +8179,10 @@ function wapiSearch(word, variation, callback){
 
     debugWapi(chalkWapi("WAPI RESPONSE\n" + jsonPrint(response.headers)));
 
-    if (typeof response.headers !== 'undefined'){
-      if (typeof response.headers['x-ratelimit-requests-limit'] !== 'undefined'){
-        statsObj.wapi.requestLimit = parseInt(response.headers['x-ratelimit-requests-limit']);
-        statsObj.wapi.requestsRemaining = parseInt(response.headers['x-ratelimit-requests-remaining']);
+    if (typeof response.headers !== "undefined"){
+      if (typeof response.headers["x-ratelimit-requests-limit"] !== "undefined"){
+        statsObj.wapi.requestLimit = parseInt(response.headers["x-ratelimit-requests-limit"]);
+        statsObj.wapi.requestsRemaining = parseInt(response.headers["x-ratelimit-requests-remaining"]);
         if (statsObj.wapi.requestsRemaining > 0) {
           statsObj.wapi.totalRequests = statsObj.wapi.requestLimit - statsObj.wapi.requestsRemaining;
         }
@@ -8574,9 +8213,6 @@ function wapiSearch(word, variation, callback){
         + " [ " + statsObj.wapi.totalRequests 
         + " / " + statsObj.wapi.requestLimit 
         + " | " + (100*(statsObj.wapi.totalRequests/statsObj.wapi.requestLimit)).toFixed(2) + "% ]"
-        // + "\n" + jsonPrint(results) 
-        // + "\n" + jsonPrint(statsObj.wapi) 
-      //   + " | " + response.body[variation]
       ));
       callback(results);
     }
@@ -8591,27 +8227,22 @@ function wapiSearch(word, variation, callback){
         + " [ " + statsObj.wapi.totalRequests 
         + " / " + statsObj.wapi.requestLimit 
         + " | " + (100*(statsObj.wapi.totalRequests/statsObj.wapi.requestLimit)).toFixed(2) + "% ]"
-        // + "\n" + jsonPrint(results) 
-        // + "\n" + jsonPrint(statsObj.wapi) 
-      //   + " | " + response.body[variation]
       ));
       callback(results);
     }
-
-
   });
 }
 
 
 function sendDirectMessage(user, message, callback) {
   
-  twit.post('direct_messages/new', {screen_name: user, text:message}, function(error, response){
+  twit.post("direct_messages/new", {screen_name: user, text:message}, function(error, response){
 
     if(error) {
       debug(chalkError("!!!!! TWITTER SEND DIRECT MESSAGE ERROR: " 
         + getTimeStamp() 
-        + '\nERROR\n'  + jsonPrint(error)
-        + '\nRESPONSE\n'  + jsonPrint(response)
+        + "\nERROR\n"  + jsonPrint(error)
+        + "\nRESPONSE\n"  + jsonPrint(response)
       ));
       callback(error, message) ;
     }
@@ -8629,21 +8260,22 @@ function sendDirectMessage(user, message, callback) {
 
 process.on("message", function(msg) {
 
-  if ((msg == 'SIGINT') || (msg == 'shutdown')) {
+  if ((msg == "SIGINT") || (msg == "shutdown")) {
 
-    debug('\n\n!!!!! RECEIVED PM2 SHUTDOWN !!!!!\n\n***** Closing all connections *****\n\n');
+    debug("\n\n!!!!! RECEIVED PM2 SHUTDOWN !!!!!\n\n***** Closing all connections *****\n\n");
     debug("... SAVING STATS");
 
     saveStats(statsFile, statsObj, function(status) {
-      if (status != 'OK') {
+      if (status != "OK") {
         debug("!!! ERROR: saveStats " + status);
-      } else {
+      } 
+      else {
         debug(chalkLog("UPDATE STATUS OK"));
       }
     });
 
     setTimeout(function() {
-      debug('**** Finished closing connections ****\n\n ***** RELOADING blm.js NOW *****\n\n');
+      debug("**** Finished closing connections ****\n\n ***** RELOADING blm.js NOW *****\n\n");
       process.exit(0);
     }, 300);
 
@@ -8668,21 +8300,14 @@ initializeConfiguration(configuration, function(err, results) {
     console.log(chalkError("*** INITIALIZE CONFIGURATION ERROR ***\n" + jsonPrint(err)));
   } 
   else {
-
     console.log(chalkLog("INITIALIZE CONFIGURATION COMPLETE\n" + jsonPrint(results)));
-
     updateTrends();
     initUpdateTrendsInterval(ONE_MINUTE);
     initFollowerUpdateQueueInterval(100);
     initRateQinterval(1000);
-
     initIgnoreWordsHashMap(function(){});
-
-    // initStatsd();
-
     updater = cp.fork(`${__dirname}/js/libs/updateGroupsEntitiesChannels.js`);
-
-    updater.on('message', function(m){
+    updater.on("message", function(m){
       debug(chalkWarn("UPDATER RX\n" + jsonPrint(m)));
       updaterMessageQueue.enqueue(m);
     });

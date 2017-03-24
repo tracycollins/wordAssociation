@@ -7583,7 +7583,7 @@ function initRateQinterval(interval){
               wordsPerMinuteTop10[sortedKeys[index]] = wmObj["1MinuteRate"];
 
               var top10dataPoint = {};
-              top10dataPoint.metricType = "word/top10/" + sortedKeys[i];
+              top10dataPoint.metricType = "word/top10/" + sortedKeys[index];
               top10dataPoint.value = wmObj["1MinuteRate"];
               top10dataPoint.metricLabels = {server_id: "WORD"};
 

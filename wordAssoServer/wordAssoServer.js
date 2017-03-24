@@ -552,11 +552,13 @@ statsObj.group.allHashMisses = {};
 statsObj.session.errors = 0;
 statsObj.session.previousPromptNotFound = 0;
 statsObj.session.responseError = 0;
+statsObj.session.responseErrorType = {};
 
 statsObj.socket.connects = 0;
 statsObj.socket.reconnects = 0;
 statsObj.socket.disconnects = 0;
 statsObj.socket.errors = 0;
+
 
 statsObj.entityChannelGroup = {};
 statsObj.entityChannelGroup.hashMiss = {};

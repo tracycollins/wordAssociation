@@ -426,7 +426,7 @@ function ViewTreemap() {
 
   var cellMouseOver = function (d) {
 
-    console.debug("cellMouseOver", d);
+    // console.debug("cellMouseOver", d);
 
     d.data.mouseHoverFlag = true;
 

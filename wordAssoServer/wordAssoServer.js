@@ -4604,8 +4604,11 @@ var readResponseQueue = setInterval(function() {
       || (responseInObj.nodeId.length >  MAX_DB_KEY_LENGTH)
       )) {
 
-      console.log(chalkError("*** ILLEGAL RESPONSE ... SKIPPING" + "\nTYPE: " + typeof responseInObj.nodeId 
-        + "\n" + jsonPrint(responseInObj)));
+      console.log(chalkError("*** ILLEGAL RESPONSE ... SKIPPING" 
+        + " | NODE ID LEN: " + responseInObj.nodeId.length
+        + " | TYPE: " + typeof responseInObj.nodeId 
+        + "\n" + jsonPrint(responseInObj)
+      ));
 
       responseQueueReady = true;
       statsObj.session.error += 1;

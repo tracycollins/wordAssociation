@@ -4600,7 +4600,7 @@ var readResponseQueue = setInterval(function() {
     debug(chalkWarn("responseInObj\n" + jsonPrint(responseInObj)));
 
     if ((typeof responseInObj.nodeId === "undefined") 
-      || (responseInObj.nodeId !== "string"
+      || (typeof responseInObj.nodeId !== "string"
       || (responseInObj.nodeId.length >  MAX_DB_KEY_LENGTH)
       )) {
 

@@ -1138,13 +1138,8 @@ function ViewForce() {
         nodes[ageNodesIndex] = node;
         localNodeHashMap.set(node.nodeId, node);
 
-        // if ((node.nodeType == "tweet") && (!createTweetLinksHashMap.has(node.nodeId))) {
         if (node.nodeType == "tweet") {
-          // createTweetLinksQueue.push(node);
-          // createTweetLinksHashMap.set(node.nodeId, node);
-          // console.warn("createTweetLinksQueue: " + createTweetLinksQueue.length);
           createTweetLinks(node, function(){
-            // createTweetLinksQueueReady = true;
           });
         }
         if (node.nodeType == "word"){
@@ -1266,7 +1261,6 @@ function ViewForce() {
       if (deadLinksHash[link.linkId]) {
         linkDeleteQueue.push(link.linkId);
         links.splice(ageLinksIndex, 1);
-        // console.debug("X L [ " + links.length  + " | " + Object.keys(deadLinksHash).length + " ] " + link.linkId + " | " + deadLinksHash[link.linkId]);
         delete deadLinksHash[link.linkId];
       }
     }
@@ -1649,20 +1643,13 @@ function ViewForce() {
 
   this.addNode = function(nNode) {
 
-    // if (nNode.nodeType == "media") {
-    //   // console.debug("N>" 
-    //   //   + nNode.nodeId 
-    //   //   + " | Ms " + nNode.mentions
-    //   //   + " | " + nNode.url
-    //   // );
-    // }
-
     if ((nNode.nodeType == "session")|| (nNode.nodeType == "group")|| (nNode.nodeType == "word")) return;
 
     var newNode = nNode;
     newNode.newFlag = true;
 
-    if ((nNode.nodeType == "tweet") || (nodeAddQ.length < MAX_RX_QUEUE)) {
+    // if ((nNode.nodeType == "tweet") || (nodeAddQ.length < MAX_RX_QUEUE)) {
+    if (nodeAddQ.length < MAX_RX_QUEUE) {
       nodeAddQ.push({op:'add', node: newNode});
     }
 

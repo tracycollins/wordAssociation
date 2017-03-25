@@ -5,6 +5,7 @@
 
 function ViewForce() {
 
+  var MAX_AGE_RATE = 25;
   var newAgeRatio = 0.05;
   var nodeNewAge = 1000;
 
@@ -162,10 +163,8 @@ function ViewForce() {
   var nodeLabelOpacityScale = d3.scaleLinear().domain([1e-6, 1.0]).range([1.0, 1e-6]);
   var linkOpacityScale = d3.scaleLinear().domain([1e-6, 1.0]).range([0.5, 1e-6]);
 
-  // var adjustedAgeRateScale = d3.scaleLinear().domain([1, 500]).range([1.0, 10.0]).clamp(true);
-  var adjustedAgeRateScale = d3.scaleLinear().domain([1, MAX_NODES]).range([1.0, 10.0]);
+  var adjustedAgeRateScale = d3.scaleLinear().domain([1, MAX_NODES]).range([1.0, MAX_AGE_RATE]);
 
-  // var nodeFontSizeScale = d3.scaleLinear().domain([1, currentHashtagMaxMentions]).range([minFontSize, maxFontSize]).clamp(true);
   var nodeFontSizeScale = d3.scaleLinear().domain([1, 1000000]).range([minFontSize, maxFontSize]);
   var imageSizeScale = d3.scaleLog().domain([1, 10000000]).range([20.0, 120.0]).clamp(true);
   var defaultRadiusScale = d3.scaleLog().domain([1, 10000000]).range([5, 30]).clamp(true);

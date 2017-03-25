@@ -33,6 +33,7 @@
     "object.defaults": "^0.3.0",
     "panzoom": "^2.5.0",
     "progressbar.js": "^0.9.0",
+    "prompt": "^1.0.0",
     "queue-fifo": "^0.2.3",
     "request-promise": "^2.0.0",
     "socket.io-client": "^1.7.3",

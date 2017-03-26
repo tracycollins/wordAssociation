@@ -1938,12 +1938,12 @@ function initSocketNodeRx(){
 
     if ((nNode.nodeType !== "user") && (nNode.nodeType !== "media") && (config.sessionViewType === "media")) {return;}
 
-    // console.log("N< " 
-    //   + nNode.nodeType 
-    //   + " | " + nNode.nodeId 
-    //   + " | " + nNode.isKeyword
-    //   + "\n" + jsonPrint(nNode.keywords)
-    // );
+    console.log("N< " 
+      + nNode.nodeType 
+      + " | " + nNode.nodeId 
+      + " | " + nNode.isKeyword
+      + "\n" + jsonPrint(nNode.keywords)
+    );
 
     var dateNow = moment().valueOf();
 

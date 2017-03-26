@@ -212,7 +212,7 @@ function ViewFlow() {
 
   var nodeSvgGroup = svgFlowLayoutArea.append("svg:g").attr("id", "nodeSvgGroup");
   var nodeLabelSvgGroup = svgFlowLayoutArea.append("svg:g").attr("id", "nodeLabelSvgGroup");
-  var nodeImages = nodeSvgGroup.selectAll("image");
+  // var nodeImages = nodeSvgGroup.selectAll("image");
   var nodeLabels = nodeSvgGroup.selectAll(".nodeLabel");
 
   var divTooltip = d3.select("body").append("div")
@@ -662,23 +662,9 @@ function ViewFlow() {
  
   var updateNodes = function(callback) {
 
-    // nodeCircles = nodeSvgGroup.selectAll("circle")
-    //   .data(nodes.filter(function(d){
-    //     return (
-    //       (d.nodeType == 'group') 
-    //       || (d.nodeType == 'session') 
-    //       || (d.nodeType == 'word') 
-    //       || (d.nodeType == 'tweet') 
-    //       || (d.nodeType == 'hashtag') 
-    //       || (d.nodeType == 'url') 
-    //       || (d.nodeType == 'place')
-    //       ); 
-    //   }));
-
-    nodeImages = nodeSvgGroup.selectAll("image")
+    var nodeImages = nodeSvgGroup.selectAll("image")
       .data(nodes.filter(function(d){ 
-        return (d.nodeType == "session"); }) ,function(d) { return d.nodeId; 
-    });
+        return (d.nodeType === "session"); }), function(d) { return d.nodeId; });
 
     nodeImages
       .attr("r", function(d) {

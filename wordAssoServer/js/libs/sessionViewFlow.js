@@ -722,10 +722,6 @@ function ViewFlow() {
 
     nodeImages
       .exit()
-      .style("opacity", function(d){
-        console.error("EXIT: " + d.nodeId);
-        return 0;
-      })
       .remove();
 
     callback();
@@ -815,10 +811,6 @@ function ViewFlow() {
 
     nodeLabels
       .exit()
-      // .style("opacity", function(d){
-      //   console.error("EXIT: " + jsonPrint(d));
-      //   return 0;
-      // })
       .remove();
 
     callback();

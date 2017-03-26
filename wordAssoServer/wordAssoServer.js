@@ -26,7 +26,7 @@ var MIN_METRIC_VALUE = 5;
 
 var CUSTOM_GOOGLE_APIS_PREFIX = "custom.googleapis.com";
 
-var enableGoogleMetrics = (typeof process.env.ENABLE_GOOGLE_METRICS !== "undefined") ? process.env.ENABLE_GOOGLE_METRICS : false;
+var enableGoogleMetrics = (process.env.ENABLE_GOOGLE_METRICS !== undefined) ? process.env.ENABLE_GOOGLE_METRICS : false;
 
 var Monitoring = require("@google-cloud/monitoring");
 var googleMonitoringClient = Monitoring.v3().metricServiceClient();
@@ -94,6 +94,7 @@ var Dropbox = require("dropbox");
 // var deepcopy = require("deepcopy");
 var unirest = require("unirest");
 var debug = require("debug")("wa");
+var debugKeyword = require("debug")("kw");
 var debugWapi = require("debug")("wapi");
 var debugAppGet = require("debug")("appGet");
 var commandLineArgs = require("command-line-args");
@@ -358,7 +359,7 @@ var jsonPrint = function(obj) {
 
 function quit(message) {
   console.log("\n... QUITTING ...");
-  if (typeof updater !== "undefined") { updater.kill("SIGHUP"); }
+  if (updater !== undefined) { updater.kill("SIGHUP"); }
   var msg = "";
   if (message) {msg = message;}
   console.log("QUIT MESSAGE\n" + msg);
@@ -649,77 +650,77 @@ var monitorHashMap = {};
 // ==================================================================
 var wapiReqReservePercent = process.env.WAPI_REQ_RESERVE_PRCNT;
 
-if (typeof wapiReqReservePercent === "undefined") {wapiReqReservePercent = WAPI_REQ_RESERVE_PRCNT;}
+if (wapiReqReservePercent === undefined) {wapiReqReservePercent = WAPI_REQ_RESERVE_PRCNT;}
 console.log("WAPI_REQ_RESERVE_PRCNT: " + wapiReqReservePercent);
 
 // ==================================================================
 // ADMIN ADDRESS CACHE
 // ==================================================================
 var adminCacheTtl = process.env.ADMIN_CACHE_DEFAULT_TTL;
-if (typeof adminCacheTtl === "undefined") {adminCacheTtl = ADMIN_CACHE_DEFAULT_TTL;}
+if (adminCacheTtl === undefined) {adminCacheTtl = ADMIN_CACHE_DEFAULT_TTL;}
 console.log("ADMIN CACHE TTL: " + adminCacheTtl + " SECONDS");
 
 // ==================================================================
 // IP ADDRESS CACHE
 // ==================================================================
 var ipAddressCacheTtl = process.env.IP_ADDRESS_CACHE_DEFAULT_TTL;
-if (typeof ipAddressCacheTtl === "undefined") {ipAddressCacheTtl = IP_ADDRESS_CACHE_DEFAULT_TTL;}
+if (ipAddressCacheTtl === undefined) {ipAddressCacheTtl = IP_ADDRESS_CACHE_DEFAULT_TTL;}
 console.log("IP ADDRESS CACHE TTL: " + ipAddressCacheTtl + " SECONDS");
 
 // ==================================================================
 // TWITTER TRENDING TOPIC CACHE
 // ==================================================================
 var trendingCacheTtl = process.env.TRENDING_CACHE_DEFAULT_TTL;
-if (typeof trendingCacheTtl === "undefined") {trendingCacheTtl = TRENDING_CACHE_DEFAULT_TTL;}
+if (trendingCacheTtl === undefined) {trendingCacheTtl = TRENDING_CACHE_DEFAULT_TTL;}
 console.log("TRENDING CACHE TTL: " + trendingCacheTtl + " SECONDS");
 
 // ==================================================================
 // UTIL CACHE
 // ==================================================================
 var utilCacheTtl = process.env.UTIL_CACHE_DEFAULT_TTL;
-if (typeof utilCacheTtl === "undefined") {utilCacheTtl = UTIL_CACHE_DEFAULT_TTL;}
+if (utilCacheTtl === undefined) {utilCacheTtl = UTIL_CACHE_DEFAULT_TTL;}
 console.log("UTIL CACHE TTL: " + utilCacheTtl + " SECONDS");
 
 // ==================================================================
 // VIEWER CACHE
 // ==================================================================
 var viewerCacheTtl = process.env.VIEWER_CACHE_DEFAULT_TTL;
-if (typeof viewerCacheTtl === "undefined") {viewerCacheTtl = VIEWER_CACHE_DEFAULT_TTL;}
+if (viewerCacheTtl === undefined) {viewerCacheTtl = VIEWER_CACHE_DEFAULT_TTL;}
 console.log("VIEWER CACHE TTL: " + viewerCacheTtl + " SECONDS");
 
 // ==================================================================
 // USER CACHE
 // ==================================================================
 var userCacheTtl = process.env.USER_CACHE_DEFAULT_TTL;
-if (typeof userCacheTtl === "undefined") {userCacheTtl = USER_CACHE_DEFAULT_TTL;}
+if (userCacheTtl === undefined) {userCacheTtl = USER_CACHE_DEFAULT_TTL;}
 console.log("USER CACHE TTL: " + userCacheTtl + " SECONDS");
 
 // ==================================================================
 // GROUP CACHE
 // ==================================================================
 var groupCacheTtl = process.env.GROUP_CACHE_DEFAULT_TTL;
-if (typeof groupCacheTtl === "undefined") {groupCacheTtl = GROUP_CACHE_DEFAULT_TTL;}
+if (groupCacheTtl === undefined) {groupCacheTtl = GROUP_CACHE_DEFAULT_TTL;}
 console.log("GROUP CACHE TTL: " + groupCacheTtl + " SECONDS");
 
 // ==================================================================
 // ENTITY CACHE
 // ==================================================================
 var entityCacheTtl = process.env.ENTITY_CACHE_DEFAULT_TTL;
-if (typeof entityCacheTtl === "undefined") {entityCacheTtl = ENTITY_CACHE_DEFAULT_TTL;}
+if (entityCacheTtl === undefined) {entityCacheTtl = ENTITY_CACHE_DEFAULT_TTL;}
 console.log("ENTITY CACHE TTL: " + entityCacheTtl + " SECONDS");
 
 // ==================================================================
 // SESSION CACHE
 // ==================================================================
 var sessionCacheTtl = process.env.SESSION_CACHE_DEFAULT_TTL;
-if (typeof sessionCacheTtl === "undefined") {sessionCacheTtl = SESSION_CACHE_DEFAULT_TTL;}
+if (sessionCacheTtl === undefined) {sessionCacheTtl = SESSION_CACHE_DEFAULT_TTL;}
 console.log("SESSION CACHE TTL: " + sessionCacheTtl + " SECONDS");
 
 // ==================================================================
 // WORD CACHE
 // ==================================================================
 var wordCacheTtl = process.env.WORD_CACHE_TTL;
-if (typeof wordCacheTtl === "undefined") {wordCacheTtl = WORD_CACHE_TTL;}
+if (wordCacheTtl === undefined) {wordCacheTtl = WORD_CACHE_TTL;}
 console.log("WORD CACHE TTL: " + wordCacheTtl + " SECONDS");
 
 
@@ -838,7 +839,7 @@ wordCache.on("expired", function(word, wordObj) {
   wordMeter[wordObj.nodeId] = {};
   delete wordMeter[wordObj.nodeId];
 
-  if (typeof wordObj !== "undefined") {
+  if (wordObj !== undefined) {
     debug("... CACHE WORD EXPIRED"
       + " | " + wordObj.nodeId 
       + " | LS: " + getTimeStamp(wordObj.lastSeen) 
@@ -867,7 +868,7 @@ function updateWordMeter(wordObj){
   }
 
   if (!wordMeter[wordObj.nodeId] 
-    || (typeof wordMeter[wordObj.nodeId] === "undefined") 
+    || (wordMeter[wordObj.nodeId] === undefined) 
     || (typeof wordMeter[wordObj.nodeId].mark !== "function")) {
     wordMeter[wordObj.nodeId] = {};
     wordMeter[wordObj.nodeId] = new Measured.Meter({rateUnit: 60000});
@@ -1059,7 +1060,7 @@ function saveFile (path, file, jsonObj, callback){
 
 function dropboxWriteArrayToFile(filePath, dataArray, callback) {
 
-  if (typeof filePath === "undefined") {
+  if (filePath === undefined) {
     console.log(chalkError(moment().format(compactDateTimeFormat) 
       + " | !!! DROPBOX WRITE FILE ERROR: FILE PATH UNDEFINED"));
     callback("FILE PATH UNDEFINED", null);
@@ -1182,26 +1183,26 @@ function loadStats(callback) {
 
             debug("DROPBOX STATS\n" + JSON.stringify(sObj, null, 3));
 
-            if (typeof sObj.name === "undefined") {
+            if (sObj.name === undefined) {
               sObj.name = "Word Assocition Server Status | " + hostname;
             }
 
             console.log(chalkInfo(moment().format(compactDateTimeFormat) 
               + " | FOUND " + sObj.name));
 
-            if (typeof sObj.bhtRequests !== "undefined") {
+            if (sObj.bhtRequests !== undefined) {
               console.log(chalkInfo(moment().format(compactDateTimeFormat) 
                 + " | SET DAILY BHT REQUESTS: " + sObj.bhtRequests));
               bhtRequests = sObj.bhtRequests;
             }
 
-            if (typeof sObj.promptsSent !== "undefined") {
+            if (sObj.promptsSent !== undefined) {
               console.log(chalkInfo(moment().format(compactDateTimeFormat) 
                 + " | SET PROMPTS SENT: " + sObj.promptsSent));
               promptsSent = sObj.promptsSent;
             }
 
-            if (typeof sObj.responsesReceived !== "undefined") {
+            if (sObj.responsesReceived !== undefined) {
               console.log(chalkInfo(moment().format(compactDateTimeFormat) 
                 + " | SET RESPONSES RECEIVED: " + sObj.responsesReceived));
               responsesReceived = sObj.responsesReceived;
@@ -1262,24 +1263,24 @@ function loadStats(callback) {
 
           debug("DROPBOX STATS\n" + JSON.stringify(sObj, null, 3));
 
-          if (typeof sObj.name === "undefined") {sObj.name = "Word Assocition Server Status | " + hostname;}
+          if (sObj.name === undefined) {sObj.name = "Word Assocition Server Status | " + hostname;}
 
           console.log(chalkInfo(moment().format(compactDateTimeFormat) 
             + " | FOUND " + sObj.name));
 
-          if (typeof sObj.bhtRequests !== "undefined") {
+          if (sObj.bhtRequests !== undefined) {
             console.log(chalkInfo(moment().format(compactDateTimeFormat) 
               + " | SET DAILY BHT REQUESTS: " + sObj.bhtRequests));
             bhtRequests = sObj.bhtRequests;
           }
 
-          if (typeof sObj.promptsSent !== "undefined") {
+          if (sObj.promptsSent !== undefined) {
             console.log(chalkInfo(moment().format(compactDateTimeFormat) 
               + " | SET PROMPTS SENT: " + sObj.promptsSent));
             promptsSent = sObj.promptsSent;
           }
 
-          if (typeof sObj.responsesReceived !== "undefined") {
+          if (sObj.responsesReceived !== undefined) {
             console.log(chalkInfo(moment().format(compactDateTimeFormat) 
               + " | SET RESPONSES RECEIVED: " + sObj.responsesReceived));
             responsesReceived = sObj.responsesReceived;
@@ -1314,19 +1315,19 @@ function loadStats(callback) {
     console.log(chalkInfo(moment().format(compactDateTimeFormat) 
       + " | FOUND " + sObj.name));
 
-    if (typeof sObj.bhtRequests !== "undefined") {
+    if (sObj.bhtRequests !== undefined) {
       console.log(chalkInfo(moment().format(compactDateTimeFormat) 
         + " | SET DAILY BHT REQUESTS: " + sObj.bhtRequests));
       bhtRequests = sObj.bhtRequests;
     }
 
-    if (typeof sObj.promptsSent !== "undefined") {
+    if (sObj.promptsSent !== undefined) {
       console.log(chalkInfo(moment().format(compactDateTimeFormat) 
         + " | SET PROMPTS SENT: " + sObj.promptsSent));
       promptsSent = sObj.promptsSent;
     }
 
-    if (typeof sObj.responsesReceived !== "undefined") {
+    if (sObj.responsesReceived !== undefined) {
       console.log(chalkInfo(moment().format(compactDateTimeFormat) 
         + " | SET RESPONSES RECEIVED: " + sObj.responsesReceived));
       responsesReceived = sObj.responsesReceived;
@@ -1662,7 +1663,7 @@ function getTimeStamp(inputTime) {
     minute: "2-digit"
   };
 
-  if (typeof inputTime === "undefined") {
+  if (inputTime === undefined) {
     currentTimeStamp = moment();
   } 
   else if (moment.isMoment(inputTime)) {
@@ -1864,7 +1865,7 @@ function createSmallSessionUpdateObj (updateObj, callback){
     sessionSmallObj.source = {};
     sessionSmallObj.target = null;
 
-    if (typeof updateObj.tags !== "undefined") {
+    if (updateObj.tags !== undefined) {
       sessionSmallObj.tags = updateObj.tags;
     }
 
@@ -1890,7 +1891,7 @@ function createSmallSessionUpdateObj (updateObj, callback){
     sessionSmallObj.source = {};
     sessionSmallObj.target = {};
 
-    if (typeof updateObj.tags !== "undefined") {
+    if (updateObj.tags !== undefined) {
       sessionSmallObj.tags = updateObj.tags;
       // console.log("readUpdateSessionViewQueue | sessionSmallObj.tags\n" + jsonPrint(sessionSmallObj.tags));
     }
@@ -1915,7 +1916,7 @@ function createSmallSessionUpdateObj (updateObj, callback){
       sessionSmallObj.source.antonym = updateObj.source.antonym;
     }
 
-    if (typeof updateObj.target !== "undefined") {
+    if (updateObj.target !== undefined) {
 
       sessionSmallObj.target.nodeId = updateObj.target.nodeId;
       sessionSmallObj.target.raw = updateObj.target.raw;
@@ -1971,7 +1972,7 @@ var readUpdateSessionViewQueue = setInterval(function() {
       }
 
       if (sessionSmallObj.target){ 
-        if (typeof sessionSmallObj.target.mentions === "undefined"){
+        if (sessionSmallObj.target.mentions === undefined){
           // KLUDGE ??????
           console.log(chalkError("sessionSmallObj.target.mentions UNDEFINED | SETTING = 1" 
             + " | " + sessionSmallObj.target.nodeId
@@ -2000,14 +2001,14 @@ function updateSessionViews(sessionUpdateObj) {
   var obj = {};
   obj = sessionUpdateObj;
 
-  if (typeof obj.source !== "undefined") {
+  if (obj.source !== undefined) {
     obj.source.mwEntry = null;
     obj.source.noun = null;
     obj.source.verb = null;
     obj.source.adverb = null;
     obj.source.adjective = null;
   }
-  if (typeof obj.target !== "undefined") {
+  if (obj.target !== undefined) {
     obj.target.mwEntry = null;
     obj.target.noun = null;
     obj.target.verb = null;
@@ -2019,7 +2020,7 @@ function updateSessionViews(sessionUpdateObj) {
     obj.tags.group = entityChannelGroupHashMap.get(obj.tags.entity);
     updateSessionViewQueue.push(obj);
   }
-  else if (typeof obj.tags.entity !== "undefined") {
+  else if (obj.tags.entity !== undefined) {
     statsObj.entityChannelGroup.hashMiss[obj.tags.entity] = 1;
     statsObj.entityChannelGroup.allHashMisses[obj.tags.entity] = 1;
   }
@@ -2031,7 +2032,7 @@ var wordVariations = ["syn", "ant", "rel", "sim", "usr"];
 
 function dbUpdateGroup(groupObj, incMentions, callback) {
 
-  if ((groupObj.groupId === null) || (typeof groupObj.groupId === "undefined")) {
+  if ((groupObj.groupId === null) || (groupObj.groupId === undefined)) {
     console.log(chalkError("\n***** dbUpdateGroup: NULL OR UNDEFINED groupId\n" + jsonPrint(groupObj)));
     callback("NULL OR UNDEFINED groupId", groupObj);
     return;
@@ -2062,7 +2063,7 @@ function dbUpdateGroup(groupObj, incMentions, callback) {
 
 function dbUpdateEntity(entityObj, incMentions, callback) {
 
-  if ((entityObj.entityId === null) || (typeof entityObj.entityId === "undefined")) {
+  if ((entityObj.entityId === null) || (entityObj.entityId === undefined)) {
     console.log(chalkError("\n***** dbUpdateEntity: NULL OR UNDEFINED entityId\n" + jsonPrint(entityObj)));
     callback("NULL OR UNDEFINED entityId", entityObj);
     return;
@@ -2104,71 +2105,79 @@ function checkKeyword(w, callback) {
   var kwObj = {};  
 
   if ((wordObj.nodeType === "user") 
-    && (typeof wordObj.name !== "undefined") 
+    && (wordObj.name !== undefined) 
     && (wordObj.name) 
     && serverKeywordHashMap.has(wordObj.name.toLowerCase())) {
     debug(chalkAlert("HIT SRVR USER NAME"));
     kwObj = serverKeywordHashMap.get(wordObj.name.toLowerCase());
     wordObj.isKeyword = true;
-    wordObj.keywords[wordObj.name.toLowerCase()] = kwObj;    
+    // wordObj.keywords[wordObj.name.toLowerCase()] = kwObj;    
+    wordObj.keywords = kwObj;    
     callback(wordObj);
   }
   else if ((wordObj.nodeType === "user") 
-    && (typeof wordObj.screenName !== "undefined")  
+    && (wordObj.screenName !== undefined)  
     && (wordObj.screenName) 
     && serverKeywordHashMap.has(wordObj.screenName.toLowerCase())) {
     debug(chalkAlert("HIT SRVR USER SNAME"));
     kwObj = serverKeywordHashMap.get(wordObj.screenName.toLowerCase());
     wordObj.isKeyword = true;
-    wordObj.keywords[wordObj.screenName.toLowerCase()] = kwObj;    
+    // wordObj.keywords[wordObj.screenName.toLowerCase()] = kwObj;    
+    wordObj.keywords = kwObj;    
     callback(wordObj);
   }
   else if (wordObj.nodeId && serverKeywordHashMap.has(wordObj.nodeId.toLowerCase())) {
     debug(chalkAlert("HIT SRVR NODE ID"));
     kwObj = serverKeywordHashMap.get(wordObj.nodeId.toLowerCase());
     wordObj.isKeyword = true;
-    wordObj.keywords[wordObj.nodeId.toLowerCase()] = kwObj;    
+    // wordObj.keywords[wordObj.nodeId.toLowerCase()] = kwObj;    
+    wordObj.keywords = kwObj;    
     callback(wordObj);
   }
   else if (wordObj.text && serverKeywordHashMap.has(wordObj.text.toLowerCase())) {
     debug(chalkAlert("HIT SRVR TEXT"));
     kwObj = serverKeywordHashMap.get(wordObj.text.toLowerCase());
     wordObj.isKeyword = true;
-    wordObj.keywords[wordObj.text.toLowerCase()] = kwObj;    
+    // wordObj.keywords[wordObj.text.toLowerCase()] = kwObj;    
+    wordObj.keywords = kwObj;    
     callback(wordObj);
   }
   else if ((wordObj.nodeType === "user") 
-    && (typeof wordObj.name !== "undefined") 
+    && (wordObj.name !== undefined) 
     && (wordObj.name) 
     && keywordHashMap.has(wordObj.name.toLowerCase())) {
     debug(chalkAlert("HIT USER NAME"));
     kwObj = keywordHashMap.get(wordObj.name.toLowerCase());
     wordObj.isKeyword = true;
-    wordObj.keywords[wordObj.name.toLowerCase()] = kwObj;    
+    // wordObj.keywords[wordObj.name.toLowerCase()] = kwObj;    
+    wordObj.keywords = kwObj;    
     callback(wordObj);
   }
   else if ((wordObj.nodeType === "user") 
-    && (typeof wordObj.screenName !== "undefined") 
+    && (wordObj.screenName !== undefined) 
     && (wordObj.screenName) 
     && keywordHashMap.has(wordObj.screenName.toLowerCase())) {
     debug(chalkAlert("HIT USER SNAME"));
     kwObj = keywordHashMap.get(wordObj.screenName.toLowerCase());
     wordObj.isKeyword = true;
-    wordObj.keywords[wordObj.screenName.toLowerCase()] = kwObj;    
+    // wordObj.keywords[wordObj.screenName.toLowerCase()] = kwObj;    
+    wordObj.keywords = kwObj;    
     callback(wordObj);
   }
   else if (wordObj.nodeId && keywordHashMap.has(wordObj.nodeId.toLowerCase())) {
     debug(chalkAlert("HIT NODE ID"));
     kwObj = keywordHashMap.get(wordObj.nodeId.toLowerCase());
     wordObj.isKeyword = true;
-    wordObj.keywords[wordObj.nodeId.toLowerCase()] = kwObj;    
+    // wordObj.keywords[wordObj.nodeId.toLowerCase()] = kwObj;    
+    wordObj.keywords = kwObj;    
     callback(wordObj);
   }
   else if (wordObj.text && keywordHashMap.has(wordObj.text.toLowerCase())) {
     debug(chalkAlert("HIT TEXT"));
     kwObj = keywordHashMap.get(wordObj.text.toLowerCase());
     wordObj.isKeyword = true;
-    wordObj.keywords[wordObj.text.toLowerCase()] = kwObj;    
+    // wordObj.keywords[wordObj.text.toLowerCase()] = kwObj;    
+    wordObj.keywords = kwObj;    
     callback(wordObj);
   }
   else {
@@ -2178,7 +2187,7 @@ function checkKeyword(w, callback) {
 
 function dbUpdateWord(wObj, incMentions, callback) {
 
-  if ((wObj.nodeId == null) || (typeof wObj.nodeId === "undefined")) {
+  if ((wObj.nodeId == null) || (wObj.nodeId === undefined)) {
     debug(chalkError("\n***** dbUpdateWord: NULL OR UNDEFINED nodeId\n" + jsonPrint(wObj)));
     return(callback("NULL OR UNDEFINED nodeId", wObj));
   }
@@ -2266,11 +2275,11 @@ function loadBhtResponseHash(bhtResponseObj, callback) {
 
   wordTypes.forEach(function(wordType) {
     debug("wordType: " + wordType);
-    if ((typeof bhtResponseObj[wordType] !== "undefined") && (bhtResponseObj[wordType] != null)) {
+    if ((bhtResponseObj[wordType] !== undefined) && (bhtResponseObj[wordType] != null)) {
       debug("FOUND wordType: " + wordType);
       wordVariations.forEach(function(wordVariation) {
         debug("wordVariation: " + wordVariation);
-        if ((typeof bhtResponseObj[wordType][wordVariation] !== "undefined") && (bhtResponseObj[wordType][wordVariation] != null)) {
+        if ((bhtResponseObj[wordType][wordVariation] !== undefined) && (bhtResponseObj[wordType][wordVariation] != null)) {
           debug("FOUND wordVariation: " + wordVariation);
           var wordArry = bhtResponseObj[wordType][wordVariation];
           wordArry.forEach(function(word) {
@@ -2881,7 +2890,7 @@ function groupUpdateDb(userObj, callback){
 
     var entityObj = entityChannelGroupHashMap.get(userObj.tags.entity.toLowerCase());
 
-    if ((typeof entityObj !== "undefined") && groupHashMap.has(entityObj.groupId)) {
+    if ((entityObj !== undefined) && groupHashMap.has(entityObj.groupId)) {
 
       var groupObj = groupHashMap.get(entityObj.groupId);
 
@@ -2910,7 +2919,7 @@ function groupUpdateDb(userObj, callback){
       callback(null, entityObj);
     }
     else if (
-      (typeof entityObj !== "undefined") 
+      (entityObj !== undefined) 
       && (entityObj.groupId) 
       && !entityObj.groupId.match(hostname)) {
 
@@ -3008,7 +3017,7 @@ function entityUpdateDb(userObj, callback){
 
     entityObj = new Entity();
     entityObj.entityId = userObj.tags.entity.toLowerCase();
-    entityObj.groupId = (typeof userObj.userId !== "undefined") ? userObj.userId : userObj.tags.entity.toLowerCase();
+    entityObj.groupId = (userObj.userId !== undefined) ? userObj.userId : userObj.tags.entity.toLowerCase();
     entityObj.name = userObj.userId;
     entityObj.screenName = userObj.screenName;
     entityObj.words = 0;
@@ -3057,7 +3066,7 @@ function entityUpdateDb(userObj, callback){
 
 function adminUpdateDb(adminObj, callback) {
 
-  if (adminObj.ip && (typeof adminObj.domain === "undefined")) {
+  if (adminObj.ip && (adminObj.domain === undefined)) {
     dnsReverseLookup(adminObj.ip, function(err, domains) {
       if (err) {
         adminObj.domain = "DOMAIN NOT FOUND";
@@ -3214,7 +3223,7 @@ function viewerUpdateDb(viewerObj, callback) {
 
 function userUpdateDb(userObj, callback) {
 
-  if (userObj.ip && (typeof userObj.domain === "undefined")) {
+  if (userObj.ip && (userObj.domain === undefined)) {
     dnsReverseLookup(userObj.ip, function(err, domains) {
       if (err) {
         console.log(chalkError("*** dnsReverseLookup ERROR\n" + err));
@@ -3347,7 +3356,7 @@ function adminFindAllDb(options, callback) {
             + " | LS: " + getTimeStamp(adminObj.lastSeen)
           ));
 
-          if (!adminObj.adminId || (typeof adminObj.adminId === "undefined") || adminObj.adminId == null) {
+          if (!adminObj.adminId || (adminObj.adminId === undefined) || adminObj.adminId == null) {
             debug(chalkError("*** ERROR: adminFindAllDb: ADMIN ID UNDEFINED *** | SKIPPING ADD TO CACHE"));
             callback("ERROR: ADMIN ID UNDEFINED", null);
             return;
@@ -3722,7 +3731,7 @@ function handleSessionEvent(sesObj, callback) {
       console.log(chalkRed("SESSION_ABORT sesObj\n" + jsonPrint(sesObj)));
       namespaceMatchArray = sesObj.sessionId.match(namespaceRegEx);
 
-      if (typeof namespaceMatchArray[1] !== "undefined") {namespace = namespaceMatchArray[1];}
+      if (namespaceMatchArray[1] !== undefined) {namespace = namespaceMatchArray[1];}
 
       if (sesObj.sessionId.match(entityRegEx)) {
         socketId = sesObj.sessionId.replace(entityRegEx, "");
@@ -4033,13 +4042,13 @@ function handleSessionEvent(sesObj, callback) {
               + " | LAST WORD: " + sessionUpdatedObj.wordChain[sessionUpdatedObj.wordChain.length-1].nodeId
             ));
 
-            if (typeof sessionUpdatedObj.subSessionId !== "undefined") {
+            if (sessionUpdatedObj.subSessionId !== undefined) {
               sessionCache.set(sessionUpdatedObj.subSessionId, sessionUpdatedObj);
             }
             sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
           }
           else {
-            if (typeof sessionUpdatedObj.subSessionId !== "undefined") {
+            if (sessionUpdatedObj.subSessionId !== undefined) {
               sessionCache.set(sessionUpdatedObj.subSessionId, sessionUpdatedObj);
             }
             sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
@@ -4098,7 +4107,7 @@ function handleSessionEvent(sesObj, callback) {
 
     case "SESSION_CREATE":
 
-      if (typeof sesObj.session.tags === "undefined") {
+      if (sesObj.session.tags === undefined) {
         sesObj.session.tags = {};
         sesObj.session.tags.entity = "UNKNOWN_ENTITY";
         sesObj.session.tags.channel = "UNKNOWN_CHANNEL";
@@ -4209,7 +4218,7 @@ function handleSessionEvent(sesObj, callback) {
 
       // ????? ADMIN VERIFICATION SHOULD HAPPEN HERE
 
-      if (typeof sesObj.session.ip !== "undefined") {
+      if (sesObj.session.ip !== undefined) {
         if (dnsHostHashMap.has(sesObj.session.ip)) {
           sesObj.admin.domain = dnsHostHashMap.get(sesObj.session.ip);
           sesObj.session.domain = dnsHostHashMap.get(sesObj.session.ip);
@@ -4272,7 +4281,7 @@ function handleSessionEvent(sesObj, callback) {
 
     case "VIEWER_READY":
 
-      if (typeof sesObj.session.ip !== "undefined") {
+      if (sesObj.session.ip !== undefined) {
         if (dnsHostHashMap.has(sesObj.session.ip)) {
           sesObj.session.domain = dnsHostHashMap.get(sesObj.session.ip);
           sesObj.viewer.domain = dnsHostHashMap.get(sesObj.session.ip);
@@ -4293,7 +4302,7 @@ function handleSessionEvent(sesObj, callback) {
 
       currentSession = sessionCache.get(sesObj.session.sessionId);
 
-      if (typeof currentSession === "undefined") {
+      if (currentSession === undefined) {
         currentSession = sesObj.session;
       }
 
@@ -4341,7 +4350,7 @@ function handleSessionEvent(sesObj, callback) {
 
     case "USER_READY":
 
-      if (typeof sesObj.session.ip !== "undefined") {
+      if (sesObj.session.ip !== undefined) {
         if (dnsHostHashMap.has(sesObj.session.ip)) {
           sesObj.session.domain = dnsHostHashMap.get(sesObj.session.ip);
           sesObj.user.domain = dnsHostHashMap.get(sesObj.session.ip);
@@ -4389,7 +4398,7 @@ function handleSessionEvent(sesObj, callback) {
 
       currentSession = sessionCache.get(sessionId);
 
-      if (typeof currentSession !== "undefined") {
+      if (currentSession !== undefined) {
         currentSession.config.type = sesObj.session.config.type;
         currentSession.config.mode = sesObj.session.config.mode;
         currentSession.nodeId = sesObj.user.tags.entity.toLowerCase() + "_" + sesObj.user.tags.channel.toLowerCase();
@@ -4431,15 +4440,15 @@ function handleSessionEvent(sesObj, callback) {
             if (err){
               console.log(chalkError("GROUP UPDATE DB ERROR: " + err));
             }
-            else if ((typeof updatedUserObj.tags.mode !== "undefined") && (updatedUserObj.tags.mode == "substream")) {
+            else if ((updatedUserObj.tags.mode !== undefined) && (updatedUserObj.tags.mode == "substream")) {
               updatedUserObj.isMuxed = true;
               debug(chalkInfo("TX UTIL SESSION (UTIL READY): " + updatedUserObj.lastSession  + " | " + updatedUserObj.userId + " TO ADMIN NAMESPACE"));
               adminNameSpace.emit("UTIL_SESSION", updatedUserObj);
               io.of(sesObj.session.namespace).to(sesObj.session.sessionId).emit("USER_READY_ACK", updatedUserObj.userId);
             }
             else {
-              if (typeof updatedUserObj.groupId === "undefined") {
-                if (typeof sesObj.user.tags.group !== "undefined") {
+              if (updatedUserObj.groupId === undefined) {
+                if (sesObj.user.tags.group !== undefined) {
                   updatedUserObj.groupId = sesObj.user.tags.group.toLowerCase();
                 }
                 else {
@@ -4539,7 +4548,7 @@ function getTags(wObj, callback){
 
   checkKeyword(wObj, function(wordObj){
 
-    if (!wordObj.tags || (typeof wordObj.tags === "undefined")) {
+    if (!wordObj.tags || (wordObj.tags === undefined)) {
       wordObj.tags = {};
       wordObj.tags.entity = "unknown_entity";
       wordObj.tags.channel = "unknown_channel";
@@ -4551,7 +4560,7 @@ function getTags(wObj, callback){
       callback(wordObj);
     } 
     else {
-      if (!wordObj.tags.entity || (typeof wordObj.tags.entity === "undefined")) {
+      if (!wordObj.tags.entity || (wordObj.tags.entity === undefined)) {
         wordObj.tags.entity = "unknown_entity";
         console.log(chalkError("SET UNKNOWN WORDOBJ ENTITY\n" + jsonPrint(wordObj)));
       }
@@ -4559,7 +4568,7 @@ function getTags(wObj, callback){
         wordObj.tags.entity = wordObj.tags.entity.toLowerCase();
       }
 
-      if (!wordObj.tags.channel || (typeof wordObj.tags.channel === "undefined")) {
+      if (!wordObj.tags.channel || (wordObj.tags.channel === undefined)) {
         wordObj.tags.channel = "unknown_channel";
         console.log(chalkError("SET UNKNOWN WORDOBJ CHANNEL\n" + jsonPrint(wordObj)));
       }
@@ -4601,7 +4610,7 @@ var readResponseQueue = setInterval(function() {
 
     debug(chalkWarn("responseInObj\n" + jsonPrint(responseInObj)));
 
-    if ((typeof responseInObj.nodeId === "undefined") 
+    if ((responseInObj.nodeId === undefined) 
       || (typeof responseInObj.nodeId !== "string"
       || (responseInObj.nodeId.length >  MAX_DB_KEY_LENGTH)
       )) {
@@ -4615,7 +4624,7 @@ var readResponseQueue = setInterval(function() {
       responseQueueReady = true;
       statsObj.session.error += 1;
       statsObj.session.responseError += 1;
-      statsObj.session.responseErrorType.NODE_ID_MAX = (typeof statsObj.session.responseErrorType.NODE_ID_MAX === "undefined") 
+      statsObj.session.responseErrorType.NODE_ID_MAX = (statsObj.session.responseErrorType.NODE_ID_MAX === undefined) 
         ? 1 
         : statsObj.session.responseErrorType.NODE_ID_MAX + 1;
 
@@ -4629,7 +4638,7 @@ var readResponseQueue = setInterval(function() {
         console.log(chalkError("*** ERROR SESSION CACHE GET " + socketId + "\n" + jsonPrint(err)));
         quit("ERROR SESSION CACHE GET");
       }
-      else if (typeof currentSessionObj === "undefined") {
+      else if (currentSessionObj === undefined) {
 
         console.log(chalkWarn("??? SESSION NOT IN CACHE ON RESPONSE Q READ" 
           + " | responseQueue: " + responseQueue.size() 
@@ -4648,8 +4657,8 @@ var readResponseQueue = setInterval(function() {
       else {
         debug(chalkError("currentSessionObj\n" + jsonPrint(currentSessionObj)));
 
-        responseInObj.isKeyword = (typeof responseInObj.isKeyword !== "undefined") ? responseInObj.isKeyword : false;
-        responseInObj.isTrendingTopic = (typeof responseInObj.isTrendingTopic !== "undefined") ? responseInObj.isTrendingTopic : false;
+        responseInObj.isKeyword = (responseInObj.isKeyword !== undefined) ? responseInObj.isKeyword : false;
+        responseInObj.isTrendingTopic = (responseInObj.isTrendingTopic !== undefined) ? responseInObj.isTrendingTopic : false;
 
 
         trendingTopicsArray = trendingCache.keys();
@@ -4662,7 +4671,7 @@ var readResponseQueue = setInterval(function() {
             var topicObj = trendingCache.get(topic);
             trendingTopicHitArray.push(topic);
 
-            if (typeof topicObj !== "undefined"){ // may have expired out of cache, so check
+            if (topicObj !== undefined){ // may have expired out of cache, so check
               console.log(chalkTwitter("TOPIC HIT: " + topic));
               topicObj.hit = true;
               trendingCache.set(topic, topicObj);
@@ -4712,7 +4721,7 @@ var readResponseQueue = setInterval(function() {
           var previousPrompt;
           var previousPromptObj;
 
-          if ((typeof currentSessionObj.wordChain !== "undefined") && (currentSessionObj.wordChainIndex > 0)) {
+          if ((currentSessionObj.wordChain !== undefined) && (currentSessionObj.wordChainIndex > 0)) {
 
             previousPrompt = currentSessionObj.wordChain[currentSessionObj.wordChain.length - 1].nodeId;
             previousPromptObj = wordCache.get(previousPrompt);
@@ -4783,7 +4792,7 @@ var readResponseQueue = setInterval(function() {
 
             if (updatedWordObj.tags){
 
-              if (!updatedWordObj.tags.group || (typeof updatedWordObj.tags.group === "undefined")) {
+              if (!updatedWordObj.tags.group || (updatedWordObj.tags.group === undefined)) {
                 updatedWordObj.tags.group = updatedWordObj.tags.entity;
                 dbUpdateObj.tags.group = updatedWordObj.tags.entity;
               }
@@ -4828,6 +4837,38 @@ var readResponseQueue = setInterval(function() {
    }
 }, 20);
 
+
+function saveServerKeywordFile(){
+  hmKeys = serverKeywordHashMap.keys();
+
+  async.each(hmKeys, function(keyword, cb){
+    serverKeywordsJsonObj[keyword] = serverKeywordHashMap.get(keyword);
+    cb();
+  },
+    function(err){
+
+      saveFile("", serverKeywordsFile, serverKeywordsJsonObj, function(err, results){
+        if (err){
+          console.log(chalkError("SAVE SERVER KEYWORD FILE ERROR " + serverKeywordsFile));
+          if (err.status == 429) {
+            console.log(chalkError("SAVE SERVER KEYWORD FILE ERROR: TOO MANY WRITES"));
+          }
+          else {
+            console.log(chalkError(jsonPrint(err)));
+          }
+        }
+        else {
+          console.log(chalkLog("TWITTER - SAVE SERVER KEYWORD FILE " 
+            + serverKeywordsFile
+            + " | " + hmKeys.length + " KEYWORDS"
+            // + "\n" + jsonPrint(results)
+          ));
+        }
+      });
+    }
+  );
+}
+
 var updaterMessageReady = true; 
 
 var readUpdaterMessageQueue = setInterval(function() {
@@ -4860,7 +4901,7 @@ var readUpdaterMessageQueue = setInterval(function() {
 
       case "group":
 
-        if ((typeof updaterObj.target !== "undefined") && (updaterObj.target == "server")) {
+        if ((updaterObj.target !== undefined) && (updaterObj.target == "server")) {
           console.log(chalkLog("UPDATER GROUP\n" + jsonPrint(updaterObj)));
           serverGroupHashMap.set(updaterObj.groupId, updaterObj.group);
           serverGroupsJsonObj[updaterObj.groupId] = updaterObj.group;
@@ -4897,132 +4938,101 @@ var readUpdaterMessageQueue = setInterval(function() {
 
       case "keyword":
 
-        // updateObj = {
+        // updaterObj = {
         //  "type" : "keyword",
         //  "target" : "server",
-        //  "keyword: { 
-        //    "keywordId": "obama",
-        //    "positive": 10, 
-        //    "left": 7
-        //  }
+        //  "keywords: {
+        //    "obama": {
+        //      "keywordId": obama"
+        //      "positive": 10, 
+        //      "left": 7
+        //    }
+        //   }
         // };
 
-        if ((typeof updaterObj.target !== "undefined") && (updaterObj.target == "server")) {
-          serverKeywordHashMap.set(updaterObj.keyword.keywordId, updaterObj.keyword);
-          serverKeywordsJsonObj[updaterObj.keyword.keywordId] = updaterObj.keyword;
-        }
-        else {
-          keywordHashMap.set(updaterObj.keyword.keywordId, updaterObj.keyword);
-        }
+        debugKeyword(chalkLog("KEYWORD: " + jsonPrint(updaterObj)));
 
-        debug(chalkError("UPDATE KEYWORD\n" + jsonPrint(updaterObj)));
+        var keywords = Object.keys(updaterObj.keywords);
 
-        if (updaterObj.twitter) {
-
-          console.log(chalkLog("UPDATE SERVER KEYWORD\n" + jsonPrint(updaterObj)));
-
-          serverKeywordHashMap.set(updaterObj.keyword.keywordId, updaterObj.keyword);
-
-          if (keywordsUpdateComplete) {
-            hmKeys = serverKeywordHashMap.keys();
-
-            async.each(hmKeys, function(keyword, cb){
-              serverKeywordsJsonObj[keyword] = serverKeywordHashMap.get(keyword);
-              cb();
-            },
-              function(err){
-
-                saveFile("", serverKeywordsFile, serverKeywordsJsonObj, function(err, results){
-                  if (err){
-                    console.log(chalkError("SAVE SERVER KEYWORD FILE ERROR " + serverKeywordsFile));
-                    if (err.status == 429) {
-                      console.log(chalkError("SAVE SERVER KEYWORD FILE ERROR: TOO MANY WRITES"));
-                    }
-                    else {
-                      console.log(chalkError(jsonPrint(err)));
-                    }
-                  }
-                  else {
-                    console.log(chalkLog("TWITTER - SAVE SERVER KEYWORD FILE " 
-                      + serverKeywordsFile
-                      + " | " + hmKeys.length + " KEYWORDS"
-                      // + "\n" + jsonPrint(results)
-                    ));
-                  }
-                });
-
-              }
-            );
+        keywords.forEach(function(kw){
+          if ((updaterObj.target !== undefined) && (updaterObj.target == "server")) {
+            debugKeyword(chalkLog("UPDATE SERVER KEYWORD\n" + jsonPrint(updaterObj.keywords[kw])));
+            serverKeywordHashMap.set(kw, updaterObj.keywords[kw]);
+          }
+          else if (updaterObj.twitter) {
+            debugKeyword(chalkLog("UPDATE SERVER KEYWORD TWITTER\n" + jsonPrint(updaterObj.keywords[kw])));
+            serverKeywordHashMap.set(kw, updaterObj.keywords[kw]);
+          }
+          else {
+            debugKeyword(chalkLog("UPDATE KEYWORD\n" + jsonPrint(updaterObj.keywords[kw])));
+            keywordHashMap.set(kw, updaterObj.keywords[kw]);
           }
 
-          keywordUpdateDb(updaterObj, function(err, updatedWordObj){
+          keywordUpdateDb(updaterObj.keywords[kw], function(err, updatedWordObj){
+            if (updaterObj.twitter) {
+              var dmString = "KEYWORD"
+                + " | " + hostname 
+                + "\n" + updatedWordObj.nodeId 
+                + "\n" + updatedWordObj.mentions + " Ms" 
+                + "\n" + jsonPrint(updatedWordObj.keywords);
 
-            var dmString = "KEYWORD"
-              + " | " + hostname 
-              + "\n" + updatedWordObj.nodeId 
-              + "\n" + updatedWordObj.mentions + " Ms" 
-              + "\n" + jsonPrint(updatedWordObj.keywords);
+              console.log(chalkLog(dmString));
 
-            console.log(chalkLog(dmString));
-
-            sendDirectMessage("threecee", dmString, function(err, res){
-              if (!err) {
-                console.log(chalkLog("SENT TWITTER DM: " + dmString));
-              }
-              else {
-                switch (err.code) {
-                  case 226:
-                    console.log(chalkError("*** TWITTER DM SEND ERROR: LOOKS LIKE AUTOMATED TX: CODE: " + err.code));
-
-                    setTimeout(function(){
-                      console.log(chalkError("... RETRY #1 TWITTER DM " + dmString));
-                      sendDirectMessage("threecee", dmString, function(err, res){
-                        if (!err) {
-                          console.log(chalkLog("SENT TWITTER DM: " + dmString));
-                        }
-                        else {
-                          switch (err.code) {
-                            case 226:
-                              console.log(chalkError("*** TWITTER DM SEND ERROR: LOOKS LIKE AUTOMATED TX: CODE: " + err.code));
-
-                              setTimeout(function(){
-                                console.log(chalkError("... RETRY #2 TWITTER DM " + dmString));
-                                sendDirectMessage("threecee", dmString, function(err, res){
-                                  if (!err) {
-                                    console.log(chalkLog("SENT TWITTER DM: " + dmString));
-                                  }
-                                  else {
-                                    switch (err.code) {
-                                      case 226:
-                                        console.log(chalkError("*** TWITTER DM SEND ERROR: LOOKS LIKE AUTOMATED TX: CODE: " + err.code));
-                                      break;
-                                      default:
-                                        console.log(chalkError("*** TWITTER DM SEND ERROR: " + jsonPrint(err)));
-                                    }
-                                  }
-
-                                });
-                              }, randomInt(14700,34470));
-                            break;
-                            default:
-                              console.log(chalkError("*** TWITTER DM SEND ERROR: " + jsonPrint(err)));
-                          }
-                        }
-                      });
-                    }, randomInt(14700,34470));
-                  break;
-                  default:
-                    console.log(chalkError("*** TWITTER DM SEND ERROR: " + jsonPrint(err)));
+              sendDirectMessage("threecee", dmString, function(err, res){
+                if (!err) {
+                  console.log(chalkLog("SENT TWITTER DM: " + dmString));
                 }
-              }
-            });
-          });
-        }
-        else {
-          keywordUpdateDb(updaterObj, function(err, updatedWordObj){
-          });
-        }
+                else {
+                  switch (err.code) {
+                    case 226:
+                      console.log(chalkError("*** TWITTER DM SEND ERROR: LOOKS LIKE AUTOMATED TX: CODE: " + err.code));
 
+                      setTimeout(function(){
+                        console.log(chalkError("... RETRY #1 TWITTER DM " + dmString));
+                        sendDirectMessage("threecee", dmString, function(err, res){
+                          if (!err) {
+                            console.log(chalkLog("SENT TWITTER DM: " + dmString));
+                          }
+                          else {
+                            switch (err.code) {
+                              case 226:
+                                console.log(chalkError("*** TWITTER DM SEND ERROR: LOOKS LIKE AUTOMATED TX: CODE: " + err.code));
+
+                                setTimeout(function(){
+                                  console.log(chalkError("... RETRY #2 TWITTER DM " + dmString));
+                                  sendDirectMessage("threecee", dmString, function(err, res){
+                                    if (!err) {
+                                      console.log(chalkLog("SENT TWITTER DM: " + dmString));
+                                    }
+                                    else {
+                                      switch (err.code) {
+                                        case 226:
+                                          console.log(chalkError("*** TWITTER DM SEND ERROR: LOOKS LIKE AUTOMATED TX: CODE: " + err.code));
+                                        break;
+                                        default:
+                                          console.log(chalkError("*** TWITTER DM SEND ERROR: " + jsonPrint(err)));
+                                      }
+                                    }
+
+                                  });
+                                }, randomInt(14700,34470));
+                              break;
+                              default:
+                                console.log(chalkError("*** TWITTER DM SEND ERROR: " + jsonPrint(err)));
+                            }
+                          }
+                        });
+                      }, randomInt(14700,34470));
+                    break;
+                    default:
+                      console.log(chalkError("*** TWITTER DM SEND ERROR: " + jsonPrint(err)));
+                  }
+                }
+              });
+            }
+          });
+        });
+        
         updaterMessageReady = true;
       break;
 
@@ -5175,7 +5185,7 @@ function updatePreviousPrompt(sessionObj, wordObj, callback){
     previousPromptNodeId = sessionObj.wordChain[sessionObj.wordChain.length - 2].nodeId;
     previousPromptObj = wordCache.get(previousPromptNodeId);
 
-    if (typeof previousPromptObj === "undefined") {
+    if (previousPromptObj === undefined) {
       debug(chalkWarn("quitOnErrorFlag: " + quitOnErrorFlag));
       console.log(chalkWarn("??? PREVIOUS PROMPT NOT IN CACHE: " + previousPromptNodeId));
       if (quitOnErrorFlag) {
@@ -5235,7 +5245,7 @@ var readDbUpdateWordQueue = setInterval(function() {
 
       updatePreviousPrompt(currentSessionObj, dbUpdateObj, function(previousPromptObj){
 
-        if (typeof previousPromptObj === "undefined") {
+        if (previousPromptObj === undefined) {
           console.log(chalkError("previousPromptObj UNDEFINED"));
         }
 
@@ -5390,23 +5400,21 @@ function queryDb(queryObj, callback){
 
 function keywordUpdateDb(updateObj, callback){
 
-  //  "keywordObj = { 
-  //    "keywordId": "obama",
-  //    "positive": 10, 
-  //    "left": 7
-  //  }
-
-  if (typeof updateObj.keyword.keywordId === "undefined") {
-    console.log(chalkRed("UPDATING KEYWORD ERROR\n" + jsonPrint(updateObj)));
-  }
+  debugKeyword(chalkAlert("keywordUpdateDb\n" + jsonPrint(updateObj)));
+  // updateObj = {
+  //  "keywordId": "obama",
+  //  "positive": 10, 
+  //  "left": 7
+  // };
 
   var wordObj = new Word();
 
-  wordObj.nodeId = updateObj.keyword.keywordId.toLowerCase();
+  wordObj.nodeId = updateObj.keywordId.toLowerCase();
   wordObj.isKeyword = true;
-  wordObj.keywords[updateObj.keyword.keywordId.toLowerCase()] = updateObj.keyword;
-  keywordHashMap.set(wordObj.nodeId, updateObj.keyword);
-  serverKeywordHashMap.set(wordObj.nodeId, updateObj.keyword);
+  wordObj.keywords[updateObj.keywordId.toLowerCase()] = updateObj;
+
+  keywordHashMap.set(wordObj.nodeId, updateObj);
+  serverKeywordHashMap.set(wordObj.nodeId, updateObj);
 
   wordServer.findOneWord(wordObj, false, function(err, updatedWordObj) {
     if (err){
@@ -5491,7 +5499,7 @@ function initializeConfiguration(cnf, callback) {
     console.log("STDIN ENABLED");
 
     stdin = process.stdin;
-    if (typeof stdin.setRawMode !== "undefined") { stdin.setRawMode(true); }
+    if (stdin.setRawMode !== undefined) { stdin.setRawMode(true); }
     stdin.resume();
     stdin.setEncoding( "utf8" );
     stdin.on( "data", function( key ){
@@ -6235,7 +6243,7 @@ function updateGroupEntity(entityObj, callback){
 
       debug("updateGroupEntity updatedEntityObj\n" + jsonPrint(updatedEntityObj));
 
-      if (typeof updatedEntityObj.tags === "undefined"){
+      if (updatedEntityObj.tags === undefined){
         updatedEntityObj.tags = {};
         updatedEntityObj.tags.entity = entityObj.entityId;
         updatedEntityObj.tags.name = entityObj.name;
@@ -6297,7 +6305,7 @@ configEvents.on("UNKNOWN_SESSION", function(socketId) {
   if (dmOnUnknownSession) {
     var dmString = hostname + "\nwordAssoServer\nPID: " + process.pid + "\nUNKNOWN SESSION: " + socketId;
 
-    if (typeof directMessageHash[socketId] === "undefined") {
+    if (directMessageHash[socketId] === undefined) {
 
       directMessageHash[socketId] = socketId;
 
@@ -6332,7 +6340,7 @@ configEvents.on("HASH_MISS", function(missObj) {
   if (!twitterDMenabled){
     debug(chalkTwitter("... SKIP TWITTER DM\n" + dmString));
   }
-  else if (typeof directMessageHash[sendDirectMessageHashKey] === "undefined") {
+  else if (directMessageHash[sendDirectMessageHashKey] === undefined) {
     directMessageHash[sendDirectMessageHashKey] = missObj;
     sendDirectMessage("threecee", dmString, function(err, res){
       if (!err) {
@@ -6558,7 +6566,7 @@ configEvents.on("CONFIG_CHANGE", function(serverSessionConfig) {
   debug(chalkAlert(moment().format(compactDateTimeFormat) + " | CONFIG_CHANGE EVENT"));
   debug("==> CONFIG_CHANGE EVENT: " + JSON.stringify(serverSessionConfig, null, 3));
 
-  if (typeof serverSessionConfig.testMode !== "undefined") {
+  if (serverSessionConfig.testMode !== undefined) {
     debug(chalkAlert("--> CONFIG_CHANGE: testMode: " + serverSessionConfig.testMode));
     io.of("/admin").emit("CONFIG_CHANGE", {
       testMode: serverSessionConfig.testMode
@@ -6808,7 +6816,7 @@ function createSession(newSessionObj) {
 
   socket.on("SESSION_KEEPALIVE", function(userObj) {
 
-    if (typeof statsObj.utilities[userObj.userId] === "undefined") {
+    if (statsObj.utilities[userObj.userId] === undefined) {
       statsObj.utilities[userObj.userId] = {};
     }
 
@@ -6843,8 +6851,8 @@ function createSession(newSessionObj) {
  
     var sObj;
 
-    if ((typeof userObj.tags !== "undefined")
-      && (typeof userObj.tags.mode !== "undefined") 
+    if ((userObj.tags !== undefined)
+      && (userObj.tags.mode !== undefined) 
       && (typeof userObj.tags.mode == "substream")) {
       debug(chalkRedBold("KEEPALIVE socket.id: " + socket.id));
       sObj = sessionCache.get(socket.id + "#" + userObj.tags.entity);
@@ -6869,7 +6877,7 @@ function createSession(newSessionObj) {
         tags: {}
       };
 
-      if (typeof userObj.tags !== "undefined") {
+      if (userObj.tags !== undefined) {
 
         var tagKeys = Object.keys(userObj.tags);
         var i = 0;
@@ -6897,15 +6905,15 @@ function createSession(newSessionObj) {
       + " | " + sObj.sessionId 
       + " | " + moment().format(compactDateTimeFormat)));
 
-    if (typeof userObj.userId !== "undefined") {
+    if (userObj.userId !== undefined) {
       sObj.userId = userObj.userId;
     }
 
-    if (typeof userObj.tags !== "undefined") {
+    if (userObj.tags !== undefined) {
       sObj.tags = userObj.tags;
     }
 
-   if (typeof userObj.mode !== "undefined") {
+   if (userObj.mode !== undefined) {
       debug("USER MODE: " + userObj.mode);
       sObj.config.type = userObj.mode;
     }
@@ -6938,9 +6946,9 @@ function createSession(newSessionObj) {
       // + "\nP " + userObj.profileImageUrl
     ));
 
-    if ((typeof userObj.tags !== "undefined")
-      && (typeof userObj.tags.entity !== "undefined") 
-      && (typeof userObj.tags.mode !== "undefined") 
+    if ((userObj.tags !== undefined)
+      && (userObj.tags.entity !== undefined) 
+      && (userObj.tags.mode !== undefined) 
       && (userObj.tags.mode.toLowerCase() == "substream")) {
 
       sessionCacheKey = socket.id + "#" + userObj.tags.entity;
@@ -6991,11 +6999,11 @@ function createSession(newSessionObj) {
           }
           else if (userObj.tags.mode.toLowerCase() == "substream") {
 
-            if (typeof userObj.type !== "undefined") {
+            if (userObj.type !== undefined) {
               sObj.config.type = userObj.type;
               sObj.type = userObj.type;
             }
-            if (typeof userObj.mode !== "undefined") {
+            if (userObj.mode !== undefined) {
               sObj.config.mode = userObj.mode;
               sObj.mode = userObj.mode;
             }
@@ -7005,27 +7013,27 @@ function createSession(newSessionObj) {
             sObj.tags.entity = userObj.tags.entity.toLowerCase();
             sObj.tags.channel = userObj.tags.channel.toLowerCase();
 
-            sObj.url = (typeof userObj.url !== "undefined") ? userObj.url : "http://www.threeceemedia.com";
-            sObj.profileImageUrl = (typeof userObj.profileImageUrl !== "undefined") ? userObj.profileImageUrl : null ;
+            sObj.url = (userObj.url !== undefined) ? userObj.url : "http://www.threeceemedia.com";
+            sObj.profileImageUrl = (userObj.profileImageUrl !== undefined) ? userObj.profileImageUrl : null ;
 
             sessionCache.set(sessionCacheKey, sObj);
           }
         }
         else {
-          sObj.url = (typeof userObj.url !== "undefined") ? userObj.url : "http://www.threeceemedia.com";
+          sObj.url = (userObj.url !== undefined) ? userObj.url : "http://www.threeceemedia.com";
           sObj.profileImageUrl = (userObj.profileImageUrl !== "undefined") ? userObj.profileImageUrl : null ;
           sessionCache.set(sessionCacheKey, sObj);
         }
-        if (typeof userObj.tags !== "undefined") {
+        if (userObj.tags !== undefined) {
 
-          if (typeof sObj.tags === "undefined") {
+          if (sObj.tags === undefined) {
             console.log(chalkRed("sObj.tags UNDEFINED"));
             sObj.tags = {};
             sObj.tags.entity = userObj.tags.entity.toLowerCase();
             sObj.tags.channel = userObj.tags.channel.toLowerCase();
           }
           else {
-            if (typeof sObj.tags.entity !== "undefined") {
+            if (sObj.tags.entity !== undefined) {
 
               sObj.tags.entity = sObj.tags.entity.toLowerCase();
 
@@ -7052,7 +7060,7 @@ function createSession(newSessionObj) {
             else {
               sObj.tags.entity = userObj.tags.entity.toLowerCase();
             }
-            if (typeof sObj.tags.channel !== "undefined") {
+            if (sObj.tags.channel !== undefined) {
               sObj.tags.channel = sObj.tags.channel.toLowerCase();
             }
             else {
@@ -7088,7 +7096,11 @@ function createSession(newSessionObj) {
 
   socket.on("node", function(rxNodeObj) {
 
-    debug("TW< " + rxNodeObj.nodeType + " | " + rxNodeObj.nodeId + " | " + rxNodeObj.mentions);
+    console.log("TW< " + rxNodeObj.nodeType 
+      + " | NID " + rxNodeObj.nodeId 
+      + " | Ms " + rxNodeObj.mentions
+      + " | KWs " + jsonPrint(rxNodeObj.keywords)
+    );
 
     checkKeyword(rxNodeObj, function(nodeObj){
 
@@ -7104,13 +7116,15 @@ function createSession(newSessionObj) {
           if (nodeObj.text.toLowerCase().includes("obama")) {
             obamaHit = nodeObj.text;
             nodeObj.isKeyword = true;
-            nodeObj.keywords[nodeObj.text.toLowerCase()].left = DEFAULT_KEYWORD_VALUE;
+            // nodeObj.keywords[nodeObj.text.toLowerCase()].left = DEFAULT_KEYWORD_VALUE;
+            nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
             debug(chalkError("OBAMA: " + nodeObj.text));
           }
           if (nodeObj.text.toLowerCase().includes("trump")) {
             trumpHit = nodeObj.text;
             nodeObj.isKeyword = true;
-            nodeObj.keywords[nodeObj.text.toLowerCase()].right = DEFAULT_KEYWORD_VALUE;
+            // nodeObj.keywords[nodeObj.text.toLowerCase()].right = DEFAULT_KEYWORD_VALUE;
+            nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
             debug(chalkError("TRUMP: " + nodeObj.text));
           }
           viewNameSpace.emit("node", nodeObj);
@@ -7125,14 +7139,14 @@ function createSession(newSessionObj) {
             if (nodeObj.name.toLowerCase().includes("obama")) {
               obamaHit = nodeObj.name;
               nodeObj.isKeyword = true;
-              nodeObj.keywords[nodeObj.name.toLowerCase()] = {};
-              nodeObj.keywords[nodeObj.name.toLowerCase()].left = DEFAULT_KEYWORD_VALUE;
+              // nodeObj.keywords[nodeObj.name.toLowerCase()] = {};
+              nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
             }
             if (nodeObj.name.toLowerCase().includes("trump")) {
               trumpHit = nodeObj.name;
               nodeObj.isKeyword = true;
-              nodeObj.keywords[nodeObj.name.toLowerCase()] = {};
-              nodeObj.keywords[nodeObj.name.toLowerCase()].right = DEFAULT_KEYWORD_VALUE;
+              // nodeObj.keywords[nodeObj.name.toLowerCase()] = {};
+              nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
             }
             viewNameSpace.emit("node", nodeObj);
           }
@@ -7141,14 +7155,14 @@ function createSession(newSessionObj) {
             if (nodeObj.screenName.toLowerCase().includes("obama")) {
               obamaHit = nodeObj.screenName;
               nodeObj.isKeyword = true;
-              nodeObj.keywords[nodeObj.screenName.toLowerCase()] = {};
-              nodeObj.keywords[nodeObj.screenName.toLowerCase()].left = DEFAULT_KEYWORD_VALUE;
+              // nodeObj.keywords[nodeObj.screenName.toLowerCase()] = {};
+              nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
             }
             if (nodeObj.screenName.toLowerCase().includes("trump")) {
               trumpHit = nodeObj.screenName;
               nodeObj.isKeyword = true;
-              nodeObj.keywords[nodeObj.screenName.toLowerCase()] = {};
-              nodeObj.keywords[nodeObj.screenName.toLowerCase()].right = DEFAULT_KEYWORD_VALUE;
+              // nodeObj.keywords[nodeObj.screenName.toLowerCase()] = {};
+              nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
             }
             viewNameSpace.emit("node", nodeObj);
           }
@@ -7158,15 +7172,15 @@ function createSession(newSessionObj) {
           if (nodeObj.nodeId.toLowerCase().includes("obama")) {
             obamaHit = nodeObj.nodeId;
             nodeObj.isKeyword = true;
-            nodeObj.keywords[nodeObj.nodeId.toLowerCase()] = {};
-            nodeObj.keywords[nodeObj.nodeId.toLowerCase()].left = DEFAULT_KEYWORD_VALUE;
+            // nodeObj.keywords[nodeObj.nodeId.toLowerCase()] = {};
+            nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
             debug(chalkError("OBAMA HT: " + nodeObj.nodeId));
           }
           if (nodeObj.nodeId.toLowerCase().includes("trump")) {
             trumpHit = nodeObj.nodeId;
             nodeObj.isKeyword = true;
-            nodeObj.keywords[nodeObj.nodeId.toLowerCase()] = {};
-            nodeObj.keywords[nodeObj.nodeId.toLowerCase()].right = DEFAULT_KEYWORD_VALUE;
+            // nodeObj.keywords[nodeObj.nodeId.toLowerCase()] = {};
+            nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
             debug(chalkError("TRUMP HT: " + nodeObj.nodeId));
           }
           updateWordMeter({nodeId: nodeObj.nodeId.toLowerCase()});
@@ -8186,8 +8200,8 @@ function wapiSearch(word, variation, callback){
 
     debugWapi(chalkWapi("WAPI RESPONSE\n" + jsonPrint(response.headers)));
 
-    if (typeof response.headers !== "undefined"){
-      if (typeof response.headers["x-ratelimit-requests-limit"] !== "undefined"){
+    if (response.headers !== undefined){
+      if (response.headers["x-ratelimit-requests-limit"] !== undefined){
         statsObj.wapi.requestLimit = parseInt(response.headers["x-ratelimit-requests-limit"]);
         statsObj.wapi.requestsRemaining = parseInt(response.headers["x-ratelimit-requests-remaining"]);
         if (statsObj.wapi.requestsRemaining > 0) {

@@ -1,6 +1,4 @@
 /*jslint node: false */
-// "use strict";
-
 
 function ViewTreemap() {
 
@@ -198,9 +196,9 @@ function ViewTreemap() {
 
 //============TREEMAP=================================
 
-  var fader = function(color) { return d3.interpolateRgb(color, "#fff")(0.2); },
-      color = d3.scaleOrdinal(d3.schemeCategory20.map(fader)),
-      format = d3.format(",d");
+  // var fader = function(color) { return d3.interpolateRgb(color, "#fff")(0.2); },
+  //     color = d3.scaleOrdinal(d3.schemeCategory20.map(fader)),
+  //     format = d3.format(",d");
 
   var treemap = d3.treemap()
       .tile(d3.treemapResquarify)

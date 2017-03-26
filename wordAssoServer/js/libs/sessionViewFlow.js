@@ -624,7 +624,8 @@ function ViewFlow() {
       tooltipString = d.raw
         + "<br>MENTIONS: " + mentions 
         + "<br>" + uId
-        + "<br>" + nodeId;
+        + "<br>" + nodeId
+        + "<br>" + d.sessionId;
     }
 
     divTooltip.html(tooltipString)

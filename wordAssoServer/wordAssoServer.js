@@ -7096,7 +7096,7 @@ function createSession(newSessionObj) {
 
   socket.on("node", function(rxNodeObj) {
 
-    console.log("TW< " + rxNodeObj.nodeType 
+    debug("TW< " + rxNodeObj.nodeType 
       + " | NID " + rxNodeObj.nodeId 
       + " | Ms " + rxNodeObj.mentions
       + " | KWs " + jsonPrint(rxNodeObj.keywords)

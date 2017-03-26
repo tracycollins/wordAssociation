@@ -462,6 +462,8 @@ function msToTime(duration) {
 
 function getKeywordColor(kwObj, callback){
 
+  console.debug("getKeywordColor: " + jsonPrint(kwObj));
+
   var keywordTypes = Object.keys(kwObj);
 
   if (keywordTypes.length === 0) {
@@ -1941,8 +1943,8 @@ function initSocketNodeRx(){
     console.log("N< " 
       + nNode.nodeType 
       + " | " + nNode.nodeId 
-      + " | " + nNode.isKeyword
-      + "\n" + jsonPrint(nNode.keywords)
+      + " | isKeyword" + nNode.isKeyword
+      + "\nKEYWORDS: " + jsonPrint(nNode.keywords)
     );
 
     var dateNow = moment().valueOf();

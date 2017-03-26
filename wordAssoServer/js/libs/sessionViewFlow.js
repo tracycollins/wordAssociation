@@ -278,7 +278,7 @@ function ViewFlow() {
         if (d.isSessionNode) {return 0.7*width;}
         return -2*width; 
       }).strength(function(){
-        if (d.isSessionNode) {return gravity;}
+        if (d.isSessionNode) {return 1.5*gravity;}
         return forceYmultiplier * gravity;
       }));
     simulation.force("forceY", d3.forceY().y(function() { 
@@ -954,7 +954,7 @@ function ViewFlow() {
           return -2*width; 
         })
         .strength(function(){
-          if (d.isSessionNode) {return gravity;}
+          if (d.isSessionNode) {return 1.5*gravity;}
           return forceYmultiplier * gravity;
         })
       )
@@ -1063,8 +1063,7 @@ function ViewFlow() {
         if (d.isSessionNode) {return 0.7*width;}
         return -2*width; 
       }).strength(function(d){
-          // return forceYmultiplier * gravity;
-        if (d.isSessionNode) {return gravity;}
+        if (d.isSessionNode) {return 1.5*gravity;}
         return forceYmultiplier * gravity;
       }));
     simulation.force("forceY", d3.forceY().y(function() { 

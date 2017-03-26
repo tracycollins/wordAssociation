@@ -71,17 +71,38 @@ var DEFAULT_BLAH_MODE = false;
 var MAX_RX_QUEUE = 250;
 var MAX_WORDCHAIN_LENGTH = 100;
 var DEFAULT_MAX_AGE = 60000;
+var FLOW_MAX_AGE = 10000;
 var FORCE_MAX_AGE = 60000;
 var HISTOGRAM_MAX_AGE = 60000;
 var TREEMAP_MAX_AGE = 60000;
 var MEDIA_MAX_AGE = 60000;
 var DEFAULT_AGE_RATE = 1.0;
 
+var DEFAULT_CHARGE = 0.0;
+var DEFAULT_GRAVITY = 0.0075;
+var DEFAULT_FORCEY_MULTIPLIER = 25.0;
+var DEFAULT_VELOCITY_DECAY = 0.99;
+var DEFAULT_LINK_DISTANCE = 100.0;
+var DEFAULT_LINK_STRENGTH = 0.50;
+var DEFAULT_COLLISION_RADIUS_MULTIPLIER = 0.6;
+var DEFAULT_COLLISION_ITERATIONS = 2;
+
+var DEFAULT_NODE_RADIUS = 20.0;
+
 var TREEMAPVIEW_DEFAULT = {};
 TREEMAPVIEW_DEFAULT.MAX_AGE = TREEMAP_MAX_AGE;
 
 var HISTOGRAMVIEW_DEFAULT = {};
 HISTOGRAMVIEW_DEFAULT.MAX_AGE = HISTOGRAM_MAX_AGE;
+
+var FLOW_DEFAULT = {};
+FLOW_DEFAULT.MAX_AGE = FLOW_MAX_AGE;
+FLOW_DEFAULT.CHARGE = DEFAULT_CHARGE;
+FLOW_DEFAULT.GRAVITY = DEFAULT_GRAVITY;
+FLOW_DEFAULT.FORCEY_MULTIPLIER = 0.5;
+FLOW_DEFAULT.VELOCITY_DECAY = 0.85;
+FLOW_DEFAULT.COLLISION_RADIUS_MULTIPLIER = 0.5;
+FLOW_DEFAULT.COLLISION_ITERATIONS = 4;
 
 var FORCEVIEW_DEFAULT = {};
 FORCEVIEW_DEFAULT.MAX_AGE = FORCE_MAX_AGE;
@@ -105,16 +126,6 @@ MEDIAVIEW_DEFAULT.LINK_STRENGTH = 0.95;
 MEDIAVIEW_DEFAULT.COLLISION_RADIUS_MULTIPLIER = 2.50;
 MEDIAVIEW_DEFAULT.COLLISION_ITERATIONS = 1;
 
-var DEFAULT_CHARGE = 0.0;
-var DEFAULT_GRAVITY = 0.0075;
-var DEFAULT_FORCEY_MULTIPLIER = 25.0;
-var DEFAULT_VELOCITY_DECAY = 0.99;
-var DEFAULT_LINK_DISTANCE = 100.0;
-var DEFAULT_LINK_STRENGTH = 0.50;
-var DEFAULT_COLLISION_RADIUS_MULTIPLIER = 0.6;
-var DEFAULT_COLLISION_ITERATIONS = 2;
-
-var DEFAULT_NODE_RADIUS = 20.0;
 
 var config = {};
 config.forceViewMode = DEFAULT_FORCEVIEW_MODE;
@@ -351,7 +362,7 @@ var ignoreWordHashMap = new HashMap();
 var keywordColorHashMap = new HashMap();
 
 keywordColorHashMap.set("positive", palette.green);
-keywordColorHashMap.set("negative", palette.red);
+keywordColorHashMap.set("negative", palette.yellow);
 keywordColorHashMap.set("neutral", palette.gray);
 
 keywordColorHashMap.set("left", palette.blue);
@@ -445,9 +456,9 @@ function msToTime(duration) {
 
 function getKeywordColor(kwObj, callback){
 
-  var keywords = Object.keys(kwObj);
+  var keywordTypes = Object.keys(kwObj);
 
-  if (keywords.length === 0) {
+  if (keywordTypes.length === 0) {
       // console.debug("COLOR"
       //   + " | " + palette.white
       //   // + " | R: " + c.r + " G: " + c.g + " B: " + c.b + " A: " + c.opacity
@@ -459,7 +470,8 @@ function getKeywordColor(kwObj, callback){
 
     var color = palette.white;
 
-    var keywordTypes = Object.keys(kwObj[keywords[0]]);
+    // var keywordTypes = Object.keys(kwObj[keywords[0]]);
+    // var keywordTypes = Object.keys(kwObj[keywords]);
 
     async.each(keywordTypes, function(kwType, cb){
 
@@ -489,7 +501,7 @@ function displayStats(isVisible, dColor) {
   var v = 'hidden';
   if (isVisible) v = 'visible';
   document.getElementById('statsDiv').style.visibility = v;
-  if (typeof dColor !== 'undefined') document.getElementById('statsDiv').style.color = dColor;
+  if (dColor !== undefined) {document.getElementById('statsDiv').style.color = dColor;}
 }
 
 var mouseMoveTimeout;
@@ -905,7 +917,6 @@ var viewerObj = {
   type: "VIEWER"
 };
 
-// var initialPositionIndex = 0;
 
 var initialXpositionRatio = 0.7;
 var initialYpositionRatio = 0.4;
@@ -946,7 +957,7 @@ function getTimeStamp(inputTime) {
   var currentDate;
   var currentTime;
 
-  if (inputTime === 'undefined') {
+  if (inputTime === undefined) {
     currentDate = new Date().toDateString("en-US", options);
     currentTime = new Date().toTimeString('en-US', options);
   } else {
@@ -959,7 +970,7 @@ function getTimeStamp(inputTime) {
 function getBrowserPrefix() {
   // Check for the unprefixed property.
   // if ('hidden' in document) {
-  if (document.hidden !== 'undefined') {
+  if (document.hidden !== undefined) {
     return null;
   }
   // All the possible prefixes.
@@ -968,7 +979,7 @@ function getBrowserPrefix() {
 
   browserPrefixes.forEach(function(p) {
     prefix = p + 'Hidden';
-    if (document[prefix] !== 'undefined') {
+    if (document[prefix] !== undefined) {
       return p;
     }
   });
@@ -1137,14 +1148,14 @@ window.addEventListener('resize', function() {
 document.addEventListener(visibilityEvent, function() {
   if (!document[hidden]) {
     windowVisible = true;
-    if (typeof currentSessionView !== 'undefined') {
+    if (currentSessionView !== undefined) {
       currentSessionView.setPause(false);
     }
     console.debug("visibilityEvent: " + windowVisible);
   } 
   else {
     windowVisible = false;
-    if (typeof currentSessionView !== 'undefined') {
+    if (currentSessionView !== undefined) {
       currentSessionView.setPause(true);
     }
     console.debug("visibilityEvent: " + windowVisible);
@@ -1172,7 +1183,7 @@ function getUrlVariables(callbackMain) {
 
         var keyValuePair = variable.split('=');
 
-        if ((keyValuePair[0] !== '') && (keyValuePair[1] !== 'undefined')) {
+        if ((keyValuePair[0] !== '') && (keyValuePair[1] !== undefined)) {
           console.log("'" + variable + "' >>> URL config: " + keyValuePair[0] + " : " + keyValuePair[1]);
           if (keyValuePair[0] === 'monitor') {
             monitorMode = keyValuePair[1];
@@ -1284,7 +1295,7 @@ function tableCreateRow(parentTable, options, cells) {
       // console.warn("tableCreateRow\n" + jsonPrint(content));
 
       var td = tr.insertCell();
-      if (typeof content.type === 'undefined') {
+      if (content.type === undefined) {
 
         td.appendChild(document.createTextNode(content));
         td.style.color = tdTextColor;
@@ -1781,10 +1792,10 @@ var heartBeatsReceived = 0;
 
 socket.on("HEARTBEAT", function(heartbeat) {
 
-  var nodesLength = (typeof currentSessionView === 'undefined') ? 0 : currentSessionView.getNodesLength();
-  statsObj.maxNodes = (typeof currentSessionView === 'undefined') ? 0 : currentSessionView.getMaxNodes();
-  var nodeAddQLength = (typeof currentSessionView === 'undefined') ? 0 : currentSessionView.getNodeAddQlength();
-  statsObj.maxNodeAddQ = (typeof currentSessionView === 'undefined') ? 0 : currentSessionView.getMaxNodeAddQ();
+  var nodesLength = ( currentSessionView === undefined) ? 0 : currentSessionView.getNodesLength();
+  statsObj.maxNodes = ( currentSessionView === undefined) ? 0 : currentSessionView.getMaxNodes();
+  var nodeAddQLength = ( currentSessionView === undefined) ? 0 : currentSessionView.getNodeAddQlength();
+  statsObj.maxNodeAddQ = ( currentSessionView === undefined) ? 0 : currentSessionView.getMaxNodeAddQ();
 
   statsObj.heartbeat = heartbeat;
 
@@ -1798,21 +1809,21 @@ socket.on("CONFIG_CHANGE", function(rxConfig) {
   console.log("\n-----------------------\nRX CONFIG_CHANGE\n" 
     + JSON.stringify(rxConfig, null, 3) + "\n------------------------\n");
 
-  if (rxConfig.testMode !== 'undefined') {
+  if (rxConfig.testMode !== undefined) {
     config.testMode = rxConfig.testMode;
     console.log("\n*** ENV CHANGE: TEST_MODE:  WAS: " 
       + previousConfig.testMode + " | NOW: " + config.testMode + "\n");
     previousConfig.testMode = config.testMode;
   }
 
-  if (rxConfig.testSendInterval !== 'undefined') {
+  if (rxConfig.testSendInterval !== undefined) {
     config.testSendInterval = rxConfig.testSendInterval;
     console.log("\n*** ENV CHANGE: TEST_SEND_INTERVAL: WAS: " 
       + previousConfig.testSendInterval + " | NOW: " + config.testSendInterval + "\n");
     previousConfig.testSendInterval = config.testSendInterval;
   }
 
-  if (rxConfig.nodeMaxAge !== 'undefined') {
+  if (rxConfig.nodeMaxAge !== undefined) {
     config.nodeMaxAge = rxConfig.nodeMaxAge;
     console.log("\n*** ENV CHANGE: NODE_MAX_AGE: WAS: " 
       + previousConfig.nodeMaxAge + " | NOW: " + config.nodeMaxAge + "\n");
@@ -1839,7 +1850,7 @@ socket.on("SESSION_ABORT", function(rxSessionObject) {
 
 socket.on("SESSION_DELETE", function(rxSessionObject) {
 
-  if ((typeof rxSessionObject.session !== 'undefined') && (typeof rxSessionObject.session.tags !== 'undefined')){
+  if (( rxSessionObject.session !== undefined) && ( rxSessionObject.session.tags !== undefined)){
 
     rxSessionObject.session.nodeId = (config.forceViewMode == 'web') 
       ? rxSessionObject.session.tags.entity.toLowerCase() 
@@ -2044,10 +2055,10 @@ var tempMentions;
 var numberSessionsUpdated = 0;
 
 function addToHashMap(hm, key, value, callback) {
-  if (typeof key === 'undefined') {
+  if ( key === undefined) {
     console.error("*** ERROR addToHashMap KEY UNDEFINED ***\nVALUE\n" + jsonPrint(value));
   }
-  if (key == 'undefined') {
+  if (key == undefined) {
     console.error("*** ERROR addToHashMap KEY UNDEFINED ***\nVALUE\n" + jsonPrint(value));
   }
   hm.set(key, value);
@@ -2096,7 +2107,7 @@ var processSessionQueues = function(callback) {
     switch (session.tags.channel){
       case "twitter":
         session.tags.url = "https://twitter.com/" + session.tags.entity.toLowerCase();
-        if (typeof session.tags.group.url !== 'undefined') session.tags.group.url = "https://twitter.com/" + session.tags.entity.toLowerCase();
+        if ( session.tags.group.url !== undefined) session.tags.group.url = "https://twitter.com/" + session.tags.entity.toLowerCase();
       break;
       case "livestream":
         if (session.tags.entity == 'cspan'){
@@ -2105,7 +2116,7 @@ var processSessionQueues = function(callback) {
       break;
     }
 
-    if (typeof session.tags.group.groupId !== 'undefined') {
+    if ( session.tags.group.groupId !== undefined) {
       groupCreateQueue.push(session);
     }
     else if (session.tags.group.entityId){
@@ -2370,8 +2381,6 @@ var createGroup = function(callback) {
           + " | isSessionNode: " + grpNode.isSessionNode
         );
 
-        // currentSessionView.addNode(grpNode);
-
         addToHashMap(groupHashMap, currentGroup.groupId, currentGroup, function(cGroup) {
           console.log("+ G " + cGroup.groupId 
             + " | GNID: " + cGroup.node.nodeId
@@ -2396,6 +2405,7 @@ var createSession = function(callback) {
     var sessUpdate = sessionCreateQueue.shift();
     var currentGroup = {};
 
+    var currentSessionNodeId = sessUpdate.tags.entity + "_" + sessUpdate.tags.channel;
 
     // console.warn("sessUpdate\n" + jsonPrint(sessUpdate));
 
@@ -2414,15 +2424,16 @@ var createSession = function(callback) {
       );
       return (callback(null, null));
     } 
-    else if (sessionHashMap.has(sessUpdate.nodeId)) {
+    // else if (sessionHashMap.has(sessUpdate.nodeId)) {
+    else if (sessionHashMap.has(currentSessionNodeId)) {
 
-      var currentSession = sessionHashMap.get(sessUpdate.nodeId);
+      var currentSession = sessionHashMap.get(currentSessionNodeId);
 
-      if (typeof currentSession.wordChainIndex === 'undefined'){
+      if (currentSession.wordChainIndex === undefined){
         console.error("*** currentSession.wordChainIndex UNDEFINED");
       }
 
-      if (typeof currentSession.tags === 'undefined') currentSession.tags = {};
+      if (currentSession.tags === undefined) currentSession.tags = {};
 
       currentSession.tags = sessUpdate.tags;
 
@@ -2579,7 +2590,6 @@ var createSession = function(callback) {
       currentSession.node.text = sessUpdate.tags.entity + "|" + sessUpdate.tags.channel;
       currentSession.node.r = config.defaultNodeRadius;
       currentSession.node.x = currentGroup.initialPosition.x;
-      // currentSession.node.fx = currentGroup.initialPosition.x;
       currentSession.node.y = currentGroup.initialPosition.y;
 
       currentSession.node.sessionColors = currentGroup.sessionColors;
@@ -2717,10 +2727,6 @@ var createNode = function(callback) {
 
     async.parallel({
         source: function(cb) {
-          // if ((config.sessionViewType == 'ticker') 
-          //   // || (config.sessionViewType == 'flow') 
-          //   // && (config.sessionViewType != 'force') 
-          //   || session.source.isIgnored) {
           if ((config.sessionViewType !== 'ticker') 
             && (config.sessionViewType !== 'treemap') 
             && (config.sessionViewType !== 'histogram') 
@@ -2739,7 +2745,9 @@ var createNode = function(callback) {
             sourceNode.sessionNodeId = session.node.nodeId;
             sourceNode.isKeyword = session.source.isKeyword;
             sourceNode.isTrendingTopic = session.source.isTrendingTopic;
-            // sourceNode.keywordColor = getKeywordColor(session.source.keywords);
+            getKeywordColor(session.source.keywords, function(color){
+              sourceNode.keywordColor = color;
+            });  // KLUDGE!  need better way to do keywords
             sourceNode.latestNode = true;
             sourceNode.newFlag = false;
             sourceNode.userId = session.userId;
@@ -2830,7 +2838,7 @@ var createNode = function(callback) {
             sourceNode.interpolateColor = session.interpolateSessionColor;
 
             sourceNode.r = config.defaultNodeRadius;
-            sourceNode.x = session.node.x+randomIntFromInterval(-10,-20);
+            sourceNode.x = session.node.x+randomIntFromInterval(-20,-30);
             sourceNode.y = session.node.y+randomIntFromInterval(-10,10);
 
             sourceNode.text = sourceText;
@@ -2849,7 +2857,7 @@ var createNode = function(callback) {
 
         target: function(cb) {
 
-          if (typeof targetNodeId === 'undefined' 
+          if (targetNodeId === undefined 
             || (config.sessionViewType === 'media') 
             || (config.sessionViewType === 'flow') 
             || (config.sessionViewType === 'treemap') 
@@ -2907,7 +2915,7 @@ var createNode = function(callback) {
             }
             else {
               targetNode.text = targetText;
-              if (typeof session.target.mentions !== 'undefined') {
+              if (session.target.mentions !== undefined) {
                 console.debug("--- TARGET MENTIONS: " + session.target.mentions);
                 targetNode.mentions = session.target.mentions;
               }
@@ -2968,7 +2976,7 @@ var createNode = function(callback) {
             targetNode.latestNode = false;
             
             targetNode.text = targetText;
-            if (typeof session.target.mentions === 'undefined') console.error("session.target.mentions UNDEFINED");
+            if (session.target.mentions === undefined) {console.error("session.target.mentions UNDEFINED");}
             targetNode.mentions = session.target.mentions;
             targetNode.r = config.defaultNodeRadius;
             targetNode.x = session.node.x - (100 * Math.random());
@@ -2992,7 +3000,7 @@ var createNode = function(callback) {
           session.source = results.source.node;
           session.source.isNew = results.source.isNew;
           if (results.source.isNew) {
-            if (typeof results.source.node.mentions === 'undefined') {
+            if (results.source.node.mentions === undefined) {
               console.error("source MENTIONS UNDEFINED\n" + jsonPrint(results.source.node));
             }
             currentSessionView.addNode(results.source.node);
@@ -3003,7 +3011,7 @@ var createNode = function(callback) {
           session.target = results.target.node;
           session.target.isNew = results.target.isNew;
           if (results.target.isNew) {
-            if (typeof results.target.node.mentions === 'undefined') {
+            if (results.target.node.mentions === undefined) {
               console.error("target MENTIONS UNDEFINED\n" + jsonPrint(results.target.node));
             }
             currentSessionView.addNode(results.target.node);
@@ -3090,7 +3098,7 @@ var createLink = function(callback) {
 
         var sourceTargetLinkId = session.source.nodeId + "_" + session.target.nodeId;
 
-        if (typeof session.target.links === 'undefined') session.target.links = {};
+        if (session.target.links === undefined) {session.target.links = {};}
 
         session.source.links[sourceTargetLinkId] = 1;
         session.target.links[sourceTargetLinkId] = 1;
@@ -3123,7 +3131,7 @@ var createLink = function(callback) {
         }
       }
     }
-    else if (typeof currentGroup === 'undefined'){
+    else if (currentGroup === undefined){
       console.warn("currentGroup UNDEFINED");
     }
     else {
@@ -3269,6 +3277,13 @@ function loadViewType(svt, callback) {
       config.forceViewMode = "flow";
       requirejs(["js/libs/sessionViewFlow"], function() {
         console.debug("sessionViewFlow LOADED");
+        DEFAULT_COLLISION_RADIUS_MULTIPLIER = FLOW_DEFAULT.COLLISION_RADIUS_MULTIPLIER;
+        DEFAULT_COLLISION_ITERATIONS = FLOW_DEFAULT.COLLISION_ITERATIONS;
+        DEFAULT_MAX_AGE = FLOW_DEFAULT.MAX_AGE;
+        DEFAULT_CHARGE = FLOW_DEFAULT.CHARGE;
+        DEFAULT_GRAVITY = FLOW_DEFAULT.GRAVITY;
+        DEFAULT_VELOCITY_DECAY = FLOW_DEFAULT.VELOCITY_DECAY;
+        DEFAULT_FORCEY_MULTIPLIER = FLOW_DEFAULT.FORCEY_MULTIPLIER;
         currentSessionView = new ViewFlow();
         initSocketSessionUpdateRx();
         callback();
@@ -3358,7 +3373,7 @@ function initialize(callback) {
 
       console.log("ON LOAD getUrlVariables\n" + jsonPrint(urlVariablesObj));
 
-      if (typeof urlVariablesObj !== 'undefined') {
+      if (urlVariablesObj !== undefined) {
         if (urlVariablesObj.sessionId) {
           sessionId = urlVariablesObj.sessionId;
         }

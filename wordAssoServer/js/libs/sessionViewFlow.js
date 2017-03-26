@@ -881,9 +881,9 @@ function ViewFlow() {
   };
 
   this.addSession = function(newSession) {
-    console.info("+ SES" 
-      + " " + newSession.sessionId
-    );
+    // console.info("+ SES" 
+    //   + " " + newSession.sessionId
+    // );
   };
 
 
@@ -895,14 +895,6 @@ function ViewFlow() {
     if (newNode.text === undefined) {
       newNode.text = "== UNDEFINED ==";
     }
-
-    if (!newNode.isSessionNode) {
-      // console.debug("newNode\n" + jsonPrint(newNode));
-      // if (!d3.select('"#' + newNode.sessionNodeId + '"').empty()){
-      //   newNode.x = d3.select('"#' + newNode.sessionNodeId + '"').attr("x");
-      //   newNode.y = d3.select('"#' + newNode.sessionNodeId + '"').attr("y");
-      // }
-    } 
 
     newNode.textLength = 100;
 

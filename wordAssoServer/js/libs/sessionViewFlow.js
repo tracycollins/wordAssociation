@@ -1047,19 +1047,19 @@ function ViewFlow() {
       .attr("y", 1e-6);
 
     if (simulation){
-    simulation.force("forceX", d3.forceX().x(function(d) { 
-        if (d.isSessionNode) {return 0.7*width;}
-        return -2*width; 
-      }).strength(function(d){
-        if (d.isSessionNode) {return forceXsessionMultiplier*gravity;}
-        return forceXmultiplier * gravity;
-      }));
-    simulation.force("forceY", d3.forceY().y(function() { 
-        return 0.4*height; 
-      }).strength(function(d){
-        if (d.isSessionNode) {return forceYmultiplier*gravity;}
-        return forceYmultiplier * gravity; 
-      }));
+      simulation.force("forceX", d3.forceX().x(function(d) { 
+          if (d.isSessionNode) {return 0.7*width;}
+          return -2*width; 
+        }).strength(function(d){
+          if (d.isSessionNode) {return forceXsessionMultiplier*gravity;}
+          return forceXmultiplier * gravity;
+        }));
+      simulation.force("forceY", d3.forceY().y(function() { 
+          return 0.4*height; 
+        }).strength(function(d){
+          if (d.isSessionNode) {return forceYmultiplier*gravity;}
+          return forceYmultiplier * gravity; 
+        }));
     }
   };
 

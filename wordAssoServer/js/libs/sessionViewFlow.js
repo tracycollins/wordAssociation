@@ -78,6 +78,8 @@ function ViewFlow() {
   var blahMode = DEFAULT_BLAH_MODE;
   var charge = DEFAULT_CHARGE;
   var gravity = DEFAULT_GRAVITY;
+  var forceXmultiplier = DEFAULT_FORCEX_MULTIPLIER;
+  var forceXsessionMultiplier = DEFAULT_FORCEX_SESSION_MULTIPLIER;
   var forceYmultiplier = DEFAULT_FORCEY_MULTIPLIER;
   var collisionRadiusMultiplier = DEFAULT_COLLISION_RADIUS_MULTIPLIER;
   var collisionIterations = DEFAULT_COLLISION_ITERATIONS;
@@ -278,8 +280,8 @@ function ViewFlow() {
         if (d.isSessionNode) {return 0.7*width;}
         return -2*width; 
       }).strength(function(){
-        if (d.isSessionNode) {return 1.5*gravity;}
-        return forceYmultiplier * gravity;
+        if (d.isSessionNode) {return forceXsessionMultiplier*gravity;}
+        return forceXmultiplier * gravity;
       }));
     simulation.force("forceY", d3.forceY().y(function() { 
         return 0.4*height; 
@@ -954,8 +956,8 @@ function ViewFlow() {
           return -2*width; 
         })
         .strength(function(){
-          if (d.isSessionNode) {return 1.5*gravity;}
-          return forceYmultiplier * gravity;
+          if (d.isSessionNode) {return forceXsessionMultiplier*gravity;}
+          return forceXmultiplier * gravity;
         })
       )
       .force("forceY", d3.forceY()
@@ -1063,8 +1065,8 @@ function ViewFlow() {
         if (d.isSessionNode) {return 0.7*width;}
         return -2*width; 
       }).strength(function(d){
-        if (d.isSessionNode) {return 1.5*gravity;}
-        return forceYmultiplier * gravity;
+        if (d.isSessionNode) {return forceXsessionMultiplier*gravity;}
+        return forceXmultiplier * gravity;
       }));
     simulation.force("forceY", d3.forceY().y(function() { 
         return 0.4*height; 

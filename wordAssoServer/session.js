@@ -1708,18 +1708,6 @@ function deleteSession(nodeId, callback) {
 
   var deletedSession = sessionHashMap.get(nodeId);
   var groupLinkId = deletedSession.groupId + "_" + deletedSession.node.nodeId;
-
-  // console.log("X SES"
-  //   // + " [" + currentSessionView.getSessionsLength() + "]"
-  //   + " G: " + deletedSession.groupId 
-  //   + " N: " + deletedSession.nodeId 
-  //   + " S: " + deletedSession.sessionId 
-  //   + " U: " + deletedSession.userId
-  //   + " SN: " + deletedSession.linkHashMap.keys()
-  //   + " SN: " + deletedSession.node.nodeId
-  //   + " Ls: " + jsonPrint(deletedSession.node.links)
-  // );
-
   var sessionLinks = deletedSession.linkHashMap.keys();
 
   async.each(sessionLinks, function(sessionLinkId, cb) {
@@ -1888,7 +1876,7 @@ socket.on("USER_SESSION", function(rxSessionObject) {
 function initSocketSessionUpdateRx(){
   socket.on("SESSION_UPDATE", function(rxSessionObject) {
 
-    console.debug("SES UPDATE: " + rxSessionObject.action + " | " + rxSessionObject.sessionId);
+    // console.debug("SES UPDATE: " + rxSessionObject.action + " | " + rxSessionObject.sessionId);
 
     if (!windowVisible || config.pauseFlag) {
       rxSessionUpdateQueue = [];

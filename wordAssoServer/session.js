@@ -462,11 +462,20 @@ function msToTime(duration) {
 
 function getKeywordColor(kwObj, callback){
 
-  console.debug("getKeywordColor: " + jsonPrint(kwObj));
+  /*
+    kwObj = {
+      keywordId: trump,
+      right: 100,
+      negative: 47
+    }
+  */
 
-  var keywordTypes = Object.keys(kwObj);
+  // console.debug("getKeywordColor: " + jsonPrint(kwObj));
 
-  if (keywordTypes.length === 0) {
+  // var keywordTypes = Object.keys(kwObj);
+  var keywordKeys = Object.keys(kwObj);
+
+  if (keywordKeys.length === 0) {
       // console.debug("COLOR"
       //   + " | " + palette.white
       //   // + " | R: " + c.r + " G: " + c.g + " B: " + c.b + " A: " + c.opacity
@@ -479,7 +488,7 @@ function getKeywordColor(kwObj, callback){
     var color = palette.white;
 
     // var keywordTypes = Object.keys(kwObj[keywords[0]]);
-    // var keywordTypes = Object.keys(kwObj[keywords]);
+    var keywordTypes = Object.keys(kwObj);
 
     async.each(keywordTypes, function(kwType, cb){
 
@@ -1938,21 +1947,25 @@ function initSocketNodeRx(){
       return;
     }
 
-    if ((nNode.nodeType !== "user") && (nNode.nodeType !== "media") && (config.sessionViewType === "media")) {return;}
+    if ((nNode.nodeType !== "user") 
+      && (nNode.nodeType !== "media") 
+      && (config.sessionViewType === "media")) {
+      return;
+    }
 
-    console.log("N< " 
-      + nNode.nodeType 
-      + " | " + nNode.nodeId 
-      + " | isKeyword" + nNode.isKeyword
-      + "\nKEYWORDS: " + jsonPrint(nNode.keywords)
-    );
+    // console.log("N< " 
+    //   + nNode.nodeType 
+    //   + " | " + nNode.nodeId 
+    //   + " | NAME: " + nNode.name 
+    //   + " | isKeyword: " + nNode.isKeyword
+    //   + "\nKEYWORDS: " + jsonPrint(nNode.keywords)
+    // );
 
     var dateNow = moment().valueOf();
 
     var newNode = {};
     newNode.isKeyword = nNode.isKeyword;
     newNode.keywords = nNode.keywords;
-    // newNode.keywordColor = getKeywordColor(Object.values(nNode.keywords)[0]);  // KLUDGE!  need better way to do keywords
     getKeywordColor(nNode.keywords, function(color){
       newNode.keywordColor = color;
     });  // KLUDGE!  need better way to do keywords
@@ -2415,11 +2428,11 @@ var createSession = function(callback) {
     }
 
     if (sessionDeleteHashMap.has(sessUpdate.sessionId)) {
-      console.log("createSession: " 
-        + sessUpdate.userId 
-        + " | " + sessUpdate.tags.entity 
-        + " SESSION IN DELETE HASH MAP ... SKIPPING"
-      );
+      // console.log("createSession: " 
+      //   + sessUpdate.userId 
+      //   + " | " + sessUpdate.tags.entity 
+      //   + " SESSION IN DELETE HASH MAP ... SKIPPING"
+      // );
       return (callback(null, null));
     } 
     // else if (sessionHashMap.has(sessUpdate.nodeId)) {

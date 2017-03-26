@@ -6,6 +6,7 @@ var deleteKeywordsEnabled = false;
 
 var OFFLINE_MODE = false;
 var debug = require('debug')('wa');
+var debugKeyword = require('debug')('kw');
 var moment = require('moment');
 var os = require('os');
 
@@ -100,7 +101,7 @@ var chalk = require('chalk');
 
 var chalkRed = chalk.red;
 var chalkGreen = chalk.green;
-var chalkInfo = chalk.gray;
+var chalkInfo = chalk.green;
 var chalkTest = chalk.bold.red;
 var chalkAlert = chalk.red;
 var chalkError = chalk.bold.red;
@@ -413,7 +414,6 @@ var updateKeywords = function (folder, file, serverHashMapFlag, callback){
       var words = Object.keys(kwordsObj);
 
       kwHashMap.clear();
-      // process.send({ type: 'keywordHashMapClear'});
 
       async.forEach(words,
 
@@ -421,7 +421,7 @@ var updateKeywords = function (folder, file, serverHashMapFlag, callback){
 
           var wd = w.toLowerCase();
           wd = wd.replace(/\./g, "");  // KLUDGE:  better way to handle '.' in keywords?
-          // var keyWordType = kwordsObj[w];
+
           var kwObj = kwordsObj[w];  // kwObj = { "negative": 10, "right": 7 }
 
           // debug(chalkInfo("UPDATING KEYWORD | " + wd + ": " + keyWordType));
@@ -431,7 +431,6 @@ var updateKeywords = function (folder, file, serverHashMapFlag, callback){
 
           wordObj.nodeId = wd;
           wordObj.isKeyword = true;
-          // wordObj.keywords[keyWordType] = true;
 
           // KLUDEGE: OVERWRITES ANY PREVIOUS KEYWORD SETTINGS FOR NOW
           wordObj.keywords = {};
@@ -473,37 +472,16 @@ var updateKeywords = function (folder, file, serverHashMapFlag, callback){
           else {
             console.log(chalkAlert("initKeywords COMPLETE"
               + " | TOTAL KEYWORDS:   " + kwHashMap.count()
-              // + " | (DELETED KEYWORDS:) " + prevKwHashMap.count()
             ));
 
             if (serverHashMapFlag){
               serverKeywordHashMap.copy(kwHashMap);
-              // previousServerKeywordHashMap.copy(prevKwHashMap);
               console.log(chalkWarn("UPDATE SERVER KEYWORDS " + file));
             }
             else {
               keywordHashMap.copy(kwHashMap);
-              // previousKeywordHashMap.copy(prevKwHashMap);
               console.log(chalkWarn("UPDATE GLOBAL KEYWORDS " + file));
             }
-
-            // if (deleteKeywordsEnabled && (prevKwHashMap.count() > 0)) {
-            //   console.log(chalkInfo(
-            //     "DELETED KEYWORDS\n" + jsonPrint(prevKwHashMap.keys())
-            //   ));
-
-            //   var deletedKeyWords = prevKwHashMap.keys();
-
-            //   deletedKeyWords.forEach(function (deleteKeyWord){
-            //     setTimeout(function(){
-            //       process.send({ type: 'keywordRemove', keyword: deleteKeyWord});
-            //       debug(chalkInfo("UPDATER SEND KEYWORD REMOVE"
-            //         + " | " + deleteKeyWord
-            //       ));
-            //     }, 10);
-            //   });
-              
-            // }
 
             callback(null, {numKeywords: words.length});
           }
@@ -684,22 +662,37 @@ function sendKeywords(callback){
   var words = keywordHashMap.keys();
   var serverWwords = serverKeywordHashMap.keys();
 
+  // words = words.slice(0,10);
+  // serverWwords = serverWwords.slice(0,10);
+
   async.forEachSeries(words, function(word, cb) {
 
-      var kwObj = keywordHashMap.get(word);
-      var updateObj = {};
-      
-      updateObj.type = "keyword";
-      updateObj.keyword = {};
-      updateObj.keyword = kwObj;
-      updateObj.keyword.keywordId = word;
+      debugKeyword(chalkAlert("sendKeywords\nword: " + jsonPrint(word)));
+      // updaterObj = {
+      //  "type" : "keyword",
+      //  "target" : "server",
+      //  "keywords: { 
+      //    "obama": {
+      //      "positive": 10, 
+      //      "left": 7
+      //    }
+      // };
 
+      var kwObj = keywordHashMap.get(word);
+      kwObj.keywordId = word;
+
+      var updaterObj = {};
+      
+      updaterObj.type = "keyword";
+      updaterObj.keywords = {};
+      updaterObj.keywords[word] = kwObj;
+      // updaterObj.keyword.keywordId = word;
 
       setTimeout(function(){
-        process.send(updateObj);
+        process.send(updaterObj);
         debug(chalkAlert("UPDATER SEND KEYWORD"
           + " | " + word
-          + " | " + jsonPrint(updateObj)
+          + " | " + jsonPrint(updaterObj)
         ));
 
         cb();
@@ -717,13 +710,21 @@ function sendKeywords(callback){
         async.forEachSeries(serverWwords, function(word, cb2) {
 
             var kwObj = serverKeywordHashMap.get(word);
+            kwObj.keywordId = word;
+
+            var updaterObj = {};
+            
+            updaterObj.type = "keyword";
+            updaterObj.target = "server";
+            updaterObj.keywords = {};
+            updaterObj.keywords[word] = kwObj;
 
             setTimeout(function(){
-              process.send({ target: 'server', type: 'keyword', keyword: kwObj });
-              debug(chalkInfo("UPDATER SEND KEYWORD"
+              process.send(updaterObj);
+              debugKeyword(chalkInfo("UPDATER SEND KEYWORD"
                 + " | SERVER"
                 + " | " + word
-                + " | " + jsonPrint(kwObj)
+                + " | " + jsonPrint(updaterObj)
               ));
 
               cb2();

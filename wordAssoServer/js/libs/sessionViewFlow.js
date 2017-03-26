@@ -18,6 +18,7 @@ function ViewFlow() {
   var self = this;
   var simulation;
 
+  var resumeTimeStamp = 0;
   var runningFlag = false;
   var antonymFlag = false;
 
@@ -495,10 +496,11 @@ function ViewFlow() {
 
       node = nodes[ageNodesIndex];
 
-      if (node.isSessionNode) {
-        sNode = sessionHashMap.get(node.nodeId);
-        node.age = moment().valueOf() - sNode.lastSeen;
-      } 
+      if (resumeTimeStamp > 0){
+        ageRate = 0;
+      }
+      else {
+      }
 
       age = node.age + (ageRate * (moment().valueOf() - node.ageUpdated));
       ageMaxRatio = age/nodeMaxAge ;
@@ -507,6 +509,7 @@ function ViewFlow() {
         deadNodesHash[node.nodeId] = 1;
         node.ageMaxRatio = 1.0;
         dnFlag = true;
+        // console.log("XXX NODE DEAD " + node.nodeId);
       } 
       else if (age >= nodeMaxAge) {
         node.ageUpdated = moment().valueOf();
@@ -516,6 +519,7 @@ function ViewFlow() {
         nodes[ageNodesIndex] = node;
         deadNodesHash[node.nodeId] = 1;
         dnFlag = true;
+        // console.error("XXX NODE AGE " + node.nodeId);
       } 
       else {
         node.ageUpdated = moment().valueOf();
@@ -526,6 +530,7 @@ function ViewFlow() {
     }
 
     if (ageNodesIndex < 0) {
+      resumeTimeStamp = 0;
       callback(null, dnFlag);
     }
   };
@@ -668,11 +673,10 @@ function ViewFlow() {
 
     nodeImages
       .attr("r", function(d) {
-        if (d.mentions === undefined) 
-          {
+        if (d.mentions === undefined) {
             console.error(d.nodeId + " | NODE CIRCLE d.mentions UNDEFINED");
             return defaultRadiusScale(1);
-          }
+        }
         else {
           if (d.isGroupNode) {
             return groupCircleRadiusScale(d.totalWordChainIndex + 1.0) ;
@@ -687,12 +691,8 @@ function ViewFlow() {
       })
       .attr("x", function(d) {return d.x - 0.5*(sessionCircleRadiusScale(d.wordChainIndex + 1.0));})
       .attr("y", function(d) {return d.y - 0.5*(sessionCircleRadiusScale(d.wordChainIndex + 1.0));})
-      .attr("width", function(d){
-        return sessionCircleRadiusScale(d.wordChainIndex + 1.0);
-      })
-      .attr("height", function(d){
-        return sessionCircleRadiusScale(d.wordChainIndex + 1.0);
-      })
+      .attr("width", function(d){ return sessionCircleRadiusScale(d.wordChainIndex + 1.0); })
+      .attr("height", function(d){ return sessionCircleRadiusScale(d.wordChainIndex + 1.0); })
       .style("opacity", function(d) {
         if (hideNodeImagesFlag) {return 1e-6;}
         if (d.mouseHoverFlag) {return 1.0;}
@@ -718,16 +718,15 @@ function ViewFlow() {
       .on("mouseout", nodeMouseOut)
       .on("click", nodeClick)
       .attr("r", 1e-6)
-      .style("visibility", function(d){
-        if (hideNodeImagesFlag) {return "hidden";}
-        if (d.isGroupNode ) {return "hidden";}
-        if (d.isSessionNode) {return "visible";}
-        return "hidden";
-      })
       .style("opacity", 1);
 
     nodeImages
-      .exit().remove();
+      .exit()
+      .style("opacity", function(d){
+        console.error("EXIT: " + d.nodeId);
+        return 0;
+      })
+      .remove();
 
     callback();
   };
@@ -815,7 +814,12 @@ function ViewFlow() {
       .on("click", nodeClick);
 
     nodeLabels
-      .exit().remove();
+      .exit()
+      // .style("opacity", function(d){
+      //   console.error("EXIT: " + jsonPrint(d));
+      //   return 0;
+      // })
+      .remove();
 
     callback();
   };
@@ -980,6 +984,7 @@ function ViewFlow() {
       break;
       case "RESUME":
         runningFlag = true;
+        resumeTimeStamp = moment().valueOf();
         simulation.alphaTarget(0.7).restart();
       break;
       case "FREEZE":
@@ -991,6 +996,7 @@ function ViewFlow() {
       break;
       case "PAUSE":
         runningFlag = false;
+        resumeTimeStamp = 0;
         simulation.alpha(0);
         simulation.stop();
       break;

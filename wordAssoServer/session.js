@@ -399,14 +399,6 @@ var namespace;
 var sessionMode = false;
 var monitorMode = false;
 
-
-// var nodeHashMap = {};
-// nodeHashMap.tweet = new HashMap();
-// nodeHashMap.hashtag = new HashMap();
-// nodeHashMap.media = new HashMap();
-// nodeHashMap.user = new HashMap();
-// nodeHashMap.place = new HashMap();
-
 var maxHashtagRows = 25;
 var maxPlaceRows = 25;
 var maxHashtagBarRows = 100;
@@ -1725,6 +1717,8 @@ function deleteSession(nodeId, callback) {
     return (callback(nodeId));
   }
 
+    console.warn("deleteSession: " + nodeId);
+
   var deletedSession = sessionHashMap.get(nodeId);
   var groupLinkId = deletedSession.groupId + "_" + deletedSession.node.nodeId;
   var sessionLinks = deletedSession.linkHashMap.keys();
@@ -2624,9 +2618,7 @@ var createSession = function(callback) {
         currentSessionView.addNode(sesNode);
 
         addToHashMap(sessionHashMap, currentSession.nodeId, currentSession, function(cSession) {
-
           currentSessionView.addSession(cSession);
-
           nodeCreateQueue.push(cSession);
           return (callback(null, cSession.nodeId));
         });
@@ -3087,7 +3079,6 @@ var createLink = function(callback) {
 
         addToHashMap(linkHashMap, sessionLinkId, newSessionLink, function(sesLink) {
           currentSessionView.addLink(sesLink);
-          // currentSessionView.deleteLink(prevSessionLinkIdHash[session.node.nodeId]);
           prevSessionLinkIdHash[session.node.nodeId] = sessionLinkId;
         });
       }
@@ -3098,7 +3089,6 @@ var createLink = function(callback) {
 
         addToHashMap(linkHashMap, sessionLinkId, sessionLink, function(sesLink) {
           currentSessionView.addLink(sesLink);
-          // currentSessionView.deleteLink(prevSessionLinkIdHash[session.node.nodeId]);
           prevSessionLinkIdHash[session.node.nodeId] = sessionLinkId;
         });
       }

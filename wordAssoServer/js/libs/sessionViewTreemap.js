@@ -356,14 +356,10 @@ function ViewTreemap() {
         ) {
         // console.debug("X NODE\n" + jsonPrint(node));
         localNodeHashMap.remove(node.nodeId);
-        var keywordObjKeys = Object.keys(node.keywords);
+        var keywordTypeKeys = Object.keys(node.keywords);
 
-        keywordObjKeys.forEach(function(kwok){
-          var keywordObj = node.keywords[kwok];
-          var keywordTypeKeys = Object.keys(keywordObj);
-          keywordTypeKeys.forEach(function(keywordType){
-            delete treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId];
-          });
+        keywordTypeKeys.forEach(function(keywordType){
+          delete treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId];
         });
 
         nodes.splice(ageNodesIndex, 1);
@@ -548,42 +544,32 @@ function ViewTreemap() {
 
   var updateTreemapData = function (callback){
 
-    if (nodes.length == 0){ return(callback()); }
+    if (nodes.length == 0) { return(callback()); }
 
     async.forEach(nodes, function(node, cb) {
 
-      var keywordObjKeys = Object.keys(node.keywords);
+      /*
+      node.keywords = { keywordId: "obama", left: 100 };
+      */
 
+      delete node.keywords.keywordId;
 
-      if (keywordObjKeys.length == 0) { return(cb()); }
+      var kwTypes = Object.keys(node.keywords);
 
-      keywordObjKeys.forEach(function(kwok){
+      if (kwTypes.length == 0) { return(cb()); }
 
-        var keywordObj = node.keywords[kwok];
-        delete keywordObj.keywordId;
+      kwTypes.forEach(function(keywordType){
 
-        // console.debug("NODE"
-        //   + " | Ms: " + node.mentions
-        //   + "\nkeywordObj\n" + jsonPrint(keywordObj)
-        // );
-
-        var keywordTypeKeys = Object.keys(keywordObj);
-
-        keywordTypeKeys.forEach(function(keywordType){
-
-          if (typeof treemapData.childrenKeywordTypeHashMap[keywordType] === 'undefined') {
-            treemapData.childrenKeywordTypeHashMap[keywordType] = {};
-            treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId] = {};
-          }
-          else if (typeof treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId] === 'undefined') {
-            treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId] = {};
-          }
-
+        if (treemapData.childrenKeywordTypeHashMap[keywordType] === undefined) {
+          treemapData.childrenKeywordTypeHashMap[keywordType] = {};
           treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId] = {};
-          treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId] = node;
-        });
+        }
+        else if (treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId] === undefined) {
+          treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId] = {};
+        }
 
-
+        treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId] = {};
+        treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId] = node;
       });
 
       cb();
@@ -825,12 +811,14 @@ function ViewTreemap() {
       currentNode = {};
 
       if (localNodeHashMap.has(newNode.nodeId)){
+        // console.info("localNodeHashMap HIT: " + newNode.nodeId);
         currentNode = localNodeHashMap.get(newNode.nodeId);
         currentNode.newFlag = true;
         currentNode.age = 1e-6;
         currentNode.ageMaxRatio = 1e-6;
       }
       else {
+        // console.warn("localNodeHashMap MISS: " + newNode.nodeId);
         nodesModifiedFlag = true;
         currentNode = newNode;
         currentNode.newFlag = true;
@@ -850,7 +838,10 @@ function ViewTreemap() {
         );
       }
 
-      if (nodesModifiedFlag) { nodes.push(currentNode); }
+      if (nodesModifiedFlag) { 
+        nodes.push(currentNode); 
+        // console.warn("localNodeHashMap node push: " + currentNode.nodeId);
+      }
 
       localNodeHashMap.set(currentNode.nodeId, currentNode);
 
@@ -909,8 +900,6 @@ function ViewTreemap() {
       || nNode.isIgnored) { 
       return;
     }
-
-    if (nNode.nodeType === "user") { console.debug("USER: " + nNode.nodeId); }
 
     var newNode = {};
     newNode = nNode;

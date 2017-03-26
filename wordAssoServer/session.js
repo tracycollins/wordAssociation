@@ -1713,11 +1713,11 @@ setInterval(function() {
 function deleteSession(nodeId, callback) {
 
   if (!sessionHashMap.has(nodeId)) {
-    console.warn("deleteSession: SID NOT IN HASH: " + nodeId + " ... SKIPPING DELETE");
+    // console.warn("deleteSession: SID NOT IN HASH: " + nodeId + " ... SKIPPING DELETE");
     return (callback(nodeId));
   }
 
-    console.warn("deleteSession: " + nodeId);
+  // console.warn("deleteSession: " + nodeId);
 
   var deletedSession = sessionHashMap.get(nodeId);
   var groupLinkId = deletedSession.groupId + "_" + deletedSession.node.nodeId;
@@ -1730,11 +1730,8 @@ function deleteSession(nodeId, callback) {
     function(err) {
 
       linkHashMap.remove(groupLinkId);
-
       sessionHashMap.remove(nodeId);
-
       nodeHashMap.remove(deletedSession.node.nodeId);
-
       sessionDeleteHashMap.set(sessionId, 1);
 
       currentSessionView.deleteSessionLinks(sessionId);
@@ -2086,7 +2083,7 @@ var processSessionQueues = function(callback) {
 
   if (rxSessionDeleteQueue.length > 0) {
     var deleteSessUpdate = rxSessionDeleteQueue.shift();
-    console.log("DELETE SESSION: " + deleteSessUpdate.sessionId);
+    // console.log("DELETE SESSION: " + deleteSessUpdate.sessionId);
     sessionDeleteHashMap.set(deleteSessUpdate.sessionId, 1);
     deleteSession(deleteSessUpdate.sessionId, function(sessionId) {
       return (callback(null, null));

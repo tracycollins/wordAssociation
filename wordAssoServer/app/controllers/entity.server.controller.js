@@ -57,7 +57,7 @@ exports.findOneEntity = function(entity, incMentions, callback) {
 		options,
 		function(err, ent) {
 			if (err) {
-				console.error(Date.now() + "\n\n***** ENTITY FINDONE ERROR: " + entity.entity + "\n" + err);
+				console.error(Date.now() + "\n\n***** ENTITY FINDONE ERROR: " + entity.entityId + "\n" + err);
 				callback("ERROR " + err, null);
 			}
 			else {

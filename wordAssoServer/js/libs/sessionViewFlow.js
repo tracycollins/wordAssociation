@@ -126,7 +126,7 @@ function ViewFlow() {
   var adjustedAgeRateScale = d3.scaleLinear().domain([1, 300]).range([1.0, 20.0]).clamp(true);
   var nodeFontSizeScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minFontSize, maxFontSize]).clamp(true);
   var groupCircleRadiusScale = d3.scaleLog().domain([1, 10000000]).range([10.0, 50.0]).clamp(true); // uses wordChainIndex
-  var sessionCircleRadiusScale = d3.scaleLog().domain([1, 1000000]).range([15.0, 50.0]).clamp(true); // uses wordChainIndex
+  var sessionCircleRadiusScale = d3.scaleLog().domain([1, 1000000]).range([15.0, 50.0]); // uses wordChainIndex
   var defaultRadiusScale = d3.scaleLog().domain([1, 10000000]).range([2.0, 30.0]).clamp(true);
   var sessionOpacityScale = d3.scaleLinear().domain([1e-6, 0.05, 1.0]).range([1.0, 0.2, 1e-6]);
 

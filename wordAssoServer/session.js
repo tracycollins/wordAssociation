@@ -47,7 +47,7 @@ requirejs(["https://cdnjs.cloudflare.com/ajax/libs/d3/4.7.4/d3.min.js"], functio
       addBlahButton();
       addFullscreenButton();
       addStatsButton();
-      if (!config.pauseFlag) currentSessionView.simulationControl('RESUME');
+      // if (!config.pauseFlag) currentSessionView.simulationControl('RESUME');
     });
   },
   function(error) {
@@ -75,6 +75,7 @@ var FLOW_MAX_AGE = 10000;
 var FORCE_MAX_AGE = 60000;
 var HISTOGRAM_MAX_AGE = 60000;
 var TREEMAP_MAX_AGE = 60000;
+var TREEPACK_MAX_AGE = 60000;
 var MEDIA_MAX_AGE = 60000;
 var DEFAULT_AGE_RATE = 1.0;
 
@@ -95,6 +96,9 @@ var DEFAULT_NODE_RADIUS = 20.0;
 
 var TREEMAPVIEW_DEFAULT = {};
 TREEMAPVIEW_DEFAULT.MAX_AGE = TREEMAP_MAX_AGE;
+
+var TREEPACKVIEW_DEFAULT = {};
+TREEPACKVIEW_DEFAULT.MAX_AGE = TREEPACK_MAX_AGE;
 
 var HISTOGRAMVIEW_DEFAULT = {};
 HISTOGRAMVIEW_DEFAULT.MAX_AGE = HISTOGRAM_MAX_AGE;
@@ -187,7 +191,6 @@ statsObj.serverConnected = false;
 var serverHeartbeatTimeout = 30000;
 var serverCheckInterval = 30000;
 var serverKeepaliveInteval = 10000;
-
 
 var palette = {
   "black": "#000000",
@@ -1048,15 +1051,19 @@ socket.on("VIEWER_ACK", function(vSesKey) {
   statsObj.viewerSessionKey = vSesKey;
 
   if (sessionMode) {
-    console.log("SESSION MODE" + " | SID: " + sessionId + " | NSP: " + namespace);
+    console.debug("SESSION MODE" + " | SID: " + sessionId + " | NSP: " + namespace);
     var tempSessionId = "/" + namespace + "#" + sessionId;
     currentSession.sessionId = tempSessionId;
-    console.log("TX GET_SESSION | " + currentSession.sessionId);
+    console.debug("TX GET_SESSION | " + currentSession.sessionId);
     socket.emit("GET_SESSION", currentSession.sessionId);
-  } else {
-    console.log("TX REQ_USER_SESSION");
+  } 
+  else {
+    console.debug("TX REQ_USER_SESSION");
     socket.emit("REQ_USER_SESSION");
   }
+
+  if (!config.pauseFlag) currentSessionView.simulationControl('RESUME');
+
 });
 
 socket.on("reconnect", function() {
@@ -1231,7 +1238,6 @@ function getUrlVariables(callbackMain) {
               sessionMode: true,
               sessionId: urlSessionId
             }));
-            // return(callback2(null, {sessionMode: sessionMode}));
           }
           if (keyValuePair[0] === 'nsp') {
             urlNamespace = keyValuePair[1];
@@ -1663,6 +1669,7 @@ function createStatsTable(callback) {
     case 'ticker':
     case 'histogram':
     case 'treemap':
+    case 'treepack':
       tableCreateRow(statsTableServer, optionsHead, ['SERVER']);
       tableCreateRow(statsTableServer, optionsBody, [statsServerTimeLabel, statsServerTime]);
       tableCreateRow(statsTableServer, optionsBody, [statsServerUpTimeLabel, statsServerUpTime]);
@@ -1894,7 +1901,7 @@ socket.on("SESSION_DELETE", function(rxSessionObject) {
 
 socket.on("USER_SESSION", function(rxSessionObject) {
   // var rxObj = rxSessionObject;
-  console.log("USER_SESSION" 
+  console.debug("USER_SESSION" 
     + " | SID: " + rxSessionObject.sessionId 
     + " | UID: " + rxSessionObject.userId 
     + " | NSP: " + rxSessionObject.namespace 
@@ -1943,17 +1950,12 @@ function initSocketNodeRx(){
 
     if (!windowVisible || config.pauseFlag) {return;}
 
-    if (((nNode.nodeType !== "user") 
+    if ((nNode.nodeType !== "user") 
       && (nNode.nodeType !== "hashtag") 
-      && (nNode.nodeType !== "word")) 
-      && (config.sessionViewType === "histogram")) {
-      return;
-    }
-
-    if (((nNode.nodeType !== "user") 
-      && (nNode.nodeType !== "hashtag") 
-      && (nNode.nodeType !== "word")) 
-      && (config.sessionViewType === "treemap")) {
+      && (nNode.nodeType !== "word")
+      && ((config.sessionViewType === "histogram")
+      || (config.sessionViewType === "treemap")
+      || (config.sessionViewType === "treepack"))) {
       return;
     }
 
@@ -2024,7 +2026,7 @@ function initSocketNodeRx(){
       newNode.sourceUrl = nNode.sourceUrl;
     }
 
-    if ((config.sessionViewType === "treemap")
+    if (((config.sessionViewType === "treemap") || (config.sessionViewType === "treepack"))
       && ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user")))) {
       currentSessionView.addNode(newNode);
     }
@@ -2032,7 +2034,9 @@ function initSocketNodeRx(){
       && ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user")))) {
       currentSessionView.addNode(newNode);
     }
-    else if ((config.sessionViewType !== "treemap") && (config.sessionViewType !== "histogram")) {
+    else if ((config.sessionViewType !== "treemap") 
+      && (config.sessionViewType !== "treepack") 
+      && (config.sessionViewType !== "histogram")) {
       currentSessionView.addNode(newNode);
     }
 
@@ -2114,8 +2118,10 @@ var processSessionQueues = function(callback) {
   else {
     var session = rxSessionUpdateQueue.shift();
 
-    if ((config.sessionViewType === 'treemap') || (config.sessionViewType === 'histogram') || (config.forceViewMode === 'web')) {
-      // session.nodeId = session.tags.entity.toLowerCase();
+    if ((config.sessionViewType === 'treemap') 
+      || (config.sessionViewType === 'treepack') 
+      || (config.sessionViewType === 'histogram') 
+      || (config.forceViewMode === 'web')) {
       session.tags.entity = session.tags.entity.toLowerCase();
       session.tags.channel = session.tags.channel.toLowerCase();
     }
@@ -2712,14 +2718,15 @@ var createNode = function(callback) {
     var targetNodeId;
 
     if (config.sessionViewType == 'force') {
-      // sourceNodeId = session.node.nodeId + "_" + session.source.nodeId;
       sourceNodeId = session.source.nodeId;
       if (session.target) {
-        // targetNodeId = session.node.nodeId + "_" + session.target.nodeId;
         targetNodeId = session.target.nodeId;
       }
     }
     else if (config.sessionViewType === 'treemap'){
+      sourceNodeId = session.source.nodeId;
+    }
+    else if (config.sessionViewType === 'treepack'){
       sourceNodeId = session.source.nodeId;
     }
     else if (config.sessionViewType === 'histogram'){
@@ -2748,6 +2755,7 @@ var createNode = function(callback) {
         source: function(cb) {
           if ((config.sessionViewType !== 'ticker') 
             && (config.sessionViewType !== 'treemap') 
+            && (config.sessionViewType !== 'treepack') 
             && (config.sessionViewType !== 'histogram') 
             && (config.sessionViewType !== 'flow') 
             && (config.sessionViewType !== 'force') 
@@ -2880,6 +2888,7 @@ var createNode = function(callback) {
             || (config.sessionViewType === 'media') 
             || (config.sessionViewType === 'flow') 
             || (config.sessionViewType === 'treemap') 
+            || (config.sessionViewType === 'treepack') 
             || (config.sessionViewType === 'histogram') 
             || (config.sessionViewType === 'ticker')) {
             cb("TARGET UNDEFINED", null);
@@ -3042,6 +3051,7 @@ var createNode = function(callback) {
             && (config.sessionViewType !== 'media') 
             && (config.sessionViewType !== 'ticker') 
             && (config.sessionViewType !== 'treemap') 
+            && (config.sessionViewType !== 'treepack') 
             && (config.sessionViewType !== 'histogram') 
             && (config.sessionViewType !== 'flow')) {
             linkCreateQueue.push(cSession);
@@ -3059,6 +3069,7 @@ var createLink = function(callback) {
   if ((config.sessionViewType !== 'ticker') 
     && (config.sessionViewType !== 'flow') 
     && (config.sessionViewType !== 'treemap') 
+    && (config.sessionViewType !== 'treepack') 
     && (config.sessionViewType !== 'histogram') 
     && (config.sessionViewType !== 'media') 
     && !config.disableLinks 
@@ -3313,6 +3324,17 @@ function loadViewType(svt, callback) {
         callback();
       });
       break;
+    case 'treepack':
+      config.sessionViewType = "treepack";
+      config.forceViewMode = "flow";
+      requirejs(["js/libs/sessionViewTreepack"], function() {
+        console.debug("sessionViewTreepack LOADED");
+        DEFAULT_MAX_AGE = TREEPACKVIEW_DEFAULT.MAX_AGE;
+        currentSessionView = new ViewTreepack();
+        initSocketNodeRx();
+        callback();
+      });
+      break;
     case 'treemap':
       config.sessionViewType = "treemap";
       config.forceViewMode = "flow";
@@ -3430,6 +3452,11 @@ function initialize(callback) {
               console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
             });
           }
+          if (config.sessionViewType == 'treepack') {
+            initIgnoreWordsHashMap(function() {
+              console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+            });
+          }
           if (config.sessionViewType == 'histogram') {
             initIgnoreWordsHashMap(function() {
               console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
@@ -3451,6 +3478,9 @@ function initialize(callback) {
             if (config.sessionViewType == 'treemap') {
               currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
             }
+            if (config.sessionViewType == 'treepack') {
+              currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
+            }
             if (config.sessionViewType == 'histogram') {
               currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
             }
@@ -3467,7 +3497,6 @@ function initialize(callback) {
             currentSessionView.initD3timer();
 
             initStatsUpdate(1000);
-            // initUpdateSessionsInterval(50);
 
             console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
             socket.emit("VIEWER_READY", viewerObj);
@@ -3511,6 +3540,12 @@ function initialize(callback) {
               });
             }
             if (config.sessionViewType == 'treemap') {
+              currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
+              initIgnoreWordsHashMap(function() {
+                console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+              });
+            }
+            if (config.sessionViewType == 'treepack') {
               currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
               initIgnoreWordsHashMap(function() {
                 console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
@@ -3573,6 +3608,12 @@ function initialize(callback) {
             });
           }
           if (config.sessionViewType == 'treemap') {
+            currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
+            initIgnoreWordsHashMap(function() {
+              console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+            });
+          }
+          if (config.sessionViewType == 'treepack') {
             currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
             initIgnoreWordsHashMap(function() {
               console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");

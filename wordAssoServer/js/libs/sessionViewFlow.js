@@ -227,7 +227,6 @@ function ViewFlow() {
 
   var nodeSvgGroup = svgFlowLayoutArea.append("svg:g").attr("id", "nodeSvgGroup");
   var nodeLabelSvgGroup = svgFlowLayoutArea.append("svg:g").attr("id", "nodeLabelSvgGroup");
-  // var nodeImages = nodeSvgGroup.selectAll("image");
   var nodeLabels = nodeSvgGroup.selectAll(".nodeLabel");
 
   var divTooltip = d3.select("body").append("div")
@@ -706,6 +705,7 @@ function ViewFlow() {
       })
       .attr("x", function(d) {return d.x - 0.5*(sessionCircleRadiusScale(d.wordChainIndex + 1.0));})
       .attr("y", function(d) {return d.y - 0.5*(sessionCircleRadiusScale(d.wordChainIndex + 1.0));})
+      .attr("xlink:href", function(d) { return d.profileImageUrl; })
       .attr("width", function(d){ return sessionCircleRadiusScale(d.wordChainIndex + 1.0); })
       .attr("height", function(d){ return sessionCircleRadiusScale(d.wordChainIndex + 1.0); })
       .style("opacity", function(d) {

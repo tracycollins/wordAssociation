@@ -88,6 +88,8 @@ var DEFAULT_LINK_DISTANCE = 100.0;
 var DEFAULT_LINK_STRENGTH = 0.50;
 var DEFAULT_COLLISION_RADIUS_MULTIPLIER = 0.6;
 var DEFAULT_COLLISION_ITERATIONS = 2;
+var DEFAULT_FONT_SIZE_MIN = 20;
+var DEFAULT_FONT_SIZE_MAX = 60;
 
 var DEFAULT_NODE_RADIUS = 20.0;
 
@@ -107,6 +109,8 @@ FLOW_DEFAULT.FORCEY_MULTIPLIER = 0.5;
 FLOW_DEFAULT.VELOCITY_DECAY = 0.85;
 FLOW_DEFAULT.COLLISION_RADIUS_MULTIPLIER = 0.5;
 FLOW_DEFAULT.COLLISION_ITERATIONS = 4;
+FLOW_DEFAULT.FONT_SIZE_MIN = 20;
+FLOW_DEFAULT.FONT_SIZE_MAX = 60;
 
 var FORCEVIEW_DEFAULT = {};
 FORCEVIEW_DEFAULT.MAX_AGE = FORCE_MAX_AGE;
@@ -144,6 +148,8 @@ config.maxWords = 100;
 config.testMode = false;
 config.removeDeadNodesFlag = true;
 
+config.defaultFontSizeMin = DEFAULT_FONT_SIZE_MIN;
+config.defaultFontSizeMax = DEFAULT_FONT_SIZE_MAX;
 config.defaultMaxAge = DEFAULT_MAX_AGE;
 config.defaultMultiplier = 1000.0;
 config.defaultBlahMode = DEFAULT_BLAH_MODE;
@@ -595,6 +601,11 @@ function setMaxAgeSliderValue(value) {
   currentSessionView.setNodeMaxAge(value);
 }
 
+function setFontSizeMinValue(value) {
+  controlPanel.document.getElementById("fontSizeMinSlider").value = value;
+  currentSessionView.setFontSizeMin(value);
+}
+
 
 window.onbeforeunload = function() {
   if (controlPanelFlag) controlPanelWindow.close();
@@ -615,6 +626,8 @@ function toggleControlPanel(){
 
     var cnf = {};
 
+    cnf.defaultFontSizeMin = DEFAULT_FONT_SIZE_MIN;
+    cnf.defaultFontSizeMax = DEFAULT_FONT_SIZE_MAX;
     cnf.defaultMaxAge = DEFAULT_MAX_AGE;
     cnf.defaultGravity = DEFAULT_GRAVITY;
     cnf.defaultForceXmultiplier = DEFAULT_FORCEX_MULTIPLIER;
@@ -805,6 +818,14 @@ function controlPanelComm(event) {
         case 'maxAgeSlider' :
           currentSessionView.setNodeMaxAge(data.value);
         break;
+        case 'fontSizeMinSlider' :
+          currentSessionView.setFontSizeMin(data.value);
+        break;
+        case 'fontSizeMaxSlider' :
+          currentSessionView.setFontSizeMax(data.value);
+        break;
+        default:
+          console.error("UNKNOWN CONTROL PANEL ID: " + data.id + "\n" + jsonPrint(data));
       }
     break;
     case 'INIT':
@@ -1585,7 +1606,6 @@ function createStatsTable(callback) {
     text: statsObj.heartbeat.totalWords
   };
 
-
   var statsServerWordsReceivedLabel = {
     type: 'TEXT',
     id: 'statsServerWordsReceivedLabel',
@@ -1669,7 +1689,6 @@ function createStatsTable(callback) {
     default:
       break;
   }
-
 
   if (callback) callback(statsTable);
 }
@@ -3275,6 +3294,7 @@ function loadViewType(svt, callback) {
       config.forceViewMode = "flow";
       requirejs(["js/libs/sessionViewFlow"], function() {
         console.debug("sessionViewFlow LOADED");
+
         DEFAULT_COLLISION_RADIUS_MULTIPLIER = FLOW_DEFAULT.COLLISION_RADIUS_MULTIPLIER;
         DEFAULT_COLLISION_ITERATIONS = FLOW_DEFAULT.COLLISION_ITERATIONS;
         DEFAULT_MAX_AGE = FLOW_DEFAULT.MAX_AGE;
@@ -3284,7 +3304,11 @@ function loadViewType(svt, callback) {
         DEFAULT_FORCEX_MULTIPLIER = FLOW_DEFAULT.FORCEX_MULTIPLIER;
         DEFAULT_FORCEX_SESSION_MULTIPLIER = FLOW_DEFAULT.FORCEX_SESSION_MULTIPLIER;
         DEFAULT_FORCEY_MULTIPLIER = FLOW_DEFAULT.FORCEY_MULTIPLIER;
+        DEFAULT_FONT_SIZE_MIN = FLOW_DEFAULT.FONT_SIZE_MIN;
+        DEFAULT_FONT_SIZE_MAX = FLOW_DEFAULT.FONT_SIZE_MAX;
+
         currentSessionView = new ViewFlow();
+
         initSocketSessionUpdateRx();
         callback();
       });

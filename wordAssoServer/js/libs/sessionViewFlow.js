@@ -70,6 +70,8 @@ function ViewFlow() {
     "velocityDecay": DEFAULT_VELOCITY_DECAY,
     "gravity": DEFAULT_GRAVITY,
     "forceYmultiplier": DEFAULT_FORCEY_MULTIPLIER,
+    "minFontSize": DEFAULT_FONT_SIZE_MIN,
+    "maxFontSize": DEFAULT_FONT_SIZE_MAX,
     "ageRate": window.DEFAULT_AGE_RATE
   };
 
@@ -85,6 +87,9 @@ function ViewFlow() {
   var collisionRadiusMultiplier = DEFAULT_COLLISION_RADIUS_MULTIPLIER;
   var collisionIterations = DEFAULT_COLLISION_ITERATIONS;
   var velocityDecay = DEFAULT_VELOCITY_DECAY;
+
+  var minFontSize = DEFAULT_FONT_SIZE_MIN // 10;
+  var maxFontSize = DEFAULT_FONT_SIZE_MAX // 60;
 
   var palette = {
     "black": "#000000",
@@ -109,9 +114,6 @@ function ViewFlow() {
   };
 
   var currentMaxMentions = 2;
-
-  var minFontSize = 10;
-  var maxFontSize = 60;
 
   var deadNodesHash = {};
 
@@ -185,6 +187,18 @@ function ViewFlow() {
   this.setNodeMaxAge = function(maxAge) {
     nodeMaxAge = maxAge;
     console.debug("SET NODE MAX AGE: " + nodeMaxAge);
+  };
+
+  this.setFontSizeMin = function(minFont) {
+    minFontSize = minFont;
+    nodeFontSizeScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minFontSize, maxFontSize]).clamp(true);
+    console.debug("SET MIN FONT SIZE: " + minFontSize);
+  };
+
+  this.setFontSizeMax = function(maxFont) {
+    maxFontSize = maxFont;
+    nodeFontSizeScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minFontSize, maxFontSize]).clamp(true);
+    console.debug("SET MAX FONT SIZE: " + maxFontSize);
   };
 
   this.getSession = function(index) {
@@ -934,11 +948,11 @@ function ViewFlow() {
       .force("charge", d3.forceManyBody()
         .strength(charge))
       .force("forceX", d3.forceX()
-        .x(function() { 
+        .x(function(d) { 
           if (d.isSessionNode) { return 0.7*width; }
           return -2*width; 
         })
-        .strength(function(){
+        .strength(function(d){
           if (d.isSessionNode) {return forceXsessionMultiplier*gravity;}
           return forceXmultiplier * gravity;
         })

@@ -39,12 +39,6 @@ exports.findOneEntity = function(entity, incMentions, callback) {
 		lastSeen: moment()
 	};
 
-
-	// if (entity.addGroupArray) {
-	// 	debug(chalkDb("ADD GROUP ARRAY: " + entity.addGroupArray));
-	// 	update['$addToSet'].entities = { $each: entity.addGroupArray };
-	// }
-
 	var options = { 
 		setDefaultsOnInsert: true,
 		upsert: true, 

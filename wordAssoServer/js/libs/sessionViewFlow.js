@@ -638,6 +638,8 @@ function ViewFlow() {
         + "<br>MENTIONS: " + mentions 
         + "<br>" + uId
         + "<br>" + nodeId
+        + "<br>K: " + d.isKeyword
+        + "<br>K: " + jsonPrint(d.keywords)
         + "<br>" + d.sessionId;
     }
 

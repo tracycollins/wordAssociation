@@ -8077,6 +8077,12 @@ function initAppRouting(callback) {
     return;
   });
 
+  app.get("/js/libs/sessionViewTreepack.js", function(req, res) {
+    debugAppGet("LOADING FILE: sessionViewTreepack.js");
+    res.sendFile(__dirname + "/js/libs/sessionViewTreepack.js");
+    return;
+  });
+
   app.get("/js/libs/sessionViewHistogram.js", function(req, res) {
     debugAppGet("LOADING FILE: sessionViewHistogram.js");
     res.sendFile(__dirname + "/js/libs/sessionViewHistogram.js");

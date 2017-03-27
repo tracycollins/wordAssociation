@@ -94,7 +94,7 @@ function ViewFlow() {
   var palette = {
     "black": "#000000",
     "white": "#FFFFFF",
-    "lightgray": "#AAAAAA",
+    "lightgray": "#DDDDDD",
     "gray": "#708284",
     "mediumgray": "#536870",
     "darkgray": "#475B62",

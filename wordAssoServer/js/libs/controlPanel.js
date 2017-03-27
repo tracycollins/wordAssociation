@@ -10,7 +10,7 @@ function ControlPanel() {
   var DEFAULT_SOURCE = "==SOURCE==";  // will be updated by wordAssoServer.js on app.get
 
   var parentWindow = window.opener;
-  console.error(parentWindow.PARENT_ID);
+  console.info(parentWindow.PARENT_ID);
   var self = this;
 
   var config = {};
@@ -23,6 +23,10 @@ function ControlPanel() {
   config.defaultLinkStrength = window.opener.DEFAULT_LINK_STRENGTH;
   config.defaultLinkDistance = window.opener.DEFAULT_LINK_DISTANCE;
   config.defaultVelocityDecay = window.opener.DEFAULT_VELOCITY_DECAY;
+  config.defaultFontSizeMin = window.opener.DEFAULT_FONT_SIZE_MIN;
+  config.defaultFontSizeMax = window.opener.DEFAULT_FONT_SIZE_MAX;
+
+console.log("config\n" + jsonPrint(config));
 
   var controlIdHash = {};
 
@@ -78,6 +82,20 @@ function ControlPanel() {
     document.getElementById("maxAgeSliderText").innerHTML = value;
   }
 
+  this.setFontSizeMinSliderValue = function (value) {
+    if (!document.getElementById("fontSizeMinSlider")) { return; }
+    console.log("setFontSizeMinSliderValue: " + value);
+    document.getElementById("fontSizeMinSlider").value = value;
+    document.getElementById("fontSizeMinSliderText").innerHTML = value;
+  }
+
+  this.setFontSizeMaxSliderValue = function (value) {
+    if (!document.getElementById("fontSizeMaxSlider")) { return; }
+    console.log("setFontSizeMaxSliderValue: " + value);
+    document.getElementById("fontSizeMaxSlider").value = value;
+    document.getElementById("fontSizeMaxSliderText").innerHTML = value;
+  }
+
   window.addEventListener("message", receiveMessage, false);
 
   window.onbeforeunload = function() {
@@ -115,6 +133,8 @@ function ControlPanel() {
         self.setChargeSliderValue(config.defaultCharge);
         self.setVelocityDecaySliderValue(config.defaultVelocityDecay);
         self.setMaxAgeSliderValue(config.defaultMaxAge);
+        self.setFontSizeMinSliderValue(config.defaultFontSizeMin);
+        self.setFontSizeMaxSliderValue(config.defaultFontSizeMax);
       }
     }
   };
@@ -177,6 +197,8 @@ function ControlPanel() {
         self.setChargeSliderValue(cnf.defaultCharge);
         self.setVelocityDecaySliderValue(cnf.defaultVelocityDecay);
         self.setMaxAgeSliderValue(cnf.defaultMaxAge);
+        self.setFontSizeMinSliderValue(cnf.defaultFontSizeMin);
+        self.setFontSizeMaxSliderValue(cnf.defaultFontSizeMax);
       break;
     }
   }
@@ -383,6 +405,43 @@ function ControlPanel() {
       text: maxAgeSlider.value + ' ms'
     }
 
+console.log("config\n" + jsonPrint(config));
+
+    var fontSizeMinSlider = {
+      type: 'SLIDER',
+      id: 'fontSizeMinSlider',
+      class: 'slider',
+      min: 0,
+      max: 50,
+      value: config.defaultFontSizeMin,
+      // value: 47,
+      multiplier: 1.0
+    }
+
+    var fontSizeMinSliderText = {
+      type: 'TEXT',
+      id: 'fontSizeMinSliderText',
+      class: 'sliderText',
+      text: fontSizeMinSlider.value + ' px'
+    }
+
+    var fontSizeMaxSlider = {
+      type: 'SLIDER',
+      id: 'fontSizeMaxSlider',
+      class: 'slider',
+      min: 0,
+      max: 100,
+      value: config.defaultFontSizeMax,
+      multiplier: 1.0
+    }
+
+    var fontSizeMaxSliderText = {
+      type: 'TEXT',
+      id: 'fontSizeMaxSliderText',
+      class: 'sliderText',
+      text: fontSizeMaxSlider.value + ' px'
+    }
+
     var chargeSlider = {
       type: 'SLIDER',
       id: 'chargeSlider',
@@ -502,6 +561,8 @@ function ControlPanel() {
             fullscreenButton, 
           ]);
         self.tableCreateRow(controlTable, optionsBody, [blahButton, resetButton]);
+        self.tableCreateRow(controlSliderTable, optionsBody, ['FONT MIN', fontSizeMinSlider, fontSizeMinSliderText]);
+        self.tableCreateRow(controlSliderTable, optionsBody, ['FONT MAX', fontSizeMaxSlider, fontSizeMaxSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ['MAX AGE', maxAgeSlider, maxAgeSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ['CHARGE', chargeSlider, chargeSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ['GRAVITY', gravitySlider, gravitySliderText]);

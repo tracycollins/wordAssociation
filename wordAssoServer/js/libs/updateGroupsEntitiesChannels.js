@@ -665,17 +665,22 @@ function sendKeywords(callback){
   // words = words.slice(0,10);
   // serverWwords = serverWwords.slice(0,10);
 
-  async.forEachSeries(words, function(word, cb) {
+  async.forEachSeries(
+
+    words,
+
+    function(word, cb) {
 
       debugKeyword(chalkAlert("sendKeywords\nword: " + jsonPrint(word)));
+
       // updaterObj = {
       //  "type" : "keyword",
       //  "target" : "server",
-      //  "keywords: { 
-      //    "obama": {
-      //      "positive": 10, 
-      //      "left": 7
-      //    }
+      //  "keyword: {
+      //    "keywordId": obama",
+      //    "positive": 10, 
+      //    "left": 7
+      //   }
       // };
 
       var kwObj = keywordHashMap.get(word);
@@ -684,13 +689,13 @@ function sendKeywords(callback){
       var updaterObj = {};
       
       updaterObj.type = "keyword";
-      updaterObj.keywords = {};
-      updaterObj.keywords[word] = kwObj;
+      updaterObj.keyword = {};
+      updaterObj.keyword = kwObj;
       // updaterObj.keyword.keywordId = word;
 
       setTimeout(function(){
         process.send(updaterObj);
-        debug(chalkAlert("UPDATER SEND KEYWORD"
+        debugKeyword(chalkAlert("UPDATER SEND KEYWORD"
           + " | " + word
           + " | " + jsonPrint(updaterObj)
         ));
@@ -716,8 +721,8 @@ function sendKeywords(callback){
             
             updaterObj.type = "keyword";
             updaterObj.target = "server";
-            updaterObj.keywords = {};
-            updaterObj.keywords[word] = kwObj;
+            updaterObj.keyword = {};
+            updaterObj.keyword[word] = kwObj;
 
             setTimeout(function(){
               process.send(updaterObj);

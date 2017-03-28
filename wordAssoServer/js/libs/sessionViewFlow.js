@@ -486,6 +486,8 @@ function ViewFlow() {
     var dnFlag = false ;
     var node;
 
+    var currentNodeMaxAge = nodeMaxAge;
+
     if (nodes.length === 0) {
       ageRate = DEFAULT_AGE_RATE;
     } 
@@ -509,6 +511,13 @@ function ViewFlow() {
 
       node = nodes[ageNodesIndex];
 
+      if (node.isSessionNode) {
+        currentNodeMaxAge = 2.0 * nodeMaxAge;
+      }
+      else {
+        currentNodeMaxAge = nodeMaxAge;
+      }
+
       if (resumeTimeStamp > 0){
         ageRate = 0;
       }
@@ -516,7 +525,7 @@ function ViewFlow() {
       }
 
       age = node.age + (ageRate * (moment().valueOf() - node.ageUpdated));
-      ageMaxRatio = age/nodeMaxAge ;
+      ageMaxRatio = age/currentNodeMaxAge ;
 
       if (node.isDead) {
         deadNodesHash[node.nodeId] = 1;
@@ -524,7 +533,7 @@ function ViewFlow() {
         dnFlag = true;
         // console.log("XXX NODE DEAD " + node.nodeId);
       } 
-      else if (age >= nodeMaxAge) {
+      else if (age >= currentNodeMaxAge) {
         node.ageUpdated = moment().valueOf();
         node.age = age;
         node.ageMaxRatio = 1.0;
@@ -885,6 +894,37 @@ function ViewFlow() {
     // console.info("+ SES" 
     //   + " " + newSession.sessionId
     // );
+  };
+
+  this.deleteSessionLinks = function(){
+
+  };
+
+  this.sessionKeepalive = function(session) {
+    console.debug("<K SES" 
+      + " | " + session.sessionId
+    );
+
+    var keepaliveNodeId = session.tags.entity + "_" + session.tags.channel;
+
+    async.forEachOf(nodes, function(node, index, cb){
+      if (node.isSessionNode && (node.nodeId === keepaliveNodeId)){
+        console.debug("* SES KEEPALIVE HIT" 
+          + " | " + node.nodeId
+        );
+        nodes[index].age = 1e-6;
+        nodes[index].isDead = false;
+        nodes[index].ageUpdated = moment().valueOf();
+        nodes[index].ageMaxRatio = 1e-6;
+      }
+      cb();
+    }, function(err){
+      if (err) {
+        console.debug("* SES KEEPALIVE ERROR" 
+          + " | " + err
+        );
+      }
+    });
   };
 
 

@@ -4957,8 +4957,8 @@ var readUpdaterMessageQueue = setInterval(function() {
           debugKeyword(chalkLog("UPDATE SERVER KEYWORD\n" + jsonPrint(updaterObj.keyword)));
           serverKeywordHashMap.set(updaterObj.keyword.keywordId, updaterObj.keyword);
         }
-        else if (updaterObj.twitter) {
-          debugKeyword(chalkLog("UPDATE SERVER KEYWORD TWITTER\n" + jsonPrint(updaterObj.keyword)));
+        else if ((updaterObj.target !== undefined) && (updaterObj.target == "twitter")) {
+          console.log(chalkLog("UPDATE SERVER KEYWORD TWITTER\n" + jsonPrint(updaterObj.keyword)));
           serverKeywordHashMap.set(updaterObj.keyword.keywordId, updaterObj.keyword);
         }
         else {
@@ -5420,7 +5420,7 @@ function keywordUpdateDb(updateObj, callback){
       callback(err, wordObj);
     }
     else {
-      debug(chalkAlert("+ KEYWORD"
+      debugKeyword(chalkAlert("+ KEYWORD"
         + " | " + updatedWordObj.nodeId 
         + " | " + updatedWordObj.raw 
         + " | M " + updatedWordObj.mentions 
@@ -5774,7 +5774,6 @@ function initializeConfiguration(cnf, callback) {
                         //    "left": 7
                         //  }
                         // };
-
 
                         updateObj.type = "keyword";
                         updateObj.target = "twitter";

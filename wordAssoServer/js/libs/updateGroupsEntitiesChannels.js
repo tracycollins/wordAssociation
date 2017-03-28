@@ -722,7 +722,7 @@ function sendKeywords(callback){
             updaterObj.type = "keyword";
             updaterObj.target = "server";
             updaterObj.keyword = {};
-            updaterObj.keyword[word] = kwObj;
+            updaterObj.keyword = kwObj;
 
             setTimeout(function(){
               process.send(updaterObj);

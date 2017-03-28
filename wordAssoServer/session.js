@@ -87,7 +87,7 @@ var DEFAULT_FORCEY_MULTIPLIER = 25.0;
 var DEFAULT_VELOCITY_DECAY = 0.99;
 var DEFAULT_LINK_DISTANCE = 100.0;
 var DEFAULT_LINK_STRENGTH = 0.50;
-var DEFAULT_COLLISION_RADIUS_MULTIPLIER = 0.6;
+var DEFAULT_COLLISION_RADIUS_MULTIPLIER = 0.4;
 var DEFAULT_COLLISION_ITERATIONS = 2;
 var DEFAULT_FONT_SIZE_MIN = 16;
 var DEFAULT_FONT_SIZE_MAX = 60;
@@ -111,8 +111,8 @@ FLOW_DEFAULT.FORCEX_MULTIPLIER = 0.5;
 FLOW_DEFAULT.FORCEX_SESSION_MULTIPLIER = 5;
 FLOW_DEFAULT.FORCEY_MULTIPLIER = 0.5;
 FLOW_DEFAULT.VELOCITY_DECAY = 0.85;
-FLOW_DEFAULT.COLLISION_RADIUS_MULTIPLIER = 0.5;
-FLOW_DEFAULT.COLLISION_ITERATIONS = 4;
+FLOW_DEFAULT.COLLISION_RADIUS_MULTIPLIER = 0.4;
+FLOW_DEFAULT.COLLISION_ITERATIONS = 2;
 FLOW_DEFAULT.FONT_SIZE_MIN = 16;
 FLOW_DEFAULT.FONT_SIZE_MAX = 60;
 
@@ -1914,7 +1914,13 @@ function initSocketSessionUpdateRx(){
 
     // console.debug("SES UPDATE: " + rxSessionObject.action + " | " + rxSessionObject.sessionId);
 
-    if (!windowVisible || config.pauseFlag) {
+    if (rxSessionObject.action == 'KEEPALIVE') {
+      // console.debug("KEEPALIVE"
+      //   + "\n" + jsonPrint(rxSessionObject)
+      // );
+      currentSessionView.sessionKeepalive(rxSessionObject);
+    } 
+    else if (!windowVisible || config.pauseFlag) {
       rxSessionUpdateQueue = [];
       if (debug) {
         console.log("... SKIP SESSION_UPDATE ... WINDOW NOT VISIBLE");
@@ -1929,17 +1935,14 @@ function initSocketSessionUpdateRx(){
     } 
     else if (rxSessionUpdateQueue.length < MAX_RX_QUEUE) {
 
-      if (rxSessionObject.action == 'KEEPALIVE') {
-      } 
-      else {
-        rxSessionUpdateQueue.push(rxSessionObject);
+      rxSessionUpdateQueue.push(rxSessionObject);
 
-        if (rxSessionObject.tags.trending) {
-          console.debug("TTT" + rxSessionObject.source.nodeId 
-            + " | T: " + rxSessionObject.tags.trending
-          );
-        }
+      if (rxSessionObject.tags.trending) {
+        console.debug("TTT" + rxSessionObject.source.nodeId 
+          + " | T: " + rxSessionObject.tags.trending
+        );
       }
+
     }
   });
 }
@@ -2082,9 +2085,7 @@ var numberSessionsUpdated = 0;
 function addToHashMap(hm, key, value, callback) {
   if ( key === undefined) {
     console.error("*** ERROR addToHashMap KEY UNDEFINED ***\nVALUE\n" + jsonPrint(value));
-  }
-  if (key == undefined) {
-    console.error("*** ERROR addToHashMap KEY UNDEFINED ***\nVALUE\n" + jsonPrint(value));
+    console.trace();
   }
   hm.set(key, value);
   var v = hm.get(key);
@@ -2138,7 +2139,7 @@ var processSessionQueues = function(callback) {
       break;
       case "livestream":
         if (session.tags.entity == 'cspan'){
-          session.tags.group.url = "https://www.c-span.org/networks/";          
+          if ( session.tags.group.url !== undefined) session.tags.group.url = "https://www.c-span.org/networks/";          
         }
       break;
     }
@@ -2831,10 +2832,21 @@ var createNode = function(callback) {
               sourceNode.isIgnored = true;
             }
             sourceNode.isKeyword = session.source.isKeyword;
-            // sourceNode.keywordColor = getKeywordColor(session.source.keywords);
-            getKeywordColor(session.source.keywords, function(color){
-              sourceNode.keywordColor = color;
-            });  // KLUDGE!  need better way to do keywords
+
+            // getKeywordColor(session.source.keywords, function(color){
+            //   sourceNode.keywordColor = color;
+            // });  // KLUDGE!  need better way to do keywords
+
+            if (session.source.keywords !== undefined) {
+              getKeywordColor(session.source.keywords, function(color){
+                sourceNode.keywordColor = color;
+              });  // KLUDGE!  need better way to do keywords
+            }
+            else {
+              sourceNode.keywordColor = palette.black;
+            }
+
+
             sourceNode.isTrendingTopic = session.source.isTrendingTopic;
             sourceNode.newFlag = true;
             sourceNode.latestNode = true;
@@ -2975,10 +2987,16 @@ var createNode = function(callback) {
             }
             targetNode.isTrendingTopic = session.target.isTrendingTopic;
             targetNode.isKeyword = session.target.isKeyword;
-            // targetNode.keywordColor = getKeywordColor(session.target.keywords);
-            getKeywordColor(session.target.keywords, function(color){
-              targetNode.keywordColor = color;
-            });  // KLUDGE!  need better way to do keywords
+
+            if (session.target.keywords !== undefined) {
+              getKeywordColor(session.target.keywords, function(color){
+                targetNode.keywordColor = color;
+              });  // KLUDGE!  need better way to do keywords
+            }
+            else {
+              targetNode.keywordColor = palette.black;
+            }
+
             targetNode.userId = session.userId;
             targetNode.groupId = session.groupId;
             targetNode.channel = session.tags.channel;

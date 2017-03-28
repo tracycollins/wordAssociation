@@ -4941,97 +4941,95 @@ var readUpdaterMessageQueue = setInterval(function() {
         // updaterObj = {
         //  "type" : "keyword",
         //  "target" : "server",
-        //  "keywords: {
-        //    "obama": {
-        //      "keywordId": obama"
-        //      "positive": 10, 
-        //      "left": 7
-        //    }
+        //  "keyword: {
+        //    "keywordId": obama",
+        //    "positive": 10, 
+        //    "left": 7
         //   }
         // };
 
         debugKeyword(chalkLog("KEYWORD: " + jsonPrint(updaterObj)));
 
-        var keywords = Object.keys(updaterObj.keywords);
+        // var keywords = Object.keys(updaterObj.keywords);
 
-        keywords.forEach(function(kw){
-          if ((updaterObj.target !== undefined) && (updaterObj.target == "server")) {
-            debugKeyword(chalkLog("UPDATE SERVER KEYWORD\n" + jsonPrint(updaterObj.keywords[kw])));
-            serverKeywordHashMap.set(kw, updaterObj.keywords[kw]);
-          }
-          else if (updaterObj.twitter) {
-            debugKeyword(chalkLog("UPDATE SERVER KEYWORD TWITTER\n" + jsonPrint(updaterObj.keywords[kw])));
-            serverKeywordHashMap.set(kw, updaterObj.keywords[kw]);
-          }
-          else {
-            debugKeyword(chalkLog("UPDATE KEYWORD\n" + jsonPrint(updaterObj.keywords[kw])));
-            keywordHashMap.set(kw, updaterObj.keywords[kw]);
-          }
+      // keywords.forEach(function(kw){
+        if ((updaterObj.target !== undefined) && (updaterObj.target == "server")) {
+          debugKeyword(chalkLog("UPDATE SERVER KEYWORD\n" + jsonPrint(updaterObj.keyword)));
+          serverKeywordHashMap.set(updaterObj.keyword.keywordId, updaterObj.keyword);
+        }
+        else if (updaterObj.twitter) {
+          debugKeyword(chalkLog("UPDATE SERVER KEYWORD TWITTER\n" + jsonPrint(updaterObj.keyword)));
+          serverKeywordHashMap.set(updaterObj.keyword.keywordId, updaterObj.keyword);
+        }
+        else {
+          debugKeyword(chalkLog("UPDATE KEYWORD\n" + jsonPrint(updaterObj.keyword)));
+          keywordHashMap.set(updaterObj.keyword.keywordId, updaterObj.keyword);
+        }
 
-          keywordUpdateDb(updaterObj.keywords[kw], function(err, updatedWordObj){
-            if (updaterObj.twitter) {
-              var dmString = "KEYWORD"
-                + " | " + hostname 
-                + "\n" + updatedWordObj.nodeId 
-                + "\n" + updatedWordObj.mentions + " Ms" 
-                + "\n" + jsonPrint(updatedWordObj.keywords);
+        keywordUpdateDb(updaterObj.keyword, function(err, updatedWordObj){
+          if (updaterObj.twitter) {
+            var dmString = "KEYWORD"
+              + " | " + hostname 
+              + "\n" + updatedWordObj.nodeId 
+              + "\n" + updatedWordObj.mentions + " Ms" 
+              + "\n" + jsonPrint(updatedWordObj.keyword);
 
-              console.log(chalkLog(dmString));
+            console.log(chalkLog(dmString));
 
-              sendDirectMessage("threecee", dmString, function(err, res){
-                if (!err) {
-                  console.log(chalkLog("SENT TWITTER DM: " + dmString));
-                }
-                else {
-                  switch (err.code) {
-                    case 226:
-                      console.log(chalkError("*** TWITTER DM SEND ERROR: LOOKS LIKE AUTOMATED TX: CODE: " + err.code));
+            sendDirectMessage("threecee", dmString, function(err, res){
+              if (!err) {
+                console.log(chalkLog("SENT TWITTER DM: " + dmString));
+              }
+              else {
+                switch (err.code) {
+                  case 226:
+                    console.log(chalkError("*** TWITTER DM SEND ERROR: LOOKS LIKE AUTOMATED TX: CODE: " + err.code));
 
-                      setTimeout(function(){
-                        console.log(chalkError("... RETRY #1 TWITTER DM " + dmString));
-                        sendDirectMessage("threecee", dmString, function(err, res){
-                          if (!err) {
-                            console.log(chalkLog("SENT TWITTER DM: " + dmString));
-                          }
-                          else {
-                            switch (err.code) {
-                              case 226:
-                                console.log(chalkError("*** TWITTER DM SEND ERROR: LOOKS LIKE AUTOMATED TX: CODE: " + err.code));
+                    setTimeout(function(){
+                      console.log(chalkError("... RETRY #1 TWITTER DM " + dmString));
+                      sendDirectMessage("threecee", dmString, function(err, res){
+                        if (!err) {
+                          console.log(chalkLog("SENT TWITTER DM: " + dmString));
+                        }
+                        else {
+                          switch (err.code) {
+                            case 226:
+                              console.log(chalkError("*** TWITTER DM SEND ERROR: LOOKS LIKE AUTOMATED TX: CODE: " + err.code));
 
-                                setTimeout(function(){
-                                  console.log(chalkError("... RETRY #2 TWITTER DM " + dmString));
-                                  sendDirectMessage("threecee", dmString, function(err, res){
-                                    if (!err) {
-                                      console.log(chalkLog("SENT TWITTER DM: " + dmString));
+                              setTimeout(function(){
+                                console.log(chalkError("... RETRY #2 TWITTER DM " + dmString));
+                                sendDirectMessage("threecee", dmString, function(err, res){
+                                  if (!err) {
+                                    console.log(chalkLog("SENT TWITTER DM: " + dmString));
+                                  }
+                                  else {
+                                    switch (err.code) {
+                                      case 226:
+                                        console.log(chalkError("*** TWITTER DM SEND ERROR: LOOKS LIKE AUTOMATED TX: CODE: " + err.code));
+                                      break;
+                                      default:
+                                        console.log(chalkError("*** TWITTER DM SEND ERROR: " + jsonPrint(err)));
                                     }
-                                    else {
-                                      switch (err.code) {
-                                        case 226:
-                                          console.log(chalkError("*** TWITTER DM SEND ERROR: LOOKS LIKE AUTOMATED TX: CODE: " + err.code));
-                                        break;
-                                        default:
-                                          console.log(chalkError("*** TWITTER DM SEND ERROR: " + jsonPrint(err)));
-                                      }
-                                    }
+                                  }
 
-                                  });
-                                }, randomInt(14700,34470));
-                              break;
-                              default:
-                                console.log(chalkError("*** TWITTER DM SEND ERROR: " + jsonPrint(err)));
-                            }
+                                });
+                              }, randomInt(14700,34470));
+                            break;
+                            default:
+                              console.log(chalkError("*** TWITTER DM SEND ERROR: " + jsonPrint(err)));
                           }
-                        });
-                      }, randomInt(14700,34470));
-                    break;
-                    default:
-                      console.log(chalkError("*** TWITTER DM SEND ERROR: " + jsonPrint(err)));
-                  }
+                        }
+                      });
+                    }, randomInt(14700,34470));
+                  break;
+                  default:
+                    console.log(chalkError("*** TWITTER DM SEND ERROR: " + jsonPrint(err)));
                 }
-              });
-            }
-          });
+              }
+            });
+          }
         });
+        // });
         
         updaterMessageReady = true;
       break;

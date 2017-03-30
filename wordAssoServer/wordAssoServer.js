@@ -3402,6 +3402,7 @@ function groupUpdateDb(userObj, callback){
       var groupObj = groupHashMap.get(entityObj.groupId);
 
       groupObj.groupId = entityObj.groupId;
+      groupObj.lastSeen = moment().valueOf();
 
       groupUpdateObj.groupId = entityObj.groupId;
       groupUpdateObj.name = groupObj.name;

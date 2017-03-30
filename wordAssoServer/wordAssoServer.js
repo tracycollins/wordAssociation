@@ -7039,7 +7039,7 @@ function initFollowerUpdateQueueInterval(interval){
         function(entityObj, cb){
 
           updateGroupEntity(entityObj, function(err, updatedEntityObj){
-            cb(err, updatedEntityObj);
+            cb();
           });
 
         }

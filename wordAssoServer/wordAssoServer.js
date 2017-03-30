@@ -7036,10 +7036,10 @@ function initFollowerUpdateQueueInterval(interval){
           }
 
         },
-        function(entityObj, cb){
+        function(entityObj, groupObj, cb){
 
           updateGroupEntity(entityObj, function(err, updatedEntityObj){
-            cb();
+            cb(null, "done");
           });
 
         }

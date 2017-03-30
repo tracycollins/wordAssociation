@@ -12,21 +12,21 @@ function ViewTreemap() {
   var MAX_NODES = 100;
 
   var NEW_NODE_AGE_RATIO = 0.01;
-  var fontSizeRatio = 0.022;
+  // var fontSizeRatio = 0.022;
   var minOpacity = 0.25;
   var blahFlag = false;
   var antonymFlag = false;
   var removeDeadNodesFlag = true;
 
-  var defaultPosDuration = 150;
+  // var defaultPosDuration = 150;
 
-  var hashtagTopMargin = 15; // %
-  var hashtagLeftMargin = 10; // %
+  // var hashtagTopMargin = 15; // %
+  // var hashtagLeftMargin = 10; // %
 
-  var maxHashtagRows = 25;
-  var maxHashtagCols = 5;
-  var rowSpacing = 3; // %
-  var colSpacing = 90/maxHashtagCols; // %
+  // var maxHashtagRows = 25;
+  // var maxHashtagCols = 5;
+  // var rowSpacing = 3; // %
+  // var colSpacing = 90/maxHashtagCols; // %
 
   var DEFAULT_AGE_RATE = 1.0;
   var MAX_RX_QUEUE = 100;
@@ -59,7 +59,7 @@ function ViewTreemap() {
   var nodeMaxAge = 60000;
 
   var DEFAULT_TREEMAP_CONFIG = {
-    'ageRate': window.DEFAULT_AGE_RATE
+    "ageRate": window.DEFAULT_AGE_RATE
   };
 
   var ageRate = DEFAULT_TREEMAP_CONFIG.ageRate;
@@ -94,7 +94,7 @@ function ViewTreemap() {
 
   console.log("width: " + window.innerWidth + " | height: " + window.innerHeight);
 
-  var fontSize = fontSizeRatio * window.innerHeight;
+  // var fontSize = fontSizeRatio * window.innerHeight;
 
   // d3.select("body")
   //   .on("touchstart", touch)
@@ -194,6 +194,7 @@ function ViewTreemap() {
     .attr("x", 1e-6)
     .attr("y", 1e-6);
 
+
 //============TREEMAP=================================
 
   // var fader = function(color) { return d3.interpolateRgb(color, "#fff")(0.2); },
@@ -217,30 +218,30 @@ function ViewTreemap() {
   treemapData.childrenKeywordTypeHashMap.neutral = {};
   treemapData.childrenKeywordTypeHashMap.negative = {};
 
-  function changed() {
+  // function changed() {
     
-    treemap(root.sum(sumBySize));
+  //   treemap(root.sum(sumBySize));
 
-    cell.transition()
-      .duration(750)
-      .attr("transform", function(d) { return "translate(" + d.x0 + "," + d.y0 + ")"; })
-      .select("rect")
-        .attr("width", function(d) { return d.x1 - d.x0; })
-        .attr("height", function(d) { return d.y1 - d.y0; });
-  }
+  //   cell.transition()
+  //     .duration(750)
+  //     .attr("transform", function(d) { return "translate(" + d.x0 + "," + d.y0 + ")"; })
+  //     .select("rect")
+  //       .attr("width", function(d) { return d.x1 - d.x0; })
+  //       .attr("height", function(d) { return d.y1 - d.y0; });
+  // }
 
-  function sumByCount(d) {
-    return d.children ? 0 : 1;
-  }
+  // function sumByCount(d) {
+  //   return d.children ? 0 : 1;
+  // }
 
   function sumBySize(d) {
     return d.size;
   }
 
 //============TREEMAP=================================
-  var nodeSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeSvgGroup");
-  var nodeLabelSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeLabelSvgGroup");
-  var nodeLabels = nodeSvgGroup.selectAll(".nodeLabel");
+  // var nodeSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeSvgGroup");
+  // var nodeLabelSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeLabelSvgGroup");
+  // var nodeLabels = nodeSvgGroup.selectAll(".nodeLabel");
 
   var divTooltip = d3.select("body").append("div")
     .attr("class", "tooltip")
@@ -259,19 +260,19 @@ function ViewTreemap() {
     console.debug("SET PAUSE: " + value);
     runningFlag = !value;
     if (value){
-      self.simulationControl('PAUSE');
+      self.simulationControl("PAUSE");
     }
     else{
-      self.simulationControl('RESUME');
+      self.simulationControl("RESUME");
     }
   };
 
   self.togglePause = function(){
     if (runningFlag){
-      self.simulationControl('PAUSE');
+      self.simulationControl("PAUSE");
     }
     else{
-      self.simulationControl('RESUME');
+      self.simulationControl("RESUME");
     }
   };
 
@@ -309,6 +310,12 @@ function ViewTreemap() {
     });
   }
 
+  function deleteTreemapDataNode(keywordTypeKeys, nodeId){
+    keywordTypeKeys.forEach(function(keywordType){
+      delete treemapData.childrenKeywordTypeHashMap[keywordType][nodeId];
+    });
+  }
+
   var ageNodes = function (callback) {
 
     var age;
@@ -318,10 +325,10 @@ function ViewTreemap() {
     var ageNodesIndex = nodes.length - 1;
     var node;
     var nodeObj;
+    var keywordTypeKeys;
 
     if (nodes.length === 0) {
       ageRate = DEFAULT_AGE_RATE;
-      // return (callback(null, deadNodeFlag));
     } 
     else if ((nodes.length > MAX_NODES) && (nodeAddQ.length <= MAX_RX_QUEUE)) {
       ageRate = adjustedAgeRateScale(nodes.length - MAX_NODES);
@@ -356,11 +363,14 @@ function ViewTreemap() {
         ) {
         // console.debug("X NODE\n" + jsonPrint(node));
         localNodeHashMap.remove(node.nodeId);
-        var keywordTypeKeys = Object.keys(node.keywords);
+        keywordTypeKeys = Object.keys(node.keywords);
 
-        keywordTypeKeys.forEach(function(keywordType){
-          delete treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId];
-        });
+
+        deleteTreemapDataNode(keywordTypeKeys, node.nodeId);
+
+        // keywordTypeKeys.forEach(function(keywordType){
+        //   delete treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId];
+        // });
 
         nodes.splice(ageNodesIndex, 1);
       } 
@@ -405,7 +415,7 @@ function ViewTreemap() {
     for (ageNodesIndex = ageNodesLength; ageNodesIndex >= 0; ageNodesIndex -= 1) {
       node = nodes[ageNodesIndex];
       if (deadNodesHash[node.nodeId]) {
-        nodeDeleteQ.push({op:'delete', nodeId: node.nodeId});
+        nodeDeleteQ.push({op:"delete", nodeId: node.nodeId});
         deadNodeFlag = true;
         delete deadNodesHash[node.nodeId];
         localNodeHashMap.remove(node.nodeId);
@@ -429,13 +439,13 @@ function ViewTreemap() {
     var tooltipString;
 
     switch (d.data.nodeType) {
-      case 'hashtag':
+      case "hashtag":
         tooltipString = "#" + d.data.name
           + "<br>TYPE: " + d.data.nodeType 
           + "<br>Ms: " + d.data.size
           + "<br>RANK: " + d.data.rank;
       break;
-      case 'word':
+      case "word":
         tooltipString = d.data.nodeId
           + "<br>TYPE: " + d.data.nodeType 
           + "<br>RANK: " + d.data.rank
@@ -463,88 +473,87 @@ function ViewTreemap() {
   var cellMouseOut = function (d) {
     d.data.mouseHoverFlag = false;
     self.toolTipVisibility(false);
-  }
-
-
-  var nodeMouseOver = function (d) {
-
-    d.mouseHoverFlag = true;
-
-    self.toolTipVisibility(true);
-
-    var tooltipString;
-
-    switch (d.nodeType) {
-      case 'hashtag':
-        tooltipString = "#" + d.nodeId
-          + "<br>TYPE: " + d.nodeType 
-          + "<br>Ms: " + d.mentions
-          + "<br>RANK: " + d.rank;
-      break;
-      case 'word':
-        tooltipString = d.nodeId
-          + "<br>TYPE: " + d.nodeType 
-          + "<br>RANK: " + d.rank
-          + "<br>Ms: " + d.mentions
-          + "<br>URL: " + d.url;
-      break;
-    }
-
-    divTooltip.html(tooltipString)
-      .style("left", (d3.event.pageX - 40) + "px")
-      .style("top", (d3.event.pageY - 50) + "px");
   };
 
-  function nodeMouseOut(d) {
-    d.mouseHoverFlag = false;
-    self.toolTipVisibility(false);
-  }
+  // var nodeMouseOver = function (d) {
+
+  //   d.mouseHoverFlag = true;
+
+  //   self.toolTipVisibility(true);
+
+  //   var tooltipString;
+
+  //   switch (d.nodeType) {
+  //     case "hashtag":
+  //       tooltipString = "#" + d.nodeId
+  //         + "<br>TYPE: " + d.nodeType 
+  //         + "<br>Ms: " + d.mentions
+  //         + "<br>RANK: " + d.rank;
+  //     break;
+  //     case "word":
+  //       tooltipString = d.nodeId
+  //         + "<br>TYPE: " + d.nodeType 
+  //         + "<br>RANK: " + d.rank
+  //         + "<br>Ms: " + d.mentions
+  //         + "<br>URL: " + d.url;
+  //     break;
+  //   }
+
+  //   divTooltip.html(tooltipString)
+  //     .style("left", (d3.event.pageX - 40) + "px")
+  //     .style("top", (d3.event.pageY - 50) + "px");
+  // };
+
+  // function nodeMouseOut(d) {
+  //   d.mouseHoverFlag = false;
+  //   self.toolTipVisibility(false);
+  // }
 
   function cellClick(d) {
     console.debug("cellClick", d);
     var url = "https://twitter.com/search?f=realtime&q=%23" + d.data.name ;
-    window.open(url, '_blank');
+    window.open(url, "_blank");
   }
 
-  function nodeClick(d) {
-    console.debug("nodeClick");
-    var url = "";
+  // function nodeClick(d) {
+  //   console.debug("nodeClick");
+  //   var url = "";
 
-    switch (d.nodeType) {
-      case "hashtag" :
-        url = "https://twitter.com/search?f=realtime&q=%23" + d.text ;
-        window.open(url, '_blank');
-      break;
-    }
-  }
+  //   switch (d.nodeType) {
+  //     case "hashtag" :
+  //       url = "https://twitter.com/search?f=realtime&q=%23" + d.text ;
+  //       window.open(url, "_blank");
+  //     break;
+  //   }
+  // }
 
-  function yposition(d){
-    var rowNum = d.rank % maxHashtagRows;
-    var value = hashtagTopMargin + (rowNum * rowSpacing);
-    return value + "%";
-  }
+  // function yposition(d){
+  //   var rowNum = d.rank % maxHashtagRows;
+  //   var value = hashtagTopMargin + (rowNum * rowSpacing);
+  //   return value + "%";
+  // }
 
-  function xposition(d){
-    var colNum = parseInt(d.rank / maxHashtagRows);        
-    var value = hashtagLeftMargin + (colNum * colSpacing);
-    return value + "%" ;
-  }
+  // function xposition(d){
+  //   var colNum = parseInt(d.rank / maxHashtagRows);        
+  //   var value = hashtagLeftMargin + (colNum * colSpacing);
+  //   return value + "%" ;
+  // }
 
-  function jsonPrint(obj) {
-    if ((obj) || (obj === 0)) {
-      var jsonString = JSON.stringify(obj, null, 2);
-      return jsonString;
-    } else {
-      return "UNDEFINED";
-    }
-  }
+  // function jsonPrint(obj) {
+  //   if ((obj) || (obj === 0)) {
+  //     var jsonString = JSON.stringify(obj, null, 2);
+  //     return jsonString;
+  //   } else {
+  //     return "UNDEFINED";
+  //   }
+  // }
 
   var root;
   var cell;
 
   var updateTreemapData = function (callback){
 
-    if (nodes.length == 0) { return(callback()); }
+    if (nodes.length === 0) { return(callback()); }
 
     async.forEach(nodes, function(node, cb) {
 
@@ -556,7 +565,7 @@ function ViewTreemap() {
 
       var kwTypes = Object.keys(node.keywords);
 
-      if (kwTypes.length == 0) { return(cb()); }
+      if (kwTypes.length === 0) { return(cb()); }
 
       kwTypes.forEach(function(keywordType){
 
@@ -606,14 +615,11 @@ function ViewTreemap() {
                 
           cb3();
 
-        }, function(err) {
-
-          // if (err) { return(callback(err)); }
+        }, function() {
           cb2();
-
         });
 
-      }, function(err) {
+      }, function() {
 
         if (nodes.length === 0) { return(callback()); }
 
@@ -654,12 +660,12 @@ function ViewTreemap() {
             if (d.data.newFlag) { return palette.white; }
             return d.data.keywordColor; 
           })
-          .style('opacity', function(d) { 
+          .style("opacity", function(d) { 
             if (d.mouseHoverFlag) { return 1.0; }
             return nodeLabelOpacityScale(d.data.ageMaxRatio); 
           })
-          .attr('stroke', palette.white)
-          .attr('stroke-width', '1.0');
+          .attr("stroke", palette.white)
+          .attr("stroke-width", "1.0");
 
         cell
           .append("clipPath")
@@ -683,7 +689,7 @@ function ViewTreemap() {
             if (d.data.newFlag) { return palette.black; }
             return palette.white; 
           })
-          .style('opacity', function(d) { 
+          .style("opacity", function(d) { 
             if (d.mouseHoverFlag) { return 1.0; }
             return nodeLabelOpacityScale(d.data.ageMaxRatio); 
           });
@@ -711,84 +717,83 @@ function ViewTreemap() {
       });
 
     });
-
-  }
-
-  var updateNodeLabels = function(callback) {
-
-    nodeLabels = nodeLabelSvgGroup.selectAll("text")
-      .data(nodes, function(d) { return d.nodeId; });
-
-    nodeLabels
-      .exit()
-      .attr("class", "exit")
-        .remove();
-
-    nodeLabels
-      .attr("class", "update")
-      .on("mouseover", nodeMouseOver)
-      .on("mouseout", nodeMouseOut)
-      .text(function(d) {
-        if (d.isTwitterUser) { return "@" + d.screenName.toUpperCase(); }
-        if (d.isKeyword || d.isTrendingTopic || d.isTwitterUser) { return d.nodeId.toUpperCase(); }
-        if (testMode) { return "blah"; }
-        return d.nodeId; 
-      })
-      .style('fill', function(d) { 
-        if (d.newFlag) { return palette.white; }
-        if (d.mouseHoverFlag) { return palette.blue; }
-        if (d.isKeyword) { return d.keywordColor; }
-        if (d.isTrendingTopic || d.isTwitterUser || d.isNumber || d.isCurrency) { return palette.white; }
-        if ((d.isGroupNode || d.isSessionNode) && (d.ageMaxRatio < 0.01)) { return palette.yellow; }
-        return palette.lightgray; 
-      })
-      .style('opacity', function(d) { 
-        if (d.mouseHoverFlag) { return 1.0; }
-        return nodeLabelOpacityScale(d.ageMaxRatio); 
-      })
-      .transition()
-        .duration(defaultPosDuration)
-        .attr("x", xposition)
-        .attr("y", yposition);
-
-    nodeLabels
-      .enter().append("text")
-      .attr("class", "enter")
-      .style("text-anchor", "left")
-      .style("alignment-baseline", "bottom")
-      .on("mouseover", nodeMouseOver)
-      .on("mouseout", nodeMouseOut)
-      .on("click", nodeClick)
-      .attr("x", xposition)
-      .attr("y", yposition)
-      .text(function(d) {
-        if (d.isTwitterUser) { return "@" + d.screenName.toUpperCase(); }
-        if (d.isKeyword || d.isTrendingTopic || d.isTwitterUser) { return d.nodeId.toUpperCase(); }
-        if (testMode) { return "blah"; }
-        return d.nodeId; 
-      })
-      .style("font-weight", function(d) {
-        if (d.isTwitterUser 
-          || d.isKeyword 
-          || d.isNumber 
-          || d.isCurrency 
-          || d.isTrendingTopic) {
-          return "bold";
-        }
-        return "normal";
-      })
-      .style('opacity', function(d) { 
-        if (d.mouseHoverFlag) { return 1.0; }
-        return nodeLabelOpacityScale(d.ageMaxRatio); 
-      })
-      .style('fill', palette.white)
-      .style("font-size", fontSize)
-      .transition()
-        .duration(defaultPosDuration)
-        .attr("y", yposition);
-
-      callback(null, null);
   };
+
+  // var updateNodeLabels = function(callback) {
+
+  //   nodeLabels = nodeLabelSvgGroup.selectAll("text")
+  //     .data(nodes, function(d) { return d.nodeId; });
+
+  //   nodeLabels
+  //     .exit()
+  //     .attr("class", "exit")
+  //       .remove();
+
+  //   nodeLabels
+  //     .attr("class", "update")
+  //     .on("mouseover", nodeMouseOver)
+  //     .on("mouseout", nodeMouseOut)
+  //     .text(function(d) {
+  //       if (d.isTwitterUser) { return "@" + d.screenName.toUpperCase(); }
+  //       if (d.isKeyword || d.isTrendingTopic || d.isTwitterUser) { return d.nodeId.toUpperCase(); }
+  //       if (testMode) { return "blah"; }
+  //       return d.nodeId; 
+  //     })
+  //     .style("fill", function(d) { 
+  //       if (d.newFlag) { return palette.white; }
+  //       if (d.mouseHoverFlag) { return palette.blue; }
+  //       if (d.isKeyword) { return d.keywordColor; }
+  //       if (d.isTrendingTopic || d.isTwitterUser || d.isNumber || d.isCurrency) { return palette.white; }
+  //       if ((d.isGroupNode || d.isSessionNode) && (d.ageMaxRatio < 0.01)) { return palette.yellow; }
+  //       return palette.lightgray; 
+  //     })
+  //     .style("opacity", function(d) { 
+  //       if (d.mouseHoverFlag) { return 1.0; }
+  //       return nodeLabelOpacityScale(d.ageMaxRatio); 
+  //     })
+  //     .transition()
+  //       .duration(defaultPosDuration)
+  //       .attr("x", xposition)
+  //       .attr("y", yposition);
+
+  //   nodeLabels
+  //     .enter().append("text")
+  //     .attr("class", "enter")
+  //     .style("text-anchor", "left")
+  //     .style("alignment-baseline", "bottom")
+  //     .on("mouseover", nodeMouseOver)
+  //     .on("mouseout", nodeMouseOut)
+  //     .on("click", nodeClick)
+  //     .attr("x", xposition)
+  //     .attr("y", yposition)
+  //     .text(function(d) {
+  //       if (d.isTwitterUser) { return "@" + d.screenName.toUpperCase(); }
+  //       if (d.isKeyword || d.isTrendingTopic || d.isTwitterUser) { return d.nodeId.toUpperCase(); }
+  //       if (testMode) { return "blah"; }
+  //       return d.nodeId; 
+  //     })
+  //     .style("font-weight", function(d) {
+  //       if (d.isTwitterUser 
+  //         || d.isKeyword 
+  //         || d.isNumber 
+  //         || d.isCurrency 
+  //         || d.isTrendingTopic) {
+  //         return "bold";
+  //       }
+  //       return "normal";
+  //     })
+  //     .style("opacity", function(d) { 
+  //       if (d.mouseHoverFlag) { return 1.0; }
+  //       return nodeLabelOpacityScale(d.ageMaxRatio); 
+  //     })
+  //     .style("fill", palette.white)
+  //     .style("font-size", fontSize)
+  //     .transition()
+  //       .duration(defaultPosDuration)
+  //       .attr("y", yposition);
+
+  //     callback(null, null);
+  // };
 
   var processNodeAddQ = function(callback) {
 
@@ -906,7 +911,7 @@ function ViewTreemap() {
     newNode.newFlag = true;
 
     if (nodeAddQ.length < MAX_RX_QUEUE) {
-      nodeAddQ.push({op:'add', node: newNode});
+      nodeAddQ.push({op:"add", node: newNode});
     }
 
     if (nodeAddQ.length > maxNodeAddQ) {
@@ -921,8 +926,6 @@ function ViewTreemap() {
   this.addSession = function() {
   };
 
-  // var localSessionHashMap = {};
-
   this.initD3timer = function() {
     // simulation = d3.forceSimulation(nodes)
     //   .on("tick", ticked);
@@ -930,34 +933,34 @@ function ViewTreemap() {
 
   this.simulationControl = function(op) {
     switch (op) {
-      case 'RESET':
+      case "RESET":
         console.debug("SIMULATION CONTROL | OP: " + op);
         self.reset();
         runningFlag = false;
       break;
-      case 'START':
+      case "START":
         console.debug("SIMULATION CONTROL | OP: " + op);
         runningFlag = true;
       break;
-      case 'RESUME':
+      case "RESUME":
         console.debug("SIMULATION CONTROL | OP: " + op);
         runningFlag = true;
       break;
-      case 'FREEZE':
+      case "FREEZE":
         console.debug("SIMULATION CONTROL | OP: " + op);
         if (!freezeFlag){
           freezeFlag = true;
         }
       break;
-      case 'PAUSE':
-        if (runningFlag) console.debug("SIMULATION CONTROL | OP: " + op);
+      case "PAUSE":
+        if (runningFlag) { console.debug("SIMULATION CONTROL | OP: " + op); }
         runningFlag = false;
       break;
-      case 'STOP':
+      case "STOP":
         console.debug("SIMULATION CONTROL | OP: " + op);
         runningFlag = false;
       break;
-      case 'RESTART':
+      case "RESTART":
         // console.debug("SIMULATION CONTROL | OP: " + op);
         runningFlag = true;
       break;
@@ -971,50 +974,50 @@ function ViewTreemap() {
 
     d3image = d3.select("#d3group");
 
-    if (window.innerWidth !== 'undefined') {
+    if (window.innerWidth !== "undefined") {
       width = window.innerWidth;
       height = window.innerHeight;
     }
     // IE6 in standards compliant mode (i.e. with a valid doctype as the first line in the document)
-    else if (document.documentElement !== 'undefined' 
-      && document.documentElement.clientWidth !== 'undefined' 
+    else if (document.documentElement !== "undefined" 
+      && document.documentElement.clientWidth !== "undefined" 
       && document.documentElement.clientWidth !== 0) {
       width = document.documentElement.clientWidth;
       height = document.documentElement.clientHeight;
     }
     // older versions of IE
     else {
-      width = document.getElementsByTagName('body')[0].clientWidth;
-      height = document.getElementsByTagName('body')[0].clientHeight;
+      width = document.getElementsByTagName("body")[0].clientWidth;
+      height = document.getElementsByTagName("body")[0].clientHeight;
     }
 
     console.log("width: " + width + " | height: " + height);
 
-    fontSize = fontSizeRatio * window.innerHeight;
+    // fontSize = fontSizeRatio * window.innerHeight;
 
     // d3LayoutWidth = width; // double the width for now
     // d3LayoutHeight = height;
 
-  svgMain
-    // .attr("id", "svgMain")
-    .attr("width", width)
-    .attr("height", height)
-    .attr("x", 1e-6)
-    .attr("y", 1e-6);
-
-    svgTreemapLayoutArea
+    svgMain
+      // .attr("id", "svgMain")
       .attr("width", width)
       .attr("height", height)
-      // .attr("viewbox", 1e-6, 1e-6, width, height)
       .attr("x", 1e-6)
       .attr("y", 1e-6);
-  
-    treemap
-      .tile(d3.treemapResquarify)
-      .size([width, height])
-      .round(true)
-      .paddingInner(1);
-};
+
+      svgTreemapLayoutArea
+        .attr("width", width)
+        .attr("height", height)
+        // .attr("viewbox", 1e-6, 1e-6, width, height)
+        .attr("x", 1e-6)
+        .attr("y", 1e-6);
+    
+      treemap
+        .tile(d3.treemapResquarify)
+        .size([width, height])
+        .round(true)
+        .paddingInner(1);
+  };
 
   // ==========================================
 

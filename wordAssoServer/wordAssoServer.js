@@ -4494,6 +4494,8 @@ function handleSessionEvent(sesObj, callback) {
           break;
         case "UTIL":
           break;
+        case "STREAM":
+          break;
         case "VIEWER":
           break;
         case "TEST_USER":

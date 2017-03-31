@@ -657,7 +657,7 @@ function ViewTreemap() {
           .on("touchend", cellMouseOut)
           .attr("fill", function(d) { 
             // if (d.data.mouseHoverFlag) { return palette.yellow; }
-            if (d.data.newFlag) { return palette.white; }
+            // if (d.data.newFlag) { return palette.white; }
             return d.data.keywordColor; 
           })
           .style("opacity", function(d) { 
@@ -686,8 +686,11 @@ function ViewTreemap() {
           .style("text-anchor", "middle")
           .attr("clip-path", function(d) { return "url(#clip-" + d.data.id + ")"; })
           .attr("fill", function(d) { 
-            if (d.data.newFlag) { return palette.black; }
+            // if (d.data.newFlag) { return palette.black; }
             return palette.white; 
+          })
+          .style("font-weight", function(d) {
+            if (d.data.newFlag) { return "bold"; }
           })
           .style("opacity", function(d) { 
             if (d.mouseHoverFlag) { return 1.0; }

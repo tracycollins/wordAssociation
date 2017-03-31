@@ -127,7 +127,6 @@ function ViewFlow() {
     }
   }, true);
 
-
   var adjustedAgeRateScale = d3.scaleLinear().domain([1, 300]).range([1.0, 20.0]).clamp(true);
   var nodeFontSizeScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minFontSize, maxFontSize]).clamp(true);
   var groupCircleRadiusScale = d3.scaleLog().domain([1, 10000000]).range([10.0, 50.0]).clamp(true); // uses wordChainIndex
@@ -223,7 +222,6 @@ function ViewFlow() {
     .attr("preserveAspectRatio", "none")
     .attr("x", 1e-6)
     .attr("y", 1e-6);
-
 
   var nodeSvgGroup = svgFlowLayoutArea.append("svg:g").attr("id", "nodeSvgGroup");
   var nodeLabelSvgGroup = svgFlowLayoutArea.append("svg:g").attr("id", "nodeLabelSvgGroup");

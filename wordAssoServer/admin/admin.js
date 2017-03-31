@@ -33,66 +33,66 @@ requirejs(["https://d3js.org/d3.v4.min.js"], function(d3Loaded) {
     initialize(function(){
       initializeComplete = true;
 
-      setInterval(function(){
-        MG.data_graphic({
-            title: "TPM",
-            description: "TWEETS/MIN",
-            data: tpmData,
-            width: TIMELINE_WIDTH,
-            height: TIMELINE_HEIGHT,
-            // right: 20,
-            target: '#tpmDiv',
-            x_accessor: 'date',
-            y_accessor: 'value',
-            min_y_from_data: true,
-            animate_on_load: false,
-            transition_on_update: false,
-            missing_is_zero: true
-        });
-        MG.data_graphic({
-            title: "T LIMIT",
-            description: "TWITTER LIMIT",
-            data: tLimitData,
-            width: TIMELINE_WIDTH,
-            height: TIMELINE_HEIGHT,
-            // right: 20,
-            target: '#tlimitDiv',
-            x_accessor: 'date',
-            y_accessor: 'value',
-            min_y_from_data: true,
-            animate_on_load: false,
-            transition_on_update: false,
-            missing_is_zero: true
-        });
-        MG.data_graphic({
-            title: "WPM",
-            description: "WORDS/MIN",
-            data: wpmData,
-            width: TIMELINE_WIDTH,
-            height: TIMELINE_HEIGHT,
-            // right: 20,
-            target: '#wpmDiv',
-            x_accessor: 'date',
-            y_accessor: 'value',
-            min_y_from_data: true,
-            animate_on_load: false,
-            transition_on_update: false
-        });
-        MG.data_graphic({
-            title: "TrPM",
-            description: "TRUMP/MIN",
-            data: trpmData,
-            width: TIMELINE_WIDTH,
-            height: TIMELINE_HEIGHT,
-            // right: 20,
-            target: '#trpmDiv',
-            x_accessor: 'date',
-            y_accessor: 'value',
-            min_y_from_data: true,
-            animate_on_load: false,
-            transition_on_update: false
-        });
-      }, 1000);
+      // setInterval(function(){
+      //   MG.data_graphic({
+      //       title: "TPM",
+      //       description: "TWEETS/MIN",
+      //       data: tpmData,
+      //       width: TIMELINE_WIDTH,
+      //       height: TIMELINE_HEIGHT,
+      //       // right: 20,
+      //       target: '#tpmDiv',
+      //       x_accessor: 'date',
+      //       y_accessor: 'value',
+      //       min_y_from_data: true,
+      //       animate_on_load: false,
+      //       transition_on_update: false,
+      //       missing_is_zero: true
+      //   });
+      //   MG.data_graphic({
+      //       title: "T LIMIT",
+      //       description: "TWITTER LIMIT",
+      //       data: tLimitData,
+      //       width: TIMELINE_WIDTH,
+      //       height: TIMELINE_HEIGHT,
+      //       // right: 20,
+      //       target: '#tlimitDiv',
+      //       x_accessor: 'date',
+      //       y_accessor: 'value',
+      //       min_y_from_data: true,
+      //       animate_on_load: false,
+      //       transition_on_update: false,
+      //       missing_is_zero: true
+      //   });
+      //   MG.data_graphic({
+      //       title: "WPM",
+      //       description: "WORDS/MIN",
+      //       data: wpmData,
+      //       width: TIMELINE_WIDTH,
+      //       height: TIMELINE_HEIGHT,
+      //       // right: 20,
+      //       target: '#wpmDiv',
+      //       x_accessor: 'date',
+      //       y_accessor: 'value',
+      //       min_y_from_data: true,
+      //       animate_on_load: false,
+      //       transition_on_update: false
+      //   });
+      //   MG.data_graphic({
+      //       title: "TrPM",
+      //       description: "TRUMP/MIN",
+      //       data: trpmData,
+      //       width: TIMELINE_WIDTH,
+      //       height: TIMELINE_HEIGHT,
+      //       // right: 20,
+      //       target: '#trpmDiv',
+      //       x_accessor: 'date',
+      //       y_accessor: 'value',
+      //       min_y_from_data: true,
+      //       animate_on_load: false,
+      //       transition_on_update: false
+      //   });
+      // }, 1000);
 
     });
   },

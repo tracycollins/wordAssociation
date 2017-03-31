@@ -31,25 +31,15 @@ function ViewHistogram() {
   var rowSpacing = 3; // %
   var colSpacing = 90/maxHashtagCols; // %
 
-  // var maxRecentHashtags = maxHashtagRows ;
-
   var DEFAULT_AGE_RATE = 1.0;
   var MAX_RX_QUEUE = 100;
-
-  // var d3LayoutWidth;
-  // var d3LayoutHeight;
 
   var localNodeHashMap = new HashMap();
 
   var processNodeCount = 0;
-  // var processNodeModulus = 3;
 
   var maxNodeAddQ = 0;
   var maxNumberNodes = 0;
-
-  // var simulation;
-  // var gravity = 0;
-
   var runningFlag = false;
   
   var nodeAddQ = [];
@@ -281,60 +271,6 @@ function ViewHistogram() {
     });
   }
 
-  // var deleteNodeQ = function (nodeId){
-
-  //   var deadNodeFlag = false;
-
-  //   var nodesLength = nodes.length - 1;
-
-  //   var node;
-
-  //   var nodeIndex = nodesLength;
-
-  //   for (nodeIndex = nodesLength; nodeIndex >= 0; nodeIndex -= 1) {
-
-  //     node = nodes[nodeIndex];
-
-  //     if (node.nodeId === nodeId) {
-  //       nodes.splice(nodeIndex, 1);
-  //       deadNodeFlag = true;
-  //       return deadNodeFlag;
-  //     }
-  //   }
-  //   if (nodeIndex < 0) {
-  //     nodes.splice(nodeIndex, 1);
-  //     console.debug("XXX NODE NOT FOUND ??? " + nodeId);
-  //     return deadNodeFlag;
-  //   }
-  // };
-
-  // var processNodeDeleteQ = function(callback) {
-
-  //   var nodesModifiedFlag = false;
-  //   var nodeDeleteObj;
-
-  //   while (nodeDeleteQ.length > 0){
-
-  //     nodeDeleteObj = nodeDeleteQ.shift();
-
-  //     switch (nodeDeleteObj.op) {
-
-  //       case "delete":
-  //         nodesModifiedFlag = deleteNodeQ(nodeDeleteObj.nodeId);
-  //       break;
-
-  //       default:
-  //         console.error("??? UNKNOWN NODE DELETE Q OP: " + nodeDeleteObj.op);
-  //     }
-  //   }
-
-  //   if (nodeDeleteQ.length === 0){
-  //     callback(null, nodesModifiedFlag);
-  //   }
-  // };
-
-  // var allNodesArray = [];
-
   var ageNodes = function (callback) {
 
     var age;
@@ -347,7 +283,6 @@ function ViewHistogram() {
 
     if (nodes.length === 0) {
       ageRate = DEFAULT_AGE_RATE;
-      // return (callback(null, deadNodeFlag));
     } 
     else if ((nodes.length > MAX_NODES) && (nodeAddQ.length <= MAX_RX_QUEUE)) {
       ageRate = adjustedAgeRateScale(nodes.length - MAX_NODES);
@@ -383,7 +318,6 @@ function ViewHistogram() {
       else {
         node.ageUpdated = moment().valueOf();
         node.age = age;
-        // node.newFlag = (ageMaxRatio >= NEW_NODE_AGE_RATIO) ? false : true ;
         if (ageMaxRatio < NEW_NODE_AGE_RATIO) { 
           node.newFlag = true; 
         }
@@ -569,28 +503,6 @@ function ViewHistogram() {
       callback(null, null);
   };
 
-
-  // function addNodeEnabled (){
-  //   if (nodes.length < MAX_NODES) {
-  //     return true;
-  //   }
-  //   else if ((nodes.length < 2*MAX_NODES) && (processNodeCount % processNodeModulus === 0)) {
-  //     return true;
-  //   }
-  //   else if ((nodes.length < 3*MAX_NODES) && (processNodeCount % (processNodeModulus+1) === 0)) {
-  //     return true;
-  //   }
-  //   else if ((nodes.length < 4*MAX_NODES) && (processNodeCount % (processNodeModulus+2) === 0)) {
-  //     return true;
-  //   }
-  //   else if ((nodes.length < 8*MAX_NODES) && (processNodeCount % (processNodeModulus+3) === 0)) {
-  //     return true;
-  //   }
-  //   else {
-  //     return false;
-  //   }
-  // }
-
   var processNodeAddQ = function(callback) {
 
     var nodesModifiedFlag = false;
@@ -656,18 +568,32 @@ function ViewHistogram() {
 
     updateReady = false;
 
-    async.series(
-      {
-        deadNode: processDeadNodesHash,
-        addNode: processNodeAddQ,
-        ageNode: ageNodes,
-        updateNodeLabels: updateNodeLabels
-      },
-      function(err) {
-        if (err) { console.error("update ERROR: " + err); }
-        updateReady = true;
-      }
-    );
+    if (runningFlag){
+      async.series(
+        {
+          deadNode: processDeadNodesHash,
+          addNode: processNodeAddQ,
+          ageNode: ageNodes,
+          updateNodeLabels: updateNodeLabels
+        },
+        function(err) {
+          if (err) { console.error("update ERROR: " + err); }
+          updateReady = true;
+        }
+      );
+    }
+    else {
+      async.series(
+        {
+          updateNodeLabels: updateNodeLabels
+        },
+        function(err) {
+          if (err) { console.error("update ERROR: " + err); }
+          updateReady = true;
+        }
+      );
+    }
+
   }
 
   this.setChargeSliderValue = function(){
@@ -804,5 +730,5 @@ function ViewHistogram() {
 
   setInterval(function(){
     if (updateReady) { update(); }
-  }, 100);
+  }, 50);
 }

@@ -5012,6 +5012,7 @@ setInterval(function() {
           sessionId: socketId
         });
         responseQueueReady = true;
+        quit();
       }
       else {
         debug(chalkError("currentSessionObj\n" + jsonPrint(currentSessionObj)));

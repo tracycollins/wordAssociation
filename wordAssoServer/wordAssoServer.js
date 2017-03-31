@@ -14,6 +14,8 @@ var wordsApiKey = "RWwyknmI1OmshYkPUYAQyHVv1Cbup1ptubzjsn2F19wbnAlSEf";
 var wapiUrlRoot = "https://wordsapiv1.p.mashape.com/words/";
 // var wordsApiKey = "e1b4564ec38d2db399dabdf83a8beeeb";
 
+var primarySessionObj;
+
 // ==================================================================
 // TEST CONFIG
 // ==================================================================
@@ -1568,6 +1570,146 @@ function incrementSocketMwReqs(delta) {
   }
 }
 
+function sessionUpdateDbCache(sessionCacheKey, socket, userObj){
+  sessionCache.get(sessionCacheKey, function(err, sObj){
+    if (err){
+      console.log(chalkError(moment().format(compactDateTimeFormat) 
+        + " | ??? SESSION CACHE ERROR ON USER READY | " + err
+      ));
+    }
+    else {
+      if (!sObj) {
+
+        sObj = new Session({
+          sessionId: sessionCacheKey,
+          tags: {},
+          // ip: ipAddress,
+          namespace: "util",
+          url: userObj.url,
+          profileImageUrl: userObj.profileImageUrl,
+          createAt: moment().valueOf(),
+          lastSeen: moment().valueOf(),
+          connected: true,
+          connectTime: moment().valueOf(),
+          disconnectTime: 0
+        });
+
+        sObj.config = {};
+
+        debug(chalkSession("SES $ MISS USR RDY"
+          + " | " + sessionCacheKey
+          + " | " + moment().format(compactDateTimeFormat) 
+        ));
+
+        if (!primarySessionObj) {
+          console.log(chalkError(moment().format(compactDateTimeFormat) 
+            + " | ??? PRIMARY SESSION NOT FOUND ON USER READY"
+            + " | " + sessionCacheKey
+            + " | SKIPPING "
+          ));
+          callback("PRIMARY SESSION NOT FOUND ON USER READY", sessionCacheKey);
+        }
+        else if (userObj.tags.mode.toLowerCase() === "substream") {
+
+          if (userObj.type !== undefined) {
+            sObj.config.type = userObj.type;
+            sObj.type = userObj.type;
+          }
+          if (userObj.mode !== undefined) {
+            sObj.config.mode = userObj.mode;
+            sObj.mode = userObj.mode;
+          }
+
+          sObj.namespace = "util";
+          sObj.socket = socket;
+          sObj.tags.entity = userObj.tags.entity.toLowerCase();
+          sObj.tags.channel = userObj.tags.channel.toLowerCase();
+
+          sObj.url = (userObj.url !== undefined) ? userObj.url : "http://www.threeceemedia.com";
+          sObj.profileImageUrl = (userObj.profileImageUrl !== undefined) ? userObj.profileImageUrl : null ;
+
+          sessionCache.set(sessionCacheKey, sObj);
+
+          // callback(null, sObj);
+        }
+      }
+      else {
+        sObj.url = (userObj.url !== undefined) ? userObj.url : "http://www.threeceemedia.com";
+        sObj.profileImageUrl = (userObj.profileImageUrl !== "undefined") ? userObj.profileImageUrl : null ;
+        sessionCache.set(sessionCacheKey, sObj);
+        // callback(null, sObj);
+      }
+
+      if (userObj.tags !== undefined) {
+
+        if (sObj.tags === undefined) {
+          console.log(chalkRed("sObj.tags UNDEFINED"));
+          sObj.tags = {};
+          sObj.tags.entity = userObj.tags.entity.toLowerCase();
+          sObj.tags.channel = userObj.tags.channel.toLowerCase();
+        }
+        else {
+          if (sObj.tags.entity !== undefined) {
+
+            sObj.tags.entity = sObj.tags.entity.toLowerCase();
+
+            if (entityChannelGroupHashMap.has(sObj.tags.entity)){
+
+              delete statsObj.entityChannelGroup.hashMiss[sObj.tags.entity];
+
+              debug(chalkInfo("### E CH HM HIT"
+                + " | " + sObj.tags.entity
+                + " > " + entityChannelGroupHashMap.get(sObj.tags.entity).groupId
+              ));
+            }
+            else {
+              statsObj.entityChannelGroup.hashMiss[sObj.tags.entity] = 1;
+              statsObj.entityChannelGroup.allHashMisses[sObj.tags.entity] = 1;
+              debug(chalkInfo("-0- E CH HM MISS"
+                + " | " + sObj.tags.entity
+                // + "\n" + jsonPrint(statsObj.entityChannelGroup.hashMiss)
+              ));
+
+              configEvents.emit("HASH_MISS", {type: "entity", value: sObj.tags.entity.toLowerCase()});
+            }
+          }
+          else {
+            sObj.tags.entity = userObj.tags.entity.toLowerCase();
+          }
+          if (sObj.tags.channel !== undefined) {
+            sObj.tags.channel = sObj.tags.channel.toLowerCase();
+          }
+          else {
+            sObj.tags.channel = userObj.tags.channel.toLowerCase();
+          }
+        }
+      }
+      if (userObj.type !== undefined) {
+        sObj.config.type = userObj.type;
+      }
+      if (userObj.mode !== undefined) {
+        sObj.config.mode = userObj.mode;
+      }
+
+      debug(chalkSession("--- USER READY"
+        + " | " + userObj.userId 
+        + " | SID: " + sObj.sessionId 
+        + " | TYPE: " + sObj.config.type 
+        + " | MODE: " + sObj.config.mode 
+        + " | " + moment().format(compactDateTimeFormat) 
+        // + "\nSESSION OBJ\n" + jsonPrint(sObj) 
+        // + "\nUSER OBJ\n" + jsonPrint(userObj)
+      ));
+
+      sessionQueue.enqueue({
+        sessionEvent: "USER_READY",
+        session: sObj,
+        user: userObj
+      });
+    }
+  });
+}
+
 function createSession(newSessionObj) {
 
   debug(chalkSession("\nCREATE SESSION\n" + util.inspect(newSessionObj, {
@@ -1904,7 +2046,7 @@ function createSession(newSessionObj) {
 
   socket.on("USER_READY", function(userObj) {
 
-    var primarySessionObj = sessionCache.get(socket.id);
+    primarySessionObj = sessionCache.get(socket.id);
 
     var sessionCacheKey = socket.id ;
 
@@ -1931,144 +2073,14 @@ function createSession(newSessionObj) {
       sessionCacheKey = socket.id + "#" + userObj.tags.entity;
 
       debug(chalkRedBold("USER_READY SUBSTREAM sessionCacheKey: " + sessionCacheKey));
+
+      sessionUpdateDbCache(sessionCacheKey, socket, userObj);
     }
     else {
       debug(chalkRedBold("USER_READY sessionCacheKey: " + sessionCacheKey));
+      sessionUpdateDbCache(sessionCacheKey, socket, userObj);
     }
 
-    sessionCache.get(sessionCacheKey, function(err, sObj){
-      if (err){
-        console.log(chalkError(moment().format(compactDateTimeFormat) 
-          + " | ??? SESSION CACHE ERROR ON USER READY | " + err
-        ));
-      }
-      else {
-        if (!sObj) {
-
-          sObj = new Session({
-            sessionId: sessionCacheKey,
-            tags: {},
-            // ip: ipAddress,
-            namespace: "util",
-            url: userObj.url,
-            profileImageUrl: userObj.profileImageUrl,
-            createAt: moment().valueOf(),
-            lastSeen: moment().valueOf(),
-            connected: true,
-            connectTime: moment().valueOf(),
-            disconnectTime: 0
-          });
-
-          sObj.config = {};
-
-          debug(chalkSession("SES $ MISS USR RDY"
-            + " | " + sessionCacheKey
-            + " | " + moment().format(compactDateTimeFormat) 
-          ));
-
-          if (!primarySessionObj) {
-            console.log(chalkError(moment().format(compactDateTimeFormat) 
-              + " | ??? PRIMARY SESSION NOT FOUND ON USER READY"
-              + " | " + sessionCacheKey
-              + " | SKIPPING "
-            ));
-            // return;
-          }
-          else if (userObj.tags.mode.toLowerCase() === "substream") {
-
-            if (userObj.type !== undefined) {
-              sObj.config.type = userObj.type;
-              sObj.type = userObj.type;
-            }
-            if (userObj.mode !== undefined) {
-              sObj.config.mode = userObj.mode;
-              sObj.mode = userObj.mode;
-            }
-
-            sObj.namespace = "util";
-            sObj.socket = socket;
-            sObj.tags.entity = userObj.tags.entity.toLowerCase();
-            sObj.tags.channel = userObj.tags.channel.toLowerCase();
-
-            sObj.url = (userObj.url !== undefined) ? userObj.url : "http://www.threeceemedia.com";
-            sObj.profileImageUrl = (userObj.profileImageUrl !== undefined) ? userObj.profileImageUrl : null ;
-
-            sessionCache.set(sessionCacheKey, sObj);
-          }
-        }
-        else {
-          sObj.url = (userObj.url !== undefined) ? userObj.url : "http://www.threeceemedia.com";
-          sObj.profileImageUrl = (userObj.profileImageUrl !== "undefined") ? userObj.profileImageUrl : null ;
-          sessionCache.set(sessionCacheKey, sObj);
-        }
-        if (userObj.tags !== undefined) {
-
-          if (sObj.tags === undefined) {
-            console.log(chalkRed("sObj.tags UNDEFINED"));
-            sObj.tags = {};
-            sObj.tags.entity = userObj.tags.entity.toLowerCase();
-            sObj.tags.channel = userObj.tags.channel.toLowerCase();
-          }
-          else {
-            if (sObj.tags.entity !== undefined) {
-
-              sObj.tags.entity = sObj.tags.entity.toLowerCase();
-
-              if (entityChannelGroupHashMap.has(sObj.tags.entity)){
-
-                delete statsObj.entityChannelGroup.hashMiss[sObj.tags.entity];
-
-                debug(chalkInfo("### E CH HM HIT"
-                  + " | " + sObj.tags.entity
-                  + " > " + entityChannelGroupHashMap.get(sObj.tags.entity).groupId
-                ));
-              }
-              else {
-                statsObj.entityChannelGroup.hashMiss[sObj.tags.entity] = 1;
-                statsObj.entityChannelGroup.allHashMisses[sObj.tags.entity] = 1;
-                debug(chalkInfo("-0- E CH HM MISS"
-                  + " | " + sObj.tags.entity
-                  // + "\n" + jsonPrint(statsObj.entityChannelGroup.hashMiss)
-                ));
-
-                configEvents.emit("HASH_MISS", {type: "entity", value: sObj.tags.entity.toLowerCase()});
-              }
-            }
-            else {
-              sObj.tags.entity = userObj.tags.entity.toLowerCase();
-            }
-            if (sObj.tags.channel !== undefined) {
-              sObj.tags.channel = sObj.tags.channel.toLowerCase();
-            }
-            else {
-              sObj.tags.channel = userObj.tags.channel.toLowerCase();
-            }
-          }
-        }
-        if (userObj.type !== "undefined") {
-          sObj.config.type = userObj.type;
-        }
-        if (userObj.mode !== "undefined") {
-          sObj.config.mode = userObj.mode;
-        }
-
-        debug(chalkSession("--- USER READY"
-          + " | " + userObj.userId 
-          + " | SID: " + sObj.sessionId 
-          + " | TYPE: " + sObj.config.type 
-          + " | MODE: " + sObj.config.mode 
-          + " | " + moment().format(compactDateTimeFormat) 
-          // + "\nSESSION OBJ\n" + jsonPrint(sObj) 
-          // + "\nUSER OBJ\n" + jsonPrint(userObj)
-        ));
-
-        sessionQueue.enqueue({
-          sessionEvent: "USER_READY",
-          session: sObj,
-          user: userObj
-        });
-      }
-    });
   });
 
   socket.on("node", function(rxNodeObj) {

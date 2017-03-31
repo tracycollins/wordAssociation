@@ -533,12 +533,18 @@ function sendGroups(callback){
       var groupObj = groupHashMap.get(groupId);
 
       setTimeout(function(){
-        process.send({ type: 'group', groupId: groupId, group: groupObj});
-        debug(chalkInfo("UPDATER SENT GROUP"
-          + " | " + groupId
-        ));
+        process.send({ type: 'group', groupId: groupId, group: groupObj}, function(err){
+          if (err){
+            console.log(chalkError("sendGroups ERROR\n" + err));
+          }
+          else {
+            debug(chalkInfo("UPDATER SENT GROUP"
+              + " | " + groupId
+            ));
+          }
+          cb();
+        });
 
-        cb();
       }, 20);
 
     },

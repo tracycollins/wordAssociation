@@ -20,7 +20,7 @@ function ViewHistogram() {
   var antonymFlag = false;
   var removeDeadNodesFlag = true;
 
-  var defaultPosDuration = 150;
+  var defaultPosDuration = 50;
 
   var hashtagTopMargin = 15; // %
   var hashtagLeftMargin = 10; // %

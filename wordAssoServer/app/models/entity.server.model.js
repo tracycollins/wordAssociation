@@ -24,12 +24,12 @@ var EntitySchema = new Schema({
 		type: String
 	},
 	sessions: {  // number of sessions transmitted
-		type: Number
-		// default: 0
+		type: Number,
+		default: 0
 	},
 	words: {  // number of words transmitted
-		type: Number
-		// default: 0
+		type: Number,
+		default: 0
 	},
 	mentions: { // number of times mentioned, by self or others
 		type: Number,

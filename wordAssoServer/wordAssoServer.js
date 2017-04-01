@@ -2812,7 +2812,7 @@ function dbUpdateEntity(entityObj, incMentions, callback) {
       callback(err, entityObj);
     } 
     else {
-      debug("->- DB EN" 
+      console.log(chalkAlert("->- DB EN" 
         + " | " + entity.entityId 
         + " | " + entity.name 
         // + " | SN: " + entity.screenName 
@@ -2823,7 +2823,7 @@ function dbUpdateEntity(entityObj, incMentions, callback) {
         + " | CR: " + moment(entity.createdAt).format(compactDateTimeFormat)
         + " | L: " + moment(entity.lastSeen).format(compactDateTimeFormat)
         + " | Ms: " + entity.mentions 
-      );
+      ));
 
       callback(null, entity);
     }
@@ -6967,7 +6967,6 @@ function initFollowerUpdateQueueInterval(interval){
               serverGroupHashMap.set(entityObj.entityId, groupObj);
 
               cb(null, entityObj, groupObj);
-
             }
           }
           else {
@@ -7016,7 +7015,6 @@ function initFollowerUpdateQueueInterval(interval){
               ));
 
               cb(null, entityObj, groupObj);
-
             }
             else {
 
@@ -7047,7 +7045,6 @@ function initFollowerUpdateQueueInterval(interval){
               serverGroupHashMap.set(entityObj.entityId, groupObj);
 
               cb(null, entityObj, groupObj);
-
             }
           }
 

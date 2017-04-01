@@ -8,26 +8,13 @@ function ViewTreemap() {
 
   var testMode = false;
   var freezeFlag = false;
-
   var MAX_NODES = 100;
-
+  var nodeMaxAge = 60000;
   var NEW_NODE_AGE_RATIO = 0.01;
-  // var fontSizeRatio = 0.022;
   var minOpacity = 0.25;
   var blahFlag = false;
   var antonymFlag = false;
   var removeDeadNodesFlag = true;
-
-  // var defaultPosDuration = 150;
-
-  // var hashtagTopMargin = 15; // %
-  // var hashtagLeftMargin = 10; // %
-
-  // var maxHashtagRows = 25;
-  // var maxHashtagCols = 5;
-  // var rowSpacing = 3; // %
-  // var colSpacing = 90/maxHashtagCols; // %
-
   var DEFAULT_AGE_RATE = 1.0;
   var MAX_RX_QUEUE = 100;
 
@@ -56,7 +43,6 @@ function ViewTreemap() {
 
   var mouseHoverFlag = false;
 
-  var nodeMaxAge = 60000;
 
   var DEFAULT_TREEMAP_CONFIG = {
     "ageRate": window.DEFAULT_AGE_RATE
@@ -93,13 +79,6 @@ function ViewTreemap() {
   var deadNodesHash = {};
 
   console.log("width: " + window.innerWidth + " | height: " + window.innerHeight);
-
-  // var fontSize = fontSizeRatio * window.innerHeight;
-
-  // d3.select("body")
-  //   .on("touchstart", touch)
-  //   .on("touchmove", touch)
-  //   .on("touchend", touch);
 
   document.addEventListener("mousemove", function() {
     if (mouseHoverFlag) {

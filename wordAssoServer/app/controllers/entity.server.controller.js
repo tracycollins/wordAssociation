@@ -33,11 +33,13 @@ exports.findOneEntity = function(entity, incMentions, callback) {
 		groupId: entity.groupId,
 		name: entity.name,
 		screenName: entity.screenName,
-		sessions: entity.sessions,
-		words: entity.words,
+		// sessions: entity.sessions,
+		// words: entity.words,
 		tags: entity.tags,
 		lastSeen: moment()
 	};
+	update['$max'] = { words: entity.words };
+	update['$max'] = { sessions: entity.sessions };
 
 	var options = { 
 		setDefaultsOnInsert: true,

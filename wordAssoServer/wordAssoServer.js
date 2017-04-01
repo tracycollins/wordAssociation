@@ -3541,6 +3541,7 @@ function entityUpdateDb(userObj, callback){
     entityObj.name = userObj.userId;
     entityObj.screenName = userObj.screenName;
     entityObj.words = 0;
+    entityObj.sessions = 0;
     entityObj.tags = userObj.tags;
     entityObj.lastSeen = moment().valueOf();
 
@@ -3565,6 +3566,7 @@ function entityUpdateDb(userObj, callback){
     entityObj.name = userObj.userId;
     entityObj.screenName = userObj.screenName;
     entityObj.lastSeen = moment().valueOf();
+    entityObj.sessions = (entityObj.sessions === undefined) ? 0 : entityObj.sessions;
     entityObj.words = (entityObj.words === undefined) ? 0 : entityObj.words;
 
     if (entityChannelGroupHashMap.has(userObj.tags.entity.toLowerCase())){

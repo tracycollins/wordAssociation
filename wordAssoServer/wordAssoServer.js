@@ -3681,7 +3681,7 @@ function viewerUpdateDb(viewerObj, callback) {
   };
   var update = {
     "$set": {
-      "viewerId": viewerObj.viewerId,
+      "viewerId": viewerObj.userId,
       "namespace": viewerObj.namespace,
       "domain": viewerObj.domain,
       "ip": viewerObj.ip,

@@ -6021,25 +6021,25 @@ function initAppRouting(callback) {
     debug(chalkInfo("get req\n" + req));
     console.log("LOADING FILE: /session.js");
 
-    fs.open(__dirname + "/session.js", "r", function(error, fd) {
+    // fs.open(__dirname + "/session.js", "r", function(error, fd) {
+
+      // if (error) { debug(chalkInfo("ERROR FILE OPEN\n" + jsonPrint(error))); }
+
+    fs.readFile(__dirname + "/session.js", function(error, data) {
 
       if (error) { debug(chalkInfo("ERROR FILE OPEN\n" + jsonPrint(error))); }
 
-      fs.readFile(__dirname + "/session.js", function(error, data) {
-
-        if (error) { debug(chalkInfo("ERROR FILE OPEN\n" + jsonPrint(error))); }
-
-        var newData;
-        if (hostname.includes("google")){
-          newData = data.toString().replace("==SOURCE==", "http://word.threeceelabs.com");
-        }
-        else {
-          newData = data.toString().replace("==SOURCE==", "http://localhost:9997");
-        }
-        res.send(newData);
-        fs.close(fd);
-      });
+      var newData;
+      if (hostname.includes("google")){
+        newData = data.toString().replace("==SOURCE==", "http://word.threeceelabs.com");
+      }
+      else {
+        newData = data.toString().replace("==SOURCE==", "http://localhost:9997");
+      }
+      res.send(newData);
+      // fs.close(fd);
     });
+    // });
 
     return;
   });
@@ -6862,7 +6862,7 @@ function updateGroupEntity(entityObj, callback){
         }
         else {
           console.log(chalkInfo("TX UTIL SES (UTIL RDY): " + updatedEntity2Obj.lastSession + " TO ADMIN NAMESPACE"));
-          adminNameSpace.emit("UTIL_SESSION", updatedEntity2Obj);
+          // adminNameSpace.emit("UTIL_SESSION", updatedEntity2Obj);
           callback(null, updatedEntity2Obj);
         }
       });

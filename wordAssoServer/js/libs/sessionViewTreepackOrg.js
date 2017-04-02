@@ -5,20 +5,6 @@ function ViewTreepack() {
   "use strict";
 
   var self = this;
-  var simulation;
-
-  var currentMaxMentions = 0;
-
-  var blahMode = DEFAULT_BLAH_MODE;
-  var charge = DEFAULT_CHARGE;
-  var gravity = DEFAULT_GRAVITY;
-  var forceXmultiplier = DEFAULT_FORCEX_MULTIPLIER;
-  var forceYmultiplier = DEFAULT_FORCEY_MULTIPLIER;
-  var collisionRadiusMultiplier = DEFAULT_COLLISION_RADIUS_MULTIPLIER;
-  var collisionIterations = DEFAULT_COLLISION_ITERATIONS;
-  var globalLinkStrength = DEFAULT_LINK_STRENGTH;
-  var globalLinkDistance = DEFAULT_LINK_DISTANCE;
-  var velocityDecay = DEFAULT_VELOCITY_DECAY;
 
   var testMode = false;
   var freezeFlag = false;
@@ -46,6 +32,9 @@ function ViewTreepack() {
   var MAX_RX_QUEUE = 100;
 
   var localNodeHashMap = new HashMap();
+
+  var processNodeCount = 0;
+
   var maxNodeAddQ = 0;
   var maxNumberNodes = 0;
 
@@ -120,8 +109,6 @@ function ViewTreepack() {
     }
   }, true);
 
-  var defaultRadiusScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([10, 200]).clamp(true);
-
   var nodeLabelOpacityScale = d3.scaleLinear()
     .domain([1e-6, 0.1, 1.0])
     .range([1.0, 0.4, minOpacity])
@@ -130,17 +117,11 @@ function ViewTreepack() {
     .domain([1, MAX_NODES])
     .range([1.0, 10.0]);
 
-  // var defaultRadiusScale = d3.scaleLog()
-  //   .domain([1, 10000000])
-  //   .range([5, 30])
-  //   .clamp(true);
-
   console.log("@@@@@@@ CLIENT @@@@@@@@");
 
   var randomIntFromInterval = function(min, max) {
     var random = Math.random();
     var randomInt = Math.floor((random * (max - min + 1)) + min);
-    // console.debug("randomIntFromInterval: " + randomInt);
     return randomInt;
   };
 
@@ -213,30 +194,34 @@ function ViewTreepack() {
     .attr("x", 1e-6)
     .attr("y", 1e-6);
 
-  var panzoomElement = document.getElementById('svgTreemapLayoutArea');
-  panzoom(panzoomElement, {zoomSpeed: 0.030});
-
 //============TREEMAP=================================
 
-  // var pack = d3.pack().size([width, height]);
+  // var treemap = d3.treemap()
+  //     .tile(d3.treemapResquarify)
+  //     .size([width, height])
+  //     .round(true)
+  //     .paddingInner(1);
 
-  // var treemapData = {};
-  // treemapData.name = "word";
-  // treemapData.children = [];
-  // treemapData.childrenKeywordTypeHashMap = {};
-  // treemapData.childrenKeywordTypeHashMap.right = {};
-  // treemapData.childrenKeywordTypeHashMap.left = {};
-  // treemapData.childrenKeywordTypeHashMap.positive = {};
-  // treemapData.childrenKeywordTypeHashMap.neutral = {};
-  // treemapData.childrenKeywordTypeHashMap.negative = {};
+  var pack = d3.pack()
+      .size([width, height]);
 
-  // function sumByCount(d) {
-  //   return d.children ? 0 : 1;
-  // }
+  var treemapData = {};
+  treemapData.name = "word";
+  treemapData.children = [];
+  treemapData.childrenKeywordTypeHashMap = {};
+  treemapData.childrenKeywordTypeHashMap.right = {};
+  treemapData.childrenKeywordTypeHashMap.left = {};
+  treemapData.childrenKeywordTypeHashMap.positive = {};
+  treemapData.childrenKeywordTypeHashMap.neutral = {};
+  treemapData.childrenKeywordTypeHashMap.negative = {};
 
-  // function sumBySize(d) {
-  //   return d.size;
-  // }
+  function sumByCount(d) {
+    return d.children ? 0 : 1;
+  }
+
+  function sumBySize(d) {
+    return d.size;
+  }
 
 //============TREEMAP=================================
   var nodeSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeSvgGroup");
@@ -345,7 +330,7 @@ function ViewTreepack() {
       }
 
       age = node.age 
-        // + randomIntFromInterval(10,100) 
+        + randomIntFromInterval(10,100) 
         + (ageRate * (moment().valueOf() - node.ageUpdated));
 
       ageMaxRatio = age/nodeMaxAge ;
@@ -356,6 +341,11 @@ function ViewTreepack() {
         ) {
         // console.debug("X NODE\n" + jsonPrint(node));
         localNodeHashMap.remove(node.nodeId);
+        var keywordTypeKeys = Object.keys(node.keywords);
+
+        keywordTypeKeys.forEach(function(keywordType){
+          delete treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId];
+        });
 
         nodes.splice(ageNodesIndex, 1);
       } 
@@ -376,7 +366,9 @@ function ViewTreepack() {
     }
 
     if (ageNodesIndex < 0) {
-      callback(null, deadNodeFlag);
+      rankHashMapByValue(localNodeHashMap, "mentions", function(){
+        callback(null, deadNodeFlag);
+      });
     }
   };
 
@@ -409,6 +401,48 @@ function ViewTreepack() {
       return (callback(null, deadNodeFlag));
     }
   };
+
+  var cellMouseOver = function (d) {
+
+    // console.debug("cellMouseOver", d);
+
+    d.data.mouseHoverFlag = true;
+
+    self.toolTipVisibility(true);
+
+    var tooltipString;
+
+    switch (d.data.nodeType) {
+      case 'hashtag':
+        tooltipString = "#" + d.data.name
+          + "<br>TYPE: " + d.data.nodeType 
+          + "<br>Ms: " + d.data.size
+          + "<br>RANK: " + d.data.rank;
+      break;
+      case 'word':
+        tooltipString = d.data.nodeId
+          + "<br>TYPE: " + d.data.nodeType 
+          + "<br>RANK: " + d.data.rank
+          + "<br>Ms: " + d.data.size
+          + "<br>URL: " + d.data.url;
+      break;
+    }
+
+    divTooltip.html(tooltipString)
+      .style("left", function(){
+        if ((d3.event.pageX - 20) > 0.9*width) { return 0.5*width; }
+        return ((d3.event.pageX - 20) + "px");
+      })
+      .style("top", function(){
+        if ((d3.event.pageY - 20) > 0.9*height) { return 0.5*height; }
+        return ((d3.event.pageY - 200) + "px");
+      });
+  };
+
+  var cellMouseOut = function (d) {
+    d.data.mouseHoverFlag = false;
+    self.toolTipVisibility(false);
+  }
 
 
   var nodeMouseOver = function (d) {
@@ -447,7 +481,7 @@ function ViewTreepack() {
 
   function cellClick(d) {
     console.debug("cellClick", d);
-    var url = "https://twitter.com/search?f=realtime&q=%23" + d.name ;
+    var url = "https://twitter.com/search?f=realtime&q=%23" + d.data.name ;
     window.open(url, '_blank');
   }
 
@@ -484,58 +518,125 @@ function ViewTreepack() {
     }
   }
 
+  var root;
+  var pNode;
 
-  var updateNodeCircles = function(callback) {
+  var updatePackData = function (callback){
+    if (nodes.length == 0) { return(callback()); }
 
-    var nodeCircles = nodeSvgGroup.selectAll("circle")
-      .data(nodes, function(d){
-        return d.nodeId;
+    async.forEach(nodes, function(node, cb) {
+
+      /*
+      node.keywords = { keywordId: "obama", left: 100 };
+      */
+
+      delete node.keywords.keywordId;
+
+      var kwTypes = Object.keys(node.keywords);
+
+      if (kwTypes.length == 0) { return(cb()); }
+
+      kwTypes.forEach(function(keywordType){
+
+        if (treemapData.childrenKeywordTypeHashMap[keywordType] === undefined) {
+          treemapData.childrenKeywordTypeHashMap[keywordType] = {};
+          treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId] = {};
+        }
+        else if (treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId] === undefined) {
+          treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId] = {};
+        }
+
+        treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId] = {};
+        treemapData.childrenKeywordTypeHashMap[keywordType][node.nodeId] = node;
       });
 
-    nodeCircles
-      .enter()
-      .append("circle")
-      .merge(nodeCircles)
-      .attr("r", function(d) {
-        if (d.isIgnored) {
-          return defaultRadiusScale(1);
-        }
-        else {
-          return defaultRadiusScale(parseInt(d.mentions));
-        }
-      })
-      .attr("cx", function(d) { 
-        if (!d.nodeId) { 
-          console.debug("UNDEFINED d.nodeId");
-          return 0.5*width; }
-        if (d.x === undefined) { 
-          console.debug("UNDEFINED d.x " + d.nodeId);
-          return 0.5*width; 
-        }
-        return d.x; 
-      })
-      .attr("cy", function(d) { 
-        if (!d.nodeId) { return 0.5*height; }
-        if (!d.y) { return 0.5*height; }
-        return d.y; 
-      })
-      .attr("fill", function(d) { 
-        if (d.newFlag) { return palette.white; }
-        return d.keywordColor; 
-      })
-      .style('opacity', function(d) { 
-        if (d.mouseHoverFlag) { return 1.0; }
-        return nodeLabelOpacityScale(d.ageMaxRatio); 
-      })
-      .attr('stroke', palette.white)
-      .attr('stroke-width', '1.0');
+      cb();
 
-    nodeCircles
-      .exit()
-      .remove();
+    }, function(err) {
 
-    callback();
-  };
+      if (err) { 
+        console.error("updatePackData ERROR: " + err);
+        return(callback(err));
+      }
+
+      treemapData.children = [];
+
+      var keywordTypeKeys = Object.keys(treemapData.childrenKeywordTypeHashMap).sort();
+
+      async.forEachOf(keywordTypeKeys, function(keywordType, index, cb2) {
+
+        treemapData.children[index] = {};
+        treemapData.children[index].name = keywordType;
+        treemapData.children[index].children = [];
+
+        var keywordNames = Object.keys(treemapData.childrenKeywordTypeHashMap[keywordType]);
+
+        async.forEach(keywordNames, function(keyword, cb3) {
+
+          var keywordChild = {};
+
+          keywordChild = treemapData.childrenKeywordTypeHashMap[keywordType][keyword];
+
+          keywordChild.name = keyword;
+          keywordChild.size = treemapData.childrenKeywordTypeHashMap[keywordType][keyword].mentions;
+
+          treemapData.children[index].children.push(keywordChild);
+                
+          cb3();
+
+        }, function(err) {
+          cb2();
+        });
+
+      }, function(err) {
+
+        if (nodes.length === 0) { return(callback()); }
+
+        svgTreemapLayoutArea.selectAll("g").remove();
+
+        root = d3.hierarchy(treemapData)
+          .sum(function(d) { return d.size; })
+          .sort(function(a, b) { return b.value - a.value; });
+
+        pNode = svgTreemapLayoutArea.selectAll(".node")
+          .data(pack(root).descendants())
+          .enter().append("g")
+            .attr("class", function(d) { return d.children ? "node" : "leaf node"; })
+            .attr("transform", function(d) { 
+              if ((d.x === undefined) || (d.y === undefined)) {
+                return "translate(" + 0.5*width + "," + 0.5*height + ")";
+              }
+              return "translate(" + d.x + "," + d.y + ")"; 
+            });
+
+        pNode.append("circle")
+          .attr("r", function(d) { return d.r; })
+          .attr("fill", function(d) { 
+            if (d.data.newFlag) { return palette.white; }
+            return d.data.keywordColor; 
+          })
+          .style('opacity', function(d) { 
+            if (d.mouseHoverFlag) { return 1.0; }
+            return nodeLabelOpacityScale(d.data.ageMaxRatio); 
+          })
+          .attr('stroke', palette.white)
+          .attr('stroke-width', '1.0');
+
+        pNode
+          .exit()
+          .remove();
+
+        pNode.transition()
+          .duration(500)
+          .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
+          .attr("r", function(d) { return d.r; });
+
+        callback(err);
+      });
+
+    });
+
+  }
 
   var updateNodeLabels = function(callback) {
 
@@ -617,6 +718,7 @@ function ViewTreepack() {
 
     var nodesModifiedFlag = false;
 
+    processNodeCount = processNodeCount+1;
 
     var nodeAddObj;
     var newNode;
@@ -625,51 +727,31 @@ function ViewTreepack() {
     if (nodeAddQ.length > 0) {
 
       nodesModifiedFlag = false;
+
+      processNodeCount = processNodeCount+1;
+
       nodeAddObj = nodeAddQ.shift();
       newNode = nodeAddObj.node;
       currentNode = {};
 
       if (localNodeHashMap.has(newNode.nodeId)){
+        // console.info("localNodeHashMap HIT: " + newNode.nodeId);
         currentNode = localNodeHashMap.get(newNode.nodeId);
         currentNode.newFlag = true;
         currentNode.age = 1e-6;
         currentNode.ageMaxRatio = 1e-6;
-        currentNode.mentions = newNode.mentions;
-        currentNode.ageUpdated = moment().valueOf();
-        localNodeHashMap.set(currentNode.nodeId, currentNode);
-        callback(null, nodesModifiedFlag);
       }
       else {
+        // console.warn("localNodeHashMap MISS: " + newNode.nodeId);
         nodesModifiedFlag = true;
         currentNode = newNode;
         currentNode.newFlag = true;
         currentNode.age = 1e-6;
         currentNode.ageMaxRatio = 1e-6;
-        currentNode.mentions = newNode.mentions;
-        currentNode.ageUpdated = moment().valueOf();
-        if (newNode.keywords) {
-          if (newNode.keywords.left) { currentNode.x = 0; }
-          else if (newNode.keywords.positive) { currentNode.x = 0; }
-          else if (newNode.keywords.right) { currentNode.x = width; }
-          else if (newNode.keywords.negative) { currentNode.x = width; }
-          else if (newNode.keywords.neutral) { 
-            currentNode.x = 0.5 * width;
-            currentNode.y = 0;
-          }
-          else {
-            currentNode.x = 0.5 * width;
-            currentNode.y = height;
-          }
-        }
-        else {
-          currentNode.x = 0.5 * width;
-          currentNode.y = height;
-        }
-        localNodeHashMap.set(currentNode.nodeId, currentNode);
-        nodes.push(currentNode)
-        callback(null, nodesModifiedFlag);
       }
 
+      currentNode.mentions = newNode.mentions;
+      currentNode.ageUpdated = moment().valueOf();
 
       if (newNode.mentions > currentHashtagMaxMentions) {
         currentHashtagMaxMentions = newNode.mentions;
@@ -680,10 +762,18 @@ function ViewTreepack() {
         );
       }
 
+      if (nodesModifiedFlag) { 
+        nodes.push(currentNode); 
+        // console.warn("localNodeHashMap node push: " + currentNode.nodeId);
+      }
+
+      localNodeHashMap.set(currentNode.nodeId, currentNode);
+
       if (nodes.length > maxNumberNodes) {
         maxNumberNodes = nodes.length;
       }
 
+      callback(null, nodesModifiedFlag);
 
     }
     else {
@@ -691,34 +781,38 @@ function ViewTreepack() {
     }
   };
 
-  function ticked() {
-    drawSimulation(function(){
-      updateSimulation(function(){});
-    });
-  }
+  var updateReady = true;
 
-  function drawSimulation(callback){
-    updateNodeCircles(function(){
-      callback();
-    });
-  }
+  function update() {
 
-  function updateSimulation(callback) {
+    updateReady = false;
 
-    async.series(
-      {
-        // deleteNode: processNodeDeleteQ,
-        addNode: processNodeAddQ,
-        ageNode: ageNodes,
-        deadNode: processDeadNodesHash
-      },
-
-      function(err, results) {
-        simulation.nodes(nodes);
-        if (typeof callback !== 'undefined') callback();
-      }
-
-    );
+    if (runningFlag){
+      async.series(
+        {
+          deadNode: processDeadNodesHash,
+          addNode: processNodeAddQ,
+          ageNode: ageNodes,
+          // updateNodeLabels: updateNodeLabels,
+          updatePackData: updatePackData
+        },
+        function(err) {
+          if (err) { console.error("update ERROR: " + err); }
+          updateReady = true;
+        }
+      );
+    }
+    else {
+      async.series(
+        {
+          updatePackData: updatePackData
+        },
+        function(err) {
+          if (err) { console.error("update ERROR: " + err); }
+          updateReady = true;
+        }
+      );
+    }
   }
 
   this.setChargeSliderValue = function(){
@@ -733,15 +827,7 @@ function ViewTreepack() {
 
     var newNode = {};
     newNode = nNode;
-    newNode.x = 0.9*width;
-    newNode.y = 0.5*height;
     newNode.newFlag = true;
-
-    if (nNode.mentions > currentMaxMentions) { 
-      currentMaxMentions = nNode.mentions; 
-      defaultRadiusScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([10, 200]).clamp(true);
-      console.debug("NEW MAX MENTIONS: " + currentMaxMentions);
-    }
 
     if (nodeAddQ.length < MAX_RX_QUEUE) {
       nodeAddQ.push({op:'add', node: newNode});
@@ -759,29 +845,12 @@ function ViewTreepack() {
   this.addSession = function() {
   };
 
+  // var localSessionHashMap = {};
+
   this.initD3timer = function() {
-
-    simulation = d3.forceSimulation(nodes)
-      // .force("center", d3.forceCenter(0.5*width, 0.5*height))
-      .force("charge", d3.forceManyBody().strength(charge))
-      .force("forceX", d3.forceX().x(function(d) { 
-        return 0.5*width; 
-      }).strength(function(d){
-        return forceXmultiplier * gravity; 
-      }))
-      .force("forceY", d3.forceY().y(function(d) { 
-        return 0.5*height; 
-      }).strength(function(d){
-        return forceYmultiplier * gravity; 
-      }))
-      .force("collide", d3.forceCollide().radius(function(d) { 
-        return collisionRadiusMultiplier * defaultRadiusScale(d.mentions) ; 
-        // return defaultRadiusScale(d.mentions) ; 
-      }).iterations(collisionIterations))
-      .velocityDecay(velocityDecay)
-      .on("tick", ticked);
-
-  }
+    // simulation = d3.forceSimulation(nodes)
+    //   .on("tick", ticked);
+  };
 
   this.simulationControl = function(op) {
     switch (op) {
@@ -792,46 +861,34 @@ function ViewTreepack() {
       break;
       case 'START':
         console.debug("SIMULATION CONTROL | OP: " + op);
-        self.initD3timer();
-        simulation.alphaTarget(0.7).restart();
         runningFlag = true;
       break;
       case 'RESUME':
         console.debug("SIMULATION CONTROL | OP: " + op);
-        // self.initD3timer();
         runningFlag = true;
-        simulation.alphaTarget(0.7).restart();
       break;
       case 'FREEZE':
         console.debug("SIMULATION CONTROL | OP: " + op);
         if (!freezeFlag){
           freezeFlag = true;
-          simulation.alpha(0);
-          simulation.stop();
         }
       break;
       case 'PAUSE':
-        console.debug("SIMULATION CONTROL | OP: " + op);
+        if (runningFlag) console.debug("SIMULATION CONTROL | OP: " + op);
         runningFlag = false;
-        simulation.alpha(0);
-        simulation.stop();
       break;
       case 'STOP':
         console.debug("SIMULATION CONTROL | OP: " + op);
         runningFlag = false;
-        simulation.alpha(0);
-        simulation.stop();
       break;
       case 'RESTART':
         // console.debug("SIMULATION CONTROL | OP: " + op);
-        simulation.alphaTarget(0.7).restart();
         runningFlag = true;
       break;
       default:
         console.error("???? SIMULATION CONTROL | UNKNOWN OP: " + op);
-      break;
     }
-  }
+  };
 
   this.resize = function() {
     console.info("RESIZE");
@@ -871,28 +928,8 @@ function ViewTreepack() {
       .attr("x", 1e-6)
       .attr("y", 1e-6);
 
-    if (simulation){
-      simulation
-        .force("center", d3.forceCenter(0.5*width, 0.5*height))
-        .force("charge", d3.forceManyBody().strength(charge))
-        .force("forceX", d3.forceX().x(function(d) { 
-          return 0.5*width; 
-        }).strength(function(d){
-          return forceXmultiplier * gravity; 
-        }))
-        .force("forceY", d3.forceY().y(function(d) { 
-          return 0.5*height; 
-        }).strength(function(d){
-          return forceYmultiplier * gravity; 
-        }))
-        .force("collide", d3.forceCollide().radius(function(d) { 
-          return collisionRadiusMultiplier * defaultRadiusScale(d.mentions) ; 
-          // return defaultRadiusScale(d.mentions) ; 
-        }).iterations(collisionIterations))
-        .velocityDecay(velocityDecay)
-
-    }
-
+    pack = d3.pack()
+      .size([width, height]);
   };
 
   // ==========================================
@@ -903,11 +940,17 @@ function ViewTreepack() {
 
   self.reset = function() {
     console.info("RESET");
+
     nodes = [];
+
     deadNodesHash = {};
+    // mouseMovingFlag = false;
     mouseHoverFlag = false;
     self.toolTipVisibility(false);
     self.resize();
   };
 
+  setInterval(function(){
+    if (updateReady) { update(); }
+  }, 50);
 }

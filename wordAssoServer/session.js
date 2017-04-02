@@ -47,7 +47,6 @@ requirejs(["https://cdnjs.cloudflare.com/ajax/libs/d3/4.7.4/d3.min.js"], functio
       addBlahButton();
       addFullscreenButton();
       addStatsButton();
-      // if (!config.pauseFlag) currentSessionView.simulationControl('RESUME');
     });
   },
   function(error) {
@@ -97,9 +96,6 @@ var DEFAULT_NODE_RADIUS = 20.0;
 var TREEMAPVIEW_DEFAULT = {};
 TREEMAPVIEW_DEFAULT.MAX_AGE = TREEMAP_MAX_AGE;
 
-var TREEPACKVIEW_DEFAULT = {};
-TREEPACKVIEW_DEFAULT.MAX_AGE = TREEPACK_MAX_AGE;
-
 var HISTOGRAMVIEW_DEFAULT = {};
 HISTOGRAMVIEW_DEFAULT.MAX_AGE = HISTOGRAM_MAX_AGE;
 
@@ -126,6 +122,16 @@ FORCEVIEW_DEFAULT.LINK_DISTANCE = 5;
 FORCEVIEW_DEFAULT.LINK_STRENGTH = 0.95;
 FORCEVIEW_DEFAULT.COLLISION_RADIUS_MULTIPLIER = 2.50;
 FORCEVIEW_DEFAULT.COLLISION_ITERATIONS = 1;
+
+var TREEPACK_DEFAULT = {};
+TREEPACK_DEFAULT.MAX_AGE = FORCE_MAX_AGE;
+TREEPACK_DEFAULT.CHARGE = -10;
+TREEPACK_DEFAULT.GRAVITY = 0.05;
+TREEPACK_DEFAULT.FORCEX_MULTIPLIER = 1.0;
+TREEPACK_DEFAULT.FORCEY_MULTIPLIER = 1.0;
+TREEPACK_DEFAULT.VELOCITY_DECAY = 0.15;
+TREEPACK_DEFAULT.COLLISION_RADIUS_MULTIPLIER = 1.2;
+TREEPACK_DEFAULT.COLLISION_ITERATIONS = 16;
 
 var MEDIAVIEW_DEFAULT = {};
 MEDIAVIEW_DEFAULT.MAX_AGE = MEDIA_MAX_AGE;
@@ -378,7 +384,7 @@ var keywordColorHashMap = new HashMap();
 
 keywordColorHashMap.set("positive", palette.green);
 keywordColorHashMap.set("negative", palette.yellow);
-keywordColorHashMap.set("neutral", palette.lightgray);
+keywordColorHashMap.set("neutral", palette.darkgray);
 
 keywordColorHashMap.set("left", palette.blue);
 keywordColorHashMap.set("right", palette.red);
@@ -481,7 +487,7 @@ function getKeywordColor(kwObj, callback){
       //   + " | " + palette.white
       //   // + " | R: " + c.r + " G: " + c.g + " B: " + c.b + " A: " + c.opacity
       // );
-      callback(palette.white);
+      callback(palette.darkgray);
   }
 
   else {
@@ -3347,7 +3353,14 @@ function loadViewType(svt, callback) {
       config.forceViewMode = "flow";
       requirejs(["js/libs/sessionViewTreepack"], function() {
         console.debug("sessionViewTreepack LOADED");
-        DEFAULT_MAX_AGE = TREEPACKVIEW_DEFAULT.MAX_AGE;
+        DEFAULT_MAX_AGE = TREEPACK_DEFAULT.MAX_AGE;
+        DEFAULT_COLLISION_RADIUS_MULTIPLIER = TREEPACK_DEFAULT.COLLISION_RADIUS_MULTIPLIER;
+        DEFAULT_COLLISION_ITERATIONS = TREEPACK_DEFAULT.COLLISION_ITERATIONS;
+        DEFAULT_CHARGE = TREEPACK_DEFAULT.CHARGE;
+        DEFAULT_GRAVITY = TREEPACK_DEFAULT.GRAVITY;
+        DEFAULT_VELOCITY_DECAY = TREEPACK_DEFAULT.VELOCITY_DECAY;
+        DEFAULT_FORCEX_MULTIPLIER = TREEPACK_DEFAULT.FORCEX_MULTIPLIER;
+        DEFAULT_FORCEY_MULTIPLIER = TREEPACK_DEFAULT.FORCEY_MULTIPLIER;
         currentSessionView = new ViewTreepack();
         initSocketNodeRx();
         callback();

@@ -3467,11 +3467,14 @@ function groupUpdateDb(userObj, callback){
       debug(chalkRed("*0* ENTITY HASH MISS ... SKIPPING DB GROUP UPDATE"
         + " | ENTITY HASH MISS"
         + " | " + userObj.tags.entity.toLowerCase()
+        + "\nuserObj\n" + jsonPrint(userObj)
+        + "\nentityObj\n" + jsonPrint(entityObj)
       ));
       statsObj.entityChannelGroup.hashMiss[userObj.tags.entity.toLowerCase()] = 1;
       statsObj.entityChannelGroup.allHashMisses[userObj.tags.entity.toLowerCase()] = 1;
       configEvents.emit("HASH_MISS", {type: "entity", value: userObj.tags.entity.toLowerCase()});
-      callback(null, entityObj);
+      // callback(null, entityObj);
+      callback(null, userObj);
     }
   }
   else {
@@ -5021,12 +5024,13 @@ setInterval(function() {
 
         configEvents.emit("UNKNOWN_SESSION", socketId);
 
-        sessionQueue.enqueue({
-          sessionEvent: "SESSION_ABORT",
-          sessionId: socketId
-        });
+        // sessionQueue.enqueue({
+        //   sessionEvent: "SESSION_ABORT",
+        //   sessionId: socketId
+        // });
         responseQueueReady = true;
-        quit();
+        // quit();
+        return;
       }
       else {
         debug(chalkError("currentSessionObj\n" + jsonPrint(currentSessionObj)));
@@ -6855,7 +6859,10 @@ function updateGroupEntity(entityObj, callback){
         updatedEntityObj.tags = {};
         updatedEntityObj.tags.entity = entityObj.entityId;
         updatedEntityObj.tags.name = entityObj.name;
-      } 
+      }
+      else if (updatedEntityObj.tags.entity === undefined){
+
+      }
 
       entityUpdateDb(updatedEntityObj, function(err, updatedEntity2Obj){
         if (err){

@@ -4215,7 +4215,7 @@ function handleSessionEvent(sesObj, callback) {
         sessionRouteHashMap.remove(sesObj.session.config.userB);
 
         adminCache.get(sesObj.session.userId, function(err, currentAdmin){
-          if (currentAdmin !== undefined) {
+          if (currentAdmin) {
             debug("currentAdmin\n" + jsonPrint(currentAdmin));
             adminCache.del(currentAdmin.adminId);
 
@@ -4238,7 +4238,7 @@ function handleSessionEvent(sesObj, callback) {
         });
 
         userCache.get(sesObj.session.userId, function(err, currentUser){
-          if (currentUser !== undefined) {
+          if (currentUser) {
             debug("currentUser\n" + jsonPrint(currentUser));
             userCache.del(currentUser.userId);
 
@@ -4265,7 +4265,7 @@ function handleSessionEvent(sesObj, callback) {
         });
 
         utilCache.get(sesObj.session.userId, function(err, currentUtil){
-          if (currentUtil !== undefined) {
+          if (currentUtil) {
             console.log("currentUtil\n" + jsonPrint(currentUtil));
             userCache.del(currentUtil.userId);
             currentUtil.lastSeen = moment().valueOf();
@@ -4291,7 +4291,7 @@ function handleSessionEvent(sesObj, callback) {
         });
 
         viewerCache.get(sesObj.session.userId, function(err, currentViewer){
-          if (currentViewer !== undefined) {
+          if (currentViewer) {
             console.log(chalkViewer("currentViewer\n" + jsonPrint(currentViewer)));
             viewerCache.del(currentViewer.userId);
 

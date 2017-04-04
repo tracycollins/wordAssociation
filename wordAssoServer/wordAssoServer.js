@@ -158,16 +158,16 @@ var internetReady = false;
 var pollTwitterFriendsIntervalTime = 5*ONE_MINUTE;
 
 var TRENDING_CACHE_DEFAULT_TTL = 300; // seconds
-var ADMIN_CACHE_DEFAULT_TTL = 120; // seconds
-var VIEWER_CACHE_DEFAULT_TTL = 120; // seconds
-var UTIL_CACHE_DEFAULT_TTL = 120; // seconds
-var USER_CACHE_DEFAULT_TTL = 120; // seconds
-var GROUP_CACHE_DEFAULT_TTL = 120; // seconds
-var ENTITY_CACHE_DEFAULT_TTL = 120; // seconds
-var SESSION_CACHE_DEFAULT_TTL = 120; // seconds
+var ADMIN_CACHE_DEFAULT_TTL = 300; // seconds
+var VIEWER_CACHE_DEFAULT_TTL = 300; // seconds
+var UTIL_CACHE_DEFAULT_TTL = 300; // seconds
+var USER_CACHE_DEFAULT_TTL = 300; // seconds
+var GROUP_CACHE_DEFAULT_TTL = 300; // seconds
+var ENTITY_CACHE_DEFAULT_TTL = 300; // seconds
+var SESSION_CACHE_DEFAULT_TTL = 300; // seconds
 var WORD_CACHE_TTL = 300; // seconds
 // var MONITOR_CACHE_TTL = 120; // seconds
-var IP_ADDRESS_CACHE_DEFAULT_TTL = 120;
+var IP_ADDRESS_CACHE_DEFAULT_TTL = 300;
 
 var MAX_WORDCHAIN_LENGTH = 10;
 // var MIN_CHAIN_FREEZE_LENGTH = 20;
@@ -1577,7 +1577,7 @@ function sessionUpdateDbCache(sessionCacheKey, socket, userObj, callback){
       ));
     }
     else {
-      if (!sObj) {
+      if (sObj === undefined) {
 
         sObj = new Session({
           sessionId: sessionCacheKey,

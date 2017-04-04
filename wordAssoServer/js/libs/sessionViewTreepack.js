@@ -832,7 +832,7 @@ function ViewTreepack() {
       .force("collide", d3.forceCollide().radius(function(d) { 
         return collisionRadiusMultiplier * defaultRadiusScale(d.mentions) ; 
         // return defaultRadiusScale(d.mentions) ; 
-      }).iterations(collisionIterations))
+      }).iterations(collisionIterations).strength(1.0))
       .velocityDecay(velocityDecay)
       .on("tick", ticked);
 

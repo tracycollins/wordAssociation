@@ -694,7 +694,7 @@ function ViewTreepack() {
           else if (newNode.keywords.negative) { currentNode.x = width; }
           else if (newNode.keywords.neutral) { 
             currentNode.x = 0.5 * width;
-            currentNode.y = 0;
+            currentNode.y = 0.5 * height;
           }
           else {
             currentNode.x = 0.5 * width;

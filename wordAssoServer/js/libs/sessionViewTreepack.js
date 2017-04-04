@@ -789,7 +789,7 @@ function ViewTreepack() {
 
     var newNode = {};
     newNode = nNode;
-    newNode.x = 0.9*width;
+    newNode.x = 0.1*width;
     newNode.y = 0.5*height;
     newNode.newFlag = true;
 

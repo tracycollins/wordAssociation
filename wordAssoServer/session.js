@@ -959,12 +959,12 @@ var viewerObj = {
 };
 
 
-var initialXpositionRatio = 0.7;
-var initialYpositionRatio = 0.4;
+// var initialXpositionRatio = 0.0;
+// var initialYpositionRatio = 0.5;
 
 function computeInitialPosition(index) {
   var pos = {
-    x: randomIntFromInterval(0.7 * currentSessionView.getWidth(), 0.75 * currentSessionView.getWidth()),
+    x: randomIntFromInterval(0.95 * currentSessionView.getWidth(), 1.0 * currentSessionView.getWidth()),
     y: randomIntFromInterval(0.3 * currentSessionView.getHeight(), 0.7 * currentSessionView.getHeight())
   };
 
@@ -1985,7 +1985,7 @@ function initSocketNodeRx(){
     //   + "\nKEYWORDS: " + jsonPrint(nNode.keywords)
     // );
 
-    var dateNow = moment().valueOf();
+    // var dateNow = moment().valueOf();
 
     var newNode = {};
     newNode.isKeyword = nNode.isKeyword;

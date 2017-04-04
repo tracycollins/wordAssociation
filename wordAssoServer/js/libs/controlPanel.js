@@ -558,7 +558,7 @@ console.log("config\n" + jsonPrint(config));
             removeDeadNodeButton, 
             disableLinksButton, 
             antonymButton,
-            fullscreenButton, 
+            fullscreenButton
           ]);
         self.tableCreateRow(controlTable, optionsBody, [blahButton, resetButton]);
         self.tableCreateRow(controlSliderTable, optionsBody, ['FONT MIN', fontSizeMinSlider, fontSizeMinSliderText]);
@@ -585,7 +585,7 @@ console.log("config\n" + jsonPrint(config));
             removeDeadNodeButton, 
             disableLinksButton, 
             antonymButton,
-            fullscreenButton, 
+            fullscreenButton
           ]);
         self.tableCreateRow(controlTable, optionsBody, [blahButton, resetButton]);
         // self.tableCreateRow(controlSliderTable, optionsBody, ['FONT MIN', fontSizeMinSlider, fontSizeMinSliderText]);

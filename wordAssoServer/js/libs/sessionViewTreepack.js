@@ -846,7 +846,27 @@ function ViewTreepack() {
         return forceXmultiplier * gravity; 
       }))
       .force("forceY", d3.forceY().y(function(d) { 
-        return 0.5*height; 
+        if (d.isKeyword){
+          if (d.keywords.right !== undefined) {
+            return foci.right.y;
+          }
+          if (d.keywords.left !== undefined) {
+            return foci.left.y;
+          }
+          if (d.keywords.positive !== undefined) {
+            return foci.positive.y;
+          }
+          if (d.keywords.negative !== undefined) {
+            return foci.negative.y;
+          }
+          if (d.keywords.neutral !== undefined) {
+            return foci.neutral.y;
+          }
+        }
+        else {
+          return foci.default.y;
+        }
+        // return 0.5*height; 
       }).strength(function(d){
         return forceYmultiplier * gravity; 
       }))

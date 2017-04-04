@@ -572,6 +572,33 @@ console.log("config\n" + jsonPrint(config));
         if (callback) callback(dashboardMain);
         break;
 
+      case 'treepack':
+        self.tableCreateRow(infoTable, optionsBody, [status]);
+        self.tableCreateRow(infoTable, optionsBody, [status2]);
+        self.tableCreateRow(controlTable, 
+          optionsBody, 
+          [
+            pauseButton, 
+            statsButton, 
+            testModeButton, 
+            nodeCreateButton, 
+            removeDeadNodeButton, 
+            disableLinksButton, 
+            antonymButton,
+            fullscreenButton, 
+          ]);
+        self.tableCreateRow(controlTable, optionsBody, [blahButton, resetButton]);
+        // self.tableCreateRow(controlSliderTable, optionsBody, ['FONT MIN', fontSizeMinSlider, fontSizeMinSliderText]);
+        // self.tableCreateRow(controlSliderTable, optionsBody, ['FONT MAX', fontSizeMaxSlider, fontSizeMaxSliderText]);
+        self.tableCreateRow(controlSliderTable, optionsBody, ['MAX AGE', maxAgeSlider, maxAgeSliderText]);
+        self.tableCreateRow(controlSliderTable, optionsBody, ['CHARGE', chargeSlider, chargeSliderText]);
+        self.tableCreateRow(controlSliderTable, optionsBody, ['GRAVITY', gravitySlider, gravitySliderText]);
+        self.tableCreateRow(controlSliderTable, optionsBody, ['VEL DECAY', velocityDecaySlider, velocityDecaySliderText]);
+        // self.tableCreateRow(controlSliderTable, optionsBody, ['LINK STRENGTH', linkStrengthSlider, linkStrengthSliderText]);
+        // self.tableCreateRow(controlSliderTable, optionsBody, ['LINK DISTANCE', linkDistanceSlider, linkDistanceSliderText]);
+        if (callback) callback(dashboardMain);
+        break;
+
       case 'ticker':
         self.tableCreateRow(infoTable, optionsBody, [status]);
         self.tableCreateRow(infoTable, optionsBody, [status2]);

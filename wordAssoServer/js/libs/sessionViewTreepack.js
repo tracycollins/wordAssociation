@@ -7,8 +7,12 @@ function ViewTreepack() {
   var self = this;
   var simulation;
 
-  var currentMaxMentions = 0;
   var sliderPercision = 3;
+
+  var currentMaxMentions = 0;
+  var currentHashtagMaxMentions = 2;
+  var deadNodesHash = {};
+
 
   var blahMode = DEFAULT_BLAH_MODE;
   var charge = DEFAULT_CHARGE;
@@ -58,6 +62,14 @@ function ViewTreepack() {
   var width = window.innerWidth;
   var height = window.innerHeight;
 
+  var foci = {
+    left: {x: 0.2*width, y: 0.5*height}, 
+    right: {x: 0.8*width, y: 0.5*height}, 
+    positive: {x: 0.5*width, y: 0.2*height}, 
+    negative: {x: 0.5*width, y: 0.8*height},
+    default: {x: 0.5*width, y: 0.5*height}
+  };
+
   self.getWidth = function() {
     return window.innerWidth;
   };
@@ -99,19 +111,10 @@ function ViewTreepack() {
     "yellowgreen": "#738A05"
   };
 
-  var currentHashtagMaxMentions = 2;
-
-
-  var deadNodesHash = {};
 
   console.log("width: " + window.innerWidth + " | height: " + window.innerHeight);
 
   var fontSize = fontSizeRatio * window.innerHeight;
-
-  // d3.select("body")
-  //   .on("touchstart", touch)
-  //   .on("touchmove", touch)
-  //   .on("touchend", touch);
 
   document.addEventListener("mousemove", function() {
     if (mouseHoverFlag) {
@@ -131,17 +134,11 @@ function ViewTreepack() {
     .domain([1, MAX_NODES])
     .range([1.0, 10.0]);
 
-  // var defaultRadiusScale = d3.scaleLog()
-  //   .domain([1, 10000000])
-  //   .range([5, 30])
-  //   .clamp(true);
-
   console.log("@@@@@@@ CLIENT @@@@@@@@");
 
   var randomIntFromInterval = function(min, max) {
     var random = Math.random();
     var randomInt = Math.floor((random * (max - min + 1)) + min);
-    // console.debug("randomIntFromInterval: " + randomInt);
     return randomInt;
   };
 
@@ -219,27 +216,6 @@ function ViewTreepack() {
 
 //============TREEMAP=================================
 
-  // var pack = d3.pack().size([width, height]);
-
-  // var treemapData = {};
-  // treemapData.name = "word";
-  // treemapData.children = [];
-  // treemapData.childrenKeywordTypeHashMap = {};
-  // treemapData.childrenKeywordTypeHashMap.right = {};
-  // treemapData.childrenKeywordTypeHashMap.left = {};
-  // treemapData.childrenKeywordTypeHashMap.positive = {};
-  // treemapData.childrenKeywordTypeHashMap.neutral = {};
-  // treemapData.childrenKeywordTypeHashMap.negative = {};
-
-  // function sumByCount(d) {
-  //   return d.children ? 0 : 1;
-  // }
-
-  // function sumBySize(d) {
-  //   return d.size;
-  // }
-
-//============TREEMAP=================================
   var nodeSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeSvgGroup");
   var nodeLabelSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeLabelSvgGroup");
   var nodeLabels = nodeSvgGroup.selectAll(".nodeLabel");
@@ -730,7 +706,24 @@ function ViewTreepack() {
     }
   };
 
-  function ticked() {
+  function ticked(e) {
+
+    if (e === undefined) {
+      e = 0.7;
+    }
+    
+    var k = .1 * e.alpha;
+
+    // Push nodes toward their designated focus.
+    nodes.forEach(function(o, i) {
+      if (o.isKeyword){
+        if (o.keywords.right !== undefined) {
+          o.y += (foci.right.y - o.y) * k;
+          o.x += (foci.right.x - o.x) * k;
+        }
+      }
+    });
+
     drawSimulation(function(){
       updateSimulation(function(){});
     });

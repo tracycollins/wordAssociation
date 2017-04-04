@@ -1345,7 +1345,8 @@ function tableCreateRow(parentTable, options, cells) {
         td.style.color = tdTextColor;
         td.style.backgroundColor = tdBgColor;
 
-      } else if (content.type == 'TEXT') {
+      } 
+      else if (content.type == 'TEXT') {
 
         td.className = content.class;
         td.setAttribute('id', content.id);
@@ -1353,7 +1354,8 @@ function tableCreateRow(parentTable, options, cells) {
         td.style.backgroundColor = tdBgColor;
         td.innerHTML = content.text;
 
-      } else if (content.type == 'BUTTON') {
+      } 
+      else if (content.type == 'BUTTON') {
 
         var buttonElement = document.createElement("BUTTON");
         buttonElement.className = content.class;
@@ -1364,7 +1366,8 @@ function tableCreateRow(parentTable, options, cells) {
         td.appendChild(buttonElement);
         controlIdHash[content.id] = content;
 
-      } else if (content.type == 'SLIDER') {
+      } 
+      else if (content.type == 'SLIDER') {
 
       console.warn("tableCreateRow\n" + jsonPrint(content));
 

@@ -8,6 +8,7 @@ function ViewTreepack() {
   var simulation;
 
   var currentMaxMentions = 0;
+  var sliderPercision = 3;
 
   var blahMode = DEFAULT_BLAH_MODE;
   var charge = DEFAULT_CHARGE;

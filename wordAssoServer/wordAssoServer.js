@@ -12,7 +12,6 @@ var quitOnErrorFlag = false;
 
 var wordsApiKey = "RWwyknmI1OmshYkPUYAQyHVv1Cbup1ptubzjsn2F19wbnAlSEf";
 var wapiUrlRoot = "https://wordsapiv1.p.mashape.com/words/";
-// var wordsApiKey = "e1b4564ec38d2db399dabdf83a8beeeb";
 
 var primarySessionObj;
 
@@ -4238,7 +4237,7 @@ function handleSessionEvent(sesObj, callback) {
           }
         });
 
-        adminCache.get(sesObj.session.userId, function(err, currentUser){
+        userCache.get(sesObj.session.userId, function(err, currentUser){
           if (currentUser !== undefined) {
             debug("currentUser\n" + jsonPrint(currentUser));
             userCache.del(currentUser.userId);
@@ -4265,7 +4264,7 @@ function handleSessionEvent(sesObj, callback) {
           }
         });
 
-        adminCache.get(sesObj.session.userId, function(err, currentUtil){
+        utilCache.get(sesObj.session.userId, function(err, currentUtil){
           if (currentUtil !== undefined) {
             debug("currentUtil\n" + jsonPrint(currentUtil));
             userCache.del(currentUtil.userId);
@@ -4291,7 +4290,7 @@ function handleSessionEvent(sesObj, callback) {
           }
         });
 
-        adminCache.get(sesObj.session.userId, function(err, currentViewer){
+        viewerCache.get(sesObj.session.userId, function(err, currentViewer){
           if (currentViewer !== undefined) {
             console.log(chalkViewer("currentViewer\n" + jsonPrint(currentViewer)));
             viewerCache.del(currentViewer.userId);

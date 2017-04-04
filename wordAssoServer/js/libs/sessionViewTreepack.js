@@ -385,6 +385,14 @@ function ViewTreepack() {
         }
         node.ageMaxRatio = ageMaxRatio;
         node.isDead = false;
+
+        if (node.isKeyword){
+          if (node.keywords.right !== undefined) {
+            node.y += (foci.right.y - node.y) * simulation.alpha();
+            node.x += (foci.right.x - node.x) * simulation.alpha();
+          }
+        }
+
         nodes[ageNodesIndex] = node;
         localNodeHashMap.set(node.nodeId, node);
       }
@@ -708,20 +716,20 @@ function ViewTreepack() {
 
   function ticked() {
 
-    if (simulation !== undefined) {
+    // if (simulation !== undefined) {
 
-      var k = 0.1 * simulation.alpha();
+    //   var k = 0.1 * simulation.alpha();
 
-      nodes.forEach(function(o, i) {
-        if (o.isKeyword){
-          if (o.keywords.right !== undefined) {
-            o.y += (foci.right.y - o.y) * k;
-            o.x += (foci.right.x - o.x) * k;
-          }
-        }
-      });
+    //   nodes.forEach(function(o, i) {
+    //     if (o.isKeyword){
+    //       if (o.keywords.right !== undefined) {
+    //         o.y += (foci.right.y - o.y) * k;
+    //         o.x += (foci.right.x - o.x) * k;
+    //       }
+    //     }
+    //   });
 
-    }
+    // }
 
     drawSimulation(function(){
       updateSimulation(function(){});

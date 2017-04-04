@@ -710,7 +710,7 @@ function ViewTreepack() {
 
     if (simulation !== undefined) {
 
-      var k = 0.1 * simulation.alpha;
+      var k = 0.1 * simulation.alpha();
 
       nodes.forEach(function(o, i) {
         if (o.isKeyword){

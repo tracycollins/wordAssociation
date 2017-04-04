@@ -709,9 +709,10 @@ function ViewTreepack() {
   function ticked(e) {
 
     if (e === undefined) {
-      e = 0.7;
+      e = {};
+      e.alpha = 0.7;
     }
-    
+
     var k = .1 * e.alpha;
 
     // Push nodes toward their designated focus.

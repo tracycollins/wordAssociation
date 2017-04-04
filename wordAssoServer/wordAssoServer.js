@@ -4266,7 +4266,7 @@ function handleSessionEvent(sesObj, callback) {
 
         utilCache.get(sesObj.session.userId, function(err, currentUtil){
           if (currentUtil !== undefined) {
-            debug("currentUtil\n" + jsonPrint(currentUtil));
+            console.log("currentUtil\n" + jsonPrint(currentUtil));
             userCache.del(currentUtil.userId);
             currentUtil.lastSeen = moment().valueOf();
             currentUtil.connected = false;

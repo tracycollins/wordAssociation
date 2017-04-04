@@ -706,24 +706,22 @@ function ViewTreepack() {
     }
   };
 
-  function ticked(e) {
+  function ticked() {
 
-    if (e === undefined) {
-      e = {};
-      e.alpha = 0.7;
-    }
+    if (simulation !== undefined) {
 
-    var k = .1 * e.alpha;
+      var k = 0.1 * simulation.alpha;
 
-    // Push nodes toward their designated focus.
-    nodes.forEach(function(o, i) {
-      if (o.isKeyword){
-        if (o.keywords.right !== undefined) {
-          o.y += (foci.right.y - o.y) * k;
-          o.x += (foci.right.x - o.x) * k;
+      nodes.forEach(function(o, i) {
+        if (o.isKeyword){
+          if (o.keywords.right !== undefined) {
+            o.y += (foci.right.y - o.y) * k;
+            o.x += (foci.right.x - o.x) * k;
+          }
         }
-      }
-    });
+      });
+
+    }
 
     drawSimulation(function(){
       updateSimulation(function(){});

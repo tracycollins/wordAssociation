@@ -3534,59 +3534,60 @@ function entityUpdateDb(userObj, callback){
 
   debug(chalkRed("entityUpdateDb\n" + jsonPrint(userObj)));
 
-  var entityObj = entityCache.get(userObj.tags.entity.toLowerCase());
+  entityCache.get(userObj.tags.entity.toLowerCase(), function(err, entityObj){
 
-  if (!entityObj) {
+    if (entityObj === undefined) {
 
-    entityObj = new Entity();
-    entityObj.entityId = userObj.tags.entity.toLowerCase();
-    entityObj.groupId = (userObj.userId !== undefined) ? userObj.userId : userObj.tags.entity.toLowerCase();
-    entityObj.name = userObj.userId;
-    entityObj.screenName = userObj.screenName;
-    entityObj.words = 0;
-    entityObj.sessions = 0;
-    entityObj.tags = userObj.tags;
-    entityObj.lastSeen = moment().valueOf();
+      entityObj = new Entity();
+      entityObj.entityId = userObj.tags.entity.toLowerCase();
+      entityObj.groupId = (userObj.userId !== undefined) ? userObj.userId : userObj.tags.entity.toLowerCase();
+      entityObj.name = userObj.userId;
+      entityObj.screenName = userObj.screenName;
+      entityObj.words = 0;
+      entityObj.sessions = 0;
+      entityObj.tags = userObj.tags;
+      entityObj.lastSeen = moment().valueOf();
 
-    if (entityChannelGroupHashMap.has(userObj.tags.entity.toLowerCase())){
-      entityObj.name = entityChannelGroupHashMap.get(userObj.tags.entity.toLowerCase()).name;
-      entityObj.groupId = entityChannelGroupHashMap.get(userObj.tags.entity.toLowerCase()).groupId;
+      if (entityChannelGroupHashMap.has(userObj.tags.entity.toLowerCase())){
+        entityObj.name = entityChannelGroupHashMap.get(userObj.tags.entity.toLowerCase()).name;
+        entityObj.groupId = entityChannelGroupHashMap.get(userObj.tags.entity.toLowerCase()).groupId;
+      }
+
+      debug(chalkDb("ENTITY CACHE MISS ON USER READY"
+        + " | EID: " + entityObj.entityId
+        + " | GID: " + entityObj.groupId
+        + " | N: " + entityObj.name
+        + " | SN: " + entityObj.screenName
+      ));
+
+      dbUpdateEntityQueue.enqueue(entityObj);
+      callback(null, entityObj);
+    }
+    else {
+      entityObj.entityId = userObj.tags.entity.toLowerCase();
+      entityObj.name = userObj.userId;
+      entityObj.screenName = userObj.screenName;
+      entityObj.lastSeen = moment().valueOf();
+      entityObj.sessions = (entityObj.sessions === undefined) ? 0 : entityObj.sessions;
+      entityObj.words = (entityObj.words === undefined) ? 0 : entityObj.words;
+
+      if (entityChannelGroupHashMap.has(userObj.tags.entity.toLowerCase())){
+        entityObj.name = entityChannelGroupHashMap.get(userObj.tags.entity.toLowerCase()).name;
+        entityObj.groupId = entityChannelGroupHashMap.get(userObj.tags.entity.toLowerCase()).groupId;
+      }
+
+      debug(chalkDb("ENTITY CACHE HIT ON USER READY"
+        + " | EID: " + entityObj.entityId
+        + " | GID: " + entityObj.groupId
+        + " | N: " + entityObj.name
+        + " | SN: " + entityObj.screenName
+      ));
+
+      dbUpdateEntityQueue.enqueue(entityObj);
+      callback(null, entityObj);
     }
 
-    debug(chalkDb("ENTITY CACHE MISS ON USER READY"
-      + " | EID: " + entityObj.entityId
-      + " | GID: " + entityObj.groupId
-      + " | N: " + entityObj.name
-      + " | SN: " + entityObj.screenName
-    ));
-
-    dbUpdateEntityQueue.enqueue(entityObj);
-    callback(null, entityObj);
-
-  }
-  else {
-    entityObj.entityId = userObj.tags.entity.toLowerCase();
-    entityObj.name = userObj.userId;
-    entityObj.screenName = userObj.screenName;
-    entityObj.lastSeen = moment().valueOf();
-    entityObj.sessions = (entityObj.sessions === undefined) ? 0 : entityObj.sessions;
-    entityObj.words = (entityObj.words === undefined) ? 0 : entityObj.words;
-
-    if (entityChannelGroupHashMap.has(userObj.tags.entity.toLowerCase())){
-      entityObj.name = entityChannelGroupHashMap.get(userObj.tags.entity.toLowerCase()).name;
-      entityObj.groupId = entityChannelGroupHashMap.get(userObj.tags.entity.toLowerCase()).groupId;
-    }
-
-    debug(chalkDb("ENTITY CACHE HIT ON USER READY"
-      + " | EID: " + entityObj.entityId
-      + " | GID: " + entityObj.groupId
-      + " | N: " + entityObj.name
-      + " | SN: " + entityObj.screenName
-    ));
-
-    dbUpdateEntityQueue.enqueue(entityObj);
-    callback(null, entityObj);
-  }  
+  });
 }
 
 function adminUpdateDb(adminObj, callback) {

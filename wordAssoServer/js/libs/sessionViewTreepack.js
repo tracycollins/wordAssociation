@@ -703,7 +703,7 @@ function ViewTreepack() {
         }
         else {
           currentNode.x = 0.5 * width;
-          currentNode.y = height;
+          currentNode.y = 0.5 * height;
         }
         localNodeHashMap.set(currentNode.nodeId, currentNode);
         nodes.push(currentNode)

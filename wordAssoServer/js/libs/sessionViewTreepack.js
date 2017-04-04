@@ -281,6 +281,45 @@ function ViewTreepack() {
     return;
   };
 
+  self.updateVelocityDecay = function(value) {
+    console.debug("UPDATE VEL DECAY: " + value.toFixed(sliderPercision));
+    velocityDecay = value;
+    simulation.velocityDecay(velocityDecay);
+  }
+
+  self.updateGravity = function(value) {
+    console.debug("UPDATE GRAVITY: " + value.toFixed(sliderPercision));
+    gravity = value;
+
+    simulation.force("forceX", d3.forceX().x(function(d) { 
+        return 0.5*width; 
+      }).strength(function(d){
+        return 1*gravity; 
+      }));
+
+    simulation.force("forceY", d3.forceY().y(function(d) { 
+        return 0.4*height; 
+      }).strength(function(d){
+        return forceYmultiplier * gravity; 
+      }));
+  }
+
+  self.updateCharge = function(value) {
+    console.debug("UPDATE CHARGE: " + value);
+    charge = value;
+    simulation.force("charge", d3.forceManyBody().strength(value));
+  }
+
+  self.resetDefaultForce = function() {
+    console.log("RESET FLOW LAYOUT DEFAULTS");
+    self.updateCharge(DEFAULT_CHARGE);
+    self.updateVelocityDecay(DEFAULT_VELOCITY_DECAY);
+    self.updateGravity(DEFAULT_GRAVITY);
+    self.updateLinkStrength(DEFAULT_LINK_STRENGTH);
+    self.updateLinkDistance(DEFAULT_LINK_DISTANCE);
+  }
+
+
   function rankHashMapByValue(hmap, sortProperty, callback) {
 
     if (hmap.count() === 0) { return(callback(hmap)); }

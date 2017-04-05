@@ -78,6 +78,7 @@ var TREEPACK_MAX_AGE = 60000;
 var MEDIA_MAX_AGE = 60000;
 var DEFAULT_AGE_RATE = 1.0;
 
+var DEFAULT_TRANSITION_DURATION = 100;
 var DEFAULT_CHARGE = 0.0;
 var DEFAULT_GRAVITY = 0.0075;
 var DEFAULT_FORCEX_MULTIPLIER = 25.0;
@@ -124,6 +125,7 @@ FORCEVIEW_DEFAULT.COLLISION_RADIUS_MULTIPLIER = 2.50;
 FORCEVIEW_DEFAULT.COLLISION_ITERATIONS = 1;
 
 var TREEPACK_DEFAULT = {};
+TREEPACK_DEFAULT.TRANSITION_DURATION = 50;
 TREEPACK_DEFAULT.MAX_AGE = FORCE_MAX_AGE;
 TREEPACK_DEFAULT.CHARGE = 0;
 TREEPACK_DEFAULT.GRAVITY = 0.01;
@@ -158,6 +160,7 @@ config.maxWords = 100;
 config.testMode = false;
 config.removeDeadNodesFlag = true;
 
+config.defaultTransitionDuration = DEFAULT_TRANSITION_DURATION;
 config.defaultFontSizeMin = DEFAULT_FONT_SIZE_MIN;
 config.defaultFontSizeMax = DEFAULT_FONT_SIZE_MAX;
 config.defaultMaxAge = DEFAULT_MAX_AGE;
@@ -635,6 +638,7 @@ function toggleControlPanel(){
 
     var cnf = {};
 
+    cnf.defaultTransitionDuration = DEFAULT_TRANSITION_DURATION;
     cnf.defaultFontSizeMin = DEFAULT_FONT_SIZE_MIN;
     cnf.defaultFontSizeMax = DEFAULT_FONT_SIZE_MAX;
     cnf.defaultMaxAge = DEFAULT_MAX_AGE;
@@ -809,6 +813,9 @@ function controlPanelComm(event) {
     case 'UPDATE' :
       console.warn("R< CONTROL PANEL UPDATE");
       switch (data.id) {
+        case 'transitionDurationSlider' :
+          currentSessionView.updateTransitionDuration(data.value);
+        break;
         case 'linkStrengthSlider' :
           currentSessionView.updateLinkStrength(data.value);
         break;
@@ -3356,6 +3363,7 @@ function loadViewType(svt, callback) {
       config.forceViewMode = "flow";
       requirejs(["js/libs/sessionViewTreepack"], function() {
         console.debug("sessionViewTreepack LOADED");
+        DEFAULT_TRANSITION_DURATION = TREEPACK_DEFAULT.TRANSITION_DURATION;
         DEFAULT_MAX_AGE = TREEPACK_DEFAULT.MAX_AGE;
         DEFAULT_COLLISION_RADIUS_MULTIPLIER = TREEPACK_DEFAULT.COLLISION_RADIUS_MULTIPLIER;
         DEFAULT_COLLISION_ITERATIONS = TREEPACK_DEFAULT.COLLISION_ITERATIONS;

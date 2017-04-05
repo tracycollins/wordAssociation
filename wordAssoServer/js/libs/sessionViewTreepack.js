@@ -614,7 +614,7 @@ function ViewTreepack() {
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
       .transition()
-      .duration(50)
+      .duration(150)
       .attr("r", function(d) {
         if (d.isIgnored) {
           return defaultRadiusScale(1);
@@ -627,8 +627,9 @@ function ViewTreepack() {
     nodeCircles
       .exit()
       .transition()
-      .duration(50)
+      .duration(150)
       .attr("r", 0)
+      .attr("opacity", 0)
       .attr("cx", function(d) { 
         if (!d.nodeId) { 
           console.debug("UNDEFINED d.nodeId");

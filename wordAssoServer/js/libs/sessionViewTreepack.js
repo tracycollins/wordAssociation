@@ -628,6 +628,7 @@ function ViewTreepack() {
       .exit()
       .transition()
       .duration(200)
+      .attr("r", 1e-6)
       .remove();
 
     callback();

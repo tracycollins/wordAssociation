@@ -442,6 +442,23 @@ console.log("config\n" + jsonPrint(config));
       text: fontSizeMaxSlider.value + ' px'
     }
 
+    var transitionDurationSlider = {
+      type: 'SLIDER',
+      id: 'transitionDurationSlider',
+      class: 'slider',
+      min: 0,
+      max: 1000,
+      value: config.defaultTransitionDuration,
+      multiplier: 1.0
+    }
+
+    var transitionDurationSliderText = {
+      type: 'TEXT',
+      id: 'transitionDurationSliderText',
+      class: 'sliderText',
+      text: (transitionDurationSlider.value * transitionDurationSlider.multiplier)
+    }
+
     var chargeSlider = {
       type: 'SLIDER',
       id: 'chargeSlider',
@@ -590,6 +607,7 @@ console.log("config\n" + jsonPrint(config));
         self.tableCreateRow(controlTable, optionsBody, [blahButton, resetButton]);
         // self.tableCreateRow(controlSliderTable, optionsBody, ['FONT MIN', fontSizeMinSlider, fontSizeMinSliderText]);
         // self.tableCreateRow(controlSliderTable, optionsBody, ['FONT MAX', fontSizeMaxSlider, fontSizeMaxSliderText]);
+        self.tableCreateRow(controlSliderTable, optionsBody, ['TRANSITION', transitionDurationSlider, transitionDurationSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ['MAX AGE', maxAgeSlider, maxAgeSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ['CHARGE', chargeSlider, chargeSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ['GRAVITY', gravitySlider, gravitySliderText]);

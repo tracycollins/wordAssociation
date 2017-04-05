@@ -588,14 +588,6 @@ function ViewTreepack() {
       .enter()
       .append("circle")
       .merge(nodeCircles)
-      .attr("r", function(d) {
-        if (d.isIgnored) {
-          return defaultRadiusScale(1);
-        }
-        else {
-          return defaultRadiusScale(parseInt(d.mentions));
-        }
-      })
       .attr("cx", function(d) { 
         if (!d.nodeId) { 
           console.debug("UNDEFINED d.nodeId");
@@ -620,7 +612,16 @@ function ViewTreepack() {
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
       .attr('stroke', palette.white)
-      .attr('stroke-width', '1.0');
+      .attr('stroke-width', '1.0')
+      .transition()
+      .attr("r", function(d) {
+        if (d.isIgnored) {
+          return defaultRadiusScale(1);
+        }
+        else {
+          return defaultRadiusScale(parseInt(d.mentions));
+        }
+      });
 
     nodeCircles
       .exit()

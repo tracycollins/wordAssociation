@@ -614,7 +614,7 @@ function ViewTreepack() {
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
       .transition()
-      .duration(100)
+      .duration(50)
       .attr("r", function(d) {
         if (d.isIgnored) {
           return defaultRadiusScale(1);
@@ -627,8 +627,23 @@ function ViewTreepack() {
     nodeCircles
       .exit()
       .transition()
-      .duration(100)
+      .duration(50)
       .attr("r", 0)
+      .attr("cx", function(d) { 
+        if (!d.nodeId) { 
+          console.debug("UNDEFINED d.nodeId");
+          return 0.5*width; }
+        if (d.x === undefined) { 
+          console.debug("UNDEFINED d.x " + d.nodeId);
+          return 0.5*width; 
+        }
+        return d.x; 
+      })
+      .attr("cy", function(d) { 
+        if (!d.nodeId) { return 0.5*height; }
+        if (!d.y) { return 0.5*height; }
+        return d.y; 
+      })
       .remove();
 
     callback();

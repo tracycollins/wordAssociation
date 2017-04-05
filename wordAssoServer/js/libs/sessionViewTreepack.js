@@ -14,6 +14,7 @@ function ViewTreepack() {
   var deadNodesHash = {};
 
 
+  var transitionDuration = DEFAULT_TRANSITION_DURATION;
   var blahMode = DEFAULT_BLAH_MODE;
   var charge = DEFAULT_CHARGE;
   var gravity = DEFAULT_GRAVITY;
@@ -334,6 +335,11 @@ function ViewTreepack() {
     //   }));
   }
 
+  self.updateTransitionDuration = function(value) {
+    console.debug("UPDATE TRANSITION DURATION: " + value);
+    transitionDuration = value;
+  }
+
   self.updateCharge = function(value) {
     console.debug("UPDATE CHARGE: " + value);
     charge = value;
@@ -614,7 +620,7 @@ function ViewTreepack() {
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
       .transition()
-      .duration(100)
+      .duration(transitionDuration)
       .attr("r", function(d) {
         if (d.isIgnored) {
           return defaultRadiusScale(1);
@@ -627,7 +633,7 @@ function ViewTreepack() {
     nodeCircles
       .exit()
       .transition()
-      .duration(50)
+      .duration(transitionDuration)
       .attr("r", 0)
       .attr("opacity", 0)
       .attr("cx", function(d) { 

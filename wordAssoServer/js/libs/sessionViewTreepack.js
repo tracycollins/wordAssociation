@@ -1033,58 +1033,58 @@ function ViewTreepack() {
 
     if (simulation){
       simulation
-        .force("center", d3.forceCenter(0.5*width, 0.5*height))
+        // .force("center", d3.forceCenter(0.5*width, 0.5*height))
         .force("charge", d3.forceManyBody().strength(charge))
-      .force("forceX", d3.forceX().x(function(d) { 
-        if (d.isKeyword){
-          if (d.keywords.right !== undefined) {
-            return foci.right.x;
+        .force("forceX", d3.forceX().x(function(d) { 
+          if (d.isKeyword){
+            if (d.keywords.right !== undefined) {
+              return foci.right.x;
+            }
+            if (d.keywords.left !== undefined) {
+              return foci.left.x;
+            }
+            if (d.keywords.positive !== undefined) {
+              return foci.positive.x;
+            }
+            if (d.keywords.negative !== undefined) {
+              return foci.negative.x;
+            }
+            if (d.keywords.neutral !== undefined) {
+              return foci.neutral.x;
+            }
           }
-          if (d.keywords.left !== undefined) {
-            return foci.left.x;
+          else {
+            return foci.default.x;
           }
-          if (d.keywords.positive !== undefined) {
-            return foci.positive.x;
+          // return 0.5*width; 
+        }).strength(function(d){
+          return forceXmultiplier * gravity; 
+        }))
+        .force("forceY", d3.forceY().y(function(d) { 
+          if (d.isKeyword){
+            if (d.keywords.right !== undefined) {
+              return foci.right.y;
+            }
+            if (d.keywords.left !== undefined) {
+              return foci.left.y;
+            }
+            if (d.keywords.positive !== undefined) {
+              return foci.positive.y;
+            }
+            if (d.keywords.negative !== undefined) {
+              return foci.negative.y;
+            }
+            if (d.keywords.neutral !== undefined) {
+              return foci.neutral.y;
+            }
           }
-          if (d.keywords.negative !== undefined) {
-            return foci.negative.x;
+          else {
+            return foci.default.y;
           }
-          if (d.keywords.neutral !== undefined) {
-            return foci.neutral.x;
-          }
-        }
-        else {
-          return foci.default.x;
-        }
-        // return 0.5*width; 
-      }).strength(function(d){
-        return forceXmultiplier * gravity; 
-      }))
-      .force("forceY", d3.forceY().y(function(d) { 
-        if (d.isKeyword){
-          if (d.keywords.right !== undefined) {
-            return foci.right.y;
-          }
-          if (d.keywords.left !== undefined) {
-            return foci.left.y;
-          }
-          if (d.keywords.positive !== undefined) {
-            return foci.positive.y;
-          }
-          if (d.keywords.negative !== undefined) {
-            return foci.negative.y;
-          }
-          if (d.keywords.neutral !== undefined) {
-            return foci.neutral.y;
-          }
-        }
-        else {
-          return foci.default.y;
-        }
-        // return 0.5*height; 
-      }).strength(function(d){
-        return forceYmultiplier * gravity; 
-      }))
+          // return 0.5*height; 
+        }).strength(function(d){
+          return forceYmultiplier * gravity; 
+        }))
         .force("collide", d3.forceCollide().radius(function(d) { 
           return collisionRadiusMultiplier * defaultRadiusScale(d.mentions) ; 
           // return defaultRadiusScale(d.mentions) ; 

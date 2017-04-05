@@ -614,6 +614,7 @@ function ViewTreepack() {
       .attr('stroke', palette.white)
       .attr('stroke-width', '1.0')
       .transition()
+      .duration(200)
       .attr("r", function(d) {
         if (d.isIgnored) {
           return defaultRadiusScale(1);

@@ -587,9 +587,9 @@ function ViewTreepack() {
     nodeCircles
       .enter()
       .append("circle")
+      .merge(nodeCircles)
       .transition()
       .duration(200)
-      .merge(nodeCircles)
       .attr("cx", function(d) { 
         if (!d.nodeId) { 
           console.debug("UNDEFINED d.nodeId");

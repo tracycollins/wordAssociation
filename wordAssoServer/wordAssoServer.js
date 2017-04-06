@@ -18,7 +18,7 @@ var primarySessionObj;
 // ==================================================================
 // TEST CONFIG
 // ==================================================================
-var bhtOverLimitTestFlag = false;
+// var bhtOverLimitTestFlag = false;
 
 var configuration = {};
 
@@ -144,7 +144,9 @@ var wordServer = require("./app/controllers/word.server.controller");
 var app = express();
 
 var http = require("http");
-var httpServer = require("http").Server(app);
+var httpServer = http.createServer(app);
+// var httpServer = require("http").Server(app);
+
 var io;
 var dns = require("dns");
 var path = require("path");
@@ -173,7 +175,7 @@ var MAX_WORDCHAIN_LENGTH = 10;
 // var MIN_CHAIN_FREEZE_LENGTH = 20;
 // var MIN_CHAIN_FREEZE_UNIQUE_NODES = 10;
 
-var BHT_REQUEST_LIMIT = 1000;
+// var BHT_REQUEST_LIMIT = 1000;
 var MW_REQUEST_LIMIT = 250000;
 // var WAPI_REQUEST_LIMIT = 25000;
 var WAPI_REQ_RESERVE_PRCNT = 0.30;
@@ -367,6 +369,9 @@ var jsonPrint = function(obj) {
   }
 };
 
+
+debug("DB\n" + db);
+
 function quit(message) {
   console.log("\n... QUITTING ...");
   if (updater !== undefined) { updater.kill("SIGHUP"); }
@@ -532,8 +537,8 @@ var promptsSent = 0;
 var responsesReceived = 0;
 var sessionUpdatesSent = 0;
 
-var bhtWordsMiss = {};
-var bhtWordsNotFound = {};
+// var bhtWordsMiss = {};
+// var bhtWordsNotFound = {};
 
 // var mwDictWordsMiss = {};
 // var mwDictWordsNotFound = {};
@@ -563,8 +568,8 @@ var statsObj = {
   "deltaResponsesReceived": 0,
   "sessionUpdatesSent": 0,
 
-  "bhtRequests": 0,
-  "bhtWordsNotFound": {},
+  // "bhtRequests": 0,
+  // "bhtWordsNotFound": {},
 
   "mwRequests": 0,
   "mwDictWordsMiss": {},
@@ -973,24 +978,24 @@ function updateWordMeter(wordObj){
 // ==================================================================
 // BIG HUGE THESAURUS
 // ==================================================================
-var bigHugeLabsApiKey = "e1b4564ec38d2db399dabdf83a8beeeb";
-var bhtEvents = new EventEmitter();
-var bhtErrors = 0;
-var bhtRequests = 0;
-var bhtOverLimits = 0;
+// var bigHugeLabsApiKey = "e1b4564ec38d2db399dabdf83a8beeeb";
+// var bhtEvents = new EventEmitter();
+// var bhtErrors = 0;
+// var bhtRequests = 0;
+// var bhtOverLimits = 0;
 
-var bhtOverLimitTime = moment.utc().utcOffset("-07:00").endOf("day");
-var bhtLimitResetTime = moment.utc().utcOffset("-07:00").endOf("day");
-var bhtTimeToReset = moment.utc().utcOffset("-07:00").endOf("day").valueOf() - moment.utc().utcOffset("-07:00").valueOf();
-var bhtOverLimitFlag = false;
+// var bhtOverLimitTime = moment.utc().utcOffset("-07:00").endOf("day");
+// var bhtLimitResetTime = moment.utc().utcOffset("-07:00").endOf("day");
+// var bhtTimeToReset = moment.utc().utcOffset("-07:00").endOf("day").valueOf() - moment.utc().utcOffset("-07:00").valueOf();
+// var bhtOverLimitFlag = false;
 
-debug("BHT OVER LIMIT TIME:  " + bhtOverLimitTime.format(compactDateTimeFormat));
-debug("BHT OVER LIMIT RESET: " + bhtOverLimitTime.format(compactDateTimeFormat));
-debug("BHT TIME TO RESET: " + msToTime(bhtTimeToReset));
+// debug("BHT OVER LIMIT TIME:  " + bhtOverLimitTime.format(compactDateTimeFormat));
+// debug("BHT OVER LIMIT RESET: " + bhtOverLimitTime.format(compactDateTimeFormat));
+// debug("BHT TIME TO RESET: " + msToTime(bhtTimeToReset));
 
-var bhtOverLimitTimeOut = setTimeout(function() {
-  bhtEvents.emit("BHT_OVER_LIMIT_TIMEOUT");
-}, bhtTimeToReset);
+// var bhtOverLimitTimeOut = setTimeout(function() {
+//   bhtEvents.emit("BHT_OVER_LIMIT_TIMEOUT");
+// }, bhtTimeToReset);
 
 
 // ==================================================================
@@ -1248,9 +1253,9 @@ function updateStatsInterval(interval){
       promptsSent: promptsSent,
       responsesReceived: responsesReceived,
 
-      bhtErrors: bhtErrors,
-      bhtRequests: bhtRequests,
-      bhtOverLimitFlag: bhtOverLimitFlag,
+      // bhtErrors: bhtErrors,
+      // bhtRequests: bhtRequests,
+      // bhtOverLimitFlag: bhtOverLimitFlag,
 
       mwErrors: mwErrors,
       mwRequests: mwRequests,
@@ -1504,18 +1509,18 @@ function findSessionById(sessionId, callback) {
 
 var deltaPromptsSent = 0;
 var deltaResponsesReceived = 0;
-var deltaBhtRequests = 0;
+// var deltaBhtRequests = 0;
 var deltaMwRequests = 0;
 
-function incrementDeltaBhtReqs(delta) {
-  var d = parseInt(delta);
-  if (d === 0) {
-    deltaBhtRequests = 0;
-  } 
-  else {
-    deltaBhtRequests += d;
-  }
-}
+// function incrementDeltaBhtReqs(delta) {
+//   var d = parseInt(delta);
+//   if (d === 0) {
+//     deltaBhtRequests = 0;
+//   } 
+//   else {
+//     deltaBhtRequests += d;
+//   }
+// }
 
 function incrementDeltaMwReqs(delta) {
   var d = parseInt(delta);
@@ -1527,28 +1532,28 @@ function incrementDeltaMwReqs(delta) {
   }
 }
 
-function incrementSocketBhtReqs(delta) {
+// function incrementSocketBhtReqs(delta) {
 
-  if ((bhtRequests >= BHT_REQUEST_LIMIT) || ((bhtRequests + delta) > BHT_REQUEST_LIMIT)) {
-    debug(chalkInfo("!!! incrementSocketBhtReqs: AT BHT_REQUEST_LIMIT: " + bhtRequests 
-      + " | NOW: " + BHT_REQUEST_LIMIT));
-    bhtRequests = BHT_REQUEST_LIMIT;
-    io.of(adminNameSpace).emit("BHT_OVER_LIMIT", bhtRequests);
-    io.of(utilNameSpace).emit("BHT_OVER_LIMIT", bhtRequests);
-    io.of(testUsersNameSpace).emit("BHT_OVER_LIMIT", bhtRequests);
-    io.of(userNameSpace).emit("BHT_OVER_LIMIT", bhtRequests);
-  } 
-  else if (delta > 0) {
-    bhtRequests += delta;
-    var remain = BHT_REQUEST_LIMIT - bhtRequests;
-    debug(chalkInfo("-#- BHT REQS: " + bhtRequests 
-      + " | DELTA: " + delta 
-      + " | LIMIT: " + BHT_REQUEST_LIMIT 
-      + " | REMAIN: " + remain
-    ));
-    incrementDeltaBhtReqs(delta);
-  }
-}
+//   if ((bhtRequests >= BHT_REQUEST_LIMIT) || ((bhtRequests + delta) > BHT_REQUEST_LIMIT)) {
+//     debug(chalkInfo("!!! incrementSocketBhtReqs: AT BHT_REQUEST_LIMIT: " + bhtRequests 
+//       + " | NOW: " + BHT_REQUEST_LIMIT));
+//     bhtRequests = BHT_REQUEST_LIMIT;
+//     io.of(adminNameSpace).emit("BHT_OVER_LIMIT", bhtRequests);
+//     io.of(utilNameSpace).emit("BHT_OVER_LIMIT", bhtRequests);
+//     io.of(testUsersNameSpace).emit("BHT_OVER_LIMIT", bhtRequests);
+//     io.of(userNameSpace).emit("BHT_OVER_LIMIT", bhtRequests);
+//   } 
+//   else if (delta > 0) {
+//     bhtRequests += delta;
+//     var remain = BHT_REQUEST_LIMIT - bhtRequests;
+//     debug(chalkInfo("-#- BHT REQS: " + bhtRequests 
+//       + " | DELTA: " + delta 
+//       + " | LIMIT: " + BHT_REQUEST_LIMIT 
+//       + " | REMAIN: " + remain
+//     ));
+//     incrementDeltaBhtReqs(delta);
+//   }
+// }
 
 function incrementSocketMwReqs(delta) {
 
@@ -1818,7 +1823,12 @@ function createSession(newSessionObj) {
     ));
 
     sessionCache.get(socket.id, function(err, sObj){
-      if (sObj !== undefined) {
+      if (err){
+        console.log(chalkError(moment().format(compactDateTimeFormat) 
+          + " | ??? SESSION CACHE ERROR ON SOCKET DISCONNECT | " + err
+        ));
+      }
+      else if (sObj !== undefined) {
         sObj.connected = false;
         sessionQueue.enqueue({
           sessionEvent: "SOCKET_DISCONNECT",
@@ -1896,7 +1906,12 @@ function createSession(newSessionObj) {
     debug(chalkAdmin("ADMIN READY\n" + jsonPrint(adminObj)));
 
     sessionCache.get(socket.id, function(err, sObj){
-      if (sObj === undefined) {
+      if (err){
+        console.log(chalkError(moment().format(compactDateTimeFormat) 
+          + " | ??? SESSION CACHE ERROR ON ADMIN ADMIN_READY | " + err
+        ));
+      }
+      else if (sObj === undefined) {
         debug(chalkError(moment().format(compactDateTimeFormat) 
           + " | ??? SESSION NOT FOUND ON ADMIN READY | " + socket.id));
       }
@@ -1920,11 +1935,14 @@ function createSession(newSessionObj) {
     console.log(chalkViewer("VIEWER READY\n" + jsonPrint(viewerObj)));
 
     sessionCache.get(socket.id, function(err, sObj){
-
-      if (sObj === undefined) {
+      if (err){
+        console.log(chalkError(moment().format(compactDateTimeFormat) 
+          + " | ??? SESSION CACHE ERROR ON VIEWER READY | " + err
+        ));
+      }
+      else if (sObj === undefined) {
         debug(chalkError(moment().format(compactDateTimeFormat) 
           + " | ??? SESSION NOT FOUND ON VIEWER READY | " + socket.id));
-        return;
       }
       else {
         debug(chalkConnect("--- VIEWER READY   | " + viewerObj.userId 
@@ -1990,8 +2008,12 @@ function createSession(newSessionObj) {
     // }
 
     sessionCache.get(sessionCacheKey, function(err, sObj){
-
-      if (sObj === undefined) {
+      if (err){
+        console.log(chalkError(moment().format(compactDateTimeFormat) 
+          + " | ??? SESSION CACHE ERROR ON KEEPALIVE | " + err
+        ));
+      }
+      else if (sObj === undefined) {
         debug(chalkError(moment().format(compactDateTimeFormat) 
           + " | ??? SESSION NOT FOUND ON SESSION_KEEPALIVE | " + socket.id
           // + " | CREATING SESSION" + "\n" + jsonPrint(userObj)
@@ -2061,7 +2083,12 @@ function createSession(newSessionObj) {
   socket.on("USER_READY", function(userObj) {
 
     sessionCache.get(socket.id, function(err, sObj){
-      if (sObj === undefined) {
+      if (err){
+        console.log(chalkError(moment().format(compactDateTimeFormat) 
+          + " | ??? SESSION CACHE ERROR ON USER READY | " + err
+        ));
+      }
+      else if (sObj === undefined) {
 
       }
       else {
@@ -2356,13 +2383,13 @@ function createSession(newSessionObj) {
     });
   });
 
-  socket.on("BHT_REQUESTS", function(deltaReqs) {
-    console.log(chalkBht("RX BHT_REQUESTS"
-    + " | " + socket.id
-    + " | DELTA: " + deltaReqs
-    ));
-    incrementSocketBhtReqs(deltaReqs);
-  });
+  // socket.on("BHT_REQUESTS", function(deltaReqs) {
+  //   console.log(chalkBht("RX BHT_REQUESTS"
+  //   + " | " + socket.id
+  //   + " | DELTA: " + deltaReqs
+  //   ));
+  //   incrementSocketBhtReqs(deltaReqs);
+  // });
 
   socket.on("MW_REQUESTS", function(deltaReqs) {
     console.log(chalkMw("RX MW_REQUESTS"
@@ -2852,210 +2879,210 @@ function dbUpdateEntity(entityObj, incMentions, callback) {
   });
 }
 
-function bhtHttpGet(host, path, wordObj, callback) {
+// function bhtHttpGet(host, path, wordObj, callback) {
 
-  http.get({
-    host: host,
-    path: path
-  }, function(response) {
+//   http.get({
+//     host: host,
+//     path: path
+//   }, function(response) {
 
-    debug("bhtHttpGet: " + host + "/" + path);
+//     debug("bhtHttpGet: " + host + "/" + path);
 
-    response.on("error", function(err) {
-      bhtErrors += 1;
-      debug(chalkError("BHT ERROR" 
-        + " | TOTAL ERRORS: " + bhtErrors 
-        + " | WORD: " + wordObj.nodeId 
-        + " | STATUS CODE: " + response.statusCode 
-        + " | STATUS MESSAGE: " + response.statusMessage 
-        + "\n" + util.inspect(err, {
-          showHidden: false,
-          depth: 3
-        })
-      ));
-      callback("BHT_ERROR | " + err, wordObj);
-      return;
-    });
+//     response.on("error", function(err) {
+//       bhtErrors += 1;
+//       debug(chalkError("BHT ERROR" 
+//         + " | TOTAL ERRORS: " + bhtErrors 
+//         + " | WORD: " + wordObj.nodeId 
+//         + " | STATUS CODE: " + response.statusCode 
+//         + " | STATUS MESSAGE: " + response.statusMessage 
+//         + "\n" + util.inspect(err, {
+//           showHidden: false,
+//           depth: 3
+//         })
+//       ));
+//       callback("BHT_ERROR | " + err, wordObj);
+//       return;
+//     });
 
-    var body = "";
-    var status = "";
+//     var body = "";
+//     var status = "";
 
-    if ((response.statusCode === 500) && (response.statusMessage === "Usage Exceeded")) {
-      bhtErrors += 1;
-      debug(chalkError("BHT ERROR" 
-        + " | TOTAL ERRORS: " + bhtErrors 
-        + " | WORD: " + wordObj.nodeId 
-        + " | STATUS CODE: " + response.statusCode 
-        + " | STATUS MESSAGE: " + response.statusMessage
-        // + "\n" + util.inspect(response, {showHidden: false, depth: 3})
-      ));
-      bhtEvents.emit("BHT_OVER_LIMIT", bhtRequests);
-      callback("BHT_OVER_LIMIT", wordObj);
-    } 
-    else if ((response.statusCode === 500) && (response.statusMessage === "Inactive key")) {
-      bhtErrors += 1;
-      debug(chalkError("BHT ERROR" 
-        + " | TOTAL ERRORS: " + bhtErrors 
-        + " | WORD: " + wordObj.nodeId 
-        + " | STATUS CODE: " + response.statusCode 
-        + " | STATUS MESSAGE: " + response.statusMessage 
-        + "\n" + util.inspect(response, {
-        showHidden: false,
-        depth: 3
-      })));
-      bhtEvents.emit("BHT_INACTIVE_KEY", bhtRequests);
-      callback("BHT_INACTIVE_KEY", wordObj);
-    } 
-    else if (bhtOverLimitTestFlag) {
-      debug(chalkBht("BHT OVER LIMIT TEST FLAG SET"));
-      bhtEvents.emit("BHT_OVER_LIMIT", bhtRequests);
-      callback("BHT_OVER_LIMIT", wordObj);
-    } 
-    else if (response.statusCode === 404) {
-      debug("bhtHttpGet: \"" + wordObj.nodeId + "\" NOT FOUND");
-      wordObj.bhtSearched = true;
-      wordObj.bhtFound = false;
-      wordServer.findOneWord(wordObj, true, function(err, wordUpdatedObj) {
-        if (err) { console.log(chalkError("WORD FINDONE ERROR\n" + jsonPrint(err))); }
-        debug(chalkBht("bhtHttpGet: ->- DB UPDATE | " + wordUpdatedObj.nodeId 
-          + " | MNS: " + wordUpdatedObj.mentions));
-        debug(chalkBht(JSON.stringify(wordUpdatedObj, null, 3)));
-        callback("BHT_NOT_FOUND", wordUpdatedObj);
-      });
-    } 
-    else if (response.statusCode === 303) {
-      wordObj.bhtAlt = response.statusMessage;
-      debug(chalkBht("BHT REDIRECT" + " | WORD: " + wordObj.nodeId 
-      + " | ALT: " + response.statusMessage // alternative word
-        + " | " + response.headers.location
-      ));
-      wordServer.findOneWord(wordObj, true, function(err, wordUpdatedObj) {
-        if (err) {
-          console.log(chalkError("bhtHttpGet: findOneWord: DB ERROR\n" + "\n" + util.inspect(err, {
-            showHidden: false,
-            depth: 3
-          })));
-          callback("BHT_ERROR | " + err, wordObj);
-        } 
-        else {
-          debug(chalkBht("bhtHttpGet: ->- DB ALT UPDATE | " + wordUpdatedObj.nodeId 
-          + " | ALT: " + wordUpdatedObj.bhtAlt // alternative word
-            + " | MNS: " + wordUpdatedObj.mentions
-          ));
-          debug(chalkBht(JSON.stringify(wordUpdatedObj, null, 3)));
-          callback("BHT_REDIRECT", wordUpdatedObj);
-        }
-      });
-    } 
-    else if (response.statusCode !== 200) {
-      bhtErrors += 1;
-      debug(chalkError("BHT ERROR" 
-        + " | TOTAL ERRORS: " + bhtErrors 
-        + " | WORD: " + wordObj.nodeId 
-        + " | STATUS CODE: " + response.statusCode 
-        + " | STATUS MESSAGE: " + response.statusMessage 
-        + "\n" + util.inspect(response, {
-        showHidden: false,
-        depth: 3
-      })));
-      bhtEvents.emit("BHT_UNKNOWN_STATUS", bhtRequests);
-      callback("BHT_UNKNOWN_STATUS", wordObj);
-    } 
-    else {
-      response.on("data", function(d) {
-        body += d;
-      });
+//     if ((response.statusCode === 500) && (response.statusMessage === "Usage Exceeded")) {
+//       bhtErrors += 1;
+//       debug(chalkError("BHT ERROR" 
+//         + " | TOTAL ERRORS: " + bhtErrors 
+//         + " | WORD: " + wordObj.nodeId 
+//         + " | STATUS CODE: " + response.statusCode 
+//         + " | STATUS MESSAGE: " + response.statusMessage
+//         // + "\n" + util.inspect(response, {showHidden: false, depth: 3})
+//       ));
+//       bhtEvents.emit("BHT_OVER_LIMIT", bhtRequests);
+//       callback("BHT_OVER_LIMIT", wordObj);
+//     } 
+//     else if ((response.statusCode === 500) && (response.statusMessage === "Inactive key")) {
+//       bhtErrors += 1;
+//       debug(chalkError("BHT ERROR" 
+//         + " | TOTAL ERRORS: " + bhtErrors 
+//         + " | WORD: " + wordObj.nodeId 
+//         + " | STATUS CODE: " + response.statusCode 
+//         + " | STATUS MESSAGE: " + response.statusMessage 
+//         + "\n" + util.inspect(response, {
+//         showHidden: false,
+//         depth: 3
+//       })));
+//       bhtEvents.emit("BHT_INACTIVE_KEY", bhtRequests);
+//       callback("BHT_INACTIVE_KEY", wordObj);
+//     } 
+//     else if (bhtOverLimitTestFlag) {
+//       debug(chalkBht("BHT OVER LIMIT TEST FLAG SET"));
+//       bhtEvents.emit("BHT_OVER_LIMIT", bhtRequests);
+//       callback("BHT_OVER_LIMIT", wordObj);
+//     } 
+//     else if (response.statusCode === 404) {
+//       debug("bhtHttpGet: \"" + wordObj.nodeId + "\" NOT FOUND");
+//       wordObj.bhtSearched = true;
+//       wordObj.bhtFound = false;
+//       wordServer.findOneWord(wordObj, true, function(err, wordUpdatedObj) {
+//         if (err) { console.log(chalkError("WORD FINDONE ERROR\n" + jsonPrint(err))); }
+//         debug(chalkBht("bhtHttpGet: ->- DB UPDATE | " + wordUpdatedObj.nodeId 
+//           + " | MNS: " + wordUpdatedObj.mentions));
+//         debug(chalkBht(JSON.stringify(wordUpdatedObj, null, 3)));
+//         callback("BHT_NOT_FOUND", wordUpdatedObj);
+//       });
+//     } 
+//     else if (response.statusCode === 303) {
+//       wordObj.bhtAlt = response.statusMessage;
+//       debug(chalkBht("BHT REDIRECT" + " | WORD: " + wordObj.nodeId 
+//       + " | ALT: " + response.statusMessage // alternative word
+//         + " | " + response.headers.location
+//       ));
+//       wordServer.findOneWord(wordObj, true, function(err, wordUpdatedObj) {
+//         if (err) {
+//           console.log(chalkError("bhtHttpGet: findOneWord: DB ERROR\n" + "\n" + util.inspect(err, {
+//             showHidden: false,
+//             depth: 3
+//           })));
+//           callback("BHT_ERROR | " + err, wordObj);
+//         } 
+//         else {
+//           debug(chalkBht("bhtHttpGet: ->- DB ALT UPDATE | " + wordUpdatedObj.nodeId 
+//           + " | ALT: " + wordUpdatedObj.bhtAlt // alternative word
+//             + " | MNS: " + wordUpdatedObj.mentions
+//           ));
+//           debug(chalkBht(JSON.stringify(wordUpdatedObj, null, 3)));
+//           callback("BHT_REDIRECT", wordUpdatedObj);
+//         }
+//       });
+//     } 
+//     else if (response.statusCode !== 200) {
+//       bhtErrors += 1;
+//       debug(chalkError("BHT ERROR" 
+//         + " | TOTAL ERRORS: " + bhtErrors 
+//         + " | WORD: " + wordObj.nodeId 
+//         + " | STATUS CODE: " + response.statusCode 
+//         + " | STATUS MESSAGE: " + response.statusMessage 
+//         + "\n" + util.inspect(response, {
+//         showHidden: false,
+//         depth: 3
+//       })));
+//       bhtEvents.emit("BHT_UNKNOWN_STATUS", bhtRequests);
+//       callback("BHT_UNKNOWN_STATUS", wordObj);
+//     } 
+//     else {
+//       response.on("data", function(d) {
+//         body += d;
+//       });
 
-      response.on("end", function() {
+//       response.on("end", function() {
 
-        if (body !== "") {
-          var parsed = JSON.parse(body);
-          debug("bhtHttpGet: " + JSON.stringify(parsed, null, 3));
-          if (parsed.noun !== null) {wordObj.noun = parsed.noun;}
-          if (parsed.verb !== null) {wordObj.verb = parsed.verb;}
-          if (parsed.adjective !== null) {wordObj.adjective = parsed.adjective;}
-          if (parsed.adverb !== null) {wordObj.adverb = parsed.adverb;}
-          status = "BHT_HIT";
-          wordObj.bhtSearched = true;
-          wordObj.bhtFound = true;
-        } else {
-          debug("bhtHttpGet: \"" + wordObj.nodeId + "\" NOT FOUND");
-          status = "BHT_MISS";
-          wordObj.bhtSearched = true;
-          wordObj.bhtFound = false;
-        }
+//         if (body !== "") {
+//           var parsed = JSON.parse(body);
+//           debug("bhtHttpGet: " + JSON.stringify(parsed, null, 3));
+//           if (parsed.noun !== null) {wordObj.noun = parsed.noun;}
+//           if (parsed.verb !== null) {wordObj.verb = parsed.verb;}
+//           if (parsed.adjective !== null) {wordObj.adjective = parsed.adjective;}
+//           if (parsed.adverb !== null) {wordObj.adverb = parsed.adverb;}
+//           status = "BHT_HIT";
+//           wordObj.bhtSearched = true;
+//           wordObj.bhtFound = true;
+//         } else {
+//           debug("bhtHttpGet: \"" + wordObj.nodeId + "\" NOT FOUND");
+//           status = "BHT_MISS";
+//           wordObj.bhtSearched = true;
+//           wordObj.bhtFound = false;
+//         }
 
-        wordServer.findOneWord(wordObj, true, function(err, wordUpdatedObj) {
-          if (err) { console.log(chalkError("WORD FINDONE ERROR\n" + jsonPrint(err))); }
-          debug(chalkBht("bhtHttpGet: ->- DB UPDATE | " + wordUpdatedObj.nodeId 
-            + " | MNS: " + wordUpdatedObj.mentions));
-          debug(chalkBht(JSON.stringify(wordUpdatedObj, null, 3)));
-          callback(status, wordUpdatedObj);
-        });
-      });
-    }
-  }).on("error", function(e) {
-    bhtErrors += 1;
-    debug(chalkError("BHT ERROR" 
-      + " | TOTAL ERRORS: " + bhtErrors 
-      + " | WORD: " + wordObj.nodeId
-      // + " | STATUS CODE: " + response.statusCode
-      // + " | STATUS MESSAGE: " + response.statusMessage
-      + "\n" + util.inspect(e, {
-        showHidden: false,
-        depth: 3
-      })
-    ));
-    callback("BHT_ERROR", wordObj);
-  });
-}
+//         wordServer.findOneWord(wordObj, true, function(err, wordUpdatedObj) {
+//           if (err) { console.log(chalkError("WORD FINDONE ERROR\n" + jsonPrint(err))); }
+//           debug(chalkBht("bhtHttpGet: ->- DB UPDATE | " + wordUpdatedObj.nodeId 
+//             + " | MNS: " + wordUpdatedObj.mentions));
+//           debug(chalkBht(JSON.stringify(wordUpdatedObj, null, 3)));
+//           callback(status, wordUpdatedObj);
+//         });
+//       });
+//     }
+//   }).on("error", function(e) {
+//     bhtErrors += 1;
+//     debug(chalkError("BHT ERROR" 
+//       + " | TOTAL ERRORS: " + bhtErrors 
+//       + " | WORD: " + wordObj.nodeId
+//       // + " | STATUS CODE: " + response.statusCode
+//       // + " | STATUS MESSAGE: " + response.statusMessage
+//       + "\n" + util.inspect(e, {
+//         showHidden: false,
+//         depth: 3
+//       })
+//     ));
+//     callback("BHT_ERROR", wordObj);
+//   });
+// }
 
-function bhtSearchWord(wordObj, callback) {
+// function bhtSearchWord(wordObj, callback) {
 
-  if (wordObj.bhtFound) {
-    callback("BHT_FOUND", wordObj);
-  } 
-  else if (bhtOverLimitFlag) {
-    var now = moment.utc();
-    now.utcOffset("-07:00");
-    debug(chalkBht("*** BHT OVER LIMIT" 
-      + " | LIMIT: " + BHT_REQUEST_LIMIT 
-      + " | REQS: " + bhtRequests 
-      + " | OVER: " + bhtOverLimitTime.format(compactDateTimeFormat) 
-      + " | RESET: " + bhtLimitResetTime.format(compactDateTimeFormat) 
-      + " | REMAIN: " + msToTime(bhtLimitResetTime.diff(now))
-    ));
-    callback("BHT_OVER_LIMIT", wordObj);
-  } 
-  else {
-    incrementSocketBhtReqs(1);
-    debug(chalkBht(">>> BHT SEARCH (before replace): " + wordObj.nodeId));
-    wordObj.nodeId = wordObj.nodeId.replace(/\s+/g, " ");
-    wordObj.nodeId = wordObj.nodeId.replace(/[\n\r{}<>\/;:"`~?!@#$%\^&*()_+=.,]+/g, "");
-    wordObj.nodeId = wordObj.nodeId.replace(/\s+/g, " ");
-    wordObj.nodeId = wordObj.nodeId.replace(/^-+|-+$/g, "");
-    wordObj.nodeId = wordObj.nodeId.replace(/^\s+|\s+$/g, "");
-    wordObj.nodeId = wordObj.nodeId.replace(/^"+/g, "");
-    wordObj.nodeId = wordObj.nodeId.replace(/"+/g, "'");
-    wordObj.nodeId = wordObj.nodeId.toLowerCase();
-    debug(chalkBht(">>> BHT SEARCH (after replace):  " + wordObj.nodeId));
+//   if (wordObj.bhtFound) {
+//     callback("BHT_FOUND", wordObj);
+//   } 
+//   else if (bhtOverLimitFlag) {
+//     var now = moment.utc();
+//     now.utcOffset("-07:00");
+//     debug(chalkBht("*** BHT OVER LIMIT" 
+//       + " | LIMIT: " + BHT_REQUEST_LIMIT 
+//       + " | REQS: " + bhtRequests 
+//       + " | OVER: " + bhtOverLimitTime.format(compactDateTimeFormat) 
+//       + " | RESET: " + bhtLimitResetTime.format(compactDateTimeFormat) 
+//       + " | REMAIN: " + msToTime(bhtLimitResetTime.diff(now))
+//     ));
+//     callback("BHT_OVER_LIMIT", wordObj);
+//   } 
+//   else {
+//     incrementSocketBhtReqs(1);
+//     debug(chalkBht(">>> BHT SEARCH (before replace): " + wordObj.nodeId));
+//     wordObj.nodeId = wordObj.nodeId.replace(/\s+/g, " ");
+//     wordObj.nodeId = wordObj.nodeId.replace(/[\n\r{}<>\/;:"`~?!@#$%\^&*()_+=.,]+/g, "");
+//     wordObj.nodeId = wordObj.nodeId.replace(/\s+/g, " ");
+//     wordObj.nodeId = wordObj.nodeId.replace(/^-+|-+$/g, "");
+//     wordObj.nodeId = wordObj.nodeId.replace(/^\s+|\s+$/g, "");
+//     wordObj.nodeId = wordObj.nodeId.replace(/^"+/g, "");
+//     wordObj.nodeId = wordObj.nodeId.replace(/"+/g, "'");
+//     wordObj.nodeId = wordObj.nodeId.toLowerCase();
+//     debug(chalkBht(">>> BHT SEARCH (after replace):  " + wordObj.nodeId));
 
-    var bhtHost = "words.bighugelabs.com";
-    var bhtPath = "/api/2/" + bigHugeLabsApiKey + "/" + encodeURI(wordObj.nodeId) + "/json";
+//     var bhtHost = "words.bighugelabs.com";
+//     var bhtPath = "/api/2/" + bigHugeLabsApiKey + "/" + encodeURI(wordObj.nodeId) + "/json";
 
-    bhtHttpGet(bhtHost, bhtPath, wordObj, function(status, bhtResponseObj) {
-      if (status === "BHT_REDIRECT") {
-        var pathRedirect = "/api/2/" + bigHugeLabsApiKey + "/" + encodeURI(bhtResponseObj.bhtAlt) + "/json";
-        bhtHttpGet(bhtHost, pathRedirect, bhtResponseObj, function(statusRedirect, responseRedirectObj) {
-          callback(statusRedirect, responseRedirectObj);
-        });
-      } 
-      else {
-        callback(status, bhtResponseObj);
-      }
-    });
-  }
-}
+//     bhtHttpGet(bhtHost, bhtPath, wordObj, function(status, bhtResponseObj) {
+//       if (status === "BHT_REDIRECT") {
+//         var pathRedirect = "/api/2/" + bigHugeLabsApiKey + "/" + encodeURI(bhtResponseObj.bhtAlt) + "/json";
+//         bhtHttpGet(bhtHost, pathRedirect, bhtResponseObj, function(statusRedirect, responseRedirectObj) {
+//           callback(statusRedirect, responseRedirectObj);
+//         });
+//       } 
+//       else {
+//         callback(status, bhtResponseObj);
+//       }
+//     });
+//   }
+// }
 
 function dbUpdateWord(wObj, incMentions, callback) {
 
@@ -3085,44 +3112,46 @@ function dbUpdateWord(wObj, incMentions, callback) {
 
         debug(JSON.stringify(word, null, 3));
 
-        if (!word.bhtSearched) { // not yet bht searched
-          debug("word.bhtSearched: " + word.bhtSearched);
+        // if (!word.bhtSearched) { // not yet bht searched
+        //   debug("word.bhtSearched: " + word.bhtSearched);
 
-          bhtSearchWord(word, function(status, bhtResponseObj) {
-            if (status.indexOf("BHT_OVER_LIMIT") >= 0) {
-              debug(chalkError("bhtSearchWord BHT OVER LIMI"));
-              debug("Word CACHE SET1: " + word.nodeId);
-              wordCache.set(word.nodeId, word);
-              callback("BHT_OVER_LIMIT", word);
-            } 
-            else if (status.indexOf("BHT_ERROR") >= 0) {
-              debug(chalkError("bhtSearchWord dbUpdateWord findOneWord ERROR\n" + JSON.stringify(status)));
-              debug("Word CACHE SET2: " + word.nodeId);
-              wordCache.set(word.nodeId, word);
-              callback("BHT_ERROR", word);
-            } 
-            else if (bhtResponseObj.bhtFound) {
-              debug(chalkBht("-*- BHT HIT   | " + bhtResponseObj.nodeId));
-              debug("Word CACHE SET3: " + bhtResponseObj.nodeId);
-              wordCache.set(bhtResponseObj.nodeId, bhtResponseObj);
-              callback("BHT_HIT", bhtResponseObj);
-            } 
-            else if (status === "BHT_REDIRECT") {
-              debug(chalkBht("-A- BHT REDIRECT  | " + wordObj.nodeId));
-              debug("Word CACHE SET4: " + bhtResponseObj.nodeId);
-              wordCache.set(bhtResponseObj.nodeId, bhtResponseObj);
-              callback("BHT_REDIRECT", bhtResponseObj);
-            } 
-            else {
-              debug(chalkBht("-O- BHT MISS  | " + wordObj.nodeId));
-              debug("Word CACHE SET5: " + bhtResponseObj.nodeId);
-              wordCache.set(bhtResponseObj.nodeId, bhtResponseObj);
-              bhtWordsMiss[word.nodeId] = word.nodeId;
-              callback("BHT_MISS", bhtResponseObj);
-            }
-          });
-        } 
-        else if (word.bhtFound) {
+        //   bhtSearchWord(word, function(status, bhtResponseObj) {
+        //     if (status.indexOf("BHT_OVER_LIMIT") >= 0) {
+        //       debug(chalkError("bhtSearchWord BHT OVER LIMI"));
+        //       debug("Word CACHE SET1: " + word.nodeId);
+        //       wordCache.set(word.nodeId, word);
+        //       callback("BHT_OVER_LIMIT", word);
+        //     } 
+        //     else if (status.indexOf("BHT_ERROR") >= 0) {
+        //       debug(chalkError("bhtSearchWord dbUpdateWord findOneWord ERROR\n" + JSON.stringify(status)));
+        //       debug("Word CACHE SET2: " + word.nodeId);
+        //       wordCache.set(word.nodeId, word);
+        //       callback("BHT_ERROR", word);
+        //     } 
+        //     else if (bhtResponseObj.bhtFound) {
+        //       debug(chalkBht("-*- BHT HIT   | " + bhtResponseObj.nodeId));
+        //       debug("Word CACHE SET3: " + bhtResponseObj.nodeId);
+        //       wordCache.set(bhtResponseObj.nodeId, bhtResponseObj);
+        //       callback("BHT_HIT", bhtResponseObj);
+        //     } 
+        //     else if (status === "BHT_REDIRECT") {
+        //       debug(chalkBht("-A- BHT REDIRECT  | " + wordObj.nodeId));
+        //       debug("Word CACHE SET4: " + bhtResponseObj.nodeId);
+        //       wordCache.set(bhtResponseObj.nodeId, bhtResponseObj);
+        //       callback("BHT_REDIRECT", bhtResponseObj);
+        //     } 
+        //     else {
+        //       debug(chalkBht("-O- BHT MISS  | " + wordObj.nodeId));
+        //       debug("Word CACHE SET5: " + bhtResponseObj.nodeId);
+        //       wordCache.set(bhtResponseObj.nodeId, bhtResponseObj);
+        //       bhtWordsMiss[word.nodeId] = word.nodeId;
+        //       callback("BHT_MISS", bhtResponseObj);
+        //     }
+        //   });
+        // } 
+        // else if (word.bhtFound) {
+
+        if (word.bhtFound) {
           debug(chalkBht("-F- BHT FOUND | " + word.nodeId));
           debug("Word CACHE SET6: " + word.nodeId);
           wordCache.set(word.nodeId, word);
@@ -3132,7 +3161,7 @@ function dbUpdateWord(wObj, incMentions, callback) {
           debug(chalkBht("-N- BHT NOT FOUND  | " + word.nodeId));
           debug("Word CACHE SET7: " + word.nodeId);
           wordCache.set(word.nodeId, word);
-          bhtWordsNotFound[word.nodeId] = word.nodeId;
+          // bhtWordsNotFound[word.nodeId] = word.nodeId;
           callback("BHT_NOT_FOUND", word);
         }
       }
@@ -3211,95 +3240,95 @@ wapiEvents.on("WAPI_OVER_LIMIT", function() {
   }, wapiTimeToReset);
 });
 
-function setBhtReqs(value) {
-  debug(chalkInfo("SET BHT REQS: PREV: " + bhtRequests + " | NOW: " + value));
-  bhtRequests = parseInt(value);
-  updateStats({
-    bhtRequests: bhtRequests
-  });
-}
+// // function setBhtReqs(value) {
+// //   debug(chalkInfo("SET BHT REQS: PREV: " + bhtRequests + " | NOW: " + value));
+// //   bhtRequests = parseInt(value);
+// //   updateStats({
+// //     bhtRequests: bhtRequests
+// //   });
+// // }
 
-bhtEvents.on("BHT_OVER_LIMIT_TIMEOUT", function() {
-  if (bhtOverLimitFlag) {
-    debug(chalkBht("*** BHT_OVER_LIMIT_TIMEOUT END *** | " 
-      + moment().format(compactDateTimeFormat)));
-  } 
-  else {
-    debug(chalkBht(" BHT_OVER_LIMIT_TIMEOUT END (NO OVER LIMIT) | " 
-      + moment().format(compactDateTimeFormat)));
-  }
+// bhtEvents.on("BHT_OVER_LIMIT_TIMEOUT", function() {
+//   if (bhtOverLimitFlag) {
+//     debug(chalkBht("*** BHT_OVER_LIMIT_TIMEOUT END *** | " 
+//       + moment().format(compactDateTimeFormat)));
+//   } 
+//   else {
+//     debug(chalkBht(" BHT_OVER_LIMIT_TIMEOUT END (NO OVER LIMIT) | " 
+//       + moment().format(compactDateTimeFormat)));
+//   }
 
-  bhtOverLimitFlag = false;
-  bhtOverLimitTestFlag = false;
-  setBhtReqs(0);
+//   bhtOverLimitFlag = false;
+//   // bhtOverLimitTestFlag = false;
+//   setBhtReqs(0);
 
-  bhtOverLimitTime = moment.utc();
-  bhtOverLimitTime.utcOffset("-07:00");
+//   bhtOverLimitTime = moment.utc();
+//   bhtOverLimitTime.utcOffset("-07:00");
 
-  bhtLimitResetTime = moment.utc();
-  bhtLimitResetTime.utcOffset("-07:00");
-  bhtLimitResetTime.endOf("day");
+//   bhtLimitResetTime = moment.utc();
+//   bhtLimitResetTime.utcOffset("-07:00");
+//   bhtLimitResetTime.endOf("day");
 
-  updateStats({
-    bhtRequests: bhtRequests,
-    bhtOverLimitTime: bhtOverLimitTime,
-    bhtLimitResetTime: bhtLimitResetTime,
-    bhtOverLimitFlag: bhtOverLimitFlag
-  });
+//   updateStats({
+//     bhtRequests: bhtRequests,
+//     bhtOverLimitTime: bhtOverLimitTime,
+//     bhtLimitResetTime: bhtLimitResetTime,
+//     bhtOverLimitFlag: bhtOverLimitFlag
+//   });
 
-  bhtTimeToReset = bhtLimitResetTime.valueOf() - bhtOverLimitTime.valueOf();
+//   bhtTimeToReset = bhtLimitResetTime.valueOf() - bhtOverLimitTime.valueOf();
 
-  clearTimeout(bhtOverLimitTimeOut);
+//   clearTimeout(bhtOverLimitTimeOut);
 
-  bhtOverLimitTimeOut = setTimeout(function() {
-    bhtEvents.emit("BHT_OVER_LIMIT_TIMEOUT");
-  }, bhtTimeToReset);
-});
+//   bhtOverLimitTimeOut = setTimeout(function() {
+//     bhtEvents.emit("BHT_OVER_LIMIT_TIMEOUT");
+//   }, bhtTimeToReset);
+// });
 
-bhtEvents.on("BHT_OVER_LIMIT", function() {
+// bhtEvents.on("BHT_OVER_LIMIT", function() {
 
-  io.of(adminNameSpace).emit("BHT_OVER_LIMIT", bhtRequests);
-  io.of(utilNameSpace).emit("BHT_OVER_LIMIT", bhtRequests);
-  io.of(testUsersNameSpace).emit("BHT_OVER_LIMIT", bhtRequests);
-  io.of(userNameSpace).emit("BHT_OVER_LIMIT", bhtRequests);
+//   io.of(adminNameSpace).emit("BHT_OVER_LIMIT", bhtRequests);
+//   io.of(utilNameSpace).emit("BHT_OVER_LIMIT", bhtRequests);
+//   io.of(testUsersNameSpace).emit("BHT_OVER_LIMIT", bhtRequests);
+//   io.of(userNameSpace).emit("BHT_OVER_LIMIT", bhtRequests);
 
-  bhtOverLimits += 1;
-  bhtOverLimitFlag = true;
-  bhtOverLimitTestFlag = false;
+//   bhtOverLimits += 1;
+//   bhtOverLimitFlag = true;
+//   // bhtOverLimitTestFlag = false;
 
-  bhtOverLimitTime = moment.utc();
-  bhtOverLimitTime.utcOffset("-07:00");
+//   bhtOverLimitTime = moment.utc();
+//   bhtOverLimitTime.utcOffset("-07:00");
 
-  bhtLimitResetTime = moment.utc();
-  bhtLimitResetTime.utcOffset("-07:00");
-  bhtLimitResetTime.endOf("day");
+//   bhtLimitResetTime = moment.utc();
+//   bhtLimitResetTime.utcOffset("-07:00");
+//   bhtLimitResetTime.endOf("day");
 
-  // bhtTimeToReset = moment(bhtLimitResetTime);
-  // bhtTimeToReset.subtract(bhtOverLimitTime);
-  bhtTimeToReset = bhtLimitResetTime.valueOf() - bhtOverLimitTime.valueOf();
+//   // bhtTimeToReset = moment(bhtLimitResetTime);
+//   // bhtTimeToReset.subtract(bhtOverLimitTime);
+//   bhtTimeToReset = bhtLimitResetTime.valueOf() - bhtOverLimitTime.valueOf();
 
-  debug(chalkBht("bhtSearchWord: *** OVER LIMIT *** | " + bhtRequests + " REQUESTS"));
-  debug(chalkBht("bhtSearchWord: *** OVER LIMIT *** | BHT OVER LIMIT TIME:      " + bhtOverLimitTime.format(compactDateTimeFormat)));
-  debug(chalkBht("bhtSearchWord: *** OVER LIMIT *** | BHT LIMIT RESET TIME:     " + bhtLimitResetTime.format(compactDateTimeFormat)));
-  debug(chalkBht("bhtSearchWord: *** OVER LIMIT *** | BHT OVER LIMIT REMAINING: " + msToTime(bhtTimeToReset)));
+//   debug(chalkBht("bhtSearchWord: *** OVER LIMIT *** | " + bhtRequests + " REQUESTS"));
+//   debug(chalkBht("bhtSearchWord: *** OVER LIMIT *** | BHT OVER LIMIT TIME:      " + bhtOverLimitTime.format(compactDateTimeFormat)));
+//   debug(chalkBht("bhtSearchWord: *** OVER LIMIT *** | BHT LIMIT RESET TIME:     " + bhtLimitResetTime.format(compactDateTimeFormat)));
+//   debug(chalkBht("bhtSearchWord: *** OVER LIMIT *** | BHT OVER LIMIT REMAINING: " + msToTime(bhtTimeToReset)));
 
-  debug("SET BHT REQUESTS TO LIMIT: " + BHT_REQUEST_LIMIT);
-  bhtRequests = BHT_REQUEST_LIMIT;
-  debug("SET bhtOverLimitTimeOut = " + msToTime(bhtTimeToReset) + " | " + bhtTimeToReset + " ms");
+//   debug("SET BHT REQUESTS TO LIMIT: " + BHT_REQUEST_LIMIT);
+//   bhtRequests = BHT_REQUEST_LIMIT;
+//   debug("SET bhtOverLimitTimeOut = " + msToTime(bhtTimeToReset) + " | " + bhtTimeToReset + " ms");
 
-  updateStats({
-    "bhtOverLimits": bhtOverLimits,
-    "bhtOverLimitTime": bhtOverLimitTime,
-    "bhtOverLimitFlag": bhtOverLimitFlag,
-    "bhtRequests": BHT_REQUEST_LIMIT
-  });
+//   updateStats({
+//     "bhtOverLimits": bhtOverLimits,
+//     "bhtOverLimitTime": bhtOverLimitTime,
+//     "bhtOverLimitFlag": bhtOverLimitFlag,
+//     "bhtRequests": BHT_REQUEST_LIMIT
+//   });
 
-  clearTimeout(bhtOverLimitTimeOut);
+//   clearTimeout(bhtOverLimitTimeOut);
 
-  bhtOverLimitTimeOut = setTimeout(function() {
-    bhtEvents.emit("BHT_OVER_LIMIT_TIMEOUT");
-  }, bhtTimeToReset);
-});
+//   bhtOverLimitTimeOut = setTimeout(function() {
+//     bhtEvents.emit("BHT_OVER_LIMIT_TIMEOUT");
+//   }, bhtTimeToReset);
+// });
 
 function sessionUpdateDb(sessionObj, callback) {
 
@@ -3557,6 +3586,9 @@ function entityUpdateDb(userObj, callback){
   debug(chalkRed("entityUpdateDb\n" + jsonPrint(userObj)));
 
   entityCache.get(userObj.tags.entity.toLowerCase(), function(err, entityObj){
+    if (err){
+      console.log(chalkError("ENTITY CACHE DB ERROR: " + err));
+    }
 
     if (entityObj === undefined) {
 
@@ -3999,12 +4031,10 @@ function adminFindAllDb(options, callback) {
           if (!adminObj.adminId || (adminObj.adminId === undefined) || adminObj.adminId === null) {
             debug(chalkError("*** ERROR: adminFindAllDb: ADMIN ID UNDEFINED *** | SKIPPING ADD TO CACHE"));
             callback("ERROR: ADMIN ID UNDEFINED", null);
-            return;
           } 
           else {
             adminCache.set(adminObj.adminId, adminObj, function(err, result){
               callback(err, result);
-              return;
             });
           }
 
@@ -4014,11 +4044,10 @@ function adminFindAllDb(options, callback) {
           if (err) {
             console.log("*** ERROR  adminFindAllDb: " + err);
             callback(err, null);
-            return;
-          } else {
+          } 
+          else {
             debug("FOUND " + admins.length + " ADMINS");
             callback(null, admins.length);
-            return;
           }
         }
       );
@@ -4062,7 +4091,8 @@ function updateMetrics() {
     + " | PTX: " + promptsSent 
     + " | RRX: " + responsesReceived 
     + " | STX: " + sessionUpdatesSent 
-    + " | BHTR: " + bhtRequests);
+    // + " | BHTR: " + bhtRequests
+  );
 
   // name: custom.cloudmonitoring.googleapis.com/word-asso/clients/numberUsers
   // label key: custom.cloudmonitoring.googleapis.com/word-asso/clients/numberUsers
@@ -4073,7 +4103,7 @@ function updateMetrics() {
 
   deltaPromptsSent = 0;
   deltaResponsesReceived = 0;
-  incrementDeltaBhtReqs(0);
+  // incrementDeltaBhtReqs(0);
   incrementDeltaMwReqs(0);
 }
 
@@ -4106,7 +4136,6 @@ function handleSessionEvent(sesObj, callback) {
   var namespaceRegEx = /^\/(\w+)#/ ;
   var namespace;
   var namespaceMatchArray;
-  var currentAdmin;
   var currentUser;
   var currentUtil;
   var currentViewer;
@@ -4215,6 +4244,9 @@ function handleSessionEvent(sesObj, callback) {
         sessionRouteHashMap.remove(sesObj.session.config.userB);
 
         adminCache.get(sesObj.session.userId, function(err, currentAdmin){
+          if (err){
+            console.log(chalkError("ADMIN CACHE ERR\n" + jsonPrint(err)));
+          }
           if (currentAdmin) {
             debug("currentAdmin\n" + jsonPrint(currentAdmin));
             adminCache.del(currentAdmin.adminId);
@@ -4238,6 +4270,9 @@ function handleSessionEvent(sesObj, callback) {
         });
 
         userCache.get(sesObj.session.userId, function(err, currentUser){
+          if (err){
+            console.log(chalkError("USER CACHE ERR\n" + jsonPrint(err)));
+          }
           if (currentUser) {
             debug("currentUser\n" + jsonPrint(currentUser));
             userCache.del(currentUser.userId);
@@ -4265,6 +4300,9 @@ function handleSessionEvent(sesObj, callback) {
         });
 
         utilCache.get(sesObj.session.userId, function(err, currentUtil){
+          if (err){
+            console.log(chalkError("UTIL CACHE ERR\n" + jsonPrint(err)));
+          }
           if (currentUtil) {
             debug("currentUtil\n" + jsonPrint(currentUtil));
             userCache.del(currentUtil.userId);
@@ -4291,6 +4329,9 @@ function handleSessionEvent(sesObj, callback) {
         });
 
         viewerCache.get(sesObj.session.userId, function(err, currentViewer){
+          if (err){
+            console.log(chalkError("VIEWER CACHE ERR\n" + jsonPrint(err)));
+          }
           if (currentViewer) {
             console.log(chalkViewer("currentViewer\n" + jsonPrint(currentViewer)));
             viewerCache.del(currentViewer.userId);
@@ -5053,14 +5094,7 @@ setInterval(function() {
         ));
 
         configEvents.emit("UNKNOWN_SESSION", socketId);
-
-        // sessionQueue.enqueue({
-        //   sessionEvent: "SESSION_ABORT",
-        //   sessionId: socketId
-        // });
         responseQueueReady = true;
-        // quit();
-        return;
       }
       else {
         debug(chalkError("currentSessionObj\n" + jsonPrint(currentSessionObj)));
@@ -7083,12 +7117,14 @@ function initFollowerUpdateQueueInterval(interval){
               groupHashMap.set(entityObj.entityId, groupObj);
               serverGroupHashMap.set(entityObj.entityId, groupObj);
 
-              cb(null, entityObj, groupObj);
+              // cb(null, entityObj, groupObj);
+              cb(null, entityObj);
             }
           }
 
         },
-        function(entityObj, groupObj, cb){
+        // function(entityObj, groupObj, cb){
+        function(entityObj, cb){
 
           updateGroupEntity(entityObj, function(err, updatedEntityObj){
             cb(null, "done");
@@ -7275,7 +7311,7 @@ configEvents.on("SERVER_READY", function() {
       + " | UP: " + msToTime(txHeartbeat.upTime) 
       + " | RN: " + msToTime(txHeartbeat.runTime) 
       + " | MWR: " + txHeartbeat.mwRequests 
-      + " | BHTR: " + txHeartbeat.bhtRequests 
+      // + " | BHTR: " + txHeartbeat.bhtRequests 
       + " | MEM: " + txHeartbeat.memoryAvailable 
       + "/" + txHeartbeat.memoryTotal));
   }
@@ -7287,7 +7323,7 @@ configEvents.on("SERVER_READY", function() {
     statsObj.memoryTotal = os.totalmem();
     statsObj.memoryAvailable = os.freemem();
 
-    bhtTimeToReset = moment.utc().utcOffset("-07:00").endOf("day").valueOf() - moment.utc().utcOffset("-07:00").valueOf();
+    // bhtTimeToReset = moment.utc().utcOffset("-07:00").endOf("day").valueOf() - moment.utc().utcOffset("-07:00").valueOf();
 
     //
     // SERVER HEARTBEAT
@@ -7370,12 +7406,12 @@ configEvents.on("SERVER_READY", function() {
         mwOverLimitTime: mwOverLimitTime,
         mwTimeToReset: mwTimeToReset,
 
-        bhtRequestLimit: BHT_REQUEST_LIMIT,
-        bhtRequests: bhtRequests,
-        bhtOverLimitFlag: bhtOverLimitFlag,
-        bhtLimitResetTime: bhtLimitResetTime,
-        bhtOverLimitTime: bhtOverLimitTime,
-        bhtTimeToReset: bhtTimeToReset,
+        // bhtRequestLimit: BHT_REQUEST_LIMIT,
+        // bhtRequests: bhtRequests,
+        // bhtOverLimitFlag: bhtOverLimitFlag,
+        // bhtLimitResetTime: bhtLimitResetTime,
+        // bhtOverLimitTime: bhtOverLimitTime,
+        // bhtTimeToReset: bhtTimeToReset,
 
         totalSessions: totalSessions,
         totalUsers: totalUsers,

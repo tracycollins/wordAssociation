@@ -7117,14 +7117,13 @@ function initFollowerUpdateQueueInterval(interval){
               groupHashMap.set(entityObj.entityId, groupObj);
               serverGroupHashMap.set(entityObj.entityId, groupObj);
 
-              // cb(null, entityObj, groupObj);
-              cb(null, entityObj);
+              cb(null, entityObj, groupObj);
+              // cb(null, entityObj);
             }
           }
 
         },
-        // function(entityObj, groupObj, cb){
-        function(entityObj, cb){
+        function(entityObj, groupObj, cb){
 
           updateGroupEntity(entityObj, function(err, updatedEntityObj){
             cb(null, "done");

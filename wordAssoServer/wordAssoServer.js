@@ -7668,6 +7668,8 @@ function initRateQinterval(interval){
 
       sortedObjectValues(wordMeter, "1MinuteRate", function(sortedKeys){
 
+        adminNameSpace.emit("TWITTER_TOP10_1MIN", sortedKeys);
+
         if (enableGoogleMetrics) {
 
           var endIndex = (sortedKeys.length >= 10) ? 10 : sortedKeys.length;

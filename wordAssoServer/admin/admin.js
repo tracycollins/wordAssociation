@@ -868,6 +868,10 @@ socket.on("SESSION_DELETE", function(sessionObject) {
   } 
 });
 
+socket.on('TWITTER_TOP10_1MIN', function(top10array) {
+  console.debug("TWITTER_TOP10_1MIN\n" + jsonPrint(top10array));
+});
+
 
 socket.on('HEARTBEAT', function(rxHeartbeat) {
   heartBeatTimeoutFlag = false;

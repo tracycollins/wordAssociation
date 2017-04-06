@@ -7668,7 +7668,6 @@ function initRateQinterval(interval){
 
       sortedObjectValues(wordMeter, "1MinuteRate", function(sortedKeys){
 
-        adminNameSpace.emit("TWITTER_TOP10_1MIN", sortedKeys);
 
         if (enableGoogleMetrics) {
 
@@ -7682,13 +7681,17 @@ function initRateQinterval(interval){
 
             wmObj = wordMeter[sortedKeys[index]].toJSON();
 
+            wordsPerMinuteTop10[sortedKeys[index]] = wmObj["1MinuteRate"];
+
+            if (index === endIndex) {
+              adminNameSpace.emit("TWITTER_TOP10_1MIN", wordsPerMinuteTop10);
+            }
+
+            top10dataPoint.metricType = "word/top10/" + sortedKeys[index];
+            top10dataPoint.value = wmObj["1MinuteRate"];
+            top10dataPoint.metricLabels = {server_id: "WORD"};
+
             if (wmObj["1MinuteRate"] > MIN_METRIC_VALUE) {
-              wordsPerMinuteTop10[sortedKeys[index]] = wmObj["1MinuteRate"];
-
-              top10dataPoint.metricType = "word/top10/" + sortedKeys[index];
-              top10dataPoint.value = wmObj["1MinuteRate"];
-              top10dataPoint.metricLabels = {server_id: "WORD"};
-
               addMetricDataPoint(top10dataPoint);
             }
 

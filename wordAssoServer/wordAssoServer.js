@@ -7683,7 +7683,7 @@ function initRateQinterval(interval){
 
             wordsPerMinuteTop10[sortedKeys[index]] = wmObj["1MinuteRate"];
 
-            if (index === endIndex) {
+            if (index === endIndex-1) {
               adminNameSpace.emit("TWITTER_TOP10_1MIN", wordsPerMinuteTop10);
             }
 

@@ -616,10 +616,6 @@ function ViewTreepack() {
 
     nodeCircles
       .exit()
-      .transition()
-      .duration(transitionDuration)
-      .attr("r", 0)
-      .attr("opacity", 0)
       .attr("cx", function(d) { 
         if (!d.nodeId) { 
           console.debug("UNDEFINED d.nodeId");
@@ -635,6 +631,10 @@ function ViewTreepack() {
         if (!d.y) { return 0.5*height; }
         return d.y; 
       })
+      .transition()
+      .duration(transitionDuration)
+      .attr("r", 0)
+      .attr("opacity", 0)
       .remove();
 
     callback();

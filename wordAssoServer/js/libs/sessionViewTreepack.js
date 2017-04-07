@@ -571,10 +571,10 @@ function ViewTreepack() {
       .append("circle")
       .attr('stroke', palette.white)
       // .attr('stroke-width', '1.0')
-      .attr("stroke-width", function(d) { 
-        if (d.newFlag) { return "5.0"; }
-        return "1.2"; 
-      })
+      // .attr("stroke-width", function(d) { 
+      //   if (d.newFlag) { return "5.0"; }
+      //   return "1.2"; 
+      // })
       .merge(nodeCircles)
       .attr("cx", function(d) { 
         if (!d.nodeId) { 
@@ -594,6 +594,10 @@ function ViewTreepack() {
       .attr("fill", function(d) { 
         // if (d.newFlag) { return palette.white; }
         return d.keywordColor; 
+      })
+      .attr("stroke-width", function(d) { 
+        if (d.newFlag) { return "5.0"; }
+        return "1.2"; 
       })
       .style('opacity', function(d) { 
         if (d.mouseHoverFlag) { return 1.0; }

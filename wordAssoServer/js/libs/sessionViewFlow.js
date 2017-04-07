@@ -670,7 +670,7 @@ function ViewFlow() {
           || d.isCurrency) { return palette.white; }
         if ((d.isGroupNode 
           || d.isSessionNode) && (d.ageMaxRatio < 0.01)) { return palette.yellow; }
-        return palette.lightgray; 
+        return palette.darkgray; 
       })
       .style("opacity", function(d) { 
         return 1.0 - d.ageMaxRatio; 
@@ -796,7 +796,7 @@ function ViewFlow() {
           || d.isCurrency) { return palette.white; }
         if ((d.isGroupNode 
           || d.isSessionNode) && (d.ageMaxRatio < 0.01)) { return palette.yellow; }
-        return palette.lightgray; 
+        return palette.darkgray; 
       })
       .style("opacity", function(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
@@ -827,7 +827,7 @@ function ViewFlow() {
       .style("text-anchor", "middle")
       .style("alignment-baseline", "middle")
       .style("opacity", 1e-6)
-      .style("fill", palette.white)
+      .style("fill", palette.lightgray)
       .style("font-size", "1px")
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)

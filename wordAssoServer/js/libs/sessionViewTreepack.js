@@ -444,30 +444,6 @@ function ViewTreepack() {
         }
         node.ageMaxRatio = ageMaxRatio;
         node.isDead = false;
-
-        // if (node.isKeyword){
-        //   if (node.keywords.right !== undefined) {
-        //     node.y += (foci.right.y - node.y) * 0.1* simulation.alpha();
-        //     node.x += (foci.right.x - node.x) * 0.1* simulation.alpha();
-        //   }
-        //   if (node.keywords.left !== undefined) {
-        //     node.y += (foci.left.y - node.y) * 0.1* simulation.alpha();
-        //     node.x += (foci.left.x - node.x) * 0.1* simulation.alpha();
-        //   }
-        //   if (node.keywords.positive !== undefined) {
-        //     node.y += (foci.positive.y - node.y) * 0.1* simulation.alpha();
-        //     node.x += (foci.positive.x - node.x) * 0.1* simulation.alpha();
-        //   }
-        //   if (node.keywords.negative !== undefined) {
-        //     node.y += (foci.negative.y - node.y) * 0.1* simulation.alpha();
-        //     node.x += (foci.negative.x - node.x) * 0.1* simulation.alpha();
-        //   }
-        // }
-        // else {
-        //   node.y += (foci.default.y - node.y) * 0.1* simulation.alpha();
-        //   node.x += (foci.default.x - node.x) * 0.1* simulation.alpha();
-        // }
-
         nodes[ageNodesIndex] = node;
         localNodeHashMap.set(node.nodeId, node);
       }
@@ -594,7 +570,11 @@ function ViewTreepack() {
       .enter()
       .append("circle")
       .attr('stroke', palette.white)
-      .attr('stroke-width', '1.0')
+      // .attr('stroke-width', '1.0')
+      .attr("stroke-width", function(d) { 
+        if (d.newFlag) { return "5.0"; }
+        return "1.2"; 
+      })
       .merge(nodeCircles)
       .attr("cx", function(d) { 
         if (!d.nodeId) { 
@@ -612,7 +592,7 @@ function ViewTreepack() {
         return d.y; 
       })
       .attr("fill", function(d) { 
-        if (d.newFlag) { return palette.white; }
+        // if (d.newFlag) { return palette.white; }
         return d.keywordColor; 
       })
       .style('opacity', function(d) { 

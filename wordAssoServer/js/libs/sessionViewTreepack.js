@@ -771,20 +771,20 @@ function ViewTreepack() {
         currentNode.ageUpdated = moment().valueOf();
         if (newNode.keywords) {
           if (newNode.keywords.left) { 
-            currentNode.x = 0; 
+            currentNode.x = -0.1 * width; 
             currentNode.y = 0.5 * height;
           }
           else if (newNode.keywords.positive) { 
             currentNode.x = 0.5 * width; 
-            currentNode.y = 0;
+            currentNode.y = -0.1 * height;
           }
           else if (newNode.keywords.right) { 
-            currentNode.x = width; 
+            currentNode.x = 1.1 * width; 
             currentNode.y = 0.5 * height;
           }
           else if (newNode.keywords.negative) { 
             currentNode.x = 0.5 * width; 
-            currentNode.y = height;
+            currentNode.y = 1.1 * height;
           }
           else if (newNode.keywords.neutral) { 
             currentNode.x = 0.5 * width;
@@ -875,7 +875,7 @@ function ViewTreepack() {
 
     var newNode = {};
     newNode = nNode;
-    newNode.x = 0.1*width;
+    newNode.x = 0.0;
     newNode.y = 0.5*height;
     newNode.newFlag = true;
 

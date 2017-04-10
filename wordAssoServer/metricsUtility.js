@@ -102,8 +102,9 @@ var stdin;
 
 // var enableStdin = { name: "enableStdin", alias: "i", type: Boolean, defaultValue: true};
 var quitOnError = { name: "quitOnError", alias: "q", type: Boolean, defaultValue: false};
+var listDescriptorsFlag = { name: "listDescriptorsFlag", alias: "L", type: Boolean, defaultValue: false};
 
-var optionDefinitions = [quitOnError];
+var optionDefinitions = [quitOnError, listDescriptorsFlag];
 
 var commandLineConfig = commandLineArgs(optionDefinitions);
 
@@ -170,6 +171,10 @@ function initializeConfiguration(cnf, callback) {
     console.log("FINAL CONFIG | " + arg + ": " + cnf[arg]);
   });
 
+  if (cnf.listDescriptorsFlag) { 
+    listDescriptorsFlag = true; 
+    console.log("listDescriptorsFlag: " + listDescriptorsFlag);
+  }
   if (cnf.quitOnError) { quitOnErrorFlag = true; }
 
   if (cnf.enableStdin){
@@ -264,7 +269,7 @@ initializeConfiguration(configuration, function(err, results){
             }
           });
 
-          if (listDescriptorsFlag) {
+          if (configuration.listDescriptorsFlag) {
             cb();
           }
           else {

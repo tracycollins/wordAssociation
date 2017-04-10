@@ -422,7 +422,7 @@ function ViewFlow() {
 
             currentMaxMentions = nodeAddObj.node.mentions;
 
-            nodeFontSizeScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minFontSize, maxFontSize]).clamp(true);
+            // nodeFontSizeScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minFontSize, maxFontSize]).clamp(true);
 
             console.info("NEW MAX Ms" 
               + " | " + nodeAddObj.node.text 
@@ -551,6 +551,7 @@ function ViewFlow() {
 
     if (ageNodesIndex < 0) {
       resumeTimeStamp = 0;
+      nodeFontSizeScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minFontSize, maxFontSize]).clamp(true);
       callback(null, dnFlag);
     }
   };

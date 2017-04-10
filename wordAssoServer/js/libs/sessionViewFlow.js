@@ -114,6 +114,7 @@ function ViewFlow() {
   };
 
   var currentMaxMentions = 2;
+  var previousMaxMentions = 2;
 
   var deadNodesHash = {};
 
@@ -551,7 +552,10 @@ function ViewFlow() {
 
     if (ageNodesIndex < 0) {
       resumeTimeStamp = 0;
-      nodeFontSizeScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minFontSize, maxFontSize]).clamp(true);
+      if (currentMaxMentions > previousMaxMentions) {
+        previousMaxMentions = currentMaxMentions;
+        nodeFontSizeScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minFontSize, maxFontSize]).clamp(true);
+      }
       callback(null, dnFlag);
     }
   };

@@ -9,7 +9,7 @@ var ONE_MINUTE = ONE_SECOND * 60;
 var ONE_HOUR = ONE_MINUTE * 60;
 var ONE_DAY = ONE_HOUR * 24;
 var quitOnErrorFlag = false;
-var listDescriptorsFlag = true;
+var listDescriptorsFlag = false;
 
 var configuration = {};
 

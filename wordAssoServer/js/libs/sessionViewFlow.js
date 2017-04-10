@@ -8,19 +8,19 @@ function ViewFlow() {
   var freezeFlag = false;
   var hideNodeImagesFlag = false;
 
-  var MAX_NODES = 100;
+  var MAX_NODES = 250;
   var processNodeCount = 0;
   var processNodeModulus = 2;
 
   var maxNodeAddQ = 0;
   var maxNumberNodes = 0;
+  var resumeTimeStamp = 0;
+  var runningFlag = false;
+  var antonymFlag = false;
 
   var self = this;
   var simulation;
 
-  var resumeTimeStamp = 0;
-  var runningFlag = false;
-  var antonymFlag = false;
 
   var groupUpdateQ = [];
   var sessionUpdateQ = [];
@@ -289,14 +289,14 @@ function ViewFlow() {
     console.debug("UPDATE GRAVITY: " + value.toFixed(sliderPercision));
     gravity = value;
     simulation.force("forceX", d3.forceX().x(function(d) { 
-        if (d.isSessionNode) {return 0.7*width;}
+        if (d.isSessionNode) {return 0.85*width;}
         return -2*width; 
       }).strength(function(){
         if (d.isSessionNode) {return forceXsessionMultiplier*gravity;}
         return forceXmultiplier * gravity;
       }));
     simulation.force("forceY", d3.forceY().y(function() { 
-        return 0.4*height; 
+        return 0.5*height; 
       }).strength(function(d){
         if (d.isSessionNode) {return forceYmultiplier*gravity;}
         return forceYmultiplier * gravity; 
@@ -989,7 +989,7 @@ function ViewFlow() {
         .strength(charge))
       .force("forceX", d3.forceX()
         .x(function(d) { 
-          if (d.isSessionNode) { return 0.7*width; }
+          if (d.isSessionNode) { return 0.85*width; }
           return -2*width; 
         })
         .strength(function(d){
@@ -998,7 +998,7 @@ function ViewFlow() {
         })
       )
       .force("forceY", d3.forceY()
-        .y(function() { return 0.4*height; })
+        .y(function() { return 0.5*height; })
         .strength(function(d){
           if (d.isSessionNode) { return forceYmultiplier * gravity; }
           return forceYmultiplier * gravity; })
@@ -1101,14 +1101,14 @@ function ViewFlow() {
 
     if (simulation){
       simulation.force("forceX", d3.forceX().x(function(d) { 
-          if (d.isSessionNode) {return 0.7*width;}
+          if (d.isSessionNode) {return 0.85*width;}
           return -2*width; 
         }).strength(function(d){
           if (d.isSessionNode) {return forceXsessionMultiplier*gravity;}
           return forceXmultiplier * gravity;
         }));
       simulation.force("forceY", d3.forceY().y(function() { 
-          return 0.4*height; 
+          return 0.5*height; 
         }).strength(function(d){
           if (d.isSessionNode) {return forceYmultiplier*gravity;}
           return forceYmultiplier * gravity; 

@@ -21,7 +21,7 @@ var MIN_METRIC_VALUE = 5;
 
 var CUSTOM_GOOGLE_APIS_PREFIX = "custom.googleapis.com";
 
-var enableGoogleMetrics = (typeof process.env.ENABLE_GOOGLE_METRICS !== "undefined") ? process.env.ENABLE_GOOGLE_METRICS : false;
+var enableGoogleMetrics = process.env.ENABLE_GOOGLE_METRICS || false;
 
 var Monitoring = require("@google-cloud/monitoring");
 var googleMonitoringClient = Monitoring.v3().metricServiceClient();

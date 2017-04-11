@@ -4254,6 +4254,7 @@ function handleSessionEvent(sesObj, callback) {
             currentAdmin.lastSeen = moment().valueOf();
             currentAdmin.disconnectTime = moment().valueOf();
             currentAdmin.connected = false;
+            currentAdmin.connectTime = currentAdmin.connectTime || moment().valueOf();
 
             console.log(chalkLog("CONNECTION DURATION: " + currentAdmin.adminId 
               + " | " + msToTime(moment().valueOf() - currentAdmin.connectTime)));

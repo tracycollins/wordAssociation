@@ -1772,31 +1772,31 @@ function createSession(newSessionObj) {
 
   socket.on("reconnect_error", function(errorObj) {
     statsObj.socket.reconnect_errors += 1;
-    debug(chalkError(moment().format(compactDateTimeFormat) 
+    console.log(chalkError(moment().format(compactDateTimeFormat) 
       + " | SOCKET RECONNECT ERROR: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
   });
 
   socket.on("reconnect_failed", function(errorObj) {
     statsObj.socket.reconnect_fails += 1;
-    debug(chalkError(moment().format(compactDateTimeFormat) 
+    console.log(chalkError(moment().format(compactDateTimeFormat) 
       + " | SOCKET RECONNECT FAILED: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
   });
 
   socket.on("connect_error", function(errorObj) {
     statsObj.socket.connect_errors += 1;
-    debug(chalkError(moment().format(compactDateTimeFormat) 
+    console.log(chalkError(moment().format(compactDateTimeFormat) 
       + " | SOCKET CONNECT ERROR: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
   });
 
   socket.on("connect_timeout", function(errorObj) {
     statsObj.socket.connect_timeouts += 1;
-    debug(chalkError(moment().format(compactDateTimeFormat) 
+    console.log(chalkError(moment().format(compactDateTimeFormat) 
       + " | SOCKET CONNECT TIMEOUT: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
   });
 
   socket.on("error", function(error) {
     statsObj.socket.errors += 1;
-    debug(chalkError(moment().format(compactDateTimeFormat) 
+    console.log(chalkError(moment().format(compactDateTimeFormat) 
       + " | *** SOCKET ERROR" + " | " + socket.id + " | " + error));
     sessionQueue.enqueue({
       sessionEvent: "SOCKET_ERROR",
@@ -1808,7 +1808,7 @@ function createSession(newSessionObj) {
   socket.on("reconnect", function() {
     statsObj.socket.reconnects += 1;
     sessionObj.connected = true;
-    debug(chalkConnect(moment().format(compactDateTimeFormat) + " | SOCKET RECONNECT: " + socket.id));
+    console.log(chalkConnect(moment().format(compactDateTimeFormat) + " | SOCKET RECONNECT: " + socket.id));
     sessionQueue.enqueue({
       sessionEvent: "SOCKET_RECONNECT",
       sessionId: socket.id
@@ -1818,7 +1818,7 @@ function createSession(newSessionObj) {
   socket.on("disconnect", function(status) {
     statsObj.socket.disconnects += 1;
 
-    debug(chalkDisconnect(moment().format(compactDateTimeFormat) 
+    console.log(chalkDisconnect(moment().format(compactDateTimeFormat) 
       + " | SOCKET DISCONNECT: " + socket.id + "\nstatus\n" + jsonPrint(status)
     ));
 
@@ -5810,6 +5810,7 @@ function getTwitterFriends(callback){
       if (err) {
         console.log(chalkError("*** ERROR GET TWITTER FRIENDS: " + err));
         clearInterval(getTwitterFriendsInterval);
+        if (callback !== undefined) { callback(err, null); }
         return;
       }
 
@@ -6853,7 +6854,7 @@ function updateTrends(){
     debug(chalkInfo("twit trends/place response\n" + jsonPrint(response)));
 
     if (err){
-      console.log(chalkError("*** TWITTER ERROR ***"
+      console.log(chalkError("*** TWITTER GET trends/place ID=1 ERROR ***"
         + " | " + err
       ));
     }
@@ -6880,7 +6881,7 @@ function updateTrends(){
     debug(chalkInfo("twit trends/place response\n" + jsonPrint(response)));
 
     if (err){
-      console.log(chalkError("*** TWITTER ERROR ***"
+      console.log(chalkError("*** TWITTER GET trends/place ID=23424977 ERROR ***"
         + " | " + err
       ));
     }
@@ -7909,7 +7910,7 @@ initializeConfiguration(configuration, function(err, results) {
   else {
     console.log(chalkLog("INITIALIZE CONFIGURATION COMPLETE\n" + jsonPrint(results)));
     updateTrends();
-    initUpdateTrendsInterval(ONE_MINUTE);
+    initUpdateTrendsInterval(5*ONE_MINUTE);
     initFollowerUpdateQueueInterval(100);
     initRateQinterval(1000);
     initIgnoreWordsHashMap();

@@ -2,6 +2,10 @@
 /*jslint node: true */
 "use strict";
 
+var memoryAvailable = 0;
+var memoryUsed = 0;
+var memoryUsage = {};
+
 var serverConnected = false;
 var sentAdminReady = false;
 var initializeComplete = false;
@@ -1698,8 +1702,6 @@ function updateUtilConnect(req) {
     }
   }
 }
- var memoryAvailable = 0;
- var memoryUsed = 0;
 
 function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
@@ -1707,9 +1709,15 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
   // console.log("updateServerHeartbeat: timeoutFlag: " + timeoutFlag);
 
-  memoryAvailable = heartBeat.memoryAvailable / heartBeat.memoryTotal;
-  memoryUsed = (heartBeat.memoryTotal - heartBeat.memoryAvailable) / heartBeat.memoryTotal;
-  if (memoryBar) memoryBar.animate(memoryUsed);
+  // memoryAvailable = heartBeat.memoryAvailable / heartBeat.memoryTotal;
+  // memoryUsed = heartBeat.memoryUsage.heapUsed / heartBeat.memoryUsage.heapTotal;
+  memoryUsed = heartBeat.memoryUsage.heapUsed / heartBeat.memoryUsage.rss;
+
+  // memoryUsed = (heartBeat.memoryTotal - heartBeat.memoryAvailable) / heartBeat.memoryTotal;
+  // memoryAvailable = (heartBeat.memoryUsage.heapTotal - heartBeat.memoryUsage.heapUsed) / heartBeat.memoryUsage.heapTotal;
+  memoryAvailable = (heartBeat.memoryUsage.rss - heartBeat.memoryUsage.heapUsed) / heartBeat.memoryUsage.rss;
+
+  if (memoryBar) { memoryBar.animate(memoryUsed); }
 
   if (100 * memoryUsed >= ALERT_LIMIT_PERCENT) {
     memoryBar.path.setAttribute('stroke', endColor);
@@ -1720,7 +1728,11 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
   }
 
   memoryBarText.innerHTML =
-    'MEMORY (GB)' + ' | ' + (heartBeat.memoryTotal / ONE_GB).toFixed(2) + ' TOT' + ' | ' + ((heartBeat.memoryTotal - heartBeat.memoryAvailable) / ONE_GB).toFixed(2) + ' USED' + ' (' + (100 * memoryUsed).toFixed(1) + ' %)' + ' | ' + (heartBeat.memoryAvailable / ONE_GB).toFixed(2) + ' AVAIL' + ' (' + (100 * memoryAvailable).toFixed(2) + ' %)';
+    // 'MEMORY (GB)' + ' | ' + (heartBeat.memoryTotal / ONE_GB).toFixed(2) + ' TOT' + ' | ' + ((heartBeat.memoryTotal - heartBeat.memoryAvailable) / ONE_GB).toFixed(2) + ' USED' + ' (' + (100 * memoryUsed).toFixed(1) + ' %)' + ' | ' + (heartBeat.memoryAvailable / ONE_GB).toFixed(2) + ' AVAIL' + ' (' + (100 * memoryAvailable).toFixed(2) + ' %)';
+    'HEAP (GB)' 
+      + ' | ' + (heartBeat.memoryUsage.rss / ONE_GB).toFixed(2) + ' TOT' 
+      + ' | ' + (heartBeat.memoryUsage.heapUsed / ONE_GB).toFixed(2) + ' USED' + ' (' + (100 * memoryUsed).toFixed(1) + ' %)' 
+      + ' | ' + ((heartBeat.memoryUsage.rss - heartBeat.memoryUsage.heapUsed) / ONE_GB).toFixed(2) + ' AVAIL' + ' (' + (100 * memoryAvailable).toFixed(2) + ' %)';
 
 
   bhtRequestsBar.animate(heartBeat.bhtRequests / heartBeat.bhtRequestLimit);

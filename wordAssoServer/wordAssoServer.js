@@ -480,6 +480,7 @@ var tempDateTime = moment();
 var txHeartbeat = {};
 
 txHeartbeat.wordStats = {};
+txHeartbeat.memoryUsage = {};
 
 var heartbeatsSent = 0;
 
@@ -581,12 +582,15 @@ var statsObj = {
 
   "chainFreezes": 0,
 
+  "memoryUsage": {},
+
   "heartbeat": txHeartbeat
 };
 
 statsObj.upTime = os.uptime() * 1000;
 statsObj.memoryTotal = os.totalmem();
 statsObj.memoryAvailable = os.freemem();
+statsObj.memoryUsage = process.memoryUsage();
 
 statsObj.caches = {};
 statsObj.utilities = {};
@@ -1213,6 +1217,7 @@ function updateStatsInterval(interval){
     statsObj.runTime = moment().valueOf() - statsObj.startTime;
     statsObj.memoryTotal = os.totalmem();
     statsObj.memoryAvailable = os.freemem();
+    statsObj.memoryUsage = process.memoryUsage();
 
     updateStats({
       timeStamp: moment().format(compactDateTimeFormat),
@@ -7332,6 +7337,7 @@ configEvents.on("SERVER_READY", function() {
     statsObj.upTime = os.uptime() * 1000;
     statsObj.memoryTotal = os.totalmem();
     statsObj.memoryAvailable = os.freemem();
+    statsObj.memoryUsage = process.memoryUsage();
 
     // bhtTimeToReset = moment.utc().utcOffset("-07:00").endOf("day").valueOf() - moment.utc().utcOffset("-07:00").valueOf();
 
@@ -7433,12 +7439,14 @@ configEvents.on("SERVER_READY", function() {
         deltaResponsesReceived: statsObj.deltaResponsesReceived,
         responsesReceived: responsesReceived,
 
+        memoryUsage: {},
         utilities: {}
 
       };
 
       txHeartbeat.utilities = statsObj.utilities;
       txHeartbeat.caches = statsObj.caches;
+      txHeartbeat.memoryUsage = process.memoryUsage();
 
       io.emit("HEARTBEAT", txHeartbeat);
 

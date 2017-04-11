@@ -4923,14 +4923,23 @@ function handleSessionEvent(sesObj, callback) {
                 else {
                   debug(console.log(chalkInfo("ENTITY UPDATE\n" + jsonPrint(entityObj))));
                   if (sesObj.session.config.type === "USER") {
-                    console.log(chalkInfo("TX USER SESSION (USER READY): " + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"));
-                    adminNameSpace.emit("USER_SESSION", updatedUserObj);
+                    console.log(chalkInfo("TX USER SESSION (USER READY)"
+                      + " | LAST SEEN: " + moment(entityObj.lastSeen).format(compactDateTimeFormat)
+                      + " | N: " + entityObj.name
+                      + " | SN: " + entityObj.screenName
+                    ));
+                    adminNameSpace.emit("USER_SESSION", entityObj);
                   } else if (sesObj.session.config.type === "UTIL") {
-                    console.log(chalkInfo("TX UTIL SESSION (UTIL READY): " + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"));
-                    adminNameSpace.emit("UTIL_SESSION", updatedUserObj);
+                    // console.log(chalkInfo("TX UTIL SESSION (UTIL READY): " + updatedUserObj.lastSeen + " TO ADMIN NAMESPACE"));
+                    console.log(chalkInfo("TX USER SESSION (UTIL READY)"
+                      + " | LAST SEEN: " + moment(entityObj.lastSeen).format(compactDateTimeFormat)
+                      + " | N: " + entityObj.name
+                      + " | SN: " + entityObj.screenName
+                    ));
+                    adminNameSpace.emit("UTIL_SESSION", entityObj);
                   }
 
-                  io.of(sesObj.session.namespace).to(sesObj.session.sessionId).emit("USER_READY_ACK", updatedUserObj.userId);
+                  io.of(sesObj.session.namespace).to(sesObj.session.sessionId).emit("USER_READY_ACK", entityObj.userId);
                 }
               });
             }

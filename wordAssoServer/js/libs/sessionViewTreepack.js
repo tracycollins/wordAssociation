@@ -866,12 +866,19 @@ function ViewTreepack() {
 
   this.addNode = function(nNode) {
 
+
     if (((nNode.nodeType !== "hashtag") 
       && (nNode.nodeType !== "word") 
       && (nNode.nodeType !== "user")) 
       || nNode.isIgnored) { 
       return;
     }
+
+    if ((nNode.nodeType === "word") && !nNode.isKeyword) { 
+      return;
+    }
+
+    console.debug("ADD NODE\n" + jsonPrint(nNode));
 
     var newNode = {};
     newNode = nNode;
@@ -966,24 +973,24 @@ function ViewTreepack() {
   this.simulationControl = function(op) {
     switch (op) {
       case 'RESET':
-        console.debug("SIMULATION CONTROL | OP: " + op);
+        console.info("SIMULATION CONTROL | OP: " + op);
         self.reset();
         runningFlag = false;
       break;
       case 'START':
-        console.debug("SIMULATION CONTROL | OP: " + op);
+        console.info("SIMULATION CONTROL | OP: " + op);
         self.initD3timer();
         simulation.alphaTarget(0.7).restart();
         runningFlag = true;
       break;
       case 'RESUME':
-        console.debug("SIMULATION CONTROL | OP: " + op);
+        console.info("SIMULATION CONTROL | OP: " + op);
         // self.initD3timer();
         runningFlag = true;
         simulation.alphaTarget(0.7).restart();
       break;
       case 'FREEZE':
-        console.debug("SIMULATION CONTROL | OP: " + op);
+        console.info("SIMULATION CONTROL | OP: " + op);
         if (!freezeFlag){
           freezeFlag = true;
           simulation.alpha(0);
@@ -991,19 +998,19 @@ function ViewTreepack() {
         }
       break;
       case 'PAUSE':
-        console.debug("SIMULATION CONTROL | OP: " + op);
+        console.info("SIMULATION CONTROL | OP: " + op);
         runningFlag = false;
         simulation.alpha(0);
         simulation.stop();
       break;
       case 'STOP':
-        console.debug("SIMULATION CONTROL | OP: " + op);
+        console.info("SIMULATION CONTROL | OP: " + op);
         runningFlag = false;
         simulation.alpha(0);
         simulation.stop();
       break;
       case 'RESTART':
-        // console.debug("SIMULATION CONTROL | OP: " + op);
+        // console.info("SIMULATION CONTROL | OP: " + op);
         simulation.alphaTarget(0.7).restart();
         runningFlag = true;
       break;

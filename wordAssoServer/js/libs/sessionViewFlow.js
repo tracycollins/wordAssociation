@@ -4,6 +4,8 @@ function ViewFlow() {
 
   "use strict";
 
+  var SESSION_NODE_INIT_X_RATIO = 0.80;
+
   var mouseMovingFlag = false;
   var freezeFlag = false;
   var hideNodeImagesFlag = false;
@@ -290,7 +292,7 @@ function ViewFlow() {
     console.debug("UPDATE GRAVITY: " + value.toFixed(sliderPercision));
     gravity = value;
     simulation.force("forceX", d3.forceX().x(function(d) { 
-        if (d.isSessionNode) {return 0.85*width;}
+        if (d.isSessionNode) {return SESSION_NODE_INIT_X_RATIO*width;}
         return -2*width; 
       }).strength(function(){
         if (d.isSessionNode) {return forceXsessionMultiplier*gravity;}
@@ -994,7 +996,7 @@ function ViewFlow() {
         .strength(charge))
       .force("forceX", d3.forceX()
         .x(function(d) { 
-          if (d.isSessionNode) { return 0.85*width; }
+          if (d.isSessionNode) { return SESSION_NODE_INIT_X_RATIO*width; }
           return -2*width; 
         })
         .strength(function(d){
@@ -1106,7 +1108,7 @@ function ViewFlow() {
 
     if (simulation){
       simulation.force("forceX", d3.forceX().x(function(d) { 
-          if (d.isSessionNode) {return 0.85*width;}
+          if (d.isSessionNode) {return SESSION_NODE_INIT_X_RATIO*width;}
           return -2*width; 
         }).strength(function(d){
           if (d.isSessionNode) {return forceXsessionMultiplier*gravity;}

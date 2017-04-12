@@ -1984,13 +1984,13 @@ function initSocketNodeRx(){
       return;
     }
 
-    // console.log("N< " 
-    //   + nNode.nodeType 
-    //   + " | " + nNode.nodeId 
-    //   + " | NAME: " + nNode.name 
-    //   + " | isKeyword: " + nNode.isKeyword
-    //   + "\nKEYWORDS: " + jsonPrint(nNode.keywords)
-    // );
+    console.log("N< " 
+      + nNode.nodeType 
+      + " | " + nNode.nodeId 
+      + " | NAME: " + nNode.name 
+      + " | isKeyword: " + nNode.isKeyword
+      + "\nKEYWORDS: " + jsonPrint(nNode.keywords)
+    );
 
     // var dateNow = moment().valueOf();
 
@@ -2012,7 +2012,7 @@ function initSocketNodeRx(){
     newNode.mentions = (nNode.mentions > 0) ? nNode.mentions : 10;
     newNode.text = nNode.nodeId;
 
-    if (nNode.nodeType == "tweet"){
+    if (nNode.nodeType === "tweet"){
       newNode.isRetweet = nNode.isRetweet;
       newNode.retweetedId = nNode.retweetedId;
       newNode.retweetedStatus = nNode.retweetedStatus;
@@ -2024,7 +2024,7 @@ function initSocketNodeRx(){
       newNode.place = nNode.place;
       newNode.userMentions = nNode.userMentions;
     }
-    if (nNode.nodeType == "user"){
+    if (nNode.nodeType === "user"){
       newNode.userId = nNode.userId;
       // newNode.nodeId = nNode.screenName.toLowerCase();
       newNode.nodeId = nNode.nodeId;
@@ -2034,12 +2034,12 @@ function initSocketNodeRx(){
       newNode.profileUrl = nNode.profileUrl;
       newNode.profileImageUrl = nNode.profileImageUrl;
     }
-    if (nNode.nodeType == "media"){
+    if (nNode.nodeType === "media"){
       newNode.mediaId = nNode.mediaId;
       newNode.url = nNode.url;
       newNode.sourceUrl = nNode.sourceUrl;
     }
-    if (nNode.nodeType == "place"){
+    if (nNode.nodeType === "place"){
       newNode.mediaId = nNode.mediaId;
       newNode.fullName = nNode.fullName;
       newNode.sourceUrl = nNode.sourceUrl;

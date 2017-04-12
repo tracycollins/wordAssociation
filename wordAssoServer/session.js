@@ -1928,7 +1928,7 @@ socket.on("USER_SESSION", function(rxSessionObject) {
 function initSocketSessionUpdateRx(){
   socket.on("SESSION_UPDATE", function(rxSessionObject) {
 
-    // console.debug("SES UPDATE: " + rxSessionObject.action + " | " + rxSessionObject.sessionId);
+    console.debug("SES UPDATE: " + rxSessionObject.action + " | " + rxSessionObject.sessionId);
 
     if (rxSessionObject.action == 'KEEPALIVE') {
       // console.debug("KEEPALIVE"
@@ -3381,6 +3381,7 @@ function loadViewType(svt, callback) {
         DEFAULT_FORCEX_MULTIPLIER = TREEPACK_DEFAULT.FORCEX_MULTIPLIER;
         DEFAULT_FORCEY_MULTIPLIER = TREEPACK_DEFAULT.FORCEY_MULTIPLIER;
         currentSessionView = new ViewTreepack();
+        initSocketSessionUpdateRx();
         initSocketNodeRx();
         callback();
       });
@@ -3529,6 +3530,7 @@ function initialize(callback) {
               currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
             }
             if (config.sessionViewType == 'treepack') {
+              initUpdateSessionsInterval(50);
               currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
             }
             if (config.sessionViewType == 'histogram') {
@@ -3597,6 +3599,7 @@ function initialize(callback) {
             }
             if (config.sessionViewType == 'treepack') {
               currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
+              initUpdateSessionsInterval(50);
               initIgnoreWordsHashMap(function() {
                 console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
               });
@@ -3665,6 +3668,7 @@ function initialize(callback) {
           }
           if (config.sessionViewType == 'treepack') {
             currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
+            initUpdateSessionsInterval(50);
             initIgnoreWordsHashMap(function() {
               console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
             });

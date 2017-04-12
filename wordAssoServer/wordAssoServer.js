@@ -2230,6 +2230,25 @@ function createSession(newSessionObj) {
           viewNameSpace.emit("node", nodeObj);
         break;
 
+        case "word":
+          if (nodeObj.nodeId.toLowerCase().includes("obama")) {
+            obamaHit = nodeObj.nodeId;
+            nodeObj.isKeyword = true;
+            // nodeObj.keywords[nodeObj.nodeId.toLowerCase()] = {};
+            nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
+            debug(chalkError("OBAMA HT: " + nodeObj.nodeId));
+          }
+          if (nodeObj.nodeId.toLowerCase().includes("trump")) {
+            trumpHit = nodeObj.nodeId;
+            nodeObj.isKeyword = true;
+            // nodeObj.keywords[nodeObj.nodeId.toLowerCase()] = {};
+            nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
+            debug(chalkError("TRUMP HT: " + nodeObj.nodeId));
+          }
+          updateWordMeter({nodeId: nodeObj.nodeId.toLowerCase()});
+          viewNameSpace.emit("node", nodeObj);
+        break;
+
         default:
           viewNameSpace.emit("node", nodeObj);
       }

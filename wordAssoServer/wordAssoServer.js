@@ -6970,7 +6970,7 @@ function updateGroupEntity(entityObj, callback){
           callback(err, updatedEntityObj);
         }
         else {
-          console.log(chalkInfo("TX UTIL SES (UTIL RDY): " + updatedEntity2Obj.lastSession + " TO ADMIN NAMESPACE"));
+          // console.log(chalkInfo("TX UTIL SES (UTIL RDY): " + updatedEntity2Obj.lastSession + " TO ADMIN NAMESPACE"));
           // adminNameSpace.emit("UTIL_SESSION", updatedEntity2Obj);
           callback(null, updatedEntity2Obj);
         }

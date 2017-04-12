@@ -1967,6 +1967,14 @@ function initSocketNodeRx(){
 
   socket.on("node", function(nNode) {
 
+    console.log("N< " 
+      + nNode.nodeType 
+      + " | " + nNode.nodeId 
+      + " | NAME: " + nNode.name 
+      + " | isKeyword: " + nNode.isKeyword
+      + "\nKEYWORDS: " + jsonPrint(nNode.keywords)
+    );
+
     if (!windowVisible || config.pauseFlag) {return;}
 
     if ((nNode.nodeType !== "user") 
@@ -1984,13 +1992,13 @@ function initSocketNodeRx(){
       return;
     }
 
-    console.log("N< " 
-      + nNode.nodeType 
-      + " | " + nNode.nodeId 
-      + " | NAME: " + nNode.name 
-      + " | isKeyword: " + nNode.isKeyword
-      + "\nKEYWORDS: " + jsonPrint(nNode.keywords)
-    );
+    // console.log("N< " 
+    //   + nNode.nodeType 
+    //   + " | " + nNode.nodeId 
+    //   + " | NAME: " + nNode.name 
+    //   + " | isKeyword: " + nNode.isKeyword
+    //   + "\nKEYWORDS: " + jsonPrint(nNode.keywords)
+    // );
 
     // var dateNow = moment().valueOf();
 

@@ -7766,19 +7766,19 @@ function initRateQinterval(interval){
 
         var memoryRssDataPoint = {};
         memoryRssDataPoint.metricType = "memory/rss";
-        memoryRssDataPoint.value = memoryUsage.rss;
+        memoryRssDataPoint.value = statsObj.memoryUsage.rss;
         memoryRssDataPoint.metricLabels = {server_id: "MEM"};
         addMetricDataPoint(memoryRssDataPoint);
 
         var memoryHeapUsedDataPoint = {};
         memoryHeapUsedDataPoint.metricType = "memory/heap_used";
-        memoryHeapUsedDataPoint.value = memoryUsage.heapUsed;
+        memoryHeapUsedDataPoint.value = statsObj.memoryUsage.heapUsed;
         memoryHeapUsedDataPoint.metricLabels = {server_id: "MEM"};
         addMetricDataPoint(memoryHeapUsedDataPoint);
 
         var memoryHeapTotalDataPoint = {};
         memoryHeapTotalDataPoint.metricType = "memory/heap_total";
-        memoryHeapTotalDataPoint.value = memoryUsage.heapTotal;
+        memoryHeapTotalDataPoint.value = statsObj.memoryUsage.heapTotal;
         memoryHeapTotalDataPoint.metricLabels = {server_id: "MEM"};
         addMetricDataPoint(memoryHeapTotalDataPoint);
 

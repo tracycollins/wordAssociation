@@ -2139,7 +2139,8 @@ function createSession(newSessionObj) {
 
   socket.on("node", function(rxNodeObj) {
 
-    debug("TW< " + rxNodeObj.nodeType 
+    console.log("RX NODE"
+      + " | " + rxNodeObj.nodeType 
       + " | NID " + rxNodeObj.nodeId 
       + " | Ms " + rxNodeObj.mentions
       + " | KWs " + jsonPrint(rxNodeObj.keywords)

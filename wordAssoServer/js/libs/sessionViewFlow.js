@@ -4,7 +4,7 @@ function ViewFlow() {
 
   "use strict";
 
-  var SESSION_NODE_INIT_X_RATIO = 0.80;
+  var SESSION_NODE_INIT_X_RATIO = 0.75;
 
   var mouseMovingFlag = false;
   var freezeFlag = false;

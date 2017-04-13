@@ -866,7 +866,6 @@ function ViewTreepack() {
 
   this.addNode = function(nNode) {
 
-
     if (((nNode.nodeType !== "hashtag") 
       && (nNode.nodeType !== "word") 
       && (nNode.nodeType !== "user")) 

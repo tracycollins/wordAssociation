@@ -2090,50 +2090,57 @@ function createSession(newSessionObj) {
     sessionCache.get(socket.id, function(err, sObj){
       if (err){
         console.log(chalkError(moment().format(compactDateTimeFormat) 
-          + " | ??? SESSION CACHE ERROR ON USER READY | " + err
+          + " | ??? SESSION CACHE ERROR ON USER READY"
+          + " | " + err
+          + "\n" + jsonPrint(userObj)
         ));
       }
       else if (sObj === undefined) {
-
+        console.log(chalkError(moment().format(compactDateTimeFormat) 
+          + " | ??? SESSION NOT FOUND ON USER READY"
+          + " | " + socket.id
+          + "\n" + jsonPrint(userObj)
+        ));
       }
       else {
         primarySessionObj = sObj;
+
+        var sessionCacheKey = socket.id ;
+
+        statsObj.socket.USER_READYS += 1;
+
+        console.log(chalkUser("R< U RDY"
+          + " | " + moment().format(compactDateTimeFormat) 
+          + "  " + userObj.nodeId
+          + "  ID " + userObj.userId
+          + "  N " + userObj.name
+          + "  E " + userObj.tags.entity
+          + "  C " + userObj.tags.channel
+          + "  T " + userObj.type
+          + "  M " + userObj.mode
+          // + "\nU " + userObj.url
+          // + "\nP " + userObj.profileImageUrl
+        ));
+
+        if ((userObj.tags !== undefined)
+          && (userObj.tags.entity !== undefined) 
+          && (userObj.tags.mode !== undefined) 
+          && (userObj.tags.mode.toLowerCase() === "substream")) {
+
+          sessionCacheKey = socket.id + "#" + userObj.tags.entity;
+
+          debug(chalkRedBold("USER_READY SUBSTREAM sessionCacheKey: " + sessionCacheKey));
+
+          sessionUpdateDbCache(sessionCacheKey, socket, userObj);
+        }
+        else {
+          debug(chalkRedBold("USER_READY sessionCacheKey: " + sessionCacheKey));
+          sessionUpdateDbCache(sessionCacheKey, socket, userObj);
+        }
+
       }
 
     });
-
-    var sessionCacheKey = socket.id ;
-
-    statsObj.socket.USER_READYS += 1;
-
-    console.log(chalkUser("R< U RDY"
-      + " | " + moment().format(compactDateTimeFormat) 
-      + "  " + userObj.nodeId
-      + "  ID " + userObj.userId
-      + "  N " + userObj.name
-      + "  E " + userObj.tags.entity
-      + "  C " + userObj.tags.channel
-      + "  T " + userObj.type
-      + "  M " + userObj.mode
-      // + "\nU " + userObj.url
-      // + "\nP " + userObj.profileImageUrl
-    ));
-
-    if ((userObj.tags !== undefined)
-      && (userObj.tags.entity !== undefined) 
-      && (userObj.tags.mode !== undefined) 
-      && (userObj.tags.mode.toLowerCase() === "substream")) {
-
-      sessionCacheKey = socket.id + "#" + userObj.tags.entity;
-
-      debug(chalkRedBold("USER_READY SUBSTREAM sessionCacheKey: " + sessionCacheKey));
-
-      sessionUpdateDbCache(sessionCacheKey, socket, userObj);
-    }
-    else {
-      debug(chalkRedBold("USER_READY sessionCacheKey: " + sessionCacheKey));
-      sessionUpdateDbCache(sessionCacheKey, socket, userObj);
-    }
 
   });
 
@@ -6961,7 +6968,8 @@ function updateGroupEntity(entityObj, callback){
         updatedEntityObj.tags.name = entityObj.name;
       }
       else if (updatedEntityObj.tags.entity === undefined){
-
+        console.log(chalkError("ENTITY TAG UNDEFINED\n" + jsonPrint(updatedEntityObj.tags)
+        ));
       }
 
       entityUpdateDb(updatedEntityObj, function(err, updatedEntity2Obj){
@@ -7161,7 +7169,16 @@ function initFollowerUpdateQueueInterval(interval){
         },
         function(entityObj, groupObj, cb){
 
+          debug(chalkInfo("GROUP\n" + jsonPrint(groupObj)));
+
           updateGroupEntity(entityObj, function(err, updatedEntityObj){
+            if (err) {
+              console.log(chalkError("updateGroupEntity ERROR"
+                + "\nerr\n" + jsonPrint(err)
+                + "\nentityObj\n" + jsonPrint(entityObj)
+                + "\nupdatedEntityObj\n" + jsonPrint(updatedEntityObj)
+              ));
+            }
             cb(null, "done");
           });
 

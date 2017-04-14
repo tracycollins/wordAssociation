@@ -36,6 +36,15 @@ function ViewTreepack() {
   var minFontSizeRatio = 0.010;
   var maxFontSizeRatio = 0.050;
 
+  var width = window.innerWidth;
+  var height = window.innerHeight;
+
+  var minRadiusRatio = 0.05;
+  var maxRadiusRatio = 0.30;
+
+  var minRadius = minRadiusRatio * window.innerWidth;
+  var maxRadius = maxRadiusRatio * window.innerWidth;
+
   var minOpacity = 0.25;
   var blahFlag = false;
   var antonymFlag = false;
@@ -63,8 +72,6 @@ function ViewTreepack() {
   var nodeAddQ = [];
   var nodeDeleteQ = [];
 
-  var width = window.innerWidth;
-  var height = window.innerHeight;
 
   var foci = {
     left: {x: 0.2*width, y: 0.5*height}, 
@@ -584,7 +591,6 @@ function ViewTreepack() {
     nodeCircles
       .enter()
       .append("circle")
-      // .attr('stroke', palette.white)
       .merge(nodeCircles)
       .attr("cx", function(d) { 
         if (!d.nodeId) { 
@@ -646,37 +652,9 @@ function ViewTreepack() {
         return d.nodeId; 
       });
 
-    // nodeLabels
-    //   .attr("class", "update")
-    //   .on("mouseover", nodeMouseOver)
-    //   .on("mouseout", nodeMouseOut)
-    //   .text(function(d) {
-    //     if (d.isTwitterUser) { return "@" + d.screenName.toUpperCase(); }
-    //     if (d.isKeyword || d.isTrendingTopic || d.isTwitterUser) { return d.nodeId.toUpperCase(); }
-    //     if (testMode) { return "blah"; }
-    //     return d.nodeId; 
-    //   })
-    //   .style('fill', function(d) { 
-    //     if (d.newFlag) { return palette.white; }
-    //     if (d.mouseHoverFlag) { return palette.blue; }
-    //     if (d.isKeyword) { return d.keywordColor; }
-    //     if (d.isTrendingTopic || d.isTwitterUser || d.isNumber || d.isCurrency) { return palette.white; }
-    //     if ((d.isGroupNode || d.isSessionNode) && (d.ageMaxRatio < 0.01)) { return palette.yellow; }
-    //     return palette.lightgray; 
-    //   })
-    //   .style('opacity', function(d) { 
-    //     if (d.mouseHoverFlag) { return 1.0; }
-    //     return nodeLabelOpacityScale(d.ageMaxRatio); 
-    //   })
-    //   .transition()
-    //     .duration(defaultPosDuration)
-    //     .attr("x", xposition)
-    //     .attr("y", yposition);
-
     nodeLabels
       .enter()
       .append("text")
-      // .attr("class", "enter")
       .style("text-anchor", "middle")
       .style("alignment-baseline", "middle")
       .on("mouseover", nodeMouseOver)
@@ -711,13 +689,6 @@ function ViewTreepack() {
         return d.nodeId; 
       })
       .style("font-weight", function(d) {
-        // if (d.isTwitterUser 
-        //   || d.isKeyword 
-        //   || d.isNumber 
-        //   || d.isCurrency 
-        //   || d.isTrendingTopic) {
-        //   return "bold";
-        // }
         if (d.isTopTen) { return "bold"; }
         return "normal";
       })
@@ -730,8 +701,6 @@ function ViewTreepack() {
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
       .style("fill", palette.white)
-      // .transition()
-      // .duration(transitionDuration)
       .style("font-size", function(d) {
         return nodeLabelSizeScale(d.mentions);
       });
@@ -744,8 +713,7 @@ function ViewTreepack() {
       .style("opacity", 0)
       .remove();
 
-
-      callback();
+    callback();
   };
 
   var processNodeAddQ = function(callback) {
@@ -892,10 +860,6 @@ function ViewTreepack() {
       return;
     }
 
-    // if (nNode.isTopTen){
-    // console.debug("ADD NODE\n" + jsonPrint(nNode));
-    // }
-
     var newNode = {};
     newNode = nNode;
     newNode.x = 0.0;
@@ -904,7 +868,7 @@ function ViewTreepack() {
 
     if (nNode.mentions > currentMaxMentions) { 
       currentMaxMentions = nNode.mentions; 
-      defaultRadiusScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([10, 200]).clamp(true);
+      defaultRadiusScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minRadius, maxRadius]).clamp(true);
       console.debug("NEW MAX MENTIONS: " + currentMaxMentions);
     }
 
@@ -1063,6 +1027,9 @@ function ViewTreepack() {
     // fontSize = fontSizeRatio * window.innerHeight;
     minFontSize = minFontSizeRatio * window.innerHeight;
     maxFontSize = maxFontSizeRatio * window.innerHeight;
+
+    minRadius = minRadiusRatio * window.innerWidth;
+    maxRadius = maxRadiusRatio * window.innerWidth;
 
     nodeLabelSizeScale = d3.scaleLinear()
       .domain([1, currentMaxMentions])

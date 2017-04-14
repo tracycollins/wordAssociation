@@ -369,7 +369,6 @@ var jsonPrint = function(obj) {
   }
 };
 
-
 debug("DB\n" + db);
 
 function quit(message) {
@@ -421,6 +420,71 @@ function randomInt(low, high) {
   return Math.floor(Math.random() * (high - low) + low);
 }
 
+var statsObj = {
+
+  "name": "Word Association Server Status",
+  "host": hostname,
+  "timeStamp": moment().format(compactDateTimeFormat),
+  "runTimeArgs": process.argv,
+
+  "startTime": moment().valueOf(),
+  "runTime": 0,
+
+  "totalClients": 0,
+  "totalUsers": 0,
+  "totalSessions": 0,
+  "totalWords": 0,
+
+  "socket": {},
+
+  "promptsSent": 0,
+  "responsesReceived": 0,
+  "deltaResponsesReceived": 0,
+  "sessionUpdatesSent": 0,
+
+  // "bhtRequests": 0,
+  // "bhtWordsNotFound": {},
+
+  "mwRequests": 0,
+  "mwDictWordsMiss": {},
+  "mwDictWordsNotFound": {},
+  "mwThesWordsMiss": {},
+  "mwThesWordsNotFound": {},
+
+  "session": {},
+
+  "chainFreezes": 0,
+
+  "memoryUsage": {},
+
+  "heap": 0,
+  "maxHeap": 0,
+
+  "heartbeat": txHeartbeat
+};
+
+function showStats(options){
+
+  statsObj.elapsed = msToTime(moment().valueOf() - statsObj.startTime);
+  statsObj.timeStamp = moment().format(compactDateTimeFormat);
+
+  statsObj.heap = process.memoryUsage().heapUsed/(1024*1024);
+  statsObj.maxHeap = Math.max(statsObj.maxHeap, statsObj.heap);
+
+  if (options) {
+    console.log(chalkAlert("STATS\n" + jsonPrint(statsObj)));
+  }
+  else {
+    console.log(chalkAlert("S"
+      // + " | " + statsObj.socketId
+      + " | ELAPSED: " + statsObj.elapsed
+      + " | START: " + moment(statsObj.startTime).format(compactDateTimeFormat)
+      + " | HEAP: " + statsObj.heap.toFixed(0) + " MB"
+      + " | MAX HEAP: " + statsObj.maxHeap.toFixed(0)
+    ));
+  }
+}
+
 
 var stdin;
 
@@ -444,7 +508,7 @@ console.log("COMMAND LINE OPTIONS\n" + jsonPrint(commandLineConfig));
 
 
 var compactDateTimeFormat = "YYYYMMDD HHmmss";
-// var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
+// var compactDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
 // var defaultTimePeriodFormat = "HH:mm:ss";
 
 var hostname = os.hostname();
@@ -547,45 +611,6 @@ var sessionUpdatesSent = 0;
 // var mwThesWordsMiss = {};
 // var mwThesWordsNotFound = {};
 
-var statsObj = {
-
-  "name": "Word Association Server Status",
-  "host": hostname,
-  "timeStamp": moment().format(compactDateTimeFormat),
-  "runTimeArgs": process.argv,
-
-  "startTime": moment().valueOf(),
-  "runTime": 0,
-
-  "totalClients": 0,
-  "totalUsers": 0,
-  "totalSessions": 0,
-  "totalWords": 0,
-
-  "socket": {},
-
-  "promptsSent": 0,
-  "responsesReceived": 0,
-  "deltaResponsesReceived": 0,
-  "sessionUpdatesSent": 0,
-
-  // "bhtRequests": 0,
-  // "bhtWordsNotFound": {},
-
-  "mwRequests": 0,
-  "mwDictWordsMiss": {},
-  "mwDictWordsNotFound": {},
-  "mwThesWordsMiss": {},
-  "mwThesWordsNotFound": {},
-
-  "session": {},
-
-  "chainFreezes": 0,
-
-  "memoryUsage": {},
-
-  "heartbeat": txHeartbeat
-};
 
 statsObj.upTime = os.uptime() * 1000;
 statsObj.memoryTotal = os.totalmem();
@@ -602,8 +627,8 @@ statsObj.wapi.requestsRemaining = 25000;
 
 statsObj.group = {};
 statsObj.group.errors = 0;
-statsObj.group.hashMiss = {};
-statsObj.group.allHashMisses = {};
+// statsObj.group.hashMiss = {};
+// statsObj.group.allHashMisses = {};
 
 statsObj.session.errors = 0;
 statsObj.session.previousPromptNotFound = 0;
@@ -617,8 +642,8 @@ statsObj.socket.errors = 0;
 
 
 statsObj.entityChannelGroup = {};
-statsObj.entityChannelGroup.hashMiss = {};
-statsObj.entityChannelGroup.allHashMisses = {};
+// statsObj.entityChannelGroup.hashMiss = {};
+// statsObj.entityChannelGroup.allHashMisses = {};
 // ==================================================================
 // LOGS, STATS
 // ==================================================================
@@ -1279,6 +1304,7 @@ function updateStatsInterval(interval){
       wordCacheHits: wordCache.getStats().hits,
       wordCacheMisses: wordCache.getStats().misses,
       wordCacheTtl: wordCacheTtl
+      
     });
 
     if (groupsUpdateComplete) {
@@ -1666,7 +1692,7 @@ function sessionUpdateDbCache(sessionCacheKey, socket, userObj, callback){
 
             if (entityChannelGroupHashMap.has(sObj.tags.entity)){
 
-              delete statsObj.entityChannelGroup.hashMiss[sObj.tags.entity];
+              // delete statsObj.entityChannelGroup.hashMiss[sObj.tags.entity];
 
               debug(chalkInfo("### E CH HM HIT"
                 + " | " + sObj.tags.entity
@@ -1674,8 +1700,8 @@ function sessionUpdateDbCache(sessionCacheKey, socket, userObj, callback){
               ));
             }
             else {
-              statsObj.entityChannelGroup.hashMiss[sObj.tags.entity] = 1;
-              statsObj.entityChannelGroup.allHashMisses[sObj.tags.entity] = 1;
+              // statsObj.entityChannelGroup.hashMiss[sObj.tags.entity] = 1;
+              // statsObj.entityChannelGroup.allHashMisses[sObj.tags.entity] = 1;
               debug(chalkInfo("-0- E CH HM MISS"
                 + " | " + sObj.tags.entity
                 // + "\n" + jsonPrint(statsObj.entityChannelGroup.hashMiss)
@@ -2838,10 +2864,10 @@ function updateSessionViews(sessionUpdateObj) {
     obj.tags.group = entityChannelGroupHashMap.get(obj.tags.entity);
     updateSessionViewQueue.push(obj);
   }
-  else if (obj.tags.entity !== undefined) {
-    statsObj.entityChannelGroup.hashMiss[obj.tags.entity] = 1;
-    statsObj.entityChannelGroup.allHashMisses[obj.tags.entity] = 1;
-  }
+  // else if (obj.tags.entity !== undefined) {
+  //   statsObj.entityChannelGroup.hashMiss[obj.tags.entity] = 1;
+  //   statsObj.entityChannelGroup.allHashMisses[obj.tags.entity] = 1;
+  // }
 }
 
 // BHT
@@ -3532,8 +3558,8 @@ function groupUpdateDb(userObj, callback){
         + " | " + userObj.tags.entity.toLowerCase()
       ));
 
-      statsObj.group.hashMiss[entityObj.groupId] = 1;
-      statsObj.group.allHashMisses[entityObj.groupId] = 1;
+      // statsObj.group.hashMiss[entityObj.groupId] = 1;
+      // statsObj.group.allHashMisses[entityObj.groupId] = 1;
 
       configEvents.emit("HASH_MISS", {type: "group", value: entityObj.groupId});
 
@@ -3553,8 +3579,8 @@ function groupUpdateDb(userObj, callback){
         + "\nuserObj\n" + jsonPrint(userObj)
         + "\nentityObj\n" + jsonPrint(entityObj)
       ));
-      statsObj.entityChannelGroup.hashMiss[userObj.tags.entity.toLowerCase()] = 1;
-      statsObj.entityChannelGroup.allHashMisses[userObj.tags.entity.toLowerCase()] = 1;
+      // statsObj.entityChannelGroup.hashMiss[userObj.tags.entity.toLowerCase()] = 1;
+      // statsObj.entityChannelGroup.allHashMisses[userObj.tags.entity.toLowerCase()] = 1;
       configEvents.emit("HASH_MISS", {type: "entity", value: userObj.tags.entity.toLowerCase()});
       // callback(null, entityObj);
       callback(null, userObj);
@@ -6312,6 +6338,8 @@ function initializeConfiguration(cnf, callback) {
     console.log("--> COMMAND LINE CONFIG | " + arg + ": " + cnf[arg]);
   });
 
+  cnf.enableStdin = cnf.enableStdin || process.env.WA_ENABLE_STDIN ;
+
   var configArgs = Object.keys(cnf);
   configArgs.forEach(function(arg){
     console.log("FINAL CONFIG | " + arg + ": " + cnf[arg]);
@@ -6340,10 +6368,10 @@ function initializeConfiguration(cnf, callback) {
           quit();
         break;
         case "s":
-          // showStats();
+          showStats();
         break;
         case "S":
-          // showStats(true);
+          showStats(true);
         break;
         default:
           console.log(

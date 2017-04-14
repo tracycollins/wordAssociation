@@ -536,13 +536,14 @@ function sendGroups(callback){
         process.send({ type: 'group', groupId: groupId, group: groupObj}, function(err){
           if (err){
             console.log(chalkError("sendGroups ERROR\n" + err));
+            cb(err);
           }
           else {
             debug(chalkInfo("UPDATER SENT GROUP"
               + " | " + groupId
             ));
+            cb();
           }
-          cb();
         });
 
       }, 20);
@@ -566,14 +567,25 @@ function sendGroups(callback){
                 type: 'group', 
                 groupId: groupId, 
                 group: group
+              }, function(err){
+                if (err){
+                  console.log(chalkError("sendGroups ERROR\n" + err));
+                  cb(err);
+                }
+                else {
+                  debug(chalkInfo("UPDATER SENT GROUP"
+                    + " | " + groupId
+                  ));
+                  cb();
+                }
               });
 
-              debug(chalkInfo("UPDATER SENT GROUP"
-                + " | SERVER"
-                + " | " + groupId
-              ));
+              // debug(chalkInfo("UPDATER SENT GROUP"
+              //   + " | SERVER"
+              //   + " | " + groupId
+              // ));
 
-              cb();
+              // cb();
             }, 20);
 
           },
@@ -582,6 +594,7 @@ function sendGroups(callback){
             if (err) {
               console.log(chalkError("sendGroups ERROR! " + err));
               callback(err, null);
+              quit(err);
             }
             else {
               console.log(chalkInfo("sendGroups COMPLETE"));

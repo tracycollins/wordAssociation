@@ -75,6 +75,10 @@ function ViewTreepack() {
     default: {x: 0.5*width, y: 0.5*height}
   };
 
+  self.sessionKeepalive = function() {
+
+  };
+
   self.getWidth = function() {
     return window.innerWidth;
   };
@@ -580,8 +584,12 @@ function ViewTreepack() {
     nodeCircles
       .enter()
       .append("circle")
-      .attr('stroke', palette.white)
+      // .attr('stroke', palette.white)
       .merge(nodeCircles)
+      .attr("stroke", function(d) { 
+        if (d.isTopTen) { return palette.purple; }
+        return palette.white; 
+      })
       .attr("cx", function(d) { 
         if (!d.nodeId) { 
           console.debug("UNDEFINED d.nodeId");
@@ -601,7 +609,8 @@ function ViewTreepack() {
         return d.keywordColor; 
       })
       .style("stroke-width", function(d) { 
-        if (d.newFlag) { return "5.0"; }
+        if (d.isTopTen) { return "6.0"; }
+        if (d.newFlag) { return "2.0"; }
         return "1.2"; 
       })
       .style('opacity', function(d) { 
@@ -670,6 +679,10 @@ function ViewTreepack() {
       // .attr("class", "enter")
       .style("text-anchor", "middle")
       .style("alignment-baseline", "middle")
+      .style("text-decoration", function(d) { 
+        if (d.isTopTen) { return "overline"; }
+        return "none"; 
+      })
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)
       .on("click", nodeClick)
@@ -709,7 +722,7 @@ function ViewTreepack() {
         //   || d.isTrendingTopic) {
         //   return "bold";
         // }
-        if (d.newFlag) { return "bold"; }
+        if (d.isTopTen) { return "bold"; }
         return "normal";
       })
       .style("opacity", function(d) { 
@@ -756,6 +769,7 @@ function ViewTreepack() {
         currentNode.newFlag = true;
         currentNode.age = 1e-6;
         currentNode.ageMaxRatio = 1e-6;
+        currentNode.isTopTen = newNode.isTopTen;
         currentNode.mentions = newNode.mentions;
         currentNode.ageUpdated = moment().valueOf();
         localNodeHashMap.set(currentNode.nodeId, currentNode);
@@ -767,6 +781,7 @@ function ViewTreepack() {
         currentNode.newFlag = true;
         currentNode.age = 1e-6;
         currentNode.ageMaxRatio = 1e-6;
+        currentNode.isTopTen = newNode.isTopTen;
         currentNode.mentions = newNode.mentions;
         currentNode.ageUpdated = moment().valueOf();
         if (newNode.keywords) {
@@ -877,7 +892,9 @@ function ViewTreepack() {
       return;
     }
 
-    console.debug("ADD NODE\n" + jsonPrint(nNode));
+    // if (nNode.isTopTen){
+    // console.debug("ADD NODE\n" + jsonPrint(nNode));
+    // }
 
     var newNode = {};
     newNode = nNode;

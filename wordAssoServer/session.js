@@ -1967,13 +1967,16 @@ function initSocketNodeRx(){
 
   socket.on("node", function(nNode) {
 
-    console.log("N< " 
-      + nNode.nodeType 
-      + " | " + nNode.nodeId 
-      + " | NAME: " + nNode.name 
-      + " | isKeyword: " + nNode.isKeyword
-      + "\nKEYWORDS: " + jsonPrint(nNode.keywords)
-    );
+    // if (nNode.isTopTen) {
+    //   console.log("N< " 
+    //     + nNode.nodeType 
+    //     + " | " + nNode.nodeId 
+    //     + " | NAME: " + nNode.name 
+    //     + " | isTopTen: " + nNode.isTopTen
+    //     + " | isKeyword: " + nNode.isKeyword
+    //     + "\nKEYWORDS: " + jsonPrint(nNode.keywords)
+    //   );
+    // }
 
     if (!windowVisible || config.pauseFlag) {return;}
 
@@ -2003,6 +2006,7 @@ function initSocketNodeRx(){
     // var dateNow = moment().valueOf();
 
     var newNode = {};
+    newNode.isTopTen = nNode.isTopTen;
     newNode.isKeyword = nNode.isKeyword;
     newNode.keywords = nNode.keywords;
     getKeywordColor(nNode.keywords, function(color){

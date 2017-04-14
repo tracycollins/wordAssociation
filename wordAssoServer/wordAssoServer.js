@@ -153,6 +153,11 @@ var path = require("path");
 var net = require("net");
 var Queue = require("queue-fifo");
 
+var hostname = os.hostname();
+hostname = hostname.replace(/.local/g, "");
+hostname = hostname.replace(/.fios-router.home/g, "");
+hostname = hostname.replace(/word0-instance-1/g, "google");
+
 var GROUP_UPDATE_INTERVAL = 60000;
 var MAX_RESPONSE_QUEUE_SIZE = 250;
 var OFFLINE_MODE = false;
@@ -511,10 +516,10 @@ var compactDateTimeFormat = "YYYYMMDD HHmmss";
 // var compactDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
 // var defaultTimePeriodFormat = "HH:mm:ss";
 
-var hostname = os.hostname();
-hostname = hostname.replace(/.local/g, "");
-hostname = hostname.replace(/.fios-router.home/g, "");
-hostname = hostname.replace(/word0-instance-1/g, "google");
+// var hostname = os.hostname();
+// hostname = hostname.replace(/.local/g, "");
+// hostname = hostname.replace(/.fios-router.home/g, "");
+// hostname = hostname.replace(/word0-instance-1/g, "google");
 var groupHashMap = new HashMap();
 var serverGroupHashMap = new HashMap(); // server specific keywords
 
@@ -1064,8 +1069,6 @@ process.env.NODE_ENV = process.env.NODE_ENV || "development";
 console.log("NODE_ENV : " + process.env.NODE_ENV);
 console.log("CLIENT HOST + PORT: " + "http://localhost:" + config.port);
 
-var statsFile;
-
 // ==================================================================
 // OFFLINE MODE
 // ==================================================================
@@ -1081,8 +1084,13 @@ var DROPBOX_WORD_ASSO_ACCESS_TOKEN = process.env.DROPBOX_WORD_ASSO_ACCESS_TOKEN;
 var DROPBOX_WORD_ASSO_APP_KEY = process.env.DROPBOX_WORD_ASSO_APP_KEY;
 var DROPBOX_WORD_ASSO_APP_SECRET = process.env.DROPBOX_WORD_ASSO_APP_SECRET;
 var WA_STATS_FILE = process.env.WA_STATS_FILE;
+var DROPBOX_WA_STATS_FILE = process.env.DROPBOX_WA_STATS_FILE || "wordAssoServerStats.json";
 
-var dropboxHostStatsFile = "/stats/" + hostname + "/" + hostname + "_" + process.pid + "_" + WA_STATS_FILE;
+// var dropboxHostStatsFile = "/stats/" + hostname + "/" + hostname + "_" + process.pid + "_" + WA_STATS_FILE;
+// var dropboxHostStatsFile = "/stats/" + hostname;
+
+var statsFolder = "/stats/" + hostname;
+var statsFile = DROPBOX_WA_STATS_FILE;
 
 console.log("DROPBOX_WORD_ASSO_ACCESS_TOKEN :" + DROPBOX_WORD_ASSO_ACCESS_TOKEN);
 console.log("DROPBOX_WORD_ASSO_APP_KEY :" + DROPBOX_WORD_ASSO_APP_KEY);
@@ -1094,12 +1102,12 @@ var serverKeywordsFile = hostname + "_keywords.json";
 
 var dropboxClient = new Dropbox({ accessToken: DROPBOX_WORD_ASSO_ACCESS_TOKEN });
 
-if (OFFLINE_MODE) {
-  statsFile = offlineStatsFile;
-} 
-else {
-  statsFile = dropboxHostStatsFile;
-}
+// if (OFFLINE_MODE) {
+//   statsFile = offlineStatsFile;
+// } 
+// else {
+//   statsFile = dropboxHostStatsFile;
+// }
 
 function loadYamlConfig(yamlFile, callback){
   console.log(chalkInfo("LOADING YAML CONFIG FILE: " + yamlFile));
@@ -1232,7 +1240,12 @@ function updateStats(updateObj) {
 
 var statsInterval;
 
-function updateStatsInterval(interval){
+function initStatsInterval(interval){
+
+  console.log(chalkRed("INIT STATS INTERVAL"
+    + " | " + interval + " MS"
+    + " | FILE: " + statsFolder + "/" + statsFile
+  ));
 
   clearInterval(statsInterval);
 
@@ -1304,7 +1317,10 @@ function updateStatsInterval(interval){
       wordCacheHits: wordCache.getStats().hits,
       wordCacheMisses: wordCache.getStats().misses,
       wordCacheTtl: wordCacheTtl
-      
+    });
+
+    saveFile(statsFolder, statsFile, statsObj, function(){
+      showStats();
     });
 
     if (groupsUpdateComplete) {
@@ -6705,7 +6721,7 @@ function initializeConfiguration(cnf, callback) {
     ],
     function(err, results) {
 
-      updateStatsInterval(ONE_MINUTE);
+      initStatsInterval(ONE_MINUTE);
 
       if (err) {
         console.log(chalkError("\n*** INITIALIZE CONFIGURATION ERROR ***\n" + jsonPrint(err) + "\n"));
@@ -8003,6 +8019,7 @@ function initIgnoreWordsHashMap(callback) {
     if (callback) { callback(err); }
   });
 }
+
 
 //=================================
 // BEGIN !!

@@ -73,10 +73,10 @@ function ViewTreepack() {
   var nodeDeleteQ = [];
 
   var foci = {
-    left: {x: 0.2*width, y: 0.5*height}, 
-    right: {x: 0.8*width, y: 0.5*height}, 
-    positive: {x: 0.5*width, y: 0.2*height}, 
-    negative: {x: 0.5*width, y: 0.8*height},
+    left: {x: 0.3*width, y: 0.5*height}, 
+    right: {x: 0.7*width, y: 0.5*height}, 
+    positive: {x: 0.5*width, y: 0.3*height}, 
+    negative: {x: 0.5*width, y: 0.7*height},
     neutral: {x: 0.5*width, y: 0.5*height},
     default: {x: 0.5*width, y: 0.5*height}
   };
@@ -1024,10 +1024,10 @@ function ViewTreepack() {
     console.log("width: " + width + " | height: " + height);
 
     foci = {
-      left: {x: 0.2*width, y: 0.5*height}, 
-      right: {x: 0.8*width, y: 0.5*height}, 
-      positive: {x: 0.5*width, y: 0.2*height}, 
-      negative: {x: 0.5*width, y: 0.8*height},
+      left: {x: 0.3*width, y: 0.5*height}, 
+      right: {x: 0.7*width, y: 0.5*height}, 
+      positive: {x: 0.5*width, y: 0.3*height}, 
+      negative: {x: 0.5*width, y: 0.7*height},
       neutral: {x: 0.5*width, y: 0.5*height},
       default: {x: 0.5*width, y: 0.5*height}
     };

@@ -791,6 +791,7 @@ function ViewFlow() {
         return "normal";
       })
       .style("text-decoration", function(d) {
+        if (d.isTopTen) { return "overline"; }
         if (d.isTrendingTopic) { return "underline"; }
         return "none";
       })

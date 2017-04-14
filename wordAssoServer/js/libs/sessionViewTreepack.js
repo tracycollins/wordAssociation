@@ -586,10 +586,6 @@ function ViewTreepack() {
       .append("circle")
       // .attr('stroke', palette.white)
       .merge(nodeCircles)
-      .attr("stroke", function(d) { 
-        if (d.isTopTen) { return palette.purple; }
-        return palette.white; 
-      })
       .attr("cx", function(d) { 
         if (!d.nodeId) { 
           console.debug("UNDEFINED d.nodeId");
@@ -605,8 +601,12 @@ function ViewTreepack() {
         if (!d.y) { return 0.5*height; }
         return d.y; 
       })
-      .attr("fill", function(d) { 
+      .style("fill", function(d) { 
         return d.keywordColor; 
+      })
+      .style("stroke", function(d) { 
+        if (d.isTopTen) { return palette.purple; }
+        return palette.white; 
       })
       .style("stroke-width", function(d) { 
         if (d.isTopTen) { return "6.0"; }
@@ -679,10 +679,6 @@ function ViewTreepack() {
       // .attr("class", "enter")
       .style("text-anchor", "middle")
       .style("alignment-baseline", "middle")
-      .style("text-decoration", function(d) { 
-        if (d.isTopTen) { return "overline"; }
-        return "none"; 
-      })
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)
       .on("click", nodeClick)
@@ -724,6 +720,10 @@ function ViewTreepack() {
         // }
         if (d.isTopTen) { return "bold"; }
         return "normal";
+      })
+      .style("text-decoration", function(d) { 
+        if (d.isTopTen) { return "overline"; }
+        return "none"; 
       })
       .style("opacity", function(d) { 
         if (d.mouseHoverFlag) { return 1.0; }

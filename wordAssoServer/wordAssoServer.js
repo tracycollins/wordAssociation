@@ -164,6 +164,7 @@ var OFFLINE_MODE = false;
 var internetReady = false;
 var pollTwitterFriendsIntervalTime = 5*ONE_MINUTE;
 
+var TOPTEN_CACHE_DEFAULT_TTL = 60;
 var TRENDING_CACHE_DEFAULT_TTL = 300; // seconds
 var ADMIN_CACHE_DEFAULT_TTL = 300; // seconds
 var VIEWER_CACHE_DEFAULT_TTL = 300; // seconds
@@ -745,6 +746,14 @@ var wapiReqReservePercent = process.env.WAPI_REQ_RESERVE_PRCNT;
 if (wapiReqReservePercent === undefined) {wapiReqReservePercent = WAPI_REQ_RESERVE_PRCNT;}
 console.log("WAPI_REQ_RESERVE_PRCNT: " + wapiReqReservePercent);
 
+
+// ==================================================================
+// TOP TEN WPM  CACHE
+// ==================================================================
+var wordsPerMinuteTop10Ttl = process.env.TOPTEN_CACHE_DEFAULT_TTL;
+if (wordsPerMinuteTop10Ttl === undefined) {wordsPerMinuteTop10Ttl = TOPTEN_CACHE_DEFAULT_TTL;}
+console.log("TOP TEN WPM CACHE TTL: " + wordsPerMinuteTop10Ttl + " SECONDS");
+
 // ==================================================================
 // ADMIN ADDRESS CACHE
 // ==================================================================
@@ -815,6 +824,12 @@ var wordCacheTtl = process.env.WORD_CACHE_TTL;
 if (wordCacheTtl === undefined) {wordCacheTtl = WORD_CACHE_TTL;}
 console.log("WORD CACHE TTL: " + wordCacheTtl + " SECONDS");
 
+
+
+var wordsPerMinuteTop10Cache = new NodeCache({
+  stdTTL: wordsPerMinuteTop10Ttl,
+  checkperiod: 5
+});
 
 var adminCache = new NodeCache({
   stdTTL: adminCacheTtl,
@@ -2229,74 +2244,131 @@ function createSession(newSessionObj) {
           }
           else if (nodeObj.name) {
             nodeObj.isTwitterUser = true;
-            if (nodeObj.name.toLowerCase().includes("obama")) {
-              obamaHit = nodeObj.name;
-              nodeObj.isKeyword = true;
-              // nodeObj.keywords[nodeObj.name.toLowerCase()] = {};
-              nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
-            }
-            if (nodeObj.name.toLowerCase().includes("trump")) {
-              trumpHit = nodeObj.name;
-              nodeObj.isKeyword = true;
-              // nodeObj.keywords[nodeObj.name.toLowerCase()] = {};
-              nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
-            }
-            viewNameSpace.emit("node", nodeObj);
+            wordsPerMinuteTop10Cache.get(nodeObj.name.toLowerCase(), function(err, name) {
+              if (name) {
+                nodeObj.isTopTen = true;
+              }
+              if (nodeObj.name.toLowerCase().includes("obama")) {
+                obamaHit = nodeObj.name;
+                nodeObj.isKeyword = true;
+                // nodeObj.keywords[nodeObj.name.toLowerCase()] = {};
+                nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
+              }
+              if (nodeObj.name.toLowerCase().includes("trump")) {
+                trumpHit = nodeObj.name;
+                nodeObj.isKeyword = true;
+                // nodeObj.keywords[nodeObj.name.toLowerCase()] = {};
+                nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
+              }
+              viewNameSpace.emit("node", nodeObj);
+            });
           }
           else if (nodeObj.screenName){
-
-            if (nodeObj.screenName.toLowerCase().includes("obama")) {
-              obamaHit = nodeObj.screenName;
-              nodeObj.isKeyword = true;
-              // nodeObj.keywords[nodeObj.screenName.toLowerCase()] = {};
-              nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
-            }
-            if (nodeObj.screenName.toLowerCase().includes("trump")) {
-              trumpHit = nodeObj.screenName;
-              nodeObj.isKeyword = true;
-              // nodeObj.keywords[nodeObj.screenName.toLowerCase()] = {};
-              nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
-            }
-            viewNameSpace.emit("node", nodeObj);
+            nodeObj.isTwitterUser = true;
+            // if (nodeObj.screenName.toLowerCase().includes("obama")) {
+            //   obamaHit = nodeObj.screenName;
+            //   nodeObj.isKeyword = true;
+            //   // nodeObj.keywords[nodeObj.screenName.toLowerCase()] = {};
+            //   nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
+            // }
+            // if (nodeObj.screenName.toLowerCase().includes("trump")) {
+            //   trumpHit = nodeObj.screenName;
+            //   nodeObj.isKeyword = true;
+            //   // nodeObj.keywords[nodeObj.screenName.toLowerCase()] = {};
+            //   nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
+            // }
+            // viewNameSpace.emit("node", nodeObj);
+            wordsPerMinuteTop10Cache.get(nodeObj.screenName.toLowerCase(), function(err, screenName) {
+              if (screenName) {
+                nodeObj.isTopTen = true;
+              }
+              if (nodeObj.screenName.toLowerCase().includes("obama")) {
+                obamaHit = nodeObj.screenName;
+                nodeObj.isKeyword = true;
+                // nodeObj.keywords[nodeObj.name.toLowerCase()] = {};
+                nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
+              }
+              if (nodeObj.screenName.toLowerCase().includes("trump")) {
+                trumpHit = nodeObj.screenName;
+                nodeObj.isKeyword = true;
+                // nodeObj.keywords[nodeObj.name.toLowerCase()] = {};
+                nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
+              }
+              viewNameSpace.emit("node", nodeObj);
+            });
           }
         break;
 
         case "hashtag":
-          if (nodeObj.nodeId.toLowerCase().includes("obama")) {
-            obamaHit = nodeObj.nodeId;
-            nodeObj.isKeyword = true;
-            // nodeObj.keywords[nodeObj.nodeId.toLowerCase()] = {};
-            nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
-            debug(chalkError("OBAMA HT: " + nodeObj.nodeId));
-          }
-          if (nodeObj.nodeId.toLowerCase().includes("trump")) {
-            trumpHit = nodeObj.nodeId;
-            nodeObj.isKeyword = true;
-            // nodeObj.keywords[nodeObj.nodeId.toLowerCase()] = {};
-            nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
-            debug(chalkError("TRUMP HT: " + nodeObj.nodeId));
-          }
-          updateWordMeter({nodeId: nodeObj.nodeId.toLowerCase()});
-          viewNameSpace.emit("node", nodeObj);
+        //   if (nodeObj.nodeId.toLowerCase().includes("obama")) {
+        //     obamaHit = nodeObj.nodeId;
+        //     nodeObj.isKeyword = true;
+        //     // nodeObj.keywords[nodeObj.nodeId.toLowerCase()] = {};
+        //     nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
+        //     debug(chalkError("OBAMA HT: " + nodeObj.nodeId));
+        //   }
+        //   if (nodeObj.nodeId.toLowerCase().includes("trump")) {
+        //     trumpHit = nodeObj.nodeId;
+        //     nodeObj.isKeyword = true;
+        //     // nodeObj.keywords[nodeObj.nodeId.toLowerCase()] = {};
+        //     nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
+        //     debug(chalkError("TRUMP HT: " + nodeObj.nodeId));
+        //   }
+        //   updateWordMeter({nodeId: nodeObj.nodeId.toLowerCase()});
+        //   viewNameSpace.emit("node", nodeObj);
+          wordsPerMinuteTop10Cache.get(nodeObj.nodeId.toLowerCase(), function(err, nodeId) {
+            if (nodeId) {
+              nodeObj.isTopTen = true;
+            }
+            if (nodeObj.nodeId.toLowerCase().includes("obama")) {
+              obamaHit = nodeObj.nodeId;
+              nodeObj.isKeyword = true;
+              nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
+            }
+            if (nodeObj.nodeId.toLowerCase().includes("trump")) {
+              trumpHit = nodeObj.nodeId;
+              nodeObj.isKeyword = true;
+              nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
+            }
+            updateWordMeter({nodeId: nodeObj.nodeId.toLowerCase()});
+            viewNameSpace.emit("node", nodeObj);
+          });
         break;
 
         case "word":
-          if (nodeObj.nodeId.toLowerCase().includes("obama")) {
-            obamaHit = nodeObj.nodeId;
-            nodeObj.isKeyword = true;
-            // nodeObj.keywords[nodeObj.nodeId.toLowerCase()] = {};
-            nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
-            debug(chalkError("OBAMA HT: " + nodeObj.nodeId));
-          }
-          if (nodeObj.nodeId.toLowerCase().includes("trump")) {
-            trumpHit = nodeObj.nodeId;
-            nodeObj.isKeyword = true;
-            // nodeObj.keywords[nodeObj.nodeId.toLowerCase()] = {};
-            nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
-            debug(chalkError("TRUMP HT: " + nodeObj.nodeId));
-          }
-          updateWordMeter({nodeId: nodeObj.nodeId.toLowerCase()});
-          viewNameSpace.emit("node", nodeObj);
+          // if (nodeObj.nodeId.toLowerCase().includes("obama")) {
+          //   obamaHit = nodeObj.nodeId;
+          //   nodeObj.isKeyword = true;
+          //   // nodeObj.keywords[nodeObj.nodeId.toLowerCase()] = {};
+          //   nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
+          //   debug(chalkError("OBAMA HT: " + nodeObj.nodeId));
+          // }
+          // if (nodeObj.nodeId.toLowerCase().includes("trump")) {
+          //   trumpHit = nodeObj.nodeId;
+          //   nodeObj.isKeyword = true;
+          //   // nodeObj.keywords[nodeObj.nodeId.toLowerCase()] = {};
+          //   nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
+          //   debug(chalkError("TRUMP HT: " + nodeObj.nodeId));
+          // }
+          // updateWordMeter({nodeId: nodeObj.nodeId.toLowerCase()});
+          // viewNameSpace.emit("node", nodeObj);
+          wordsPerMinuteTop10Cache.get(nodeObj.nodeId.toLowerCase(), function(err, nodeId) {
+            if (nodeId) {
+              nodeObj.isTopTen = true;
+            }
+            if (nodeObj.nodeId.toLowerCase().includes("obama")) {
+              obamaHit = nodeObj.nodeId;
+              nodeObj.isKeyword = true;
+              nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
+            }
+            if (nodeObj.nodeId.toLowerCase().includes("trump")) {
+              trumpHit = nodeObj.nodeId;
+              nodeObj.isKeyword = true;
+              nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
+            }
+            updateWordMeter({nodeId: nodeObj.nodeId.toLowerCase()});
+            viewNameSpace.emit("node", nodeObj);
+          });
         break;
 
         default:
@@ -7611,6 +7683,7 @@ setInterval(function() {
   statsObj.caches.utilCache = utilCache.getStats();
   statsObj.caches.viewerCache = viewerCache.getStats();
   statsObj.caches.wordCache = wordCache.getStats();
+  statsObj.caches.wordsPerMinuteTop10Cache = wordsPerMinuteTop10Cache.getStats();
 
   if (updateComplete) {
     numberAdmins = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
@@ -7803,35 +7876,37 @@ function initRateQinterval(interval){
 
       sortedObjectValues(wordMeter, "1MinuteRate", function(sortedKeys){
 
+        // if (enableGoogleMetrics) {
 
-        if (enableGoogleMetrics) {
+        var endIndex = (sortedKeys.length >= 10) ? 10 : sortedKeys.length;
 
-          var endIndex = (sortedKeys.length >= 10) ? 10 : sortedKeys.length;
+        var index;
+        var wmObj;
+        var top10dataPoint = {};
 
-          var index;
-          var wmObj;
-          var top10dataPoint = {};
+        for (index=0; index<endIndex; index += 1){
 
-          for (index=0; index<endIndex; index += 1){
+          wmObj = wordMeter[sortedKeys[index]].toJSON();
 
-            wmObj = wordMeter[sortedKeys[index]].toJSON();
+          wordsPerMinuteTop10Cache.set(sortedKeys[index], wmObj["1MinuteRate"]);
 
-            wordsPerMinuteTop10[sortedKeys[index]] = wmObj["1MinuteRate"];
+          wordsPerMinuteTop10[sortedKeys[index]] = wmObj["1MinuteRate"];
 
-            if (index === endIndex-1) {
-              adminNameSpace.emit("TWITTER_TOP10_1MIN", wordsPerMinuteTop10);
-            }
+          if (index === endIndex-1) {
+            adminNameSpace.emit("TWITTER_TOP10_1MIN", wordsPerMinuteTop10);
+          }
 
+          if (enableGoogleMetrics && (wmObj["1MinuteRate"] > MIN_METRIC_VALUE)) {
+ 
             top10dataPoint.metricType = "word/top10/" + sortedKeys[index];
             top10dataPoint.value = wmObj["1MinuteRate"];
             top10dataPoint.metricLabels = {server_id: "WORD"};
 
-            if (wmObj["1MinuteRate"] > MIN_METRIC_VALUE) {
-              addMetricDataPoint(top10dataPoint);
-            }
-
+            addMetricDataPoint(top10dataPoint);
           }
+
         }
+        // }
 
       });
 

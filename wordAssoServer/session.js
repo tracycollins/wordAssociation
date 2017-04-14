@@ -386,11 +386,11 @@ var ignoreWordHashMap = new HashMap();
 var keywordColorHashMap = new HashMap();
 
 keywordColorHashMap.set("positive", palette.green);
-keywordColorHashMap.set("negative", palette.yellow);
+keywordColorHashMap.set("negative", palette.red);
 keywordColorHashMap.set("neutral", palette.lightgray);
 
 keywordColorHashMap.set("left", palette.blue);
-keywordColorHashMap.set("right", palette.red);
+keywordColorHashMap.set("right", palette.yellow);
 
 
 var rxSessionUpdateQueue = [];
@@ -1967,17 +1967,6 @@ function initSocketNodeRx(){
 
   socket.on("node", function(nNode) {
 
-    // if (nNode.isTopTen) {
-    //   console.log("N< " 
-    //     + nNode.nodeType 
-    //     + " | " + nNode.nodeId 
-    //     + " | NAME: " + nNode.name 
-    //     + " | isTopTen: " + nNode.isTopTen
-    //     + " | isKeyword: " + nNode.isKeyword
-    //     + "\nKEYWORDS: " + jsonPrint(nNode.keywords)
-    //   );
-    // }
-
     if (!windowVisible || config.pauseFlag) {return;}
 
     if ((nNode.nodeType !== "user") 
@@ -1994,16 +1983,6 @@ function initSocketNodeRx(){
       && (config.sessionViewType === "media")) {
       return;
     }
-
-    // console.log("N< " 
-    //   + nNode.nodeType 
-    //   + " | " + nNode.nodeId 
-    //   + " | NAME: " + nNode.name 
-    //   + " | isKeyword: " + nNode.isKeyword
-    //   + "\nKEYWORDS: " + jsonPrint(nNode.keywords)
-    // );
-
-    // var dateNow = moment().valueOf();
 
     var newNode = {};
     newNode.isTopTen = nNode.isTopTen;

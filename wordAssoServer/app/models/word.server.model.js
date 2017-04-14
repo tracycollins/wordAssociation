@@ -37,6 +37,10 @@ var WordSchema = new Schema({
 		type: Boolean,
 		default: false
 	},
+	isTopTen: {
+		type: Boolean,
+		default: false
+	},
 	isTrendingTopic: {
 		type: Boolean,
 		default: false

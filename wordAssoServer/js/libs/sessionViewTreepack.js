@@ -72,7 +72,6 @@ function ViewTreepack() {
   var nodeAddQ = [];
   var nodeDeleteQ = [];
 
-
   var foci = {
     left: {x: 0.2*width, y: 0.5*height}, 
     right: {x: 0.8*width, y: 0.5*height}, 
@@ -1024,7 +1023,15 @@ function ViewTreepack() {
 
     console.log("width: " + width + " | height: " + height);
 
-    // fontSize = fontSizeRatio * window.innerHeight;
+    foci = {
+      left: {x: 0.2*width, y: 0.5*height}, 
+      right: {x: 0.8*width, y: 0.5*height}, 
+      positive: {x: 0.5*width, y: 0.2*height}, 
+      negative: {x: 0.5*width, y: 0.8*height},
+      neutral: {x: 0.5*width, y: 0.5*height},
+      default: {x: 0.5*width, y: 0.5*height}
+    };
+
     minFontSize = minFontSizeRatio * window.innerHeight;
     maxFontSize = maxFontSizeRatio * window.innerHeight;
 

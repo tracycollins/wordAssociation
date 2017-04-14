@@ -48,12 +48,12 @@ function loadBhtResponseHash(wordObj, wordTypes, wordVariations, callback){
 
   wordTypes.forEach(function(wordType){
     debug("wordType: " + wordType);
-    if ((typeof  wordObj[wordType] !== 'undefined')
+    if ((  wordObj[wordType] !== undefined)
         && (wordObj[wordType] != null)){
       debug("FOUND wordType: " + wordType);
       wordVariations.forEach(function(wordVariation){
         debug("wordVariation: " + wordVariation);
-        if ((typeof wordObj[wordType][wordVariation] !== 'undefined') 
+        if (( wordObj[wordType][wordVariation] !== undefined) 
           && (wordObj[wordType][wordVariation] != null)){
           debug("FOUND wordVariation: " + wordVariation);
           var wordArry = wordObj[wordType][wordVariation] ;
@@ -152,13 +152,13 @@ exports.getRandomWord = function(callback){
 exports.findOneWord = function(word, incMentions, callback) {
 
 	if (word.nodeId.length > 250){
-    console.log(chalkError("*** ILLEGAL WORD NODE ID (> 250 CHARS) ... SKIPPING ***" + "\nTYPE: " + typeof word.nodeId 
+    console.log(chalkError("*** ILLEGAL WORD NODE ID (> 250 CHARS) ... SKIPPING ***" + "\nTYPE: " +  word.nodeId 
       + "\n" + jsonPrint(word)
     ));
     // quit();
 	}
 
-	if (typeof word.raw === 'undefined') word.raw = word.nodeId;
+	if (word.raw === undefined) { word.raw = word.nodeId; }
 
 	// console.log("findOneWord:" + JSON.stringify(word, null, 2));
 
@@ -172,7 +172,8 @@ exports.findOneWord = function(word, incMentions, callback) {
 			nodeId: word.nodeId,
 			raw: word.raw,
 			isTwitterUser: word.isTwitterUser,
-			isTrendingTopic: word.isTrendingTopic,
+			isTopTen: word.isTrendingTopic,
+			isTrendingTopic: word.isTopTen,
 			isKeyword: word.isKeyword,
 			keywords: word.keywords,
 			isIgnored: word.isIgnored,
@@ -210,6 +211,7 @@ exports.findOneWord = function(word, incMentions, callback) {
 					+ " | " + wd.nodeId 
 					+ " | KW: " + wd.isKeyword 
 					+ " | TU: " + wd.isTwitterUser 
+					+ " | TOP10: " + wd.isTopTen 
 					+ " | TT: " + wd.isTrendingTopic 
 					+ " | MENTIONS: " + wd.mentions 
 					+ " | LAST SEEN: " + Date(wd.lastSeen) 
@@ -219,10 +221,10 @@ exports.findOneWord = function(word, incMentions, callback) {
 
 				debug("> WORD UPDATED:" + JSON.stringify(wd, null, 2));
 
-				if ((typeof wd.noun !== 'undefined') 
-					|| (typeof wd.verb !== 'undefined') 
-					|| (typeof wd.adjective !== 'undefined') 
-					|| (typeof wd.adverb !== 'undefined')) {
+				if ((wd.noun !== undefined) 
+					|| ( wd.verb !== undefined) 
+					|| ( wd.adjective !== undefined) 
+					|| ( wd.adverb !== undefined)) {
 
 					if (!wd.bhtSearched || !wd.bhtFound) {
 

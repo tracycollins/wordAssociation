@@ -949,6 +949,10 @@ function ViewFlow() {
       newNode.textLength = 100;
     }
 
+    if (newNode.isTopTen){
+      console.debug("TOP 10: " + newNode.nodeId);
+    }
+
     if (newNode.raw !== undefined) {
 
       newNode.raw = newNode.raw.replace("&amp;", "&");

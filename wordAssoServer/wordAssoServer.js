@@ -2424,56 +2424,67 @@ function createSession(newSessionObj) {
     wordStats.meter("wordsPerSecond").mark();
     wordStats.meter("wordsPerMinute").mark();
 
-    if (rxInObj.nodeId.includes("obama")) {
- 
-      wordStats.meter("obamaPerSecond").mark();
-      wordStats.meter("obamaPerMinute").mark();
-
-      wsObj = wordStats.toJSON();
-
-      debug(chalkAlert("OBAMA"
-        + " | " + wsObj.obamaPerSecond["1MinuteRate"].toFixed(0) 
-        + " | " + wsObj.obamaPerSecond.currentRate.toFixed(0) 
-        + " | " + wsObj.obamaPerMinute["1MinuteRate"].toFixed(0) 
-        + " | " + wsObj.obamaPerMinute.currentRate.toFixed(0) 
-        + " | " + rxInObj.nodeId
-      ));
-
-    }
-
-    if (rxInObj.nodeId.includes("trump")) {
- 
-      wordStats.meter("trumpPerSecond").mark();
-      wordStats.meter("trumpPerMinute").mark();
-
-      wsObj = wordStats.toJSON();
-
-      debug(chalkAlert("TRUMP"
-        + " | " + wsObj.trumpPerSecond["1MinuteRate"].toFixed(0) 
-        + " | " + wsObj.trumpPerSecond.currentRate.toFixed(0) 
-        + " | " + wsObj.trumpPerMinute["1MinuteRate"].toFixed(0) 
-        + " | " + wsObj.trumpPerMinute.currentRate.toFixed(0) 
-        + " | " + rxInObj.nodeId
-      ));
-
-    }
-
-    if (responseQueue.size() < MAX_RESPONSE_QUEUE_SIZE) {
-
-      var responseInObj = rxInObj;
-
-      if (rxInObj.tags.mode === "substream") {
-        responseInObj.socketId = socket.id + "#" + rxInObj.tags.entity;
-        debug("SUBS" 
-          + "\n" + jsonPrint(rxInObj.tags)
-        );
-      }
-      else {
-        responseInObj.socketId = socket.id;
+    wordsPerMinuteTop10Cache.get(rxInObj.nodeId.toLowerCase(), function(err, nodeRate) {
+      if (nodeRate) {
+        rxInObj.isTopTen = true;
+        console.log(chalkRed("TOP TEN" 
+          + " | " + rxInObj.nodeId
+          + " | " + rxInObj.isTopTen
+          + " | " + nodeRate.toFixed(2)
+        ));
       }
 
-      responseQueue.enqueue(responseInObj);
-    }
+      if (rxInObj.nodeId.includes("obama")) {
+   
+        wordStats.meter("obamaPerSecond").mark();
+        wordStats.meter("obamaPerMinute").mark();
+
+        wsObj = wordStats.toJSON();
+
+        debug(chalkAlert("OBAMA"
+          + " | " + wsObj.obamaPerSecond["1MinuteRate"].toFixed(0) 
+          + " | " + wsObj.obamaPerSecond.currentRate.toFixed(0) 
+          + " | " + wsObj.obamaPerMinute["1MinuteRate"].toFixed(0) 
+          + " | " + wsObj.obamaPerMinute.currentRate.toFixed(0) 
+          + " | " + rxInObj.nodeId
+        ));
+      }
+
+      if (rxInObj.nodeId.includes("trump")) {
+   
+        wordStats.meter("trumpPerSecond").mark();
+        wordStats.meter("trumpPerMinute").mark();
+
+        wsObj = wordStats.toJSON();
+
+        debug(chalkAlert("TRUMP"
+          + " | " + wsObj.trumpPerSecond["1MinuteRate"].toFixed(0) 
+          + " | " + wsObj.trumpPerSecond.currentRate.toFixed(0) 
+          + " | " + wsObj.trumpPerMinute["1MinuteRate"].toFixed(0) 
+          + " | " + wsObj.trumpPerMinute.currentRate.toFixed(0) 
+          + " | " + rxInObj.nodeId
+        ));
+      }
+
+      if (responseQueue.size() < MAX_RESPONSE_QUEUE_SIZE) {
+
+        var responseInObj = rxInObj;
+
+        if (rxInObj.tags.mode === "substream") {
+          responseInObj.socketId = socket.id + "#" + rxInObj.tags.entity;
+          debug("SUBS" 
+            + "\n" + jsonPrint(rxInObj.tags)
+          );
+        }
+        else {
+          responseInObj.socketId = socket.id;
+        }
+
+        responseQueue.enqueue(responseInObj);
+      }
+
+    });
+
   });
 
   socket.on("GET_SESSION", function(sessionId) {
@@ -2832,6 +2843,7 @@ function createSmallSessionUpdateObj (updateObj, callback){
     sessionSmallObj.source.raw = updateObj.source.raw;
     sessionSmallObj.source.isIgnored = updateObj.source.isIgnored;
     sessionSmallObj.source.isTrendingTopic = updateObj.source.isTrendingTopic;
+    sessionSmallObj.source.isTopTen = updateObj.source.isTopTen;
     sessionSmallObj.source.isKeyword = updateObj.source.isKeyword;
     sessionSmallObj.source.keywords = {};
     sessionSmallObj.source.url = updateObj.source.url;
@@ -2855,6 +2867,7 @@ function createSmallSessionUpdateObj (updateObj, callback){
       sessionSmallObj.target.isIgnored = updateObj.target.isIgnored;
       sessionSmallObj.target.isTrendingTopic = updateObj.target.isTrendingTopic;
       sessionSmallObj.target.isKeyword = updateObj.target.isKeyword;
+      sessionSmallObj.target.isTopTen = updateObj.target.isTopTen;
       sessionSmallObj.target.keywords = {};
       sessionSmallObj.target.url = updateObj.target.url;
       sessionSmallObj.target.wordChainIndex = updateObj.target.wordChainIndex;
@@ -5150,52 +5163,61 @@ setInterval(function() {
 
 function getTags(wObj, callback){
 
-  checkKeyword(wObj, function(wordObj){
-
-    if (!wordObj.tags || (wordObj.tags === undefined)) {
-      wordObj.tags = {};
-      wordObj.tags.entity = "unknown_entity";
-      wordObj.tags.channel = "unknown_channel";
-      wordObj.tags.group = "unknown_group";
-
-      console.log(chalkError("SET UNKNOWN WORDOBJ TAGS\n" + jsonPrint(wordObj)));
-      entityChannelGroupHashMap.set("unknown_entity", { groupId: "unknown_group", name: "UNKNOWN GROUP"});
-
-      callback(wordObj);
-    } 
-    else {
-      if (!wordObj.tags.entity || (wordObj.tags.entity === undefined)) {
-        wordObj.tags.entity = "unknown_entity";
-        console.log(chalkError("SET UNKNOWN WORDOBJ ENTITY\n" + jsonPrint(wordObj)));
-      }
-      else {
-        wordObj.tags.entity = wordObj.tags.entity.toLowerCase();
-      }
-
-      if (!wordObj.tags.channel || (wordObj.tags.channel === undefined)) {
-        wordObj.tags.channel = "unknown_channel";
-        console.log(chalkError("SET UNKNOWN WORDOBJ CHANNEL\n" + jsonPrint(wordObj)));
-      }
-      else {
-        wordObj.tags.channel = wordObj.tags.channel.toLowerCase();
-      }
-
-      if (entityChannelGroupHashMap.has(wordObj.tags.entity.toLowerCase())){
-        wordObj.tags.group = entityChannelGroupHashMap.get(wordObj.tags.entity.toLowerCase()).groupId;
-        callback(wordObj);
-      }
-      else {
-        debug(chalkError("entityChannelGroupHashMap MISS \n" + jsonPrint(wordObj)));
-        wordObj.tags.group = wordObj.tags.entity.toLowerCase();
-        entityChannelGroupHashMap.set(
-          wordObj.tags.entity.toLowerCase(), 
-          { groupId: wordObj.tags.group, 
-            name: wordObj.tags.entity.toLowerCase() 
-          } 
-        );
-        callback(wordObj);
-      }
+  wordsPerMinuteTop10Cache.get(wObj.nodeId, function(err, wordRate) {
+    if (wordRate) {
+      wObj.isTopTen = true;
     }
+    else {
+      wObj.isTopTen = false;
+    }
+
+    checkKeyword(wObj, function(wordObj){
+
+      if (!wordObj.tags || (wordObj.tags === undefined)) {
+        wordObj.tags = {};
+        wordObj.tags.entity = "unknown_entity";
+        wordObj.tags.channel = "unknown_channel";
+        wordObj.tags.group = "unknown_group";
+
+        console.log(chalkError("SET UNKNOWN WORDOBJ TAGS\n" + jsonPrint(wordObj)));
+        entityChannelGroupHashMap.set("unknown_entity", { groupId: "unknown_group", name: "UNKNOWN GROUP"});
+
+        callback(wordObj);
+      } 
+      else {
+        if (!wordObj.tags.entity || (wordObj.tags.entity === undefined)) {
+          wordObj.tags.entity = "unknown_entity";
+          console.log(chalkError("SET UNKNOWN WORDOBJ ENTITY\n" + jsonPrint(wordObj)));
+        }
+        else {
+          wordObj.tags.entity = wordObj.tags.entity.toLowerCase();
+        }
+
+        if (!wordObj.tags.channel || (wordObj.tags.channel === undefined)) {
+          wordObj.tags.channel = "unknown_channel";
+          console.log(chalkError("SET UNKNOWN WORDOBJ CHANNEL\n" + jsonPrint(wordObj)));
+        }
+        else {
+          wordObj.tags.channel = wordObj.tags.channel.toLowerCase();
+        }
+
+        if (entityChannelGroupHashMap.has(wordObj.tags.entity.toLowerCase())){
+          wordObj.tags.group = entityChannelGroupHashMap.get(wordObj.tags.entity.toLowerCase()).groupId;
+          callback(wordObj);
+        }
+        else {
+          debug(chalkError("entityChannelGroupHashMap MISS \n" + jsonPrint(wordObj)));
+          wordObj.tags.group = wordObj.tags.entity.toLowerCase();
+          entityChannelGroupHashMap.set(
+            wordObj.tags.entity.toLowerCase(), 
+            { groupId: wordObj.tags.group, 
+              name: wordObj.tags.entity.toLowerCase() 
+            } 
+          );
+          callback(wordObj);
+        }
+      }
+    });
   });
 }
 
@@ -5211,7 +5233,9 @@ setInterval(function() {
 
     var responseInObj = responseQueue.dequeue();
 
-    debug(chalkWarn("responseInObj\n" + jsonPrint(responseInObj)));
+    // if (responseInObj.isTopTen) {
+    //   console.log(chalkWarn("top 10 responseInObj\n" + jsonPrint(responseInObj)));
+    // }
 
     if ((responseInObj.nodeId === undefined) 
       || (typeof responseInObj.nodeId !== "string"
@@ -5255,9 +5279,9 @@ setInterval(function() {
       else {
         debug(chalkError("currentSessionObj\n" + jsonPrint(currentSessionObj)));
 
+        responseInObj.isTopTen = (responseInObj.isTopTen !== undefined) ? responseInObj.isTopTen : false;
         responseInObj.isKeyword = (responseInObj.isKeyword !== undefined) ? responseInObj.isKeyword : false;
         responseInObj.isTrendingTopic = (responseInObj.isTrendingTopic !== undefined) ? responseInObj.isTrendingTopic : false;
-
 
         trendingTopicsArray = trendingCache.keys();
         trendingTopicHitArray = [];
@@ -5372,9 +5396,7 @@ setInterval(function() {
               + " | " + socketId
               + "\nresponseInObj" + jsonPrint(responseInObj)
             ));
-
             responseQueueReady = true;
-
             return;
           }
 
@@ -5425,7 +5447,6 @@ setInterval(function() {
               responseQueueReady = true;
 
             }
-
           });
 
         });
@@ -5868,8 +5889,11 @@ setInterval(function() {
   if (dbUpdateWordReady && !dbUpdateWordQueue.isEmpty()) {
 
     dbUpdateWordReady = false;
+
     var dbUpdateObj = dbUpdateWordQueue.dequeue();
+
     var currentSessionObj = dbUpdateObj.session;
+
     dbUpdateObj.word.wordChainIndex = currentSessionObj.wordChainIndex;
     currentSessionObj.wordChain.push({nodeId: dbUpdateObj.word.nodeId, timeStamp:moment().valueOf()});
     currentSessionObj.wordChainIndex += 1;
@@ -6948,6 +6972,7 @@ setInterval(function() {
               + word.nodeId 
               + " | I: " + word.isIgnored 
               + " | K: " + word.isKeyword 
+              + " | TOP10: " + word.isTopTen 
               + " | MNS: " + word.mentions 
               // + " | URL: " + word.url 
               + " | WAPI S: " + word.wapiSearched 
@@ -6987,6 +7012,7 @@ setInterval(function() {
               + word.nodeId 
               + " | I: " + word.isIgnored 
               + " | K: " + word.isKeyword 
+              + " | TOP10: " + word.isTopTen 
               + " | MNS: " + word.mentions 
               // + " | URL: " + word.url 
               + " | WAPI S: " + word.wapiSearched 

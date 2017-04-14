@@ -2668,6 +2668,7 @@ var createNode = function(callback) {
     if (nodeHashMap.has(session.node.nodeId)) {
 
       var sessionNode = nodeHashMap.get(session.node.nodeId);
+      sessionNode.isTopTen = session.node.isTopTen;
       sessionNode.age = 1e-6;
       sessionNode.ageMaxRatio = 1e-6;
       sessionNode.isDead = false;
@@ -2778,6 +2779,7 @@ var createNode = function(callback) {
           else if (nodeHashMap.has(sourceNodeId)) {
             sourceNode = nodeHashMap.get(sourceNodeId);
             sourceNode.sessionNodeId = session.node.nodeId;
+            sourceNode.isTopTen = session.source.isTopTen;
             sourceNode.isKeyword = session.source.isKeyword;
             sourceNode.isTrendingTopic = session.source.isTrendingTopic;
             getKeywordColor(session.source.keywords, function(color){
@@ -2838,6 +2840,7 @@ var createNode = function(callback) {
             if (ignoreWordHashMap.has(sourceText)) {
               sourceNode.isIgnored = true;
             }
+            sourceNode.isTopTen = session.source.isTopTen;
             sourceNode.isKeyword = session.source.isKeyword;
 
             // getKeywordColor(session.source.keywords, function(color){
@@ -2929,6 +2932,7 @@ var createNode = function(callback) {
             targetNode.nodeType = "word"; // KLUDGE
             targetNode.isTrendingTopic = session.target.isTrendingTopic;
             targetNode.isKeyword = session.target.isKeyword;
+            targetNode.isTopTen = session.target.isTopTen;
             targetNode.userId = session.userId;
             targetNode.sessionId = session.sessionId;
             targetNode.groupId = session.groupId;
@@ -2993,6 +2997,7 @@ var createNode = function(callback) {
               targetNode.isIgnored = true;
             }
             targetNode.isTrendingTopic = session.target.isTrendingTopic;
+            targetNode.isTopTen = session.target.isTopTen;
             targetNode.isKeyword = session.target.isKeyword;
 
             if (session.target.keywords !== undefined) {

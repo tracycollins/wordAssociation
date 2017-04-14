@@ -39,8 +39,8 @@ function ViewTreepack() {
   var width = window.innerWidth;
   var height = window.innerHeight;
 
-  var minRadiusRatio = 0.05;
-  var maxRadiusRatio = 0.30;
+  var minRadiusRatio = 0.01;
+  var maxRadiusRatio = 0.10;
 
   var minRadius = minRadiusRatio * window.innerWidth;
   var maxRadius = maxRadiusRatio * window.innerWidth;
@@ -142,7 +142,7 @@ function ViewTreepack() {
     }
   }, true);
 
-  var defaultRadiusScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([10, 200]).clamp(true);
+  var defaultRadiusScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minRadius, maxRadius]).clamp(true);
 
   var nodeLabelSizeScale = d3.scaleLinear()
     .domain([1, currentMaxMentions])
@@ -1030,6 +1030,8 @@ function ViewTreepack() {
 
     minRadius = minRadiusRatio * window.innerWidth;
     maxRadius = maxRadiusRatio * window.innerWidth;
+
+    defaultRadiusScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minRadius, maxRadius]).clamp(true);
 
     nodeLabelSizeScale = d3.scaleLinear()
       .domain([1, currentMaxMentions])

@@ -6304,6 +6304,18 @@ function initAppRouting(callback) {
     });
   });
 
+  app.get("/favicon.ico", function(req, res, next) {
+    console.log(chalkRedBold("LOADING PAGE: /favicon.png"));
+    res.sendFile(__dirname + "/favicon.png", function (err) {
+      if (err) {
+        console.error('GET:', __dirname + "/favicon.png");
+      } 
+      else {
+        console.log(chalkInfo('SENT:', __dirname + "/favicon.png"));
+      }
+    });
+  });
+
   app.get("/assets/images/userBackgroundBorder.png", function(req, res, next) {
     // console.log(chalkRedBold("get req\n" + jsonPrint(req.params)));
     console.log(chalkRedBold("LOADING PAGE: /public/assets/images/userBackgroundBorder.png"));

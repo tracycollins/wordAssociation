@@ -10,21 +10,21 @@ function ControlPanel() {
   var DEFAULT_SOURCE = "==SOURCE==";  // will be updated by wordAssoServer.js on app.get
 
   var parentWindow = window.opener;
-  console.info(parentWindow.PARENT_ID);
+  console.info("PARENT WINDOW ID | " + parentWindow.PARENT_ID);
   var self = this;
 
   var config = {};
 
-  config.defaultMultiplier = 1000.0;
+  config = window.opener.config;
 
-  config.defaultMaxAge = window.opener.DEFAULT_MAX_AGE;
-  config.defaultCharge = window.opener.DEFAULT_CHARGE;
-  config.defaultGravity = window.opener.DEFAULT_GRAVITY;
-  config.defaultLinkStrength = window.opener.DEFAULT_LINK_STRENGTH;
-  config.defaultLinkDistance = window.opener.DEFAULT_LINK_DISTANCE;
-  config.defaultVelocityDecay = window.opener.DEFAULT_VELOCITY_DECAY;
-  config.defaultFontSizeMin = window.opener.DEFAULT_FONT_SIZE_MIN;
-  config.defaultFontSizeMax = window.opener.DEFAULT_FONT_SIZE_MAX;
+  // config.defaultMaxAge = window.opener.DEFAULT_MAX_AGE;
+  // config.defaultCharge = window.opener.DEFAULT_CHARGE;
+  // config.defaultGravity = window.opener.DEFAULT_GRAVITY;
+  // config.defaultLinkStrength = window.opener.DEFAULT_LINK_STRENGTH;
+  // config.defaultLinkDistance = window.opener.DEFAULT_LINK_DISTANCE;
+  // config.defaultVelocityDecay = window.opener.DEFAULT_VELOCITY_DECAY;
+  // config.defaultFontSizeMin = window.opener.DEFAULT_FONT_SIZE_MIN;
+  // config.defaultFontSizeMax = window.opener.DEFAULT_FONT_SIZE_MAX;
 
 console.log("config\n" + jsonPrint(config));
 
@@ -284,7 +284,19 @@ console.log("config\n" + jsonPrint(config));
 
   this.createControlPanel = function(callback) {
 
-    config = store.get('config');
+    var storedConfigName = "config_" + parentWindow.config.sessionViewType;
+
+    console.debug("STORED CONFIG: " + storedConfigName);
+    var storedConfig = store.get(storedConfigName);
+
+    if (storedConfig !== undefined) {
+      var storedConfigArgs = Object.keys(storedConfig);
+
+      storedConfigArgs.forEach(function(arg){
+        config[arg] = storedConfig[arg];
+        console.log("--> STORED CONFIG | " + arg + ": " + config[arg]);
+      });
+    }
     // statsObj = store.get('stats');
 
     console.log("CREATE CONTROL PANEL\n" + jsonPrint(config));
@@ -573,11 +585,12 @@ console.log("config\n" + jsonPrint(config));
             testModeButton, 
             nodeCreateButton, 
             removeDeadNodeButton, 
-            disableLinksButton, 
+            disableLinksButton,
+            blahButton,
             antonymButton,
             fullscreenButton
           ]);
-        self.tableCreateRow(controlTable, optionsBody, [blahButton, resetButton]);
+        self.tableCreateRow(controlTable, optionsBody, [resetButton]);
         self.tableCreateRow(controlSliderTable, optionsBody, ['FONT MIN', fontSizeMinSlider, fontSizeMinSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ['FONT MAX', fontSizeMaxSlider, fontSizeMaxSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ['MAX AGE', maxAgeSlider, maxAgeSliderText]);
@@ -601,12 +614,13 @@ console.log("config\n" + jsonPrint(config));
             nodeCreateButton, 
             removeDeadNodeButton, 
             disableLinksButton, 
+            blahButton,
             antonymButton,
             fullscreenButton
           ]);
-        self.tableCreateRow(controlTable, optionsBody, [blahButton, resetButton]);
-        // self.tableCreateRow(controlSliderTable, optionsBody, ['FONT MIN', fontSizeMinSlider, fontSizeMinSliderText]);
-        // self.tableCreateRow(controlSliderTable, optionsBody, ['FONT MAX', fontSizeMaxSlider, fontSizeMaxSliderText]);
+        self.tableCreateRow(controlTable, optionsBody, [resetButton]);
+        self.tableCreateRow(controlSliderTable, optionsBody, ['FONT MIN', fontSizeMinSlider, fontSizeMinSliderText]);
+        self.tableCreateRow(controlSliderTable, optionsBody, ['FONT MAX', fontSizeMaxSlider, fontSizeMaxSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ['TRANSITION', transitionDurationSlider, transitionDurationSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ['MAX AGE', maxAgeSlider, maxAgeSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ['CHARGE', chargeSlider, chargeSliderText]);

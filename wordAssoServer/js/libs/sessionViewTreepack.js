@@ -13,17 +13,21 @@ function ViewTreepack() {
   var currentHashtagMaxMentions = 2;
   var deadNodesHash = {};
 
-  var transitionDuration = DEFAULT_TRANSITION_DURATION;
-  var blahMode = DEFAULT_BLAH_MODE;
-  var charge = DEFAULT_CHARGE;
-  var gravity = DEFAULT_GRAVITY;
-  var forceXmultiplier = DEFAULT_FORCEX_MULTIPLIER;
-  var forceYmultiplier = DEFAULT_FORCEY_MULTIPLIER;
-  var collisionRadiusMultiplier = DEFAULT_COLLISION_RADIUS_MULTIPLIER;
-  var collisionIterations = DEFAULT_COLLISION_ITERATIONS;
-  var globalLinkStrength = DEFAULT_LINK_STRENGTH;
-  var globalLinkDistance = DEFAULT_LINK_DISTANCE;
-  var velocityDecay = DEFAULT_VELOCITY_DECAY;
+  // var transitionDuration = DEFAULT_TRANSITION_DURATION;
+  var transitionDuration = config.defaultTransitionDuration;
+  var blahMode = config.defaultBlahMode;
+  var charge = config.defaultCharge;
+  var gravity = config.defaultGravity;
+  var forceXmultiplier = config.defaultForceXmultiplier;
+  var forceYmultiplier = config.defaultForceYmultiplier;
+  // var collisionRadiusMultiplier = config.defaultCollisionRadiusMultiplier;
+  var collisionRadiusMultiplier = 1.0;
+  var collisionIterations = config.defaultCollisionIterations;
+  var globalLinkStrength = config.defaultLinkStrength;
+  var globalLinkDistance = config.defaultLinkDistance;
+  var velocityDecay = config.defaultVelocityDecay;
+
+  console.warn("TREEPACK CONFIG\n" + jsonPrint(config));
 
   var testMode = false;
   var freezeFlag = false;
@@ -97,7 +101,7 @@ function ViewTreepack() {
   var nodeMaxAge = 60000;
 
   var DEFAULT_TREEMAP_CONFIG = {
-    'ageRate': window.DEFAULT_AGE_RATE
+    'ageRate': DEFAULT_AGE_RATE
   };
 
   var ageRate = DEFAULT_TREEMAP_CONFIG.ageRate;
@@ -168,6 +172,9 @@ function ViewTreepack() {
 
   var nodes = [];
   
+  this.deleteNode = function() {
+  };
+  
   this.getNodesLength = function() {
     return nodes.length;
   };
@@ -202,8 +209,9 @@ function ViewTreepack() {
     console.debug("SET BLAH: " + blahFlag);
   };
 
-  this.setNodeMaxAge = function(maxAge) {
-    nodeMaxAge = maxAge;
+  this.setNodeMaxAge = function(mAge) {
+    nodeMaxAge = mAge;
+    config.defaultMaxAge = mAge;
     console.debug("SET NODE MAX AGE: " + nodeMaxAge);
   };
 
@@ -239,6 +247,7 @@ function ViewTreepack() {
 //============TREEMAP=================================
 
   var nodeSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeSvgGroup");
+  var nodeCircles = nodeSvgGroup.selectAll("circle");
   var nodeLabelSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeLabelSvgGroup");
   // var nodeLabels = nodeSvgGroup.selectAll(".nodeLabel");
 
@@ -253,6 +262,10 @@ function ViewTreepack() {
     else {
       divTooltip.style("visibility", "hidden");
     }
+  };
+
+  self.deleteSessionLinks = function(){
+    console.debug("DELETE LINKS");
   };
 
   self.setPause = function(value){
@@ -282,12 +295,14 @@ function ViewTreepack() {
 
   self.updateVelocityDecay = function(value) {
     console.debug("UPDATE VEL DECAY: " + value.toFixed(sliderPercision));
+    config.defaultVelocityDecay = value;
     velocityDecay = value;
     simulation.velocityDecay(velocityDecay);
   }
 
   self.updateGravity = function(value) {
     console.debug("UPDATE GRAVITY: " + value.toFixed(sliderPercision));
+    config.defaultGravity = value;
     gravity = value;
 
     simulation
@@ -358,21 +373,23 @@ function ViewTreepack() {
   self.updateTransitionDuration = function(value) {
     console.debug("UPDATE TRANSITION DURATION: " + value);
     transitionDuration = value;
+    config.defaultTransitionDuration = value;
   }
 
   self.updateCharge = function(value) {
     console.debug("UPDATE CHARGE: " + value);
+    config.defaultCharge = value;
     charge = value;
     simulation.force("charge", d3.forceManyBody().strength(value));
   }
 
   self.resetDefaultForce = function() {
     console.log("RESET FLOW LAYOUT DEFAULTS");
-    self.updateCharge(DEFAULT_CHARGE);
-    self.updateVelocityDecay(DEFAULT_VELOCITY_DECAY);
-    self.updateGravity(DEFAULT_GRAVITY);
-    self.updateLinkStrength(DEFAULT_LINK_STRENGTH);
-    self.updateLinkDistance(DEFAULT_LINK_DISTANCE);
+    self.updateCharge(config.defaultCharge);
+    self.updateVelocityDecay(config.defaultVelocityDecay);
+    self.updateGravity(config.defaultGravity);
+    self.updateLinkStrength(config.defaultLinkStrength);
+    self.updateLinkDistance(config.defaultLinkDistance);
   }
 
   function rankHashMapByValue(hmap, sortProperty, callback) {
@@ -448,10 +465,13 @@ function ViewTreepack() {
         || (removeDeadNodesFlag && (node.rank > MAX_NODES))
         || (removeDeadNodesFlag && (age >= nodeMaxAge))
         ) {
-        // console.debug("X NODE\n" + jsonPrint(node));
         localNodeHashMap.remove(node.nodeId);
 
         nodes.splice(ageNodesIndex, 1);
+        console.debug("X NODE"
+          + " | NODES: " + nodes.length
+          + " | " + node.nodeId
+        );
       } 
       else {
         node.ageUpdated = moment().valueOf();
@@ -581,7 +601,7 @@ function ViewTreepack() {
 
   var updateNodeCircles = function(callback) {
 
-    var nodeCircles = nodeSvgGroup.selectAll("circle")
+    nodeCircles = nodeSvgGroup.selectAll("circle")
       .data(nodes, function(d){
         return d.nodeId;
       });
@@ -589,7 +609,51 @@ function ViewTreepack() {
     nodeCircles
       .enter()
       .append("circle")
-      .merge(nodeCircles)
+      // .merge(nodeCircles)
+      .attr("nodeId", function(d) { return d.nodeId; })
+      .attr("cx", function(d) { 
+        if (!d.nodeId) { 
+          console.debug("UNDEFINED d.nodeId");
+          return 0.5*width; }
+        if (d.x === undefined) { 
+          console.debug("UNDEFINED d.x " + d.nodeId);
+          return 0.5*width; 
+        }
+        return d.x; 
+      })
+      .attr("cy", function(d) { 
+        if (!d.nodeId) { return 0.5*height; }
+        if (!d.y) { return 0.5*height; }
+        return d.y; 
+      })
+      .style("fill", function(d) { 
+        return d.keywordColor; 
+      })
+      .style("stroke", function(d) { 
+        if (d.isTopTen) { return palette.purple; }
+        return palette.white; 
+      })
+      .style("stroke-width", function(d) { 
+        if (d.isTopTen) { return "6.0"; }
+        if (d.newFlag) { return "2.0"; }
+        return "1.2"; 
+      })
+      .style('opacity', function(d) { 
+        if (d.mouseHoverFlag) { return 1.0; }
+        return nodeLabelOpacityScale(d.ageMaxRatio); 
+      })
+      .transition()
+      .duration(transitionDuration)
+      .attr("r", function(d) {
+        if (d.isIgnored) {
+          return defaultRadiusScale(1);
+        }
+        else {
+          return defaultRadiusScale(parseInt(d.mentions));
+        }
+      });
+
+    nodeCircles
       .attr("cx", function(d) { 
         if (!d.nodeId) { 
           console.debug("UNDEFINED d.nodeId");
@@ -634,10 +698,10 @@ function ViewTreepack() {
 
     nodeCircles
       .exit()
-      .transition()
-      .duration(transitionDuration)
-      .attr("r", 0)
-      // .style("opacity", 0)
+      // .transition()
+      // .duration(transitionDuration)
+      .attr("r", 1e-6)
+      .style("opacity", 1e-6)
       .remove();
 
     callback();
@@ -653,6 +717,7 @@ function ViewTreepack() {
     nodeLabels
       .enter()
       .append("text")
+      .attr("nodeId", function(d) { return d.nodeId; })
       .style("text-anchor", "middle")
       .style("alignment-baseline", "middle")
       .on("mouseover", nodeMouseOver)
@@ -705,10 +770,10 @@ function ViewTreepack() {
 
     nodeLabels
       .exit()
-      .transition()
-      .duration(transitionDuration)
-      .style("font-size", 0)
-      // .style("opacity", 0)
+      // .transition()
+      // .duration(transitionDuration)
+      .style("font-size", 1e-6)
+      .style("opacity", 1e-6)
       .remove();
 
     callback();

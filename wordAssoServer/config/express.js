@@ -2,6 +2,7 @@ var config = require('./config'),
 	express = require('express'),
 	bodyParser = require('body-parser'),
 	flash = require('connect-flash'),
+	path = require("path"),
 	session = require('express-session');
 	// MongoStore = require('connect-mongo')(session);
 
@@ -31,6 +32,7 @@ module.exports = function() {
 	app.use(express.static('./js'));
 	app.use(express.static('./css'));
 	app.use(express.static('./node_modules'));
+	// app.use('/node_modules', express.static(path.join(__dirname, 'node_modules')))
 
 	return app;
 };

@@ -2419,7 +2419,11 @@ function createSession(newSessionObj) {
 
     var wsObj;
 
-    debug("rxInObj\n" + jsonPrint(rxInObj));
+
+    if (!rxInObj.nodeId) {
+      console.log("*** RX NULL RESPONSE_WORD_OBJ NODEID ... SKIPPING\n" + jsonPrint(rxInObj));
+      return;
+    }
 
     wordStats.meter("wordsPerSecond").mark();
     wordStats.meter("wordsPerMinute").mark();
@@ -6060,225 +6064,48 @@ function getTwitterFriends(callback){
 // INIT APP ROUTING
 //=================================
 
+// app.use(express.static('public'));
+
 function initAppRouting(callback) {
 
   debugAppGet(chalkInfo(moment().format(compactDateTimeFormat) + " | INIT APP ROUTING"));
 
-  app.get("/js/require.js", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    debugAppGet("LOADING FILE: /js/require.js");
-    res.sendFile(__dirname + "/js/require.js");
-    return;
-  });
-
-  app.get("/node_modules/util/util.js", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    debugAppGet("LOADING FILE: /node_modules/util/util.js");
-    res.sendFile(__dirname + "/node_modules/util/util.js");
-    return;
-  });
-
-  app.get("/js/libs/d3.js", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    debugAppGet("LOADING FILE: /js/libs/d3.jss");
-    res.sendFile(__dirname + "/js/libs/d3.js");
-    return;
-  });
-
-  app.get("/js/libs/stringmap.js", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    debugAppGet("LOADING FILE: /js/libs/stringmap.jss");
-    res.sendFile(__dirname + "/js/libs/stringmap.js");
-    return;
-  });
-
-  app.get("/node_modules/moment/moment.js", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    debugAppGet("LOADING FILE: /node_modules/moment/moment.js");
-    res.sendFile(__dirname + "/node_modules/moment/moment.js");
-    return;
-  });
-
-  app.get("/node_modules/moment/min/moment.min.js", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    debugAppGet("LOADING FILE: /node_modules/moment/min/moment.min.js");
-    res.sendFile(__dirname + "/node_modules/moment/min/moment.min.js");
-    return;
-  });
-
-  app.get("/node_modules/node-cache/lib/node_cache.js", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    debugAppGet("LOADING FILE: /node_modules/node-cache/lib/node_cache.js");
-    res.sendFile(__dirname + "/node_modules/node-cache/lib/node_cache.js");
-    return;
-  });
-
-  app.get("/node_modules/socket.io/lib/socket.js", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    debugAppGet("LOADING FILE: /node_modules/socket.io/lib/socket.js");
-    res.sendFile(__dirname + "/node_modules/socket.io/lib/socket.js");
-    return;
-  });
-
-  app.get("/threecee.pem", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    debugAppGet("LOADING FILE: threecee.pem");
-    res.sendFile(__dirname + "/threecee.pem");
-    return;
-  });
-
-  // app.get("/instagram", function(req, res) {
-  //   debug(chalkInfo("get req\n" + req));
-  //   debugAppGet("LOADING PAGE: /instagram");
-  //   return;
+  // app.get("/", function(req, res) {
+  //   console.log(chalkRedBold("get req\n" + jsonPrint(req.params)));
+  //   console.log(chalkRedBold("LOADING PAGE: /"));
+  //   res.sendFile(__dirname + "/", function (err) {
+  //     if (err) {
+  //       console.error('GET:', __dirname + "/");
+  //     } 
+  //     else {
+  //       console.log(chalkInfo('SENT:', __dirname + "/"));
+  //     }
+  //   });
   // });
 
-  app.get("/", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    debugAppGet("LOADING PAGE: /");
-    debugAppGet("LOADING FILE: /sessionModular.html");
-    res.sendFile(__dirname + "/sessionModular.html");
-    return;
-  });
 
-  app.get("/controlPanel.html", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    debugAppGet("LOADING PAGE: /controlPanel.html");
-    res.sendFile(__dirname + "/controlPanel.html");
-    return;
-  });
-
-  app.get("/js/libs/controlPanel.js", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    console.log("LOADING PAGE: /js/libs/controlPanel.js");
-
-    fs.open(__dirname + "/js/libs/controlPanel.js", "r", function(error, fd) {
-
-      if (error) { debug(chalkInfo("ERROR FILE OPEN\n" + jsonPrint(error))); }
-
-      fs.readFile(__dirname + "/js/libs/controlPanel.js", function(error, data) {
-
-        if (error) { debug(chalkInfo("ERROR FILE READ\n" + jsonPrint(error))); }
-
-        var newData;
-        if (hostname.includes("google")){
-          newData = data.toString().replace("==SOURCE==", "http://word.threeceelabs.com");
-          console.log(chalkRed("UPDATE DEFAULT_SOURCE controlPanel.js: " + "http://word.threeceelabs.com"));
-        }
-        else {
-          newData = data.toString().replace("==SOURCE==", "http://localhost:9997");
-          console.log(chalkRed("UPDATE DEFAULT_SOURCE controlPanel.js: " + "http://localhost:9997"));
-        }
-        res.send(newData);
-        fs.close(fd);
-      });
+  app.get("/js/require.js", function(req, res, next) {
+    // console.log(chalkRedBold("get req\n" + jsonPrint(req.params)));
+    console.log(chalkRedBold("LOADING PAGE: /js/require.js"));
+    res.sendFile(__dirname + "/js/require.js", function (err) {
+      if (err) {
+        console.error('GET:', __dirname + "/js/require.js");
+      } 
+      else {
+        console.log(chalkInfo('SENT:', __dirname + "/js/require.js"));
+      }
     });
-    
-    return;
-  });
-
-  app.get("/admin", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    console.warn("LOADING PAGE: /admin/admin.html");
-    res.sendFile(__dirname + "/admin/admin.html");
-    return;
-  });
-
-  app.get("/admin/admin.js", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    console.warn("LOADING PAGE: /admin/admin.js");
-    res.sendFile(__dirname + "/admin/admin.js");
-    return;
-  });
-
-  app.get("/admin/admin.html", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    console.warn("LOADING PAGE: /admin/admin.html");
-    res.sendFile(__dirname + "/admin/admin.html");
-    return;
-  });
-
-  app.get("/admin/data/fake_users1.json", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    console.warn("LOADING PAGE: /admin/data/fake_users1.json");
-    res.sendFile(__dirname + "/admin/data/fake_users1.json");
-    return;
-  });
-
-  app.get("/js/libs/progressbar.js", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    res.sendFile(__dirname + "/js/libs/progressbar.js");
-    return;
-  });
-
-  app.get("/js/libs/progressbar.min.js", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    res.sendFile(__dirname + "/js/libs/progressbar.min.js");
-    return;
-  });
-
-  app.get("/node_modules/crosstab/src/crosstab.js", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    res.sendFile(__dirname + "/node_modules/crosstab/src/crosstab.js");
-    return;
-  });
-
-  app.get("/node_modules/lsbridge/src/lsbridge.js", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    res.sendFile(__dirname + "/node_modules/lsbridge/src/lsbridge.js");
-    return;
-  });
-
-  app.get("/css/rangeslider.css", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    res.sendFile(__dirname + "/css/rangeslider.css");
-    return;
-  });
-
-  app.get("/css/progressbar.css", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    res.sendFile(__dirname + "/css/progressbar.css");
-    return;
-  });
-
-  app.get("/node_modules/debug/node_modules/debug.js", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    res.sendFile(__dirname + "/node_modules/debug/node_modules/debug.js");
-    return;
-  });
-
-  app.get("/util", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    debugAppGet(chalkAlert("UTIL PAGE REQUEST ... RETURNING index.html ..."));
-    res.sendFile(__dirname + "/index.html");
-    return;
-  });
-
-  app.get("/test-user", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    debugAppGet(chalkAlert("TEST USER PAGE REQUEST ... RETURNING index.html ..."));
-    res.sendFile(__dirname + "/index.html");
-    return;
-  });
-
-  app.get("/wordAssoClient.js", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    debugAppGet("LOADING PAGE: /wordAssoClient.js");
-    res.sendFile(__dirname + "/wordAssoClient.js");
-    return;
   });
 
   app.get("/session.js", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
+    // console.log(chalkInfo("get req\n" + req));
     console.log("LOADING FILE: /session.js");
-
-    // fs.open(__dirname + "/session.js", "r", function(error, fd) {
-
-      // if (error) { debug(chalkInfo("ERROR FILE OPEN\n" + jsonPrint(error))); }
 
     fs.readFile(__dirname + "/session.js", function(error, data) {
 
-      if (error) { debug(chalkInfo("ERROR FILE OPEN\n" + jsonPrint(error))); }
+      if (error) { 
+        console.log(chalkError("ERROR FILE OPEN\n" + jsonPrint(error)));
+      }
 
       var newData;
       if (hostname.includes("google")){
@@ -6288,151 +6115,422 @@ function initAppRouting(callback) {
         newData = data.toString().replace("==SOURCE==", "http://localhost:9997");
       }
       res.send(newData);
-      // fs.close(fd);
+      res.end();
     });
-    // });
-
-    return;
   });
 
-  app.get("/session", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    debugAppGet("LOADING FILE: /sessionModular.html");
-    res.sendFile(__dirname + "/sessionModular.html");
-    return;
+  // app.get("/session", function(req, res, next) {
+  //   console.log(chalkRedBold("get req\n" + jsonPrint(req.params)));
+  //   console.log(chalkRedBold("LOADING PAGE: /session"));
+  //   res.sendFile(__dirname + "/session.js", function (err) {
+  //     if (err) {
+  //       console.error('GET:', __dirname + "/session.js");
+  //     } 
+  //     else {
+  //       console.log(chalkInfo('SENT:', __dirname + "/session.js"));
+  //     }
+  //   });
+  // });
+
+
+  app.get("/", function(req, res, next) {
+    // console.log(chalkRedBold("get req\n" + jsonPrint(req.params)));
+    console.log(chalkRedBold("LOADING PAGE: /sessionModular.html"));
+    res.sendFile(__dirname + "/sessionModular.html", function (err) {
+      if (err) {
+        console.error('GET:', __dirname + "/sessionModular.html");
+      } 
+      else {
+        console.log(chalkInfo('SENT:', __dirname + "/sessionModular.html"));
+      }
+    });
   });
 
-  app.get("/sessionModular", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    debugAppGet("LOADING FILE: /sessionModular.html");
-    res.sendFile(__dirname + "/sessionModular.html");
-    return;
+  app.get("/session", function(req, res, next) {
+    // console.log(chalkRedBold("get req\n" + jsonPrint(req.params)));
+    console.log(chalkRedBold("LOADING PAGE: /sessionModular.html"));
+    res.sendFile(__dirname + "/sessionModular.html", function (err) {
+      if (err) {
+        console.error('GET:', __dirname + "/sessionModular.html");
+      } 
+      else {
+        console.log(chalkInfo('SENT:', __dirname + "/sessionModular.html"));
+      }
+    });
   });
 
-  app.get("/js/libs/sessionViewTicker.js", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    debugAppGet("LOADING FILE: sessionViewTicker.js");
-    res.sendFile(__dirname + "/js/libs/sessionViewTicker.js");
-    return;
+  app.get("/js/libs/sessionViewTicker.js", function(req, res, next) {
+    // console.log(chalkRedBold("get req\n" + jsonPrint(req.params)));
+    console.log(chalkRedBold("LOADING PAGE: /js/libs/sessionViewTicker.js"));
+    res.sendFile(__dirname + "/js/libs/sessionViewTicker.js", function (err) {
+      if (err) {
+        console.error('GET:', __dirname + "/js/libs/sessionViewTicker.js");
+      } 
+      else {
+        console.log(chalkInfo('SENT:', __dirname + "/js/libs/sessionViewTicker.js"));
+      }
+    });
   });
 
-  app.get("/js/libs/sessionViewFlow.js", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    debugAppGet("LOADING FILE: sessionViewFlow.js");
-    res.sendFile(__dirname + "/js/libs/sessionViewFlow.js");
-    return;
+  app.get("/js/libs/sessionViewFlow.js", function(req, res, next) {
+    // console.log(chalkRedBold("get req\n" + jsonPrint(req.params)));
+    console.log(chalkRedBold("LOADING PAGE: /js/libs/sessionViewFlow.js"));
+    res.sendFile(__dirname + "/js/libs/sessionViewFlow.js", function (err) {
+      if (err) {
+        console.error('GET:', __dirname + "/js/libs/sessionViewFlow.js");
+      } 
+      else {
+        console.log(chalkInfo('SENT:', __dirname + "/js/libs/sessionViewFlow.js"));
+      }
+    });
   });
 
-  app.get("/js/libs/sessionViewTreemap.js", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    debugAppGet("LOADING FILE: sessionViewTreemap.js");
-    res.sendFile(__dirname + "/js/libs/sessionViewTreemap.js");
-    return;
+  app.get("/js/libs/sessionViewTreemap.js", function(req, res, next) {
+    // console.log(chalkRedBold("get req\n" + jsonPrint(req.params)));
+    console.log(chalkRedBold("LOADING PAGE: /js/libs/sessionViewTreemap.js"));
+    res.sendFile(__dirname + "/js/libs/sessionViewTreemap.js", function (err) {
+      if (err) {
+        console.error('GET:', __dirname + "/js/libs/sessionViewTreemap.js");
+      } 
+      else {
+        console.log(chalkInfo('SENT:', __dirname + "/js/libs/sessionViewTreemap.js"));
+      }
+    });
   });
 
-  app.get("/js/libs/sessionViewTreepack.js", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    debugAppGet("LOADING FILE: sessionViewTreepack.js");
-    res.sendFile(__dirname + "/js/libs/sessionViewTreepack.js");
-    return;
+  app.get("/js/libs/sessionViewTreepack.js", function(req, res, next) {
+    // console.log(chalkRedBold("get req\n" + jsonPrint(req.params)));
+    console.log(chalkRedBold("LOADING PAGE: /js/libs/sessionViewTreepack.js"));
+    res.sendFile(__dirname + "/js/libs/sessionViewTreepack.js", function (err) {
+      if (err) {
+        console.error('GET:', __dirname + "/js/libs/sessionViewTreepack.js");
+      } 
+      else {
+        console.log(chalkInfo('SENT:', __dirname + "/js/libs/sessionViewTreepack.js"));
+      }
+    });
   });
 
-  app.get("/js/libs/sessionViewHistogram.js", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    debugAppGet("LOADING FILE: sessionViewHistogram.js");
-    res.sendFile(__dirname + "/js/libs/sessionViewHistogram.js");
-    return;
+  app.get("/js/libs/sessionViewHistogram.js", function(req, res, next) {
+    // console.log(chalkRedBold("get req\n" + jsonPrint(req.params)));
+    console.log(chalkRedBold("LOADING PAGE: /js/libs/sessionViewHistogram.js"));
+    res.sendFile(__dirname + "/js/libs/sessionViewHistogram.js", function (err) {
+      if (err) {
+        console.error('GET:', __dirname + "/js/libs/sessionViewHistogram.js");
+      } 
+      else {
+        console.log(chalkInfo('SENT:', __dirname + "/js/libs/sessionViewHistogram.js"));
+      }
+    });
   });
 
-  app.get("/js/libs/sessionViewMedia.js", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    debugAppGet("LOADING FILE: sessionViewMedia.js");
-    res.sendFile(__dirname + "/js/libs/sessionViewMedia.js");
-    return;
+  app.get("/js/libs/sessionViewMedia.js", function(req, res, next) {
+    // console.log(chalkRedBold("get req\n" + jsonPrint(req.params)));
+    console.log(chalkRedBold("LOADING PAGE: /js/libs/sessionViewMedia.js"));
+    res.sendFile(__dirname + "/js/libs/sessionViewMedia.js", function (err) {
+      if (err) {
+        console.error('GET:', __dirname + "/js/libs/sessionViewMedia.js");
+      } 
+      else {
+        console.log(chalkInfo('SENT:', __dirname + "/js/libs/sessionViewMedia.js"));
+      }
+    });
   });
 
-  app.get("/js/libs/sessionViewForce.js", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    debugAppGet("LOADING FILE: sessionViewForce.js");
-    res.sendFile(__dirname + "/js/libs/sessionViewForce.js");
-    return;
+  app.get("/js/libs/sessionViewForce.js", function(req, res, next) {
+    // console.log(chalkRedBold("get req\n" + jsonPrint(req.params)));
+    console.log(chalkRedBold("LOADING PAGE: /js/libs/sessionViewForce.js"));
+    res.sendFile(__dirname + "/js/libs/sessionViewForce.js", function (err) {
+      if (err) {
+        console.error('GET:', __dirname + "/js/libs/sessionViewForce.js");
+      } 
+      else {
+        console.log(chalkInfo('SENT:', __dirname + "/js/libs/sessionViewForce.js"));
+      }
+    });
   });
 
-  app.get("/js/libs/sessionView3d.js", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    debugAppGet("LOADING FILE: sessionView3d.js");
-    res.sendFile(__dirname + "/js/libs/sessionView3d.js");
-    return;
+  app.get("/js/libs/sessionView.js", function(req, res, next) {
+    // console.log(chalkRedBold("get req\n" + jsonPrint(req.params)));
+    console.log(chalkRedBold("LOADING PAGE: /js/libs/sessionView.js"));
+    res.sendFile(__dirname + "/js/libs/sessionView.js", function (err) {
+      if (err) {
+        console.error('GET:', __dirname + "/js/libs/sessionView.js");
+      } 
+      else {
+        console.log(chalkInfo('SENT:', __dirname + "/js/libs/sessionView.js"));
+      }
+    });
   });
 
-  app.get("/js/libs/sessionView.js", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    debugAppGet("LOADING FILE: sessionView.js");
-    res.sendFile(__dirname + "/js/libs/sessionView.js");
-    return;
-  });
 
-  app.get("/css/main.css", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    res.sendFile(__dirname + "/css/main.css");
-    return;
-  });
+  // app.get("/js/libs/sessionView.js", function(req, res) {
+  //   debug(chalkInfo("get req\n" + req));
+  //   debugAppGet("LOADING FILE: sessionView.js");
+  //   res.sendFile(__dirname + "/js/libs/sessionView.js");
+  //   return;
+  // });
 
-  app.get("/css/style.css", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    res.sendFile(__dirname + "/css/style.css");
-    return;
-  });
 
-  app.get("/css/base.css", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    res.sendFile(__dirname + "/css/base.css");
-    return;
-  });
+  // app.get("/node_modules/util/util.js", function(req, res) {
+  //   debug(chalkInfo("get req\n" + req));
+  //   debugAppGet("LOADING FILE: /node_modules/util/util.js");
+  //   // res.sendFile(__dirname + "/node_modules/util/util.js");
+  //   res.sendFile(__dirname + "/node_modules/util/util.js", function (err) {
+  //     if (err) {
+  //       next(err);
+  //     } else {
+  //       console.log('Sent:', __dirname + "/node_modules/util/util.js");
+  //     }
+  //   });
+  //   // return;
+  // });
 
-  app.get("/node_modules/panzoom/dist/panzoom.min.js", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    res.sendFile(__dirname + "/node_modules/panzoom/dist/panzoom.min.js");
-    return;
-  });
+  // app.get("/js/libs/d3.js", function(req, res) {
+  //   debug(chalkInfo("get req\n" + req));
+  //   debugAppGet("LOADING FILE: /js/libs/d3.jss");
+  //   // res.sendFile(__dirname + "/js/libs/d3.js");
+  //   // return;
+  // });
 
-  app.get("/node_modules/panzoom/dist/panzoom.js", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    res.sendFile(__dirname + "/node_modules/panzoom/dist/panzoom.js");
-    return;
-  });
+  // app.get("/js/libs/stringmap.js", function(req, res) {
+  //   debug(chalkInfo("get req\n" + req));
+  //   debugAppGet("LOADING FILE: /js/libs/stringmap.jss");
+  //   // res.sendFile(__dirname + "/js/libs/stringmap.js");
+  //   // return;
+  // });
 
-  app.get("/node_modules/async/lib/async.js", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    res.sendFile(__dirname + "/node_modules/async/lib/async.js");
-    return;
-  });
+  // app.get("/node_modules/moment/moment.js", function(req, res) {
+  //   debug(chalkInfo("get req\n" + req));
+  //   debugAppGet("LOADING FILE: /node_modules/moment/moment.js");
+  //   // res.sendFile(__dirname + "/node_modules/moment/moment.js");
+  //   // return;
+  // });
 
-  app.get("/js/libs/Queue.js", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    res.sendFile(__dirname + "/js/libs/Queue.js");
-    return;
-  });
+  // app.get("/node_modules/moment/min/moment.min.js", function(req, res) {
+  //   debug(chalkInfo("get req\n" + req));
+  //   debugAppGet("LOADING FILE: /node_modules/moment/min/moment.min.js");
+  //   // res.sendFile(__dirname + "/node_modules/moment/min/moment.min.js");
+  //   // return;
+  // });
 
-  app.get("/node_modules/hashmap/hashmap.js", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    res.sendFile(__dirname + "/node_modules/hashmap/hashmap.js");
-    return;
-  });
+  // app.get("/node_modules/node-cache/lib/node_cache.js", function(req, res) {
+  //   debug(chalkInfo("get req\n" + req));
+  //   debugAppGet("LOADING FILE: /node_modules/node-cache/lib/node_cache.js");
+  //   // res.sendFile(__dirname + "/node_modules/node-cache/lib/node_cache.js");
+  //   // return;
+  // });
 
-  app.get("/favicon.ico", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    debugAppGet("LOADING PAGE: /favicon.ico");
-    res.sendFile(__dirname + "/favicon.png");
-    return;
-  });
+  // app.get("/node_modules/socket.io/lib/socket.js", function(req, res) {
+  //   debug(chalkInfo("get req\n" + req));
+  //   debugAppGet("LOADING FILE: /node_modules/socket.io/lib/socket.js");
+  //   // res.sendFile(__dirname + "/node_modules/socket.io/lib/socket.js");
+  //   // return;
+  // });
 
-  app.get("/favicon.png", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    debugAppGet("LOADING PAGE: /favicon.png");
-    res.sendFile(__dirname + "/favicon.png");
-    return;
-  });
+  // app.get("/threecee.pem", function(req, res) {
+  //   debug(chalkInfo("get req\n" + req));
+  //   debugAppGet("LOADING FILE: threecee.pem");
+  //   // res.sendFile(__dirname + "/threecee.pem");
+  //   // return;
+  // });
+
+  // // app.get("/instagram", function(req, res) {
+  // //   debug(chalkInfo("get req\n" + req));
+  // //   debugAppGet("LOADING PAGE: /instagram");
+  // //   return;
+  // // });
+
+
+  // app.get("/controlPanel.html", function(req, res) {
+  //   debug(chalkInfo("get req\n" + req));
+  //   debugAppGet("LOADING PAGE: /controlPanel.html");
+  //   // res.sendFile(__dirname + "/controlPanel.html");
+  //   // return;
+  // });
+
+  // app.get("/js/libs/controlPanel.js", function(req, res) {
+  //   debug(chalkInfo("get req\n" + req));
+  //   console.log("LOADING PAGE: /js/libs/controlPanel.js");
+
+  //   fs.open(__dirname + "/js/libs/controlPanel.js", "r", function(error, fd) {
+
+  //     if (error) { debug(chalkInfo("ERROR FILE OPEN\n" + jsonPrint(error))); }
+
+  //     fs.readFile(__dirname + "/js/libs/controlPanel.js", function(error, data) {
+
+  //       if (error) { debug(chalkInfo("ERROR FILE READ\n" + jsonPrint(error))); }
+
+  //       var newData;
+  //       if (hostname.includes("google")){
+  //         newData = data.toString().replace("==SOURCE==", "http://word.threeceelabs.com");
+  //         console.log(chalkRed("UPDATE DEFAULT_SOURCE controlPanel.js: " + "http://word.threeceelabs.com"));
+  //       }
+  //       else {
+  //         newData = data.toString().replace("==SOURCE==", "http://localhost:9997");
+  //         console.log(chalkRed("UPDATE DEFAULT_SOURCE controlPanel.js: " + "http://localhost:9997"));
+  //       }
+  //       res.send(newData);
+  //       res.end();
+  //       fs.close(fd);
+  //     });
+  //   });
+    
+  //   return;
+  // });
+
+  // app.get("/admin", function(req, res) {
+  //   debug(chalkInfo("get req\n" + req));
+  //   console.warn("LOADING PAGE: /admin/admin.html");
+  //   // res.sendFile(__dirname + "/admin/admin.html");
+  //   // return;
+  // });
+
+  // app.get("/admin/admin.js", function(req, res) {
+  //   debug(chalkInfo("get req\n" + req));
+  //   console.warn("LOADING PAGE: /admin/admin.js");
+  //   // res.sendFile(__dirname + "/admin/admin.js");
+  //   // return;
+  // });
+
+  // app.get("/admin/admin.html", function(req, res) {
+  //   debug(chalkInfo("get req\n" + req));
+  //   console.warn("LOADING PAGE: /admin/admin.html");
+  //   // res.sendFile(__dirname + "/admin/admin.html");
+  //   // return;
+  // });
+
+  // app.get("/admin/data/fake_users1.json", function(req, res) {
+  //   debug(chalkInfo("get req\n" + req));
+  //   console.warn("LOADING PAGE: /admin/data/fake_users1.json");
+  //   // res.sendFile(__dirname + "/admin/data/fake_users1.json");
+  //   // return;
+  // });
+
+  // app.get("/js/libs/progressbar.js", function(req, res) {
+  //   debug(chalkInfo("get req\n" + req));
+  //   // res.sendFile(__dirname + "/js/libs/progressbar.js");
+  //   // return;
+  // });
+
+  // app.get("/js/libs/progressbar.min.js", function(req, res) {
+  //   debug(chalkInfo("get req\n" + req));
+  //   // res.sendFile(__dirname + "/js/libs/progressbar.min.js");
+  //   // return;
+  // });
+
+  // app.get("/node_modules/crosstab/src/crosstab.js", function(req, res) {
+  //   debug(chalkInfo("get req\n" + req));
+  //   // res.sendFile(__dirname + "/node_modules/crosstab/src/crosstab.js");
+  //   // return;
+  // });
+
+  // app.get("/node_modules/lsbridge/src/lsbridge.js", function(req, res) {
+  //   debug(chalkInfo("get req\n" + req));
+  //   // res.sendFile(__dirname + "/node_modules/lsbridge/src/lsbridge.js");
+  //   // return;
+  // });
+
+  // app.get("/css/rangeslider.css", function(req, res) {
+  //   debug(chalkInfo("get req\n" + req));
+  //   // res.sendFile(__dirname + "/css/rangeslider.css");
+  //   // return;
+  // });
+
+  // app.get("/css/progressbar.css", function(req, res) {
+  //   debug(chalkInfo("get req\n" + req));
+  //   // res.sendFile(__dirname + "/css/progressbar.css");
+  //   // return;
+  // });
+
+  // app.get("/node_modules/debug/node_modules/debug.js", function(req, res) {
+  //   debug(chalkInfo("get req\n" + req));
+  //   // res.sendFile(__dirname + "/node_modules/debug/node_modules/debug.js");
+  //   // return;
+  // });
+
+  // app.get("/util", function(req, res) {
+  //   debug(chalkInfo("get req\n" + req));
+  //   debugAppGet(chalkAlert("UTIL PAGE REQUEST ... RETURNING index.html ..."));
+  //   // res.sendFile(__dirname + "/index.html");
+  //   // return;
+  // });
+
+  // app.get("/test-user", function(req, res) {
+  //   debug(chalkInfo("get req\n" + req));
+  //   debugAppGet(chalkAlert("TEST USER PAGE REQUEST ... RETURNING index.html ..."));
+  //   // res.sendFile(__dirname + "/index.html");
+  //   // return;
+  // });
+
+  // app.get("/wordAssoClient.js", function(req, res) {
+  //   debug(chalkInfo("get req\n" + req));
+  //   debugAppGet("LOADING PAGE: /wordAssoClient.js");
+  //   // res.sendFile(__dirname + "/wordAssoClient.js");
+  //   // return;
+  // });
+
+  // app.get("/css/main.css", function(req, res) {
+  //   debug(chalkInfo("get req\n" + req));
+  //   res.sendFile(__dirname + "/css/main.css");
+  //   return;
+  // });
+
+  // app.get("/css/style.css", function(req, res) {
+  //   debug(chalkInfo("get req\n" + req));
+  //   res.sendFile(__dirname + "/css/style.css");
+  //   return;
+  // });
+
+  // app.get("/css/base.css", function(req, res) {
+  //   debug(chalkInfo("get req\n" + req));
+  //   res.sendFile(__dirname + "/css/base.css");
+  //   return;
+  // });
+
+  // app.get("/node_modules/panzoom/dist/panzoom.min.js", function(req, res) {
+  //   debug(chalkInfo("get req\n" + req));
+  //   res.sendFile(__dirname + "/node_modules/panzoom/dist/panzoom.min.js");
+  //   return;
+  // });
+
+  // app.get("/node_modules/panzoom/dist/panzoom.js", function(req, res) {
+  //   debug(chalkInfo("get req\n" + req));
+  //   res.sendFile(__dirname + "/node_modules/panzoom/dist/panzoom.js");
+  //   return;
+  // });
+
+  // app.get("/node_modules/async/lib/async.js", function(req, res) {
+  //   debug(chalkInfo("get req\n" + req));
+  //   res.sendFile(__dirname + "/node_modules/async/lib/async.js");
+  //   return;
+  // });
+
+  // app.get("/js/libs/Queue.js", function(req, res) {
+  //   debug(chalkInfo("get req\n" + req));
+  //   res.sendFile(__dirname + "/js/libs/Queue.js");
+  //   return;
+  // });
+
+  // app.get("/node_modules/hashmap/hashmap.js", function(req, res) {
+  //   debug(chalkInfo("get req\n" + req));
+  //   res.sendFile(__dirname + "/node_modules/hashmap/hashmap.js");
+  //   return;
+  // });
+
+  // app.get("/favicon.ico", function(req, res) {
+  //   debug(chalkInfo("get req\n" + req));
+  //   debugAppGet("LOADING PAGE: /favicon.ico");
+  //   res.sendFile(__dirname + "/favicon.png");
+  //   return;
+  // });
+
+  // app.get("/favicon.png", function(req, res) {
+  //   debug(chalkInfo("get req\n" + req));
+  //   debugAppGet("LOADING PAGE: /favicon.png");
+  //   res.sendFile(__dirname + "/favicon.png");
+  //   return;
+  // });
 
   configEvents.emit("INIT_APP_ROUTING_COMPLETE");
   callback(null, "INIT_APP_ROUTING_COMPLETE");

@@ -307,7 +307,7 @@ function ViewTreemap() {
     var keywordTypeKeys;
 
     if (nodes.length === 0) {
-      ageRate = DEFAULT_AGE_RATE;
+      ageRate = config.defaultAgeRate;
     } 
     else if ((nodes.length > MAX_NODES) && (nodeAddQ.length <= MAX_RX_QUEUE)) {
       ageRate = adjustedAgeRateScale(nodes.length - MAX_NODES);
@@ -316,7 +316,7 @@ function ViewTreemap() {
       ageRate = adjustedAgeRateScale(nodeAddQ.length - MAX_RX_QUEUE);
     } 
     else {
-      ageRate = DEFAULT_AGE_RATE;
+      ageRate = config.defaultAgeRate;
     }
 
     maxAgeRate = Math.max(ageRate, maxAgeRate);

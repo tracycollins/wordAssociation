@@ -15,7 +15,10 @@ when new instance of word arrives, iterate thru array of nodes and create linksk
 // var DEFAULT_SOURCE = "http://word.threeceelabs.com";
 var DEFAULT_SOURCE = "==SOURCE==";  // will be updated by wordAssoServer.js on app.get
 
+var useStoredConfig = false;
+
 var PARENT_ID = "0047";
+var PAGE_LOAD_TIMEOUT = 1000;
 
 var KEYWORD_SCALE = { min: 0, max: 100 };
 
@@ -39,7 +42,26 @@ requirejs(["https://cdnjs.cloudflare.com/ajax/libs/d3/4.7.4/d3.min.js"], functio
     console.log("d3 LOADED");
     d3 = d3Loaded;
     initialize(function(){
+
+      PARENT_ID = config.sessionViewType;
+
       initializedFlag = true;
+
+      // var storedConfigName = "config_" + config.sessionViewType;
+      // var storedConfig = store.get(storedConfigName);
+
+      // if (storedConfig) {
+      //   console.debug("STORED CONFIG"
+      //     + " | " + storedConfigName
+      //     + "\nCURRENT CONFIG\n" + jsonPrint(config)
+      //     + "\n" + jsonPrint(storedConfig)
+      //   );
+      //   config = storedConfig;
+      // }
+      // else {
+      //   console.debug("STORED CONFIG NOT FOUND: " + storedConfigName);
+      // }
+
       createStatsTable(function(){
         statsTableFlag = true;
       });
@@ -148,43 +170,50 @@ MEDIAVIEW_DEFAULT.COLLISION_ITERATIONS = 1;
 
 
 var config = {};
-config.forceViewMode = DEFAULT_FORCEVIEW_MODE;
-config.fullscreenMode = false;
-config.pauseOnMouseMove = true;
-config.showStatsFlag = false;
-config.blahMode = DEFAULT_BLAH_MODE;
-config.antonymFlag = false;
-config.pauseFlag = false;
-config.sessionViewType = DEFAULT_SESSION_VIEW; // options: force, histogram ??
-config.maxWords = 100;
-config.testMode = false;
-config.removeDeadNodesFlag = true;
 
-config.defaultTransitionDuration = DEFAULT_TRANSITION_DURATION;
-config.defaultFontSizeMin = DEFAULT_FONT_SIZE_MIN;
-config.defaultFontSizeMax = DEFAULT_FONT_SIZE_MAX;
-config.defaultMaxAge = DEFAULT_MAX_AGE;
-config.defaultMultiplier = 1000.0;
-config.defaultBlahMode = DEFAULT_BLAH_MODE;
-config.defaultCharge = DEFAULT_CHARGE;
-config.defaultGravity = DEFAULT_GRAVITY;
-config.defaultForceXmultiplier = DEFAULT_FORCEX_MULTIPLIER;
-config.defaultForceXsessionMultiplier = DEFAULT_FORCEX_SESSION_MULTIPLIER;
-config.defaultForceYmultiplier = DEFAULT_FORCEY_MULTIPLIER;
-config.defaultCollisionRadiusMultiplier = DEFAULT_COLLISION_RADIUS_MULTIPLIER;
-config.defaultCollisionIterations = DEFAULT_COLLISION_ITERATIONS;
-config.defaultLinkStrength = DEFAULT_LINK_STRENGTH;
-config.defaultLinkDistance = DEFAULT_LINK_DISTANCE;
-config.defaultVelocityDecay = DEFAULT_VELOCITY_DECAY;
-config.defaultNodeRadius = DEFAULT_NODE_RADIUS;
-
-
-if ((config.sessionViewType == 'ticker') 
-  ) {
-  config.disableLinks = true;
+if (useStoredConfig) {
+  config = store.get("config");
 }
-else{
-  config.disableLinks = false;
+else {
+  config.defaultAgeRate = 1.0;
+  config.forceViewMode = DEFAULT_FORCEVIEW_MODE;
+  config.fullscreenMode = false;
+  config.pauseOnMouseMove = true;
+  config.showStatsFlag = false;
+  config.blahMode = DEFAULT_BLAH_MODE;
+  config.antonymFlag = false;
+  config.pauseFlag = false;
+  config.sessionViewType = DEFAULT_SESSION_VIEW; // options: force, histogram ??
+  config.maxWords = 100;
+  config.testMode = false;
+  config.removeDeadNodesFlag = true;
+
+  config.defaultTransitionDuration = DEFAULT_TRANSITION_DURATION;
+  config.defaultFontSizeMin = DEFAULT_FONT_SIZE_MIN;
+  config.defaultFontSizeMax = DEFAULT_FONT_SIZE_MAX;
+  config.defaultMaxAge = DEFAULT_MAX_AGE;
+  config.defaultMultiplier = 1000.0;
+  config.defaultBlahMode = DEFAULT_BLAH_MODE;
+  config.defaultCharge = DEFAULT_CHARGE;
+  config.defaultGravity = DEFAULT_GRAVITY;
+  config.defaultForceXmultiplier = DEFAULT_FORCEX_MULTIPLIER;
+  config.defaultForceXsessionMultiplier = DEFAULT_FORCEX_SESSION_MULTIPLIER;
+  config.defaultForceYmultiplier = DEFAULT_FORCEY_MULTIPLIER;
+  config.defaultCollisionRadiusMultiplier = DEFAULT_COLLISION_RADIUS_MULTIPLIER;
+  config.defaultCollisionIterations = DEFAULT_COLLISION_ITERATIONS;
+  config.defaultLinkStrength = DEFAULT_LINK_STRENGTH;
+  config.defaultLinkDistance = DEFAULT_LINK_DISTANCE;
+  config.defaultVelocityDecay = DEFAULT_VELOCITY_DECAY;
+  config.defaultNodeRadius = DEFAULT_NODE_RADIUS;
+
+
+  if ((config.sessionViewType == 'ticker') 
+    ) {
+    config.disableLinks = true;
+  }
+  else{
+    config.disableLinks = false;
+  }
 }
 
 var statsObj = {};
@@ -588,44 +617,47 @@ var sessionDragEndEvent = new CustomEvent(
 );
 
 
-function setLinkStrengthSliderValue(value) {
-  controlPanel.document.getElementById("linkStrengthSlider").value = value * controlPanel.document.getElementById("linkStrengthSlider").getAttribute("multiplier");
-  currentSessionView.updateLinkStrength(value);
-}
+// function setLinkStrengthSliderValue(value) {
+//   controlPanel.document.getElementById("linkStrengthSlider").value = value * controlPanel.document.getElementById("linkStrengthSlider").getAttribute("multiplier");
+//   currentSessionView.updateLinkStrength(value);
+// }
 
-function setvelocityDecaySliderValue(value) {
-  controlPanel.document.getElementById("velocityDecaySlider").value = value;
-  currentSessionView.updateVelocityDecay(value);
-}
+// function setvelocityDecaySliderValue(value) {
+//   controlPanel.document.getElementById("velocityDecaySlider").value = value;
+//   currentSessionView.updateVelocityDecay(value);
+// }
 
-function setGravitySliderValue(value) {
-  controlPanel.document.getElementById("gravitySlider").value = value;
-  currentSessionView.updateGravity(value);
-}
+// function setGravitySliderValue(value) {
+//   controlPanel.document.getElementById("gravitySlider").value = value;
+//   currentSessionView.updateGravity(value);
+// }
 
-function setChargeSliderValue(value) {
-  controlPanel.document.getElementById("chargeSlider").value = value;
-  currentSessionView.updateCharge(value);
-}
+// function setChargeSliderValue(value) {
+//   controlPanel.document.getElementById("chargeSlider").value = value;
+//   currentSessionView.updateCharge(value);
+// }
 
-function setMaxAgeSliderValue(value) {
-  controlPanel.document.getElementById("maxAgeSlider").value = value;
-  currentSessionView.setNodeMaxAge(value);
-}
+// function setMaxAgeSliderValue(value) {
+//   controlPanel.document.getElementById("maxAgeSlider").value = value;
+//   currentSessionView.setNodeMaxAge(value);
+// }
 
-function setFontSizeMinValue(value) {
-  controlPanel.document.getElementById("fontSizeMinSlider").value = value;
-  currentSessionView.setFontSizeMin(value);
-}
+// function setFontSizeMinValue(value) {
+//   controlPanel.document.getElementById("fontSizeMinSlider").value = value;
+//   currentSessionView.setFontSizeMin(value);
+// }
 
 
 window.onbeforeunload = function() {
-  if (controlPanelFlag) controlPanelWindow.close();
+  if (controlPanelFlag) { controlPanelWindow.close(); }
   controlPanelFlag = false;
 }
 
 function toggleControlPanel(){
-  console.warn("toggleControlPanel config.sessionViewType: " + config.sessionViewType);
+
+  var cnf = config;
+
+  console.warn("toggleControlPanel config\n" + jsonPrint(cnf));
 
   if (controlPanelFlag){
     controlPanelWindow.close();
@@ -636,23 +668,23 @@ function toggleControlPanel(){
   }
   else {
 
-    var cnf = {};
+    // var cnf = {};
 
-    cnf.defaultTransitionDuration = DEFAULT_TRANSITION_DURATION;
-    cnf.defaultFontSizeMin = DEFAULT_FONT_SIZE_MIN;
-    cnf.defaultFontSizeMax = DEFAULT_FONT_SIZE_MAX;
-    cnf.defaultMaxAge = DEFAULT_MAX_AGE;
-    cnf.defaultGravity = DEFAULT_GRAVITY;
-    cnf.defaultForceXmultiplier = DEFAULT_FORCEX_MULTIPLIER;
-    cnf.defaultForceXsessionMultiplier = DEFAULT_FORCEX_SESSION_MULTIPLIER;
-    cnf.defaultForceYmultiplier = DEFAULT_FORCEY_MULTIPLIER;
-    cnf.defaultCollisionRadiusMultiplier = DEFAULT_COLLISION_RADIUS_MULTIPLIER;
-    cnf.defaultCollisionIterations = DEFAULT_COLLISION_ITERATIONS;
-    cnf.defaultCharge = DEFAULT_CHARGE;
-    cnf.defaultLinkStrength = DEFAULT_LINK_STRENGTH;
-    cnf.defaultLinkDistance = DEFAULT_LINK_DISTANCE;
-    cnf.defaultVelocityDecay = DEFAULT_VELOCITY_DECAY;
-    cnf.defaultNodeRadius = DEFAULT_NODE_RADIUS;
+    // cnf.defaultTransitionDuration = DEFAULT_TRANSITION_DURATION;
+    // cnf.defaultFontSizeMin = DEFAULT_FONT_SIZE_MIN;
+    // cnf.defaultFontSizeMax = DEFAULT_FONT_SIZE_MAX;
+    // cnf.defaultMaxAge = DEFAULT_MAX_AGE;
+    // cnf.defaultGravity = DEFAULT_GRAVITY;
+    // cnf.defaultForceXmultiplier = DEFAULT_FORCEX_MULTIPLIER;
+    // cnf.defaultForceXsessionMultiplier = DEFAULT_FORCEX_SESSION_MULTIPLIER;
+    // cnf.defaultForceYmultiplier = DEFAULT_FORCEY_MULTIPLIER;
+    // cnf.defaultCollisionRadiusMultiplier = DEFAULT_COLLISION_RADIUS_MULTIPLIER;
+    // cnf.defaultCollisionIterations = DEFAULT_COLLISION_ITERATIONS;
+    // cnf.defaultCharge = DEFAULT_CHARGE;
+    // cnf.defaultLinkStrength = DEFAULT_LINK_STRENGTH;
+    // cnf.defaultLinkDistance = DEFAULT_LINK_DISTANCE;
+    // cnf.defaultVelocityDecay = DEFAULT_VELOCITY_DECAY;
+    // cnf.defaultNodeRadius = DEFAULT_NODE_RADIUS;
 
     var controlPanelInitWaitInterval;
 
@@ -746,11 +778,34 @@ function addFullscreenButton(){
   controlDiv.appendChild(fullscreenButton);
 }
 
+var configUpdateTimeOut;
+var configUpdateTimeOutInverval = 3000;
+
+
+function resetConfigUpdateTimeOut() {
+
+  var storedConfigName = "config_" + config.sessionViewType;
+
+  clearTimeout(configUpdateTimeOut);
+
+  configUpdateTimeOut = setTimeout(function() {
+
+    console.debug("STORE CONFIG\n" + jsonPrint(config));
+    store.set(storedConfigName, config);
+
+  }, configUpdateTimeOutInverval);
+}
+
 function controlPanelComm(event) {
 
   console.debug("CONTROL PANEL: " + event.origin); // prints: { message: 'Hello world!'} 
 
   var data = event.data;
+
+  if (data === "DisableHTML5Autoplay_Initialize") {
+    console.info("RX> CONTROL PANEL | DisableHTML5Autoplay_Initialize ... IGNORING ...");
+    return;
+  }
 
   // Do we trust the sender of this message?
   // if (event.origin !== "http://example.com:8080")
@@ -780,30 +835,37 @@ function controlPanelComm(event) {
       switch (data.id) {
         case 'blahToggleButton' :
           toggleBlah();
+          resetConfigUpdateTimeOut();
         break;
         case 'fullscreenToggleButton' :
           toggleFullScreen();
+          resetConfigUpdateTimeOut();
         break;
         case 'pauseToggleButton' :
           togglePause();
+          resetConfigUpdateTimeOut();
         break;
         case 'statsToggleButton' :
           toggleStats();
         break;
         case 'testModeToggleButton' :
           toggleTestMode();
+          resetConfigUpdateTimeOut();
         break;
         case 'disableLinksToggleButton' :
           toggleDisableLinks();
+          resetConfigUpdateTimeOut();
         break;
         case 'nodeCreateButton' :
           // createTextNode;
         break;
         case 'antonymToggleButton' :
           toggleAntonym();
+          resetConfigUpdateTimeOut();
         break;
         case 'removeDeadNodeToogleButton' :
           toggleRemoveDeadNode();
+          resetConfigUpdateTimeOut();
         break;
         default:
           console.error("CONTROL PANEL UNKNOWN TOGGLE BUTTON");
@@ -815,37 +877,47 @@ function controlPanelComm(event) {
       switch (data.id) {
         case 'transitionDurationSlider' :
           currentSessionView.updateTransitionDuration(data.value);
+          config.defaultTransitionDuration = data.value;
+          resetConfigUpdateTimeOut();
         break;
         case 'linkStrengthSlider' :
           currentSessionView.updateLinkStrength(data.value);
+          resetConfigUpdateTimeOut();
         break;
         case 'linkDistanceSlider' :
           currentSessionView.updateLinkDistance(data.value);
+          resetConfigUpdateTimeOut();
         break;
         case 'velocityDecaySlider' :
           currentSessionView.updateVelocityDecay(data.value);
+          resetConfigUpdateTimeOut();
         break;
         case 'gravitySlider' :
           currentSessionView.updateGravity(data.value);
+          resetConfigUpdateTimeOut();
         break;
         case 'chargeSlider' :
           currentSessionView.updateCharge(data.value);
+          resetConfigUpdateTimeOut();
         break;
         case 'maxAgeSlider' :
           currentSessionView.setNodeMaxAge(data.value);
+          resetConfigUpdateTimeOut();
         break;
         case 'fontSizeMinSlider' :
           currentSessionView.setFontSizeMin(data.value);
+          resetConfigUpdateTimeOut();
         break;
         case 'fontSizeMaxSlider' :
           currentSessionView.setFontSizeMax(data.value);
+          resetConfigUpdateTimeOut();
         break;
         default:
           console.error("UNKNOWN CONTROL PANEL ID: " + data.id + "\n" + jsonPrint(data));
       }
     break;
     case 'INIT':
-      console.info("TX> CONTROL PANEL LOOPBACK? | INIT ... IGNORING ...");
+      console.info("R< CONTROL PANEL LOOPBACK? | INIT ... IGNORING ...");
       break;
     default :
       console.error("R< ??? CONTROL PANEL OP UNDEFINED\n" + jsonPrint(data));
@@ -3300,6 +3372,25 @@ function loadViewType(svt, callback) {
 
   console.log("LOADING SESSION VIEW TYPE: " + svt);
 
+  var storedConfigName = "config_" + svt;
+  var storedConfig = store.get(storedConfigName);
+
+  if (storedConfig) {
+    console.debug("STORED CONFIG"
+      + " | " + storedConfigName
+      + "\nCURRENT CONFIG\n" + jsonPrint(config)
+      + "\n" + jsonPrint(storedConfig)
+    );
+
+    var storedConfigArgs = Object.keys(storedConfig);
+
+    storedConfigArgs.forEach(function(arg){
+      config[arg] = storedConfig[arg];
+      console.log("--> STORED CONFIG | " + arg + ": " + config[arg]);
+    });
+
+  }
+
   switch (svt) {
     case 'ticker':
       config.sessionViewType = "ticker";
@@ -3504,35 +3595,74 @@ function initialize(callback) {
 
           loadViewType(config.sessionViewType, function() {
 
-            console.warn(config.sessionViewType);
+            console.warn("SESSION VIEW TYPE: " + config.sessionViewType);
             currentSessionView.resize();
 
-            if (config.sessionViewType == 'ticker') {
-              currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-            }
-            if (config.sessionViewType == 'flow') {
-              initUpdateSessionsInterval(50);
-              currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-            }
-            if (config.sessionViewType == 'treemap') {
-              currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-            }
-            if (config.sessionViewType == 'treepack') {
-              initUpdateSessionsInterval(50);
-              currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-            }
-            if (config.sessionViewType == 'histogram') {
-              currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-            }
-            if (config.sessionViewType == 'force') {
-              currentSessionView.setNodeMaxAge(FORCE_MAX_AGE);
-              initUpdateSessionsInterval(50);
-            }
-            if (config.sessionViewType == 'media') {
-              currentSessionView.setNodeMaxAge(MEDIA_MAX_AGE);
-            }
+            var storedConfigName = "config_" + config.sessionViewType;
+            var storedConfig = store.get(storedConfigName);
 
-            store.set("config", config);
+            if (storedConfig) {
+              console.debug("STORED CONFIG"
+                + " | " + storedConfigName
+                + "\nCURRENT CONFIG\n" + jsonPrint(config)
+                + "\n" + jsonPrint(storedConfig)
+              );
+              config = storedConfig;
+
+              if (config.sessionViewType == 'ticker') {
+                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
+              }
+              if (config.sessionViewType == 'flow') {
+                initUpdateSessionsInterval(50);
+                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
+              }
+              if (config.sessionViewType == 'treemap') {
+                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
+              }
+              if (config.sessionViewType == 'treepack') {
+                initUpdateSessionsInterval(50);
+                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
+              }
+              if (config.sessionViewType == 'histogram') {
+                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
+              }
+              if (config.sessionViewType == 'force') {
+                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
+                initUpdateSessionsInterval(50);
+              }
+              if (config.sessionViewType == 'media') {
+                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
+              }
+
+            }
+            else {
+              console.debug("STORED CONFIG NOT FOUND: " + storedConfigName);
+
+              if (config.sessionViewType == 'ticker') {
+                currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
+              }
+              if (config.sessionViewType == 'flow') {
+                initUpdateSessionsInterval(50);
+                currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
+              }
+              if (config.sessionViewType == 'treemap') {
+                currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
+              }
+              if (config.sessionViewType == 'treepack') {
+                initUpdateSessionsInterval(50);
+                currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
+              }
+              if (config.sessionViewType == 'histogram') {
+                currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
+              }
+              if (config.sessionViewType == 'force') {
+                currentSessionView.setNodeMaxAge(FORCE_MAX_AGE);
+                initUpdateSessionsInterval(50);
+              }
+              if (config.sessionViewType == 'media') {
+                currentSessionView.setNodeMaxAge(MEDIA_MAX_AGE);
+              }
+            }
 
             currentSessionView.initD3timer();
 
@@ -3544,9 +3674,9 @@ function initialize(callback) {
             setTimeout(function() {
               console.log("END PAGE LOAD TIMEOUT");
               pageLoadedTimeIntervalFlag = false;
-              if (!config.showStatsFlag) displayStats(false, palette.white);
-              if (!config.showStatsFlag) displayControl(false);
-            }, 5000);
+              if (!config.showStatsFlag) { displayStats(false, palette.white); }
+              if (!config.showStatsFlag) { displayControl(false); }
+            }, PAGE_LOAD_TIMEOUT);
 
             callback();
           });
@@ -3559,47 +3689,102 @@ function initialize(callback) {
 
           loadViewType(config.sessionViewType, function() {
 
-            if (config.sessionViewType == 'force') {
-              currentSessionView.setNodeMaxAge(FORCE_MAX_AGE);
-              initIgnoreWordsHashMap(function() {
-                console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+            var storedConfigName = "config_" + config.sessionViewType;
+            var storedConfig = store.get(storedConfigName);
+
+            if (storedConfig) {
+
+              console.debug("STORED CONFIG"
+                + " | " + storedConfigName
+                + "\nCURRENT CONFIG\n" + jsonPrint(config)
+                + "\n" + jsonPrint(storedConfig)
+              );
+
+              config = storedConfig;
+
+              if (config.sessionViewType == 'force') {
+                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
+                initIgnoreWordsHashMap(function() {
+                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+                  initUpdateSessionsInterval(50);
+                });
+              }
+              if (config.sessionViewType == 'ticker') {
+                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
+                initIgnoreWordsHashMap(function() {
+                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+                });
+              }
+              if (config.sessionViewType == 'flow') {
+                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
                 initUpdateSessionsInterval(50);
-              });
+                initIgnoreWordsHashMap(function() {
+                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+                });
+              }
+              if (config.sessionViewType == 'treemap') {
+                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
+                initIgnoreWordsHashMap(function() {
+                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+                });
+              }
+              if (config.sessionViewType == 'treepack') {
+                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
+                initUpdateSessionsInterval(50);
+                initIgnoreWordsHashMap(function() {
+                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+                });
+              }
+              if (config.sessionViewType == 'histogram') {
+                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
+                initIgnoreWordsHashMap(function() {
+                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+                });
+              }
             }
-            if (config.sessionViewType == 'ticker') {
-              currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-              initIgnoreWordsHashMap(function() {
-                console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-              });
-            }
-            if (config.sessionViewType == 'flow') {
-              currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-              initUpdateSessionsInterval(50);
-              initIgnoreWordsHashMap(function() {
-                console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-              });
-            }
-            if (config.sessionViewType == 'treemap') {
-              currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-              initIgnoreWordsHashMap(function() {
-                console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-              });
-            }
-            if (config.sessionViewType == 'treepack') {
-              currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-              initUpdateSessionsInterval(50);
-              initIgnoreWordsHashMap(function() {
-                console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-              });
-            }
-            if (config.sessionViewType == 'histogram') {
-              currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-              initIgnoreWordsHashMap(function() {
-                console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-              });
+            else {
+              if (config.sessionViewType == 'force') {
+                currentSessionView.setNodeMaxAge(FORCE_MAX_AGE);
+                initIgnoreWordsHashMap(function() {
+                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+                  initUpdateSessionsInterval(50);
+                });
+              }
+              if (config.sessionViewType == 'ticker') {
+                currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
+                initIgnoreWordsHashMap(function() {
+                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+                });
+              }
+              if (config.sessionViewType == 'flow') {
+                currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
+                initUpdateSessionsInterval(50);
+                initIgnoreWordsHashMap(function() {
+                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+                });
+              }
+              if (config.sessionViewType == 'treemap') {
+                currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
+                initIgnoreWordsHashMap(function() {
+                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+                });
+              }
+              if (config.sessionViewType == 'treepack') {
+                currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
+                initUpdateSessionsInterval(50);
+                initIgnoreWordsHashMap(function() {
+                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+                });
+              }
+              if (config.sessionViewType == 'histogram') {
+                currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
+                initIgnoreWordsHashMap(function() {
+                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+                });
+              }
             }
 
-            store.set("config", config);
+            // store.set("config", config);
 
             currentSessionView.simulationControl('START');
             currentSessionView.resize();
@@ -3614,7 +3799,7 @@ function initialize(callback) {
               pageLoadedTimeIntervalFlag = false;
               if (!config.showStatsFlag) displayStats(false, palette.white);
               if (!config.showStatsFlag) displayControl(false);
-            }, 5000);
+            }, PAGE_LOAD_TIMEOUT);
 
             callback();
 
@@ -3629,46 +3814,100 @@ function initialize(callback) {
 
         loadViewType(config.sessionViewType, function() {
 
-          if (config.sessionViewType == 'force') {
-            currentSessionView.setNodeMaxAge(FORCE_MAX_AGE);
-            initUpdateSessionsInterval(50);
-            initIgnoreWordsHashMap(function() {
-              console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-            });
-          }
-          if (config.sessionViewType == 'ticker') {
-            currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-            initIgnoreWordsHashMap(function() {
-              console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-            });
-          }
-          if (config.sessionViewType == 'flow') {
-            currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-            initIgnoreWordsHashMap(function() {
-              console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-            });
-          }
-          if (config.sessionViewType == 'treemap') {
-            currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-            initIgnoreWordsHashMap(function() {
-              console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-            });
-          }
-          if (config.sessionViewType == 'treepack') {
-            currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-            initUpdateSessionsInterval(50);
-            initIgnoreWordsHashMap(function() {
-              console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-            });
-          }
-          if (config.sessionViewType == 'histogram') {
-            currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-            initIgnoreWordsHashMap(function() {
-              console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-            });
-          }
+            var storedConfigName = "config_" + config.sessionViewType;
+            var storedConfig = store.get(storedConfigName);
 
-          store.set("config", config);
+            if (storedConfig) {
+
+              console.debug("STORED CONFIG"
+                + " | " + storedConfigName
+                + "\nCURRENT CONFIG\n" + jsonPrint(config)
+                + "\n" + jsonPrint(storedConfig)
+              );
+
+              config = storedConfig;
+
+              if (config.sessionViewType == 'force') {
+                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
+                initUpdateSessionsInterval(50);
+                initIgnoreWordsHashMap(function() {
+                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+                });
+              }
+              if (config.sessionViewType == 'ticker') {
+                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
+                initIgnoreWordsHashMap(function() {
+                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+                });
+              }
+              if (config.sessionViewType == 'flow') {
+                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
+                initIgnoreWordsHashMap(function() {
+                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+                });
+              }
+              if (config.sessionViewType == 'treemap') {
+                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
+                initIgnoreWordsHashMap(function() {
+                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+                });
+              }
+              if (config.sessionViewType == 'treepack') {
+                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
+                initUpdateSessionsInterval(50);
+                initIgnoreWordsHashMap(function() {
+                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+                });
+              }
+              if (config.sessionViewType == 'histogram') {
+                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
+                initIgnoreWordsHashMap(function() {
+                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+                });
+              }
+            }
+            else {
+              if (config.sessionViewType == 'force') {
+                currentSessionView.setNodeMaxAge(FORCE_MAX_AGE);
+                initUpdateSessionsInterval(50);
+                initIgnoreWordsHashMap(function() {
+                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+                });
+              }
+              if (config.sessionViewType == 'ticker') {
+                currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
+                initIgnoreWordsHashMap(function() {
+                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+                });
+              }
+              if (config.sessionViewType == 'flow') {
+                currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
+                initIgnoreWordsHashMap(function() {
+                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+                });
+              }
+              if (config.sessionViewType == 'treemap') {
+                currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
+                initIgnoreWordsHashMap(function() {
+                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+                });
+              }
+              if (config.sessionViewType == 'treepack') {
+                currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
+                initUpdateSessionsInterval(50);
+                initIgnoreWordsHashMap(function() {
+                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+                });
+              }
+              if (config.sessionViewType == 'histogram') {
+                currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
+                initIgnoreWordsHashMap(function() {
+                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+                });
+              }
+            }
+
+          // store.set("config", config);
 
           currentSessionView.initD3timer();
           currentSessionView.resize();
@@ -3681,9 +3920,9 @@ function initialize(callback) {
           setTimeout(function() {
             console.error("END PAGE LOAD TIMEOUT");
             pageLoadedTimeIntervalFlag = false;
-            if (!config.showStatsFlag) displayStats(false, palette.white);
-            if (!config.showStatsFlag) displayControl(false);
-          }, 5000);
+            if (!config.showStatsFlag) { displayStats(false, palette.white); }
+            if (!config.showStatsFlag) { displayControl(false); }
+          }, PAGE_LOAD_TIMEOUT);
         });
 
         callback();

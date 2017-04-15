@@ -31,7 +31,6 @@ module.exports = function() {
 	app.use(express.static('./js'));
 	app.use(express.static('./css'));
 	app.use(express.static('./node_modules'));
-	// app.use(express.static('./'));
 
 	return app;
 };

@@ -13,7 +13,6 @@ function ViewTreepack() {
   var currentHashtagMaxMentions = 2;
   var deadNodesHash = {};
 
-
   var transitionDuration = DEFAULT_TRANSITION_DURATION;
   var blahMode = DEFAULT_BLAH_MODE;
   var charge = DEFAULT_CHARGE;
@@ -732,14 +731,22 @@ function ViewTreepack() {
       currentNode = {};
 
       if (localNodeHashMap.has(newNode.nodeId)){
+
         currentNode = localNodeHashMap.get(newNode.nodeId);
+
         currentNode.newFlag = true;
         currentNode.age = 1e-6;
         currentNode.ageMaxRatio = 1e-6;
+        currentNode.isTwitterUser = newNode.isTwitterUser;
+        currentNode.isTrendingTopic = newNode.isTrendingTopic;
+        currentNode.isKeyword = newNode.isKeyword;
+        currentNode.keywordColor = newNode.keywordColor;
         currentNode.isTopTen = newNode.isTopTen;
         currentNode.mentions = newNode.mentions;
         currentNode.ageUpdated = moment().valueOf();
+
         localNodeHashMap.set(currentNode.nodeId, currentNode);
+        
         callback(null, nodesModifiedFlag);
       }
       else {

@@ -6292,6 +6292,18 @@ function initAppRouting(callback) {
     });
   });
 
+  app.get("/css/main.css", function(req, res, next) {
+    console.log(chalkRedBold("LOADING PAGE: /css/main.css"));
+    res.sendFile(__dirname + "/css/main.css", function (err) {
+      if (err) {
+        console.error('GET:', __dirname + "/css/main.css");
+      } 
+      else {
+        console.log(chalkInfo('SENT:', __dirname + "/css/main.css"));
+      }
+    });
+  });
+
   app.get("/assets/images/userBackgroundBorder.png", function(req, res, next) {
     // console.log(chalkRedBold("get req\n" + jsonPrint(req.params)));
     console.log(chalkRedBold("LOADING PAGE: /public/assets/images/userBackgroundBorder.png"));
@@ -6317,6 +6329,55 @@ function initAppRouting(callback) {
       }
     });
   });
+
+  app.get("/controlPanel.html", function(req, res, next) {
+    // console.log(chalkRedBold("get req\n" + jsonPrint(req.params)));
+    console.log(chalkRedBold("LOADING PAGE: /controlPanel.html"));
+    res.sendFile(__dirname + "/controlPanel.html", function (err) {
+      if (err) {
+        console.error('GET:', __dirname + "/controlPanel.html");
+      } 
+      else {
+        console.log(chalkInfo('SENT:', __dirname + "/controlPanel.html"));
+      }
+    });
+  });
+
+  app.get("/js/libs/controlPanel.js", function(req, res) {
+    console.log("LOADING PAGE: /js/libs/controlPanel.js");
+
+    fs.open(__dirname + "/js/libs/controlPanel.js", "r", function(error, fd) {
+
+      if (error) { debug(chalkInfo("ERROR FILE OPEN\n" + jsonPrint(error))); }
+
+      fs.readFile(__dirname + "/js/libs/controlPanel.js", function(error, data) {
+
+        if (error) { debug(chalkInfo("ERROR FILE READ\n" + jsonPrint(error))); }
+
+        var newData;
+        if (hostname.includes("google")){
+          newData = data.toString().replace("==SOURCE==", "http://word.threeceelabs.com");
+          console.log(chalkRed("UPDATE DEFAULT_SOURCE controlPanel.js: " + "http://word.threeceelabs.com"));
+        }
+        else {
+          newData = data.toString().replace("==SOURCE==", "http://localhost:9997");
+          console.log(chalkRed("UPDATE DEFAULT_SOURCE controlPanel.js: " + "http://localhost:9997"));
+        }
+        res.send(newData);
+        res.end();
+        fs.close(fd);
+      });
+    });
+    
+    return;
+  });
+
+  // app.get("/controlPanel.html", function(req, res) {
+  //   debug(chalkInfo("get req\n" + req));
+  //   debugAppGet("LOADING PAGE: /controlPanel.html");
+  //   // res.sendFile(__dirname + "/controlPanel.html");
+  //   // return;
+  // });
 
   // app.get("/node_modules/panzoom/dist/panzoom.min.js", function(req, res) {
   //   debug(chalkInfo("get req\n" + req));
@@ -6403,42 +6464,6 @@ function initAppRouting(callback) {
   // // });
 
 
-  // app.get("/controlPanel.html", function(req, res) {
-  //   debug(chalkInfo("get req\n" + req));
-  //   debugAppGet("LOADING PAGE: /controlPanel.html");
-  //   // res.sendFile(__dirname + "/controlPanel.html");
-  //   // return;
-  // });
-
-  // app.get("/js/libs/controlPanel.js", function(req, res) {
-  //   debug(chalkInfo("get req\n" + req));
-  //   console.log("LOADING PAGE: /js/libs/controlPanel.js");
-
-  //   fs.open(__dirname + "/js/libs/controlPanel.js", "r", function(error, fd) {
-
-  //     if (error) { debug(chalkInfo("ERROR FILE OPEN\n" + jsonPrint(error))); }
-
-  //     fs.readFile(__dirname + "/js/libs/controlPanel.js", function(error, data) {
-
-  //       if (error) { debug(chalkInfo("ERROR FILE READ\n" + jsonPrint(error))); }
-
-  //       var newData;
-  //       if (hostname.includes("google")){
-  //         newData = data.toString().replace("==SOURCE==", "http://word.threeceelabs.com");
-  //         console.log(chalkRed("UPDATE DEFAULT_SOURCE controlPanel.js: " + "http://word.threeceelabs.com"));
-  //       }
-  //       else {
-  //         newData = data.toString().replace("==SOURCE==", "http://localhost:9997");
-  //         console.log(chalkRed("UPDATE DEFAULT_SOURCE controlPanel.js: " + "http://localhost:9997"));
-  //       }
-  //       res.send(newData);
-  //       res.end();
-  //       fs.close(fd);
-  //     });
-  //   });
-    
-  //   return;
-  // });
 
   // app.get("/admin", function(req, res) {
   //   debug(chalkInfo("get req\n" + req));

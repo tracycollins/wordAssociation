@@ -637,7 +637,7 @@ function ViewTreepack() {
       .transition()
       .duration(transitionDuration)
       .attr("r", 0)
-      .style("opacity", 0)
+      // .style("opacity", 0)
       .remove();
 
     callback();
@@ -708,7 +708,7 @@ function ViewTreepack() {
       .transition()
       .duration(transitionDuration)
       .style("font-size", 0)
-      .style("opacity", 0)
+      // .style("opacity", 0)
       .remove();
 
     callback();
@@ -746,7 +746,7 @@ function ViewTreepack() {
         currentNode.ageUpdated = moment().valueOf();
 
         localNodeHashMap.set(currentNode.nodeId, currentNode);
-        
+
         callback(null, nodesModifiedFlag);
       }
       else {

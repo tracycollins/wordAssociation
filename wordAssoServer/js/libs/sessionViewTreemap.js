@@ -803,6 +803,12 @@ function ViewTreemap() {
         currentNode.newFlag = true;
         currentNode.age = 1e-6;
         currentNode.ageMaxRatio = 1e-6;
+        currentNode.isTwitterUser = newNode.isTwitterUser;
+        currentNode.isTrendingTopic = newNode.isTrendingTopic;
+        currentNode.isKeyword = newNode.isKeyword;
+        currentNode.keywordColor = newNode.keywordColor;
+        currentNode.isTopTen = newNode.isTopTen;
+        currentNode.mentions = newNode.mentions;
       }
       else {
         // console.warn("localNodeHashMap MISS: " + newNode.nodeId);

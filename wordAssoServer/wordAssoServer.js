@@ -6263,6 +6263,64 @@ function initAppRouting(callback) {
     });
   });
 
+  app.get("/node_modules/panzoom/dist/panzoom.min.js", function(req, res, next) {
+    // console.log(chalkRedBold("get req\n" + jsonPrint(req.params)));
+    console.log(chalkRedBold("LOADING PAGE: /node_modules/panzoom/dist/panzoom.min.js"));
+    res.sendFile(__dirname + "/node_modules/panzoom/dist/panzoom.min.js", function (err) {
+      if (err) {
+        console.error('GET:', __dirname + "/node_modules/panzoom/dist/panzoom.min.js");
+      } 
+      else {
+        console.log(chalkInfo('SENT:', __dirname + "/node_modules/panzoom/dist/panzoom.min.js"));
+      }
+    });
+  });
+
+  app.get("/css/base.css", function(req, res, next) {
+    // console.log(chalkRedBold("get req\n" + jsonPrint(req.params)));
+    console.log(chalkRedBold("LOADING PAGE: /css/base.css"));
+    res.sendFile(__dirname + "/css/base.css", function (err) {
+      if (err) {
+        console.error('GET:', __dirname + "/css/base.css");
+      } 
+      else {
+        console.log(chalkInfo('SENT:', __dirname + "/css/base.css"));
+      }
+    });
+  });
+
+  app.get("/assets/images/userBackgroundBorder.png", function(req, res, next) {
+    // console.log(chalkRedBold("get req\n" + jsonPrint(req.params)));
+    console.log(chalkRedBold("LOADING PAGE: /public/assets/images/userBackgroundBorder.png"));
+    res.sendFile(__dirname + "/public/assets/images/userBackgroundBorder.png", function (err) {
+      if (err) {
+        console.error('GET:', __dirname + "/public/assets/images/userBackgroundBorder.png");
+      } 
+      else {
+        console.log(chalkInfo('SENT:', __dirname + "/public/assets/images/userBackgroundBorder.png"));
+      }
+    });
+  });
+
+  app.get("/assets/images/mediaBackgroundBorder.png", function(req, res, next) {
+    // console.log(chalkRedBold("get req\n" + jsonPrint(req.params)));
+    console.log(chalkRedBold("LOADING PAGE: /public/assets/images/mediaBackgroundBorder.png"));
+    res.sendFile(__dirname + "/public/assets/images/mediaBackgroundBorder.png", function (err) {
+      if (err) {
+        console.error('GET:', __dirname + "/public/assets/images/mediaBackgroundBorder.png");
+      } 
+      else {
+        console.log(chalkInfo('SENT:', __dirname + "/public/assets/images/mediaBackgroundBorder.png"));
+      }
+    });
+  });
+
+  // app.get("/node_modules/panzoom/dist/panzoom.min.js", function(req, res) {
+  //   debug(chalkInfo("get req\n" + req));
+  //   res.sendFile(__dirname + "/node_modules/panzoom/dist/panzoom.min.js");
+  //   return;
+  // });
+
 
   // app.get("/js/libs/sessionView.js", function(req, res) {
   //   debug(chalkInfo("get req\n" + req));

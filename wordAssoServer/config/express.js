@@ -27,7 +27,11 @@ module.exports = function() {
 	require('../app/routes/word.server.routes.js')(app);
 	require('../app/routes/phrase.server.routes.js')(app);
 
-	app.use(express.static('./public'));
+	app.use(express.static('./admin'));
+	app.use(express.static('./js'));
+	app.use(express.static('./css'));
+	app.use(express.static('./node_modules'));
+	app.use(express.static('./'));
 
 	return app;
 };

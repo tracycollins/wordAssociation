@@ -61,6 +61,13 @@ console.log("config\n" + jsonPrint(config));
     document.getElementById("linkDistanceSliderText").innerHTML = value.toFixed(3);
   }
 
+  this.setTransitionDurationSliderValue = function (value) {
+    if (!document.getElementById("transitionDurationSlider")) { return; }
+    console.log("setTransitionDurationSliderValue: " + value);
+    document.getElementById("transitionDurationSlider").value = (value* document.getElementById("transitionDurationSlider").getAttribute("multiplier"));
+    document.getElementById("transitionDurationSliderText").innerHTML = value.toFixed(3);
+  }
+
   this.setGravitySliderValue = function (value) {
     if (!document.getElementById("gravitySlider")) { return; }
     console.log("setGravitySliderValue: " + value);
@@ -127,14 +134,16 @@ console.log("config\n" + jsonPrint(config));
       parentWindow.postMessage({op: buttonConfig.mode, id: currentButton.id}, DEFAULT_SOURCE);
 
       if (currentButton.id == 'resetButton'){
-        self.setLinkStrengthSliderValue(config.defaultLinkStrength);
-        self.setLinkDistanceSliderValue(config.defaultLinkDistance);
-        self.setGravitySliderValue(config.defaultGravity);
-        self.setChargeSliderValue(config.defaultCharge);
-        self.setVelocityDecaySliderValue(config.defaultVelocityDecay);
-        self.setMaxAgeSliderValue(config.defaultMaxAge);
-        self.setFontSizeMinSliderValue(config.defaultFontSizeMin);
-        self.setFontSizeMaxSliderValue(config.defaultFontSizeMax);
+        console.warn("RESET");
+        self.setLinkStrengthSliderValue(parentWindow.DEFAULT_LINK_STRENGTH);
+        self.setLinkDistanceSliderValue(parentWindow.DEFAULT_LINK_DISTANCE);
+        self.setTransitionDurationSliderValue(parentWindow.DEFAULT_TRANSITION_DURATION);
+        self.setGravitySliderValue(parentWindow.DEFAULT_GRAVITY);
+        self.setChargeSliderValue(parentWindow.DEFAULT_CHARGE);
+        self.setVelocityDecaySliderValue(parentWindow.DEFAULT_VELOCITY_DECAY);
+        self.setMaxAgeSliderValue(parentWindow.DEFAULT_MAX_AGE);
+        self.setFontSizeMinSliderValue(parentWindow.DEFAULT_FONT_SIZE_MIN);
+        self.setFontSizeMaxSliderValue(parentWindow.DEFAULT_FONT_SIZE_MAX);
       }
     }
   };
@@ -417,7 +426,7 @@ console.log("config\n" + jsonPrint(config));
       text: maxAgeSlider.value + ' ms'
     }
 
-console.log("config\n" + jsonPrint(config));
+    console.log("config\n" + jsonPrint(config));
 
     var fontSizeMinSlider = {
       type: 'SLIDER',

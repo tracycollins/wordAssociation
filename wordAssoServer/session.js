@@ -49,21 +49,6 @@ requirejs(["https://cdnjs.cloudflare.com/ajax/libs/d3/4.7.4/d3.min.js"], functio
 
       initializedFlag = true;
 
-      // var storedConfigName = "config_" + config.sessionViewType;
-      // var storedConfig = store.get(storedConfigName);
-
-      // if (storedConfig) {
-      //   console.debug("STORED CONFIG"
-      //     + " | " + storedConfigName
-      //     + "\nCURRENT CONFIG\n" + jsonPrint(config)
-      //     + "\n" + jsonPrint(storedConfig)
-      //   );
-      //   config = storedConfig;
-      // }
-      // else {
-      //   console.debug("STORED CONFIG NOT FOUND: " + storedConfigName);
-      // }
-
       createStatsTable(function(){
         statsTableFlag = true;
       });
@@ -105,7 +90,7 @@ var MEDIA_MAX_AGE = 60000;
 var DEFAULT_AGE_RATE = 1.0;
 
 var DEFAULT_TRANSITION_DURATION = 50;
-var DEFAULT_CHARGE = -25;
+var DEFAULT_CHARGE = -10;
 var DEFAULT_GRAVITY = 0.001;
 var DEFAULT_FORCEX_MULTIPLIER = 25.0;
 var DEFAULT_FORCEX_SESSION_MULTIPLIER = 50.0;
@@ -621,38 +606,6 @@ var sessionDragEndEvent = new CustomEvent(
   } 
 );
 
-
-// function setLinkStrengthSliderValue(value) {
-//   controlPanel.document.getElementById("linkStrengthSlider").value = value * controlPanel.document.getElementById("linkStrengthSlider").getAttribute("multiplier");
-//   currentSessionView.updateLinkStrength(value);
-// }
-
-// function setvelocityDecaySliderValue(value) {
-//   controlPanel.document.getElementById("velocityDecaySlider").value = value;
-//   currentSessionView.updateVelocityDecay(value);
-// }
-
-// function setGravitySliderValue(value) {
-//   controlPanel.document.getElementById("gravitySlider").value = value;
-//   currentSessionView.updateGravity(value);
-// }
-
-// function setChargeSliderValue(value) {
-//   controlPanel.document.getElementById("chargeSlider").value = value;
-//   currentSessionView.updateCharge(value);
-// }
-
-// function setMaxAgeSliderValue(value) {
-//   controlPanel.document.getElementById("maxAgeSlider").value = value;
-//   currentSessionView.setNodeMaxAge(value);
-// }
-
-// function setFontSizeMinValue(value) {
-//   controlPanel.document.getElementById("fontSizeMinSlider").value = value;
-//   currentSessionView.setFontSizeMin(value);
-// }
-
-
 window.onbeforeunload = function() {
   if (controlPanelFlag) { controlPanelWindow.close(); }
   controlPanelFlag = false;
@@ -672,24 +625,6 @@ function toggleControlPanel(){
     console.debug("toggleControlPanel: " + controlPanelFlag);
   }
   else {
-
-    // var cnf = {};
-
-    // cnf.defaultTransitionDuration = DEFAULT_TRANSITION_DURATION;
-    // cnf.defaultFontSizeMin = DEFAULT_FONT_SIZE_MIN;
-    // cnf.defaultFontSizeMax = DEFAULT_FONT_SIZE_MAX;
-    // cnf.defaultMaxAge = DEFAULT_MAX_AGE;
-    // cnf.defaultGravity = DEFAULT_GRAVITY;
-    // cnf.defaultForceXmultiplier = DEFAULT_FORCEX_MULTIPLIER;
-    // cnf.defaultForceXsessionMultiplier = DEFAULT_FORCEX_SESSION_MULTIPLIER;
-    // cnf.defaultForceYmultiplier = DEFAULT_FORCEY_MULTIPLIER;
-    // cnf.defaultCollisionRadiusMultiplier = DEFAULT_COLLISION_RADIUS_MULTIPLIER;
-    // cnf.defaultCollisionIterations = DEFAULT_COLLISION_ITERATIONS;
-    // cnf.defaultCharge = DEFAULT_CHARGE;
-    // cnf.defaultLinkStrength = DEFAULT_LINK_STRENGTH;
-    // cnf.defaultLinkDistance = DEFAULT_LINK_DISTANCE;
-    // cnf.defaultVelocityDecay = DEFAULT_VELOCITY_DECAY;
-    // cnf.defaultNodeRadius = DEFAULT_NODE_RADIUS;
 
     var controlPanelInitWaitInterval;
 

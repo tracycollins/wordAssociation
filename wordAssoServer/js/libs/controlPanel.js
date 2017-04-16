@@ -493,7 +493,7 @@ console.log("config\n" + jsonPrint(config));
       id: 'gravitySlider',
       class: 'slider',
       min: -10.0,
-      max: 500,
+      max: 10,
       // value: (config.defaultGravity * config.defaultMultiplier),
       value: config.defaultGravity * config.defaultMultiplier,
       multiplier: config.defaultMultiplier

@@ -200,6 +200,7 @@ console.log("config\n" + jsonPrint(config));
             + " | " + config[prop]
           );
         }
+        self.setTransitionDurationSliderValue(cnf.defaultTransitionDuration);
         self.setLinkStrengthSliderValue(cnf.defaultLinkStrength);
         self.setLinkDistanceSliderValue(cnf.defaultLinkDistance);
         self.setGravitySliderValue(cnf.defaultGravity);

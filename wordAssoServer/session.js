@@ -15,15 +15,17 @@ when new instance of word arrives, iterate thru array of nodes and create linksk
 // var DEFAULT_SOURCE = "http://word.threeceelabs.com";
 var DEFAULT_SOURCE = "==SOURCE==";  // will be updated by wordAssoServer.js on app.get
 
-var useStoredConfig = false;
-
 var PARENT_ID = "0047";
 var PAGE_LOAD_TIMEOUT = 1000;
 
 var KEYWORD_SCALE = { min: 0, max: 100 };
 
 var DEFAULT_FORCEVIEW_MODE = "web";
-var DEFAULT_SESSION_VIEW = "flow";
+var DEFAULT_SESSION_VIEW = "treepack";
+
+var useStoredConfig = false;
+var globalStoredConfigName = "config_" + DEFAULT_SESSION_VIEW;
+
 
 var enableUserNodes = false;
 
@@ -109,7 +111,7 @@ var DEFAULT_FORCEY_MULTIPLIER = 25.0;
 var DEFAULT_VELOCITY_DECAY = 0.35;
 var DEFAULT_LINK_DISTANCE = 100.0;
 var DEFAULT_LINK_STRENGTH = 0.50;
-var DEFAULT_COLLISION_RADIUS_MULTIPLIER = 0.4;
+var DEFAULT_COLLISION_RADIUS_MULTIPLIER = 1.0;
 var DEFAULT_COLLISION_ITERATIONS = 2;
 var DEFAULT_FONT_SIZE_MIN = 16;
 var DEFAULT_FONT_SIZE_MAX = 60;
@@ -172,7 +174,8 @@ MEDIAVIEW_DEFAULT.COLLISION_ITERATIONS = 1;
 var config = {};
 
 if (useStoredConfig) {
-  config = store.get("config");
+  console.debug("LOADING STORED CONFIG: " + globalStoredConfigName);
+  config = store.get(globalStoredConfigName);
 }
 else {
   config.defaultAgeRate = 1.0;

@@ -13,14 +13,12 @@ function ViewTreepack() {
   var currentHashtagMaxMentions = 2;
   var deadNodesHash = {};
 
-  // var transitionDuration = DEFAULT_TRANSITION_DURATION;
   var transitionDuration = config.defaultTransitionDuration;
   var blahMode = config.defaultBlahMode;
   var charge = config.defaultCharge;
   var gravity = config.defaultGravity;
   var forceXmultiplier = config.defaultForceXmultiplier;
   var forceYmultiplier = config.defaultForceYmultiplier;
-  // var collisionRadiusMultiplier = config.defaultCollisionRadiusMultiplier;
   var collisionRadiusMultiplier = 1.0;
   var collisionIterations = config.defaultCollisionIterations;
   var globalLinkStrength = config.defaultLinkStrength;

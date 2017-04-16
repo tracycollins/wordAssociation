@@ -160,71 +160,6 @@ function ViewTreepack() {
     .domain([1, MAX_NODES])
     .range([1.0, 10.0]);
 
-  console.log("@@@@@@@ CLIENT @@@@@@@@");
-
-  var randomIntFromInterval = function(min, max) {
-    var random = Math.random();
-    var randomInt = Math.floor((random * (max - min + 1)) + min);
-    return randomInt;
-  };
-
-  d3.select("body").style("cursor", "default");
-
-  var nodes = [];
-  
-  this.deleteNode = function() {
-  };
-  
-  this.getNodesLength = function() {
-    return nodes.length;
-  };
-  
-  this.getMaxNodes = function() {
-    return maxNumberNodes;
-  };
-  
-  this.getNodeAddQlength = function() {
-    return nodeAddQ.length;
-  };
-  
-  this.getMaxNodeAddQ = function() {
-    return maxNodeAddQ;
-  };
-    
-  this.getAgeRate = function() {
-    return ageRate;
-  };
-  
-  this.getMaxAgeRate = function() {
-    return maxAgeRate;
-  };
-  
-  this.setAntonym = function(flag) {
-    antonymFlag = flag;
-    console.debug("SET ANTONYM: " + antonymFlag);
-  };
-
-  this.setBlah = function(flag) {
-    blahFlag = flag;
-    console.debug("SET BLAH: " + blahFlag);
-  };
-
-  this.setNodeMaxAge = function(mAge) {
-    nodeMaxAge = mAge;
-    config.defaultMaxAge = mAge;
-    console.debug("SET NODE MAX AGE: " + nodeMaxAge);
-  };
-
-  this.setRemoveDeadNodesFlag = function(flag) {
-    removeDeadNodesFlag = flag;
-    console.debug("SET REMOVE DEAD NODES: " + removeDeadNodesFlag);
-  };
-
-  this.setTestMode = function(flag){
-    testMode = flag;
-    console.debug("SET TEST MODE: " + testMode);
-  };
-
   var d3image = d3.select("#d3group");
 
   var svgMain = d3image.append("svg:svg")
@@ -255,6 +190,60 @@ function ViewTreepack() {
     .attr("class", "tooltip")
     .style("visibility", "hidden");
 
+
+  console.log("@@@@@@@ CLIENT @@@@@@@@");
+
+  var randomIntFromInterval = function(min, max) {
+    var random = Math.random();
+    var randomInt = Math.floor((random * (max - min + 1)) + min);
+    return randomInt;
+  };
+
+  d3.select("body").style("cursor", "default");
+
+  var nodes = [];
+  
+  this.deleteNode = function() {
+  };
+  
+  this.getNodesLength = function() { return nodes.length; };
+  
+  this.getMaxNodes = function() { return maxNumberNodes; };
+  
+  this.getNodeAddQlength = function() { return nodeAddQ.length; };
+  
+  this.getMaxNodeAddQ = function() { return maxNodeAddQ; };
+    
+  this.getAgeRate = function() { return ageRate; };
+  
+  this.setNodeMaxAge = function(mAge) {
+    nodeMaxAge = mAge;
+    config.defaultMaxAge = mAge;
+    console.debug("SET NODE MAX AGE: " + nodeMaxAge);
+  };
+
+  this.getMaxAgeRate = function() { return maxAgeRate; };
+  
+  this.setAntonym = function(flag) {
+    antonymFlag = flag;
+    console.debug("SET ANTONYM: " + antonymFlag);
+  };
+
+  this.setBlah = function(flag) {
+    blahFlag = flag;
+    console.debug("SET BLAH: " + blahFlag);
+  };
+
+  this.setRemoveDeadNodesFlag = function(flag) {
+    removeDeadNodesFlag = flag;
+    console.debug("SET REMOVE DEAD NODES: " + removeDeadNodesFlag);
+  };
+
+  this.setTestMode = function(flag){
+    testMode = flag;
+    console.debug("SET TEST MODE: " + testMode);
+  };
+
   self.toolTipVisibility = function(isVisible){
     if (isVisible) {
       divTooltip.style("visibility", "visible");
@@ -264,9 +253,7 @@ function ViewTreepack() {
     }
   };
 
-  self.deleteSessionLinks = function(){
-    console.debug("DELETE LINKS");
-  };
+  self.deleteSessionLinks = function(){ console.debug("DELETE LINKS"); };
 
   self.setPause = function(value){
     console.debug("SET PAUSE: " + value);
@@ -384,12 +371,14 @@ function ViewTreepack() {
   }
 
   self.resetDefaultForce = function() {
-    console.log("RESET FLOW LAYOUT DEFAULTS");
+    console.warn("RESET TREEPACK DEFAULT FORCE");
+    self.updateTransitionDuration(config.defaultTransitionDuration);
+    self.setNodeMaxAge(config.defaultMaxAge);
     self.updateCharge(config.defaultCharge);
     self.updateVelocityDecay(config.defaultVelocityDecay);
     self.updateGravity(config.defaultGravity);
-    self.updateLinkStrength(config.defaultLinkStrength);
-    self.updateLinkDistance(config.defaultLinkDistance);
+    // self.updateLinkStrength(config.defaultLinkStrength);
+    // self.updateLinkDistance(config.defaultLinkDistance);
   }
 
   function rankHashMapByValue(hmap, sortProperty, callback) {
@@ -524,7 +513,6 @@ function ViewTreepack() {
     }
   };
 
-
   var nodeMouseOver = function (d) {
 
     d.mouseHoverFlag = true;
@@ -597,7 +585,6 @@ function ViewTreepack() {
       return "UNDEFINED";
     }
   }
-
 
   var updateNodeCircles = function(callback) {
 
@@ -1018,7 +1005,6 @@ function ViewTreepack() {
       }).iterations(collisionIterations).strength(1.0))
       .velocityDecay(velocityDecay)
       .on("tick", ticked);
-
   }
 
   this.simulationControl = function(op) {
@@ -1190,7 +1176,6 @@ function ViewTreepack() {
         .velocityDecay(velocityDecay)
 
     }
-
   };
 
   // ==========================================
@@ -1206,6 +1191,7 @@ function ViewTreepack() {
     mouseHoverFlag = false;
     self.toolTipVisibility(false);
     self.resize();
+    self.resetDefaultForce();
   };
 
 }

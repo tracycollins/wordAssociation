@@ -838,8 +838,8 @@ function ViewTreepack() {
             currentNode.y = focus("neutral").y;
           }
           else {
-            currentNode.x = focus("positive").x; 
-            currentNode.y = focus("positive").y;
+            currentNode.x = focus("neutral").x; 
+            currentNode.y = focus("neutral").y;
           }
         }
         else {

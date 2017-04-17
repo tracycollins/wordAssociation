@@ -1164,8 +1164,12 @@ function saveFile (path, file, jsonObj, callback){
     })
     .catch(function(error){
       console.log(chalkError(moment().format(compactDateTimeFormat) 
-        + " | !!! ERROR DROBOX JSON WRITE | FILE: " + fullPath 
-        + " ERROR: " + error.error_summary
+        + " | !!! ERROR DROBOX JSON WRITE"
+        + " | ERROR: " + error.error_summary
+        + " | PATH: " + path 
+        + " | FILE: " + file 
+        + " | FULL PATH: " + fullPath 
+        + "jsonObj\n" + jsonPrint(jsonObj) 
       ));
       callback(error, null);
     });
@@ -1341,87 +1345,87 @@ function initStatsInterval(interval){
       showStats();
     });
 
-    if (groupsUpdateComplete) {
-      var gKeys = serverGroupHashMap.keys();
+    // if (groupsUpdateComplete) {
+    //   var gKeys = serverGroupHashMap.keys();
 
-      async.each(gKeys, function(groupId, cb){
-        serverGroupsJsonObj[groupId] = serverGroupHashMap.get(groupId);
-        cb();
-      },
-        function(err){
-          if (err) { console.log(chalkError("ERROR: " + jsonPrint(err))); }
-          if (gKeys.length > 0) {
-            saveFile("", serverGroupsFile, serverGroupsJsonObj, function(err, results){
-              if (err){
-                console.log(chalkError("SAVE SERVER GROUP FILE ERROR " + serverGroupsFile 
-                  + "\n" + jsonPrint(err)
-                  + "\n" + jsonPrint(results)
-                ));
-              }
-              else {
-                console.log(chalkLog("SAVE SERVER GROUP FILE " 
-                  + serverGroupsFile 
-                  + " | " + gKeys.length + " GROUPS"
-                  // + "\n" + jsonPrint(results)
-                ));
-              }
-            });
-          }
-          else {
-            console.log(chalkLog("SKIPPED SAVE SERVER GROUP FILE " 
-              + serverGroupsFile 
-              + " | " + gKeys.length + " GROUPS"
-              // + "\n" + jsonPrint(results)
-            ));
-          }
+    //   async.each(gKeys, function(groupId, cb){
+    //     serverGroupsJsonObj[groupId] = serverGroupHashMap.get(groupId);
+    //     cb();
+    //   },
+    //     function(err){
+    //       if (err) { console.log(chalkError("ERROR: " + jsonPrint(err))); }
+    //       if (gKeys.length > 0) {
+    //         saveFile("", serverGroupsFile, serverGroupsJsonObj, function(err, results){
+    //           if (err){
+    //             console.log(chalkError("SAVE SERVER GROUP FILE ERROR " + serverGroupsFile 
+    //               + "\n" + jsonPrint(err)
+    //               + "\n" + jsonPrint(results)
+    //             ));
+    //           }
+    //           else {
+    //             console.log(chalkLog("SAVE SERVER GROUP FILE " 
+    //               + serverGroupsFile 
+    //               + " | " + gKeys.length + " GROUPS"
+    //               // + "\n" + jsonPrint(results)
+    //             ));
+    //           }
+    //         });
+    //       }
+    //       else {
+    //         console.log(chalkLog("SKIPPED SAVE SERVER GROUP FILE " 
+    //           + serverGroupsFile 
+    //           + " | " + gKeys.length + " GROUPS"
+    //           // + "\n" + jsonPrint(results)
+    //         ));
+    //       }
 
-        }
-      );
-    }
+    //     }
+    //   );
+    // }
 
-    if (entitiesUpdateComplete) {
-      var hmKeys = serverKeywordHashMap.keys();
+    // if (entitiesUpdateComplete) {
+    //   var hmKeys = serverKeywordHashMap.keys();
 
-      async.each(hmKeys, function(keyword, cb){
-        serverKeywordsJsonObj[keyword] = serverKeywordHashMap.get(keyword);
-        cb();
-      },
-        function(err){
-          if (err) { console.log(chalkError("ERROR: " + jsonPrint(err))); }
-          if (hmKeys.length > 0) {
-            saveFile("", serverKeywordsFile, serverKeywordsJsonObj, function(err, results){
-              if (err){
-                console.log(chalkError("SAVE SERVER KEYWORD FILE ERROR " + serverKeywordsFile));
-                if (err.status === 429) {
-                  console.log(chalkError("SAVE SERVER KEYWORD FILE ERROR: TOO MANY WRITES"));
-                }
-                else {
-                  console.log(chalkError(
-                    jsonPrint(err)
-                    + "\n" + jsonPrint(results)
-                  ));
-                }
-              }
-              else {
-                console.log(chalkInfo("SAVE SERVER KEYWORD FILE " 
-                  + serverKeywordsFile 
-                  + " | " + hmKeys.length + " KEYWORDS"
-                  // + "\n" + jsonPrint(results)
-                ));
-              }
-            });
-          }
-          else {
-            console.log(chalkLog("SKIPPED SAVE SERVER KEYWORDS FILE " 
-              + serverKeywordsFile 
-              + " | " + hmKeys.length + " KEYWORDS"
-              // + "\n" + jsonPrint(results)
-            ));
-          }
+    //   async.each(hmKeys, function(keyword, cb){
+    //     serverKeywordsJsonObj[keyword] = serverKeywordHashMap.get(keyword);
+    //     cb();
+    //   },
+    //     function(err){
+    //       if (err) { console.log(chalkError("ERROR: " + jsonPrint(err))); }
+    //       if (hmKeys.length > 0) {
+    //         saveFile("", serverKeywordsFile, serverKeywordsJsonObj, function(err, results){
+    //           if (err){
+    //             console.log(chalkError("SAVE SERVER KEYWORD FILE ERROR " + serverKeywordsFile));
+    //             if (err.status === 429) {
+    //               console.log(chalkError("SAVE SERVER KEYWORD FILE ERROR: TOO MANY WRITES"));
+    //             }
+    //             else {
+    //               console.log(chalkError(
+    //                 jsonPrint(err)
+    //                 + "\n" + jsonPrint(results)
+    //               ));
+    //             }
+    //           }
+    //           else {
+    //             console.log(chalkInfo("SAVE SERVER KEYWORD FILE " 
+    //               + serverKeywordsFile 
+    //               + " | " + hmKeys.length + " KEYWORDS"
+    //               // + "\n" + jsonPrint(results)
+    //             ));
+    //           }
+    //         });
+    //       }
+    //       else {
+    //         console.log(chalkLog("SKIPPED SAVE SERVER KEYWORDS FILE " 
+    //           + serverKeywordsFile 
+    //           + " | " + hmKeys.length + " KEYWORDS"
+    //           // + "\n" + jsonPrint(results)
+    //         ));
+    //       }
 
-        }
-      );
-    }
+    //     }
+    //   );
+    // }
   }, interval);
 }
 

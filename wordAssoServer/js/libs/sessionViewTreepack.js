@@ -787,6 +787,8 @@ function ViewTreepack() {
         currentNode.newFlag = true;
         currentNode.age = 1e-6;
         currentNode.ageMaxRatio = 1e-6;
+        currentNode.x = currentNode.x || 0.5 * width;
+        currentNode.y = currentNode.y || 0.5 * height;
         currentNode.isTwitterUser = newNode.isTwitterUser;
         currentNode.isTrendingTopic = newNode.isTrendingTopic;
         currentNode.isKeyword = newNode.isKeyword;
@@ -847,10 +849,10 @@ function ViewTreepack() {
       if (newNode.mentions > currentHashtagMaxMentions) {
         currentHashtagMaxMentions = newNode.mentions;
 
-    nodeLabelSizeScale = d3.scaleLinear()
-      .domain([1, currentMaxMentions])
-      .range([minFontSize, maxFontSize])
-      .clamp(true);
+        nodeLabelSizeScale = d3.scaleLinear()
+          .domain([1, currentMaxMentions])
+          .range([minFontSize, maxFontSize])
+          .clamp(true);
 
         console.info("NEW MAX Ms" 
           + " | " + currentHashtagMaxMentions 
@@ -862,7 +864,6 @@ function ViewTreepack() {
       if (nodes.length > maxNumberNodes) {
         maxNumberNodes = nodes.length;
       }
-
 
     }
     else {

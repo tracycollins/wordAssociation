@@ -1940,7 +1940,7 @@ socket.on("USER_SESSION", function(rxSessionObject) {
 function initSocketSessionUpdateRx(){
   socket.on("SESSION_UPDATE", function(rxSessionObject) {
 
-    console.info("SES UPDATE: " + rxSessionObject.action + " | " + rxSessionObject.sessionId);
+    console.info("SES " + rxSessionObject.action + " | " + rxSessionObject.sessionId);
 
     if (rxSessionObject.action == 'KEEPALIVE') {
       // console.debug("KEEPALIVE"

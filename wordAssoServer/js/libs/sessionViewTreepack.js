@@ -703,7 +703,7 @@ function ViewTreepack() {
           console.debug("UNDEFINED d.nodeId");
           return 0.5*height; 
         }
-        if (!d.y) { 
+        if (d.y === undefined) { 
           console.debug("UNDEFINED d.y " + d.nodeId);
           return 0.5*height; 
         }

@@ -5934,7 +5934,7 @@ setInterval(function() {
 
 var getTwitterFriendsInterval;
 
-function getTwitterFriends(callback){
+function getTwitterFriends(interval, callback){
 
   var nextCursorValid = false;
   var totalFriends = 0;
@@ -6018,8 +6018,7 @@ function getTwitterFriends(callback){
       }
 
     });
-
-  }, 1000);
+  }, interval);
 }
 
 //=================================
@@ -6794,10 +6793,10 @@ function initializeConfiguration(cnf, callback) {
               access_token_secret: twitterConfig.TOKEN_SECRET
             });
 
-            getTwitterFriends();
+            getTwitterFriends(15000);
 
             setInterval(function(){
-              getTwitterFriends(function(err, totalFriends){
+              getTwitterFriends(15000, function(err, totalFriends){
                 if (err) {
                   console.log(chalkError("*** GET TWITTER FRIENDS ERROR: " + err));
                 }

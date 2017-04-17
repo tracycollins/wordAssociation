@@ -375,37 +375,6 @@ function ViewTreepack() {
     self.updateCharge(config.defaultCharge);
     self.updateVelocityDecay(config.defaultVelocityDecay);
     self.updateGravity(config.defaultGravity);
-    // self.updateLinkStrength(config.defaultLinkStrength);
-    // self.updateLinkDistance(config.defaultLinkDistance);
-  }
-
-  function rankHashMapByValue(hmap, sortProperty, callback) {
-
-    if (hmap.count() === 0) { return(callback(hmap)); }
-    // console.debug("rankHashMapByValue");
-    var keys = hmap.keys().sort(function(a,b){
-      return hmap.get(b)[sortProperty]-hmap.get(a)[sortProperty];
-    });
-
-    async.forEachOf(keys, function(key, index, cb) {
-
-      var entry = hmap.get(key);
-      entry.rank = index;
-
-      if (index >= MAX_NODES){
-        entry.isDead = true;
-        hmap.set(key, entry);
-        cb();
-      }
-      else {
-        hmap.set(key, entry);
-        cb();
-      }
-      // console.debug("key " + key);
-    }, function(err) {
-      if (err) { console.error("rankHashMapByValue ERROR: " + err); }
-      callback(hmap);
-    });
   }
 
   var ageNodes = function (callback) {
@@ -437,10 +406,10 @@ function ViewTreepack() {
 
       node = nodes[ageNodesIndex];
 
-      if (localNodeHashMap.has(node.nodeId)){
-        nodeObj = localNodeHashMap.get(node.nodeId);
-        node.rank = nodeObj.rank;
-      }
+      // if (localNodeHashMap.has(node.nodeId)){
+      //   nodeObj = localNodeHashMap.get(node.nodeId);
+      //   node.rank = nodeObj.rank;
+      // }
 
       age = node.age 
         // + randomIntFromInterval(10,100) 
@@ -449,7 +418,7 @@ function ViewTreepack() {
       ageMaxRatio = age/nodeMaxAge ;
 
       if (node.isDead 
-        || (removeDeadNodesFlag && (node.rank > MAX_NODES))
+        // || (removeDeadNodesFlag && (node.rank > MAX_NODES))
         || (removeDeadNodesFlag && (age >= nodeMaxAge))
         ) {
         localNodeHashMap.remove(node.nodeId);
@@ -524,12 +493,12 @@ function ViewTreepack() {
         tooltipString = "#" + d.nodeId
           + "<br>TYPE: " + d.nodeType 
           + "<br>Ms: " + d.mentions
-          + "<br>RANK: " + d.rank;
+          + "<br>KEYWORDS: " + jsonPrint(d.keywords);
       break;
       case 'word':
         tooltipString = d.nodeId
           + "<br>TYPE: " + d.nodeType 
-          + "<br>RANK: " + d.rank
+          + "<br>KEYWORDS: " + jsonPrint(d.keywords)
           + "<br>Ms: " + d.mentions
           + "<br>URL: " + d.url;
       break;
@@ -561,18 +530,6 @@ function ViewTreepack() {
         window.open(url, '_blank');
       break;
     }
-  }
-
-  function yposition(d){
-    var rowNum = d.rank % maxHashtagRows;
-    var value = hashtagTopMargin + (rowNum * rowSpacing);
-    return value + "%";
-  }
-
-  function xposition(d){
-    var colNum = parseInt(d.rank / maxHashtagRows);        
-    var value = hashtagLeftMargin + (colNum * colSpacing);
-    return value + "%" ;
   }
 
   function jsonPrint(obj) {

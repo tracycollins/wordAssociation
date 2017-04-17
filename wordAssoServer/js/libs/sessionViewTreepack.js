@@ -486,6 +486,8 @@ function ViewTreepack() {
 
     self.toolTipVisibility(true);
 
+    d3.select(this).style("opacity", 1);
+
     var tooltipString;
 
     switch (d.nodeType) {
@@ -512,6 +514,9 @@ function ViewTreepack() {
   function nodeMouseOut(d) {
     d.mouseHoverFlag = false;
     self.toolTipVisibility(false);
+    d3.select(this).style("opacity", function(){
+        return nodeLabelOpacityScale(d.ageMaxRatio);
+      });
   }
 
   function cellClick(d) {
@@ -586,7 +591,7 @@ function ViewTreepack() {
         return "1.2"; 
       })
       .style('opacity', function(d) { 
-        if (d.mouseHoverFlag) { return 1.0; }
+        // if (d.mouseHoverFlag) { return 1.0; }
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
       .on("mouseover", nodeMouseOver)
@@ -633,7 +638,7 @@ function ViewTreepack() {
         return "1.2"; 
       })
       .style('opacity', function(d) { 
-        if (d.mouseHoverFlag) { return 1.0; }
+        // if (d.mouseHoverFlag) { return 1.0; }
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
       .transition()
@@ -711,7 +716,7 @@ function ViewTreepack() {
         return "none"; 
       })
       .style("opacity", function(d) { 
-        if (d.mouseHoverFlag) { return 1.0; }
+        // if (d.mouseHoverFlag) { return 1.0; }
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
       .style("fill", palette.white)
@@ -802,6 +807,7 @@ function ViewTreepack() {
         currentNode.isTopTen = newNode.isTopTen;
         currentNode.mentions = newNode.mentions;
         currentNode.ageUpdated = moment().valueOf();
+        currentNode.mouseHoverFlag = false;
 
         localNodeHashMap.set(currentNode.nodeId, currentNode);
 
@@ -816,6 +822,7 @@ function ViewTreepack() {
         currentNode.isTopTen = newNode.isTopTen;
         currentNode.mentions = newNode.mentions;
         currentNode.ageUpdated = moment().valueOf();
+        currentNode.mouseHoverFlag = false;
         if (newNode.keywords) {
           if (newNode.keywords.left) { 
             currentNode.x = focus("left").x; 

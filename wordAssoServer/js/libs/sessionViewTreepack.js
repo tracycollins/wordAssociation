@@ -730,6 +730,46 @@ function ViewTreepack() {
     callback();
   };
 
+  var focus = function(focalPoint){
+    switch (focalPoint) {
+      case "left":
+        return({
+          x: randomIntFromInterval(0.0, 0.1*width), 
+          y: randomIntFromInterval(0.45*height, 0.55*height)
+        });
+        break;
+      case "right":
+        return({
+          x: randomIntFromInterval(0.9*width, width), 
+          y: randomIntFromInterval(0.45*height, 0.55*height)
+        });
+        break;
+      case "positive":
+        return({
+          x: randomIntFromInterval(0.45*width, 0.55*width), 
+          y: randomIntFromInterval(0.0, 0.1*height)
+        });
+        break;
+      case "negative":
+        return({
+          x: randomIntFromInterval(0.45*width, 0.55*width), 
+          y: randomIntFromInterval(0.9*height, height)
+        });
+        break;
+      case "neutral":
+        return({
+          x: randomIntFromInterval(0.45*width, 0.55*width), 
+          y: randomIntFromInterval(0.55*height, 0.55*height)
+        });
+        break;
+      default:
+        return({
+          x: randomIntFromInterval(0.45*width, 0.55*width), 
+          y: randomIntFromInterval(0.45*height, 0.55*height)
+        });
+    }
+  }
+
   var processNodeAddQ = function(callback) {
 
     var nodesModifiedFlag = false;
@@ -778,33 +818,33 @@ function ViewTreepack() {
         currentNode.ageUpdated = moment().valueOf();
         if (newNode.keywords) {
           if (newNode.keywords.left) { 
-            currentNode.x = -0.1 * width; 
-            currentNode.y = 0.5 * height;
+            currentNode.x = focus("left").x; 
+            currentNode.y = focus("left").y;
           }
           else if (newNode.keywords.positive) { 
-            currentNode.x = 0.5 * width; 
-            currentNode.y = -0.1 * height;
+            currentNode.x = focus("positive").x; 
+            currentNode.y = focus("positive").y;
           }
           else if (newNode.keywords.right) { 
-            currentNode.x = 1.1 * width; 
-            currentNode.y = 0.5 * height;
+            currentNode.x = focus("right").x; 
+            currentNode.y = focus("right").y;
           }
           else if (newNode.keywords.negative) { 
-            currentNode.x = 0.5 * width; 
-            currentNode.y = 1.1 * height;
+            currentNode.x = focus("negative").x; 
+            currentNode.y = focus("negative").y;
           }
           else if (newNode.keywords.neutral) { 
-            currentNode.x = 0.5 * width;
-            currentNode.y = 0.5 * height;
+            currentNode.x = focus("neutral").x; 
+            currentNode.y = focus("neutral").y;
           }
           else {
-            currentNode.x = 0.5 * width;
-            currentNode.y = 0.5 * height;
+            currentNode.x = focus("positive").x; 
+            currentNode.y = focus("positive").y;
           }
         }
         else {
-          currentNode.x = 0.5 * width;
-          currentNode.y = 0.5 * height;
+          currentNode.x = focus("positive").x; 
+          currentNode.y = focus("positive").y;
         }
         localNodeHashMap.set(currentNode.nodeId, currentNode);
         nodes.push(currentNode)

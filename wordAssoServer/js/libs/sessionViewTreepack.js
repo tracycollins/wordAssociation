@@ -843,8 +843,8 @@ function ViewTreepack() {
           }
         }
         else {
-          currentNode.x = focus("positive").x; 
-          currentNode.y = focus("positive").y;
+          currentNode.x = focus("neutral").x; 
+          currentNode.y = focus("neutral").y;
         }
         localNodeHashMap.set(currentNode.nodeId, currentNode);
         nodes.push(currentNode)

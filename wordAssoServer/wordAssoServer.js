@@ -2330,12 +2330,16 @@ function createSession(newSessionObj) {
             if (nodeObj.nodeId.toLowerCase().includes("obama")) {
               obamaHit = nodeObj.nodeId;
               nodeObj.isKeyword = true;
-              nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
+              if (!keywordHashMap.has(nodeObj.nodeId.toLowerCase())){
+                nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
+              }
             }
             if (nodeObj.nodeId.toLowerCase().includes("trump")) {
               trumpHit = nodeObj.nodeId;
               nodeObj.isKeyword = true;
-              nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
+              if (!keywordHashMap.has(nodeObj.nodeId.toLowerCase())){
+                nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
+              }
             }
             updateWordMeter({nodeId: nodeObj.nodeId.toLowerCase()});
             viewNameSpace.emit("node", nodeObj);
@@ -2366,12 +2370,16 @@ function createSession(newSessionObj) {
             if (nodeObj.nodeId.toLowerCase().includes("obama")) {
               obamaHit = nodeObj.nodeId;
               nodeObj.isKeyword = true;
-              nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
+              if (!keywordHashMap.has(nodeObj.nodeId.toLowerCase())){
+                nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
+              }
             }
             if (nodeObj.nodeId.toLowerCase().includes("trump")) {
               trumpHit = nodeObj.nodeId;
               nodeObj.isKeyword = true;
-              nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
+              if (!keywordHashMap.has(nodeObj.nodeId.toLowerCase())){
+                nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
+              }
             }
             updateWordMeter({nodeId: nodeObj.nodeId.toLowerCase()});
             viewNameSpace.emit("node", nodeObj);

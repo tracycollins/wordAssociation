@@ -627,6 +627,9 @@ function ViewTreepack() {
         if (d.mouseHoverFlag) { return 1.0; }
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
+      .on("mouseover", nodeMouseOver)
+      .on("mouseout", nodeMouseOut)
+      .on("click", nodeClick)
       .transition()
       .duration(transitionDuration)
       .attr("r", function(d) {

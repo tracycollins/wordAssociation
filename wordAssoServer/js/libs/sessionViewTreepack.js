@@ -566,7 +566,7 @@ function ViewTreepack() {
       })
       .attr("cy", function(d) { 
         if (!d.nodeId) { return 0.5*height; }
-        if (!d.y) { 
+        if (d.y === undefined) { 
           d.y = 0.5*height;
           return 0.5*height;
         }

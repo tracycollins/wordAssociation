@@ -2299,7 +2299,7 @@ function createSession(newSessionObj) {
                 trumpHit = nodeObj.screenName;
                 nodeObj.isKeyword = true;
                 // nodeObj.keywords[nodeObj.name.toLowerCase()] = {};
-                nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
+                if (!nodeObj.keywords.left) { nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE; }
               }
               viewNameSpace.emit("node", nodeObj);
             });
@@ -2337,7 +2337,7 @@ function createSession(newSessionObj) {
             if (nodeObj.nodeId.toLowerCase().includes("trump")) {
               trumpHit = nodeObj.nodeId;
               nodeObj.isKeyword = true;
-              if (!keywordHashMap.has(nodeObj.nodeId.toLowerCase())){
+              if (!nodeObj.keywords.left && !keywordHashMap.has(nodeObj.nodeId.toLowerCase())){
                 nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
               }
             }
@@ -2377,7 +2377,7 @@ function createSession(newSessionObj) {
             if (nodeObj.nodeId.toLowerCase().includes("trump")) {
               trumpHit = nodeObj.nodeId;
               nodeObj.isKeyword = true;
-              if (!keywordHashMap.has(nodeObj.nodeId.toLowerCase())){
+              if (!nodeObj.keywords.left && !keywordHashMap.has(nodeObj.nodeId.toLowerCase())){
                 nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
               }
             }

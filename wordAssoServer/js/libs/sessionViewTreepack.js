@@ -559,13 +559,17 @@ function ViewTreepack() {
           return 0.5*width; }
         if (d.x === undefined) { 
           console.debug("UNDEFINED d.x " + d.nodeId);
+          d.x = 0.5*width; 
           return 0.5*width; 
         }
         return d.x; 
       })
       .attr("cy", function(d) { 
         if (!d.nodeId) { return 0.5*height; }
-        if (!d.y) { return 0.5*height; }
+        if (!d.y) { 
+          d.y = 0.5*height;
+          return 0.5*height;
+        }
         return d.y; 
       })
       .style("fill", function(d) { 

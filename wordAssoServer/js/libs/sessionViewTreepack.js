@@ -573,6 +573,7 @@ function ViewTreepack() {
         return d.y; 
       })
       .style("fill", function(d) { 
+        if (!d.isKeyword) { return palette.black; }
         return d.keywordColor; 
       })
       .style("stroke", function(d) { 

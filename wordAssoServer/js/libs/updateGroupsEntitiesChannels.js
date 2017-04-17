@@ -72,9 +72,9 @@ var entityChannelGroupHashMap = new HashMap();
 var serverEntityChannelGroupHashMap = new HashMap();
 
 var keywordHashMap = new HashMap();
-var serverKeywordHashMap = new HashMap();
-var previousKeywordHashMap = new HashMap();
-var previousServerKeywordHashMap = new HashMap();
+// var serverKeywordHashMap = new HashMap();
+// var previousKeywordHashMap = new HashMap();
+// var previousServerKeywordHashMap = new HashMap();
 
 var mongoose = require('../../config/mongoose');
 var db = mongoose();
@@ -382,19 +382,20 @@ var updateEntityChannelGroups = function (configFile, callback){
   });  
 }
 
-var updateKeywords = function (folder, file, serverHashMapFlag, callback){
+// var updateKeywords = function (folder, file, serverHashMapFlag, callback){
+var updateKeywords = function (folder, file, callback){
 
   var kwHashMap = new HashMap();
   var prevKwHashMap = new HashMap();
 
-  if (serverHashMapFlag){
-    kwHashMap.copy(serverKeywordHashMap);
-    console.log(chalkWarn("UPDATE SERVER KEYWORDS " + file));
-  }
-  else {
-    kwHashMap.copy(keywordHashMap);
-    console.log(chalkWarn("UPDATE GLOBAL KEYWORDS " + file));
-  }
+  // if (serverHashMapFlag){
+  //   kwHashMap.copy(serverKeywordHashMap);
+  //   console.log(chalkWarn("UPDATE SERVER KEYWORDS " + file));
+  // }
+  // else {
+  kwHashMap.copy(keywordHashMap);
+  console.log(chalkWarn("UPDATE GLOBAL KEYWORDS " + file));
+  // }
 
   loadFile(folder, file, function(err, kwordsObj){
 
@@ -474,14 +475,14 @@ var updateKeywords = function (folder, file, serverHashMapFlag, callback){
               + " | TOTAL KEYWORDS:   " + kwHashMap.count()
             ));
 
-            if (serverHashMapFlag){
-              serverKeywordHashMap.copy(kwHashMap);
-              console.log(chalkWarn("UPDATE SERVER KEYWORDS " + file));
-            }
-            else {
-              keywordHashMap.copy(kwHashMap);
-              console.log(chalkWarn("UPDATE GLOBAL KEYWORDS " + file));
-            }
+            // if (serverHashMapFlag){
+            //   serverKeywordHashMap.copy(kwHashMap);
+            //   console.log(chalkWarn("UPDATE SERVER KEYWORDS " + file));
+            // }
+            // else {
+            keywordHashMap.copy(kwHashMap);
+            console.log(chalkWarn("UPDATE GLOBAL KEYWORDS " + file));
+            // }
 
             callback(null, {numKeywords: words.length});
           }
@@ -491,15 +492,14 @@ var updateKeywords = function (folder, file, serverHashMapFlag, callback){
   });
 }
 
-
 function updateGroupsEntitiesKeywords(options, callback){
   async.series([
     function(cb){ updateGroups(options.groupsFile, cb) },
-    function(cb){ updateGroups(options.serverGroupsFile, cb) },
+    // function(cb){ updateGroups(options.serverGroupsFile, cb) },
     function(cb){ updateEntityChannelGroups(options.entitiesFile, cb) },
-    function(cb){ updateEntityChannelGroups(options.serverEntitiesFile, cb) },
-    function(cb){ updateKeywords("", options.keywordsFile, false, cb) },
-    function(cb){ updateKeywords("", options.serverKeywordsFile, true, cb) }
+    // function(cb){ updateEntityChannelGroups(options.serverEntitiesFile, cb) },
+    function(cb){ updateKeywords("", options.keywordsFile, cb) }
+    // function(cb){ updateKeywords("", options.serverKeywordsFile, true, cb) }
   ],
     function(err, results){
       if (err) {
@@ -521,7 +521,6 @@ function sendHashMaps(callback){
     });
   });
 }
-
 
 function sendGroups(callback){
 
@@ -679,7 +678,7 @@ function sendEntities(callback){
 function sendKeywords(callback){
 
   var words = keywordHashMap.keys();
-  var serverWwords = serverKeywordHashMap.keys();
+  // var serverWwords = serverKeywordHashMap.keys();
 
   // words = words.slice(0,10);
   // serverWwords = serverWwords.slice(0,10);
@@ -731,45 +730,49 @@ function sendKeywords(callback){
       }
       else {
 
-        async.forEachSeries(serverWwords, function(word, cb2) {
 
-            var kwObj = serverKeywordHashMap.get(word);
-            kwObj.keywordId = word;
+        // async.forEachSeries(serverWwords, function(word, cb2) {
 
-            var updaterObj = {};
+        //     var kwObj = serverKeywordHashMap.get(word);
+        //     kwObj.keywordId = word;
+
+        //     var updaterObj = {};
             
-            updaterObj.type = "keyword";
-            updaterObj.target = "server";
-            updaterObj.keyword = {};
-            updaterObj.keyword = kwObj;
+        //     updaterObj.type = "keyword";
+        //     updaterObj.target = "server";
+        //     updaterObj.keyword = {};
+        //     updaterObj.keyword = kwObj;
 
-            setTimeout(function(){
-              process.send(updaterObj);
-              debugKeyword(chalkInfo("UPDATER SEND KEYWORD"
-                + " | SERVER"
-                + " | " + word
-                + " | " + jsonPrint(updaterObj)
-              ));
+        //     setTimeout(function(){
+        //       process.send(updaterObj);
+        //       debugKeyword(chalkInfo("UPDATER SEND KEYWORD"
+        //         + " | SERVER"
+        //         + " | " + word
+        //         + " | " + jsonPrint(updaterObj)
+        //       ));
 
-              cb2();
-            }, 10);
+        //       cb2();
+        //     }, 10);
 
-          },
+        //   },
 
-          function(err) {
-            if (err) {
-              console.log(chalkError("sendKeywords ERROR! " + err));
-              callback(err, null);
-            }
-            else {
-              console.log(chalkInfo("sendKeywords COMPLETE"));
-              process.send({ type: 'sendKeywordsComplete'});
-              callback(null, null);
-            }
-          }
-        );
+        //   function(err) {
+        //     if (err) {
+        //       console.log(chalkError("sendKeywords ERROR! " + err));
+        //       callback(err, null);
+        //     }
+        //     else {
+        //       console.log(chalkInfo("sendKeywords COMPLETE"));
+        //       process.send({ type: 'sendKeywordsComplete'});
+        //       callback(null, null);
+        //     }
+        //   }
+        // );
 
 
+        console.log(chalkInfo("sendKeywords COMPLETE"));
+        process.send({ type: 'sendKeywordsComplete'});
+        callback(null, null);
 
       }
     }
@@ -894,49 +897,6 @@ function loadConfig(file, callback){
       }
     });
 }
-
-// function saveDropboxJsonFile(file, jsonObj, callback){
-
-//   var options = {};
-
-//   options.contents = jsonObj;
-//   options.path = file;
-//   options.mode = "overwrite";
-//   options.autorename = false;
-
-//   dropboxClient.filesUpload(options)
-//     .then(function(response){
-//       debug(chalkLog("... SAVED DROPBOX JSON | " + file));
-//       callback('OK');
-//     })
-//     .catch(function(error){
-//       console.error(chalkError(moment().format(defaultDateTimeFormat) 
-//         + " | !!! ERROR DROBOX JSON WRITE | FILE: " + file 
-//         + " ERROR: " + error));
-//       callback(error);
-//     });
-// }
-
-// function loadDropboxJsonFile(file, callback){
-
-//   dropboxClient.filesDownload({path: file})
-//     .then(function(dropboxFileData) {
-//       console.log(chalkLog(getTimeStamp()
-//         + " | LOADING DROPBOX JSON FILE: " + file
-//       ));
-
-//       var dropboxFileObj = JSON.parse(dropboxFileData);
-
-//       debug("DROPBOX JSON\n" + JSON.stringify(dropboxFileObj, null, 3));
-
-//       return(callback(null, dropboxFileObj));
-//     })
-//     .catch(function(error){
-//       console.error(chalkError("!!! DROPBOX READ JSON FILE ERROR: " + file));
-//       debug(chalkError(jsonPrint(error)));
-//       return(callback(error, null));
-//     });
-// }
 
 function initGroups(dropboxConfigFile, callback){
 

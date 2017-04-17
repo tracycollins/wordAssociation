@@ -532,7 +532,7 @@ var serverEntityChannelGroupHashMap = new HashMap();
 
 var ignoreWordHashMap = new HashMap();
 var keywordHashMap = new HashMap();
-var serverKeywordHashMap = new HashMap(); // server specific keywords
+// var serverKeywordHashMap = new HashMap(); // server specific keywords
 var topicHashMap = new HashMap();
 
 var serverGroupsJsonObj = {};
@@ -1466,52 +1466,53 @@ function checkKeyword(w, callback) {
   wordObj.keywords = {};
   var kwObj = {};  
 
+  // if ((wordObj.nodeType === "user") 
+  //   && (wordObj.name !== undefined) 
+  //   && (wordObj.name) 
+  //   && serverKeywordHashMap.has(wordObj.name.toLowerCase())) {
+  //   debug(chalkAlert("HIT SRVR USER NAME"));
+  //   kwObj = serverKeywordHashMap.get(wordObj.name.toLowerCase());
+  //   wordObj.isKeyword = true;
+  //   // wordObj.keywords[wordObj.name.toLowerCase()] = kwObj;    
+  //   wordObj.keywords = kwObj;    
+  //   callback(wordObj);
+  // }
+  // else if ((wordObj.nodeType === "user") 
+  //   && (wordObj.screenName !== undefined)  
+  //   && (wordObj.screenName) 
+  //   && serverKeywordHashMap.has(wordObj.screenName.toLowerCase())) {
+  //   debug(chalkAlert("HIT SRVR USER SNAME"));
+  //   kwObj = serverKeywordHashMap.get(wordObj.screenName.toLowerCase());
+  //   wordObj.isKeyword = true;
+  //   // wordObj.keywords[wordObj.screenName.toLowerCase()] = kwObj;    
+  //   wordObj.keywords = kwObj;    
+  //   callback(wordObj);
+  // }
+  // else if (wordObj.nodeId && serverKeywordHashMap.has(wordObj.nodeId.toLowerCase())) {
+  //   debug(chalkAlert("HIT SRVR NODE ID"));
+  //   kwObj = serverKeywordHashMap.get(wordObj.nodeId.toLowerCase());
+  //   wordObj.isKeyword = true;
+  //   // wordObj.keywords[wordObj.nodeId.toLowerCase()] = kwObj;    
+  //   wordObj.keywords = kwObj;    
+  //   callback(wordObj);
+  // }
+  // else if (wordObj.text && serverKeywordHashMap.has(wordObj.text.toLowerCase())) {
+  //   debug(chalkAlert("HIT SRVR TEXT"));
+  //   kwObj = serverKeywordHashMap.get(wordObj.text.toLowerCase());
+  //   wordObj.isKeyword = true;
+  //   // wordObj.keywords[wordObj.text.toLowerCase()] = kwObj;    
+  //   wordObj.keywords = kwObj;    
+  //   callback(wordObj);
+  // }
+  // else if ((wordObj.nodeType === "user") 
+  
   if ((wordObj.nodeType === "user") 
-    && (wordObj.name !== undefined) 
-    && (wordObj.name) 
-    && serverKeywordHashMap.has(wordObj.name.toLowerCase())) {
-    debug(chalkAlert("HIT SRVR USER NAME"));
-    kwObj = serverKeywordHashMap.get(wordObj.name.toLowerCase());
-    wordObj.isKeyword = true;
-    // wordObj.keywords[wordObj.name.toLowerCase()] = kwObj;    
-    wordObj.keywords = kwObj;    
-    callback(wordObj);
-  }
-  else if ((wordObj.nodeType === "user") 
-    && (wordObj.screenName !== undefined)  
-    && (wordObj.screenName) 
-    && serverKeywordHashMap.has(wordObj.screenName.toLowerCase())) {
-    debug(chalkAlert("HIT SRVR USER SNAME"));
-    kwObj = serverKeywordHashMap.get(wordObj.screenName.toLowerCase());
-    wordObj.isKeyword = true;
-    // wordObj.keywords[wordObj.screenName.toLowerCase()] = kwObj;    
-    wordObj.keywords = kwObj;    
-    callback(wordObj);
-  }
-  else if (wordObj.nodeId && serverKeywordHashMap.has(wordObj.nodeId.toLowerCase())) {
-    debug(chalkAlert("HIT SRVR NODE ID"));
-    kwObj = serverKeywordHashMap.get(wordObj.nodeId.toLowerCase());
-    wordObj.isKeyword = true;
-    // wordObj.keywords[wordObj.nodeId.toLowerCase()] = kwObj;    
-    wordObj.keywords = kwObj;    
-    callback(wordObj);
-  }
-  else if (wordObj.text && serverKeywordHashMap.has(wordObj.text.toLowerCase())) {
-    debug(chalkAlert("HIT SRVR TEXT"));
-    kwObj = serverKeywordHashMap.get(wordObj.text.toLowerCase());
-    wordObj.isKeyword = true;
-    // wordObj.keywords[wordObj.text.toLowerCase()] = kwObj;    
-    wordObj.keywords = kwObj;    
-    callback(wordObj);
-  }
-  else if ((wordObj.nodeType === "user") 
     && (wordObj.name !== undefined) 
     && (wordObj.name) 
     && keywordHashMap.has(wordObj.name.toLowerCase())) {
     debug(chalkAlert("HIT USER NAME"));
     kwObj = keywordHashMap.get(wordObj.name.toLowerCase());
     wordObj.isKeyword = true;
-    // wordObj.keywords[wordObj.name.toLowerCase()] = kwObj;    
     wordObj.keywords = kwObj;    
     callback(wordObj);
   }
@@ -1522,7 +1523,6 @@ function checkKeyword(w, callback) {
     debug(chalkAlert("HIT USER SNAME"));
     kwObj = keywordHashMap.get(wordObj.screenName.toLowerCase());
     wordObj.isKeyword = true;
-    // wordObj.keywords[wordObj.screenName.toLowerCase()] = kwObj;    
     wordObj.keywords = kwObj;    
     callback(wordObj);
   }
@@ -1530,7 +1530,6 @@ function checkKeyword(w, callback) {
     debug(chalkAlert("HIT NODE ID"));
     kwObj = keywordHashMap.get(wordObj.nodeId.toLowerCase());
     wordObj.isKeyword = true;
-    // wordObj.keywords[wordObj.nodeId.toLowerCase()] = kwObj;    
     wordObj.keywords = kwObj;    
     callback(wordObj);
   }
@@ -1538,7 +1537,6 @@ function checkKeyword(w, callback) {
     debug(chalkAlert("HIT TEXT"));
     kwObj = keywordHashMap.get(wordObj.text.toLowerCase());
     wordObj.isKeyword = true;
-    // wordObj.keywords[wordObj.text.toLowerCase()] = kwObj;    
     wordObj.keywords = kwObj;    
     callback(wordObj);
   }
@@ -2231,14 +2229,12 @@ function createSession(newSessionObj) {
           if (nodeObj.text.toLowerCase().includes("obama")) {
             obamaHit = nodeObj.text;
             nodeObj.isKeyword = true;
-            // nodeObj.keywords[nodeObj.text.toLowerCase()].left = DEFAULT_KEYWORD_VALUE;
             nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
             debug(chalkError("OBAMA: " + nodeObj.text));
           }
           if (nodeObj.text.toLowerCase().includes("trump")) {
             trumpHit = nodeObj.text;
             nodeObj.isKeyword = true;
-            // nodeObj.keywords[nodeObj.text.toLowerCase()].right = DEFAULT_KEYWORD_VALUE;
             nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
             debug(chalkError("TRUMP: " + nodeObj.text));
           }
@@ -2258,13 +2254,11 @@ function createSession(newSessionObj) {
               if (nodeObj.name.toLowerCase().includes("obama")) {
                 obamaHit = nodeObj.name;
                 nodeObj.isKeyword = true;
-                // nodeObj.keywords[nodeObj.name.toLowerCase()] = {};
                 nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
               }
               if (nodeObj.name.toLowerCase().includes("trump")) {
                 trumpHit = nodeObj.name;
                 nodeObj.isKeyword = true;
-                // nodeObj.keywords[nodeObj.name.toLowerCase()] = {};
                 nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
               }
               viewNameSpace.emit("node", nodeObj);
@@ -2272,19 +2266,6 @@ function createSession(newSessionObj) {
           }
           else if (nodeObj.screenName){
             nodeObj.isTwitterUser = true;
-            // if (nodeObj.screenName.toLowerCase().includes("obama")) {
-            //   obamaHit = nodeObj.screenName;
-            //   nodeObj.isKeyword = true;
-            //   // nodeObj.keywords[nodeObj.screenName.toLowerCase()] = {};
-            //   nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
-            // }
-            // if (nodeObj.screenName.toLowerCase().includes("trump")) {
-            //   trumpHit = nodeObj.screenName;
-            //   nodeObj.isKeyword = true;
-            //   // nodeObj.keywords[nodeObj.screenName.toLowerCase()] = {};
-            //   nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
-            // }
-            // viewNameSpace.emit("node", nodeObj);
             wordsPerMinuteTop10Cache.get(nodeObj.screenName.toLowerCase(), function(err, screenName) {
               if (screenName) {
                 nodeObj.isTopTen = true;
@@ -2292,13 +2273,11 @@ function createSession(newSessionObj) {
               if (nodeObj.screenName.toLowerCase().includes("obama")) {
                 obamaHit = nodeObj.screenName;
                 nodeObj.isKeyword = true;
-                // nodeObj.keywords[nodeObj.name.toLowerCase()] = {};
                 nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
               }
               if (nodeObj.screenName.toLowerCase().includes("trump")) {
                 trumpHit = nodeObj.screenName;
                 nodeObj.isKeyword = true;
-                // nodeObj.keywords[nodeObj.name.toLowerCase()] = {};
                 if (!nodeObj.keywords.left) { nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE; }
               }
               viewNameSpace.emit("node", nodeObj);
@@ -2307,22 +2286,6 @@ function createSession(newSessionObj) {
         break;
 
         case "hashtag":
-        //   if (nodeObj.nodeId.toLowerCase().includes("obama")) {
-        //     obamaHit = nodeObj.nodeId;
-        //     nodeObj.isKeyword = true;
-        //     // nodeObj.keywords[nodeObj.nodeId.toLowerCase()] = {};
-        //     nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
-        //     debug(chalkError("OBAMA HT: " + nodeObj.nodeId));
-        //   }
-        //   if (nodeObj.nodeId.toLowerCase().includes("trump")) {
-        //     trumpHit = nodeObj.nodeId;
-        //     nodeObj.isKeyword = true;
-        //     // nodeObj.keywords[nodeObj.nodeId.toLowerCase()] = {};
-        //     nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
-        //     debug(chalkError("TRUMP HT: " + nodeObj.nodeId));
-        //   }
-        //   updateWordMeter({nodeId: nodeObj.nodeId.toLowerCase()});
-        //   viewNameSpace.emit("node", nodeObj);
           wordsPerMinuteTop10Cache.get(nodeObj.nodeId.toLowerCase(), function(err, nodeId) {
             if (nodeId) {
               nodeObj.isTopTen = true;
@@ -2347,22 +2310,6 @@ function createSession(newSessionObj) {
         break;
 
         case "word":
-          // if (nodeObj.nodeId.toLowerCase().includes("obama")) {
-          //   obamaHit = nodeObj.nodeId;
-          //   nodeObj.isKeyword = true;
-          //   // nodeObj.keywords[nodeObj.nodeId.toLowerCase()] = {};
-          //   nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
-          //   debug(chalkError("OBAMA HT: " + nodeObj.nodeId));
-          // }
-          // if (nodeObj.nodeId.toLowerCase().includes("trump")) {
-          //   trumpHit = nodeObj.nodeId;
-          //   nodeObj.isKeyword = true;
-          //   // nodeObj.keywords[nodeObj.nodeId.toLowerCase()] = {};
-          //   nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
-          //   debug(chalkError("TRUMP HT: " + nodeObj.nodeId));
-          // }
-          // updateWordMeter({nodeId: nodeObj.nodeId.toLowerCase()});
-          // viewNameSpace.emit("node", nodeObj);
           wordsPerMinuteTop10Cache.get(nodeObj.nodeId.toLowerCase(), function(err, nodeId) {
             if (nodeId) {
               nodeObj.isTopTen = true;
@@ -5492,7 +5439,7 @@ function keywordUpdateDb(updateObj, callback){
   wordObj.keywords[updateObj.keywordId.toLowerCase()] = updateObj;
 
   keywordHashMap.set(wordObj.nodeId, updateObj);
-  serverKeywordHashMap.set(wordObj.nodeId, updateObj);
+  // serverKeywordHashMap.set(wordObj.nodeId, updateObj);
 
   wordServer.findOneWord(wordObj, false, function(err, updatedWordObj) {
     if (err){
@@ -5620,7 +5567,7 @@ setInterval(function() {
 
       case "keywordRemove":
         keywordHashMap.remove(updaterObj.keyword.toLowerCase());
-        serverKeywordHashMap.remove(updaterObj.keyword.toLowerCase());
+        // serverKeywordHashMap.remove(updaterObj.keyword.toLowerCase());
         console.log(chalkLog("KEYWORD REMOVE: " + updaterObj.keyword.toLowerCase()));
         updaterMessageReady = true;
       break;
@@ -5642,18 +5589,18 @@ setInterval(function() {
         // var keywords = Object.keys(updaterObj.keywords);
 
       // keywords.forEach(function(kw){
-        if ((updaterObj.target !== undefined) && (updaterObj.target === "server")) {
-          debugKeyword(chalkLog("UPDATE SERVER KEYWORD\n" + jsonPrint(updaterObj.keyword)));
-          serverKeywordHashMap.set(updaterObj.keyword.keywordId, updaterObj.keyword);
-        }
-        else if ((updaterObj.target !== undefined) && (updaterObj.target === "twitter")) {
-          console.log(chalkLog("UPDATE SERVER KEYWORD TWITTER\n" + jsonPrint(updaterObj.keyword)));
-          serverKeywordHashMap.set(updaterObj.keyword.keywordId, updaterObj.keyword);
-        }
-        else {
+        // if ((updaterObj.target !== undefined) && (updaterObj.target === "server")) {
+        //   debugKeyword(chalkLog("UPDATE SERVER KEYWORD\n" + jsonPrint(updaterObj.keyword)));
+        //   serverKeywordHashMap.set(updaterObj.keyword.keywordId, updaterObj.keyword);
+        // }
+        // else if ((updaterObj.target !== undefined) && (updaterObj.target === "twitter")) {
+        //   console.log(chalkLog("UPDATE SERVER KEYWORD TWITTER\n" + jsonPrint(updaterObj.keyword)));
+        //   serverKeywordHashMap.set(updaterObj.keyword.keywordId, updaterObj.keyword);
+        // }
+        // else {
           debugKeyword(chalkLog("UPDATE KEYWORD\n" + jsonPrint(updaterObj.keyword)));
           keywordHashMap.set(updaterObj.keyword.keywordId, updaterObj.keyword);
-        }
+        // }
 
         keywordUpdateDb(updaterObj.keyword, function(err, updatedWordObj){
           if (err) { console.log(chalkError("KEYWORD UPDATE ERR\n" + jsonPrint(err))); }

@@ -990,37 +990,67 @@ trendingCache.on( "expired", function(topic, topicObj){
 });
 
 
-function updateWordMeter(wordObj){
+function updateWordMeter(wordObj, callback){
 
-  if (ignoreWordHashMap.has(wordObj.nodeId)) {
-    debug(chalkInfo("IGNORE " + wordObj.nodeId));
-    wordCache.set(wordObj.nodeId, wordObj);
+  var meterWordId;
+
+  if (wordObj.isTwitterUser) {
+    if (wordObj.screenName !== undefined) {
+      meterWordId = wordObj.screenName.toLowerCase();
+    }
+    else if (wordObj.name !== undefined) {
+      meterWordId = wordObj.name.toLowerCase();
+    }
+    else {
+      console.log(chalkError("updateWordMeter ERROR: TWITTER USER UNDEFINED NAME & SCREEN NAME"
+        + "\n" + jsonPrint(wordObj)
+      ));
+      if (callback !== undefined) { callback("TWITTER USER UNDEFINED NAME & SCREEN NAME", wordObj)};
+      return;
+    }
+  }
+  else {
+    meterWordId = wordObj.nodeId;
+  }
+
+  if (ignoreWordHashMap.has(meterWordId)) {
+    debug(chalkInfo("IGNORE " + meterWordId));
+    wordCache.set(meterWordId, wordObj);
+    if (callback !== undefined) { callback(null, wordObj)};
     return;
   }
 
-  if (!wordMeter[wordObj.nodeId] 
-    || (wordMeter[wordObj.nodeId] === undefined) 
-    || (typeof wordMeter[wordObj.nodeId].mark !== "function")) {
-    wordMeter[wordObj.nodeId] = {};
-    wordMeter[wordObj.nodeId] = new Measured.Meter({rateUnit: 60000});
-    wordMeter[wordObj.nodeId].mark();
-    wordCache.set(wordObj.nodeId, wordObj);
+  if (!wordMeter[meterWordId] 
+    || (wordMeter[meterWordId] === undefined) 
+    || (typeof wordMeter[meterWordId].mark !== "function")) {
+    wordMeter[meterWordId] = {};
+    wordMeter[meterWordId] = new Measured.Meter({rateUnit: 60000});
+    wordMeter[meterWordId].mark();
+    var meterObj = wordMeter[meterWordId].toJSON();
+    wordObj.rate = meterObj["1MinuteRate"];
+    wordCache.set(meterWordId, wordObj, function(){
+      if (callback !== undefined) { callback(null, wordObj)};
+    });
   }
   else {
-    wordMeter[wordObj.nodeId].mark();
-    wordCache.set(wordObj.nodeId, wordObj);
+    wordMeter[meterWordId].mark();
+    var meterObj = wordMeter[meterWordId].toJSON();
+    wordObj.rate = meterObj["1MinuteRate"];
+    wordCache.set(meterWordId, wordObj, function(){
+      if (callback !== undefined) { callback(null, wordObj)};
+    });
   }
 
-  if (wordMeter[wordObj.nodeId].toJSON().count > MIN_WORD_METER_COUNT) {
+  if (wordMeter[meterWordId].toJSON().count > MIN_WORD_METER_COUNT) {
 
-    var meterObj = wordMeter[wordObj.nodeId].toJSON();
+    var meterObj = wordMeter[meterWordId].toJSON();
 
     debug(chalkAlert("WM"
       + " | W: " + Object.keys(wordMeter).length
       + " | C: " + meterObj.count
       + " | 5: " + meterObj["5MinuteRate"].toFixed(2)
       + " | 1: " + meterObj["1MinuteRate"].toFixed(2)
-      + " | " + wordObj.nodeId
+      + " | " + meterWordId
     ));
   }
 }
@@ -2261,7 +2291,9 @@ function createSession(newSessionObj) {
                 nodeObj.isKeyword = true;
                 nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
               }
-              viewNameSpace.emit("node", nodeObj);
+              updateWordMeter(nodeObj, function(err, uNodeObj){
+                viewNameSpace.emit("node", uNodeObj);
+              });
             });
           }
           else if (nodeObj.screenName){
@@ -2280,7 +2312,9 @@ function createSession(newSessionObj) {
                 nodeObj.isKeyword = true;
                 if (!nodeObj.keywords.left) { nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE; }
               }
-              viewNameSpace.emit("node", nodeObj);
+              updateWordMeter(nodeObj, function(err, uNodeObj){
+                viewNameSpace.emit("node", uNodeObj);
+              });
             });
           }
         break;
@@ -2304,8 +2338,9 @@ function createSession(newSessionObj) {
                 nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
               }
             }
-            updateWordMeter({nodeId: nodeObj.nodeId.toLowerCase()});
-            viewNameSpace.emit("node", nodeObj);
+            updateWordMeter(nodeObj, function(err, uNodeObj){
+              viewNameSpace.emit("node", uNodeObj);
+            });
           });
         break;
 
@@ -2328,8 +2363,9 @@ function createSession(newSessionObj) {
                 nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
               }
             }
-            updateWordMeter({nodeId: nodeObj.nodeId.toLowerCase()});
-            viewNameSpace.emit("node", nodeObj);
+            updateWordMeter(nodeObj, function(err, uNodeObj){
+              viewNameSpace.emit("node", uNodeObj);
+            });
           });
         break;
 
@@ -2986,7 +3022,7 @@ function dbUpdateEntity(entityObj, incMentions, callback) {
       callback(err, entityObj);
     } 
     else {
-      console.log(chalkAlert("->- DB EN" 
+      debug(chalkAlert("->- DB EN" 
         + " | " + entity.entityId 
         + " | " + entity.name 
         // + " | SN: " + entity.screenName 
@@ -5365,54 +5401,53 @@ setInterval(function() {
             responseQueueReady = true;
             return;
           }
-
-          // updateWordMeter(responseInObj);
      
-          getTags(responseInObj, function(updatedWordObj){
+          getTags(responseInObj, function(uWordObj){
             
-            updateWordMeter(updatedWordObj);
+            updateWordMeter(uWordObj, function(err, updatedWordObj){
 
-            var dbUpdateObj = {};
-            dbUpdateObj.word = updatedWordObj;
-            dbUpdateObj.session = currentSessionObj;
-            dbUpdateObj.tags = {};
+              var dbUpdateObj = {};
+              dbUpdateObj.word = updatedWordObj;
+              dbUpdateObj.session = currentSessionObj;
+              dbUpdateObj.tags = {};
 
-            if (updatedWordObj.tags){
+              if (updatedWordObj.tags){
 
-              if (!updatedWordObj.tags.group || (updatedWordObj.tags.group === undefined)) {
-                updatedWordObj.tags.group = updatedWordObj.tags.entity;
-                dbUpdateObj.tags.group = updatedWordObj.tags.entity;
+                if (!updatedWordObj.tags.group || (updatedWordObj.tags.group === undefined)) {
+                  updatedWordObj.tags.group = updatedWordObj.tags.entity;
+                  dbUpdateObj.tags.group = updatedWordObj.tags.entity;
+                }
+
+                dbUpdateObj.tags.entity = updatedWordObj.tags.entity;
+                dbUpdateObj.tags.channel = updatedWordObj.tags.channel;
+                dbUpdateObj.tags.group = updatedWordObj.tags.group;
+
+                debug(chalkInfo("R<" 
+                  + " G " + updatedWordObj.tags.group 
+                  + " E " + updatedWordObj.tags.entity 
+                  + " C " + updatedWordObj.tags.channel 
+                  + " | " + updatedWordObj.nodeId 
+                  + " | " + updatedWordObj.raw 
+                ));
+
+                dbUpdateWordQueue.enqueue(dbUpdateObj);
+                responseQueueReady = true;
+              }
+              else {
+                debug(chalkInfo("R<" 
+                  + " G " + updatedWordObj.tags.group 
+                  + " E " + updatedWordObj.tags.entity 
+                  + " C " + updatedWordObj.tags.channel 
+                  + " | " + updatedWordObj.nodeId 
+                  + " | " + updatedWordObj.raw 
+                ));
+
+                dbUpdateWordQueue.enqueue(dbUpdateObj);
+                responseQueueReady = true;
               }
 
-              dbUpdateObj.tags.entity = updatedWordObj.tags.entity;
-              dbUpdateObj.tags.channel = updatedWordObj.tags.channel;
-              dbUpdateObj.tags.group = updatedWordObj.tags.group;
+            });
 
-              debug(chalkInfo("R<" 
-                + " G " + updatedWordObj.tags.group 
-                + " E " + updatedWordObj.tags.entity 
-                + " C " + updatedWordObj.tags.channel 
-                + " | " + updatedWordObj.nodeId 
-                + " | " + updatedWordObj.raw 
-              ));
-
-              dbUpdateWordQueue.enqueue(dbUpdateObj);
-              responseQueueReady = true;
-
-            }
-            else {
-              debug(chalkInfo("R<" 
-                + " G " + updatedWordObj.tags.group 
-                + " E " + updatedWordObj.tags.entity 
-                + " C " + updatedWordObj.tags.channel 
-                + " | " + updatedWordObj.nodeId 
-                + " | " + updatedWordObj.raw 
-              ));
-
-              dbUpdateWordQueue.enqueue(dbUpdateObj);
-              responseQueueReady = true;
-
-            }
           });
 
         });
@@ -5967,7 +6002,7 @@ function getTwitterFriends(interval, callback){
         + " | TOTAL: " + totalFriends
         + " | NEXT CURSOR VALID: " + nextCursorValid
         + " | NEXT CURSOR: " + nextCursor
-        + "\nparams: " + jsonPrint(params)
+        // + "\nparams: " + jsonPrint(params)
       ));
 
       var friends = data.users;
@@ -6031,20 +6066,6 @@ function initAppRouting(callback) {
 
   debugAppGet(chalkInfo(moment().format(compactDateTimeFormat) + " | INIT APP ROUTING"));
 
-  // app.get("/", function(req, res) {
-  //   console.log(chalkRedBold("get req\n" + jsonPrint(req.params)));
-  //   console.log(chalkRedBold("LOADING PAGE: /"));
-  //   res.sendFile(__dirname + "/", function (err) {
-  //     if (err) {
-  //       console.error('GET:', __dirname + "/");
-  //     } 
-  //     else {
-  //       console.log(chalkInfo('SENT:', __dirname + "/"));
-  //     }
-  //   });
-  // });
-
-
   app.get("/js/require.js", function(req, res, next) {
     // console.log(chalkRedBold("get req\n" + jsonPrint(req.params)));
     console.log(chalkRedBold("LOADING PAGE: /js/require.js"));
@@ -6079,20 +6100,6 @@ function initAppRouting(callback) {
       res.end();
     });
   });
-
-  // app.get("/session", function(req, res, next) {
-  //   console.log(chalkRedBold("get req\n" + jsonPrint(req.params)));
-  //   console.log(chalkRedBold("LOADING PAGE: /session"));
-  //   res.sendFile(__dirname + "/session.js", function (err) {
-  //     if (err) {
-  //       console.error('GET:', __dirname + "/session.js");
-  //     } 
-  //     else {
-  //       console.log(chalkInfo('SENT:', __dirname + "/session.js"));
-  //     }
-  //   });
-  // });
-
 
   app.get("/", function(req, res, next) {
     // console.log(chalkRedBold("get req\n" + jsonPrint(req.params)));
@@ -7299,7 +7306,7 @@ function initFollowerUpdateQueueInterval(interval){
 
       var entityObj = followerUpdateQueue.dequeue();
 
-      console.log(chalkInfo("FOLLOWER"
+      debug(chalkInfo("FOLLOWER"
         + " [ Q: " + followerUpdateQueue.size() + "]"
         + " | " + entityObj.screenName
         + " | " + entityObj.name

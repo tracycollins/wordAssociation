@@ -171,7 +171,7 @@ exports.findOneWord = function(word, incMentions, callback) {
 		$set: { 
 			nodeId: word.nodeId,
 			raw: word.raw,
-			rate: word.rate,
+			rate: word.rate || 0,
 			isTwitterUser: word.isTwitterUser,
 			isTopTen: word.isTrendingTopic,
 			isTrendingTopic: word.isTopTen,

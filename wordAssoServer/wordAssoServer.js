@@ -1,7 +1,7 @@
 /*jslint node: true */
 "use strict";
 
-require('longjohn');
+// require('longjohn');
 
 var compactDateTimeFormat = "YYYYMMDD HHmmss";
 
@@ -994,11 +994,16 @@ function updateWordMeter(wordObj, callback){
 
   var meterWordId;
 
-  if (wordObj.isTwitterUser) {
-    if (wordObj.nodeId !== undefined) {
-      meterWordId = wordObj.nodeId;
-    }
-    else if (wordObj.screenName !== undefined) {
+  if ((wordObj.nodeType === "media") 
+    || (wordObj.nodeType === "url")
+    || (wordObj.nodeType === "keepalive")
+    ) {
+    callback(null, wordObj);
+    return;
+  }
+
+  if (wordObj.isTwitterUser || (wordObj.nodeType === "user")) {
+    if (wordObj.screenName !== undefined) {
       meterWordId = wordObj.screenName.toLowerCase();
     }
     else if (wordObj.name !== undefined) {
@@ -1012,6 +1017,9 @@ function updateWordMeter(wordObj, callback){
       return;
     }
   }
+  else if (wordObj.nodeType === "place") {
+    meterWordId = wordObj.name;
+  }
   else {
     meterWordId = wordObj.nodeId;
   }
@@ -1023,6 +1031,10 @@ function updateWordMeter(wordObj, callback){
     return;
   }
 
+
+  if (/TSS_/.test(meterWordId) || wordObj.isServer){
+    console.log(chalkAlert("updateWordMeter\n" + jsonPrint(wordObj)));
+  }
 
   if (!wordMeter[meterWordId] 
     || (wordMeter[meterWordId] === undefined) 
@@ -2083,6 +2095,7 @@ function createSession(newSessionObj) {
 
     if (userObj.userId.match(/TMS_/g)){
       tmsServer = userObj.userId;
+      userObj.isServer = true;
       debug(chalkSession("K-" 
         + " | " + userObj.userId
         + " | " + socket.id
@@ -2093,6 +2106,7 @@ function createSession(newSessionObj) {
     }
  
     if (userObj.userId.match(/TSS_/g)){
+      userObj.isServer = true;
       tssServer = userObj.userId;
       debug(chalkSession("K-" 
         + " | " + userObj.userId
@@ -2250,6 +2264,8 @@ function createSession(newSessionObj) {
 
   socket.on("node", function(rxNodeObj) {
 
+    // usually output from twitterSearchStream (TSS)
+
     debug("RX NODE"
       + " | " + rxNodeObj.nodeType 
       + " | NID " + rxNodeObj.nodeId 
@@ -2259,7 +2275,6 @@ function createSession(newSessionObj) {
 
     checkKeyword(rxNodeObj, function(nodeObj){
 
-      debug(chalkAlert("NODE | checkKeyword\n" + jsonPrint(nodeObj)));
 
       var obamaHit = false;
       var trumpHit = false;
@@ -2268,22 +2283,38 @@ function createSession(newSessionObj) {
       switch (nodeObj.nodeType) {
 
         case "tweet":
+
+          // console.log(chalkAlert("TWEET | checkKeyword\n" + jsonPrint(nodeObj)));
+
           if (nodeObj.text.toLowerCase().includes("obama")) {
             obamaHit = nodeObj.text;
             nodeObj.isKeyword = true;
-            nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
+            if (!nodeObj.keywords.right){
+              nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
+            }
+            else {
+              delete nodeObj.keywords.left;
+            }
             debug(chalkError("OBAMA: " + nodeObj.text));
           }
           if (nodeObj.text.toLowerCase().includes("trump")) {
             trumpHit = nodeObj.text;
             nodeObj.isKeyword = true;
-            nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
+            if (!nodeObj.keywords.left){
+              nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
+            }
+            else {
+              delete nodeObj.keywords.right;
+            }
             debug(chalkError("TRUMP: " + nodeObj.text));
           }
           viewNameSpace.emit("node", nodeObj);
         break;
 
         case "user":
+
+          // console.log(chalkAlert("USER | checkKeyword\n" + jsonPrint(nodeObj)));
+
           if (!nodeObj.name && !nodeObj.screenName) {
             console.log(chalkError("NODE NAME & SCREEN NAME UNDEFINED?\n" + jsonPrint(nodeObj)));
           }
@@ -2296,12 +2327,22 @@ function createSession(newSessionObj) {
               if (nodeObj.name.toLowerCase().includes("obama")) {
                 obamaHit = nodeObj.name;
                 nodeObj.isKeyword = true;
-                nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
+                if (!nodeObj.keywords.right){
+                  nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
+                }
+                else {
+                  delete nodeObj.keywords.left;
+                }
               }
               if (nodeObj.name.toLowerCase().includes("trump")) {
                 trumpHit = nodeObj.name;
                 nodeObj.isKeyword = true;
-                nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
+                if (!nodeObj.keywords.left){
+                  nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
+                }
+                else {
+                  delete nodeObj.keywords.right;
+                }
               }
               updateWordMeter(nodeObj, function(err, uNodeObj){
                 viewNameSpace.emit("node", uNodeObj);
@@ -2317,12 +2358,22 @@ function createSession(newSessionObj) {
               if (nodeObj.screenName.toLowerCase().includes("obama")) {
                 obamaHit = nodeObj.screenName;
                 nodeObj.isKeyword = true;
-                nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
+                if (!nodeObj.keywords.right){
+                  nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
+                }
+                else {
+                  delete nodeObj.keywords.left;
+                }
               }
               if (nodeObj.screenName.toLowerCase().includes("trump")) {
                 trumpHit = nodeObj.screenName;
                 nodeObj.isKeyword = true;
-                if (!nodeObj.keywords.left) { nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE; }
+                if (!nodeObj.keywords.left){
+                  nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
+                }
+                else {
+                  delete nodeObj.keywords.right;
+                }
               }
               updateWordMeter(nodeObj, function(err, uNodeObj){
                 viewNameSpace.emit("node", uNodeObj);
@@ -2332,6 +2383,9 @@ function createSession(newSessionObj) {
         break;
 
         case "hashtag":
+
+          // console.log(chalkAlert("HASHTAG | checkKeyword\n" + jsonPrint(nodeObj)));
+
           wordsPerMinuteTop10Cache.get(nodeObj.nodeId.toLowerCase(), function(err, nodeId) {
             if (nodeId) {
               nodeObj.isTopTen = true;
@@ -2339,15 +2393,60 @@ function createSession(newSessionObj) {
             if (nodeObj.nodeId.toLowerCase().includes("obama")) {
               obamaHit = nodeObj.nodeId;
               nodeObj.isKeyword = true;
-              if (!keywordHashMap.has(nodeObj.nodeId.toLowerCase())){
+              if (!nodeObj.keywords.right){
                 nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
+              }
+              else {
+                delete nodeObj.keywords.left;
               }
             }
             if (nodeObj.nodeId.toLowerCase().includes("trump")) {
               trumpHit = nodeObj.nodeId;
               nodeObj.isKeyword = true;
-              if (!nodeObj.keywords.left && !keywordHashMap.has(nodeObj.nodeId.toLowerCase())){
+              if (!nodeObj.keywords.left){
                 nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
+              }
+              else {
+                delete nodeObj.keywords.right;
+              }
+            }
+            updateWordMeter(nodeObj, function(err, uNodeObj){
+              viewNameSpace.emit("node", uNodeObj);
+            });
+          });
+        break;
+
+        case "place":
+
+          debug(chalkAlert("PLACE | checkKeyword\n" + jsonPrint(nodeObj)));
+          console.log(chalkAlert("PLACE | checkKeyword"
+            + " | " + nodeObj.name
+            + " | " + nodeObj.fullName
+            + " | " + nodeObj.country
+          ));
+
+          wordsPerMinuteTop10Cache.get(nodeObj.name.toLowerCase(), function(err, nodeId) {
+            if (nodeId) {
+              nodeObj.isTopTen = true;
+            }
+            if (nodeObj.name.toLowerCase().includes("obama")) {
+              obamaHit = nodeObj.nodeId;
+              nodeObj.isKeyword = true;
+              if (!nodeObj.keywords.right){
+                nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
+              }
+              else {
+                delete nodeObj.keywords.left;
+              }
+            }
+            if (nodeObj.name.toLowerCase().includes("trump")) {
+              trumpHit = nodeObj.nodeId;
+              nodeObj.isKeyword = true;
+              if (!nodeObj.keywords.left){
+                nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
+              }
+              else {
+                delete nodeObj.keywords.right;
               }
             }
             updateWordMeter(nodeObj, function(err, uNodeObj){
@@ -2357,6 +2456,9 @@ function createSession(newSessionObj) {
         break;
 
         case "word":
+
+          // console.log(chalkAlert("WORD | checkKeyword\n" + jsonPrint(nodeObj)));
+
           wordsPerMinuteTop10Cache.get(nodeObj.nodeId.toLowerCase(), function(err, nodeId) {
             if (nodeId) {
               nodeObj.isTopTen = true;
@@ -2364,15 +2466,21 @@ function createSession(newSessionObj) {
             if (nodeObj.nodeId.toLowerCase().includes("obama")) {
               obamaHit = nodeObj.nodeId;
               nodeObj.isKeyword = true;
-              if (!keywordHashMap.has(nodeObj.nodeId.toLowerCase())){
+              if (!nodeObj.keywords.right){
                 nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
+              }
+              else {
+                delete nodeObj.keywords.left;
               }
             }
             if (nodeObj.nodeId.toLowerCase().includes("trump")) {
               trumpHit = nodeObj.nodeId;
               nodeObj.isKeyword = true;
-              if (!nodeObj.keywords.left && !keywordHashMap.has(nodeObj.nodeId.toLowerCase())){
+              if (!nodeObj.keywords.left){
                 nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
+              }
+              else {
+                delete nodeObj.keywords.right;
               }
             }
             updateWordMeter(nodeObj, function(err, uNodeObj){
@@ -2381,10 +2489,18 @@ function createSession(newSessionObj) {
           });
         break;
 
+        case "media":
+        case "url":
+          viewNameSpace.emit("node", nodeObj);
+        break;
+
         default:
-          updateWordMeter(nodeObj, function(err, uNodeObj){
-            viewNameSpace.emit("node", uNodeObj);
-          });
+
+          console.log(chalkAlert("DEFAULT | checkKeyword\n" + jsonPrint(nodeObj)));
+
+          // updateWordMeter(nodeObj, function(err, uNodeObj){
+          viewNameSpace.emit("node", nodeObj);
+          // });
       }
 
       if (obamaHit) {
@@ -2830,6 +2946,7 @@ function createSmallSessionUpdateObj (updateObj, callback){
 
     sessionSmallObj.source = {
       nodeId: updateObj.userId,
+      nodeType: "keepalive",
       rate: 0,
       wordChainIndex: updateObj.wordChainIndex,
       links: {},
@@ -2857,6 +2974,7 @@ function createSmallSessionUpdateObj (updateObj, callback){
     }
 
     sessionSmallObj.source.nodeId = updateObj.source.nodeId;
+    sessionSmallObj.source.nodeType = updateObj.source.nodeType;
     sessionSmallObj.source.raw = updateObj.source.raw;
     sessionSmallObj.source.rate = updateObj.source.rate || 0;
     sessionSmallObj.source.isIgnored = updateObj.source.isIgnored;
@@ -2881,6 +2999,7 @@ function createSmallSessionUpdateObj (updateObj, callback){
     if (updateObj.target !== undefined) {
 
       sessionSmallObj.target.nodeId = updateObj.target.nodeId;
+      sessionSmallObj.target.nodeType = updateObj.target.nodeType;
       sessionSmallObj.target.raw = updateObj.target.raw;
       sessionSmallObj.target.rate = updateObj.target.rate || 0;
       sessionSmallObj.target.isIgnored = updateObj.target.isIgnored;
@@ -2916,6 +3035,10 @@ setInterval(function() {
     updateSessionViewReady = false;
 
     var sessionUpdateObj = updateSessionViewQueue.shift();
+
+    // if (sessionUpdateObj.action !== "KEEPALIVE") {
+    //   console.log(chalkAlert("sessionUpdateObj\n" + jsonPrint(sessionUpdateObj)));
+    // }
 
     updateStatsCounts();
 
@@ -5433,6 +5556,8 @@ setInterval(function() {
           }
      
           getTags(responseInObj, function(uWordObj){
+
+            debug(chalkInfo("responseInObj\n" + jsonPrint(responseInObj)));
             
             updateWordMeter(uWordObj, function(err, updatedWordObj){
 

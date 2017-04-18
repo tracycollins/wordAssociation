@@ -6,6 +6,8 @@ var compactDateTimeFormat = "YYYYMMDD HHmmss";
 var DEFAULT_KEYWORD_VALUE = 100 // on scale of 1-100
 var deleteKeywordsEnabled = false;
 
+var sendingHashMapsFlag = false;
+
 var OFFLINE_MODE = false;
 var debug = require('debug')('wa');
 var debugKeyword = require('debug')('kw');
@@ -20,10 +22,6 @@ hostname = hostname.replace(/word0-instance-1/g, 'google');
 var prevKeywordModifiedMoment = moment("2010-01-01");
 var prevGroupsModifiedMoment = moment("2010-01-01");
 var prevEntitiesFileClientModifiedMoment = moment("2010-01-01");
-
-var serverGroupsFile = hostname + '_groups.json';
-var serverEntitiesFile = hostname + '_entities.json';
-var serverKeywordsFile = hostname + '_keywords.json';
 
 var jsonPrint = function(obj) {
   if (obj) {
@@ -78,9 +76,6 @@ var entityChannelGroupHashMap = new HashMap();
 var serverEntityChannelGroupHashMap = new HashMap();
 
 var keywordHashMap = new HashMap();
-// var serverKeywordHashMap = new HashMap();
-// var previousKeywordHashMap = new HashMap();
-// var previousServerKeywordHashMap = new HashMap();
 
 var mongoose = require('../../config/mongoose');
 var db = mongoose();
@@ -107,12 +102,12 @@ var chalk = require('chalk');
 
 var chalkRed = chalk.red;
 var chalkGreen = chalk.green;
-var chalkInfo = chalk.green;
+var chalkInfo = chalk.gray;
 var chalkTest = chalk.bold.red;
 var chalkAlert = chalk.red;
 var chalkError = chalk.bold.red;
 var chalkWarn = chalk.bold.yellow;
-var chalkLog = chalk.gray;
+var chalkLog = chalk.black;
 
 
 // ==================================================================
@@ -170,11 +165,8 @@ process.on('message', function(m) {
       var options = {
         folder: m.folder,
         groupsFile: m.groupsConfigFile,
-        serverGroupsFile: serverGroupsFile,
         entitiesFile: m.entityChannelGroupsConfigFile,
-        serverEntitiesFile: serverEntitiesFile,
         keywordsFile: m.keywordFile,
-        serverKeywordsFile: serverKeywordsFile,
         interval: m.interval
       };
 
@@ -212,7 +204,7 @@ function getFileMetadata(path, file, callback) {
 
   dropboxClient.filesGetMetadata({path: fullPath})
     .then(function(response) {
-      console.log(chalkAlert("FILE META\n" + jsonPrint(response)));
+      debug(chalkAlert("FILE META\n" + jsonPrint(response)));
       return(callback(null, response));
     })
     .catch(function(error) {
@@ -262,24 +254,25 @@ function loadFile(path, file, callback) {
 
 var updateGroups = function (path, configFile, callback){
 
-  console.log(chalkWarn("UPDATE GROUPS " + configFile));
+  console.log(chalkInfo("UPDATE GROUPS " + configFile));
 
   getFileMetadata(path, configFile, function(err, response){
 
     var groupsFileClientModifiedMoment = moment(new Date(response.client_modified));
   
     if (groupsFileClientModifiedMoment.isSameOrBefore(prevGroupsModifiedMoment)){
-      console.log(chalkAlert("GROUPS FILE BEFORE OR EQUAL"
-        + "\nPREV:    " + prevGroupsModifiedMoment.format(compactDateTimeFormat)
-        + "\nCURRENT: " + groupsFileClientModifiedMoment.format(compactDateTimeFormat)
+      console.log(chalkInfo("GROUPS FILE BEFORE OR EQUAL"
+        + " | PREV: " + prevGroupsModifiedMoment.format(compactDateTimeFormat)
+        + " | CURRENT: " + groupsFileClientModifiedMoment.format(compactDateTimeFormat)
       ));
 
-      callback(null, "GROUPS FILE " + path + "/" + configFile + " NOT MODIFIED");
+      // callback(null, "GROUPS FILE " + path + "/" + configFile + " NOT MODIFIED");
+      callback(null, {groups: 0});
     }
     else {
       console.log(chalkAlert("GROUPS FILE AFTER"
-        + "\nPREV:    " + prevGroupsModifiedMoment.format(compactDateTimeFormat)
-        + "\nCURRENT: " + groupsFileClientModifiedMoment.format(compactDateTimeFormat)
+        + " | PREV: " + prevGroupsModifiedMoment.format(compactDateTimeFormat)
+        + " | CURRENT: " + groupsFileClientModifiedMoment.format(compactDateTimeFormat)
       ));
 
       console.log(chalkAlert("... UPDATING GROUPS | " + path + "/" + configFile));
@@ -334,7 +327,7 @@ var updateGroups = function (path, configFile, callback){
               } else {
                 console.log(chalkLog("FOUND " + groupIds.length + " GROUPS"));
                 console.log(chalkLog("GROUPS CONFIG UPDATE COMPLETE"));
-                callback(null, {numGroups: groupIds.length});
+                callback(null, {groups: groupIds.length});
               }
             }
           );
@@ -346,22 +339,25 @@ var updateGroups = function (path, configFile, callback){
 
 var updateEntityChannelGroups = function (path, configFile, callback){
 
+  console.log(chalkInfo("UPDATE ENTITIES " + configFile));
+
   getFileMetadata(path, configFile, function(err, response){
 
     var entitiesFileClientModifiedMoment = moment(new Date(response.client_modified));
   
     if (entitiesFileClientModifiedMoment.isSameOrBefore(prevEntitiesFileClientModifiedMoment)){
-      console.log(chalkAlert("ENTITIES FILE BEFORE OR EQUAL"
-        + "\nPREV:    " + prevEntitiesFileClientModifiedMoment.format(compactDateTimeFormat)
-        + "\nCURRENT: " + entitiesFileClientModifiedMoment.format(compactDateTimeFormat)
+      console.log(chalkInfo("ENTITIES FILE BEFORE OR EQUAL"
+        + " | PREV: " + prevEntitiesFileClientModifiedMoment.format(compactDateTimeFormat)
+        + " | CURRENT: " + entitiesFileClientModifiedMoment.format(compactDateTimeFormat)
       ));
 
-      callback(null, "ENTITIES FILE " + path + "/" + configFile + " NOT MODIFIED");
+      // callback(null, "ENTITIES FILE " + path + "/" + configFile + " NOT MODIFIED");
+      callback(null, {entities: 0});
     }
     else {
       console.log(chalkAlert("ENTITIES FILE AFTER"
-        + "\nPREV:    " + prevEntitiesFileClientModifiedMoment.format(compactDateTimeFormat)
-        + "\nCURRENT: " + entitiesFileClientModifiedMoment.format(compactDateTimeFormat)
+        + " | PREV: " + prevEntitiesFileClientModifiedMoment.format(compactDateTimeFormat)
+        + " | CURRENT: " + entitiesFileClientModifiedMoment.format(compactDateTimeFormat)
       ));
 
       console.log(chalkAlert("... UPDATING ENTITIES | " + path + "/" + configFile));
@@ -428,7 +424,7 @@ var updateEntityChannelGroups = function (path, configFile, callback){
                 console.log(chalkLog("ENTITY CHANNEL GROUPS CONFIG INIT COMPLETE"
                   // + "\n" + jsonPrint(entityChannelGroups)
                 ));
-                callback(null, {numEntities: entityChannelIds.length});
+                callback(null, { entities: entityChannelIds.length });
                 return;
               }
             }
@@ -446,24 +442,25 @@ var updateKeywords = function (folder, file, callback){
   var prevKwHashMap = new HashMap();
 
   kwHashMap.copy(keywordHashMap);
-  console.log(chalkWarn("UPDATE GLOBAL KEYWORDS " + file));
+  console.log(chalkInfo("UPDATE KEYWORDS " + file));
 
   getFileMetadata(folder, file, function(err, response){
 
     var keywordFileClientModifiedMoment = moment(new Date(response.client_modified));
 
     if (keywordFileClientModifiedMoment.isSameOrBefore(prevKeywordModifiedMoment)){
-      console.log(chalkAlert("KEYWORD FILE BEFORE OR EQUAL"
-        + "\nPREV:    " + prevKeywordModifiedMoment.format(compactDateTimeFormat)
-        + "\nCURRENT: " + keywordFileClientModifiedMoment.format(compactDateTimeFormat)
+      console.log(chalkInfo("KEYWORD FILE BEFORE OR EQUAL"
+        + " | PREV: " + prevKeywordModifiedMoment.format(compactDateTimeFormat)
+        + " | CURRENT: " + keywordFileClientModifiedMoment.format(compactDateTimeFormat)
       ));
 
-      callback(null, "KEYWORD FILE " + folder + "/" + file + " NOT MODIFIED");
+      // callback(null, "KEYWORD FILE " + folder + "/" + file + " NOT MODIFIED");
+      callback(null, {keywords: 0});
     }
     else {
       console.log(chalkAlert("KEYWORD FILE AFTER"
-        + "\nPREV:    " + prevKeywordModifiedMoment.format(compactDateTimeFormat)
-        + "\nCURRENT: " + keywordFileClientModifiedMoment.format(compactDateTimeFormat)
+        + " | PREV: " + prevKeywordModifiedMoment.format(compactDateTimeFormat)
+        + " | CURRENT: " + keywordFileClientModifiedMoment.format(compactDateTimeFormat)
       ));
 
       console.log(chalkAlert("... UPDATING KEYWORDS | " + folder + "/" + file));
@@ -554,10 +551,10 @@ var updateKeywords = function (folder, file, callback){
                 // }
                 // else {
                 keywordHashMap.copy(kwHashMap);
-                console.log(chalkWarn("UPDATE GLOBAL KEYWORDS " + file));
+                // console.log(chalkInfo("UPDATED GLOBAL KEYWORDS " + file));
                 // }
 
-                callback(null, {numKeywords: words.length});
+                callback(null, { keywords: words.length });
               }
             }
           )
@@ -578,26 +575,65 @@ function updateGroupsEntitiesKeywords(options, callback){
         console.log(chalkError("updateGroupsEntitiesKeywords ERROR\n" + err));
       }
       else {
-        console.log(chalkInfo("updateGroupsEntitiesKeywords COMPLETE\n" + jsonPrint(results)));
+        console.log(chalkInfo("updateGroupsEntitiesKeywords COMPLETE"
+          // + "\n" + jsonPrint(results)
+        ));
       }
       callback(err, results);
     });
 }
 
-function sendHashMaps(callback){
-  sendGroups(function(){
-    sendEntities(function(){
-      sendKeywords(function(){
-        callback();
-      });
-    });
+function sendHashMaps(results, callback){
+
+  console.log(chalkInfo("START SEND HASHMAPS"
+    // + "\n" + jsonPrint(results)
+  ));
+  async.eachSeries(results, function(result, cb) {
+    var resultKeys = Object.keys(result);
+    if (result[resultKeys[0]] === 0){
+      console.log(chalkInfo("NO UPDATES FOR " + resultKeys[0] + " ... SKIPPING ..."));
+      // console.log(chalkInfo("NO UPDATES FOR " + jsonPrint(results)));
+      cb();
+    }
+    else {
+      switch (resultKeys[0]) {
+        case "groups":
+          console.log(chalkInfo("UPDATE GROUPS " + result[resultKeys[0]]));
+          sendGroups(function(){ cb(); });
+        break;
+        case "entities":
+          console.log(chalkInfo("UPDATE ENTITIES " + result[resultKeys[0]]));
+          sendEntities(function(){ cb(); });
+        break;
+        case "keywords":
+          console.log(chalkInfo("UPDATE KEYWORDS " + result[resultKeys[0]]));
+          sendKeywords(function(){ cb(); });
+        break;
+        default:
+          console.log(chalkError("UNKNOWN DATA TYPE " + resultKeys[0] + " " + result[resultKeys[0]]));
+          cb(resultKeys[0]);
+      }
+    }
+  },
+  function(err){
+    if (err) {
+      console.log(chalkError("sendHashMaps ERROR! " + err));
+      callback(err, null);
+    }
+    else {
+      console.log(chalkInfo("sendHashMaps COMPLETE"
+        // + "\n" + jsonPrint(results)
+      ));
+      callback(err, null);
+    }
   });
-}
+ }
 
 function sendGroups(callback){
 
+  console.log(chalkInfo("sendGroups START"));
+
   var groupIds = groupHashMap.keys();
-  var serverGroupIds = serverGroupHashMap.keys();
 
   async.forEachSeries(groupIds, function(groupId, cb) {
 
@@ -627,54 +663,9 @@ function sendGroups(callback){
         callback(err, null);
       }
       else {
-
-        async.forEachSeries(serverGroupIds, function(groupId, cb) {
-
-            var groupObj = serverGroupHashMap.get(groupId);
-
-            setTimeout(function(){
-              process.send({ 
-                target: 'server',
-                type: 'group', 
-                groupId: groupId, 
-                group: group
-              }, function(err){
-                if (err){
-                  console.log(chalkError("sendGroups ERROR\n" + err));
-                  cb(err);
-                }
-                else {
-                  debug(chalkInfo("UPDATER SENT GROUP"
-                    + " | " + groupId
-                  ));
-                  cb();
-                }
-              });
-
-              // debug(chalkInfo("UPDATER SENT GROUP"
-              //   + " | SERVER"
-              //   + " | " + groupId
-              // ));
-
-              // cb();
-            }, 20);
-
-          },
-
-          function(err) {
-            if (err) {
-              console.log(chalkError("sendGroups ERROR! " + err));
-              callback(err, null);
-              quit(err);
-            }
-            else {
-              console.log(chalkInfo("sendGroups COMPLETE"));
-              process.send({ type: 'sendGroupsComplete'});
-              callback(null, null);
-            }
-          }
-        );
-
+        console.log(chalkInfo("sendGroups COMPLETE | " + groupIds.length + " KEYWORDS"));
+        process.send({ type: 'sendGroupsComplete'});
+        callback(null, null);
       }
     }
   );
@@ -682,8 +673,10 @@ function sendGroups(callback){
 
 function sendEntities(callback){
 
+  console.log(chalkInfo("sendEntities START"));
+
   var entityIds = entityChannelGroupHashMap.keys();
-  var serverEntityIds = serverEntityChannelGroupHashMap.keys();
+  // var serverEntityIds = serverEntityChannelGroupHashMap.keys();
 
   async.forEachSeries(entityIds, function(entityId, cb) {
 
@@ -706,48 +699,17 @@ function sendEntities(callback){
         callback(err, null);
       }
       else {
-
-
-        async.forEachSeries(serverEntityIds, function(entityId, cb) {
-
-            var entityObj = serverEntityChannelGroupHashMap.get(entityId);
-
-            setTimeout(function(){
-              process.send({ 
-                target: 'server',
-                type: 'entity', 
-                entityId: entityId, 
-                entity: entity
-              });
-              debug(chalkInfo("UPDATER SENT ENTITY"
-                + " | SERVER"
-                + " | " + entityId
-              ));
-
-              cb();
-            }, 10);
-
-          },
-
-          function(err) {
-            if (err) {
-              console.log(chalkError("sendEntities ERROR! " + err));
-              callback(err, null);
-            }
-            else {
-              console.log(chalkInfo("sendEntities COMPLETE"));
-              process.send({ type: 'sendEntitiesComplete'});
-              callback(null, null);
-            }
-          }
-        );
-
+        console.log(chalkInfo("sendEntities COMPLETE | " + entityIds.length + " KEYWORDS"));
+        process.send({ type: 'sendEntitiesComplete'});
+        callback(null, null);
       }
     }
   );
 }
 
 function sendKeywords(callback){
+
+  console.log(chalkInfo("sendKeywords START"));
 
   var words = keywordHashMap.keys();
 
@@ -795,7 +757,7 @@ function sendKeywords(callback){
         callback(err, null);
       }
       else {
-        console.log(chalkInfo("sendKeywords COMPLETE"));
+        console.log(chalkInfo("sendKeywords COMPLETE | " + words.length + " KEYWORDS"));
         process.send({ type: 'sendKeywordsComplete'});
         callback(null, null);
       }
@@ -816,7 +778,7 @@ function updateGroupsInterval(options){
 
   updateGroupsEntitiesKeywords(options, function(err, results){
     initGroupsReady = false;
-    sendHashMaps(function(err2, results2){
+    sendHashMaps(results, function(err2, results2){
       initGroupsReady = true;
     });
   });
@@ -827,7 +789,7 @@ function updateGroupsInterval(options){
       console.log(chalkInfo("updateGroupsInterval"+ "\n" + jsonPrint(options)));
       initGroupsReady = false;
       updateGroupsEntitiesKeywords(options, function(err, results){
-        sendHashMaps(function(err2, results2){
+        sendHashMaps(results, function(err2, results2){
           initGroupsReady = true;
         });
       });

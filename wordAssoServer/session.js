@@ -1997,6 +1997,7 @@ function initSocketNodeRx(){
     }
 
     var newNode = {};
+    newNode.rate = nNode.rate;
     newNode.isTopTen = nNode.isTopTen;
     newNode.isKeyword = nNode.isKeyword;
     newNode.keywords = nNode.keywords;

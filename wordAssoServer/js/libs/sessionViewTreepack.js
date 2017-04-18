@@ -9,6 +9,8 @@ function ViewTreepack() {
 
   var sliderPercision = 3;
 
+  var nodes = [];
+
   var currentMaxMentions = 0;
   var currentHashtagMaxMentions = 2;
   var deadNodesHash = {};
@@ -63,6 +65,8 @@ function ViewTreepack() {
 
   var DEFAULT_AGE_RATE = 1.0;
   var MAX_RX_QUEUE = 100;
+
+  var nodesTopTenHashMap = new HashMap();
 
   var localNodeHashMap = new HashMap();
   var maxNodeAddQ = 0;
@@ -199,7 +203,6 @@ function ViewTreepack() {
 
   d3.select("body").style("cursor", "default");
 
-  var nodes = [];
   
   this.deleteNode = function() {
   };
@@ -406,22 +409,17 @@ function ViewTreepack() {
 
       node = nodes[ageNodesIndex];
 
-      // if (localNodeHashMap.has(node.nodeId)){
-      //   nodeObj = localNodeHashMap.get(node.nodeId);
-      //   node.rank = nodeObj.rank;
-      // }
-
       age = node.age 
-        // + randomIntFromInterval(10,100) 
         + (ageRate * (moment().valueOf() - node.ageUpdated));
 
       ageMaxRatio = age/nodeMaxAge ;
 
       if (node.isDead 
-        // || (removeDeadNodesFlag && (node.rank > MAX_NODES))
         || (removeDeadNodesFlag && (age >= nodeMaxAge))
         ) {
+
         localNodeHashMap.remove(node.nodeId);
+        nodesTopTenHashMap.remove(node.nodeId);
 
         nodes.splice(ageNodesIndex, 1);
         // console.debug("X NODE"
@@ -442,6 +440,10 @@ function ViewTreepack() {
         node.isDead = false;
         nodes[ageNodesIndex] = node;
         localNodeHashMap.set(node.nodeId, node);
+
+        if (node.isTopTen) {
+          nodesTopTenHashMap.set(node.nodeId, node);
+        }
       }
     }
 
@@ -471,6 +473,7 @@ function ViewTreepack() {
         deadNodeFlag = true;
         delete deadNodesHash[node.nodeId];
         localNodeHashMap.remove(node.nodeId);
+        nodesTopTenHashMap.remove(node.nodeId);
       }
       deadNodeIds = Object.keys(deadNodesHash);
     }
@@ -806,7 +809,7 @@ function ViewTreepack() {
         currentNode = localNodeHashMap.get(newNode.nodeId);
 
         currentNode.newFlag = true;
-        currentNode.rate = newNode.rate;
+        currentNode.rate = newNode.rate || 0;
         currentNode.age = 1e-6;
         currentNode.ageMaxRatio = 1e-6;
         currentNode.x = currentNode.x || 0.5 * width;
@@ -822,6 +825,10 @@ function ViewTreepack() {
 
         localNodeHashMap.set(currentNode.nodeId, currentNode);
 
+        if (newNode.isTopTen) {
+          nodesTopTenHashMap.set(currentNode.nodeId, currentNode);
+        }
+
         callback(null, nodesModifiedFlag);
       }
       else {
@@ -830,7 +837,7 @@ function ViewTreepack() {
         currentNode.newFlag = true;
         currentNode.age = 1e-6;
         currentNode.ageMaxRatio = 1e-6;
-        // currentNode.isTopTen = newNode.isTopTen;
+        currentNode.rate = newNode.rate || 0;
         // currentNode.mentions = newNode.mentions;
         currentNode.ageUpdated = moment().valueOf();
         currentNode.mouseHoverFlag = false;
@@ -864,7 +871,13 @@ function ViewTreepack() {
           currentNode.x = focus("neutral").x; 
           currentNode.y = focus("neutral").y;
         }
+
         localNodeHashMap.set(currentNode.nodeId, currentNode);
+
+        if (newNode.isTopTen) {
+          nodesTopTenHashMap.set(currentNode.nodeId, currentNode);
+        }
+
         nodes.push(currentNode)
         callback(null, nodesModifiedFlag);
       }
@@ -1212,6 +1225,8 @@ function ViewTreepack() {
     nodes = [];
     deadNodesHash = {};
     mouseHoverFlag = false;
+    localNodeHashMap.clear();
+    nodesTopTenHashMap.clear();
     self.toolTipVisibility(false);
     self.resize();
     self.resetDefaultForce();

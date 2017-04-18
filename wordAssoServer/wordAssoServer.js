@@ -995,7 +995,10 @@ function updateWordMeter(wordObj, callback){
   var meterWordId;
 
   if (wordObj.isTwitterUser) {
-    if (wordObj.screenName !== undefined) {
+    if (wordObj.nodeId !== undefined) {
+      meterWordId = wordObj.nodeId;
+    }
+    else if (wordObj.screenName !== undefined) {
       meterWordId = wordObj.screenName.toLowerCase();
     }
     else if (wordObj.name !== undefined) {

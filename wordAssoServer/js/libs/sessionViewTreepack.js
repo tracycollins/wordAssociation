@@ -424,10 +424,10 @@ function ViewTreepack() {
         localNodeHashMap.remove(node.nodeId);
 
         nodes.splice(ageNodesIndex, 1);
-        console.debug("X NODE"
-          + " | NODES: " + nodes.length
-          + " | " + node.nodeId
-        );
+        // console.debug("X NODE"
+        //   + " | NODES: " + nodes.length
+        //   + " | " + node.nodeId
+        // );
       } 
       else {
         node.ageUpdated = moment().valueOf();
@@ -495,6 +495,7 @@ function ViewTreepack() {
         tooltipString = "#" + d.nodeId
           + "<br>TYPE: " + d.nodeType 
           + "<br>Ms: " + d.mentions
+          + "<br>" + d.rate.toFixed(2) + " WPM"
           + "<br>KEYWORDS: " + jsonPrint(d.keywords);
       break;
       case 'word':
@@ -502,6 +503,7 @@ function ViewTreepack() {
           + "<br>TYPE: " + d.nodeType 
           + "<br>KEYWORDS: " + jsonPrint(d.keywords)
           + "<br>Ms: " + d.mentions
+          + "<br>" + d.rate.toFixed(2) + " WPM"
           + "<br>URL: " + d.url;
       break;
     }
@@ -804,6 +806,7 @@ function ViewTreepack() {
         currentNode = localNodeHashMap.get(newNode.nodeId);
 
         currentNode.newFlag = true;
+        currentNode.rate = newNode.rate;
         currentNode.age = 1e-6;
         currentNode.ageMaxRatio = 1e-6;
         currentNode.x = currentNode.x || 0.5 * width;
@@ -827,8 +830,8 @@ function ViewTreepack() {
         currentNode.newFlag = true;
         currentNode.age = 1e-6;
         currentNode.ageMaxRatio = 1e-6;
-        currentNode.isTopTen = newNode.isTopTen;
-        currentNode.mentions = newNode.mentions;
+        // currentNode.isTopTen = newNode.isTopTen;
+        // currentNode.mentions = newNode.mentions;
         currentNode.ageUpdated = moment().valueOf();
         currentNode.mouseHoverFlag = false;
         if (newNode.keywords) {

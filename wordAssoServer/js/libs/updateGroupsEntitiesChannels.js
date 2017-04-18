@@ -1,6 +1,8 @@
 /*jslint node: true */
 "use strict";
 
+var compactDateTimeFormat = "YYYYMMDD HHmmss";
+
 var DEFAULT_KEYWORD_VALUE = 100 // on scale of 1-100
 var deleteKeywordsEnabled = false;
 
@@ -14,6 +16,10 @@ var hostname = os.hostname();
 hostname = hostname.replace(/.local/g, '');
 hostname = hostname.replace(/.fios-router.home/g, '');
 hostname = hostname.replace(/word0-instance-1/g, 'google');
+
+var prevKeywordModifiedMoment = moment("2010-01-01");
+var prevGroupsModifiedMoment = moment("2010-01-01");
+var prevEntitiesFileClientModifiedMoment = moment("2010-01-01");
 
 var serverGroupsFile = hostname + '_groups.json';
 var serverEntitiesFile = hostname + '_entities.json';
@@ -152,26 +158,68 @@ statsObj.entityChannelGroup.allHashMisses = {};
 
 process.on('message', function(m) {
 
-  console.log(chalkInfo("RX MESSAGE\n" + jsonPrint(m)));
+  console.log(chalkAlert("RX MESSAGE\n" + jsonPrint(m)));
 
-  groupsConfigFile = m.groupsConfigFile;
-  entityChannelGroupsConfigFile = m.entityChannelGroupsConfigFile;
-  keywordsFile = m.keywordFile;
+  switch (m.op) {
 
-  var options = {
-    folder: m.folder,
-    groupsFile: m.groupsConfigFile,
-    serverGroupsFile: serverGroupsFile,
-    entitiesFile: m.entityChannelGroupsConfigFile,
-    serverEntitiesFile: serverEntitiesFile,
-    keywordsFile: m.keywordFile,
-    serverKeywordsFile: serverKeywordsFile,
-    interval: m.interval
-  };
+    case "INIT":
+      groupsConfigFile = m.groupsConfigFile;
+      entityChannelGroupsConfigFile = m.entityChannelGroupsConfigFile;
+      keywordsFile = m.keywordFile;
 
-  updateGroupsInterval(options);
+      var options = {
+        folder: m.folder,
+        groupsFile: m.groupsConfigFile,
+        serverGroupsFile: serverGroupsFile,
+        entitiesFile: m.entityChannelGroupsConfigFile,
+        serverEntitiesFile: serverEntitiesFile,
+        keywordsFile: m.keywordFile,
+        serverKeywordsFile: serverKeywordsFile,
+        interval: m.interval
+      };
+
+      updateGroupsInterval(options);
+      break;
+
+    case "UPDATE":
+
+      switch (m.updateType) {
+        case "KEYWORDS":
+          updateKeywords("", m.keywordsFile, function(){
+            sendKeywords(function(){});
+          });
+          break;
+
+        default:
+      }
+
+      break;
+
+    default:
+
+  }
 
 });
+
+function getFileMetadata(path, file, callback) {
+
+  var fullPath = path + "/" + file;
+  console.log(chalkInfo("FOLDER " + path));
+  console.log(chalkInfo("FILE " + file));
+  console.log(chalkInfo("FULL PATH " + fullPath));
+
+  var fileExists = false;
+
+  dropboxClient.filesGetMetadata({path: fullPath})
+    .then(function(response) {
+      console.log(chalkAlert("FILE META\n" + jsonPrint(response)));
+      return(callback(null, response));
+    })
+    .catch(function(error) {
+      console.log(chalkError("GET FILE METADATA ERROR\n" + error));
+      return(callback(error, null));
+    });
+}
 
 function loadFile(path, file, callback) {
 
@@ -181,325 +229,349 @@ function loadFile(path, file, callback) {
 
   var fileExists = false;
 
-  dropboxClient.filesListFolder({path: path, recursive: false})
-    .then(function(response) {
+  dropboxClient.filesDownload({path: path + "/" + file})
+    .then(function(data) {
+      console.log(chalkLog(getTimeStamp()
+        + " | LOADING FILE FROM DROPBOX FILE: " + path + "/" + file
+      ));
 
-        async.each(response.entries, function(folderFile, cb) {
+      var payload = data.fileBinary;
 
-          if (folderFile.name == file) {
-            console.log(chalkInfo("SOURCE FILE EXISTS: " + file));
-            fileExists = true;
-            return cb();
-          }
-          cb();
+      debug(payload);
 
-        }, function(err) {
+      var fileObj = JSON.parse(payload);
 
-          if (fileExists) {
-
-            dropboxClient.filesDownload({path: path + "/" + file})
-              .then(function(data) {
-                console.log(chalkLog(getTimeStamp()
-                  + " | LOADING FILE FROM DROPBOX FILE: " + path + "/" + file
-                ));
-
-                var payload = data.fileBinary;
-
-                debug(payload);
-
-                var fileObj = JSON.parse(payload);
-
-                return(callback(null, fileObj));
-               })
-              .catch(function(error) {
-                console.log(chalkAlert("DROPBOX loadFile ERROR: " + file + "\n" + error));
-                console.log(chalkError("!!! DROPBOX READ " + file + " ERROR: " + error.error));
-                console.log(chalkError(jsonPrint(error)));
-
-                if (error["status"] === 404) {
-                  console.error(chalkError("!!! DROPBOX READ FILE " + file + " NOT FOUND ... SKIPPING ..."));
-                  return(callback(null, null));
-                }
-                if (error["status"] === 0) {
-                  console.error(chalkError("!!! DROPBOX NO RESPONSE ... NO INTERNET CONNECTION? ... SKIPPING ..."));
-                  return(callback(null, null));
-                }
-                return(callback(error, null));
-              });
-          }
-          else {
-            console.log(chalkError("*** FILE DOES NOT EXIST: " + path + "/" + file));
-            var err = {};
-            err.status = "FILE DOES NOT EXIST";
-            return(callback(err, null));
-          }
-        });
-    })
+      return(callback(null, fileObj));
+     })
     .catch(function(error) {
-      console.log(chalkError("LOAD FILE ERROR\n" + jsonPrint(error)));
+      console.log(chalkAlert("DROPBOX loadFile ERROR: " + file + "\n" + error));
+      console.log(chalkError("!!! DROPBOX READ " + file + " ERROR: " + error.error));
+      console.log(chalkError(jsonPrint(error)));
+
+      if (error["status"] === 404) {
+        console.error(chalkError("!!! DROPBOX READ FILE " + file + " NOT FOUND ... SKIPPING ..."));
+        return(callback(null, null));
+      }
+      if (error["status"] === 0) {
+        console.error(chalkError("!!! DROPBOX NO RESPONSE ... NO INTERNET CONNECTION? ... SKIPPING ..."));
+        return(callback(null, null));
+      }
       return(callback(error, null));
-    });
+  });
 }
 
-var updateGroups = function (configFile, callback){
+var updateGroups = function (path, configFile, callback){
 
   console.log(chalkWarn("UPDATE GROUPS " + configFile));
 
-  initGroups(configFile, function(err, groups){
-    if (err){
-      console.log(chalkError("*** ERROR initEntityChannelGroups"
-        + " | CONFIG FILE: " + configFile
-        + " | " + err
+  getFileMetadata(path, configFile, function(err, response){
+
+    var groupsFileClientModifiedMoment = moment(new Date(response.client_modified));
+  
+    if (groupsFileClientModifiedMoment.isSameOrBefore(prevGroupsModifiedMoment)){
+      console.log(chalkAlert("GROUPS FILE BEFORE OR EQUAL"
+        + "\nPREV:    " + prevGroupsModifiedMoment.format(compactDateTimeFormat)
+        + "\nCURRENT: " + groupsFileClientModifiedMoment.format(compactDateTimeFormat)
       ));
+
+      callback(null, "GROUPS FILE " + path + "/" + configFile + " NOT MODIFIED");
     }
     else {
-
-      var groupIds = Object.keys(groups) ;
-
-      console.log(chalkLog("GROUPS CONFIG INIT COMPLETE"
-        + " | " + groupIds.length + " GROUPS"
+      console.log(chalkAlert("GROUPS FILE AFTER"
+        + "\nPREV:    " + prevGroupsModifiedMoment.format(compactDateTimeFormat)
+        + "\nCURRENT: " + groupsFileClientModifiedMoment.format(compactDateTimeFormat)
       ));
 
-      async.forEach(groupIds, 
+      console.log(chalkAlert("... UPDATING GROUPS | " + path + "/" + configFile));
 
-        function(groupId, cb){
+      prevGroupsModifiedMoment = moment(groupsFileClientModifiedMoment);
 
-          if (groupHashMap.has(groupId)){
-            groupHashMap.set(groupId, groups[groupId]);
-            delete statsObj.group.hashMiss[groupId];
-            cb(null, "HIT " + groupId);
-            return;
-          }
-
-          else {
-            groupHashMap.set(groupId, groups[groupId]);
-            debug(chalkLog("+++ ADDED GROUP  "
-              + " | " + groupId
-              + " | " + groupHashMap.get(groupId).name
-            ));
-            statsObj.group.hashMiss[groupId] = 1;
-            statsObj.group.allHashMisses[groupId] = 1;
-            cb(null, "MISS " + groupId);
-            return;
-          }
-
-        },
-
-        function(err) {
-          if (err) {
-            console.error("*** ERROR  updateGroups: " + err);
-            callback(err, null);
-            return;
-          } else {
-            console.log(chalkLog("FOUND " + groupIds.length + " GROUPS"));
-            console.log(chalkLog("GROUPS CONFIG UPDATE COMPLETE"
-            ));
-
-            // updateEntityChannelGroups(entityChannelGroupsConfigFile, function(err, results){
-              callback(null, {numGroups: groupIds.length});
-              // return;
-            // });
-
-          }
+      initGroups(configFile, function(err, groups){
+        if (err){
+          console.log(chalkError("*** ERROR initEntityChannelGroups"
+            + " | CONFIG FILE: " + configFile
+            + " | " + err
+          ));
         }
-      );
+        else {
 
+          var groupIds = Object.keys(groups) ;
+
+          console.log(chalkLog("GROUPS CONFIG INIT COMPLETE"
+            + " | " + groupIds.length + " GROUPS"
+          ));
+
+          async.forEach(groupIds, 
+
+            function(groupId, cb){
+
+              if (groupHashMap.has(groupId)){
+                groupHashMap.set(groupId, groups[groupId]);
+                delete statsObj.group.hashMiss[groupId];
+                cb(null, "HIT " + groupId);
+                return;
+              }
+
+              else {
+                groupHashMap.set(groupId, groups[groupId]);
+                debug(chalkLog("+++ ADDED GROUP  "
+                  + " | " + groupId
+                  + " | " + groupHashMap.get(groupId).name
+                ));
+                statsObj.group.hashMiss[groupId] = 1;
+                statsObj.group.allHashMisses[groupId] = 1;
+                cb(null, "MISS " + groupId);
+                return;
+              }
+
+            },
+
+            function(err) {
+              if (err) {
+                console.error("*** ERROR  updateGroups: " + err);
+                callback(err, null);
+                return;
+              } else {
+                console.log(chalkLog("FOUND " + groupIds.length + " GROUPS"));
+                console.log(chalkLog("GROUPS CONFIG UPDATE COMPLETE"));
+                callback(null, {numGroups: groupIds.length});
+              }
+            }
+          );
+        }
+      });
     }
-  });  
+  });
 }
 
-var updateEntityChannelGroups = function (configFile, callback){
+var updateEntityChannelGroups = function (path, configFile, callback){
 
-  console.log(chalkWarn("UPDATE ENTITIES " + configFile));
+  getFileMetadata(path, configFile, function(err, response){
 
-  initEntityChannelGroups(configFile, function(err, entityChannelGroups){
-    if (err){
-      console.log(chalkError("*** ERROR initEntityChannelGroups"
-        + " | CONFIG FILE: " + configFile
-        + "\n" + jsonPrint(err)
+    var entitiesFileClientModifiedMoment = moment(new Date(response.client_modified));
+  
+    if (entitiesFileClientModifiedMoment.isSameOrBefore(prevEntitiesFileClientModifiedMoment)){
+      console.log(chalkAlert("ENTITIES FILE BEFORE OR EQUAL"
+        + "\nPREV:    " + prevEntitiesFileClientModifiedMoment.format(compactDateTimeFormat)
+        + "\nCURRENT: " + entitiesFileClientModifiedMoment.format(compactDateTimeFormat)
       ));
 
-      callback(err, null);
+      callback(null, "ENTITIES FILE " + path + "/" + configFile + " NOT MODIFIED");
     }
     else {
+      console.log(chalkAlert("ENTITIES FILE AFTER"
+        + "\nPREV:    " + prevEntitiesFileClientModifiedMoment.format(compactDateTimeFormat)
+        + "\nCURRENT: " + entitiesFileClientModifiedMoment.format(compactDateTimeFormat)
+      ));
 
-      var entityChannelIds = Object.keys(entityChannelGroups) ;
+      console.log(chalkAlert("... UPDATING ENTITIES | " + path + "/" + configFile));
 
-      async.forEach(entityChannelIds, 
+      prevEntitiesFileClientModifiedMoment = moment(entitiesFileClientModifiedMoment);
 
-        function(entityChannelId, cb){
+      initEntityChannelGroups(configFile, function(err, entityChannelGroups){
+        if (err){
+          console.log(chalkError("*** ERROR initEntityChannelGroups"
+            + " | CONFIG FILE: " + configFile
+            + "\n" + jsonPrint(err)
+          ));
 
-          if (entityChannelGroupHashMap.has(entityChannelId)){
-
-            entityChannelGroupHashMap.set(entityChannelId, entityChannelGroups[entityChannelId]);
-
-            delete statsObj.entityChannelGroup.hashMiss[entityChannelId];
-
-            if (groupHashMap.has(entityChannelGroupHashMap.get(entityChannelId).groupId)){
-              cb(null, "HIT");
-              return;
-            }
-            else{
-              cb(err, "GROUP NOT FOUND: " + entityChannelGroupHashMap.get(entityChannelId).groupId);
-              return;
-            }
-
-          }
-
-          else {
-
-            entityChannelGroupHashMap.set(entityChannelId, entityChannelGroups[entityChannelId]);
-            
-            if (groupHashMap.has(entityChannelGroupHashMap.get(entityChannelId).groupId)){
-              cb(null, "MISS");
-              return;
-            }
-            else{
-              cb(err, "GROUP NOT FOUND: " + entityChannelGroupHashMap.get(entityChannelId).groupId);
-              return;
-            }
-          }
-
-        },
-
-        function(err) {
-          if (err) {
-            console.error("*** ERROR  updateEntityChannelGroups: " + err);
-            callback(err, null);
-            return;
-          } else {
-            debug("FOUND " + entityChannelIds.length + " ENTITIY CHANNELS");
-            console.log(chalkLog("ENTITY CHANNEL GROUPS CONFIG INIT COMPLETE"
-              // + "\n" + jsonPrint(entityChannelGroups)
-            ));
-            callback(null, {numEntities: entityChannelIds.length});
-            return;
-          }
+          callback(err, null);
         }
-      );
+        else {
 
+          var entityChannelIds = Object.keys(entityChannelGroups) ;
+
+          async.forEach(entityChannelIds, 
+
+            function(entityChannelId, cb){
+
+              if (entityChannelGroupHashMap.has(entityChannelId)){
+
+                entityChannelGroupHashMap.set(entityChannelId, entityChannelGroups[entityChannelId]);
+
+                delete statsObj.entityChannelGroup.hashMiss[entityChannelId];
+
+                if (groupHashMap.has(entityChannelGroupHashMap.get(entityChannelId).groupId)){
+                  cb(null, "HIT");
+                  return;
+                }
+                else{
+                  cb(err, "GROUP NOT FOUND: " + entityChannelGroupHashMap.get(entityChannelId).groupId);
+                  return;
+                }
+
+              }
+
+              else {
+
+                entityChannelGroupHashMap.set(entityChannelId, entityChannelGroups[entityChannelId]);
+                
+                if (groupHashMap.has(entityChannelGroupHashMap.get(entityChannelId).groupId)){
+                  cb(null, "MISS");
+                  return;
+                }
+                else{
+                  cb(err, "GROUP NOT FOUND: " + entityChannelGroupHashMap.get(entityChannelId).groupId);
+                  return;
+                }
+              }
+
+            },
+
+            function(err) {
+              if (err) {
+                console.error("*** ERROR  updateEntityChannelGroups: " + err);
+                callback(err, null);
+                return;
+              } else {
+                debug("FOUND " + entityChannelIds.length + " ENTITIY CHANNELS");
+                console.log(chalkLog("ENTITY CHANNEL GROUPS CONFIG INIT COMPLETE"
+                  // + "\n" + jsonPrint(entityChannelGroups)
+                ));
+                callback(null, {numEntities: entityChannelIds.length});
+                return;
+              }
+            }
+          );
+
+        }
+      });  
     }
-  });  
+  });
 }
 
-// var updateKeywords = function (folder, file, serverHashMapFlag, callback){
 var updateKeywords = function (folder, file, callback){
 
   var kwHashMap = new HashMap();
   var prevKwHashMap = new HashMap();
 
-  // if (serverHashMapFlag){
-  //   kwHashMap.copy(serverKeywordHashMap);
-  //   console.log(chalkWarn("UPDATE SERVER KEYWORDS " + file));
-  // }
-  // else {
   kwHashMap.copy(keywordHashMap);
   console.log(chalkWarn("UPDATE GLOBAL KEYWORDS " + file));
-  // }
 
-  loadFile(folder, file, function(err, kwordsObj){
+  getFileMetadata(folder, file, function(err, response){
 
-    if (err) {
-      console.log(chalkError("LOAD FILE ERROR"
-        + " | " + file
-        + " | " + err
+    var keywordFileClientModifiedMoment = moment(new Date(response.client_modified));
+
+    if (keywordFileClientModifiedMoment.isSameOrBefore(prevKeywordModifiedMoment)){
+      console.log(chalkAlert("KEYWORD FILE BEFORE OR EQUAL"
+        + "\nPREV:    " + prevKeywordModifiedMoment.format(compactDateTimeFormat)
+        + "\nCURRENT: " + keywordFileClientModifiedMoment.format(compactDateTimeFormat)
       ));
-      callback(null, null);
+
+      callback(null, "KEYWORD FILE " + folder + "/" + file + " NOT MODIFIED");
     }
     else {
-
-      console.log(chalkInfo("UPDATER | LOADED"
-        + " | " + file
+      console.log(chalkAlert("KEYWORD FILE AFTER"
+        + "\nPREV:    " + prevKeywordModifiedMoment.format(compactDateTimeFormat)
+        + "\nCURRENT: " + keywordFileClientModifiedMoment.format(compactDateTimeFormat)
       ));
 
-      var words = Object.keys(kwordsObj);
+      console.log(chalkAlert("... UPDATING KEYWORDS | " + folder + "/" + file));
 
-      kwHashMap.clear();
+      prevKeywordModifiedMoment = moment(keywordFileClientModifiedMoment);
 
-      async.forEach(words,
+      loadFile(folder, file, function(err, kwordsObj){
 
-        function(w, cb) {
-
-          var wd = w.toLowerCase();
-          wd = wd.replace(/\./g, "");  // KLUDGE:  better way to handle '.' in keywords?
-
-          var kwObj = kwordsObj[w];  // kwObj = { "negative": 10, "right": 7 }
-
-          // debug(chalkInfo("UPDATING KEYWORD | " + wd + ": " + keyWordType));
-          debug(chalkInfo("UPDATER: UPDATING KEYWORD | " + wd + ": " + jsonPrint(kwObj)));
-
-          var wordObj = new Word();
-
-          wordObj.nodeId = wd;
-          wordObj.isKeyword = true;
-
-          // KLUDEGE: OVERWRITES ANY PREVIOUS KEYWORD SETTINGS FOR NOW
-          wordObj.keywords = {};
-
-          if (typeof kwObj === "string") {  // old style keyword: true/false; convert to new style
-            wordObj.keywords[kwObj.toLowerCase()] = DEFAULT_KEYWORD_VALUE;
-          }
-          else {
-            wordObj.keywords = kwObj;
-          }
-
-          kwHashMap.set(wordObj.nodeId, wordObj.keywords);
-
-          wordServer.findOneWord(wordObj, false, function(err, updatedWordObj) {
-            if (err){
-              console.log(chalkError("ERROR: UPDATING KEYWORD | " + wd + ": " + kwordsObj[wd]));
-              cb(err);
-            }
-            else {
-              debug(chalkLog("+++ UPDATED KEYWORD"
-                + " | " + updatedWordObj.nodeId 
-                + " | " + updatedWordObj.raw 
-                + " | M " + updatedWordObj.mentions 
-                + " | I " + updatedWordObj.isIgnored 
-                + " | K " + updatedWordObj.isKeyword 
-                + " | K " + jsonPrint(updatedWordObj.keywords) 
-              ));
-              cb();
-            }
-          });
-
-        },
-
-        function(err) {
-          if (err) {
-            console.log(chalkError("initKeywords ERROR! " + err));
-            callback(err, null);
-          }
-          else {
-            console.log(chalkAlert("initKeywords COMPLETE"
-              + " | TOTAL KEYWORDS:   " + kwHashMap.count()
-            ));
-
-            // if (serverHashMapFlag){
-            //   serverKeywordHashMap.copy(kwHashMap);
-            //   console.log(chalkWarn("UPDATE SERVER KEYWORDS " + file));
-            // }
-            // else {
-            keywordHashMap.copy(kwHashMap);
-            console.log(chalkWarn("UPDATE GLOBAL KEYWORDS " + file));
-            // }
-
-            callback(null, {numKeywords: words.length});
-          }
+        if (err) {
+          console.log(chalkError("LOAD FILE ERROR"
+            + " | " + file
+            + " | " + err
+          ));
+          callback(null, null);
         }
-      )
+        else {
+
+          console.log(chalkInfo("UPDATER | LOADED"
+            + " | " + file
+          ));
+
+          var words = Object.keys(kwordsObj);
+
+          kwHashMap.clear();
+
+          async.forEach(words,
+
+            function(w, cb) {
+
+              var wd = w.toLowerCase();
+              wd = wd.replace(/\./g, "");  // KLUDGE:  better way to handle '.' in keywords?
+
+              var kwObj = kwordsObj[w];  // kwObj = { "negative": 10, "right": 7 }
+
+              // debug(chalkInfo("UPDATING KEYWORD | " + wd + ": " + keyWordType));
+              debug(chalkInfo("UPDATER: UPDATING KEYWORD | " + wd + ": " + jsonPrint(kwObj)));
+
+              var wordObj = new Word();
+
+              wordObj.nodeId = wd;
+              wordObj.isKeyword = true;
+
+              // KLUDEGE: OVERWRITES ANY PREVIOUS KEYWORD SETTINGS FOR NOW
+              wordObj.keywords = {};
+
+              if (typeof kwObj === "string") {  // old style keyword: true/false; convert to new style
+                wordObj.keywords[kwObj.toLowerCase()] = DEFAULT_KEYWORD_VALUE;
+              }
+              else {
+                wordObj.keywords = kwObj;
+              }
+
+              kwHashMap.set(wordObj.nodeId, wordObj.keywords);
+
+              wordServer.findOneWord(wordObj, false, function(err, updatedWordObj) {
+                if (err){
+                  console.log(chalkError("ERROR: UPDATING KEYWORD | " + wd + ": " + kwordsObj[wd]));
+                  cb(err);
+                }
+                else {
+                  debug(chalkLog("+++ UPDATED KEYWORD"
+                    + " | " + updatedWordObj.nodeId 
+                    + " | " + updatedWordObj.raw 
+                    + " | M " + updatedWordObj.mentions 
+                    + " | I " + updatedWordObj.isIgnored 
+                    + " | K " + updatedWordObj.isKeyword 
+                    + " | K " + jsonPrint(updatedWordObj.keywords) 
+                  ));
+                  cb();
+                }
+              });
+
+            },
+
+            function(err) {
+              if (err) {
+                console.log(chalkError("initKeywords ERROR! " + err));
+                callback(err, null);
+              }
+              else {
+                console.log(chalkAlert("initKeywords COMPLETE"
+                  + " | TOTAL KEYWORDS:   " + kwHashMap.count()
+                ));
+
+                // if (serverHashMapFlag){
+                //   serverKeywordHashMap.copy(kwHashMap);
+                //   console.log(chalkWarn("UPDATE SERVER KEYWORDS " + file));
+                // }
+                // else {
+                keywordHashMap.copy(kwHashMap);
+                console.log(chalkWarn("UPDATE GLOBAL KEYWORDS " + file));
+                // }
+
+                callback(null, {numKeywords: words.length});
+              }
+            }
+          )
+        }
+      });
     }
   });
 }
 
 function updateGroupsEntitiesKeywords(options, callback){
   async.series([
-    function(cb){ updateGroups(options.groupsFile, cb) },
-    // function(cb){ updateGroups(options.serverGroupsFile, cb) },
-    function(cb){ updateEntityChannelGroups(options.entitiesFile, cb) },
-    // function(cb){ updateEntityChannelGroups(options.serverEntitiesFile, cb) },
+    function(cb){ updateGroups("", options.groupsFile, cb) },
+    function(cb){ updateEntityChannelGroups("", options.entitiesFile, cb) },
     function(cb){ updateKeywords("", options.keywordsFile, cb) }
-    // function(cb){ updateKeywords("", options.serverKeywordsFile, true, cb) }
   ],
     function(err, results){
       if (err) {
@@ -678,10 +750,6 @@ function sendEntities(callback){
 function sendKeywords(callback){
 
   var words = keywordHashMap.keys();
-  // var serverWwords = serverKeywordHashMap.keys();
-
-  // words = words.slice(0,10);
-  // serverWwords = serverWwords.slice(0,10);
 
   async.forEachSeries(
 
@@ -705,11 +773,9 @@ function sendKeywords(callback){
       kwObj.keywordId = word;
 
       var updaterObj = {};
-      
       updaterObj.type = "keyword";
       updaterObj.keyword = {};
       updaterObj.keyword = kwObj;
-      // updaterObj.keyword.keywordId = word;
 
       setTimeout(function(){
         process.send(updaterObj);
@@ -729,55 +795,12 @@ function sendKeywords(callback){
         callback(err, null);
       }
       else {
-
-
-        // async.forEachSeries(serverWwords, function(word, cb2) {
-
-        //     var kwObj = serverKeywordHashMap.get(word);
-        //     kwObj.keywordId = word;
-
-        //     var updaterObj = {};
-            
-        //     updaterObj.type = "keyword";
-        //     updaterObj.target = "server";
-        //     updaterObj.keyword = {};
-        //     updaterObj.keyword = kwObj;
-
-        //     setTimeout(function(){
-        //       process.send(updaterObj);
-        //       debugKeyword(chalkInfo("UPDATER SEND KEYWORD"
-        //         + " | SERVER"
-        //         + " | " + word
-        //         + " | " + jsonPrint(updaterObj)
-        //       ));
-
-        //       cb2();
-        //     }, 10);
-
-        //   },
-
-        //   function(err) {
-        //     if (err) {
-        //       console.log(chalkError("sendKeywords ERROR! " + err));
-        //       callback(err, null);
-        //     }
-        //     else {
-        //       console.log(chalkInfo("sendKeywords COMPLETE"));
-        //       process.send({ type: 'sendKeywordsComplete'});
-        //       callback(null, null);
-        //     }
-        //   }
-        // );
-
-
         console.log(chalkInfo("sendKeywords COMPLETE"));
         process.send({ type: 'sendKeywordsComplete'});
         callback(null, null);
-
       }
     }
   );
-
 }
 
 var initGroupsInterval;
@@ -863,7 +886,6 @@ function getTimeStamp(inputTime) {
   }
   return currentTimeStamp.format("YYYY-MM-DD HH:mm:ss ZZ");
 }
-
 
 function loadConfig(file, callback){
 

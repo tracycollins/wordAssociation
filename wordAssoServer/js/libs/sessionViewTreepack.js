@@ -34,7 +34,7 @@ function ViewTreepack() {
 
   var NEW_NODE_AGE_RATIO = 0.01;
 
-  var minFontSizeRatio = 0.010;
+  var minFontSizeRatio = 0.015;
   var maxFontSizeRatio = 0.050;
 
   var width = window.innerWidth;

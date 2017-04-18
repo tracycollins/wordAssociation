@@ -1023,6 +1023,7 @@ function updateWordMeter(wordObj, callback){
     return;
   }
 
+
   if (!wordMeter[meterWordId] 
     || (wordMeter[meterWordId] === undefined) 
     || (typeof wordMeter[meterWordId].mark !== "function")) {
@@ -1032,6 +1033,10 @@ function updateWordMeter(wordObj, callback){
     var meterObj = wordMeter[meterWordId].toJSON();
     wordObj.rate = meterObj["1MinuteRate"];
     wordCache.set(meterWordId, wordObj, function(){
+      debug(chalkAlert("updateWordMeter NEW"
+        + " | " + meterObj["1MinuteRate"].toFixed(2) + " WPM"
+        + "\n" + jsonPrint(wordObj)
+      ));
       if (callback !== undefined) { callback(null, wordObj)};
     });
   }
@@ -1040,6 +1045,10 @@ function updateWordMeter(wordObj, callback){
     var meterObj = wordMeter[meterWordId].toJSON();
     wordObj.rate = meterObj["1MinuteRate"];
     wordCache.set(meterWordId, wordObj, function(){
+      debug(chalkAlert("updateWordMeter NEW"
+        + " | " + meterObj["1MinuteRate"].toFixed(2) + " WPM"
+        + "\n" + jsonPrint(wordObj)
+      ));
       if (callback !== undefined) { callback(null, wordObj)};
     });
   }
@@ -2373,7 +2382,9 @@ function createSession(newSessionObj) {
         break;
 
         default:
-          viewNameSpace.emit("node", nodeObj);
+          updateWordMeter(nodeObj, function(err, uNodeObj){
+            viewNameSpace.emit("node", uNodeObj);
+          });
       }
 
       if (obamaHit) {
@@ -2819,6 +2830,7 @@ function createSmallSessionUpdateObj (updateObj, callback){
 
     sessionSmallObj.source = {
       nodeId: updateObj.userId,
+      rate: 0,
       wordChainIndex: updateObj.wordChainIndex,
       links: {},
       mentions: updateObj.wordChainIndex
@@ -2846,6 +2858,7 @@ function createSmallSessionUpdateObj (updateObj, callback){
 
     sessionSmallObj.source.nodeId = updateObj.source.nodeId;
     sessionSmallObj.source.raw = updateObj.source.raw;
+    sessionSmallObj.source.rate = updateObj.source.rate || 0;
     sessionSmallObj.source.isIgnored = updateObj.source.isIgnored;
     sessionSmallObj.source.isTrendingTopic = updateObj.source.isTrendingTopic;
     sessionSmallObj.source.isTopTen = updateObj.source.isTopTen;
@@ -2869,6 +2882,7 @@ function createSmallSessionUpdateObj (updateObj, callback){
 
       sessionSmallObj.target.nodeId = updateObj.target.nodeId;
       sessionSmallObj.target.raw = updateObj.target.raw;
+      sessionSmallObj.target.rate = updateObj.target.rate || 0;
       sessionSmallObj.target.isIgnored = updateObj.target.isIgnored;
       sessionSmallObj.target.isTrendingTopic = updateObj.target.isTrendingTopic;
       sessionSmallObj.target.isKeyword = updateObj.target.isKeyword;
@@ -2931,7 +2945,20 @@ setInterval(function() {
         }
       }
 
-      viewNameSpace.emit("SESSION_UPDATE", sessionSmallObj);
+      updateWordMeter(sessionSmallObj.source, function(err, sNodeObj){
+        debug(chalkRed("sessionSmallObj sNodeObj\n" + jsonPrint(sNodeObj)));
+        sessionSmallObj.source = sNodeObj;
+        if (sessionSmallObj.target) {
+          updateWordMeter(sessionSmallObj.target, function(err, tNodeObj){
+            sessionSmallObj.target = tNodeObj;
+            viewNameSpace.emit("SESSION_UPDATE", sessionSmallObj);
+          });
+        }
+        else {
+          viewNameSpace.emit("SESSION_UPDATE", sessionSmallObj);
+        }
+      });
+
       testViewersNameSpace.emit("SESSION_UPDATE", sessionSmallObj);
 
       updateStats({ sessionUpdatesSent: sessionUpdatesSent });

@@ -59,6 +59,8 @@ module.exports = function() {
 	require('../app/models/entity.server.model');  
 	require('../app/models/session.server.model');  
 	require('../app/models/word.server.model');  
+	require('../app/models/tweet.server.model');  
+	require('../app/models/hashtag.server.model');  
 	require('../app/models/phrase.server.model');  
 
 	require('../app/models/ipAddress.server.model');  

@@ -28,7 +28,7 @@ function ViewTreepack() {
   var yFocusRightRatio = 0.5;
 
   var xFocusPositiveRatio = 0.5;
-  var yFocusPositiveRatio = 0.3;
+  var yFocusPositiveRatio = 0.2;
 
   var xFocusNegativeRatio = 0.5;
   var yFocusNegativeRatio = 0.7;
@@ -46,7 +46,7 @@ function ViewTreepack() {
   var yMinRatioLeft = 0.85;
   var yMaxRatioLeft = 0.95;
 
-  var xMinRatioRight = 0.55;
+  var xMinRatioRight = 0.65;
   var xMaxRatioRight = 0.75;
 
   var yMinRatioRight = 0.85;
@@ -58,8 +58,8 @@ function ViewTreepack() {
   var yMinRatioPositive = 0.85;
   var yMaxRatioPositive = 0.95;
 
-  var xMinRatioNegative = 0.45;
-  var xMaxRatioNegative = 0.55;
+  var xMinRatioNegative = 0.55;
+  var xMaxRatioNegative = 0.65;
 
   var yMinRatioNegative = 0.90;
   var yMaxRatioNegative = 1.00;
@@ -84,7 +84,7 @@ function ViewTreepack() {
   var gravity = config.defaultGravity;
   var forceXmultiplier = config.defaultForceXmultiplier;
   var forceYmultiplier = config.defaultForceYmultiplier;
-  var collisionRadiusMultiplier = 1.0;
+  var collisionRadiusMultiplier = 1.01;
   var collisionIterations = config.defaultCollisionIterations;
   var globalLinkStrength = config.defaultLinkStrength;
   var globalLinkDistance = config.defaultLinkDistance;
@@ -810,6 +810,10 @@ function ViewTreepack() {
           d.y = 0.5*height;
           return 0.5*height;
         }
+        // if (d.y < (0.5*height)+d.r) { 
+        //   d.y = d.y + 0.05*(((0.3*height)+d.r)-d.y);
+        //   return d.y;
+        // }
         return d.y; 
       })
       .style("fill", function(d) { 
@@ -840,10 +844,12 @@ function ViewTreepack() {
         .duration(transitionDuration)
         .attr("r", function(d) {
           if (d.isIgnored) {
-            return defaultRadiusScale(1);
+            d.r = defaultRadiusScale(1);
+            return d.r;
           }
           else {
-            return defaultRadiusScale(parseInt(d.mentions));
+            d.r = defaultRadiusScale(parseInt(d.mentions));
+            return d.r;
           }
         });
 
@@ -873,6 +879,10 @@ function ViewTreepack() {
           d.y = 0.5*height; 
           return 0.5*height; 
         }
+        // if (d.y < (0.5*height)+d.r) { 
+        //   d.y = d.y + 0.05*(((0.3*height)+d.r)-d.y);
+        //   return d.y;
+        // }
         return d.y; 
       })
       .style("fill", function(d) { 

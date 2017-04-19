@@ -72,7 +72,7 @@ function ViewTreepack() {
 
 
   var nodes = [];
-  var nodesTopTen = [];
+  var nodesTopTerm = [];
 
   var currentMaxMentions = 0;
   var currentHashtagMaxMentions = 2;
@@ -131,7 +131,7 @@ function ViewTreepack() {
   var DEFAULT_AGE_RATE = 1.0;
   var MAX_RX_QUEUE = 100;
 
-  var nodesTopTenHashMap = new HashMap();
+  var nodesTopTermHashMap = new HashMap();
 
   var localNodeHashMap = {};
   var maxNodeAddQ = 0;
@@ -222,7 +222,7 @@ function ViewTreepack() {
     .range([minFontSize, maxFontSize])
     .clamp(true);
     
-  var topTenLabelOpacityScale = d3.scaleLinear()
+  var topTermLabelOpacityScale = d3.scaleLinear()
     .domain([1e-6, 1.0])
     .range([1.0, minOpacity])
     .clamp(true);
@@ -260,7 +260,7 @@ function ViewTreepack() {
   var nodeSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeSvgGroup");
   // var nodeCircles = nodeSvgGroup.selectAll("circle");
   var nodeLabelSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeLabelSvgGroup");
-  var nodeTopTenLabelSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeTopTenLabelSvgGroup");
+  var nodeTopTermLabelSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeTopTermLabelSvgGroup");
   // var nodeLabels = nodeSvgGroup.selectAll(".nodeLabel");
 
   var divTooltip = d3.select("body").append("div")
@@ -508,7 +508,7 @@ function ViewTreepack() {
         // localNodeHashMap.remove(node.nodeId);
         delete localNodeHashMap[node.nodeId];
 
-        nodesTopTenHashMap.remove(node.nodeId);
+        nodesTopTermHashMap.remove(node.nodeId);
 
         nodes.splice(ageNodesIndex, 1);
         // console.debug("X NODE"
@@ -528,7 +528,7 @@ function ViewTreepack() {
         node.ageMaxRatio = ageMaxRatio;
         node.isDead = false;
 
-        node.isTopTen = localNodeHashMap[node.nodeId].isTopTen;
+        node.isTopTerm = localNodeHashMap[node.nodeId].isTopTerm;
         node.isKeyword = localNodeHashMap[node.nodeId].isKeyword;
         node.keywordColor = localNodeHashMap[node.nodeId].keywordColor;
         node.isTrendingTopic = localNodeHashMap[node.nodeId].isTrendingTopic;
@@ -539,18 +539,18 @@ function ViewTreepack() {
         // localNodeHashMap.set(node.nodeId, node);
         localNodeHashMap[node.nodeId] = node;
 
-        if (node.isTopTen) {
-          nodesTopTenHashMap.set(node.nodeId, node);
+        if (node.isTopTerm) {
+          nodesTopTermHashMap.set(node.nodeId, node);
         }
         else {
-          nodesTopTenHashMap.remove(node.nodeId);
+          nodesTopTermHashMap.remove(node.nodeId);
         }
       }
     }
 
     if (ageNodesIndex < 0) {
-      rankHashMapByValue(nodesTopTenHashMap, "rate", function(){
-        nodesTopTen = nodesTopTenHashMap.values();
+      rankHashMapByValue(nodesTopTermHashMap, "rate", function(){
+        nodesTopTerm = nodesTopTermHashMap.values();
         callback(null, deadNodeFlag);
       });
     }
@@ -580,7 +580,7 @@ function ViewTreepack() {
         // localNodeHashMap.remove(node.nodeId);
         delete localNodeHashMap[node.nodeId];
 
-        nodesTopTenHashMap.remove(node.nodeId);
+        nodesTopTermHashMap.remove(node.nodeId);
       }
       deadNodeIds = Object.keys(deadNodesHash);
     }
@@ -694,17 +694,17 @@ function ViewTreepack() {
     });
   }
 
-  var updateTopTen = function(callback) {
+  var updateTopTerm = function(callback) {
 
-    var nodeTopTenLabels = nodeTopTenLabelSvgGroup.selectAll("text")
-      .data(nodesTopTen, function(d) { return d.nodeId; });
+    var nodeTopTermLabels = nodeTopTermLabelSvgGroup.selectAll("text")
+      .data(nodesTopTerm, function(d) { return d.nodeId; });
 
-    nodeTopTenLabels
+    nodeTopTermLabels
       .exit()
       .attr("class", "exit")
         .remove();
 
-    nodeTopTenLabels
+    nodeTopTermLabels
       .attr("class", "update")
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)
@@ -725,14 +725,14 @@ function ViewTreepack() {
       })
       .style('opacity', function(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
-        return topTenLabelOpacityScale(d.ageMaxRatio); 
+        return topTermLabelOpacityScale(d.ageMaxRatio); 
       })
       .transition()
         .duration(transitionDuration)
         .attr("x", xposition)
         .attr("y", yposition);
 
-    nodeTopTenLabels
+    nodeTopTermLabels
       .enter().append("text")
       .attr("class", "enter")
       .style("text-anchor", "right")
@@ -762,7 +762,7 @@ function ViewTreepack() {
       })
       .style('opacity', function(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
-        return topTenLabelOpacityScale(d.ageMaxRatio); 
+        return topTermLabelOpacityScale(d.ageMaxRatio); 
       })
       .style('fill', palette.white)
       .style("font-size", minFontSize);
@@ -821,15 +821,15 @@ function ViewTreepack() {
         return d.keywordColor; 
       })
       .style("stroke", function(d) { 
-        // if (d.isTopTen) { return palette.lightgreen; }
+        // if (d.isTopTerm) { return palette.lightgreen; }
         return palette.white; 
       })
       .style("stroke-dasharray", function(d) { 
-        if (d.isTopTen) { return "10,2"; }
+        if (d.isTopTerm) { return "10,2"; }
         return null; 
       })
       .style("stroke-width", function(d) { 
-        if (d.isTopTen) { return "4.0"; }
+        if (d.isTopTerm) { return "4.0"; }
         if (d.newFlag) { return "2.0"; }
         return "1.2"; 
       })
@@ -890,16 +890,16 @@ function ViewTreepack() {
         return d.keywordColor; 
       })
       .style("stroke", function(d) { 
-        // if (d.isTopTen) { return palette.lightgreen; }
+        // if (d.isTopTerm) { return palette.lightgreen; }
         return palette.white; 
       })
       .style("stroke-width", function(d) { 
-        if (d.isTopTen) { return "4.0"; }
+        if (d.isTopTerm) { return "4.0"; }
         if (d.newFlag) { return "2.0"; }
         return "1.2"; 
       })
       .style("stroke-dasharray", function(d) { 
-        if (d.isTopTen) { return "10,2"; }
+        if (d.isTopTerm) { return "10,2"; }
         return null; 
       })
       .style('opacity', function(d) { 
@@ -973,11 +973,11 @@ function ViewTreepack() {
         return d.nodeId; 
       })
       .style("font-weight", function(d) {
-        if (d.isTopTen) { return "bold"; }
+        if (d.isTopTerm) { return "bold"; }
         return "normal";
       })
       .style("text-decoration", function(d) { 
-        if (d.isTopTen) { return "overline"; }
+        if (d.isTopTerm) { return "overline"; }
         return "none"; 
       })
       .style("opacity", function(d) { 
@@ -1087,7 +1087,7 @@ function ViewTreepack() {
         currentNode.ageUpdated = moment().valueOf();
         currentNode.isKeyword = newNode.isKeyword || false;
         currentNode.keywords = newNode.keywords;
-        currentNode.isTopTen = newNode.isTopTen || false;
+        currentNode.isTopTerm = newNode.isTopTerm || false;
         currentNode.isTrendingTopic = newNode.isTrendingTopic || false;
         currentNode.isTwitterUser = newNode.isTwitterUser || false;
         currentNode.keywordColor = newNode.keywordColor;
@@ -1102,11 +1102,11 @@ function ViewTreepack() {
         // localNodeHashMap.set(currentNode.nodeId, currentNode);
         localNodeHashMap[currentNode.nodeId] = currentNode;
 
-        if (currentNode.isTopTen) {
-          nodesTopTenHashMap.set(currentNode.nodeId, currentNode);
+        if (currentNode.isTopTerm) {
+          nodesTopTermHashMap.set(currentNode.nodeId, currentNode);
         }
         else {
-          nodesTopTenHashMap.remove(currentNode.nodeId);
+          nodesTopTermHashMap.remove(currentNode.nodeId);
         }
 
         // console.info("HIT currentNode\n" + jsonPrint(currentNode));
@@ -1121,7 +1121,7 @@ function ViewTreepack() {
         currentNode.ageMaxRatio = 1e-6;
         currentNode.ageUpdated = moment().valueOf();
         currentNode.isKeyword = newNode.isKeyword || false;
-        currentNode.isTopTen = newNode.isTopTen || false;
+        currentNode.isTopTerm = newNode.isTopTerm || false;
         currentNode.isTrendingTopic = newNode.isTrendingTopic || false;
         currentNode.isTwitterUser = newNode.isTwitterUser || false;
         currentNode.keywordColor = newNode.keywordColor;
@@ -1167,11 +1167,11 @@ function ViewTreepack() {
         // localNodeHashMap.set(currentNode.nodeId, currentNode);
         localNodeHashMap[currentNode.nodeId] = currentNode;
 
-        if (currentNode.isTopTen) {
-          nodesTopTenHashMap.set(currentNode.nodeId, currentNode);
+        if (currentNode.isTopTerm) {
+          nodesTopTermHashMap.set(currentNode.nodeId, currentNode);
         }
         else {
-          nodesTopTenHashMap.remove(currentNode.nodeId);
+          nodesTopTermHashMap.remove(currentNode.nodeId);
         }
 
         nodes.push(currentNode)
@@ -1214,7 +1214,7 @@ function ViewTreepack() {
   function drawSimulation(callback){
     updateNodeCircles(function(){
       updateNodeLabels(function(){
-        updateTopTen(function(){
+        updateTopTerm(function(){
           callback();
         });
       });
@@ -1539,7 +1539,7 @@ function ViewTreepack() {
     mouseHoverFlag = false;
     // localNodeHashMap.clear();
     localNodeHashMap = {};
-    nodesTopTenHashMap.clear();
+    nodesTopTermHashMap.clear();
     self.toolTipVisibility(false);
     self.resize();
     self.resetDefaultForce();

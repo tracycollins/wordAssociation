@@ -3,6 +3,7 @@
 
 // require('longjohn');
 
+var maxTopTerms = 20;
 var compactDateTimeFormat = "YYYYMMDD HHmmss";
 
 // ==================================================================
@@ -168,7 +169,7 @@ var OFFLINE_MODE = false;
 var internetReady = false;
 var pollTwitterFriendsIntervalTime = 5*ONE_MINUTE;
 
-var TOPTEN_CACHE_DEFAULT_TTL = 60;
+var TOPTERMS_CACHE_DEFAULT_TTL = 60;
 var TRENDING_CACHE_DEFAULT_TTL = 300; // seconds
 var ADMIN_CACHE_DEFAULT_TTL = 300; // seconds
 var VIEWER_CACHE_DEFAULT_TTL = 300; // seconds
@@ -753,9 +754,9 @@ console.log("WAPI_REQ_RESERVE_PRCNT: " + wapiReqReservePercent);
 // ==================================================================
 // TOP TEN WPM  CACHE
 // ==================================================================
-var wordsPerMinuteTop10Ttl = process.env.TOPTEN_CACHE_DEFAULT_TTL;
-if (wordsPerMinuteTop10Ttl === undefined) {wordsPerMinuteTop10Ttl = TOPTEN_CACHE_DEFAULT_TTL;}
-console.log("TOP TEN WPM CACHE TTL: " + wordsPerMinuteTop10Ttl + " SECONDS");
+var wordsPerMinuteTopTermTtl = process.env.TOPTERMS_CACHE_DEFAULT_TTL;
+if (wordsPerMinuteTopTermTtl === undefined) {wordsPerMinuteTopTermTtl = TOPTERMS_CACHE_DEFAULT_TTL;}
+console.log("TOP TEN WPM CACHE TTL: " + wordsPerMinuteTopTermTtl + " SECONDS");
 
 // ==================================================================
 // ADMIN ADDRESS CACHE
@@ -829,8 +830,8 @@ console.log("WORD CACHE TTL: " + wordCacheTtl + " SECONDS");
 
 
 
-var wordsPerMinuteTop10Cache = new NodeCache({
-  stdTTL: wordsPerMinuteTop10Ttl,
+var wordsPerMinuteTopTermCache = new NodeCache({
+  stdTTL: wordsPerMinuteTopTermTtl,
   checkperiod: 5
 });
 
@@ -2240,7 +2241,7 @@ function createSession(newSessionObj) {
     if (!rxNodeObj.nodeId) {
 
       console.log(chalkError("UNDEFINED RX NODE NODEID\n" + jsonPrint(rxNodeObj)));
-      
+
       if (quitOnErrorFlag) {
         quit("UNDEFINED RX NODE NODEID");
       }
@@ -2319,9 +2320,9 @@ function createSession(newSessionObj) {
           }
           else if (nodeObj.name) {
             nodeObj.isTwitterUser = true;
-            wordsPerMinuteTop10Cache.get(nodeObj.name.toLowerCase(), function(err, name) {
+            wordsPerMinuteTopTermCache.get(nodeObj.name.toLowerCase(), function(err, name) {
               if (name) {
-                nodeObj.isTopTen = true;
+                nodeObj.isTopTerm = true;
               }
               if (nodeObj.name.toLowerCase().includes("obama")) {
                 obamaHit = nodeObj.name;
@@ -2350,9 +2351,9 @@ function createSession(newSessionObj) {
           }
           else if (nodeObj.screenName){
             nodeObj.isTwitterUser = true;
-            wordsPerMinuteTop10Cache.get(nodeObj.screenName.toLowerCase(), function(err, screenName) {
+            wordsPerMinuteTopTermCache.get(nodeObj.screenName.toLowerCase(), function(err, screenName) {
               if (screenName) {
-                nodeObj.isTopTen = true;
+                nodeObj.isTopTerm = true;
               }
               if (nodeObj.screenName.toLowerCase().includes("obama")) {
                 obamaHit = nodeObj.screenName;
@@ -2385,9 +2386,9 @@ function createSession(newSessionObj) {
 
           // console.log(chalkAlert("HASHTAG | checkKeyword\n" + jsonPrint(nodeObj)));
 
-          wordsPerMinuteTop10Cache.get(nodeObj.nodeId.toLowerCase(), function(err, nodeId) {
+          wordsPerMinuteTopTermCache.get(nodeObj.nodeId.toLowerCase(), function(err, nodeId) {
             if (nodeId) {
-              nodeObj.isTopTen = true;
+              nodeObj.isTopTerm = true;
             }
             if (nodeObj.nodeId.toLowerCase().includes("obama")) {
               obamaHit = nodeObj.nodeId;
@@ -2424,9 +2425,9 @@ function createSession(newSessionObj) {
             + " | " + nodeObj.country
           ));
 
-          wordsPerMinuteTop10Cache.get(nodeObj.name.toLowerCase(), function(err, nodeId) {
+          wordsPerMinuteTopTermCache.get(nodeObj.name.toLowerCase(), function(err, nodeId) {
             if (nodeId) {
-              nodeObj.isTopTen = true;
+              nodeObj.isTopTerm = true;
             }
             if (nodeObj.name.toLowerCase().includes("obama")) {
               obamaHit = nodeObj.nodeId;
@@ -2458,9 +2459,9 @@ function createSession(newSessionObj) {
 
           // console.log(chalkAlert("WORD | checkKeyword\n" + jsonPrint(nodeObj)));
 
-          wordsPerMinuteTop10Cache.get(nodeObj.nodeId.toLowerCase(), function(err, nodeId) {
+          wordsPerMinuteTopTermCache.get(nodeObj.nodeId.toLowerCase(), function(err, nodeId) {
             if (nodeId) {
-              nodeObj.isTopTen = true;
+              nodeObj.isTopTerm = true;
             }
             if (nodeObj.nodeId.toLowerCase().includes("obama")) {
               obamaHit = nodeObj.nodeId;
@@ -2555,14 +2556,17 @@ function createSession(newSessionObj) {
     wordStats.meter("wordsPerSecond").mark();
     wordStats.meter("wordsPerMinute").mark();
 
-    wordsPerMinuteTop10Cache.get(rxInObj.nodeId.toLowerCase(), function(err, nodeRate) {
+    wordsPerMinuteTopTermCache.get(rxInObj.nodeId.toLowerCase(), function(err, nodeRate) {
       if (nodeRate) {
-        rxInObj.isTopTen = true;
+        rxInObj.isTopTerm = true;
         console.log(chalkRed("TOP TEN" 
           + " | " + rxInObj.nodeId
-          + " | " + rxInObj.isTopTen
+          + " | " + rxInObj.isTopTerm
           + " | " + nodeRate.toFixed(2)
         ));
+      }
+      else {
+        rxInObj.isTopTerm = false;
       }
 
       if (rxInObj.nodeId.includes("obama")) {
@@ -2978,7 +2982,7 @@ function createSmallSessionUpdateObj (updateObj, callback){
     sessionSmallObj.source.rate = updateObj.source.rate || 0;
     sessionSmallObj.source.isIgnored = updateObj.source.isIgnored;
     sessionSmallObj.source.isTrendingTopic = updateObj.source.isTrendingTopic;
-    sessionSmallObj.source.isTopTen = updateObj.source.isTopTen;
+    sessionSmallObj.source.isTopTerm = updateObj.source.isTopTerm;
     sessionSmallObj.source.isKeyword = updateObj.source.isKeyword;
     sessionSmallObj.source.keywords = {};
     sessionSmallObj.source.url = updateObj.source.url;
@@ -3004,7 +3008,7 @@ function createSmallSessionUpdateObj (updateObj, callback){
       sessionSmallObj.target.isIgnored = updateObj.target.isIgnored;
       sessionSmallObj.target.isTrendingTopic = updateObj.target.isTrendingTopic;
       sessionSmallObj.target.isKeyword = updateObj.target.isKeyword;
-      sessionSmallObj.target.isTopTen = updateObj.target.isTopTen;
+      sessionSmallObj.target.isTopTerm = updateObj.target.isTopTerm;
       sessionSmallObj.target.keywords = {};
       sessionSmallObj.target.url = updateObj.target.url;
       sessionSmallObj.target.wordChainIndex = updateObj.target.wordChainIndex;
@@ -5315,12 +5319,12 @@ setInterval(function() {
 
 function getTags(wObj, callback){
 
-  wordsPerMinuteTop10Cache.get(wObj.nodeId, function(err, wordRate) {
+  wordsPerMinuteTopTermCache.get(wObj.nodeId, function(err, wordRate) {
     if (wordRate) {
-      wObj.isTopTen = true;
+      wObj.isTopTerm = true;
     }
     else {
-      wObj.isTopTen = false;
+      wObj.isTopTerm = false;
     }
 
     checkKeyword(wObj, function(wordObj){
@@ -5385,10 +5389,6 @@ setInterval(function() {
 
     var responseInObj = responseQueue.dequeue();
 
-    // if (responseInObj.isTopTen) {
-    //   console.log(chalkWarn("top 10 responseInObj\n" + jsonPrint(responseInObj)));
-    // }
-
     if ((responseInObj.nodeId === undefined) 
       || (typeof responseInObj.nodeId !== "string"
       || (responseInObj.nodeId.length >  MAX_DB_KEY_LENGTH)
@@ -5431,9 +5431,9 @@ setInterval(function() {
       else {
         debug(chalkError("currentSessionObj\n" + jsonPrint(currentSessionObj)));
 
-        responseInObj.isTopTen = (responseInObj.isTopTen !== undefined) ? responseInObj.isTopTen : false;
-        responseInObj.isKeyword = (responseInObj.isKeyword !== undefined) ? responseInObj.isKeyword : false;
-        responseInObj.isTrendingTopic = (responseInObj.isTrendingTopic !== undefined) ? responseInObj.isTrendingTopic : false;
+        responseInObj.isTopTerm = responseInObj.isTopTerm || false;
+        responseInObj.isKeyword = responseInObj.isKeyword || false;
+        responseInObj.isTrendingTopic = responseInObj.isTrendingTopic || false;
 
         trendingTopicsArray = trendingCache.keys();
         trendingTopicHitArray = [];
@@ -7289,7 +7289,7 @@ setInterval(function() {
               + word.nodeId 
               + " | I: " + word.isIgnored 
               + " | K: " + word.isKeyword 
-              + " | TOP10: " + word.isTopTen 
+              + " | TOPTERM: " + word.isTopTerm 
               + " | MNS: " + word.mentions 
               // + " | URL: " + word.url 
               + " | WAPI S: " + word.wapiSearched 
@@ -7329,7 +7329,7 @@ setInterval(function() {
               + word.nodeId 
               + " | I: " + word.isIgnored 
               + " | K: " + word.isKeyword 
-              + " | TOP10: " + word.isTopTen 
+              + " | TOPTERM: " + word.isTopTerm 
               + " | MNS: " + word.mentions 
               // + " | URL: " + word.url 
               + " | WAPI S: " + word.wapiSearched 
@@ -8026,7 +8026,7 @@ setInterval(function() {
   statsObj.caches.utilCache = utilCache.getStats();
   statsObj.caches.viewerCache = viewerCache.getStats();
   statsObj.caches.wordCache = wordCache.getStats();
-  statsObj.caches.wordsPerMinuteTop10Cache = wordsPerMinuteTop10Cache.getStats();
+  statsObj.caches.wordsPerMinuteTopTermCache = wordsPerMinuteTopTermCache.getStats();
 
   if (updateComplete) {
     numberAdmins = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
@@ -8215,38 +8215,38 @@ function initRateQinterval(interval){
 
     if (updateTimeSeriesCount === 0){
 
-      var wordsPerMinuteTop10 = {};
+      var wordsPerMinuteTopTerm = {};
 
       sortedObjectValues(wordMeter, "1MinuteRate", function(sortedKeys){
 
         // if (enableGoogleMetrics) {
 
-        var endIndex = (sortedKeys.length >= 10) ? 10 : sortedKeys.length;
+        var endIndex = Math.min(maxTopTerms, sortedKeys.length);
 
         var index;
         var wmObj;
-        var top10dataPoint = {};
+        var topTermDataPoint = {};
 
         for (index=0; index<endIndex; index += 1){
 
           wmObj = wordMeter[sortedKeys[index]].toJSON();
 
-          wordsPerMinuteTop10Cache.set(sortedKeys[index], wmObj["1MinuteRate"]);
+          wordsPerMinuteTopTermCache.set(sortedKeys[index], wmObj["1MinuteRate"]);
 
-          wordsPerMinuteTop10[sortedKeys[index]] = wmObj["1MinuteRate"];
+          wordsPerMinuteTopTerm[sortedKeys[index]] = wmObj["1MinuteRate"];
 
           if (index === endIndex-1) {
-            adminNameSpace.emit("TWITTER_TOP10_1MIN", wordsPerMinuteTop10);
+            adminNameSpace.emit("TWITTER_TOPTERM_1MIN", wordsPerMinuteTopTerm);
           }
 
           if (enableGoogleMetrics && (wmObj["1MinuteRate"] > MIN_METRIC_VALUE)) {
  
-            top10dataPoint.displayName = sortedKeys[index];
-            top10dataPoint.metricType = "word/top10/" + sortedKeys[index];
-            top10dataPoint.value = wmObj["1MinuteRate"];
-            top10dataPoint.metricLabels = {server_id: "WORD"};
+            topTermDataPoint.displayName = sortedKeys[index];
+            topTermDataPoint.metricType = "word/top10/" + sortedKeys[index];
+            topTermDataPoint.value = wmObj["1MinuteRate"];
+            topTermDataPoint.metricLabels = {server_id: "WORD"};
 
-            addMetricDataPoint(top10dataPoint);
+            addMetricDataPoint(topTermDataPoint);
           }
 
         }

@@ -4517,11 +4517,9 @@ function handleSessionEvent(sesObj, callback) {
             + "\n" + jsonPrint(sessionRouteHashMap.get(sesObj.session.sessionId))));
 
           if (sesObj.session.sessionId === sesObj.session.config.userA) {
-            // unpairedSessionObj = sessionCache.get(sesObj.session.config.userB);
             debug(chalkWarn(">>> TX PAIRED_USER_END TO USER B: " + sesObj.session.config.userB));
             io.of(sesObj.session.namespace).to(sesObj.session.config.userB).emit("PAIRED_USER_END", sesObj.session.config.userA);
           } else {
-            // unpairedSessionObj = sessionCache.get(sesObj.session.config.userA);
             debug(chalkWarn(">>> TX PAIRED_USER_END TO USER A: " + sesObj.session.config.userA));
             io.of(sesObj.session.namespace).to(sesObj.session.config.userA).emit("PAIRED_USER_END", sesObj.session.config.userB);
           }
@@ -5469,64 +5467,67 @@ setInterval(function() {
 
           currentSessionObj.lastSeen = moment().valueOf();
 
-          var previousPrompt;
-          var previousPromptObj;
+          // var previousPrompt;
+          // var previousPromptObj;
 
-          if ((currentSessionObj.wordChain !== undefined) && (currentSessionObj.wordChainIndex > 0)) {
+          // if ((currentSessionObj.wordChain !== undefined) && (currentSessionObj.wordChainIndex > 0)) {
 
-            previousPrompt = currentSessionObj.wordChain[currentSessionObj.wordChain.length - 1].nodeId;
-            previousPromptObj = wordCache.get(previousPrompt);
+          //   previousPrompt = currentSessionObj.wordChain[currentSessionObj.wordChain.length - 1].nodeId;
+          //   // previousPromptObj = wordCache.get(previousPrompt);
+          //   wordCache.get(previousPrompt, function(err, pPromptObj){
+          //     if (err){
+          //       console.log(chalkError(moment().format(compactDateTimeFormat) 
+          //         + " | ??? WORD CACHE ERROR ON RESPONSE | " + err
+          //       ));
+          //     }
+          //     else {
+          //       if (!pPromptObj) {
+          //         debug(chalkAlert("PREV PROMPT $ MISS"
+          //           + " | " + socketId 
+          //           + " | " + currentSessionObj.userId 
+          //           + " | WCI: " + currentSessionObj.wordChainIndex 
+          //           + " | WCL: " + currentSessionObj.wordChain.length
+          //           + " | " + responseInObj.nodeId 
+          //           + " > " + previousPrompt 
+          //         ));
 
-            if (!previousPromptObj) {
-              debug(chalkAlert("PREV PROMPT $ MISS"
-                + " | " + socketId 
-                + " | " + currentSessionObj.userId 
-                + " | WCI: " + currentSessionObj.wordChainIndex 
-                + " | WCL: " + currentSessionObj.wordChain.length
-                + " | " + responseInObj.nodeId 
-                + " > " + previousPrompt 
-              ));
+          //         statsObj.session.error += 1;
+          //         statsObj.session.previousPromptNotFound += 1;
 
-              statsObj.session.error += 1;
-              statsObj.session.previousPromptNotFound += 1;
+          //         previousPromptObj = {
+          //           nodeId: previousPrompt,
+          //           mentions: 1 // !!!!!! KLUDGE !!!!!!
+          //         };
 
-              previousPromptObj = {
-                nodeId: previousPrompt,
-                mentions: 1 // !!!!!! KLUDGE !!!!!!
-              };
+          //         wordCache.set(previousPromptObj.nodeId, previousPromptObj);
 
-              wordCache.set(previousPromptObj.nodeId, previousPromptObj);
-
-            } else {
-              debug(chalkResponse("... previousPromptObj: " + previousPromptObj.nodeId));
-            }
-          } 
-          else if (currentSessionObj.config.mode === "STREAM") {
-            previousPromptObj = {
-              nodeId: "STREAM"
-            };
-            debug(chalkWarn("STREAM WORD CHAIN\n" + jsonPrint(currentSessionObj.wordChain)));
-          } 
-          else if (currentSessionObj.config.mode === "MUXSTREAM") {
-            previousPromptObj = {
-              nodeId: "MUXSTREAM"
-            };
-            debug(chalkWarn("MUXSTREAM WORD CHAIN\n" + jsonPrint(currentSessionObj.wordChain)));
-          } 
-          else if (currentSessionObj.config.mode === "SUBSTREAM") {
-            previousPromptObj = {
-              nodeId: "SUBSTREAM"
-            };
-            debug(chalkWarn("SUBSTREAM WORD CHAIN\n" + jsonPrint(currentSessionObj.wordChain)));
-          } 
-          else {
-            console.log(chalkError("??? EMPTY WORD CHAIN ... PREVIOUS PROMPT NOT IN CACHE ... ABORTING SESSION" 
-              + " | " + socketId
-              + "\nresponseInObj" + jsonPrint(responseInObj)
-            ));
-            responseQueueReady = true;
-            return;
-          }
+          //       }
+          //       else {
+          //         debug(chalkResponse("... previousPromp: " + pPromptObj.nodeId));
+          //       }
+          //     }
+          //   });
+          // } 
+          // else if (currentSessionObj.config.mode === "STREAM") {
+          //   previousPromptObj = { nodeId: "STREAM" };
+          //   debug(chalkWarn("STREAM WORD CHAIN\n" + jsonPrint(currentSessionObj.wordChain)));
+          // } 
+          // else if (currentSessionObj.config.mode === "MUXSTREAM") {
+          //   previousPromptObj = { nodeId: "MUXSTREAM" };
+          //   debug(chalkWarn("MUXSTREAM WORD CHAIN\n" + jsonPrint(currentSessionObj.wordChain)));
+          // } 
+          // else if (currentSessionObj.config.mode === "SUBSTREAM") {
+          //   previousPromptObj = { nodeId: "SUBSTREAM"  };
+          //   debug(chalkWarn("SUBSTREAM WORD CHAIN\n" + jsonPrint(currentSessionObj.wordChain)));
+          // } 
+          // else {
+          //   console.log(chalkError("??? EMPTY WORD CHAIN ... PREVIOUS PROMPT NOT IN CACHE ... ABORTING SESSION" 
+          //     + " | " + socketId
+          //     + "\nresponseInObj" + jsonPrint(responseInObj)
+          //   ));
+          //   responseQueueReady = true;
+          //   return;
+          // }
      
           getTags(responseInObj, function(uWordObj){
 
@@ -6000,7 +6001,8 @@ function updatePreviousPrompt(sessionObj, wordObj, callback){
         quit("??? PREVIOUS PROMPT NOT IN CACHE: " + previousPromptNodeId);
       }
       callback(previousPromptObj);
-    } else {
+    } 
+    else {
       previousPromptObj.wordChainIndex = wordObj.word.wordChainIndex - 1;
       debug(chalkRed("CHAIN previousPromptObj: " + previousPromptNodeId));
       callback(previousPromptObj);

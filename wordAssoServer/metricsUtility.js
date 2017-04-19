@@ -122,7 +122,7 @@ function showStats(options){
 function quit(message) {
   console.log("\n... QUITTING ...");
   if (typeof updater !== "undefined") { updater.kill("SIGHUP"); }
-  showStats(true);
+  showStats();
   var msg = "";
   if (message) {msg = message;}
   console.log("QUIT MESSAGE\n" + msg);

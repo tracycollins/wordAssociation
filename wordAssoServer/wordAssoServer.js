@@ -2237,6 +2237,32 @@ function createSession(newSessionObj) {
 
   socket.on("node", function(rxNodeObj) {
 
+    if (!rxNodeObj.nodeId) {
+
+      console.log(chalkError("UNDEFINED RX NODE NODEID\n" + jsonPrint(rxNodeObj)));
+      
+      if (quitOnErrorFlag) {
+        quit("UNDEFINED RX NODE NODEID");
+      }
+      else {
+        switch (rxNodeObj.nodeType){
+          case "user":
+            if (rxNodeObj.screenName) {
+              rxNodeObj.nodeId = rxNodeObj.screenName.toLowerCase();
+              console.log(chalkWarn("UNDEFINED RX NODE NODEID SET TO: " + rxNodeObj.nodeId));
+            }
+            else if (rxNodeObj.name) {
+              rxNodeObj.nodeId = rxNodeObj.name.toLowerCase();
+              console.log(chalkWarn("UNDEFINED RX NODE NODEID SET TO: " + rxNodeObj.nodeId));
+            }
+          break;
+          default:
+            rxNodeObj.nodeId = "undefined_" + moment().valueOf();
+            console.log(chalkWarn("UNDEFINED RX NODE NODEID SET TO: " + rxNodeObj.nodeId));
+        }
+      }
+    }
+
     // usually output from twitterSearchStream (TSS)
 
     debug("RX NODE"

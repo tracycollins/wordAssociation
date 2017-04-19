@@ -41,7 +41,7 @@ var WordSchema = new Schema({
 		type: Boolean,
 		default: false
 	},
-	isTopTen: {
+	isTopTerm: {
 		type: Boolean,
 		default: false
 	},

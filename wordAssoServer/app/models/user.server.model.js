@@ -36,6 +36,10 @@ var UserSchema = new Schema({
 		type: Object,
 		default: {}
 	},
+	isTopTerm: { 
+		type: Boolean,
+		default: false
+	},
 	verified: { 
 		type: Boolean,
 		default: false

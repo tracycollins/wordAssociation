@@ -35,6 +35,7 @@ exports.findOneEntity = function(entity, incMentions, callback) {
 		screenName: entity.screenName,
 		// sessions: entity.sessions,
 		// words: entity.words,
+		isTopTerm: entity.isTopTerm,
 		tags: entity.tags,
 		lastSeen: moment()
 	};
@@ -62,6 +63,7 @@ exports.findOneEntity = function(entity, incMentions, callback) {
 					+ " | NAME: " + ent.name 
 					+ " | SNAME: " + ent.screenName 
 					+ " | GROUP: " + ent.groupId 
+					+ " | TOPTERM: " + ent.isTopTerm 
 					+ " | CHAN: " + ent.tags.channel
 					+ " | SESSIONS: " + ent.sessions 
 					+ " | WORDS: " + ent.words 

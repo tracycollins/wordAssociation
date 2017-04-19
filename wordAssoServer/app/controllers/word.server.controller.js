@@ -173,8 +173,8 @@ exports.findOneWord = function(word, incMentions, callback) {
 			raw: word.raw,
 			rate: word.rate || 0,
 			isTwitterUser: word.isTwitterUser,
-			isTopTen: word.isTrendingTopic,
-			isTrendingTopic: word.isTopTen,
+			isTopTerm: word.isTopTerm,
+			isTrendingTopic: word.isTrendingTopic,
 			isKeyword: word.isKeyword,
 			keywords: word.keywords,
 			isIgnored: word.isIgnored,
@@ -213,7 +213,7 @@ exports.findOneWord = function(word, incMentions, callback) {
 					+ " | WPM: " + wd.rate.toFixed(2) 
 					+ " | KW: " + wd.isKeyword 
 					+ " | TU: " + wd.isTwitterUser 
-					+ " | TOP10: " + wd.isTopTen 
+					+ " | TOPTERM: " + wd.isTopTerm 
 					+ " | TT: " + wd.isTrendingTopic 
 					+ " | MENTIONS: " + wd.mentions 
 					+ " | LAST SEEN: " + Date(wd.lastSeen) 

@@ -35,6 +35,10 @@ var EntitySchema = new Schema({
 		type: Number,
 		default: 0
 	},
+	isTopTerm: { 
+		type: Boolean,
+		default: false
+	},
 	tags: {  // i.e., channel
 		type: Object,
 		default: {}

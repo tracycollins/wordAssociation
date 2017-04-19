@@ -752,11 +752,11 @@ console.log("WAPI_REQ_RESERVE_PRCNT: " + wapiReqReservePercent);
 
 
 // ==================================================================
-// TOP TEN WPM  CACHE
+// TOP TERM WPM  CACHE
 // ==================================================================
 var wordsPerMinuteTopTermTtl = process.env.TOPTERMS_CACHE_DEFAULT_TTL;
 if (wordsPerMinuteTopTermTtl === undefined) {wordsPerMinuteTopTermTtl = TOPTERMS_CACHE_DEFAULT_TTL;}
-console.log("TOP TEN WPM CACHE TTL: " + wordsPerMinuteTopTermTtl + " SECONDS");
+console.log("TOP TERMS WPM CACHE TTL: " + wordsPerMinuteTopTermTtl + " SECONDS");
 
 // ==================================================================
 // ADMIN ADDRESS CACHE
@@ -2559,7 +2559,7 @@ function createSession(newSessionObj) {
     wordsPerMinuteTopTermCache.get(rxInObj.nodeId.toLowerCase(), function(err, nodeRate) {
       if (nodeRate) {
         rxInObj.isTopTerm = true;
-        console.log(chalkRed("TOP TEN" 
+        console.log(chalkRed("TOP TERM"
           + " | " + rxInObj.nodeId
           + " | " + rxInObj.isTopTerm
           + " | " + nodeRate.toFixed(2)

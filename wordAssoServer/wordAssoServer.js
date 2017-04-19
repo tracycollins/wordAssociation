@@ -488,7 +488,7 @@ function showStats(options){
     console.log(chalkAlert("S"
       // + " | " + statsObj.socketId
       + " | ELAPSED: " + statsObj.elapsed
-      + " | START: " + moment(statsObj.startTime).format(compactDateTimeFormat)
+      + " | START: " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat)
       + " | HEAP: " + statsObj.heap.toFixed(0) + " MB"
       + " | MAX HEAP: " + statsObj.maxHeap.toFixed(0)
     ));
@@ -973,7 +973,7 @@ wordCache.on("expired", function(word, wordObj) {
     debug("... CACHE WORD EXPIRED"
       + " | " + word
       + " | " + wordObj.raw 
-      + " | LS: " + moment(wordObj.lastSeen).format(compactDateTimeFormat)
+      + " | LS: " + moment(parseInt(wordObj.lastSeen)).format(compactDateTimeFormat)
       + " | " + msToTime(moment().valueOf() - wordObj.lastSeen) 
       + " | M: " + wordObj.mentions 
       + " | K: " + wordCache.getStats().keys 
@@ -3120,8 +3120,8 @@ function dbUpdateGroup(groupObj, incMentions, callback) {
       debug(chalkInfo("->- DB GR" 
         + " | " + group.groupId 
         + " | NAME: " + group.name 
-        + " | CREATED: " + moment(group.createdAt).format(compactDateTimeFormat)
-        + " | LAST: " + moment(group.lastSeen).format(compactDateTimeFormat)
+        + " | CREATED: " + moment(parseInt(group.createdAt)).format(compactDateTimeFormat)
+        + " | LAST: " + moment(parseInt(group.lastSeen)).format(compactDateTimeFormat)
         + " | MNS: " + group.mentions 
         + "\nCHANNELS: " + group.channels
         + "\nENTITIES: " + group.entities
@@ -3156,8 +3156,8 @@ function dbUpdateEntity(entityObj, incMentions, callback) {
         + " | C: " + entity.tags.channel
         + " | S: " + entity.sessions 
         + " | Ws: " + entity.words 
-        + " | CR: " + moment(entity.createdAt).format(compactDateTimeFormat)
-        + " | L: " + moment(entity.lastSeen).format(compactDateTimeFormat)
+        + " | CR: " + moment(parseInt(entity.createdAt)).format(compactDateTimeFormat)
+        + " | L: " + moment(parseInt(entity.lastSeen)).format(compactDateTimeFormat)
         + " | Ms: " + entity.mentions 
       ));
 
@@ -3707,7 +3707,7 @@ function groupFindAllDb(options, callback) {
 
           debug(chalkDb("GID: " + group.groupId 
             + " | N: " + group.name 
-            + " | LS: " + moment(group.lastSeen).format(compactDateTimeFormat)
+            + " | LS: " + moment(parseInt(group.lastSeen)).format(compactDateTimeFormat)
             + "\n" + jsonPrint(group)
           ));
 
@@ -4007,7 +4007,7 @@ function adminUpdateDb(adminObj, callback) {
           + " | SID: " + ad.sessionId 
           + " | SN: " + ad.screenName
           + " | VER: " + ad.verified 
-          + " | LS: " + moment(ad.lastSeen).format(compactDateTimeFormat)
+          + " | LS: " + moment(parseInt(ad.lastSeen)).format(compactDateTimeFormat)
           + " | SES: " + ad.sessions.length 
           + " | LSES: " + ad.lastSession 
           + " | CON: " + ad.connected
@@ -4078,7 +4078,7 @@ function viewerUpdateDb(viewerObj, callback) {
           + " | DOM: " + vw.domain 
           + " | SID: " + vw.sessionId
           + " | VER: " + vw.verified 
-          + " | LS: " + moment(vw.lastSeen).format(compactDateTimeFormat)
+          + " | LS: " + moment(parseInt(vw.lastSeen)).format(compactDateTimeFormat)
           + " | SES: " + vw.sessions.length 
           + " | LSES: " + vw.lastSession
         ));
@@ -4168,7 +4168,7 @@ function userUpdateDb(userObj, callback) {
           + " | DOM:  " + us.domain 
           + "\nSID:  " + us.sessionId
           + " | VER:  " + us.verified 
-          + " | LS:   " + moment(us.lastSeen).format(compactDateTimeFormat)
+          + " | LS:   " + moment(parseInt(us.lastSeen)).format(compactDateTimeFormat)
           + " | SES:  " + us.sessions.length 
           + " | LSES: " + us.lastSession 
           + " | CON:  " + us.connected
@@ -4260,7 +4260,7 @@ function utilUpdateDb(utilObj, callback) {
           + " | DOM:  " + us.domain 
           + "\nSID:  " + us.sessionId
           + " | VER:  " + us.verified 
-          + " | LS:   " + moment(us.lastSeen).format(compactDateTimeFormat)
+          + " | LS:   " + moment(parseInt(us.lastSeen)).format(compactDateTimeFormat)
           + " | SES:  " + us.sessions.length 
           + " | LSES: " + us.lastSession 
           + " | CON:  " + us.connected
@@ -4312,7 +4312,7 @@ function adminFindAllDb(options, callback) {
 
           debug(chalkAdmin("UID: " + adminObj.adminId 
             + " | SN: " + adminObj.screenName 
-            + " | LS: " + moment(adminObj.lastSeen).format(compactDateTimeFormat)
+            + " | LS: " + moment(parseInt(adminObj.lastSeen)).format(compactDateTimeFormat)
           ));
 
           if (!adminObj.adminId || (adminObj.adminId === undefined) || adminObj.adminId === null) {
@@ -5210,7 +5210,7 @@ function handleSessionEvent(sesObj, callback) {
                   debug(console.log(chalkInfo("ENTITY UPDATE\n" + jsonPrint(entityObj))));
                   if (sesObj.session.config.type === "USER") {
                     console.log(chalkInfo("TX USER SESSION (USER READY)"
-                      + " | LAST SEEN: " + moment(entityObj.lastSeen).format(compactDateTimeFormat)
+                      + " | LAST SEEN: " + moment(parseInt(entityObj.lastSeen)).format(compactDateTimeFormat)
                       + " | N: " + entityObj.name
                       + " | SN: " + entityObj.screenName
                     ));
@@ -5218,7 +5218,7 @@ function handleSessionEvent(sesObj, callback) {
                   } else if (sesObj.session.config.type === "UTIL") {
                     // console.log(chalkInfo("TX UTIL SESSION (UTIL READY): " + updatedUserObj.lastSeen + " TO ADMIN NAMESPACE"));
                     console.log(chalkInfo("TX USER SESSION (UTIL READY)"
-                      + " | LAST SEEN: " + moment(entityObj.lastSeen).format(compactDateTimeFormat)
+                      + " | LAST SEEN: " + moment(parseInt(entityObj.lastSeen)).format(compactDateTimeFormat)
                       + " | N: " + entityObj.name
                       + " | SN: " + entityObj.screenName
                     ));
@@ -8215,6 +8215,7 @@ function initRateQinterval(interval){
 
           if (enableGoogleMetrics && (wmObj["1MinuteRate"] > MIN_METRIC_VALUE)) {
  
+            top10dataPoint.displayName = sortedKeys[index];
             top10dataPoint.metricType = "word/top10/" + sortedKeys[index];
             top10dataPoint.value = wmObj["1MinuteRate"];
             top10dataPoint.metricLabels = {server_id: "WORD"};

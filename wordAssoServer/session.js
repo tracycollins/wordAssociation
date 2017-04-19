@@ -89,7 +89,7 @@ var MEDIA_MAX_AGE = 60000;
 
 var DEFAULT_AGE_RATE = 1.0;
 
-var DEFAULT_TRANSITION_DURATION = 50;
+var DEFAULT_TRANSITION_DURATION = 80;
 var DEFAULT_CHARGE = -10;
 var DEFAULT_GRAVITY = 0.001;
 var DEFAULT_FORCEX_MULTIPLIER = 25.0;
@@ -1996,10 +1996,19 @@ function initSocketNodeRx(){
       return;
     }
 
+    if ((nNode.nodeType === "user") 
+      && nNode.isTwitterUser 
+      && nNode.screenName 
+      && (nNode.nodeId === undefined)){
+
+      nNode.nodeId = nNode.screenName;
+      if (!nNode.name) { nNode.name = nNode.screenName; }
+    }
+
     var newNode = {};
     newNode.rate = nNode.rate;
-    newNode.isTopTen = nNode.isTopTen;
-    newNode.isKeyword = nNode.isKeyword;
+    newNode.isTopTen = nNode.isTopTen || false;
+    newNode.isKeyword = nNode.isKeyword || false;
     newNode.keywords = nNode.keywords;
     getKeywordColor(nNode.keywords, function(color){
       newNode.keywordColor = color;
@@ -2008,7 +2017,7 @@ function initSocketNodeRx(){
     newNode.age = 1e-6;
     newNode.ageMaxRatio = 1e-6;
     newNode.mouseHoverFlag = false;
-    newNode.nodeId = (nNode.nodeType == 'url') ? nNode.nodeId : nNode.nodeId.toString().toLowerCase();  // urls must be case sensitive
+    newNode.nodeId = (nNode.nodeType == "url") ? nNode.nodeId : nNode.nodeId.toString().toLowerCase();  // urls must be case sensitive
     newNode.nodeType = nNode.nodeType;
     newNode.isDead = false;
     newNode.r = 0;

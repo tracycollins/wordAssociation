@@ -9,14 +9,67 @@ function ViewTreepack() {
 
   var sliderPercision = 3;
 
-  var hashtagTopMargin = 15; // %
-  var hashtagLeftMargin = 10; // %
+  var hashtagTopMargin = 10; // %
+  var hashtagLeftMargin = 5; // %
+  var mentionsNumChars = 9;
+  var rateNumChars = 6;
   // var hashtagColMargin = 10;
 
   var maxHashtagRows = 25;
   var maxHashtagCols = 5;
   var rowSpacing = 3; // %
   var colSpacing = 90/maxHashtagCols; // %
+
+  // FORCE X & Y
+  var xFocusLeftRatio = 0.3;
+  var yFocusLeftRatio = 0.5;
+
+  var xFocusRightRatio = 0.7;
+  var yFocusRightRatio = 0.5;
+
+  var xFocusPositiveRatio = 0.5;
+  var yFocusPositiveRatio = 0.3;
+
+  var xFocusNegativeRatio = 0.5;
+  var yFocusNegativeRatio = 0.7;
+
+  var xFocusNeutralRatio = 0.5;
+  var yFocusNeutralRatio = 0.5;
+
+  var xFocusDefaultRatio = 0.5;
+  var yFocusDefaultRatio = 0.5;
+
+  // INITIAL POSITION
+  var xMinRatioLeft = 0.25;
+  var xMaxRatioLeft = 0.35;
+
+  var yMinRatioLeft = 0.85;
+  var yMaxRatioLeft = 0.95;
+
+  var xMinRatioRight = 0.55;
+  var xMaxRatioRight = 0.75;
+
+  var yMinRatioRight = 0.85;
+  var yMaxRatioRight = 0.95;
+
+  var xMinRatioPositive = 0.45;
+  var xMaxRatioPositive = 0.55;
+
+  var yMinRatioPositive = 0.85;
+  var yMaxRatioPositive = 0.95;
+
+  var xMinRatioNegative = 0.45;
+  var xMaxRatioNegative = 0.55;
+
+  var yMinRatioNegative = 0.90;
+  var yMaxRatioNegative = 1.00;
+
+  var xMinRatioNeutral = 0.45;
+  var xMaxRatioNeutral = 0.55;
+
+  var yMinRatioNeutral = 0.85;
+  var yMaxRatioNeutral = 0.95;
+
 
   var nodes = [];
   var nodesTopTen = [];
@@ -58,27 +111,29 @@ function ViewTreepack() {
   var minRadius = minRadiusRatio * window.innerWidth;
   var maxRadius = maxRadiusRatio * window.innerWidth;
 
-  var minOpacity = 0.25;
+  var foci = {
+    left: {x: xFocusLeftRatio*width, y: yFocusLeftRatio*height}, 
+    right: {x: xFocusRightRatio*width, y: yFocusRightRatio*height}, 
+    positive: {x: xFocusPositiveRatio*width, y: yFocusPositiveRatio*height}, 
+    negative: {x: xFocusNeutralRatio*width, y: yFocusNegativeRatio*height},
+    neutral: {x: xFocusNeutralRatio*width, y: yFocusNeutralRatio*height},
+    default: {x: xFocusDefaultRatio*width, y: yFocusDefaultRatio*height}
+  };
+
+
+  var minOpacity = 0.35;
   var blahFlag = false;
   var antonymFlag = false;
   var removeDeadNodesFlag = true;
 
   var defaultPosDuration = 150;
 
-  var hashtagTopMargin = 15; // %
-  var hashtagLeftMargin = 10; // %
-
-  var maxHashtagRows = 25;
-  var maxHashtagCols = 5;
-  var rowSpacing = 3; // %
-  var colSpacing = 90/maxHashtagCols; // %
-
   var DEFAULT_AGE_RATE = 1.0;
   var MAX_RX_QUEUE = 100;
 
   var nodesTopTenHashMap = new HashMap();
 
-  var localNodeHashMap = new HashMap();
+  var localNodeHashMap = {};
   var maxNodeAddQ = 0;
   var maxNumberNodes = 0;
 
@@ -86,15 +141,6 @@ function ViewTreepack() {
   
   var nodeAddQ = [];
   var nodeDeleteQ = [];
-
-  var foci = {
-    left: {x: 0.3*width, y: 0.5*height}, 
-    right: {x: 0.7*width, y: 0.5*height}, 
-    positive: {x: 0.5*width, y: 0.3*height}, 
-    negative: {x: 0.5*width, y: 0.7*height},
-    neutral: {x: 0.5*width, y: 0.5*height},
-    default: {x: 0.5*width, y: 0.5*height}
-  };
 
   self.sessionKeepalive = function() {
   };
@@ -176,8 +222,13 @@ function ViewTreepack() {
     .range([minFontSize, maxFontSize])
     .clamp(true);
     
+  var topTenLabelOpacityScale = d3.scaleLinear()
+    .domain([1e-6, 1.0])
+    .range([1.0, minOpacity])
+    .clamp(true);
+    
   var nodeLabelOpacityScale = d3.scaleLinear()
-    .domain([1e-6, 0.1, 1.0])
+    .domain([1e-6, 0.2, 1.0])
     .range([1.0, 0.4, minOpacity])
     .clamp(true);
     
@@ -207,7 +258,7 @@ function ViewTreepack() {
 //============TREEMAP=================================
 
   var nodeSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeSvgGroup");
-  var nodeCircles = nodeSvgGroup.selectAll("circle");
+  // var nodeCircles = nodeSvgGroup.selectAll("circle");
   var nodeLabelSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeLabelSvgGroup");
   var nodeTopTenLabelSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeTopTenLabelSvgGroup");
   // var nodeLabels = nodeSvgGroup.selectAll(".nodeLabel");
@@ -222,6 +273,18 @@ function ViewTreepack() {
   var randomIntFromInterval = function(min, max) {
     var random = Math.random();
     var randomInt = Math.floor((random * (max - min + 1)) + min);
+    if (randomInt !== randomInt) {
+      console.error("randomIntFromInterval ERROR"
+        + " | MIN: " + min
+        + " | MAX: " + max
+      );
+    }
+    if (isNaN(randomInt)) {
+      console.error("randomIntFromInterval NaN"
+        + " | MIN: " + min
+        + " | MAX: " + max
+      );
+    }
     return randomInt;
   };
 
@@ -442,7 +505,9 @@ function ViewTreepack() {
         || (removeDeadNodesFlag && (age >= nodeMaxAge))
         ) {
 
-        localNodeHashMap.remove(node.nodeId);
+        // localNodeHashMap.remove(node.nodeId);
+        delete localNodeHashMap[node.nodeId];
+
         nodesTopTenHashMap.remove(node.nodeId);
 
         nodes.splice(ageNodesIndex, 1);
@@ -462,8 +527,17 @@ function ViewTreepack() {
         }
         node.ageMaxRatio = ageMaxRatio;
         node.isDead = false;
+
+        node.isTopTen = localNodeHashMap[node.nodeId].isTopTen;
+        node.isKeyword = localNodeHashMap[node.nodeId].isKeyword;
+        node.keywordColor = localNodeHashMap[node.nodeId].keywordColor;
+        node.isTrendingTopic = localNodeHashMap[node.nodeId].isTrendingTopic;
+        node.keywords = localNodeHashMap[node.nodeId].keywords;
+
         nodes[ageNodesIndex] = node;
-        localNodeHashMap.set(node.nodeId, node);
+
+        // localNodeHashMap.set(node.nodeId, node);
+        localNodeHashMap[node.nodeId] = node;
 
         if (node.isTopTen) {
           nodesTopTenHashMap.set(node.nodeId, node);
@@ -502,7 +576,10 @@ function ViewTreepack() {
         nodeDeleteQ.push({op:'delete', nodeId: node.nodeId});
         deadNodeFlag = true;
         delete deadNodesHash[node.nodeId];
-        localNodeHashMap.remove(node.nodeId);
+
+        // localNodeHashMap.remove(node.nodeId);
+        delete localNodeHashMap[node.nodeId];
+
         nodesTopTenHashMap.remove(node.nodeId);
       }
       deadNodeIds = Object.keys(deadNodesHash);
@@ -556,7 +633,7 @@ function ViewTreepack() {
 
   function cellClick(d) {
     console.debug("cellClick", d);
-    var url = "https://twitter.com/search?f=realtime&q=%23" + d.name ;
+    var url = "https://twitter.com/search?f=tweets&q=%23" + d.name ;
     window.open(url, '_blank');
   }
 
@@ -566,7 +643,8 @@ function ViewTreepack() {
 
     switch (d.nodeType) {
       case "hashtag" :
-        url = "https://twitter.com/search?f=realtime&q=%23" + d.text ;
+        // url = "https://twitter.com/search?f=realtime&q=%23" + d.text ;
+        url = "https://twitter.com/search?f=tweets&q=%23" + d.text ;
         window.open(url, '_blank');
       break;
     }
@@ -581,79 +659,6 @@ function ViewTreepack() {
     }
   }
 
-  // var updateTopTen = function(callback) {
-
-  //   var nodeTopTenLabels = nodeTopTenLabelSvgGroup.selectAll("text")
-  //     .data(nodesTopTen, function(d) { 
-  //       return d.nodeId; 
-  //     });
-
-  //   nodeTopTenLabels
-  //     .enter()
-  //     .append("text")
-  //     .attr("nodeId", function(d) { return d.nodeId; })
-  //     .style("text-anchor", "middle")
-  //     .style("alignment-baseline", "middle")
-  //     .on("mouseover", nodeMouseOver)
-  //     .on("mouseout", nodeMouseOut)
-  //     .on("click", nodeClick)
-  //     .merge(nodeLabels)
-  //     .attr("x", function(d) { 
-  //       if (!d.nodeId) { 
-  //         console.debug("UNDEFINED d.nodeId");
-  //         return 0.5*width; }
-  //       if (d.x === undefined) { 
-  //         console.debug("UNDEFINED d.x " + d.nodeId);
-  //         return 0.5*width; 
-  //       }
-  //       return d.x; 
-  //     })
-  //     .attr("y", function(d) { 
-  //       if (!d.nodeId) { 
-  //         console.debug("UNDEFINED d.nodeId");
-  //         return 0.5*height; 
-  //       }
-  //       if (d.y === undefined) { 
-  //         console.debug("UNDEFINED d.y " + d.nodeId);
-  //         return 0.5*height; 
-  //       }
-  //       return d.y; 
-  //     })
-  //     .text(function(d) {
-  //       if (d.isTwitterUser) { return "@" + d.screenName.toUpperCase(); }
-  //       if (d.isKeyword || d.isTrendingTopic || d.isTwitterUser) { return d.nodeId.toUpperCase(); }
-  //       if (testMode) { return "blah"; }
-  //       return d.nodeId; 
-  //     })
-  //     .style("font-weight", function(d) {
-  //       if (d.isTopTen) { return "bold"; }
-  //       return "normal";
-  //     })
-  //     .style("text-decoration", function(d) { 
-  //       if (d.isTopTen) { return "overline"; }
-  //       return "none"; 
-  //     })
-  //     .style("opacity", function(d) { 
-  //       // if (d.mouseHoverFlag) { return 1.0; }
-  //       return nodeLabelOpacityScale(d.ageMaxRatio); 
-  //     })
-  //     .style("fill", palette.white)
-  //     .style("font-size", function(d) {
-  //       return nodeLabelSizeScale(d.mentions);
-  //     });
-
-  //   nodeTopTenLabels
-  //     .exit()
-  //     // .transition()
-  //     // .duration(transitionDuration)
-  //     .style("font-size", 1e-6)
-  //     .style("opacity", 1e-6)
-  //     .remove();
-
-  //   callback();
-  // };
-
-
   function rankHashMapByValue(hmap, sortProperty, callback) {
     // console.debug("rankHashMapByValue");
     var keys = hmap.keys().sort(function(a,b){
@@ -665,15 +670,15 @@ function ViewTreepack() {
       var entry = hmap.get(key);
       entry.rank = index;
 
-      if (index >= MAX_NODES){
-        entry.isDead = true;
+      // if (index >= MAX_NODES){
+      //   entry.isDead = true;
+      //   hmap.set(key, entry);
+      //   cb();
+      // }
+      // else {
         hmap.set(key, entry);
         cb();
-      }
-      else {
-        hmap.set(key, entry);
-        cb();
-      }
+      // }
       // console.debug("key " + key);
       // console.debug("entry\n" + jsonPrint(entry));
 
@@ -704,10 +709,11 @@ function ViewTreepack() {
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)
       .text(function(d) {
-        if (d.isTwitterUser) { return "@" + d.screenName.toUpperCase(); }
-        if (d.isKeyword || d.isTrendingTopic || d.isTwitterUser) { return d.nodeId.toUpperCase(); }
-        if (testMode) { return "blah"; }
-        return d.nodeId; 
+        // if (d.isTwitterUser) { return "@" + d.screenName.toUpperCase(); }
+        // if (d.isKeyword || d.isTrendingTopic || d.isTwitterUser) { return d.nodeId.toUpperCase(); }
+        // if (testMode) { return "blah"; }
+        // return d.nodeId; 
+        return d.displaytext;
       })
       .style('fill', function(d) { 
         if (d.newFlag) { return palette.white; }
@@ -719,7 +725,7 @@ function ViewTreepack() {
       })
       .style('opacity', function(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
-        return nodeLabelOpacityScale(d.ageMaxRatio); 
+        return topTenLabelOpacityScale(d.ageMaxRatio); 
       })
       .transition()
         .duration(transitionDuration)
@@ -729,7 +735,7 @@ function ViewTreepack() {
     nodeTopTenLabels
       .enter().append("text")
       .attr("class", "enter")
-      .style("text-anchor", "left")
+      .style("text-anchor", "right")
       .style("alignment-baseline", "bottom")
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)
@@ -737,24 +743,26 @@ function ViewTreepack() {
       .attr("x", xposition)
       .attr("y", yposition)
       .text(function(d) {
-        if (d.isTwitterUser) { return "@" + d.screenName.toUpperCase(); }
-        if (d.isKeyword || d.isTrendingTopic || d.isTwitterUser) { return d.nodeId.toUpperCase(); }
-        if (testMode) { return "blah"; }
-        return d.nodeId; 
+        // if (d.isTwitterUser) { return "@" + d.screenName.toUpperCase(); }
+        // if (d.isKeyword || d.isTrendingTopic || d.isTwitterUser) { return d.nodeId.toUpperCase(); }
+        // if (testMode) { return "blah"; }
+        // return d.nodeId; 
+        return d.displaytext;
       })
+      .style("font-family", "monospace")
       .style("font-weight", function(d) {
-        if (d.isTwitterUser 
-          || d.isKeyword 
-          || d.isNumber 
-          || d.isCurrency 
-          || d.isTrendingTopic) {
-          return "bold";
-        }
+        // if (d.isTwitterUser 
+        //   || d.isKeyword 
+        //   || d.isNumber 
+        //   || d.isCurrency 
+        //   || d.isTrendingTopic) {
+        //   return "bold";
+        // }
         return "normal";
       })
       .style('opacity', function(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
-        return nodeLabelOpacityScale(d.ageMaxRatio); 
+        return topTenLabelOpacityScale(d.ageMaxRatio); 
       })
       .style('fill', palette.white)
       .style("font-size", minFontSize);
@@ -768,7 +776,7 @@ function ViewTreepack() {
 
   var updateNodeCircles = function(callback) {
 
-    nodeCircles = nodeSvgGroup.selectAll("circle")
+    var nodeCircles = nodeSvgGroup.selectAll("circle")
       .data(nodes, function(d){
         return d.nodeId;
       });
@@ -780,12 +788,12 @@ function ViewTreepack() {
       .attr("nodeId", function(d) { return d.nodeId; })
       .attr("cx", function(d) { 
         if (!d.nodeId) { 
-          console.debug("UNDEFINED d.nodeId");
+          console.warn("UNDEFINED d.nodeId");
           d.x = 0.5*width; 
           return 0.5*width; 
         }
-        if (d.x === undefined) { 
-          console.debug("UNDEFINED d.x " + d.nodeId);
+        if (isNaN(d.x)) { 
+          console.warn("NaN d.x " + d.nodeId);
           d.x = 0.5*width; 
           return 0.5*width; 
         }
@@ -793,12 +801,12 @@ function ViewTreepack() {
       })
       .attr("cy", function(d) { 
         if (!d.nodeId) { 
-          console.debug("UNDEFINED d.nodeId");
+          console.warn("UNDEFINED d.nodeId");
           d.y = 0.5*height;
           return 0.5*height; 
         }
-        if (d.y === undefined) { 
-          console.debug("UNDEFINED d.y " + d.nodeId);
+        if (isNaN(d.y)) { 
+          console.warn("NaN d.y " + d.nodeId);
           d.y = 0.5*height;
           return 0.5*height;
         }
@@ -841,13 +849,14 @@ function ViewTreepack() {
 
     nodeCircles
       .attr("cx", function(d) { 
+        // console.debug("typeof d.x: " + typeof d.x + " | " + d.x);
         if (!d.nodeId) { 
-          console.debug("UNDEFINED d.nodeId");
+          console.warn("UNDEFINED d.nodeId");
           d.x = 0.5*width; 
           return 0.5*width; 
         }
-        if (d.x === undefined) { 
-          console.debug("UNDEFINED d.x " + d.nodeId);
+        if (isNaN(d.x)) { 
+          console.warn("NaN d.x " + d.nodeId);
           d.x = 0.5*width; 
           return 0.5*width; 
         }
@@ -855,10 +864,12 @@ function ViewTreepack() {
       })
       .attr("cy", function(d) { 
         if (!d.nodeId) { 
+          console.warn("UNDEFINED d.nodeId");
           d.y = 0.5*height; 
           return 0.5*height; 
         }
-        if (d.y === undefined) { 
+        if (isNaN(d.y)) { 
+          console.warn("NaN d.y " + d.nodeId);
           d.y = 0.5*height; 
           return 0.5*height; 
         }
@@ -979,45 +990,67 @@ function ViewTreepack() {
     callback();
   };
 
+
   var focus = function(focalPoint){
     switch (focalPoint) {
       case "left":
         return({
-          x: randomIntFromInterval(0.0, 0.1*width), 
-          y: randomIntFromInterval(0.45*height, 0.55*height)
+          x: randomIntFromInterval(xMinRatioLeft*width, xMaxRatioLeft*width), 
+          y: randomIntFromInterval(yMinRatioLeft*height, yMaxRatioLeft*height)
         });
         break;
       case "right":
         return({
-          x: randomIntFromInterval(0.9*width, width), 
-          y: randomIntFromInterval(0.45*height, 0.55*height)
+          x: randomIntFromInterval(xMinRatioRight*width, xMaxRatioRight*width), 
+          y: randomIntFromInterval(yMinRatioRight*height, yMaxRatioRight*height)
         });
         break;
       case "positive":
         return({
-          x: randomIntFromInterval(0.45*width, 0.55*width), 
-          y: randomIntFromInterval(0.0, 0.1*height)
+          x: randomIntFromInterval(xMinRatioPositive*width, xMaxRatioPositive*width), 
+          y: randomIntFromInterval(yMinRatioPositive*height, yMaxRatioPositive*height)
         });
         break;
       case "negative":
         return({
-          x: randomIntFromInterval(0.45*width, 0.55*width), 
-          y: randomIntFromInterval(0.9*height, height)
+          x: randomIntFromInterval(xMinRatioNegative*width, xMaxRatioNegative*width), 
+          y: randomIntFromInterval(yMinRatioNegative*height, yMaxRatioNegative*height)
         });
         break;
       case "neutral":
         return({
-          x: randomIntFromInterval(0.45*width, 0.55*width), 
-          y: randomIntFromInterval(0.55*height, 0.55*height)
+          x: randomIntFromInterval(xMinRatioNeutral*width, xMaxRatioNeutral*width), 
+          y: randomIntFromInterval(yMinRatioNeutral*height, yMaxRatioNeutral*height)
         });
         break;
       default:
         return({
-          x: randomIntFromInterval(0.45*width, 0.55*width), 
-          y: randomIntFromInterval(0.45*height, 0.55*height)
+          x: randomIntFromInterval(xMinRatioNeutral*width, xMaxRatioNeutral*width), 
+          y: randomIntFromInterval(yMinRatioNeutral*height, yMaxRatioNeutral*height)
         });
     }
-  }
+  };
+
+  var createDisplayText = function(node) {
+
+    var mntns = node.mentions.toString() ;
+    var rate = node.rate.toFixed(2).toString() ;
+    var mentionPadSpaces = mentionsNumChars - mntns.length;
+    var ratePadSpaces = rateNumChars - rate.length;
+    var displaytext = "";
+
+    if (node.isTwitterUser) { 
+      displaytext = new Array(ratePadSpaces).join("\xa0") + rate + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns + " | " + node.screenName.toUpperCase() ;
+    }
+    else if (testMode) { 
+      displaytext = new Array(ratePadSpaces).join("\xa0") + rate + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns + " | BLAH" ;
+    }
+    else { 
+      displaytext = new Array(ratePadSpaces).join("\xa0") + rate + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns + " | " + node.nodeId.toUpperCase() ;
+    }
+
+    return displaytext;
+  };
 
   var processNodeAddQ = function(callback) {
 
@@ -1034,47 +1067,62 @@ function ViewTreepack() {
       newNode = nodeAddObj.node;
       currentNode = {};
 
-      if (localNodeHashMap.has(newNode.nodeId)){
+      // if (localNodeHashMap.has(newNode.nodeId)){
+      if (localNodeHashMap[newNode.nodeId] !== undefined){
 
-        currentNode = localNodeHashMap.get(newNode.nodeId);
+        currentNode = localNodeHashMap[newNode.nodeId];
 
-        currentNode.newFlag = true;
-        currentNode.rate = newNode.rate || 0;
         currentNode.age = 1e-6;
         currentNode.ageMaxRatio = 1e-6;
-        currentNode.x = currentNode.x || 0.5 * width;
-        currentNode.y = currentNode.y || 0.5 * height;
-        currentNode.isTopTen = newNode.isTopTen || false;
-        currentNode.isTwitterUser = newNode.isTwitterUser;
-        currentNode.isTrendingTopic = newNode.isTrendingTopic;
-        currentNode.isKeyword = newNode.isKeyword;
-        currentNode.keywordColor = newNode.keywordColor;
-        currentNode.isTopTen = newNode.isTopTen;
-        currentNode.mentions = newNode.mentions;
         currentNode.ageUpdated = moment().valueOf();
+        currentNode.isKeyword = newNode.isKeyword || false;
+        currentNode.keywords = newNode.keywords;
+        currentNode.isTopTen = newNode.isTopTen || false;
+        currentNode.isTrendingTopic = newNode.isTrendingTopic || false;
+        currentNode.isTwitterUser = newNode.isTwitterUser || false;
+        currentNode.keywordColor = newNode.keywordColor;
+        currentNode.mentions = newNode.mentions || 1;
         currentNode.mouseHoverFlag = false;
+        currentNode.rank = currentNode.rank || 0;
+        currentNode.rate = newNode.rate || 0;
+        currentNode.displaytext = createDisplayText(currentNode);
+        currentNode.x = currentNode.x || 0;
+        currentNode.y = currentNode.y || 0;
 
-        localNodeHashMap.set(currentNode.nodeId, currentNode);
+        // localNodeHashMap.set(currentNode.nodeId, currentNode);
+        localNodeHashMap[currentNode.nodeId] = currentNode;
 
         if (currentNode.isTopTen) {
           nodesTopTenHashMap.set(currentNode.nodeId, currentNode);
         }
+        else {
+          nodesTopTenHashMap.remove(currentNode.nodeId);
+        }
 
+        // console.info("HIT currentNode\n" + jsonPrint(currentNode));
         callback(null, nodesModifiedFlag);
       }
       else {
         nodesModifiedFlag = true;
+
         currentNode = newNode;
-        currentNode.isTopTen = newNode.isTopTen || false;
-        currentNode.rank = 0;
-        currentNode.newFlag = true;
+
         currentNode.age = 1e-6;
         currentNode.ageMaxRatio = 1e-6;
-        currentNode.rate = newNode.rate || 0;
-        // currentNode.mentions = newNode.mentions;
         currentNode.ageUpdated = moment().valueOf();
+        currentNode.isKeyword = newNode.isKeyword || false;
+        currentNode.isTopTen = newNode.isTopTen || false;
+        currentNode.isTrendingTopic = newNode.isTrendingTopic || false;
+        currentNode.isTwitterUser = newNode.isTwitterUser || false;
+        currentNode.keywordColor = newNode.keywordColor;
+        currentNode.mentions = newNode.mentions || 1;
         currentNode.mouseHoverFlag = false;
-        if (newNode.keywords) {
+        currentNode.rank = 0;
+        currentNode.rate = newNode.rate || 0;
+        currentNode.displaytext = createDisplayText(currentNode);
+
+        if (currentNode.isKeyword) {
+          // console.warn("keywords: " + newNode.nodeId + "\n" + jsonPrint(newNode.keywords));
           if (newNode.keywords.left) { 
             currentNode.x = focus("left").x; 
             currentNode.y = focus("left").y;
@@ -1105,13 +1153,19 @@ function ViewTreepack() {
           currentNode.y = focus("neutral").y;
         }
 
-        localNodeHashMap.set(currentNode.nodeId, currentNode);
 
-        if (newNode.isTopTen) {
+        // localNodeHashMap.set(currentNode.nodeId, currentNode);
+        localNodeHashMap[currentNode.nodeId] = currentNode;
+
+        if (currentNode.isTopTen) {
           nodesTopTenHashMap.set(currentNode.nodeId, currentNode);
+        }
+        else {
+          nodesTopTenHashMap.remove(currentNode.nodeId);
         }
 
         nodes.push(currentNode)
+        // console.info("MISS currentNode\n" + jsonPrint(currentNode));
         callback(null, nodesModifiedFlag);
       }
 
@@ -1204,8 +1258,8 @@ function ViewTreepack() {
     var newNode = {};
     newNode = nNode;
     newNode.rank = -1;
-    newNode.x = 0.0;
-    newNode.y = 0.5*height;
+    // newNode.x = 0.0;
+    // newNode.y = 0.5*height;
     newNode.newFlag = true;
 
     if (nNode.mentions > currentMaxMentions) { 
@@ -1366,12 +1420,12 @@ function ViewTreepack() {
     console.log("width: " + width + " | height: " + height);
 
     foci = {
-      left: {x: 0.3*width, y: 0.5*height}, 
-      right: {x: 0.7*width, y: 0.5*height}, 
-      positive: {x: 0.5*width, y: 0.3*height}, 
-      negative: {x: 0.5*width, y: 0.7*height},
-      neutral: {x: 0.5*width, y: 0.5*height},
-      default: {x: 0.5*width, y: 0.5*height}
+      left: {x: xFocusLeftRatio*width, y: yFocusLeftRatio*height}, 
+      right: {x: xFocusRightRatio*width, y: yFocusRightRatio*height}, 
+      positive: {x: xFocusPositiveRatio*width, y: yFocusPositiveRatio*height}, 
+      negative: {x: xFocusNeutralRatio*width, y: yFocusNegativeRatio*height},
+      neutral: {x: xFocusNeutralRatio*width, y: yFocusNeutralRatio*height},
+      default: {x: xFocusDefaultRatio*width, y: yFocusDefaultRatio*height}
     };
 
     minFontSize = minFontSizeRatio * window.innerHeight;
@@ -1473,7 +1527,8 @@ function ViewTreepack() {
     nodes = [];
     deadNodesHash = {};
     mouseHoverFlag = false;
-    localNodeHashMap.clear();
+    // localNodeHashMap.clear();
+    localNodeHashMap = {};
     nodesTopTenHashMap.clear();
     self.toolTipVisibility(false);
     self.resize();

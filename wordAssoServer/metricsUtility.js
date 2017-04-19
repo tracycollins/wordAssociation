@@ -12,6 +12,12 @@ var quitOnErrorFlag = false;
 var listDescriptorsFlag = false;
 
 var configuration = {};
+var statsObj = {};
+statsObj.metrics = {};
+statsObj.metrics.hashtag = {};
+statsObj.metrics.word = {};
+statsObj.metrics.user = {};
+statsObj.metrics.entity = {};
 
 var tssServer;
 var tmsServer;
@@ -32,6 +38,7 @@ var moment = require("moment");
 var prompt = require('prompt');
 
 var config = require("./config/config");
+var arrayContains = require("array-contains");
 var util = require("util");
 var fs = require("fs");
 var S = require("string");
@@ -46,6 +53,7 @@ var commandLineArgs = require("command-line-args");
 var mongoose = require("./config/mongoose");
 var db = mongoose();
 
+var Hashtag = require("mongoose").model("Hashtag");
 var Word = require("mongoose").model("Word");
 var wordServer = require("./app/controllers/word.server.controller");
 
@@ -84,9 +92,37 @@ var jsonPrint = function(obj) {
   }
 };
 
+function showStats(options){
+  if (options) {
+    console.log("STATS\n================================" );
+    Object.keys(statsObj).forEach(function(prop){
+      if (prop !== "entities") {
+        if (typeof statsObj[prop] === "object") {
+          console.log(prop + "\n" + jsonPrint(statsObj[prop]));
+        }
+        else {
+          console.log(prop + ": " + statsObj[prop]);
+        }
+      }
+    });
+  }
+  else {
+    console.log(chalkLog("STATS"
+      + " | SID: " + statsObj.socketId
+      + " | ELAPSED: " + statsObj.elapsed
+      + " | START: " + statsObj.startTime
+      + " | TWEETS: " + statsObj.totalTweets + " TOTAL"
+      + " / " + statsObj.oldTweets + " OLD"
+      + " / " + statsObj.newTweets + " NEW"
+      + " | TX WORDS: " + statsObj.wordsTransmitted
+    ));
+  }
+}
+
 function quit(message) {
   console.log("\n... QUITTING ...");
   if (typeof updater !== "undefined") { updater.kill("SIGHUP"); }
+  showStats(true);
   var msg = "";
   if (message) {msg = message;}
   console.log("QUIT MESSAGE\n" + msg);
@@ -103,14 +139,13 @@ var stdin;
 // var enableStdin = { name: "enableStdin", alias: "i", type: Boolean, defaultValue: true};
 var quitOnError = { name: "quitOnError", alias: "q", type: Boolean, defaultValue: false};
 var listDescriptorsFlag = { name: "listDescriptorsFlag", alias: "L", type: Boolean, defaultValue: false};
+var deleteArray = { name: "deleteArray", alias: "D", type: String, multiple: true };
 
-var optionDefinitions = [quitOnError, listDescriptorsFlag];
+var optionDefinitions = [ deleteArray, quitOnError, listDescriptorsFlag];
 
 var commandLineConfig = commandLineArgs(optionDefinitions);
 
-console.log(chalkInfo("COMMAND LINE CONFIG\n" + jsonPrint(commandLineConfig)));
-console.log("COMMAND LINE OPTIONS\n" + jsonPrint(commandLineConfig));
-
+console.log(chalkInfo("COMMAND LINE CONFIG\n" + jsonPrint(optionDefinitions)));
 
 // ==================================================================
 // NODE MODULE DECLARATIONS
@@ -242,74 +277,233 @@ initializeConfiguration(configuration, function(err, results){
 
           var nameArray = descriptor.name.split("/");
 
-          var word = nameArray.pop();
+          var word = nameArray.pop().toLowerCase();
+          
           debug(chalkInfo("WORD: " + word
            // + " | DESCRIPTOR: " + descriptor.name
           ));
 
-          Word.findOne({ nodeId: word }, function(err, wordObj) {
-            if (err) {
-              console.log(chalkError("WORD (DB) ERROR"
-                + " | " + word
-                + "\n" + jsonPrint(err)
-              ));
-            }
-            else if (wordObj) {
-              console.log(chalkInfo("WORD"
-                + " | " + wordObj.nodeId
-                + " | Ms: " + wordObj.mentions
-                // + "\n" + jsonPrint(wordObj)
-              ));
-            }
-            else  {
-              console.log(chalkAlert("WORD"
-                + " | " + word
-                + " | Ms: --"
-              ));
-            }
-          });
+          async.parallel(
+            {
+              word : function(callback) {
+                Word.findOne({ nodeId: word }, function(err, wordObj) {
+                  if (err) {
+                    console.log(chalkError("WORD (DB) ERROR"
+                      + " | " + word
+                      + "\n" + jsonPrint(err)
+                    ));
+                    callback(err, null);
+                  }
+                  else if (wordObj) {
+                    debug(chalkInfo("WORD   "
+                      + " | " + wordObj.nodeId
+                      + " | Ms: " + wordObj.mentions
+                      // + "\n" + jsonPrint(wordObj)
+                    ));
+                    statsObj.metrics.word[wordObj.nodeId] = wordObj.mentions;
+                    callback(null, {"descriptor": descriptor, "word": word, "mentions": wordObj.mentions});
+                  }
+                  else  {
+                    debug(chalkAlert("WORD   "
+                      + " | " + word
+                      + " | Ms: --"
+                    ));
+                    statsObj.metrics.word[word] = 0;
+                    callback(null, {"descriptor": descriptor, "word": word, "mentions": 0});
+                  }
+                });
+              },
 
-          if (configuration.listDescriptorsFlag) {
-            cb();
-          }
-          else {
-            prompt.get(['DELETE'], function (err, result) {
-              // console.log('Command-line input received:');
-              // console.log('  DELETE: ' + result.DELETE);
-
-              switch (result.DELETE) {
-                case "d":
-                  console.log(chalkAlert("DELETE\n" + jsonPrint(descriptor)));
-
-                    const deleteRequest = {
-                      name: googleMonitoringClient.metricDescriptorPath(process.env.GOOGLE_PROJECT_ID, descriptor.type)
-                    };
-
-                    googleMonitoringClient.deleteMetricDescriptor(deleteRequest)
-                    .then(function(results){
-                      console.log(chalkInfo("GOOGLE METRIC DELETE"));
-                      cb();
-                    })
-                    .catch(function(results){
-                      console.log(chalkError("*** ERROR GOOGLE METRIC DELETE"
-                        // + " | ERR CODE: " + results.code
-                        // + " | META DATA: " + results.metadata
-                        // + " | META NODE: " + results.note
-                        + "\n" + jsonPrint(results)
-                      ));
-                      cb();
-                    });
-                break;
-                case "q":
-                  // console.log(chalkAlert("QUIT"));
-                  cb(result.DELETE);
-                break;
-                default:
-                  // console.log(chalkAlert("DEFAULT"));
-                  cb();
+              hashtag: function(callback) { 
+                Hashtag.findOne({ nodeId: word }, function(err, htObj) {
+                  if (err) {
+                    console.log(chalkError("HASHTAG (DB) ERROR"
+                      + " | " + word
+                      + "\n" + jsonPrint(err)
+                    ));
+                    callback(err, null);
+                  }
+                  else if (htObj) {
+                    debug(chalkInfo("HASHTAG"
+                      + " | " + htObj.nodeId
+                      + " | Ms: " + htObj.mentions
+                      // + "\n" + jsonPrint(wordObj)
+                    ));
+                    statsObj.metrics.hashtag[htObj.nodeId] = htObj.mentions;
+                    callback(null, {"descriptor": descriptor, "hashtag": word, "mentions": htObj.mentions});
+                  }
+                  else  {
+                    debug(chalkAlert("HASHTAG"
+                      + " | " + word
+                      + " | Ms: --"
+                    ));
+                    statsObj.metrics.hashtag[word] = 0;
+                    callback(null, {"descriptor": descriptor, "hashtag": word, "mentions": 0});
+                  }
+                });
               }
-            });
-          }
+
+            }, 
+            function(err, dbResults) {
+
+              var wordMentionPadSpaces = 9 - dbResults.word.mentions.toString().length;
+              var htMentionPadSpaces = 9 - dbResults.hashtag.mentions.toString().length;
+
+              var wordMentions = (new Array(wordMentionPadSpaces).join("\xa0")) + dbResults.word.mentions.toString();
+              var htMentions = (new Array(htMentionPadSpaces).join("\xa0")) + dbResults.hashtag.mentions.toString();
+
+              var chalkVal = chalkInfo;
+
+              if ((dbResults.word.mentions === 0) && (dbResults.hashtag.mentions === 0)){
+                chalkVal = chalkRedBold;
+              }
+              else if ((dbResults.word.mentions === 0) || (dbResults.hashtag.mentions === 0)){
+                chalkVal = chalkAlert;
+              }
+
+
+              console.log(chalkVal(wordMentions
+               + " | " + htMentions
+               + " | " + dbResults.word.word
+              ));
+
+              if (configuration.listDescriptorsFlag) {
+                if (arrayContains(configuration.deleteArray, dbResults.word.word)) {
+                  console.log(chalkAlert("DELETE ARRAY: " + dbResults.word.word));
+                }
+                cb();
+              }
+              else {
+                prompt.get(['DELETE'], function (err, result) {
+                  // console.log('Command-line input received:');
+                  // console.log('  DELETE: ' + result.DELETE);
+
+                  switch (result.DELETE) {
+                    case "d":
+                      console.log(chalkAlert("DELETE\n" + jsonPrint(dbResults.descriptor)));
+
+                        const deleteRequest = {
+                          name: googleMonitoringClient.metricDescriptorPath(process.env.GOOGLE_PROJECT_ID, dbResults.descriptor.type)
+                        };
+
+                        googleMonitoringClient.deleteMetricDescriptor(deleteRequest)
+                        .then(function(results){
+                          console.log(chalkInfo("GOOGLE METRIC DELETE"));
+                          cb();
+                        })
+                        .catch(function(results){
+                          console.log(chalkError("*** ERROR GOOGLE METRIC DELETE"
+                            // + " | ERR CODE: " + results.code
+                            // + " | META DATA: " + results.metadata
+                            // + " | META NODE: " + results.note
+                            + "\n" + jsonPrint(results)
+                          ));
+                          cb();
+                        });
+                    break;
+                    case "q":
+                      // console.log(chalkAlert("QUIT"));
+                      cb(result.DELETE);
+                    break;
+                    default:
+                      // console.log(chalkAlert("DEFAULT"));
+                      cb();
+                  }
+                });
+              }
+            }
+          );
+
+
+          // Word.findOne({ nodeId: word }, function(err, wordObj) {
+          //   if (err) {
+          //     console.log(chalkError("WORD (DB) ERROR"
+          //       + " | " + word
+          //       + "\n" + jsonPrint(err)
+          //     ));
+          //   }
+          //   else if (wordObj) {
+          //     console.log(chalkInfo("WORD   "
+          //       + " | " + wordObj.nodeId
+          //       + " | Ms: " + wordObj.mentions
+          //       // + "\n" + jsonPrint(wordObj)
+          //     ));
+          //     statsObj.metrics.word[wordObj.nodeId] = wordObj.mentions;
+          //   }
+          //   else  {
+          //     console.log(chalkAlert("WORD   "
+          //       + " | " + word
+          //       + " | Ms: --"
+          //     ));
+          //     statsObj.metrics[word] = 0;
+          //   }
+          // });
+
+          // Hashtag.findOne({ nodeId: word }, function(err, htObj) {
+          //   if (err) {
+          //     console.log(chalkError("HASHTAG (DB) ERROR"
+          //       + " | " + word
+          //       + "\n" + jsonPrint(err)
+          //     ));
+          //   }
+          //   else if (htObj) {
+          //     console.log(chalkInfo("HASHTAG"
+          //       + " | " + htObj.nodeId
+          //       + " | Ms: " + htObj.mentions
+          //       // + "\n" + jsonPrint(wordObj)
+          //     ));
+          //     statsObj.metrics.hashtag[htObj.nodeId] = htObj.mentions;
+          //   }
+          //   else  {
+          //     console.log(chalkAlert("HASHTAG"
+          //       + " | " + word
+          //       + " | Ms: --"
+          //     ));
+          //     statsObj.metrics.hashtag[word] = 0;
+          //   }
+          // });
+
+          // if (configuration.listDescriptorsFlag) {
+          //   cb();
+          // }
+          // else {
+          //   prompt.get(['DELETE'], function (err, result) {
+          //     // console.log('Command-line input received:');
+          //     // console.log('  DELETE: ' + result.DELETE);
+
+          //     switch (result.DELETE) {
+          //       case "d":
+          //         console.log(chalkAlert("DELETE\n" + jsonPrint(descriptor)));
+
+          //           const deleteRequest = {
+          //             name: googleMonitoringClient.metricDescriptorPath(process.env.GOOGLE_PROJECT_ID, descriptor.type)
+          //           };
+
+          //           googleMonitoringClient.deleteMetricDescriptor(deleteRequest)
+          //           .then(function(results){
+          //             console.log(chalkInfo("GOOGLE METRIC DELETE"));
+          //             cb();
+          //           })
+          //           .catch(function(results){
+          //             console.log(chalkError("*** ERROR GOOGLE METRIC DELETE"
+          //               // + " | ERR CODE: " + results.code
+          //               // + " | META DATA: " + results.metadata
+          //               // + " | META NODE: " + results.note
+          //               + "\n" + jsonPrint(results)
+          //             ));
+          //             cb();
+          //           });
+          //       break;
+          //       case "q":
+          //         // console.log(chalkAlert("QUIT"));
+          //         cb(result.DELETE);
+          //       break;
+          //       default:
+          //         // console.log(chalkAlert("DEFAULT"));
+          //         cb();
+          //     }
+          //   });
+          // }
 
         }
         else {

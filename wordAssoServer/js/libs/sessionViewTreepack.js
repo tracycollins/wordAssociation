@@ -28,7 +28,7 @@ function ViewTreepack() {
   var yFocusRightRatio = 0.5;
 
   var xFocusPositiveRatio = 0.5;
-  var yFocusPositiveRatio = 0.2;
+  var yFocusPositiveRatio = 0.3;
 
   var xFocusNegativeRatio = 0.5;
   var yFocusNegativeRatio = 0.7;

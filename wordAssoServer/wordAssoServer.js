@@ -7682,10 +7682,10 @@ configEvents.on("INIT_TWIT_FOR_DM_COMPLETE", function() {
 var directMessageHash = {};
 var createUnknownSessionFlag = true;
 
-configEvents.on("UNKNOWN_SESSION", function(responseObj) {
+configEvents.on("UNKNOWN_SESSION", function(sesObj) {
 
   if (createUnknownSessionFlag) {
-    userReadyHandler({socketId: responseObj.socketId, userObj: responseObj.user}, function(err, sObj){
+    userReadyHandler({socketId: sesObj.socketId, userObj: sesObj.userObj}, function(err, sObj){
     });
   }
 

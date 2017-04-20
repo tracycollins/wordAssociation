@@ -20,15 +20,18 @@ var wapiUrlRoot = "https://wordsapiv1.p.mashape.com/words/";
 
 var primarySessionObj;
 
-// ==================================================================
-// TEST CONFIG
-// ==================================================================
-// var bhtOverLimitTestFlag = false;
-
 var configuration = {};
 
-var tssServer;
-var tmsServer;
+var languageServer = {};
+var tssServer = {};
+tssServer.connected = false;
+tssServer.user = {};
+tssServer.socket = {};
+
+var tmsServer = {};
+tmsServer.connected = false;
+tmsServer.user = {};
+tmsServer.socket = {};
 
 var numberUsersTotal = 0;
 var numberViewersTotal = 0;
@@ -1333,116 +1336,8 @@ function initStatsInterval(interval){
       showStats();
     });
 
-    // if (groupsUpdateComplete) {
-    //   var gKeys = serverGroupHashMap.keys();
-
-    //   async.each(gKeys, function(groupId, cb){
-    //     serverGroupsJsonObj[groupId] = serverGroupHashMap.get(groupId);
-    //     cb();
-    //   },
-    //     function(err){
-    //       if (err) { console.log(chalkError("ERROR: " + jsonPrint(err))); }
-    //       if (gKeys.length > 0) {
-    //         saveFile("", serverGroupsFile, serverGroupsJsonObj, function(err, results){
-    //           if (err){
-    //             console.log(chalkError("SAVE SERVER GROUP FILE ERROR " + serverGroupsFile 
-    //               + "\n" + jsonPrint(err)
-    //               + "\n" + jsonPrint(results)
-    //             ));
-    //           }
-    //           else {
-    //             console.log(chalkLog("SAVE SERVER GROUP FILE " 
-    //               + serverGroupsFile 
-    //               + " | " + gKeys.length + " GROUPS"
-    //               // + "\n" + jsonPrint(results)
-    //             ));
-    //           }
-    //         });
-    //       }
-    //       else {
-    //         console.log(chalkLog("SKIPPED SAVE SERVER GROUP FILE " 
-    //           + serverGroupsFile 
-    //           + " | " + gKeys.length + " GROUPS"
-    //           // + "\n" + jsonPrint(results)
-    //         ));
-    //       }
-
-    //     }
-    //   );
-    // }
-
-    // if (entitiesUpdateComplete) {
-    //   var hmKeys = serverKeywordHashMap.keys();
-
-    //   async.each(hmKeys, function(keyword, cb){
-    //     serverKeywordsJsonObj[keyword] = serverKeywordHashMap.get(keyword);
-    //     cb();
-    //   },
-    //     function(err){
-    //       if (err) { console.log(chalkError("ERROR: " + jsonPrint(err))); }
-    //       if (hmKeys.length > 0) {
-    //         saveFile("", serverKeywordsFile, serverKeywordsJsonObj, function(err, results){
-    //           if (err){
-    //             console.log(chalkError("SAVE SERVER KEYWORD FILE ERROR " + serverKeywordsFile));
-    //             if (err.status === 429) {
-    //               console.log(chalkError("SAVE SERVER KEYWORD FILE ERROR: TOO MANY WRITES"));
-    //             }
-    //             else {
-    //               console.log(chalkError(
-    //                 jsonPrint(err)
-    //                 + "\n" + jsonPrint(results)
-    //               ));
-    //             }
-    //           }
-    //           else {
-    //             console.log(chalkInfo("SAVE SERVER KEYWORD FILE " 
-    //               + serverKeywordsFile 
-    //               + " | " + hmKeys.length + " KEYWORDS"
-    //               // + "\n" + jsonPrint(results)
-    //             ));
-    //           }
-    //         });
-    //       }
-    //       else {
-    //         console.log(chalkLog("SKIPPED SAVE SERVER KEYWORDS FILE " 
-    //           + serverKeywordsFile 
-    //           + " | " + hmKeys.length + " KEYWORDS"
-    //           // + "\n" + jsonPrint(results)
-    //         ));
-    //       }
-
-    //     }
-    //   );
-    // }
   }, interval);
 }
-
-// ==================================================================
-// MONGO DATABASE CONFIG
-// ==================================================================
-
-
-// ==================================================================
-// APP HTTP IO DNS CONFIG -- ?? order is important.
-// ==================================================================
-
-
-// var MAX_WORD_HASH_MAP_COUNT = 20;
-// var wordArray = []; // used to keep wordHashMap.count() < MAX_WORD_HASH_MAP_COUNT
-
-// var promptArray = ["black"];
-
-
-// ==================================================================
-// GOOGLE
-// ==================================================================
-
-// var adminNameSpace;
-// var utilNameSpace;
-// var userNameSpace;
-// var viewNameSpace;
-// var testUsersNameSpace;
-// var testViewersNameSpace;
 
 function checkKeyword(w, callback) {
 
@@ -1599,12 +1494,88 @@ function incrementSocketMwReqs(delta) {
   }
 }
 
-function sessionUpdateDbCache(sessionCacheKey, socket, userObj, callback){
+    // userReadyHandler(socket.id, userObj, function(err, sObj){
+
+function userReadyHandler(request, callback){
+
+  // socketId, userObj,
+
+  var socket = request.socket;
+  var userObj = request.userObj;
+
+  sessionCache.get(socket.id, function(err, sObj){
+    if (err){
+      console.log(chalkError(moment().format(compactDateTimeFormat) 
+        + " | ??? SESSION CACHE ERROR ON USER READY"
+        + " | " + err
+        + "\n" + jsonPrint(userObj)
+      ));
+      callback(err, request);
+    }
+    else if (sObj === undefined) {
+      console.log(chalkError(moment().format(compactDateTimeFormat) 
+        + " | ??? SESSION NOT FOUND ON USER READY"
+        + " | " + socket.id
+        + "\n" + jsonPrint(userObj)
+      ));
+      callback("SESSION NOT FOUND ON USER READY", request);
+    }
+    else {
+      primarySessionObj = sObj;
+
+      var sessionCacheKey = socket.id ;
+
+      statsObj.socket.USER_READYS += 1;
+
+      console.log(chalkUser("R< U RDY"
+        + " | " + moment().format(compactDateTimeFormat) 
+        + "  " + userObj.nodeId
+        + "  ID " + userObj.userId
+        + "  N " + userObj.name
+        + "  E " + userObj.tags.entity
+        + "  C " + userObj.tags.channel
+        + "  T " + userObj.type
+        + "  M " + userObj.mode
+        // + "\nU " + userObj.url
+        // + "\nP " + userObj.profileImageUrl
+      ));
+
+      if ((userObj.tags !== undefined)
+        && (userObj.tags.entity !== undefined) 
+        && (userObj.tags.mode !== undefined) 
+        && (userObj.tags.mode.toLowerCase() === "substream")) {
+
+        sessionCacheKey = socket.id + "#" + userObj.tags.entity;
+
+        debug(chalkRedBold("USER_READY SUBSTREAM sessionCacheKey: " + sessionCacheKey));
+
+        sessionUpdateDbCache({sessionCacheKey: sessionCacheKey, socket: socket, userObj: userObj}, function(err, sObj){
+          callback(err, sObj);
+        });
+      }
+      else {
+        debug(chalkRedBold("USER_READY sessionCacheKey: " + sessionCacheKey));
+        sessionUpdateDbCache({sessionCacheKey: sessionCacheKey, socket: socket, userObj: userObj}, function(err, sObj){
+          callback(err, sObj);
+        });
+      }
+
+    }
+  });
+}
+
+function sessionUpdateDbCache(request, callback){
+  // sessionCacheKey, socket, userObj,
+  var sessionCacheKey = request.sessionCacheKey;
+  var socket = request.socket;
+  var userObj = request.userObj;
+
   sessionCache.get(sessionCacheKey, function(err, sObj){
     if (err){
       console.log(chalkError(moment().format(compactDateTimeFormat) 
         + " | ??? SESSION CACHE ERROR ON USER READY | " + err
       ));
+      callback(err, request);
     }
     else {
       if (sObj === undefined) {
@@ -1737,6 +1708,8 @@ function sessionUpdateDbCache(sessionCacheKey, socket, userObj, callback){
         session: sObj,
         user: userObj
       });
+
+      callback(null, sObj);
     }
   });
 }
@@ -1997,10 +1970,29 @@ function createSession(newSessionObj) {
 
     if (userObj.stats) {statsObj.utilities[userObj.userId] = userObj.stats;}
 
-    if (userObj.userId.match(/TMS_/g)){
-      tmsServer = userObj.userId;
+    if (userObj.userId.match(/LA_/g)){
       userObj.isServer = true;
-      debug(chalkSession("K-" 
+
+      languageServer.connected = true;
+      languageServer.user = userObj;
+      languageServer.socket = socket;
+
+      console.log(chalkSession("K-LA" 
+        + " | " + userObj.userId
+        + " | " + socket.id
+        + " | " + moment().format(compactDateTimeFormat)
+        // + "\n" + jsonPrint(userObj)
+      ));
+    }
+ 
+    if (userObj.userId.match(/TMS_/g)){
+      userObj.isServer = true;
+
+      tmsServer.connected = true;
+      tmsServer.user = userObj;
+      tmsServer.socket = socket;
+
+      debug(chalkSession("K-TMS" 
         + " | " + userObj.userId
         + " | " + socket.id
         + " | " + userObj.stats.tweetsPerMinute.toFixed(0) + " TPM"
@@ -2011,8 +2003,12 @@ function createSession(newSessionObj) {
  
     if (userObj.userId.match(/TSS_/g)){
       userObj.isServer = true;
-      tssServer = userObj.userId;
-      debug(chalkSession("K-" 
+
+      tssServer.connected = true;
+      tssServer.user = userObj;
+      tssServer.socket = socket;
+
+      debug(chalkSession("K-TSS" 
         + " | " + userObj.userId
         + " | " + socket.id
         + " | " + userObj.stats.tweetsPerMinute.toFixed(0) + " TPM"
@@ -2029,10 +2025,6 @@ function createSession(newSessionObj) {
       debug(chalkRedBold("KEEPALIVE socket.id: " + socket.id));
       sessionCacheKey = socket.id + "#" + userObj.tags.entity;
     }
-    // else {
-    //   debug(chalkRedBold("KEEPALIVE socket.id: " + socket.id));
-    //   sObj = sessionCache.get(socket.id);
-    // }
 
     sessionCache.get(sessionCacheKey, function(err, sObj){
       if (err){
@@ -2067,13 +2059,10 @@ function createSession(newSessionObj) {
 
           if (i === tagKeys.length) {
             debug(chalkInfo("SESSION_KEEPALIVE"));
-            // return;
           }
-
         }
         else {
           debug(chalkInfo("SESSION_KEEPALIVE"));
-          // return;
          }
 
       }
@@ -2109,60 +2098,63 @@ function createSession(newSessionObj) {
 
   socket.on("USER_READY", function(userObj) {
 
-    sessionCache.get(socket.id, function(err, sObj){
-      if (err){
-        console.log(chalkError(moment().format(compactDateTimeFormat) 
-          + " | ??? SESSION CACHE ERROR ON USER READY"
-          + " | " + err
-          + "\n" + jsonPrint(userObj)
-        ));
-      }
-      else if (sObj === undefined) {
-        console.log(chalkError(moment().format(compactDateTimeFormat) 
-          + " | ??? SESSION NOT FOUND ON USER READY"
-          + " | " + socket.id
-          + "\n" + jsonPrint(userObj)
-        ));
-      }
-      else {
-        primarySessionObj = sObj;
-
-        var sessionCacheKey = socket.id ;
-
-        statsObj.socket.USER_READYS += 1;
-
-        console.log(chalkUser("R< U RDY"
-          + " | " + moment().format(compactDateTimeFormat) 
-          + "  " + userObj.nodeId
-          + "  ID " + userObj.userId
-          + "  N " + userObj.name
-          + "  E " + userObj.tags.entity
-          + "  C " + userObj.tags.channel
-          + "  T " + userObj.type
-          + "  M " + userObj.mode
-          // + "\nU " + userObj.url
-          // + "\nP " + userObj.profileImageUrl
-        ));
-
-        if ((userObj.tags !== undefined)
-          && (userObj.tags.entity !== undefined) 
-          && (userObj.tags.mode !== undefined) 
-          && (userObj.tags.mode.toLowerCase() === "substream")) {
-
-          sessionCacheKey = socket.id + "#" + userObj.tags.entity;
-
-          debug(chalkRedBold("USER_READY SUBSTREAM sessionCacheKey: " + sessionCacheKey));
-
-          sessionUpdateDbCache(sessionCacheKey, socket, userObj);
-        }
-        else {
-          debug(chalkRedBold("USER_READY sessionCacheKey: " + sessionCacheKey));
-          sessionUpdateDbCache(sessionCacheKey, socket, userObj);
-        }
-
-      }
+    userReadyHandler({socket: socket, userObj: userObj}, function(err, sObj){
 
     });
+
+    // sessionCache.get(socket.id, function(err, sObj){
+    //   if (err){
+    //     console.log(chalkError(moment().format(compactDateTimeFormat) 
+    //       + " | ??? SESSION CACHE ERROR ON USER READY"
+    //       + " | " + err
+    //       + "\n" + jsonPrint(userObj)
+    //     ));
+    //   }
+    //   else if (sObj === undefined) {
+    //     console.log(chalkError(moment().format(compactDateTimeFormat) 
+    //       + " | ??? SESSION NOT FOUND ON USER READY"
+    //       + " | " + socket.id
+    //       + "\n" + jsonPrint(userObj)
+    //     ));
+    //   }
+    //   else {
+    //     primarySessionObj = sObj;
+
+    //     var sessionCacheKey = socket.id ;
+
+    //     statsObj.socket.USER_READYS += 1;
+
+    //     console.log(chalkUser("R< U RDY"
+    //       + " | " + moment().format(compactDateTimeFormat) 
+    //       + "  " + userObj.nodeId
+    //       + "  ID " + userObj.userId
+    //       + "  N " + userObj.name
+    //       + "  E " + userObj.tags.entity
+    //       + "  C " + userObj.tags.channel
+    //       + "  T " + userObj.type
+    //       + "  M " + userObj.mode
+    //       // + "\nU " + userObj.url
+    //       // + "\nP " + userObj.profileImageUrl
+    //     ));
+
+    //     if ((userObj.tags !== undefined)
+    //       && (userObj.tags.entity !== undefined) 
+    //       && (userObj.tags.mode !== undefined) 
+    //       && (userObj.tags.mode.toLowerCase() === "substream")) {
+
+    //       sessionCacheKey = socket.id + "#" + userObj.tags.entity;
+
+    //       debug(chalkRedBold("USER_READY SUBSTREAM sessionCacheKey: " + sessionCacheKey));
+
+    //       sessionUpdateDbCache(sessionCacheKey, socket, userObj);
+    //     }
+    //     else {
+    //       debug(chalkRedBold("USER_READY sessionCacheKey: " + sessionCacheKey));
+    //       sessionUpdateDbCache(sessionCacheKey, socket, userObj);
+    //     }
+
+    //   }
+    // });
 
   });
 
@@ -2276,6 +2268,9 @@ function createSession(newSessionObj) {
               }
               updateWordMeter(nodeObj, function(err, uNodeObj){
                 viewNameSpace.emit("node", uNodeObj);
+                if (languageServer.connected) {
+                  languageServer.socket.emit("LANG_ANALIZE_WORD", uNodeObj);
+                }
               });
             });
           }
@@ -2307,6 +2302,9 @@ function createSession(newSessionObj) {
               }
               updateWordMeter(nodeObj, function(err, uNodeObj){
                 viewNameSpace.emit("node", uNodeObj);
+                if (languageServer.connected) {
+                  languageServer.socket.emit("LANG_ANALIZE_WORD", uNodeObj);
+                }
               });
             });
           }
@@ -2342,6 +2340,9 @@ function createSession(newSessionObj) {
             }
             updateWordMeter(nodeObj, function(err, uNodeObj){
               viewNameSpace.emit("node", uNodeObj);
+              if (languageServer.connected) {
+                languageServer.socket.emit("LANG_ANALIZE_WORD", uNodeObj);
+              }
             });
           });
         break;
@@ -2381,6 +2382,9 @@ function createSession(newSessionObj) {
             }
             updateWordMeter(nodeObj, function(err, uNodeObj){
               viewNameSpace.emit("node", uNodeObj);
+              if (languageServer.connected) {
+                languageServer.socket.emit("LANG_ANALIZE_WORD", uNodeObj);
+              }
             });
           });
         break;
@@ -2415,6 +2419,9 @@ function createSession(newSessionObj) {
             }
             updateWordMeter(nodeObj, function(err, uNodeObj){
               viewNameSpace.emit("node", uNodeObj);
+              if (languageServer.connected) {
+                languageServer.socket.emit("LANG_ANALIZE_WORD", uNodeObj);
+              }
             });
           });
         break;
@@ -3005,10 +3012,16 @@ setInterval(function() {
           updateWordMeter(sessionSmallObj.target, function(err, tNodeObj){
             sessionSmallObj.target = tNodeObj;
             viewNameSpace.emit("SESSION_UPDATE", sessionSmallObj);
+            if (languageServer.connected) {
+              languageServer.socket.emit("LANG_ANALIZE_WORD", sessionSmallObj.target);
+            }
           });
         }
         else {
           viewNameSpace.emit("SESSION_UPDATE", sessionSmallObj);
+          if (languageServer.connected) {
+            languageServer.socket.emit("LANG_ANALIZE_WORD", sessionSmallObj.source);
+          }
         }
       });
 
@@ -5349,7 +5362,9 @@ setInterval(function() {
         console.log(chalkWarn("??? SESSION NOT IN CACHE ON RESPONSE Q READ" 
           + " | responseQueue: " + responseQueue.size() 
           + " | " + socketId + " | ABORTING SESSION"
-          + "\n" + jsonPrint(responseInObj)
+          + " | USER ID: " + responseInObj.userId
+          + " | NODEID: " + responseInObj.nodeId
+          // + "\n" + jsonPrint(responseInObj)
         ));
 
         configEvents.emit("UNKNOWN_SESSION", socketId);
@@ -5626,7 +5641,6 @@ function queryDb(queryObj, callback){
 var updaterMessageReady = true; 
 
 setInterval(function() {
-
   if (updaterMessageReady && !updaterMessageQueue.isEmpty()) {
 
     updaterMessageReady = false;
@@ -5666,7 +5680,6 @@ setInterval(function() {
         debug(chalkLog("UPDATE GROUP\n" + jsonPrint(updaterObj)));
         debug(chalkLog("UPDATE GROUP | " + updaterObj.groupId));
         updaterMessageReady = true;
-
       break;
 
       case "entity":
@@ -5684,7 +5697,6 @@ setInterval(function() {
 
       case "keywordRemove":
         keywordHashMap.remove(updaterObj.keyword.toLowerCase());
-        // serverKeywordHashMap.remove(updaterObj.keyword.toLowerCase());
         console.log(chalkLog("KEYWORD REMOVE: " + updaterObj.keyword.toLowerCase()));
         updaterMessageReady = true;
       break;
@@ -5702,22 +5714,8 @@ setInterval(function() {
         // };
 
         debugKeyword(chalkLog("KEYWORD: " + jsonPrint(updaterObj)));
-
-        // var keywords = Object.keys(updaterObj.keywords);
-
-      // keywords.forEach(function(kw){
-        // if ((updaterObj.target !== undefined) && (updaterObj.target === "server")) {
-        //   debugKeyword(chalkLog("UPDATE SERVER KEYWORD\n" + jsonPrint(updaterObj.keyword)));
-        //   serverKeywordHashMap.set(updaterObj.keyword.keywordId, updaterObj.keyword);
-        // }
-        // else if ((updaterObj.target !== undefined) && (updaterObj.target === "twitter")) {
-        //   console.log(chalkLog("UPDATE SERVER KEYWORD TWITTER\n" + jsonPrint(updaterObj.keyword)));
-        //   serverKeywordHashMap.set(updaterObj.keyword.keywordId, updaterObj.keyword);
-        // }
-        // else {
-          debugKeyword(chalkLog("UPDATE KEYWORD\n" + jsonPrint(updaterObj.keyword)));
-          keywordHashMap.set(updaterObj.keyword.keywordId, updaterObj.keyword);
-        // }
+        debugKeyword(chalkLog("UPDATE KEYWORD\n" + jsonPrint(updaterObj.keyword)));
+        keywordHashMap.set(updaterObj.keyword.keywordId, updaterObj.keyword);
 
         keywordUpdateDb(updaterObj.keyword, function(err, updatedWordObj){
           if (err) { console.log(chalkError("KEYWORD UPDATE ERR\n" + jsonPrint(err))); }
@@ -5786,7 +5784,6 @@ setInterval(function() {
             });
           }
         });
-        // });
         
         updaterMessageReady = true;
       break;
@@ -7635,8 +7632,13 @@ configEvents.on("INIT_TWIT_FOR_DM_COMPLETE", function() {
 });
 
 var directMessageHash = {};
+var createUnknownSessionFlag = true;
 
 configEvents.on("UNKNOWN_SESSION", function(socketId) {
+
+  if (createUnknownSessionFlag) {
+
+  }
 
   if (dmOnUnknownSession) {
     var dmString = hostname + "\nwordAssoServer\nPID: " + process.pid + "\nUNKNOWN SESSION: " + socketId;
@@ -8211,7 +8213,7 @@ function initRateQinterval(interval){
 
       }
 
-      if (enableGoogleMetrics && tssServer) {
+      if (enableGoogleMetrics && tssServer.connected) {
         var dataPointTssTpm = {};
         dataPointTssTpm.metricType = "twitter/tweets_per_minute";
         dataPointTssTpm.value = statsObj.utilities[tssServer].tweetsPerMinute;
@@ -8220,15 +8222,15 @@ function initRateQinterval(interval){
 
         var dataPoint2 = {};
         dataPoint2.metricType = "twitter/tweet_limit";
-        dataPoint2.value = statsObj.utilities[tssServer].twitterLimit;
+        dataPoint2.value = statsObj.utilities[tssServer.user.userId].twitterLimit;
         dataPoint2.metricLabels = {server_id: "TSS"};
         addMetricDataPoint(dataPoint2);
       }
 
-      if (enableGoogleMetrics && tmsServer) {
+      if (enableGoogleMetrics && tmsServer.connected) {
         var dataPointTmsTpm = {};
         dataPointTmsTpm.metricType = "twitter/tweets_per_minute";
-        dataPointTmsTpm.value = statsObj.utilities[tmsServer].tweetsPerMinute;
+        dataPointTmsTpm.value = statsObj.utilities[tmsServer.user.userId].tweetsPerMinute;
         dataPointTmsTpm.metricLabels = {server_id: "TMS"};
         addMetricDataPoint(dataPointTmsTpm);
         

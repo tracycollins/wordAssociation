@@ -930,6 +930,51 @@ function ViewTreepack() {
       });
 
     nodeLabels
+      .attr("x", function(d) { 
+        if (!d.nodeId) { 
+          console.debug("UNDEFINED d.nodeId");
+          return 0.5*width; }
+        if (d.x === undefined) { 
+          console.debug("UNDEFINED d.x " + d.nodeId);
+          return 0.5*width; 
+        }
+        return d.x; 
+      })
+      .attr("y", function(d) { 
+        if (!d.nodeId) { 
+          console.debug("UNDEFINED d.nodeId");
+          return 0.5*height; 
+        }
+        if (d.y === undefined) { 
+          console.debug("UNDEFINED d.y " + d.nodeId);
+          return 0.5*height; 
+        }
+        return d.y; 
+      })
+      .text(function(d) {
+        if (d.isTwitterUser) { return "@" + d.screenName.toUpperCase(); }
+        if (d.isKeyword || d.isTrendingTopic || d.isTwitterUser) { return d.nodeId.toUpperCase(); }
+        if (testMode) { return "blah"; }
+        return d.nodeId; 
+      })
+      .style("font-weight", function(d) {
+        if (d.isTopTerm) { return "bold"; }
+        return "normal";
+      })
+      .style("text-decoration", function(d) { 
+        if (d.isTopTerm) { return "overline"; }
+        return "none"; 
+      })
+      .style("opacity", function(d) { 
+        // if (d.mouseHoverFlag) { return 1.0; }
+        return nodeLabelOpacityScale(d.ageMaxRatio); 
+      })
+      .style("fill", palette.white)
+      .style("font-size", function(d) {
+        return nodeLabelSizeScale(d.mentions);
+      });
+
+    nodeLabels
       .enter()
       .append("text")
       .attr("nodeId", function(d) { return d.nodeId; })
@@ -938,7 +983,6 @@ function ViewTreepack() {
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)
       .on("click", nodeClick)
-      .merge(nodeLabels)
       .attr("x", function(d) { 
         if (!d.nodeId) { 
           console.debug("UNDEFINED d.nodeId");

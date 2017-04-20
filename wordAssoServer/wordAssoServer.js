@@ -5380,10 +5380,12 @@ setInterval(function() {
         ));
 
         var unknownSession = {};
-        unknownSession.socketId = responseInObj.socketId;
-        unknownSession.nodeId = responseInObj.nodeId;
+        unknownSession = responseInObj;
         unknownSession.user = {};
-        unknownSession.user.userId = responseInObj.userId;
+        unknownSession.screenName = responseInObj.userId;
+        unknownSession.user.name = responseInObj.userId;
+        unknownSession.user.tags = {};
+        unknownSession.user.tags = responseInObj.tags;
 
         configEvents.emit("UNKNOWN_SESSION", unknownSession);
         responseQueueReady = true;

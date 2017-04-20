@@ -5373,7 +5373,7 @@ setInterval(function() {
 
         console.log(chalkWarn("??? SESSION NOT IN CACHE ON RESPONSE Q READ" 
           + " | responseQueue: " + responseQueue.size() 
-          + " | " + socketId + " | ABORTING SESSION"
+          + " | " + socketId
           + " | USER ID: " + responseInObj.userId
           + " | NODEID: " + responseInObj.nodeId
           + "\n" + jsonPrint(responseInObj)
@@ -5381,11 +5381,20 @@ setInterval(function() {
 
         var unknownSession = {};
         unknownSession = responseInObj;
-        unknownSession.user = {};
+        unknownSession.userObj = {};
         unknownSession.screenName = responseInObj.userId;
-        unknownSession.user.name = responseInObj.userId;
-        unknownSession.user.tags = {};
-        unknownSession.user.tags = responseInObj.tags;
+        unknownSession.userObj.userId = responseInObj.userId;
+        unknownSession.userObj.name = responseInObj.userId;
+        unknownSession.userObj.tags = {};
+        unknownSession.userObj.tags = responseInObj.tags;
+
+    // + "  " + userObj.nodeId
+    // + "  ID " + userObj.userId
+    // + "  N " + userObj.name
+    // + "  E " + userObj.tags.entity
+    // + "  C " + userObj.tags.channel
+    // + "  T " + userObj.type
+    // + "  M " + userObj.mode
 
         configEvents.emit("UNKNOWN_SESSION", unknownSession);
         responseQueueReady = true;

@@ -5413,7 +5413,7 @@ setInterval(function() {
         unknownSession.userObj.namespace = "util";
         unknownSession.userObj.type = "UTIL";
         unknownSession.userObj.mode = responseInObj.tags.mode.toUpperCase();
-        unknownSession.userObj.nodeId = responseInObj.userId + responseInObj.tags.channel;
+        unknownSession.userObj.nodeId = responseInObj.userId + "_" + responseInObj.tags.channel;
 
         configEvents.emit("UNKNOWN_SESSION", unknownSession);
         responseQueueReady = true;

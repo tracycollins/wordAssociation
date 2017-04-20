@@ -22,7 +22,7 @@ function ViewTreepack() {
 
   var maxHashtagRows = 25;
   var maxHashtagCols = 5;
-  var rowSpacing = minFontSizeRatio*100; // %
+  var rowSpacing = minFontSizeRatio*110; // %
   var colSpacing = 90/maxHashtagCols; // %
 
   // FORCE X & Y

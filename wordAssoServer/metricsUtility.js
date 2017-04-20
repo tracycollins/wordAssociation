@@ -393,7 +393,10 @@ initializeConfiguration(configuration, function(err, results){
                 chalkVal = chalkRedBold;
               }
               else if ((dbResults.word.mentions === 0) || (dbResults.hashtag.mentions === 0)){
-                chalkVal = chalkAlert;
+                chalkVal = chalk.blue.bold;
+              }
+              else if ((dbResults.word.mentions < 100) && (dbResults.hashtag.mentions < 100)){
+                chalkVal = chalk.green.bold;
               }
 
 

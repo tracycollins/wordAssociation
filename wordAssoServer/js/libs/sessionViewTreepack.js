@@ -10,7 +10,7 @@ function ViewTreepack() {
   var minRadiusRatio = 0.005;
   var maxRadiusRatio = 0.10;
 
-  var minFontSizeRatio = 0.015;
+  var minFontSizeRatio = 0.010;
   var maxFontSizeRatio = 0.050;
 
   var sliderPercision = 3;
@@ -1429,8 +1429,8 @@ function ViewTreepack() {
       default: {x: xFocusDefaultRatio*width, y: yFocusDefaultRatio*height}
     };
 
-    minFontSize = minFontSizeRatio * width;
-    maxFontSize = maxFontSizeRatio * width;
+    minFontSize = minFontSizeRatio * height;
+    maxFontSize = maxFontSizeRatio * height;
 
     minRadius = minRadiusRatio * width;
     maxRadius = maxRadiusRatio * width;

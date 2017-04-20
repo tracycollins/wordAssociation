@@ -107,8 +107,8 @@ function ViewTreepack() {
   var width = window.innerWidth;
   var height = window.innerHeight;
 
-  var minRadius = minRadiusRatio * width;
-  var maxRadius = maxRadiusRatio * width;
+  var minRadius = minRadiusRatio * window.innerWidth;
+  var maxRadius = maxRadiusRatio * window.innerWidth;
 
   var foci = {
     left: {x: xFocusLeftRatio*width, y: yFocusLeftRatio*height}, 
@@ -145,11 +145,11 @@ function ViewTreepack() {
   };
 
   self.getWidth = function() {
-    return window.innerWidth;
+    return width;
   };
 
   self.getHeight = function() {
-    return window.innerHeight;
+    return height;
   };
 
   self.getSortedKeys = function(hmap, sortProperty) {
@@ -200,11 +200,11 @@ function ViewTreepack() {
   };
 
 
-  console.log("width: " + window.innerWidth + " | height: " + window.innerHeight);
+  console.log("width: " + width + " | height: " + height);
 
   // var fontSize = fontSizeRatio * window.innerHeight;
-  var minFontSize = minFontSizeRatio * window.innerHeight;
-  var maxFontSize = maxFontSizeRatio * window.innerHeight;
+  var minFontSize = minFontSizeRatio * height;
+  var maxFontSize = maxFontSizeRatio * height;
 
   document.addEventListener("mousemove", function() {
     if (mouseHoverFlag) {
@@ -401,7 +401,6 @@ function ViewTreepack() {
         else {
           return foci.default.x;
         }
-        // return 0.5*width; 
       }).strength(function(d){
         return forceXmultiplier * gravity; 
       }))
@@ -426,22 +425,9 @@ function ViewTreepack() {
         else {
           return foci.default.y;
         }
-        // return 0.5*height; 
       }).strength(function(d){
         return forceYmultiplier * gravity; 
       }));
-    // .force("forceX", d3.forceX().x(function(d) { 
-    //     return 0.5*width; 
-    //   }).strength(function(d){
-    //     return 1*gravity; 
-    //   }));
-
-    // simulation.
-    // force("forceY", d3.forceY().y(function(d) { 
-    //     return 0.4*height; 
-    //   }).strength(function(d){
-    //     return forceYmultiplier * gravity; 
-    //   }));
   }
 
   self.updateTransitionDuration = function(value) {
@@ -783,7 +769,6 @@ function ViewTreepack() {
     nodeCircles
       .enter()
       .append("circle")
-      // .merge(nodeCircles)
       .attr("nodeId", function(d) { return d.nodeId; })
       .attr("cx", function(d) { 
         if (!d.nodeId) { 
@@ -809,10 +794,6 @@ function ViewTreepack() {
           d.y = 0.5*height;
           return 0.5*height;
         }
-        // if (d.y < (0.5*height)+d.r) { 
-        //   d.y = d.y + 0.05*(((0.3*height)+d.r)-d.y);
-        //   return d.y;
-        // }
         return d.y; 
       })
       .style("fill", function(d) { 
@@ -820,7 +801,6 @@ function ViewTreepack() {
         return d.keywordColor; 
       })
       .style("stroke", function(d) { 
-        // if (d.isTopTerm) { return palette.lightgreen; }
         return palette.white; 
       })
       .style("stroke-dasharray", function(d) { 
@@ -833,7 +813,6 @@ function ViewTreepack() {
         return "1.2"; 
       })
       .style('opacity', function(d) { 
-        // if (d.mouseHoverFlag) { return 1.0; }
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
       .on("mouseover", nodeMouseOver)
@@ -878,10 +857,6 @@ function ViewTreepack() {
           d.y = 0.5*height; 
           return 0.5*height; 
         }
-        // if (d.y < (0.5*height)+d.r) { 
-        //   d.y = d.y + 0.05*(((0.3*height)+d.r)-d.y);
-        //   return d.y;
-        // }
         return d.y; 
       })
       .style("fill", function(d) { 
@@ -889,7 +864,6 @@ function ViewTreepack() {
         return d.keywordColor; 
       })
       .style("stroke", function(d) { 
-        // if (d.isTopTerm) { return palette.lightgreen; }
         return palette.white; 
       })
       .style("stroke-width", function(d) { 
@@ -902,7 +876,6 @@ function ViewTreepack() {
         return null; 
       })
       .style('opacity', function(d) { 
-        // if (d.mouseHoverFlag) { return 1.0; }
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
       .transition()
@@ -918,8 +891,6 @@ function ViewTreepack() {
 
     nodeCircles
       .exit()
-      // .transition()
-      // .duration(transitionDuration)
       .attr("r", 1e-6)
       .style("opacity", 1e-6)
       .remove();
@@ -990,8 +961,6 @@ function ViewTreepack() {
 
     nodeLabels
       .exit()
-      // .transition()
-      // .duration(transitionDuration)
       .style("font-size", 1e-6)
       .style("opacity", 1e-6)
       .remove();
@@ -1076,7 +1045,6 @@ function ViewTreepack() {
       newNode = nodeAddObj.node;
       currentNode = {};
 
-      // if (localNodeHashMap.has(newNode.nodeId)){
       if (localNodeHashMap[newNode.nodeId] !== undefined){
 
         currentNode = localNodeHashMap[newNode.nodeId];
@@ -1162,8 +1130,6 @@ function ViewTreepack() {
           currentNode.y = focus("neutral").y;
         }
 
-
-        // localNodeHashMap.set(currentNode.nodeId, currentNode);
         localNodeHashMap[currentNode.nodeId] = currentNode;
 
         if (currentNode.isTopTerm) {
@@ -1267,8 +1233,6 @@ function ViewTreepack() {
     var newNode = {};
     newNode = nNode;
     newNode.rank = -1;
-    // newNode.x = 0.0;
-    // newNode.y = 0.5*height;
     newNode.newFlag = true;
 
     if (nNode.mentions > currentMaxMentions) { 
@@ -1464,7 +1428,6 @@ function ViewTreepack() {
 
     if (simulation){
       simulation
-        // .force("center", d3.forceCenter(0.5*width, 0.5*height))
         .force("charge", d3.forceManyBody().strength(charge))
         .force("forceX", d3.forceX().x(function(d) { 
           if (d.isKeyword){

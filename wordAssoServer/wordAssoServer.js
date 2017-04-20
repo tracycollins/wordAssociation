@@ -5401,13 +5401,19 @@ setInterval(function() {
 // }
 
         var unknownSession = {};
-        unknownSession = responseInObj;
+        unknownSession.socketId = responseInObj.socketId;
         unknownSession.userObj = {};
-        unknownSession.screenName = responseInObj.userId;
-        unknownSession.userObj.userId = responseInObj.userId;
         unknownSession.userObj.name = responseInObj.userId;
         unknownSession.userObj.tags = {};
         unknownSession.userObj.tags = responseInObj.tags;
+        unknownSession.userObj.userId = responseInObj.userId;
+        unknownSession.userObj.url = responseInObj.tags.url;
+        unknownSession.userObj.profileImageUrl = null;
+        unknownSession.userObj.screenName = responseInObj.userId;
+        unknownSession.userObj.namespace = "util";
+        unknownSession.userObj.type = "UTIL";
+        unknownSession.userObj.mode = responseInObj.tags.mode.toUpperCase();
+        unknownSession.userObj.nodeId = responseInObj.userId + responseInObj.tags.channel;
 
         configEvents.emit("UNKNOWN_SESSION", unknownSession);
         responseQueueReady = true;

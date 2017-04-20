@@ -5379,7 +5379,13 @@ setInterval(function() {
           + "\n" + jsonPrint(responseInObj)
         ));
 
-        configEvents.emit("UNKNOWN_SESSION", responseInObj);
+        var unknownSession = {};
+        unknownSession.socketId = responseInObj.socketId;
+        unknownSession.nodeId = responseInObj.nodeId;
+        unknownSession.user = {};
+        unknownSession.user.userId = responseInObj.userId;
+
+        configEvents.emit("UNKNOWN_SESSION", unknownSession);
         responseQueueReady = true;
       }
       else {

@@ -11,6 +11,7 @@ function ViewTreepack() {
   var maxRadiusRatio = 0.10;
 
   var minFontSizeRatio = 0.02;
+  var midFontSizeRatio = 0.04;
   var maxFontSizeRatio = 0.05;
 
   var sliderPercision = 3;
@@ -228,6 +229,7 @@ function ViewTreepack() {
 
   // var fontSize = fontSizeRatio * window.innerHeight;
   var minFontSize = minFontSizeRatio * height;
+  var midFontSize = midFontSizeRatio * height;
   var maxFontSize = maxFontSizeRatio * height;
 
   document.addEventListener("mousemove", function() {
@@ -241,8 +243,8 @@ function ViewTreepack() {
   var defaultRadiusScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minRadius, maxRadius]).clamp(true);
 
   var nodeLabelSizeScale = d3.scaleLinear()
-    .domain([1, currentMaxMentions])
-    .range([minFontSize, maxFontSize])
+    .domain([1, 0.75*currentMaxMentions, currentMaxMentions])
+    .range([minFontSize, midFontSize, maxFontSize])
     .clamp(true);
     
   var topTermLabelOpacityScale = d3.scaleLinear()
@@ -1201,9 +1203,14 @@ function ViewTreepack() {
         currentHashtagMaxMentions = newNode.mentions;
 
         nodeLabelSizeScale = d3.scaleLinear()
-          .domain([1, currentMaxMentions])
-          .range([minFontSize, maxFontSize])
+          .domain([1, 0.75*currentMaxMentions, currentMaxMentions])
+          .range([minFontSize, midFontSize, maxFontSize])
           .clamp(true);
+
+        // nodeLabelSizeScale = d3.scaleLinear()
+        //   .domain([1, currentMaxMentions])
+        //   .range([minFontSize, maxFontSize])
+        //   .clamp(true);
 
         console.info("NEW MAX Ms" 
           + " | " + currentHashtagMaxMentions 

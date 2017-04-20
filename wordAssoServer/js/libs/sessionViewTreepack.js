@@ -7,13 +7,18 @@ function ViewTreepack() {
   var self = this;
   var simulation;
 
+  var minRadiusRatio = 0.005;
+  var maxRadiusRatio = 0.10;
+
+  var minFontSizeRatio = 0.015;
+  var maxFontSizeRatio = 0.050;
+
   var sliderPercision = 3;
 
   var hashtagTopMargin = 10; // %
   var hashtagLeftMargin = 5; // %
   var mentionsNumChars = 9;
   var rateNumChars = 6;
-  // var hashtagColMargin = 10;
 
   var maxHashtagRows = 25;
   var maxHashtagCols = 5;
@@ -99,17 +104,11 @@ function ViewTreepack() {
 
   var NEW_NODE_AGE_RATIO = 0.01;
 
-  var minFontSizeRatio = 0.015;
-  var maxFontSizeRatio = 0.050;
-
   var width = window.innerWidth;
   var height = window.innerHeight;
 
-  var minRadiusRatio = 0.01;
-  var maxRadiusRatio = 0.10;
-
-  var minRadius = minRadiusRatio * window.innerWidth;
-  var maxRadius = maxRadiusRatio * window.innerWidth;
+  var minRadius = minRadiusRatio * width;
+  var maxRadius = maxRadiusRatio * width;
 
   var foci = {
     left: {x: xFocusLeftRatio*width, y: yFocusLeftRatio*height}, 
@@ -1438,11 +1437,11 @@ function ViewTreepack() {
       default: {x: xFocusDefaultRatio*width, y: yFocusDefaultRatio*height}
     };
 
-    minFontSize = minFontSizeRatio * window.innerHeight;
-    maxFontSize = maxFontSizeRatio * window.innerHeight;
+    minFontSize = minFontSizeRatio * width;
+    maxFontSize = maxFontSizeRatio * width;
 
-    minRadius = minRadiusRatio * window.innerWidth;
-    maxRadius = maxRadiusRatio * window.innerWidth;
+    minRadius = minRadiusRatio * width;
+    maxRadius = maxRadiusRatio * width;
 
     defaultRadiusScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minRadius, maxRadius]).clamp(true);
 

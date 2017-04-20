@@ -1498,7 +1498,7 @@ function incrementSocketMwReqs(delta) {
 
 function userReadyHandler(request, callback){
 
-  // socketId, userObj,
+  console.log(chalkAlert("userReadyHandler\n" + jsonPrint(request)));
 
   var socketId = request.socketId;
   var userObj = request.userObj;

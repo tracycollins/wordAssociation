@@ -718,12 +718,9 @@ function ViewTreepack() {
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)
       .text(function(d) {
-        // if (d.isTwitterUser) { return "@" + d.screenName.toUpperCase(); }
-        // if (d.isKeyword || d.isTrendingTopic || d.isTwitterUser) { return d.nodeId.toUpperCase(); }
-        // if (testMode) { return "blah"; }
-        // return d.nodeId; 
         return d.displaytext;
       })
+      .style("font-size", minFontSize);
       .style('fill', function(d) { 
         if (d.newFlag) { return palette.white; }
         if (d.mouseHoverFlag) { return palette.blue; }
@@ -752,23 +749,10 @@ function ViewTreepack() {
       .attr("x", xposition)
       .attr("y", yposition)
       .text(function(d) {
-        // if (d.isTwitterUser) { return "@" + d.screenName.toUpperCase(); }
-        // if (d.isKeyword || d.isTrendingTopic || d.isTwitterUser) { return d.nodeId.toUpperCase(); }
-        // if (testMode) { return "blah"; }
-        // return d.nodeId; 
         return d.displaytext;
       })
       .style("font-family", "monospace")
-      .style("font-weight", function(d) {
-        // if (d.isTwitterUser 
-        //   || d.isKeyword 
-        //   || d.isNumber 
-        //   || d.isCurrency 
-        //   || d.isTrendingTopic) {
-        //   return "bold";
-        // }
-        return "normal";
-      })
+      .style("font-weight", "normal")
       .style('opacity', function(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
         return topTermLabelOpacityScale(d.ageMaxRatio); 

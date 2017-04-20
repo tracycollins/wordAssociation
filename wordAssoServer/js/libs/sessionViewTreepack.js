@@ -720,7 +720,7 @@ function ViewTreepack() {
       .text(function(d) {
         return d.displaytext;
       })
-      .style("font-size", minFontSize);
+      .style("font-size", minFontSize)
       .style('fill', function(d) { 
         if (d.newFlag) { return palette.white; }
         if (d.mouseHoverFlag) { return palette.blue; }

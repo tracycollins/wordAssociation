@@ -128,8 +128,8 @@ function ViewTreepack() {
     return { width: w, height: h };
   };
 
-  var width = getWindowDimensions.width;
-  var height = getWindowDimensions.height;
+  var width = getWindowDimensions().width;
+  var height = getWindowDimensions().height;
 
   var minRadius = minRadiusRatio * width;
   var maxRadius = maxRadiusRatio * height;
@@ -1414,11 +1414,11 @@ function ViewTreepack() {
     //   height = document.getElementsByTagName('body')[0].clientHeight;
     // }
 
-    width = getWindowDimensions.width;
-    height = getWindowDimensions.height;
+    width = getWindowDimensions().width;
+    height = getWindowDimensions().height;
 
 
-    console.log("width: " + width + " | height: " + height);
+    console.debug("width: " + width + " | height: " + height);
 
     foci = {
       left: {x: xFocusLeftRatio*width, y: yFocusLeftRatio*height}, 

@@ -11,13 +11,18 @@ var ONE_DAY = ONE_HOUR * 24;
 var quitOnErrorFlag = false;
 var listDescriptorsFlag = false;
 
+var moment = require("moment");
+
 var configuration = {};
 var statsObj = {};
 statsObj.metrics = {};
+statsObj.metrics.deleted = {};
 statsObj.metrics.hashtag = {};
 statsObj.metrics.word = {};
 statsObj.metrics.user = {};
 statsObj.metrics.entity = {};
+statsObj.startTime = moment().valueOf();
+statsObj.elapsed = msToTime(moment().valueOf() - statsObj.startTime);
 
 var tssServer;
 var tmsServer;
@@ -34,7 +39,6 @@ var googleMonitoringClient = Monitoring.v3().metricServiceClient();
 
 var defaults = require("object.defaults");
 var chalk = require("chalk");
-var moment = require("moment");
 var prompt = require('prompt');
 
 var config = require("./config/config");
@@ -92,7 +96,22 @@ var jsonPrint = function(obj) {
   }
 };
 
+function msToTime(duration) {
+  var seconds = parseInt((duration / 1000) % 60);
+  var minutes = parseInt((duration / (1000 * 60)) % 60);
+  var hours = parseInt((duration / (1000 * 60 * 60)) % 24);
+  var days = parseInt(duration / (1000 * 60 * 60 * 24));
+
+  days = (days < 10) ? "0" + days : days;
+  hours = (hours < 10) ? "0" + hours : hours;
+  minutes = (minutes < 10) ? "0" + minutes : minutes;
+  seconds = (seconds < 10) ? "0" + seconds : seconds;
+
+  return days + ":" + hours + ":" + minutes + ":" + seconds;
+}
+
 function showStats(options){
+  statsObj.elapsed = msToTime(moment().valueOf() - statsObj.startTime);
   if (options) {
     console.log("STATS\n================================" );
     Object.keys(statsObj).forEach(function(prop){
@@ -108,13 +127,8 @@ function showStats(options){
   }
   else {
     console.log(chalkLog("STATS"
-      + " | SID: " + statsObj.socketId
       + " | ELAPSED: " + statsObj.elapsed
       + " | START: " + statsObj.startTime
-      + " | TWEETS: " + statsObj.totalTweets + " TOTAL"
-      + " / " + statsObj.oldTweets + " OLD"
-      + " / " + statsObj.newTweets + " NEW"
-      + " | TX WORDS: " + statsObj.wordsTransmitted
     ));
   }
 }
@@ -253,6 +267,27 @@ function initializeConfiguration(cnf, callback) {
 
 var top10descriptorArray = [];
 
+function deleteMetric(descriptor, callback){
+  var deleteRequest = {
+    name: googleMonitoringClient.metricDescriptorPath(process.env.GOOGLE_PROJECT_ID, descriptor.type)
+  };
+
+  googleMonitoringClient.deleteMetricDescriptor(deleteRequest)
+  .then(function(results){
+    console.log(chalkInfo("GOOGLE METRIC DELETE"));
+    callback();
+  })
+  .catch(function(error){
+    console.log(chalkError("*** ERROR GOOGLE METRIC DELETE"
+      // + " | ERR CODE: " + results.code
+      // + " | META DATA: " + results.metadata
+      // + " | META NODE: " + results.note
+      + "\n" + jsonPrint(results)
+    ));
+    callback(error);
+  });
+}
+
 initializeConfiguration(configuration, function(err, results){
   console.log(chalkInfo("INIT COMPLETE"));
   prompt.start();
@@ -370,8 +405,14 @@ initializeConfiguration(configuration, function(err, results){
               if (configuration.listDescriptorsFlag) {
                 if (arrayContains(configuration.deleteArray, dbResults.word.word)) {
                   console.log(chalkAlert("DELETE ARRAY: " + dbResults.word.word));
+                  deleteMetric(dbResults.word.descriptor, function(err){
+                    statsObj.metrics.deleted[dbResults.word.word] = {word: dbResults.word.mentions, hashtag: dbResults.hashtag.mentions};
+                    cb(err);
+                  });
                 }
-                cb();
+                else {
+                  cb();
+                }
               }
               else {
                 prompt.get(['DELETE'], function (err, result) {
@@ -380,26 +421,10 @@ initializeConfiguration(configuration, function(err, results){
 
                   switch (result.DELETE) {
                     case "d":
-                      console.log(chalkAlert("DELETE\n" + jsonPrint(dbResults.descriptor)));
-
-                        const deleteRequest = {
-                          name: googleMonitoringClient.metricDescriptorPath(process.env.GOOGLE_PROJECT_ID, dbResults.descriptor.type)
-                        };
-
-                        googleMonitoringClient.deleteMetricDescriptor(deleteRequest)
-                        .then(function(results){
-                          console.log(chalkInfo("GOOGLE METRIC DELETE"));
-                          cb();
-                        })
-                        .catch(function(results){
-                          console.log(chalkError("*** ERROR GOOGLE METRIC DELETE"
-                            // + " | ERR CODE: " + results.code
-                            // + " | META DATA: " + results.metadata
-                            // + " | META NODE: " + results.note
-                            + "\n" + jsonPrint(results)
-                          ));
-                          cb();
-                        });
+                      console.log(chalkAlert("DELETE\n" + jsonPrint(dbResults.word.descriptor)));
+                      deleteMetric(dbResults.word.descriptor, function(err){
+                        cb(err);
+                      });
                     break;
                     case "q":
                       // console.log(chalkAlert("QUIT"));
@@ -414,97 +439,6 @@ initializeConfiguration(configuration, function(err, results){
             }
           );
 
-
-          // Word.findOne({ nodeId: word }, function(err, wordObj) {
-          //   if (err) {
-          //     console.log(chalkError("WORD (DB) ERROR"
-          //       + " | " + word
-          //       + "\n" + jsonPrint(err)
-          //     ));
-          //   }
-          //   else if (wordObj) {
-          //     console.log(chalkInfo("WORD   "
-          //       + " | " + wordObj.nodeId
-          //       + " | Ms: " + wordObj.mentions
-          //       // + "\n" + jsonPrint(wordObj)
-          //     ));
-          //     statsObj.metrics.word[wordObj.nodeId] = wordObj.mentions;
-          //   }
-          //   else  {
-          //     console.log(chalkAlert("WORD   "
-          //       + " | " + word
-          //       + " | Ms: --"
-          //     ));
-          //     statsObj.metrics[word] = 0;
-          //   }
-          // });
-
-          // Hashtag.findOne({ nodeId: word }, function(err, htObj) {
-          //   if (err) {
-          //     console.log(chalkError("HASHTAG (DB) ERROR"
-          //       + " | " + word
-          //       + "\n" + jsonPrint(err)
-          //     ));
-          //   }
-          //   else if (htObj) {
-          //     console.log(chalkInfo("HASHTAG"
-          //       + " | " + htObj.nodeId
-          //       + " | Ms: " + htObj.mentions
-          //       // + "\n" + jsonPrint(wordObj)
-          //     ));
-          //     statsObj.metrics.hashtag[htObj.nodeId] = htObj.mentions;
-          //   }
-          //   else  {
-          //     console.log(chalkAlert("HASHTAG"
-          //       + " | " + word
-          //       + " | Ms: --"
-          //     ));
-          //     statsObj.metrics.hashtag[word] = 0;
-          //   }
-          // });
-
-          // if (configuration.listDescriptorsFlag) {
-          //   cb();
-          // }
-          // else {
-          //   prompt.get(['DELETE'], function (err, result) {
-          //     // console.log('Command-line input received:');
-          //     // console.log('  DELETE: ' + result.DELETE);
-
-          //     switch (result.DELETE) {
-          //       case "d":
-          //         console.log(chalkAlert("DELETE\n" + jsonPrint(descriptor)));
-
-          //           const deleteRequest = {
-          //             name: googleMonitoringClient.metricDescriptorPath(process.env.GOOGLE_PROJECT_ID, descriptor.type)
-          //           };
-
-          //           googleMonitoringClient.deleteMetricDescriptor(deleteRequest)
-          //           .then(function(results){
-          //             console.log(chalkInfo("GOOGLE METRIC DELETE"));
-          //             cb();
-          //           })
-          //           .catch(function(results){
-          //             console.log(chalkError("*** ERROR GOOGLE METRIC DELETE"
-          //               // + " | ERR CODE: " + results.code
-          //               // + " | META DATA: " + results.metadata
-          //               // + " | META NODE: " + results.note
-          //               + "\n" + jsonPrint(results)
-          //             ));
-          //             cb();
-          //           });
-          //       break;
-          //       case "q":
-          //         // console.log(chalkAlert("QUIT"));
-          //         cb(result.DELETE);
-          //       break;
-          //       default:
-          //         // console.log(chalkAlert("DEFAULT"));
-          //         cb();
-          //     }
-          //   });
-          // }
-
         }
         else {
           cb();
@@ -515,6 +449,7 @@ initializeConfiguration(configuration, function(err, results){
           quit();
         }
         console.log("END");
+        console.log(chalkInfo("DELETED METRICS\n" + jsonPrint(statsObj.metrics.deleted)));
         quit();
       });
     })

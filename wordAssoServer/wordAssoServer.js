@@ -1500,10 +1500,23 @@ function userReadyHandler(request, callback){
 
   // socketId, userObj,
 
-  var socket = request.socket;
+  var socketId = request.socketId;
   var userObj = request.userObj;
 
-  sessionCache.get(socket.id, function(err, sObj){
+  console.log(chalkUser("R< U RDY"
+    + " | " + moment().format(compactDateTimeFormat) 
+    + "  " + userObj.nodeId
+    + "  ID " + userObj.userId
+    + "  N " + userObj.name
+    + "  E " + userObj.tags.entity
+    + "  C " + userObj.tags.channel
+    + "  T " + userObj.type
+    + "  M " + userObj.mode
+    // + "\nU " + userObj.url
+    // + "\nP " + userObj.profileImageUrl
+  ));
+
+  sessionCache.get(socketId, function(err, sObj){
     if (err){
       console.log(chalkError(moment().format(compactDateTimeFormat) 
         + " | ??? SESSION CACHE ERROR ON USER READY"
@@ -1515,7 +1528,7 @@ function userReadyHandler(request, callback){
     else if (sObj === undefined) {
       console.log(chalkError(moment().format(compactDateTimeFormat) 
         + " | ??? SESSION NOT FOUND ON USER READY"
-        + " | " + socket.id
+        + " | " + socketId
         + "\n" + jsonPrint(userObj)
       ));
       callback("SESSION NOT FOUND ON USER READY", request);
@@ -1523,7 +1536,7 @@ function userReadyHandler(request, callback){
     else {
       primarySessionObj = sObj;
 
-      var sessionCacheKey = socket.id ;
+      var sessionCacheKey = socketId ;
 
       statsObj.socket.USER_READYS += 1;
 
@@ -1545,17 +1558,17 @@ function userReadyHandler(request, callback){
         && (userObj.tags.mode !== undefined) 
         && (userObj.tags.mode.toLowerCase() === "substream")) {
 
-        sessionCacheKey = socket.id + "#" + userObj.tags.entity;
+        sessionCacheKey = socketId + "#" + userObj.tags.entity;
 
         debug(chalkRedBold("USER_READY SUBSTREAM sessionCacheKey: " + sessionCacheKey));
 
-        sessionUpdateDbCache({sessionCacheKey: sessionCacheKey, socket: socket, userObj: userObj}, function(err, sObj){
+        sessionUpdateDbCache({sessionCacheKey: sessionCacheKey, socketId: socketId, userObj: userObj}, function(err, sObj){
           callback(err, sObj);
         });
       }
       else {
         debug(chalkRedBold("USER_READY sessionCacheKey: " + sessionCacheKey));
-        sessionUpdateDbCache({sessionCacheKey: sessionCacheKey, socket: socket, userObj: userObj}, function(err, sObj){
+        sessionUpdateDbCache({sessionCacheKey: sessionCacheKey, socketId: socketId, userObj: userObj}, function(err, sObj){
           callback(err, sObj);
         });
       }
@@ -1567,7 +1580,7 @@ function userReadyHandler(request, callback){
 function sessionUpdateDbCache(request, callback){
   // sessionCacheKey, socket, userObj,
   var sessionCacheKey = request.sessionCacheKey;
-  var socket = request.socket;
+  var socketId = request.socketId;
   var userObj = request.userObj;
 
   sessionCache.get(sessionCacheKey, function(err, sObj){
@@ -1583,7 +1596,6 @@ function sessionUpdateDbCache(request, callback){
         sObj = new Session({
           sessionId: sessionCacheKey,
           tags: {},
-          // ip: ipAddress,
           namespace: "util",
           url: userObj.url,
           profileImageUrl: userObj.profileImageUrl,
@@ -1623,7 +1635,7 @@ function sessionUpdateDbCache(request, callback){
           }
 
           sObj.namespace = "util";
-          sObj.socket = socket;
+          sObj.socketId = socketId;
           sObj.tags.entity = userObj.tags.entity.toLowerCase();
           sObj.tags.channel = userObj.tags.channel.toLowerCase();
 
@@ -2098,7 +2110,7 @@ function createSession(newSessionObj) {
 
   socket.on("USER_READY", function(userObj) {
 
-    userReadyHandler({socket: socket, userObj: userObj}, function(err, sObj){
+    userReadyHandler({socketId: socket.id, userObj: userObj}, function(err, sObj){
 
     });
 
@@ -5364,10 +5376,10 @@ setInterval(function() {
           + " | " + socketId + " | ABORTING SESSION"
           + " | USER ID: " + responseInObj.userId
           + " | NODEID: " + responseInObj.nodeId
-          // + "\n" + jsonPrint(responseInObj)
+          + "\n" + jsonPrint(responseInObj)
         ));
 
-        configEvents.emit("UNKNOWN_SESSION", socketId);
+        configEvents.emit("UNKNOWN_SESSION", responseInObj);
         responseQueueReady = true;
       }
       else {
@@ -7634,10 +7646,11 @@ configEvents.on("INIT_TWIT_FOR_DM_COMPLETE", function() {
 var directMessageHash = {};
 var createUnknownSessionFlag = true;
 
-configEvents.on("UNKNOWN_SESSION", function(socketId) {
+configEvents.on("UNKNOWN_SESSION", function(responseObj) {
 
   if (createUnknownSessionFlag) {
-
+    userReadyHandler({socketId: responseObj.socketId, userObj: responseObj.user}, function(err, sObj){
+    });
   }
 
   if (dmOnUnknownSession) {

@@ -5379,6 +5379,27 @@ setInterval(function() {
           + "\n" + jsonPrint(responseInObj)
         ));
 
+// {
+//   "socketId": "/util#qfKAQxk9sRWaQ8T7AAAA",
+//   "userObj": {
+//     "name": "buzzfeednews",
+//     "tags": {
+//       "entity": "buzzfeednews",
+//       "url": "http://twitter.com/buzzfeednews",
+//       "channel": "twitter",
+//       "mode": "substream"
+//     },
+//     "userId": "buzzfeednews",
+//     "url": "http://twitter.com/buzzfeednews",
+//     "profileImageUrl": "http://pbs.twimg.com/profile_images/796353157576138752/H2xr-NkC_normal.jpg",
+//     "screenName": "buzzfeednews",
+//     "namespace": "util",
+//     "type": "UTIL",
+//     "mode": "SUBSTREAM",
+//     "nodeId": "buzzfeednews_twitter"
+//   }
+// }
+
         var unknownSession = {};
         unknownSession = responseInObj;
         unknownSession.userObj = {};
@@ -5387,14 +5408,6 @@ setInterval(function() {
         unknownSession.userObj.name = responseInObj.userId;
         unknownSession.userObj.tags = {};
         unknownSession.userObj.tags = responseInObj.tags;
-
-    // + "  " + userObj.nodeId
-    // + "  ID " + userObj.userId
-    // + "  N " + userObj.name
-    // + "  E " + userObj.tags.entity
-    // + "  C " + userObj.tags.channel
-    // + "  T " + userObj.type
-    // + "  M " + userObj.mode
 
         configEvents.emit("UNKNOWN_SESSION", unknownSession);
         responseQueueReady = true;

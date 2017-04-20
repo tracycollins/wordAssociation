@@ -399,7 +399,6 @@ process.on("SIGINT", function() {
 // FUNCTIONS
 // ==================================================================
 function msToTime(duration) {
-  // var milliseconds = parseInt((duration % 1000) / 1000);
   var seconds = parseInt((duration / 1000) % 60);
   var minutes = parseInt((duration / (1000 * 60)) % 60);
   var hours = parseInt((duration / (1000 * 60 * 60)) % 24);
@@ -412,11 +411,6 @@ function msToTime(duration) {
 
   return days + ":" + hours + ":" + minutes + ":" + seconds;
 }
-
-// function msToMinutes(duration) {
-//   var minutes = parseInt((duration / (1000 * 60)) % 60);
-//   return minutes;
-// }
 
 function getTimeNow() {
   var d = new Date();
@@ -432,45 +426,31 @@ function randomInt(low, high) {
 }
 
 var statsObj = {
-
   "name": "Word Association Server Status",
   "host": hostname,
   "timeStamp": moment().format(compactDateTimeFormat),
   "runTimeArgs": process.argv,
-
   "startTime": moment().valueOf(),
   "runTime": 0,
-
   "totalClients": 0,
   "totalUsers": 0,
   "totalSessions": 0,
   "totalWords": 0,
-
   "socket": {},
-
   "promptsSent": 0,
   "responsesReceived": 0,
   "deltaResponsesReceived": 0,
   "sessionUpdatesSent": 0,
-
-  // "bhtRequests": 0,
-  // "bhtWordsNotFound": {},
-
   "mwRequests": 0,
   "mwDictWordsMiss": {},
   "mwDictWordsNotFound": {},
   "mwThesWordsMiss": {},
   "mwThesWordsNotFound": {},
-
   "session": {},
-
   "chainFreezes": 0,
-
   "memoryUsage": {},
-
   "heap": 0,
   "maxHeap": 0,
-
   "heartbeat": txHeartbeat
 };
 
@@ -504,27 +484,14 @@ var quitOnError = { name: "quitOnError", alias: "q", type: Boolean, defaultValue
 var testMode = { name: "testMode", alias: "T", type: Boolean, defaultValue: false};
 
 var optionDefinitions = [enableStdin, quitOnError, testMode];
-
 var commandLineConfig = commandLineArgs(optionDefinitions);
 
 console.log(chalkInfo("COMMAND LINE CONFIG\n" + jsonPrint(commandLineConfig)));
 console.log("COMMAND LINE OPTIONS\n" + jsonPrint(commandLineConfig));
 
-
-
-
 // ==================================================================
 // NODE MODULE DECLARATIONS
 // ==================================================================
-
-
-// var compactDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
-// var defaultTimePeriodFormat = "HH:mm:ss";
-
-// var hostname = os.hostname();
-// hostname = hostname.replace(/.local/g, "");
-// hostname = hostname.replace(/.fios-router.home/g, "");
-// hostname = hostname.replace(/word0-instance-1/g, "google");
 var groupHashMap = new HashMap();
 var serverGroupHashMap = new HashMap(); // server specific keywords
 
@@ -533,7 +500,6 @@ var serverEntityChannelGroupHashMap = new HashMap();
 
 var ignoreWordHashMap = new HashMap();
 var keywordHashMap = new HashMap();
-// var serverKeywordHashMap = new HashMap(); // server specific keywords
 var topicHashMap = new HashMap();
 
 var serverGroupsJsonObj = {};
@@ -543,12 +509,6 @@ var serverKeywordsJsonObj = {};
 // SERVER STATUS
 // ==================================================================
 
-// var currentTime = moment();
-
-// var currentTimeInteval = setInterval(function() {
-//   // currentTime = moment();
-// }, 100);
-
 var tempDateTime = moment();
 
 var txHeartbeat = {};
@@ -557,8 +517,6 @@ txHeartbeat.wordStats = {};
 txHeartbeat.memoryUsage = {};
 
 var heartbeatsSent = 0;
-
-// var numberIpAddresses = 0;
 
 var numberUsersMax = 0;
 var numberUsersMaxTime = moment().valueOf();
@@ -612,16 +570,6 @@ var promptsSent = 0;
 var responsesReceived = 0;
 var sessionUpdatesSent = 0;
 
-// var bhtWordsMiss = {};
-// var bhtWordsNotFound = {};
-
-// var mwDictWordsMiss = {};
-// var mwDictWordsNotFound = {};
-
-// var mwThesWordsMiss = {};
-// var mwThesWordsNotFound = {};
-
-
 statsObj.upTime = os.uptime() * 1000;
 statsObj.memoryTotal = os.totalmem();
 statsObj.memoryAvailable = os.freemem();
@@ -637,8 +585,6 @@ statsObj.wapi.requestsRemaining = 25000;
 
 statsObj.group = {};
 statsObj.group.errors = 0;
-// statsObj.group.hashMiss = {};
-// statsObj.group.allHashMisses = {};
 
 statsObj.session.errors = 0;
 statsObj.session.previousPromptNotFound = 0;
@@ -652,11 +598,6 @@ statsObj.socket.errors = 0;
 
 
 statsObj.entityChannelGroup = {};
-// statsObj.entityChannelGroup.hashMiss = {};
-// statsObj.entityChannelGroup.allHashMisses = {};
-// ==================================================================
-// LOGS, STATS
-// ==================================================================
 
 var serverSessionConfig = {};
 
@@ -670,11 +611,6 @@ configEvents.on("newListener", function(data) {
   debug("*** NEW CONFIG EVENT LISTENER: " + data);
 });
 
-
-// var adminIpHashMap = new HashMap();
-// var adminSocketIdHashMap = new HashMap();
-// 
-// var numberAdminsTotal = 0;
 var numberAdmins = 0;
 
 var numberUtils = 0;
@@ -686,12 +622,9 @@ var numberTestUsers = 0;
 var dnsHostHashMap = new HashMap();
 var localHostHashMap = new HashMap();
 
-
-// var socketQueue = new Queue();
 var sessionQueue = new Queue();
 var dbUpdateGroupQueue = new Queue();
 var dbUpdateEntityQueue = new Queue();
-// var dbUpdateSessionQueue = new Queue();
 var dbUpdateWordQueue = new Queue();
 var wapiSearchQueue = new Queue();
 var updaterMessageQueue = new Queue();
@@ -749,7 +682,6 @@ var wapiReqReservePercent = process.env.WAPI_REQ_RESERVE_PRCNT;
 
 if (wapiReqReservePercent === undefined) {wapiReqReservePercent = WAPI_REQ_RESERVE_PRCNT;}
 console.log("WAPI_REQ_RESERVE_PRCNT: " + wapiReqReservePercent);
-
 
 // ==================================================================
 // TOP TERM WPM  CACHE
@@ -827,8 +759,6 @@ console.log("SESSION CACHE TTL: " + sessionCacheTtl + " SECONDS");
 var wordCacheTtl = process.env.WORD_CACHE_TTL;
 if (wordCacheTtl === undefined) {wordCacheTtl = WORD_CACHE_TTL;}
 console.log("WORD CACHE TTL: " + wordCacheTtl + " SECONDS");
-
-
 
 var wordsPerMinuteTopTermCache = new NodeCache({
   stdTTL: wordsPerMinuteTopTermTtl,
@@ -2624,8 +2554,6 @@ function createSession(newSessionObj) {
 
   socket.on("GET_SESSION", function(sessionId) {
 
-    // var getSessionSession = sessionCache.get(socket.id);
-
     debug(chalkTest("RX GET_SESSION | " + sessionId 
       + " | CHAIN LIMIT: " + SESSION_WORDCHAIN_REQUEST_LIMIT));
     findSessionById(sessionId, function(err, sessionObj) {
@@ -2634,7 +2562,6 @@ function createSession(newSessionObj) {
       } 
       else if (sessionObj) {
 
-        // var wordChainIndex = 0;
         var wordChainSegment = sessionObj.wordChain.slice(-SESSION_WORDCHAIN_REQUEST_LIMIT);
 
         async.forEachOf(

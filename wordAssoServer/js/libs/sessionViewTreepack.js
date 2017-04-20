@@ -10,7 +10,7 @@ function ViewTreepack() {
   var minRadiusRatio = 0.005;
   var maxRadiusRatio = 0.10;
 
-  var minFontSizeRatio = 0.010;
+  var minFontSizeRatio = 0.0125;
   var maxFontSizeRatio = 0.050;
 
   var sliderPercision = 3;
@@ -22,7 +22,7 @@ function ViewTreepack() {
 
   var maxHashtagRows = 25;
   var maxHashtagCols = 5;
-  var rowSpacing = 3; // %
+  var rowSpacing = minFontSizeRatio*100; // %
   var colSpacing = 90/maxHashtagCols; // %
 
   // FORCE X & Y

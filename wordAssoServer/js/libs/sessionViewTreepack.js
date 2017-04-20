@@ -7,11 +7,11 @@ function ViewTreepack() {
   var self = this;
   var simulation;
 
-  var minRadiusRatio = 0.005;
+  var minRadiusRatio = 0.01;
   var maxRadiusRatio = 0.10;
 
-  var minFontSizeRatio = 0.015;
-  var maxFontSizeRatio = 0.050;
+  var minFontSizeRatio = 0.02;
+  var maxFontSizeRatio = 0.05;
 
   var sliderPercision = 3;
 

@@ -104,11 +104,35 @@ function ViewTreepack() {
 
   var NEW_NODE_AGE_RATIO = 0.01;
 
-  var width = window.innerWidth;
-  var height = window.innerHeight;
+  var getWindowDimensions = function (){
 
-  var minRadius = minRadiusRatio * window.innerWidth;
-  var maxRadius = maxRadiusRatio * window.innerWidth;
+    var w, h;
+
+    if (window.innerWidth !== 'undefined') {
+      w = window.innerWidth;
+      h = window.innerHeight;
+    }
+    // IE6 in standards compliant mode (i.e. with a valid doctype as the first line in the document)
+    else if (document.documentElement !== 'undefined' 
+      && document.documentElement.clientWidth !== 'undefined' 
+      && document.documentElement.clientWidth !== 0) {
+      w = document.documentElement.clientWidth;
+      h = document.documentElement.clientHeight;
+    }
+    // older versions of IE
+    else {
+      w = document.getElementsByTagName('body')[0].clientWidth;
+      h = document.getElementsByTagName('body')[0].clientHeight;
+    }
+
+    return { width: w, height: h };
+  };
+
+  var width = getWindowDimensions.width;
+  var height = getWindowDimensions.height;
+
+  var minRadius = minRadiusRatio * width;
+  var maxRadius = maxRadiusRatio * height;
 
   var foci = {
     left: {x: xFocusLeftRatio*width, y: yFocusLeftRatio*height}, 
@@ -1373,22 +1397,26 @@ function ViewTreepack() {
 
     d3image = d3.select("#d3group");
 
-    if (window.innerWidth !== 'undefined') {
-      width = window.innerWidth;
-      height = window.innerHeight;
-    }
-    // IE6 in standards compliant mode (i.e. with a valid doctype as the first line in the document)
-    else if (document.documentElement !== 'undefined' 
-      && document.documentElement.clientWidth !== 'undefined' 
-      && document.documentElement.clientWidth !== 0) {
-      width = document.documentElement.clientWidth;
-      height = document.documentElement.clientHeight;
-    }
-    // older versions of IE
-    else {
-      width = document.getElementsByTagName('body')[0].clientWidth;
-      height = document.getElementsByTagName('body')[0].clientHeight;
-    }
+    // if (window.innerWidth !== 'undefined') {
+    //   width = window.innerWidth;
+    //   height = window.innerHeight;
+    // }
+    // // IE6 in standards compliant mode (i.e. with a valid doctype as the first line in the document)
+    // else if (document.documentElement !== 'undefined' 
+    //   && document.documentElement.clientWidth !== 'undefined' 
+    //   && document.documentElement.clientWidth !== 0) {
+    //   width = document.documentElement.clientWidth;
+    //   height = document.documentElement.clientHeight;
+    // }
+    // // older versions of IE
+    // else {
+    //   width = document.getElementsByTagName('body')[0].clientWidth;
+    //   height = document.getElementsByTagName('body')[0].clientHeight;
+    // }
+
+    width = getWindowDimensions.width;
+    height = getWindowDimensions.height;
+
 
     console.log("width: " + width + " | height: " + height);
 
@@ -1475,13 +1503,11 @@ function ViewTreepack() {
           else {
             return foci.default.y;
           }
-          // return 0.5*height; 
         }).strength(function(d){
           return forceYmultiplier * gravity; 
         }))
         .force("collide", d3.forceCollide().radius(function(d) { 
           return collisionRadiusMultiplier * defaultRadiusScale(d.mentions) ; 
-          // return defaultRadiusScale(d.mentions) ; 
         }).iterations(collisionIterations))
         .velocityDecay(velocityDecay)
 
@@ -1499,7 +1525,6 @@ function ViewTreepack() {
     nodes = [];
     deadNodesHash = {};
     mouseHoverFlag = false;
-    // localNodeHashMap.clear();
     localNodeHashMap = {};
     nodesTopTermHashMap.clear();
     self.toolTipVisibility(false);

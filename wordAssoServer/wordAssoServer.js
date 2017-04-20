@@ -8216,7 +8216,7 @@ function initRateQinterval(interval){
       if (enableGoogleMetrics && tssServer.connected) {
         var dataPointTssTpm = {};
         dataPointTssTpm.metricType = "twitter/tweets_per_minute";
-        dataPointTssTpm.value = statsObj.utilities[tssServer].tweetsPerMinute;
+        dataPointTssTpm.value = statsObj.utilities[tssServer.user.userId].tweetsPerMinute;
         dataPointTssTpm.metricLabels = {server_id: "TSS"};
         addMetricDataPoint(dataPointTssTpm);
 
@@ -8234,10 +8234,10 @@ function initRateQinterval(interval){
         dataPointTmsTpm.metricLabels = {server_id: "TMS"};
         addMetricDataPoint(dataPointTmsTpm);
         
-        if (statsObj.utilities[tmsServer].twitterLimit) {
+        if (statsObj.utilities[tmsServer.user.userId].twitterLimit) {
           var dataPointTmsTpm2 = {};
           dataPointTmsTpm2.metricType = "twitter/tweet_limit";
-          dataPointTmsTpm2.value = statsObj.utilities[tmsServer].twitterLimit;
+          dataPointTmsTpm2.value = statsObj.utilities[tmsServer.user.userId].twitterLimit;
           dataPointTmsTpm2.metricLabels = {server_id: "TMS"};
           addMetricDataPoint(dataPointTmsTpm2);
         }

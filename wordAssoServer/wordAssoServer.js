@@ -1507,6 +1507,7 @@ function userReadyHandler(request, callback){
     + "  N " + userObj.name
     + "  E " + userObj.tags.entity
     + "  C " + userObj.tags.channel
+    + "  M (tags) " + userObj.tags.mode
     + "  T " + userObj.type
     + "  M " + userObj.mode
     // + "\nU " + userObj.url
@@ -1544,6 +1545,7 @@ function userReadyHandler(request, callback){
         + "  N " + userObj.name
         + "  E " + userObj.tags.entity
         + "  C " + userObj.tags.channel
+        + "  M (tags) " + userObj.tags.mode
         + "  T " + userObj.type
         + "  M " + userObj.mode
         // + "\nU " + userObj.url
@@ -1658,6 +1660,7 @@ function sessionUpdateDbCache(request, callback){
           sObj.tags = {};
           sObj.tags.entity = userObj.tags.entity.toLowerCase();
           sObj.tags.channel = userObj.tags.channel.toLowerCase();
+          sObj.tags.mode = userObj.tags.mode.toLowerCase();
         }
         else {
           if (sObj.tags.entity !== undefined) {
@@ -1692,6 +1695,12 @@ function sessionUpdateDbCache(request, callback){
           }
           else {
             sObj.tags.channel = userObj.tags.channel.toLowerCase();
+          }
+          if (sObj.tags.mode !== undefined) {
+            sObj.tags.mode = sObj.tags.mode.toLowerCase();
+          }
+          else {
+            sObj.tags.mode = userObj.tags.mode.toLowerCase();
           }
         }
       }
@@ -2030,9 +2039,9 @@ function createSession(newSessionObj) {
 
     if ((userObj.tags !== undefined)
       && (userObj.tags.mode !== undefined) 
-      && (userObj.tags.mode === "substream")) {
+      && (userObj.tags.mode.toLowerCase() === "substream")) {
       debug(chalkRedBold("KEEPALIVE socket.id: " + socket.id));
-      sessionCacheKey = socket.id + "#" + userObj.tags.entity;
+      sessionCacheKey = socket.id + "#" + userObj.tags.entity.toLowerCase();
     }
 
     sessionCache.get(sessionCacheKey, function(err, sObj){
@@ -2554,8 +2563,8 @@ function createSession(newSessionObj) {
 
         var responseInObj = rxInObj;
 
-        if (rxInObj.tags.mode === "substream") {
-          responseInObj.socketId = socket.id + "#" + rxInObj.tags.entity;
+        if (rxInObj.tags.mode.toLowerCase() === "substream") {
+          responseInObj.socketId = socket.id + "#" + rxInObj.tags.entity.toLowerCase();
           debug("SUBS" 
             + "\n" + jsonPrint(rxInObj.tags)
           );
@@ -2995,7 +3004,7 @@ setInterval(function() {
 
     createSmallSessionUpdateObj(sessionUpdateObj, function(sessionSmallObj){
 
-      var key = sessionSmallObj.tags.entity + "_" + sessionSmallObj.tags.channel;
+      var key = sessionSmallObj.tags.entity.toLowerCase() + "_" + sessionSmallObj.tags.channel.toLowerCase();
 
       if (monitorHashMap[key] && sessionSmallObj.action === "RESPONSE"){
         debug(chalkInfo("R< M"
@@ -3071,8 +3080,8 @@ function updateSessionViews(sessionUpdateObj) {
     obj.target.adjective = null;
   }
 
-  if (entityChannelGroupHashMap.has(obj.tags.entity)){
-    obj.tags.group = entityChannelGroupHashMap.get(obj.tags.entity);
+  if (entityChannelGroupHashMap.has(obj.tags.entity.toLowerCase())){
+    obj.tags.group = entityChannelGroupHashMap.get(obj.tags.entity.toLowerCase());
     updateSessionViewQueue.push(obj);
   }
   // else if (obj.tags.entity !== undefined) {
@@ -5416,7 +5425,7 @@ setInterval(function() {
         unknownSession.userObj.screenName = responseInObj.userId;
         unknownSession.userObj.namespace = "util";
         unknownSession.userObj.type = "UTIL";
-        unknownSession.userObj.mode = responseInObj.tags.mode.toUpperCase();
+        unknownSession.userObj.mode = responseInObj.tags.mode || "UNDEFINED";
         unknownSession.userObj.nodeId = responseInObj.userId + "_" + responseInObj.tags.channel;
 
         configEvents.emit("UNKNOWN_SESSION", unknownSession);

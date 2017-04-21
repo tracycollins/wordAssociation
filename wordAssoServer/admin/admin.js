@@ -935,7 +935,7 @@ var serverCheckTimeout = setInterval(function() {
     console.error("***** SERVER HEARTBEAT TIMEOUT ***** " + getTimeStamp() + " | LAST SEEN: " + getTimeStamp(heartBeat.timeStamp) + msToTime(Date.now() - heartBeat.timeStamp) + " AGO");
   }
   updateServerHeartbeat(heartBeat, heartBeatTimeoutFlag, lastTimeoutHeartBeat);
-}, serverCheckInterval);;
+}, serverCheckInterval);
 
 function setTestMode(inputTestMode) {
 
@@ -1711,11 +1711,21 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
   // memoryAvailable = heartBeat.memoryAvailable / heartBeat.memoryTotal;
   // memoryUsed = heartBeat.memoryUsage.heapUsed / heartBeat.memoryUsage.heapTotal;
-  memoryUsed = heartBeat.memoryUsage.heapUsed / heartBeat.memoryUsage.rss;
+
+  if (heartBeat.memoryUsage !== undefined) {
+    memoryUsed = heartBeat.memoryUsage.heapUsed / heartBeat.memoryUsage.rss;
+    memoryAvailable = (heartBeat.memoryUsage.rss - heartBeat.memoryUsage.heapUsed) / heartBeat.memoryUsage.rss;
+
+    memoryBarText.innerHTML =
+      // 'MEMORY (GB)' + ' | ' + (heartBeat.memoryTotal / ONE_GB).toFixed(2) + ' TOT' + ' | ' + ((heartBeat.memoryTotal - heartBeat.memoryAvailable) / ONE_GB).toFixed(2) + ' USED' + ' (' + (100 * memoryUsed).toFixed(1) + ' %)' + ' | ' + (heartBeat.memoryAvailable / ONE_GB).toFixed(2) + ' AVAIL' + ' (' + (100 * memoryAvailable).toFixed(2) + ' %)';
+      'HEAP (GB)' 
+        + ' | ' + (heartBeat.memoryUsage.rss / ONE_GB).toFixed(2) + ' TOT' 
+        + ' | ' + (heartBeat.memoryUsage.heapUsed / ONE_GB).toFixed(2) + ' USED' + ' (' + (100 * memoryUsed).toFixed(1) + ' %)' 
+        + ' | ' + ((heartBeat.memoryUsage.rss - heartBeat.memoryUsage.heapUsed) / ONE_GB).toFixed(2) + ' AVAIL' + ' (' + (100 * memoryAvailable).toFixed(2) + ' %)';
+  }
 
   // memoryUsed = (heartBeat.memoryTotal - heartBeat.memoryAvailable) / heartBeat.memoryTotal;
   // memoryAvailable = (heartBeat.memoryUsage.heapTotal - heartBeat.memoryUsage.heapUsed) / heartBeat.memoryUsage.heapTotal;
-  memoryAvailable = (heartBeat.memoryUsage.rss - heartBeat.memoryUsage.heapUsed) / heartBeat.memoryUsage.rss;
 
   if (memoryBar) { memoryBar.animate(memoryUsed); }
 
@@ -1727,12 +1737,6 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
     memoryBar.path.setAttribute('stroke', startColor);
   }
 
-  memoryBarText.innerHTML =
-    // 'MEMORY (GB)' + ' | ' + (heartBeat.memoryTotal / ONE_GB).toFixed(2) + ' TOT' + ' | ' + ((heartBeat.memoryTotal - heartBeat.memoryAvailable) / ONE_GB).toFixed(2) + ' USED' + ' (' + (100 * memoryUsed).toFixed(1) + ' %)' + ' | ' + (heartBeat.memoryAvailable / ONE_GB).toFixed(2) + ' AVAIL' + ' (' + (100 * memoryAvailable).toFixed(2) + ' %)';
-    'HEAP (GB)' 
-      + ' | ' + (heartBeat.memoryUsage.rss / ONE_GB).toFixed(2) + ' TOT' 
-      + ' | ' + (heartBeat.memoryUsage.heapUsed / ONE_GB).toFixed(2) + ' USED' + ' (' + (100 * memoryUsed).toFixed(1) + ' %)' 
-      + ' | ' + ((heartBeat.memoryUsage.rss - heartBeat.memoryUsage.heapUsed) / ONE_GB).toFixed(2) + ' AVAIL' + ' (' + (100 * memoryAvailable).toFixed(2) + ' %)';
 
 
   bhtRequestsBar.animate(heartBeat.bhtRequests / heartBeat.bhtRequestLimit);

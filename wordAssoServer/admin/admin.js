@@ -151,11 +151,17 @@ var SCREEN_NAME = USER_ID;
 
 var mainAdminObj = {
   adminId: USER_ID,
+  nodeId: USER_ID,
   userId: USER_ID,
   screenName: SCREEN_NAME,
-  type: "UTIL",
-  mode: "STREAM"
+  type: "admin",
+  mode: "control",
+  tags: {}
 };
+mainAdminObj.tags.mode = "control";
+mainAdminObj.tags.type = "admin";
+mainAdminObj.tags.entity = USER_ID;
+mainAdminObj.tags.channel = "admin";
 
 var currentTime = getTimeNow();
 

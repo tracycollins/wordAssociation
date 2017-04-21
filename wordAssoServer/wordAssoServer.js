@@ -173,22 +173,18 @@ var internetReady = false;
 var pollTwitterFriendsIntervalTime = 5*ONE_MINUTE;
 
 var TOPTERMS_CACHE_DEFAULT_TTL = 60;
-var TRENDING_CACHE_DEFAULT_TTL = 900; // seconds
-var ADMIN_CACHE_DEFAULT_TTL = 900; // seconds
-var VIEWER_CACHE_DEFAULT_TTL = 900; // seconds
-var UTIL_CACHE_DEFAULT_TTL = 900; // seconds
-var USER_CACHE_DEFAULT_TTL = 900; // seconds
-var GROUP_CACHE_DEFAULT_TTL = 900; // seconds
-var ENTITY_CACHE_DEFAULT_TTL = 900; // seconds
-var SESSION_CACHE_DEFAULT_TTL = 900; // seconds
-var WORD_CACHE_TTL = 900; // seconds
-// var MONITOR_CACHE_TTL = 120; // seconds
-var IP_ADDRESS_CACHE_DEFAULT_TTL = 900;
+var TRENDING_CACHE_DEFAULT_TTL = 300; // seconds
+var ADMIN_CACHE_DEFAULT_TTL = 300; // seconds
+var VIEWER_CACHE_DEFAULT_TTL = 300; // seconds
+var UTIL_CACHE_DEFAULT_TTL = 300; // seconds
+var USER_CACHE_DEFAULT_TTL = 300; // seconds
+var GROUP_CACHE_DEFAULT_TTL = 300; // seconds
+var ENTITY_CACHE_DEFAULT_TTL = 300; // seconds
+var SESSION_CACHE_DEFAULT_TTL = 0; // seconds
+var WORD_CACHE_TTL = 300; // seconds
+var IP_ADDRESS_CACHE_DEFAULT_TTL = 300;
 
 var MAX_WORDCHAIN_LENGTH = 10;
-// var MIN_CHAIN_FREEZE_LENGTH = 20;
-// var MIN_CHAIN_FREEZE_UNIQUE_NODES = 10;
-
 // var BHT_REQUEST_LIMIT = 1000;
 var MW_REQUEST_LIMIT = 250000;
 // var WAPI_REQUEST_LIMIT = 25000;
@@ -800,7 +796,7 @@ var wordCache = new NodeCache({
 
 var sessionCache = new NodeCache({
   useClones: false,
-  stdTTL: sessionCacheTtl,
+  // stdTTL: sessionCacheTtl,
   checkperiod: 10
 });
 
@@ -877,8 +873,8 @@ sessionCache.on("expired", function(sessionId, sessionObj) {
   viewNameSpace.emit("SESSION_DELETE", sessionObj);
   testViewersNameSpace.emit("SESSION_DELETE", sessionObj);
 
-  debug("CACHE SESSION EXPIRED\n" + jsonPrint(sessionObj));
-  debug(chalkInfo("... CACHE SESS EXPIRED"
+  // console.log(chalkAlert("CACHE SESSION EXPIRED\n" + jsonPrint(sessionObj)));
+  console.log(chalkInfo("... $ SESS EXPIRED"
     + " | " + sessionObj.sessionId 
     + " | LS: " + moment(parseInt(sessionObj.lastSeen)).format(compactDateTimeFormat)
     + " | " + msToTime(moment().valueOf() - sessionObj.lastSeen) 
@@ -1498,14 +1494,15 @@ function incrementSocketMwReqs(delta) {
 
 function userReadyHandler(request, callback){
 
-  console.log(chalkAlert("userReadyHandler\n" + jsonPrint(request)));
+  debug(chalkAlert("userReadyHandler\n" + jsonPrint(request)));
 
   var socketId = request.socketId;
   var userObj = request.userObj;
 
-  console.log(chalkUser("R< U RDY"
+  debug(chalkUser("USER RDY HANDLER"
     + " | " + moment().format(compactDateTimeFormat) 
-    + "  " + userObj.nodeId
+    + " | " + socketId
+    + " | NID " + userObj.nodeId
     + "  ID " + userObj.userId
     + "  N " + userObj.name
     + "  E " + userObj.tags.entity
@@ -2111,7 +2108,10 @@ function createSession(newSessionObj) {
   socket.on("USER_READY", function(userObj) {
 
     userReadyHandler({socketId: socket.id, userObj: userObj}, function(err, sObj){
-
+      // if (err && quitOnErrorFlag) {
+      if (err) {
+        quit(err);
+      }
     });
 
     // sessionCache.get(socket.id, function(err, sObj){
@@ -4474,7 +4474,10 @@ function handleSessionEvent(sesObj, callback) {
 
       if (sesObj.session) {
 
-        sessionCache.del(sesObj.session.sessionId);
+        if (sesObj.sessionEvent !== "SESSION_EXPIRED") {
+          // should not exist anymore due to expiry, but may exist again on new data from
+          sessionCache.del(sesObj.session.sessionId);
+        }
 
         debug(sesObj.sessionEvent + "\n" + jsonPrint(sesObj));
 
@@ -5201,13 +5204,14 @@ function handleSessionEvent(sesObj, callback) {
                     // console.log(chalkInfo("TX UTIL SESSION (UTIL READY): " + updatedUserObj.lastSeen + " TO ADMIN NAMESPACE"));
                     console.log(chalkInfo("TX USER SESSION (UTIL READY)"
                       + " | LAST SEEN: " + moment(parseInt(entityObj.lastSeen)).format(compactDateTimeFormat)
+                      + " | UID: " + entityObj.entityId
                       + " | N: " + entityObj.name
                       + " | SN: " + entityObj.screenName
                     ));
                     adminNameSpace.emit("UTIL_SESSION", entityObj);
                   }
 
-                  io.of(sesObj.session.namespace).to(sesObj.session.sessionId).emit("USER_READY_ACK", entityObj.userId);
+                  io.of(sesObj.session.namespace).to(sesObj.session.sessionId).emit("USER_READY_ACK", entityObj.entityId);
                 }
               });
             }
@@ -5371,12 +5375,12 @@ setInterval(function() {
       }
       else if (currentSessionObj === undefined) {
 
-        console.log(chalkWarn("??? SESSION NOT IN CACHE ON RESPONSE Q READ" 
+        console.log(chalkAlert("??? SESSION NOT IN CACHE ON RESPONSE Q READ" 
           + " | responseQueue: " + responseQueue.size() 
           + " | " + socketId
           + " | USER ID: " + responseInObj.userId
           + " | NODEID: " + responseInObj.nodeId
-          + "\n" + jsonPrint(responseInObj)
+          // + "\n" + jsonPrint(responseInObj)
         ));
 
 // {
@@ -6477,6 +6481,82 @@ function initAppRouting(callback) {
     return;
   });
 
+  app.get("/admin", function(req, res) {
+    debug(chalkInfo("get req\n" + req));
+    console.warn("LOADING PAGE: /admin/admin.html");
+    res.sendFile(__dirname + "/admin/admin.html", function (err) {
+      if (err) {
+        console.error('GET:', __dirname + "/admin/admin.html");
+      } 
+      else {
+        console.log(chalkInfo('SENT:', __dirname + "/admin/admin.html"));
+      }
+    });
+  });
+
+  app.get("/admin/admin.js", function(req, res) {
+    debug(chalkInfo("get req\n" + req));
+    console.warn("LOADING PAGE: /admin/admin.js");
+    res.sendFile(__dirname + "/admin/admin.js", function (err) {
+      if (err) {
+        console.error('GET:', __dirname + "/admin/admin.js");
+      } 
+      else {
+        console.log(chalkInfo('SENT:', __dirname + "/admin/admin.js"));
+      }
+    });
+  });
+
+  app.get("/js/libs/progressbar.js", function(req, res) {
+    debug(chalkInfo("get req\n" + req));
+    res.sendFile(__dirname + "/js/libs/progressbar.js", function (err) {
+      if (err) {
+        console.error('GET:', __dirname + "/js/libs/progressbar.js");
+      } 
+      else {
+        console.log(chalkInfo('SENT:', __dirname + "/js/libs/progressbar.js"));
+      }
+    });
+  });
+
+  app.get("/js/libs/progressbar.min.js", function(req, res) {
+    debug(chalkInfo("get req\n" + req));
+    res.sendFile(__dirname + "/js/libs/progressbar.min.js", function (err) {
+      if (err) {
+        console.error('GET:', __dirname + "/js/libs/progressbar.min.js");
+      } 
+      else {
+        console.log(chalkInfo('SENT:', __dirname + "/js/libs/progressbar.min.js"));
+      }
+    });
+  });
+
+  app.get("/css/progressbar.css", function(req, res) {
+    debug(chalkInfo("get req\n" + req));
+    res.sendFile(__dirname + "/css/progressbar.css", function (err) {
+      if (err) {
+        console.error('GET:', __dirname + "/css/progressbar.css");
+      } 
+      else {
+        console.log(chalkInfo('SENT:', __dirname + "/css/progressbar.css"));
+      }
+    });
+  });
+
+  // app.get("/admin/admin.html", function(req, res) {
+  //   debug(chalkInfo("get req\n" + req));
+  //   console.warn("LOADING PAGE: /admin/admin.html");
+  //   res.sendFile(__dirname + "/admin/admin.html", function (err) {
+  //     if (err) {
+  //       console.error('GET:', __dirname + "/admin/admin.html");
+  //     } 
+  //     else {
+  //       console.log(chalkInfo('SENT:', __dirname + "/admin/admin.html"));
+  //     }
+  //   });
+  // });
+
+
   // app.get("/controlPanel.html", function(req, res) {
   //   debug(chalkInfo("get req\n" + req));
   //   debugAppGet("LOADING PAGE: /controlPanel.html");
@@ -6570,26 +6650,6 @@ function initAppRouting(callback) {
 
 
 
-  // app.get("/admin", function(req, res) {
-  //   debug(chalkInfo("get req\n" + req));
-  //   console.warn("LOADING PAGE: /admin/admin.html");
-  //   // res.sendFile(__dirname + "/admin/admin.html");
-  //   // return;
-  // });
-
-  // app.get("/admin/admin.js", function(req, res) {
-  //   debug(chalkInfo("get req\n" + req));
-  //   console.warn("LOADING PAGE: /admin/admin.js");
-  //   // res.sendFile(__dirname + "/admin/admin.js");
-  //   // return;
-  // });
-
-  // app.get("/admin/admin.html", function(req, res) {
-  //   debug(chalkInfo("get req\n" + req));
-  //   console.warn("LOADING PAGE: /admin/admin.html");
-  //   // res.sendFile(__dirname + "/admin/admin.html");
-  //   // return;
-  // });
 
   // app.get("/admin/data/fake_users1.json", function(req, res) {
   //   debug(chalkInfo("get req\n" + req));
@@ -6598,17 +6658,6 @@ function initAppRouting(callback) {
   //   // return;
   // });
 
-  // app.get("/js/libs/progressbar.js", function(req, res) {
-  //   debug(chalkInfo("get req\n" + req));
-  //   // res.sendFile(__dirname + "/js/libs/progressbar.js");
-  //   // return;
-  // });
-
-  // app.get("/js/libs/progressbar.min.js", function(req, res) {
-  //   debug(chalkInfo("get req\n" + req));
-  //   // res.sendFile(__dirname + "/js/libs/progressbar.min.js");
-  //   // return;
-  // });
 
   // app.get("/node_modules/crosstab/src/crosstab.js", function(req, res) {
   //   debug(chalkInfo("get req\n" + req));
@@ -6628,11 +6677,6 @@ function initAppRouting(callback) {
   //   // return;
   // });
 
-  // app.get("/css/progressbar.css", function(req, res) {
-  //   debug(chalkInfo("get req\n" + req));
-  //   // res.sendFile(__dirname + "/css/progressbar.css");
-  //   // return;
-  // });
 
   // app.get("/node_modules/debug/node_modules/debug.js", function(req, res) {
   //   debug(chalkInfo("get req\n" + req));
@@ -7686,6 +7730,9 @@ configEvents.on("UNKNOWN_SESSION", function(sesObj) {
 
   if (createUnknownSessionFlag) {
     userReadyHandler({socketId: sesObj.socketId, userObj: sesObj.userObj}, function(err, sObj){
+      if (err) {
+        quit(err);
+      }
     });
   }
 

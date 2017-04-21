@@ -1112,7 +1112,7 @@ function ViewTreepack() {
         currentNode.isTrendingTopic = newNode.isTrendingTopic || false;
         currentNode.isTwitterUser = newNode.isTwitterUser || false;
         currentNode.keywordColor = newNode.keywordColor;
-        currentNode.mentions = newNode.mentions || 1;
+        currentNode.mentions = Math.max(currentNode.mentions, newNode.mentions || 1);
         currentNode.mouseHoverFlag = false;
         currentNode.rank = currentNode.rank || 0;
         currentNode.rate = newNode.rate || 0;
@@ -1146,7 +1146,8 @@ function ViewTreepack() {
         currentNode.isTrendingTopic = newNode.isTrendingTopic || false;
         currentNode.isTwitterUser = newNode.isTwitterUser || false;
         currentNode.keywordColor = newNode.keywordColor;
-        currentNode.mentions = newNode.mentions || 1;
+        // currentNode.mentions = newNode.mentions || 1;
+        currentNode.mentions = Math.max(currentNode.mentions, newNode.mentions || 1);
         currentNode.mouseHoverFlag = false;
         currentNode.rank = 0;
         currentNode.rate = newNode.rate || 0;

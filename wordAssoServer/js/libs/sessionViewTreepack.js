@@ -918,21 +918,21 @@ function ViewTreepack() {
     nodeLabels
       .attr("x", function(d) { 
         if (!d.nodeId) { 
-          console.debug("UNDEFINED d.nodeId");
+          console.warn("UNDEFINED d.nodeId");
           return 0.5*width; }
         if (d.x === undefined) { 
-          console.debug("UNDEFINED d.x " + d.nodeId);
+          console.warn("UNDEFINED d.x " + d.nodeId);
           return 0.5*width; 
         }
         return d.x; 
       })
       .attr("y", function(d) { 
         if (!d.nodeId) { 
-          console.debug("UNDEFINED d.nodeId");
+          console.warn("UNDEFINED d.nodeId");
           return 0.5*height; 
         }
         if (d.y === undefined) { 
-          console.debug("UNDEFINED d.y " + d.nodeId);
+          console.warn("UNDEFINED d.y " + d.nodeId);
           return 0.5*height; 
         }
         return d.y; 
@@ -971,21 +971,21 @@ function ViewTreepack() {
       .on("click", nodeClick)
       .attr("x", function(d) { 
         if (!d.nodeId) { 
-          console.debug("UNDEFINED d.nodeId");
+          console.warn("UNDEFINED d.nodeId");
           return 0.5*width; }
         if (d.x === undefined) { 
-          console.debug("UNDEFINED d.x " + d.nodeId);
+          console.warn("UNDEFINED d.x " + d.nodeId);
           return 0.5*width; 
         }
         return d.x; 
       })
       .attr("y", function(d) { 
         if (!d.nodeId) { 
-          console.debug("UNDEFINED d.nodeId");
+          console.warn("UNDEFINED d.nodeId");
           return 0.5*height; 
         }
         if (d.y === undefined) { 
-          console.debug("UNDEFINED d.y " + d.nodeId);
+          console.warn("UNDEFINED d.y " + d.nodeId);
           return 0.5*height; 
         }
         return d.y; 
@@ -1298,7 +1298,7 @@ function ViewTreepack() {
     if (nNode.mentions > currentMaxMentions) { 
       currentMaxMentions = nNode.mentions; 
       defaultRadiusScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minRadius, maxRadius]).clamp(true);
-      console.debug("NEW MAX MENTIONS: " + currentMaxMentions);
+      console.info("NEW MAX MENTIONS: " + currentMaxMentions);
     }
 
     if (nodeAddQ.length < MAX_RX_QUEUE) {
@@ -1454,7 +1454,7 @@ function ViewTreepack() {
     height = getWindowDimensions().height;
 
 
-    console.debug("width: " + width + " | height: " + height);
+    console.info("width: " + width + " | height: " + height);
 
     foci = {
       left: {x: xFocusLeftRatio*width, y: yFocusLeftRatio*height}, 

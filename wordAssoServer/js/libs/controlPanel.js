@@ -71,7 +71,7 @@ console.log("config\n" + jsonPrint(config));
   this.setGravitySliderValue = function (value) {
     if (!document.getElementById("gravitySlider")) { return; }
     console.log("setGravitySliderValue: " + value);
-    document.getElementById("gravitySlider").value = (value* document.getElementById("gravitySlider").getAttribute("multiplier"));
+    document.getElementById("gravitySlider").value = (value * document.getElementById("gravitySlider").getAttribute("multiplier"));
     document.getElementById("gravitySliderText").innerHTML = value.toFixed(3);
   }
 
@@ -89,19 +89,20 @@ console.log("config\n" + jsonPrint(config));
     document.getElementById("maxAgeSliderText").innerHTML = value;
   }
 
-  this.setFontSizeMinSliderValue = function (value) {
-    if (!document.getElementById("fontSizeMinSlider")) { return; }
-    console.log("setFontSizeMinSliderValue: " + value);
-    document.getElementById("fontSizeMinSlider").value = value;
-    document.getElementById("fontSizeMinSliderText").innerHTML = value;
+  this.setFontSizeMinRatioSliderValue = function (value) {
+    if (!document.getElementById("fontSizeMinRatioSlider")) { return; }
+    console.log("setFontSizeMinRatioSliderValue: " + value);
+    document.getElementById("fontSizeMinRatioSlider").value = (value * document.getElementById("fontSizeMinRatioSlider").getAttribute("multiplier"));
+    document.getElementById("fontSizeMinRatioSliderText").innerHTML = (100*value).toFixed(1) + " % H";
   }
 
-  this.setFontSizeMaxSliderValue = function (value) {
-    if (!document.getElementById("fontSizeMaxSlider")) { return; }
-    console.log("setFontSizeMaxSliderValue: " + value);
-    document.getElementById("fontSizeMaxSlider").value = value;
-    document.getElementById("fontSizeMaxSliderText").innerHTML = value;
+  this.setFontSizeMaxRatioSliderValue = function (value) {
+    if (!document.getElementById("fontSizeMaxRatioSlider")) { return; }
+    console.log("setFontSizeMaxRatioSliderValue: " + value);
+    document.getElementById("fontSizeMaxRatioSlider").value = (value * document.getElementById("fontSizeMaxRatioSlider").getAttribute("multiplier"));
+    document.getElementById("fontSizeMaxRatioSliderText").innerHTML = (100*value).toFixed(1) + " % H";
   }
+
 
   window.addEventListener("message", receiveMessage, false);
 
@@ -142,8 +143,8 @@ console.log("config\n" + jsonPrint(config));
         self.setChargeSliderValue(parentWindow.DEFAULT_CHARGE);
         self.setVelocityDecaySliderValue(parentWindow.DEFAULT_VELOCITY_DECAY);
         self.setMaxAgeSliderValue(parentWindow.DEFAULT_MAX_AGE);
-        self.setFontSizeMinSliderValue(parentWindow.DEFAULT_FONT_SIZE_MIN);
-        self.setFontSizeMaxSliderValue(parentWindow.DEFAULT_FONT_SIZE_MAX);
+        self.setFontSizeMinRatioSliderValue(parentWindow.DEFAULT_FONT_SIZE_MIN_RATIO);
+        self.setFontSizeMaxRatioSliderValue(parentWindow.DEFAULT_FONT_SIZE_MAX_RATIO);
       }
     }
   };
@@ -161,7 +162,15 @@ console.log("config\n" + jsonPrint(config));
 
     var currentSliderTextId = currentSlider.id + 'Text';
 
-    document.getElementById(currentSliderTextId).innerHTML = (currentSlider.value/currentSlider.multiplier).toFixed(3);
+    switch (currentSlider.id) {
+
+      case "fontSizeMinRatioSlider":
+      case "fontSizeMaxRatioSlider":
+        document.getElementById(currentSliderTextId).innerHTML = (100*currentSlider.value/currentSlider.multiplier).toFixed(1) + " % H";
+      break;
+      default:
+        document.getElementById(currentSliderTextId).innerHTML = (currentSlider.value/currentSlider.multiplier).toFixed(3);
+    }
 
     parentWindow.postMessage({op:'UPDATE', id: currentSlider.id, value: (currentSlider.value/currentSlider.multiplier)}, DEFAULT_SOURCE);
   }, false);
@@ -207,8 +216,8 @@ console.log("config\n" + jsonPrint(config));
         self.setChargeSliderValue(cnf.defaultCharge);
         self.setVelocityDecaySliderValue(cnf.defaultVelocityDecay);
         self.setMaxAgeSliderValue(cnf.defaultMaxAge);
-        self.setFontSizeMinSliderValue(cnf.defaultFontSizeMin);
-        self.setFontSizeMaxSliderValue(cnf.defaultFontSizeMax);
+        self.setFontSizeMinRatioSliderValue(cnf.defaultFontSizeMinRatio);
+        self.setFontSizeMaxRatioSliderValue(cnf.defaultFontSizeMaxRatio);
       break;
     }
   }
@@ -429,39 +438,38 @@ console.log("config\n" + jsonPrint(config));
 
     console.log("config\n" + jsonPrint(config));
 
-    var fontSizeMinSlider = {
+     var fontSizeMinRatioSlider = {
       type: 'SLIDER',
-      id: 'fontSizeMinSlider',
-      class: 'slider',
-      min: 0,
-      max: 50,
-      value: config.defaultFontSizeMin,
-      // value: 47,
-      multiplier: 1.0
-    }
-
-    var fontSizeMinSliderText = {
-      type: 'TEXT',
-      id: 'fontSizeMinSliderText',
-      class: 'sliderText',
-      text: fontSizeMinSlider.value + ' px'
-    }
-
-    var fontSizeMaxSlider = {
-      type: 'SLIDER',
-      id: 'fontSizeMaxSlider',
+      id: 'fontSizeMinRatioSlider',
       class: 'slider',
       min: 0,
       max: 100,
-      value: config.defaultFontSizeMax,
-      multiplier: 1.0
+      value: config.defaultFontSizeMinRatio * config.defaultMultiplier,
+      multiplier: config.defaultMultiplier
     }
 
-    var fontSizeMaxSliderText = {
+    var fontSizeMinRatioSliderText = {
       type: 'TEXT',
-      id: 'fontSizeMaxSliderText',
+      id: 'fontSizeMinRatioSliderText',
       class: 'sliderText',
-      text: fontSizeMaxSlider.value + ' px'
+      text: fontSizeMinRatioSlider.value + fontSizeMinRatioSlider.multiplier
+    }
+
+    var fontSizeMaxRatioSlider = {
+      type: 'SLIDER',
+      id: 'fontSizeMaxRatioSlider',
+      class: 'slider',
+      max: 0,
+      max: 100,
+      value: config.defaultFontSizeMaxRatio * config.defaultMultiplier,
+      multiplier: config.defaultMultiplier
+    }
+
+    var fontSizeMaxRatioSliderText = {
+      type: 'TEXT',
+      id: 'fontSizeMaxRatioSliderText',
+      class: 'sliderText',
+      text: fontSizeMaxRatioSlider.value + fontSizeMaxRatioSlider.multiplier
     }
 
     var transitionDurationSlider = {
@@ -601,8 +609,8 @@ console.log("config\n" + jsonPrint(config));
             fullscreenButton
           ]);
         self.tableCreateRow(controlTable, optionsBody, [resetButton]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ['FONT MIN', fontSizeMinSlider, fontSizeMinSliderText]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ['FONT MAX', fontSizeMaxSlider, fontSizeMaxSliderText]);
+        self.tableCreateRow(controlSliderTable, optionsBody, ['FONT MIN', fontSizeMinRatioSlider, fontSizeMinRatioSliderText]);
+        self.tableCreateRow(controlSliderTable, optionsBody, ['FONT MAX', fontSizeMaxRatioSlider, fontSizeMaxRatioSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ['MAX AGE', maxAgeSlider, maxAgeSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ['CHARGE', chargeSlider, chargeSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ['GRAVITY', gravitySlider, gravitySliderText]);
@@ -629,8 +637,8 @@ console.log("config\n" + jsonPrint(config));
             fullscreenButton
           ]);
         self.tableCreateRow(controlTable, optionsBody, [resetButton]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ['FONT MIN', fontSizeMinSlider, fontSizeMinSliderText]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ['FONT MAX', fontSizeMaxSlider, fontSizeMaxSliderText]);
+        self.tableCreateRow(controlSliderTable, optionsBody, ['FONT MIN', fontSizeMinRatioSlider, fontSizeMinRatioSliderText]);
+        self.tableCreateRow(controlSliderTable, optionsBody, ['FONT MAX', fontSizeMaxRatioSlider, fontSizeMaxRatioSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ['TRANSITION', transitionDurationSlider, transitionDurationSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ['MAX AGE', maxAgeSlider, maxAgeSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ['CHARGE', chargeSlider, chargeSliderText]);

@@ -10,10 +10,6 @@ function ViewTreepack() {
   var minRadiusRatio = 0.01;
   var maxRadiusRatio = 0.10;
 
-  var minFontSizeRatio = 0.02;
-  var midFontSizeRatio = 0.04;
-  var maxFontSizeRatio = 0.05;
-
   var sliderPercision = 3;
 
   var hashtagTopMargin = 10; // %
@@ -23,8 +19,6 @@ function ViewTreepack() {
 
   var maxHashtagRows = 25;
   var maxHashtagCols = 5;
-  var rowSpacing = minFontSizeRatio*110; // %
-  var colSpacing = 90/maxHashtagCols; // %
 
   // FORCE X & Y
   var xFocusLeftRatio = 0.3;
@@ -84,27 +78,6 @@ function ViewTreepack() {
   var currentHashtagMaxMentions = 2;
   var deadNodesHash = {};
 
-  var transitionDuration = config.defaultTransitionDuration;
-  var blahMode = config.defaultBlahMode;
-  var charge = config.defaultCharge;
-  var gravity = config.defaultGravity;
-  var forceXmultiplier = config.defaultForceXmultiplier;
-  var forceYmultiplier = config.defaultForceYmultiplier;
-  var collisionRadiusMultiplier = 1.01;
-  var collisionIterations = config.defaultCollisionIterations;
-  var globalLinkStrength = config.defaultLinkStrength;
-  var globalLinkDistance = config.defaultLinkDistance;
-  var velocityDecay = config.defaultVelocityDecay;
-
-  console.warn("TREEPACK CONFIG\n" + jsonPrint(config));
-
-  var testMode = false;
-  var freezeFlag = false;
-
-  var MAX_NODES = 100;
-
-  var NEW_NODE_AGE_RATIO = 0.01;
-
   var getWindowDimensions = function (){
 
     var w, h;
@@ -134,6 +107,35 @@ function ViewTreepack() {
 
   var minRadius = minRadiusRatio * width;
   var maxRadius = maxRadiusRatio * height;
+
+  var transitionDuration = config.defaultTransitionDuration;
+  var blahMode = config.defaultBlahMode;
+  var charge = config.defaultCharge;
+  var gravity = config.defaultGravity;
+  var forceXmultiplier = config.defaultForceXmultiplier;
+  var forceYmultiplier = config.defaultForceYmultiplier;
+  var collisionRadiusMultiplier = 1.01;
+  var collisionIterations = config.defaultCollisionIterations;
+  var globalLinkStrength = config.defaultLinkStrength;
+  var globalLinkDistance = config.defaultLinkDistance;
+  var velocityDecay = config.defaultVelocityDecay;
+  var fontSizeMinRatio = config.defaultFontSizeMinRatio;
+  var fontSizeMaxRatio = config.defaultFontSizeMaxRatio;
+  var fontSizeMin = config.defaultFontSizeMinRatio * height;
+  var fontSizeMax = config.defaultFontSizeMaxRatio * height;
+
+  var rowSpacing = fontSizeMinRatio*110; // %
+  var colSpacing = 90/maxHashtagCols; // %
+
+  console.warn("TREEPACK CONFIG\n" + jsonPrint(config));
+
+  var testMode = false;
+  var freezeFlag = false;
+
+  var MAX_NODES = 100;
+
+  var NEW_NODE_AGE_RATIO = 0.01;
+
 
   var foci = {
     left: {x: xFocusLeftRatio*width, y: yFocusLeftRatio*height}, 
@@ -227,11 +229,6 @@ function ViewTreepack() {
 
   console.log("width: " + width + " | height: " + height);
 
-  // var fontSize = fontSizeRatio * window.innerHeight;
-  var minFontSize = minFontSizeRatio * height;
-  var midFontSize = midFontSizeRatio * height;
-  var maxFontSize = maxFontSizeRatio * height;
-
   document.addEventListener("mousemove", function() {
     if (mouseHoverFlag) {
       d3.select("body").style("cursor", "pointer");
@@ -243,8 +240,8 @@ function ViewTreepack() {
   var defaultRadiusScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minRadius, maxRadius]).clamp(true);
 
   var nodeLabelSizeScale = d3.scaleLinear()
-    .domain([1, 0.75*currentMaxMentions, currentMaxMentions])
-    .range([minFontSize, midFontSize, maxFontSize])
+    .domain([1, currentMaxMentions])
+    .range([fontSizeMin, fontSizeMax])
     .clamp(true);
     
   var topTermLabelOpacityScale = d3.scaleLinear()
@@ -468,6 +465,29 @@ function ViewTreepack() {
     charge = value;
     simulation.force("charge", d3.forceManyBody().strength(value));
   }
+
+  self.updateFontSizeMinRatio = function(value) {
+    console.debug("UPDATE FONT MIN SIZE: " + value);
+    config.defaultFontSizeMinRatio = value;
+    fontSizeMinRatio = value;
+    fontSizeMin = value * height;
+    nodeLabelSizeScale = d3.scaleLinear()
+      .domain([1, currentMaxMentions])
+      .range([fontSizeMin, fontSizeMax])
+      .clamp(true);
+  }
+
+  self.updateFontSizeMaxRatio = function(value) {
+    console.debug("UPDATE FONT MAX SIZE: " + value);
+    config.defaultFontSizeMaxRatio = value;
+    fontSizeMaxRatio = value;
+    fontSizeMax = value * height;
+    nodeLabelSizeScale = d3.scaleLinear()
+      .domain([1, currentMaxMentions])
+      .range([fontSizeMin, fontSizeMax])
+      .clamp(true);
+  }
+
 
   self.resetDefaultForce = function() {
     console.warn("RESET TREEPACK DEFAULT FORCE");
@@ -722,7 +742,7 @@ function ViewTreepack() {
       .text(function(d) {
         return d.displaytext;
       })
-      .style("font-size", minFontSize)
+      .style("font-size", fontSizeMin)
       .style('fill', function(d) { 
         if (d.newFlag) { return palette.white; }
         if (d.mouseHoverFlag) { return palette.blue; }
@@ -760,14 +780,10 @@ function ViewTreepack() {
         return topTermLabelOpacityScale(d.ageMaxRatio); 
       })
       .style('fill', palette.white)
-      .style("font-size", minFontSize);
+      .style("font-size", fontSizeMin);
 
       callback(null, null);
   };
-
-
-
-
 
   var updateNodeCircles = function(callback) {
 
@@ -1022,7 +1038,6 @@ function ViewTreepack() {
     callback();
   };
 
-
   var focus = function(focalPoint){
     switch (focalPoint) {
       case "left":
@@ -1204,14 +1219,9 @@ function ViewTreepack() {
         currentHashtagMaxMentions = newNode.mentions;
 
         nodeLabelSizeScale = d3.scaleLinear()
-          .domain([1, 0.75*currentMaxMentions, currentMaxMentions])
-          .range([minFontSize, midFontSize, maxFontSize])
+          .domain([1, currentMaxMentions])
+          .range([fontSizeMin, fontSizeMax])
           .clamp(true);
-
-        // nodeLabelSizeScale = d3.scaleLinear()
-        //   .domain([1, currentMaxMentions])
-        //   .range([minFontSize, maxFontSize])
-        //   .clamp(true);
 
         console.info("NEW MAX Ms" 
           + " | " + currentHashtagMaxMentions 
@@ -1433,26 +1443,8 @@ function ViewTreepack() {
 
     d3image = d3.select("#d3group");
 
-    // if (window.innerWidth !== 'undefined') {
-    //   width = window.innerWidth;
-    //   height = window.innerHeight;
-    // }
-    // // IE6 in standards compliant mode (i.e. with a valid doctype as the first line in the document)
-    // else if (document.documentElement !== 'undefined' 
-    //   && document.documentElement.clientWidth !== 'undefined' 
-    //   && document.documentElement.clientWidth !== 0) {
-    //   width = document.documentElement.clientWidth;
-    //   height = document.documentElement.clientHeight;
-    // }
-    // // older versions of IE
-    // else {
-    //   width = document.getElementsByTagName('body')[0].clientWidth;
-    //   height = document.getElementsByTagName('body')[0].clientHeight;
-    // }
-
     width = getWindowDimensions().width;
     height = getWindowDimensions().height;
-
 
     console.info("width: " + width + " | height: " + height);
 
@@ -1465,17 +1457,17 @@ function ViewTreepack() {
       default: {x: xFocusDefaultRatio*width, y: yFocusDefaultRatio*height}
     };
 
-    minFontSize = minFontSizeRatio * height;
-    maxFontSize = maxFontSizeRatio * height;
-
     minRadius = minRadiusRatio * width;
     maxRadius = maxRadiusRatio * width;
 
     defaultRadiusScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minRadius, maxRadius]).clamp(true);
 
+    fontSizeMin = fontSizeMinRatio * height;
+    fontSizeMax = fontSizeMaxRatio * height;
+
     nodeLabelSizeScale = d3.scaleLinear()
       .domain([1, currentMaxMentions])
-      .range([minFontSize, maxFontSize])
+      .range([fontSizeMin, fontSizeMax])
       .clamp(true);
 
     svgMain

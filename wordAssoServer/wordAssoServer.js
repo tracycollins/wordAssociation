@@ -394,6 +394,10 @@ process.on("SIGINT", function() {
   quit("SIGINT");
 });
 
+process.on("exit", function() {
+  if (updater !== undefined) { updater.kill("SIGHUP"); }
+});
+
 // ==================================================================
 // FUNCTIONS
 // ==================================================================
@@ -8456,6 +8460,12 @@ initializeConfiguration(configuration, function(err, results) {
     });
   }
 });
+
+// GEN UNCAUGHT ERROR TO TEST KILL OF CHILD PROCESS
+// setTimeout(function(){
+//   console.log("CRASH!");
+//   console.log("OOPS!" + updater.thisdoesntexist.toLowerCase());
+// }, 5000);
 
 updateStatsCounts();
 

@@ -16,6 +16,11 @@ when new instance of word arrives, iterate thru array of nodes and create linksk
 var DEFAULT_SOURCE = "==SOURCE==";  // will be updated by wordAssoServer.js on app.get
 
 var PARENT_ID = "0047";
+
+var storedConfigName;
+var storedConfig;
+
+
 var PAGE_LOAD_TIMEOUT = 1000;
 
 var KEYWORD_SCALE = { min: 0, max: 100 };
@@ -969,14 +974,23 @@ var randomIntFromInterval = function(min, max) {
 };
 
 var randomId = randomIntFromInterval(1000000000, 9999999999);
+var VIEWER_ID = 'VIEWER_RANDOM_' + randomId;
+var USER_ID = 'VIEWER_RANDOM_' + randomId;
 
-var viewerObj = {
-  userId: 'VIEWER_RANDOM_' + randomId,
-  viewerId: 'VIEWER_RANDOM_' + randomId,
-  screenName: 'VIEWER RANDOM ' + randomId,
-  type: "VIEWER"
+var DEFAULT_VIEWER_OBJ = {
+  userId: USER_ID,
+  viewerId: VIEWER_ID,
+  screenName: USER_ID,
+  type: "viewer",
+  tags: {}
 };
 
+DEFAULT_VIEWER_OBJ.tags.type = "viewer";
+DEFAULT_VIEWER_OBJ.tags.mode = "stream";
+DEFAULT_VIEWER_OBJ.tags.entity = USER_ID;
+
+var viewerObj = {};
+viewerObj = DEFAULT_VIEWER_OBJ;
 
 // var initialXpositionRatio = 0.0;
 // var initialYpositionRatio = 0.5;
@@ -1074,6 +1088,16 @@ socket.on("VIEWER_ACK", function(vSesKey) {
   console.log("RX VIEWER_ACK | SESSION KEY: " + vSesKey);
 
   statsObj.viewerSessionKey = vSesKey;
+  viewerObj.viewerSessionKey = vSesKey;
+
+  if (config.VIEWER_OBJ === undefined) {
+    config.VIEWER_OBJ = {};
+  }
+
+  config.VIEWER_OBJ = viewerObj;
+
+  console.debug("STORE CONFIG ON VIEWER_ACK\n" + jsonPrint(config));
+  store.set(storedConfigName, config);
 
   if (sessionMode) {
     console.debug("SESSION MODE" + " | SID: " + sessionId + " | NSP: " + namespace);
@@ -1083,11 +1107,13 @@ socket.on("VIEWER_ACK", function(vSesKey) {
     socket.emit("GET_SESSION", currentSession.sessionId);
   } 
   else {
-    console.debug("TX REQ_USER_SESSION");
-    socket.emit("REQ_USER_SESSION");
+    console.debug("TX REQ_USER_SESSION\nVIEWER OBJ\n" + jsonPrint(viewerObj));
+    socket.emit("REQ_USER_SESSION", viewerObj);
   }
 
-  if (!config.pauseFlag) currentSessionView.simulationControl('RESUME');
+  if (!config.pauseFlag) {
+    currentSessionView.simulationControl('RESUME');
+  }
 
 });
 
@@ -1215,14 +1241,14 @@ document.addEventListener(visibilityEvent, function() {
     if (currentSessionView !== undefined) {
       currentSessionView.setPause(false);
     }
-    console.debug("visibilityEvent: " + windowVisible);
+    console.info("visibilityEvent: " + windowVisible);
   } 
   else {
     windowVisible = false;
     if (currentSessionView !== undefined) {
       currentSessionView.setPause(true);
     }
-    console.debug("visibilityEvent: " + windowVisible);
+    console.info("visibilityEvent: " + windowVisible);
   }
 });
 
@@ -1966,7 +1992,7 @@ function initSocketSessionUpdateRx(){
       rxSessionUpdateQueue.push(rxSessionObject);
 
       if (rxSessionObject.tags.trending) {
-        console.debug("TTT" + rxSessionObject.source.nodeId 
+        console.info("TTT" + rxSessionObject.source.nodeId 
           + " | T: " + rxSessionObject.tags.trending
         );
       }
@@ -2430,7 +2456,7 @@ var createGroup = function(callback) {
 
       addToHashMap(nodeHashMap, currentGroup.node.nodeId, currentGroup.node, function(grpNode) {
 
-        console.debug("+ G" 
+        console.info("+ G" 
           + " | " + grpNode.nodeId
           + " | " + grpNode.groupId
           // + " | " + grpNode.url
@@ -2706,7 +2732,7 @@ var createNode = function(callback) {
     } 
     else {
 
-      console.debug("+ SES" 
+      console.info("+ SES" 
         + " | " + session.node.nodeId
         + " | Ms: " + session.node.mentions
       );
@@ -2989,7 +3015,7 @@ var createNode = function(callback) {
             else {
               targetNode.text = targetText;
               if (session.target.mentions !== undefined) {
-                console.debug("--- TARGET MENTIONS: " + session.target.mentions);
+                console.info("--- TARGET MENTIONS: " + session.target.mentions);
                 targetNode.mentions = session.target.mentions;
               }
               else {
@@ -3138,7 +3164,7 @@ var createLink = function(callback) {
 
       var sessionLinkId = session.node.nodeId + "_" + session.source.nodeId;
 
-      console.debug("sessionLinkId: " + sessionLinkId);
+      console.info("sessionLinkId: " + sessionLinkId);
 
       session.node.links[sessionLinkId] = 1;
       session.source.links[sessionLinkId] = 1;
@@ -3322,21 +3348,30 @@ function loadViewType(svt, callback) {
 
   console.log("LOADING SESSION VIEW TYPE: " + svt);
 
-  var storedConfigName = "config_" + svt;
-  var storedConfig = store.get(storedConfigName);
+  storedConfigName = "config_" + svt;
+  storedConfig = store.get(storedConfigName);
 
   if (storedConfig) {
     console.debug("STORED CONFIG"
       + " | " + storedConfigName
       + "\nCURRENT CONFIG\n" + jsonPrint(config)
-      + "\n" + jsonPrint(storedConfig)
+      + "\nSTORED CONFIG\n" + jsonPrint(storedConfig)
     );
 
     var storedConfigArgs = Object.keys(storedConfig);
 
     storedConfigArgs.forEach(function(arg){
       config[arg] = storedConfig[arg];
-      console.log("--> STORED CONFIG | " + arg + ": " + config[arg]);
+      if (arg === "VIEWER_OBJ") {
+        console.warn("FOUND PREVIOUS VIEWER OBJ ... OVERIDING"
+          + "\nDEFAULT\n" + jsonPrint(DEFAULT_VIEWER_OBJ) 
+          + "\nSTORED\n" + jsonPrint(storedConfig[arg]) 
+        );
+
+        viewerObj = storedConfig[arg];
+
+      }
+      console.log("--> STORED CONFIG | " + arg + ": ", config[arg]);
     });
 
   }
@@ -3734,8 +3769,6 @@ function initialize(callback) {
               }
             }
 
-            // store.set("config", config);
-
             currentSessionView.simulationControl('START');
             currentSessionView.resize();
 
@@ -3856,8 +3889,6 @@ function initialize(callback) {
                 });
               }
             }
-
-          // store.set("config", config);
 
           currentSessionView.initD3timer();
           currentSessionView.resize();

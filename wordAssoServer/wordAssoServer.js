@@ -1499,7 +1499,7 @@ function userReadyHandler(request, callback){
   var socketId = request.socketId;
   var userObj = request.userObj;
 
-  debug(chalkUser("USER RDY HANDLER"
+  console.log(chalkUser("USER RDY HANDLER"
     + " | " + moment().format(compactDateTimeFormat) 
     + " | " + socketId
     + " | NID " + userObj.nodeId
@@ -2118,64 +2118,10 @@ function createSession(newSessionObj) {
 
     userReadyHandler({socketId: socket.id, userObj: userObj}, function(err, sObj){
       // if (err && quitOnErrorFlag) {
-      if (err) {
+      if (err && quitOnErrorFlag) {
         quit(err);
       }
     });
-
-    // sessionCache.get(socket.id, function(err, sObj){
-    //   if (err){
-    //     console.log(chalkError(moment().format(compactDateTimeFormat) 
-    //       + " | ??? SESSION CACHE ERROR ON USER READY"
-    //       + " | " + err
-    //       + "\n" + jsonPrint(userObj)
-    //     ));
-    //   }
-    //   else if (sObj === undefined) {
-    //     console.log(chalkError(moment().format(compactDateTimeFormat) 
-    //       + " | ??? SESSION NOT FOUND ON USER READY"
-    //       + " | " + socket.id
-    //       + "\n" + jsonPrint(userObj)
-    //     ));
-    //   }
-    //   else {
-    //     primarySessionObj = sObj;
-
-    //     var sessionCacheKey = socket.id ;
-
-    //     statsObj.socket.USER_READYS += 1;
-
-    //     console.log(chalkUser("R< U RDY"
-    //       + " | " + moment().format(compactDateTimeFormat) 
-    //       + "  " + userObj.nodeId
-    //       + "  ID " + userObj.userId
-    //       + "  N " + userObj.name
-    //       + "  E " + userObj.tags.entity
-    //       + "  C " + userObj.tags.channel
-    //       + "  T " + userObj.type
-    //       + "  M " + userObj.mode
-    //       // + "\nU " + userObj.url
-    //       // + "\nP " + userObj.profileImageUrl
-    //     ));
-
-    //     if ((userObj.tags !== undefined)
-    //       && (userObj.tags.entity !== undefined) 
-    //       && (userObj.tags.mode !== undefined) 
-    //       && (userObj.tags.mode.toLowerCase() === "substream")) {
-
-    //       sessionCacheKey = socket.id + "#" + userObj.tags.entity;
-
-    //       debug(chalkRedBold("USER_READY SUBSTREAM sessionCacheKey: " + sessionCacheKey));
-
-    //       sessionUpdateDbCache(sessionCacheKey, socket, userObj);
-    //     }
-    //     else {
-    //       debug(chalkRedBold("USER_READY sessionCacheKey: " + sessionCacheKey));
-    //       sessionUpdateDbCache(sessionCacheKey, socket, userObj);
-    //     }
-
-    //   }
-    // });
 
   });
 
@@ -2371,7 +2317,7 @@ function createSession(newSessionObj) {
         case "place":
 
           debug(chalkAlert("PLACE | checkKeyword\n" + jsonPrint(nodeObj)));
-          console.log(chalkAlert("PLACE | checkKeyword"
+          console.log(chalkInfo("PLACE | checkKeyword"
             + " | " + nodeObj.name
             + " | " + nodeObj.fullName
             + " | " + nodeObj.country
@@ -3080,14 +3026,19 @@ function updateSessionViews(sessionUpdateObj) {
     obj.target.adjective = null;
   }
 
-  if (entityChannelGroupHashMap.has(obj.tags.entity.toLowerCase())){
-    obj.tags.group = entityChannelGroupHashMap.get(obj.tags.entity.toLowerCase());
-    updateSessionViewQueue.push(obj);
+  if (obj.tags.entity !== undefined) {
+    if (entityChannelGroupHashMap.has(obj.tags.entity.toLowerCase())){
+      obj.tags.group = entityChannelGroupHashMap.get(obj.tags.entity.toLowerCase());
+      updateSessionViewQueue.push(obj);
+    }
+    // else if (obj.tags.entity !== undefined) {
+    //   statsObj.entityChannelGroup.hashMiss[obj.tags.entity] = 1;
+    //   statsObj.entityChannelGroup.allHashMisses[obj.tags.entity] = 1;
+    // }
   }
-  // else if (obj.tags.entity !== undefined) {
-  //   statsObj.entityChannelGroup.hashMiss[obj.tags.entity] = 1;
-  //   statsObj.entityChannelGroup.allHashMisses[obj.tags.entity] = 1;
-  // }
+  else {
+    console.log(chalkError("ERROR updateSessionViews | ENTITY TAG UNDEFINED\n" + jsonPrint(obj)));
+  }
 }
 
 // BHT

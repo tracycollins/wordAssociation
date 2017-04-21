@@ -471,6 +471,7 @@ function ViewTreepack() {
     config.defaultFontSizeMinRatio = value;
     fontSizeMinRatio = value;
     fontSizeMin = value * height;
+    rowSpacing = value * 110; // %
     nodeLabelSizeScale = d3.scaleLinear()
       .domain([1, currentMaxMentions])
       .range([fontSizeMin, fontSizeMax])
@@ -1464,6 +1465,7 @@ function ViewTreepack() {
 
     fontSizeMin = fontSizeMinRatio * height;
     fontSizeMax = fontSizeMaxRatio * height;
+    rowSpacing = fontSizeMinRatio*110; // %
 
     nodeLabelSizeScale = d3.scaleLinear()
       .domain([1, currentMaxMentions])

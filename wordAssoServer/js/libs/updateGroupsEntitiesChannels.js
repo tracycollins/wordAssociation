@@ -449,7 +449,7 @@ var updateKeywords = function (folder, file, callback){
     var keywordFileClientModifiedMoment = moment(new Date(response.client_modified));
 
     if (keywordFileClientModifiedMoment.isSameOrBefore(prevKeywordModifiedMoment)){
-      console.log(chalkInfo("KEYWORD FILE BEFORE OR EQUAL"
+      console.log(chalkInfo("... KEYWORD FILE BEFORE OR EQUAL"
         + " | PREV: " + prevKeywordModifiedMoment.format(compactDateTimeFormat)
         + " | CURRENT: " + keywordFileClientModifiedMoment.format(compactDateTimeFormat)
       ));
@@ -458,12 +458,12 @@ var updateKeywords = function (folder, file, callback){
       callback(null, {keywords: 0});
     }
     else {
-      console.log(chalkAlert("KEYWORD FILE AFTER"
+      console.log(chalkAlert("=== KEYWORD FILE AFTER"
         + " | PREV: " + prevKeywordModifiedMoment.format(compactDateTimeFormat)
         + " | CURRENT: " + keywordFileClientModifiedMoment.format(compactDateTimeFormat)
       ));
 
-      console.log(chalkAlert("... UPDATING KEYWORDS | " + folder + "/" + file));
+      console.log(chalkAlert("=== UPDATING KEYWORDS | " + folder + "/" + file));
 
       prevKeywordModifiedMoment = moment(keywordFileClientModifiedMoment);
 
@@ -541,7 +541,7 @@ var updateKeywords = function (folder, file, callback){
                 callback(err, null);
               }
               else {
-                console.log(chalkAlert("initKeywords COMPLETE"
+                console.log(chalkAlert("=== KEYWORD UPDATE COMPLETE"
                   + " | TOTAL KEYWORDS:   " + kwHashMap.count()
                 ));
 

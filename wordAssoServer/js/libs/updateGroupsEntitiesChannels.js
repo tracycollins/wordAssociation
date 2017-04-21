@@ -772,11 +772,14 @@ function updateGroupsInterval(options){
 
   clearInterval(initGroupsInterval);
 
-  console.log(chalkInfo("updateGroupsInterval"
+  console.log(chalkAlert("UPDATER: *** START updateGroupsInterval"
     + "\n" + jsonPrint(options)
   ));
 
   updateGroupsEntitiesKeywords(options, function(err, results){
+    console.log(chalk.blue("UPDATER: ===> updateGroupsInterval <==="
+      + "\n" + jsonPrint(options)
+    ));
     initGroupsReady = false;
     sendHashMaps(results, function(err2, results2){
       initGroupsReady = true;
@@ -786,7 +789,9 @@ function updateGroupsInterval(options){
   initGroupsInterval = setInterval(function() {
 
     if (initGroupsReady) {
-      console.log(chalkInfo("updateGroupsInterval"+ "\n" + jsonPrint(options)));
+      console.log(chalk.blue("UPDATER: ===> updateGroupsInterval <==="
+        + "\n" + jsonPrint(options)
+      ));
       initGroupsReady = false;
       updateGroupsEntitiesKeywords(options, function(err, results){
         sendHashMaps(results, function(err2, results2){

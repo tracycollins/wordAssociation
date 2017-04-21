@@ -108,6 +108,9 @@ var DEFAULT_COLLISION_ITERATIONS = 8;
 var DEFAULT_FONT_SIZE_MIN = 16;
 var DEFAULT_FONT_SIZE_MAX = 60;
 
+var DEFAULT_FONT_SIZE_MIN_RATIO = 0.01;
+var DEFAULT_FONT_SIZE_MAX_RATIO = 0.025;
+
 var DEFAULT_NODE_RADIUS = 20.0;
 
 var TREEMAPVIEW_DEFAULT = {};
@@ -150,6 +153,8 @@ TREEPACK_DEFAULT.FORCEY_MULTIPLIER = 0.1;
 TREEPACK_DEFAULT.VELOCITY_DECAY = 0.25;
 TREEPACK_DEFAULT.COLLISION_RADIUS_MULTIPLIER = 1;
 TREEPACK_DEFAULT.COLLISION_ITERATIONS = 16;
+TREEPACK_DEFAULT.FONT_SIZE_MIN_RATIO = 0.01;
+TREEPACK_DEFAULT.FONT_SIZE_MAX_RATIO = 0.025;
 
 var MEDIAVIEW_DEFAULT = {};
 MEDIAVIEW_DEFAULT.MAX_AGE = MEDIA_MAX_AGE;
@@ -184,8 +189,6 @@ else {
   config.removeDeadNodesFlag = true;
 
   config.defaultTransitionDuration = DEFAULT_TRANSITION_DURATION;
-  config.defaultFontSizeMin = DEFAULT_FONT_SIZE_MIN;
-  config.defaultFontSizeMax = DEFAULT_FONT_SIZE_MAX;
   config.defaultMaxAge = DEFAULT_MAX_AGE;
   config.defaultMultiplier = 1000.0;
   config.defaultBlahMode = DEFAULT_BLAH_MODE;
@@ -201,6 +204,8 @@ else {
   config.defaultVelocityDecay = DEFAULT_VELOCITY_DECAY;
   config.defaultNodeRadius = DEFAULT_NODE_RADIUS;
 
+  config.defaultFontSizeMinRatio = DEFAULT_FONT_SIZE_MIN_RATIO;
+  config.defaultFontSizeMaxRatio = DEFAULT_FONT_SIZE_MAX_RATIO;
 
   if ((config.sessionViewType == 'ticker') 
     ) {
@@ -849,12 +854,12 @@ function controlPanelComm(event) {
           currentSessionView.setNodeMaxAge(data.value);
           resetConfigUpdateTimeOut();
         break;
-        case 'fontSizeMinSlider' :
-          currentSessionView.setFontSizeMin(data.value);
+        case 'fontSizeMinRatioSlider' :
+          currentSessionView.updateFontSizeMinRatio(data.value);
           resetConfigUpdateTimeOut();
         break;
-        case 'fontSizeMaxSlider' :
-          currentSessionView.setFontSizeMax(data.value);
+        case 'fontSizeMaxRatioSlider' :
+          currentSessionView.updateFontSizeMaxRatio(data.value);
           resetConfigUpdateTimeOut();
         break;
         default:
@@ -3421,8 +3426,8 @@ function loadViewType(svt, callback) {
         DEFAULT_FORCEX_MULTIPLIER = FLOW_DEFAULT.FORCEX_MULTIPLIER;
         DEFAULT_FORCEX_SESSION_MULTIPLIER = FLOW_DEFAULT.FORCEX_SESSION_MULTIPLIER;
         DEFAULT_FORCEY_MULTIPLIER = FLOW_DEFAULT.FORCEY_MULTIPLIER;
-        DEFAULT_FONT_SIZE_MIN = FLOW_DEFAULT.FONT_SIZE_MIN;
-        DEFAULT_FONT_SIZE_MAX = FLOW_DEFAULT.FONT_SIZE_MAX;
+        DEFAULT_FONT_SIZE_MIN_RATIO = FLOW_DEFAULT.FONT_SIZE_MIN_RATIO;
+        DEFAULT_FONT_SIZE_MAX_RATIO = FLOW_DEFAULT.FONT_SIZE_MAX_RATIO;
 
         currentSessionView = new ViewFlow();
 
@@ -3444,6 +3449,8 @@ function loadViewType(svt, callback) {
         DEFAULT_VELOCITY_DECAY = TREEPACK_DEFAULT.VELOCITY_DECAY;
         DEFAULT_FORCEX_MULTIPLIER = TREEPACK_DEFAULT.FORCEX_MULTIPLIER;
         DEFAULT_FORCEY_MULTIPLIER = TREEPACK_DEFAULT.FORCEY_MULTIPLIER;
+        DEFAULT_FONT_SIZE_MIN_RATIO = TREEPACK_DEFAULT.FONT_SIZE_MIN_RATIO;
+        DEFAULT_FONT_SIZE_MAX_RATIO = TREEPACK_DEFAULT.FONT_SIZE_MAX_RATIO;
         currentSessionView = new ViewTreepack();
         initSocketSessionUpdateRx();
         initSocketNodeRx();
@@ -3467,6 +3474,8 @@ function loadViewType(svt, callback) {
       requirejs(["js/libs/sessionViewHistogram"], function() {
         console.debug("sessionViewHistogram LOADED");
         DEFAULT_MAX_AGE = HISTOGRAMVIEW_DEFAULT.MAX_AGE;
+        DEFAULT_FONT_SIZE_MIN_RATIO = HISTOGRAMVIEW_DEFAULT.FONT_SIZE_MIN_RATIO;
+        DEFAULT_FONT_SIZE_MAX_RATIO = HISTOGRAMVIEW_DEFAULT.FONT_SIZE_MAX_RATIO;
         currentSessionView = new ViewHistogram();
         initSocketNodeRx();
         callback();
@@ -3486,6 +3495,8 @@ function loadViewType(svt, callback) {
         DEFAULT_LINK_DISTANCE= FORCEVIEW_DEFAULT.LINK_DISTANCE;
         DEFAULT_LINK_STRENGTH = FORCEVIEW_DEFAULT.LINK_STRENGTH;
         DEFAULT_FORCEY_MULTIPLIER = FORCEVIEW_DEFAULT.FORCEY_MULTIPLIER;
+        DEFAULT_FONT_SIZE_MIN_RATIO = FORCEVIEW_DEFAULT.FONT_SIZE_MIN_RATIO;
+        DEFAULT_FONT_SIZE_MAX_RATIO = FORCEVIEW_DEFAULT.FONT_SIZE_MAX_RATIO;
         currentSessionView = new ViewForce();
         initSocketNodeRx();
         callback();

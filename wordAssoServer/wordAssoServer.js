@@ -166,7 +166,7 @@ hostname = hostname.replace(/.local/g, "");
 hostname = hostname.replace(/.fios-router.home/g, "");
 hostname = hostname.replace(/word0-instance-1/g, "google");
 
-var GROUP_UPDATE_INTERVAL = 30000;
+var GROUP_UPDATE_INTERVAL = 15000;
 var MAX_RESPONSE_QUEUE_SIZE = 250;
 var OFFLINE_MODE = false;
 var internetReady = false;

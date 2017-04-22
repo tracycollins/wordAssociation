@@ -273,19 +273,19 @@ function deleteMetric(descriptor, callback){
   };
 
   googleMonitoringClient.deleteMetricDescriptor(deleteRequest)
-  .then(function(results){
-    console.log(chalkInfo("GOOGLE METRIC DELETE"));
-    callback();
-  })
-  .catch(function(error){
-    console.log(chalkError("*** ERROR GOOGLE METRIC DELETE"
-      // + " | ERR CODE: " + results.code
-      // + " | META DATA: " + results.metadata
-      // + " | META NODE: " + results.note
-      + "\n" + jsonPrint(results)
-    ));
-    callback(error);
-  });
+    .then(function(results){
+      console.log(chalkInfo("GOOGLE METRIC DELETE"));
+      callback();
+    })
+    .catch(function(error){
+      console.log(chalkError("*** ERROR GOOGLE METRIC DELETE"
+        // + " | ERR CODE: " + results.code
+        // + " | META DATA: " + results.metadata
+        // + " | META NODE: " + results.note
+        + "\n" + jsonPrint(error)
+      ));
+      callback(error);
+    });
 }
 
 initializeConfiguration(configuration, function(err, results){

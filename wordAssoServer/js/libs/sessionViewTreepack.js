@@ -7,6 +7,19 @@ function ViewTreepack() {
   var self = this;
   var simulation;
 
+  var maxRateMentionsNode = {};
+  maxRateMentionsNode.nodeId = "RATE MENTIONS | MAX";
+  maxRateMentionsNode.age = 0;
+  maxRateMentionsNode.rate = 1;
+  maxRateMentionsNode.mentions = 1;
+  maxRateMentionsNode.ageMaxRatio = 0;
+  maxRateMentionsNode.isTrendingTopic = true;
+  maxRateMentionsNode.displaytext = "WHAT?";
+  maxRateMentionsNode.mouseHoverFlag = false;
+  maxRateMentionsNode.x = 100;
+  maxRateMentionsNode.y = 100;
+
+
   var minRadiusRatio = 0.01;
   var maxRadiusRatio = 0.10;
 
@@ -590,6 +603,18 @@ function ViewTreepack() {
     }
 
     if (ageNodesIndex < 0) {
+
+
+      maxRateMentionsNode.age = 0;
+      maxRateMentionsNode.rate = currentMaxRate;
+      maxRateMentionsNode.mentions = currentMaxMentions;
+      maxRateMentionsNode.ageMaxRatio = 0;
+      maxRateMentionsNode.isTrendingTopic = true;
+      maxRateMentionsNode.displaytext = createDisplayText(maxRateMentionsNode);
+      maxRateMentionsNode.mouseHoverFlag = false;
+
+      nodesTopTermHashMap.set(maxRateMentionsNode.nodeId, maxRateMentionsNode);
+
       rankHashMapByValue(nodesTopTermHashMap, "rate", function(){
         nodesTopTerm = nodesTopTermHashMap.values();
         callback(null, deadNodeFlag);

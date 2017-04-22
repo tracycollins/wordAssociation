@@ -75,6 +75,7 @@ function ViewTreepack() {
   var nodesTopTerm = [];
 
   var currentMaxMentions = 0;
+  var currentMaxRate = 1;
   var currentHashtagMaxMentions = 2;
   var deadNodesHash = {};
 
@@ -147,6 +148,7 @@ function ViewTreepack() {
 
   var minOpacity = 0.35;
   var blahFlag = false;
+  var metricMode = "rate";
   var antonymFlag = false;
   var removeDeadNodesFlag = true;
 
@@ -235,10 +237,12 @@ function ViewTreepack() {
     }
   }, true);
 
-  var defaultRadiusScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minRadius, maxRadius]).clamp(true);
+  // var defaultRadiusScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minRadius, maxRadius]).clamp(true);
+  var defaultRadiusScale = d3.scaleLinear().domain([0, currentMaxRate]).range([minRadius, maxRadius]).clamp(true);
 
   var nodeLabelSizeScale = d3.scaleLinear()
-    .domain([1, currentMaxMentions])
+    // .domain([1, currentMaxMentions])
+    .domain([1, currentMaxRate])
     .range([fontSizeMin, fontSizeMax])
     .clamp(true);
     
@@ -335,6 +339,11 @@ function ViewTreepack() {
   this.setAntonym = function(flag) {
     antonymFlag = flag;
     console.debug("SET ANTONYM: " + antonymFlag);
+  };
+
+  this.setMetric = function(mode) {
+    metricMode = mode;
+    console.debug("SET METRIC: " + metricMode);
   };
 
   this.setBlah = function(flag) {
@@ -471,7 +480,8 @@ function ViewTreepack() {
     fontSizeMin = value * height;
     rowSpacing = value * 110; // %
     nodeLabelSizeScale = d3.scaleLinear()
-      .domain([1, currentMaxMentions])
+      // .domain([1, currentMaxMentions])
+      .domain([1, currentMaxRate])
       .range([fontSizeMin, fontSizeMax])
       .clamp(true);
   }
@@ -482,7 +492,8 @@ function ViewTreepack() {
     fontSizeMaxRatio = value;
     fontSizeMax = value * height;
     nodeLabelSizeScale = d3.scaleLinear()
-      .domain([1, currentMaxMentions])
+      // .domain([1, currentMaxMentions])
+      .domain([1, currentMaxRate])
       .range([fontSizeMin, fontSizeMax])
       .clamp(true);
   }
@@ -851,7 +862,8 @@ function ViewTreepack() {
             return d.r;
           }
           else {
-            d.r = defaultRadiusScale(parseInt(d.mentions));
+            // d.r = defaultRadiusScale(parseInt(d.mentions));
+            d.r = defaultRadiusScale(parseInt(d.rate));
             return d.r;
           }
         });
@@ -910,7 +922,8 @@ function ViewTreepack() {
             return defaultRadiusScale(1);
           }
           else {
-            return defaultRadiusScale(parseInt(d.mentions));
+            // return defaultRadiusScale(parseInt(d.mentions));
+            return defaultRadiusScale(parseInt(d.rate));
           }
         });
 
@@ -972,7 +985,8 @@ function ViewTreepack() {
       })
       .style("fill", palette.white)
       .style("font-size", function(d) {
-        return nodeLabelSizeScale(d.mentions);
+        // return nodeLabelSizeScale(d.mentions);
+        return nodeLabelSizeScale(d.rate);
       });
 
     nodeLabels
@@ -1025,7 +1039,8 @@ function ViewTreepack() {
       })
       .style("fill", palette.white)
       .style("font-size", function(d) {
-        return nodeLabelSizeScale(d.mentions);
+        // return nodeLabelSizeScale(d.mentions);
+        return nodeLabelSizeScale(d.rate);
       });
 
     nodeLabels
@@ -1214,11 +1229,14 @@ function ViewTreepack() {
       }
 
 
-      if (newNode.mentions > currentHashtagMaxMentions) {
-        currentHashtagMaxMentions = newNode.mentions;
+      // if (newNode.mentions > currentHashtagMaxMentions) {
+      //   currentHashtagMaxMentions = newNode.mentions;
+      if (newNode.rate > currentMaxRate) {
+        currentMaxRate = newNode.rate;
 
         nodeLabelSizeScale = d3.scaleLinear()
-          .domain([1, currentMaxMentions])
+          // .domain([1, currentMaxMentions])
+          .domain([1, currentMaxRate])
           .range([fontSizeMin, fontSizeMax])
           .clamp(true);
 
@@ -1306,8 +1324,16 @@ function ViewTreepack() {
 
     if (nNode.mentions > currentMaxMentions) { 
       currentMaxMentions = nNode.mentions; 
-      defaultRadiusScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minRadius, maxRadius]).clamp(true);
+      // defaultRadiusScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minRadius, maxRadius]).clamp(true);
+      // defaultRadiusScale = d3.scaleLinear().domain([1, currentMaxRate]).range([minRadius, maxRadius]).clamp(true);
       console.info("NEW MAX MENTIONS: " + currentMaxMentions);
+    }
+
+    if (nNode.rate > currentMaxRate) { 
+      currentMaxRate = nNode.rate; 
+      // defaultRadiusScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minRadius, maxRadius]).clamp(true);
+      defaultRadiusScale = d3.scaleLinear().domain([0, currentMaxRate]).range([minRadius, maxRadius]).clamp(true);
+      console.info("NEW MAX RATE: " + currentMaxRate.toFixed(2) + " | " + nNode.nodeId);
     }
 
     if (nodeAddQ.length < MAX_RX_QUEUE) {
@@ -1381,7 +1407,8 @@ function ViewTreepack() {
         return forceYmultiplier * gravity; 
       }))
       .force("collide", d3.forceCollide().radius(function(d) { 
-        return collisionRadiusMultiplier * defaultRadiusScale(d.mentions) ; 
+        // return collisionRadiusMultiplier * defaultRadiusScale(d.mentions) ; 
+        return collisionRadiusMultiplier * defaultRadiusScale(d.rate) ; 
       }).iterations(collisionIterations).strength(1.0))
       .velocityDecay(velocityDecay)
       .on("tick", ticked);
@@ -1459,14 +1486,16 @@ function ViewTreepack() {
     minRadius = minRadiusRatio * width;
     maxRadius = maxRadiusRatio * width;
 
-    defaultRadiusScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minRadius, maxRadius]).clamp(true);
+    // defaultRadiusScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minRadius, maxRadius]).clamp(true);
+    defaultRadiusScale = d3.scaleLinear().domain([0, currentMaxRate]).range([minRadius, maxRadius]).clamp(true);
 
     fontSizeMin = fontSizeMinRatio * height;
     fontSizeMax = fontSizeMaxRatio * height;
     rowSpacing = fontSizeMinRatio*110; // %
 
     nodeLabelSizeScale = d3.scaleLinear()
-      .domain([1, currentMaxMentions])
+      // .domain([1, currentMaxMentions])
+      .domain([1, currentMaxRate])
       .range([fontSizeMin, fontSizeMax])
       .clamp(true);
 
@@ -1535,7 +1564,8 @@ function ViewTreepack() {
           return forceYmultiplier * gravity; 
         }))
         .force("collide", d3.forceCollide().radius(function(d) { 
-          return collisionRadiusMultiplier * defaultRadiusScale(d.mentions) ; 
+          // return collisionRadiusMultiplier * defaultRadiusScale(d.mentions) ; 
+          return collisionRadiusMultiplier * defaultRadiusScale(d.rate) ; 
         }).iterations(collisionIterations))
         .velocityDecay(velocityDecay)
 

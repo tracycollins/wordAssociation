@@ -60,6 +60,7 @@ requirejs(["https://cdnjs.cloudflare.com/ajax/libs/d3/4.7.4/d3.min.js"], functio
       addControlButton();
       addBlahButton();
       addFullscreenButton();
+      addMetricButton();
       addStatsButton();
     });
   },
@@ -175,6 +176,7 @@ if (useStoredConfig) {
   config = store.get(globalStoredConfigName);
 }
 else {
+  config.metricMode = "rate";
   config.defaultAgeRate = 1.0;
   config.forceViewMode = DEFAULT_FORCEVIEW_MODE;
   config.fullscreenMode = false;
@@ -698,6 +700,22 @@ function updateStatsButton(){
   statsButton.innerHTML = config.showStatsFlag ? 'HIDE STATS' : 'SHOW STATS';
 }
 
+function updateMetricButton(){
+  var bButton = document.getElementById('metricButton');
+  bButton.innerHTML = config.metricMode.toUpperCase() + ' RADIUS';
+}
+
+function addMetricButton(){
+  var controlDiv = document.getElementById('controlDiv');
+  var metricButton = document.createElement("BUTTON");
+  if (config.metricMode === undefined) { config.metricMode = "rate"; }
+  metricButton.className = 'button';
+  metricButton.setAttribute('id', 'metricButton');
+  metricButton.setAttribute('onclick', 'toggleMetric()');
+  metricButton.innerHTML = config.metricMode.toUpperCase() + ' RADIUS';
+  controlDiv.appendChild(metricButton);
+}
+
 function updateBlahButton(){
   var bButton = document.getElementById('blahButton');
   bButton.innerHTML = config.blahMode ? 'HIDE BLAH' : 'SHOW BLAH';
@@ -783,6 +801,10 @@ function controlPanelComm(event) {
     case 'TOGGLE' :
       console.warn("R< CONTROL PANEL TOGGLE");
       switch (data.id) {
+        case 'metricToggleButton' :
+          toggleMetric();
+          resetConfigUpdateTimeOut();
+        break;
         case 'blahToggleButton' :
           toggleBlah();
           resetConfigUpdateTimeOut();
@@ -898,6 +920,19 @@ function createPopUpControlPanel (cnf, callback) {
     callback(controlPanelWindow);
   }, false);
 };
+
+function toggleMetric() {
+  if (config.metricMode == "rate") {
+    config.metricMode = "mentions";
+  }
+  else {
+    config.metricMode = "rate";
+  }
+  currentSessionView.setMetric(config.metricMode);
+  console.warn("SET RADIUS MODE: " + config.metricMode);
+  updateMetricButton();
+  if (controlPanelFlag) controlPanel.updateControlPanel(config);
+}
 
 function toggleBlah() {
   config.blahMode = !config.blahMode;

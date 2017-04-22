@@ -1503,7 +1503,7 @@ function userReadyHandler(request, callback){
   var socketId = request.socketId;
   var userObj = request.userObj;
 
-  console.log(chalkUser("USER RDY HANDLER"
+  debug(chalkUser("USER RDY HANDLER"
     + " | " + moment().format(compactDateTimeFormat) 
     + " | " + socketId
     + " | NID " + userObj.nodeId
@@ -1563,14 +1563,14 @@ function userReadyHandler(request, callback){
 
         sessionCacheKey = socketId + "#" + userObj.tags.entity;
 
-        debug(chalkRedBold("USER_READY SUBSTREAM sessionCacheKey: " + sessionCacheKey));
+        console.log(chalkInfo("USER_READY SUBSTREAM sessionCacheKey: " + sessionCacheKey));
 
         sessionUpdateDbCache({sessionCacheKey: sessionCacheKey, socketId: socketId, userObj: userObj}, function(err, sObj){
           callback(err, sObj);
         });
       }
       else {
-        debug(chalkRedBold("USER_READY sessionCacheKey: " + sessionCacheKey));
+        debug(chalkInfo("USER_READY sessionCacheKey: " + sessionCacheKey));
         sessionUpdateDbCache({sessionCacheKey: sessionCacheKey, socketId: socketId, userObj: userObj}, function(err, sObj){
           callback(err, sObj);
         });
@@ -1672,17 +1672,12 @@ function sessionUpdateDbCache(request, callback){
             sObj.tags.entity = sObj.tags.entity.toLowerCase();
 
             if (entityChannelGroupHashMap.has(sObj.tags.entity)){
-
-              // delete statsObj.entityChannelGroup.hashMiss[sObj.tags.entity];
-
               debug(chalkInfo("### E CH HM HIT"
                 + " | " + sObj.tags.entity
                 + " > " + entityChannelGroupHashMap.get(sObj.tags.entity).groupId
               ));
             }
             else {
-              // statsObj.entityChannelGroup.hashMiss[sObj.tags.entity] = 1;
-              // statsObj.entityChannelGroup.allHashMisses[sObj.tags.entity] = 1;
               debug(chalkInfo("-0- E CH HM MISS"
                 + " | " + sObj.tags.entity
                 // + "\n" + jsonPrint(statsObj.entityChannelGroup.hashMiss)
@@ -2633,7 +2628,7 @@ setTimeout(function(){
       createSession({
         namespace: "admin",
         socket: socket,
-        type: "ADMIN",
+        type: "admin",
         tags: {}
       });
       socket.on("SET_WORD_CACHE_TTL", function(value) {
@@ -2647,8 +2642,8 @@ setTimeout(function(){
       createSession({
         namespace: "util",
         socket: socket,
-        type: "UTIL",
-        mode: "UNKNOWN",
+        type: "util",
+        mode: "unknown",
         tags: {}
       });
     });
@@ -2659,8 +2654,8 @@ setTimeout(function(){
       createSession({
         namespace: "user",
         socket: socket,
-        type: "UTIL",
-        mode: "UNKNOWN",
+        type: "util",
+        mode: "unknown",
         tags: {}
       });
     });
@@ -2671,7 +2666,8 @@ setTimeout(function(){
       createSession({
         namespace: "view",
         socket: socket,
-        type: "VIEWER",
+        type: "viewer",
+        mode: "unknown",
         tags: {}
       });
     });
@@ -2682,7 +2678,8 @@ setTimeout(function(){
       createSession({
         namespace: "test-user",
         socket: socket,
-        type: "TEST_USER",
+        type: "test_user",
+        mode: "unknown",
         tags: {}
       });
     });
@@ -2693,7 +2690,8 @@ setTimeout(function(){
       createSession({
         namespace: "test-view",
         socket: socket,
-        type: "TEST_VIEWER",
+        type: "test_viewer",
+        mode: "unknown",
         tags: {}
       });
     });
@@ -4364,6 +4362,11 @@ var sessionRouteHashMap = new HashMap();
 
 function handleSessionEvent(sesObj, callback) {
 
+  console.log(chalkSession("SESS"
+    + " | " + sesObj.sessionEvent
+    + " | " + sesObj.session.sessionId 
+  ));
+
   var socketId;
   var entityRegEx = /#(\w+)$/ ;
   var namespaceRegEx = /^\/(\w+)#/ ;
@@ -4385,6 +4388,70 @@ function handleSessionEvent(sesObj, callback) {
   var sessionCacheKey;
 
   switch (sesObj.sessionEvent) {
+
+    case "SESSION_CREATE":
+
+      if (sesObj.session.tags === undefined) {
+        sesObj.session.tags = {};
+        sesObj.session.tags.entity = "UNKNOWN_ENTITY";
+        sesObj.session.tags.channel = "UNKNOWN_CHANNEL";
+      }
+
+      console.log(chalkSession(
+        "+ SES" 
+        // + " | " + moment().format(compactDateTimeFormat) 
+        // + " | NSP: " + sesObj.session.namespace 
+        + " | " + sesObj.session.sessionId 
+        + " | T " + sesObj.session.config.type 
+        + " | M " + sesObj.session.config.mode 
+        + " | E " + sesObj.session.tags.entity
+        + " | C " + sesObj.session.tags.channel
+        // + " | SIP: " + sesObj.session.ip
+      ));
+
+      switch (sesObj.session.config.type) {
+        case "admin":
+          break;
+        case "user":
+          break;
+        case "util":
+          break;
+        case "stream":
+          break;
+        case "viewer":
+          break;
+        case "test_user":
+          break;
+        case "test_viewer":
+          break;
+        default:
+          console.log(chalkError("??? UNKNOWN SESSION TYPE SESSION_CREATE handleSessionEvent"
+            + "\n" + jsonPrint(sesObj)
+          ));
+          // quit(" 1 ????? UNKNOWN SESSION TYPE: " + sesObj.session.config.type);
+      }
+
+      dnsReverseLookup(sesObj.session.ip, function(err, domains) {
+
+        if (!err && domains.length > 0) {
+          sesObj.session.domain = domains[0];
+          debug(chalkSession("... SESSION CREATE | IP: " + sesObj.session.ip 
+            + " | DOMAINS: " + domains.length + " | " + domains[0]));
+        } else {
+          sesObj.session.domain = "UNKNOWN";
+          debug(chalkSession("... SESSION CREATE | IP: " + sesObj.session.ip 
+            + " | DOMAINS: UNKNOWN"));
+        }
+
+        sesObj.session.connected = true;
+
+        sessionUpdateDb(sesObj.session, function(err, sessionUpdatedObj) {
+          if (!err) {
+            sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
+          }
+        });
+      });
+      break;
 
     case "SESSION_ABORT":
 
@@ -4412,6 +4479,105 @@ function handleSessionEvent(sesObj, callback) {
       sesObj.sessionEvent = "SESSION_DELETE";
       viewNameSpace.emit("SESSION_DELETE", sesObj);
       testViewersNameSpace.emit("SESSION_DELETE", sesObj);
+      break;
+
+    case "SESSION_KEEPALIVE":
+
+      debug("KEEPALIVE\n" + jsonPrint(sesObj));
+
+      sessionUpdateDb(sesObj.session, function(err, sessionUpdatedObj) {
+        if (err) {
+          console.log(chalkError(
+            "*** SESSION KEEPALIVE ERROR" 
+            + " | SID: " + sessionUpdatedObj.sessionId 
+            + " | IP: " + sessionUpdatedObj.ip + "\n" + jsonPrint(err)
+          ));
+        } 
+        else {
+
+          if (sessionUpdatedObj.wordChain.length > MAX_WORDCHAIN_LENGTH) {
+            debug(chalkSession("SHORTEN WC TO " + MAX_WORDCHAIN_LENGTH
+              + " | UID: " + sessionUpdatedObj.userId
+              + " | CURR LEN: " + sessionUpdatedObj.wordChain.length
+              + " | FIRST WORD: " + sessionUpdatedObj.wordChain[0].nodeId
+              + " | LAST WORD: " + sessionUpdatedObj.wordChain[sessionUpdatedObj.wordChain.length-1].nodeId
+            ));
+            sessionUpdatedObj.wordChain = sessionUpdatedObj.wordChain.slice(-MAX_WORDCHAIN_LENGTH);
+            debug(chalkSession("NEW WC"
+              + " | UID: " + sessionUpdatedObj.userId
+              + " | CURR LEN: " + sessionUpdatedObj.wordChain.length
+              + " | FIRST WORD: " + sessionUpdatedObj.wordChain[0].nodeId
+              + " | LAST WORD: " + sessionUpdatedObj.wordChain[sessionUpdatedObj.wordChain.length-1].nodeId
+            ));
+
+            if (sessionUpdatedObj.subSessionId !== undefined) {
+              sessionCache.set(sessionUpdatedObj.subSessionId, sessionUpdatedObj);
+            }
+            sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
+          }
+          else {
+            if (sessionUpdatedObj.subSessionId !== undefined) {
+              sessionCache.set(sessionUpdatedObj.subSessionId, sessionUpdatedObj);
+            }
+            sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
+          }
+
+          if (!sessionUpdatedObj.userId) {
+            console.log(chalkError("SESSION_KEEPALIVE: UNDEFINED USER ID" 
+              + "\nsessionUpdatedObj\n" + jsonPrint(sessionUpdatedObj)));
+            console.log(chalkError("SESSION_KEEPALIVE: UNDEFINED USER ID" 
+              + "\nsesObj\n" + jsonPrint(sesObj)));
+            quit("UNDEFINED USER ID: " + sessionUpdatedObj.sessionId);
+          }
+
+          utilCache.set(sessionUpdatedObj.userId, sessionUpdatedObj.user, function(err, success) {
+            if (err) {
+              console.log(chalkError("UTIL CACHE ERROR"
+                + " | " + success
+                + "\n" + jsonPrint(err)
+              ));
+            }
+          });
+
+          if (sessionUpdatedObj.config.type === "viewer") {
+            viewerCache.set(sessionUpdatedObj.userId, sessionUpdatedObj);
+            debug(chalkViewer("$ VIEWER: " + sessionUpdatedObj.userId + "\n" + jsonPrint(sessionUpdatedObj)));
+          }
+
+          debug(chalkLog(
+            "K>" + " | " + sessionUpdatedObj.userId 
+            + " | SID " + sessionUpdatedObj.sessionId 
+            + " | T " + sessionUpdatedObj.config.type 
+            + " | M " + sessionUpdatedObj.config.mode 
+            + " | NS " + sessionUpdatedObj.namespace 
+            + " | SID " + sessionUpdatedObj.sessionId 
+            + " | WCI " + sessionUpdatedObj.wordChainIndex 
+            + " | IP " + sessionUpdatedObj.ip
+            // + "\n" + jsonPrint(sessionUpdatedObj)
+          ));
+
+          if (sessionUpdatedObj.namespace !== "view") {
+            sessionUpdateObj = {
+              action: "KEEPALIVE",
+              nodeId: sessionUpdatedObj.tags.entity + "_" + sessionUpdatedObj.tags.channel,
+              tags: {},
+              userId: sessionUpdatedObj.userId,
+              url: sessionUpdatedObj.url,
+              profileImageUrl: sessionUpdatedObj.profileImageUrl,
+              sessionId: sessionUpdatedObj.sessionId,
+              wordChainIndex: sessionUpdatedObj.wordChainIndex
+              // source: {}
+            };
+
+            sessionUpdateObj.tags = sessionUpdatedObj.tags;
+
+            io.of(sessionUpdatedObj.namespace).to(sessionUpdatedObj.sessionId).emit("KEEPALIVE_ACK", sessionUpdatedObj.nodeId);
+
+            updateSessionViews(sessionUpdateObj);
+          }
+        }
+      });
+
       break;
 
     case "SESSION_EXPIRED":
@@ -4596,6 +4762,62 @@ function handleSessionEvent(sesObj, callback) {
 
       break;
 
+    case "SOCKET_RECONNECT":
+
+      debug(chalkSession(
+        "<-> SOCKET RECONNECT" 
+        + " | " + moment().format(compactDateTimeFormat) 
+        + " | NSP: " + sesObj.session.namespace 
+        + " | SID: " + sesObj.session.sessionId 
+        + " | IP: " + sesObj.session.ip 
+        + " | DOMAIN: " + sesObj.session.domain
+      ));
+
+      sessionCache.set(sesObj.session.sessionId, sesObj.session);
+      sessionUpdateDb(sesObj.session, function(err, updatedSesObj) {
+        if (err) {
+          console.log(chalkError("SESSION UPDATE ERROR\n" + jsonPrint(err)));
+        }
+        else {
+          debug(chalkInfo("SESSION UPDATE\n" + jsonPrint(updatedSesObj)));
+        }
+      });
+
+      currentUser = userCache.get(sesObj.session.userId);
+      currentViewer = viewerCache.get(sesObj.session.userId);
+      currentUtil = utilCache.get(sesObj.session.userId);
+
+      if (currentUtil) {
+        currentUtil.connected = true;
+
+        utilUpdateDb(currentUtil, function(err, updatedUtilObj) {
+          if (!err) {
+            debug(chalkRed("TX UTIL SESSION (SOCKET ERROR): " + updatedUtilObj.lastSession + " TO ADMIN NAMESPACE"));
+            adminNameSpace.emit("UTIL_SESSION", updatedUtilObj);
+          }
+        });
+      } else if (currentUser) {
+        currentUser.connected = true;
+
+        userUpdateDb(currentUser, function(err, updatedUserObj) {
+          if (!err) {
+            debug(chalkRed("TX USER SESSION (SOCKET ERROR): " + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"));
+            adminNameSpace.emit("USER_SESSION", updatedUserObj);
+          }
+        });
+      } else if (currentViewer) {
+        currentViewer.connected = true;
+
+        viewerUpdateDb(currentViewer, function(err, updatedViewerObj) {
+          if (!err) {
+            debug(chalkRed("TX VIEWER SESSION (SOCKET ERROR): " + updatedViewerObj.lastSession + " TO ADMIN NAMESPACE"));
+
+            adminNameSpace.emit("VIEWER_SESSION", updatedViewerObj);
+          }
+        });
+      }
+      break;
+
     case "REQ_ADMIN_SESSION":
       Object.keys(adminNameSpace.connected).forEach(function(adminSessionKey) {
         adminSessionObj = sessionCache.get(adminSessionKey);
@@ -4690,223 +4912,6 @@ function handleSessionEvent(sesObj, callback) {
         }
 
       });
-      break;
-
-    case "SESSION_KEEPALIVE":
-
-      debug("KEEPALIVE\n" + jsonPrint(sesObj));
-
-      sessionUpdateDb(sesObj.session, function(err, sessionUpdatedObj) {
-        if (err) {
-          console.log(chalkError(
-            "*** SESSION KEEPALIVE ERROR" 
-            + " | SID: " + sessionUpdatedObj.sessionId 
-            + " | IP: " + sessionUpdatedObj.ip + "\n" + jsonPrint(err)
-          ));
-        } 
-        else {
-
-          if (sessionUpdatedObj.wordChain.length > MAX_WORDCHAIN_LENGTH) {
-            debug(chalkSession("SHORTEN WC TO " + MAX_WORDCHAIN_LENGTH
-              + " | UID: " + sessionUpdatedObj.userId
-              + " | CURR LEN: " + sessionUpdatedObj.wordChain.length
-              + " | FIRST WORD: " + sessionUpdatedObj.wordChain[0].nodeId
-              + " | LAST WORD: " + sessionUpdatedObj.wordChain[sessionUpdatedObj.wordChain.length-1].nodeId
-            ));
-            sessionUpdatedObj.wordChain = sessionUpdatedObj.wordChain.slice(-MAX_WORDCHAIN_LENGTH);
-            debug(chalkSession("NEW WC"
-              + " | UID: " + sessionUpdatedObj.userId
-              + " | CURR LEN: " + sessionUpdatedObj.wordChain.length
-              + " | FIRST WORD: " + sessionUpdatedObj.wordChain[0].nodeId
-              + " | LAST WORD: " + sessionUpdatedObj.wordChain[sessionUpdatedObj.wordChain.length-1].nodeId
-            ));
-
-            if (sessionUpdatedObj.subSessionId !== undefined) {
-              sessionCache.set(sessionUpdatedObj.subSessionId, sessionUpdatedObj);
-            }
-            sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
-          }
-          else {
-            if (sessionUpdatedObj.subSessionId !== undefined) {
-              sessionCache.set(sessionUpdatedObj.subSessionId, sessionUpdatedObj);
-            }
-            sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
-          }
-
-          if (!sessionUpdatedObj.userId) {
-            console.log(chalkError("SESSION_KEEPALIVE: UNDEFINED USER ID" 
-              + "\nsessionUpdatedObj\n" + jsonPrint(sessionUpdatedObj)));
-            console.log(chalkError("SESSION_KEEPALIVE: UNDEFINED USER ID" 
-              + "\nsesObj\n" + jsonPrint(sesObj)));
-            quit("UNDEFINED USER ID: " + sessionUpdatedObj.sessionId);
-          }
-
-          utilCache.set(sessionUpdatedObj.userId, sessionUpdatedObj.user, function(err, success) {
-            if (err) {
-              console.log(chalkError("UTIL CACHE ERROR"
-                + " | " + success
-                + "\n" + jsonPrint(err)
-              ));
-            }
-          });
-
-          if (sessionUpdatedObj.config.type === "VIEWER") {
-            viewerCache.set(sessionUpdatedObj.userId, sessionUpdatedObj);
-            debug(chalkViewer("$ VIEWER: " + sessionUpdatedObj.userId + "\n" + jsonPrint(sessionUpdatedObj)));
-          }
-
-          debug(chalkLog(
-            "K>" + " | " + sessionUpdatedObj.userId 
-            + " | SID " + sessionUpdatedObj.sessionId 
-            + " | T " + sessionUpdatedObj.config.type 
-            + " | M " + sessionUpdatedObj.config.mode 
-            + " | NS " + sessionUpdatedObj.namespace 
-            + " | SID " + sessionUpdatedObj.sessionId 
-            + " | WCI " + sessionUpdatedObj.wordChainIndex 
-            + " | IP " + sessionUpdatedObj.ip
-            // + "\n" + jsonPrint(sessionUpdatedObj)
-          ));
-
-          if (sessionUpdatedObj.namespace !== "view") {
-            sessionUpdateObj = {
-              action: "KEEPALIVE",
-              nodeId: sessionUpdatedObj.tags.entity + "_" + sessionUpdatedObj.tags.channel,
-              tags: {},
-              userId: sessionUpdatedObj.userId,
-              url: sessionUpdatedObj.url,
-              profileImageUrl: sessionUpdatedObj.profileImageUrl,
-              sessionId: sessionUpdatedObj.sessionId,
-              wordChainIndex: sessionUpdatedObj.wordChainIndex
-              // source: {}
-            };
-
-            sessionUpdateObj.tags = sessionUpdatedObj.tags;
-
-            io.of(sessionUpdatedObj.namespace).to(sessionUpdatedObj.sessionId).emit("KEEPALIVE_ACK", sessionUpdatedObj.nodeId);
-
-            updateSessionViews(sessionUpdateObj);
-          }
-        }
-      });
-
-      break;
-
-    case "SESSION_CREATE":
-
-      if (sesObj.session.tags === undefined) {
-        sesObj.session.tags = {};
-        sesObj.session.tags.entity = "UNKNOWN_ENTITY";
-        sesObj.session.tags.channel = "UNKNOWN_CHANNEL";
-      }
-
-      console.log(chalkSession(
-        "+ SES" 
-        // + " | " + moment().format(compactDateTimeFormat) 
-        // + " | NSP: " + sesObj.session.namespace 
-        + " | " + sesObj.session.sessionId 
-        + " | T " + sesObj.session.config.type 
-        + " | M " + sesObj.session.config.mode 
-        + " | E " + sesObj.session.tags.entity
-        + " | C " + sesObj.session.tags.channel
-        // + " | SIP: " + sesObj.session.ip
-      ));
-
-      switch (sesObj.session.config.type) {
-        case "ADMIN":
-          break;
-        case "USER":
-          break;
-        case "UTIL":
-          break;
-        case "STREAM":
-          break;
-        case "VIEWER":
-          break;
-        case "TEST_USER":
-          break;
-        case "TEST_VIEWER":
-          break;
-        default:
-          console.log(chalkError("??? UNKNOWN SESSION EVENT handleSessionEvent\n" + jsonPrint(sesObj)));
-          // quit(" 1 ????? UNKNOWN SESSION TYPE: " + sesObj.session.config.type);
-      }
-
-      dnsReverseLookup(sesObj.session.ip, function(err, domains) {
-
-        if (!err && domains.length > 0) {
-          sesObj.session.domain = domains[0];
-          debug(chalkSession("... SESSION CREATE | IP: " + sesObj.session.ip 
-            + " | DOMAINS: " + domains.length + " | " + domains[0]));
-        } else {
-          sesObj.session.domain = "UNKNOWN";
-          debug(chalkSession("... SESSION CREATE | IP: " + sesObj.session.ip 
-            + " | DOMAINS: UNKNOWN"));
-        }
-
-        sesObj.session.connected = true;
-
-        sessionUpdateDb(sesObj.session, function(err, sessionUpdatedObj) {
-          if (!err) {
-            sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
-          }
-        });
-      });
-      break;
-
-    case "SOCKET_RECONNECT":
-
-      debug(chalkSession(
-        "<-> SOCKET RECONNECT" 
-        + " | " + moment().format(compactDateTimeFormat) 
-        + " | NSP: " + sesObj.session.namespace 
-        + " | SID: " + sesObj.session.sessionId 
-        + " | IP: " + sesObj.session.ip 
-        + " | DOMAIN: " + sesObj.session.domain
-      ));
-
-      sessionCache.set(sesObj.session.sessionId, sesObj.session);
-      sessionUpdateDb(sesObj.session, function(err, updatedSesObj) {
-        if (err) {
-          console.log(chalkError("SESSION UPDATE ERROR\n" + jsonPrint(err)));
-        }
-        else {
-          debug(chalkInfo("SESSION UPDATE\n" + jsonPrint(updatedSesObj)));
-        }
-      });
-
-      currentUser = userCache.get(sesObj.session.userId);
-      currentViewer = viewerCache.get(sesObj.session.userId);
-      currentUtil = utilCache.get(sesObj.session.userId);
-
-      if (currentUtil) {
-        currentUtil.connected = true;
-
-        utilUpdateDb(currentUtil, function(err, updatedUtilObj) {
-          if (!err) {
-            debug(chalkRed("TX UTIL SESSION (SOCKET ERROR): " + updatedUtilObj.lastSession + " TO ADMIN NAMESPACE"));
-            adminNameSpace.emit("UTIL_SESSION", updatedUtilObj);
-          }
-        });
-      } else if (currentUser) {
-        currentUser.connected = true;
-
-        userUpdateDb(currentUser, function(err, updatedUserObj) {
-          if (!err) {
-            debug(chalkRed("TX USER SESSION (SOCKET ERROR): " + updatedUserObj.lastSession + " TO ADMIN NAMESPACE"));
-            adminNameSpace.emit("USER_SESSION", updatedUserObj);
-          }
-        });
-      } else if (currentViewer) {
-        currentViewer.connected = true;
-
-        viewerUpdateDb(currentViewer, function(err, updatedViewerObj) {
-          if (!err) {
-            debug(chalkRed("TX VIEWER SESSION (SOCKET ERROR): " + updatedViewerObj.lastSession + " TO ADMIN NAMESPACE"));
-
-            adminNameSpace.emit("VIEWER_SESSION", updatedViewerObj);
-          }
-        });
-      }
       break;
 
     case "ADMIN_READY":
@@ -5065,20 +5070,20 @@ function handleSessionEvent(sesObj, callback) {
 
        sessionId = sesObj.session.sessionId;
 
-      if (sesObj.session.config.mode === "MUXSTREAM"){
+      if (sesObj.session.config.mode === "muxstream"){
         debug(chalkInfo("MUXSTREAM"
           + " | " + sesObj.session.sessionId
         ));
       }
 
-      if (sesObj.session.config.mode === "SUBSTREAM"){
+      if (sesObj.session.config.mode === "substream"){
         sessionId = sesObj.session.sessionId + "#" + sesObj.user.tags.entity;
         debug(chalkInfo("SUBSTREAM"
           + " | " + sesObj.session.sessionId
         ));
       }
 
-      if (sesObj.session.config.mode === "MONITOR"){
+      if (sesObj.session.config.mode === "monitor"){
         key = sesObj.user.tags.entity + "_" + sesObj.user.tags.channel;
         monitorHashMap[key] = sesObj;
         debug(chalkRed("ADDDED MONITOR"
@@ -5128,18 +5133,38 @@ function handleSessionEvent(sesObj, callback) {
       userUpdateDb(sesObj.user, function(err, updatedUserObj) {
 
         if (!err) {
-          debug(chalkError("userUpdateDb CALLBACK\nERR\n" + jsonPrint(err) + "\nUSEROBJ\n" + jsonPrint(updatedUserObj)));
+          debug(chalkError("userUpdateDb CALLBACK\nERR\n"
+           + jsonPrint(err) 
+           + "\nUSEROBJ\n" + jsonPrint(updatedUserObj)
+          ));
           groupUpdateDb(updatedUserObj, function(err, entityObj){
 
-            debug(chalkError("groupUpdateDb CALLBACK\nERR\n" + jsonPrint(err) + "\nentityObj\n" + jsonPrint(entityObj)));
+            debug(chalkError("groupUpdateDb CALLBACK\nERR\n" + jsonPrint(err)
+             + "\nentityObj\n" + jsonPrint(entityObj)
+             ));
             if (err){
               console.log(chalkError("GROUP UPDATE DB ERROR: " + err));
             }
-            else if ((updatedUserObj.tags.mode !== undefined) && (updatedUserObj.tags.mode === "substream")) {
+            else if ((updatedUserObj.tags.mode !== undefined) 
+              && (updatedUserObj.tags.mode === "substream")) {
+
+              var muxedSessionId = sesObj.session.sessionId.replace(/#\w+$/, "");
+
               updatedUserObj.isMuxed = true;
-              debug(chalkInfo("TX UTIL SESSION (UTIL READY): " + updatedUserObj.lastSession  + " | " + updatedUserObj.userId + " TO ADMIN NAMESPACE"));
+              console.log(chalkInfo("TX UTIL SESSION (UTIL READY)"
+                + " | " + updatedUserObj.lastSession
+                + " | " + updatedUserObj.userId + " TO ADMIN NAMESPACE"
+              ));
               adminNameSpace.emit("UTIL_SESSION", updatedUserObj);
-              io.of(sesObj.session.namespace).to(sesObj.session.sessionId).emit("USER_READY_ACK", updatedUserObj.userId);
+
+              console.log(chalkSession("TX USER_READY_ACK"
+                + " | muxedSessionId: " + muxedSessionId
+                + " | " + sesObj.session.sessionId
+                + " | U: " + updatedUserObj.userId
+                // + "\n" + jsonPrint(updatedUserObj)
+              ));
+
+              io.of(sesObj.session.namespace).to(muxedSessionId).emit("USER_READY_ACK", updatedUserObj.userId);
             }
             else {
               if (updatedUserObj.groupId === undefined) {
@@ -5156,15 +5181,16 @@ function handleSessionEvent(sesObj, callback) {
                   console.log(chalkError("ENTITY UPDATE DB ERROR: " + err));
                 }
                 else {
-                  debug(console.log(chalkInfo("ENTITY UPDATE\n" + jsonPrint(entityObj))));
-                  if (sesObj.session.config.type === "USER") {
+                  console.log(console.log(chalkInfo("ENTITY UPDATE\n" + jsonPrint(entityObj))));
+                  if (sesObj.session.config.type === "user") {
                     console.log(chalkInfo("TX USER SESSION (USER READY)"
                       + " | LAST SEEN: " + moment(parseInt(entityObj.lastSeen)).format(compactDateTimeFormat)
                       + " | N: " + entityObj.name
                       + " | SN: " + entityObj.screenName
                     ));
                     adminNameSpace.emit("USER_SESSION", entityObj);
-                  } else if (sesObj.session.config.type === "UTIL") {
+                  } 
+                  else if (sesObj.session.config.type === "util") {
                     // console.log(chalkInfo("TX UTIL SESSION (UTIL READY): " + updatedUserObj.lastSeen + " TO ADMIN NAMESPACE"));
                     console.log(chalkInfo("TX USER SESSION (UTIL READY)"
                       + " | LAST SEEN: " + moment(parseInt(entityObj.lastSeen)).format(compactDateTimeFormat)
@@ -5175,6 +5201,10 @@ function handleSessionEvent(sesObj, callback) {
                     adminNameSpace.emit("UTIL_SESSION", entityObj);
                   }
 
+                  console.log(chalkSession("TX USER_READY_ACK"
+                    + " | " + sesObj.session.sessionId
+                    + " | E: " + entityObj.entityId
+                  ));
                   io.of(sesObj.session.namespace).to(sesObj.session.sessionId).emit("USER_READY_ACK", entityObj.entityId);
                 }
               });
@@ -5201,19 +5231,21 @@ function handleSessionEvent(sesObj, callback) {
           userCache.set(currentSession.userId, sesObj.user, function(err, success) {
             if (!err && success) {
               switch (sesObj.session.config.type) {
-                case "VIEWER":
+                case "viewer":
                   break;
-                case "ADMIN":
+                case "admin":
                   break;
-                case "UTIL":
+                case "util":
                   break;
-                case "TEST_VIEWER":
+                case "test_viewer":
                   break;
-                case "SUBSTREAM":
-                case "STREAM":
+                case "substream":
+                case "stream":
                   break;
                 default:
-                  console.log(chalkError("??? UNKNOWN SESSION EVENT handleSessionEvent\n" + jsonPrint(sesObj)));
+                  console.log(chalkError("??? UNKNOWN SESSION TYPE USER_READY handleSessionEvent"
+                    + "\n" + jsonPrint(sesObj)
+                  ));
                   // quit("???? UNKNOWN SESSION TYPE: " + sesObj.session.config.type);
               }
             }
@@ -5223,7 +5255,9 @@ function handleSessionEvent(sesObj, callback) {
       break;
 
     default:
-      console.log(chalkError("??? UNKNOWN SESSION EVENT handleSessionEvent\n" + jsonPrint(sesObj)));
+      console.log(chalkError("??? UNKNOWN SESSION EVENT handleSessionEvent"
+        + "\n" + jsonPrint(sesObj)
+      ));
   }
 
   if (callback !== undefined) { callback(null, sesObj); }
@@ -5379,7 +5413,7 @@ setInterval(function() {
         unknownSession.userObj.profileImageUrl = null;
         unknownSession.userObj.screenName = responseInObj.userId;
         unknownSession.userObj.namespace = "util";
-        unknownSession.userObj.type = "UTIL";
+        unknownSession.userObj.type = "util";
         unknownSession.userObj.mode = responseInObj.tags.mode || "UNDEFINED";
         unknownSession.userObj.nodeId = responseInObj.userId + "_" + responseInObj.tags.channel;
 

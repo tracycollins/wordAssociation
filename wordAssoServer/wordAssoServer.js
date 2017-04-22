@@ -4363,6 +4363,7 @@ var sessionRouteHashMap = new HashMap();
 function handleSessionEvent(sesObj, callback) {
 
   console.log(chalkSession("SESS"
+    + " | SES Q: " + sessionQueue.size()
     + " | " + sesObj.sessionEvent
     + " | " + sesObj.session.sessionId 
   ));

@@ -2762,7 +2762,6 @@ function updateStatsCounts() {
             });
 
             Word.count({}, function(err, count) {
-              statsCountsComplete = true;
               if (!err) {
                 // debug("TOTAL WORDS: " + count);
                 totalWords = count;
@@ -2771,7 +2770,6 @@ function updateStatsCounts() {
                 });
 
                 Group.count({}, function(err, count) {
-                  statsCountsComplete = true;
                   if (!err) {
                     // debug("TOTAL WORDS: " + count);
                     totalGroups = count;
@@ -2942,14 +2940,6 @@ setInterval(function() {
 
     var sessionUpdateObj = updateSessionViewQueue.shift();
 
-    // if (sessionUpdateObj.action !== "KEEPALIVE") {
-    //   console.log(chalkAlert("sessionUpdateObj\n" + jsonPrint(sessionUpdateObj)));
-    // }
-
-    updateStatsCounts();
-
-    // var sessionSmallObj;
-
     createSmallSessionUpdateObj(sessionUpdateObj, function(sessionSmallObj){
 
       var key = sessionSmallObj.tags.entity.toLowerCase() + "_" + sessionSmallObj.tags.channel.toLowerCase();
@@ -2975,19 +2965,27 @@ setInterval(function() {
       }
 
       updateWordMeter(sessionSmallObj.source, function(err, sNodeObj){
+
         debug(chalkRed("sessionSmallObj sNodeObj\n" + jsonPrint(sNodeObj)));
         sessionSmallObj.source = sNodeObj;
+
         if (sessionSmallObj.target) {
+
           updateWordMeter(sessionSmallObj.target, function(err, tNodeObj){
+
             sessionSmallObj.target = tNodeObj;
             viewNameSpace.emit("SESSION_UPDATE", sessionSmallObj);
+
             if (languageServer.connected) {
               languageServer.socket.emit("LANG_ANALIZE_WORD", sessionSmallObj.target);
             }
           });
+
         }
         else {
+
           viewNameSpace.emit("SESSION_UPDATE", sessionSmallObj);
+
           if (languageServer.connected) {
             languageServer.socket.emit("LANG_ANALIZE_WORD", sessionSmallObj.source);
           }
@@ -3033,17 +3031,12 @@ function updateSessionViews(sessionUpdateObj) {
       obj.tags.group = entityChannelGroupHashMap.get(obj.tags.entity.toLowerCase());
       updateSessionViewQueue.push(obj);
     }
-    // else if (obj.tags.entity !== undefined) {
-    //   statsObj.entityChannelGroup.hashMiss[obj.tags.entity] = 1;
-    //   statsObj.entityChannelGroup.allHashMisses[obj.tags.entity] = 1;
-    // }
   }
   else {
     console.log(chalkError("ERROR updateSessionViews | ENTITY TAG UNDEFINED\n" + jsonPrint(obj)));
   }
 }
 
-// BHT
 var wordTypes = ["noun", "verb", "adjective", "adverb"];
 
 function dbUpdateGroup(groupObj, incMentions, callback) {

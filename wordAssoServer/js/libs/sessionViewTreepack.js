@@ -15,7 +15,7 @@ function ViewTreepack() {
   var hashtagTopMargin = 10; // %
   var hashtagLeftMargin = 5; // %
   var mentionsNumChars = 9;
-  var rateNumChars = 6;
+  var rateNumChars = 8;
 
   var maxHashtagRows = 25;
   var maxHashtagCols = 5;
@@ -136,7 +136,6 @@ function ViewTreepack() {
 
   var NEW_NODE_AGE_RATIO = 0.01;
 
-
   var foci = {
     left: {x: xFocusLeftRatio*width, y: yFocusLeftRatio*height}, 
     right: {x: xFocusRightRatio*width, y: yFocusRightRatio*height}, 
@@ -145,7 +144,6 @@ function ViewTreepack() {
     neutral: {x: xFocusNeutralRatio*width, y: yFocusNeutralRatio*height},
     default: {x: xFocusDefaultRatio*width, y: yFocusDefaultRatio*height}
   };
-
 
   var minOpacity = 0.35;
   var blahFlag = false;

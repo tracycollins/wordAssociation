@@ -6789,7 +6789,10 @@ function initializeConfiguration(cnf, callback) {
     console.log("FINAL CONFIG | " + arg + ": " + cnf[arg]);
   });
 
-  if (cnf.quitOnError) { quitOnErrorFlag = true; }
+  if (cnf.quitOnError) { 
+    quitOnErrorFlag = true;
+    console.log(chalkAlert("===== QUIT ON ERROR SET ====="));
+  }
 
   if (cnf.enableStdin){
 

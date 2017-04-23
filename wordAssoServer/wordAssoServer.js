@@ -1735,7 +1735,7 @@ function createSession(newSessionObj) {
   sessionObj.config.type = newSessionObj.type;
   sessionObj.config.mode = newSessionObj.mode;
 
-  initSessionSocketHandler(socket);
+  initSessionSocketHandler(sessionObj, socket);
 
   sessionCache.set(sessionObj.sessionId, sessionObj, function(err, results){
 
@@ -1753,7 +1753,7 @@ function createSession(newSessionObj) {
 
 }
 
-function initSessionSocketHandler(socket) {
+function initSessionSocketHandler(sessionObj, socket) {
 
   var ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 

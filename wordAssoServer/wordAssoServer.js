@@ -153,6 +153,7 @@ var path = require("path");
 var net = require("net");
 var Queue = require("queue-fifo");
 
+var rxWordQueue = new Queue();
 var sessionQueue = new Queue();
 var dbUpdateGroupQueue = new Queue();
 var dbUpdateEntityQueue = new Queue();
@@ -461,6 +462,9 @@ var statsObj = {
 };
 
 statsObj.queues = {};
+statsObj.queues.rxWordQueue = {};
+statsObj.queues.rxWordQueue.size = 0;
+
 statsObj.queues.sessionQueue = {};
 statsObj.queues.sessionQueue.size = 0;
 
@@ -487,6 +491,7 @@ function showStats(options){
   statsObj.heap = process.memoryUsage().heapUsed/(1024*1024);
   statsObj.maxHeap = Math.max(statsObj.maxHeap, statsObj.heap);
 
+  statsObj.queues.rxWordQueue.size = rxWordQueue.size();
   statsObj.queues.sessionQueue.size = sessionQueue.size();
   statsObj.queues.responseQueue.size = responseQueue.size();
   statsObj.queues.dbUpdateWordQueue.size = dbUpdateWordQueue.size();
@@ -4243,25 +4248,6 @@ function updateMetrics() {
   deltaPromptsSent = 0;
   deltaWordsReceived = 0;
 }
-
-setInterval(function() {
-
-  if (!dnsReverseLookupQueue.isEmpty()) {
-
-    var sessionObj = dnsReverseLookupQueue.dequeue();
-
-    dnsReverseLookup(sessionObj.ip, function(err, domains) {
-      if (err) {
-        console.log(chalkError("\n\n***** ERROR: dnsReverseLookup: " + sessionObj.ip + " ERROR: " + err));
-      } else {
-        debug("DNS REVERSE LOOKUP: " + sessionObj.ip + " | DOMAINS: " + domains);
-        sessionObj.domain = domains[0];
-      }
-
-    });
-
-  }
-}, 20);
 
 function handleSessionEvent(sesObj, callback) {
 

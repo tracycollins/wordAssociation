@@ -87,29 +87,22 @@ var wordsPerSecond = 0.0;
 var maxWordsPerMin = 0;
 var maxWordsPerMinTime = moment.utc();
 
-// var obamaPerSecond = 0.0;
 var obamaPerMinute = 0.0;
 var maxObamaPerMin = 0;
 var maxObamaPerMinTime = moment.utc();
 
-// var trumpPerSecond = 0.0;
 var trumpPerMinute = 0.0;
 var maxTrumpPerMin = 0;
 var maxTrumpPerMinTime = moment.utc();
 
-// var serverHeartbeatInterval;
-// var pollGetTwitterFriendsInterval;
 
 var config = require("./config/config");
 var util = require("util");
 var fs = require("fs");
-// var S = require("string");
 var os = require("os");
-// var clone = require("clone");
 var async = require("async");
 var HashMap = require("hashmap").HashMap;
 var Dropbox = require("dropbox");
-// var deepcopy = require("deepcopy");
 var unirest = require("unirest");
 var debug = require("debug")("wa");
 var debugKeyword = require("debug")("kw");
@@ -160,6 +153,17 @@ var dns = require("dns");
 var path = require("path");
 var net = require("net");
 var Queue = require("queue-fifo");
+
+var sessionQueue = new Queue();
+var dbUpdateGroupQueue = new Queue();
+var dbUpdateEntityQueue = new Queue();
+var dbUpdateWordQueue = new Queue();
+var updaterMessageQueue = new Queue();
+
+var promptQueue = new Queue();
+var responseQueue = new Queue();
+
+var updateSessionViewQueue = [];
 
 var hostname = os.hostname();
 hostname = hostname.replace(/.local/g, "");
@@ -457,6 +461,25 @@ var statsObj = {
   "heartbeat": txHeartbeat
 };
 
+statsObj.queues = {};
+statsObj.queues.sessionQueue = {};
+statsObj.queues.sessionQueue.size = 0;
+
+statsObj.queues.responseQueue = {};
+statsObj.queues.responseQueue.size = 0;
+
+statsObj.queues.dbUpdateWordQueue = {};
+statsObj.queues.dbUpdateWordQueue.size = 0;
+
+statsObj.queues.updaterMessageQueue = {};
+statsObj.queues.updaterMessageQueue.size = 0;
+
+statsObj.queues.dbUpdateEntityQueue = {};
+statsObj.queues.dbUpdateEntityQueue.size = 0;
+
+statsObj.queues.updateSessionViewQueue = {};
+statsObj.queues.updateSessionViewQueue.size = 0;
+
 function showStats(options){
 
   statsObj.elapsed = msToTime(moment().valueOf() - statsObj.startTime);
@@ -464,6 +487,14 @@ function showStats(options){
 
   statsObj.heap = process.memoryUsage().heapUsed/(1024*1024);
   statsObj.maxHeap = Math.max(statsObj.maxHeap, statsObj.heap);
+
+  statsObj.queues.sessionQueue.size = sessionQueue.size();
+  statsObj.queues.responseQueue.size = responseQueue.size();
+  statsObj.queues.dbUpdateWordQueue.size = dbUpdateWordQueue.size();
+  statsObj.queues.updaterMessageQueue.size = updaterMessageQueue.size();
+  statsObj.queues.dbUpdateEntityQueue.size = dbUpdateEntityQueue.size();
+  statsObj.queues.updateSessionViewQueue.size = updateSessionViewQueue.length;
+
 
   if (options) {
     console.log(chalkAlert("STATS\n" + jsonPrint(statsObj)));
@@ -625,19 +656,6 @@ var numberTestUsers = 0;
 var dnsHostHashMap = new HashMap();
 var localHostHashMap = new HashMap();
 
-var sessionQueue = new Queue();
-var dbUpdateGroupQueue = new Queue();
-var dbUpdateEntityQueue = new Queue();
-var dbUpdateWordQueue = new Queue();
-var wapiSearchQueue = new Queue();
-var updaterMessageQueue = new Queue();
-var followerUpdateQueue = new Queue();
-
-var promptQueue = new Queue();
-var responseQueue = new Queue();
-var responseRate1minQ = new Queue();
-
-var dnsReverseLookupQueue = new Queue();
 
 var adminNameSpace;
 var utilNameSpace;
@@ -893,9 +911,6 @@ wordCache.on("set", function(word, wordObj) {
     + " | " + wordObj.raw
   ));
 
-  if (!wapiOverLimitFlag && (wapiForceSearch || !wordObj.wapiSearched)){
-    wapiSearchQueue.enqueue(wordObj);
-  }
 });
 
 wordCache.on("expired", function(word, wordObj) {
@@ -2731,12 +2746,6 @@ function dnsReverseLookup(ip, callback) {
   }
 }
 
-function updatePromptResponseMetric(sessionUpdateObj) {
-  debug("PROMPT-RESPONSE RATE FIFO PUSH: NOW: " + getTimeNow() 
-    + " | PROMPT-RESPONSE SESSION: " + sessionUpdateObj.sessionId);
-  responseRate1minQ.enqueue(moment.utc());
-}
-
 var statsCountsComplete = true;
 
 function updateStatsCounts() {
@@ -2825,7 +2834,6 @@ function updateStatsCounts() {
   }
 }
 
-var updateSessionViewQueue = [];
 
 var updateSessionViewReady = true;
 
@@ -2876,7 +2884,6 @@ function createSmallSessionUpdateObj (updateObj, callback){
 
     if (updateObj.tags !== undefined) {
       sessionSmallObj.tags = updateObj.tags;
-      // console.log("readUpdateSessionViewQueue | sessionSmallObj.tags\n" + jsonPrint(sessionSmallObj.tags));
     }
 
     sessionSmallObj.source.nodeId = updateObj.source.nodeId;
@@ -2997,7 +3004,6 @@ setInterval(function() {
       testViewersNameSpace.emit("SESSION_UPDATE", sessionSmallObj);
 
       updateStats({ sessionUpdatesSent: sessionUpdatesSent });
-      updatePromptResponseMetric(sessionSmallObj);
 
       sessionUpdatesSent += 1;
       updateSessionViewReady = true;
@@ -4338,25 +4344,6 @@ function updateMetrics() {
   incrementDeltaMwReqs(0);
 }
 
-setInterval(function() {
-
-  if (!dnsReverseLookupQueue.isEmpty()) {
-
-    var sessionObj = dnsReverseLookupQueue.dequeue();
-
-    dnsReverseLookup(sessionObj.ip, function(err, domains) {
-      if (err) {
-        console.log(chalkError("\n\n***** ERROR: dnsReverseLookup: " + sessionObj.ip + " ERROR: " + err));
-      } else {
-        debug("DNS REVERSE LOOKUP: " + sessionObj.ip + " | DOMAINS: " + domains);
-        sessionObj.domain = domains[0];
-      }
-
-    });
-
-  }
-}, 20);
-
 var unpairedUserHashMap = new HashMap();
 var sessionRouteHashMap = new HashMap();
 
@@ -5382,27 +5369,6 @@ setInterval(function() {
           // + "\n" + jsonPrint(responseInObj)
         ));
 
-// {
-//   "socketId": "/util#qfKAQxk9sRWaQ8T7AAAA",
-//   "userObj": {
-//     "name": "buzzfeednews",
-//     "tags": {
-//       "entity": "buzzfeednews",
-//       "url": "http://twitter.com/buzzfeednews",
-//       "channel": "twitter",
-//       "mode": "substream"
-//     },
-//     "userId": "buzzfeednews",
-//     "url": "http://twitter.com/buzzfeednews",
-//     "profileImageUrl": "http://pbs.twimg.com/profile_images/796353157576138752/H2xr-NkC_normal.jpg",
-//     "screenName": "buzzfeednews",
-//     "namespace": "util",
-//     "type": "UTIL",
-//     "mode": "SUBSTREAM",
-//     "nodeId": "buzzfeednews_twitter"
-//   }
-// }
-
         var unknownSession = {};
         unknownSession.socketId = responseInObj.socketId;
         unknownSession.userObj = {};
@@ -5485,68 +5451,6 @@ setInterval(function() {
           });
 
           currentSessionObj.lastSeen = moment().valueOf();
-
-          // var previousPrompt;
-          // var previousPromptObj;
-
-          // if ((currentSessionObj.wordChain !== undefined) && (currentSessionObj.wordChainIndex > 0)) {
-
-          //   previousPrompt = currentSessionObj.wordChain[currentSessionObj.wordChain.length - 1].nodeId;
-          //   // previousPromptObj = wordCache.get(previousPrompt);
-          //   wordCache.get(previousPrompt, function(err, pPromptObj){
-          //     if (err){
-          //       console.log(chalkError(moment().format(compactDateTimeFormat) 
-          //         + " | ??? WORD CACHE ERROR ON RESPONSE | " + err
-          //       ));
-          //     }
-          //     else {
-          //       if (!pPromptObj) {
-          //         debug(chalkAlert("PREV PROMPT $ MISS"
-          //           + " | " + socketId 
-          //           + " | " + currentSessionObj.userId 
-          //           + " | WCI: " + currentSessionObj.wordChainIndex 
-          //           + " | WCL: " + currentSessionObj.wordChain.length
-          //           + " | " + responseInObj.nodeId 
-          //           + " > " + previousPrompt 
-          //         ));
-
-          //         statsObj.session.error += 1;
-          //         statsObj.session.previousPromptNotFound += 1;
-
-          //         previousPromptObj = {
-          //           nodeId: previousPrompt,
-          //           mentions: 1 // !!!!!! KLUDGE !!!!!!
-          //         };
-
-          //         wordCache.set(previousPromptObj.nodeId, previousPromptObj);
-
-          //       }
-          //       else {
-          //         debug(chalkResponse("... previousPromp: " + pPromptObj.nodeId));
-          //       }
-          //     }
-          //   });
-          // } 
-          // else if (currentSessionObj.config.mode === "STREAM") {
-          //   previousPromptObj = { nodeId: "STREAM" };
-          //   debug(chalkWarn("STREAM WORD CHAIN\n" + jsonPrint(currentSessionObj.wordChain)));
-          // } 
-          // else if (currentSessionObj.config.mode === "MUXSTREAM") {
-          //   previousPromptObj = { nodeId: "MUXSTREAM" };
-          //   debug(chalkWarn("MUXSTREAM WORD CHAIN\n" + jsonPrint(currentSessionObj.wordChain)));
-          // } 
-          // else if (currentSessionObj.config.mode === "SUBSTREAM") {
-          //   previousPromptObj = { nodeId: "SUBSTREAM"  };
-          //   debug(chalkWarn("SUBSTREAM WORD CHAIN\n" + jsonPrint(currentSessionObj.wordChain)));
-          // } 
-          // else {
-          //   console.log(chalkError("??? EMPTY WORD CHAIN ... PREVIOUS PROMPT NOT IN CACHE ... ABORTING SESSION" 
-          //     + " | " + socketId
-          //     + "\nresponseInObj" + jsonPrint(responseInObj)
-          //   ));
-          //   responseQueueReady = true;
-          //   return;
-          // }
      
           getTags(responseInObj, function(uWordObj){
 
@@ -6066,8 +5970,6 @@ setInterval(function() {
         sessionCache.set(currentSessionObj.sessionId, currentSessionObj, function(err, success) {
           if (!err && success) {
 
-            promptQueue.enqueue(currentSessionObj.sessionId);
-
             var sessionUpdateObj = {
               action: "RESPONSE",
               userId: currentSessionObj.userId,
@@ -6097,95 +5999,6 @@ setInterval(function() {
   }
 }, 20);
 
-
-var getTwitterFriendsInterval;
-
-function getTwitterFriends(interval, callback){
-
-  var nextCursorValid = false;
-  var totalFriends = 0;
-  var nextCursor = false;
-  var count = 250;
-
-  clearInterval(getTwitterFriendsInterval);
-
-  getTwitterFriendsInterval = setInterval(function() {
-
-    var params = {};
-    params.count = count;
-    if (nextCursorValid) {params.cursor = parseInt(nextCursor);}
-
-    twit.get("friends/list", params, function(err, data, response){
-
-      debug(chalkInfo("twit friends/list response\n" + jsonPrint(response)));
-
-      if (err) {
-        console.log(chalkError("*** ERROR GET TWITTER FRIENDS: " + err));
-        clearInterval(getTwitterFriendsInterval);
-        if (callback !== undefined) { callback(err, null); }
-        return;
-      }
-
-      nextCursor = data.next_cursor_str;
-
-      console.log(chalkLog("\nFRIENDS"
-        + " | COUNT: " + count
-        + " | TOTAL: " + totalFriends
-        + " | NEXT CURSOR VALID: " + nextCursorValid
-        + " | NEXT CURSOR: " + nextCursor
-        // + "\nparams: " + jsonPrint(params)
-      ));
-
-      var friends = data.users;
-
-      if (data.next_cursor_str > 0) {
-        nextCursorValid = true;
-      }
-      else {
-        nextCursorValid = false;
-      }
-
-      friends.forEach(function(friend){
-
-        totalFriends += 1;
-
-        console.log(chalkTwitter("FRIEND"
-          + "[" + totalFriends + "]"
-          + " " + friend.screen_name
-          + " | " + friend.name
-        ));
-
-        var entityObj = new Entity();
-
-        entityObj.entityId = friend.screen_name.toLowerCase();
-        entityObj.name = friend.name;
-        entityObj.userId = friend.screen_name.toLowerCase();
-        entityObj.groupId = entityObj.entityId;
-        entityObj.screenName = entityObj.entityId;
-        entityObj.url = friend.url;
-        entityObj.tags = {};
-        entityObj.tags.entity = entityObj.entityId;
-        entityObj.tags.channel = "twitter";
-        entityObj.tags.mode = "substream";
-        entityObj.tags.group = "";
-
-        followerUpdateQueue.enqueue(entityObj);
-
-      });
-
-      if (!nextCursorValid) {
-        console.log(chalkTwitter("END GET FRIENDS"
-          + "[" + totalFriends + "]"
-        ));
-        console.log("FRIENDS NEXT CURSOR: " + nextCursor);
-        clearInterval(getTwitterFriendsInterval);
-        if (callback !== undefined) { callback(err, totalFriends); }
-        return;
-      }
-
-    });
-  }, interval);
-}
 
 //=================================
 // INIT APP ROUTING
@@ -6974,19 +6787,6 @@ function initializeConfiguration(cnf, callback) {
               access_token_secret: twitterConfig.TOKEN_SECRET
             });
 
-            getTwitterFriends(15000);
-
-            setInterval(function(){
-              getTwitterFriends(15000, function(err, totalFriends){
-                if (err) {
-                  console.log(chalkError("*** GET TWITTER FRIENDS ERROR: " + err));
-                }
-                else {
-                  console.log(chalkError("TWITTER FRIENDS: " + totalFriends));
-                }
-              });
-            }, pollTwitterFriendsIntervalTime);
-
             twitterStream = twit.stream("user");
 
             twitterStream.on("follow", function(followEvent){
@@ -7252,121 +7052,6 @@ function wapiSearch(word, variation, callback){
   });
 }
 
-
-var wapiSearchQueueReady = true;
-
-setInterval(function() {
-
-  if (!wapiOverLimitFlag && wapiSearchQueueReady && !wapiSearchQueue.isEmpty()) {
-
-    wapiSearchQueueReady = false;
-
-    var wordObj = wapiSearchQueue.dequeue();
-
-    wapiSearch(wordObj.nodeId, "ALL", function(results){
-
-      var wapiRemainingRatio = 100*(statsObj.wapi.totalRequests/statsObj.wapi.requestLimit);
-
-      if (results.err){
-        console.log(chalkError("WAPI ERROR:"
-          // + " | " + word.toLowerCase() 
-          + " | " + results.err
-          // + " | " + results.variation
-          + "\n" + jsonPrint(results)
-        ));
-
-        wapiSearchQueueReady = true;
-      }
-      else if (results.wapiFound) {
-
-        debug(chalkWapi("* WAPI HIT"
-          + " [ " + statsObj.wapi.totalRequests
-          + " / " + statsObj.wapi.requestLimit
-          + " | " + wapiRemainingRatio.toFixed(2) + "% ]"
-          // + " | " + word.toLowerCase() 
-          + " | " + results.word
-          + " | " + results.variation
-          // + "\n" + jsonPrint(results.body)
-        ));
-
-        wordObj.wapiSearched = true;
-        wordObj.wapiResults = results;
-        wordObj.wapiFound = results.found ;
-
-        wordServer.findOneWord(wordObj, false, function(err, word) {
-
-          wapiSearchQueueReady = true;
-
-          if (err) {
-            console.log(chalkError("wapiSearch -- > findOneWord ERROR" 
-              + "\n" + JSON.stringify(err) + "\n" + JSON.stringify(wordObj, null, 2)));
-            // callback(err, wordObj);
-          } 
-          else {
-            debug("WAPI > DB | " 
-              + word.nodeId 
-              + " | I: " + word.isIgnored 
-              + " | K: " + word.isKeyword 
-              + " | TOPTERM: " + word.isTopTerm 
-              + " | MNS: " + word.mentions 
-              // + " | URL: " + word.url 
-              + " | WAPI S: " + word.wapiSearched 
-              + " F: " + word.wapiFound
-              + " | BHT S: " + word.bhtSearched 
-              + " F: " + word.bhtFound
-              + " | MWD S: " + word.mwDictSearched 
-              + " F: " + word.mwDictFound
-              // + "\nKWs: " + jsonPrint(word.keywords) 
-            );
-          }
-        });
-      }
-      else {
-        debug(chalkWapi("- WAPI MISS"
-          + " [ " + statsObj.wapi.totalRequests
-          + " / " + statsObj.wapi.requestLimit
-          + " | " + wapiRemainingRatio.toFixed(2) + "% ]"
-          // + " | " + word.toLowerCase() 
-          + " | " + results.word
-          + " | " + results.variation
-        ));
-
-        wordObj.wapiSearched = true;
-        wordObj.wapiFound = false ;
-
-        wordServer.findOneWord(wordObj, false, function(err, word) {
-
-          wapiSearchQueueReady = true;
-
-          if (err) {
-            console.log(chalkError("wapiSearch -- > findOneWord ERROR" 
-              + "\n" + JSON.stringify(err) + "\n" + JSON.stringify(wordObj, null, 2)));
-          } 
-          else {
-            debug("WAPI > DB | " 
-              + word.nodeId 
-              + " | I: " + word.isIgnored 
-              + " | K: " + word.isKeyword 
-              + " | TOPTERM: " + word.isTopTerm 
-              + " | MNS: " + word.mentions 
-              // + " | URL: " + word.url 
-              + " | WAPI S: " + word.wapiSearched 
-              + " F: " + word.wapiFound
-              + " | BHT S: " + word.bhtSearched 
-              + " F: " + word.bhtFound
-              + " | MWD S: " + word.mwDictSearched 
-              + " F: " + word.mwDictFound
-              // + "\nKWs: " + jsonPrint(word.keywords) 
-            );
-          }
-        });
-        wapiSearchQueueReady = true;
-      }
-    });
-  }
-
-}, 50);
-
 function updateTrends(){
   twit.get("trends/place", {id: 1}, function (err, data, response){
 
@@ -7467,218 +7152,6 @@ function updateGroupEntity(entityObj, callback){
 }
 
 var followerUpdateQueueReady = true;
-
-function initFollowerUpdateQueueInterval(interval){
-
-  console.log(chalkInfo("INIT FOLLOWER UPDATE QUEUE INTERVAL: " + interval + " ms"));
-
-  setInterval(function () {
-
-    if (followerUpdateQueueReady && !followerUpdateQueue.isEmpty()) {
-
-      followerUpdateQueueReady = false;
-
-      var entityObj = followerUpdateQueue.dequeue();
-
-      debug(chalkInfo("FOLLOWER"
-        + " [ Q: " + followerUpdateQueue.size() + "]"
-        + " | " + entityObj.screenName
-        + " | " + entityObj.name
-      ));
-
-      var groupObj = new Group();
-
-      async.waterfall([
-
-        function(cb){
-
-          var group;
-
-          if (entityChannelGroupHashMap.has(entityObj.entityId)) {
-
-            debug(chalkInfo("### E CH GRP HM HIT"
-              + " | " + entityObj.entityId
-              + " | " + entityObj.name
-              + " | G " + entityObj.groupId
-            ));
-
-
-            if (groupHashMap.has(entityObj.groupId)) {
-
-              group = groupHashMap.get(entityObj.groupId);
-
-              groupObj.groupId = group.groupId;
-              groupObj.name = group.name;
-              groupObj.colors = group.colors;
-              groupObj.tags.entity = entityObj.entityId;
-              groupObj.tags.channel = "twitter";
-              groupObj.tags.mode = "substream";
-
-              groupObj.addEntityArray = [];
-              groupObj.addEntityArray.push(entityObj.entityId);
-              groupObj.addChannelArray = [];
-              groupObj.addChannelArray.push("twitter");
-
-              debug(chalkDb("G HM HIT"
-                + " | E " + entityObj.entityId
-                + " | G " + groupObj.groupId
-                + " | GN " + groupObj.name
-                + " | +E " + groupObj.addEntityArray
-                + " | +C " + groupObj.addChannelArray
-              ));
-
-              debug(chalkInfo("### G HM HIT"
-                + " | " + groupObj.groupId
-                + " | " + groupObj.name
-              ));
-
-              cb(null, entityObj, groupObj);
-            }
-            else {
-
-              debug(chalkInfo("--- G HM MISS"
-                + " | " + entityObj.entityId
-                + " | " + entityObj.name
-              ));
-
-              debug(chalkInfo("+ G"
-                + " | " + entityObj.entityId
-                + " | " + entityObj.name
-              ));
-
-              groupObj.groupId = entityObj.entityId;
-              groupObj.name = entityObj.name;
-              groupObj.tags.entity = entityObj.entityId;
-              groupObj.tags.channel = "twitter";
-              groupObj.tags.mode = "substream";
-
-              groupObj.addEntityArray = [];
-              groupObj.addEntityArray.push(entityObj.entityId);
-              groupObj.addChannelArray = [];
-              groupObj.addChannelArray.push("twitter");
-
-              groupHashMap.set(entityObj.entityId, groupObj);
-              serverGroupHashMap.set(entityObj.entityId, groupObj);
-
-              cb(null, entityObj, groupObj);
-            }
-          }
-          else {
-            debug(chalkInfo("--- E CH G HM MISS"
-              + " | " + entityObj.entityId
-              + " | " + entityObj.name
-            ));
-
-            debug(chalkInfo("+ E"
-              + " | NEW E " + entityObj.entityId
-              + " | " + entityObj.name
-            ));
-
-            entityChannelGroupHashMap.set(entityObj.entityId.toLowerCase(), entityObj);
-            serverEntityChannelGroupHashMap.set(entityObj.entityId.toLowerCase(), entityObj);
-
-            if (groupHashMap.has(entityObj.groupId)) {
-
-              group = groupHashMap.get(entityObj.groupId);
-
-              entityObj.tags.group = group.groupId;
-
-              groupObj.groupId = group.groupId;
-              groupObj.name = group.name;
-              groupObj.colors = group.colors;
-              groupObj.tags.entity = entityObj.entityId;
-              groupObj.tags.channel = "twitter";
-              groupObj.tags.mode = "substream";
-
-              groupObj.addEntityArray = [];
-              groupObj.addEntityArray.push(entityObj.entityId);
-              groupObj.addChannelArray = [];
-              groupObj.addChannelArray.push("twitter");
-
-              debug(chalkDb("G HM HIT"
-                + " | E " + entityObj.entityId
-                + " | G " + groupObj.groupId
-                + " | GN " + groupObj.name
-                + " | +E " + groupObj.addEntityArray
-                + " | +C " + groupObj.addChannelArray
-              ));
-
-              debug(chalkInfo("### G HM HIT"
-                + " | " + groupObj.groupId
-                + " | " + groupObj.name
-              ));
-
-              cb(null, entityObj, groupObj);
-            }
-            else {
-
-              debug(chalkInfo("--- G HM MISS"
-                + " | " + entityObj.entityId
-                + " | " + entityObj.name
-              ));
-
-              debug(chalkInfo("+ G"
-                + " | NEW G " + entityObj.entityId
-                + " | " + entityObj.name
-              ));
-
-              entityObj.tags.group = entityObj.entityId;
-
-              groupObj.groupId = entityObj.entityId;
-              groupObj.name = entityObj.name;
-              groupObj.tags.entity = entityObj.entityId;
-              groupObj.tags.channel = "twitter";
-              groupObj.tags.mode = "substream";
-
-              groupObj.addEntityArray = [];
-              groupObj.addEntityArray.push(entityObj.entityId);
-              groupObj.addChannelArray = [];
-              groupObj.addChannelArray.push("twitter");
-
-              groupHashMap.set(entityObj.entityId, groupObj);
-              serverGroupHashMap.set(entityObj.entityId, groupObj);
-
-              cb(null, entityObj, groupObj);
-              // cb(null, entityObj);
-            }
-          }
-
-        },
-        function(entityObj, groupObj, cb){
-
-          debug(chalkInfo("GROUP\n" + jsonPrint(groupObj)));
-
-          updateGroupEntity(entityObj, function(err, updatedEntityObj){
-            if (err) {
-              console.log(chalkError("updateGroupEntity ERROR"
-                + "\nerr\n" + jsonPrint(err)
-                + "\nentityObj\n" + jsonPrint(entityObj)
-                + "\nupdatedEntityObj\n" + jsonPrint(updatedEntityObj)
-              ));
-            }
-            cb(null, "done");
-          });
-
-        }
-      ],
-        function(err, results){
-          if (err) { 
-            console.log(chalkError("ERROR"
-              + "RESULTS\n" + jsonPrint(results)
-              + "ERROR\n" + jsonPrint(err)
-            ));
-          }
-          debug(chalkTwitter("TWITTER_FOLLOW UPDATE COMPLETE"));
-
-          followerUpdateQueueReady = true;
-
-        }
-      );
-
-
-    }
-  }, interval);
-}
 
 function initUpdateTrendsInterval(interval){
   setInterval(function () {
@@ -7862,7 +7335,12 @@ configEvents.on("SERVER_READY", function() {
     statsObj.memoryAvailable = os.freemem();
     statsObj.memoryUsage = process.memoryUsage();
 
-    // bhtTimeToReset = moment.utc().utcOffset("-07:00").endOf("day").valueOf() - moment.utc().utcOffset("-07:00").valueOf();
+    statsObj.queues.sessionQueue.size = sessionQueue.size();
+    statsObj.queues.responseQueue.size = responseQueue.size();
+    statsObj.queues.dbUpdateWordQueue.size = dbUpdateWordQueue.size();
+    statsObj.queues.updaterMessageQueue.size = updaterMessageQueue.size();
+    statsObj.queues.dbUpdateEntityQueue.size = dbUpdateEntityQueue.size();
+    statsObj.queues.updateSessionViewQueue.size = updateSessionViewQueue.length;
 
     //
     // SERVER HEARTBEAT
@@ -8479,7 +7957,6 @@ initializeConfiguration(configuration, function(err, results) {
     console.log(chalkLog("INITIALIZE CONFIGURATION COMPLETE\n" + jsonPrint(results)));
     updateTrends();
     initUpdateTrendsInterval(5*ONE_MINUTE);
-    initFollowerUpdateQueueInterval(100);
     initRateQinterval(1000);
     initIgnoreWordsHashMap();
     updater = cp.fork(`${__dirname}/js/libs/updateGroupsEntitiesChannels.js`);

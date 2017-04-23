@@ -634,9 +634,7 @@ var wapiSearchQueue = new Queue();
 var updaterMessageQueue = new Queue();
 var followerUpdateQueue = new Queue();
 
-var promptQueue = new Queue();
 var rxWordQueue = new Queue();
-var responseRate1minQ = new Queue();
 
 var dnsReverseLookupQueue = new Queue();
 
@@ -2678,12 +2676,6 @@ function dnsReverseLookup(ip, callback) {
   }
 }
 
-function updatePromptResponseMetric(sessionUpdateObj) {
-  debug("PROMPT-RESPONSE RATE FIFO PUSH: NOW: " + getTimeNow() 
-    + " | PROMPT-RESPONSE SESSION: " + sessionUpdateObj.sessionId);
-  responseRate1minQ.enqueue(moment.utc());
-}
-
 var statsCountsComplete = true;
 
 function updateStatsCounts() {
@@ -2891,7 +2883,7 @@ setInterval(function() {
 
       var key = sessionSmallObj.tags.entity.toLowerCase() + "_" + sessionSmallObj.tags.channel.toLowerCase();
 
-      if (monitorHashMap[key] && sessionSmallObj.action === "RESPONSE"){
+      if (monitorHashMap[key] && sessionSmallObj.action === "WORD"){
         debug(chalkInfo("R< M"
           + " | " + monitorHashMap[key].session.sessionId
           + " | " + sessionSmallObj.source.nodeId
@@ -2942,7 +2934,6 @@ setInterval(function() {
       testViewersNameSpace.emit("SESSION_UPDATE", sessionSmallObj);
 
       updateStats({ sessionUpdatesSent: sessionUpdatesSent });
-      updatePromptResponseMetric(sessionSmallObj);
 
       sessionUpdatesSent += 1;
       updateSessionViewReady = true;
@@ -5876,41 +5867,31 @@ setInterval(function() {
 
       updatedWordObj.wordChainIndex = dbUpdateObj.word.wordChainIndex;
 
-      updatePreviousPrompt(currentSessionObj, dbUpdateObj, function(previousPromptObj){
+      sessionCache.set(currentSessionObj.sessionId, currentSessionObj, function(err, success) {
+        if (!err && success) {
 
-        if (previousPromptObj === undefined) {
-          console.log(chalkError("previousPromptObj UNDEFINED"));
+          var sessionUpdateObj = {
+            action: "WORD",
+            userId: currentSessionObj.userId,
+            url: currentSessionObj.url,
+            profileImageUrl: currentSessionObj.profileImageUrl,
+            sessionId: currentSessionObj.sessionId,
+            wordChainIndex: dbUpdateObj.word.wordChainIndex,
+            source: updatedWordObj,
+            tags: dbUpdateObj.tags
+          };
+
+          updateSessionViews(sessionUpdateObj);
+
+          dbUpdateWordReady = true;
+
+        } else {
+          debug(chalkError("*** SESSION CACHE SET ERROR" + "\n" + jsonPrint(err)));
+
+          dbUpdateWordReady = true;
         }
-
-        sessionCache.set(currentSessionObj.sessionId, currentSessionObj, function(err, success) {
-          if (!err && success) {
-
-            promptQueue.enqueue(currentSessionObj.sessionId);
-
-            var sessionUpdateObj = {
-              action: "RESPONSE",
-              userId: currentSessionObj.userId,
-              url: currentSessionObj.url,
-              profileImageUrl: currentSessionObj.profileImageUrl,
-              sessionId: currentSessionObj.sessionId,
-              wordChainIndex: dbUpdateObj.word.wordChainIndex,
-              source: updatedWordObj,
-              tags: dbUpdateObj.tags
-            };
-
-            if (previousPromptObj) {sessionUpdateObj.target = previousPromptObj;}
-
-            updateSessionViews(sessionUpdateObj);
-
-            dbUpdateWordReady = true;
-
-          } else {
-            debug(chalkError("*** SESSION CACHE SET ERROR" + "\n" + jsonPrint(err)));
-
-            dbUpdateWordReady = true;
-          }
-        });
       });
+
     });
 
   }

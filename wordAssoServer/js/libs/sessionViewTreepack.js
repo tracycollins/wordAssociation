@@ -53,17 +53,17 @@ function ViewTreepack() {
   var yFocusDefaultRatio = 0.5;
 
   // INITIAL POSITION
-  var xMinRatioLeft = 0.25;
-  var xMaxRatioLeft = 0.35;
+  var xMinRatioLeft = 0.15;
+  var xMaxRatioLeft = 0.45;
 
   var yMinRatioLeft = 0.85;
-  var yMaxRatioLeft = 0.95;
+  var yMaxRatioLeft = 0.90;
 
-  var xMinRatioRight = 0.65;
-  var xMaxRatioRight = 0.75;
+  var xMinRatioRight = 0.55;
+  var xMaxRatioRight = 0.85;
 
   var yMinRatioRight = 0.85;
-  var yMaxRatioRight = 0.95;
+  var yMaxRatioRight = 0.90;
 
   var xMinRatioPositive = 0.45;
   var xMaxRatioPositive = 0.55;
@@ -562,7 +562,6 @@ function ViewTreepack() {
         || (removeDeadNodesFlag && (age >= nodeMaxAge))
         ) {
 
-        // localNodeHashMap.remove(node.nodeId);
         delete localNodeHashMap[node.nodeId];
 
         nodesTopTermHashMap.remove(node.nodeId);
@@ -606,7 +605,6 @@ function ViewTreepack() {
     }
 
     if (ageNodesIndex < 0) {
-
 
       maxRateMentionsNode.age = 0;
       maxRateMentionsNode.rate = currentMaxRate;
@@ -739,23 +737,8 @@ function ViewTreepack() {
       var entry = hmap.get(key);
       entry.rank = index;
 
-      // if (index >= MAX_NODES){
-      //   entry.isDead = true;
-      //   hmap.set(key, entry);
-      //   cb();
-      // }
-      // else {
-        hmap.set(key, entry);
-        cb();
-      // }
-      // console.debug("key " + key);
-      // console.debug("entry\n" + jsonPrint(entry));
-
-      // console.debug("TOP 10"
-      //   + " | " + entry.nodeId
-      //   + " | " + entry.rank
-      //   + " | " + entry.rate.toFixed(2)
-      // );
+      hmap.set(key, entry);
+      cb();
 
     }, function(err) {
       if (err) { console.error("rankHashMapByValue ERROR: " + err); }
@@ -890,7 +873,6 @@ function ViewTreepack() {
             return d.r;
           }
           else {
-            // d.r = defaultRadiusScale(parseInt(d.mentions));
             d.r = defaultRadiusScale(parseInt(d.rate));
             return d.r;
           }
@@ -898,7 +880,6 @@ function ViewTreepack() {
 
     nodeCircles
       .attr("cx", function(d) { 
-        // console.debug("typeof d.x: " + typeof d.x + " | " + d.x);
         if (!d.nodeId) { 
           console.warn("UNDEFINED d.nodeId");
           d.x = 0.5*width; 
@@ -950,7 +931,6 @@ function ViewTreepack() {
             return defaultRadiusScale(1);
           }
           else {
-            // return defaultRadiusScale(parseInt(d.mentions));
             return defaultRadiusScale(parseInt(d.rate));
           }
         });
@@ -1008,12 +988,10 @@ function ViewTreepack() {
         return "none"; 
       })
       .style("opacity", function(d) { 
-        // if (d.mouseHoverFlag) { return 1.0; }
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
       .style("fill", palette.white)
       .style("font-size", function(d) {
-        // return nodeLabelSizeScale(d.mentions);
         return nodeLabelSizeScale(d.rate);
       });
 
@@ -1062,12 +1040,10 @@ function ViewTreepack() {
         return "none"; 
       })
       .style("opacity", function(d) { 
-        // if (d.mouseHoverFlag) { return 1.0; }
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
       .style("fill", palette.white)
       .style("font-size", function(d) {
-        // return nodeLabelSizeScale(d.mentions);
         return nodeLabelSizeScale(d.rate);
       });
 
@@ -1374,7 +1350,7 @@ function ViewTreepack() {
     }
 
     if (nNode.rate > currentMaxRate) { 
-      
+
       currentMaxRate = nNode.rate; 
 
       nodeLabelSizeScale = d3.scaleLinear()

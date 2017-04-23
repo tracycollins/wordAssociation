@@ -2130,9 +2130,9 @@ function initSessionSocketHandler(sessionObj, socket) {
     checkKeyword(rxNodeObj, function(nodeObj){
 
 
+      var scienceMarchHit = false;
       var obamaHit = false;
       var trumpHit = false;
-      var wsObj;
 
       switch (nodeObj.nodeType) {
 
@@ -2140,6 +2140,12 @@ function initSessionSocketHandler(sessionObj, socket) {
 
           // console.log(chalkAlert("TWEET | checkKeyword\n" + jsonPrint(nodeObj)));
 
+          if (nodeObj.text.toLowerCase().includes("sciencemarch") || nodeObj.text.toLowerCase().includes("marchforscience")) {
+            scienceMarchHit = nodeObj.text;
+            nodeObj.isKeyword = true;
+            nodeObj.keywords.positive = DEFAULT_KEYWORD_VALUE;
+            debug(chalkError("SCIENCEMARCH: " + nodeObj.text));
+          }
           if (nodeObj.text.toLowerCase().includes("obama")) {
             obamaHit = nodeObj.text;
             nodeObj.isKeyword = true;
@@ -2249,6 +2255,11 @@ function initSessionSocketHandler(sessionObj, socket) {
           wordsPerMinuteTopTermCache.get(nodeObj.nodeId.toLowerCase(), function(err, nodeId) {
             if (nodeId) {
               nodeObj.isTopTerm = true;
+            }
+            if (nodeObj.nodeId.toLowerCase().includes("sciencemarch") || nodeObj.nodeId.toLowerCase().includes("marchforscience")) {
+              scienceMarchHit = nodeObj.nodeId;
+              nodeObj.isKeyword = true;
+              nodeObj.keywords.positive = DEFAULT_KEYWORD_VALUE;
             }
             if (nodeObj.nodeId.toLowerCase().includes("obama")) {
               obamaHit = nodeObj.nodeId;
@@ -2377,7 +2388,7 @@ function initSessionSocketHandler(sessionObj, socket) {
         wordStats.meter("obamaPerSecond").mark();
         wordStats.meter("obamaPerMinute").mark();
 
-        wsObj = wordStats.toJSON();
+        var wsObj = wordStats.toJSON();
 
         debug(chalkAlert("OBAMA"
           + " | " + nodeObj.nodeType
@@ -2395,7 +2406,7 @@ function initSessionSocketHandler(sessionObj, socket) {
         wordStats.meter("trumpPerSecond").mark();
         wordStats.meter("trumpPerMinute").mark();
 
-        wsObj = wordStats.toJSON();
+        var wsObj = wordStats.toJSON();
 
         debug(chalkAlert("TRUMP"
           + " | " + nodeObj.nodeType

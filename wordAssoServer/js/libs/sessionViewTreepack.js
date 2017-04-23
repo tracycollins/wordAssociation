@@ -53,14 +53,14 @@ function ViewTreepack() {
   var yFocusDefaultRatio = 0.5;
 
   // INITIAL POSITION
-  var xMinRatioLeft = 0.15;
-  var xMaxRatioLeft = 0.45;
+  var xMinRatioLeft = 0.10;
+  var xMaxRatioLeft = 0.35;
 
   var yMinRatioLeft = 0.85;
   var yMaxRatioLeft = 0.90;
 
-  var xMinRatioRight = 0.55;
-  var xMaxRatioRight = 0.85;
+  var xMinRatioRight = 0.65;
+  var xMaxRatioRight = 0.90;
 
   var yMinRatioRight = 0.85;
   var yMaxRatioRight = 0.90;

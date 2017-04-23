@@ -579,7 +579,9 @@ function resetMouseMoveTimer() {
 
     currentSessionView.toolTipVisibility(false);
 
-    if (config.pauseOnMouseMove && !config.pauseFlag) { currentSessionView.simulationControl('RESUME'); }
+    if (config.pauseOnMouseMove && !config.pauseFlag) { 
+      currentSessionView.simulationControl('RESUME'); 
+    }
 
     if (!config.showStatsFlag && !pageLoadedTimeIntervalFlag) {
       displayStats(false, palette.white);
@@ -1280,6 +1282,7 @@ window.addEventListener('resize', function() {
 document.addEventListener(visibilityEvent, function() {
   if (!document[hidden]) {
     windowVisible = true;
+    resetMouseMoveTimer();
     if (currentSessionView !== undefined) {
       currentSessionView.setPause(false);
     }

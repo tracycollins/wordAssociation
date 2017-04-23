@@ -6448,7 +6448,17 @@ function initializeConfiguration(cnf, callback) {
               entityObj.tags.mode = "substream";
               entityObj.tags.group = "";
 
-              followerUpdateQueue.enqueue(entityObj);
+              entityUpdateDb(entityObj, function(err, updatedEntityObj){
+                if (err){
+                  console.log(chalkError("ENTITY UPDATE DB ERROR: " + err));
+                  // callback(err, updatedEntityObj);
+                }
+                // else {
+                //   // console.log(chalkInfo("TX UTIL SES (UTIL RDY): " + updatedEntity2Obj.lastSession + " TO ADMIN NAMESPACE"));
+                //   // adminNameSpace.emit("UTIL_SESSION", updatedEntity2Obj);
+                //   callback(null, updatedEntity2Obj);
+                // }
+              });
             });
 
             twitterStream.on("direct_message", function (message) {

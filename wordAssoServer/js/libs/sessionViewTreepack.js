@@ -88,7 +88,7 @@ function ViewTreepack() {
   var nodesTopTerm = [];
 
   var currentMaxMentions = 0;
-  var currentMaxRate = 1;
+  var currentMaxRate = 2;
   var currentHashtagMaxMentions = 2;
   var deadNodesHash = {};
 
@@ -251,7 +251,10 @@ function ViewTreepack() {
   }, true);
 
   // var defaultRadiusScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minRadius, maxRadius]).clamp(true);
-  var defaultRadiusScale = d3.scaleLinear().domain([0, currentMaxRate]).range([minRadius, maxRadius]).clamp(true);
+  var defaultRadiusScale = d3.scaleLinear()
+    .domain([1, currentMaxRate])
+    .range([minRadius, maxRadius])
+    .clamp(true);
 
   var nodeLabelSizeScale = d3.scaleLinear()
     // .domain([1, currentMaxMentions])
@@ -1256,21 +1259,26 @@ function ViewTreepack() {
 
       // if (newNode.mentions > currentHashtagMaxMentions) {
       //   currentHashtagMaxMentions = newNode.mentions;
-      if (newNode.rate > currentMaxRate) {
-        currentMaxRate = newNode.rate;
+      // if (newNode.rate > currentMaxRate) {
+      //   currentMaxRate = newNode.rate;
 
-        nodeLabelSizeScale = d3.scaleLinear()
-          // .domain([1, currentMaxMentions])
-          .domain([1, currentMaxRate])
-          .range([fontSizeMin, fontSizeMax])
-          .clamp(true);
+      //   nodeLabelSizeScale = d3.scaleLinear()
+      //     // .domain([1, currentMaxMentions])
+      //     .domain([1, currentMaxRate])
+      //     .range([fontSizeMin, fontSizeMax])
+      //     .clamp(true);
 
-        console.info("NEW MAX Ms" 
-          + " | " + currentHashtagMaxMentions 
-          + " | " + currentNode.nodeType 
-          + " | " + currentNode.text 
-        );
-      }
+      //   defaultRadiusScale = d3.scaleLinear()
+      //     .domain([1, currentMaxRate])
+      //     .range([minRadius, maxRadius])
+      //     .clamp(true);
+
+      //   console.info("NEW MAX Ms" 
+      //     + " | " + currentHashtagMaxMentions 
+      //     + " | " + currentNode.nodeType 
+      //     + " | " + currentNode.text 
+      //   );
+      // }
 
       if (nodes.length > maxNumberNodes) {
         maxNumberNodes = nodes.length;
@@ -1348,16 +1356,37 @@ function ViewTreepack() {
     newNode.newFlag = true;
 
     if (nNode.mentions > currentMaxMentions) { 
+
       currentMaxMentions = nNode.mentions; 
-      // defaultRadiusScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minRadius, maxRadius]).clamp(true);
-      // defaultRadiusScale = d3.scaleLinear().domain([1, currentMaxRate]).range([minRadius, maxRadius]).clamp(true);
+
+      // nodeLabelSizeScale = d3.scaleLinear()
+      //   // .domain([1, currentMaxMentions])
+      //   .domain([1, currentMaxRate])
+      //   .range([fontSizeMin, fontSizeMax])
+      //   .clamp(true);
+
+      // defaultRadiusScale = d3.scaleLinear()
+      //   .domain([1, currentMaxRate])
+      //   .range([minRadius, maxRadius])
+      //   .clamp(true);
+
       console.info("NEW MAX MENTIONS: " + currentMaxMentions);
     }
 
     if (nNode.rate > currentMaxRate) { 
+      
       currentMaxRate = nNode.rate; 
-      // defaultRadiusScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minRadius, maxRadius]).clamp(true);
-      defaultRadiusScale = d3.scaleLinear().domain([0, currentMaxRate]).range([minRadius, maxRadius]).clamp(true);
+
+      nodeLabelSizeScale = d3.scaleLinear()
+        .domain([1, currentMaxRate])
+        .range([fontSizeMin, fontSizeMax])
+        .clamp(true);
+
+      defaultRadiusScale = d3.scaleLinear()
+        .domain([1, currentMaxRate])
+        .range([minRadius, maxRadius])
+        .clamp(true);
+
       console.info("NEW MAX RATE: " + currentMaxRate.toFixed(2) + " | " + nNode.nodeId);
     }
 
@@ -1512,7 +1541,10 @@ function ViewTreepack() {
     maxRadius = maxRadiusRatio * width;
 
     // defaultRadiusScale = d3.scaleLinear().domain([1, currentMaxMentions]).range([minRadius, maxRadius]).clamp(true);
-    defaultRadiusScale = d3.scaleLinear().domain([0, currentMaxRate]).range([minRadius, maxRadius]).clamp(true);
+    defaultRadiusScale = d3.scaleLinear()
+    .domain([1, currentMaxRate])
+    .range([minRadius, maxRadius])
+    .clamp(true);
 
     fontSizeMin = fontSizeMinRatio * height;
     fontSizeMax = fontSizeMaxRatio * height;

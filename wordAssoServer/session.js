@@ -579,7 +579,7 @@ function resetMouseMoveTimer() {
 
     currentSessionView.toolTipVisibility(false);
 
-    if (config.pauseOnMouseMove && !config.pauseFlag) {currentSessionView.simulationControl('RESUME');}
+    if (config.pauseOnMouseMove && !config.pauseFlag) { currentSessionView.simulationControl('RESUME'); }
 
     if (!config.showStatsFlag && !pageLoadedTimeIntervalFlag) {
       displayStats(false, palette.white);
@@ -590,10 +590,12 @@ function resetMouseMoveTimer() {
 }
 
 document.addEventListener("mousemove", function() {
-  if (config.pauseOnMouseMove && (currentSessionView)) {currentSessionView.simulationControl('PAUSE');}
-  mouseMovingFlag = true;
-  displayControl(true);
-  resetMouseMoveTimer();
+  if (config.pauseOnMouseMove && (currentSessionView)) { 
+    currentSessionView.simulationControl('PAUSE'); 
+    mouseMovingFlag = true;
+    displayControl(true);
+    resetMouseMoveTimer();
+  }
 }, true);
 
 var dragEndPosition = { 'id': 'ID', 'x': 47, 'y': 147};

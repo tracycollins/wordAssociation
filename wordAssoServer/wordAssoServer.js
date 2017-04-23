@@ -67,6 +67,7 @@ wordStats.meter("trumpPerMinute", {rateUnit: 60000, tickInterval: 1000});
 // MONGO DB doesn"t like indexes/keys > 1024 characters
 var MAX_DB_KEY_LENGTH = 200;
 
+var wapiSearchEnabled = false;
 var wapiForceSearch = true;
 var dmOnUnknownSession = false;
 var ioReady = false;
@@ -136,7 +137,6 @@ var Group = require("mongoose").model("Group");
 var Entity = require("mongoose").model("Entity");
 var Session = require("mongoose").model("Session");
 var Word = require("mongoose").model("Word");
-// var Oauth2credential = require("mongoose").model("Oauth2credential");
 
 var groupServer = require("./app/controllers/group.server.controller");
 var entityServer = require("./app/controllers/entity.server.controller");
@@ -146,7 +146,6 @@ var app = express();
 
 var http = require("http");
 var httpServer = http.createServer(app);
-// var httpServer = require("http").Server(app);
 
 var io;
 var dns = require("dns");
@@ -445,8 +444,8 @@ var statsObj = {
   "totalWords": 0,
   "socket": {},
   "promptsSent": 0,
-  "responsesReceived": 0,
-  "deltaResponsesReceived": 0,
+  "wordsReceived": 0,
+  "deltaWordsReceived": 0,
   "sessionUpdatesSent": 0,
   "mwRequests": 0,
   "mwDictWordsMiss": {},
@@ -601,7 +600,7 @@ var totalEntities = 0;
 var totalGroups = 0;
 
 var promptsSent = 0;
-var responsesReceived = 0;
+var wordsReceived = 0;
 var sessionUpdatesSent = 0;
 
 statsObj.upTime = os.uptime() * 1000;
@@ -622,8 +621,8 @@ statsObj.group.errors = 0;
 
 statsObj.session.errors = 0;
 statsObj.session.previousPromptNotFound = 0;
-statsObj.session.responseError = 0;
-statsObj.session.responseErrorType = {};
+statsObj.session.wordError = 0;
+statsObj.session.wordErrorType = {};
 
 statsObj.socket.connects = 0;
 statsObj.socket.reconnects = 0;
@@ -656,6 +655,20 @@ var numberTestUsers = 0;
 var dnsHostHashMap = new HashMap();
 var localHostHashMap = new HashMap();
 
+<<<<<<< HEAD
+=======
+var sessionQueue = new Queue();
+var dbUpdateGroupQueue = new Queue();
+var dbUpdateEntityQueue = new Queue();
+var dbUpdateWordQueue = new Queue();
+var wapiSearchQueue = new Queue();
+var updaterMessageQueue = new Queue();
+var followerUpdateQueue = new Queue();
+
+var rxWordQueue = new Queue();
+
+var dnsReverseLookupQueue = new Queue();
+>>>>>>> origin/master
 
 var adminNameSpace;
 var utilNameSpace;
@@ -904,14 +917,21 @@ sessionCache.on("expired", function(sessionId, sessionObj) {
   ));
 });
 
-wordCache.on("set", function(word, wordObj) {
+// wordCache.on("set", function(word, wordObj) {
 
-  debug(chalkWapi("WORD CACHE SET"
-    + " | " + word 
-    + " | " + wordObj.raw
-  ));
+//   debug(chalkWapi("WORD CACHE SET"
+//     + " | " + word 
+//     + " | " + wordObj.raw
+//   ));
 
+<<<<<<< HEAD
 });
+=======
+//   if (wapiSearchEnabled && !wapiOverLimitFlag && (wapiForceSearch || !wordObj.wapiSearched)){
+//     wapiSearchQueue.enqueue(wordObj);
+//   }
+// });
+>>>>>>> origin/master
 
 wordCache.on("expired", function(word, wordObj) {
 
@@ -1322,7 +1342,7 @@ function initStatsInterval(interval){
       numberViewersTotalMaxTime: numberViewersTotalMaxTime,
 
       promptsSent: promptsSent,
-      responsesReceived: responsesReceived,
+      wordsReceived: wordsReceived,
 
       // bhtErrors: bhtErrors,
       // bhtRequests: bhtRequests,
@@ -1443,73 +1463,36 @@ function findSessionById(sessionId, callback) {
 }
 
 var deltaPromptsSent = 0;
-var deltaResponsesReceived = 0;
-// var deltaBhtRequests = 0;
-var deltaMwRequests = 0;
+var deltaWordsReceived = 0;
 
-// function incrementDeltaBhtReqs(delta) {
+// function incrementDeltaMwReqs(delta) {
 //   var d = parseInt(delta);
 //   if (d === 0) {
-//     deltaBhtRequests = 0;
+//     deltaMwRequests = 0;
 //   } 
 //   else {
-//     deltaBhtRequests += d;
+//     deltaMwRequests += d;
 //   }
 // }
 
-function incrementDeltaMwReqs(delta) {
-  var d = parseInt(delta);
-  if (d === 0) {
-    deltaMwRequests = 0;
-  } 
-  else {
-    deltaMwRequests += d;
-  }
-}
+// function incrementSocketMwReqs(delta) {
 
-// function incrementSocketBhtReqs(delta) {
-
-//   if ((bhtRequests >= BHT_REQUEST_LIMIT) || ((bhtRequests + delta) > BHT_REQUEST_LIMIT)) {
-//     debug(chalkInfo("!!! incrementSocketBhtReqs: AT BHT_REQUEST_LIMIT: " + bhtRequests 
-//       + " | NOW: " + BHT_REQUEST_LIMIT));
-//     bhtRequests = BHT_REQUEST_LIMIT;
-//     io.of(adminNameSpace).emit("BHT_OVER_LIMIT", bhtRequests);
-//     io.of(utilNameSpace).emit("BHT_OVER_LIMIT", bhtRequests);
-//     io.of(testUsersNameSpace).emit("BHT_OVER_LIMIT", bhtRequests);
-//     io.of(userNameSpace).emit("BHT_OVER_LIMIT", bhtRequests);
+//   if ((mwRequests > MW_REQUEST_LIMIT) || ((mwRequests + delta) > MW_REQUEST_LIMIT)) {
+//     debug(chalkInfo("!!! incrementSocketMwReqs: AT MW_REQUEST_LIMIT: " + mwRequests 
+//       + " | NOW: " + MW_REQUEST_LIMIT));
+//     mwRequests = MW_REQUEST_LIMIT;
 //   } 
 //   else if (delta > 0) {
-//     bhtRequests += delta;
-//     var remain = BHT_REQUEST_LIMIT - bhtRequests;
-//     debug(chalkInfo("-#- BHT REQS: " + bhtRequests 
+//     mwRequests += delta;
+//     var remain = MW_REQUEST_LIMIT - mwRequests;
+//     debug(chalkInfo("-#- MW  REQS: " + mwRequests 
 //       + " | DELTA: " + delta 
-//       + " | LIMIT: " + BHT_REQUEST_LIMIT 
+//       + " | LIMIT: " + MW_REQUEST_LIMIT 
 //       + " | REMAIN: " + remain
 //     ));
-//     incrementDeltaBhtReqs(delta);
+//     incrementDeltaMwReqs(delta);
 //   }
 // }
-
-function incrementSocketMwReqs(delta) {
-
-  if ((mwRequests > MW_REQUEST_LIMIT) || ((mwRequests + delta) > MW_REQUEST_LIMIT)) {
-    debug(chalkInfo("!!! incrementSocketMwReqs: AT MW_REQUEST_LIMIT: " + mwRequests 
-      + " | NOW: " + MW_REQUEST_LIMIT));
-    mwRequests = MW_REQUEST_LIMIT;
-  } 
-  else if (delta > 0) {
-    mwRequests += delta;
-    var remain = MW_REQUEST_LIMIT - mwRequests;
-    debug(chalkInfo("-#- MW  REQS: " + mwRequests 
-      + " | DELTA: " + delta 
-      + " | LIMIT: " + MW_REQUEST_LIMIT 
-      + " | REMAIN: " + remain
-    ));
-    incrementDeltaMwReqs(delta);
-  }
-}
-
-    // userReadyHandler(socket.id, userObj, function(err, sObj){
 
 function userReadyHandler(request, callback){
 
@@ -1557,7 +1540,7 @@ function userReadyHandler(request, callback){
 
       statsObj.socket.USER_READYS += 1;
 
-      console.log(chalkUser("R< U RDY"
+      console.log(chalk.black("R< U RDY"
         + " | " + moment().format(compactDateTimeFormat) 
         + "  " + userObj.nodeId
         + "  ID " + userObj.userId
@@ -1578,7 +1561,7 @@ function userReadyHandler(request, callback){
 
         sessionCacheKey = socketId + "#" + userObj.tags.entity;
 
-        console.log(chalkInfo("USER_READY SUBSTREAM sessionCacheKey: " + sessionCacheKey));
+        debug(chalkInfo("USER_READY SUBSTREAM sessionCacheKey: " + sessionCacheKey));
 
         sessionUpdateDbCache({sessionCacheKey: sessionCacheKey, socketId: socketId, userObj: userObj}, function(err, sObj){
           callback(err, sObj);
@@ -1757,8 +1740,6 @@ function createSession(newSessionObj) {
   var socket = newSessionObj.socket;
   var socketId = newSessionObj.socket.id;
   var ipAddress = newSessionObj.socket.handshake.headers["x-real-ip"] || newSessionObj.socket.client.conn.remoteAddress;
-  // var clientHostname = newSessionObj.socket.handshake.headers.host;
-  // var domain = "UNKNOWN";
 
   numberAdmins = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
   numberUtils = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
@@ -1788,17 +1769,27 @@ function createSession(newSessionObj) {
   sessionObj.config.type = newSessionObj.type;
   sessionObj.config.mode = newSessionObj.mode;
 
-  sessionCache.set(sessionObj.sessionId, sessionObj);
+  initSessionSocketHandler(sessionObj, socket);
 
-  debug(chalkSession("\nNEW SESSION\n" + util.inspect(sessionObj, {
-    showHidden: false,
-    depth: 1
-  })));
+  sessionCache.set(sessionObj.sessionId, sessionObj, function(err, results){
 
-  sessionQueue.enqueue({
-    sessionEvent: "SESSION_CREATE",
-    session: sessionObj
+    debug(chalkSession("\nNEW SESSION\n" + util.inspect(sessionObj, {
+      showHidden: false,
+      depth: 1
+    })));
+
+    sessionQueue.enqueue({
+      sessionEvent: "SESSION_CREATE",
+      session: sessionObj
+    });
+
   });
+
+}
+
+function initSessionSocketHandler(sessionObj, socket) {
+
+  var ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
   socket.on("reconnect_error", function(errorObj) {
     statsObj.socket.reconnect_errors += 1;
@@ -1871,12 +1862,11 @@ function createSession(newSessionObj) {
         debug(chalkWarn("??? DISCONNECTED SOCKET NOT IN CACHE ... TIMED OUT? | " + socket.id));
       }
     });
-
   });
 
   socket.on("REQ_ADMIN_SESSION", function(options) {
     debug(chalkAdmin(moment().format(compactDateTimeFormat) 
-      + " | REQ_ADMIN_SESSION: " + socketId 
+      + " | REQ_ADMIN_SESSION: " + socket.id 
       + " | IP: " + ipAddress 
       + " | SID: " + sessionObj.sessionId 
       + " | OPTIONS: " + jsonPrint(options)));
@@ -1890,7 +1880,7 @@ function createSession(newSessionObj) {
 
   socket.on("REQ_USER_SESSION", function(options) {
     debug(chalkUser(moment().format(compactDateTimeFormat) 
-      + " | REQ_USER_SESSION: " + socketId 
+      + " | REQ_USER_SESSION: " + socket.id
       + " | IP: " + ipAddress 
       + " | SID: " + sessionObj.sessionId 
       + " | NSP: " + sessionObj.namespace 
@@ -1905,7 +1895,7 @@ function createSession(newSessionObj) {
 
   socket.on("REQ_VIEWER_SESSION", function(options) {
     debug(chalkViewer(moment().format(compactDateTimeFormat) 
-      + " | REQ_VIEWER_SESSION: " + socketId 
+      + " | REQ_VIEWER_SESSION: " + socket.id 
       + " | IP: " + ipAddress 
       + " | SID: " + sessionObj.sessionId 
       + " | OPTIONS: " + jsonPrint(options)));
@@ -1919,7 +1909,7 @@ function createSession(newSessionObj) {
 
   socket.on("REQ_UTIL_SESSION", function(options) {
     debug(chalkUtil(moment().format(compactDateTimeFormat) 
-      + " | REQ_UTIL_SESSION: " + socketId 
+      + " | REQ_UTIL_SESSION: " + socket.id 
       + " | IP: " + ipAddress 
       + " | SID: " + sessionObj.sessionId 
       + " | OPTIONS: " + jsonPrint(options)));
@@ -1957,7 +1947,6 @@ function createSession(newSessionObj) {
       }
 
     });
-
   });
 
   socket.on("VIEWER_READY", function(viewerObj) {
@@ -1986,7 +1975,6 @@ function createSession(newSessionObj) {
         });
       }
     });
-
   });
 
   socket.on("SESSION_KEEPALIVE", function(userObj) {
@@ -2136,7 +2124,6 @@ function createSession(newSessionObj) {
         quit(err);
       }
     });
-
   });
 
   socket.on("node", function(rxNodeObj) {
@@ -2179,9 +2166,9 @@ function createSession(newSessionObj) {
     checkKeyword(rxNodeObj, function(nodeObj){
 
 
+      var scienceMarchHit = false;
       var obamaHit = false;
       var trumpHit = false;
-      var wsObj;
 
       switch (nodeObj.nodeType) {
 
@@ -2189,6 +2176,12 @@ function createSession(newSessionObj) {
 
           // console.log(chalkAlert("TWEET | checkKeyword\n" + jsonPrint(nodeObj)));
 
+          if (nodeObj.text.toLowerCase().includes("sciencemarch") || nodeObj.text.toLowerCase().includes("marchforscience")) {
+            scienceMarchHit = nodeObj.text;
+            nodeObj.isKeyword = true;
+            nodeObj.keywords.positive = DEFAULT_KEYWORD_VALUE;
+            debug(chalkError("SCIENCEMARCH: " + nodeObj.text));
+          }
           if (nodeObj.text.toLowerCase().includes("obama")) {
             obamaHit = nodeObj.text;
             nodeObj.isKeyword = true;
@@ -2299,6 +2292,11 @@ function createSession(newSessionObj) {
             if (nodeId) {
               nodeObj.isTopTerm = true;
             }
+            if (nodeObj.nodeId.toLowerCase().includes("sciencemarch") || nodeObj.nodeId.toLowerCase().includes("marchforscience")) {
+              scienceMarchHit = nodeObj.nodeId;
+              nodeObj.isKeyword = true;
+              nodeObj.keywords.positive = DEFAULT_KEYWORD_VALUE;
+            }
             if (nodeObj.nodeId.toLowerCase().includes("obama")) {
               obamaHit = nodeObj.nodeId;
               nodeObj.isKeyword = true;
@@ -2331,7 +2329,7 @@ function createSession(newSessionObj) {
         case "place":
 
           debug(chalkAlert("PLACE | checkKeyword\n" + jsonPrint(nodeObj)));
-          console.log(chalkInfo("PLACE | checkKeyword"
+          debug(chalkInfo("PLACE | checkKeyword"
             + " | " + nodeObj.name
             + " | " + nodeObj.fullName
             + " | " + nodeObj.country
@@ -2426,7 +2424,7 @@ function createSession(newSessionObj) {
         wordStats.meter("obamaPerSecond").mark();
         wordStats.meter("obamaPerMinute").mark();
 
-        wsObj = wordStats.toJSON();
+        var wsObj = wordStats.toJSON();
 
         debug(chalkAlert("OBAMA"
           + " | " + nodeObj.nodeType
@@ -2444,7 +2442,7 @@ function createSession(newSessionObj) {
         wordStats.meter("trumpPerSecond").mark();
         wordStats.meter("trumpPerMinute").mark();
 
-        wsObj = wordStats.toJSON();
+        var wsObj = wordStats.toJSON();
 
         debug(chalkAlert("TRUMP"
           + " | " + nodeObj.nodeType
@@ -2458,86 +2456,81 @@ function createSession(newSessionObj) {
       }
 
     });
-
   });
 
-  socket.on("RESPONSE_WORD_OBJ", function(rxInObj) {
+  socket.on("word", function(rxWordObj) {
 
-    var wsObj;
-
-
-    if (!rxInObj.nodeId) {
-      console.log("*** RX NULL RESPONSE_WORD_OBJ NODEID ... SKIPPING\n" + jsonPrint(rxInObj));
+    if (!rxWordObj.nodeId) {
+      console.log("*** RX NULL RESPONSE_WORD_OBJ NODEID ... SKIPPING\n" + jsonPrint(rxWordObj));
       return;
     }
+
+    rxWordObj.nodeId = rxWordObj.nodeId.toLowerCase();
 
     wordStats.meter("wordsPerSecond").mark();
     wordStats.meter("wordsPerMinute").mark();
 
-    wordsPerMinuteTopTermCache.get(rxInObj.nodeId.toLowerCase(), function(err, nodeRate) {
+    wordsPerMinuteTopTermCache.get(rxWordObj.nodeId, function(err, nodeRate) {
       if (nodeRate) {
-        rxInObj.isTopTerm = true;
+        rxWordObj.isTopTerm = true;
         console.log(chalkRed("TOP TERM"
-          + " | " + rxInObj.nodeId
-          + " | " + rxInObj.isTopTerm
+          + " | " + rxWordObj.nodeId
+          + " | " + rxWordObj.isTopTerm
           + " | " + nodeRate.toFixed(2)
         ));
       }
       else {
-        rxInObj.isTopTerm = false;
+        rxWordObj.isTopTerm = false;
       }
 
-      if (rxInObj.nodeId.includes("obama")) {
+      if (rxWordObj.nodeId.includes("obama")) {
    
         wordStats.meter("obamaPerSecond").mark();
         wordStats.meter("obamaPerMinute").mark();
 
-        wsObj = wordStats.toJSON();
+        const wsObj = wordStats.toJSON();
 
         debug(chalkAlert("OBAMA"
           + " | " + wsObj.obamaPerSecond["1MinuteRate"].toFixed(0) 
           + " | " + wsObj.obamaPerSecond.currentRate.toFixed(0) 
           + " | " + wsObj.obamaPerMinute["1MinuteRate"].toFixed(0) 
           + " | " + wsObj.obamaPerMinute.currentRate.toFixed(0) 
-          + " | " + rxInObj.nodeId
+          + " | " + rxWordObj.nodeId
         ));
       }
 
-      if (rxInObj.nodeId.includes("trump")) {
+      if (rxWordObj.nodeId.includes("trump")) {
    
         wordStats.meter("trumpPerSecond").mark();
         wordStats.meter("trumpPerMinute").mark();
 
-        wsObj = wordStats.toJSON();
+        const wsObj = wordStats.toJSON();
 
         debug(chalkAlert("TRUMP"
           + " | " + wsObj.trumpPerSecond["1MinuteRate"].toFixed(0) 
           + " | " + wsObj.trumpPerSecond.currentRate.toFixed(0) 
           + " | " + wsObj.trumpPerMinute["1MinuteRate"].toFixed(0) 
           + " | " + wsObj.trumpPerMinute.currentRate.toFixed(0) 
-          + " | " + rxInObj.nodeId
+          + " | " + rxWordObj.nodeId
         ));
       }
 
-      if (responseQueue.size() < MAX_RESPONSE_QUEUE_SIZE) {
+      if (rxWordQueue.size() < MAX_RESPONSE_QUEUE_SIZE) {
 
-        var responseInObj = rxInObj;
-
-        if (rxInObj.tags.mode.toLowerCase() === "substream") {
-          responseInObj.socketId = socket.id + "#" + rxInObj.tags.entity.toLowerCase();
+        if (rxWordObj.tags.mode.toLowerCase() === "substream") {
+          rxWordObj.socketId = socket.id + "#" + rxWordObj.tags.entity.toLowerCase();
           debug("SUBS" 
-            + "\n" + jsonPrint(rxInObj.tags)
+            + "\n" + jsonPrint(rxWordObj.tags)
           );
         }
         else {
-          responseInObj.socketId = socket.id;
+          rxWordObj.socketId = socket.id;
         }
 
-        responseQueue.enqueue(responseInObj);
+        rxWordQueue.enqueue(rxWordObj);
       }
 
     });
-
   });
 
   socket.on("GET_SESSION", function(sessionId) {
@@ -2588,22 +2581,6 @@ function createSession(newSessionObj) {
         );
       }
     });
-  });
-
-  // socket.on("BHT_REQUESTS", function(deltaReqs) {
-  //   console.log(chalkBht("RX BHT_REQUESTS"
-  //   + " | " + socket.id
-  //   + " | DELTA: " + deltaReqs
-  //   ));
-  //   incrementSocketBhtReqs(deltaReqs);
-  // });
-
-  socket.on("MW_REQUESTS", function(deltaReqs) {
-    console.log(chalkMw("RX MW_REQUESTS"
-    + " | " + socket.id
-    + " | DELTA: " + deltaReqs
-    ));
-    incrementSocketMwReqs(deltaReqs);
   });
 
   socket.on("SOCKET_TEST_MODE", function(testMode) {
@@ -2771,7 +2748,6 @@ function updateStatsCounts() {
             });
 
             Word.count({}, function(err, count) {
-              statsCountsComplete = true;
               if (!err) {
                 // debug("TOTAL WORDS: " + count);
                 totalWords = count;
@@ -2780,7 +2756,6 @@ function updateStatsCounts() {
                 });
 
                 Group.count({}, function(err, count) {
-                  statsCountsComplete = true;
                   if (!err) {
                     // debug("TOTAL WORDS: " + count);
                     totalGroups = count;
@@ -2949,19 +2924,11 @@ setInterval(function() {
 
     var sessionUpdateObj = updateSessionViewQueue.shift();
 
-    // if (sessionUpdateObj.action !== "KEEPALIVE") {
-    //   console.log(chalkAlert("sessionUpdateObj\n" + jsonPrint(sessionUpdateObj)));
-    // }
-
-    updateStatsCounts();
-
-    // var sessionSmallObj;
-
     createSmallSessionUpdateObj(sessionUpdateObj, function(sessionSmallObj){
 
       var key = sessionSmallObj.tags.entity.toLowerCase() + "_" + sessionSmallObj.tags.channel.toLowerCase();
 
-      if (monitorHashMap[key] && sessionSmallObj.action === "RESPONSE"){
+      if (monitorHashMap[key] && sessionSmallObj.action === "WORD"){
         debug(chalkInfo("R< M"
           + " | " + monitorHashMap[key].session.sessionId
           + " | " + sessionSmallObj.source.nodeId
@@ -2982,19 +2949,27 @@ setInterval(function() {
       }
 
       updateWordMeter(sessionSmallObj.source, function(err, sNodeObj){
+
         debug(chalkRed("sessionSmallObj sNodeObj\n" + jsonPrint(sNodeObj)));
         sessionSmallObj.source = sNodeObj;
+
         if (sessionSmallObj.target) {
+
           updateWordMeter(sessionSmallObj.target, function(err, tNodeObj){
+
             sessionSmallObj.target = tNodeObj;
             viewNameSpace.emit("SESSION_UPDATE", sessionSmallObj);
+
             if (languageServer.connected) {
               languageServer.socket.emit("LANG_ANALIZE_WORD", sessionSmallObj.target);
             }
           });
+
         }
         else {
+
           viewNameSpace.emit("SESSION_UPDATE", sessionSmallObj);
+
           if (languageServer.connected) {
             languageServer.socket.emit("LANG_ANALIZE_WORD", sessionSmallObj.source);
           }
@@ -3039,17 +3014,12 @@ function updateSessionViews(sessionUpdateObj) {
       obj.tags.group = entityChannelGroupHashMap.get(obj.tags.entity.toLowerCase());
       updateSessionViewQueue.push(obj);
     }
-    // else if (obj.tags.entity !== undefined) {
-    //   statsObj.entityChannelGroup.hashMiss[obj.tags.entity] = 1;
-    //   statsObj.entityChannelGroup.allHashMisses[obj.tags.entity] = 1;
-    // }
   }
   else {
     console.log(chalkError("ERROR updateSessionViews | ENTITY TAG UNDEFINED\n" + jsonPrint(obj)));
   }
 }
 
-// BHT
 var wordTypes = ["noun", "verb", "adjective", "adverb"];
 
 function dbUpdateGroup(groupObj, incMentions, callback) {
@@ -3349,45 +3319,6 @@ function dbUpdateWord(wObj, incMentions, callback) {
 
         debug(JSON.stringify(word, null, 3));
 
-        // if (!word.bhtSearched) { // not yet bht searched
-        //   debug("word.bhtSearched: " + word.bhtSearched);
-
-        //   bhtSearchWord(word, function(status, bhtResponseObj) {
-        //     if (status.indexOf("BHT_OVER_LIMIT") >= 0) {
-        //       debug(chalkError("bhtSearchWord BHT OVER LIMI"));
-        //       debug("Word CACHE SET1: " + word.nodeId);
-        //       wordCache.set(word.nodeId, word);
-        //       callback("BHT_OVER_LIMIT", word);
-        //     } 
-        //     else if (status.indexOf("BHT_ERROR") >= 0) {
-        //       debug(chalkError("bhtSearchWord dbUpdateWord findOneWord ERROR\n" + JSON.stringify(status)));
-        //       debug("Word CACHE SET2: " + word.nodeId);
-        //       wordCache.set(word.nodeId, word);
-        //       callback("BHT_ERROR", word);
-        //     } 
-        //     else if (bhtResponseObj.bhtFound) {
-        //       debug(chalkBht("-*- BHT HIT   | " + bhtResponseObj.nodeId));
-        //       debug("Word CACHE SET3: " + bhtResponseObj.nodeId);
-        //       wordCache.set(bhtResponseObj.nodeId, bhtResponseObj);
-        //       callback("BHT_HIT", bhtResponseObj);
-        //     } 
-        //     else if (status === "BHT_REDIRECT") {
-        //       debug(chalkBht("-A- BHT REDIRECT  | " + wordObj.nodeId));
-        //       debug("Word CACHE SET4: " + bhtResponseObj.nodeId);
-        //       wordCache.set(bhtResponseObj.nodeId, bhtResponseObj);
-        //       callback("BHT_REDIRECT", bhtResponseObj);
-        //     } 
-        //     else {
-        //       debug(chalkBht("-O- BHT MISS  | " + wordObj.nodeId));
-        //       debug("Word CACHE SET5: " + bhtResponseObj.nodeId);
-        //       wordCache.set(bhtResponseObj.nodeId, bhtResponseObj);
-        //       bhtWordsMiss[word.nodeId] = word.nodeId;
-        //       callback("BHT_MISS", bhtResponseObj);
-        //     }
-        //   });
-        // } 
-        // else if (word.bhtFound) {
-
         if (word.bhtFound) {
           debug(chalkBht("-F- BHT FOUND | " + word.nodeId));
           debug("Word CACHE SET6: " + word.nodeId);
@@ -3398,7 +3329,6 @@ function dbUpdateWord(wObj, incMentions, callback) {
           debug(chalkBht("-N- BHT NOT FOUND  | " + word.nodeId));
           debug("Word CACHE SET7: " + word.nodeId);
           wordCache.set(word.nodeId, word);
-          // bhtWordsNotFound[word.nodeId] = word.nodeId;
           callback("BHT_NOT_FOUND", word);
         }
       }
@@ -4326,7 +4256,7 @@ function updateMetrics() {
   debug(moment().format(compactDateTimeFormat) 
     + " | updateMetrics USERS: " + numberUsers 
     + " | PTX: " + promptsSent 
-    + " | RRX: " + responsesReceived 
+    + " | RRX: " + wordsReceived 
     + " | STX: " + sessionUpdatesSent 
     // + " | BHTR: " + bhtRequests
   );
@@ -4335,17 +4265,38 @@ function updateMetrics() {
   // label key: custom.cloudmonitoring.googleapis.com/word-asso/clients/numberUsers
 
   updateStats({
-    deltaResponsesReceived: deltaResponsesReceived
+    deltaWordsReceived: deltaWordsReceived
   });
 
   deltaPromptsSent = 0;
-  deltaResponsesReceived = 0;
+  deltaWordsReceived = 0;
   // incrementDeltaBhtReqs(0);
-  incrementDeltaMwReqs(0);
+  // incrementDeltaMwReqs(0);
 }
 
+<<<<<<< HEAD
 var unpairedUserHashMap = new HashMap();
 var sessionRouteHashMap = new HashMap();
+=======
+setInterval(function() {
+
+  if (!dnsReverseLookupQueue.isEmpty()) {
+
+    var sessionObj = dnsReverseLookupQueue.dequeue();
+
+    dnsReverseLookup(sessionObj.ip, function(err, domains) {
+      if (err) {
+        console.log(chalkError("\n\n***** ERROR: dnsReverseLookup: " + sessionObj.ip + " ERROR: " + err));
+      } else {
+        debug("DNS REVERSE LOOKUP: " + sessionObj.ip + " | DOMAINS: " + domains);
+        sessionObj.domain = domains[0];
+      }
+
+    });
+
+  }
+}, 20);
+>>>>>>> origin/master
 
 function handleSessionEvent(sesObj, callback) {
 
@@ -4385,7 +4336,7 @@ function handleSessionEvent(sesObj, callback) {
         sesObj.session.tags.channel = "UNKNOWN_CHANNEL";
       }
 
-      console.log(chalkSession(
+      debug(chalkSession(
         "+ SES" 
         // + " | " + moment().format(compactDateTimeFormat) 
         // + " | NSP: " + sesObj.session.namespace 
@@ -4611,26 +4562,6 @@ function handleSessionEvent(sesObj, callback) {
           wordCache.ttl(wordObj, wordCacheTtl);
         });
 
-        unpairedUserHashMap.remove(sesObj.session.config.userA);
-        unpairedUserHashMap.remove(sesObj.session.config.userB);
-
-        if (sessionRouteHashMap.has(sesObj.session.sessionId)) {
-          debug(chalkWarn("FOUND SESSION IN ROUTE HASH: " + sesObj.session.sessionId 
-            + "\n" + jsonPrint(sesObj) 
-            + "\n" + jsonPrint(sessionRouteHashMap.get(sesObj.session.sessionId))));
-
-          if (sesObj.session.sessionId === sesObj.session.config.userA) {
-            debug(chalkWarn(">>> TX PAIRED_USER_END TO USER B: " + sesObj.session.config.userB));
-            io.of(sesObj.session.namespace).to(sesObj.session.config.userB).emit("PAIRED_USER_END", sesObj.session.config.userA);
-          } else {
-            debug(chalkWarn(">>> TX PAIRED_USER_END TO USER A: " + sesObj.session.config.userA));
-            io.of(sesObj.session.namespace).to(sesObj.session.config.userA).emit("PAIRED_USER_END", sesObj.session.config.userB);
-          }
-        }
-
-        sessionRouteHashMap.remove(sesObj.session.config.userA);
-        sessionRouteHashMap.remove(sesObj.session.config.userB);
-
         adminCache.get(sesObj.session.userId, function(err, currentAdmin){
           if (err){
             console.log(chalkError("ADMIN CACHE ERR\n" + jsonPrint(err)));
@@ -4707,7 +4638,7 @@ function handleSessionEvent(sesObj, callback) {
 
                 updatedUtilObj.sessionId = updatedUtilObj.lastSession;
 
-                console.log(chalkLog("TX UTIL SESSION (DISCONNECT): " 
+                debug(chalkLog("TX UTIL SESSION (DISCONNECT): " 
                   + updatedUtilObj.lastSession + " TO ADMIN NAMESPACE"));
 
                 adminNameSpace.emit("UTIL_SESSION", updatedUtilObj);
@@ -5139,7 +5070,7 @@ function handleSessionEvent(sesObj, callback) {
               var muxedSessionId = sesObj.session.sessionId.replace(/#\w+$/, "");
 
               updatedUserObj.isMuxed = true;
-              console.log(chalkInfo("TX UTIL SESSION (UTIL READY)"
+              debug(chalkInfo("TX UTIL SESSION (UTIL READY)"
                 + " | " + updatedUserObj.lastSession
                 + " | " + updatedUserObj.userId + " TO ADMIN NAMESPACE"
               ));
@@ -5169,7 +5100,12 @@ function handleSessionEvent(sesObj, callback) {
                   console.log(chalkError("ENTITY UPDATE DB ERROR: " + err));
                 }
                 else {
-                  console.log(console.log(chalkInfo("ENTITY UPDATE\n" + jsonPrint(entityObj))));
+
+                  debug(chalkInfo("ENTITY UPDATE"
+                    + " | " + entityObj.entityId
+                    // + "\n" + jsonPrint(entityObj)
+                  ));
+
                   if (sesObj.session.config.type === "user") {
                     console.log(chalkInfo("TX USER SESSION (USER READY)"
                       + " | LAST SEEN: " + moment(parseInt(entityObj.lastSeen)).format(compactDateTimeFormat)
@@ -5179,8 +5115,7 @@ function handleSessionEvent(sesObj, callback) {
                     adminNameSpace.emit("USER_SESSION", entityObj);
                   } 
                   else if (sesObj.session.config.type === "util") {
-                    // console.log(chalkInfo("TX UTIL SESSION (UTIL READY): " + updatedUserObj.lastSeen + " TO ADMIN NAMESPACE"));
-                    console.log(chalkInfo("TX USER SESSION (UTIL READY)"
+                    debug(chalkInfo("TX USER SESSION (UTIL READY)"
                       + " | LAST SEEN: " + moment(parseInt(entityObj.lastSeen)).format(compactDateTimeFormat)
                       + " | UID: " + entityObj.entityId
                       + " | N: " + entityObj.name
@@ -5319,40 +5254,40 @@ function getTags(wObj, callback){
   });
 }
 
-var responseQueueReady = true;
+var rxWordQueueReady = true;
 var trendingTopicsArray = [];
 var trendingTopicHitArray = [];
 
 setInterval(function() {
 
-  if (responseQueueReady && !responseQueue.isEmpty()) {
+  if (rxWordQueueReady && !rxWordQueue.isEmpty()) {
 
-    responseQueueReady = false;
+    rxWordQueueReady = false;
 
-    var responseInObj = responseQueue.dequeue();
+    var wordObj = rxWordQueue.dequeue();
 
-    if ((responseInObj.nodeId === undefined) 
-      || (typeof responseInObj.nodeId !== "string"
-      || (responseInObj.nodeId.length >  MAX_DB_KEY_LENGTH)
+    if ((wordObj.nodeId === undefined) 
+      || (typeof wordObj.nodeId !== "string"
+      || (wordObj.nodeId.length >  MAX_DB_KEY_LENGTH)
       )) {
 
       console.log(chalkError("*** ILLEGAL RESPONSE ... SKIPPING" 
-        + " | NODE ID LEN: " + responseInObj.nodeId.length
-        + " | TYPE: " + typeof responseInObj.nodeId 
-        + "\n" + jsonPrint(responseInObj)
+        + " | NODE ID LEN: " + wordObj.nodeId.length
+        + " | TYPE: " + typeof wordObj.nodeId 
+        + "\n" + jsonPrint(wordObj)
       ));
 
-      responseQueueReady = true;
+      rxWordQueueReady = true;
       statsObj.session.error += 1;
-      statsObj.session.responseError += 1;
-      statsObj.session.responseErrorType.NODE_ID_MAX = (statsObj.session.responseErrorType.NODE_ID_MAX === undefined) 
+      statsObj.session.wordError += 1;
+      statsObj.session.wordErrorType.NODE_ID_MAX = (statsObj.session.wordErrorType.NODE_ID_MAX === undefined) 
         ? 1 
-        : statsObj.session.responseErrorType.NODE_ID_MAX + 1;
+        : statsObj.session.wordErrorType.NODE_ID_MAX + 1;
 
       return;
     }
 
-    var socketId = responseInObj.socketId;
+    var socketId = wordObj.socketId;
 
     sessionCache.get(socketId, function(err, currentSessionObj){
       if (err){
@@ -5362,44 +5297,44 @@ setInterval(function() {
       else if (currentSessionObj === undefined) {
 
         console.log(chalkAlert("??? SESSION NOT IN CACHE ON RESPONSE Q READ" 
-          + " | responseQueue: " + responseQueue.size() 
+          + " | rxWordQueue: " + rxWordQueue.size() 
           + " | " + socketId
-          + " | USER ID: " + responseInObj.userId
-          + " | NODEID: " + responseInObj.nodeId
-          // + "\n" + jsonPrint(responseInObj)
+          + " | USER ID: " + wordObj.userId
+          + " | NODEID: " + wordObj.nodeId
+          // + "\n" + jsonPrint(wordObj)
         ));
 
         var unknownSession = {};
-        unknownSession.socketId = responseInObj.socketId;
+        unknownSession.socketId = wordObj.socketId;
         unknownSession.userObj = {};
-        unknownSession.userObj.name = responseInObj.userId;
+        unknownSession.userObj.name = wordObj.userId;
         unknownSession.userObj.tags = {};
-        unknownSession.userObj.tags = responseInObj.tags;
-        unknownSession.userObj.userId = responseInObj.userId;
-        unknownSession.userObj.url = responseInObj.tags.url;
+        unknownSession.userObj.tags = wordObj.tags;
+        unknownSession.userObj.userId = wordObj.userId;
+        unknownSession.userObj.url = wordObj.tags.url;
         unknownSession.userObj.profileImageUrl = null;
-        unknownSession.userObj.screenName = responseInObj.userId;
+        unknownSession.userObj.screenName = wordObj.userId;
         unknownSession.userObj.namespace = "util";
         unknownSession.userObj.type = "util";
-        unknownSession.userObj.mode = responseInObj.tags.mode || "UNDEFINED";
-        unknownSession.userObj.nodeId = responseInObj.userId + "_" + responseInObj.tags.channel;
+        unknownSession.userObj.mode = wordObj.tags.mode || "UNDEFINED";
+        unknownSession.userObj.nodeId = wordObj.userId + "_" + wordObj.tags.channel;
 
         configEvents.emit("UNKNOWN_SESSION", unknownSession);
-        responseQueueReady = true;
+        rxWordQueueReady = true;
       }
       else {
         debug(chalkError("currentSessionObj\n" + jsonPrint(currentSessionObj)));
 
-        responseInObj.isTopTerm = responseInObj.isTopTerm || false;
-        responseInObj.isKeyword = responseInObj.isKeyword || false;
-        responseInObj.isTrendingTopic = responseInObj.isTrendingTopic || false;
+        wordObj.isTopTerm = wordObj.isTopTerm || false;
+        wordObj.isKeyword = wordObj.isKeyword || false;
+        wordObj.isTrendingTopic = wordObj.isTrendingTopic || false;
 
         trendingTopicsArray = trendingCache.keys();
         trendingTopicHitArray = [];
 
         async.each(trendingTopicsArray, function(topic, cb) {
 
-          if (responseInObj.nodeId.toLowerCase().includes(topic.toLowerCase())){
+          if (wordObj.nodeId.toLowerCase().includes(topic.toLowerCase())){
 
             var topicObj = trendingCache.get(topic);
             trendingTopicHitArray.push(topic);
@@ -5409,7 +5344,7 @@ setInterval(function() {
               topicObj.hit = true;
               trendingCache.set(topic, topicObj);
               topicHashMap.set(topic.toLowerCase(), true);
-              responseInObj.isTrendingTopic = true;
+              wordObj.isTrendingTopic = true;
             }
 
             cb();
@@ -5423,38 +5358,38 @@ setInterval(function() {
 
           if (err) { console.log(chalkError("ERROR: " + jsonPrint(err))); }
 
-          debug(chalkBht(">>> RESPONSE (before replace): " + responseInObj.nodeId));
-          responseInObj.nodeId = responseInObj.nodeId.replace(/\s+/g, " ");
-          responseInObj.nodeId = responseInObj.nodeId.replace(/[\n\r\[\]{}<>\/;:"”’`~?!@#$%\^&*()_+=]+/g, "");
-          responseInObj.nodeId = responseInObj.nodeId.replace(/\s+/g, " ");
-          responseInObj.nodeId = responseInObj.nodeId.replace(/^\s+|\s+$/g, "");
-          responseInObj.nodeId = responseInObj.nodeId.replace(/^,+|,+$/g, "");
-          responseInObj.nodeId = responseInObj.nodeId.replace(/^\.+|\.+$/g, "");
-          responseInObj.nodeId = responseInObj.nodeId.replace(/^\-*|\-+$/g, "");
-          responseInObj.nodeId = responseInObj.nodeId.toLowerCase();
-          debug(chalkBht(">>> RESPONSE: " + responseInObj.nodeId));
+          debug(chalkBht(">>> RESPONSE (before replace): " + wordObj.nodeId));
+          wordObj.nodeId = wordObj.nodeId.replace(/\s+/g, " ");
+          wordObj.nodeId = wordObj.nodeId.replace(/[\n\r\[\]{}<>\/;:"”’`~?!@#$%\^&*()_+=]+/g, "");
+          wordObj.nodeId = wordObj.nodeId.replace(/\s+/g, " ");
+          wordObj.nodeId = wordObj.nodeId.replace(/^\s+|\s+$/g, "");
+          wordObj.nodeId = wordObj.nodeId.replace(/^,+|,+$/g, "");
+          wordObj.nodeId = wordObj.nodeId.replace(/^\.+|\.+$/g, "");
+          wordObj.nodeId = wordObj.nodeId.replace(/^\-*|\-+$/g, "");
+          wordObj.nodeId = wordObj.nodeId.toLowerCase();
+          debug(chalkBht(">>> RESPONSE: " + wordObj.nodeId));
 
-          if (responseInObj.nodeId === "") {
-            debug("EMPTY RESPONSE: " + responseInObj.nodeId);
-            responseQueueReady = true;
+          if (wordObj.nodeId === "") {
+            debug("EMPTY RESPONSE: " + wordObj.nodeId);
+            rxWordQueueReady = true;
             return;
           }
 
-          if (!responseInObj.mentions) {responseInObj.mentions = 1;}
+          if (!wordObj.mentions) {wordObj.mentions = 1;}
 
-          responsesReceived += 1;
-          deltaResponsesReceived += 1;
+          wordsReceived += 1;
+          deltaWordsReceived += 1;
 
           updateStats({
-            responsesReceived: responsesReceived,
-            deltaResponsesReceived: deltaResponsesReceived
+            wordsReceived: wordsReceived,
+            deltaWordsReceived: deltaWordsReceived
           });
 
           currentSessionObj.lastSeen = moment().valueOf();
      
-          getTags(responseInObj, function(uWordObj){
+          getTags(wordObj, function(uWordObj){
 
-            debug(chalkInfo("responseInObj\n" + jsonPrint(responseInObj)));
+            debug(chalkInfo("wordObj\n" + jsonPrint(wordObj)));
             
             updateWordMeter(uWordObj, function(err, updatedWordObj){
 
@@ -5483,7 +5418,7 @@ setInterval(function() {
                 ));
 
                 dbUpdateWordQueue.enqueue(dbUpdateObj);
-                responseQueueReady = true;
+                rxWordQueueReady = true;
               }
               else {
                 debug(chalkInfo("R<" 
@@ -5495,7 +5430,7 @@ setInterval(function() {
                 ));
 
                 dbUpdateWordQueue.enqueue(dbUpdateObj);
-                responseQueueReady = true;
+                rxWordQueueReady = true;
               }
 
             });
@@ -5961,6 +5896,7 @@ setInterval(function() {
 
       updatedWordObj.wordChainIndex = dbUpdateObj.word.wordChainIndex;
 
+<<<<<<< HEAD
       updatePreviousPrompt(currentSessionObj, dbUpdateObj, function(previousPromptObj){
 
         if (previousPromptObj === undefined) {
@@ -5980,20 +5916,33 @@ setInterval(function() {
               source: updatedWordObj,
               tags: dbUpdateObj.tags
             };
+=======
+      sessionCache.set(currentSessionObj.sessionId, currentSessionObj, function(err, success) {
+        if (!err && success) {
+>>>>>>> origin/master
 
-            if (previousPromptObj) {sessionUpdateObj.target = previousPromptObj;}
+          var sessionUpdateObj = {
+            action: "WORD",
+            userId: currentSessionObj.userId,
+            url: currentSessionObj.url,
+            profileImageUrl: currentSessionObj.profileImageUrl,
+            sessionId: currentSessionObj.sessionId,
+            wordChainIndex: dbUpdateObj.word.wordChainIndex,
+            source: updatedWordObj,
+            tags: dbUpdateObj.tags
+          };
 
-            updateSessionViews(sessionUpdateObj);
+          updateSessionViews(sessionUpdateObj);
 
-            dbUpdateWordReady = true;
+          dbUpdateWordReady = true;
 
-          } else {
-            debug(chalkError("*** SESSION CACHE SET ERROR" + "\n" + jsonPrint(err)));
+        } else {
+          debug(chalkError("*** SESSION CACHE SET ERROR" + "\n" + jsonPrint(err)));
 
-            dbUpdateWordReady = true;
-          }
-        });
+          dbUpdateWordReady = true;
+        }
       });
+
     });
 
   }
@@ -6355,230 +6304,6 @@ function initAppRouting(callback) {
     });
   });
 
-  // app.get("/admin/admin.html", function(req, res) {
-  //   debug(chalkInfo("get req\n" + req));
-  //   console.warn("LOADING PAGE: /admin/admin.html");
-  //   res.sendFile(__dirname + "/admin/admin.html", function (err) {
-  //     if (err) {
-  //       console.error('GET:', __dirname + "/admin/admin.html");
-  //     } 
-  //     else {
-  //       console.log(chalkInfo('SENT:', __dirname + "/admin/admin.html"));
-  //     }
-  //   });
-  // });
-
-
-  // app.get("/controlPanel.html", function(req, res) {
-  //   debug(chalkInfo("get req\n" + req));
-  //   debugAppGet("LOADING PAGE: /controlPanel.html");
-  //   // res.sendFile(__dirname + "/controlPanel.html");
-  //   // return;
-  // });
-
-  // app.get("/node_modules/panzoom/dist/panzoom.min.js", function(req, res) {
-  //   debug(chalkInfo("get req\n" + req));
-  //   res.sendFile(__dirname + "/node_modules/panzoom/dist/panzoom.min.js");
-  //   return;
-  // });
-
-
-  // app.get("/js/libs/sessionView.js", function(req, res) {
-  //   debug(chalkInfo("get req\n" + req));
-  //   debugAppGet("LOADING FILE: sessionView.js");
-  //   res.sendFile(__dirname + "/js/libs/sessionView.js");
-  //   return;
-  // });
-
-
-  // app.get("/node_modules/util/util.js", function(req, res) {
-  //   debug(chalkInfo("get req\n" + req));
-  //   debugAppGet("LOADING FILE: /node_modules/util/util.js");
-  //   // res.sendFile(__dirname + "/node_modules/util/util.js");
-  //   res.sendFile(__dirname + "/node_modules/util/util.js", function (err) {
-  //     if (err) {
-  //       next(err);
-  //     } else {
-  //       console.log('Sent:', __dirname + "/node_modules/util/util.js");
-  //     }
-  //   });
-  //   // return;
-  // });
-
-  // app.get("/js/libs/d3.js", function(req, res) {
-  //   debug(chalkInfo("get req\n" + req));
-  //   debugAppGet("LOADING FILE: /js/libs/d3.jss");
-  //   // res.sendFile(__dirname + "/js/libs/d3.js");
-  //   // return;
-  // });
-
-  // app.get("/js/libs/stringmap.js", function(req, res) {
-  //   debug(chalkInfo("get req\n" + req));
-  //   debugAppGet("LOADING FILE: /js/libs/stringmap.jss");
-  //   // res.sendFile(__dirname + "/js/libs/stringmap.js");
-  //   // return;
-  // });
-
-  // app.get("/node_modules/moment/moment.js", function(req, res) {
-  //   debug(chalkInfo("get req\n" + req));
-  //   debugAppGet("LOADING FILE: /node_modules/moment/moment.js");
-  //   // res.sendFile(__dirname + "/node_modules/moment/moment.js");
-  //   // return;
-  // });
-
-  // app.get("/node_modules/moment/min/moment.min.js", function(req, res) {
-  //   debug(chalkInfo("get req\n" + req));
-  //   debugAppGet("LOADING FILE: /node_modules/moment/min/moment.min.js");
-  //   // res.sendFile(__dirname + "/node_modules/moment/min/moment.min.js");
-  //   // return;
-  // });
-
-  // app.get("/node_modules/node-cache/lib/node_cache.js", function(req, res) {
-  //   debug(chalkInfo("get req\n" + req));
-  //   debugAppGet("LOADING FILE: /node_modules/node-cache/lib/node_cache.js");
-  //   // res.sendFile(__dirname + "/node_modules/node-cache/lib/node_cache.js");
-  //   // return;
-  // });
-
-  // app.get("/node_modules/socket.io/lib/socket.js", function(req, res) {
-  //   debug(chalkInfo("get req\n" + req));
-  //   debugAppGet("LOADING FILE: /node_modules/socket.io/lib/socket.js");
-  //   // res.sendFile(__dirname + "/node_modules/socket.io/lib/socket.js");
-  //   // return;
-  // });
-
-  // app.get("/threecee.pem", function(req, res) {
-  //   debug(chalkInfo("get req\n" + req));
-  //   debugAppGet("LOADING FILE: threecee.pem");
-  //   // res.sendFile(__dirname + "/threecee.pem");
-  //   // return;
-  // });
-
-  // // app.get("/instagram", function(req, res) {
-  // //   debug(chalkInfo("get req\n" + req));
-  // //   debugAppGet("LOADING PAGE: /instagram");
-  // //   return;
-  // // });
-
-
-
-
-  // app.get("/admin/data/fake_users1.json", function(req, res) {
-  //   debug(chalkInfo("get req\n" + req));
-  //   console.warn("LOADING PAGE: /admin/data/fake_users1.json");
-  //   // res.sendFile(__dirname + "/admin/data/fake_users1.json");
-  //   // return;
-  // });
-
-
-  // app.get("/node_modules/crosstab/src/crosstab.js", function(req, res) {
-  //   debug(chalkInfo("get req\n" + req));
-  //   // res.sendFile(__dirname + "/node_modules/crosstab/src/crosstab.js");
-  //   // return;
-  // });
-
-  // app.get("/node_modules/lsbridge/src/lsbridge.js", function(req, res) {
-  //   debug(chalkInfo("get req\n" + req));
-  //   // res.sendFile(__dirname + "/node_modules/lsbridge/src/lsbridge.js");
-  //   // return;
-  // });
-
-  // app.get("/css/rangeslider.css", function(req, res) {
-  //   debug(chalkInfo("get req\n" + req));
-  //   // res.sendFile(__dirname + "/css/rangeslider.css");
-  //   // return;
-  // });
-
-
-  // app.get("/node_modules/debug/node_modules/debug.js", function(req, res) {
-  //   debug(chalkInfo("get req\n" + req));
-  //   // res.sendFile(__dirname + "/node_modules/debug/node_modules/debug.js");
-  //   // return;
-  // });
-
-  // app.get("/util", function(req, res) {
-  //   debug(chalkInfo("get req\n" + req));
-  //   debugAppGet(chalkAlert("UTIL PAGE REQUEST ... RETURNING index.html ..."));
-  //   // res.sendFile(__dirname + "/index.html");
-  //   // return;
-  // });
-
-  // app.get("/test-user", function(req, res) {
-  //   debug(chalkInfo("get req\n" + req));
-  //   debugAppGet(chalkAlert("TEST USER PAGE REQUEST ... RETURNING index.html ..."));
-  //   // res.sendFile(__dirname + "/index.html");
-  //   // return;
-  // });
-
-  // app.get("/wordAssoClient.js", function(req, res) {
-  //   debug(chalkInfo("get req\n" + req));
-  //   debugAppGet("LOADING PAGE: /wordAssoClient.js");
-  //   // res.sendFile(__dirname + "/wordAssoClient.js");
-  //   // return;
-  // });
-
-  // app.get("/css/main.css", function(req, res) {
-  //   debug(chalkInfo("get req\n" + req));
-  //   res.sendFile(__dirname + "/css/main.css");
-  //   return;
-  // });
-
-  // app.get("/css/style.css", function(req, res) {
-  //   debug(chalkInfo("get req\n" + req));
-  //   res.sendFile(__dirname + "/css/style.css");
-  //   return;
-  // });
-
-  // app.get("/css/base.css", function(req, res) {
-  //   debug(chalkInfo("get req\n" + req));
-  //   res.sendFile(__dirname + "/css/base.css");
-  //   return;
-  // });
-
-  // app.get("/node_modules/panzoom/dist/panzoom.min.js", function(req, res) {
-  //   debug(chalkInfo("get req\n" + req));
-  //   res.sendFile(__dirname + "/node_modules/panzoom/dist/panzoom.min.js");
-  //   return;
-  // });
-
-  // app.get("/node_modules/panzoom/dist/panzoom.js", function(req, res) {
-  //   debug(chalkInfo("get req\n" + req));
-  //   res.sendFile(__dirname + "/node_modules/panzoom/dist/panzoom.js");
-  //   return;
-  // });
-
-  // app.get("/node_modules/async/lib/async.js", function(req, res) {
-  //   debug(chalkInfo("get req\n" + req));
-  //   res.sendFile(__dirname + "/node_modules/async/lib/async.js");
-  //   return;
-  // });
-
-  // app.get("/js/libs/Queue.js", function(req, res) {
-  //   debug(chalkInfo("get req\n" + req));
-  //   res.sendFile(__dirname + "/js/libs/Queue.js");
-  //   return;
-  // });
-
-  // app.get("/node_modules/hashmap/hashmap.js", function(req, res) {
-  //   debug(chalkInfo("get req\n" + req));
-  //   res.sendFile(__dirname + "/node_modules/hashmap/hashmap.js");
-  //   return;
-  // });
-
-  // app.get("/favicon.ico", function(req, res) {
-  //   debug(chalkInfo("get req\n" + req));
-  //   debugAppGet("LOADING PAGE: /favicon.ico");
-  //   res.sendFile(__dirname + "/favicon.png");
-  //   return;
-  // });
-
-  // app.get("/favicon.png", function(req, res) {
-  //   debug(chalkInfo("get req\n" + req));
-  //   debugAppGet("LOADING PAGE: /favicon.png");
-  //   res.sendFile(__dirname + "/favicon.png");
-  //   return;
-  // });
-
   configEvents.emit("INIT_APP_ROUTING_COMPLETE");
   callback(null, "INIT_APP_ROUTING_COMPLETE");
 }
@@ -6787,6 +6512,22 @@ function initializeConfiguration(cnf, callback) {
               access_token_secret: twitterConfig.TOKEN_SECRET
             });
 
+<<<<<<< HEAD
+=======
+            // getTwitterFriends(15000);
+
+            // setInterval(function(){
+            //   getTwitterFriends(15000, function(err, totalFriends){
+            //     if (err) {
+            //       console.log(chalkError("*** GET TWITTER FRIENDS ERROR: " + err));
+            //     }
+            //     else {
+            //       console.log(chalkError("TWITTER FRIENDS: " + totalFriends));
+            //     }
+            //   });
+            // }, pollTwitterFriendsIntervalTime);
+
+>>>>>>> origin/master
             twitterStream = twit.stream("user");
 
             twitterStream.on("follow", function(followEvent){
@@ -7437,8 +7178,8 @@ configEvents.on("SERVER_READY", function() {
 
         promptsSent: promptsSent,
         deltaPromptsSent: deltaPromptsSent,
-        deltaResponsesReceived: statsObj.deltaResponsesReceived,
-        responsesReceived: responsesReceived,
+        deltaWordsReceived: statsObj.deltaWordsReceived,
+        wordsReceived: wordsReceived,
 
         memoryUsage: {},
         utilities: {}

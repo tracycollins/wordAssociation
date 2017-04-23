@@ -462,26 +462,13 @@ var statsObj = {
 };
 
 statsObj.queues = {};
-statsObj.queues.rxWordQueue = {};
-statsObj.queues.rxWordQueue.size = 0;
-
-statsObj.queues.sessionQueue = {};
-statsObj.queues.sessionQueue.size = 0;
-
-statsObj.queues.responseQueue = {};
-statsObj.queues.responseQueue.size = 0;
-
-statsObj.queues.dbUpdateWordQueue = {};
-statsObj.queues.dbUpdateWordQueue.size = 0;
-
-statsObj.queues.updaterMessageQueue = {};
-statsObj.queues.updaterMessageQueue.size = 0;
-
-statsObj.queues.dbUpdateEntityQueue = {};
-statsObj.queues.dbUpdateEntityQueue.size = 0;
-
-statsObj.queues.updateSessionViewQueue = {};
-statsObj.queues.updateSessionViewQueue.size = 0;
+statsObj.queues.rxWordQueue = 0;
+statsObj.queues.sessionQueue = 0;
+statsObj.queues.responseQueue = 0;
+statsObj.queues.dbUpdateWordQueue = 0;
+statsObj.queues.updaterMessageQueue = 0;
+statsObj.queues.dbUpdateEntityQueue = 0;
+statsObj.queues.updateSessionViewQueue = 0;
 
 function showStats(options){
 
@@ -491,13 +478,13 @@ function showStats(options){
   statsObj.heap = process.memoryUsage().heapUsed/(1024*1024);
   statsObj.maxHeap = Math.max(statsObj.maxHeap, statsObj.heap);
 
-  statsObj.queues.rxWordQueue.size = rxWordQueue.size();
-  statsObj.queues.sessionQueue.size = sessionQueue.size();
-  statsObj.queues.responseQueue.size = responseQueue.size();
-  statsObj.queues.dbUpdateWordQueue.size = dbUpdateWordQueue.size();
-  statsObj.queues.updaterMessageQueue.size = updaterMessageQueue.size();
-  statsObj.queues.dbUpdateEntityQueue.size = dbUpdateEntityQueue.size();
-  statsObj.queues.updateSessionViewQueue.size = updateSessionViewQueue.length;
+  statsObj.queues.rxWordQueue = rxWordQueue.size();
+  statsObj.queues.sessionQueue = sessionQueue.size();
+  statsObj.queues.responseQueue = responseQueue.size();
+  statsObj.queues.dbUpdateWordQueue = dbUpdateWordQueue.size();
+  statsObj.queues.updaterMessageQueue = updaterMessageQueue.size();
+  statsObj.queues.dbUpdateEntityQueue = dbUpdateEntityQueue.size();
+  statsObj.queues.updateSessionViewQueue = updateSessionViewQueue.length;
 
 
   if (options) {
@@ -553,6 +540,7 @@ var txHeartbeat = {};
 
 txHeartbeat.wordStats = {};
 txHeartbeat.memoryUsage = {};
+txHeartbeat.queues = {};
 
 var heartbeatsSent = 0;
 
@@ -6988,12 +6976,12 @@ configEvents.on("SERVER_READY", function() {
     statsObj.memoryAvailable = os.freemem();
     statsObj.memoryUsage = process.memoryUsage();
 
-    statsObj.queues.sessionQueue.size = sessionQueue.size();
-    statsObj.queues.responseQueue.size = responseQueue.size();
-    statsObj.queues.dbUpdateWordQueue.size = dbUpdateWordQueue.size();
-    statsObj.queues.updaterMessageQueue.size = updaterMessageQueue.size();
-    statsObj.queues.dbUpdateEntityQueue.size = dbUpdateEntityQueue.size();
-    statsObj.queues.updateSessionViewQueue.size = updateSessionViewQueue.length;
+    statsObj.queues.sessionQueue = sessionQueue.size();
+    statsObj.queues.responseQueue = responseQueue.size();
+    statsObj.queues.dbUpdateWordQueue = dbUpdateWordQueue.size();
+    statsObj.queues.updaterMessageQueue = updaterMessageQueue.size();
+    statsObj.queues.dbUpdateEntityQueue = dbUpdateEntityQueue.size();
+    statsObj.queues.updateSessionViewQueue = updateSessionViewQueue.length;
 
     //
     // SERVER HEARTBEAT
@@ -7100,6 +7088,7 @@ configEvents.on("SERVER_READY", function() {
 
       txHeartbeat.utilities = statsObj.utilities;
       txHeartbeat.caches = statsObj.caches;
+      txHeartbeat.queues = statsObj.queues;
       txHeartbeat.memoryUsage = process.memoryUsage();
 
       io.emit("HEARTBEAT", txHeartbeat);

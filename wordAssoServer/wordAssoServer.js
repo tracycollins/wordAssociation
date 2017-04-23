@@ -655,20 +655,6 @@ var numberTestUsers = 0;
 var dnsHostHashMap = new HashMap();
 var localHostHashMap = new HashMap();
 
-<<<<<<< HEAD
-=======
-var sessionQueue = new Queue();
-var dbUpdateGroupQueue = new Queue();
-var dbUpdateEntityQueue = new Queue();
-var dbUpdateWordQueue = new Queue();
-var wapiSearchQueue = new Queue();
-var updaterMessageQueue = new Queue();
-var followerUpdateQueue = new Queue();
-
-var rxWordQueue = new Queue();
-
-var dnsReverseLookupQueue = new Queue();
->>>>>>> origin/master
 
 var adminNameSpace;
 var utilNameSpace;
@@ -917,21 +903,7 @@ sessionCache.on("expired", function(sessionId, sessionObj) {
   ));
 });
 
-// wordCache.on("set", function(word, wordObj) {
 
-//   debug(chalkWapi("WORD CACHE SET"
-//     + " | " + word 
-//     + " | " + wordObj.raw
-//   ));
-
-<<<<<<< HEAD
-});
-=======
-//   if (wapiSearchEnabled && !wapiOverLimitFlag && (wapiForceSearch || !wordObj.wapiSearched)){
-//     wapiSearchQueue.enqueue(wordObj);
-//   }
-// });
->>>>>>> origin/master
 
 wordCache.on("expired", function(word, wordObj) {
 
@@ -4270,14 +4242,8 @@ function updateMetrics() {
 
   deltaPromptsSent = 0;
   deltaWordsReceived = 0;
-  // incrementDeltaBhtReqs(0);
-  // incrementDeltaMwReqs(0);
 }
 
-<<<<<<< HEAD
-var unpairedUserHashMap = new HashMap();
-var sessionRouteHashMap = new HashMap();
-=======
 setInterval(function() {
 
   if (!dnsReverseLookupQueue.isEmpty()) {
@@ -4296,7 +4262,6 @@ setInterval(function() {
 
   }
 }, 20);
->>>>>>> origin/master
 
 function handleSessionEvent(sesObj, callback) {
 
@@ -5896,31 +5861,8 @@ setInterval(function() {
 
       updatedWordObj.wordChainIndex = dbUpdateObj.word.wordChainIndex;
 
-<<<<<<< HEAD
-      updatePreviousPrompt(currentSessionObj, dbUpdateObj, function(previousPromptObj){
-
-        if (previousPromptObj === undefined) {
-          console.log(chalkError("previousPromptObj UNDEFINED"));
-        }
-
-        sessionCache.set(currentSessionObj.sessionId, currentSessionObj, function(err, success) {
-          if (!err && success) {
-
-            var sessionUpdateObj = {
-              action: "RESPONSE",
-              userId: currentSessionObj.userId,
-              url: currentSessionObj.url,
-              profileImageUrl: currentSessionObj.profileImageUrl,
-              sessionId: currentSessionObj.sessionId,
-              wordChainIndex: dbUpdateObj.word.wordChainIndex,
-              source: updatedWordObj,
-              tags: dbUpdateObj.tags
-            };
-=======
       sessionCache.set(currentSessionObj.sessionId, currentSessionObj, function(err, success) {
         if (!err && success) {
->>>>>>> origin/master
-
           var sessionUpdateObj = {
             action: "WORD",
             userId: currentSessionObj.userId,
@@ -6512,22 +6454,6 @@ function initializeConfiguration(cnf, callback) {
               access_token_secret: twitterConfig.TOKEN_SECRET
             });
 
-<<<<<<< HEAD
-=======
-            // getTwitterFriends(15000);
-
-            // setInterval(function(){
-            //   getTwitterFriends(15000, function(err, totalFriends){
-            //     if (err) {
-            //       console.log(chalkError("*** GET TWITTER FRIENDS ERROR: " + err));
-            //     }
-            //     else {
-            //       console.log(chalkError("TWITTER FRIENDS: " + totalFriends));
-            //     }
-            //   });
-            // }, pollTwitterFriendsIntervalTime);
-
->>>>>>> origin/master
             twitterStream = twit.stream("user");
 
             twitterStream.on("follow", function(followEvent){

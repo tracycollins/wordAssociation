@@ -1754,6 +1754,9 @@ function createSession(newSessionObj) {
 }
 
 function initSessionSocketHandler(socket) {
+
+  var ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+
   socket.on("reconnect_error", function(errorObj) {
     statsObj.socket.reconnect_errors += 1;
     console.log(chalkError(moment().format(compactDateTimeFormat) 

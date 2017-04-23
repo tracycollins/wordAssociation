@@ -1,3 +1,4 @@
+
 /*ver 0.47*/
 /*jslint node: true */
 "use strict";
@@ -304,6 +305,14 @@ var tweetsPerMinBarText;
 var twitterLimitBar;
 var twitterLimitBarDiv;
 var twitterLimitBarText;
+
+var rawDiv;
+var rawDivText;
+
+function updateRawText(text){
+  rawDivText = document.getElementById("rawDivText");
+  rawDivText.innerHTML = text;
+}
 
 function initBars(callback){
  
@@ -887,6 +896,8 @@ socket.on('HEARTBEAT', function(rxHeartbeat) {
   heartBeatTimeoutFlag = false;
   hbIndex++;
   heartBeat = rxHeartbeat;
+
+  updateRawText(jsonPrint(rxHeartbeat));
 
   if (tweetsPerMinServer && heartBeat.utilities[tweetsPerMinServer]) {
     tweetsPerMin = heartBeat.utilities[tweetsPerMinServer].tweetsPerMinute;

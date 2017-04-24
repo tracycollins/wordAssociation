@@ -88,7 +88,12 @@ exports.findOneUser = function (user, params, callback) {
 			lastSeen: Date.now() 
 		}
 	};
-	var options = { upsert: true, new: true	};
+	
+	var options = { 
+		upsert: true, 
+		setDefaultsOnInsert: true,
+		new: true
+	};
 
 	User.findOneAndUpdate(
 		query,
@@ -158,7 +163,12 @@ function findOnePlace (place, params, callback) {
 			lastSeen: Date.now() 
 		} 
 	};
-	var options = { upsert: true, new: true	};
+
+	var options = { 
+		upsert: true, 
+		setDefaultsOnInsert: true,
+		new: true
+	};
 
 	Place.findOneAndUpdate(
 		query,
@@ -229,7 +239,12 @@ function findOneMedia (media, params, callback) {
 			lastSeen: Date.now() 
 		} 
 	};
-	var options = { upsert: true, new: true	};
+
+	var options = { 
+		upsert: true, 
+		setDefaultsOnInsert: true,
+		new: true
+	};
 
 	Media.findOneAndUpdate(
 		query,
@@ -292,7 +307,14 @@ function findOneHashtag (hashtag, params, callback) {
 			lastSeen: Date.now() 
 		} 
 	};
-	var options = { upsert: true, new: true	};
+
+
+	var options = { 
+		upsert: true, 
+		setDefaultsOnInsert: true,
+		new: true
+	};
+
 
 	Hashtag.findOneAndUpdate(
 		query,
@@ -356,7 +378,12 @@ function findOneUrl (url, params, callback) {
 			lastSeen: Date.now() 
 		} 
 	};
-	var options = { upsert: true, new: true	};
+
+	var options = { 
+		upsert: true, 
+		setDefaultsOnInsert: true,
+		new: true
+	};
 
 	Url.findOneAndUpdate(
 		query,
@@ -465,7 +492,11 @@ function findOneTweet (tweet, params, callback) {
 		});
 	}
 
-	var options = { upsert: true, new: true	};
+	var options = { 
+		upsert: true, 
+		setDefaultsOnInsert: true,
+		new: true
+	};
 
 	Tweet.findOneAndUpdate(
 		query,

@@ -3241,7 +3241,7 @@ function dbUpdateWord(wObj, incMentions, callback) {
 
         statsObj.db.wordsUpdated++;
 
-        console.log("> DB UPDATE | " 
+        debug("> DB UPDATE | " 
           + word.nodeId 
           + " | I " + word.isIgnored 
           + " | K " + word.isKeyword 

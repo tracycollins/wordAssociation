@@ -284,15 +284,15 @@ var testViewersBarText;
 var memoryBarDiv;
 var memoryBarText;
 
-var bhtRequestsBarDiv;
-var bhtRequestsBar;
-var bhtRequestsBarText;
-var bhtRequestsBarPercent;
+// var bhtRequestsBarDiv;
+// var bhtRequestsBar;
+// var bhtRequestsBarText;
+// var bhtRequestsBarPercent;
 
-var mwRequestsBar;
-var mwRequestsBarDiv;
-var mwRequestsBarText;
-var mwRequestsBarPercent;
+// var mwRequestsBar;
+// var mwRequestsBarDiv;
+// var mwRequestsBarText;
+// var mwRequestsBarPercent;
 
 var wordsPerMinBar;
 var wordsPerMinBarDiv;
@@ -389,19 +389,19 @@ function initBars(callback){
   memoryBar = new ProgressBar.Line(memoryBarDiv, {});
   memoryBar.animate(0);
 
-  bhtRequestsBar;
-  bhtRequestsBarPercent = 0;
-  bhtRequestsBarDiv = document.getElementById('bht-requests-bar');
-  bhtRequestsBarText = document.getElementById('bht-requests-bar-text');
-  bhtRequestsBar = new ProgressBar.Line(bhtRequestsBarDiv, {});
-  bhtRequestsBar.animate(0);
+  // bhtRequestsBar;
+  // bhtRequestsBarPercent = 0;
+  // bhtRequestsBarDiv = document.getElementById('bht-requests-bar');
+  // bhtRequestsBarText = document.getElementById('bht-requests-bar-text');
+  // bhtRequestsBar = new ProgressBar.Line(bhtRequestsBarDiv, {});
+  // bhtRequestsBar.animate(0);
 
-  mwRequestsBar;
-  mwRequestsBarPercent = 0;
-  mwRequestsBarDiv = document.getElementById('mw-requests-bar');
-  mwRequestsBarText = document.getElementById('mw-requests-bar-text');
-  mwRequestsBar = new ProgressBar.Line(mwRequestsBarDiv, {});
-  mwRequestsBar.animate(0);
+  // mwRequestsBar;
+  // mwRequestsBarPercent = 0;
+  // mwRequestsBarDiv = document.getElementById('mw-requests-bar');
+  // mwRequestsBarText = document.getElementById('mw-requests-bar-text');
+  // mwRequestsBar = new ProgressBar.Line(mwRequestsBarDiv, {});
+  // mwRequestsBar.animate(0);
 
   wordsPerMinBarDiv = document.getElementById('delta-response-bar');
   wordsPerMinBarText = document.getElementById('delta-response-bar-text');
@@ -1010,11 +1010,11 @@ function setWordCacheTtl() {
   socket.emit("SET_WORD_CACHE_TTL", newWordCacheTtl);
 }
 
-function updateBhtReqs() {
-  var newBhtRequests = document.getElementById("updateBhtReqs").value;
-  console.log("UPDATE BHT REQS: " + newBhtRequests);
-  socket.emit("UPDATE_BHT_REQS", newBhtRequests);
-}
+// function updateBhtReqs() {
+//   var newBhtRequests = document.getElementById("updateBhtReqs").value;
+//   console.log("UPDATE BHT REQS: " + newBhtRequests);
+//   socket.emit("UPDATE_BHT_REQS", newBhtRequests);
+// }
 
 function toggleTestMode() {
   testMode = !testMode;
@@ -1756,32 +1756,32 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
 
 
-  bhtRequestsBar.animate(heartBeat.bhtRequests / heartBeat.bhtRequestLimit);
+  // bhtRequestsBar.animate(heartBeat.bhtRequests / heartBeat.bhtRequestLimit);
 
-  if (100 * heartBeat.bhtRequests / heartBeat.bhtRequestLimit >= ALERT_LIMIT_PERCENT) {
-    bhtRequestsBar.path.setAttribute('stroke', endColor);
-  } else if (100 * heartBeat.bhtRequests / heartBeat.bhtRequestLimit >= WARN_LIMIT_PERCENT) {
-    bhtRequestsBar.path.setAttribute('stroke', midColor);
-  } else {
-    bhtRequestsBar.path.setAttribute('stroke', startColor);
-  }
+  // if (100 * heartBeat.bhtRequests / heartBeat.bhtRequestLimit >= ALERT_LIMIT_PERCENT) {
+  //   bhtRequestsBar.path.setAttribute('stroke', endColor);
+  // } else if (100 * heartBeat.bhtRequests / heartBeat.bhtRequestLimit >= WARN_LIMIT_PERCENT) {
+  //   bhtRequestsBar.path.setAttribute('stroke', midColor);
+  // } else {
+  //   bhtRequestsBar.path.setAttribute('stroke', startColor);
+  // }
 
-  bhtRequestsBarText.innerHTML =
-    'BHT REQS' + ' | USED: ' + heartBeat.bhtRequests + ' (' + (heartBeat.bhtRequests / heartBeat.bhtRequestLimit * 100).toFixed(0) + ' %)' + ' | REMAIN: ' + (heartBeat.bhtRequestLimit - heartBeat.bhtRequests) + ' (' + ((heartBeat.bhtRequestLimit - heartBeat.bhtRequests) / heartBeat.bhtRequestLimit * 100).toFixed(0) + ' %)';
+  // bhtRequestsBarText.innerHTML =
+  //   'BHT REQS' + ' | USED: ' + heartBeat.bhtRequests + ' (' + (heartBeat.bhtRequests / heartBeat.bhtRequestLimit * 100).toFixed(0) + ' %)' + ' | REMAIN: ' + (heartBeat.bhtRequestLimit - heartBeat.bhtRequests) + ' (' + ((heartBeat.bhtRequestLimit - heartBeat.bhtRequests) / heartBeat.bhtRequestLimit * 100).toFixed(0) + ' %)';
 
 
-  mwRequestsBar.animate(heartBeat.mwRequests / heartBeat.mwRequestLimit);
+  // mwRequestsBar.animate(heartBeat.mwRequests / heartBeat.mwRequestLimit);
 
-  if (100 * heartBeat.mwRequests / heartBeat.mwRequestLimit >= ALERT_LIMIT_PERCENT) {
-    mwRequestsBar.path.setAttribute('stroke', endColor);
-  } else if (100 * heartBeat.mwRequests / heartBeat.mwRequestLimit >= WARN_LIMIT_PERCENT) {
-    mwRequestsBar.path.setAttribute('stroke', midColor);
-  } else {
-    mwRequestsBar.path.setAttribute('stroke', startColor);
-  }
+  // if (100 * heartBeat.mwRequests / heartBeat.mwRequestLimit >= ALERT_LIMIT_PERCENT) {
+  //   mwRequestsBar.path.setAttribute('stroke', endColor);
+  // } else if (100 * heartBeat.mwRequests / heartBeat.mwRequestLimit >= WARN_LIMIT_PERCENT) {
+  //   mwRequestsBar.path.setAttribute('stroke', midColor);
+  // } else {
+  //   mwRequestsBar.path.setAttribute('stroke', startColor);
+  // }
 
-  mwRequestsBarText.innerHTML =
-    'MW REQS' + ' | USED: ' + heartBeat.mwRequests + ' (' + (heartBeat.mwRequests / heartBeat.mwRequestLimit * 100).toFixed(0) + ' %)' + ' | REMAIN: ' + (heartBeat.mwRequestLimit - heartBeat.mwRequests) + ' (' + ((heartBeat.mwRequestLimit - heartBeat.mwRequests) / heartBeat.mwRequestLimit * 100).toFixed(0) + ' %)';
+  // mwRequestsBarText.innerHTML =
+  //   'MW REQS' + ' | USED: ' + heartBeat.mwRequests + ' (' + (heartBeat.mwRequests / heartBeat.mwRequestLimit * 100).toFixed(0) + ' %)' + ' | REMAIN: ' + (heartBeat.mwRequestLimit - heartBeat.mwRequests) + ' (' + ((heartBeat.mwRequestLimit - heartBeat.mwRequests) / heartBeat.mwRequestLimit * 100).toFixed(0) + ' %)';
 
 
   // TEST VIEWERS ==========================
@@ -1961,16 +1961,16 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
     x[2].style.backgroundColor = '#880000';
   }
 
-  var bhtOLTmoment;
+  // var bhtOLTmoment;
 
-  if (heartBeat.bhtOverLimitTime == 0) {
-    bhtOLTmoment = "";
-  } else {
-    bhtOLTmoment = moment(heartBeat.bhtOverLimitTime).format("YYYY-MM-DD HH:mm:ss ZZ");
-  }
-  var bhtLRTmoment = moment(heartBeat.bhtLimitResetTime).format("YYYY-MM-DD HH:mm:ss ZZ");
+  // if (heartBeat.bhtOverLimitTime == 0) {
+  //   bhtOLTmoment = "";
+  // } else {
+  //   bhtOLTmoment = moment(heartBeat.bhtOverLimitTime).format("YYYY-MM-DD HH:mm:ss ZZ");
+  // }
+  // var bhtLRTmoment = moment(heartBeat.bhtLimitResetTime).format("YYYY-MM-DD HH:mm:ss ZZ");
 
-  var bhtOptions = false;
+  // var bhtOptions = false;
 
   tableCreateRow(heatbeatTable, false, ['SERVER TIME', getTimeStamp(heartBeat.timeStamp)]);
   tableCreateRow(heatbeatTable, false, ['SERVER UPTIME', msToTime(heartBeat.upTime)]);
@@ -1989,30 +1989,29 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
   tableCreateRow(heatbeatTable, false, ['TOTAL SESSIONS', heartBeat.totalSessions]);
   tableCreateRow(heatbeatTable, false, ['TOTAL WORDS', heartBeat.totalWords]);
-  tableCreateRow(heatbeatTable, false, ['TOTAL PROMPTS', heartBeat.promptsSent]);
-  tableCreateRow(heatbeatTable, false, ['TOTAL REPONSES', heartBeat.responsesReceived]);
+  // tableCreateRow(heatbeatTable, false, ['TOTAL PROMPTS', heartBeat.promptsSent]);
+  tableCreateRow(heatbeatTable, false, ['TOTAL WORD UPDATES', heartBeat.db.wordsUpdated]);
 
-  if (heartBeat.bhtOverLimitFlag) {
-    var now = moment.utc();
-    now.utcOffset("-08:00");
+  // if (heartBeat.bhtOverLimitFlag) {
+  //   var now = moment.utc();
+  //   now.utcOffset("-08:00");
 
-    bhtOptions = {
-      tdTextColor: "black",
-      backgroundColor: "#999947"
-    };
+  //   bhtOptions = {
+  //     tdTextColor: "black",
+  //     backgroundColor: "#999947"
+  //   };
 
-    tableCreateRow(heatbeatTable, bhtOptions, ['*** BHT OVER LIMIT ***',
-      (msToTime(now.diff(heartBeat.bhtOverLimitTime))) + ' AGO | ' + (msToTime(moment(heartBeat.bhtLimitResetTime).diff(now))) + ' REMAIN'
-    ]);
-  }
+  //   tableCreateRow(heatbeatTable, bhtOptions, ['*** BHT OVER LIMIT ***',
+  //     (msToTime(now.diff(heartBeat.bhtOverLimitTime))) + ' AGO | ' + (msToTime(moment(heartBeat.bhtLimitResetTime).diff(now))) + ' REMAIN'
+  //   ]);
+  // }
 
   // tableCreateRow(heatbeatTable, bhtOptions, ['TOTAL BHT REQS', heartBeat.bhtRequests]);
-  tableCreateRow(heatbeatTable, bhtOptions, ['BHT OVER LIMIT', bhtOLTmoment]);
-  tableCreateRow(heatbeatTable, bhtOptions, ['BHT LIMIT RESET',
-    bhtLRTmoment + ' | ' + (msToTime(moment(heartBeat.bhtLimitResetTime).diff(now))) + ' REMAIN'
-  ]);
+  // tableCreateRow(heatbeatTable, bhtOptions, ['BHT OVER LIMIT', bhtOLTmoment]);
+  // tableCreateRow(heatbeatTable, bhtOptions, ['BHT LIMIT RESET',
+  //   bhtLRTmoment + ' | ' + (msToTime(moment(heartBeat.bhtLimitResetTime).diff(now))) + ' REMAIN']);
 
-  tableCreateRow(heatbeatTable, false, ['TOTAL MW REQS', heartBeat.mwRequests]);
+  // tableCreateRow(heatbeatTable, false, ['TOTAL MW REQS', heartBeat.mwRequests]);
 
   tableCreateRow(heatbeatTable, false, ['ADMINS', heartBeat.numberAdmins]);
   tableCreateRow(heatbeatTable, false, ['UTILS', heartBeat.numberUtils]);

@@ -443,7 +443,6 @@ var statsObj = {
   "socket": {},
   "promptsSent": 0,
   "wordsReceived": 0,
-  "deltaWordsReceived": 0,
   "sessionUpdatesSent": 0,
   "mwRequests": 0,
   "mwDictWordsMiss": {},
@@ -1424,38 +1423,6 @@ function findSessionById(sessionId, callback) {
     }
   );
 }
-
-var deltaPromptsSent = 0;
-var deltaWordsReceived = 0;
-
-// function incrementDeltaMwReqs(delta) {
-//   var d = parseInt(delta);
-//   if (d === 0) {
-//     deltaMwRequests = 0;
-//   } 
-//   else {
-//     deltaMwRequests += d;
-//   }
-// }
-
-// function incrementSocketMwReqs(delta) {
-
-//   if ((mwRequests > MW_REQUEST_LIMIT) || ((mwRequests + delta) > MW_REQUEST_LIMIT)) {
-//     debug(chalkInfo("!!! incrementSocketMwReqs: AT MW_REQUEST_LIMIT: " + mwRequests 
-//       + " | NOW: " + MW_REQUEST_LIMIT));
-//     mwRequests = MW_REQUEST_LIMIT;
-//   } 
-//   else if (delta > 0) {
-//     mwRequests += delta;
-//     var remain = MW_REQUEST_LIMIT - mwRequests;
-//     debug(chalkInfo("-#- MW  REQS: " + mwRequests 
-//       + " | DELTA: " + delta 
-//       + " | LIMIT: " + MW_REQUEST_LIMIT 
-//       + " | REMAIN: " + remain
-//     ));
-//     incrementDeltaMwReqs(delta);
-//   }
-// }
 
 function userReadyHandler(request, callback){
 
@@ -4215,29 +4182,6 @@ function sortedObjectValues(obj, k, callback) {
   callback(sortedKeys);
 }
 
-function updateMetrics() {
-
-  if (heartbeatsSent % 100 === 0) { updateStatsCounts(); }
-
-  debug(moment().format(compactDateTimeFormat) 
-    + " | updateMetrics USERS: " + numberUsers 
-    + " | PTX: " + promptsSent 
-    + " | RRX: " + wordsReceived 
-    + " | STX: " + sessionUpdatesSent 
-    // + " | BHTR: " + bhtRequests
-  );
-
-  // name: custom.cloudmonitoring.googleapis.com/word-asso/clients/numberUsers
-  // label key: custom.cloudmonitoring.googleapis.com/word-asso/clients/numberUsers
-
-  updateStats({
-    deltaWordsReceived: deltaWordsReceived
-  });
-
-  deltaPromptsSent = 0;
-  deltaWordsReceived = 0;
-}
-
 function handleSessionEvent(sesObj, callback) {
 
   console.log(chalkSession("SESS"
@@ -5318,11 +5262,9 @@ setInterval(function() {
           if (!wordObj.mentions) {wordObj.mentions = 1;}
 
           wordsReceived += 1;
-          deltaWordsReceived += 1;
 
           updateStats({
             wordsReceived: wordsReceived,
-            deltaWordsReceived: deltaWordsReceived
           });
 
           currentSessionObj.lastSeen = moment().valueOf();
@@ -6453,13 +6395,7 @@ function initializeConfiguration(cnf, callback) {
               entityUpdateDb(entityObj, function(err, updatedEntityObj){
                 if (err){
                   console.log(chalkError("ENTITY UPDATE DB ERROR: " + err));
-                  // callback(err, updatedEntityObj);
                 }
-                // else {
-                //   // console.log(chalkInfo("TX UTIL SES (UTIL RDY): " + updatedEntity2Obj.lastSession + " TO ADMIN NAMESPACE"));
-                //   // adminNameSpace.emit("UTIL_SESSION", updatedEntity2Obj);
-                //   callback(null, updatedEntity2Obj);
-                // }
               });
             });
 
@@ -7089,8 +7025,6 @@ configEvents.on("SERVER_READY", function() {
         caches: {},
 
         promptsSent: promptsSent,
-        deltaPromptsSent: deltaPromptsSent,
-        deltaWordsReceived: statsObj.deltaWordsReceived,
         wordsReceived: wordsReceived,
 
         memoryUsage: {},
@@ -7188,6 +7122,13 @@ setInterval(function() {
   statsObj.caches.wordCache = wordCache.getStats();
   statsObj.caches.wordsPerMinuteTopTermCache = wordsPerMinuteTopTermCache.getStats();
 
+  statsObj.queues.rxWordQueue = rxWordQueue.size();
+  statsObj.queues.sessionQueue = sessionQueue.size();
+  statsObj.queues.dbUpdateWordQueue = dbUpdateWordQueue.size();
+  statsObj.queues.updaterMessageQueue = updaterMessageQueue.size();
+  statsObj.queues.dbUpdateEntityQueue = dbUpdateEntityQueue.size();
+  statsObj.queues.updateSessionViewQueue = updateSessionViewQueue.length;
+
   if (updateComplete) {
     numberAdmins = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
     numberUtils = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
@@ -7236,7 +7177,7 @@ setInterval(function() {
     debug(chalkAlert("... NEW MAX UTILS" + " | " + moment().format(compactDateTimeFormat)));
   }
 
-  updateMetrics(enableGoogleMetrics);
+  if (heartbeatsSent % 100 === 0) { updateStatsCounts(); }
 
 }, 1000);
 
@@ -7379,8 +7320,6 @@ function initRateQinterval(interval){
 
       sortedObjectValues(wordMeter, "1MinuteRate", function(sortedKeys){
 
-        // if (enableGoogleMetrics) {
-
         var endIndex = Math.min(maxTopTerms, sortedKeys.length);
 
         var index;
@@ -7410,16 +7349,35 @@ function initRateQinterval(interval){
           }
 
         }
-        // }
 
       });
 
       if (enableGoogleMetrics) {
+
         var testDataPoint = {};
         testDataPoint.metricType = "word/test/random";
         testDataPoint.value = prevTestValue + randomInt(-20,20);
         testDataPoint.metricLabels = {server_id: "TEST"};
         addMetricDataPoint(testDataPoint);
+        
+        var queueNames = Object.keys(statsObj.queues);
+
+        queueNames.forEach(function(queueName){
+          var queueDataPoint = {};
+          queueDataPoint.metricType = "word/queues/" + queueName;
+          queueDataPoint.value = statsObj.queues[queueName];
+          queueDataPoint.metricLabels = {server_id: "QUEUE"};
+          queueDataPoint.displayName = queueName;
+          addMetricDataPoint(queueDataPoint);
+        });
+
+
+        var testDataPoint = {};
+        testDataPoint.metricType = "word/test/random";
+        testDataPoint.value = prevTestValue + randomInt(-20,20);
+        testDataPoint.metricLabels = {server_id: "TEST"};
+        addMetricDataPoint(testDataPoint);
+        
       }
 
       if (enableGoogleMetrics) {

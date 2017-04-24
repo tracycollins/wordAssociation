@@ -160,9 +160,6 @@ var dbUpdateEntityQueue = new Queue();
 var dbUpdateWordQueue = new Queue();
 var updaterMessageQueue = new Queue();
 
-var promptQueue = new Queue();
-var responseQueue = new Queue();
-
 var updateSessionViewQueue = [];
 
 var hostname = os.hostname();
@@ -468,7 +465,6 @@ statsObj.db.errors = 0;
 statsObj.queues = {};
 statsObj.queues.rxWordQueue = 0;
 statsObj.queues.sessionQueue = 0;
-statsObj.queues.responseQueue = 0;
 statsObj.queues.dbUpdateWordQueue = 0;
 statsObj.queues.updaterMessageQueue = 0;
 statsObj.queues.dbUpdateEntityQueue = 0;
@@ -484,12 +480,10 @@ function showStats(options){
 
   statsObj.queues.rxWordQueue = rxWordQueue.size();
   statsObj.queues.sessionQueue = sessionQueue.size();
-  statsObj.queues.responseQueue = responseQueue.size();
   statsObj.queues.dbUpdateWordQueue = dbUpdateWordQueue.size();
   statsObj.queues.updaterMessageQueue = updaterMessageQueue.size();
   statsObj.queues.dbUpdateEntityQueue = dbUpdateEntityQueue.size();
   statsObj.queues.updateSessionViewQueue = updateSessionViewQueue.length;
-
 
   if (options) {
     console.log(chalkAlert("STATS\n" + jsonPrint(statsObj)));
@@ -6995,7 +6989,6 @@ configEvents.on("SERVER_READY", function() {
     statsObj.memoryUsage = process.memoryUsage();
 
     statsObj.queues.sessionQueue = sessionQueue.size();
-    statsObj.queues.responseQueue = responseQueue.size();
     statsObj.queues.dbUpdateWordQueue = dbUpdateWordQueue.size();
     statsObj.queues.updaterMessageQueue = updaterMessageQueue.size();
     statsObj.queues.dbUpdateEntityQueue = dbUpdateEntityQueue.size();

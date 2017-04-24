@@ -44,7 +44,7 @@ var statsTable ;
 var initializedFlag = false;
 var statsTableFlag = false;
 
-requirejs(["https://cdnjs.cloudflare.com/ajax/libs/d3/4.7.4/d3.min.js"], function(d3Loaded) {
+requirejs(["https://cdnjs.cloudflare.com/ajax/libs/d3/4.8.0/d3.min.js"], function(d3Loaded) {
 // requirejs(["https://d3js.org/d3.v4.min.js"], function(d3Loaded) {
     console.log("d3 LOADED");
     d3 = d3Loaded;
@@ -85,6 +85,7 @@ var DEFAULT_BLAH_MODE = true;
 var MAX_RX_QUEUE = 250;
 var MAX_WORDCHAIN_LENGTH = 100;
 
+var DEFAULT_METRIC_MODE = "mentions";
 var DEFAULT_MAX_AGE = 60000;
 var FLOW_MAX_AGE = 20000;
 var FORCE_MAX_AGE = 60000;
@@ -176,7 +177,7 @@ if (useStoredConfig) {
   config = store.get(globalStoredConfigName);
 }
 else {
-  config.metricMode = "rate";
+  config.metricMode = DEFAULT_METRIC_MODE;
   config.defaultAgeRate = 1.0;
   config.forceViewMode = DEFAULT_FORCEVIEW_MODE;
   config.fullscreenMode = false;
@@ -193,6 +194,7 @@ else {
   config.defaultTransitionDuration = DEFAULT_TRANSITION_DURATION;
   config.defaultMaxAge = DEFAULT_MAX_AGE;
   config.defaultMultiplier = 1000.0;
+  config.defaultMetricMode = DEFAULT_METRIC_MODE;
   config.defaultBlahMode = DEFAULT_BLAH_MODE;
   config.defaultCharge = DEFAULT_CHARGE;
   config.defaultGravity = DEFAULT_GRAVITY;
@@ -926,16 +928,16 @@ function createPopUpControlPanel (cnf, callback) {
 };
 
 function toggleMetric() {
-  if (config.metricMode == "rate") {
+  if (config.metricMode === "rate") {
     config.metricMode = "mentions";
   }
   else {
     config.metricMode = "rate";
   }
-  currentSessionView.setMetric(config.metricMode);
+  currentSessionView.setMetricMode(config.metricMode);
   console.warn("SET RADIUS MODE: " + config.metricMode);
   updateMetricButton();
-  if (controlPanelFlag) controlPanel.updateControlPanel(config);
+  if (controlPanelFlag) {controlPanel.updateControlPanel(config);}
 }
 
 function toggleBlah() {
@@ -943,7 +945,7 @@ function toggleBlah() {
   currentSessionView.setBlah(config.blahMode);
   console.warn("TOGGLE BLAH: " + config.blahMode);
   updateBlahButton();
-  if (controlPanelFlag) controlPanel.updateControlPanel(config);
+  if (controlPanelFlag) {controlPanel.updateControlPanel(config);}
 }
 
 function toggleAntonym() {

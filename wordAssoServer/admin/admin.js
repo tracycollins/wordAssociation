@@ -908,35 +908,35 @@ socket.on('HEARTBEAT', function(rxHeartbeat) {
     twitterLimitMax = heartBeat.utilities[tweetsPerMinServer].twitterLimitMax;
     twitterLimitMaxTime = heartBeat.utilities[tweetsPerMinServer].twitterLimitMaxTime;
 
-    tpmData.push({date: new Date(), value: tweetsPerMin});
-    if (tpmData.length > MAX_TIMELINE) tpmData.shift();
+    // tpmData.push({date: new Date(), value: tweetsPerMin});
+    // if (tpmData.length > MAX_TIMELINE) tpmData.shift();
 
-    tLimitData.push({date: new Date(), value: twitterLimit});
-    if (tLimitData.length > MAX_TIMELINE) tLimitData.shift();
+    // tLimitData.push({date: new Date(), value: twitterLimit});
+    // if (tLimitData.length > MAX_TIMELINE) tLimitData.shift();
 
   }
 
   // console.log("... HB | " + tweetsPerMin + "\n" + jsonPrint(heartBeat));
-  if (rxHeartbeat.deltaResponsesReceived > deltaResponsesMax) deltaResponsesMax = rxHeartbeat.deltaResponsesReceived;
+  if (rxHeartbeat.deltaResponsesReceived > deltaResponsesMax) {deltaResponsesMax = rxHeartbeat.deltaResponsesReceived;}
 
-  if (rxHeartbeat.wordsPerMinute > wordsPerMinuteMax) wordsPerMinuteMax = rxHeartbeat.wordsPerMinute;
+  if (rxHeartbeat.wordsPerMinute > wordsPerMinuteMax) {wordsPerMinuteMax = rxHeartbeat.wordsPerMinute;}
 
   heartBeatTimeoutFlag = false;
   updateUserConnect();
   updateViewerConnect();
   updateUtilConnect();
 
-  tpmData.push({date: new Date(), value: tweetsPerMin});
-  if (tpmData.length > MAX_TIMELINE) tpmData.shift();
+  // tpmData.push({date: new Date(), value: tweetsPerMin});
+  // if (tpmData.length > MAX_TIMELINE) tpmData.shift();
 
-  tLimitData.push({date: new Date(), value: twitterLimit});
-  if (tLimitData.length > MAX_TIMELINE) tLimitData.shift();
+  // tLimitData.push({date: new Date(), value: twitterLimit});
+  // if (tLimitData.length > MAX_TIMELINE) tLimitData.shift();
 
-  wpmData.push({date: new Date(), value: rxHeartbeat.wordsPerMinute});
-  if (wpmData.length > MAX_TIMELINE) wpmData.shift();
+  // wpmData.push({date: new Date(), value: rxHeartbeat.wordsPerMinute});
+  // if (wpmData.length > MAX_TIMELINE) wpmData.shift();
 
-  trpmData.push({date: new Date(), value: rxHeartbeat.trumpPerMinute});
-  if (trpmData.length > MAX_TIMELINE) trpmData.shift();
+  // trpmData.push({date: new Date(), value: rxHeartbeat.trumpPerMinute});
+  // if (trpmData.length > MAX_TIMELINE) trpmData.shift();
 });
 
 // updateServerHeartbeat
@@ -1992,6 +1992,21 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
   // tableCreateRow(heatbeatTable, false, ['TOTAL PROMPTS', heartBeat.promptsSent]);
   tableCreateRow(heatbeatTable, false, ['TOTAL WORD UPDATES', heartBeat.db.wordsUpdated]);
 
+// statsObj.queues.rxWordQueue = 0;
+// statsObj.queues.sessionQueue = 0;
+// statsObj.queues.dbUpdateWordQueue = 0;
+// statsObj.queues.updaterMessageQueue = 0;
+// statsObj.queues.dbUpdateEntityQueue = 0;
+// statsObj.queues.updateSessionViewQueue = 0;
+
+    tableCreateRow(heatbeatTable, false, ['QUEUES',
+      'RX: ' + heartBeat.queues.rxWordQueue 
+      + ' | S: ' + heartBeat.queues.sessionQueue
+      + ' | DBW: ' + heartBeat.queues.dbUpdateWordQueue
+      + ' | DBE: ' + heartBeat.queues.dbUpdateEntityQueue 
+      + ' | V: ' + heartBeat.queues.updateSessionViewQueue
+    ]);
+
   // if (heartBeat.bhtOverLimitFlag) {
   //   var now = moment.utc();
   //   now.utcOffset("-08:00");
@@ -2047,31 +2062,31 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
   );
 }
 
-function initTimelineData(numDataPoints, callback){
+// function initTimelineData(numDataPoints, callback){
 
-  var ts;
+//   var ts;
 
-  var currentMillis = moment().valueOf();
+//   var currentMillis = moment().valueOf();
 
-  for (var i=0; i<numDataPoints; i++){
-    tpmData.unshift({date: new Date(parseInt(currentMillis-(1000*i))), value: 0});
-    wpmData.unshift({date: new Date(parseInt(currentMillis-(1000*i))), value: 0});
-    tLimitData.unshift({date: new Date(parseInt(currentMillis-(1000*i))), value: 0});
-    trpmData.unshift({date: new Date(parseInt(currentMillis-(1000*i))), value: 0});
-  }
+//   for (var i=0; i<numDataPoints; i++){
+//     tpmData.unshift({date: new Date(parseInt(currentMillis-(1000*i))), value: 0});
+//     wpmData.unshift({date: new Date(parseInt(currentMillis-(1000*i))), value: 0});
+//     tLimitData.unshift({date: new Date(parseInt(currentMillis-(1000*i))), value: 0});
+//     trpmData.unshift({date: new Date(parseInt(currentMillis-(1000*i))), value: 0});
+//   }
 
-  callback();
-}
+//   callback();
+// }
 
 function initialize(callback){
 
   console.debug("INITIALIZE...");
 
-  initTimelineData(MAX_TIMELINE, function(){
+  // initTimelineData(MAX_TIMELINE, function(){
     initBars(function(){
       callback();
     });
-  });
+  // });
 
 
 }

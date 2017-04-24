@@ -7371,7 +7371,7 @@ function initRateQinterval(interval){
           queueDataPoint.metricType = "word/queues/" + queueName;
           queueDataPoint.value = statsObj.queues[queueName];
           queueDataPoint.metricLabels = {server_id: "QUEUE"};
-          queueDataPoint.displayName = queueName;
+          // queueDataPoint.displayName = queueName;
           addMetricDataPoint(queueDataPoint);
         });
 

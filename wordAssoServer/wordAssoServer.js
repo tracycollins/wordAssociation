@@ -7374,13 +7374,6 @@ function initRateQinterval(interval){
           // queueDataPoint.displayName = queueName;
           addMetricDataPoint(queueDataPoint);
         });
-
-
-        var testDataPoint = {};
-        testDataPoint.metricType = "word/test/random";
-        testDataPoint.value = prevTestValue + randomInt(-20,20);
-        testDataPoint.metricLabels = {server_id: "TEST"};
-        addMetricDataPoint(testDataPoint);
         
       }
 

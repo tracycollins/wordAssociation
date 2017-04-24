@@ -33,6 +33,7 @@
     "mongoose": "^4.9.1",
     "mw-dictionary": "^0.0.4",
     "node-cache": "^3.2.1",
+    "node-forge": "^0.7.1",
     "object.defaults": "^0.3.0",
     "panzoom": "^2.5.0",
     "progressbar.js": "^0.9.0",

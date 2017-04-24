@@ -7242,8 +7242,8 @@ function addMetricDataPoint(options, callback){
           + " | " + options.metricLabels.server_id 
           + " | " + options.value
           + " | ERR CODE: " + results.code
-          + " | META DATA: " + results.metadata
           + " | META NODE: " + results.note
+          + "\nMETA DATA\n" + jsonPrint(results.metadata)
         ));
       }
     });

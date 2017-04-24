@@ -5070,11 +5070,15 @@ function handleSessionEvent(sesObj, callback) {
   if (callback !== undefined) { callback(null, sesObj); }
 }
 
+var sessionEventHandlerReady = true;
 setInterval(function() {
   var sesObj;
-  if (!sessionQueue.isEmpty()) {
+  if (!sessionQueue.isEmpty() && sessionEventHandlerReady) {
+    sessionEventHandlerReady = false;
     sesObj = sessionQueue.dequeue();
-    handleSessionEvent(sesObj);
+    handleSessionEvent(sesObj, function(){
+      sessionEventHandlerReady = true;
+    });
   }
 }, 20);
 

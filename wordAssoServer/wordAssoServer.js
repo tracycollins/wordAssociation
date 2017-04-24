@@ -461,6 +461,10 @@ var statsObj = {
   "heartbeat": txHeartbeat
 };
 
+statsObj.db = {};
+statsObj.db.wordsUpdated = 0;
+statsObj.db.errors = 0;
+
 statsObj.queues = {};
 statsObj.queues.rxWordQueue = 0;
 statsObj.queues.sessionQueue = 0;
@@ -3259,7 +3263,7 @@ function dbUpdateEntity(entityObj, incMentions, callback) {
 function dbUpdateWord(wObj, incMentions, callback) {
 
   if ((wObj.nodeId === null) || (wObj.nodeId === undefined)) {
-    debug(chalkError("\n***** dbUpdateWord: NULL OR UNDEFINED nodeId\n" + jsonPrint(wObj)));
+    console.log(chalkError("\n***** dbUpdateWord: NULL OR UNDEFINED nodeId\n" + jsonPrint(wObj)));
     return(callback("NULL OR UNDEFINED nodeId", wObj));
   }
 
@@ -3267,19 +3271,22 @@ function dbUpdateWord(wObj, incMentions, callback) {
 
     wordServer.findOneWord(wordObj, incMentions, function(err, word) {
       if (err) {
+        statsObj.db.errors++;
         console.log(chalkError("dbUpdateWord -- > findOneWord ERROR" 
           + "\n" + JSON.stringify(err) + "\n" + JSON.stringify(wordObj, null, 2)));
         callback(err, wordObj);
       } 
       else {
 
-        debug("> DB UPDATE | " 
+        statsObj.db.wordsUpdated++;
+
+        console.log("> DB UPDATE | " 
           + word.nodeId 
           + " | I " + word.isIgnored 
           + " | K " + word.isKeyword 
           + " | TT " + word.isTrendingTopic 
           + " | M " + word.mentions 
-          + "\nKW: " + jsonPrint(word.keywords) 
+          // + "\nKW: " + jsonPrint(word.keywords) 
         );
 
         debug(JSON.stringify(word, null, 3));
@@ -5852,8 +5859,9 @@ setInterval(function() {
 
           dbUpdateWordReady = true;
 
-        } else {
-          debug(chalkError("*** SESSION CACHE SET ERROR" + "\n" + jsonPrint(err)));
+        } 
+        else {
+          console.log(chalkError("*** SESSION CACHE SET ERROR" + "\n" + jsonPrint(err)));
 
           dbUpdateWordReady = true;
         }
@@ -7084,6 +7092,7 @@ configEvents.on("SERVER_READY", function() {
         totalSessions: totalSessions,
         totalUsers: totalUsers,
 
+        db: {},
         caches: {},
 
         promptsSent: promptsSent,
@@ -7097,6 +7106,7 @@ configEvents.on("SERVER_READY", function() {
       };
 
       txHeartbeat.utilities = statsObj.utilities;
+      txHeartbeat.db = statsObj.db;
       txHeartbeat.caches = statsObj.caches;
       txHeartbeat.queues = statsObj.queues;
       txHeartbeat.memoryUsage = process.memoryUsage();

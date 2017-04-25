@@ -1332,7 +1332,6 @@ function initStatsInterval(interval){
     saveFile(statsFolder, statsFile, statsObj, function(){
       showStats();
     });
-
   }, interval);
 }
 
@@ -4398,7 +4397,7 @@ function handleSessionEvent(sesObj, callback) {
 
         updateSessionViews(sessionUpdateObj);
       }
-      
+
         // }
       // });
 
@@ -5676,10 +5675,9 @@ setInterval(function() {
 
     });
   }
-}, 50);
+}, 20);
 
 var dbUpdateEntityReady = true; 
-
 setInterval(function() {
 
   if (dbUpdateEntityReady && !dbUpdateEntityQueue.isEmpty()) {
@@ -5704,7 +5702,7 @@ setInterval(function() {
 
     });
   }
-}, 50);
+}, 20);
 
 function updatePreviousPrompt(sessionObj, wordObj, callback){
 
@@ -5795,15 +5793,12 @@ setInterval(function() {
             source: updatedWordObj,
             tags: dbUpdateObj.tags
           };
-
           updateSessionViews(sessionUpdateObj);
-
           dbUpdateWordReady = true;
 
         } 
         else {
           console.log(chalkError("*** SESSION CACHE SET ERROR" + "\n" + jsonPrint(err)));
-
           dbUpdateWordReady = true;
         }
       });
@@ -7195,7 +7190,6 @@ setInterval(function() {
   }
 
   if (heartbeatsSent % 100 === 0) { updateStatsCounts(); }
-
 }, 1000);
 
 
@@ -7519,7 +7513,6 @@ function initRateQinterval(interval){
     updateTimeSeriesCount += 1;
 
     if (updateTimeSeriesCount > 5) {updateTimeSeriesCount = 0;}
-
   }, interval);
 }
 

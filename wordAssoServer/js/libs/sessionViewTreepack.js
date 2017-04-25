@@ -837,38 +837,36 @@ function ViewTreepack() {
   var updateNodeCircles = function(callback) {
 
     var nodeCircles = nodeSvgGroup.selectAll("circle")
-      .data(nodes, function(d){
-        return d.nodeId;
-      });
+      .data(nodes, function(d){ return d.nodeId; });
 
     nodeCircles
       .enter()
       .append("circle")
       .attr("nodeId", function(d) { return d.nodeId; })
       .attr("cx", function(d) { 
-        if (!d.nodeId) { 
-          console.warn("UNDEFINED d.nodeId");
-          d.x = 0.5*width; 
-          return 0.5*width; 
-        }
-        if (isNaN(d.x)) { 
-          console.warn("NaN d.x " + d.nodeId);
-          d.x = 0.5*width; 
-          return 0.5*width; 
-        }
+        // if (!d.nodeId) { 
+        //   console.warn("UNDEFINED d.nodeId");
+        //   d.x = 0.5*width; 
+        //   return 0.5*width; 
+        // }
+        // if (isNaN(d.x)) { 
+        //   console.warn("NaN d.x " + d.nodeId);
+        //   d.x = 0.5*width; 
+        //   return 0.5*width; 
+        // }
         return d.x; 
       })
       .attr("cy", function(d) { 
-        if (!d.nodeId) { 
-          console.warn("UNDEFINED d.nodeId");
-          d.y = 0.5*height;
-          return 0.5*height; 
-        }
-        if (isNaN(d.y)) { 
-          console.warn("NaN d.y " + d.nodeId);
-          d.y = 0.5*height;
-          return 0.5*height;
-        }
+        // if (!d.nodeId) { 
+        //   console.warn("UNDEFINED d.nodeId");
+        //   d.y = 0.5*height;
+        //   return 0.5*height; 
+        // }
+        // if (isNaN(d.y)) { 
+        //   console.warn("NaN d.y " + d.nodeId);
+        //   d.y = 0.5*height;
+        //   return 0.5*height;
+        // }
         return d.y; 
       })
       .style("fill", function(d) { 
@@ -897,47 +895,48 @@ function ViewTreepack() {
         .duration(transitionDuration)
         .attr("r", function(d) {
           if (d.isIgnored) {
-            d.r = defaultRadiusScale(1);
-            return d.r;
+            // d.r = defaultRadiusScale(1);
+            // return d.r;
+            return defaultRadiusScale(1);
           }
           else {
             if (metricMode === "rate") {
-              d.r = defaultRadiusScale(d.rate);
-              // return defaultRadiusScale(d.rate);
+              // d.r = defaultRadiusScale(d.rate);
+              return defaultRadiusScale(d.rate);
             }
             if (metricMode === "mentions") {
-              d.r = defaultRadiusScale(d.mentions);
-              // return defaultRadiusScale(d.mentions);
+              // d.r = defaultRadiusScale(d.mentions);
+              return defaultRadiusScale(d.mentions);
             }
-            return d.r;
+            // return d.r;
           }
         });
 
     nodeCircles
       .attr("cx", function(d) { 
-        if (!d.nodeId) { 
-          console.warn("UNDEFINED d.nodeId");
-          d.x = 0.5*width; 
-          return 0.5*width; 
-        }
-        if (isNaN(d.x)) { 
-          console.warn("NaN d.x " + d.nodeId);
-          d.x = 0.5*width; 
-          return 0.5*width; 
-        }
+        // if (!d.nodeId) { 
+        //   console.warn("UNDEFINED d.nodeId");
+        //   d.x = 0.5*width; 
+        //   return 0.5*width; 
+        // }
+        // if (isNaN(d.x)) { 
+        //   console.warn("NaN d.x " + d.nodeId);
+        //   d.x = 0.5*width; 
+        //   return 0.5*width; 
+        // }
         return d.x; 
       })
       .attr("cy", function(d) { 
-        if (!d.nodeId) { 
-          console.warn("UNDEFINED d.nodeId");
-          d.y = 0.5*height; 
-          return 0.5*height; 
-        }
-        if (isNaN(d.y)) { 
-          console.warn("NaN d.y " + d.nodeId);
-          d.y = 0.5*height; 
-          return 0.5*height; 
-        }
+        // if (!d.nodeId) { 
+        //   console.warn("UNDEFINED d.nodeId");
+        //   d.y = 0.5*height; 
+        //   return 0.5*height; 
+        // }
+        // if (isNaN(d.y)) { 
+        //   console.warn("NaN d.y " + d.nodeId);
+        //   d.y = 0.5*height; 
+        //   return 0.5*height; 
+        // }
         return d.y; 
       })
       .style("fill", function(d) { 
@@ -990,24 +989,24 @@ function ViewTreepack() {
 
     nodeLabels
       .attr("x", function(d) { 
-        if (!d.nodeId) { 
-          console.warn("UNDEFINED d.nodeId");
-          return 0.5*width; }
-        if (d.x === undefined) { 
-          console.warn("UNDEFINED d.x " + d.nodeId);
-          return 0.5*width; 
-        }
+        // if (!d.nodeId) { 
+        //   console.warn("UNDEFINED d.nodeId");
+        //   return 0.5*width; }
+        // if (d.x === undefined) { 
+        //   console.warn("UNDEFINED d.x " + d.nodeId);
+        //   return 0.5*width; 
+        // }
         return d.x; 
       })
       .attr("y", function(d) { 
-        if (!d.nodeId) { 
-          console.warn("UNDEFINED d.nodeId");
-          return 0.5*height; 
-        }
-        if (d.y === undefined) { 
-          console.warn("UNDEFINED d.y " + d.nodeId);
-          return 0.5*height; 
-        }
+        // if (!d.nodeId) { 
+        //   console.warn("UNDEFINED d.nodeId");
+        //   return 0.5*height; 
+        // }
+        // if (d.y === undefined) { 
+        //   console.warn("UNDEFINED d.y " + d.nodeId);
+        //   return 0.5*height; 
+        // }
         return d.y; 
       })
       .text(function(d) {
@@ -1043,24 +1042,24 @@ function ViewTreepack() {
       .on("mouseout", nodeMouseOut)
       .on("click", nodeClick)
       .attr("x", function(d) { 
-        if (!d.nodeId) { 
-          console.warn("UNDEFINED d.nodeId");
-          return 0.5*width; }
-        if (d.x === undefined) { 
-          console.warn("UNDEFINED d.x " + d.nodeId);
-          return 0.5*width; 
-        }
+        // if (!d.nodeId) { 
+        //   console.warn("UNDEFINED d.nodeId");
+        //   return 0.5*width; }
+        // if (d.x === undefined) { 
+        //   console.warn("UNDEFINED d.x " + d.nodeId);
+        //   return 0.5*width; 
+        // }
         return d.x; 
       })
       .attr("y", function(d) { 
-        if (!d.nodeId) { 
-          console.warn("UNDEFINED d.nodeId");
-          return 0.5*height; 
-        }
-        if (d.y === undefined) { 
-          console.warn("UNDEFINED d.y " + d.nodeId);
-          return 0.5*height; 
-        }
+        // if (!d.nodeId) { 
+        //   console.warn("UNDEFINED d.nodeId");
+        //   return 0.5*height; 
+        // }
+        // if (d.y === undefined) { 
+        //   console.warn("UNDEFINED d.y " + d.nodeId);
+        //   return 0.5*height; 
+        // }
         return d.y; 
       })
       .text(function(d) {

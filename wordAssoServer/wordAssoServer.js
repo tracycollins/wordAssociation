@@ -4308,98 +4308,99 @@ function handleSessionEvent(sesObj, callback) {
 
       debug("KEEPALIVE\n" + jsonPrint(sesObj));
 
-      sessionUpdateDb(sesObj.session, function(err, sessionUpdatedObj) {
+      // sessionUpdateDb(sesObj.session, function(err, sessionUpdatedObj) {
+      //   if (err) {
+      //     console.log(chalkError(
+      //       "*** SESSION KEEPALIVE ERROR" 
+      //       + " | SID: " + sessionUpdatedObj.sessionId 
+      //       + " | IP: " + sessionUpdatedObj.ip + "\n" + jsonPrint(err)
+      //     ));
+      //   } 
+      //   else {
+
+      if (sesObj.session.wordChain.length > MAX_WORDCHAIN_LENGTH) {
+        debug(chalkSession("SHORTEN WC TO " + MAX_WORDCHAIN_LENGTH
+          + " | UID: " + sesObj.session.userId
+          + " | CURR LEN: " + sesObj.session.wordChain.length
+          + " | FIRST WORD: " + sesObj.session.wordChain[0].nodeId
+          + " | LAST WORD: " + sesObj.session.wordChain[sesObj.session.wordChain.length-1].nodeId
+        ));
+        sesObj.session.wordChain = sesObj.session.wordChain.slice(-MAX_WORDCHAIN_LENGTH);
+        debug(chalkSession("NEW WC"
+          + " | UID: " + sesObj.session.userId
+          + " | CURR LEN: " + sesObj.session.wordChain.length
+          + " | FIRST WORD: " + sesObj.session.wordChain[0].nodeId
+          + " | LAST WORD: " + sesObj.session.wordChain[sesObj.session.wordChain.length-1].nodeId
+        ));
+
+        if (sesObj.session.subSessionId !== undefined) {
+          sessionCache.set(sesObj.session.subSessionId, sesObj.session);
+        }
+        sessionCache.set(sesObj.session.sessionId, sesObj.session);
+      }
+      else {
+        if (sesObj.session.subSessionId !== undefined) {
+          sessionCache.set(sesObj.session.subSessionId, sesObj.session);
+        }
+        sessionCache.set(sesObj.session.sessionId, sesObj.session);
+      }
+
+      if (!sesObj.session.userId) {
+        console.log(chalkError("SESSION_KEEPALIVE: UNDEFINED USER ID" 
+          + "\nsesObj.session\n" + jsonPrint(sesObj.session)));
+        console.log(chalkError("SESSION_KEEPALIVE: UNDEFINED USER ID" 
+          + "\nsesObj\n" + jsonPrint(sesObj)));
+        quit("UNDEFINED USER ID: " + sesObj.session.sessionId);
+      }
+
+      utilCache.set(sesObj.session.userId, sesObj.session.user, function(err, success) {
         if (err) {
-          console.log(chalkError(
-            "*** SESSION KEEPALIVE ERROR" 
-            + " | SID: " + sessionUpdatedObj.sessionId 
-            + " | IP: " + sessionUpdatedObj.ip + "\n" + jsonPrint(err)
+          console.log(chalkError("UTIL CACHE ERROR"
+            + " | " + success
+            + "\n" + jsonPrint(err)
           ));
-        } 
-        else {
-
-          if (sessionUpdatedObj.wordChain.length > MAX_WORDCHAIN_LENGTH) {
-            debug(chalkSession("SHORTEN WC TO " + MAX_WORDCHAIN_LENGTH
-              + " | UID: " + sessionUpdatedObj.userId
-              + " | CURR LEN: " + sessionUpdatedObj.wordChain.length
-              + " | FIRST WORD: " + sessionUpdatedObj.wordChain[0].nodeId
-              + " | LAST WORD: " + sessionUpdatedObj.wordChain[sessionUpdatedObj.wordChain.length-1].nodeId
-            ));
-            sessionUpdatedObj.wordChain = sessionUpdatedObj.wordChain.slice(-MAX_WORDCHAIN_LENGTH);
-            debug(chalkSession("NEW WC"
-              + " | UID: " + sessionUpdatedObj.userId
-              + " | CURR LEN: " + sessionUpdatedObj.wordChain.length
-              + " | FIRST WORD: " + sessionUpdatedObj.wordChain[0].nodeId
-              + " | LAST WORD: " + sessionUpdatedObj.wordChain[sessionUpdatedObj.wordChain.length-1].nodeId
-            ));
-
-            if (sessionUpdatedObj.subSessionId !== undefined) {
-              sessionCache.set(sessionUpdatedObj.subSessionId, sessionUpdatedObj);
-            }
-            sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
-          }
-          else {
-            if (sessionUpdatedObj.subSessionId !== undefined) {
-              sessionCache.set(sessionUpdatedObj.subSessionId, sessionUpdatedObj);
-            }
-            sessionCache.set(sessionUpdatedObj.sessionId, sessionUpdatedObj);
-          }
-
-          if (!sessionUpdatedObj.userId) {
-            console.log(chalkError("SESSION_KEEPALIVE: UNDEFINED USER ID" 
-              + "\nsessionUpdatedObj\n" + jsonPrint(sessionUpdatedObj)));
-            console.log(chalkError("SESSION_KEEPALIVE: UNDEFINED USER ID" 
-              + "\nsesObj\n" + jsonPrint(sesObj)));
-            quit("UNDEFINED USER ID: " + sessionUpdatedObj.sessionId);
-          }
-
-          utilCache.set(sessionUpdatedObj.userId, sessionUpdatedObj.user, function(err, success) {
-            if (err) {
-              console.log(chalkError("UTIL CACHE ERROR"
-                + " | " + success
-                + "\n" + jsonPrint(err)
-              ));
-            }
-          });
-
-          if (sessionUpdatedObj.config.type === "viewer") {
-            viewerCache.set(sessionUpdatedObj.userId, sessionUpdatedObj);
-            debug(chalkViewer("$ VIEWER: " + sessionUpdatedObj.userId + "\n" + jsonPrint(sessionUpdatedObj)));
-          }
-
-          debug(chalkLog(
-            "K>" + " | " + sessionUpdatedObj.userId 
-            + " | SID " + sessionUpdatedObj.sessionId 
-            + " | T " + sessionUpdatedObj.config.type 
-            + " | M " + sessionUpdatedObj.config.mode 
-            + " | NS " + sessionUpdatedObj.namespace 
-            + " | SID " + sessionUpdatedObj.sessionId 
-            + " | WCI " + sessionUpdatedObj.wordChainIndex 
-            + " | IP " + sessionUpdatedObj.ip
-            // + "\n" + jsonPrint(sessionUpdatedObj)
-          ));
-
-          if (sessionUpdatedObj.namespace !== "view") {
-            sessionUpdateObj = {
-              action: "KEEPALIVE",
-              nodeId: sessionUpdatedObj.tags.entity + "_" + sessionUpdatedObj.tags.channel,
-              tags: {},
-              userId: sessionUpdatedObj.userId,
-              url: sessionUpdatedObj.url,
-              profileImageUrl: sessionUpdatedObj.profileImageUrl,
-              sessionId: sessionUpdatedObj.sessionId,
-              wordChainIndex: sessionUpdatedObj.wordChainIndex
-              // source: {}
-            };
-
-            sessionUpdateObj.tags = sessionUpdatedObj.tags;
-
-            io.of(sessionUpdatedObj.namespace).to(sessionUpdatedObj.sessionId).emit("KEEPALIVE_ACK", sessionUpdatedObj.nodeId);
-
-            updateSessionViews(sessionUpdateObj);
-          }
         }
       });
+
+      if (sesObj.session.config.type === "viewer") {
+        viewerCache.set(sesObj.session.userId, sesObj.session);
+        debug(chalkViewer("$ VIEWER: " + sesObj.session.userId + "\n" + jsonPrint(sesObj.session)));
+      }
+
+      debug(chalkLog(
+        "K>" + " | " + sesObj.session.userId 
+        + " | SID " + sesObj.session.sessionId 
+        + " | T " + sesObj.session.config.type 
+        + " | M " + sesObj.session.config.mode 
+        + " | NS " + sesObj.session.namespace 
+        + " | SID " + sesObj.session.sessionId 
+        + " | WCI " + sesObj.session.wordChainIndex 
+        + " | IP " + sesObj.session.ip
+        // + "\n" + jsonPrint(sesObj.session)
+      ));
+
+      if (sesObj.session.namespace !== "view") {
+        sessionUpdateObj = {
+          action: "KEEPALIVE",
+          nodeId: sesObj.session.tags.entity + "_" + sesObj.session.tags.channel,
+          tags: {},
+          userId: sesObj.session.userId,
+          url: sesObj.session.url,
+          profileImageUrl: sesObj.session.profileImageUrl,
+          sessionId: sesObj.session.sessionId,
+          wordChainIndex: sesObj.session.wordChainIndex
+          // source: {}
+        };
+
+        sessionUpdateObj.tags = sesObj.session.tags;
+
+        io.of(sesObj.session.namespace).to(sesObj.session.sessionId).emit("KEEPALIVE_ACK", sesObj.session.nodeId);
+
+        updateSessionViews(sessionUpdateObj);
+      }
+      
+        // }
+      // });
 
       break;
 

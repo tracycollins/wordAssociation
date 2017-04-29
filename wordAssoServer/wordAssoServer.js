@@ -3,6 +3,8 @@
 
 // require('longjohn');
 
+var DEFAULT_INTERVAL = 10; // ms
+
 var maxTopTerms = 20;
 var compactDateTimeFormat = "YYYYMMDD HHmmss";
 
@@ -7377,16 +7379,16 @@ initializeConfiguration(configuration, function(err, results) {
     initIgnoreWordsHashMap();
     updateTrends();
 
-    initDbUpdateEntityQueueInterval(20);
-    initDbUpdateGroupQueueInterval(20);
-    initDbUpdateWordQueueInterval(20);
+    initDbUpdateEntityQueueInterval(DEFAULT_INTERVAL);
+    initDbUpdateGroupQueueInterval(DEFAULT_INTERVAL);
+    initDbUpdateWordQueueInterval(DEFAULT_INTERVAL);
     initRateQinterval(1000);
-    initRxWordQueueInterval(20);
-    initSessionEventHandlerInterval(20);
-    initSessionViewQueueInterval(20);
+    initRxWordQueueInterval(DEFAULT_INTERVAL);
+    initSessionEventHandlerInterval(DEFAULT_INTERVAL);
+    initSessionViewQueueInterval(DEFAULT_INTERVAL);
     initStatsInterval(ONE_MINUTE);
-    initUpdaterMessageQueueInterval(20);
-    initDbUpdaterMessageRxQueueInterval(20)
+    initUpdaterMessageQueueInterval(DEFAULT_INTERVAL);
+    initDbUpdaterMessageRxQueueInterval(DEFAULT_INTERVAL)
     initUpdateTrendsInterval(15*ONE_MINUTE);
 
     dbUpdater = cp.fork(`${__dirname}/js/libs/dbUpdater.js`);

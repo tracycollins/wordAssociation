@@ -28,6 +28,10 @@ var HashtagSchema = new Schema({
 		type: Boolean,
 		default: false
 	},
+	rate: {
+		type: Number,
+		default: 0
+	},
 	mentions: {
 		type: Number,
 		default: 0

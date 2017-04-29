@@ -2892,7 +2892,9 @@ function createSmallSessionUpdateObj (updateObj, callback){
 }
 
 function initSessionViewQueueInterval(interval){
+
   clearInterval(sessionViewQueueInterval);
+
   sessionViewQueueInterval = setInterval(function() {
 
     if (updateSessionViewReady && (updateSessionViewQueue.length > 0)) {
@@ -2940,6 +2942,14 @@ function initSessionViewQueueInterval(interval){
               if (languageServer.connected) {
                 languageServer.socket.emit("LANG_ANALIZE_WORD", sessionSmallObj.target);
               }
+
+              testViewersNameSpace.emit("SESSION_UPDATE", sessionSmallObj);
+
+              updateStats({ sessionUpdatesSent: sessionUpdatesSent });
+
+              sessionUpdatesSent += 1;
+              updateSessionViewReady = true;
+
             });
 
           }
@@ -2950,15 +2960,23 @@ function initSessionViewQueueInterval(interval){
             if (languageServer.connected) {
               languageServer.socket.emit("LANG_ANALIZE_WORD", sessionSmallObj.source);
             }
+
+            testViewersNameSpace.emit("SESSION_UPDATE", sessionSmallObj);
+
+            updateStats({ sessionUpdatesSent: sessionUpdatesSent });
+
+            sessionUpdatesSent += 1;
+            updateSessionViewReady = true;
+
           }
         });
 
-        testViewersNameSpace.emit("SESSION_UPDATE", sessionSmallObj);
+        // testViewersNameSpace.emit("SESSION_UPDATE", sessionSmallObj);
 
-        updateStats({ sessionUpdatesSent: sessionUpdatesSent });
+        // updateStats({ sessionUpdatesSent: sessionUpdatesSent });
 
-        sessionUpdatesSent += 1;
-        updateSessionViewReady = true;
+        // sessionUpdatesSent += 1;
+        // updateSessionViewReady = true;
 
       });
 

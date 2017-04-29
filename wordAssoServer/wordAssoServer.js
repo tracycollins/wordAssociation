@@ -1295,7 +1295,7 @@ function updateStats(updateObj) {
 
 function initStatsInterval(interval){
 
-  console.log(chalkRed("INIT STATS INTERVAL"
+  console.log(chalkInfo("INIT STATS INTERVAL"
     + " | " + interval + " MS"
     + " | FILE: " + statsFolder + "/" + statsFile
   ));
@@ -1509,7 +1509,7 @@ function userReadyHandler(request, callback){
 
       statsObj.socket.USER_READYS += 1;
 
-      console.log(chalk.black("R< U RDY"
+      debug(chalk.black("R< U RDY"
         + " | " + moment().format(compactDateTimeFormat) 
         + "  " + userObj.nodeId
         + "  ID " + userObj.userId
@@ -2431,7 +2431,9 @@ function initSessionSocketHandler(sessionObj, socket) {
     rxWordObj = rxWobj;
 
     if (!rxWordObj.nodeId) {
-      console.log("*** RX NULL RESPONSE_WORD_OBJ NODEID ... SKIPPING\n" + jsonPrint(rxWordObj));
+      console.log(chalkAlert("*** RX NULL RESPONSE_WORD_OBJ NODEID ... SKIPPING"
+        + "\n" + jsonPrint(rxWordObj)
+      ));
       return;
     }
 
@@ -4872,7 +4874,7 @@ function sendUpdated(updatedObj, callback){
                 tags: updatedWordObj.tags
               };
 
-              console.log(chalkInfo("R<" 
+              debug(chalkInfo("R<" 
                 + " | " + sessionUpdateObj.source.nodeId 
                 + " | RATE: " + sessionUpdateObj.source.rate 
                 + " | Ms: " + sessionUpdateObj.source.mentions 
@@ -7372,7 +7374,7 @@ initializeConfiguration(configuration, function(err, results) {
     console.log(chalkError("*** INITIALIZE CONFIGURATION ERROR ***\n" + jsonPrint(err)));
   } 
   else {
-    console.log(chalkAlert("INITIALIZE CONFIGURATION COMPLETE\n" + jsonPrint(results)));
+    console.log(chalkLog("INITIALIZE CONFIGURATION COMPLETE\n" + jsonPrint(results)));
 
     updateStatsCounts();
 

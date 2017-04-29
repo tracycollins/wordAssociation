@@ -153,7 +153,7 @@ statsObj.entityChannelGroup.allHashMisses = {};
 
 process.on('message', function(m) {
 
-  console.log(chalkAlert("RX MESSAGE\n" + jsonPrint(m)));
+  console.log(chalkInfo("RX MESSAGE\n" + jsonPrint(m)));
 
   switch (m.op) {
 
@@ -204,7 +204,7 @@ function getFileMetadata(path, file, callback) {
 
   dropboxClient.filesGetMetadata({path: fullPath})
     .then(function(response) {
-      debug(chalkAlert("FILE META\n" + jsonPrint(response)));
+      debug(chalkInfo("FILE META\n" + jsonPrint(response)));
       return(callback(null, response));
     })
     .catch(function(error) {
@@ -270,12 +270,12 @@ var updateGroups = function (path, configFile, callback){
       callback(null, {groups: 0});
     }
     else {
-      console.log(chalkAlert("GROUPS FILE AFTER"
+      console.log(chalkInfo("GROUPS FILE AFTER"
         + " | PREV: " + prevGroupsModifiedMoment.format(compactDateTimeFormat)
         + " | CURRENT: " + groupsFileClientModifiedMoment.format(compactDateTimeFormat)
       ));
 
-      console.log(chalkAlert("... UPDATING GROUPS | " + path + "/" + configFile));
+      console.log(chalkInfo("... UPDATING GROUPS | " + path + "/" + configFile));
 
       prevGroupsModifiedMoment = moment(groupsFileClientModifiedMoment);
 
@@ -355,12 +355,12 @@ var updateEntityChannelGroups = function (path, configFile, callback){
       callback(null, {entities: 0});
     }
     else {
-      console.log(chalkAlert("ENTITIES FILE AFTER"
+      console.log(chalkInfo("ENTITIES FILE AFTER"
         + " | PREV: " + prevEntitiesFileClientModifiedMoment.format(compactDateTimeFormat)
         + " | CURRENT: " + entitiesFileClientModifiedMoment.format(compactDateTimeFormat)
       ));
 
-      console.log(chalkAlert("... UPDATING ENTITIES | " + path + "/" + configFile));
+      console.log(chalkInfo("... UPDATING ENTITIES | " + path + "/" + configFile));
 
       prevEntitiesFileClientModifiedMoment = moment(entitiesFileClientModifiedMoment);
 
@@ -458,12 +458,12 @@ var updateKeywords = function (folder, file, callback){
       callback(null, {keywords: 0});
     }
     else {
-      console.log(chalkAlert("=== KEYWORD FILE AFTER"
+      console.log(chalkInfo("=== KEYWORD FILE AFTER"
         + " | PREV: " + prevKeywordModifiedMoment.format(compactDateTimeFormat)
         + " | CURRENT: " + keywordFileClientModifiedMoment.format(compactDateTimeFormat)
       ));
 
-      console.log(chalkAlert("=== UPDATING KEYWORDS | " + folder + "/" + file));
+      console.log(chalkInfo("=== UPDATING KEYWORDS | " + folder + "/" + file));
 
       prevKeywordModifiedMoment = moment(keywordFileClientModifiedMoment);
 
@@ -541,7 +541,7 @@ var updateKeywords = function (folder, file, callback){
                 callback(err, null);
               }
               else {
-                console.log(chalkAlert("=== KEYWORD UPDATE COMPLETE"
+                console.log(chalkInfo("=== KEYWORD UPDATE COMPLETE"
                   + " | TOTAL KEYWORDS:   " + kwHashMap.count()
                 ));
 
@@ -719,7 +719,7 @@ function sendKeywords(callback){
 
     function(word, cb) {
 
-      debugKeyword(chalkAlert("sendKeywords\nword: " + jsonPrint(word)));
+      debugKeyword(chalkInfo("sendKeywords\nword: " + jsonPrint(word)));
 
       // updaterObj = {
       //  "type" : "keyword",
@@ -741,7 +741,7 @@ function sendKeywords(callback){
 
       setTimeout(function(){
         process.send(updaterObj);
-        debugKeyword(chalkAlert("UPDATER SEND KEYWORD"
+        debugKeyword(chalkInfo("UPDATER SEND KEYWORD"
           + " | " + word
           + " | " + jsonPrint(updaterObj)
         ));
@@ -772,7 +772,7 @@ function updateGroupsInterval(options){
 
   clearInterval(initGroupsInterval);
 
-  console.log(chalkAlert("UPDATER: *** START updateGroupsInterval"
+  console.log(chalkInfo("UPDATER: *** START updateGroupsInterval"
     + "\n" + jsonPrint(options)
   ));
 

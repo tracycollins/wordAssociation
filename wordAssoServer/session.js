@@ -85,7 +85,7 @@ var DEFAULT_BLAH_MODE = true;
 var MAX_RX_QUEUE = 250;
 var MAX_WORDCHAIN_LENGTH = 100;
 
-var DEFAULT_METRIC_MODE = "mentions";
+var DEFAULT_METRIC_MODE = "rate";
 var DEFAULT_MAX_AGE = 60000;
 var FLOW_MAX_AGE = 20000;
 var FORCE_MAX_AGE = 60000;
@@ -2038,9 +2038,11 @@ function initSocketSessionUpdateRx(){
 
       rxSessionUpdateQueue.push(rxSessionObject);
 
-      if (rxSessionObject.tags.trending) {
-        console.info("TTT" + rxSessionObject.source.nodeId 
+      if (rxSessionObject.tags.trending.length > 0) {
+        console.info("TTT" 
+          + " | " + rxSessionObject.source.nodeId 
           + " | T: " + rxSessionObject.tags.trending
+          // + " | T: " + jsonPrint(rxSessionObject.tags)
         );
       }
 

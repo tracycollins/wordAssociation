@@ -22,6 +22,9 @@ var WordSchema = new Schema({
 		type: Number,
 		default: moment().valueOf()
 	},
+	sessionId: {   
+		type: String
+	},
 	wordChainIndex: {   
 		type: Number,
 		default: 0
@@ -60,6 +63,10 @@ var WordSchema = new Schema({
 	isIgnored: {
 		type: Boolean,
 		default: false
+	},
+	tags: {
+		type: Object,
+		default: {}
 	},
 	noun: {
 		type: Object

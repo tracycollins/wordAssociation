@@ -101,6 +101,10 @@ var TweetSchema = new Schema({
 		type: [Schema.Types.Mixed],
 		default: []
 	},
+	rate: {
+		type: Number,
+		default: 0
+	},
 	status: Object
 });
 

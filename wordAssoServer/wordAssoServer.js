@@ -4806,10 +4806,10 @@ function getTags(wObj, callback){
 
 function sendUpdated(updatedObj, callback){
 
-  console.log(chalkInfo("sendUpdated"
-    + " | " + updatedObj.word.sessionId
-    + " | " + updatedObj.word.nodeId
-  ));
+  // console.log(chalkInfo("sendUpdated"
+  //   + " | " + updatedObj.word.sessionId
+  //   + " | " + updatedObj.word.nodeId
+  // ));
 
   if (updatedObj.word.sessionId === undefined) {
     console.log(chalkError("UNDEFINED SESSION ID\n" + jsonPrint(updatedObj)));
@@ -5071,11 +5071,11 @@ function initRxWordQueueInterval(interval){
                 ));
               }
               else if (wordCacheObj === undefined) { // RX WORD MISS
-                console.log(chalkLog(moment().format(compactDateTimeFormat) 
-                  + " | RX WORD MISS"
-                  + " | " + wordObj.nodeId
-                  // + "\n" + jsonPrint(wordObj)
-                ));
+                // console.log(chalkLog(moment().format(compactDateTimeFormat) 
+                //   + " | RX WORD MISS"
+                //   + " | " + wordObj.nodeId
+                //   // + "\n" + jsonPrint(wordObj)
+                // ));
 
                 if (currentSessionObj.sessionId === undefined) {
                   console.log(chalkError("UNDEFINED SESSION ID\n" + jsonPrint(currentSessionObj)));
@@ -5097,12 +5097,12 @@ function initRxWordQueueInterval(interval){
                 wordCacheObj.mentions++;
                 wordCacheObj.lastSeen = moment().valueOf();
 
-                console.log(chalkInfo(moment().format(compactDateTimeFormat) 
-                  + " | RX WORD HIT"
-                  + " | " + wordCacheObj.nodeId
-                  + " | Ms: " + wordCacheObj.mentions
-                  // + "\n" + jsonPrint(wordCacheObj)
-                ));
+                // console.log(chalkInfo(moment().format(compactDateTimeFormat) 
+                //   + " | RX WORD HIT"
+                //   + " | " + wordCacheObj.nodeId
+                //   + " | Ms: " + wordCacheObj.mentions
+                //   // + "\n" + jsonPrint(wordCacheObj)
+                // ));
 
                 wordCacheObj.wordChainIndex = currentSessionObj.wordChainIndex;
                 currentSessionObj.wordChain.push({nodeId: wordCacheObj.nodeId, timeStamp:moment().valueOf()});

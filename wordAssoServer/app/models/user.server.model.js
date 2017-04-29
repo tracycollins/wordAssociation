@@ -40,6 +40,10 @@ var UserSchema = new Schema({
 		type: Boolean,
 		default: false
 	},
+	rate: {
+		type: Number,
+		default: 0
+	},
 	verified: { 
 		type: Boolean,
 		default: false

@@ -363,7 +363,7 @@ function ViewTreepack() {
   };
 
   this.setMetricMode = function(mode) {
-
+    config.defaultMetricMode = mode;
     metricMode = mode;
 
     if (mode === "rate") {

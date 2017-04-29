@@ -2038,7 +2038,8 @@ function initSocketSessionUpdateRx(){
 
       rxSessionUpdateQueue.push(rxSessionObject);
 
-      if (rxSessionObject.tags.trending.length > 0) {
+      if ((rxSessionObject.tags.trending !== undefined) 
+        && (rxSessionObject.tags.trending.length > 0)) {
         console.info("TTT" 
           + " | " + rxSessionObject.source.nodeId 
           + " | T: " + rxSessionObject.tags.trending

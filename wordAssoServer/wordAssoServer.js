@@ -5221,7 +5221,7 @@ function initDbUpdaterMessageRxQueueInterval(interval){
 
       switch (dbUpdaterObj.op){
         case "UPDATED":
-          console.log(chalkLog("DB UPDATED" 
+          debug(chalkLog("DB UPDATED" 
             + " | " + dbUpdaterObj.updateType
             + " | " + dbUpdaterObj.word.sessionId
             + " | " + dbUpdaterObj.word.nodeId

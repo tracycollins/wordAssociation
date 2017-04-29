@@ -178,11 +178,13 @@ exports.findOneWord = function(word, incMentions, callback) {
 			isKeyword: word.isKeyword,
 			keywords: word.keywords,
 			isIgnored: word.isIgnored,
+			sessionId: word.sessionId,
 			url: word.url,
-			lastSeen: moment(),
+			lastSeen: moment().valueOf(),
 			bhtAlt: word.bhtAlt,
 			wapiSearched: word.wapiSearched,
-			wapiFound: word.wapiFound
+			wapiFound: word.wapiFound,
+			tags: word.tags
 		},
 		$max: { noun: word.noun },
 		$max: { verb: word.verb },

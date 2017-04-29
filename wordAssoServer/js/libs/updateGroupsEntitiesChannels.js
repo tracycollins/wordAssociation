@@ -777,7 +777,7 @@ function updateGroupsInterval(options){
   ));
 
   updateGroupsEntitiesKeywords(options, function(err, results){
-    console.log(chalk.blue("UPDATER: ===> updateGroupsInterval <==="
+    debug(chalk.blue("UPDATER: ===> updateGroupsInterval <==="
       + "\n" + jsonPrint(options)
     ));
     initGroupsReady = false;
@@ -789,7 +789,7 @@ function updateGroupsInterval(options){
   initGroupsInterval = setInterval(function() {
 
     if (initGroupsReady) {
-      console.log(chalk.blue("UPDATER: ===> updateGroupsInterval <==="
+      debug(chalk.blue("UPDATER: ===> updateGroupsInterval <==="
         + "\n" + jsonPrint(options)
       ));
       initGroupsReady = false;

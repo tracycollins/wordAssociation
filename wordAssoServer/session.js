@@ -1160,7 +1160,6 @@ socket.on("VIEWER_ACK", function(vSesKey) {
   if (!config.pauseFlag) {
     currentSessionView.simulationControl('RESUME');
   }
-
 });
 
 socket.on("reconnect", function() {
@@ -1956,7 +1955,6 @@ socket.on("CONFIG_CHANGE", function(rxConfig) {
     currentSessionView.setMaxAge(rxConfig.nodeMaxAge);
     previousConfig.nodeMaxAge = config.nodeMaxAge;
   }
-
 });
 
 socket.on("SESSION_ABORT", function(rxSessionObject) {
@@ -2008,6 +2006,10 @@ socket.on("USER_SESSION", function(rxSessionObject) {
     + " | NSP: " + rxSessionObject.namespace 
     + " | WCI: " + rxSessionObject.wordChainIndex 
     + " | CONN: " + rxSessionObject.connected);
+});
+
+socket.on('TWITTER_TOPTERM_1MIN', function(top10obj) {
+  console.debug("TWITTER_TOPTERM_1MIN\n" + jsonPrint(top10obj));
 });
 
 function initSocketSessionUpdateRx(){
@@ -3331,7 +3333,6 @@ function updateSessions() {
       }
     );
   }
-
 }
 
 function toggleFullScreen() {
@@ -3383,7 +3384,6 @@ function initUpdateSessionsInterval(interval) {
   updateSessionsInterval = setInterval(function() {
     if (updateSessionsReady) updateSessions();
   }, interval);
-
 }
 
 requirejs.onError = function(err) {

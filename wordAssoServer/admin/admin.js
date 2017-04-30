@@ -844,31 +844,19 @@ socket.on('VIEWER_SESSION', function(viewerSessionObj) {
 
 socket.on('UTIL_SESSION', function(utilSessionObj) {
 
-  // console.log("utilSessionObj\n" + jsonPrint(utilSessionObj, {
-  //     ignore: ['wordChain', 'sessions']
-  // }));
-
-
   utilIpHashMap.set(utilSessionObj.ip, utilSessionObj);
-  // utilIpHashMapKeys = utilIpHashMap.keys();
-  // utilIpHashMapKeys.sort();
   numberUtilIpAddresses = utilIpHashMapKeys.length;
   utilSessionHashMap.set(utilSessionObj.sessionId, utilSessionObj);
-  // utilSessionHashMapKeys = utilSessionHashMap.keys();
-  // utilSessionHashMapKeys.sort();
   numberUtilSessions = utilSessionHashMap.keys().length;
 
-  console.log("RX UTIL SESSION[" + utilSessionHashMap.keys().length + "]: " + utilSessionObj.sessionId 
-    + " | C: " + utilSessionObj.connected
-    + " | UID: " + utilSessionObj.userId
-    );
-
-  // console.debug("UTIL SESSION\n" + jsonPrint( utilSessionHashMap.get(utilSessionObj.sessionId), {ignore: ["sessions"]} ));
-
-  if (utilSessionObj.connected && utilSessionObj.userId.match(/TSS_/g)) {
+  if ((utilSessionObj.userId !== undefined) 
+    && utilSessionObj.connected 
+    && utilSessionObj.userId.match(/TSS_/g)) {
     console.info("UTIL SERVER CONNECTED: " + utilSessionObj.userId);
     tweetsPerMinServer = utilSessionObj.userId;
-  } else if (!utilSessionObj.connected && utilSessionObj.userId.match(/TSS_/g)) {
+  } 
+  else if ((utilSessionObj.userId !== undefined)
+    && !utilSessionObj.connected && utilSessionObj.userId.match(/TSS_/g)) {
     console.info("UTIL SERVER DISCONNECTED: " + utilSessionObj.userId);
     tweetsPerMinServer = false;
     tweetsPerMin = 0;
@@ -887,10 +875,9 @@ socket.on("SESSION_DELETE", function(sessionObject) {
   } 
 });
 
-socket.on('TWITTER_TOP10_1MIN', function(top10array) {
-  console.debug("TWITTER_TOP10_1MIN\n" + jsonPrint(top10array));
+socket.on('TWITTER_TOPTERM_1MIN', function(top10array) {
+  console.debug("TWITTER_TOPTERM_1MIN\n" + jsonPrint(top10array));
 });
-
 
 socket.on('HEARTBEAT', function(rxHeartbeat) {
   heartBeatTimeoutFlag = false;
@@ -1009,12 +996,6 @@ function setWordCacheTtl() {
   console.log("SET WORD CACHE TTL: " + newWordCacheTtl);
   socket.emit("SET_WORD_CACHE_TTL", newWordCacheTtl);
 }
-
-// function updateBhtReqs() {
-//   var newBhtRequests = document.getElementById("updateBhtReqs").value;
-//   console.log("UPDATE BHT REQS: " + newBhtRequests);
-//   socket.emit("UPDATE_BHT_REQS", newBhtRequests);
-// }
 
 function toggleTestMode() {
   testMode = !testMode;
@@ -1991,92 +1972,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
   tableCreateRow(heatbeatTable, false, ['TOTAL WORDS', heartBeat.totalWords]);
   // tableCreateRow(heatbeatTable, false, ['TOTAL PROMPTS', heartBeat.promptsSent]);
   tableCreateRow(heatbeatTable, false, ['TOTAL WORD UPDATES', heartBeat.db.wordsUpdated]);
-
-// statsObj.queues.rxWordQueue = 0;
-// statsObj.queues.sessionQueue = 0;
-// statsObj.queues.dbUpdateWordQueue = 0;
-// statsObj.queues.updaterMessageQueue = 0;
-// statsObj.queues.dbUpdateEntityQueue = 0;
-// statsObj.queues.updateSessionViewQueue = 0;
-
-    tableCreateRow(heatbeatTable, false, ['QUEUES',
-      'RX: ' + heartBeat.queues.rxWordQueue 
-      + ' | S: ' + heartBeat.queues.sessionQueue
-      + ' | DBW: ' + heartBeat.queues.dbUpdateWordQueue
-      + ' | DBE: ' + heartBeat.queues.dbUpdateEntityQueue 
-      + ' | V: ' + heartBeat.queues.updateSessionViewQueue
-    ]);
-
-  // if (heartBeat.bhtOverLimitFlag) {
-  //   var now = moment.utc();
-  //   now.utcOffset("-08:00");
-
-  //   bhtOptions = {
-  //     tdTextColor: "black",
-  //     backgroundColor: "#999947"
-  //   };
-
-  //   tableCreateRow(heatbeatTable, bhtOptions, ['*** BHT OVER LIMIT ***',
-  //     (msToTime(now.diff(heartBeat.bhtOverLimitTime))) + ' AGO | ' + (msToTime(moment(heartBeat.bhtLimitResetTime).diff(now))) + ' REMAIN'
-  //   ]);
-  // }
-
-  // tableCreateRow(heatbeatTable, bhtOptions, ['TOTAL BHT REQS', heartBeat.bhtRequests]);
-  // tableCreateRow(heatbeatTable, bhtOptions, ['BHT OVER LIMIT', bhtOLTmoment]);
-  // tableCreateRow(heatbeatTable, bhtOptions, ['BHT LIMIT RESET',
-  //   bhtLRTmoment + ' | ' + (msToTime(moment(heartBeat.bhtLimitResetTime).diff(now))) + ' REMAIN']);
-
-  // tableCreateRow(heatbeatTable, false, ['TOTAL MW REQS', heartBeat.mwRequests]);
-
-  tableCreateRow(heatbeatTable, false, ['ADMINS', heartBeat.numberAdmins]);
-  tableCreateRow(heatbeatTable, false, ['UTILS', heartBeat.numberUtils]);
-
-  serverHeartbeatElement = document.getElementById("server_admins");
-
-  while (serverHeartbeatElement.childNodes.length >= 1) {
-    serverHeartbeatElement.removeChild(serverHeartbeatElement.firstChild);
-  }
-
-  serverHeartbeatElement.appendChild(serverHeartbeatElement.ownerDocument
-    .createTextNode(numberAdminIpAddresses + " ADMINS UNIQUE IP " + " | " + heartBeat.numberAdmins + " CONNECTED")
-  );
-
-
-  serverHeartbeatElement = document.getElementById("server_users");
-
-  while (serverHeartbeatElement.childNodes.length >= 1) {
-    serverHeartbeatElement.removeChild(serverHeartbeatElement.firstChild);
-  }
-  serverHeartbeatElement.appendChild(serverHeartbeatElement.ownerDocument
-    .createTextNode(numberUserIpAddresses + " USER UNIQUE IP " + " | " + heartBeat.numberUsers + " USERS" + " | " + heartBeat.numberTestUsers + " TEST USERS")
-  );
-
-
-  serverHeartbeatElement = document.getElementById("server_viewers");
-
-  while (serverHeartbeatElement.childNodes.length >= 1) {
-    serverHeartbeatElement.removeChild(serverHeartbeatElement.firstChild);
-  }
-  serverHeartbeatElement.appendChild(serverHeartbeatElement.ownerDocument
-    .createTextNode(numberViewerIpAddresses + " VIEWER UNIQUE IP " + " | " + heartBeat.numberViewers + " VIEWERS" + " | " + heartBeat.numberTestViewers + " TEST VIEWERS")
-  );
 }
-
-// function initTimelineData(numDataPoints, callback){
-
-//   var ts;
-
-//   var currentMillis = moment().valueOf();
-
-//   for (var i=0; i<numDataPoints; i++){
-//     tpmData.unshift({date: new Date(parseInt(currentMillis-(1000*i))), value: 0});
-//     wpmData.unshift({date: new Date(parseInt(currentMillis-(1000*i))), value: 0});
-//     tLimitData.unshift({date: new Date(parseInt(currentMillis-(1000*i))), value: 0});
-//     trpmData.unshift({date: new Date(parseInt(currentMillis-(1000*i))), value: 0});
-//   }
-
-//   callback();
-// }
 
 function initialize(callback){
 
@@ -2087,6 +1983,4 @@ function initialize(callback){
       callback();
     });
   // });
-
-
 }

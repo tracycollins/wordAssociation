@@ -928,26 +928,8 @@ wordCache.on("set", function(word, wordObj) {
 
 
 wordCache.on("expired", function(word, wordObj) {
-
   wordMeter[wordObj.nodeId] = {};
   delete wordMeter[wordObj.nodeId];
-
-  // if (wordObj !== undefined) {
-  //   console.log(chalkInfo("... CACHE WORD EXPIRED"
-  //     + " | " + word
-  //     + " | " + wordObj.raw 
-  //     + " | LS: " + moment(parseInt(wordObj.lastSeen)).format(compactDateTimeFormat)
-  //     + " | " + msToTime(moment().valueOf() - wordObj.lastSeen) 
-  //     + " | M: " + wordObj.mentions 
-  //     + " | K: " + wordCache.getStats().keys 
-  //     + " | H: " + wordCache.getStats().hits 
-  //     + " | M: " + wordCache.getStats().misses
-  //   ));
-  //   // dbUpdateWordQueue.enqueue(wordObj);
-  // } 
-  // else {
-  //   debug(chalkError("??? UNDEFINED wordObj on wordCache expired ???"));
-  // }
 });
 
 trendingCache.on( "expired", function(topic, topicObj){
@@ -958,7 +940,6 @@ trendingCache.on( "expired", function(topic, topicObj){
 
 function updateWordMeter(wordObj, callback){
 
-  // if ((wordObj.nodeType === "word") && (wordObj.tags === undefined)) {
   var meterWordId;
 
   if ((wordObj.nodeType === "media") 
@@ -1043,18 +1024,18 @@ function updateWordMeter(wordObj, callback){
     });
   }
 
-  if (wordMeter[meterWordId].toJSON().count > MIN_WORD_METER_COUNT) {
+  // if (wordMeter[meterWordId].toJSON().count > MIN_WORD_METER_COUNT) {
 
-    var meterObj = wordMeter[meterWordId].toJSON();
+  //   var meterObj = wordMeter[meterWordId].toJSON();
 
-    debug(chalkAlert("WM"
-      + " | W: " + Object.keys(wordMeter).length
-      + " | C: " + meterObj.count
-      + " | 5: " + meterObj["5MinuteRate"].toFixed(2)
-      + " | 1: " + meterObj["1MinuteRate"].toFixed(2)
-      + " | " + meterWordId
-    ));
-  }
+  //   debug(chalkAlert("WM"
+  //     + " | W: " + Object.keys(wordMeter).length
+  //     + " | C: " + meterObj.count
+  //     + " | 5: " + meterObj["5MinuteRate"].toFixed(2)
+  //     + " | 1: " + meterObj["1MinuteRate"].toFixed(2)
+  //     + " | " + meterWordId
+  //   ));
+  // }
 }
 
 
@@ -7142,6 +7123,7 @@ function initRateQinterval(interval){
 
           if (index === endIndex-1) {
             adminNameSpace.emit("TWITTER_TOPTERM_1MIN", wordsPerMinuteTopTerm);
+            viewNameSpace.emit("TWITTER_TOPTERM_1MIN", wordsPerMinuteTopTerm);
           }
 
           if (enableGoogleMetrics && (wmObj["1MinuteRate"] > MIN_METRIC_VALUE)) {

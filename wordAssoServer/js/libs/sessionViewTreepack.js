@@ -7,6 +7,8 @@ function ViewTreepack() {
   var self = this;
   var simulation;
 
+  var compactDateTimeFormat = "YYYYMMDD HHmmss";
+
   var minRadiusRatio = 0.01;
   var maxRadiusRatio = 0.10;
 
@@ -76,9 +78,14 @@ function ViewTreepack() {
 
   var currentMaxMetric = 2;
 
-  var currentMaxMentions = 2;
-  var currentMaxRate = 2;
-  var currentHashtagMaxMentions = 2;
+  var currentMax = {};
+
+  currentMax.rate = {};
+  currentMax.rate.value = 2;
+
+  currentMax.mentions = {};
+  currentMax.mentions.value = 2;
+
   var deadNodesHash = {};
 
   var getWindowDimensions = function (){
@@ -139,8 +146,8 @@ function ViewTreepack() {
     maxRateMentionsNode.nodeId = "MENTIONS | MAX";
   }
   maxRateMentionsNode.age = 0;
-  maxRateMentionsNode.rate = 1;
-  maxRateMentionsNode.mentions = 1;
+  maxRateMentionsNode.rate = 2;
+  maxRateMentionsNode.mentions = 2;
   maxRateMentionsNode.ageMaxRatio = 0;
   maxRateMentionsNode.isTrendingTopic = true;
   maxRateMentionsNode.displaytext = "WHAT?";
@@ -303,10 +310,8 @@ function ViewTreepack() {
 //============TREEMAP=================================
 
   var nodeSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeSvgGroup");
-  // var nodeCircles = nodeSvgGroup.selectAll("circle");
   var nodeLabelSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeLabelSvgGroup");
   var nodeTopTermLabelSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeTopTermLabelSvgGroup");
-  // var nodeLabels = nodeSvgGroup.selectAll(".nodeLabel");
 
   var divTooltip = d3.select("body").append("div")
     .attr("class", "tooltip")
@@ -367,10 +372,10 @@ function ViewTreepack() {
     metricMode = mode;
 
     if (mode === "rate") {
-      currentMaxMetric = currentMaxRate;
+      currentMaxMetric = currentMax.rate.value;
     }
     else if (mode === "mentions") {
-      currentMaxMetric = currentMaxMentions;
+      currentMaxMetric = currentMax.mentions.value;
     }
 
     nodeLabelSizeScale = d3.scaleLinear()
@@ -614,7 +619,6 @@ function ViewTreepack() {
 
         nodes[ageNodesIndex] = node;
 
-        // localNodeHashMap.set(node.nodeId, node);
         localNodeHashMap[node.nodeId] = node;
 
         if (node.isTopTerm) {
@@ -629,17 +633,21 @@ function ViewTreepack() {
     if (ageNodesIndex < 0) {
 
       maxRateMentionsNode.age = 0;
-      maxRateMentionsNode.rate = currentMaxRate;
-      maxRateMentionsNode.mentions = currentMaxMentions;
+      maxRateMentionsNode.rate = currentMax.rate.value;
+      maxRateMentionsNode.mentions = currentMax.mentions.value;
       maxRateMentionsNode.ageMaxRatio = 0;
       maxRateMentionsNode.isTrendingTopic = true;
       maxRateMentionsNode.displaytext = createDisplayText(maxRateMentionsNode);
       maxRateMentionsNode.mouseHoverFlag = false;
       if (metricMode === "rate") {
-        maxRateMentionsNode.nodeId = "RATE | MAX";
+        maxRateMentionsNode.nodeId = "RATE | MAX | " 
+          + currentMax.rate.nodeId 
+          + " | " + currentMax.rate.timeStamp.format(compactDateTimeFormat);
       }
       if (metricMode === "mentions") {
-        maxRateMentionsNode.nodeId = "MENTIONS | MAX";
+        maxRateMentionsNode.nodeId = "MNTN | MAX | " 
+          + currentMax.mentions.nodeId 
+          + " | " + currentMax.mentions.timeStamp.format(compactDateTimeFormat);
       }
 
       nodesTopTermHashMap.set(maxRateMentionsNode.nodeId, maxRateMentionsNode);
@@ -844,29 +852,9 @@ function ViewTreepack() {
       .append("circle")
       .attr("nodeId", function(d) { return d.nodeId; })
       .attr("cx", function(d) { 
-        // if (!d.nodeId) { 
-        //   console.warn("UNDEFINED d.nodeId");
-        //   d.x = 0.5*width; 
-        //   return 0.5*width; 
-        // }
-        // if (isNaN(d.x)) { 
-        //   console.warn("NaN d.x " + d.nodeId);
-        //   d.x = 0.5*width; 
-        //   return 0.5*width; 
-        // }
         return d.x; 
       })
       .attr("cy", function(d) { 
-        // if (!d.nodeId) { 
-        //   console.warn("UNDEFINED d.nodeId");
-        //   d.y = 0.5*height;
-        //   return 0.5*height; 
-        // }
-        // if (isNaN(d.y)) { 
-        //   console.warn("NaN d.y " + d.nodeId);
-        //   d.y = 0.5*height;
-        //   return 0.5*height;
-        // }
         return d.y; 
       })
       .style("fill", function(d) { 
@@ -895,48 +883,23 @@ function ViewTreepack() {
         .duration(transitionDuration)
         .attr("r", function(d) {
           if (d.isIgnored) {
-            // d.r = defaultRadiusScale(1);
-            // return d.r;
             return defaultRadiusScale(1);
           }
           else {
             if (metricMode === "rate") {
-              // d.r = defaultRadiusScale(d.rate);
               return defaultRadiusScale(d.rate);
             }
             if (metricMode === "mentions") {
-              // d.r = defaultRadiusScale(d.mentions);
               return defaultRadiusScale(d.mentions);
             }
-            // return d.r;
           }
         });
 
     nodeCircles
       .attr("cx", function(d) { 
-        // if (!d.nodeId) { 
-        //   console.warn("UNDEFINED d.nodeId");
-        //   d.x = 0.5*width; 
-        //   return 0.5*width; 
-        // }
-        // if (isNaN(d.x)) { 
-        //   console.warn("NaN d.x " + d.nodeId);
-        //   d.x = 0.5*width; 
-        //   return 0.5*width; 
-        // }
         return d.x; 
       })
       .attr("cy", function(d) { 
-        // if (!d.nodeId) { 
-        //   console.warn("UNDEFINED d.nodeId");
-        //   d.y = 0.5*height; 
-        //   return 0.5*height; 
-        // }
-        // if (isNaN(d.y)) { 
-        //   console.warn("NaN d.y " + d.nodeId);
-        //   d.y = 0.5*height; 
-        //   return 0.5*height; 
-        // }
         return d.y; 
       })
       .style("fill", function(d) { 
@@ -967,7 +930,6 @@ function ViewTreepack() {
           else {
             if (metricMode === "rate") {return defaultRadiusScale(d.rate);}
             if (metricMode === "mentions") {return defaultRadiusScale(d.mentions);}
-            // return defaultRadiusScale(parseInt(d.rate));
           }
         });
 
@@ -1042,24 +1004,9 @@ function ViewTreepack() {
       .on("mouseout", nodeMouseOut)
       .on("click", nodeClick)
       .attr("x", function(d) { 
-        // if (!d.nodeId) { 
-        //   console.warn("UNDEFINED d.nodeId");
-        //   return 0.5*width; }
-        // if (d.x === undefined) { 
-        //   console.warn("UNDEFINED d.x " + d.nodeId);
-        //   return 0.5*width; 
-        // }
         return d.x; 
       })
       .attr("y", function(d) { 
-        // if (!d.nodeId) { 
-        //   console.warn("UNDEFINED d.nodeId");
-        //   return 0.5*height; 
-        // }
-        // if (d.y === undefined) { 
-        //   console.warn("UNDEFINED d.y " + d.nodeId);
-        //   return 0.5*height; 
-        // }
         return d.y; 
       })
       .text(function(d) {
@@ -1217,7 +1164,6 @@ function ViewTreepack() {
         currentNode.isTrendingTopic = newNode.isTrendingTopic || false;
         currentNode.isTwitterUser = newNode.isTwitterUser || false;
         currentNode.keywordColor = newNode.keywordColor;
-        // currentNode.mentions = newNode.mentions || 1;
         currentNode.mentions = Math.max(currentNode.mentions, newNode.mentions || 1);
         currentNode.mouseHoverFlag = false;
         currentNode.rank = 0;
@@ -1345,9 +1291,11 @@ function ViewTreepack() {
     newNode.rank = -1;
     newNode.newFlag = true;
 
-    if (nNode.mentions > currentMaxMentions) { 
+    if (nNode.mentions > currentMax.mentions.value) { 
 
-      currentMaxMentions = nNode.mentions; 
+      currentMax.mentions.value = nNode.mentions; 
+      currentMax.mentions.nodeId = nNode.nodeId; 
+      currentMax.mentions.timeStamp = moment(); 
 
       if (metricMode === "mentions") {
 
@@ -1364,12 +1312,14 @@ function ViewTreepack() {
           .clamp(true);
       }
 
-      console.info("NEW MAX MENTIONS: " + currentMaxMentions + " | " + nNode.nodeId);
+      console.info("NEW MAX MENTIONS: " + currentMax.mentions.value + " | " + nNode.nodeId);
     }
 
-    if (nNode.rate > currentMaxRate) { 
+    if (nNode.rate > currentMax.rate.value) { 
 
-      currentMaxRate = nNode.rate; 
+      currentMax.rate.value = nNode.rate; 
+      currentMax.rate.nodeId = nNode.nodeId; 
+      currentMax.rate.timeStamp = moment(); 
 
       if (metricMode === "rate") {
 
@@ -1386,7 +1336,7 @@ function ViewTreepack() {
           .clamp(true);
       }
 
-      console.info("NEW MAX RATE: " + currentMaxRate.toFixed(2) + " | " + nNode.nodeId);
+      console.info("NEW MAX RATE: " + currentMax.rate.value.toFixed(2) + " | " + nNode.nodeId);
     }
 
     if (nodeAddQ.length < MAX_RX_QUEUE) {
@@ -1455,15 +1405,12 @@ function ViewTreepack() {
         else {
           return foci.default.y;
         }
-        // return 0.5*height; 
       }).strength(function(d){
         return forceYmultiplier * gravity; 
       }))
       .force("collide", d3.forceCollide().radius(function(d) { 
-        // return collisionRadiusMultiplier * defaultRadiusScale(d.mentions) ; 
         if (metricMode === "rate") {return collisionRadiusMultiplier * defaultRadiusScale(d.rate);}
         if (metricMode === "mentions") {return collisionRadiusMultiplier * defaultRadiusScale(d.mentions);}
-        // return collisionRadiusMultiplier * defaultRadiusScale(d.rate) ; 
       }).iterations(collisionIterations).strength(1.0))
       .velocityDecay(velocityDecay)
       .on("tick", ticked);
@@ -1620,10 +1567,8 @@ function ViewTreepack() {
           return forceYmultiplier * gravity; 
         }))
         .force("collide", d3.forceCollide().radius(function(d) { 
-          // return collisionRadiusMultiplier * defaultRadiusScale(d.mentions) ; 
           if (metricMode === "rate") {return collisionRadiusMultiplier * defaultRadiusScale(d.rate);}
           if (metricMode === "mentions") {return collisionRadiusMultiplier * defaultRadiusScale(d.mentions);}
-          // return collisionRadiusMultiplier * defaultRadiusScale(d.rate) ; 
         }).iterations(collisionIterations))
         .velocityDecay(velocityDecay)
 

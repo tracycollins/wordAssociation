@@ -1114,13 +1114,13 @@ function ViewTreepack() {
         displaytext = new Array(ratePadSpaces).join("\xa0") + rate
         + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns 
         + " | RATE | MAX | " + node.rateNodeId
-        + " | " + node.rateTimeStamp.format(compactDateTimeFormat);
+        + " | " + moment(parseInt(node.rateTimeStamp)).format(compactDateTimeFormat);
       }
       else {
         displaytext = new Array(ratePadSpaces).join("\xa0") + rate 
         + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns
         + " | MNTN | MAX | " + node.mentionsNodeId
-        + " | " + node.mentionsTimeStamp.format(compactDateTimeFormat);
+        + " | " + moment(parseInt(node.mentionsTimeStamp)).format(compactDateTimeFormat);
       }
     }
     else {
@@ -1337,7 +1337,7 @@ function ViewTreepack() {
 
       currentMax.mentions.value = nNode.mentions; 
       currentMax.mentions.nodeId = nNode.nodeId; 
-      currentMax.mentions.timeStamp = moment(); 
+      currentMax.mentions.timeStamp = moment().valueOf(); 
 
       if (metricMode === "mentions") {
 
@@ -1361,7 +1361,7 @@ function ViewTreepack() {
 
       currentMax.rate.value = nNode.rate; 
       currentMax.rate.nodeId = nNode.nodeId; 
-      currentMax.rate.timeStamp = moment(); 
+      currentMax.rate.timeStamp = moment().valueOf(); 
 
       if (metricMode === "rate") {
 

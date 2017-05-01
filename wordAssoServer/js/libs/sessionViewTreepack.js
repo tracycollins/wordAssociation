@@ -635,12 +635,20 @@ function ViewTreepack() {
     if (ageNodesIndex < 0) {
 
       maxRateMentionsNode.age = 0;
+
       maxRateMentionsNode.rate = currentMax.rate.value;
+      maxRateMentionsNode.rateNodeId = currentMax.rate.nodeId;
+      maxRateMentionsNode.rateTimeStamp = currentMax.rate.timeStamp;
+
       maxRateMentionsNode.mentions = currentMax.mentions.value;
+      maxRateMentionsNode.mentionsNodeId = currentMax.mentions.nodeId;
+      maxRateMentionsNode.mentionsTimeStamp = currentMax.mentions.timeStamp;
+
       maxRateMentionsNode.ageMaxRatio = 0;
       maxRateMentionsNode.isTrendingTopic = true;
       maxRateMentionsNode.displaytext = createDisplayText(maxRateMentionsNode);
       maxRateMentionsNode.mouseHoverFlag = false;
+
       if (metricMode === "rate") {
         // maxRateMentionsNode.nodeId = "RATE | MAX | " 
         //   + currentMax.rate.nodeId 
@@ -1093,31 +1101,40 @@ function ViewTreepack() {
     var ratePadSpaces = rateNumChars - rate.length;
     var displaytext = "";
 
+
     if (node.isMaxNode) { 
         // maxRateMentionsNode.nodeId = "RATE | MAX | " 
         //   + currentMax.rate.nodeId 
         //   + " | " + currentMax.rate.timeStamp.format(compactDateTimeFormat);
       if (metricMode === "rate") {
-        displaytext = new Array(ratePadSpaces).join("\xa0") + rate 
+        displaytext = new Array(ratePadSpaces).join("\xa0") + rate
         + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns 
-        + " | RATE | MAX | " + node.rate.nodeId ;
-        + " | " + node.rate.timeStamp.format(compactDateTimeFormat);
+        + " | RATE | MAX | " + node.rateNodeId ;
+        + " | " + node.rateTimeStamp.format(compactDateTimeFormat);
       }
       else {
         displaytext = new Array(ratePadSpaces).join("\xa0") + rate 
         + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns
-        + " | MNTN | MAX | " + node.mentions.nodeId ;
-        + " | " + node.rate.timeStamp.format(compactDateTimeFormat);
+        + " | MNTN | MAX | " + node.mentionsNodeId ;
+        + " | " + node.mentionsTimeStamp.format(compactDateTimeFormat);
       }
     }
-    else if (node.isTwitterUser) { 
-      displaytext = new Array(ratePadSpaces).join("\xa0") + rate + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns + " | " + node.screenName.toUpperCase() ;
-    }
-    else if (testMode) { 
-      displaytext = new Array(ratePadSpaces).join("\xa0") + rate + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns + " | BLAH" ;
-    }
-    else { 
-      displaytext = new Array(ratePadSpaces).join("\xa0") + rate + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns + " | " + node.nodeId.toUpperCase() ;
+    else {
+      if (node.isTwitterUser) { 
+        displaytext = new Array(ratePadSpaces).join("\xa0") + rate 
+        + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns 
+        + " | " + node.screenName.toUpperCase() ;
+      }
+      else if (testMode) { 
+        displaytext = new Array(ratePadSpaces).join("\xa0") + rate 
+        + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns 
+        + " | BLAH" ;
+      }
+      else { 
+        displaytext = new Array(ratePadSpaces).join("\xa0") + rate 
+        + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns 
+        + " | " + node.nodeId.toUpperCase() ;
+      }
     }
 
     return displaytext;

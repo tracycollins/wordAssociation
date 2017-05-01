@@ -139,11 +139,13 @@ function ViewTreepack() {
   var colSpacing = 90/maxHashtagCols; // %
 
   var maxRateMentionsNode = {};
+  maxRateMentionsNode.isMaxNode = true;
+
   if (metricMode === "rate") {
     maxRateMentionsNode.nodeId = "RATE | MAX";
   }
   if (metricMode === "mentions") {
-    maxRateMentionsNode.nodeId = "MENTIONS | MAX";
+    maxRateMentionsNode.nodeId = "MNTN | MAX";
   }
   maxRateMentionsNode.age = 0;
   maxRateMentionsNode.rate = 2;
@@ -640,14 +642,16 @@ function ViewTreepack() {
       maxRateMentionsNode.displaytext = createDisplayText(maxRateMentionsNode);
       maxRateMentionsNode.mouseHoverFlag = false;
       if (metricMode === "rate") {
-        maxRateMentionsNode.nodeId = "RATE | MAX | " 
-          + currentMax.rate.nodeId 
-          + " | " + currentMax.rate.timeStamp.format(compactDateTimeFormat);
+        // maxRateMentionsNode.nodeId = "RATE | MAX | " 
+        //   + currentMax.rate.nodeId 
+        //   + " | " + currentMax.rate.timeStamp.format(compactDateTimeFormat);
+        maxRateMentionsNode.nodeId = "RATE | MAX" 
       }
       if (metricMode === "mentions") {
-        maxRateMentionsNode.nodeId = "MNTN | MAX | " 
-          + currentMax.mentions.nodeId 
-          + " | " + currentMax.mentions.timeStamp.format(compactDateTimeFormat);
+        // maxRateMentionsNode.nodeId = "MNTN | MAX | " 
+        //   + currentMax.mentions.nodeId 
+        //   + " | " + currentMax.mentions.timeStamp.format(compactDateTimeFormat);
+        maxRateMentionsNode.nodeId = "MNTN | MAX" 
       }
 
       nodesTopTermHashMap.set(maxRateMentionsNode.nodeId, maxRateMentionsNode);
@@ -1089,7 +1093,24 @@ function ViewTreepack() {
     var ratePadSpaces = rateNumChars - rate.length;
     var displaytext = "";
 
-    if (node.isTwitterUser) { 
+    if (node.isMaxNode) { 
+        // maxRateMentionsNode.nodeId = "RATE | MAX | " 
+        //   + currentMax.rate.nodeId 
+        //   + " | " + currentMax.rate.timeStamp.format(compactDateTimeFormat);
+      if (metricMode === "rate") {
+        displaytext = new Array(ratePadSpaces).join("\xa0") + rate 
+        + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns 
+        + " | RATE | MAX | " + node.rate.nodeId ;
+        + " | " + node.rate.timeStamp.format(compactDateTimeFormat);
+      }
+      else {
+        displaytext = new Array(ratePadSpaces).join("\xa0") + rate 
+        + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns
+        + " | MNTN | MAX | " + node.mentions.nodeId ;
+        + " | " + node.rate.timeStamp.format(compactDateTimeFormat);
+      }
+    }
+    else if (node.isTwitterUser) { 
       displaytext = new Array(ratePadSpaces).join("\xa0") + rate + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns + " | " + node.screenName.toUpperCase() ;
     }
     else if (testMode) { 

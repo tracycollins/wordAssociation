@@ -849,7 +849,13 @@ socket.on('UTIL_SESSION', function(utilSessionObj) {
   utilSessionHashMap.set(utilSessionObj.sessionId, utilSessionObj);
   numberUtilSessions = utilSessionHashMap.keys().length;
 
-  if (utilSessionObj.userId 
+  console.log("RX UTIL SESSION[" + utilSessionHashMap.keys().length + "]: " + utilSessionObj.sessionId 
+    + " | C: " + utilSessionObj.connected
+    + " | UID: " + utilSessionObj.userId
+    );
+
+
+  if (utilSessionObj.userId
     && utilSessionObj.connected 
     && utilSessionObj.userId.match(/TSS_/g)) {
     console.info("UTIL SERVER CONNECTED: " + utilSessionObj.userId);
@@ -879,6 +885,7 @@ socket.on("SESSION_DELETE", function(sessionObject) {
 socket.on('TWITTER_TOPTERM_1MIN', function(top10array) {
   console.debug("TWITTER_TOPTERM_1MIN\n" + jsonPrint(top10array));
 });
+
 
 socket.on('HEARTBEAT', function(rxHeartbeat) {
   heartBeatTimeoutFlag = false;
@@ -997,6 +1004,12 @@ function setWordCacheTtl() {
   console.log("SET WORD CACHE TTL: " + newWordCacheTtl);
   socket.emit("SET_WORD_CACHE_TTL", newWordCacheTtl);
 }
+
+// function updateBhtReqs() {
+//   var newBhtRequests = document.getElementById("updateBhtReqs").value;
+//   console.log("UPDATE BHT REQS: " + newBhtRequests);
+//   socket.emit("UPDATE_BHT_REQS", newBhtRequests);
+// }
 
 function toggleTestMode() {
   testMode = !testMode;
@@ -1943,17 +1956,6 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
     x[2].style.backgroundColor = '#880000';
   }
 
-  // var bhtOLTmoment;
-
-  // if (heartBeat.bhtOverLimitTime == 0) {
-  //   bhtOLTmoment = "";
-  // } else {
-  //   bhtOLTmoment = moment(heartBeat.bhtOverLimitTime).format("YYYY-MM-DD HH:mm:ss ZZ");
-  // }
-  // var bhtLRTmoment = moment(heartBeat.bhtLimitResetTime).format("YYYY-MM-DD HH:mm:ss ZZ");
-
-  // var bhtOptions = false;
-
   tableCreateRow(heatbeatTable, false, ['SERVER TIME', getTimeStamp(heartBeat.timeStamp)]);
   tableCreateRow(heatbeatTable, false, ['SERVER UPTIME', msToTime(heartBeat.upTime)]);
   tableCreateRow(heatbeatTable, false, ['APP START TIME', getTimeStamp(heartBeat.startTime)]);
@@ -1971,9 +1973,65 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
   tableCreateRow(heatbeatTable, false, ['TOTAL SESSIONS', heartBeat.totalSessions]);
   tableCreateRow(heatbeatTable, false, ['TOTAL WORDS', heartBeat.totalWords]);
-  // tableCreateRow(heatbeatTable, false, ['TOTAL PROMPTS', heartBeat.promptsSent]);
   tableCreateRow(heatbeatTable, false, ['TOTAL WORD UPDATES', heartBeat.db.wordsUpdated]);
+
+  tableCreateRow(heatbeatTable, false, ['QUEUES',
+    'RX: ' + heartBeat.queues.rxWordQueue 
+    + ' | S: ' + heartBeat.queues.sessionQueue
+    + ' | DBW: ' + heartBeat.queues.dbUpdateWordQueue
+    + ' | DBE: ' + heartBeat.queues.dbUpdateEntityQueue 
+    + ' | V: ' + heartBeat.queues.updateSessionViewQueue
+  ]);
+
+  tableCreateRow(heatbeatTable, false, ['ADMINS', heartBeat.numberAdmins]);
+  tableCreateRow(heatbeatTable, false, ['UTILS', heartBeat.numberUtils]);
+
+  serverHeartbeatElement = document.getElementById("server_admins");
+
+  while (serverHeartbeatElement.childNodes.length >= 1) {
+    serverHeartbeatElement.removeChild(serverHeartbeatElement.firstChild);
+  }
+
+  serverHeartbeatElement.appendChild(serverHeartbeatElement.ownerDocument
+    .createTextNode(numberAdminIpAddresses + " ADMINS UNIQUE IP " + " | " + heartBeat.numberAdmins + " CONNECTED")
+  );
+
+
+  serverHeartbeatElement = document.getElementById("server_users");
+
+  while (serverHeartbeatElement.childNodes.length >= 1) {
+    serverHeartbeatElement.removeChild(serverHeartbeatElement.firstChild);
+  }
+  serverHeartbeatElement.appendChild(serverHeartbeatElement.ownerDocument
+    .createTextNode(numberUserIpAddresses + " USER UNIQUE IP " + " | " + heartBeat.numberUsers + " USERS" + " | " + heartBeat.numberTestUsers + " TEST USERS")
+  );
+
+
+  serverHeartbeatElement = document.getElementById("server_viewers");
+
+  while (serverHeartbeatElement.childNodes.length >= 1) {
+    serverHeartbeatElement.removeChild(serverHeartbeatElement.firstChild);
+  }
+  serverHeartbeatElement.appendChild(serverHeartbeatElement.ownerDocument
+    .createTextNode(numberViewerIpAddresses + " VIEWER UNIQUE IP " + " | " + heartBeat.numberViewers + " VIEWERS" + " | " + heartBeat.numberTestViewers + " TEST VIEWERS")
+  );
 }
+
+// function initTimelineData(numDataPoints, callback){
+
+//   var ts;
+
+//   var currentMillis = moment().valueOf();
+
+//   for (var i=0; i<numDataPoints; i++){
+//     tpmData.unshift({date: new Date(parseInt(currentMillis-(1000*i))), value: 0});
+//     wpmData.unshift({date: new Date(parseInt(currentMillis-(1000*i))), value: 0});
+//     tLimitData.unshift({date: new Date(parseInt(currentMillis-(1000*i))), value: 0});
+//     trpmData.unshift({date: new Date(parseInt(currentMillis-(1000*i))), value: 0});
+//   }
+
+//   callback();
+// }
 
 function initialize(callback){
 
@@ -1984,4 +2042,6 @@ function initialize(callback){
       callback();
     });
   // });
+
+
 }

@@ -545,15 +545,7 @@ var updateKeywords = function (folder, file, callback){
                   + " | TOTAL KEYWORDS:   " + kwHashMap.count()
                 ));
 
-                // if (serverHashMapFlag){
-                //   serverKeywordHashMap.copy(kwHashMap);
-                //   console.log(chalkWarn("UPDATE SERVER KEYWORDS " + file));
-                // }
-                // else {
                 keywordHashMap.copy(kwHashMap);
-                // console.log(chalkInfo("UPDATED GLOBAL KEYWORDS " + file));
-                // }
-
                 callback(null, { keywords: words.length });
               }
             }
@@ -781,9 +773,14 @@ function updateGroupsInterval(options){
       + "\n" + jsonPrint(options)
     ));
     initGroupsReady = false;
-    sendHashMaps(results, function(err2, results2){
+    if (err) {
       initGroupsReady = true;
-    });
+    }
+    else {
+      sendHashMaps(results, function(err2, results2){
+        initGroupsReady = true;
+      });
+    }
   });
 
   initGroupsInterval = setInterval(function() {
@@ -794,9 +791,14 @@ function updateGroupsInterval(options){
       ));
       initGroupsReady = false;
       updateGroupsEntitiesKeywords(options, function(err, results){
-        sendHashMaps(results, function(err2, results2){
+        if (err) {
           initGroupsReady = true;
-        });
+        }
+        else {
+          sendHashMaps(results, function(err2, results2){
+            initGroupsReady = true;
+          });
+        }
       });
     }
   }, options.interval);

@@ -149,6 +149,8 @@ function ViewTreepack() {
   }
   maxRateMentionsNode.age = 0;
   maxRateMentionsNode.rate = 2;
+  maxRateMentionsNode.rateNodeId = "what";
+  maxRateMentionsNode.mentionsNodeId = "what";
   maxRateMentionsNode.rateTimeStamp = moment();
   maxRateMentionsNode.mentionsTimeStamp = moment();
   maxRateMentionsNode.mentions = 2;

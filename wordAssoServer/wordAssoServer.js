@@ -5916,7 +5916,7 @@ function initAppRouting(callback) {
 
   app.get("/admin", function(req, res) {
     debug(chalkInfo("get req\n" + req));
-    console.warn("LOADING PAGE: /admin/admin.html");
+    console.log(chalkInfo("LOADING PAGE: /admin/admin.html"));
     res.sendFile(__dirname + "/admin/admin.html", function (err) {
       if (err) {
         console.error('GET:', __dirname + "/admin/admin.html");
@@ -5929,7 +5929,7 @@ function initAppRouting(callback) {
 
   app.get("/admin/admin.js", function(req, res) {
     debug(chalkInfo("get req\n" + req));
-    console.warn("LOADING PAGE: /admin/admin.js");
+    console.log(chalkInfo("LOADING PAGE: /admin/admin.js"));
     res.sendFile(__dirname + "/admin/admin.js", function (err) {
       if (err) {
         console.error('GET:', __dirname + "/admin/admin.js");

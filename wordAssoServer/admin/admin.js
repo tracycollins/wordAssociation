@@ -849,14 +849,15 @@ socket.on('UTIL_SESSION', function(utilSessionObj) {
   utilSessionHashMap.set(utilSessionObj.sessionId, utilSessionObj);
   numberUtilSessions = utilSessionHashMap.keys().length;
 
-  if ((utilSessionObj.userId !== undefined) 
+  if (utilSessionObj.userId 
     && utilSessionObj.connected 
     && utilSessionObj.userId.match(/TSS_/g)) {
     console.info("UTIL SERVER CONNECTED: " + utilSessionObj.userId);
     tweetsPerMinServer = utilSessionObj.userId;
   } 
-  else if ((utilSessionObj.userId !== undefined)
-    && !utilSessionObj.connected && utilSessionObj.userId.match(/TSS_/g)) {
+  else if (utilSessionObj.userId
+    && !utilSessionObj.connected 
+    && utilSessionObj.userId.match(/TSS_/g)) {
     console.info("UTIL SERVER DISCONNECTED: " + utilSessionObj.userId);
     tweetsPerMinServer = false;
     tweetsPerMin = 0;

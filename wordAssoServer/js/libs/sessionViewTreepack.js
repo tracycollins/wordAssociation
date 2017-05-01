@@ -149,6 +149,8 @@ function ViewTreepack() {
   }
   maxRateMentionsNode.age = 0;
   maxRateMentionsNode.rate = 2;
+  maxRateMentionsNode.rateTimeStamp = moment();
+  maxRateMentionsNode.mentionsTimeStamp = moment();
   maxRateMentionsNode.mentions = 2;
   maxRateMentionsNode.ageMaxRatio = 0;
   maxRateMentionsNode.isTrendingTopic = true;

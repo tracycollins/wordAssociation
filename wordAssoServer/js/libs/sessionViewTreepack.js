@@ -151,7 +151,7 @@ function ViewTreepack() {
   maxRateMentionsNode.rate = 2;
   maxRateMentionsNode.rateNodeId = "what";
   maxRateMentionsNode.mentionsNodeId = "what";
-  maxRateMentionsNode.rateTimeStamp = moment().valueof();
+  maxRateMentionsNode.rateTimeStamp = moment().valueOf();
   maxRateMentionsNode.mentionsTimeStamp = moment().valueOf();
   maxRateMentionsNode.mentions = 2;
   maxRateMentionsNode.ageMaxRatio = 0;

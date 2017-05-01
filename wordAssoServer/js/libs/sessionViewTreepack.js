@@ -1113,13 +1113,13 @@ function ViewTreepack() {
       if (metricMode === "rate") {
         displaytext = new Array(ratePadSpaces).join("\xa0") + rate
         + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns 
-        + " | RATE | MAX | " + node.rateNodeId ;
+        + " | RATE | MAX | " + node.rateNodeId
         + " | " + node.rateTimeStamp.format(compactDateTimeFormat);
       }
       else {
         displaytext = new Array(ratePadSpaces).join("\xa0") + rate 
         + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns
-        + " | MNTN | MAX | " + node.mentionsNodeId ;
+        + " | MNTN | MAX | " + node.mentionsNodeId
         + " | " + node.mentionsTimeStamp.format(compactDateTimeFormat);
       }
     }

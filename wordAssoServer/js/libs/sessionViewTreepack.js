@@ -1107,19 +1107,16 @@ function ViewTreepack() {
 
 
     if (node.isMaxNode) { 
-        // maxRateMentionsNode.nodeId = "RATE | MAX | " 
-        //   + currentMax.rate.nodeId 
-        //   + " | " + currentMax.rate.timeStamp.format(compactDateTimeFormat);
       if (metricMode === "rate") {
         displaytext = new Array(ratePadSpaces).join("\xa0") + rate
         + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns 
-        + " | RATE | MAX | " + node.rateNodeId
+        + " | RATE | MAX | " + node.rateNodeId.toUpperCase()
         + " | " + moment(parseInt(node.rateTimeStamp)).format(compactDateTimeFormat);
       }
       else {
         displaytext = new Array(ratePadSpaces).join("\xa0") + rate 
         + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns
-        + " | MNTN | MAX | " + node.mentionsNodeId
+        + " | MNTN | MAX | " + node.mentionsNodeId.toUpperCase()
         + " | " + moment(parseInt(node.mentionsTimeStamp)).format(compactDateTimeFormat);
       }
     }

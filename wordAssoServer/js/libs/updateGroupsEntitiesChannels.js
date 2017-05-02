@@ -153,11 +153,21 @@ statsObj.entityChannelGroup.allHashMisses = {};
 
 process.on('message', function(m) {
 
-  console.log(chalkInfo("RX MESSAGE\n" + jsonPrint(m)));
+  debug(chalkInfo("RX MESSAGE\n" + jsonPrint(m)));
 
   switch (m.op) {
 
     case "INIT":
+
+      console.log(chalkInfo("UPDATE GROUP ENTITIES CHANNELS INIT"
+        + " | FOLDER: " + m.folder
+        + " | GROUP FILE: " + m.groupsConfigFile
+        + " | ENTITY FILE: " + m.entityChannelGroupsConfigFile
+        + " | KEYWORD FILE: " + m.keywordFile
+        + " | INTERVAL: " + m.interval
+        // + " | " + jsonPrint(m)
+      ));
+
       groupsConfigFile = m.groupsConfigFile;
       entityChannelGroupsConfigFile = m.entityChannelGroupsConfigFile;
       keywordsFile = m.keywordFile;
@@ -175,6 +185,12 @@ process.on('message', function(m) {
 
     case "UPDATE":
 
+      console.log(chalkInfo("UPDATE"
+        + " | UPDATE TYPE: " + m.updateType
+        + " | KEYWORD FILE: " + m.keywordFile
+        // + " | " + jsonPrint(m)
+      ));
+
       switch (m.updateType) {
         case "KEYWORDS":
           updateKeywords("", m.keywordsFile, function(){
@@ -183,11 +199,13 @@ process.on('message', function(m) {
           break;
 
         default:
+        console.log(chalkError("??? updateGroupsEntitiesKeywords RX UNKNOWN UPDATE TYPE\n" + jsonPrint(m)));
       }
 
       break;
 
     default:
+    console.log(chalkError("??? updateGroupsEntitiesKeywords RX UNKNOWN MESSAGE\n" + jsonPrint(m)));
 
   }
 
@@ -196,9 +214,9 @@ process.on('message', function(m) {
 function getFileMetadata(path, file, callback) {
 
   var fullPath = path + "/" + file;
-  console.log(chalkInfo("FOLDER " + path));
-  console.log(chalkInfo("FILE " + file));
-  console.log(chalkInfo("FULL PATH " + fullPath));
+  debug(chalkInfo("FOLDER " + path));
+  debug(chalkInfo("FILE " + file));
+  debug(chalkInfo("FULL PATH " + fullPath));
 
   var fileExists = false;
 
@@ -215,9 +233,9 @@ function getFileMetadata(path, file, callback) {
 
 function loadFile(path, file, callback) {
 
-  console.log(chalkInfo("LOAD FOLDER " + path));
-  console.log(chalkInfo("LOAD FILE " + file));
-  console.log(chalkInfo("FULL PATH " + path + "/" + file));
+  debug(chalkInfo("LOAD FOLDER " + path));
+  debug(chalkInfo("LOAD FILE " + file));
+  debug(chalkInfo("FULL PATH " + path + "/" + file));
 
   var fileExists = false;
 
@@ -567,7 +585,7 @@ function updateGroupsEntitiesKeywords(options, callback){
         console.log(chalkError("updateGroupsEntitiesKeywords ERROR\n" + err));
       }
       else {
-        console.log(chalkInfo("updateGroupsEntitiesKeywords COMPLETE"
+        debug(chalkInfo("updateGroupsEntitiesKeywords COMPLETE"
           // + "\n" + jsonPrint(results)
         ));
       }
@@ -613,7 +631,7 @@ function sendHashMaps(results, callback){
       callback(err, null);
     }
     else {
-      console.log(chalkInfo("sendHashMaps COMPLETE"
+      debug(chalkInfo("sendHashMaps COMPLETE"
         // + "\n" + jsonPrint(results)
       ));
       callback(err, null);
@@ -655,7 +673,7 @@ function sendGroups(callback){
         callback(err, null);
       }
       else {
-        console.log(chalkInfo("sendGroups COMPLETE | " + groupIds.length + " KEYWORDS"));
+        debug(chalkInfo("sendGroups COMPLETE | " + groupIds.length + " KEYWORDS"));
         process.send({ type: 'sendGroupsComplete'});
         callback(null, null);
       }
@@ -691,7 +709,7 @@ function sendEntities(callback){
         callback(err, null);
       }
       else {
-        console.log(chalkInfo("sendEntities COMPLETE | " + entityIds.length + " KEYWORDS"));
+        debug(chalkInfo("sendEntities COMPLETE | " + entityIds.length + " KEYWORDS"));
         process.send({ type: 'sendEntitiesComplete'});
         callback(null, null);
       }
@@ -749,7 +767,7 @@ function sendKeywords(callback){
         callback(err, null);
       }
       else {
-        console.log(chalkInfo("sendKeywords COMPLETE | " + words.length + " KEYWORDS"));
+        debug(chalkInfo("sendKeywords COMPLETE | " + words.length + " KEYWORDS"));
         process.send({ type: 'sendKeywordsComplete'});
         callback(null, null);
       }

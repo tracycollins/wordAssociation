@@ -2428,7 +2428,7 @@ function initSessionSocketHandler(sessionObj, socket) {
     wordsPerMinuteTopTermCache.get(rxWordObj.nodeId, function(err, nodeRate) {
       if (nodeRate) {
         rxWordObj.isTopTerm = true;
-        console.log(chalkRed("TOP TERM"
+        debug(chalkRed("TOP TERM"
           + " | " + rxWordObj.nodeId
           + " | " + rxWordObj.isTopTerm
           + " | " + nodeRate.toFixed(2)

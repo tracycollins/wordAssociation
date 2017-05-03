@@ -24,6 +24,7 @@ var primarySessionObj;
 
 var configuration = {};
 configuration.enableStdin = process.env.WA_ENABLE_STDIN;
+configuration.quitOnError = false;
 
 var languageServer = {};
 var tssServer = {};

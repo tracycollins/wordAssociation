@@ -6699,6 +6699,8 @@ configEvents.on("SERVER_READY", function() {
 
       heartbeatsSent += 1;
 
+      statsObj.configuration = configuration;
+
       io.emit("HEARTBEAT", statsObj);
 
       utilNameSpace.emit("HEARTBEAT", statsObj);

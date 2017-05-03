@@ -15,7 +15,7 @@ var ONE_SECOND = 1000;
 var ONE_MINUTE = ONE_SECOND * 60;
 // var ONE_HOUR = ONE_MINUTE * 60;
 // var ONE_DAY = ONE_HOUR * 24;
-var quitOnErrorFlag = false;
+// var quitOnErrorFlag = false;
 
 var wordsApiKey = "RWwyknmI1OmshYkPUYAQyHVv1Cbup1ptubzjsn2F19wbnAlSEf";
 var wapiUrlRoot = "https://wordsapiv1.p.mashape.com/words/";
@@ -960,12 +960,8 @@ wordCache.on("set", function(word, wordObj) {
       + " | " + word
       // + "\n" + jsonPrint(wordObj)
     ));
-    quit();
+    if (configuration.quitOnError) { quit("wordCache SET TAGS UNDEFINED"); }
   }
-  // console.log(chalkInfo("WORD $ SET"
-  //   + " | " +  word
-  //   + "\n" + jsonPrint(wordObj)
-  // ));
 });
 
 
@@ -3975,7 +3971,7 @@ function handleSessionEvent(sesObj, callback) {
           + "\nsesObj.session\n" + jsonPrint(sesObj.session)));
         console.log(chalkError("SESSION_KEEPALIVE: UNDEFINED USER ID" 
           + "\nsesObj\n" + jsonPrint(sesObj)));
-        quit("UNDEFINED USER ID: " + sesObj.session.sessionId);
+        if (configuration.quitOnError) { quit("UNDEFINED USER ID: " + sesObj.session.sessionId); }
       }
 
       utilCache.set(sesObj.session.userId, sesObj.session.user, function(err, success) {
@@ -4683,7 +4679,6 @@ function handleSessionEvent(sesObj, callback) {
                   console.log(chalkError("??? UNKNOWN SESSION TYPE USER_READY handleSessionEvent"
                     + "\n" + jsonPrint(sesObj)
                   ));
-                  // quit("???? UNKNOWN SESSION TYPE: " + sesObj.session.config.type);
               }
             }
           });
@@ -4745,7 +4740,7 @@ function getTags(wObj, callback){
         console.log(chalkError("SET UNKNOWN WORDOBJ TAGS\n" + jsonPrint(wordObj)));
         entityChannelGroupHashMap.set("unknown_entity", { groupId: "unknown_group", name: "UNKNOWN GROUP"});
 
-        quit();
+        if (configuration.quitOnError) { quit("UNKNOWN WORDOBJ TAGS"); }
 
         callback(wordObj);
       } 
@@ -4796,7 +4791,7 @@ function sendUpdated(updatedObj, callback){
 
   if (updatedObj.word.sessionId === undefined) {
     console.log(chalkError("UNDEFINED SESSION ID\n" + jsonPrint(updatedObj)));
-    quit();
+    if (configuration.quitOnError) { quit("sendUpdated UNDEFINED SESSION ID"); }
   }
 
   getTags(updatedObj.word, function(uWordObj){
@@ -4850,7 +4845,7 @@ function sendUpdated(updatedObj, callback){
                 + " | SID: " + updatedWordObj.sessionId
                 + "\n" + jsonPrint(updatedWordObj)
               ));
-              quit();
+              if (configuration.quitOnError) { quit("SESSION NOT IN CACHE"); }
               callback(err, currentSessionObj);
             }
             else {
@@ -4878,11 +4873,11 @@ function sendUpdated(updatedObj, callback){
           sessionCache.get(updatedObj.sessionId, function(err, currentSessionObj){
             if (err){
               console.log(chalkError("*** ERROR SESSION CACHE GET " + updatedObj.sessionId + "\n" + jsonPrint(err)));
-              quit("ERROR SESSION CACHE GET");
+              if (configuration.quitOnError) { quit("ERROR SESSION CACHE GET"); }
             }
             else if (currentSessionObj === undefined) {
               console.log(chalkError("*** SESSION CACHE GET UNDEFINED" + updatedObj.sessionId + "\n" + jsonPrint(err)));
-              quit("SESSION CACHE GET UNDEFINEDd");
+              if (configuration.quitOnError) { quit("SESSION CACHE GET UNDEFINED"); }
             }
             else {
               var sessionUpdateObj = {
@@ -4954,7 +4949,7 @@ function initRxWordQueueInterval(interval){
       sessionCache.get(socketId, function(err, currentSessionObj){
         if (err){
           console.log(chalkError("*** ERROR SESSION CACHE GET " + socketId + "\n" + jsonPrint(err)));
-          quit("ERROR SESSION CACHE GET");
+          if (configuration.quitOnError) { quit("ERROR SESSION CACHE GET"); }
         }
         else if (currentSessionObj === undefined) {
 
@@ -5973,7 +5968,7 @@ function initializeConfiguration(cnf, callback) {
   });
 
   if (cnf.quitOnError) { 
-    quitOnErrorFlag = true;
+    // quitOnErrorFlag = true;
     console.log(chalkAlert("===== QUIT ON ERROR SET ====="));
   }
 
@@ -5992,10 +5987,10 @@ function initializeConfiguration(cnf, callback) {
           process.exit();
         break;
         case "q":
-          quit();
+          quit("STDIN");
         break;
         case "Q":
-          quit();
+          quit("STDIN");
         break;
         case "s":
           showStats();
@@ -6558,7 +6553,7 @@ configEvents.on("UNKNOWN_SESSION", function(sesObj) {
   if (createUnknownSessionFlag) {
     userReadyHandler({socketId: sesObj.socketId, userObj: sesObj.userObj}, function(err, sObj){
       if (err) {
-        quit(err);
+        if (configuration.quitOnError) { quit("userReadyHandler UNKNOWN_SESSION"); }
       }
     });
   }

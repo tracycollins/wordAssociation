@@ -14,12 +14,12 @@ var initializeComplete = false;
 var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
 var defaultTimePeriodFormat = "HH:mm:ss";
 
-  var startColor = '#008000';
-  var midColor = '#F9CD2B';
-  var endColor = '#CC0000';
+var startColor = '#008000';
+var midColor = '#F9CD2B';
+var endColor = '#CC0000';
 
-  var WARN_LIMIT_PERCENT = 80;
-  var ALERT_LIMIT_PERCENT = 95
+var WARN_LIMIT_PERCENT = 80;
+var ALERT_LIMIT_PERCENT = 95
 
 var ONE_MB = 1024 * 1024;
 var ONE_GB = ONE_MB * 1024;
@@ -122,16 +122,10 @@ var utilIpHashMap = new HashMap();
 var utilSessionHashMap = new HashMap();
 
 var utilIpHashMapKeys = [];
-// var utilSessionHashMapKeys = [];
 var userIpHashMapKeys = [];
 var userSessionHashMapKeys = [];
 var adminIpHashMapKeys = [];
 var adminSocketIdHashMapKeys = [];
-
-var numberUtilIpAddresses = 0;
-var numberUtilSessions = 0;
-var numberTestUtilSessions = 0;
-var numberAdminsConnected = 0;
 
 var randomIntFromInterval = function(min, max) {
   return Math.floor(Math.random() * (max - min + 1) + min);
@@ -186,117 +180,72 @@ var socket = io.connect('/admin');
 
 var googleOauthUrl = 0;
 
-
-var memoryBar;
 var deltaResponsesMax = 1;
-var wordsPerMinBar;
 var userIpTableBody;
 var userSessionTableBody;
 var showConnectedUsers = true;
 var showDisconnectedUsers = false;
 var showIpUsers = true;
-var showTestUsers = true;
 var showBotUsers = true;
+
 var numberAdminIpAddresses = adminIpHashMap.count();
+var numberAdminsConnected = 0;
+
 var showConnectedAdmins = true;
 var showDisconnectedAdmins = false;
 var showIpAdmins = true;
 var numberUserSessions = 0;
-var numberTestUserSessions = 0;
 var numberUserIpAddresses = userIpHashMap.count();
 
 var userConnectedColor = "#00aa00";
-var testUserConnectedColor = "#888888";
 var userDisconnectedColor = "#aa0000";
-var testUserDisonnectedColor = "#880000";
 var showConnectedViewers = true;
 var showDisconnectedViewers = false;
 var showIpViewers = true;
-var showTestViewers = true;
 var showBotViewers = true;
+
+var numberUtilSessions = 0;
+var numberUtilIpAddresses = 0;
 
 var viewerIpHashMapKeys = [];
 var viewerSessionHashMapKeys = [];
 
 var numberViewerSessions = 0;
-var numberTestViewerSessions = 0;
 var numberViewerIpAddresses = viewerIpHashMap.count();
 
 var viewerConnectedColor = "#00aa00";
-var testViewerConnectedColor = "#888888";
 var viewerDisconnectedColor = "#aa0000";
-var testViewerDisonnectedColor = "#880000";
 var showConnectedViewers = true;
 var showDisconnectedViewers = false;
 var viewerIpTableBody;
 var viewerSessionTableBody;
 var viewerSessionTableHead;
-var viewersBar;
-var testViewersBar;
-var testViewersBar;
-var usersBar;
+
 var userIpTableHead;
 var userSessionTableHead;
-var usersTotalTotalBar;
+
 var utilConnectedColor = "#00aa00";
-var testUtilConnectedColor = "#888888";
 var utilDisconnectedColor = "#aa0000";
-var testUtilDisonnectedColor = "#880000";
 var showConnectedUtils = true;
 var showDisconnectedUtils = false;
 var showIpUtils = true;
+
 var deltaTweetsMax = 1;
 
 var utilSessionTableHead;
 var utilIpTableHead;
-
 var utilIpTableBody;
 var utilSessionTableBody;
 
-var utilsBarDiv;
-var utilsBar;
-var utilsBarText;
-
-var usersBarDiv;
-var usersBarText;
-
-var usersTotalBarDiv;
-var usersTotalBar;
-var usersTotalBarText;
-
-var testUsersBarDiv;
-var testUsersBar;
-var testUsersBarText;
-
 var viewerIpTableHead;
-var viewersBarDiv;
-var viewersBar;
-var viewersBarText;
 
-var viewersTotalBarDiv;
-var viewersTotalBar;
-var viewersTotalBarText;
-
-var testViewersBarDiv;
-var testViewersBar;
-var testViewersBarText;
-
+var memoryBar;
 var memoryBarDiv;
 var memoryBarText;
 
-// var bhtRequestsBarDiv;
-// var bhtRequestsBar;
-// var bhtRequestsBarText;
-// var bhtRequestsBarPercent;
-
-// var mwRequestsBar;
-// var mwRequestsBarDiv;
-// var mwRequestsBarText;
-// var mwRequestsBarPercent;
-
-var wordsPerMinBar;
-var wordsPerMinBarDiv;
-var wordsPerMinBarText;
+var sessionCacheBar;
+var sessionCacheBarDiv;
+var sessionCacheBarText;
 
 var tweetsPerMinBar;
 var tweetsPerMinBarDiv;
@@ -305,6 +254,22 @@ var tweetsPerMinBarText;
 var twitterLimitBar;
 var twitterLimitBarDiv;
 var twitterLimitBarText;
+
+var usersBar;
+var usersBarDiv;
+var usersBarText;
+
+var utilsBar;
+var utilsBarDiv;
+var utilsBarText;
+
+var viewersBar;
+var viewersBarDiv;
+var viewersBarText;
+
+var wordsPerMinBar;
+var wordsPerMinBarDiv;
+var wordsPerMinBarText;
 
 var rawDiv;
 var rawDivText;
@@ -317,6 +282,13 @@ function updateRawText(text){
 function initBars(callback){
  
   console.debug("INIT BARS ...");
+
+  // SESSIONS ===============================
+
+  sessionCacheBarDiv = document.getElementById('sessions-bar');
+  sessionCacheBar = new ProgressBar.Line(sessionCacheBarDiv, {});
+  sessionCacheBar.animate(0);
+  sessionCacheBarText = document.getElementById('sessions-bar-text');
 
   // USERS ===============================
 
@@ -331,17 +303,6 @@ function initBars(callback){
   usersBar.animate(0);
   usersBarText = document.getElementById('users-bar-text');
 
-  testUsersBarDiv = document.getElementById('test-users-bar');
-  testUsersBar = new ProgressBar.Line(testUsersBarDiv, {});
-  testUsersBar.animate(0);
-  testUsersBarText = document.getElementById('test-users-bar-text');
-
-  usersTotalBarDiv = document.getElementById('users-total-bar');
-  usersTotalBar = new ProgressBar.Line(usersTotalBarDiv, {});
-  usersTotalBar.animate(0);
-  usersTotalBarText = document.getElementById('users-total-bar-text');
-
-
   // VIEWERS ===============================
 
   viewerSessionTableHead = document.getElementById('viewer_session_table_head');
@@ -355,23 +316,10 @@ function initBars(callback){
   viewersBar.animate(0);
   viewersBarText = document.getElementById('viewers-bar-text');
 
-  testViewersBarDiv = document.getElementById('test-viewers-bar');
-  testViewersBar = new ProgressBar.Line(testViewersBarDiv, {});
-  testViewersBar.animate(0);
-  testViewersBarText = document.getElementById('test-viewers-bar-text');
-
-  viewersTotalBarDiv = document.getElementById('viewers-total-bar');
-  viewersTotalBar = new ProgressBar.Line(viewersTotalBarDiv, {});
-  viewersTotalBar.animate(0);
-  viewersTotalBarText = document.getElementById('viewers-total-bar-text');
-
-
   // UTILS ===============================
 
   numberUtilSessions = 0;
-  numberTestUtilSessions = 0;
   numberUtilIpAddresses = utilIpHashMap.count();
-
 
   utilSessionTableHead = document.getElementById('util_session_table_head');
   utilSessionTableBody = document.getElementById('util_session_table_body');
@@ -388,20 +336,6 @@ function initBars(callback){
   memoryBarText = document.getElementById('memory-bar-text');
   memoryBar = new ProgressBar.Line(memoryBarDiv, {});
   memoryBar.animate(0);
-
-  // bhtRequestsBar;
-  // bhtRequestsBarPercent = 0;
-  // bhtRequestsBarDiv = document.getElementById('bht-requests-bar');
-  // bhtRequestsBarText = document.getElementById('bht-requests-bar-text');
-  // bhtRequestsBar = new ProgressBar.Line(bhtRequestsBarDiv, {});
-  // bhtRequestsBar.animate(0);
-
-  // mwRequestsBar;
-  // mwRequestsBarPercent = 0;
-  // mwRequestsBarDiv = document.getElementById('mw-requests-bar');
-  // mwRequestsBarText = document.getElementById('mw-requests-bar-text');
-  // mwRequestsBar = new ProgressBar.Line(mwRequestsBarDiv, {});
-  // mwRequestsBar.animate(0);
 
   wordsPerMinBarDiv = document.getElementById('delta-response-bar');
   wordsPerMinBarText = document.getElementById('delta-response-bar-text');
@@ -490,7 +424,7 @@ function getTimeStamp(inputTime) {
     minute: "2-digit"
   };
 
-  if (typeof inputTime === 'undefined') {
+  if (inputTime === undefined) {
     cDate = new Date().toDateString("en-US", options);
     cTime = new Date().toTimeString('en-US', options);
   } else {
@@ -536,14 +470,16 @@ function serverClear() {
   viewerIpHashMap.clear();
   viewerSessionHashMap.clear();
 
-  if (serverConnected && initializeComplete) updateServerHeartbeat(heartBeat, heartBeatTimeoutFlag, lastTimeoutHeartBeat);
+  if (serverConnected && initializeComplete) {
+    updateServerHeartbeat(heartBeat, heartBeatTimeoutFlag, lastTimeoutHeartBeat);
+  }
 }
 
 function updateAdminConfig(config) {
 
   console.log("ADMIN CONFIG CHANGE\n" + jsonPrint(config));
 
-  if (typeof config.testMode !== 'undefined') {
+  if (config.testMode !== undefined) {
     console.log("   ---> CONFIG_CHANGE: testMode: " + config.testMode);
     testMode = config.testMode;
     setTestMode(config.testMode);
@@ -613,7 +549,7 @@ function ageHashMapEntries(hm, callback){
 
     var sessionObj = hm.get(sessionId);
 
-    if (typeof sessionObj.seen === 'undefined'){
+    if (sessionObj.seen === undefined){
       sessionObj.seen = dateNow;
       console.debug("NEW SESSION | " + sessionId
         + " | " + sessionObj.userId
@@ -699,7 +635,7 @@ socket.on("CONFIG_CHANGE", function(rxAdminConfig) {
   console.log("\nPREVIOUS ADMIN CONFIG:\n" + JSON.stringify(adminConfig, null, 3));
   for (var configPropertyName in rxAdminConfig) {
     console.log("configPropertyName: " + configPropertyName + " | " + rxAdminConfig[configPropertyName]);
-    if (typeof adminConfig !== 'undefined') {
+    if (adminConfig !== undefined) {
       previousProperty = adminConfig[configPropertyName];
     }
     adminConfig[configPropertyName] = rxAdminConfig[configPropertyName];
@@ -744,7 +680,7 @@ socket.on('USER IP', function(rxIpObj) {
 
 socket.on('VIEWER IP', function(rxIpObj) {
   var ipObj = JSON.parse(rxIpObj);
-  console.log("RXCD VIEWER IP  " + ipObj.ip + " | " + ipObj.domain);
+  console.debug("RXCD VIEWER IP  " + ipObj.ip + " | " + ipObj.domain);
   viewerIpHashMap.set(ipObj.ip, ipObj);
   numberViewerIpAddresses = viewerIpHashMap.count();
   viewerIpHashMapKeys = viewerIpHashMap.keys();
@@ -818,7 +754,7 @@ socket.on('USER_SESSION', function(userSessionObj) {
   userSessionHashMapKeys.sort();
   numberUserSessions = userSessionHashMapKeys.length;
 
-  updateUserConnect(userSessionObj);
+  updateUserConnect(userSessionObj, null);
 });
 
 socket.on('VIEWER_SESSION', function(viewerSessionObj) {
@@ -839,40 +775,56 @@ socket.on('VIEWER_SESSION', function(viewerSessionObj) {
   viewerSessionHashMapKeys.sort();
   numberViewerSessions = viewerSessionHashMapKeys.length;
 
-  if (serverConnected && initializeComplete) updateViewerConnect(viewerSessionObj);
+  if (serverConnected && initializeComplete) { updateViewerConnect(viewerSessionObj, null) };
 });
 
-socket.on('UTIL_SESSION', function(utilSessionObj) {
+var utilSessionQueue = [];
+socket.on('UTIL_SESSION', function(rxSession) {
+  utilSessionQueue.push(rxSession);
+});
 
-  utilIpHashMap.set(utilSessionObj.ip, utilSessionObj);
-  numberUtilIpAddresses = utilIpHashMapKeys.length;
-  utilSessionHashMap.set(utilSessionObj.sessionId, utilSessionObj);
-  numberUtilSessions = utilSessionHashMap.keys().length;
+var utilSessionQueueReady = true;
+setInterval(function(){
 
-  console.log("RX UTIL SESSION[" + utilSessionHashMap.keys().length + "]: " + utilSessionObj.sessionId 
-    + " | C: " + utilSessionObj.connected
-    + " | UID: " + utilSessionObj.userId
-    );
+  if (utilSessionQueueReady && (utilSessionQueue.length > 0)){
+
+    var utilSessionObj = utilSessionQueue.shift();
+
+    utilIpHashMap.set(utilSessionObj.ip, utilSessionObj);
+    numberUtilIpAddresses = utilIpHashMapKeys.length;
+    utilSessionHashMap.set(utilSessionObj.sessionId, utilSessionObj);
+    numberUtilSessions = utilSessionHashMap.keys().length;
+
+    console.log("RX UTIL SESSION[" + utilSessionHashMap.keys().length + "]: " + utilSessionObj.sessionId 
+      + " | C: " + utilSessionObj.connected
+      + " | UID: " + utilSessionObj.userId
+      );
 
 
-  if (utilSessionObj.userId
-    && utilSessionObj.connected 
-    && utilSessionObj.userId.match(/TSS_/g)) {
-    console.info("UTIL SERVER CONNECTED: " + utilSessionObj.userId);
-    tweetsPerMinServer = utilSessionObj.userId;
-  } 
-  else if (utilSessionObj.userId
-    && !utilSessionObj.connected 
-    && utilSessionObj.userId.match(/TSS_/g)) {
-    console.info("UTIL SERVER DISCONNECTED: " + utilSessionObj.userId);
-    tweetsPerMinServer = false;
-    tweetsPerMin = 0;
+    if (utilSessionObj.userId
+      && utilSessionObj.connected 
+      && utilSessionObj.userId.match(/TSS_/g)) {
+      console.info("UTIL SERVER CONNECTED: " + utilSessionObj.userId);
+      tweetsPerMinServer = utilSessionObj.userId;
+    } 
+    else if (utilSessionObj.userId
+      && !utilSessionObj.connected 
+      && utilSessionObj.userId.match(/TSS_/g)) {
+      console.info("UTIL SERVER DISCONNECTED: " + utilSessionObj.userId);
+      tweetsPerMinServer = false;
+      tweetsPerMin = 0;
+    }
+
+    updateUtilConnect(utilSessionObj, function(){
+      utilSessionQueueReady = true;
+    });
   }
 
-  updateUtilConnect(utilSessionObj);
-});
+}, 100);
+
 
 socket.on("SESSION_DELETE", function(sessionObject) {
+  console.log("sessionObject\n" + jsonPrint(sessionObject));
   console.debug("> RX DEL SESS | " + sessionObject.sessionId);
   if (utilSessionHashMap.has(sessionObject.sessionId)){
     console.info("* UTIL HM HIT " + sessionObject.sessionId);
@@ -887,54 +839,47 @@ socket.on('TWITTER_TOPTERM_1MIN', function(top10array) {
 });
 
 
+var heartBeatQueue = [];
 socket.on('HEARTBEAT', function(rxHeartbeat) {
-  heartBeatTimeoutFlag = false;
-  hbIndex++;
-  heartBeat = rxHeartbeat;
-
-  updateRawText(jsonPrint(rxHeartbeat));
-
-  if (tweetsPerMinServer && heartBeat.utilities[tweetsPerMinServer]) {
-    tweetsPerMin = heartBeat.utilities[tweetsPerMinServer].tweetsPerMinute;
-    tweetsPerMinMax = heartBeat.utilities[tweetsPerMinServer].maxTweetsPerMin;
-    tweetsPerMinMaxTime = heartBeat.utilities[tweetsPerMinServer].maxTweetsPerMinTime;
-
-    twitterLimit = heartBeat.utilities[tweetsPerMinServer].twitterLimit;
-    twitterLimitMax = heartBeat.utilities[tweetsPerMinServer].twitterLimitMax;
-    twitterLimitMaxTime = heartBeat.utilities[tweetsPerMinServer].twitterLimitMaxTime;
-
-    // tpmData.push({date: new Date(), value: tweetsPerMin});
-    // if (tpmData.length > MAX_TIMELINE) tpmData.shift();
-
-    // tLimitData.push({date: new Date(), value: twitterLimit});
-    // if (tLimitData.length > MAX_TIMELINE) tLimitData.shift();
-
-  }
-
-  // console.log("... HB | " + tweetsPerMin + "\n" + jsonPrint(heartBeat));
-  if (rxHeartbeat.deltaResponsesReceived > deltaResponsesMax) {deltaResponsesMax = rxHeartbeat.deltaResponsesReceived;}
-
-  if (rxHeartbeat.wordsPerMinute > wordsPerMinuteMax) {wordsPerMinuteMax = rxHeartbeat.wordsPerMinute;}
-
-  heartBeatTimeoutFlag = false;
-  updateUserConnect();
-  updateViewerConnect();
-  updateUtilConnect();
-
-  // tpmData.push({date: new Date(), value: tweetsPerMin});
-  // if (tpmData.length > MAX_TIMELINE) tpmData.shift();
-
-  // tLimitData.push({date: new Date(), value: twitterLimit});
-  // if (tLimitData.length > MAX_TIMELINE) tLimitData.shift();
-
-  // wpmData.push({date: new Date(), value: rxHeartbeat.wordsPerMinute});
-  // if (wpmData.length > MAX_TIMELINE) wpmData.shift();
-
-  // trpmData.push({date: new Date(), value: rxHeartbeat.trumpPerMinute});
-  // if (trpmData.length > MAX_TIMELINE) trpmData.shift();
+  heartBeatQueue.push(rxHeartbeat);
 });
 
-// updateServerHeartbeat
+var heartBeatQueueReady = true;
+setInterval(function(){
+
+  if (heartBeatQueueReady && (heartBeatQueue.length > 0)){
+
+    heartBeat = heartBeatQueue.shift();
+
+    heartBeatQueueReady = false;
+    heartBeatTimeoutFlag = false;
+    hbIndex++;
+
+    if (tweetsPerMinServer && heartBeat.utilities[tweetsPerMinServer]) {
+      tweetsPerMin = heartBeat.utilities[tweetsPerMinServer].tweetsPerMinute;
+      tweetsPerMinMax = heartBeat.utilities[tweetsPerMinServer].maxTweetsPerMin;
+      tweetsPerMinMaxTime = heartBeat.utilities[tweetsPerMinServer].maxTweetsPerMinTime;
+
+      twitterLimit = heartBeat.utilities[tweetsPerMinServer].twitterLimit;
+      twitterLimitMax = heartBeat.utilities[tweetsPerMinServer].twitterLimitMax;
+      twitterLimitMaxTime = heartBeat.utilities[tweetsPerMinServer].twitterLimitMaxTime;
+    }
+
+    if (heartBeat.deltaResponsesReceived > deltaResponsesMax) {deltaResponsesMax = heartBeat.deltaResponsesReceived;}
+
+    if (heartBeat.wordsPerMinute > wordsPerMinuteMax) {wordsPerMinuteMax = heartBeat.wordsPerMinute;}
+
+    heartBeatTimeoutFlag = false;
+
+    updateRawText(jsonPrint(heartBeat));
+    updateUserConnect(null, function(){
+      heartBeatQueueReady = true;
+    });
+    updateViewerConnect(null, null);
+    updateUtilConnect(null, null);
+  }
+}, 1000);
+
 var serverCheckTimeout = setInterval(function() {
   numberAdminIpAddresses = adminIpHashMap.count();
   numberUserIpAddresses = userIpHashMap.count();
@@ -953,7 +898,7 @@ function setTestMode(inputTestMode) {
 
   var serverConfigUpdateFlag = false;
 
-  if (typeof inputTestMode !== 'undefined') {
+  if (inputTestMode !== undefined) {
     serverConfigUpdateFlag = true;
     testMode = inputTestMode;
   } else {
@@ -988,7 +933,7 @@ function sendServerConfig(e) {
 
   var configHasValues = false;
 
-  if ((typeof e === 'undefined') || (e.keyCode == 13)) {
+  if ((e === undefined) || (e.keyCode == 13)) {
     if (configHasValues) {
       console.log("***> SENT CONFIG: " + JSON.stringify(config, null, 3));
       socket.emit('CONFIG', JSON.stringify(config));
@@ -1004,12 +949,6 @@ function setWordCacheTtl() {
   console.log("SET WORD CACHE TTL: " + newWordCacheTtl);
   socket.emit("SET_WORD_CACHE_TTL", newWordCacheTtl);
 }
-
-// function updateBhtReqs() {
-//   var newBhtRequests = document.getElementById("updateBhtReqs").value;
-//   console.log("UPDATE BHT REQS: " + newBhtRequests);
-//   socket.emit("UPDATE_BHT_REQS", newBhtRequests);
-// }
 
 function toggleTestMode() {
   testMode = !testMode;
@@ -1036,45 +975,27 @@ function toggleDisconnectedAdmins() {
 }
 
 function toggleIpUsers() {
-  updateUserConnect({
-    showIp: "toggle"
-  });
+  updateUserConnect({showIp: "toggle"}, null);
 }
 
 function toggleConnectedUsers() {
-  updateUserConnect({
-    showConnected: "toggle"
-  });
+  updateUserConnect({ showConnected: "toggle" }, null);
 }
 
 function toggleDisconnectedUsers() {
-  updateUserConnect({
-    showDisconnected: "toggle"
-  });
-}
-
-function toggleHideTestUsers() {
-  updateUserConnect({
-    showTestUsers: "toggle"
-  });
+  updateUserConnect({ showDisconnected: "toggle" }, null);
 }
 
 function toggleHideBotUsers() {
-  updateUserConnect({
-    showBotUsers: "toggle"
-  });
+  updateUserConnect({ showBotUsers: "toggle" }, null);
 }
 
 function toggleIpViewers() {
-  updateViewerConnect({
-    showIp: "toggle"
-  });
+  updateViewerConnect({ showIp: "toggle" },  null);
 }
 
 function toggleConnectedViewers() {
-  updateViewerConnect({
-    showConnected: "toggle"
-  });
+  updateViewerConnect({ showConnected: "toggle" });
 }
 
 function toggleDisconnectedViewers() {
@@ -1083,41 +1004,27 @@ function toggleDisconnectedViewers() {
   });
 }
 
-function toggleHideTestViewers() {
-  updateViewerConnect({
-    showTestViewers: "toggle"
-  });
-}
-
 function toggleHideBotViewers() {
-  updateViewerConnect({
-    showBotViewers: "toggle"
-  });
+  updateViewerConnect({ showBotViewers: "toggle" }, null);
 }
 
 function toggleIpUtils() {
-  updateUtilConnect({
-    showIp: "toggle"
-  });
+  updateUtilConnect({ showIp: "toggle" }, null);
 }
 
 function toggleConnectedUtils() {
-  updateUtilConnect({
-    showConnected: "toggle"
-  });
+  updateUtilConnect({ showConnected: "toggle"}, null);
 }
 
 function toggleDisconnectedUtils() {
-  updateUtilConnect({
-    showDisconnected: "toggle"
-  });
+  updateUtilConnect({ showDisconnected: "toggle" }, null);
 }
 
 function updateAdminConnect(req) {
 
   numberAdminsConnected = 0;
 
-  if (typeof req === 'undefined') {} else {
+  if (req === undefined) {} else {
     if (req.showConnected == 'toggle') {
       showConnectedAdmins = !showConnectedAdmins;
     }
@@ -1181,7 +1088,7 @@ function updateAdminConnect(req) {
   }
 }
 
-function updateUserConnect(req) {
+function updateUserConnect(req, callback) {
 
   if (!initializeComplete) return;
 
@@ -1205,7 +1112,7 @@ function updateUserConnect(req) {
     userSessionTableBody.removeChild(userSessionTableBody.lastChild);
   }
 
-  if (typeof req === 'undefined') {} else {
+  if (req) {
     if (req.showConnected == 'toggle') {
       showConnectedUsers = !showConnectedUsers;
       console.log("showConnectedUsers: " + showConnectedUsers);
@@ -1217,10 +1124,6 @@ function updateUserConnect(req) {
     if (req.showIp == 'toggle') {
       showIpUsers = !showIpUsers;
       console.log("showIpUsers " + showIpUsers);
-    }
-    if (req.showTestUsers == 'toggle') {
-      showTestUsers = !showTestUsers;
-      console.log("showTestUsers " + showTestUsers);
     }
     if (req.showBotUsers == 'toggle') {
       showBotUsers = !showBotUsers;
@@ -1244,15 +1147,10 @@ function updateUserConnect(req) {
 
       if (!showBotUsers && ((value.domain.indexOf("googlebot") >= 0))) {
 
-      } else if (!showTestUsers && value.namespace && (value.namespace == 'test-user')) {
+      } 
+      else {
 
-      } else {
-
-        if (value.namespace && (value.namespace == 'test-user')) {
-          userIpTableBodyOptions.tdTextColor = testUserConnectedColor;
-        } else {
-          userIpTableBodyOptions.tdTextColor = userConnectedColor;
-        }
+        userIpTableBodyOptions.tdTextColor = userConnectedColor;
 
         numberUniqueUsers++;
 
@@ -1292,23 +1190,20 @@ function updateUserConnect(req) {
       sessionId = hmKeys[j];
       sessionObj = userSessionHashMap.get(sessionId);
 
-      if (typeof sessionObj.referer === 'undefined') {
+      if (sessionObj.referer === undefined) {
         sessionObj.referer = '';
       }
 
 
-      if (!showTestUsers && sessionObj.namespace && (sessionObj.namespace == 'test-user')) {
+      if (!showBotUsers && ((sessionObj.domain.indexOf("googlebot") >= 0))) {
 
-      } else if (!showBotUsers && ((sessionObj.domain.indexOf("googlebot") >= 0))) {
-
-      } else {
+      } 
+      else {
         if (sessionObj.connected == true) {
 
           numberConnected++;
 
-          if (sessionObj.namespace && (sessionObj.namespace == 'test-user')) {
-            userSessionTableBodyOptions.tdTextColor = testUserConnectedColor;
-          } else if (sessionObj.domain.indexOf("googlebot") >= 0) {
+          if (sessionObj.domain.indexOf("googlebot") >= 0) {
             userSessionTableBodyOptions.tdTextColor = testUserConnectedColor;
           } else if (sessionObj.domain.indexOf("googleusercontent") >= 0) {
             userSessionTableBodyOptions.tdTextColor = testUserConnectedColor;
@@ -1316,8 +1211,6 @@ function updateUserConnect(req) {
             userSessionTableBodyOptions.tdTextColor = userConnectedColor;
           }
 
-          // console.log("sessionId: " + sessionId + "\n" + jsonPrint(sessionObj));
-          // console.log("heartBeat.timeStamp: " + heartBeat.timeStamp + " | " + sessionObj.connectTime);
           connectTime = heartBeat.timeStamp - sessionObj.connectTime;
 
           tableCreateRow(userSessionTableBody, userSessionTableBodyOptions, [
@@ -1333,7 +1226,6 @@ function updateUserConnect(req) {
         }
       }
     }
-
   }
 
   if (showDisconnectedUsers) {
@@ -1348,31 +1240,31 @@ function updateUserConnect(req) {
       var key = userSessionHashMapKeys[k];
       var value = userSessionHashMap.get(userSessionHashMapKeys[k]);
 
-      if (!showTestUsers && value.namespace && (value.namespace == 'test-user')) {} else {
-        if (value.connected == false) {
+      if (value.connected == false) {
 
-          numberDisconnected++;
+        numberDisconnected++;
 
-          connectedTime = value.disconnectTime - value.connectTime;
+        connectedTime = value.disconnectTime - value.connectTime;
 
-          tableCreateRow(userSessionTableBody, userSessionTableBodyOptions, [
-            numberDisconnected,
-            value.ip,
-            value.domain,
-            value.userId,
-            key,
-            getTimeStamp(value.connectTime),
-            getTimeStamp(value.disconnectTime),
-            msToTime(connectedTime)
-          ]);
+        tableCreateRow(userSessionTableBody, userSessionTableBodyOptions, [
+          numberDisconnected,
+          value.ip,
+          value.domain,
+          value.userId,
+          key,
+          getTimeStamp(value.connectTime),
+          getTimeStamp(value.disconnectTime),
+          msToTime(connectedTime)
+        ]);
 
-        }
       }
     }
   }
+
+  if (callback) { callback(); }
 }
 
-function updateViewerConnect(req) {
+function updateViewerConnect(req, callback) {
 
   var viewerIpTableBodyOptions = {
     headerFlag: false,
@@ -1394,7 +1286,7 @@ function updateViewerConnect(req) {
     viewerSessionTableBody.removeChild(viewerSessionTableBody.lastChild);
   }
 
-  if (typeof req === 'undefined') {} else {
+  if (req) {
     if (req.showConnected == 'toggle') {
       showConnectedViewers = !showConnectedViewers;
       console.log("showConnectedViewers: " + showConnectedViewers);
@@ -1406,10 +1298,6 @@ function updateViewerConnect(req) {
     if (req.showIp == 'toggle') {
       showIpViewers = !showIpViewers;
       console.log("showIpViewers " + showIpViewers);
-    }
-    if (req.showTestViewers == 'toggle') {
-      showTestViewers = !showTestViewers;
-      console.log("showTestViewers " + showTestViewers);
     }
     if (req.showBotViewers == 'toggle') {
       showBotViewers = !showBotViewers;
@@ -1431,24 +1319,19 @@ function updateViewerConnect(req) {
 
       if (!showBotViewers && ((value.domain.indexOf("googlebot") >= 0))) {
       } 
-      else if (!showTestViewers && value.namespace && (value.namespace == 'test-viewer')) {
-      } 
       else {
 
-        if (value.namespace && (value.namespace == 'test-viewer')) {
-          viewerIpTableBodyOptions.textColor = testViewerConnectedColor;
-        } 
-        else {
-          viewerIpTableBodyOptions.textColor = viewerConnectedColor;
-        }
+        viewerIpTableBodyOptions.textColor = viewerConnectedColor;
 
         numberUniqueViewers++;
 
         if (value.connected == true) {
           elapsedSinceLastSeen = 0;
-        } else if (value.lastSeen > currentTime) {
+        } 
+        else if (value.lastSeen > currentTime) {
           elapsedSinceLastSeen = 0;
-        } else {
+        } 
+        else {
           elapsedSinceLastSeen = heartBeat.timeStamp - value.lastSeen;
         }
 
@@ -1479,23 +1362,20 @@ function updateViewerConnect(req) {
       sessionId = viewerSessionHashMapKeys[j];
       sessionObj = viewerSessionHashMap.get(viewerSessionHashMapKeys[j]);
 
-      if (typeof sessionObj.referer === 'undefined') {
+      if (sessionObj.referer === undefined) {
         sessionObj.referer = '';
       }
 
 
-      if (!showTestViewers && sessionObj.namespace && (sessionObj.namespace == 'test-viewer')) {
+      if (!showBotViewers && ((sessionObj.domain.indexOf("googlebot") >= 0))) {
 
-      } else if (!showBotViewers && ((sessionObj.domain.indexOf("googlebot") >= 0))) {
-
-      } else {
+      } 
+      else {
         if (sessionObj.connected == true) {
 
           numberConnected++;
 
-          if (sessionObj.namespace && (sessionObj.namespace == 'test-viewer')) {
-            viewerSessionTableBodyOptions.textColor = testViewerConnectedColor;
-          } else if (sessionObj.domain.indexOf("googlebot") >= 0) {
+          if (sessionObj.domain.indexOf("googlebot") >= 0) {
             viewerSessionTableBodyOptions.textColor = testViewerConnectedColor;
           } else if (sessionObj.domain.indexOf("googleviewercontent") >= 0) {
             viewerSessionTableBodyOptions.textColor = testViewerConnectedColor;
@@ -1503,8 +1383,6 @@ function updateViewerConnect(req) {
             viewerSessionTableBodyOptions.textColor = viewerConnectedColor;
           }
 
-          // console.log("sessionId: " + sessionId + "\n" + jsonPrint(sessionObj));
-          // console.log("heartBeat.timeStamp: " + heartBeat.timeStamp + " | " + sessionObj.connectTime);
           connectTime = heartBeat.timeStamp - sessionObj.connectTime;
 
           tableCreateRow(viewerSessionTableBody, viewerSessionTableBodyOptions, [
@@ -1520,7 +1398,6 @@ function updateViewerConnect(req) {
         }
       }
     }
-
   }
 
   if (showDisconnectedViewers) {
@@ -1535,33 +1412,30 @@ function updateViewerConnect(req) {
       var key = viewerSessionHashMapKeys[k];
       var value = viewerSessionHashMap.get(viewerSessionHashMapKeys[k]);
 
-      if (!showTestViewers && value.namespace && (value.namespace == 'test-viewer')) {
+      if (value.connected == false) {
 
-      } else {
-        if (value.connected == false) {
+        numberDisconnected++;
 
-          numberDisconnected++;
+        connectedTime = value.disconnectTime - value.connectTime;
 
-          connectedTime = value.disconnectTime - value.connectTime;
+        tableCreateRow(viewerSessionTableBody, viewerSessionTableBodyOptions, [
+          numberDisconnected,
+          value.ip,
+          value.domain,
+          value.userId,
+          key,
+          getTimeStamp(value.connectTime),
+          getTimeStamp(value.disconnectTime),
+          msToTime(connectedTime)
+        ]);
 
-          tableCreateRow(viewerSessionTableBody, viewerSessionTableBodyOptions, [
-            numberDisconnected,
-            value.ip,
-            value.domain,
-            value.userId,
-            key,
-            getTimeStamp(value.connectTime),
-            getTimeStamp(value.disconnectTime),
-            msToTime(connectedTime)
-          ]);
-
-        }
       }
     }
   }
+  if (callback) { callback(); }
 }
 
-function updateUtilConnect(req) {
+function updateUtilConnect(req, callback) {
 
   if (!initializeComplete) return;
 
@@ -1587,7 +1461,7 @@ function updateUtilConnect(req) {
     utilSessionTableBody.removeChild(utilSessionTableBody.lastChild);
   }
 
-  if (typeof req === 'undefined') {} else {
+  if (req) {
     if (req.showConnected == 'toggle') {
       showConnectedUtils = !showConnectedUtils;
       console.log("showConnectedUtils: " + showConnectedUtils);
@@ -1651,7 +1525,7 @@ function updateUtilConnect(req) {
       sessionId = keys[j];
       sessionObj = utilSessionHashMap.get(sessionId);
 
-      if (typeof sessionObj.referer === 'undefined') {
+      if (sessionObj.referer === undefined) {
         sessionObj.referer = '';
       }
 
@@ -1713,31 +1587,26 @@ function updateUtilConnect(req) {
       }
     }
   }
+  if (callback) { callback(); }
 }
+
+var sessionCacheKeysMax = 1;
+var sessionCacheKeysMaxTime = moment().valueOf();
 
 function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
   if (!initializeComplete) return;
 
-  // console.log("updateServerHeartbeat: timeoutFlag: " + timeoutFlag);
-
-  // memoryAvailable = heartBeat.memoryAvailable / heartBeat.memoryTotal;
-  // memoryUsed = heartBeat.memoryUsage.heapUsed / heartBeat.memoryUsage.heapTotal;
-
-  if (heartBeat.memoryUsage !== undefined) {
-    memoryUsed = heartBeat.memoryUsage.heapUsed / heartBeat.memoryUsage.rss;
-    memoryAvailable = (heartBeat.memoryUsage.rss - heartBeat.memoryUsage.heapUsed) / heartBeat.memoryUsage.rss;
+  if (heartBeat.memory !== undefined) {
+    memoryUsed = heartBeat.memory.memoryUsage.heapUsed / heartBeat.memory.memoryUsage.rss;
+    memoryAvailable = (heartBeat.memory.memoryUsage.rss - heartBeat.memory.memoryUsage.heapUsed) / heartBeat.memory.memoryUsage.rss;
 
     memoryBarText.innerHTML =
-      // 'MEMORY (GB)' + ' | ' + (heartBeat.memoryTotal / ONE_GB).toFixed(2) + ' TOT' + ' | ' + ((heartBeat.memoryTotal - heartBeat.memoryAvailable) / ONE_GB).toFixed(2) + ' USED' + ' (' + (100 * memoryUsed).toFixed(1) + ' %)' + ' | ' + (heartBeat.memoryAvailable / ONE_GB).toFixed(2) + ' AVAIL' + ' (' + (100 * memoryAvailable).toFixed(2) + ' %)';
       'HEAP (GB)' 
-        + ' | ' + (heartBeat.memoryUsage.rss / ONE_GB).toFixed(2) + ' TOT' 
-        + ' | ' + (heartBeat.memoryUsage.heapUsed / ONE_GB).toFixed(2) + ' USED' + ' (' + (100 * memoryUsed).toFixed(1) + ' %)' 
-        + ' | ' + ((heartBeat.memoryUsage.rss - heartBeat.memoryUsage.heapUsed) / ONE_GB).toFixed(2) + ' AVAIL' + ' (' + (100 * memoryAvailable).toFixed(2) + ' %)';
+        + ' | ' + (heartBeat.memory.memoryUsage.rss / ONE_GB).toFixed(2) + ' TOT' 
+        + ' | ' + (heartBeat.memory.memoryUsage.heapUsed / ONE_GB).toFixed(2) + ' USED' + ' (' + (100 * memoryUsed).toFixed(1) + ' %)' 
+        + ' | ' + ((heartBeat.memory.memoryUsage.rss - heartBeat.memory.memoryUsage.heapUsed) / ONE_GB).toFixed(2) + ' AVAIL' + ' (' + (100 * memoryAvailable).toFixed(2) + ' %)';
   }
-
-  // memoryUsed = (heartBeat.memoryTotal - heartBeat.memoryAvailable) / heartBeat.memoryTotal;
-  // memoryAvailable = (heartBeat.memoryUsage.heapTotal - heartBeat.memoryUsage.heapUsed) / heartBeat.memoryUsage.heapTotal;
 
   if (memoryBar) { memoryBar.animate(memoryUsed); }
 
@@ -1750,169 +1619,117 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
   }
 
 
+  // SESSION CACHE ==========================
 
-  // bhtRequestsBar.animate(heartBeat.bhtRequests / heartBeat.bhtRequestLimit);
+  sessionCacheKeysMax = Math.max(sessionCacheKeysMax, heartBeat.caches.sessionCache.keys);
 
-  // if (100 * heartBeat.bhtRequests / heartBeat.bhtRequestLimit >= ALERT_LIMIT_PERCENT) {
-  //   bhtRequestsBar.path.setAttribute('stroke', endColor);
-  // } else if (100 * heartBeat.bhtRequests / heartBeat.bhtRequestLimit >= WARN_LIMIT_PERCENT) {
-  //   bhtRequestsBar.path.setAttribute('stroke', midColor);
-  // } else {
-  //   bhtRequestsBar.path.setAttribute('stroke', startColor);
-  // }
+  var sessionCacheKeysRatio = heartBeat.caches.sessionCache.keys / sessionCacheKeysMax;
 
-  // bhtRequestsBarText.innerHTML =
-  //   'BHT REQS' + ' | USED: ' + heartBeat.bhtRequests + ' (' + (heartBeat.bhtRequests / heartBeat.bhtRequestLimit * 100).toFixed(0) + ' %)' + ' | REMAIN: ' + (heartBeat.bhtRequestLimit - heartBeat.bhtRequests) + ' (' + ((heartBeat.bhtRequestLimit - heartBeat.bhtRequests) / heartBeat.bhtRequestLimit * 100).toFixed(0) + ' %)';
+  sessionCacheBar.animate(sessionCacheKeysRatio);
 
-
-  // mwRequestsBar.animate(heartBeat.mwRequests / heartBeat.mwRequestLimit);
-
-  // if (100 * heartBeat.mwRequests / heartBeat.mwRequestLimit >= ALERT_LIMIT_PERCENT) {
-  //   mwRequestsBar.path.setAttribute('stroke', endColor);
-  // } else if (100 * heartBeat.mwRequests / heartBeat.mwRequestLimit >= WARN_LIMIT_PERCENT) {
-  //   mwRequestsBar.path.setAttribute('stroke', midColor);
-  // } else {
-  //   mwRequestsBar.path.setAttribute('stroke', startColor);
-  // }
-
-  // mwRequestsBarText.innerHTML =
-  //   'MW REQS' + ' | USED: ' + heartBeat.mwRequests + ' (' + (heartBeat.mwRequests / heartBeat.mwRequestLimit * 100).toFixed(0) + ' %)' + ' | REMAIN: ' + (heartBeat.mwRequestLimit - heartBeat.mwRequests) + ' (' + ((heartBeat.mwRequestLimit - heartBeat.mwRequests) / heartBeat.mwRequestLimit * 100).toFixed(0) + ' %)';
-
-
-  // TEST VIEWERS ==========================
-  testViewersBar.animate(heartBeat.numberTestViewers / heartBeat.numberTestViewersMax);
-
-  if (100 * heartBeat.numberTestViewers / heartBeat.numberTestViewersMax >= ALERT_LIMIT_PERCENT) {
-    testViewersBar.path.setAttribute('stroke', endColor);
-  } else if (100 * heartBeat.numberTestViewers / heartBeat.numberTestViewersMax >= WARN_LIMIT_PERCENT) {
-    testViewersBar.path.setAttribute('stroke', midColor);
+  if (100 * sessionCacheKeysRatio >= ALERT_LIMIT_PERCENT) {
+    sessionCacheBar.path.setAttribute('stroke', endColor);
+  } else if (100 * sessionCacheKeysRatio >= WARN_LIMIT_PERCENT) {
+    sessionCacheBar.path.setAttribute('stroke', midColor);
   } else {
-    testViewersBar.path.setAttribute('stroke', startColor);
+    sessionCacheBar.path.setAttribute('stroke', startColor);
   }
 
-  testViewersBarText.innerHTML = (heartBeat.numberTestViewers) + ' TEST VIEWERS | ' + (heartBeat.numberTestViewersMax) + ' MAX | ' + moment(heartBeat.numberTestViewersMaxTime).format(defaultDateTimeFormat);
+  sessionCacheBarText.innerHTML = (heartBeat.caches.sessionCache.keys) + ' SESSIONS | ' 
+  + sessionCacheKeysMax + ' MAX | ' 
+  + moment(sessionCacheKeysMaxTime).format(defaultDateTimeFormat);
 
 
   // VIEWERS ==========================
-  viewersTotalBar.animate(heartBeat.numberViewersTotal / heartBeat.numberViewersTotalMax);
 
-  if (100 * heartBeat.numberViewersTotal / heartBeat.numberViewersTotalMax >= ALERT_LIMIT_PERCENT) {
-    viewersTotalBar.path.setAttribute('stroke', endColor);
-  } else if (100 * heartBeat.numberViewersTotal / heartBeat.numberViewersTotalMax >= WARN_LIMIT_PERCENT) {
-    viewersTotalBar.path.setAttribute('stroke', midColor);
-  } else {
-    viewersTotalBar.path.setAttribute('stroke', startColor);
-  }
+  var viewerRatio = heartBeat.entity.viewer.connected / heartBeat.entity.viewer.connectedMax;
 
-  viewersTotalBarText.innerHTML = (heartBeat.numberViewersTotal) + ' TOTAL VIEWERS | ' + (heartBeat.numberViewersTotalMax) + ' MAX | ' + moment(heartBeat.numberViewersTotalMaxTime).format(defaultDateTimeFormat);
+  viewersBar.animate(viewerRatio);
 
-
-  viewersBar.animate(heartBeat.numberViewers / heartBeat.numberViewersMax);
-
-  if (100 * heartBeat.numberViewers / heartBeat.numberViewersMax >= ALERT_LIMIT_PERCENT) {
+  if (100 * viewerRatio >= ALERT_LIMIT_PERCENT) {
     viewersBar.path.setAttribute('stroke', endColor);
-  } else if (100 * heartBeat.numberViewers / heartBeat.numberViewersMax >= WARN_LIMIT_PERCENT) {
+  } else if (100 * viewerRatio >= WARN_LIMIT_PERCENT) {
     viewersBar.path.setAttribute('stroke', midColor);
   } else {
     viewersBar.path.setAttribute('stroke', startColor);
   }
 
-  viewersBarText.innerHTML = (heartBeat.numberViewers) + ' VIEWERS | ' + (heartBeat.numberViewersMax) + ' MAX | ' + moment(heartBeat.numberViewersMaxTime).format(defaultDateTimeFormat);
-
-
-  // TEST USERS ==========================
-  testUsersBar.animate(heartBeat.numberTestUsers / heartBeat.numberTestUsersMax);
-
-  if (100 * heartBeat.numberTestUsers / heartBeat.numberTestUsersMax >= ALERT_LIMIT_PERCENT) {
-    testUsersBar.path.setAttribute('stroke', endColor);
-  } else if (100 * heartBeat.numberTestUsers / heartBeat.numberTestUsersMax >= WARN_LIMIT_PERCENT) {
-    testUsersBar.path.setAttribute('stroke', midColor);
-  } else {
-    testUsersBar.path.setAttribute('stroke', startColor);
-  }
-
-  testUsersBarText.innerHTML = (heartBeat.numberTestUsers) + ' TEST USERS | ' + (heartBeat.numberTestUsersMax) + ' MAX | ' + moment(heartBeat.numberTestUsersMaxTime).format(defaultDateTimeFormat);
+  viewersBarText.innerHTML = (heartBeat.entity.viewer.connected) + ' VIEWERS | ' 
+  + (heartBeat.entity.viewer.connectedMax) + ' MAX | ' 
+  + moment(heartBeat.entity.viewer.connectedMaxTime).format(defaultDateTimeFormat);
 
 
   // USERS ==========================
-  usersTotalBar.animate(heartBeat.numberUsersTotal / heartBeat.numberUsersTotalMax);
 
-  if (100 * heartBeat.numberUsersTotal / heartBeat.numberUsersTotalMax >= ALERT_LIMIT_PERCENT) {
-    usersTotalBar.path.setAttribute('stroke', endColor);
-  } else if (100 * heartBeat.numberUsersTotal / heartBeat.numberUsersTotalMax >= WARN_LIMIT_PERCENT) {
-    usersTotalBar.path.setAttribute('stroke', midColor);
-  } else {
-    usersTotalBar.path.setAttribute('stroke', startColor);
-  }
+  var userRatio = heartBeat.entity.user.connected / heartBeat.entity.user.connectedMax;
 
-  usersTotalBarText.innerHTML = (heartBeat.numberUsersTotal) + ' TOTAL USERS | ' + (heartBeat.numberUsersTotalMax) + ' MAX | ' + moment(heartBeat.numberUsersTotalMaxTime).format(defaultDateTimeFormat);
+  usersBar.animate(userRatio);
 
-
-  usersBar.animate(heartBeat.numberUsers / heartBeat.numberUsersMax);
-
-  if (100 * heartBeat.numberUsers / heartBeat.numberUsersMax >= ALERT_LIMIT_PERCENT) {
+  if (100 * userRatio >= ALERT_LIMIT_PERCENT) {
     usersBar.path.setAttribute('stroke', endColor);
-  } else if (100 * heartBeat.numberUsers / heartBeat.numberUsersMax >= WARN_LIMIT_PERCENT) {
+  } else if (100 * userRatio >= WARN_LIMIT_PERCENT) {
     usersBar.path.setAttribute('stroke', midColor);
   } else {
     usersBar.path.setAttribute('stroke', startColor);
   }
 
-  usersBarText.innerHTML = (heartBeat.numberUsers) + ' USERS | ' + (heartBeat.numberUsersMax) + ' MAX | ' + moment(heartBeat.numberUsersMaxTime).format(defaultDateTimeFormat);
-
-
-  // TEST USERS ==========================
-  testUsersBar.animate(heartBeat.numberTestUsers / heartBeat.numberTestUsersMax);
-
-  if (100 * heartBeat.numberTestUsers / heartBeat.numberTestUsersMax >= ALERT_LIMIT_PERCENT) {
-    testUsersBar.path.setAttribute('stroke', endColor);
-  } else if (100 * heartBeat.numberTestUsers / heartBeat.numberTestUsersMax >= WARN_LIMIT_PERCENT) {
-    testUsersBar.path.setAttribute('stroke', midColor);
-  } else {
-    testUsersBar.path.setAttribute('stroke', startColor);
-  }
-
-  testUsersBarText.innerHTML = (heartBeat.numberTestUsers) + ' TEST USERS | ' + (heartBeat.numberTestUsersMax) + ' MAX | ' + moment(heartBeat.numberTestUsersMaxTime).format(defaultDateTimeFormat);
-
+  usersBarText.innerHTML = (heartBeat.entity.user.connected) + ' USERS | ' 
+  + (heartBeat.entity.user.connectedMax) + ' MAX | ' 
+  + moment(heartBeat.entity.user.connectedMaxTime).format(defaultDateTimeFormat);
 
   // UTILS=========================
-  utilsBar.animate(heartBeat.numberUtils / heartBeat.numberUtilsMax);
+  var utilRatio = heartBeat.entity.util.connected / heartBeat.entity.util.connectedMax;
 
-  if (100 * heartBeat.numberUtils / heartBeat.numberUtilsMax >= ALERT_LIMIT_PERCENT) {
+  utilsBar.animate(utilRatio);
+
+  if (100 * utilRatio >= ALERT_LIMIT_PERCENT) {
     utilsBar.path.setAttribute('stroke', endColor);
-  } else if (100 * heartBeat.numberUtils / heartBeat.numberUtilsMax >= WARN_LIMIT_PERCENT) {
+  } else if (100 * utilRatio >= WARN_LIMIT_PERCENT) {
     utilsBar.path.setAttribute('stroke', midColor);
   } else {
     utilsBar.path.setAttribute('stroke', startColor);
   }
 
-  utilsBarText.innerHTML = (heartBeat.numberUtils) + ' UTILS | ' + (heartBeat.numberUtilsMax) + ' MAX | ' + moment(heartBeat.numberUtilsMaxTime).format(defaultDateTimeFormat);
+  utilsBarText.innerHTML = (heartBeat.entity.util.connected) + ' UTILS | ' 
+  + (heartBeat.entity.util.connectedMax) + ' MAX | ' 
+  + moment(heartBeat.entity.util.connectedMaxTime).format(defaultDateTimeFormat);
 
 
+  // WORDS =========================
   wordsPerMinBar.animate(heartBeat.wordsPerMinute / heartBeat.maxWordsPerMin);
 
   if (heartBeat.wordsPerMinute >=  0.01*ALERT_LIMIT_PERCENT * heartBeat.maxWordsPerMin) {
     wordsPerMinBar.path.setAttribute('stroke', endColor);
-  } else if (heartBeat.wordsPerMinute >= 0.01*WARN_LIMIT_PERCENT * heartBeat.maxWordsPerMin) {
+  } 
+  else if (heartBeat.wordsPerMinute >= 0.01*WARN_LIMIT_PERCENT * heartBeat.maxWordsPerMin) {
     wordsPerMinBar.path.setAttribute('stroke', midColor);
-  } else {
+  } 
+  else {
     wordsPerMinBar.path.setAttribute('stroke', startColor);
   }
 
-  wordsPerMinBarText.innerHTML = parseInt(heartBeat.wordsPerMinute) + ' WPM | ' + parseInt(heartBeat.maxWordsPerMin) + ' MAX' + ' | ' + moment(heartBeat.maxWordsPerMinTime).format(defaultDateTimeFormat);
+  wordsPerMinBarText.innerHTML = parseInt(heartBeat.wordsPerMinute) + ' WPM | ' 
+  + parseInt(heartBeat.maxWordsPerMin) + ' MAX' 
+  + ' | ' + moment(heartBeat.maxWordsPerMinTime).format(defaultDateTimeFormat);
 
 
+
+  // WORDS =========================
   tweetsPerMinBar.animate(tweetsPerMin / tweetsPerMinMax);
 
   if (tweetsPerMin >= 0.01*ALERT_LIMIT_PERCENT * tweetsPerMinMax) {
     tweetsPerMinBar.path.setAttribute('stroke', endColor);
-  } else if (tweetsPerMin >= 0.01*WARN_LIMIT_PERCENT * tweetsPerMinMax) {
+  } 
+  else if (tweetsPerMin >= 0.01*WARN_LIMIT_PERCENT * tweetsPerMinMax) {
     tweetsPerMinBar.path.setAttribute('stroke', midColor);
-  } else {
+  } 
+  else {
     tweetsPerMinBar.path.setAttribute('stroke', startColor);
   }
 
-  tweetsPerMinBarText.innerHTML = parseInt(tweetsPerMin) + ' TPM | ' + parseInt(tweetsPerMinMax) + ' MAX' + ' | ' + moment(tweetsPerMinMaxTime).format(defaultDateTimeFormat);
+  tweetsPerMinBarText.innerHTML = parseInt(tweetsPerMin) + ' TPM | ' 
+  + parseInt(tweetsPerMinMax) + ' MAX' + ' | ' 
+  + moment(tweetsPerMinMaxTime).format(defaultDateTimeFormat);
 
 
   twitterLimitBar.animate(twitterLimit / twitterLimitMax);
@@ -1956,12 +1773,12 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
     x[2].style.backgroundColor = '#880000';
   }
 
-  tableCreateRow(heatbeatTable, false, ['SERVER TIME', getTimeStamp(heartBeat.timeStamp)]);
+  tableCreateRow(heatbeatTable, false, ['SERVER TIME', getTimeStamp(heartBeat.serverTime)]);
   tableCreateRow(heatbeatTable, false, ['SERVER UPTIME', msToTime(heartBeat.upTime)]);
   tableCreateRow(heatbeatTable, false, ['APP START TIME', getTimeStamp(heartBeat.startTime)]);
   tableCreateRow(heatbeatTable, false, ['APP RUNTIME', msToTime(heartBeat.runTime)]);
 
-  if (typeof heartBeat.wordCacheStats !== 'undefined') {
+  if (heartBeat.wordCacheStats !== undefined) {
 
     var hmr = (heartBeat.wordCacheStats.hits / (1 + heartBeat.wordCacheStats.misses));
 
@@ -1971,8 +1788,8 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
   }
 
-  tableCreateRow(heatbeatTable, false, ['TOTAL SESSIONS', heartBeat.totalSessions]);
-  tableCreateRow(heatbeatTable, false, ['TOTAL WORDS', heartBeat.totalWords]);
+  tableCreateRow(heatbeatTable, false, ['TOTAL SESSIONS', heartBeat.db.totalSessions]);
+  tableCreateRow(heatbeatTable, false, ['TOTAL WORDS', heartBeat.db.totalWords]);
   tableCreateRow(heatbeatTable, false, ['TOTAL WORD UPDATES', heartBeat.db.wordsUpdated]);
 
   tableCreateRow(heatbeatTable, false, ['QUEUES',
@@ -1983,8 +1800,10 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
     + ' | V: ' + heartBeat.queues.updateSessionViewQueue
   ]);
 
-  tableCreateRow(heatbeatTable, false, ['ADMINS', heartBeat.numberAdmins]);
-  tableCreateRow(heatbeatTable, false, ['UTILS', heartBeat.numberUtils]);
+  tableCreateRow(heatbeatTable, false, ['TOTAL ADMINS', heartBeat.db.totalAdmins]);
+  tableCreateRow(heatbeatTable, false, ['TOTAL USERS', heartBeat.db.totalUsers]);
+  tableCreateRow(heatbeatTable, false, ['TOTAL ENTITIES', heartBeat.db.totalEntities]);
+  tableCreateRow(heatbeatTable, false, ['TOTAL VIEWERS', heartBeat.db.totalViewers]);
 
   serverHeartbeatElement = document.getElementById("server_admins");
 
@@ -2003,7 +1822,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
     serverHeartbeatElement.removeChild(serverHeartbeatElement.firstChild);
   }
   serverHeartbeatElement.appendChild(serverHeartbeatElement.ownerDocument
-    .createTextNode(numberUserIpAddresses + " USER UNIQUE IP " + " | " + heartBeat.numberUsers + " USERS" + " | " + heartBeat.numberTestUsers + " TEST USERS")
+    .createTextNode(numberUserIpAddresses + " USER UNIQUE IP " + " | " + heartBeat.entity.user.connected + " USERS")
   );
 
 
@@ -2013,25 +1832,9 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
     serverHeartbeatElement.removeChild(serverHeartbeatElement.firstChild);
   }
   serverHeartbeatElement.appendChild(serverHeartbeatElement.ownerDocument
-    .createTextNode(numberViewerIpAddresses + " VIEWER UNIQUE IP " + " | " + heartBeat.numberViewers + " VIEWERS" + " | " + heartBeat.numberTestViewers + " TEST VIEWERS")
+    .createTextNode(numberViewerIpAddresses + " VIEWER UNIQUE IP " + " | " + heartBeat.numberViewers + " VIEWERS")
   );
 }
-
-// function initTimelineData(numDataPoints, callback){
-
-//   var ts;
-
-//   var currentMillis = moment().valueOf();
-
-//   for (var i=0; i<numDataPoints; i++){
-//     tpmData.unshift({date: new Date(parseInt(currentMillis-(1000*i))), value: 0});
-//     wpmData.unshift({date: new Date(parseInt(currentMillis-(1000*i))), value: 0});
-//     tLimitData.unshift({date: new Date(parseInt(currentMillis-(1000*i))), value: 0});
-//     trpmData.unshift({date: new Date(parseInt(currentMillis-(1000*i))), value: 0});
-//   }
-
-//   callback();
-// }
 
 function initialize(callback){
 

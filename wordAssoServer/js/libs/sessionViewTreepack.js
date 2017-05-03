@@ -81,9 +81,11 @@ function ViewTreepack() {
   var currentMax = {};
 
   currentMax.rate = {};
+  currentMax.rate.nodeId = "what";
   currentMax.rate.value = 2;
 
   currentMax.mentions = {};
+  currentMax.rate.nodeId = "what";
   currentMax.mentions.value = 2;
 
   var deadNodesHash = {};

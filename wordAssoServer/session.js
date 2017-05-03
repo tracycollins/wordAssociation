@@ -2258,12 +2258,12 @@ var processSessionQueues = function(callback) {
 
       if (!groupHashMap.has(session.tags.group.entityId)) {
         session.tags.group.groupId = session.tags.group.entityId;
-        console.warn("+ G FROM ENT ID"
-          + " | N: " + session.nodeId
-          // + " | " + session.tags.group.url
-          + " | E: " + session.tags.group.entityId
-          // + "\nTAGS\n" + jsonPrint(session.tags)
-        );
+        // console.warn("+ G FROM ENT ID"
+        //   + " | N: " + session.nodeId
+        //   // + " | " + session.tags.group.url
+        //   + " | E: " + session.tags.group.entityId
+        //   // + "\nTAGS\n" + jsonPrint(session.tags)
+        // );
         groupCreateQueue.push(session);
       }
       else {
@@ -2508,18 +2508,18 @@ var createGroup = function(callback) {
 
       addToHashMap(nodeHashMap, currentGroup.node.nodeId, currentGroup.node, function(grpNode) {
 
-        console.info("+ G" 
-          + " | " + grpNode.nodeId
-          + " | " + grpNode.groupId
-          // + " | " + grpNode.url
-          + " | isGroupNode: " + grpNode.isGroupNode
-          + " | isSessionNode: " + grpNode.isSessionNode
-        );
+        // console.info("+ G" 
+        //   + " | " + grpNode.nodeId
+        //   + " | " + grpNode.groupId
+        //   // + " | " + grpNode.url
+        //   + " | isGroupNode: " + grpNode.isGroupNode
+        //   + " | isSessionNode: " + grpNode.isSessionNode
+        // );
 
         addToHashMap(groupHashMap, currentGroup.groupId, currentGroup, function(cGroup) {
-          console.log("+ G " + cGroup.groupId 
-            + " | GNID: " + cGroup.node.nodeId
-          );
+          // console.log("+ G " + cGroup.groupId 
+          //   + " | GNID: " + cGroup.node.nodeId
+          // );
           sessionCreateQueue.push(sessUpdate);
           currentSessionView.addGroup(cGroup);
           return (callback(null, cGroup.groupId));

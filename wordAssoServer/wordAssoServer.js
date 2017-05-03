@@ -462,6 +462,46 @@ statsObj.maxWordsPerMin = 0;
 statsObj.maxWordsPerMinTime = moment().valueOf();
 
 statsObj.caches = {};
+statsObj.caches.adminCache = {};
+statsObj.caches.adminCache.stats = {};
+statsObj.caches.adminCache.stats.keys = 0;
+statsObj.caches.adminCache.stats.keysMax = 0;
+statsObj.caches.entityCache = {};
+statsObj.caches.entityCache.stats = {};
+statsObj.caches.entityCache.stats.keys = 0;
+statsObj.caches.entityCache.stats.keysMax = 0;
+statsObj.caches.groupCache = {};
+statsObj.caches.groupCache.stats = {};
+statsObj.caches.groupCache.stats.keys = 0;
+statsObj.caches.groupCache.stats.keysMax = 0;
+statsObj.caches.ipAddressCache = {};
+statsObj.caches.ipAddressCache.stats = {};
+statsObj.caches.ipAddressCache.stats.keys = 0;
+statsObj.caches.ipAddressCache.stats.keysMax = 0;
+statsObj.caches.sessionCache = {};
+statsObj.caches.sessionCache.stats = {};
+statsObj.caches.sessionCache.stats.keys = 0;
+statsObj.caches.sessionCache.stats.keysMax = 0;
+statsObj.caches.userCache = {};
+statsObj.caches.userCache.stats = {};
+statsObj.caches.userCache.stats.keys = 0;
+statsObj.caches.userCache.stats.keysMax = 0;
+statsObj.caches.utilCache = {};
+statsObj.caches.utilCache.stats = {};
+statsObj.caches.utilCache.stats.keys = 0;
+statsObj.caches.utilCache.stats.keysMax = 0;
+statsObj.caches.viewerCache = {};
+statsObj.caches.viewerCache.stats = {};
+statsObj.caches.viewerCache.stats.keys = 0;
+statsObj.caches.viewerCache.stats.keysMax = 0;
+statsObj.caches.wordCache = {};
+statsObj.caches.wordCache.stats = {};
+statsObj.caches.wordCache.stats.keys = 0;
+statsObj.caches.wordCache.stats.keysMax = 0;
+statsObj.caches.wordsPerMinuteTopTermCache = {};
+statsObj.caches.wordsPerMinuteTopTermCache.stats = {};
+statsObj.caches.wordsPerMinuteTopTermCache.stats.keys = 0;
+statsObj.caches.wordsPerMinuteTopTermCache.stats.keysMax = 0;
 
 statsObj.db = {};
 statsObj.db.errors = 0;
@@ -4000,9 +4040,9 @@ function handleSessionEvent(sesObj, callback) {
       debug(chalkSession("SESSION\n" + jsonPrint(sesObj)));
 
       sesObj.sessionEvent = "SESSION_DELETE";
-      viewNameSpace.emit("SESSION_DELETE", sesObj);
-      adminNameSpace.emit("SESSION_DELETE", sesObj);
-      testViewersNameSpace.emit("SESSION_DELETE", sesObj);
+      viewNameSpace.emit("SESSION_DELETE", sesObj.session.sessionId);
+      adminNameSpace.emit("SESSION_DELETE", sesObj.session.sessionId);
+      testViewersNameSpace.emit("SESSION_DELETE", sesObj.session.sessionId);
 
       if (sesObj.session) {
 
@@ -4015,11 +4055,9 @@ function handleSessionEvent(sesObj, callback) {
 
         sessKeys.forEach(function(sId){
           if (sId.indexOf(sesObj.session.sessionId) > -1) {
-            sessionCache.get(sId, function(sObj){
-              adminNameSpace.emit("SESSION_DELETE", sObj);
-              sessionCache.del(sId);
-              console.log(chalkRed("XXX SESS " + sId));
-            });
+            adminNameSpace.emit("SESSION_DELETE", sId);
+            sessionCache.del(sId);
+            console.log(chalkRed("XXX SESS " + sId));
           }
         });
 
@@ -6730,19 +6768,47 @@ configEvents.on("INIT_DATABASE_COMPLETE", function() {
 //  METRICS INTERVAL
 //=================================
 
+var cacheObj = {
+  "adminCache": adminCache,
+  "entityCache": entityCache,
+  "groupCache": groupCache,
+  "ipAddressCache": ipAddressCache,
+  "sessionCache": sessionCache,
+  "userCache": userCache,
+  "utilCache": utilCache,
+  "wordCache": wordCache,
+  "viewerCache": viewerCache,
+  "trendingCache": trendingCache,
+  "wordsPerMinuteTopTermCache": wordsPerMinuteTopTermCache
+};
+
+var cacheObjKeys = Object.keys(statsObj.caches);
+
 setInterval(function() {
 
-  statsObj.caches.adminCache = adminCache.getStats();
-  statsObj.caches.entityCache = entityCache.getStats();
-  statsObj.caches.groupCache = groupCache.getStats();
-  statsObj.caches.ipAddressCache = ipAddressCache.getStats();
-  statsObj.caches.sessionCache = sessionCache.getStats();
-  statsObj.caches.trendingCache = trendingCache.getStats();
-  statsObj.caches.userCache = userCache.getStats();
-  statsObj.caches.utilCache = utilCache.getStats();
-  statsObj.caches.viewerCache = viewerCache.getStats();
-  statsObj.caches.wordCache = wordCache.getStats();
-  statsObj.caches.wordsPerMinuteTopTermCache = wordsPerMinuteTopTermCache.getStats();
+  cacheObjKeys.forEach(function(cacheName){
+    statsObj.caches[cacheName].stats.keys = cacheObj[cacheName].getStats().keys;
+    if (statsObj.caches[cacheName].stats.keys > statsObj.caches[cacheName].stats.keysMax) {
+      statsObj.caches[cacheName].stats.keysMax = statsObj.caches[cacheName].stats.keys;
+      statsObj.caches[cacheName].stats.keysMaxTime = moment().valueOf();
+      console.log(chalkRed("MAX CACHE KEYS"
+        + " | " + cacheName
+        + " | KEYS: " + statsObj.caches[cacheName].stats.keys
+      ));
+    }
+  });
+
+  // statsObj.caches.adminCache.stats = adminCache.getStats();
+  // statsObj.caches.entityCache.stats = entityCache.getStats();
+  // statsObj.caches.groupCache.stats = groupCache.getStats();
+  // statsObj.caches.ipAddressCache.stats = ipAddressCache.getStats();
+  // statsObj.caches.sessionCache.stats = sessionCache.getStats();
+  // statsObj.caches.trendingCache.stats = trendingCache.getStats();
+  // statsObj.caches.userCache.stats = userCache.getStats();
+  // statsObj.caches.utilCache.stats = utilCache.getStats();
+  // statsObj.caches.viewerCache.stats = viewerCache.getStats();
+  // statsObj.caches.wordCache.stats = wordCache.getStats();
+  // statsObj.caches.wordsPerMinuteTopTermCache.stats = wordsPerMinuteTopTermCache.getStats();
 
   statsObj.queues.rxWordQueue = rxWordQueue.size();
   statsObj.queues.sessionQueue = sessionQueue.size();
@@ -7080,7 +7146,7 @@ function initRateQinterval(interval){
       if (enableGoogleMetrics) {
         var dataPointViewers = {};
         dataPointViewers.metricType = "user/global/number_of_viewers";
-        dataPointViewers.value = statsObj.caches.viewerCache.keys;
+        dataPointViewers.value = statsObj.caches.viewerCache.stats.keys;
         dataPointViewers.metricLabels = {server_id: "USER"};
         addMetricDataPoint(dataPointViewers);
       }
@@ -7088,7 +7154,7 @@ function initRateQinterval(interval){
       if (enableGoogleMetrics) {
         var dataPointUsers = {};
         dataPointUsers.metricType = "user/global/number_of_users";
-        dataPointUsers.value = statsObj.caches.userCache.keys;
+        dataPointUsers.value = statsObj.caches.userCache.stats.keys;
         dataPointUsers.metricLabels = {server_id: "USER"};
         addMetricDataPoint(dataPointUsers);
       }
@@ -7096,7 +7162,7 @@ function initRateQinterval(interval){
       if (enableGoogleMetrics) {
         var dataPointGroups = {};
         dataPointGroups.metricType = "util/global/number_of_groups";
-        dataPointGroups.value = statsObj.caches.groupCache.keys;
+        dataPointGroups.value = statsObj.caches.groupCache.stats.keys;
         dataPointGroups.metricLabels = {server_id: "UTIL"};
         addMetricDataPoint(dataPointGroups);
       }
@@ -7104,7 +7170,7 @@ function initRateQinterval(interval){
       if (enableGoogleMetrics) {
         var dataPointEntities = {};
         dataPointEntities.metricType = "util/global/number_of_entities";
-        dataPointEntities.value = statsObj.caches.entityCache.keys;
+        dataPointEntities.value = statsObj.caches.entityCache.stats.keys;
         dataPointEntities.metricLabels = {server_id: "UTIL"};
         addMetricDataPoint(dataPointEntities);
       }
@@ -7112,7 +7178,7 @@ function initRateQinterval(interval){
       if (enableGoogleMetrics) {
         var dataPointSessions = {};
         dataPointSessions.metricType = "util/global/number_of_sessions";
-        dataPointSessions.value = statsObj.caches.sessionCache.keys;
+        dataPointSessions.value = statsObj.caches.sessionCache.stats.keys;
         dataPointSessions.metricLabels = {server_id: "UTIL"};
         addMetricDataPoint(dataPointSessions);
       }

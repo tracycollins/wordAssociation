@@ -823,14 +823,14 @@ setInterval(function(){
 }, 100);
 
 
-socket.on("SESSION_DELETE", function(sessionObject) {
-  console.log("sessionObject\n" + jsonPrint(sessionObject));
-  console.debug("> RX DEL SESS | " + sessionObject.sessionId);
-  if (utilSessionHashMap.has(sessionObject.sessionId)){
-    console.info("* UTIL HM HIT " + sessionObject.sessionId);
+socket.on("SESSION_DELETE", function(sessionId) {
+  // console.log("sessionObject\" + jsonPrint(sessionObject));
+  console.debug("> RX DEL SESS | " + sessionId);
+  if (utilSessionHashMap.has(sessionId)){
+    console.info("* UTIL HM HIT " + sessionId);
   } 
-  if (userSessionHashMap.has(sessionObject.sessionId)){
-    console.info("* USER HM HIT " + sessionObject.sessionId);
+  if (userSessionHashMap.has(sessionId)){
+    console.info("* USER HM HIT " + sessionId);
   } 
 });
 
@@ -1590,9 +1590,6 @@ function updateUtilConnect(req, callback) {
   if (callback) { callback(); }
 }
 
-var sessionCacheKeysMax = 1;
-var sessionCacheKeysMaxTime = moment().valueOf();
-
 function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
   if (!initializeComplete) return;
@@ -1621,9 +1618,7 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
   // SESSION CACHE ==========================
 
-  sessionCacheKeysMax = Math.max(sessionCacheKeysMax, heartBeat.caches.sessionCache.keys);
-
-  var sessionCacheKeysRatio = heartBeat.caches.sessionCache.keys / sessionCacheKeysMax;
+  var sessionCacheKeysRatio = heartBeat.caches.sessionCache.stats.keys / heartBeat.caches.sessionCache.stats.keysMax;
 
   sessionCacheBar.animate(sessionCacheKeysRatio);
 
@@ -1635,9 +1630,9 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
     sessionCacheBar.path.setAttribute('stroke', startColor);
   }
 
-  sessionCacheBarText.innerHTML = (heartBeat.caches.sessionCache.keys) + ' SESSIONS | ' 
-  + sessionCacheKeysMax + ' MAX | ' 
-  + moment(sessionCacheKeysMaxTime).format(defaultDateTimeFormat);
+  sessionCacheBarText.innerHTML = (heartBeat.caches.sessionCache.stats.keys) + ' SESSIONS | ' 
+  + heartBeat.caches.sessionCache.stats.keysMax + ' MAX | ' 
+  + moment(heartBeat.caches.sessionCache.stats.keysMaxTime).format(defaultDateTimeFormat);
 
 
   // VIEWERS ==========================

@@ -70,6 +70,10 @@ var dbUpdateEntityQueueInterval;
 var dbUpdateGroupQueueInterval;
 var dbUpdateWordQueueInterval;
 
+var entityStats = Measured.createCollection();
+var entityStats = new Measured.Gauge(function() {
+  return process.memoryUsage().rss;
+});
 var wordMeter = {};
 
 var wordStats = Measured.createCollection();
@@ -180,6 +184,7 @@ var updateSessionViewQueue = [];
 
 var hostname = os.hostname();
 hostname = hostname.replace(/.local/g, "");
+hostname = hostname.replace(/.at.net/g, "");
 hostname = hostname.replace(/.fios-router.home/g, "");
 hostname = hostname.replace(/word0-instance-1/g, "google");
 
@@ -198,7 +203,7 @@ var UTIL_CACHE_DEFAULT_TTL = 300; // seconds
 var USER_CACHE_DEFAULT_TTL = 300; // seconds
 var GROUP_CACHE_DEFAULT_TTL = 300; // seconds
 var ENTITY_CACHE_DEFAULT_TTL = 300; // seconds
-var SESSION_CACHE_DEFAULT_TTL = 0; // seconds
+var SESSION_CACHE_DEFAULT_TTL = 3600; // seconds
 var WORD_CACHE_TTL = 300; // seconds
 var IP_ADDRESS_CACHE_DEFAULT_TTL = 300;
 
@@ -443,54 +448,98 @@ function randomInt(low, high) {
   return Math.floor(Math.random() * (high - low) + low);
 }
 
-var statsObj = {
-  "name": "Word Association Server Status",
-  "host": hostname,
-  "timeStamp": moment().format(compactDateTimeFormat),
-  "runTimeArgs": process.argv,
-  "startTime": moment().valueOf(),
-  "runTime": 0,
-  "totalClients": 0,
-  "totalUsers": 0,
-  "totalSessions": 0,
-  "totalWords": 0,
-  "socket": {},
-  "promptsSent": 0,
-  "wordsReceived": 0,
-  "sessionUpdatesSent": 0,
-  // "mwRequests": 0,
-  // "mwDictWordsMiss": {},
-  // "mwDictWordsNotFound": {},
-  // "mwThesWordsMiss": {},
-  // "mwThesWordsNotFound": {},
-  "session": {},
-  "chainFreezes": 0,
-  "memoryUsage": {},
-  "heap": 0,
-  "maxHeap": 0,
-  "heartbeat": txHeartbeat
-};
+var statsObj = {};
+
+statsObj.hostname = hostname;
+statsObj.name = "Word Association Server Status";
+statsObj.startTime = moment().valueOf();
+statsObj.timeStamp = moment().format(compactDateTimeFormat);
+statsObj.upTime = os.uptime() * 1000;
+statsObj.runTime = 0;
+statsObj.runTimeArgs = process.argv;
+
+statsObj.maxWordsPerMin = 0;
+statsObj.maxWordsPerMinTime = moment().valueOf();
+
+statsObj.caches = {};
 
 statsObj.db = {};
-statsObj.db.wordsUpdated = 0;
 statsObj.db.errors = 0;
+statsObj.db.totalAdmins = 0;
+statsObj.db.totalUsers = 0;
+statsObj.db.totalViewers = 0;
+statsObj.db.totalGroups = 0;
+statsObj.db.totalSessions = 0;
+statsObj.db.totalWords = 0;
+statsObj.db.wordsUpdated = 0;
+
+statsObj.entity = {};
+
+statsObj.entity.admin = {};
+statsObj.entity.admin.connected = 0;
+statsObj.entity.admin.connectedMax = 0.1;
+statsObj.entity.admin.connectedMaxTime = moment().valueOf();
+
+statsObj.entity.user = {};
+statsObj.entity.user.connected = 0;
+statsObj.entity.user.connectedMax = 0.1;
+statsObj.entity.user.connectedMaxTime = moment().valueOf();
+
+statsObj.entity.util = {};
+statsObj.entity.util.connected = 0;
+statsObj.entity.util.connectedMax = 0.1;
+statsObj.entity.util.connectedMaxTime = moment().valueOf();
+
+statsObj.entity.viewer = {};
+statsObj.entity.viewer.connected = 0;
+statsObj.entity.viewer.connectedMax = 0.1;
+statsObj.entity.viewer.connectedMaxTime = moment().valueOf();
+
+statsObj.group = {};
+statsObj.group.errors = 0;
+
+statsObj.memory = {};
+statsObj.memory.heap = process.memoryUsage().heapUsed/(1024*1024);
+statsObj.memory.maxHeap = process.memoryUsage().heapUsed/(1024*1024);
+statsObj.memory.memoryAvailable = os.freemem();
+statsObj.memory.memoryTotal = os.totalmem();
+statsObj.memory.memoryUsage = process.memoryUsage();
 
 statsObj.queues = {};
+statsObj.queues.dbUpdateEntityQueue = 0;
+statsObj.queues.dbUpdaterMessageRxQueue = 0;
+statsObj.queues.dbUpdateWordQueue = 0;
 statsObj.queues.rxWordQueue = 0;
 statsObj.queues.sessionQueue = 0;
-statsObj.queues.dbUpdateWordQueue = 0;
-statsObj.queues.dbUpdaterMessageRxQueue = 0;
 statsObj.queues.updaterMessageQueue = 0;
-statsObj.queues.dbUpdateEntityQueue = 0;
 statsObj.queues.updateSessionViewQueue = 0;
+
+statsObj.session = {};
+statsObj.session.errors = 0;
+statsObj.session.numberSessions = 0;
+statsObj.session.previousPromptNotFound = 0;
+statsObj.session.totalCreated = 0;
+statsObj.session.wordError = 0;
+statsObj.session.wordErrorType = {};
+
+statsObj.socket = {};
+statsObj.socket.connects = 0;
+statsObj.socket.disconnects = 0;
+statsObj.socket.errors = 0;
+statsObj.socket.reconnects = 0;
+statsObj.socket.wordsReceived = 0;
+
+statsObj.utilities = {};
 
 function showStats(options){
 
   statsObj.elapsed = msToTime(moment().valueOf() - statsObj.startTime);
   statsObj.timeStamp = moment().format(compactDateTimeFormat);
 
-  statsObj.heap = process.memoryUsage().heapUsed/(1024*1024);
-  statsObj.maxHeap = Math.max(statsObj.maxHeap, statsObj.heap);
+
+  statsObj.memory.heap = process.memoryUsage().heapUsed/(1024*1024);
+  statsObj.memory.maxHeap = Math.max(statsObj.memory.maxHeap, statsObj.memory.heap);
+  statsObj.memory.memoryUsage = process.memoryUsage();
 
   statsObj.queues.rxWordQueue = rxWordQueue.size();
   statsObj.queues.sessionQueue = sessionQueue.size();
@@ -508,8 +557,8 @@ function showStats(options){
       // + " | " + statsObj.socketId
       + " | ELAPSED: " + statsObj.elapsed
       + " | START: " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat)
-      + " | HEAP: " + statsObj.heap.toFixed(0) + " MB"
-      + " | MAX HEAP: " + statsObj.maxHeap.toFixed(0)
+      + " | HEAP: " + statsObj.memory.heap.toFixed(0) + " MB"
+      + " | MAX HEAP: " + statsObj.memory.maxHeap.toFixed(0)
     ));
   }
 }
@@ -548,12 +597,6 @@ var serverKeywordsJsonObj = {};
 // ==================================================================
 
 var tempDateTime = moment();
-
-var txHeartbeat = {};
-
-txHeartbeat.wordStats = {};
-txHeartbeat.memoryUsage = {};
-txHeartbeat.queues = {};
 
 var heartbeatsSent = 0;
 
@@ -595,48 +638,6 @@ console.log(
 console.log("OFFLINE_MODE: " + OFFLINE_MODE);
 
 
-// ==================================================================
-// WORD ASSO STATUS
-// ==================================================================
-var totalSessions = 0;
-var totalUsers = 0;
-// var totalClients = 0;
-var totalWords = 0;
-var totalEntities = 0;
-var totalGroups = 0;
-
-var promptsSent = 0;
-var wordsReceived = 0;
-var sessionUpdatesSent = 0;
-
-statsObj.upTime = os.uptime() * 1000;
-statsObj.memoryTotal = os.totalmem();
-statsObj.memoryAvailable = os.freemem();
-statsObj.memoryUsage = process.memoryUsage();
-
-statsObj.caches = {};
-statsObj.utilities = {};
-
-statsObj.wapi = {};
-statsObj.wapi.totalRequests = 0;
-statsObj.wapi.requestLimit = 25000;
-statsObj.wapi.requestsRemaining = 25000;
-
-statsObj.group = {};
-statsObj.group.errors = 0;
-
-statsObj.session.errors = 0;
-statsObj.session.previousPromptNotFound = 0;
-statsObj.session.wordError = 0;
-statsObj.session.wordErrorType = {};
-
-statsObj.socket.connects = 0;
-statsObj.socket.reconnects = 0;
-statsObj.socket.disconnects = 0;
-statsObj.socket.errors = 0;
-
-
-statsObj.entityChannelGroup = {};
 
 var serverSessionConfig = {};
 
@@ -823,7 +824,7 @@ var wordCache = new NodeCache({
 
 var sessionCache = new NodeCache({
   useClones: false,
-  // stdTTL: sessionCacheTtl,
+  stdTTL: sessionCacheTtl,
   checkperiod: 10
 });
 
@@ -1181,43 +1182,13 @@ function saveFile (path, file, jsonObj, callback){
         + " | PATH: " + path 
         + " | FILE: " + file 
         + " | FULL PATH: " + fullPath 
+        + " | ERROR: " + error 
         + "\nERROR\n" + jsonPrint(error)
         + "\njsonObj\n" + jsonPrint(jsonObj) 
       ));
       callback(error, null);
     });
 }
-
-// function dropboxWriteArrayToFile(filePath, dataArray, callback) {
-
-//   if (filePath === undefined) {
-//     console.log(chalkError(moment().format(compactDateTimeFormat) 
-//       + " | !!! DROPBOX WRITE FILE ERROR: FILE PATH UNDEFINED"));
-//     callback("FILE PATH UNDEFINED", null);
-//   }
-
-//   var dataString = dataArray.join("\n");
-
-//   var options = {};
-
-//   options.contents = dataString;
-//   options.path = filePath;
-//   options.mode = "overwrite";
-//   options.autorename = false;
-
-//   dropboxClient.filesUpload(options)
-//     .then(function(response){
-//       debug(chalkLog("... SAVED DROPBOX JSON | " + options.path));
-//       callback(null, response);
-//     })
-//     .catch(function(error){
-//       console.log(chalkError(moment().format(compactDateTimeFormat) 
-//         + " | !!! ERROR DROBOX JSON WRITE | FILE: " + file 
-//         + " ERROR: " + error.error_summary
-//       ));
-//       callback(error, null);
-//     });
-// }
 
 function saveStats(statsFile, statsObj, callback) {
   if (OFFLINE_MODE) {
@@ -1262,18 +1233,6 @@ function saveStats(statsFile, statsObj, callback) {
   }
 }
 
-function updateStats(updateObj) {
-  var keys = Object.keys(updateObj);
-  // for (var key in updateObj) {
-  keys.forEach(function(key){
-    if (updateObj.hasOwnProperty(key)) {
-      // debug("UPDATING WORD ASSO STATUS | " + key + ": " + updateObj[key]);
-      statsObj[key] = updateObj[key];
-    }
-  });
-}
-
-
 function initStatsInterval(interval){
 
   console.log(chalkInfo("INIT STATS INTERVAL"
@@ -1285,73 +1244,26 @@ function initStatsInterval(interval){
 
   statsInterval = setInterval(function() {
 
-    statsObj.upTime = os.uptime() * 1000;
+    statsObj.serverTime = moment().valueOf();
+    statsObj.timeStamp = moment().format(compactDateTimeFormat);
     statsObj.runTime = moment().valueOf() - statsObj.startTime;
-    statsObj.memoryTotal = os.totalmem();
-    statsObj.memoryAvailable = os.freemem();
-    statsObj.memoryUsage = process.memoryUsage();
+    statsObj.upTime = os.uptime() * 1000;
 
-    updateStats({
-      timeStamp: moment().format(compactDateTimeFormat),
-      upTime: msToTime(statsObj.upTime),
-      runTime: msToTime(statsObj.runTime),
-      heartbeat: txHeartbeat,
+    statsObj.memory.heap = process.memoryUsage().heapUsed/(1024*1024);
+    statsObj.memory.maxHeap = Math.max(statsObj.memory.maxHeap, process.memoryUsage().heapUsed/(1024*1024));
+    statsObj.memory.memoryAvailable = os.freemem();
+    statsObj.memory.memoryTotal = os.totalmem();
+    statsObj.memory.memoryUsage = process.memoryUsage();
 
-      numberAdmins: numberAdmins,
-
-      numberUtils: numberUtils,
-      numberUtilsMax: numberUtilsMax,
-      numberUtilsMaxTime: numberUtilsMaxTime,
-
-      numberUsers: numberUsers,
-      numberUsersMax: numberUsersMax,
-      numberUsersMaxTime: numberUsersMaxTime,
-
-      numberTestUsers: numberTestUsers,
-      numberTestUsersMax: numberTestUsersMax,
-      numberTestUsersMaxTime: numberTestUsersMaxTime,
-
-      numberUsersTotal: numberUsersTotal,
-      numberUsersTotalMax: numberUsersTotalMax,
-      numberUsersTotalMaxTime: numberUsersTotalMaxTime,
-
-      numberViewers: numberViewers,
-      numberViewersMax: numberViewersMax,
-      numberViewersMaxTime: numberViewersMaxTime,
-
-      numberTestViewers: numberTestViewers,
-      numberTestViewersMax: numberTestViewersMax,
-      numberTestViewersMaxTime: numberTestViewersMaxTime,
-
-      numberViewersTotal: numberViewersTotal,
-      numberViewersTotalMax: numberViewersTotalMax,
-      numberViewersTotalMaxTime: numberViewersTotalMaxTime,
-
-      promptsSent: promptsSent,
-      wordsReceived: wordsReceived,
-
-      // mwErrors: mwErrors,
-      // mwRequests: mwRequests,
-
-      totalEntities: totalEntities,
-      entityCacheTtl: entityCacheTtl,
-
-      totalGroups: totalGroups,
-      groupCacheTtl: groupCacheTtl,
-
-      totalSessions: totalSessions,
-      sessionUpdatesSent: sessionUpdatesSent,
-      sessionCacheTtl: sessionCacheTtl,
-
-      totalWords: totalWords,
-      wordCacheHits: wordCache.getStats().hits,
-      wordCacheMisses: wordCache.getStats().misses,
-      wordCacheTtl: wordCacheTtl
-    });
+    statsObj.entity.admin.connected = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
+    statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
+    statsObj.entity.user.connected = Object.keys(userNameSpace.connected).length; // userNameSpace.sockets.length ;
+    statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; // userNameSpace.sockets.length ;
 
     saveFile(statsFolder, statsFile, statsObj, function(){
       showStats();
     });
+
   }, interval);
 }
 
@@ -1628,7 +1540,6 @@ function sessionUpdateDbCache(request, callback){
             else {
               debug(chalkInfo("-0- E CH HM MISS"
                 + " | " + sObj.tags.entity
-                // + "\n" + jsonPrint(statsObj.entityChannelGroup.hashMiss)
               ));
 
               configEvents.emit("HASH_MISS", {type: "entity", value: sObj.tags.entity.toLowerCase()});
@@ -1681,6 +1592,8 @@ function sessionUpdateDbCache(request, callback){
 
 function createSession(newSessionObj) {
 
+  statsObj.session.totalCreated++;
+
   debug(chalkSession("\nCREATE SESSION\n" + util.inspect(newSessionObj, {
     showHidden: false,
     depth: 1
@@ -1691,12 +1604,17 @@ function createSession(newSessionObj) {
   var socketId = newSessionObj.socket.id;
   var ipAddress = newSessionObj.socket.handshake.headers["x-real-ip"] || newSessionObj.socket.client.conn.remoteAddress;
 
-  numberAdmins = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
-  numberUtils = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
-  numberUsers = Object.keys(userNameSpace.connected).length; // userNameSpace.sockets.length ;
-  numberTestUsers = Object.keys(testUsersNameSpace.connected).length; // userNameSpace.sockets.length ;
-  numberViewers = Object.keys(viewNameSpace.connected).length; // userNameSpace.sockets.length ;
-  numberTestViewers = Object.keys(testViewersNameSpace.connected).length; // userNameSpace.sockets.length ;
+  // numberAdmins = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
+  // numberUtils = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
+  // numberUsers = Object.keys(userNameSpace.connected).length; // userNameSpace.sockets.length ;
+  // numberTestUsers = Object.keys(testUsersNameSpace.connected).length; // userNameSpace.sockets.length ;
+  // numberViewers = Object.keys(viewNameSpace.connected).length; // userNameSpace.sockets.length ;
+  // numberTestViewers = Object.keys(testViewersNameSpace.connected).length; // userNameSpace.sockets.length ;
+
+  statsObj.entity.admin.connected = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
+  statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
+  statsObj.entity.user.connected = Object.keys(userNameSpace.connected).length; // userNameSpace.sockets.length ;
+  statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; // userNameSpace.sockets.length ;
 
   var sessionObj = new Session({
     sessionId: socketId,
@@ -1933,7 +1851,7 @@ function initSessionSocketHandler(sessionObj, socket) {
       statsObj.utilities[userObj.userId] = {};
     }
 
-    statsObj.socket.SESSION_KEEPALIVES += 1;
+    statsObj.socket.keepalives += 1;
 
     debug(chalkUser("SESSION_KEEPALIVE | " + userObj.userId));
     debug(chalkUser("SESSION_KEEPALIVE\n" + jsonPrint(userObj)));
@@ -2549,7 +2467,6 @@ function initSessionSocketHandler(sessionObj, socket) {
 function setWordCacheTtl(value) {
   debug(chalkWarn("SET WORD CACHE TTL: PREV: " + wordCacheTtl + " | NOW: " + value));
   wordCacheTtl = parseInt(value);
-  updateStats({ wordCacheTtl: wordCacheTtl });
 }
 
 setTimeout(function(){
@@ -2686,6 +2603,18 @@ function updateStatsCounts(callback) {
     statsCountsComplete = false;
 
     async.parallel({
+      totalAdmins: function (cb) {
+        Admin.count({}, function(err, count) {
+          if (err) {
+            console.log(chalkError("DB ADMIN COUNTER ERROR\n" + jsonPrint(err)));
+            cb(err, null);
+          }
+          else {
+            statsObj.db.totalAdmins = count;
+            cb(null, count);
+          }
+        });
+      },
       totalUsers: function (cb) {
         User.count({}, function(err, count) {
           if (err) {
@@ -2693,6 +2622,19 @@ function updateStatsCounts(callback) {
             cb(err, null);
           }
           else {
+            statsObj.db.totalUsers = count;
+            cb(null, count);
+          }
+        });
+      },
+      totalViewers: function (cb) {
+        Viewer.count({}, function(err, count) {
+          if (err) {
+            console.log(chalkError("DB VIEWER COUNTER ERROR\n" + jsonPrint(err)));
+            cb(err, null);
+          }
+          else {
+            statsObj.db.totalViewers = count;
             cb(null, count);
           }
         });
@@ -2704,6 +2646,7 @@ function updateStatsCounts(callback) {
             cb(err, null);
           }
           else {
+            statsObj.db.totalSessions = count;
             cb(null, count);
           }
         });
@@ -2715,6 +2658,7 @@ function updateStatsCounts(callback) {
             cb(err, null);
           }
           else {
+            statsObj.db.totalWords = count;
             cb(null, count);
           }
         });
@@ -2726,6 +2670,7 @@ function updateStatsCounts(callback) {
             cb(err, null);
           }
           else {
+            statsObj.db.totalGroups = count;
             cb(null, count);
           }
         });
@@ -2737,6 +2682,7 @@ function updateStatsCounts(callback) {
             cb(err, null);
           }
           else {
+            statsObj.db.totalEntities = count;
             cb(null, count);
           }
         });
@@ -2755,7 +2701,6 @@ function updateStatsCounts(callback) {
         ));
         configEvents.emit("UPDATE_STATS_COUNTS_COMPLETE", moment().format(compactDateTimeFormat));
         statsCountsComplete = true;
-        updateStats(results);
         if (callback !== undefined) { callback(null, "UPDATE_STATS_COUNTS_COMPLETE"); }
       }
     });
@@ -2930,9 +2875,8 @@ function initSessionViewQueueInterval(interval){
 
               testViewersNameSpace.emit("SESSION_UPDATE", sessionSmallObj);
 
-              updateStats({ sessionUpdatesSent: sessionUpdatesSent });
+              statsObj.session.updatesSent += 1;
 
-              sessionUpdatesSent += 1;
               updateSessionViewReady = true;
 
             });
@@ -2948,21 +2892,11 @@ function initSessionViewQueueInterval(interval){
 
             testViewersNameSpace.emit("SESSION_UPDATE", sessionSmallObj);
 
-            updateStats({ sessionUpdatesSent: sessionUpdatesSent });
-
-            sessionUpdatesSent += 1;
+            statsObj.session.updatesSent += 1;
             updateSessionViewReady = true;
 
           }
         });
-
-        // testViewersNameSpace.emit("SESSION_UPDATE", sessionSmallObj);
-
-        // updateStats({ sessionUpdatesSent: sessionUpdatesSent });
-
-        // sessionUpdatesSent += 1;
-        // updateSessionViewReady = true;
-
       });
 
     }
@@ -3281,10 +3215,7 @@ function groupUpdateDb(userObj, callback){
         + "\nuserObj\n" + jsonPrint(userObj)
         + "\nentityObj\n" + jsonPrint(entityObj)
       ));
-      // statsObj.entityChannelGroup.hashMiss[userObj.tags.entity.toLowerCase()] = 1;
-      // statsObj.entityChannelGroup.allHashMisses[userObj.tags.entity.toLowerCase()] = 1;
       configEvents.emit("HASH_MISS", {type: "entity", value: userObj.tags.entity.toLowerCase()});
-      // callback(null, entityObj);
       callback(null, userObj);
     }
   }
@@ -3896,6 +3827,7 @@ function handleSessionEvent(sesObj, callback) {
 
       switch (sesObj.session.config.type) {
         case "admin":
+        case "control":
           break;
         case "user":
           break;
@@ -4074,16 +4006,24 @@ function handleSessionEvent(sesObj, callback) {
 
       if (sesObj.session) {
 
-        if (sesObj.sessionEvent !== "SESSION_EXPIRED") {
-          // should not exist anymore due to expiry, but may exist again on new data from
-          sessionCache.del(sesObj.session.sessionId);
-        }
+        sessionCache.del(sesObj.session.sessionId, function(err){
+          if (err) {console.log(chalkError("SESS DELETE ERROR " + err));}
+          console.log(chalkSession("XXX SESS DELETE " + sesObj.session.sessionId));
+        });
+
+        var sessKeys = sessionCache.keys();
+
+        sessKeys.forEach(function(sId){
+          if (sId.indexOf(sesObj.session.sessionId) > -1) {
+            sessionCache.get(sId, function(sObj){
+              adminNameSpace.emit("SESSION_DELETE", sObj);
+              sessionCache.del(sId);
+              console.log(chalkRed("XXX SESS " + sId));
+            });
+          }
+        });
 
         debug(sesObj.sessionEvent + "\n" + jsonPrint(sesObj));
-
-        currentUser = userCache.get(sesObj.session.userId);
-        currentUtil = utilCache.get(sesObj.session.userId);
-        currentViewer = viewerCache.get(sesObj.session.userId);
 
         sesObj.session.disconnectTime = moment().valueOf();
         sessionUpdateDb(sesObj.session);
@@ -4690,6 +4630,7 @@ function handleSessionEvent(sesObj, callback) {
               switch (sesObj.session.config.type) {
                 case "viewer":
                   break;
+                case "control":
                 case "admin":
                   break;
                 case "util":
@@ -5059,9 +5000,7 @@ function initRxWordQueueInterval(interval){
 
             if (!wordObj.mentions) {wordObj.mentions = 1;}
 
-            wordsReceived += 1;
-
-            updateStats({ wordsReceived: wordsReceived });
+            statsObj.socket.wordsReceived += 1;
 
             currentSessionObj.lastSeen = moment().valueOf();
 
@@ -5074,11 +5013,6 @@ function initRxWordQueueInterval(interval){
                 ));
               }
               else if (wordCacheObj === undefined) { // RX WORD MISS
-                // console.log(chalkLog(moment().format(compactDateTimeFormat) 
-                //   + " | RX WORD MISS"
-                //   + " | " + wordObj.nodeId
-                //   // + "\n" + jsonPrint(wordObj)
-                // ));
 
                 if (currentSessionObj.sessionId === undefined) {
                   console.log(chalkError("UNDEFINED SESSION ID\n" + jsonPrint(currentSessionObj)));
@@ -6048,14 +5982,14 @@ function initializeConfiguration(cnf, callback) {
         async.parallel(
           [
 
-            function(callbackParallel) {
-              debug(chalkInfo(moment().format(compactDateTimeFormat) + " | ADMIN IP INIT"));
-              adminFindAllDb(null, function(numberOfAdminIps) {
-                debug(chalkInfo(moment().format(compactDateTimeFormat) 
-                  + " | ADMIN UNIQUE IP ADDRESSES: " + numberOfAdminIps));
-                callbackParallel();
-              });
-            },
+            // function(callbackParallel) {
+            //   debug(chalkInfo(moment().format(compactDateTimeFormat) + " | ADMIN IP INIT"));
+            //   adminFindAllDb(null, function(numberOfAdminIps) {
+            //     debug(chalkInfo(moment().format(compactDateTimeFormat) 
+            //       + " | ADMIN UNIQUE IP ADDRESSES: " + numberOfAdminIps));
+            //     callbackParallel();
+            //   });
+            // },
             
             function(callbackParallel) {
               debug(chalkInfo(moment().format(compactDateTimeFormat) + " | GROUP HASHMAP INIT"));
@@ -6696,23 +6630,21 @@ configEvents.on("SERVER_READY", function() {
 
   function logHeartbeat() {
     debug(chalkLog("HB " + heartbeatsSent 
-      + " | " + moment(parseInt(txHeartbeat.timeStamp)).format(compactDateTimeFormat) 
-      + " | ST: " + moment(parseInt(txHeartbeat.startTime)).format(compactDateTimeFormat) 
-      + " | UP: " + msToTime(txHeartbeat.upTime) 
-      + " | RN: " + msToTime(txHeartbeat.runTime) 
-      // + " | MWR: " + txHeartbeat.mwRequests 
-      // + " | BHTR: " + txHeartbeat.bhtRequests 
-      + " | MEM: " + txHeartbeat.memoryAvailable 
-      + "/" + txHeartbeat.memoryTotal));
+      + " | " + moment(parseInt(statsObj.timeStamp)).format(compactDateTimeFormat) 
+      + " | ST: " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat) 
+      + " | UP: " + msToTime(statsObj.upTime) 
+      + " | RN: " + msToTime(statsObj.runTime) 
+      + " | MEM: " + statsObj.memory.memoryAvailable 
+      + "/" + statsObj.memory.memoryTotal));
   }
 
   setInterval(function() {
 
     statsObj.runTime = moment().valueOf() - statsObj.startTime;
     statsObj.upTime = os.uptime() * 1000;
-    statsObj.memoryTotal = os.totalmem();
-    statsObj.memoryAvailable = os.freemem();
-    statsObj.memoryUsage = process.memoryUsage();
+    statsObj.memory.memoryTotal = os.totalmem();
+    statsObj.memory.memoryAvailable = os.freemem();
+    statsObj.memory.memoryUsage = process.memoryUsage();
 
     statsObj.queues.sessionQueue = sessionQueue.size();
     statsObj.queues.dbUpdateWordQueue = dbUpdateWordQueue.size();
@@ -6728,111 +6660,14 @@ configEvents.on("SERVER_READY", function() {
 
       heartbeatsSent += 1;
 
-      txHeartbeat = {
+      io.emit("HEARTBEAT", statsObj);
 
-        serverHostName: hostname,
-        timeStamp: getTimeNow(),
-        startTime: statsObj.startTime,
-        upTime: statsObj.upTime,
-        runTime: statsObj.runTime,
-
-        heartbeatsSent: heartbeatsSent,
-
-        tweetsPerMinute: tweetsPerMinute,
-        maxTweetsPerMin: maxTweetsPerMin,
-        maxTweetsPerMinTime: maxTweetsPerMinTime.valueOf(),
-
-        wordsPerMinute: wordsPerMinute,
-        maxWordsPerMin: maxWordsPerMin,
-        maxWordsPerMinTime: maxWordsPerMinTime.valueOf(),
-
-        obamaPerMinute: obamaPerMinute,
-        maxObamaPerMin: maxObamaPerMin,
-        maxObamaPerMinTime: maxObamaPerMinTime.valueOf(),
-
-        trumpPerMinute: trumpPerMinute,
-        maxTrumpPerMin: maxTrumpPerMin,
-        maxTrumpPerMinTime: maxTrumpPerMinTime.valueOf(),
-
-        wordStats: wordStats.toJSON(),
-
-        memoryAvailable: statsObj.memoryAvailable,
-        memoryTotal: statsObj.memoryTotal,
-
-        numberAdmins: numberAdmins,
-
-        numberUtils: numberUtils,
-        numberUtilsMax: numberUtilsMax,
-        numberUtilsMaxTime: numberUtilsMaxTime,
-
-        numberViewers: numberViewers,
-        numberViewersMax: numberViewersMax,
-        numberViewersMaxTime: numberViewersMaxTime,
-
-        numberTestViewers: numberTestViewers,
-        numberTestViewersMax: numberTestViewersMax,
-        numberTestViewersMaxTime: numberTestViewersMaxTime,
-
-        numberViewersTotal: numberViewersTotal,
-        numberViewersTotalMax: numberViewersTotalMax,
-        numberViewersTotalMaxTime: numberViewersTotalMaxTime,
-
-        numberUsersTotal: numberUsersTotal,
-        numberUsersTotalMax: numberUsersTotalMax,
-        numberUsersTotalMaxTime: numberUsersTotalMaxTime,
-
-        numberUsers: numberUsers,
-        numberUsersMax: numberUsersMax,
-        numberUsersMaxTime: numberUsersMaxTime,
-
-        numberTestUsers: numberTestUsers,
-        numberTestUsersMax: numberTestUsersMax,
-        numberTestUsersMaxTime: numberTestUsersMaxTime,
-
-        totalWords: totalWords,
-
-        // mwRequestLimit: MW_REQUEST_LIMIT,
-        // mwRequests: mwRequests,
-        // mwOverLimitFlag: mwOverLimitFlag,
-        // mwLimitResetTime: mwLimitResetTime,
-        // mwOverLimitTime: mwOverLimitTime,
-        // mwTimeToReset: mwTimeToReset,
-
-        // bhtRequestLimit: BHT_REQUEST_LIMIT,
-        // bhtRequests: bhtRequests,
-        // bhtOverLimitFlag: bhtOverLimitFlag,
-        // bhtLimitResetTime: bhtLimitResetTime,
-        // bhtOverLimitTime: bhtOverLimitTime,
-        // bhtTimeToReset: bhtTimeToReset,
-
-        totalSessions: totalSessions,
-        totalUsers: totalUsers,
-
-        db: {},
-        caches: {},
-
-        promptsSent: promptsSent,
-        wordsReceived: wordsReceived,
-
-        memoryUsage: {},
-        utilities: {}
-
-      };
-
-      txHeartbeat.utilities = statsObj.utilities;
-      txHeartbeat.db = statsObj.db;
-      txHeartbeat.caches = statsObj.caches;
-      txHeartbeat.queues = statsObj.queues;
-      txHeartbeat.memoryUsage = process.memoryUsage();
-
-      io.emit("HEARTBEAT", txHeartbeat);
-
-      utilNameSpace.emit("HEARTBEAT", txHeartbeat);
-      adminNameSpace.emit("HEARTBEAT", txHeartbeat);
-      userNameSpace.emit("HEARTBEAT", txHeartbeat);
-      viewNameSpace.emit("HEARTBEAT", txHeartbeat);
-      testUsersNameSpace.emit("HEARTBEAT", txHeartbeat);
-      testViewersNameSpace.emit("HEARTBEAT", txHeartbeat);
+      utilNameSpace.emit("HEARTBEAT", statsObj);
+      adminNameSpace.emit("HEARTBEAT", statsObj);
+      userNameSpace.emit("HEARTBEAT", statsObj);
+      viewNameSpace.emit("HEARTBEAT", statsObj);
+      testUsersNameSpace.emit("HEARTBEAT", statsObj);
+      testViewersNameSpace.emit("HEARTBEAT", statsObj);
 
       if (heartbeatsSent % 60 === 0) { logHeartbeat(); }
 
@@ -6916,57 +6751,53 @@ setInterval(function() {
   statsObj.queues.dbUpdateEntityQueue = dbUpdateEntityQueue.size();
   statsObj.queues.updateSessionViewQueue = updateSessionViewQueue.length;
 
-  if (updateComplete) {
-    numberAdmins = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
-    numberUtils = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
-    numberUsers = Object.keys(userNameSpace.connected).length; // userNameSpace.sockets.length ;
-    numberTestUsers = Object.keys(testUsersNameSpace.connected).length; // userNameSpace.sockets.length ;
-    numberViewers = Object.keys(viewNameSpace.connected).length; // userNameSpace.sockets.length ;
-    numberTestViewers = Object.keys(testViewersNameSpace.connected).length; // userNameSpace.sockets.length ;
+  statsObj.entity.admin.connected = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
+  statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
+  statsObj.entity.user.connected = Object.keys(userNameSpace.connected).length; // userNameSpace.sockets.length ;
+  statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; // userNameSpace.sockets.length ;
+
+
+  if (statsObj.entity.admin.connected > statsObj.entity.admin.connectedMax) {
+    statsObj.entity.admin.connectedMaxTime = moment().valueOf();
+    statsObj.entity.admin.connectedMax = statsObj.entity.admin.connected;
+    console.log(chalkAlert("... NEW TOTAL MAX ADMINS"
+     + " | " + statsObj.entity.admin.connected
+     + " | " + moment().format(compactDateTimeFormat)
+    ));
   }
 
-  numberUsersTotal = numberUsers + numberTestUsers;
-  numberViewersTotal = numberViewers + numberTestViewers;
-
-  if (numberViewersTotal > numberViewersTotalMax) {
-    numberViewersTotalMaxTime = moment().valueOf();
-    numberViewersTotalMax = numberViewersTotal;
-    debug(chalkAlert("... NEW TOTAL MAX VIEWERS" + " | " + moment().format(compactDateTimeFormat)));
+  if (statsObj.entity.util.connected > statsObj.entity.util.connectedMax) {
+    statsObj.entity.util.connectedMaxTime = moment().valueOf();
+    statsObj.entity.util.connectedMax = statsObj.entity.util.connected;
+    console.log(chalkAlert("... NEW TOTAL MAX UTILS"
+     + " | " + statsObj.entity.util.connected
+     + " | " + moment().format(compactDateTimeFormat)
+    ));
   }
 
-  if (numberViewers > numberViewersMax) {
-    numberViewersMaxTime = moment().valueOf();
-    numberViewersMax = numberViewers;
-    debug(chalkAlert("... NEW MAX VIEWERS" + " | " + moment().format(compactDateTimeFormat)));
+  if (statsObj.entity.user.connected > statsObj.entity.user.connectedMax) {
+    statsObj.entity.user.connectedMaxTime = moment().valueOf();
+    statsObj.entity.user.connectedMax = statsObj.entity.user.connected;
+    console.log(chalkAlert("... NEW TOTAL MAX USERS"
+     + " | " + statsObj.entity.user.connected
+     + " | " + moment().format(compactDateTimeFormat)
+    ));
   }
 
-  if (numberUsersTotal > numberUsersTotalMax) {
-    numberUsersTotalMaxTime = moment().valueOf();
-    numberUsersTotalMax = numberUsersTotal;
-    debug(chalkAlert("... NEW TOTAL MAX USERS" + " | " + moment().format(compactDateTimeFormat)));
-  }
-
-  if (numberUsers > numberUsersMax) {
-    numberUsersMaxTime = moment().valueOf();
-    numberUsersMax = numberUsers;
-    debug(chalkAlert("... NEW MAX USERS" + " | " + moment().format(compactDateTimeFormat)));
-  }
-
-  if (numberTestUsers > numberTestUsersMax) {
-    numberTestUsersMaxTime = moment().valueOf();
-    numberTestUsersMax = numberTestUsers;
-    debug(chalkAlert("... NEW MAX TEST USERS" + " | " + moment().format(compactDateTimeFormat)));
-  }
-
-  if (numberUtils > numberUtilsMax) {
-    numberUtilsMaxTime = moment().valueOf();
-    numberUtilsMax = numberUtils;
-    debug(chalkAlert("... NEW MAX UTILS" + " | " + moment().format(compactDateTimeFormat)));
+  if (statsObj.entity.viewer.connected > statsObj.entity.viewer.connectedMax) {
+    statsObj.entity.viewer.connectedMaxTime = moment().valueOf();
+    statsObj.entity.viewer.connectedMax = statsObj.entity.viewer.connected;
+    console.log(chalkAlert("... NEW TOTAL MAX VIEWERS"
+     + " | " + statsObj.entity.viewer.connected
+     + " | " + moment().format(compactDateTimeFormat)
+    ));
   }
 
   if (statsCountsComplete 
     && (heartbeatsSent > 0) 
-    && (heartbeatsSent % 100 === 0)) { updateStatsCounts(); }
+    && (heartbeatsSent % 100 === 0)) { updateStatsCounts();
+  }
+
 }, 1000);
 
 
@@ -7082,7 +6913,7 @@ function initRateQinterval(interval){
       maxWordsPerMinTime = moment.utc();
       console.log(chalkLog("NEW MAX WPM: " + wordsPerMinute.toFixed(0)));
       statsObj.maxWordsPerMin = wordsPerMinute;
-      statsObj.maxWordsPerMinTime = moment.utc();
+      statsObj.maxWordsPerMinTime = moment().valueOf();
     }
 
     if (obamaPerMinute > maxObamaPerMin) {
@@ -7090,7 +6921,7 @@ function initRateQinterval(interval){
       maxObamaPerMinTime = moment.utc();
       console.log(chalkLog("NEW MAX OPM: " + obamaPerMinute.toFixed(0)));
       statsObj.maxObamaPerMin = obamaPerMinute;
-      statsObj.maxObamaPerMinTime = moment.utc();
+      statsObj.maxObamaPerMinTime = moment().valueOf();
     }
 
     if (trumpPerMinute > maxTrumpPerMin) {
@@ -7098,7 +6929,7 @@ function initRateQinterval(interval){
       maxTrumpPerMinTime = moment.utc();
       console.log(chalkLog("NEW MAX TrPM: " + trumpPerMinute.toFixed(0)));
       statsObj.maxTrumpPerMin = trumpPerMinute;
-      statsObj.maxTrumpPerMinTime = moment.utc();
+      statsObj.maxTrumpPerMinTime = moment().valueOf();
     }
 
     if (updateTimeSeriesCount === 0){
@@ -7165,19 +6996,19 @@ function initRateQinterval(interval){
 
         var memoryRssDataPoint = {};
         memoryRssDataPoint.metricType = "memory/rss";
-        memoryRssDataPoint.value = statsObj.memoryUsage.rss;
+        memoryRssDataPoint.value = statsObj.memory.memoryUsage.rss;
         memoryRssDataPoint.metricLabels = {server_id: "MEM"};
         addMetricDataPoint(memoryRssDataPoint);
 
         var memoryHeapUsedDataPoint = {};
         memoryHeapUsedDataPoint.metricType = "memory/heap_used";
-        memoryHeapUsedDataPoint.value = statsObj.memoryUsage.heapUsed;
+        memoryHeapUsedDataPoint.value = statsObj.memory.memoryUsage.heapUsed;
         memoryHeapUsedDataPoint.metricLabels = {server_id: "MEM"};
         addMetricDataPoint(memoryHeapUsedDataPoint);
 
         var memoryHeapTotalDataPoint = {};
         memoryHeapTotalDataPoint.metricType = "memory/heap_total";
-        memoryHeapTotalDataPoint.value = statsObj.memoryUsage.heapTotal;
+        memoryHeapTotalDataPoint.value = statsObj.memory.memoryUsage.heapTotal;
         memoryHeapTotalDataPoint.metricLabels = {server_id: "MEM"};
         addMetricDataPoint(memoryHeapTotalDataPoint);
 

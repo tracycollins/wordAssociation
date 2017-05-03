@@ -708,8 +708,8 @@ var adminNameSpace;
 var utilNameSpace;
 var userNameSpace;
 var viewNameSpace;
-var testUsersNameSpace;
-var testViewersNameSpace;
+// var testUsersNameSpace;
+// var testViewersNameSpace;
 
 // ==================================================================
 // ADMIN
@@ -929,7 +929,7 @@ sessionCache.on("set", function(sessionId, sessionObj) {
 });
 
 sessionCache.on("expired", function(sessionId, sessionObj) {
-  console.log(chalkInfo("... SESS $ XXX"
+  debug(chalkInfo("... SESS $ XXX"
     + " | " + sessionId
   ));
   sessionQueue.enqueue({
@@ -942,11 +942,12 @@ sessionCache.on("expired", function(sessionId, sessionObj) {
 
   sessionObj.sessionEvent = "SESSION_DELETE";
 
-  viewNameSpace.emit("SESSION_DELETE", sessionObj);
-  testViewersNameSpace.emit("SESSION_DELETE", sessionObj);
+  adminNameSpace.emit("SESSION_DELETE", sessionId);
+  viewNameSpace.emit("SESSION_DELETE", sessionId);
+  // testViewersNameSpace.emit("SESSION_DELETE", sessionId);
 
   // console.log(chalkAlert("CACHE SESSION EXPIRED\n" + jsonPrint(sessionObj)));
-  console.log(chalkInfo("... $ SESS EXPIRED"
+  debug(chalkInfo("... $ SESS EXPIRED"
     + " | " + sessionObj.sessionId 
     + " | LS: " + moment(parseInt(sessionObj.lastSeen)).format(compactDateTimeFormat)
     + " | " + msToTime(moment().valueOf() - sessionObj.lastSeen) 
@@ -2497,7 +2498,7 @@ function initSessionSocketHandler(sessionObj, socket) {
     debug(chalkTest("RX SOCKET_TEST_MODE: " + testMode));
     serverSessionConfig.testMode = testMode;
     serverSessionConfig.socketId = socket.id;
-    testUsersNameSpace.emit("SOCKET_TEST_MODE", serverSessionConfig);
+    // testUsersNameSpace.emit("SOCKET_TEST_MODE", serverSessionConfig);
   });
 }
 
@@ -2517,8 +2518,8 @@ setTimeout(function(){
     utilNameSpace = io.of("/util");
     userNameSpace = io.of("/user");
     viewNameSpace = io.of("/view");
-    testUsersNameSpace = io.of("/test-user");
-    testViewersNameSpace = io.of("/test-view");
+    // testUsersNameSpace = io.of("/test-user");
+    // testViewersNameSpace = io.of("/test-view");
 
     adminNameSpace.on("connect", function(socket) {
       socket.setMaxListeners(0);
@@ -2570,29 +2571,29 @@ setTimeout(function(){
       });
     });
 
-    testUsersNameSpace.on("connect", function(socket) {
-      socket.setMaxListeners(0);
-      debug(chalkAdmin("TEST USER CONNECT"));
-      createSession({
-        namespace: "test-user",
-        socket: socket,
-        type: "test_user",
-        mode: "unknown",
-        tags: {}
-      });
-    });
+    // testUsersNameSpace.on("connect", function(socket) {
+    //   socket.setMaxListeners(0);
+    //   debug(chalkAdmin("TEST USER CONNECT"));
+    //   createSession({
+    //     namespace: "test-user",
+    //     socket: socket,
+    //     type: "test_user",
+    //     mode: "unknown",
+    //     tags: {}
+    //   });
+    // });
 
-    testViewersNameSpace.on("connect", function(socket) {
-      socket.setMaxListeners(0);
-      debug(chalkAdmin("TEST VIEWER CONNECT"));
-      createSession({
-        namespace: "test-view",
-        socket: socket,
-        type: "test_viewer",
-        mode: "unknown",
-        tags: {}
-      });
-    });
+    // testViewersNameSpace.on("connect", function(socket) {
+    //   socket.setMaxListeners(0);
+    //   debug(chalkAdmin("TEST VIEWER CONNECT"));
+    //   createSession({
+    //     namespace: "test-view",
+    //     socket: socket,
+    //     type: "test_viewer",
+    //     mode: "unknown",
+    //     tags: {}
+    //   });
+    // });
 
     ioReady = true;
   }
@@ -2910,7 +2911,7 @@ function initSessionViewQueueInterval(interval){
                 languageServer.socket.emit("LANG_ANALIZE_WORD", sessionSmallObj.target);
               }
 
-              testViewersNameSpace.emit("SESSION_UPDATE", sessionSmallObj);
+              // testViewersNameSpace.emit("SESSION_UPDATE", sessionSmallObj);
 
               statsObj.session.updatesSent += 1;
 
@@ -2927,7 +2928,7 @@ function initSessionViewQueueInterval(interval){
               languageServer.socket.emit("LANG_ANALIZE_WORD", sessionSmallObj.source);
             }
 
-            testViewersNameSpace.emit("SESSION_UPDATE", sessionSmallObj);
+            // testViewersNameSpace.emit("SESSION_UPDATE", sessionSmallObj);
 
             statsObj.session.updatesSent += 1;
             updateSessionViewReady = true;
@@ -3931,8 +3932,9 @@ function handleSessionEvent(sesObj, callback) {
       ));
 
       sesObj.sessionEvent = "SESSION_DELETE";
-      viewNameSpace.emit("SESSION_DELETE", sesObj);
-      testViewersNameSpace.emit("SESSION_DELETE", sesObj);
+      adminNameSpace.emit("SESSION_DELETE", socketId);
+      viewNameSpace.emit("SESSION_DELETE", socketId);
+      // testViewersNameSpace.emit("SESSION_DELETE", socketId);
       break;
 
     case "SESSION_KEEPALIVE":
@@ -4039,13 +4041,13 @@ function handleSessionEvent(sesObj, callback) {
       sesObj.sessionEvent = "SESSION_DELETE";
       viewNameSpace.emit("SESSION_DELETE", sesObj.session.sessionId);
       adminNameSpace.emit("SESSION_DELETE", sesObj.session.sessionId);
-      testViewersNameSpace.emit("SESSION_DELETE", sesObj.session.sessionId);
+      // testViewersNameSpace.emit("SESSION_DELETE", sesObj.session.sessionId);
 
       if (sesObj.session) {
 
         sessionCache.del(sesObj.session.sessionId, function(err){
           if (err) {console.log(chalkError("SESS DELETE ERROR " + err));}
-          console.log(chalkSession("XXX SESS DELETE " + sesObj.session.sessionId));
+          debug(chalkSession("XXX SESS DELETE " + sesObj.session.sessionId));
         });
 
         var sessKeys = sessionCache.keys();
@@ -4063,10 +4065,10 @@ function handleSessionEvent(sesObj, callback) {
         sesObj.session.disconnectTime = moment().valueOf();
         sessionUpdateDb(sesObj.session);
 
-        sesObj.session.wordChain.forEach(function(wordObj) {
-          debug(chalkSession(">T< SET WORD " + wordObj.nodeId + " TTL: " + wordCacheTtl));
-          wordCache.ttl(wordObj, wordCacheTtl);
-        });
+        // sesObj.session.wordChain.forEach(function(wordObj) {
+        //   debug(chalkSession(">T< SET WORD " + wordObj.nodeId + " TTL: " + wordCacheTtl));
+        //   wordCache.ttl(wordObj, wordCacheTtl);
+        // });
 
         adminCache.get(sesObj.session.userId, function(err, currentAdmin){
           if (err){
@@ -4269,29 +4271,29 @@ function handleSessionEvent(sesObj, callback) {
           if (sesObj.session.namespace === "view") {
             viewNameSpace.to(sesObj.session.sessionId).emit("USER_SESSION", userSessionObj);
           }
-          if (sesObj.session.namespace === "test-view") {
-            testViewersNameSpace.to(sesObj.session.sessionId).emit("USER_SESSION", userSessionObj);
-          }
+          // if (sesObj.session.namespace === "test-view") {
+          //   testViewersNameSpace.to(sesObj.session.sessionId).emit("USER_SESSION", userSessionObj);
+          // }
           adminNameSpace.to(sesObj.session.sessionId).emit("USER_SESSION", userSessionObj);
         }
       });
-      Object.keys(testUsersNameSpace.connected).forEach(function(userSessionKey) {
-        userSessionObj = sessionCache.get(userSessionKey);
-        if (userSessionObj) {
-          debug("FOUND TEST USER SESSION: " + userSessionObj.sessionId);
-          debug(chalkRed("TX USER SESSION: " + userSessionObj.sessionId
-            + " TO " + sesObj.session.namespace + "#" + sesObj.session.sessionId));
-          delete userSessionObj.wordChain;
+      // Object.keys(testUsersNameSpace.connected).forEach(function(userSessionKey) {
+      //   userSessionObj = sessionCache.get(userSessionKey);
+      //   if (userSessionObj) {
+      //     debug("FOUND TEST USER SESSION: " + userSessionObj.sessionId);
+      //     debug(chalkRed("TX USER SESSION: " + userSessionObj.sessionId
+      //       + " TO " + sesObj.session.namespace + "#" + sesObj.session.sessionId));
+      //     delete userSessionObj.wordChain;
 
-          if (sesObj.session.namespace === "view") {
-            viewNameSpace.to(sesObj.session.sessionId).emit("USER_SESSION", userSessionObj);
-          }
-          if (sesObj.session.namespace === "test-view") {
-            testViewersNameSpace.to(sesObj.session.sessionId).emit("USER_SESSION", userSessionObj);
-          }
-          adminNameSpace.to(sesObj.session.sessionId).emit("USER_SESSION", userSessionObj);
-        }
-      });
+      //     if (sesObj.session.namespace === "view") {
+      //       viewNameSpace.to(sesObj.session.sessionId).emit("USER_SESSION", userSessionObj);
+      //     }
+      //     // if (sesObj.session.namespace === "test-view") {
+      //     //   testViewersNameSpace.to(sesObj.session.sessionId).emit("USER_SESSION", userSessionObj);
+      //     // }
+      //     adminNameSpace.to(sesObj.session.sessionId).emit("USER_SESSION", userSessionObj);
+      //   }
+      // });
       break;
 
     case "REQ_VIEWER_SESSION":
@@ -4307,17 +4309,17 @@ function handleSessionEvent(sesObj, callback) {
           adminNameSpace.to(sesObj.session.sessionId).emit("VIEWER_SESSION", viewerSessionObj);
         }
       });
-      Object.keys(testViewersNameSpace.connected).forEach(function(viewerSessionKey) {
-        viewerSessionObj = sessionCache.get(viewerSessionKey);
-        if (viewerSessionObj) {
-          debug("FOUND TEST VIEWER SESSION: " + viewerSessionObj.sessionId);
-          debug(chalkRed("TX VIEWER SESSION: " + viewerSessionObj.sessionId 
-            + " TO " + sesObj.options.requestNamespace + "#" + sesObj.options.requestSocketId));
-          delete viewerSessionObj.wordChain;
+      // Object.keys(testViewersNameSpace.connected).forEach(function(viewerSessionKey) {
+      //   viewerSessionObj = sessionCache.get(viewerSessionKey);
+      //   if (viewerSessionObj) {
+      //     debug("FOUND TEST VIEWER SESSION: " + viewerSessionObj.sessionId);
+      //     debug(chalkRed("TX VIEWER SESSION: " + viewerSessionObj.sessionId 
+      //       + " TO " + sesObj.options.requestNamespace + "#" + sesObj.options.requestSocketId));
+      //     delete viewerSessionObj.wordChain;
 
-          adminNameSpace.to(sesObj.session.sessionId).emit("VIEWER_SESSION", viewerSessionObj);
-        }
-      });
+      //     adminNameSpace.to(sesObj.session.sessionId).emit("VIEWER_SESSION", viewerSessionObj);
+      //   }
+      // });
       break;
 
     case "REQ_UTIL_SESSION":
@@ -6702,8 +6704,8 @@ configEvents.on("SERVER_READY", function() {
       adminNameSpace.emit("HEARTBEAT", statsObj);
       userNameSpace.emit("HEARTBEAT", statsObj);
       viewNameSpace.emit("HEARTBEAT", statsObj);
-      testUsersNameSpace.emit("HEARTBEAT", statsObj);
-      testViewersNameSpace.emit("HEARTBEAT", statsObj);
+      // testUsersNameSpace.emit("HEARTBEAT", statsObj);
+      // testViewersNameSpace.emit("HEARTBEAT", statsObj);
 
       if (heartbeatsSent % 60 === 0) { logHeartbeat(); }
 

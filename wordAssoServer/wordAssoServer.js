@@ -2029,7 +2029,7 @@ function initSessionSocketHandler(sessionObj, socket) {
 
     userReadyHandler({socketId: socket.id, userObj: userObj}, function(err, sObj){
       // if (err && quitOnErrorFlag) {
-      if (err && quitOnErrorFlag) {
+      if (err && configuration.quitOnError) {
         quit(err);
       }
     });
@@ -2043,7 +2043,7 @@ function initSessionSocketHandler(sessionObj, socket) {
 
       console.log(chalkError("UNDEFINED RX NODE NODEID\n" + jsonPrint(rxNodeObj)));
 
-      if (quitOnErrorFlag) {
+      if (configuration.quitOnError) {
         quit("UNDEFINED RX NODE NODEID");
       }
       else {
@@ -4649,7 +4649,7 @@ function handleSessionEvent(sesObj, callback) {
         } 
         else {
           console.log(chalkError("*** USER UPDATE DB ERROR\n" + jsonPrint(err)));
-          if (quitOnErrorFlag) {
+          if (configuration.quitOnError) {
             quit(err);
           }
         }

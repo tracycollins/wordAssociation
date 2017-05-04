@@ -3799,15 +3799,15 @@ function sortedObjectValues(obj, k, callback) {
     return objB[k] - objA[k];
   });
 
-  var endIndex = sortedKeys.length < 10 ? sortedKeys.length : 10;
+  var endIndex = sortedKeys.length < 20 ? sortedKeys.length : 20;
   var i;
 
   console.log(chalkLog("SORT ---------------------"));
 
   for (i=0; i<endIndex; i += 1){
-    console.log(obj[sortedKeys[i]].toJSON()[k].toFixed(3)
+    console.log(chalkLog(obj[sortedKeys[i]].toJSON()[k].toFixed(3)
       + " | "  + sortedKeys[i] 
-    );
+    ));
   }
 
   callback(sortedKeys);
@@ -3816,8 +3816,8 @@ function sortedObjectValues(obj, k, callback) {
 function handleSessionEvent(sesObj, callback) {
 
   if (sesObj.sessionEvent !== "SESSION_KEEPALIVE") {
-    console.log(chalkSession("SESS"
-      + " | SES Q: " + sessionQueue.size()
+    console.log(chalkSession("SES Q" 
+      + " | " + sessionQueue.size()
       + " | " + sesObj.sessionEvent
       + " | " + sesObj.session.sessionId 
     ));
@@ -6798,9 +6798,9 @@ setInterval(function() {
     if (statsObj.caches[cacheName].stats.keys > statsObj.caches[cacheName].stats.keysMax) {
       statsObj.caches[cacheName].stats.keysMax = statsObj.caches[cacheName].stats.keys;
       statsObj.caches[cacheName].stats.keysMaxTime = moment().valueOf();
-      console.log(chalkRed("MAX $"
+      console.log(chalkRed("MAX"
         + " | " + cacheName
-        + " | KEYS: " + statsObj.caches[cacheName].stats.keys
+        + " | Ks: " + statsObj.caches[cacheName].stats.keys
       ));
     }
   });
@@ -6833,7 +6833,7 @@ setInterval(function() {
   if (statsObj.entity.admin.connected > statsObj.entity.admin.connectedMax) {
     statsObj.entity.admin.connectedMaxTime = moment().valueOf();
     statsObj.entity.admin.connectedMax = statsObj.entity.admin.connected;
-    console.log(chalkAlert("... NEW TOTAL MAX ADMINS"
+    console.log(chalkAlert("MAX ADMINS"
      + " | " + statsObj.entity.admin.connected
      + " | " + moment().format(compactDateTimeFormat)
     ));
@@ -6842,7 +6842,7 @@ setInterval(function() {
   if (statsObj.entity.util.connected > statsObj.entity.util.connectedMax) {
     statsObj.entity.util.connectedMaxTime = moment().valueOf();
     statsObj.entity.util.connectedMax = statsObj.entity.util.connected;
-    console.log(chalkAlert("... NEW TOTAL MAX UTILS"
+    console.log(chalkAlert("MAX UTILS"
      + " | " + statsObj.entity.util.connected
      + " | " + moment().format(compactDateTimeFormat)
     ));
@@ -6851,7 +6851,7 @@ setInterval(function() {
   if (statsObj.entity.user.connected > statsObj.entity.user.connectedMax) {
     statsObj.entity.user.connectedMaxTime = moment().valueOf();
     statsObj.entity.user.connectedMax = statsObj.entity.user.connected;
-    console.log(chalkAlert("... NEW TOTAL MAX USERS"
+    console.log(chalkAlert("MAX USERS"
      + " | " + statsObj.entity.user.connected
      + " | " + moment().format(compactDateTimeFormat)
     ));
@@ -6860,7 +6860,7 @@ setInterval(function() {
   if (statsObj.entity.viewer.connected > statsObj.entity.viewer.connectedMax) {
     statsObj.entity.viewer.connectedMaxTime = moment().valueOf();
     statsObj.entity.viewer.connectedMax = statsObj.entity.viewer.connected;
-    console.log(chalkAlert("... NEW TOTAL MAX VIEWERS"
+    console.log(chalkAlert("MAX VIEWERS"
      + " | " + statsObj.entity.viewer.connected
      + " | " + moment().format(compactDateTimeFormat)
     ));

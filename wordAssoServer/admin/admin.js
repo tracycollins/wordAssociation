@@ -290,14 +290,14 @@ function initBars(callback){
   // WORDS ===============================
 
   wordCacheBarDiv = document.getElementById('words-bar');
-  wordCacheBar = new ProgressBar.Line(wordCacheBarDiv, {});
+  wordCacheBar = new ProgressBar.Line(wordCacheBarDiv, { duration: 100 });
   wordCacheBar.animate(0);
   wordCacheBarText = document.getElementById('words-bar-text');
 
   // SESSIONS ===============================
 
   sessionCacheBarDiv = document.getElementById('sessions-bar');
-  sessionCacheBar = new ProgressBar.Line(sessionCacheBarDiv, {});
+  sessionCacheBar = new ProgressBar.Line(sessionCacheBarDiv, { duration: 100 });
   sessionCacheBar.animate(0);
   sessionCacheBarText = document.getElementById('sessions-bar-text');
 
@@ -310,7 +310,7 @@ function initBars(callback){
   userIpTableBody = document.getElementById('user_ip_table_body');
 
   usersBarDiv = document.getElementById('users-bar');
-  usersBar = new ProgressBar.Line(usersBarDiv, {});
+  usersBar = new ProgressBar.Line(usersBarDiv, { duration: 100 });
   usersBar.animate(0);
   usersBarText = document.getElementById('users-bar-text');
 
@@ -323,7 +323,7 @@ function initBars(callback){
   viewerIpTableBody = document.getElementById('viewer_ip_table_body');
 
   viewersBarDiv = document.getElementById('viewers-bar');
-  viewersBar = new ProgressBar.Line(viewersBarDiv, {});
+  viewersBar = new ProgressBar.Line(viewersBarDiv, { duration: 100 });
   viewersBar.animate(0);
   viewersBarText = document.getElementById('viewers-bar-text');
 
@@ -339,28 +339,28 @@ function initBars(callback){
   utilIpTableBody = document.getElementById('util_ip_table_body');
 
   utilsBarDiv = document.getElementById('utils-bar');
-  utilsBar = new ProgressBar.Line(utilsBarDiv, {});
+  utilsBar = new ProgressBar.Line(utilsBarDiv, { duration: 100 });
   utilsBar.animate(0);
   utilsBarText = document.getElementById('utils-bar-text');
 
   memoryBarDiv = document.getElementById('memory-bar');
   memoryBarText = document.getElementById('memory-bar-text');
-  memoryBar = new ProgressBar.Line(memoryBarDiv, {});
+  memoryBar = new ProgressBar.Line(memoryBarDiv, { duration: 100 });
   memoryBar.animate(0);
 
   wordsPerMinBarDiv = document.getElementById('delta-response-bar');
   wordsPerMinBarText = document.getElementById('delta-response-bar-text');
-  wordsPerMinBar = new ProgressBar.Line(wordsPerMinBarDiv, { duration: 200 });
+  wordsPerMinBar = new ProgressBar.Line(wordsPerMinBarDiv, { duration: 100 });
   wordsPerMinBar.animate(0);
 
   tweetsPerMinBarDiv = document.getElementById('delta-tweet-bar');
   tweetsPerMinBarText = document.getElementById('delta-tweet-bar-text');
-  tweetsPerMinBar = new ProgressBar.Line(tweetsPerMinBarDiv, { duration: 200 });
+  tweetsPerMinBar = new ProgressBar.Line(tweetsPerMinBarDiv, { duration: 100 });
   tweetsPerMinBar.animate(0);
 
   twitterLimitBarDiv = document.getElementById('twitter-limit-bar');
   twitterLimitBarText = document.getElementById('twitter-limit-bar-text');
-  twitterLimitBar = new ProgressBar.Line(twitterLimitBarDiv, { duration: 200 });
+  twitterLimitBar = new ProgressBar.Line(twitterLimitBarDiv, { duration: 100 });
   twitterLimitBar.animate(0);
 
   var options = {

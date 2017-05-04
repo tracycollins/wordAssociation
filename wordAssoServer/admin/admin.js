@@ -247,6 +247,10 @@ var sessionCacheBar;
 var sessionCacheBarDiv;
 var sessionCacheBarText;
 
+var wordCacheBar;
+var wordCacheBarDiv;
+var wordCacheBarText;
+
 var tweetsPerMinBar;
 var tweetsPerMinBarDiv;
 var tweetsPerMinBarText;
@@ -282,6 +286,13 @@ function updateRawText(text){
 function initBars(callback){
  
   console.debug("INIT BARS ...");
+
+  // WORDS ===============================
+
+  wordCacheBarDiv = document.getElementById('words-bar');
+  wordCacheBar = new ProgressBar.Line(wordCacheBarDiv, {});
+  wordCacheBar.animate(0);
+  wordCacheBarText = document.getElementById('words-bar-text');
 
   // SESSIONS ===============================
 
@@ -1633,6 +1644,25 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
   sessionCacheBarText.innerHTML = (heartBeat.caches.sessionCache.stats.keys) + ' SESSIONS | ' 
   + heartBeat.caches.sessionCache.stats.keysMax + ' MAX | ' 
   + moment(heartBeat.caches.sessionCache.stats.keysMaxTime).format(defaultDateTimeFormat);
+
+
+  // WORD CACHE ==========================
+
+  var wordCacheKeysRatio = heartBeat.caches.wordCache.stats.keys / heartBeat.caches.wordCache.stats.keysMax;
+
+  wordCacheBar.animate(wordCacheKeysRatio);
+
+  if (100 * wordCacheKeysRatio >= ALERT_LIMIT_PERCENT) {
+    wordCacheBar.path.setAttribute('stroke', endColor);
+  } else if (100 * wordCacheKeysRatio >= WARN_LIMIT_PERCENT) {
+    wordCacheBar.path.setAttribute('stroke', midColor);
+  } else {
+    wordCacheBar.path.setAttribute('stroke', startColor);
+  }
+
+  wordCacheBarText.innerHTML = (heartBeat.caches.wordCache.stats.keys) + ' WORDS | ' 
+  + heartBeat.caches.wordCache.stats.keysMax + ' MAX | ' 
+  + moment(heartBeat.caches.wordCache.stats.keysMaxTime).format(defaultDateTimeFormat);
 
 
   // VIEWERS ==========================

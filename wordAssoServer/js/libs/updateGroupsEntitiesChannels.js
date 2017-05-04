@@ -631,8 +631,11 @@ function sendHashMaps(results, callback){
       callback(err, null);
     }
     else {
-      console(chalkInfo("sendHashMaps COMPLETE"
-        + "\n" + jsonPrint(results)
+      console.log(chalkInfo("sendHashMaps COMPLETE"
+        + " | G: " + result.groups
+        + " | E: " + result.entities
+        + " | K: " + result.keywords
+        // + "\n" + jsonPrint(results)
       ));
       callback(err, null);
     }

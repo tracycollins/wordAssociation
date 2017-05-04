@@ -4976,6 +4976,9 @@ function initRxWordQueueInterval(interval){
           unknownSession.userObj.type = "util";
           unknownSession.userObj.mode = wordObj.tags.mode || "UNDEFINED";
           unknownSession.userObj.nodeId = wordObj.userId + "_" + wordObj.tags.channel;
+          unknownSession.wordObj = {};
+          unknownSession.wordObj = wordObj;
+
 
           configEvents.emit("UNKNOWN_SESSION", unknownSession);
           rxWordQueueReady = true;
@@ -6555,6 +6558,9 @@ configEvents.on("UNKNOWN_SESSION", function(sesObj) {
     userReadyHandler({socketId: sesObj.socketId, userObj: sesObj.userObj}, function(err, sObj){
       if (err) {
         if (configuration.quitOnError) { quit("userReadyHandler UNKNOWN_SESSION"); }
+      }
+      else {
+        rxWordQueue.enqueue(wordObj);
       }
     });
   }

@@ -4844,7 +4844,7 @@ function sendUpdated(updatedObj, callback){
               console.log(chalkAlert("??? SESSION NOT IN CACHE" 
                 + " | NID: " + updatedWordObj.nodeId
                 + " | SID: " + updatedWordObj.sessionId
-                + "\n" + jsonPrint(updatedWordObj)
+                // + "\n" + jsonPrint(updatedWordObj)
               ));
               if (configuration.quitOnError) { quit("SESSION NOT IN CACHE"); }
               callback(err, currentSessionObj);
@@ -5593,7 +5593,7 @@ function initAppRouting(callback) {
     console.log(chalkRedBold("LOADING PAGE: /js/require.js"));
     res.sendFile(__dirname + "/js/require.js", function (err) {
       if (err) {
-        console.error('GET:', __dirname + "/js/require.js");
+        console.log(chalkAlert('GET:', __dirname + "/js/require.js"));
       } 
       else {
         console.log(chalkInfo('SENT:', __dirname + "/js/require.js"));

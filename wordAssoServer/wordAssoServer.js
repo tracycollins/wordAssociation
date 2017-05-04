@@ -3801,9 +3801,11 @@ function sortedObjectValues(obj, k, callback) {
 
   var endIndex = sortedKeys.length < 10 ? sortedKeys.length : 10;
   var i;
+
+  console.log(chalkLog("SORT ---------------------"));
+
   for (i=0; i<endIndex; i += 1){
-    console.log("SORT"
-      + " | "  + obj[sortedKeys[i]].toJSON()[k].toFixed(3)
+    console.log(obj[sortedKeys[i]].toJSON()[k].toFixed(3)
       + " | "  + sortedKeys[i] 
     );
   }
@@ -6796,7 +6798,7 @@ setInterval(function() {
     if (statsObj.caches[cacheName].stats.keys > statsObj.caches[cacheName].stats.keysMax) {
       statsObj.caches[cacheName].stats.keysMax = statsObj.caches[cacheName].stats.keys;
       statsObj.caches[cacheName].stats.keysMaxTime = moment().valueOf();
-      console.log(chalkRed("MAX CACHE KEYS"
+      console.log(chalkRed("MAX $"
         + " | " + cacheName
         + " | KEYS: " + statsObj.caches[cacheName].stats.keys
       ));

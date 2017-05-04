@@ -4025,7 +4025,7 @@ function handleSessionEvent(sesObj, callback) {
     case "SOCKET_ERROR":
     case "SOCKET_DISCONNECT":
 
-      console.log(chalkSession(
+      debug(chalkSession(
         "X " + sesObj.sessionEvent
         // + "\n" + jsonPrint(sesObj)
         + " | " + moment().format(compactDateTimeFormat) 
@@ -4041,7 +4041,6 @@ function handleSessionEvent(sesObj, callback) {
       sesObj.sessionEvent = "SESSION_DELETE";
       viewNameSpace.emit("SESSION_DELETE", sesObj.session.sessionId);
       adminNameSpace.emit("SESSION_DELETE", sesObj.session.sessionId);
-      // testViewersNameSpace.emit("SESSION_DELETE", sesObj.session.sessionId);
 
       if (sesObj.session) {
 

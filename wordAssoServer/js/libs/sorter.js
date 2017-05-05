@@ -100,7 +100,7 @@ var sorterInterval;
       
 process.on('message', function(m) {
 
-  console.log(chalkInfo("SORTER RX MESSAGE"
+  debug(chalkInfo("SORTER RX MESSAGE"
     + " | OP: " + m.op
     // + "\n" + jsonPrint(m)
   ));
@@ -120,7 +120,7 @@ process.on('message', function(m) {
         max: m.max
       };
 
-      console.log(chalkInfo("SORTER SORT"
+      console.log(chalkGreen("SORTER SORT"
         + " | OBJ KEYS: " + Object.keys(m.obj).length
       ));
       sortedObjectValues(params, function(sortedKeys){

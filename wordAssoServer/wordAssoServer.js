@@ -66,6 +66,7 @@ var sessionViewQueueInterval;
 var sessionEventHandlerInterval;
 var rxWordQueueInterval;
 var dbUpdaterMessageRxQueueInterval;
+var sorterMessageRxQueueInterval;
 var updaterMessageQueueInterval;
 var dbUpdateEntityQueueInterval;
 var dbUpdateGroupQueueInterval;
@@ -133,6 +134,7 @@ var commandLineArgs = require("command-line-args");
 var cp = require("child_process");
 var updater;
 var dbUpdater;
+var sorter;
 
 var Twit = require("twit");
 var twit;
@@ -180,6 +182,7 @@ var dbUpdateWordQueue = new Queue();
 var updaterMessageQueue = new Queue();
 var dbUpdaterMessageRxQueue = new Queue();
 var dbUpdaterMessageTxQueue = new Queue();
+var sorterMessageRxQueue = new Queue();
 
 var updateSessionViewQueue = [];
 
@@ -196,7 +199,7 @@ var OFFLINE_MODE = false;
 var internetReady = false;
 var pollTwitterFriendsIntervalTime = 5*ONE_MINUTE;
 
-var TOPTERMS_CACHE_DEFAULT_TTL = 60;
+var TOPTERMS_CACHE_DEFAULT_TTL = 300;
 var TRENDING_CACHE_DEFAULT_TTL = 300; // seconds
 var ADMIN_CACHE_DEFAULT_TTL = 300; // seconds
 var VIEWER_CACHE_DEFAULT_TTL = 300; // seconds
@@ -547,6 +550,7 @@ statsObj.memory.memoryTotal = os.totalmem();
 statsObj.memory.memoryUsage = process.memoryUsage();
 
 statsObj.queues = {};
+statsObj.queues.sorterMessageRxQueue = 0;
 statsObj.queues.dbUpdateEntityQueue = 0;
 statsObj.queues.dbUpdaterMessageRxQueue = 0;
 statsObj.queues.dbUpdateWordQueue = 0;
@@ -584,6 +588,7 @@ function showStats(options){
 
   statsObj.queues.rxWordQueue = rxWordQueue.size();
   statsObj.queues.sessionQueue = sessionQueue.size();
+  statsObj.queues.sorterMessageRxQueue = sorterMessageRxQueue.size();
   statsObj.queues.dbUpdateWordQueue = dbUpdateWordQueue.size();
   statsObj.queues.dbUpdaterMessageRxQueue = dbUpdaterMessageRxQueue.size();
   statsObj.queues.updaterMessageQueue = updaterMessageQueue.size();
@@ -830,7 +835,7 @@ console.log("WORD CACHE TTL: " + wordCacheTtl + " SECONDS");
 
 var wordsPerMinuteTopTermCache = new NodeCache({
   stdTTL: wordsPerMinuteTopTermTtl,
-  checkperiod: 5
+  checkperiod: 10
 });
 
 var adminCache = new NodeCache({
@@ -3794,29 +3799,29 @@ function adminFindAllDb(options, callback) {
   });
 }
 
-function sortedObjectValues(obj, k, callback) {
+// function sortedObjectValues(obj, k, callback) {
 
-  var keys = Object.keys(obj);
+//   var keys = Object.keys(obj);
 
-  var sortedKeys = keys.sort(function(a,b){
-    var objA = obj[a].toJSON();
-    var objB = obj[b].toJSON();
-    return objB[k] - objA[k];
-  });
+//   var sortedKeys = keys.sort(function(a,b){
+//     var objA = obj[a].toJSON();
+//     var objB = obj[b].toJSON();
+//     return objB[k] - objA[k];
+//   });
 
-  var endIndex = sortedKeys.length < 20 ? sortedKeys.length : 20;
-  var i;
+//   var endIndex = sortedKeys.length < 20 ? sortedKeys.length : 20;
+//   var i;
 
-  console.log(chalkLog("SORT ---------------------"));
+//   console.log(chalkLog("SORT ---------------------"));
 
-  for (i=0; i<endIndex; i += 1){
-    console.log(chalkLog(obj[sortedKeys[i]].toJSON()[k].toFixed(3)
-      + " | "  + sortedKeys[i] 
-    ));
-  }
+//   for (i=0; i<endIndex; i += 1){
+//     console.log(chalkLog(obj[sortedKeys[i]].toJSON()[k].toFixed(3)
+//       + " | "  + sortedKeys[i] 
+//     ));
+//   }
 
-  callback(sortedKeys);
-}
+//   callback(sortedKeys);
+// }
 
 function handleSessionEvent(sesObj, callback) {
 
@@ -5085,7 +5090,7 @@ function initRxWordQueueInterval(interval){
                 wordCacheObj.mentions++;
                 wordCacheObj.lastSeen = moment().valueOf();
 
-                console.log(chalkInfo(moment().format(compactDateTimeFormat) 
+                debug(chalkInfo(moment().format(compactDateTimeFormat) 
                   + " | RX WORD HIT"
                   + " | " + wordCacheObj.nodeId
                   + " | Ms: " + wordCacheObj.mentions
@@ -5197,6 +5202,71 @@ function queryDb(queryObj, callback){
       callback(null, queryWordObj);
     }
   });
+}
+
+var sorterMessageRxReady = true; 
+
+function initSorterMessageRxQueueInterval(interval){
+
+  console.log(chalkInfo("INIT SORTER RX MESSAGE QUEUE INTERVAL | " + interval + " MS"));
+
+  sorterMessageRxQueueInterval = setInterval(function() {
+
+    if (sorterMessageRxReady && !sorterMessageRxQueue.isEmpty()) {
+
+      sorterMessageRxReady = false;
+
+      var sorterObj = sorterMessageRxQueue.dequeue();
+
+      switch (sorterObj.op){
+        case "SORTED":
+          console.log(chalkRed("SORT ---------------------"));
+          for (var i=0; i<sorterObj.sortedKeys.length; i += 1){
+            console.log(chalkRed(wordMeter[sorterObj.sortedKeys[i]].toJSON()[sorterObj.sortKey].toFixed(3)
+              + " | "  + sorterObj.sortedKeys[i] 
+            ));
+          }
+
+          var sortedKeys = sorterObj.sortedKeys;
+          var endIndex = Math.min(maxTopTerms, sortedKeys.length);
+
+          var index;
+          var wmObj;
+          var topTermDataPoint = {};
+          var wordsPerMinuteTopTerm = {};
+
+          for (index=0; index < endIndex; index += 1){
+
+            wmObj = wordMeter[sortedKeys[index]].toJSON();
+
+            wordsPerMinuteTopTermCache.set(sortedKeys[index], wmObj["1MinuteRate"]);
+
+            wordsPerMinuteTopTerm[sortedKeys[index]] = wmObj["1MinuteRate"];
+
+            if (index === endIndex-1) {
+              adminNameSpace.emit("TWITTER_TOPTERM_1MIN", wordsPerMinuteTopTerm);
+              viewNameSpace.emit("TWITTER_TOPTERM_1MIN", wordsPerMinuteTopTerm);
+            }
+
+            if (enableGoogleMetrics && (wmObj["1MinuteRate"] > MIN_METRIC_VALUE)) {
+   
+              topTermDataPoint.displayName = sortedKeys[index];
+              topTermDataPoint.metricType = "word/top10/" + sortedKeys[index];
+              topTermDataPoint.value = wmObj["1MinuteRate"];
+              topTermDataPoint.metricLabels = {server_id: "WORD"};
+
+              addMetricDataPoint(topTermDataPoint);
+            }
+          }
+          sorterMessageRxReady = true; 
+        break;
+        
+        default:
+          console.log(chalkError("??? SORTER UNKNOWN OP\n" + jsonPrint(sorterObj)));
+          sorterMessageRxReady = true; 
+      }
+    }
+  }, interval);
 }
 
 var dbUpdaterMessageRxReady = true; 
@@ -7026,42 +7096,51 @@ function initRateQinterval(interval){
 
     if (updateTimeSeriesCount === 0){
 
-      var wordsPerMinuteTopTerm = {};
+      // var wordsPerMinuteTopTerm = {};
 
-      sortedObjectValues(wordMeter, "1MinuteRate", function(sortedKeys){
+      var params = {};
+      params.op = "SORT";
+      params.sortKey = "1MinuteRate";
+      params.max = maxTopTerms;
+      params.obj = {};
+      params.obj = wordMeter;
 
-        var endIndex = Math.min(maxTopTerms, sortedKeys.length);
+      sorter.send(params);
 
-        var index;
-        var wmObj;
-        var topTermDataPoint = {};
+      // sortedObjectValues(wordMeter, "1MinuteRate", function(sortedKeys){
 
-        for (index=0; index<endIndex; index += 1){
+      //   var endIndex = Math.min(maxTopTerms, sortedKeys.length);
 
-          wmObj = wordMeter[sortedKeys[index]].toJSON();
+      //   var index;
+      //   var wmObj;
+      //   var topTermDataPoint = {};
 
-          wordsPerMinuteTopTermCache.set(sortedKeys[index], wmObj["1MinuteRate"]);
+      //   for (index=0; index<endIndex; index += 1){
 
-          wordsPerMinuteTopTerm[sortedKeys[index]] = wmObj["1MinuteRate"];
+      //     wmObj = wordMeter[sortedKeys[index]].toJSON();
 
-          if (index === endIndex-1) {
-            adminNameSpace.emit("TWITTER_TOPTERM_1MIN", wordsPerMinuteTopTerm);
-            viewNameSpace.emit("TWITTER_TOPTERM_1MIN", wordsPerMinuteTopTerm);
-          }
+      //     wordsPerMinuteTopTermCache.set(sortedKeys[index], wmObj["1MinuteRate"]);
 
-          if (enableGoogleMetrics && (wmObj["1MinuteRate"] > MIN_METRIC_VALUE)) {
+      //     wordsPerMinuteTopTerm[sortedKeys[index]] = wmObj["1MinuteRate"];
+
+      //     if (index === endIndex-1) {
+      //       adminNameSpace.emit("TWITTER_TOPTERM_1MIN", wordsPerMinuteTopTerm);
+      //       viewNameSpace.emit("TWITTER_TOPTERM_1MIN", wordsPerMinuteTopTerm);
+      //     }
+
+      //     if (enableGoogleMetrics && (wmObj["1MinuteRate"] > MIN_METRIC_VALUE)) {
  
-            topTermDataPoint.displayName = sortedKeys[index];
-            topTermDataPoint.metricType = "word/top10/" + sortedKeys[index];
-            topTermDataPoint.value = wmObj["1MinuteRate"];
-            topTermDataPoint.metricLabels = {server_id: "WORD"};
+      //       topTermDataPoint.displayName = sortedKeys[index];
+      //       topTermDataPoint.metricType = "word/top10/" + sortedKeys[index];
+      //       topTermDataPoint.value = wmObj["1MinuteRate"];
+      //       topTermDataPoint.metricLabels = {server_id: "WORD"};
 
-            addMetricDataPoint(topTermDataPoint);
-          }
+      //       addMetricDataPoint(topTermDataPoint);
+      //     }
 
-        }
+      //   }
 
-      });
+      // });
 
       if (enableGoogleMetrics) {
 
@@ -7286,6 +7365,7 @@ initializeConfiguration(configuration, function(err, results) {
     initIgnoreWordsHashMap();
     updateTrends();
 
+    initSorterMessageRxQueueInterval(DEFAULT_INTERVAL);
     initDbUpdateEntityQueueInterval(DEFAULT_INTERVAL);
     initDbUpdateGroupQueueInterval(DEFAULT_INTERVAL);
     initDbUpdateWordQueueInterval(DEFAULT_INTERVAL);
@@ -7297,6 +7377,20 @@ initializeConfiguration(configuration, function(err, results) {
     initUpdaterMessageQueueInterval(DEFAULT_INTERVAL);
     initDbUpdaterMessageRxQueueInterval(DEFAULT_INTERVAL)
     initUpdateTrendsInterval(15*ONE_MINUTE);
+
+    sorter = cp.fork(`${__dirname}/js/libs/sorter.js`);
+    sorter.on("message", function(m){
+      console.log(chalkWarn("SORTER RX"
+        + " | " + m.op
+        // + "\n" + jsonPrint(m)
+      ));
+      sorterMessageRxQueue.enqueue(m);
+    });
+
+    sorter.send({
+      op: "INIT",
+      interval: DB_UPDATE_INTERVAL
+    });
 
     dbUpdater = cp.fork(`${__dirname}/js/libs/dbUpdater.js`);
     dbUpdater.on("message", function(m){

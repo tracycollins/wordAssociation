@@ -370,6 +370,7 @@ var ignoreWordsArray = [
 // SESSION MODES: STREAM  ( session.config.mode )
 // ==================================================================
 
+var chalkSorter = chalk.green;
 var chalkRedBold = chalk.bold.red;
 var chalkTwitter = chalk.blue;
 var chalkWapi = chalk.red;
@@ -971,9 +972,26 @@ wordCache.on("set", function(word, wordObj) {
 });
 
 
+userCache.on("expired", function(userId, userObj) {
+  if (wordMeter[userId] !== undefined) {
+    wordMeter[userId] = {};
+    delete wordMeter[userId];
+    console.log(chalkWarn("XXX WORD METER USER"
+      + " | Ks: " + Object.keys(wordMeter).length
+      + " | " + userId
+    ));
+  }
+});
+
 wordCache.on("expired", function(word, wordObj) {
-  wordMeter[wordObj.nodeId] = {};
-  delete wordMeter[wordObj.nodeId];
+  if (wordMeter[word] !== undefined) {
+    wordMeter[word] = {};
+    delete wordMeter[word];
+    debug(chalkWarn("XXX WORD METER WORD"
+      + " | Ks: " + Object.keys(wordMeter).length
+      + " | " + word
+    ));
+  }
 });
 
 trendingCache.on( "expired", function(topic, topicObj){
@@ -1068,68 +1086,7 @@ function updateWordMeter(wordObj, callback){
     });
   }
 
-  // if (wordMeter[meterWordId].toJSON().count > MIN_WORD_METER_COUNT) {
-
-  //   var meterObj = wordMeter[meterWordId].toJSON();
-
-  //   debug(chalkAlert("WM"
-  //     + " | W: " + Object.keys(wordMeter).length
-  //     + " | C: " + meterObj.count
-  //     + " | 5: " + meterObj["5MinuteRate"].toFixed(2)
-  //     + " | 1: " + meterObj["1MinuteRate"].toFixed(2)
-  //     + " | " + meterWordId
-  //   ));
-  // }
 }
-
-
-
-// ==================================================================
-// BIG HUGE THESAURUS
-// ==================================================================
-// var bigHugeLabsApiKey = "e1b4564ec38d2db399dabdf83a8beeeb";
-// var bhtEvents = new EventEmitter();
-// var bhtErrors = 0;
-// var bhtRequests = 0;
-// var bhtOverLimits = 0;
-
-// var bhtOverLimitTime = moment.utc().utcOffset("-07:00").endOf("day");
-// var bhtLimitResetTime = moment.utc().utcOffset("-07:00").endOf("day");
-// var bhtTimeToReset = moment.utc().utcOffset("-07:00").endOf("day").valueOf() - moment.utc().utcOffset("-07:00").valueOf();
-// var bhtOverLimitFlag = false;
-
-// debug("BHT OVER LIMIT TIME:  " + bhtOverLimitTime.format(compactDateTimeFormat));
-// debug("BHT OVER LIMIT RESET: " + bhtOverLimitTime.format(compactDateTimeFormat));
-// debug("BHT TIME TO RESET: " + msToTime(bhtTimeToReset));
-
-// var bhtOverLimitTimeOut = setTimeout(function() {
-//   bhtEvents.emit("BHT_OVER_LIMIT_TIMEOUT");
-// }, bhtTimeToReset);
-
-
-// ==================================================================
-// MERRIAM-WEBSTER
-// ==================================================================
-// var mwEvents = new EventEmitter();
-// var mwErrors = 0;
-// var mwRequests = 0;
-// var mwRequestLimit = MW_REQUEST_LIMIT;
-// var mwOverLimits = 0;
-
-// var mwOverLimitTime = moment.utc().utcOffset("-05:00").endOf("day");
-// var mwLimitResetTime = moment.utc().utcOffset("-05:00").endOf("day");
-// var mwTimeToReset = moment.utc().utcOffset("-05:00").endOf("day").valueOf() - moment.utc().utcOffset("-05:00").valueOf();
-// var mwOverLimitFlag = false;
-
-// debug("MW OVER LIMIT TIME:  " + mwOverLimitTime.format(compactDateTimeFormat));
-// debug("MW OVER LIMIT RESET: " + mwOverLimitTime.format(compactDateTimeFormat));
-// debug("MW TIME TO RESET: " + msToTime(mwTimeToReset));
-
-// setTimeout(function() {
-//   mwEvents.emit("MW_OVER_LIMIT_TIMEOUT");
-// }, mwTimeToReset);
-
-
 
 // ==================================================================
 // ENV INIT
@@ -3799,30 +3756,6 @@ function adminFindAllDb(options, callback) {
   });
 }
 
-// function sortedObjectValues(obj, k, callback) {
-
-//   var keys = Object.keys(obj);
-
-//   var sortedKeys = keys.sort(function(a,b){
-//     var objA = obj[a].toJSON();
-//     var objB = obj[b].toJSON();
-//     return objB[k] - objA[k];
-//   });
-
-//   var endIndex = sortedKeys.length < 20 ? sortedKeys.length : 20;
-//   var i;
-
-//   console.log(chalkLog("SORT ---------------------"));
-
-//   for (i=0; i<endIndex; i += 1){
-//     console.log(chalkLog(obj[sortedKeys[i]].toJSON()[k].toFixed(3)
-//       + " | "  + sortedKeys[i] 
-//     ));
-//   }
-
-//   callback(sortedKeys);
-// }
-
 function handleSessionEvent(sesObj, callback) {
 
   if (sesObj.sessionEvent !== "SESSION_KEEPALIVE") {
@@ -5220,9 +5153,9 @@ function initSorterMessageRxQueueInterval(interval){
 
       switch (sorterObj.op){
         case "SORTED":
-          console.log(chalkRed("SORT ---------------------"));
+          console.log(chalkSorter("SORT ---------------------"));
           for (var i=0; i<sorterObj.sortedKeys.length; i += 1){
-            console.log(chalkRed(wordMeter[sorterObj.sortedKeys[i]].toJSON()[sorterObj.sortKey].toFixed(3)
+            console.log(chalkSorter(wordMeter[sorterObj.sortedKeys[i]].toJSON()[sorterObj.sortKey].toFixed(3)
               + " | "  + sorterObj.sortedKeys[i] 
             ));
           }
@@ -5260,7 +5193,7 @@ function initSorterMessageRxQueueInterval(interval){
           }
           sorterMessageRxReady = true; 
         break;
-        
+
         default:
           console.log(chalkError("??? SORTER UNKNOWN OP\n" + jsonPrint(sorterObj)));
           sorterMessageRxReady = true; 
@@ -7380,7 +7313,7 @@ initializeConfiguration(configuration, function(err, results) {
 
     sorter = cp.fork(`${__dirname}/js/libs/sorter.js`);
     sorter.on("message", function(m){
-      console.log(chalkWarn("SORTER RX"
+      debug(chalkWarn("SORTER RX"
         + " | " + m.op
         // + "\n" + jsonPrint(m)
       ));

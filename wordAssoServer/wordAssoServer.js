@@ -191,7 +191,7 @@ hostname = hostname.replace(/word0-instance-1/g, "google");
 
 var DB_UPDATE_INTERVAL = 100;
 var GROUP_UPDATE_INTERVAL = 15000;
-var MAX_RESPONSE_QUEUE_SIZE = 250;
+var MAX_RESPONSE_QUEUE_SIZE = 1000;
 var OFFLINE_MODE = false;
 var internetReady = false;
 var pollTwitterFriendsIntervalTime = 5*ONE_MINUTE;
@@ -2439,6 +2439,11 @@ function initSessionSocketHandler(sessionObj, socket) {
         }
 
         rxWordQueue.enqueue(rxWordObj);
+
+        debug(chalkRed("RX W Q"
+          + " | Q: " + rxWordQueue.size()
+          + " | " + rxWordObj.nodeId
+        ));
       }
     });
   });
@@ -4913,6 +4918,7 @@ function initRxWordQueueInterval(interval){
 
   console.log(chalkInfo("INIT RX WORD QUEUE INTERVAL | " + interval + " MS"));
   clearInterval(rxWordQueueInterval);
+  rxWordQueueReady = true;
 
   rxWordQueueInterval = setInterval(function() {
 
@@ -4937,13 +4943,14 @@ function initRxWordQueueInterval(interval){
           + "\n" + jsonPrint(wordObj)
         ));
 
-        rxWordQueueReady = true;
+
         statsObj.session.error += 1;
         statsObj.session.wordError += 1;
         statsObj.session.wordErrorType.NODE_ID_MAX = (statsObj.session.wordErrorType.NODE_ID_MAX === undefined) 
           ? 1 
           : statsObj.session.wordErrorType.NODE_ID_MAX + 1;
 
+        rxWordQueueReady = true;
         return;
       }
 
@@ -4953,6 +4960,7 @@ function initRxWordQueueInterval(interval){
         if (err){
           console.log(chalkError("*** ERROR SESSION CACHE GET " + socketId + "\n" + jsonPrint(err)));
           if (configuration.quitOnError) { quit("ERROR SESSION CACHE GET"); }
+          rxWordQueueReady = true;
         }
         else if (currentSessionObj === undefined) {
 
@@ -5038,7 +5046,7 @@ function initRxWordQueueInterval(interval){
               return;
             }
 
-            if (!wordObj.mentions) {wordObj.mentions = 1;}
+            if (!wordObj.mentions) { wordObj.mentions = 1; }
 
             statsObj.socket.wordsReceived += 1;
 
@@ -5051,6 +5059,7 @@ function initRxWordQueueInterval(interval){
                   + " | " + err
                   + "\n" + jsonPrint(wordObj)
                 ));
+                rxWordQueueReady = true;
               }
               else if (wordCacheObj === undefined) { // RX WORD MISS
 
@@ -5063,34 +5072,38 @@ function initRxWordQueueInterval(interval){
                 currentSessionObj.wordChainIndex += 1;
 
                 sessionCache.set(currentSessionObj.sessionId, currentSessionObj, function(err, success) {
-                });
-
-                dbUpdateWord(wordObj, true, function(status, updatedWordObj) {
+                  dbUpdateWordQueue.enqueue(wordObj);
                   rxWordQueueReady = true;
                 });
+
+                // dbUpdateWord(wordObj, true, function(status, updatedWordObj) {
+                //   rxWordQueueReady = true;
+                // });
               }
               else { // RX WORD HIT
                 wordCacheObj.sessionId = currentSessionObj.sessionId;
                 wordCacheObj.mentions++;
                 wordCacheObj.lastSeen = moment().valueOf();
 
-                // console.log(chalkInfo(moment().format(compactDateTimeFormat) 
-                //   + " | RX WORD HIT"
-                //   + " | " + wordCacheObj.nodeId
-                //   + " | Ms: " + wordCacheObj.mentions
-                //   // + "\n" + jsonPrint(wordCacheObj)
-                // ));
+                console.log(chalkInfo(moment().format(compactDateTimeFormat) 
+                  + " | RX WORD HIT"
+                  + " | " + wordCacheObj.nodeId
+                  + " | Ms: " + wordCacheObj.mentions
+                  // + "\n" + jsonPrint(wordCacheObj)
+                ));
 
                 wordCacheObj.wordChainIndex = currentSessionObj.wordChainIndex;
                 currentSessionObj.wordChain.push({nodeId: wordCacheObj.nodeId, timeStamp:moment().valueOf()});
                 currentSessionObj.wordChainIndex += 1;
 
                 sessionCache.set(currentSessionObj.sessionId, currentSessionObj, function(err, success) {
-                });
-
-                dbUpdateWord(wordCacheObj, true, function(status, updatedWordObj) {
+                  dbUpdateWordQueue.enqueue(wordCacheObj);
                   rxWordQueueReady = true;
                 });
+
+                // dbUpdateWord(wordCacheObj, true, function(status, updatedWordObj) {
+                //   rxWordQueueReady = true;
+                // });
               }
             });
 
@@ -5187,9 +5200,13 @@ function queryDb(queryObj, callback){
 }
 
 var dbUpdaterMessageRxReady = true; 
+
 function initDbUpdaterMessageRxQueueInterval(interval){
+
   console.log(chalkInfo("INIT DB UPDATER MESSAGE QUEUE INTERVAL | " + interval + " MS"));
+
   dbUpdaterMessageRxQueueInterval = setInterval(function() {
+
     if (dbUpdaterMessageRxReady && !dbUpdaterMessageRxQueue.isEmpty()) {
 
       dbUpdaterMessageRxReady = false;
@@ -5454,8 +5471,11 @@ function initUpdaterMessageQueueInterval(interval){
 }
 
 var dbUpdateGroupReady = true; 
+
 function initDbUpdateGroupQueueInterval(interval){
+
   console.log(chalkInfo("INIT DB UPDATE GROUP QUEUE INTERVAL | " + interval + " MS"));
+
   dbUpdateGroupQueueInterval = setInterval(function() {
 
     if (dbUpdateGroupReady && !dbUpdateGroupQueue.isEmpty()) {
@@ -5486,8 +5506,11 @@ function initDbUpdateGroupQueueInterval(interval){
 }
 
 var dbUpdateEntityReady = true; 
+
 function initDbUpdateEntityQueueInterval(interval){
+
   console.log(chalkInfo("INIT DB UPDATE ENTITY QUEUE INTERVAL | " + interval + " MS"));
+
   dbUpdateEntityQueueInterval = setInterval(function() {
 
     if (dbUpdateEntityReady && !dbUpdateEntityQueue.isEmpty()) {
@@ -5516,18 +5539,26 @@ function initDbUpdateEntityQueueInterval(interval){
 }
 
 var dbUpdateWordReady = true;
+
 function initDbUpdateWordQueueInterval(interval){
+
   console.log(chalkInfo("INIT DB UPDATE ENTITY QUEUE INTERVAL | " + interval + " MS"));
+
   dbUpdateWordQueueInterval = setInterval(function() {
 
-  if (dbUpdateWordReady && !dbUpdateWordQueue.isEmpty()) {
+    if (dbUpdateWordReady && !dbUpdateWordQueue.isEmpty()) {
 
       dbUpdateWordReady = false;
 
       var wordObj = dbUpdateWordQueue.dequeue();
 
       dbUpdateWord(wordObj, true, function(status, updatedWordObj) {
+        debug(chalkDb("DB WORD"
+          + " | Q: " + dbUpdateWordQueue.size()
+          + " | " + updatedWordObj.nodeId
+        ));
         dbUpdateWordReady = true;
+        // quit();
       });
 
     }
@@ -6798,24 +6829,12 @@ setInterval(function() {
     if (statsObj.caches[cacheName].stats.keys > statsObj.caches[cacheName].stats.keysMax) {
       statsObj.caches[cacheName].stats.keysMax = statsObj.caches[cacheName].stats.keys;
       statsObj.caches[cacheName].stats.keysMaxTime = moment().valueOf();
-      console.log(chalkRed("MAX"
+      console.log(chalkInfo("MAX"
         + " | " + cacheName
         + " | Ks: " + statsObj.caches[cacheName].stats.keys
       ));
     }
   });
-
-  // statsObj.caches.adminCache.stats = adminCache.getStats();
-  // statsObj.caches.entityCache.stats = entityCache.getStats();
-  // statsObj.caches.groupCache.stats = groupCache.getStats();
-  // statsObj.caches.ipAddressCache.stats = ipAddressCache.getStats();
-  // statsObj.caches.sessionCache.stats = sessionCache.getStats();
-  // statsObj.caches.trendingCache.stats = trendingCache.getStats();
-  // statsObj.caches.userCache.stats = userCache.getStats();
-  // statsObj.caches.utilCache.stats = utilCache.getStats();
-  // statsObj.caches.viewerCache.stats = viewerCache.getStats();
-  // statsObj.caches.wordCache.stats = wordCache.getStats();
-  // statsObj.caches.wordsPerMinuteTopTermCache.stats = wordsPerMinuteTopTermCache.getStats();
 
   statsObj.queues.rxWordQueue = rxWordQueue.size();
   statsObj.queues.sessionQueue = sessionQueue.size();
@@ -6833,7 +6852,7 @@ setInterval(function() {
   if (statsObj.entity.admin.connected > statsObj.entity.admin.connectedMax) {
     statsObj.entity.admin.connectedMaxTime = moment().valueOf();
     statsObj.entity.admin.connectedMax = statsObj.entity.admin.connected;
-    console.log(chalkAlert("MAX ADMINS"
+    console.log(chalkInfo("MAX ADMINS"
      + " | " + statsObj.entity.admin.connected
      + " | " + moment().format(compactDateTimeFormat)
     ));
@@ -6842,7 +6861,7 @@ setInterval(function() {
   if (statsObj.entity.util.connected > statsObj.entity.util.connectedMax) {
     statsObj.entity.util.connectedMaxTime = moment().valueOf();
     statsObj.entity.util.connectedMax = statsObj.entity.util.connected;
-    console.log(chalkAlert("MAX UTILS"
+    console.log(chalkInfo("MAX UTILS"
      + " | " + statsObj.entity.util.connected
      + " | " + moment().format(compactDateTimeFormat)
     ));
@@ -6851,7 +6870,7 @@ setInterval(function() {
   if (statsObj.entity.user.connected > statsObj.entity.user.connectedMax) {
     statsObj.entity.user.connectedMaxTime = moment().valueOf();
     statsObj.entity.user.connectedMax = statsObj.entity.user.connected;
-    console.log(chalkAlert("MAX USERS"
+    console.log(chalkInfo("MAX USERS"
      + " | " + statsObj.entity.user.connected
      + " | " + moment().format(compactDateTimeFormat)
     ));
@@ -6860,7 +6879,7 @@ setInterval(function() {
   if (statsObj.entity.viewer.connected > statsObj.entity.viewer.connectedMax) {
     statsObj.entity.viewer.connectedMaxTime = moment().valueOf();
     statsObj.entity.viewer.connectedMax = statsObj.entity.viewer.connected;
-    console.log(chalkAlert("MAX VIEWERS"
+    console.log(chalkInfo("MAX VIEWERS"
      + " | " + statsObj.entity.viewer.connected
      + " | " + moment().format(compactDateTimeFormat)
     ));

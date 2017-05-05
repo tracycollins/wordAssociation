@@ -174,38 +174,6 @@ function msToTime(duration) {
   return days + ":" + hours + ":" + minutes + ":" + seconds;
 }
 
-function msToMinutes(duration) {
-  var minutes = parseInt((duration / (1000 * 60)) % 60);
-  return minutes;
-}
-
-function getTimeNow() {
-  var d = new Date();
-  return d.getTime();
-}
-
-function getTimeStamp(inputTime) {
-
-  var currentTimeStamp;
-  var options = {
-    weekday: "none",
-    year: "numeric",
-    month: "numeric",
-    day: "numeric",
-    hour: "2-digit",
-    hour12: false,
-    minute: "2-digit"
-  };
-
-  if (typeof inputTime === 'undefined') {
-    currentTimeStamp = moment();
-  } else if (moment.isMoment(inputTime)) {
-    currentTimeStamp = moment(inputTime);
-  } else {
-    currentTimeStamp = moment(parseInt(inputTime));
-  }
-  return currentTimeStamp.format("YYYY-MM-DD HH:mm:ss ZZ");
-}
 
 function initDbUpdateQueueInterval(interval){
   console.log(chalkInfo("initDbUpdateQueueInterval | " + interval + " MS"));

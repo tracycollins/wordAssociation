@@ -632,9 +632,9 @@ function sendHashMaps(results, callback){
     }
     else {
       console.log(chalkInfo("sendHashMaps COMPLETE"
-        + " | G: " + result.groups
-        + " | E: " + result.entities
-        + " | K: " + result.keywords
+        + " | G: " + results[0].groups
+        + " | E: " + results[0].entities
+        + " | K: " + results[0].keywords
         // + "\n" + jsonPrint(results)
       ));
       callback(err, null);

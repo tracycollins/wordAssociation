@@ -5155,9 +5155,11 @@ function initSorterMessageRxQueueInterval(interval){
         case "SORTED":
           console.log(chalkSorter("SORT ---------------------"));
           for (var i=0; i<sorterObj.sortedKeys.length; i += 1){
-            console.log(chalkSorter(wordMeter[sorterObj.sortedKeys[i]].toJSON()[sorterObj.sortKey].toFixed(3)
-              + " | "  + sorterObj.sortedKeys[i] 
-            ));
+            if (wordMeter[sorterObj.sortedKeys[i]] !== undefined) {
+              console.log(chalkSorter(wordMeter[sorterObj.sortedKeys[i]].toJSON()[sorterObj.sortKey].toFixed(3)
+                + " | "  + sorterObj.sortedKeys[i] 
+              ));
+            }
           }
 
           var sortedKeys = sorterObj.sortedKeys;
@@ -5170,25 +5172,28 @@ function initSorterMessageRxQueueInterval(interval){
 
           for (index=0; index < endIndex; index += 1){
 
-            wmObj = wordMeter[sortedKeys[index]].toJSON();
+            if (wordMeter[sortedKeys[index]] !== undefined) {
 
-            wordsPerMinuteTopTermCache.set(sortedKeys[index], wmObj["1MinuteRate"]);
+              wmObj = wordMeter[sortedKeys[index]].toJSON();
 
-            wordsPerMinuteTopTerm[sortedKeys[index]] = wmObj["1MinuteRate"];
+              wordsPerMinuteTopTermCache.set(sortedKeys[index], wmObj["1MinuteRate"]);
 
-            if (index === endIndex-1) {
-              adminNameSpace.emit("TWITTER_TOPTERM_1MIN", wordsPerMinuteTopTerm);
-              viewNameSpace.emit("TWITTER_TOPTERM_1MIN", wordsPerMinuteTopTerm);
-            }
+              wordsPerMinuteTopTerm[sortedKeys[index]] = wmObj["1MinuteRate"];
 
-            if (enableGoogleMetrics && (wmObj["1MinuteRate"] > MIN_METRIC_VALUE)) {
-   
-              topTermDataPoint.displayName = sortedKeys[index];
-              topTermDataPoint.metricType = "word/top10/" + sortedKeys[index];
-              topTermDataPoint.value = wmObj["1MinuteRate"];
-              topTermDataPoint.metricLabels = {server_id: "WORD"};
+              if (index === endIndex-1) {
+                adminNameSpace.emit("TWITTER_TOPTERM_1MIN", wordsPerMinuteTopTerm);
+                viewNameSpace.emit("TWITTER_TOPTERM_1MIN", wordsPerMinuteTopTerm);
+              }
 
-              addMetricDataPoint(topTermDataPoint);
+              if (enableGoogleMetrics && (wmObj["1MinuteRate"] > MIN_METRIC_VALUE)) {
+     
+                topTermDataPoint.displayName = sortedKeys[index];
+                topTermDataPoint.metricType = "word/top10/" + sortedKeys[index];
+                topTermDataPoint.value = wmObj["1MinuteRate"];
+                topTermDataPoint.metricLabels = {server_id: "WORD"};
+
+                addMetricDataPoint(topTermDataPoint);
+              }
             }
           }
           sorterMessageRxReady = true; 

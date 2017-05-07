@@ -78,8 +78,17 @@ var serverEntityChannelGroupHashMap = new HashMap();
 var keywordHashMap = new HashMap();
 
 var mongoose = require('../../config/mongoose');
+
 var db = mongoose();
+
+var Admin = require("mongoose").model("Admin");
+var Viewer = require("mongoose").model("Viewer");
+var User = require("mongoose").model("User");
+var Group = require("mongoose").model("Group");
+var Entity = require("mongoose").model("Entity");
+var Session = require("mongoose").model("Session");
 var Word = require('mongoose').model('Word');
+
 var wordServer = require('../../app/controllers/word.server.controller');
 
 
@@ -143,6 +152,14 @@ var entityChannelGroupsConfigFile;
 var keywordsFile;
 
 var statsObj = {};
+statsObj.db = {};
+statsObj.db.totalSessions = 0;
+statsObj.db.totalAdmins = 0;
+statsObj.db.totalUsers = 0;
+statsObj.db.totalViewers = 0;
+statsObj.db.totalGroups = 0;
+statsObj.db.totalEntities = 0;
+statsObj.db.totalWords = 0;
 statsObj.group = {};
 statsObj.group.errors = 0;
 statsObj.group.hashMiss = {};
@@ -180,6 +197,21 @@ process.on('message', function(m) {
         interval: m.interval
       };
 
+      updateStatsCounts(function(err, results){
+        if (err) { console.log(chalkError("STATS COUNTS ERROR\n" + jsonPrint(err))); }
+        debug(chalkRed("STATS COUNTS\n" + jsonPrint(results)));
+        process.send({ type: 'stats', db: results}, function(err){
+          statsCountsComplete = true;
+          if (err){
+            console.log(chalkError("STATS SEND ERROR\n" + err));
+          }
+          else {
+            debug(chalkInfo("UPDATER SENT STATS"
+            ));
+          }
+        });
+      });
+      initUpdateStatsCountsInterval(5*ONE_MINUTE);
       updateGroupsInterval(options);
       break;
 
@@ -631,7 +663,7 @@ function sendHashMaps(results, callback){
       callback(err, null);
     }
     else {
-      console.log(chalkInfo("sendHashMaps COMPLETE"
+      debug(chalkInfo("sendHashMaps COMPLETE"
         + " | G: " + results[0].groups
         + " | E: " + results[0].entities
         + " | K: " + results[0].keywords
@@ -908,6 +940,142 @@ function loadConfig(file, callback){
         return(callback(error, null));
       }
     });
+}
+
+var statsCountsComplete = true;
+
+function updateStatsCounts(callback) {
+
+  async.parallel({
+    totalAdmins: function (cb) {
+      Admin.count({}, function(err, count) {
+        if (err) {
+          console.log(chalkError("DB ADMIN COUNTER ERROR\n" + jsonPrint(err)));
+          cb(err, null);
+        }
+        else {
+          statsObj.db.totalAdmins = count;
+          cb(null, count);
+        }
+      });
+    },
+    totalUsers: function (cb) {
+      User.count({}, function(err, count) {
+        if (err) {
+          console.log(chalkError("DB USER COUNTER ERROR\n" + jsonPrint(err)));
+          cb(err, null);
+        }
+        else {
+          statsObj.db.totalUsers = count;
+          cb(null, count);
+        }
+      });
+    },
+    totalViewers: function (cb) {
+      Viewer.count({}, function(err, count) {
+        if (err) {
+          console.log(chalkError("DB VIEWER COUNTER ERROR\n" + jsonPrint(err)));
+          cb(err, null);
+        }
+        else {
+          statsObj.db.totalViewers = count;
+          cb(null, count);
+        }
+      });
+    },
+    totalSessions: function (cb) {
+      Session.count({}, function(err, count) {
+        if (err) {
+          console.log(chalkError("DB USER COUNTER ERROR\n" + jsonPrint(err)));
+          cb(err, null);
+        }
+        else {
+          statsObj.db.totalSessions = count;
+          cb(null, count);
+        }
+      });
+    },
+    totalWords: function (cb) {
+      Word.count({}, function(err, count) {
+        if (err) {
+          console.log(chalkError("DB USER COUNTER ERROR\n" + jsonPrint(err)));
+          cb(err, null);
+        }
+        else {
+          statsObj.db.totalWords = count;
+          cb(null, count);
+        }
+      });
+    },
+    totalGroups: function (cb) {
+      Group.count({}, function(err, count) {
+        if (err) {
+          console.log(chalkError("DB USER COUNTER ERROR\n" + jsonPrint(err)));
+          cb(err, null);
+        }
+        else {
+          statsObj.db.totalGroups = count;
+          cb(null, count);
+        }
+      });
+    },
+    totalEntities: function (cb) {
+      Entity.count({}, function(err, count) {
+        if (err) {
+          console.log(chalkError("DB USER COUNTER ERROR\n" + jsonPrint(err)));
+          cb(err, null);
+        }
+        else {
+          statsObj.db.totalEntities = count;
+          cb(null, count);
+        }
+      });
+    }
+  },
+  function(err, results) { //async.parallel callback
+    if (err) {
+      console.log(chalkError("\n" + moment().format(compactDateTimeFormat) 
+        + "!!! UPDATE STATS COUNTS ERROR: " + err));
+      statsCountsComplete = true;
+      if (callback !== undefined) { callback(err, null); }
+    } 
+    else {
+      debug(chalkInfo(moment().format(compactDateTimeFormat) + " | UPDATE STATS COUNTS COMPLETE"
+       + "\n" + jsonPrint(results)
+      ));
+      // configEvents.emit("UPDATE_STATS_COUNTS_COMPLETE", moment().format(compactDateTimeFormat));
+      statsCountsComplete = true;
+      if (callback !== undefined) { callback(null, results); }
+    }
+  });
+
+}
+
+var updateStatsCountsInterval;
+function initUpdateStatsCountsInterval(interval){
+
+  console.log(chalkRed("INIT UPDATE STATS COUNTS " + interval + " MS"));
+  clearInterval(updateStatsCountsInterval);
+
+  updateStatsCountsInterval = setInterval(function(){
+    if (statsCountsComplete){
+      statsCountsComplete = false;
+      updateStatsCounts(function(err, results){
+        if (err) { console.log(chalkError("STATS COUNTS ERROR\n" + jsonPrint(err))); }
+        debug(chalkRed("STATS COUNTS\n" + jsonPrint(results)));
+        process.send({ type: 'stats', db: results}, function(err){
+          statsCountsComplete = true;
+          if (err){
+            console.log(chalkError("STATS SEND ERROR\n" + err));
+          }
+          else {
+            debug(chalkInfo("UPDATER SENT STATS"
+            ));
+          }
+        });
+      });
+    }
+  }, interval);
 }
 
 function initGroups(dropboxConfigFile, callback){

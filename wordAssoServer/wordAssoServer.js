@@ -4,7 +4,7 @@
 // require('longjohn');
 
 var DEFAULT_INTERVAL = 10; // ms
-
+var statsCountsComplete = false;
 var maxTopTerms = 20;
 var compactDateTimeFormat = "YYYYMMDD HHmmss";
 
@@ -2597,121 +2597,119 @@ function dnsReverseLookup(ip, callback) {
   }
 }
 
-var statsCountsComplete = true;
+// var statsCountsComplete = true;
 
-var dbNodeTypes = [ "User", "Session", "Group", "Entity", "Word" ];
+// function updateStatsCounts(callback) {
 
-function updateStatsCounts(callback) {
+//   if (statsCountsComplete) {
 
-  if (statsCountsComplete) {
+//     statsCountsComplete = false;
 
-    statsCountsComplete = false;
+//     async.parallel({
+//       totalAdmins: function (cb) {
+//         Admin.count({}, function(err, count) {
+//           if (err) {
+//             console.log(chalkError("DB ADMIN COUNTER ERROR\n" + jsonPrint(err)));
+//             cb(err, null);
+//           }
+//           else {
+//             statsObj.db.totalAdmins = count;
+//             cb(null, count);
+//           }
+//         });
+//       },
+//       totalUsers: function (cb) {
+//         User.count({}, function(err, count) {
+//           if (err) {
+//             console.log(chalkError("DB USER COUNTER ERROR\n" + jsonPrint(err)));
+//             cb(err, null);
+//           }
+//           else {
+//             statsObj.db.totalUsers = count;
+//             cb(null, count);
+//           }
+//         });
+//       },
+//       totalViewers: function (cb) {
+//         Viewer.count({}, function(err, count) {
+//           if (err) {
+//             console.log(chalkError("DB VIEWER COUNTER ERROR\n" + jsonPrint(err)));
+//             cb(err, null);
+//           }
+//           else {
+//             statsObj.db.totalViewers = count;
+//             cb(null, count);
+//           }
+//         });
+//       },
+//       totalSessions: function (cb) {
+//         Session.count({}, function(err, count) {
+//           if (err) {
+//             console.log(chalkError("DB USER COUNTER ERROR\n" + jsonPrint(err)));
+//             cb(err, null);
+//           }
+//           else {
+//             statsObj.db.totalSessions = count;
+//             cb(null, count);
+//           }
+//         });
+//       },
+//       totalWords: function (cb) {
+//         Word.count({}, function(err, count) {
+//           if (err) {
+//             console.log(chalkError("DB USER COUNTER ERROR\n" + jsonPrint(err)));
+//             cb(err, null);
+//           }
+//           else {
+//             statsObj.db.totalWords = count;
+//             cb(null, count);
+//           }
+//         });
+//       },
+//       totalGroups: function (cb) {
+//         Group.count({}, function(err, count) {
+//           if (err) {
+//             console.log(chalkError("DB USER COUNTER ERROR\n" + jsonPrint(err)));
+//             cb(err, null);
+//           }
+//           else {
+//             statsObj.db.totalGroups = count;
+//             cb(null, count);
+//           }
+//         });
+//       },
+//       totalEntities: function (cb) {
+//         Entity.count({}, function(err, count) {
+//           if (err) {
+//             console.log(chalkError("DB USER COUNTER ERROR\n" + jsonPrint(err)));
+//             cb(err, null);
+//           }
+//           else {
+//             statsObj.db.totalEntities = count;
+//             cb(null, count);
+//           }
+//         });
+//       }
+//     },
+//     function(err, results) { //async.parallel callback
+//       if (err) {
+//         console.log(chalkError("\n" + moment().format(compactDateTimeFormat) 
+//           + "!!! UPDATE STATS COUNTS ERROR: " + err));
+//         statsCountsComplete = true;
+//         if (callback !== undefined) { callback(err, null); }
+//       } 
+//       else {
+//         console.log(chalkInfo(moment().format(compactDateTimeFormat) + " | UPDATE STATS COUNTS COMPLETE"
+//          + "\n" + jsonPrint(results)
+//         ));
+//         configEvents.emit("UPDATE_STATS_COUNTS_COMPLETE", moment().format(compactDateTimeFormat));
+//         statsCountsComplete = true;
+//         if (callback !== undefined) { callback(null, "UPDATE_STATS_COUNTS_COMPLETE"); }
+//       }
+//     });
 
-    async.parallel({
-      totalAdmins: function (cb) {
-        Admin.count({}, function(err, count) {
-          if (err) {
-            console.log(chalkError("DB ADMIN COUNTER ERROR\n" + jsonPrint(err)));
-            cb(err, null);
-          }
-          else {
-            statsObj.db.totalAdmins = count;
-            cb(null, count);
-          }
-        });
-      },
-      totalUsers: function (cb) {
-        User.count({}, function(err, count) {
-          if (err) {
-            console.log(chalkError("DB USER COUNTER ERROR\n" + jsonPrint(err)));
-            cb(err, null);
-          }
-          else {
-            statsObj.db.totalUsers = count;
-            cb(null, count);
-          }
-        });
-      },
-      totalViewers: function (cb) {
-        Viewer.count({}, function(err, count) {
-          if (err) {
-            console.log(chalkError("DB VIEWER COUNTER ERROR\n" + jsonPrint(err)));
-            cb(err, null);
-          }
-          else {
-            statsObj.db.totalViewers = count;
-            cb(null, count);
-          }
-        });
-      },
-      totalSessions: function (cb) {
-        Session.count({}, function(err, count) {
-          if (err) {
-            console.log(chalkError("DB USER COUNTER ERROR\n" + jsonPrint(err)));
-            cb(err, null);
-          }
-          else {
-            statsObj.db.totalSessions = count;
-            cb(null, count);
-          }
-        });
-      },
-      totalWords: function (cb) {
-        Word.count({}, function(err, count) {
-          if (err) {
-            console.log(chalkError("DB USER COUNTER ERROR\n" + jsonPrint(err)));
-            cb(err, null);
-          }
-          else {
-            statsObj.db.totalWords = count;
-            cb(null, count);
-          }
-        });
-      },
-      totalGroups: function (cb) {
-        Group.count({}, function(err, count) {
-          if (err) {
-            console.log(chalkError("DB USER COUNTER ERROR\n" + jsonPrint(err)));
-            cb(err, null);
-          }
-          else {
-            statsObj.db.totalGroups = count;
-            cb(null, count);
-          }
-        });
-      },
-      totalEntities: function (cb) {
-        Entity.count({}, function(err, count) {
-          if (err) {
-            console.log(chalkError("DB USER COUNTER ERROR\n" + jsonPrint(err)));
-            cb(err, null);
-          }
-          else {
-            statsObj.db.totalEntities = count;
-            cb(null, count);
-          }
-        });
-      }
-    },
-    function(err, results) { //async.parallel callback
-      if (err) {
-        console.log(chalkError("\n" + moment().format(compactDateTimeFormat) 
-          + "!!! UPDATE STATS COUNTS ERROR: " + err));
-        statsCountsComplete = true;
-        if (callback !== undefined) { callback(err, null); }
-      } 
-      else {
-        console.log(chalkInfo(moment().format(compactDateTimeFormat) + " | UPDATE STATS COUNTS COMPLETE"
-         + "\n" + jsonPrint(results)
-        ));
-        configEvents.emit("UPDATE_STATS_COUNTS_COMPLETE", moment().format(compactDateTimeFormat));
-        statsCountsComplete = true;
-        if (callback !== undefined) { callback(null, "UPDATE_STATS_COUNTS_COMPLETE"); }
-      }
-    });
-
-  }
-}
+//   }
+// }
 
 
 var updateSessionViewReady = true;
@@ -5242,7 +5240,7 @@ function initDbUpdaterMessageRxQueueInterval(interval){
   }, interval);
 }
 
-var updaterMessageReady = true; 
+var updaterMessageReady = true;
 function initUpdaterMessageQueueInterval(interval){
   console.log(chalkInfo("INIT UPDATER MESSAGE QUEUE INTERVAL | " + interval + " MS"));
   updaterMessageQueueInterval = setInterval(function() {
@@ -5253,6 +5251,20 @@ function initUpdaterMessageQueueInterval(interval){
       var updaterObj = updaterMessageQueue.dequeue();
 
       switch (updaterObj.type){
+        case "stats":
+          console.log(chalkLog("UPDATE STATS COMPLETE"
+            + " | DB\n" + jsonPrint(updaterObj.db)
+          ));
+          updaterMessageReady = true;
+          statsCountsComplete = true;
+          statsObj.db.totalAdmins = updaterObj.db.totalAdmins;
+          statsObj.db.totalUsers = updaterObj.db.totalUsers;
+          statsObj.db.totalViewers = updaterObj.db.totalViewers;
+          statsObj.db.totalGroups = updaterObj.db.totalGroups;
+          statsObj.db.totalSessions = updaterObj.db.totalSessions;
+          statsObj.db.totalWords = updaterObj.db.totalWords;
+        break;
+
         case "sendGroupsComplete":
           console.log(chalkLog("UPDATE GROUPS COMPLETE | " + moment().format(compactDateTimeFormat)));
           updaterMessageReady = true;
@@ -6750,8 +6762,6 @@ configEvents.on("SERVER_READY", function() {
       adminNameSpace.emit("HEARTBEAT", statsObj);
       userNameSpace.emit("HEARTBEAT", statsObj);
       viewNameSpace.emit("HEARTBEAT", statsObj);
-      // testUsersNameSpace.emit("HEARTBEAT", statsObj);
-      // testViewersNameSpace.emit("HEARTBEAT", statsObj);
 
       if (heartbeatsSent % 60 === 0) { logHeartbeat(); }
 
@@ -6893,10 +6903,10 @@ setInterval(function() {
     ));
   }
 
-  if (statsCountsComplete 
-    && (heartbeatsSent > 0) 
-    && (heartbeatsSent % 100 === 0)) { updateStatsCounts();
-  }
+  // if (statsCountsComplete 
+  //   && (heartbeatsSent > 0) 
+  //   && (heartbeatsSent % 600 === 0)) { updateStatsCounts();
+  // }
 
 }, 1000);
 
@@ -7298,7 +7308,7 @@ initializeConfiguration(configuration, function(err, results) {
   else {
     console.log(chalkLog("INITIALIZE CONFIGURATION COMPLETE\n" + jsonPrint(results)));
 
-    updateStatsCounts();
+    // updateStatsCounts();
 
     initIgnoreWordsHashMap();
     updateTrends();
@@ -7316,7 +7326,10 @@ initializeConfiguration(configuration, function(err, results) {
     initDbUpdaterMessageRxQueueInterval(DEFAULT_INTERVAL)
     initUpdateTrendsInterval(15*ONE_MINUTE);
 
+
+    // ================================
     sorter = cp.fork(`${__dirname}/js/libs/sorter.js`);
+
     sorter.on("message", function(m){
       debug(chalkWarn("SORTER RX"
         + " | " + m.op
@@ -7330,7 +7343,19 @@ initializeConfiguration(configuration, function(err, results) {
       interval: DB_UPDATE_INTERVAL
     });
 
+    sorter.on("error", function(err){
+      console.log(chalkError("*** SORTER ERROR ***\n" + jsonPrint(err)));
+      quit(err);
+    });
+
+    sorter.on("exit", function(err){
+      console.log(chalkError("*** SORTER EXIT ***\n" + jsonPrint(err)));
+      quit(err);
+    });
+
+    // ================================
     dbUpdater = cp.fork(`${__dirname}/js/libs/dbUpdater.js`);
+
     dbUpdater.on("message", function(m){
       debug(chalkWarn("DB UPDATER RX\n" + jsonPrint(m)));
       dbUpdaterMessageRxQueue.enqueue(m);
@@ -7341,7 +7366,30 @@ initializeConfiguration(configuration, function(err, results) {
       interval: DB_UPDATE_INTERVAL
     });
 
+    dbUpdater.on("error", function(err){
+      console.log(chalkError("*** DB UPDATER ERROR ***\n" + jsonPrint(err)));
+      quit(err);
+    });
+
+    dbUpdater.on("exit", function(err){
+      console.log(chalkError("*** DB UPDATER EXIT ***\n" + jsonPrint(err)));
+      quit(err);
+    });
+
+
+    // ================================
     updater = cp.fork(`${__dirname}/js/libs/updateGroupsEntitiesChannels.js`);
+
+    updater.on("error", function(err){
+      console.log(chalkError("*** UPDATER ERROR ***\n" + jsonPrint(err)));
+      quit(err);
+    });
+
+    updater.on("exit", function(err){
+      console.log(chalkError("*** UPDATER EXIT ***\n" + jsonPrint(err)));
+      quit(err);
+    });
+
     updater.on("message", function(m){
       debug(chalkWarn("UPDATER RX\n" + jsonPrint(m)));
       updaterMessageQueue.enqueue(m);

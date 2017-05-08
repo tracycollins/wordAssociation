@@ -2013,6 +2013,7 @@ socket.on('TWITTER_TOPTERM_1MIN', function(top10obj) {
 });
 
 function initSocketSessionUpdateRx(){
+  
   socket.on("SESSION_UPDATE", function(rxSessionObject) {
 
     console.info("SES " + rxSessionObject.action + " | " + rxSessionObject.sessionId);

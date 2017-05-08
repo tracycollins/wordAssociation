@@ -969,8 +969,11 @@ function ViewFlow() {
         newNode.isTwitterUser = true;
       }
     }
-    else if (newNode.nodeType === "user") {
-      newNode.raw = newNode.screenName;
+    else {
+      console.debug("NEW NODE NO RAW | " + newNode.nodeType );
+      if (newNode.nodeType === "user") {
+        newNode.raw = newNode.screenName;
+      }
     }
 
     if (newNode.isTrendingTopic) {

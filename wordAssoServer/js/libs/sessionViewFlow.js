@@ -980,7 +980,7 @@ function ViewFlow() {
     if (newNode.isSessionNode) {
       nodeAddQ.push({op:"add", node: newNode});
     }
-    else {
+    else if (newNode.nodeType !== "tweet") {
       nodeAddQ.push({op:"add", node: newNode});
     }
 

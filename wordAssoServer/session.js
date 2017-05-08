@@ -3432,8 +3432,11 @@ function loadViewType(svt, callback) {
       config.forceViewMode = "flow";
       requirejs(["js/libs/sessionViewTicker"], function() {
         console.debug("sessionViewTicker LOADED");
+
         currentSessionView = new ViewTicker();
+        initSocketNodeRx();
         initSocketSessionUpdateRx();
+
         callback();
       });
       break;
@@ -3450,8 +3453,10 @@ function loadViewType(svt, callback) {
         DEFAULT_LINK_DISTANCE= MEDIAVIEW_DEFAULT.LINK_DISTANCE;
         DEFAULT_LINK_STRENGTH = MEDIAVIEW_DEFAULT.LINK_STRENGTH;
         DEFAULT_FORCEY_MULTIPLIER = MEDIAVIEW_DEFAULT.FORCEY_MULTIPLIER;
+
         currentSessionView = new ViewMedia();
         initSocketNodeRx();
+        initSocketSessionUpdateRx();
 
         callback();
       });
@@ -3475,8 +3480,9 @@ function loadViewType(svt, callback) {
         DEFAULT_FONT_SIZE_MAX_RATIO = FLOW_DEFAULT.FONT_SIZE_MAX_RATIO;
 
         currentSessionView = new ViewFlow();
-
+        initSocketNodeRx();
         initSocketSessionUpdateRx();
+
         callback();
       });
       break;
@@ -3496,9 +3502,11 @@ function loadViewType(svt, callback) {
         DEFAULT_FORCEY_MULTIPLIER = TREEPACK_DEFAULT.FORCEY_MULTIPLIER;
         DEFAULT_FONT_SIZE_MIN_RATIO = TREEPACK_DEFAULT.FONT_SIZE_MIN_RATIO;
         DEFAULT_FONT_SIZE_MAX_RATIO = TREEPACK_DEFAULT.FONT_SIZE_MAX_RATIO;
+
         currentSessionView = new ViewTreepack();
         initSocketSessionUpdateRx();
         initSocketNodeRx();
+
         callback();
       });
       break;
@@ -3508,8 +3516,11 @@ function loadViewType(svt, callback) {
       requirejs(["js/libs/sessionViewTreemap"], function() {
         console.debug("sessionViewTreemap LOADED");
         DEFAULT_MAX_AGE = TREEMAPVIEW_DEFAULT.MAX_AGE;
+
         currentSessionView = new ViewTreemap();
         initSocketNodeRx();
+        initSocketSessionUpdateRx();
+
         callback();
       });
       break;
@@ -3521,8 +3532,11 @@ function loadViewType(svt, callback) {
         DEFAULT_MAX_AGE = HISTOGRAMVIEW_DEFAULT.MAX_AGE;
         DEFAULT_FONT_SIZE_MIN_RATIO = HISTOGRAMVIEW_DEFAULT.FONT_SIZE_MIN_RATIO;
         DEFAULT_FONT_SIZE_MAX_RATIO = HISTOGRAMVIEW_DEFAULT.FONT_SIZE_MAX_RATIO;
+
         currentSessionView = new ViewHistogram();
         initSocketNodeRx();
+        initSocketSessionUpdateRx();
+
         callback();
       });
       break;
@@ -3542,8 +3556,11 @@ function loadViewType(svt, callback) {
         DEFAULT_FORCEY_MULTIPLIER = FORCEVIEW_DEFAULT.FORCEY_MULTIPLIER;
         DEFAULT_FONT_SIZE_MIN_RATIO = FORCEVIEW_DEFAULT.FONT_SIZE_MIN_RATIO;
         DEFAULT_FONT_SIZE_MAX_RATIO = FORCEVIEW_DEFAULT.FONT_SIZE_MAX_RATIO;
+
         currentSessionView = new ViewForce();
         initSocketNodeRx();
+        initSocketSessionUpdateRx();
+
         callback();
       });
       break;

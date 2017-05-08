@@ -779,6 +779,7 @@ function ViewFlow() {
         }
         if (antonymFlag && d.antonym) { return "[" + d.antonym + "]";  }
         return d.raw.toUpperCase();
+        // return d.nodeId.toUpperCase();
       })
       .attr("x", function(d) { return d.x; })
       .attr("y", function(d) { return d.y; })
@@ -897,13 +898,12 @@ function ViewFlow() {
   };
 
   this.addSession = function(newSession) {
-    // console.info("+ SES" 
-    //   + " " + newSession.sessionId
-    // );
+    console.info("+ SES" 
+      + " " + newSession.sessionId
+    );
   };
 
   this.deleteSessionLinks = function(){
-
   };
 
   this.sessionKeepalive = function(session) {
@@ -1026,7 +1026,6 @@ function ViewFlow() {
         }).iterations(collisionIterations))
       .velocityDecay(velocityDecay)
       .on("tick", ticked);
-
   };
 
   this.simulationControl = function(op) {

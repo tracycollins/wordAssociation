@@ -974,6 +974,9 @@ function ViewFlow() {
       if (newNode.nodeType === "user") {
         newNode.raw = newNode.screenName;
       }
+      if (newNode.nodeType === "hashtag") {
+        newNode.raw = newNode.text;
+      }
       if (newNode.nodeType === "place") {
         newNode.raw = newNode.fullName;
       }

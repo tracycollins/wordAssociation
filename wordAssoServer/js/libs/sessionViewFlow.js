@@ -969,6 +969,9 @@ function ViewFlow() {
         newNode.isTwitterUser = true;
       }
     }
+    else if (newNode.nodeType === "user") {
+      newNode.raw = newNode.screenName;
+    }
 
     if (newNode.isTrendingTopic) {
       console.log("TT" 

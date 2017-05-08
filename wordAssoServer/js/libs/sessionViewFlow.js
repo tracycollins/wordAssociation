@@ -973,8 +973,9 @@ function ViewFlow() {
       console.debug("NEW NODE NO RAW | " + newNode.nodeType );
       if (newNode.nodeType === "user") {
         newNode.raw = newNode.screenName;
+      }
       if (newNode.nodeType === "place") {
-        newNode.raw = newNode.screenName;
+        newNode.raw = newNode.fullName;
       }
     }
 

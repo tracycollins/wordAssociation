@@ -973,6 +973,8 @@ function ViewFlow() {
       console.debug("NEW NODE NO RAW | " + newNode.nodeType );
       if (newNode.nodeType === "user") {
         newNode.raw = newNode.screenName;
+      if (newNode.nodeType === "place") {
+        newNode.raw = newNode.screenName;
       }
     }
 
@@ -987,6 +989,7 @@ function ViewFlow() {
       nodeAddQ.push({op:"add", node: newNode});
     }
     else if ((newNode.nodeType !== "tweet") 
+      && (newNode.nodeType !== "url")
       && (newNode.nodeType !== "media")) {
       nodeAddQ.push({op:"add", node: newNode});
     }

@@ -1,7 +1,18 @@
 /*jslint node: true */
 "use strict";
 
+var ONE_SECOND = 1000;
+var ONE_MINUTE = ONE_SECOND * 60;
+var ONE_HOUR = ONE_MINUTE * 60;
+var ONE_DAY = ONE_HOUR * 24;
+
 var compactDateTimeFormat = "YYYYMMDD HHmmss";
+
+var initGroupsInterval;
+var updateStatsCountsInterval;
+
+var initGroupsReady = true;
+var statsCountsComplete = true;
 
 var DEFAULT_KEYWORD_VALUE = 100 // on scale of 1-100
 var deleteKeywordsEnabled = false;
@@ -22,6 +33,23 @@ hostname = hostname.replace(/word0-instance-1/g, 'google');
 var prevKeywordModifiedMoment = moment("2010-01-01");
 var prevGroupsModifiedMoment = moment("2010-01-01");
 var prevEntitiesFileClientModifiedMoment = moment("2010-01-01");
+
+var statsObj = {};
+statsObj.db = {};
+statsObj.db.totalSessions = 0;
+statsObj.db.totalAdmins = 0;
+statsObj.db.totalUsers = 0;
+statsObj.db.totalViewers = 0;
+statsObj.db.totalGroups = 0;
+statsObj.db.totalEntities = 0;
+statsObj.db.totalWords = 0;
+statsObj.group = {};
+statsObj.group.errors = 0;
+statsObj.group.hashMiss = {};
+statsObj.group.allHashMisses = {};
+statsObj.entityChannelGroup = {};
+statsObj.entityChannelGroup.hashMiss = {};
+statsObj.entityChannelGroup.allHashMisses = {};
 
 var jsonPrint = function(obj) {
   if (obj) {
@@ -50,20 +78,6 @@ process.on('SIGHUP', function() {
 process.on('SIGINT', function() {
   quit('SIGINT');
 });
-
-
-// ==================================================================
-// GLOBAL VARIABLES
-// ==================================================================
-var ONE_SECOND = 1000;
-var ONE_MINUTE = ONE_SECOND * 60;
-var ONE_HOUR = ONE_MINUTE * 60;
-var ONE_DAY = ONE_HOUR * 24;
-
-
-// ==================================================================
-// NODE MODULE DECLARATIONS
-// ==================================================================
 
 
 var async = require('async');
@@ -104,11 +118,7 @@ console.log(
   + '====================================================================================================\n\n'
 );
 
-// ==================================================================
-// LOGS, STATS
-// ==================================================================
 var chalk = require('chalk');
-
 var chalkRed = chalk.red;
 var chalkGreen = chalk.green;
 var chalkInfo = chalk.gray;
@@ -119,9 +129,6 @@ var chalkWarn = chalk.bold.yellow;
 var chalkLog = chalk.black;
 
 
-// ==================================================================
-// ENV INIT
-// ==================================================================
 if (debug.enabled) {
   console.log("UPDATER: \n%%%%%%%%%%%%%%\n%%%%%%% DEBUG ENABLED %%%%%%%\n%%%%%%%%%%%%%%\n");
 }
@@ -141,32 +148,10 @@ debug("DROPBOX_WORD_ASSO_APP_SECRET :" + DROPBOX_WORD_ASSO_APP_SECRET);
 
 var dropboxClient = new Dropbox({ accessToken: DROPBOX_WORD_ASSO_ACCESS_TOKEN });
 
-// var dropboxClient = new Dropbox.Client({
-//   token: DROPBOX_WORD_ASSO_ACCESS_TOKEN,
-//   key: DROPBOX_WORD_ASSO_APP_KEY,
-//   secret: DROPBOX_WORD_ASSO_APP_SECRET
-// });
-
 var groupsConfigFile;
 var entityChannelGroupsConfigFile;
 var keywordsFile;
 
-var statsObj = {};
-statsObj.db = {};
-statsObj.db.totalSessions = 0;
-statsObj.db.totalAdmins = 0;
-statsObj.db.totalUsers = 0;
-statsObj.db.totalViewers = 0;
-statsObj.db.totalGroups = 0;
-statsObj.db.totalEntities = 0;
-statsObj.db.totalWords = 0;
-statsObj.group = {};
-statsObj.group.errors = 0;
-statsObj.group.hashMiss = {};
-statsObj.group.allHashMisses = {};
-statsObj.entityChannelGroup = {};
-statsObj.entityChannelGroup.hashMiss = {};
-statsObj.entityChannelGroup.allHashMisses = {};
 
 process.on('message', function(m) {
 
@@ -175,6 +160,17 @@ process.on('message', function(m) {
   switch (m.op) {
 
     case "INIT":
+
+      clearInterval(initGroupsInterval);
+      clearInterval(updateStatsCountsInterval);
+
+      statsCountsComplete = true;
+      initGroupsReady = true;
+      sendingHashMapsFlag = false;
+
+      prevKeywordModifiedMoment = moment("2010-01-01");
+      prevGroupsModifiedMoment = moment("2010-01-01");
+      prevEntitiesFileClientModifiedMoment = moment("2010-01-01");
 
       console.log(chalkInfo("UPDATE GROUP ENTITIES CHANNELS INIT"
         + " | FOLDER: " + m.folder
@@ -240,7 +236,6 @@ process.on('message', function(m) {
     console.log(chalkError("??? updateGroupsEntitiesKeywords RX UNKNOWN MESSAGE\n" + jsonPrint(m)));
 
   }
-
 });
 
 function getFileMetadata(path, file, callback) {
@@ -672,7 +667,7 @@ function sendHashMaps(results, callback){
       callback(err, null);
     }
   });
- }
+}
 
 function sendGroups(callback){
 
@@ -810,9 +805,6 @@ function sendKeywords(callback){
   );
 }
 
-var initGroupsInterval;
-var initGroupsReady = true;
-
 function updateGroupsInterval(options){
 
   clearInterval(initGroupsInterval);
@@ -855,35 +847,6 @@ function updateGroupsInterval(options){
       });
     }
   }, options.interval);
-}
-
-
-// ==================================================================
-// FUNCTIONS
-// ==================================================================
-function msToTime(duration) {
-  var milliseconds = parseInt((duration % 1000) / 100),
-    seconds = parseInt((duration / 1000) % 60),
-    minutes = parseInt((duration / (1000 * 60)) % 60),
-    hours = parseInt((duration / (1000 * 60 * 60)) % 24),
-    days = parseInt(duration / (1000 * 60 * 60 * 24));
-
-  days = (days < 10) ? "0" + days : days;
-  hours = (hours < 10) ? "0" + hours : hours;
-  minutes = (minutes < 10) ? "0" + minutes : minutes;
-  seconds = (seconds < 10) ? "0" + seconds : seconds;
-
-  return days + ":" + hours + ":" + minutes + ":" + seconds;
-}
-
-function msToMinutes(duration) {
-  var minutes = parseInt((duration / (1000 * 60)) % 60);
-  return minutes;
-}
-
-function getTimeNow() {
-  var d = new Date();
-  return d.getTime();
 }
 
 function getTimeStamp(inputTime) {
@@ -941,8 +904,6 @@ function loadConfig(file, callback){
       }
     });
 }
-
-var statsCountsComplete = true;
 
 function updateStatsCounts(callback) {
 
@@ -1048,10 +1009,8 @@ function updateStatsCounts(callback) {
       if (callback !== undefined) { callback(null, results); }
     }
   });
-
 }
 
-var updateStatsCountsInterval;
 function initUpdateStatsCountsInterval(interval){
 
   console.log(chalkRed("INIT UPDATE STATS COUNTS " + interval + " MS"));
@@ -1105,12 +1064,7 @@ function initEntityChannelGroups(dropboxConfigFile, callback){
       return(callback(err, loadedConfigObj));
     }
     else {
-      // console.error(dropboxConfigFile + "\n" + jsonPrint(err));
       return(callback(err, loadedConfigObj));
      }
   });
 }
-
-//=================================
-// BEGIN !!
-//=================================

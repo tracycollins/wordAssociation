@@ -1118,9 +1118,6 @@ var DROPBOX_WORD_ASSO_APP_SECRET = process.env.DROPBOX_WORD_ASSO_APP_SECRET;
 var WA_STATS_FILE = process.env.WA_STATS_FILE;
 var DROPBOX_WA_STATS_FILE = process.env.DROPBOX_WA_STATS_FILE || "wordAssoServerStats.json";
 
-// var dropboxHostStatsFile = "/stats/" + hostname + "/" + hostname + "_" + process.pid + "_" + WA_STATS_FILE;
-// var dropboxHostStatsFile = "/stats/" + hostname;
-
 var statsFolder = "/stats/" + hostname;
 var statsFile = DROPBOX_WA_STATS_FILE;
 
@@ -1129,17 +1126,9 @@ console.log("DROPBOX_WORD_ASSO_APP_KEY :" + DROPBOX_WORD_ASSO_APP_KEY);
 console.log("DROPBOX_WORD_ASSO_APP_SECRET :" + DROPBOX_WORD_ASSO_APP_SECRET);
 
 var serverGroupsFile = hostname + "_groups.json";
-// var serverEntitiesFile = hostname + "_entities.json";
 var serverKeywordsFile = hostname + "_keywords.json";
 
 var dropboxClient = new Dropbox({ accessToken: DROPBOX_WORD_ASSO_ACCESS_TOKEN });
-
-// if (OFFLINE_MODE) {
-//   statsFile = offlineStatsFile;
-// } 
-// else {
-//   statsFile = dropboxHostStatsFile;
-// }
 
 function loadYamlConfig(yamlFile, callback){
   console.log(chalkInfo("LOADING YAML CONFIG FILE: " + yamlFile));
@@ -7044,8 +7033,6 @@ function initRateQinterval(interval){
 
     if (updateTimeSeriesCount === 0){
 
-      // var wordsPerMinuteTopTerm = {};
-
       var params = {};
       params.op = "SORT";
       params.sortKey = "1MinuteRate";
@@ -7054,41 +7041,6 @@ function initRateQinterval(interval){
       params.obj = wordMeter;
 
       sorter.send(params);
-
-      // sortedObjectValues(wordMeter, "1MinuteRate", function(sortedKeys){
-
-      //   var endIndex = Math.min(maxTopTerms, sortedKeys.length);
-
-      //   var index;
-      //   var wmObj;
-      //   var topTermDataPoint = {};
-
-      //   for (index=0; index<endIndex; index += 1){
-
-      //     wmObj = wordMeter[sortedKeys[index]].toJSON();
-
-      //     wordsPerMinuteTopTermCache.set(sortedKeys[index], wmObj["1MinuteRate"]);
-
-      //     wordsPerMinuteTopTerm[sortedKeys[index]] = wmObj["1MinuteRate"];
-
-      //     if (index === endIndex-1) {
-      //       adminNameSpace.emit("TWITTER_TOPTERM_1MIN", wordsPerMinuteTopTerm);
-      //       viewNameSpace.emit("TWITTER_TOPTERM_1MIN", wordsPerMinuteTopTerm);
-      //     }
-
-      //     if (enableGoogleMetrics && (wmObj["1MinuteRate"] > MIN_METRIC_VALUE)) {
- 
-      //       topTermDataPoint.displayName = sortedKeys[index];
-      //       topTermDataPoint.metricType = "word/top10/" + sortedKeys[index];
-      //       topTermDataPoint.value = wmObj["1MinuteRate"];
-      //       topTermDataPoint.metricLabels = {server_id: "WORD"};
-
-      //       addMetricDataPoint(topTermDataPoint);
-      //     }
-
-      //   }
-
-      // });
 
       if (enableGoogleMetrics) {
 
@@ -7105,10 +7057,8 @@ function initRateQinterval(interval){
           queueDataPoint.metricType = "word/queues/" + queueName;
           queueDataPoint.value = statsObj.queues[queueName];
           queueDataPoint.metricLabels = {server_id: "QUEUE"};
-          // queueDataPoint.displayName = queueName;
           addMetricDataPoint(queueDataPoint);
-        });
-        
+        }); 
       }
 
       if (enableGoogleMetrics) {
@@ -7130,7 +7080,6 @@ function initRateQinterval(interval){
         memoryHeapTotalDataPoint.value = statsObj.memory.memoryUsage.heapTotal;
         memoryHeapTotalDataPoint.metricLabels = {server_id: "MEM"};
         addMetricDataPoint(memoryHeapTotalDataPoint);
-
       }
 
       if (enableGoogleMetrics && tssServer.connected) {

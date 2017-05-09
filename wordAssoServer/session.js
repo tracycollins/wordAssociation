@@ -2013,7 +2013,7 @@ socket.on('TWITTER_TOPTERM_1MIN', function(top10obj) {
 });
 
 function initSocketSessionUpdateRx(){
-  
+
   socket.on("SESSION_UPDATE", function(rxSessionObject) {
 
     console.info("SES " + rxSessionObject.action + " | " + rxSessionObject.sessionId);
@@ -2063,7 +2063,9 @@ function initSocketNodeRx(){
     if ((nNode.nodeType !== "user") 
       && (nNode.nodeType !== "hashtag") 
       && (nNode.nodeType !== "word")
+      && (nNode.nodeType !== "place")
       && ((config.sessionViewType === "histogram")
+      || (config.sessionViewType === "flow")
       || (config.sessionViewType === "treemap")
       || (config.sessionViewType === "treepack"))) {
       return;
@@ -3435,7 +3437,7 @@ function loadViewType(svt, callback) {
         console.debug("sessionViewTicker LOADED");
 
         currentSessionView = new ViewTicker();
-        initSocketNodeRx();
+        // initSocketNodeRx();
         initSocketSessionUpdateRx();
 
         callback();
@@ -3481,7 +3483,7 @@ function loadViewType(svt, callback) {
         DEFAULT_FONT_SIZE_MAX_RATIO = FLOW_DEFAULT.FONT_SIZE_MAX_RATIO;
 
         currentSessionView = new ViewFlow();
-        initSocketNodeRx();
+        // initSocketNodeRx();
         initSocketSessionUpdateRx();
 
         callback();

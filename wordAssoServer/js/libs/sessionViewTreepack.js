@@ -1134,6 +1134,11 @@ function ViewTreepack() {
         + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns 
         + " | " + node.screenName.toUpperCase() ;
       }
+      else if (node.nodeType === "place") { 
+        displaytext = new Array(ratePadSpaces).join("\xa0") + rate 
+        + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns 
+        + " | " + node.name.toUpperCase() ;
+      }
       else if (testMode) { 
         displaytext = new Array(ratePadSpaces).join("\xa0") + rate 
         + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns 
@@ -1341,7 +1346,12 @@ function ViewTreepack() {
     if (nNode.mentions > currentMax.mentions.value) { 
 
       currentMax.mentions.value = nNode.mentions; 
-      currentMax.mentions.nodeId = nNode.nodeId; 
+      if (nNode.nodeType === "place") {
+        currentMax.mentions.nodeId = nNode.name; 
+      }
+      else {
+        currentMax.mentions.nodeId = nNode.nodeId; 
+      }
       currentMax.mentions.timeStamp = moment().valueOf(); 
 
       if (metricMode === "mentions") {
@@ -1364,8 +1374,13 @@ function ViewTreepack() {
 
     if (nNode.rate > currentMax.rate.value) { 
 
-      currentMax.rate.value = nNode.rate; 
-      currentMax.rate.nodeId = nNode.nodeId; 
+      currentMax.rate.value = nNode.rate;
+      if (nNode.nodeType === "place") {
+        currentMax.rate.nodeId = nNode.name; 
+      }
+      else {
+        currentMax.rate.nodeId = nNode.nodeId; 
+      }
       currentMax.rate.timeStamp = moment().valueOf(); 
 
       if (metricMode === "rate") {

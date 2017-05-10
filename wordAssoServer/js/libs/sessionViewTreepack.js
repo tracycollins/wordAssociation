@@ -1137,7 +1137,7 @@ function ViewTreepack() {
       else if (node.nodeType === "place") { 
         displaytext = new Array(ratePadSpaces).join("\xa0") + rate 
         + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns 
-        + " | " + node.name.toUpperCase() ;
+        + " | " + node.fullName.toUpperCase() ;
       }
       else if (testMode) { 
         displaytext = new Array(ratePadSpaces).join("\xa0") + rate 
@@ -1347,7 +1347,7 @@ function ViewTreepack() {
 
       currentMax.mentions.value = nNode.mentions; 
       if (nNode.nodeType === "place") {
-        currentMax.mentions.nodeId = nNode.name; 
+        currentMax.mentions.nodeId = nNode.fullName; 
       }
       else {
         currentMax.mentions.nodeId = nNode.nodeId; 
@@ -1376,7 +1376,7 @@ function ViewTreepack() {
 
       currentMax.rate.value = nNode.rate;
       if (nNode.nodeType === "place") {
-        currentMax.rate.nodeId = nNode.name; 
+        currentMax.rate.nodeId = nNode.fullName; 
       }
       else {
         currentMax.rate.nodeId = nNode.nodeId; 

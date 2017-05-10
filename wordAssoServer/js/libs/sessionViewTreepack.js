@@ -312,14 +312,22 @@ function ViewTreepack() {
     .attr("x", 1e-6)
     .attr("y", 1e-6);
 
+  var svgTopTermLayoutArea = svgMain.append("g")
+    .attr("id", "svgTopTermLayoutArea")
+    .attr("width", width)
+    .attr("height", height)
+    .attr("x", 1e-6)
+    .attr("y", 1e-6);
+
+
   var panzoomElement = document.getElementById('svgTreemapLayoutArea');
   panzoom(panzoomElement, {zoomSpeed: 0.030});
 
 //============TREEMAP=================================
 
+  var nodeTopTermLabelSvgGroup = svgTopTermLayoutArea.append("svg:g").attr("id", "nodeTopTermLabelSvgGroup");
   var nodeSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeSvgGroup");
   var nodeLabelSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeLabelSvgGroup");
-  var nodeTopTermLabelSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeTopTermLabelSvgGroup");
 
   var divTooltip = d3.select("body").append("div")
     .attr("class", "tooltip")
@@ -1571,6 +1579,12 @@ function ViewTreepack() {
       .attr("y", 1e-6);
 
     svgTreemapLayoutArea
+      .attr("width", width)
+      .attr("height", height)
+      .attr("x", 1e-6)
+      .attr("y", 1e-6);
+
+    svgTopTermLayoutArea
       .attr("width", width)
       .attr("height", height)
       .attr("x", 1e-6)

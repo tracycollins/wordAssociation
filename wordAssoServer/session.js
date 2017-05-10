@@ -2135,6 +2135,8 @@ function initSocketNodeRx(){
     }
     if (nNode.nodeType === "place"){
       newNode.placeId = nNode.placeId;
+      newNode.nodeId = nNode.nodeId;
+      newNode.name = nNode.name;
       newNode.fullName = nNode.fullName;
       newNode.sourceUrl = nNode.sourceUrl;
     }

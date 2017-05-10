@@ -737,6 +737,13 @@ function ViewTreepack() {
           + "<br>" + d.rate.toFixed(2) + " WPM"
           + "<br>URL: " + d.url;
       break;
+      case 'place':
+        tooltipString = d.fullName
+          + "<br>TYPE: " + d.nodeType 
+          + "<br>KEYWORDS: " + jsonPrint(d.keywords)
+          + "<br>Ms: " + d.mentions
+          + "<br>" + d.rate.toFixed(2) + " WPM";
+      break;
     }
 
     divTooltip.html(tooltipString)
@@ -968,30 +975,15 @@ function ViewTreepack() {
       });
 
     nodeLabels
-      .attr("x", function(d) { 
-        // if (!d.nodeId) { 
-        //   console.warn("UNDEFINED d.nodeId");
-        //   return 0.5*width; }
-        // if (d.x === undefined) { 
-        //   console.warn("UNDEFINED d.x " + d.nodeId);
-        //   return 0.5*width; 
-        // }
-        return d.x; 
-      })
-      .attr("y", function(d) { 
-        // if (!d.nodeId) { 
-        //   console.warn("UNDEFINED d.nodeId");
-        //   return 0.5*height; 
-        // }
-        // if (d.y === undefined) { 
-        //   console.warn("UNDEFINED d.y " + d.nodeId);
-        //   return 0.5*height; 
-        // }
-        return d.y; 
-      })
+      .attr("x", function(d) { return d.x; })
+      .attr("y", function(d) { return d.y; })
       .text(function(d) {
         if (d.isTwitterUser) { return "@" + d.screenName.toUpperCase(); }
-        if (d.isKeyword || d.isTrendingTopic || d.isTwitterUser) { return d.nodeId.toUpperCase(); }
+        if (d.isKeyword || d.isTrendingTopic || d.isTwitterUser) { 
+          if (d.nodeType === "place") { return d.fullName.toUpperCase(); }
+          return d.nodeId.toUpperCase(); 
+        }
+        if (d.nodeType === "place") { return d.fullName; }
         if (testMode) { return "blah"; }
         return d.nodeId; 
       })
@@ -1029,7 +1021,11 @@ function ViewTreepack() {
       })
       .text(function(d) {
         if (d.isTwitterUser) { return "@" + d.screenName.toUpperCase(); }
-        if (d.isKeyword || d.isTrendingTopic || d.isTwitterUser) { return d.nodeId.toUpperCase(); }
+        if (d.isKeyword || d.isTrendingTopic || d.isTwitterUser) { 
+          if (d.nodeType === "place") { return d.fullName.toUpperCase(); }
+          return d.nodeId.toUpperCase(); 
+        }
+        if (d.nodeType === "place") { return d.fullName; }
         if (testMode) { return "blah"; }
         return d.nodeId; 
       })

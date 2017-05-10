@@ -1036,7 +1036,7 @@ function updateWordMeter(wordObj, callback){
     }
   }
   else if (wordObj.nodeType === "place") {
-    meterWordId = wordObj.name;
+    meterWordId = wordObj.name.toLowerCase();
   }
   else {
     meterWordId = wordObj.nodeId;
@@ -1283,6 +1283,14 @@ function checkKeyword(w, callback) {
     && keywordHashMap.has(wordObj.screenName.toLowerCase())) {
     debug(chalkAlert("HIT USER SNAME"));
     kwObj = keywordHashMap.get(wordObj.screenName.toLowerCase());
+    wordObj.isKeyword = true;
+    wordObj.keywords = kwObj;    
+    callback(wordObj);
+  }
+  else if ((wordObj.nodeType === "place") 
+    && keywordHashMap.has(wordObj.name.toLowerCase())) {
+    debug(chalkAlert("HIT PLACE NAME"));
+    kwObj = keywordHashMap.get(wordObj.name.toLowerCase());
     wordObj.isKeyword = true;
     wordObj.keywords = kwObj;    
     callback(wordObj);

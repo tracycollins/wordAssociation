@@ -11,7 +11,7 @@ module.exports = function() {
 			reconnectTries: 14000,
 			socketOptions: { 
 				// reconnectTries: 14000,
-				keepAlive: 1,
+				keepAlive: 1000,
 				socketTimeoutMS: 180000,
 				connectTimeoutMS: 180000 
 			}

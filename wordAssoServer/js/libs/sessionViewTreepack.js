@@ -770,9 +770,19 @@ function ViewTreepack() {
     var url = "";
 
     switch (d.nodeType) {
+      case "user" :
+        // url = "https://twitter.com/search?f=realtime&q=%23" + d.text ;
+        url = "https://twitter.com/search?f=tweets&q=%3A" + d.screenName ;
+        window.open(url, '_blank');
+      break;
       case "hashtag" :
         // url = "https://twitter.com/search?f=realtime&q=%23" + d.text ;
         url = "https://twitter.com/search?f=tweets&q=%23" + d.text ;
+        window.open(url, '_blank');
+      break;
+      case "place" :
+        // url = "https://twitter.com/search?f=realtime&q=%23" + d.text ;
+        url = "http://twitter.com/search?q=place%" + d.placeId ;
         window.open(url, '_blank');
       break;
     }

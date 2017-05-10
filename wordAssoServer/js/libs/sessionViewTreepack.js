@@ -782,7 +782,7 @@ function ViewTreepack() {
       break;
       case "place" :
         // url = "https://twitter.com/search?f=realtime&q=%23" + d.text ;
-        url = "http://twitter.com/search?q=place%" + d.placeId ;
+        url = "http://twitter.com/search?q=place%3A" + d.placeId ;
         window.open(url, '_blank');
       break;
     }

@@ -19,6 +19,8 @@ var chalkPlace = chalk.bold.green;
 var chalkDb = chalk.gray;
 
 var moment = require('moment');
+var compactDateTimeFormat = "YYYYMMDD HHmmss";
+
 var Word = require('mongoose').model('Word');
 var debug = require('debug')('word');
 var HashMap = require('hashmap').HashMap;
@@ -206,7 +208,16 @@ exports.findOneWord = function(word, incMentions, callback) {
 		options,
 		function(err, wd) {
 			if (err) {
-				console.error(Date.now() + "\n\n***** WORD FINDONE ERROR: " + word.nodeId + "\n" + err);
+				console.log(chalkError(moment().format(compactDateTimeFormat) 
+					+ " | " + "***** WORD FINDONE ERROR" 
+					+ " | " + word.nodeId 
+					+ "\n" + err
+				));
+				console.error(moment().format(compactDateTimeFormat) 
+					+ " | " + "***** WORD FINDONE ERROR" 
+					+ " | " + word.nodeId 
+					+ "\n" + err
+				);
 				callback("ERROR " + err, null);
 			}
 			else {

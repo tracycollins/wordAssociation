@@ -31,14 +31,15 @@ exports.findOnePhrase = function(phrase, incMentions, callback) {
 	var inc = 0;
 	if (incMentions) inc = 1 ;
 
-	var query = { nodeId: phrase.nodeId  };
+	var query = { phraseId: phrase.phraseId  };
 	var update = { 
 					$inc: { mentions: inc }, 
 					$set: { 
-						nodeId: phrase.nodeId,
+						phraseId: phrase.phraseId,
+						nodeId: phrase.phraseId,
 						raw: phrase.raw,
 						url: phrase.url,
-						lastSeen: moment()
+						lastSeen: moment().valueOf()
 					}
 				};
 	var options = { 

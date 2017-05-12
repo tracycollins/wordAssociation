@@ -6605,14 +6605,18 @@ var createUnknownSessionFlag = true;
 configEvents.on("UNKNOWN_SESSION", function(sesObj) {
 
   if (createUnknownSessionFlag) {
-    userReadyHandler({socketId: sesObj.socketId, userObj: sesObj.userObj}, function(err, sObj){
-      if (err) {
-        if (configuration.quitOnError) { quit("userReadyHandler UNKNOWN_SESSION"); }
-      }
-      else {
-        rxWordQueue.enqueue(wordObj);
-      }
+
+    sessionCache.set(sesObj.socketId, sesObj, function(err, results){
+      userReadyHandler({socketId: sesObj.socketId, userObj: sesObj.userObj}, function(err, sObj){
+        if (err) {
+          if (configuration.quitOnError) { quit("userReadyHandler UNKNOWN_SESSION"); }
+        }
+        else {
+          rxWordQueue.enqueue(wordObj);
+        }
+      });
     });
+
   }
 
   if (dmOnUnknownSession) {

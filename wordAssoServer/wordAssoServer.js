@@ -1599,6 +1599,7 @@ function createSession(newSessionObj) {
       // });
 
   console.log(chalkSession("CREATE SESSION"
+    + " | " + moment().format(compactDateTimeFormat)
     + " | NS: " + newSessionObj.namespace
     + " | SID: " + newSessionObj.socket.id
     + " | TYPE: " + newSessionObj.type
@@ -3819,9 +3820,9 @@ function handleSessionEvent(sesObj, callback) {
         sesObj.session.tags.channel = "UNKNOWN_CHANNEL";
       }
 
-      debug(chalkSession(
+      console.log(chalkSession(
         "+ SES" 
-        // + " | " + moment().format(compactDateTimeFormat) 
+        + " | " + moment().format(compactDateTimeFormat) 
         // + " | NSP: " + sesObj.session.namespace 
         + " | " + sesObj.session.sessionId 
         + " | T " + sesObj.session.config.type 

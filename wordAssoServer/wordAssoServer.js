@@ -4906,6 +4906,7 @@ function initRxWordQueueInterval(interval){
           ));
 
           var unknownSession = {};
+          unknownSession.sessionId = wordObj.socketId;
           unknownSession.socketId = wordObj.socketId;
           unknownSession.userObj = {};
           unknownSession.userObj.name = wordObj.userId;

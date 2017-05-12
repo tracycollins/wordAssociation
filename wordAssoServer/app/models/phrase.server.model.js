@@ -3,9 +3,12 @@ var mongoose = require('mongoose'),
 	Schema = mongoose.Schema;
 
 var PhraseSchema = new Schema({
-	nodeId: { 
+	phraseId: { 
 		type: String,
 		unique: true
+	},
+	nodeId: { 
+		type: String
 	},
 	raw: { 
 		type: String
@@ -13,14 +16,16 @@ var PhraseSchema = new Schema({
 	url: { 
 		type: String
 	},
-	createdAt: { 
-		type: Date
-	},
 	links: {   
 		type: Object
 	},
-	lastSeen: {   
-		type: Number
+	createdAt: { 
+		type: Number,
+		default: moment().valueOf()
+	},
+	lastSeen: { 
+		type: Number,
+		default: moment().valueOf()
 	},
 	mentions: {
 		type: Number,

@@ -4788,7 +4788,28 @@ function sendUpdated(updatedObj, callback){
               ));
               
               if (configuration.quitOnError) { quit("SESSION NOT IN CACHE"); }
-              callback(err, currentSessionObj);
+
+              var unknownSession = {};
+              unknownSession.sessionId = updatedWordObj.sessionId;
+              unknownSession.socketId = updatedWordObj.sessionId;
+              unknownSession.userObj = {};
+              unknownSession.userObj.name = updatedWordObj.userId;
+              unknownSession.userObj.tags = {};
+              unknownSession.userObj.tags = updatedWordObj.tags;
+              unknownSession.userObj.userId = updatedWordObj.userId;
+              unknownSession.userObj.url = updatedWordObj.tags.url;
+              unknownSession.userObj.profileImageUrl = null;
+              unknownSession.userObj.screenName = updatedWordObj.userId;
+              unknownSession.userObj.namespace = "util";
+              unknownSession.userObj.type = "util";
+              unknownSession.userObj.mode = updatedWordObj.tags.mode || "UNDEFINED";
+              unknownSession.userObj.nodeId = updatedWordObj.userId + "_" + updatedWordObj.tags.channel;
+              unknownSession.wordObj = {};
+              unknownSession.wordObj = updatedWordObj;
+
+              configEvents.emit("UNKNOWN_SESSION", unknownSession);
+
+              callback(err, unknownSession);
             }
             else {
               console.log(chalkError("*** SESSION CACHE SET ERROR" + "\n" + jsonPrint(err)));

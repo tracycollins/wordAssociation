@@ -8,6 +8,9 @@ var SessionSchema = new Schema({
 		type: String,
 		unique: true
 	},
+	socketId: {
+		type: String
+	},
 	config: {
 		type: Object, // SESSION MODES: RANDOM, ANTONYM, SYNONYM, SCRIPT, USER-USER, GROUP  ( session.config.mode )
 		default: { type: 'USER', mode: 'SYNONYM'} // SESSION TYPES: ADMIN, USER, UTIL, TEST_USER, TEST_VIEWER, VIEWER

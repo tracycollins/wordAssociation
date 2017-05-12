@@ -1635,16 +1635,19 @@ function createSession(newSessionObj) {
     disconnectTime: 0
   });
 
-  if (newSessionObj.tags) { sessionObj.tags = newSessionObj.tags; }
+  if (newSessionObj.tags) { 
+    sessionObj.tags = newSessionObj.tags;
+    sessionObj.userId = newSessionObj.tags.entity;
+  }
 
   if (newSessionObj.user) { sessionObj.userId = newSessionObj.user.userId; }
 
   sessionObj.config.type = newSessionObj.type;
   sessionObj.config.mode = newSessionObj.mode;
 
-  initSessionSocketHandler(sessionObj, socket);
-
   sessionCache.set(sessionObj.sessionId, sessionObj, function(err, results){
+
+    initSessionSocketHandler(sessionObj, socket);
 
     debug(chalkSession("\nNEW SESSION\n" + util.inspect(sessionObj, {
       showHidden: false,

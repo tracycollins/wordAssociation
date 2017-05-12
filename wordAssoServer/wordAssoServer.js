@@ -922,7 +922,7 @@ entityCache.on("set", function(userId, entityObj) {
 });
 
 sessionCache.on("set", function(sessionId, sessionObj) {
-  console.log(chalkSession("SES $"
+  debug(chalkSession("SES $"
     + " | " + moment().format(compactDateTimeFormat) 
     + " | ID: " + sessionId 
     // + " | U: " + sessionObj.userId

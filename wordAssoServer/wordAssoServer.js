@@ -2498,97 +2498,71 @@ function setWordCacheTtl(value) {
   wordCacheTtl = parseInt(value);
 }
 
-setTimeout(function(){
-  if (true) {
 
-    console.log(chalkInfo("INIT SOCKET NAMESPACES"));
+function initSocketNamespaces(callback){
 
-    io = require("socket.io")(httpServer, { reconnection: false });
+  console.log(chalkInfo("INIT SOCKET NAMESPACES"));
 
-    adminNameSpace = io.of("/admin");
-    utilNameSpace = io.of("/util");
-    userNameSpace = io.of("/user");
-    viewNameSpace = io.of("/view");
-    // testUsersNameSpace = io.of("/test-user");
-    // testViewersNameSpace = io.of("/test-view");
+  io = require("socket.io")(httpServer, { reconnection: false });
 
-    adminNameSpace.on("connect", function(socket) {
-      socket.setMaxListeners(0);
-      debug(chalkAdmin("ADMIN CONNECT"));
-      createSession({
-        namespace: "admin",
-        socket: socket,
-        type: "admin",
-        tags: {}
-      });
-      socket.on("SET_WORD_CACHE_TTL", function(value) {
-        setWordCacheTtl(value);
-      });
+  adminNameSpace = io.of("/admin");
+  utilNameSpace = io.of("/util");
+  userNameSpace = io.of("/user");
+  viewNameSpace = io.of("/view");
+
+  adminNameSpace.on("connect", function(socket) {
+    socket.setMaxListeners(0);
+    debug(chalkAdmin("ADMIN CONNECT"));
+    createSession({
+      namespace: "admin",
+      socket: socket,
+      type: "admin",
+      tags: {}
     });
-
-    utilNameSpace.on("connect", function(socket) {
-      socket.setMaxListeners(0);
-      debug(chalkAdmin("UTIL CONNECT"));
-      createSession({
-        namespace: "util",
-        socket: socket,
-        type: "util",
-        mode: "unknown",
-        tags: {}
-      });
+    socket.on("SET_WORD_CACHE_TTL", function(value) {
+      setWordCacheTtl(value);
     });
+  });
 
-    userNameSpace.on("connect", function(socket) {
-      socket.setMaxListeners(0);
-      debug(chalkAdmin("USER CONNECT"));
-      createSession({
-        namespace: "user",
-        socket: socket,
-        type: "util",
-        mode: "unknown",
-        tags: {}
-      });
+  utilNameSpace.on("connect", function(socket) {
+    socket.setMaxListeners(0);
+    debug(chalkAdmin("UTIL CONNECT"));
+    createSession({
+      namespace: "util",
+      socket: socket,
+      type: "util",
+      mode: "unknown",
+      tags: {}
     });
+  });
 
-    viewNameSpace.on("connect", function(socket) {
-      socket.setMaxListeners(0);
-      console.log(chalkAdmin("VIEWER CONNECT"));
-      createSession({
-        namespace: "view",
-        socket: socket,
-        type: "viewer",
-        mode: "unknown",
-        tags: {}
-      });
+  userNameSpace.on("connect", function(socket) {
+    socket.setMaxListeners(0);
+    debug(chalkAdmin("USER CONNECT"));
+    createSession({
+      namespace: "user",
+      socket: socket,
+      type: "util",
+      mode: "unknown",
+      tags: {}
     });
+  });
 
-    // testUsersNameSpace.on("connect", function(socket) {
-    //   socket.setMaxListeners(0);
-    //   debug(chalkAdmin("TEST USER CONNECT"));
-    //   createSession({
-    //     namespace: "test-user",
-    //     socket: socket,
-    //     type: "test_user",
-    //     mode: "unknown",
-    //     tags: {}
-    //   });
-    // });
+  viewNameSpace.on("connect", function(socket) {
+    socket.setMaxListeners(0);
+    console.log(chalkAdmin("VIEWER CONNECT"));
+    createSession({
+      namespace: "view",
+      socket: socket,
+      type: "viewer",
+      mode: "unknown",
+      tags: {}
+    });
+  });
 
-    // testViewersNameSpace.on("connect", function(socket) {
-    //   socket.setMaxListeners(0);
-    //   debug(chalkAdmin("TEST VIEWER CONNECT"));
-    //   createSession({
-    //     namespace: "test-view",
-    //     socket: socket,
-    //     type: "test_viewer",
-    //     mode: "unknown",
-    //     tags: {}
-    //   });
-    // });
-
-    ioReady = true;
-  }
-}, 500);
+  ioReady = true;
+  callback();
+}
 
 function dnsReverseLookup(ip, callback) {
 
@@ -6108,15 +6082,6 @@ function initializeConfiguration(cnf, callback) {
 
         async.parallel(
           [
-
-            // function(callbackParallel) {
-            //   debug(chalkInfo(moment().format(compactDateTimeFormat) + " | ADMIN IP INIT"));
-            //   adminFindAllDb(null, function(numberOfAdminIps) {
-            //     debug(chalkInfo(moment().format(compactDateTimeFormat) 
-            //       + " | ADMIN UNIQUE IP ADDRESSES: " + numberOfAdminIps));
-            //     callbackParallel();
-            //   });
-            // },
             
             function(callbackParallel) {
               debug(chalkInfo(moment().format(compactDateTimeFormat) + " | GROUP HASHMAP INIT"));
@@ -6201,8 +6166,10 @@ function initializeConfiguration(cnf, callback) {
 
         console.log(chalkInfo("... START INTERNET CONNECTION CHECK INTERVAL TO GOOGLE.COM ..."));
 
-        initInternetCheckInterval(10*ONE_SECOND, function(err, status){
-          callbackSeries(err, status);
+        initSocketNamespaces(function(){
+          initInternetCheckInterval(10*ONE_SECOND, function(err, status){
+            callbackSeries(err, status);
+          });
         });
 
       },
@@ -6901,53 +6868,51 @@ setInterval(function() {
   statsObj.queues.dbUpdateEntityQueue = dbUpdateEntityQueue.size();
   statsObj.queues.updateSessionViewQueue = updateSessionViewQueue.length;
 
-  statsObj.entity.admin.connected = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
-  statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
-  statsObj.entity.user.connected = Object.keys(userNameSpace.connected).length; // userNameSpace.sockets.length ;
-  statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; // userNameSpace.sockets.length ;
-
-
-  if (statsObj.entity.admin.connected > statsObj.entity.admin.connectedMax) {
-    statsObj.entity.admin.connectedMaxTime = moment().valueOf();
-    statsObj.entity.admin.connectedMax = statsObj.entity.admin.connected;
-    console.log(chalkInfo("MAX ADMINS"
-     + " | " + statsObj.entity.admin.connected
-     + " | " + moment().format(compactDateTimeFormat)
-    ));
+  if (adminNameSpace) {
+    statsObj.entity.admin.connected = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
+    if (statsObj.entity.admin.connected > statsObj.entity.admin.connectedMax) {
+      statsObj.entity.admin.connectedMaxTime = moment().valueOf();
+      statsObj.entity.admin.connectedMax = statsObj.entity.admin.connected;
+      console.log(chalkInfo("MAX ADMINS"
+       + " | " + statsObj.entity.admin.connected
+       + " | " + moment().format(compactDateTimeFormat)
+      ));
+    }
   }
 
-  if (statsObj.entity.util.connected > statsObj.entity.util.connectedMax) {
-    statsObj.entity.util.connectedMaxTime = moment().valueOf();
-    statsObj.entity.util.connectedMax = statsObj.entity.util.connected;
-    console.log(chalkInfo("MAX UTILS"
-     + " | " + statsObj.entity.util.connected
-     + " | " + moment().format(compactDateTimeFormat)
-    ));
+  if (utilNameSpace) {
+    statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
+    if (statsObj.entity.util.connected > statsObj.entity.util.connectedMax) {
+      statsObj.entity.util.connectedMaxTime = moment().valueOf();
+      statsObj.entity.util.connectedMax = statsObj.entity.util.connected;
+      console.log(chalkInfo("MAX UTILS"
+       + " | " + statsObj.entity.util.connected
+       + " | " + moment().format(compactDateTimeFormat)
+      ));
+    }
   }
-
-  if (statsObj.entity.user.connected > statsObj.entity.user.connectedMax) {
-    statsObj.entity.user.connectedMaxTime = moment().valueOf();
-    statsObj.entity.user.connectedMax = statsObj.entity.user.connected;
-    console.log(chalkInfo("MAX USERS"
-     + " | " + statsObj.entity.user.connected
-     + " | " + moment().format(compactDateTimeFormat)
-    ));
+  if (userNameSpace) {
+    statsObj.entity.user.connected = Object.keys(userNameSpace.connected).length; // userNameSpace.sockets.length ;
+    if (statsObj.entity.user.connected > statsObj.entity.user.connectedMax) {
+      statsObj.entity.user.connectedMaxTime = moment().valueOf();
+      statsObj.entity.user.connectedMax = statsObj.entity.user.connected;
+      console.log(chalkInfo("MAX USERS"
+       + " | " + statsObj.entity.user.connected
+       + " | " + moment().format(compactDateTimeFormat)
+      ));
+    }
   }
-
-  if (statsObj.entity.viewer.connected > statsObj.entity.viewer.connectedMax) {
-    statsObj.entity.viewer.connectedMaxTime = moment().valueOf();
-    statsObj.entity.viewer.connectedMax = statsObj.entity.viewer.connected;
-    console.log(chalkInfo("MAX VIEWERS"
-     + " | " + statsObj.entity.viewer.connected
-     + " | " + moment().format(compactDateTimeFormat)
-    ));
+  if (adminNameSpace) {
+    statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; // userNameSpace.sockets.length ;
+    if (statsObj.entity.viewer.connected > statsObj.entity.viewer.connectedMax) {
+      statsObj.entity.viewer.connectedMaxTime = moment().valueOf();
+      statsObj.entity.viewer.connectedMax = statsObj.entity.viewer.connected;
+      console.log(chalkInfo("MAX VIEWERS"
+       + " | " + statsObj.entity.viewer.connected
+       + " | " + moment().format(compactDateTimeFormat)
+      ));
+    }
   }
-
-  // if (statsCountsComplete 
-  //   && (heartbeatsSent > 0) 
-  //   && (heartbeatsSent % 600 === 0)) { updateStatsCounts();
-  // }
-
 }, 1000);
 
 
@@ -7309,6 +7274,7 @@ initializeConfiguration(configuration, function(err, results) {
     console.log(chalkLog("INITIALIZE CONFIGURATION COMPLETE\n" + jsonPrint(results)));
 
     // updateStatsCounts();
+    // initSocketNamespaces();
 
     initIgnoreWordsHashMap();
     updateTrends();

@@ -1609,13 +1609,6 @@ function createSession(newSessionObj) {
   var socketId = newSessionObj.socket.id;
   var ipAddress = newSessionObj.socket.handshake.headers["x-real-ip"] || newSessionObj.socket.client.conn.remoteAddress;
 
-  // numberAdmins = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
-  // numberUtils = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
-  // numberUsers = Object.keys(userNameSpace.connected).length; // userNameSpace.sockets.length ;
-  // numberTestUsers = Object.keys(testUsersNameSpace.connected).length; // userNameSpace.sockets.length ;
-  // numberViewers = Object.keys(viewNameSpace.connected).length; // userNameSpace.sockets.length ;
-  // numberTestViewers = Object.keys(testViewersNameSpace.connected).length; // userNameSpace.sockets.length ;
-
   statsObj.entity.admin.connected = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
   statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
   statsObj.entity.user.connected = Object.keys(userNameSpace.connected).length; // userNameSpace.sockets.length ;
@@ -1641,12 +1634,19 @@ function createSession(newSessionObj) {
     sessionObj.userId = newSessionObj.tags.entity;
   }
 
-  if (newSessionObj.user) { sessionObj.userId = newSessionObj.user.userId; }
+  if (newSessionObj.user) { 
+    sessionObj.userId = newSessionObj.user.userId;
+  }
 
   sessionObj.config.type = newSessionObj.type;
   sessionObj.config.mode = newSessionObj.mode;
 
-  sessionCache.set(sessionObj.sessionId, sessionObj, function(err, results){
+  sessionCache.set(newSessionObj.socket.id, sessionObj, function(err, results){
+
+    if (err) {
+      console.error("SESSION CACHE ERROR\n" + err);
+      quit();
+    }
 
     initSessionSocketHandler(sessionObj, socket);
 

@@ -871,8 +871,8 @@ var wordCache = new NodeCache({
 
 var sessionCache = new NodeCache({
   // useClones: false,
-  stdTTL: sessionCacheTtl,
-  checkperiod: 10
+  // stdTTL: sessionCacheTtl,
+  // checkperiod: 10
 });
 
 var entityCache = new NodeCache({

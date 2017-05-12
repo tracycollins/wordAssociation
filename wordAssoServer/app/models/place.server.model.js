@@ -63,8 +63,11 @@ var PlaceSchema = new Schema({
 	imageUrl: {   
 		type: String
 	},
+	createdAt: {   
+		type: Number
+	},
 	lastSeen: {   
-		type: String
+		type: Number
 	},
 	mentions: {
 		type: Number,

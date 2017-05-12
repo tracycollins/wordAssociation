@@ -870,7 +870,7 @@ var wordCache = new NodeCache({
 });
 
 var sessionCache = new NodeCache({
-  useClones: false,
+  // useClones: false,
   stdTTL: sessionCacheTtl,
   checkperiod: 10
 });
@@ -925,8 +925,8 @@ sessionCache.on("set", function(sessionId, sessionObj) {
   console.log(chalkSession("SES $"
     + " | " + moment().format(compactDateTimeFormat) 
     + " | ID: " + sessionId 
-    + " | U: " + sessionObj.userId
-    + " \n" + jsonPrint(sessionObj)
+    // + " | U: " + sessionObj.userId
+    // + " \n" + jsonPrint(sessionObj)
   ));
 
   if (sessionObj.user && (sessionObj.user.mode === "SUBSTREAM")){

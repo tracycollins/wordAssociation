@@ -1622,7 +1622,8 @@ function createSession(newSessionObj) {
   statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; // userNameSpace.sockets.length ;
 
   var sessionObj = new Session({
-    sessionId: socketId,
+    socketId: newSessionObj.socket.id,
+    sessionId: newSessionObj.socket.id,
     tags: {},
     ip: ipAddress,
     namespace: namespace,
@@ -3063,6 +3064,7 @@ function sessionUpdateDb(sessionObj, callback) {
 
   var update = {
     "$set": {
+      "socketId": sessionObj.socketId,
       "config": sessionObj.config,
       "userId": sessionObj.userId,
       "tags": sessionObj.tags,
@@ -3100,7 +3102,8 @@ function sessionUpdateDb(sessionObj, callback) {
       } 
       else {
         debug(chalkSession("SESSION UPDATED" 
-          + " | " + ses.sessionId 
+          + " | SOC: " + ses.socketId 
+          + " | SES: " + ses.sessionId 
           + " | NSP: " + ses.namespace 
           + " | UID: " + ses.userId 
           + " | IP: " + ses.ip 

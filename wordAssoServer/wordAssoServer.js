@@ -4784,8 +4784,9 @@ function sendUpdated(updatedObj, callback){
               console.log(chalkAlert("??? SESSION NOT IN CACHE" 
                 + " | NID: " + updatedWordObj.nodeId
                 + " | SID: " + updatedWordObj.sessionId
-                // + "\n" + jsonPrint(updatedWordObj)
+                + "\n" + jsonPrint(updatedWordObj)
               ));
+              
               if (configuration.quitOnError) { quit("SESSION NOT IN CACHE"); }
               callback(err, currentSessionObj);
             }

@@ -6612,7 +6612,7 @@ configEvents.on("UNKNOWN_SESSION", function(sesObj) {
           if (configuration.quitOnError) { quit("userReadyHandler UNKNOWN_SESSION"); }
         }
         else {
-          rxWordQueue.enqueue(wordObj);
+          rxWordQueue.enqueue(sesObj.wordObj);
         }
       });
     });

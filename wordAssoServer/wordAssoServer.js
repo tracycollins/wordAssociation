@@ -922,7 +922,7 @@ entityCache.on("set", function(userId, entityObj) {
 });
 
 sessionCache.on("set", function(sessionId, sessionObj) {
-  debug(chalkSession("SES $"
+  console.log(chalkSession("SES $"
     + " | " + moment().format(compactDateTimeFormat) 
     + " | ID: " + sessionId 
     + " | U: " + sessionObj.userId
@@ -1389,7 +1389,7 @@ function userReadyHandler(request, callback){
       console.log(chalkError(moment().format(compactDateTimeFormat) 
         + " | ??? SESSION NOT FOUND ON USER READY"
         + " | SOC: " + socketId
-        + "\n" + jsonPrint(userObj)
+        + "\n" + jsonPrint(request)
       ));
       callback("SESSION NOT FOUND ON USER READY", request);
     }

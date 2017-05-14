@@ -488,6 +488,9 @@ var latestMediaArray = [] ; // 1-element array
 var mediaMentionsArray = [] ;
 var recentMediaMentionsArray = [] ;
 
+var viewerSessionKey;
+var socket = io('/view');
+
 function msToTime(duration) {
   var milliseconds = parseInt((duration % 1000) / 1000),
     seconds = parseInt((duration / 1000) % 60),
@@ -1123,9 +1126,6 @@ function getVisibilityEvent(prefix) {
     return 'visibilitychange';
   }
 }
-
-var viewerSessionKey;
-var socket = io('/view');
 
 socket.on("VIEWER_ACK", function(vSesKey) {
 
@@ -3428,7 +3428,6 @@ function loadViewType(svt, callback) {
       }
       console.log("--> STORED CONFIG | " + arg + ": ", config[arg]);
     });
-
   }
 
   switch (svt) {
@@ -3696,7 +3695,6 @@ function initialize(callback) {
               if (config.sessionViewType == 'media') {
                 currentSessionView.setNodeMaxAge(config.defaultMaxAge);
               }
-
             }
             else {
               console.debug("STORED CONFIG NOT FOUND: " + storedConfigName);

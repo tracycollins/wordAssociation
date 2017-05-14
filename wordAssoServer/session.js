@@ -490,7 +490,7 @@ var recentMediaMentionsArray = [] ;
 
 var viewerSessionKey;
 // var socket = io('/view');
-var socket = io('http://localhost/view');
+var socket = io('http://localhost');
 
 function msToTime(duration) {
   var milliseconds = parseInt((duration % 1000) / 1000),

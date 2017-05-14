@@ -15,8 +15,6 @@ when new instance of word arrives, iterate thru array of nodes and create linksk
 // var DEFAULT_SOURCE = "http://word.threeceelabs.com";
 var DEFAULT_SOURCE = "==SOURCE==";  // will be updated by wordAssoServer.js on app.get
 
-var socket = io();
-
 var PARENT_ID = "0047";
 
 var storedConfigName;
@@ -49,8 +47,10 @@ var statsTableFlag = false;
 // requirejs(["https://cdnjs.cloudflare.com/ajax/libs/d3/4.8.0/d3.min.js"], function(d3Loaded) {
 requirejs(["https://d3js.org/d3.v4.min.js"], function(d3Loaded) {
     console.log("d3 LOADED");
+    socket = io('/view');
     d3 = d3Loaded;
     initialize(function(){
+
 
       PARENT_ID = config.sessionViewType;
 

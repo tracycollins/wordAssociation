@@ -15,7 +15,7 @@ when new instance of word arrives, iterate thru array of nodes and create linksk
 // var DEFAULT_SOURCE = "http://word.threeceelabs.com";
 var DEFAULT_SOURCE = "==SOURCE==";  // will be updated by wordAssoServer.js on app.get
 
-var socket;
+var socket = io("view");
 
 var PARENT_ID = "0047";
 

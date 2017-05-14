@@ -15,7 +15,7 @@ when new instance of word arrives, iterate thru array of nodes and create linksk
 // var DEFAULT_SOURCE = "http://word.threeceelabs.com";
 var DEFAULT_SOURCE = "==SOURCE==";  // will be updated by wordAssoServer.js on app.get
 
-var socket = io("view");
+var socket = io.connect("view");
 
 var PARENT_ID = "0047";
 
@@ -1229,7 +1229,7 @@ socket.on("connect_error", function(error) {
     sessionCreateQueue = [];
     groupHashMap.clear();
     sessionDeleteHashMap.clear();
-    currentSessionView.resize();
+    if (currentSessionView !== undefined) { currentSessionView.resize(); }
     updateSessionsReady = true;
   });
 });

@@ -424,7 +424,7 @@ process.on("SIGINT", function() {
 });
 
 process.on("exit", function() {
-  if (sorter !== undefined) { updater.kill("SIGINT"); }
+  if (sorter !== undefined) { sorter.kill("SIGINT"); }
   if (updater !== undefined) { updater.kill("SIGINT"); }
   if (dbUpdater !== undefined) { dbUpdater.kill("SIGINT"); }
 });
@@ -7323,6 +7323,11 @@ initializeConfiguration(configuration, function(err, results) {
     sorter.on("exit", function(err){
       console.log(chalkError("*** SORTER EXIT ***\n" + jsonPrint(err)));
       quit(err);
+    });
+
+    sorter.on("close", function(code){
+      console.log(chalkError("*** SORTER CLOSE *** | " + code));
+      quit(code);
     });
 
     // ================================

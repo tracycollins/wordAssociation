@@ -606,7 +606,7 @@ function showStats(options){
     console.log(chalkAlert("STATS\n" + jsonPrint(statsObj)));
   }
   else {
-    console.log(chalkAlert("S"
+    console.log(chalkLog("S"
       // + " | " + statsObj.socketId
       + " | ELAPSED: " + statsObj.elapsed
       + " | START: " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat)

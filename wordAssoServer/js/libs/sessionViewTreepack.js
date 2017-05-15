@@ -730,8 +730,19 @@ function ViewTreepack() {
     var tooltipString;
 
     switch (d.nodeType) {
+      case 'user':
+        tooltipString = "@" + d.nodeId
+          + "<br>TOPTERM: " + d.isTopTerm 
+          + "<br>N: " + d.name 
+          + "<br>SN: " + d.screenName 
+          + "<br>TYPE: " + d.nodeType 
+          + "<br>Ms: " + d.mentions
+          + "<br>" + d.rate.toFixed(2) + " WPM"
+          + "<br>KEYWORDS: " + jsonPrint(d.keywords);
+      break;
       case 'hashtag':
         tooltipString = "#" + d.nodeId
+          + "<br>TOPTERM " + d.isTopTerm 
           + "<br>TYPE: " + d.nodeType 
           + "<br>Ms: " + d.mentions
           + "<br>" + d.rate.toFixed(2) + " WPM"
@@ -739,6 +750,7 @@ function ViewTreepack() {
       break;
       case 'word':
         tooltipString = d.nodeId
+          + "<br>TOPTERM " + d.isTopTerm 
           + "<br>TYPE: " + d.nodeType 
           + "<br>KEYWORDS: " + jsonPrint(d.keywords)
           + "<br>Ms: " + d.mentions
@@ -747,6 +759,7 @@ function ViewTreepack() {
       break;
       case 'place':
         tooltipString = d.fullName
+          + "<br>TOPTERM " + d.isTopTerm 
           + "<br>TYPE: " + d.nodeType 
           + "<br>KEYWORDS: " + jsonPrint(d.keywords)
           + "<br>Ms: " + d.mentions

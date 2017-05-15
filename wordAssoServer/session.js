@@ -32,7 +32,7 @@ var useStoredConfig = false;
 var globalStoredConfigName = "config_" + DEFAULT_SESSION_VIEW;
 
 
-var enableUserNodes = false;
+var enableUserNodes = true;
 
 var d3;
 var controlPanel;
@@ -2948,10 +2948,6 @@ var createNode = function(callback) {
             }
             sourceNode.isTopTerm = session.source.isTopTerm;
             sourceNode.isKeyword = session.source.isKeyword;
-
-            // getKeywordColor(session.source.keywords, function(color){
-            //   sourceNode.keywordColor = color;
-            // });  // KLUDGE!  need better way to do keywords
 
             if (session.source.keywords !== undefined) {
               getKeywordColor(session.source.keywords, function(color){

@@ -406,27 +406,21 @@ debug("DB\n" + db);
 
 function quit(message) {
   console.log("\n... QUITTING ...");
-  // if (sorter !== undefined) { sorter.kill("SIGHUP"); }
-  // if (updater !== undefined) { updater.kill("SIGHUP"); }
-  // if (dbUpdater !== undefined) { dbUpdater.kill("SIGHUP"); }
+  if (updater !== undefined) { updater.kill("SIGHUP"); }
+  if (dbUpdater !== undefined) { dbUpdater.kill("SIGHUP"); }
   var msg = "";
   if (message) {msg = message;}
   console.log("QUIT MESSAGE\n" + msg);
   process.exit();
 }
 
-process.on("SIGHUP", function() {
-  quit("SIGHUP");
-});
-
 process.on("SIGINT", function() {
   quit("SIGINT");
 });
 
 process.on("exit", function() {
-  if (sorter !== undefined) { updater.kill("SIGINT"); }
-  if (updater !== undefined) { updater.kill("SIGINT"); }
-  if (dbUpdater !== undefined) { dbUpdater.kill("SIGINT"); }
+  if (updater !== undefined) { updater.kill("SIGHUP"); }
+  if (dbUpdater !== undefined) { dbUpdater.kill("SIGHUP"); }
 });
 
 // ==================================================================
@@ -1596,13 +1590,6 @@ function sessionUpdateDbCache(request, callback){
 function createSession(newSessionObj) {
 
   statsObj.session.totalCreated++;
-
-      // createSession({
-      //   namespace: "admin",
-      //   socket: socket,
-      //   type: "admin",
-      //   tags: {}
-      // });
 
   console.log(chalkSession("CREATE SESSION"
     + " | " + moment().format(compactDateTimeFormat)
@@ -7348,11 +7335,6 @@ initializeConfiguration(configuration, function(err, results) {
       quit(err);
     });
 
-    dbUpdater.on("close", function(code){
-      console.log(chalkError("*** DB UPDATER CLOSE *** | " + code));
-      quit(code);
-    });
-
 
     // ================================
     updater = cp.fork(`${__dirname}/js/libs/updateGroupsEntitiesChannels.js`);
@@ -7365,11 +7347,6 @@ initializeConfiguration(configuration, function(err, results) {
     updater.on("exit", function(err){
       console.log(chalkError("*** UPDATER EXIT ***\n" + jsonPrint(err)));
       quit(err);
-    });
-
-    updater.on("close", function(code){
-      console.log(chalkError("*** UPDATER CLOSE *** | " + code));
-      quit(code);
     });
 
     updater.on("message", function(m){

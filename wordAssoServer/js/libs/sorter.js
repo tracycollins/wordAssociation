@@ -164,3 +164,10 @@ function sortedObjectValues(params, callback) {
 
   callback(sortedKeys.slice(0,params.max));
 }
+
+
+// setTimeout(function(){
+//   console.log(chalkRed("TEST KILLING SORTER"));
+//   console.log(chalkRed("UNDEFINED VAR " + thisIsNotDefined));
+// }, 10000);
+

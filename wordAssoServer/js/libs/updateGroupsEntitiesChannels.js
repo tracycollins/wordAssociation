@@ -62,10 +62,10 @@ var jsonPrint = function(obj) {
 function quit(message) {
   var msg = '';
   if (message) msg = message;
-  console.log("UPDATER: **** QUITTING"
+  console.log(process.argv[1]
+    + " | UPDATER: **** QUITTING"
     + " | CAUSE: " + msg
     + " | PID: " + process.pid
-    + "\n" + process.argv[1] 
     
   );
   process.exit();
@@ -1068,3 +1068,8 @@ function initEntityChannelGroups(dropboxConfigFile, callback){
      }
   });
 }
+
+// setTimeout(function(){
+//   console.log(chalkRed("TEST KILLING UPDATER"));
+//   console.log(chalkRed("UNDEFINED VAR " + thisIsNotDefined));
+// }, 10000);

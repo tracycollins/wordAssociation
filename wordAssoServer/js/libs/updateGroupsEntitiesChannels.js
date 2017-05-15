@@ -699,21 +699,18 @@ function sendGroups(callback){
 
       var groupObj = groupHashMap.get(groupId);
 
-      setTimeout(function(){
-        process.send({ type: 'group', groupId: groupId, group: groupObj}, function(err){
-          if (err){
-            console.log(chalkError("sendGroups ERROR\n" + err));
-            cb(err);
-          }
-          else {
-            debug(chalkInfo("UPDATER SENT GROUP"
-              + " | " + groupId
-            ));
-            cb();
-          }
-        });
-
-      }, 20);
+      process.send({ type: 'group', groupId: groupId, group: groupObj}, function(err){
+        if (err){
+          console.log(chalkError("sendGroups ERROR\n" + err));
+          cb(err);
+        }
+        else {
+          debug(chalkInfo("UPDATER SENT GROUP"
+            + " | " + groupId
+          ));
+          cb();
+        }
+      });
 
     },
 
@@ -736,20 +733,23 @@ function sendEntities(callback){
   debug(chalkInfo("sendEntities START"));
 
   var entityIds = entityChannelGroupHashMap.keys();
-  // var serverEntityIds = serverEntityChannelGroupHashMap.keys();
 
   async.forEachSeries(entityIds, function(entityId, cb) {
 
       var entityObj = entityChannelGroupHashMap.get(entityId);
 
-      setTimeout(function(){
-        process.send({ type: 'entity', entityId: entityId, entity: entityObj});
-        debug(chalkInfo("UPDATER SENT ENTITY"
-          + " | " + entityId
-        ));
-
-        cb();
-      }, 10);
+      process.send({ type: 'entity', entityId: entityId, entity: entityObj}, function(err){
+        if (err){
+          console.log(chalkError("sendEntities ERROR\n" + err));
+          cb(err);
+        }
+        else {
+          debug(chalkInfo("UPDATER SENT ENTITY"
+            + " | " + entityId
+          ));
+          cb();
+        }
+      });
 
     },
 
@@ -800,18 +800,21 @@ function sendKeywords(callback){
       updaterObj.keyword = {};
       updaterObj.keyword = kwObj;
 
-      setTimeout(function(){
-        process.send(updaterObj);
-        keywordsSent++;
-        debugKeyword(chalkInfo("UPDATER SEND KEYWORD"
-          + " | " + word
-          + " | " + jsonPrint(updaterObj)
-        ));
-
-        if (keywordsSent%250 === 0) { console.log("SENT " + keywordsSent + "/" + words.length + " KEYWORDS"); }
-
-        cb();
-      }, 10);
+      process.send(updaterObj, function(err){
+        if (err){
+          console.log(chalkError("sendKeywords ERROR\n" + err));
+          cb(err);
+        }
+        else {
+          keywordsSent++;
+          debugKeyword(chalkInfo("UPDATER SEND KEYWORD"
+            + " | " + word
+            + " | " + jsonPrint(updaterObj)
+          ));
+          if (keywordsSent%250 === 0) { console.log("SENT " + keywordsSent + "/" + words.length + " KEYWORDS"); }
+          cb();
+        }
+      });
 
     },
 

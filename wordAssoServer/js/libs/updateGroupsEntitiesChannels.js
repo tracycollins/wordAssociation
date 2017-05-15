@@ -531,7 +531,7 @@ var updateKeywords = function (folder, file, callback){
 
           kwHashMap.clear();
 
-          async.forEach(words,
+          async.eachOfSeries(words,
 
             function(w, cb) {
 

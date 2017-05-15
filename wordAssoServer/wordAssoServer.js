@@ -956,9 +956,7 @@ sessionCache.on("expired", function(sessionId, sessionObj) {
 
   adminNameSpace.emit("SESSION_DELETE", sessionId);
   viewNameSpace.emit("SESSION_DELETE", sessionId);
-  // testViewersNameSpace.emit("SESSION_DELETE", sessionId);
 
-  // console.log(chalkAlert("CACHE SESSION EXPIRED\n" + jsonPrint(sessionObj)));
   debug(chalkInfo("... $ SESS EXPIRED"
     + " | " + sessionObj.sessionId 
     + " | LS: " + moment(parseInt(sessionObj.lastSeen)).format(compactDateTimeFormat)
@@ -1045,7 +1043,7 @@ function updateWordMeter(wordObj, callback){
     meterWordId = wordObj.name.toLowerCase();
   }
   else {
-    meterWordId = wordObj.nodeId;
+    meterWordId = wordObj.nodeId.toLowerCase();
   }
 
   if (ignoreWordHashMap.has(meterWordId)) {
@@ -2112,40 +2110,6 @@ function initSessionSocketHandler(sessionObj, socket) {
           if (!nodeObj.name && !nodeObj.screenName) {
             console.log(chalkError("NODE NAME & SCREEN NAME UNDEFINED?\n" + jsonPrint(nodeObj)));
           }
-          else if (nodeObj.name) {
-            nodeObj.isTwitterUser = true;
-            wordsPerMinuteTopTermCache.get(nodeObj.name.toLowerCase(), function(err, name) {
-              if (name) {
-                nodeObj.isTopTerm = true;
-              }
-              if (nodeObj.name.toLowerCase().includes("obama")) {
-                obamaHit = nodeObj.name;
-                nodeObj.isKeyword = true;
-                if (!nodeObj.keywords.right){
-                  nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
-                }
-                else {
-                  delete nodeObj.keywords.left;
-                }
-              }
-              if (nodeObj.name.toLowerCase().includes("trump")) {
-                trumpHit = nodeObj.name;
-                nodeObj.isKeyword = true;
-                if (!nodeObj.keywords.left){
-                  nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
-                }
-                else {
-                  delete nodeObj.keywords.right;
-                }
-              }
-              updateWordMeter(nodeObj, function(err, uNodeObj){
-                viewNameSpace.emit("node", uNodeObj);
-                if (languageServer.connected) {
-                  languageServer.socket.emit("LANG_ANALIZE_WORD", uNodeObj);
-                }
-              });
-            });
-          }
           else if (nodeObj.screenName){
             nodeObj.isTwitterUser = true;
             wordsPerMinuteTopTermCache.get(nodeObj.screenName.toLowerCase(), function(err, screenName) {
@@ -2164,6 +2128,40 @@ function initSessionSocketHandler(sessionObj, socket) {
               }
               if (nodeObj.screenName.toLowerCase().includes("trump")) {
                 trumpHit = nodeObj.screenName;
+                nodeObj.isKeyword = true;
+                if (!nodeObj.keywords.left){
+                  nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
+                }
+                else {
+                  delete nodeObj.keywords.right;
+                }
+              }
+              updateWordMeter(nodeObj, function(err, uNodeObj){
+                viewNameSpace.emit("node", uNodeObj);
+                if (languageServer.connected) {
+                  languageServer.socket.emit("LANG_ANALIZE_WORD", uNodeObj);
+                }
+              });
+            });
+          }
+          else if (nodeObj.name) {
+            nodeObj.isTwitterUser = true;
+            wordsPerMinuteTopTermCache.get(nodeObj.name.toLowerCase(), function(err, name) {
+              if (name) {
+                nodeObj.isTopTerm = true;
+              }
+              if (nodeObj.name.toLowerCase().includes("obama")) {
+                obamaHit = nodeObj.name;
+                nodeObj.isKeyword = true;
+                if (!nodeObj.keywords.right){
+                  nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
+                }
+                else {
+                  delete nodeObj.keywords.left;
+                }
+              }
+              if (nodeObj.name.toLowerCase().includes("trump")) {
+                trumpHit = nodeObj.name;
                 nodeObj.isKeyword = true;
                 if (!nodeObj.keywords.left){
                   nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
@@ -2371,7 +2369,7 @@ function initSessionSocketHandler(sessionObj, socket) {
     wordStats.meter("wordsPerSecond").mark();
     wordStats.meter("wordsPerMinute").mark();
 
-    wordsPerMinuteTopTermCache.get(rxWordObj.nodeId, function(err, nodeRate) {
+    wordsPerMinuteTopTermCache.get(rxWordObj.nodeId.toLowerCase(), function(err, nodeRate) {
       if (nodeRate) {
         rxWordObj.isTopTerm = true;
         debug(chalkRed("TOP TERM"
@@ -4635,7 +4633,7 @@ function getTags(wObj, callback){
 
   debug(chalkInfo("getTags\n" + jsonPrint(wObj)));
 
-  wordsPerMinuteTopTermCache.get(wObj.nodeId, function(err, wordRate) {
+  wordsPerMinuteTopTermCache.get(wObj.nodeId.toLowerCase(), function(err, wordRate) {
     if (wordRate) {
       wObj.isTopTerm = true;
     }
@@ -5186,13 +5184,15 @@ function initSorterMessageRxQueueInterval(interval){
 
           for (index=0; index < endIndex; index += 1){
 
-            if (wordMeter[sortedKeys[index]] !== undefined) {
+            var node = sortedKeys[index].toLowerCase();
 
-              wmObj = wordMeter[sortedKeys[index]].toJSON();
+            if (wordMeter[node] !== undefined) {
 
-              wordsPerMinuteTopTermCache.set(sortedKeys[index], wmObj["1MinuteRate"]);
+              wmObj = wordMeter[node].toJSON();
 
-              wordsPerMinuteTopTerm[sortedKeys[index]] = wmObj["1MinuteRate"];
+              wordsPerMinuteTopTermCache.set(node, wmObj["1MinuteRate"]);
+
+              wordsPerMinuteTopTerm[node] = wmObj["1MinuteRate"];
 
               if (index === endIndex-1) {
                 adminNameSpace.emit("TWITTER_TOPTERM_1MIN", wordsPerMinuteTopTerm);
@@ -5201,8 +5201,8 @@ function initSorterMessageRxQueueInterval(interval){
 
               if (enableGoogleMetrics && (wmObj["1MinuteRate"] > MIN_METRIC_VALUE)) {
      
-                topTermDataPoint.displayName = sortedKeys[index];
-                topTermDataPoint.metricType = "word/top10/" + sortedKeys[index];
+                topTermDataPoint.displayName = node;
+                topTermDataPoint.metricType = "word/top10/" + node;
                 topTermDataPoint.value = wmObj["1MinuteRate"];
                 topTermDataPoint.metricLabels = {server_id: "WORD"};
 
@@ -5257,8 +5257,11 @@ function initDbUpdaterMessageRxQueueInterval(interval){
 }
 
 var updaterMessageReady = true;
+
 function initUpdaterMessageQueueInterval(interval){
+
   console.log(chalkInfo("INIT UPDATER MESSAGE QUEUE INTERVAL | " + interval + " MS"));
+  
   updaterMessageQueueInterval = setInterval(function() {
     if (updaterMessageReady && !updaterMessageQueue.isEmpty()) {
 
@@ -6827,7 +6830,6 @@ configEvents.on("CONFIG_CHANGE", function(serverSessionConfig) {
 //=================================
 //  SERVER READY
 //=================================
-
 configEvents.on("INIT_DATABASE_COMPLETE", function() {
   debug(chalkInfo(moment().format(compactDateTimeFormat) + " | DATABASE ENABLED"));
 });
@@ -6836,7 +6838,6 @@ configEvents.on("INIT_DATABASE_COMPLETE", function() {
 //=================================
 //  METRICS INTERVAL
 //=================================
-
 var cacheObj = {
   "adminCache": adminCache,
   "entityCache": entityCache,

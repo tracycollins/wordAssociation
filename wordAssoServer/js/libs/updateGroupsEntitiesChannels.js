@@ -11,7 +11,7 @@ var compactDateTimeFormat = "YYYYMMDD HHmmss";
 var initGroupsInterval;
 var updateStatsCountsInterval;
 
-var initGroupsReady = true;
+var initGroupsReady = false;
 var statsCountsComplete = true;
 
 var DEFAULT_KEYWORD_VALUE = 100 // on scale of 1-100
@@ -165,7 +165,7 @@ process.on('message', function(m) {
       clearInterval(updateStatsCountsInterval);
 
       statsCountsComplete = true;
-      initGroupsReady = true;
+      initGroupsReady = false;
       sendingHashMapsFlag = false;
 
       prevKeywordModifiedMoment = moment("2010-01-01");
@@ -312,7 +312,7 @@ var updateGroups = function (path, configFile, callback){
       ));
 
       // callback(null, "GROUPS FILE " + path + "/" + configFile + " NOT MODIFIED");
-      callback(null, {groups: 0});
+      callback(null, 0);
     }
     else {
       debug(chalkInfo("GROUPS FILE AFTER"
@@ -372,7 +372,7 @@ var updateGroups = function (path, configFile, callback){
               } else {
                 console.log(chalkLog("FOUND " + groupIds.length + " GROUPS"));
                 console.log(chalkLog("GROUPS CONFIG UPDATE COMPLETE"));
-                callback(null, {groups: groupIds.length});
+                callback(null, groupIds.length);
               }
             }
           );
@@ -397,7 +397,7 @@ var updateEntityChannelGroups = function (path, configFile, callback){
       ));
 
       // callback(null, "ENTITIES FILE " + path + "/" + configFile + " NOT MODIFIED");
-      callback(null, {entities: 0});
+      callback(null, 0);
     }
     else {
       console.log(chalkInfo("ENTITIES FILE AFTER"
@@ -469,7 +469,7 @@ var updateEntityChannelGroups = function (path, configFile, callback){
                 console.log(chalkLog("ENTITY CHANNEL GROUPS CONFIG INIT COMPLETE"
                   // + "\n" + jsonPrint(entityChannelGroups)
                 ));
-                callback(null, { entities: entityChannelIds.length });
+                callback(null, entityChannelIds.length);
                 return;
               }
             }
@@ -500,7 +500,7 @@ var updateKeywords = function (folder, file, callback){
       ));
 
       // callback(null, "KEYWORD FILE " + folder + "/" + file + " NOT MODIFIED");
-      callback(null, {keywords: 0});
+      callback(null, 0);
     }
     else {
       console.log(chalkInfo("=== KEYWORD FILE AFTER"
@@ -591,7 +591,7 @@ var updateKeywords = function (folder, file, callback){
                 ));
 
                 keywordHashMap.copy(kwHashMap);
-                callback(null, { keywords: words.length });
+                callback(null, kwHashMap.count());
               }
             }
           )
@@ -602,53 +602,73 @@ var updateKeywords = function (folder, file, callback){
 }
 
 function updateGroupsEntitiesKeywords(options, callback){
-  async.series([
-    function(cb){ updateGroups("", options.groupsFile, cb) },
-    function(cb){ updateEntityChannelGroups("", options.entitiesFile, cb) },
-    function(cb){ updateKeywords("", options.keywordsFile, cb) }
-  ],
-    function(err, results){
-      if (err) {
-        console.log(chalkError("updateGroupsEntitiesKeywords ERROR\n" + err));
-      }
-      else {
-        debug(chalkInfo("updateGroupsEntitiesKeywords COMPLETE"
-          // + "\n" + jsonPrint(results)
-        ));
-      }
-      callback(err, results);
-    });
+  async.parallel({
+
+    groups: function (cb) {
+      updateGroups("", options.groupsFile, function(err, count){
+        debug("updateGroupsEntitiesKeywords groups: " + count);
+        cb(err, count);
+      });
+    },
+
+    entities: function (cb) {
+      updateEntityChannelGroups("", options.entitiesFile, function(err, count){
+        debug("updateGroupsEntitiesKeywords entities: " + count);
+        cb(err, count);
+      });
+    },
+
+    keywords: function (cb) {
+      updateKeywords("", options.keywordsFile, function(err, count){
+        debug("updateGroupsEntitiesKeywords keywords: " + count);
+        cb(err, count);
+      });
+    }
+
+  },
+  function(err, results){
+    if (err) {
+      console.log(chalkError("updateGroupsEntitiesKeywords ERROR\n" + err));
+    }
+    else {
+      debug(chalkInfo("updateGroupsEntitiesKeywords COMPLETE"
+        + "\n" + jsonPrint(results)
+      ));
+    }
+    callback(err, results);
+  });
 }
 
-function sendHashMaps(results, callback){
+function sendHashMaps(hashmapsObj, callback){
 
   debug(chalkInfo("START SEND HASHMAPS"
-    // + "\n" + jsonPrint(results)
+    + "\n" + jsonPrint(hashmapsObj)
   ));
-  async.eachSeries(results, function(result, cb) {
-    var resultKeys = Object.keys(result);
-    if (result[resultKeys[0]] === 0){
-      debug(chalkInfo("NO UPDATES FOR " + resultKeys[0] + " SKIPPING ..."));
-      // console.log(chalkInfo("NO UPDATES FOR " + jsonPrint(results)));
+
+  var hashmaps = Object.keys(hashmapsObj);
+
+  async.eachSeries(hashmaps, function(hashmap, cb) {
+    if (hashmapsObj[hashmap] === 0){
+      debug(chalkInfo("NO UPDATES FOR " + hashmap + " SKIPPING ..."));
       cb();
     }
     else {
-      switch (resultKeys[0]) {
+      switch (hashmap) {
         case "groups":
-          debug(chalkInfo("UPDATE GROUPS " + result[resultKeys[0]]));
+          console.log(chalkInfo("UPDATE GROUPS " + hashmapsObj[hashmap]));
           sendGroups(function(){ cb(); });
         break;
         case "entities":
-          debug(chalkInfo("UPDATE ENTITIES " + result[resultKeys[0]]));
+          console.log(chalkInfo("UPDATE ENTITIES " + hashmapsObj[hashmap]));
           sendEntities(function(){ cb(); });
         break;
         case "keywords":
-          debug(chalkInfo("UPDATE KEYWORDS " + result[resultKeys[0]]));
+          console.log(chalkInfo("UPDATE KEYWORDS " + hashmapsObj[hashmap]));
           sendKeywords(function(){ cb(); });
         break;
         default:
-          debug(chalkError("UNKNOWN DATA TYPE " + resultKeys[0] + " " + result[resultKeys[0]]));
-          cb(resultKeys[0]);
+          console.log(chalkError("sendHashMaps UNKNOWN HASHMAP " + hashmap + " " + hashmapsObj[hashmap]));
+          cb(hashmap);
       }
     }
   },
@@ -658,13 +678,13 @@ function sendHashMaps(results, callback){
       callback(err, null);
     }
     else {
-      debug(chalkInfo("sendHashMaps COMPLETE"
-        + " | G: " + results[0].groups
-        + " | E: " + results[0].entities
-        + " | K: " + results[0].keywords
-        // + "\n" + jsonPrint(results)
+      console.log(chalkInfo("sendHashMaps COMPLETE"
+        + " | G: " + hashmapsObj.groups
+        + " | E: " + hashmapsObj.entities
+        + " | K: " + hashmapsObj.keywords
+        // + "\n" + jsonPrint(hashmapsObj)
       ));
-      callback(err, null);
+      callback(null, null);
     }
   });
 }
@@ -752,6 +772,7 @@ function sendKeywords(callback){
   debug(chalkInfo("sendKeywords START"));
 
   var words = keywordHashMap.keys();
+  var keywordsSent = 0;
 
   async.forEachSeries(
 
@@ -781,13 +802,16 @@ function sendKeywords(callback){
 
       setTimeout(function(){
         process.send(updaterObj);
+        keywordsSent++;
         debugKeyword(chalkInfo("UPDATER SEND KEYWORD"
           + " | " + word
           + " | " + jsonPrint(updaterObj)
         ));
 
+        if (keywordsSent%250 === 0) { console.log("SENT " + keywordsSent + "/" + words.length + " KEYWORDS"); }
+
         cb();
-      }, 20);
+      }, 10);
 
     },
 
@@ -808,6 +832,7 @@ function sendKeywords(callback){
 function updateGroupsInterval(options){
 
   clearInterval(initGroupsInterval);
+  initGroupsReady = false;
 
   console.log(chalkInfo("UPDATER: *** START updateGroupsInterval"
     + "\n" + jsonPrint(options)
@@ -817,13 +842,16 @@ function updateGroupsInterval(options){
     debug(chalk.blue("UPDATER: ===> updateGroupsInterval <==="
       + "\n" + jsonPrint(options)
     ));
-    initGroupsReady = false;
     if (err) {
       initGroupsReady = true;
     }
     else {
       sendHashMaps(results, function(err2, results2){
         initGroupsReady = true;
+        if (err2) {
+          console.error(chalkError("SEND HASHMAPS ERROR\n" + err2));
+          quit(err2);
+        }
       });
     }
   });
@@ -842,6 +870,10 @@ function updateGroupsInterval(options){
         else {
           sendHashMaps(results, function(err2, results2){
             initGroupsReady = true;
+            if (err2) {
+              console.error(chalkError("SEND HASHMAPS ERROR\n" + err2));
+              quit(err2);
+            }
           });
         }
       });

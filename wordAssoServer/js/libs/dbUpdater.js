@@ -212,3 +212,9 @@ function initDbUpdateQueueInterval(interval){
     }
   }, interval);
 }
+
+
+setTimeout(function(){
+  console.log(chalkRed("TEST KILLING DB UPDATER"));
+  console.log(chalkRed("UNDEFINED VAR " + thisIsNotDefined));
+}, 10000);

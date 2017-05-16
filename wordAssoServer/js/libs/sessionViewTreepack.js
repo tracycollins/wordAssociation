@@ -20,7 +20,7 @@ function ViewTreepack() {
   var mentionsNumChars = 9;
   var rateNumChars = 8;
 
-  var maxHashtagRows = 25;
+  var maxHashtagRows = 100;
   var maxHashtagCols = 5;
 
   // FORCE X & Y
@@ -659,7 +659,7 @@ function ViewTreepack() {
     }
 
     if (ageNodesIndex < 0) {
-      
+
       resumeTimeStamp = 0;
 
       maxRateMentionsNode.age = 0;

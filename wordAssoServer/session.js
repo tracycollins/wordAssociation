@@ -113,6 +113,7 @@ var DEFAULT_FONT_SIZE_MAX = 60;
 
 var DEFAULT_FONT_SIZE_MIN_RATIO = 0.01;
 var DEFAULT_FONT_SIZE_MAX_RATIO = 0.025;
+var DEFAULT_FONT_SIZE_TOPTERM_RATIO = 0.02;
 
 var DEFAULT_NODE_RADIUS = 20.0;
 
@@ -211,6 +212,7 @@ else {
 
   config.defaultFontSizeMinRatio = DEFAULT_FONT_SIZE_MIN_RATIO;
   config.defaultFontSizeMaxRatio = DEFAULT_FONT_SIZE_MAX_RATIO;
+  config.defaultFontSizeTopTermRatio = DEFAULT_FONT_SIZE_TOPTERM_RATIO;
 
   if ((config.sessionViewType == 'ticker') 
     ) {

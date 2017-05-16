@@ -1582,7 +1582,7 @@ function ViewTreepack() {
     fontSizeMax = fontSizeMaxRatio * height;
 
     fontTopTerm = fontSizeTopTermRatio * height;
-    rowSpacing = fontTopTerm*110; // %
+    rowSpacing = fontSizeTopTermRatio*110; // %
 
     nodeLabelSizeScale = d3.scaleLinear()
       .domain([1, currentMaxMetric])

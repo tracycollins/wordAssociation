@@ -5166,10 +5166,10 @@ function initSorterMessageRxQueueInterval(interval){
 
       switch (sorterObj.op){
         case "SORTED":
-          console.log(chalkSorter("SORT ---------------------"));
+          debug(chalkSorter("SORT ---------------------"));
           for (var i=0; i<sorterObj.sortedKeys.length; i += 1){
             if (wordMeter[sorterObj.sortedKeys[i]] !== undefined) {
-              console.log(chalkSorter(wordMeter[sorterObj.sortedKeys[i]].toJSON()[sorterObj.sortKey].toFixed(3)
+              debug(chalkSorter(wordMeter[sorterObj.sortedKeys[i]].toJSON()[sorterObj.sortKey].toFixed(3)
                 + " | "  + sorterObj.sortedKeys[i] 
               ));
             }

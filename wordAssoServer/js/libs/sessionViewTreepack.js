@@ -1369,7 +1369,11 @@ function ViewTreepack() {
     if (nNode.mentions > currentMax.mentions.value) { 
 
       currentMax.mentions.value = nNode.mentions; 
-      if (nNode.nodeType === "place") {
+
+      if (nNode.nodeType === "user") {
+        currentMax.mentions.nodeId = nNode.screenName; 
+      }
+      else if (nNode.nodeType === "place") {
         currentMax.mentions.nodeId = nNode.fullName; 
       }
       else {
@@ -1398,7 +1402,10 @@ function ViewTreepack() {
     if (nNode.rate > currentMax.rate.value) { 
 
       currentMax.rate.value = nNode.rate;
-      if (nNode.nodeType === "place") {
+      if (nNode.nodeType === "user") {
+        currentMax.rate.nodeId = nNode.screenName; 
+      }
+      else if (nNode.nodeType === "place") {
         currentMax.rate.nodeId = nNode.fullName; 
       }
       else {

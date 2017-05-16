@@ -5261,7 +5261,7 @@ var updaterMessageReady = true;
 function initUpdaterMessageQueueInterval(interval){
 
   console.log(chalkInfo("INIT UPDATER MESSAGE QUEUE INTERVAL | " + interval + " MS"));
-  
+
   updaterMessageQueueInterval = setInterval(function() {
     if (updaterMessageReady && !updaterMessageQueue.isEmpty()) {
 
@@ -5703,7 +5703,10 @@ function initAppRouting(callback) {
     console.log(chalkRedBold("LOADING PAGE: /sessionModular.html"));
     res.sendFile(__dirname + "/sessionModular.html", function (err) {
       if (err) {
-        console.error('GET:', __dirname + "/sessionModular.html");
+        console.error("GET / ERROR:"
+          + " | " + __dirname + "/sessionModular.html"
+          + " | " + err
+        );
       } 
       else {
         console.log(chalkInfo('SENT:', __dirname + "/sessionModular.html"));
@@ -5716,7 +5719,10 @@ function initAppRouting(callback) {
     console.log(chalkRedBold("LOADING PAGE: /sessionModular.html"));
     res.sendFile(__dirname + "/sessionModular.html", function (err) {
       if (err) {
-        console.error('GET:', __dirname + "/sessionModular.html");
+        console.error("GET /session ERROR:"
+          + " | " + __dirname + "/sessionModular.html"
+          + " | " + err
+        );
       } 
       else {
         console.log(chalkInfo('SENT:', __dirname + "/sessionModular.html"));
@@ -5729,7 +5735,10 @@ function initAppRouting(callback) {
     console.log(chalkRedBold("LOADING PAGE: /js/libs/sessionViewTicker.js"));
     res.sendFile(__dirname + "/js/libs/sessionViewTicker.js", function (err) {
       if (err) {
-        console.error('GET:', __dirname + "/js/libs/sessionViewTicker.js");
+        console.error("GET / ERROR:"
+          + " | " + __dirname + "/js/libs/sessionViewTicker.js"
+          + " | " + err
+        );
       } 
       else {
         console.log(chalkInfo('SENT:', __dirname + "/js/libs/sessionViewTicker.js"));
@@ -5742,7 +5751,10 @@ function initAppRouting(callback) {
     console.log(chalkRedBold("LOADING PAGE: /js/libs/sessionViewFlow.js"));
     res.sendFile(__dirname + "/js/libs/sessionViewFlow.js", function (err) {
       if (err) {
-        console.error('GET:', __dirname + "/js/libs/sessionViewFlow.js");
+        console.error("GET / ERROR:"
+          + " | " + __dirname + "/js/libs/sessionViewFlow.js"
+          + " | " + err
+        );
       } 
       else {
         console.log(chalkInfo('SENT:', __dirname + "/js/libs/sessionViewFlow.js"));
@@ -5755,7 +5767,10 @@ function initAppRouting(callback) {
     console.log(chalkRedBold("LOADING PAGE: /js/libs/sessionViewTreemap.js"));
     res.sendFile(__dirname + "/js/libs/sessionViewTreemap.js", function (err) {
       if (err) {
-        console.error('GET:', __dirname + "/js/libs/sessionViewTreemap.js");
+        console.error("GET / ERROR:"
+          + " | " + __dirname + "/js/libs/sessionViewTreemap.js"
+          + " | " + err
+        );
       } 
       else {
         console.log(chalkInfo('SENT:', __dirname + "/js/libs/sessionViewTreemap.js"));
@@ -5768,7 +5783,10 @@ function initAppRouting(callback) {
     console.log(chalkRedBold("LOADING PAGE: /js/libs/sessionViewTreepack.js"));
     res.sendFile(__dirname + "/js/libs/sessionViewTreepack.js", function (err) {
       if (err) {
-        console.error('GET:', __dirname + "/js/libs/sessionViewTreepack.js");
+        console.error("GET sessionViewTreepack ERROR:"
+          + " | " + __dirname + "/js/libs/sessionViewTreepack.js"
+          + " | " + err
+        );
       } 
       else {
         console.log(chalkInfo('SENT:', __dirname + "/js/libs/sessionViewTreepack.js"));

@@ -6,6 +6,7 @@ function ViewTreepack() {
 
   var self = this;
   var simulation;
+  var resumeTimeStamp = 0;
 
   var compactDateTimeFormat = "YYYYMMDD HHmmss";
 
@@ -602,10 +603,15 @@ function ViewTreepack() {
 
       node = nodes[ageNodesIndex];
 
+      if (resumeTimeStamp > 0){
+        ageRate = 0;
+      }
+
       age = node.age 
         + (ageRate * (moment().valueOf() - node.ageUpdated));
 
       ageMaxRatio = age/nodeMaxAge ;
+
 
       if (node.isDead 
         || (removeDeadNodesFlag && (age >= nodeMaxAge))
@@ -653,6 +659,8 @@ function ViewTreepack() {
     }
 
     if (ageNodesIndex < 0) {
+      
+      resumeTimeStamp = 0;
 
       maxRateMentionsNode.age = 0;
 
@@ -1534,6 +1542,7 @@ function ViewTreepack() {
       case 'RESUME':
         console.info("SIMULATION CONTROL | OP: " + op);
         // self.initD3timer();
+        resumeTimeStamp = moment().valueOf();
         runningFlag = true;
         simulation.alphaTarget(0.7).restart();
       break;
@@ -1547,6 +1556,7 @@ function ViewTreepack() {
       break;
       case 'PAUSE':
         console.info("SIMULATION CONTROL | OP: " + op);
+        resumeTimeStamp = 0;
         runningFlag = false;
         simulation.alpha(0);
         simulation.stop();

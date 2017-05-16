@@ -5,7 +5,7 @@
 
 var DEFAULT_INTERVAL = 10; // ms
 var statsCountsComplete = false;
-var maxTopTerms = 20;
+// var maxTopTerms = 100;
 var compactDateTimeFormat = "YYYYMMDD HHmmss";
 
 // ==================================================================
@@ -25,6 +25,7 @@ var primarySessionObj;
 var configuration = {};
 configuration.enableStdin = process.env.WA_ENABLE_STDIN;
 configuration.quitOnError = false;
+configuration.maxTopTerms = process.env.WA_MAX_TOP_TERMS || 100;
 
 var languageServer = {};
 var tssServer = {};
@@ -5175,7 +5176,7 @@ function initSorterMessageRxQueueInterval(interval){
           }
 
           var sortedKeys = sorterObj.sortedKeys;
-          var endIndex = Math.min(maxTopTerms, sortedKeys.length);
+          var endIndex = Math.min(configuration.maxTopTerms, sortedKeys.length);
 
           var index;
           var wmObj;
@@ -7077,7 +7078,7 @@ function initRateQinterval(interval){
       var params = {};
       params.op = "SORT";
       params.sortKey = "1MinuteRate";
-      params.max = maxTopTerms;
+      params.max = configuration.maxTopTerms;
       params.obj = {};
       params.obj = wordMeter;
 

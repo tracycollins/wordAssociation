@@ -24,6 +24,7 @@ var debug = require('debug')('wa');
 var debugKeyword = require('debug')('kw');
 var moment = require('moment');
 var os = require('os');
+var equal = require('deep-equal');
 
 var hostname = os.hostname();
 hostname = hostname.replace(/.local/g, '');
@@ -83,13 +84,15 @@ process.on('SIGINT', function() {
 var async = require('async');
 var HashMap = require('hashmap').HashMap;
 
+var localKeywordHashMap = new HashMap();
+var newKeywordsHashMap = new HashMap();
+
 var groupHashMap = new HashMap();
 var serverGroupHashMap = new HashMap();
 
 var entityChannelGroupHashMap = new HashMap();
 var serverEntityChannelGroupHashMap = new HashMap();
 
-var keywordHashMap = new HashMap();
 
 var mongoose = require('../../config/mongoose');
 
@@ -481,12 +484,11 @@ var updateEntityChannelGroups = function (path, configFile, callback){
   });
 }
 
+
 var updateKeywords = function (folder, file, callback){
 
-  var kwHashMap = new HashMap();
-  var prevKwHashMap = new HashMap();
+  newKeywordsHashMap.clear();
 
-  kwHashMap.copy(keywordHashMap);
   debug(chalkInfo("UPDATE KEYWORDS " + file));
 
   getFileMetadata(folder, file, function(err, response){
@@ -498,8 +500,6 @@ var updateKeywords = function (folder, file, callback){
         + " | PREV: " + prevKeywordModifiedMoment.format(compactDateTimeFormat)
         + " | " + keywordFileClientModifiedMoment.format(compactDateTimeFormat)
       ));
-
-      // callback(null, "KEYWORD FILE " + folder + "/" + file + " NOT MODIFIED");
       callback(null, 0);
     }
     else {
@@ -529,8 +529,6 @@ var updateKeywords = function (folder, file, callback){
 
           var words = Object.keys(kwordsObj);
 
-          kwHashMap.clear();
-
           async.eachSeries(words,
 
             function(w, cb) {
@@ -540,25 +538,45 @@ var updateKeywords = function (folder, file, callback){
 
               var kwObj = kwordsObj[w];  // kwObj = { "negative": 10, "right": 7 }
 
-              // debug(chalkInfo("UPDATING KEYWORD | " + wd + ": " + keyWordType));
-              debug(chalkInfo("UPDATER: UPDATING KEYWORD | " + wd + ": " + jsonPrint(kwObj)));
-
               var wordObj = new Word();
-
               wordObj.nodeId = wd;
               wordObj.isKeyword = true;
 
               // KLUDEGE: OVERWRITES ANY PREVIOUS KEYWORD SETTINGS FOR NOW
               wordObj.keywords = {};
-
               if (typeof kwObj === "string") {  // old style keyword: true/false; convert to new style
                 wordObj.keywords[kwObj.toLowerCase()] = DEFAULT_KEYWORD_VALUE;
+                wordObj.keywords.keywordId = wd;
               }
               else {
                 wordObj.keywords = kwObj;
+                wordObj.keywords.keywordId = wd;
               }
 
-              kwHashMap.set(wordObj.nodeId, wordObj.keywords);
+              if (localKeywordHashMap.has(wd)) {
+
+                debug(chalkAlert("* KW HM HIT | " + wd));
+
+                var prevKeywordObj = localKeywordHashMap.get(wd);
+
+                if (equal(prevKeywordObj, wordObj.keywords)){
+                  debug(chalkAlert("--- WORD UNCHANGED ... SKIPPING | " + wd));
+                  cb();
+                  return;
+                }
+                else {
+                  console.log(chalkAlert("+++ WORD CHANGED"
+                    + " | " + wd
+                    + "\nPREV\n" + jsonPrint(prevKeywordObj)
+                    + "\nNEW\n" + jsonPrint(wordObj.keywords)
+                  ));
+                }
+              }
+
+              debug(chalkInfo("UPDATER: UPDATING KEYWORD | " + wd + ": " + jsonPrint(wordObj)));
+
+              newKeywordsHashMap.set(wordObj.nodeId, wordObj.keywords);
+              localKeywordHashMap.set(wordObj.nodeId, wordObj.keywords);
 
               wordServer.findOneWord(wordObj, false, function(err, updatedWordObj) {
                 if (err){
@@ -587,11 +605,10 @@ var updateKeywords = function (folder, file, callback){
               }
               else {
                 console.log(chalkInfo("=== KEYWORD UPDATE COMPLETE"
-                  + " | TOTAL KEYWORDS:   " + kwHashMap.count()
+                  + " | TOTAL KEYWORDS:   " + newKeywordsHashMap.count()
                 ));
 
-                keywordHashMap.copy(kwHashMap);
-                callback(null, kwHashMap.count());
+                callback(null, newKeywordsHashMap.count());
               }
             }
           )
@@ -771,7 +788,7 @@ function sendKeywords(callback){
 
   debug(chalkInfo("sendKeywords START"));
 
-  var words = keywordHashMap.keys();
+  var words = newKeywordsHashMap.keys();
   var keywordsSent = 0;
 
   async.forEachSeries(
@@ -792,7 +809,7 @@ function sendKeywords(callback){
       //   }
       // };
 
-      var kwObj = keywordHashMap.get(word);
+      var kwObj = newKeywordsHashMap.get(word);
       kwObj.keywordId = word;
 
       var updaterObj = {};

@@ -4759,7 +4759,7 @@ function sendUpdated(updatedObj, callback){
                 + " | NID: " + updatedWordObj.nodeId
                 + " | SID: " + updatedWordObj.sessionId
                 + " | E: " + updatedWordObj.tags.entity
-                + "\n" + jsonPrint(updatedWordObj)
+                // + "\n" + jsonPrint(updatedWordObj)
               ));
 
               if (configuration.quitOnError) { quit("SESSION NOT IN CACHE"); }

@@ -82,10 +82,12 @@ function ViewTreepack() {
 
   currentMax.rate = {};
   currentMax.rate.nodeId = "what";
+  currentMax.rate.nodeType = "hashtag";
   currentMax.rate.value = 2;
 
   currentMax.mentions = {};
-  currentMax.rate.nodeId = "what";
+  currentMax.mentions.nodeId = "what";
+  currentMax.mentions.nodeType = "hashtag";
   currentMax.mentions.value = 2;
 
   var deadNodesHash = {};
@@ -143,6 +145,8 @@ function ViewTreepack() {
   var colSpacing = 90/maxHashtagCols; // %
 
   var maxRateMentionsNode = {};
+  maxRateMentionsNode.rateNodeType = "hashtag";
+  maxRateMentionsNode.mentionsNodeType = "hashtag";
   maxRateMentionsNode.isMaxNode = true;
 
   if (metricMode === "rate") {
@@ -652,10 +656,12 @@ function ViewTreepack() {
 
       maxRateMentionsNode.age = 0;
 
+      maxRateMentionsNode.rateNodeType = currentMax.rate.nodeType;
       maxRateMentionsNode.rate = currentMax.rate.value;
       maxRateMentionsNode.rateNodeId = currentMax.rate.nodeId;
       maxRateMentionsNode.rateTimeStamp = currentMax.rate.timeStamp;
 
+      maxRateMentionsNode.mentionsNodeType = currentMax.mentions.nodeType;
       maxRateMentionsNode.mentions = currentMax.mentions.value;
       maxRateMentionsNode.mentionsNodeId = currentMax.mentions.nodeId;
       maxRateMentionsNode.mentionsTimeStamp = currentMax.mentions.timeStamp;
@@ -1137,17 +1143,21 @@ function ViewTreepack() {
     var displaytext = "";
 
 
-    if (node.isMaxNode) { 
+    if (node.isMaxNode) {
       if (metricMode === "rate") {
+        var nodeId = node.rateNodeId.toUpperCase();
+        if (node.nodeType === "user") { nodeId = "@" + nodeId; }
         displaytext = new Array(ratePadSpaces).join("\xa0") + rate
         + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns 
-        + " | RATE | MAX | " + node.rateNodeId.toUpperCase()
+        + " | RATE | MAX | " + nodeId
         + " | " + moment(parseInt(node.rateTimeStamp)).format(compactDateTimeFormat);
       }
       else {
+        var nodeId = node.mentionsNodeId.toUpperCase();
+        if (node.nodeType === "user") { nodeId = "@" + nodeId; }
         displaytext = new Array(ratePadSpaces).join("\xa0") + rate 
         + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns
-        + " | MNTN | MAX | " + node.mentionsNodeId.toUpperCase()
+        + " | MNTN | MAX | " + nodeId
         + " | " + moment(parseInt(node.mentionsTimeStamp)).format(compactDateTimeFormat);
       }
     }
@@ -1155,7 +1165,7 @@ function ViewTreepack() {
       if (node.isTwitterUser) { 
         displaytext = new Array(ratePadSpaces).join("\xa0") + rate 
         + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns 
-        + " | " + node.screenName.toUpperCase() ;
+        + " | @" + node.screenName.toUpperCase() ;
       }
       else if (node.nodeType === "place") { 
         displaytext = new Array(ratePadSpaces).join("\xa0") + rate 

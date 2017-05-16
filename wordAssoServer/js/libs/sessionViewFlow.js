@@ -522,8 +522,6 @@ function ViewFlow() {
       if (resumeTimeStamp > 0){
         ageRate = 0;
       }
-      else {
-      }
 
       age = node.age + (ageRate * (moment().valueOf() - node.ageUpdated));
       ageMaxRatio = age/currentNodeMaxAge ;

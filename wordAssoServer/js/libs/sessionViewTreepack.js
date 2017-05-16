@@ -134,10 +134,12 @@ function ViewTreepack() {
   var velocityDecay = config.defaultVelocityDecay;
   var fontSizeMinRatio = config.defaultFontSizeMinRatio;
   var fontSizeMaxRatio = config.defaultFontSizeMaxRatio;
+  var fontSizeTopTermRatio = config.defaultFontSizeTopTermRatio;
   var fontSizeMin = config.defaultFontSizeMinRatio * height;
   var fontSizeMax = config.defaultFontSizeMaxRatio * height;
+  var fontTopTerm = config.defaultFontSizeTopTermRatio * height;
 
-  var rowSpacing = fontSizeMinRatio*110; // %
+  var rowSpacing = fontSizeTopTermRatio*110; // %
   var colSpacing = 90/maxHashtagCols; // %
 
   var maxRateMentionsNode = {};
@@ -539,7 +541,7 @@ function ViewTreepack() {
     config.defaultFontSizeMinRatio = value;
     fontSizeMinRatio = value;
     fontSizeMin = value * height;
-    rowSpacing = value * 110; // %
+    // rowSpacing = value * 110; // %
     nodeLabelSizeScale = d3.scaleLinear()
       .domain([1, currentMaxMetric])
       .range([fontSizeMin, fontSizeMax])
@@ -846,7 +848,7 @@ function ViewTreepack() {
     nodeTopTermLabels
       .exit()
       .attr("class", "exit")
-        .remove();
+      .remove();
 
     nodeTopTermLabels
       .attr("class", "update")
@@ -855,7 +857,7 @@ function ViewTreepack() {
       .text(function(d) {
         return d.displaytext;
       })
-      .style("font-size", fontSizeMin)
+      .style("font-size", fontTopTerm)
       .style('fill', function(d) { 
         if (d.newFlag) { return palette.white; }
         if (d.mouseHoverFlag) { return palette.blue; }
@@ -893,7 +895,7 @@ function ViewTreepack() {
         return topTermLabelOpacityScale(d.ageMaxRatio); 
       })
       .style('fill', palette.white)
-      .style("font-size", fontSizeMin);
+      .style("font-size", fontTopTerm);
 
       callback(null, null);
   };
@@ -1578,7 +1580,9 @@ function ViewTreepack() {
 
     fontSizeMin = fontSizeMinRatio * height;
     fontSizeMax = fontSizeMaxRatio * height;
-    rowSpacing = fontSizeMinRatio*110; // %
+
+    fontTopTerm = fontSizeTopTermRatio * height;
+    rowSpacing = fontTopTerm*110; // %
 
     nodeLabelSizeScale = d3.scaleLinear()
       .domain([1, currentMaxMetric])

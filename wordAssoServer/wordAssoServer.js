@@ -1513,6 +1513,8 @@ function sessionUpdateDbCache(request, callback){
         }
       }
       else {
+        if (sObj.config === undefined) { sObj.config = {}; }
+        if (sObj.mode === undefined) { sObj.mode = {}; }
         sObj.url = (userObj.url !== undefined) ? userObj.url : "http://www.threeceemedia.com";
         sObj.profileImageUrl = (userObj.profileImageUrl !== "undefined") ? userObj.profileImageUrl : null ;
         sessionCache.set(sessionCacheKey, sObj);

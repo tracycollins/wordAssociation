@@ -1391,10 +1391,11 @@ function userReadyHandler(request, callback){
       callback(err, request);
     }
     else if (sObj === undefined) {
-      console.log(chalkError(moment().format(compactDateTimeFormat) 
-        + " | ??? SESSION NOT FOUND ON USER READY"
+      console.log(chalkError("??? SESSION NOT FOUND ON USER READY"
+        + " | " + moment().format(compactDateTimeFormat) 
         + " | SOC: " + socketId
-        + "\n" + jsonPrint(request)
+        + " | SID: " + request.sessionId
+        // + "\n" + jsonPrint(request)
       ));
       callback("SESSION NOT FOUND ON USER READY", request);
     }

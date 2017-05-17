@@ -421,6 +421,12 @@ function ViewTreemap() {
     var tooltipString;
 
     switch (d.data.nodeType) {
+      case "user":
+        tooltipString = d.data.nodeId
+          + "<br>TYPE: " + d.data.nodeType 
+          + "<br>Ms: " + d.data.size
+          + "<br>RANK: " + d.data.rank;
+      break;
       case "hashtag":
         tooltipString = "#" + d.data.name
           + "<br>TYPE: " + d.data.nodeType 

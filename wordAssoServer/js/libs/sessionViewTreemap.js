@@ -901,6 +901,8 @@ function ViewTreemap() {
     newNode = nNode;
     newNode.newFlag = true;
 
+    if (nNode.nodeType === "user") { newNode.nodeId = "@" + nNode.screenName.toLowerCase(); }
+
     if (nodeAddQ.length < MAX_RX_QUEUE) {
       nodeAddQ.push({op:"add", node: newNode});
     }

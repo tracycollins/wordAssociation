@@ -41,6 +41,9 @@ function ViewTreemap() {
     return window.innerHeight;
   };
 
+  self.sessionKeepalive = function() {
+  };
+
   var mouseHoverFlag = false;
 
 

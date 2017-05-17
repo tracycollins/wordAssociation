@@ -589,7 +589,6 @@ function showStats(options){
   statsObj.elapsed = msToTime(moment().valueOf() - statsObj.startTime);
   statsObj.timeStamp = moment().format(compactDateTimeFormat);
 
-
   statsObj.memory.heap = process.memoryUsage().heapUsed/(1024*1024);
   statsObj.memory.maxHeap = Math.max(statsObj.memory.maxHeap, statsObj.memory.heap);
   statsObj.memory.memoryUsage = process.memoryUsage();
@@ -604,6 +603,14 @@ function showStats(options){
   statsObj.queues.updateSessionViewQueue = updateSessionViewQueue.length;
 
   if (options) {
+    console.log(chalkLog("S"
+      // + " | " + statsObj.socketId
+      + " | ELAPSED: " + statsObj.elapsed
+      + " | START: " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat)
+      + " | NOW: " + moment().format(compactDateTimeFormat)
+      + " | HEAP: " + statsObj.memory.heap.toFixed(0) + " MB"
+      + " | MAX HEAP: " + statsObj.memory.maxHeap.toFixed(0)
+    ));
     console.log(chalkAlert("STATS\n" + jsonPrint(statsObj)));
   }
   else {
@@ -611,6 +618,7 @@ function showStats(options){
       // + " | " + statsObj.socketId
       + " | ELAPSED: " + statsObj.elapsed
       + " | START: " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat)
+      + " | NOW: " + moment().format(compactDateTimeFormat)
       + " | HEAP: " + statsObj.memory.heap.toFixed(0) + " MB"
       + " | MAX HEAP: " + statsObj.memory.maxHeap.toFixed(0)
     ));

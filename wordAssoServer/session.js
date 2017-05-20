@@ -2067,9 +2067,17 @@ function initSocketNodeRx(){
       && (nNode.nodeType !== "hashtag") 
       && (nNode.nodeType !== "word")
       && (nNode.nodeType !== "place")
+      && (config.sessionViewType === "treemap")
+      ) {
+      return;
+    }
+
+    if ((nNode.nodeType !== "user") 
+      && (nNode.nodeType !== "hashtag") 
+      && (nNode.nodeType !== "word")
+      && (nNode.nodeType !== "place")
       && ((config.sessionViewType === "histogram")
       || (config.sessionViewType === "flow")
-      || (config.sessionViewType === "treemap")
       || (config.sessionViewType === "treepack"))) {
       return;
     }

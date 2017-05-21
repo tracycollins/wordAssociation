@@ -35,6 +35,25 @@
       fill: blue;
     }
     
+    #topTermsDiv {
+      width: 40%;
+      height: 80%;
+      font-family: "Lucida Console", Monaco, monospace;
+      /*font-size: 0.6em;*/
+      /*line-height: 0.8em;*/
+      /*background-color: #111111;*/
+      background: rgba(25, 25, 25, .75);
+      border: 1px solid #aaaaaa;
+      color: #cccccc;
+      margin: 20px;
+      /*padding: 10px;*/
+      overflow: hidden;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 10;
+    }
+    
     #statsDiv {
       font-family: "Lucida Console", Monaco, monospace;
       font-size: 0.6em;
@@ -262,6 +281,7 @@
 
 <body style="overflow:hidden;">
   <div id="d3group"></div>
+  <div id="topTermsDiv"></div>
   <div id="statsDiv" style="overflow:hidden;"></div>
   <div id="controlDiv" style="overflow:hidden;"></div>
   <script>

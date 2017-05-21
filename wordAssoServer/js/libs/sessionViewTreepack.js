@@ -7,6 +7,7 @@ function ViewTreepack() {
   var self = this;
   var simulation;
   var resumeTimeStamp = 0;
+  var displayTopTermsFlag = false;
 
   var compactDateTimeFormat = "YYYYMMDD HHmmss";
 
@@ -15,8 +16,8 @@ function ViewTreepack() {
 
   var sliderPercision = 3;
 
-  var hashtagTopMargin = 10; // %
-  var hashtagLeftMargin = 5; // %
+  var hashtagTopMargin = 5; // %
+  var hashtagLeftMargin = 1; // %
   var mentionsNumChars = 9;
   var rateNumChars = 8;
 
@@ -140,7 +141,7 @@ function ViewTreepack() {
   var fontSizeTopTermRatio = config.defaultFontSizeTopTermRatio;
   var fontSizeMin = config.defaultFontSizeMinRatio * height;
   var fontSizeMax = config.defaultFontSizeMaxRatio * height;
-  var fontTopTerm = config.defaultFontSizeTopTermRatio * height;
+  // var fontTopTerm = config.defaultFontSizeTopTermRatio * height;
 
   var rowSpacing = fontSizeTopTermRatio*110; // %
   var colSpacing = 90/maxHashtagCols; // %
@@ -272,6 +273,9 @@ function ViewTreepack() {
   console.log("width: " + width + " | height: " + height);
 
   document.addEventListener("mousemove", function() {
+
+    topTermsDiv.style("visibility", "visible");
+
     if (mouseHoverFlag) {
       d3.select("body").style("cursor", "pointer");
     } else {
@@ -326,13 +330,31 @@ function ViewTreepack() {
     .attr("x", 1e-6)
     .attr("y", 1e-6);
 
-
   var panzoomElement = document.getElementById('svgTreemapLayoutArea');
   panzoom(panzoomElement, {zoomSpeed: 0.030});
 
 //============TREEMAP=================================
 
-  var nodeTopTermLabelSvgGroup = svgTopTermLayoutArea.append("svg:g").attr("id", "nodeTopTermLabelSvgGroup");
+  var topTermsDiv = d3.select("#topTermsDiv");
+
+  var svgTopTerms = topTermsDiv.append("svg:svg")
+    .attr("id", "svgTopTerms")
+    .attr("width", width)
+    .attr("height", height)
+    .attr("x", 1e-6)
+    .attr("y", 1e-6);
+
+  var nodeTopTermLabelSvgGroup = svgTopTerms.append("svg:g")
+    .attr("id", "nodeTopTermLabelSvgGroup")
+    .attr("width", width)
+    .attr("height", height)
+    .attr("x", 1e-6)
+    .attr("y", 1e-6);
+
+  var fontTopTerm = config.defaultFontSizeTopTermRatio * topTermsDiv.height;
+
+  nodeTopTermLabelSvgGroup.style("visibility", "visible");
+
   var nodeSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeSvgGroup");
   var nodeLabelSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeLabelSvgGroup");
 
@@ -362,7 +384,6 @@ function ViewTreepack() {
   };
 
   d3.select("body").style("cursor", "default");
-
   
   this.deleteNode = function() {
   };
@@ -792,6 +813,7 @@ function ViewTreepack() {
     d.mouseHoverFlag = false;
     self.toolTipVisibility(false);
     d3.select(this).style("opacity", function(){
+        if (d.isTopTerm) { return topTermLabelOpacityScale(d.ageMaxRatio); }
         return nodeLabelOpacityScale(d.ageMaxRatio);
       });
   }
@@ -856,6 +878,7 @@ function ViewTreepack() {
 
   var updateTopTerm = function(callback) {
 
+
     var nodeTopTermLabels = nodeTopTermLabelSvgGroup.selectAll("text")
       .data(nodesTopTerm, function(d) { return d.nodeId; });
 
@@ -911,7 +934,8 @@ function ViewTreepack() {
       .style('fill', palette.white)
       .style("font-size", fontTopTerm);
 
-      callback(null, null);
+
+    callback(null, null);
   };
 
   var updateNodeCircles = function(callback) {
@@ -1608,8 +1632,6 @@ function ViewTreepack() {
     fontSizeMin = fontSizeMinRatio * height;
     fontSizeMax = fontSizeMaxRatio * height;
 
-    fontTopTerm = fontSizeTopTermRatio * height;
-    rowSpacing = fontSizeTopTermRatio*110; // %
 
     nodeLabelSizeScale = d3.scaleLinear()
       .domain([1, currentMaxMetric])
@@ -1633,6 +1655,22 @@ function ViewTreepack() {
       .attr("height", height)
       .attr("x", 1e-6)
       .attr("y", 1e-6);
+
+    nodeTopTermLabelSvgGroup
+      .attr("width", width)
+      .attr("height", height)
+      .attr("x", 1e-6)
+      .attr("y", 1e-6);
+
+    svgTopTerms
+      .attr("width", width)
+      .attr("height", height)
+      .attr("x", 1e-6)
+      .attr("y", 1e-6);
+
+    fontTopTerm = fontSizeTopTermRatio * topTermsDiv.height;
+    // fontTopTerm = fontSizeTopTermRatio * height;
+    rowSpacing = fontSizeTopTermRatio*110; // %
 
     if (simulation){
       simulation

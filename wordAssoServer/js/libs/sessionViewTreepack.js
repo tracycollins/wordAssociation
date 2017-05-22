@@ -85,12 +85,14 @@ function ViewTreepack() {
   currentMax.rate = {};
   currentMax.rate.nodeId = "what";
   currentMax.rate.nodeType = "hashtag";
-  currentMax.rate.value = 2;
+  currentMax.rate.value = 0.1;
+  currentMax.rate.timeStamp = moment().valueOf();
 
   currentMax.mentions = {};
   currentMax.mentions.nodeId = "what";
   currentMax.mentions.nodeType = "hashtag";
-  currentMax.mentions.value = 2;
+  currentMax.mentions.value = 0.1;
+  currentMax.mentions.timeStamp = moment().valueOf();
 
   var deadNodesHash = {};
 
@@ -284,7 +286,7 @@ function ViewTreepack() {
   }, true);
 
   var defaultRadiusScale = d3.scaleLinear()
-    .domain([1, currentMaxMetric])
+    .domain([0.1, Math.sqrt(currentMaxMetric)])
     .range([minRadius, maxRadius])
     .clamp(true);
 
@@ -428,7 +430,7 @@ function ViewTreepack() {
       .clamp(true);
 
     defaultRadiusScale = d3.scaleLinear()
-      .domain([1, currentMaxMetric])
+      .domain([0.1, Math.sqrt(currentMaxMetric)])
       .range([minRadius, maxRadius])
       .clamp(true);
 
@@ -979,15 +981,11 @@ function ViewTreepack() {
         .duration(transitionDuration)
         .attr("r", function(d) {
           if (d.isIgnored) {
-            return defaultRadiusScale(1);
+            return defaultRadiusScale(Math.sqrt(0.1));
           }
           else {
-            if (metricMode === "rate") {
-              return defaultRadiusScale(d.rate);
-            }
-            if (metricMode === "mentions") {
-              return defaultRadiusScale(d.mentions);
-            }
+            if (metricMode === "rate") { return defaultRadiusScale(Math.sqrt(d.rate));}
+            if (metricMode === "mentions") { return defaultRadiusScale(Math.sqrt(d.mentions)); }
           }
         });
 
@@ -1021,11 +1019,11 @@ function ViewTreepack() {
         .duration(transitionDuration)
         .attr("r", function(d) {
           if (d.isIgnored) {
-            return defaultRadiusScale(1);
+            return defaultRadiusScale(Math.sqrt(0.1));
           }
           else {
-            if (metricMode === "rate") {return defaultRadiusScale(d.rate);}
-            if (metricMode === "mentions") {return defaultRadiusScale(d.mentions);}
+            if (metricMode === "rate") { return defaultRadiusScale(Math.sqrt(d.rate));}
+            if (metricMode === "mentions") { return defaultRadiusScale(Math.sqrt(d.mentions)); }
           }
         });
 
@@ -1467,7 +1465,7 @@ function ViewTreepack() {
           .clamp(true);
 
         defaultRadiusScale = d3.scaleLinear()
-          .domain([1, currentMaxMetric])
+          .domain([1, Math.sqrt(currentMaxMetric)])
           .range([minRadius, maxRadius])
           .clamp(true);
       }
@@ -1499,7 +1497,7 @@ function ViewTreepack() {
           .clamp(true);
 
         defaultRadiusScale = d3.scaleLinear()
-          .domain([1, currentMaxMetric])
+          .domain([1, Math.sqrt(currentMaxMetric)])
           .range([minRadius, maxRadius])
           .clamp(true);
       }
@@ -1577,8 +1575,8 @@ function ViewTreepack() {
         return forceYmultiplier * gravity; 
       }))
       .force("collide", d3.forceCollide().radius(function(d) { 
-        if (metricMode === "rate") {return collisionRadiusMultiplier * defaultRadiusScale(d.rate);}
-        if (metricMode === "mentions") {return collisionRadiusMultiplier * defaultRadiusScale(d.mentions);}
+        if (metricMode === "rate") {return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.rate));}
+        if (metricMode === "mentions") {return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.mentions));}
       }).iterations(collisionIterations).strength(1.0))
       .velocityDecay(velocityDecay)
       .on("tick", ticked);
@@ -1659,7 +1657,7 @@ function ViewTreepack() {
     maxRadius = maxRadiusRatio * width;
 
     defaultRadiusScale = d3.scaleLinear()
-    .domain([1, currentMaxMetric])
+    .domain([0.1, Math.sqrt(currentMaxMetric)])
     .range([minRadius, maxRadius])
     .clamp(true);
 
@@ -1759,8 +1757,8 @@ function ViewTreepack() {
           return forceYmultiplier * gravity; 
         }))
         .force("collide", d3.forceCollide().radius(function(d) { 
-          if (metricMode === "rate") {return collisionRadiusMultiplier * defaultRadiusScale(d.rate);}
-          if (metricMode === "mentions") {return collisionRadiusMultiplier * defaultRadiusScale(d.mentions);}
+          if (metricMode === "rate") {return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.rate));}
+          if (metricMode === "mentions") {return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.mentions));}
         }).iterations(collisionIterations))
         .velocityDecay(velocityDecay)
 

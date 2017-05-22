@@ -17,7 +17,7 @@ function ViewTreepack() {
   var sliderPercision = 3;
 
   var hashtagTopMargin = 5; // %
-  var hashtagLeftMargin = 1; // %
+  var hashtagLeftMargin = 2; // %
   var mentionsNumChars = 9;
   var rateNumChars = 8;
 

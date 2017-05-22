@@ -1049,7 +1049,18 @@ function ViewTreepack() {
       .attr("x", function(d) { return d.x; })
       .attr("y", function(d) { return d.y; })
       .text(function(d) {
-        if (d.isTwitterUser) { return "@" + d.screenName.toUpperCase(); }
+        if (d.isTwitterUser) { 
+          if (d.screenName) { 
+            return "@" + d.screenName.toUpperCase(); 
+          }
+          else if (d.name){
+            return "@" + d.name.toUpperCase(); 
+          }
+          else {
+            return "@UNKNOWN?"; 
+          }
+
+        }
         if (d.isKeyword || d.isTrendingTopic || d.isTwitterUser) { 
           if (d.nodeType === "place") { return d.fullName.toUpperCase(); }
           return d.nodeId.toUpperCase(); 
@@ -1091,7 +1102,18 @@ function ViewTreepack() {
         return d.y; 
       })
       .text(function(d) {
-        if (d.isTwitterUser) { return "@" + d.screenName.toUpperCase(); }
+        if (d.isTwitterUser) { 
+          if (d.screenName) { 
+            return "@" + d.screenName.toUpperCase(); 
+          }
+          else if (d.name){
+            return "@" + d.name.toUpperCase(); 
+          }
+          else {
+            return "@UNKNOWN?"; 
+          }
+
+        }
         if (d.isKeyword || d.isTrendingTopic || d.isTwitterUser) { 
           if (d.nodeType === "place") { return d.fullName.toUpperCase(); }
           return d.nodeId.toUpperCase(); 
@@ -1195,9 +1217,21 @@ function ViewTreepack() {
     }
     else {
       if (node.isTwitterUser) { 
-        displaytext = new Array(ratePadSpaces).join("\xa0") + rate 
-        + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns 
-        + " | @" + node.screenName.toUpperCase() ;
+        if (node.screenName) {
+          displaytext = new Array(ratePadSpaces).join("\xa0") + rate 
+          + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns 
+          + " | @" + node.screenName.toUpperCase() ;
+        }
+        else if (node.name) {
+          displaytext = new Array(ratePadSpaces).join("\xa0") + rate 
+          + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns 
+          + " | @" + node.name.toUpperCase() ;
+        }
+        else {
+          displaytext = new Array(ratePadSpaces).join("\xa0") + rate 
+          + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns 
+          + " | @UNKNOWN?";
+        }
       }
       else if (node.nodeType === "place") { 
         displaytext = new Array(ratePadSpaces).join("\xa0") + rate 

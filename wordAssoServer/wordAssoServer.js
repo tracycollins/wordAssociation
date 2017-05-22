@@ -2169,6 +2169,7 @@ function initSessionSocketHandler(sessionObj, socket) {
           }
           else if (nodeObj.name) {
             nodeObj.isTwitterUser = true;
+            nodeObj.screenName = nodeObj.name;
             wordsPerMinuteTopTermCache.get(nodeObj.name.toLowerCase(), function(err, name) {
               if (name) {
                 nodeObj.isTopTerm = true;

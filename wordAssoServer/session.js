@@ -562,6 +562,7 @@ function displayControl(isVisible) {
   var v = 'hidden';
   if (isVisible) v = 'visible';
   document.getElementById('controlDiv').style.visibility = v;
+  document.getElementById('topTermsDiv').style.visibility = v;
 }
 
 function displayStats(isVisible, dColor) {
@@ -570,6 +571,17 @@ function displayStats(isVisible, dColor) {
   document.getElementById('statsDiv').style.visibility = v;
   if (dColor !== undefined) {document.getElementById('statsDiv').style.color = dColor;}
 }
+
+var mouseMoveTimeoutEventObj = new CustomEvent("mouseMoveTimeoutEvent");
+
+
+// var mouseMoveTimeoutEventHandler = function(e) {
+//   console.debug("mouseMoveTimeoutEvent");
+// }
+
+
+// document.body.addEventListener("mouseMoveTimeoutEvent", mouseMoveTimeoutEventHandler);
+
 
 var mouseMoveTimeout;
 var mouseMovingFlag = false;
@@ -596,6 +608,8 @@ function resetMouseMoveTimer() {
       displayStats(false, palette.white);
       displayControl(false);
     }
+
+    document.dispatchEvent(mouseMoveTimeoutEventObj);
 
   }, mouseMoveTimeoutInterval);
 }
@@ -624,6 +638,8 @@ document.addEventListener("dragEnd", function(e) {
     // console.error("dragSession\n" + jsonPrint(dragSession));
   }
 });
+
+// var mouseMoveTimeoutEvent = new Event('mouseMoveTimeout');
 
 var sessionDragEndEvent = new CustomEvent(
   'dragEnd', { 
@@ -3613,6 +3629,7 @@ function initialize(callback) {
   document.addEventListener("fullscreenchange", onFullScreenChange, false);
   document.addEventListener("webkitfullscreenchange", onFullScreenChange, false);
   document.addEventListener("mozfullscreenchange", onFullScreenChange, false);
+
 
   getUrlVariables(function(err, urlVariablesObj) {
 

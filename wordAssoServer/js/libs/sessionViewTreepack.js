@@ -1399,9 +1399,9 @@ function ViewTreepack() {
       return;
     }
 
-    if ((nNode.nodeType === "word") && !nNode.isKeyword) { 
-      return;
-    }
+    // if ((nNode.nodeType === "word") && !nNode.isKeyword) { 
+    //   return;
+    // }
 
     var newNode = {};
     newNode = nNode;

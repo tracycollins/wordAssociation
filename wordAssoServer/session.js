@@ -15,6 +15,8 @@ when new instance of word arrives, iterate thru array of nodes and create linksk
 // var DEFAULT_SOURCE = "http://word.threeceelabs.com";
 var DEFAULT_SOURCE = "==SOURCE==";  // will be updated by wordAssoServer.js on app.get
 
+var debug = true;
+
 var PARENT_ID = "0047";
 
 var storedConfigName;
@@ -81,7 +83,6 @@ var defaultTimePeriodFormat = "HH:mm:ss";
 
 var pageLoadedTimeIntervalFlag = true;
 
-var debug = false;
 var DEFAULT_BLAH_MODE = true;
 var MAX_RX_QUEUE = 250;
 var MAX_WORDCHAIN_LENGTH = 100;
@@ -3165,6 +3166,14 @@ var createNode = function(callback) {
       function(err, results) {
 
         // console.debug("createNode\n" + jsonPrint(results));
+        if (results.source.isIgnored) {
+          console.debug("createNode IGNORE SOURCE: " + results.source.node.nodeId);
+        }
+
+        if (results.target && results.target.isIgnored) {
+          console.debug("createNode IGNORE TARGET: " + results.target.node.nodeId);
+        }
+
 
         if (!results.source.isIgnored) {
           session.source = results.source.node;

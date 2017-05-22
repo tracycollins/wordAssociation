@@ -193,7 +193,7 @@ hostname = hostname.replace(/.at.net/g, "");
 hostname = hostname.replace(/.fios-router.home/g, "");
 hostname = hostname.replace(/word0-instance-1/g, "google");
 
-var DB_UPDATE_INTERVAL = 100;
+var DB_UPDATE_INTERVAL = 10;
 var GROUP_UPDATE_INTERVAL = 15000;
 var MAX_RESPONSE_QUEUE_SIZE = 1000;
 var OFFLINE_MODE = false;
@@ -608,6 +608,7 @@ function showStats(options){
       + " | ELAPSED: " + statsObj.elapsed
       + " | START: " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat)
       + " | NOW: " + moment().format(compactDateTimeFormat)
+      + " | DBM Q: " + dbUpdaterMessageRxQueue.size()
       + " | HEAP: " + statsObj.memory.heap.toFixed(0) + " MB"
       + " | MAX HEAP: " + statsObj.memory.maxHeap.toFixed(0)
     ));
@@ -619,6 +620,7 @@ function showStats(options){
       + " | ELAPSED: " + statsObj.elapsed
       + " | START: " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat)
       + " | NOW: " + moment().format(compactDateTimeFormat)
+      + " | DBM Q: " + dbUpdaterMessageRxQueue.size()
       + " | HEAP: " + statsObj.memory.heap.toFixed(0) + " MB"
       + " | MAX HEAP: " + statsObj.memory.maxHeap.toFixed(0)
     ));
@@ -950,14 +952,14 @@ sessionCache.on("set", function(sessionId, sessionObj) {
 });
 
 sessionCache.on("expired", function(sessionId, sessionObj) {
-  debug(chalkInfo("... SESS $ XXX"
+  console.log(chalkInfo("... SESS $ XXX"
     + " | " + sessionId
   ));
-  sessionQueue.enqueue({
-    sessionEvent: "SESSION_EXPIRED",
-    sessionId: sessionId,
-    session: sessionObj
-  });
+  // sessionQueue.enqueue({
+  //   sessionEvent: "SESSION_EXPIRED",
+  //   sessionId: sessionId,
+  //   session: sessionObj
+  // });
 
   io.of(sessionObj.namespace).to(sessionId).emit("SESSION_EXPIRED", sessionId);
 
@@ -1237,6 +1239,8 @@ function saveStats(statsFile, statsObj, callback) {
 
 function initStatsInterval(interval){
 
+  var statsUpdated = 0;
+
   console.log(chalkInfo("INIT STATS INTERVAL"
     + " | " + interval + " MS"
     + " | FILE: " + statsFolder + "/" + statsFile
@@ -1262,9 +1266,14 @@ function initStatsInterval(interval){
     statsObj.entity.user.connected = Object.keys(userNameSpace.connected).length; // userNameSpace.sockets.length ;
     statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; // userNameSpace.sockets.length ;
 
-    saveFile(statsFolder, statsFile, statsObj, function(){
-      showStats();
-    });
+    if (statsUpdated % 6 === 0) {
+      saveFile(statsFolder, statsFile, statsObj, function(){
+      });
+    }
+
+    showStats();
+
+    statsUpdated++;
 
   }, interval);
 }
@@ -1733,6 +1742,8 @@ function initSessionSocketHandler(sessionObj, socket) {
   socket.on("disconnect", function(status) {
     statsObj.socket.disconnects += 1;
 
+    socket.removeAllListeners();
+
     console.log(chalkDisconnect(moment().format(compactDateTimeFormat) 
       + " | SOCKET DISCONNECT: " + socket.id + "\nstatus\n" + jsonPrint(status)
     ));
@@ -2064,7 +2075,7 @@ function initSessionSocketHandler(sessionObj, socket) {
 
     // usually output from twitterSearchStream (TSS)
 
-    debug(chalkInfo("RX NODE"
+    console.log(chalkInfo("RX NODE"
       + " | " + rxNodeObj.nodeType 
       + " | NID " + rxNodeObj.nodeId 
       + " | Ms " + rxNodeObj.mentions
@@ -4004,8 +4015,16 @@ function handleSessionEvent(sesObj, callback) {
 
       if (sesObj.session) {
 
-        sessionCache.del(sesObj.session.sessionId, function(err){
-          if (err) {console.log(chalkError("SESS DELETE ERROR " + err));}
+        // sessionCache.del(sesObj.session.sessionId, function(err){
+        //   if (err) {console.log(chalkError("SESS DELETE ERROR " + err));}
+        //   debug(chalkSession("XXX SESS DELETE " + sesObj.session.sessionId));
+        // });
+
+        sesObj.session.deleted = true;
+
+        sessionCache.set(sesObj.session.sessionId, sesObj.session, function(err, success){
+          if (err) {console.log(chalkError("SESS SET DELETED ERROR " + err));}
+          sessionCache.ttl(sesObj.session.sessionId, 30);
           debug(chalkSession("XXX SESS DELETE " + sesObj.session.sessionId));
         });
 
@@ -4014,8 +4033,12 @@ function handleSessionEvent(sesObj, callback) {
         sessKeys.forEach(function(sId){
           if (sId.indexOf(sesObj.session.sessionId) > -1) {
             adminNameSpace.emit("SESSION_DELETE", sId);
-            sessionCache.del(sId);
-            console.log(chalkRed("XXX SESS " + sId));
+            sessionCache.get(sId, function(err, session){
+              session.deleted = true;
+              sessionCache.set(sId, session, function(err, success){});
+              sessionCache.ttl(sId, 30);
+              console.log(chalkRed("XXX SESS " + sId));
+            });
           }
         });
 
@@ -4710,10 +4733,10 @@ function getTags(wObj, callback){
 
 function sendUpdated(updatedObj, callback){
 
-  // console.log(chalkInfo("sendUpdated"
-  //   + " | " + updatedObj.word.sessionId
-  //   + " | " + updatedObj.word.nodeId
-  // ));
+  debug(chalkInfo("sendUpdated"
+    + " | " + updatedObj.word.sessionId
+    + " | " + updatedObj.word.nodeId
+  ));
 
   if (updatedObj.word.sessionId === undefined) {
     console.log(chalkError("UNDEFINED SESSION ID\n" + jsonPrint(updatedObj)));
@@ -5280,6 +5303,10 @@ function initUpdaterMessageQueueInterval(interval){
       updaterMessageReady = false;
 
       var updaterObj = updaterMessageQueue.dequeue();
+
+      // console.log(chalkLog("UM"
+      //   + " | " + updaterObj.type
+      // ));
 
       switch (updaterObj.type){
         case "stats":
@@ -6066,15 +6093,12 @@ function initializeConfiguration(cnf, callback) {
     console.log("--> COMMAND LINE CONFIG | " + arg + ": " + cnf[arg]);
   });
 
-  // cnf.enableStdin = cnf.enableStdin || process.env.WA_ENABLE_STDIN ;
-
   var configArgs = Object.keys(cnf);
   configArgs.forEach(function(arg){
     console.log("FINAL CONFIG | " + arg + ": " + cnf[arg]);
   });
 
   if (cnf.quitOnError) { 
-    // quitOnErrorFlag = true;
     console.log(chalkAlert("===== QUIT ON ERROR SET ====="));
   }
 
@@ -7324,7 +7348,7 @@ initializeConfiguration(configuration, function(err, results) {
     initRxWordQueueInterval(DEFAULT_INTERVAL);
     initSessionEventHandlerInterval(DEFAULT_INTERVAL);
     initSessionViewQueueInterval(DEFAULT_INTERVAL);
-    initStatsInterval(ONE_MINUTE);
+    initStatsInterval(10000);
     initUpdaterMessageQueueInterval(DEFAULT_INTERVAL);
     initDbUpdaterMessageRxQueueInterval(DEFAULT_INTERVAL)
     initUpdateTrendsInterval(15*ONE_MINUTE);

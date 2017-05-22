@@ -176,14 +176,23 @@ function msToTime(duration) {
 
 
 function initDbUpdateQueueInterval(interval){
+
   console.log(chalkInfo("initDbUpdateQueueInterval | " + interval + " MS"));
+
   clearInterval(dbUpdateQueueInterval);
+
   dbUpdateQueueInterval = setInterval(function(){
+
     if (dbUpdateQueueReady && (dbUpdateQueue.length > 0)){
+
       dbUpdateQueueReady = false;
+
       var updateObj = dbUpdateQueue.shift();
+
       debug(chalkInfo("updateObj\n" + jsonPrint(updateObj)));
+
       switch (updateObj.updateType) {
+        
         case "word":
           debug(chalkInfo("DB UPDATE WORD"
             + " | " + updateObj.word.nodeId
@@ -204,10 +213,12 @@ function initDbUpdateQueueInterval(interval){
             }
             dbUpdateQueueReady = true;
           });
-          break;
+        break;
+
         default:
           console.log(chalkError("UNKNOWN UPDATE TYPE\n" + jsonPrint(updateObj)));
           dbUpdateQueueReady = true;
+
       }
     }
   }, interval);

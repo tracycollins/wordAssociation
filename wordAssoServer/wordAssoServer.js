@@ -3,6 +3,9 @@
 
 // require('longjohn');
 
+// var metricsRate = "1MinuteRate";
+var metricsRate = "5MinuteRate";
+
 var DEFAULT_INTERVAL = 10; // ms
 var statsCountsComplete = false;
 // var maxTopTerms = 100;
@@ -1077,11 +1080,11 @@ function updateWordMeter(wordObj, callback){
     wordMeter[meterWordId] = new Measured.Meter({rateUnit: 60000});
     wordMeter[meterWordId].mark();
     var meterObj = wordMeter[meterWordId].toJSON();
-    wordObj.rate = meterObj["1MinuteRate"];
+    wordObj.rate = meterObj[metricsRate];
     wordCache.set(meterWordId, wordObj, function(){
       debug(chalkAlert("updateWordMeter MISS"
         + " | " + meterWordId
-        + " | " + meterObj["1MinuteRate"].toFixed(2) + " WPM"
+        + " | " + meterObj[metricsRate].toFixed(2) + " WPM"
         // + "\n" + jsonPrint(wordObj)
       ));
       if (callback !== undefined) { callback(null, wordObj)};
@@ -1090,11 +1093,11 @@ function updateWordMeter(wordObj, callback){
   else {
     wordMeter[meterWordId].mark();
     var meterObj = wordMeter[meterWordId].toJSON();
-    wordObj.rate = meterObj["1MinuteRate"];
+    wordObj.rate = meterObj[metricsRate];
     wordCache.set(meterWordId, wordObj, function(){
       debug(chalkAlert("updateWordMeter HIT "
         + " | " + meterWordId
-        + " | " + meterObj["1MinuteRate"].toFixed(2) + " WPM"
+        + " | " + meterObj[metricsRate].toFixed(2) + " WPM"
         // + "\n" + jsonPrint(wordObj)
       ));
       if (callback !== undefined) { callback(null, wordObj)};
@@ -2345,9 +2348,9 @@ function initSessionSocketHandler(sessionObj, socket) {
         debug(chalkAlert("OBAMA"
           + " | " + nodeObj.nodeType
           + " | " + nodeObj.nodeId
-          + " | " + wsObj.obamaPerSecond["1MinuteRate"].toFixed(0) 
+          + " | " + wsObj.obamaPerSecond[metricsRate].toFixed(0) 
           + " | " + wsObj.obamaPerSecond.currentRate.toFixed(0) 
-          + " | " + wsObj.obamaPerMinute["1MinuteRate"].toFixed(0) 
+          + " | " + wsObj.obamaPerMinute[metricsRate].toFixed(0) 
           + " | " + wsObj.obamaPerMinute.currentRate.toFixed(0) 
           + " | " + obamaHit
         ));
@@ -2363,9 +2366,9 @@ function initSessionSocketHandler(sessionObj, socket) {
         debug(chalkAlert("TRUMP"
           + " | " + nodeObj.nodeType
           + " | " + nodeObj.nodeId
-          + " | " + wsObj.trumpPerSecond["1MinuteRate"].toFixed(0) 
+          + " | " + wsObj.trumpPerSecond[metricsRate].toFixed(0) 
           + " | " + wsObj.trumpPerSecond.currentRate.toFixed(0) 
-          + " | " + wsObj.trumpPerMinute["1MinuteRate"].toFixed(0) 
+          + " | " + wsObj.trumpPerMinute[metricsRate].toFixed(0) 
           + " | " + wsObj.trumpPerMinute.currentRate.toFixed(0) 
           + " | " + trumpHit
         ));
@@ -2414,9 +2417,9 @@ function initSessionSocketHandler(sessionObj, socket) {
         const wsObj = wordStats.toJSON();
 
         debug(chalkAlert("OBAMA"
-          + " | " + wsObj.obamaPerSecond["1MinuteRate"].toFixed(0) 
+          + " | " + wsObj.obamaPerSecond[metricsRate].toFixed(0) 
           + " | " + wsObj.obamaPerSecond.currentRate.toFixed(0) 
-          + " | " + wsObj.obamaPerMinute["1MinuteRate"].toFixed(0) 
+          + " | " + wsObj.obamaPerMinute[metricsRate].toFixed(0) 
           + " | " + wsObj.obamaPerMinute.currentRate.toFixed(0) 
           + " | " + rxWordObj.nodeId
         ));
@@ -2430,9 +2433,9 @@ function initSessionSocketHandler(sessionObj, socket) {
         const wsObj = wordStats.toJSON();
 
         debug(chalkAlert("TRUMP"
-          + " | " + wsObj.trumpPerSecond["1MinuteRate"].toFixed(0) 
+          + " | " + wsObj.trumpPerSecond[metricsRate].toFixed(0) 
           + " | " + wsObj.trumpPerSecond.currentRate.toFixed(0) 
-          + " | " + wsObj.trumpPerMinute["1MinuteRate"].toFixed(0) 
+          + " | " + wsObj.trumpPerMinute[metricsRate].toFixed(0) 
           + " | " + wsObj.trumpPerMinute.currentRate.toFixed(0) 
           + " | " + rxWordObj.nodeId
         ));
@@ -5226,20 +5229,20 @@ function initSorterMessageRxQueueInterval(interval){
 
               wmObj = wordMeter[node].toJSON();
 
-              wordsPerMinuteTopTermCache.set(node, wmObj["1MinuteRate"]);
+              wordsPerMinuteTopTermCache.set(node, wmObj[metricsRate]);
 
-              wordsPerMinuteTopTerm[node] = wmObj["1MinuteRate"];
+              wordsPerMinuteTopTerm[node] = wmObj[metricsRate];
 
               if (index === endIndex-1) {
                 adminNameSpace.emit("TWITTER_TOPTERM_1MIN", wordsPerMinuteTopTerm);
                 viewNameSpace.emit("TWITTER_TOPTERM_1MIN", wordsPerMinuteTopTerm);
               }
 
-              if (enableGoogleMetrics && (wmObj["1MinuteRate"] > MIN_METRIC_VALUE)) {
+              if (enableGoogleMetrics && (wmObj[metricsRate] > MIN_METRIC_VALUE)) {
      
                 topTermDataPoint.displayName = node;
                 topTermDataPoint.metricType = "word/top10/" + node;
-                topTermDataPoint.value = wmObj["1MinuteRate"];
+                topTermDataPoint.value = wmObj[metricsRate];
                 topTermDataPoint.metricLabels = {server_id: "WORD"};
 
                 addMetricDataPoint(topTermDataPoint);
@@ -7064,14 +7067,11 @@ function initRateQinterval(interval){
     wsObj = wordStats.toJSON();
     if (!wsObj) {return;}
 
-    wordsPerSecond = wsObj.wordsPerSecond["1MinuteRate"];
-    wordsPerMinute = wsObj.wordsPerMinute["1MinuteRate"];
+    wordsPerSecond = wsObj.wordsPerSecond[metricsRate];
+    wordsPerMinute = wsObj.wordsPerMinute[metricsRate];
 
-    // obamaPerSecond = wsObj.obamaPerSecond["1MinuteRate"];
-    obamaPerMinute = wsObj.obamaPerMinute["1MinuteRate"];
-
-    // trumpPerSecond = wsObj.trumpPerSecond["1MinuteRate"];
-    trumpPerMinute = wsObj.trumpPerMinute["1MinuteRate"];
+    obamaPerMinute = wsObj.obamaPerMinute[metricsRate];
+    trumpPerMinute = wsObj.trumpPerMinute[metricsRate];
 
     debug(chalkWarn(moment.utc().format(compactDateTimeFormat)
       + " | WPS: " + wordsPerSecond.toFixed(2)
@@ -7113,7 +7113,7 @@ function initRateQinterval(interval){
 
       var params = {};
       params.op = "SORT";
-      params.sortKey = "1MinuteRate";
+      params.sortKey = metricsRate;
       params.max = configuration.maxTopTerms;
       params.obj = {};
       params.obj = wordMeter;

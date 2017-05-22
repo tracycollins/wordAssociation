@@ -272,17 +272,56 @@ function ViewTreepack() {
   };
 
 
+  var topTermsDiv = d3.select("#topTermsDiv");
+
+  var topTermsCheckBox = topTermsDiv.append("input")
+    .attr("id", "topTermsCheckBox")
+    .attr("type", "checkbox")
+    // .attr("checked", "false")
+    .on("change", function(){
+      console.log("CHECKBOX");
+      if (!topTermsCheckBox.property("checked")) { 
+        console.error("NOT CHECKED");
+        topTermsDiv.style("visibility", "hidden"); 
+        nodeTopTermLabelSvgGroup.style("visibility", "hidden");
+      }
+      else {
+        console.error("CHECKED");
+        topTermsDiv.style("visibility", "visible"); 
+        nodeTopTermLabelSvgGroup.style("visibility", "visible");
+      }
+    });
+ 
   console.log("width: " + width + " | height: " + height);
+
+  var mouseMoveTimeoutEventHandler = function(e) {
+    // var elem = document.getElementById("topTermsCheckBox");
+    console.debug("mouseMoveTimeoutEvent");
+    if (!topTermsCheckBox.property("checked")) { 
+      console.error("NOT CHECKED");
+      topTermsDiv.style("visibility", "hidden"); 
+      nodeTopTermLabelSvgGroup.style("visibility", "hidden");
+    }
+    else {
+      console.error("CHECKED");
+      topTermsDiv.style("visibility", "visible"); 
+      nodeTopTermLabelSvgGroup.style("visibility", "visible");
+    }
+  }
+
+  document.addEventListener("mouseMoveTimeoutEvent", mouseMoveTimeoutEventHandler);
 
   document.addEventListener("mousemove", function() {
 
     topTermsDiv.style("visibility", "visible");
+    nodeTopTermLabelSvgGroup.style("visibility", "visible");
 
     if (mouseHoverFlag) {
       d3.select("body").style("cursor", "pointer");
     } else {
       d3.select("body").style("cursor", "default");
     }
+
   }, true);
 
   var defaultRadiusScale = d3.scaleLinear()
@@ -337,7 +376,6 @@ function ViewTreepack() {
 
 //============TREEMAP=================================
 
-  var topTermsDiv = d3.select("#topTermsDiv");
 
   var svgTopTerms = topTermsDiv.append("svg:svg")
     .attr("id", "svgTopTerms")
@@ -351,11 +389,12 @@ function ViewTreepack() {
     .attr("width", width)
     .attr("height", height)
     .attr("x", 1e-6)
-    .attr("y", 1e-6);
+    .attr("y", 1e-6)
+    .attr("visibility", "hidden");
 
   var fontTopTerm = config.defaultFontSizeTopTermRatio * topTermsDiv.height;
 
-  nodeTopTermLabelSvgGroup.style("visibility", "visible");
+  // nodeTopTermLabelSvgGroup.style("visibility", "visible");
 
   var nodeSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeSvgGroup");
   var nodeLabelSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeLabelSvgGroup");

@@ -1,14 +1,12 @@
 /*jslint node: true */
 "use strict";
 
-// require('longjohn');
+// require("longjohn");
 
 // var metricsRate = "1MinuteRate";
 var metricsRate = "5MinuteRate";
 
 var DEFAULT_INTERVAL = 10; // ms
-var statsCountsComplete = false;
-// var maxTopTerms = 100;
 var compactDateTimeFormat = "YYYYMMDD HHmmss";
 
 // ==================================================================
@@ -20,8 +18,6 @@ var ONE_MINUTE = ONE_SECOND * 60;
 // var ONE_DAY = ONE_HOUR * 24;
 // var quitOnErrorFlag = false;
 
-var wordsApiKey = "RWwyknmI1OmshYkPUYAQyHVv1Cbup1ptubzjsn2F19wbnAlSEf";
-var wapiUrlRoot = "https://wordsapiv1.p.mashape.com/words/";
 
 var primarySessionObj;
 
@@ -41,11 +37,8 @@ tmsServer.connected = false;
 tmsServer.user = {};
 tmsServer.socket = {};
 
-var numberUsersTotal = 0;
-var numberViewersTotal = 0;
-
 var DEFAULT_KEYWORD_VALUE = 100; // on scale of 1-100
-var MIN_WORD_METER_COUNT = 10;
+// var MIN_WORD_METER_COUNT = 10;
 var MIN_METRIC_VALUE = 5;
 
 var twitterYamlConfigFile = process.env.DEFAULT_TWITTER_CONFIG;
@@ -76,10 +69,10 @@ var dbUpdateEntityQueueInterval;
 var dbUpdateGroupQueueInterval;
 var dbUpdateWordQueueInterval;
 
-var entityStats = Measured.createCollection();
-var entityStats = new Measured.Gauge(function() {
-  return process.memoryUsage().rss;
-});
+// var entityStats = Measured.createCollection();
+// var entityStats = new Measured.Gauge(function() {
+//   return process.memoryUsage().rss;
+// });
 var wordMeter = {};
 
 var wordStats = Measured.createCollection();
@@ -93,32 +86,29 @@ wordStats.meter("trumpPerMinute", {rateUnit: 60000, tickInterval: 1000});
 // MONGO DB doesn"t like indexes/keys > 1024 characters
 var MAX_DB_KEY_LENGTH = 200;
 
-var wapiSearchEnabled = false;
-var wapiForceSearch = true;
 var dmOnUnknownSession = false;
 var ioReady = false;
-var groupsUpdateComplete = false;
-var entitiesUpdateComplete = false;
-var keywordsUpdateComplete = false;
-var updateComplete = groupsUpdateComplete && entitiesUpdateComplete && keywordsUpdateComplete;
+// var groupsUpdateComplete = false;
+// var entitiesUpdateComplete = false;
+// var keywordsUpdateComplete = false;
 
-var tweetsPerMinute = 0.0;
+// var tweetsPerMinute = 0.0;
 // var tweetsPerSecond = 0.0;
-var maxTweetsPerMin = 0;
-var maxTweetsPerMinTime = moment.utc();
+// var maxTweetsPerMin = 0;
+// var maxTweetsPerMinTime = moment.utc();
 
-var wordsPerMinute = 0.0;
-var wordsPerSecond = 0.0;
-var maxWordsPerMin = 0;
-var maxWordsPerMinTime = moment.utc();
+// var wordsPerMinute = 0.0;
+// var wordsPerSecond = 0.0;
+// var maxWordsPerMin = 0;
+// // var maxWordsPerMinTime = moment.utc();
 
-var obamaPerMinute = 0.0;
-var maxObamaPerMin = 0;
-var maxObamaPerMinTime = moment.utc();
+// var obamaPerMinute = 0.0;
+// var maxObamaPerMin = 0;
+// // var maxObamaPerMinTime = moment.utc();
 
-var trumpPerMinute = 0.0;
-var maxTrumpPerMin = 0;
-var maxTrumpPerMinTime = moment.utc();
+// var trumpPerMinute = 0.0;
+// var maxTrumpPerMin = 0;
+// var maxTrumpPerMinTime = moment.utc();
 
 
 var config = require("./config/config");
@@ -128,10 +118,10 @@ var os = require("os");
 var async = require("async");
 var HashMap = require("hashmap").HashMap;
 var Dropbox = require("dropbox");
-var unirest = require("unirest");
+// var unirest = require("unirest");
 var debug = require("debug")("wa");
 var debugKeyword = require("debug")("kw");
-var debugWapi = require("debug")("wapi");
+// var debugWapi = require("debug")("wapi");
 var debugAppGet = require("debug")("appGet");
 var commandLineArgs = require("command-line-args");
 
@@ -150,7 +140,7 @@ var mongoose = require("./config/mongoose");
 // var request = require("request");
 var yaml = require("yamljs");
 var EventEmitter2 = require("eventemitter2").EventEmitter2;
-var EventEmitter = require("events").EventEmitter;
+// var EventEmitter = require("events").EventEmitter;
 var NodeCache = require("node-cache");
 
 var db = mongoose();
@@ -185,7 +175,7 @@ var dbUpdateEntityQueue = new Queue();
 var dbUpdateWordQueue = new Queue();
 var updaterMessageQueue = new Queue();
 var dbUpdaterMessageRxQueue = new Queue();
-var dbUpdaterMessageTxQueue = new Queue();
+// var dbUpdaterMessageTxQueue = new Queue();
 var sorterMessageRxQueue = new Queue();
 
 var updateSessionViewQueue = [];
@@ -201,7 +191,7 @@ var GROUP_UPDATE_INTERVAL = 15000;
 var MAX_RESPONSE_QUEUE_SIZE = 1000;
 var OFFLINE_MODE = false;
 var internetReady = false;
-var pollTwitterFriendsIntervalTime = 5*ONE_MINUTE;
+// var pollTwitterFriendsIntervalTime = 5*ONE_MINUTE;
 
 var TOPTERMS_CACHE_DEFAULT_TTL = 300;
 var TRENDING_CACHE_DEFAULT_TTL = 300; // seconds
@@ -377,7 +367,7 @@ var ignoreWordsArray = [
 var chalkSorter = chalk.green;
 var chalkRedBold = chalk.bold.red;
 var chalkTwitter = chalk.blue;
-var chalkWapi = chalk.red;
+// var chalkWapi = chalk.red;
 var chalkViewer = chalk.cyan;
 var chalkUser = chalk.green;
 var chalkUtil = chalk.blue;
@@ -392,7 +382,7 @@ var chalkError = chalk.bold.red;
 var chalkWarn = chalk.bold.yellow;
 var chalkLog = chalk.gray;
 var chalkSession = chalk.blue;
-var chalkResponse = chalk.blue;
+// var chalkResponse = chalk.blue;
 var chalkBht = chalk.gray;
 // var chalkMw = chalk.yellow;
 var chalkDb = chalk.gray;
@@ -450,14 +440,14 @@ function msToTime(duration) {
   return days + ":" + hours + ":" + minutes + ":" + seconds;
 }
 
-function getTimeNow() {
-  var d = new Date();
-  return d.getTime();
-}
+// function getTimeNow() {
+//   var d = new Date();
+//   return d.getTime();
+// }
 
-function randomIntInc(low, high) {
-  return Math.floor(Math.random() * (high - low + 1) + low);
-}
+// function randomIntInc(low, high) {
+//   return Math.floor(Math.random() * (high - low + 1) + low);
+// }
 
 function randomInt(low, high) {
   return Math.floor(Math.random() * (high - low) + low);
@@ -650,14 +640,14 @@ var groupHashMap = new HashMap();
 var serverGroupHashMap = new HashMap(); // server specific keywords
 
 var entityChannelGroupHashMap = new HashMap();
-var serverEntityChannelGroupHashMap = new HashMap();
+// var serverEntityChannelGroupHashMap = new HashMap();
 
 var ignoreWordHashMap = new HashMap();
 var keywordHashMap = new HashMap();
 var topicHashMap = new HashMap();
 
 var serverGroupsJsonObj = {};
-var serverKeywordsJsonObj = {};
+// var serverKeywordsJsonObj = {};
 
 // ==================================================================
 // SERVER STATUS
@@ -667,26 +657,26 @@ var tempDateTime = moment();
 
 var heartbeatsSent = 0;
 
-var numberUsersMax = 0;
-var numberUsersMaxTime = moment().valueOf();
+// var numberUsersMax = 0;
+// var numberUsersMaxTime = moment().valueOf();
 
-var numberTestUsersMax = 0;
-var numberTestUsersMaxTime = moment().valueOf();
+// var numberTestUsersMax = 0;
+// var numberTestUsersMaxTime = moment().valueOf();
 
-var numberUsersTotalMax = 0;
-var numberUsersTotalMaxTime = moment().valueOf();
+// var numberUsersTotalMax = 0;
+// var numberUsersTotalMaxTime = moment().valueOf();
 
-var numberUtilsMax = 0;
-var numberUtilsMaxTime = moment().valueOf();
+// var numberUtilsMax = 0;
+// var numberUtilsMaxTime = moment().valueOf();
 
-var numberViewersMax = 0;
-var numberViewersMaxTime = moment().valueOf();
+// var numberViewersMax = 0;
+// var numberViewersMaxTime = moment().valueOf();
 
-var numberTestViewersMax = 0;
-var numberTestViewersMaxTime = moment().valueOf();
+// var numberTestViewersMax = 0;
+// var numberTestViewersMaxTime = moment().valueOf();
 
-var numberViewersTotalMax = 0;
-var numberViewersTotalMaxTime = moment().valueOf();
+// var numberViewersTotalMax = 0;
+// var numberViewersTotalMaxTime = moment().valueOf();
 
 console.log(
   "\n\n====================================================================================================\n" 
@@ -718,13 +708,12 @@ configEvents.on("newListener", function(data) {
   debug("*** NEW CONFIG EVENT LISTENER: " + data);
 });
 
-var numberAdmins = 0;
-
-var numberUtils = 0;
-var numberUsers = 0;
-var numberViewers = 0;
-var numberTestViewers = 0;
-var numberTestUsers = 0;
+// var numberAdmins = 0;
+// var numberUtils = 0;
+// var numberUsers = 0;
+// var numberViewers = 0;
+// var numberTestViewers = 0;
+// var numberTestUsers = 0;
 
 var dnsHostHashMap = new HashMap();
 var localHostHashMap = new HashMap();
@@ -913,22 +902,22 @@ var ipAddressCache = new NodeCache({
 // ==================================================================
 // WORDS API
 // ==================================================================
-var wapiEvents = new EventEmitter();
-var wapiRequests = 0;
-var wapiOverLimits = 0;
+// var wapiEvents = new EventEmitter();
+// var wapiRequests = 0;
+// // var wapiOverLimits = 0;
 
-var wapiOverLimitTime = moment.utc().endOf("day");
-var wapiLimitResetTime = moment.utc().endOf("day");
-var wapiTimeToReset = moment.utc().endOf("day").valueOf() - moment.utc().valueOf();
-var wapiOverLimitFlag = false;
+// var wapiOverLimitTime = moment.utc().endOf("day");
+// // var wapiLimitResetTime = moment.utc().endOf("day");
+// var wapiTimeToReset = moment.utc().endOf("day").valueOf() - moment.utc().valueOf();
+// var wapiOverLimitFlag = false;
 
-debug("WAPI OVER LIMIT TIME:  " + wapiOverLimitTime.format(compactDateTimeFormat));
-debug("WAPI OVER LIMIT RESET: " + wapiOverLimitTime.format(compactDateTimeFormat));
-debug("WAPI TIME TO RESET: " + msToTime(wapiTimeToReset));
+// debug("WAPI OVER LIMIT TIME:  " + wapiOverLimitTime.format(compactDateTimeFormat));
+// debug("WAPI OVER LIMIT RESET: " + wapiOverLimitTime.format(compactDateTimeFormat));
+// debug("WAPI TIME TO RESET: " + msToTime(wapiTimeToReset));
 
-var wapiOverLimitTimeOut = setTimeout(function() {
-  wapiEvents.emit("WAPI_OVER_LIMIT_TIMEOUT");
-}, wapiTimeToReset);
+// var wapiOverLimitTimeOut = setTimeout(function() {
+//   wapiEvents.emit("WAPI_OVER_LIMIT_TIMEOUT");
+// }, wapiTimeToReset);
 
 // ==================================================================
 // CACHE HANDLERS
@@ -996,7 +985,8 @@ userCache.on("expired", function(userId, userObj) {
     delete wordMeter[userId];
     console.log(chalkWarn("XXX WORD METER USER"
       + " | Ks: " + Object.keys(wordMeter).length
-      + " | " + userId
+      + " | " + userObj.userId
+      // + " | " + userId
     ));
   }
 });
@@ -1007,7 +997,7 @@ wordCache.on("expired", function(word, wordObj) {
     delete wordMeter[word];
     debug(chalkWarn("XXX WORD METER WORD"
       + " | Ks: " + Object.keys(wordMeter).length
-      + " | " + word
+      + " | " + wordObj.word
     ));
   }
 });
@@ -1021,6 +1011,7 @@ trendingCache.on( "expired", function(topic, topicObj){
 function updateWordMeter(wordObj, callback){
 
   var meterWordId;
+  var meterObj;
 
   if ((wordObj.nodeType === "media") 
     || (wordObj.nodeType === "url")
@@ -1064,7 +1055,7 @@ function updateWordMeter(wordObj, callback){
     debug(chalkAlert("updateWordMeter IGNORE " + meterWordId));
     wordObj.isIgnored = true;
     wordCache.set(meterWordId, wordObj);
-    if (callback !== undefined) { callback(null, wordObj)};
+    if (callback !== undefined) { callback(null, wordObj); }
     return;
   }
 
@@ -1079,7 +1070,7 @@ function updateWordMeter(wordObj, callback){
     wordMeter[meterWordId] = {};
     wordMeter[meterWordId] = new Measured.Meter({rateUnit: 60000});
     wordMeter[meterWordId].mark();
-    var meterObj = wordMeter[meterWordId].toJSON();
+    meterObj = wordMeter[meterWordId].toJSON();
     wordObj.rate = meterObj[metricsRate];
     wordCache.set(meterWordId, wordObj, function(){
       debug(chalkAlert("updateWordMeter MISS"
@@ -1087,12 +1078,12 @@ function updateWordMeter(wordObj, callback){
         + " | " + meterObj[metricsRate].toFixed(2) + " WPM"
         // + "\n" + jsonPrint(wordObj)
       ));
-      if (callback !== undefined) { callback(null, wordObj)};
+      if (callback !== undefined) { callback(null, wordObj); }
     });
   }
   else {
     wordMeter[meterWordId].mark();
-    var meterObj = wordMeter[meterWordId].toJSON();
+    meterObj = wordMeter[meterWordId].toJSON();
     wordObj.rate = meterObj[metricsRate];
     wordCache.set(meterWordId, wordObj, function(){
       debug(chalkAlert("updateWordMeter HIT "
@@ -1100,7 +1091,7 @@ function updateWordMeter(wordObj, callback){
         + " | " + meterObj[metricsRate].toFixed(2) + " WPM"
         // + "\n" + jsonPrint(wordObj)
       ));
-      if (callback !== undefined) { callback(null, wordObj)};
+      if (callback !== undefined) { callback(null, wordObj); }
     });
   }
 
@@ -1133,7 +1124,7 @@ console.log("offlineStatsFile: " + offlineStatsFile);
 var DROPBOX_WORD_ASSO_ACCESS_TOKEN = process.env.DROPBOX_WORD_ASSO_ACCESS_TOKEN;
 var DROPBOX_WORD_ASSO_APP_KEY = process.env.DROPBOX_WORD_ASSO_APP_KEY;
 var DROPBOX_WORD_ASSO_APP_SECRET = process.env.DROPBOX_WORD_ASSO_APP_SECRET;
-var WA_STATS_FILE = process.env.WA_STATS_FILE;
+// var WA_STATS_FILE = process.env.WA_STATS_FILE;
 var DROPBOX_WA_STATS_FILE = process.env.DROPBOX_WA_STATS_FILE || "wordAssoServerStats.json";
 
 var statsFolder = "/stats/" + hostname;
@@ -1143,8 +1134,8 @@ console.log("DROPBOX_WORD_ASSO_ACCESS_TOKEN :" + DROPBOX_WORD_ASSO_ACCESS_TOKEN)
 console.log("DROPBOX_WORD_ASSO_APP_KEY :" + DROPBOX_WORD_ASSO_APP_KEY);
 console.log("DROPBOX_WORD_ASSO_APP_SECRET :" + DROPBOX_WORD_ASSO_APP_SECRET);
 
-var serverGroupsFile = hostname + "_groups.json";
-var serverKeywordsFile = hostname + "_keywords.json";
+// var serverGroupsFile = hostname + "_groups.json";
+// var serverKeywordsFile = hostname + "_keywords.json";
 
 var dropboxClient = new Dropbox({ accessToken: DROPBOX_WORD_ASSO_ACCESS_TOKEN });
 
@@ -1276,7 +1267,7 @@ function initStatsInterval(interval){
 
     showStats();
 
-    statsUpdated++;
+    statsUpdated += 1;
 
   }, interval);
 }
@@ -1376,92 +1367,6 @@ function findSessionById(sessionId, callback) {
       }
     }
   );
-}
-
-function userReadyHandler(request, callback){
-
-  debug(chalkAlert("userReadyHandler\n" + jsonPrint(request)));
-
-  var socketId = request.socketId;
-  var sessionId = request.sessionId;
-  var userObj = request.userObj;
-
-  debug(chalkUser("USER RDY HANDLER"
-    + " | " + moment().format(compactDateTimeFormat) 
-    + " | " + sessionId
-    + " | NID " + userObj.nodeId
-    + "  ID " + userObj.userId
-    + "  N " + userObj.name
-    + "  E " + userObj.tags.entity
-    + "  C " + userObj.tags.channel
-    + "  M (tags) " + userObj.tags.mode
-    + "  T " + userObj.type
-    + "  M " + userObj.mode
-    // + "\nU " + userObj.url
-    // + "\nP " + userObj.profileImageUrl
-  ));
-
-  sessionCache.get(socketId, function(err, sObj){
-    if (err){
-      console.log(chalkError(moment().format(compactDateTimeFormat) 
-        + " | ??? SESSION CACHE ERROR ON USER READY"
-        + " | " + err
-        + "\n" + jsonPrint(userObj)
-      ));
-      callback(err, request);
-    }
-    else if (sObj === undefined) {
-      console.log(chalkError("??? SESSION NOT FOUND ON USER READY"
-        + " | " + moment().format(compactDateTimeFormat) 
-        + " | SOC: " + socketId
-        + " | SID: " + request.sessionId
-        // + "\n" + jsonPrint(request)
-      ));
-      callback("SESSION NOT FOUND ON USER READY", request);
-    }
-    else {
-      primarySessionObj = sObj;
-
-      var sessionCacheKey = sessionId ;
-
-      statsObj.socket.USER_READYS += 1;
-
-      debug(chalk.black("userReadyHandler R< U RDY"
-        + " | " + moment().format(compactDateTimeFormat) 
-        + "  " + userObj.nodeId
-        + "  ID " + userObj.userId
-        + "  N " + userObj.name
-        + "  E " + userObj.tags.entity
-        + "  C " + userObj.tags.channel
-        + "  M (tags) " + userObj.tags.mode
-        + "  T " + userObj.type
-        + "  M " + userObj.mode
-        // + "\nU " + userObj.url
-        // + "\nP " + userObj.profileImageUrl
-      ));
-
-      if ((userObj.tags !== undefined)
-        && (userObj.tags.entity !== undefined) 
-        && (userObj.tags.mode !== undefined) 
-        && (userObj.tags.mode.toLowerCase() === "substream")) {
-
-        sessionCacheKey = socketId + "#" + userObj.tags.entity;
-
-        debug(chalkInfo("USER_READY SUBSTREAM sessionCacheKey: " + sessionCacheKey));
-
-        sessionUpdateDbCache({sessionCacheKey: sessionCacheKey, socketId: sessionId, userObj: userObj}, function(err, sObj){
-          callback(err, sObj);
-        });
-      }
-      else {
-        debug(chalkInfo("USER_READY sessionCacheKey: " + sessionCacheKey));
-        sessionUpdateDbCache({sessionCacheKey: sessionCacheKey, socketId: sessionId, userObj: userObj}, function(err, sObj){
-          callback(err, sObj);
-        });
-      }
-
-    }
-  });
 }
 
 function sessionUpdateDbCache(request, callback){
@@ -1615,82 +1520,90 @@ function sessionUpdateDbCache(request, callback){
   });
 }
 
-function createSession(newSessionObj) {
+function userReadyHandler(request, callback){
 
-  statsObj.session.totalCreated++;
+  debug(chalkAlert("userReadyHandler\n" + jsonPrint(request)));
 
-      // createSession({
-      //   namespace: "admin",
-      //   socket: socket,
-      //   type: "admin",
-      //   tags: {}
-      // });
+  var socketId = request.socketId;
+  var sessionId = request.sessionId;
+  var userObj = request.userObj;
 
-  console.log(chalkSession("CREATE SESSION"
-    + " | " + moment().format(compactDateTimeFormat)
-    + " | NS: " + newSessionObj.namespace
-    + " | SID: " + newSessionObj.socket.id
-    + " | TYPE: " + newSessionObj.type
+  debug(chalkUser("USER RDY HANDLER"
+    + " | " + moment().format(compactDateTimeFormat) 
+    + " | " + sessionId
+    + " | NID " + userObj.nodeId
+    + "  ID " + userObj.userId
+    + "  N " + userObj.name
+    + "  E " + userObj.tags.entity
+    + "  C " + userObj.tags.channel
+    + "  M (tags) " + userObj.tags.mode
+    + "  T " + userObj.type
+    + "  M " + userObj.mode
+    // + "\nU " + userObj.url
+    // + "\nP " + userObj.profileImageUrl
   ));
 
-  var namespace = newSessionObj.namespace;
-  var socket = newSessionObj.socket;
-  var socketId = newSessionObj.socket.id;
-  var ipAddress = newSessionObj.socket.handshake.headers["x-real-ip"] || newSessionObj.socket.client.conn.remoteAddress;
-
-  statsObj.entity.admin.connected = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
-  statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
-  statsObj.entity.user.connected = Object.keys(userNameSpace.connected).length; // userNameSpace.sockets.length ;
-  statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; // userNameSpace.sockets.length ;
-
-  var sessionObj = new Session({
-    socketId: newSessionObj.socket.id,
-    sessionId: newSessionObj.socket.id,
-    tags: {},
-    ip: ipAddress,
-    namespace: namespace,
-    url: newSessionObj.url,
-    profileImageUrl: newSessionObj.profileImageUrl,
-    createAt: moment().valueOf(),
-    lastSeen: moment().valueOf(),
-    connected: true,
-    connectTime: moment().valueOf(),
-    disconnectTime: 0
-  });
-
-  if (newSessionObj.tags) { 
-    sessionObj.tags = newSessionObj.tags;
-    sessionObj.userId = newSessionObj.tags.entity;
-  }
-
-  if (newSessionObj.user) { 
-    sessionObj.userId = newSessionObj.user.userId;
-  }
-
-  sessionObj.config.type = newSessionObj.type;
-  sessionObj.config.mode = newSessionObj.mode;
-
-  sessionCache.set(newSessionObj.socket.id, sessionObj, function(err, results){
-
-    if (err) {
-      console.error("SESSION CACHE ERROR\n" + err);
-      quit();
+  sessionCache.get(socketId, function(err, sObj){
+    if (err){
+      console.log(chalkError(moment().format(compactDateTimeFormat) 
+        + " | ??? SESSION CACHE ERROR ON USER READY"
+        + " | " + err
+        + "\n" + jsonPrint(userObj)
+      ));
+      callback(err, request);
     }
+    else if (sObj === undefined) {
+      console.log(chalkError("??? SESSION NOT FOUND ON USER READY"
+        + " | " + moment().format(compactDateTimeFormat) 
+        + " | SOC: " + socketId
+        + " | SID: " + request.sessionId
+        // + "\n" + jsonPrint(request)
+      ));
+      callback("SESSION NOT FOUND ON USER READY", request);
+    }
+    else {
+      primarySessionObj = sObj;
 
-    initSessionSocketHandler(sessionObj, socket);
+      var sessionCacheKey = sessionId ;
 
-    debug(chalkSession("\nNEW SESSION\n" + util.inspect(sessionObj, {
-      showHidden: false,
-      depth: 1
-    })));
+      statsObj.socket.USER_READYS += 1;
 
-    sessionQueue.enqueue({
-      sessionEvent: "SESSION_CREATE",
-      session: sessionObj
-    });
+      debug(chalk.black("userReadyHandler R< U RDY"
+        + " | " + moment().format(compactDateTimeFormat) 
+        + "  " + userObj.nodeId
+        + "  ID " + userObj.userId
+        + "  N " + userObj.name
+        + "  E " + userObj.tags.entity
+        + "  C " + userObj.tags.channel
+        + "  M (tags) " + userObj.tags.mode
+        + "  T " + userObj.type
+        + "  M " + userObj.mode
+        // + "\nU " + userObj.url
+        // + "\nP " + userObj.profileImageUrl
+      ));
 
+      if ((userObj.tags !== undefined)
+        && (userObj.tags.entity !== undefined) 
+        && (userObj.tags.mode !== undefined) 
+        && (userObj.tags.mode.toLowerCase() === "substream")) {
+
+        sessionCacheKey = socketId + "#" + userObj.tags.entity;
+
+        debug(chalkInfo("USER_READY SUBSTREAM sessionCacheKey: " + sessionCacheKey));
+
+        sessionUpdateDbCache({sessionCacheKey: sessionCacheKey, socketId: sessionId, userObj: userObj}, function(err, sObj){
+          callback(err, sObj);
+        });
+      }
+      else {
+        debug(chalkInfo("USER_READY sessionCacheKey: " + sessionCacheKey));
+        sessionUpdateDbCache({sessionCacheKey: sessionCacheKey, socketId: sessionId, userObj: userObj}, function(err, sObj){
+          callback(err, sObj);
+        });
+      }
+
+    }
   });
-
 }
 
 function initSessionSocketHandler(sessionObj, socket) {
@@ -2043,6 +1956,9 @@ function initSessionSocketHandler(sessionObj, socket) {
       if (err && configuration.quitOnError) {
         quit(err);
       }
+      else {
+        debug("userReadyHandler sObj\n" + jsonPrint(sObj));
+      }
     });
   });
 
@@ -2088,7 +2004,7 @@ function initSessionSocketHandler(sessionObj, socket) {
 
     checkKeyword(rxNodeObj, function(nodeObj){
 
-      var scienceMarchHit = false;
+      // var scienceMarchHit = false;
       var obamaHit = false;
       var trumpHit = false;
 
@@ -2099,7 +2015,7 @@ function initSessionSocketHandler(sessionObj, socket) {
           // console.log(chalkAlert("TWEET | checkKeyword\n" + jsonPrint(nodeObj)));
 
           if (nodeObj.text.toLowerCase().includes("sciencemarch") || nodeObj.text.toLowerCase().includes("marchforscience")) {
-            scienceMarchHit = nodeObj.text;
+            // scienceMarchHit = nodeObj.text;
             nodeObj.isKeyword = true;
             nodeObj.keywords.positive = DEFAULT_KEYWORD_VALUE;
             debug(chalkError("SCIENCEMARCH: " + nodeObj.text));
@@ -2139,6 +2055,10 @@ function initSessionSocketHandler(sessionObj, socket) {
           else if (nodeObj.screenName){
             nodeObj.isTwitterUser = true;
             wordsPerMinuteTopTermCache.get(nodeObj.screenName.toLowerCase(), function(err, screenName) {
+              if (err){
+                console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
+                quit();
+              }
               if (screenName) {
                 nodeObj.isTopTerm = true;
               }
@@ -2163,6 +2083,10 @@ function initSessionSocketHandler(sessionObj, socket) {
                 }
               }
               updateWordMeter(nodeObj, function(err, uNodeObj){
+                if (err){
+                  console.log(chalkError("updateWordMeter ERR: " + err));
+                  quit();
+                }
                 viewNameSpace.emit("node", uNodeObj);
                 if (languageServer.connected) {
                   languageServer.socket.emit("LANG_ANALIZE_WORD", uNodeObj);
@@ -2174,6 +2098,10 @@ function initSessionSocketHandler(sessionObj, socket) {
             nodeObj.isTwitterUser = true;
             nodeObj.screenName = nodeObj.name;
             wordsPerMinuteTopTermCache.get(nodeObj.name.toLowerCase(), function(err, name) {
+              if (err){
+                console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
+                quit();
+              }
               if (name) {
                 nodeObj.isTopTerm = true;
               }
@@ -2198,6 +2126,10 @@ function initSessionSocketHandler(sessionObj, socket) {
                 }
               }
               updateWordMeter(nodeObj, function(err, uNodeObj){
+                if (err){
+                  console.log(chalkError("updateWordMeter ERR: " + err));
+                  quit();
+                }
                 viewNameSpace.emit("node", uNodeObj);
                 if (languageServer.connected) {
                   languageServer.socket.emit("LANG_ANALIZE_WORD", uNodeObj);
@@ -2212,11 +2144,15 @@ function initSessionSocketHandler(sessionObj, socket) {
           // console.log(chalkAlert("HASHTAG | checkKeyword\n" + jsonPrint(nodeObj)));
 
           wordsPerMinuteTopTermCache.get(nodeObj.nodeId.toLowerCase(), function(err, nodeId) {
+            if (err){
+              console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
+              quit();
+            }
             if (nodeId) {
               nodeObj.isTopTerm = true;
             }
             if (nodeObj.nodeId.toLowerCase().includes("sciencemarch") || nodeObj.nodeId.toLowerCase().includes("marchforscience")) {
-              scienceMarchHit = nodeObj.nodeId;
+              // scienceMarchHit = nodeObj.nodeId;
               nodeObj.isKeyword = true;
               nodeObj.keywords.positive = DEFAULT_KEYWORD_VALUE;
             }
@@ -2241,6 +2177,10 @@ function initSessionSocketHandler(sessionObj, socket) {
               }
             }
             updateWordMeter(nodeObj, function(err, uNodeObj){
+              if (err){
+                console.log(chalkError("updateWordMeter ERR: " + err));
+                quit();
+              }
               viewNameSpace.emit("node", uNodeObj);
               if (languageServer.connected) {
                 languageServer.socket.emit("LANG_ANALIZE_WORD", uNodeObj);
@@ -2259,6 +2199,10 @@ function initSessionSocketHandler(sessionObj, socket) {
           ));
 
           wordsPerMinuteTopTermCache.get(nodeObj.name.toLowerCase(), function(err, nodeId) {
+            if (err){
+              console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
+              quit();
+            }
             if (nodeId) {
               nodeObj.isTopTerm = true;
             }
@@ -2283,6 +2227,10 @@ function initSessionSocketHandler(sessionObj, socket) {
               }
             }
             updateWordMeter(nodeObj, function(err, uNodeObj){
+              if (err){
+                console.log(chalkError("updateWordMeter ERR: " + err));
+                quit();
+              }
               viewNameSpace.emit("node", uNodeObj);
               if (languageServer.connected) {
                 languageServer.socket.emit("LANG_ANALIZE_WORD", uNodeObj);
@@ -2296,6 +2244,10 @@ function initSessionSocketHandler(sessionObj, socket) {
           // console.log(chalkAlert("WORD | checkKeyword\n" + jsonPrint(nodeObj)));
 
           wordsPerMinuteTopTermCache.get(nodeObj.nodeId.toLowerCase(), function(err, nodeId) {
+            if (err){
+              console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
+              quit();
+            }
             if (nodeId) {
               nodeObj.isTopTerm = true;
             }
@@ -2320,6 +2272,10 @@ function initSessionSocketHandler(sessionObj, socket) {
               }
             }
             updateWordMeter(nodeObj, function(err, uNodeObj){
+              if (err){
+                console.log(chalkError("updateWordMeter ERR: " + err));
+                quit();
+              }
               viewNameSpace.emit("node", uNodeObj);
               if (languageServer.connected) {
                 languageServer.socket.emit("LANG_ANALIZE_WORD", uNodeObj);
@@ -2343,15 +2299,15 @@ function initSessionSocketHandler(sessionObj, socket) {
         wordStats.meter("obamaPerSecond").mark();
         wordStats.meter("obamaPerMinute").mark();
 
-        var wsObj = wordStats.toJSON();
+        var wsObamaObj = wordStats.toJSON();
 
         debug(chalkAlert("OBAMA"
           + " | " + nodeObj.nodeType
           + " | " + nodeObj.nodeId
-          + " | " + wsObj.obamaPerSecond[metricsRate].toFixed(0) 
-          + " | " + wsObj.obamaPerSecond.currentRate.toFixed(0) 
-          + " | " + wsObj.obamaPerMinute[metricsRate].toFixed(0) 
-          + " | " + wsObj.obamaPerMinute.currentRate.toFixed(0) 
+          + " | " + wsObamaObj.obamaPerSecond[metricsRate].toFixed(0) 
+          + " | " + wsObamaObj.obamaPerSecond.currentRate.toFixed(0) 
+          + " | " + wsObamaObj.obamaPerMinute[metricsRate].toFixed(0) 
+          + " | " + wsObamaObj.obamaPerMinute.currentRate.toFixed(0) 
           + " | " + obamaHit
         ));
       }
@@ -2361,15 +2317,15 @@ function initSessionSocketHandler(sessionObj, socket) {
         wordStats.meter("trumpPerSecond").mark();
         wordStats.meter("trumpPerMinute").mark();
 
-        var wsObj = wordStats.toJSON();
+        var wsTrumpObj = wordStats.toJSON();
 
         debug(chalkAlert("TRUMP"
           + " | " + nodeObj.nodeType
           + " | " + nodeObj.nodeId
-          + " | " + wsObj.trumpPerSecond[metricsRate].toFixed(0) 
-          + " | " + wsObj.trumpPerSecond.currentRate.toFixed(0) 
-          + " | " + wsObj.trumpPerMinute[metricsRate].toFixed(0) 
-          + " | " + wsObj.trumpPerMinute.currentRate.toFixed(0) 
+          + " | " + wsTrumpObj.trumpPerSecond[metricsRate].toFixed(0) 
+          + " | " + wsTrumpObj.trumpPerSecond.currentRate.toFixed(0) 
+          + " | " + wsTrumpObj.trumpPerMinute[metricsRate].toFixed(0) 
+          + " | " + wsTrumpObj.trumpPerMinute.currentRate.toFixed(0) 
           + " | " + trumpHit
         ));
       }
@@ -2397,6 +2353,10 @@ function initSessionSocketHandler(sessionObj, socket) {
     wordStats.meter("wordsPerMinute").mark();
 
     wordsPerMinuteTopTermCache.get(rxWordObj.nodeId.toLowerCase(), function(err, nodeRate) {
+      if (err){
+        console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
+        quit();
+      }
       if (nodeRate) {
         rxWordObj.isTopTerm = true;
         debug(chalkRed("TOP TERM"
@@ -2414,13 +2374,13 @@ function initSessionSocketHandler(sessionObj, socket) {
         wordStats.meter("obamaPerSecond").mark();
         wordStats.meter("obamaPerMinute").mark();
 
-        const wsObj = wordStats.toJSON();
+        var wsObamaObj = wordStats.toJSON();
 
         debug(chalkAlert("OBAMA"
-          + " | " + wsObj.obamaPerSecond[metricsRate].toFixed(0) 
-          + " | " + wsObj.obamaPerSecond.currentRate.toFixed(0) 
-          + " | " + wsObj.obamaPerMinute[metricsRate].toFixed(0) 
-          + " | " + wsObj.obamaPerMinute.currentRate.toFixed(0) 
+          + " | " + wsObamaObj.obamaPerSecond[metricsRate].toFixed(0) 
+          + " | " + wsObamaObj.obamaPerSecond.currentRate.toFixed(0) 
+          + " | " + wsObamaObj.obamaPerMinute[metricsRate].toFixed(0) 
+          + " | " + wsObamaObj.obamaPerMinute.currentRate.toFixed(0) 
           + " | " + rxWordObj.nodeId
         ));
       }
@@ -2430,13 +2390,13 @@ function initSessionSocketHandler(sessionObj, socket) {
         wordStats.meter("trumpPerSecond").mark();
         wordStats.meter("trumpPerMinute").mark();
 
-        const wsObj = wordStats.toJSON();
+        var wsTrumpObj = wordStats.toJSON();
 
         debug(chalkAlert("TRUMP"
-          + " | " + wsObj.trumpPerSecond[metricsRate].toFixed(0) 
-          + " | " + wsObj.trumpPerSecond.currentRate.toFixed(0) 
-          + " | " + wsObj.trumpPerMinute[metricsRate].toFixed(0) 
-          + " | " + wsObj.trumpPerMinute.currentRate.toFixed(0) 
+          + " | " + wsTrumpObj.trumpPerSecond[metricsRate].toFixed(0) 
+          + " | " + wsTrumpObj.trumpPerSecond.currentRate.toFixed(0) 
+          + " | " + wsTrumpObj.trumpPerMinute[metricsRate].toFixed(0) 
+          + " | " + wsTrumpObj.trumpPerMinute.currentRate.toFixed(0) 
           + " | " + rxWordObj.nodeId
         ));
       }
@@ -2522,6 +2482,86 @@ function initSessionSocketHandler(sessionObj, socket) {
     serverSessionConfig.socketId = socket.id;
     // testUsersNameSpace.emit("SOCKET_TEST_MODE", serverSessionConfig);
   });
+}
+
+function createSession(newSessionObj) {
+
+  statsObj.session.totalCreated += 1;
+
+      // createSession({
+      //   namespace: "admin",
+      //   socket: socket,
+      //   type: "admin",
+      //   tags: {}
+      // });
+
+  console.log(chalkSession("CREATE SESSION"
+    + " | " + moment().format(compactDateTimeFormat)
+    + " | NS: " + newSessionObj.namespace
+    + " | SID: " + newSessionObj.socket.id
+    + " | TYPE: " + newSessionObj.type
+  ));
+
+  var namespace = newSessionObj.namespace;
+  var socket = newSessionObj.socket;
+  // var socketId = newSessionObj.socket.id;
+  var ipAddress = newSessionObj.socket.handshake.headers["x-real-ip"] || newSessionObj.socket.client.conn.remoteAddress;
+
+  statsObj.entity.admin.connected = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
+  statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
+  statsObj.entity.user.connected = Object.keys(userNameSpace.connected).length; // userNameSpace.sockets.length ;
+  statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; // userNameSpace.sockets.length ;
+
+  var sessionObj = new Session({
+    socketId: newSessionObj.socket.id,
+    sessionId: newSessionObj.socket.id,
+    tags: {},
+    ip: ipAddress,
+    namespace: namespace,
+    url: newSessionObj.url,
+    profileImageUrl: newSessionObj.profileImageUrl,
+    createAt: moment().valueOf(),
+    lastSeen: moment().valueOf(),
+    connected: true,
+    connectTime: moment().valueOf(),
+    disconnectTime: 0
+  });
+
+  if (newSessionObj.tags) { 
+    sessionObj.tags = newSessionObj.tags;
+    sessionObj.userId = newSessionObj.tags.entity;
+  }
+
+  if (newSessionObj.user) { 
+    sessionObj.userId = newSessionObj.user.userId;
+  }
+
+  sessionObj.config.type = newSessionObj.type;
+  sessionObj.config.mode = newSessionObj.mode;
+
+  sessionCache.set(newSessionObj.socket.id, sessionObj, function(err, results){
+
+    if (err) {
+      console.error("SESSION CACHE ERROR\n" + err);
+      quit();
+    }
+
+    initSessionSocketHandler(sessionObj, socket);
+
+    debug(chalkSession("\nNEW SESSION"
+      + "\n" + results
+      + "\n" + util.inspect(sessionObj, {
+      showHidden: false,
+      depth: 1
+    })));
+
+    sessionQueue.enqueue({
+      sessionEvent: "SESSION_CREATE",
+      session: sessionObj
+    });
+
+  });
+
 }
 
 function setWordCacheTtl(value) {
@@ -2625,121 +2665,6 @@ function dnsReverseLookup(ip, callback) {
     });
   }
 }
-
-// var statsCountsComplete = true;
-
-// function updateStatsCounts(callback) {
-
-//   if (statsCountsComplete) {
-
-//     statsCountsComplete = false;
-
-//     async.parallel({
-//       totalAdmins: function (cb) {
-//         Admin.count({}, function(err, count) {
-//           if (err) {
-//             console.log(chalkError("DB ADMIN COUNTER ERROR\n" + jsonPrint(err)));
-//             cb(err, null);
-//           }
-//           else {
-//             statsObj.db.totalAdmins = count;
-//             cb(null, count);
-//           }
-//         });
-//       },
-//       totalUsers: function (cb) {
-//         User.count({}, function(err, count) {
-//           if (err) {
-//             console.log(chalkError("DB USER COUNTER ERROR\n" + jsonPrint(err)));
-//             cb(err, null);
-//           }
-//           else {
-//             statsObj.db.totalUsers = count;
-//             cb(null, count);
-//           }
-//         });
-//       },
-//       totalViewers: function (cb) {
-//         Viewer.count({}, function(err, count) {
-//           if (err) {
-//             console.log(chalkError("DB VIEWER COUNTER ERROR\n" + jsonPrint(err)));
-//             cb(err, null);
-//           }
-//           else {
-//             statsObj.db.totalViewers = count;
-//             cb(null, count);
-//           }
-//         });
-//       },
-//       totalSessions: function (cb) {
-//         Session.count({}, function(err, count) {
-//           if (err) {
-//             console.log(chalkError("DB USER COUNTER ERROR\n" + jsonPrint(err)));
-//             cb(err, null);
-//           }
-//           else {
-//             statsObj.db.totalSessions = count;
-//             cb(null, count);
-//           }
-//         });
-//       },
-//       totalWords: function (cb) {
-//         Word.count({}, function(err, count) {
-//           if (err) {
-//             console.log(chalkError("DB USER COUNTER ERROR\n" + jsonPrint(err)));
-//             cb(err, null);
-//           }
-//           else {
-//             statsObj.db.totalWords = count;
-//             cb(null, count);
-//           }
-//         });
-//       },
-//       totalGroups: function (cb) {
-//         Group.count({}, function(err, count) {
-//           if (err) {
-//             console.log(chalkError("DB USER COUNTER ERROR\n" + jsonPrint(err)));
-//             cb(err, null);
-//           }
-//           else {
-//             statsObj.db.totalGroups = count;
-//             cb(null, count);
-//           }
-//         });
-//       },
-//       totalEntities: function (cb) {
-//         Entity.count({}, function(err, count) {
-//           if (err) {
-//             console.log(chalkError("DB USER COUNTER ERROR\n" + jsonPrint(err)));
-//             cb(err, null);
-//           }
-//           else {
-//             statsObj.db.totalEntities = count;
-//             cb(null, count);
-//           }
-//         });
-//       }
-//     },
-//     function(err, results) { //async.parallel callback
-//       if (err) {
-//         console.log(chalkError("\n" + moment().format(compactDateTimeFormat) 
-//           + "!!! UPDATE STATS COUNTS ERROR: " + err));
-//         statsCountsComplete = true;
-//         if (callback !== undefined) { callback(err, null); }
-//       } 
-//       else {
-//         console.log(chalkInfo(moment().format(compactDateTimeFormat) + " | UPDATE STATS COUNTS COMPLETE"
-//          + "\n" + jsonPrint(results)
-//         ));
-//         configEvents.emit("UPDATE_STATS_COUNTS_COMPLETE", moment().format(compactDateTimeFormat));
-//         statsCountsComplete = true;
-//         if (callback !== undefined) { callback(null, "UPDATE_STATS_COUNTS_COMPLETE"); }
-//       }
-//     });
-
-//   }
-// }
-
 
 var updateSessionViewReady = true;
 
@@ -2891,12 +2816,19 @@ function initSessionViewQueueInterval(interval){
 
         updateWordMeter(sessionSmallObj.source, function(err, sNodeObj){
 
+          if (err){
+            console.log(chalkError("updateWordMeter ERROR: " + err));
+          }
+
           debug(chalkRed("sessionSmallObj sNodeObj\n" + jsonPrint(sNodeObj)));
           sessionSmallObj.source = sNodeObj;
 
           if (sessionSmallObj.target) {
 
             updateWordMeter(sessionSmallObj.target, function(err, tNodeObj){
+              if (err){
+                console.log(chalkError("updateWordMeter ERROR: " + err));
+              }
 
               sessionSmallObj.target = tNodeObj;
               viewNameSpace.emit("SESSION_UPDATE", sessionSmallObj);
@@ -2966,8 +2898,6 @@ function updateSessionViews(sessionUpdateObj) {
     console.log(chalkError("ERROR updateSessionViews | ENTITY TAG UNDEFINED\n" + jsonPrint(obj)));
   }
 }
-
-var wordTypes = ["noun", "verb", "adjective", "adverb"];
 
 function dbUpdateGroup(groupObj, incMentions, callback) {
 
@@ -3052,7 +2982,6 @@ function dbUpdateWord(wObj, incMentions, callback) {
       word: wordObj
     });
 
-    callback(null, wordObj);
   });
 }
 
@@ -3710,81 +3639,6 @@ function utilUpdateDb(utilObj, callback) {
   );
 }
 
-function adminFindAllDb(options, callback) {
-
-  debug("\n=============================\nADMINS IN DB\n----------");
-  if (options) {debug("OPTIONS\n" + jsonPrint(options));}
-
-  var query = {};
-  var projections = {
-    adminId: true,
-    namespace: true,
-    sessionId: true,
-    ip: true,
-    domain: true,
-    screenName: true,
-    description: true,
-    url: true,
-    profileUrl: true,
-    profileImageUrl: true,
-    verified: true,
-    createdAt: true,
-    lastSeen: true,
-    lastSession: true,
-    connected: true
-  };
-
-  Admin.find(query, projections, options, function(err, admins) {
-    if (err) {
-      console.log(err, null);
-      callback(err);
-      return;
-    }
-    if (admins) {
-
-      async.forEach(
-
-        admins,
-
-        function(adminObj, callback) {
-
-          debug(chalkAdmin("UID: " + adminObj.adminId 
-            + " | SN: " + adminObj.screenName 
-            + " | LS: " + moment(parseInt(adminObj.lastSeen)).format(compactDateTimeFormat)
-          ));
-
-          if (!adminObj.adminId || (adminObj.adminId === undefined) || adminObj.adminId === null) {
-            debug(chalkError("*** ERROR: adminFindAllDb: ADMIN ID UNDEFINED *** | SKIPPING ADD TO CACHE"));
-            callback("ERROR: ADMIN ID UNDEFINED", null);
-          } 
-          else {
-            adminCache.set(adminObj.adminId, adminObj, function(err, result){
-              callback(err, result);
-            });
-          }
-
-        },
-
-        function(err) {
-          if (err) {
-            console.log("*** ERROR  adminFindAllDb: " + err);
-            callback(err, null);
-          } 
-          else {
-            debug("FOUND " + admins.length + " ADMINS");
-            callback(null, admins.length);
-          }
-        }
-      );
-
-    } else {
-      debug("NO ADMINS FOUND");
-      callback(null, 0);
-      return;
-    }
-  });
-}
-
 function handleSessionEvent(sesObj, callback) {
 
   if (sesObj.sessionEvent !== "SESSION_KEEPALIVE") {
@@ -3814,6 +3668,7 @@ function handleSessionEvent(sesObj, callback) {
   var sessionId;
   var key;
   var sessionCacheKey;
+  var sessKeys;
 
   switch (sesObj.sessionEvent) {
 
@@ -4027,21 +3882,27 @@ function handleSessionEvent(sesObj, callback) {
         sesObj.session.deleted = true;
 
         sessionCache.set(sesObj.session.sessionId, sesObj.session, function(err, success){
-          if (err) {console.log(chalkError("SESS SET DELETED ERROR " + err));}
+          if (err) {
+            console.log(chalkError("SESS SET DELETED ERROR " + err));
+          }
           sessionCache.ttl(sesObj.session.sessionId, 30);
-          debug(chalkSession("XXX SESS DELETE " + sesObj.session.sessionId));
+          debug(chalkSession("XXX SESS DELETE | SUCCESS: " + success + " | " + sesObj.session.sessionId));
         });
 
-        var sessKeys = sessionCache.keys();
+        sessKeys = sessionCache.keys();
 
         sessKeys.forEach(function(sId){
           if (sId.indexOf(sesObj.session.sessionId) > -1) {
             adminNameSpace.emit("SESSION_DELETE", sId);
             sessionCache.get(sId, function(err, session){
+              if (err) {
+                console.log(chalkError("SESS $ GET ERROR " + err));
+              }
               session.deleted = true;
-              sessionCache.set(sId, session, function(err, success){});
-              sessionCache.ttl(sId, 30);
-              console.log(chalkRed("XXX SESS " + sId));
+              sessionCache.set(sId, session, function(){
+                sessionCache.ttl(sId, 30);
+                console.log(chalkRed("XXX SESS " + sId));
+              });
             });
           }
         });
@@ -4471,6 +4332,9 @@ function handleSessionEvent(sesObj, callback) {
       }
 
       userCache.set(sesObj.user.userId, sesObj.user, function(err, success) {
+        if (err) {
+          console.log(chalkError("USER $ SET ERROR " + err));
+        }
         debug(chalkLog("USER CACHE RESULTS" + "\n" + err + "\n" + success));
       });
 
@@ -4673,6 +4537,9 @@ function getTags(wObj, callback){
   debug(chalkInfo("getTags\n" + jsonPrint(wObj)));
 
   wordsPerMinuteTopTermCache.get(wObj.nodeId.toLowerCase(), function(err, wordRate) {
+    if (err) {
+      console.log(chalkError("wordsPerMinuteTopTermCache GET ERROR " + err));
+    }
     if (wordRate) {
       wObj.isTopTerm = true;
     }
@@ -4752,6 +4619,12 @@ function sendUpdated(updatedObj, callback){
     debug(chalkInfo("uWordObj\n" + jsonPrint(uWordObj)));
     
     updateWordMeter(uWordObj, function(err, updatedWordObj){
+      if (err){
+        console.log(chalkError("updateWordMeter ERROR: " + err));
+      }
+
+      var sessionUpdateObj = {};
+
       if (updatedWordObj.tags){
 
         if (!updatedWordObj.tags.group || (updatedWordObj.tags.group === undefined)) {
@@ -4770,9 +4643,12 @@ function sendUpdated(updatedObj, callback){
           if (err) {
             console.log(chalkError("WORD CACHE SET ERROR\n" + jsonPrint(err)));
           }
+
+          debug("wordCache SET success: " + success);
+
           sessionCache.get(updatedWordObj.sessionId, function(err, currentSessionObj) {
             if (!err && currentSessionObj) {
-              var sessionUpdateObj = {
+              sessionUpdateObj = {
                 action: "WORD",
                 userId: currentSessionObj.userId,
                 url: currentSessionObj.url,
@@ -4825,7 +4701,7 @@ function sendUpdated(updatedObj, callback){
 
               configEvents.emit("UNKNOWN_SESSION", unknownSession);
 
-              var sessionUpdateObj = {
+              sessionUpdateObj = {
                 action: "WORD",
                 userId: unknownSession.userId,
                 url: unknownSession.url,
@@ -4861,6 +4737,8 @@ function sendUpdated(updatedObj, callback){
             console.log(chalkError("WORD CACHE SET ERROR\n" + jsonPrint(err)));
           }
 
+          debug("wordCache SET success: " + success);
+
           sessionCache.get(updatedObj.sessionId, function(err, currentSessionObj){
             if (err){
               console.log(chalkError("*** ERROR SESSION CACHE GET " + updatedObj.sessionId + "\n" + jsonPrint(err)));
@@ -4871,7 +4749,7 @@ function sendUpdated(updatedObj, callback){
               if (configuration.quitOnError) { quit("SESSION CACHE GET UNDEFINED"); }
             }
             else {
-              var sessionUpdateObj = {
+              sessionUpdateObj = {
                 action: "WORD",
                 userId: currentSessionObj.userId,
                 url: currentSessionObj.url,
@@ -5048,7 +4926,7 @@ function initRxWordQueueInterval(interval){
                 ));
                 rxWordQueueReady = true;
               }
-              else if (wordCacheObj === undefined) { // RX WORD MISS
+              else if (!wordCacheObj || (wordCacheObj === undefined)) { // RX WORD MISS
 
                 if (currentSessionObj.sessionId === undefined) {
                   console.log(chalkError("UNDEFINED SESSION ID\n" + jsonPrint(currentSessionObj)));
@@ -5060,6 +4938,10 @@ function initRxWordQueueInterval(interval){
                 currentSessionObj.wordChainIndex += 1;
 
                 sessionCache.set(currentSessionObj.sessionId, currentSessionObj, function(err, success) {
+                  if (err) {
+                    console.log(chalkError("sessionCache SET ERROR " + err));
+                  }
+                  debug(chalkInfo("sessionCache success: " + success));
                   dbUpdateWordQueue.enqueue(wordObj);
                   rxWordQueueReady = true;
                 });
@@ -5071,7 +4953,7 @@ function initRxWordQueueInterval(interval){
               else { // RX WORD HIT
                 wordCacheObj.socketId = currentSessionObj.socketId;
                 wordCacheObj.sessionId = currentSessionObj.sessionId;
-                wordCacheObj.mentions++;
+                wordCacheObj.mentions += 1;
                 wordCacheObj.lastSeen = moment().valueOf();
 
                 debug(chalkInfo(moment().format(compactDateTimeFormat) 
@@ -5086,6 +4968,10 @@ function initRxWordQueueInterval(interval){
                 currentSessionObj.wordChainIndex += 1;
 
                 sessionCache.set(currentSessionObj.sessionId, currentSessionObj, function(err, success) {
+                  if (err) {
+                    console.log(chalkError("sessionCache SET ERROR " + err));
+                  }
+                  debug(chalkInfo("sessionCache success: " + success));
                   dbUpdateWordQueue.enqueue(wordCacheObj);
                   rxWordQueueReady = true;
                 });
@@ -5188,6 +5074,70 @@ function queryDb(queryObj, callback){
   });
 }
 
+function addMetricDataPoint(options, callback){
+
+  debug(chalkAlert("addMetricDataPoint\n" + jsonPrint(options)));
+
+  defaults(options, {
+    endTime: (Date.now() / 1000),
+    dataType: "doubleValue",
+    resourceType: "global",
+    projectId: process.env.GOOGLE_PROJECT_ID,
+    metricTypePrefix: CUSTOM_GOOGLE_APIS_PREFIX
+  });
+
+  debug(chalkAlert("addMetricDataPoint AFTER\n" + jsonPrint(options)));
+
+  var dataPoint = {
+    interval: { endTime: { seconds: options.endTime } },
+    value: {}
+  };
+
+  dataPoint.value[options.dataType] = options.value;
+
+  var timeSeriesData = {
+    metric: {
+      type: options.metricTypePrefix + "/" + options.metricType,
+      labels: options.metricLabels
+    },
+    resource: {
+      type: options.resourceType,
+      labels: { project_id: options.projectId }
+    },
+    points: [ dataPoint ]
+  };
+
+  var googleRequest = {
+    name: googleMonitoringClient.projectPath(options.projectId),
+    timeSeries: [
+      timeSeriesData
+    ]
+  };
+
+  googleMonitoringClient.createTimeSeries(googleRequest)
+    // .then((results) => {
+    .then(function(){
+      debug(chalkTwitter("METRICS"
+        + " | " + options.metricLabels.server_id 
+        + " | " + options.value
+      ));
+    })
+    .catch(function(results){
+      if (results.code !== 8) {
+        console.log(chalkError("*** ERROR GOOGLE METRICS"
+          + " | " + options.metricLabels.server_id 
+          + " | " + options.value
+          + " | ERR CODE: " + results.code
+          + " | META NODE: " + results.note
+          + "\nMETA DATA\n" + jsonPrint(results.metadata)
+        ));
+      }
+    });
+
+  if (callback) { callback(null,options); }
+}
+
+
 var sorterMessageRxReady = true; 
 
 function initSorterMessageRxQueueInterval(interval){
@@ -5202,10 +5152,19 @@ function initSorterMessageRxQueueInterval(interval){
 
       var sorterObj = sorterMessageRxQueue.dequeue();
 
+      var sortedKeys;
+      var endIndex;
+      var index;
+      var wmObj;
+      var topTermDataPoint = {};
+      var wordsPerMinuteTopTerm = {};
+      var i;
+      var node;
+
       switch (sorterObj.op){
         case "SORTED":
           debug(chalkSorter("SORT ---------------------"));
-          for (var i=0; i<sorterObj.sortedKeys.length; i += 1){
+          for (i=0; i<sorterObj.sortedKeys.length; i += 1){
             if (wordMeter[sorterObj.sortedKeys[i]] !== undefined) {
               debug(chalkSorter(wordMeter[sorterObj.sortedKeys[i]].toJSON()[sorterObj.sortKey].toFixed(3)
                 + " | "  + sorterObj.sortedKeys[i] 
@@ -5213,17 +5172,17 @@ function initSorterMessageRxQueueInterval(interval){
             }
           }
 
-          var sortedKeys = sorterObj.sortedKeys;
-          var endIndex = Math.min(configuration.maxTopTerms, sortedKeys.length);
+          sortedKeys = sorterObj.sortedKeys;
+          endIndex = Math.min(configuration.maxTopTerms, sortedKeys.length);
 
-          var index;
-          var wmObj;
-          var topTermDataPoint = {};
-          var wordsPerMinuteTopTerm = {};
+          // var index;
+          // var wmObj;
+          // var topTermDataPoint = {};
+          // var wordsPerMinuteTopTerm = {};
 
           for (index=0; index < endIndex; index += 1){
 
-            var node = sortedKeys[index].toLowerCase();
+            node = sortedKeys[index].toLowerCase();
 
             if (wordMeter[node] !== undefined) {
 
@@ -5284,6 +5243,10 @@ function initDbUpdaterMessageRxQueueInterval(interval){
             // + "\n" + jsonPrint(dbUpdaterObj)
           ));
           sendUpdated(dbUpdaterObj, function(err, results){
+            if (err) {
+              console.log(chalkError("sendUpdated ERROR " + err));
+            }
+            debug(chalkInfo("sendUpdated results: " + results));
             dbUpdaterMessageRxReady = true; 
           });
         break;
@@ -5318,7 +5281,6 @@ function initUpdaterMessageQueueInterval(interval){
             + " | DB\n" + jsonPrint(updaterObj.db)
           ));
           updaterMessageReady = true;
-          statsCountsComplete = true;
           statsObj.db.totalAdmins = updaterObj.db.totalAdmins;
           statsObj.db.totalUsers = updaterObj.db.totalUsers;
           statsObj.db.totalViewers = updaterObj.db.totalViewers;
@@ -5330,19 +5292,19 @@ function initUpdaterMessageQueueInterval(interval){
         case "sendGroupsComplete":
           console.log(chalkLog("UPDATE GROUPS COMPLETE | " + moment().format(compactDateTimeFormat)));
           updaterMessageReady = true;
-          groupsUpdateComplete = true;
+          // groupsUpdateComplete = true;
         break;
 
         case "sendEntitiesComplete":
           console.log(chalkLog("UPDATE ENTITIES COMPLETE | " + moment().format(compactDateTimeFormat)));
           updaterMessageReady = true;
-          entitiesUpdateComplete = true;
+          // entitiesUpdateComplete = true;
         break;
 
         case "sendKeywordsComplete":
           console.log(chalkLog("UPDATE KEYWORDS COMPLETE | " + moment().format(compactDateTimeFormat)));
           updaterMessageReady = true;
-          keywordsUpdateComplete = true;
+          // keywordsUpdateComplete = true;
         break;
 
         case "group":
@@ -5547,7 +5509,6 @@ function initUpdaterMessageQueueInterval(interval){
           updaterMessageReady = true;
       }
 
-      updateComplete = groupsUpdateComplete && entitiesUpdateComplete && keywordsUpdateComplete;
     }
   }, interval);
 }
@@ -5637,6 +5598,7 @@ function initDbUpdateWordQueueInterval(interval){
       dbUpdateWord(wordObj, true, function(status, updatedWordObj) {
         debug(chalkDb("DB WORD"
           + " | Q: " + dbUpdateWordQueue.size()
+          + " | STATUS: " + status
           + " | " + updatedWordObj.nodeId
         ));
         dbUpdateWordReady = true;
@@ -5655,7 +5617,8 @@ function initInternetCheckInterval(interval, callback){
   var serverError;
   var callbackInterval;
 
-  clearInterval(internetCheckInterval)
+  clearInterval(internetCheckInterval);
+
   internetCheckInterval = setInterval(function(){
     var testClient = net.createConnection(80, "www.google.com");
 
@@ -5668,10 +5631,12 @@ function initInternetCheckInterval(interval, callback){
       testClient.destroy();
       serverStatus = "SERVER_READY";
       clearInterval(internetCheckInterval);
-      // callback(null, "SERVER_READY");
     });
 
     testClient.on("error", function(err) {
+      if (err) {
+        console.log(chalkError("testClient ERROR " + err));
+      }
       statsObj.socket.errors += 1;
       console.log(chalkError(moment().format(compactDateTimeFormat) + " | **** GOOGLE CONNECT ERROR ****\n" + err));
       debug(chalkError(moment().format(compactDateTimeFormat) + " | **** SERVER_NOT_READY ****"));
@@ -5680,7 +5645,6 @@ function initInternetCheckInterval(interval, callback){
       configEvents.emit("SERVER_NOT_READY");
       serverError = err;
       serverStatus = "SERVER_NOT_READY";
-      // callback(err, null);
     });
   }, interval);
 
@@ -5700,33 +5664,32 @@ function initInternetCheckInterval(interval, callback){
 // INIT APP ROUTING
 //=================================
 
-// app.use(express.static('public'));
-
 function initAppRouting(callback) {
 
   debugAppGet(chalkInfo(moment().format(compactDateTimeFormat) + " | INIT APP ROUTING"));
 
   app.get("/js/require.js", function(req, res, next) {
-    // console.log(chalkRedBold("get req\n" + jsonPrint(req.params)));
+    debug(chalkInfo("get req\n" + req));
+    debug(chalkInfo("get next\n" + next));
     console.log(chalkRedBold("LOADING PAGE: /js/require.js"));
     res.sendFile(__dirname + "/js/require.js", function (err) {
       if (err) {
-        console.log(chalkAlert('GET:', __dirname + "/js/require.js"));
+        console.log(chalkAlert("GET:", __dirname + "/js/require.js"));
       } 
       else {
-        console.log(chalkInfo('SENT:', __dirname + "/js/require.js"));
+        console.log(chalkInfo("SENT:", __dirname + "/js/require.js"));
       }
     });
   });
 
   app.get("/session.js", function(req, res) {
-    // console.log(chalkInfo("get req\n" + req));
+    debug(chalkInfo("get req\n" + req));
     console.log("LOADING FILE: /session.js");
 
-    fs.readFile(__dirname + "/session.js", function(error, data) {
+    fs.readFile(__dirname + "/session.js", function(err, data) {
 
-      if (error) { 
-        console.log(chalkError("ERROR FILE OPEN\n" + jsonPrint(error)));
+      if (err) { 
+        console.log(chalkError("ERROR FILE OPEN\n" + jsonPrint(err)));
       }
 
       var newData;
@@ -5742,39 +5705,46 @@ function initAppRouting(callback) {
   });
 
   app.get("/", function(req, res, next) {
-    // console.log(chalkRedBold("get req\n" + jsonPrint(req.params)));
+    debug(chalkInfo("get req\n" + req));
+    debug(chalkInfo("get next\n" + next));
     console.log(chalkRedBold("LOADING PAGE: /sessionModular.html"));
     res.sendFile(__dirname + "/sessionModular.html", function (err) {
       if (err) {
         console.error("GET / ERROR:"
+          + " | " + moment().format(compactDateTimeFormat)
           + " | " + __dirname + "/sessionModular.html"
           + " | " + err
+          + " | " + req
         );
       } 
       else {
-        console.log(chalkInfo('SENT:', __dirname + "/sessionModular.html"));
+        console.log(chalkInfo("SENT:", __dirname + "/sessionModular.html"));
       }
     });
   });
 
   app.get("/session", function(req, res, next) {
-    // console.log(chalkRedBold("get req\n" + jsonPrint(req.params)));
+    debug(chalkInfo("get req\n" + req));
+    debug(chalkInfo("get next\n" + next));
     console.log(chalkRedBold("LOADING PAGE: /sessionModular.html"));
     res.sendFile(__dirname + "/sessionModular.html", function (err) {
       if (err) {
         console.error("GET /session ERROR:"
+          + " | " + moment().format(compactDateTimeFormat)
           + " | " + __dirname + "/sessionModular.html"
           + " | " + err
+          + " | " + req
         );
       } 
       else {
-        console.log(chalkInfo('SENT:', __dirname + "/sessionModular.html"));
+        console.log(chalkInfo("SENT:", __dirname + "/sessionModular.html"));
       }
     });
   });
 
   app.get("/js/libs/sessionViewTicker.js", function(req, res, next) {
-    // console.log(chalkRedBold("get req\n" + jsonPrint(req.params)));
+    debug(chalkInfo("get req\n" + req));
+    debug(chalkInfo("get next\n" + next));
     console.log(chalkRedBold("LOADING PAGE: /js/libs/sessionViewTicker.js"));
     res.sendFile(__dirname + "/js/libs/sessionViewTicker.js", function (err) {
       if (err) {
@@ -5784,13 +5754,14 @@ function initAppRouting(callback) {
         );
       } 
       else {
-        console.log(chalkInfo('SENT:', __dirname + "/js/libs/sessionViewTicker.js"));
+        console.log(chalkInfo("SENT:", __dirname + "/js/libs/sessionViewTicker.js"));
       }
     });
   });
 
   app.get("/js/libs/sessionViewFlow.js", function(req, res, next) {
-    // console.log(chalkRedBold("get req\n" + jsonPrint(req.params)));
+    debug(chalkInfo("get req\n" + req));
+    debug(chalkInfo("get next\n" + next));
     console.log(chalkRedBold("LOADING PAGE: /js/libs/sessionViewFlow.js"));
     res.sendFile(__dirname + "/js/libs/sessionViewFlow.js", function (err) {
       if (err) {
@@ -5800,13 +5771,14 @@ function initAppRouting(callback) {
         );
       } 
       else {
-        console.log(chalkInfo('SENT:', __dirname + "/js/libs/sessionViewFlow.js"));
+        console.log(chalkInfo("SENT:", __dirname + "/js/libs/sessionViewFlow.js"));
       }
     });
   });
 
   app.get("/js/libs/sessionViewTreemap.js", function(req, res, next) {
-    // console.log(chalkRedBold("get req\n" + jsonPrint(req.params)));
+    debug(chalkInfo("get req\n" + req));
+    debug(chalkInfo("get next\n" + next));
     console.log(chalkRedBold("LOADING PAGE: /js/libs/sessionViewTreemap.js"));
     res.sendFile(__dirname + "/js/libs/sessionViewTreemap.js", function (err) {
       if (err) {
@@ -5816,13 +5788,14 @@ function initAppRouting(callback) {
         );
       } 
       else {
-        console.log(chalkInfo('SENT:', __dirname + "/js/libs/sessionViewTreemap.js"));
+        console.log(chalkInfo("SENT:", __dirname + "/js/libs/sessionViewTreemap.js"));
       }
     });
   });
 
   app.get("/js/libs/sessionViewTreepack.js", function(req, res, next) {
-    // console.log(chalkRedBold("get req\n" + jsonPrint(req.params)));
+    debug(chalkInfo("get req\n" + req));
+    debug(chalkInfo("get next\n" + next));
     console.log(chalkRedBold("LOADING PAGE: /js/libs/sessionViewTreepack.js"));
     res.sendFile(__dirname + "/js/libs/sessionViewTreepack.js", function (err) {
       if (err) {
@@ -5832,174 +5805,190 @@ function initAppRouting(callback) {
         );
       } 
       else {
-        console.log(chalkInfo('SENT:', __dirname + "/js/libs/sessionViewTreepack.js"));
+        console.log(chalkInfo("SENT:", __dirname + "/js/libs/sessionViewTreepack.js"));
       }
     });
   });
 
   app.get("/js/libs/sessionViewHistogram.js", function(req, res, next) {
-    // console.log(chalkRedBold("get req\n" + jsonPrint(req.params)));
+    debug(chalkInfo("get req\n" + req));
+    debug(chalkInfo("get next\n" + next));
     console.log(chalkRedBold("LOADING PAGE: /js/libs/sessionViewHistogram.js"));
     res.sendFile(__dirname + "/js/libs/sessionViewHistogram.js", function (err) {
       if (err) {
-        console.error('GET:', __dirname + "/js/libs/sessionViewHistogram.js");
+        console.error("GET:", __dirname + "/js/libs/sessionViewHistogram.js");
       } 
       else {
-        console.log(chalkInfo('SENT:', __dirname + "/js/libs/sessionViewHistogram.js"));
+        console.log(chalkInfo("SENT:", __dirname + "/js/libs/sessionViewHistogram.js"));
       }
     });
   });
 
   app.get("/js/libs/sessionViewMedia.js", function(req, res, next) {
-    // console.log(chalkRedBold("get req\n" + jsonPrint(req.params)));
+    debug(chalkInfo("get req\n" + req));
+    debug(chalkInfo("get next\n" + next));
     console.log(chalkRedBold("LOADING PAGE: /js/libs/sessionViewMedia.js"));
     res.sendFile(__dirname + "/js/libs/sessionViewMedia.js", function (err) {
       if (err) {
-        console.error('GET:', __dirname + "/js/libs/sessionViewMedia.js");
+        console.error("GET:", __dirname + "/js/libs/sessionViewMedia.js");
       } 
       else {
-        console.log(chalkInfo('SENT:', __dirname + "/js/libs/sessionViewMedia.js"));
+        console.log(chalkInfo("SENT:", __dirname + "/js/libs/sessionViewMedia.js"));
       }
     });
   });
 
   app.get("/js/libs/sessionViewForce.js", function(req, res, next) {
-    // console.log(chalkRedBold("get req\n" + jsonPrint(req.params)));
+    debug(chalkInfo("get req\n" + req));
+    debug(chalkInfo("get next\n" + next));
     console.log(chalkRedBold("LOADING PAGE: /js/libs/sessionViewForce.js"));
     res.sendFile(__dirname + "/js/libs/sessionViewForce.js", function (err) {
       if (err) {
-        console.error('GET:', __dirname + "/js/libs/sessionViewForce.js");
+        console.error("GET:", __dirname + "/js/libs/sessionViewForce.js");
       } 
       else {
-        console.log(chalkInfo('SENT:', __dirname + "/js/libs/sessionViewForce.js"));
+        console.log(chalkInfo("SENT:", __dirname + "/js/libs/sessionViewForce.js"));
       }
     });
   });
 
   app.get("/js/libs/sessionView.js", function(req, res, next) {
-    // console.log(chalkRedBold("get req\n" + jsonPrint(req.params)));
+    debug(chalkInfo("get req\n" + req));
+    debug(chalkInfo("get next\n" + next));
     console.log(chalkRedBold("LOADING PAGE: /js/libs/sessionView.js"));
     res.sendFile(__dirname + "/js/libs/sessionView.js", function (err) {
       if (err) {
-        console.error('GET:', __dirname + "/js/libs/sessionView.js");
+        console.error("GET:", __dirname + "/js/libs/sessionView.js");
       } 
       else {
-        console.log(chalkInfo('SENT:', __dirname + "/js/libs/sessionView.js"));
+        console.log(chalkInfo("SENT:", __dirname + "/js/libs/sessionView.js"));
       }
     });
   });
 
   app.get("/node_modules/panzoom/dist/panzoom.min.js", function(req, res, next) {
-    // console.log(chalkRedBold("get req\n" + jsonPrint(req.params)));
+    debug(chalkInfo("get req\n" + req));
+    debug(chalkInfo("get next\n" + next));
     console.log(chalkRedBold("LOADING PAGE: /node_modules/panzoom/dist/panzoom.min.js"));
     res.sendFile(__dirname + "/node_modules/panzoom/dist/panzoom.min.js", function (err) {
       if (err) {
-        console.error('GET:', __dirname + "/node_modules/panzoom/dist/panzoom.min.js");
+        console.error("GET:", __dirname + "/node_modules/panzoom/dist/panzoom.min.js");
       } 
       else {
-        console.log(chalkInfo('SENT:', __dirname + "/node_modules/panzoom/dist/panzoom.min.js"));
+        console.log(chalkInfo("SENT:", __dirname + "/node_modules/panzoom/dist/panzoom.min.js"));
       }
     });
   });
 
   app.get("/css/base.css", function(req, res, next) {
-    // console.log(chalkRedBold("get req\n" + jsonPrint(req.params)));
+    debug(chalkInfo("get req\n" + req));
+    debug(chalkInfo("get next\n" + next));
     console.log(chalkRedBold("LOADING PAGE: /css/base.css"));
     res.sendFile(__dirname + "/css/base.css", function (err) {
       if (err) {
-        console.error('GET:', __dirname + "/css/base.css");
+        console.error("GET:", __dirname + "/css/base.css");
       } 
       else {
-        console.log(chalkInfo('SENT:', __dirname + "/css/base.css"));
+        console.log(chalkInfo("SENT:", __dirname + "/css/base.css"));
       }
     });
   });
 
   app.get("/css/main.css", function(req, res, next) {
+    debug(chalkInfo("get req\n" + req));
+    debug(chalkInfo("get next\n" + next));
     console.log(chalkRedBold("LOADING PAGE: /css/main.css"));
     res.sendFile(__dirname + "/css/main.css", function (err) {
       if (err) {
-        console.error('GET:', __dirname + "/css/main.css");
+        console.error("GET:", __dirname + "/css/main.css");
       } 
       else {
-        console.log(chalkInfo('SENT:', __dirname + "/css/main.css"));
+        console.log(chalkInfo("SENT:", __dirname + "/css/main.css"));
       }
     });
   });
 
   app.get("/favicon.png", function(req, res, next) {
+    debug(chalkInfo("get req\n" + req));
+    debug(chalkInfo("get next\n" + next));
     console.log(chalkRedBold("LOADING PAGE: /favicon.png"));
     res.sendFile(__dirname + "/favicon.png", function (err) {
       if (err) {
-        console.error('GET:', __dirname + "/favicon.png");
+        console.error("GET:", __dirname + "/favicon.png");
       } 
       else {
-        console.log(chalkInfo('SENT:', __dirname + "/favicon.png"));
+        console.log(chalkInfo("SENT:", __dirname + "/favicon.png"));
       }
     });
   });
 
   app.get("/favicon.ico", function(req, res, next) {
+    debug(chalkInfo("get req\n" + req));
+    debug(chalkInfo("get next\n" + next));
     console.log(chalkRedBold("LOADING PAGE: /favicon.ico (alias favicon.png)"));
     res.sendFile(__dirname + "/favicon.png", function (err) {
       if (err) {
-        console.error('GET:', __dirname + "/favicon.png");
+        console.error("GET:", __dirname + "/favicon.png");
       } 
       else {
-        console.log(chalkInfo('SENT:', __dirname + "/favicon.png"));
+        console.log(chalkInfo("SENT:", __dirname + "/favicon.png"));
       }
     });
   });
 
   app.get("/assets/images/userBackgroundBorder.png", function(req, res, next) {
-    // console.log(chalkRedBold("get req\n" + jsonPrint(req.params)));
+    debug(chalkInfo("get req\n" + req));
+    debug(chalkInfo("get next\n" + next));
     console.log(chalkRedBold("LOADING PAGE: /public/assets/images/userBackgroundBorder.png"));
     res.sendFile(__dirname + "/public/assets/images/userBackgroundBorder.png", function (err) {
       if (err) {
-        console.error('GET:', __dirname + "/public/assets/images/userBackgroundBorder.png");
+        console.error("GET:", __dirname + "/public/assets/images/userBackgroundBorder.png");
       } 
       else {
-        console.log(chalkInfo('SENT:', __dirname + "/public/assets/images/userBackgroundBorder.png"));
+        console.log(chalkInfo("SENT:", __dirname + "/public/assets/images/userBackgroundBorder.png"));
       }
     });
   });
 
   app.get("/assets/images/mediaBackgroundBorder.png", function(req, res, next) {
-    // console.log(chalkRedBold("get req\n" + jsonPrint(req.params)));
+    debug(chalkInfo("get req\n" + req));
+    debug(chalkInfo("get next\n" + next));
     console.log(chalkRedBold("LOADING PAGE: /public/assets/images/mediaBackgroundBorder.png"));
     res.sendFile(__dirname + "/public/assets/images/mediaBackgroundBorder.png", function (err) {
       if (err) {
-        console.error('GET:', __dirname + "/public/assets/images/mediaBackgroundBorder.png");
+        console.error("GET:", __dirname + "/public/assets/images/mediaBackgroundBorder.png");
       } 
       else {
-        console.log(chalkInfo('SENT:', __dirname + "/public/assets/images/mediaBackgroundBorder.png"));
+        console.log(chalkInfo("SENT:", __dirname + "/public/assets/images/mediaBackgroundBorder.png"));
       }
     });
   });
 
   app.get("/controlPanel.html", function(req, res, next) {
-    // console.log(chalkRedBold("get req\n" + jsonPrint(req.params)));
+    debug(chalkInfo("get req\n" + req));
+    debug(chalkInfo("get next\n" + next));
     console.log(chalkRedBold("LOADING PAGE: /controlPanel.html"));
     res.sendFile(__dirname + "/controlPanel.html", function (err) {
       if (err) {
-        console.error('GET:', __dirname + "/controlPanel.html");
+        console.error("GET:", __dirname + "/controlPanel.html");
       } 
       else {
-        console.log(chalkInfo('SENT:', __dirname + "/controlPanel.html"));
+        console.log(chalkInfo("SENT:", __dirname + "/controlPanel.html"));
       }
     });
   });
 
   app.get("/js/libs/controlPanel.js", function(req, res) {
+    debug(chalkInfo("get req\n" + req));
     console.log("LOADING PAGE: /js/libs/controlPanel.js");
 
-    fs.open(__dirname + "/js/libs/controlPanel.js", "r", function(error, fd) {
+    fs.open(__dirname + "/js/libs/controlPanel.js", "r", function(err, fd) {
 
-      if (error) { debug(chalkInfo("ERROR FILE OPEN\n" + jsonPrint(error))); }
+      if (err) { debug(chalkInfo("ERROR FILE OPEN\n" + jsonPrint(err))); }
 
-      fs.readFile(__dirname + "/js/libs/controlPanel.js", function(error, data) {
+      fs.readFile(__dirname + "/js/libs/controlPanel.js", function(err2, data) {
 
-        if (error) { debug(chalkInfo("ERROR FILE READ\n" + jsonPrint(error))); }
+        if (err2) { debug(chalkInfo("ERROR FILE READ\n" + jsonPrint(err2))); }
 
         var newData;
         if (hostname.includes("google")){
@@ -6024,10 +6013,10 @@ function initAppRouting(callback) {
     console.log(chalkInfo("LOADING PAGE: /admin/admin.html"));
     res.sendFile(__dirname + "/admin/admin.html", function (err) {
       if (err) {
-        console.error('GET:', __dirname + "/admin/admin.html");
+        console.error("GET:", __dirname + "/admin/admin.html");
       } 
       else {
-        console.log(chalkInfo('SENT:', __dirname + "/admin/admin.html"));
+        console.log(chalkInfo("SENT:", __dirname + "/admin/admin.html"));
       }
     });
   });
@@ -6037,10 +6026,10 @@ function initAppRouting(callback) {
     console.log(chalkInfo("LOADING PAGE: /admin/admin.js"));
     res.sendFile(__dirname + "/admin/admin.js", function (err) {
       if (err) {
-        console.error('GET:', __dirname + "/admin/admin.js");
+        console.error("GET:", __dirname + "/admin/admin.js");
       } 
       else {
-        console.log(chalkInfo('SENT:', __dirname + "/admin/admin.js"));
+        console.log(chalkInfo("SENT:", __dirname + "/admin/admin.js"));
       }
     });
   });
@@ -6049,10 +6038,10 @@ function initAppRouting(callback) {
     debug(chalkInfo("get req\n" + req));
     res.sendFile(__dirname + "/js/libs/progressbar.js", function (err) {
       if (err) {
-        console.error('GET:', __dirname + "/js/libs/progressbar.js");
+        console.error("GET:", __dirname + "/js/libs/progressbar.js");
       } 
       else {
-        console.log(chalkInfo('SENT:', __dirname + "/js/libs/progressbar.js"));
+        console.log(chalkInfo("SENT:", __dirname + "/js/libs/progressbar.js"));
       }
     });
   });
@@ -6061,10 +6050,10 @@ function initAppRouting(callback) {
     debug(chalkInfo("get req\n" + req));
     res.sendFile(__dirname + "/js/libs/progressbar.min.js", function (err) {
       if (err) {
-        console.error('GET:', __dirname + "/js/libs/progressbar.min.js");
+        console.error("GET:", __dirname + "/js/libs/progressbar.min.js");
       } 
       else {
-        console.log(chalkInfo('SENT:', __dirname + "/js/libs/progressbar.min.js"));
+        console.log(chalkInfo("SENT:", __dirname + "/js/libs/progressbar.min.js"));
       }
     });
   });
@@ -6073,10 +6062,10 @@ function initAppRouting(callback) {
     debug(chalkInfo("get req\n" + req));
     res.sendFile(__dirname + "/css/progressbar.css", function (err) {
       if (err) {
-        console.error('GET:', __dirname + "/css/progressbar.css");
+        console.error("GET:", __dirname + "/css/progressbar.css");
       } 
       else {
-        console.log(chalkInfo('SENT:', __dirname + "/css/progressbar.css"));
+        console.log(chalkInfo("SENT:", __dirname + "/css/progressbar.css"));
       }
     });
   });
@@ -6284,6 +6273,9 @@ function initializeConfiguration(cnf, callback) {
                 if (err){
                   console.log(chalkError("ENTITY UPDATE DB ERROR: " + err));
                 }
+                else {
+                  debug("entityUpdateDb updatedEntityObj\n" + jsonPrint(updatedEntityObj));
+                }
               });
             });
 
@@ -6437,94 +6429,6 @@ function initializeConfiguration(cnf, callback) {
     });
 }
 
-function wapiSearch(word, variation, callback){
-
-  if (wapiOverLimitFlag 
-    || (statsObj.wapi.requestsRemaining < wapiReqReservePercent * statsObj.wapi.requestLimit)) {
-    if (!wapiOverLimitFlag) {
-      wapiOverLimitFlag = true;
-      wapiEvents.emit("WAPI_OVER_LIMIT", wapiRequests);
-    }
-    return(callback(
-      {
-        err: "WAPI_OVER_LIMIT", 
-        totalRequests: statsObj.wapi.totalRequests, 
-        requestsRemaining: statsObj.wapi.requestsRemaining, 
-        requestLimit: statsObj.wapi.requestLimit
-      }
-    ));
-  }
-
-  var wapiUrl;
-
-  if (variation === "ALL"){
-    wapiUrl = wapiUrlRoot + word.toLowerCase();
-  }
-  else {
-    wapiUrl = wapiUrlRoot + word.toLowerCase() + "/" + variation;
-  }
-
-  unirest.get(wapiUrl)
-  .header("X-Mashape-Key", wordsApiKey)
-  .header("Accept", "application/json")
-  .end(function (response) {
-
-    debugWapi(chalkWapi("WAPI RESPONSE\n" + jsonPrint(response.headers)));
-
-    if (response.headers !== undefined){
-      if (response.headers["x-ratelimit-requests-limit"] !== undefined){
-        statsObj.wapi.requestLimit = parseInt(response.headers["x-ratelimit-requests-limit"]);
-        statsObj.wapi.requestsRemaining = parseInt(response.headers["x-ratelimit-requests-remaining"]);
-        if (statsObj.wapi.requestsRemaining > 0) {
-          statsObj.wapi.totalRequests = statsObj.wapi.requestLimit - statsObj.wapi.requestsRemaining;
-        }
-        else {
-          statsObj.wapi.totalRequests = statsObj.wapi.requestLimit + statsObj.wapi.requestsRemaining;
-        }
-      }
-    }
-
-    if (statsObj.wapi.requestsRemaining < wapiReqReservePercent * statsObj.wapi.requestLimit) {
-      return(callback({
-        err: "WAPI_OVER_LIMIT", 
-        totalRequests: statsObj.wapi.totalRequests, 
-        requestsRemaining: statsObj.wapi.requestsRemaining,
-        requestLimit: statsObj.wapi.requestLimit
-      }));
-    }
-
-    var results = {};
-
-    if (response.statusCode === 404){
-      results.word = word;
-      results.variation = variation;
-      results.wapiSearched = true;
-      results.wapiFound = false;
-
-      debugWapi(chalkWapi("WAPI"
-        + " [ " + statsObj.wapi.totalRequests 
-        + " / " + statsObj.wapi.requestLimit 
-        // + " | " + (100*(statsObj.wapi.totalRequests/statsObj.wapi.requestLimit)).toFixed(2) + "% ]"
-      ));
-      callback(results);
-    }
-    else {
-      results.word = word;
-      results.body = response.body;
-      results.variation = variation;
-      results.wapiSearched = true;
-      results.wapiFound = true;
-
-      debugWapi(chalkWapi("WAPI"
-        + " [ " + statsObj.wapi.totalRequests 
-        + " / " + statsObj.wapi.requestLimit 
-        // + " | " + (100*(statsObj.wapi.totalRequests/statsObj.wapi.requestLimit)).toFixed(2) + "% ]"
-      ));
-      callback(results);
-    }
-  });
-}
-
 function updateTrends(){
   twit.get("trends/place", {id: 1}, function (err, data, response){
 
@@ -6584,47 +6488,47 @@ function updateTrends(){
   });
 }
 
-function updateGroupEntity(entityObj, callback){
+// function updateGroupEntity(entityObj, callback){
 
-  debug("updateGroupEntity\n" + jsonPrint(entityObj));
+//   debug("updateGroupEntity\n" + jsonPrint(entityObj));
 
-  groupUpdateDb(entityObj, function(err, updatedEntityObj){
-    if (err){
-      console.log(chalkError("GROUP UPDATE DB ERROR: " + err));
-      callback(err, entityObj);
-    }
-    else {
+//   groupUpdateDb(entityObj, function(err, updatedEntityObj){
+//     if (err){
+//       console.log(chalkError("GROUP UPDATE DB ERROR: " + err));
+//       callback(err, entityObj);
+//     }
+//     else {
 
-      debug("updateGroupEntity updatedEntityObj\n" + jsonPrint(updatedEntityObj));
+//       debug("updateGroupEntity updatedEntityObj\n" + jsonPrint(updatedEntityObj));
 
-      if (updatedEntityObj.tags === undefined){
-        updatedEntityObj.tags = {};
-        updatedEntityObj.tags.entity = entityObj.entityId;
-        updatedEntityObj.tags.name = entityObj.name;
-      }
-      else if (updatedEntityObj.tags.entity === undefined){
-        console.log(chalkError("ENTITY TAG UNDEFINED\n" + jsonPrint(updatedEntityObj.tags)
-        ));
-      }
+//       if (updatedEntityObj.tags === undefined){
+//         updatedEntityObj.tags = {};
+//         updatedEntityObj.tags.entity = entityObj.entityId;
+//         updatedEntityObj.tags.name = entityObj.name;
+//       }
+//       else if (updatedEntityObj.tags.entity === undefined){
+//         console.log(chalkError("ENTITY TAG UNDEFINED\n" + jsonPrint(updatedEntityObj.tags)
+//         ));
+//       }
 
-      entityUpdateDb(updatedEntityObj, function(err, updatedEntity2Obj){
-        if (err){
-          console.log(chalkError("ENTITY UPDATE DB ERROR: " + err));
-          callback(err, updatedEntityObj);
-        }
-        else {
-          // console.log(chalkInfo("TX UTIL SES (UTIL RDY): " + updatedEntity2Obj.lastSession + " TO ADMIN NAMESPACE"));
-          // adminNameSpace.emit("UTIL_SESSION", updatedEntity2Obj);
-          callback(null, updatedEntity2Obj);
-        }
-      });
+//       entityUpdateDb(updatedEntityObj, function(err, updatedEntity2Obj){
+//         if (err){
+//           console.log(chalkError("ENTITY UPDATE DB ERROR: " + err));
+//           callback(err, updatedEntityObj);
+//         }
+//         else {
+//           // console.log(chalkInfo("TX UTIL SES (UTIL RDY): " + updatedEntity2Obj.lastSession + " TO ADMIN NAMESPACE"));
+//           // adminNameSpace.emit("UTIL_SESSION", updatedEntity2Obj);
+//           callback(null, updatedEntity2Obj);
+//         }
+//       });
 
-    }
+//     }
 
-  });
-}
+//   });
+// }
 
-var followerUpdateQueueReady = true;
+// var followerUpdateQueueReady = true;
 
 function initUpdateTrendsInterval(interval){
   clearInterval(updateTrendsInterval);
@@ -6679,13 +6583,14 @@ configEvents.on("UNKNOWN_SESSION", function(sesObj) {
 
   if (createUnknownSessionFlag) {
 
-    sessionCache.set(sesObj.sessionId, sesObj, function(err, results){
+    sessionCache.set(sesObj.sessionId, sesObj, function(){
       userReadyHandler({socketId: sesObj.socketId, sessionId: sesObj.sessionId, userObj: sesObj.userObj}, function(err, sObj){
         if (err) {
           if (configuration.quitOnError) { quit("userReadyHandler UNKNOWN_SESSION"); }
         }
         else {
-          rxWordQueue.enqueue(sesObj.wordObj);
+          // rxWordQueue.enqueue(sesObj.wordObj);
+          rxWordQueue.enqueue(sObj.wordObj);
         }
       });
     });
@@ -6693,11 +6598,11 @@ configEvents.on("UNKNOWN_SESSION", function(sesObj) {
   }
 
   if (dmOnUnknownSession) {
-    var dmString = hostname + "\nwordAssoServer\nPID: " + process.pid + "\nUNKNOWN SESSION: " + socketId;
+    var dmString = hostname + "\nwordAssoServer\nPID: " + process.pid + "\nUNKNOWN SESSION: " + sesObj.socketId;
 
-    if (directMessageHash[socketId] === undefined) {
+    if (directMessageHash[sesObj.socketId] === undefined) {
 
-      directMessageHash[socketId] = socketId;
+      directMessageHash[sesObj.socketId] = sesObj.socketId;
 
       sendDirectMessage("threecee", dmString, function(err, res){
         if (!err) {
@@ -6710,7 +6615,7 @@ configEvents.on("UNKNOWN_SESSION", function(sesObj) {
       });
     }
     else {
-      console.log(chalkError("SKIP DM ... PREV SENT UNKNOWN_SESSION | " + socketId));
+      console.log(chalkError("SKIP DM ... PREV SENT UNKNOWN_SESSION | " + sesObj.socketId));
     }
   }
 });
@@ -6983,69 +6888,6 @@ setInterval(function() {
 
 var updateTimeSeriesCount = 0;
 
-function addMetricDataPoint(options, callback){
-
-  debug(chalkAlert("addMetricDataPoint\n" + jsonPrint(options)));
-
-  defaults(options, {
-    endTime: (Date.now() / 1000),
-    dataType: "doubleValue",
-    resourceType: "global",
-    projectId: process.env.GOOGLE_PROJECT_ID,
-    metricTypePrefix: CUSTOM_GOOGLE_APIS_PREFIX
-  });
-
-  debug(chalkAlert("addMetricDataPoint AFTER\n" + jsonPrint(options)));
-
-  var dataPoint = {
-    interval: { endTime: { seconds: options.endTime } },
-    value: {}
-  };
-
-  dataPoint.value[options.dataType] = options.value;
-
-  var timeSeriesData = {
-    metric: {
-      type: options.metricTypePrefix + "/" + options.metricType,
-      labels: options.metricLabels
-    },
-    resource: {
-      type: options.resourceType,
-      labels: { project_id: options.projectId }
-    },
-    points: [ dataPoint ]
-  };
-
-  var googleRequest = {
-    name: googleMonitoringClient.projectPath(options.projectId),
-    timeSeries: [
-      timeSeriesData
-    ]
-  };
-
-  googleMonitoringClient.createTimeSeries(googleRequest)
-    // .then((results) => {
-    .then(function(){
-      debug(chalkTwitter("METRICS"
-        + " | " + options.metricLabels.server_id 
-        + " | " + options.value
-      ));
-    })
-    .catch(function(results){
-      if (results.code !== 8) {
-        console.log(chalkError("*** ERROR GOOGLE METRICS"
-          + " | " + options.metricLabels.server_id 
-          + " | " + options.value
-          + " | ERR CODE: " + results.code
-          + " | META NODE: " + results.note
-          + "\nMETA DATA\n" + jsonPrint(results.metadata)
-        ));
-      }
-    });
-
-  if (callback) { callback(null,options); }
-}
-
 function initRateQinterval(interval){
 
   var wsObj;
@@ -7053,12 +6895,12 @@ function initRateQinterval(interval){
 
   clearInterval(rateQinterval);
 
-  obamaPerMinute = 0.0;
-  trumpPerMinute = 0.0;
-  wordsPerMinute = 0.0;
-  wordsPerSecond = 0.0;
-  maxWordsPerMin = 0.0;
-  maxTweetsPerMin = 0.0;
+  statsObj.obamaPerMinute = 0.0;
+  statsObj.trumpPerMinute = 0.0;
+  statsObj.wordsPerMinute = 0.0;
+  statsObj.wordsPerSecond = 0.0;
+  statsObj.maxWordsPerMin = 0.0;
+  statsObj.maxTweetsPerMin = 0.0;
 
   var prevTestValue = 47;
 
@@ -7067,45 +6909,40 @@ function initRateQinterval(interval){
     wsObj = wordStats.toJSON();
     if (!wsObj) {return;}
 
-    wordsPerSecond = wsObj.wordsPerSecond[metricsRate];
-    wordsPerMinute = wsObj.wordsPerMinute[metricsRate];
+    statsObj.wordsPerSecond = wsObj.wordsPerSecond[metricsRate];
+    statsObj.wordsPerMinute = wsObj.wordsPerMinute[metricsRate];
 
-    obamaPerMinute = wsObj.obamaPerMinute[metricsRate];
-    trumpPerMinute = wsObj.trumpPerMinute[metricsRate];
+    statsObj.obamaPerMinute = wsObj.obamaPerMinute[metricsRate];
+    statsObj.trumpPerMinute = wsObj.trumpPerMinute[metricsRate];
 
     debug(chalkWarn(moment.utc().format(compactDateTimeFormat)
-      + " | WPS: " + wordsPerSecond.toFixed(2)
-      + " | WPM: " + wordsPerMinute.toFixed(0)
-      + " | OPM: " + obamaPerMinute.toFixed(0)
-      + " | TrPM: " + trumpPerMinute.toFixed(0)
+      + " | WPS: " + statsObj.wordsPerSecond.toFixed(2)
+      + " | WPM: " + statsObj.wordsPerMinute.toFixed(0)
+      + " | OPM: " + statsObj.obamaPerMinute.toFixed(0)
+      + " | TrPM: " + statsObj.trumpPerMinute.toFixed(0)
     ));
 
-    statsObj.wordsPerSecond = wordsPerSecond;
-    statsObj.wordsPerMinute = wordsPerMinute;
-    statsObj.obamaPerMinute = obamaPerMinute;
-    statsObj.trumpPerMinute = trumpPerMinute;
-
-    if (wordsPerMinute > maxWordsPerMin) {
-      maxWordsPerMin = wordsPerMinute;
-      maxWordsPerMinTime = moment.utc();
-      console.log(chalkLog("NEW MAX WPM: " + wordsPerMinute.toFixed(0)));
-      statsObj.maxWordsPerMin = wordsPerMinute;
+    if (statsObj.wordsPerMinute > statsObj.maxWordsPerMin) {
+      // maxWordsPerMin = wordsPerMinute;
+      // maxWordsPerMinTime = moment.utc();
+      console.log(chalkLog("NEW MAX WPM: " + statsObj.wordsPerMinute.toFixed(0)));
+      statsObj.maxWordsPerMin = statsObj.wordsPerMinute;
       statsObj.maxWordsPerMinTime = moment().valueOf();
     }
 
-    if (obamaPerMinute > maxObamaPerMin) {
-      maxObamaPerMin = obamaPerMinute;
-      maxObamaPerMinTime = moment.utc();
-      console.log(chalkLog("NEW MAX OPM: " + obamaPerMinute.toFixed(0)));
-      statsObj.maxObamaPerMin = obamaPerMinute;
+    if (statsObj.obamaPerMinute > statsObj.maxObamaPerMin) {
+      // maxObamaPerMin = obamaPerMinute;
+      // maxObamaPerMinTime = moment.utc();
+      console.log(chalkLog("NEW MAX OPM: " + statsObj.obamaPerMinute.toFixed(0)));
+      statsObj.maxObamaPerMin = statsObj.obamaPerMinute;
       statsObj.maxObamaPerMinTime = moment().valueOf();
     }
 
-    if (trumpPerMinute > maxTrumpPerMin) {
-      maxTrumpPerMin = trumpPerMinute;
-      maxTrumpPerMinTime = moment.utc();
-      console.log(chalkLog("NEW MAX TrPM: " + trumpPerMinute.toFixed(0)));
-      statsObj.maxTrumpPerMin = trumpPerMinute;
+    if (statsObj.trumpPerMinute > statsObj.maxTrumpPerMin) {
+      // maxTrumpPerMin = trumpPerMinute;
+      // maxTrumpPerMinTime = moment.utc();
+      console.log(chalkLog("NEW MAX TrPM: " + statsObj.trumpPerMinute.toFixed(0)));
+      statsObj.maxTrumpPerMin = statsObj.trumpPerMinute;
       statsObj.maxTrumpPerMinTime = moment().valueOf();
     }
 
@@ -7194,7 +7031,7 @@ function initRateQinterval(interval){
       if (enableGoogleMetrics) {
         var dataPointWpm = {};
         dataPointWpm.metricType = "word/words_per_minute";
-        dataPointWpm.value = wordsPerMinute;
+        dataPointWpm.value = statsObj.wordsPerMinute;
         dataPointWpm.metricLabels = {server_id: "WORD"};
         addMetricDataPoint(dataPointWpm);
       }
@@ -7202,7 +7039,7 @@ function initRateQinterval(interval){
       if (enableGoogleMetrics) {
         var dataPointOpm = {};
         dataPointOpm.metricType = "word/obama_per_minute";
-        dataPointOpm.value = obamaPerMinute;
+        dataPointOpm.value = statsObj.obamaPerMinute;
         dataPointOpm.metricLabels = {server_id: "WORD"};
         addMetricDataPoint(dataPointOpm);
       }
@@ -7210,7 +7047,7 @@ function initRateQinterval(interval){
       if (enableGoogleMetrics) {
         var dataPointOTrpm = {};
         dataPointOTrpm.metricType = "word/trump_per_minute";
-        dataPointOTrpm.value = trumpPerMinute;
+        dataPointOTrpm.value = statsObj.trumpPerMinute;
         dataPointOTrpm.metricLabels = {server_id: "WORD"};
         addMetricDataPoint(dataPointOTrpm);
       }
@@ -7351,7 +7188,7 @@ initializeConfiguration(configuration, function(err, results) {
     initSessionViewQueueInterval(DEFAULT_INTERVAL);
     initStatsInterval(10000);
     initUpdaterMessageQueueInterval(DEFAULT_INTERVAL);
-    initDbUpdaterMessageRxQueueInterval(DEFAULT_INTERVAL)
+    initDbUpdaterMessageRxQueueInterval(DEFAULT_INTERVAL);
     initUpdateTrendsInterval(15*ONE_MINUTE);
 
 

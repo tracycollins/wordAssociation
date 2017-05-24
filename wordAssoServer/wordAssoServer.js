@@ -5202,12 +5202,6 @@ function initSorterMessageRxQueueInterval(interval){
      
                 wordCache.get(node, function(err, nodeObj){
 
-                    console.log(chalkRed("TOP TERM METRIC"
-                      + " | " + node
-                      + " | Ms: " + nodeObj.mentions
-                      + " | RATE: " + wmObj[metricsRate]
-                    ));
-
                   if (nodeObj.mentions > MIN_MENTIONS_VALUE) {
 
                     console.log(chalkInfo("TOP TERM METRIC"

@@ -40,6 +40,7 @@ tmsServer.socket = {};
 var DEFAULT_KEYWORD_VALUE = 100; // on scale of 1-100
 // var MIN_WORD_METER_COUNT = 10;
 var MIN_METRIC_VALUE = 5;
+var MIN_MENTIONS_VALUE = 1000;
 
 var twitterYamlConfigFile = process.env.DEFAULT_TWITTER_CONFIG;
 
@@ -5199,12 +5200,30 @@ function initSorterMessageRxQueueInterval(interval){
 
               if (enableGoogleMetrics && (wmObj[metricsRate] > MIN_METRIC_VALUE)) {
      
-                topTermDataPoint.displayName = node;
-                topTermDataPoint.metricType = "word/top10/" + node;
-                topTermDataPoint.value = wmObj[metricsRate];
-                topTermDataPoint.metricLabels = {server_id: "WORD"};
+                wordCache.get(node, function(err, nodeObj){
 
-                addMetricDataPoint(topTermDataPoint);
+                    console.log(chalkRed("TOP TERM METRIC"
+                      + " | " + node
+                      + " | Ms: " + nodeObj.mentions
+                      + " | RATE: " + wmObj[metricsRate]
+                    ));
+
+                  if (nodeObj.mentions > MIN_MENTIONS_VALUE) {
+
+                    console.log(chalkInfo("TOP TERM METRIC"
+                      + " | " + node
+                      + " | Ms: " + nodeObj.mentions
+                      + " | RATE: " + wmObj[metricsRate]
+                    ));
+
+                    topTermDataPoint.displayName = node;
+                    topTermDataPoint.metricType = "word/top10/" + node;
+                    topTermDataPoint.value = wmObj[metricsRate];
+                    topTermDataPoint.metricLabels = {server_id: "WORD"};
+
+                    addMetricDataPoint(topTermDataPoint);
+                  }
+                });
               }
             }
           }

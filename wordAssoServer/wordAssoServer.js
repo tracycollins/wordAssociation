@@ -1285,21 +1285,21 @@ function checkKeyword(w, callback) {
   var kwObj = {};  
   
   if ((wordObj.nodeType === "user") 
-    && (wordObj.name !== undefined) 
-    && (wordObj.name) 
-    && keywordHashMap.has(wordObj.name.toLowerCase())) {
-    debug(chalkAlert("HIT USER NAME"));
-    kwObj = keywordHashMap.get(wordObj.name.toLowerCase());
-    wordObj.isKeyword = true;
-    wordObj.keywords = kwObj;    
-    callback(wordObj);
-  }
-  else if ((wordObj.nodeType === "user") 
     && (wordObj.screenName !== undefined) 
     && (wordObj.screenName) 
     && keywordHashMap.has(wordObj.screenName.toLowerCase())) {
     debug(chalkAlert("HIT USER SNAME"));
     kwObj = keywordHashMap.get(wordObj.screenName.toLowerCase());
+    wordObj.isKeyword = true;
+    wordObj.keywords = kwObj;    
+    callback(wordObj);
+  }
+  else if ((wordObj.nodeType === "user") 
+    && (wordObj.name !== undefined) 
+    && (wordObj.name) 
+    && keywordHashMap.has(wordObj.name.toLowerCase())) {
+    debug(chalkAlert("HIT USER NAME"));
+    kwObj = keywordHashMap.get(wordObj.name.toLowerCase());
     wordObj.isKeyword = true;
     wordObj.keywords = kwObj;    
     callback(wordObj);
@@ -2339,11 +2339,6 @@ function initSessionSocketHandler(sessionObj, socket) {
     var rxWordObj = {};
     rxWordObj = rxWobj;
 
-    debug(chalkRed("R< WORD"
-      + " | Q: " + rxWordQueue.size()
-      + " | " + rxWordObj.nodeId
-    ));
-
     if (!rxWordObj.nodeId) {
       console.log(chalkAlert("*** RX NULL RESPONSE_WORD_OBJ NODEID ... SKIPPING"
         + "\n" + jsonPrint(rxWordObj)
@@ -2351,7 +2346,20 @@ function initSessionSocketHandler(sessionObj, socket) {
       return;
     }
 
-    rxWordObj.nodeId = rxWordObj.nodeId.toLowerCase();
+    if (rxWobj.nodeType === "user") {
+      console.log(chalkRed("R< WORD"
+        + " | NID: " + rxWobj.nodeId
+        + " | isTwitterUser: " + rxWobj.isTwitterUser
+        + " | nodeType: " + rxWobj.nodeType
+        + " | nodeType: " + rxWobj.screenName
+        + "\n" + jsonPrint(rxWobj)
+      ));
+      rxWordObj.nodeId = rxWobj.screenName.toLowerCase();
+    }
+    else {
+      rxWordObj.nodeId = rxWordObj.nodeId.toLowerCase();
+    }
+
     rxWordObj.nodeType = "word";
     rxWordObj.tags = rxWordObj.tags || {};
 
@@ -5401,7 +5409,7 @@ function initUpdaterMessageQueueInterval(interval){
 
           debugKeyword(chalkLog("KEYWORD: " + jsonPrint(updaterObj)));
           debugKeyword(chalkLog("UPDATE KEYWORD\n" + jsonPrint(updaterObj.keyword)));
-          keywordHashMap.set(updaterObj.keyword.keywordId, updaterObj.keyword);
+          keywordHashMap.set(updaterObj.keyword.keywordId.toLowerCase(), updaterObj.keyword);
 
           keywordUpdateDb(updaterObj.keyword, function(err, updatedWordObj){
             if (err) { console.log(chalkError("KEYWORD UPDATE ERR\n" + jsonPrint(err))); }

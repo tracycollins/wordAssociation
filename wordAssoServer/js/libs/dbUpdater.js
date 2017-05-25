@@ -113,9 +113,9 @@ var dbUpdateQueueInterval;
       
 process.on('message', function(m) {
 
-  debug(chalkInfo("DB UPDATER RX MESSAGE"
+  debug(chalkAlert("DB UPDATER RX MESSAGE"
     + " | OP: " + m.op
-    // + "\n" + jsonPrint(m)
+    + "\n" + jsonPrint(m)
   ));
 
   switch (m.op) {
@@ -140,7 +140,7 @@ process.on('message', function(m) {
         case "group":
         case "entity":
           dbUpdateQueue.push(m);
-          debug(chalkInfo("DB UPDATE"
+          debug(chalk.blue("DB UPDATE"
             + " [" + dbUpdateQueue.length + "]"
             + " | T: " + m.updateType
           ));
@@ -203,7 +203,7 @@ function initDbUpdateQueueInterval(interval){
             if (err) {
               console.log(chalkError("DB UPDATE ERROR\n" + jsonPrint(err)));
             } 
-            debug(chalkLog("DB UPDATED WORD"
+            debug(chalkRed("DB UPDATED WORD"
               + " | " + updatedWordObj.nodeId
               + " | SID: " + updatedWordObj.sessionId
               + " | Ms: " + updatedWordObj.mentions

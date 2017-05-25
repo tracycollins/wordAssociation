@@ -3,6 +3,8 @@
 /*jslint node: true */
 "use strict";
 
+var socket = io('/admin');
+
 var memoryAvailable = 0;
 var memoryUsed = 0;
 var memoryUsage = {};
@@ -175,8 +177,6 @@ adminConfig['testMode'] = testMode;
 
 var searchByDateTimeEnable = false;
 var searchByDateTimeContinueEnable = false;
-
-var socket = io.connect('/admin');
 
 var googleOauthUrl = 0;
 
@@ -1629,7 +1629,11 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
   // SESSION CACHE ==========================
 
-  var sessionCacheKeysRatio = heartBeat.caches.sessionCache.stats.keys / heartBeat.caches.sessionCache.stats.keysMax;
+  var sessionCacheKeysRatio = 0;
+  
+  if (heartBeat.caches) {
+    sessionCacheKeysRatio = heartBeat.caches.sessionCache.stats.keys / heartBeat.caches.sessionCache.stats.keysMax;
+  }
 
   sessionCacheBar.animate(sessionCacheKeysRatio);
 

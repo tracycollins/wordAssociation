@@ -1995,7 +1995,7 @@ function initSessionSocketHandler(sessionObj, socket) {
 
     // usually output from twitterSearchStream (TSS)
 
-    debug(chalkInfo("RX NODE"
+    console.log(chalkInfo("RX NODE"
       + " | " + rxNodeObj.nodeType 
       + " | NID " + rxNodeObj.nodeId 
       + " | Ms " + rxNodeObj.mentions
@@ -2338,6 +2338,11 @@ function initSessionSocketHandler(sessionObj, socket) {
 
     var rxWordObj = {};
     rxWordObj = rxWobj;
+
+    debug(chalkRed("R< WORD"
+      + " | Q: " + rxWordQueue.size()
+      + " | " + rxWordObj.nodeId
+    ));
 
     if (!rxWordObj.nodeId) {
       console.log(chalkAlert("*** RX NULL RESPONSE_WORD_OBJ NODEID ... SKIPPING"
@@ -2871,6 +2876,8 @@ function initSessionViewQueueInterval(interval){
 
 function updateSessionViews(sessionUpdateObj) {
 
+  debug(chalkAlert("updateSessionViews\n" + jsonPrint(sessionUpdateObj)));
+
   var obj = {};
   obj = sessionUpdateObj;
 
@@ -2982,6 +2989,8 @@ function dbUpdateWord(wObj, incMentions, callback) {
       incMentions: incMentions,
       word: wordObj
     });
+
+    if (callback !== undefined) { callback(null, wordObj); }
 
   });
 }
@@ -3389,7 +3398,7 @@ function adminUpdateDb(adminObj, callback) {
 
 function viewerUpdateDb(viewerObj, callback) {
 
-  console.log(chalkViewer("viewerUpdateDb\n" + jsonPrint(viewerObj)));
+  debug(chalkViewer("viewerUpdateDb\n" + jsonPrint(viewerObj)));
 
   var query = {
     userId: viewerObj.userId
@@ -3436,7 +3445,8 @@ function viewerUpdateDb(viewerObj, callback) {
           + "\n" + err
         );
         callback(err, viewerObj);
-      } else {
+      } 
+      else {
         console.log(chalkViewer(">>> VIEWER UPDATED" 
           + " | VID: " + vw.viewerId 
           + " | UID: " + vw.userId 
@@ -3462,7 +3472,8 @@ function userUpdateDb(userObj, callback) {
     dnsReverseLookup(userObj.ip, function(err, domains) {
       if (err) {
         console.log(chalkError("*** dnsReverseLookup ERROR\n" + err));
-      } else {
+      } 
+      else {
         if (domains[0]) {
           userObj.domain = domains[0];
           debug("userUpdateDb: UPDATED DOMAIN | " + userObj.userId + " | " + userObj.domain);
@@ -3526,7 +3537,8 @@ function userUpdateDb(userObj, callback) {
           + "\n" + err
         );
         callback(err, userObj);
-      } else {
+      } 
+      else {
         debug(chalkUser(">>> USER UPDATED" 
           + " | " + us.userId 
           + " | N: " + us.name 
@@ -3554,7 +3566,8 @@ function utilUpdateDb(utilObj, callback) {
     dnsReverseLookup(utilObj.ip, function(err, domains) {
       if (err) {
         console.log(chalkError("*** dnsReverseLookup ERROR\n" + err));
-      } else {
+      } 
+      else {
         if (domains[0]) {
           utilObj.domain = domains[0];
           debug("utilUpdateDb: UPDATED DOMAIN | " + utilObj.userId + " | " + utilObj.domain);
@@ -3618,7 +3631,8 @@ function utilUpdateDb(utilObj, callback) {
           + "\n" + err
         );
         callback(err, utilObj);
-      } else {
+      } 
+      else {
         debug(chalkUser(">>> USER UPDATED" 
           + " | " + us.userId 
           + " | N: " + us.name 
@@ -3875,11 +3889,6 @@ function handleSessionEvent(sesObj, callback) {
 
       if (sesObj.session) {
 
-        // sessionCache.del(sesObj.session.sessionId, function(err){
-        //   if (err) {console.log(chalkError("SESS DELETE ERROR " + err));}
-        //   debug(chalkSession("XXX SESS DELETE " + sesObj.session.sessionId));
-        // });
-
         sesObj.session.deleted = true;
 
         sessionCache.set(sesObj.session.sessionId, sesObj.session, function(err, success){
@@ -3926,7 +3935,7 @@ function handleSessionEvent(sesObj, callback) {
           if (err){
             console.log(chalkError("ADMIN CACHE ERR\n" + jsonPrint(err)));
           }
-          if (currentAdmin !== undefined) {
+          if (currentAdmin) {
             debug("currentAdmin\n" + jsonPrint(currentAdmin));
             adminCache.del(currentAdmin.adminId);
 
@@ -3953,7 +3962,7 @@ function handleSessionEvent(sesObj, callback) {
           if (err){
             console.log(chalkError("USER CACHE ERR\n" + jsonPrint(err)));
           }
-          if (currentUser !== undefined) {
+          if (currentUser) {
             debug("currentUser\n" + jsonPrint(currentUser));
             userCache.del(currentUser.userId);
 
@@ -3983,7 +3992,7 @@ function handleSessionEvent(sesObj, callback) {
           if (err){
             console.log(chalkError("UTIL CACHE ERR\n" + jsonPrint(err)));
           }
-          if (currentUtil !== undefined) {
+          if (currentUtil){
             debug("currentUtil\n" + jsonPrint(currentUtil));
             userCache.del(currentUtil.userId);
             currentUtil.lastSeen = moment().valueOf();
@@ -4012,7 +4021,7 @@ function handleSessionEvent(sesObj, callback) {
           if (err){
             console.log(chalkError("VIEWER CACHE ERR\n" + jsonPrint(err)));
           }
-          if (currentViewer !== undefined) {
+          if (currentViewer) {
             console.log(chalkViewer("currentViewer\n" + jsonPrint(currentViewer)));
             viewerCache.del(currentViewer.userId);
 
@@ -4546,24 +4555,24 @@ function initSessionEventHandlerInterval(interval){
   }, interval);
 }
 
-function getTags(wObj, callback){
+function getTags(wordObj, callback){
 
-  debug(chalkInfo("getTags\n" + jsonPrint(wObj)));
+  debug(chalkInfo("getTags\n" + jsonPrint(wordObj)));
 
-  wordsPerMinuteTopTermCache.get(wObj.nodeId.toLowerCase(), function(err, wordRate) {
+  wordsPerMinuteTopTermCache.get(wordObj.nodeId.toLowerCase(), function(err, wordRate) {
     if (err) {
       console.log(chalkError("wordsPerMinuteTopTermCache GET ERROR " + err));
     }
     if (wordRate !== undefined) {
-      wObj.isTopTerm = true;
+      wordObj.isTopTerm = true;
     }
     else {
-      wObj.isTopTerm = false;
+      wordObj.isTopTerm = false;
     }
 
-    checkKeyword(wObj, function(wordObj){
+    // checkKeyword(wObj, function(wordObj){
 
-      debug(chalkInfo("checkKeyword\n" + jsonPrint(wordObj)));
+      // debug(chalkInfo("checkKeyword\n" + jsonPrint(wordObj)));
 
       if (!wordObj.tags || (wordObj.tags === undefined)) {
         wordObj.tags = {};
@@ -4611,14 +4620,14 @@ function getTags(wObj, callback){
           callback(wordObj);
         }
       }
-    });
+    // });
   });
 }
 
 
 function sendUpdated(updatedObj, callback){
 
-  debug(chalkInfo("sendUpdated"
+  debug(chalkAlert("sendUpdated"
     + " | " + updatedObj.word.sessionId
     + " | " + updatedObj.word.nodeId
   ));
@@ -4645,7 +4654,7 @@ function sendUpdated(updatedObj, callback){
           updatedWordObj.tags.group = updatedWordObj.tags.entity;
         }
 
-        debug(chalkInfo("R<" 
+        debug(chalkAlert("R<" 
           + " G " + updatedWordObj.tags.group 
           + " E " + updatedWordObj.tags.entity 
           + " C " + updatedWordObj.tags.channel 
@@ -4734,10 +4743,11 @@ function sendUpdated(updatedObj, callback){
               callback(err, currentSessionObj);
             }
           });
+
         });
       }
       else {
-        debug(chalkInfo("R<" 
+        debug(chalkAlert("R<" 
           + " G " + updatedWordObj.tags.group 
           + " E " + updatedWordObj.tags.entity 
           + " C " + updatedWordObj.tags.channel 
@@ -4757,10 +4767,12 @@ function sendUpdated(updatedObj, callback){
             if (err){
               console.log(chalkError("*** ERROR SESSION CACHE GET " + updatedObj.sessionId + "\n" + jsonPrint(err)));
               if (configuration.quitOnError) { quit("ERROR SESSION CACHE GET"); }
+              callback(err, updatedObj);
             }
             else if (currentSessionObj === undefined) {
               console.log(chalkError("*** SESSION CACHE GET UNDEFINED" + updatedObj.sessionId + "\n" + jsonPrint(err)));
               if (configuration.quitOnError) { quit("SESSION CACHE GET UNDEFINED"); }
+              callback(err, updatedObj);
             }
             else {
               sessionUpdateObj = {
@@ -4803,8 +4815,9 @@ function initRxWordQueueInterval(interval){
 
       var wordObj = rxWordQueue.dequeue();
 
-      debug(chalkInfo("RX WORD Q" 
-        + "\n" + jsonPrint(wordObj)
+      debug(chalkInfo("RX WORD DE-Q" 
+        + " | " + wordObj.nodeId
+        // + "\n" + jsonPrint(wordObj)
       ));
 
       if ((wordObj.nodeId === undefined) 
@@ -5266,18 +5279,19 @@ function initDbUpdaterMessageRxQueueInterval(interval){
 
       switch (dbUpdaterObj.op){
         case "UPDATED":
-          debug(chalkLog("DB UPDATED" 
+          debug(chalkRed("DB UPDATED" 
             + " | " + dbUpdaterObj.updateType
             + " | " + dbUpdaterObj.word.sessionId
             + " | " + dbUpdaterObj.word.nodeId
             + " | Ms: " + dbUpdaterObj.word.mentions
             // + "\n" + jsonPrint(dbUpdaterObj)
           ));
+          // quit();
           sendUpdated(dbUpdaterObj, function(err, results){
             if (err) {
               console.log(chalkError("sendUpdated ERROR " + err));
             }
-            debug(chalkInfo("sendUpdated results: " + results));
+            debug(chalkAlert("sendUpdated results: " + results));
             dbUpdaterMessageRxReady = true; 
           });
         break;

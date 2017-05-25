@@ -5202,9 +5202,14 @@ function initSorterMessageRxQueueInterval(interval){
      
                 wordCache.get(node, function(err, nodeObj){
 
-                  if (nodeObj.mentions > MIN_MENTIONS_VALUE) {
+                  if (nodeObj === undefined) {
+                    debug(chalkInfo("?? SORTED NODE NOT IN WORD $"
+                      + " | " + node
+                    ));
+                  }
+                  else if (nodeObj.mentions > MIN_MENTIONS_VALUE) {
 
-                    console.log(chalkInfo("TOP TERM METRIC"
+                    debug(chalkInfo("TOP TERM METRIC"
                       + " | " + node
                       + " | Ms: " + nodeObj.mentions
                       + " | RATE: " + wmObj[metricsRate]

@@ -985,7 +985,8 @@ function ViewTreepack() {
         // if (typeof d.x != "number") {
         if (Number.isNaN(d.x)) {
           console.error("d.x ERROR\n" + jsonPrint(d));
-          throw 1;
+          d.x = 100;
+          return 100;
         }
         else {
           return d.x; 
@@ -1031,7 +1032,8 @@ function ViewTreepack() {
         // if (typeof d.x != "number") {
         if (Number.isNaN(d.x)) {
           console.error("d.x ERROR\n" + jsonPrint(d));
-          throw 1;
+          d.x = 100;
+          return 100;
         }
         else {
           return d.x; 
@@ -1588,6 +1590,7 @@ function ViewTreepack() {
           if (d.keywords.neutral !== undefined) {
             return foci.neutral.x;
           }
+          return 100;
         }
         else {
           return foci.default.x;
@@ -1613,6 +1616,7 @@ function ViewTreepack() {
           if (d.keywords.neutral !== undefined) {
             return foci.neutral.y;
           }
+          return 100;
         }
         else {
           return foci.default.y;

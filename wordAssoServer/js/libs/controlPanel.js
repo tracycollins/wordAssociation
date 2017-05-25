@@ -5,8 +5,6 @@
 
 function ControlPanel() {
 
-  // var DEFAULT_SOURCE = "http://localhost:9997";
-  // var DEFAULT_SOURCE = "http://word.threeceelabs.com";
   var DEFAULT_SOURCE = "==SOURCE==";  // will be updated by wordAssoServer.js on app.get
 
   var parentWindow = window.opener;
@@ -17,16 +15,7 @@ function ControlPanel() {
 
   config = window.opener.config;
 
-  // config.defaultMaxAge = window.opener.DEFAULT_MAX_AGE;
-  // config.defaultCharge = window.opener.DEFAULT_CHARGE;
-  // config.defaultGravity = window.opener.DEFAULT_GRAVITY;
-  // config.defaultLinkStrength = window.opener.DEFAULT_LINK_STRENGTH;
-  // config.defaultLinkDistance = window.opener.DEFAULT_LINK_DISTANCE;
-  // config.defaultVelocityDecay = window.opener.DEFAULT_VELOCITY_DECAY;
-  // config.defaultFontSizeMin = window.opener.DEFAULT_FONT_SIZE_MIN;
-  // config.defaultFontSizeMax = window.opener.DEFAULT_FONT_SIZE_MAX;
-
-console.log("config\n" + jsonPrint(config));
+  console.log("config\n" + jsonPrint(config));
 
   var controlIdHash = {};
 
@@ -477,7 +466,7 @@ console.log("config\n" + jsonPrint(config));
       id: 'transitionDurationSlider',
       class: 'slider',
       min: 0,
-      max: 1000,
+      max: 100,
       value: config.defaultTransitionDuration,
       multiplier: 1.0
     }

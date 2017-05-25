@@ -1995,7 +1995,7 @@ function initSessionSocketHandler(sessionObj, socket) {
 
     // usually output from twitterSearchStream (TSS)
 
-    console.log(chalkInfo("RX NODE"
+    debug(chalkInfo("RX NODE"
       + " | " + rxNodeObj.nodeType 
       + " | NID " + rxNodeObj.nodeId 
       + " | Ms " + rxNodeObj.mentions

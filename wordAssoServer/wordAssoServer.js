@@ -2060,7 +2060,7 @@ function initSessionSocketHandler(sessionObj, socket) {
                 console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
                 quit();
               }
-              if (screenName) {
+              if (screenName !== undefined) {
                 nodeObj.isTopTerm = true;
               }
               if (nodeObj.screenName.toLowerCase().includes("obama")) {
@@ -2103,7 +2103,7 @@ function initSessionSocketHandler(sessionObj, socket) {
                 console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
                 quit();
               }
-              if (name) {
+              if (name !== undefined) {
                 nodeObj.isTopTerm = true;
               }
               if (nodeObj.name.toLowerCase().includes("obama")) {
@@ -2149,7 +2149,7 @@ function initSessionSocketHandler(sessionObj, socket) {
               console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
               quit();
             }
-            if (nodeId) {
+            if (nodeId !== undefined) {
               nodeObj.isTopTerm = true;
             }
             if (nodeObj.nodeId.toLowerCase().includes("sciencemarch") || nodeObj.nodeId.toLowerCase().includes("marchforscience")) {
@@ -2204,7 +2204,7 @@ function initSessionSocketHandler(sessionObj, socket) {
               console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
               quit();
             }
-            if (nodeId) {
+            if (nodeId !== undefined) {
               nodeObj.isTopTerm = true;
             }
             if (nodeObj.name.toLowerCase().includes("obama")) {
@@ -2249,7 +2249,7 @@ function initSessionSocketHandler(sessionObj, socket) {
               console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
               quit();
             }
-            if (nodeId) {
+            if (nodeId !== undefined) {
               nodeObj.isTopTerm = true;
             }
             if (nodeObj.nodeId.toLowerCase().includes("obama")) {
@@ -2358,7 +2358,7 @@ function initSessionSocketHandler(sessionObj, socket) {
         console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
         quit();
       }
-      if (nodeRate) {
+      if (nodeRate !== undefined) {
         rxWordObj.isTopTerm = true;
         debug(chalkRed("TOP TERM"
           + " | " + rxWordObj.nodeId
@@ -3893,19 +3893,28 @@ function handleSessionEvent(sesObj, callback) {
         sessKeys = sessionCache.keys();
 
         sessKeys.forEach(function(sId){
+
           if (sId.indexOf(sesObj.session.sessionId) > -1) {
+
             adminNameSpace.emit("SESSION_DELETE", sId);
+
             sessionCache.get(sId, function(err, session){
+
               if (err) {
                 console.log(chalkError("SESS $ GET ERROR " + err));
               }
-              session.deleted = true;
-              sessionCache.set(sId, session, function(){
-                sessionCache.ttl(sId, 30);
-                console.log(chalkRed("XXX SESS " + sId));
-              });
+              if (session !== undefined) {
+                session.deleted = true;
+
+                sessionCache.set(sId, session, function(){
+                  sessionCache.ttl(sId, 30);
+                  console.log(chalkRed("XXX SESS " + sId));
+                });
+              }
+
             });
           }
+
         });
 
         debug(sesObj.sessionEvent + "\n" + jsonPrint(sesObj));
@@ -3917,7 +3926,7 @@ function handleSessionEvent(sesObj, callback) {
           if (err){
             console.log(chalkError("ADMIN CACHE ERR\n" + jsonPrint(err)));
           }
-          if (currentAdmin) {
+          if (currentAdmin !== undefined) {
             debug("currentAdmin\n" + jsonPrint(currentAdmin));
             adminCache.del(currentAdmin.adminId);
 
@@ -3944,7 +3953,7 @@ function handleSessionEvent(sesObj, callback) {
           if (err){
             console.log(chalkError("USER CACHE ERR\n" + jsonPrint(err)));
           }
-          if (currentUser) {
+          if (currentUser !== undefined) {
             debug("currentUser\n" + jsonPrint(currentUser));
             userCache.del(currentUser.userId);
 
@@ -3974,7 +3983,7 @@ function handleSessionEvent(sesObj, callback) {
           if (err){
             console.log(chalkError("UTIL CACHE ERR\n" + jsonPrint(err)));
           }
-          if (currentUtil) {
+          if (currentUtil !== undefined) {
             debug("currentUtil\n" + jsonPrint(currentUtil));
             userCache.del(currentUtil.userId);
             currentUtil.lastSeen = moment().valueOf();
@@ -4003,7 +4012,7 @@ function handleSessionEvent(sesObj, callback) {
           if (err){
             console.log(chalkError("VIEWER CACHE ERR\n" + jsonPrint(err)));
           }
-          if (currentViewer) {
+          if (currentViewer !== undefined) {
             console.log(chalkViewer("currentViewer\n" + jsonPrint(currentViewer)));
             viewerCache.del(currentViewer.userId);
 
@@ -4057,7 +4066,7 @@ function handleSessionEvent(sesObj, callback) {
       currentViewer = viewerCache.get(sesObj.session.userId);
       currentUtil = utilCache.get(sesObj.session.userId);
 
-      if (currentUtil) {
+      if (currentUtil !== undefined) {
         currentUtil.connected = true;
 
         utilUpdateDb(currentUtil, function(err, updatedUtilObj) {
@@ -4066,7 +4075,8 @@ function handleSessionEvent(sesObj, callback) {
             adminNameSpace.emit("UTIL_SESSION", updatedUtilObj);
           }
         });
-      } else if (currentUser) {
+      } 
+      else if (currentUser !== undefined) {
         currentUser.connected = true;
 
         userUpdateDb(currentUser, function(err, updatedUserObj) {
@@ -4075,7 +4085,8 @@ function handleSessionEvent(sesObj, callback) {
             adminNameSpace.emit("USER_SESSION", updatedUserObj);
           }
         });
-      } else if (currentViewer) {
+      } 
+      else if (currentViewer !== undefined) {
         currentViewer.connected = true;
 
         viewerUpdateDb(currentViewer, function(err, updatedViewerObj) {
@@ -4091,7 +4102,7 @@ function handleSessionEvent(sesObj, callback) {
     case "REQ_ADMIN_SESSION":
       Object.keys(adminNameSpace.connected).forEach(function(adminSessionKey) {
         adminSessionObj = sessionCache.get(adminSessionKey);
-        if (adminSessionObj) {
+        if (adminSessionObj !== undefined) {
           debug("FOUND ADMIN SESSION: " + adminSessionObj.sessionId);
           debug("TX ADMIN SESSION: " + adminSessionObj.sessionId 
             + " TO " + sesObj.options.requestNamespace 
@@ -4105,7 +4116,7 @@ function handleSessionEvent(sesObj, callback) {
       debug(chalkAlert("RX REQ_USER_SESSION\n" + jsonPrint(sesObj)));
       Object.keys(userNameSpace.connected).forEach(function(userSessionKey) {
         userSessionObj = sessionCache.get(userSessionKey);
-        if (userSessionObj) {
+        if (userSessionObj !== undefined) {
           debug("FOUND USER SESSION: " + userSessionObj.sessionId);
           debug(chalkRed("TX USER SESSION: " + userSessionObj.sessionId
             + " TO " + sesObj.session.namespace + "#" + sesObj.session.sessionId));
@@ -4123,7 +4134,7 @@ function handleSessionEvent(sesObj, callback) {
       debug(chalkAlert("RX REQ_VIEWER_SESSION\n" + jsonPrint(sesObj)));
       Object.keys(viewNameSpace.connected).forEach(function(viewerSessionKey) {
         viewerSessionObj = sessionCache.get(viewerSessionKey);
-        if (viewerSessionObj) {
+        if (viewerSessionObj !== undefined) {
           debug("FOUND VIEWER SESSION: " + viewerSessionObj.sessionId);
           debug(chalkRed("TX VIEWER SESSION: " + viewerSessionObj.sessionId 
             + " TO " + sesObj.options.requestNamespace + "#" + sesObj.options.requestSocketId));
@@ -4141,7 +4152,7 @@ function handleSessionEvent(sesObj, callback) {
 
         utilSessionObj = sessionCache.get(utilSessionKey);
 
-        if (utilSessionObj) {
+        if (utilSessionObj !== undefined) {
           debug("FOUND UTIL SESSION: " + utilSessionObj.sessionId);
           debug(chalkRed("TX UTIL SESSION: " + utilSessionObj.sessionId 
             + " TO " + sesObj.options.requestNamespace + "#" + sesObj.options.requestSocketId));
@@ -4179,9 +4190,10 @@ function handleSessionEvent(sesObj, callback) {
       currentSession = sessionCache.get(sesObj.session.sessionId);
 
 
-      if (!currentSession) {
+      if (currentSession === undefined) {
         debug(chalkWarn("??? ADMIN SESSION NOT IN CACHE\n" + jsonPrint(sesObj)));
-      } else {
+      } 
+      else {
         currentSession.userId = sesObj.admin.adminId;
 
         sesObj.admin.ip = sesObj.session.ip;
@@ -4350,7 +4362,8 @@ function handleSessionEvent(sesObj, callback) {
         currentSession.userId = sesObj.user.userId;
         currentSession.user = sesObj.user;
         currentSession.profileImageUrl = sesObj.session.profileImageUrl;
-      } else {
+      } 
+      else {
         currentSession = {};
         currentSession = sesObj.session;
         currentSession.config.type = sesObj.session.config.type;
@@ -4541,7 +4554,7 @@ function getTags(wObj, callback){
     if (err) {
       console.log(chalkError("wordsPerMinuteTopTermCache GET ERROR " + err));
     }
-    if (wordRate) {
+    if (wordRate !== undefined) {
       wObj.isTopTerm = true;
     }
     else {
@@ -4876,7 +4889,7 @@ function initRxWordQueueInterval(interval){
               var topicObj = trendingCache.get(topic);
               trendingTopicHitArray.push(topic);
 
-              if (topicObj !== undefined){ // may have expired out of cache, so check
+              if (topicObj !== undefined) { // may have expired out of cache, so check
                 console.log(chalkTwitter("TOPIC HIT: " + topic));
                 topicObj.hit = true;
                 trendingCache.set(topic, topicObj);

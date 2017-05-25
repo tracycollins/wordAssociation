@@ -1070,6 +1070,9 @@ function computeInitialPosition(index) {
     y: randomIntFromInterval(0.3 * currentSessionView.getHeight(), 0.7 * currentSessionView.getHeight())
   };
 
+  if (!pos.x || !pos.y) {
+    console.error("POS " + jsonPrint(pos));
+  }
   return pos;
 }
 
@@ -2105,10 +2108,18 @@ function initSocketNodeRx(){
       return;
     }
 
+    // if ((nNode.nodeType === "user") 
+    //   && nNode.isTwitterUser 
+    //   && nNode.screenName 
+    //   && (nNode.nodeId === undefined)){
+
+    //   nNode.nodeId = nNode.screenName;
+    //   if (!nNode.name) { nNode.name = nNode.screenName; }
+    // }
+
     if ((nNode.nodeType === "user") 
-      && nNode.isTwitterUser 
-      && nNode.screenName 
-      && (nNode.nodeId === undefined)){
+      // && nNode.isTwitterUser 
+      && nNode.screenName){
 
       nNode.nodeId = nNode.screenName;
       if (!nNode.name) { nNode.name = nNode.screenName; }
@@ -2267,7 +2278,7 @@ var processSessionQueues = function(callback) {
       session.tags.channel = session.tags.channel.toLowerCase();
     }
     else {
-      session.nodeId = session.tags.entity.toLowerCase() + "_delete+ session.tags.channel.toLowerCase()";
+      session.nodeId = session.tags.entity.toLowerCase() + "_delete+ session.tags.channel.toLowerCase()"; // KLUDGE???
       session.tags.entity = session.tags.entity.toLowerCase();
       session.tags.channel = session.tags.channel.toLowerCase();
     }
@@ -2275,11 +2286,15 @@ var processSessionQueues = function(callback) {
     switch (session.tags.channel){
       case "twitter":
         session.tags.url = "https://twitter.com/" + session.tags.entity.toLowerCase();
-        if ( session.tags.group.url !== undefined) session.tags.group.url = "https://twitter.com/" + session.tags.entity.toLowerCase();
+        if ( session.tags.group.url !== undefined) {
+          session.tags.group.url = "https://twitter.com/" + session.tags.entity.toLowerCase();
+        }
       break;
       case "livestream":
         if (session.tags.entity == 'cspan'){
-          if ( session.tags.group.url !== undefined) session.tags.group.url = "https://www.c-span.org/networks/";          
+          if ( session.tags.group.url !== undefined) {
+            session.tags.group.url = "https://www.c-span.org/networks/"; 
+          }         
         }
       break;
     }
@@ -2573,7 +2588,7 @@ var createSession = function(callback) {
     var sessUpdate = sessionCreateQueue.shift();
     var currentGroup = {};
 
-    var currentSessionNodeId = sessUpdate.tags.entity + "_" + sessUpdate.tags.channel;
+    var currentSessionNodeId = sessUpdate.tags.entity.toLowerCase() + "_" + sessUpdate.tags.channel.toLowerCase();
 
     // console.warn("sessUpdate\n" + jsonPrint(sessUpdate));
 
@@ -2697,11 +2712,11 @@ var createSession = function(callback) {
       currentSession.sessionColors = {};
       currentSession.nodeColors = {};
 
-      currentSession.node = {};
-      currentSession.node.sessionColors = {};
-      currentSession.node.groupColors = {};
-      currentSession.node.nodeColors = {};
-      currentSession.node.links = {};
+      // currentSession.node = {};
+      // currentSession.node.sessionColors = {};
+      // currentSession.node.groupColors = {};
+      // currentSession.node.nodeColors = {};
+      // currentSession.node.links = {};
 
       currentSession.groupId = currentGroup.groupId;
       currentSession.url = sessUpdate.url;
@@ -2737,11 +2752,18 @@ var createSession = function(callback) {
 
       // CREATE SESSION NODE
 
+      currentSession.node = {};
+      currentSession.node.sessionColors = {};
+      currentSession.node.groupColors = {};
+      currentSession.node.nodeColors = {};
+      currentSession.node.links = {};
       currentSession.node.nodeType = "session";
       currentSession.node.isSessionNode = true;
       currentSession.node.isGroupNode = false;
       currentSession.node.isDead = false;
-      currentSession.node.nodeId = sessUpdate.tags.entity + "_" + sessUpdate.tags.channel;
+      // currentSession.node.nodeId = sessUpdate.tags.entity + "_" + sessUpdate.tags.channel;
+      currentSession.node.nodeId = currentSessionNodeId;
+
       currentSession.node.entity = sessUpdate.tags.entity;
       currentSession.node.channel = sessUpdate.tags.channel;
       currentSession.node.userId = sessUpdate.userId;
@@ -2914,6 +2936,7 @@ var createNode = function(callback) {
             sourceNode.sessionNodeId = session.node.nodeId;
             sourceNode.isTopTerm = session.source.isTopTerm;
             sourceNode.isKeyword = session.source.isKeyword;
+            sourceNode.keywords = session.source.keywords;
             sourceNode.isTrendingTopic = session.source.isTrendingTopic;
             getKeywordColor(session.source.keywords, function(color){
               sourceNode.keywordColor = color;
@@ -2982,6 +3005,8 @@ var createNode = function(callback) {
               });  // KLUDGE!  need better way to do keywords
             }
             else {
+              console.error("KEWORDS UNDEFINED");
+              throw 2;
               sourceNode.keywordColor = palette.black;
             }
 
@@ -3135,6 +3160,8 @@ var createNode = function(callback) {
               });  // KLUDGE!  need better way to do keywords
             }
             else {
+              console.error("KEWORDS UNDEFINED");
+              throw 2;
               targetNode.keywordColor = palette.black;
             }
 

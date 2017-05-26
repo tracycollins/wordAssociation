@@ -1172,7 +1172,9 @@ function saveFile (path, file, jsonObj, callback){
 
   dropboxClient.filesUpload(options)
     .then(function(response){
-      debug(chalkLog("... SAVED DROPBOX JSON | " + options.path));
+      console.log(chalkLog(moment().format(compactDateTimeFormat)
+        + " | SAVED DROPBOX JSON | " + options.path
+      ));
       callback(null, response);
     })
     .catch(function(error){
@@ -1218,7 +1220,9 @@ function saveStats(statsFile, statsObj, callback) {
 
   dropboxClient.filesUpload(options)
     .then(function(){
-      debug(chalkLog("... SAVED DROPBOX JSON | " + options.path));
+      console.log(chalkLog(moment().format(compactDateTimeFormat)
+        + " | SAVED DROPBOX JSON | " + options.path
+      ));
       callback("OK");
     })
     .catch(function(error){

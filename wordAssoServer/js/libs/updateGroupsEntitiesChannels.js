@@ -279,9 +279,15 @@ function loadFile(path, file, callback) {
 
       debug(payload);
 
-      var fileObj = JSON.parse(payload);
+      try {
+        var fileObj = JSON.parse(payload);
+        return(callback(null, fileObj));
+      } 
+      catch (err) {
+        console.log(chalkError("DROPBOX JSON PARSE ERROR: FILE: " + file + " | ERROR: " + err));
+        return(callback(err, fileObj));
+      }
 
-      return(callback(null, fileObj));
      })
     .catch(function(error) {
       console.log(chalkAlert("DROPBOX loadFile ERROR: " + file + "\n" + error));
@@ -937,13 +943,16 @@ function loadConfig(file, callback){
         + " | LOADING CONFIG FROM DROPBOX FILE: " + file
       ));
 
-      var configObj = JSON.parse(configJson.fileBinary);
+      try {
+        var configObj = JSON.parse(configJson.fileBinary);
+        debug(chalkLog(getTimeStamp() + " | FOUND " + configObj.timeStamp));
+        return(callback(null, configObj));
+      } 
+      catch (err) {
+        console.log(chalkError("DROPBOX JSON PARSE ERROR: FILE: " + file + " | ERROR: " + err));
+        return(callback(err, fileObj));
+      }
 
-      // console.log("UPDATER: DROPBOX CONFIG\n" + JSON.stringify(configObj, null, 3));
-
-      debug(chalkLog(getTimeStamp() + " | FOUND " + configObj.timeStamp));
-
-      return(callback(null, configObj));
     })
     .catch(function(error) {
       if (error.status == 409) {

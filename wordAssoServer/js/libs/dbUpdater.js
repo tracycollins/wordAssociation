@@ -202,14 +202,16 @@ function initDbUpdateQueueInterval(interval){
           wordServer.findOneWord(updateObj.word, updateObj.incMentions, function(err, updatedWordObj){
             if (err) {
               console.log(chalkError("DB UPDATE ERROR\n" + jsonPrint(err)));
-            } 
-            debug(chalkRed("DB UPDATED WORD"
-              + " | " + updatedWordObj.nodeId
-              + " | SID: " + updatedWordObj.sessionId
-              + " | Ms: " + updatedWordObj.mentions
-            ));
-            if (updateObj.mode === "return") {
-              process.send({ op: "UPDATED", updateType: "word", word: updatedWordObj});
+            }
+            else if (updatedWordObj){
+              debug(chalkRed("DB UPDATED WORD"
+                + " | " + updatedWordObj.nodeId
+                + " | SID: " + updatedWordObj.sessionId
+                + " | Ms: " + updatedWordObj.mentions
+              ));
+              if (updateObj.mode === "return") {
+                process.send({ op: "UPDATED", updateType: "word", word: updatedWordObj});
+              }
             }
             dbUpdateQueueReady = true;
           });

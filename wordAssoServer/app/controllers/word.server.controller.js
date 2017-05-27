@@ -218,7 +218,7 @@ exports.findOneWord = function(word, incMentions, callback) {
 					+ " | " + word.nodeId 
 					+ "\n" + err
 				);
-				callback("ERROR " + err, null);
+				callback("ERROR " + err, word);
 			}
 			else {
 				debug(chalkDb("->- DB UPDATE" 

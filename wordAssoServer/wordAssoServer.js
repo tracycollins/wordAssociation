@@ -406,17 +406,50 @@ function quit(message) {
   // if (dbUpdater !== undefined) { dbUpdater.kill("SIGHUP"); }
   var msg = "";
   if (message) {msg = message;}
-  console.log("QUIT MESSAGE\n" + msg);
+  console.log("QUIT MESSAGE: " + msg);
   process.exit();
 }
 
-process.on("SIGHUP", function() {
-  quit("SIGHUP");
+process.on("message", function(msg) {
+
+  if ((msg === "SIGINT") || (msg === "shutdown")) {
+
+    debug("\n\n!!!!! RECEIVED PM2 SHUTDOWN !!!!!\n\n***** Closing all connections *****\n\n");
+    debug("... SAVING STATS");
+
+    clearInterval(initInternetCheckInterval);
+    clearInterval(statsInterval);
+    clearInterval(rateQinterval);
+    clearInterval(updateTrendsInterval);
+    clearInterval(sessionViewQueueInterval);
+    clearInterval(dbUpdateEntityQueueInterval);
+    clearInterval(dbUpdateWordQueueInterval);
+    clearInterval(dbUpdateGroupQueueInterval);
+
+    saveStats(statsFile, statsObj, function(status) {
+      if (status !=="OK") {
+        debug("!!! ERROR: saveStats " + status);
+      } 
+      else {
+        debug(chalkLog("UPDATE STATUS OK"));
+      }
+    });
+
+    setTimeout(function() {
+      debug("**** Finished closing connections ****\n\n ***** RELOADING blm.js NOW *****\n\n");
+      quit(msg);
+    }, 300);
+
+  }
 });
 
-process.on("SIGINT", function() {
-  quit("SIGINT");
-});
+// process.on("SIGHUP", function() {
+//   quit("SIGHUP");
+// });
+
+// process.on("SIGINT", function() {
+//   quit("SIGINT");
+// });
 
 process.on("exit", function() {
   if (sorter !== undefined) { sorter.kill("SIGINT"); }
@@ -7175,38 +7208,6 @@ var defaultDropboxEntityChannelGroupsConfigFile = DROPBOX_WA_ENTITY_CHANNEL_GROU
 // PROCESS HANDLERS
 //=================================
 
-process.on("message", function(msg) {
-
-  if ((msg === "SIGINT") || (msg === "shutdown")) {
-
-    debug("\n\n!!!!! RECEIVED PM2 SHUTDOWN !!!!!\n\n***** Closing all connections *****\n\n");
-    debug("... SAVING STATS");
-
-    clearInterval(initInternetCheckInterval);
-    clearInterval(statsInterval);
-    clearInterval(rateQinterval);
-    clearInterval(updateTrendsInterval);
-    clearInterval(sessionViewQueueInterval);
-    clearInterval(dbUpdateEntityQueueInterval);
-    clearInterval(dbUpdateWordQueueInterval);
-    clearInterval(dbUpdateGroupQueueInterval);
-
-    saveStats(statsFile, statsObj, function(status) {
-      if (status !=="OK") {
-        debug("!!! ERROR: saveStats " + status);
-      } 
-      else {
-        debug(chalkLog("UPDATE STATUS OK"));
-      }
-    });
-
-    setTimeout(function() {
-      debug("**** Finished closing connections ****\n\n ***** RELOADING blm.js NOW *****\n\n");
-      process.exit(0);
-    }, 300);
-
-  }
-});
 
 function initIgnoreWordsHashMap(callback) {
   async.each(ignoreWordsArray, function(ignoreWord, cb) {

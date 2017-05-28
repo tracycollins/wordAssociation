@@ -2420,7 +2420,8 @@ function initSessionSocketHandler(sessionObj, socket) {
         console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
         quit();
       }
-      if (nodeRate !== undefined) {
+      // if (nodeRate !== undefined) {
+      if (nodeRate) {
         rxWordObj.isTopTerm = true;
         debug(chalkRed("TOP TERM"
           + " | " + rxWordObj.nodeId
@@ -5268,7 +5269,8 @@ function initSorterMessageRxQueueInterval(interval){
 
             node = sortedKeys[index].toLowerCase();
 
-            if (wordMeter[node] !== undefined) {
+            // if (wordMeter[node] !== undefined) {
+            if (wordMeter[node]) {
 
               wmObj = wordMeter[node].toJSON();
 

@@ -580,6 +580,7 @@ statsObj.group.errors = 0;
 statsObj.memory = {};
 statsObj.memory.heap = process.memoryUsage().heapUsed/(1024*1024);
 statsObj.memory.maxHeap = process.memoryUsage().heapUsed/(1024*1024);
+statsObj.memory.maxHeapTime = moment().valueOf();
 statsObj.memory.memoryAvailable = os.freemem();
 statsObj.memory.memoryTotal = os.totalmem();
 statsObj.memory.memoryUsage = process.memoryUsage();
@@ -617,7 +618,15 @@ function showStats(options){
   statsObj.timeStamp = moment().format(compactDateTimeFormat);
 
   statsObj.memory.heap = process.memoryUsage().heapUsed/(1024*1024);
-  statsObj.memory.maxHeap = Math.max(statsObj.memory.maxHeap, statsObj.memory.heap);
+  // statsObj.memory.maxHeap = Math.max(statsObj.memory.maxHeap, statsObj.memory.heap);
+  if (statsObj.memory.heap > statsObj.memory.maxHeap) {
+    statsObj.memory.maxHeap = statsObj.memory.heap;
+    statsObj.memory.maxHeapTime = moment().valueOf();
+    console.log(chalkAlert("NEW MAX HEAP"
+      + " | " + moment().format(compactDateTimeFormat)
+      + " | " + statsObj.memory.heap.toFixed(0) + " MB"
+    ))
+  }
   statsObj.memory.memoryUsage = process.memoryUsage();
 
   statsObj.queues.rxWordQueue = rxWordQueue.size();
@@ -638,6 +647,7 @@ function showStats(options){
       + " | DBM Q: " + dbUpdaterMessageRxQueue.size()
       + " | HEAP: " + statsObj.memory.heap.toFixed(0) + " MB"
       + " | MAX HEAP: " + statsObj.memory.maxHeap.toFixed(0)
+      + " | MAX HEAP TIME: " + moment(parseInt(statsObj.memory.maxHeapTime)).format(compactDateTimeFormat)
     ));
     console.log(chalkAlert("STATS\n" + jsonPrint(statsObj)));
   }
@@ -650,6 +660,7 @@ function showStats(options){
       + " | DBM Q: " + dbUpdaterMessageRxQueue.size()
       + " | HEAP: " + statsObj.memory.heap.toFixed(0) + " MB"
       + " | MAX HEAP: " + statsObj.memory.maxHeap.toFixed(0)
+      + " | MAX HEAP TIME: " + moment(parseInt(statsObj.memory.maxHeapTime)).format(compactDateTimeFormat)
     ));
   }
 }
@@ -1289,6 +1300,7 @@ function initStatsInterval(interval){
 
     statsObj.memory.heap = process.memoryUsage().heapUsed/(1024*1024);
     statsObj.memory.maxHeap = Math.max(statsObj.memory.maxHeap, process.memoryUsage().heapUsed/(1024*1024));
+    statsObj.memory.maxHeapTime = moment().valueOf();
     statsObj.memory.memoryAvailable = os.freemem();
     statsObj.memory.memoryTotal = os.totalmem();
     statsObj.memory.memoryUsage = process.memoryUsage();
@@ -5758,10 +5770,29 @@ function initAppRouting(callback) {
 
   debugAppGet(chalkInfo(moment().format(compactDateTimeFormat) + " | INIT APP ROUTING"));
 
+  app.use(function (req, res, next) {
+    console.log(chalkAlert("R>"
+      + " | " + moment().format(compactDateTimeFormat)
+      + " | IP: " + req.ip
+      // + " | IPS: " + req.ips
+      + " | HOST: " + req.hostname
+      // + " | BASE URL: " + req.baseUrl
+      + " | METHOD: " + req.method
+      + " | PATH: " + req.path
+      // + " | ROUTE: " + req.route
+      // + " | PROTOCOL: " + req.protocol
+      // + "\nQUERY: " + jsonPrint(req.query)
+      // + "\nPARAMS: " + jsonPrint(req.params)
+      // + "\nCOOKIES: " + jsonPrint(req.cookies)
+      // + "\nBODY: " + jsonPrint(req.baseUrl)
+    ));
+    next();
+  });
+
   app.get("/js/require.js", function(req, res, next) {
     debug(chalkInfo("get req\n" + req));
     debug(chalkInfo("get next\n" + next));
-    console.log(chalkRedBold("LOADING PAGE: /js/require.js"));
+    console.log(chalkInfo("LOADING PAGE: /js/require.js"));
     res.sendFile(__dirname + "/js/require.js", function (err) {
       if (err) {
         console.log(chalkAlert("GET:", __dirname + "/js/require.js"));
@@ -5797,14 +5828,14 @@ function initAppRouting(callback) {
   app.get("/", function(req, res, next) {
     debug(chalkInfo("get req\n" + req));
     debug(chalkInfo("get next\n" + next));
-    console.log(chalkRedBold("LOADING PAGE: /sessionModular.html"));
+    console.log(chalkInfo("LOADING PAGE: /sessionModular.html"));
     res.sendFile(__dirname + "/sessionModular.html", function (err) {
       if (err) {
         console.error("GET / ERROR:"
           + " | " + moment().format(compactDateTimeFormat)
           + " | " + __dirname + "/sessionModular.html"
           + " | " + err
-          + " | " + req
+          + " | REQ: " + jsonPrint(req)
         );
       } 
       else {
@@ -5816,7 +5847,7 @@ function initAppRouting(callback) {
   app.get("/session", function(req, res, next) {
     debug(chalkInfo("get req\n" + req));
     debug(chalkInfo("get next\n" + next));
-    console.log(chalkRedBold("LOADING PAGE: /sessionModular.html"));
+    console.log(chalkInfo("LOADING PAGE: /sessionModular.html"));
     res.sendFile(__dirname + "/sessionModular.html", function (err) {
       if (err) {
         console.error("GET /session ERROR:"
@@ -5835,7 +5866,7 @@ function initAppRouting(callback) {
   app.get("/js/libs/sessionViewTicker.js", function(req, res, next) {
     debug(chalkInfo("get req\n" + req));
     debug(chalkInfo("get next\n" + next));
-    console.log(chalkRedBold("LOADING PAGE: /js/libs/sessionViewTicker.js"));
+    console.log(chalkInfo("LOADING PAGE: /js/libs/sessionViewTicker.js"));
     res.sendFile(__dirname + "/js/libs/sessionViewTicker.js", function (err) {
       if (err) {
         console.error("GET / ERROR:"
@@ -5852,7 +5883,7 @@ function initAppRouting(callback) {
   app.get("/js/libs/sessionViewFlow.js", function(req, res, next) {
     debug(chalkInfo("get req\n" + req));
     debug(chalkInfo("get next\n" + next));
-    console.log(chalkRedBold("LOADING PAGE: /js/libs/sessionViewFlow.js"));
+    console.log(chalkInfo("LOADING PAGE: /js/libs/sessionViewFlow.js"));
     res.sendFile(__dirname + "/js/libs/sessionViewFlow.js", function (err) {
       if (err) {
         console.error("GET / ERROR:"
@@ -5869,7 +5900,7 @@ function initAppRouting(callback) {
   app.get("/js/libs/sessionViewTreemap.js", function(req, res, next) {
     debug(chalkInfo("get req\n" + req));
     debug(chalkInfo("get next\n" + next));
-    console.log(chalkRedBold("LOADING PAGE: /js/libs/sessionViewTreemap.js"));
+    console.log(chalkInfo("LOADING PAGE: /js/libs/sessionViewTreemap.js"));
     res.sendFile(__dirname + "/js/libs/sessionViewTreemap.js", function (err) {
       if (err) {
         console.error("GET / ERROR:"
@@ -5886,7 +5917,7 @@ function initAppRouting(callback) {
   app.get("/js/libs/sessionViewTreepack.js", function(req, res, next) {
     debug(chalkInfo("get req\n" + req));
     debug(chalkInfo("get next\n" + next));
-    console.log(chalkRedBold("LOADING PAGE: /js/libs/sessionViewTreepack.js"));
+    console.log(chalkInfo("LOADING PAGE: /js/libs/sessionViewTreepack.js"));
     res.sendFile(__dirname + "/js/libs/sessionViewTreepack.js", function (err) {
       if (err) {
         console.error("GET sessionViewTreepack ERROR:"
@@ -5903,7 +5934,7 @@ function initAppRouting(callback) {
   app.get("/js/libs/sessionViewHistogram.js", function(req, res, next) {
     debug(chalkInfo("get req\n" + req));
     debug(chalkInfo("get next\n" + next));
-    console.log(chalkRedBold("LOADING PAGE: /js/libs/sessionViewHistogram.js"));
+    console.log(chalkInfo("LOADING PAGE: /js/libs/sessionViewHistogram.js"));
     res.sendFile(__dirname + "/js/libs/sessionViewHistogram.js", function (err) {
       if (err) {
         console.error("GET:", __dirname + "/js/libs/sessionViewHistogram.js");
@@ -5917,7 +5948,7 @@ function initAppRouting(callback) {
   app.get("/js/libs/sessionViewMedia.js", function(req, res, next) {
     debug(chalkInfo("get req\n" + req));
     debug(chalkInfo("get next\n" + next));
-    console.log(chalkRedBold("LOADING PAGE: /js/libs/sessionViewMedia.js"));
+    console.log(chalkInfo("LOADING PAGE: /js/libs/sessionViewMedia.js"));
     res.sendFile(__dirname + "/js/libs/sessionViewMedia.js", function (err) {
       if (err) {
         console.error("GET:", __dirname + "/js/libs/sessionViewMedia.js");
@@ -5931,7 +5962,7 @@ function initAppRouting(callback) {
   app.get("/js/libs/sessionViewForce.js", function(req, res, next) {
     debug(chalkInfo("get req\n" + req));
     debug(chalkInfo("get next\n" + next));
-    console.log(chalkRedBold("LOADING PAGE: /js/libs/sessionViewForce.js"));
+    console.log(chalkInfo("LOADING PAGE: /js/libs/sessionViewForce.js"));
     res.sendFile(__dirname + "/js/libs/sessionViewForce.js", function (err) {
       if (err) {
         console.error("GET:", __dirname + "/js/libs/sessionViewForce.js");
@@ -5945,7 +5976,7 @@ function initAppRouting(callback) {
   app.get("/js/libs/sessionView.js", function(req, res, next) {
     debug(chalkInfo("get req\n" + req));
     debug(chalkInfo("get next\n" + next));
-    console.log(chalkRedBold("LOADING PAGE: /js/libs/sessionView.js"));
+    console.log(chalkInfo("LOADING PAGE: /js/libs/sessionView.js"));
     res.sendFile(__dirname + "/js/libs/sessionView.js", function (err) {
       if (err) {
         console.error("GET:", __dirname + "/js/libs/sessionView.js");
@@ -5959,7 +5990,7 @@ function initAppRouting(callback) {
   app.get("/node_modules/panzoom/dist/panzoom.min.js", function(req, res, next) {
     debug(chalkInfo("get req\n" + req));
     debug(chalkInfo("get next\n" + next));
-    console.log(chalkRedBold("LOADING PAGE: /node_modules/panzoom/dist/panzoom.min.js"));
+    console.log(chalkInfo("LOADING PAGE: /node_modules/panzoom/dist/panzoom.min.js"));
     res.sendFile(__dirname + "/node_modules/panzoom/dist/panzoom.min.js", function (err) {
       if (err) {
         console.error("GET:", __dirname + "/node_modules/panzoom/dist/panzoom.min.js");
@@ -5973,7 +6004,7 @@ function initAppRouting(callback) {
   app.get("/css/base.css", function(req, res, next) {
     debug(chalkInfo("get req\n" + req));
     debug(chalkInfo("get next\n" + next));
-    console.log(chalkRedBold("LOADING PAGE: /css/base.css"));
+    console.log(chalkInfo("LOADING PAGE: /css/base.css"));
     res.sendFile(__dirname + "/css/base.css", function (err) {
       if (err) {
         console.error("GET:", __dirname + "/css/base.css");
@@ -5987,7 +6018,7 @@ function initAppRouting(callback) {
   app.get("/css/main.css", function(req, res, next) {
     debug(chalkInfo("get req\n" + req));
     debug(chalkInfo("get next\n" + next));
-    console.log(chalkRedBold("LOADING PAGE: /css/main.css"));
+    console.log(chalkInfo("LOADING PAGE: /css/main.css"));
     res.sendFile(__dirname + "/css/main.css", function (err) {
       if (err) {
         console.error("GET:", __dirname + "/css/main.css");
@@ -6001,7 +6032,7 @@ function initAppRouting(callback) {
   app.get("/favicon.png", function(req, res, next) {
     debug(chalkInfo("get req\n" + req));
     debug(chalkInfo("get next\n" + next));
-    console.log(chalkRedBold("LOADING PAGE: /favicon.png"));
+    console.log(chalkInfo("LOADING PAGE: /favicon.png"));
     res.sendFile(__dirname + "/favicon.png", function (err) {
       if (err) {
         console.error("GET:", __dirname + "/favicon.png");
@@ -6015,7 +6046,7 @@ function initAppRouting(callback) {
   app.get("/favicon.ico", function(req, res, next) {
     debug(chalkInfo("get req\n" + req));
     debug(chalkInfo("get next\n" + next));
-    console.log(chalkRedBold("LOADING PAGE: /favicon.ico (alias favicon.png)"));
+    console.log(chalkInfo("LOADING PAGE: /favicon.ico (alias favicon.png)"));
     res.sendFile(__dirname + "/favicon.png", function (err) {
       if (err) {
         console.error("GET:", __dirname + "/favicon.png");
@@ -6029,7 +6060,7 @@ function initAppRouting(callback) {
   app.get("/assets/images/userBackgroundBorder.png", function(req, res, next) {
     debug(chalkInfo("get req\n" + req));
     debug(chalkInfo("get next\n" + next));
-    console.log(chalkRedBold("LOADING PAGE: /public/assets/images/userBackgroundBorder.png"));
+    console.log(chalkInfo("LOADING PAGE: /public/assets/images/userBackgroundBorder.png"));
     res.sendFile(__dirname + "/public/assets/images/userBackgroundBorder.png", function (err) {
       if (err) {
         console.error("GET:", __dirname + "/public/assets/images/userBackgroundBorder.png");
@@ -6043,7 +6074,7 @@ function initAppRouting(callback) {
   app.get("/assets/images/mediaBackgroundBorder.png", function(req, res, next) {
     debug(chalkInfo("get req\n" + req));
     debug(chalkInfo("get next\n" + next));
-    console.log(chalkRedBold("LOADING PAGE: /public/assets/images/mediaBackgroundBorder.png"));
+    console.log(chalkInfo("LOADING PAGE: /public/assets/images/mediaBackgroundBorder.png"));
     res.sendFile(__dirname + "/public/assets/images/mediaBackgroundBorder.png", function (err) {
       if (err) {
         console.error("GET:", __dirname + "/public/assets/images/mediaBackgroundBorder.png");
@@ -6057,7 +6088,7 @@ function initAppRouting(callback) {
   app.get("/controlPanel.html", function(req, res, next) {
     debug(chalkInfo("get req\n" + req));
     debug(chalkInfo("get next\n" + next));
-    console.log(chalkRedBold("LOADING PAGE: /controlPanel.html"));
+    console.log(chalkInfo("LOADING PAGE: /controlPanel.html"));
     res.sendFile(__dirname + "/controlPanel.html", function (err) {
       if (err) {
         console.error("GET:", __dirname + "/controlPanel.html");

@@ -210,7 +210,12 @@ function initDbUpdateQueueInterval(interval){
                 + " | Ms: " + updatedWordObj.mentions
               ));
               if (updateObj.mode === "return") {
-                process.send({ op: "UPDATED", updateType: "word", word: updatedWordObj});
+                process.send({ op: "UPDATED", updateType: "word", word: updatedWordObj}, function(err){
+                  if (err) {
+                    console.log(chalkError("!!! DB UPDATER SEND ERR: " + err));
+                    quit(err);
+                  }
+                });
               }
             }
             dbUpdateQueueReady = true;

@@ -124,7 +124,12 @@ process.on('message', function(m) {
         + " | OBJ KEYS: " + Object.keys(m.obj).length
       ));
       sortedObjectValues(params, function(sortedKeys){
-        process.send({ op: "SORTED", sortKey: params.sortKey, sortedKeys: sortedKeys});
+        process.send({ op: "SORTED", sortKey: params.sortKey, sortedKeys: sortedKeys}, function(err){
+          if (err) {
+            console.log(chalkError("!!! SORTER SEND ERR: " + err));
+            quit(err);
+          }
+        });
       });
 
     break;
@@ -133,7 +138,12 @@ process.on('message', function(m) {
       console.log(chalkError("UNKNOWN SORTER OP???"
         + " | " + m.op
       ));
-      process.send({ error: "ERROR", message: "UNKNOWN SORTER OP" + m.op });
+      process.send({ error: "ERROR", message: "UNKNOWN SORTER OP" + m.op }, function(err){
+        if (err) {
+          console.log(chalkError("!!! SORTER SEND ERR: " + err));
+          quit(err);
+        }
+      });
   }
 });
 

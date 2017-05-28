@@ -679,15 +679,15 @@ function sendHashMaps(hashmapsObj, callback){
       switch (hashmap) {
         case "groups":
           console.log(chalkInfo("UPDATE GROUPS " + hashmapsObj[hashmap]));
-          sendGroups(function(){ cb(); });
+          sendGroups(function(err, numGroups){ cb(err); });
         break;
         case "entities":
           console.log(chalkInfo("UPDATE ENTITIES " + hashmapsObj[hashmap]));
-          sendEntities(function(){ cb(); });
+          sendEntities(function(err, numEntities){ cb(err); });
         break;
         case "keywords":
           console.log(chalkInfo("UPDATE KEYWORDS " + hashmapsObj[hashmap]));
-          sendKeywords(function(){ cb(); });
+          sendKeywords(function(err, numKeywords){ cb(err); });
         break;
         default:
           console.log(chalkError("sendHashMaps UNKNOWN HASHMAP " + hashmap + " " + hashmapsObj[hashmap]));
@@ -745,7 +745,7 @@ function sendGroups(callback){
       else {
         debug(chalkInfo("sendGroups COMPLETE | " + groupIds.length + " KEYWORDS"));
         process.send({ type: 'sendGroupsComplete'});
-        callback(null, null);
+        callback(null, groupIds.length);
       }
     }
   );
@@ -784,7 +784,7 @@ function sendEntities(callback){
       else {
         debug(chalkInfo("sendEntities COMPLETE | " + entityIds.length + " KEYWORDS"));
         process.send({ type: 'sendEntitiesComplete'});
-        callback(null, null);
+        callback(null, entityIds.length);
       }
     }
   );
@@ -849,7 +849,7 @@ function sendKeywords(callback){
       else {
         debug(chalkInfo("sendKeywords COMPLETE | " + words.length + " KEYWORDS"));
         process.send({ type: 'sendKeywordsComplete'});
-        callback(null, null);
+        callback(null, words.length);
       }
     }
   );
@@ -1086,7 +1086,8 @@ function initUpdateStatsCountsInterval(interval){
         process.send({ type: 'stats', db: results}, function(err){
           statsCountsComplete = true;
           if (err){
-            console.log(chalkError("STATS SEND ERROR\n" + err));
+            console.log(chalkError("updateGroupsEntitiesChannels STATS SEND ERROR\n" + err));
+            console.error(chalkError("updateGroupsEntitiesChannels STATS SEND ERROR\n" + err));
           }
           else {
             debug(chalkInfo("UPDATER SENT STATS"

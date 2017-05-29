@@ -5837,7 +5837,7 @@ function initAppRouting(callback) {
           + " | " + moment().format(compactDateTimeFormat)
           + " | " + __dirname + "/sessionModular.html"
           + " | " + err
-          + " | REQ: " + jsonPrint(req)
+          // + " | REQ: " + jsonPrint(req)
         );
       } 
       else {
@@ -5856,7 +5856,7 @@ function initAppRouting(callback) {
           + " | " + moment().format(compactDateTimeFormat)
           + " | " + __dirname + "/sessionModular.html"
           + " | " + err
-          + " | " + req
+          // + " | " + req
         );
       } 
       else {

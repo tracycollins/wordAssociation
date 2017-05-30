@@ -23,15 +23,19 @@ var jsonPrint = function(obj) {
 }
 
 function quit(message) {
-  var msg = '';
-  if (message) msg = message;
+  var msg = "";
+  var exitCode = 0;
+  if (message) {
+    msg = message;
+    exitCode = 1;
+  }
   console.log(process.argv[1]
     + " | DB UPDATER: **** QUITTING"
     + " | CAUSE: " + msg
     + " | PID: " + process.pid
     
   );
-  process.exit();
+  process.exit(exitCode);
 }
 
 process.on('SIGHUP', function() {

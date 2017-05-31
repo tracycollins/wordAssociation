@@ -281,7 +281,7 @@ function ViewForce() {
 
   filterBorderUser.append("feImage")
     .attr("result", "bgBorder")
-    .attr("href", "/assets/images/userBackgroundBorder.png");
+    .attr("href", "/public/assets/images/userBackgroundBorder.png");
   filterBorderUser.append("feBlend")
     .attr("in", "SourceGraphic")
     .attr("in1", "bgBorder")
@@ -294,7 +294,7 @@ function ViewForce() {
 
   filterBorderMedia.append("feImage")
     .attr("result", "bgBorder")
-    .attr("href", "/assets/images/mediaBackgroundBorder.png");
+    .attr("href", "/public/assets/images/mediaBackgroundBorder.png");
   filterBorderMedia.append("feBlend")
     .attr("in", "SourceGraphic")
     .attr("in1", "bgBorder")

@@ -7263,9 +7263,6 @@ initializeConfiguration(configuration, function(err, results) {
   else {
     console.log(chalkLog("INITIALIZE CONFIGURATION COMPLETE\n" + jsonPrint(results)));
 
-    // updateStatsCounts();
-    // initSocketNamespaces();
-
     initIgnoreWordsHashMap();
     updateTrends();
 
@@ -7281,7 +7278,6 @@ initializeConfiguration(configuration, function(err, results) {
     initUpdaterMessageQueueInterval(DEFAULT_INTERVAL);
     initDbUpdaterMessageRxQueueInterval(DEFAULT_INTERVAL);
     initUpdateTrendsInterval(15*ONE_MINUTE);
-
 
     // ================================
     sorter = cp.fork(`${__dirname}/js/libs/sorter.js`);
@@ -7301,17 +7297,20 @@ initializeConfiguration(configuration, function(err, results) {
 
     sorter.on("error", function(err){
       console.log(chalkError("*** SORTER ERROR ***\n" + jsonPrint(err)));
-      quit(err);
+      console.error(chalkError("*** SORTER ERROR ***\n" + jsonPrint(err)));
+      // quit(err);
     });
 
     sorter.on("exit", function(err){
       console.log(chalkError("*** SORTER EXIT ***\n" + jsonPrint(err)));
-      quit(err);
+      console.error(chalkError("*** SORTER EXIT ***\n" + jsonPrint(err)));
+      // quit(err);
     });
 
     sorter.on("close", function(code){
       console.log(chalkError("*** SORTER CLOSE *** | " + code));
-      quit(code);
+      console.error(chalkError("*** SORTER CLOSE *** | " + code));
+      // quit(code);
     });
 
     // ================================
@@ -7329,17 +7328,20 @@ initializeConfiguration(configuration, function(err, results) {
 
     dbUpdater.on("error", function(err){
       console.log(chalkError("*** DB UPDATER ERROR ***\n" + jsonPrint(err)));
-      quit(err);
+      console.error(chalkError("*** DB UPDATER ERROR ***\n" + jsonPrint(err)));
+      // quit(err);
     });
 
     dbUpdater.on("exit", function(err){
       console.log(chalkError("*** DB UPDATER EXIT ***\n" + jsonPrint(err)));
-      quit(err);
+      console.error(chalkError("*** DB UPDATER EXIT ***\n" + jsonPrint(err)));
+      // quit(err);
     });
 
     dbUpdater.on("close", function(code){
       console.log(chalkError("*** DB UPDATER CLOSE *** | " + code));
-      quit(code);
+      console.error(chalkError("*** DB UPDATER CLOSE *** | " + code));
+      // quit(code);
     });
 
 
@@ -7348,17 +7350,20 @@ initializeConfiguration(configuration, function(err, results) {
 
     updater.on("error", function(err){
       console.log(chalkError("*** UPDATER ERROR ***\n" + jsonPrint(err)));
-      quit(err);
+      console.error(chalkError("*** UPDATER ERROR ***\n" + jsonPrint(err)));
+      // quit(err);
     });
 
     updater.on("exit", function(err){
       console.log(chalkError("*** UPDATER EXIT ***\n" + jsonPrint(err)));
-      quit(err);
+      console.error(chalkError("*** UPDATER EXIT ***\n" + jsonPrint(err)));
+      // quit(err);
     });
 
     updater.on("close", function(code){
       console.log(chalkError("*** UPDATER CLOSE *** | " + code));
-      quit(code);
+      console.error(chalkError("*** UPDATER CLOSE *** | " + code));
+      // quit(code);
     });
 
     updater.on("message", function(m){

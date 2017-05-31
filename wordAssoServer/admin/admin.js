@@ -1645,14 +1645,20 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
     sessionCacheBar.path.setAttribute('stroke', startColor);
   }
 
-  sessionCacheBarText.innerHTML = (heartBeat.caches.sessionCache.stats.keys) + ' SESSIONS | ' 
+  if (heartBeat.caches) {
+ sessionCacheBarText.innerHTML = (heartBeat.caches.sessionCache.stats.keys) + ' SESSIONS | ' 
   + heartBeat.caches.sessionCache.stats.keysMax + ' MAX | ' 
   + moment(heartBeat.caches.sessionCache.stats.keysMaxTime).format(defaultDateTimeFormat);
-
+  }
+ 
 
   // WORD CACHE ==========================
 
-  var wordCacheKeysRatio = heartBeat.caches.wordCache.stats.keys / heartBeat.caches.wordCache.stats.keysMax;
+  var wordCacheKeysRatio = 0;
+
+  if (heartBeat.caches) {
+    wordCacheKeysRatio = heartBeat.caches.wordCache.stats.keys / heartBeat.caches.wordCache.stats.keysMax;
+  }
 
   wordCacheBar.animate(wordCacheKeysRatio);
 
@@ -1664,14 +1670,19 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
     wordCacheBar.path.setAttribute('stroke', startColor);
   }
 
-  wordCacheBarText.innerHTML = (heartBeat.caches.wordCache.stats.keys) + ' WORDS | ' 
-  + heartBeat.caches.wordCache.stats.keysMax + ' MAX | ' 
-  + moment(heartBeat.caches.wordCache.stats.keysMaxTime).format(defaultDateTimeFormat);
-
+  if (heartBeat.caches) {
+    wordCacheBarText.innerHTML = (heartBeat.caches.wordCache.stats.keys) + ' WORDS | ' 
+    + heartBeat.caches.wordCache.stats.keysMax + ' MAX | ' 
+    + moment(heartBeat.caches.wordCache.stats.keysMaxTime).format(defaultDateTimeFormat);
+  }
 
   // VIEWERS ==========================
 
-  var viewerRatio = heartBeat.entity.viewer.connected / heartBeat.entity.viewer.connectedMax;
+  var viewerRatio = 0;
+
+  if (heartBeat.entity) {
+    viewerRatio = heartBeat.entity.viewer.connected / heartBeat.entity.viewer.connectedMax;
+  }
 
   viewersBar.animate(viewerRatio);
 
@@ -1683,14 +1694,20 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
     viewersBar.path.setAttribute('stroke', startColor);
   }
 
-  viewersBarText.innerHTML = (heartBeat.entity.viewer.connected) + ' VIEWERS | ' 
-  + (heartBeat.entity.viewer.connectedMax) + ' MAX | ' 
-  + moment(heartBeat.entity.viewer.connectedMaxTime).format(defaultDateTimeFormat);
+  if (heartBeat.entity) {
+    viewersBarText.innerHTML = (heartBeat.entity.viewer.connected) + ' VIEWERS | ' 
+    + (heartBeat.entity.viewer.connectedMax) + ' MAX | ' 
+    + moment(heartBeat.entity.viewer.connectedMaxTime).format(defaultDateTimeFormat);
+  }
 
 
   // USERS ==========================
 
-  var userRatio = heartBeat.entity.user.connected / heartBeat.entity.user.connectedMax;
+  var userRatio = 0;
+
+  if (heartBeat.entity) {
+    userRatio = heartBeat.entity.user.connected / heartBeat.entity.user.connectedMax;
+  }
 
   usersBar.animate(userRatio);
 
@@ -1702,12 +1719,19 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
     usersBar.path.setAttribute('stroke', startColor);
   }
 
-  usersBarText.innerHTML = (heartBeat.entity.user.connected) + ' USERS | ' 
-  + (heartBeat.entity.user.connectedMax) + ' MAX | ' 
-  + moment(heartBeat.entity.user.connectedMaxTime).format(defaultDateTimeFormat);
+  if (heartBeat.entity) {
+    usersBarText.innerHTML = (heartBeat.entity.user.connected) + ' USERS | ' 
+    + (heartBeat.entity.user.connectedMax) + ' MAX | ' 
+    + moment(heartBeat.entity.user.connectedMaxTime).format(defaultDateTimeFormat);
+  }
 
   // UTILS=========================
-  var utilRatio = heartBeat.entity.util.connected / heartBeat.entity.util.connectedMax;
+
+  var utilRatio = 0;
+
+  if (heartBeat.entity) {
+    utilRatio = heartBeat.entity.util.connected / heartBeat.entity.util.connectedMax;
+  }
 
   utilsBar.animate(utilRatio);
 
@@ -1719,9 +1743,11 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
     utilsBar.path.setAttribute('stroke', startColor);
   }
 
-  utilsBarText.innerHTML = (heartBeat.entity.util.connected) + ' UTILS | ' 
-  + (heartBeat.entity.util.connectedMax) + ' MAX | ' 
-  + moment(heartBeat.entity.util.connectedMaxTime).format(defaultDateTimeFormat);
+  if (heartBeat.entity) {
+    utilsBarText.innerHTML = (heartBeat.entity.util.connected) + ' UTILS | ' 
+    + (heartBeat.entity.util.connectedMax) + ' MAX | ' 
+    + moment(heartBeat.entity.util.connectedMaxTime).format(defaultDateTimeFormat);
+  }
 
 
   // WORDS =========================

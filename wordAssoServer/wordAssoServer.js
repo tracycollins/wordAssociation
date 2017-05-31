@@ -7296,21 +7296,36 @@ initializeConfiguration(configuration, function(err, results) {
     });
 
     sorter.on("error", function(err){
-      console.log(chalkError("*** SORTER ERROR ***\n" + jsonPrint(err)));
-      console.error(chalkError("*** SORTER ERROR ***\n" + jsonPrint(err)));
-      // quit(err);
+      console.log(chalkError(moment().format(compactDateTimeFormat)
+        + " | *** SORTER ERROR ***"
+        + " \n" + jsonPrint(err)
+      ));
+      console.error(chalkError(moment().format(compactDateTimeFormat)
+        + " | *** SORTER ERROR ***"
+        + " \n" + jsonPrint(err)
+      ));
     });
 
     sorter.on("exit", function(err){
-      console.log(chalkError("*** SORTER EXIT ***\n" + jsonPrint(err)));
-      console.error(chalkError("*** SORTER EXIT ***\n" + jsonPrint(err)));
-      // quit(err);
+      console.log(chalkError(moment().format(compactDateTimeFormat)
+        + " | *** SORTER EXIT ***"
+        + " \n" + jsonPrint(err)
+      ));
+      console.error(chalkError(moment().format(compactDateTimeFormat)
+        + " | *** SORTER EXIT ***"
+        + " \n" + jsonPrint(err)
+      ));
     });
 
     sorter.on("close", function(code){
-      console.log(chalkError("*** SORTER CLOSE *** | " + code));
-      console.error(chalkError("*** SORTER CLOSE *** | " + code));
-      // quit(code);
+      console.log(chalkError(moment().format(compactDateTimeFormat)
+        + " | *** SORTER CLOSE ***"
+        + " \n" + jsonPrint(err)
+      ));
+      console.error(chalkError(moment().format(compactDateTimeFormat)
+        + " | *** SORTER CLOSE ***"
+        + " \n" + jsonPrint(err)
+      ));
     });
 
     // ================================
@@ -7327,21 +7342,37 @@ initializeConfiguration(configuration, function(err, results) {
     });
 
     dbUpdater.on("error", function(err){
-      console.log(chalkError("*** DB UPDATER ERROR ***\n" + jsonPrint(err)));
-      console.error(chalkError("*** DB UPDATER ERROR ***\n" + jsonPrint(err)));
-      // quit(err);
+      console.log(chalkError(moment().format(compactDateTimeFormat)
+        + " | *** DB UPDATER ERROR ***"
+        + " \n" + jsonPrint(err)
+      ));
+      console.error(chalkError(moment().format(compactDateTimeFormat)
+        + " | *** DB UPDATER ERROR ***"
+        + " \n" + jsonPrint(err)
+      ));
     });
 
     dbUpdater.on("exit", function(err){
-      console.log(chalkError("*** DB UPDATER EXIT ***\n" + jsonPrint(err)));
-      console.error(chalkError("*** DB UPDATER EXIT ***\n" + jsonPrint(err)));
+      console.log(chalkError(moment().format(compactDateTimeFormat)
+        + " | *** DB UPDATER EXIT ***"
+        + " \n" + jsonPrint(err)
+      ));
+      console.error(chalkError(moment().format(compactDateTimeFormat)
+        + " | *** DB UPDATER EXIT ***"
+        + " \n" + jsonPrint(err)
+      ));
       // quit(err);
     });
 
     dbUpdater.on("close", function(code){
-      console.log(chalkError("*** DB UPDATER CLOSE *** | " + code));
-      console.error(chalkError("*** DB UPDATER CLOSE *** | " + code));
-      // quit(code);
+      console.log(chalkError(moment().format(compactDateTimeFormat)
+        + " | *** DB UPDATER CLOSE ***"
+        + " \n" + jsonPrint(err)
+      ));
+      console.error(chalkError(moment().format(compactDateTimeFormat)
+        + " | *** DB UPDATER CLOSE ***"
+        + " \n" + jsonPrint(err)
+      ));
     });
 
 
@@ -7349,21 +7380,37 @@ initializeConfiguration(configuration, function(err, results) {
     updater = cp.fork(`${__dirname}/js/libs/updateGroupsEntitiesChannels.js`);
 
     updater.on("error", function(err){
-      console.log(chalkError("*** UPDATER ERROR ***\n" + jsonPrint(err)));
-      console.error(chalkError("*** UPDATER ERROR ***\n" + jsonPrint(err)));
+      console.log(chalkError(moment().format(compactDateTimeFormat)
+        + " | *** UPDATER ERROR ***"
+        + " \n" + jsonPrint(err)
+      ));
+      console.error(chalkError(moment().format(compactDateTimeFormat)
+        + " | *** UPDATER ERROR ***"
+        + " \n" + jsonPrint(err)
+      ));
       // quit(err);
     });
 
     updater.on("exit", function(err){
-      console.log(chalkError("*** UPDATER EXIT ***\n" + jsonPrint(err)));
-      console.error(chalkError("*** UPDATER EXIT ***\n" + jsonPrint(err)));
-      // quit(err);
+      console.log(chalkError(moment().format(compactDateTimeFormat)
+        + " | *** UPDATER EXIT ***"
+        + " \n" + jsonPrint(err)
+      ));
+      console.error(chalkError(moment().format(compactDateTimeFormat)
+        + " | *** UPDATER EXIT ***"
+        + " \n" + jsonPrint(err)
+      ));
     });
 
     updater.on("close", function(code){
-      console.log(chalkError("*** UPDATER CLOSE *** | " + code));
-      console.error(chalkError("*** UPDATER CLOSE *** | " + code));
-      // quit(code);
+      console.log(chalkError(moment().format(compactDateTimeFormat)
+        + " | *** UPDATER CLOSE ***"
+        + " \n" + jsonPrint(err)
+      ));
+      console.error(chalkError(moment().format(compactDateTimeFormat)
+        + " | *** UPDATER CLOSE ***"
+        + " \n" + jsonPrint(err)
+      ));
     });
 
     updater.on("message", function(m){

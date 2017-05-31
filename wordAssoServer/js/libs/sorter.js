@@ -127,7 +127,7 @@ process.on('message', function(m) {
         process.send({ op: "SORTED", sortKey: params.sortKey, sortedKeys: sortedKeys}, function(err){
           if (err) {
             console.log(chalkError("!!! SORTER SEND ERR: " + err));
-            quit(err);
+            // quit(err);
           }
         });
       });
@@ -141,7 +141,7 @@ process.on('message', function(m) {
       process.send({ error: "ERROR", message: "UNKNOWN SORTER OP" + m.op }, function(err){
         if (err) {
           console.log(chalkError("!!! SORTER SEND ERR: " + err));
-          quit(err);
+          // quit(err);
         }
       });
   }
@@ -163,14 +163,6 @@ function sortedObjectValues(params, callback) {
 
   var endIndex = sortedKeys.length < params.max ? sortedKeys.length : params.max;
   var i;
-
-  // console.log(chalkLog("SORT ---------------------"));
-
-  // for (i=0; i<endIndex; i += 1){
-  //   console.log(chalkLog(params.obj[sortedKeys[i]][params.sortKey].toFixed(3)
-  //     + " | "  + sortedKeys[i] 
-  //   ));
-  // }
 
   callback(sortedKeys.slice(0,params.max));
 }

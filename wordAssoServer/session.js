@@ -230,7 +230,7 @@ statsObj.socketErrors = 0;
 statsObj.maxNodes = 0;
 statsObj.maxNodeAddQ = 0;
 statsObj.heartbeat = {};
-statsObj.heartbeat.wordsPerMinute = 0;
+statsObj.heartbeat.wordsPerMin = 0;
 statsObj.heartbeat.maxWordsPerMin = 0;
 statsObj.serverConnected = false;
 
@@ -511,6 +511,10 @@ function msToTime(duration) {
 }
 
 function getKeywordColor(kwObj, callback){
+
+  if (!kwObj || (kwObj === undefined)) {
+    return(callback(palette.white));
+  }
 
   /*
     kwObj = {
@@ -1150,6 +1154,10 @@ function getVisibilityEvent(prefix) {
   }
 }
 
+socket.on("SERVER_READY", function(serverAck) {
+  console.log("RX SERVER_READY | SERVER ACK: " + jsonPrint(serverAck));
+});
+
 socket.on("VIEWER_ACK", function(vSesKey) {
 
   statsObj.serverConnected = true;
@@ -1760,7 +1768,7 @@ function createStatsTable(callback) {
     type: 'TEXT',
     id: 'statsServerWordsPerMin',
     class: 'statsTableText',
-    text: statsObj.heartbeat.wordsPerMinute
+    text: statsObj.heartbeat.wordsPerMin
   };
 
   var statsServerMaxWordsPerMinLabel = {
@@ -1915,7 +1923,7 @@ function updateStatsTable(statsObj){
   document.getElementById("statsServerRunTime").innerHTML = msToTime(statsObj.heartbeat.runTime);
   document.getElementById("statsServerTotalWords").innerHTML = statsObj.heartbeat.totalWords;
   document.getElementById("statsServerWordsReceived").innerHTML = statsObj.heartbeat.responsesReceived;
-  document.getElementById("statsServerWordsPerMin").innerHTML = statsObj.heartbeat.wordsPerMinute.toFixed(2);
+  document.getElementById("statsServerWordsPerMin").innerHTML = statsObj.heartbeat.wordsPerMin.toFixed(2);
   document.getElementById("statsServerMaxWordsPerMin").innerHTML = statsObj.heartbeat.maxWordsPerMin.toFixed(2);
   document.getElementById("statsServerMaxWordsPerMinTime").innerHTML = moment(statsObj.heartbeat.maxWordsPerMinTime).format(defaultDateTimeFormat);
   document.getElementById("statsClientNumberNodes").innerHTML = currentSessionView.getNodesLength();
@@ -3790,7 +3798,9 @@ function initialize(callback) {
             initStatsUpdate(1000);
 
             console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
-            socket.emit("VIEWER_READY", viewerObj);
+            socket.emit("VIEWER_READY", viewerObj, function(data){
+              console.log("VIEWER_READY DATA: " + data); // data will be 'woot'
+            });
 
             setTimeout(function() {
               console.log("END PAGE LOAD TIMEOUT");

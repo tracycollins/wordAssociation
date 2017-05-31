@@ -7020,7 +7020,7 @@ function initRateQinterval(interval){
 
   statsObj.obamaPerMinute = 0.0;
   statsObj.trumpPerMinute = 0.0;
-  statsObj.wordsPerMinute = 0.0;
+  statsObj.wordsPerMin = 0.0;
   statsObj.wordsPerSecond = 0.0;
   statsObj.maxWordsPerMin = 0.0;
   statsObj.maxTweetsPerMin = 0.0;
@@ -7033,23 +7033,23 @@ function initRateQinterval(interval){
     if (!wsObj) {return;}
 
     statsObj.wordsPerSecond = wsObj.wordsPerSecond[metricsRate];
-    statsObj.wordsPerMinute = wsObj.wordsPerMinute[metricsRate];
+    statsObj.wordsPerMin = wsObj.wordsPerMinute[metricsRate];
 
     statsObj.obamaPerMinute = wsObj.obamaPerMinute[metricsRate];
     statsObj.trumpPerMinute = wsObj.trumpPerMinute[metricsRate];
 
     debug(chalkWarn(moment.utc().format(compactDateTimeFormat)
       + " | WPS: " + statsObj.wordsPerSecond.toFixed(2)
-      + " | WPM: " + statsObj.wordsPerMinute.toFixed(0)
+      + " | WPM: " + statsObj.wordsPerMin.toFixed(0)
       + " | OPM: " + statsObj.obamaPerMinute.toFixed(0)
       + " | TrPM: " + statsObj.trumpPerMinute.toFixed(0)
     ));
 
-    if (statsObj.wordsPerMinute > statsObj.maxWordsPerMin) {
+    if (statsObj.wordsPerMin > statsObj.maxWordsPerMin) {
       // maxWordsPerMin = wordsPerMinute;
       // maxWordsPerMinTime = moment.utc();
-      console.log(chalkLog("NEW MAX WPM: " + statsObj.wordsPerMinute.toFixed(0)));
-      statsObj.maxWordsPerMin = statsObj.wordsPerMinute;
+      console.log(chalkLog("NEW MAX WPM: " + statsObj.wordsPerMin.toFixed(0)));
+      statsObj.maxWordsPerMin = statsObj.wordsPerMin;
       statsObj.maxWordsPerMinTime = moment().valueOf();
     }
 
@@ -7154,7 +7154,7 @@ function initRateQinterval(interval){
       if (enableGoogleMetrics) {
         var dataPointWpm = {};
         dataPointWpm.metricType = "word/words_per_minute";
-        dataPointWpm.value = statsObj.wordsPerMinute;
+        dataPointWpm.value = statsObj.wordsPerMin;
         dataPointWpm.metricLabels = {server_id: "WORD"};
         addMetricDataPoint(dataPointWpm);
       }

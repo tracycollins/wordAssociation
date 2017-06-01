@@ -29,7 +29,7 @@ function quit(message) {
     msg = message;
     exitCode = 1;
   }
-  console.log(process.argv[1]
+  console.error(process.argv[1]
     + " | DB UPDATER: **** QUITTING"
     + " | CAUSE: " + msg
     + " | PID: " + process.pid

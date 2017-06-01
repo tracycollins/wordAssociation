@@ -284,7 +284,7 @@ function loadFile(path, file, callback) {
         return(callback(null, fileObj));
       } 
       catch (err) {
-        console.log(chalkError("DROPBOX JSON PARSE ERROR: FILE: " + file + " | ERROR: " + err));
+        console.error(chalkError("DROPBOX JSON PARSE ERROR: FILE: " + file + " | ERROR: " + err));
         return(callback(err, fileObj));
       }
 

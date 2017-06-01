@@ -63,7 +63,7 @@ var jsonPrint = function(obj) {
 function quit(message) {
   var msg = '';
   if (message) msg = message;
-  console.log(process.argv[1]
+  console.error(process.argv[1]
     + " | UPDATER: **** QUITTING"
     + " | CAUSE: " + msg
     + " | PID: " + process.pid
@@ -940,7 +940,7 @@ function loadConfig(file, callback){
   dropboxClient.filesDownload(options)
     .then(function(configJson) {
       console.log(chalkLog(getTimeStamp()
-        + " | LOADING CONFIG FROM DROPBOX FILE: " + file
+        + " | LOADING CONFIG FROM DROPBOX FILE: " + options.path
       ));
 
       try {

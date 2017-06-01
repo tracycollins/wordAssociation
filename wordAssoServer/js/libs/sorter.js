@@ -14,6 +14,19 @@ hostname = hostname.replace(/.local/g, '');
 hostname = hostname.replace(/.fios-router.home/g, '');
 hostname = hostname.replace(/word0-instance-1/g, 'google');
 
+console.log(
+  '\n\n====================================================================================================\n' 
+  + '========================================= ***START*** ==============================================\n' 
+  + '====================================================================================================\n' 
+  + process.argv[1] 
+  + '\nPROCESS ID  ' + process.pid 
+  + '\nSTARTED     ' + Date() 
+  + '\n' + '====================================================================================================\n' 
+  + '========================================= ***START*** ==============================================\n' 
+  + '====================================================================================================\n\n'
+);
+
+
 var jsonPrint = function(obj) {
   if (obj) {
     return JSON.stringify(obj, null, 2);
@@ -25,8 +38,8 @@ var jsonPrint = function(obj) {
 function quit(message) {
   var msg = '';
   if (message) msg = message;
-  console.log(process.argv[1]
-    + " | DB SORTER: **** QUITTING"
+  console.error(process.argv[1]
+    + " | SORTER: **** QUITTING"
     + " | CAUSE: " + msg
     + " | PID: " + process.pid
     
@@ -161,9 +174,10 @@ function sortedObjectValues(params, callback) {
   callback(sortedKeys.slice(0,params.max));
 }
 
-
 // setTimeout(function(){
-//   console.log(chalkRed("TEST KILLING SORTER"));
-//   console.log(chalkRed("UNDEFINED VAR " + thisIsNotDefined));
-// }, 10000);
+//   console.log(chalkRed("TEST KILLING SORTER | " + process.pid));
+//   console.log(chalkRed("UNDEFINED VAR | " + undefinedVar));
+//   // process.error();
+//   // quit("TEST ERROR");
+// }, 15000);
 

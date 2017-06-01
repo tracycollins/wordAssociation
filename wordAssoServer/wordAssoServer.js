@@ -7322,7 +7322,6 @@ function initDbUpdater(callback){
       + " | *** DB UPDATER EXIT ***"
       + " | EXIT CODE: " + code
     ));
-    // quit(err);
   });
 
   d.on("close", function(code){
@@ -7361,11 +7360,14 @@ function initUpdater(callback){
     
   });
 
-  u.on("exit", function(err){
+  u.on("exit", function(code){
     console.error(chalkError(moment().format(compactDateTimeFormat)
       + " | *** UPDATER EXIT ***"
-      + " \n" + jsonPrint(err)
+      + " | EXIT CODE: " + code
     ));
+
+    if (code > 0) { configEvents.emit("CHILD_ERROR", { name: "updater" }); }
+
   });
 
   u.on("close", function(code){

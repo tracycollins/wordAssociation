@@ -212,11 +212,11 @@ process.on('message', function(m) {
       });
       initUpdateStatsCountsInterval(5*ONE_MINUTE);
       updateGroupsInterval(options);
-      break;
+    break;
 
     case "UPDATE":
 
-      console.log(chalkInfo("UPDATE"
+      console.log(chalkInfo("UPDATER UPDATE"
         + " | UPDATE TYPE: " + m.updateType
         + " | KEYWORD FILE: " + m.keywordFile
         // + " | " + jsonPrint(m)
@@ -233,7 +233,17 @@ process.on('message', function(m) {
         console.log(chalkError("??? updateGroupsEntitiesKeywords RX UNKNOWN UPDATE TYPE\n" + jsonPrint(m)));
       }
 
-      break;
+    break;
+
+    case "PING":
+      console.log(chalkInfo("<UPDATER PING"
+        + " | " + m.timeStamp
+        + " | MESSAGE: " + m.message
+        + " | READY: " + initGroupsReady
+      ));
+
+      process.send({type: "pong", timeStamp: m.timeStamp});
+    break;
 
     default:
     console.log(chalkError("??? updateGroupsEntitiesKeywords RX UNKNOWN MESSAGE\n" + jsonPrint(m)));
@@ -256,7 +266,7 @@ function getFileMetadata(path, file, callback) {
       return(callback(null, response));
     })
     .catch(function(error) {
-      console.log(chalkError("GET FILE METADATA ERROR\n" + error));
+      console.error(chalkError("GET FILE METADATA ERROR\n" + error));
       return(callback(error, null));
     });
 }
@@ -502,7 +512,7 @@ var updateKeywords = function (folder, file, callback){
     var keywordFileClientModifiedMoment = moment(new Date(response.client_modified));
 
     if (keywordFileClientModifiedMoment.isSameOrBefore(prevKeywordModifiedMoment)){
-      debug(chalkInfo("KEYWORD FILE BEFORE OR EQUAL"
+      console.log(chalk.blue("KEYWORD FILE BEFORE OR EQUAL"
         + " | PREV: " + prevKeywordModifiedMoment.format(compactDateTimeFormat)
         + " | " + keywordFileClientModifiedMoment.format(compactDateTimeFormat)
       ));
@@ -625,6 +635,9 @@ var updateKeywords = function (folder, file, callback){
 }
 
 function updateGroupsEntitiesKeywords(options, callback){
+
+  debug(chalk.blue("updateGroupsEntitiesKeywords\n" + jsonPrint(options)));
+
   async.parallel({
 
     groups: function (cb) {
@@ -654,7 +667,7 @@ function updateGroupsEntitiesKeywords(options, callback){
       console.log(chalkError("updateGroupsEntitiesKeywords ERROR\n" + err));
     }
     else {
-      debug(chalkInfo("updateGroupsEntitiesKeywords COMPLETE"
+      debug(chalk.blue("updateGroupsEntitiesKeywords COMPLETE"
         + "\n" + jsonPrint(results)
       ));
     }
@@ -701,7 +714,7 @@ function sendHashMaps(hashmapsObj, callback){
       callback(err, null);
     }
     else {
-      console.log(chalkInfo("sendHashMaps COMPLETE"
+      debug(chalkInfo("sendHashMaps COMPLETE"
         + " | G: " + hashmapsObj.groups
         + " | E: " + hashmapsObj.entities
         + " | K: " + hashmapsObj.keywords
@@ -884,6 +897,8 @@ function updateGroupsInterval(options){
 
   initGroupsInterval = setInterval(function() {
 
+    debug(chalk.blue("=== UPDATER INTERVAL"));
+
     if (initGroupsReady) {
       debug(chalk.blue("UPDATER: ===> updateGroupsInterval <==="
         + "\n" + jsonPrint(options)
@@ -949,7 +964,7 @@ function loadConfig(file, callback){
         return(callback(null, configObj));
       } 
       catch (err) {
-        console.log(chalkError("DROPBOX JSON PARSE ERROR: FILE: " + file + " | ERROR: " + err));
+        console.error(chalkError("DROPBOX JSON PARSE ERROR: FILE: " + file + " | ERROR: " + err));
         return(callback(err, fileObj));
       }
 
@@ -1111,7 +1126,10 @@ function initGroups(dropboxConfigFile, callback){
       return(callback(err, loadedConfigObj));
     }
     else {
-      // console.error(dropboxConfigFile + "\n" + jsonPrint(err));
+      console.error("initGroups"
+        + " | " + dropboxConfigFile
+        + "\n" + jsonPrint(err)
+      );
       return(callback(err, loadedConfigObj));
      }
   });
@@ -1126,6 +1144,10 @@ function initEntityChannelGroups(dropboxConfigFile, callback){
       return(callback(err, loadedConfigObj));
     }
     else {
+      console.error("initEntityChannelGroups"
+        + " | " + dropboxConfigFile
+        + "\n" + jsonPrint(err)
+      );
       return(callback(err, loadedConfigObj));
      }
   });

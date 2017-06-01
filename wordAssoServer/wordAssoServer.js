@@ -3,6 +3,7 @@
 
 // require("longjohn");
 
+var updaterPingOutstanding = 0;
 // var metricsRate = "1MinuteRate";
 var metricsRate = "5MinuteRate";
 
@@ -188,7 +189,7 @@ hostname = hostname.replace(/.fios-router.home/g, "");
 hostname = hostname.replace(/word0-instance-1/g, "google");
 
 var DB_UPDATE_INTERVAL = 10;
-var GROUP_UPDATE_INTERVAL = 15000;
+var GROUP_UPDATE_INTERVAL = 30000;
 var MAX_RESPONSE_QUEUE_SIZE = 1000;
 var OFFLINE_MODE = false;
 var internetReady = false;
@@ -5377,11 +5378,21 @@ function initUpdaterMessageQueueInterval(interval){
 
       var updaterObj = updaterMessageQueue.dequeue();
 
-      // console.log(chalkLog("UM"
+      // console.log(chalk.blue("UM"
       //   + " | " + updaterObj.type
       // ));
 
       switch (updaterObj.type){
+
+        case "pong":
+          console.log(chalkLog("<UPDATER PONG"
+            + " | " + moment().format(compactDateTimeFormat)
+            + " | " + updaterObj.timeStamp
+          ));
+          updaterPingOutstanding = 0;
+          updaterMessageReady = true;
+        break;
+
         case "stats":
           console.log(chalkLog("UPDATE STATS COMPLETE"
             + " | DB\n" + jsonPrint(updaterObj.db)
@@ -7275,6 +7286,44 @@ var defaultDropboxEntityChannelGroupsConfigFile = DROPBOX_WA_ENTITY_CHANNEL_GROU
 //=================================
 // PROCESS HANDLERS
 //=================================
+var updaterPingInterval;
+
+function initUpdaterPingInterval(interval){
+
+  console.log(chalkAlert("INIT UPDATER PING INTERVAL"
+    + " | " + interval + " MS"
+  ));
+
+  clearInterval(updaterPingInterval);
+
+  updaterPingInterval = setInterval(function() {
+
+    if (updaterPingOutstanding > 0) {
+      console.error(chalkError("PING OUTSTANDING | " + updaterPingOutstanding));
+      updaterPingOutstanding = 0;
+      initUpdater();
+    }
+
+    updaterPingOutstanding = moment().format(compactDateTimeFormat);
+
+    if (updater !== undefined){
+      updater.send({
+        op: "PING",
+        message: hostname + "_" + process.pid,
+        timeStamp: updaterPingOutstanding
+      });
+
+      debug(chalkAlert(">UPDATER PING"
+      ));
+
+    }
+    else {
+      console.log(chalkError("!!! NO UPDATER PING ... UNDEFINED"
+      ));
+    }
+  }, interval);
+}
+
 
 
 function initIgnoreWordsHashMap(callback) {
@@ -7338,6 +7387,8 @@ function initDbUpdater(callback){
 
 function initUpdater(callback){
 
+  clearInterval(updaterPingInterval);
+
   if (updater !== undefined) {
     console.error("KILLING PREVIOUS UPDATER | " + updater.pid);
     updater.kill("SIGINT");
@@ -7356,6 +7407,8 @@ function initUpdater(callback){
       + " \n" + jsonPrint(err)
     ));
 
+    clearInterval(updaterPingInterval);
+
     configEvents.emit("CHILD_ERROR", { name: "updater" });
     
   });
@@ -7366,6 +7419,8 @@ function initUpdater(callback){
       + " | EXIT CODE: " + code
     ));
 
+    clearInterval(updaterPingInterval);
+
     if (code > 0) { configEvents.emit("CHILD_ERROR", { name: "updater" }); }
 
   });
@@ -7375,6 +7430,8 @@ function initUpdater(callback){
       + " | *** UPDATER CLOSE ***"
       + " | EXIT CODE: " + code
     ));
+
+    clearInterval(updaterPingInterval);
   });
 
   u.on("message", function(m){
@@ -7390,6 +7447,8 @@ function initUpdater(callback){
     keywordFile: defaultDropboxKeywordFile,
     interval: GROUP_UPDATE_INTERVAL
   });
+
+  initUpdaterPingInterval(60000);
 
   updater = u;
 

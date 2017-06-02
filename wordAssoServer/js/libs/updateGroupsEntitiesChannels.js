@@ -197,12 +197,12 @@ process.on('message', function(m) {
       };
 
       updateStatsCounts(function(err, results){
-        if (err) { console.log(chalkError("STATS COUNTS ERROR\n" + jsonPrint(err))); }
+        if (err) { console.error(chalkError("STATS COUNTS ERROR\n" + jsonPrint(err))); }
         debug(chalkRed("STATS COUNTS\n" + jsonPrint(results)));
         process.send({ type: 'stats', db: results}, function(err){
           statsCountsComplete = true;
           if (err){
-            console.log(chalkError("STATS SEND ERROR\n" + err));
+            console.error(chalkError("STATS SEND ERROR\n" + err));
           }
           else {
             debug(chalkInfo("UPDATER SENT STATS"
@@ -230,7 +230,7 @@ process.on('message', function(m) {
           break;
 
         default:
-        console.log(chalkError("??? updateGroupsEntitiesKeywords RX UNKNOWN UPDATE TYPE\n" + jsonPrint(m)));
+        console.error(chalkError("??? updateGroupsEntitiesKeywords RX UNKNOWN UPDATE TYPE\n" + jsonPrint(m)));
       }
 
     break;
@@ -246,7 +246,7 @@ process.on('message', function(m) {
     break;
 
     default:
-    console.log(chalkError("??? updateGroupsEntitiesKeywords RX UNKNOWN MESSAGE\n" + jsonPrint(m)));
+    console.error(chalkError("??? updateGroupsEntitiesKeywords RX UNKNOWN MESSAGE\n" + jsonPrint(m)));
 
   }
 });
@@ -265,9 +265,13 @@ function getFileMetadata(path, file, callback) {
       debug(chalkInfo("FILE META\n" + jsonPrint(response)));
       return(callback(null, response));
     })
-    .catch(function(error) {
-      console.error(chalkError("GET FILE METADATA ERROR\n" + error));
-      return(callback(error, null));
+    .catch(function(err) {
+      console.error(chalkError("GET FILE METADATA" 
+        + " | PATH: " + fullPath
+        + "\n" + jsonPrint(err)
+      ));
+      console.error(chalkError("GET FILE METADATA ERROR\n" + jsonPrint(err)));
+      return(callback(err, null));
     });
 }
 
@@ -300,9 +304,9 @@ function loadFile(path, file, callback) {
 
      })
     .catch(function(error) {
-      console.log(chalkAlert("DROPBOX loadFile ERROR: " + file + "\n" + error));
-      console.log(chalkError("!!! DROPBOX READ " + file + " ERROR: " + error.error));
-      console.log(chalkError(jsonPrint(error)));
+      console.error(chalkAlert("DROPBOX loadFile ERROR: " + file + "\n" + error));
+      console.error(chalkError("!!! DROPBOX READ " + file + " ERROR: " + error.error));
+      console.error(chalkError(jsonPrint(error)));
 
       if (error["status"] === 404) {
         console.error(chalkError("!!! DROPBOX READ FILE " + file + " NOT FOUND ... SKIPPING ..."));
@@ -321,6 +325,14 @@ var updateGroups = function (path, configFile, callback){
   debug(chalkInfo("UPDATE GROUPS " + configFile));
 
   getFileMetadata(path, configFile, function(err, response){
+
+    if (err) {
+      console.error(moment().format(compactDateTimeFormat)
+        + " | " + "updateGroups getFileMetadata ERROR"
+        + "\n" + jsonPrint(err)
+      );
+      return(callback(err, null));
+    }
 
     var groupsFileClientModifiedMoment = moment(new Date(response.client_modified));
   
@@ -345,7 +357,7 @@ var updateGroups = function (path, configFile, callback){
 
       initGroups(configFile, function(err, groups){
         if (err){
-          console.log(chalkError("*** ERROR initEntityChannelGroups"
+          console.error(chalkError("*** ERROR initEntityChannelGroups"
             + " | CONFIG FILE: " + configFile
             + " | " + err
           ));
@@ -407,6 +419,14 @@ var updateEntityChannelGroups = function (path, configFile, callback){
 
   getFileMetadata(path, configFile, function(err, response){
 
+    if (err) {
+      console.error(moment().format(compactDateTimeFormat)
+        + " | " + "updateEntityChannelGroups getFileMetadata ERROR"
+        + "\n" + jsonPrint(err)
+      );
+      return(callback(err, null));
+    }
+
     var entitiesFileClientModifiedMoment = moment(new Date(response.client_modified));
   
     if (entitiesFileClientModifiedMoment.isSameOrBefore(prevEntitiesFileClientModifiedMoment)){
@@ -430,7 +450,7 @@ var updateEntityChannelGroups = function (path, configFile, callback){
 
       initEntityChannelGroups(configFile, function(err, entityChannelGroups){
         if (err){
-          console.log(chalkError("*** ERROR initEntityChannelGroups"
+          console.error(chalkError("*** ERROR initEntityChannelGroups"
             + " | CONFIG FILE: " + configFile
             + "\n" + jsonPrint(err)
           ));
@@ -509,6 +529,14 @@ var updateKeywords = function (folder, file, callback){
 
   getFileMetadata(folder, file, function(err, response){
 
+    if (err) {
+      console.error(moment().format(compactDateTimeFormat)
+        + " | " + "updateKeywords getFileMetadata ERROR"
+        + "\n" + jsonPrint(err)
+      );
+      return(callback(err, null));
+    }
+
     var keywordFileClientModifiedMoment = moment(new Date(response.client_modified));
 
     if (keywordFileClientModifiedMoment.isSameOrBefore(prevKeywordModifiedMoment)){
@@ -531,7 +559,7 @@ var updateKeywords = function (folder, file, callback){
       loadFile(folder, file, function(err, kwordsObj){
 
         if (err) {
-          console.log(chalkError("LOAD FILE ERROR"
+          console.error(chalkError("LOAD FILE ERROR"
             + " | " + file
             + " | " + err
           ));
@@ -596,7 +624,7 @@ var updateKeywords = function (folder, file, callback){
 
               wordServer.findOneWord(wordObj, false, function(err, updatedWordObj) {
                 if (err){
-                  console.log(chalkError("ERROR: UPDATING KEYWORD | " + wd + ": " + kwordsObj[wd]));
+                  console.error(chalkError("ERROR: UPDATING KEYWORD | " + wd + ": " + kwordsObj[wd]));
                   cb(err);
                 }
                 else {
@@ -616,7 +644,7 @@ var updateKeywords = function (folder, file, callback){
 
             function(err) {
               if (err) {
-                console.log(chalkError("initKeywords ERROR! " + err));
+                console.error(chalkError("initKeywords ERROR! " + err));
                 callback(err, null);
               }
               else {
@@ -664,7 +692,7 @@ function updateGroupsEntitiesKeywords(options, callback){
   },
   function(err, results){
     if (err) {
-      console.log(chalkError("updateGroupsEntitiesKeywords ERROR\n" + err));
+      console.error(chalkError("updateGroupsEntitiesKeywords ERROR\n" + err));
     }
     else {
       debug(chalk.blue("updateGroupsEntitiesKeywords COMPLETE"
@@ -703,14 +731,14 @@ function sendHashMaps(hashmapsObj, callback){
           sendKeywords(function(err, numKeywords){ cb(err); });
         break;
         default:
-          console.log(chalkError("sendHashMaps UNKNOWN HASHMAP " + hashmap + " " + hashmapsObj[hashmap]));
+          console.error(chalkError("sendHashMaps UNKNOWN HASHMAP " + hashmap + " " + hashmapsObj[hashmap]));
           cb(hashmap);
       }
     }
   },
   function(err){
     if (err) {
-      console.log(chalkError("sendHashMaps ERROR! " + err));
+      console.error(chalkError("sendHashMaps ERROR! " + err));
       callback(err, null);
     }
     else {
@@ -737,7 +765,7 @@ function sendGroups(callback){
 
       process.send({ type: 'group', groupId: groupId, group: groupObj}, function(err){
         if (err){
-          console.log(chalkError("sendGroups ERROR\n" + err));
+          console.error(chalkError("sendGroups ERROR\n" + err));
           cb(err);
         }
         else {
@@ -752,7 +780,7 @@ function sendGroups(callback){
 
     function(err) {
       if (err) {
-        console.log(chalkError("sendGroups ERROR! " + err));
+        console.error(chalkError("sendGroups ERROR! " + err));
         callback(err, null);
       }
       else {
@@ -776,7 +804,7 @@ function sendEntities(callback){
 
       process.send({ type: 'entity', entityId: entityId, entity: entityObj}, function(err){
         if (err){
-          console.log(chalkError("sendEntities ERROR\n" + err));
+          console.error(chalkError("sendEntities ERROR\n" + err));
           cb(err);
         }
         else {
@@ -791,7 +819,7 @@ function sendEntities(callback){
 
     function(err) {
       if (err) {
-        console.log(chalkError("sendEntities ERROR! " + err));
+        console.error(chalkError("sendEntities ERROR! " + err));
         callback(err, null);
       }
       else {
@@ -838,7 +866,7 @@ function sendKeywords(callback){
 
       process.send(updaterObj, function(err){
         if (err){
-          console.log(chalkError("sendKeywords ERROR\n" + err));
+          console.error(chalkError("sendKeywords ERROR\n" + err));
           cb(err);
         }
         else {
@@ -856,7 +884,7 @@ function sendKeywords(callback){
 
     function(err) {
       if (err) {
-        console.log(chalkError("sendKeywords ERROR! " + err));
+        console.error(chalkError("sendKeywords ERROR! " + err));
         callback(err, null);
       }
       else {
@@ -987,7 +1015,7 @@ function updateStatsCounts(callback) {
     totalAdmins: function (cb) {
       Admin.count({}, function(err, count) {
         if (err) {
-          console.log(chalkError("DB ADMIN COUNTER ERROR\n" + jsonPrint(err)));
+          console.error(chalkError("DB ADMIN COUNTER ERROR\n" + jsonPrint(err)));
           cb(err, null);
         }
         else {
@@ -999,7 +1027,7 @@ function updateStatsCounts(callback) {
     totalUsers: function (cb) {
       User.count({}, function(err, count) {
         if (err) {
-          console.log(chalkError("DB USER COUNTER ERROR\n" + jsonPrint(err)));
+          console.error(chalkError("DB USER COUNTER ERROR\n" + jsonPrint(err)));
           cb(err, null);
         }
         else {
@@ -1011,7 +1039,7 @@ function updateStatsCounts(callback) {
     totalViewers: function (cb) {
       Viewer.count({}, function(err, count) {
         if (err) {
-          console.log(chalkError("DB VIEWER COUNTER ERROR\n" + jsonPrint(err)));
+          console.error(chalkError("DB VIEWER COUNTER ERROR\n" + jsonPrint(err)));
           cb(err, null);
         }
         else {
@@ -1023,7 +1051,7 @@ function updateStatsCounts(callback) {
     totalSessions: function (cb) {
       Session.count({}, function(err, count) {
         if (err) {
-          console.log(chalkError("DB USER COUNTER ERROR\n" + jsonPrint(err)));
+          console.error(chalkError("DB USER COUNTER ERROR\n" + jsonPrint(err)));
           cb(err, null);
         }
         else {
@@ -1035,7 +1063,7 @@ function updateStatsCounts(callback) {
     totalWords: function (cb) {
       Word.count({}, function(err, count) {
         if (err) {
-          console.log(chalkError("DB USER COUNTER ERROR\n" + jsonPrint(err)));
+          console.error(chalkError("DB USER COUNTER ERROR\n" + jsonPrint(err)));
           cb(err, null);
         }
         else {
@@ -1047,7 +1075,7 @@ function updateStatsCounts(callback) {
     totalGroups: function (cb) {
       Group.count({}, function(err, count) {
         if (err) {
-          console.log(chalkError("DB USER COUNTER ERROR\n" + jsonPrint(err)));
+          console.error(chalkError("DB USER COUNTER ERROR\n" + jsonPrint(err)));
           cb(err, null);
         }
         else {
@@ -1059,7 +1087,7 @@ function updateStatsCounts(callback) {
     totalEntities: function (cb) {
       Entity.count({}, function(err, count) {
         if (err) {
-          console.log(chalkError("DB USER COUNTER ERROR\n" + jsonPrint(err)));
+          console.error(chalkError("DB USER COUNTER ERROR\n" + jsonPrint(err)));
           cb(err, null);
         }
         else {
@@ -1071,7 +1099,7 @@ function updateStatsCounts(callback) {
   },
   function(err, results) { //async.parallel callback
     if (err) {
-      console.log(chalkError("\n" + moment().format(compactDateTimeFormat) 
+      console.error(chalkError("\n" + moment().format(compactDateTimeFormat) 
         + "!!! UPDATE STATS COUNTS ERROR: " + err));
       statsCountsComplete = true;
       if (callback !== undefined) { callback(err, null); }
@@ -1096,12 +1124,12 @@ function initUpdateStatsCountsInterval(interval){
     if (statsCountsComplete){
       statsCountsComplete = false;
       updateStatsCounts(function(err, results){
-        if (err) { console.log(chalkError("STATS COUNTS ERROR\n" + jsonPrint(err))); }
+        if (err) { console.error(chalkError("STATS COUNTS ERROR\n" + jsonPrint(err))); }
         debug(chalkRed("STATS COUNTS\n" + jsonPrint(results)));
         process.send({ type: 'stats', db: results}, function(err){
           statsCountsComplete = true;
           if (err){
-            console.log(chalkError("updateGroupsEntitiesChannels STATS SEND ERROR\n" + err));
+            console.error(chalkError("updateGroupsEntitiesChannels STATS SEND ERROR\n" + err));
             console.error(chalkError("updateGroupsEntitiesChannels STATS SEND ERROR\n" + err));
           }
           else {

@@ -7125,7 +7125,9 @@ function initRateQinterval(interval){
       params.obj = wordMeter;
 
       if (sorter !== undefined) {
-        sorter.send(params);
+        sorter.send(params, function(results){
+          console.log("SORTER results\n" + jsonPrint(results));
+        });
       }
 
       if (enableGoogleMetrics) {

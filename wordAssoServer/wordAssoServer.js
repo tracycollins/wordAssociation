@@ -8,6 +8,13 @@ var updaterPingOutstanding = 0;
 var metricsRate = "5MinuteRate";
 
 var DEFAULT_INTERVAL = 10; // ms
+var DB_UPDATE_INTERVAL = 10;
+var GROUP_UPDATE_INTERVAL = 30000;
+var MAX_RESPONSE_QUEUE_SIZE = 1000;
+var MAX_SESSION_QUEUE_SIZE = 500;
+var OFFLINE_MODE = false;
+var internetReady = false;
+
 var compactDateTimeFormat = "YYYYMMDD HHmmss";
 
 // ==================================================================
@@ -188,11 +195,6 @@ hostname = hostname.replace(/.at.net/g, "");
 hostname = hostname.replace(/.fios-router.home/g, "");
 hostname = hostname.replace(/word0-instance-1/g, "google");
 
-var DB_UPDATE_INTERVAL = 10;
-var GROUP_UPDATE_INTERVAL = 30000;
-var MAX_RESPONSE_QUEUE_SIZE = 1000;
-var OFFLINE_MODE = false;
-var internetReady = false;
 // var pollTwitterFriendsIntervalTime = 5*ONE_MINUTE;
 
 var TOPTERMS_CACHE_DEFAULT_TTL = 300;
@@ -995,11 +997,6 @@ sessionCache.on("expired", function(sessionId, sessionObj) {
   console.log(chalkInfo("... SESS $ XXX"
     + " | " + sessionId
   ));
-  // sessionQueue.enqueue({
-  //   sessionEvent: "SESSION_EXPIRED",
-  //   sessionId: sessionId,
-  //   session: sessionObj
-  // });
 
   io.of(sessionObj.namespace).to(sessionId).emit("SESSION_EXPIRED", sessionId);
 
@@ -1562,11 +1559,13 @@ function sessionUpdateDbCache(request, callback){
         // + "\nUSER OBJ\n" + jsonPrint(userObj)
       ));
 
-      sessionQueue.enqueue({
-        sessionEvent: "USER_READY",
-        session: sObj,
-        user: userObj
-      });
+      if (sessionQueue.size() < MAX_SESSION_QUEUE_SIZE){
+        sessionQueue.enqueue({
+          sessionEvent: "USER_READY",
+          session: sObj,
+          user: userObj
+        });
+      }
 
       callback(null, sObj);
     }
@@ -1979,12 +1978,13 @@ function initSessionSocketHandler(sessionObj, socket) {
           sObj.config.type = userObj.mode;
         }
 
-        sessionQueue.enqueue({
-          sessionEvent: "SESSION_KEEPALIVE",
-          session: sObj,
-          user: userObj
-        });
-
+        if (sessionQueue.size() < MAX_SESSION_QUEUE_SIZE){
+          sessionQueue.enqueue({
+            sessionEvent: "SESSION_KEEPALIVE",
+            session: sObj,
+            user: userObj
+          });
+        }
       }
 
     });
@@ -2622,10 +2622,12 @@ function createSession(newSessionObj) {
       depth: 1
     })));
 
-    sessionQueue.enqueue({
-      sessionEvent: "SESSION_CREATE",
-      session: sessionObj
-    });
+    if (sessionQueue.size() < MAX_SESSION_QUEUE_SIZE){
+      sessionQueue.enqueue({
+        sessionEvent: "SESSION_CREATE",
+        session: sessionObj
+      });
+    }
 
   });
 

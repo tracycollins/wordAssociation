@@ -217,7 +217,7 @@ function initDbUpdateQueueInterval(interval){
                 process.send({ op: "UPDATED", updateType: "word", word: updatedWordObj}, function(err){
                   if (err) {
                     console.log(chalkError("!!! DB UPDATER SEND ERR: " + err));
-                    quit(err);
+                    // quit(err);
                   }
                 });
               }

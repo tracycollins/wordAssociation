@@ -3051,6 +3051,12 @@ function dbUpdateWord(wObj, incMentions, callback) {
       mode: "return",
       incMentions: incMentions,
       word: wordObj
+    }, function(err){
+      if (err) {
+        console.error(chalkError("*** DB UPDATER SEND ERROR"
+          + " | " + err
+        ));
+      }
     });
 
     if (callback !== undefined) { callback(null, wordObj); }
@@ -7125,8 +7131,12 @@ function initRateQinterval(interval){
       params.obj = wordMeter;
 
       if (sorter !== undefined) {
-        sorter.send(params, function(results){
-          console.log("SORTER results\n" + jsonPrint(results));
+        sorter.send(params, function(err){
+          if (err) {
+            console.error(chalkError("SORTER SEND ERROR"
+              + " | " + err
+            ));
+          }
         });
       }
 
@@ -7315,6 +7325,12 @@ function initUpdaterPingInterval(interval){
         op: "PING",
         message: hostname + "_" + process.pid,
         timeStamp: updaterPingOutstanding
+      }, function(err){
+        if (err) {
+          console.error(chalkError("*** SORTER SEND ERROR"
+            + " | " + err
+          ));
+        }
       });
 
       debug(chalkAlert(">UPDATER PING"
@@ -7361,6 +7377,12 @@ function initDbUpdater(callback){
   d.send({
     op: "INIT",
     interval: DB_UPDATE_INTERVAL
+  }, function(err){
+    if (err) {
+      console.error(chalkError("*** DB UPDATER SEND ERROR"
+        + " | " + err
+      ));
+    }
   });
 
   d.on("error", function(err){
@@ -7450,6 +7472,12 @@ function initUpdater(callback){
     entityChannelGroupsConfigFile: defaultDropboxEntityChannelGroupsConfigFile,
     keywordFile: defaultDropboxKeywordFile,
     interval: GROUP_UPDATE_INTERVAL
+  }, function(err){
+    if (err) {
+      console.error(chalkError("*** UPDATER SEND ERROR"
+        + " | " + err
+      ));
+    }
   });
 
   initUpdaterPingInterval(60000);
@@ -7484,6 +7512,12 @@ function initSorter(callback){
   s.send({
     op: "INIT",
     interval: DB_UPDATE_INTERVAL
+  }, function(err){
+    if (err) {
+      console.error(chalkError("*** SORTER SEND ERROR"
+        + " | " + err
+      ));
+    }
   });
 
   s.on("error", function(err){

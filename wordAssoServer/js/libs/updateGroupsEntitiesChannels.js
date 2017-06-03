@@ -248,7 +248,13 @@ process.on('message', function(m) {
         + " | READY: " + initGroupsReady
       ));
 
-      process.send({type: "pong", timeStamp: m.timeStamp});
+      process.send({type: "pong", timeStamp: m.timeStamp}, function(err){
+        if (err) {
+          console.error(chalkError("*** UPDATER SEND ERROR"
+            + " | " + err
+          ));
+        }
+      });
     break;
 
     default:
@@ -791,7 +797,14 @@ function sendGroups(callback){
       }
       else {
         debug(chalkInfo("sendGroups COMPLETE | " + groupIds.length + " KEYWORDS"));
-        process.send({ type: 'sendGroupsComplete'});
+        process.send({ type: 'sendGroupsComplete'}, function(err){
+          if (err) {
+            console.error(chalkError("*** UPDATER SEND GROUPS ERROR"
+              + " | " + err
+            ));
+            return(callback(err, null));
+          }
+        });
         callback(null, groupIds.length);
       }
     }
@@ -830,7 +843,14 @@ function sendEntities(callback){
       }
       else {
         debug(chalkInfo("sendEntities COMPLETE | " + entityIds.length + " KEYWORDS"));
-        process.send({ type: 'sendEntitiesComplete'});
+        process.send({ type: 'sendEntitiesComplete'}, function(err){
+          if (err) {
+            console.error(chalkError("*** UPDATER SEND ENTITIES ERROR"
+              + " | " + err
+            ));
+            return(callback(err, null));
+          }
+        });
         callback(null, entityIds.length);
       }
     }
@@ -895,7 +915,14 @@ function sendKeywords(callback){
       }
       else {
         debug(chalkInfo("sendKeywords COMPLETE | " + words.length + " KEYWORDS"));
-        process.send({ type: 'sendKeywordsComplete'});
+        process.send({ type: 'sendKeywordsComplete'}, function(err){
+          if (err) {
+            console.error(chalkError("*** UPDATER SEND KEYWORDS ERROR"
+              + " | " + err
+            ));
+            return(callback(err, null));
+          }
+        });
         callback(null, words.length);
       }
     }

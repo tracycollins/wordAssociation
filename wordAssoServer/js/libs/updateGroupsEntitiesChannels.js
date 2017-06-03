@@ -197,8 +197,13 @@ process.on('message', function(m) {
       };
 
       updateStatsCounts(function(err, results){
-        if (err) { console.error(chalkError("STATS COUNTS ERROR\n" + jsonPrint(err))); }
+        if (err) { 
+          console.error(chalkError("STATS COUNTS ERROR\n" + jsonPrint(err)));
+          return;
+        }
+
         debug(chalkRed("STATS COUNTS\n" + jsonPrint(results)));
+
         process.send({ type: 'stats', db: results}, function(err){
           statsCountsComplete = true;
           if (err){
@@ -209,6 +214,7 @@ process.on('message', function(m) {
             ));
           }
         });
+
       });
       initUpdateStatsCountsInterval(5*ONE_MINUTE);
       updateGroupsInterval(options);

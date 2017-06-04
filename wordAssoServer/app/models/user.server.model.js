@@ -8,6 +8,7 @@ var UserSchema = new Schema({
 	nodeId: { type: String	},
 	nodeType: { type: String, default: "user"},
 	name: { type: String },
+	isTwitterUser: { type: Boolean },
 	screenName: { type: String },
 	url: { type: String	},
 	profileUrl: { type: String },

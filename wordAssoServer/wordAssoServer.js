@@ -7,11 +7,11 @@ var updaterPingOutstanding = 0;
 // var metricsRate = "1MinuteRate";
 var metricsRate = "5MinuteRate";
 
-var DEFAULT_INTERVAL = 10; // ms
-var DB_UPDATE_INTERVAL = 10;
+var DEFAULT_INTERVAL = 5; // ms
+var DB_UPDATE_INTERVAL = 5;
 var GROUP_UPDATE_INTERVAL = 30000;
-var MAX_RESPONSE_QUEUE_SIZE = 1000;
-var MAX_SESSION_QUEUE_SIZE = 500;
+var MAX_RESPONSE_QUEUE_SIZE = 100;
+var MAX_SESSION_QUEUE_SIZE = 100;
 var OFFLINE_MODE = false;
 var internetReady = false;
 
@@ -583,6 +583,9 @@ statsObj.group = {};
 statsObj.group.errors = 0;
 
 statsObj.memory = {};
+statsObj.memory.rss = process.memoryUsage().rss/(1024*1024);
+statsObj.memory.maxRss = process.memoryUsage().rss/(1024*1024);
+statsObj.memory.maxRssTime = moment().valueOf();
 statsObj.memory.heap = process.memoryUsage().heapUsed/(1024*1024);
 statsObj.memory.maxHeap = process.memoryUsage().heapUsed/(1024*1024);
 statsObj.memory.maxHeapTime = moment().valueOf();
@@ -622,16 +625,26 @@ function showStats(options){
   statsObj.elapsed = msToTime(moment().valueOf() - statsObj.startTime);
   statsObj.timeStamp = moment().format(compactDateTimeFormat);
 
+  statsObj.memory.rss = process.memoryUsage().rss/(1024*1024);
+  if (statsObj.memory.rss > statsObj.memory.maxRss) {
+    statsObj.memory.maxRss = statsObj.memory.rss;
+    statsObj.memory.maxRssTime = moment().valueOf();
+    console.log(chalkAlert("NEW MAX RSS"
+      + " | " + moment().format(compactDateTimeFormat)
+      + " | " + statsObj.memory.rss.toFixed(0) + " MB"
+    ));
+  }
+
   statsObj.memory.heap = process.memoryUsage().heapUsed/(1024*1024);
-  // statsObj.memory.maxHeap = Math.max(statsObj.memory.maxHeap, statsObj.memory.heap);
   if (statsObj.memory.heap > statsObj.memory.maxHeap) {
     statsObj.memory.maxHeap = statsObj.memory.heap;
     statsObj.memory.maxHeapTime = moment().valueOf();
     console.log(chalkAlert("NEW MAX HEAP"
       + " | " + moment().format(compactDateTimeFormat)
       + " | " + statsObj.memory.heap.toFixed(0) + " MB"
-    ))
+    ));
   }
+
   statsObj.memory.memoryUsage = process.memoryUsage();
 
   statsObj.queues.rxWordQueue = rxWordQueue.size();
@@ -646,26 +659,32 @@ function showStats(options){
   if (options) {
     console.log(chalkLog("S"
       // + " | " + statsObj.socketId
-      + " | ELAPSED: " + statsObj.elapsed
-      + " | START: " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat)
-      + " | NOW: " + moment().format(compactDateTimeFormat)
+      + " | ELPSD: " + statsObj.elapsed
+      + " | STRT: " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat)
+      + " | " + moment().format(compactDateTimeFormat)
       + " | DBM Q: " + dbUpdaterMessageRxQueue.size()
-      + " | HEAP: " + statsObj.memory.heap.toFixed(0) + " MB"
-      + " | MAX HEAP: " + statsObj.memory.maxHeap.toFixed(0)
-      + " | MAX HEAP TIME: " + moment(parseInt(statsObj.memory.maxHeapTime)).format(compactDateTimeFormat)
+      + " || RSS: " + statsObj.memory.rss.toFixed(0) + " MB"
+      + " | MAX: " + statsObj.memory.maxRss.toFixed(0)
+      + " | TIME: " + moment(parseInt(statsObj.memory.maxRssTime)).format(compactDateTimeFormat)
+      + " || HEAP: " + statsObj.memory.heap.toFixed(0) + " MB"
+      + " | MAX: " + statsObj.memory.maxHeap.toFixed(0)
+      + " | TIME: " + moment(parseInt(statsObj.memory.maxHeapTime)).format(compactDateTimeFormat)
     ));
     console.log(chalkAlert("STATS\n" + jsonPrint(statsObj)));
   }
   else {
     console.log(chalkLog("S"
       // + " | " + statsObj.socketId
-      + " | ELAPSED: " + statsObj.elapsed
-      + " | START: " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat)
-      + " | NOW: " + moment().format(compactDateTimeFormat)
+      + " | ELPSD: " + statsObj.elapsed
+      + " | STRT: " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat)
+      + " | " + moment().format(compactDateTimeFormat)
       + " | DBM Q: " + dbUpdaterMessageRxQueue.size()
-      + " | HEAP: " + statsObj.memory.heap.toFixed(0) + " MB"
-      + " | MAX HEAP: " + statsObj.memory.maxHeap.toFixed(0)
-      + " | MAX HEAP TIME: " + moment(parseInt(statsObj.memory.maxHeapTime)).format(compactDateTimeFormat)
+      + " || RSS: " + statsObj.memory.rss.toFixed(0) + " MB"
+      + " | MAX: " + statsObj.memory.maxRss.toFixed(0)
+      + " | TIME: " + moment(parseInt(statsObj.memory.maxRssTime)).format(compactDateTimeFormat)
+      + " || HEAP: " + statsObj.memory.heap.toFixed(0) + " MB"
+      + " | MAX: " + statsObj.memory.maxHeap.toFixed(0)
+      + " | TIME: " + moment(parseInt(statsObj.memory.maxHeapTime)).format(compactDateTimeFormat)
     ));
   }
 }
@@ -1298,9 +1317,26 @@ function initStatsInterval(interval){
     statsObj.runTime = moment().valueOf() - statsObj.startTime;
     statsObj.upTime = os.uptime() * 1000;
 
+    statsObj.memory.rss = process.memoryUsage().rss/(1024*1024);
+    if (statsObj.memory.rss > statsObj.memory.maxRss) {
+      statsObj.memory.maxRss = statsObj.memory.rss;
+      statsObj.memory.maxRssTime = moment().valueOf();
+      console.log(chalkAlert("NEW MAX RSS"
+        + " | " + moment().format(compactDateTimeFormat)
+        + " | " + statsObj.memory.rss.toFixed(0) + " MB"
+      ))
+    }
+
     statsObj.memory.heap = process.memoryUsage().heapUsed/(1024*1024);
-    statsObj.memory.maxHeap = Math.max(statsObj.memory.maxHeap, process.memoryUsage().heapUsed/(1024*1024));
-    statsObj.memory.maxHeapTime = moment().valueOf();
+    if (statsObj.memory.heap > statsObj.memory.maxHeap) {
+      statsObj.memory.maxHeap = statsObj.memory.heap;
+      statsObj.memory.maxHeapTime = moment().valueOf();
+      console.log(chalkAlert("NEW MAX HEAP"
+        + " | " + moment().format(compactDateTimeFormat)
+        + " | " + statsObj.memory.heap.toFixed(0) + " MB"
+      ));
+    }
+
     statsObj.memory.memoryAvailable = os.freemem();
     statsObj.memory.memoryTotal = os.totalmem();
     statsObj.memory.memoryUsage = process.memoryUsage();

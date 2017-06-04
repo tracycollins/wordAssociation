@@ -72,6 +72,7 @@ exports.findOneUser = function (user, params, callback) {
 	var update = { 
 		"$inc": { mentions: inc }, 
 		"$set": { 
+			isTwitterUser: user.isTwitterUser,
 			nodeType: "user",
 			nodeId: user.nodeId,
 			screenName: user.screenName,
@@ -641,6 +642,7 @@ exports.createStreamTweet = function(params, callback) {
 			var userObj ;
 
 			userObj = new User({ 
+				isTwitterUser: true,
 				nodeType: "user",
 				nodeId : newTweet.user.id_str, 
 				userId : newTweet.user.id_str, 
@@ -687,6 +689,7 @@ exports.createStreamTweet = function(params, callback) {
 					// var profileImageUrl = "http://twitter.com/" + umObj.screen_name + "/profile_image?size=normal";
 
 					var userMentionObj = new User({ 
+						isTwitterUser: true,
 						nodeType: "user",
 						nodeId : umObj.id_str, 
 						userId : umObj.id_str, 

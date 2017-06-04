@@ -5406,12 +5406,14 @@ function initUpdaterMessageQueueInterval(interval){
             + " | DB\n" + jsonPrint(updaterObj.db)
           ));
           updaterMessageReady = true;
-          statsObj.db.totalAdmins = updaterObj.db.totalAdmins;
-          statsObj.db.totalUsers = updaterObj.db.totalUsers;
-          statsObj.db.totalViewers = updaterObj.db.totalViewers;
-          statsObj.db.totalGroups = updaterObj.db.totalGroups;
-          statsObj.db.totalSessions = updaterObj.db.totalSessions;
-          statsObj.db.totalWords = updaterObj.db.totalWords;
+          if (updaterObj.db) {
+            statsObj.db.totalAdmins = updaterObj.db.totalAdmins;
+            statsObj.db.totalUsers = updaterObj.db.totalUsers;
+            statsObj.db.totalViewers = updaterObj.db.totalViewers;
+            statsObj.db.totalGroups = updaterObj.db.totalGroups;
+            statsObj.db.totalSessions = updaterObj.db.totalSessions;
+            statsObj.db.totalWords = updaterObj.db.totalWords;
+          }
         break;
 
         case "sendGroupsComplete":

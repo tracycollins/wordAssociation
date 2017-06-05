@@ -38,6 +38,7 @@ var UserSchema = new Schema({
 	followersCount: { type: Number, default: 0 },
 	following: { type: Boolean,	default: false },
 	friendsCount: { type: Number, default: 0 },
+	threeceeFollowing: { type: Object, trim: true },
 
 	rate: { type: Number, default: 0 },
 	isTopTerm: { type: Boolean, default: false },

@@ -73,6 +73,7 @@ exports.findOneUser = function (user, params, callback) {
 		"$inc": { mentions: inc }, 
 		"$set": { 
 			isTwitterUser: user.isTwitterUser,
+			threeceeFollowing: user.threeceeFollowing,
 			nodeType: "user",
 			nodeId: user.nodeId,
 			screenName: user.screenName,

@@ -2829,8 +2829,8 @@ function createSmallSessionUpdateObj (updateObj, callback){
     sessionSmallObj.source.raw = updateObj.source.raw;
     sessionSmallObj.source.rate = updateObj.source.rate || 0;
     sessionSmallObj.source.isIgnored = updateObj.source.isIgnored;
-    sessionSmallObj.source.isTrendingTopic = updateObj.source.isTrendingTopic;
-    sessionSmallObj.source.isTopTerm = updateObj.source.isTopTerm;
+    sessionSmallObj.source.isTrendingTopic = updateObj.source.isTrendingTopic || false;
+    sessionSmallObj.source.isTopTerm = updateObj.source.isTopTerm || false;
     sessionSmallObj.source.isKeyword = updateObj.source.isKeyword;
     sessionSmallObj.source.keywords = {};
     sessionSmallObj.source.url = updateObj.source.url;
@@ -2853,9 +2853,9 @@ function createSmallSessionUpdateObj (updateObj, callback){
       sessionSmallObj.target.raw = updateObj.target.raw;
       sessionSmallObj.target.rate = updateObj.target.rate || 0;
       sessionSmallObj.target.isIgnored = updateObj.target.isIgnored;
-      sessionSmallObj.target.isTrendingTopic = updateObj.target.isTrendingTopic;
+      sessionSmallObj.target.isTrendingTopic = updateObj.target.isTrendingTopic || false;
       sessionSmallObj.target.isKeyword = updateObj.target.isKeyword;
-      sessionSmallObj.target.isTopTerm = updateObj.target.isTopTerm;
+      sessionSmallObj.target.isTopTerm = updateObj.target.isTopTerm || false;
       sessionSmallObj.target.keywords = {};
       sessionSmallObj.target.url = updateObj.target.url;
       sessionSmallObj.target.wordChainIndex = updateObj.target.wordChainIndex;

@@ -704,7 +704,9 @@ function updateGroupsEntitiesKeywords(options, callback){
   },
   function(err, results){
     if (err) {
-      console.error(chalkError("updateGroupsEntitiesKeywords ERROR\n" + err));
+      console.error(chalkError(moment().format(compactDateTimeFormat)
+        + " | updateGroupsEntitiesKeywords ERROR\n" + err
+      ));
     }
     else {
       debug(chalk.blue("updateGroupsEntitiesKeywords COMPLETE"

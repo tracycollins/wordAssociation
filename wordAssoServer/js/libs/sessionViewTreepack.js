@@ -8,6 +8,7 @@ function ViewTreepack() {
   var simulation;
   var resumeTimeStamp = 0;
   var displayTopTermsFlag = false;
+  var autoKeywordsFlag = true;
 
   var compactDateTimeFormat = "YYYYMMDD HHmmss";
 
@@ -543,19 +544,28 @@ function ViewTreepack() {
     simulation
       .force("forceX", d3.forceX().x(function(d) { 
         if (d.isKeyword){
-          if (d.keywords.right !== undefined) {
+
+          var keywords = {};
+          if (autoKeywordsFlag && (d.keywordsAuto !== undefined) && d.keywordsAuto){
+            keywords = d.keywordsAuto;
+          }
+          else {
+            keywords = d.keywords;
+          }
+
+          if (keywords.right !== undefined) {
             return foci.right.x;
           }
-          if (d.keywords.left !== undefined) {
+          if (keywords.left !== undefined) {
             return foci.left.x;
           }
-          if (d.keywords.positive !== undefined) {
+          if (keywords.positive !== undefined) {
             return foci.positive.x;
           }
-          if (d.keywords.negative !== undefined) {
+          if (keywords.negative !== undefined) {
             return foci.negative.x;
           }
-          if (d.keywords.neutral !== undefined) {
+          if (keywords.neutral !== undefined) {
             return foci.neutral.x;
           }
         }
@@ -567,19 +577,28 @@ function ViewTreepack() {
       }))
       .force("forceY", d3.forceY().y(function(d) { 
         if (d.isKeyword){
-          if (d.keywords.right !== undefined) {
+
+          var keywords = {};
+          if (autoKeywordsFlag && (d.keywordsAuto !== undefined) && d.keywordsAuto){
+            keywords = d.keywordsAuto;
+          }
+          else {
+            keywords = d.keywords;
+          }
+
+          if (keywords.right !== undefined) {
             return foci.right.y;
           }
-          if (d.keywords.left !== undefined) {
+          if (keywords.left !== undefined) {
             return foci.left.y;
           }
-          if (d.keywords.positive !== undefined) {
+          if (keywords.positive !== undefined) {
             return foci.positive.y;
           }
-          if (d.keywords.negative !== undefined) {
+          if (keywords.negative !== undefined) {
             return foci.negative.y;
           }
-          if (d.keywords.neutral !== undefined) {
+          if (keywords.neutral !== undefined) {
             return foci.neutral.y;
           }
         }
@@ -705,6 +724,7 @@ function ViewTreepack() {
         node.keywordColor = localNodeHashMap[node.nodeId].keywordColor;
         node.isTrendingTopic = localNodeHashMap[node.nodeId].isTrendingTopic;
         node.keywords = localNodeHashMap[node.nodeId].keywords;
+        node.keywordsAuto = localNodeHashMap[node.nodeId].keywordsAuto;
 
         nodes[ageNodesIndex] = node;
 
@@ -800,6 +820,15 @@ function ViewTreepack() {
 
     var tooltipString;
 
+    var keywords = {};
+
+    if (autoKeywordsFlag && (d.keywordsAuto !== undefined) && d.keywordsAuto){
+      keywords = d.keywordsAuto;
+    }
+    else {
+      keywords = d.keywords;
+    }
+
     switch (d.nodeType) {
       case 'user':
         tooltipString = "@" + d.nodeId
@@ -809,7 +838,7 @@ function ViewTreepack() {
           + "<br>TYPE: " + d.nodeType 
           + "<br>Ms: " + d.mentions
           + "<br>" + d.rate.toFixed(2) + " WPM"
-          + "<br>KEYWORDS: " + jsonPrint(d.keywords);
+          + "<br>KEYWORDS: " + jsonPrint(keywords);
       break;
       case 'hashtag':
         tooltipString = "#" + d.nodeId
@@ -817,13 +846,13 @@ function ViewTreepack() {
           + "<br>TYPE: " + d.nodeType 
           + "<br>Ms: " + d.mentions
           + "<br>" + d.rate.toFixed(2) + " WPM"
-          + "<br>KEYWORDS: " + jsonPrint(d.keywords);
+          + "<br>KEYWORDS: " + jsonPrint(keywords);
       break;
       case 'word':
         tooltipString = d.nodeId
           + "<br>TOPTERM " + d.isTopTerm 
           + "<br>TYPE: " + d.nodeType 
-          + "<br>KEYWORDS: " + jsonPrint(d.keywords)
+          + "<br>KEYWORDS: " + jsonPrint(keywords)
           + "<br>Ms: " + d.mentions
           + "<br>" + d.rate.toFixed(2) + " WPM"
           + "<br>URL: " + d.url;
@@ -832,7 +861,7 @@ function ViewTreepack() {
         tooltipString = d.fullName
           + "<br>TOPTERM " + d.isTopTerm 
           + "<br>TYPE: " + d.nodeType 
-          + "<br>KEYWORDS: " + jsonPrint(d.keywords)
+          + "<br>KEYWORDS: " + jsonPrint(keywords)
           + "<br>Ms: " + d.mentions
           + "<br>" + d.rate.toFixed(2) + " WPM";
       break;
@@ -1316,6 +1345,7 @@ function ViewTreepack() {
         currentNode.ageUpdated = moment().valueOf();
         currentNode.isKeyword = newNode.isKeyword || false;
         currentNode.keywords = newNode.keywords;
+        currentNode.keywordsAuto = newNode.keywordsAuto;
         currentNode.isTopTerm = newNode.isTopTerm || false;
         currentNode.isTrendingTopic = newNode.isTrendingTopic || false;
         currentNode.isTwitterUser = newNode.isTwitterUser || false;
@@ -1361,29 +1391,47 @@ function ViewTreepack() {
         currentNode.displaytext = createDisplayText(currentNode);
 
         if (currentNode.isKeyword) {
-          console.warn("keywords"
+          console.info("keywords"
             + " | NID: " + newNode.nodeId 
             + " | NTYPE: " + newNode.nodeType 
             + " | isKeyword: " + newNode.isKeyword 
-            + "\n" + jsonPrint(newNode.keywords)
+            + "\nKWs\n" + jsonPrint(newNode.keywords)
+            // + "\nKWAs\n" + jsonPrint(newNode.keywordsAuto)
           );
-          if (newNode.keywords.left) { 
+
+          var keywords = {};
+
+          if (autoKeywordsFlag && (newNode.keywordsAuto !== undefined) && newNode.keywordsAuto){
+            keywords = newNode.keywordsAuto;
+            console.warn("AUTO keywords"
+              + " | NID: " + newNode.nodeId 
+              + " | NTYPE: " + newNode.nodeType 
+              + " | isKeyword: " + newNode.isKeyword 
+              + "\nKWs\n" + jsonPrint(newNode.keywords)
+              + "\nKWAs\n" + jsonPrint(newNode.keywordsAuto)
+            );
+          }
+          else {
+            keywords = newNode.keywords;
+          }
+
+          if (keywords.left) { 
             currentNode.x = focus("left").x; 
             currentNode.y = focus("left").y;
           }
-          else if (newNode.keywords.positive) { 
+          else if (keywords.positive) { 
             currentNode.x = focus("positive").x; 
             currentNode.y = focus("positive").y;
           }
-          else if (newNode.keywords.right) { 
+          else if (keywords.right) { 
             currentNode.x = focus("right").x; 
             currentNode.y = focus("right").y;
           }
-          else if (newNode.keywords.negative) { 
+          else if (keywords.negative) { 
             currentNode.x = focus("negative").x; 
             currentNode.y = focus("negative").y;
           }
-          else if (newNode.keywords.neutral) { 
+          else if (keywords.neutral) { 
             currentNode.x = focus("neutral").x; 
             currentNode.y = focus("neutral").y;
           }
@@ -1576,19 +1624,28 @@ function ViewTreepack() {
       .force("charge", d3.forceManyBody().strength(charge))
       .force("forceX", d3.forceX().x(function(d) { 
         if (d.isKeyword){
-          if (d.keywords.right !== undefined) {
+
+          var keywords = {};
+          if (autoKeywordsFlag && (d.keywordsAuto !== undefined) && d.keywordsAuto){
+            keywords = d.keywordsAuto;
+          }
+          else {
+            keywords = d.keywords;
+          }
+
+          if (keywords.right !== undefined) {
             return foci.right.x;
           }
-          if (d.keywords.left !== undefined) {
+          if (keywords.left !== undefined) {
             return foci.left.x;
           }
-          if (d.keywords.positive !== undefined) {
+          if (keywords.positive !== undefined) {
             return foci.positive.x;
           }
-          if (d.keywords.negative !== undefined) {
+          if (keywords.negative !== undefined) {
             return foci.negative.x;
           }
-          if (d.keywords.neutral !== undefined) {
+          if (keywords.neutral !== undefined) {
             return foci.neutral.x;
           }
           return 100;
@@ -1602,19 +1659,28 @@ function ViewTreepack() {
       }))
       .force("forceY", d3.forceY().y(function(d) { 
         if (d.isKeyword){
-          if (d.keywords.right !== undefined) {
+
+          var keywords = {};
+          if (autoKeywordsFlag && (d.keywordsAuto !== undefined) && d.keywordsAuto){
+            keywords = d.keywordsAuto;
+          }
+          else {
+            keywords = d.keywords;
+          }
+
+          if (keywords.right !== undefined) {
             return foci.right.y;
           }
-          if (d.keywords.left !== undefined) {
+          if (keywords.left !== undefined) {
             return foci.left.y;
           }
-          if (d.keywords.positive !== undefined) {
+          if (keywords.positive !== undefined) {
             return foci.positive.y;
           }
-          if (d.keywords.negative !== undefined) {
+          if (keywords.negative !== undefined) {
             return foci.negative.y;
           }
-          if (d.keywords.neutral !== undefined) {
+          if (keywords.neutral !== undefined) {
             return foci.neutral.y;
           }
           return 100;
@@ -1760,19 +1826,28 @@ function ViewTreepack() {
         .force("charge", d3.forceManyBody().strength(charge))
         .force("forceX", d3.forceX().x(function(d) { 
           if (d.isKeyword){
-            if (d.keywords.right !== undefined) {
+
+            var keywords = {};
+            if (autoKeywordsFlag && (d.keywordsAuto !== undefined) && d.keywordsAuto){
+              keywords = d.keywordsAuto;
+            }
+            else {
+              keywords = d.keywords;
+            }
+
+            if (keywords.right !== undefined) {
               return foci.right.x;
             }
-            if (d.keywords.left !== undefined) {
+            if (keywords.left !== undefined) {
               return foci.left.x;
             }
-            if (d.keywords.positive !== undefined) {
+            if (keywords.positive !== undefined) {
               return foci.positive.x;
             }
-            if (d.keywords.negative !== undefined) {
+            if (keywords.negative !== undefined) {
               return foci.negative.x;
             }
-            if (d.keywords.neutral !== undefined) {
+            if (keywords.neutral !== undefined) {
               return foci.neutral.x;
             }
           }
@@ -1785,19 +1860,28 @@ function ViewTreepack() {
         }))
         .force("forceY", d3.forceY().y(function(d) { 
           if (d.isKeyword){
-            if (d.keywords.right !== undefined) {
+
+            var keywords = {};
+            if (autoKeywordsFlag && (d.keywordsAuto !== undefined) && d.keywordsAuto){
+              keywords = d.keywordsAuto;
+            }
+            else {
+              keywords = d.keywords;
+            }
+
+            if (keywords.right !== undefined) {
               return foci.right.y;
             }
-            if (d.keywords.left !== undefined) {
+            if (keywords.left !== undefined) {
               return foci.left.y;
             }
-            if (d.keywords.positive !== undefined) {
+            if (keywords.positive !== undefined) {
               return foci.positive.y;
             }
-            if (d.keywords.negative !== undefined) {
+            if (keywords.negative !== undefined) {
               return foci.negative.y;
             }
-            if (d.keywords.neutral !== undefined) {
+            if (keywords.neutral !== undefined) {
               return foci.neutral.y;
             }
           }

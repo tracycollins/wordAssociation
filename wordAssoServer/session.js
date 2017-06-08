@@ -22,7 +22,7 @@ var PARENT_ID = "0047";
 var storedConfigName;
 var storedConfig;
 
-var autoKeywordsFlag = true;
+var autoKeywordsFlag = false;
 
 var PAGE_LOAD_TIMEOUT = 1000;
 

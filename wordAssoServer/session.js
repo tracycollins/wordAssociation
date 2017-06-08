@@ -22,6 +22,7 @@ var PARENT_ID = "0047";
 var storedConfigName;
 var storedConfig;
 
+var autoKeywordsFlag = true;
 
 var PAGE_LOAD_TIMEOUT = 1000;
 
@@ -2137,8 +2138,19 @@ function initSocketNodeRx(){
     newNode.rate = nNode.rate;
     newNode.isTopTerm = nNode.isTopTerm || false;
     newNode.isKeyword = nNode.isKeyword || false;
+
     newNode.keywords = nNode.keywords;
-    getKeywordColor(nNode.keywords, function(color){
+    newNode.keywordsAuto = nNode.keywordsAuto;
+
+    var keywords = {};
+    if (autoKeywordsFlag && (nNode.keywordsAuto !== undefined) && nNode.keywordsAuto){
+      keywords = nNode.keywordsAuto;
+    }
+    else {
+      keywords = nNode.keywords;
+    }
+
+    getKeywordColor(keywords, function(color){
       newNode.keywordColor = color;
     });  // KLUDGE!  need better way to do keywords
     newNode.createdAt = nNode.createdAt;
@@ -2944,9 +2956,20 @@ var createNode = function(callback) {
             sourceNode.sessionNodeId = session.node.nodeId;
             sourceNode.isTopTerm = session.source.isTopTerm;
             sourceNode.isKeyword = session.source.isKeyword;
-            sourceNode.keywords = session.source.keywords;
             sourceNode.isTrendingTopic = session.source.isTrendingTopic;
-            getKeywordColor(session.source.keywords, function(color){
+
+            sourceNode.keywords = session.source.keywords;
+            sourceNode.keywordsAuto = session.source.keywordsAuto;
+
+            var keywords = {};
+            if (autoKeywordsFlag && (session.source.keywordsAuto !== undefined) && session.source.keywordsAuto){
+              keywords = session.source.keywordsAuto;
+            }
+            else {
+              keywords = session.source.keywords;
+            }
+
+            getKeywordColor(keywords, function(color){
               sourceNode.keywordColor = color;
             });  // KLUDGE!  need better way to do keywords
             sourceNode.latestNode = true;
@@ -3007,8 +3030,16 @@ var createNode = function(callback) {
             sourceNode.isTopTerm = session.source.isTopTerm;
             sourceNode.isKeyword = session.source.isKeyword;
 
-            if (session.source.keywords !== undefined) {
-              getKeywordColor(session.source.keywords, function(color){
+            var keywords = {};
+            if (autoKeywordsFlag && (session.source.keywordsAuto !== undefined) && session.source.keywordsAuto){
+              keywords = session.source.keywordsAuto;
+            }
+            else {
+              keywords = session.source.keywords;
+            }
+
+            if (keywords !== undefined) {
+              getKeywordColor(keywords, function(color){
                 sourceNode.keywordColor = color;
               });  // KLUDGE!  need better way to do keywords
             }
@@ -3162,8 +3193,16 @@ var createNode = function(callback) {
             targetNode.isTopTerm = session.target.isTopTerm;
             targetNode.isKeyword = session.target.isKeyword;
 
-            if (session.target.keywords !== undefined) {
-              getKeywordColor(session.target.keywords, function(color){
+            var keywords = {};
+            if (autoKeywordsFlag && (session.target.keywordsAuto !== undefined) && session.target.keywordsAuto){
+              keywords = session.target.keywordsAuto;
+            }
+            else {
+              keywords = session.target.keywords;
+            }
+
+            if (keywords !== undefined) {
+              getKeywordColor(keywords, function(color){
                 targetNode.keywordColor = color;
               });  // KLUDGE!  need better way to do keywords
             }

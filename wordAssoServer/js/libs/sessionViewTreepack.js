@@ -7,8 +7,9 @@ function ViewTreepack() {
   var self = this;
   var simulation;
   var resumeTimeStamp = 0;
+
   var displayTopTermsFlag = false;
-  var autoKeywordsFlag = true;
+  var autoKeywordsFlag = false;
 
   var compactDateTimeFormat = "YYYYMMDD HHmmss";
 

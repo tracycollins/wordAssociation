@@ -6,6 +6,7 @@ var quitOnError = true;
 // GLOBAL VARIABLES
 // ==================================================================
 var OFFLINE_MODE = false;
+var MAX_Q = 1000;
 var MIN_METRIC_VALUE = 5;
 var MIN_MENTIONS_VALUE = 1000;
 var KEYWORDS_UPDATE_INTERVAL = 60000;
@@ -188,6 +189,8 @@ var yaml = require("yamljs");
 var debug = require("debug")("wa");
 var debugKeyword = require("debug")("kw");
 
+var Queue = require("queue-fifo");
+
 var express = require("./config/express");
 var EventEmitter2 = require("eventemitter2").EventEmitter2;
 
@@ -242,6 +245,9 @@ var wordMeter = {};
 var tweetRxQueueInterval;
 var tweetParserQueue = [];
 var tweetParserMessageRxQueue = [];
+
+// var tweetRxQueue = [];
+var tweetRxQueue = new Queue();
 
 var updaterPingInterval;
 var updaterPingOutstanding = 0;
@@ -493,6 +499,7 @@ statsObj.memory.memoryUsage.rss = process.memoryUsage().rss/(1024*1024);
 
 statsObj.queues = {};
 statsObj.queues.sorterMessageRxQueue = 0;
+statsObj.queues.tweetRxQueue = 0;
 statsObj.queues.tweetParserMessageRxQueue = 0;
 statsObj.queues.updaterMessageQueue = 0;
 
@@ -666,16 +673,14 @@ process.on("message", function(msg) {
       debug("**** Finished closing connections ****\n\n ***** RELOADING blm.js NOW *****\n\n");
       quit(msg);
     }, 300);
-
   }
+
 });
 
 // ==================================================================
 // FUNCTIONS
 // ==================================================================
 
-var MAX_Q = 1000;
-var tweetRxQueue = [];
 
 
 // ==================================================================
@@ -877,16 +882,21 @@ function initSocketHandler(socket) {
       // + jsonPrint(rxNodeObj)
     ));
 
-    if (tweetRxQueue.length > MAX_Q){
-      console.log(chalkError("*** MAX QUEUE [" + tweetRxQueue.length + "] | T<"
+    // if (tweetRxQueue.size() > MAX_Q){
+    if (tweetRxQueue.size() > MAX_Q){
+      // console.log(chalkError("*** MAX QUEUE [" + tweetRxQueue.size() + "] | T<"
+      console.log(chalkError("*** MAX QUEUE [" + tweetRxQueue.size() + "] | T<"
         + " | " + tw.id_str
         + " | " + tw.user.screen_name
       ));
     }
     else if (tw.user) {
-      tweetRxQueue.push(tw);
+
+      // tweetRxQueue.push(tw);
+      tweetRxQueue.enqueue(tw);
+
       debug(chalkLog("T<"
-        + " [ RXQ: " + tweetRxQueue.length + "]"
+        + " [ RXQ: " + tweetRxQueue.size() + "]"
         + " [ TPQ: " + tweetParserQueue.length + "]"
         + " | " + tw.id_str
         + " | @" + tw.user.screen_name
@@ -895,7 +905,7 @@ function initSocketHandler(socket) {
     }
     else{
       console.log(chalkAlert("NULL USER T*<"
-        + " [ RXQ: " + tweetRxQueue.length + "]"
+        + " [ RXQ: " + tweetRxQueue.size() + "]"
         + " [ TPQ: " + tweetParserQueue.length + "]"
         + " | " + tw.id_str
         + " | @" + tw.user.screen_name
@@ -1866,12 +1876,13 @@ function initTwitterRxQueueInterval(interval){
 
   tweetRxQueueInterval = setInterval(function () {
 
-    // if ((tweetRxQueue.length > 0) && tweetParserReady) {
-    if (tweetRxQueue.length > 0) {
+    // if ((tweetRxQueue.size() > 0) && tweetParserReady) {
+    if (!tweetRxQueue.isEmpty()) {
 
       // tweetParserReady = false;
 
-      var tw =  tweetRxQueue.shift();
+      // var tw =  tweetRxQueue.shift();
+      var tw =  tweetRxQueue.dequeue();
 
       debug(chalkInfo("TPQ<"
         + " [" + tweetParserQueue.length + "]"
@@ -2492,6 +2503,7 @@ function initRateQinterval(interval){
   statsObj.maxWordsPerMin = 0.0;
   statsObj.maxTweetsPerMin = 0.0;
 
+  statsObj.queues.tweetRxQueue = tweetRxQueue.size();
   statsObj.queues.updaterMessageQueue = updaterMessageQueue.length;
   statsObj.queues.sorterMessageRxQueue = sorterMessageRxQueue.length;
   statsObj.queues.tweetParserMessageRxQueue = tweetParserMessageRxQueue.length;
@@ -2503,6 +2515,11 @@ function initRateQinterval(interval){
   // var prevTestValue = 47;
 
   rateQinterval = setInterval(function () {
+
+    statsObj.queues.tweetRxQueue = tweetRxQueue.size();
+    statsObj.queues.updaterMessageQueue = updaterMessageQueue.length;
+    statsObj.queues.sorterMessageRxQueue = sorterMessageRxQueue.length;
+    statsObj.queues.tweetParserMessageRxQueue = tweetParserMessageRxQueue.length;
 
     wsObj = wordStats.toJSON();
     if (!wsObj) {return;}

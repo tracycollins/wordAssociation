@@ -616,7 +616,7 @@ function checkKeyword(nodeObj, callback) {
             quit();
           }
           if (screenName !== undefined) {
-            console.log(chalkAlert("TOP TERM: " + screenName));
+            debug(chalkAlert("TOP TERM: " + screenName));
             nodeObj.isTopTerm = true;
           }
           if (nodeObj.screenName.toLowerCase().includes("obama")) {
@@ -971,7 +971,7 @@ function updateWordMeter(wordObj, callback){
     wordObj.rate = meterObj[metricsRate];
 
     nodeCache.set(meterWordId, wordObj, function(){
-      console.log(chalkInfo("updateWordMeter MISS"
+      debug(chalkInfo("updateWordMeter MISS"
         + " | " + meterObj[metricsRate].toFixed(2) + " WPM"
         + " | " + meterWordId
         // + "\n" + jsonPrint(wordObj)
@@ -984,7 +984,7 @@ function updateWordMeter(wordObj, callback){
     meterObj = wordMeter[meterWordId].toJSON();
     wordObj.rate = meterObj[metricsRate];
     nodeCache.set(meterWordId, wordObj, function(){
-      console.log(chalkInfo("updateWordMeter HIT "
+      debug(chalkInfo("updateWordMeter HIT "
         + " | " + meterObj[metricsRate].toFixed(2) + " WPM"
         + " | " + meterWordId
         // + "\n" + jsonPrint(wordObj)

@@ -23,6 +23,17 @@ var enableGoogleMetrics = (process.env.ENABLE_GOOGLE_METRICS !== undefined) ? pr
 
 var defaults = require("object.defaults");
 
+var languageServer = {};
+var tssServer = {};
+tssServer.connected = false;
+tssServer.user = {};
+tssServer.socket = {};
+
+var tmsServer = {};
+tmsServer.connected = false;
+tmsServer.user = {};
+tmsServer.socket = {};
+
 var Monitoring = require("@google-cloud/monitoring");
 var googleMonitoringClient = Monitoring.v3().metricServiceClient();
 

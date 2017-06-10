@@ -158,6 +158,10 @@ var localHostHashMap = new HashMap();
 
 var tweetParser;
 
+function randomInt(low, high) {
+  return Math.floor(Math.random() * (high - low) + low);
+}
+
 var jsonPrint = function (obj) {
   if (obj) {
     return JSON.stringify(obj, null, 2);

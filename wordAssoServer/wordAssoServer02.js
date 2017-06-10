@@ -5,6 +5,8 @@ var quitOnError = true;
 // ==================================================================
 // GLOBAL VARIABLES
 // ==================================================================
+var MIN_METRIC_VALUE = 5;
+var MIN_MENTIONS_VALUE = 1000;
 var KEYWORDS_UPDATE_INTERVAL = 60000;
 var TWEET_PARSER_INTERVAL = 5;
 var TWITTER_RX_QUEUE_INTERVAL = 5;
@@ -22,6 +24,9 @@ var CUSTOM_GOOGLE_APIS_PREFIX = "custom.googleapis.com";
 var enableGoogleMetrics = (process.env.ENABLE_GOOGLE_METRICS !== undefined) ? process.env.ENABLE_GOOGLE_METRICS : false;
 
 var defaults = require("object.defaults");
+
+var tmsServers = {};
+var tssServers = {};
 
 var languageServer = {};
 var tssServer = {};
@@ -1357,9 +1362,6 @@ function initInternetCheckInterval(interval){
     }
   }, interval);
 }
-
-var tmsServers = {};
-var tssServers = {};
 
 var tweetRxQueueInterval;
 var tweetParserQueue = [];

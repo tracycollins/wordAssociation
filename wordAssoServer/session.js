@@ -1223,12 +1223,18 @@ socket.on("reconnect", function() {
 socket.on("connect", function() {
   statsObj.socketId = socket.id;
   statsObj.serverConnected = true;
+  if (currentSessionView !== undefined) {
+    currentSessionView.setEnableAgeNodes(true);
+  }
   console.log("CONNECTED TO HOST | SOCKET ID: " + socket.id);
 });
 
 socket.on("disconnect", function() {
   statsObj.serverConnected = false;
   statsObj.socketId = null;
+  if (currentSessionView !== undefined) {
+    currentSessionView.setEnableAgeNodes(false);
+  }
   console.log("*** DISCONNECTED FROM HOST ... DELETING ALL SESSIONS ...");
   deleteAllSessions(function() {
     console.log("DELETED ALL SESSIONS");

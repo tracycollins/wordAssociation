@@ -6,6 +6,9 @@ function ViewTreepack() {
 
   var self = this;
   var simulation;
+
+  var enableAgeNodes = true;
+
   var resumeTimeStamp = 0;
 
   var displayTopTermsFlag = false;
@@ -428,6 +431,12 @@ function ViewTreepack() {
 
   d3.select("body").style("cursor", "default");
   
+  this.setEnableAgeNodes = function(enabled) {
+    enableAgeNodes = enabled;
+    config.enableAgeNodes = enabled;
+    console.debug("SET ENABLE AGE NODES: " + enableAgeNodes);
+  };
+  
   this.deleteNode = function() {
     return null;
   };
@@ -685,7 +694,7 @@ function ViewTreepack() {
 
       node = nodes[ageNodesIndex];
 
-      if (resumeTimeStamp > 0){
+      if (!enableAgeNodes || (resumeTimeStamp > 0)) {
         ageRate = 0;
       }
 

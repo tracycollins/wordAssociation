@@ -629,7 +629,7 @@ function showStats(options){
       + " | ELAPSED: " + statsObj.elapsed
       + " | START: " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat)
       + " | NOW: " + moment().format(compactDateTimeFormat)
-      + " | NODE $: Ks:" + nodeCache.getStats().keys + " KS: " +  + " VS: " + nodeCache.getStats().vsize
+      + " | NODE $: Ks:" + nodeCache.getStats().keys + " KS: " + nodeCache.getStats().ksize + " VS: " + nodeCache.getStats().vsize
       + " | HEAP: " + statsObj.memory.heap.toFixed(0) + " MB"
       + " | MAX HEAP: " + statsObj.memory.maxHeap.toFixed(0)
       + " | MAX HEAP TIME: " + moment(parseInt(statsObj.memory.maxHeapTime)).format(compactDateTimeFormat)

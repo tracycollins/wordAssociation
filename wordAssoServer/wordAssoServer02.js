@@ -18,10 +18,9 @@ var DEFAULT_KEYWORD_VALUE = 100;
 var NODE_CACHE_TTL = 60;
 
 var metricsRate = "5MinuteRate";
-var enableGoogleMetrics = false;
 var CUSTOM_GOOGLE_APIS_PREFIX = "custom.googleapis.com";
 
-var enableGoogleMetrics = (process.env.ENABLE_GOOGLE_METRICS !== undefined) ? process.env.ENABLE_GOOGLE_METRICS : false;
+var enableGoogleMetrics = (process.env.ENABLE_GOOGLE_METRICS !== undefined) ? process.env.ENABLE_GOOGLE_METRICS : true;
 
 var defaults = require("object.defaults");
 
@@ -245,7 +244,6 @@ statsObj.children = {};
 statsObj.twitter = {};
 statsObj.twitter.tweetsReceived = 0;
 
-
 statsObj.hostname = hostname;
 statsObj.name = "Word Association Server Status";
 statsObj.startTime = moment().valueOf();
@@ -258,27 +256,18 @@ statsObj.wordsPerMin = 0;
 statsObj.maxWordsPerMin = 0;
 statsObj.maxWordsPerMinTime = moment().valueOf();
 
+statsObj.obamaPerMinute = 0.0;
+statsObj.trumpPerMinute = 0.0;
+statsObj.wordsPerMin = 0.0;
+statsObj.wordsPerSecond = 0.0;
+statsObj.maxWordsPerMin = 0.0;
+statsObj.maxTweetsPerMin = 0.0;
+
 statsObj.caches = {};
 statsObj.caches.adminCache = {};
 statsObj.caches.adminCache.stats = {};
 statsObj.caches.adminCache.stats.keys = 0;
 statsObj.caches.adminCache.stats.keysMax = 0;
-statsObj.caches.entityCache = {};
-statsObj.caches.entityCache.stats = {};
-statsObj.caches.entityCache.stats.keys = 0;
-statsObj.caches.entityCache.stats.keysMax = 0;
-statsObj.caches.groupCache = {};
-statsObj.caches.groupCache.stats = {};
-statsObj.caches.groupCache.stats.keys = 0;
-statsObj.caches.groupCache.stats.keysMax = 0;
-statsObj.caches.ipAddressCache = {};
-statsObj.caches.ipAddressCache.stats = {};
-statsObj.caches.ipAddressCache.stats.keys = 0;
-statsObj.caches.ipAddressCache.stats.keysMax = 0;
-statsObj.caches.sessionCache = {};
-statsObj.caches.sessionCache.stats = {};
-statsObj.caches.sessionCache.stats.keys = 0;
-statsObj.caches.sessionCache.stats.keysMax = 0;
 statsObj.caches.userCache = {};
 statsObj.caches.userCache.stats = {};
 statsObj.caches.userCache.stats.keys = 0;
@@ -332,6 +321,7 @@ statsObj.entity.viewer.connected = 0;
 statsObj.entity.viewer.connectedMax = 0.1;
 statsObj.entity.viewer.connectedMaxTime = moment().valueOf();
 
+console.log("process.memoryUsage()\n"+ jsonPrint(process.memoryUsage()));
 statsObj.memory = {};
 statsObj.memory.heap = process.memoryUsage().heapUsed/(1024*1024);
 statsObj.memory.maxHeap = process.memoryUsage().heapUsed/(1024*1024);
@@ -339,16 +329,14 @@ statsObj.memory.maxHeapTime = moment().valueOf();
 statsObj.memory.memoryAvailable = os.freemem();
 statsObj.memory.memoryTotal = os.totalmem();
 statsObj.memory.memoryUsage = process.memoryUsage();
+statsObj.memory.memoryUsage.heapUsed = process.memoryUsage().heapUsed/(1024*1024);
+statsObj.memory.memoryUsage.heapTotal = process.memoryUsage().heapTotal/(1024*1024);
+statsObj.memory.memoryUsage.rss = process.memoryUsage().rss/(1024*1024);
 
 statsObj.queues = {};
 statsObj.queues.sorterMessageRxQueue = 0;
-statsObj.queues.dbUpdateEntityQueue = 0;
 statsObj.queues.tweetParserMessageRxQueue = 0;
-statsObj.queues.dbUpdateWordQueue = 0;
-statsObj.queues.rxWordQueue = 0;
-statsObj.queues.sessionQueue = 0;
 statsObj.queues.updaterMessageQueue = 0;
-statsObj.queues.updateSessionViewQueue = 0;
 
 statsObj.session = {};
 statsObj.session.errors = 0;
@@ -1104,19 +1092,21 @@ function addMetricDataPoint(options, callback){
   googleMonitoringClient.createTimeSeries(googleRequest)
     // .then((results) => {
     .then(function(){
-      debug(chalkTwitter("METRICS"
+      debug(chalkInfo("METRICS"
         + " | " + options.metricLabels.server_id 
         + " | " + options.value
       ));
     })
-    .catch(function(results){
-      if (results.code !== 8) {
+    .catch(function(err){
+      if (err.code !== 8) {
         console.log(chalkError("*** ERROR GOOGLE METRICS"
           + " | " + options.metricLabels.server_id 
           + " | " + options.value
-          + " | ERR CODE: " + results.code
-          + " | META NODE: " + results.note
-          + "\nMETA DATA\n" + jsonPrint(results.metadata)
+          + " | ERR: " + err
+          + " | META NODE: " + err.note
+          + "\nERR\n" + jsonPrint(err)
+          + "\nREQUEST\n" + jsonPrint(googleRequest)
+          + "\nMETA DATA\n" + jsonPrint(err.metadata)
         ));
       }
     });
@@ -1751,7 +1741,7 @@ function initSorter(callback){
 
   s.send({
     op: "INIT",
-    interval: DEFAULT_INTERVAL
+    interval: 2*DEFAULT_INTERVAL
   }, function(err){
     if (err) {
       console.error(chalkError("*** SORTER SEND ERROR"
@@ -2130,6 +2120,14 @@ function initRateQinterval(interval){
   statsObj.maxWordsPerMin = 0.0;
   statsObj.maxTweetsPerMin = 0.0;
 
+  statsObj.queues.updaterMessageQueue = updaterMessageQueue.length;
+  statsObj.queues.sorterMessageRxQueue = sorterMessageRxQueue.length;
+  statsObj.queues.tweetParserMessageRxQueue = tweetParserMessageRxQueue.length;
+
+  statsObj.memory.memoryUsage.rss = process.memoryUsage().rss/(1024*1024);
+  statsObj.memory.memoryUsage.heapUsed = process.memoryUsage().heap_used/(1024*1024);
+  statsObj.memory.memoryUsage.heapTotal = process.memoryUsage().heap_total/(1024*1024);
+
   var prevTestValue = 47;
 
   rateQinterval = setInterval(function () {
@@ -2195,11 +2193,11 @@ function initRateQinterval(interval){
 
       if (enableGoogleMetrics) {
 
-        var testDataPoint = {};
-        testDataPoint.metricType = "word/test/random";
-        testDataPoint.value = prevTestValue + randomInt(-20,20);
-        testDataPoint.metricLabels = {server_id: "TEST"};
-        addMetricDataPoint(testDataPoint);
+        // var testDataPoint = {};
+        // testDataPoint.metricType = "word/test/random";
+        // testDataPoint.value = prevTestValue + randomInt(-20,20);
+        // testDataPoint.metricLabels = {server_id: "TEST"};
+        // addMetricDataPoint(testDataPoint);
         
         var queueNames = Object.keys(statsObj.queues);
 
@@ -2260,8 +2258,8 @@ function initRateQinterval(interval){
         }
       }
 
-      // word/words_per_minute
       if (enableGoogleMetrics) {
+        // word/words_per_minute
         var dataPointWpm = {};
         dataPointWpm.metricType = "word/words_per_minute";
         dataPointWpm.value = statsObj.wordsPerMin;
@@ -2297,24 +2295,6 @@ function initRateQinterval(interval){
         dataPointUsers.value = statsObj.caches.userCache.stats.keys;
         dataPointUsers.metricLabels = {server_id: "USER"};
         addMetricDataPoint(dataPointUsers);
-        // util/global/number_of_groups
-        var dataPointGroups = {};
-        dataPointGroups.metricType = "util/global/number_of_groups";
-        dataPointGroups.value = statsObj.caches.groupCache.stats.keys;
-        dataPointGroups.metricLabels = {server_id: "UTIL"};
-        addMetricDataPoint(dataPointGroups);
-        // util/global/number_of_entities
-        var dataPointEntities = {};
-        dataPointEntities.metricType = "util/global/number_of_entities";
-        dataPointEntities.value = statsObj.caches.entityCache.stats.keys;
-        dataPointEntities.metricLabels = {server_id: "UTIL"};
-        addMetricDataPoint(dataPointEntities);
-        // user/global/number_of_sessions
-        var dataPointSessions = {};
-        dataPointSessions.metricType = "util/global/number_of_sessions";
-        dataPointSessions.value = statsObj.caches.sessionCache.stats.keys;
-        dataPointSessions.metricLabels = {server_id: "UTIL"};
-        addMetricDataPoint(dataPointSessions);
       }
     }
 
@@ -2389,7 +2369,7 @@ initialize(configuration, function(err) {
   else {
     debug(chalkLog("INITIALIZE COMPLETE"));
     initUpdaterMessageQueueInterval(DEFAULT_INTERVAL);
-    initSorterMessageRxQueueInterval(DEFAULT_INTERVAL);
+    initSorterMessageRxQueueInterval(2*DEFAULT_INTERVAL);
 
     initUpdater(function(err, udtr){
       if (err) {

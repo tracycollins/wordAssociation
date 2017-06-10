@@ -66,6 +66,8 @@ requirejs(["https://d3js.org/d3.v4.min.js"], function(d3Loaded) {
       addMetricButton();
       addStatsButton();
 
+      resetMouseMoveTimer();
+      
       document.addEventListener("mousemove", function() {
         if (config.pauseOnMouseMove && (currentSessionView)) { 
           currentSessionView.simulationControl('PAUSE'); 

@@ -2774,6 +2774,8 @@ function initStatsInterval(interval){
     + " | FILE: " + statsFolder + "/" + statsFile
   ));
 
+  showStats(true);
+
   clearInterval(statsInterval);
 
   statsInterval = setInterval(function() {

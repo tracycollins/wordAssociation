@@ -300,12 +300,12 @@ function ViewTreepack() {
     // var elem = document.getElementById("topTermsCheckBox");
     console.debug("mouseMoveTimeoutEvent");
     if (!topTermsCheckBox.property("checked")) { 
-      console.warn("NOT CHECKED");
+      // console.log("TOP TERMS NOT CHECKED");
       topTermsDiv.style("visibility", "hidden"); 
       nodeTopTermLabelSvgGroup.style("visibility", "hidden");
     }
     else {
-      console.warn("CHECKED");
+      // console.log("TOP TERMS CHECKED");
       topTermsDiv.style("visibility", "visible"); 
       nodeTopTermLabelSvgGroup.style("visibility", "visible");
     }

@@ -1360,7 +1360,11 @@ function initStatsInterval(interval){
 
 function checkKeyword(w, callback) {
 
-  debug(chalkAlert("checkKeyword\n" + jsonPrint(w)));
+  debug(chalkAlert("checkKeyword"
+    + " | " + w.nodeType
+    + " | " + w.nodeId
+    + "\n" + jsonPrint(w)
+  ));
 
   var wordObj = {};
   wordObj = w;
@@ -5410,7 +5414,6 @@ function initDbUpdaterMessageRxQueueInterval(interval){
 }
 
 var updaterMessageReady = true;
-
 function initUpdaterMessageQueueInterval(interval){
 
   console.log(chalkInfo("INIT UPDATER MESSAGE QUEUE INTERVAL | " + interval + " MS"));
@@ -6256,7 +6259,6 @@ function initAppRouting(callback) {
   callback(null, "INIT_APP_ROUTING_COMPLETE");
 }
 
-
 function initializeConfiguration(cnf, callback) {
 
   debug(chalkInfo(moment().format(compactDateTimeFormat) + " | initializeConfiguration ..."));
@@ -6669,48 +6671,6 @@ function updateTrends(){
     }
   });
 }
-
-// function updateGroupEntity(entityObj, callback){
-
-//   debug("updateGroupEntity\n" + jsonPrint(entityObj));
-
-//   groupUpdateDb(entityObj, function(err, updatedEntityObj){
-//     if (err){
-//       console.log(chalkError("GROUP UPDATE DB ERROR: " + err));
-//       callback(err, entityObj);
-//     }
-//     else {
-
-//       debug("updateGroupEntity updatedEntityObj\n" + jsonPrint(updatedEntityObj));
-
-//       if (updatedEntityObj.tags === undefined){
-//         updatedEntityObj.tags = {};
-//         updatedEntityObj.tags.entity = entityObj.entityId;
-//         updatedEntityObj.tags.name = entityObj.name;
-//       }
-//       else if (updatedEntityObj.tags.entity === undefined){
-//         console.log(chalkError("ENTITY TAG UNDEFINED\n" + jsonPrint(updatedEntityObj.tags)
-//         ));
-//       }
-
-//       entityUpdateDb(updatedEntityObj, function(err, updatedEntity2Obj){
-//         if (err){
-//           console.log(chalkError("ENTITY UPDATE DB ERROR: " + err));
-//           callback(err, updatedEntityObj);
-//         }
-//         else {
-//           // console.log(chalkInfo("TX UTIL SES (UTIL RDY): " + updatedEntity2Obj.lastSession + " TO ADMIN NAMESPACE"));
-//           // adminNameSpace.emit("UTIL_SESSION", updatedEntity2Obj);
-//           callback(null, updatedEntity2Obj);
-//         }
-//       });
-
-//     }
-
-//   });
-// }
-
-// var followerUpdateQueueReady = true;
 
 function initUpdateTrendsInterval(interval){
   clearInterval(updateTrendsInterval);
@@ -7365,7 +7325,7 @@ function initUpdaterPingInterval(interval){
         timeStamp: updaterPingOutstanding
       }, function(err){
         if (err) {
-          console.error(chalkError("*** SORTER SEND ERROR"
+          console.error(chalkError("*** UPDATER SEND ERROR"
             + " | " + err
           ));
         }
@@ -7381,8 +7341,6 @@ function initUpdaterPingInterval(interval){
     }
   }, interval);
 }
-
-
 
 function initIgnoreWordsHashMap(callback) {
   async.each(ignoreWordsArray, function(ignoreWord, cb) {

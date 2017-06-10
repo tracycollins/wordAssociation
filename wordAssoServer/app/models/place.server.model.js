@@ -11,20 +11,24 @@ var PlaceSchema = new Schema({
 		type: String,
 		default: 'place'
 	},
-	nodeId: {  // for D3.js
+	nodeId: { 
 		type: String
 	},
 	tags: { 
 		type: Object,
 		default: {}
 	},
-	isKeyword: {  // for D3.js
+	isKeyword: { 
 		type: Boolean,
 		default: true
 	},
-	keywords: {  // for D3.js
+	keywords: {  
 		type: Object,
 		default: { "neutral": 100}
+	},
+	keywordsAuto: {
+		type: Object,
+		default: {}
 	},
 	geocodeNodeId: { 
 		type: String

@@ -1,8 +1,32 @@
 /*jslint node: true */
 "use strict";
 
+var removeDuplicateFlag = true;
+
 var chalk = require('chalk');
 var _ = require('lodash');
+var Measured = require("measured");
+var metricsRate = "5MinuteRate";
+
+var HashMap = require("hashmap").HashMap;
+
+var keywordHashMap = new HashMap();
+
+// ==================================================================
+// NODE CACHE
+// ==================================================================
+var NodeCache = require("node-cache");
+var NODE_CACHE_TTL = 300; // seconds
+
+var nodeCacheTtl = process.env.NODE_CACHE_TTL;
+if (nodeCacheTtl === undefined) {nodeCacheTtl = NODE_CACHE_TTL;}
+console.log("NODE CACHE TTL: " + nodeCacheTtl + " SECONDS");
+
+var nodeCache = new NodeCache({
+  stdTTL: nodeCacheTtl,
+  checkperiod: 10
+});
+
 
 var chalkError = chalk.bold.red;
 var chalkAlert = chalk.red;
@@ -60,6 +84,155 @@ function getTimeStamp(inputTime) {
   return currentTimeStamp.format(defaultDateTimeFormat);
 }
 
+var nodeMeter = {};
+var TOPTERMS_CACHE_DEFAULT_TTL = 300;
+
+var wordsPerMinuteTopTermTtl = process.env.TOPTERMS_CACHE_DEFAULT_TTL;
+if (wordsPerMinuteTopTermTtl === undefined) {wordsPerMinuteTopTermTtl = TOPTERMS_CACHE_DEFAULT_TTL;}
+console.log("TOP TERMS WPM CACHE TTL: " + wordsPerMinuteTopTermTtl + " SECONDS");
+var wordsPerMinuteTopTermCache = new NodeCache({
+  stdTTL: wordsPerMinuteTopTermTtl,
+  checkperiod: 10
+});
+
+function checkKeyword(nodeObj, callback) {
+
+  debug(chalkAlert("checkKeyword"
+    + " | " + nodeObj.nodeType
+    + " | " + nodeObj.nodeId
+    + "\n" + jsonPrint(nodeObj)
+  ));
+
+  if ((nodeObj.nodeType === "user") 
+    && (nodeObj.screenName !== undefined) 
+    && (nodeObj.screenName) 
+    && keywordHashMap.has(nodeObj.screenName.toLowerCase())) {
+    debug(chalkAlert("HIT USER SNAME"));
+    kwObj = keywordHashMap.get(nodeObj.screenName.toLowerCase());
+    nodeObj.isKeyword = true;
+    nodeObj.keywords = kwObj;    
+    callback(nodeObj);
+  }
+  else if ((nodeObj.nodeType === "user") 
+    && (nodeObj.name !== undefined) 
+    && (nodeObj.name) 
+    && keywordHashMap.has(nodeObj.name.toLowerCase())) {
+    debug(chalkAlert("HIT USER NAME"));
+    kwObj = keywordHashMap.get(nodeObj.name.toLowerCase());
+    nodeObj.isKeyword = true;
+    nodeObj.keywords = kwObj;    
+    callback(nodeObj);
+  }
+  else if ((nodeObj.nodeType === "place") 
+    && keywordHashMap.has(nodeObj.name.toLowerCase())) {
+    debug(chalkAlert("HIT PLACE NAME"));
+    kwObj = keywordHashMap.get(nodeObj.name.toLowerCase());
+    nodeObj.isKeyword = true;
+    nodeObj.keywords = kwObj;    
+    callback(nodeObj);
+  }
+  else if (nodeObj.nodeId && keywordHashMap.has(nodeObj.nodeId.toLowerCase())) {
+    debug(chalkAlert("HIT NODE ID"));
+    kwObj = keywordHashMap.get(nodeObj.nodeId.toLowerCase());
+    nodeObj.isKeyword = true;
+    nodeObj.keywords = kwObj;    
+    if ((nodeObj.nodeType === "user") 
+      && (nodeObj.name === undefined) 
+      && (nodeObj.screenName === undefined)) {
+      nodeObj.screenName = nodeObj.nodeId;
+    }
+    callback(nodeObj);
+  }
+  else if (nodeObj.text && keywordHashMap.has(nodeObj.text.toLowerCase())) {
+    debug(chalkAlert("HIT TEXT"));
+    kwObj = keywordHashMap.get(nodeObj.text.toLowerCase());
+    nodeObj.isKeyword = true;
+    nodeObj.keywords = kwObj;    
+    if ((nodeObj.nodeType === "user") 
+      && (nodeObj.name === undefined) 
+      && (nodeObj.screenName === undefined)) {
+      nodeObj.screenName = nodeObj.nodeId;
+    }
+    callback(nodeObj);
+  }
+  else {
+    callback(nodeObj);
+  }
+}
+
+function updateMetrics(nodeObj, callback){
+
+  var meterNodeId;
+  var meterObj;
+
+  if ((nodeObj.nodeType === "media") 
+    || (nodeObj.nodeType === "url")
+    || (nodeObj.nodeType === "keepalive")
+    ) {
+    callback(null, nodeObj);
+    return;
+  }
+
+  if (nodeObj.tags === undefined) {
+    console.log(chalkAlert("updatenodeMeter\n" + jsonPrint(nodeObj)));
+    console.trace("UNDEFINED WORD TAGS updatenodeMeter");
+  }
+
+  if (nodeObj.isTwitterUser || (nodeObj.nodeType === "user")) {
+    if (nodeObj.screenName !== undefined) {
+      meterNodeId = nodeObj.screenName.toLowerCase();
+    }
+    else if (nodeObj.name !== undefined) {
+      meterNodeId = nodeObj.name.toLowerCase();
+    }
+    else {
+      debug(chalkWarn("updatenodeMeter WARN: TWITTER USER UNDEFINED NAME & SCREEN NAME"
+        + " | USING NODEID: " + nodeObj.nodeId
+        // + "\n" + jsonPrint(nodeObj)
+      ));
+      meterNodeId = nodeObj.nodeId;
+    }
+  }
+  else if (nodeObj.nodeType === "place") {
+    meterNodeId = nodeObj.name.toLowerCase();
+  }
+  else {
+    meterNodeId = nodeObj.nodeId.toLowerCase();
+  }
+
+  if (!nodeMeter[meterNodeId] 
+    || (nodeMeter[meterNodeId] === undefined) 
+    || (typeof nodeMeter[meterNodeId].mark !== "function")) {
+    nodeMeter[meterNodeId] = {};
+    nodeMeter[meterNodeId] = new Measured.Meter({rateUnit: 60000});
+    nodeMeter[meterNodeId].mark();
+    meterObj = nodeMeter[meterNodeId].toJSON();
+    nodeObj.rate = meterObj[metricsRate];
+    nodeCache.set(meterNodeId, nodeObj, function(){
+      debug(chalkAlert("updatenodeMeter MISS"
+        + " | " + meterNodeId
+        + " | " + meterObj[metricsRate].toFixed(2) + " WPM"
+        // + "\n" + jsonPrint(nodeObj)
+      ));
+      if (callback !== undefined) { callback(null, nodeObj); }
+    });
+  }
+  else {
+    nodeMeter[meterNodeId].mark();
+    meterObj = nodeMeter[meterNodeId].toJSON();
+    nodeObj.rate = meterObj[metricsRate];
+    nodeCache.set(meterNodeId, nodeObj, function(){
+      debug(chalkAlert("updatenodeMeter HIT "
+        + " | " + meterNodeId
+        + " | " + meterObj[metricsRate].toFixed(2) + " WPM"
+        // + "\n" + jsonPrint(nodeObj)
+      ));
+      if (callback !== undefined) { callback(null, nodeObj); }
+    });
+  }
+}
+
+
 exports.findOneUser = function (user, params, callback) {
 
 	var inc = 1;
@@ -103,20 +276,58 @@ exports.findOneUser = function (user, params, callback) {
 		options,
 		function(err, us) {
 			if (err) {
-				console.log(getTimeStamp() + "\n\n***** USER FINDONE ERROR: USER ID: " + user.userId + "\n" + err);
 				if (err.code === 11000) {
-					User.remove({userId: user.userId}, function(err){
-						if (err) {
-							console.log("REMOVED DUPLICATE USER ERROR " + err + "\n" + user.userId);
-						}
-						else {
-							console.log("REMOVED DUPLICATE USER " + user.userId);
-						}
-					});
+					if (removeDuplicateFlag) {
+						User.remove({userId: user.userId}, function(err){
+							if (err) {
+								console.log("REMOVED DUPLICATE USER ERROR " + err + "\n" + user.userId);
+							}
+							else {
+								console.log("REMOVED DUPLICATE USER " + user.userId);
+
+								User.findOneAndUpdate(
+									query,
+									update,
+									options,
+									function(err, us) {
+										if (err) {
+											console.log("REMOVED DUPLICATE USER ERROR RETRY" + err + "\n" + user.userId);
+										}
+										else {
+											debug(chalkTwitter("> US UPDATED"
+												+ " | " + us.userId 
+												+ " | @" + us.screenName
+												+ " | " + us.name
+												+ " | Vd: " + us.verified 
+												+ " | FLg: " + us.following 
+												+ " | Ts: " + us.statusesCount 
+												+ " | FLRs: " + us.followersCount 
+												+ " | Ms: " + us.mentions 
+												+ " | LS: " + moment(new Date(us.lastSeen)).format(defaultDateTimeFormat) 
+											));
+											var mentionsString = us.mentions.toString() ;
+											us.mentions = mentionsString ;
+											if (params.io) {
+												// console.log("IO EMIT USER " + us.nodeId);
+												params.io.of('/admin').emit('node', us);	
+												params.io.of('/client').emit('node', us);	
+											}			
+											callback(err, us);
+										}
+									});
+							}
+						});
+					}
+					else {
+						callback(err, user);
+					}
 				}
-				callback(err, user);
+				else {
+					console.error(getTimeStamp() + "\n\n***** USER FINDONE ERROR: USER ID: " + user.userId + "\n" + err);
+				}
 			}
 			else {
+				updateMetrics(us);
 				debug(chalkTwitter("> US UPDATED"
 					+ " | " + us.userId 
 					+ " | @" + us.screenName
@@ -178,7 +389,6 @@ function findOnePlace (place, params, callback) {
 		options,
 		function(err, pl) {
 			if (err) {
-				console.log(getTimeStamp() + "\n\n***** PLACE FINDONE ERROR: PLACE ID: " + place.placeId + "\n" + err);
 				if (err.code === 11000) {
 					Place.remove({placeId: place.placeId}, function(err){
 						if (err) {
@@ -188,6 +398,9 @@ function findOnePlace (place, params, callback) {
 							console.log("REMOVED DUPLICATE PLACE " + place.placeId);
 						}
 					});
+				}
+				else {
+					console.error(getTimeStamp() + "\n\n***** PLACE FINDONE ERROR: PLACE ID: " + place.placeId + "\n" + err);
 				}
 				callback(err, place);
 			}
@@ -254,16 +467,20 @@ function findOneMedia (media, params, callback) {
 		options,
 		function(err, me) {
 			if (err) {
-				console.log(getTimeStamp() + "\n\n***** MEDIA FINDONE ERROR: MEDIA ID: " + media.mediaId + "\n" + err);
 				if (err.code === 11000) {
-					Media.remove({mediaId: media.mediaId}, function(err){
-						if (err) {
-							console.log("REMOVED DUPLICATE MEDIA ERROR " + err + "\n" + media.mediaId);
-						}
-						else {
-							console.log("REMOVED DUPLICATE MEDIA " + media.mediaId);
-						}
-					});
+					if (removeDuplicateFlag) {
+						Media.remove({mediaId: media.mediaId}, function(err){
+							if (err) {
+								console.log("REMOVED DUPLICATE MEDIA ERROR " + err + "\n" + media.mediaId);
+							}
+							else {
+								console.log("REMOVED DUPLICATE MEDIA " + media.mediaId);
+							}
+						});
+					}
+				}
+				else {
+					console.error(getTimeStamp() + "\n\n***** MEDIA FINDONE ERROR: MEDIA ID: " + media.mediaId + "\n" + err);
 				}
 				callback(err, media);
 			}
@@ -310,13 +527,11 @@ function findOneHashtag (hashtag, params, callback) {
 		} 
 	};
 
-
 	var options = { 
 		upsert: true, 
 		setDefaultsOnInsert: true,
 		new: true
 	};
-
 
 	Hashtag.findOneAndUpdate(
 		query,
@@ -324,19 +539,20 @@ function findOneHashtag (hashtag, params, callback) {
 		options,
 		function(err, ht) {
 			if (err) {
-				console.log(getTimeStamp() 
-					+ "\n\n***** HASHTAG FINDONE ERROR: HASHTAG TEXT: " + hashtag.text 
-					+ "\n" + err);
 				if (err.code === 11000) {
-					Hashtag.remove({text: hashtag.text.toLowerCase()}, function(err){
-						if (err) {
-							console.log("REMOVED DUPLICATE HASHTAG ERROR " + err 
-								+ "\n" + hashtag.text.toLowerCase());
-						}
-						else {
-							console.log("REMOVED DUPLICATE HASHTAG " + hashtag.text.toLowerCase());
-						}
-					});
+					if (removeDuplicateFlag) {
+						Hashtag.remove({text: hashtag.text.toLowerCase()}, function(err){
+							if (err) {
+								console.log("REMOVED DUPLICATE HASHTAG ERROR " + err + "\n" + hashtag.text.toLowerCase());
+							}
+							else {
+								console.log("REMOVED DUPLICATE HASHTAG " + hashtag.text.toLowerCase());
+							}
+						});
+					}
+				}
+				else {
+					console.error(getTimeStamp() + "\n\n***** HASHTAG FINDONE ERROR: HASHTAG TEXT: " + hashtag.text  + "\n" + err);
 				}
 				callback(err, hashtag);
 			}
@@ -346,7 +562,7 @@ function findOneHashtag (hashtag, params, callback) {
 					+ " | MTNs: " + ht.mentions 
 					+ " | Ls: " + moment(new Date(ht.lastSeen)).format(defaultDateTimeFormat)
 					+ " | " + ht.text
-					);
+				);
 				var mentionsString = ht.mentions.toString() ;
 				ht.mentions = mentionsString ;
 
@@ -393,7 +609,6 @@ function findOneUrl (url, params, callback) {
 		options,
 		function(err, ur) {
 			if (err) {
-				console.log(getTimeStamp() + "\n\n***** URL FINDONE ERROR: URL ID: " + url.urlId + "\n" + err);
 				if (err.code === 11000) {
 					Url.remove({urlId: url.urlId}, function(err){
 						if (err) {
@@ -403,6 +618,9 @@ function findOneUrl (url, params, callback) {
 							console.log("REMOVED DUPLICATE URL " + url.urlId);
 						}
 					});
+				}
+				else {
+					console.error(getTimeStamp() + "\n\n***** URL FINDONE ERROR: URL ID: " + url.urlId + "\n" + err);
 				}
 				callback(err, url);
 			}
@@ -506,8 +724,7 @@ function findOneTweet (tweet, params, callback) {
 		options,
 		function(err, tw) {
 			if (err) {
-				console.log(getTimeStamp() + "\n\n***** TWEET FINDONE ERROR: TWEET ID: " + tweet.tweetId + "\n" + err);
-				console.log(chalkTwitter("tweet: " + JSON.stringify(tweet, null, 3)));
+				debug(chalkTwitter("tweet: " + JSON.stringify(tweet, null, 3)));
 				if (err.code === 11000) {
 					Tweet.remove({tweetId: tweet.tweetId}, function(err){
 						if (err) {
@@ -517,6 +734,9 @@ function findOneTweet (tweet, params, callback) {
 							console.log("REMOVED DUPLICATE TWEET " + tweet.tweetId);
 						}
 					});
+				}
+				else {
+					console.error(getTimeStamp() + "\n\n***** TWEET FINDONE ERROR: TWEET ID: " + tweet.tweetId + "\n" + err);
 				}
 				callback(err, tweet);
 			}
@@ -593,10 +813,23 @@ function findOneTweet (tweet, params, callback) {
 	);
 }
 
+exports.updateKeywordHashmap = function(params, callback) {
+
+  keywordHashMap.set(params.keywordId, params.keywordObj);
+
+  if (callback !== undefined) {
+  	callback();
+  }
+}
 
 exports.createStreamTweet = function(params, callback) {	
 
 	var newTweet = params.tweetStatus;
+
+	if ((newTweet.user === undefined) || !newTweet.user){
+		console.log(chalkError("createStreamTweet: TWEET USER UNDEFINED " + newTweet.id_str));
+		return(callback("USER UNDEFINED", newTweet));
+	}
 	var io = params.io;
 
 	var tweetObj ;
@@ -948,10 +1181,10 @@ exports.createStreamTweet = function(params, callback) {
 		}
 
 		tweetObj.user = results.user;
-		tweetObj.userMentions = results.userMentions;
-		tweetObj.hashtags = results.hashtags;
-		tweetObj.media = results.media;
-		tweetObj.urls = results.urls;
+		tweetObj.userMentions = results.userMentions || [];
+		tweetObj.hashtags = results.hashtags || [];
+		tweetObj.media = results.media || [];
+		tweetObj.urls = results.urls || [];
 		tweetObj.place = results.place;
 
 		findOneTweet(tweetObj, params, function(err, twObj){

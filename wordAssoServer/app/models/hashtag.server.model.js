@@ -20,6 +20,14 @@ var HashtagSchema = new Schema({
 	lastSeen: {   // in ms
 		type: String
 	},
+	keywords: {
+		type: Object,
+		default: {}
+	},
+	keywordsAuto: {
+		type: Object, 
+		default: {}
+	},
 	isTopTerm: {
 		type: Boolean,
 		default: false

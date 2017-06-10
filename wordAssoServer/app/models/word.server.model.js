@@ -60,6 +60,10 @@ var WordSchema = new Schema({
 		type: Object,
 		default: {}
 	},
+	keywordsAuto: {
+		type: Object, 
+		default: {}
+	},
 	isIgnored: {
 		type: Boolean,
 		default: false

@@ -1871,7 +1871,7 @@ setInterval(function() {
       + " | AGO: " + msToTime(moment().valueOf() - lastHeartbeatReceived));
     socket.connect();
     if (currentSessionView !== undefined) {
-      currentSessionView.enableAgeNodes(false);
+      currentSessionView.setEnableAgeNodes(false);
     }
   }
   else if ((lastHeartbeatReceived > 0) && (lastHeartbeatReceived + serverHeartbeatTimeout) < moment()) {
@@ -1881,11 +1881,11 @@ setInterval(function() {
       + " | AGO: " + msToTime(moment().valueOf() - lastHeartbeatReceived));
     socket.connect();
     if (currentSessionView !== undefined) {
-      currentSessionView.enableAgeNodes(false);
+      currentSessionView.setEnableAgeNodes(false);
     }
   }
   else {
-    currentSessionView.enableAgeNodes(true);
+    currentSessionView.setEnableAgeNodes(true);
   }
 }, serverCheckInterval);
 

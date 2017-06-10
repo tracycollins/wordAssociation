@@ -290,7 +290,7 @@ function msToTime(duration) {
 
 var nodeCacheTtl = process.env.NODE_CACHE_TTL;
 if (nodeCacheTtl === undefined) {nodeCacheTtl = NODE_CACHE_TTL;}
-console.log("WORD CACHE TTL: " + nodeCacheTtl + " SECONDS");
+console.log("NODE CACHE TTL: " + nodeCacheTtl + " SECONDS");
 
 var nodeCache = new NodeCache({
   stdTTL: nodeCacheTtl,
@@ -602,7 +602,7 @@ function showStats(options){
   statsObj.memory.memoryUsage = process.memoryUsage();
 
   if (options) {
-    debug(chalkLog("S"
+    console.log(chalkLog("S"
       // + " | " + statsObj.socketId
       + " | ELAPSED: " + statsObj.elapsed
       + " | START: " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat)
@@ -611,10 +611,10 @@ function showStats(options){
       + " | MAX HEAP: " + statsObj.memory.maxHeap.toFixed(0)
       + " | MAX HEAP TIME: " + moment(parseInt(statsObj.memory.maxHeapTime)).format(compactDateTimeFormat)
     ));
-    debug(chalkAlert("STATS\n" + jsonPrint(statsObj)));
+    console.log(chalkAlert("STATS\n" + jsonPrint(statsObj)));
   }
   else {
-    debug(chalkLog("S"
+    console.log(chalkLog("S"
       // + " | " + statsObj.socketId
       + " | ELAPSED: " + statsObj.elapsed
       + " | START: " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat)

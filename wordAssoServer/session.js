@@ -193,6 +193,7 @@ if (useStoredConfig) {
 }
 else {
   config.metricMode = DEFAULT_METRIC_MODE;
+  config.enableAgeNodes = true;
   config.defaultAgeRate = 1.0;
   config.forceViewMode = DEFAULT_FORCEVIEW_MODE;
   config.fullscreenMode = false;
@@ -1869,6 +1870,9 @@ setInterval(function() {
       + " | " + moment().format(defaultDateTimeFormat) 
       + " | AGO: " + msToTime(moment().valueOf() - lastHeartbeatReceived));
     socket.connect();
+    if (currentSessionView !== undefined) {
+      currentSessionView.enableAgeNodes(false);
+    }
   }
   else if ((lastHeartbeatReceived > 0) && (lastHeartbeatReceived + serverHeartbeatTimeout) < moment()) {
     console.error("\n????? SERVER DOWN ????? | LAST HEARTBEAT: " 
@@ -1876,6 +1880,12 @@ setInterval(function() {
       + " | " + moment().format(defaultDateTimeFormat) 
       + " | AGO: " + msToTime(moment().valueOf() - lastHeartbeatReceived));
     socket.connect();
+    if (currentSessionView !== undefined) {
+      currentSessionView.enableAgeNodes(false);
+    }
+  }
+  else {
+    currentSessionView.enableAgeNodes(true);
   }
 }, serverCheckInterval);
 

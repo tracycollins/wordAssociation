@@ -1526,7 +1526,7 @@ function ViewTreepack() {
   };
 
   this.addNode = function(nNode) {
-
+    this.enableAgeNodes(true);
     if (((nNode.nodeType !== "hashtag") 
       && (nNode.nodeType !== "word") 
       && (nNode.nodeType !== "user")

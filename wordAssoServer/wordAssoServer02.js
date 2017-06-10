@@ -1563,7 +1563,7 @@ function initSorterMessageRxQueueInterval(interval){
                     debug(chalkInfo("TOP TERM METRIC"
                       + " | " + node
                       + " | Ms: " + nodeObj.mentions
-                      + " | RATE: " + wmObj[metricsRate]
+                      + " | RATE: " + wmObj[metricsRate].toFixed(2)
                     ));
 
                     topTermDataPoint.displayName = node;

@@ -61,6 +61,9 @@ module.exports = function() {
 	require('../app/models/word.server.model');  
 	require('../app/models/tweet.server.model');  
 	require('../app/models/hashtag.server.model');  
+	require('../app/models/media.server.model');  
+	require('../app/models/url.server.model');  
+	require('../app/models/place.server.model');  
 	require('../app/models/phrase.server.model');  
 
 	require('../app/models/ipAddress.server.model');  

@@ -115,7 +115,7 @@ process.on('message', function(m) {
   switch (m.op) {
 
     case "INIT":
-      console.log(chalkInfo("SORTER INIT"
+      console.log(chalkLog("SORTER INIT"
       ));
     break;
 

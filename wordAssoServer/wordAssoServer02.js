@@ -589,6 +589,16 @@ function showStats(options){
 
   statsObj.elapsed = msToTime(moment().valueOf() - statsObj.startTime);
   statsObj.timeStamp = moment().format(compactDateTimeFormat);
+  statsObj.caches.nodeCache.stats.keys = nodeCache.getStats().keys;
+  
+  if (statsObj.caches.nodeCache.stats.keys > statsObj.caches.nodeCache.stats.keysMax) {
+    statsObj.caches.nodeCache.stats.keysMax = statsObj.caches.nodeCache.stats.keys;
+    statsObj.caches.nodeCache.stats.keysMaxTime = moment().valueOf();
+    console.log(chalkAlert("NEW MAX NODE $ KEYS"
+      + " | " + moment().format(compactDateTimeFormat)
+      + " | KEYS: " + statsObj.caches.nodeCache.stats.keys
+    ));
+  }
 
   statsObj.memory.heap = process.memoryUsage().heapUsed/(1024*1024);
   if (statsObj.memory.heap > statsObj.memory.maxHeap) {
@@ -619,6 +629,7 @@ function showStats(options){
       + " | ELAPSED: " + statsObj.elapsed
       + " | START: " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat)
       + " | NOW: " + moment().format(compactDateTimeFormat)
+      + " | NODE $: Ks:" + nodeCache.getStats().keys + " KS: " +  + " VS: " + nodeCache.getStats().vsize
       + " | HEAP: " + statsObj.memory.heap.toFixed(0) + " MB"
       + " | MAX HEAP: " + statsObj.memory.maxHeap.toFixed(0)
       + " | MAX HEAP TIME: " + moment(parseInt(statsObj.memory.maxHeapTime)).format(compactDateTimeFormat)
@@ -2656,6 +2667,12 @@ function initRateQinterval(interval){
         dataPointUsers.value = statsObj.caches.userCache.stats.keys;
         dataPointUsers.metricLabels = {server_id: "USER"};
         addMetricDataPoint(dataPointUsers);
+        // cache/node/keys
+        var dataPointNodeCache = {};
+        dataPointNodeCache.metricType = "cache/node/keys";
+        dataPointNodeCache.value = statsObj.caches.NodeCache.stats.keys;
+        dataPointNodeCache.metricLabels = {server_id: "CACHE"};
+        addMetricDataPoint(dataPointNodeCache);
       }
     }
 

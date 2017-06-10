@@ -53,7 +53,6 @@ requirejs(["https://d3js.org/d3.v4.min.js"], function(d3Loaded) {
     d3 = d3Loaded;
     initialize(function(){
 
-
       PARENT_ID = config.sessionViewType;
 
       initializedFlag = true;
@@ -66,6 +65,16 @@ requirejs(["https://d3js.org/d3.v4.min.js"], function(d3Loaded) {
       addFullscreenButton();
       addMetricButton();
       addStatsButton();
+
+      document.addEventListener("mousemove", function() {
+        if (config.pauseOnMouseMove && (currentSessionView)) { 
+          currentSessionView.simulationControl('PAUSE'); 
+          mouseMovingFlag = true;
+          displayControl(true);
+          resetMouseMoveTimer();
+        }
+      }, true);
+
     });
   },
   function(error) {
@@ -619,14 +628,14 @@ function resetMouseMoveTimer() {
   }, mouseMoveTimeoutInterval);
 }
 
-document.addEventListener("mousemove", function() {
-  if (config.pauseOnMouseMove && (currentSessionView)) { 
-    currentSessionView.simulationControl('PAUSE'); 
-    mouseMovingFlag = true;
-    displayControl(true);
-    resetMouseMoveTimer();
-  }
-}, true);
+// document.addEventListener("mousemove", function() {
+//   if (config.pauseOnMouseMove && (currentSessionView)) { 
+//     currentSessionView.simulationControl('PAUSE'); 
+//     mouseMovingFlag = true;
+//     displayControl(true);
+//     resetMouseMoveTimer();
+//   }
+// }, true);
 
 var dragEndPosition = { 'id': 'ID', 'x': 47, 'y': 147};
 
@@ -4092,9 +4101,7 @@ function initialize(callback) {
         });
 
         callback();
-
       }
-
     } 
     else {
       console.error("GET URL VARIABLES ERROR\n" + jsonPrint(err));

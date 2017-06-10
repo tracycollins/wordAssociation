@@ -3848,9 +3848,7 @@ function initialize(callback) {
             initStatsUpdate(1000);
 
             console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
-            socket.emit("VIEWER_READY", viewerObj, function(data){
-              console.log("VIEWER_READY DATA: " + data); // data will be 'woot'
-            });
+            socket.emit("VIEWER_READY", viewerObj);
 
             setTimeout(function() {
               console.log("END PAGE LOAD TIMEOUT");

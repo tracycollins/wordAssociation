@@ -431,7 +431,7 @@ function ViewTreepack() {
 
   d3.select("body").style("cursor", "default");
   
-  this.setEnableAgeNodes = function(enabled) {
+  self.setEnableAgeNodes = function(enabled) {
     enableAgeNodes = enabled;
     config.enableAgeNodes = enabled;
     console.debug("SET ENABLE AGE NODES: " + enableAgeNodes);
@@ -1526,7 +1526,7 @@ function ViewTreepack() {
   };
 
   this.addNode = function(nNode) {
-    this.enableAgeNodes(true);
+    self.setEnableAgeNodes(true);
     if (((nNode.nodeType !== "hashtag") 
       && (nNode.nodeType !== "word") 
       && (nNode.nodeType !== "user")

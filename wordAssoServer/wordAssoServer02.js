@@ -779,9 +779,8 @@ function initSocketHandler(socket) {
     debug(chalkSocket("ADMIN READY\n" + jsonPrint(adminObj)));
   });
 
-  socket.on("VIEWER_READY", function(viewerObj, cb) {
+  socket.on("VIEWER_READY", function(viewerObj) {
     debug(chalkSocket("VIEWER READY\n" + jsonPrint(viewerObj)));
-    cb("YO");
   });
 
   socket.on("SESSION_KEEPALIVE", function(userObj) {

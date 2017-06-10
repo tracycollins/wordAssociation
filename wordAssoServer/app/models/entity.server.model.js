@@ -35,6 +35,10 @@ var EntitySchema = new Schema({
 		type: Number,
 		default: 0
 	},
+
+	keywords: { type: Object, default: {} },
+	keywordsAuto: { type: Object, default: {} },
+
 	isTopTerm: { 
 		type: Boolean,
 		default: false

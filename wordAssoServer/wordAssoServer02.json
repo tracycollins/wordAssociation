@@ -1,7 +1,7 @@
 {
   "apps" : [{
     "name"        : "wa",
-    "script"      : "wordAssoServer.js",
+    "script"      : "wordAssoServer02.js",
     "cwd"         : "/home/tc/wordAssociation/wordAssoServer",
     "autorestart" : false,
     "env": {

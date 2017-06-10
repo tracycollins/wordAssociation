@@ -590,20 +590,9 @@ function displayStats(isVisible, dColor) {
 }
 
 var mouseMoveTimeoutEventObj = new CustomEvent("mouseMoveTimeoutEvent");
-
-
-// var mouseMoveTimeoutEventHandler = function(e) {
-//   console.debug("mouseMoveTimeoutEvent");
-// }
-
-
-// document.body.addEventListener("mouseMoveTimeoutEvent", mouseMoveTimeoutEventHandler);
-
-
 var mouseMoveTimeout;
 var mouseMovingFlag = false;
 var mouseMoveTimeoutInterval = 2000;
-
 var mouseMoveTimeout;
 
 function resetMouseMoveTimer() {
@@ -631,14 +620,38 @@ function resetMouseMoveTimer() {
   }, mouseMoveTimeoutInterval);
 }
 
-// document.addEventListener("mousemove", function() {
-//   if (config.pauseOnMouseMove && (currentSessionView)) { 
-//     currentSessionView.simulationControl('PAUSE'); 
-//     mouseMovingFlag = true;
-//     displayControl(true);
-//     resetMouseMoveTimer();
-//   }
-// }, true);
+
+
+
+
+var serverActiveTimeoutEventObj = new CustomEvent("serverActiveTimeoutEvent");
+var serverActiveTimeout;
+var serverActiveFlag = false;
+var serverActiveTimeoutInterval = 1000;
+
+function resetServerActiveTimer() {
+
+  serverActiveFlag = true;
+  if (currentSessionView !== undefined) { currentSessionView.setEnableAgeNodes(true); }
+
+  clearTimeout(serverActiveTimeout);
+
+  serverActiveTimeout = setTimeout(function() {
+
+    serverActiveFlag = false;
+    if (currentSessionView !== undefined) { currentSessionView.setEnableAgeNodes(false); }
+
+    document.dispatchEvent(serverActiveTimeoutEventObj);
+
+  }, serverActiveTimeoutInterval);
+}
+
+
+
+
+
+
+
 
 var dragEndPosition = { 'id': 'ID', 'x': 47, 'y': 147};
 
@@ -1974,6 +1987,8 @@ function updateStatsTable(statsObj){
 var heartBeatsReceived = 0;
 
 socket.on("HEARTBEAT", function(heartbeat) {
+
+  resetServerActiveTimer();
 
   var nodesLength = ( currentSessionView === undefined) ? 0 : currentSessionView.getNodesLength();
   statsObj.maxNodes = ( currentSessionView === undefined) ? 0 : currentSessionView.getMaxNodes();

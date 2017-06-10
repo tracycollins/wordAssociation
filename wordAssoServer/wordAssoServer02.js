@@ -1019,29 +1019,49 @@ function transmitNodes(tw, callback){
 
   tw.hashtags.forEach(function(hashtag){
     checkKeyword(hashtag, function(ht){
-      viewNameSpace.emit("node", ht);
+      updateWordMeter(ht, function(err, ht2){
+        if (!err) {
+          viewNameSpace.emit("node", ht2);
+        }
+      });
     });
   });
 
   tw.media.forEach(function(media){
     checkKeyword(media, function(me){
-      viewNameSpace.emit("node", me);
+      updateWordMeter(me, function(err, me2){
+        if (!err) {
+          viewNameSpace.emit("node", me2);
+        }
+      });
     });
   });
 
   tw.urls.forEach(function(url){
     checkKeyword(url, function(ul){
-      viewNameSpace.emit("node", ul);
+      updateWordMeter(ul, function(err, ul2){
+        if (!err) {
+          viewNameSpace.emit("node", ul2);
+        }
+      });
     });
   });
 
   checkKeyword(tw.user, function(us){
-    viewNameSpace.emit("node", us);
+    updateWordMeter(us, function(err, us2){
+      if (!err) {
+        viewNameSpace.emit("node", us2);
+      }
+    });
   });
 
   if (tw.place){
     checkKeyword(tw.place, function(pl){
-      viewNameSpace.emit("node", pl);
+      updateWordMeter(pl, function(err, pl2){
+        if (!err) {
+          viewNameSpace.emit("node", pl2);
+        }
+      });
     });
   }
 

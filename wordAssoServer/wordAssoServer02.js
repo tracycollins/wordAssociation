@@ -59,14 +59,14 @@ nodeCache.on("set", function(nodeCacheId, nodeObj) {
 });
 
 nodeCache.on("expired", function(nodeCacheId, nodeObj) {
-  console.log(chalkAlert("XXX NODE $"
+  debug(chalkAlert("XXX NODE $"
     + " | " + nodeObj.nodeType
     + " | " + nodeCacheId
   ));
   if (wordMeter[nodeCacheId] !== undefined) {
     wordMeter[nodeCacheId] = {};
     delete wordMeter[nodeCacheId];
-    console.log(chalkAlert("XXX NODE METER WORD"
+    debug(chalkAlert("XXX NODE METER WORD"
       + " | Ks: " + Object.keys(wordMeter).length
       + " | " + nodeCacheId
     ));

@@ -5,6 +5,7 @@ var quitOnError = true;
 // ==================================================================
 // GLOBAL VARIABLES
 // ==================================================================
+var OFFLINE_MODE = false;
 var MIN_METRIC_VALUE = 5;
 var MIN_MENTIONS_VALUE = 1000;
 var KEYWORDS_UPDATE_INTERVAL = 60000;
@@ -17,12 +18,210 @@ var TRENDING_CACHE_DEFAULT_TTL = 60;
 var DEFAULT_KEYWORD_VALUE = 100;
 var NODE_CACHE_TTL = 60;
 
+var ONE_MINUTE = 60000;
+
+var ignoreWordsArray = [
+  "r",
+  "y",
+  "se",
+  "que",
+  "el",
+  "en",
+  "la",
+  "por",
+  "que",
+  "es",
+  "los",
+  "las",
+  "y",
+  "в",
+  "'",
+  "-",
+  "...",
+  "a",
+  "about",
+  "across",
+  "after",
+  "all",
+  "also",
+  "an",
+  "and",
+  "ao",
+  "aos",
+  "applause",
+  "are",
+  "as",
+  "at",
+  "b",
+  "be",
+  "because",
+  "been",
+  "before",
+  "being",
+  "but",
+  "by",
+  "can",
+  "can",
+  "could",
+  "could",
+  "da",
+  "day",
+  "de",
+  "did",
+  "do",
+  "dont",
+  "e",
+  "else",
+  "em",
+  "for",
+  "from",
+  "get",
+  "go",
+  "going",
+  "had",
+  "has",
+  "hasnt",
+  "have",
+  "havent",
+  "he",
+  "her",
+  "here",
+  "him",
+  "his",
+  "how",
+  "htt...",
+  "i",
+  "if",
+  "im",
+  "in",
+  "into",
+  "is",
+  "isnt",
+  "it",
+  "its",
+  "just",
+  "less",
+  "like",
+  "lot",
+  "m",
+  "may",
+  "me",
+  "more",
+  "my",
+  "nas",
+  "new",
+  "no",
+  "nos",
+  "not",
+  "of",
+  "old",
+  "on",
+  "or",
+  "os",
+  "ou",
+  "our",
+  "out",
+  "over",
+  "rt",
+  "s",
+  "said",
+  "say",
+  "saying",
+  "she",
+  "should",
+  "so",
+  "some",
+  "than",
+  "that",
+  "thats",
+  "the",
+  "their",
+  "them",
+  "then",
+  "there",
+  "these",
+  "they",
+  "this",
+  "those",
+  "though",
+  "to",
+  "too",
+  "upon",
+  "us",
+  "ve",
+  "want",
+  "was",
+  "wasnt",
+  "we",
+  "were",
+  "what",
+  "when",
+  "where",
+  "which",
+  "who",
+  "whose",
+  "why",
+  "will",
+  "with",
+  "wont",
+  "would",
+  "you",
+  "your",
+  "|",
+  "é",
+  "–"
+];
+
 var metricsRate = "5MinuteRate";
 var CUSTOM_GOOGLE_APIS_PREFIX = "custom.googleapis.com";
 
 var enableGoogleMetrics = (process.env.ENABLE_GOOGLE_METRICS !== undefined) ? process.env.ENABLE_GOOGLE_METRICS : true;
 
 var defaults = require("object.defaults");
+var moment = require("moment");
+var config = require("./config/config");
+var os = require("os");
+var fs = require("fs");
+var path = require("path");
+var async = require("async");
+var yaml = require("yamljs");
+var debug = require("debug")("wa");
+var debugKeyword = require("debug")("kw");
+
+var express = require("./config/express");
+var EventEmitter2 = require("eventemitter2").EventEmitter2;
+
+var Dropbox = require("dropbox");
+
+var Monitoring = require("@google-cloud/monitoring");
+var googleMonitoringClient = Monitoring.v3().metricServiceClient();
+
+var HashMap = require("hashmap").HashMap;
+var NodeCache = require("node-cache");
+
+var Twit = require("twit");
+var twit;
+var twitterYamlConfigFile = process.env.DEFAULT_TWITTER_CONFIG;
+
+var hostname = os.hostname();
+hostname = hostname.replace(/.local/g, "");
+hostname = hostname.replace(/.home/g, "");
+hostname = hostname.replace(/.at.net/g, "");
+hostname = hostname.replace(/.fios-router.home/g, "");
+hostname = hostname.replace(/word0-instance-1/g, "google");
+
+var chalk = require("chalk");
+var chalkAdmin = chalk.bold.cyan;
+var chalkWarn = chalk.red;
+var chalkTwitter = chalk.blue;
+var chalkConnect = chalk.black;
+var chalkSession = chalk.black;
+var chalkDisconnect = chalk.black;
+var chalkSocket = chalk.black;
+var chalkInfo = chalk.gray;
+var chalkAlert = chalk.red;
+var chalkError = chalk.bold.red;
+var chalkLog = chalk.gray;
 
 var tmsServers = {};
 var tssServers = {};
@@ -38,14 +237,61 @@ tmsServer.connected = false;
 tmsServer.user = {};
 tmsServer.socket = {};
 
-var Monitoring = require("@google-cloud/monitoring");
-var googleMonitoringClient = Monitoring.v3().metricServiceClient();
+var wordMeter = {};
+
+var tweetRxQueueInterval;
+var tweetParserQueue = [];
+var tweetParserMessageRxQueue = [];
+
+var updaterPingInterval;
+var updaterPingOutstanding = 0;
+
+var statsInterval;
+// ==================================================================
+// DROPBOX
+// ==================================================================
+var DROPBOX_WORD_ASSO_ACCESS_TOKEN = process.env.DROPBOX_WORD_ASSO_ACCESS_TOKEN;
+var DROPBOX_WORD_ASSO_APP_KEY = process.env.DROPBOX_WORD_ASSO_APP_KEY;
+var DROPBOX_WORD_ASSO_APP_SECRET = process.env.DROPBOX_WORD_ASSO_APP_SECRET;
+// var WA_STATS_FILE = process.env.WA_STATS_FILE;
+var DROPBOX_WA_STATS_FILE = process.env.DROPBOX_WA_STATS_FILE || "wordAssoServer02Stats.json";
+
+var statsFolder = "/stats/" + hostname;
+var statsFile = DROPBOX_WA_STATS_FILE;
+
+console.log("DROPBOX_WORD_ASSO_ACCESS_TOKEN :" + DROPBOX_WORD_ASSO_ACCESS_TOKEN);
+console.log("DROPBOX_WORD_ASSO_APP_KEY :" + DROPBOX_WORD_ASSO_APP_KEY);
+console.log("DROPBOX_WORD_ASSO_APP_SECRET :" + DROPBOX_WORD_ASSO_APP_SECRET);
+
+var dropboxClient = new Dropbox({ accessToken: DROPBOX_WORD_ASSO_ACCESS_TOKEN });
+
+var jsonPrint = function (obj) {
+  if (obj) {
+    return JSON.stringify(obj, null, 2);
+  } 
+  else {
+    return obj;
+  }
+};
+
+function msToTime(duration) {
+  var seconds = parseInt((duration / 1000) % 60);
+  var minutes = parseInt((duration / (1000 * 60)) % 60);
+  var hours = parseInt((duration / (1000 * 60 * 60)) % 24);
+  var days = parseInt(duration / (1000 * 60 * 60 * 24));
+
+  days = (days < 10) ? "0" + days : days;
+  hours = (hours < 10) ? "0" + hours : hours;
+  minutes = (minutes < 10) ? "0" + minutes : minutes;
+  seconds = (seconds < 10) ? "0" + seconds : seconds;
+
+  return days + ":" + hours + ":" + minutes + ":" + seconds;
+}
 
 var nodeCacheTtl = process.env.NODE_CACHE_TTL;
 if (nodeCacheTtl === undefined) {nodeCacheTtl = NODE_CACHE_TTL;}
 console.log("WORD CACHE TTL: " + nodeCacheTtl + " SECONDS");
 
-var NodeCache = require("node-cache");
 var nodeCache = new NodeCache({
   stdTTL: nodeCacheTtl,
   checkperiod: 10
@@ -76,6 +322,8 @@ nodeCache.on("expired", function(nodeCacheId, nodeObj) {
 // ==================================================================
 // TWITTER TRENDING TOPIC CACHE
 // ==================================================================
+var updateTrendsInterval;
+
 var trendingCacheTtl = process.env.TRENDING_CACHE_DEFAULT_TTL;
 if (trendingCacheTtl === undefined) {trendingCacheTtl = TRENDING_CACHE_DEFAULT_TTL;}
 console.log("TRENDING CACHE TTL: " + trendingCacheTtl + " SECONDS");
@@ -99,7 +347,6 @@ var wordsPerMinuteTopTermCache = new NodeCache({
   checkperiod: 10
 });
 
-var wordMeter = {};
 
 var rateQinterval;
 var Measured = require("measured");
@@ -123,19 +370,8 @@ var configuration = {};
 configuration.quitOnError = false;
 configuration.maxTopTerms = process.env.WA_MAX_TOP_TERMS || 100;
 
-var chalk = require("chalk");
-var moment = require("moment");
 
 var internetCheckInterval;
-
-var config = require("./config/config");
-var os = require("os");
-var HashMap = require("hashmap").HashMap;
-var debug = require("debug")("wa");
-var debugKeyword = require("debug")("kw");
-
-var express = require("./config/express");
-var EventEmitter2 = require("eventemitter2").EventEmitter2;
 
 var app = express();
 
@@ -145,97 +381,19 @@ var httpServer = http.createServer(app);
 var io;
 var net = require("net");
 
-var hostname = os.hostname();
-hostname = hostname.replace(/.local/g, "");
-hostname = hostname.replace(/.at.net/g, "");
-hostname = hostname.replace(/.fios-router.home/g, "");
-hostname = hostname.replace(/word0-instance-1/g, "google");
-
 var cp = require("child_process");
 var updater;
 var updaterMessageQueue = [];
 var sorter;
 var sorterMessageRxQueue = [];
 
-var chalkAdmin = chalk.bold.cyan;
-var chalkConnect = chalk.black;
-var chalkSession = chalk.black;
-var chalkDisconnect = chalk.black;
-var chalkSocket = chalk.black;
-var chalkInfo = chalk.gray;
-var chalkAlert = chalk.red;
-var chalkError = chalk.bold.red;
-var chalkLog = chalk.gray;
 
 var ignoreWordHashMap = new HashMap();
 var keywordHashMap = new HashMap();
-var topicHashMap = new HashMap();
 
 var localHostHashMap = new HashMap();
 
 var tweetParser;
-
-function randomInt(low, high) {
-  return Math.floor(Math.random() * (high - low) + low);
-}
-
-var jsonPrint = function (obj) {
-  if (obj) {
-    return JSON.stringify(obj, null, 2);
-  } 
-  else {
-    return obj;
-  }
-};
-
-function quit(message) {
-  debug("\n... QUITTING ...");
-  var msg = "";
-  if (message) {msg = message;}
-  debug("QUIT MESSAGE: " + msg);
-  process.exit();
-}
-
-
-process.on("exit", function() {
-  if (tweetParser !== undefined) { tweetParser.kill("SIGINT"); }
-  if (updater !== undefined) { updater.kill("SIGINT"); }
-  if (sorter !== undefined) { sorter.kill("SIGINT"); }
-});
-
-process.on("message", function(msg) {
-
-  if ((msg === "SIGINT") || (msg === "shutdown")) {
-
-    debug("\n\n!!!!! RECEIVED PM2 SHUTDOWN !!!!!\n\n***** Closing all connections *****\n\n");
-    debug("... SAVING STATS");
-
-    clearInterval(initInternetCheckInterval);
-
-    setTimeout(function() {
-      debug("**** Finished closing connections ****\n\n ***** RELOADING blm.js NOW *****\n\n");
-      quit(msg);
-    }, 300);
-
-  }
-});
-
-// ==================================================================
-// FUNCTIONS
-// ==================================================================
-function msToTime(duration) {
-  var seconds = parseInt((duration / 1000) % 60);
-  var minutes = parseInt((duration / (1000 * 60)) % 60);
-  var hours = parseInt((duration / (1000 * 60 * 60)) % 24);
-  var days = parseInt(duration / (1000 * 60 * 60 * 24));
-
-  days = (days < 10) ? "0" + days : days;
-  hours = (hours < 10) ? "0" + hours : hours;
-  minutes = (minutes < 10) ? "0" + minutes : minutes;
-  seconds = (seconds < 10) ? "0" + seconds : seconds;
-
-  return days + ":" + hours + ":" + minutes + ":" + seconds;
-}
 
 var statsObj = {};
 
@@ -355,8 +513,77 @@ statsObj.socket.wordsReceived = 0;
 
 statsObj.utilities = {};
 
-var MAX_Q = 1000;
-var tweetRxQueue = [];
+function quit(message) {
+  debug("\n... QUITTING ...");
+  var msg = "";
+  if (message) {msg = message;}
+  debug("QUIT MESSAGE: " + msg);
+  process.exit();
+}
+
+
+function loadYamlConfig(yamlFile, callback){
+  console.log(chalkInfo("LOADING YAML CONFIG FILE: " + yamlFile));
+  fs.exists(yamlFile, function(exists) {
+    if (exists) {
+      var cnf = yaml.load(yamlFile);
+      console.log(chalkInfo("FOUND FILE " + yamlFile));
+      callback(null, cnf);
+    }
+    else {
+      var err = "FILE DOES NOT EXIST: " + yamlFile ;
+      callback(err, null);
+    }
+  });
+}
+
+function saveStats(statsFile, statsObj, callback) {
+
+  var fullPath = statsFolder + "/" + statsFile;
+
+  if (OFFLINE_MODE) {
+
+    fs.exists(fullPath, function(exists) {
+      if (exists) {
+        fs.stat(fullPath, function(error, stats) {
+          if (error) { return(callback(error, stats)); }
+          fs.open(fullPath, "w", function(error, fd) {
+            if (error) { return(callback(error, fd)); }
+            fs.writeFile(path, statsObj, function(error) {
+              if (error) { return(callback(error, path)); }
+              callback("OK");
+              fs.close(fd);
+            });
+          });
+        });
+      }
+    });
+  } else {
+
+  var options = {};
+
+  options.contents = JSON.stringify(statsObj, null, 2);
+  options.path = fullPath;
+  options.mode = "overwrite";
+  options.autorename = false;
+
+  dropboxClient.filesUpload(options)
+    .then(function(){
+      console.log(chalkLog(moment().format(compactDateTimeFormat)
+        + " | SAVED DROPBOX JSON | " + options.path
+      ));
+      callback("OK");
+    })
+    .catch(function(error){
+      console.log(chalkError(moment().format(compactDateTimeFormat) 
+        + " | !!! ERROR DROBOX JSON WRITE | FILE: " + options.path 
+        + " ERROR: " + error.error_summary
+      ));
+      callback(error);
+    });
+
+  }
+}
 
 function showStats(options){
 
@@ -398,6 +625,47 @@ function showStats(options){
     ));
   }
 }
+
+process.on("exit", function() {
+  if (tweetParser !== undefined) { tweetParser.kill("SIGINT"); }
+  if (updater !== undefined) { updater.kill("SIGINT"); }
+  if (sorter !== undefined) { sorter.kill("SIGINT"); }
+});
+
+process.on("message", function(msg) {
+
+  if ((msg === "SIGINT") || (msg === "shutdown")) {
+
+    debug("\n\n!!!!! RECEIVED PM2 SHUTDOWN !!!!!\n\n***** Closing all connections *****\n\n");
+    debug("... SAVING STATS");
+
+    clearInterval(internetCheckInterval);
+
+    saveStats(statsFile, statsObj, function(status) {
+      if (status !=="OK") {
+        debug("!!! ERROR: saveStats " + status);
+      } 
+      else {
+        debug(chalkLog("UPDATE STATUS OK"));
+      }
+    });
+
+    setTimeout(function() {
+      showStats(true);
+      debug("**** Finished closing connections ****\n\n ***** RELOADING blm.js NOW *****\n\n");
+      quit(msg);
+    }, 300);
+
+  }
+});
+
+// ==================================================================
+// FUNCTIONS
+// ==================================================================
+
+var MAX_Q = 1000;
+var tweetRxQueue = [];
+
 
 // ==================================================================
 // SERVER STATUS
@@ -459,6 +727,192 @@ process.env.NODE_ENV = process.env.NODE_ENV || "development";
 
 debug("NODE_ENV : " + process.env.NODE_ENV);
 debug("CLIENT HOST + PORT: " + "http://localhost:" + config.port);
+
+function initSocketHandler(socket) {
+
+  socket.emit("SERVER_READY", {connected: hostname});
+
+  socket.on("reconnect_error", function(errorObj) {
+    statsObj.socket.reconnect_errors += 1;
+    debug(chalkError(moment().format(compactDateTimeFormat) 
+      + " | SOCKET RECONNECT ERROR: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
+  });
+
+  socket.on("reconnect_failed", function(errorObj) {
+    statsObj.socket.reconnect_fails += 1;
+    debug(chalkError(moment().format(compactDateTimeFormat) 
+      + " | SOCKET RECONNECT FAILED: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
+  });
+
+  socket.on("connect_error", function(errorObj) {
+    statsObj.socket.connect_errors += 1;
+    debug(chalkError(moment().format(compactDateTimeFormat) 
+      + " | SOCKET CONNECT ERROR: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
+  });
+
+  socket.on("connect_timeout", function(errorObj) {
+    statsObj.socket.connect_timeouts += 1;
+    debug(chalkError(moment().format(compactDateTimeFormat) 
+      + " | SOCKET CONNECT TIMEOUT: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
+  });
+
+  socket.on("error", function(error) {
+    statsObj.socket.errors += 1;
+    debug(chalkError(moment().format(compactDateTimeFormat) 
+      + " | *** SOCKET ERROR" + " | " + socket.id + " | " + error));
+  });
+
+  socket.on("reconnect", function() {
+    statsObj.socket.reconnects += 1;
+    debug(chalkConnect(moment().format(compactDateTimeFormat) + " | SOCKET RECONNECT: " + socket.id));
+  });
+
+  socket.on("disconnect", function(status) {
+    statsObj.socket.disconnects += 1;
+
+    debug(chalkDisconnect(moment().format(compactDateTimeFormat) 
+      + " | SOCKET DISCONNECT: " + socket.id + "\nstatus\n" + jsonPrint(status)
+    ));
+  });
+
+  socket.on("ADMIN_READY", function(adminObj) {
+    debug(chalkSocket("ADMIN READY\n" + jsonPrint(adminObj)));
+  });
+
+  socket.on("VIEWER_READY", function(viewerObj, cb) {
+    debug(chalkSocket("VIEWER READY\n" + jsonPrint(viewerObj)));
+    cb("YO");
+  });
+
+  socket.on("SESSION_KEEPALIVE", function(userObj) {
+
+    if (statsObj.utilities[userObj.userId] === undefined) {
+      statsObj.utilities[userObj.userId] = {};
+    }
+
+    statsObj.socket.keepalives += 1;
+
+    // debug(chalkSession("SESSION_KEEPALIVE | " + userObj.userId));
+    // debug(chalkSession("SESSION_KEEPALIVE\n" + jsonPrint(userObj)));
+
+    if (userObj.stats) {statsObj.utilities[userObj.userId] = userObj.stats;}
+
+    if (userObj.userId.match(/LA_/g)){
+      userObj.isServer = true;
+
+      languageServer.connected = true;
+      languageServer.user = userObj;
+      languageServer.socket = socket;
+
+      debug(chalkSession("K-LA" 
+        + " | " + userObj.userId
+        + " | " + socket.id
+        + " | " + moment().format(compactDateTimeFormat)
+        // + "\n" + jsonPrint(userObj)
+      ));
+    }
+ 
+    if (userObj.userId.match(/TMS_/g)){
+      userObj.isServer = true;
+
+      if (tmsServers[socket.id] === undefined) { tmsServers[socket.id] = {}; }
+      tmsServers[socket.id].connected = true;
+      tmsServers[socket.id].user = userObj;
+      tmsServers[socket.id].socket = socket;
+
+      // debug(chalkSession("K-TMS" 
+      //   + " | " + userObj.userId
+      //   + " | " + socket.id
+      //   + " | " + userObj.stats.tweetsPerMinute.toFixed(0) + " TPM"
+      //   + " | " + moment().format(compactDateTimeFormat)
+      //   // + "\n" + jsonPrint(userObj)
+      // ));
+    }
+ 
+    if (userObj.userId.match(/TSS_/g)){
+      userObj.isServer = true;
+
+      if (tssServers[socket.id] === undefined) { tssServers[socket.id] = {}; }
+      tssServers[socket.id].connected = true;
+      tssServers[socket.id].user = userObj;
+      tssServers[socket.id].socket = socket;
+
+      // debug(chalkSession("K-TSS" 
+      //   + " | " + userObj.userId
+      //   + " | " + socket.id
+      //   + " | " + userObj.stats.tweetsPerMinute.toFixed(0) + " TPM"
+      //   + " | " + moment().format(compactDateTimeFormat)
+      //   // + "\n" + jsonPrint(userObj)
+      // ));
+    }
+  });
+
+  socket.on("USER_READY", function(userObj, cb) {
+    debug(chalkSocket("USER READY"
+      + " | " + userObj.userId
+      // + "\n" + jsonPrint(userObj)
+    ));
+    cb(userObj.userId);
+  });
+
+  socket.on("tweet", function(tw) {
+    statsObj.twitter.tweetsReceived += 1;
+    debug(chalkSocket("tweet" 
+      + " [" + statsObj.twitter.tweetsReceived + "]"
+      // + " | " + socket.id
+      + " | " + tw.id_str
+      + " | " + tw.user.id_str
+      + " | " + tw.user.screen_name
+      + " | " + tw.user.name
+      // + jsonPrint(rxNodeObj)
+    ));
+
+    if (tweetRxQueue.length > MAX_Q){
+      console.log(chalkError("*** MAX QUEUE [" + tweetRxQueue.length + "] | T<"
+        + " | " + tw.id_str
+        + " | " + tw.user.screen_name
+      ));
+    }
+    else if (tw.user) {
+      tweetRxQueue.push(tw);
+      debug(chalkLog("T<"
+        + " [ RXQ: " + tweetRxQueue.length + "]"
+        + " [ TPQ: " + tweetParserQueue.length + "]"
+        + " | " + tw.id_str
+        + " | @" + tw.user.screen_name
+        + " | " + tw.user.name
+      ));
+    }
+    else{
+      console.log(chalkAlert("NULL USER T*<"
+        + " [ RXQ: " + tweetRxQueue.length + "]"
+        + " [ TPQ: " + tweetParserQueue.length + "]"
+        + " | " + tw.id_str
+        + " | @" + tw.user.screen_name
+        + " | " + tw.user.name
+      ));
+    }
+
+  });
+
+  socket.on("node", function(rxNodeObj) {
+    // debug(chalkSocket("node" 
+    //   + " | " + rxNodeObj.nodeType
+    //   + " | " + rxNodeObj.nodeId
+    //   // + jsonPrint(rxNodeObj)
+    // ));
+    viewNameSpace.emit("node", rxNodeObj);
+  });
+
+  socket.on("word", function(rxWordObj) {
+    // debug(chalkSocket("node" 
+    //   + " | " + rxWordObj.nodeType
+    //   + " | " + rxWordObj.nodeId
+    //   // + jsonPrint(rxNodeObj)
+    // ));
+    viewNameSpace.emit("node", rxWordObj);
+  });
+}
 
 function initSocketNamespaces(callback){
 
@@ -912,6 +1366,15 @@ function updateTrends(){
   });
 }
 
+function initUpdateTrendsInterval(interval){
+
+  clearInterval(updateTrendsInterval);
+
+  updateTrendsInterval = setInterval(function () {
+    if (twit !== undefined) { updateTrends(); }
+  }, interval);
+}
+
 function updateWordMeter(wordObj, callback){
 
   var meterWordId;
@@ -1180,14 +1643,19 @@ configEvents.on("SERVER_READY", function() {
   var tempDateTime;
 
   function logHeartbeat() {
+
+    var memoryAvailableMB = (statsObj.memory.memoryAvailable/(1024*1024));
+    var memoryTotalMB = (statsObj.memory.memoryTotal/(1024*1024));
+    var memoryAvailablePercent = (statsObj.memory.memoryAvailable/statsObj.memory.memoryTotal);
+
     debug(chalkLog("HB " + heartbeatsSent 
       + " | " + moment(parseInt(statsObj.timeStamp)).format(compactDateTimeFormat) 
       + " | ST: " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat) 
       + " | UP: " + msToTime(statsObj.upTime) 
       + " | RN: " + msToTime(statsObj.runTime) 
-      + " | MEM: " + (statsObj.memory.memoryAvailable/(1024*1024)).toFixed(0) + " AVAIL"
-      + " / " + (statsObj.memory.memoryTotal/(1024*1024)).toFixed(0) + " TOTAL MB"
-      + " - " + (statsObj.memory.memoryAvailable/statsObj.memory.memoryTotal).toFixed(3) + " %"
+      + " | MEM: " + memoryAvailableMB.toFixed(0) + " AVAIL"
+      + " / " + memoryTotalMB.toFixed(0) + " TOTAL MB"
+      + " - " + memoryAvailablePercent.toFixed(3) + " %"
     ));
   }
 
@@ -1249,6 +1717,7 @@ function initAppRouting(callback) {
       // + " | BASE URL: " + req.baseUrl
       + " | METHOD: " + req.method
       + " | PATH: " + req.path
+      + " | RES: " + res
       // + " | ROUTE: " + req.route
       // + " | PROTOCOL: " + req.protocol
       // + "\nQUERY: " + jsonPrint(req.query)
@@ -1260,6 +1729,7 @@ function initAppRouting(callback) {
   });
 
   app.get("/admin", function(req, res) {
+    debug(chalkInfo("get req\n" + req));
     debug(chalkInfo("LOADING PAGE: /admin/admin.html"));
     res.sendFile(__dirname + "/admin/admin.html", function (err) {
       if (err) {
@@ -1272,7 +1742,8 @@ function initAppRouting(callback) {
   });
 
   app.get("/session", function(req, res, next) {
-    debug(chalkInfo("LOADING PAGE: /sessionModular.html"));
+    debug(chalkInfo("get next\n" + next));
+    debug(chalkInfo("LOADING PAGE: /sessionModular.html | " + req));
     res.sendFile(__dirname + "/sessionModular.html", function (err) {
       if (err) {
         console.error("GET /session ERROR:"
@@ -1289,7 +1760,8 @@ function initAppRouting(callback) {
   });
 
   app.get("/", function(req, res, next) {
-    debug(chalkInfo("LOADING PAGE: /sessionModular.html"));
+    debug(chalkInfo("get next\n" + next));
+    debug(chalkInfo("LOADING PAGE: /sessionModular.html | " + req));
     res.sendFile(__dirname + "/sessionModular.html", function (err) {
       if (err) {
         console.error("GET / ERROR:"
@@ -1307,7 +1779,8 @@ function initAppRouting(callback) {
 
 
   app.get("/js/require.js", function(req, res, next) {
-    debug(chalkInfo("LOADING PAGE: /js/require.js"));
+    debug(chalkInfo("get next\n" + next));
+    debug(chalkInfo("LOADING PAGE: /js/require.js | " + req));
     res.sendFile(__dirname + "/js/require.js", function (err) {
       if (err) {
         debug(chalkAlert("GET:", __dirname + "/js/require.js"));
@@ -1373,22 +1846,20 @@ function initInternetCheckInterval(interval){
   }, interval);
 }
 
-var tweetRxQueueInterval;
-var tweetParserQueue = [];
-var tweetParserMessageRxQueue = [];
-var tweetParserReady = false;
-var tweetParserMessageRxQueueReady = true;
+// var tweetParserReady = false;
 
 function initTwitterRxQueueInterval(interval){
 
   console.log(chalkLog("INIT TWITTER RX QUEUE INTERVAL | " + interval + " MS"));
+
+  clearInterval(tweetRxQueueInterval);
 
   tweetRxQueueInterval = setInterval(function () {
 
     // if ((tweetRxQueue.length > 0) && tweetParserReady) {
     if (tweetRxQueue.length > 0) {
 
-      tweetParserReady = false;
+      // tweetParserReady = false;
 
       var tw =  tweetRxQueue.shift();
 
@@ -1412,11 +1883,11 @@ function initTwitterRxQueueInterval(interval){
           if (quitOnError) {
             quit("TWEET PARSER SEND ERROR");
           }
-          tweetParserReady = true;
+          // tweetParserReady = true;
         }
-        else {
-          tweetParserReady = true;
-        }
+        // else {
+        //   tweetParserReady = true;
+        // }
       });
 
     }
@@ -1424,10 +1895,13 @@ function initTwitterRxQueueInterval(interval){
 }
 
 
+var tweetParserMessageRxQueueReady = true;
 var tweetParserMessageRxQueueInterval;
 function initTweetParserMessageRxQueueInterval(interval){
 
   console.log(chalkLog("INIT TWITTER RX QUEUE INTERVAL | " + interval + " MS"));
+
+  clearInterval(tweetParserMessageRxQueueInterval);
 
   tweetParserMessageRxQueueInterval = setInterval(function () {
 
@@ -1443,10 +1917,12 @@ function initTweetParserMessageRxQueueInterval(interval){
         // + "\n" + jsonPrint(m)
       ));
 
+      var tweetObj;
+
       switch (m.op) {
 
         case "parsedTweet":
-          var tweetObj = m.tweetObj;
+          tweetObj = m.tweetObj;
           if (!tweetObj.user) {
             console.log(chalkAlert("parsedTweet -- TW USER UNDEFINED"
               + " | " + tweetObj.tweetId
@@ -1467,6 +1943,9 @@ function initTweetParserMessageRxQueueInterval(interval){
             ));
 
             transmitNodes(tweetObj, function(err){
+              if (err) {
+                console.error(chalkError("TRANSMIT NODES ERROR\n" + err));
+              }
               tweetParserMessageRxQueueReady = true;
             });
 
@@ -1483,6 +1962,39 @@ function initTweetParserMessageRxQueueInterval(interval){
 
     }
   }, interval);
+}
+
+function addTopTermMetricDataPoint(node, wmObj){
+
+  nodeCache.get(node, function(err, nodeObj){
+    if (err) {
+      console.error(chalkInfo("ERROR addTopTermMetricDataPoint " + err
+        // + " | " + node
+      ));
+    }
+    else if (nodeObj === undefined) {
+      debug(chalkInfo("?? SORTED NODE NOT IN WORD $"
+        // + " | " + node
+      ));
+    }
+    else if (nodeObj.mentions > MIN_MENTIONS_VALUE) {
+
+      debug(chalkInfo("TOP TERM METRIC"
+        + " | " + node
+        + " | Ms: " + nodeObj.mentions
+        + " | RATE: " + wmObj[metricsRate].toFixed(2)
+      ));
+
+      var topTermDataPoint = {};
+
+      topTermDataPoint.displayName = node;
+      topTermDataPoint.metricType = "word/top10/" + node;
+      topTermDataPoint.value = wmObj[metricsRate];
+      topTermDataPoint.metricLabels = {server_id: "WORD"};
+
+      addMetricDataPoint(topTermDataPoint);
+    }
+  });
 }
 
 var sorterMessageRxReady = true; 
@@ -1505,7 +2017,7 @@ function initSorterMessageRxQueueInterval(interval){
       var endIndex;
       var index;
       var wmObj;
-      var topTermDataPoint = {};
+      // var topTermDataPoint = {};
       var wordsPerMinuteTopTerm = {};
       var i;
       var node;
@@ -1527,7 +2039,7 @@ function initSorterMessageRxQueueInterval(interval){
           // var index;
           // var wmObj;
           // var topTermDataPoint = {};
-          // var wordsPerMinuteTopTerm = {};
+          // var wordsPerMinuteTopTerm = {}
 
           for (index=0; index < endIndex; index += 1){
 
@@ -1547,33 +2059,8 @@ function initSorterMessageRxQueueInterval(interval){
                 viewNameSpace.emit("TWITTER_TOPTERM_1MIN", wordsPerMinuteTopTerm);
               }
 
-              nodeCache.get(node, function(err, nodeObj){});
-
               if (enableGoogleMetrics && (wmObj[metricsRate] > MIN_METRIC_VALUE)) {
-     
-                nodeCache.get(node, function(err, nodeObj){
-
-                  if (nodeObj === undefined) {
-                    debug(chalkInfo("?? SORTED NODE NOT IN WORD $"
-                      + " | " + node
-                    ));
-                  }
-                  else if (nodeObj.mentions > MIN_MENTIONS_VALUE) {
-
-                    debug(chalkInfo("TOP TERM METRIC"
-                      + " | " + node
-                      + " | Ms: " + nodeObj.mentions
-                      + " | RATE: " + wmObj[metricsRate].toFixed(2)
-                    ));
-
-                    topTermDataPoint.displayName = node;
-                    topTermDataPoint.metricType = "word/top10/" + node;
-                    topTermDataPoint.value = wmObj[metricsRate];
-                    topTermDataPoint.metricLabels = {server_id: "WORD"};
-
-                    addMetricDataPoint(topTermDataPoint);
-                  }
-                });
+                addTopTermMetricDataPoint(node, wmObj);
               }
             }
           }
@@ -1594,6 +2081,8 @@ function initUpdaterMessageQueueInterval(interval){
 
   console.log(chalkInfo("INIT UPDATER MESSAGE QUEUE INTERVAL | " + interval + " MS"));
 
+  clearInterval(updaterMessageQueueInterval);
+
   updaterMessageQueueInterval = setInterval(function() {
     if (updaterMessageReady && (updaterMessageQueue.length > 0)) {
 
@@ -1608,7 +2097,6 @@ function initUpdaterMessageQueueInterval(interval){
             + " | " + moment().format(compactDateTimeFormat)
             + " | " + updaterObj.timeStamp
           ));
-          updaterPingOutstanding = 0;
           updaterMessageReady = true;
         break;
 
@@ -1653,80 +2141,80 @@ function initUpdaterMessageQueueInterval(interval){
           updaterMessageReady = true;
         break;
 
-        case "query":
-          queryDb(updaterObj, function(err, queryWordObj){
+        // case "query":
+        //   queryDb(updaterObj, function(err, queryWordObj){
 
-              if (err){
-                console.log(chalkError("QUERY DB ERROR\n" + jsonPrint(err)));
-              }
+        //       if (err){
+        //         console.log(chalkError("QUERY DB ERROR\n" + jsonPrint(err)));
+        //       }
 
-              var dmString = "QUERY"
-                + " | " + hostname 
-                + "\n" + queryWordObj.nodeId 
-                + "\n" + queryWordObj.mentions + " Ms" 
-                + "\nCREATED: " + moment(parseInt(queryWordObj.createdAt)).format(compactDateTimeFormat) 
-                + "\nLAST: " + moment(parseInt(queryWordObj.lastSeen)).format(compactDateTimeFormat)
-                + "\n" + jsonPrint(queryWordObj.keywords);
+        //       var dmString = "QUERY"
+        //         + " | " + hostname 
+        //         + "\n" + queryWordObj.nodeId 
+        //         + "\n" + queryWordObj.mentions + " Ms" 
+        //         + "\nCREATED: " + moment(parseInt(queryWordObj.createdAt)).format(compactDateTimeFormat) 
+        //         + "\nLAST: " + moment(parseInt(queryWordObj.lastSeen)).format(compactDateTimeFormat)
+        //         + "\n" + jsonPrint(queryWordObj.keywords);
 
-              console.log(chalkLog(dmString));
+        //       console.log(chalkLog(dmString));
 
-              sendDirectMessage("threecee", dmString, function(err, res){
-                if (!err) {
-                  console.log(chalkLog("SENT TWITTER DM: " + dmString));
-                  debug(chalkInfo("SEND DM RES\n" + jsonPrint(res)));
-                }
-                else {
-                  switch (err.code) {
-                    case 226:
-                      console.log(chalkError("*** TWITTER DM SEND ERROR: LOOKS LIKE AUTOMATED TX: CODE: " + err.code));
+        //       // sendDirectMessage("threecee", dmString, function(err, res){
+        //       //   if (!err) {
+        //       //     console.log(chalkLog("SENT TWITTER DM: " + dmString));
+        //       //     debug(chalkInfo("SEND DM RES\n" + jsonPrint(res)));
+        //       //   }
+        //       //   else {
+        //       //     switch (err.code) {
+        //       //       case 226:
+        //       //         console.log(chalkError("*** TWITTER DM SEND ERROR: LOOKS LIKE AUTOMATED TX: CODE: " + err.code));
 
-                      setTimeout(function(){
-                        console.log(chalkError("... RETRY #1 TWITTER DM " + dmString));
-                        sendDirectMessage("threecee", dmString, function(err, res){
-                          if (!err) {
-                            console.log(chalkLog("SENT TWITTER DM: " + dmString));
-                            debug(chalkInfo("SEND DM RES\n" + jsonPrint(res)));
-                          }
-                          else {
-                            switch (err.code) {
-                              case 226:
-                                console.log(chalkError("*** TWITTER DM SEND ERROR: LOOKS LIKE AUTOMATED TX: CODE: " + err.code));
+        //       //         setTimeout(function(){
+        //       //           console.log(chalkError("... RETRY #1 TWITTER DM " + dmString));
+        //       //           sendDirectMessage("threecee", dmString, function(err, res){
+        //       //             if (!err) {
+        //       //               console.log(chalkLog("SENT TWITTER DM: " + dmString));
+        //       //               debug(chalkInfo("SEND DM RES\n" + jsonPrint(res)));
+        //       //             }
+        //       //             else {
+        //       //               switch (err.code) {
+        //       //                 case 226:
+        //       //                   console.log(chalkError("*** TWITTER DM SEND ERROR: LOOKS LIKE AUTOMATED TX: CODE: " + err.code));
 
-                                setTimeout(function(){
-                                  console.log(chalkError("... RETRY #2 TWITTER DM " + dmString));
-                                  sendDirectMessage("threecee", dmString, function(err, res){
-                                    if (!err) {
-                                      console.log(chalkLog("SENT TWITTER DM: " + dmString));
-                                      debug(chalkInfo("SEND DM RES\n" + jsonPrint(res)));
-                                    }
-                                    else {
-                                      switch (err.code) {
-                                        case 226:
-                                          console.log(chalkError("*** TWITTER DM SEND ERROR: LOOKS LIKE AUTOMATED TX: CODE: " + err.code));
-                                        break;
-                                        default:
-                                          console.log(chalkError("*** TWITTER DM SEND ERROR: " + jsonPrint(err)));
-                                      }
-                                    }
+        //       //                   setTimeout(function(){
+        //       //                     console.log(chalkError("... RETRY #2 TWITTER DM " + dmString));
+        //       //                     sendDirectMessage("threecee", dmString, function(err, res){
+        //       //                       if (!err) {
+        //       //                         console.log(chalkLog("SENT TWITTER DM: " + dmString));
+        //       //                         debug(chalkInfo("SEND DM RES\n" + jsonPrint(res)));
+        //       //                       }
+        //       //                       else {
+        //       //                         switch (err.code) {
+        //       //                           case 226:
+        //       //                             console.log(chalkError("*** TWITTER DM SEND ERROR: LOOKS LIKE AUTOMATED TX: CODE: " + err.code));
+        //       //                           break;
+        //       //                           default:
+        //       //                             console.log(chalkError("*** TWITTER DM SEND ERROR: " + jsonPrint(err)));
+        //       //                         }
+        //       //                       }
 
-                                  });
-                                }, randomInt(14700,34470));
-                              break;
-                              default:
-                                console.log(chalkError("*** TWITTER DM SEND ERROR: " + jsonPrint(err)));
-                            }
-                          }
-                        });
-                      }, randomInt(14700,34470));
-                    break;
-                    default:
-                      console.log(chalkError("*** TWITTER DM SEND ERROR: " + jsonPrint(err)));
-                  }
-                }
-              });
+        //       //                     });
+        //       //                   }, randomInt(14700,34470));
+        //       //                 break;
+        //       //                 default:
+        //       //                   console.log(chalkError("*** TWITTER DM SEND ERROR: " + jsonPrint(err)));
+        //       //               }
+        //       //             }
+        //       //           });
+        //       //         }, randomInt(14700,34470));
+        //       //       break;
+        //       //       default:
+        //       //         console.log(chalkError("*** TWITTER DM SEND ERROR: " + jsonPrint(err)));
+        //       //     }
+        //       //   }
+        //       // });
 
-          });
-        break;
+        //   });
+        // break;
 
         default:
           console.log(chalkError("??? UPDATE UNKNOWN TYPE\n" + jsonPrint(updaterObj)));
@@ -1802,7 +2290,48 @@ function initSorter(callback){
   if (callback !== undefined) { callback(null, sorter); }
 }
 
-var updaterPingInterval;
+function initUpdaterPingInterval(interval){
+
+  console.log(chalkAlert("INIT UPDATER PING INTERVAL"
+    + " | " + interval + " MS"
+  ));
+
+  clearInterval(updaterPingInterval);
+
+  updaterPingInterval = setInterval(function() {
+
+    if (updaterPingOutstanding > 0) {
+      console.error(chalkError("PING OUTSTANDING | " + updaterPingOutstanding));
+      updaterPingOutstanding = 0;
+      initUpdater();
+    }
+
+    updaterPingOutstanding = moment().format(compactDateTimeFormat);
+
+    if (updater !== undefined){
+      updater.send({
+        op: "PING",
+        message: hostname + "_" + process.pid,
+        timeStamp: updaterPingOutstanding
+      }, function(err){
+        if (err) {
+          console.error(chalkError("*** UPDATER SEND ERROR"
+            + " | " + err
+          ));
+        }
+      });
+
+      debug(chalkAlert(">UPDATER PING"
+      ));
+
+    }
+    else {
+      console.log(chalkError("!!! NO UPDATER PING ... UNDEFINED"
+      ));
+    }
+  }, interval);
+}
+
 function initUpdater(callback){
 
   clearInterval(updaterPingInterval);
@@ -1870,7 +2399,7 @@ function initUpdater(callback){
     }
   });
 
-  // initUpdaterPingInterval(60000);
+  initUpdaterPingInterval(60000);
 
   updater = u;
 
@@ -1907,7 +2436,7 @@ function initTweetParser(callback){
       console.error(chalkError("*** TWEET PARSER SEND ERROR"
         + " | " + err
       ));
-      tweetParserReady = true;
+      // tweetParserReady = true;
     }
   });
 
@@ -1937,193 +2466,6 @@ function initTweetParser(callback){
   if (callback !== undefined) { callback(null, twp); }
 }
 
-function initSocketHandler(socket) {
-
-  var ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
-
-  socket.emit("SERVER_READY", {connected: hostname});
-
-  socket.on("reconnect_error", function(errorObj) {
-    statsObj.socket.reconnect_errors += 1;
-    debug(chalkError(moment().format(compactDateTimeFormat) 
-      + " | SOCKET RECONNECT ERROR: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
-  });
-
-  socket.on("reconnect_failed", function(errorObj) {
-    statsObj.socket.reconnect_fails += 1;
-    debug(chalkError(moment().format(compactDateTimeFormat) 
-      + " | SOCKET RECONNECT FAILED: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
-  });
-
-  socket.on("connect_error", function(errorObj) {
-    statsObj.socket.connect_errors += 1;
-    debug(chalkError(moment().format(compactDateTimeFormat) 
-      + " | SOCKET CONNECT ERROR: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
-  });
-
-  socket.on("connect_timeout", function(errorObj) {
-    statsObj.socket.connect_timeouts += 1;
-    debug(chalkError(moment().format(compactDateTimeFormat) 
-      + " | SOCKET CONNECT TIMEOUT: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
-  });
-
-  socket.on("error", function(error) {
-    statsObj.socket.errors += 1;
-    debug(chalkError(moment().format(compactDateTimeFormat) 
-      + " | *** SOCKET ERROR" + " | " + socket.id + " | " + error));
-  });
-
-  socket.on("reconnect", function() {
-    statsObj.socket.reconnects += 1;
-    debug(chalkConnect(moment().format(compactDateTimeFormat) + " | SOCKET RECONNECT: " + socket.id));
-  });
-
-  socket.on("disconnect", function(status) {
-    statsObj.socket.disconnects += 1;
-
-    debug(chalkDisconnect(moment().format(compactDateTimeFormat) 
-      + " | SOCKET DISCONNECT: " + socket.id + "\nstatus\n" + jsonPrint(status)
-    ));
-  });
-
-  socket.on("ADMIN_READY", function(adminObj) {
-    debug(chalkSocket("ADMIN READY\n" + jsonPrint(adminObj)));
-  });
-
-  socket.on("VIEWER_READY", function(viewerObj, cb) {
-    debug(chalkSocket("VIEWER READY\n" + jsonPrint(viewerObj)));
-    cb("YO");
-  });
-
-  socket.on("SESSION_KEEPALIVE", function(userObj) {
-
-    if (statsObj.utilities[userObj.userId] === undefined) {
-      statsObj.utilities[userObj.userId] = {};
-    }
-
-    statsObj.socket.keepalives += 1;
-
-    // debug(chalkSession("SESSION_KEEPALIVE | " + userObj.userId));
-    // debug(chalkSession("SESSION_KEEPALIVE\n" + jsonPrint(userObj)));
-
-    if (userObj.stats) {statsObj.utilities[userObj.userId] = userObj.stats;}
-
-    if (userObj.userId.match(/LA_/g)){
-      userObj.isServer = true;
-
-      languageServer.connected = true;
-      languageServer.user = userObj;
-      languageServer.socket = socket;
-
-      debug(chalkSession("K-LA" 
-        + " | " + userObj.userId
-        + " | " + socket.id
-        + " | " + moment().format(compactDateTimeFormat)
-        // + "\n" + jsonPrint(userObj)
-      ));
-    }
- 
-    if (userObj.userId.match(/TMS_/g)){
-      userObj.isServer = true;
-
-      if (tmsServers[socket.id] === undefined) { tmsServers[socket.id] = {}; }
-      tmsServers[socket.id].connected = true;
-      tmsServers[socket.id].user = userObj;
-      tmsServers[socket.id].socket = socket;
-
-      // debug(chalkSession("K-TMS" 
-      //   + " | " + userObj.userId
-      //   + " | " + socket.id
-      //   + " | " + userObj.stats.tweetsPerMinute.toFixed(0) + " TPM"
-      //   + " | " + moment().format(compactDateTimeFormat)
-      //   // + "\n" + jsonPrint(userObj)
-      // ));
-    }
- 
-    if (userObj.userId.match(/TSS_/g)){
-      userObj.isServer = true;
-
-      if (tssServers[socket.id] === undefined) { tssServers[socket.id] = {}; }
-      tssServers[socket.id].connected = true;
-      tssServers[socket.id].user = userObj;
-      tssServers[socket.id].socket = socket;
-
-      // debug(chalkSession("K-TSS" 
-      //   + " | " + userObj.userId
-      //   + " | " + socket.id
-      //   + " | " + userObj.stats.tweetsPerMinute.toFixed(0) + " TPM"
-      //   + " | " + moment().format(compactDateTimeFormat)
-      //   // + "\n" + jsonPrint(userObj)
-      // ));
-    }
-  });
-
-  socket.on("USER_READY", function(userObj, cb) {
-    debug(chalkSocket("USER READY"
-      + " | " + userObj.userId
-      // + "\n" + jsonPrint(userObj)
-    ));
-    cb(userObj.userId);
-  });
-
-  socket.on("tweet", function(tw) {
-    statsObj.twitter.tweetsReceived += 1;
-    debug(chalkSocket("tweet" 
-      + " [" + statsObj.twitter.tweetsReceived + "]"
-      // + " | " + socket.id
-      + " | " + tw.id_str
-      + " | " + tw.user.id_str
-      + " | " + tw.user.screen_name
-      + " | " + tw.user.name
-      // + jsonPrint(rxNodeObj)
-    ));
-
-    if (tweetRxQueue.length > MAX_Q){
-      console.log(chalkError("*** MAX QUEUE [" + tweetRxQueue.length + "] | T<"
-        + " | " + tw.id_str
-        + " | " + tw.user.screen_name
-      ));
-    }
-    else if (tw.user) {
-      tweetRxQueue.push(tw);
-      debug(chalkLog("T<"
-        + " [ RXQ: " + tweetRxQueue.length + "]"
-        + " [ TPQ: " + tweetParserQueue.length + "]"
-        + " | " + tw.id_str
-        + " | @" + tw.user.screen_name
-        + " | " + tw.user.name
-      ));
-    }
-    else{
-      console.log(chalkAlert("NULL USER T*<"
-        + " [ RXQ: " + tweetRxQueue.length + "]"
-        + " [ TPQ: " + tweetParserQueue.length + "]"
-        + " | " + tw.id_str
-        + " | @" + tw.user.screen_name
-        + " | " + tw.user.name
-      ));
-    }
-
-  });
-
-  socket.on("node", function(rxNodeObj) {
-    // debug(chalkSocket("node" 
-    //   + " | " + rxNodeObj.nodeType
-    //   + " | " + rxNodeObj.nodeId
-    //   // + jsonPrint(rxNodeObj)
-    // ));
-    viewNameSpace.emit("node", rxNodeObj);
-  });
-
-  socket.on("word", function(rxWordObj) {
-    // debug(chalkSocket("node" 
-    //   + " | " + rxWordObj.nodeType
-    //   + " | " + rxWordObj.nodeId
-    //   // + jsonPrint(rxNodeObj)
-    // ));
-    viewNameSpace.emit("node", rxWordObj);
-  });
-}
 
 var updateTimeSeriesCount = 0;
 function initRateQinterval(interval){
@@ -2148,7 +2490,7 @@ function initRateQinterval(interval){
   statsObj.memory.memoryUsage.heapUsed = process.memoryUsage().heap_used/(1024*1024);
   statsObj.memory.memoryUsage.heapTotal = process.memoryUsage().heap_total/(1024*1024);
 
-  var prevTestValue = 47;
+  // var prevTestValue = 47;
 
   rateQinterval = setInterval(function () {
 
@@ -2338,6 +2680,25 @@ function initialize(cnf, callback) {
     debug(chalkAlert("===== QUIT ON ERROR SET ====="));
   }
 
+  loadYamlConfig(twitterYamlConfigFile, function(err, twitterConfig){
+    if (err) {
+      console.log(chalkError("*** LOADED TWITTER YAML CONFIG ERROR: FILE:  " + twitterYamlConfigFile));
+      console.log(chalkError("*** LOADED TWITTER YAML CONFIG ERROR: ERROR: " + err));
+    }
+    else {
+      console.log(chalkTwitter("LOADED TWITTER YAML CONFIG\n" + jsonPrint(twitterConfig)));
+
+      twit = new Twit({
+        consumer_key: twitterConfig.CONSUMER_KEY,
+        consumer_secret: twitterConfig.CONSUMER_SECRET,
+        access_token: twitterConfig.TOKEN,
+        access_token_secret: twitterConfig.TOKEN_SECRET
+      });
+
+      updateTrends();
+    }
+  });
+
   initTweetParser();
   initInternetCheckInterval(10000);
 
@@ -2364,7 +2725,7 @@ configEvents.on("CHILD_ERROR", function(childObj){
     case "tweetParser":
       console.error("KILL TWEET PARSER");
       if (tweetParser !== undefined) { tweetParser.kill("SIGINT"); }
-      initDbUpdater();
+      initTweetParser();
     break;
     case "updater":
       console.error("KILL UPDATER");
@@ -2378,6 +2739,76 @@ configEvents.on("CHILD_ERROR", function(childObj){
     break;
   }
 });
+
+function initIgnoreWordsHashMap(callback) {
+  async.each(ignoreWordsArray, function(ignoreWord, cb) {
+    ignoreWordHashMap.set(ignoreWord, true);
+    cb();
+  }, function(err) {
+    if (callback) { callback(err); }
+  });
+}
+
+function initStatsInterval(interval){
+
+  var statsUpdated = 0;
+
+  console.log(chalkInfo("INIT STATS INTERVAL"
+    + " | " + interval + " MS"
+    + " | FILE: " + statsFolder + "/" + statsFile
+  ));
+
+  clearInterval(statsInterval);
+
+  statsInterval = setInterval(function() {
+
+    statsObj.serverTime = moment().valueOf();
+    statsObj.timeStamp = moment().format(compactDateTimeFormat);
+    statsObj.runTime = moment().valueOf() - statsObj.startTime;
+    statsObj.upTime = os.uptime() * 1000;
+
+    statsObj.memory.rss = process.memoryUsage().rss/(1024*1024);
+    if (statsObj.memory.rss > statsObj.memory.maxRss) {
+      statsObj.memory.maxRss = statsObj.memory.rss;
+      statsObj.memory.maxRssTime = moment().valueOf();
+      console.log(chalkAlert("NEW MAX RSS"
+        + " | " + moment().format(compactDateTimeFormat)
+        + " | " + statsObj.memory.rss.toFixed(0) + " MB"
+      ));
+    }
+
+    statsObj.memory.heap = process.memoryUsage().heapUsed/(1024*1024);
+    if (statsObj.memory.heap > statsObj.memory.maxHeap) {
+      statsObj.memory.maxHeap = statsObj.memory.heap;
+      statsObj.memory.maxHeapTime = moment().valueOf();
+      console.log(chalkAlert("NEW MAX HEAP"
+        + " | " + moment().format(compactDateTimeFormat)
+        + " | " + statsObj.memory.heap.toFixed(0) + " MB"
+      ));
+    }
+
+    statsObj.memory.memoryAvailable = os.freemem();
+    statsObj.memory.memoryTotal = os.totalmem();
+    statsObj.memory.memoryUsage = process.memoryUsage();
+
+    statsObj.entity.admin.connected = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
+    statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
+    statsObj.entity.user.connected = Object.keys(userNameSpace.connected).length; // userNameSpace.sockets.length ;
+    statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; // userNameSpace.sockets.length ;
+
+    if (statsUpdated % 6 === 0) {
+      saveStats(statsFile, statsObj, function(status){
+        debug(chalkAlert("SAVE STATS " + status));
+      });
+    }
+
+    showStats();
+
+    statsUpdated += 1;
+
+  }, interval);
+}
+
 
 //=================================
 // BEGIN !!
@@ -2420,7 +2851,10 @@ initialize(configuration, function(err) {
         sorter = srtr;
       }
     });
-    
+
+    initStatsInterval(ONE_MINUTE);
+    initIgnoreWordsHashMap();
+    initUpdateTrendsInterval(15*ONE_MINUTE);
     initRateQinterval(1000);
     initTwitterRxQueueInterval(TWITTER_RX_QUEUE_INTERVAL);
     initTweetParserMessageRxQueueInterval(TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL);

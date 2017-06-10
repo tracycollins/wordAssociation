@@ -590,7 +590,7 @@ function showStats(options){
   statsObj.elapsed = msToTime(moment().valueOf() - statsObj.startTime);
   statsObj.timeStamp = moment().format(compactDateTimeFormat);
   statsObj.caches.nodeCache.stats.keys = nodeCache.getStats().keys;
-  
+
   if (statsObj.caches.nodeCache.stats.keys > statsObj.caches.nodeCache.stats.keysMax) {
     statsObj.caches.nodeCache.stats.keysMax = statsObj.caches.nodeCache.stats.keys;
     statsObj.caches.nodeCache.stats.keysMaxTime = moment().valueOf();
@@ -2670,7 +2670,7 @@ function initRateQinterval(interval){
         // cache/node/keys
         var dataPointNodeCache = {};
         dataPointNodeCache.metricType = "cache/node/keys";
-        dataPointNodeCache.value = statsObj.caches.NodeCache.stats.keys;
+        dataPointNodeCache.value = statsObj.caches.nodeCache.stats.keys;
         dataPointNodeCache.metricLabels = {server_id: "CACHE"};
         addMetricDataPoint(dataPointNodeCache);
       }

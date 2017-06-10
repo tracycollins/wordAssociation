@@ -899,6 +899,7 @@ exports.createStreamTweet = function(params, callback) {
 			exports.findOneUser(userObj, params, function(err, updatedUserObj){
 				if (err) { 
 					console.log(chalkError("ERROR createStreamTweet: user: " + err));
+					return(cb(null, null));
 				}
 				cb(err, updatedUserObj);
 			});	
@@ -943,7 +944,10 @@ exports.createStreamTweet = function(params, callback) {
 					}
 					else {
 						exports.findOneUser(userMentionObj, {noInc: newTweet.noInc, io: io}, function(err, updatedUserMentionObj){
-							if (err) { console.log(chalkError("ERROR createStreamTweet: userMentions: " + err)); }
+							if (err) { 
+								console.log(chalkError("ERROR createStreamTweet: userMentions: " + err));
+								return(cb2(null, null));
+							 }
 							cb2(err, updatedUserMentionObj);
 						});							
 					}
@@ -994,7 +998,10 @@ exports.createStreamTweet = function(params, callback) {
 					});
 
 					findOneHashtag(hashtagObj, {noInc: newTweet.noInc, io: io}, function(err, updatedHtObj){
-						if (err) { console.log(chalkError("ERROR createStreamTweet: hashtags: " + err)); }
+						if (err) { 
+							console.log(chalkError("ERROR createStreamTweet: hashtags: " + err)); 
+							return(cb2(null, null));
+						}
 						cb2(err, updatedHtObj);
 					});	
 
@@ -1044,7 +1051,10 @@ exports.createStreamTweet = function(params, callback) {
 					meObj.mentions = meObj.mentions+1;
 
 					findOneMedia(meObj, {noInc: newTweet.noInc, io: io}, function(err, updatedMeObj){
-						if (err) { console.log(chalkError("ERROR createStreamTweet: media: " + err)); }
+						if (err) { 
+							console.log(chalkError("ERROR createStreamTweet: media: " + err)); 
+							return(cb2(null, null));
+						}
 						cb2(err, updatedMeObj);
 					});	
 
@@ -1096,8 +1106,11 @@ exports.createStreamTweet = function(params, callback) {
 						});
 
 						findOneUrl(urlObj, params, function(err, updatedUrlObj){
-							if (err) { console.log(chalkError("ERROR createStreamTweet: urls: " + err)); }
-							cb2(err, updatedUrlObj);
+							if (err) { 
+								console.log(chalkError("ERROR createStreamTweet: urls: " + err));
+								return(cb2(null, null));
+							}
+							cb2(null, updatedUrlObj);
 						});
 					}
 					else {
@@ -1162,6 +1175,7 @@ exports.createStreamTweet = function(params, callback) {
 				findOnePlace(placeObj, {noInc: newTweet.noInc, io: io}, function(err, updatedPlObj){
 					if (err) { 
 						console.log(chalkError("ERROR createStreamTweet: place: " + err)); 
+						return(cb(null, null));
 					}
 					cb(err, updatedPlObj);
 				});

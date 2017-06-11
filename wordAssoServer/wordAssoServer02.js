@@ -197,7 +197,8 @@ var EventEmitter2 = require("eventemitter2").EventEmitter2;
 var Dropbox = require("dropbox");
 
 var Monitoring = require("@google-cloud/monitoring");
-var googleMonitoringClient = Monitoring.v3().metricServiceClient();
+// var googleMonitoringClient = Monitoring.v3().metricServiceClient();
+var googleMonitoringClient;
 
 var HashMap = require("hashmap").HashMap;
 var NodeCache = require("node-cache");
@@ -2510,6 +2511,10 @@ function initTweetParser(callback){
 
 var updateTimeSeriesCount = 0;
 function initRateQinterval(interval){
+
+  if (enableGoogleMetrics) {
+    googleMonitoringClient = Monitoring.v3().metricServiceClient();
+  }
 
   var wsObj;
   console.log(chalkLog("INIT RATE QUEUE INTERVAL | " + interval + " MS"));

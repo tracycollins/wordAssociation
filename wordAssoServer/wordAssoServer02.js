@@ -655,25 +655,26 @@ function showStats(options){
   if (options) {
     console.log(chalkLog("S"
       // + " | " + statsObj.socketId
-      + " | ELAPSED: " + statsObj.elapsed
-      + " | START: " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat)
-      + " | NOW: " + moment().format(compactDateTimeFormat)
-      + " | HEAP: " + statsObj.memory.heap.toFixed(0) + " MB"
-      + " | MAX HEAP: " + statsObj.memory.maxHeap.toFixed(0)
-      + " | MAX HEAP TIME: " + moment(parseInt(statsObj.memory.maxHeapTime)).format(compactDateTimeFormat)
+      + " | E: " + statsObj.elapsed
+      + " | S: " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat)
+      + " | N: " + moment().format(compactDateTimeFormat)
+      + " | NODE $: Ks:" + nodeCache.getStats().keys + " KS: " + nodeCache.getStats().ksize + " VS: " + nodeCache.getStats().vsize
+      + " | H: " + statsObj.memory.heap.toFixed(0) + " MB"
+      + " | MAX H: " + statsObj.memory.maxHeap.toFixed(0)
+      + " | MAX H TIME: " + moment(parseInt(statsObj.memory.maxHeapTime)).format(compactDateTimeFormat)
     ));
     console.log(chalkAlert("STATS\n" + jsonPrint(statsObj)));
   }
   else {
     console.log(chalkLog("S"
       // + " | " + statsObj.socketId
-      + " | ELAPSED: " + statsObj.elapsed
-      + " | START: " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat)
-      + " | NOW: " + moment().format(compactDateTimeFormat)
+      + " | E: " + statsObj.elapsed
+      + " | S: " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat)
+      + " | N: " + moment().format(compactDateTimeFormat)
       + " | NODE $: Ks:" + nodeCache.getStats().keys + " KS: " + nodeCache.getStats().ksize + " VS: " + nodeCache.getStats().vsize
-      + " | HEAP: " + statsObj.memory.heap.toFixed(0) + " MB"
-      + " | MAX HEAP: " + statsObj.memory.maxHeap.toFixed(0)
-      + " | MAX HEAP TIME: " + moment(parseInt(statsObj.memory.maxHeapTime)).format(compactDateTimeFormat)
+      + " | H: " + statsObj.memory.heap.toFixed(0) + " MB"
+      + " | MAX H: " + statsObj.memory.maxHeap.toFixed(0)
+      + " | MAX H TIME: " + moment(parseInt(statsObj.memory.maxHeapTime)).format(compactDateTimeFormat)
     ));
   }
 }

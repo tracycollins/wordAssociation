@@ -10,10 +10,10 @@ var MAX_Q = 1000;
 var MIN_METRIC_VALUE = 5;
 var MIN_MENTIONS_VALUE = 1000;
 var KEYWORDS_UPDATE_INTERVAL = 60000;
-var TWEET_PARSER_INTERVAL = 5;
-var TWITTER_RX_QUEUE_INTERVAL = 5;
-var TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL = 5;
-var DEFAULT_INTERVAL = 5;
+var TWEET_PARSER_INTERVAL = 10;
+var TWITTER_RX_QUEUE_INTERVAL = 10;
+var TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL = 10;
+var DEFAULT_INTERVAL = 10;
 var TOPTERMS_CACHE_DEFAULT_TTL = 60;
 var TRENDING_CACHE_DEFAULT_TTL = 60;
 var DEFAULT_KEYWORD_VALUE = 100;
@@ -1920,7 +1920,7 @@ var tweetParserMessageRxQueueReady = true;
 var tweetParserMessageRxQueueInterval;
 function initTweetParserMessageRxQueueInterval(interval){
 
-  console.log(chalkLog("INIT TWITTER RX QUEUE INTERVAL | " + interval + " MS"));
+  console.log(chalkLog("INIT TWEET PARSER MESSAGE RX QUEUE INTERVAL | " + interval + " MS"));
 
   clearInterval(tweetParserMessageRxQueueInterval);
 

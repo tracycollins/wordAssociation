@@ -20,7 +20,7 @@
       "WA_STATS_FILE" : "wordAssoServer02Stats.json",
       "WAPI_REQ_RESERVE_PRCNT": 0.15,
       "GOOGLE_PROJECT_ID": "graphic-tangent-627",
-      "ENABLE_GOOGLE_METRICS": false
+      "ENABLE_GOOGLE_METRICS": true
     }
   }]
 }

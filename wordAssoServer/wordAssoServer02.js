@@ -10,7 +10,7 @@ var tinyDateTimeFormat = "YYYYMMDDHHmmss";
 
 var OFFLINE_MODE = false;
 var MAX_Q = 1000;
-var MIN_METRIC_VALUE = 5;
+var MIN_METRIC_VALUE = 5.0;
 var MIN_MENTIONS_VALUE = 1000;
 var KEYWORDS_UPDATE_INTERVAL = 60000;
 var TWEET_PARSER_INTERVAL = 10;
@@ -187,6 +187,7 @@ var ignoreWordsArray = [
 var metricsRate = "5MinuteRate";
 var CUSTOM_GOOGLE_APIS_PREFIX = "custom.googleapis.com";
 
+var deepcopy = require('deep-copy');
 var defaults = require("object.defaults");
 var moment = require("moment");
 var config = require("./config/config");
@@ -1622,6 +1623,63 @@ function transmitNodes(tw, callback){
   callback();
 }
 
+var metricsDataPointQueue = [];
+
+var metricsDataPointQueueReady = true;
+var metricsDataPointQueueInterval;
+function initMetricsDataPointQueueInterval(interval){
+
+  console.log(chalkLog("INIT METRICS DATA POINT QUEUE INTERVAL | " + interval + " MS"));
+
+  clearInterval(metricsDataPointQueueInterval);
+
+  var googleRequest = {};
+  googleRequest.name = googleMonitoringClient.projectPath(process.env.GOOGLE_PROJECT_ID);
+  googleRequest.timeSeries = [];
+
+  metricsDataPointQueueInterval = setInterval(function () {
+
+    if (ENABLE_GOOGLE_METRICS && (metricsDataPointQueue.length > 0) && metricsDataPointQueueReady) {
+    // if (tweetParserMessageRxQueue.length > 0) {
+
+      metricsDataPointQueueReady = false;
+
+      debug(chalkAlert("METRICS DATA POINT"
+        // + "\n" + jsonPrint(dataPoint)
+      ));
+
+      googleRequest.timeSeries = [];;
+      googleRequest.timeSeries = deepcopy(metricsDataPointQueue);
+
+      googleMonitoringClient.createTimeSeries(googleRequest)
+        // .then((results) => {
+        .then(function(){
+          metricsDataPointQueueReady = true;
+          debug(chalkInfo("METRICS"
+            + " | DATA POINTS: " + googleRequest.timeSeries.length 
+            // + " | " + options.value
+          ));
+        })
+        .catch(function(err){
+          metricsDataPointQueueReady = true;
+          if (err.code !== 8) {
+            console.log(chalkError("*** ERROR GOOGLE METRICS"
+              // + " | ENABLE_GOOGLE_METRICS: " + ENABLE_GOOGLE_METRICS
+              // + " | SRVR: " + options.metricLabels.server_id 
+              // + " | V: " + options.value
+              // + " | ERR: " + err
+              // + " | " + err.note
+              + "\nERR\n" + jsonPrint(err)
+              + "\nREQUEST\n" + jsonPrint(googleRequest)
+              + "\nMETA DATA\n" + jsonPrint(err.metadata)
+            ));
+          }
+        });
+    }
+  }, interval);
+}
+
+
 function addMetricDataPoint(ops, callback){
 
   if (!ENABLE_GOOGLE_METRICS) {
@@ -1667,39 +1725,73 @@ function addMetricDataPoint(ops, callback){
     points: [ dataPoint ]
   };
 
-  var googleRequest = {
-    name: googleMonitoringClient.projectPath(options.projectId),
-    timeSeries: [
-      timeSeriesData
-    ]
-  };
+  metricsDataPointQueue.push(timeSeriesData);
 
-  googleMonitoringClient.createTimeSeries(googleRequest)
-    // .then((results) => {
-    .then(function(){
-      debug(chalkInfo("METRICS"
-        + " | " + options.metricLabels.server_id 
-        + " | " + options.value
-      ));
-    })
-    .catch(function(err){
-      if (err.code !== 8) {
-        console.log(chalkError("*** ERROR GOOGLE METRICS"
-          // + " | ENABLE_GOOGLE_METRICS: " + ENABLE_GOOGLE_METRICS
-          + " | SRVR: " + options.metricLabels.server_id 
-          + " | V: " + options.value
-          + " | ERR: " + err
-          // + " | " + err.note
-          // + "\nERR\n" + jsonPrint(err)
-          // + "\nREQUEST\n" + jsonPrint(googleRequest)
-          // + "\nMETA DATA\n" + jsonPrint(err.metadata)
-        ));
-      }
-    });
+  // var googleRequest = {
+  //   name: googleMonitoringClient.projectPath(options.projectId),
+  //   timeSeries: [
+  //     timeSeriesData
+  //   ]
+  // };
 
-  if (callback) { callback(null,options); }
+  // googleMonitoringClient.createTimeSeries(googleRequest)
+  //   // .then((results) => {
+  //   .then(function(){
+  //     debug(chalkInfo("METRICS"
+  //       + " | " + options.metricLabels.server_id 
+  //       + " | " + options.value
+  //     ));
+  //   })
+  //   .catch(function(err){
+  //     if (err.code !== 8) {
+  //       console.log(chalkError("*** ERROR GOOGLE METRICS"
+  //         // + " | ENABLE_GOOGLE_METRICS: " + ENABLE_GOOGLE_METRICS
+  //         + " | SRVR: " + options.metricLabels.server_id 
+  //         + " | V: " + options.value
+  //         + " | ERR: " + err
+  //         // + " | " + err.note
+  //         // + "\nERR\n" + jsonPrint(err)
+  //         // + "\nREQUEST\n" + jsonPrint(googleRequest)
+  //         // + "\nMETA DATA\n" + jsonPrint(err.metadata)
+  //       ));
+  //     }
+  //   });
+
+  if (callback) { callback(null, { q: metricsDataPointQueue.length} ); }
 }
 
+function addTopTermMetricDataPoint(node, wmObj){
+
+  nodeCache.get(node, function(err, nodeObj){
+    if (err) {
+      console.error(chalkInfo("ERROR addTopTermMetricDataPoint " + err
+        // + " | " + node
+      ));
+    }
+    else if (nodeObj === undefined) {
+      debug(chalkInfo("?? SORTED NODE NOT IN WORD $"
+        // + " | " + node
+      ));
+    }
+    else if (parseInt(nodeObj.mentions) > MIN_MENTIONS_VALUE) {
+
+      debug(chalkInfo("TOP TERM METRIC"
+        + " | " + node
+        + " | Ms: " + nodeObj.mentions
+        + " | RATE: " + wmObj[metricsRate].toFixed(2)
+      ));
+
+      var topTermDataPoint = {};
+
+      topTermDataPoint.displayName = node;
+      topTermDataPoint.metricType = "word/top10/" + node;
+      topTermDataPoint.value = wmObj[metricsRate];
+      topTermDataPoint.metricLabels = {server_id: "WORD"};
+
+      addMetricDataPoint(topTermDataPoint);
+    }
+  });
+}
 
 var heartbeatsSent = 0;
 configEvents.on("SERVER_READY", function() {
@@ -2068,38 +2160,6 @@ function initTweetParserMessageRxQueueInterval(interval){
   }, interval);
 }
 
-function addTopTermMetricDataPoint(node, wmObj){
-
-  nodeCache.get(node, function(err, nodeObj){
-    if (err) {
-      console.error(chalkInfo("ERROR addTopTermMetricDataPoint " + err
-        // + " | " + node
-      ));
-    }
-    else if (nodeObj === undefined) {
-      debug(chalkInfo("?? SORTED NODE NOT IN WORD $"
-        // + " | " + node
-      ));
-    }
-    else if (nodeObj.mentions > MIN_MENTIONS_VALUE) {
-
-      debug(chalkInfo("TOP TERM METRIC"
-        + " | " + node
-        + " | Ms: " + nodeObj.mentions
-        + " | RATE: " + wmObj[metricsRate].toFixed(2)
-      ));
-
-      var topTermDataPoint = {};
-
-      topTermDataPoint.displayName = node;
-      topTermDataPoint.metricType = "word/top10/" + node;
-      topTermDataPoint.value = wmObj[metricsRate];
-      topTermDataPoint.metricLabels = {server_id: "WORD"};
-
-      addMetricDataPoint(topTermDataPoint);
-    }
-  });
-}
 
 var sorterMessageRxReady = true; 
 var sorterMessageRxQueueInterval;
@@ -2498,6 +2558,7 @@ function initTweetParser(callback){
 
 
 var updateTimeSeriesCount = 0;
+
 function initRateQinterval(interval){
 
   if (ENABLE_GOOGLE_METRICS) {
@@ -2723,7 +2784,6 @@ function initRateQinterval(interval){
     if (updateTimeSeriesCount > 30) { updateTimeSeriesCount = 0; }
 
   }, interval);
-
 }
 
 function initialize(cnf, callback) {
@@ -2918,6 +2978,7 @@ initialize(configuration, function(err) {
     initIgnoreWordsHashMap();
     initUpdateTrendsInterval(15*ONE_MINUTE);
     initRateQinterval(1000);
+    initMetricsDataPointQueueInterval(1000);
     initTwitterRxQueueInterval(TWITTER_RX_QUEUE_INTERVAL);
     initTweetParserMessageRxQueueInterval(TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL);
   }

@@ -311,7 +311,7 @@ nodeCache.on("set", function(nodeCacheId, nodeObj) {
 });
 
 nodeCache.on("expired", function(nodeCacheId, nodeObj) {
-  debug(chalkAlert("XXX NODE $"
+  debug(chalkAlert("XXX $ NODE"
     + " | " + nodeObj.nodeType
     + " | " + nodeCacheId
   ));
@@ -341,7 +341,7 @@ var trendingCache = new NodeCache({
 
 trendingCache.on( "expired", function(topic, topicObj){
   debug("CACHE TOPIC EXPIRED\n" + jsonPrint(topicObj));
-  console.log(chalkInfo("TRENDING $ XXX | " + topic + " | " + topicObj.name));
+  console.log(chalkInfo("XXX $ TREND | " + topic + " | " + topicObj.name));
 });
 
 var wordsPerMinuteTopTermTtl = process.env.TOPTERMS_CACHE_DEFAULT_TTL;
@@ -351,6 +351,11 @@ console.log("TOP TERMS WPM CACHE TTL: " + wordsPerMinuteTopTermTtl + " SECONDS")
 var wordsPerMinuteTopTermCache = new NodeCache({
   stdTTL: wordsPerMinuteTopTermTtl,
   checkperiod: 10
+});
+
+wordsPerMinuteTopTermCache.on( "expired", function(wpm, wpmObj){
+  debug("$ WPM TOPTERM XXX\n" + jsonPrint(wpmObj));
+  console.log(chalkInfo("XXX $ WPM TOPTERM | " + wpm + " | " + jsonPrint(wpmObj)));
 });
 
 

@@ -1569,7 +1569,10 @@ function transmitNodes(tw, callback){
   callback();
 }
 
-function addMetricDataPoint(options, callback){
+function addMetricDataPoint(ops, callback){
+
+  var options = ops;
+  // options = op;
 
   debug(chalkAlert("addMetricDataPoint\n" + jsonPrint(options)));
 

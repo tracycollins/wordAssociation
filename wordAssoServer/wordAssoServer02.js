@@ -184,8 +184,10 @@ var ignoreWordsArray = [
 var metricsRate = "5MinuteRate";
 var CUSTOM_GOOGLE_APIS_PREFIX = "custom.googleapis.com";
 
-var enableGoogleMetrics = (process.env.ENABLE_GOOGLE_METRICS !== undefined) 
-  ? process.env.ENABLE_GOOGLE_METRICS : false;
+// var ENABLE_GOOGLE_METRICS = (process.env.ENABLE_GOOGLE_METRICS !== undefined) 
+//   ? process.env.ENABLE_GOOGLE_METRICS : false;
+
+var ENABLE_GOOGLE_METRICS = false;
 
 var defaults = require("object.defaults");
 var moment = require("moment");
@@ -1597,8 +1599,8 @@ function transmitNodes(tw, callback){
 
 function addMetricDataPoint(ops, callback){
 
-  if (!enableGoogleMetrics) {
-    console.trace("***** enableGoogleMetrics FALSE? " + enableGoogleMetrics);
+  if (!ENABLE_GOOGLE_METRICS) {
+    console.trace("***** ENABLE_GOOGLE_METRICS FALSE? " + ENABLE_GOOGLE_METRICS);
     if (callback) { callback(null,options); }
     return;
   }
@@ -1607,7 +1609,7 @@ function addMetricDataPoint(ops, callback){
   // options = op;
 
   console.log(chalkAlert("addMetricDataPoint"
-    + " | enableGoogleMetrics: " + enableGoogleMetrics
+    + " | ENABLE_GOOGLE_METRICS: " + ENABLE_GOOGLE_METRICS
     + "\n" + jsonPrint(options)
   ));
 
@@ -1658,7 +1660,7 @@ function addMetricDataPoint(ops, callback){
     .catch(function(err){
       if (err.code !== 8) {
         console.log(chalkError("*** ERROR GOOGLE METRICS"
-          + " | enableGoogleMetrics: " + enableGoogleMetrics
+          + " | ENABLE_GOOGLE_METRICS: " + ENABLE_GOOGLE_METRICS
           + " | SERVER ID: " + options.metricLabels.server_id 
           + " | VALUE: " + options.value
           + " | ERR: " + err
@@ -2136,7 +2138,7 @@ function initSorterMessageRxQueueInterval(interval){
                 viewNameSpace.emit("TWITTER_TOPTERM_1MIN", wordsPerMinuteTopTerm);
               }
 
-              if (enableGoogleMetrics && (wmObj[metricsRate] > MIN_METRIC_VALUE)) {
+              if (ENABLE_GOOGLE_METRICS && (wmObj[metricsRate] > MIN_METRIC_VALUE)) {
                 addTopTermMetricDataPoint(node, wmObj);
               }
             }
@@ -2547,7 +2549,7 @@ function initTweetParser(callback){
 var updateTimeSeriesCount = 0;
 function initRateQinterval(interval){
 
-  if (enableGoogleMetrics) {
+  if (ENABLE_GOOGLE_METRICS) {
     googleMonitoringClient = Monitoring.v3().metricServiceClient();
   }
 
@@ -2555,8 +2557,8 @@ function initRateQinterval(interval){
 
   console.log(chalkLog("INIT RATE QUEUE INTERVAL | " + interval + " MS"));
 
-  console.log(chalkError("ENABLE GOOGLE METRICS " + enableGoogleMetrics));
-  console.error(chalkError("ENABLE GOOGLE METRICS " + enableGoogleMetrics));
+  console.log(chalkError("ENABLE GOOGLE METRICS " + ENABLE_GOOGLE_METRICS));
+  console.error(chalkError("ENABLE GOOGLE METRICS " + ENABLE_GOOGLE_METRICS));
 
   clearInterval(rateQinterval);
 
@@ -2697,7 +2699,7 @@ function initRateQinterval(interval){
         });
       }
 
-      if (enableGoogleMetrics) {
+      if (ENABLE_GOOGLE_METRICS) {
 
         queueNames = Object.keys(statsObj.queues);
 
@@ -2719,7 +2721,7 @@ function initRateQinterval(interval){
         addMetricDataPoint(memoryHeapTotalDataPoint);
       }
 
-      if (enableGoogleMetrics && tssServer.connected) {
+      if (ENABLE_GOOGLE_METRICS && tssServer.connected) {
         dataPointTssTpm.value = statsObj.utilities[tssServer.user.userId].tweetsPerMinute;
         addMetricDataPoint(dataPointTssTpm);
 
@@ -2727,7 +2729,7 @@ function initRateQinterval(interval){
         addMetricDataPoint(dataPoint2);
       }
 
-      if (enableGoogleMetrics && tmsServer.connected) {
+      if (ENABLE_GOOGLE_METRICS && tmsServer.connected) {
         dataPointTmsTpm.value = statsObj.utilities[tmsServer.user.userId].tweetsPerMinute;
         addMetricDataPoint(dataPointTmsTpm);
         
@@ -2740,7 +2742,7 @@ function initRateQinterval(interval){
         }
       }
 
-      if (enableGoogleMetrics) {
+      if (ENABLE_GOOGLE_METRICS) {
 
         dataPointWpm.value = statsObj.wordsPerMin;
         addMetricDataPoint(dataPointWpm);

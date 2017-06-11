@@ -1476,7 +1476,7 @@ function updateWordMeter(wordObj, callback){
     wordObj.isIgnored = true;
 
     nodeCache.set(meterWordId, wordObj);
-    
+
     if (callback !== undefined) { callback(null, wordObj); }
     return;
   }
@@ -1600,7 +1600,10 @@ function addMetricDataPoint(ops, callback){
   var options = ops;
   // options = op;
 
-  console.log(chalkAlert("addMetricDataPoint\n" + jsonPrint(options)));
+  console.log(chalkAlert("addMetricDataPoint"
+    + " | enableGoogleMetrics: " + enableGoogleMetrics
+    + "\n" + jsonPrint(options)
+  ));
 
   defaults(options, {
     endTime: (Date.now() / 1000),

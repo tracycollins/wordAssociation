@@ -1663,7 +1663,8 @@ function initMetricsDataPointQueueInterval(interval){
         .catch(function(err){
           metricsDataPointQueueReady = true;
           // if (err.code !== 8) {
-            console.log(chalkError("*** ERROR GOOGLE METRICS"
+            console.log(chalkError(moment().format(compactDateTimeFormat)
+              + " | *** ERROR GOOGLE METRICS"
               // + " | ENABLE_GOOGLE_METRICS: " + ENABLE_GOOGLE_METRICS
               // + " | SRVR: " + options.metricLabels.server_id 
               // + " | V: " + options.value
@@ -2785,7 +2786,7 @@ function initRateQinterval(interval){
 
     updateTimeSeriesCount += 1;
 
-    if (updateTimeSeriesCount > 30) { updateTimeSeriesCount = 0; }
+    if (updateTimeSeriesCount > 120) { updateTimeSeriesCount = 0; }
 
   }, interval);
 }
@@ -2982,7 +2983,7 @@ initialize(configuration, function(err) {
     initIgnoreWordsHashMap();
     initUpdateTrendsInterval(15*ONE_MINUTE);
     initRateQinterval(1000);
-    initMetricsDataPointQueueInterval(30000);
+    initMetricsDataPointQueueInterval(120000);
     initTwitterRxQueueInterval(TWITTER_RX_QUEUE_INTERVAL);
     initTweetParserMessageRxQueueInterval(TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL);
   }

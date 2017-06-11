@@ -129,6 +129,8 @@ function showStats(options){
     console.log(chalkLog("STATS"
       + " | ELAPSED: " + statsObj.elapsed
       + " | START: " + statsObj.startTime
+      + " | DELETED METRICS: " + Object.keys(statsObj.metrics.deleted).length
+      + "\nDELETED METRICS\n" + jsonPrint(statsObj.metrics.deleted)
     ));
   }
 }
@@ -426,6 +428,7 @@ initializeConfiguration(configuration, function(err, results){
                     case "d":
                       console.log(chalkAlert("DELETE\n" + jsonPrint(dbResults.word.descriptor)));
                       deleteMetric(dbResults.word.descriptor, function(err){
+                        statsObj.metrics.deleted[dbResults.word.word] = {word: dbResults.word.mentions, hashtag: dbResults.hashtag.mentions};
                         cb(err);
                       });
                     break;

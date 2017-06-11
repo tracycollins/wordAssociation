@@ -10,6 +10,7 @@ var moment = require('moment');
 var os = require('os');
 
 var hostname = os.hostname();
+hostname = hostname.replace(/.home/g, '');
 hostname = hostname.replace(/.local/g, '');
 hostname = hostname.replace(/.fios-router.home/g, '');
 hostname = hostname.replace(/word0-instance-1/g, 'google');

@@ -275,7 +275,10 @@ var DROPBOX_WORD_ASSO_APP_SECRET = process.env.DROPBOX_WORD_ASSO_APP_SECRET;
 var DROPBOX_WA_STATS_FILE = process.env.DROPBOX_WA_STATS_FILE || "wordAssoServer02Stats.json";
 
 var statsFolder = "/stats/" + hostname;
-var statsFile = DROPBOX_WA_STATS_FILE;
+var statsFileDefault = DROPBOX_WA_STATS_FILE;
+var statsFile = "wordAssoServer02Stats" 
+  + "_" + moment().format(compactDateTimeFormat) 
+  + ".json";
 
 console.log("DROPBOX_WORD_ASSO_ACCESS_TOKEN :" + DROPBOX_WORD_ASSO_ACCESS_TOKEN);
 console.log("DROPBOX_WORD_ASSO_APP_KEY :" + DROPBOX_WORD_ASSO_APP_KEY);
@@ -2164,6 +2167,7 @@ function initUpdaterMessageQueueInterval(interval){
   clearInterval(updaterMessageQueueInterval);
 
   updaterMessageQueueInterval = setInterval(function() {
+
     if (updaterMessageReady && (updaterMessageQueue.length > 0)) {
 
       updaterMessageReady = false;
@@ -2220,81 +2224,6 @@ function initUpdaterMessageQueueInterval(interval){
           keywordHashMap.set(updaterObj.keyword.keywordId.toLowerCase(), updaterObj.keyword);
           updaterMessageReady = true;
         break;
-
-        // case "query":
-        //   queryDb(updaterObj, function(err, queryWordObj){
-
-        //       if (err){
-        //         console.log(chalkError("QUERY DB ERROR\n" + jsonPrint(err)));
-        //       }
-
-        //       var dmString = "QUERY"
-        //         + " | " + hostname 
-        //         + "\n" + queryWordObj.nodeId 
-        //         + "\n" + queryWordObj.mentions + " Ms" 
-        //         + "\nCREATED: " + moment(parseInt(queryWordObj.createdAt)).format(compactDateTimeFormat) 
-        //         + "\nLAST: " + moment(parseInt(queryWordObj.lastSeen)).format(compactDateTimeFormat)
-        //         + "\n" + jsonPrint(queryWordObj.keywords);
-
-        //       console.log(chalkLog(dmString));
-
-        //       // sendDirectMessage("threecee", dmString, function(err, res){
-        //       //   if (!err) {
-        //       //     console.log(chalkLog("SENT TWITTER DM: " + dmString));
-        //       //     debug(chalkInfo("SEND DM RES\n" + jsonPrint(res)));
-        //       //   }
-        //       //   else {
-        //       //     switch (err.code) {
-        //       //       case 226:
-        //       //         console.log(chalkError("*** TWITTER DM SEND ERROR: LOOKS LIKE AUTOMATED TX: CODE: " + err.code));
-
-        //       //         setTimeout(function(){
-        //       //           console.log(chalkError("... RETRY #1 TWITTER DM " + dmString));
-        //       //           sendDirectMessage("threecee", dmString, function(err, res){
-        //       //             if (!err) {
-        //       //               console.log(chalkLog("SENT TWITTER DM: " + dmString));
-        //       //               debug(chalkInfo("SEND DM RES\n" + jsonPrint(res)));
-        //       //             }
-        //       //             else {
-        //       //               switch (err.code) {
-        //       //                 case 226:
-        //       //                   console.log(chalkError("*** TWITTER DM SEND ERROR: LOOKS LIKE AUTOMATED TX: CODE: " + err.code));
-
-        //       //                   setTimeout(function(){
-        //       //                     console.log(chalkError("... RETRY #2 TWITTER DM " + dmString));
-        //       //                     sendDirectMessage("threecee", dmString, function(err, res){
-        //       //                       if (!err) {
-        //       //                         console.log(chalkLog("SENT TWITTER DM: " + dmString));
-        //       //                         debug(chalkInfo("SEND DM RES\n" + jsonPrint(res)));
-        //       //                       }
-        //       //                       else {
-        //       //                         switch (err.code) {
-        //       //                           case 226:
-        //       //                             console.log(chalkError("*** TWITTER DM SEND ERROR: LOOKS LIKE AUTOMATED TX: CODE: " + err.code));
-        //       //                           break;
-        //       //                           default:
-        //       //                             console.log(chalkError("*** TWITTER DM SEND ERROR: " + jsonPrint(err)));
-        //       //                         }
-        //       //                       }
-
-        //       //                     });
-        //       //                   }, randomInt(14700,34470));
-        //       //                 break;
-        //       //                 default:
-        //       //                   console.log(chalkError("*** TWITTER DM SEND ERROR: " + jsonPrint(err)));
-        //       //               }
-        //       //             }
-        //       //           });
-        //       //         }, randomInt(14700,34470));
-        //       //       break;
-        //       //       default:
-        //       //         console.log(chalkError("*** TWITTER DM SEND ERROR: " + jsonPrint(err)));
-        //       //     }
-        //       //   }
-        //       // });
-
-        //   });
-        // break;
 
         default:
           console.log(chalkError("??? UPDATE UNKNOWN TYPE\n" + jsonPrint(updaterObj)));

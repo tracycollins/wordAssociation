@@ -2831,11 +2831,9 @@ function initStatsInterval(interval){
     statsObj.entity.user.connected = Object.keys(userNameSpace.connected).length; // userNameSpace.sockets.length ;
     statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; // userNameSpace.sockets.length ;
 
-    if (statsUpdated % 6 === 0) {
-      saveStats(statsFile, statsObj, function(status){
-        debug(chalkAlert("SAVE STATS " + status));
-      });
-    }
+    saveStats(statsFile, statsObj, function(status){
+      debug(chalkAlert("SAVE STATS " + status));
+    });
 
     showStats();
 
@@ -2887,7 +2885,7 @@ initialize(configuration, function(err) {
       }
     });
 
-    initStatsInterval(ONE_MINUTE);
+    initStatsInterval(0.5*ONE_MINUTE);
     initIgnoreWordsHashMap();
     initUpdateTrendsInterval(15*ONE_MINUTE);
     initRateQinterval(1000);

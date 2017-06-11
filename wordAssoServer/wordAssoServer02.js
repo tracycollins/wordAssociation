@@ -2978,7 +2978,7 @@ initialize(configuration, function(err) {
     initIgnoreWordsHashMap();
     initUpdateTrendsInterval(15*ONE_MINUTE);
     initRateQinterval(1000);
-    initMetricsDataPointQueueInterval(1000);
+    initMetricsDataPointQueueInterval(30000);
     initTwitterRxQueueInterval(TWITTER_RX_QUEUE_INTERVAL);
     initTweetParserMessageRxQueueInterval(TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL);
   }

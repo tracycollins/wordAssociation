@@ -604,6 +604,16 @@ function showStats(options){
   statsObj.elapsed = msToTime(moment().valueOf() - statsObj.startTime);
   statsObj.timeStamp = moment().format(compactDateTimeFormat);
   statsObj.caches.nodeCache.stats.keys = nodeCache.getStats().keys;
+  statsObj.caches.wordsPerMinuteTopTermCache.stats.keys = nodeCache.getStats().keys;
+
+  if (statsObj.caches.wordsPerMinuteTopTermCache.stats.keys > statsObj.caches.wordsPerMinuteTopTermCache.stats.keysMax) {
+    statsObj.caches.wordsPerMinuteTopTermCache.stats.keysMax = statsObj.caches.wordsPerMinuteTopTermCache.stats.keys;
+    statsObj.caches.wordsPerMinuteTopTermCache.stats.keysMaxTime = moment().valueOf();
+    console.log(chalkAlert("NEW MAX WPM TT $ KEYS"
+      + " | " + moment().format(compactDateTimeFormat)
+      + " | KEYS: " + statsObj.caches.wordsPerMinuteTopTermCache.stats.keys
+    ));
+  }
 
   if (statsObj.caches.nodeCache.stats.keys > statsObj.caches.nodeCache.stats.keysMax) {
     statsObj.caches.nodeCache.stats.keysMax = statsObj.caches.nodeCache.stats.keys;
@@ -2503,6 +2513,7 @@ function initRateQinterval(interval){
 
   clearInterval(rateQinterval);
 
+
   statsObj.obamaPerMinute = 0.0;
   statsObj.trumpPerMinute = 0.0;
   statsObj.wordsPerMin = 0.0;
@@ -2519,7 +2530,67 @@ function initRateQinterval(interval){
   statsObj.memory.memoryUsage.heapUsed = process.memoryUsage().heap_used/(1024*1024);
   statsObj.memory.memoryUsage.heapTotal = process.memoryUsage().heap_total/(1024*1024);
 
-  // var prevTestValue = 47;
+  var queueNames;
+
+  var paramsSorter = {};
+
+  paramsSorter.obj = {};
+  paramsSorter.op = "SORT";
+  paramsSorter.sortKey = metricsRate;
+  paramsSorter.max = configuration.maxTopTerms;
+  paramsSorter.obj = wordMeter;
+
+  var memoryRssDataPoint = {};
+  memoryRssDataPoint.metricType = "memory/rss";
+  memoryRssDataPoint.metricLabels = {server_id: "MEM"};
+
+  var memoryHeapUsedDataPoint = {};
+  memoryHeapUsedDataPoint.metricType = "memory/heap_used";
+  memoryHeapUsedDataPoint.metricLabels = {server_id: "MEM"};
+
+  var memoryHeapTotalDataPoint = {};
+  memoryHeapTotalDataPoint.metricType = "memory/heap_total";
+  memoryHeapTotalDataPoint.metricLabels = {server_id: "MEM"};
+
+  var dataPointTssTpm = {};
+  dataPointTssTpm.metricType = "twitter/tweets_per_minute";
+  dataPointTssTpm.metricLabels = {server_id: "TSS"};
+
+  var dataPoint2 = {};
+  dataPoint2.metricType = "twitter/tweet_limit";
+  dataPoint2.metricLabels = {server_id: "TSS"};
+
+  var dataPointTmsTpm = {};
+  dataPointTmsTpm.metricType = "twitter/tweets_per_minute";
+  dataPointTmsTpm.metricLabels = {server_id: "TMS"};
+
+  var dataPointWpm = {};
+  dataPointWpm.metricType = "word/words_per_minute";
+  dataPointWpm.metricLabels = {server_id: "WORD"};
+
+  var dataPointOpm = {};
+  dataPointOpm.metricType = "word/obama_per_minute";
+  dataPointOpm.metricLabels = {server_id: "WORD"};
+  
+  var dataPointOTrpm = {};
+  dataPointOTrpm.metricType = "word/trump_per_minute";
+  dataPointOTrpm.metricLabels = {server_id: "WORD"};
+
+  var dataPointUtils = {};
+  dataPointUtils.metricType = "util/global/number_of_utils";
+  dataPointUtils.metricLabels = {server_id: "UTIL"};
+
+  var dataPointViewers = {};
+  dataPointViewers.metricType = "user/global/number_of_viewers";
+  dataPointViewers.metricLabels = {server_id: "USER"};
+
+  var dataPointUsers = {};
+  dataPointUsers.metricType = "user/global/number_of_users";
+  dataPointUsers.metricLabels = {server_id: "USER"};
+
+  var dataPointNodeCache = {};
+  dataPointNodeCache.metricType = "cache/node/keys";
+  dataPointNodeCache.metricLabels = {server_id: "CACHE"};
 
   rateQinterval = setInterval(function () {
 
@@ -2570,15 +2641,8 @@ function initRateQinterval(interval){
 
     if (updateTimeSeriesCount === 0){
 
-      var params = {};
-      params.op = "SORT";
-      params.sortKey = metricsRate;
-      params.max = configuration.maxTopTerms;
-      params.obj = {};
-      params.obj = wordMeter;
-
       if (sorter !== undefined) {
-        sorter.send(params, function(err){
+        sorter.send(paramsSorter, function(err){
           if (err) {
             console.error(chalkError("SORTER SEND ERROR"
               + " | " + err
@@ -2589,13 +2653,7 @@ function initRateQinterval(interval){
 
       if (enableGoogleMetrics) {
 
-        // var testDataPoint = {};
-        // testDataPoint.metricType = "word/test/random";
-        // testDataPoint.value = prevTestValue + randomInt(-20,20);
-        // testDataPoint.metricLabels = {server_id: "TEST"};
-        // addMetricDataPoint(testDataPoint);
-        
-        var queueNames = Object.keys(statsObj.queues);
+        queueNames = Object.keys(statsObj.queues);
 
         queueNames.forEach(function(queueName){
           var queueDataPoint = {};
@@ -2605,44 +2663,26 @@ function initRateQinterval(interval){
           addMetricDataPoint(queueDataPoint);
         }); 
 
-        var memoryRssDataPoint = {};
-        memoryRssDataPoint.metricType = "memory/rss";
         memoryRssDataPoint.value = statsObj.memory.memoryUsage.rss;
-        memoryRssDataPoint.metricLabels = {server_id: "MEM"};
         addMetricDataPoint(memoryRssDataPoint);
 
-        var memoryHeapUsedDataPoint = {};
-        memoryHeapUsedDataPoint.metricType = "memory/heap_used";
         memoryHeapUsedDataPoint.value = statsObj.memory.memoryUsage.heapUsed;
-        memoryHeapUsedDataPoint.metricLabels = {server_id: "MEM"};
         addMetricDataPoint(memoryHeapUsedDataPoint);
 
-        var memoryHeapTotalDataPoint = {};
-        memoryHeapTotalDataPoint.metricType = "memory/heap_total";
         memoryHeapTotalDataPoint.value = statsObj.memory.memoryUsage.heapTotal;
-        memoryHeapTotalDataPoint.metricLabels = {server_id: "MEM"};
         addMetricDataPoint(memoryHeapTotalDataPoint);
       }
 
       if (enableGoogleMetrics && tssServer.connected) {
-        var dataPointTssTpm = {};
-        dataPointTssTpm.metricType = "twitter/tweets_per_minute";
         dataPointTssTpm.value = statsObj.utilities[tssServer.user.userId].tweetsPerMinute;
-        dataPointTssTpm.metricLabels = {server_id: "TSS"};
         addMetricDataPoint(dataPointTssTpm);
 
-        var dataPoint2 = {};
-        dataPoint2.metricType = "twitter/tweet_limit";
         dataPoint2.value = statsObj.utilities[tssServer.user.userId].twitterLimit;
-        dataPoint2.metricLabels = {server_id: "TSS"};
         addMetricDataPoint(dataPoint2);
       }
 
       if (enableGoogleMetrics && tmsServer.connected) {
-        var dataPointTmsTpm = {};
-        dataPointTmsTpm.metricType = "twitter/tweets_per_minute";
         dataPointTmsTpm.value = statsObj.utilities[tmsServer.user.userId].tweetsPerMinute;
-        dataPointTmsTpm.metricLabels = {server_id: "TMS"};
         addMetricDataPoint(dataPointTmsTpm);
         
         if (statsObj.utilities[tmsServer.user.userId].twitterLimit) {
@@ -2655,47 +2695,26 @@ function initRateQinterval(interval){
       }
 
       if (enableGoogleMetrics) {
-        // word/words_per_minute
-        var dataPointWpm = {};
-        dataPointWpm.metricType = "word/words_per_minute";
+
         dataPointWpm.value = statsObj.wordsPerMin;
-        dataPointWpm.metricLabels = {server_id: "WORD"};
         addMetricDataPoint(dataPointWpm);
-        // word/obama_per_minute
-        var dataPointOpm = {};
-        dataPointOpm.metricType = "word/obama_per_minute";
+
         dataPointOpm.value = statsObj.obamaPerMinute;
-        dataPointOpm.metricLabels = {server_id: "WORD"};
         addMetricDataPoint(dataPointOpm);
-        // word/trump_per_minute
-        var dataPointOTrpm = {};
-        dataPointOTrpm.metricType = "word/trump_per_minute";
+
         dataPointOTrpm.value = statsObj.trumpPerMinute;
-        dataPointOTrpm.metricLabels = {server_id: "WORD"};
         addMetricDataPoint(dataPointOTrpm);
-        // util/global/number_of_utils
-        var dataPointUtils = {};
-        dataPointUtils.metricType = "util/global/number_of_utils";
+
         dataPointUtils.value = Object.keys(utilNameSpace.connected).length;
-        dataPointUtils.metricLabels = {server_id: "UTIL"};
         addMetricDataPoint(dataPointUtils);
-        // user/global/number_of_viewers
-        var dataPointViewers = {};
-        dataPointViewers.metricType = "user/global/number_of_viewers";
+
         dataPointViewers.value = statsObj.caches.viewerCache.stats.keys;
-        dataPointViewers.metricLabels = {server_id: "USER"};
         addMetricDataPoint(dataPointViewers);
-        // user/global/number_of_users
-        var dataPointUsers = {};
-        dataPointUsers.metricType = "user/global/number_of_users";
+
         dataPointUsers.value = statsObj.caches.userCache.stats.keys;
-        dataPointUsers.metricLabels = {server_id: "USER"};
         addMetricDataPoint(dataPointUsers);
-        // cache/node/keys
-        var dataPointNodeCache = {};
-        dataPointNodeCache.metricType = "cache/node/keys";
+
         dataPointNodeCache.value = statsObj.caches.nodeCache.stats.keys;
-        dataPointNodeCache.metricLabels = {server_id: "CACHE"};
         addMetricDataPoint(dataPointNodeCache);
       }
     }

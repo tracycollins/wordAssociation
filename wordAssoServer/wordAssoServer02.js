@@ -1662,19 +1662,19 @@ function initMetricsDataPointQueueInterval(interval){
         })
         .catch(function(err){
           metricsDataPointQueueReady = true;
-          if (err.code !== 8) {
+          // if (err.code !== 8) {
             console.log(chalkError("*** ERROR GOOGLE METRICS"
               // + " | ENABLE_GOOGLE_METRICS: " + ENABLE_GOOGLE_METRICS
               // + " | SRVR: " + options.metricLabels.server_id 
               // + " | V: " + options.value
               + " | DATA POINTS: " + googleRequest.timeSeries.length 
-              + "\nERR: " + err
-              // + " | " + err.note
-              // + "\nERR\n" + jsonPrint(err)
+              + "\n*** ERR:  " + err
+              + "\n*** NOTE: " + err.note
+              + "\nERR\n" + jsonPrint(err)
               // + "\nREQUEST\n" + jsonPrint(googleRequest)
               // + "\nMETA DATA\n" + jsonPrint(err.metadata)
             ));
-          }
+          // }
         });
     }
   }, interval);

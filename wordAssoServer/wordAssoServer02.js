@@ -2501,7 +2501,8 @@ var updateTimeSeriesCount = 0;
 function initRateQinterval(interval){
 
   if (ENABLE_GOOGLE_METRICS) {
-    googleMonitoringClient = Monitoring.v3().metricServiceClient();
+    // googleMonitoringClient = Monitoring.v3().metricServiceClient();
+    googleMonitoringClient = Monitoring.metricServiceClient();
   }
 
   var wsObj;

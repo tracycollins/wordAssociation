@@ -205,8 +205,11 @@ var EventEmitter2 = require("eventemitter2").EventEmitter2;
 
 var Dropbox = require("dropbox");
 
-var Monitoring = require("@google-cloud/monitoring");
+
+// var Monitoring = require("@google-cloud/monitoring");
+var Monitoring = require('@google-cloud/monitoring').v3();
 // var googleMonitoringClient = Monitoring.v3().metricServiceClient();
+
 var googleMonitoringClient;
 
 var HashMap = require("hashmap").HashMap;

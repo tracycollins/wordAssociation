@@ -2517,7 +2517,9 @@ function initRateQinterval(interval){
   }
 
   var wsObj;
+
   console.log(chalkLog("INIT RATE QUEUE INTERVAL | " + interval + " MS"));
+  console.log(chalkError("enableGoogleMetrics " + enableGoogleMetrics));
 
   clearInterval(rateQinterval);
 

@@ -1689,10 +1689,10 @@ function addMetricDataPoint(ops, callback){
           + " | SRVR: " + options.metricLabels.server_id 
           + " | V: " + options.value
           + " | ERR: " + err
-          + " | " + err.note
-          + "\nERR\n" + jsonPrint(err)
-          + "\nREQUEST\n" + jsonPrint(googleRequest)
-          + "\nMETA DATA\n" + jsonPrint(err.metadata)
+          // + " | " + err.note
+          // + "\nERR\n" + jsonPrint(err)
+          // + "\nREQUEST\n" + jsonPrint(googleRequest)
+          // + "\nMETA DATA\n" + jsonPrint(err.metadata)
         ));
       }
     });

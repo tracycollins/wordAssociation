@@ -295,7 +295,7 @@ function msToTime(duration) {
 }
 
 var nodeCacheTtl = process.env.NODE_CACHE_TTL;
-if (nodeCacheTtl === undefined) {nodeCacheTtl = NODE_CACHE_TTL;}
+if (nodeCacheTtl === undefined) { nodeCacheTtl = NODE_CACHE_TTL;}
 console.log("NODE CACHE TTL: " + nodeCacheTtl + " SECONDS");
 
 var nodeCache = new NodeCache({
@@ -341,7 +341,7 @@ var trendingCache = new NodeCache({
 
 trendingCache.on( "expired", function(topic, topicObj){
   debug("CACHE TOPIC EXPIRED\n" + jsonPrint(topicObj));
-  debug("CACHE TOPIC EXPIRED | " + topic + " | " + topicObj.name);
+  console.log(chalkInfo("TRENDING $ XXX | " + topic + " | " + topicObj.name));
 });
 
 var wordsPerMinuteTopTermTtl = process.env.TOPTERMS_CACHE_DEFAULT_TTL;
@@ -402,6 +402,8 @@ var localHostHashMap = new HashMap();
 var tweetParser;
 
 var statsObj = {};
+
+statsObj.wordMeterEntries = 0;
 
 statsObj.children = {};
 
@@ -2801,6 +2803,8 @@ function initStatsInterval(interval){
     statsObj.timeStamp = moment().format(compactDateTimeFormat);
     statsObj.runTime = moment().valueOf() - statsObj.startTime;
     statsObj.upTime = os.uptime() * 1000;
+
+    statsObj.wordMeterEntries = Object.keys(wordMeter).length;
 
     statsObj.memory.rss = process.memoryUsage().rss/(1024*1024);
     if (statsObj.memory.rss > statsObj.memory.maxRss) {

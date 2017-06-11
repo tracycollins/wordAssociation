@@ -5,6 +5,9 @@ var quitOnError = true;
 // ==================================================================
 // GLOBAL VARIABLES
 // ==================================================================
+var compactDateTimeFormat = "YYYYMMDD HHmmss";
+var tinyDateTimeFormat = "YYYYMMDDHHmmss";
+
 var OFFLINE_MODE = false;
 var MAX_Q = 1000;
 var MIN_METRIC_VALUE = 5;
@@ -184,11 +187,6 @@ var ignoreWordsArray = [
 var metricsRate = "5MinuteRate";
 var CUSTOM_GOOGLE_APIS_PREFIX = "custom.googleapis.com";
 
-// var ENABLE_GOOGLE_METRICS = (process.env.ENABLE_GOOGLE_METRICS !== undefined) 
-//   ? process.env.ENABLE_GOOGLE_METRICS : false;
-
-var ENABLE_GOOGLE_METRICS = false;
-
 var defaults = require("object.defaults");
 var moment = require("moment");
 var config = require("./config/config");
@@ -265,6 +263,27 @@ var updaterPingInterval;
 var updaterPingOutstanding = 0;
 
 var statsInterval;
+
+
+
+var ENABLE_GOOGLE_METRICS = false;
+
+if (process.env.ENABLE_GOOGLE_METRICS !== undefined) {
+
+  console.log(chalkError("DEFINED process.env.ENABLE_GOOGLE_METRICS: " + process.env.ENABLE_GOOGLE_METRICS));
+
+  if (process.env.ENABLE_GOOGLE_METRICS === "true") {
+    ENABLE_GOOGLE_METRICS = true;
+    console.log(chalkError("TRUE process.env.ENABLE_GOOGLE_METRICS: " + process.env.ENABLE_GOOGLE_METRICS));
+    console.log(chalkError("TRUE ENABLE_GOOGLE_METRICS: " + ENABLE_GOOGLE_METRICS));
+  }
+  else if (process.env.ENABLE_GOOGLE_METRICS === "false") {
+    ENABLE_GOOGLE_METRICS = false;
+    console.log(chalkError("FALSE process.env.ENABLE_GOOGLE_METRICS: " + process.env.ENABLE_GOOGLE_METRICS));
+    console.log(chalkError("FALSE ENABLE_GOOGLE_METRICS: " + ENABLE_GOOGLE_METRICS));
+  }
+}
+
 // ==================================================================
 // DROPBOX
 // ==================================================================
@@ -277,7 +296,7 @@ var DROPBOX_WA_STATS_FILE = process.env.DROPBOX_WA_STATS_FILE || "wordAssoServer
 var statsFolder = "/stats/" + hostname;
 var statsFileDefault = DROPBOX_WA_STATS_FILE;
 var statsFile = "wordAssoServer02Stats" 
-  + "_" + moment().format(compactDateTimeFormat) 
+  + "_" + moment().format(tinyDateTimeFormat) 
   + ".json";
 
 console.log("DROPBOX_WORD_ASSO_ACCESS_TOKEN :" + DROPBOX_WORD_ASSO_ACCESS_TOKEN);
@@ -389,7 +408,6 @@ wordStats.meter("obamaPerMinute", {rateUnit: 60000, tickInterval: 1000});
 wordStats.meter("trumpPerSecond", {rateUnit: 1000, tickInterval: 1000});
 wordStats.meter("trumpPerMinute", {rateUnit: 60000, tickInterval: 1000});
 
-var compactDateTimeFormat = "YYYYMMDD HHmmss";
 
 
 var defaultDropboxKeywordFile = "keywords.json";

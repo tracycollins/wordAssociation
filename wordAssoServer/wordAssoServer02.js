@@ -1624,6 +1624,7 @@ function addMetricDataPoint(ops, callback){
     .catch(function(err){
       if (err.code !== 8) {
         console.log(chalkError("*** ERROR GOOGLE METRICS"
+          + " | enableGoogleMetrics: " + enableGoogleMetrics
           + " | " + options.metricLabels.server_id 
           + " | " + options.value
           + " | ERR: " + err

@@ -1723,10 +1723,13 @@ function addMetricDataPoint(ops, callback){
       type: options.resourceType,
       labels: { project_id: options.projectId }
     },
-    points: [ dataPoint ]
+    // points: [ dataPoint ]
+    points: []
   };
 
-  metricsDataPointQueue.push(timeSeriesData);
+  timeSeriesData.points.push(deepcopy(dataPoint));
+
+  metricsDataPointQueue.push(deepcopy(timeSeriesData));
 
   // var googleRequest = {
   //   name: googleMonitoringClient.projectPath(options.projectId),
@@ -1776,7 +1779,7 @@ function addTopTermMetricDataPoint(node, wmObj){
     }
     else if (parseInt(nodeObj.mentions) > MIN_MENTIONS_VALUE) {
 
-      debug(chalkInfo("TOP TERM METRIC"
+      console.log(chalkInfo("+++ TOP TERM METRIC"
         + " | " + node
         + " | Ms: " + nodeObj.mentions
         + " | RATE: " + wmObj[metricsRate].toFixed(2)
@@ -1786,7 +1789,7 @@ function addTopTermMetricDataPoint(node, wmObj){
 
       topTermDataPoint.displayName = node;
       topTermDataPoint.metricType = "word/top10/" + node;
-      topTermDataPoint.value = wmObj[metricsRate];
+      topTermDataPoint.value = deepcopy(wmObj[metricsRate]);
       topTermDataPoint.metricLabels = {server_id: "WORD"};
 
       addMetricDataPoint(topTermDataPoint);

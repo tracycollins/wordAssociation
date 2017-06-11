@@ -1597,6 +1597,12 @@ function transmitNodes(tw, callback){
 
 function addMetricDataPoint(ops, callback){
 
+  if (!enableGoogleMetrics) {
+    console.trace("***** enableGoogleMetrics FALSE? " + enableGoogleMetrics);
+    if (callback) { callback(null,options); }
+    return;
+  }
+
   var options = ops;
   // options = op;
 

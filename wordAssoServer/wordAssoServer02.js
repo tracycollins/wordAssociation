@@ -1647,14 +1647,15 @@ function initMetricsDataPointQueueInterval(interval){
         + "\n" + jsonPrint(googleRequest.timeSeries)
       ));
 
-      googleRequest.timeSeries = [];;
+      googleRequest.timeSeries.length = 0;
       googleRequest.timeSeries = deepcopy(metricsDataPointQueue);
+      metricsDataPointQueue.length = 0;
 
       googleMonitoringClient.createTimeSeries(googleRequest)
         // .then((results) => {
         .then(function(){
           metricsDataPointQueueReady = true;
-          debug(chalkInfo("METRICS"
+          console.log(chalkInfo("METRICS"
             + " | DATA POINTS: " + googleRequest.timeSeries.length 
             // + " | " + options.value
           ));
@@ -1666,9 +1667,10 @@ function initMetricsDataPointQueueInterval(interval){
               // + " | ENABLE_GOOGLE_METRICS: " + ENABLE_GOOGLE_METRICS
               // + " | SRVR: " + options.metricLabels.server_id 
               // + " | V: " + options.value
-              + " | ERR: " + err
-              + " | " + err.note
-              + "\nERR\n" + jsonPrint(err)
+              + " | DATA POINTS: " + googleRequest.timeSeries.length 
+              + "\nERR: " + err
+              // + " | " + err.note
+              // + "\nERR\n" + jsonPrint(err)
               // + "\nREQUEST\n" + jsonPrint(googleRequest)
               // + "\nMETA DATA\n" + jsonPrint(err.metadata)
             ));

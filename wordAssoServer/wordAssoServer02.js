@@ -1640,12 +1640,11 @@ function initMetricsDataPointQueueInterval(interval){
   metricsDataPointQueueInterval = setInterval(function () {
 
     if (ENABLE_GOOGLE_METRICS && (metricsDataPointQueue.length > 0) && metricsDataPointQueueReady) {
-    // if (tweetParserMessageRxQueue.length > 0) {
 
       metricsDataPointQueueReady = false;
 
-      debug(chalkAlert("METRICS DATA POINT"
-        // + "\n" + jsonPrint(dataPoint)
+      debug(chalkAlert("METRICS TIME SERIES"
+        + "\n" + jsonPrint(googleRequest.timeSeries)
       ));
 
       googleRequest.timeSeries = [];;
@@ -1667,11 +1666,11 @@ function initMetricsDataPointQueueInterval(interval){
               // + " | ENABLE_GOOGLE_METRICS: " + ENABLE_GOOGLE_METRICS
               // + " | SRVR: " + options.metricLabels.server_id 
               // + " | V: " + options.value
-              // + " | ERR: " + err
-              // + " | " + err.note
+              + " | ERR: " + err
+              + " | " + err.note
               + "\nERR\n" + jsonPrint(err)
-              + "\nREQUEST\n" + jsonPrint(googleRequest)
-              + "\nMETA DATA\n" + jsonPrint(err.metadata)
+              // + "\nREQUEST\n" + jsonPrint(googleRequest)
+              // + "\nMETA DATA\n" + jsonPrint(err.metadata)
             ));
           }
         });

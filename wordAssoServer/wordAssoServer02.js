@@ -1630,7 +1630,7 @@ function addMetricDataPoint(ops, callback){
   var options = ops;
   // options = op;
 
-  console.log(chalkAlert("addMetricDataPoint"
+  debug(chalkAlert("addMetricDataPoint"
     + " | ENABLE_GOOGLE_METRICS: " + ENABLE_GOOGLE_METRICS
     + "\n" + jsonPrint(options)
   ));
@@ -1682,14 +1682,14 @@ function addMetricDataPoint(ops, callback){
     .catch(function(err){
       if (err.code !== 8) {
         console.log(chalkError("*** ERROR GOOGLE METRICS"
-          + " | ENABLE_GOOGLE_METRICS: " + ENABLE_GOOGLE_METRICS
+          // + " | ENABLE_GOOGLE_METRICS: " + ENABLE_GOOGLE_METRICS
           + " | SERVER ID: " + options.metricLabels.server_id 
-          + " | VALUE: " + options.value
+          + " | VAL: " + options.value
           + " | ERR: " + err
-          + " | META NODE: " + err.note
-          + "\nERR\n" + jsonPrint(err)
-          + "\nREQUEST\n" + jsonPrint(googleRequest)
-          + "\nMETA DATA\n" + jsonPrint(err.metadata)
+          + " | NOTE: " + err.note
+          // + "\nERR\n" + jsonPrint(err)
+          // + "\nREQUEST\n" + jsonPrint(googleRequest)
+          // + "\nMETA DATA\n" + jsonPrint(err.metadata)
         ));
       }
     });

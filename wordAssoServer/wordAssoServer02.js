@@ -13,11 +13,19 @@ var KEYWORDS_UPDATE_INTERVAL = 60000;
 var TWEET_PARSER_INTERVAL = 10;
 var TWITTER_RX_QUEUE_INTERVAL = 10;
 var TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL = 10;
-var DEFAULT_INTERVAL = 10;
-var TOPTERMS_CACHE_DEFAULT_TTL = 60;
-var TRENDING_CACHE_DEFAULT_TTL = 60;
+
 var DEFAULT_KEYWORD_VALUE = 100;
-var NODE_CACHE_TTL = 60;
+
+var DEFAULT_INTERVAL = 10;
+
+var TOPTERMS_CACHE_DEFAULT_TTL = 300;
+var TOPTERMS_CACHE_CHECK_PERIOD = 30;
+
+var TRENDING_CACHE_DEFAULT_TTL = 300;
+var TRENDING_CACHE_CHECK_PERIOD = 30;
+
+var NODE_CACHE_DEFAULT_TTL = 300;
+var NODE_CACHE_CHECK_PERIOD = 30;
 
 var ONE_MINUTE = 60000;
 
@@ -176,7 +184,8 @@ var ignoreWordsArray = [
 var metricsRate = "5MinuteRate";
 var CUSTOM_GOOGLE_APIS_PREFIX = "custom.googleapis.com";
 
-var enableGoogleMetrics = (process.env.ENABLE_GOOGLE_METRICS !== undefined) ? process.env.ENABLE_GOOGLE_METRICS : false;
+var enableGoogleMetrics = (process.env.ENABLE_GOOGLE_METRICS !== undefined) 
+  ? process.env.ENABLE_GOOGLE_METRICS : false;
 
 var defaults = require("object.defaults");
 var moment = require("moment");
@@ -295,13 +304,18 @@ function msToTime(duration) {
   return days + ":" + hours + ":" + minutes + ":" + seconds;
 }
 
-var nodeCacheTtl = process.env.NODE_CACHE_TTL;
-if (nodeCacheTtl === undefined) { nodeCacheTtl = NODE_CACHE_TTL;}
+var nodeCacheTtl = process.env.NODE_CACHE_DEFAULT_TTL;
+if (nodeCacheTtl === undefined) { nodeCacheTtl = NODE_CACHE_DEFAULT_TTL;}
 console.log("NODE CACHE TTL: " + nodeCacheTtl + " SECONDS");
+
+var nodeCacheCheckPeriod = process.env.NODE_CACHE_CHECK_PERIOD;
+if (nodeCacheCheckPeriod === undefined) { nodeCacheCheckPeriod = NODE_CACHE_CHECK_PERIOD;}
+console.log("NODE CACHE CHECK PERIOD: " + nodeCacheCheckPeriod + " SECONDS");
+
 
 var nodeCache = new NodeCache({
   stdTTL: nodeCacheTtl,
-  checkperiod: 10
+  checkperiod: nodeCacheCheckPeriod
 });
 
 nodeCache.on("set", function(nodeCacheId, nodeObj) {
@@ -351,7 +365,7 @@ console.log("TOP TERMS WPM CACHE TTL: " + wordsPerMinuteTopTermTtl + " SECONDS")
 
 var wordsPerMinuteTopTermCache = new NodeCache({
   stdTTL: wordsPerMinuteTopTermTtl,
-  checkperiod: 10
+  checkperiod: 30
 });
 
 wordsPerMinuteTopTermCache.on( "expired", function(wpm, wpmObj){
@@ -1457,9 +1471,12 @@ function updateWordMeter(wordObj, callback){
   }
 
   if (ignoreWordHashMap.has(meterWordId)) {
+
     debug(chalkAlert("updateWordMeter IGNORE " + meterWordId));
     wordObj.isIgnored = true;
+
     nodeCache.set(meterWordId, wordObj);
+    
     if (callback !== undefined) { callback(null, wordObj); }
     return;
   }
@@ -1481,27 +1498,35 @@ function updateWordMeter(wordObj, callback){
 
     wordObj.rate = meterObj[metricsRate];
 
-    nodeCache.set(meterWordId, wordObj, function(){
-      debug(chalkInfo("updateWordMeter MISS"
-        + " | " + meterObj[metricsRate].toFixed(2) + " WPM"
-        + " | " + meterWordId
-        // + "\n" + jsonPrint(wordObj)
-      ));
-      if (callback !== undefined) { callback(null, wordObj); }
-    });
+    nodeCache.set(meterWordId, wordObj);
+    if (callback !== undefined) { callback(null, wordObj); }
+
+    // nodeCache.set(meterWordId, wordObj, function(){
+    //   debug(chalkInfo("updateWordMeter MISS"
+    //     + " | " + meterObj[metricsRate].toFixed(2) + " WPM"
+    //     + " | " + meterWordId
+    //     // + "\n" + jsonPrint(wordObj)
+    //   ));
+    //   if (callback !== undefined) { callback(null, wordObj); }
+    // });
   }
   else {
     wordMeter[meterWordId].mark();
     meterObj = wordMeter[meterWordId].toJSON();
     wordObj.rate = meterObj[metricsRate];
-    nodeCache.set(meterWordId, wordObj, function(){
-      debug(chalkInfo("updateWordMeter HIT "
-        + " | " + meterObj[metricsRate].toFixed(2) + " WPM"
-        + " | " + meterWordId
-        // + "\n" + jsonPrint(wordObj)
-      ));
-      if (callback !== undefined) { callback(null, wordObj); }
-    });
+
+    nodeCache.set(meterWordId, wordObj);
+    if (callback !== undefined) { callback(null, wordObj); }
+
+    // nodeCache.set(meterWordId, wordObj, function(){
+    //   debug(chalkInfo("updateWordMeter HIT "
+    //     + " | " + meterObj[metricsRate].toFixed(2) + " WPM"
+    //     + " | " + meterWordId
+    //     // + "\n" + jsonPrint(wordObj)
+    //   ));
+    //   if (callback !== undefined) { callback(null, wordObj); }
+    // });
+
   }
 }
 
@@ -1575,7 +1600,7 @@ function addMetricDataPoint(ops, callback){
   var options = ops;
   // options = op;
 
-  debug(chalkAlert("addMetricDataPoint\n" + jsonPrint(options)));
+  console.log(chalkAlert("addMetricDataPoint\n" + jsonPrint(options)));
 
   defaults(options, {
     endTime: (Date.now() / 1000),
@@ -1625,8 +1650,8 @@ function addMetricDataPoint(ops, callback){
       if (err.code !== 8) {
         console.log(chalkError("*** ERROR GOOGLE METRICS"
           + " | enableGoogleMetrics: " + enableGoogleMetrics
-          + " | " + options.metricLabels.server_id 
-          + " | " + options.value
+          + " | SERVER ID: " + options.metricLabels.server_id 
+          + " | VALUE: " + options.value
           + " | ERR: " + err
           + " | META NODE: " + err.note
           + "\nERR\n" + jsonPrint(err)
@@ -2520,10 +2545,11 @@ function initRateQinterval(interval){
   var wsObj;
 
   console.log(chalkLog("INIT RATE QUEUE INTERVAL | " + interval + " MS"));
-  console.log(chalkError("enableGoogleMetrics " + enableGoogleMetrics));
+
+  console.log(chalkError("ENABLE GOOGLE METRICS " + enableGoogleMetrics));
+  console.error(chalkError("ENABLE GOOGLE METRICS " + enableGoogleMetrics));
 
   clearInterval(rateQinterval);
-
 
   statsObj.obamaPerMinute = 0.0;
   statsObj.trumpPerMinute = 0.0;
@@ -2734,6 +2760,7 @@ function initRateQinterval(interval){
 
     if (updateTimeSeriesCount > 5) {updateTimeSeriesCount = 0;}
   }, interval);
+
 }
 
 function initialize(cnf, callback) {

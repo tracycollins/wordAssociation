@@ -1690,9 +1690,9 @@ function addMetricDataPoint(ops, callback){
           + " | V: " + options.value
           + " | ERR: " + err
           + " | " + err.note
-          // + "\nERR\n" + jsonPrint(err)
-          // + "\nREQUEST\n" + jsonPrint(googleRequest)
-          // + "\nMETA DATA\n" + jsonPrint(err.metadata)
+          + "\nERR\n" + jsonPrint(err)
+          + "\nREQUEST\n" + jsonPrint(googleRequest)
+          + "\nMETA DATA\n" + jsonPrint(err.metadata)
         ));
       }
     });

@@ -2556,9 +2556,9 @@ function initRateQinterval(interval){
   dataPointTssTpm.metricType = "twitter/tweets_per_minute";
   dataPointTssTpm.metricLabels = {server_id: "TSS"};
 
-  var dataPoint2 = {};
-  dataPoint2.metricType = "twitter/tweet_limit";
-  dataPoint2.metricLabels = {server_id: "TSS"};
+  var dataPointTssTpm2 = {};
+  dataPointTssTpm2.metricType = "twitter/tweet_limit";
+  dataPointTssTpm2.metricLabels = {server_id: "TSS"};
 
   var dataPointTmsTpm = {};
   dataPointTmsTpm.metricType = "twitter/tweets_per_minute";
@@ -2671,30 +2671,6 @@ function initRateQinterval(interval){
 
         memoryHeapTotalDataPoint.value = statsObj.memory.memoryUsage.heapTotal;
         addMetricDataPoint(memoryHeapTotalDataPoint);
-      }
-
-      if (ENABLE_GOOGLE_METRICS && tssServer.connected) {
-        dataPointTssTpm.value = statsObj.utilities[tssServer.user.userId].tweetsPerMinute;
-        addMetricDataPoint(dataPointTssTpm);
-
-        dataPoint2.value = statsObj.utilities[tssServer.user.userId].twitterLimit;
-        addMetricDataPoint(dataPoint2);
-      }
-
-      if (ENABLE_GOOGLE_METRICS && tmsServer.connected) {
-        dataPointTmsTpm.value = statsObj.utilities[tmsServer.user.userId].tweetsPerMinute;
-        addMetricDataPoint(dataPointTmsTpm);
-        
-        if (statsObj.utilities[tmsServer.user.userId].twitterLimit) {
-          var dataPointTmsTpm2 = {};
-          dataPointTmsTpm2.metricType = "twitter/tweet_limit";
-          dataPointTmsTpm2.value = statsObj.utilities[tmsServer.user.userId].twitterLimit;
-          dataPointTmsTpm2.metricLabels = {server_id: "TMS"};
-          addMetricDataPoint(dataPointTmsTpm2);
-        }
-      }
-
-      if (ENABLE_GOOGLE_METRICS) {
 
         dataPointWpm.value = statsObj.wordsPerMin;
         addMetricDataPoint(dataPointWpm);
@@ -2716,12 +2692,36 @@ function initRateQinterval(interval){
 
         dataPointNodeCache.value = statsObj.caches.nodeCache.stats.keys;
         addMetricDataPoint(dataPointNodeCache);
+
+        if (tssServer.connected) {
+          dataPointTssTpm.value = statsObj.utilities[tssServer.user.userId].tweetsPerMinute;
+          addMetricDataPoint(dataPointTssTpm);
+
+          dataPointTssTpm2.value = statsObj.utilities[tssServer.user.userId].twitterLimit;
+          addMetricDataPoint(dataPointTssTpm2);
+        }
+
+        if (tmsServer.connected) {
+          dataPointTmsTpm.value = statsObj.utilities[tmsServer.user.userId].tweetsPerMinute;
+          addMetricDataPoint(dataPointTmsTpm);
+          
+          if (statsObj.utilities[tmsServer.user.userId].twitterLimit) {
+            var dataPointTmsTpm2 = {};
+            dataPointTmsTpm2.metricType = "twitter/tweet_limit";
+            dataPointTmsTpm2.value = statsObj.utilities[tmsServer.user.userId].twitterLimit;
+            dataPointTmsTpm2.metricLabels = {server_id: "TMS"};
+            addMetricDataPoint(dataPointTmsTpm2);
+          }
+        }
       }
+
+  
     }
 
     updateTimeSeriesCount += 1;
 
-    if (updateTimeSeriesCount > 5) {updateTimeSeriesCount = 0;}
+    if (updateTimeSeriesCount > 30) { updateTimeSeriesCount = 0; }
+
   }, interval);
 
 }

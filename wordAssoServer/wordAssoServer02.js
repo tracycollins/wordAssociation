@@ -1712,7 +1712,7 @@ function addMetricDataPoint(ops, callback){
     value: {}
   };
 
-  dataPoint.value[options.dataType] = options.value;
+  dataPoint.value[options.dataType] = parseFloat(options.value);
 
   var timeSeriesData = {
     metric: {
@@ -1789,7 +1789,7 @@ function addTopTermMetricDataPoint(node, wmObj){
 
       topTermDataPoint.displayName = node;
       topTermDataPoint.metricType = "word/top10/" + node;
-      topTermDataPoint.value = deepcopy(wmObj[metricsRate]);
+      topTermDataPoint.value = wmObj[metricsRate];
       topTermDataPoint.metricLabels = {server_id: "WORD"};
 
       addMetricDataPoint(topTermDataPoint);

@@ -17,6 +17,7 @@
     "console.table": "^0.8.0",
     "crosstab": "^0.2.12",
     "dbly-linked-list": "^0.1.10",
+    "deep-copy": "^1.2.0",
     "dns": "^0.2.2",
     "dropbox": "^2.5.2",
     "ecdsa-sig-formatter": "^1.0.9",

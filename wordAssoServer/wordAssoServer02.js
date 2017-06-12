@@ -2344,7 +2344,7 @@ function initSorterMessageRxQueueInterval(interval){
                 addTopTermMetricDataPoint(node, nodeRate);
               }
               else {
-                console.log(chalkLog("SKIP ADD METRIC\n" + wordMeter[node].toJSON()));
+                console.log(chalkLog("SKIP ADD METRIC | " + node + " | " + nodeRate.toFixed(3)));
               }
             }
           }

@@ -1516,9 +1516,9 @@ function updateWordMeter(wordObj, callback){
 
     // wordMeter[meterWordId] = {};
 
-    Object.keys( wordMeter[meterWordId]).forEach(function(key) { 
-      delete wordMeter[meterWordId][key];
-    });
+    // Object.keys( wordMeter[meterWordId]).forEach(function(key) { 
+    //   delete wordMeter[meterWordId][key];
+    // });
 
     wordMeter[meterWordId] = new Measured.Meter({rateUnit: 60000});
     wordMeter[meterWordId].mark();

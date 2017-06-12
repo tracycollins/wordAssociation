@@ -450,6 +450,11 @@ var tweetParser;
 
 var statsObj = {};
 
+statsObj.errors = {};
+statsObj.errors.google = {};
+statsObj.errors.twitter = {};
+statsObj.errors.twitter.maxRxQueue = 0;
+
 statsObj.wordMeterEntries = 0;
 
 statsObj.children = {};
@@ -934,7 +939,6 @@ function initSocketHandler(socket) {
     statsObj.twitter.tweetsReceived += 1;
     debug(chalkSocket("tweet" 
       + " [" + statsObj.twitter.tweetsReceived + "]"
-      // + " | " + socket.id
       + " | " + tw.id_str
       + " | " + tw.user.id_str
       + " | " + tw.user.screen_name
@@ -942,17 +946,18 @@ function initSocketHandler(socket) {
       // + jsonPrint(rxNodeObj)
     ));
 
-    // if (tweetRxQueue.size() > MAX_Q){
     if (tweetRxQueue.size() > MAX_Q){
+
+      statsObj.errors.twitter.maxRxQueue += 1;
+
       // console.log(chalkError("*** MAX QUEUE [" + tweetRxQueue.size() + "] | T<"
-      console.log(chalkError("*** MAX QUEUE [" + tweetRxQueue.size() + "] | T<"
+      console.log(chalkError("*** TWEET RX MAX QUEUE [" + tweetRxQueue.size() + "] | T<"
         + " | " + tw.id_str
         + " | " + tw.user.screen_name
       ));
     }
     else if (tw.user) {
 
-      // tweetRxQueue.push(tw);
       tweetRxQueue.enqueue(tw);
 
       debug(chalkLog("T<"
@@ -1627,6 +1632,7 @@ var metricsDataPointQueue = [];
 
 var metricsDataPointQueueReady = true;
 var metricsDataPointQueueInterval;
+
 function initMetricsDataPointQueueInterval(interval){
 
   console.log(chalkLog("INIT METRICS DATA POINT QUEUE INTERVAL | " + interval + " MS"));
@@ -1634,8 +1640,11 @@ function initMetricsDataPointQueueInterval(interval){
   clearInterval(metricsDataPointQueueInterval);
 
   var googleRequest = {};
-  googleRequest.name = googleMonitoringClient.projectPath(process.env.GOOGLE_PROJECT_ID);
-  googleRequest.timeSeries = [];
+
+  if (ENABLE_GOOGLE_METRICS) {
+    googleRequest.name = googleMonitoringClient.projectPath(process.env.GOOGLE_PROJECT_ID);
+    googleRequest.timeSeries = [];
+  }
 
   metricsDataPointQueueInterval = setInterval(function () {
 
@@ -1662,20 +1671,21 @@ function initMetricsDataPointQueueInterval(interval){
         })
         .catch(function(err){
           metricsDataPointQueueReady = true;
+          statsObj.errors.google[err.code] = (statsObj.errors.google[err.code] === undefined) ? 1 : statsObj.errors.google[err.code] += 1;
           // if (err.code !== 8) {
-            console.log(chalkError(moment().format(compactDateTimeFormat)
-              + " | *** ERROR GOOGLE METRICS"
-              // + " | ENABLE_GOOGLE_METRICS: " + ENABLE_GOOGLE_METRICS
-              // + " | SRVR: " + options.metricLabels.server_id 
-              // + " | V: " + options.value
-              + " | DATA POINTS: " + googleRequest.timeSeries.length 
-              + "\n*** ERR:  " + err
-              + "\n*** NOTE: " + err.note
-              + "\nERR\n" + jsonPrint(err)
-              // + "\nREQUEST\n" + jsonPrint(googleRequest)
-              // + "\nMETA DATA\n" + jsonPrint(err.metadata)
-            ));
-          // }
+          console.log(chalkError(moment().format(compactDateTimeFormat)
+            + " | *** ERROR GOOGLE METRICS"
+            // + " | ENABLE_GOOGLE_METRICS: " + ENABLE_GOOGLE_METRICS
+            // + " | SRVR: " + options.metricLabels.server_id 
+            // + " | V: " + options.value
+            + " | DATA POINTS: " + googleRequest.timeSeries.length 
+            + "\n*** ERR:  " + err
+            + "\n*** NOTE: " + err.note
+            + "\nERR\n" + jsonPrint(err)
+            // + "\nREQUEST\n" + jsonPrint(googleRequest)
+            // + "\nMETA DATA\n" + jsonPrint(err.metadata)
+          ));
+        // }
         });
     }
   }, interval);

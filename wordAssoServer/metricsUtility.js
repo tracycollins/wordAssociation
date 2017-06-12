@@ -35,7 +35,7 @@ var CUSTOM_GOOGLE_APIS_PREFIX = "custom.googleapis.com";
 
 var enableGoogleMetrics = process.env.ENABLE_GOOGLE_METRICS || false;
 
-var Monitoring = require("@google-cloud/monitoring");
+var Monitoring = require("@google-cloud/monitoring")();
 var googleMonitoringClient = Monitoring.v3().metricServiceClient();
 
 var defaults = require("object.defaults");
@@ -649,8 +649,11 @@ initializeConfiguration(configuration, function(err, results){
               ));
 
               if (configuration.listDescriptorsFlag) {
-                if (arrayContains(configuration.deleteArray, dbResults.word.word)) {
-                  console.log(chalkAlert("DELETE ARRAY: " + dbResults.word.word));
+
+                if (arrayContains(configuration.deleteArray, dbResults.word.word) || deletedMetricsHashmap[dbResults.word.word]) {
+
+                  console.log(chalkAlert("DELETE ARRAY or HM: " + dbResults.word.word));
+
                   deleteMetric(dbResults.word.descriptor, function(err){
                     statsObj.metrics.deleted[dbResults.word.word] = {
                       word: dbResults.word.mentions, 

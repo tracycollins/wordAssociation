@@ -1755,7 +1755,7 @@ function initMetricsDataPointQueueInterval(interval){
 
   metricsDataPointQueueInterval = setInterval(function () {
 
-    initDeletedMetricsHashmap()
+    initDeletedMetricsHashmap();
 
     if (ENABLE_GOOGLE_METRICS && (metricsDataPointQueue.length > 0) && metricsDataPointQueueReady) {
 

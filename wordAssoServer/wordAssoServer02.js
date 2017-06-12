@@ -9,7 +9,7 @@ var compactDateTimeFormat = "YYYYMMDD HHmmss";
 var tinyDateTimeFormat = "YYYYMMDDHHmmss";
 
 var OFFLINE_MODE = false;
-var MAX_Q = 1000;
+var MAX_Q = 2500;
 var MIN_METRIC_VALUE = 5.0;
 var MIN_MENTIONS_VALUE = 1000;
 var KEYWORDS_UPDATE_INTERVAL = 60000;

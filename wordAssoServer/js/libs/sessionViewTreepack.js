@@ -434,7 +434,7 @@ function ViewTreepack() {
   self.setEnableAgeNodes = function(enabled) {
     enableAgeNodes = enabled;
     config.enableAgeNodes = enabled;
-    console.debug("SET ENABLE AGE NODES: " + enableAgeNodes);
+    // console.debug("SET ENABLE AGE NODES: " + enableAgeNodes);
   };
   
   this.deleteNode = function() {

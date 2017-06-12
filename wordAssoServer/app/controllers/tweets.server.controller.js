@@ -1097,9 +1097,9 @@ exports.createStreamTweet = function(params, callback) {
 							urlId : urlId,
 							nodeType: "url",
 							nodeId : urlId,
-							url : urlObj.url,
-							displayUrl : urlObj.display_url,
-							expandedUrl : urlObj.expanded_url,
+							url : uObj.url,
+							displayUrl : uObj.display_url,
+							expandedUrl : uObj.expanded_url,
 							lastSeen : Date.now(),
 							mentions : 0
 						});

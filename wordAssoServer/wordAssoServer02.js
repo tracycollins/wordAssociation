@@ -1845,39 +1845,9 @@ function addMetricDataPoint(ops, callback){
     points: []
   };
 
-  timeSeriesData.points.push(deepcopy(dataPoint));
+  timeSeriesData.points.push(dataPoint);
 
-  metricsDataPointQueue.push(deepcopy(timeSeriesData));
-
-  // var googleRequest = {
-  //   name: googleMonitoringClient.projectPath(options.projectId),
-  //   timeSeries: [
-  //     timeSeriesData
-  //   ]
-  // };
-
-  // googleMonitoringClient.createTimeSeries(googleRequest)
-  //   // .then((results) => {
-  //   .then(function(){
-  //     debug(chalkInfo("METRICS"
-  //       + " | " + options.metricLabels.server_id 
-  //       + " | " + options.value
-  //     ));
-  //   })
-  //   .catch(function(err){
-  //     if (err.code !== 8) {
-  //       console.log(chalkError("*** ERROR GOOGLE METRICS"
-  //         // + " | ENABLE_GOOGLE_METRICS: " + ENABLE_GOOGLE_METRICS
-  //         + " | SRVR: " + options.metricLabels.server_id 
-  //         + " | V: " + options.value
-  //         + " | ERR: " + err
-  //         // + " | " + err.note
-  //         // + "\nERR\n" + jsonPrint(err)
-  //         // + "\nREQUEST\n" + jsonPrint(googleRequest)
-  //         // + "\nMETA DATA\n" + jsonPrint(err.metadata)
-  //       ));
-  //     }
-  //   });
+  metricsDataPointQueue.push(timeSeriesData);
 
   if (callback) { callback(null, { q: metricsDataPointQueue.length} ); }
 }
@@ -3153,7 +3123,7 @@ initialize(configuration, function(err) {
     initIgnoreWordsHashMap();
     initUpdateTrendsInterval(15*ONE_MINUTE);
     initRateQinterval(1000);
-    initMetricsDataPointQueueInterval(120000);
+    initMetricsDataPointQueueInterval(60000);
     initTwitterRxQueueInterval(TWITTER_RX_QUEUE_INTERVAL);
     initTweetParserMessageRxQueueInterval(TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL);
   }

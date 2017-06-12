@@ -10,6 +10,7 @@ var ONE_HOUR = ONE_MINUTE * 60;
 var ONE_DAY = ONE_HOUR * 24;
 var quitOnErrorFlag = false;
 var listDescriptorsFlag = false;
+var OFFLINE_MODE = false;
 
 var moment = require("moment");
 
@@ -59,7 +60,7 @@ var db = mongoose();
 
 var Hashtag = require("mongoose").model("Hashtag");
 var Word = require("mongoose").model("Word");
-var wordServer = require("./app/controllers/word.server.controller");
+var User = require("mongoose").model("User");
 
 // ==================================================================
 // SESSION MODES: STREAM  ( session.config.mode )
@@ -87,6 +88,9 @@ var chalkBht = chalk.gray;
 var chalkMw = chalk.yellow;
 var chalkDb = chalk.gray;
 
+
+var deletedMetricsHashmap = {};
+
 var jsonPrint = function(obj) {
   if (obj) {
     return JSON.stringify(obj, null, 2);
@@ -95,6 +99,23 @@ var jsonPrint = function(obj) {
     return obj;
   }
 };
+
+function getTimeStamp(inputTime) {
+  var currentTimeStamp ;
+
+  if (typeof inputTime === 'undefined') {
+    currentTimeStamp = moment().format(compactDateTimeFormat);
+    return currentTimeStamp;
+  }
+  else if (moment.isMoment(inputTime)) {
+    currentTimeStamp = moment(inputTime).format(compactDateTimeFormat);
+    return currentTimeStamp;
+  }
+  else {
+    currentTimeStamp = moment(parseInt(inputTime)).format(compactDateTimeFormat);
+    return currentTimeStamp;
+  }
+}
 
 function msToTime(duration) {
   var seconds = parseInt((duration / 1000) % 60);
@@ -136,13 +157,23 @@ function showStats(options){
 }
 
 function quit(message) {
+  var msg = "";
   console.log("\n... QUITTING ...");
   if (typeof updater !== "undefined") { updater.kill("SIGHUP"); }
-  showStats();
-  var msg = "";
-  if (message) {msg = message;}
-  console.log("QUIT MESSAGE\n" + msg);
-  process.exit();
+
+
+ console.log(chalkInfo("DELETED METRICS THIS SESSION\n" + jsonPrint(statsObj.metrics.deleted)));
+
+  saveFile(configFolder, deletedMetricsFile, deletedMetricsHashmap, function(status){
+    console.log(chalkInfo("SAVED DELETED METRICS HASHMAP | " + Object.keys(deletedMetricsHashmap).length));
+    showStats();
+
+    if (message) {msg = message;}
+    console.log("QUIT MESSAGE\n" + msg);
+    process.exit();
+
+  });
+
 }
 
 process.on("SIGINT", function() {
@@ -206,9 +237,156 @@ process.env.NODE_ENV = process.env.NODE_ENV || "development";
 console.log("NODE_ENV : " + process.env.NODE_ENV);
 console.log("CLIENT HOST + PORT: " + "http://localhost:" + config.port);
 
+
+var DROPBOX_WORD_ASSO_ACCESS_TOKEN = process.env.DROPBOX_WORD_ASSO_ACCESS_TOKEN ;
+console.log("DROPBOX_WORD_ASSO_ACCESS_TOKEN :" + DROPBOX_WORD_ASSO_ACCESS_TOKEN);
+
+var dropboxClient = new Dropbox({ accessToken: DROPBOX_WORD_ASSO_ACCESS_TOKEN });
+
+var configFolder = "/config/utility/" + hostname;
+var deletedMetricsFile = "deletedMetrics.json";
+
+
+function saveFile(folder, file, obj, callback) {
+
+  var fullPath = folder + "/" + file;
+
+  console.log(chalkInfo("SAVE FOLDER " + folder));
+  console.log(chalkInfo("SAVE FILE " + file));
+  console.log(chalkInfo("FULL PATH " + folder + "/" + file));
+
+  if (OFFLINE_MODE) {
+
+    fs.exists(fullPath, function(exists) {
+      if (exists) {
+        fs.stat(fullPath, function(error, stats) {
+          if (error) { return(callback(error, stats)); }
+          fs.open(fullPath, "w", function(error, fd) {
+            if (error) { return(callback(error, fd)); }
+            fs.writeFile(path, statsObj, function(error) {
+              if (error) { return(callback(error, path)); }
+              callback("OK");
+              fs.close(fd);
+            });
+          });
+        });
+      }
+    });
+  } 
+  else {
+
+  var options = {};
+
+  options.contents = JSON.stringify(obj, null, 2);
+  options.path = fullPath;
+  options.mode = "overwrite";
+  options.autorename = false;
+
+  dropboxClient.filesUpload(options)
+    .then(function(){
+      console.log(chalkLog(moment().format(compactDateTimeFormat)
+        + " | SAVED DROPBOX JSON | " + options.path
+      ));
+      callback("OK");
+    })
+    .catch(function(error){
+      console.log(chalkError(moment().format(compactDateTimeFormat) 
+        + " | !!! ERROR DROBOX JSON WRITE | FILE: " + options.path 
+        + " ERROR: " + error.error_summary
+      ));
+      callback(error);
+    });
+
+  }
+}
+
+function loadFile(folder, file, callback) {
+
+  console.log(chalkInfo("LOAD FOLDER " + folder));
+  console.log(chalkInfo("LOAD FILE " + file));
+  console.log(chalkInfo("FULL PATH " + folder + "/" + file));
+
+  var fileExists = false;
+
+  dropboxClient.filesListFolder({path: folder})
+    .then(function(response) {
+
+        async.each(response.entries, function(folderFile, cb) {
+
+          debug("FOUND FILE " + folderFile.name);
+
+          if (folderFile.name == file) {
+            debug(chalkRedBold("SOURCE FILE EXISTS: " + file));
+            fileExists = true;
+          }
+
+          cb();
+
+        }, function(err) {
+
+          if (fileExists) {
+
+            dropboxClient.filesDownload({path: folder + "/" + file})
+              .then(function(data) {
+                console.log(chalkLog(getTimeStamp()
+                  + " | LOADING FILE FROM DROPBOX: " + folder + "/" + file
+                  // + "\n" + jsonPrint(data)
+                ));
+
+                var payload = data.fileBinary;
+
+                debug(payload);
+
+                if (file.match(/\.json$/gi)) {
+                  debug("FOUND JSON FILE: " + file);
+                  var fileObj = JSON.parse(payload);
+                  return(callback(null, fileObj));
+                }
+                else if (file.match(/\.yml/gi)) {
+                  var fileObj = yaml.load(payload);
+                  debug(chalkAlert("FOUND YAML FILE: " + file));
+                  debug("FOUND YAML FILE\n" + jsonPrint(fileObj));
+                  debug("FOUND YAML FILE\n" + jsonPrint(payload));
+                  return(callback(null, fileObj));
+                }
+
+               })
+              .catch(function(error) {
+                console.log(chalkAlert("DROPBOX loadFile ERROR: " + file + "\n" + error));
+                console.log(chalkError("!!! DROPBOX READ " + file + " ERROR"));
+                console.log(chalkError(jsonPrint(error)));
+
+                if (error["status"] === 404) {
+                  console.error(chalkError("!!! DROPBOX READ FILE " + file + " NOT FOUND ... SKIPPING ..."));
+                  return(callback(null, null));
+                }
+                if (error["status"] === 0) {
+                  console.error(chalkError("!!! DROPBOX NO RESPONSE ... NO INTERNET CONNECTION? ... SKIPPING ..."));
+                  return(callback(null, null));
+                }
+                return(callback(error, null));
+              });
+          }
+          else {
+            console.error(chalkError("*** FILE DOES NOT EXIST: " + folder + "/" + file));
+            console.log(chalkError("*** FILE DOES NOT EXIST: " + folder + "/" + file));
+            var err = {};
+            err.code = 404;
+            err.status = "FILE DOES NOT EXIST";
+            return(callback(err, null));
+          }
+        });
+    })
+    .catch(function(error) {
+      console.error("DROPBOX LOAD FILE ERROR\n" + jsonPrint(error));
+      return(callback(error, null));
+    });
+}
+
 function initializeConfiguration(cnf, callback) {
 
   debug(chalkInfo(moment().format(compactDateTimeFormat) + " | initializeConfiguration ..."));
+
 
   var commandArgs = Object.keys(commandLineConfig);
 
@@ -264,12 +442,31 @@ function initializeConfiguration(cnf, callback) {
     });
   }
 
-  callback(null, null);
+  loadFile(configFolder, deletedMetricsFile, function(err, deletedMetricsObj){
+    if (err) {
+      if (err.code !== 404) {
+        console.error("LOAD DELETED METRICS FILE ERROR\n" + err);
+        callback(err, null);
+      }
+      else {
+        callback(null, null);
+      }
+    }
+    else {
+      Object.keys(deletedMetricsObj).forEach(function(metricName){
+        deletedMetricsHashmap[metricName] = deletedMetricsObj[metricName];
+        console.log(chalkAlert("+ DELETED METRIC | " + metricName ));
+      });
+      console.log(chalkAlert("LOADED DELETED METRICS | " + Object.keys(deletedMetricsObj).length ));
+      callback(null, null);
+    }
+   });
 }
 
 var top10descriptorArray = [];
 
 function deleteMetric(descriptor, callback){
+
   var deleteRequest = {
     name: googleMonitoringClient.metricDescriptorPath(process.env.GOOGLE_PROJECT_ID, descriptor.type)
   };
@@ -277,6 +474,11 @@ function deleteMetric(descriptor, callback){
   googleMonitoringClient.deleteMetricDescriptor(deleteRequest)
     .then(function(results){
       console.log(chalkInfo("GOOGLE METRIC DELETE"));
+
+      var nameArray = descriptor.name.split("/");
+      var name = nameArray.pop().toLowerCase();
+
+      deletedMetricsHashmap[name] = descriptor.name;
       callback();
     })
     .catch(function(error){
@@ -300,6 +502,7 @@ initializeConfiguration(configuration, function(err, results){
   };
 
   googleMonitoringClient.listMetricDescriptors(googleRequest)
+
     .then(function(results){
 
       const descriptors = results[0];
@@ -377,6 +580,36 @@ initializeConfiguration(configuration, function(err, results){
                     callback(null, {"descriptor": descriptor, "hashtag": word, "mentions": 0});
                   }
                 });
+              },
+
+              user: function(callback) { 
+                User.findOne({ screenName: word }, function(err, usObj) {
+                  if (err) {
+                    console.log(chalkError("USER (DB) ERROR"
+                      + " | " + word
+                      + "\n" + jsonPrint(err)
+                    ));
+                    callback(err, null);
+                  }
+                  else if (usObj) {
+                    debug(chalkInfo("USER"
+                      + " | " + usObj.screenName
+                      + " | " + usObj.name
+                      + " | Ms: " + usObj.mentions
+                      // + "\n" + jsonPrint(wordObj)
+                    ));
+                    statsObj.metrics.hashtag[usObj.screenName.toLowerCase()] = usObj.mentions;
+                    callback(null, {"descriptor": descriptor, "user": word, "mentions": usObj.mentions});
+                  }
+                  else  {
+                    debug(chalkAlert("USER"
+                      + " | " + word
+                      + " | Ms: --"
+                    ));
+                    statsObj.metrics.user[word] = 0;
+                    callback(null, {"descriptor": descriptor, "user": word, "mentions": 0});
+                  }
+                });
               }
 
             }, 
@@ -384,25 +617,34 @@ initializeConfiguration(configuration, function(err, results){
 
               var wordMentionPadSpaces = 9 - dbResults.word.mentions.toString().length;
               var htMentionPadSpaces = 9 - dbResults.hashtag.mentions.toString().length;
+              var usMentionPadSpaces = 9 - dbResults.user.mentions.toString().length;
 
               var wordMentions = (new Array(wordMentionPadSpaces).join("\xa0")) + dbResults.word.mentions.toString();
               var htMentions = (new Array(htMentionPadSpaces).join("\xa0")) + dbResults.hashtag.mentions.toString();
+              var userMentions = (new Array(usMentionPadSpaces).join("\xa0")) + dbResults.user.mentions.toString();
 
               var chalkVal = chalkInfo;
 
-              if ((dbResults.word.mentions === 0) && (dbResults.hashtag.mentions === 0)){
+              if ((dbResults.word.mentions === 0) 
+                && (dbResults.hashtag.mentions === 0)
+                && (dbResults.user.mentions === 0)){
                 chalkVal = chalkRedBold;
               }
-              else if ((dbResults.word.mentions === 0) || (dbResults.hashtag.mentions === 0)){
+              else if ((dbResults.word.mentions === 0) 
+                || (dbResults.hashtag.mentions === 0)
+                || (dbResults.user.mentions === 0)){
                 chalkVal = chalk.blue.bold;
               }
-              else if ((dbResults.word.mentions < 100) && (dbResults.hashtag.mentions < 100)){
+              else if ((dbResults.word.mentions < 100) 
+                && (dbResults.hashtag.mentions < 100)
+                && (dbResults.user.mentions < 100)){
                 chalkVal = chalk.green.bold;
               }
 
 
               console.log(chalkVal(wordMentions
                + " | " + htMentions
+               + " | " + userMentions
                + " | " + dbResults.word.word
               ));
 
@@ -410,7 +652,11 @@ initializeConfiguration(configuration, function(err, results){
                 if (arrayContains(configuration.deleteArray, dbResults.word.word)) {
                   console.log(chalkAlert("DELETE ARRAY: " + dbResults.word.word));
                   deleteMetric(dbResults.word.descriptor, function(err){
-                    statsObj.metrics.deleted[dbResults.word.word] = {word: dbResults.word.mentions, hashtag: dbResults.hashtag.mentions};
+                    statsObj.metrics.deleted[dbResults.word.word] = {
+                      word: dbResults.word.mentions, 
+                      hashtag: dbResults.hashtag.mentions,
+                      user: dbResults.user.mentions
+                    };
                     cb(err);
                   });
                 }
@@ -427,7 +673,12 @@ initializeConfiguration(configuration, function(err, results){
                     case "d":
                       console.log(chalkAlert("DELETE\n" + jsonPrint(dbResults.word.descriptor)));
                       deleteMetric(dbResults.word.descriptor, function(err){
-                        statsObj.metrics.deleted[dbResults.word.word] = {word: dbResults.word.mentions, hashtag: dbResults.hashtag.mentions};
+                        statsObj.metrics.deleted[dbResults.word.word] = {
+                          word: dbResults.word.mentions, 
+                          hashtag: dbResults.hashtag.mentions,
+                          user: dbResults.user.mentions
+                        };
+
                         cb(err);
                       });
                     break;
@@ -451,11 +702,15 @@ initializeConfiguration(configuration, function(err, results){
       }, function(err) {
         if (err) {
           console.log(chalkAlert("QUIT | " + err));
-          quit();
         }
         console.log("END");
-        console.log(chalkInfo("DELETED METRICS\n" + jsonPrint(statsObj.metrics.deleted)));
         quit();
+        // console.log(chalkInfo("DELETED METRICS THIS SESSION\n" + jsonPrint(statsObj.metrics.deleted)));
+
+        // saveFile(configFolder, deletedMetricsFile, deletedMetricsHashmap, function(status){
+        //   console.log(chalkInfo("SAVED DELETED METRICS HASHMAP | " + Object.keys(deletedMetricsHashmap).length));
+        //   quit();
+        // });
       });
     })
     .catch(function(results){

@@ -2197,7 +2197,7 @@ function initSorterMessageRxQueueInterval(interval){
       var index;
       var wmObj;
       // var topTermDataPoint = {};
-      var wordsPerMinuteTopTerm = {};
+      // var wordsPerMinuteTopTerm = {};
       var i;
       var node;
 
@@ -2215,11 +2215,6 @@ function initSorterMessageRxQueueInterval(interval){
           sortedKeys = sorterObj.sortedKeys;
           endIndex = Math.min(configuration.maxTopTerms, sortedKeys.length);
 
-          // var index;
-          // var wmObj;
-          // var topTermDataPoint = {};
-          // var wordsPerMinuteTopTerm = {}
-
           for (index=0; index < endIndex; index += 1){
 
             node = sortedKeys[index].toLowerCase();
@@ -2231,12 +2226,12 @@ function initSorterMessageRxQueueInterval(interval){
 
               wordsPerMinuteTopTermCache.set(node, wmObj[metricsRate]);
 
-              wordsPerMinuteTopTerm[node] = wmObj[metricsRate];
+              // wordsPerMinuteTopTerm[node] = wmObj[metricsRate];
 
-              if (index === endIndex-1) {
-                adminNameSpace.emit("TWITTER_TOPTERM_1MIN", wordsPerMinuteTopTerm);
-                viewNameSpace.emit("TWITTER_TOPTERM_1MIN", wordsPerMinuteTopTerm);
-              }
+              // if (index === endIndex-1) {
+              //   adminNameSpace.emit("TWITTER_TOPTERM_1MIN", wordsPerMinuteTopTerm);
+              //   viewNameSpace.emit("TWITTER_TOPTERM_1MIN", wordsPerMinuteTopTerm);
+              // }
 
               if (ENABLE_GOOGLE_METRICS && (wmObj[metricsRate] > MIN_METRIC_VALUE)) {
                 addTopTermMetricDataPoint(node, wmObj);

@@ -1106,11 +1106,9 @@ function checkKeyword(nodeObj, callback) {
       && (nodeObj.screenName === undefined)) {
       nodeObj.screenName = nodeObj.nodeId;
     }
-    // callback(nodeObj);
   }
   else if (nodeObj.keywords === undefined) {
     nodeObj.keywords = {};
-    // callback(nodeObj);
   }
 
   switch (nodeObj.nodeType) {
@@ -1120,7 +1118,6 @@ function checkKeyword(nodeObj, callback) {
       // console.log(chalkAlert("TWEET | checkKeyword\n" + jsonPrint(nodeObj)));
 
       if (nodeObj.text.toLowerCase().includes("sciencemarch") || nodeObj.text.toLowerCase().includes("marchforscience")) {
-        // scienceMarchHit = nodeObj.text;
         nodeObj.isKeyword = true;
         nodeObj.keywords.positive = DEFAULT_KEYWORD_VALUE;
         debug(chalkError("SCIENCEMARCH: " + nodeObj.text));
@@ -1463,7 +1460,7 @@ function initUpdateTrendsInterval(interval){
 function updateWordMeter(wordObj, callback){
 
   var meterWordId;
-  var meterObj;
+  var meterObj = {};
 
   if ((wordObj.nodeType === "media") 
     || (wordObj.nodeType === "url")
@@ -1473,10 +1470,6 @@ function updateWordMeter(wordObj, callback){
     return;
   }
 
-  // if (wordObj.tags === undefined) {
-  //   console.log(chalkAlert("UNDEFINED WORD TAGS updateWordMeter\n" + jsonPrint(wordObj)));
-  //   console.trace("UNDEFINED WORD TAGS updateWordMeter");
-  // }
 
   if (wordObj.isTwitterUser || (wordObj.nodeType === "user")) {
     if (wordObj.screenName !== undefined) {
@@ -1492,9 +1485,7 @@ function updateWordMeter(wordObj, callback){
       ));
 
       meterWordId = wordObj.nodeId;
-      // if (callback !== undefined) { callback("TWITTER USER UNDEFINED NAME & SCREEN NAME", wordObj)};
-      // return;
-    }
+     }
   }
   else if (wordObj.nodeType === "place") {
     meterWordId = wordObj.name.toLowerCase();
@@ -1523,7 +1514,12 @@ function updateWordMeter(wordObj, callback){
     || (wordMeter[meterWordId] === undefined) 
     || (typeof wordMeter[meterWordId].mark !== "function")) {
 
-    wordMeter[meterWordId] = {};
+    // wordMeter[meterWordId] = {};
+
+    Object.keys( wordMeter[meterWordId]).forEach(function(key) { 
+      delete wordMeter[meterWordId][key];
+    });
+
     wordMeter[meterWordId] = new Measured.Meter({rateUnit: 60000});
     wordMeter[meterWordId].mark();
 
@@ -1534,14 +1530,6 @@ function updateWordMeter(wordObj, callback){
     nodeCache.set(meterWordId, wordObj);
     if (callback !== undefined) { callback(null, wordObj); }
 
-    // nodeCache.set(meterWordId, wordObj, function(){
-    //   debug(chalkInfo("updateWordMeter MISS"
-    //     + " | " + meterObj[metricsRate].toFixed(2) + " WPM"
-    //     + " | " + meterWordId
-    //     // + "\n" + jsonPrint(wordObj)
-    //   ));
-    //   if (callback !== undefined) { callback(null, wordObj); }
-    // });
   }
   else {
     wordMeter[meterWordId].mark();
@@ -1550,16 +1538,6 @@ function updateWordMeter(wordObj, callback){
 
     nodeCache.set(meterWordId, wordObj);
     if (callback !== undefined) { callback(null, wordObj); }
-
-    // nodeCache.set(meterWordId, wordObj, function(){
-    //   debug(chalkInfo("updateWordMeter HIT "
-    //     + " | " + meterObj[metricsRate].toFixed(2) + " WPM"
-    //     + " | " + meterWordId
-    //     // + "\n" + jsonPrint(wordObj)
-    //   ));
-    //   if (callback !== undefined) { callback(null, wordObj); }
-    // });
-
   }
 }
 
@@ -1775,7 +1753,7 @@ function addMetricDataPoint(ops, callback){
   if (callback) { callback(null, { q: metricsDataPointQueue.length} ); }
 }
 
-function addTopTermMetricDataPoint(node, wmObj){
+function addTopTermMetricDataPoint(node, nodeRate){
 
   nodeCache.get(node, function(err, nodeObj){
     if (err) {
@@ -1793,14 +1771,14 @@ function addTopTermMetricDataPoint(node, wmObj){
       console.log(chalkInfo("+++ TOP TERM METRIC"
         + " | " + node
         + " | Ms: " + nodeObj.mentions
-        + " | RATE: " + wmObj[metricsRate].toFixed(2)
+        + " | RATE: " + nodeRate.toFixed(2)
       ));
 
       var topTermDataPoint = {};
 
       topTermDataPoint.displayName = node;
       topTermDataPoint.metricType = "word/top10/" + node;
-      topTermDataPoint.value = wmObj[metricsRate];
+      topTermDataPoint.value = parseFloat(nodeRate);
       topTermDataPoint.metricLabels = {server_id: "WORD"};
 
       addMetricDataPoint(topTermDataPoint);
@@ -2195,9 +2173,7 @@ function initSorterMessageRxQueueInterval(interval){
       var sortedKeys;
       var endIndex;
       var index;
-      var wmObj;
-      // var topTermDataPoint = {};
-      // var wordsPerMinuteTopTerm = {};
+      // var wmObj = {};
       var i;
       var node;
 
@@ -2222,9 +2198,9 @@ function initSorterMessageRxQueueInterval(interval){
             // if (wordMeter[node] !== undefined) {
             if (wordMeter[node]) {
 
-              wmObj = wordMeter[node].toJSON();
+              var nodeRate = wordMeter[node].toJSON()[metricsRate];
 
-              wordsPerMinuteTopTermCache.set(node, wmObj[metricsRate]);
+              wordsPerMinuteTopTermCache.set(node, nodeRate);
 
               // wordsPerMinuteTopTerm[node] = wmObj[metricsRate];
 
@@ -2233,8 +2209,8 @@ function initSorterMessageRxQueueInterval(interval){
               //   viewNameSpace.emit("TWITTER_TOPTERM_1MIN", wordsPerMinuteTopTerm);
               // }
 
-              if (ENABLE_GOOGLE_METRICS && (wmObj[metricsRate] > MIN_METRIC_VALUE)) {
-                addTopTermMetricDataPoint(node, wmObj);
+              if (ENABLE_GOOGLE_METRICS && (nodeRate > MIN_METRIC_VALUE)) {
+                addTopTermMetricDataPoint(node, nodeRate);
               }
             }
           }
@@ -2576,7 +2552,7 @@ function initRateQinterval(interval){
     googleMonitoringClient = Monitoring.metricServiceClient();
   }
 
-  var wsObj;
+  var wsObj = {};
 
   console.log(chalkLog("INIT RATE QUEUE INTERVAL | " + interval + " MS"));
 
@@ -2671,7 +2647,8 @@ function initRateQinterval(interval){
     statsObj.queues.tweetParserMessageRxQueue = tweetParserMessageRxQueue.length;
 
     wsObj = wordStats.toJSON();
-    if (!wsObj) {return;}
+
+    if (wsObj === undefined) {return;}
 
     statsObj.wordsPerSecond = wsObj.wordsPerSecond[metricsRate];
     statsObj.wordsPerMin = wsObj.wordsPerMinute[metricsRate];
@@ -2785,7 +2762,6 @@ function initRateQinterval(interval){
           }
         }
       }
-
   
     }
 

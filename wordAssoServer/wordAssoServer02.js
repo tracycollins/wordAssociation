@@ -1,6 +1,8 @@
 /*jslint node: true */
 "use strict";
 
+console.log("\n\n============== START ==============\n\n");
+
 var quitOnError = true;
 // ==================================================================
 // GLOBAL VARIABLES
@@ -216,6 +218,9 @@ var googleMonitoringClient;
 var HashMap = require("hashmap").HashMap;
 var NodeCache = require("node-cache");
 
+var metricsHashmap = new HashMap();
+var deletedMetricsHashmap = new HashMap();
+
 var Twit = require("twit");
 var twit;
 var twitterYamlConfigFile = process.env.DEFAULT_TWITTER_CONFIG;
@@ -308,6 +313,9 @@ console.log("DROPBOX_WORD_ASSO_APP_KEY :" + DROPBOX_WORD_ASSO_APP_KEY);
 console.log("DROPBOX_WORD_ASSO_APP_SECRET :" + DROPBOX_WORD_ASSO_APP_SECRET);
 
 var dropboxClient = new Dropbox({ accessToken: DROPBOX_WORD_ASSO_ACCESS_TOKEN });
+
+var configFolder = "/config/utility/" + hostname;
+var deletedMetricsFile = "deletedMetrics.json";
 
 var jsonPrint = function (obj) {
   if (obj) {
@@ -582,6 +590,105 @@ function quit(message) {
   process.exit();
 }
 
+function getTimeStamp(inputTime) {
+  var currentTimeStamp ;
+
+  if (typeof inputTime === 'undefined') {
+    currentTimeStamp = moment().format(compactDateTimeFormat);
+    return currentTimeStamp;
+  }
+  else if (moment.isMoment(inputTime)) {
+    currentTimeStamp = moment(inputTime).format(compactDateTimeFormat);
+    return currentTimeStamp;
+  }
+  else {
+    currentTimeStamp = moment(parseInt(inputTime)).format(compactDateTimeFormat);
+    return currentTimeStamp;
+  }
+}
+
+function loadFile(folder, file, callback) {
+
+  console.log(chalkInfo("LOAD FOLDER " + folder));
+  console.log(chalkInfo("LOAD FILE " + file));
+  console.log(chalkInfo("FULL PATH " + folder + "/" + file));
+
+  var fileExists = false;
+
+  dropboxClient.filesListFolder({path: folder})
+    .then(function(response) {
+
+        async.each(response.entries, function(folderFile, cb) {
+
+          debug("FOUND FILE " + folderFile.name);
+
+          if (folderFile.name == file) {
+            debug(chalkAlert("SOURCE FILE EXISTS: " + file));
+            fileExists = true;
+          }
+
+          cb();
+
+        }, function(err) {
+
+          if (fileExists) {
+
+            dropboxClient.filesDownload({path: folder + "/" + file})
+              .then(function(data) {
+                console.log(chalkLog(getTimeStamp()
+                  + " | LOADING FILE FROM DROPBOX: " + folder + "/" + file
+                  // + "\n" + jsonPrint(data)
+                ));
+
+                var payload = data.fileBinary;
+
+                debug(payload);
+
+                if (file.match(/\.json$/gi)) {
+                  debug("FOUND JSON FILE: " + file);
+                  var fileObj = JSON.parse(payload);
+                  return(callback(null, fileObj));
+                }
+                else if (file.match(/\.yml/gi)) {
+                  var fileObj = yaml.load(payload);
+                  debug(chalkAlert("FOUND YAML FILE: " + file));
+                  debug("FOUND YAML FILE\n" + jsonPrint(fileObj));
+                  debug("FOUND YAML FILE\n" + jsonPrint(payload));
+                  return(callback(null, fileObj));
+                }
+
+               })
+              .catch(function(error) {
+                console.log(chalkAlert("DROPBOX loadFile ERROR: " + file + "\n" + error));
+                console.log(chalkError("!!! DROPBOX READ " + file + " ERROR"));
+                console.log(chalkError(jsonPrint(error)));
+
+                if (error["status"] === 404) {
+                  console.error(chalkError("!!! DROPBOX READ FILE " + file + " NOT FOUND ... SKIPPING ..."));
+                  return(callback(null, null));
+                }
+                if (error["status"] === 0) {
+                  console.error(chalkError("!!! DROPBOX NO RESPONSE ... NO INTERNET CONNECTION? ... SKIPPING ..."));
+                  return(callback(null, null));
+                }
+                return(callback(error, null));
+              });
+          }
+          else {
+            console.error(chalkError("*** FILE DOES NOT EXIST: " + folder + "/" + file));
+            console.log(chalkError("*** FILE DOES NOT EXIST: " + folder + "/" + file));
+            var err = {};
+            err.code = 404;
+            err.status = "FILE DOES NOT EXIST";
+            return(callback(err, null));
+          }
+        });
+    })
+    .catch(function(error) {
+      console.error("DROPBOX LOAD FILE ERROR\n" + jsonPrint(error));
+      return(callback(error, null));
+    });
+}
 
 function loadYamlConfig(yamlFile, callback){
   console.log(chalkInfo("LOADING YAML CONFIG FILE: " + yamlFile));
@@ -707,6 +814,28 @@ function showStats(options){
       + " | MAX H TIME: " + moment(parseInt(statsObj.memory.maxHeapTime)).format(compactDateTimeFormat)
     ));
   }
+}
+
+function initDeletedMetricsHashmap(callback){
+  loadFile(configFolder, deletedMetricsFile, function(err, deletedMetricsObj){
+    if (err) {
+      if (err.code !== 404) {
+        console.error("LOAD DELETED METRICS FILE ERROR\n" + err);
+        callback(err, null);
+      }
+      else {
+        callback(null, null);
+      }
+    }
+    else {
+      Object.keys(deletedMetricsObj).forEach(function(metricName){
+        deletedMetricsHashmap.set(metricName, deletedMetricsObj[metricName]);
+        console.log(chalkAlert("+ DELETED METRIC | " + metricName ));
+      });
+      console.log(chalkAlert("LOADED DELETED METRICS | " + deletedMetricsHashmap.count() ));
+      callback(null, null);
+    }
+   });
 }
 
 process.on("exit", function() {
@@ -2209,8 +2338,13 @@ function initSorterMessageRxQueueInterval(interval){
               //   viewNameSpace.emit("TWITTER_TOPTERM_1MIN", wordsPerMinuteTopTerm);
               // }
 
-              if (ENABLE_GOOGLE_METRICS && (nodeRate > MIN_METRIC_VALUE)) {
+              if (!deletedMetricsHashmap.has(node) 
+                && ENABLE_GOOGLE_METRICS 
+                && (nodeRate > MIN_METRIC_VALUE)) {
                 addTopTermMetricDataPoint(node, nodeRate);
+              }
+              else {
+                console.log(chalkLog("SKIP ADD METRIC\n" + wordMeter[node].toJSON()));
               }
             }
           }
@@ -2542,9 +2676,6 @@ function initTweetParser(callback){
   if (callback !== undefined) { callback(null, twp); }
 }
 
-
-var metricsHashMap = {};
-
 function getCustomMetrics(callback){
 
   var googleRequest = {
@@ -2557,9 +2688,7 @@ function getCustomMetrics(callback){
 
       const descriptors = results[0];
 
-      console.log(chalkInfo("TOTAL METRICS: "
-        + " | " + descriptors.length
-      ));
+      console.log(chalkAlert("TOTAL METRICS: " + descriptors.length ));
 
       async.each(descriptors, function(descriptor, cb) {
         if (descriptor.name.includes("custom.googleapis.com")) {
@@ -2572,24 +2701,27 @@ function getCustomMetrics(callback){
             // + "\n" + jsonPrint(descriptor)
           ));
 
-          metricsHashMap[descriptorName] =  descriptor.name;
+          metricsHashmap.set(descriptorName, descriptor.name);
         }
         cb();
       }, function() {
-        console.log(chalkInfo("METRICS: "
+        console.log(chalkAlert("METRICS: "
           + " | TOTAL: " + descriptors.length
-          + " | CUSTOM: " + Object.keys(metricsHashMap).length
+          + " | CUSTOM: " + metricsHashmap.count()
         ));
+        callback(null, null);
       });
     })
-    .catch(function(results){
-      if (results.code !== 8) {
+    .catch(function(err){
+      if (err.code !== 8) {
         console.log(chalkError("*** ERROR GOOGLE METRICS"
-          + " | ERR CODE: " + results.code
-          + " | META DATA: " + results.metadata
-          + " | META NODE: " + results.note
+          + " | ERR CODE: " + err.code
+          + " | META DATA: " + err.metadata
+          + " | META NODE: " + err.note
         ));
+        console.log(chalkError(err));
       }
+      callback(err, null);
     });
 
 }
@@ -2864,8 +2996,10 @@ function initialize(cnf, callback) {
   initInternetCheckInterval(10000);
 
   initAppRouting(function(err) {
-    initSocketNamespaces();
-    callback(err);
+    initDeletedMetricsHashmap(function(err, results){
+      initSocketNamespaces();
+      callback(err);
+    });
   });
 }
 

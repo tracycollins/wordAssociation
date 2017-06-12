@@ -284,24 +284,24 @@ function ViewTreepack() {
     .attr("type", "checkbox")
     // .attr("checked", "false")
     .on("change", function(){
-      console.log("CHECKBOX");
+      // console.log("CHECKBOX");
       if (!topTermsCheckBox.property("checked")) { 
-        console.warn("NOT CHECKED");
+        // console.warn("NOT CHECKED");
         topTermsDiv.style("visibility", "hidden"); 
         nodeTopTermLabelSvgGroup.style("visibility", "hidden");
       }
       else {
-        console.error("CHECKED");
+        // console.error("CHECKED");
         topTermsDiv.style("visibility", "visible"); 
         nodeTopTermLabelSvgGroup.style("visibility", "visible");
       }
     });
  
-  console.log("width: " + width + " | height: " + height);
+  // console.log("width: " + width + " | height: " + height);
 
   var mouseMoveTimeoutEventHandler = function(e) {
     // var elem = document.getElementById("topTermsCheckBox");
-    console.debug("mouseMoveTimeoutEvent");
+    // console.debug("mouseMoveTimeoutEvent");
     if (!topTermsCheckBox.property("checked")) { 
       // console.log("TOP TERMS NOT CHECKED");
       topTermsDiv.style("visibility", "hidden"); 
@@ -711,7 +711,7 @@ function ViewTreepack() {
         nodesTopTermHashMap.remove(node.nodeId);
 
         nodes.splice(ageNodesIndex, 1);
-        console.debug("X NODE"
+        // console.debug("X NODE"
           + " | NODES: " + nodes.length
           + " | " + node.nodeType
           + " | " + node.nodeId
@@ -892,13 +892,13 @@ function ViewTreepack() {
   }
 
   function cellClick(d) {
-    console.debug("cellClick", d);
+    // console.debug("cellClick", d);
     var url = "https://twitter.com/search?f=tweets&q=%23" + d.name ;
     window.open(url, '_blank');
   }
 
   function nodeClick(d) {
-    console.debug("nodeClick");
+    // console.debug("nodeClick");
     var url = "";
 
     switch (d.nodeType) {
@@ -1401,25 +1401,25 @@ function ViewTreepack() {
         currentNode.displaytext = createDisplayText(currentNode);
 
         if (currentNode.isKeyword) {
-          console.info("keywords"
-            + " | NID: " + newNode.nodeId 
-            + " | NTYPE: " + newNode.nodeType 
-            + " | isKeyword: " + newNode.isKeyword 
-            + "\nKWs\n" + jsonPrint(newNode.keywords)
-            // + "\nKWAs\n" + jsonPrint(newNode.keywordsAuto)
-          );
+          // console.info("keywords"
+          //   + " | NID: " + newNode.nodeId 
+          //   + " | NTYPE: " + newNode.nodeType 
+          //   + " | isKeyword: " + newNode.isKeyword 
+          //   + "\nKWs\n" + jsonPrint(newNode.keywords)
+          //   // + "\nKWAs\n" + jsonPrint(newNode.keywordsAuto)
+          // );
 
           var keywords = {};
 
           if (autoKeywordsFlag && (newNode.keywordsAuto !== undefined) && newNode.keywordsAuto){
             keywords = newNode.keywordsAuto;
-            console.warn("AUTO keywords"
-              + " | NID: " + newNode.nodeId 
-              + " | NTYPE: " + newNode.nodeType 
-              + " | isKeyword: " + newNode.isKeyword 
-              + "\nKWs\n" + jsonPrint(newNode.keywords)
-              + "\nKWAs\n" + jsonPrint(newNode.keywordsAuto)
-            );
+            // console.warn("AUTO keywords"
+            //   + " | NID: " + newNode.nodeId 
+            //   + " | NTYPE: " + newNode.nodeType 
+            //   + " | isKeyword: " + newNode.isKeyword 
+            //   + "\nKWs\n" + jsonPrint(newNode.keywords)
+            //   + "\nKWAs\n" + jsonPrint(newNode.keywordsAuto)
+            // );
           }
           else {
             keywords = newNode.keywords;
@@ -1712,25 +1712,25 @@ function ViewTreepack() {
   this.simulationControl = function(op) {
     switch (op) {
       case 'RESET':
-        console.info("SIMULATION CONTROL | OP: " + op);
+        // console.info("SIMULATION CONTROL | OP: " + op);
         self.reset();
         runningFlag = false;
       break;
       case 'START':
-        console.info("SIMULATION CONTROL | OP: " + op);
+        // console.info("SIMULATION CONTROL | OP: " + op);
         self.initD3timer();
         simulation.alphaTarget(0.7).restart();
         runningFlag = true;
       break;
       case 'RESUME':
-        console.info("SIMULATION CONTROL | OP: " + op);
+        // console.info("SIMULATION CONTROL | OP: " + op);
         // self.initD3timer();
         resumeTimeStamp = moment().valueOf();
         runningFlag = true;
         simulation.alphaTarget(0.7).restart();
       break;
       case 'FREEZE':
-        console.info("SIMULATION CONTROL | OP: " + op);
+        // console.info("SIMULATION CONTROL | OP: " + op);
         if (!freezeFlag){
           freezeFlag = true;
           simulation.alpha(0);
@@ -1738,14 +1738,14 @@ function ViewTreepack() {
         }
       break;
       case 'PAUSE':
-        console.info("SIMULATION CONTROL | OP: " + op);
+        // console.info("SIMULATION CONTROL | OP: " + op);
         resumeTimeStamp = 0;
         runningFlag = false;
         simulation.alpha(0);
         simulation.stop();
       break;
       case 'STOP':
-        console.info("SIMULATION CONTROL | OP: " + op);
+        // console.info("SIMULATION CONTROL | OP: " + op);
         runningFlag = false;
         simulation.alpha(0);
         simulation.stop();
@@ -1762,14 +1762,14 @@ function ViewTreepack() {
   }
 
   this.resize = function() {
-    console.info("RESIZE");
+    // console.info("RESIZE");
 
     d3image = d3.select("#d3group");
 
     width = getWindowDimensions().width;
     height = getWindowDimensions().height;
 
-    console.info("width: " + width + " | height: " + height);
+    // console.info("width: " + width + " | height: " + height);
 
     foci = {
       left: {x: xFocusLeftRatio*width, y: yFocusLeftRatio*height}, 

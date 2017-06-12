@@ -821,10 +821,10 @@ function initDeletedMetricsHashmap(callback){
     if (err) {
       if (err.code !== 404) {
         console.error("LOAD DELETED METRICS FILE ERROR\n" + err);
-        callback(err, null);
+        if (callback !== undefined) { callback(err, null); }
       }
       else {
-        callback(null, null);
+        if (callback !== undefined) { callback(null, null); }
       }
     }
     else {
@@ -833,7 +833,7 @@ function initDeletedMetricsHashmap(callback){
         console.log(chalkAlert("+ DELETED METRIC | " + metricName ));
       });
       console.log(chalkAlert("LOADED DELETED METRICS | " + deletedMetricsHashmap.count() ));
-      callback(null, null);
+      if (callback !== undefined) { callback(null, null); }
     }
    });
 }
@@ -1755,6 +1755,8 @@ function initMetricsDataPointQueueInterval(interval){
 
   metricsDataPointQueueInterval = setInterval(function () {
 
+    initDeletedMetricsHashmap()
+
     if (ENABLE_GOOGLE_METRICS && (metricsDataPointQueue.length > 0) && metricsDataPointQueueReady) {
 
       metricsDataPointQueueReady = false;
@@ -1795,6 +1797,7 @@ function initMetricsDataPointQueueInterval(interval){
         // }
         });
     }
+
   }, interval);
 }
 

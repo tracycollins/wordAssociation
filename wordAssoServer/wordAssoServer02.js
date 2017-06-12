@@ -13,13 +13,13 @@ var MAX_Q = 2500;
 var MIN_METRIC_VALUE = 5.0;
 var MIN_MENTIONS_VALUE = 1000;
 var KEYWORDS_UPDATE_INTERVAL = 60000;
-var TWEET_PARSER_INTERVAL = 10;
-var TWITTER_RX_QUEUE_INTERVAL = 10;
-var TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL = 10;
+var TWEET_PARSER_INTERVAL = 5;
+var TWITTER_RX_QUEUE_INTERVAL = 5;
+var TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL = 5;
 
 var DEFAULT_KEYWORD_VALUE = 100;
 
-var DEFAULT_INTERVAL = 10;
+var DEFAULT_INTERVAL = 5;
 
 var TOPTERMS_CACHE_DEFAULT_TTL = 300;
 var TOPTERMS_CACHE_CHECK_PERIOD = 30;
@@ -2543,6 +2543,57 @@ function initTweetParser(callback){
 }
 
 
+var metricsHashMap = {};
+
+function getCustomMetrics(callback){
+
+  var googleRequest = {
+    name: googleMonitoringClient.projectPath("graphic-tangent-627")
+  };
+
+  googleMonitoringClient.listMetricDescriptors(googleRequest)
+
+    .then(function(results){
+
+      const descriptors = results[0];
+
+      console.log(chalkInfo("TOTAL METRICS: "
+        + " | " + descriptors.length
+      ));
+
+      async.each(descriptors, function(descriptor, cb) {
+        if (descriptor.name.includes("custom.googleapis.com")) {
+
+          var nameArray = descriptor.name.split("/");
+          var descriptorName = nameArray.pop().toLowerCase();
+
+          console.log(chalkInfo("METRIC"
+            + " | " + descriptorName
+            // + "\n" + jsonPrint(descriptor)
+          ));
+
+          metricsHashMap[descriptorName] =  descriptor.name;
+        }
+        cb();
+      }, function() {
+        console.log(chalkInfo("METRICS: "
+          + " | TOTAL: " + descriptors.length
+          + " | CUSTOM: " + Object.keys(metricsHashMap).length
+        ));
+      });
+    })
+    .catch(function(results){
+      if (results.code !== 8) {
+        console.log(chalkError("*** ERROR GOOGLE METRICS"
+          + " | ERR CODE: " + results.code
+          + " | META DATA: " + results.metadata
+          + " | META NODE: " + results.note
+        ));
+      }
+    });
+
+}
+
 var updateTimeSeriesCount = 0;
 
 function initRateQinterval(interval){
@@ -2550,6 +2601,10 @@ function initRateQinterval(interval){
   if (ENABLE_GOOGLE_METRICS) {
     // googleMonitoringClient = Monitoring.v3().metricServiceClient();
     googleMonitoringClient = Monitoring.metricServiceClient();
+
+    getCustomMetrics(function(err, metrics){
+
+    });
   }
 
   var wsObj = {};

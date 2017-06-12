@@ -310,10 +310,9 @@ initializeConfiguration(configuration, function(err, results){
 
       async.eachSeries(descriptors, function(descriptor, cb) {
 
-        if (descriptor.name.includes("top10")) {
+        if (descriptor.name.includes("custom.googleapis.com")) {
 
           var nameArray = descriptor.name.split("/");
-
           var word = nameArray.pop().toLowerCase();
           
           debug(chalkInfo("WORD: " + word

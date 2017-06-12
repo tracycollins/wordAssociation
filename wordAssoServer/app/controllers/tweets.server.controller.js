@@ -873,9 +873,7 @@ exports.createStreamTweet = function(params, callback) {
 
     user: function(cb) {
 
-			var userObj ;
-
-			userObj = new User({ 
+			var userObj = new User({ 
 				isTwitterUser: true,
 				nodeType: "user",
 				nodeId : newTweet.user.id_str, 
@@ -1083,18 +1081,19 @@ exports.createStreamTweet = function(params, callback) {
 
 				if (newTweet.entities.urls.length === 0) { return(cb(null, null)); }
 
-				async.concat(newTweet.entities.urls, function (urlObj, cb2) {
+				async.concat(newTweet.entities.urls, function (uObj, cb2) {
 
-					var urlIdArray = (/\w+$/g).exec(urlObj.url);  // use end of URL as urlId
+					var urlIdArray = (/\w+$/g).exec(uObj.url);  // use end of URL as urlId
 
 					// debug("urlIdArray\n" + jsonPrint(urlIdArray));
 
-					if (urlIdArray && (urlIdArray.length > 0)){
+					if (urlIdArray && (urlIdArray.length > 0)) {
+
 						var urlId = urlIdArray[0];
 
 						// console.log(chalkTwitter("\n URL: urlId: " + urlId);
 
-						urlObj = new Url({ 
+						var urlObj = new Url({ 
 							urlId : urlId,
 							nodeType: "url",
 							nodeId : urlId,

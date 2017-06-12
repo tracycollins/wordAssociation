@@ -712,10 +712,10 @@ function ViewTreepack() {
 
         nodes.splice(ageNodesIndex, 1);
         // console.debug("X NODE"
-          + " | NODES: " + nodes.length
-          + " | " + node.nodeType
-          + " | " + node.nodeId
-        );
+        //   + " | NODES: " + nodes.length
+        //   + " | " + node.nodeType
+        //   + " | " + node.nodeId
+        // );
       } 
       else {
         node.ageUpdated = moment().valueOf();

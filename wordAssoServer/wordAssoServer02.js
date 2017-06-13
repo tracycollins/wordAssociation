@@ -1803,7 +1803,7 @@ function initMetricsDataPointQueueInterval(interval){
               // + "\nMETA DATA\n" + jsonPrint(err.metadata)
             ));
             googleRequest.timeSeries.forEach(function(dataPoint){
-              console.error(chalkAlert(dataPoint.metric.type + " | " + points[0].value.doubleValue));
+              console.error(chalkAlert(dataPoint.metric.type + " | " + dataPoint.points[0].value.doubleValue));
             });
             metricsDataPointQueueReady = true;
         });
@@ -1939,7 +1939,10 @@ function addTopTermMetricDataPoint(node, nodeRate){
       topTermDataPoint.displayName = node;
       topTermDataPoint.metricType = "word/top10/" + node;
       topTermDataPoint.value = parseFloat(nodeRate);
-      topTermDataPoint.metricLabels = {server_id: "WORD"};
+      topTermDataPoint.metricLabels = {
+        server_id: "WORD",
+        name: node
+      };
 
       addMetricDataPoint(topTermDataPoint);
     }
@@ -2807,7 +2810,7 @@ function initRateQinterval(interval){
 
   var memoryRssDataPoint = {};
   memoryRssDataPoint.metricType = "memory/rss";
-  memoryRssDataPoint.metricLabels = {server_id: "MEM"};
+  memoryRssDataPoint.metricLabels = { server_id: "MEM", name: "rss"};
 
   var memoryHeapUsedDataPoint = {};
   memoryHeapUsedDataPoint.metricType = "memory/heap_used";

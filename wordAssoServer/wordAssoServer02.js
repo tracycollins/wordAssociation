@@ -718,7 +718,10 @@ function saveStats(statsFile, statsObj, callback) {
           fs.open(fullPath, "w", function(error, fd) {
             if (error) { return(callback(error, fd)); }
             fs.writeFile(path, statsObj, function(error) {
-              if (error) { return(callback(error, path)); }
+              if (error) { 
+                fs.close(fd);
+                return(callback(error, path)); 
+              }
               callback("OK");
               fs.close(fd);
             });
@@ -726,7 +729,8 @@ function saveStats(statsFile, statsObj, callback) {
         });
       }
     });
-  } else {
+  } 
+  else {
 
   var options = {};
 

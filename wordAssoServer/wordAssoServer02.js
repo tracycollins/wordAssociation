@@ -355,10 +355,10 @@ var nodeCache = new NodeCache({
 });
 
 nodeCache.on("set", function(nodeCacheId, nodeObj) {
-  console.log(chalkAlert("SET NODE $"
+  debug(chalkAlert("SET NODE $"
+    + " | TTL: " + getTimeStamp(nodeCache.getTtl(nodeCacheId))
     + " | " + nodeObj.nodeType
     + " | " + nodeCacheId
-    + " | TTL: " + getTimeStamp(nodeCache.getTtl(nodeCacheId))
   ));
 });
 

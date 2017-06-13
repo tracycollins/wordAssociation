@@ -1765,13 +1765,19 @@ function initMetricsDataPointQueueInterval(interval){
         + "\n" + jsonPrint(googleRequest.timeSeries)
       ));
 
+      googleRequest.timeSeries.length = 0;
+      // googleRequest.timeSeries = deepcopy(metricsDataPointQueue);
+
       var onePoint = metricsDataPointQueue.shift();
 
       console.log(chalkAlert("onePoint\n" + jsonPrint(onePoint)));
 
-      googleRequest.timeSeries.length = 0;
-      // googleRequest.timeSeries = deepcopy(metricsDataPointQueue);
       googleRequest.timeSeries.push(onePoint);
+
+      var twoPoint = metricsDataPointQueue.shift();
+
+      googleRequest.timeSeries.push(twoPoint);
+
       metricsDataPointQueue.length = 0;
 
       googleMonitoringClient.createTimeSeries(googleRequest)

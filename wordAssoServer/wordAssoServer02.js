@@ -1639,7 +1639,7 @@ function updateWordMeter(wordObj, callback){
     debug(chalkAlert("updateWordMeter IGNORE " + meterWordId));
     wordObj.isIgnored = true;
 
-    nodeCache.set(meterWordId, nodeCacheTtl, wordObj);
+    nodeCache.set(meterWordId, wordObj, nodeCacheTtl);
 
     if (callback !== undefined) { callback(null, wordObj); }
     return;
@@ -1667,7 +1667,7 @@ function updateWordMeter(wordObj, callback){
 
     wordObj.rate = meterObj[metricsRate];
 
-    nodeCache.set(meterWordId, nodeCacheTtl, wordObj);
+    nodeCache.set(meterWordId, wordObj, nodeCacheTtl);
     if (callback !== undefined) { callback(null, wordObj); }
 
   }
@@ -1676,7 +1676,7 @@ function updateWordMeter(wordObj, callback){
     meterObj = wordMeter[meterWordId].toJSON();
     wordObj.rate = meterObj[metricsRate];
 
-    nodeCache.set(meterWordId, nodeCacheTtl, wordObj);
+    nodeCache.set(meterWordId, wordObj, nodeCacheTtl);
     if (callback !== undefined) { callback(null, wordObj); }
   }
 }

@@ -1782,7 +1782,7 @@ function initMetricsDataPointQueueInterval(interval){
           metricsDataPointQueueReady = true;
           statsObj.errors.google[err.code] = (statsObj.errors.google[err.code] === undefined) ? 1 : statsObj.errors.google[err.code] += 1;
           // if (err.code !== 8) {
-          console.log(chalkError(moment().format(compactDateTimeFormat)
+          console.error(chalkError(moment().format(compactDateTimeFormat)
             + " | *** ERROR GOOGLE METRICS"
             // + " | ENABLE_GOOGLE_METRICS: " + ENABLE_GOOGLE_METRICS
             // + " | SRVR: " + options.metricLabels.server_id 

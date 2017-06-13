@@ -3197,6 +3197,8 @@ initialize(configuration, function(err) {
     initMetricsDataPointQueueInterval(60000);
     initTwitterRxQueueInterval(TWITTER_RX_QUEUE_INTERVAL);
     initTweetParserMessageRxQueueInterval(TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL);
+
+    console.log(chalkAlert("NODE CACHE TTL: " + nodeCache.getTtl()));
   }
 });
 

@@ -1768,45 +1768,90 @@ function initMetricsDataPointQueueInterval(interval){
       googleRequest.timeSeries.length = 0;
       // googleRequest.timeSeries = deepcopy(metricsDataPointQueue);
 
-      var onePoint = metricsDataPointQueue.shift();
 
-      console.log(chalkAlert("onePoint\n" + jsonPrint(onePoint)));
 
-      googleRequest.timeSeries.push(onePoint);
+      async.each(metricsDataPointQueue, function(dataPoint, cb){
 
-      var twoPoint = metricsDataPointQueue.shift();
+        googleRequest.timeSeries.push(dataPoint);
 
-      googleRequest.timeSeries.push(twoPoint);
+      }, function(err){
 
-      metricsDataPointQueue.length = 0;
+        metricsDataPointQueue.length = 0;
 
-      googleMonitoringClient.createTimeSeries(googleRequest)
-        // .then((results) => {
-        .then(function(){
-          metricsDataPointQueueReady = true;
-          console.log(chalkInfo("METRICS"
-            + " | DATA POINTS: " + googleRequest.timeSeries.length 
-            // + " | " + options.value
-          ));
-        })
-        .catch(function(err){
-          metricsDataPointQueueReady = true;
-          statsObj.errors.google[err.code] = (statsObj.errors.google[err.code] === undefined) ? 1 : statsObj.errors.google[err.code] += 1;
-          // if (err.code !== 8) {
-          console.error(chalkError(moment().format(compactDateTimeFormat)
-            + " | *** ERROR GOOGLE METRICS"
-            // + " | ENABLE_GOOGLE_METRICS: " + ENABLE_GOOGLE_METRICS
-            // + " | SRVR: " + options.metricLabels.server_id 
-            // + " | V: " + options.value
-            + " | DATA POINTS: " + googleRequest.timeSeries.length 
-            + "\n*** ERR:  " + err
-            + "\n*** NOTE: " + err.note
-            + "\nERR\n" + jsonPrint(err)
-            // + "\nREQUEST\n" + jsonPrint(googleRequest)
-            // + "\nMETA DATA\n" + jsonPrint(err.metadata)
-          ));
-        // }
+        googleMonitoringClient.createTimeSeries(googleRequest)
+          // .then((results) => {
+          .then(function(){
+            metricsDataPointQueueReady = true;
+            console.log(chalkInfo("METRICS"
+              + " | DATA POINTS: " + googleRequest.timeSeries.length 
+              // + " | " + options.value
+            ));
+          })
+          .catch(function(err){
+            metricsDataPointQueueReady = true;
+            statsObj.errors.google[err.code] = (statsObj.errors.google[err.code] === undefined) ? 1 : statsObj.errors.google[err.code] += 1;
+            // if (err.code !== 8) {
+            console.error(chalkError(moment().format(compactDateTimeFormat)
+              + " | *** ERROR GOOGLE METRICS"
+              // + " | ENABLE_GOOGLE_METRICS: " + ENABLE_GOOGLE_METRICS
+              // + " | SRVR: " + options.metricLabels.server_id 
+              // + " | V: " + options.value
+              + " | DATA POINTS: " + googleRequest.timeSeries.length 
+              + "\n*** ERR:  " + err
+              + "\n*** NOTE: " + err.note
+              + "\nERR\n" + jsonPrint(err)
+              // + "\nREQUEST\n" + jsonPrint(googleRequest)
+              // + "\nMETA DATA\n" + jsonPrint(err.metadata)
+            ));
+          // }
         });
+
+      });
+
+
+      // var onePoint = metricsDataPointQueue.shift();
+      // console.log(chalkAlert("onePoint\n" + jsonPrint(onePoint)));
+
+
+      // var twoPoint = metricsDataPointQueue.shift();
+      // console.log(chalkAlert("onePoint\n" + jsonPrint(onePoint)));
+
+      // googleRequest.timeSeries.push(onePoint);
+      // googleRequest.timeSeries.push(twoPoint);
+
+
+
+
+
+      // metricsDataPointQueue.length = 0;
+
+      // googleMonitoringClient.createTimeSeries(googleRequest)
+      //   // .then((results) => {
+      //   .then(function(){
+      //     metricsDataPointQueueReady = true;
+      //     console.log(chalkInfo("METRICS"
+      //       + " | DATA POINTS: " + googleRequest.timeSeries.length 
+      //       // + " | " + options.value
+      //     ));
+      //   })
+      //   .catch(function(err){
+      //     metricsDataPointQueueReady = true;
+      //     statsObj.errors.google[err.code] = (statsObj.errors.google[err.code] === undefined) ? 1 : statsObj.errors.google[err.code] += 1;
+      //     // if (err.code !== 8) {
+      //     console.error(chalkError(moment().format(compactDateTimeFormat)
+      //       + " | *** ERROR GOOGLE METRICS"
+      //       // + " | ENABLE_GOOGLE_METRICS: " + ENABLE_GOOGLE_METRICS
+      //       // + " | SRVR: " + options.metricLabels.server_id 
+      //       // + " | V: " + options.value
+      //       + " | DATA POINTS: " + googleRequest.timeSeries.length 
+      //       + "\n*** ERR:  " + err
+      //       + "\n*** NOTE: " + err.note
+      //       + "\nERR\n" + jsonPrint(err)
+      //       // + "\nREQUEST\n" + jsonPrint(googleRequest)
+      //       // + "\nMETA DATA\n" + jsonPrint(err.metadata)
+      //     ));
+      //   // }
+      // });
     }
 
   }, interval);

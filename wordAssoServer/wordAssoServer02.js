@@ -714,9 +714,15 @@ function saveStats(statsFile, statsObj, callback) {
     fs.exists(fullPath, function(exists) {
       if (exists) {
         fs.stat(fullPath, function(error, stats) {
-          if (error) { return(callback(error, stats)); }
+          if (error) { 
+            fs.close(fd);
+            return(callback(error, stats)); 
+          }
           fs.open(fullPath, "w", function(error, fd) {
-            if (error) { return(callback(error, fd)); }
+            if (error) { 
+              fs.close(fd);
+              return(callback(error, fd));
+            }
             fs.writeFile(path, statsObj, function(error) {
               if (error) { 
                 fs.close(fd);
@@ -746,12 +752,12 @@ function saveStats(statsFile, statsObj, callback) {
       ));
       callback("OK");
     })
-    .catch(function(error){
+    .catch(function(err){
       console.log(chalkError(moment().format(compactDateTimeFormat) 
         + " | !!! ERROR DROBOX JSON WRITE | FILE: " + options.path 
-        + " ERROR: " + error.error_summary
+        + " ERROR: " + err.error_summary
       ));
-      callback(error);
+      callback(err);
     });
 
   }

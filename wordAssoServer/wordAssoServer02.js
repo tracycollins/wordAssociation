@@ -842,6 +842,7 @@ function initDeletedMetricsHashmap(callback){
     if (err) {
       if (err.code !== 404) {
         console.error("LOAD DELETED METRICS FILE ERROR\n" + err);
+        pmx.emit("ERROR", err);
         if (callback !== undefined) { callback(err, null); }
       }
       else {
@@ -1811,6 +1812,7 @@ function initMetricsDataPointQueueInterval(interval){
           .catch(function(err){
             statsObj.errors.google[err.code] = (statsObj.errors.google[err.code] === undefined) ? 1 : statsObj.errors.google[err.code] += 1;
             // if (err.code !== 8) {
+            pmx.emit("ERROR", err);
             console.error(chalkError(moment().format(compactDateTimeFormat)
               + " | *** ERROR GOOGLE METRICS"
               // + " | ENABLE_GOOGLE_METRICS: " + ENABLE_GOOGLE_METRICS
@@ -2247,6 +2249,7 @@ function initTwitterRxQueueInterval(interval){
         tweetStatus: tw
       }, function(err){
         if (err) {
+          pmx.emit("ERROR", err);
           console.error(chalkError("*** TWEET PARSER SEND ERROR"
             + " | " + err
           ));
@@ -2314,7 +2317,8 @@ function initTweetParserMessageRxQueueInterval(interval){
 
             transmitNodes(tweetObj, function(err){
               if (err) {
-                console.error(chalkError("TRANSMIT NODES ERROR\n" + err));
+               pmx.emit("ERROR", err);
+               console.error(chalkError("TRANSMIT NODES ERROR\n" + err));
               }
               tweetParserMessageRxQueueReady = true;
             });
@@ -2514,6 +2518,7 @@ function initSorter(callback){
     interval: 2*DEFAULT_INTERVAL
   }, function(err){
     if (err) {
+      pmx.emit("ERROR", err);
       console.error(chalkError("*** SORTER SEND ERROR"
         + " | " + err
       ));
@@ -2521,6 +2526,7 @@ function initSorter(callback){
   });
 
   s.on("error", function(err){
+    pmx.emit("ERROR", err);
     console.error(chalkError(moment().format(compactDateTimeFormat)
       + " | *** SORTER ERROR ***"
       + " \n" + jsonPrint(err)
@@ -2577,6 +2583,7 @@ function initUpdaterPingInterval(interval){
         timeStamp: updaterPingOutstanding
       }, function(err){
         if (err) {
+          pmx.emit("ERROR", err);
           console.error(chalkError("*** UPDATER SEND ERROR"
             + " | " + err
           ));
@@ -2611,6 +2618,7 @@ function initUpdater(callback){
   var u = cp.fork(`${__dirname}/js/libs/updater.js`);
 
   u.on("error", function(err){
+    pmx.emit("ERROR", err);
     console.error(chalkError(moment().format(compactDateTimeFormat)
       + " | *** UPDATER ERROR ***"
       + " \n" + jsonPrint(err)
@@ -2655,6 +2663,7 @@ function initUpdater(callback){
     interval: KEYWORDS_UPDATE_INTERVAL
   }, function(err){
     if (err) {
+      pmx.emit("ERROR", err);
       console.error(chalkError("*** UPDATER SEND ERROR"
         + " | " + err
       ));
@@ -2695,6 +2704,7 @@ function initTweetParser(callback){
     interval: TWEET_PARSER_INTERVAL
   }, function(err){
     if (err) {
+      pmx.emit("ERROR", err);
       console.error(chalkError("*** TWEET PARSER SEND ERROR"
         + " | " + err
       ));
@@ -2703,6 +2713,7 @@ function initTweetParser(callback){
   });
 
   twp.on("error", function(err){
+      pmx.emit("ERROR", err);
     console.error(chalkError(moment().format(compactDateTimeFormat)
       + " | *** TWEET PARSER ERROR ***"
       + " \n" + jsonPrint(err)
@@ -2766,6 +2777,7 @@ function getCustomMetrics(callback){
     })
     .catch(function(err){
       if (err.code !== 8) {
+        pmx.emit("ERROR", err);
         console.log(chalkError("*** ERROR GOOGLE METRICS"
           + " | ERR CODE: " + err.code
           + " | META DATA: " + err.metadata
@@ -3209,7 +3221,6 @@ initialize(configuration, function(err) {
     initTweetParserMessageRxQueueInterval(TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL);
     console.error("NODE CACHE TTL: " + nodeCacheTtl + " SECONDS");
     pmx.emit("INIT_COMPLETE", configuration);
-
   }
 });
 

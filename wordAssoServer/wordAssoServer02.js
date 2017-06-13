@@ -355,9 +355,10 @@ var nodeCache = new NodeCache({
 });
 
 nodeCache.on("set", function(nodeCacheId, nodeObj) {
-  debug(chalkAlert("SET NODE $"
+  console.log(chalkAlert("SET NODE $"
     + " | " + nodeObj.nodeType
     + " | " + nodeCacheId
+    + " | TTL: " + nodeCache.getTtl(nodeCacheId)
   ));
 });
 
@@ -3198,7 +3199,6 @@ initialize(configuration, function(err) {
     initTwitterRxQueueInterval(TWITTER_RX_QUEUE_INTERVAL);
     initTweetParserMessageRxQueueInterval(TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL);
 
-    console.log(chalkAlert("NODE CACHE TTL: " + nodeCache.getTtl()));
   }
 });
 

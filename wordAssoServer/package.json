@@ -40,6 +40,7 @@
     "node-forge": "^0.7.1",
     "object.defaults": "^1.1.0",
     "panzoom": "^2.5.0",
+    "pmx": "^1.2.0",
     "progressbar.js": "^1.0.1",
     "prompt": "^1.0.0",
     "propublica-congress-node": "^0.1.2",

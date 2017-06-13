@@ -358,7 +358,7 @@ nodeCache.on("set", function(nodeCacheId, nodeObj) {
   console.log(chalkAlert("SET NODE $"
     + " | " + nodeObj.nodeType
     + " | " + nodeCacheId
-    + " | TTL: " + msToTime(nodeCache.getTtl(nodeCacheId))
+    + " | TTL: " + getTimeStamp(nodeCache.getTtl(nodeCacheId))
   ));
 });
 

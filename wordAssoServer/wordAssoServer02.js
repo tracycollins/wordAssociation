@@ -1780,16 +1780,14 @@ function initMetricsDataPointQueueInterval(interval){
         metricsDataPointQueue.length = 0;
 
         googleMonitoringClient.createTimeSeries(googleRequest)
-          // .then((results) => {
           .then(function(){
-            metricsDataPointQueueReady = true;
             console.log(chalkInfo("METRICS"
               + " | DATA POINTS: " + googleRequest.timeSeries.length 
               // + " | " + options.value
             ));
+            metricsDataPointQueueReady = true;
           })
           .catch(function(err){
-            metricsDataPointQueueReady = true;
             statsObj.errors.google[err.code] = (statsObj.errors.google[err.code] === undefined) ? 1 : statsObj.errors.google[err.code] += 1;
             // if (err.code !== 8) {
             console.error(chalkError(moment().format(compactDateTimeFormat)
@@ -1804,7 +1802,10 @@ function initMetricsDataPointQueueInterval(interval){
               // + "\nREQUEST\n" + jsonPrint(googleRequest)
               // + "\nMETA DATA\n" + jsonPrint(err.metadata)
             ));
-          // }
+            googleRequest.timeSeries.forEach(function(dataPoint){
+              console.error(chalkAlert(dataPoint.metric.type + " | " + points[0].value.doubleValue));
+            });
+            metricsDataPointQueueReady = true;
         });
 
       });

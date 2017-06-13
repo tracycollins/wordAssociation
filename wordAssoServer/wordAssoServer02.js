@@ -1766,7 +1766,8 @@ function initMetricsDataPointQueueInterval(interval){
       ));
 
       googleRequest.timeSeries.length = 0;
-      googleRequest.timeSeries = deepcopy(metricsDataPointQueue);
+      // googleRequest.timeSeries = deepcopy(metricsDataPointQueue);
+      googleRequest.timeSeries = metricsDataPointQueue;
       metricsDataPointQueue.length = 0;
 
       googleMonitoringClient.createTimeSeries(googleRequest)

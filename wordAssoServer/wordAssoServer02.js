@@ -1773,6 +1773,7 @@ function initMetricsDataPointQueueInterval(interval){
       async.each(metricsDataPointQueue, function(dataPoint, cb){
 
         googleRequest.timeSeries.push(dataPoint);
+        cb();
 
       }, function(err){
 

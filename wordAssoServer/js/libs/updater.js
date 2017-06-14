@@ -295,14 +295,12 @@ function loadFile(path, file, callback) {
 
       try {
         var fileObj = JSON.parse(payload);
-        console.log("fileObj\n" + jsonPrint(fileObj));
-        // return(callback(null, fileObj));
+        debug("fileObj\n" + jsonPrint(fileObj));
         callback(null, fileObj);
       } 
       catch (err) {
         console.error(chalkError("ERROR: LOAD FILE: DROPBOX JSON PARSE ERROR: FILE: " + fullPath + " | ERROR: " + err));
         console.error(chalkError("ERROR\n" + jsonPrint(err)));
-        // return(callback(err, fullPath));
         callback(err, fullPath);
       }
 
@@ -376,6 +374,7 @@ function updateKeywords(folder, file, callback){
 
           var words = Object.keys(kwordsObj);
 
+          // async.eachSeries(words,  stack overflow issues ????
           async.each(words,
 
             function(w, cb) {

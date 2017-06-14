@@ -292,7 +292,7 @@ function loadFile(path, file, callback) {
       } 
       catch (err) {
         console.error(chalkError("ERROR: LOAD FILE: DROPBOX JSON PARSE ERROR: FILE: " + fullPath + " | ERROR: " + err));
-        console.error(chalkError("PAYLOAD\n" + jsonPrint(payload)));
+        // console.error(chalkError("PAYLOAD\n" + jsonPrint(payload)));
         return(callback(err, fullPath));
       }
 
@@ -527,6 +527,7 @@ function sendKeywords(callback){
 
 var keywordsUpdateReady = true;
 var keywordsInterval;
+
 function initKeywordUpdateInterval(options){
 
   clearInterval(keywordsInterval);

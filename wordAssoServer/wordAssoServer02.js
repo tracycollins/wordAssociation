@@ -431,7 +431,9 @@ wordsPerMinuteTopTermCache.on( "expired", function(wpm, wpmObj){
 
 var rateQinterval;
 var Measured = require("measured");
+
 var wordStats = Measured.createCollection();
+
 wordStats.meter("wordsPerSecond", {rateUnit: 1000, tickInterval: 1000});
 wordStats.meter("wordsPerMinute", {rateUnit: 60000, tickInterval: 1000});
 wordStats.meter("obamaPerSecond", {rateUnit: 1000, tickInterval: 1000});
@@ -1679,7 +1681,7 @@ function updateWordMeter(wordObj, callback){
     //   delete wordMeter[meterWordId][key];
     // });
 
-    var meter = new Measured.Meter({rateUnit: 60000});
+    var meter = Measured.Meter({rateUnit: 60000});
 
     wordMeter[meterWordId] = meter;
     wordMeter[meterWordId].mark();

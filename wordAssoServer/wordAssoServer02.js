@@ -201,6 +201,7 @@ var CUSTOM_GOOGLE_APIS_PREFIX = "custom.googleapis.com";
 
 var deepcopy = require('deep-copy');
 var defaults = require("object.defaults");
+var omit = require("object.omit");
 var moment = require("moment");
 var config = require("./config/config");
 var os = require("os");
@@ -379,9 +380,15 @@ nodeCache.on("expired", function(nodeCacheId, nodeObj) {
   ));
   if (wordMeter[nodeCacheId] !== undefined) {
     // wordMeter[nodeCacheId] = {};
-    wordMeter[nodeCacheId] = undefined;
-    delete wordMeter[nodeCacheId];
-    console.log(chalkAlert("XXX NODE METER WORD"
+    // wordMeter[nodeCacheId] = undefined;
+    // delete wordMeter[nodeCacheId];
+
+    console.log(chalkAlert("XXX NODE METER WORD | BEFORE"
+      + " | Ks: " + Object.keys(wordMeter).length
+      + " | " + nodeCacheId
+    ));
+    wordMeter = omit(wordMeter, nodeCacheId);
+    console.log(chalkAlert("XXX NODE METER WORD | AFTER "
       + " | Ks: " + Object.keys(wordMeter).length
       + " | " + nodeCacheId
     ));
@@ -1674,7 +1681,6 @@ function updateWordMeter(wordObj, callback){
 
     var meter = new Measured.Meter({rateUnit: 60000});
 
-  
     wordMeter[meterWordId] = meter;
     wordMeter[meterWordId].mark();
 
@@ -1683,6 +1689,7 @@ function updateWordMeter(wordObj, callback){
     wordObj.rate = meterObj[metricsRate];
 
     nodeCache.set(meterWordId, wordObj, nodeCacheTtl);
+
     if (callback !== undefined) { callback(null, wordObj); }
 
   }

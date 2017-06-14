@@ -385,11 +385,12 @@ nodeCache.on("expired", function(nodeCacheId, nodeObj) {
     // wordMeter[nodeCacheId] = undefined;
     // delete wordMeter[nodeCacheId];
 
-    wordMeter[nodeCacheId] = undefined;
+    // wordMeter[nodeCacheId] = undefined;
+    wordMeter[nodeCacheId].unref();
 
     wordMeter = omit(wordMeter, nodeCacheId);
 
-    console.log(chalkAlert("XXX NODE METER WORD"
+    debug(chalkAlert("XXX NODE METER WORD"
       + " | Ks: " + Object.keys(wordMeter).length
       + " | " + nodeCacheId
     ));
@@ -1622,7 +1623,7 @@ function initUpdateTrendsInterval(interval){
 function updateWordMeter(wordObj, callback){
 
   var meterWordId;
-  var meterObj = {};
+  // var meterObj = {};
 
   if ((wordObj.nodeType === "media") 
     || (wordObj.nodeType === "url")
@@ -1685,7 +1686,7 @@ function updateWordMeter(wordObj, callback){
     wordMeter[meterWordId] = new Measured.Meter({rateUnit: 60000});
     wordMeter[meterWordId].mark();
 
-    meterObj = wordMeter[meterWordId].toJSON();
+    var meterObj = wordMeter[meterWordId].toJSON();
 
     wordObj.rate = meterObj[metricsRate];
 
@@ -1696,7 +1697,7 @@ function updateWordMeter(wordObj, callback){
   }
   else {
     wordMeter[meterWordId].mark();
-    meterObj = wordMeter[meterWordId].toJSON();
+    var meterObj = wordMeter[meterWordId].toJSON();
     wordObj.rate = meterObj[metricsRate];
 
     nodeCache.set(meterWordId, wordObj, nodeCacheTtl);

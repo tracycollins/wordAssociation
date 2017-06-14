@@ -295,6 +295,7 @@ function loadFile(path, file, callback) {
 
       try {
         var fileObj = JSON.parse(payload);
+        console.log("fileObj\n" + jsonPrint(fileObj));
         return(callback(null, fileObj));
       } 
       catch (err) {
@@ -519,11 +520,11 @@ function sendKeywords(callback){
             callback(err, null);
           }
           else {
-            callback(null, words.length);
             console.log(chalkInfo(getTimeStamp()
               + " | SEND KEYWORDS COMPLETE"
               + " | " + words.length + " KEYWORDS"
             ));
+            callback(null, words.length);
           }
         });
       }

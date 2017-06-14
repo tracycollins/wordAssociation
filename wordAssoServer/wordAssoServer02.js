@@ -1681,7 +1681,7 @@ function updateWordMeter(wordObj, callback){
     //   delete wordMeter[meterWordId][key];
     // });
 
-    var meter = Measured.Meter({rateUnit: 60000});
+    var meter = new Measured.Meter({rateUnit: 60000});
 
     wordMeter[meterWordId] = meter;
     wordMeter[meterWordId].mark();

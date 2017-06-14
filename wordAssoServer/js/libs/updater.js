@@ -215,7 +215,7 @@ process.on('message', function(m) {
     break;
 
     case "PING":
-      console.log(chalkInfo("<UPDATER PING"
+      debug(chalkInfo("<UPDATER PING"
         + " | " + m.timeStamp
         + " | MESSAGE: " + m.message
         + " | READY: " + initGroupsReady
@@ -531,7 +531,7 @@ function initKeywordUpdateInterval(options){
 
   keywordsInterval = setInterval(function() {
 
-    console.log(chalk.blue(moment().format(compactDateTimeFormat) + " | UPDATER KEYWORDS INTERVAL"));
+    debug(chalk.blue(moment().format(compactDateTimeFormat) + " | UPDATER KEYWORDS INTERVAL"));
 
     if (keywordsUpdateReady) {
     keywordsUpdateReady = false;

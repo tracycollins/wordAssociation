@@ -376,7 +376,7 @@ function updateKeywords(folder, file, callback){
 
           var words = Object.keys(kwordsObj);
 
-          async.eachSeries(words,
+          async.each(words,
 
             function(w, cb) {
 
@@ -444,6 +444,7 @@ function updateKeywords(folder, file, callback){
                   cb();
                 }
               });
+
             },
 
             function(err) {

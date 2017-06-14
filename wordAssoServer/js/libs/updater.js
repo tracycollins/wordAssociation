@@ -197,7 +197,7 @@ process.on("message", function(m) {
 
         debug(chalkRed("STATS COUNTS\n" + jsonPrint(results)));
 
-        process.send({ type: "stats", db: results}, function(err){
+        process.send({ type: "stats", pid: process.pid, db: results}, function(err){
           statsCountsComplete = true;
           if (err){
             console.error(chalkError("STATS SEND ERROR\n" + err));
@@ -238,7 +238,7 @@ process.on("message", function(m) {
         + " | READY: " + initGroupsReady
       ));
 
-      process.send({type: "pong", timeStamp: m.timeStamp}, function(err){
+      process.send({type: "pong", pid: process.pid, timeStamp: m.timeStamp}, function(err){
         if (err) {
           console.error(chalkError("*** UPDATER SEND ERROR"
             + " | " + err
@@ -510,6 +510,7 @@ function sendKeywords(callback){
 
       var updaterObj = {};
       updaterObj.type = "keyword";
+      updaterObj.pid = process.pid;
       updaterObj.keyword = {};
       updaterObj.keyword = kwObj;
 
@@ -538,7 +539,7 @@ function sendKeywords(callback){
       }
       else {
         debug(chalkInfo("SEND KEYWORDS COMPLETE | " + words.length + " KEYWORDS"));
-        process.send({ type: "sendKeywordsComplete"}, function(err){
+        process.send({ type: "sendKeywordsComplete", pid: process.pid}, function(err){
           if (err) {
             console.error(chalkError("*** UPDATER SEND KEYWORDS ERROR"
               + " | " + err
@@ -675,7 +676,7 @@ function initUpdateStatsCountsInterval(interval){
       updateStatsCounts(function(err, results){
         if (err) { console.error(chalkError("STATS COUNTS ERROR\n" + jsonPrint(err))); }
         debug(chalkRed("STATS COUNTS\n" + jsonPrint(results)));
-        process.send({ type: "stats", db: results}, function(err){
+        process.send({ type: "stats", pid: process.pid, db: results}, function(err){
           statsCountsComplete = true;
           if (err){
             console.error(chalkError("UPDATER STATS SEND ERROR\n" + err));

@@ -869,12 +869,15 @@ function initDeletedMetricsHashmap(callback){
       }
     }
     else {
-      Object.keys(deletedMetricsObj).forEach(function(metricName){
+      // Object.keys(deletedMetricsObj).forEach(function(metricName){
+      async.each(Object.keys(deletedMetricsObj), function(metricName, cb){
         deletedMetricsHashmap.set(metricName, deletedMetricsObj[metricName]);
         debug(chalkAlert("+ DELETED METRIC | " + metricName ));
+        cb();
+      }, function(err){
+        console.log(chalkAlert("LOADED DELETED METRICS | " + deletedMetricsHashmap.count() ));
+        if (callback !== undefined) { callback(null, null); }
       });
-      console.log(chalkAlert("LOADED DELETED METRICS | " + deletedMetricsHashmap.count() ));
-      if (callback !== undefined) { callback(null, null); }
     }
    });
 }

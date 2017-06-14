@@ -296,12 +296,14 @@ function loadFile(path, file, callback) {
       try {
         var fileObj = JSON.parse(payload);
         console.log("fileObj\n" + jsonPrint(fileObj));
-        return(callback(null, fileObj));
+        // return(callback(null, fileObj));
+        callback(null, fileObj);
       } 
       catch (err) {
         console.error(chalkError("ERROR: LOAD FILE: DROPBOX JSON PARSE ERROR: FILE: " + fullPath + " | ERROR: " + err));
-        // console.error(chalkError("PAYLOAD\n" + jsonPrint(payload)));
-        return(callback(err, fullPath));
+        console.error(chalkError("ERROR\n" + jsonPrint(err)));
+        // return(callback(err, fullPath));
+        callback(err, fullPath);
       }
 
      })

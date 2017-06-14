@@ -3221,7 +3221,7 @@ initialize(configuration, function(err) {
       }
     });
 
-    initStatsInterval(STATS_UPDATE_INTERVAL;
+    initStatsInterval(STATS_UPDATE_INTERVAL);
     initIgnoreWordsHashMap();
     initUpdateTrendsInterval(15*ONE_MINUTE);
     initRateQinterval(1000);

@@ -27,7 +27,6 @@ var nodeCache = new NodeCache({
   checkperiod: 10
 });
 
-
 var chalkError = chalk.bold.red;
 var chalkAlert = chalk.red;
 var chalkTwitter = chalk.blue;
@@ -88,8 +87,11 @@ var nodeMeter = {};
 var TOPTERMS_CACHE_DEFAULT_TTL = 300;
 
 var wordsPerMinuteTopTermTtl = process.env.TOPTERMS_CACHE_DEFAULT_TTL;
+
 if (wordsPerMinuteTopTermTtl === undefined) {wordsPerMinuteTopTermTtl = TOPTERMS_CACHE_DEFAULT_TTL;}
+
 console.log("TOP TERMS WPM CACHE TTL: " + wordsPerMinuteTopTermTtl + " SECONDS");
+
 var wordsPerMinuteTopTermCache = new NodeCache({
   stdTTL: wordsPerMinuteTopTermTtl,
   checkperiod: 10
@@ -350,7 +352,7 @@ exports.findOneUser = function (user, params, callback) {
 			}
 		}
 	);
-}
+};
 
 function findOnePlace (place, params, callback) {
 
@@ -820,7 +822,7 @@ exports.updateKeywordHashmap = function(params, callback) {
   if (callback !== undefined) {
   	callback();
   }
-}
+};
 
 exports.createStreamTweet = function(params, callback) {	
 

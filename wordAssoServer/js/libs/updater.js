@@ -375,8 +375,8 @@ function updateKeywords(folder, file, callback){
           var words = Object.keys(kwordsObj);
 
           // stack overflow issues ????
-          async.eachSeries(words,  
-          // async.each(words,
+          // async.eachSeries(words,  
+          async.each(words,
 
             function(w, cb) {
 

@@ -28,6 +28,7 @@ var KEYWORDS_UPDATE_INTERVAL = 60000;
 var TWEET_PARSER_INTERVAL = 5;
 var TWITTER_RX_QUEUE_INTERVAL = 5;
 var TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL = 5;
+var STATS_UPDATE_INTERVAL = 60000;
 
 var DEFAULT_KEYWORD_VALUE = 100;
 
@@ -632,9 +633,9 @@ function getTimeStamp(inputTime) {
 
 function loadFile(folder, file, callback) {
 
-  console.log(chalkInfo("LOAD FOLDER " + folder));
-  console.log(chalkInfo("LOAD FILE " + file));
-  console.log(chalkInfo("FULL PATH " + folder + "/" + file));
+  debug(chalkInfo("LOAD FOLDER " + folder));
+  debug(chalkInfo("LOAD FILE " + file));
+  debug(chalkInfo("FULL PATH " + folder + "/" + file));
 
   var fileExists = false;
 
@@ -753,6 +754,7 @@ function saveStats(statsFile, statsObj, callback) {
               }
               callback("OK");
               fs.close(fd);
+              return(callback(null, path)); 
             });
           });
         });
@@ -770,7 +772,7 @@ function saveStats(statsFile, statsObj, callback) {
 
   dropboxClient.filesUpload(options)
     .then(function(){
-      console.log(chalkLog(moment().format(compactDateTimeFormat)
+      debug(chalkLog(moment().format(compactDateTimeFormat)
         + " | SAVED DROPBOX JSON | " + options.path
       ));
       callback("OK");
@@ -1563,7 +1565,7 @@ function updateTrends(){
       ));
     }
     else if (data){
-      console.log(chalkInfo("... TWITTER TREND - WORLDWIDE"
+      console.log(chalkInfo("LOAD TWITTER TREND - WORLDWIDE"
         // + "\n" + jsonPrint(data)
       ));
       data.forEach(function(element){
@@ -1571,7 +1573,7 @@ function updateTrends(){
           // + " | element\n" + jsonPrint(element)
         // ));
         element.trends.forEach(function(topic){
-          console.log(chalkInfo(
+          debug(chalkInfo(
             topic.name
           ));
           trendingCache.set(topic.name, topic);
@@ -1593,7 +1595,7 @@ function updateTrends(){
 
       trendingCache.set("america", {name: "america"});
 
-      console.log(chalkInfo("... TWITTER TREND - US"
+      console.log(chalkInfo("LOAD TWITTER TREND - US"
         // + "\n" + jsonPrint(data)
       ));
       data.forEach(function(element){
@@ -1601,7 +1603,7 @@ function updateTrends(){
           // + " | element\n" + jsonPrint(element)
         // ));
         element.trends.forEach(function(topic){
-          console.log(chalkInfo(
+          debug(chalkInfo(
             topic.name
           ));
           trendingCache.set(topic.name, topic);
@@ -2441,7 +2443,7 @@ function initUpdaterMessageQueueInterval(interval){
       switch (updaterObj.type){
 
         case "pong":
-          console.log(chalkLog("<UPDATER PONG"
+          debug(chalkLog("<UPDATER PONG"
             + " | " + moment().format(compactDateTimeFormat)
             + " | " + updaterObj.timeStamp
           ));
@@ -3219,7 +3221,7 @@ initialize(configuration, function(err) {
       }
     });
 
-    initStatsInterval(0.5*ONE_MINUTE);
+    initStatsInterval(STATS_UPDATE_INTERVAL;
     initIgnoreWordsHashMap();
     initUpdateTrendsInterval(15*ONE_MINUTE);
     initRateQinterval(1000);

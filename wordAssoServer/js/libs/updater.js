@@ -268,16 +268,18 @@ function getFileMetadata(path, file, callback) {
 
 function loadFile(path, file, callback) {
 
+  var fullPath = path + "/" + file;
+
   debug(chalkInfo("LOAD FOLDER " + path));
   debug(chalkInfo("LOAD FILE " + file));
-  debug(chalkInfo("FULL PATH " + path + "/" + file));
+  debug(chalkInfo("FULL PATH " + fullPath));
 
   var fileExists = false;
 
-  dropboxClient.filesDownload({path: path + "/" + file})
+  dropboxClient.filesDownload({path: fullPath})
     .then(function(data) {
       console.log(chalkLog(getTimeStamp()
-        + " | LOADING FILE FROM DROPBOX: " + path + "/" + file
+        + " | LOADING FILE FROM DROPBOX: " + fullPath
       ));
 
       var payload = data.fileBinary;
@@ -289,8 +291,9 @@ function loadFile(path, file, callback) {
         return(callback(null, fileObj));
       } 
       catch (err) {
-        console.error(chalkError("DROPBOX JSON PARSE ERROR: FILE: " + file + " | ERROR: " + err));
-        return(callback(err, fileObj));
+        console.error(chalkError("ERROR: LOAD FILE: DROPBOX JSON PARSE ERROR: FILE: " + fullPath + " | ERROR: " + err));
+        console.error(chalkError("PAYLOAD\n" + jsonPrint(payload));
+        return(callback(err, fullPath));
       }
 
      })
@@ -602,7 +605,7 @@ function loadConfig(file, callback){
         return(callback(null, configObj));
       } 
       catch (err) {
-        console.error(chalkError("DROPBOX JSON PARSE ERROR: FILE: " + file + " | ERROR: " + err));
+        console.error(chalkError("ERROR: LOAD CONFIG: DROPBOX JSON PARSE ERROR: FILE: " + file + " | ERROR: " + err));
         return(callback(err, fileObj));
       }
 

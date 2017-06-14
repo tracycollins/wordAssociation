@@ -374,8 +374,9 @@ function updateKeywords(folder, file, callback){
 
           var words = Object.keys(kwordsObj);
 
-          // async.eachSeries(words,  stack overflow issues ????
-          async.each(words,
+          // stack overflow issues ????
+          async.eachSeries(words,  
+          // async.each(words,
 
             function(w, cb) {
 
@@ -409,40 +410,63 @@ function updateKeywords(folder, file, callback){
 
                 if (equal(prevKeywordObj, wordObj.keywords)){
                   debug(chalkAlert("--- WORD UNCHANGED ... SKIPPING | " + wd));
-                  // cb();
-                  return(cb());
-                }
-
-                console.log(chalkAlert("+++ WORD CHANGED"
-                  + " | " + wd
-                  + "\nPREV\n" + jsonPrint(prevKeywordObj)
-                  + "\nNEW\n" + jsonPrint(wordObj.keywords)
-                ));
-
-              }
-
-              debug(chalkInfo("UPDATER: UPDATING KEYWORD | " + wd + ": " + jsonPrint(wordObj)));
-
-              newKeywordsHashMap.set(wordObj.nodeId, wordObj.keywords);
-              localKeywordHashMap.set(wordObj.nodeId, wordObj.keywords);
-
-              wordServer.findOneWord(wordObj, false, function(err, updatedWordObj) {
-                if (err){
-                  console.error(chalkError("ERROR: UPDATING KEYWORD | " + wd + ": " + kwordsObj[wd]));
-                  cb(err);
-                }
-                else {
-                  debug(chalkLog("+++ UPDATED KEYWORD"
-                    + " | " + updatedWordObj.nodeId 
-                    + " | " + updatedWordObj.raw 
-                    + " | M " + updatedWordObj.mentions 
-                    + " | I " + updatedWordObj.isIgnored 
-                    + " | K " + updatedWordObj.isKeyword 
-                    + " | K " + jsonPrint(updatedWordObj.keywords) 
-                  ));
                   cb();
                 }
-              });
+                else {
+                  console.log(chalkAlert("+++ WORD CHANGED"
+                    + " | " + wd
+                    + "\nPREV\n" + jsonPrint(prevKeywordObj)
+                    + "\nNEW\n" + jsonPrint(wordObj.keywords)
+                  ));
+
+                  debug(chalkInfo("UPDATER: UPDATING KEYWORD | " + wd + ": " + jsonPrint(wordObj)));
+
+                  newKeywordsHashMap.set(wordObj.nodeId, wordObj.keywords);
+                  localKeywordHashMap.set(wordObj.nodeId, wordObj.keywords);
+
+                  wordServer.findOneWord(wordObj, false, function(err, updatedWordObj) {
+                    if (err){
+                      console.error(chalkError("ERROR: UPDATING KEYWORD | " + wd + ": " + kwordsObj[wd]));
+                      cb(err);
+                    }
+                    else {
+                      debug(chalkLog("+++ UPDATED KEYWORD"
+                        + " | " + updatedWordObj.nodeId 
+                        + " | " + updatedWordObj.raw 
+                        + " | M " + updatedWordObj.mentions 
+                        + " | I " + updatedWordObj.isIgnored 
+                        + " | K " + updatedWordObj.isKeyword 
+                        + " | K " + jsonPrint(updatedWordObj.keywords) 
+                      ));
+                      cb();
+                    }
+                  });
+                }
+              }
+              else {
+                debug(chalkInfo("UPDATER: UPDATING KEYWORD | " + wd + ": " + jsonPrint(wordObj)));
+
+                newKeywordsHashMap.set(wordObj.nodeId, wordObj.keywords);
+                localKeywordHashMap.set(wordObj.nodeId, wordObj.keywords);
+
+                wordServer.findOneWord(wordObj, false, function(err, updatedWordObj) {
+                  if (err){
+                    console.error(chalkError("ERROR: UPDATING KEYWORD | " + wd + ": " + kwordsObj[wd]));
+                    cb(err);
+                  }
+                  else {
+                    debug(chalkLog("+++ UPDATED KEYWORD"
+                      + " | " + updatedWordObj.nodeId 
+                      + " | " + updatedWordObj.raw 
+                      + " | M " + updatedWordObj.mentions 
+                      + " | I " + updatedWordObj.isIgnored 
+                      + " | K " + updatedWordObj.isKeyword 
+                      + " | K " + jsonPrint(updatedWordObj.keywords) 
+                    ));
+                    cb();
+                  }
+                });
+              }
 
             },
 

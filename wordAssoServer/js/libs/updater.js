@@ -311,7 +311,7 @@ function loadFile(path, file, callback) {
   });
 }
 
-var updateKeywords = function (folder, file, callback){
+function updateKeywords(folder, file, callback){
 
   newKeywordsHashMap.clear();
 
@@ -358,7 +358,7 @@ var updateKeywords = function (folder, file, callback){
         else {
 
           console.log(chalkInfo("UPDATER | LOADED"
-            + " | " + file
+            + " | " + folder + "/" + file
           ));
 
           var words = Object.keys(kwordsObj);
@@ -395,8 +395,8 @@ var updateKeywords = function (folder, file, callback){
 
                 if (equal(prevKeywordObj, wordObj.keywords)){
                   debug(chalkAlert("--- WORD UNCHANGED ... SKIPPING | " + wd));
-                  cb();
-                  return;
+                  // cb();
+                  return(cb());
                 }
                 else {
                   console.log(chalkAlert("+++ WORD CHANGED"

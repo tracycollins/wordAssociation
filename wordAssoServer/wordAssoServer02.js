@@ -378,6 +378,7 @@ nodeCache.on("expired", function(nodeCacheId, nodeObj) {
     + " | " + nodeCacheId
   ));
   if (wordMeter[nodeCacheId] !== undefined) {
+    // wordMeter[nodeCacheId] = {};
     wordMeter[nodeCacheId] = undefined;
     delete wordMeter[nodeCacheId];
     console.log(chalkAlert("XXX NODE METER WORD"
@@ -1671,7 +1672,10 @@ function updateWordMeter(wordObj, callback){
     //   delete wordMeter[meterWordId][key];
     // });
 
-    wordMeter[meterWordId] = new Measured.Meter({rateUnit: 60000});
+    var meter = new Measured.Meter({rateUnit: 60000});
+
+  
+    wordMeter[meterWordId] = meter;
     wordMeter[meterWordId].mark();
 
     meterObj = wordMeter[meterWordId].toJSON();

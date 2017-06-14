@@ -671,14 +671,17 @@ function loadFile(folder, file, callback) {
                 if (file.match(/\.json$/gi)) {
                   debug("FOUND JSON FILE: " + file);
                   var fileObj = JSON.parse(payload);
-                  return(callback(null, fileObj));
+                  callback(null, fileObj);
                 }
                 else if (file.match(/\.yml/gi)) {
                   var fileObj = yaml.load(payload);
                   debug(chalkAlert("FOUND YAML FILE: " + file));
                   debug("FOUND YAML FILE\n" + jsonPrint(fileObj));
                   debug("FOUND YAML FILE\n" + jsonPrint(payload));
-                  return(callback(null, fileObj));
+                  callback(null, fileObj);
+                }
+                else {
+                  callback(null, null);
                 }
 
                })
@@ -689,13 +692,15 @@ function loadFile(folder, file, callback) {
 
                 if (error["status"] === 404) {
                   console.error(chalkError("!!! DROPBOX READ FILE " + file + " NOT FOUND ... SKIPPING ..."));
-                  return(callback(null, null));
+                  callback(null, null);
                 }
-                if (error["status"] === 0) {
+                else if (error["status"] === 0) {
                   console.error(chalkError("!!! DROPBOX NO RESPONSE ... NO INTERNET CONNECTION? ... SKIPPING ..."));
-                  return(callback(null, null));
+                  callback(null, null);
                 }
-                return(callback(error, null));
+                else {
+                  callback(error, null);
+                }
               });
           }
           else {
@@ -704,13 +709,13 @@ function loadFile(folder, file, callback) {
             var err = {};
             err.code = 404;
             err.status = "FILE DOES NOT EXIST";
-            return(callback(err, null));
+            callback(err, null);
           }
         });
     })
     .catch(function(error) {
       console.error("DROPBOX LOAD FILE ERROR\n" + jsonPrint(error));
-      return(callback(error, null));
+      callback(error, null);
     });
 }
 

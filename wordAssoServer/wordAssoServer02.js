@@ -2440,13 +2440,15 @@ function initUpdaterMessageQueueInterval(interval){
 
   clearInterval(updaterMessageQueueInterval);
 
+  var updaterObj;
+
   updaterMessageQueueInterval = setInterval(function() {
 
     if (updaterMessageReady && (updaterMessageQueue.length > 0)) {
 
       updaterMessageReady = false;
 
-      var updaterObj = updaterMessageQueue.shift();
+      updaterObj = updaterMessageQueue.shift();
 
       switch (updaterObj.type){
 
@@ -2474,9 +2476,12 @@ function initUpdaterMessageQueueInterval(interval){
         break;
 
         case "sendKeywordsComplete":
-          console.log(chalkLog("UPDATE KEYWORDS COMPLETE | " + moment().format(compactDateTimeFormat)));
+          console.log(chalkLog("UPDATE KEYWORDS COMPLETE"
+            + " [ Q: " + updaterMessageQueue.length + " ]"
+            + " | " + moment().format(compactDateTimeFormat)
+            + " | PID: " + updaterObj.pid
+          ));
           updaterMessageReady = true;
-          // keywordsUpdateComplete = true;
         break;
 
         case "keywordHashMapClear":

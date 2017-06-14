@@ -2853,7 +2853,7 @@ function initRateQinterval(interval){
   paramsSorter.op = "SORT";
   paramsSorter.sortKey = metricsRate;
   paramsSorter.max = configuration.maxTopTerms;
-  paramsSorter.obj = wordMeter.toJSON();
+  paramsSorter.obj = wordMeter;
 
   var memoryRssDataPoint = {};
   memoryRssDataPoint.metricType = "memory/rss";
@@ -2956,6 +2956,8 @@ function initRateQinterval(interval){
     }
 
     if (updateTimeSeriesCount === 0){
+
+      paramsSorter.obj = wordMeter;
 
       if (sorter !== undefined) {
         sorter.send(paramsSorter, function(err){

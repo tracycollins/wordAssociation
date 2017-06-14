@@ -1674,14 +1674,8 @@ function updateWordMeter(wordObj, callback){
   }
 
   if (!wordMeter[meterWordId] 
-    || (wordMeter[meterWordId] === undefined) 
-    || (typeof wordMeter[meterWordId].mark !== "function")) {
-
-    // wordMeter[meterWordId] = {};
-
-    // Object.keys( wordMeter[meterWordId]).forEach(function(key) { 
-    //   delete wordMeter[meterWordId][key];
-    // });
+    || (wordMeter[meterWordId] === undefined) ){
+    // || (typeof wordMeter[meterWordId].mark !== "function")) {
 
     wordMeter[meterWordId] = new Measured.Meter({rateUnit: 60000});
     wordMeter[meterWordId].mark();

@@ -376,11 +376,13 @@ function updateKeywords(folder, file, callback){
               var kwObj = kwordsObj[w];  // kwObj = { "negative": 10, "right": 7 }
 
               var wordObj = new Word();
+
               wordObj.nodeId = wd;
               wordObj.isKeyword = true;
 
               // KLUDEGE: OVERWRITES ANY PREVIOUS KEYWORD SETTINGS FOR NOW
               wordObj.keywords = {};
+
               if (typeof kwObj === "string") {  // old style keyword: true/false; convert to new style
                 wordObj.keywords[kwObj.toLowerCase()] = DEFAULT_KEYWORD_VALUE;
                 wordObj.keywords.keywordId = wd;
@@ -470,16 +472,6 @@ function sendKeywords(callback){
 
       debugKeyword(chalkInfo("sendKeywords\nword: " + jsonPrint(word)));
 
-      // updaterObj = {
-      //  "type" : "keyword",
-      //  "target" : "server",
-      //  "keyword: {
-      //    "keywordId": obama",
-      //    "positive": 10, 
-      //    "left": 7
-      //   }
-      // };
-
       var kwObj = newKeywordsHashMap.get(word);
       kwObj.keywordId = word;
 
@@ -522,6 +514,10 @@ function sendKeywords(callback){
           }
           else {
             callback(null, words.length);
+            console.log(chalkInfo(getTimeStamp()
+              + " | SEND KEYWORDS COMPLETE"
+              + " | " + words.length + " KEYWORDS"
+            ));
           }
         });
       }
@@ -545,8 +541,10 @@ function initKeywordUpdateInterval(options){
     debug(chalk.blue(moment().format(compactDateTimeFormat) + " | UPDATER KEYWORDS INTERVAL"));
 
     if (keywordsUpdateReady) {
-    keywordsUpdateReady = false;
-     updateKeywords("", options.keywordsFile, function(err, count){
+
+      keywordsUpdateReady = false;
+
+      updateKeywords("", options.keywordsFile, function(err, count){
         if (err) {
           console.error("UPDATER UPDATE KEYWORDS ERROR: " + err);
           keywordsUpdateReady = true;

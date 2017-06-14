@@ -277,7 +277,7 @@ function loadFile(path, file, callback) {
   dropboxClient.filesDownload({path: path + "/" + file})
     .then(function(data) {
       console.log(chalkLog(getTimeStamp()
-        + " | LOADING FILE FROM DROPBOX FILE: " + path + "/" + file
+        + " | LOADING FILE FROM DROPBOX: " + path + "/" + file
       ));
 
       var payload = data.fileBinary;
@@ -578,7 +578,7 @@ function getTimeStamp(inputTime) {
   } else {
     currentTimeStamp = moment(parseInt(inputTime));
   }
-  return currentTimeStamp.format("YYYY-MM-DD HH:mm:ss ZZ");
+  return currentTimeStamp.format(compactDateTimeFormat);
 }
 
 function loadConfig(file, callback){

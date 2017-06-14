@@ -378,9 +378,9 @@ nodeCache.on("expired", function(nodeCacheId, nodeObj) {
     + " | " + nodeCacheId
   ));
   if (wordMeter[nodeCacheId] !== undefined) {
-    wordMeter[nodeCacheId] = {};
+    wordMeter[nodeCacheId] = undefined;
     delete wordMeter[nodeCacheId];
-    debug(chalkAlert("XXX NODE METER WORD"
+    console.log(chalkAlert("XXX NODE METER WORD"
       + " | Ks: " + Object.keys(wordMeter).length
       + " | " + nodeCacheId
     ));

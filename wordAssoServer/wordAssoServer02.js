@@ -864,7 +864,7 @@ function initDeletedMetricsHashmap(callback){
     else {
       Object.keys(deletedMetricsObj).forEach(function(metricName){
         deletedMetricsHashmap.set(metricName, deletedMetricsObj[metricName]);
-        console.log(chalkAlert("+ DELETED METRIC | " + metricName ));
+        debug(chalkAlert("+ DELETED METRIC | " + metricName ));
       });
       console.log(chalkAlert("LOADED DELETED METRICS | " + deletedMetricsHashmap.count() ));
       if (callback !== undefined) { callback(null, null); }

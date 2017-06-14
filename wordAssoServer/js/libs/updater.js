@@ -294,20 +294,20 @@ function loadFile(path, file, callback) {
       }
 
      })
-    .catch(function(error) {
-      console.error(chalkAlert("DROPBOX loadFile ERROR: " + file + "\n" + error));
-      console.error(chalkError("!!! DROPBOX READ " + file + " ERROR: " + error.error));
-      console.error(chalkError(jsonPrint(error)));
+    .catch(function(err) {
+      console.error(chalkAlert("DROPBOX loadFile ERROR: " + file + "\n" + err));
+      console.error(chalkError("!!! DROPBOX READ " + file + " ERROR: " + err.error));
+      console.error(chalkError(jsonPrint(err)));
 
-      if (error["status"] === 404) {
+      if (err["status"] === 404) {
         console.error(chalkError("!!! DROPBOX READ FILE " + file + " NOT FOUND ... SKIPPING ..."));
         return(callback(null, null));
       }
-      if (error["status"] === 0) {
+      if (err["status"] === 0) {
         console.error(chalkError("!!! DROPBOX NO RESPONSE ... NO INTERNET CONNECTION? ... SKIPPING ..."));
         return(callback(null, null));
       }
-      return(callback(error, null));
+      return(callback(err, null));
   });
 }
 
@@ -515,10 +515,12 @@ function sendKeywords(callback){
             console.error(chalkError("*** UPDATER SEND KEYWORDS ERROR"
               + " | " + err
             ));
-            return(callback(err, null));
+            callback(err, null);
+          }
+          else {
+            callback(null, words.length);
           }
         });
-        callback(null, words.length);
       }
     }
   );

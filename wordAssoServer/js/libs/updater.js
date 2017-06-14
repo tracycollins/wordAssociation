@@ -209,7 +209,13 @@ process.on('message', function(m) {
       ));
 
       updateKeywords("", m.keywordsFile, function(){
-        sendKeywords(function(){});
+        if (err) {
+          console.error("UPDATER UPDATE KEYWORDS ERROR: " + err);
+        }
+        else {
+          debug("update keywords: " + count);
+          sendKeywords(function(){});
+        }
       });
 
     break;
@@ -536,10 +542,16 @@ function initKeywordUpdateInterval(options){
     if (keywordsUpdateReady) {
     keywordsUpdateReady = false;
      updateKeywords("", options.keywordsFile, function(err, count){
-        debug("update keywords: " + count);
-        sendKeywords(function(){
+        if (err) {
+          console.error("UPDATER UPDATE KEYWORDS ERROR: " + err);
           keywordsUpdateReady = true;
-        });
+        }
+        else {
+          debug("update keywords: " + count);
+          sendKeywords(function(){
+            keywordsUpdateReady = true;
+          });
+        }
       });
     }
 

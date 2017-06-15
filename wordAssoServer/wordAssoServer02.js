@@ -3,7 +3,11 @@
 
 console.log("\n\n============== START ==============\n\n");
 
+console.log("PROCESS PID: " + process.pid);
+
 var quitOnError = true;
+var enableHeapDump = true;
+var heapdump = require('heapdump');
 
 var pmx = require('pmx').init({
   http          : true, // HTTP routes logging (default: true)
@@ -3213,6 +3217,22 @@ function initStatsInterval(interval){
     showStats();
 
     statsUpdated += 1;
+
+    if (enableHeapDump && (statsUpdated > 1) && (statsUpdated % 5 == 0)) {
+
+      var heapdumpFileName = "was2" 
+        + "_" + hostname 
+        + "_" + process.pid 
+        + "_" + moment().format(tinyDateTimeFormat) 
+        + ".heapsnapshot";
+
+      console.error(chalkError("***** HEAPDUMP *****"
+        + " | STATS UPDATED: " +  statsUpdated
+        + " | FILE: " +  heapdumpFileName
+      ));
+
+      heapdump.writeSnapshot(heapdumpFileName);
+    }
 
   }, interval);
 }

@@ -8,6 +8,7 @@ console.log("PROCESS PID: " + process.pid);
 var quitOnError = true;
 var enableHeapDump = true;
 var heapdump = require('heapdump');
+// var memwatch = require('memwatch');
 
 var pmx = require('pmx').init({
   http          : true, // HTTP routes logging (default: true)
@@ -2243,9 +2244,11 @@ function initInternetCheckInterval(interval){
   }, interval);
 }
 
-// var tweetParserReady = false;
+var tweetParserReady = false;
 
 function initTwitterRxQueueInterval(interval){
+
+  var tweet;
 
   console.log(chalkLog("INIT TWITTER RX QUEUE INTERVAL | " + interval + " MS"));
 
@@ -2253,27 +2256,22 @@ function initTwitterRxQueueInterval(interval){
 
   tweetRxQueueInterval = setInterval(function () {
 
-    // if ((tweetRxQueue.size() > 0) && tweetParserReady) {
-    if (!tweetRxQueue.isEmpty()) {
+    if (tweetParserReady && !tweetRxQueue.isEmpty()) {
 
-      // tweetParserReady = false;
+      tweetParserReady = false;
 
-      // var tw =  tweetRxQueue.shift();
-      var tw =  tweetRxQueue.dequeue();
+      tweet =  tweetRxQueue.dequeue();
 
       debug(chalkInfo("TPQ<"
         + " [" + tweetParserQueue.length + "]"
         // + " | " + socket.id
-        + " | " + tw.id_str
-        + " | " + tw.user.id_str
-        + " | " + tw.user.screen_name
-        + " | " + tw.user.name
+        + " | " + tweet.id_str
+        + " | " + tweet.user.id_str
+        + " | " + tweet.user.screen_name
+        + " | " + tweet.user.name
       ));
 
-      tweetParser.send({
-        op: "tweet",
-        tweetStatus: tw
-      }, function(err){
+      tweetParser.send({ op: "tweet", tweetStatus: tweet }, function(err){
         if (err) {
           pmx.emit("ERROR", "TWEET PARSER SEND ERROR");
           console.error(chalkError("*** TWEET PARSER SEND ERROR"
@@ -2282,11 +2280,8 @@ function initTwitterRxQueueInterval(interval){
           if (quitOnError) {
             quit("TWEET PARSER SEND ERROR");
           }
-          // tweetParserReady = true;
         }
-        // else {
-        //   tweetParserReady = true;
-        // }
+        tweetParserReady = true;
       });
 
     }
@@ -2739,7 +2734,6 @@ function initTweetParser(callback){
       console.error(chalkError("*** TWEET PARSER SEND ERROR"
         + " | " + err
       ));
-      // tweetParserReady = true;
     }
   });
 

@@ -39,6 +39,7 @@
     "node-cache": "^4.1.1",
     "node-forge": "^0.7.1",
     "object.defaults": "^1.1.0",
+    "object.pick": "^1.2.0",
     "panzoom": "^2.5.0",
     "pmx": "^1.2.0",
     "progressbar.js": "^1.0.1",

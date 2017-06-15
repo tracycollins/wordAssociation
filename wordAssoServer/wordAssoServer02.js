@@ -203,6 +203,7 @@ var CUSTOM_GOOGLE_APIS_PREFIX = "custom.googleapis.com";
 var deepcopy = require('deep-copy');
 var defaults = require("object.defaults");
 var omit = require("object.omit");
+var pick = require('object.pick');
 var moment = require("moment");
 var config = require("./config/config");
 var os = require("os");
@@ -386,10 +387,11 @@ nodeCache.on("expired", function(nodeCacheId, nodeObj) {
     // wordMeter[nodeCacheId] = undefined;
     // delete wordMeter[nodeCacheId];
 
-    // wordMeter[nodeCacheId] = undefined;
     wordMeter[nodeCacheId].unref();
+    wordMeter[nodeCacheId] = undefined;
 
     wordMeter = omit(wordMeter, nodeCacheId);
+    delete wordMeter[nodeCacheId];
 
     debug(chalkAlert("XXX NODE METER WORD"
       + " | Ks: " + Object.keys(wordMeter).length
@@ -2858,7 +2860,7 @@ function initRateQinterval(interval){
   paramsSorter.op = "SORT";
   paramsSorter.sortKey = metricsRate;
   paramsSorter.max = configuration.maxTopTerms;
-  paramsSorter.obj = wordMeter;
+  // paramsSorter.obj = wordMeter;
 
   var memoryRssDataPoint = {};
   memoryRssDataPoint.metricType = "memory/rss";
@@ -2962,17 +2964,35 @@ function initRateQinterval(interval){
 
     if (updateTimeSeriesCount === 0){
 
-      paramsSorter.obj = wordMeter;
+      paramsSorter.obj = {};
 
-      if (sorter !== undefined) {
-        sorter.send(paramsSorter, function(err){
-          if (err) {
-            console.error(chalkError("SORTER SEND ERROR"
-              + " | " + err
-            ));
-          }
-        });
-      }
+      async.each(Object.keys(wordMeter), function(meterId, cb){
+
+        debug(meterId + "\n" + jsonPrint(wordMeter[meterId].toJSON()));
+
+        paramsSorter.obj[meterId] = pick(wordMeter[meterId].toJSON(), paramsSorter.sortKey);
+        
+        cb();
+
+      }, function(err){
+
+        debug("paramsSorter\n" + jsonPrint(paramsSorter));
+
+        if (sorter !== undefined) {
+          sorter.send(paramsSorter, function(err){
+            if (err) {
+              console.error(chalkError("SORTER SEND ERROR"
+                + " | " + err
+              ));
+            }
+          });
+        }
+
+      });
+
+
+
+
 
       if (ENABLE_GOOGLE_METRICS) {
 

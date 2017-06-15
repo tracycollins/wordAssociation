@@ -48,6 +48,10 @@ function quit(message) {
   process.exit();
 }
 
+process.on('SIGUSR2', function() {
+  quit('SIGUSR2');
+});
+
 process.on('SIGHUP', function() {
   quit('SIGHUP');
 });

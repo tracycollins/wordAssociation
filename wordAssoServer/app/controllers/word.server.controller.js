@@ -1,4 +1,4 @@
-var S = require('string');
+// var S = require('string');
 var chalk = require('chalk');
 var util = require('util');
 

@@ -640,6 +640,9 @@ function loadFile(folder, file, callback) {
   debug(chalkInfo("FULL PATH " + folder + "/" + file));
 
   var fileExists = false;
+  var payload;
+  var fileObj;
+  var err = {};
 
   dropboxClient.filesListFolder({path: folder})
     .then(function(response) {
@@ -659,6 +662,7 @@ function loadFile(folder, file, callback) {
 
           if (fileExists) {
 
+
             dropboxClient.filesDownload({path: folder + "/" + file})
               .then(function(data) {
                 console.log(chalkLog(getTimeStamp()
@@ -666,17 +670,17 @@ function loadFile(folder, file, callback) {
                   // + "\n" + jsonPrint(data)
                 ));
 
-                var payload = data.fileBinary;
+                payload = data.fileBinary;
 
                 debug(payload);
 
                 if (file.match(/\.json$/gi)) {
                   debug("FOUND JSON FILE: " + file);
-                  var fileObj = JSON.parse(payload);
+                  fileObj = JSON.parse(payload);
                   callback(null, fileObj);
                 }
                 else if (file.match(/\.yml/gi)) {
-                  var fileObj = yaml.load(payload);
+                  fileObj = yaml.load(payload);
                   debug(chalkAlert("FOUND YAML FILE: " + file));
                   debug("FOUND YAML FILE\n" + jsonPrint(fileObj));
                   debug("FOUND YAML FILE\n" + jsonPrint(payload));
@@ -708,7 +712,6 @@ function loadFile(folder, file, callback) {
           else {
             console.error(chalkError("*** FILE DOES NOT EXIST: " + folder + "/" + file));
             console.log(chalkError("*** FILE DOES NOT EXIST: " + folder + "/" + file));
-            var err = {};
             err.code = 404;
             err.status = "FILE DOES NOT EXIST";
             callback(err, null);
@@ -2971,7 +2974,7 @@ function initRateQinterval(interval){
         debug(meterId + "\n" + jsonPrint(wordMeter[meterId].toJSON()));
 
         paramsSorter.obj[meterId] = pick(wordMeter[meterId].toJSON(), paramsSorter.sortKey);
-        
+
         cb();
 
       }, function(err){

@@ -223,7 +223,9 @@ function initTweetParserQueueInterval(cnf){
         function(err, tweetObj){
 
           if (err){
-            console.log(chalkError("CREATE STREAM TWEET ERROR\n" + err));
+            if (err.code !== 11000) {
+              console.log(chalkError("CREATE STREAM TWEET ERROR\n" + jsonPrint(err)));
+            }
             tweetParserQueueReady = true;
           }
           else if (cnf.globalTestMode){

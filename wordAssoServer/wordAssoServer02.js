@@ -1100,7 +1100,7 @@ function initSocketHandler(socket) {
       + " | " + userObj.userId
       // + "\n" + jsonPrint(userObj)
     ));
-    cb(userObj.userId);
+    if (cb !== undefined) { cb(userObj.userId); }
   });
 
   socket.on("tweet", function(tw) {

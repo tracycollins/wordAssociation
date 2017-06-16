@@ -7,6 +7,7 @@ console.log("PROCESS PID: " + process.pid);
 
 var quitOnError = true;
 var enableHeapDump = true;
+var heapdumpStatsModulo = 10;
 var heapdump = require('heapdump');
 // var memwatch = require('memwatch');
 
@@ -3152,7 +3153,7 @@ function initStatsInterval(interval){
 
     statsUpdated += 1;
 
-    if (enableHeapDump && (statsUpdated > 1) && (statsUpdated % 5 == 0)) {
+    if (enableHeapDump && (statsUpdated > 1) && (statsUpdated % heapdumpStatsModulo == 0)) {
 
       heapdumpFileName = "was2" 
         + "_" + hostname 

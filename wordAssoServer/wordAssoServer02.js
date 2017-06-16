@@ -2204,9 +2204,10 @@ function initTwitterRxQueueInterval(interval){
 
   tweetRxQueueInterval = setInterval(function () {
 
-    if (tweetParserReady && !tweetRxQueue.isEmpty()) {
+    // if (tweetParserReady && !tweetRxQueue.isEmpty()) {
+    if (!tweetRxQueue.isEmpty()) {
 
-      tweetParserReady = false;
+      // tweetParserReady = false;
 
       tweet =  tweetRxQueue.dequeue();
 
@@ -2229,7 +2230,7 @@ function initTwitterRxQueueInterval(interval){
             quit("TWEET PARSER SEND ERROR");
           }
         }
-        tweetParserReady = true;
+        // tweetParserReady = true;
       });
 
     }

@@ -199,24 +199,26 @@ function initTweetParserQueueInterval(cnf){
     twitterEvents: configEvents
   };
 
+  var tweet;
+
   tweetParserQueueInterval = setInterval(function(){
 
     if (tweetParserQueue.length > 0){
 
       tweetParserQueueReady = false;
 
-      var tw = tweetParserQueue.shift();
+      tweet = tweetParserQueue.shift();
 
       debug(chalkInfo("TPQ>"
         + " [" + tweetParserQueue.length + "]"
         // + " | " + socket.id
-        + " | " + tw.id_str
-        + " | " + tw.user.id_str
-        + " | " + tw.user.screen_name
-        + " | " + tw.user.name
+        + " | " + tweet.id_str
+        + " | " + tweet.user.id_str
+        + " | " + tweet.user.screen_name
+        + " | " + tweet.user.name
       ));
 
-      params.tweetStatus = tw;
+      params.tweetStatus = tweet;
 
       tweetServer.createStreamTweet(
         params,
@@ -245,8 +247,8 @@ function initTweetParserQueueInterval(cnf){
               // + "\ntweetObj.user\n" + jsonPrint(tweetObj.user)
             ));
 
-            tweetParserQueueReady = true;
             process.send({op: "parsedTweet", tweetObj: tweetObj});
+            tweetParserQueueReady = true;
           }
           
         }

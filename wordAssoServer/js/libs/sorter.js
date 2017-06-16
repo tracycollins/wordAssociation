@@ -173,8 +173,8 @@ function sortedObjectValues(params, callback) {
     return objB[params.sortKey] - objA[params.sortKey];
   });
 
-  var endIndex = sortedKeys.length < params.max ? sortedKeys.length : params.max;
-  var i;
+  // var endIndex = sortedKeys.length < params.max ? sortedKeys.length : params.max;
+  // var i;
 
   callback(sortedKeys.slice(0,params.max));
 }

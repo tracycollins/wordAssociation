@@ -286,9 +286,6 @@ var tweetParserMessageRxQueue = [];
 // var tweetRxQueue = [];
 var tweetRxQueue = new Queue();
 
-var updaterPingInterval;
-var updaterPingOutstanding = 0;
-
 var statsInterval;
 
 
@@ -343,6 +340,7 @@ var jsonPrint = function (obj) {
     return obj;
   }
 };
+
 
 function msToTime(duration) {
   var seconds = parseInt((duration / 1000) % 60);
@@ -520,31 +518,15 @@ statsObj.wordsPerSecond = 0.0;
 statsObj.maxWordsPerMin = 0.0;
 statsObj.maxTweetsPerMin = 0.0;
 
-statsObj.caches = {};
-statsObj.caches.adminCache = {};
-statsObj.caches.adminCache.stats = {};
-statsObj.caches.adminCache.stats.keys = 0;
-statsObj.caches.adminCache.stats.keysMax = 0;
-statsObj.caches.userCache = {};
-statsObj.caches.userCache.stats = {};
-statsObj.caches.userCache.stats.keys = 0;
-statsObj.caches.userCache.stats.keysMax = 0;
-statsObj.caches.utilCache = {};
-statsObj.caches.utilCache.stats = {};
-statsObj.caches.utilCache.stats.keys = 0;
-statsObj.caches.utilCache.stats.keysMax = 0;
-statsObj.caches.viewerCache = {};
-statsObj.caches.viewerCache.stats = {};
-statsObj.caches.viewerCache.stats.keys = 0;
-statsObj.caches.viewerCache.stats.keysMax = 0;
-statsObj.caches.nodeCache = {};
-statsObj.caches.nodeCache.stats = {};
-statsObj.caches.nodeCache.stats.keys = 0;
-statsObj.caches.nodeCache.stats.keysMax = 0;
-statsObj.caches.wordsPerMinuteTopTermCache = {};
-statsObj.caches.wordsPerMinuteTopTermCache.stats = {};
-statsObj.caches.wordsPerMinuteTopTermCache.stats.keys = 0;
-statsObj.caches.wordsPerMinuteTopTermCache.stats.keysMax = 0;
+// statsObj.caches = {};
+// statsObj.caches.nodeCache = {};
+// statsObj.caches.nodeCache.stats = {};
+// statsObj.caches.nodeCache.stats.keys = 0;
+// statsObj.caches.nodeCache.stats.keysMax = 0;
+// statsObj.caches.wordsPerMinuteTopTermCache = {};
+// statsObj.caches.wordsPerMinuteTopTermCache.stats = {};
+// statsObj.caches.wordsPerMinuteTopTermCache.stats.keys = 0;
+// statsObj.caches.wordsPerMinuteTopTermCache.stats.keysMax = 0;
 
 statsObj.db = {};
 statsObj.db.errors = 0;
@@ -807,28 +789,29 @@ function showStats(options){
 
   statsObj.elapsed = msToTime(moment().valueOf() - statsObj.startTime);
   statsObj.timeStamp = moment().format(compactDateTimeFormat);
-  statsObj.caches.nodeCache.stats.keys = nodeCache.getStats().keys;
-  statsObj.caches.wordsPerMinuteTopTermCache.stats.keys = nodeCache.getStats().keys;
+  // statsObj.caches.nodeCache.stats.keys = nodeCache.getStats().keys;
+  // statsObj.caches.wordsPerMinuteTopTermCache.stats.keys = nodeCache.getStats().keys;
 
-  if (statsObj.caches.wordsPerMinuteTopTermCache.stats.keys > statsObj.caches.wordsPerMinuteTopTermCache.stats.keysMax) {
-    statsObj.caches.wordsPerMinuteTopTermCache.stats.keysMax = statsObj.caches.wordsPerMinuteTopTermCache.stats.keys;
-    statsObj.caches.wordsPerMinuteTopTermCache.stats.keysMaxTime = moment().valueOf();
-    console.log(chalkAlert("NEW MAX WPM TT $ KEYS"
-      + " | " + moment().format(compactDateTimeFormat)
-      + " | KEYS: " + statsObj.caches.wordsPerMinuteTopTermCache.stats.keys
-    ));
-  }
+  // if (statsObj.caches.wordsPerMinuteTopTermCache.stats.keys > statsObj.caches.wordsPerMinuteTopTermCache.stats.keysMax) {
+  //   statsObj.caches.wordsPerMinuteTopTermCache.stats.keysMax = statsObj.caches.wordsPerMinuteTopTermCache.stats.keys;
+  //   statsObj.caches.wordsPerMinuteTopTermCache.stats.keysMaxTime = moment().valueOf();
+  //   console.log(chalkAlert("NEW MAX WPM TT $ KEYS"
+  //     + " | " + moment().format(compactDateTimeFormat)
+  //     + " | KEYS: " + statsObj.caches.wordsPerMinuteTopTermCache.stats.keys
+  //   ));
+  // }
 
-  if (statsObj.caches.nodeCache.stats.keys > statsObj.caches.nodeCache.stats.keysMax) {
-    statsObj.caches.nodeCache.stats.keysMax = statsObj.caches.nodeCache.stats.keys;
-    statsObj.caches.nodeCache.stats.keysMaxTime = moment().valueOf();
-    console.log(chalkAlert("NEW MAX NODE $ KEYS"
-      + " | " + moment().format(compactDateTimeFormat)
-      + " | KEYS: " + statsObj.caches.nodeCache.stats.keys
-    ));
-  }
+  // if (statsObj.caches.nodeCache.stats.keys > statsObj.caches.nodeCache.stats.keysMax) {
+  //   statsObj.caches.nodeCache.stats.keysMax = statsObj.caches.nodeCache.stats.keys;
+  //   statsObj.caches.nodeCache.stats.keysMaxTime = moment().valueOf();
+  //   console.log(chalkAlert("NEW MAX NODE $ KEYS"
+  //     + " | " + moment().format(compactDateTimeFormat)
+  //     + " | KEYS: " + statsObj.caches.nodeCache.stats.keys
+  //   ));
+  // }
 
   statsObj.memory.heap = process.memoryUsage().heapUsed/(1024*1024);
+
   if (statsObj.memory.heap > statsObj.memory.maxHeap) {
     statsObj.memory.maxHeap = statsObj.memory.heap;
     statsObj.memory.maxHeapTime = moment().valueOf();
@@ -837,6 +820,7 @@ function showStats(options){
       + " | " + statsObj.memory.heap.toFixed(0) + " MB"
     ));
   }
+
   statsObj.memory.memoryUsage = process.memoryUsage();
 
   if (options) {
@@ -1228,8 +1212,11 @@ function initSocketNamespaces(callback){
 
 function checkKeyword(nodeObj, callback) {
 
+  var kwObj = {};  
   var obamaHit = false;
   var trumpHit = false;
+  var wsObamaObj = {};
+  var wsTrumpObj = {};
 
   debug(chalkAlert("checkKeyword"
     + " | " + nodeObj.nodeType
@@ -1237,7 +1224,6 @@ function checkKeyword(nodeObj, callback) {
     + "\n" + jsonPrint(nodeObj)
   ));
   
-  var kwObj = {};  
 
   if ((nodeObj.nodeType === "user") 
     && (nodeObj.screenName !== undefined) 
@@ -1540,7 +1526,7 @@ function checkKeyword(nodeObj, callback) {
     wordStats.meter("obamaPerSecond").mark();
     wordStats.meter("obamaPerMinute").mark();
 
-    var wsObamaObj = wordStats.toJSON();
+    wsObamaObj = wordStats.toJSON();
 
     debug(chalkAlert("OBAMA"
       + " | " + nodeObj.nodeType
@@ -1558,7 +1544,7 @@ function checkKeyword(nodeObj, callback) {
     wordStats.meter("trumpPerSecond").mark();
     wordStats.meter("trumpPerMinute").mark();
 
-    var wsTrumpObj = wordStats.toJSON();
+    wsTrumpObj = wordStats.toJSON();
 
     debug(chalkAlert("TRUMP"
       + " | " + nodeObj.nodeType
@@ -1643,7 +1629,7 @@ function initUpdateTrendsInterval(interval){
 function updateWordMeter(wordObj, callback){
 
   var meterWordId;
-  // var meterObj = {};
+  var meterObj = {};
 
   if ((wordObj.nodeType === "media") 
     || (wordObj.nodeType === "url")
@@ -1700,7 +1686,7 @@ function updateWordMeter(wordObj, callback){
     wordMeter[meterWordId] = new Measured.Meter({rateUnit: 60000});
     wordMeter[meterWordId].mark();
 
-    var meterObj = wordMeter[meterWordId].toJSON();
+    meterObj = wordMeter[meterWordId].toJSON();
 
     wordObj.rate = meterObj[metricsRate];
 
@@ -1711,7 +1697,7 @@ function updateWordMeter(wordObj, callback){
   }
   else {
     wordMeter[meterWordId].mark();
-    var meterObj = wordMeter[meterWordId].toJSON();
+    meterObj = wordMeter[meterWordId].toJSON();
     wordObj.rate = meterObj[metricsRate];
 
     nodeCache.set(meterWordId, wordObj, nodeCacheTtl);
@@ -1802,6 +1788,7 @@ function initMetricsDataPointQueueInterval(interval){
     googleRequest.timeSeries = [];
   }
 
+
   metricsDataPointQueueInterval = setInterval(function () {
 
     initDeletedMetricsHashmap();
@@ -1816,8 +1803,6 @@ function initMetricsDataPointQueueInterval(interval){
 
       googleRequest.timeSeries.length = 0;
       // googleRequest.timeSeries = deepcopy(metricsDataPointQueue);
-
-
 
       async.each(metricsDataPointQueue, function(dataPoint, cb){
 
@@ -1860,66 +1845,18 @@ function initMetricsDataPointQueueInterval(interval){
 
       });
 
-
-      // var onePoint = metricsDataPointQueue.shift();
-      // console.log(chalkAlert("onePoint\n" + jsonPrint(onePoint)));
-
-
-      // var twoPoint = metricsDataPointQueue.shift();
-      // console.log(chalkAlert("onePoint\n" + jsonPrint(onePoint)));
-
-      // googleRequest.timeSeries.push(onePoint);
-      // googleRequest.timeSeries.push(twoPoint);
-
-
-
-
-
-      // metricsDataPointQueue.length = 0;
-
-      // googleMonitoringClient.createTimeSeries(googleRequest)
-      //   // .then((results) => {
-      //   .then(function(){
-      //     metricsDataPointQueueReady = true;
-      //     console.log(chalkInfo("METRICS"
-      //       + " | DATA POINTS: " + googleRequest.timeSeries.length 
-      //       // + " | " + options.value
-      //     ));
-      //   })
-      //   .catch(function(err){
-      //     metricsDataPointQueueReady = true;
-      //     statsObj.errors.google[err.code] = (statsObj.errors.google[err.code] === undefined) ? 1 : statsObj.errors.google[err.code] += 1;
-      //     // if (err.code !== 8) {
-      //     console.error(chalkError(moment().format(compactDateTimeFormat)
-      //       + " | *** ERROR GOOGLE METRICS"
-      //       // + " | ENABLE_GOOGLE_METRICS: " + ENABLE_GOOGLE_METRICS
-      //       // + " | SRVR: " + options.metricLabels.server_id 
-      //       // + " | V: " + options.value
-      //       + " | DATA POINTS: " + googleRequest.timeSeries.length 
-      //       + "\n*** ERR:  " + err
-      //       + "\n*** NOTE: " + err.note
-      //       + "\nERR\n" + jsonPrint(err)
-      //       // + "\nREQUEST\n" + jsonPrint(googleRequest)
-      //       // + "\nMETA DATA\n" + jsonPrint(err.metadata)
-      //     ));
-      //   // }
-      // });
     }
 
   }, interval);
 }
 
-
-function addMetricDataPoint(ops, callback){
+function addMetricDataPoint(options, callback){
 
   if (!ENABLE_GOOGLE_METRICS) {
     console.trace("***** ENABLE_GOOGLE_METRICS FALSE? " + ENABLE_GOOGLE_METRICS);
     if (callback) { callback(null,options); }
     return;
   }
-
-  var options = ops;
-  // options = op;
 
   debug(chalkAlert("addMetricDataPoint"
     + " | ENABLE_GOOGLE_METRICS: " + ENABLE_GOOGLE_METRICS
@@ -1996,7 +1933,30 @@ function addTopTermMetricDataPoint(node, nodeRate){
   });
 }
 
+
 var heartbeatsSent = 0;
+var tempDateTime;
+var memoryAvailableMB;
+var memoryTotalMB;
+var memoryAvailablePercent;
+
+function logHeartbeat() {
+
+  memoryAvailableMB = (statsObj.memory.memoryAvailable/(1024*1024));
+  memoryTotalMB = (statsObj.memory.memoryTotal/(1024*1024));
+  memoryAvailablePercent = (statsObj.memory.memoryAvailable/statsObj.memory.memoryTotal);
+
+  debug(chalkLog("HB " + heartbeatsSent 
+    + " | " + moment(parseInt(statsObj.timeStamp)).format(compactDateTimeFormat) 
+    + " | ST: " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat) 
+    + " | UP: " + msToTime(statsObj.upTime) 
+    + " | RN: " + msToTime(statsObj.runTime) 
+    + " | MEM: " + memoryAvailableMB.toFixed(0) + " AVAIL"
+    + " / " + memoryTotalMB.toFixed(0) + " TOTAL MB"
+    + " - " + memoryAvailablePercent.toFixed(3) + " %"
+  ));
+}
+
 configEvents.on("SERVER_READY", function() {
 
   // serverReady = true;
@@ -2038,24 +1998,10 @@ configEvents.on("SERVER_READY", function() {
     }
   });
 
-  var tempDateTime;
-
-  function logHeartbeat() {
-
-    var memoryAvailableMB = (statsObj.memory.memoryAvailable/(1024*1024));
-    var memoryTotalMB = (statsObj.memory.memoryTotal/(1024*1024));
-    var memoryAvailablePercent = (statsObj.memory.memoryAvailable/statsObj.memory.memoryTotal);
-
-    debug(chalkLog("HB " + heartbeatsSent 
-      + " | " + moment(parseInt(statsObj.timeStamp)).format(compactDateTimeFormat) 
-      + " | ST: " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat) 
-      + " | UP: " + msToTime(statsObj.upTime) 
-      + " | RN: " + msToTime(statsObj.runTime) 
-      + " | MEM: " + memoryAvailableMB.toFixed(0) + " AVAIL"
-      + " / " + memoryTotalMB.toFixed(0) + " TOTAL MB"
-      + " - " + memoryAvailablePercent.toFixed(3) + " %"
-    ));
-  }
+  tempDateTime;
+  memoryAvailableMB = (statsObj.memory.memoryAvailable/(1024*1024));
+  memoryTotalMB = (statsObj.memory.memoryTotal/(1024*1024));
+  memoryAvailablePercent = (statsObj.memory.memoryAvailable/statsObj.memory.memoryTotal);
 
   setInterval(function() {
 
@@ -2201,11 +2147,13 @@ function initInternetCheckInterval(interval){
   var serverStatus;
   var serverError;
   var callbackInterval;
+  var testClient;
 
   clearInterval(internetCheckInterval);
 
   internetCheckInterval = setInterval(function(){
-    var testClient = net.createConnection(80, "www.google.com");
+
+    testClient = net.createConnection(80, "www.google.com");
 
     testClient.on("connect", function() {
       internetReady = true;
@@ -2297,26 +2245,27 @@ function initTweetParserMessageRxQueueInterval(interval){
 
   clearInterval(tweetParserMessageRxQueueInterval);
 
+  var tweetParserMessage;
+  var tweetObj;
+
   tweetParserMessageRxQueueInterval = setInterval(function () {
 
     if ((tweetParserMessageRxQueue.length > 0) && tweetParserMessageRxQueueReady) {
-    // if (tweetParserMessageRxQueue.length > 0) {
 
       tweetParserMessageRxQueueReady = false;
 
-      var m =  tweetParserMessageRxQueue.shift();
+      tweetParserMessage = tweetParserMessageRxQueue.shift();
 
       debug(chalkAlert("TWEET PARSER RX MESSAGE"
-        + " | OP: " + m.op
+        + " | OP: " + tweetParserMessage.op
         // + "\n" + jsonPrint(m)
       ));
 
-      var tweetObj;
 
-      switch (m.op) {
+      switch (tweetParserMessage.op) {
 
         case "parsedTweet":
-          tweetObj = m.tweetObj;
+          tweetObj = tweetParserMessage.tweetObj;
           if (!tweetObj.user) {
             console.log(chalkAlert("parsedTweet -- TW USER UNDEFINED"
               + " | " + tweetObj.tweetId
@@ -2350,7 +2299,7 @@ function initTweetParserMessageRxQueueInterval(interval){
 
         default:
           console.error(chalkError("*** TWEET PARSER UNKNOWN OP"
-            + " | INTERVAL: " + m.op
+            + " | INTERVAL: " + tweetParserMessage.op
           ));
           tweetParserMessageRxQueueReady = true;
       }
@@ -2368,20 +2317,21 @@ function initSorterMessageRxQueueInterval(interval){
 
   clearInterval(sorterMessageRxQueueInterval);
 
+  var sorterObj;
+  var sortedKeys;
+  var endIndex;
+  var index;
+  var i;
+  var node;
+  var nodeRate;
+
   sorterMessageRxQueueInterval = setInterval(function() {
 
     if (sorterMessageRxReady && (sorterMessageRxQueue.length > 0)) {
 
       sorterMessageRxReady = false;
 
-      var sorterObj = sorterMessageRxQueue.shift();
-
-      var sortedKeys;
-      var endIndex;
-      var index;
-      // var wmObj = {};
-      var i;
-      var node;
+      sorterObj = sorterMessageRxQueue.shift();
 
       switch (sorterObj.op){
         case "SORTED":
@@ -2401,19 +2351,11 @@ function initSorterMessageRxQueueInterval(interval){
 
             node = sortedKeys[index].toLowerCase();
 
-            // if (wordMeter[node] !== undefined) {
             if (wordMeter[node]) {
 
-              var nodeRate = wordMeter[node].toJSON()[metricsRate];
+              nodeRate = parseFloat(wordMeter[node].toJSON()[metricsRate]);
 
               wordsPerMinuteTopTermCache.set(node, nodeRate);
-
-              // wordsPerMinuteTopTerm[node] = wmObj[metricsRate];
-
-              // if (index === endIndex-1) {
-              //   adminNameSpace.emit("TWITTER_TOPTERM_1MIN", wordsPerMinuteTopTerm);
-              //   viewNameSpace.emit("TWITTER_TOPTERM_1MIN", wordsPerMinuteTopTerm);
-              // }
 
               if (!deletedMetricsHashmap.has(node) 
                 && ENABLE_GOOGLE_METRICS 
@@ -2583,6 +2525,9 @@ function initSorter(callback){
 
   if (callback !== undefined) { callback(null, sorter); }
 }
+
+var updaterPingInterval;
+var updaterPingOutstanding = 0;
 
 function initUpdaterPingInterval(interval){
 
@@ -2991,16 +2936,13 @@ function initRateQinterval(interval){
 
       });
 
-
-
-
-
       if (ENABLE_GOOGLE_METRICS) {
 
         queueNames = Object.keys(statsObj.queues);
 
+        var queueDataPoint = {};
+
         queueNames.forEach(function(queueName){
-          var queueDataPoint = {};
           queueDataPoint.metricType = "word/queues/" + queueName;
           queueDataPoint.value = statsObj.queues[queueName];
           queueDataPoint.metricLabels = {server_id: "QUEUE"};
@@ -3028,14 +2970,8 @@ function initRateQinterval(interval){
         dataPointUtils.value = Object.keys(utilNameSpace.connected).length;
         addMetricDataPoint(dataPointUtils);
 
-        dataPointViewers.value = statsObj.caches.viewerCache.stats.keys;
-        addMetricDataPoint(dataPointViewers);
-
-        dataPointUsers.value = statsObj.caches.userCache.stats.keys;
-        addMetricDataPoint(dataPointUsers);
-
-        dataPointNodeCache.value = statsObj.caches.nodeCache.stats.keys;
-        addMetricDataPoint(dataPointNodeCache);
+        // dataPointNodeCache.value = statsObj.caches.nodeCache.stats.keys;
+        // addMetricDataPoint(dataPointNodeCache);
 
         if (tssServer.connected) {
           dataPointTssTpm.value = statsObj.utilities[tssServer.user.userId].tweetsPerMinute;
@@ -3156,6 +3092,7 @@ function initIgnoreWordsHashMap(callback) {
 function initStatsInterval(interval){
 
   var statsUpdated = 0;
+  var heapdumpFileName;
 
   console.log(chalkInfo("INIT STATS INTERVAL"
     + " | " + interval + " MS"
@@ -3176,6 +3113,7 @@ function initStatsInterval(interval){
     statsObj.wordMeterEntries = Object.keys(wordMeter).length;
 
     statsObj.memory.rss = process.memoryUsage().rss/(1024*1024);
+
     if (statsObj.memory.rss > statsObj.memory.maxRss) {
       statsObj.memory.maxRss = statsObj.memory.rss;
       statsObj.memory.maxRssTime = moment().valueOf();
@@ -3186,6 +3124,7 @@ function initStatsInterval(interval){
     }
 
     statsObj.memory.heap = process.memoryUsage().heapUsed/(1024*1024);
+
     if (statsObj.memory.heap > statsObj.memory.maxHeap) {
       statsObj.memory.maxHeap = statsObj.memory.heap;
       statsObj.memory.maxHeapTime = moment().valueOf();
@@ -3214,7 +3153,7 @@ function initStatsInterval(interval){
 
     if (enableHeapDump && (statsUpdated > 1) && (statsUpdated % 5 == 0)) {
 
-      var heapdumpFileName = "was2" 
+      heapdumpFileName = "was2" 
         + "_" + hostname 
         + "_" + process.pid 
         + "_" + moment().format(tinyDateTimeFormat) 

@@ -255,7 +255,7 @@ function initTweetParserQueueInterval(cnf){
                 ));
               }
               else {
-                debug(chalkInfo(getTimeStamp()
+                debug(chalkInfo(moment().format(compactDateTimeFormat)
                   + " | SEND TWEET COMPLETE"
                   + " | " + tweetObj.tweetId
                 ));

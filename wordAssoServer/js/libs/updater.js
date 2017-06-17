@@ -497,7 +497,7 @@ function sendKeywords(callback){
   var words = newKeywordsHashMap.keys();
   var keywordsSent = 0;
 
-  async.forEachSeries(
+  async.each(
 
     words,
 
@@ -533,27 +533,36 @@ function sendKeywords(callback){
     },
 
     function(err) {
+
       if (err) {
+
         console.error(chalkError("sendKeywords ERROR! " + err));
         callback(err, null);
+
       }
       else {
-        debug(chalkInfo("SEND KEYWORDS COMPLETE | " + words.length + " KEYWORDS"));
-        process.send({ type: "sendKeywordsComplete", pid: process.pid}, function(err){
-          if (err) {
-            console.error(chalkError("*** UPDATER SEND KEYWORDS ERROR"
-              + " | " + err
-            ));
-            callback(err, null);
-          }
-          else {
-            console.log(chalkInfo(getTimeStamp()
-              + " | SEND KEYWORDS COMPLETE"
-              + " | " + words.length + " KEYWORDS"
-            ));
-            callback(null, words.length);
-          }
-        });
+
+        if (words.length > 0) {
+          
+          debug(chalkInfo("SEND KEYWORDS COMPLETE | " + words.length + " KEYWORDS"));
+
+          process.send({ type: "sendKeywordsComplete", pid: process.pid , keywords: words.length}, function(err){
+            if (err) {
+              console.error(chalkError("*** UPDATER SEND KEYWORDS ERROR"
+                + " | " + err
+              ));
+              callback(err, null);
+            }
+            else {
+              console.log(chalkInfo(getTimeStamp()
+                + " | SEND KEYWORDS COMPLETE"
+                + " | " + words.length + " KEYWORDS"
+              ));
+              callback(null, words.length);
+            }
+          });
+        }
+
       }
     }
   );

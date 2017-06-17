@@ -2414,7 +2414,6 @@ function initUpdaterMessageQueueInterval(interval){
           console.log(chalkLog("UPDATE STATS COMPLETE"
             + " | DB\n" + jsonPrint(updaterObj.db)
           ));
-          updaterMessageReady = true;
           if (updaterObj.db) {
             statsObj.db.totalAdmins = updaterObj.db.totalAdmins;
             statsObj.db.totalUsers = updaterObj.db.totalUsers;
@@ -2423,6 +2422,7 @@ function initUpdaterMessageQueueInterval(interval){
             statsObj.db.totalSessions = updaterObj.db.totalSessions;
             statsObj.db.totalWords = updaterObj.db.totalWords;
           }
+          updaterMessageReady = true;
         break;
 
         case "sendKeywordsComplete":
@@ -2430,6 +2430,7 @@ function initUpdaterMessageQueueInterval(interval){
             + " [ Q: " + updaterMessageQueue.length + " ]"
             + " | " + moment().format(compactDateTimeFormat)
             + " | PID: " + updaterObj.pid
+            + " | NUM KEYWORDS: " + updaterObj.keywords
           ));
           updaterMessageReady = true;
         break;

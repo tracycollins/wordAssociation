@@ -247,8 +247,22 @@ function initTweetParserQueueInterval(cnf){
               // + "\ntweetObj.user\n" + jsonPrint(tweetObj.user)
             ));
 
-            process.send({op: "parsedTweet", tweetObj: tweetObj});
-            tweetParserQueueReady = true;
+            process.send({op: "parsedTweet", tweetObj: tweetObj}, function(err){
+
+              if (err) {
+                console.error(chalkError("*** TWEET PARSER SEND TWEET ERROR"
+                  + " | " + err
+                ));
+              }
+              else {
+                debug(chalkInfo(getTimeStamp()
+                  + " | SEND TWEET COMPLETE"
+                  + " | " + tweetObj.tweetId
+                ));
+              }
+
+              tweetParserQueueReady = true;
+            });
           }
           
         }

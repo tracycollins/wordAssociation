@@ -6,9 +6,11 @@ console.log("\n\n============== START ==============\n\n");
 console.log("PROCESS PID: " + process.pid);
 
 var quitOnError = true;
-var enableHeapDump = true;
+
+var enableHeapDump = false;
 var heapdumpStatsModulo = 10;
 var heapdump = require('heapdump');
+
 // var memwatch = require('memwatch');
 
 var pmx = require('pmx').init({

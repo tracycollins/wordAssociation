@@ -562,6 +562,9 @@ function sendKeywords(callback){
             }
           });
         }
+        else {
+          callback(null, words.length);
+        }
 
       }
     }

@@ -1086,7 +1086,7 @@ function initSocketHandler(socket) {
     debug(chalkSocket("USER READY"
       + " | " + userObj.userId
     ));
-    if (cb !== undefined) { cb(userObj.userId); }
+    if ((cb !== undefined) && (typeof cb === "function")) { cb(userObj.userId); }
   });
 
   socket.on("tweet", function(tw) {

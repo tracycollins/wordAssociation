@@ -9,7 +9,7 @@ var quitOnError = true;
 
 var enableHeapDump = false;
 var heapdumpStatsModulo = 10;
-var heapdump = require('heapdump');
+// var heapdump = require('heapdump');
 
 // var memwatch = require('memwatch');
 
@@ -3128,21 +3128,21 @@ function initStatsInterval(interval){
 
     statsUpdated += 1;
 
-    if (enableHeapDump && (statsUpdated > 1) && (statsUpdated % heapdumpStatsModulo == 0)) {
+    // if (enableHeapDump && (statsUpdated > 1) && (statsUpdated % heapdumpStatsModulo == 0)) {
 
-      heapdumpFileName = "was2" 
-        + "_" + hostname 
-        + "_" + process.pid 
-        + "_" + moment().format(tinyDateTimeFormat) 
-        + ".heapsnapshot";
+    //   heapdumpFileName = "was2" 
+    //     + "_" + hostname 
+    //     + "_" + process.pid 
+    //     + "_" + moment().format(tinyDateTimeFormat) 
+    //     + ".heapsnapshot";
 
-      console.error(chalkError("***** HEAPDUMP *****"
-        + " | STATS UPDATED: " +  statsUpdated
-        + " | FILE: " +  heapdumpFileName
-      ));
+    //   console.error(chalkError("***** HEAPDUMP *****"
+    //     + " | STATS UPDATED: " +  statsUpdated
+    //     + " | FILE: " +  heapdumpFileName
+    //   ));
 
-      heapdump.writeSnapshot(heapdumpFileName);
-    }
+    //   heapdump.writeSnapshot(heapdumpFileName);
+    // }
 
   }, interval);
 }

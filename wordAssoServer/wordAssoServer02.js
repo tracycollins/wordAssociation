@@ -1069,14 +1069,6 @@ function initSocketHandler(socket) {
       tmsServers[socket.id].connected = true;
       tmsServers[socket.id].user = userObj;
       tmsServers[socket.id].socket = socket;
-
-      // debug(chalkSession("K-TMS" 
-      //   + " | " + userObj.userId
-      //   + " | " + socket.id
-      //   + " | " + userObj.stats.tweetsPerMinute.toFixed(0) + " TPM"
-      //   + " | " + moment().format(compactDateTimeFormat)
-      //   // + "\n" + jsonPrint(userObj)
-      // ));
     }
  
     if (userObj.userId.match(/TSS_/g)){
@@ -1087,20 +1079,12 @@ function initSocketHandler(socket) {
       tssServers[socket.id].user = userObj;
       tssServers[socket.id].socket = socket;
 
-      // debug(chalkSession("K-TSS" 
-      //   + " | " + userObj.userId
-      //   + " | " + socket.id
-      //   + " | " + userObj.stats.tweetsPerMinute.toFixed(0) + " TPM"
-      //   + " | " + moment().format(compactDateTimeFormat)
-      //   // + "\n" + jsonPrint(userObj)
-      // ));
     }
   });
 
   socket.on("USER_READY", function(userObj, cb) {
     debug(chalkSocket("USER READY"
       + " | " + userObj.userId
-      // + "\n" + jsonPrint(userObj)
     ));
     if (cb !== undefined) { cb(userObj.userId); }
   });
@@ -1113,14 +1097,12 @@ function initSocketHandler(socket) {
       + " | " + tw.user.id_str
       + " | " + tw.user.screen_name
       + " | " + tw.user.name
-      // + jsonPrint(rxNodeObj)
     ));
 
     if (tweetRxQueue.size() > MAX_Q){
 
       statsObj.errors.twitter.maxRxQueue += 1;
 
-      // console.log(chalkError("*** MAX QUEUE [" + tweetRxQueue.size() + "] | T<"
       console.log(chalkError("*** TWEET RX MAX QUEUE [" + tweetRxQueue.size() + "] | T<"
         + " | " + tw.id_str
         + " | " + tw.user.screen_name
@@ -1151,20 +1133,10 @@ function initSocketHandler(socket) {
   });
 
   socket.on("node", function(rxNodeObj) {
-    // debug(chalkSocket("node" 
-    //   + " | " + rxNodeObj.nodeType
-    //   + " | " + rxNodeObj.nodeId
-    //   // + jsonPrint(rxNodeObj)
-    // ));
     viewNameSpace.emit("node", rxNodeObj);
   });
 
   socket.on("word", function(rxWordObj) {
-    // debug(chalkSocket("node" 
-    //   + " | " + rxWordObj.nodeType
-    //   + " | " + rxWordObj.nodeId
-    //   // + jsonPrint(rxNodeObj)
-    // ));
     viewNameSpace.emit("node", rxWordObj);
   });
 }

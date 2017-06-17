@@ -497,7 +497,7 @@ function sendKeywords(callback){
   var words = newKeywordsHashMap.keys();
   var keywordsSent = 0;
 
-  async.each(
+  async.eachSeries(
 
     words,
 
@@ -543,7 +543,7 @@ function sendKeywords(callback){
       else {
 
         if (words.length > 0) {
-          
+
           debug(chalkInfo("SEND KEYWORDS COMPLETE | " + words.length + " KEYWORDS"));
 
           process.send({ type: "sendKeywordsComplete", pid: process.pid , keywords: words.length}, function(err){

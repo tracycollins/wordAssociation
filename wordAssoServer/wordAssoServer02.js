@@ -7,7 +7,7 @@ console.log("PROCESS PID: " + process.pid);
 
 var quitOnError = true;
 
-var enableHeapDump = true;
+var enableHeapDump = false;
 var heapdumpStatsModulo = 10;
 var heapdump = require('heapdump');
 

@@ -1266,6 +1266,7 @@ function checkKeyword(nodeObj, callback) {
         nodeObj.keywords.positive = DEFAULT_KEYWORD_VALUE;
         debug(chalkError("SCIENCEMARCH: " + nodeObj.text));
       }
+
       if (nodeObj.text.toLowerCase().includes("obama")) {
         obamaHit = nodeObj.text;
         nodeObj.isKeyword = true;
@@ -1277,6 +1278,7 @@ function checkKeyword(nodeObj, callback) {
         }
         debug(chalkError("OBAMA: " + nodeObj.text));
       }
+
       if (nodeObj.text.toLowerCase().includes("trump")) {
         trumpHit = nodeObj.text;
         nodeObj.isKeyword = true;
@@ -1288,7 +1290,9 @@ function checkKeyword(nodeObj, callback) {
         }
         debug(chalkError("TRUMP: " + nodeObj.text));
       }
+
       callback(nodeObj);
+
     break;
 
     case "user":
@@ -1297,13 +1301,14 @@ function checkKeyword(nodeObj, callback) {
 
       if (!nodeObj.name && !nodeObj.screenName) {
         console.log(chalkError("NODE NAME & SCREEN NAME UNDEFINED?\n" + jsonPrint(nodeObj)));
+        callback(nodeObj);
       }
       else if (nodeObj.screenName){
         nodeObj.isTwitterUser = true;
         wordsPerMinuteTopTermCache.get(nodeObj.screenName.toLowerCase(), function(err, screenName) {
           if (err){
             console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
-            quit();
+            // quit();
           }
           if (screenName !== undefined) {
             debug(chalkAlert("TOP TERM: " + screenName));
@@ -1338,7 +1343,7 @@ function checkKeyword(nodeObj, callback) {
         wordsPerMinuteTopTermCache.get(nodeObj.name.toLowerCase(), function(err, name) {
           if (err){
             console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
-            quit();
+            // quit();
           }
           if (name !== undefined) {
             nodeObj.isTopTerm = true;
@@ -1366,6 +1371,9 @@ function checkKeyword(nodeObj, callback) {
           callback(nodeObj);
         });
       }
+      else {
+        callback(nodeObj);
+      }
     break;
 
     case "hashtag":
@@ -1375,7 +1383,7 @@ function checkKeyword(nodeObj, callback) {
       wordsPerMinuteTopTermCache.get(nodeObj.nodeId.toLowerCase(), function(err, nodeId) {
         if (err){
           console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
-          quit();
+          // quit();
         }
         if (nodeId !== undefined) {
           nodeObj.isTopTerm = true;
@@ -1421,7 +1429,7 @@ function checkKeyword(nodeObj, callback) {
       wordsPerMinuteTopTermCache.get(nodeObj.name.toLowerCase(), function(err, nodeId) {
         if (err){
           console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
-          quit();
+          // quit();
         }
         if (nodeId !== undefined) {
           nodeObj.isTopTerm = true;
@@ -1457,7 +1465,7 @@ function checkKeyword(nodeObj, callback) {
       wordsPerMinuteTopTermCache.get(nodeObj.nodeId.toLowerCase(), function(err, nodeId) {
         if (err){
           console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
-          quit();
+          // quit();
         }
         if (nodeId !== undefined) {
           nodeObj.isTopTerm = true;
@@ -1496,41 +1504,41 @@ function checkKeyword(nodeObj, callback) {
       callback(nodeObj);
   }
 
-  if (obamaHit) {
+  // if (obamaHit) {
 
-    wordStats.meter("obamaPerSecond").mark();
-    wordStats.meter("obamaPerMinute").mark();
+  //   wordStats.meter("obamaPerSecond").mark();
+  //   wordStats.meter("obamaPerMinute").mark();
 
-    wsObamaObj = wordStats.toJSON();
+  //   wsObamaObj = wordStats.toJSON();
 
-    debug(chalkAlert("OBAMA"
-      + " | " + nodeObj.nodeType
-      + " | " + nodeObj.nodeId
-      + " | " + wsObamaObj.obamaPerSecond[metricsRate].toFixed(0) 
-      + " | " + wsObamaObj.obamaPerSecond.currentRate.toFixed(0) 
-      + " | " + wsObamaObj.obamaPerMinute[metricsRate].toFixed(0) 
-      + " | " + wsObamaObj.obamaPerMinute.currentRate.toFixed(0) 
-      + " | " + obamaHit
-    ));
-  }
+  //   debug(chalkAlert("OBAMA"
+  //     + " | " + nodeObj.nodeType
+  //     + " | " + nodeObj.nodeId
+  //     + " | " + wsObamaObj.obamaPerSecond[metricsRate].toFixed(0) 
+  //     + " | " + wsObamaObj.obamaPerSecond.currentRate.toFixed(0) 
+  //     + " | " + wsObamaObj.obamaPerMinute[metricsRate].toFixed(0) 
+  //     + " | " + wsObamaObj.obamaPerMinute.currentRate.toFixed(0) 
+  //     + " | " + obamaHit
+  //   ));
+  // }
 
-  if (trumpHit) {
+  // if (trumpHit) {
 
-    wordStats.meter("trumpPerSecond").mark();
-    wordStats.meter("trumpPerMinute").mark();
+  //   wordStats.meter("trumpPerSecond").mark();
+  //   wordStats.meter("trumpPerMinute").mark();
 
-    wsTrumpObj = wordStats.toJSON();
+  //   wsTrumpObj = wordStats.toJSON();
 
-    debug(chalkAlert("TRUMP"
-      + " | " + nodeObj.nodeType
-      + " | " + nodeObj.nodeId
-      + " | " + wsTrumpObj.trumpPerSecond[metricsRate].toFixed(0) 
-      + " | " + wsTrumpObj.trumpPerSecond.currentRate.toFixed(0) 
-      + " | " + wsTrumpObj.trumpPerMinute[metricsRate].toFixed(0) 
-      + " | " + wsTrumpObj.trumpPerMinute.currentRate.toFixed(0) 
-      + " | " + trumpHit
-    ));
-  }
+  //   debug(chalkAlert("TRUMP"
+  //     + " | " + nodeObj.nodeType
+  //     + " | " + nodeObj.nodeId
+  //     + " | " + wsTrumpObj.trumpPerSecond[metricsRate].toFixed(0) 
+  //     + " | " + wsTrumpObj.trumpPerSecond.currentRate.toFixed(0) 
+  //     + " | " + wsTrumpObj.trumpPerMinute[metricsRate].toFixed(0) 
+  //     + " | " + wsTrumpObj.trumpPerMinute.currentRate.toFixed(0) 
+  //     + " | " + trumpHit
+  //   ));
+  // }
 }
 
 function updateTrends(){

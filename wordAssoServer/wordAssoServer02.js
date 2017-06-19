@@ -27,13 +27,17 @@ var compactDateTimeFormat = "YYYYMMDD HHmmss";
 var tinyDateTimeFormat = "YYYYMMDDHHmmss";
 
 var OFFLINE_MODE = false;
+
 var MAX_Q = 2500;
+
 var MIN_METRIC_VALUE = 5.0;
 var MIN_MENTIONS_VALUE = 1000;
+
 var KEYWORDS_UPDATE_INTERVAL = 30000;
 var TWEET_PARSER_INTERVAL = 5;
 var TWITTER_RX_QUEUE_INTERVAL = 5;
 var TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL = 5;
+var UPDATE_TRENDS_INTERVAL = 15*ONE_MINUTE;
 var STATS_UPDATE_INTERVAL = 60000;
 
 var DEFAULT_KEYWORD_VALUE = 100;
@@ -43,8 +47,8 @@ var DEFAULT_INTERVAL = 10;
 var TOPTERMS_CACHE_DEFAULT_TTL = 60;
 var TOPTERMS_CACHE_CHECK_PERIOD = 10;
 
-var TRENDING_CACHE_DEFAULT_TTL = 300;
-var TRENDING_CACHE_CHECK_PERIOD = 10;
+var TRENDING_CACHE_DEFAULT_TTL = UPDATE_TRENDS_INTERVAL;
+var TRENDING_CACHE_CHECK_PERIOD = 60;
 
 var NODE_CACHE_DEFAULT_TTL = 60;
 var NODE_CACHE_CHECK_PERIOD = 10;
@@ -2381,7 +2385,7 @@ function initSorterMessageRxQueueInterval(interval){
               }
             }
           }
-          
+
           sorterMessageRxReady = true; 
         break;
 
@@ -3230,7 +3234,7 @@ initialize(configuration, function(err) {
 
     initStatsInterval(STATS_UPDATE_INTERVAL);
     initIgnoreWordsHashMap();
-    initUpdateTrendsInterval(5*ONE_MINUTE);
+    initUpdateTrendsInterval(UPDATE_TRENDS_INTERVAL);
     initRateQinterval(1000);
     initMetricsDataPointQueueInterval(60000);
     initTwitterRxQueueInterval(TWITTER_RX_QUEUE_INTERVAL);

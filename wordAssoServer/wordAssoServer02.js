@@ -1735,7 +1735,7 @@ function transmitNodes(tw, callback){
     checkKeyword(user, function(us){
       updateWordMeter(us, function(err, us2){
         if (!err) {
-          viewNameSpace.emit("node", us2);
+          viewNameSpace.volatile.emit("node", us2);
         }
       });
     });
@@ -1745,7 +1745,7 @@ function transmitNodes(tw, callback){
     checkKeyword(hashtag, function(ht){
       updateWordMeter(ht, function(err, ht2){
         if (!err) {
-          viewNameSpace.emit("node", ht2);
+          viewNameSpace.volatile.emit("node", ht2);
         }
       });
     });
@@ -1755,7 +1755,7 @@ function transmitNodes(tw, callback){
     checkKeyword(media, function(me){
       updateWordMeter(me, function(err, me2){
         if (!err) {
-          viewNameSpace.emit("node", me2);
+          viewNameSpace.volatile.emit("node", me2);
         }
       });
     });
@@ -1765,7 +1765,7 @@ function transmitNodes(tw, callback){
     checkKeyword(url, function(ul){
       updateWordMeter(ul, function(err, ul2){
         if (!err) {
-          viewNameSpace.emit("node", ul2);
+          viewNameSpace.volatile.emit("node", ul2);
         }
       });
     });
@@ -1774,7 +1774,7 @@ function transmitNodes(tw, callback){
   checkKeyword(tw.user, function(us){
     updateWordMeter(us, function(err, us2){
       if (!err) {
-        viewNameSpace.emit("node", us2);
+        viewNameSpace.volatile.emit("node", us2);
       }
     });
   });
@@ -1783,13 +1783,13 @@ function transmitNodes(tw, callback){
     checkKeyword(tw.place, function(pl){
       updateWordMeter(pl, function(err, pl2){
         if (!err) {
-          viewNameSpace.emit("node", pl2);
+          viewNameSpace.volatile.emit("node", pl2);
         }
       });
     });
   }
 
-  viewNameSpace.emit("node", tw);
+  viewNameSpace.volatile.emit("node", tw);
   callback();
 }
 

@@ -7,10 +7,8 @@ console.log("PROCESS PID: " + process.pid);
 
 var quitOnError = true;
 
-var enableHeapDump = false;
-var heapdumpStatsModulo = 10;
-var heapdump = require('heapdump');
 
+var heapdump = require('heapdump');
 // var memwatch = require('memwatch');
 
 var pmx = require('pmx').init({
@@ -293,23 +291,47 @@ var statsInterval;
 
 
 
-var ENABLE_GOOGLE_METRICS = false;
+var HEAPDUMP_ENABLED = false;
+var HEAPDUMP_MODULO = process.env.HEAPDUMP_MODULO || 10;
 
-if (process.env.ENABLE_GOOGLE_METRICS !== undefined) {
+if (process.env.HEAPDUMP_ENABLED !== undefined) {
 
-  console.log(chalkError("DEFINED process.env.ENABLE_GOOGLE_METRICS: " + process.env.ENABLE_GOOGLE_METRICS));
+  console.log(chalkError("DEFINED process.env.HEAPDUMP_ENABLED: " + process.env.HEAPDUMP_ENABLED));
 
-  if (process.env.ENABLE_GOOGLE_METRICS === "true") {
-    ENABLE_GOOGLE_METRICS = true;
-    console.log(chalkError("TRUE process.env.ENABLE_GOOGLE_METRICS: " + process.env.ENABLE_GOOGLE_METRICS));
-    console.log(chalkError("TRUE ENABLE_GOOGLE_METRICS: " + ENABLE_GOOGLE_METRICS));
+  if (process.env.HEAPDUMP_ENABLED === "true") {
+    HEAPDUMP_ENABLED = true;
+    console.log(chalkError("TRUE process.env.HEAPDUMP_ENABLED: " + process.env.HEAPDUMP_ENABLED));
+    console.log(chalkError("TRUE HEAPDUMP_ENABLED: " + HEAPDUMP_ENABLED));
   }
-  else if (process.env.ENABLE_GOOGLE_METRICS === "false") {
-    ENABLE_GOOGLE_METRICS = false;
-    console.log(chalkError("FALSE process.env.ENABLE_GOOGLE_METRICS: " + process.env.ENABLE_GOOGLE_METRICS));
-    console.log(chalkError("FALSE ENABLE_GOOGLE_METRICS: " + ENABLE_GOOGLE_METRICS));
+  else if (process.env.HEAPDUMP_ENABLED === "false") {
+    HEAPDUMP_ENABLED = false;
+    console.log(chalkError("FALSE process.env.HEAPDUMP_ENABLED: " + process.env.HEAPDUMP_ENABLED));
+    console.log(chalkError("FALSE HEAPDUMP_ENABLED: " + HEAPDUMP_ENABLED));
+  }
+
+  console.log(chalkError("HEAPDUMP_MODULO: " + HEAPDUMP_MODULO));
+}
+
+
+var GOOGLE_METRICS_ENABLED = false;
+
+if (process.env.GOOGLE_METRICS_ENABLED !== undefined) {
+
+  console.log(chalkError("DEFINED process.env.GOOGLE_METRICS_ENABLED: " + process.env.GOOGLE_METRICS_ENABLED));
+
+  if (process.env.GOOGLE_METRICS_ENABLED === "true") {
+    GOOGLE_METRICS_ENABLED = true;
+    console.log(chalkError("TRUE process.env.GOOGLE_METRICS_ENABLED: " + process.env.GOOGLE_METRICS_ENABLED));
+    console.log(chalkError("TRUE GOOGLE_METRICS_ENABLED: " + GOOGLE_METRICS_ENABLED));
+  }
+  else if (process.env.GOOGLE_METRICS_ENABLED === "false") {
+    GOOGLE_METRICS_ENABLED = false;
+    console.log(chalkError("FALSE process.env.GOOGLE_METRICS_ENABLED: " + process.env.GOOGLE_METRICS_ENABLED));
+    console.log(chalkError("FALSE GOOGLE_METRICS_ENABLED: " + GOOGLE_METRICS_ENABLED));
   }
 }
+
+
 
 // ==================================================================
 // DROPBOX
@@ -1766,7 +1788,7 @@ function initMetricsDataPointQueueInterval(interval){
 
   var googleRequest = {};
 
-  if (ENABLE_GOOGLE_METRICS) {
+  if (GOOGLE_METRICS_ENABLED) {
     googleRequest.name = googleMonitoringClient.projectPath(process.env.GOOGLE_PROJECT_ID);
     googleRequest.timeSeries = [];
   }
@@ -1776,7 +1798,7 @@ function initMetricsDataPointQueueInterval(interval){
 
     initDeletedMetricsHashmap();
 
-    if (ENABLE_GOOGLE_METRICS && (metricsDataPointQueue.length > 0) && metricsDataPointQueueReady) {
+    if (GOOGLE_METRICS_ENABLED && (metricsDataPointQueue.length > 0) && metricsDataPointQueueReady) {
 
       metricsDataPointQueueReady = false;
 
@@ -1810,7 +1832,7 @@ function initMetricsDataPointQueueInterval(interval){
             pmx.emit("ERROR", "GOOGLE METRICS ERROR");
             console.error(chalkError(moment().format(compactDateTimeFormat)
               + " | *** ERROR GOOGLE METRICS"
-              // + " | ENABLE_GOOGLE_METRICS: " + ENABLE_GOOGLE_METRICS
+              // + " | GOOGLE_METRICS_ENABLED: " + GOOGLE_METRICS_ENABLED
               // + " | SRVR: " + options.metricLabels.server_id 
               // + " | V: " + options.value
               + " | DATA POINTS: " + googleRequest.timeSeries.length 
@@ -1835,14 +1857,14 @@ function initMetricsDataPointQueueInterval(interval){
 
 function addMetricDataPoint(options, callback){
 
-  if (!ENABLE_GOOGLE_METRICS) {
-    console.trace("***** ENABLE_GOOGLE_METRICS FALSE? " + ENABLE_GOOGLE_METRICS);
+  if (!GOOGLE_METRICS_ENABLED) {
+    console.trace("***** GOOGLE_METRICS_ENABLED FALSE? " + GOOGLE_METRICS_ENABLED);
     if (callback) { callback(null,options); }
     return;
   }
 
   debug(chalkAlert("addMetricDataPoint"
-    + " | ENABLE_GOOGLE_METRICS: " + ENABLE_GOOGLE_METRICS
+    + " | GOOGLE_METRICS_ENABLED: " + GOOGLE_METRICS_ENABLED
     + "\n" + jsonPrint(options)
   ));
 
@@ -2342,7 +2364,7 @@ function initSorterMessageRxQueueInterval(interval){
               wordsPerMinuteTopTermCache.set(node, nodeRate);
 
               if (!deletedMetricsHashmap.has(node) 
-                && ENABLE_GOOGLE_METRICS 
+                && GOOGLE_METRICS_ENABLED 
                 && (nodeRate > MIN_METRIC_VALUE)) {
                 addTopTermMetricDataPoint(node, nodeRate);
               }
@@ -2749,7 +2771,7 @@ var updateTimeSeriesCount = 0;
 
 function initRateQinterval(interval){
 
-  if (ENABLE_GOOGLE_METRICS) {
+  if (GOOGLE_METRICS_ENABLED) {
     // googleMonitoringClient = Monitoring.v3().metricServiceClient();
     googleMonitoringClient = Monitoring.metricServiceClient();
 
@@ -2762,8 +2784,8 @@ function initRateQinterval(interval){
 
   console.log(chalkLog("INIT RATE QUEUE INTERVAL | " + interval + " MS"));
 
-  console.log(chalkError("ENABLE GOOGLE METRICS " + ENABLE_GOOGLE_METRICS));
-  console.error(chalkError("ENABLE GOOGLE METRICS " + ENABLE_GOOGLE_METRICS));
+  console.log(chalkError("GOOGLE METRICS ENABLED" + GOOGLE_METRICS_ENABLED));
+  console.error(chalkError("GOOGLE METRICS ENABLED" + GOOGLE_METRICS_ENABLED));
 
   clearInterval(rateQinterval);
 
@@ -2921,7 +2943,7 @@ function initRateQinterval(interval){
 
       });
 
-      if (ENABLE_GOOGLE_METRICS) {
+      if (GOOGLE_METRICS_ENABLED) {
 
         queueNames = Object.keys(statsObj.queues);
 
@@ -3136,7 +3158,7 @@ function initStatsInterval(interval){
 
     statsUpdated += 1;
 
-    if (enableHeapDump && (statsUpdated > 1) && (statsUpdated % heapdumpStatsModulo == 0)) {
+    if (HEAPDUMP_ENABLED && (statsUpdated > 1) && (statsUpdated % HEAPDUMP_MODULO == 0)) {
 
       heapdumpFileName = "was2" 
         + "_" + hostname 

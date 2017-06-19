@@ -1634,6 +1634,8 @@ function initUpdateTrendsInterval(interval){
 
   clearInterval(updateTrendsInterval);
 
+  if (twit !== undefined) { updateTrends(); }
+
   updateTrendsInterval = setInterval(function () {
     if (twit !== undefined) { updateTrends(); }
   }, interval);

@@ -40,13 +40,13 @@ var DEFAULT_KEYWORD_VALUE = 100;
 
 var DEFAULT_INTERVAL = 10;
 
-var TOPTERMS_CACHE_DEFAULT_TTL = 300;
-var TOPTERMS_CACHE_CHECK_PERIOD = 30;
+var TOPTERMS_CACHE_DEFAULT_TTL = 60;
+var TOPTERMS_CACHE_CHECK_PERIOD = 10;
 
 var TRENDING_CACHE_DEFAULT_TTL = 300;
-var TRENDING_CACHE_CHECK_PERIOD = 15;
+var TRENDING_CACHE_CHECK_PERIOD = 10;
 
-var NODE_CACHE_DEFAULT_TTL = 120;
+var NODE_CACHE_DEFAULT_TTL = 60;
 var NODE_CACHE_CHECK_PERIOD = 10;
 
 var ONE_MINUTE = 60000;
@@ -1326,7 +1326,9 @@ function checkKeyword(nodeObj, callback) {
         callback(nodeObj);
       }
       else if (nodeObj.screenName){
+
         nodeObj.isTwitterUser = true;
+
         wordsPerMinuteTopTermCache.get(nodeObj.screenName.toLowerCase(), function(err, screenName) {
           if (err){
             console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
@@ -2271,11 +2273,17 @@ function initTweetParserMessageRxQueueInterval(interval){
       switch (tweetParserMessage.op) {
 
         case "parsedTweet":
+
           tweetObj = tweetParserMessage.tweetObj;
+
           if (!tweetObj.user) {
+
             console.log(chalkAlert("parsedTweet -- TW USER UNDEFINED"
               + " | " + tweetObj.tweetId
             ));
+
+            tweetParserMessageRxQueueReady = true;
+
           }
           else {
 
@@ -2373,6 +2381,7 @@ function initSorterMessageRxQueueInterval(interval){
               }
             }
           }
+          
           sorterMessageRxReady = true; 
         break;
 
@@ -3221,7 +3230,7 @@ initialize(configuration, function(err) {
 
     initStatsInterval(STATS_UPDATE_INTERVAL);
     initIgnoreWordsHashMap();
-    initUpdateTrendsInterval(15*ONE_MINUTE);
+    initUpdateTrendsInterval(5*ONE_MINUTE);
     initRateQinterval(1000);
     initMetricsDataPointQueueInterval(60000);
     initTwitterRxQueueInterval(TWITTER_RX_QUEUE_INTERVAL);

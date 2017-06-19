@@ -447,8 +447,8 @@ var trendingCache = new NodeCache({
 });
 
 trendingCache.on( "expired", function(topic, topicObj){
-  debug("CACHE TOPIC EXPIRED\n" + jsonPrint(topicObj));
-  console.log(chalkInfo("XXX $ TREND | " + topic + " | " + topicObj.name));
+  // debug("CACHE TOPIC EXPIRED\n" + jsonPrint(topicObj));
+  debug(chalkInfo("XXX $ TREND | " + topic + " | " + topicObj.name));
 });
 
 var wordsPerMinuteTopTermTtl = process.env.TOPTERMS_CACHE_DEFAULT_TTL;

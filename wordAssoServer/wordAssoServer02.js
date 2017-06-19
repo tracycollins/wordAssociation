@@ -23,6 +23,7 @@ var pmx = require('pmx').init({
 // ==================================================================
 // GLOBAL VARIABLES
 // ==================================================================
+var ONE_MINUTE = 60000;
 var compactDateTimeFormat = "YYYYMMDD HHmmss";
 var tinyDateTimeFormat = "YYYYMMDDHHmmss";
 
@@ -53,7 +54,6 @@ var TRENDING_CACHE_CHECK_PERIOD = 60;
 var NODE_CACHE_DEFAULT_TTL = 60;
 var NODE_CACHE_CHECK_PERIOD = 10;
 
-var ONE_MINUTE = 60000;
 
 var ignoreWordsArray = [
   "r",
@@ -1629,6 +1629,8 @@ function updateTrends(){
 }
 
 function initUpdateTrendsInterval(interval){
+
+  console.log(chalkAlert("INIT UPDATE TRENDS INTERVAL: " + interval + " MS"));
 
   clearInterval(updateTrendsInterval);
 

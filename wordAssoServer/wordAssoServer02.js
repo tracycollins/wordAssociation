@@ -1283,6 +1283,11 @@ function checkKeyword(nodeObj, callback) {
   }
   else if (nodeObj.keywords === undefined) {
     nodeObj.keywords = {};
+    nodeObj.isKeyword = false;
+  }
+  else {
+    nodeObj.keywords = {};
+    nodeObj.isKeyword = false;
   }
 
   switch (nodeObj.nodeType) {
@@ -1685,7 +1690,7 @@ function updateWordMeter(wordObj, callback){
   if (ignoreWordHashMap.has(meterWordId)) {
 
     debug(chalkAlert("updateWordMeter IGNORE " + meterWordId));
-    
+
     wordObj.isIgnored = true;
 
     // nodeCache.set(meterWordId, wordObj);

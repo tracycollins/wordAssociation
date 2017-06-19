@@ -466,7 +466,7 @@ var wordsPerMinuteTopTermCache = new NodeCache({
 
 wordsPerMinuteTopTermCache.on( "expired", function(word, wordRate){
   // debug("$ WPM TOPTERM XXX\n" + jsonPrint(wpmObj));
-  console.log(chalkInfo("XXX $ WPM TOPTERM | " + wordRate.toFixed(3) + " | " + word));
+  debug(chalkInfo("XXX $ WPM TOPTERM | " + wordRate.toFixed(3) + " | " + word));
 });
 
 

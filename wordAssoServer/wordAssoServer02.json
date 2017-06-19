@@ -6,6 +6,8 @@
     "autorestart" : false,
     "env": {
       "NODE_ENV": "production",
+      "HEAPDUMP_ENABLED": true,
+      "HEAPDUMP_MODULO": 10,
       "SOCKET_IDLE_TIMEOUT" : 300,
       "NODE_CACHE_DEFAULT_TTL": 120,
       "NODE_CACHE_CHECK_PERIOD": 10,

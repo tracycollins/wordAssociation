@@ -1685,9 +1685,10 @@ function updateWordMeter(wordObj, callback){
   if (ignoreWordHashMap.has(meterWordId)) {
 
     debug(chalkAlert("updateWordMeter IGNORE " + meterWordId));
+    
     wordObj.isIgnored = true;
 
-    nodeCache.set(meterWordId, wordObj, nodeCacheTtl);
+    // nodeCache.set(meterWordId, wordObj);
 
     if (callback !== undefined) { callback(null, wordObj); }
     return;
@@ -1700,16 +1701,14 @@ function updateWordMeter(wordObj, callback){
 
   if (!wordMeter[meterWordId] 
     || (wordMeter[meterWordId] === undefined) ){
-    // || (typeof wordMeter[meterWordId].mark !== "function")) {
 
     wordMeter[meterWordId] = new Measured.Meter({rateUnit: 60000});
+
     wordMeter[meterWordId].mark();
-
     meterObj = wordMeter[meterWordId].toJSON();
+    wordObj.rate = parseFloat(meterObj[metricsRate]);
 
-    wordObj.rate = meterObj[metricsRate];
-
-    nodeCache.set(meterWordId, wordObj, nodeCacheTtl);
+    nodeCache.set(meterWordId, wordObj);
 
     if (callback !== undefined) { callback(null, wordObj); }
 
@@ -1717,9 +1716,10 @@ function updateWordMeter(wordObj, callback){
   else {
     wordMeter[meterWordId].mark();
     meterObj = wordMeter[meterWordId].toJSON();
-    wordObj.rate = meterObj[metricsRate];
+    wordObj.rate = parseFloat(meterObj[metricsRate]);
 
-    nodeCache.set(meterWordId, wordObj, nodeCacheTtl);
+    nodeCache.set(meterWordId, wordObj);
+
     if (callback !== undefined) { callback(null, wordObj); }
   }
 }

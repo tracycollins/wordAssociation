@@ -1577,7 +1577,7 @@ function ViewTreepack() {
           .clamp(true);
       }
 
-      console.info("NEW MAX MENTIONS: " + currentMax.mentions.value + " | " + nNode.nodeId);
+      // console.info("NEW MAX MENTIONS: " + currentMax.mentions.value + " | " + nNode.nodeId);
     }
 
     if (nNode.rate > currentMax.rate.value) { 
@@ -1609,7 +1609,7 @@ function ViewTreepack() {
           .clamp(true);
       }
 
-      console.info("NEW MAX RATE: " + currentMax.rate.value.toFixed(2) + " | " + nNode.nodeId);
+      // console.info("NEW MAX RATE: " + currentMax.rate.value.toFixed(2) + " | " + nNode.nodeId);
     }
 
     if (nodeAddQ.length < MAX_RX_QUEUE) {

@@ -46,9 +46,9 @@ var DEFAULT_KEYWORD_VALUE = 100;
 var DEFAULT_INTERVAL = 10;
 
 var TOPTERMS_CACHE_DEFAULT_TTL = 60;
-var TOPTERMS_CACHE_CHECK_PERIOD = 10;
+var TOPTERMS_CACHE_CHECK_PERIOD = 60;
 
-var TRENDING_CACHE_DEFAULT_TTL = 15*60;
+var TRENDING_CACHE_DEFAULT_TTL = 5*60;
 var TRENDING_CACHE_CHECK_PERIOD = 60;
 
 var NODE_CACHE_DEFAULT_TTL = 60;
@@ -443,7 +443,7 @@ console.log("TRENDING CACHE TTL: " + trendingCacheTtl + " SECONDS");
 
 var trendingCache = new NodeCache({
   stdTTL: trendingCacheTtl,
-  checkperiod: 10
+  checkperiod: TRENDING_CACHE_CHECK_PERIOD
 });
 
 trendingCache.on( "expired", function(topic, topicObj){
@@ -455,9 +455,13 @@ var wordsPerMinuteTopTermTtl = process.env.TOPTERMS_CACHE_DEFAULT_TTL;
 if (wordsPerMinuteTopTermTtl === undefined) {wordsPerMinuteTopTermTtl = TOPTERMS_CACHE_DEFAULT_TTL;}
 console.log("TOP TERMS WPM CACHE TTL: " + wordsPerMinuteTopTermTtl + " SECONDS");
 
+var wordsPerMinuteTopTermCheckPeriod = process.env.TOPTERMS_CACHE_CHECK_PERIOD;
+if (wordsPerMinuteTopTermCheckPeriod === undefined) {wordsPerMinuteTopTermCheckPeriod = TOPTERMS_CACHE_CHECK_PERIOD;}
+console.log("TOP TERMS WPM CACHE CHECK PERIOD: " + wordsPerMinuteTopTermCheckPeriod + " SECONDS");
+
 var wordsPerMinuteTopTermCache = new NodeCache({
   stdTTL: wordsPerMinuteTopTermTtl,
-  checkperiod: 30
+  checkperiod: TOPTERMS_CACHE_CHECK_PERIOD
 });
 
 wordsPerMinuteTopTermCache.on( "expired", function(word, wordRate){

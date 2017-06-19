@@ -1327,7 +1327,6 @@ function checkKeyword(nodeObj, callback) {
       }
 
       callback(nodeObj);
-
     break;
 
     case "user":

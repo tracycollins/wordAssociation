@@ -479,10 +479,10 @@ var wordStats = Measured.createCollection();
 
 wordStats.meter("wordsPerSecond", {rateUnit: 1000, tickInterval: 1000});
 wordStats.meter("wordsPerMinute", {rateUnit: 60000, tickInterval: 1000});
-wordStats.meter("obamaPerSecond", {rateUnit: 1000, tickInterval: 1000});
-wordStats.meter("obamaPerMinute", {rateUnit: 60000, tickInterval: 1000});
-wordStats.meter("trumpPerSecond", {rateUnit: 1000, tickInterval: 1000});
-wordStats.meter("trumpPerMinute", {rateUnit: 60000, tickInterval: 1000});
+// wordStats.meter("obamaPerSecond", {rateUnit: 1000, tickInterval: 1000});
+// wordStats.meter("obamaPerMinute", {rateUnit: 60000, tickInterval: 1000});
+// wordStats.meter("trumpPerSecond", {rateUnit: 1000, tickInterval: 1000});
+// wordStats.meter("trumpPerMinute", {rateUnit: 60000, tickInterval: 1000});
 
 
 
@@ -546,8 +546,8 @@ statsObj.wordsPerMin = 0;
 statsObj.maxWordsPerMin = 0;
 statsObj.maxWordsPerMinTime = moment().valueOf();
 
-statsObj.obamaPerMinute = 0.0;
-statsObj.trumpPerMinute = 0.0;
+// statsObj.obamaPerMinute = 0.0;
+// statsObj.trumpPerMinute = 0.0;
 statsObj.wordsPerMin = 0.0;
 statsObj.wordsPerSecond = 0.0;
 statsObj.maxWordsPerMin = 0.0;
@@ -2823,8 +2823,8 @@ function initRateQinterval(interval){
 
   clearInterval(rateQinterval);
 
-  statsObj.obamaPerMinute = 0.0;
-  statsObj.trumpPerMinute = 0.0;
+  // statsObj.obamaPerMinute = 0.0;
+  // statsObj.trumpPerMinute = 0.0;
   statsObj.wordsPerMin = 0.0;
   statsObj.wordsPerSecond = 0.0;
   statsObj.maxWordsPerMin = 0.0;
@@ -2915,14 +2915,14 @@ function initRateQinterval(interval){
     statsObj.wordsPerSecond = wsObj.wordsPerSecond[metricsRate];
     statsObj.wordsPerMin = wsObj.wordsPerMinute[metricsRate];
 
-    statsObj.obamaPerMinute = wsObj.obamaPerMinute[metricsRate];
-    statsObj.trumpPerMinute = wsObj.trumpPerMinute[metricsRate];
+    // statsObj.obamaPerMinute = wsObj.obamaPerMinute[metricsRate];
+    // statsObj.trumpPerMinute = wsObj.trumpPerMinute[metricsRate];
 
     debug(chalkLog(moment.utc().format(compactDateTimeFormat)
       + " | WPS: " + statsObj.wordsPerSecond.toFixed(2)
       + " | WPM: " + statsObj.wordsPerMin.toFixed(0)
-      + " | OPM: " + statsObj.obamaPerMinute.toFixed(0)
-      + " | TrPM: " + statsObj.trumpPerMinute.toFixed(0)
+      // + " | OPM: " + statsObj.obamaPerMinute.toFixed(0)
+      // + " | TrPM: " + statsObj.trumpPerMinute.toFixed(0)
     ));
 
     if (statsObj.wordsPerMin > statsObj.maxWordsPerMin) {
@@ -2933,21 +2933,21 @@ function initRateQinterval(interval){
       statsObj.maxWordsPerMinTime = moment().valueOf();
     }
 
-    if (statsObj.obamaPerMinute > statsObj.maxObamaPerMin) {
-      // maxObamaPerMin = obamaPerMinute;
-      // maxObamaPerMinTime = moment.utc();
-      console.log(chalkLog("NEW MAX OPM: " + statsObj.obamaPerMinute.toFixed(0)));
-      statsObj.maxObamaPerMin = statsObj.obamaPerMinute;
-      statsObj.maxObamaPerMinTime = moment().valueOf();
-    }
+    // if (statsObj.obamaPerMinute > statsObj.maxObamaPerMin) {
+    //   // maxObamaPerMin = obamaPerMinute;
+    //   // maxObamaPerMinTime = moment.utc();
+    //   console.log(chalkLog("NEW MAX OPM: " + statsObj.obamaPerMinute.toFixed(0)));
+    //   statsObj.maxObamaPerMin = statsObj.obamaPerMinute;
+    //   statsObj.maxObamaPerMinTime = moment().valueOf();
+    // }
 
-    if (statsObj.trumpPerMinute > statsObj.maxTrumpPerMin) {
-      // maxTrumpPerMin = trumpPerMinute;
-      // maxTrumpPerMinTime = moment.utc();
-      console.log(chalkLog("NEW MAX TrPM: " + statsObj.trumpPerMinute.toFixed(0)));
-      statsObj.maxTrumpPerMin = statsObj.trumpPerMinute;
-      statsObj.maxTrumpPerMinTime = moment().valueOf();
-    }
+    // if (statsObj.trumpPerMinute > statsObj.maxTrumpPerMin) {
+    //   // maxTrumpPerMin = trumpPerMinute;
+    //   // maxTrumpPerMinTime = moment.utc();
+    //   console.log(chalkLog("NEW MAX TrPM: " + statsObj.trumpPerMinute.toFixed(0)));
+    //   statsObj.maxTrumpPerMin = statsObj.trumpPerMinute;
+    //   statsObj.maxTrumpPerMinTime = moment().valueOf();
+    // }
 
     if (updateTimeSeriesCount === 0){
 
@@ -3002,11 +3002,11 @@ function initRateQinterval(interval){
         dataPointWpm.value = statsObj.wordsPerMin;
         addMetricDataPoint(dataPointWpm);
 
-        dataPointOpm.value = statsObj.obamaPerMinute;
-        addMetricDataPoint(dataPointOpm);
+        // dataPointOpm.value = statsObj.obamaPerMinute;
+        // addMetricDataPoint(dataPointOpm);
 
-        dataPointOTrpm.value = statsObj.trumpPerMinute;
-        addMetricDataPoint(dataPointOTrpm);
+        // dataPointOTrpm.value = statsObj.trumpPerMinute;
+        // addMetricDataPoint(dataPointOTrpm);
 
         dataPointUtils.value = Object.keys(utilNameSpace.connected).length;
         addMetricDataPoint(dataPointUtils);

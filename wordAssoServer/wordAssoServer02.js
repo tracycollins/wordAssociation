@@ -1528,6 +1528,8 @@ function updateWordMeter(wordObj, callback){
 
 var transmitNodeQueueReady = true;
 var transmitNodeQueueInterval;
+var transmitNodeQueue = [];
+
 function initTransmitNodeQueueInterval(interval){
 
   console.log(chalkAlert("INIT TRANSMIT NODE QUEUE INTERVAL: " + interval + " MS"));

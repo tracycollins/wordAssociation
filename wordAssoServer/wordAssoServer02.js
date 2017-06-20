@@ -29,7 +29,7 @@ var tinyDateTimeFormat = "YYYYMMDDHHmmss";
 
 var OFFLINE_MODE = false;
 
-var MAX_Q = 2500;
+var MAX_Q = 500;
 
 var MIN_METRIC_VALUE = 5.0;
 var MIN_MENTIONS_VALUE = 1000;
@@ -54,7 +54,6 @@ var TRENDING_CACHE_CHECK_PERIOD = 60;
 
 var NODE_CACHE_DEFAULT_TTL = 60;
 var NODE_CACHE_CHECK_PERIOD = 10;
-
 
 var ignoreWordsArray = [
   "r",
@@ -232,10 +231,7 @@ var EventEmitter2 = require("eventemitter2").EventEmitter2;
 
 var Dropbox = require("dropbox");
 
-
-// var Monitoring = require("@google-cloud/monitoring");
 var Monitoring = require('@google-cloud/monitoring').v3();
-// var googleMonitoringClient = Monitoring.v3().metricServiceClient();
 
 var googleMonitoringClient;
 
@@ -286,10 +282,8 @@ tmsServer.socket = {};
 var wordMeter = {};
 
 var tweetRxQueueInterval;
-var tweetParserQueue = [];
-var tweetParserMessageRxQueue = [];
-
-// var tweetRxQueue = [];
+var tweetParserQueue = new Queue();
+var tweetParserMessageRxQueue = new Queue();
 var tweetRxQueue = new Queue();
 
 var statsInterval;
@@ -509,9 +503,9 @@ var net = require("net");
 
 var cp = require("child_process");
 var updater;
-var updaterMessageQueue = [];
+var updaterMessageQueue = new Queue();
 var sorter;
-var sorterMessageRxQueue = [];
+var sorterMessageRxQueue = new Queue();
 
 
 var ignoreWordHashMap = new HashMap();
@@ -612,10 +606,12 @@ statsObj.memory.memoryUsage.heapTotal = process.memoryUsage().heapTotal/(1024*10
 statsObj.memory.memoryUsage.rss = process.memoryUsage().rss/(1024*1024);
 
 statsObj.queues = {};
+statsObj.queues.metricsDataPointQueue = 0;
 statsObj.queues.sorterMessageRxQueue = 0;
-statsObj.queues.tweetRxQueue = 0;
-statsObj.queues.tweetParserMessageRxQueue = 0;
 statsObj.queues.transmitNodeQueue = 0;
+statsObj.queues.tweetParserMessageRxQueue = 0;
+statsObj.queues.tweetParserQueue = 0;
+statsObj.queues.tweetRxQueue = 0;
 statsObj.queues.updaterMessageQueue = 0;
 
 statsObj.session = {};
@@ -1154,10 +1150,11 @@ function initSocketHandler(socket) {
     else if (tw.user) {
 
       tweetRxQueue.enqueue(tw);
+      statsObj.queues.tweetRxQueue = tweetRxQueue.size();
 
       debug(chalkLog("T<"
         + " [ RXQ: " + tweetRxQueue.size() + "]"
-        + " [ TPQ: " + tweetParserQueue.length + "]"
+        + " [ TPQ: " + tweetParserQueue.size() + "]"
         + " | " + tw.id_str
         + " | @" + tw.user.screen_name
         + " | " + tw.user.name
@@ -1166,7 +1163,7 @@ function initSocketHandler(socket) {
     else{
       console.log(chalkAlert("NULL USER T*<"
         + " [ RXQ: " + tweetRxQueue.size() + "]"
-        + " [ TPQ: " + tweetParserQueue.length + "]"
+        + " [ TPQ: " + tweetParserQueue.size() + "]"
         + " | " + tw.id_str
         + " | @" + tw.user.screen_name
         + " | " + tw.user.name
@@ -1529,7 +1526,7 @@ function updateWordMeter(wordObj, callback){
 
 var transmitNodeQueueReady = true;
 var transmitNodeQueueInterval;
-var transmitNodeQueue = [];
+var transmitNodeQueue = new Queue();
 
 function initTransmitNodeQueueInterval(interval){
 
@@ -1539,11 +1536,12 @@ function initTransmitNodeQueueInterval(interval){
 
   transmitNodeQueueInterval = setInterval(function () {
 
-    if (transmitNodeQueueReady && (transmitNodeQueue.length > 0)){
+    if (transmitNodeQueueReady && (!transmitNodeQueue.isEmpty())){
 
       transmitNodeQueueReady = false;
 
-      var nodeObj = transmitNodeQueue.shift();
+      var nodeObj = transmitNodeQueue.dequeue();
+
       checkKeyword(nodeObj, function(node){
         updateWordMeter(node, function(err, n){
           if (!err) {
@@ -1561,78 +1559,33 @@ function transmitNodes(tw, callback){
   debug("TX NODES");
 
   tw.userMentions.forEach(function(user){
-    transmitNodeQueue.push(user);
-    // checkKeyword(user, function(us){
-    //   updateWordMeter(us, function(err, us2){
-    //     if (!err) {
-    //       viewNameSpace.volatile.emit("node", us2);
-    //     }
-    //   });
-    // });
+    transmitNodeQueue.enqueue(user);
   });
 
   tw.hashtags.forEach(function(hashtag){
-    transmitNodeQueue.push(hashtag);
-    // checkKeyword(hashtag, function(ht){
-    //   updateWordMeter(ht, function(err, ht2){
-    //     if (!err) {
-    //       viewNameSpace.volatile.emit("node", ht2);
-    //     }
-    //   });
-    // });
+    transmitNodeQueue.enqueue(hashtag);
   });
 
   tw.media.forEach(function(media){
-    transmitNodeQueue.push(media);
-    // checkKeyword(media, function(me){
-    //   updateWordMeter(me, function(err, me2){
-    //     if (!err) {
-    //       viewNameSpace.volatile.emit("node", me2);
-    //     }
-    //   });
-    // });
+    transmitNodeQueue.enqueue(media);
   });
 
   tw.urls.forEach(function(url){
-    transmitNodeQueue.push(url);
-    // checkKeyword(url, function(ul){
-    //   updateWordMeter(ul, function(err, ul2){
-    //     if (!err) {
-    //       viewNameSpace.volatile.emit("node", ul2);
-    //     }
-    //   });
-    // });
+    transmitNodeQueue.enqueue(url);
   });
 
-  transmitNodeQueue.push(tw.user);
-
-  // checkKeyword(tw.user, function(us){
-  //   updateWordMeter(us, function(err, us2){
-  //     if (!err) {
-  //       viewNameSpace.volatile.emit("node", us2);
-  //     }
-  //   });
-  // });
+  transmitNodeQueue.enqueue(tw.user);
 
   if (tw.place){
-    transmitNodeQueue.push(tw.place);
-  //   checkKeyword(tw.place, function(pl){
-  //     updateWordMeter(pl, function(err, pl2){
-  //       if (!err) {
-  //         viewNameSpace.volatile.emit("node", pl2);
-  //       }
-  //     });
-  //   });
+    transmitNodeQueue.enqueue(tw.place);
   }
 
-  transmitNodeQueue.push(tw.user);
+  transmitNodeQueue.enqueue(tw.user);
 
-  // viewNameSpace.volatile.emit("node", tw);
   callback();
 }
 
-var metricsDataPointQueue = [];
-
+var metricsDataPointQueue = new Queue();
 var metricsDataPointQueueReady = true;
 var metricsDataPointQueueInterval;
 
@@ -1654,7 +1607,7 @@ function initMetricsDataPointQueueInterval(interval){
 
     initDeletedMetricsHashmap();
 
-    if (GOOGLE_METRICS_ENABLED && (metricsDataPointQueue.length > 0) && metricsDataPointQueueReady) {
+    if (GOOGLE_METRICS_ENABLED && !metricsDataPointQueue.isEmpty() && metricsDataPointQueueReady) {
 
       metricsDataPointQueueReady = false;
 
@@ -1663,7 +1616,6 @@ function initMetricsDataPointQueueInterval(interval){
       ));
 
       googleRequest.timeSeries.length = 0;
-      // googleRequest.timeSeries = deepcopy(metricsDataPointQueue);
 
       async.each(metricsDataPointQueue, function(dataPoint, cb){
 
@@ -1672,7 +1624,7 @@ function initMetricsDataPointQueueInterval(interval){
 
       }, function(err){
 
-        metricsDataPointQueue.length = 0;
+        metricsDataPointQueue.clear();
 
         googleMonitoringClient.createTimeSeries(googleRequest)
           .then(function(){
@@ -1756,9 +1708,9 @@ function addMetricDataPoint(options, callback){
 
   timeSeriesData.points.push(dataPoint);
 
-  metricsDataPointQueue.push(timeSeriesData);
+  metricsDataPointQueue.enqueue(timeSeriesData);
 
-  if (callback) { callback(null, { q: metricsDataPointQueue.length} ); }
+  if (callback) { callback(null, { q: metricsDataPointQueue.size()} ); }
 }
 
 function addTopTermMetricDataPoint(node, nodeRate){
@@ -2129,7 +2081,7 @@ function initTwitterRxQueueInterval(interval){
       tweet =  tweetRxQueue.dequeue();
 
       debug(chalkInfo("TPQ<"
-        + " [" + tweetParserQueue.length + "]"
+        + " [" + tweetParserQueue.size() + "]"
         // + " | " + socket.id
         + " | " + tweet.id_str
         + " | " + tweet.user.id_str
@@ -2169,11 +2121,11 @@ function initTweetParserMessageRxQueueInterval(interval){
 
   tweetParserMessageRxQueueInterval = setInterval(function () {
 
-    if ((tweetParserMessageRxQueue.length > 0) && tweetParserMessageRxQueueReady) {
+    if (!tweetParserMessageRxQueue.isEmpty() && tweetParserMessageRxQueueReady) {
 
       tweetParserMessageRxQueueReady = false;
 
-      var tweetParserMessage = tweetParserMessageRxQueue.shift();
+      var tweetParserMessage = tweetParserMessageRxQueue.dequeue();
 
       debug(chalkAlert("TWEET PARSER RX MESSAGE"
         + " | OP: " + tweetParserMessage.op
@@ -2193,7 +2145,7 @@ function initTweetParserMessageRxQueueInterval(interval){
         else {
 
           debug(chalkInfo("PARSED TW"
-            + " [ TPMRQ: " + tweetParserMessageRxQueue.length + "]"
+            + " [ TPMRQ: " + tweetParserMessageRxQueue.size() + "]"
             + " | " + tweetObj.tweetId
             + " | USR: " + tweetObj.user.screenName
             + " | Ms: " + tweetObj.mentions
@@ -2204,7 +2156,7 @@ function initTweetParserMessageRxQueueInterval(interval){
             + " | PL: " + (tweetObj.place ? tweetObj.place.fullName : "")
           ));
 
-          if (transmitNodeQueue.length < MAX_Q) {
+          if (transmitNodeQueue.size() < MAX_Q) {
             transmitNodes(tweetObj, function(err){
               if (err) {
                 // pmx.emit("ERROR", "TRANSMIT NODES ERROR");
@@ -2248,11 +2200,11 @@ function initSorterMessageRxQueueInterval(interval){
 
   sorterMessageRxQueueInterval = setInterval(function() {
 
-    if (sorterMessageRxReady && (sorterMessageRxQueue.length > 0)) {
+    if (sorterMessageRxReady && !sorterMessageRxQueue.isEmpty()) {
 
       sorterMessageRxReady = false;
 
-      sorterObj = sorterMessageRxQueue.shift();
+      sorterObj = sorterMessageRxQueue.dequeue();
 
       switch (sorterObj.op){
         case "SORTED":
@@ -2312,11 +2264,11 @@ function initUpdaterMessageQueueInterval(interval){
 
   updaterMessageQueueInterval = setInterval(function() {
 
-    if (updaterMessageReady && (updaterMessageQueue.length > 0)) {
+    if (updaterMessageReady && !updaterMessageQueue.isEmpty()) {
 
       updaterMessageReady = false;
 
-      updaterObj = updaterMessageQueue.shift();
+      updaterObj = updaterMessageQueue.dequeue();
 
       switch (updaterObj.type){
 
@@ -2345,7 +2297,7 @@ function initUpdaterMessageQueueInterval(interval){
 
         case "sendKeywordsComplete":
           console.log(chalkLog("UPDATE KEYWORDS COMPLETE"
-            + " [ Q: " + updaterMessageQueue.length + " ]"
+            + " [ Q: " + updaterMessageQueue.size() + " ]"
             + " | " + moment().format(compactDateTimeFormat)
             + " | PID: " + updaterObj.pid
             + " | NUM KEYWORDS: " + updaterObj.keywords
@@ -2402,7 +2354,7 @@ function initSorter(callback){
       // + "\n" + jsonPrint(m)
     ));
     // if (sorterMessageRxQueue.length < MAX_Q){
-      sorterMessageRxQueue.push(m);
+      sorterMessageRxQueue.enqueue(m);
     // }
   });
 
@@ -2550,7 +2502,7 @@ function initUpdater(callback){
   u.on("message", function(m){
     debug(chalkInfo("UPDATER RX\n" + jsonPrint(m)));
     // if (updaterMessageQueue.length < MAX_Q){
-      updaterMessageQueue.push(m);
+      updaterMessageQueue.enqueue(m);
     // }
   });
 
@@ -2594,8 +2546,8 @@ function initTweetParser(callback){
       + " | OP: " + m.op
       // + "\n" + jsonPrint(m)
     ));
-    if (tweetParserMessageRxQueue.length < MAX_Q){
-      tweetParserMessageRxQueue.push(m);
+    if (tweetParserMessageRxQueue.size() < MAX_Q){
+      tweetParserMessageRxQueue.enqueue(m);
     }
   });
 
@@ -2718,11 +2670,11 @@ function initRateQinterval(interval){
   statsObj.maxWordsPerMin = 0.0;
   statsObj.maxTweetsPerMin = 0.0;
 
-  statsObj.queues.transmitNodeQueue = transmitNodeQueue.length;
+  statsObj.queues.transmitNodeQueue = transmitNodeQueue.size();
   statsObj.queues.tweetRxQueue = tweetRxQueue.size();
-  statsObj.queues.updaterMessageQueue = updaterMessageQueue.length;
-  statsObj.queues.sorterMessageRxQueue = sorterMessageRxQueue.length;
-  statsObj.queues.tweetParserMessageRxQueue = tweetParserMessageRxQueue.length;
+  statsObj.queues.updaterMessageQueue = updaterMessageQueue.size();
+  statsObj.queues.sorterMessageRxQueue = sorterMessageRxQueue.size();
+  statsObj.queues.tweetParserMessageRxQueue = tweetParserMessageRxQueue.size();
 
   statsObj.memory.memoryUsage.rss = process.memoryUsage().rss/(1024*1024);
   statsObj.memory.memoryUsage.heapUsed = process.memoryUsage().heap_used/(1024*1024);
@@ -2792,11 +2744,11 @@ function initRateQinterval(interval){
 
   rateQinterval = setInterval(function () {
 
-    statsObj.queues.transmitNodeQueue = transmitNodeQueue.length;
+    statsObj.queues.transmitNodeQueue = transmitNodeQueue.size();
     statsObj.queues.tweetRxQueue = tweetRxQueue.size();
-    statsObj.queues.updaterMessageQueue = updaterMessageQueue.length;
-    statsObj.queues.sorterMessageRxQueue = sorterMessageRxQueue.length;
-    statsObj.queues.tweetParserMessageRxQueue = tweetParserMessageRxQueue.length;
+    statsObj.queues.updaterMessageQueue = updaterMessageQueue.size();
+    statsObj.queues.sorterMessageRxQueue = sorterMessageRxQueue.size();
+    statsObj.queues.tweetParserMessageRxQueue = tweetParserMessageRxQueue.size();
 
     wsObj = wordStats.toJSON();
 

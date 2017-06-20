@@ -75,7 +75,8 @@ var Entity = require('mongoose').model('Entity');
 
 var tweetServer = require("../../app/controllers/tweets.server.controller");
 
-var tweetParserQueue = [];
+var Queue = require("queue-fifo");
+var tweetParserQueue = new Queue();
 
 console.log(
   '\n\n====================================================================================================\n' 
@@ -153,7 +154,7 @@ process.on('message', function(m) {
     case "tweet":
       tweetParserQueue.push(m.tweetStatus);
       debug(chalkInfo("T<"
-        + " [" + tweetParserQueue.length + "]"
+        + " [" + tweetParserQueue.size() + "]"
         + " | " + m.tweetStatus.id_str
       ));
     break;
@@ -192,25 +193,16 @@ function initTweetParserQueueInterval(cnf){
 
   clearInterval(tweetParserQueueInterval);
 
-  var params = {
-    globalTestMode: cnf.globalTestMode,
-    testMode: cnf.testMode,
-    noInc: cnf.noInc,
-    twitterEvents: configEvents
-  };
-
-  var tweet;
-
   tweetParserQueueInterval = setInterval(function(){
 
-    if (tweetParserQueue.length > 0){
+    if (!tweetParserQueue.isEmpty()){
 
       tweetParserQueueReady = false;
 
-      tweet = tweetParserQueue.shift();
+      var tweet = tweetParserQueue.dequeue();
 
       debug(chalkInfo("TPQ>"
-        + " [" + tweetParserQueue.length + "]"
+        + " [" + tweetParserQueue.size() + "]"
         // + " | " + socket.id
         + " | " + tweet.id_str
         + " | " + tweet.user.id_str
@@ -218,6 +210,12 @@ function initTweetParserQueueInterval(cnf){
         + " | " + tweet.user.name
       ));
 
+     var params = {
+        globalTestMode: cnf.globalTestMode,
+        testMode: cnf.testMode,
+        noInc: cnf.noInc,
+        twitterEvents: configEvents
+      };
       params.tweetStatus = tweet;
 
       tweetServer.createStreamTweet(
@@ -240,7 +238,7 @@ function initTweetParserQueueInterval(cnf){
             tweetParserQueueReady = true;
           }
           else {
-            debug(chalkInfo("[" + tweetParserQueue.length + "]"
+            debug(chalkInfo("[" + tweetParserQueue.size() + "]"
               + " createStreamTweet DONE" 
               + " | " + tweetObj.tweetId
               // + "\ntweetObj.tweet.user\n" + jsonPrint(tweetObj.tweet.user)
@@ -267,7 +265,6 @@ function initTweetParserQueueInterval(cnf){
           
         }
       );
-      // tweetParserQueueReady = true;
 
     }
   }, cnf.updateInterval);

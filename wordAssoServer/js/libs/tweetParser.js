@@ -152,7 +152,7 @@ process.on('message', function(m) {
     break;
 
     case "tweet":
-      tweetParserQueue.push(m.tweetStatus);
+      tweetParserQueue.enqueue(m.tweetStatus);
       debug(chalkInfo("T<"
         + " [" + tweetParserQueue.size() + "]"
         + " | " + m.tweetStatus.id_str

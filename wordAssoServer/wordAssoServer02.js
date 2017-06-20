@@ -615,6 +615,7 @@ statsObj.queues = {};
 statsObj.queues.sorterMessageRxQueue = 0;
 statsObj.queues.tweetRxQueue = 0;
 statsObj.queues.tweetParserMessageRxQueue = 0;
+statsObj.queues.transmitNodeQueue = 0;
 statsObj.queues.updaterMessageQueue = 0;
 
 statsObj.session = {};
@@ -2654,6 +2655,7 @@ function initRateQinterval(interval){
   statsObj.maxWordsPerMin = 0.0;
   statsObj.maxTweetsPerMin = 0.0;
 
+  statsObj.queues.transmitNodeQueue = transmitNodeQueue.size();
   statsObj.queues.tweetRxQueue = tweetRxQueue.size();
   statsObj.queues.updaterMessageQueue = updaterMessageQueue.length;
   statsObj.queues.sorterMessageRxQueue = sorterMessageRxQueue.length;
@@ -2727,6 +2729,7 @@ function initRateQinterval(interval){
 
   rateQinterval = setInterval(function () {
 
+    statsObj.queues.transmitNodeQueue = transmitNodeQueue.size();
     statsObj.queues.tweetRxQueue = tweetRxQueue.size();
     statsObj.queues.updaterMessageQueue = updaterMessageQueue.length;
     statsObj.queues.sorterMessageRxQueue = sorterMessageRxQueue.length;

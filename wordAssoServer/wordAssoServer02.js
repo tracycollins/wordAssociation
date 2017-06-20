@@ -2146,13 +2146,18 @@ function initTweetParserMessageRxQueueInterval(interval){
             + " | PL: " + (tweetObj.place ? tweetObj.place.fullName : "")
           ));
 
-          transmitNodes(tweetObj, function(err){
-            if (err) {
-              pmx.emit("ERROR", "TRANSMIT NODES ERROR");
-              console.error(chalkError("TRANSMIT NODES ERROR\n" + err));
-            }
+          if (transmitNodeQueue.length < MAX_Q) {
+            transmitNodes(tweetObj, function(err){
+              if (err) {
+                pmx.emit("ERROR", "TRANSMIT NODES ERROR");
+                console.error(chalkError("TRANSMIT NODES ERROR\n" + err));
+              }
+              tweetParserMessageRxQueueReady = true;
+            });
+          }
+          else {
             tweetParserMessageRxQueueReady = true;
-          });
+          }
         }
       }
       else {

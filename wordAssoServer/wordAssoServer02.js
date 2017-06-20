@@ -2730,13 +2730,13 @@ function initRateQinterval(interval){
 
   var queueNames;
 
-  var paramsSorter = {};
+  // var paramsSorter = {};
 
-  paramsSorter.obj = {};
-  paramsSorter.op = "SORT";
-  paramsSorter.sortKey = metricsRate;
-  paramsSorter.max = configuration.maxTopTerms;
-  // paramsSorter.obj = wordMeter;
+  // paramsSorter.obj = {};
+  // paramsSorter.op = "SORT";
+  // paramsSorter.sortKey = metricsRate;
+  // paramsSorter.max = configuration.maxTopTerms;
+  // // paramsSorter.obj = wordMeter;
 
   var memoryRssDataPoint = {};
   memoryRssDataPoint.metricType = "memory/rss";
@@ -2805,9 +2805,6 @@ function initRateQinterval(interval){
     statsObj.wordsPerSecond = wsObj.wordsPerSecond[metricsRate];
     statsObj.wordsPerMin = wsObj.wordsPerMinute[metricsRate];
 
-    // statsObj.obamaPerMinute = wsObj.obamaPerMinute[metricsRate];
-    // statsObj.trumpPerMinute = wsObj.trumpPerMinute[metricsRate];
-
     debug(chalkLog(moment.utc().format(compactDateTimeFormat)
       + " | WPS: " + statsObj.wordsPerSecond.toFixed(2)
       + " | WPM: " + statsObj.wordsPerMin.toFixed(0)
@@ -2816,31 +2813,18 @@ function initRateQinterval(interval){
     ));
 
     if (statsObj.wordsPerMin > statsObj.maxWordsPerMin) {
-      // maxWordsPerMin = wordsPerMinute;
-      // maxWordsPerMinTime = moment.utc();
       console.log(chalkLog("NEW MAX WPM: " + statsObj.wordsPerMin.toFixed(0)));
       statsObj.maxWordsPerMin = statsObj.wordsPerMin;
       statsObj.maxWordsPerMinTime = moment().valueOf();
     }
 
-    // if (statsObj.obamaPerMinute > statsObj.maxObamaPerMin) {
-    //   // maxObamaPerMin = obamaPerMinute;
-    //   // maxObamaPerMinTime = moment.utc();
-    //   console.log(chalkLog("NEW MAX OPM: " + statsObj.obamaPerMinute.toFixed(0)));
-    //   statsObj.maxObamaPerMin = statsObj.obamaPerMinute;
-    //   statsObj.maxObamaPerMinTime = moment().valueOf();
-    // }
-
-    // if (statsObj.trumpPerMinute > statsObj.maxTrumpPerMin) {
-    //   // maxTrumpPerMin = trumpPerMinute;
-    //   // maxTrumpPerMinTime = moment.utc();
-    //   console.log(chalkLog("NEW MAX TrPM: " + statsObj.trumpPerMinute.toFixed(0)));
-    //   statsObj.maxTrumpPerMin = statsObj.trumpPerMinute;
-    //   statsObj.maxTrumpPerMinTime = moment().valueOf();
-    // }
-
     if (updateTimeSeriesCount === 0){
 
+      var paramsSorter = {};
+
+      paramsSorter.op = "SORT";
+      paramsSorter.sortKey = metricsRate;
+      paramsSorter.max = configuration.maxTopTerms;
       paramsSorter.obj = {};
 
       async.each(Object.keys(wordMeter), function(meterId, cb){

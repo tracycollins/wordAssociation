@@ -597,6 +597,9 @@ statsObj.entity.viewer.connectedMaxTime = moment().valueOf();
 
 console.log("process.memoryUsage()\n"+ jsonPrint(process.memoryUsage()));
 statsObj.memory = {};
+statsObj.memory.rss = process.memoryUsage().rss/(1024*1024);
+statsObj.memory.maxRss = process.memoryUsage().heapUsed/(1024*1024);
+statsObj.memory.maxRssTime = moment().valueOf();
 statsObj.memory.heap = process.memoryUsage().heapUsed/(1024*1024);
 statsObj.memory.maxHeap = process.memoryUsage().heapUsed/(1024*1024);
 statsObj.memory.maxHeapTime = moment().valueOf();

@@ -2344,9 +2344,9 @@ function initSorter(callback){
       + " | " + m.op
       // + "\n" + jsonPrint(m)
     ));
-    if (sorterMessageRxQueue.length < MAX_Q){
+    // if (sorterMessageRxQueue.length < MAX_Q){
       sorterMessageRxQueue.push(m);
-    }
+    // }
   });
 
   s.send({
@@ -2492,9 +2492,9 @@ function initUpdater(callback){
 
   u.on("message", function(m){
     debug(chalkInfo("UPDATER RX\n" + jsonPrint(m)));
-    if (updaterMessageQueue.length < MAX_Q){
+    // if (updaterMessageQueue.length < MAX_Q){
       updaterMessageQueue.push(m);
-    }
+    // }
   });
 
   u.send({

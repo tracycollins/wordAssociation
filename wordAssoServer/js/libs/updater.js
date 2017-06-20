@@ -341,19 +341,19 @@ function updateKeywords(folder, file, callback){
     var keywordFileClientModifiedMoment = moment(new Date(response.client_modified));
 
     if (keywordFileClientModifiedMoment.isSameOrBefore(prevKeywordModifiedMoment)){
-      console.log(chalk.blue("KEYWORD FILE BEFORE OR EQUAL"
+      debug(chalk.blue("KEYWORD FILE BEFORE OR EQUAL"
         + " | PREV: " + prevKeywordModifiedMoment.format(compactDateTimeFormat)
         + " | " + keywordFileClientModifiedMoment.format(compactDateTimeFormat)
       ));
       callback(null, 0);
     }
     else {
-      console.log(chalk.blue("=== KEYWORD FILE AFTER"
+      console.log(chalk.blue("=K= KEYWORD FILE AFTER"
         + " | PREV: " + prevKeywordModifiedMoment.format(compactDateTimeFormat)
         + " | " + keywordFileClientModifiedMoment.format(compactDateTimeFormat)
       ));
 
-      console.log(chalkInfo("=== UPDATING KEYWORDS | " + folder + "/" + file));
+      console.log(chalkInfo("=K= UPDATING KEYWORDS | " + folder + "/" + file));
 
       prevKeywordModifiedMoment = moment(keywordFileClientModifiedMoment);
 

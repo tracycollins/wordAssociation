@@ -414,13 +414,15 @@ nodeCache.on("expired", function(nodeCacheId, nodeObj) {
     + " | " + nodeCacheId
   ));
 
+  // if (wordMeter[nodeCacheId] !== undefined) {
   if (wordMeter[nodeCacheId] !== undefined) {
     // wordMeter[nodeCacheId] = {};
     // wordMeter[nodeCacheId] = undefined;
     // delete wordMeter[nodeCacheId];
 
     wordMeter[nodeCacheId].unref();
-    wordMeter[nodeCacheId] = undefined;
+    // wordMeter[nodeCacheId] = undefined;
+    wordMeter[nodeCacheId] = null;
 
     wordMeter = omit(wordMeter, nodeCacheId);
     delete wordMeter[nodeCacheId];
@@ -1217,11 +1219,11 @@ function initSocketNamespaces(callback){
 
 function checkKeyword(nodeObj, callback) {
 
-  var kwObj = {};  
-  var obamaHit = false;
-  var trumpHit = false;
-  var wsObamaObj = {};
-  var wsTrumpObj = {};
+  // var kwObj = {};  
+  // var obamaHit = false;
+  // var trumpHit = false;
+  // var wsObamaObj = {};
+  // var wsTrumpObj = {};
 
   debug(chalkAlert("checkKeyword"
     + " | " + nodeObj.nodeType
@@ -1235,9 +1237,10 @@ function checkKeyword(nodeObj, callback) {
     && (nodeObj.screenName) 
     && keywordHashMap.has(nodeObj.screenName.toLowerCase())) {
     debug(chalkAlert("HIT USER SNAME"));
-    kwObj = keywordHashMap.get(nodeObj.screenName.toLowerCase());
+    // kwObj = keywordHashMap.get(nodeObj.screenName.toLowerCase());
     nodeObj.isKeyword = true;
-    nodeObj.keywords = kwObj;    
+    // nodeObj.keywords = kwObj;    
+    nodeObj.keywords = keywordHashMap.get(nodeObj.screenName.toLowerCase());
     // callback(nodeObj);
   }
   else if ((nodeObj.nodeType === "user") 
@@ -1245,24 +1248,24 @@ function checkKeyword(nodeObj, callback) {
     && (nodeObj.name) 
     && keywordHashMap.has(nodeObj.name.toLowerCase())) {
     debug(chalkAlert("HIT USER NAME"));
-    kwObj = keywordHashMap.get(nodeObj.name.toLowerCase());
+    nodeObj.keywords = keywordHashMap.get(nodeObj.name.toLowerCase());
     nodeObj.isKeyword = true;
-    nodeObj.keywords = kwObj;    
+    // nodeObj.keywords = kwObj;    
     // callback(nodeObj);
   }
   else if ((nodeObj.nodeType === "place") 
     && keywordHashMap.has(nodeObj.name.toLowerCase())) {
     debug(chalkAlert("HIT PLACE NAME"));
-    kwObj = keywordHashMap.get(nodeObj.name.toLowerCase());
+    nodeObj.keywords = keywordHashMap.get(nodeObj.name.toLowerCase());
     nodeObj.isKeyword = true;
-    nodeObj.keywords = kwObj;    
+    // nodeObj.keywords = kwObj;    
     // callback(nodeObj);
   }
   else if (nodeObj.nodeId && keywordHashMap.has(nodeObj.nodeId.toLowerCase())) {
     debug(chalkAlert("HIT NODE ID"));
-    kwObj = keywordHashMap.get(nodeObj.nodeId.toLowerCase());
+    nodeObj.keywords = keywordHashMap.get(nodeObj.nodeId.toLowerCase());
     nodeObj.isKeyword = true;
-    nodeObj.keywords = kwObj;    
+    // nodeObj.keywords = kwObj;    
     if ((nodeObj.nodeType === "user") 
       && (nodeObj.name === undefined) 
       && (nodeObj.screenName === undefined)) {
@@ -1272,9 +1275,9 @@ function checkKeyword(nodeObj, callback) {
   }
   else if (nodeObj.text && keywordHashMap.has(nodeObj.text.toLowerCase())) {
     debug(chalkAlert("HIT TEXT"));
-    kwObj = keywordHashMap.get(nodeObj.text.toLowerCase());
+    nodeObj.keywords = keywordHashMap.get(nodeObj.text.toLowerCase());
     nodeObj.isKeyword = true;
-    nodeObj.keywords = kwObj;    
+    // nodeObj.keywords = kwObj;    
     if ((nodeObj.nodeType === "user") 
       && (nodeObj.name === undefined) 
       && (nodeObj.screenName === undefined)) {
@@ -1296,35 +1299,35 @@ function checkKeyword(nodeObj, callback) {
 
       // console.log(chalkAlert("TWEET | checkKeyword\n" + jsonPrint(nodeObj)));
 
-      if (nodeObj.text.toLowerCase().includes("sciencemarch") || nodeObj.text.toLowerCase().includes("marchforscience")) {
-        nodeObj.isKeyword = true;
-        nodeObj.keywords.positive = DEFAULT_KEYWORD_VALUE;
-        debug(chalkError("SCIENCEMARCH: " + nodeObj.text));
-      }
+      // if (nodeObj.text.toLowerCase().includes("sciencemarch") || nodeObj.text.toLowerCase().includes("marchforscience")) {
+      //   nodeObj.isKeyword = true;
+      //   nodeObj.keywords.positive = DEFAULT_KEYWORD_VALUE;
+      //   debug(chalkError("SCIENCEMARCH: " + nodeObj.text));
+      // }
 
-      if (nodeObj.text.toLowerCase().includes("obama")) {
-        obamaHit = nodeObj.text;
-        nodeObj.isKeyword = true;
-        if (!nodeObj.keywords.right){
-          nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
-        }
-        else {
-          delete nodeObj.keywords.left;
-        }
-        debug(chalkError("OBAMA: " + nodeObj.text));
-      }
+      // if (nodeObj.text.toLowerCase().includes("obama")) {
+      //   // obamaHit = nodeObj.text;
+      //   nodeObj.isKeyword = true;
+      //   if (!nodeObj.keywords.right){
+      //     nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
+      //   }
+      //   else {
+      //     delete nodeObj.keywords.left;
+      //   }
+      //   debug(chalkError("OBAMA: " + nodeObj.text));
+      // }
 
-      if (nodeObj.text.toLowerCase().includes("trump")) {
-        trumpHit = nodeObj.text;
-        nodeObj.isKeyword = true;
-        if (!nodeObj.keywords || !nodeObj.keywords.left){
-          nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
-        }
-        else {
-          delete nodeObj.keywords.right;
-        }
-        debug(chalkError("TRUMP: " + nodeObj.text));
-      }
+      // if (nodeObj.text.toLowerCase().includes("trump")) {
+      //   // trumpHit = nodeObj.text;
+      //   nodeObj.isKeyword = true;
+      //   if (!nodeObj.keywords || !nodeObj.keywords.left){
+      //     nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
+      //   }
+      //   else {
+      //     delete nodeObj.keywords.right;
+      //   }
+      //   debug(chalkError("TRUMP: " + nodeObj.text));
+      // }
 
       callback(nodeObj);
     break;
@@ -1350,26 +1353,26 @@ function checkKeyword(nodeObj, callback) {
             debug(chalkAlert("TOP TERM: " + screenName));
             nodeObj.isTopTerm = true;
           }
-          if (nodeObj.screenName.toLowerCase().includes("obama")) {
-            obamaHit = nodeObj.screenName;
-            nodeObj.isKeyword = true;
-          if (!nodeObj.keywords || !nodeObj.keywords.right){
-              nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
-            }
-            else {
-              delete nodeObj.keywords.left;
-            }
-          }
-          if (nodeObj.screenName.toLowerCase().includes("trump")) {
-            trumpHit = nodeObj.screenName;
-            nodeObj.isKeyword = true;
-            if (!nodeObj.keywords || !nodeObj.keywords.left){
-              nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
-            }
-            else {
-              delete nodeObj.keywords.right;
-            }
-          }
+          // if (nodeObj.screenName.toLowerCase().includes("obama")) {
+          //   // obamaHit = nodeObj.screenName;
+          //   nodeObj.isKeyword = true;
+          //   if (!nodeObj.keywords || !nodeObj.keywords.right){
+          //     nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
+          //   }
+          //   else {
+          //     delete nodeObj.keywords.left;
+          //   }
+          // }
+          // if (nodeObj.screenName.toLowerCase().includes("trump")) {
+          //   // trumpHit = nodeObj.screenName;
+          //   nodeObj.isKeyword = true;
+          //   if (!nodeObj.keywords || !nodeObj.keywords.left){
+          //     nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
+          //   }
+          //   else {
+          //     delete nodeObj.keywords.right;
+          //   }
+          // }
           callback(nodeObj);
         });
       }
@@ -1384,26 +1387,26 @@ function checkKeyword(nodeObj, callback) {
           if (name !== undefined) {
             nodeObj.isTopTerm = true;
           }
-          if (nodeObj.name.toLowerCase().includes("obama")) {
-            obamaHit = nodeObj.name;
-            nodeObj.isKeyword = true;
-            if (!nodeObj.keywords.right){
-              nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
-            }
-            else {
-              delete nodeObj.keywords.left;
-            }
-          }
-          if (nodeObj.name.toLowerCase().includes("trump")) {
-            trumpHit = nodeObj.name;
-            nodeObj.isKeyword = true;
-            if (!nodeObj.keywords.left){
-              nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
-            }
-            else {
-              delete nodeObj.keywords.right;
-            }
-          }
+          // if (nodeObj.name.toLowerCase().includes("obama")) {
+          //   // obamaHit = nodeObj.name;
+          //   nodeObj.isKeyword = true;
+          //   if (!nodeObj.keywords.right){
+          //     nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
+          //   }
+          //   else {
+          //     delete nodeObj.keywords.left;
+          //   }
+          // }
+          // if (nodeObj.name.toLowerCase().includes("trump")) {
+          //   // trumpHit = nodeObj.name;
+          //   nodeObj.isKeyword = true;
+          //   if (!nodeObj.keywords.left){
+          //     nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
+          //   }
+          //   else {
+          //     delete nodeObj.keywords.right;
+          //   }
+          // }
           callback(nodeObj);
         });
       }
@@ -1429,26 +1432,26 @@ function checkKeyword(nodeObj, callback) {
           nodeObj.isKeyword = true;
           nodeObj.keywords.positive = DEFAULT_KEYWORD_VALUE;
         }
-        if (nodeObj.nodeId.toLowerCase().includes("obama")) {
-          obamaHit = nodeObj.nodeId;
-          nodeObj.isKeyword = true;
-          if (!nodeObj.keywords.right){
-            nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
-          }
-          else {
-            delete nodeObj.keywords.left;
-          }
-        }
-        if (nodeObj.nodeId.toLowerCase().includes("trump")) {
-          trumpHit = nodeObj.nodeId;
-          nodeObj.isKeyword = true;
-          if (!nodeObj.keywords || !nodeObj.keywords.left){
-            nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
-          }
-          else {
-            delete nodeObj.keywords.right;
-          }
-        }
+        // if (nodeObj.nodeId.toLowerCase().includes("obama")) {
+        //   // obamaHit = nodeObj.nodeId;
+        //   nodeObj.isKeyword = true;
+        //   if (!nodeObj.keywords.right){
+        //     nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
+        //   }
+        //   else {
+        //     delete nodeObj.keywords.left;
+        //   }
+        // }
+        // if (nodeObj.nodeId.toLowerCase().includes("trump")) {
+        //   // trumpHit = nodeObj.nodeId;
+        //   nodeObj.isKeyword = true;
+        //   if (!nodeObj.keywords || !nodeObj.keywords.left){
+        //     nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
+        //   }
+        //   else {
+        //     delete nodeObj.keywords.right;
+        //   }
+        // }
         callback(nodeObj);
       });
     break;
@@ -1470,26 +1473,26 @@ function checkKeyword(nodeObj, callback) {
         if (nodeId !== undefined) {
           nodeObj.isTopTerm = true;
         }
-        if (nodeObj.name.toLowerCase().includes("obama")) {
-          obamaHit = nodeObj.nodeId;
-          nodeObj.isKeyword = true;
-          if (!nodeObj.keywords.right){
-            nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
-          }
-          else {
-            delete nodeObj.keywords.left;
-          }
-        }
-        if (nodeObj.name.toLowerCase().includes("trump")) {
-          trumpHit = nodeObj.nodeId;
-          nodeObj.isKeyword = true;
-          if (!nodeObj.keywords.left){
-            nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
-          }
-          else {
-            delete nodeObj.keywords.right;
-          }
-        }
+        // if (nodeObj.name.toLowerCase().includes("obama")) {
+        //   // obamaHit = nodeObj.nodeId;
+        //   nodeObj.isKeyword = true;
+        //   if (!nodeObj.keywords.right){
+        //     nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
+        //   }
+        //   else {
+        //     delete nodeObj.keywords.left;
+        //   }
+        // }
+        // if (nodeObj.name.toLowerCase().includes("trump")) {
+        //   // trumpHit = nodeObj.nodeId;
+        //   nodeObj.isKeyword = true;
+        //   if (!nodeObj.keywords.left){
+        //     nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
+        //   }
+        //   else {
+        //     delete nodeObj.keywords.right;
+        //   }
+        // }
         callback(nodeObj);
       });
     break;
@@ -1506,26 +1509,26 @@ function checkKeyword(nodeObj, callback) {
         if (nodeId !== undefined) {
           nodeObj.isTopTerm = true;
         }
-        if (nodeObj.nodeId.toLowerCase().includes("obama")) {
-          obamaHit = nodeObj.nodeId;
-          nodeObj.isKeyword = true;
-          if (!nodeObj.keywords.right){
-            nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
-          }
-          else {
-            delete nodeObj.keywords.left;
-          }
-        }
-        if (nodeObj.nodeId.toLowerCase().includes("trump")) {
-          trumpHit = nodeObj.nodeId;
-          nodeObj.isKeyword = true;
-          if (!nodeObj.keywords.left){
-            nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
-          }
-          else {
-            delete nodeObj.keywords.right;
-          }
-        }
+        // if (nodeObj.nodeId.toLowerCase().includes("obama")) {
+        //   // obamaHit = nodeObj.nodeId;
+        //   nodeObj.isKeyword = true;
+        //   if (!nodeObj.keywords.right){
+        //     nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
+        //   }
+        //   else {
+        //     delete nodeObj.keywords.left;
+        //   }
+        // }
+        // if (nodeObj.nodeId.toLowerCase().includes("trump")) {
+        //   // trumpHit = nodeObj.nodeId;
+        //   nodeObj.isKeyword = true;
+        //   if (!nodeObj.keywords.left){
+        //     nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
+        //   }
+        //   else {
+        //     delete nodeObj.keywords.right;
+        //   }
+        // }
         callback(nodeObj);
       });
     break;

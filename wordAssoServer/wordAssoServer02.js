@@ -2297,54 +2297,90 @@ function initTweetParserMessageRxQueueInterval(interval){
         // + "\n" + jsonPrint(m)
       ));
 
-
-      switch (tweetParserMessage.op) {
-
-        case "parsedTweet":
-
-          tweetObj = tweetParserMessage.tweetObj;
-
-          if (!tweetObj.user) {
-
-            console.log(chalkAlert("parsedTweet -- TW USER UNDEFINED"
-              + " | " + tweetObj.tweetId
-            ));
-
-            tweetParserMessageRxQueueReady = true;
-
-          }
-          else {
-
-            debug(chalkInfo("PARSED TW"
-              + " [ TPMRQ: " + tweetParserMessageRxQueue.length + "]"
-              + " | " + tweetObj.tweetId
-              + " | USR: " + tweetObj.user.screenName
-              + " | Ms: " + tweetObj.mentions
-              + " | Hs: " + tweetObj.hashtags.length
-              + " | UMs: " + tweetObj.userMentions.length
-              + " | M: " + tweetObj.media.length
-              + " | URLs: " + tweetObj.url.length
-              + " | PL: " + (tweetObj.place ? tweetObj.place.fullName : "")
-            ));
-
-            transmitNodes(tweetObj, function(err){
-              if (err) {
-                pmx.emit("ERROR", "TRANSMIT NODES ERROR");
-                console.error(chalkError("TRANSMIT NODES ERROR\n" + err));
-              }
-              tweetParserMessageRxQueueReady = true;
-            });
-
-          }
-
-        break;
-
-        default:
-          console.error(chalkError("*** TWEET PARSER UNKNOWN OP"
-            + " | INTERVAL: " + tweetParserMessage.op
+      if (tweetParserMessage.op === "parsedTweet") {
+        if (!tweetObj.user) {
+          console.log(chalkAlert("parsedTweet -- TW USER UNDEFINED"
+            + " | " + tweetObj.tweetId
           ));
           tweetParserMessageRxQueueReady = true;
+        }
+        else {
+
+          debug(chalkInfo("PARSED TW"
+            + " [ TPMRQ: " + tweetParserMessageRxQueue.length + "]"
+            + " | " + tweetObj.tweetId
+            + " | USR: " + tweetObj.user.screenName
+            + " | Ms: " + tweetObj.mentions
+            + " | Hs: " + tweetObj.hashtags.length
+            + " | UMs: " + tweetObj.userMentions.length
+            + " | M: " + tweetObj.media.length
+            + " | URLs: " + tweetObj.url.length
+            + " | PL: " + (tweetObj.place ? tweetObj.place.fullName : "")
+          ));
+
+          transmitNodes(tweetObj, function(err){
+            if (err) {
+              pmx.emit("ERROR", "TRANSMIT NODES ERROR");
+              console.error(chalkError("TRANSMIT NODES ERROR\n" + err));
+            }
+            tweetParserMessageRxQueueReady = true;
+          });
+        }
       }
+      else {
+        console.error(chalkError("*** TWEET PARSER UNKNOWN OP"
+          + " | INTERVAL: " + tweetParserMessage.op
+        ));
+        tweetParserMessageRxQueueReady = true;
+      }
+
+      // switch (tweetParserMessage.op) {
+
+      //   case "parsedTweet":
+
+      //     tweetObj = tweetParserMessage.tweetObj;
+
+      //     if (!tweetObj.user) {
+
+      //       console.log(chalkAlert("parsedTweet -- TW USER UNDEFINED"
+      //         + " | " + tweetObj.tweetId
+      //       ));
+
+      //       tweetParserMessageRxQueueReady = true;
+
+      //     }
+      //     else {
+
+      //       debug(chalkInfo("PARSED TW"
+      //         + " [ TPMRQ: " + tweetParserMessageRxQueue.length + "]"
+      //         + " | " + tweetObj.tweetId
+      //         + " | USR: " + tweetObj.user.screenName
+      //         + " | Ms: " + tweetObj.mentions
+      //         + " | Hs: " + tweetObj.hashtags.length
+      //         + " | UMs: " + tweetObj.userMentions.length
+      //         + " | M: " + tweetObj.media.length
+      //         + " | URLs: " + tweetObj.url.length
+      //         + " | PL: " + (tweetObj.place ? tweetObj.place.fullName : "")
+      //       ));
+
+      //       transmitNodes(tweetObj, function(err){
+      //         if (err) {
+      //           pmx.emit("ERROR", "TRANSMIT NODES ERROR");
+      //           console.error(chalkError("TRANSMIT NODES ERROR\n" + err));
+      //         }
+      //         tweetParserMessageRxQueueReady = true;
+      //       });
+
+      //     }
+
+      //   break;
+
+      //   default:
+      //     console.error(chalkError("*** TWEET PARSER UNKNOWN OP"
+      //       + " | INTERVAL: " + tweetParserMessage.op
+      //     ));
+      //     tweetParserMessageRxQueueReady = true;
+      // }
 
     }
   }, interval);

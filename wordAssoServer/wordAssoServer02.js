@@ -53,7 +53,7 @@ var TRENDING_CACHE_DEFAULT_TTL = 5*60;
 var TRENDING_CACHE_CHECK_PERIOD = 60;
 
 var NODE_CACHE_DEFAULT_TTL = 60;
-var NODE_CACHE_CHECK_PERIOD = 10;
+var NODE_CACHE_CHECK_PERIOD = 5;
 
 var ignoreWordsArray = [
   "r",
@@ -394,13 +394,13 @@ var nodeCache = new NodeCache({
   checkperiod: nodeCacheCheckPeriod
 });
 
-nodeCache.on("set", function(nodeCacheId, nodeObj) {
-  debug(chalkAlert("SET NODE $"
-    + " | TTL: " + getTimeStamp(nodeCache.getTtl(nodeCacheId))
-    + " | " + nodeObj.nodeType
-    + " | " + nodeCacheId
-  ));
-});
+// nodeCache.on("set", function(nodeCacheId, nodeObj) {
+//   debug(chalkAlert("SET NODE $"
+//     + " | TTL: " + getTimeStamp(nodeCache.getTtl(nodeCacheId))
+//     + " | " + nodeObj.nodeType
+//     + " | " + nodeCacheId
+//   ));
+// });
 
 nodeCache.on("expired", function(nodeCacheId, nodeObj) {
 
@@ -416,6 +416,7 @@ nodeCache.on("expired", function(nodeCacheId, nodeObj) {
     // delete wordMeter[nodeCacheId];
 
     wordMeter[nodeCacheId].unref();
+    wordMeter[nodeCacheId].end();
     // wordMeter[nodeCacheId] = undefined;
     wordMeter[nodeCacheId] = null;
 
@@ -454,10 +455,10 @@ var trendingCache = new NodeCache({
   checkperiod: TRENDING_CACHE_CHECK_PERIOD
 });
 
-trendingCache.on( "expired", function(topic, topicObj){
-  // debug("CACHE TOPIC EXPIRED\n" + jsonPrint(topicObj));
-  debug(chalkInfo("XXX $ TREND | " + topic + " | " + topicObj.name));
-});
+// trendingCache.on( "expired", function(topic, topicObj){
+//   // debug("CACHE TOPIC EXPIRED\n" + jsonPrint(topicObj));
+//   debug(chalkInfo("XXX $ TREND | " + topic + " | " + topicObj.name));
+// });
 
 var wordsPerMinuteTopTermTtl = process.env.TOPTERMS_CACHE_DEFAULT_TTL;
 if (wordsPerMinuteTopTermTtl === undefined) {wordsPerMinuteTopTermTtl = TOPTERMS_CACHE_DEFAULT_TTL;}
@@ -472,19 +473,19 @@ var wordsPerMinuteTopTermCache = new NodeCache({
   checkperiod: TOPTERMS_CACHE_CHECK_PERIOD
 });
 
-wordsPerMinuteTopTermCache.on( "expired", function(word, wordRate){
-  // debug("$ WPM TOPTERM XXX\n" + jsonPrint(wpmObj));
-  debug(chalkInfo("XXX $ WPM TOPTERM | " + wordRate.toFixed(3) + " | " + word));
-});
+// wordsPerMinuteTopTermCache.on( "expired", function(word, wordRate){
+//   // debug("$ WPM TOPTERM XXX\n" + jsonPrint(wpmObj));
+//   debug(chalkInfo("XXX $ WPM TOPTERM | " + wordRate.toFixed(3) + " | " + word));
+// });
 
 
 var rateQinterval;
 var Measured = require("measured");
 
-var wordStats = Measured.createCollection();
+// var wordStats = Measured.createCollection();
 
-wordStats.meter("wordsPerSecond", {rateUnit: 1000, tickInterval: 1000});
-wordStats.meter("wordsPerMinute", {rateUnit: 60000, tickInterval: 1000});
+// wordStats.meter("wordsPerSecond", {rateUnit: 1000, tickInterval: 1000});
+// wordStats.meter("wordsPerMinute", {rateUnit: 60000, tickInterval: 1000});
 // wordStats.meter("obamaPerSecond", {rateUnit: 1000, tickInterval: 1000});
 // wordStats.meter("obamaPerMinute", {rateUnit: 60000, tickInterval: 1000});
 // wordStats.meter("trumpPerSecond", {rateUnit: 1000, tickInterval: 1000});
@@ -2777,25 +2778,25 @@ function initRateQinterval(interval){
     statsObj.queues.sorterMessageRxQueue = sorterMessageRxQueue.size();
     statsObj.queues.tweetParserMessageRxQueue = tweetParserMessageRxQueue.size();
 
-    wsObj = wordStats.toJSON();
+    // wsObj = wordStats.toJSON();
 
-    if (wsObj === undefined) {return;}
+    // if (wsObj === undefined) {return;}
 
-    statsObj.wordsPerSecond = wsObj.wordsPerSecond[metricsRate];
-    statsObj.wordsPerMin = wsObj.wordsPerMinute[metricsRate];
+    // statsObj.wordsPerSecond = wsObj.wordsPerSecond[metricsRate];
+    // statsObj.wordsPerMin = wsObj.wordsPerMinute[metricsRate];
 
-    debug(chalkLog(moment.utc().format(compactDateTimeFormat)
-      + " | WPS: " + statsObj.wordsPerSecond.toFixed(2)
-      + " | WPM: " + statsObj.wordsPerMin.toFixed(0)
-      // + " | OPM: " + statsObj.obamaPerMinute.toFixed(0)
-      // + " | TrPM: " + statsObj.trumpPerMinute.toFixed(0)
-    ));
+    // debug(chalkLog(moment.utc().format(compactDateTimeFormat)
+    //   + " | WPS: " + statsObj.wordsPerSecond.toFixed(2)
+    //   + " | WPM: " + statsObj.wordsPerMin.toFixed(0)
+    //   // + " | OPM: " + statsObj.obamaPerMinute.toFixed(0)
+    //   // + " | TrPM: " + statsObj.trumpPerMinute.toFixed(0)
+    // ));
 
-    if (statsObj.wordsPerMin > statsObj.maxWordsPerMin) {
-      console.log(chalkLog("NEW MAX WPM: " + statsObj.wordsPerMin.toFixed(0)));
-      statsObj.maxWordsPerMin = statsObj.wordsPerMin;
-      statsObj.maxWordsPerMinTime = moment().valueOf();
-    }
+    // if (statsObj.wordsPerMin > statsObj.maxWordsPerMin) {
+    //   console.log(chalkLog("NEW MAX WPM: " + statsObj.wordsPerMin.toFixed(0)));
+    //   statsObj.maxWordsPerMin = statsObj.wordsPerMin;
+    //   statsObj.maxWordsPerMinTime = moment().valueOf();
+    // }
 
     if (updateTimeSeriesCount === 0){
 
@@ -2888,7 +2889,6 @@ function initRateQinterval(interval){
           }
         }
       }
-  
     }
 
     updateTimeSeriesCount += 1;

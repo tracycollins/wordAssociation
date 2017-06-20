@@ -2655,7 +2655,7 @@ function initRateQinterval(interval){
   statsObj.maxWordsPerMin = 0.0;
   statsObj.maxTweetsPerMin = 0.0;
 
-  statsObj.queues.transmitNodeQueue = transmitNodeQueue.size();
+  statsObj.queues.transmitNodeQueue = transmitNodeQueue.length;
   statsObj.queues.tweetRxQueue = tweetRxQueue.size();
   statsObj.queues.updaterMessageQueue = updaterMessageQueue.length;
   statsObj.queues.sorterMessageRxQueue = sorterMessageRxQueue.length;
@@ -2729,7 +2729,7 @@ function initRateQinterval(interval){
 
   rateQinterval = setInterval(function () {
 
-    statsObj.queues.transmitNodeQueue = transmitNodeQueue.size();
+    statsObj.queues.transmitNodeQueue = transmitNodeQueue.length;
     statsObj.queues.tweetRxQueue = tweetRxQueue.size();
     statsObj.queues.updaterMessageQueue = updaterMessageQueue.length;
     statsObj.queues.sorterMessageRxQueue = sorterMessageRxQueue.length;

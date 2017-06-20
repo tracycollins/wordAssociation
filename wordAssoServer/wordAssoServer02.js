@@ -426,6 +426,17 @@ nodeCache.on("expired", function(nodeCacheId, nodeObj) {
       + " | Ks: " + Object.keys(wordMeter).length
       + " | " + nodeCacheId
     ));
+
+    statsObj.wordMeterEntries = Object.keys(wordMeter).length;
+
+    if (statsObj.wordMeterEntries > statsObj.wordMeterEntriesMax) {
+      statsObj.wordMeterEntriesMax = statsObj.wordMeterEntries;
+      statsObj.wordMeterEntriesMaxTime = moment().valueOf();
+      console.log(chalkAlert("NEW MAX WORD METER ENTRIES"
+        + " | " + moment().format(compactDateTimeFormat)
+        + " | " + statsObj.wordMeterEntries.toFixed(0)
+      ));
+    }
   }
 });
 
@@ -523,6 +534,8 @@ statsObj.errors.twitter = {};
 statsObj.errors.twitter.maxRxQueue = 0;
 
 statsObj.wordMeterEntries = 0;
+statsObj.wordMeterEntriesMax = 0;
+statsObj.wordMeterEntriesMaxTime = moment().valueOf();
 
 statsObj.children = {};
 
@@ -1449,8 +1462,6 @@ function initUpdateTrendsInterval(interval){
 
 function updateWordMeter(wordObj, callback){
 
-  var meterWordId;
-  var meterObj = {};
 
   if ((wordObj.nodeType === "media") 
     || (wordObj.nodeType === "url")
@@ -1460,6 +1471,7 @@ function updateWordMeter(wordObj, callback){
     return;
   }
 
+  var meterWordId;
 
   if (wordObj.isTwitterUser || (wordObj.nodeType === "user")) {
     if (wordObj.screenName !== undefined) {
@@ -1500,22 +1512,37 @@ function updateWordMeter(wordObj, callback){
     }
 
     if (!wordMeter[meterWordId] 
+      || (wordMeter[meterWordId] === {})
       || (wordMeter[meterWordId] === undefined) ){
 
-      wordMeter[meterWordId] = new Measured.Meter({rateUnit: 60000});
+      wordMeter[meterWordId] = null;
 
-      wordMeter[meterWordId].mark();
-      meterObj = wordMeter[meterWordId].toJSON();
-      wordObj.rate = parseFloat(meterObj[metricsRate]);
+      var newMeter = new Measured.Meter({rateUnit: 60000});
+
+      newMeter.mark();
+      wordObj.rate = parseFloat(newMeter.toJSON()[metricsRate]);
+
+      wordMeter[meterWordId] = newMeter;
 
       nodeCache.set(meterWordId, wordObj);
+
+      statsObj.wordMeterEntries = Object.keys(wordMeter).length;
+
+      if (statsObj.wordMeterEntries > statsObj.wordMeterEntriesMax) {
+        statsObj.wordMeterEntriesMax = statsObj.wordMeterEntries;
+        statsObj.wordMeterEntriesMaxTime = moment().valueOf();
+        console.log(chalkAlert("NEW MAX WORD METER ENTRIES"
+          + " | " + moment().format(compactDateTimeFormat)
+          + " | " + statsObj.wordMeterEntries.toFixed(0)
+        ));
+      }
 
       if (callback !== undefined) { callback(null, wordObj); }
     }
     else {
       wordMeter[meterWordId].mark();
-      meterObj = wordMeter[meterWordId].toJSON();
-      wordObj.rate = parseFloat(meterObj[metricsRate]);
+      // meterObj = wordMeter[meterWordId].toJSON();
+      wordObj.rate = parseFloat(wordMeter[meterWordId].toJSON()[metricsRate]);
 
       nodeCache.set(meterWordId, wordObj);
 
@@ -2978,6 +3005,15 @@ function initStatsInterval(interval){
     statsObj.upTime = os.uptime() * 1000;
 
     statsObj.wordMeterEntries = Object.keys(wordMeter).length;
+
+    if (statsObj.wordMeterEntries > statsObj.wordMeterEntriesMax) {
+      statsObj.wordMeterEntriesMax = statsObj.wordMeterEntries;
+      statsObj.wordMeterEntriesMaxTime = moment().valueOf();
+      console.log(chalkAlert("NEW MAX WORD METER ENTRIES"
+        + " | " + moment().format(compactDateTimeFormat)
+        + " | " + statsObj.wordMeterEntries.toFixed(0)
+      ));
+    }
 
     statsObj.memory.rss = process.memoryUsage().rss/(1024*1024);
 

@@ -3216,7 +3216,8 @@ function initStatsInterval(interval){
 //=================================
 initialize(configuration, function(err) {
   if (err) {
-    debug(chalkError("*** INITIALIZE ERROR ***\n" + jsonPrint(err)));
+    console.log(chalkError("*** INITIALIZE ERROR ***\n" + jsonPrint(err)));
+    console.error(chalkError("*** INITIALIZE ERROR ***\n" + jsonPrint(err)));
   } 
   else {
     debug(chalkLog("INITIALIZE COMPLETE"));

@@ -865,6 +865,9 @@ function showStats(options){
       + " | S: " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat)
       + " | N: " + moment().format(compactDateTimeFormat)
       + " | NODE $: Ks:" + nodeCache.getStats().keys + " KS: " + nodeCache.getStats().ksize + " VS: " + nodeCache.getStats().vsize
+      + " | RSS: " + statsObj.memory.rss.toFixed(0) + " MB"
+      + " | MAX RSS: " + statsObj.memory.maxRss.toFixed(0)
+      + " | MAX RSS TIME: " + moment(parseInt(statsObj.memory.maxRssTime)).format(compactDateTimeFormat)
       + " | H: " + statsObj.memory.heap.toFixed(0) + " MB"
       + " | MAX H: " + statsObj.memory.maxHeap.toFixed(0)
       + " | MAX H TIME: " + moment(parseInt(statsObj.memory.maxHeapTime)).format(compactDateTimeFormat)
@@ -878,6 +881,9 @@ function showStats(options){
       + " | S: " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat)
       + " | N: " + moment().format(compactDateTimeFormat)
       + " | NODE $: Ks:" + nodeCache.getStats().keys + " KS: " + nodeCache.getStats().ksize + " VS: " + nodeCache.getStats().vsize
+      + " | RSS: " + statsObj.memory.rss.toFixed(0) + " MB"
+      + " | MAX RSS: " + statsObj.memory.maxRss.toFixed(0)
+      + " | MAX RSS TIME: " + moment(parseInt(statsObj.memory.maxRssTime)).format(compactDateTimeFormat)
       + " | H: " + statsObj.memory.heap.toFixed(0) + " MB"
       + " | MAX H: " + statsObj.memory.maxHeap.toFixed(0)
       + " | MAX H TIME: " + moment(parseInt(statsObj.memory.maxHeapTime)).format(compactDateTimeFormat)

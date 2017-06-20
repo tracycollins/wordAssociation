@@ -37,6 +37,7 @@ var MIN_MENTIONS_VALUE = 1000;
 var KEYWORDS_UPDATE_INTERVAL = 30000;
 var TWEET_PARSER_INTERVAL = 5;
 var TWITTER_RX_QUEUE_INTERVAL = 5;
+var TRANSMIT_NODE_QUEUE_INTERVAL = 5;
 var TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL = 5;
 var UPDATE_TRENDS_INTERVAL = 15*ONE_MINUTE;
 var STATS_UPDATE_INTERVAL = 60000;
@@ -1228,29 +1229,19 @@ function initSocketNamespaces(callback){
 
 function checkKeyword(nodeObj, callback) {
 
-  // var kwObj = {};  
-  // var obamaHit = false;
-  // var trumpHit = false;
-  // var wsObamaObj = {};
-  // var wsTrumpObj = {};
-
   debug(chalkAlert("checkKeyword"
     + " | " + nodeObj.nodeType
     + " | " + nodeObj.nodeId
     + "\n" + jsonPrint(nodeObj)
   ));
   
-
   if ((nodeObj.nodeType === "user") 
     && (nodeObj.screenName !== undefined) 
     && (nodeObj.screenName) 
     && keywordHashMap.has(nodeObj.screenName.toLowerCase())) {
     debug(chalkAlert("HIT USER SNAME"));
-    // kwObj = keywordHashMap.get(nodeObj.screenName.toLowerCase());
     nodeObj.isKeyword = true;
-    // nodeObj.keywords = kwObj;    
     nodeObj.keywords = keywordHashMap.get(nodeObj.screenName.toLowerCase());
-    // callback(nodeObj);
   }
   else if ((nodeObj.nodeType === "user") 
     && (nodeObj.name !== undefined) 
@@ -1259,34 +1250,27 @@ function checkKeyword(nodeObj, callback) {
     debug(chalkAlert("HIT USER NAME"));
     nodeObj.keywords = keywordHashMap.get(nodeObj.name.toLowerCase());
     nodeObj.isKeyword = true;
-    // nodeObj.keywords = kwObj;    
-    // callback(nodeObj);
   }
   else if ((nodeObj.nodeType === "place") 
     && keywordHashMap.has(nodeObj.name.toLowerCase())) {
     debug(chalkAlert("HIT PLACE NAME"));
     nodeObj.keywords = keywordHashMap.get(nodeObj.name.toLowerCase());
     nodeObj.isKeyword = true;
-    // nodeObj.keywords = kwObj;    
-    // callback(nodeObj);
   }
   else if (nodeObj.nodeId && keywordHashMap.has(nodeObj.nodeId.toLowerCase())) {
     debug(chalkAlert("HIT NODE ID"));
     nodeObj.keywords = keywordHashMap.get(nodeObj.nodeId.toLowerCase());
     nodeObj.isKeyword = true;
-    // nodeObj.keywords = kwObj;    
     if ((nodeObj.nodeType === "user") 
       && (nodeObj.name === undefined) 
       && (nodeObj.screenName === undefined)) {
       nodeObj.screenName = nodeObj.nodeId;
     }
-    // callback(nodeObj);
   }
   else if (nodeObj.text && keywordHashMap.has(nodeObj.text.toLowerCase())) {
     debug(chalkAlert("HIT TEXT"));
     nodeObj.keywords = keywordHashMap.get(nodeObj.text.toLowerCase());
     nodeObj.isKeyword = true;
-    // nodeObj.keywords = kwObj;    
     if ((nodeObj.nodeType === "user") 
       && (nodeObj.name === undefined) 
       && (nodeObj.screenName === undefined)) {
@@ -1305,46 +1289,12 @@ function checkKeyword(nodeObj, callback) {
   switch (nodeObj.nodeType) {
 
     case "tweet":
-
-      // console.log(chalkAlert("TWEET | checkKeyword\n" + jsonPrint(nodeObj)));
-
-      // if (nodeObj.text.toLowerCase().includes("sciencemarch") || nodeObj.text.toLowerCase().includes("marchforscience")) {
-      //   nodeObj.isKeyword = true;
-      //   nodeObj.keywords.positive = DEFAULT_KEYWORD_VALUE;
-      //   debug(chalkError("SCIENCEMARCH: " + nodeObj.text));
-      // }
-
-      // if (nodeObj.text.toLowerCase().includes("obama")) {
-      //   // obamaHit = nodeObj.text;
-      //   nodeObj.isKeyword = true;
-      //   if (!nodeObj.keywords.right){
-      //     nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
-      //   }
-      //   else {
-      //     delete nodeObj.keywords.left;
-      //   }
-      //   debug(chalkError("OBAMA: " + nodeObj.text));
-      // }
-
-      // if (nodeObj.text.toLowerCase().includes("trump")) {
-      //   // trumpHit = nodeObj.text;
-      //   nodeObj.isKeyword = true;
-      //   if (!nodeObj.keywords || !nodeObj.keywords.left){
-      //     nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
-      //   }
-      //   else {
-      //     delete nodeObj.keywords.right;
-      //   }
-      //   debug(chalkError("TRUMP: " + nodeObj.text));
-      // }
-
+    case "media":
+    case "url":
       callback(nodeObj);
     break;
 
     case "user":
-
-      // console.log(chalkAlert("USER | checkKeyword\n" + jsonPrint(nodeObj)));
-
       if (!nodeObj.name && !nodeObj.screenName) {
         console.log(chalkError("NODE NAME & SCREEN NAME UNDEFINED?\n" + jsonPrint(nodeObj)));
         callback(nodeObj);
@@ -1356,32 +1306,11 @@ function checkKeyword(nodeObj, callback) {
         wordsPerMinuteTopTermCache.get(nodeObj.screenName.toLowerCase(), function(err, screenName) {
           if (err){
             console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
-            // quit();
           }
           if (screenName !== undefined) {
             debug(chalkAlert("TOP TERM: " + screenName));
             nodeObj.isTopTerm = true;
           }
-          // if (nodeObj.screenName.toLowerCase().includes("obama")) {
-          //   // obamaHit = nodeObj.screenName;
-          //   nodeObj.isKeyword = true;
-          //   if (!nodeObj.keywords || !nodeObj.keywords.right){
-          //     nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
-          //   }
-          //   else {
-          //     delete nodeObj.keywords.left;
-          //   }
-          // }
-          // if (nodeObj.screenName.toLowerCase().includes("trump")) {
-          //   // trumpHit = nodeObj.screenName;
-          //   nodeObj.isKeyword = true;
-          //   if (!nodeObj.keywords || !nodeObj.keywords.left){
-          //     nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
-          //   }
-          //   else {
-          //     delete nodeObj.keywords.right;
-          //   }
-          // }
           callback(nodeObj);
         });
       }
@@ -1391,31 +1320,11 @@ function checkKeyword(nodeObj, callback) {
         wordsPerMinuteTopTermCache.get(nodeObj.name.toLowerCase(), function(err, name) {
           if (err){
             console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
-            // quit();
           }
           if (name !== undefined) {
             nodeObj.isTopTerm = true;
           }
-          // if (nodeObj.name.toLowerCase().includes("obama")) {
-          //   // obamaHit = nodeObj.name;
-          //   nodeObj.isKeyword = true;
-          //   if (!nodeObj.keywords.right){
-          //     nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
-          //   }
-          //   else {
-          //     delete nodeObj.keywords.left;
-          //   }
-          // }
-          // if (nodeObj.name.toLowerCase().includes("trump")) {
-          //   // trumpHit = nodeObj.name;
-          //   nodeObj.isKeyword = true;
-          //   if (!nodeObj.keywords.left){
-          //     nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
-          //   }
-          //   else {
-          //     delete nodeObj.keywords.right;
-          //   }
-          // }
+
           callback(nodeObj);
         });
       }
@@ -1425,42 +1334,13 @@ function checkKeyword(nodeObj, callback) {
     break;
 
     case "hashtag":
-
-      // console.log(chalkAlert("HASHTAG | checkKeyword\n" + jsonPrint(nodeObj)));
-
       wordsPerMinuteTopTermCache.get(nodeObj.nodeId.toLowerCase(), function(err, nodeId) {
         if (err){
           console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
-          // quit();
         }
         if (nodeId !== undefined) {
           nodeObj.isTopTerm = true;
         }
-        if (nodeObj.nodeId.toLowerCase().includes("sciencemarch") || nodeObj.nodeId.toLowerCase().includes("marchforscience")) {
-          // scienceMarchHit = nodeObj.nodeId;
-          nodeObj.isKeyword = true;
-          nodeObj.keywords.positive = DEFAULT_KEYWORD_VALUE;
-        }
-        // if (nodeObj.nodeId.toLowerCase().includes("obama")) {
-        //   // obamaHit = nodeObj.nodeId;
-        //   nodeObj.isKeyword = true;
-        //   if (!nodeObj.keywords.right){
-        //     nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
-        //   }
-        //   else {
-        //     delete nodeObj.keywords.left;
-        //   }
-        // }
-        // if (nodeObj.nodeId.toLowerCase().includes("trump")) {
-        //   // trumpHit = nodeObj.nodeId;
-        //   nodeObj.isKeyword = true;
-        //   if (!nodeObj.keywords || !nodeObj.keywords.left){
-        //     nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
-        //   }
-        //   else {
-        //     delete nodeObj.keywords.right;
-        //   }
-        // }
         callback(nodeObj);
       });
     break;
@@ -1477,116 +1357,30 @@ function checkKeyword(nodeObj, callback) {
       wordsPerMinuteTopTermCache.get(nodeObj.name.toLowerCase(), function(err, nodeId) {
         if (err){
           console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
-          // quit();
         }
         if (nodeId !== undefined) {
           nodeObj.isTopTerm = true;
         }
-        // if (nodeObj.name.toLowerCase().includes("obama")) {
-        //   // obamaHit = nodeObj.nodeId;
-        //   nodeObj.isKeyword = true;
-        //   if (!nodeObj.keywords.right){
-        //     nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
-        //   }
-        //   else {
-        //     delete nodeObj.keywords.left;
-        //   }
-        // }
-        // if (nodeObj.name.toLowerCase().includes("trump")) {
-        //   // trumpHit = nodeObj.nodeId;
-        //   nodeObj.isKeyword = true;
-        //   if (!nodeObj.keywords.left){
-        //     nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
-        //   }
-        //   else {
-        //     delete nodeObj.keywords.right;
-        //   }
-        // }
         callback(nodeObj);
       });
     break;
 
     case "word":
-
-      // console.log(chalkAlert("WORD | checkKeyword\n" + jsonPrint(nodeObj)));
-
       wordsPerMinuteTopTermCache.get(nodeObj.nodeId.toLowerCase(), function(err, nodeId) {
         if (err){
           console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
-          // quit();
         }
         if (nodeId !== undefined) {
           nodeObj.isTopTerm = true;
         }
-        // if (nodeObj.nodeId.toLowerCase().includes("obama")) {
-        //   // obamaHit = nodeObj.nodeId;
-        //   nodeObj.isKeyword = true;
-        //   if (!nodeObj.keywords.right){
-        //     nodeObj.keywords.left = DEFAULT_KEYWORD_VALUE;
-        //   }
-        //   else {
-        //     delete nodeObj.keywords.left;
-        //   }
-        // }
-        // if (nodeObj.nodeId.toLowerCase().includes("trump")) {
-        //   // trumpHit = nodeObj.nodeId;
-        //   nodeObj.isKeyword = true;
-        //   if (!nodeObj.keywords.left){
-        //     nodeObj.keywords.right = DEFAULT_KEYWORD_VALUE;
-        //   }
-        //   else {
-        //     delete nodeObj.keywords.right;
-        //   }
-        // }
         callback(nodeObj);
       });
-    break;
-
-    case "media":
-    case "url":
-      callback(nodeObj);
     break;
 
     default:
       console.log(chalkAlert("DEFAULT | checkKeyword\n" + jsonPrint(nodeObj)));
       callback(nodeObj);
   }
-
-  // if (obamaHit) {
-
-  //   wordStats.meter("obamaPerSecond").mark();
-  //   wordStats.meter("obamaPerMinute").mark();
-
-  //   wsObamaObj = wordStats.toJSON();
-
-  //   debug(chalkAlert("OBAMA"
-  //     + " | " + nodeObj.nodeType
-  //     + " | " + nodeObj.nodeId
-  //     + " | " + wsObamaObj.obamaPerSecond[metricsRate].toFixed(0) 
-  //     + " | " + wsObamaObj.obamaPerSecond.currentRate.toFixed(0) 
-  //     + " | " + wsObamaObj.obamaPerMinute[metricsRate].toFixed(0) 
-  //     + " | " + wsObamaObj.obamaPerMinute.currentRate.toFixed(0) 
-  //     + " | " + obamaHit
-  //   ));
-  // }
-
-  // if (trumpHit) {
-
-  //   wordStats.meter("trumpPerSecond").mark();
-  //   wordStats.meter("trumpPerMinute").mark();
-
-  //   wsTrumpObj = wordStats.toJSON();
-
-  //   debug(chalkAlert("TRUMP"
-  //     + " | " + nodeObj.nodeType
-  //     + " | " + nodeObj.nodeId
-  //     + " | " + wsTrumpObj.trumpPerSecond[metricsRate].toFixed(0) 
-  //     + " | " + wsTrumpObj.trumpPerSecond.currentRate.toFixed(0) 
-  //     + " | " + wsTrumpObj.trumpPerMinute[metricsRate].toFixed(0) 
-  //     + " | " + wsTrumpObj.trumpPerMinute.currentRate.toFixed(0) 
-  //     + " | " + trumpHit
-  //   ));
-  // }
 }
 
 function updateTrends(){
@@ -1604,9 +1398,6 @@ function updateTrends(){
         // + "\n" + jsonPrint(data)
       ));
       data.forEach(function(element){
-        // console.log(chalkError("... TWITTER TREND - US"
-          // + " | element\n" + jsonPrint(element)
-        // ));
         element.trends.forEach(function(topic){
           debug(chalkInfo(
             topic.name
@@ -1634,9 +1425,6 @@ function updateTrends(){
         // + "\n" + jsonPrint(data)
       ));
       data.forEach(function(element){
-        // console.log(chalkError("... TWITTER TREND - US"
-          // + " | element\n" + jsonPrint(element)
-        // ));
         element.trends.forEach(function(topic){
           debug(chalkInfo(
             topic.name
@@ -1707,101 +1495,136 @@ function updateWordMeter(wordObj, callback){
     // nodeCache.set(meterWordId, wordObj);
 
     if (callback !== undefined) { callback(null, wordObj); }
-    return;
-  }
-
-
-  if (/TSS_/.test(meterWordId) || wordObj.isServer){
-    console.log(chalkAlert("updateWordMeter\n" + jsonPrint(wordObj)));
-  }
-
-  if (!wordMeter[meterWordId] 
-    || (wordMeter[meterWordId] === undefined) ){
-
-    wordMeter[meterWordId] = new Measured.Meter({rateUnit: 60000});
-
-    wordMeter[meterWordId].mark();
-    meterObj = wordMeter[meterWordId].toJSON();
-    wordObj.rate = parseFloat(meterObj[metricsRate]);
-
-    nodeCache.set(meterWordId, wordObj);
-
-    if (callback !== undefined) { callback(null, wordObj); }
-
   }
   else {
-    wordMeter[meterWordId].mark();
-    meterObj = wordMeter[meterWordId].toJSON();
-    wordObj.rate = parseFloat(meterObj[metricsRate]);
+    if (/TSS_/.test(meterWordId) || wordObj.isServer){
+      console.log(chalkAlert("updateWordMeter\n" + jsonPrint(wordObj)));
+    }
 
-    nodeCache.set(meterWordId, wordObj);
+    if (!wordMeter[meterWordId] 
+      || (wordMeter[meterWordId] === undefined) ){
 
-    if (callback !== undefined) { callback(null, wordObj); }
+      wordMeter[meterWordId] = new Measured.Meter({rateUnit: 60000});
+
+      wordMeter[meterWordId].mark();
+      meterObj = wordMeter[meterWordId].toJSON();
+      wordObj.rate = parseFloat(meterObj[metricsRate]);
+
+      nodeCache.set(meterWordId, wordObj);
+
+      if (callback !== undefined) { callback(null, wordObj); }
+    }
+    else {
+      wordMeter[meterWordId].mark();
+      meterObj = wordMeter[meterWordId].toJSON();
+      wordObj.rate = parseFloat(meterObj[metricsRate]);
+
+      nodeCache.set(meterWordId, wordObj);
+
+      if (callback !== undefined) { callback(null, wordObj); }
+    }
   }
 }
+
+var transmitNodeQueueReady = true;
+var transmitNodeQueueInterval;
+function initTransmitNodeQueueInterval(interval){
+
+  console.log(chalkAlert("INIT TRANSMIT NODE QUEUE INTERVAL: " + interval + " MS"));
+
+  clearInterval(transmitNodeQueueInterval);
+
+  transmitNodeQueueInterval = setInterval(function () {
+
+    if (transmitNodeQueueReady && (transmitNodeQueue.length > 0)){
+
+      transmitNodeQueueReady = false;
+
+      var nodeObj = transmitNodeQueue.shift();
+      checkKeyword(nodeObj, function(node){
+        updateWordMeter(node, function(err, n){
+          if (!err) {
+            viewNameSpace.volatile.emit("node", n);
+          }
+          transmitNodeQueueReady = true;
+        });
+      });
+    }
+  }, interval);
+}
+
 
 function transmitNodes(tw, callback){
   debug("TX NODES");
 
   tw.userMentions.forEach(function(user){
-    checkKeyword(user, function(us){
-      updateWordMeter(us, function(err, us2){
-        if (!err) {
-          viewNameSpace.volatile.emit("node", us2);
-        }
-      });
-    });
+    transmitNodeQueue.push(user);
+    // checkKeyword(user, function(us){
+    //   updateWordMeter(us, function(err, us2){
+    //     if (!err) {
+    //       viewNameSpace.volatile.emit("node", us2);
+    //     }
+    //   });
+    // });
   });
 
   tw.hashtags.forEach(function(hashtag){
-    checkKeyword(hashtag, function(ht){
-      updateWordMeter(ht, function(err, ht2){
-        if (!err) {
-          viewNameSpace.volatile.emit("node", ht2);
-        }
-      });
-    });
+    transmitNodeQueue.push(hashtag);
+    // checkKeyword(hashtag, function(ht){
+    //   updateWordMeter(ht, function(err, ht2){
+    //     if (!err) {
+    //       viewNameSpace.volatile.emit("node", ht2);
+    //     }
+    //   });
+    // });
   });
 
   tw.media.forEach(function(media){
-    checkKeyword(media, function(me){
-      updateWordMeter(me, function(err, me2){
-        if (!err) {
-          viewNameSpace.volatile.emit("node", me2);
-        }
-      });
-    });
+    transmitNodeQueue.push(media);
+    // checkKeyword(media, function(me){
+    //   updateWordMeter(me, function(err, me2){
+    //     if (!err) {
+    //       viewNameSpace.volatile.emit("node", me2);
+    //     }
+    //   });
+    // });
   });
 
   tw.urls.forEach(function(url){
-    checkKeyword(url, function(ul){
-      updateWordMeter(ul, function(err, ul2){
-        if (!err) {
-          viewNameSpace.volatile.emit("node", ul2);
-        }
-      });
-    });
+    transmitNodeQueue.push(url);
+    // checkKeyword(url, function(ul){
+    //   updateWordMeter(ul, function(err, ul2){
+    //     if (!err) {
+    //       viewNameSpace.volatile.emit("node", ul2);
+    //     }
+    //   });
+    // });
   });
 
-  checkKeyword(tw.user, function(us){
-    updateWordMeter(us, function(err, us2){
-      if (!err) {
-        viewNameSpace.volatile.emit("node", us2);
-      }
-    });
-  });
+  transmitNodeQueue.push(tw.user);
+
+  // checkKeyword(tw.user, function(us){
+  //   updateWordMeter(us, function(err, us2){
+  //     if (!err) {
+  //       viewNameSpace.volatile.emit("node", us2);
+  //     }
+  //   });
+  // });
 
   if (tw.place){
-    checkKeyword(tw.place, function(pl){
-      updateWordMeter(pl, function(err, pl2){
-        if (!err) {
-          viewNameSpace.volatile.emit("node", pl2);
-        }
-      });
-    });
+    transmitNodeQueue.push(tw.place);
+  //   checkKeyword(tw.place, function(pl){
+  //     updateWordMeter(pl, function(err, pl2){
+  //       if (!err) {
+  //         viewNameSpace.volatile.emit("node", pl2);
+  //       }
+  //     });
+  //   });
   }
 
-  viewNameSpace.volatile.emit("node", tw);
+  transmitNodeQueue.push(tw.user);
+
+  // viewNameSpace.volatile.emit("node", tw);
   callback();
 }
 
@@ -2336,54 +2159,6 @@ function initTweetParserMessageRxQueueInterval(interval){
         ));
         tweetParserMessageRxQueueReady = true;
       }
-
-      // switch (tweetParserMessage.op) {
-
-      //   case "parsedTweet":
-
-      //     tweetObj = tweetParserMessage.tweetObj;
-
-      //     if (!tweetObj.user) {
-
-      //       console.log(chalkAlert("parsedTweet -- TW USER UNDEFINED"
-      //         + " | " + tweetObj.tweetId
-      //       ));
-
-      //       tweetParserMessageRxQueueReady = true;
-
-      //     }
-      //     else {
-
-      //       debug(chalkInfo("PARSED TW"
-      //         + " [ TPMRQ: " + tweetParserMessageRxQueue.length + "]"
-      //         + " | " + tweetObj.tweetId
-      //         + " | USR: " + tweetObj.user.screenName
-      //         + " | Ms: " + tweetObj.mentions
-      //         + " | Hs: " + tweetObj.hashtags.length
-      //         + " | UMs: " + tweetObj.userMentions.length
-      //         + " | M: " + tweetObj.media.length
-      //         + " | URLs: " + tweetObj.url.length
-      //         + " | PL: " + (tweetObj.place ? tweetObj.place.fullName : "")
-      //       ));
-
-      //       transmitNodes(tweetObj, function(err){
-      //         if (err) {
-      //           pmx.emit("ERROR", "TRANSMIT NODES ERROR");
-      //           console.error(chalkError("TRANSMIT NODES ERROR\n" + err));
-      //         }
-      //         tweetParserMessageRxQueueReady = true;
-      //       });
-
-      //     }
-
-      //   break;
-
-      //   default:
-      //     console.error(chalkError("*** TWEET PARSER UNKNOWN OP"
-      //       + " | INTERVAL: " + tweetParserMessage.op
-      //     ));
-      //     tweetParserMessageRxQueueReady = true;
-      // }
 
     }
   }, interval);
@@ -3295,7 +3070,7 @@ initialize(configuration, function(err) {
         sorter = srtr;
       }
     });
-
+    initTransmitNodeQueueInterval(TRANSMIT_NODE_QUEUE_INTERVAL)
     initStatsInterval(STATS_UPDATE_INTERVAL);
     initIgnoreWordsHashMap();
     initUpdateTrendsInterval(UPDATE_TRENDS_INTERVAL);

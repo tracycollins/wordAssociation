@@ -282,7 +282,8 @@ exports.findOneUser = function (user, params, callback) {
 					if (removeDuplicateFlag) {
 						User.remove({userId: user.userId}, function(err){
 							if (err) {
-								console.log("REMOVED DUPLICATE USER ERROR " + err + "\n" + user.userId);
+								console.log("REMOVED DUPLICATE USER ERROR " + user.userId + "\n" + err);
+								callback(err, user);
 							}
 							else {
 								console.log("XXX DUP USER " + user.userId);
@@ -293,7 +294,8 @@ exports.findOneUser = function (user, params, callback) {
 									options,
 									function(err, us) {
 										if (err) {
-											console.log("REMOVED DUPLICATE USER ERROR RETRY" + err + "\n" + user.userId);
+											console.log("REMOVED DUPLICATE USER ERROR RETRY" + user.userId + "\n" + err);
+											callback(err, user);
 										}
 										else {
 											debug(chalkTwitter("> US UPDATED"
@@ -321,11 +323,13 @@ exports.findOneUser = function (user, params, callback) {
 						});
 					}
 					else {
+						console.log("!!! DUPLICATE USER ERROR " + user.userId + "\n" + err);
 						callback(err, user);
 					}
 				}
 				else {
 					console.error(getTimeStamp() + "\n\n***** USER FINDONE ERROR: USER ID: " + user.userId + "\n" + err);
+					callback(err, user);
 				}
 			}
 			else {
@@ -395,16 +399,18 @@ function findOnePlace (place, params, callback) {
 					Place.remove({placeId: place.placeId}, function(err){
 						if (err) {
 							console.log("REMOVED DUPLICATE PLACE ERROR " + err + "\n" + place.placeId);
+							callback(err, place);
 						}
 						else {
 							console.log("XXX DUP PLACE " + place.placeId);
+							callback(err, place);
 						}
 					});
 				}
 				else {
 					console.error(getTimeStamp() + "\n\n***** PLACE FINDONE ERROR: PLACE ID: " + place.placeId + "\n" + err);
+					callback(err, place);
 				}
-				callback(err, place);
 			}
 			else {
 				debug("> PL UPDATED: "
@@ -473,18 +479,24 @@ function findOneMedia (media, params, callback) {
 					if (removeDuplicateFlag) {
 						Media.remove({mediaId: media.mediaId}, function(err){
 							if (err) {
-								console.log("REMOVED DUPLICATE MEDIA ERROR " + err + "\n" + media.mediaId);
+								console.log("REMOVED DUPLICATE MEDIA ERROR " + media.mediaId + "\n" + err);
+								callback(err, media);
 							}
 							else {
 								console.log("XXX DUP MEDIA " + media.mediaId);
+								callback(err, media);
 							}
 						});
+					}
+					else {
+						console.log("!!! DUPLICATE MEDIA ERROR " +media.mediaId + "\n" + err);
+						callback(err, media);
 					}
 				}
 				else {
 					console.error(getTimeStamp() + "\n\n***** MEDIA FINDONE ERROR: MEDIA ID: " + media.mediaId + "\n" + err);
+					callback(err, media);
 				}
-				callback(err, media);
 			}
 			else {
 
@@ -545,18 +557,24 @@ function findOneHashtag (hashtag, params, callback) {
 					if (removeDuplicateFlag) {
 						Hashtag.remove({text: hashtag.text.toLowerCase()}, function(err){
 							if (err) {
-								console.log("REMOVED DUPLICATE HASHTAG ERROR " + err + "\n" + hashtag.text.toLowerCase());
+								console.log("REMOVED DUPLICATE HASHTAG ERROR " + hashtag.text + "\n" + err);
+								callback(err, hashtag);
 							}
 							else {
 								console.log("XXX DUP HASHTAG " + hashtag.text.toLowerCase());
+								callback(err, hashtag);
 							}
 						});
+					}
+					else {
+						console.log("!!! DUPLICATE HASHTAG ERROR " + hashtag.text  + "\n" + err);
+						callback(err, hashtag);
 					}
 				}
 				else {
 					console.error(getTimeStamp() + "\n\n***** HASHTAG FINDONE ERROR: HASHTAG TEXT: " + hashtag.text  + "\n" + err);
+					callback(err, hashtag);
 				}
-				callback(err, hashtag);
 			}
 			else {
 				debug("> HT UPDATED" 
@@ -619,12 +637,13 @@ function findOneUrl (url, params, callback) {
 						else {
 							console.log("XXX DUP URL " + url.urlId);
 						}
+						callback(err, url);
 					});
 				}
 				else {
 					console.error(getTimeStamp() + "\n\n***** URL FINDONE ERROR: URL ID: " + url.urlId + "\n" + err);
+					callback(err, url);
 				}
-				callback(err, url);
 			}
 			else {
 				debug("> UL UPDATED" 
@@ -735,12 +754,13 @@ function findOneTweet (tweet, params, callback) {
 						else {
 							console.log("XXX DUP TWEET " + tweet.tweetId);
 						}
+						callback(err, tweet);
 					});
 				}
 				else {
 					console.error(getTimeStamp() + "\n\n***** TWEET FINDONE ERROR: TWEET ID: " + tweet.tweetId + "\n" + err);
+					callback(err, tweet);
 				}
-				callback(err, tweet);
 			}
 			else {
 

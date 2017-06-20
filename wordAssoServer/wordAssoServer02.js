@@ -2298,6 +2298,9 @@ function initTweetParserMessageRxQueueInterval(interval){
       ));
 
       if (tweetParserMessage.op === "parsedTweet") {
+
+        var tweetObj = tweetParserMessage.tweetObj;
+
         if (!tweetObj.user) {
           console.log(chalkAlert("parsedTweet -- TW USER UNDEFINED"
             + " | " + tweetObj.tweetId

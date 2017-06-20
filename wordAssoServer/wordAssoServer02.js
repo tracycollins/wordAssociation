@@ -1964,6 +1964,62 @@ function initAppRouting(callback) {
     });
   });
 
+
+
+  app.get("/session.js", function(req, res) {
+    debug(chalkInfo("get req\n" + req));
+    console.log("LOADING FILE: /session.js");
+
+    fs.readFile(__dirname + "/session.js", function(err, data) {
+
+      if (err) { 
+        console.log(chalkError("ERROR FILE OPEN\n" + jsonPrint(err)));
+      }
+
+      var newData;
+      if (hostname.includes("google")){
+        newData = data.toString().replace("==SOURCE==", "http://word.threeceelabs.com");
+      }
+      else {
+        newData = data.toString().replace("==SOURCE==", "http://localhost:9997");
+      }
+      res.send(newData);
+      res.end();
+    });
+  });
+
+
+  app.get("/js/libs/controlPanel.js", function(req, res) {
+    debug(chalkInfo("get req\n" + req));
+    console.log("LOADING PAGE: /js/libs/controlPanel.js");
+
+    fs.open(__dirname + "/js/libs/controlPanel.js", "r", function(err, fd) {
+
+      if (err) { debug(chalkInfo("ERROR FILE OPEN\n" + jsonPrint(err))); }
+
+      fs.readFile(__dirname + "/js/libs/controlPanel.js", function(err2, data) {
+
+        if (err2) { debug(chalkInfo("ERROR FILE READ\n" + jsonPrint(err2))); }
+
+        var newData;
+        if (hostname.includes("google")){
+          newData = data.toString().replace("==SOURCE==", "http://word.threeceelabs.com");
+          console.log(chalkRed("UPDATE DEFAULT_SOURCE controlPanel.js: " + "http://word.threeceelabs.com"));
+        }
+        else {
+          newData = data.toString().replace("==SOURCE==", "http://localhost:9997");
+          console.log(chalkRed("UPDATE DEFAULT_SOURCE controlPanel.js: " + "http://localhost:9997"));
+        }
+        res.send(newData);
+        res.end();
+        fs.close(fd);
+      });
+    });
+    
+    return;
+  });
+
+
   app.get("/", function(req, res, next) {
     debug(chalkInfo("get next\n" + next));
     debug(chalkInfo("LOADING PAGE: /sessionModular.html | " + req));

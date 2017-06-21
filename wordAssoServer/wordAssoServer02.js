@@ -5,13 +5,13 @@ console.log("\n\n============== START ==============\n\n");
 
 console.log("PROCESS PID: " + process.pid);
 
-var quitOnError = true;
+let quitOnError = true;
 
 
-var heapdump = require('heapdump');
-// var memwatch = require('memwatch');
+let heapdump = require('heapdump');
+// let memwatch = require('memwatch');
 
-// var pmx = require('pmx').init({
+// let pmx = require('pmx').init({
 //   http          : true, // HTTP routes logging (default: true)
 //   ignore_routes : [/socket\.io/, /notFound/], // Ignore http routes with this pattern (Default: [])
 //   errors        : true, // Exceptions logging (default: true)
@@ -21,41 +21,41 @@ var heapdump = require('heapdump');
 // });
 
 // ==================================================================
-// GLOBAL VARIABLES
+// GLOBAL letIABLES
 // ==================================================================
-var ONE_MINUTE = 60000;
-var compactDateTimeFormat = "YYYYMMDD HHmmss";
-var tinyDateTimeFormat = "YYYYMMDDHHmmss";
+let ONE_MINUTE = 60000;
+let compactDateTimeFormat = "YYYYMMDD HHmmss";
+let tinyDateTimeFormat = "YYYYMMDDHHmmss";
 
-var OFFLINE_MODE = false;
+let OFFLINE_MODE = false;
 
-var MAX_Q = 500;
+let MAX_Q = 500;
 
-var MIN_METRIC_VALUE = 5.0;
-var MIN_MENTIONS_VALUE = 1000;
+const MIN_METRIC_VALUE = 5.0;
+const MIN_MENTIONS_VALUE = 1000;
 
-var KEYWORDS_UPDATE_INTERVAL = 30000;
-var TWEET_PARSER_INTERVAL = 10;
-var TWITTER_RX_QUEUE_INTERVAL = 10;
-var TRANSMIT_NODE_QUEUE_INTERVAL = 10;
-var TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL = 10;
-var UPDATE_TRENDS_INTERVAL = 15*ONE_MINUTE;
-var STATS_UPDATE_INTERVAL = 60000;
+const KEYWORDS_UPDATE_INTERVAL = 30000;
+const TWEET_PARSER_INTERVAL = 10;
+const TWITTER_RX_QUEUE_INTERVAL = 10;
+const TRANSMIT_NODE_QUEUE_INTERVAL = 10;
+const TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL = 10;
+const UPDATE_TRENDS_INTERVAL = 15*ONE_MINUTE;
+const STATS_UPDATE_INTERVAL = 60000;
 
-var DEFAULT_KEYWORD_VALUE = 100;
+const DEFAULT_KEYWORD_VALUE = 100;
 
-var DEFAULT_INTERVAL = 10;
+const DEFAULT_INTERVAL = 10;
 
-var TOPTERMS_CACHE_DEFAULT_TTL = 60;
-var TOPTERMS_CACHE_CHECK_PERIOD = 5;
+const TOPTERMS_CACHE_DEFAULT_TTL = 60;
+const TOPTERMS_CACHE_CHECK_PERIOD = 5;
 
-var TRENDING_CACHE_DEFAULT_TTL = 300;
-var TRENDING_CACHE_CHECK_PERIOD = 60;
+const TRENDING_CACHE_DEFAULT_TTL = 300;
+const TRENDING_CACHE_CHECK_PERIOD = 60;
 
-var NODE_CACHE_DEFAULT_TTL = 60;
-var NODE_CACHE_CHECK_PERIOD = 5;
+const NODE_CACHE_DEFAULT_TTL = 60;
+const NODE_CACHE_CHECK_PERIOD = 5;
 
-var ignoreWordsArray = [
+let ignoreWordsArray = [
   "r",
   "y",
   "se",
@@ -207,91 +207,88 @@ var ignoreWordsArray = [
   "–"
 ];
 
-var metricsRate = "5MinuteRate";
-var CUSTOM_GOOGLE_APIS_PREFIX = "custom.googleapis.com";
+let metricsRate = "5MinuteRate";
+const CUSTOM_GOOGLE_APIS_PREFIX = "custom.googleapis.com";
 
-var deepcopy = require('deep-copy');
-var defaults = require("object.defaults");
-var omit = require("object.omit");
-var pick = require('object.pick');
-var moment = require("moment");
-var config = require("./config/config");
-var os = require("os");
-var fs = require("fs");
-var path = require("path");
-var async = require("async");
-var yaml = require("yamljs");
-var debug = require("debug")("wa");
-var debugKeyword = require("debug")("kw");
+let deepcopy = require('deep-copy');
+let defaults = require("object.defaults");
+let omit = require("object.omit");
+let pick = require('object.pick');
+let moment = require("moment");
+let config = require("./config/config");
+let os = require("os");
+let fs = require("fs");
+let path = require("path");
+let async = require("async");
+let yaml = require("yamljs");
+let debug = require("debug")("wa");
+let debugKeyword = require("debug")("kw");
 
-var Queue = require("queue-fifo");
+let Queue = require("queue-fifo");
+let express = require("./config/express");
+let EventEmitter2 = require("eventemitter2").EventEmitter2;
+let Dropbox = require("dropbox");
+let Monitoring = require('@google-cloud/monitoring').v3();
 
-var express = require("./config/express");
-var EventEmitter2 = require("eventemitter2").EventEmitter2;
+let googleMonitoringClient;
 
-var Dropbox = require("dropbox");
+let HashMap = require("hashmap").HashMap;
+let NodeCache = require("node-cache");
 
-var Monitoring = require('@google-cloud/monitoring').v3();
+let metricsHashmap = new HashMap();
+let deletedMetricsHashmap = new HashMap();
 
-var googleMonitoringClient;
+let Twit = require("twit");
+let twit;
+let twitterYamlConfigFile = process.env.DEFAULT_TWITTER_CONFIG;
 
-var HashMap = require("hashmap").HashMap;
-var NodeCache = require("node-cache");
-
-var metricsHashmap = new HashMap();
-var deletedMetricsHashmap = new HashMap();
-
-var Twit = require("twit");
-var twit;
-var twitterYamlConfigFile = process.env.DEFAULT_TWITTER_CONFIG;
-
-var hostname = os.hostname();
+let hostname = os.hostname();
 hostname = hostname.replace(/.local/g, "");
 hostname = hostname.replace(/.home/g, "");
 hostname = hostname.replace(/.at.net/g, "");
 hostname = hostname.replace(/.fios-router.home/g, "");
 hostname = hostname.replace(/word0-instance-1/g, "google");
 
-var chalk = require("chalk");
-var chalkAdmin = chalk.bold.cyan;
-var chalkWarn = chalk.red;
-var chalkTwitter = chalk.blue;
-var chalkConnect = chalk.black;
-var chalkSession = chalk.black;
-var chalkDisconnect = chalk.black;
-var chalkSocket = chalk.black;
-var chalkInfo = chalk.gray;
-var chalkAlert = chalk.red;
-var chalkError = chalk.bold.red;
-var chalkLog = chalk.gray;
+let chalk = require("chalk");
+let chalkAdmin = chalk.bold.cyan;
+let chalkWarn = chalk.red;
+let chalkTwitter = chalk.blue;
+let chalkConnect = chalk.black;
+let chalkSession = chalk.black;
+let chalkDisconnect = chalk.black;
+let chalkSocket = chalk.black;
+let chalkInfo = chalk.gray;
+let chalkAlert = chalk.red;
+let chalkError = chalk.bold.red;
+let chalkLog = chalk.gray;
 
-var tmsServers = {};
-var tssServers = {};
+let tmsServers = {};
+let tssServers = {};
 
-var languageServer = {};
-var tssServer = {};
+let languageServer = {};
+let tssServer = {};
 tssServer.connected = false;
 tssServer.user = {};
 tssServer.socket = {};
 
-var tmsServer = {};
+let tmsServer = {};
 tmsServer.connected = false;
 tmsServer.user = {};
 tmsServer.socket = {};
 
-var wordMeter = {};
+let wordMeter = {};
 
-var tweetRxQueueInterval;
-var tweetParserQueue = new Queue();
-var tweetParserMessageRxQueue = new Queue();
-var tweetRxQueue = new Queue();
+let tweetRxQueueInterval;
+let tweetParserQueue = new Queue();
+let tweetParserMessageRxQueue = new Queue();
+let tweetRxQueue = new Queue();
 
-var statsInterval;
+let statsInterval;
 
 
 
-var HEAPDUMP_ENABLED = false;
-var HEAPDUMP_MODULO = process.env.HEAPDUMP_MODULO || 10;
+let HEAPDUMP_ENABLED = false;
+let HEAPDUMP_MODULO = process.env.HEAPDUMP_MODULO || 10;
 
 if (process.env.HEAPDUMP_ENABLED !== undefined) {
 
@@ -312,7 +309,7 @@ if (process.env.HEAPDUMP_ENABLED !== undefined) {
 }
 
 
-var GOOGLE_METRICS_ENABLED = false;
+let GOOGLE_METRICS_ENABLED = false;
 
 if (process.env.GOOGLE_METRICS_ENABLED !== undefined) {
 
@@ -335,15 +332,15 @@ if (process.env.GOOGLE_METRICS_ENABLED !== undefined) {
 // ==================================================================
 // DROPBOX
 // ==================================================================
-var DROPBOX_WORD_ASSO_ACCESS_TOKEN = process.env.DROPBOX_WORD_ASSO_ACCESS_TOKEN;
-var DROPBOX_WORD_ASSO_APP_KEY = process.env.DROPBOX_WORD_ASSO_APP_KEY;
-var DROPBOX_WORD_ASSO_APP_SECRET = process.env.DROPBOX_WORD_ASSO_APP_SECRET;
-// var WA_STATS_FILE = process.env.WA_STATS_FILE;
-var DROPBOX_WA_STATS_FILE = process.env.DROPBOX_WA_STATS_FILE || "wordAssoServer02Stats.json";
+const DROPBOX_WORD_ASSO_ACCESS_TOKEN = process.env.DROPBOX_WORD_ASSO_ACCESS_TOKEN;
+const DROPBOX_WORD_ASSO_APP_KEY = process.env.DROPBOX_WORD_ASSO_APP_KEY;
+const DROPBOX_WORD_ASSO_APP_SECRET = process.env.DROPBOX_WORD_ASSO_APP_SECRET;
+// const WA_STATS_FILE = process.env.WA_STATS_FILE;
+const DROPBOX_WA_STATS_FILE = process.env.DROPBOX_WA_STATS_FILE || "wordAssoServer02Stats.json";
 
-var statsFolder = "/stats/" + hostname;
-var statsFileDefault = DROPBOX_WA_STATS_FILE;
-var statsFile = "wordAssoServer02Stats" 
+let statsFolder = "/stats/" + hostname;
+let statsFileDefault = DROPBOX_WA_STATS_FILE;
+let statsFile = "wordAssoServer02Stats" 
   + "_" + moment().format(tinyDateTimeFormat) 
   + ".json";
 
@@ -351,12 +348,12 @@ console.log("DROPBOX_WORD_ASSO_ACCESS_TOKEN :" + DROPBOX_WORD_ASSO_ACCESS_TOKEN)
 console.log("DROPBOX_WORD_ASSO_APP_KEY :" + DROPBOX_WORD_ASSO_APP_KEY);
 console.log("DROPBOX_WORD_ASSO_APP_SECRET :" + DROPBOX_WORD_ASSO_APP_SECRET);
 
-var dropboxClient = new Dropbox({ accessToken: DROPBOX_WORD_ASSO_ACCESS_TOKEN });
+let dropboxClient = new Dropbox({ accessToken: DROPBOX_WORD_ASSO_ACCESS_TOKEN });
 
-var configFolder = "/config/utility/" + hostname;
-var deletedMetricsFile = "deletedMetrics.json";
+let configFolder = "/config/utility/" + hostname;
+let deletedMetricsFile = "deletedMetrics.json";
 
-var jsonPrint = function (obj) {
+let jsonPrint = function (obj) {
   if (obj) {
     return JSON.stringify(obj, null, 2);
   } 
@@ -367,10 +364,10 @@ var jsonPrint = function (obj) {
 
 
 function msToTime(duration) {
-  var seconds = parseInt((duration / 1000) % 60);
-  var minutes = parseInt((duration / (1000 * 60)) % 60);
-  var hours = parseInt((duration / (1000 * 60 * 60)) % 24);
-  var days = parseInt(duration / (1000 * 60 * 60 * 24));
+  let seconds = parseInt((duration / 1000) % 60);
+  let minutes = parseInt((duration / (1000 * 60)) % 60);
+  let hours = parseInt((duration / (1000 * 60 * 60)) % 24);
+  let days = parseInt(duration / (1000 * 60 * 60 * 24));
 
   days = (days < 10) ? "0" + days : days;
   hours = (hours < 10) ? "0" + hours : hours;
@@ -380,16 +377,16 @@ function msToTime(duration) {
   return days + ":" + hours + ":" + minutes + ":" + seconds;
 }
 
-var nodeCacheTtl = process.env.NODE_CACHE_DEFAULT_TTL;
+let nodeCacheTtl = process.env.NODE_CACHE_DEFAULT_TTL;
 if (nodeCacheTtl === undefined) { nodeCacheTtl = NODE_CACHE_DEFAULT_TTL;}
 console.log("NODE CACHE TTL: " + nodeCacheTtl + " SECONDS");
 
-var nodeCacheCheckPeriod = process.env.NODE_CACHE_CHECK_PERIOD;
+let nodeCacheCheckPeriod = process.env.NODE_CACHE_CHECK_PERIOD;
 if (nodeCacheCheckPeriod === undefined) { nodeCacheCheckPeriod = NODE_CACHE_CHECK_PERIOD;}
 console.log("NODE CACHE CHECK PERIOD: " + nodeCacheCheckPeriod + " SECONDS");
 
 
-var nodeCache = new NodeCache({
+let nodeCache = new NodeCache({
   stdTTL: nodeCacheTtl,
   checkperiod: nodeCacheCheckPeriod
 });
@@ -430,13 +427,13 @@ nodeCache.on("expired", function(nodeCacheId, nodeObj) {
 // ==================================================================
 // TWITTER TRENDING TOPIC CACHE
 // ==================================================================
-var updateTrendsInterval;
+let updateTrendsInterval;
 
-var trendingCacheTtl = process.env.TRENDING_CACHE_DEFAULT_TTL;
+let trendingCacheTtl = process.env.TRENDING_CACHE_DEFAULT_TTL;
 if (trendingCacheTtl === undefined) {trendingCacheTtl = TRENDING_CACHE_DEFAULT_TTL;}
 console.log("TRENDING CACHE TTL: " + trendingCacheTtl + " SECONDS");
 
-var trendingCache = new NodeCache({
+let trendingCache = new NodeCache({
   stdTTL: trendingCacheTtl,
   checkperiod: TRENDING_CACHE_CHECK_PERIOD
 });
@@ -446,15 +443,15 @@ var trendingCache = new NodeCache({
 //   debug(chalkInfo("XXX $ TREND | " + topic + " | " + topicObj.name));
 // });
 
-var wordsPerMinuteTopTermTtl = process.env.TOPTERMS_CACHE_DEFAULT_TTL;
+let wordsPerMinuteTopTermTtl = process.env.TOPTERMS_CACHE_DEFAULT_TTL;
 if (wordsPerMinuteTopTermTtl === undefined) {wordsPerMinuteTopTermTtl = TOPTERMS_CACHE_DEFAULT_TTL;}
 console.log("TOP TERMS WPM CACHE TTL: " + wordsPerMinuteTopTermTtl + " SECONDS");
 
-var wordsPerMinuteTopTermCheckPeriod = process.env.TOPTERMS_CACHE_CHECK_PERIOD;
+let wordsPerMinuteTopTermCheckPeriod = process.env.TOPTERMS_CACHE_CHECK_PERIOD;
 if (wordsPerMinuteTopTermCheckPeriod === undefined) {wordsPerMinuteTopTermCheckPeriod = TOPTERMS_CACHE_CHECK_PERIOD;}
 console.log("TOP TERMS WPM CACHE CHECK PERIOD: " + wordsPerMinuteTopTermCheckPeriod + " SECONDS");
 
-var wordsPerMinuteTopTermCache = new NodeCache({
+let wordsPerMinuteTopTermCache = new NodeCache({
   stdTTL: wordsPerMinuteTopTermTtl,
   checkperiod: TOPTERMS_CACHE_CHECK_PERIOD
 });
@@ -465,10 +462,10 @@ var wordsPerMinuteTopTermCache = new NodeCache({
 // });
 
 
-var rateQinterval;
-var Measured = require("measured");
+let rateQinterval;
+let Measured = require("measured");
 
-// var wordStats = Measured.createCollection();
+// let wordStats = Measured.createCollection();
 
 // wordStats.meter("wordsPerSecond", {rateUnit: 1000, tickInterval: 1000});
 // wordStats.meter("wordsPerMinute", {rateUnit: 60000, tickInterval: 1000});
@@ -479,41 +476,41 @@ var Measured = require("measured");
 
 
 
-var defaultDropboxKeywordFile = "keywords.json";
+let defaultDropboxKeywordFile = "keywords.json";
 
-var internetReady = false;
-var ioReady = false;
+let internetReady = false;
+let ioReady = false;
 
-var configuration = {};
+let configuration = {};
 configuration.quitOnError = false;
 configuration.maxTopTerms = process.env.WA_MAX_TOP_TERMS || 100;
 
 
-var internetCheckInterval;
+let internetCheckInterval;
 
-var app = express();
+let app = express();
 
-var http = require("http");
-var httpServer = http.createServer(app);
+let http = require("http");
+let httpServer = http.createServer(app);
 
-var io;
-var net = require("net");
+let io;
+let net = require("net");
 
-var cp = require("child_process");
-var updater;
-var updaterMessageQueue = new Queue();
-var sorter;
-var sorterMessageRxQueue = new Queue();
+let cp = require("child_process");
+let updater;
+let updaterMessageQueue = new Queue();
+let sorter;
+let sorterMessageRxQueue = new Queue();
 
 
-var ignoreWordHashMap = new HashMap();
-var keywordHashMap = new HashMap();
+let ignoreWordHashMap = new HashMap();
+let keywordHashMap = new HashMap();
 
-var localHostHashMap = new HashMap();
+let localHostHashMap = new HashMap();
 
-var tweetParser;
+let tweetParser;
 
-var statsObj = {};
+let statsObj = {};
 
 statsObj.errors = {};
 statsObj.errors.google = {};
@@ -633,14 +630,14 @@ statsObj.utilities = {};
 
 function quit(message) {
   debug("\n... QUITTING ...");
-  var msg = "";
+  let msg = "";
   if (message) {msg = message;}
   debug("QUIT MESSAGE: " + msg);
   process.exit();
 }
 
 function getTimeStamp(inputTime) {
-  var currentTimeStamp ;
+  let currentTimeStamp ;
 
   if (typeof inputTime === 'undefined') {
     currentTimeStamp = moment().format(compactDateTimeFormat);
@@ -662,10 +659,10 @@ function loadFile(folder, file, callback) {
   debug(chalkInfo("LOAD FILE " + file));
   debug(chalkInfo("FULL PATH " + folder + "/" + file));
 
-  var fileExists = false;
-  var payload;
-  var fileObj;
-  var err = {};
+  let fileExists = false;
+  let payload;
+  let fileObj;
+  let err = {};
 
   dropboxClient.filesListFolder({path: folder})
     .then(function(response) {
@@ -751,12 +748,12 @@ function loadYamlConfig(yamlFile, callback){
   console.log(chalkInfo("LOADING YAML CONFIG FILE: " + yamlFile));
   fs.exists(yamlFile, function(exists) {
     if (exists) {
-      var cnf = yaml.load(yamlFile);
+      let cnf = yaml.load(yamlFile);
       console.log(chalkInfo("FOUND FILE " + yamlFile));
       callback(null, cnf);
     }
     else {
-      var err = "FILE DOES NOT EXIST: " + yamlFile ;
+      let err = "FILE DOES NOT EXIST: " + yamlFile ;
       callback(err, null);
     }
   });
@@ -764,7 +761,7 @@ function loadYamlConfig(yamlFile, callback){
 
 function saveStats(statsFile, statsObj, callback) {
 
-  var fullPath = statsFolder + "/" + statsFile;
+  let fullPath = statsFolder + "/" + statsFile;
 
   if (OFFLINE_MODE) {
 
@@ -796,7 +793,7 @@ function saveStats(statsFile, statsObj, callback) {
   } 
   else {
 
-  var options = {};
+  let options = {};
 
   options.contents = JSON.stringify(statsObj, null, 2);
   options.path = fullPath;
@@ -962,7 +959,7 @@ process.on("message", function(msg) {
 // ==================================================================
 
 
-var configEvents = new EventEmitter2({
+let configEvents = new EventEmitter2({
   wildcard: true,
   newListener: true,
   maxListeners: 20
@@ -973,10 +970,10 @@ configEvents.on("newListener", function(data) {
 });
 
 
-var adminNameSpace;
-var utilNameSpace;
-var userNameSpace;
-var viewNameSpace;
+let adminNameSpace;
+let utilNameSpace;
+let userNameSpace;
+let viewNameSpace;
 
 
 // ==================================================================
@@ -1212,7 +1209,7 @@ function initSocketNamespaces(callback){
 
   viewNameSpace.on("connect", function(socket) {
     socket.setMaxListeners(0);
-    var ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+    let ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
     debug(chalkAdmin("VIEWER CONNECT"
       + " | " + socket.id
       + " | " + ipAddress
@@ -1458,7 +1455,7 @@ function updateWordMeter(wordObj, callback){
     return;
   }
 
-  var meterWordId;
+  let meterWordId;
 
   if (wordObj.isTwitterUser || (wordObj.nodeType === "user")) {
     if (wordObj.screenName !== undefined) {
@@ -1504,7 +1501,7 @@ function updateWordMeter(wordObj, callback){
 
       wordMeter[meterWordId] = null;
 
-      var newMeter = new Measured.Meter({rateUnit: 60000});
+      let newMeter = new Measured.Meter({rateUnit: 60000});
 
       newMeter.mark();
       wordObj.rate = parseFloat(newMeter.toJSON()[metricsRate]);
@@ -1538,9 +1535,9 @@ function updateWordMeter(wordObj, callback){
   }
 }
 
-var transmitNodeQueueReady = true;
-var transmitNodeQueueInterval;
-var transmitNodeQueue = new Queue();
+let transmitNodeQueueReady = true;
+let transmitNodeQueueInterval;
+let transmitNodeQueue = new Queue();
 
 function initTransmitNodeQueueInterval(interval){
 
@@ -1554,7 +1551,7 @@ function initTransmitNodeQueueInterval(interval){
 
       transmitNodeQueueReady = false;
 
-      var nodeObj = transmitNodeQueue.dequeue();
+      let nodeObj = transmitNodeQueue.dequeue();
 
       checkKeyword(nodeObj, function(node){
         updateWordMeter(node, function(err, n){
@@ -1599,9 +1596,9 @@ function transmitNodes(tw, callback){
   callback();
 }
 
-var metricsDataPointQueue = new Queue();
-var metricsDataPointQueueReady = true;
-var metricsDataPointQueueInterval;
+let metricsDataPointQueue = new Queue();
+let metricsDataPointQueueReady = true;
+let metricsDataPointQueueInterval;
 
 function initMetricsDataPointQueueInterval(interval){
 
@@ -1609,7 +1606,7 @@ function initMetricsDataPointQueueInterval(interval){
 
   clearInterval(metricsDataPointQueueInterval);
 
-  var googleRequest = {};
+  let googleRequest = {};
 
   if (GOOGLE_METRICS_ENABLED) {
     googleRequest.name = googleMonitoringClient.projectPath(process.env.GOOGLE_PROJECT_ID);
@@ -1700,14 +1697,14 @@ function addMetricDataPoint(options, callback){
 
   debug(chalkAlert("addMetricDataPoint AFTER\n" + jsonPrint(options)));
 
-  var dataPoint = {
+  let dataPoint = {
     interval: { endTime: { seconds: options.endTime } },
     value: {}
   };
 
   dataPoint.value[options.dataType] = parseFloat(options.value);
 
-  var timeSeriesData = {
+  let timeSeriesData = {
     metric: {
       type: options.metricTypePrefix + "/" + options.metricType,
       labels: options.metricLabels
@@ -1748,7 +1745,7 @@ function addTopTermMetricDataPoint(node, nodeRate){
         + " | RATE: " + nodeRate.toFixed(2)
       ));
 
-      var topTermDataPoint = {};
+      let topTermDataPoint = {};
 
       topTermDataPoint.displayName = node;
       topTermDataPoint.metricType = "word/top10/" + node;
@@ -1761,11 +1758,11 @@ function addTopTermMetricDataPoint(node, nodeRate){
 }
 
 
-var heartbeatsSent = 0;
-var tempDateTime;
-var memoryAvailableMB;
-var memoryTotalMB;
-var memoryAvailablePercent;
+let heartbeatsSent = 0;
+let tempDateTime;
+let memoryAvailableMB;
+let memoryTotalMB;
+let memoryAvailablePercent;
 
 function logHeartbeat() {
 
@@ -1942,7 +1939,7 @@ function initAppRouting(callback) {
         console.log(chalkError("ERROR FILE OPEN\n" + jsonPrint(err)));
       }
 
-      var newData;
+      let newData;
       if (hostname.includes("google")){
         newData = data.toString().replace("==SOURCE==", "http://word.threeceelabs.com");
       }
@@ -1967,7 +1964,7 @@ function initAppRouting(callback) {
 
         if (err2) { debug(chalkInfo("ERROR FILE READ\n" + jsonPrint(err2))); }
 
-        var newData;
+        let newData;
         if (hostname.includes("google")){
           newData = data.toString().replace("==SOURCE==", "http://word.threeceelabs.com");
           console.log(chalkRed("UPDATE DEFAULT_SOURCE controlPanel.js: " + "http://word.threeceelabs.com"));
@@ -2027,10 +2024,10 @@ function initInternetCheckInterval(interval){
   debug(chalkInfo(moment().format(compactDateTimeFormat) 
     + " | INIT INTERNET CHECK INTERVAL | " + interval + " MS"));
 
-  var serverStatus;
-  var serverError;
-  var callbackInterval;
-  var testClient;
+  let serverStatus;
+  let serverError;
+  let callbackInterval;
+  let testClient;
 
   clearInterval(internetCheckInterval);
 
@@ -2075,11 +2072,11 @@ function initInternetCheckInterval(interval){
   }, interval);
 }
 
-var tweetParserReady = false;
+let tweetParserReady = false;
 
 function initTwitterRxQueueInterval(interval){
 
-  var tweet;
+  let tweet;
 
   console.log(chalkLog("INIT TWITTER RX QUEUE INTERVAL | " + interval + " MS"));
 
@@ -2121,8 +2118,8 @@ function initTwitterRxQueueInterval(interval){
 }
 
 
-var tweetParserMessageRxQueueReady = true;
-var tweetParserMessageRxQueueInterval;
+let tweetParserMessageRxQueueReady = true;
+let tweetParserMessageRxQueueInterval;
 
 function initTweetParserMessageRxQueueInterval(interval){
 
@@ -2130,8 +2127,8 @@ function initTweetParserMessageRxQueueInterval(interval){
 
   clearInterval(tweetParserMessageRxQueueInterval);
 
-  // var tweetParserMessage;
-  // var tweetObj;
+  // let tweetParserMessage;
+  // let tweetObj;
 
   tweetParserMessageRxQueueInterval = setInterval(function () {
 
@@ -2139,7 +2136,7 @@ function initTweetParserMessageRxQueueInterval(interval){
 
       tweetParserMessageRxQueueReady = false;
 
-      var tweetParserMessage = tweetParserMessageRxQueue.dequeue();
+      let tweetParserMessage = tweetParserMessageRxQueue.dequeue();
 
       debug(chalkAlert("TWEET PARSER RX MESSAGE"
         + " | OP: " + tweetParserMessage.op
@@ -2148,7 +2145,7 @@ function initTweetParserMessageRxQueueInterval(interval){
 
       if (tweetParserMessage.op === "parsedTweet") {
 
-        var tweetObj = tweetParserMessage.tweetObj;
+        let tweetObj = tweetParserMessage.tweetObj;
 
         if (!tweetObj.user) {
           console.log(chalkAlert("parsedTweet -- TW USER UNDEFINED"
@@ -2196,21 +2193,21 @@ function initTweetParserMessageRxQueueInterval(interval){
 }
 
 
-var sorterMessageRxReady = true; 
-var sorterMessageRxQueueInterval;
+let sorterMessageRxReady = true; 
+let sorterMessageRxQueueInterval;
 function initSorterMessageRxQueueInterval(interval){
 
   console.log(chalkLog("INIT SORTER RX MESSAGE QUEUE INTERVAL | " + interval + " MS"));
 
   clearInterval(sorterMessageRxQueueInterval);
 
-  var sorterObj;
-  var sortedKeys;
-  var endIndex;
-  var index;
-  var i;
-  var node;
-  var nodeRate;
+  // let sorterObj;
+  // let sortedKeys;
+  // let endIndex;
+  // let index;
+  // let i;
+  // let node;
+  // let nodeRate;
 
   sorterMessageRxQueueInterval = setInterval(function() {
 
@@ -2218,11 +2215,16 @@ function initSorterMessageRxQueueInterval(interval){
 
       sorterMessageRxReady = false;
 
-      sorterObj = sorterMessageRxQueue.dequeue();
+      let sorterObj = sorterMessageRxQueue.dequeue();
 
       switch (sorterObj.op){
+
         case "SORTED":
+
           debug(chalkAlert("SORT ---------------------"));
+
+          let i;
+
           for (i=0; i<sorterObj.sortedKeys.length; i += 1){
             if (wordMeter[sorterObj.sortedKeys[i]] !== undefined) {
               debug(chalkInfo(wordMeter[sorterObj.sortedKeys[i]].toJSON()[sorterObj.sortKey].toFixed(3)
@@ -2231,16 +2233,18 @@ function initSorterMessageRxQueueInterval(interval){
             }
           }
 
-          sortedKeys = sorterObj.sortedKeys;
-          endIndex = Math.min(configuration.maxTopTerms, sortedKeys.length);
+          let sortedKeys = sorterObj.sortedKeys;
+          let endIndex = Math.min(configuration.maxTopTerms, sortedKeys.length);
+
+          let index;
 
           for (index=0; index < endIndex; index += 1){
 
-            node = sortedKeys[index].toLowerCase();
+            let node = sortedKeys[index].toLowerCase();
 
             if (wordMeter[node]) {
 
-              nodeRate = parseFloat(wordMeter[node].toJSON()[metricsRate]);
+              let nodeRate = parseFloat(wordMeter[node].toJSON()[metricsRate]);
 
               wordsPerMinuteTopTermCache.set(node, nodeRate);
 
@@ -2266,15 +2270,15 @@ function initSorterMessageRxQueueInterval(interval){
   }, interval);
 }
 
-var updaterMessageReady = true;
-var updaterMessageQueueInterval;
+let updaterMessageReady = true;
+let updaterMessageQueueInterval;
 function initUpdaterMessageQueueInterval(interval){
 
   console.log(chalkInfo("INIT UPDATER MESSAGE QUEUE INTERVAL | " + interval + " MS"));
 
   clearInterval(updaterMessageQueueInterval);
 
-  var updaterObj;
+  let updaterObj;
 
   updaterMessageQueueInterval = setInterval(function() {
 
@@ -2360,7 +2364,7 @@ function initSorter(callback){
     sorter.kill("SIGINT");
   }
 
-  var s = cp.fork(`${__dirname}/js/libs/sorter.js`);
+  let s = cp.fork(`${__dirname}/js/libs/sorter.js`);
 
   s.on("message", function(m){
     debug(chalkAlert("SORTER RX"
@@ -2417,8 +2421,8 @@ function initSorter(callback){
   if (callback !== undefined) { callback(null, sorter); }
 }
 
-var updaterPingInterval;
-var updaterPingOutstanding = 0;
+let updaterPingInterval;
+let updaterPingOutstanding = 0;
 
 function initUpdaterPingInterval(interval){
 
@@ -2477,7 +2481,7 @@ function initUpdater(callback){
     statsObj.children.updater.errors = 0;
   }
 
-  var u = cp.fork(`${__dirname}/js/libs/updater.js`);
+  let u = cp.fork(`${__dirname}/js/libs/updater.js`);
 
   u.on("error", function(err){
     // pmx.emit("ERROR", "UPDATER ERROR");
@@ -2553,7 +2557,7 @@ function initTweetParser(callback){
     statsObj.children.tweetParser.errors = 0;
   }
 
-  var twp = cp.fork(`${__dirname}/js/libs/tweetParser.js`);
+  let twp = cp.fork(`${__dirname}/js/libs/tweetParser.js`);
 
   twp.on("message", function(m){
     debug(chalkAlert("TWEET PARSER RX MESSAGE"
@@ -2606,7 +2610,7 @@ function initTweetParser(callback){
 
 function getCustomMetrics(callback){
 
-  var googleRequest = {
+  let googleRequest = {
     name: googleMonitoringClient.projectPath("graphic-tangent-627")
   };
 
@@ -2621,8 +2625,8 @@ function getCustomMetrics(callback){
       async.each(descriptors, function(descriptor, cb) {
         if (descriptor.name.includes("custom.googleapis.com")) {
 
-          var nameArray = descriptor.name.split("/");
-          var descriptorName = nameArray.pop().toLowerCase();
+          let nameArray = descriptor.name.split("/");
+          let descriptorName = nameArray.pop().toLowerCase();
 
           console.log(chalkInfo("METRIC"
             + " | " + descriptorName
@@ -2655,7 +2659,7 @@ function getCustomMetrics(callback){
 
 }
 
-var updateTimeSeriesCount = 0;
+let updateTimeSeriesCount = 0;
 
 function initRateQinterval(interval){
 
@@ -2668,7 +2672,7 @@ function initRateQinterval(interval){
     });
   }
 
-  var wsObj = {};
+  let wsObj = {};
 
   console.log(chalkLog("INIT RATE QUEUE INTERVAL | " + interval + " MS"));
 
@@ -2694,9 +2698,9 @@ function initRateQinterval(interval){
   statsObj.memory.memoryUsage.heapUsed = process.memoryUsage().heap_used/(1024*1024);
   statsObj.memory.memoryUsage.heapTotal = process.memoryUsage().heap_total/(1024*1024);
 
-  var queueNames;
+  let queueNames;
 
-  // var paramsSorter = {};
+  // let paramsSorter = {};
 
   // paramsSorter.obj = {};
   // paramsSorter.op = "SORT";
@@ -2704,55 +2708,55 @@ function initRateQinterval(interval){
   // paramsSorter.max = configuration.maxTopTerms;
   // // paramsSorter.obj = wordMeter;
 
-  var memoryRssDataPoint = {};
+  let memoryRssDataPoint = {};
   memoryRssDataPoint.metricType = "memory/rss";
   memoryRssDataPoint.metricLabels = {server_id: "MEM"};
 
-  var memoryHeapUsedDataPoint = {};
+  let memoryHeapUsedDataPoint = {};
   memoryHeapUsedDataPoint.metricType = "memory/heap_used";
   memoryHeapUsedDataPoint.metricLabels = {server_id: "MEM"};
 
-  var memoryHeapTotalDataPoint = {};
+  let memoryHeapTotalDataPoint = {};
   memoryHeapTotalDataPoint.metricType = "memory/heap_total";
   memoryHeapTotalDataPoint.metricLabels = {server_id: "MEM"};
 
-  var dataPointTssTpm = {};
+  let dataPointTssTpm = {};
   dataPointTssTpm.metricType = "twitter/tweets_per_minute";
   dataPointTssTpm.metricLabels = {server_id: "TSS"};
 
-  var dataPointTssTpm2 = {};
+  let dataPointTssTpm2 = {};
   dataPointTssTpm2.metricType = "twitter/tweet_limit";
   dataPointTssTpm2.metricLabels = {server_id: "TSS"};
 
-  var dataPointTmsTpm = {};
+  let dataPointTmsTpm = {};
   dataPointTmsTpm.metricType = "twitter/tweets_per_minute";
   dataPointTmsTpm.metricLabels = {server_id: "TMS"};
 
-  var dataPointWpm = {};
+  let dataPointWpm = {};
   dataPointWpm.metricType = "word/words_per_minute";
   dataPointWpm.metricLabels = {server_id: "WORD"};
 
-  var dataPointOpm = {};
+  let dataPointOpm = {};
   dataPointOpm.metricType = "word/obama_per_minute";
   dataPointOpm.metricLabels = {server_id: "WORD"};
   
-  var dataPointOTrpm = {};
+  let dataPointOTrpm = {};
   dataPointOTrpm.metricType = "word/trump_per_minute";
   dataPointOTrpm.metricLabels = {server_id: "WORD"};
 
-  var dataPointUtils = {};
+  let dataPointUtils = {};
   dataPointUtils.metricType = "util/global/number_of_utils";
   dataPointUtils.metricLabels = {server_id: "UTIL"};
 
-  var dataPointViewers = {};
+  let dataPointViewers = {};
   dataPointViewers.metricType = "user/global/number_of_viewers";
   dataPointViewers.metricLabels = {server_id: "USER"};
 
-  var dataPointUsers = {};
+  let dataPointUsers = {};
   dataPointUsers.metricType = "user/global/number_of_users";
   dataPointUsers.metricLabels = {server_id: "USER"};
 
-  var dataPointNodeCache = {};
+  let dataPointNodeCache = {};
   dataPointNodeCache.metricType = "cache/node/keys";
   dataPointNodeCache.metricLabels = {server_id: "CACHE"};
 
@@ -2786,7 +2790,7 @@ function initRateQinterval(interval){
 
     if (updateTimeSeriesCount === 0){
 
-      var paramsSorter = {};
+      let paramsSorter = {};
 
       paramsSorter.op = "SORT";
       paramsSorter.sortKey = metricsRate;
@@ -2821,7 +2825,7 @@ function initRateQinterval(interval){
 
         queueNames = Object.keys(statsObj.queues);
 
-        var queueDataPoint = {};
+        let queueDataPoint = {};
 
         queueNames.forEach(function(queueName){
           queueDataPoint.metricType = "word/queues/" + queueName;
@@ -2867,7 +2871,7 @@ function initRateQinterval(interval){
           addMetricDataPoint(dataPointTmsTpm);
           
           if (statsObj.utilities[tmsServer.user.userId].twitterLimit) {
-            var dataPointTmsTpm2 = {};
+            let dataPointTmsTpm2 = {};
             dataPointTmsTpm2.metricType = "twitter/tweet_limit";
             dataPointTmsTpm2.value = statsObj.utilities[tmsServer.user.userId].twitterLimit;
             dataPointTmsTpm2.metricLabels = {server_id: "TMS"};
@@ -2889,7 +2893,7 @@ function initialize(cnf, callback) {
   // debug(chalkInfo(moment().format(compactDateTimeFormat) + " | initialize ..."));
   debug(chalkInfo(moment().format(compactDateTimeFormat) + " | INITIALIZE"));
 
-  var configArgs = Object.keys(cnf);
+  let configArgs = Object.keys(cnf);
   configArgs.forEach(function(arg){
     debug("FINAL CONFIG | " + arg + ": " + cnf[arg]);
   });
@@ -2971,8 +2975,8 @@ function initIgnoreWordsHashMap(callback) {
 
 function initStatsInterval(interval){
 
-  var statsUpdated = 0;
-  var heapdumpFileName;
+  let statsUpdated = 0;
+  let heapdumpFileName;
 
   console.log(chalkInfo("INIT STATS INTERVAL"
     + " | " + interval + " MS"

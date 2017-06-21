@@ -8,10 +8,10 @@ console.log("PROCESS PID: " + process.pid);
 let quitOnError = true;
 
 
-const heapdump = require('heapdump');
-// let memwatch = require('memwatch');
+const heapdump = require("heapdump");
+// let memwatch = require("memwatch");
 
-// let pmx = require('pmx').init({
+// let pmx = require("pmx").init({
 //   http          : true, // HTTP routes logging (default: true)
 //   ignore_routes : [/socket\.io/, /notFound/], // Ignore http routes with this pattern (Default: [])
 //   errors        : true, // Exceptions logging (default: true)
@@ -42,7 +42,7 @@ const TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL = 10;
 const UPDATE_TRENDS_INTERVAL = 15*ONE_MINUTE;
 const STATS_UPDATE_INTERVAL = 60000;
 
-const DEFAULT_KEYWORD_VALUE = 100;
+// const DEFAULT_KEYWORD_VALUE = 100;
 
 const DEFAULT_INTERVAL = 10;
 
@@ -210,10 +210,10 @@ let ignoreWordsArray = [
 let metricsRate = "5MinuteRate";
 const CUSTOM_GOOGLE_APIS_PREFIX = "custom.googleapis.com";
 
-const deepcopy = require('deep-copy');
+// const deepcopy = require("deep-copy");
 const defaults = require("object.defaults");
 const omit = require("object.omit");
-const pick = require('object.pick');
+const pick = require("object.pick");
 const moment = require("moment");
 const config = require("./config/config");
 const os = require("os");
@@ -228,7 +228,7 @@ const Queue = require("queue-fifo");
 const express = require("./config/express");
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
 const Dropbox = require("dropbox");
-const Monitoring = require('@google-cloud/monitoring').v3();
+const Monitoring = require("@google-cloud/monitoring").v3();
 
 let googleMonitoringClient;
 
@@ -336,10 +336,10 @@ const DROPBOX_WORD_ASSO_ACCESS_TOKEN = process.env.DROPBOX_WORD_ASSO_ACCESS_TOKE
 const DROPBOX_WORD_ASSO_APP_KEY = process.env.DROPBOX_WORD_ASSO_APP_KEY;
 const DROPBOX_WORD_ASSO_APP_SECRET = process.env.DROPBOX_WORD_ASSO_APP_SECRET;
 // const WA_STATS_FILE = process.env.WA_STATS_FILE;
-const DROPBOX_WA_STATS_FILE = process.env.DROPBOX_WA_STATS_FILE || "wordAssoServer02Stats.json";
+// const DROPBOX_WA_STATS_FILE = process.env.DROPBOX_WA_STATS_FILE || "wordAssoServer02Stats.json";
 
 let statsFolder = "/stats/" + hostname;
-let statsFileDefault = DROPBOX_WA_STATS_FILE;
+// let statsFileDefault = DROPBOX_WA_STATS_FILE;
 let statsFile = "wordAssoServer02Stats" 
   + "_" + moment().format(tinyDateTimeFormat) 
   + ".json";
@@ -393,7 +393,7 @@ let nodeCache = new NodeCache({
 
 nodeCache.on("expired", function(nodeCacheId, nodeObj) {
 
-  debug(chalkAlert("XXX $ NODE"
+  debug(chalkLog("XXX $ NODE"
     + " | " + nodeObj.nodeType
     + " | " + nodeCacheId
   ));
@@ -406,7 +406,7 @@ nodeCache.on("expired", function(nodeCacheId, nodeObj) {
     wordMeter = omit(wordMeter, nodeCacheId);
     delete wordMeter[nodeCacheId];
 
-    debug(chalkAlert("XXX NODE METER WORD"
+    debug(chalkLog("XXX NODE METER WORD"
       + " | Ks: " + Object.keys(wordMeter).length
       + " | " + nodeCacheId
     ));
@@ -416,7 +416,7 @@ nodeCache.on("expired", function(nodeCacheId, nodeObj) {
     if (statsObj.wordMeterEntries > statsObj.wordMeterEntriesMax) {
       statsObj.wordMeterEntriesMax = statsObj.wordMeterEntries;
       statsObj.wordMeterEntriesMaxTime = moment().valueOf();
-      console.log(chalkAlert("NEW MAX WORD METER ENTRIES"
+      debug(chalkLog("NEW MAX WORD METER ENTRIES"
         + " | " + moment().format(compactDateTimeFormat)
         + " | " + statsObj.wordMeterEntries.toFixed(0)
       ));
@@ -639,7 +639,7 @@ function quit(message) {
 function getTimeStamp(inputTime) {
   let currentTimeStamp ;
 
-  if (typeof inputTime === 'undefined') {
+  if (inputTime === undefined) {
     currentTimeStamp = moment().format(compactDateTimeFormat);
     return currentTimeStamp;
   }
@@ -662,7 +662,7 @@ function loadFile(folder, file, callback) {
   let fileExists = false;
   let payload;
   let fileObj;
-  let err = {};
+  // let err = {};
 
   dropboxClient.filesListFolder({path: folder})
     .then(function(response) {
@@ -671,8 +671,8 @@ function loadFile(folder, file, callback) {
 
           debug("FOUND FILE " + folderFile.name);
 
-          if (folderFile.name == file) {
-            debug(chalkAlert("SOURCE FILE EXISTS: " + file));
+          if (folderFile.name === file) {
+            debug(chalkLog("SOURCE FILE EXISTS: " + file));
             fileExists = true;
           }
 
@@ -701,7 +701,7 @@ function loadFile(folder, file, callback) {
                 }
                 else if (file.match(/\.yml/gi)) {
                   fileObj = yaml.load(payload);
-                  debug(chalkAlert("FOUND YAML FILE: " + file));
+                  debug(chalkLog("FOUND YAML FILE: " + file));
                   debug("FOUND YAML FILE\n" + jsonPrint(fileObj));
                   debug("FOUND YAML FILE\n" + jsonPrint(payload));
                   callback(null, fileObj);
@@ -712,15 +712,15 @@ function loadFile(folder, file, callback) {
 
                })
               .catch(function(error) {
-                console.log(chalkAlert("DROPBOX loadFile ERROR: " + file + "\n" + error));
+                console.log(chalkError("DROPBOX loadFile ERROR: " + file + "\n" + error));
                 console.log(chalkError("!!! DROPBOX READ " + file + " ERROR"));
                 console.log(chalkError(jsonPrint(error)));
 
-                if (error["status"] === 404) {
+                if (error.status === 404) {
                   console.error(chalkError("!!! DROPBOX READ FILE " + file + " NOT FOUND ... SKIPPING ..."));
                   callback(null, null);
                 }
-                else if (error["status"] === 0) {
+                else if (error.status === 0) {
                   console.error(chalkError("!!! DROPBOX NO RESPONSE ... NO INTERNET CONNECTION? ... SKIPPING ..."));
                   callback(null, null);
                 }
@@ -769,7 +769,6 @@ function saveStats(statsFile, statsObj, callback) {
       if (exists) {
         fs.stat(fullPath, function(error, stats) {
           if (error) { 
-            fs.close(fd);
             return(callback(error, stats)); 
           }
           fs.open(fullPath, "w", function(error, fd) {
@@ -822,33 +821,13 @@ function showStats(options){
 
   statsObj.elapsed = msToTime(moment().valueOf() - statsObj.startTime);
   statsObj.timeStamp = moment().format(compactDateTimeFormat);
-  // statsObj.caches.nodeCache.stats.keys = nodeCache.getStats().keys;
-  // statsObj.caches.wordsPerMinuteTopTermCache.stats.keys = nodeCache.getStats().keys;
-
-  // if (statsObj.caches.wordsPerMinuteTopTermCache.stats.keys > statsObj.caches.wordsPerMinuteTopTermCache.stats.keysMax) {
-  //   statsObj.caches.wordsPerMinuteTopTermCache.stats.keysMax = statsObj.caches.wordsPerMinuteTopTermCache.stats.keys;
-  //   statsObj.caches.wordsPerMinuteTopTermCache.stats.keysMaxTime = moment().valueOf();
-  //   console.log(chalkAlert("NEW MAX WPM TT $ KEYS"
-  //     + " | " + moment().format(compactDateTimeFormat)
-  //     + " | KEYS: " + statsObj.caches.wordsPerMinuteTopTermCache.stats.keys
-  //   ));
-  // }
-
-  // if (statsObj.caches.nodeCache.stats.keys > statsObj.caches.nodeCache.stats.keysMax) {
-  //   statsObj.caches.nodeCache.stats.keysMax = statsObj.caches.nodeCache.stats.keys;
-  //   statsObj.caches.nodeCache.stats.keysMaxTime = moment().valueOf();
-  //   console.log(chalkAlert("NEW MAX NODE $ KEYS"
-  //     + " | " + moment().format(compactDateTimeFormat)
-  //     + " | KEYS: " + statsObj.caches.nodeCache.stats.keys
-  //   ));
-  // }
 
   statsObj.memory.heap = process.memoryUsage().heapUsed/(1024*1024);
 
   if (statsObj.memory.heap > statsObj.memory.maxHeap) {
     statsObj.memory.maxHeap = statsObj.memory.heap;
     statsObj.memory.maxHeapTime = moment().valueOf();
-    debug(chalkAlert("NEW MAX HEAP"
+    debug(chalkLog("NEW MAX HEAP"
       + " | " + moment().format(compactDateTimeFormat)
       + " | " + statsObj.memory.heap.toFixed(0) + " MB"
     ));
@@ -870,7 +849,7 @@ function showStats(options){
       + " | MAX H: " + statsObj.memory.maxHeap.toFixed(0)
       + " | MAX H TIME: " + moment(parseInt(statsObj.memory.maxHeapTime)).format(compactDateTimeFormat)
     ));
-    console.log(chalkAlert("STATS\n" + jsonPrint(statsObj)));
+    console.log(chalkLog("STATS\n" + jsonPrint(statsObj)));
   }
   else {
     console.log(chalkLog("S"
@@ -905,10 +884,13 @@ function initDeletedMetricsHashmap(callback){
       // Object.keys(deletedMetricsObj).forEach(function(metricName){
       async.each(Object.keys(deletedMetricsObj), function(metricName, cb){
         deletedMetricsHashmap.set(metricName, deletedMetricsObj[metricName]);
-        debug(chalkAlert("+ DELETED METRIC | " + metricName ));
+        debug(chalkLog("+ DELETED METRIC | " + metricName ));
         cb();
       }, function(err){
-        console.log(chalkAlert("LOADED DELETED METRICS | " + deletedMetricsHashmap.count() ));
+        if (err) {
+          console.error(chalkError("ERROR INIT DELETED METRICS  HASHMAP | " + deletedMetricsFile + "\n" + err ));
+        }
+        console.log(chalkLog("LOADED DELETED METRICS | " + deletedMetricsHashmap.count() ));
         if (callback !== undefined) { callback(null, null); }
       });
     }
@@ -1224,7 +1206,7 @@ function initSocketNamespaces(callback){
 
 function checkKeyword(nodeObj, callback) {
 
-  debug(chalkAlert("checkKeyword"
+  debug(chalkLog("checkKeyword"
     + " | " + nodeObj.nodeType
     + " | " + nodeObj.nodeId
     + "\n" + jsonPrint(nodeObj)
@@ -1234,7 +1216,7 @@ function checkKeyword(nodeObj, callback) {
     && (nodeObj.screenName !== undefined) 
     && (nodeObj.screenName) 
     && keywordHashMap.has(nodeObj.screenName.toLowerCase())) {
-    debug(chalkAlert("HIT USER SNAME"));
+    debug(chalkLog("HIT USER SNAME"));
     nodeObj.isKeyword = true;
     nodeObj.keywords = keywordHashMap.get(nodeObj.screenName.toLowerCase());
   }
@@ -1242,18 +1224,18 @@ function checkKeyword(nodeObj, callback) {
     && (nodeObj.name !== undefined) 
     && (nodeObj.name) 
     && keywordHashMap.has(nodeObj.name.toLowerCase())) {
-    debug(chalkAlert("HIT USER NAME"));
+    debug(chalkLog("HIT USER NAME"));
     nodeObj.keywords = keywordHashMap.get(nodeObj.name.toLowerCase());
     nodeObj.isKeyword = true;
   }
   else if ((nodeObj.nodeType === "place") 
     && keywordHashMap.has(nodeObj.name.toLowerCase())) {
-    debug(chalkAlert("HIT PLACE NAME"));
+    debug(chalkLog("HIT PLACE NAME"));
     nodeObj.keywords = keywordHashMap.get(nodeObj.name.toLowerCase());
     nodeObj.isKeyword = true;
   }
   else if (nodeObj.nodeId && keywordHashMap.has(nodeObj.nodeId.toLowerCase())) {
-    debug(chalkAlert("HIT NODE ID"));
+    debug(chalkLog("HIT NODE ID"));
     nodeObj.keywords = keywordHashMap.get(nodeObj.nodeId.toLowerCase());
     nodeObj.isKeyword = true;
     if ((nodeObj.nodeType === "user") 
@@ -1263,7 +1245,7 @@ function checkKeyword(nodeObj, callback) {
     }
   }
   else if (nodeObj.text && keywordHashMap.has(nodeObj.text.toLowerCase())) {
-    debug(chalkAlert("HIT TEXT"));
+    debug(chalkLog("HIT TEXT"));
     nodeObj.keywords = keywordHashMap.get(nodeObj.text.toLowerCase());
     nodeObj.isKeyword = true;
     if ((nodeObj.nodeType === "user") 
@@ -1303,7 +1285,7 @@ function checkKeyword(nodeObj, callback) {
             console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
           }
           if (screenName !== undefined) {
-            debug(chalkAlert("TOP TERM: " + screenName));
+            debug(chalkLog("TOP TERM: " + screenName));
             nodeObj.isTopTerm = true;
           }
           callback(nodeObj);
@@ -1342,7 +1324,7 @@ function checkKeyword(nodeObj, callback) {
 
     case "place":
 
-      debug(chalkAlert("PLACE | checkKeyword\n" + jsonPrint(nodeObj)));
+      debug(chalkLog("PLACE | checkKeyword\n" + jsonPrint(nodeObj)));
       debug(chalkInfo("PLACE | checkKeyword"
         + " | " + nodeObj.name
         + " | " + nodeObj.fullName
@@ -1433,7 +1415,7 @@ function updateTrends(){
 
 function initUpdateTrendsInterval(interval){
 
-  console.log(chalkAlert("INIT UPDATE TRENDS INTERVAL: " + interval + " MS"));
+  console.log(chalkLog("INIT UPDATE TRENDS INTERVAL: " + interval + " MS"));
 
   clearInterval(updateTrendsInterval);
 
@@ -1482,7 +1464,7 @@ function updateWordMeter(wordObj, callback){
 
   if (ignoreWordHashMap.has(meterWordId)) {
 
-    debug(chalkAlert("updateWordMeter IGNORE " + meterWordId));
+    debug(chalkLog("updateWordMeter IGNORE " + meterWordId));
 
     wordObj.isIgnored = true;
 
@@ -1492,11 +1474,11 @@ function updateWordMeter(wordObj, callback){
   }
   else {
     if (/TSS_/.test(meterWordId) || wordObj.isServer){
-      console.log(chalkAlert("updateWordMeter\n" + jsonPrint(wordObj)));
+      console.log(chalkLog("updateWordMeter\n" + jsonPrint(wordObj)));
     }
 
     if (!wordMeter[meterWordId] 
-      || (wordMeter[meterWordId] === {})
+      || (Object.keys(wordMeter[meterWordId]).length === 0)
       || (wordMeter[meterWordId] === undefined) ){
 
       wordMeter[meterWordId] = null;
@@ -1515,7 +1497,7 @@ function updateWordMeter(wordObj, callback){
       if (statsObj.wordMeterEntries > statsObj.wordMeterEntriesMax) {
         statsObj.wordMeterEntriesMax = statsObj.wordMeterEntries;
         statsObj.wordMeterEntriesMaxTime = moment().valueOf();
-        console.log(chalkAlert("NEW MAX WORD METER ENTRIES"
+        debug(chalkLog("NEW MAX WORD METER ENTRIES"
           + " | " + moment().format(compactDateTimeFormat)
           + " | " + statsObj.wordMeterEntries.toFixed(0)
         ));
@@ -1541,7 +1523,7 @@ const transmitNodeQueue = new Queue();
 
 function initTransmitNodeQueueInterval(interval){
 
-  console.log(chalkAlert("INIT TRANSMIT NODE QUEUE INTERVAL: " + interval + " MS"));
+  console.log(chalkLog("INIT TRANSMIT NODE QUEUE INTERVAL: " + interval + " MS"));
 
   clearInterval(transmitNodeQueueInterval);
 
@@ -1622,7 +1604,7 @@ function initMetricsDataPointQueueInterval(interval){
 
       metricsDataPointQueueReady = false;
 
-      debug(chalkAlert("METRICS TIME SERIES"
+      debug(chalkLog("METRICS TIME SERIES"
         + "\n" + jsonPrint(googleRequest.timeSeries)
       ));
 
@@ -1635,6 +1617,10 @@ function initMetricsDataPointQueueInterval(interval){
 
       }, function(err){
 
+        if (err) {
+          console.error(chalkError("ERROR INIT METRICS DATAPOINT QUEUE INTERVAL\n" + err ));
+        }
+
         metricsDataPointQueue.clear();
 
         googleMonitoringClient.createTimeSeries(googleRequest)
@@ -1646,7 +1632,10 @@ function initMetricsDataPointQueueInterval(interval){
             metricsDataPointQueueReady = true;
           })
           .catch(function(err){
-            statsObj.errors.google[err.code] = (statsObj.errors.google[err.code] === undefined) ? 1 : statsObj.errors.google[err.code] += 1;
+            if (statsObj.errors.google[err.code] === undefined) {
+              statsObj.errors.google[err.code] = 0;
+            }
+            statsObj.errors.google[err.code] += 1;
             // if (err.code !== 8) {
             // pmx.emit("ERROR", "GOOGLE METRICS ERROR");
             console.error(chalkError(moment().format(compactDateTimeFormat)
@@ -1662,7 +1651,7 @@ function initMetricsDataPointQueueInterval(interval){
               // + "\nMETA DATA\n" + jsonPrint(err.metadata)
             ));
             googleRequest.timeSeries.forEach(function(dataPoint){
-              console.error(chalkAlert(dataPoint.metric.type + " | " + dataPoint.points[0].value.doubleValue));
+              debug(chalkLog(dataPoint.metric.type + " | " + dataPoint.points[0].value.doubleValue));
             });
             metricsDataPointQueueReady = true;
         });
@@ -1682,7 +1671,7 @@ function addMetricDataPoint(options, callback){
     return;
   }
 
-  debug(chalkAlert("addMetricDataPoint"
+  debug(chalkLog("addMetricDataPoint"
     + " | GOOGLE_METRICS_ENABLED: " + GOOGLE_METRICS_ENABLED
     + "\n" + jsonPrint(options)
   ));
@@ -1695,7 +1684,7 @@ function addMetricDataPoint(options, callback){
     metricTypePrefix: CUSTOM_GOOGLE_APIS_PREFIX
   });
 
-  debug(chalkAlert("addMetricDataPoint AFTER\n" + jsonPrint(options)));
+  debug(chalkLog("addMetricDataPoint AFTER\n" + jsonPrint(options)));
 
   let dataPoint = {
     interval: { endTime: { seconds: options.endTime } },
@@ -1759,7 +1748,6 @@ function addTopTermMetricDataPoint(node, nodeRate){
 
 
 let heartbeatsSent = 0;
-let tempDateTime;
 let memoryAvailableMB;
 let memoryTotalMB;
 let memoryAvailablePercent;
@@ -1822,7 +1810,6 @@ configEvents.on("SERVER_READY", function() {
     }
   });
 
-  tempDateTime;
   memoryAvailableMB = (statsObj.memory.memoryAvailable/(1024*1024));
   memoryTotalMB = (statsObj.memory.memoryTotal/(1024*1024));
   memoryAvailablePercent = (statsObj.memory.memoryAvailable/statsObj.memory.memoryTotal);
@@ -1856,8 +1843,7 @@ configEvents.on("SERVER_READY", function() {
 
     } 
     else {
-      tempDateTime = moment();
-      if (tempDateTime.seconds() % 10 === 0) {
+      if (moment().seconds() % 10 === 0) {
         debug(chalkError("!!!! INTERNET DOWN?? !!!!! " 
           + moment().format(compactDateTimeFormat)
           + " | INTERNET READY: " + internetReady
@@ -1877,7 +1863,7 @@ function initAppRouting(callback) {
   debug(chalkInfo(moment().format(compactDateTimeFormat) + " | INIT APP ROUTING"));
 
   app.use(function (req, res, next) {
-    debug(chalkAlert("R>"
+    debug(chalkLog("R>"
       + " | " + moment().format(compactDateTimeFormat)
       + " | IP: " + req.ip
       // + " | IPS: " + req.ips
@@ -1967,11 +1953,11 @@ function initAppRouting(callback) {
         let newData;
         if (hostname.includes("google")){
           newData = data.toString().replace("==SOURCE==", "http://word.threeceelabs.com");
-          console.log(chalkRed("UPDATE DEFAULT_SOURCE controlPanel.js: " + "http://word.threeceelabs.com"));
+          console.log(chalkInfo("UPDATE DEFAULT_SOURCE controlPanel.js: " + "http://word.threeceelabs.com"));
         }
         else {
           newData = data.toString().replace("==SOURCE==", "http://localhost:9997");
-          console.log(chalkRed("UPDATE DEFAULT_SOURCE controlPanel.js: " + "http://localhost:9997"));
+          console.log(chalkInfo("UPDATE DEFAULT_SOURCE controlPanel.js: " + "http://localhost:9997"));
         }
         res.send(newData);
         res.end();
@@ -2007,7 +1993,7 @@ function initAppRouting(callback) {
     debug(chalkInfo("LOADING PAGE: /js/require.js | " + req));
     res.sendFile(__dirname + "/js/require.js", function (err) {
       if (err) {
-        debug(chalkAlert("GET:", __dirname + "/js/require.js"));
+        debug(chalkLog("GET:", __dirname + "/js/require.js"));
       } 
       else {
         debug(chalkInfo("SENT:", __dirname + "/js/require.js"));
@@ -2063,7 +2049,7 @@ function initInternetCheckInterval(interval){
 
   callbackInterval = setInterval(function(){
     if (serverStatus || serverError) {
-      debug(chalkAlert("INIT INTERNET CHECK INTERVAL"
+      debug(chalkLog("INIT INTERNET CHECK INTERVAL"
         + " | ERROR: "  + serverError
         + " | STATUS: " + serverStatus
       ));
@@ -2072,7 +2058,7 @@ function initInternetCheckInterval(interval){
   }, interval);
 }
 
-let tweetParserReady = false;
+// let tweetParserReady = false;
 
 function initTwitterRxQueueInterval(interval){
 
@@ -2138,7 +2124,7 @@ function initTweetParserMessageRxQueueInterval(interval){
 
       let tweetParserMessage = tweetParserMessageRxQueue.dequeue();
 
-      debug(chalkAlert("TWEET PARSER RX MESSAGE"
+      debug(chalkLog("TWEET PARSER RX MESSAGE"
         + " | OP: " + tweetParserMessage.op
         // + "\n" + jsonPrint(m)
       ));
@@ -2201,13 +2187,13 @@ function initSorterMessageRxQueueInterval(interval){
 
   clearInterval(sorterMessageRxQueueInterval);
 
-  // let sorterObj;
-  // let sortedKeys;
-  // let endIndex;
-  // let index;
-  // let i;
-  // let node;
-  // let nodeRate;
+  let sorterObj;
+  let sortedKeys;
+  let endIndex;
+  let index;
+  let i;
+  let node;
+  let nodeRate;
 
   sorterMessageRxQueueInterval = setInterval(function() {
 
@@ -2215,15 +2201,14 @@ function initSorterMessageRxQueueInterval(interval){
 
       sorterMessageRxReady = false;
 
-      let sorterObj = sorterMessageRxQueue.dequeue();
-
+      sorterObj = sorterMessageRxQueue.dequeue();
+ 
       switch (sorterObj.op){
 
         case "SORTED":
 
-          debug(chalkAlert("SORT ---------------------"));
+          debug(chalkLog("SORT ---------------------"));
 
-          let i;
 
           for (i=0; i<sorterObj.sortedKeys.length; i += 1){
             if (wordMeter[sorterObj.sortedKeys[i]] !== undefined) {
@@ -2233,18 +2218,16 @@ function initSorterMessageRxQueueInterval(interval){
             }
           }
 
-          let sortedKeys = sorterObj.sortedKeys;
-          let endIndex = Math.min(configuration.maxTopTerms, sortedKeys.length);
-
-          let index;
+          sortedKeys = sorterObj.sortedKeys;
+          endIndex = Math.min(configuration.maxTopTerms, sortedKeys.length);
 
           for (index=0; index < endIndex; index += 1){
 
-            let node = sortedKeys[index].toLowerCase();
+            node = sortedKeys[index].toLowerCase();
 
             if (wordMeter[node]) {
 
-              let nodeRate = parseFloat(wordMeter[node].toJSON()[metricsRate]);
+              nodeRate = parseFloat(wordMeter[node].toJSON()[metricsRate]);
 
               wordsPerMinuteTopTermCache.set(node, nodeRate);
 
@@ -2269,6 +2252,132 @@ function initSorterMessageRxQueueInterval(interval){
     }
   }, interval);
 }
+
+let updaterPingInterval;
+let updaterPingOutstanding = 0;
+
+function initUpdaterPingInterval(interval){
+
+  console.log(chalkLog("INIT UPDATER PING INTERVAL"
+    + " | " + interval + " MS"
+  ));
+
+  clearInterval(updaterPingInterval);
+
+  updaterPingInterval = setInterval(function() {
+
+    if (updaterPingOutstanding > 0) {
+      console.error(chalkError("PING OUTSTANDING | " + updaterPingOutstanding));
+      updaterPingOutstanding = 0;
+      initUpdater();
+    }
+
+    updaterPingOutstanding = moment().format(compactDateTimeFormat);
+
+    if (updater !== undefined){
+      updater.send({
+        op: "PING",
+        message: hostname + "_" + process.pid,
+        timeStamp: updaterPingOutstanding
+      }, function(err){
+        if (err) {
+          // pmx.emit("ERROR", "PING ERROR");
+          console.error(chalkError("*** UPDATER SEND ERROR"
+            + " | " + err
+          ));
+        }
+      });
+
+      debug(chalkLog(">UPDATER PING"
+      ));
+
+    }
+    else {
+      console.log(chalkError("!!! NO UPDATER PING ... UNDEFINED"
+      ));
+    }
+  }, interval);
+}
+
+
+function initUpdater(callback){
+
+  clearInterval(updaterPingInterval);
+
+  if (updater !== undefined) {
+    console.error("KILLING PREVIOUS UPDATER | " + updater.pid);
+    updater.kill("SIGINT");
+  }
+
+  if (statsObj.children.updater === undefined){
+    statsObj.children.updater = {};
+    statsObj.children.updater.errors = 0;
+  }
+
+  const u = cp.fork(`${__dirname}/js/libs/updater.js`);
+
+  u.on("error", function(err){
+    // pmx.emit("ERROR", "UPDATER ERROR");
+    console.error(chalkError(moment().format(compactDateTimeFormat)
+      + " | *** UPDATER ERROR ***"
+      + " \n" + jsonPrint(err)
+    ));
+
+    clearInterval(updaterPingInterval);
+
+    configEvents.emit("CHILD_ERROR", { name: "updater" });
+    
+  });
+
+  u.on("exit", function(code){
+    console.error(chalkError(moment().format(compactDateTimeFormat)
+      + " | *** UPDATER EXIT ***"
+      + " | EXIT CODE: " + code
+    ));
+
+    clearInterval(updaterPingInterval);
+
+    if (code > 0) { configEvents.emit("CHILD_ERROR", { name: "updater" }); }
+
+  });
+
+  u.on("close", function(code){
+    console.error(chalkError(moment().format(compactDateTimeFormat)
+      + " | *** UPDATER CLOSE ***"
+      + " | EXIT CODE: " + code
+    ));
+
+    clearInterval(updaterPingInterval);
+  });
+
+  u.on("message", function(m){
+    debug(chalkInfo("UPDATER RX\n" + jsonPrint(m)));
+    // if (updaterMessageQueue.length < MAX_Q){
+      updaterMessageQueue.enqueue(m);
+    // }
+  });
+
+  u.send({
+    op: "INIT",
+    folder: ".",
+    keywordFile: defaultDropboxKeywordFile,
+    interval: KEYWORDS_UPDATE_INTERVAL
+  }, function(err){
+    if (err) {
+      // pmx.emit("ERROR", "UPDATER INIT SEND ERROR");
+      console.error(chalkError("*** UPDATER SEND ERROR"
+        + " | " + err
+      ));
+    }
+  });
+
+  initUpdaterPingInterval(60000);
+
+  updater = u;
+
+  if (callback !== undefined) { callback(null, u); }
+}
+
 
 let updaterMessageReady = true;
 let updaterMessageQueueInterval;
@@ -2367,7 +2476,7 @@ function initSorter(callback){
   const s = cp.fork(`${__dirname}/js/libs/sorter.js`);
 
   s.on("message", function(m){
-    debug(chalkAlert("SORTER RX"
+    debug(chalkLog("SORTER RX"
       + " | " + m.op
       // + "\n" + jsonPrint(m)
     ));
@@ -2421,130 +2530,6 @@ function initSorter(callback){
   if (callback !== undefined) { callback(null, sorter); }
 }
 
-let updaterPingInterval;
-let updaterPingOutstanding = 0;
-
-function initUpdaterPingInterval(interval){
-
-  console.log(chalkAlert("INIT UPDATER PING INTERVAL"
-    + " | " + interval + " MS"
-  ));
-
-  clearInterval(updaterPingInterval);
-
-  updaterPingInterval = setInterval(function() {
-
-    if (updaterPingOutstanding > 0) {
-      console.error(chalkError("PING OUTSTANDING | " + updaterPingOutstanding));
-      updaterPingOutstanding = 0;
-      initUpdater();
-    }
-
-    updaterPingOutstanding = moment().format(compactDateTimeFormat);
-
-    if (updater !== undefined){
-      updater.send({
-        op: "PING",
-        message: hostname + "_" + process.pid,
-        timeStamp: updaterPingOutstanding
-      }, function(err){
-        if (err) {
-          // pmx.emit("ERROR", "PING ERROR");
-          console.error(chalkError("*** UPDATER SEND ERROR"
-            + " | " + err
-          ));
-        }
-      });
-
-      debug(chalkAlert(">UPDATER PING"
-      ));
-
-    }
-    else {
-      console.log(chalkError("!!! NO UPDATER PING ... UNDEFINED"
-      ));
-    }
-  }, interval);
-}
-
-function initUpdater(callback){
-
-  clearInterval(updaterPingInterval);
-
-  if (updater !== undefined) {
-    console.error("KILLING PREVIOUS UPDATER | " + updater.pid);
-    updater.kill("SIGINT");
-  }
-
-  if (statsObj.children.updater === undefined){
-    statsObj.children.updater = {};
-    statsObj.children.updater.errors = 0;
-  }
-
-  const u = cp.fork(`${__dirname}/js/libs/updater.js`);
-
-  u.on("error", function(err){
-    // pmx.emit("ERROR", "UPDATER ERROR");
-    console.error(chalkError(moment().format(compactDateTimeFormat)
-      + " | *** UPDATER ERROR ***"
-      + " \n" + jsonPrint(err)
-    ));
-
-    clearInterval(updaterPingInterval);
-
-    configEvents.emit("CHILD_ERROR", { name: "updater" });
-    
-  });
-
-  u.on("exit", function(code){
-    console.error(chalkError(moment().format(compactDateTimeFormat)
-      + " | *** UPDATER EXIT ***"
-      + " | EXIT CODE: " + code
-    ));
-
-    clearInterval(updaterPingInterval);
-
-    if (code > 0) { configEvents.emit("CHILD_ERROR", { name: "updater" }); }
-
-  });
-
-  u.on("close", function(code){
-    console.error(chalkError(moment().format(compactDateTimeFormat)
-      + " | *** UPDATER CLOSE ***"
-      + " | EXIT CODE: " + code
-    ));
-
-    clearInterval(updaterPingInterval);
-  });
-
-  u.on("message", function(m){
-    debug(chalkInfo("UPDATER RX\n" + jsonPrint(m)));
-    // if (updaterMessageQueue.length < MAX_Q){
-      updaterMessageQueue.enqueue(m);
-    // }
-  });
-
-  u.send({
-    op: "INIT",
-    folder: ".",
-    keywordFile: defaultDropboxKeywordFile,
-    interval: KEYWORDS_UPDATE_INTERVAL
-  }, function(err){
-    if (err) {
-      // pmx.emit("ERROR", "UPDATER INIT SEND ERROR");
-      console.error(chalkError("*** UPDATER SEND ERROR"
-        + " | " + err
-      ));
-    }
-  });
-
-  initUpdaterPingInterval(60000);
-
-  updater = u;
-
-  if (callback !== undefined) { callback(null, u); }
-}
-
 function initTweetParser(callback){
 
   if (tweetParser !== undefined) {
@@ -2560,7 +2545,7 @@ function initTweetParser(callback){
   const twp = cp.fork(`${__dirname}/js/libs/tweetParser.js`);
 
   twp.on("message", function(m){
-    debug(chalkAlert("TWEET PARSER RX MESSAGE"
+    debug(chalkLog("TWEET PARSER RX MESSAGE"
       + " | OP: " + m.op
       // + "\n" + jsonPrint(m)
     ));
@@ -2608,7 +2593,7 @@ function initTweetParser(callback){
   if (callback !== undefined) { callback(null, twp); }
 }
 
-function getCustomMetrics(callback){
+function getCustomMetrics(){
 
   let googleRequest = {
     name: googleMonitoringClient.projectPath("graphic-tangent-627")
@@ -2620,7 +2605,7 @@ function getCustomMetrics(callback){
 
       const descriptors = results[0];
 
-      console.log(chalkAlert("TOTAL METRICS: " + descriptors.length ));
+      console.log(chalkLog("TOTAL METRICS: " + descriptors.length ));
 
       async.each(descriptors, function(descriptor, cb) {
         if (descriptor.name.includes("custom.googleapis.com")) {
@@ -2637,11 +2622,11 @@ function getCustomMetrics(callback){
         }
         cb();
       }, function() {
-        console.log(chalkAlert("METRICS: "
+        console.log(chalkLog("METRICS: "
           + " | TOTAL: " + descriptors.length
           + " | CUSTOM: " + metricsHashmap.count()
         ));
-        callback(null, null);
+        // callback(null, null);
       });
     })
     .catch(function(err){
@@ -2654,12 +2639,9 @@ function getCustomMetrics(callback){
         ));
         console.log(chalkError(err));
       }
-      callback(err, null);
+      // callback(err, null);
     });
-
 }
-
-let updateTimeSeriesCount = 0;
 
 function initRateQinterval(interval){
 
@@ -2667,17 +2649,16 @@ function initRateQinterval(interval){
     // googleMonitoringClient = Monitoring.v3().metricServiceClient();
     googleMonitoringClient = Monitoring.metricServiceClient();
 
-    getCustomMetrics(function(err, metrics){
-
-    });
+    getCustomMetrics();
   }
 
-  let wsObj = {};
+  // let wsObj = {};
 
   console.log(chalkLog("INIT RATE QUEUE INTERVAL | " + interval + " MS"));
 
-  console.log(chalkError("GOOGLE METRICS ENABLED" + GOOGLE_METRICS_ENABLED));
-  console.error(chalkError("GOOGLE METRICS ENABLED" + GOOGLE_METRICS_ENABLED));
+  // console.log(chalkError("GOOGLE METRICS ENABLED" + GOOGLE_METRICS_ENABLED));
+  if (GOOGLE_METRICS_ENABLED) { console.log(chalkAlert("*** GOOGLE METRICS ENABLED ***")); }
+  
 
   clearInterval(rateQinterval);
 
@@ -2760,6 +2741,8 @@ function initRateQinterval(interval){
   dataPointNodeCache.metricType = "cache/node/keys";
   dataPointNodeCache.metricLabels = {server_id: "CACHE"};
 
+  let updateTimeSeriesCount = 0;
+
   rateQinterval = setInterval(function () {
 
     statsObj.queues.transmitNodeQueue = transmitNodeQueue.size();
@@ -2767,26 +2750,6 @@ function initRateQinterval(interval){
     statsObj.queues.updaterMessageQueue = updaterMessageQueue.size();
     statsObj.queues.sorterMessageRxQueue = sorterMessageRxQueue.size();
     statsObj.queues.tweetParserMessageRxQueue = tweetParserMessageRxQueue.size();
-
-    // wsObj = wordStats.toJSON();
-
-    // if (wsObj === undefined) {return;}
-
-    // statsObj.wordsPerSecond = wsObj.wordsPerSecond[metricsRate];
-    // statsObj.wordsPerMin = wsObj.wordsPerMinute[metricsRate];
-
-    // debug(chalkLog(moment.utc().format(compactDateTimeFormat)
-    //   + " | WPS: " + statsObj.wordsPerSecond.toFixed(2)
-    //   + " | WPM: " + statsObj.wordsPerMin.toFixed(0)
-    //   // + " | OPM: " + statsObj.obamaPerMinute.toFixed(0)
-    //   // + " | TrPM: " + statsObj.trumpPerMinute.toFixed(0)
-    // ));
-
-    // if (statsObj.wordsPerMin > statsObj.maxWordsPerMin) {
-    //   console.log(chalkLog("NEW MAX WPM: " + statsObj.wordsPerMin.toFixed(0)));
-    //   statsObj.maxWordsPerMin = statsObj.wordsPerMin;
-    //   statsObj.maxWordsPerMinTime = moment().valueOf();
-    // }
 
     if (updateTimeSeriesCount === 0){
 
@@ -2808,6 +2771,10 @@ function initRateQinterval(interval){
       }, function(err){
 
         debug("paramsSorter\n" + jsonPrint(paramsSorter));
+
+        if (err) {
+          console.error(chalkError("ERROR RATE QUEUE INTERVAL\n" + err ));
+        }
 
         if (sorter !== undefined) {
           sorter.send(paramsSorter, function(err){
@@ -2924,10 +2891,10 @@ function initialize(cnf, callback) {
   initTweetParser();
   initInternetCheckInterval(10000);
 
-  initAppRouting(function(err) {
-    initDeletedMetricsHashmap(function(err, results){
+  initAppRouting(function() {
+    initDeletedMetricsHashmap(function(){
       initSocketNamespaces();
-      callback(err);
+      callback();
     });
   });
 }
@@ -2999,7 +2966,7 @@ function initStatsInterval(interval){
     if (statsObj.wordMeterEntries > statsObj.wordMeterEntriesMax) {
       statsObj.wordMeterEntriesMax = statsObj.wordMeterEntries;
       statsObj.wordMeterEntriesMaxTime = moment().valueOf();
-      console.log(chalkAlert("NEW MAX WORD METER ENTRIES"
+      debug(chalkLog("NEW MAX WORD METER ENTRIES"
         + " | " + moment().format(compactDateTimeFormat)
         + " | " + statsObj.wordMeterEntries.toFixed(0)
       ));
@@ -3010,7 +2977,7 @@ function initStatsInterval(interval){
     if (statsObj.memory.rss > statsObj.memory.maxRss) {
       statsObj.memory.maxRss = statsObj.memory.rss;
       statsObj.memory.maxRssTime = moment().valueOf();
-      console.log(chalkAlert("NEW MAX RSS"
+      console.log(chalkLog("NEW MAX RSS"
         + " | " + moment().format(compactDateTimeFormat)
         + " | " + statsObj.memory.rss.toFixed(0) + " MB"
       ));
@@ -3021,7 +2988,7 @@ function initStatsInterval(interval){
     if (statsObj.memory.heap > statsObj.memory.maxHeap) {
       statsObj.memory.maxHeap = statsObj.memory.heap;
       statsObj.memory.maxHeapTime = moment().valueOf();
-      console.log(chalkAlert("NEW MAX HEAP"
+      console.log(chalkLog("NEW MAX HEAP"
         + " | " + moment().format(compactDateTimeFormat)
         + " | " + statsObj.memory.heap.toFixed(0) + " MB"
       ));
@@ -3037,14 +3004,14 @@ function initStatsInterval(interval){
     statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; // userNameSpace.sockets.length ;
 
     saveStats(statsFile, statsObj, function(status){
-      debug(chalkAlert("SAVE STATS " + status));
+      debug(chalkLog("SAVE STATS " + status));
     });
 
     showStats();
 
     statsUpdated += 1;
 
-    if (HEAPDUMP_ENABLED && (statsUpdated > 1) && (statsUpdated % HEAPDUMP_MODULO == 0)) {
+    if (HEAPDUMP_ENABLED && (statsUpdated > 1) && (statsUpdated % HEAPDUMP_MODULO === 0)) {
 
       heapdumpFileName = "was2" 
         + "_" + hostname 
@@ -3105,7 +3072,7 @@ initialize(configuration, function(err) {
         sorter = srtr;
       }
     });
-    initTransmitNodeQueueInterval(TRANSMIT_NODE_QUEUE_INTERVAL)
+    initTransmitNodeQueueInterval(TRANSMIT_NODE_QUEUE_INTERVAL);
     initStatsInterval(STATS_UPDATE_INTERVAL);
     initIgnoreWordsHashMap();
     initUpdateTrendsInterval(UPDATE_TRENDS_INTERVAL);
@@ -3117,14 +3084,6 @@ initialize(configuration, function(err) {
     // pmx.emit("INIT_COMPLETE", process.pid);
   }
 });
-
-
-
-// GEN UNCAUGHT ERROR TO TEST KILL OF CHILD PROCESS
-// setTimeout(function(){
-//   debug("CRASH!");
-//   debug("OOPS!" + updater.thisdoesntexist.toLowerCase());
-// }, 5000);
 
 module.exports = {
   app: app,

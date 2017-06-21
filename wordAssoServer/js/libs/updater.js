@@ -1,23 +1,39 @@
 /*jslint node: true */
 "use strict";
 
+const DEFAULT_KEYWORD_VALUE = 100; // on scale of 1-100
+
 const ONE_SECOND = 1000;
 const ONE_MINUTE = ONE_SECOND * 60;
 
 const compactDateTimeFormat = "YYYYMMDD HHmmss";
 
 let updateStatsCountsInterval;
-
 let initGroupsReady = false;
 let statsCountsComplete = true;
 
-const DEFAULT_KEYWORD_VALUE = 100; // on scale of 1-100
-
+const Dropbox = require("dropbox");
 const debug = require("debug")("wa");
 const debugKeyword = require("debug")("kw");
 const moment = require("moment");
 const os = require("os");
 const equal = require("deep-equal");
+const async = require("async");
+const HashMap = require("hashmap").HashMap;
+const chalk = require("chalk");
+const chalkRed = chalk.red;
+const chalkInfo = chalk.gray;
+const chalkAlert = chalk.red;
+const chalkError = chalk.bold.red;
+const chalkLog = chalk.black;
+
+const mongoose = require("../../config/mongoose");
+const db = mongoose();
+const Admin = require("mongoose").model("Admin");
+const Viewer = require("mongoose").model("Viewer");
+const User = require("mongoose").model("User");
+const Word = require("mongoose").model("Word");
+const wordServer = require("../../app/controllers/word.server.controller");
 
 let hostname = os.hostname();
 hostname = hostname.replace(/.local/g, "");
@@ -25,7 +41,9 @@ hostname = hostname.replace(/.home/g, "");
 hostname = hostname.replace(/.fios-router.home/g, "");
 hostname = hostname.replace(/word0-instance-1/g, "google");
 
-let prevKeywordModifiedMoment = moment("2010-01-01");
+const localKeywordHashMap = new HashMap();
+const newKeywordsHashMap = new HashMap();
+
 
 let statsObj = {};
 statsObj.db = {};
@@ -38,7 +56,7 @@ statsObj.db.totalMedia = 0;
 statsObj.db.totalPlaces = 0;
 statsObj.db.totalUrls = 0;
 
-let jsonPrint = function(obj) {
+const jsonPrint = function(obj) {
   if (obj) {
     return JSON.stringify(obj, null, 2);
   } 
@@ -47,7 +65,7 @@ let jsonPrint = function(obj) {
   }
 };
 
-function quit(message) {
+const quit = function(message) {
 
   let msg = "";
 
@@ -63,58 +81,7 @@ function quit(message) {
   );
 
   process.exit();
-}
-
-process.on("SIGHUP", function() {
-  quit("SIGHUP");
-});
-
-process.on("SIGINT", function() {
-  quit("SIGINT");
-});
-
-
-const async = require("async");
-const HashMap = require("hashmap").HashMap;
-
-const localKeywordHashMap = new HashMap();
-const newKeywordsHashMap = new HashMap();
-
-const mongoose = require("../../config/mongoose");
-
-const db = mongoose();
-
-const Admin = require("mongoose").model("Admin");
-const Viewer = require("mongoose").model("Viewer");
-const User = require("mongoose").model("User");
-const Word = require("mongoose").model("Word");
-
-const wordServer = require("../../app/controllers/word.server.controller");
-
-
-console.log(
-  "\n\n====================================================================================================\n" 
-  + "========================================= ***START*** ==============================================\n" 
-  + "====================================================================================================\n" 
-  + process.argv[1] 
-  + "\nPROCESS ID  " + process.pid 
-  + "\nSTARTED     " + moment().format(compactDateTimeFormat) 
-  + "\n" + "====================================================================================================\n" 
-  + "========================================= ***START*** ==============================================\n" 
-  + "====================================================================================================\n\n"
-);
-
-const chalk = require("chalk");
-const chalkRed = chalk.red;
-const chalkInfo = chalk.gray;
-const chalkAlert = chalk.red;
-const chalkError = chalk.bold.red;
-const chalkLog = chalk.black;
-
-
-if (debug.enabled) {
-  console.log("UPDATER: \n%%%%%%%%%%%%%%\n%%%%%%% DEBUG ENABLED %%%%%%%\n%%%%%%%%%%%%%%\n");
-}
+};
 
 // ==================================================================
 // DROPBOX
@@ -122,8 +89,6 @@ if (debug.enabled) {
 const DROPBOX_WORD_ASSO_ACCESS_TOKEN = process.env.DROPBOX_WORD_ASSO_ACCESS_TOKEN;
 const DROPBOX_WORD_ASSO_APP_KEY = process.env.DROPBOX_WORD_ASSO_APP_KEY;
 const DROPBOX_WORD_ASSO_APP_SECRET = process.env.DROPBOX_WORD_ASSO_APP_SECRET;
-
-const Dropbox = require("dropbox");
 
 console.log("UPDATER: DROPBOX_WORD_ASSO_ACCESS_TOKEN :" + DROPBOX_WORD_ASSO_ACCESS_TOKEN);
 debug("DROPBOX_WORD_ASSO_APP_KEY :" + DROPBOX_WORD_ASSO_APP_KEY);
@@ -134,7 +99,7 @@ const dropboxClient = new Dropbox({ accessToken: DROPBOX_WORD_ASSO_ACCESS_TOKEN 
 let keywordUpdateInterval;
 let keywordsUpdateReady = true;
 
-function getTimeStamp(inputTime) {
+const getTimeStamp = function(inputTime) {
 
   let currentTimeStamp;
 
@@ -148,31 +113,59 @@ function getTimeStamp(inputTime) {
     currentTimeStamp = moment(parseInt(inputTime));
   }
   return currentTimeStamp.format(compactDateTimeFormat);
-}
+};
 
-function getFileMetadata(path, file, callback) {
+// const getFileMetadata = function(path, file, callback) {
 
-  const fullPath = path + "/" + file;
-  debug(chalkInfo("FOLDER " + path));
-  debug(chalkInfo("FILE " + file));
-  debug(chalkInfo("FULL PATH " + fullPath));
+//   const fullPath = path + "/" + file;
+//   debug(chalkInfo("FOLDER " + path));
+//   debug(chalkInfo("FILE " + file));
+//   debug(chalkInfo("FULL PATH " + fullPath));
 
-  dropboxClient.filesGetMetadata({path: fullPath})
-    .then(function(response) {
-      debug(chalkInfo("FILE META\n" + jsonPrint(response)));
-      return(callback(null, response));
-    })
-    .catch(function(err) {
-      console.error(chalkError("GET FILE METADATA" 
-        + " | PATH: " + fullPath
-        + "\n" + jsonPrint(err)
-      ));
-      console.error(chalkError("GET FILE METADATA ERROR\n" + jsonPrint(err)));
-      return(callback(err, null));
-    });
-}
+//   dropboxClient.filesGetMetadata({path: fullPath})
+//     .then(function(response) {
+//       debug(chalkInfo("FILE META\n" + jsonPrint(response)));
+//       return(callback(null, response));
+//     })
+//     .catch(function(err) {
+//       console.error(chalkError("GET FILE METADATA" 
+//         + " | PATH: " + fullPath
+//         + "\n" + jsonPrint(err)
+//       ));
+//       console.error(chalkError("GET FILE METADATA ERROR\n" + jsonPrint(err)));
+//       return(callback(err, null));
+//     });
+// };
 
-function loadFile(path, file, callback) {
+
+
+// const getFileMetadata = function(path) {
+
+//   return new Promise(function(resolve, reject) {
+
+//     debug(chalkInfo("PATH " + path));
+
+//     dropboxClient.filesGetMetadata({path: path})
+//       .then(function(response) {
+//         debug(chalkInfo("FILE META\n" + jsonPrint(response)));
+//         return(callback(null, response));
+//       })
+//       .catch(function(err) {
+//         console.error(chalkError("GET FILE METADATA" 
+//           + " | PATH: " + fullPath
+//           + "\n" + jsonPrint(err)
+//         ));
+//         console.error(chalkError("GET FILE METADATA ERROR\n" + jsonPrint(err)));
+//         return(callback(err, null));
+//       });
+
+//   });
+// };
+
+
+
+
+const loadFile = function (path, file, callback) {
 
   const fullPath = path + "/" + file;
 
@@ -217,9 +210,9 @@ function loadFile(path, file, callback) {
       }
       return(callback(err, null));
   });
-}
+};
 
-function sendKeywords(callback){
+const sendKeywords = function(callback){
 
   debug(chalkInfo("sendKeywords START"));
 
@@ -298,106 +291,126 @@ function sendKeywords(callback){
       }
     }
   );
-}
+};
 
+let prevKeywordModifiedMoment = moment("2010-01-01");
 
-function updateKeywords(folder, file, callback){
+const updateKeywords = function(folder, file, callback){
 
   newKeywordsHashMap.clear();
 
-  debug(chalkLog("UPDATE KEYWORDS " + file));
+  const fullPath = folder + "/" + file;
 
-  getFileMetadata(folder, file, function(err, response){
+  debug(chalkLog("UPDATE KEYWORDS " + fullPath));
 
-    if (err) {
-      console.error(moment().format(compactDateTimeFormat)
-        + " | " + "updateKeywords getFileMetadata ERROR"
-        + "\n" + jsonPrint(err)
-      );
-      return(callback(err, null));
-    }
+  dropboxClient.filesGetMetadata({path: fullPath})
+    .then(function(response){
 
-    const keywordFileClientModifiedMoment = moment(new Date(response.client_modified));
+      const keywordFileClientModifiedMoment = moment(new Date(response.client_modified));
 
-    if (keywordFileClientModifiedMoment.isSameOrBefore(prevKeywordModifiedMoment)){
-      debug(chalk.blue("KEYWORD FILE BEFORE OR EQUAL"
-        + " | PREV: " + prevKeywordModifiedMoment.format(compactDateTimeFormat)
-        + " | " + keywordFileClientModifiedMoment.format(compactDateTimeFormat)
-      ));
-      callback(null, 0);
-    }
-    else {
-      console.log(chalk.blue("=K= KEYWORD FILE AFTER"
-        + " | PREV: " + prevKeywordModifiedMoment.format(compactDateTimeFormat)
-        + " | " + keywordFileClientModifiedMoment.format(compactDateTimeFormat)
-      ));
+      if (keywordFileClientModifiedMoment.isSameOrBefore(prevKeywordModifiedMoment)){
+        debug(chalk.blue("KEYWORD FILE BEFORE OR EQUAL"
+          + " | PREV: " + prevKeywordModifiedMoment.format(compactDateTimeFormat)
+          + " | " + keywordFileClientModifiedMoment.format(compactDateTimeFormat)
+        ));
+        callback(null, 0);
+      }
+      else {
+        console.log(chalk.blue("=K= KEYWORD FILE AFTER"
+          + " | PREV: " + prevKeywordModifiedMoment.format(compactDateTimeFormat)
+          + " | " + keywordFileClientModifiedMoment.format(compactDateTimeFormat)
+        ));
 
-      console.log(chalkInfo("=K= UPDATING KEYWORDS | " + folder + "/" + file));
+        console.log(chalkInfo("=K= UPDATING KEYWORDS | " + folder + "/" + file));
 
-      prevKeywordModifiedMoment = moment(keywordFileClientModifiedMoment);
+        prevKeywordModifiedMoment = moment(keywordFileClientModifiedMoment);
 
-      loadFile(folder, file, function(err, kwordsObj){
+        dropboxClient.filesDownload({path: fullPath})
+          .then(function(data){
+            console.log(chalkLog(getTimeStamp()
+              + " | LOADING FILE FROM DROPBOX: " + fullPath
+            ));
+            return data.fileBinary;
+          })
+          .then(JSON.parse)
+          .then(function(kwordsObj){
 
-        if (err) {
-          console.error(chalkError("LOAD FILE ERROR"
-            + " | " + file
-            + " | " + err
-          ));
-          callback(null, null);
-        }
-        else {
+            console.log(chalkInfo("UPDATER | LOADED"
+              + " | " + fullPath
+            ));
 
-          console.log(chalkInfo("UPDATER | LOADED"
-            + " | " + folder + "/" + file
-          ));
+            const words = Object.keys(kwordsObj);
 
-          const words = Object.keys(kwordsObj);
+            // stack overflow issues ????
+            // async.eachSeries(words,  
+            async.each(words,
 
-          // stack overflow issues ????
-          // async.eachSeries(words,  
-          async.each(words,
+              function(w, cb) {
 
-            function(w, cb) {
+                let wd = w.toLowerCase();
+                wd = wd.replace(/\./g, "");  // KLUDGE:  better way to handle "." in keywords?
 
-              let wd = w.toLowerCase();
-              wd = wd.replace(/\./g, "");  // KLUDGE:  better way to handle "." in keywords?
+                let kwObj = kwordsObj[w];  // kwObj = { "negative": 10, "right": 7 }
 
-              let kwObj = kwordsObj[w];  // kwObj = { "negative": 10, "right": 7 }
+                let wordObj = new Word();
 
-              let wordObj = new Word();
+                wordObj.nodeId = wd;
+                wordObj.isKeyword = true;
 
-              wordObj.nodeId = wd;
-              wordObj.isKeyword = true;
+                // KLUDEGE: OVERWRITES ANY PREVIOUS KEYWORD SETTINGS FOR NOW
+                wordObj.keywords = {};
 
-              // KLUDEGE: OVERWRITES ANY PREVIOUS KEYWORD SETTINGS FOR NOW
-              wordObj.keywords = {};
-
-              if (typeof kwObj === "string") {  // old style keyword: true/false; convert to new style
-                wordObj.keywords[kwObj.toLowerCase()] = DEFAULT_KEYWORD_VALUE;
-                wordObj.keywords.keywordId = wd;
-              }
-              else {
-                wordObj.keywords = kwObj;
-                wordObj.keywords.keywordId = wd;
-              }
-
-              if (localKeywordHashMap.has(wd)) {
-
-                debug(chalkAlert("* KW HM HIT | " + wd));
-
-                const prevKeywordObj = localKeywordHashMap.get(wd);
-
-                if (equal(prevKeywordObj, wordObj.keywords)){
-                  debug(chalkAlert("--- WORD UNCHANGED ... SKIPPING | " + wd));
-                  cb();
+                if (typeof kwObj === "string") {  // old style keyword: true/false; convert to new style
+                  wordObj.keywords[kwObj.toLowerCase()] = DEFAULT_KEYWORD_VALUE;
+                  wordObj.keywords.keywordId = wd;
                 }
                 else {
-                  console.log(chalkAlert("+++ WORD CHANGED"
-                    + " | " + wd
-                    + "\nPREV\n" + jsonPrint(prevKeywordObj)
-                    + "\nNEW\n" + jsonPrint(wordObj.keywords)
-                  ));
+                  wordObj.keywords = kwObj;
+                  wordObj.keywords.keywordId = wd;
+                }
 
+                if (localKeywordHashMap.has(wd)) {
+
+                  debug(chalkAlert("* KW HM HIT | " + wd));
+
+                  const prevKeywordObj = localKeywordHashMap.get(wd);
+
+                  if (equal(prevKeywordObj, wordObj.keywords)){
+                    debug(chalkAlert("--- WORD UNCHANGED ... SKIPPING | " + wd));
+                    cb();
+                  }
+                  else {
+                    console.log(chalkAlert("+++ WORD CHANGED"
+                      + " | " + wd
+                      + "\nPREV\n" + jsonPrint(prevKeywordObj)
+                      + "\nNEW\n" + jsonPrint(wordObj.keywords)
+                    ));
+
+                    debug(chalkInfo("UPDATER: UPDATING KEYWORD | " + wd + ": " + jsonPrint(wordObj)));
+
+                    newKeywordsHashMap.set(wordObj.nodeId, wordObj.keywords);
+                    localKeywordHashMap.set(wordObj.nodeId, wordObj.keywords);
+
+                    wordServer.findOneWord(wordObj, false, function(err, updatedWordObj) {
+                      if (err){
+                        console.error(chalkError("ERROR: UPDATING KEYWORD | " + wd + ": " + kwordsObj[wd]));
+                        cb(err);
+                      }
+                      else {
+                        debug(chalkLog("+++ UPDATED KEYWORD"
+                          + " | " + updatedWordObj.nodeId 
+                          + " | " + updatedWordObj.raw 
+                          + " | M " + updatedWordObj.mentions 
+                          + " | I " + updatedWordObj.isIgnored 
+                          + " | K " + updatedWordObj.isKeyword 
+                          + " | K " + jsonPrint(updatedWordObj.keywords) 
+                        ));
+                        cb();
+                      }
+                    });
+                  }
+                }
+                else {
                   debug(chalkInfo("UPDATER: UPDATING KEYWORD | " + wd + ": " + jsonPrint(wordObj)));
 
                   newKeywordsHashMap.set(wordObj.nodeId, wordObj.keywords);
@@ -421,55 +434,32 @@ function updateKeywords(folder, file, callback){
                     }
                   });
                 }
+              },
+
+              function(err) {
+                if (err) {
+                  console.error(chalkError("initKeywords ERROR! " + err));
+                  callback(err, null);
+                }
+                else {
+                  console.log(chalkInfo("=== KEYWORD UPDATE COMPLETE"
+                    + " | TOTAL KEYWORDS:   " + newKeywordsHashMap.count()
+                  ));
+
+                  callback(null, newKeywordsHashMap.count());
+                }
               }
-              else {
-                debug(chalkInfo("UPDATER: UPDATING KEYWORD | " + wd + ": " + jsonPrint(wordObj)));
+            );
+          })
+      }
 
-                newKeywordsHashMap.set(wordObj.nodeId, wordObj.keywords);
-                localKeywordHashMap.set(wordObj.nodeId, wordObj.keywords);
+    })
+    .catch(function(err) {
+      console.error(new Error("UPDATE KEYWORDS ERROR: " + err));
+    });
+};
 
-                wordServer.findOneWord(wordObj, false, function(err, updatedWordObj) {
-                  if (err){
-                    console.error(chalkError("ERROR: UPDATING KEYWORD | " + wd + ": " + kwordsObj[wd]));
-                    cb(err);
-                  }
-                  else {
-                    debug(chalkLog("+++ UPDATED KEYWORD"
-                      + " | " + updatedWordObj.nodeId 
-                      + " | " + updatedWordObj.raw 
-                      + " | M " + updatedWordObj.mentions 
-                      + " | I " + updatedWordObj.isIgnored 
-                      + " | K " + updatedWordObj.isKeyword 
-                      + " | K " + jsonPrint(updatedWordObj.keywords) 
-                    ));
-                    cb();
-                  }
-                });
-              }
-
-            },
-
-            function(err) {
-              if (err) {
-                console.error(chalkError("initKeywords ERROR! " + err));
-                callback(err, null);
-              }
-              else {
-                console.log(chalkInfo("=== KEYWORD UPDATE COMPLETE"
-                  + " | TOTAL KEYWORDS:   " + newKeywordsHashMap.count()
-                ));
-
-                callback(null, newKeywordsHashMap.count());
-              }
-            }
-          );
-        }
-      });
-    }
-  });
-}
-
-function initKeywordUpdateInterval(options){
+const initKeywordUpdateInterval = function(options){
 
   clearInterval(keywordUpdateInterval);
   keywordsUpdateReady = true;
@@ -501,9 +491,9 @@ function initKeywordUpdateInterval(options){
     }
 
   }, options.interval);
-}
+};
 
-function updateStatsCounts(callback) {
+const updateStatsCounts = function(callback) {
 
   async.parallel({
     totalAdmins: function (cb) {
@@ -571,9 +561,9 @@ function updateStatsCounts(callback) {
       if (callback !== undefined) { callback(null, results); }
     }
   });
-}
+};
 
-function initUpdateStatsCountsInterval(interval){
+const initUpdateStatsCountsInterval = function(interval){
 
   console.log(chalkLog("INIT UPDATE STATS COUNTS " + interval + " MS"));
   clearInterval(updateStatsCountsInterval);
@@ -598,7 +588,7 @@ function initUpdateStatsCountsInterval(interval){
       });
     }
   }, interval);
-}
+};
 
 process.on("message", function(m) {
 
@@ -696,3 +686,28 @@ process.on("message", function(m) {
 
   }
 });
+
+process.on("SIGHUP", function() {
+  quit("SIGHUP");
+});
+
+process.on("SIGINT", function() {
+  quit("SIGINT");
+});
+
+console.log(
+  "\n\n====================================================================================================\n" 
+  + "========================================= ***START*** ==============================================\n" 
+  + "====================================================================================================\n" 
+  + process.argv[1] 
+  + "\nPROCESS ID  " + process.pid 
+  + "\nSTARTED     " + moment().format(compactDateTimeFormat) 
+  + "\n" + "====================================================================================================\n" 
+  + "========================================= ***START*** ==============================================\n" 
+  + "====================================================================================================\n\n"
+);
+
+if (debug.enabled) {
+  console.log("UPDATER: \n%%%%%%%%%%%%%%\n%%%%%%% DEBUG ENABLED %%%%%%%\n%%%%%%%%%%%%%%\n");
+}
+

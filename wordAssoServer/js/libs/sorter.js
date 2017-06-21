@@ -1,44 +1,39 @@
 /*jslint node: true */
 "use strict";
 
-var compactDateTimeFormat = "YYYYMMDD HHmmss";
+const debug = require("debug")("wa");
+const os = require("os");
 
-var OFFLINE_MODE = false;
-var debug = require('debug')('wa');
-var debugKeyword = require('debug')('kw');
-var moment = require('moment');
-var os = require('os');
-
-var hostname = os.hostname();
-hostname = hostname.replace(/.home/g, '');
-hostname = hostname.replace(/.local/g, '');
-hostname = hostname.replace(/.fios-router.home/g, '');
-hostname = hostname.replace(/word0-instance-1/g, 'google');
+let hostname = os.hostname();
+hostname = hostname.replace(/.home/g, "");
+hostname = hostname.replace(/.local/g, "");
+hostname = hostname.replace(/.fios-router.home/g, "");
+hostname = hostname.replace(/word0-instance-1/g, "google");
 
 console.log(
-  '\n\n====================================================================================================\n' 
-  + '========================================= ***START*** ==============================================\n' 
-  + '====================================================================================================\n' 
+  "\n\n====================================================================================================\n" 
+  + "========================================= ***START*** ==============================================\n" 
+  + "====================================================================================================\n" 
   + process.argv[1] 
-  + '\nPROCESS ID  ' + process.pid 
-  + '\nSTARTED     ' + Date() 
-  + '\n' + '====================================================================================================\n' 
-  + '========================================= ***START*** ==============================================\n' 
-  + '====================================================================================================\n\n'
+  + "\nPROCESS ID  " + process.pid 
+  // + "\nSTARTED     " + Date() 
+  + "\n" + "====================================================================================================\n" 
+  + "========================================= ***START*** ==============================================\n" 
+  + "====================================================================================================\n\n"
 );
 
 
-var jsonPrint = function(obj) {
-  if (obj) {
-    return JSON.stringify(obj, null, 2);
-  } else {
-    return obj;
-  }
-}
+// let jsonPrint = function(obj) {
+//   if (obj) {
+//     return JSON.stringify(obj, null, 2);
+//   } else {
+//     return obj;
+//   }
+// };
 
 function quit(message) {
-  var msg = '';
-  if (message) msg = message;
+  let msg = "";
+  if (message) {msg = message;}
   console.error(process.argv[1]
     + " | SORTER: **** QUITTING"
     + " | CAUSE: " + msg
@@ -48,74 +43,97 @@ function quit(message) {
   process.exit();
 }
 
-process.on('SIGUSR2', function() {
-  quit('SIGUSR2');
+process.on("SIGUSR2", function() {
+  quit("SIGUSR2");
 });
 
-process.on('SIGHUP', function() {
-  quit('SIGHUP');
+process.on("SIGHUP", function() {
+  quit("SIGHUP");
 });
 
-process.on('SIGINT', function() {
-  quit('SIGINT');
+process.on("SIGINT", function() {
+  quit("SIGINT");
 });
 
 
-// ==================================================================
-// GLOBAL VARIABLES
-// ==================================================================
-var ONE_SECOND = 1000;
-var ONE_MINUTE = ONE_SECOND * 60;
-var ONE_HOUR = ONE_MINUTE * 60;
-var ONE_DAY = ONE_HOUR * 24;
+
+const chalk = require("chalk");
+
+const chalkGreen = chalk.green;
+const chalkInfo = chalk.gray;
+const chalkError = chalk.bold.red;
+const chalkLog = chalk.black;
 
 
-// ==================================================================
-// NODE MODULE DECLARATIONS
-// ==================================================================
-
-var async = require('async');
-var HashMap = require('hashmap').HashMap;
-
-console.log(
-  process.argv[1] 
-  + '\nPROCESS ID  ' + process.pid 
-  + '\nSTARTED     ' + Date() 
- );
-
-// ==================================================================
-// LOGS, STATS
-// ==================================================================
-var chalk = require('chalk');
-
-var chalkRed = chalk.red;
-var chalkGreen = chalk.green;
-var chalkInfo = chalk.gray;
-var chalkTest = chalk.bold.red;
-var chalkAlert = chalk.red;
-var chalkError = chalk.bold.red;
-var chalkWarn = chalk.bold.yellow;
-var chalkLog = chalk.black;
-
-
-// ==================================================================
-// ENV INIT
-// ==================================================================
 if (debug.enabled) {
   console.log("SORTER: \n%%%%%%%%%%%%%%\n%%%%%%% DEBUG ENABLED %%%%%%%\n%%%%%%%%%%%%%%\n");
 }
 
-var statsObj = {};
-var cnf = {};
+// ==================================================================
+// FUNCTIONS
+// ==================================================================
 
-var sorterInterval;
-      
-process.on('message', function(m) {
+// function sortedObjectValues(params, callback) {
+
+//   const keys = Object.keys(params.obj);
+
+//   const sortedKeys = keys.sort(function(a,b){
+//     const objA = params.obj[a];
+//     const objB = params.obj[b];
+//     return objB[params.sortKey] - objA[params.sortKey];
+//   });
+
+//   callback(sortedKeys.slice(0,params.max));
+// }
+
+function sortedObjectValues(params) {
+
+  return new Promise(function(resolve, reject) {
+
+    const keys = Object.keys(params.obj);
+
+    const sortedKeys = keys.sort(function(a,b){
+      const objA = params.obj[a];
+      const objB = params.obj[b];
+      return objB[params.sortKey] - objA[params.sortKey];
+    });
+
+    if (keys.length !== undefined) {
+      resolve({sortKey: params.sortKey, sortedKeys: sortedKeys.slice(0,params.max)});
+    }
+    else {
+      reject("ERROR");
+    }
+
+  });
+}
+
+function sendSorted(params) {
+
+  return new Promise(function(resolve, reject) {
+
+    process.send({ op: "SORTED", sortKey: params.sortKey, sortedKeys: params.sortedKeys}, function(err){
+      if (err) {
+        console.log(chalkError("!!! SORTER SEND ERR: " + err));
+        reject(Error("SEND KEYWORDS ERROR: " + err));
+      }
+      else {
+        resolve(params.sortedKeys.length);
+      }
+    });
+
+  });
+}
+
+
+process.on("message", function(m) {
 
   debug(chalkInfo("SORTER RX MESSAGE"
     + " | OP: " + m.op
     // + "\n" + jsonPrint(m)
   ));
+
+  let params = {};
 
   switch (m.op) {
 
@@ -126,23 +144,42 @@ process.on('message', function(m) {
 
     case "SORT":
 
-      var params = {
-        sortKey: m.sortKey,
-        obj: m.obj,
-        max: m.max
-      };
+      params.sortKey = m.sortKey;
+      params.obj = m.obj;
+      params.max = m.max;
 
       console.log(chalkGreen("SORTER SORT"
         + " | OBJ KEYS: " + Object.keys(m.obj).length
       ));
-      sortedObjectValues(params, function(sortedKeys){
-        process.send({ op: "SORTED", sortKey: params.sortKey, sortedKeys: sortedKeys}, function(err){
-          if (err) {
-            console.log(chalkError("!!! SORTER SEND ERR: " + err));
-            // quit(err);
-          }
-        });
+
+      // sortedObjectValues(params, function(sortedKeys){
+        // process.send({ op: "SORTED", sortKey: params.sortKey, sortedKeys: sortedKeys}, function(err){
+        //   if (err) {
+        //     console.log(chalkError("!!! SORTER SEND ERR: " + err));
+        //     // quit(err);
+        //   }
+        // });
+      // });
+
+      // sortedObjectValues(params).then(function(response){
+      //   console.log("SORTED " + response.length + " KEYS");
+      //   process.send({ op: "SORTED", sortKey: params.sortKey, sortedKeys: response}, function(err){
+      //     if (err) {
+      //       console.log(chalkError("!!! SORTER SEND ERR: " + err));
+      //       // quit(err);
+      //     }
+      //   });
+      // }, function(err){
+      //   console.log("SORTED ERROR: " + err);
+      // });
+
+      sortedObjectValues(params).then(sendSorted).then(function(response){
+        console.log(chalkError("SORTER KEYS SENT: " + response));
+      }, function(err){
+        console.log(chalkError("SORTER ERROR: " + err));
       });
+
+
 
     break;
 
@@ -158,31 +195,3 @@ process.on('message', function(m) {
       });
   }
 });
-
-// ==================================================================
-// FUNCTIONS
-// ==================================================================
-
-function sortedObjectValues(params, callback) {
-
-  var keys = Object.keys(params.obj);
-
-  var sortedKeys = keys.sort(function(a,b){
-    var objA = params.obj[a];
-    var objB = params.obj[b];
-    return objB[params.sortKey] - objA[params.sortKey];
-  });
-
-  // var endIndex = sortedKeys.length < params.max ? sortedKeys.length : params.max;
-  // var i;
-
-  callback(sortedKeys.slice(0,params.max));
-}
-
-// setTimeout(function(){
-//   console.log(chalkRed("TEST KILLING SORTER | " + process.pid));
-//   console.log(chalkRed("UNDEFINED VAR | " + undefinedVar));
-//   // process.error();
-//   // quit("TEST ERROR");
-// }, 15000);
-

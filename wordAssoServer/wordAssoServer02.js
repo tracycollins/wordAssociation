@@ -2757,8 +2757,6 @@ function initRateQinterval(interval){
 
       async.each(Object.keys(wordMeter), function(meterId, cb){
 
-        console.log(meterId + "\n" + jsonPrint(wordMeter[meterId].toJSON()));
-
         paramsSorter.obj[meterId] = pick(wordMeter[meterId].toJSON(), paramsSorter.sortKey);
 
         cb();

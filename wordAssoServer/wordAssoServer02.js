@@ -435,11 +435,6 @@ let trendingCache = new NodeCache({
   checkperiod: TRENDING_CACHE_CHECK_PERIOD
 });
 
-// trendingCache.on( "expired", function(topic, topicObj){
-//   // debug("CACHE TOPIC EXPIRED\n" + jsonPrint(topicObj));
-//   debug(chalkInfo("XXX $ TREND | " + topic + " | " + topicObj.name));
-// });
-
 let wordsPerMinuteTopTermTtl = process.env.TOPTERMS_CACHE_DEFAULT_TTL;
 if (wordsPerMinuteTopTermTtl === undefined) {wordsPerMinuteTopTermTtl = TOPTERMS_CACHE_DEFAULT_TTL;}
 console.log("TOP TERMS WPM CACHE TTL: " + wordsPerMinuteTopTermTtl + " SECONDS");
@@ -456,11 +451,6 @@ let wordsPerMinuteTopTermCache = new NodeCache({
 wordsPerMinuteTopTermCache.on( "expired", function(word, wordRate){
   // debug("$ WPM TOPTERM XXX\n" + jsonPrint(wpmObj));
   debug(chalkInfo("XXX $ WPM TOPTERM | " + wordRate.toFixed(3) + " | " + word));
-});
-
-wordsPerMinuteTopTermCache.on( "set", function(word, wordRate){
-  // debug("$ WPM TOPTERM XXX\n" + jsonPrint(wpmObj));
-  console.log(chalkInfo("SET $ WPM TOPTERM | " + wordRate.toFixed(3) + " | " + word));
 });
 
 
@@ -2234,8 +2224,6 @@ function initSorterMessageRxQueueInterval(interval){
             if (wordMeter[node]) {
 
               nodeRate = parseFloat(wordMeter[node].toJSON()[metricsRate]);
-
-              console.log(chalkAlert("SET WPM $ | " + node + " | " + nodeRate.toFixed(3)));
 
               wordsPerMinuteTopTermCache.set(node, nodeRate);
 

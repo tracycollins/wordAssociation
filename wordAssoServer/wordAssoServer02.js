@@ -42,8 +42,6 @@ const TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL = 10;
 const UPDATE_TRENDS_INTERVAL = 15*ONE_MINUTE;
 const STATS_UPDATE_INTERVAL = 60000;
 
-// const DEFAULT_KEYWORD_VALUE = 100;
-
 const DEFAULT_INTERVAL = 10;
 
 const TOPTERMS_CACHE_DEFAULT_TTL = 60;
@@ -210,7 +208,6 @@ let ignoreWordsArray = [
 let metricsRate = "5MinuteRate";
 const CUSTOM_GOOGLE_APIS_PREFIX = "custom.googleapis.com";
 
-// const deepcopy = require("deep-copy");
 const defaults = require("object.defaults");
 const omit = require("object.omit");
 const pick = require("object.pick");
@@ -854,8 +851,8 @@ function showStats(options){
       + " | N: " + moment().format(compactDateTimeFormat)
       + " | NODE $: Ks:" + nodeCache.getStats().keys + " KS: " + nodeCache.getStats().ksize + " VS: " + nodeCache.getStats().vsize
       + " | RSS: " + statsObj.memory.rss.toFixed(0) + " MB"
-      + "  -MAX: " + statsObj.memory.maxRss.toFixed(0)
-      + "  -TIME: " + moment(parseInt(statsObj.memory.maxRssTime)).format(compactDateTimeFormat)
+      + " - MAX: " + statsObj.memory.maxRss.toFixed(0)
+      + " - TIME: " + moment(parseInt(statsObj.memory.maxRssTime)).format(compactDateTimeFormat)
       + " | H: " + statsObj.memory.heap.toFixed(0) + " MB"
       + " - MAX: " + statsObj.memory.maxHeap.toFixed(0)
       + " - TIME: " + moment(parseInt(statsObj.memory.maxHeapTime)).format(compactDateTimeFormat)

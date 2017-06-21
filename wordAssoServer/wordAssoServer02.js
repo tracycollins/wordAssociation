@@ -403,7 +403,7 @@ nodeCache.on("expired", function(nodeCacheId, nodeObj) {
     wordMeter = omit(wordMeter, nodeCacheId);
     delete wordMeter[nodeCacheId];
 
-    console.log(chalkLog("XXX NODE METER WORD"
+    debug(chalkLog("XXX NODE METER WORD"
       + " | Ks: " + Object.keys(wordMeter).length
       + " | " + nodeCacheId
     ));

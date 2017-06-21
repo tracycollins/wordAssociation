@@ -402,7 +402,7 @@ nodeCache.on("expired", function(nodeCacheId, nodeObj) {
   ));
 
   // if (wordMeter[nodeCacheId] !== undefined) {
-  if (!wordMeter[nodeCacheId]) {
+  if (wordMeter[nodeCacheId]) {
 
     // wordMeter[nodeCacheId].unref();
     wordMeter[nodeCacheId].end();

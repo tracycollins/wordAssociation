@@ -394,14 +394,6 @@ var nodeCache = new NodeCache({
   checkperiod: nodeCacheCheckPeriod
 });
 
-// nodeCache.on("set", function(nodeCacheId, nodeObj) {
-//   debug(chalkAlert("SET NODE $"
-//     + " | TTL: " + getTimeStamp(nodeCache.getTtl(nodeCacheId))
-//     + " | " + nodeObj.nodeType
-//     + " | " + nodeCacheId
-//   ));
-// });
-
 nodeCache.on("expired", function(nodeCacheId, nodeObj) {
 
   debug(chalkAlert("XXX $ NODE"
@@ -410,12 +402,9 @@ nodeCache.on("expired", function(nodeCacheId, nodeObj) {
   ));
 
   // if (wordMeter[nodeCacheId] !== undefined) {
-  if (wordMeter[nodeCacheId] !== undefined) {
-    // wordMeter[nodeCacheId] = {};
-    // wordMeter[nodeCacheId] = undefined;
-    // delete wordMeter[nodeCacheId];
+  if (!wordMeter[nodeCacheId]) {
 
-    wordMeter[nodeCacheId].unref();
+    // wordMeter[nodeCacheId].unref();
     wordMeter[nodeCacheId].end();
     // wordMeter[nodeCacheId] = undefined;
     wordMeter[nodeCacheId] = null;

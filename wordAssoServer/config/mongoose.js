@@ -7,7 +7,7 @@ module.exports = function() {
 	var options = { 
 		server: { 
       auto_reconnect: true,
-			poolSize: 5,
+			poolSize: 20,
 			reconnectTries: 14000,
 			socketOptions: { 
 				// reconnectTries: 14000,

@@ -680,7 +680,7 @@ function loadFile(folder, file, callback) {
 
             dropboxClient.filesDownload({path: folder + "/" + file})
               .then(function(data) {
-                console.log(chalkLog(getTimeStamp()
+                debug(chalkLog(getTimeStamp()
                   + " | LOADING FILE FROM DROPBOX: " + folder + "/" + file
                   // + "\n" + jsonPrint(data)
                 ));
@@ -885,7 +885,7 @@ function initDeletedMetricsHashmap(callback){
         if (err) {
           console.error(chalkError("ERROR INIT DELETED METRICS  HASHMAP | " + deletedMetricsFile + "\n" + err ));
         }
-        console.log(chalkLog("LOADED DELETED METRICS | " + deletedMetricsHashmap.count() ));
+        debug(chalkLog("LOADED DELETED METRICS | " + deletedMetricsHashmap.count() ));
         if (callback !== undefined) { callback(null, null); }
       });
     }
@@ -1366,7 +1366,7 @@ function updateTrends(){
       ));
     }
     else if (data){
-      console.log(chalkInfo("LOAD TWITTER TREND - WORLDWIDE"
+      debug(chalkInfo("LOAD TWITTER TREND - WORLDWIDE"
         // + "\n" + jsonPrint(data)
       ));
       data.forEach(function(element){
@@ -1393,7 +1393,7 @@ function updateTrends(){
 
       trendingCache.set("america", {name: "america"});
 
-      console.log(chalkInfo("LOAD TWITTER TREND - US"
+      debug(chalkInfo("LOAD TWITTER TREND - US"
         // + "\n" + jsonPrint(data)
       ));
       data.forEach(function(element){
@@ -1471,7 +1471,7 @@ function updateWordMeter(wordObj, callback){
   }
   else {
     if (/TSS_/.test(meterWordId) || wordObj.isServer){
-      console.log(chalkLog("updateWordMeter\n" + jsonPrint(wordObj)));
+      debug(chalkLog("updateWordMeter\n" + jsonPrint(wordObj)));
     }
 
     if (!wordMeter[meterWordId] 
@@ -1621,7 +1621,7 @@ function initMetricsDataPointQueueInterval(interval){
 
         googleMonitoringClient.createTimeSeries(googleRequest)
           .then(function(){
-            console.log(chalkInfo("METRICS"
+            debug(chalkInfo("METRICS"
               + " | DATA POINTS: " + googleRequest.timeSeries.length 
               // + " | " + options.value
             ));
@@ -1724,7 +1724,7 @@ function addTopTermMetricDataPoint(node, nodeRate){
     }
     else if (parseInt(nodeObj.mentions) > MIN_MENTIONS_VALUE) {
 
-      console.log(chalkInfo("+++ TOP TERM METRIC"
+      debug(chalkInfo("+++ TOP TERM METRIC"
         + " | " + node
         + " | Ms: " + nodeObj.mentions
         + " | RATE: " + nodeRate.toFixed(2)
@@ -2403,7 +2403,7 @@ function initUpdaterMessageQueueInterval(interval){
         break;
 
         case "stats":
-          console.log(chalkLog("UPDATE STATS COMPLETE"
+          debug(chalkLog("UPDATE STATS COMPLETE"
             + " | DB\n" + jsonPrint(updaterObj.db)
           ));
           if (updaterObj.db) {
@@ -2608,7 +2608,7 @@ function getCustomMetrics(){
           let nameArray = descriptor.name.split("/");
           let descriptorName = nameArray.pop().toLowerCase();
 
-          console.log(chalkInfo("METRIC"
+          debug(chalkInfo("METRIC"
             + " | " + descriptorName
             // + "\n" + jsonPrint(descriptor)
           ));

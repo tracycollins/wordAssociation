@@ -8,7 +8,7 @@ console.log("PROCESS PID: " + process.pid);
 let quitOnError = true;
 
 
-let heapdump = require('heapdump');
+const heapdump = require('heapdump');
 // let memwatch = require('memwatch');
 
 // let pmx = require('pmx').init({
@@ -23,13 +23,13 @@ let heapdump = require('heapdump');
 // ==================================================================
 // GLOBAL letIABLES
 // ==================================================================
-let ONE_MINUTE = 60000;
-let compactDateTimeFormat = "YYYYMMDD HHmmss";
-let tinyDateTimeFormat = "YYYYMMDDHHmmss";
+const ONE_MINUTE = 60000;
+const compactDateTimeFormat = "YYYYMMDD HHmmss";
+const tinyDateTimeFormat = "YYYYMMDDHHmmss";
 
-let OFFLINE_MODE = false;
+const OFFLINE_MODE = false;
 
-let MAX_Q = 500;
+const MAX_Q = 500;
 
 const MIN_METRIC_VALUE = 5.0;
 const MIN_MENTIONS_VALUE = 1000;
@@ -210,35 +210,35 @@ let ignoreWordsArray = [
 let metricsRate = "5MinuteRate";
 const CUSTOM_GOOGLE_APIS_PREFIX = "custom.googleapis.com";
 
-let deepcopy = require('deep-copy');
-let defaults = require("object.defaults");
-let omit = require("object.omit");
-let pick = require('object.pick');
-let moment = require("moment");
-let config = require("./config/config");
-let os = require("os");
-let fs = require("fs");
-let path = require("path");
-let async = require("async");
-let yaml = require("yamljs");
-let debug = require("debug")("wa");
-let debugKeyword = require("debug")("kw");
+const deepcopy = require('deep-copy');
+const defaults = require("object.defaults");
+const omit = require("object.omit");
+const pick = require('object.pick');
+const moment = require("moment");
+const config = require("./config/config");
+const os = require("os");
+const fs = require("fs");
+const path = require("path");
+const async = require("async");
+const yaml = require("yamljs");
+const debug = require("debug")("wa");
+const debugKeyword = require("debug")("kw");
 
-let Queue = require("queue-fifo");
-let express = require("./config/express");
-let EventEmitter2 = require("eventemitter2").EventEmitter2;
-let Dropbox = require("dropbox");
-let Monitoring = require('@google-cloud/monitoring').v3();
+const Queue = require("queue-fifo");
+const express = require("./config/express");
+const EventEmitter2 = require("eventemitter2").EventEmitter2;
+const Dropbox = require("dropbox");
+const Monitoring = require('@google-cloud/monitoring').v3();
 
 let googleMonitoringClient;
 
-let HashMap = require("hashmap").HashMap;
-let NodeCache = require("node-cache");
+const HashMap = require("hashmap").HashMap;
+const NodeCache = require("node-cache");
 
-let metricsHashmap = new HashMap();
-let deletedMetricsHashmap = new HashMap();
+const metricsHashmap = new HashMap();
+const deletedMetricsHashmap = new HashMap();
 
-let Twit = require("twit");
+const Twit = require("twit");
 let twit;
 let twitterYamlConfigFile = process.env.DEFAULT_TWITTER_CONFIG;
 
@@ -249,18 +249,18 @@ hostname = hostname.replace(/.at.net/g, "");
 hostname = hostname.replace(/.fios-router.home/g, "");
 hostname = hostname.replace(/word0-instance-1/g, "google");
 
-let chalk = require("chalk");
-let chalkAdmin = chalk.bold.cyan;
-let chalkWarn = chalk.red;
-let chalkTwitter = chalk.blue;
-let chalkConnect = chalk.black;
-let chalkSession = chalk.black;
-let chalkDisconnect = chalk.black;
-let chalkSocket = chalk.black;
-let chalkInfo = chalk.gray;
-let chalkAlert = chalk.red;
-let chalkError = chalk.bold.red;
-let chalkLog = chalk.gray;
+const chalk = require("chalk");
+const chalkAdmin = chalk.bold.cyan;
+const chalkWarn = chalk.red;
+const chalkTwitter = chalk.blue;
+const chalkConnect = chalk.black;
+const chalkSession = chalk.black;
+const chalkDisconnect = chalk.black;
+const chalkSocket = chalk.black;
+const chalkInfo = chalk.gray;
+const chalkAlert = chalk.red;
+const chalkError = chalk.bold.red;
+const chalkLog = chalk.gray;
 
 let tmsServers = {};
 let tssServers = {};
@@ -279,9 +279,9 @@ tmsServer.socket = {};
 let wordMeter = {};
 
 let tweetRxQueueInterval;
-let tweetParserQueue = new Queue();
-let tweetParserMessageRxQueue = new Queue();
-let tweetRxQueue = new Queue();
+const tweetParserQueue = new Queue();
+const tweetParserMessageRxQueue = new Queue();
+const tweetRxQueue = new Queue();
 
 let statsInterval;
 
@@ -348,7 +348,7 @@ console.log("DROPBOX_WORD_ASSO_ACCESS_TOKEN :" + DROPBOX_WORD_ASSO_ACCESS_TOKEN)
 console.log("DROPBOX_WORD_ASSO_APP_KEY :" + DROPBOX_WORD_ASSO_APP_KEY);
 console.log("DROPBOX_WORD_ASSO_APP_SECRET :" + DROPBOX_WORD_ASSO_APP_SECRET);
 
-let dropboxClient = new Dropbox({ accessToken: DROPBOX_WORD_ASSO_ACCESS_TOKEN });
+const dropboxClient = new Dropbox({ accessToken: DROPBOX_WORD_ASSO_ACCESS_TOKEN });
 
 let configFolder = "/config/utility/" + hostname;
 let deletedMetricsFile = "deletedMetrics.json";
@@ -463,7 +463,7 @@ let wordsPerMinuteTopTermCache = new NodeCache({
 
 
 let rateQinterval;
-let Measured = require("measured");
+const Measured = require("measured");
 
 // let wordStats = Measured.createCollection();
 
@@ -488,25 +488,25 @@ configuration.maxTopTerms = process.env.WA_MAX_TOP_TERMS || 100;
 
 let internetCheckInterval;
 
-let app = express();
+const app = express();
 
-let http = require("http");
-let httpServer = http.createServer(app);
+const http = require("http");
+const httpServer = http.createServer(app);
 
 let io;
-let net = require("net");
+const net = require("net");
 
-let cp = require("child_process");
+const cp = require("child_process");
 let updater;
-let updaterMessageQueue = new Queue();
+const updaterMessageQueue = new Queue();
 let sorter;
-let sorterMessageRxQueue = new Queue();
+const sorterMessageRxQueue = new Queue();
 
 
-let ignoreWordHashMap = new HashMap();
-let keywordHashMap = new HashMap();
+const ignoreWordHashMap = new HashMap();
+const keywordHashMap = new HashMap();
 
-let localHostHashMap = new HashMap();
+const localHostHashMap = new HashMap();
 
 let tweetParser;
 
@@ -1501,7 +1501,7 @@ function updateWordMeter(wordObj, callback){
 
       wordMeter[meterWordId] = null;
 
-      let newMeter = new Measured.Meter({rateUnit: 60000});
+      const newMeter = new Measured.Meter({rateUnit: 60000});
 
       newMeter.mark();
       wordObj.rate = parseFloat(newMeter.toJSON()[metricsRate]);
@@ -1537,7 +1537,7 @@ function updateWordMeter(wordObj, callback){
 
 let transmitNodeQueueReady = true;
 let transmitNodeQueueInterval;
-let transmitNodeQueue = new Queue();
+const transmitNodeQueue = new Queue();
 
 function initTransmitNodeQueueInterval(interval){
 
@@ -1596,7 +1596,7 @@ function transmitNodes(tw, callback){
   callback();
 }
 
-let metricsDataPointQueue = new Queue();
+const metricsDataPointQueue = new Queue();
 let metricsDataPointQueueReady = true;
 let metricsDataPointQueueInterval;
 
@@ -2364,7 +2364,7 @@ function initSorter(callback){
     sorter.kill("SIGINT");
   }
 
-  let s = cp.fork(`${__dirname}/js/libs/sorter.js`);
+  const s = cp.fork(`${__dirname}/js/libs/sorter.js`);
 
   s.on("message", function(m){
     debug(chalkAlert("SORTER RX"
@@ -2481,7 +2481,7 @@ function initUpdater(callback){
     statsObj.children.updater.errors = 0;
   }
 
-  let u = cp.fork(`${__dirname}/js/libs/updater.js`);
+  const u = cp.fork(`${__dirname}/js/libs/updater.js`);
 
   u.on("error", function(err){
     // pmx.emit("ERROR", "UPDATER ERROR");
@@ -2557,7 +2557,7 @@ function initTweetParser(callback){
     statsObj.children.tweetParser.errors = 0;
   }
 
-  let twp = cp.fork(`${__dirname}/js/libs/tweetParser.js`);
+  const twp = cp.fork(`${__dirname}/js/libs/tweetParser.js`);
 
   twp.on("message", function(m){
     debug(chalkAlert("TWEET PARSER RX MESSAGE"

@@ -5,27 +5,10 @@ var removeDuplicateFlag = true;
 
 var chalk = require('chalk');
 var _ = require('lodash');
-var Measured = require("measured");
-var metricsRate = "5MinuteRate";
 
 var HashMap = require("hashmap").HashMap;
 
 var keywordHashMap = new HashMap();
-
-// ==================================================================
-// NODE CACHE
-// ==================================================================
-var NodeCache = require("node-cache");
-var NODE_CACHE_TTL = 300; // seconds
-
-var nodeCacheTtl = process.env.NODE_CACHE_TTL;
-if (nodeCacheTtl === undefined) {nodeCacheTtl = NODE_CACHE_TTL;}
-console.log("NODE CACHE TTL: " + nodeCacheTtl + " SECONDS");
-
-var nodeCache = new NodeCache({
-  stdTTL: nodeCacheTtl,
-  checkperiod: 10
-});
 
 var chalkError = chalk.bold.red;
 var chalkAlert = chalk.red;
@@ -82,20 +65,6 @@ function getTimeStamp(inputTime) {
   }
   return currentTimeStamp.format(defaultDateTimeFormat);
 }
-
-var nodeMeter = {};
-var TOPTERMS_CACHE_DEFAULT_TTL = 300;
-
-var wordsPerMinuteTopTermTtl = process.env.TOPTERMS_CACHE_DEFAULT_TTL;
-
-if (wordsPerMinuteTopTermTtl === undefined) {wordsPerMinuteTopTermTtl = TOPTERMS_CACHE_DEFAULT_TTL;}
-
-console.log("TOP TERMS WPM CACHE TTL: " + wordsPerMinuteTopTermTtl + " SECONDS");
-
-var wordsPerMinuteTopTermCache = new NodeCache({
-  stdTTL: wordsPerMinuteTopTermTtl,
-  checkperiod: 10
-});
 
 function checkKeyword(nodeObj, callback) {
 
@@ -162,86 +131,11 @@ function checkKeyword(nodeObj, callback) {
   }
 }
 
-function updateMetrics(nodeObj, callback){
-
-  var meterNodeId;
-  var meterObj;
-
-  if ((nodeObj.nodeType === "media") 
-    || (nodeObj.nodeType === "url")
-    || (nodeObj.nodeType === "keepalive")
-    ) {
-    callback(null, nodeObj);
-    return;
-  }
-
-  if (nodeObj.tags === undefined) {
-    console.log(chalkAlert("updatenodeMeter\n" + jsonPrint(nodeObj)));
-    console.trace("UNDEFINED WORD TAGS updatenodeMeter");
-  }
-
-  if (nodeObj.isTwitterUser || (nodeObj.nodeType === "user")) {
-    if (nodeObj.screenName !== undefined) {
-      meterNodeId = nodeObj.screenName.toLowerCase();
-    }
-    else if (nodeObj.name !== undefined) {
-      meterNodeId = nodeObj.name.toLowerCase();
-    }
-    else {
-      debug(chalkWarn("updatenodeMeter WARN: TWITTER USER UNDEFINED NAME & SCREEN NAME"
-        + " | USING NODEID: " + nodeObj.nodeId
-        // + "\n" + jsonPrint(nodeObj)
-      ));
-      meterNodeId = nodeObj.nodeId;
-    }
-  }
-  else if (nodeObj.nodeType === "place") {
-    meterNodeId = nodeObj.name.toLowerCase();
-  }
-  else {
-    meterNodeId = nodeObj.nodeId.toLowerCase();
-  }
-
-  if (!nodeMeter[meterNodeId] 
-    || (nodeMeter[meterNodeId] === undefined) 
-    || (typeof nodeMeter[meterNodeId].mark !== "function")) {
-    nodeMeter[meterNodeId] = {};
-    nodeMeter[meterNodeId] = new Measured.Meter({rateUnit: 60000});
-    nodeMeter[meterNodeId].mark();
-    meterObj = nodeMeter[meterNodeId].toJSON();
-    nodeObj.rate = meterObj[metricsRate];
-    nodeCache.set(meterNodeId, nodeObj, function(){
-      debug(chalkAlert("updatenodeMeter MISS"
-        + " | " + meterNodeId
-        + " | " + meterObj[metricsRate].toFixed(2) + " WPM"
-        // + "\n" + jsonPrint(nodeObj)
-      ));
-      if (callback !== undefined) { callback(null, nodeObj); }
-    });
-  }
-  else {
-    nodeMeter[meterNodeId].mark();
-    meterObj = nodeMeter[meterNodeId].toJSON();
-    nodeObj.rate = meterObj[metricsRate];
-    nodeCache.set(meterNodeId, nodeObj, function(){
-      debug(chalkAlert("updatenodeMeter HIT "
-        + " | " + meterNodeId
-        + " | " + meterObj[metricsRate].toFixed(2) + " WPM"
-        // + "\n" + jsonPrint(nodeObj)
-      ));
-      if (callback !== undefined) { callback(null, nodeObj); }
-    });
-  }
-}
-
 
 exports.findOneUser = function (user, params, callback) {
 
 	var inc = 1;
 	if (params.noInc) { inc = 0; }
-
-	// if (typeof user.following === 'undefined') user.following = false;
-	// if (user.following === null) user.following = false;
 
 	var query = { userId: user.userId  };
 	var update = { 
@@ -333,7 +227,6 @@ exports.findOneUser = function (user, params, callback) {
 				}
 			}
 			else {
-				updateMetrics(us);
 				debug(chalkTwitter("> US UPDATED"
 					+ " | " + us.userId 
 					+ " | @" + us.screenName

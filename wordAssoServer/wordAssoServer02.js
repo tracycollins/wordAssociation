@@ -335,11 +335,8 @@ if (process.env.GOOGLE_METRICS_ENABLED !== undefined) {
 const DROPBOX_WORD_ASSO_ACCESS_TOKEN = process.env.DROPBOX_WORD_ASSO_ACCESS_TOKEN;
 const DROPBOX_WORD_ASSO_APP_KEY = process.env.DROPBOX_WORD_ASSO_APP_KEY;
 const DROPBOX_WORD_ASSO_APP_SECRET = process.env.DROPBOX_WORD_ASSO_APP_SECRET;
-// const WA_STATS_FILE = process.env.WA_STATS_FILE;
-// const DROPBOX_WA_STATS_FILE = process.env.DROPBOX_WA_STATS_FILE || "wordAssoServer02Stats.json";
 
 let statsFolder = "/stats/" + hostname;
-// let statsFileDefault = DROPBOX_WA_STATS_FILE;
 let statsFile = "wordAssoServer02Stats" 
   + "_" + moment().format(tinyDateTimeFormat) 
   + ".json";
@@ -406,7 +403,7 @@ nodeCache.on("expired", function(nodeCacheId, nodeObj) {
     wordMeter = omit(wordMeter, nodeCacheId);
     delete wordMeter[nodeCacheId];
 
-    debug(chalkLog("XXX NODE METER WORD"
+    console.log(chalkLog("XXX NODE METER WORD"
       + " | Ks: " + Object.keys(wordMeter).length
       + " | " + nodeCacheId
     ));
@@ -456,25 +453,19 @@ let wordsPerMinuteTopTermCache = new NodeCache({
   checkperiod: TOPTERMS_CACHE_CHECK_PERIOD
 });
 
-// wordsPerMinuteTopTermCache.on( "expired", function(word, wordRate){
-//   // debug("$ WPM TOPTERM XXX\n" + jsonPrint(wpmObj));
-//   debug(chalkInfo("XXX $ WPM TOPTERM | " + wordRate.toFixed(3) + " | " + word));
-// });
+wordsPerMinuteTopTermCache.on( "expired", function(word, wordRate){
+  // debug("$ WPM TOPTERM XXX\n" + jsonPrint(wpmObj));
+  debug(chalkInfo("XXX $ WPM TOPTERM | " + wordRate.toFixed(3) + " | " + word));
+});
+
+wordsPerMinuteTopTermCache.on( "set", function(word, wordRate){
+  // debug("$ WPM TOPTERM XXX\n" + jsonPrint(wpmObj));
+  console.log(chalkInfo("SET $ WPM TOPTERM | " + wordRate.toFixed(3) + " | " + word));
+});
 
 
 let rateQinterval;
 const Measured = require("measured");
-
-// let wordStats = Measured.createCollection();
-
-// wordStats.meter("wordsPerSecond", {rateUnit: 1000, tickInterval: 1000});
-// wordStats.meter("wordsPerMinute", {rateUnit: 60000, tickInterval: 1000});
-// wordStats.meter("obamaPerSecond", {rateUnit: 1000, tickInterval: 1000});
-// wordStats.meter("obamaPerMinute", {rateUnit: 60000, tickInterval: 1000});
-// wordStats.meter("trumpPerSecond", {rateUnit: 1000, tickInterval: 1000});
-// wordStats.meter("trumpPerMinute", {rateUnit: 60000, tickInterval: 1000});
-
-
 
 let defaultDropboxKeywordFile = "keywords.json";
 
@@ -484,6 +475,20 @@ let ioReady = false;
 let configuration = {};
 configuration.quitOnError = false;
 configuration.maxTopTerms = process.env.WA_MAX_TOP_TERMS || 100;
+configuration.metrics = {};
+configuration.metrics.wordMeterEnabled = true;
+
+if (process.env.NODE_WORD_METER_ENABLED !== undefined) {
+  if (process.env.NODE_WORD_METER_ENABLED === "true") {
+    configuration.metrics.wordMeterEnabled = true;
+  }
+  else if (process.env.NODE_WORD_METER_ENABLED === "false") {
+    configuration.metrics.wordMeterEnabled = false;
+  }
+  else {
+    configuration.metrics.wordMeterEnabled = true;
+  }
+}
 
 
 let internetCheckInterval;
@@ -1151,13 +1156,13 @@ function initSocketHandler(socket) {
 
   });
 
-  socket.on("node", function(rxNodeObj) {
-    viewNameSpace.emit("node", rxNodeObj);
-  });
+  // socket.on("node", function(rxNodeObj) {
+  //   viewNameSpace.emit("node", rxNodeObj);
+  // });
 
-  socket.on("word", function(rxWordObj) {
-    viewNameSpace.emit("node", rxWordObj);
-  });
+  // socket.on("word", function(rxWordObj) {
+  //   viewNameSpace.emit("node", rxWordObj);
+  // });
 }
 
 function initSocketNamespaces(callback){
@@ -1429,13 +1434,15 @@ function initUpdateTrendsInterval(interval){
 function updateWordMeter(wordObj, callback){
 
 
-  if ((wordObj.nodeType === "media") 
+  if (!configuration.metrics.wordMeterEnabled
+    || (wordObj.nodeType === "media") 
     || (wordObj.nodeType === "url")
     || (wordObj.nodeType === "keepalive")
     ) {
     callback(null, wordObj);
     return;
   }
+
 
   let meterWordId;
 
@@ -1507,7 +1514,6 @@ function updateWordMeter(wordObj, callback){
     }
     else {
       wordMeter[meterWordId].mark();
-      // meterObj = wordMeter[meterWordId].toJSON();
       wordObj.rate = parseFloat(wordMeter[meterWordId].toJSON()[metricsRate]);
 
       nodeCache.set(meterWordId, wordObj);
@@ -2229,6 +2235,8 @@ function initSorterMessageRxQueueInterval(interval){
 
               nodeRate = parseFloat(wordMeter[node].toJSON()[metricsRate]);
 
+              console.log(chalkAlert("SET WPM $ | " + node + " | " + nodeRate.toFixed(3)));
+
               wordsPerMinuteTopTermCache.set(node, nodeRate);
 
               if (!deletedMetricsHashmap.has(node) 
@@ -2298,7 +2306,6 @@ function initUpdaterPingInterval(interval){
     }
   }, interval);
 }
-
 
 function initUpdater(callback){
 
@@ -2762,7 +2769,7 @@ function initRateQinterval(interval){
 
       async.each(Object.keys(wordMeter), function(meterId, cb){
 
-        debug(meterId + "\n" + jsonPrint(wordMeter[meterId].toJSON()));
+        console.log(meterId + "\n" + jsonPrint(wordMeter[meterId].toJSON()));
 
         paramsSorter.obj[meterId] = pick(wordMeter[meterId].toJSON(), paramsSorter.sortKey);
 
@@ -3080,7 +3087,13 @@ initialize(configuration, function(err) {
     initMetricsDataPointQueueInterval(60000);
     initTwitterRxQueueInterval(TWITTER_RX_QUEUE_INTERVAL);
     initTweetParserMessageRxQueueInterval(TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL);
-    console.error("NODE CACHE TTL: " + nodeCacheTtl + " SECONDS");
+    console.log(chalkInfo("NODE CACHE TTL: " + nodeCacheTtl + " SECONDS"));
+
+    console.log(chalkAlert("CONFIGURATION\n" + jsonPrint(configuration)));
+
+    if (!configuration.metrics.wordMeterEnabled) {
+      console.log(chalkAlert("*** WORD RATE METER DISABLED ***"));
+    }
     // pmx.emit("INIT_COMPLETE", process.pid);
   }
 });

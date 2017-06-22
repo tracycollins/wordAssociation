@@ -1,6 +1,7 @@
 /*jslint node: true */
 "use strict";
 
+const moment = require("moment");
 const debug = require("debug")("wa");
 const os = require("os");
 const chalk = require("chalk");

@@ -29,6 +29,7 @@ function quit(message) {
     exitCode = 1;
   }
   console.error(process.argv[1]
+    + " | " + moment().format(compactDateTimeFormat)
     + " | TWEET PARSER: **** QUITTING"
     + " | CAUSE: " + msg
     + " | PID: " + process.pid

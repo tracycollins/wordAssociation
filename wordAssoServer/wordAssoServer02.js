@@ -828,36 +828,20 @@ function showStats(options){
   statsObj.memory.memoryUsage = process.memoryUsage();
 
   if (options) {
-    console.log(chalkLog("S"
-      // + " | " + statsObj.socketId
-      + " | E: " + statsObj.elapsed
-      + " | S: " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat)
-      + " | N: " + moment().format(compactDateTimeFormat)
-      + " | NODE $: Ks:" + nodeCache.getStats().keys + " KS: " + nodeCache.getStats().ksize + " VS: " + nodeCache.getStats().vsize
-      + " | RSS: " + statsObj.memory.rss.toFixed(0) + " MB"
-      + " - MAX: " + statsObj.memory.maxRss.toFixed(0)
-      + " - TIME: " + moment(parseInt(statsObj.memory.maxRssTime)).format(compactDateTimeFormat)
-      + " | H: " + statsObj.memory.heap.toFixed(0) + " MB"
-      + " - MAX H: " + statsObj.memory.maxHeap.toFixed(0)
-      + " - TIME: " + moment(parseInt(statsObj.memory.maxHeapTime)).format(compactDateTimeFormat)
-    ));
     console.log(chalkLog("STATS\n" + jsonPrint(statsObj)));
   }
-  else {
-    console.log(chalkLog("S"
-      // + " | " + statsObj.socketId
-      + " | E: " + statsObj.elapsed
-      + " | S: " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat)
-      + " | N: " + moment().format(compactDateTimeFormat)
-      + " | NODE $: Ks:" + nodeCache.getStats().keys + " KS: " + nodeCache.getStats().ksize + " VS: " + nodeCache.getStats().vsize
-      + " | RSS: " + statsObj.memory.rss.toFixed(0) + " MB"
-      + " - MAX: " + statsObj.memory.maxRss.toFixed(0)
-      + " - TIME: " + moment(parseInt(statsObj.memory.maxRssTime)).format(compactDateTimeFormat)
-      + " | H: " + statsObj.memory.heap.toFixed(0) + " MB"
-      + " - MAX: " + statsObj.memory.maxHeap.toFixed(0)
-      + " - TIME: " + moment(parseInt(statsObj.memory.maxHeapTime)).format(compactDateTimeFormat)
-    ));
-  }
+
+  console.log(chalkLog("S"
+    + " | E: " + statsObj.elapsed
+    + " | S: " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat)
+    + " | N: " + moment().format(compactDateTimeFormat)
+    + " | RSS: " + statsObj.memory.rss.toFixed(2) + " MB"
+    + " - MAX: " + statsObj.memory.maxRss.toFixed(2)
+    + " - " + moment(parseInt(statsObj.memory.maxRssTime)).format(compactDateTimeFormat)
+    + " | H: " + statsObj.memory.heap.toFixed(2) + " MB"
+    + " - MAX: " + statsObj.memory.maxHeap.toFixed(2)
+    + " - " + moment(parseInt(statsObj.memory.maxHeapTime)).format(compactDateTimeFormat)
+  ));
 }
 
 function initDeletedMetricsHashmap(callback){

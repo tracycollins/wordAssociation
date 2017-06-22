@@ -5,8 +5,6 @@ console.log("\n\n============== START ==============\n\n");
 
 console.log("PROCESS PID: " + process.pid);
 
-const RATE_QUEUE_INTERVAL = 1000; // 1 second
-const RATE_QUEUE_INTERVAL_MODULO = 60; // modulo RATE_QUEUE_INTERVAL
 let quitOnError = true;
 
 
@@ -36,6 +34,8 @@ const MAX_Q = 500;
 const MIN_METRIC_VALUE = 5.0;
 const MIN_MENTIONS_VALUE = 1000;
 
+const RATE_QUEUE_INTERVAL = 1000; // 1 second
+const RATE_QUEUE_INTERVAL_MODULO = 60; // modulo RATE_QUEUE_INTERVAL
 const KEYWORDS_UPDATE_INTERVAL = 30000;
 const TWEET_PARSER_INTERVAL = 10;
 const TWITTER_RX_QUEUE_INTERVAL = 10;

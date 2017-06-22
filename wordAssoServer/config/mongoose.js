@@ -41,13 +41,14 @@ module.exports = function() {
 	}); 
 
 	wordAssoDb.connection.on('error', function (err) {
-		console.log("MONGOOSE ERROR\n" + err);
+		console.log("\n\n*** MONGOOSE ERROR ***\n" + err + "\n\n");
+		console.error("\n\n*** MONGOOSE ERROR ***\n" + err + "\n\n");
 		// if (mongoose.connection.readyState == 0) wordAssoDb = mongoose.connect(config.wordAssoDb, options);
 	});
 
 	// When the connection is disconnected
 	wordAssoDb.connection.on('disconnected', function () {  
-	  console.log('MONGOOSE default connection disconnected');
+		console.error("\n\n*** MONGOOSE DISCONNECTED ***\n\n");
 	});
 
 

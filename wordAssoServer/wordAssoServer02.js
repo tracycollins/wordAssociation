@@ -282,8 +282,6 @@ const tweetRxQueue = new Queue();
 
 let statsInterval;
 
-
-
 let HEAPDUMP_ENABLED = false;
 let HEAPDUMP_MODULO = process.env.HEAPDUMP_MODULO || 10;
 
@@ -3077,7 +3075,8 @@ initialize(configuration, function(err) {
     if (!configuration.metrics.wordMeterEnabled) {
       console.log(chalkAlert("*** WORD RATE METER DISABLED ***"));
     }
-    // pmx.emit("INIT_COMPLETE", process.pid);
+
+    statsObj.configuration = configuration;
   }
 });
 

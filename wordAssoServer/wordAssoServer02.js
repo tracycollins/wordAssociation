@@ -5,6 +5,8 @@ console.log("\n\n============== START ==============\n\n");
 
 console.log("PROCESS PID: " + process.pid);
 
+const RATE_QUEUE_INTERVAL = 1000; // 1 second
+const RATE_QUEUE_INTERVAL_MODULO = 60; // modulo RATE_QUEUE_INTERVAL
 let quitOnError = true;
 
 
@@ -2838,7 +2840,7 @@ function initRateQinterval(interval){
 
     updateTimeSeriesCount += 1;
 
-    if (updateTimeSeriesCount > 120) { updateTimeSeriesCount = 0; }
+    if (updateTimeSeriesCount > RATE_QUEUE_INTERVAL_MODULO) { updateTimeSeriesCount = 0; }
 
   }, interval);
 }
@@ -3064,7 +3066,7 @@ initialize(configuration, function(err) {
     initStatsInterval(STATS_UPDATE_INTERVAL);
     initIgnoreWordsHashMap();
     initUpdateTrendsInterval(UPDATE_TRENDS_INTERVAL);
-    initRateQinterval(1000);
+    initRateQinterval(RATE_QUEUE_INTERVAL);
     initMetricsDataPointQueueInterval(60000);
     initTwitterRxQueueInterval(TWITTER_RX_QUEUE_INTERVAL);
     initTweetParserMessageRxQueueInterval(TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL);

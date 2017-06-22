@@ -52,32 +52,32 @@ function ViewTreepack() {
   var xMinRatioLeft = 0.10;
   var xMaxRatioLeft = 0.35;
 
-  var yMinRatioLeft = 0.85;
-  var yMaxRatioLeft = 0.90;
+  var yMinRatioLeft = 0.75;
+  var yMaxRatioLeft = 0.80;
 
   var xMinRatioRight = 0.65;
   var xMaxRatioRight = 0.90;
 
-  var yMinRatioRight = 0.85;
-  var yMaxRatioRight = 0.90;
+  var yMinRatioRight = 0.75;
+  var yMaxRatioRight = 0.80;
 
   var xMinRatioPositive = 0.45;
   var xMaxRatioPositive = 0.55;
 
-  var yMinRatioPositive = 0.85;
-  var yMaxRatioPositive = 0.95;
+  var yMinRatioPositive = 0.75;
+  var yMaxRatioPositive = 0.85;
 
   var xMinRatioNegative = 0.55;
   var xMaxRatioNegative = 0.65;
 
-  var yMinRatioNegative = 0.90;
-  var yMaxRatioNegative = 1.00;
+  var yMinRatioNegative = 0.80;
+  var yMaxRatioNegative = 0.90;
 
   var xMinRatioNeutral = 0.45;
   var xMaxRatioNeutral = 0.55;
 
-  var yMinRatioNeutral = 0.85;
-  var yMaxRatioNeutral = 0.95;
+  var yMinRatioNeutral = 0.75;
+  var yMaxRatioNeutral = 0.85;
 
 
   var nodes = [];

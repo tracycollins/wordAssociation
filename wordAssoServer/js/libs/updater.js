@@ -29,10 +29,12 @@ const chalkLog = chalk.black;
 
 const mongoose = require("../../config/mongoose");
 const db = mongoose();
+
 const Admin = require("mongoose").model("Admin");
 const Viewer = require("mongoose").model("Viewer");
 const User = require("mongoose").model("User");
 const Word = require("mongoose").model("Word");
+
 const wordServer = require("../../app/controllers/word.server.controller");
 
 let hostname = os.hostname();
@@ -74,6 +76,7 @@ const quit = function(message) {
   }
 
   console.error(process.argv[1]
+    + " | " + moment().format(compactDateTimeFormat)
     + " | UPDATER: **** QUITTING"
     + " | CAUSE: " + msg
     + " | PID: " + process.pid
@@ -115,102 +118,52 @@ const getTimeStamp = function(inputTime) {
   return currentTimeStamp.format(compactDateTimeFormat);
 };
 
-// const getFileMetadata = function(path, file, callback) {
+// const loadFile = function (path, file, callback) {
 
 //   const fullPath = path + "/" + file;
-//   debug(chalkInfo("FOLDER " + path));
-//   debug(chalkInfo("FILE " + file));
+
+//   debug(chalkInfo("LOAD FOLDER " + path));
+//   debug(chalkInfo("LOAD FILE " + file));
 //   debug(chalkInfo("FULL PATH " + fullPath));
 
-//   dropboxClient.filesGetMetadata({path: fullPath})
-//     .then(function(response) {
-//       debug(chalkInfo("FILE META\n" + jsonPrint(response)));
-//       return(callback(null, response));
-//     })
-//     .catch(function(err) {
-//       console.error(chalkError("GET FILE METADATA" 
-//         + " | PATH: " + fullPath
-//         + "\n" + jsonPrint(err)
+//   dropboxClient.filesDownload({path: fullPath})
+//     .then(function(data) {
+//       console.log(chalkLog(getTimeStamp()
+//         + " | LOADING FILE FROM DROPBOX: " + fullPath
 //       ));
-//       console.error(chalkError("GET FILE METADATA ERROR\n" + jsonPrint(err)));
+
+//       const payload = data.fileBinary;
+
+//       debug(payload);
+
+//       try {
+//         const fileObj = JSON.parse(payload);
+//         debug("fileObj\n" + jsonPrint(fileObj));
+//         callback(null, fileObj);
+//       } 
+//       catch (err) {
+//         console.error(chalkError("ERROR: LOAD FILE: DROPBOX JSON PARSE ERROR: FILE: " + fullPath + " | ERROR: " + err));
+//         console.error(chalkError("ERROR\n" + jsonPrint(err)));
+//         callback(err, fullPath);
+//       }
+
+//      })
+//     .catch(function(err) {
+//       console.error(chalkAlert("DROPBOX loadFile ERROR: " + file + "\n" + err));
+//       console.error(chalkError("!!! DROPBOX READ " + file + " ERROR: " + err.error));
+//       console.error(chalkError(jsonPrint(err)));
+
+//       if (err.status === 404) {
+//         console.error(chalkError("!!! DROPBOX READ FILE " + file + " NOT FOUND ... SKIPPING ..."));
+//         return(callback(null, null));
+//       }
+//       if (err.status === 0) {
+//         console.error(chalkError("!!! DROPBOX NO RESPONSE ... NO INTERNET CONNECTION? ... SKIPPING ..."));
+//         return(callback(null, null));
+//       }
 //       return(callback(err, null));
-//     });
-// };
-
-
-
-// const getFileMetadata = function(path) {
-
-//   return new Promise(function(resolve, reject) {
-
-//     debug(chalkInfo("PATH " + path));
-
-//     dropboxClient.filesGetMetadata({path: path})
-//       .then(function(response) {
-//         debug(chalkInfo("FILE META\n" + jsonPrint(response)));
-//         return(callback(null, response));
-//       })
-//       .catch(function(err) {
-//         console.error(chalkError("GET FILE METADATA" 
-//           + " | PATH: " + fullPath
-//           + "\n" + jsonPrint(err)
-//         ));
-//         console.error(chalkError("GET FILE METADATA ERROR\n" + jsonPrint(err)));
-//         return(callback(err, null));
-//       });
-
 //   });
 // };
-
-
-
-
-const loadFile = function (path, file, callback) {
-
-  const fullPath = path + "/" + file;
-
-  debug(chalkInfo("LOAD FOLDER " + path));
-  debug(chalkInfo("LOAD FILE " + file));
-  debug(chalkInfo("FULL PATH " + fullPath));
-
-  dropboxClient.filesDownload({path: fullPath})
-    .then(function(data) {
-      console.log(chalkLog(getTimeStamp()
-        + " | LOADING FILE FROM DROPBOX: " + fullPath
-      ));
-
-      const payload = data.fileBinary;
-
-      debug(payload);
-
-      try {
-        const fileObj = JSON.parse(payload);
-        debug("fileObj\n" + jsonPrint(fileObj));
-        callback(null, fileObj);
-      } 
-      catch (err) {
-        console.error(chalkError("ERROR: LOAD FILE: DROPBOX JSON PARSE ERROR: FILE: " + fullPath + " | ERROR: " + err));
-        console.error(chalkError("ERROR\n" + jsonPrint(err)));
-        callback(err, fullPath);
-      }
-
-     })
-    .catch(function(err) {
-      console.error(chalkAlert("DROPBOX loadFile ERROR: " + file + "\n" + err));
-      console.error(chalkError("!!! DROPBOX READ " + file + " ERROR: " + err.error));
-      console.error(chalkError(jsonPrint(err)));
-
-      if (err.status === 404) {
-        console.error(chalkError("!!! DROPBOX READ FILE " + file + " NOT FOUND ... SKIPPING ..."));
-        return(callback(null, null));
-      }
-      if (err.status === 0) {
-        console.error(chalkError("!!! DROPBOX NO RESPONSE ... NO INTERNET CONNECTION? ... SKIPPING ..."));
-        return(callback(null, null));
-      }
-      return(callback(err, null));
-  });
-};
 
 const sendKeywords = function(callback){
 
@@ -455,7 +408,7 @@ const updateKeywords = function(folder, file, callback){
 
     })
     .catch(function(err) {
-      console.error(new Error("UPDATE KEYWORDS ERROR: " + err));
+      console.error(new Error("UPDATE KEYWORDS ERROR\n" + jsonPrint(err)));
     });
 };
 

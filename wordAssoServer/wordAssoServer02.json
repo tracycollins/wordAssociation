@@ -4,6 +4,8 @@
     "script"      : "wordAssoServer02.js",
     "cwd"         : "/home/tc/wordAssociation/wordAssoServer",
     "autorestart" : false,
+    "out_file"    : "wa.log",
+    "error_file"  : "wa.log",
     "env": {
       "NODE_ENV": "production",
       "HEAPDUMP_ENABLED": false,

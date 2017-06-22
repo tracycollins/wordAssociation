@@ -1,6 +1,8 @@
 /*jslint node: true */
 "use strict";
 
+const compactDateTimeFormat = "YYYYMMDD HHmmss";
+
 const moment = require("moment");
 const debug = require("debug")("wa");
 const os = require("os");

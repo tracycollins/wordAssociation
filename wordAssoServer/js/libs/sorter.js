@@ -30,7 +30,9 @@ console.log(
 const quit = function (message) {
   let msg = "";
   if (message) {msg = message;}
+
   console.error(process.argv[1]
+    + " | " + moment().format(compactDateTimeFormat)
     + " | SORTER: **** QUITTING"
     + " | CAUSE: " + msg
     + " | PID: " + process.pid
@@ -120,12 +122,12 @@ process.on("message", function(m) {
       params.obj = m.obj;
       params.max = m.max;
 
-      console.log(chalkGreen("SORTER SORT"
+      debug(chalkGreen("SORTER SORT"
         + " | OBJ KEYS: " + Object.keys(m.obj).length
       ));
 
       sortedObjectValues(params).then(sendSorted).then(function(response){
-        console.log(chalkError("SORTER KEYS SENT: " + response));
+        debug(chalkError("SORTER KEYS SENT: " + response));
       }, function(err){
         console.log(chalkError("SORTER ERROR: " + err));
       });

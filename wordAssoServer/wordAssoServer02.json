@@ -6,6 +6,7 @@
     "autorestart" : false,
     "out_file"    : "/home/tc/logs/wa.log",
     "error_file"  : "/home/tc/logs/wa.log",
+    "node_args"   : "--max_old_space_size=8192",
     "env": {
       "NODE_ENV": "production",
       "HEAPDUMP_ENABLED": false,

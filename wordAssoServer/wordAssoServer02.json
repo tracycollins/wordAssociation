@@ -11,6 +11,7 @@
       "NODE_ENV": "production",
       "HEAPDUMP_ENABLED": false,
       "HEAPDUMP_MODULO": 10,
+      "HEAPDUMP_THRESHOLD": 300,
       "SOCKET_IDLE_TIMEOUT" : 300,
       "NODE_CACHE_DEFAULT_TTL": 60,
       "NODE_CACHE_CHECK_PERIOD": 5,

@@ -7,7 +7,7 @@ console.log("PROCESS PID: " + process.pid);
 
 let quitOnError = true;
 
-const HEAPDUMP_THRESHOLD = 500; // MB
+let HEAPDUMP_THRESHOLD = process.env.HEAPDUMP_THRESHOLD || 300;
 
 const heapdump = require("heapdump");
 // let memwatch = require("memwatch");
@@ -2996,7 +2996,7 @@ function initStatsInterval(interval){
         + "_" + moment().format(tinyDateTimeFormat) 
         + ".heapsnapshot";
 
-      console.error(chalkError("***** HEAPDUMP *****"
+      console.log(chalkError("***** HEAPDUMP *****"
         + " | STATS UPDATED: " +  statsUpdated
         + " | FILE: " +  heapdumpFileName
       ));

@@ -288,7 +288,6 @@ const tweetRxQueue = new Queue();
 
 let statsInterval;
 
-l
 if (process.env.HEAPDUMP_ENABLED !== undefined) {
 
   console.log(chalkError("DEFINED process.env.HEAPDUMP_ENABLED: " + process.env.HEAPDUMP_ENABLED));

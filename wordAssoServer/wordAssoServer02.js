@@ -12,6 +12,9 @@ let HEAPDUMP_THRESHOLD = process.env.HEAPDUMP_THRESHOLD || 300;
 const heapdump = require("heapdump");
 // let memwatch = require("memwatch");
 
+let HEAPDUMP_ENABLED = false;
+let HEAPDUMP_MODULO = process.env.HEAPDUMP_MODULO || 10;
+
 // let pmx = require("pmx").init({
 //   http          : true, // HTTP routes logging (default: true)
 //   ignore_routes : [/socket\.io/, /notFound/], // Ignore http routes with this pattern (Default: [])
@@ -285,9 +288,7 @@ const tweetRxQueue = new Queue();
 
 let statsInterval;
 
-let HEAPDUMP_ENABLED = false;
-let HEAPDUMP_MODULO = process.env.HEAPDUMP_MODULO || 10;
-
+l
 if (process.env.HEAPDUMP_ENABLED !== undefined) {
 
   console.log(chalkError("DEFINED process.env.HEAPDUMP_ENABLED: " + process.env.HEAPDUMP_ENABLED));

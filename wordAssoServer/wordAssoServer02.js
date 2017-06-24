@@ -7,6 +7,7 @@ console.log("PROCESS PID: " + process.pid);
 
 let quitOnError = true;
 
+const HEAPDUMP_THRESHOLD = 500; // MB
 
 const heapdump = require("heapdump");
 // let memwatch = require("memwatch");
@@ -2985,7 +2986,9 @@ function initStatsInterval(interval){
 
     statsUpdated += 1;
 
-    if (HEAPDUMP_ENABLED && (statsUpdated > 1) && (statsUpdated % HEAPDUMP_MODULO === 0)) {
+    if ((HEAPDUMP_ENABLED || (statsObj.memory.maxRss > HEAPDUMP_THRESHOLD)) 
+      && (statsUpdated > 1) 
+      && (statsUpdated % HEAPDUMP_MODULO === 0)) {
 
       heapdumpFileName = "was2" 
         + "_" + hostname 

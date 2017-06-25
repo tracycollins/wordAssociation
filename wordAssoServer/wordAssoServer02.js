@@ -10,7 +10,7 @@ let quitOnError = true;
 let HEAPDUMP_THRESHOLD = process.env.HEAPDUMP_THRESHOLD || 300;
 
 const heapdump = require("heapdump");
-// let memwatch = require("memwatch");
+const memwatch = require('memwatch-next');
 
 let HEAPDUMP_ENABLED = false;
 let HEAPDUMP_MODULO = process.env.HEAPDUMP_MODULO || 10;
@@ -214,6 +214,7 @@ let ignoreWordsArray = [
 let metricsRate = "5MinuteRate";
 const CUSTOM_GOOGLE_APIS_PREFIX = "custom.googleapis.com";
 
+const Measured = require("measured");
 const defaults = require("object.defaults");
 const omit = require("object.omit");
 const pick = require("object.pick");
@@ -225,6 +226,7 @@ const path = require("path");
 const async = require("async");
 const yaml = require("yamljs");
 const debug = require("debug")("wa");
+const debugCache = require("debug")("cache");
 const debugKeyword = require("debug")("kw");
 
 const Queue = require("queue-fifo");
@@ -253,7 +255,7 @@ hostname = hostname.replace(/.fios-router.home/g, "");
 hostname = hostname.replace(/word0-instance-1/g, "google");
 
 const chalk = require("chalk");
-const chalkAdmin = chalk.bold.cyan;
+const chalkAdmin = chalk.bold.black;
 const chalkWarn = chalk.red;
 const chalkTwitter = chalk.blue;
 const chalkConnect = chalk.black;
@@ -334,8 +336,8 @@ const DROPBOX_WORD_ASSO_ACCESS_TOKEN = process.env.DROPBOX_WORD_ASSO_ACCESS_TOKE
 const DROPBOX_WORD_ASSO_APP_KEY = process.env.DROPBOX_WORD_ASSO_APP_KEY;
 const DROPBOX_WORD_ASSO_APP_SECRET = process.env.DROPBOX_WORD_ASSO_APP_SECRET;
 
-let statsFolder = "/stats/" + hostname;
-let statsFile = "wordAssoServer02Stats" 
+const statsFolder = "/stats/" + hostname;
+const statsFile = "wordAssoServer02Stats" 
   + "_" + moment().format(tinyDateTimeFormat) 
   + ".json";
 
@@ -345,10 +347,10 @@ console.log("DROPBOX_WORD_ASSO_APP_SECRET :" + DROPBOX_WORD_ASSO_APP_SECRET);
 
 const dropboxClient = new Dropbox({ accessToken: DROPBOX_WORD_ASSO_ACCESS_TOKEN });
 
-let configFolder = "/config/utility/" + hostname;
-let deletedMetricsFile = "deletedMetrics.json";
+const configFolder = "/config/utility/" + hostname;
+const deletedMetricsFile = "deletedMetrics.json";
 
-let jsonPrint = function (obj) {
+const jsonPrint = function (obj) {
   if (obj) {
     return JSON.stringify(obj, null, 2);
   } 
@@ -381,14 +383,14 @@ if (nodeCacheCheckPeriod === undefined) { nodeCacheCheckPeriod = NODE_CACHE_CHEC
 console.log("NODE CACHE CHECK PERIOD: " + nodeCacheCheckPeriod + " SECONDS");
 
 
-let nodeCache = new NodeCache({
+const nodeCache = new NodeCache({
   stdTTL: nodeCacheTtl,
   checkperiod: nodeCacheCheckPeriod
 });
 
-nodeCache.on("expired", function(nodeCacheId, nodeObj) {
+function nodeCacheExpired(nodeCacheId, nodeObj) {
 
-  debug(chalkLog("XXX $ NODE"
+  debugCache(chalkLog("XXX $ NODE"
     + " | " + nodeObj.nodeType
     + " | " + nodeCacheId
   ));
@@ -401,23 +403,24 @@ nodeCache.on("expired", function(nodeCacheId, nodeObj) {
     wordMeter = omit(wordMeter, nodeCacheId);
     delete wordMeter[nodeCacheId];
 
-    debug(chalkLog("XXX NODE METER WORD"
+    debugCache(chalkLog("XXX NODE METER WORD"
       + " | Ks: " + Object.keys(wordMeter).length
       + " | " + nodeCacheId
     ));
 
-    statsObj.wordMeterEntries = Object.keys(wordMeter).length;
 
     if (statsObj.wordMeterEntries > statsObj.wordMeterEntriesMax) {
       statsObj.wordMeterEntriesMax = statsObj.wordMeterEntries;
       statsObj.wordMeterEntriesMaxTime = moment().valueOf();
-      debug(chalkLog("NEW MAX WORD METER ENTRIES"
+      debugCache(chalkLog("NEW MAX WORD METER ENTRIES"
         + " | " + moment().format(compactDateTimeFormat)
         + " | " + statsObj.wordMeterEntries.toFixed(0)
       ));
     }
   }
-});
+}
+
+nodeCache.on("expired", nodeCacheExpired);
 
 // ==================================================================
 // TWITTER TRENDING TOPIC CACHE
@@ -446,14 +449,14 @@ let wordsPerMinuteTopTermCache = new NodeCache({
   checkperiod: TOPTERMS_CACHE_CHECK_PERIOD
 });
 
-wordsPerMinuteTopTermCache.on( "expired", function(word, wordRate){
-  // debug("$ WPM TOPTERM XXX\n" + jsonPrint(wpmObj));
-  debug(chalkInfo("XXX $ WPM TOPTERM | " + wordRate.toFixed(3) + " | " + word));
-});
+function wordCacheExpired(word, wordRate) {
+  debugCache(chalkInfo("XXX $ WPM TOPTERM | " + wordRate.toFixed(3) + " | " + word));
+}
+
+wordsPerMinuteTopTermCache.on("expired", wordCacheExpired);
 
 
 let rateQinterval;
-const Measured = require("measured");
 
 let defaultDropboxKeywordFile = "keywords.json";
 
@@ -590,10 +593,10 @@ statsObj.memory.maxHeap = process.memoryUsage().heapUsed/(1024*1024);
 statsObj.memory.maxHeapTime = moment().valueOf();
 statsObj.memory.memoryAvailable = os.freemem();
 statsObj.memory.memoryTotal = os.totalmem();
-statsObj.memory.memoryUsage = process.memoryUsage();
-statsObj.memory.memoryUsage.heapUsed = process.memoryUsage().heapUsed/(1024*1024);
-statsObj.memory.memoryUsage.heapTotal = process.memoryUsage().heapTotal/(1024*1024);
-statsObj.memory.memoryUsage.rss = process.memoryUsage().rss/(1024*1024);
+// statsObj.memory.memoryUsage = process.memoryUsage();
+// statsObj.memory.memoryUsage.heapUsed = process.memoryUsage().heapUsed/(1024*1024);
+// statsObj.memory.memoryUsage.heapTotal = process.memoryUsage().heapTotal/(1024*1024);
+// statsObj.memory.memoryUsage.rss = process.memoryUsage().rss/(1024*1024);
 
 statsObj.queues = {};
 statsObj.queues.metricsDataPointQueue = 0;
@@ -815,18 +818,18 @@ function showStats(options){
   statsObj.elapsed = msToTime(moment().valueOf() - statsObj.startTime);
   statsObj.timeStamp = moment().format(compactDateTimeFormat);
 
-  statsObj.memory.heap = process.memoryUsage().heapUsed/(1024*1024);
+  // statsObj.memory.heap = process.memoryUsage().heapUsed/(1024*1024);
 
-  if (statsObj.memory.heap > statsObj.memory.maxHeap) {
-    statsObj.memory.maxHeap = statsObj.memory.heap;
-    statsObj.memory.maxHeapTime = moment().valueOf();
-    debug(chalkLog("NEW MAX HEAP"
-      + " | " + moment().format(compactDateTimeFormat)
-      + " | " + statsObj.memory.heap.toFixed(0) + " MB"
-    ));
-  }
+  // if (statsObj.memory.heap > statsObj.memory.maxHeap) {
+  //   statsObj.memory.maxHeap = statsObj.memory.heap;
+  //   statsObj.memory.maxHeapTime = moment().valueOf();
+  //   debug(chalkLog("NEW MAX HEAP"
+  //     + " | " + moment().format(compactDateTimeFormat)
+  //     + " | " + statsObj.memory.heap.toFixed(0) + " MB"
+  //   ));
+  // }
 
-  statsObj.memory.memoryUsage = process.memoryUsage();
+  // statsObj.memory.memoryUsage = process.memoryUsage();
 
   if (options) {
     console.log(chalkLog("STATS\n" + jsonPrint(statsObj)));
@@ -975,6 +978,17 @@ debug("NODE_ENV : " + process.env.NODE_ENV);
 debug("CLIENT HOST + PORT: " + "http://localhost:" + config.port);
 
 function initSocketHandler(socket) {
+
+  let ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+
+  console.log(chalkAlert("SOCKET CONNECT"
+    + " | " + socket.id
+    + " | " + ipAddress
+    + " | AD: " + statsObj.entity.admin.connected
+    + " | UT: " + statsObj.entity.util.connected
+    + " | US: " + statsObj.entity.user.connected
+    + " | VW: " + statsObj.entity.viewer.connected
+  ));
 
   socket.emit("SERVER_READY", {connected: hostname});
 
@@ -1150,30 +1164,34 @@ function initSocketNamespaces(callback){
 
   adminNameSpace.on("connect", function(socket) {
     socket.setMaxListeners(0);
-    debug(chalkAdmin("ADMIN CONNECT"));
+    console.log(chalkAlert("ADMIN CONNECT " + socket.id));
+    statsObj.entity.admin.connected = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
     initSocketHandler(socket);
   });
 
   utilNameSpace.on("connect", function(socket) {
     socket.setMaxListeners(0);
-    debug(chalkAdmin("UTIL CONNECT"));
+    console.log(chalkAlert("UTIL CONNECT " + socket.id));
+    statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
     initSocketHandler(socket);
   });
 
   userNameSpace.on("connect", function(socket) {
     socket.setMaxListeners(0);
-    debug(chalkAdmin("USER CONNECT"));
+    console.log(chalkAlert("USER CONNECT " + socket.id));
+    statsObj.entity.user.connected = Object.keys(userNameSpace.connected).length; // userNameSpace.sockets.length ;
     initSocketHandler(socket);
   });
 
   viewNameSpace.on("connect", function(socket) {
     socket.setMaxListeners(0);
-    let ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
-    debug(chalkAdmin("VIEWER CONNECT"
-      + " | " + socket.id
-      + " | " + ipAddress
-    ));
+    console.log(chalkAlert("VIEWER CONNECT " + socket.id));
+    statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; // userNameSpace.sockets.length ;
     initSocketHandler(socket);
+  });
+
+  io.on("connect", function(socket) {
+    let ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
   });
 
   ioReady = true;
@@ -1525,7 +1543,6 @@ function initTransmitNodeQueueInterval(interval){
   }, interval);
 }
 
-
 function transmitNodes(tw, callback){
   debug("TX NODES");
 
@@ -1798,7 +1815,7 @@ configEvents.on("SERVER_READY", function() {
     statsObj.upTime = os.uptime() * 1000;
     statsObj.memory.memoryTotal = os.totalmem();
     statsObj.memory.memoryAvailable = os.freemem();
-    statsObj.memory.memoryUsage = process.memoryUsage();
+    // statsObj.memory.memoryUsage = process.memoryUsage();
 
     //
     // SERVER HEARTBEAT
@@ -1914,7 +1931,6 @@ function initAppRouting(callback) {
       res.end();
     });
   });
-
 
   app.get("/js/libs/controlPanel.js", function(req, res) {
     debug(chalkInfo("get req\n" + req));
@@ -2036,8 +2052,6 @@ function initInternetCheckInterval(interval){
   }, interval);
 }
 
-// let tweetParserReady = false;
-
 function initTwitterRxQueueInterval(interval){
 
   let tweet;
@@ -2080,7 +2094,6 @@ function initTwitterRxQueueInterval(interval){
     }
   }, interval);
 }
-
 
 let tweetParserMessageRxQueueReady = true;
 let tweetParserMessageRxQueueInterval;
@@ -2155,7 +2168,6 @@ function initTweetParserMessageRxQueueInterval(interval){
     }
   }, interval);
 }
-
 
 let sorterMessageRxReady = true; 
 let sorterMessageRxQueueInterval;
@@ -2652,9 +2664,9 @@ function initRateQinterval(interval){
   statsObj.queues.sorterMessageRxQueue = sorterMessageRxQueue.size();
   statsObj.queues.tweetParserMessageRxQueue = tweetParserMessageRxQueue.size();
 
-  statsObj.memory.memoryUsage.rss = process.memoryUsage().rss/(1024*1024);
-  statsObj.memory.memoryUsage.heapUsed = process.memoryUsage().heap_used/(1024*1024);
-  statsObj.memory.memoryUsage.heapTotal = process.memoryUsage().heap_total/(1024*1024);
+  // statsObj.memory.memoryUsage.rss = process.memoryUsage().rss/(1024*1024);
+  // statsObj.memory.memoryUsage.heapUsed = process.memoryUsage().heap_used/(1024*1024);
+  // statsObj.memory.memoryUsage.heapTotal = process.memoryUsage().heap_total/(1024*1024);
 
   let queueNames;
 
@@ -2776,14 +2788,14 @@ function initRateQinterval(interval){
           addMetricDataPoint(queueDataPoint);
         }); 
 
-        memoryRssDataPoint.value = statsObj.memory.memoryUsage.rss;
-        addMetricDataPoint(memoryRssDataPoint);
+        // memoryRssDataPoint.value = statsObj.memory.memoryUsage.rss;
+        // addMetricDataPoint(memoryRssDataPoint);
 
-        memoryHeapUsedDataPoint.value = statsObj.memory.memoryUsage.heapUsed;
-        addMetricDataPoint(memoryHeapUsedDataPoint);
+        // memoryHeapUsedDataPoint.value = statsObj.memory.memoryUsage.heapUsed;
+        // addMetricDataPoint(memoryHeapUsedDataPoint);
 
-        memoryHeapTotalDataPoint.value = statsObj.memory.memoryUsage.heapTotal;
-        addMetricDataPoint(memoryHeapTotalDataPoint);
+        // memoryHeapTotalDataPoint.value = statsObj.memory.memoryUsage.heapTotal;
+        // addMetricDataPoint(memoryHeapTotalDataPoint);
 
         dataPointWpm.value = statsObj.wordsPerMin;
         addMetricDataPoint(dataPointWpm);
@@ -2971,7 +2983,7 @@ function initStatsInterval(interval){
 
     statsObj.memory.memoryAvailable = os.freemem();
     statsObj.memory.memoryTotal = os.totalmem();
-    statsObj.memory.memoryUsage = process.memoryUsage();
+    // statsObj.memory.memoryUsage = process.memoryUsage();
 
     statsObj.entity.admin.connected = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
     statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
@@ -3066,6 +3078,19 @@ initialize(configuration, function(err) {
     }
 
     statsObj.configuration = configuration;
+
+    statsObj.memwatch = {};
+
+    memwatch.on("leak", function(info) {
+      statsObj.memwatch.leak = info;
+      console.log(chalkAlert("MEM LEAK?\n" + jsonPrint(info)));
+    });
+
+    memwatch.on('stats', function(stats) {
+      statsObj.memwatch.stats = stats;
+      console.log(chalkAlert("MEM STATS\n" + jsonPrint(stats)));
+    });
+
   }
 });
 

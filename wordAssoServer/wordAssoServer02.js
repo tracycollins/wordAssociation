@@ -3114,13 +3114,12 @@ initialize(configuration, function(err) {
         + ".heapsnapshot";
 
       console.log(chalkError("***** HEAPDUMP MEMORY LEAK *****"
-        + " | STATS UPDATED: " +  statsUpdated
         + " | FILE: " +  heapdumpFileName
       ));
 
       heapdump.writeSnapshot(heapdumpFileName);
 
-      const dmString = "MEM LEAK?\n" + jsonPrint(info);
+      const dmString = "MEM LEAK\nGROWTH: " + info.growth + "\n" + info.reason;
 
       sendDirectMessage("threecee", dmString);
 

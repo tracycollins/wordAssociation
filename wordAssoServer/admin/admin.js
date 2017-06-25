@@ -902,7 +902,7 @@ var serverCheckTimeout = setInterval(function() {
     lastTimeoutHeartBeat = heartBeat;
     console.error("***** SERVER HEARTBEAT TIMEOUT ***** " + getTimeStamp() + " | LAST SEEN: " + getTimeStamp(heartBeat.timeStamp) + msToTime(Date.now() - heartBeat.timeStamp) + " AGO");
   }
-  updateServerHeartbeat(heartBeat, heartBeatTimeoutFlag, lastTimeoutHeartBeat);
+  if (heartBeat !== undefined) { updateServerHeartbeat(heartBeat, heartBeatTimeoutFlag, lastTimeoutHeartBeat); }
 }, serverCheckInterval);
 
 function setTestMode(inputTestMode) {

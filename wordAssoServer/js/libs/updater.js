@@ -33,6 +33,7 @@ const mongoose = require("../../config/mongoose");
 const db = mongoose();
 
 const Admin = require("mongoose").model("Admin");
+const Sessions = require("mongoose").model("Session");
 const Viewer = require("mongoose").model("Viewer");
 const User = require("mongoose").model("User");
 const Word = require("mongoose").model("Word");

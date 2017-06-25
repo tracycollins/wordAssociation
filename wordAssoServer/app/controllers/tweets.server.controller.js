@@ -180,7 +180,7 @@ exports.findOneUser = function (user, params, callback) {
 								callback(err, user);
 							}
 							else {
-								console.log("XXX DUP USER " + user.userId);
+								debug("XXX DUP USER " + user.userId);
 
 								User.findOneAndUpdate(
 									query,
@@ -295,7 +295,7 @@ function findOnePlace (place, params, callback) {
 							callback(err, place);
 						}
 						else {
-							console.log("XXX DUP PLACE " + place.placeId);
+							debug("XXX DUP PLACE " + place.placeId);
 							callback(err, place);
 						}
 					});
@@ -376,7 +376,7 @@ function findOneMedia (media, params, callback) {
 								callback(err, media);
 							}
 							else {
-								console.log("XXX DUP MEDIA " + media.mediaId);
+								debug("XXX DUP MEDIA " + media.mediaId);
 								callback(err, media);
 							}
 						});
@@ -454,7 +454,7 @@ function findOneHashtag (hashtag, params, callback) {
 								callback(err, hashtag);
 							}
 							else {
-								console.log("XXX DUP HASHTAG " + hashtag.text.toLowerCase());
+								debug("XXX DUP HASHTAG " + hashtag.text.toLowerCase());
 								callback(err, hashtag);
 							}
 						});
@@ -528,7 +528,7 @@ function findOneUrl (url, params, callback) {
 							console.log("REMOVED DUPLICATE URL ERROR " + err + "\n" + url.urlId);
 						}
 						else {
-							console.log("XXX DUP URL " + url.urlId);
+							debug("XXX DUP URL " + url.urlId);
 						}
 						callback(err, url);
 					});
@@ -645,7 +645,7 @@ function findOneTweet (tweet, params, callback) {
 							console.log("REMOVED DUPLICATE TWEET ERROR " + err + "\n" + tweet.tweetId);
 						}
 						else {
-							console.log("XXX DUP TWEET " + tweet.tweetId);
+							debug("XXX DUP TWEET " + tweet.tweetId);
 						}
 						callback(err, tweet);
 					});

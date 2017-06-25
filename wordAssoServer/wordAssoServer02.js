@@ -214,6 +214,7 @@ let ignoreWordsArray = [
 let metricsRate = "5MinuteRate";
 const CUSTOM_GOOGLE_APIS_PREFIX = "custom.googleapis.com";
 
+const util = require("util");
 const Measured = require("measured");
 const defaults = require("object.defaults");
 const omit = require("object.omit");
@@ -508,6 +509,11 @@ let tweetParser;
 
 let statsObj = {};
 
+statsObj.memwatch = {};
+statsObj.memwatch.snapshotTaken = false;
+statsObj.memwatch.leak = {};
+statsObj.memwatch.stats = {};
+
 statsObj.errors = {};
 statsObj.errors.google = {};
 statsObj.errors.twitter = {};
@@ -541,15 +547,15 @@ statsObj.wordsPerSecond = 0.0;
 statsObj.maxWordsPerMin = 0.0;
 statsObj.maxTweetsPerMin = 0.0;
 
-// statsObj.caches = {};
-// statsObj.caches.nodeCache = {};
-// statsObj.caches.nodeCache.stats = {};
-// statsObj.caches.nodeCache.stats.keys = 0;
-// statsObj.caches.nodeCache.stats.keysMax = 0;
-// statsObj.caches.wordsPerMinuteTopTermCache = {};
-// statsObj.caches.wordsPerMinuteTopTermCache.stats = {};
-// statsObj.caches.wordsPerMinuteTopTermCache.stats.keys = 0;
-// statsObj.caches.wordsPerMinuteTopTermCache.stats.keysMax = 0;
+statsObj.caches = {};
+statsObj.caches.nodeCache = {};
+statsObj.caches.nodeCache.stats = {};
+statsObj.caches.nodeCache.stats.keys = 0;
+statsObj.caches.nodeCache.stats.keysMax = 0;
+statsObj.caches.wordsPerMinuteTopTermCache = {};
+statsObj.caches.wordsPerMinuteTopTermCache.stats = {};
+statsObj.caches.wordsPerMinuteTopTermCache.stats.keys = 0;
+statsObj.caches.wordsPerMinuteTopTermCache.stats.keysMax = 0;
 
 statsObj.db = {};
 statsObj.db.errors = 0;
@@ -593,7 +599,8 @@ statsObj.memory.maxHeap = process.memoryUsage().heapUsed/(1024*1024);
 statsObj.memory.maxHeapTime = moment().valueOf();
 statsObj.memory.memoryAvailable = os.freemem();
 statsObj.memory.memoryTotal = os.totalmem();
-// statsObj.memory.memoryUsage = process.memoryUsage();
+statsObj.memory.memoryUsage = {};
+statsObj.memory.memoryUsage = process.memoryUsage();
 // statsObj.memory.memoryUsage.heapUsed = process.memoryUsage().heapUsed/(1024*1024);
 // statsObj.memory.memoryUsage.heapTotal = process.memoryUsage().heapTotal/(1024*1024);
 // statsObj.memory.memoryUsage.rss = process.memoryUsage().rss/(1024*1024);
@@ -1815,7 +1822,7 @@ configEvents.on("SERVER_READY", function() {
     statsObj.upTime = os.uptime() * 1000;
     statsObj.memory.memoryTotal = os.totalmem();
     statsObj.memory.memoryAvailable = os.freemem();
-    // statsObj.memory.memoryUsage = process.memoryUsage();
+    statsObj.memory.memoryUsage = process.memoryUsage();
 
     //
     // SERVER HEARTBEAT
@@ -2632,6 +2639,14 @@ function getCustomMetrics(){
     });
 }
 
+const cacheObj = {
+  "nodeCache": nodeCache,
+  "wordsPerMinuteTopTermCache": wordsPerMinuteTopTermCache,
+  "trendingCache": trendingCache
+};
+
+const cacheObjKeys = Object.keys(statsObj.caches);
+
 function initRateQinterval(interval){
 
   if (GOOGLE_METRICS_ENABLED) {
@@ -2668,6 +2683,63 @@ function initRateQinterval(interval){
   // statsObj.memory.memoryUsage.heapUsed = process.memoryUsage().heap_used/(1024*1024);
   // statsObj.memory.memoryUsage.heapTotal = process.memoryUsage().heap_total/(1024*1024);
 
+  cacheObjKeys.forEach(function(cacheName){
+    statsObj.caches[cacheName].stats.keys = cacheObj[cacheName].getStats().keys;
+    if (statsObj.caches[cacheName].stats.keys > statsObj.caches[cacheName].stats.keysMax) {
+      statsObj.caches[cacheName].stats.keysMax = statsObj.caches[cacheName].stats.keys;
+      statsObj.caches[cacheName].stats.keysMaxTime = moment().valueOf();
+      console.log(chalkInfo("MAX"
+        + " | " + cacheName
+        + " | Ks: " + statsObj.caches[cacheName].stats.keys
+      ));
+    }
+  });
+
+  if (adminNameSpace) {
+    statsObj.entity.admin.connected = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
+    if (statsObj.entity.admin.connected > statsObj.entity.admin.connectedMax) {
+      statsObj.entity.admin.connectedMaxTime = moment().valueOf();
+      statsObj.entity.admin.connectedMax = statsObj.entity.admin.connected;
+      console.log(chalkInfo("MAX ADMINS"
+       + " | " + statsObj.entity.admin.connected
+       + " | " + moment().format(compactDateTimeFormat)
+      ));
+    }
+  }
+
+  if (utilNameSpace) {
+    statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
+    if (statsObj.entity.util.connected > statsObj.entity.util.connectedMax) {
+      statsObj.entity.util.connectedMaxTime = moment().valueOf();
+      statsObj.entity.util.connectedMax = statsObj.entity.util.connected;
+      console.log(chalkInfo("MAX UTILS"
+       + " | " + statsObj.entity.util.connected
+       + " | " + moment().format(compactDateTimeFormat)
+      ));
+    }
+  }
+  if (userNameSpace) {
+    statsObj.entity.user.connected = Object.keys(userNameSpace.connected).length; // userNameSpace.sockets.length ;
+    if (statsObj.entity.user.connected > statsObj.entity.user.connectedMax) {
+      statsObj.entity.user.connectedMaxTime = moment().valueOf();
+      statsObj.entity.user.connectedMax = statsObj.entity.user.connected;
+      console.log(chalkInfo("MAX USERS"
+       + " | " + statsObj.entity.user.connected
+       + " | " + moment().format(compactDateTimeFormat)
+      ));
+    }
+  }
+  if (adminNameSpace) {
+    statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; // userNameSpace.sockets.length ;
+    if (statsObj.entity.viewer.connected > statsObj.entity.viewer.connectedMax) {
+      statsObj.entity.viewer.connectedMaxTime = moment().valueOf();
+      statsObj.entity.viewer.connectedMax = statsObj.entity.viewer.connected;
+      console.log(chalkInfo("MAX VIEWERS"
+       + " | " + statsObj.entity.viewer.connected
+       + " | " + moment().format(compactDateTimeFormat)
+      ));
+    }
+  }
   let queueNames;
 
   // let paramsSorter = {};
@@ -2983,7 +3055,7 @@ function initStatsInterval(interval){
 
     statsObj.memory.memoryAvailable = os.freemem();
     statsObj.memory.memoryTotal = os.totalmem();
-    // statsObj.memory.memoryUsage = process.memoryUsage();
+    statsObj.memory.memoryUsage = process.memoryUsage();
 
     statsObj.entity.admin.connected = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
     statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
@@ -3043,6 +3115,9 @@ function sendDirectMessage(user, message, callback) {
   });
 }
 
+let snapshotTaken = false;
+let hd;
+
 initialize(configuration, function(err) {
   if (err) {
     console.log(chalkError("*** INITIALIZE ERROR ***\n" + jsonPrint(err)));
@@ -3100,11 +3175,26 @@ initialize(configuration, function(err) {
 
     statsObj.configuration = configuration;
 
-    statsObj.memwatch = {};
 
     memwatch.on("leak", function(info) {
+
+// MEM LEAK?
+// {
+//   "growth": 7478008,
+//   "reason": "heap growth over 5 consecutive GCs (8m 18s) - 51.55 mb/hr"
+// }
+
+      var diff = hd.end();
+
+      statsObj.memwatch.snapshotTaken = false;
       statsObj.memwatch.leak = info;
-      console.error(chalkError("MEM LEAK?\n" + jsonPrint(info)));
+
+      console.error(chalkError("MEM LEAK"
+        + " | GROWTH: " + info.growth
+        + " | " + info.reason
+       ));
+
+      console.log(chalkError("*** MEM DIFF *** \n" + util.inspect(diff, {showHidden:false, depth:4})));
 
       const heapdumpFileName = "was2" 
         + "_" + hostname 
@@ -3119,15 +3209,29 @@ initialize(configuration, function(err) {
 
       heapdump.writeSnapshot(heapdumpFileName);
 
-      const dmString = "MEM LEAK\nGROWTH: " + info.growth + "\n" + info.reason;
+      const dmString = "MEM LEAK | " + hostname + "\nGROWTH: " + info.growth + "\n" + info.reason;
 
       sendDirectMessage("threecee", dmString);
 
     });
 
     memwatch.on('stats', function(stats) {
+      if(statsObj.memwatch.snapshotTaken ===false) {
+        hd = new memwatch.HeapDiff();
+        statsObj.memwatch.snapshotTaken = true;
+      }
       statsObj.memwatch.stats = stats;
-      console.log(chalkInfo("MEM STATS\n" + jsonPrint(stats)));
+      console.error(chalkInfo("MEM STATS"
+        + " | FGCs: " + stats.num_full_gc
+        + " | IGCs: " + stats.num_inc_gc
+        + " | TREND: " + stats.usage_trend
+        + " | EBASE: " + stats.estimated_base
+        + " | CBASE: " + stats.current_base
+        + " | MIN: " + stats.min
+        + " | MAX: " + stats.max
+        // + "\n" + jsonPrint(info)
+       ));
+      // console.log(chalkInfo("MEM STATS\n" + jsonPrint(stats)));
     });
 
     sendDirectMessage("threecee", "INIT " + hostname + " | " + moment().format(compactDateTimeFormat));

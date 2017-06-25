@@ -245,7 +245,7 @@ const deletedMetricsHashmap = new HashMap();
 
 const Twit = require("twit");
 let twit;
-let twitterYamlConfigFile = process.env.DEFAULT_TWITTER_CONFIG;
+let twitterYamlConfigFile = process.env.ALTTHREECEE00_TWITTER_CONFIG;
 
 let hostname = os.hostname();
 hostname = hostname.replace(/.local/g, "");
@@ -663,7 +663,7 @@ function loadFile(folder, file, callback) {
   dropboxClient.filesListFolder({path: folder})
     .then(function(response) {
 
-        async.each(response.entries, function(folderFile, cb) {
+        async.each(response.entries, function checkDropboxFile(folderFile, cb) {
 
           debug("FOUND FILE " + folderFile.name);
 
@@ -674,7 +674,7 @@ function loadFile(folder, file, callback) {
 
           cb();
 
-        }, function(err) {
+        }, function endCheckDropboxFile(err) {
 
           if (fileExists) {
 
@@ -742,7 +742,7 @@ function loadFile(folder, file, callback) {
 
 function loadYamlConfig(yamlFile, callback){
   console.log(chalkInfo("LOADING YAML CONFIG FILE: " + yamlFile));
-  fs.exists(yamlFile, function(exists) {
+  fs.exists(yamlFile, function yamlCheckFileExists(exists) {
     if (exists) {
       let cnf = yaml.load(yamlFile);
       console.log(chalkInfo("FOUND FILE " + yamlFile));
@@ -761,18 +761,18 @@ function saveStats(statsFile, statsObj, callback) {
 
   if (OFFLINE_MODE) {
 
-    fs.exists(fullPath, function(exists) {
+    fs.exists(fullPath, function saveStatsCheckFileExists (exists) {
       if (exists) {
-        fs.stat(fullPath, function(error, stats) {
+        fs.stat(fullPath, function saveStatsFileStats(error, stats) {
           if (error) { 
             return(callback(error, stats)); 
           }
-          fs.open(fullPath, "w", function(error, fd) {
+          fs.open(fullPath, "w", function saveStatsFileOpen(error, fd) {
             if (error) { 
               fs.close(fd);
               return(callback(error, fd));
             }
-            fs.writeFile(path, statsObj, function(error) {
+            fs.writeFile(path, statsObj, function saveStatsFileWrite(error) {
               if (error) { 
                 fs.close(fd);
                 return(callback(error, path)); 
@@ -849,7 +849,7 @@ function showStats(options){
 }
 
 function initDeletedMetricsHashmap(callback){
-  loadFile(configFolder, deletedMetricsFile, function(err, deletedMetricsObj){
+  loadFile(configFolder, deletedMetricsFile, function deleteMetricFileLoad(err, deletedMetricsObj){
     if (err) {
       if (err.code !== 404) {
         console.error("LOAD DELETED METRICS FILE ERROR\n" + err);
@@ -862,11 +862,11 @@ function initDeletedMetricsHashmap(callback){
     }
     else {
       // Object.keys(deletedMetricsObj).forEach(function(metricName){
-      async.each(Object.keys(deletedMetricsObj), function(metricName, cb){
+      async.each(Object.keys(deletedMetricsObj), function deleteMetricHashmapEntry(metricName, cb){
         deletedMetricsHashmap.set(metricName, deletedMetricsObj[metricName]);
         debug(chalkLog("+ DELETED METRIC | " + metricName ));
         cb();
-      }, function(err){
+      }, function deleteMetricComplete(err){
         if (err) {
           console.error(chalkError("ERROR INIT DELETED METRICS  HASHMAP | " + deletedMetricsFile + "\n" + err ));
         }
@@ -877,13 +877,13 @@ function initDeletedMetricsHashmap(callback){
    });
 }
 
-process.on("exit", function() {
+process.on("exit", function processExit() {
   if (tweetParser !== undefined) { tweetParser.kill("SIGINT"); }
   if (updater !== undefined) { updater.kill("SIGINT"); }
   if (sorter !== undefined) { sorter.kill("SIGINT"); }
 });
 
-process.on("message", function(msg) {
+process.on("message", function processMessageRx(msg) {
 
   if ((msg === "SIGINT") || (msg === "shutdown")) {
 
@@ -892,7 +892,7 @@ process.on("message", function(msg) {
 
     clearInterval(internetCheckInterval);
 
-    saveStats(statsFile, statsObj, function(status) {
+    saveStats(statsFile, statsObj, function processMessageSaveStats(status) {
       if (status !=="OK") {
         debug("!!! ERROR: saveStats " + status);
       } 
@@ -927,7 +927,7 @@ let configEvents = new EventEmitter2({
   maxListeners: 20
 });
 
-configEvents.on("newListener", function(data) {
+configEvents.on("newListener", function configEventsNewListener(data) {
   debug("*** NEW CONFIG EVENT LISTENER: " + data);
 });
 
@@ -3004,8 +3004,8 @@ function initStatsInterval(interval){
 
       heapdumpFileName = "was2" 
         + "_" + hostname 
-        + "_" + process.pid 
         + "_" + moment().format(tinyDateTimeFormat) 
+        + "_" + process.pid 
         + ".heapsnapshot";
 
       console.log(chalkError("***** HEAPDUMP *****"
@@ -3022,6 +3022,27 @@ function initStatsInterval(interval){
 //=================================
 // BEGIN !!
 //=================================
+
+function sendDirectMessage(user, message, callback) {
+  
+  twit.post("direct_messages/new", {screen_name: user, text:message}, function(error, response){
+
+    if(error) {
+      console.log(chalkError("!!!!! TWITTER SEND DIRECT MESSAGE ERROR: " 
+        + moment().format(compactDateTimeFormat) 
+        + "\nERROR\n"  + jsonPrint(error)
+        + "\nRESPONSE\n"  + jsonPrint(response)
+      ));
+      if (callback !== undefined) { callback(error, message)} ;
+    }
+    else{
+      console.log(chalkTwitter(moment().format(compactDateTimeFormat) + " | SENT TWITTER DM TO " + user + ": " + response.text));
+      if (callback !== undefined) { callback(null, message)} ;
+    }
+
+  });
+}
+
 initialize(configuration, function(err) {
   if (err) {
     console.log(chalkError("*** INITIALIZE ERROR ***\n" + jsonPrint(err)));
@@ -3083,13 +3104,34 @@ initialize(configuration, function(err) {
 
     memwatch.on("leak", function(info) {
       statsObj.memwatch.leak = info;
-      console.log(chalkAlert("MEM LEAK?\n" + jsonPrint(info)));
+      console.error(chalkError("MEM LEAK?\n" + jsonPrint(info)));
+
+      const heapdumpFileName = "was2" 
+        + "_" + hostname 
+        + "_" + moment().format(tinyDateTimeFormat) 
+        + "_" + process.pid 
+        + "_LEAK"
+        + ".heapsnapshot";
+
+      console.log(chalkError("***** HEAPDUMP MEMORY LEAK *****"
+        + " | STATS UPDATED: " +  statsUpdated
+        + " | FILE: " +  heapdumpFileName
+      ));
+
+      heapdump.writeSnapshot(heapdumpFileName);
+
+      const dmString = "MEM LEAK?\n" + jsonPrint(info);
+
+      sendDirectMessage("threecee", dmString);
+
     });
 
     memwatch.on('stats', function(stats) {
       statsObj.memwatch.stats = stats;
-      console.log(chalkAlert("MEM STATS\n" + jsonPrint(stats)));
+      console.log(chalkInfo("MEM STATS\n" + jsonPrint(stats)));
     });
+
+    sendDirectMessage("threecee", "INIT " + hostname + " | " + moment().format(compactDateTimeFormat));
 
   }
 });

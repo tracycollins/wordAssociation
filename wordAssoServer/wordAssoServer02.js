@@ -984,13 +984,16 @@ process.env.NODE_ENV = process.env.NODE_ENV || "development";
 debug("NODE_ENV : " + process.env.NODE_ENV);
 debug("CLIENT HOST + PORT: " + "http://localhost:" + config.port);
 
-function initSocketHandler(socket) {
+function initSocketHandler(socketObj) {
 
-  let ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+  const socket = socketObj.socket;
+
+  const ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
   console.log(chalkAlert("SOCKET CONNECT"
     + " | " + socket.id
     + " | " + ipAddress
+    + " | " + socketObj.namespace
     + " | AD: " + statsObj.entity.admin.connected
     + " | UT: " + statsObj.entity.util.connected
     + " | US: " + statsObj.entity.user.connected
@@ -1171,30 +1174,30 @@ function initSocketNamespaces(callback){
 
   adminNameSpace.on("connect", function(socket) {
     socket.setMaxListeners(0);
-    console.log(chalkAlert("ADMIN CONNECT " + socket.id));
+    debug(chalkAlert("ADMIN CONNECT " + socket.id));
     statsObj.entity.admin.connected = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
-    initSocketHandler(socket);
+    initSocketHandler({namespace: "admin", socket: socket});
   });
 
   utilNameSpace.on("connect", function(socket) {
     socket.setMaxListeners(0);
-    console.log(chalkAlert("UTIL CONNECT " + socket.id));
+    debug(chalkAlert("UTIL CONNECT " + socket.id));
     statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
-    initSocketHandler(socket);
+    initSocketHandler({namespace: "util", socket: socket});
   });
 
   userNameSpace.on("connect", function(socket) {
     socket.setMaxListeners(0);
-    console.log(chalkAlert("USER CONNECT " + socket.id));
+    debug(chalkAlert("USER CONNECT " + socket.id));
     statsObj.entity.user.connected = Object.keys(userNameSpace.connected).length; // userNameSpace.sockets.length ;
-    initSocketHandler(socket);
+    initSocketHandler({namespace: "user", socket: socket});
   });
 
   viewNameSpace.on("connect", function(socket) {
     socket.setMaxListeners(0);
-    console.log(chalkAlert("VIEWER CONNECT " + socket.id));
+    debug(chalkAlert("VIEWER CONNECT " + socket.id));
     statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; // userNameSpace.sockets.length ;
-    initSocketHandler(socket);
+    initSocketHandler({namespace: "view", socket: socket});
   });
 
   io.on("connect", function(socket) {
@@ -1886,39 +1889,6 @@ function initAppRouting(callback) {
     next();
   });
 
-  app.get("/js/libs/controlPanel.js", function(req, res) {
-    console.log(chalkAlert("LOADING PAGE: /js/libs/controlPanel.js"));
-
-    fs.open(__dirname + "/js/libs/controlPanel.js", "r", function(err, fd) {
-
-      if (err) { console.log(chalkError("ERROR FILE OPEN\n" + jsonPrint(err))); }
-
-      fs.readFile(__dirname + "/js/libs/controlPanel.js", function(err2, data) {
-
-        if (err2) { console.log(chalkError("ERROR FILE READ\n" + jsonPrint(err2))); }
-
-        let newData;
-        if (hostname.includes("google")){
-          newData = data.toString();
-          newData.replace("==SOURCE==", "http://word.threeceelabs.com");
-          console.log(chalkInfo("UPDATE DEFAULT_SOURCE controlPanel.js: " + "http://word.threeceelabs.com"));
-          res.send(newData);
-          res.end();
-          fs.close(fd);
-        }
-        else {
-          newData = data.toString();
-          newData.replace("==SOURCE==", "http://localhost:9997");
-          console.log(chalkInfo("UPDATE DEFAULT_SOURCE controlPanel.js: " + "http://localhost:9997"));
-          res.send(newData);
-          res.end();
-          fs.close(fd);
-        }
-      });
-    });
-    return;
-  });
-
   app.use(exp.static("./"));
   app.use(exp.static("./js"));
   app.use(exp.static("./css"));
@@ -1926,47 +1896,58 @@ function initAppRouting(callback) {
   app.use(exp.static("./public/assets/images"));
 
 
-  app.get("/session.js", function(req, res) {
-    debug(chalkInfo("get req\n" + req));
-    console.log(chalkAlert("LOADING FILE: /session.js"));
+  // app.get("/session.js", function(req, res) {
+  //   debug(chalkInfo("get req\n" + req));
+  //   console.log(chalkAlert("LOADING FILE: /session.js"));
 
-    fs.readFile(__dirname + "/session.js", function(err, data) {
+  //   fs.readFile(__dirname + "/session.js", function(err, data) {
 
-      if (err) { 
-        console.log(chalkError("ERROR FILE OPEN\n" + jsonPrint(err)));
-      }
+  //     if (err) { 
+  //       console.log(chalkError("ERROR FILE OPEN\n" + jsonPrint(err)));
+  //     }
 
-      let newData;
-      if (hostname.includes("google")){
-        newData = data.toString().replace("==SOURCE==", "http://word.threeceelabs.com");
-      }
-      else {
-        newData = data.toString().replace("==SOURCE==", "http://localhost:9997");
-      }
-      res.send(newData, function (err) {
-        if (err) {
-          console.error("SEND /session.js ERROR:"
-            + " | " + moment().format(compactDateTimeFormat)
-            // + " | " + req.url
-            // + " | " + sessionHtml
-            + " | " + err
-            // + " | " + req
-          );
-        }
-      });
-      res.end();
-    });
-  });
+  //     let newData;
+  //     if (hostname.includes("google")){
+  //       newData = data.toString().replace("==SOURCE==", "http://word.threeceelabs.com");
+  //     }
+  //     else {
+  //       newData = data.toString().replace("==SOURCE==", "http://localhost:9997");
+  //     }
+  //     res.send(newData, function (err) {
+  //       if (err) {
+  //         console.error("SEND /session.js ERROR:"
+  //           + " | " + moment().format(compactDateTimeFormat)
+  //           // + " | " + req.url
+  //           // + " | " + sessionHtml
+  //           + " | " + err
+  //           // + " | " + req
+  //         );
+  //       }
+  //     });
+  //     res.end();
+  //   });
+  // });
 
+  const adminHtml = __dirname + "/admin/admin.html";
   app.get("/admin", function(req, res) {
     debug(chalkInfo("get req\n" + req));
-    debug(chalkInfo("LOADING PAGE: /admin/admin.html"));
-    res.sendFile(__dirname + "/admin/admin.html", function (err) {
+    console.log(chalkAlert("LOADING PAGE"
+      + " | REQ: " + req.url
+      + " | RES: " + adminHtml
+      // + "\n" + jsonPrint(req.query)
+      // + "\n" + util.inspect(req, {showHidden:false, depth:4})
+    ));
+    res.sendFile(adminHtml, function (err) {
       if (err) {
-        console.error("GET:", __dirname + "/admin/admin.html");
+        console.error("GET /session ERROR:"
+          + " | " + moment().format(compactDateTimeFormat)
+          + " | " + req.url
+          + " | " + adminHtml
+          + " | " + err
+        );
       } 
       else {
-        debug(chalkInfo("SENT:", __dirname + "/admin/admin.html"));
+        debug(chalkInfo("SENT:", adminHtml));
       }
     });
   });
@@ -1988,47 +1969,46 @@ function initAppRouting(callback) {
           + " | " + req.url
           + " | " + sessionHtml
           + " | " + err
-          // + " | " + req
         );
       } 
       else {
-        debug(chalkInfo("SENT:", __dirname + "/sessionModular.html"));
+        debug(chalkInfo("SENT:", sessionHtml));
       }
     });
   });
 
 
-  app.get("/", function(req, res, next) {
-    debug(chalkInfo("get next\n" + next));
-    console.log(chalkInfo("LOADING PAGE: /sessionModular.html | " + req));
-    res.sendFile(__dirname + "/sessionModular.html", function (err) {
-      if (err) {
-        console.error("GET / ERROR:"
-          + " | " + moment().format(compactDateTimeFormat)
-          + " | " + __dirname + "/sessionModular.html"
-          + " | " + err
-          // + " | REQ: " + jsonPrint(req)
-        );
-      } 
-      else {
-        debug(chalkInfo("SENT:", __dirname + "/sessionModular.html"));
-      }
-    });
-  });
+  // app.get("/", function(req, res, next) {
+  //   debug(chalkInfo("get next\n" + next));
+  //   console.log(chalkInfo("LOADING PAGE: /sessionModular.html | " + req));
+  //   res.sendFile(__dirname + "/sessionModular.html", function (err) {
+  //     if (err) {
+  //       console.error("GET / ERROR:"
+  //         + " | " + moment().format(compactDateTimeFormat)
+  //         + " | " + __dirname + "/sessionModular.html"
+  //         + " | " + err
+  //         // + " | REQ: " + jsonPrint(req)
+  //       );
+  //     } 
+  //     else {
+  //       debug(chalkInfo("SENT:", __dirname + "/sessionModular.html"));
+  //     }
+  //   });
+  // });
 
 
-  app.get("/js/require.js", function(req, res, next) {
-    debug(chalkInfo("get next\n" + next));
-    debug(chalkInfo("LOADING PAGE: /js/require.js | " + req));
-    res.sendFile(__dirname + "/js/require.js", function (err) {
-      if (err) {
-        debug(chalkLog("GET:", __dirname + "/js/require.js"));
-      } 
-      else {
-        debug(chalkInfo("SENT:", __dirname + "/js/require.js"));
-      }
-    });
-  });
+  // app.get("/js/require.js", function(req, res, next) {
+  //   debug(chalkInfo("get next\n" + next));
+  //   debug(chalkInfo("LOADING PAGE: /js/require.js | " + req));
+  //   res.sendFile(__dirname + "/js/require.js", function (err) {
+  //     if (err) {
+  //       debug(chalkLog("GET:", __dirname + "/js/require.js"));
+  //     } 
+  //     else {
+  //       debug(chalkInfo("SENT:", __dirname + "/js/require.js"));
+  //     }
+  //   });
+  // });
 
   // configEvents.emit("INIT_APP_ROUTING_COMPLETE");
   callback(null);
@@ -3249,7 +3229,7 @@ initialize(configuration, function(err) {
         statsObj.memwatch.snapshotTaken = true;
       }
       statsObj.memwatch.stats = stats;
-      console.error(chalkInfo("MEM STATS"
+      console.error(chalkInfo("MEM"
         + " | FGCs: " + stats.num_full_gc
         + " | IGCs: " + stats.num_inc_gc
         + " | TREND: " + stats.usage_trend

@@ -243,13 +243,13 @@ var memoryBar;
 var memoryBarDiv;
 var memoryBarText;
 
-var sessionCacheBar;
-var sessionCacheBarDiv;
-var sessionCacheBarText;
+// var sessionCacheBar;
+// var sessionCacheBarDiv;
+// var sessionCacheBarText;
 
-var wordCacheBar;
-var wordCacheBarDiv;
-var wordCacheBarText;
+// var wordCacheBar;
+// var wordCacheBarDiv;
+// var wordCacheBarText;
 
 var tweetsPerMinBar;
 var tweetsPerMinBarDiv;
@@ -271,9 +271,9 @@ var viewersBar;
 var viewersBarDiv;
 var viewersBarText;
 
-var wordsPerMinBar;
-var wordsPerMinBarDiv;
-var wordsPerMinBarText;
+// var wordsPerMinBar;
+// var wordsPerMinBarDiv;
+// var wordsPerMinBarText;
 
 var rawDiv;
 var rawDivText;
@@ -289,17 +289,17 @@ function initBars(callback){
 
   // WORDS ===============================
 
-  wordCacheBarDiv = document.getElementById('words-bar');
-  wordCacheBar = new ProgressBar.Line(wordCacheBarDiv, { duration: 100 });
-  wordCacheBar.animate(0);
-  wordCacheBarText = document.getElementById('words-bar-text');
+  // wordCacheBarDiv = document.getElementById('words-bar');
+  // wordCacheBar = new ProgressBar.Line(wordCacheBarDiv, { duration: 100 });
+  // wordCacheBar.animate(0);
+  // wordCacheBarText = document.getElementById('words-bar-text');
 
   // SESSIONS ===============================
 
-  sessionCacheBarDiv = document.getElementById('sessions-bar');
-  sessionCacheBar = new ProgressBar.Line(sessionCacheBarDiv, { duration: 100 });
-  sessionCacheBar.animate(0);
-  sessionCacheBarText = document.getElementById('sessions-bar-text');
+  // sessionCacheBarDiv = document.getElementById('sessions-bar');
+  // sessionCacheBar = new ProgressBar.Line(sessionCacheBarDiv, { duration: 100 });
+  // sessionCacheBar.animate(0);
+  // sessionCacheBarText = document.getElementById('sessions-bar-text');
 
   // USERS ===============================
 
@@ -348,10 +348,10 @@ function initBars(callback){
   memoryBar = new ProgressBar.Line(memoryBarDiv, { duration: 100 });
   memoryBar.animate(0);
 
-  wordsPerMinBarDiv = document.getElementById('delta-response-bar');
-  wordsPerMinBarText = document.getElementById('delta-response-bar-text');
-  wordsPerMinBar = new ProgressBar.Line(wordsPerMinBarDiv, { duration: 100 });
-  wordsPerMinBar.animate(0);
+  // wordsPerMinBarDiv = document.getElementById('delta-response-bar');
+  // wordsPerMinBarText = document.getElementById('delta-response-bar-text');
+  // wordsPerMinBar = new ProgressBar.Line(wordsPerMinBarDiv, { duration: 100 });
+  // wordsPerMinBar.animate(0);
 
   tweetsPerMinBarDiv = document.getElementById('delta-tweet-bar');
   tweetsPerMinBarText = document.getElementById('delta-tweet-bar-text');
@@ -955,11 +955,11 @@ function sendServerConfig(e) {
   }
 }
 
-function setWordCacheTtl() {
-  var newWordCacheTtl = document.getElementById("setWordCacheTtl").value;
-  console.log("SET WORD CACHE TTL: " + newWordCacheTtl);
-  socket.emit("SET_WORD_CACHE_TTL", newWordCacheTtl);
-}
+// function setWordCacheTtl() {
+//   var newWordCacheTtl = document.getElementById("setWordCacheTtl").value;
+//   console.log("SET WORD CACHE TTL: " + newWordCacheTtl);
+//   socket.emit("SET_WORD_CACHE_TTL", newWordCacheTtl);
+// }
 
 function toggleTestMode() {
   testMode = !testMode;
@@ -1629,52 +1629,52 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
 
   // SESSION CACHE ==========================
 
-  var sessionCacheKeysRatio = 0;
+ //  var sessionCacheKeysRatio = 0;
   
-  if (heartBeat.caches) {
-    sessionCacheKeysRatio = heartBeat.caches.sessionCache.stats.keys / heartBeat.caches.sessionCache.stats.keysMax;
-  }
+ //  if (heartBeat.caches) {
+ //    sessionCacheKeysRatio = heartBeat.caches.sessionCache.stats.keys / heartBeat.caches.sessionCache.stats.keysMax;
+ //  }
 
-  sessionCacheBar.animate(sessionCacheKeysRatio);
+ //  sessionCacheBar.animate(sessionCacheKeysRatio);
 
-  if (100 * sessionCacheKeysRatio >= ALERT_LIMIT_PERCENT) {
-    sessionCacheBar.path.setAttribute('stroke', endColor);
-  } else if (100 * sessionCacheKeysRatio >= WARN_LIMIT_PERCENT) {
-    sessionCacheBar.path.setAttribute('stroke', midColor);
-  } else {
-    sessionCacheBar.path.setAttribute('stroke', startColor);
-  }
+ //  if (100 * sessionCacheKeysRatio >= ALERT_LIMIT_PERCENT) {
+ //    sessionCacheBar.path.setAttribute('stroke', endColor);
+ //  } else if (100 * sessionCacheKeysRatio >= WARN_LIMIT_PERCENT) {
+ //    sessionCacheBar.path.setAttribute('stroke', midColor);
+ //  } else {
+ //    sessionCacheBar.path.setAttribute('stroke', startColor);
+ //  }
 
-  if (heartBeat.caches) {
- sessionCacheBarText.innerHTML = (heartBeat.caches.sessionCache.stats.keys) + ' SESSIONS | ' 
-  + heartBeat.caches.sessionCache.stats.keysMax + ' MAX | ' 
-  + moment(heartBeat.caches.sessionCache.stats.keysMaxTime).format(defaultDateTimeFormat);
-  }
+ //  if (heartBeat.caches) {
+ // sessionCacheBarText.innerHTML = (heartBeat.caches.sessionCache.stats.keys) + ' SESSIONS | ' 
+ //  + heartBeat.caches.sessionCache.stats.keysMax + ' MAX | ' 
+ //  + moment(heartBeat.caches.sessionCache.stats.keysMaxTime).format(defaultDateTimeFormat);
+ //  }
  
 
   // WORD CACHE ==========================
 
-  var wordCacheKeysRatio = 0;
+  // var wordCacheKeysRatio = 0;
 
-  if (heartBeat.caches) {
-    wordCacheKeysRatio = heartBeat.caches.wordCache.stats.keys / heartBeat.caches.wordCache.stats.keysMax;
-  }
+  // if (heartBeat.caches) {
+  //   wordCacheKeysRatio = heartBeat.caches.wordCache.stats.keys / heartBeat.caches.wordCache.stats.keysMax;
+  // }
 
-  wordCacheBar.animate(wordCacheKeysRatio);
+  // wordCacheBar.animate(wordCacheKeysRatio);
 
-  if (100 * wordCacheKeysRatio >= ALERT_LIMIT_PERCENT) {
-    wordCacheBar.path.setAttribute('stroke', endColor);
-  } else if (100 * wordCacheKeysRatio >= WARN_LIMIT_PERCENT) {
-    wordCacheBar.path.setAttribute('stroke', midColor);
-  } else {
-    wordCacheBar.path.setAttribute('stroke', startColor);
-  }
+  // if (100 * wordCacheKeysRatio >= ALERT_LIMIT_PERCENT) {
+  //   wordCacheBar.path.setAttribute('stroke', endColor);
+  // } else if (100 * wordCacheKeysRatio >= WARN_LIMIT_PERCENT) {
+  //   wordCacheBar.path.setAttribute('stroke', midColor);
+  // } else {
+  //   wordCacheBar.path.setAttribute('stroke', startColor);
+  // }
 
-  if (heartBeat.caches) {
-    wordCacheBarText.innerHTML = (heartBeat.caches.wordCache.stats.keys) + ' WORDS | ' 
-    + heartBeat.caches.wordCache.stats.keysMax + ' MAX | ' 
-    + moment(heartBeat.caches.wordCache.stats.keysMaxTime).format(defaultDateTimeFormat);
-  }
+  // if (heartBeat.caches) {
+  //   wordCacheBarText.innerHTML = (heartBeat.caches.wordCache.stats.keys) + ' WORDS | ' 
+  //   + heartBeat.caches.wordCache.stats.keysMax + ' MAX | ' 
+  //   + moment(heartBeat.caches.wordCache.stats.keysMaxTime).format(defaultDateTimeFormat);
+  // }
 
   // VIEWERS ==========================
 
@@ -1750,22 +1750,22 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
   }
 
 
-  // WORDS =========================
-  wordsPerMinBar.animate(heartBeat.wordsPerMinute / heartBeat.maxWordsPerMin);
+  // // WORDS =========================
+  // wordsPerMinBar.animate(heartBeat.wordsPerMinute / heartBeat.maxWordsPerMin);
 
-  if (heartBeat.wordsPerMinute >=  0.01*ALERT_LIMIT_PERCENT * heartBeat.maxWordsPerMin) {
-    wordsPerMinBar.path.setAttribute('stroke', endColor);
-  } 
-  else if (heartBeat.wordsPerMinute >= 0.01*WARN_LIMIT_PERCENT * heartBeat.maxWordsPerMin) {
-    wordsPerMinBar.path.setAttribute('stroke', midColor);
-  } 
-  else {
-    wordsPerMinBar.path.setAttribute('stroke', startColor);
-  }
+  // if (heartBeat.wordsPerMinute >=  0.01*ALERT_LIMIT_PERCENT * heartBeat.maxWordsPerMin) {
+  //   wordsPerMinBar.path.setAttribute('stroke', endColor);
+  // } 
+  // else if (heartBeat.wordsPerMinute >= 0.01*WARN_LIMIT_PERCENT * heartBeat.maxWordsPerMin) {
+  //   wordsPerMinBar.path.setAttribute('stroke', midColor);
+  // } 
+  // else {
+  //   wordsPerMinBar.path.setAttribute('stroke', startColor);
+  // }
 
-  wordsPerMinBarText.innerHTML = parseInt(heartBeat.wordsPerMinute) + ' WPM | ' 
-  + parseInt(heartBeat.maxWordsPerMin) + ' MAX' 
-  + ' | ' + moment(heartBeat.maxWordsPerMinTime).format(defaultDateTimeFormat);
+  // wordsPerMinBarText.innerHTML = parseInt(heartBeat.wordsPerMinute) + ' WPM | ' 
+  // + parseInt(heartBeat.maxWordsPerMin) + ' MAX' 
+  // + ' | ' + moment(heartBeat.maxWordsPerMinTime).format(defaultDateTimeFormat);
 
 
 
@@ -1833,31 +1833,31 @@ function updateServerHeartbeat(heartBeat, timeoutFlag, lastTimeoutHeartBeat) {
   tableCreateRow(heatbeatTable, false, ['APP START TIME', getTimeStamp(heartBeat.startTime)]);
   tableCreateRow(heatbeatTable, false, ['APP RUNTIME', msToTime(heartBeat.runTime)]);
 
-  if (heartBeat.wordCacheStats !== undefined) {
+  // if (heartBeat.wordCacheStats !== undefined) {
 
-    var hmr = (heartBeat.wordCacheStats.hits / (1 + heartBeat.wordCacheStats.misses));
+  //   var hmr = (heartBeat.wordCacheStats.hits / (1 + heartBeat.wordCacheStats.misses));
 
-    tableCreateRow(heatbeatTable, false, ['WORD CACHE',
-      'TTL: ' + heartBeat.wordCacheTtl + ' | K: ' + heartBeat.wordCacheStats.keys + ' | H: ' + heartBeat.wordCacheStats.hits + ' | M: ' + heartBeat.wordCacheStats.misses + ' | HMR: ' + hmr.toFixed(2)
-    ]);
+  //   tableCreateRow(heatbeatTable, false, ['WORD CACHE',
+  //     'TTL: ' + heartBeat.wordCacheTtl + ' | K: ' + heartBeat.wordCacheStats.keys + ' | H: ' + heartBeat.wordCacheStats.hits + ' | M: ' + heartBeat.wordCacheStats.misses + ' | HMR: ' + hmr.toFixed(2)
+  //   ]);
 
-  }
+  // }
 
-  tableCreateRow(heatbeatTable, false, ['TOTAL SESSIONS', heartBeat.db.totalSessions]);
+  // tableCreateRow(heatbeatTable, false, ['TOTAL SESSIONS', heartBeat.db.totalSessions]);
   tableCreateRow(heatbeatTable, false, ['TOTAL WORDS', heartBeat.db.totalWords]);
-  tableCreateRow(heatbeatTable, false, ['TOTAL WORD UPDATES', heartBeat.db.wordsUpdated]);
+  // tableCreateRow(heatbeatTable, false, ['TOTAL WORD UPDATES', heartBeat.db.wordsUpdated]);
 
-  tableCreateRow(heatbeatTable, false, ['QUEUES',
-    'RX: ' + heartBeat.queues.rxWordQueue 
-    + ' | S: ' + heartBeat.queues.sessionQueue
-    + ' | DBW: ' + heartBeat.queues.dbUpdateWordQueue
-    + ' | DBE: ' + heartBeat.queues.dbUpdateEntityQueue 
-    + ' | V: ' + heartBeat.queues.updateSessionViewQueue
-  ]);
+  // tableCreateRow(heatbeatTable, false, ['QUEUES',
+  //   'RX: ' + heartBeat.queues.rxWordQueue 
+  //   + ' | S: ' + heartBeat.queues.sessionQueue
+  //   + ' | DBW: ' + heartBeat.queues.dbUpdateWordQueue
+  //   + ' | DBE: ' + heartBeat.queues.dbUpdateEntityQueue 
+  //   + ' | V: ' + heartBeat.queues.updateSessionViewQueue
+  // ]);
 
   tableCreateRow(heatbeatTable, false, ['TOTAL ADMINS', heartBeat.db.totalAdmins]);
   tableCreateRow(heatbeatTable, false, ['TOTAL USERS', heartBeat.db.totalUsers]);
-  tableCreateRow(heatbeatTable, false, ['TOTAL ENTITIES', heartBeat.db.totalEntities]);
+  // tableCreateRow(heatbeatTable, false, ['TOTAL ENTITIES', heartBeat.db.totalEntities]);
   tableCreateRow(heatbeatTable, false, ['TOTAL VIEWERS', heartBeat.db.totalViewers]);
 
   serverHeartbeatElement = document.getElementById("server_admins");

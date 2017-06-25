@@ -142,53 +142,6 @@ const getTimeStamp = function(inputTime) {
   return currentTimeStamp.format(compactDateTimeFormat);
 };
 
-// const loadFile = function (path, file, callback) {
-
-//   const fullPath = path + "/" + file;
-
-//   debug(chalkInfo("LOAD FOLDER " + path));
-//   debug(chalkInfo("LOAD FILE " + file));
-//   debug(chalkInfo("FULL PATH " + fullPath));
-
-//   dropboxClient.filesDownload({path: fullPath})
-//     .then(function(data) {
-//       console.log(chalkLog(getTimeStamp()
-//         + " | LOADING FILE FROM DROPBOX: " + fullPath
-//       ));
-
-//       const payload = data.fileBinary;
-
-//       debug(payload);
-
-//       try {
-//         const fileObj = JSON.parse(payload);
-//         debug("fileObj\n" + jsonPrint(fileObj));
-//         callback(null, fileObj);
-//       } 
-//       catch (err) {
-//         console.error(chalkError("ERROR: LOAD FILE: DROPBOX JSON PARSE ERROR: FILE: " + fullPath + " | ERROR: " + err));
-//         console.error(chalkError("ERROR\n" + jsonPrint(err)));
-//         callback(err, fullPath);
-//       }
-
-//      })
-//     .catch(function(err) {
-//       console.error(chalkAlert("DROPBOX loadFile ERROR: " + file + "\n" + err));
-//       console.error(chalkError("!!! DROPBOX READ " + file + " ERROR: " + err.error));
-//       console.error(chalkError(jsonPrint(err)));
-
-//       if (err.status === 404) {
-//         console.error(chalkError("!!! DROPBOX READ FILE " + file + " NOT FOUND ... SKIPPING ..."));
-//         return(callback(null, null));
-//       }
-//       if (err.status === 0) {
-//         console.error(chalkError("!!! DROPBOX NO RESPONSE ... NO INTERNET CONNECTION? ... SKIPPING ..."));
-//         return(callback(null, null));
-//       }
-//       return(callback(err, null));
-//   });
-// };
-
 const sendKeywords = function(callback){
 
   debug(chalkInfo("sendKeywords START"));
@@ -493,6 +446,18 @@ const updateStatsCounts = function(callback) {
         }
         else {
           statsObj.db.totalUsers = count;
+          cb(null, count);
+        }
+      });
+    },
+    totalSessions: function (cb) {
+      Sessions.count({}, function(err, count) {
+        if (err) {
+          console.error(chalkError("DB SESSION COUNTER ERROR\n" + jsonPrint(err)));
+          cb(err, null);
+        }
+        else {
+          statsObj.db.totalSessions = count;
           cb(null, count);
         }
       });

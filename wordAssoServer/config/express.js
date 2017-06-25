@@ -31,15 +31,15 @@ module.exports = function() {
 	// app.use('/admin', express.static(path.join(__dirname, 'admin')));
 	// app.use('/admin/css', express.static(path.join(__dirname, 'admin/css')));
 
-	app.use(express.static('./'));
-	// app.use(express.static('./admin'));
-	// app.use(express.static('./admin/css'));
-	// app.use(express.static('./admin/js'));
-	app.use(express.static('./js'));
-	app.use(express.static('./css'));
-	app.use(express.static('./node_modules'));
-	// app.use(express.static('./assets'));
-	app.use(express.static('./public/assets/images'));
+	// app.use(express.static('./'));
+	// // app.use(express.static('./admin'));
+	// // app.use(express.static('./admin/css'));
+	// // app.use(express.static('./admin/js'));
+	// app.use(express.static('./js'));
+	// app.use(express.static('./css'));
+	// app.use(express.static('./node_modules'));
+	// // app.use(express.static('./assets'));
+	// app.use(express.static('./public/assets/images'));
 	// app.use('/node_modules', express.static(path.join(__dirname, 'node_modules')))
 
 	return app;

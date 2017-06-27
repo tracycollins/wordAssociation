@@ -1,6 +1,9 @@
 /*jslint node: true */
 "use strict";
 
+const MAX_Q = 1000;
+const OFFLINE_MODE = false;
+
 console.log("\n\n============== START ==============\n\n");
 
 console.log("PROCESS PID: " + process.pid);
@@ -30,10 +33,6 @@ let HEAPDUMP_MODULO = process.env.HEAPDUMP_MODULO || 10;
 const ONE_MINUTE = 60000;
 const compactDateTimeFormat = "YYYYMMDD HHmmss";
 const tinyDateTimeFormat = "YYYYMMDDHHmmss";
-
-const OFFLINE_MODE = false;
-
-const MAX_Q = 500;
 
 const MIN_METRIC_VALUE = 5.0;
 const MIN_MENTIONS_VALUE = 1000;

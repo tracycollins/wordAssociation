@@ -30,6 +30,8 @@ let HEAPDUMP_MODULO = process.env.HEAPDUMP_MODULO || 10;
 // ==================================================================
 // GLOBAL letIABLES
 // ==================================================================
+let statsObj = {};
+
 const ONE_MINUTE = 60000;
 const compactDateTimeFormat = "YYYYMMDD HHmmss";
 const tinyDateTimeFormat = "YYYYMMDDHHmmss";
@@ -255,7 +257,7 @@ hostname = hostname.replace(/.fios-router.home/g, "");
 hostname = hostname.replace(/word0-instance-1/g, "google");
 
 const chalk = require("chalk");
-const chalkAdmin = chalk.bold.black;
+// const chalkAdmin = chalk.bold.black;
 const chalkWarn = chalk.red;
 const chalkTwitter = chalk.blue;
 const chalkConnect = chalk.black;
@@ -431,7 +433,7 @@ let trendingCacheTtl = process.env.TRENDING_CACHE_DEFAULT_TTL;
 if (trendingCacheTtl === undefined) {trendingCacheTtl = TRENDING_CACHE_DEFAULT_TTL;}
 console.log("TRENDING CACHE TTL: " + trendingCacheTtl + " SECONDS");
 
-let trendingCache = new NodeCache({
+const trendingCache = new NodeCache({
   stdTTL: trendingCacheTtl,
   checkperiod: TRENDING_CACHE_CHECK_PERIOD
 });
@@ -444,7 +446,7 @@ let wordsPerMinuteTopTermCheckPeriod = process.env.TOPTERMS_CACHE_CHECK_PERIOD;
 if (wordsPerMinuteTopTermCheckPeriod === undefined) {wordsPerMinuteTopTermCheckPeriod = TOPTERMS_CACHE_CHECK_PERIOD;}
 console.log("TOP TERMS WPM CACHE CHECK PERIOD: " + wordsPerMinuteTopTermCheckPeriod + " SECONDS");
 
-let wordsPerMinuteTopTermCache = new NodeCache({
+const wordsPerMinuteTopTermCache = new NodeCache({
   stdTTL: wordsPerMinuteTopTermTtl,
   checkperiod: TOPTERMS_CACHE_CHECK_PERIOD
 });
@@ -506,129 +508,133 @@ const localHostHashMap = new HashMap();
 
 let tweetParser;
 
-let statsObj = {};
+function initStats(callback){
+  console.log(chalkAlert("INIT STATS"));
+  statsObj = {};
+  statsObj.memwatch = {};
+  statsObj.memwatch.snapshotTaken = false;
+  statsObj.memwatch.leak = {};
+  statsObj.memwatch.stats = {};
 
-statsObj.memwatch = {};
-statsObj.memwatch.snapshotTaken = false;
-statsObj.memwatch.leak = {};
-statsObj.memwatch.stats = {};
+  statsObj.errors = {};
+  statsObj.errors.google = {};
+  statsObj.errors.twitter = {};
+  statsObj.errors.twitter.maxRxQueue = 0;
 
-statsObj.errors = {};
-statsObj.errors.google = {};
-statsObj.errors.twitter = {};
-statsObj.errors.twitter.maxRxQueue = 0;
+  statsObj.wordMeterEntries = 0;
+  statsObj.wordMeterEntriesMax = 0;
+  statsObj.wordMeterEntriesMaxTime = moment().valueOf();
 
-statsObj.wordMeterEntries = 0;
-statsObj.wordMeterEntriesMax = 0;
-statsObj.wordMeterEntriesMaxTime = moment().valueOf();
+  statsObj.children = {};
 
-statsObj.children = {};
+  statsObj.twitter = {};
+  statsObj.twitter.tweetsReceived = 0;
 
-statsObj.twitter = {};
-statsObj.twitter.tweetsReceived = 0;
+  statsObj.hostname = hostname;
+  statsObj.name = "Word Association Server Status";
+  statsObj.startTime = moment().valueOf();
+  statsObj.timeStamp = moment().format(compactDateTimeFormat);
+  statsObj.upTime = os.uptime() * 1000;
+  statsObj.runTime = 0;
+  statsObj.runTimeArgs = process.argv;
 
-statsObj.hostname = hostname;
-statsObj.name = "Word Association Server Status";
-statsObj.startTime = moment().valueOf();
-statsObj.timeStamp = moment().format(compactDateTimeFormat);
-statsObj.upTime = os.uptime() * 1000;
-statsObj.runTime = 0;
-statsObj.runTimeArgs = process.argv;
+  statsObj.wordsPerMin = 0;
+  statsObj.maxWordsPerMin = 0;
+  statsObj.maxWordsPerMinTime = moment().valueOf();
 
-statsObj.wordsPerMin = 0;
-statsObj.maxWordsPerMin = 0;
-statsObj.maxWordsPerMinTime = moment().valueOf();
+  // statsObj.obamaPerMinute = 0.0;
+  // statsObj.trumpPerMinute = 0.0;
+  statsObj.wordsPerMin = 0.0;
+  statsObj.wordsPerSecond = 0.0;
+  statsObj.maxWordsPerMin = 0.0;
+  statsObj.maxTweetsPerMin = 0.0;
 
-// statsObj.obamaPerMinute = 0.0;
-// statsObj.trumpPerMinute = 0.0;
-statsObj.wordsPerMin = 0.0;
-statsObj.wordsPerSecond = 0.0;
-statsObj.maxWordsPerMin = 0.0;
-statsObj.maxTweetsPerMin = 0.0;
+  statsObj.caches = {};
+  statsObj.caches.nodeCache = {};
+  statsObj.caches.nodeCache.stats = {};
+  statsObj.caches.nodeCache.stats.keys = 0;
+  statsObj.caches.nodeCache.stats.keysMax = 0;
+  statsObj.caches.wordsPerMinuteTopTermCache = {};
+  statsObj.caches.wordsPerMinuteTopTermCache.stats = {};
+  statsObj.caches.wordsPerMinuteTopTermCache.stats.keys = 0;
+  statsObj.caches.wordsPerMinuteTopTermCache.stats.keysMax = 0;
 
-statsObj.caches = {};
-statsObj.caches.nodeCache = {};
-statsObj.caches.nodeCache.stats = {};
-statsObj.caches.nodeCache.stats.keys = 0;
-statsObj.caches.nodeCache.stats.keysMax = 0;
-statsObj.caches.wordsPerMinuteTopTermCache = {};
-statsObj.caches.wordsPerMinuteTopTermCache.stats = {};
-statsObj.caches.wordsPerMinuteTopTermCache.stats.keys = 0;
-statsObj.caches.wordsPerMinuteTopTermCache.stats.keysMax = 0;
+  statsObj.db = {};
+  statsObj.db.errors = 0;
+  statsObj.db.totalAdmins = 0;
+  statsObj.db.totalUsers = 0;
+  statsObj.db.totalViewers = 0;
+  statsObj.db.totalGroups = 0;
+  statsObj.db.totalSessions = 0;
+  statsObj.db.totalWords = 0;
+  statsObj.db.wordsUpdated = 0;
 
-statsObj.db = {};
-statsObj.db.errors = 0;
-statsObj.db.totalAdmins = 0;
-statsObj.db.totalUsers = 0;
-statsObj.db.totalViewers = 0;
-statsObj.db.totalGroups = 0;
-statsObj.db.totalSessions = 0;
-statsObj.db.totalWords = 0;
-statsObj.db.wordsUpdated = 0;
+  statsObj.entity = {};
 
-statsObj.entity = {};
+  statsObj.entity.admin = {};
+  statsObj.entity.admin.connected = 0;
+  statsObj.entity.admin.connectedMax = 0.1;
+  statsObj.entity.admin.connectedMaxTime = moment().valueOf();
 
-statsObj.entity.admin = {};
-statsObj.entity.admin.connected = 0;
-statsObj.entity.admin.connectedMax = 0.1;
-statsObj.entity.admin.connectedMaxTime = moment().valueOf();
+  statsObj.entity.user = {};
+  statsObj.entity.user.connected = 0;
+  statsObj.entity.user.connectedMax = 0.1;
+  statsObj.entity.user.connectedMaxTime = moment().valueOf();
 
-statsObj.entity.user = {};
-statsObj.entity.user.connected = 0;
-statsObj.entity.user.connectedMax = 0.1;
-statsObj.entity.user.connectedMaxTime = moment().valueOf();
+  statsObj.entity.util = {};
+  statsObj.entity.util.connected = 0;
+  statsObj.entity.util.connectedMax = 0.1;
+  statsObj.entity.util.connectedMaxTime = moment().valueOf();
 
-statsObj.entity.util = {};
-statsObj.entity.util.connected = 0;
-statsObj.entity.util.connectedMax = 0.1;
-statsObj.entity.util.connectedMaxTime = moment().valueOf();
+  statsObj.entity.viewer = {};
+  statsObj.entity.viewer.connected = 0;
+  statsObj.entity.viewer.connectedMax = 0.1;
+  statsObj.entity.viewer.connectedMaxTime = moment().valueOf();
 
-statsObj.entity.viewer = {};
-statsObj.entity.viewer.connected = 0;
-statsObj.entity.viewer.connectedMax = 0.1;
-statsObj.entity.viewer.connectedMaxTime = moment().valueOf();
+  console.log("process.memoryUsage()\n"+ jsonPrint(process.memoryUsage()));
+  statsObj.memory = {};
+  statsObj.memory.rss = process.memoryUsage().rss/(1024*1024);
+  statsObj.memory.maxRss = process.memoryUsage().heapUsed/(1024*1024);
+  statsObj.memory.maxRssTime = moment().valueOf();
+  statsObj.memory.heap = process.memoryUsage().heapUsed/(1024*1024);
+  statsObj.memory.maxHeap = process.memoryUsage().heapUsed/(1024*1024);
+  statsObj.memory.maxHeapTime = moment().valueOf();
+  statsObj.memory.memoryAvailable = os.freemem();
+  statsObj.memory.memoryTotal = os.totalmem();
+  statsObj.memory.memoryUsage = {};
+  statsObj.memory.memoryUsage = process.memoryUsage();
+  // statsObj.memory.memoryUsage.heapUsed = process.memoryUsage().heapUsed/(1024*1024);
+  // statsObj.memory.memoryUsage.heapTotal = process.memoryUsage().heapTotal/(1024*1024);
+  // statsObj.memory.memoryUsage.rss = process.memoryUsage().rss/(1024*1024);
 
-console.log("process.memoryUsage()\n"+ jsonPrint(process.memoryUsage()));
-statsObj.memory = {};
-statsObj.memory.rss = process.memoryUsage().rss/(1024*1024);
-statsObj.memory.maxRss = process.memoryUsage().heapUsed/(1024*1024);
-statsObj.memory.maxRssTime = moment().valueOf();
-statsObj.memory.heap = process.memoryUsage().heapUsed/(1024*1024);
-statsObj.memory.maxHeap = process.memoryUsage().heapUsed/(1024*1024);
-statsObj.memory.maxHeapTime = moment().valueOf();
-statsObj.memory.memoryAvailable = os.freemem();
-statsObj.memory.memoryTotal = os.totalmem();
-statsObj.memory.memoryUsage = {};
-statsObj.memory.memoryUsage = process.memoryUsage();
-// statsObj.memory.memoryUsage.heapUsed = process.memoryUsage().heapUsed/(1024*1024);
-// statsObj.memory.memoryUsage.heapTotal = process.memoryUsage().heapTotal/(1024*1024);
-// statsObj.memory.memoryUsage.rss = process.memoryUsage().rss/(1024*1024);
+  statsObj.queues = {};
+  statsObj.queues.metricsDataPointQueue = 0;
+  statsObj.queues.sorterMessageRxQueue = 0;
+  statsObj.queues.transmitNodeQueue = 0;
+  statsObj.queues.tweetParserMessageRxQueue = 0;
+  statsObj.queues.tweetParserQueue = 0;
+  statsObj.queues.tweetRxQueue = 0;
+  statsObj.queues.updaterMessageQueue = 0;
 
-statsObj.queues = {};
-statsObj.queues.metricsDataPointQueue = 0;
-statsObj.queues.sorterMessageRxQueue = 0;
-statsObj.queues.transmitNodeQueue = 0;
-statsObj.queues.tweetParserMessageRxQueue = 0;
-statsObj.queues.tweetParserQueue = 0;
-statsObj.queues.tweetRxQueue = 0;
-statsObj.queues.updaterMessageQueue = 0;
+  statsObj.session = {};
+  statsObj.session.errors = 0;
+  statsObj.session.numberSessions = 0;
+  statsObj.session.previousPromptNotFound = 0;
+  statsObj.session.totalCreated = 0;
+  statsObj.session.wordError = 0;
+  statsObj.session.wordErrorType = {};
 
-statsObj.session = {};
-statsObj.session.errors = 0;
-statsObj.session.numberSessions = 0;
-statsObj.session.previousPromptNotFound = 0;
-statsObj.session.totalCreated = 0;
-statsObj.session.wordError = 0;
-statsObj.session.wordErrorType = {};
+  statsObj.socket = {};
+  statsObj.socket.connects = 0;
+  statsObj.socket.disconnects = 0;
+  statsObj.socket.errors = 0;
+  statsObj.socket.reconnects = 0;
+  statsObj.socket.wordsReceived = 0;
 
-statsObj.socket = {};
-statsObj.socket.connects = 0;
-statsObj.socket.disconnects = 0;
-statsObj.socket.errors = 0;
-statsObj.socket.reconnects = 0;
-statsObj.socket.wordsReceived = 0;
+  statsObj.utilities = {};
 
-statsObj.utilities = {};
+  callback();
+}
 
 function quit(message) {
   debug("\n... QUITTING ...");
@@ -1201,9 +1207,9 @@ function initSocketNamespaces(callback){
     initSocketHandler({namespace: "view", socket: socket});
   });
 
-  io.on("connect", function(socket) {
-    let ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
-  });
+  // io.on("connect", function(socket) {
+  //   // let ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
+  // });
 
   ioReady = true;
 
@@ -1874,6 +1880,7 @@ function initAppRouting(callback) {
   debug(chalkInfo(moment().format(compactDateTimeFormat) + " | INIT APP ROUTING"));
 
   app.use(function (req, res, next) {
+    debug("res\n" + res);
     console.log(chalkAlert("R>"
       + " | " + moment().format(compactDateTimeFormat)
       + " | IP: " + req.ip
@@ -2196,13 +2203,13 @@ function initSorterMessageRxQueueInterval(interval){
 
   clearInterval(sorterMessageRxQueueInterval);
 
-  let sorterObj;
-  let sortedKeys;
-  let endIndex;
-  let index;
-  let i;
-  let node;
-  let nodeRate;
+  // let sorterObj;
+  // let sortedKeys;
+  // let endIndex;
+  // let index;
+  // let i;
+  // let node;
+  // let nodeRate;
 
   sorterMessageRxQueueInterval = setInterval(function() {
 
@@ -2210,8 +2217,14 @@ function initSorterMessageRxQueueInterval(interval){
 
       sorterMessageRxReady = false;
 
-      sorterObj = sorterMessageRxQueue.dequeue();
- 
+      const sorterObj = sorterMessageRxQueue.dequeue();
+      let sortedKeys;
+      let endIndex;
+      let index;
+      // let i;
+      let node;
+      let nodeRate;
+
       switch (sorterObj.op){
 
         case "SORTED":
@@ -2219,13 +2232,13 @@ function initSorterMessageRxQueueInterval(interval){
           debug(chalkLog("SORT ---------------------"));
 
 
-          for (i=0; i<sorterObj.sortedKeys.length; i += 1){
-            if (wordMeter[sorterObj.sortedKeys[i]] !== undefined) {
-              debug(chalkInfo(wordMeter[sorterObj.sortedKeys[i]].toJSON()[sorterObj.sortKey].toFixed(3)
-                + " | "  + sorterObj.sortedKeys[i] 
-              ));
-            }
-          }
+          // for (i=0; i<sorterObj.sortedKeys.length; i += 1){
+          //   if (wordMeter[sorterObj.sortedKeys[i]] !== undefined) {
+          //     debug(chalkInfo(wordMeter[sorterObj.sortedKeys[i]].toJSON()[sorterObj.sortKey].toFixed(3)
+          //       + " | "  + sorterObj.sortedKeys[i] 
+          //     ));
+          //   }
+          // }
 
           sortedKeys = sorterObj.sortedKeys;
           endIndex = Math.min(configuration.maxTopTerms, sortedKeys.length);
@@ -2264,49 +2277,6 @@ function initSorterMessageRxQueueInterval(interval){
 
 let updaterPingInterval;
 let updaterPingOutstanding = 0;
-
-function initUpdaterPingInterval(interval){
-
-  console.log(chalkLog("INIT UPDATER PING INTERVAL"
-    + " | " + interval + " MS"
-  ));
-
-  clearInterval(updaterPingInterval);
-
-  updaterPingInterval = setInterval(function() {
-
-    if (updaterPingOutstanding > 0) {
-      console.error(chalkError("PING OUTSTANDING | " + updaterPingOutstanding));
-      updaterPingOutstanding = 0;
-      initUpdater();
-    }
-
-    updaterPingOutstanding = moment().format(compactDateTimeFormat);
-
-    if (updater !== undefined){
-      updater.send({
-        op: "PING",
-        message: hostname + "_" + process.pid,
-        timeStamp: updaterPingOutstanding
-      }, function(err){
-        if (err) {
-          // pmx.emit("ERROR", "PING ERROR");
-          console.error(chalkError("*** UPDATER SEND ERROR"
-            + " | " + err
-          ));
-        }
-      });
-
-      debug(chalkLog(">UPDATER PING"
-      ));
-
-    }
-    else {
-      console.log(chalkError("!!! NO UPDATER PING ... UNDEFINED"
-      ));
-    }
-  }, interval);
-}
 
 function initUpdater(callback){
 
@@ -2379,13 +2349,54 @@ function initUpdater(callback){
     }
   });
 
-  initUpdaterPingInterval(60000);
-
   updater = u;
 
   if (callback !== undefined) { callback(null, u); }
 }
 
+
+function initUpdaterPingInterval(interval){
+
+  console.log(chalkLog("INIT UPDATER PING INTERVAL"
+    + " | " + interval + " MS"
+  ));
+
+  clearInterval(updaterPingInterval);
+
+  updaterPingInterval = setInterval(function() {
+
+    if (updaterPingOutstanding > 0) {
+      console.error(chalkError("PING OUTSTANDING | " + updaterPingOutstanding));
+      updaterPingOutstanding = 0;
+      initUpdater();
+    }
+
+    updaterPingOutstanding = moment().format(compactDateTimeFormat);
+
+    if (updater !== undefined){
+      updater.send({
+        op: "PING",
+        message: hostname + "_" + process.pid,
+        timeStamp: updaterPingOutstanding
+      }, function(err){
+        if (err) {
+          // pmx.emit("ERROR", "PING ERROR");
+          console.error(chalkError("*** UPDATER SEND ERROR"
+            + " | " + err
+          ));
+        }
+      });
+
+      debug(chalkLog(">UPDATER PING"
+      ));
+
+    }
+    else {
+      console.log(chalkError("!!! NO UPDATER PING ... UNDEFINED"
+      ));
+    }
+  }, interval);
+}
 
 let updaterMessageReady = true;
 let updaterMessageQueueInterval;
@@ -2657,7 +2668,7 @@ const cacheObj = {
   "trendingCache": trendingCache
 };
 
-const cacheObjKeys = Object.keys(statsObj.caches);
+let cacheObjKeys;
 
 function initRateQinterval(interval){
 
@@ -3117,18 +3128,21 @@ function sendDirectMessage(user, message, callback) {
         + "\nERROR\n"  + jsonPrint(error)
         + "\nRESPONSE\n"  + jsonPrint(response)
       ));
-      if (callback !== undefined) { callback(error, message)} ;
+      if (callback !== undefined) { callback(error, message); }
     }
     else{
       console.log(chalkTwitter(moment().format(compactDateTimeFormat) + " | SENT TWITTER DM TO " + user + ": " + response.text));
-      if (callback !== undefined) { callback(null, message)} ;
+      if (callback !== undefined) { callback(null, message); }
     }
 
   });
 }
 
-let snapshotTaken = false;
 let hd;
+
+initStats(function(){
+  cacheObjKeys = Object.keys(statsObj.caches);
+});
 
 initialize(configuration, function(err) {
   if (err) {
@@ -3152,6 +3166,7 @@ initialize(configuration, function(err) {
       }
       else {
         updater = udtr;
+        initUpdaterPingInterval(60000);
       }
     });
     
@@ -3196,7 +3211,7 @@ initialize(configuration, function(err) {
 //   "reason": "heap growth over 5 consecutive GCs (8m 18s) - 51.55 mb/hr"
 // }
 
-      var diff = hd.end();
+      const diff = hd.end();
 
       statsObj.memwatch.snapshotTaken = false;
       statsObj.memwatch.leak = info;
@@ -3236,15 +3251,20 @@ initialize(configuration, function(err) {
         statsObj.memwatch.snapshotTaken = true;
       }
       statsObj.memwatch.stats = stats;
+      statsObj.memwatch.stats.estimated_base = stats.estimated_base/(1024*1024);
+      statsObj.memwatch.stats.current_base = stats.current_base/(1024*1024);
+      statsObj.memwatch.stats.min = stats.min/(1024*1024);
+      statsObj.memwatch.stats.max = stats.max/(1024*1024);
+
       console.error(chalkInfo("MEM"
         + " | " + getTimeStamp()
         + " | FGCs: " + stats.num_full_gc
         + " | IGCs: " + stats.num_inc_gc
         + " | TREND: " + stats.usage_trend
-        + " | EBASE: " + (stats.estimated_base/(1024*1024)).toFixed(3) + " MB"
-        + " | CBASE: " + (stats.current_base/(1024*1024)).toFixed(3) + " MB"
-        + " | MIN: " + (stats.min/(1024*1024)).toFixed(3) + " MB"
-        + " | MAX: " + (stats.max/(1024*1024)).toFixed(3) + " MB"
+        + " | EBASE: " + statsObj.memwatch.stats.estimated_base.toFixed(3) + " MB"
+        + " | CBASE: " + statsObj.memwatch.stats.current_base.toFixed(3) + " MB"
+        + " | MIN: " + statsObj.memwatch.stats.min.toFixed(3) + " MB"
+        + " | MAX: " + statsObj.memwatch.stats.max.toFixed(3) + " MB"
         // + "\n" + jsonPrint(info)
        ));
       // console.log(chalkInfo("MEM STATS\n" + jsonPrint(stats)));

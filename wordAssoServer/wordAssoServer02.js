@@ -1564,28 +1564,24 @@ function transmitNodes(tw, callback){
   debug("TX NODES");
 
   tw.userMentions.forEach(function(user){
-    transmitNodeQueue.enqueue(user);
+    if (user) {transmitNodeQueue.enqueue(user);}
   });
 
   tw.hashtags.forEach(function(hashtag){
-    transmitNodeQueue.enqueue(hashtag);
+    if (hashtag) {transmitNodeQueue.enqueue(hashtag);}
   });
 
-  tw.media.forEach(function(media){
-    transmitNodeQueue.enqueue(media);
-  });
+  // tw.media.forEach(function(media){
+  //   if (media) {transmitNodeQueue.enqueue(media);}
+  // });
 
   tw.urls.forEach(function(url){
-    transmitNodeQueue.enqueue(url);
+    if (url) {transmitNodeQueue.enqueue(url);}
   });
 
-  transmitNodeQueue.enqueue(tw.user);
+  if (tw.place) {transmitNodeQueue.enqueue(tw.place);}
 
-  if (tw.place){
-    transmitNodeQueue.enqueue(tw.place);
-  }
-
-  transmitNodeQueue.enqueue(tw.user);
+  if (tw.user) {transmitNodeQueue.enqueue(tw.user);}
 
   callback();
 }

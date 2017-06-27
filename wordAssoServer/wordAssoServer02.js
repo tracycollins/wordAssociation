@@ -3216,6 +3216,7 @@ initialize(configuration, function(err) {
         + ".heapsnapshot";
 
       console.log(chalkError("***** HEAPDUMP MEMORY LEAK *****"
+        + " | " + getTimeStamp()
         + " | FILE: " +  heapdumpFileName
       ));
 
@@ -3234,6 +3235,7 @@ initialize(configuration, function(err) {
       }
       statsObj.memwatch.stats = stats;
       console.error(chalkInfo("MEM"
+        + " | " + getTimeStamp()
         + " | FGCs: " + stats.num_full_gc
         + " | IGCs: " + stats.num_inc_gc
         + " | TREND: " + stats.usage_trend

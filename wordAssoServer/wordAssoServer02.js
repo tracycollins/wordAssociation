@@ -3201,6 +3201,8 @@ initialize(configuration, function(err) {
       statsObj.memwatch.leak = info;
 
       console.error(chalkError("MEM LEAK"
+        + " | " + getTimeStamp()
+        + " | RSS" + info.growth
         + " | GROWTH: " + info.growth
         + " | " + info.reason
        ));

@@ -845,6 +845,7 @@ function showStats(options){
     + " | E: " + statsObj.elapsed
     + " | S: " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat)
     + " | N: " + moment().format(compactDateTimeFormat)
+    + " | TwRXQ: " + tweetRxQueue.size()
     + " | RSS: " + statsObj.memory.rss.toFixed(2) + " MB"
     + " - MAX: " + statsObj.memory.maxRss.toFixed(2)
     + " - " + moment(parseInt(statsObj.memory.maxRssTime)).format(compactDateTimeFormat)
@@ -1121,7 +1122,8 @@ function initSocketHandler(socketObj) {
 
       statsObj.errors.twitter.maxRxQueue += 1;
 
-      console.log(chalkError("*** TWEET RX MAX QUEUE [" + tweetRxQueue.size() + "] | T<"
+      console.log(chalkError("*** TWEET RX MAX QUEUE [" + tweetRxQueue.size() + "]"
+        + " | " + getTimeStamp()
         + " | " + tw.id_str
         + " | " + tw.user.screen_name
       ));

@@ -1541,14 +1541,21 @@ function initTransmitNodeQueueInterval(interval){
 
       let nodeObj = transmitNodeQueue.dequeue();
 
-      checkKeyword(nodeObj, function(node){
-        updateWordMeter(node, function(err, n){
-          if (!err) {
-            viewNameSpace.volatile.emit("node", n);
-          }
-          transmitNodeQueueReady = true;
+      if (!nodeObj) {
+        console.error(new Error("transmitNodeQueue: NULL NODE OBJ DE-Q"));
+        transmitNodeQueueReady = true;
+      }
+      else {
+        checkKeyword(nodeObj, function(node){
+          updateWordMeter(node, function(err, n){
+            if (!err) {
+              viewNameSpace.volatile.emit("node", n);
+            }
+            transmitNodeQueueReady = true;
+          });
         });
-      });
+      }
+
     }
   }, interval);
 }

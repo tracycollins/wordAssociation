@@ -1450,7 +1450,6 @@ function updateWordMeter(wordObj, callback){
     return;
   }
 
-
   let meterWordId;
 
   if (wordObj.isTwitterUser || (wordObj.nodeType === "user")) {
@@ -1481,6 +1480,7 @@ function updateWordMeter(wordObj, callback){
     debug(chalkLog("updateWordMeter IGNORE " + meterWordId));
 
     wordObj.isIgnored = true;
+    wordMeter[meterWordId] = null;
 
     // nodeCache.set(meterWordId, wordObj);
 
@@ -1489,9 +1489,9 @@ function updateWordMeter(wordObj, callback){
   else {
     if (/TSS_/.test(meterWordId) || wordObj.isServer){
       debug(chalkLog("updateWordMeter\n" + jsonPrint(wordObj)));
+      if (callback !== undefined) { callback(null, wordObj); }
     }
-
-    if (!wordMeter[meterWordId] 
+    else if (!wordMeter[meterWordId] 
       || (Object.keys(wordMeter[meterWordId]).length === 0)
       || (wordMeter[meterWordId] === undefined) ){
 
@@ -2458,6 +2458,7 @@ function initUpdaterMessageQueueInterval(interval){
         break;
 
         case "keywordRemove":
+          keywordHashMap.remove(updaterObj.keyword);
           keywordHashMap.remove(updaterObj.keyword.toLowerCase());
           console.log(chalkLog("KEYWORD REMOVE: " + updaterObj.keyword.toLowerCase()));
           updaterMessageReady = true;
@@ -2466,6 +2467,11 @@ function initUpdaterMessageQueueInterval(interval){
         case "keyword":
           debugKeyword(chalkLog("KEYWORD: " + jsonPrint(updaterObj)));
           debugKeyword(chalkLog("UPDATE KEYWORD\n" + jsonPrint(updaterObj.keyword)));
+
+          if (typeof updaterObj.keyword.keywordId !== "string") {
+            console.error("KEYWORD IS NOT A STRING: " + updaterObj.keyword.keywordId);
+            quit();
+          }
 
           keywordHashMap.set(updaterObj.keyword.keywordId.toLowerCase(), updaterObj.keyword);
           updaterMessageReady = true;

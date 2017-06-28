@@ -1481,7 +1481,7 @@ function updateWordMeter(wordObj, callback){
 
     wordObj.isIgnored = true;
     wordMeter[meterWordId] = null;
-    delete wordMeter[meterId];
+    delete wordMeter[meterWordId];
 
     if (callback !== undefined) { callback(null, wordObj); }
   }

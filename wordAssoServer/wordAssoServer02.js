@@ -458,7 +458,7 @@ function wordCacheExpired(word, wordRate) {
 wordsPerMinuteTopTermCache.on("expired", wordCacheExpired);
 
 
-let rateQinterval;
+let updateMetricsInterval;
 
 let defaultDropboxKeywordFile = "keywords.json";
 
@@ -673,7 +673,7 @@ function loadFile(folder, file, callback) {
   // let err = {};
 
   dropboxClient.filesListFolder({path: folder})
-    .then(function(response) {
+    .then(function dropboxFilesListFolder(response) {
 
         async.each(response.entries, function checkDropboxFile(folderFile, cb) {
 
@@ -692,7 +692,7 @@ function loadFile(folder, file, callback) {
 
 
             dropboxClient.filesDownload({path: folder + "/" + file})
-              .then(function(data) {
+              .then(function dropboxFilesDownload(data) {
                 debug(chalkLog(getTimeStamp()
                   + " | LOADING FILE FROM DROPBOX: " + folder + "/" + file
                   // + "\n" + jsonPrint(data)
@@ -719,7 +719,7 @@ function loadFile(folder, file, callback) {
                 }
 
                })
-              .catch(function(error) {
+              .catch(function dropboxFilesDownloadError(error) {
                 console.log(chalkError("DROPBOX loadFile ERROR: " + file + "\n" + error));
                 console.log(chalkError("!!! DROPBOX READ " + file + " ERROR"));
                 console.log(chalkError(jsonPrint(error)));
@@ -746,7 +746,7 @@ function loadFile(folder, file, callback) {
           }
         });
     })
-    .catch(function(error) {
+    .catch(function dropboxFileLoadError(error) {
       console.error("DROPBOX LOAD FILE ERROR\n" + jsonPrint(error));
       callback(error, null);
     });
@@ -808,13 +808,13 @@ function saveStats(statsFile, statsObj, callback) {
   options.autorename = false;
 
   dropboxClient.filesUpload(options)
-    .then(function(){
+    .then(function dropboxFilesUpload(){
       debug(chalkLog(moment().format(compactDateTimeFormat)
         + " | SAVED DROPBOX JSON | " + options.path
       ));
       callback("OK");
     })
-    .catch(function(err){
+    .catch(function dropboxFilesUploadError(err){
       console.log(chalkError(moment().format(compactDateTimeFormat) 
         + " | !!! ERROR DROBOX JSON WRITE | FILE: " + options.path 
         + " ERROR: " + err.error_summary
@@ -914,7 +914,7 @@ process.on("message", function processMessageRx(msg) {
       }
     });
 
-    setTimeout(function() {
+    setTimeout(function quitTimeout() {
       showStats(true);
       debug("**** Finished closing connections ****\n\n ***** RELOADING blm.js NOW *****\n\n");
       quit(msg);
@@ -1008,42 +1008,42 @@ function initSocketHandler(socketObj) {
 
   socket.emit("SERVER_READY", {connected: hostname});
 
-  socket.on("reconnect_error", function(errorObj) {
+  socket.on("reconnect_error", function reconnectError(errorObj) {
     statsObj.socket.reconnect_errors += 1;
     debug(chalkError(moment().format(compactDateTimeFormat) 
       + " | SOCKET RECONNECT ERROR: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
   });
 
-  socket.on("reconnect_failed", function(errorObj) {
+  socket.on("reconnect_failed", function reconnectFailed(errorObj) {
     statsObj.socket.reconnect_fails += 1;
     debug(chalkError(moment().format(compactDateTimeFormat) 
       + " | SOCKET RECONNECT FAILED: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
   });
 
-  socket.on("connect_error", function(errorObj) {
+  socket.on("connect_error", function connectError(errorObj) {
     statsObj.socket.connect_errors += 1;
     debug(chalkError(moment().format(compactDateTimeFormat) 
       + " | SOCKET CONNECT ERROR: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
   });
 
-  socket.on("connect_timeout", function(errorObj) {
+  socket.on("connect_timeout", function connectTimeout(errorObj) {
     statsObj.socket.connect_timeouts += 1;
     debug(chalkError(moment().format(compactDateTimeFormat) 
       + " | SOCKET CONNECT TIMEOUT: " + socket.id + "\nerrorObj\n" + jsonPrint(errorObj)));
   });
 
-  socket.on("error", function(error) {
+  socket.on("error", function socketError(error) {
     statsObj.socket.errors += 1;
     debug(chalkError(moment().format(compactDateTimeFormat) 
       + " | *** SOCKET ERROR" + " | " + socket.id + " | " + error));
   });
 
-  socket.on("reconnect", function() {
+  socket.on("reconnect", function socketReconnect() {
     statsObj.socket.reconnects += 1;
     debug(chalkConnect(moment().format(compactDateTimeFormat) + " | SOCKET RECONNECT: " + socket.id));
   });
 
-  socket.on("disconnect", function(status) {
+  socket.on("disconnect", function socketDisconnect(status) {
     statsObj.socket.disconnects += 1;
 
     debug(chalkDisconnect(moment().format(compactDateTimeFormat) 
@@ -1051,15 +1051,15 @@ function initSocketHandler(socketObj) {
     ));
   });
 
-  socket.on("ADMIN_READY", function(adminObj) {
-    debug(chalkSocket("ADMIN READY\n" + jsonPrint(adminObj)));
-  });
+  // socket.on("ADMIN_READY", function(adminObj) {
+  //   debug(chalkSocket("ADMIN READY\n" + jsonPrint(adminObj)));
+  // });
 
-  socket.on("VIEWER_READY", function(viewerObj) {
-    debug(chalkSocket("VIEWER READY\n" + jsonPrint(viewerObj)));
-  });
+  // socket.on("VIEWER_READY", function(viewerObj) {
+  //   debug(chalkSocket("VIEWER READY\n" + jsonPrint(viewerObj)));
+  // });
 
-  socket.on("SESSION_KEEPALIVE", function(userObj) {
+  socket.on("SESSION_KEEPALIVE", function sessionKeepalive(userObj) {
 
     if (statsObj.utilities[userObj.userId] === undefined) {
       statsObj.utilities[userObj.userId] = {};
@@ -1107,14 +1107,14 @@ function initSocketHandler(socketObj) {
     }
   });
 
-  socket.on("USER_READY", function(userObj, cb) {
+  socket.on("USER_READY", function userReady(userObj, cb) {
     debug(chalkSocket("USER READY"
       + " | " + userObj.userId
     ));
     if ((cb !== undefined) && (typeof cb === "function")) { cb(userObj.userId); }
   });
 
-  socket.on("tweet", function(tw) {
+  socket.on("tweet", function socketRxTweet(tw) {
     statsObj.twitter.tweetsReceived += 1;
     debug(chalkSocket("tweet" 
       + " [" + statsObj.twitter.tweetsReceived + "]"
@@ -1179,28 +1179,28 @@ function initSocketNamespaces(callback){
   userNameSpace = io.of("/user");
   viewNameSpace = io.of("/view");
 
-  adminNameSpace.on("connect", function(socket) {
+  adminNameSpace.on("connect", function adminConnect(socket) {
     socket.setMaxListeners(0);
     debug(chalkAlert("ADMIN CONNECT " + socket.id));
     statsObj.entity.admin.connected = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
     initSocketHandler({namespace: "admin", socket: socket});
   });
 
-  utilNameSpace.on("connect", function(socket) {
+  utilNameSpace.on("connect", function utilConnect(socket) {
     socket.setMaxListeners(0);
     debug(chalkAlert("UTIL CONNECT " + socket.id));
     statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
     initSocketHandler({namespace: "util", socket: socket});
   });
 
-  userNameSpace.on("connect", function(socket) {
+  userNameSpace.on("connect", function userConnect(socket) {
     socket.setMaxListeners(0);
     debug(chalkAlert("USER CONNECT " + socket.id));
     statsObj.entity.user.connected = Object.keys(userNameSpace.connected).length; // userNameSpace.sockets.length ;
     initSocketHandler({namespace: "user", socket: socket});
   });
 
-  viewNameSpace.on("connect", function(socket) {
+  viewNameSpace.on("connect", function viewConnect(socket) {
     socket.setMaxListeners(0);
     debug(chalkAlert("VIEWER CONNECT " + socket.id));
     statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; // userNameSpace.sockets.length ;
@@ -1292,7 +1292,7 @@ function checkKeyword(nodeObj, callback) {
 
         nodeObj.isTwitterUser = true;
 
-        wordsPerMinuteTopTermCache.get(nodeObj.screenName.toLowerCase(), function(err, screenName) {
+        wordsPerMinuteTopTermCache.get(nodeObj.screenName.toLowerCase(), function topTermScreenName(err, screenName) {
           if (err){
             console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
           }
@@ -1306,7 +1306,7 @@ function checkKeyword(nodeObj, callback) {
       else if (nodeObj.name) {
         nodeObj.isTwitterUser = true;
         nodeObj.screenName = nodeObj.name;
-        wordsPerMinuteTopTermCache.get(nodeObj.name.toLowerCase(), function(err, name) {
+        wordsPerMinuteTopTermCache.get(nodeObj.name.toLowerCase(), function topTermName(err, name) {
           if (err){
             console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
           }
@@ -1323,7 +1323,7 @@ function checkKeyword(nodeObj, callback) {
     break;
 
     case "hashtag":
-      wordsPerMinuteTopTermCache.get(nodeObj.nodeId.toLowerCase(), function(err, nodeId) {
+      wordsPerMinuteTopTermCache.get(nodeObj.nodeId.toLowerCase(), function topTermHashtag(err, nodeId) {
         if (err){
           console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
         }
@@ -1343,7 +1343,7 @@ function checkKeyword(nodeObj, callback) {
         + " | " + nodeObj.country
       ));
 
-      wordsPerMinuteTopTermCache.get(nodeObj.name.toLowerCase(), function(err, nodeId) {
+      wordsPerMinuteTopTermCache.get(nodeObj.name.toLowerCase(), function topTermPlace(err, nodeId) {
         if (err){
           console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
         }
@@ -1355,7 +1355,7 @@ function checkKeyword(nodeObj, callback) {
     break;
 
     case "word":
-      wordsPerMinuteTopTermCache.get(nodeObj.nodeId.toLowerCase(), function(err, nodeId) {
+      wordsPerMinuteTopTermCache.get(nodeObj.nodeId.toLowerCase(), function topTermWord(err, nodeId) {
         if (err){
           console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
         }
@@ -1373,7 +1373,7 @@ function checkKeyword(nodeObj, callback) {
 }
 
 function updateTrends(){
-  twit.get("trends/place", {id: 1}, function (err, data, response){
+  twit.get("trends/place", {id: 1}, function updateTrendsWorldWide (err, data, response){
 
     debug(chalkInfo("twit trends/place response\n" + jsonPrint(response)));
 
@@ -1386,8 +1386,8 @@ function updateTrends(){
       debug(chalkInfo("LOAD TWITTER TREND - WORLDWIDE"
         // + "\n" + jsonPrint(data)
       ));
-      data.forEach(function(element){
-        element.trends.forEach(function(topic){
+      data.forEach(function trendingCacheSetWorldWide(element){
+        element.trends.forEach(function trendElementWorldWide(topic){
           debug(chalkInfo(
             topic.name
           ));
@@ -1397,7 +1397,7 @@ function updateTrends(){
     }
   });
   
-  twit.get("trends/place", {id: 23424977}, function (err, data, response){
+  twit.get("trends/place", {id: 23424977}, function updateTrendsUs (err, data, response){
 
     debug(chalkInfo("twit trends/place response\n" + jsonPrint(response)));
 
@@ -1413,8 +1413,8 @@ function updateTrends(){
       debug(chalkInfo("LOAD TWITTER TREND - US"
         // + "\n" + jsonPrint(data)
       ));
-      data.forEach(function(element){
-        element.trends.forEach(function(topic){
+      data.forEach(function trendingCacheSetUs(element){
+        element.trends.forEach(function trendElementUs(topic){
           debug(chalkInfo(
             topic.name
           ));
@@ -1433,7 +1433,7 @@ function initUpdateTrendsInterval(interval){
 
   if (twit !== undefined) { updateTrends(); }
 
-  updateTrendsInterval = setInterval(function () {
+  updateTrendsInterval = setInterval(function updateTrendsIntervalCall () {
     if (twit !== undefined) { updateTrends(); }
   }, interval);
 }
@@ -1540,7 +1540,7 @@ function initTransmitNodeQueueInterval(interval){
 
   clearInterval(transmitNodeQueueInterval);
 
-  transmitNodeQueueInterval = setInterval(function () {
+  transmitNodeQueueInterval = setInterval(function txNodeQueue () {
 
     if (transmitNodeQueueReady && (!transmitNodeQueue.isEmpty())){
 
@@ -1553,8 +1553,8 @@ function initTransmitNodeQueueInterval(interval){
         transmitNodeQueueReady = true;
       }
       else {
-        checkKeyword(nodeObj, function(node){
-          updateWordMeter(node, function(err, n){
+        checkKeyword(nodeObj, function checkKeywordCallback(node){
+          updateWordMeter(node, function updateWordMeterCallback(err, n){
             if (!err) {
               viewNameSpace.volatile.emit("node", n);
             }
@@ -1570,11 +1570,11 @@ function initTransmitNodeQueueInterval(interval){
 function transmitNodes(tw, callback){
   debug("TX NODES");
 
-  tw.userMentions.forEach(function(user){
+  tw.userMentions.forEach(function userMentionsTxNodeQueue(user){
     if (user) {transmitNodeQueue.enqueue(user);}
   });
 
-  tw.hashtags.forEach(function(hashtag){
+  tw.hashtags.forEach(function hashtagsTxNodeQueue(hashtag){
     if (hashtag) {transmitNodeQueue.enqueue(hashtag);}
   });
 
@@ -1582,7 +1582,7 @@ function transmitNodes(tw, callback){
   //   if (media) {transmitNodeQueue.enqueue(media);}
   // });
 
-  tw.urls.forEach(function(url){
+  tw.urls.forEach(function urlsTxNodeQueue(url){
     if (url) {transmitNodeQueue.enqueue(url);}
   });
 
@@ -1611,7 +1611,7 @@ function initMetricsDataPointQueueInterval(interval){
   }
 
 
-  metricsDataPointQueueInterval = setInterval(function () {
+  metricsDataPointQueueInterval = setInterval(function metricsInterval() {
 
     initDeletedMetricsHashmap();
 
@@ -1625,12 +1625,12 @@ function initMetricsDataPointQueueInterval(interval){
 
       googleRequest.timeSeries.length = 0;
 
-      async.each(metricsDataPointQueue, function(dataPoint, cb){
+      async.each(metricsDataPointQueue, function metricsGoogleRequest(dataPoint, cb){
 
         googleRequest.timeSeries.push(dataPoint);
         cb();
 
-      }, function(err){
+      }, function metricsGoogleRequestError(err){
 
         if (err) {
           console.error(chalkError("ERROR INIT METRICS DATAPOINT QUEUE INTERVAL\n" + err ));
@@ -1639,14 +1639,14 @@ function initMetricsDataPointQueueInterval(interval){
         metricsDataPointQueue.clear();
 
         googleMonitoringClient.createTimeSeries(googleRequest)
-          .then(function(){
+          .then(function createTimeSeries(){
             debug(chalkInfo("METRICS"
               + " | DATA POINTS: " + googleRequest.timeSeries.length 
               // + " | " + options.value
             ));
             metricsDataPointQueueReady = true;
           })
-          .catch(function(err){
+          .catch(function createTimeSeriesError(err){
             if (statsObj.errors.google[err.code] === undefined) {
               statsObj.errors.google[err.code] = 0;
             }
@@ -1665,9 +1665,9 @@ function initMetricsDataPointQueueInterval(interval){
               // + "\nREQUEST\n" + jsonPrint(googleRequest)
               // + "\nMETA DATA\n" + jsonPrint(err.metadata)
             ));
-            googleRequest.timeSeries.forEach(function(dataPoint){
-              debug(chalkLog(dataPoint.metric.type + " | " + dataPoint.points[0].value.doubleValue));
-            });
+            // googleRequest.timeSeries.forEach(function(dataPoint){
+            //   debug(chalkLog(dataPoint.metric.type + " | " + dataPoint.points[0].value.doubleValue));
+            // });
             metricsDataPointQueueReady = true;
         });
 
@@ -1730,7 +1730,7 @@ function addMetricDataPoint(options, callback){
 
 function addTopTermMetricDataPoint(node, nodeRate){
 
-  nodeCache.get(node, function(err, nodeObj){
+  nodeCache.get(node, function nodeCacheGet(err, nodeObj){
     if (err) {
       console.error(chalkInfo("ERROR addTopTermMetricDataPoint " + err
         // + " | " + node
@@ -1784,41 +1784,41 @@ function logHeartbeat() {
   ));
 }
 
-configEvents.on("SERVER_READY", function() {
+configEvents.on("SERVER_READY", function serverReady() {
 
   // serverReady = true;
 
   debug(chalkInfo(moment().format(compactDateTimeFormat) + " | SERVER_READY EVENT"));
 
-  httpServer.on("reconnect", function() {
+  httpServer.on("reconnect", function serverReconnect() {
     internetReady = true;
     debug(chalkConnect(moment().format(compactDateTimeFormat) + " | PORT RECONNECT: " + config.port));
   });
 
-  httpServer.on("connect", function() {
+  httpServer.on("connect", function serverConnect() {
     statsObj.socket.connects += 1;
     internetReady = true;
     debug(chalkConnect(moment().format(compactDateTimeFormat) + " | PORT CONNECT: " + config.port));
 
-    httpServer.on("disconnect", function() {
+    httpServer.on("disconnect", function serverDisconnect() {
       internetReady = false;
       debug(chalkError("\n***** PORT DISCONNECTED | " + moment().format(compactDateTimeFormat) 
         + " | " + config.port));
     });
   });
 
-  httpServer.listen(config.port, function() {
+  httpServer.listen(config.port, function serverListen() {
     debug(chalkInfo(moment().format(compactDateTimeFormat) + " | LISTENING ON PORT " + config.port));
   });
 
-  httpServer.on("error", function(err) {
+  httpServer.on("error", function serverError(err) {
     statsObj.socket.errors += 1;
     internetReady = false;
     debug(chalkError("??? HTTP ERROR | " + moment().format(compactDateTimeFormat) + "\n" + err));
     if (err.code === "EADDRINUSE") {
       debug(chalkError("??? HTTP ADDRESS IN USE: " + config.port + " ... RETRYING..."));
-      setTimeout(function() {
-        httpServer.listen(config.port, function() {
+      setTimeout(function serverErrorTimeout() {
+        httpServer.listen(config.port, function serverErrorListen() {
           debug("LISTENING ON PORT " + config.port);
         });
       }, 5000);
@@ -1829,7 +1829,7 @@ configEvents.on("SERVER_READY", function() {
   memoryTotalMB = (statsObj.memory.memoryTotal/(1024*1024));
   memoryAvailablePercent = (statsObj.memory.memoryAvailable/statsObj.memory.memoryTotal);
 
-  setInterval(function() {
+  setInterval(function hearbeatInterval() {
 
     statsObj.runTime = moment().valueOf() - statsObj.startTime;
     statsObj.upTime = os.uptime() * 1000;
@@ -1879,7 +1879,7 @@ function initAppRouting(callback) {
 
   debug(chalkInfo(moment().format(compactDateTimeFormat) + " | INIT APP ROUTING"));
 
-  app.use(function (req, res, next) {
+  app.use(function requestLog(req, res, next) {
     debug("res\n" + res);
     console.log(chalkAlert("R>"
       + " | " + moment().format(compactDateTimeFormat)
@@ -1940,7 +1940,7 @@ function initAppRouting(callback) {
   // });
 
   const adminHtml = __dirname + "/admin/admin.html";
-  app.get("/admin", function(req, res) {
+  app.get("/admin", function requestAdmin(req, res) {
     debug(chalkInfo("get req\n" + req));
     console.log(chalkAlert("LOADING PAGE"
       + " | REQ: " + req.url
@@ -1948,7 +1948,7 @@ function initAppRouting(callback) {
       // + "\n" + jsonPrint(req.query)
       // + "\n" + util.inspect(req, {showHidden:false, depth:4})
     ));
-    res.sendFile(adminHtml, function (err) {
+    res.sendFile(adminHtml, function responseAdmin(err) {
       if (err) {
         console.error("GET /session ERROR:"
           + " | " + moment().format(compactDateTimeFormat)
@@ -1965,7 +1965,7 @@ function initAppRouting(callback) {
 
   const sessionHtml = __dirname + "/sessionModular.html";
 
-  app.get("/session", function(req, res, next) {
+  app.get("/session", function requestSession(req, res, next) {
     debug(chalkInfo("get next\n" + next));
     console.log(chalkAlert("LOADING PAGE"
       + " | REQ: " + req.url
@@ -1973,7 +1973,7 @@ function initAppRouting(callback) {
       // + "\n" + jsonPrint(req.query)
       // + "\n" + util.inspect(req, {showHidden:false, depth:4})
     ));
-    res.sendFile(sessionHtml, function (err) {
+    res.sendFile(sessionHtml, function responseSession(err) {
       if (err) {
         console.error("GET /session ERROR:"
           + " | " + moment().format(compactDateTimeFormat)
@@ -2037,11 +2037,11 @@ function initInternetCheckInterval(interval){
 
   clearInterval(internetCheckInterval);
 
-  internetCheckInterval = setInterval(function(){
+  internetCheckInterval = setInterval(function internetCheck(){
 
     testClient = net.createConnection(80, "www.google.com");
 
-    testClient.on("connect", function() {
+    testClient.on("connect", function testConnect() {
       internetReady = true;
       statsObj.socket.connects += 1;
       debug(chalkInfo(moment().format(compactDateTimeFormat) + " | CONNECTED TO GOOGLE: OK"));
@@ -2052,7 +2052,7 @@ function initInternetCheckInterval(interval){
       clearInterval(internetCheckInterval);
     });
 
-    testClient.on("error", function(err) {
+    testClient.on("error", function testError(err) {
       if (err) {
         debug(chalkError("testClient ERROR " + err));
       }
@@ -2067,7 +2067,7 @@ function initInternetCheckInterval(interval){
     });
   }, interval);
 
-  callbackInterval = setInterval(function(){
+  callbackInterval = setInterval(function checkInterval(){
     if (serverStatus || serverError) {
       debug(chalkLog("INIT INTERNET CHECK INTERVAL"
         + " | ERROR: "  + serverError
@@ -2086,7 +2086,7 @@ function initTwitterRxQueueInterval(interval){
 
   clearInterval(tweetRxQueueInterval);
 
-  tweetRxQueueInterval = setInterval(function () {
+  tweetRxQueueInterval = setInterval(function tweetRxQueueDequeue() {
 
     // if (tweetParserReady && !tweetRxQueue.isEmpty()) {
     if (!tweetRxQueue.isEmpty()) {
@@ -2104,7 +2104,7 @@ function initTwitterRxQueueInterval(interval){
         + " | " + tweet.user.name
       ));
 
-      tweetParser.send({ op: "tweet", tweetStatus: tweet }, function(err){
+      tweetParser.send({ op: "tweet", tweetStatus: tweet }, function sendTweetParser(err){
         if (err) {
           // pmx.emit("ERROR", "TWEET PARSER SEND ERROR");
           console.error(chalkError("*** TWEET PARSER SEND ERROR"
@@ -2133,7 +2133,7 @@ function initTweetParserMessageRxQueueInterval(interval){
   // let tweetParserMessage;
   // let tweetObj;
 
-  tweetParserMessageRxQueueInterval = setInterval(function () {
+  tweetParserMessageRxQueueInterval = setInterval(function tweetParserMessageRxQueueDequeue() {
 
     if (!tweetParserMessageRxQueue.isEmpty() && tweetParserMessageRxQueueReady) {
 
@@ -2171,7 +2171,7 @@ function initTweetParserMessageRxQueueInterval(interval){
           ));
 
           if (transmitNodeQueue.size() < MAX_Q) {
-            transmitNodes(tweetObj, function(err){
+            transmitNodes(tweetObj, function transmitNode(err){
               if (err) {
                 // pmx.emit("ERROR", "TRANSMIT NODES ERROR");
                 console.error(chalkError("TRANSMIT NODES ERROR\n" + err));
@@ -2211,7 +2211,7 @@ function initSorterMessageRxQueueInterval(interval){
   // let node;
   // let nodeRate;
 
-  sorterMessageRxQueueInterval = setInterval(function() {
+  sorterMessageRxQueueInterval = setInterval(function sorterMessageRxQueueDequeue() {
 
     if (sorterMessageRxReady && !sorterMessageRxQueue.isEmpty()) {
 
@@ -2294,7 +2294,7 @@ function initUpdater(callback){
 
   const u = cp.fork(`${__dirname}/js/libs/updater.js`);
 
-  u.on("error", function(err){
+  u.on("error", function updaterError(err){
     // pmx.emit("ERROR", "UPDATER ERROR");
     console.error(chalkError(moment().format(compactDateTimeFormat)
       + " | *** UPDATER ERROR ***"
@@ -2307,7 +2307,7 @@ function initUpdater(callback){
     
   });
 
-  u.on("exit", function(code){
+  u.on("exit", function updaterExit(code){
     console.error(chalkError(moment().format(compactDateTimeFormat)
       + " | *** UPDATER EXIT ***"
       + " | EXIT CODE: " + code
@@ -2319,7 +2319,7 @@ function initUpdater(callback){
 
   });
 
-  u.on("close", function(code){
+  u.on("close", function updaterClose(code){
     console.error(chalkError(moment().format(compactDateTimeFormat)
       + " | *** UPDATER CLOSE ***"
       + " | EXIT CODE: " + code
@@ -2328,7 +2328,7 @@ function initUpdater(callback){
     clearInterval(updaterPingInterval);
   });
 
-  u.on("message", function(m){
+  u.on("message", function updaterMessage(m){
     debug(chalkInfo("UPDATER RX\n" + jsonPrint(m)));
     // if (updaterMessageQueue.length < MAX_Q){
       updaterMessageQueue.enqueue(m);
@@ -2340,7 +2340,7 @@ function initUpdater(callback){
     folder: ".",
     keywordFile: defaultDropboxKeywordFile,
     interval: KEYWORDS_UPDATE_INTERVAL
-  }, function(err){
+  }, function updaterSendError(err){
     if (err) {
       // pmx.emit("ERROR", "UPDATER INIT SEND ERROR");
       console.error(chalkError("*** UPDATER SEND ERROR"
@@ -2363,7 +2363,7 @@ function initUpdaterPingInterval(interval){
 
   clearInterval(updaterPingInterval);
 
-  updaterPingInterval = setInterval(function() {
+  updaterPingInterval = setInterval(function updaterPing() {
 
     if (updaterPingOutstanding > 0) {
       console.error(chalkError("PING OUTSTANDING | " + updaterPingOutstanding));
@@ -2378,7 +2378,7 @@ function initUpdaterPingInterval(interval){
         op: "PING",
         message: hostname + "_" + process.pid,
         timeStamp: updaterPingOutstanding
-      }, function(err){
+      }, function updaterPingError(err){
         if (err) {
           // pmx.emit("ERROR", "PING ERROR");
           console.error(chalkError("*** UPDATER SEND ERROR"
@@ -2408,7 +2408,7 @@ function initUpdaterMessageQueueInterval(interval){
 
   let updaterObj;
 
-  updaterMessageQueueInterval = setInterval(function() {
+  updaterMessageQueueInterval = setInterval(function updaterMessageRx() {
 
     if (updaterMessageReady && !updaterMessageQueue.isEmpty()) {
 
@@ -2494,7 +2494,7 @@ function initSorter(callback){
 
   const s = cp.fork(`${__dirname}/js/libs/sorter.js`);
 
-  s.on("message", function(m){
+  s.on("message", function sorterMessageRx(m){
     debug(chalkLog("SORTER RX"
       + " | " + m.op
       // + "\n" + jsonPrint(m)
@@ -2507,7 +2507,7 @@ function initSorter(callback){
   s.send({
     op: "INIT",
     interval: 2*DEFAULT_INTERVAL
-  }, function(err){
+  }, function sorterMessageRxError(err){
     if (err) {
       // pmx.emit("ERROR", "SORTER SEND ERROR");
       console.error(chalkError("*** SORTER SEND ERROR"
@@ -2516,7 +2516,7 @@ function initSorter(callback){
     }
   });
 
-  s.on("error", function(err){
+  s.on("error", function sorterError(err){
     // pmx.emit("ERROR", "SORTER ERROR");
     console.error(chalkError(moment().format(compactDateTimeFormat)
       + " | *** SORTER ERROR ***"
@@ -2526,7 +2526,7 @@ function initSorter(callback){
     configEvents.emit("CHILD_ERROR", { name: "sorter" });
   });
 
-  s.on("exit", function(code){
+  s.on("exit", function sorterExit(code){
     console.error(chalkError(moment().format(compactDateTimeFormat)
       + " | *** SORTER EXIT ***"
       + " | PID: " + s.pid
@@ -2536,7 +2536,7 @@ function initSorter(callback){
     if (code > 0) { configEvents.emit("CHILD_ERROR", { name: "sorter" }); }
   });
 
-  s.on("close", function(code){
+  s.on("close", function sorterClose(code){
     console.error(chalkError(moment().format(compactDateTimeFormat)
       + " | *** SORTER CLOSE ***"
       + " | PID: " + s.pid
@@ -2563,7 +2563,7 @@ function initTweetParser(callback){
 
   const twp = cp.fork(`${__dirname}/js/libs/tweetParser.js`);
 
-  twp.on("message", function(m){
+  twp.on("message", function tweetParserMessageRx(m){
     debug(chalkLog("TWEET PARSER RX MESSAGE"
       + " | OP: " + m.op
       // + "\n" + jsonPrint(m)
@@ -2576,7 +2576,7 @@ function initTweetParser(callback){
   twp.send({
     op: "INIT",
     interval: TWEET_PARSER_INTERVAL
-  }, function(err){
+  }, function tweetParserMessageRxError(err){
     if (err) {
       // pmx.emit("ERROR", "TWEET PARSER INIT SEND ERROR");
       console.error(chalkError("*** TWEET PARSER SEND ERROR"
@@ -2585,7 +2585,7 @@ function initTweetParser(callback){
     }
   });
 
-  twp.on("error", function(err){
+  twp.on("error", function tweetParserError(err){
     // pmx.emit("ERROR", "TWEET PARSER ERROR");
     console.error(chalkError(moment().format(compactDateTimeFormat)
       + " | *** TWEET PARSER ERROR ***"
@@ -2593,14 +2593,14 @@ function initTweetParser(callback){
     ));
   });
 
-  twp.on("exit", function(code){
+  twp.on("exit", function tweetParserExit(code){
     console.error(chalkError(moment().format(compactDateTimeFormat)
       + " | *** TWEET PARSER EXIT ***"
       + " | EXIT CODE: " + code
     ));
   });
 
-  twp.on("close", function(code){
+  twp.on("close", function tweetParserClose(code){
     console.error(chalkError(moment().format(compactDateTimeFormat)
       + " | *** TWEET PARSER CLOSE ***"
       + " | EXIT CODE: " + code
@@ -2620,13 +2620,13 @@ function getCustomMetrics(){
 
   googleMonitoringClient.listMetricDescriptors(googleRequest)
 
-    .then(function(results){
+    .then(function listMetricDescriptors(results){
 
       const descriptors = results[0];
 
       console.log(chalkLog("TOTAL METRICS: " + descriptors.length ));
 
-      async.each(descriptors, function(descriptor, cb) {
+      async.each(descriptors, function metricsHashmapSet(descriptor, cb) {
         if (descriptor.name.includes("custom.googleapis.com")) {
 
           let nameArray = descriptor.name.split("/");
@@ -2640,7 +2640,7 @@ function getCustomMetrics(){
           metricsHashmap.set(descriptorName, descriptor.name);
         }
         cb();
-      }, function() {
+      }, function metricsHashmapSetComplete() {
         console.log(chalkLog("METRICS: "
           + " | TOTAL: " + descriptors.length
           + " | CUSTOM: " + metricsHashmap.count()
@@ -2648,7 +2648,7 @@ function getCustomMetrics(){
         // callback(null, null);
       });
     })
-    .catch(function(err){
+    .catch(function metricsHashmapSetError(err){
       if (err.code !== 8) {
         // pmx.emit("ERROR", "GOOGLE METRICS ERROR");
         console.log(chalkError("*** ERROR GOOGLE METRICS"
@@ -2687,7 +2687,7 @@ function initRateQinterval(interval){
   if (GOOGLE_METRICS_ENABLED) { console.log(chalkAlert("*** GOOGLE METRICS ENABLED ***")); }
   
 
-  clearInterval(rateQinterval);
+  clearInterval(updateMetricsInterval);
 
   // statsObj.obamaPerMinute = 0.0;
   // statsObj.trumpPerMinute = 0.0;
@@ -2706,7 +2706,7 @@ function initRateQinterval(interval){
   // statsObj.memory.memoryUsage.heapUsed = process.memoryUsage().heap_used/(1024*1024);
   // statsObj.memory.memoryUsage.heapTotal = process.memoryUsage().heap_total/(1024*1024);
 
-  cacheObjKeys.forEach(function(cacheName){
+  cacheObjKeys.forEach(function statsCachesUpdate(cacheName){
     statsObj.caches[cacheName].stats.keys = cacheObj[cacheName].getStats().keys;
     if (statsObj.caches[cacheName].stats.keys > statsObj.caches[cacheName].stats.keysMax) {
       statsObj.caches[cacheName].stats.keysMax = statsObj.caches[cacheName].stats.keys;
@@ -2827,7 +2827,7 @@ function initRateQinterval(interval){
 
   let updateTimeSeriesCount = 0;
 
-  rateQinterval = setInterval(function () {
+  updateMetricsInterval = setInterval(function updateMetrics () {
 
     statsObj.queues.transmitNodeQueue = transmitNodeQueue.size();
     statsObj.queues.tweetRxQueue = tweetRxQueue.size();
@@ -2844,7 +2844,7 @@ function initRateQinterval(interval){
       paramsSorter.max = configuration.maxTopTerms;
       paramsSorter.obj = {};
 
-      async.each(Object.keys(wordMeter), function(meterId, cb){
+      async.each(Object.keys(wordMeter), function sorterParams(meterId, cb){
 
         paramsSorter.obj[meterId] = pick(wordMeter[meterId].toJSON(), paramsSorter.sortKey);
 
@@ -2859,7 +2859,7 @@ function initRateQinterval(interval){
         }
 
         if (sorter !== undefined) {
-          sorter.send(paramsSorter, function(err){
+          sorter.send(paramsSorter, function sendSorterError(err){
             if (err) {
               console.error(chalkError("SORTER SEND ERROR"
                 + " | " + err
@@ -2876,7 +2876,7 @@ function initRateQinterval(interval){
 
         let queueDataPoint = {};
 
-        queueNames.forEach(function(queueName){
+        queueNames.forEach(function metricsQueues(queueName){
           queueDataPoint.metricType = "word/queues/" + queueName;
           queueDataPoint.value = statsObj.queues[queueName];
           queueDataPoint.metricLabels = {server_id: "QUEUE"};
@@ -2943,7 +2943,7 @@ function initialize(cnf, callback) {
   debug(chalkInfo(moment().format(compactDateTimeFormat) + " | INITIALIZE"));
 
   let configArgs = Object.keys(cnf);
-  configArgs.forEach(function(arg){
+  configArgs.forEach(function finalConfigs(arg){
     debug("FINAL CONFIG | " + arg + ": " + cnf[arg]);
   });
 
@@ -2951,7 +2951,7 @@ function initialize(cnf, callback) {
     debug(chalkAlert("===== QUIT ON ERROR SET ====="));
   }
 
-  loadYamlConfig(twitterYamlConfigFile, function(err, twitterConfig){
+  loadYamlConfig(twitterYamlConfigFile, function initTwit(err, twitterConfig){
     if (err) {
       console.log(chalkError("*** LOADED TWITTER YAML CONFIG ERROR: FILE:  " + twitterYamlConfigFile));
       console.log(chalkError("*** LOADED TWITTER YAML CONFIG ERROR: ERROR: " + err));
@@ -2973,15 +2973,15 @@ function initialize(cnf, callback) {
   initTweetParser();
   initInternetCheckInterval(10000);
 
-  initAppRouting(function() {
-    initDeletedMetricsHashmap(function(){
+  initAppRouting(function initAppRoutingComplete() {
+    initDeletedMetricsHashmap(function initDeletedMetricsHashmapComplete(){
       initSocketNamespaces();
       callback();
     });
   });
 }
 
-configEvents.on("CHILD_ERROR", function(childObj){
+configEvents.on("CHILD_ERROR", function childError(childObj){
 
   console.error(chalkError("CHILD_ERROR"
     + " | " + childObj.name
@@ -3014,10 +3014,10 @@ configEvents.on("CHILD_ERROR", function(childObj){
 });
 
 function initIgnoreWordsHashMap(callback) {
-  async.each(ignoreWordsArray, function(ignoreWord, cb) {
+  async.each(ignoreWordsArray, function ignoreWordHashMapSet(ignoreWord, cb) {
     ignoreWordHashMap.set(ignoreWord, true);
     cb();
-  }, function(err) {
+  }, function ignoreWordHashMapError(err) {
     if (callback) { callback(err); }
   });
 }
@@ -3036,7 +3036,7 @@ function initStatsInterval(interval){
 
   clearInterval(statsInterval);
 
-  statsInterval = setInterval(function() {
+  statsInterval = setInterval(function updateStats() {
 
     statsObj.serverTime = moment().valueOf();
     statsObj.timeStamp = moment().format(compactDateTimeFormat);
@@ -3085,7 +3085,7 @@ function initStatsInterval(interval){
     statsObj.entity.user.connected = Object.keys(userNameSpace.connected).length; // userNameSpace.sockets.length ;
     statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; // userNameSpace.sockets.length ;
 
-    saveStats(statsFile, statsObj, function(status){
+    saveStats(statsFile, statsObj, function saveStatsComplete(status){
       debug(chalkLog("SAVE STATS " + status));
     });
 
@@ -3120,7 +3120,7 @@ function initStatsInterval(interval){
 
 function sendDirectMessage(user, message, callback) {
   
-  twit.post("direct_messages/new", {screen_name: user, text:message}, function(error, response){
+  twit.post("direct_messages/new", {screen_name: user, text:message}, function twitPostComplete(error, response){
 
     if(error) {
       console.log(chalkError("!!!!! TWITTER SEND DIRECT MESSAGE ERROR: " 
@@ -3140,11 +3140,11 @@ function sendDirectMessage(user, message, callback) {
 
 let hd;
 
-initStats(function(){
+initStats(function setCacheObjKeys(){
   cacheObjKeys = Object.keys(statsObj.caches);
 });
 
-initialize(configuration, function(err) {
+initialize(configuration, function initializeComplete(err) {
   if (err) {
     console.log(chalkError("*** INITIALIZE ERROR ***\n" + jsonPrint(err)));
     console.error(chalkError("*** INITIALIZE ERROR ***\n" + jsonPrint(err)));
@@ -3154,7 +3154,7 @@ initialize(configuration, function(err) {
     initUpdaterMessageQueueInterval(DEFAULT_INTERVAL);
     initSorterMessageRxQueueInterval(2*DEFAULT_INTERVAL);
 
-    initUpdater(function(err, udtr){
+    initUpdater(function initUpdaterComplete(err, udtr){
       if (err) {
         console.error(chalkError("INIT UPDATER ERROR: " + err));
         if (udtr !== undefined) { 
@@ -3170,7 +3170,7 @@ initialize(configuration, function(err) {
       }
     });
     
-    initSorter(function(err, srtr){
+    initSorter(function initSorterComplete(err, srtr){
       if (err) {
         console.error(chalkError("INIT UPDATER ERROR: " + err));
         if (srtr !== undefined) { 
@@ -3203,7 +3203,7 @@ initialize(configuration, function(err) {
     statsObj.configuration = configuration;
 
 
-    memwatch.on("leak", function(info) {
+    memwatch.on("leak", function memwatchLeak(info) {
 
 // MEM LEAK?
 // {
@@ -3245,7 +3245,7 @@ initialize(configuration, function(err) {
 
     });
 
-    memwatch.on("stats", function(stats) {
+    memwatch.on("stats", function memwatchStats(stats) {
       if(statsObj.memwatch.snapshotTaken ===false) {
         hd = new memwatch.HeapDiff();
         statsObj.memwatch.snapshotTaken = true;

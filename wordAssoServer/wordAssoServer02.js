@@ -1481,6 +1481,7 @@ function updateWordMeter(wordObj, callback){
 
     wordObj.isIgnored = true;
     wordMeter[meterWordId] = null;
+    delete wordMeter[meterId];
 
     if (callback !== undefined) { callback(null, wordObj); }
   }
@@ -2851,7 +2852,7 @@ function initRateQinterval(interval){
       async.each(Object.keys(wordMeter), function sorterParams(meterId, cb){
 
         if (!wordMeter[meterId]) {
-          console.error(chalkError("NULL wordMeter[meterId]: " + meterId));
+          console.error(chalkError("*** ERROR NULL wordMeter[meterId]: " + meterId));
         }
 
         paramsSorter.obj[meterId] = pick(wordMeter[meterId].toJSON(), paramsSorter.sortKey);
@@ -3024,6 +3025,7 @@ configEvents.on("CHILD_ERROR", function childError(childObj){
 function initIgnoreWordsHashMap(callback) {
   async.each(ignoreWordsArray, function ignoreWordHashMapSet(ignoreWord, cb) {
     ignoreWordHashMap.set(ignoreWord, true);
+    ignoreWordHashMap.set(ignoreWord.toLowerCase(), true);
     cb();
   }, function ignoreWordHashMapError(err) {
     if (callback) { callback(err); }

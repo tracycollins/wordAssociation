@@ -1482,8 +1482,6 @@ function updateWordMeter(wordObj, callback){
     wordObj.isIgnored = true;
     wordMeter[meterWordId] = null;
 
-    // nodeCache.set(meterWordId, wordObj);
-
     if (callback !== undefined) { callback(null, wordObj); }
   }
   else {
@@ -1737,8 +1735,8 @@ function addTopTermMetricDataPoint(node, nodeRate){
       ));
     }
     else if (nodeObj === undefined) {
-      debug(chalkInfo("?? SORTED NODE NOT IN WORD $"
-        // + " | " + node
+      console.error(chalkError("?? SORTED NODE NOT IN WORD $"
+        + " | " + node
       ));
     }
     else if (parseInt(nodeObj.mentions) > MIN_MENTIONS_VALUE) {
@@ -1749,12 +1747,12 @@ function addTopTermMetricDataPoint(node, nodeRate){
         + " | RATE: " + nodeRate.toFixed(2)
       ));
 
-      let topTermDataPoint = {};
-
-      topTermDataPoint.displayName = node;
-      topTermDataPoint.metricType = "word/top10/" + node;
-      topTermDataPoint.value = parseFloat(nodeRate);
-      topTermDataPoint.metricLabels = {server_id: "WORD"};
+      const topTermDataPoint = {
+        displayName: node,
+        metricTyp: "word/top10/" + node,
+        value: parseFloat(nodeRate),
+        metricLabels: {server_id: "WORD"}
+      };
 
       addMetricDataPoint(topTermDataPoint);
     }
@@ -2851,6 +2849,10 @@ function initRateQinterval(interval){
       paramsSorter.obj = {};
 
       async.each(Object.keys(wordMeter), function sorterParams(meterId, cb){
+
+        if (!wordMeter[meterId]) {
+          console.error(chalkError("NULL wordMeter[meterId]: " + meterId));
+        }
 
         paramsSorter.obj[meterId] = pick(wordMeter[meterId].toJSON(), paramsSorter.sortKey);
 

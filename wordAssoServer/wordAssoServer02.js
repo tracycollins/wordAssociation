@@ -269,14 +269,15 @@ const chalkAlert = chalk.red;
 const chalkError = chalk.bold.red;
 const chalkLog = chalk.gray;
 
+let languageServer = {};
+
 let tmsServers = {};
 let tssServers = {};
 
-let languageServer = {};
-let tssServer = {};
-tssServer.connected = false;
-tssServer.user = {};
-tssServer.socket = {};
+let currentTssServer = {};
+currentTssServer.connected = false;
+currentTssServer.user = {};
+currentTssServer.socket = {};
 
 let tmsServer = {};
 tmsServer.connected = false;
@@ -1041,8 +1042,23 @@ function initSocketHandler(socketObj) {
       + " | SOCKET DISCONNECT: " + socket.id + "\nstatus\n" + jsonPrint(status)
     ));
 
-    if (tmsServers[socket.id] !== undefined) { delete tmsServers[socket.id]; }
-    if (tssServers[socket.id] !== undefined) { delete tssServers[socket.id]; }
+    if (tmsServers[socket.id] !== undefined) { 
+      console.error(chalkSession("XXX DELETED TMS SERVER" 
+        + " | " + moment().format(compactDateTimeFormat)
+        + " | " + tmsServers[socket.id].user.userId
+        + " | " + socket.id
+      ));
+      delete tmsServers[socket.id];
+    }
+    if (tssServers[socket.id] !== undefined) { 
+      console.error(chalkSession("XXX DELETED TSS SERVER" 
+        + " | " + moment().format(compactDateTimeFormat)
+        + " | " + tssServers[socket.id].user.userId
+        + " | " + socket.id
+      ));
+      delete tssServers[socket.id];
+      currentTssServer.connected = false;
+    }
 
   });
 
@@ -1111,10 +1127,10 @@ function initSocketHandler(socketObj) {
           + " | " + socket.id
         ));
       }
-      
+
       tssServers[socket.id].connected = true;
       tssServers[socket.id].user = userObj;
-
+      currentTssServer = tssServers[socket.id];
     }
   });
 
@@ -2866,11 +2882,11 @@ function initRateQinterval(interval){
         // dataPointNodeCache.value = statsObj.caches.nodeCache.stats.keys;
         // addMetricDataPoint(dataPointNodeCache);
 
-        if (tssServer.connected) {
-          dataPointTssTpm.value = statsObj.utilities[tssServer.user.userId].tweetsPerMinute;
+        if (currentTssServer.connected) {
+          dataPointTssTpm.value = statsObj.utilities[currentTssServer.user.userId].tweetsPerMinute;
           addMetricDataPoint(dataPointTssTpm);
 
-          dataPointTssTpm2.value = statsObj.utilities[tssServer.user.userId].twitterLimit;
+          dataPointTssTpm2.value = statsObj.utilities[currentTssServer.user.userId].twitterLimit;
           addMetricDataPoint(dataPointTssTpm2);
         }
 

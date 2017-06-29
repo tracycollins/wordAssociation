@@ -1085,30 +1085,35 @@ function initSocketHandler(socketObj) {
     if (userObj.userId.match(/TMS_/g)){
       userObj.isServer = true;
 
-      if (tmsServers[socket.id] === undefined) { tmsServers[socket.id] = {}; }
+      if (tmsServers[socket.id] === undefined) { 
+        tmsServers[socket.id] = {};
+        console.error(chalkSession("+++ ADDED TMS SERVER" 
+          + " | " + moment().format(compactDateTimeFormat)
+          + " | " + userObj.userId
+          + " | " + socket.id
+        ));
+      }
+
       tmsServers[socket.id].connected = true;
       tmsServers[socket.id].user = userObj;
 
-      console.error(chalkSession("+++ ADDED TMS SERVER" 
-        + " | " + moment().format(compactDateTimeFormat)
-        + " | " + userObj.userId
-        + " | " + socket.id
-      ));
 
     }
  
     if (userObj.userId.match(/TSS_/g)){
       userObj.isServer = true;
 
-      if (tssServers[socket.id] === undefined) { tssServers[socket.id] = {}; }
+      if (tssServers[socket.id] === undefined) {
+        tssServers[socket.id] = {};
+        console.error(chalkSession("+++ ADDED TSS SERVER" 
+          + " | " + moment().format(compactDateTimeFormat)
+          + " | " + userObj.userId
+          + " | " + socket.id
+        ));
+      }
+      
       tssServers[socket.id].connected = true;
       tssServers[socket.id].user = userObj;
-
-      console.error(chalkSession("+++ ADDED TSS SERVER" 
-        + " | " + moment().format(compactDateTimeFormat)
-        + " | " + userObj.userId
-        + " | " + socket.id
-      ));
 
     }
   });

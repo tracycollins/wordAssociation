@@ -844,6 +844,7 @@ function showStats(options){
     + " | US: " + statsObj.entity.user.connected
     + " | VW: " + statsObj.entity.viewer.connected
     + " | TwRXQ: " + tweetRxQueue.size()
+    + " | TwPRQ: " + tweetParserQueue.size()
     + " | RSS: " + statsObj.memory.rss.toFixed(2) + " MB"
     + " - MAX: " + statsObj.memory.maxRss.toFixed(2)
     + " - " + moment(parseInt(statsObj.memory.maxRssTime)).format(compactDateTimeFormat)

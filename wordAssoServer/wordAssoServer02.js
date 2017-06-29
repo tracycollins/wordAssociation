@@ -1156,11 +1156,13 @@ function initSocketHandler(socketObj) {
 
       statsObj.errors.twitter.maxRxQueue += 1;
 
-      console.log(chalkError("*** TWEET RX MAX QUEUE [" + tweetRxQueue.size() + "]"
-        + " | " + getTimeStamp()
-        + " | " + tw.id_str
-        + " | " + tw.user.screen_name
-      ));
+      if (statsObj.errors.twitter.maxRxQueue % 10 === 0) {
+        console.log(chalkError("*** TWEET RX MAX QUEUE [" + tweetRxQueue.size() + "]"
+          + " | " + getTimeStamp()
+          + " | " + tw.id_str
+          + " | " + tw.user.screen_name
+        ));
+      }
     }
     else if (tw.user) {
 

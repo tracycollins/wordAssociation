@@ -830,34 +830,25 @@ function showStats(options){
   statsObj.elapsed = msToTime(moment().valueOf() - statsObj.startTime);
   statsObj.timeStamp = moment().format(compactDateTimeFormat);
 
-  // statsObj.memory.heap = process.memoryUsage().heapUsed/(1024*1024);
-
-  // if (statsObj.memory.heap > statsObj.memory.maxHeap) {
-  //   statsObj.memory.maxHeap = statsObj.memory.heap;
-  //   statsObj.memory.maxHeapTime = moment().valueOf();
-  //   debug(chalkLog("NEW MAX HEAP"
-  //     + " | " + moment().format(compactDateTimeFormat)
-  //     + " | " + statsObj.memory.heap.toFixed(0) + " MB"
-  //   ));
-  // }
-
-  // statsObj.memory.memoryUsage = process.memoryUsage();
-
   if (options) {
     console.log(chalkLog("STATS\n" + jsonPrint(statsObj)));
   }
 
   console.log(chalkLog("S"
+    + " | " + moment().format(compactDateTimeFormat)
     + " | E: " + statsObj.elapsed
     + " | S: " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat)
-    + " | N: " + moment().format(compactDateTimeFormat)
+    + " | AD: " + statsObj.entity.admin.connected
+    + " | UT: " + statsObj.entity.util.connected
+    + " | US: " + statsObj.entity.user.connected
+    + " | VW: " + statsObj.entity.viewer.connected
     + " | TwRXQ: " + tweetRxQueue.size()
     + " | RSS: " + statsObj.memory.rss.toFixed(2) + " MB"
     + " - MAX: " + statsObj.memory.maxRss.toFixed(2)
     + " - " + moment(parseInt(statsObj.memory.maxRssTime)).format(compactDateTimeFormat)
-    + " | H: " + statsObj.memory.heap.toFixed(2) + " MB"
-    + " - MAX: " + statsObj.memory.maxHeap.toFixed(2)
-    + " - " + moment(parseInt(statsObj.memory.maxHeapTime)).format(compactDateTimeFormat)
+    // + " | H: " + statsObj.memory.heap.toFixed(2) + " MB"
+    // + " - MAX: " + statsObj.memory.maxHeap.toFixed(2)
+    // + " - " + moment(parseInt(statsObj.memory.maxHeapTime)).format(compactDateTimeFormat)
   ));
 }
 
@@ -1049,6 +1040,10 @@ function initSocketHandler(socketObj) {
     debug(chalkDisconnect(moment().format(compactDateTimeFormat) 
       + " | SOCKET DISCONNECT: " + socket.id + "\nstatus\n" + jsonPrint(status)
     ));
+
+    if (tmsServers[socket.id] !== undefined) { delete tmsServers[socket.id]; }
+    if (tssServers[socket.id] !== undefined) { delete tssServers[socket.id]; }
+
   });
 
   // socket.on("ADMIN_READY", function(adminObj) {
@@ -1077,7 +1072,7 @@ function initSocketHandler(socketObj) {
 
       languageServer.connected = true;
       languageServer.user = userObj;
-      languageServer.socket = socket;
+      // languageServer.socket = socket;
 
       debug(chalkSession("K-LA" 
         + " | " + userObj.userId
@@ -1093,7 +1088,13 @@ function initSocketHandler(socketObj) {
       if (tmsServers[socket.id] === undefined) { tmsServers[socket.id] = {}; }
       tmsServers[socket.id].connected = true;
       tmsServers[socket.id].user = userObj;
-      tmsServers[socket.id].socket = socket;
+
+      console.error(chalkSession("+++ ADDED TMS SERVER" 
+        + " | " + moment().format(compactDateTimeFormat)
+        + " | " + userObj.userId
+        + " | " + socket.id
+      ));
+
     }
  
     if (userObj.userId.match(/TSS_/g)){
@@ -1102,7 +1103,12 @@ function initSocketHandler(socketObj) {
       if (tssServers[socket.id] === undefined) { tssServers[socket.id] = {}; }
       tssServers[socket.id].connected = true;
       tssServers[socket.id].user = userObj;
-      tssServers[socket.id].socket = socket;
+
+      console.error(chalkSession("+++ ADDED TSS SERVER" 
+        + " | " + moment().format(compactDateTimeFormat)
+        + " | " + userObj.userId
+        + " | " + socket.id
+      ));
 
     }
   });
@@ -1879,7 +1885,7 @@ function initAppRouting(callback) {
   debug(chalkInfo(moment().format(compactDateTimeFormat) + " | INIT APP ROUTING"));
 
   app.use(function requestLog(req, res, next) {
-    debug("res\n" + res);
+    // console.log("REQ\n" + util.inspect(req, {showHidden:false, depth:1}));
     console.log(chalkAlert("R>"
       + " | " + moment().format(compactDateTimeFormat)
       + " | IP: " + req.ip
@@ -1910,39 +1916,6 @@ function initAppRouting(callback) {
   app.use(exp.static("./css"));
   app.use(exp.static("./node_modules"));
   app.use(exp.static("./public/assets/images"));
-
-
-  // app.get("/session.js", function(req, res) {
-  //   debug(chalkInfo("get req\n" + req));
-  //   console.log(chalkAlert("LOADING FILE: /session.js"));
-
-  //   fs.readFile(__dirname + "/session.js", function(err, data) {
-
-  //     if (err) { 
-  //       console.log(chalkError("ERROR FILE OPEN\n" + jsonPrint(err)));
-  //     }
-
-  //     let newData;
-  //     if (hostname.includes("google")){
-  //       newData = data.toString().replace("==SOURCE==", "http://word.threeceelabs.com");
-  //     }
-  //     else {
-  //       newData = data.toString().replace("==SOURCE==", "http://localhost:9997");
-  //     }
-  //     res.send(newData, function (err) {
-  //       if (err) {
-  //         console.error("SEND /session.js ERROR:"
-  //           + " | " + moment().format(compactDateTimeFormat)
-  //           // + " | " + req.url
-  //           // + " | " + sessionHtml
-  //           + " | " + err
-  //           // + " | " + req
-  //         );
-  //       }
-  //     });
-  //     res.end();
-  //   });
-  // });
 
   const adminHtml = __dirname + "/admin/admin.html";
   app.get("/admin", function requestAdmin(req, res) {
@@ -1993,40 +1966,6 @@ function initAppRouting(callback) {
     });
   });
 
-
-  // app.get("/", function(req, res, next) {
-  //   debug(chalkInfo("get next\n" + next));
-  //   console.log(chalkInfo("LOADING PAGE: /sessionModular.html | " + req));
-  //   res.sendFile(__dirname + "/sessionModular.html", function (err) {
-  //     if (err) {
-  //       console.error("GET / ERROR:"
-  //         + " | " + moment().format(compactDateTimeFormat)
-  //         + " | " + __dirname + "/sessionModular.html"
-  //         + " | " + err
-  //         // + " | REQ: " + jsonPrint(req)
-  //       );
-  //     } 
-  //     else {
-  //       debug(chalkInfo("SENT:", __dirname + "/sessionModular.html"));
-  //     }
-  //   });
-  // });
-
-
-  // app.get("/js/require.js", function(req, res, next) {
-  //   debug(chalkInfo("get next\n" + next));
-  //   debug(chalkInfo("LOADING PAGE: /js/require.js | " + req));
-  //   res.sendFile(__dirname + "/js/require.js", function (err) {
-  //     if (err) {
-  //       debug(chalkLog("GET:", __dirname + "/js/require.js"));
-  //     } 
-  //     else {
-  //       debug(chalkInfo("SENT:", __dirname + "/js/require.js"));
-  //     }
-  //   });
-  // });
-
-  // configEvents.emit("INIT_APP_ROUTING_COMPLETE");
   callback(null);
 }
 
@@ -3038,6 +2977,8 @@ function initIgnoreWordsHashMap(callback) {
   });
 }
 
+let memStatsInterval;
+
 function initStatsInterval(interval){
 
   let statsUpdated = 0;
@@ -3051,6 +2992,20 @@ function initStatsInterval(interval){
   showStats(true);
 
   clearInterval(statsInterval);
+  clearInterval(memStatsInterval);
+
+  memStatsInterval = setInterval(function updateMemStats() {
+    statsObj.memory.rss = process.memoryUsage().rss/(1024*1024);
+
+    if (statsObj.memory.rss > statsObj.memory.maxRss) {
+      statsObj.memory.maxRss = statsObj.memory.rss;
+      statsObj.memory.maxRssTime = moment().valueOf();
+      console.error(chalkAlert("NEW MAX RSS"
+        + " | " + moment().format(compactDateTimeFormat)
+        + " | " + statsObj.memory.rss.toFixed(0) + " MB"
+      ));
+    }
+  }, 1000);
 
   statsInterval = setInterval(function updateStats() {
 
@@ -3070,16 +3025,16 @@ function initStatsInterval(interval){
       ));
     }
 
-    statsObj.memory.rss = process.memoryUsage().rss/(1024*1024);
+    // statsObj.memory.rss = process.memoryUsage().rss/(1024*1024);
 
-    if (statsObj.memory.rss > statsObj.memory.maxRss) {
-      statsObj.memory.maxRss = statsObj.memory.rss;
-      statsObj.memory.maxRssTime = moment().valueOf();
-      console.log(chalkLog("NEW MAX RSS"
-        + " | " + moment().format(compactDateTimeFormat)
-        + " | " + statsObj.memory.rss.toFixed(0) + " MB"
-      ));
-    }
+    // if (statsObj.memory.rss > statsObj.memory.maxRss) {
+    //   statsObj.memory.maxRss = statsObj.memory.rss;
+    //   statsObj.memory.maxRssTime = moment().valueOf();
+    //   console.error(chalkAlert("NEW MAX RSS"
+    //     + " | " + moment().format(compactDateTimeFormat)
+    //     + " | " + statsObj.memory.rss.toFixed(0) + " MB"
+    //   ));
+    // }
 
     statsObj.memory.heap = process.memoryUsage().heapUsed/(1024*1024);
 
@@ -3126,7 +3081,6 @@ function initStatsInterval(interval){
 
       heapdump.writeSnapshot(heapdumpFileName);
     }
-
   }, interval);
 }
 
@@ -3218,7 +3172,6 @@ initialize(configuration, function initializeComplete(err) {
 
     statsObj.configuration = configuration;
 
-
     memwatch.on("leak", function memwatchLeak(info) {
 
 // MEM LEAK?
@@ -3264,6 +3217,7 @@ initialize(configuration, function initializeComplete(err) {
     memwatch.on("stats", function memwatchStats(stats) {
       if(statsObj.memwatch.snapshotTaken ===false) {
         hd = new memwatch.HeapDiff();
+        console.error(chalkAlert(getTimeStamp() + " | MEM SNAPSHOT TAKEN"));
         statsObj.memwatch.snapshotTaken = true;
       }
       statsObj.memwatch.stats = stats;

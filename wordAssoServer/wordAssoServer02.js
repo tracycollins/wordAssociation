@@ -1896,7 +1896,13 @@ function initAppRouting(callback) {
       // + "\nCOOKIES: " + jsonPrint(req.cookies)
       // + "\nBODY: " + jsonPrint(req.baseUrl)
     ));
-    next();
+    if (req.path === "/") {
+      console.log(chalkAlert("R> REDIRECT /session")); 
+      res.redirect("/session");
+    }
+    else {
+      next();
+    }
   });
 
   app.use(exp.static("./"));

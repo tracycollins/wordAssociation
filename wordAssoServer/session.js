@@ -1224,8 +1224,11 @@ socket.on("reconnect", function() {
   statsObj.socketId = socket.id;
   statsObj.serverConnected = true;
   console.log("RECONNECTED TO HOST | SOCKET ID: " + socket.id);
-  viewerObj.timeStamp = moment().toValueOf();
+
+  viewerObj.timeStamp = moment().valueOf();
+
   socket.emit("VIEWER_READY", viewerObj);
+
   if (sessionMode) {
     console.log("SESSION MODE" + " | SID: " + sessionId + " | NSP: " + namespace);
     var tempSessionId = "/" + namespace + "#" + sessionId;
@@ -3881,6 +3884,8 @@ function initialize(callback) {
             initStatsUpdate(1000);
 
             console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
+
+            viewerObj.timeStamp = moment().valueOf();
             socket.emit("VIEWER_READY", viewerObj);
 
             setTimeout(function() {
@@ -4002,6 +4007,8 @@ function initialize(callback) {
             initStatsUpdate(1000);
 
             console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
+
+            viewerObj.timeStamp = moment().valueOf();
             socket.emit("VIEWER_READY", viewerObj);
 
             setTimeout(function() {
@@ -4123,6 +4130,8 @@ function initialize(callback) {
           initStatsUpdate(1000);
 
           console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
+
+          viewerObj.timeStamp = moment().valueOf();
           socket.emit("VIEWER_READY", viewerObj);
 
           setTimeout(function() {

@@ -253,6 +253,7 @@ let hostname = os.hostname();
 hostname = hostname.replace(/.local/g, "");
 hostname = hostname.replace(/.home/g, "");
 hostname = hostname.replace(/.at.net/g, "");
+hostname = hostname.replace(/.fios-router/g, "");
 hostname = hostname.replace(/.fios-router.home/g, "");
 hostname = hostname.replace(/word0-instance-1/g, "google");
 
@@ -3151,7 +3152,10 @@ function sendDirectMessage(user, message, callback) {
       if (callback !== undefined) { callback(error, message); }
     }
     else{
-      console.log(chalkTwitter(moment().format(compactDateTimeFormat) + " | SENT TWITTER DM TO " + user + ": " + response.text));
+      console.log(chalkTwitter(moment().format(compactDateTimeFormat)
+        + " | SENT TWITTER DM TO " + user
+        + ": " + response.text
+      ));
       if (callback !== undefined) { callback(null, message); }
     }
 
@@ -3252,7 +3256,15 @@ initialize(configuration, function initializeComplete(err) {
 
       heapdump.writeSnapshot(heapdumpFileName);
 
-      const dmString = "MEM LEAK | " + hostname + "\nGROWTH: " + info.growth + "\n" + info.reason;
+      const growth = info.growth/(1024*1024);
+
+      const dmString = "MEM LEAK"
+        + " | " + hostname 
+        + "\nGROWTH: " + growth.toFixed(3) + " MB"
+        + "\nRSS: " + statsObj.memory.rss.toFixed(3) + " MB"
+        + "\nMAX: " + statsObj.memory.maxRss.toFixed(3) + " MB"
+        + " | " + moment(parseInt(statsObj.memory.maxRssTime)).format(compactDateTimeFormat) + " MB"
+        + "\n" + info.reason;
 
       sendDirectMessage("threecee", dmString);
 

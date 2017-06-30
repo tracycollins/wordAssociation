@@ -1081,6 +1081,7 @@ var DEFAULT_VIEWER_OBJ = {
   viewerId: VIEWER_ID,
   screenName: USER_ID,
   type: "viewer",
+  timeStamp: moment().valueOf(),
   tags: {}
 };
 
@@ -1223,6 +1224,7 @@ socket.on("reconnect", function() {
   statsObj.socketId = socket.id;
   statsObj.serverConnected = true;
   console.log("RECONNECTED TO HOST | SOCKET ID: " + socket.id);
+  viewerObj.timeStamp = moment().toValueOf();
   socket.emit("VIEWER_READY", viewerObj);
   if (sessionMode) {
     console.log("SESSION MODE" + " | SID: " + sessionId + " | NSP: " + namespace);

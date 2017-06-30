@@ -1116,9 +1116,6 @@ function initSocketHandler(socketObj) {
   //   debug(chalkSocket("ADMIN READY\n" + jsonPrint(adminObj)));
   // });
 
-  // socket.on("VIEWER_READY", function(viewerObj) {
-  //   debug(chalkSocket("VIEWER READY\n" + jsonPrint(viewerObj)));
-  // });
 
   socket.on("SESSION_KEEPALIVE", function sessionKeepalive(userObj) {
 
@@ -1201,6 +1198,26 @@ function initSocketHandler(socketObj) {
         timeStamp: moment().valueOf()
       }
     );
+  });
+
+  socket.on("VIEWER_READY", function viewerReady(viewerObj) {
+    console.log(chalkSocket("VIEWER READY"
+      + " | " + getTimeStamp()
+      + " | " + viewerObj.viewerId
+      + " | SENT AT " + moment(parseInt(viewerObj.timeStamp)).format(compactDateTimeFormat)
+    ));
+
+    socket.emit("VIEWER_READY_ACK", 
+      {
+        userId: viewerObj.viewerId,
+        timeStamp: moment().valueOf(),
+        viewerSessionKey: moment().valueOf()
+      }
+    );
+  });
+
+  socket.on("VIEWER_READY", function(viewerObj) {
+    debug(chalkSocket("VIEWER READY\n" + jsonPrint(viewerObj)));
   });
 
   socket.on("tweet", socketRxTweet);

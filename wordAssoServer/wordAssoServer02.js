@@ -983,6 +983,55 @@ process.env.NODE_ENV = process.env.NODE_ENV || "development";
 debug("NODE_ENV : " + process.env.NODE_ENV);
 debug("CLIENT HOST + PORT: " + "http://localhost:" + config.port);
 
+function socketRxTweet(tw) {
+
+  statsObj.twitter.tweetsReceived += 1;
+
+  debug(chalkSocket("tweet" 
+    + " [" + statsObj.twitter.tweetsReceived + "]"
+    + " | " + tw.id_str
+    + " | " + tw.user.id_str
+    + " | " + tw.user.screen_name
+    + " | " + tw.user.name
+  ));
+
+  if (tweetRxQueue.size() > MAX_Q){
+
+    statsObj.errors.twitter.maxRxQueue += 1;
+
+    if (statsObj.errors.twitter.maxRxQueue % 100 === 0) {
+      console.log(chalkError("*** TWEET RX MAX QUEUE [" + tweetRxQueue.size() + "]"
+        + " | " + getTimeStamp()
+        + " | MAX Q EVENTS: " + statsObj.errors.twitter.maxRxQueue
+        + " | " + tw.id_str
+        + " | " + tw.user.screen_name
+      ));
+    }
+  }
+  else if (tw.user) {
+
+    tweetRxQueue.enqueue(tw);
+    statsObj.queues.tweetRxQueue = tweetRxQueue.size();
+
+    debug(chalkLog("T<"
+      + " [ RXQ: " + tweetRxQueue.size() + "]"
+      + " [ TPQ: " + tweetParserQueue.size() + "]"
+      + " | " + tw.id_str
+      + " | @" + tw.user.screen_name
+      + " | " + tw.user.name
+    ));
+  }
+  else{
+    console.log(chalkAlert("NULL USER T*<"
+      + " [ RXQ: " + tweetRxQueue.size() + "]"
+      + " [ TPQ: " + tweetParserQueue.size() + "]"
+      + " | " + tw.id_str
+      + " | @" + tw.user.screen_name
+      + " | " + tw.user.name
+    ));
+  }
+}
+
 function initSocketHandler(socketObj) {
 
   const socket = socketObj.socket;
@@ -1079,9 +1128,6 @@ function initSocketHandler(socketObj) {
 
     statsObj.socket.keepalives += 1;
 
-    // debug(chalkSession("SESSION_KEEPALIVE | " + userObj.userId));
-    // debug(chalkSession("SESSION_KEEPALIVE\n" + jsonPrint(userObj)));
-
     if (userObj.stats) {statsObj.utilities[userObj.userId] = userObj.stats;}
 
     if (userObj.userId.match(/LA_/g)){
@@ -1089,7 +1135,6 @@ function initSocketHandler(socketObj) {
 
       languageServer.connected = true;
       languageServer.user = userObj;
-      // languageServer.socket = socket;
 
       debug(chalkSession("K-LA" 
         + " | " + userObj.userId
@@ -1135,67 +1180,31 @@ function initSocketHandler(socketObj) {
     }
   });
 
-  socket.on("USER_READY", function userReady(userObj, cb) {
-    debug(chalkSocket("USER READY"
+  // socket.on("USER_READY", function userReady(userObj, cb) {
+  //   console.log(chalkSocket("USER READY"
+  //     + " | " + getTimeStamp()
+  //     + " | " + userObj.userId
+  //   ));
+  //   if ((cb !== undefined) && (typeof cb === "function")) { cb(userObj.userId); }
+  // });
+
+  socket.on("USER_READY", function userReady(userObj) {
+    console.log(chalkSocket("USER READY"
+      + " | " + getTimeStamp()
       + " | " + userObj.userId
-    ));
-    if ((cb !== undefined) && (typeof cb === "function")) { cb(userObj.userId); }
-  });
-
-  socket.on("tweet", function socketRxTweet(tw) {
-    statsObj.twitter.tweetsReceived += 1;
-    debug(chalkSocket("tweet" 
-      + " [" + statsObj.twitter.tweetsReceived + "]"
-      + " | " + tw.id_str
-      + " | " + tw.user.id_str
-      + " | " + tw.user.screen_name
-      + " | " + tw.user.name
+      + " | SENT AT " + moment(parseInt(userObj.timeStamp)).format(compactDateTimeFormat)
     ));
 
-    if (tweetRxQueue.size() > MAX_Q){
-
-      statsObj.errors.twitter.maxRxQueue += 1;
-
-      if (statsObj.errors.twitter.maxRxQueue % 10 === 0) {
-        console.log(chalkError("*** TWEET RX MAX QUEUE [" + tweetRxQueue.size() + "]"
-          + " | " + getTimeStamp()
-          + " | " + tw.id_str
-          + " | " + tw.user.screen_name
-        ));
+    socket.emit("USER_READY_ACK", 
+      {
+        userId: userObj.userId,
+        timeStamp: moment().valueOf()
       }
-    }
-    else if (tw.user) {
-
-      tweetRxQueue.enqueue(tw);
-      statsObj.queues.tweetRxQueue = tweetRxQueue.size();
-
-      debug(chalkLog("T<"
-        + " [ RXQ: " + tweetRxQueue.size() + "]"
-        + " [ TPQ: " + tweetParserQueue.size() + "]"
-        + " | " + tw.id_str
-        + " | @" + tw.user.screen_name
-        + " | " + tw.user.name
-      ));
-    }
-    else{
-      console.log(chalkAlert("NULL USER T*<"
-        + " [ RXQ: " + tweetRxQueue.size() + "]"
-        + " [ TPQ: " + tweetParserQueue.size() + "]"
-        + " | " + tw.id_str
-        + " | @" + tw.user.screen_name
-        + " | " + tw.user.name
-      ));
-    }
-
+    );
   });
 
-  // socket.on("node", function(rxNodeObj) {
-  //   viewNameSpace.emit("node", rxNodeObj);
-  // });
+  socket.on("tweet", socketRxTweet);
 
-  // socket.on("word", function(rxWordObj) {
-  //   viewNameSpace.emit("node", rxWordObj);
-  // });
 }
 
 function initSocketNamespaces(callback){
@@ -1210,29 +1219,29 @@ function initSocketNamespaces(callback){
   viewNameSpace = io.of("/view");
 
   adminNameSpace.on("connect", function adminConnect(socket) {
-    socket.setMaxListeners(0);
-    debug(chalkAlert("ADMIN CONNECT " + socket.id));
+    // socket.setMaxListeners(0);
+    console.log(chalkAlert("ADMIN CONNECT " + socket.id));
     statsObj.entity.admin.connected = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
     initSocketHandler({namespace: "admin", socket: socket});
   });
 
   utilNameSpace.on("connect", function utilConnect(socket) {
-    socket.setMaxListeners(0);
-    debug(chalkAlert("UTIL CONNECT " + socket.id));
+    // socket.setMaxListeners(0);
+    console.log(chalkAlert("UTIL CONNECT " + socket.id));
     statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
     initSocketHandler({namespace: "util", socket: socket});
   });
 
   userNameSpace.on("connect", function userConnect(socket) {
-    socket.setMaxListeners(0);
-    debug(chalkAlert("USER CONNECT " + socket.id));
+    // socket.setMaxListeners(0);
+    console.log(chalkAlert("USER CONNECT " + socket.id));
     statsObj.entity.user.connected = Object.keys(userNameSpace.connected).length; // userNameSpace.sockets.length ;
     initSocketHandler({namespace: "user", socket: socket});
   });
 
   viewNameSpace.on("connect", function viewConnect(socket) {
-    socket.setMaxListeners(0);
-    debug(chalkAlert("VIEWER CONNECT " + socket.id));
+    // socket.setMaxListeners(0);
+    console.log(chalkAlert("VIEWER CONNECT " + socket.id));
     statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; // userNameSpace.sockets.length ;
     initSocketHandler({namespace: "view", socket: socket});
   });
@@ -1876,12 +1885,12 @@ configEvents.on("SERVER_READY", function serverReady() {
 
       statsObj.configuration = configuration;
 
-      io.emit("HEARTBEAT", statsObj);
+      // io.emit("HEARTBEAT", statsObj);
 
-      utilNameSpace.emit("HEARTBEAT", statsObj);
-      adminNameSpace.emit("HEARTBEAT", statsObj);
-      userNameSpace.emit("HEARTBEAT", statsObj);
-      viewNameSpace.emit("HEARTBEAT", statsObj);
+      utilNameSpace.volatile.emit("HEARTBEAT", statsObj);
+      adminNameSpace.volatile.emit("HEARTBEAT", statsObj);
+      userNameSpace.volatile.emit("HEARTBEAT", statsObj);
+      viewNameSpace.volatile.emit("HEARTBEAT", statsObj);
 
       if (heartbeatsSent % 60 === 0) { logHeartbeat(); }
 
@@ -3197,12 +3206,6 @@ initialize(configuration, function initializeComplete(err) {
     statsObj.configuration = configuration;
 
     memwatch.on("leak", function memwatchLeak(info) {
-
-// MEM LEAK?
-// {
-//   "growth": 7478008,
-//   "reason": "heap growth over 5 consecutive GCs (8m 18s) - 51.55 mb/hr"
-// }
 
       const diff = hd.end();
 

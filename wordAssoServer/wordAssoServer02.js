@@ -1077,7 +1077,7 @@ function initSocketHandler(socketObj) {
 
   socket.on("error", function socketError(error) {
     statsObj.socket.errors += 1;
-    debug(chalkError(moment().format(compactDateTimeFormat) 
+    console.log(chalkError(moment().format(compactDateTimeFormat) 
       + " | *** SOCKET ERROR" + " | " + socket.id + " | " + error));
   });
 
@@ -1088,6 +1088,8 @@ function initSocketHandler(socketObj) {
 
   socket.on("disconnect", function socketDisconnect(status) {
     statsObj.socket.disconnects += 1;
+
+    console.log(chalkAlert("SOCKET CONNECT " + socket.id));
 
     debug(chalkDisconnect(moment().format(compactDateTimeFormat) 
       + " | SOCKET DISCONNECT: " + socket.id + "\nstatus\n" + jsonPrint(status)
@@ -1858,7 +1860,7 @@ configEvents.on("SERVER_READY", function serverReady() {
 
     httpServer.on("disconnect", function serverDisconnect() {
       internetReady = false;
-      debug(chalkError("\n***** PORT DISCONNECTED | " + moment().format(compactDateTimeFormat) 
+      console.log(chalkError("\n***** PORT DISCONNECTED | " + moment().format(compactDateTimeFormat) 
         + " | " + config.port));
     });
   });

@@ -2790,7 +2790,7 @@ function initRateQinterval(interval){
 
     updateTimeSeriesCount += 1;
 
-    if (updateTimeSeriesCount === 0){
+    if (updateTimeSeriesCount % RATE_QUEUE_INTERVAL_MODULO === 0){
 
       paramsSorter.op = "SORT";
       paramsSorter.sortKey = metricsRate;
@@ -2885,10 +2885,6 @@ function initRateQinterval(interval){
           }
         }
       }
-    }
-
-    if (updateTimeSeriesCount > RATE_QUEUE_INTERVAL_MODULO) { 
-      updateTimeSeriesCount = 0;
     }
 
   }, interval);

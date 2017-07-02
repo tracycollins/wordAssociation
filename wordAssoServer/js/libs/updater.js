@@ -266,11 +266,13 @@ const updateKeywords = function(folder, file, callback){
           .then(JSON.parse)
           .then(function(kwordsObj){
 
+            const words = Object.keys(kwordsObj);
+
             console.log(chalkInfo("UPDATER | LOADED"
+              + " | " + words.length + " WORDS"
               + " | " + fullPath
             ));
 
-            const words = Object.keys(kwordsObj);
 
             // stack overflow issues ????
             // async.eachSeries(words,  
@@ -342,7 +344,10 @@ const updateKeywords = function(folder, file, callback){
                   }
                 }
                 else {
-                  debug(chalkInfo("UPDATER: UPDATING KEYWORD | " + wd + ": " + jsonPrint(wordObj)));
+                  console.log(chalkInfo("UPDATER: UPDATING KEYWORD"
+                    + " | " + wd
+                    // + ": " + jsonPrint(wordObj)
+                  ));
 
                   newKeywordsHashMap.set(wordObj.nodeId, wordObj.keywords);
                   localKeywordHashMap.set(wordObj.nodeId, wordObj.keywords);
@@ -353,7 +358,7 @@ const updateKeywords = function(folder, file, callback){
                       cb(err);
                     }
                     else {
-                      debug(chalkLog("+++ UPDATED KEYWORD"
+                      console.log(chalkLog("+++ UPDATED KEYWORD"
                         + " | " + updatedWordObj.nodeId 
                         + " | " + updatedWordObj.raw 
                         + " | M " + updatedWordObj.mentions 
@@ -382,6 +387,9 @@ const updateKeywords = function(folder, file, callback){
               }
             );
           })
+          .catch(function(err) {
+            console.error(new Error("DROPBOX FILE DOWNLOAD ERROR\n" + jsonPrint(err)));
+          });
       }
 
     })

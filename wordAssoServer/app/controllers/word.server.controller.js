@@ -91,7 +91,7 @@ exports.findOneWord = function(word, incMentions, callback) {
 				callback("ERROR " + err, word);
 			}
 			else {
-				console.log(chalkDb("->- DB UPDATE" 
+				debug(chalkDb("->- DB UPDATE" 
 					+ " | " + wd.nodeId 
 					+ " | WPM: " + wd.rate.toFixed(2) 
 					+ " | KW: " + wd.isKeyword 

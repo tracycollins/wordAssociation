@@ -1192,8 +1192,8 @@ function initSocketHandler(socketObj) {
     console.log(chalkSocket("USER READY"
       + " | " + getTimeStamp()
       + " | " + userObj.userId
-      + " | SENT AT " + moment(parseInt(userObj.timeStamp)).format(compactDateTimeFormat)
-      + "\n" + jsonPrint(userObj)
+      + " | SENT " + moment(parseInt(userObj.timeStamp)).format(compactDateTimeFormat)
+      // + "\n" + jsonPrint(userObj)
     ));
 
     socket.emit("USER_READY_ACK", 
@@ -2150,7 +2150,7 @@ function initTweetParserMessageRxQueueInterval(interval){
         }
         else {
 
-          debug(chalkInfo("PARSED TW"
+          console.log(chalkInfo("PARSED TW"
             + " [ TPMRQ: " + tweetParserMessageRxQueue.size() + "]"
             + " | " + tweetObj.tweetId
             + " | USR: " + tweetObj.user.screenName

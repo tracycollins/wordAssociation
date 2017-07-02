@@ -1185,11 +1185,11 @@ socket.on("SERVER_READY", function(serverAck) {
   console.log("RX SERVER_READY | SERVER ACK: " + jsonPrint(serverAck));
 });
 
-socket.on("VIEWER_ACK", function(vSesKey) {
+socket.on("VIEWER_READY_ACK", function(vSesKey) {
 
   statsObj.serverConnected = true;
 
-  console.log("RX VIEWER_ACK | SESSION KEY: " + vSesKey);
+  console.log("RX VIEWER_READY_ACK | SESSION KEY: " + vSesKey);
 
   statsObj.viewerSessionKey = vSesKey;
   viewerObj.viewerSessionKey = vSesKey;
@@ -1200,7 +1200,7 @@ socket.on("VIEWER_ACK", function(vSesKey) {
 
   config.VIEWER_OBJ = viewerObj;
 
-  console.debug("STORE CONFIG ON VIEWER_ACK\n" + jsonPrint(config));
+  console.debug("STORE CONFIG ON VIEWER_READY_ACK\n" + jsonPrint(config));
   store.set(storedConfigName, config);
 
   if (sessionMode) {

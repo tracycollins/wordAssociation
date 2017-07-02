@@ -147,7 +147,7 @@ function jsonPrint(obj) {
 
 exports.findOneWord = function(word, incMentions, callback) {
 
-	console.log("findOneWord: " + word.nodeId);
+	debug("findOneWord: " + word.nodeId);
 
 	if (word.nodeId.length > 250){
     console.log(chalkError("*** ILLEGAL WORD NODE ID (> 250 CHARS) ... SKIPPING ***" + "\nTYPE: " +  word.nodeId 

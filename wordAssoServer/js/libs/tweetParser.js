@@ -1,11 +1,27 @@
 /*jslint node: true */
 "use strict";
 
+const MAX_Q = 500;
 const compactDateTimeFormat = "YYYYMMDD HHmmss";
 
 const debug = require("debug")("wa");
 const moment = require("moment");
 const os = require("os");
+const mongoose = require("../../config/mongoose");
+const db = mongoose();
+
+const tweetServer = require("../../app/controllers/tweets.server.controller");
+
+const Queue = require("queue-fifo");
+const tweetParserQueue = new Queue();
+
+const chalk = require("chalk");
+const chalkInfo = chalk.gray;
+const chalkAlert = chalk.red;
+const chalkError = chalk.bold.red;
+
+const EventEmitter2 = require("eventemitter2").EventEmitter2;
+
 
 let hostname = os.hostname();
 hostname = hostname.replace(/.local/g, "");
@@ -13,21 +29,24 @@ hostname = hostname.replace(/.home/g, "");
 hostname = hostname.replace(/.fios-router.home/g, "");
 hostname = hostname.replace(/word0-instance-1/g, "google");
 
-const jsonPrint = function(obj) {
+function jsonPrint(obj) {
   if (obj) {
     return JSON.stringify(obj, null, 2);
   } else {
     return obj;
   }
-};
+}
 
 function quit(message) {
+
   let msg = "";
   let exitCode = 0;
+
   if (message) {
     msg = message;
     exitCode = 1;
   }
+
   console.error(process.argv[1]
     + " | " + moment().format(compactDateTimeFormat)
     + " | TWEET PARSER: **** QUITTING"
@@ -38,21 +57,13 @@ function quit(message) {
   process.exit(exitCode);
 }
 
-process.on("SIGHUP", function() {
+process.on("SIGHUP", function processSigHup() {
   quit("SIGHUP");
 });
 
-process.on("SIGINT", function() {
+process.on("SIGINT", function processSigInt() {
   quit("SIGINT");
 });
-
-const mongoose = require("../../config/mongoose");
-const db = mongoose();
-
-const tweetServer = require("../../app/controllers/tweets.server.controller");
-
-const Queue = require("queue-fifo");
-const tweetParserQueue = new Queue();
 
 console.log(
   "\n\n====================================================================================================\n" 
@@ -66,12 +77,6 @@ console.log(
   + "====================================================================================================\n\n"
 );
 
-const chalk = require("chalk");
-const chalkInfo = chalk.gray;
-const chalkAlert = chalk.red;
-const chalkError = chalk.bold.red;
-
-const EventEmitter2 = require("eventemitter2").EventEmitter2;
 
 const configEvents = new EventEmitter2({
   wildcard: true,
@@ -79,7 +84,7 @@ const configEvents = new EventEmitter2({
   maxListeners: 20
 });
 
-configEvents.on("newListener", function(data) {
+configEvents.on("newListener", function configEventsNewListener(data) {
   debug("*** NEW CONFIG EVENT LISTENER: " + data);
 });
 
@@ -104,11 +109,19 @@ function initTweetParserQueueInterval(cnf){
 
   clearInterval(tweetParserQueueInterval);
 
+  let tweet;
+  let params = {
+    globalTestMode: cnf.globalTestMode,
+    testMode: cnf.testMode,
+    noInc: cnf.noInc,
+    twitterEvents: configEvents
+  };
+
   tweetParserQueueInterval = setInterval(function(){
 
     if (!tweetParserQueue.isEmpty()){
 
-      let tweet = tweetParserQueue.dequeue();
+      tweet = tweetParserQueue.dequeue();
 
       debug(chalkInfo("TPQ>"
         + " [" + tweetParserQueue.size() + "]"
@@ -119,57 +132,48 @@ function initTweetParserQueueInterval(cnf){
         + " | " + tweet.user.name
       ));
 
-     let params = {
-        globalTestMode: cnf.globalTestMode,
-        testMode: cnf.testMode,
-        noInc: cnf.noInc,
-        twitterEvents: configEvents
-      };
       params.tweetStatus = tweet;
 
-      tweetServer.createStreamTweet(
-        params,
-        function(err, tweetObj){
-
-          if (err){
-            if (err.code !== 11000) {
-              console.log(chalkError("CREATE STREAM TWEET ERROR\n" + jsonPrint(err)));
-            }
+      tweetServer.createStreamTweet(params, function createStreamTweetCallback(err, tweetObj){
+        if (err){
+          if (err.code !== 11000) {
+            console.log(chalkError("CREATE STREAM TWEET ERROR\n" + jsonPrint(err)));
           }
-          else if (cnf.globalTestMode){
-            if (cnf.verbose){
-              console.log(chalkAlert("t< GLOBAL TEST MODE"
-                + " | " + tweetObj.tweetId
-                + " | @" + tweetObj.user.userId
+        }
+        else if (cnf.globalTestMode){
+          if (cnf.verbose){
+            console.log(chalkAlert("t< GLOBAL TEST MODE"
+              + " | " + tweetObj.tweetId
+              + " | @" + tweetObj.user.userId
+            ));
+          }
+        }
+        else {
+          debug(chalkInfo("[" + tweetParserQueue.size() + "]"
+            + " createStreamTweet DONE" 
+            + " | " + tweetObj.tweetId
+            // + "\ntweetObj.tweet.user\n" + jsonPrint(tweetObj.tweet.user)
+            // + "\ntweetObj.user\n" + jsonPrint(tweetObj.user)
+          ));
+
+          process.send({op: "parsedTweet", tweetObj: tweetObj}, function(err){
+
+            if (err) {
+              console.error(chalkError("*** TWEET PARSER SEND TWEET ERROR"
+                + " | " + moment().format(compactDateTimeFormat)
+                + " | " + err
               ));
             }
-          }
-          else {
-            console.log(chalkInfo("[" + tweetParserQueue.size() + "]"
-              + " createStreamTweet DONE" 
-              + " | " + tweetObj.tweetId
-              // + "\ntweetObj.tweet.user\n" + jsonPrint(tweetObj.tweet.user)
-              // + "\ntweetObj.user\n" + jsonPrint(tweetObj.user)
-            ));
-
-            process.send({op: "parsedTweet", tweetObj: tweetObj}, function(err){
-
-              if (err) {
-                console.error(chalkError("*** TWEET PARSER SEND TWEET ERROR"
-                  + " | " + err
-                ));
-              }
-              else {
-                debug(chalkInfo(moment().format(compactDateTimeFormat)
-                  + " | SEND TWEET COMPLETE"
-                  + " | " + tweetObj.tweetId
-                ));
-              }
-            });
-          }
-          
+            else {
+              debug(chalkInfo(moment().format(compactDateTimeFormat)
+                + " | SEND TWEET COMPLETE"
+                + " | " + tweetObj.tweetId
+              ));
+            }
+          });
         }
-      );
+        
+      });
 
     }
   }, cnf.updateInterval);
@@ -194,11 +198,16 @@ process.on("message", function(m) {
     break;
 
     case "tweet":
-      tweetParserQueue.enqueue(m.tweetStatus);
-      debug(chalkInfo("T<"
-        + " [" + tweetParserQueue.size() + "]"
-        + " | " + m.tweetStatus.id_str
-      ));
+      if (tweetParserQueue.size() < MAX_Q) {
+        tweetParserQueue.enqueue(m.tweetStatus);
+        debug(chalkInfo("T<"
+          + " [" + tweetParserQueue.size() + "]"
+          + " | " + m.tweetStatus.id_str
+        ));
+      }
+      else {
+        debug(chalkAlert("*** MAX TWEET PARSE Q SIZE: " + tweetParserQueue.size()));
+      }
     break;
 
     default:

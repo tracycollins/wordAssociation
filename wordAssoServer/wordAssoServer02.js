@@ -2455,7 +2455,7 @@ function initSorter(callback){
   const s = cp.fork(`${__dirname}/js/libs/sorter.js`);
 
   s.on("message", function sorterMessageRx(m){
-    debug(chalkLog("SORTER RX"
+    console.log(chalkLog("SORTER RX"
       + " | " + m.op
       // + "\n" + jsonPrint(m)
     ));

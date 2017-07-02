@@ -531,7 +531,8 @@ function initStats(callback){
 
   statsObj.twitter = {};
   statsObj.twitter.tweetsReceived = 0;
-  statsObj.twitter.tweetsPerMinute = 0;
+  statsObj.twitter.tweetsPerMin = 0;
+  statsObj.twitter.maxTweetsPerMinTime = moment().valueOf();
 
   statsObj.hostname = hostname;
   statsObj.name = "Word Association Server Status";
@@ -832,7 +833,12 @@ function showStats(options){
 
   statsObj.elapsed = msToTime(moment().valueOf() - statsObj.startTime);
   statsObj.timeStamp = moment().format(compactDateTimeFormat);
-  statsObj.twitter.tweetsPerMinute = parseFloat(tweetMeter.toJSON()[metricsRate]);
+  statsObj.twitter.tweetsPerMin = parseInt(tweetMeter.toJSON()[metricsRate]);
+
+  if (statsObj.twitter.tweetsPerMin > statsObj.twitter.maxTweetsPerMin){
+    statsObj.twitter.maxTweetsPerMin = statsObj.twitter.tweetsPerMin;
+    statsObj.twitter.maxTweetsPerMinTime = moment().valueOf();
+  }
 
   if (options) {
     console.log(chalkLog("STATS\n" + jsonPrint(statsObj)));
@@ -846,7 +852,7 @@ function showStats(options){
     + " | UT: " + statsObj.entity.util.connected
     // + " | US: " + statsObj.entity.user.connected
     + " | VW: " + statsObj.entity.viewer.connected
-    + " | TwRxPM: " + statsObj.twitter.tweetsPerMinute
+    + " | TwRxPM: " + statsObj.twitter.tweetsPerMin
     + " | TwRXQ: " + tweetRxQueue.size()
     + " | TwPRQ: " + tweetParserQueue.size()
     + " | RSS: " + statsObj.memory.rss.toFixed(2) + " MB"

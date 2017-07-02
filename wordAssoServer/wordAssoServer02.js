@@ -1577,6 +1577,7 @@ function initTransmitNodeQueueInterval(interval){
   console.log(chalkLog("INIT TRANSMIT NODE QUEUE INTERVAL: " + interval + " MS"));
 
   clearInterval(transmitNodeQueueInterval);
+  let nodeObj;
 
   transmitNodeQueueInterval = setInterval(function txNodeQueue () {
 
@@ -1584,7 +1585,7 @@ function initTransmitNodeQueueInterval(interval){
 
       transmitNodeQueueReady = false;
 
-      let nodeObj = transmitNodeQueue.dequeue();
+      nodeObj = transmitNodeQueue.dequeue();
 
       if (!nodeObj) {
         console.error(new Error("transmitNodeQueue: NULL NODE OBJ DE-Q"));
@@ -2167,34 +2168,33 @@ function initSorterMessageRxQueueInterval(interval){
 
   clearInterval(sorterMessageRxQueueInterval);
 
+  let sortedKeys;
+  let endIndex;
+  let index;
+  // let i;
+  let node;
+  let nodeRate;
+  let sorterObj;
+
   sorterMessageRxQueueInterval = setInterval(function sorterMessageRxQueueDequeue() {
 
     if (sorterMessageRxReady && !sorterMessageRxQueue.isEmpty()) {
 
       sorterMessageRxReady = false;
 
-      const sorterObj = sorterMessageRxQueue.dequeue();
-      let sortedKeys;
-      let endIndex;
-      let index;
-      // let i;
-      let node;
-      let nodeRate;
+      sorterObj = sorterMessageRxQueue.dequeue();
+      // let sortedKeys;
+      // let endIndex;
+      // let index;
+      // // let i;
+      // let node;
+      // let nodeRate;
 
       switch (sorterObj.op){
 
         case "SORTED":
 
           debug(chalkLog("SORT ---------------------"));
-
-
-          // for (i=0; i<sorterObj.sortedKeys.length; i += 1){
-          //   if (wordMeter[sorterObj.sortedKeys[i]] !== undefined) {
-          //     debug(chalkInfo(wordMeter[sorterObj.sortedKeys[i]].toJSON()[sorterObj.sortKey].toFixed(3)
-          //       + " | "  + sorterObj.sortedKeys[i] 
-          //     ));
-          //   }
-          // }
 
           sortedKeys = sorterObj.sortedKeys;
           endIndex = Math.min(configuration.maxTopTerms, sortedKeys.length);
@@ -2778,6 +2778,7 @@ function initRateQinterval(interval){
   dataPointNodeCache.metricLabels = {server_id: "CACHE"};
 
   let updateTimeSeriesCount = 0;
+  let paramsSorter = {};
 
   updateMetricsInterval = setInterval(function updateMetrics () {
 
@@ -2790,8 +2791,6 @@ function initRateQinterval(interval){
     updateTimeSeriesCount += 1;
 
     if (updateTimeSeriesCount === 0){
-
-      let paramsSorter = {};
 
       paramsSorter.op = "SORT";
       paramsSorter.sortKey = metricsRate;
@@ -3027,17 +3026,6 @@ function initStatsInterval(interval){
         + " | " + statsObj.wordMeterEntries.toFixed(0)
       ));
     }
-
-    // statsObj.memory.rss = process.memoryUsage().rss/(1024*1024);
-
-    // if (statsObj.memory.rss > statsObj.memory.maxRss) {
-    //   statsObj.memory.maxRss = statsObj.memory.rss;
-    //   statsObj.memory.maxRssTime = moment().valueOf();
-    //   console.error(chalkAlert("NEW MAX RSS"
-    //     + " | " + moment().format(compactDateTimeFormat)
-    //     + " | " + statsObj.memory.rss.toFixed(0) + " MB"
-    //   ));
-    // }
 
     statsObj.memory.heap = process.memoryUsage().heapUsed/(1024*1024);
 

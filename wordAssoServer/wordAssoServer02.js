@@ -2809,7 +2809,7 @@ function initRateQinterval(interval){
 
       }, function(err){
 
-        debug("paramsSorter\n" + jsonPrint(paramsSorter));
+        console.log(chalkAlert("paramsSorter\n" + jsonPrint(paramsSorter)));
 
         if (err) {
           console.error(chalkError("ERROR RATE QUEUE INTERVAL\n" + err ));

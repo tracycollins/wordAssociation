@@ -531,6 +531,7 @@ function initStats(callback){
 
   statsObj.twitter = {};
   statsObj.twitter.tweetsReceived = 0;
+  statsObj.twitter.tweetsPerMinute = 0;
 
   statsObj.hostname = hostname;
   statsObj.name = "Word Association Server Status";
@@ -831,6 +832,7 @@ function showStats(options){
 
   statsObj.elapsed = msToTime(moment().valueOf() - statsObj.startTime);
   statsObj.timeStamp = moment().format(compactDateTimeFormat);
+  statsObj.twitter.tweetsPerMinute = parseFloat(tweetMeter.toJSON()[metricsRate]);
 
   if (options) {
     console.log(chalkLog("STATS\n" + jsonPrint(statsObj)));
@@ -842,8 +844,9 @@ function showStats(options){
     + " | S: " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat)
     + " | AD: " + statsObj.entity.admin.connected
     + " | UT: " + statsObj.entity.util.connected
-    + " | US: " + statsObj.entity.user.connected
+    // + " | US: " + statsObj.entity.user.connected
     + " | VW: " + statsObj.entity.viewer.connected
+    + " | TwRxPM: " + statsObj.twitter.tweetsPerMinute
     + " | TwRXQ: " + tweetRxQueue.size()
     + " | TwPRQ: " + tweetParserQueue.size()
     + " | RSS: " + statsObj.memory.rss.toFixed(2) + " MB"
@@ -971,9 +974,13 @@ process.env.NODE_ENV = process.env.NODE_ENV || "development";
 debug("NODE_ENV : " + process.env.NODE_ENV);
 debug("CLIENT HOST + PORT: " + "http://localhost:" + config.port);
 
+const tweetMeter = new Measured.Meter({rateUnit: 60000});
+ 
 function socketRxTweet(tw) {
 
   statsObj.twitter.tweetsReceived += 1;
+  tweetMeter.mark();
+  // statsObj.twitter.tweetsPerMinute = parseFloat(tweetMeter.toJSON()[metricsRate]);
 
   debug(chalkSocket("tweet" 
     + " [" + statsObj.twitter.tweetsReceived + "]"
@@ -1205,10 +1212,6 @@ function initSocketHandler(socketObj) {
         viewerSessionKey: moment().valueOf()
       }
     );
-  });
-
-  socket.on("VIEWER_READY", function(viewerObj) {
-    debug(chalkSocket("VIEWER READY\n" + jsonPrint(viewerObj)));
   });
 
   socket.on("tweet", socketRxTweet);
@@ -2822,6 +2825,8 @@ function initRateQinterval(interval){
     statsObj.queues.sorterMessageRxQueue = sorterMessageRxQueue.size();
     statsObj.queues.tweetParserMessageRxQueue = tweetParserMessageRxQueue.size();
 
+    updateTimeSeriesCount += 1;
+
     if (updateTimeSeriesCount === 0){
 
       let paramsSorter = {};
@@ -2921,9 +2926,9 @@ function initRateQinterval(interval){
       }
     }
 
-    updateTimeSeriesCount += 1;
-
-    if (updateTimeSeriesCount > RATE_QUEUE_INTERVAL_MODULO) { updateTimeSeriesCount = 0; }
+    if (updateTimeSeriesCount > RATE_QUEUE_INTERVAL_MODULO) { 
+      updateTimeSeriesCount = 0;
+    }
 
   }, interval);
 }

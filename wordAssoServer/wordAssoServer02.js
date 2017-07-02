@@ -1180,6 +1180,7 @@ function initSocketHandler(socketObj) {
       + " | " + getTimeStamp()
       + " | " + userObj.userId
       + " | SENT AT " + moment(parseInt(userObj.timeStamp)).format(compactDateTimeFormat)
+      + "\n" + jsonPrint(userObj)
     ));
 
     socket.emit("USER_READY_ACK", 

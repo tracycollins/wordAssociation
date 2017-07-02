@@ -64,7 +64,7 @@ if (debug.enabled) {
 // FUNCTIONS
 // ==================================================================
 
-const sortedObjectValues = function(params) {
+sortedObjectValues = function(params) {
 
   return new Promise(function(resolve, reject) {
 
@@ -125,7 +125,7 @@ process.on("message", function(m) {
       params.obj = m.obj;
       params.max = m.max;
 
-      debug(chalkGreen("SORTER SORT"
+      console.log(chalkGreen("SORTER SORT"
         + " | OBJ KEYS: " + Object.keys(m.obj).length
       ));
 

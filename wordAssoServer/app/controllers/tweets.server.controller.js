@@ -3,8 +3,8 @@
 
 var removeDuplicateFlag = true;
 
-var chalk = require('chalk');
-var _ = require('lodash');
+var chalk = require("chalk");
+var _ = require("lodash");
 
 var HashMap = require("hashmap").HashMap;
 
@@ -14,18 +14,18 @@ var chalkError = chalk.bold.red;
 var chalkAlert = chalk.red;
 var chalkTwitter = chalk.blue;
 
-var moment = require('moment');
+var moment = require("moment");
 var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
 
-var Tweet = require('mongoose').model('Tweet');
-var Hashtag = require('mongoose').model('Hashtag');
-var Media = require('mongoose').model('Media');
-var User = require('mongoose').model('User');
-var Url = require('mongoose').model('Url');
-var Place = require('mongoose').model('Place');
+var Tweet = require("mongoose").model("Tweet");
+var Hashtag = require("mongoose").model("Hashtag");
+var Media = require("mongoose").model("Media");
+var User = require("mongoose").model("User");
+var Url = require("mongoose").model("Url");
+var Place = require("mongoose").model("Place");
 
-var debug = require('debug')('tweets');
-var async = require('async');
+var debug = require("debug")("tweets");
+var async = require("async");
 
 var DEFAULT_X = 100;
 var DEFAULT_Y = 100;
@@ -65,72 +65,6 @@ function getTimeStamp(inputTime) {
   }
   return currentTimeStamp.format(defaultDateTimeFormat);
 }
-
-function checkKeyword(nodeObj, callback) {
-
-  debug(chalkAlert("checkKeyword"
-    + " | " + nodeObj.nodeType
-    + " | " + nodeObj.nodeId
-    + "\n" + jsonPrint(nodeObj)
-  ));
-
-  if ((nodeObj.nodeType === "user") 
-    && (nodeObj.screenName !== undefined) 
-    && (nodeObj.screenName) 
-    && keywordHashMap.has(nodeObj.screenName.toLowerCase())) {
-    debug(chalkAlert("HIT USER SNAME"));
-    kwObj = keywordHashMap.get(nodeObj.screenName.toLowerCase());
-    nodeObj.isKeyword = true;
-    nodeObj.keywords = kwObj;    
-    callback(nodeObj);
-  }
-  else if ((nodeObj.nodeType === "user") 
-    && (nodeObj.name !== undefined) 
-    && (nodeObj.name) 
-    && keywordHashMap.has(nodeObj.name.toLowerCase())) {
-    debug(chalkAlert("HIT USER NAME"));
-    kwObj = keywordHashMap.get(nodeObj.name.toLowerCase());
-    nodeObj.isKeyword = true;
-    nodeObj.keywords = kwObj;    
-    callback(nodeObj);
-  }
-  else if ((nodeObj.nodeType === "place") 
-    && keywordHashMap.has(nodeObj.name.toLowerCase())) {
-    debug(chalkAlert("HIT PLACE NAME"));
-    kwObj = keywordHashMap.get(nodeObj.name.toLowerCase());
-    nodeObj.isKeyword = true;
-    nodeObj.keywords = kwObj;    
-    callback(nodeObj);
-  }
-  else if (nodeObj.nodeId && keywordHashMap.has(nodeObj.nodeId.toLowerCase())) {
-    debug(chalkAlert("HIT NODE ID"));
-    kwObj = keywordHashMap.get(nodeObj.nodeId.toLowerCase());
-    nodeObj.isKeyword = true;
-    nodeObj.keywords = kwObj;    
-    if ((nodeObj.nodeType === "user") 
-      && (nodeObj.name === undefined) 
-      && (nodeObj.screenName === undefined)) {
-      nodeObj.screenName = nodeObj.nodeId;
-    }
-    callback(nodeObj);
-  }
-  else if (nodeObj.text && keywordHashMap.has(nodeObj.text.toLowerCase())) {
-    debug(chalkAlert("HIT TEXT"));
-    kwObj = keywordHashMap.get(nodeObj.text.toLowerCase());
-    nodeObj.isKeyword = true;
-    nodeObj.keywords = kwObj;    
-    if ((nodeObj.nodeType === "user") 
-      && (nodeObj.name === undefined) 
-      && (nodeObj.screenName === undefined)) {
-      nodeObj.screenName = nodeObj.nodeId;
-    }
-    callback(nodeObj);
-  }
-  else {
-    callback(nodeObj);
-  }
-}
-
 
 exports.findOneUser = function (user, params, callback) {
 
@@ -207,8 +141,8 @@ exports.findOneUser = function (user, params, callback) {
 											us.mentions = mentionsString ;
 											if (params.io) {
 												// console.log("IO EMIT USER " + us.nodeId);
-												params.io.of('/admin').emit('node', us);	
-												params.io.of('/client').emit('node', us);	
+												params.io.of("/admin").emit("node", us);	
+												params.io.of("/client").emit("node", us);	
 											}			
 											callback(err, us);
 										}
@@ -242,8 +176,8 @@ exports.findOneUser = function (user, params, callback) {
 				us.mentions = mentionsString ;
 				if (params.io) {
 					// console.log("IO EMIT USER " + us.nodeId);
-					params.io.of('/admin').emit('node', us);	
-					params.io.of('/client').emit('node', us);	
+					params.io.of("/admin").emit("node", us);	
+					params.io.of("/client").emit("node", us);	
 				}			
 				callback(err, us);
 			}
@@ -327,8 +261,8 @@ function findOnePlace (place, params, callback) {
 
 				if (params.io) {
 					debug("IO EMIT PLACE " + pl.nodeId + " | " + pl.fullName);
-					params.io.of('/admin').emit('node', pl);	
-					params.io.of('/client').emit('node', pl);	
+					params.io.of("/admin").emit("node", pl);	
+					params.io.of("/client").emit("node", pl);	
 				}			
 				callback(err, pl);
 			}
@@ -410,8 +344,8 @@ function findOneMedia (media, params, callback) {
 
 				if (params.io) {
 					// console.log("IO EMIT MEDIA " + me.nodeId);
-					params.io.of('/admin').emit('node', me);	
-					params.io.of('/client').emit('node', me);	
+					params.io.of("/admin").emit("node", me);	
+					params.io.of("/client").emit("node", me);	
 				}		
 				callback(err, me);
 			}
@@ -482,8 +416,8 @@ function findOneHashtag (hashtag, params, callback) {
 				recentHashtagArray.push(ht);
 				if (recentHashtagArray.length > maxRecentHashtags) { recentHashtagArray.shift(); }
 				if (params.io) {
-					params.io.of('/admin').emit('node', ht);	
-					params.io.of('/client').emit('node', ht);	
+					params.io.of("/admin").emit("node", ht);	
+					params.io.of("/client").emit("node", ht);	
 				}		
 				callback(err, ht);
 			}
@@ -553,8 +487,8 @@ function findOneUrl (url, params, callback) {
 
 				if (params.io) {
 					// console.log("IO EMIT URL " + ur.nodeId);
-					params.io.of('/admin').emit('node', ur);	
-					params.io.of('/client').emit('node', ur);
+					params.io.of("/admin").emit("node", ur);	
+					params.io.of("/client").emit("node", ur);
 				}		
 				callback(err, ur);
 			}
@@ -620,7 +554,7 @@ function findOneTweet (tweet, params, callback) {
 	      newTranslationObj[id] = tweet.addHashMap[prop][id];
 
 				addArray.push(newTranslationObj);
-				update.addToSet[prop] = { '$each': addArray};
+				update.addToSet[prop] = { "$each": addArray};
 				delete tweet.addHashMap[prop][id];
 			});
 		});
@@ -661,7 +595,7 @@ function findOneTweet (tweet, params, callback) {
 				tw.x = DEFAULT_X ;
 				tw.y = DEFAULT_Y ;
 
-				var textReformatted = tw.extendedText ? tw.extendedText.replace('\n', ' ') : tw.text.replace('\n', ' ') ;
+				var textReformatted = tw.extendedText ? tw.extendedText.replace("\n", " ") : tw.text.replace("\n", " ") ;
 
 				// console.log("tw: " + JSON.stringify(tw, null, 3));
 
@@ -713,11 +647,11 @@ function findOneTweet (tweet, params, callback) {
 
 				if (params.io) {
 					// debug("IO EMIT TWEET " + tw.nodeId);
-					params.io.emit('node', tw);	
-					params.io.of('/admin').emit('node', tw);	
-					params.io.of('/client').emit('node', tw);	
-					params.io.of('/util').emit('node', tw);	
-					params.io.of('/util').in("meta").emit('node', tw);	
+					params.io.emit("node", tw);	
+					params.io.of("/admin").emit("node", tw);	
+					params.io.of("/client").emit("node", tw);	
+					params.io.of("/util").emit("node", tw);	
+					params.io.of("/util").in("meta").emit("node", tw);	
 				}
 
 				callback(err, tw);
@@ -748,7 +682,7 @@ exports.createStreamTweet = function(params, callback) {
 	var io = params.io;
 
 	var tweetObj ;
-	var userProfileImageUrl = newTweet.user.profile_image_url.replace(/_normal/i, '');
+	var userProfileImageUrl = newTweet.user.profile_image_url.replace(/_normal/i, "");
 
 	debug(chalkTwitter("newTweet: " + newTweet.text));
 	if (newTweet.truncated && newTweet.extended_tweet) {
@@ -758,7 +692,7 @@ exports.createStreamTweet = function(params, callback) {
 	debug(chalkTwitter("newTweet.addHashMap: " + jsonPrint(newTweet.addHashMap)));
 
 	tweetObj = new Tweet({ 
-		nodeType: 'tweet',
+		nodeType: "tweet",
 		testMode: newTweet.testMode,
 		nodeId : newTweet.id_str,
 		tweetId : newTweet.id_str,
@@ -853,7 +787,7 @@ exports.createStreamTweet = function(params, callback) {
 						mentions : 0
 					});
 
-					if (newTweet.user.id_str == umObj.id_str) {
+					if (newTweet.user.id_str === umObj.id_str) {
 						debug(chalkAlert("userMentions SKIPPING: USER MENTION == USER: " + newTweet.user.id_str));
 						cb2(null, userMentionObj);
 					}
@@ -952,7 +886,7 @@ exports.createStreamTweet = function(params, callback) {
 
 				async.concat(newTweet.entities.media, function (mediaObj, cb2) {
 
-					// var largeImageUrl = meObj.media_url + ':large';  // xlink:xref does like these urls ????
+					// var largeImageUrl = meObj.media_url + ":large";  // xlink:xref does like these urls ????
 					var defaultImageUrl = mediaObj.media_url + ":thumb" ;
 
 					var meObj = new Media({ 
@@ -1045,7 +979,7 @@ exports.createStreamTweet = function(params, callback) {
 						debug(chalkError("ERROR createStreamTweet: urls: " + err));
 						cb(err, null);
 					}
-					// else if (typeof urls === 'undefined') {
+					// else if (typeof urls === "undefined") {
 					// 	debug(chalkAlert("urls undefined"));
 					// 	cb(null, null);
 					// }
@@ -1153,8 +1087,8 @@ exports.tweetByExactID = function(id, callback) {
 					+ " | FOUND " + reqTweet.tweetId
 				);
 	
-				var textReformatted = reqTweet.text.replace('\n', ' ') ;
-				textReformatted = textReformatted.replace('\r', ' ') ;
+				var textReformatted = reqTweet.text.replace("\n", " ") ;
+				textReformatted = textReformatted.replace("\r", " ") ;
 
 				debug("@@@-> TBID"
 					+ " | " + reqTweet.tweetId 
@@ -1178,10 +1112,10 @@ exports.tweetByID = function(options, callback) {
 	var startMoment;
 	var endMoment;
 
-	// if (typeof options.limit === 'undefined') { options.limit = 100; }
+	// if (typeof options.limit === "undefined") { options.limit = 100; }
 	if (!options.limit) { options.limit = 100; }
 
-	// if (typeof options.startMoment !== 'undefined') {
+	// if (typeof options.startMoment !== "undefined") {
 	if (!options.startMoment) {
 		startMoment = moment.utc(new Date(options.startMoment));
 	}
@@ -1231,8 +1165,8 @@ exports.tweetByID = function(options, callback) {
 				// for (var i=0; i<reqTweets.length; i++){
 				reqTweets.forEach(function(tweet){
 	
-					var textReformatted = tweet.text.replace('\n', ' ') ;
-					textReformatted = textReformatted.replace('\r', ' ') ;
+					var textReformatted = tweet.text.replace("\n", " ") ;
+					textReformatted = textReformatted.replace("\r", " ") ;
 
 					debug("@@@-> TBID"
 						+ " | " + tweet.tweetId 
@@ -1305,8 +1239,8 @@ exports.tweetByTimeStamp = function(reqDate, lim, callback) {
 				// for (var i=0; i<reqTweets.length; i++){
 				reqTweets.forEach(function(tweet){
 
-					var textReformatted = tweet.text.replace('\n', ' ') ;
-					textReformatted = textReformatted.replace('\r', ' ') ;
+					var textReformatted = tweet.text.replace("\n", " ") ;
+					textReformatted = textReformatted.replace("\r", " ") ;
 
 					debug("@@@-> TBTS"
 						+ " | " + tweet.tweetId 

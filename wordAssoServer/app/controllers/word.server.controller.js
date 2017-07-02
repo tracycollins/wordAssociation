@@ -1,34 +1,36 @@
-// var S = require('string');
-var chalk = require('chalk');
-var util = require('util');
+/*jslint node: true */
+"use strict";
 
-var chalkAdmin = chalk.bold.blue;
+// var S = require("string");
+var chalk = require("chalk");
+// var util = require("util");
 
-var chalkAlert = chalk.red;
-var chalkBht = chalk.gray;
-var chalkInfo = chalk.yellow;
-var chalkTest = chalk.bold.yellow;
+// var chalkAdmin = chalk.bold.blue;
+// var chalkAlert = chalk.red;
+// var chalkBht = chalk.gray;
+// var chalkInfo = chalk.yellow;
+// var chalkTest = chalk.bold.yellow;
 var chalkError = chalk.bold.red;
-var chalkWarn = chalk.bold.yellow;
-var chalkLog = chalk.gray;
-var chalkConnect = chalk.bold.green;
-var chalkConnectAdmin = chalk.bold.cyan;
-var chalkDisconnect = chalk.blue;
-var chalkTwitter = chalk.blue;
-var chalkPlace = chalk.bold.green;
+// var chalkWarn = chalk.bold.yellow;
+// var chalkLog = chalk.gray;
+// var chalkConnect = chalk.bold.green;
+// var chalkConnectAdmin = chalk.bold.cyan;
+// var chalkDisconnect = chalk.blue;
+// var chalkTwitter = chalk.blue;
+// var chalkPlace = chalk.bold.green;
 var chalkDb = chalk.gray;
 
-var moment = require('moment');
+var moment = require("moment");
 var compactDateTimeFormat = "YYYYMMDD HHmmss";
 
-var Word = require('mongoose').model('Word');
-var debug = require('debug')('word');
-var HashMap = require('hashmap').HashMap;
+var Word = require("mongoose").model("Word");
+var debug = require("debug")("word");
+// var HashMap = require("hashmap").HashMap;
 
-var wordTypes = [ 'noun', 'verb', 'adjective', 'adverb' ];
-var wordVariations = [ 'syn', 'ant', 'rel', 'sim', 'usr' ];
+// var wordTypes = [ "noun", "verb", "adjective", "adverb" ];
+// var wordVariations = [ "syn", "ant", "rel", "sim", "usr" ];
 
-var jsonPrint = function(obj) {
+function jsonPrint(obj) {
   if (obj) {
      return JSON.stringify(obj, null, 2);
   } else {
@@ -36,122 +38,116 @@ var jsonPrint = function(obj) {
   }
 }
 
-function randomIntInc (low, high) {
-    return Math.floor(Math.random() * (high - low + 1) + low);
-}
+// function loadBhtResponseHash(wordObj, wordTypes, wordVariations, callback){
 
-function randomInt (low, high) {
-    return Math.floor(Math.random() * (high - low) + low);
-}
+//   var bhtWordHashMap = new HashMap();
 
-function loadBhtResponseHash(wordObj, wordTypes, wordVariations, callback){
+//   wordTypes.forEach(function(wordType){
+//     debug("wordType: " + wordType);
+//     if ((  wordObj[wordType] !== undefined)
+//         && (wordObj[wordType] != null)){
+//       debug("FOUND wordType: " + wordType);
+//       wordVariations.forEach(function(wordVariation){
+//         debug("wordVariation: " + wordVariation);
+//         if (( wordObj[wordType][wordVariation] !== undefined) 
+//           && (wordObj[wordType][wordVariation] != null)){
+//           debug("FOUND wordVariation: " + wordVariation);
+//           var wordArry = wordObj[wordType][wordVariation] ;
+//           wordArry.forEach(function(word){
+//             bhtWordHashMap.set(word, wordObj.nodeId);
+//             debug(wordObj.nodeId 
+//               + " | " + wordType
+//               + " | " + wordVariation
+//               + " | " + word
+//             );
+//           })
+//         }
+//       })
+//     }
+//   });
+//   callback(bhtWordHashMap);
+// }
 
-  var bhtWordHashMap = new HashMap();
+// exports.getWordVariation = function(word, wordTypeArray, wordVariation, callback){
 
-  wordTypes.forEach(function(wordType){
-    debug("wordType: " + wordType);
-    if ((  wordObj[wordType] !== undefined)
-        && (wordObj[wordType] != null)){
-      debug("FOUND wordType: " + wordType);
-      wordVariations.forEach(function(wordVariation){
-        debug("wordVariation: " + wordVariation);
-        if (( wordObj[wordType][wordVariation] !== undefined) 
-          && (wordObj[wordType][wordVariation] != null)){
-          debug("FOUND wordVariation: " + wordVariation);
-          var wordArry = wordObj[wordType][wordVariation] ;
-          wordArry.forEach(function(word){
-            bhtWordHashMap.set(word, wordObj.nodeId);
-            debug(wordObj.nodeId 
-              + " | " + wordType
-              + " | " + wordVariation
-              + " | " + word
-            );
-          })
-        }
-      })
-    }
-  });
-  callback(bhtWordHashMap);
-}
+// 	debug("getWordVariation | word: " + word);
 
-exports.getWordVariation = function(word, wordTypeArray, wordVariation, callback){
+// 	var query = { nodeId: word };
+// 	var projections = {
+// 		noun: true,
+// 		verb: true,
+// 		adjective: true,
+// 		adverb: true
+// 	};
 
-	debug("getWordVariation | word: " + word);
+// 	Word.findOne(query, function(err, wordObj) {
+// 		if (err) {
+// 			console.error(Date.now() + "\n\n***** WORD ANTONYM ERROR\n" + err);
+// 			callback(err, word);
+// 		}
+// 		else if (wordObj) {
+//       debug(chalkBht("-*- BHT WORD FOUND | " + word));
+// 			loadBhtResponseHash(wordObj, wordTypeArray, wordVariation, function(wordVarHashMap){
+// 	      if (wordVarHashMap.count() == 0) {
+// 	        debug(chalkBht("-v- BHT VAR MISS   | " + wordObj.nodeId));
+// 	        callback("BHT_VAR_MISS", wordObj.nodeId);  // ?? maybe unknown wordType?
+// 	        return;
+// 	      }
 
-	var query = { nodeId: word };
-	var projections = {
-		noun: true,
-		verb: true,
-		adjective: true,
-		adverb: true
-	};
+// 	      var bhtWordHashMapKeys = wordVarHashMap.keys();
+// 	      var randomIndex = randomInt(0, bhtWordHashMapKeys.length);
+// 	      var responseWord = bhtWordHashMapKeys[randomIndex].toLowerCase();
 
-	Word.findOne(query, function(err, wordObj) {
-		if (err) {
-			console.error(Date.now() + "\n\n***** WORD ANTONYM ERROR\n" + err);
-			callback(err, word);
-		}
-		else if (wordObj) {
-      debug(chalkBht("-*- BHT WORD FOUND | " + word));
-			loadBhtResponseHash(wordObj, wordTypeArray, wordVariation, function(wordVarHashMap){
-	      if (wordVarHashMap.count() == 0) {
-	        debug(chalkBht("-v- BHT VAR MISS   | " + wordObj.nodeId));
-	        callback('BHT_VAR_MISS', wordObj.nodeId);  // ?? maybe unknown wordType?
-	        return;
-	      }
+//         var responseWordObj = new Word ({
+//         	nodeId: responseWord,
+//         	lastSeen: moment().valueOf()
+//         });
 
-	      var bhtWordHashMapKeys = wordVarHashMap.keys();
-	      var randomIndex = randomInt(0, bhtWordHashMapKeys.length);
-	      var responseWord = bhtWordHashMapKeys[randomIndex].toLowerCase();
+//         exports.findOneWord(responseWordObj, true, function(err2, updatedResponseWordObj){
+//         	if (err2){
+// 						console.error(Date.now() + "\n\n***** WORD ANTONYM ERROR\n" + err2);
+// 						callback(err, word);
+//         	}
+//         	else {
+// 		        debug(chalkBht("-*- BHT VAR HIT    | " + updatedResponseWordObj.nodeId + " | " + responseWord));
+// 			      callback("BHT_VAR_HIT", updatedResponseWordObj);
+// 			      return;
+// 			    }
+//         });
 
-        var responseWordObj = new Word ({
-        	nodeId: responseWord,
-        	lastSeen: moment().valueOf()
-        });
+// 			});
+// 		}
+// 		else {
+//       debug(chalkBht("-v- BHT VAR MISS   | " + word));
+//       callback("BHT_VAR_MISS", word);  // ?? maybe unknown wordType?
+// 		}
+// 	});
+// };
 
-        exports.findOneWord(responseWordObj, true, function(err2, updatedResponseWordObj){
-        	if (err2){
-						console.error(Date.now() + "\n\n***** WORD ANTONYM ERROR\n" + err2);
-						callback(err, word);
-        	}
-        	else {
-		        debug(chalkBht("-*- BHT VAR HIT    | " + updatedResponseWordObj.nodeId + " | " + responseWord));
-			      callback('BHT_VAR_HIT', updatedResponseWordObj);
-			      return;
-			    }
-        });
-
-			});
-		}
-		else {
-      debug(chalkBht("-v- BHT VAR MISS   | " + word));
-      callback('BHT_VAR_MISS', word);  // ?? maybe unknown wordType?
-		}
-	});
-}
-
-exports.getRandomWord = function(callback){
-	var query = { $sample: { size: 1 }};
-	Word.aggregate(query, function(err, randomWordArray){
-		if (err) {
-			console.error(Date.now() + "\n\n***** WORD RANDOM ERROR\n" + err);
-			callback(err, null);
-		}
-		else {
-			debug("RANDOM WORD\n" + JSON.stringify(randomWordArray, null, 3));
-			if (!randomWordArray[0]) {
-				debug(chalkError("*** NULL RANDOM WORD... RETURNING black"));
-				console.error(chalkError("*** NULL RANDOM WORD... RETURNING black"));
-				callback(null, {nodeId: 'black'});
-			}
-			else {
-				callback(null, randomWordArray[0]);
-			}
-		}
-	});
-}
+// exports.getRandomWord = function(callback){
+// 	var query = { $sample: { size: 1 }};
+// 	Word.aggregate(query, function(err, randomWordArray){
+// 		if (err) {
+// 			console.error(Date.now() + "\n\n***** WORD RANDOM ERROR\n" + err);
+// 			callback(err, null);
+// 		}
+// 		else {
+// 			debug("RANDOM WORD\n" + JSON.stringify(randomWordArray, null, 3));
+// 			if (!randomWordArray[0]) {
+// 				debug(chalkError("*** NULL RANDOM WORD... RETURNING black"));
+// 				console.error(chalkError("*** NULL RANDOM WORD... RETURNING black"));
+// 				callback(null, {nodeId: "black"});
+// 			}
+// 			else {
+// 				callback(null, randomWordArray[0]);
+// 			}
+// 		}
+// 	});
+// };
 
 exports.findOneWord = function(word, incMentions, callback) {
+
+	console.log("findOneWord: " + word.nodeId);
 
 	if (word.nodeId.length > 250){
     console.log(chalkError("*** ILLEGAL WORD NODE ID (> 250 CHARS) ... SKIPPING ***" + "\nTYPE: " +  word.nodeId 
@@ -165,12 +161,12 @@ exports.findOneWord = function(word, incMentions, callback) {
 	// console.log("findOneWord:" + JSON.stringify(word, null, 2));
 
 	var inc = 0;
-	if (incMentions) inc = 1 ;
+	if (incMentions) {inc = 1 ;}
 
 	var query = { nodeId: word.nodeId  };
 	var update = { 
-		$inc: { mentions: inc }, 
-		$set: { 
+		"$inc": { mentions: inc }, 
+		"$set": { 
 			nodeId: word.nodeId,
 			raw: word.raw,
 			rate: word.rate || 0,
@@ -187,13 +183,13 @@ exports.findOneWord = function(word, incMentions, callback) {
 			wapiSearched: word.wapiSearched,
 			wapiFound: word.wapiFound,
 			tags: word.tags
-		},
-		$max: { noun: word.noun },
-		$max: { verb: word.verb },
-		$max: { adjective: word.adjective },
-		$max: { adverb: word.adverb },
-		$max: { bhtSearched: word.bhtSearched },
-		$max: { bhtFound: word.bhtFound }
+		}
+		// noun: { "$max": word.noun },
+		// verb: { "$max": word.verb },
+		// adjective: { "$max": word.adjective },
+		// adverb: { "$max": word.adverb },
+		// bhtSearched: { "$max": word.bhtSearched },
+		// bhtFound: { "$max": word.bhtFound }
 	};
 
 	var options = { 
@@ -221,7 +217,7 @@ exports.findOneWord = function(word, incMentions, callback) {
 				callback("ERROR " + err, word);
 			}
 			else {
-				debug(chalkDb("->- DB UPDATE" 
+				console.log(chalkDb("->- DB UPDATE" 
 					+ " | " + wd.nodeId 
 					+ " | WPM: " + wd.rate.toFixed(2) 
 					+ " | KW: " + wd.isKeyword 
@@ -278,4 +274,4 @@ exports.findOneWord = function(word, incMentions, callback) {
 			}
 		}
 	);
-}
+};

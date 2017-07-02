@@ -344,7 +344,7 @@ const updateKeywords = function(folder, file, callback){
                   }
                 }
                 else {
-                  console.log(chalkInfo("UPDATER: UPDATING KEYWORD"
+                  debug(chalkInfo("UPDATER: UPDATING KEYWORD"
                     + " | " + wd
                     // + ": " + jsonPrint(wordObj)
                   ));

@@ -145,7 +145,7 @@ function initTweetParserQueueInterval(cnf){
             }
           }
           else {
-            debug(chalkInfo("[" + tweetParserQueue.size() + "]"
+            console.log(chalkInfo("[" + tweetParserQueue.size() + "]"
               + " createStreamTweet DONE" 
               + " | " + tweetObj.tweetId
               // + "\ntweetObj.tweet.user\n" + jsonPrint(tweetObj.tweet.user)

@@ -1011,6 +1011,8 @@ function socketRxTweet(tw) {
   }
   else if (tw.user) {
 
+    tw.inc = true;
+
     tweetRxQueue.enqueue(tw);
     statsObj.queues.tweetRxQueue = tweetRxQueue.size();
 
@@ -2060,7 +2062,7 @@ function initTwitterRxQueueInterval(interval){
       tweet =  tweetRxQueue.dequeue();
 
       debug(chalkInfo("TPQ<"
-        + " [" + tweetParserQueue.size() + "]"
+        + " [" + tweetRxQueue.size() + "]"
         // + " | " + socket.id
         + " | " + tweet.id_str
         + " | " + tweet.user.id_str
@@ -2092,13 +2094,16 @@ function initTweetParserMessageRxQueueInterval(interval){
 
   clearInterval(tweetParserMessageRxQueueInterval);
 
+  let tweetParserMessage;
+  let tweetObj;
+
   tweetParserMessageRxQueueInterval = setInterval(function tweetParserMessageRxQueueDequeue() {
 
     if (!tweetParserMessageRxQueue.isEmpty() && tweetParserMessageRxQueueReady) {
 
       tweetParserMessageRxQueueReady = false;
 
-      let tweetParserMessage = tweetParserMessageRxQueue.dequeue();
+      tweetParserMessage = tweetParserMessageRxQueue.dequeue();
 
       debug(chalkLog("TWEET PARSER RX MESSAGE"
         + " | OP: " + tweetParserMessage.op
@@ -2107,7 +2112,7 @@ function initTweetParserMessageRxQueueInterval(interval){
 
       if (tweetParserMessage.op === "parsedTweet") {
 
-        let tweetObj = tweetParserMessage.tweetObj;
+        tweetObj = tweetParserMessage.tweetObj;
 
         if (!tweetObj.user) {
           console.log(chalkAlert("parsedTweet -- TW USER UNDEFINED"
@@ -2117,7 +2122,7 @@ function initTweetParserMessageRxQueueInterval(interval){
         }
         else {
 
-          console.log(chalkInfo("PARSED TW"
+          debug(chalkInfo("PARSED TW"
             + " [ TPMRQ: " + tweetParserMessageRxQueue.size() + "]"
             + " | " + tweetObj.tweetId
             + " | USR: " + tweetObj.user.screenName

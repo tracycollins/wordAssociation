@@ -105,7 +105,7 @@ const sendSorted = function(params) {
 
 process.on("message", function(m) {
 
-  console.log(chalkInfo("SORTER RX MESSAGE"
+  debug(chalkInfo("SORTER RX MESSAGE"
     + " | OP: " + m.op
     // + "\n" + jsonPrint(m)
   ));

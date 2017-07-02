@@ -354,14 +354,14 @@ const dropboxClient = new Dropbox({ accessToken: DROPBOX_WORD_ASSO_ACCESS_TOKEN 
 const configFolder = "/config/utility/" + hostname;
 const deletedMetricsFile = "deletedMetrics.json";
 
-const jsonPrint = function (obj) {
+function jsonPrint(obj) {
   if (obj) {
     return JSON.stringify(obj, null, 2);
   } 
   else {
     return obj;
   }
-};
+}
 
 
 function msToTime(duration) {
@@ -914,19 +914,7 @@ process.on("message", function processMessageRx(msg) {
       quit(msg);
     }, 300);
   }
-
 });
-
-// ==================================================================
-// FUNCTIONS
-// ==================================================================
-
-
-
-// ==================================================================
-// SERVER STATUS
-// ==================================================================
-
 
 let configEvents = new EventEmitter2({
   wildcard: true,
@@ -937,7 +925,6 @@ let configEvents = new EventEmitter2({
 configEvents.on("newListener", function configEventsNewListener(data) {
   debug("*** NEW CONFIG EVENT LISTENER: " + data);
 });
-
 
 let adminNameSpace;
 let utilNameSpace;
@@ -1224,7 +1211,6 @@ function initSocketHandler(socketObj) {
   });
 
   socket.on("tweet", socketRxTweet);
-
 }
 
 function initSocketNamespaces(callback){
@@ -2120,7 +2106,6 @@ function initTwitterRxQueueInterval(interval){
 
 let tweetParserMessageRxQueueReady = true;
 let tweetParserMessageRxQueueInterval;
-
 function initTweetParserMessageRxQueueInterval(interval){
 
   console.log(chalkLog("INIT TWEET PARSER MESSAGE RX QUEUE INTERVAL | " + interval + " MS"));
@@ -2274,7 +2259,6 @@ function initSorterMessageRxQueueInterval(interval){
 
 let updaterPingInterval;
 let updaterPingOutstanding = 0;
-
 function initUpdater(callback){
 
   clearInterval(updaterPingInterval);
@@ -2350,7 +2334,6 @@ function initUpdater(callback){
 
   if (callback !== undefined) { callback(null, u); }
 }
-
 
 function initUpdaterPingInterval(interval){
 

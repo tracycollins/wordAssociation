@@ -1158,8 +1158,6 @@ function initSocketHandler(socketObj) {
 
       tmsServers[socket.id].connected = true;
       tmsServers[socket.id].user = userObj;
-
-
     }
  
     if (userObj.userId.match(/TSS_/g)){
@@ -1179,14 +1177,6 @@ function initSocketHandler(socketObj) {
       currentTssServer = tssServers[socket.id];
     }
   });
-
-  // socket.on("USER_READY", function userReady(userObj, cb) {
-  //   console.log(chalkSocket("USER READY"
-  //     + " | " + getTimeStamp()
-  //     + " | " + userObj.userId
-  //   ));
-  //   if ((cb !== undefined) && (typeof cb === "function")) { cb(userObj.userId); }
-  // });
 
   socket.on("USER_READY", function userReady(userObj) {
     console.log(chalkSocket("USER READY"
@@ -1235,36 +1225,28 @@ function initSocketNamespaces(callback){
   viewNameSpace = io.of("/view");
 
   adminNameSpace.on("connect", function adminConnect(socket) {
-    // socket.setMaxListeners(0);
     console.log(chalkAlert("ADMIN CONNECT " + socket.id));
     statsObj.entity.admin.connected = Object.keys(adminNameSpace.connected).length; // userNameSpace.sockets.length ;
     initSocketHandler({namespace: "admin", socket: socket});
   });
 
   utilNameSpace.on("connect", function utilConnect(socket) {
-    // socket.setMaxListeners(0);
     console.log(chalkAlert("UTIL CONNECT " + socket.id));
     statsObj.entity.util.connected = Object.keys(utilNameSpace.connected).length; // userNameSpace.sockets.length ;
     initSocketHandler({namespace: "util", socket: socket});
   });
 
   userNameSpace.on("connect", function userConnect(socket) {
-    // socket.setMaxListeners(0);
     console.log(chalkAlert("USER CONNECT " + socket.id));
     statsObj.entity.user.connected = Object.keys(userNameSpace.connected).length; // userNameSpace.sockets.length ;
     initSocketHandler({namespace: "user", socket: socket});
   });
 
   viewNameSpace.on("connect", function viewConnect(socket) {
-    // socket.setMaxListeners(0);
     console.log(chalkAlert("VIEWER CONNECT " + socket.id));
     statsObj.entity.viewer.connected = Object.keys(viewNameSpace.connected).length; // userNameSpace.sockets.length ;
     initSocketHandler({namespace: "view", socket: socket});
   });
-
-  // io.on("connect", function(socket) {
-  //   // let ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
-  // });
 
   ioReady = true;
 
@@ -1840,8 +1822,6 @@ function logHeartbeat() {
 
 configEvents.on("SERVER_READY", function serverReady() {
 
-  // serverReady = true;
-
   debug(chalkInfo(moment().format(compactDateTimeFormat) + " | SERVER_READY EVENT"));
 
   httpServer.on("reconnect", function serverReconnect() {
@@ -1891,17 +1871,11 @@ configEvents.on("SERVER_READY", function serverReady() {
     statsObj.memory.memoryAvailable = os.freemem();
     statsObj.memory.memoryUsage = process.memoryUsage();
 
-    //
-    // SERVER HEARTBEAT
-    //
-
     if (internetReady && ioReady) {
 
       heartbeatsSent += 1;
 
       statsObj.configuration = configuration;
-
-      // io.emit("HEARTBEAT", statsObj);
 
       utilNameSpace.volatile.emit("HEARTBEAT", statsObj);
       adminNameSpace.volatile.emit("HEARTBEAT", statsObj);
@@ -2081,10 +2055,7 @@ function initTwitterRxQueueInterval(interval){
 
   tweetRxQueueInterval = setInterval(function tweetRxQueueDequeue() {
 
-    // if (tweetParserReady && !tweetRxQueue.isEmpty()) {
     if (!tweetRxQueue.isEmpty()) {
-
-      // tweetParserReady = false;
 
       tweet =  tweetRxQueue.dequeue();
 
@@ -2107,7 +2078,6 @@ function initTwitterRxQueueInterval(interval){
             quit("TWEET PARSER SEND ERROR");
           }
         }
-        // tweetParserReady = true;
       });
 
     }
@@ -2121,9 +2091,6 @@ function initTweetParserMessageRxQueueInterval(interval){
   console.log(chalkLog("INIT TWEET PARSER MESSAGE RX QUEUE INTERVAL | " + interval + " MS"));
 
   clearInterval(tweetParserMessageRxQueueInterval);
-
-  // let tweetParserMessage;
-  // let tweetObj;
 
   tweetParserMessageRxQueueInterval = setInterval(function tweetParserMessageRxQueueDequeue() {
 
@@ -2194,14 +2161,6 @@ function initSorterMessageRxQueueInterval(interval){
   console.log(chalkLog("INIT SORTER RX MESSAGE QUEUE INTERVAL | " + interval + " MS"));
 
   clearInterval(sorterMessageRxQueueInterval);
-
-  // let sorterObj;
-  // let sortedKeys;
-  // let endIndex;
-  // let index;
-  // let i;
-  // let node;
-  // let nodeRate;
 
   sorterMessageRxQueueInterval = setInterval(function sorterMessageRxQueueDequeue() {
 
@@ -2761,14 +2720,6 @@ function initRateQinterval(interval){
   }
   let queueNames;
 
-  // let paramsSorter = {};
-
-  // paramsSorter.obj = {};
-  // paramsSorter.op = "SORT";
-  // paramsSorter.sortKey = metricsRate;
-  // paramsSorter.max = configuration.maxTopTerms;
-  // // paramsSorter.obj = wordMeter;
-
   let memoryRssDataPoint = {};
   memoryRssDataPoint.metricType = "memory/rss";
   memoryRssDataPoint.metricLabels = {server_id: "MEM"};
@@ -2941,7 +2892,6 @@ function initRateQinterval(interval){
 
 function initialize(cnf, callback) {
 
-  // debug(chalkInfo(moment().format(compactDateTimeFormat) + " | initialize ..."));
   debug(chalkInfo(moment().format(compactDateTimeFormat) + " | INITIALIZE"));
 
   let configArgs = Object.keys(cnf);

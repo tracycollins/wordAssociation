@@ -64,7 +64,7 @@ if (debug.enabled) {
 // FUNCTIONS
 // ==================================================================
 
-sortedObjectValues = function(params) {
+const sortedObjectValues = function(params) {
 
   return new Promise(function(resolve, reject) {
 

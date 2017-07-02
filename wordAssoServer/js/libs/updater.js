@@ -105,24 +105,24 @@ const dropboxClient = new Dropbox({ accessToken: DROPBOX_WORD_ASSO_ACCESS_TOKEN 
 let keywordUpdateInterval;
 let keywordsUpdateReady = true;
 
-db.connection.on('connected', function () {
+db.on('connected', function () {
   console.log('UPDATER: DB: default connection OPEN to ' + config.wordAssoDb);
   statsObj.db.connectedTime = moment().valueOf();
 }); 
 
-db.connection.on('close', function () {  
+db.on('close', function () {  
   console.log('UPDATER: DB: default connection CLOSED to ' + config.wordAssoDb);
   statsObj.db.closedTime = moment().valueOf();
 }); 
 
-db.connection.on('error', function (err) {
+db.on('error', function (err) {
   console.error("\n\n*** UPDATER DB ERROR ***\n" + err + "\n\n");
   statsObj.db.err = err;
   statsObj.db.errorTime = moment().valueOf();
 });
 
 // When the connection is disconnected
-db.connection.on('disconnected', function () {  
+db.on('disconnected', function () {  
   console.error("\n\n*** UPDATER DB DISCONNECTED ***\n\n");
   statsObj.db.disconnectedTime = moment().valueOf();
 });

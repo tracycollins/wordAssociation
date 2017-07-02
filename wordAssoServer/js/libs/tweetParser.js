@@ -10,6 +10,12 @@ const os = require("os");
 const mongoose = require("../../config/mongoose");
 const db = mongoose();
 
+const Tweet = require("mongoose").model("Tweet");
+const Hashtag = require("mongoose").model("Hashtag");
+const Media = require("mongoose").model("Media");
+const User = require("mongoose").model("User");
+const Url = require("mongoose").model("Url");
+const Place = require("mongoose").model("Place");
 const tweetServer = require("../../app/controllers/tweets.server.controller");
 
 const Queue = require("queue-fifo");
@@ -21,7 +27,6 @@ const chalkAlert = chalk.red;
 const chalkError = chalk.bold.red;
 
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
-
 
 let hostname = os.hostname();
 hostname = hostname.replace(/.local/g, "");
@@ -98,7 +103,7 @@ cnf.verbose = false;
 cnf.updateInterval = 10;
 cnf.globalTestMode = false;
 cnf.testMode = false;
-cnf.noInc = false;
+cnf.inc = true;
 
 
 let tweetParserQueueInterval;
@@ -113,7 +118,7 @@ function initTweetParserQueueInterval(cnf){
   let params = {
     globalTestMode: cnf.globalTestMode,
     testMode: cnf.testMode,
-    noInc: cnf.noInc,
+    inc: cnf.inc,
     twitterEvents: configEvents
   };
 
@@ -195,13 +200,16 @@ process.on("message", function(m) {
         + " | INTERVAL: " + m.interval
       ));
       initTweetParserQueueInterval(cnf);
+
     break;
 
     case "tweet":
       if (tweetParserQueue.size() < MAX_Q) {
+
         tweetParserQueue.enqueue(m.tweetStatus);
+
         debug(chalkInfo("T<"
-          + " [" + tweetParserQueue.size() + "]"
+          + " [ TPQ: " + tweetParserQueue.size() + "]"
           + " | " + m.tweetStatus.id_str
         ));
       }

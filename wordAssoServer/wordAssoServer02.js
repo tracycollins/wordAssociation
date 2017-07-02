@@ -2455,7 +2455,7 @@ function initSorter(callback){
   const s = cp.fork(`${__dirname}/js/libs/sorter.js`);
 
   s.on("message", function sorterMessageRx(m){
-    console.log(chalkLog("SORTER RX"
+    debug(chalkLog("SORTER RX"
       + " | " + m.op
       // + "\n" + jsonPrint(m)
     ));
@@ -2809,7 +2809,7 @@ function initRateQinterval(interval){
 
       }, function(err){
 
-        console.log(chalkAlert("paramsSorter\n" + jsonPrint(paramsSorter)));
+        // console.log(chalkAlert("paramsSorter\n" + jsonPrint(paramsSorter)));
 
         if (err) {
           console.error(chalkError("ERROR RATE QUEUE INTERVAL\n" + err ));

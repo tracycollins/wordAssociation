@@ -47,6 +47,7 @@
     "object.defaults": "^1.1.0",
     "object.pick": "^1.2.0",
     "panzoom": "^2.5.0",
+    "pm2": "^2.5.0",
     "pmx": "^1.2.0",
     "progressbar.js": "^1.0.1",
     "prompt": "^1.0.0",

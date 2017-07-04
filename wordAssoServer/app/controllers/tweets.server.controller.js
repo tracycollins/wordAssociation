@@ -75,9 +75,9 @@ exports.findOneUser = function  (user, params, callback) {
 			verified: user.verified,
 			following: user.following,
 			status: user.status,
-			statusesCount: user.statusesCount,
-			followersCount: user.followersCount,
-			friendsCount: user.friendsCount,
+			"$max": {statusesCount: user.statusesCount},
+			"$max": {followersCount: user.followersCount},
+			"$max": {friendsCount: user.friendsCount},
 			lastSeen: moment().valueOf() 
 		}
 	};
@@ -115,7 +115,7 @@ exports.findOneUser = function  (user, params, callback) {
 											callback(err, user);
 										}
 										else {
-											debug(chalkTwitter("> US UPDATED"
+											console.log(chalkTwitter("> US UPDATED"
 												+ " | " + us.userId 
 												+ " | @" + us.screenName
 												+ " | " + us.name

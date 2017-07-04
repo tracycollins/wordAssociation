@@ -665,94 +665,52 @@ function getTimeStamp(inputTime) {
   }
 }
 
-function loadFile(folder, file, callback) {
+function loadFile(path, file, callback) {
 
-  debug(chalkInfo("LOAD FOLDER " + folder));
-  debug(chalkInfo("LOAD FILE " + file));
-  debug(chalkInfo("FULL PATH " + folder + "/" + file));
+  console.log(chalkInfo("LOAD FOLDER " + path));
+  console.log(chalkInfo("LOAD FILE " + file));
+  console.log(chalkInfo("FULL PATH " + path + "/" + file));
 
   let fileExists = false;
-  let payload;
-  let fileObj;
-  // let err = {};
 
-  dropboxClient.filesListFolder({path: folder})
-    .then(function dropboxFilesListFolder(response) {
+  dropboxClient.filesDownload({path: path + "/" + file})
+    .then(function(data) {
+      console.log(chalkLog(getTimeStamp()
+        + " | LOADING FILE FROM DROPBOX FILE: " + path + "/" + file
+      ));
 
-        async.each(response.entries, function checkDropboxFile(folderFile, cb) {
+      let payload = data.fileBinary;
+      debug(payload);
 
-          debug("FOUND FILE " + folderFile.name);
-
-          if (folderFile.name === file) {
-            debug(chalkLog("SOURCE FILE EXISTS: " + file));
-            fileExists = true;
-          }
-
-          cb();
-
-        }, function endCheckDropboxFile(err) {
-
-          if (fileExists) {
-
-
-            dropboxClient.filesDownload({path: folder + "/" + file})
-              .then(function dropboxFilesDownload(data) {
-                debug(chalkLog(getTimeStamp()
-                  + " | LOADING FILE FROM DROPBOX: " + folder + "/" + file
-                  // + "\n" + jsonPrint(data)
-                ));
-
-                payload = data.fileBinary;
-
-                debug(payload);
-
-                if (file.match(/\.json$/gi)) {
-                  debug("FOUND JSON FILE: " + file);
-                  fileObj = JSON.parse(payload);
-                  callback(null, fileObj);
-                }
-                else if (file.match(/\.yml/gi)) {
-                  fileObj = yaml.load(payload);
-                  debug(chalkLog("FOUND YAML FILE: " + file));
-                  debug("FOUND YAML FILE\n" + jsonPrint(fileObj));
-                  debug("FOUND YAML FILE\n" + jsonPrint(payload));
-                  callback(null, fileObj);
-                }
-                else {
-                  callback(null, null);
-                }
-
-               })
-              .catch(function dropboxFilesDownloadError(error) {
-                console.log(chalkError("DROPBOX loadFile ERROR: " + file + "\n" + error));
-                console.log(chalkError("!!! DROPBOX READ " + file + " ERROR"));
-                console.log(chalkError(jsonPrint(error)));
-
-                if (error.status === 404) {
-                  console.error(chalkError("!!! DROPBOX READ FILE " + file + " NOT FOUND ... SKIPPING ..."));
-                  callback(null, null);
-                }
-                else if (error.status === 0) {
-                  console.error(chalkError("!!! DROPBOX NO RESPONSE ... NO INTERNET CONNECTION? ... SKIPPING ..."));
-                  callback(null, null);
-                }
-                else {
-                  callback(error, null);
-                }
-              });
-          }
-          else {
-            console.error(chalkError("*** FILE DOES NOT EXIST: " + folder + "/" + file));
-            console.log(chalkError("*** FILE DOES NOT EXIST: " + folder + "/" + file));
-            err.code = 404;
-            err.status = "FILE DOES NOT EXIST";
-            callback(err, null);
-          }
-        });
+      if (file.match(/\.json$/gi)) {
+        let fileObj = JSON.parse(payload);
+        return(callback(null, fileObj));
+      }
+      else {
+        return(callback(null, payload));
+      }
     })
-    .catch(function dropboxFileLoadError(error) {
-      console.error("DROPBOX LOAD FILE ERROR\n" + jsonPrint(error));
-      callback(error, null);
+    .catch(function(error) {
+      console.log(chalkError("DROPBOX loadFile ERROR: " + file + "\n" + error));
+      console.log(chalkError("!!! DROPBOX READ " + file + " ERROR"));
+      console.log(chalkError(jsonPrint(error)));
+
+      if (error.status === 404) {
+        console.error(chalkError("!!! DROPBOX READ FILE " + file + " NOT FOUND"
+          + " ... SKIPPING ...")
+        );
+        return(callback(null, null));
+      }
+      if (error.status === 0) {
+        console.error(chalkError("!!! DROPBOX NO RESPONSE"
+          + " ... NO INTERNET CONNECTION? ... SKIPPING ..."));
+        return(callback(null, null));
+      }
+      return(callback(error, null));
+    })
+    .catch(function(err) {
+      console.log(chalkError("*** ERROR DROPBOX LOAD FILE\n" + err));
+      callback(err, null);
     });
 }
 

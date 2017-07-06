@@ -1916,7 +1916,7 @@ function initAppRouting(callback) {
         + " | CHALLENGE: " + req.body.challenge
       ));
       console.log(chalkAlert(util.inspect(req, {showHidden:false, depth:1})));
-      res(req.body.challenge);
+      res.send(req.body.challenge);
     }
     else {
       next();

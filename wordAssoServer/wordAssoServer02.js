@@ -1911,8 +1911,12 @@ function initAppRouting(callback) {
       res.redirect("/session");
     }
     else if (req.path === "/slack_event"){
-      console.log(chalkAlert("R> SLACK EVENT"));
-      console.log(chalkAlert(util.inspect(req, {showHidden:false, depth:1})))
+      console.log(chalkAlert("R> SLACK EVENT"
+        + " | TOKEN: " + req.body.token
+        + " | CHALLENGE: " + req.body.challenge
+      ));
+      console.log(chalkAlert(util.inspect(req, {showHidden:false, depth:1})));
+      res(req.body.challenge);
     }
     else {
       next();

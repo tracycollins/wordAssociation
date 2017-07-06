@@ -1919,8 +1919,17 @@ function initAppRouting(callback) {
         res.send(req.body.challenge);
       }
       else {
-        console.log(chalkAlert("R> SLACK EVENT"));
-        console.log(chalkAlert(util.inspect(req.body, {showHidden:false, depth:1})));
+        switch (req.body.event.type) {
+          case "message":
+            console.log(chalkAlert("R> SLACK MSG"
+              + " | " + req.body.event.channel
+              + " | " + req.body.event.user
+              + " | " + req.body.event.text
+            ));
+          break;
+          default:
+          console.log(chalkAlert("R> ??? UNKNOWN SLACK EVENT TYPE\n" + util.inspect(req.body, {showHidden:false, depth:1})));
+        }
         res.sendStatus(200);
       }
     }

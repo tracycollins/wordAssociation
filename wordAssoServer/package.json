@@ -57,6 +57,7 @@
     "request-promise": "^4.2.1",
     "require": "^2.4.20",
     "require_optional": "^1.0.1",
+    "slack-node": "^0.1.8",
     "socket.io": "^2.0.3",
     "socket.io-client": "^2.0.3",
     "sshpk": "^1.13.1",

@@ -1910,6 +1910,10 @@ function initAppRouting(callback) {
       console.log(chalkAlert("R> REDIRECT /session")); 
       res.redirect("/session");
     }
+    else if (req.path === "/slack_event"){
+      console.log(chalkAlert("R> SLACK EVENT"));
+      console.log(chalkAlert(util.inspect(req, {showHidden:false, depth:1})))
+    }
     else {
       next();
     }

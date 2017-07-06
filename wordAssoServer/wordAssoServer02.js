@@ -1912,7 +1912,7 @@ function initAppRouting(callback) {
     }
     else if (req.path === "/slack_event"){
       if (req.body.type === "url_verification") {
-        console.log(chalkAlert("R> SLACK EVENT"
+        console.log(chalkAlert("R> SLACK URL VERIFICATION"
           + " | TOKEN: " + req.body.token
           + " | CHALLENGE: " + req.body.challenge
         ));
@@ -1922,8 +1922,8 @@ function initAppRouting(callback) {
         switch (req.body.event.type) {
           case "message":
             console.log(chalkAlert("R> SLACK MSG"
-              + " | " + req.body.event.channel
-              + " | " + req.body.event.user
+              + " | CH: " + req.body.event.channel
+              + " | USER: " + req.body.event.user
               + " | " + req.body.event.text
             ));
           break;
@@ -3004,12 +3004,12 @@ function initStatsInterval(interval){
     if (statsObj.memory.rss > statsObj.memory.maxRss) {
       statsObj.memory.maxRss = statsObj.memory.rss;
       statsObj.memory.maxRssTime = moment().valueOf();
-      console.error(chalkAlert("NEW MAX RSS"
+      console.log(chalkInfo("NEW MAX RSS"
         + " | " + moment().format(compactDateTimeFormat)
-        + " | " + statsObj.memory.rss.toFixed(0) + " MB"
+        + " | " + statsObj.memory.rss.toFixed(1) + " MB"
       ));
     }
-  }, 1000);
+  }, 15000);
 
   statsInterval = setInterval(function updateStats() {
 
@@ -3034,7 +3034,7 @@ function initStatsInterval(interval){
     if (statsObj.memory.heap > statsObj.memory.maxHeap) {
       statsObj.memory.maxHeap = statsObj.memory.heap;
       statsObj.memory.maxHeapTime = moment().valueOf();
-      console.log(chalkLog("NEW MAX HEAP"
+      debug(chalkLog("NEW MAX HEAP"
         + " | " + moment().format(compactDateTimeFormat)
         + " | " + statsObj.memory.heap.toFixed(0) + " MB"
       ));

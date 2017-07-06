@@ -4,6 +4,12 @@
 const MAX_Q = 1000;
 const OFFLINE_MODE = false;
 
+const slackOAuthAccessToken = "xoxp-3708084981-3708084993-206468961315-ec62db5792cd55071a51c544acf0da55";
+const slackChannel = "#was";
+const Slack = require("slack-node");
+
+let slack = new Slack(slackOAuthAccessToken);
+
 console.log("\n\n============== START ==============\n\n");
 
 console.log("PROCESS PID: " + process.pid);
@@ -17,15 +23,6 @@ const memwatch = require("memwatch-next");
 
 let HEAPDUMP_ENABLED = false;
 let HEAPDUMP_MODULO = process.env.HEAPDUMP_MODULO || 10;
-
-// let pmx = require("pmx").init({
-//   http          : true, // HTTP routes logging (default: true)
-//   ignore_routes : [/socket\.io/, /notFound/], // Ignore http routes with this pattern (Default: [])
-//   errors        : true, // Exceptions logging (default: true)
-//   custom_probes : true, // Auto expose JS Loop Latency and HTTP req/s as custom metrics
-//   network       : true, // Network monitoring at the application level
-//   ports         : true  // Shows which ports your app is listening on (default: false)
-// });
 
 // ==================================================================
 // GLOBAL letIABLES
@@ -363,7 +360,6 @@ function jsonPrint(obj) {
   }
 }
 
-
 function msToTime(duration) {
   let seconds = parseInt((duration / 1000) % 60);
   let minutes = parseInt((duration / (1000 * 60)) % 60);
@@ -376,6 +372,24 @@ function msToTime(duration) {
   seconds = (seconds < 10) ? "0" + seconds : seconds;
 
   return days + ":" + hours + ":" + minutes + ":" + seconds;
+}
+
+function slackPostMessage(channel, text, callback){
+
+  debug(chalkInfo("SLACK POST: " + text));
+
+  slack.api("chat.postMessage", {
+    text: text,
+    channel: channel
+  }, function(err, response){
+    if (err){
+      console.error(chalkError("*** SLACK POST MESSAGE ERROR\n" + err));
+    }
+    else {
+      debug(response);
+    }
+    if (callback !== undefined) { callback(err, response); }
+  });
 }
 
 let nodeCacheTtl = process.env.NODE_CACHE_DEFAULT_TTL;
@@ -2217,7 +2231,7 @@ function initUpdater(callback){
     clearInterval(updaterPingInterval);
 
     configEvents.emit("CHILD_ERROR", { name: "updater" });
-    
+    initUpdater();
   });
 
   u.on("exit", function updaterExit(code){
@@ -2259,6 +2273,7 @@ function initUpdater(callback){
       console.error(chalkError("*** UPDATER SEND ERROR"
         + " | " + err
       ));
+      initUpdater();
     }
   });
 
@@ -2281,6 +2296,7 @@ function initUpdaterPingInterval(interval){
       console.error(chalkError("PING OUTSTANDING | " + updaterPingOutstanding));
       updaterPingOutstanding = 0;
       initUpdater();
+      slackPostMessage(slackChannel, "\n*UPDATER PING TIMEOUT*\nOUTSTANDING PINGS: " + updaterPingOutstanding + "\n");
     }
 
     updaterPingOutstanding = moment().format(compactDateTimeFormat);
@@ -2296,6 +2312,8 @@ function initUpdaterPingInterval(interval){
           console.error(chalkError("*** UPDATER SEND ERROR"
             + " | " + err
           ));
+          slackPostMessage(slackChannel, "\n*UPDATER SEND ERROR*\n" + err);
+          initUpdater();
         }
       });
 
@@ -2308,6 +2326,7 @@ function initUpdaterPingInterval(interval){
       ));
     }
   }, interval);
+
 }
 
 let updaterMessageReady = true;
@@ -3033,28 +3052,28 @@ function initStatsInterval(interval){
 // BEGIN !!
 //=================================
 
-function sendDirectMessage(user, message, callback) {
+// function sendDirectMessage(user, message, callback) {
   
-  twit.post("direct_messages/new", {screen_name: user, text:message}, function twitPostComplete(error, response){
+//   twit.post("direct_messages/new", {screen_name: user, text:message}, function twitPostComplete(error, response){
 
-    if(error) {
-      console.log(chalkError("!!!!! TWITTER SEND DIRECT MESSAGE ERROR: " 
-        + moment().format(compactDateTimeFormat) 
-        + "\nERROR\n"  + jsonPrint(error)
-        + "\nRESPONSE\n"  + jsonPrint(response)
-      ));
-      if (callback !== undefined) { callback(error, message); }
-    }
-    else{
-      console.log(chalkTwitter(moment().format(compactDateTimeFormat)
-        + " | SENT TWITTER DM TO " + user
-        + ": " + response.text
-      ));
-      if (callback !== undefined) { callback(null, message); }
-    }
+//     if(error) {
+//       console.log(chalkError("!!!!! TWITTER SEND DIRECT MESSAGE ERROR: " 
+//         + moment().format(compactDateTimeFormat) 
+//         + "\nERROR\n"  + jsonPrint(error)
+//         + "\nRESPONSE\n"  + jsonPrint(response)
+//       ));
+//       if (callback !== undefined) { callback(error, message); }
+//     }
+//     else{
+//       console.log(chalkTwitter(moment().format(compactDateTimeFormat)
+//         + " | SENT TWITTER DM TO " + user
+//         + ": " + response.text
+//       ));
+//       if (callback !== undefined) { callback(null, message); }
+//     }
 
-  });
-}
+//   });
+// }
 
 let hd;
 
@@ -3152,15 +3171,16 @@ initialize(configuration, function initializeComplete(err) {
 
       const growth = info.growth/(1024*1024);
 
-      const dmString = "MEM LEAK"
+      const dmString = "\n*MEM LEAK*"
         + " | " + hostname 
-        + "\nGROWTH: " + growth.toFixed(3) + " MB"
+        + "\nGRW: " + growth.toFixed(3) + " MB"
         + "\nRSS: " + statsObj.memory.rss.toFixed(3) + " MB"
         + "\nMAX: " + statsObj.memory.maxRss.toFixed(3) + " MB"
         + " | " + moment(parseInt(statsObj.memory.maxRssTime)).format(compactDateTimeFormat) + " MB"
         + "\n" + info.reason;
 
-      sendDirectMessage("threecee", dmString);
+      // sendDirectMessage("threecee", dmString);
+      slackPostMessage(slackChannel, dmString);
 
     });
 
@@ -3190,7 +3210,8 @@ initialize(configuration, function initializeComplete(err) {
       // console.log(chalkInfo("MEM STATS\n" + jsonPrint(stats)));
     });
 
-    sendDirectMessage("threecee", "INIT " + hostname + " | " + moment().format(compactDateTimeFormat));
+    // sendDirectMessage("threecee", "INIT " + hostname + " | " + moment().format(compactDateTimeFormat));
+    slackPostMessage(slackChannel, "\n*INIT* | " + hostname + "\n");
 
   }
 });

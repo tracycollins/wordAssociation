@@ -1013,15 +1013,27 @@ function initSocketHandler(socketObj) {
 
   const ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
+  const socketConnectText = "\n*SOCKET CONNECT*"
+    // + " | " + socket.id
+    + "\n" + hostname
+    + " | " + socketObj.namespace
+    + " | " + ipAddress
+    + "\nAD: " + statsObj.entity.admin.connected
+    + " | UT: " + statsObj.entity.util.connected
+    + " | US: " + statsObj.entity.user.connected
+    + " | VW: " + statsObj.entity.viewer.connected;
+
   console.log(chalkAlert("SOCKET CONNECT"
-    + " | " + socket.id
     + " | " + ipAddress
     + " | " + socketObj.namespace
+    + " | " + socket.id
     + " | AD: " + statsObj.entity.admin.connected
     + " | UT: " + statsObj.entity.util.connected
     + " | US: " + statsObj.entity.user.connected
     + " | VW: " + statsObj.entity.viewer.connected
   ));
+
+  slackPostMessage(slackChannel, socketConnectText);
 
   socket.emit("SERVER_READY", {connected: hostname});
 
@@ -1086,13 +1098,7 @@ function initSocketHandler(socketObj) {
       delete tssServers[socket.id];
       currentTssServer.connected = false;
     }
-
   });
-
-  // socket.on("ADMIN_READY", function(adminObj) {
-  //   debug(chalkSocket("ADMIN READY\n" + jsonPrint(adminObj)));
-  // });
-
 
   socket.on("SESSION_KEEPALIVE", function sessionKeepalive(userObj) {
 

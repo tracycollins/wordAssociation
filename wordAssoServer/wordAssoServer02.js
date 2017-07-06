@@ -1921,7 +1921,7 @@ function initAppRouting(callback) {
       else {
         console.log(chalkAlert("R> SLACK EVENT"));
         console.log(chalkAlert(util.inspect(req.body, {showHidden:false, depth:1})));
-        res.send(200);
+        res.sendStatus(200);
       }
     }
     else {

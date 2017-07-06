@@ -125,8 +125,8 @@ process.on("message", function(m) {
       params.obj = m.obj;
       params.max = m.max;
 
-      console.log(chalkGreen("SORTER SORT"
-        + " | OBJ KEYS: " + Object.keys(m.obj).length
+      debug(chalkGreen("SORTER SORT"
+        + " | KEYS: " + Object.keys(m.obj).length
       ));
 
       sortedObjectValues(params).then(sendSorted).then(function(response){
@@ -134,7 +134,6 @@ process.on("message", function(m) {
       }, function(err){
         console.log(chalkError("SORTER ERROR: " + err));
       });
-
 
     break;
 

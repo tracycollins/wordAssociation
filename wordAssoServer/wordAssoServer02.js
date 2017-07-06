@@ -3196,7 +3196,7 @@ initialize(configuration, function initializeComplete(err) {
       statsObj.memwatch.stats.min = stats.min/(1024*1024);
       statsObj.memwatch.stats.max = stats.max/(1024*1024);
 
-      console.error(chalkInfo("MEM"
+      debug(chalkInfo("MEM"
         + " | " + getTimeStamp()
         + " | FGCs: " + stats.num_full_gc
         + " | IGCs: " + stats.num_inc_gc

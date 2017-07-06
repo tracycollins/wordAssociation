@@ -1911,12 +1911,17 @@ function initAppRouting(callback) {
       res.redirect("/session");
     }
     else if (req.path === "/slack_event"){
-      console.log(chalkAlert("R> SLACK EVENT"
-        + " | TOKEN: " + req.body.token
-        + " | CHALLENGE: " + req.body.challenge
-      ));
-      console.log(chalkAlert(util.inspect(req, {showHidden:false, depth:1})));
-      res.send(req.body.challenge);
+      if (req.body.type === "url_verification") {
+        console.log(chalkAlert("R> SLACK EVENT"
+          + " | TOKEN: " + req.body.token
+          + " | CHALLENGE: " + req.body.challenge
+        ));
+        res.send(req.body.challenge);
+      }
+      else {
+        console.log(chalkAlert("R> SLACK EVENT"));
+        console.log(chalkAlert(util.inspect(req.body, {showHidden:false, depth:1})));
+      }
     }
     else {
       next();

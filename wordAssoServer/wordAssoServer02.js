@@ -267,6 +267,8 @@ const chalkAlert = chalk.red;
 const chalkError = chalk.bold.red;
 const chalkLog = chalk.gray;
 
+const tweetMeter = new Measured.Meter({rateUnit: 60000});
+
 let languageServer = {};
 
 let tmsServers = {};
@@ -685,8 +687,6 @@ function loadFile(path, file, callback) {
   debug(chalkInfo("LOAD FILE " + file));
   debug(chalkInfo("FULL PATH " + path + "/" + file));
 
-  let fileExists = false;
-
   dropboxClient.filesDownload({path: path + "/" + file})
     .then(function(data) {
       console.log(chalkLog(getTimeStamp()
@@ -951,8 +951,6 @@ process.env.NODE_ENV = process.env.NODE_ENV || "development";
 
 debug("NODE_ENV : " + process.env.NODE_ENV);
 debug("CLIENT HOST + PORT: " + "http://localhost:" + config.port);
-
-const tweetMeter = new Measured.Meter({rateUnit: 60000});
  
 function socketRxTweet(tw) {
 

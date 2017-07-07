@@ -71,7 +71,6 @@ const jsonPrint = function(obj) {
 };
 
 const quit = function(message) {
-
   let msg = "";
 
   if (message) {

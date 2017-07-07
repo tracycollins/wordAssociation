@@ -681,9 +681,9 @@ function getTimeStamp(inputTime) {
 
 function loadFile(path, file, callback) {
 
-  console.log(chalkInfo("LOAD FOLDER " + path));
-  console.log(chalkInfo("LOAD FILE " + file));
-  console.log(chalkInfo("FULL PATH " + path + "/" + file));
+  debug(chalkInfo("LOAD FOLDER " + path));
+  debug(chalkInfo("LOAD FILE " + file));
+  debug(chalkInfo("FULL PATH " + path + "/" + file));
 
   let fileExists = false;
 
@@ -1921,7 +1921,7 @@ function initAppRouting(callback) {
       else {
         switch (req.body.event.type) {
           case "message":
-            console.log(chalkAlert("R> SLACK MSG"
+            console.error(chalkAlert("R> SLACK MSG"
               + " | CH: " + req.body.event.channel
               + " | USER: " + req.body.event.user
               + " | " + req.body.event.text
@@ -2951,6 +2951,8 @@ configEvents.on("CHILD_ERROR", function childError(childObj){
   }
 
   statsObj.children[childObj.name].errors += 1;
+
+  slackPostMessage(slackChannel, "\n*CHILD ERROR*\n" + childObj.name + "\n");
 
   switch(childObj.name){
     case "tweetParser":

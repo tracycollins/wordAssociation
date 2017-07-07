@@ -12,7 +12,7 @@ let updateStatsCountsInterval;
 let initGroupsReady = false;
 let statsCountsComplete = true;
 
-var config = require('../../config/config');
+// let config = require('../../config/config');
 
 const Dropbox = require("dropbox");
 const debug = require("debug")("wa");
@@ -485,7 +485,6 @@ const updateStatsCounts = function(callback) {
       debug(chalkInfo(moment().format(compactDateTimeFormat) + " | UPDATE STATS COUNTS COMPLETE"
        + "\n" + jsonPrint(results)
       ));
-      // configEvents.emit("UPDATE_STATS_COUNTS_COMPLETE", moment().format(compactDateTimeFormat));
       statsCountsComplete = true;
       if (callback !== undefined) { callback(null, results); }
     }

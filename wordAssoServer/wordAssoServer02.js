@@ -689,7 +689,7 @@ function loadFile(path, file, callback) {
 
   dropboxClient.filesDownload({path: path + "/" + file})
     .then(function(data) {
-      console.log(chalkLog(getTimeStamp()
+      debug(chalkLog(getTimeStamp()
         + " | LOADING FILE FROM DROPBOX FILE: " + path + "/" + file
       ));
 

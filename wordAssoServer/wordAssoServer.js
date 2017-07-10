@@ -1,6 +1,7 @@
 /*jslint node: true */
 "use strict";
 
+const heapdumpThresholdEnabled = false;
 const MAX_Q = 1000;
 const OFFLINE_MODE = false;
 
@@ -2303,6 +2304,8 @@ function initUpdater(callback){
 
   updater = u;
 
+  initUpdaterPingInterval(60000);
+
   if (callback !== undefined) { callback(null, u); }
 }
 
@@ -3048,7 +3051,7 @@ function initStatsInterval(interval){
 
     statsUpdated += 1;
 
-    if ((HEAPDUMP_ENABLED || (statsObj.memory.maxRss > HEAPDUMP_THRESHOLD)) 
+    if ((HEAPDUMP_ENABLED || (heapdumpThresholdEnabled && (statsObj.memory.maxRss > HEAPDUMP_THRESHOLD))) 
       && (statsUpdated > 1) 
       && (statsUpdated % HEAPDUMP_MODULO === 0)) {
 

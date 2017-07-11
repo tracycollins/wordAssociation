@@ -2,6 +2,7 @@
 "use strict";
 
 const heapdumpThresholdEnabled = false;
+
 const MAX_Q = 1000;
 const OFFLINE_MODE = false;
 
@@ -20,7 +21,7 @@ let quitOnError = true;
 let HEAPDUMP_THRESHOLD = process.env.HEAPDUMP_THRESHOLD || 300;
 
 const heapdump = require("heapdump");
-const memwatch = require("memwatch-next");
+// const memwatch = require("memwatch-next");
 
 let HEAPDUMP_ENABLED = false;
 let HEAPDUMP_MODULO = process.env.HEAPDUMP_MODULO || 10;
@@ -3162,75 +3163,75 @@ initialize(configuration, function initializeComplete(err) {
 
     statsObj.configuration = configuration;
 
-    memwatch.on("leak", function memwatchLeak(info) {
+    // memwatch.on("leak", function memwatchLeak(info) {
 
-      const diff = hd.end();
+    //   const diff = hd.end();
 
-      statsObj.memwatch.snapshotTaken = false;
-      statsObj.memwatch.leak = info;
+    //   statsObj.memwatch.snapshotTaken = false;
+    //   statsObj.memwatch.leak = info;
 
-      console.error(chalkError("MEM LEAK"
-        + " | " + getTimeStamp()
-        + " | RSS" + info.growth
-        + " | GROWTH: " + info.growth
-        + " | " + info.reason
-       ));
+    //   console.error(chalkError("MEM LEAK"
+    //     + " | " + getTimeStamp()
+    //     + " | RSS" + info.growth
+    //     + " | GROWTH: " + info.growth
+    //     + " | " + info.reason
+    //    ));
 
-      console.log(chalkError("*** MEM DIFF *** \n" + util.inspect(diff, {showHidden:false, depth:4})));
+    //   console.log(chalkError("*** MEM DIFF *** \n" + util.inspect(diff, {showHidden:false, depth:4})));
 
-      const heapdumpFileName = "was2" 
-        + "_" + hostname 
-        + "_" + moment().format(tinyDateTimeFormat) 
-        + "_" + process.pid 
-        + "_LEAK"
-        + ".heapsnapshot";
+    //   const heapdumpFileName = "was2" 
+    //     + "_" + hostname 
+    //     + "_" + moment().format(tinyDateTimeFormat) 
+    //     + "_" + process.pid 
+    //     + "_LEAK"
+    //     + ".heapsnapshot";
 
-      console.log(chalkError("***** HEAPDUMP MEMORY LEAK *****"
-        + " | " + getTimeStamp()
-        + " | FILE: " +  heapdumpFileName
-      ));
+    //   console.log(chalkError("***** HEAPDUMP MEMORY LEAK *****"
+    //     + " | " + getTimeStamp()
+    //     + " | FILE: " +  heapdumpFileName
+    //   ));
 
-      heapdump.writeSnapshot(heapdumpFileName);
+    //   heapdump.writeSnapshot(heapdumpFileName);
 
-      const growth = info.growth/(1024*1024);
+    //   const growth = info.growth/(1024*1024);
 
-      const dmString = "\n*MEM LEAK*"
-        + " | " + hostname 
-        + "\nGRW: " + growth.toFixed(3) + " MB"
-        + "\nRSS: " + statsObj.memory.rss.toFixed(3) + " MB"
-        + "\nMAX: " + statsObj.memory.maxRss.toFixed(3) + " MB"
-        + " | " + moment(parseInt(statsObj.memory.maxRssTime)).format(compactDateTimeFormat) + " MB"
-        + "\n" + info.reason;
+    //   const dmString = "\n*MEM LEAK*"
+    //     + " | " + hostname 
+    //     + "\nGRW: " + growth.toFixed(3) + " MB"
+    //     + "\nRSS: " + statsObj.memory.rss.toFixed(3) + " MB"
+    //     + "\nMAX: " + statsObj.memory.maxRss.toFixed(3) + " MB"
+    //     + " | " + moment(parseInt(statsObj.memory.maxRssTime)).format(compactDateTimeFormat) + " MB"
+    //     + "\n" + info.reason;
 
-      slackPostMessage(slackChannel, dmString);
+    //   slackPostMessage(slackChannel, dmString);
 
-    });
+    // });
 
-    memwatch.on("stats", function memwatchStats(stats) {
-      if(statsObj.memwatch.snapshotTaken ===false) {
-        hd = new memwatch.HeapDiff();
-        console.error(chalkAlert(getTimeStamp() + " | MEM SNAPSHOT TAKEN"));
-        statsObj.memwatch.snapshotTaken = true;
-      }
-      statsObj.memwatch.stats = stats;
-      statsObj.memwatch.stats.estimated_base = stats.estimated_base/(1024*1024);
-      statsObj.memwatch.stats.current_base = stats.current_base/(1024*1024);
-      statsObj.memwatch.stats.min = stats.min/(1024*1024);
-      statsObj.memwatch.stats.max = stats.max/(1024*1024);
+    // memwatch.on("stats", function memwatchStats(stats) {
+    //   if(statsObj.memwatch.snapshotTaken ===false) {
+    //     hd = new memwatch.HeapDiff();
+    //     console.error(chalkAlert(getTimeStamp() + " | MEM SNAPSHOT TAKEN"));
+    //     statsObj.memwatch.snapshotTaken = true;
+    //   }
+    //   statsObj.memwatch.stats = stats;
+    //   statsObj.memwatch.stats.estimated_base = stats.estimated_base/(1024*1024);
+    //   statsObj.memwatch.stats.current_base = stats.current_base/(1024*1024);
+    //   statsObj.memwatch.stats.min = stats.min/(1024*1024);
+    //   statsObj.memwatch.stats.max = stats.max/(1024*1024);
 
-      debug(chalkInfo("MEM"
-        + " | " + getTimeStamp()
-        + " | FGCs: " + stats.num_full_gc
-        + " | IGCs: " + stats.num_inc_gc
-        + " | TREND: " + stats.usage_trend
-        + " | EBASE: " + statsObj.memwatch.stats.estimated_base.toFixed(3) + " MB"
-        + " | CBASE: " + statsObj.memwatch.stats.current_base.toFixed(3) + " MB"
-        + " | MIN: " + statsObj.memwatch.stats.min.toFixed(3) + " MB"
-        + " | MAX: " + statsObj.memwatch.stats.max.toFixed(3) + " MB"
-        // + "\n" + jsonPrint(info)
-       ));
-      // console.log(chalkInfo("MEM STATS\n" + jsonPrint(stats)));
-    });
+    //   debug(chalkInfo("MEM"
+    //     + " | " + getTimeStamp()
+    //     + " | FGCs: " + stats.num_full_gc
+    //     + " | IGCs: " + stats.num_inc_gc
+    //     + " | TREND: " + stats.usage_trend
+    //     + " | EBASE: " + statsObj.memwatch.stats.estimated_base.toFixed(3) + " MB"
+    //     + " | CBASE: " + statsObj.memwatch.stats.current_base.toFixed(3) + " MB"
+    //     + " | MIN: " + statsObj.memwatch.stats.min.toFixed(3) + " MB"
+    //     + " | MAX: " + statsObj.memwatch.stats.max.toFixed(3) + " MB"
+    //     // + "\n" + jsonPrint(info)
+    //    ));
+    //   // console.log(chalkInfo("MEM STATS\n" + jsonPrint(stats)));
+    // });
 
     // sendDirectMessage("threecee", "INIT " + hostname + " | " + moment().format(compactDateTimeFormat));
     slackPostMessage(slackChannel, "\n*INIT* | " + hostname + "\n");

@@ -40,7 +40,7 @@
     "metrics-graphics": "^2.11.0",
     "moment": "^2.18.1",
     "mongodb": "^2.2.29",
-    "mongoose": "^4.11.0",
+    "mongoose": "^4.11.1",
     "mw-dictionary": "^0.0.5",
     "node-cache": "^4.1.1",
     "node-forge": "^0.7.1",

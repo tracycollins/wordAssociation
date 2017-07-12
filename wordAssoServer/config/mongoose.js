@@ -5,22 +5,28 @@ mongoose.Promise = global.Promise;
 
 module.exports = function() {
 
+	// var options = { 
+	// 	server: { 
+ //      auto_reconnect: true,
+	// 		poolSize: 20,
+	// 		reconnectTries: 14000,
+	// 		socketOptions: { 
+	// 			// reconnectTries: 14000,
+	// 			keepAlive: 1000,
+	// 			socketTimeoutMS: 180000,
+	// 			connectTimeoutMS: 180000 
+	// 		}
+	// 	},
+ //    db: {
+	//     numberOfRetries: 1000,
+	//     retryMiliSeconds: 1000
+ //    }
+	// };
+	
 	var options = { 
-		server: { 
-      auto_reconnect: true,
-			poolSize: 20,
-			reconnectTries: 14000,
-			socketOptions: { 
-				// reconnectTries: 14000,
-				keepAlive: 1000,
-				socketTimeoutMS: 180000,
-				connectTimeoutMS: 180000 
-			}
-		},
-    db: {
-	    numberOfRetries: 1000,
-	    retryMiliSeconds: 1000
-    }
+		useMongoClient: true,
+		poolSize: 20,
+    promiseLibrary: global.Promise
 	};
 	
 	var wordAssoDb = mongoose.connect(config.wordAssoDb, options, function(error){
@@ -34,24 +40,24 @@ module.exports = function() {
 
 	// CONNECTION EVENTS
 	// When successfully connected
-	wordAssoDb.connection.on('connected', function () {  
-	  console.log('MONGOOSE default connection OPEN to ' + config.wordAssoDb);
-	}); 
+	// wordAssoDb.connection.on('connected', function () {  
+	//   console.log('MONGOOSE default connection OPEN to ' + config.wordAssoDb);
+	// }); 
 
-	wordAssoDb.connection.on('close', function () {  
-	  console.log('MONGOOSE default connection CLOSED to ' + config.wordAssoDb);
-	}); 
+	// wordAssoDb.connection.on('close', function () {  
+	//   console.log('MONGOOSE default connection CLOSED to ' + config.wordAssoDb);
+	// }); 
 
-	wordAssoDb.connection.on('error', function (err) {
-		console.log("\n\n*** MONGOOSE ERROR ***\n" + err + "\n\n");
-		console.error("\n\n*** MONGOOSE ERROR ***\n" + err + "\n\n");
-		// if (mongoose.connection.readyState == 0) wordAssoDb = mongoose.connect(config.wordAssoDb, options);
-	});
+	// wordAssoDb.connection.on('error', function (err) {
+	// 	console.log("\n\n*** MONGOOSE ERROR ***\n" + err + "\n\n");
+	// 	console.error("\n\n*** MONGOOSE ERROR ***\n" + err + "\n\n");
+	// 	// if (mongoose.connection.readyState == 0) wordAssoDb = mongoose.connect(config.wordAssoDb, options);
+	// });
 
-	// When the connection is disconnected
-	wordAssoDb.connection.on('disconnected', function () {  
-		console.error("\n\n*** MONGOOSE DISCONNECTED ***\n\n");
-	});
+	// // When the connection is disconnected
+	// wordAssoDb.connection.on('disconnected', function () {  
+	// 	console.error("\n\n*** MONGOOSE DISCONNECTED ***\n\n");
+	// });
 
 
 	require('../app/models/admin.server.model');  

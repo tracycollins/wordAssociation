@@ -3,7 +3,13 @@
   "version": "1.0.0",
   "description": "word",
   "main": "wordAssoServer.js",
-  "dependencies": {},
+  "dependencies": {
+    "@google-cloud/monitoring": "^0.2.3",
+    "deep-equal": "^1.0.1",
+    "object.defaults": "^1.1.0",
+    "object.pick": "^1.2.0",
+    "slack-node": "^0.1.8"
+  },
   "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

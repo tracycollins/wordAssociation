@@ -5,7 +5,7 @@
     "cwd"         : "/Volumes/RAID1/projects/wordAssociation/wordAssoServer",
     "autorestart" : false,
     "env": {
-      "NODE_ENV": "production",
+      "NODE_ENV": "development",
       "HEAPDUMP_ENABLED": false,
       "HEAPDUMP_MODULO": 10,
       "HEAPDUMP_THRESHOLD": 750,

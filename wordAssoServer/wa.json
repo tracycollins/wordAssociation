@@ -2,9 +2,8 @@
   "apps" : [{
     "name"        : "wa",
     "script"      : "wordAssoServer.js",
-    "cwd"         : "/home/tc/wordAssociation/wordAssoServer",
+    "cwd"         : "/Volumes/RAID1/projects/wordAssociation/wordAssoServer",
     "autorestart" : false,
-    "node_args"   : "--max-old-space-size=4096",
     "env": {
       "NODE_ENV": "production",
       "HEAPDUMP_ENABLED": false,

@@ -4,8 +4,6 @@
     "script"      : "wordAssoServer.js",
     "cwd"         : "/home/tc/wordAssociation/wordAssoServer",
     "autorestart" : false,
-    "out_file"    : "/home/tc/logs/wa.log",
-    "error_file"  : "/home/tc/logs/wa.log",
     "node_args"   : "--max-old-space-size=4096",
     "env": {
       "NODE_ENV": "production",

@@ -5,11 +5,25 @@
   "main": "wordAssoServer.js",
   "dependencies": {
     "@google-cloud/monitoring": "^0.2.3",
+    "body-parser": "^1.17.2",
+    "chalk": "^2.0.1",
     "deep-equal": "^1.0.1",
+    "dropbox": "^2.5.5",
+    "eventemitter2": "^4.1.2",
+    "express": "^4.15.3",
+    "grpc": "^1.4.1",
+    "hashmap": "^2.1.0",
+    "measured": "^1.1.0",
+    "moment": "^2.18.1",
+    "mongoose": "^4.11.3",
+    "node-cache": "^4.1.1",
     "object.defaults": "^1.1.0",
     "object.pick": "^1.2.0",
+    "queue-fifo": "^0.2.3",
     "slack-node": "^0.1.8",
-    "socket.io": "^2.0.3"
+    "socket.io": "^2.0.3",
+    "twit": "^2.2.9",
+    "yamljs": "^0.3.0"
   },
   "devDependencies": {},
   "scripts": {

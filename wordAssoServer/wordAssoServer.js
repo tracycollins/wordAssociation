@@ -656,6 +656,7 @@ function initStats(callback){
 }
 
 function quit(message) {
+  clearInterval(updaterPingInterval);
   debug("\n... QUITTING ...");
   let msg = "";
   if (message) {msg = message;}
@@ -865,6 +866,7 @@ function initDeletedMetricsHashmap(callback){
 }
 
 process.on("exit", function processExit() {
+  clearInterval(updaterPingInterval);
   if (tweetParser !== undefined) { tweetParser.kill("SIGINT"); }
   if (updater !== undefined) { updater.kill("SIGINT"); }
   if (sorter !== undefined) { sorter.kill("SIGINT"); }
@@ -878,6 +880,7 @@ process.on("message", function processMessageRx(msg) {
     debug("... SAVING STATS");
 
     clearInterval(internetCheckInterval);
+    clearInterval(updaterPingInterval);
 
     saveStats(statsFile, statsObj, function processMessageSaveStats(status) {
       if (status !=="OK") {
@@ -2266,7 +2269,7 @@ function initUpdater(callback){
       + " | EXIT CODE: " + code
     ));
 
-    clearInterval(updaterPingInterval);
+    // clearInterval(updaterPingInterval);
 
     if (code > 0) { configEvents.emit("CHILD_ERROR", { name: "updater" }); }
 
@@ -2278,7 +2281,7 @@ function initUpdater(callback){
       + " | EXIT CODE: " + code
     ));
 
-    clearInterval(updaterPingInterval);
+    // clearInterval(updaterPingInterval);
   });
 
   u.on("message", function updaterMessage(m){

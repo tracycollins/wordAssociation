@@ -1,7 +1,7 @@
 /*jslint node: true */
 "use strict";
 
-const heapdumpThresholdEnabled = false;
+// const heapdumpThresholdEnabled = false;
 
 const MAX_Q = 1000;
 const OFFLINE_MODE = false;
@@ -18,13 +18,13 @@ console.log("PROCESS PID: " + process.pid);
 
 let quitOnError = true;
 
-let HEAPDUMP_THRESHOLD = process.env.HEAPDUMP_THRESHOLD || 300;
+// let HEAPDUMP_THRESHOLD = process.env.HEAPDUMP_THRESHOLD || 300;
 
-const heapdump = require("heapdump");
+// const heapdump = require("heapdump");
 // const memwatch = require("memwatch-next");
 
-let HEAPDUMP_ENABLED = false;
-let HEAPDUMP_MODULO = process.env.HEAPDUMP_MODULO || 10;
+// let HEAPDUMP_ENABLED = false;
+// let HEAPDUMP_MODULO = process.env.HEAPDUMP_MODULO || 10;
 
 // ==================================================================
 // GLOBAL letIABLES
@@ -295,23 +295,23 @@ const tweetRxQueue = new Queue();
 
 let statsInterval;
 
-if (process.env.HEAPDUMP_ENABLED !== undefined) {
+// if (process.env.HEAPDUMP_ENABLED !== undefined) {
 
-  console.log(chalkError("DEFINED process.env.HEAPDUMP_ENABLED: " + process.env.HEAPDUMP_ENABLED));
+//   console.log(chalkError("DEFINED process.env.HEAPDUMP_ENABLED: " + process.env.HEAPDUMP_ENABLED));
 
-  if (process.env.HEAPDUMP_ENABLED === "true") {
-    HEAPDUMP_ENABLED = true;
-    console.log(chalkError("TRUE process.env.HEAPDUMP_ENABLED: " + process.env.HEAPDUMP_ENABLED));
-    console.log(chalkError("TRUE HEAPDUMP_ENABLED: " + HEAPDUMP_ENABLED));
-  }
-  else if (process.env.HEAPDUMP_ENABLED === "false") {
-    HEAPDUMP_ENABLED = false;
-    console.log(chalkError("FALSE process.env.HEAPDUMP_ENABLED: " + process.env.HEAPDUMP_ENABLED));
-    console.log(chalkError("FALSE HEAPDUMP_ENABLED: " + HEAPDUMP_ENABLED));
-  }
+//   if (process.env.HEAPDUMP_ENABLED === "true") {
+//     HEAPDUMP_ENABLED = true;
+//     console.log(chalkError("TRUE process.env.HEAPDUMP_ENABLED: " + process.env.HEAPDUMP_ENABLED));
+//     console.log(chalkError("TRUE HEAPDUMP_ENABLED: " + HEAPDUMP_ENABLED));
+//   }
+//   else if (process.env.HEAPDUMP_ENABLED === "false") {
+//     HEAPDUMP_ENABLED = false;
+//     console.log(chalkError("FALSE process.env.HEAPDUMP_ENABLED: " + process.env.HEAPDUMP_ENABLED));
+//     console.log(chalkError("FALSE HEAPDUMP_ENABLED: " + HEAPDUMP_ENABLED));
+//   }
 
-  console.log(chalkError("HEAPDUMP_MODULO: " + HEAPDUMP_MODULO));
-}
+//   console.log(chalkError("HEAPDUMP_MODULO: " + HEAPDUMP_MODULO));
+// }
 
 
 let GOOGLE_METRICS_ENABLED = false;
@@ -2731,13 +2731,13 @@ function initRateQinterval(interval){
   memoryRssDataPoint.metricType = "memory/rss";
   memoryRssDataPoint.metricLabels = {server_id: "MEM"};
 
-  let memoryHeapUsedDataPoint = {};
-  memoryHeapUsedDataPoint.metricType = "memory/heap_used";
-  memoryHeapUsedDataPoint.metricLabels = {server_id: "MEM"};
+  // let memoryHeapUsedDataPoint = {};
+  // memoryHeapUsedDataPoint.metricType = "memory/heap_used";
+  // memoryHeapUsedDataPoint.metricLabels = {server_id: "MEM"};
 
-  let memoryHeapTotalDataPoint = {};
-  memoryHeapTotalDataPoint.metricType = "memory/heap_total";
-  memoryHeapTotalDataPoint.metricLabels = {server_id: "MEM"};
+  // let memoryHeapTotalDataPoint = {};
+  // memoryHeapTotalDataPoint.metricType = "memory/heap_total";
+  // memoryHeapTotalDataPoint.metricLabels = {server_id: "MEM"};
 
   let dataPointTssTpm = {};
   dataPointTssTpm.metricType = "twitter/tweets_per_minute";
@@ -2984,7 +2984,7 @@ let memStatsInterval;
 function initStatsInterval(interval){
 
   let statsUpdated = 0;
-  let heapdumpFileName;
+  // let heapdumpFileName;
 
   console.log(chalkInfo("INIT STATS INTERVAL"
     + " | " + interval + " MS"
@@ -3055,23 +3055,23 @@ function initStatsInterval(interval){
 
     statsUpdated += 1;
 
-    if ((HEAPDUMP_ENABLED || (heapdumpThresholdEnabled && (statsObj.memory.maxRss > HEAPDUMP_THRESHOLD))) 
-      && (statsUpdated > 1) 
-      && (statsUpdated % HEAPDUMP_MODULO === 0)) {
+    // if ((HEAPDUMP_ENABLED || (heapdumpThresholdEnabled && (statsObj.memory.maxRss > HEAPDUMP_THRESHOLD))) 
+    //   && (statsUpdated > 1) 
+    //   && (statsUpdated % HEAPDUMP_MODULO === 0)) {
 
-      heapdumpFileName = "was2" 
-        + "_" + hostname 
-        + "_" + moment().format(tinyDateTimeFormat) 
-        + "_" + process.pid 
-        + ".heapsnapshot";
+    //   heapdumpFileName = "was2" 
+    //     + "_" + hostname 
+    //     + "_" + moment().format(tinyDateTimeFormat) 
+    //     + "_" + process.pid 
+    //     + ".heapsnapshot";
 
-      console.log(chalkError("***** HEAPDUMP *****"
-        + " | STATS UPDATED: " +  statsUpdated
-        + " | FILE: " +  heapdumpFileName
-      ));
+    //   console.log(chalkError("***** HEAPDUMP *****"
+    //     + " | STATS UPDATED: " +  statsUpdated
+    //     + " | FILE: " +  heapdumpFileName
+    //   ));
 
-      heapdump.writeSnapshot(heapdumpFileName);
-    }
+    //   heapdump.writeSnapshot(heapdumpFileName);
+    // }
   }, interval);
 }
 

@@ -3,6 +3,8 @@
 
 // const heapdumpThresholdEnabled = false;
 
+let metricsRate = "1MinuteRate";
+
 const MAX_Q = 1000;
 const OFFLINE_MODE = false;
 
@@ -211,7 +213,6 @@ let ignoreWordsArray = [
   "–"
 ];
 
-let metricsRate = "5MinuteRate";
 const CUSTOM_GOOGLE_APIS_PREFIX = "custom.googleapis.com";
 
 const util = require("util");
@@ -1881,6 +1882,31 @@ configEvents.on("SERVER_READY", function serverReady() {
 //=================================
 // INIT APP ROUTING
 //=================================
+function slackMessageHandler(messageObj){
+  console.error(chalkAlert("R> SLACK MSG"
+    + " | CH: " + messageObj.channel
+    + " | USER: " + messageObj.user
+    + " | " + messageObj.text
+  ));
+
+  const textArray = messageObj.text.split(":");
+  const op = textArray[0];
+
+  switch(op){
+    case "mr":
+      if (textArray.length > 1) {
+        const val = textArray[1];
+        if (val === "c") { metricsRate = "currentRate"; }
+        if (val === "1") { metricsRate = "1MinuteRate"; }
+        if (val === "5") { metricsRate = "5MinuteRate"; }
+        if (val === "15") { metricsRate = "15MinuteRate"; }
+        console.log(chalkAlert("METRICS RATE: " + metricsRate));
+      }
+    break;
+    default:
+      console.log(chalkError("UNKNOWN SLACK OP: " + op));
+  }
+}
 
 function initAppRouting(callback) {
 
@@ -1921,11 +1947,12 @@ function initAppRouting(callback) {
       else {
         switch (req.body.event.type) {
           case "message":
-            console.error(chalkAlert("R> SLACK MSG"
-              + " | CH: " + req.body.event.channel
-              + " | USER: " + req.body.event.user
-              + " | " + req.body.event.text
-            ));
+            // console.error(chalkAlert("R> SLACK MSG"
+            //   + " | CH: " + req.body.event.channel
+            //   + " | USER: " + req.body.event.user
+            //   + " | " + req.body.event.text
+            // ));
+            slackMessageHandler(req.body.event);
           break;
           default:
           console.log(chalkAlert("R> ??? UNKNOWN SLACK EVENT TYPE\n" + util.inspect(req.body, {showHidden:false, depth:1})));

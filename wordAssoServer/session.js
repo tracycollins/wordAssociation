@@ -22,7 +22,7 @@ var PARENT_ID = "0047";
 var storedConfigName;
 var storedConfig;
 
-var autoKeywordsFlag = false;
+// var autoKeywordsFlag = false;
 
 var PAGE_LOAD_TIMEOUT = 1000;
 
@@ -65,6 +65,7 @@ requirejs(["https://d3js.org/d3.v4.min.js"], function(d3Loaded) {
       addFullscreenButton();
       addMetricButton();
       addStatsButton();
+      addKeywordButton();
 
       resetMouseMoveTimer();
       
@@ -192,6 +193,7 @@ if (useStoredConfig) {
   config = store.get(globalStoredConfigName);
 }
 else {
+  config.autoKeywordsFlag = false;
   config.metricMode = DEFAULT_METRIC_MODE;
   config.enableAgeNodes = true;
   config.defaultAgeRate = 1.0;
@@ -744,6 +746,21 @@ function updateStatsText(statsText){
   statsDiv.innerHTML = statsText;
 }
 
+function addKeywordButton(){
+  var controlDiv = document.getElementById('controlDiv');
+  var keywordButton = document.createElement("BUTTON");
+  keywordButton.className = 'button';
+  keywordButton.setAttribute('id', 'keywordButton');
+  keywordButton.setAttribute('onclick', 'toggleKeyword()');
+  keywordButton.innerHTML = config.autoKeywordsFlag ? 'AUTO KEYWORD' : 'MANUAL KEYWORD';
+  controlDiv.appendChild(keywordButton);
+}
+
+function updateKeywordButton(){
+  var keywordButton = document.getElementById('keywordButton');
+  keywordButton.innerHTML = config.showStatsFlag ? 'AUTO KEYWORD' : 'MANUAL KEYWORD';
+}
+
 function addStatsButton(){
   var controlDiv = document.getElementById('controlDiv');
   var statsButton = document.createElement("BUTTON");
@@ -1028,6 +1045,14 @@ function toggleDisableLinks() {
   if (config.disableLinks) linkHashMap.clear();
   console.warn("TOGGLE DISABLE LINKS: " + config.disableLinks);
   controlPanel.updateControlPanel(config);
+}
+
+function toggleKeyword() {
+  config.autoKeywordsFlag = !config.autoKeywordsFlag;
+  console.warn("AUTO KEYWORD: " + config.autoKeywordsFlag);
+
+  updateKeywordButton();
+  if (controlPanelFlag) controlPanel.updateControlPanel(config);
 }
 
 function toggleStats() {
@@ -2190,7 +2215,7 @@ function initSocketNodeRx(){
     newNode.keywordsAuto = nNode.keywordsAuto;
 
     var keywords = {};
-    if (autoKeywordsFlag && (nNode.keywordsAuto !== undefined) && nNode.keywordsAuto){
+    if (config.autoKeywordsFlag && (nNode.keywordsAuto !== undefined) && nNode.keywordsAuto){
       keywords = nNode.keywordsAuto;
     }
     else {
@@ -3009,7 +3034,7 @@ var createNode = function(callback) {
             sourceNode.keywordsAuto = session.source.keywordsAuto;
 
             var keywords = {};
-            if (autoKeywordsFlag && (session.source.keywordsAuto !== undefined) && session.source.keywordsAuto){
+            if (config.autoKeywordsFlag && (session.source.keywordsAuto !== undefined) && session.source.keywordsAuto){
               keywords = session.source.keywordsAuto;
             }
             else {
@@ -3078,7 +3103,7 @@ var createNode = function(callback) {
             sourceNode.isKeyword = session.source.isKeyword;
 
             var keywords = {};
-            if (autoKeywordsFlag && (session.source.keywordsAuto !== undefined) && session.source.keywordsAuto){
+            if (config.autoKeywordsFlag && (session.source.keywordsAuto !== undefined) && session.source.keywordsAuto){
               keywords = session.source.keywordsAuto;
             }
             else {
@@ -3241,7 +3266,7 @@ var createNode = function(callback) {
             targetNode.isKeyword = session.target.isKeyword;
 
             var keywords = {};
-            if (autoKeywordsFlag && (session.target.keywordsAuto !== undefined) && session.target.keywordsAuto){
+            if (config.autoKeywordsFlag && (session.target.keywordsAuto !== undefined) && session.target.keywordsAuto){
               keywords = session.target.keywordsAuto;
             }
             else {

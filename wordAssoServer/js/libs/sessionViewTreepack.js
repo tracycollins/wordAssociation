@@ -495,6 +495,11 @@ function ViewTreepack() {
     console.debug("SET BLAH: " + blahMode);
   };
 
+  this.setAutoKeywordsFlag = function(flag) {
+    autoKeywordsFlag = flag;
+    console.debug("SET AUTO KEYWORDS: " + autoKeywordsFlag);
+  };
+
   this.setRemoveDeadNodesFlag = function(flag) {
     removeDeadNodesFlag = flag;
     console.debug("SET REMOVE DEAD NODES: " + removeDeadNodesFlag);

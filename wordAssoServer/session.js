@@ -758,7 +758,7 @@ function addKeywordButton(){
 
 function updateKeywordButton(){
   var keywordButton = document.getElementById('keywordButton');
-  keywordButton.innerHTML = config.showStatsFlag ? 'AUTO KEYWORD' : 'MANUAL KEYWORD';
+  keywordButton.innerHTML = config.autoKeywordsFlag ? 'AUTO KEYWORD' : 'MANUAL KEYWORD';
 }
 
 function addStatsButton(){
@@ -1049,6 +1049,7 @@ function toggleDisableLinks() {
 
 function toggleKeyword() {
   config.autoKeywordsFlag = !config.autoKeywordsFlag;
+  currentSessionView.setAutoKeywordsFlag(config.autoKeywordsFlag);
   console.warn("AUTO KEYWORD: " + config.autoKeywordsFlag);
 
   updateKeywordButton();

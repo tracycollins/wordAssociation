@@ -12,7 +12,7 @@ function ViewTreepack() {
   var resumeTimeStamp = 0;
 
   var displayTopTermsFlag = false;
-  var autoKeywordsFlag = false;
+  // var autoKeywordsFlag = false;
 
   var compactDateTimeFormat = "YYYYMMDD HHmmss";
 
@@ -131,6 +131,8 @@ function ViewTreepack() {
 
   var minRadius = minRadiusRatio * width;
   var maxRadius = maxRadiusRatio * height;
+
+  var autoKeywordsFlag = config.autoKeywordsFlag;
 
   var metricMode = config.defaultMetricMode;
   var transitionDuration = config.defaultTransitionDuration;

@@ -29,6 +29,7 @@ var UserSchema = new Schema({
 	sessions: { type: [ String ],	trim: true },
 	lastSession: { type: String },
 
+	entities: { type: Object, default: {} },
 	tags: { type: Object, default: {} },
 
 	mentions: { type: Number, default: 0 },
@@ -42,8 +43,11 @@ var UserSchema = new Schema({
 
 	rate: { type: Number, default: 0 },
 	isTopTerm: { type: Boolean, default: false },
+
 	keywords: { type: Object, default: {} },
 	keywordsAuto: { type: Object, default: {} },
+
+	histograms: { type: Object, default: {} },
 
 	languageAnalyzed: { type: Boolean, default: false },
 	languageAnalysis: { type: Object, default: {} }

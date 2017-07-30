@@ -4,6 +4,8 @@ function ViewTreepack() {
 
   "use strict";
 
+  var keywordTypes = ["left", "right", "neutral", "negative", "positive"];
+
   var self = this;
   var simulation;
 
@@ -1572,13 +1574,15 @@ function ViewTreepack() {
 
     if (newNode.keywordsAuto !== undefined) {
       Object.keys(newNode.keywords).forEach(function(kw){
-        if (newNode.keywordsAuto[kw] !== undefined){
-          newNode.keywordsMatch = true;
-          newNode.keywordsMismatch = false;
-        }
-        else {
-          newNode.keywordsMatch = false;
-          newNode.keywordsMismatch = true;        
+        if (keywordTypes.includes(kw)){
+          if (newNode.keywordsAuto[kw] !== undefined){
+            newNode.keywordsMatch = true;
+            newNode.keywordsMismatch = false;
+          }
+          else {
+            newNode.keywordsMatch = false;
+            newNode.keywordsMismatch = true;        
+          }
         }
       });
     }

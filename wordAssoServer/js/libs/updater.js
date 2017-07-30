@@ -303,8 +303,8 @@ const updateKeywords = function(folder, file, callback){
 
                     wordServer.findOneWord(wordObj, false, function(err, updatedWordObj) {
                       if (err){
-                        console.error(chalkError("ERROR: UPDATING KEYWORD | " + wd + ": " + kwordsObj[wd]));
-                        cb(err);
+                        console.log(chalkError("ERROR: UPDATING KEYWORD | " + wd + ": " + kwordsObj[wd]));
+                        cb();
                       }
                       else {
                         debug(chalkLog("+++ UPDATED KEYWORD"
@@ -331,8 +331,8 @@ const updateKeywords = function(folder, file, callback){
 
                   wordServer.findOneWord(wordObj, false, function(err, updatedWordObj) {
                     if (err){
-                      console.error(chalkError("ERROR: UPDATING KEYWORD | " + wd + ": " + kwordsObj[wd]));
-                      cb(err);
+                      console.log(chalkError("ERROR: UPDATING KEYWORD | " + wd + ": " + kwordsObj[wd]));
+                      cb();
                     }
                     else {
                       debug(chalkLog("+++ UPDATED KEYWORD"

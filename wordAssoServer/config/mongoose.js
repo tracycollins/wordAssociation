@@ -4,9 +4,9 @@ var config = require('./config'),
 mongoose.Promise = global.Promise;
 
 module.exports = function() {
+	
 
-	// var options = { 
-	// 	server: { 
+		// 	server: { 
  //      auto_reconnect: true,
 	// 		poolSize: 20,
 	// 		reconnectTries: 14000,
@@ -22,10 +22,15 @@ module.exports = function() {
 	//     retryMiliSeconds: 1000
  //    }
 	// };
-	
+
 	var options = { 
 		useMongoClient: true,
-		poolSize: 20,
+		keepAlive: 1000,
+		autoReconnect: true,
+		reconnectTries: 1000,
+		socketTimeoutMS: 180000,
+		connectTimeoutMS: 180000,
+		poolSize: 50,
     promiseLibrary: global.Promise
 	};
 	
@@ -37,28 +42,6 @@ module.exports = function() {
 			console.log('CONNECT: MONGOOSE default connection open to ' + config.wordAssoDb);
 		}
 	});
-
-	// CONNECTION EVENTS
-	// When successfully connected
-	// wordAssoDb.connection.on('connected', function () {  
-	//   console.log('MONGOOSE default connection OPEN to ' + config.wordAssoDb);
-	// }); 
-
-	// wordAssoDb.connection.on('close', function () {  
-	//   console.log('MONGOOSE default connection CLOSED to ' + config.wordAssoDb);
-	// }); 
-
-	// wordAssoDb.connection.on('error', function (err) {
-	// 	console.log("\n\n*** MONGOOSE ERROR ***\n" + err + "\n\n");
-	// 	console.error("\n\n*** MONGOOSE ERROR ***\n" + err + "\n\n");
-	// 	// if (mongoose.connection.readyState == 0) wordAssoDb = mongoose.connect(config.wordAssoDb, options);
-	// });
-
-	// // When the connection is disconnected
-	// wordAssoDb.connection.on('disconnected', function () {  
-	// 	console.error("\n\n*** MONGOOSE DISCONNECTED ***\n\n");
-	// });
-
 
 	require('../app/models/admin.server.model');  
 	require('../app/models/viewer.server.model');  

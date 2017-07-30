@@ -1046,7 +1046,8 @@ function ViewTreepack() {
         if (!d.isKeyword) { return palette.black; }
         return d.keywordColor; 
       })
-      .style("stroke", function(d) { 
+      .style("stroke", function(d) {
+        if (d.keywordsMatch) { return palette.green; }
         return palette.white; 
       })
       .style("stroke-dasharray", function(d) { 
@@ -1094,6 +1095,7 @@ function ViewTreepack() {
         return d.keywordColor; 
       })
       .style("stroke", function(d) { 
+        if (d.keywordsMatch) { return palette.green; }
         return palette.white; 
       })
       .style("stroke-width", function(d) { 
@@ -1169,7 +1171,11 @@ function ViewTreepack() {
       .style("opacity", function(d) { 
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
-      .style("fill", palette.white)
+      // .style("fill", palette.white)
+      .style("fill", function(d) { 
+        if (!d.isKeyword) { return palette.green; }
+        return palette.white; 
+      })
       .style("font-size", function(d) {
         if (metricMode === "rate") {return nodeLabelSizeScale(d.rate);}
         if (metricMode === "mentions") {return nodeLabelSizeScale(d.mentions);}
@@ -1222,7 +1228,10 @@ function ViewTreepack() {
       .style("opacity", function(d) { 
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
-      .style("fill", palette.white)
+      .style("fill", function(d) { 
+        if (!d.isKeyword) { return palette.green; }
+        return palette.white; 
+      })
       .style("font-size", function(d) {
         if (metricMode === "rate") {return nodeLabelSizeScale(d.rate);}
         if (metricMode === "mentions") {return nodeLabelSizeScale(d.mentions);}
@@ -1553,6 +1562,14 @@ function ViewTreepack() {
     newNode.newFlag = true;
     newNode.x = newNode.x || 0.5*width;
     newNode.y = newNode.y || 0.5*height;
+
+    newNode.keywordsMatch = false;
+
+    Object.keys(newNode.keywords).forEach(function(kw){
+      if (newNode.keywordsAuto[kw] !== undefined){
+          newNode.keywordsMatch = true;
+      }
+    });
 
     if (nNode.mentions > currentMax.mentions.value) { 
 

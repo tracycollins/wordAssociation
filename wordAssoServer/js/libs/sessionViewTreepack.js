@@ -1173,7 +1173,7 @@ function ViewTreepack() {
       })
       // .style("fill", palette.white)
       .style("fill", function(d) { 
-        if (!d.isKeyword) { return palette.green; }
+        if (d.keywordsMatch) { return palette.green; }
         return palette.white; 
       })
       .style("font-size", function(d) {
@@ -1229,7 +1229,7 @@ function ViewTreepack() {
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
       .style("fill", function(d) { 
-        if (!d.isKeyword) { return palette.green; }
+        if (d.keywordsMatch) { return palette.green; }
         return palette.white; 
       })
       .style("font-size", function(d) {

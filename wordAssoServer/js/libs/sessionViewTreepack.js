@@ -1570,16 +1570,18 @@ function ViewTreepack() {
     newNode.keywordsMismatch = false;
     newNode.keywordsMatch = false;
 
-    Object.keys(newNode.keywords).forEach(function(kw){
-      if (newNode.keywordsAuto[kw] !== undefined){
-        newNode.keywordsMatch = true;
-        newNode.keywordsMismatch = false;
-      }
-      else {
-        newNode.keywordsMatch = false;
-        newNode.keywordsMismatch = true;        
-      }
-    });
+    if (newNode.keywordsAuto !== undefined) {
+      Object.keys(newNode.keywords).forEach(function(kw){
+        if (newNode.keywordsAuto[kw] !== undefined){
+          newNode.keywordsMatch = true;
+          newNode.keywordsMismatch = false;
+        }
+        else {
+          newNode.keywordsMatch = false;
+          newNode.keywordsMismatch = true;        
+        }
+      });
+    }
 
     if (nNode.mentions > currentMax.mentions.value) { 
 

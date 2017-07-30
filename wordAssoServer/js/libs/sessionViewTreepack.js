@@ -1047,6 +1047,7 @@ function ViewTreepack() {
         return d.keywordColor; 
       })
       .style("stroke", function(d) {
+        if (d.keywordsMismatch) { return palette.red; }
         if (d.keywordsMatch) { return palette.green; }
         return palette.white; 
       })
@@ -1095,6 +1096,7 @@ function ViewTreepack() {
         return d.keywordColor; 
       })
       .style("stroke", function(d) { 
+        if (d.keywordsMismatch) { return palette.red; }
         if (d.keywordsMatch) { return palette.green; }
         return palette.white; 
       })
@@ -1173,6 +1175,7 @@ function ViewTreepack() {
       })
       // .style("fill", palette.white)
       .style("fill", function(d) { 
+        if (d.keywordsMismatch) { return palette.red; }
         if (d.keywordsMatch) { return palette.green; }
         return palette.white; 
       })
@@ -1229,6 +1232,7 @@ function ViewTreepack() {
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
       .style("fill", function(d) { 
+        if (d.keywordsMismatch) { return palette.red; }
         if (d.keywordsMatch) { return palette.green; }
         return palette.white; 
       })
@@ -1563,11 +1567,17 @@ function ViewTreepack() {
     newNode.x = newNode.x || 0.5*width;
     newNode.y = newNode.y || 0.5*height;
 
+    newNode.keywordsMismatch = false;
     newNode.keywordsMatch = false;
 
     Object.keys(newNode.keywords).forEach(function(kw){
       if (newNode.keywordsAuto[kw] !== undefined){
-          newNode.keywordsMatch = true;
+        newNode.keywordsMatch = true;
+        newNode.keywordsMismatch = false;
+      }
+      else {
+        newNode.keywordsMatch = false;
+        newNode.keywordsMismatch = true;        
       }
     });
 

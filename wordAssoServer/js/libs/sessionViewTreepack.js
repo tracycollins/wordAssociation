@@ -1147,7 +1147,9 @@ function ViewTreepack() {
       .attr("x", function(d) { return d.x; })
       .attr("y", function(d) { return d.y; })
       .text(function(d) {
-        if (d.isTwitterUser) { 
+        if (d.nodeType === "hashtag") { return "#" + d.text.toUpperCase(); }
+        // if (d.isTwitterUser) { 
+        if (d.nodeType === "user") { 
           if (d.screenName) { 
             return "@" + d.screenName.toUpperCase(); 
           }
@@ -1164,7 +1166,7 @@ function ViewTreepack() {
           if (d.nodeType === "place") { return d.fullName.toUpperCase(); }
           return d.nodeId.toUpperCase(); 
         }
-        if (d.nodeType === "hashtag") { return "#" + d.text.toUpperCase(); }
+        // if (d.nodeType === "hashtag") { return "#" + d.text.toUpperCase(); }
         if (d.nodeType === "place") { return d.fullName; }
         if (testMode) { return "blah"; }
         return d.nodeId; 
@@ -1212,9 +1214,11 @@ function ViewTreepack() {
         return d.y; 
       })
       .text(function(d) {
-        if (d.isTwitterUser) { 
-          if (d.screenName) { 
-            return "@" + d.screenName.toUpperCase(); 
+        if (d.nodeType === "hashtag") { return "#" + d.text.toUpperCase(); }
+        // if (d.isTwitterUser) { 
+        if (d.nodeType === "user") { 
+          // if (d.nodeType === "hashtag") { return "#" + d.text.toUpperCase(); }
+          if (d.screenName) { return "@" + d.screenName.toUpperCase(); 
           }
           else if (d.name){
             return "@" + d.name.toUpperCase(); 

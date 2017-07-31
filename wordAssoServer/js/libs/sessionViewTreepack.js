@@ -1160,9 +1160,11 @@ function ViewTreepack() {
 
         }
         if (d.isKeyword || d.isTrendingTopic || d.isTwitterUser) { 
+          if (d.nodeType === "hashtag") { return "#" + d.text.toUpperCase(); }
           if (d.nodeType === "place") { return d.fullName.toUpperCase(); }
           return d.nodeId.toUpperCase(); 
         }
+        if (d.nodeType === "hashtag") { return "#" + d.text.toUpperCase(); }
         if (d.nodeType === "place") { return d.fullName; }
         if (testMode) { return "blah"; }
         return d.nodeId; 
@@ -1223,9 +1225,11 @@ function ViewTreepack() {
 
         }
         if (d.isKeyword || d.isTrendingTopic || d.isTwitterUser) { 
+          if (d.nodeType === "hashtag") { return "#" + d.text.toUpperCase(); }
           if (d.nodeType === "place") { return d.fullName.toUpperCase(); }
           return d.nodeId.toUpperCase(); 
         }
+        if (d.nodeType === "hashtag") { return "#" + d.text.toUpperCase(); }
         if (d.nodeType === "place") { return d.fullName; }
         if (testMode) { return "blah"; }
         return d.nodeId; 
@@ -1341,7 +1345,7 @@ function ViewTreepack() {
       else if (node.nodeType === "hashtag") { 
         displaytext = new Array(ratePadSpaces).join("\xa0") + rate 
         + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns 
-        + " | #" + node.text;
+        + " | #" + node.text.toUpperCase() ;
       }
       else if (node.nodeType === "place") { 
         displaytext = new Array(ratePadSpaces).join("\xa0") + rate 

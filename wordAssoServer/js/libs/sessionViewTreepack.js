@@ -1338,6 +1338,11 @@ function ViewTreepack() {
           + " | @UNKNOWN?";
         }
       }
+      else if (node.nodeType === "hashtag") { 
+        displaytext = new Array(ratePadSpaces).join("\xa0") + rate 
+        + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns 
+        + " | #" + node.text;
+      }
       else if (node.nodeType === "place") { 
         displaytext = new Array(ratePadSpaces).join("\xa0") + rate 
         + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns 

@@ -1054,10 +1054,11 @@ function ViewTreepack() {
         return palette.white; 
       })
       .style("stroke-dasharray", function(d) { 
-        if (d.isTopTerm) { return "10,2"; }
+        if (d.keywordsMismatch) { return "10,2"; }
         return null; 
       })
       .style("stroke-width", function(d) { 
+        if (d.keywordsMatch) { return "8.0"; }
         if (d.isTopTerm) { return "4.0"; }
         if (d.newFlag) { return "2.0"; }
         return "1.2"; 
@@ -1103,12 +1104,13 @@ function ViewTreepack() {
         return palette.white; 
       })
       .style("stroke-width", function(d) { 
+        if (d.keywordsMatch) { return "8.0"; }
         if (d.isTopTerm) { return "4.0"; }
         if (d.newFlag) { return "2.0"; }
         return "1.2"; 
       })
       .style("stroke-dasharray", function(d) { 
-        if (d.isTopTerm) { return "10,2"; }
+        if (d.keywordsMismatch) { return "10,2"; }
         return null; 
       })
       .style('opacity', function(d) { 

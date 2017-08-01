@@ -4,24 +4,6 @@ var config = require('./config'),
 mongoose.Promise = global.Promise;
 
 module.exports = function() {
-	
-
-		// 	server: { 
- //      auto_reconnect: true,
-	// 		poolSize: 20,
-	// 		reconnectTries: 14000,
-	// 		socketOptions: { 
-	// 			// reconnectTries: 14000,
-	// 			keepAlive: 1000,
-	// 			socketTimeoutMS: 180000,
-	// 			connectTimeoutMS: 180000 
-	// 		}
-	// 	},
- //    db: {
-	//     numberOfRetries: 1000,
-	//     retryMiliSeconds: 1000
- //    }
-	// };
 
 	var options = { 
 		useMongoClient: true,
@@ -31,7 +13,7 @@ module.exports = function() {
 		socketTimeoutMS: 180000,
 		connectTimeoutMS: 180000,
 		poolSize: 50,
-    promiseLibrary: global.Promise
+		promiseLibrary: global.Promise
 	};
 	
 	var wordAssoDb = mongoose.connect(config.wordAssoDb, options, function(error){
@@ -46,7 +28,6 @@ module.exports = function() {
 	require('../app/models/admin.server.model');  
 	require('../app/models/viewer.server.model');  
 	require('../app/models/user.server.model');  
-
 	require('../app/models/group.server.model');  
 	require('../app/models/entity.server.model');  
 	require('../app/models/session.server.model');  
@@ -57,7 +38,6 @@ module.exports = function() {
 	require('../app/models/url.server.model');  
 	require('../app/models/place.server.model');  
 	require('../app/models/phrase.server.model');  
-
 	require('../app/models/ipAddress.server.model');  
 	require('../app/models/oauth2credential.server.model'); // should probably move admin to separate database
 

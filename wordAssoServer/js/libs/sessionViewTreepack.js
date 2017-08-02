@@ -857,6 +857,7 @@ function ViewTreepack() {
           + "<br>TYPE: " + d.nodeType 
           + "<br>Ms: " + d.mentions
           + "<br>" + d.rate.toFixed(2) + " WPM"
+          + "<br>AKW: " + autoKeywordsFlag
           + "<br>KEYWORDS: " + jsonPrint(keywords);
       break;
       case 'hashtag':

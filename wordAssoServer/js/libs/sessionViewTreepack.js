@@ -1593,6 +1593,17 @@ function ViewTreepack() {
     newNode.keywordsMismatch = false;
     newNode.keywordsMatch = false;
 
+    switch (nNode.nodeType) {
+      case "user":
+      newNode.followersCount = nNode.followersCount;
+      newNode.following = nNode.following;
+      newNode.statusesCount = nNode.statusesCount;
+      newNode.friendsCount = nNode.friendsCount;
+      newNode.threeceeFollowing = nNode.threeceeFollowing;
+      break;
+      default:
+    }
+
     if (newNode.keywordsAuto !== undefined) {
       Object.keys(newNode.keywords).forEach(function(kw){
         if (keywordTypes.includes(kw)){

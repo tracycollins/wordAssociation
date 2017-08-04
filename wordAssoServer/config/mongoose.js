@@ -31,6 +31,7 @@ module.exports = function() {
 		})
 		.catch(function(err){
 			console.log('CONNECT FAILED: ERROR: MONGOOSE default connection open to ' + config.wordAssoDb);
+			console.log('CONNECT FAILED: ERROR: MONGOOSE ' + err);
 		});
 
 	require('../app/models/admin.server.model');  

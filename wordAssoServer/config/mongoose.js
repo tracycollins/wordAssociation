@@ -16,14 +16,22 @@ module.exports = function() {
 		promiseLibrary: global.Promise
 	};
 	
-	var wordAssoDb = mongoose.connect(config.wordAssoDb, options, function(error){
-		if (error) {
-			console.log('CONNECT FAILED: ERROR: MONGOOSE default connection open to ' + config.wordAssoDb);
-		}
-		else {
+	// var wordAssoDb = mongoose.connect(config.wordAssoDb, options, function(error){
+	// 	if (error) {
+	// 		console.log('CONNECT FAILED: ERROR: MONGOOSE default connection open to ' + config.wordAssoDb);
+	// 	}
+	// 	else {
+	// 		console.log('CONNECT: MONGOOSE default connection open to ' + config.wordAssoDb);
+	// 	}
+	// });
+
+	var wordAssoDb = mongoose.connect(config.wordAssoDb, options)
+		.then(function(){
 			console.log('CONNECT: MONGOOSE default connection open to ' + config.wordAssoDb);
-		}
-	});
+		})
+		.catch(function(err){
+			console.log('CONNECT FAILED: ERROR: MONGOOSE default connection open to ' + config.wordAssoDb);
+		});
 
 	require('../app/models/admin.server.model');  
 	require('../app/models/viewer.server.model');  

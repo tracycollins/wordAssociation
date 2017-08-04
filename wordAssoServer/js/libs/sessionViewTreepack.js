@@ -856,6 +856,9 @@ function ViewTreepack() {
           + "<br>SN: " + d.screenName 
           // + "<br>TYPE: " + d.nodeType 
           + "<br>FLWRs: " + d.followersCount
+          + "<br>FRNDs: " + d.friendsCount
+          + "<br>Ts: " + d.statusesCount
+          + "<br>3CF: " + d.threeceeFollowing
           + "<br>Ms: " + d.mentions
           + "<br>" + d.rate.toFixed(2) + " WPM"
           + "<br>AKW: " + autoKeywordsFlag

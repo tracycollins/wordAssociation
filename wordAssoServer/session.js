@@ -2259,6 +2259,11 @@ function initSocketNodeRx(){
       newNode.name = nNode.name;
       newNode.profileUrl = nNode.profileUrl;
       newNode.profileImageUrl = nNode.profileImageUrl;
+      newNode.followersCount = nNode.followersCount;
+      newNode.following = nNode.following;
+      newNode.statusesCount = nNode.statusesCount;
+      newNode.friendsCount = nNode.friendsCount;
+      newNode.threeceeFollowing = nNode.threeceeFollowing;
     }
     if (nNode.nodeType === "media"){
       newNode.mediaId = nNode.mediaId;

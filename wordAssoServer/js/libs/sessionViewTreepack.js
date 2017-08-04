@@ -854,7 +854,8 @@ function ViewTreepack() {
           + "<br>TOPTERM: " + d.isTopTerm 
           + "<br>N: " + d.name 
           + "<br>SN: " + d.screenName 
-          + "<br>TYPE: " + d.nodeType 
+          // + "<br>TYPE: " + d.nodeType 
+          + "<br>FLWRs: " + d.followersCount
           + "<br>Ms: " + d.mentions
           + "<br>" + d.rate.toFixed(2) + " WPM"
           + "<br>AKW: " + autoKeywordsFlag

@@ -1432,6 +1432,13 @@ function ViewTreepack() {
         currentNode.x = currentNode.x || 0;
         currentNode.y = currentNode.y || 0;
 
+        if (currentNode.nodeType === "user"){
+          currentNode.statusesCount = newNode.statusesCount;
+          currentNode.followersCount = newNode.followersCount;
+          currentNode.friendsCount = newNode.friendsCount;
+          currentNode.threeceeFollowing = newNode.threeceeFollowing;
+        }
+
         // localNodeHashMap.set(currentNode.nodeId, currentNode);
         localNodeHashMap[currentNode.nodeId] = currentNode;
 
@@ -1614,16 +1621,16 @@ function ViewTreepack() {
     newNode.keywordsMismatch = false;
     newNode.keywordsMatch = false;
 
-    switch (nNode.nodeType) {
-      case "user":
-      newNode.followersCount = nNode.followersCount;
-      newNode.following = nNode.following;
-      newNode.statusesCount = nNode.statusesCount;
-      newNode.friendsCount = nNode.friendsCount;
-      newNode.threeceeFollowing = nNode.threeceeFollowing;
-      break;
-      default:
-    }
+    // switch (nNode.nodeType) {
+    //   case "user":
+    //   newNode.followersCount = nNode.followersCount;
+    //   newNode.following = nNode.following;
+    //   newNode.statusesCount = nNode.statusesCount;
+    //   newNode.friendsCount = nNode.friendsCount;
+    //   newNode.threeceeFollowing = nNode.threeceeFollowing;
+    //   break;
+    //   default:
+    // }
 
     if ((newNode.keywordsAuto !== undefined) && newNode.keywordsAuto) {
       Object.keys(newNode.keywords).forEach(function(kw){

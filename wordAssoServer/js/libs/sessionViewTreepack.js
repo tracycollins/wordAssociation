@@ -1081,7 +1081,10 @@ function ViewTreepack() {
             return defaultRadiusScale(Math.sqrt(0.1));
           }
           if (metricMode === "rate") { return defaultRadiusScale(Math.sqrt(d.rate));}
-          if (metricMode === "mentions") { return defaultRadiusScale(Math.sqrt(d.mentions)); }
+          if (metricMode === "mentions") { 
+            if (d.nodeType === "user") { return defaultRadiusScale(Math.sqrt(d.followersCount)); }
+            return defaultRadiusScale(Math.sqrt(d.mentions));
+          }
         });
 
     nodeCircles
@@ -1129,7 +1132,10 @@ function ViewTreepack() {
             return defaultRadiusScale(Math.sqrt(0.1));
           }
           if (metricMode === "rate") { return defaultRadiusScale(Math.sqrt(d.rate));}
-          if (metricMode === "mentions") { return defaultRadiusScale(Math.sqrt(d.mentions)); }
+          if (metricMode === "mentions") { 
+            if (d.nodeType === "user") { return defaultRadiusScale(Math.sqrt(d.followersCount)); }
+            return defaultRadiusScale(Math.sqrt(d.mentions));
+          }
         });
 
     nodeCircles
@@ -1259,7 +1265,10 @@ function ViewTreepack() {
       })
       .style("font-size", function(d) {
         if (metricMode === "rate") {return nodeLabelSizeScale(d.rate);}
-        if (metricMode === "mentions") {return nodeLabelSizeScale(d.mentions);}
+        if (metricMode === "mentions") {
+          if (d.nodeType === "user") { return defaultRadiusScale(Math.sqrt(d.followersCount)); }
+          return nodeLabelSizeScale(d.mentions);
+        }
       });
 
     nodeLabels
@@ -1309,6 +1318,11 @@ function ViewTreepack() {
   var createDisplayText = function(node) {
 
     var mntns = node.mentions.toString() ;
+
+    if (node.nodeType === "user"){
+      mntns = node.followersCount.toString() ;
+    }
+
     var rate = node.rate.toFixed(2).toString() ;
     var mentionPadSpaces = mentionsNumChars - mntns.length;
     var ratePadSpaces = rateNumChars - rate.length;

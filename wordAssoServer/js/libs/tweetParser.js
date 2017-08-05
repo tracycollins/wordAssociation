@@ -128,13 +128,16 @@ function initTweetParserQueueInterval(cnf){
 
       tweet = tweetParserQueue.dequeue();
 
-      debug(chalkInfo("TPQ>"
+      console.log(chalkInfo("TPQ>"
         + " [" + tweetParserQueue.size() + "]"
         // + " | " + socket.id
         + " | " + tweet.id_str
         + " | " + tweet.user.id_str
         + " | " + tweet.user.screen_name
         + " | " + tweet.user.name
+        + " | Ts: " + tweet.user.statuses_count
+        + " | FLWRs: " + tweet.user.followers_count
+        + " | FRNDs: " + tweet.user.friends_count
       ));
 
       params.tweetStatus = tweet;

@@ -2226,6 +2226,7 @@ function initSocketNodeRx(){
     getKeywordColor(keywords, function(color){
       newNode.keywordColor = color;
     });  // KLUDGE!  need better way to do keywords
+    
     newNode.createdAt = nNode.createdAt;
     newNode.age = 1e-6;
     newNode.ageMaxRatio = 1e-6;

@@ -1621,7 +1621,7 @@ function ViewTreepack() {
       default:
     }
 
-    if ((newNode.keywordsAuto !== undefined) && newNode.keywords) {
+    if ((newNode.keywordsAuto !== undefined) && newNode.keywordsAuto) {
       Object.keys(newNode.keywords).forEach(function(kw){
         if (keywordTypes.includes(kw)){
           if (newNode.keywordsAuto[kw] !== undefined){

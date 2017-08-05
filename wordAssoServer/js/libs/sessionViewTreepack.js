@@ -469,6 +469,7 @@ function ViewTreepack() {
   };
 
   this.setMetricMode = function(mode) {
+
     config.defaultMetricMode = mode;
     metricMode = mode;
 
@@ -1206,7 +1207,10 @@ function ViewTreepack() {
       })
       .style("font-size", function(d) {
         if (metricMode === "rate") {return nodeLabelSizeScale(d.rate);}
-        if (metricMode === "mentions") {return nodeLabelSizeScale(d.mentions);}
+        if (metricMode === "mentions") {
+          if (d.nodeType === "user") { return nodeLabelSizeScale(d.followersCount); }
+          return nodeLabelSizeScale(d.mentions);
+        }
       });
 
     nodeLabels
@@ -1266,7 +1270,7 @@ function ViewTreepack() {
       .style("font-size", function(d) {
         if (metricMode === "rate") {return nodeLabelSizeScale(d.rate);}
         if (metricMode === "mentions") {
-          if (d.nodeType === "user") { return defaultRadiusScale(Math.sqrt(d.followersCount)); }
+          if (d.nodeType === "user") { return nodeLabelSizeScale(d.followersCount); }
           return nodeLabelSizeScale(d.mentions);
         }
       });
@@ -1654,6 +1658,7 @@ function ViewTreepack() {
       if (metricMode === "mentions") {
 
         currentMaxMetric = nNode.mentions; 
+        if (d.nodeType === "user") { currentMaxMetric = nNode.followersCount; }
 
         nodeLabelSizeScale = d3.scaleLinear()
           .domain([1, currentMaxMetric])
@@ -1792,7 +1797,10 @@ function ViewTreepack() {
       }))
       .force("collide", d3.forceCollide().radius(function(d) { 
         if (metricMode === "rate") {return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.rate));}
-        if (metricMode === "mentions") {return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.mentions));}
+        if (metricMode === "mentions") {
+          if (d.nodeType === "user") { return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.followersCount)); }
+          return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.mentions));
+        }
       }).iterations(collisionIterations).strength(1.0))
       .velocityDecay(velocityDecay)
       .on("tick", ticked);
@@ -1992,7 +2000,10 @@ function ViewTreepack() {
         }))
         .force("collide", d3.forceCollide().radius(function(d) { 
           if (metricMode === "rate") {return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.rate));}
-          if (metricMode === "mentions") {return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.mentions));}
+          if (metricMode === "mentions") {
+            if (d.nodeType === "user") { return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.followersCount)); }
+            return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.mentions));
+          }
         }).iterations(collisionIterations))
         .velocityDecay(velocityDecay)
 

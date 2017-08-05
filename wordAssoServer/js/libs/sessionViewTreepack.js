@@ -1658,7 +1658,7 @@ function ViewTreepack() {
       if (metricMode === "mentions") {
 
         currentMaxMetric = nNode.mentions; 
-        if (nNode.nodeType === "user") { currentMaxMetric = nNode.followersCount; }
+        // if (nNode.nodeType === "user") { currentMaxMetric = nNode.followersCount; }
 
         nodeLabelSizeScale = d3.scaleLinear()
           .domain([1, currentMaxMetric])

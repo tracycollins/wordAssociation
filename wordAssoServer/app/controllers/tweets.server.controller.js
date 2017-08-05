@@ -614,6 +614,7 @@ exports.createStreamTweet = function(params, callback) {
 
 	debug(chalkTwitter("newTweet.testMode: " + newTweet.testMode));
 	debug(chalkTwitter("newTweet.addHashMap: " + jsonPrint(newTweet.addHashMap)));
+	console.log(chalkTwitter("tweets.server.createStreamTweet newTweet\n" + jsonPrint(newTweet)));
 
 	let tweetObj = new Tweet({ 
 		nodeType: "tweet",

@@ -1432,7 +1432,7 @@ function ViewTreepack() {
         currentNode.x = currentNode.x || 0;
         currentNode.y = currentNode.y || 0;
 
-        if (currentNode.nodeType === "user"){
+        if (newNode.nodeType === "user"){
           currentNode.statusesCount = newNode.statusesCount;
           currentNode.followersCount = newNode.followersCount;
           currentNode.friendsCount = newNode.friendsCount;

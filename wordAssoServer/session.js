@@ -26,7 +26,7 @@ var storedConfig;
 
 var PAGE_LOAD_TIMEOUT = 1000;
 
-var KEYWORD_SCALE = { min: 0, max: 100 };
+// var KEYWORD_SCALE = { min: 0, max: 100 };
 
 var DEFAULT_FORCEVIEW_MODE = "web";
 var DEFAULT_SESSION_VIEW = "treepack";
@@ -42,9 +42,9 @@ var controlPanel;
 var controlPanelWindow; 
 var controlPanelFlag = false;
 
-var statsTable ;
+// var statsTable ;
 
-var initializedFlag = false;
+// var initializedFlag = false;
 var statsTableFlag = false;
 
 // requirejs(["https://cdnjs.cloudflare.com/ajax/libs/d3/4.8.0/d3.min.js"], function(d3Loaded) {
@@ -55,7 +55,7 @@ requirejs(["https://d3js.org/d3.v4.min.js"], function(d3Loaded) {
 
       PARENT_ID = config.sessionViewType;
 
-      initializedFlag = true;
+      // initializedFlag = true;
 
       createStatsTable(function(){
         statsTableFlag = true;

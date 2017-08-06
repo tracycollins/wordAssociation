@@ -1868,7 +1868,7 @@ function createStatsTable(callback) {
       break;
   }
 
-  if (callback) { callback(statsTable); }
+  if (callback) { callback(); }
 }
 
 //  STATS UPDATE

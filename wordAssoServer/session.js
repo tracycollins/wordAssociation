@@ -71,7 +71,7 @@ requirejs(["https://d3js.org/d3.v4.min.js"], function(d3Loaded) {
       
       document.addEventListener("mousemove", function() {
         if (config.pauseOnMouseMove && (currentSessionView)) { 
-          currentSessionView.simulationControl('PAUSE'); 
+          currentSessionView.simulationControl("PAUSE"); 
           mouseMovingFlag = true;
           displayControl(true);
           resetMouseMoveTimer();
@@ -81,7 +81,7 @@ requirejs(["https://d3js.org/d3.v4.min.js"], function(d3Loaded) {
     });
   },
   function(error) {
-    console.log('REQUIREJS ERROR handler', error);
+    console.log("REQUIREJS ERROR handler", error);
     //error.requireModules : is Array of all failed modules
     var failedId = error.requireModules && error.requireModules[0];
     console.log(failedId);
@@ -89,6 +89,8 @@ requirejs(["https://d3js.org/d3.v4.min.js"], function(d3Loaded) {
   }
 );
 
+var currentGroup = {};
+var currentSession = {};
 var currentSessionView;
 
 var defaultDateTimeFormat = "YYYY-MM-DD HH:mm:ss ZZ";
@@ -230,8 +232,7 @@ else {
   config.defaultFontSizeMaxRatio = DEFAULT_FONT_SIZE_MAX_RATIO;
   config.defaultFontSizeTopTermRatio = DEFAULT_FONT_SIZE_TOPTERM_RATIO;
 
-  if ((config.sessionViewType == 'ticker') 
-    ) {
+  if (config.sessionViewType === "ticker") {
     config.disableLinks = true;
   }
   else{
@@ -416,12 +417,11 @@ var ignoreWordsArray = [
   "your",
   "|",
   "é",
-  "–",
+  "–"
 ];
 
-ignoreWordsArray.push('"');
 ignoreWordsArray.push("'");
-
+ignoreWordsArray.push("`");
 
 var groupHashMap = new HashMap();
 var groupDeleteHashMap = new HashMap();
@@ -463,7 +463,6 @@ var linkDeleteQueue = []; // gets a hash of nodes deleted by sessionViewForce fo
 
 var urlRoot = DEFAULT_SOURCE + "/session?session=";
 
-var currentSession = {};
 var sessionId;
 var namespace;
 var sessionMode = false;
@@ -511,11 +510,11 @@ var viewerSessionKey;
 var socket = io("/view");
 
 function msToTime(duration) {
-  var milliseconds = parseInt((duration % 1000) / 1000),
-    seconds = parseInt((duration / 1000) % 60),
-    minutes = parseInt((duration / (1000 * 60)) % 60),
-    hours = parseInt((duration / (1000 * 60 * 60)) % 24),
-    days = parseInt(duration / (1000 * 60 * 60 * 24));
+  var milliseconds = parseInt((duration % 1000) / 1000);
+  var seconds = parseInt((duration / 1000) % 60);
+  var minutes = parseInt((duration / (1000 * 60)) % 60);
+  var hours = parseInt((duration / (1000 * 60 * 60)) % 24);
+  var days = parseInt(duration / (1000 * 60 * 60 * 24));
 
   days = (days < 10) ? "0" + days : days;
   hours = (hours < 10) ? "0" + hours : hours;
@@ -574,28 +573,26 @@ function getKeywordColor(kwObj, callback){
     });
 
   }
-};
-
+}
 
 function displayControl(isVisible) {
-  var v = 'hidden';
-  if (isVisible) v = 'visible';
-  document.getElementById('controlDiv').style.visibility = v;
-  document.getElementById('topTermsDiv').style.visibility = v;
+  var v = "hidden";
+  if (isVisible) { v = "visible"; }
+  document.getElementById("controlDiv").style.visibility = v;
+  document.getElementById("topTermsDiv").style.visibility = v;
 }
 
 function displayStats(isVisible, dColor) {
-  var v = 'hidden';
-  if (isVisible) v = 'visible';
-  document.getElementById('statsDiv').style.visibility = v;
-  if (dColor !== undefined) {document.getElementById('statsDiv').style.color = dColor;}
+  var v = "hidden";
+  if (isVisible) { v = "visible"; }
+  document.getElementById("statsDiv").style.visibility = v;
+  if (dColor !== undefined) {document.getElementById("statsDiv").style.color = dColor;}
 }
 
 var mouseMoveTimeoutEventObj = new CustomEvent("mouseMoveTimeoutEvent");
 var mouseMoveTimeout;
 var mouseMovingFlag = false;
 var mouseMoveTimeoutInterval = 2000;
-var mouseMoveTimeout;
 
 function resetMouseMoveTimer() {
 
@@ -609,7 +606,7 @@ function resetMouseMoveTimer() {
     currentSessionView.toolTipVisibility(false);
 
     if (config.pauseOnMouseMove && !config.pauseFlag) { 
-      currentSessionView.simulationControl('RESUME'); 
+      currentSessionView.simulationControl("RESUME"); 
     }
 
     if (!config.showStatsFlag && !pageLoadedTimeIntervalFlag) {
@@ -621,10 +618,6 @@ function resetMouseMoveTimer() {
 
   }, mouseMoveTimeoutInterval);
 }
-
-
-
-
 
 var serverActiveTimeoutEventObj = new CustomEvent("serverActiveTimeoutEvent");
 var serverActiveTimeout;
@@ -649,13 +642,7 @@ function resetServerActiveTimer() {
 }
 
 
-
-
-
-
-
-
-var dragEndPosition = { 'id': 'ID', 'x': 47, 'y': 147};
+var dragEndPosition = { "id": "ID", "x": 47, "y": 147};
 
 document.addEventListener("dragEnd", function(e) {
   console.log("DRAG END: " + jsonPrint(dragEndPosition));
@@ -671,18 +658,16 @@ document.addEventListener("dragEnd", function(e) {
   }
 });
 
-// var mouseMoveTimeoutEvent = new Event('mouseMoveTimeout');
-
 var sessionDragEndEvent = new CustomEvent(
-  'dragEnd', { 
-    'detail': dragEndPosition
+  "dragEnd", { 
+    "detail": dragEndPosition
   } 
 );
 
 window.onbeforeunload = function() {
   if (controlPanelFlag) { controlPanelWindow.close(); }
   controlPanelFlag = false;
-}
+};
 
 function toggleControlPanel(){
 
@@ -710,115 +695,114 @@ function toggleControlPanel(){
           clearInterval(controlPanelInitWaitInterval);
           updateControlButton(controlPanelFlag);
           console.debug("TX> CONTROL PANEL INIT | SOURCE: " + DEFAULT_SOURCE);
-          cpw.postMessage({op: 'INIT', config: cnf}, DEFAULT_SOURCE);
+          cpw.postMessage({op: "INIT", config: cnf}, DEFAULT_SOURCE);
         }
       }, 500);
 
     });
   }
-
 }
 
 function updateControlButton(controlPanelFlag){
-  var cpButton = document.getElementById('controlPanelButton');
-  cpButton.innerHTML = controlPanelFlag ? 'HIDE CONTROL' : 'SHOW CONTROL';
+  var cpButton = document.getElementById("controlPanelButton");
+  cpButton.innerHTML = controlPanelFlag ? "HIDE CONTROL" : "SHOW CONTROL";
 }
 
 function addControlButton(){
-  var controlDiv = document.getElementById('controlDiv');
-  controlDiv.style.visibility = 'hidden';
+  var controlDiv = document.getElementById("controlDiv");
+  controlDiv.style.visibility = "hidden";
   var controlPanelButton = document.createElement("BUTTON");
-  controlPanelButton.className = 'button';
-  controlPanelButton.setAttribute('id', 'controlPanelButton');
-  controlPanelButton.setAttribute('onclick', 'toggleControlPanel()');
-  controlPanelButton.innerHTML = controlPanelFlag ? 'HIDE CONTROL' : 'SHOW CONTROL';
+  controlPanelButton.className = "button";
+  controlPanelButton.setAttribute("id", "controlPanelButton");
+  controlPanelButton.setAttribute("onclick", "toggleControlPanel()");
+  controlPanelButton.innerHTML = controlPanelFlag ? "HIDE CONTROL" : "SHOW CONTROL";
   controlDiv.appendChild(controlPanelButton);
 }
 
 function addStatsText(){
-  var statsDiv = document.getElementById('statsDiv');
+  var statsDiv = document.getElementById("statsDiv");
   var statsText = document.createTextNode("STATS");
   statsDiv.appendChild(statsText);
 }
 
 function updateStatsText(statsText){
-  var statsDiv = document.getElementById('statsDiv');
+  var statsDiv = document.getElementById("statsDiv");
   statsDiv.innerHTML = statsText;
 }
 
 function addKeywordButton(){
-  var controlDiv = document.getElementById('controlDiv');
+  var controlDiv = document.getElementById("controlDiv");
   var keywordButton = document.createElement("BUTTON");
-  keywordButton.className = 'button';
-  keywordButton.setAttribute('id', 'keywordButton');
-  keywordButton.setAttribute('onclick', 'toggleKeyword()');
-  keywordButton.innerHTML = config.autoKeywordsFlag ? 'AUTO KEYWORD' : 'MANUAL KEYWORD';
+  keywordButton.className = "button";
+  keywordButton.setAttribute("id", "keywordButton");
+  keywordButton.setAttribute("onclick", "toggleKeyword()");
+  keywordButton.innerHTML = config.autoKeywordsFlag ? "AUTO KEYWORD" : "MANUAL KEYWORD";
   controlDiv.appendChild(keywordButton);
 }
 
 function updateKeywordButton(){
-  var keywordButton = document.getElementById('keywordButton');
-  keywordButton.innerHTML = config.autoKeywordsFlag ? 'AUTO KEYWORD' : 'MANUAL KEYWORD';
+  var keywordButton = document.getElementById("keywordButton");
+  keywordButton.innerHTML = config.autoKeywordsFlag ? "AUTO KEYWORD" : "MANUAL KEYWORD";
 }
 
 function addStatsButton(){
-  var controlDiv = document.getElementById('controlDiv');
+  var controlDiv = document.getElementById("controlDiv");
   var statsButton = document.createElement("BUTTON");
-  statsButton.className = 'button';
-  statsButton.setAttribute('id', 'statsButton');
-  statsButton.setAttribute('onclick', 'toggleStats()');
-  statsButton.innerHTML = config.showStats ? 'HIDE STATS' : 'SHOW STATS';
+  statsButton.className = "button";
+  statsButton.setAttribute("id", "statsButton");
+  statsButton.setAttribute("onclick", "toggleStats()");
+  statsButton.innerHTML = config.showStats ? "HIDE STATS" : "SHOW STATS";
   controlDiv.appendChild(statsButton);
 }
 
 function updateStatsButton(){
-  var statsButton = document.getElementById('statsButton');
-  statsButton.innerHTML = config.showStatsFlag ? 'HIDE STATS' : 'SHOW STATS';
+  var statsButton = document.getElementById("statsButton");
+  statsButton.innerHTML = config.showStatsFlag ? "HIDE STATS" : "SHOW STATS";
 }
 
 function updateMetricButton(){
-  var bButton = document.getElementById('metricButton');
-  bButton.innerHTML = config.metricMode.toUpperCase() + ' RADIUS';
+  var bButton = document.getElementById("metricButton");
+  bButton.innerHTML = config.metricMode.toUpperCase() + " RADIUS";
 }
 
 function addMetricButton(){
-  var controlDiv = document.getElementById('controlDiv');
+  var controlDiv = document.getElementById("controlDiv");
   var metricButton = document.createElement("BUTTON");
   if (config.metricMode === undefined) { config.metricMode = "rate"; }
-  metricButton.className = 'button';
-  metricButton.setAttribute('id', 'metricButton');
-  metricButton.setAttribute('onclick', 'toggleMetric()');
-  metricButton.innerHTML = config.metricMode.toUpperCase() + ' RADIUS';
+  metricButton.className = "button";
+  metricButton.setAttribute("id", "metricButton");
+  metricButton.setAttribute("onclick", "toggleMetric()");
+  metricButton.innerHTML = config.metricMode.toUpperCase() + " RADIUS";
   controlDiv.appendChild(metricButton);
 }
 
 function updateBlahButton(){
-  var bButton = document.getElementById('blahButton');
-  bButton.innerHTML = config.blahMode ? 'HIDE BLAH' : 'SHOW BLAH';
+  var bButton = document.getElementById("blahButton");
+  bButton.innerHTML = config.blahMode ? "HIDE BLAH" : "SHOW BLAH";
 }
 
 function addBlahButton(){
-  var controlDiv = document.getElementById('controlDiv');
+  var controlDiv = document.getElementById("controlDiv");
   var blahButton = document.createElement("BUTTON");
-  blahButton.className = 'button';
-  blahButton.setAttribute('id', 'blahButton');
-  blahButton.setAttribute('onclick', 'toggleBlah()');
-  blahButton.innerHTML = config.blahMode ? 'HIDE BLAH' : 'SHOW BLAH';
+  blahButton.className = "button";
+  blahButton.setAttribute("id", "blahButton");
+  blahButton.setAttribute("onclick", "toggleBlah()");
+  blahButton.innerHTML = config.blahMode ? "HIDE BLAH" : "SHOW BLAH";
   controlDiv.appendChild(blahButton);
 }
 
 function updateFullscreenButton(){
-  var bButton = document.getElementById('fullscreenButton');
-  bButton.innerHTML = config.fullscreenMode ? 'EXIT FULLSCREEN' : 'FULLSCREEN';
+  var bButton = document.getElementById("fullscreenButton");
+  bButton.innerHTML = config.fullscreenMode ? "EXIT FULLSCREEN" : "FULLSCREEN";
 }
 
 function addFullscreenButton(){
-  var controlDiv = document.getElementById('controlDiv');
+  var controlDiv = document.getElementById("controlDiv");
   var fullscreenButton = document.createElement("BUTTON");
-  fullscreenButton.className = 'button';
-  fullscreenButton.setAttribute('id', 'fullscreenButton');
-  fullscreenButton.setAttribute('onclick', 'toggleFullScreen()');
-  fullscreenButton.innerHTML = config.fullscreenMode ? 'EXIT FULLSCREEN' : 'FULLSCREEN';
+  fullscreenButton.className = "button";
+  fullscreenButton.setAttribute("id", "fullscreenButton");
+  fullscreenButton.setAttribute("onclick", "toggleFullScreen()");
+  fullscreenButton.innerHTML = config.fullscreenMode ? "EXIT FULLSCREEN" : "FULLSCREEN";
   controlDiv.appendChild(fullscreenButton);
 }
 
@@ -828,7 +812,7 @@ var configUpdateTimeOutInverval = 3000;
 
 function resetConfigUpdateTimeOut() {
 
-  var storedConfigName = "config_" + config.sessionViewType;
+  storedConfigName = "config_" + config.sessionViewType;
 
   clearTimeout(configUpdateTimeOut);
 
@@ -842,7 +826,7 @@ function resetConfigUpdateTimeOut() {
 
 function controlPanelComm(event) {
 
-  console.debug("CONTROL PANEL: " + event.origin); // prints: { message: 'Hello world!'} 
+  console.debug("CONTROL PANEL: " + event.origin); // prints: { message: "Hello world!"} 
 
   var data = event.data;
 
@@ -856,107 +840,105 @@ function controlPanelComm(event) {
   //   return;
 
   switch (data.op) {
-    case 'READY' :
+    case "READY" :
       console.warn("R< CONTROL PANEL READY");
       controlPanelReadyFlag = true;
     break;
-    case 'CLOSE' :
+    case "CLOSE" :
       console.warn("R< CONTROL PANEL CLOSING...");
     break;
-    case 'MOMENT' :
+    case "MOMENT" :
       console.warn("R< CONTROL PANEL MOMENT...");
       switch (data.id) {
-        case 'resetButton' :
+        case "resetButton" :
           reset();
         break;
         default:
           console.error("CONTROL PANEL UNKNOWN MOMENT BUTTON");
-        break;
       }
     break;
-    case 'TOGGLE' :
+    case "TOGGLE" :
       console.warn("R< CONTROL PANEL TOGGLE");
       switch (data.id) {
-        case 'metricToggleButton' :
+        case "metricToggleButton" :
           toggleMetric();
           resetConfigUpdateTimeOut();
         break;
-        case 'blahToggleButton' :
+        case "blahToggleButton" :
           toggleBlah();
           resetConfigUpdateTimeOut();
         break;
-        case 'fullscreenToggleButton' :
+        case "fullscreenToggleButton" :
           toggleFullScreen();
           resetConfigUpdateTimeOut();
         break;
-        case 'pauseToggleButton' :
+        case "pauseToggleButton" :
           togglePause();
           resetConfigUpdateTimeOut();
         break;
-        case 'statsToggleButton' :
+        case "statsToggleButton" :
           toggleStats();
         break;
-        case 'testModeToggleButton' :
+        case "testModeToggleButton" :
           toggleTestMode();
           resetConfigUpdateTimeOut();
         break;
-        case 'disableLinksToggleButton' :
+        case "disableLinksToggleButton" :
           toggleDisableLinks();
           resetConfigUpdateTimeOut();
         break;
-        case 'nodeCreateButton' :
+        case "nodeCreateButton" :
           // createTextNode;
         break;
-        case 'antonymToggleButton' :
+        case "antonymToggleButton" :
           toggleAntonym();
           resetConfigUpdateTimeOut();
         break;
-        case 'removeDeadNodeToogleButton' :
+        case "removeDeadNodeToogleButton" :
           toggleRemoveDeadNode();
           resetConfigUpdateTimeOut();
         break;
         default:
           console.error("CONTROL PANEL UNKNOWN TOGGLE BUTTON");
-        break;
       }
     break;
-    case 'UPDATE' :
+    case "UPDATE" :
       console.warn("R< CONTROL PANEL UPDATE");
       switch (data.id) {
-        case 'transitionDurationSlider' :
+        case "transitionDurationSlider" :
           currentSessionView.updateTransitionDuration(data.value);
           config.defaultTransitionDuration = data.value;
           resetConfigUpdateTimeOut();
         break;
-        case 'linkStrengthSlider' :
+        case "linkStrengthSlider" :
           currentSessionView.updateLinkStrength(data.value);
           resetConfigUpdateTimeOut();
         break;
-        case 'linkDistanceSlider' :
+        case "linkDistanceSlider" :
           currentSessionView.updateLinkDistance(data.value);
           resetConfigUpdateTimeOut();
         break;
-        case 'velocityDecaySlider' :
+        case "velocityDecaySlider" :
           currentSessionView.updateVelocityDecay(data.value);
           resetConfigUpdateTimeOut();
         break;
-        case 'gravitySlider' :
+        case "gravitySlider" :
           currentSessionView.updateGravity(data.value);
           resetConfigUpdateTimeOut();
         break;
-        case 'chargeSlider' :
+        case "chargeSlider" :
           currentSessionView.updateCharge(data.value);
           resetConfigUpdateTimeOut();
         break;
-        case 'maxAgeSlider' :
+        case "maxAgeSlider" :
           currentSessionView.setNodeMaxAge(data.value);
           resetConfigUpdateTimeOut();
         break;
-        case 'fontSizeMinRatioSlider' :
+        case "fontSizeMinRatioSlider" :
           currentSessionView.updateFontSizeMinRatio(data.value);
           resetConfigUpdateTimeOut();
         break;
-        case 'fontSizeMaxRatioSlider' :
+        case "fontSizeMaxRatioSlider" :
           currentSessionView.updateFontSizeMaxRatio(data.value);
           resetConfigUpdateTimeOut();
         break;
@@ -964,12 +946,11 @@ function controlPanelComm(event) {
           console.error("UNKNOWN CONTROL PANEL ID: " + data.id + "\n" + jsonPrint(data));
       }
     break;
-    case 'INIT':
+    case "INIT":
       console.info("R< CONTROL PANEL LOOPBACK? | INIT ... IGNORING ...");
       break;
     default :
       console.error("R< ??? CONTROL PANEL OP UNDEFINED\n" + jsonPrint(data));
-    break;
   }
 }
 
@@ -984,18 +965,18 @@ function createPopUpControlPanel (cnf, callback) {
   controlPanelWindow.addEventListener("message", controlPanelComm, false);
   window.addEventListener("message", controlPanelComm, false);
 
-  controlPanelWindow.addEventListener('beforeunload', function(){
+  controlPanelWindow.addEventListener("beforeunload", function(){
     console.log("CONTROL POP UP CLOSING...");
     controlPanelFlag = false;
     updateControlButton(controlPanelFlag);
   }, false);
 
-  controlPanelWindow.addEventListener('load', function(cnf){
+  controlPanelWindow.addEventListener("load", function(cnf){
     controlPanel = new controlPanelWindow.ControlPanel(cnf);
     controlPanelFlag = true;
     callback(controlPanelWindow);
   }, false);
-};
+}
 
 function toggleMetric() {
   if (config.metricMode === "rate") {
@@ -1042,7 +1023,7 @@ function toggleRemoveDeadNode() {
 function toggleDisableLinks() {
   config.disableLinks = !config.disableLinks;
   currentSessionView.disableLinks = config.disableLinks;
-  if (config.disableLinks) linkHashMap.clear();
+  if (config.disableLinks) { linkHashMap.clear(); }
   console.warn("TOGGLE DISABLE LINKS: " + config.disableLinks);
   controlPanel.updateControlPanel(config);
 }
@@ -1053,7 +1034,7 @@ function toggleKeyword() {
   console.warn("AUTO KEYWORD: " + config.autoKeywordsFlag);
 
   updateKeywordButton();
-  if (controlPanelFlag) controlPanel.updateControlPanel(config);
+  if (controlPanelFlag) { controlPanel.updateControlPanel(config); }
 }
 
 function toggleStats() {
@@ -1067,7 +1048,7 @@ function toggleStats() {
   }
 
   updateStatsButton();
-  if (controlPanelFlag) controlPanel.updateControlPanel(config);
+  if (controlPanelFlag) { controlPanel.updateControlPanel(config); }
 }
 
 function toggleTestMode() {
@@ -1099,8 +1080,8 @@ var randomIntFromInterval = function(min, max) {
 };
 
 var randomId = randomIntFromInterval(1000000000, 9999999999);
-var VIEWER_ID = 'VIEWER_RANDOM_' + randomId;
-var USER_ID = 'VIEWER_RANDOM_' + randomId;
+var VIEWER_ID = "VIEWER_RANDOM_" + randomId;
+var USER_ID = "VIEWER_RANDOM_" + randomId;
 
 var DEFAULT_VIEWER_OBJ = {
   userId: USER_ID,
@@ -1136,13 +1117,12 @@ function computeInitialPosition(index) {
 function getSortedKeys(hmap, sortProperty) {
   var keys = [];
   hmap.forEach(function(value, key) {
-    if (value.isSessionNode) {
-    } else {
+    if (!value.isSessionNode) {
       keys.push(key);
     }
   });
   return keys.sort(function(a, b) {
-    return hmap.get(b)[sortProperty] - hmap.get(a)[sortProperty]
+    return hmap.get(b)[sortProperty] - hmap.get(a)[sortProperty];
   });
 }
 
@@ -1162,26 +1142,26 @@ function getTimeStamp(inputTime) {
 
   if (inputTime === undefined) {
     currentDate = new Date().toDateString("en-US", options);
-    currentTime = new Date().toTimeString('en-US', options);
+    currentTime = new Date().toTimeString("en-US", options);
   } else {
     currentDate = new Date(inputTime).toDateString("en-US", options);
-    currentTime = new Date(inputTime).toTimeString('en-US', options);
+    currentTime = new Date(inputTime).toTimeString("en-US", options);
   }
   return currentDate + " - " + currentTime;
 }
 
 function getBrowserPrefix() {
   // Check for the unprefixed property.
-  // if ('hidden' in document) {
+  // if ("hidden" in document) {
   if (document.hidden !== undefined) {
     return null;
   }
   // All the possible prefixes.
-  var browserPrefixes = ['moz', 'ms', 'o', 'webkit'];
+  var browserPrefixes = ["moz", "ms", "o", "webkit"];
   var prefix;
 
   browserPrefixes.forEach(function(p) {
-    prefix = p + 'Hidden';
+    prefix = p + "Hidden";
     if (document[prefix] !== undefined) {
       return p;
     }
@@ -1193,17 +1173,17 @@ function getBrowserPrefix() {
 
 function hiddenProperty(prefix) {
   if (prefix) {
-    return prefix + 'Hidden';
+    return prefix + "Hidden";
   } else {
-    return 'hidden';
+    return "hidden";
   }
 }
 
 function getVisibilityEvent(prefix) {
   if (prefix) {
-    return prefix + 'visibilitychange';
+    return prefix + "visibilitychange";
   } else {
-    return 'visibilitychange';
+    return "visibilitychange";
   }
 }
 
@@ -1242,7 +1222,7 @@ socket.on("VIEWER_READY_ACK", function(vSesKey) {
   }
 
   if (!config.pauseFlag) {
-    currentSessionView.simulationControl('RESUME');
+    currentSessionView.simulationControl("RESUME");
   }
 });
 
@@ -1259,7 +1239,7 @@ socket.on("reconnect", function() {
     console.log("SESSION MODE" + " | SID: " + sessionId + " | NSP: " + namespace);
     var tempSessionId = "/" + namespace + "#" + sessionId;
     currentSession.sessionId = tempSessionId;
-    controlPanel.document.getElementById("statusSessionId").innerHTML = 'SOCKET: ' + statsObj.socketId;
+    controlPanel.document.getElementById("statusSessionId").innerHTML = "SOCKET: " + statsObj.socketId;
     socket.emit("GET_SESSION", currentSession.sessionId);
   } 
 });
@@ -1352,25 +1332,25 @@ var visibilityEvent = getVisibilityEvent(prefix);
 
 
 function reset(){
-  currentSessionView.simulationControl('RESET');
+  currentSessionView.simulationControl("RESET");
   windowVisible = true;
   deleteAllSessions(function() {
     console.log("DELETED ALL SESSIONS ON WINDOW HIDDEN");
     sessionCreateQueue = [];
     sessionDeleteHashMap.clear();
-    if ((config.sessionViewType == 'force') 
-      || (config.sessionViewType == 'ticker')
-      || (config.sessionViewType == 'flow')
-      || (config.sessionViewType == 'media')
+    if ((config.sessionViewType == "force") 
+      || (config.sessionViewType == "ticker")
+      || (config.sessionViewType == "flow")
+      || (config.sessionViewType == "media")
     ) {
       currentSessionView.resetDefaultForce();
     }
-    currentSessionView.simulationControl('START');
+    currentSessionView.simulationControl("START");
     updateSessionsReady = true;
   });  
 }
 
-window.addEventListener('resize', function() {
+window.addEventListener("resize", function() {
   currentSessionView.resize();
 });
 
@@ -1401,7 +1381,7 @@ function getUrlVariables(callbackMain) {
   var searchString = window.location.search.substring(1);
   console.log("searchString: " + searchString);
 
-  var variableArray = searchString.split('&');
+  var variableArray = searchString.split("&");
 
   var asyncTasks = [];
 
@@ -1411,18 +1391,18 @@ function getUrlVariables(callbackMain) {
 
       asyncTasks.push(function(callback2) {
 
-        var keyValuePair = variable.split('=');
+        var keyValuePair = variable.split("=");
 
-        if ((keyValuePair[0] !== '') && (keyValuePair[1] !== undefined)) {
-          console.log("'" + variable + "' >>> URL config: " + keyValuePair[0] + " : " + keyValuePair[1]);
-          if (keyValuePair[0] === 'monitor') {
+        if ((keyValuePair[0] !== "") && (keyValuePair[1] !== undefined)) {
+          console.log(variable + " >>> URL config: " + keyValuePair[0] + " : " + keyValuePair[1]);
+          if (keyValuePair[0] === "monitor") {
             monitorMode = keyValuePair[1];
             console.log("MONITOR MODE | monitorMode: " + monitorMode);
             return (callback2(null, {
               monitorMode: monitorMode
             }));
           }
-          if (keyValuePair[0] === 'session') {
+          if (keyValuePair[0] === "session") {
             urlSessionId = keyValuePair[1];
             console.log("SESSION MODE | urlSessionId: " + urlSessionId);
             return (callback2(null, {
@@ -1430,21 +1410,21 @@ function getUrlVariables(callbackMain) {
               sessionId: urlSessionId
             }));
           }
-          if (keyValuePair[0] === 'nsp') {
+          if (keyValuePair[0] === "nsp") {
             urlNamespace = keyValuePair[1];
             console.log("namespace: " + urlNamespace);
             return (callback2(null, {
               namespace: urlNamespace
             }));
           }
-          if (keyValuePair[0] === 'type') {
+          if (keyValuePair[0] === "type") {
             sessionType = keyValuePair[1];
             console.log("SESSION TYPE | sessionType: " + sessionType);
             return (callback2(null, {
               sessionType: sessionType
             }));
           }
-          if (keyValuePair[0] === 'viewtype') {
+          if (keyValuePair[0] === "viewtype") {
             config.sessionViewType = keyValuePair[1];
             console.info("SESSION VIEW TYPE | sessionViewType: " + config.sessionViewType);
             return (callback2(null, {
@@ -1490,7 +1470,7 @@ function launchSessionView(sessionId) {
   console.log("sessionId: " + sessionId + " | nsp: " + sessionIdParts[1] + " | id: " + sessionIdParts[2]);
   var url = urlRoot + sessionIdParts[2] + "&nsp=" + sessionIdParts[1];
   console.log("launchSessionView: " + sessionId + " | " + url);
-  window.open(url, 'SESSION VIEW', '_new');
+  window.open(url, "SESSION VIEW", "_new");
 }
 
 
@@ -1505,7 +1485,7 @@ function tableCreateRow(parentTable, options, cells) {
 
   var tr = parentTable.insertRow();
   var tdTextColor = options.textColor;
-  var tdBgColor = options.backgroundColor || '#222222';
+  var tdBgColor = options.backgroundColor || "#222222";
 
   if (options.trClass) {
     tr.className = options.trClass;
@@ -1531,39 +1511,39 @@ function tableCreateRow(parentTable, options, cells) {
         td.style.backgroundColor = tdBgColor;
 
       } 
-      else if (content.type == 'TEXT') {
+      else if (content.type == "TEXT") {
 
         td.className = content.class;
-        td.setAttribute('id', content.id);
+        td.setAttribute("id", content.id);
         td.style.color = tdTextColor;
         td.style.backgroundColor = tdBgColor;
         td.innerHTML = content.text;
 
       } 
-      else if (content.type == 'BUTTON') {
+      else if (content.type == "BUTTON") {
 
         var buttonElement = document.createElement("BUTTON");
         buttonElement.className = content.class;
-        buttonElement.setAttribute('id', content.id);
-        buttonElement.setAttribute('mode', content.mode);
-        buttonElement.addEventListener('click', function(e){ buttonHandler(e); }, false);
+        buttonElement.setAttribute("id", content.id);
+        buttonElement.setAttribute("mode", content.mode);
+        buttonElement.addEventListener("click", function(e){ buttonHandler(e); }, false);
         buttonElement.innerHTML = content.text;
         td.appendChild(buttonElement);
         controlIdHash[content.id] = content;
 
       } 
-      else if (content.type == 'SLIDER') {
+      else if (content.type == "SLIDER") {
 
       console.warn("tableCreateRow\n" + jsonPrint(content));
 
         var sliderElement = document.createElement("INPUT");
-        sliderElement.type = 'range';
+        sliderElement.type = "range";
         sliderElement.className = content.class;
-        sliderElement.setAttribute('id', content.id);
-        sliderElement.setAttribute('min', content.min);
-        sliderElement.setAttribute('max', content.max);
-        sliderElement.setAttribute('multiplier', content.multiplier);
-        sliderElement.setAttribute('oninput', content.oninput);
+        sliderElement.setAttribute("id", content.id);
+        sliderElement.setAttribute("min", content.min);
+        sliderElement.setAttribute("max", content.max);
+        sliderElement.setAttribute("multiplier", content.multiplier);
+        sliderElement.setAttribute("oninput", content.oninput);
         sliderElement.value = content.value;
         td.appendChild(sliderElement);
         controlIdHash[content.id] = content;
@@ -1577,24 +1557,24 @@ function createStatsTable(callback) {
 
   console.log("CREATE STATS TABLE\n" + jsonPrint(config));
 
-  var statsDiv = document.getElementById('statsDiv');
-  statsDiv.style.visibility = 'hidden';
+  var statsDiv = document.getElementById("statsDiv");
+  statsDiv.style.visibility = "hidden";
   statsDiv.style.border = "2px solid black ";
   statsDiv.style.backgroundColor = palette.white;
   statsDiv.style.textColor = palette.black;
-  var statsTableServer = document.createElement('TABLE');
-  var statsTableClient = document.createElement('TABLE');
-  var br = document.createElement('br');
+  var statsTableServer = document.createElement("TABLE");
+  var statsTableClient = document.createElement("TABLE");
+  var br = document.createElement("br");
 
-  statsTableServer.className = 'table';
-  statsTableServer.setAttribute('id', 'statsTableServer');
+  statsTableServer.className = "table";
+  statsTableServer.setAttribute("id", "statsTableServer");
   statsTableServer.style.border = "1px solid black ";
 
   statsDiv.appendChild(statsTableServer);
   statsDiv.appendChild(br);
 
-  statsTableClient.className = 'table';
-  statsTableClient.setAttribute('id', 'statsTableClient');
+  statsTableClient.className = "table";
+  statsTableClient.setAttribute("id", "statsTableClient");
   statsDiv.appendChild(statsTableClient);
 
   var optionsHead = {
@@ -1611,260 +1591,260 @@ function createStatsTable(callback) {
   };
 
   var statsClientSessionIdLabel = {
-    type: 'TEXT',
-    id: 'statsClientSessionIdLabel',
-    class: 'statsTableText',
-    text: 'SESSION'
+    type: "TEXT",
+    id: "statsClientSessionIdLabel",
+    class: "statsTableText",
+    text: "SESSION"
   };
 
   var statsClientSessionId = {
-    type: 'TEXT',
-    id: 'statsClientSessionId',
-    class: 'statsTableText',
+    type: "TEXT",
+    id: "statsClientSessionId",
+    class: "statsTableText",
     text: statsObj.socketId
   };
 
   var statsClientNumberNodesLabel = {
-    type: 'TEXT',
-    id: 'statsClientNumberNodesLabel',
-    class: 'statsTableText',
-    text: 'NODES'
+    type: "TEXT",
+    id: "statsClientNumberNodesLabel",
+    class: "statsTableText",
+    text: "NODES"
   };
 
   var statsClientNumberNodes = {
-    type: 'TEXT',
-    id: 'statsClientNumberNodes',
-    class: 'statsTableText',
-    text: '---'
+    type: "TEXT",
+    id: "statsClientNumberNodes",
+    class: "statsTableText",
+    text: "---"
   };
 
   var statsClientNumberMaxNodesLabel = {
-    type: 'TEXT',
-    id: 'statsClientNumberMaxNodesLabel',
-    class: 'statsTableText',
-    text: 'MAX'
+    type: "TEXT",
+    id: "statsClientNumberMaxNodesLabel",
+    class: "statsTableText",
+    text: "MAX"
   };
 
   var statsClientNumberMaxNodes = {
-    type: 'TEXT',
-    id: 'statsClientNumberMaxNodes',
-    class: 'statsTableText',
-    text: '---'
+    type: "TEXT",
+    id: "statsClientNumberMaxNodes",
+    class: "statsTableText",
+    text: "---"
   };
 
   var statsClientAddNodeQLabel = {
-    type: 'TEXT',
-    id: 'statsClientAddNodeQLabel',
-    class: 'statsTableText',
-    text: 'NODE ADD Q'
+    type: "TEXT",
+    id: "statsClientAddNodeQLabel",
+    class: "statsTableText",
+    text: "NODE ADD Q"
   };
 
   var statsClientAddNodeQ = {
-    type: 'TEXT',
-    id: 'statsClientAddNodeQ',
-    class: 'statsTableText',
-    text: '---'
+    type: "TEXT",
+    id: "statsClientAddNodeQ",
+    class: "statsTableText",
+    text: "---"
   };
 
   var statsClientAgeRateLabel = {
-    type: 'TEXT',
-    id: 'statsClientAgeRateLabel',
-    class: 'statsTableText',
-    text: 'AGE RATE'
+    type: "TEXT",
+    id: "statsClientAgeRateLabel",
+    class: "statsTableText",
+    text: "AGE RATE"
   };
 
   var statsClientAgeRate = {
-    type: 'TEXT',
-    id: 'statsClientAgeRate',
-    class: 'statsTableText',
-    text: '---'
+    type: "TEXT",
+    id: "statsClientAgeRate",
+    class: "statsTableText",
+    text: "---"
   };
 
   var statsClientMaxAgeRateLabel = {
-    type: 'TEXT',
-    id: 'statsClientMaxAgeRateLabel',
-    class: 'statsTableText',
-    text: 'MAX'
+    type: "TEXT",
+    id: "statsClientMaxAgeRateLabel",
+    class: "statsTableText",
+    text: "MAX"
   };
 
   var statsClientMaxAgeRate = {
-    type: 'TEXT',
-    id: 'statsClientMaxAgeRate',
-    class: 'statsTableText',
-    text: '---'
+    type: "TEXT",
+    id: "statsClientMaxAgeRate",
+    class: "statsTableText",
+    text: "---"
   };
 
   var statsClientMaxAddNodeQLabel = {
-    type: 'TEXT',
-    id: 'statsClientMaxAddNodeQLabel',
-    class: 'statsTableText',
-    text: 'MAX'
+    type: "TEXT",
+    id: "statsClientMaxAddNodeQLabel",
+    class: "statsTableText",
+    text: "MAX"
   };
 
   var statsClientMaxAddNodeQ = {
-    type: 'TEXT',
-    id: 'statsClientMaxAddNodeQ',
-    class: 'statsTableText',
-    text: '---'
+    type: "TEXT",
+    id: "statsClientMaxAddNodeQ",
+    class: "statsTableText",
+    text: "---"
   };
 
   var statsClientNumberEntitiesLabel = {
-    type: 'TEXT',
-    id: 'statsClientNumberEntitiesLabel',
-    class: 'statsTableText',
-    text: 'ENTITIES'
+    type: "TEXT",
+    id: "statsClientNumberEntitiesLabel",
+    class: "statsTableText",
+    text: "ENTITIES"
   };
 
   var statsClientNumberEntities = {
-    type: 'TEXT',
-    id: 'statsClientNumberEntities',
-    class: 'statsTableText',
-    text: '---'
+    type: "TEXT",
+    id: "statsClientNumberEntities",
+    class: "statsTableText",
+    text: "---"
   };
 
   var statsClientNumberMaxEntitiesLabel = {
-    type: 'TEXT',
-    id: 'statsClientNumberMaxEntitiesLabel',
-    class: 'statsTableText',
-    text: 'MAX'
+    type: "TEXT",
+    id: "statsClientNumberMaxEntitiesLabel",
+    class: "statsTableText",
+    text: "MAX"
   };
 
   var statsClientNumberMaxEntities = {
-    type: 'TEXT',
-    id: 'statsClientNumberMaxEntities',
-    class: 'statsTableText',
-    text: '---'
+    type: "TEXT",
+    id: "statsClientNumberMaxEntities",
+    class: "statsTableText",
+    text: "---"
   };
 
   var statsServerTimeLabel = {
-    type: 'TEXT',
-    id: 'statsServerTimeLabel',
-    class: 'statsTableText',
-    text: 'TIME'
+    type: "TEXT",
+    id: "statsServerTimeLabel",
+    class: "statsTableText",
+    text: "TIME"
   };
 
   var statsServerTime = {
-    type: 'TEXT',
-    id: 'statsServerTime',
-    class: 'statsTableText',
+    type: "TEXT",
+    id: "statsServerTime",
+    class: "statsTableText",
     text: statsObj.heartbeat.timeStamp
   };
 
   var statsServerUpTimeLabel = {
-    type: 'TEXT',
-    id: 'statsServerTimeLabel',
-    class: 'statsTableText',
-    text: 'UPTIME'
+    type: "TEXT",
+    id: "statsServerTimeLabel",
+    class: "statsTableText",
+    text: "UPTIME"
   };
 
   var statsServerUpTime = {
-    type: 'TEXT',
-    id: 'statsServerUpTime',
-    class: 'statsTableText',
+    type: "TEXT",
+    id: "statsServerUpTime",
+    class: "statsTableText",
     text: statsObj.heartbeat.upTime
   };
 
   var statsServerStartTimeLabel = {
-    type: 'TEXT',
-    id: 'statsServerStartTimeLabel',
-    class: 'statsTableText',
-    text: 'START'
+    type: "TEXT",
+    id: "statsServerStartTimeLabel",
+    class: "statsTableText",
+    text: "START"
   };
 
   var statsServerStartTime = {
-    type: 'TEXT',
-    id: 'statsServerStartTime',
-    class: 'statsTableText',
+    type: "TEXT",
+    id: "statsServerStartTime",
+    class: "statsTableText",
     text: statsObj.heartbeat.startTime
   };
 
   var statsServerRunTimeLabel = {
-    type: 'TEXT',
-    id: 'statsServerRunTimeLabel',
-    class: 'statsTableText',
-    text: 'RUN TIME'
+    type: "TEXT",
+    id: "statsServerRunTimeLabel",
+    class: "statsTableText",
+    text: "RUN TIME"
   };
 
   var statsServerRunTime = {
-    type: 'TEXT',
-    id: 'statsServerRunTime',
-    class: 'statsTableText',
+    type: "TEXT",
+    id: "statsServerRunTime",
+    class: "statsTableText",
     text: statsObj.heartbeat.runTime
   };
 
   var statsServerTotalWordsLabel = {
-    type: 'TEXT',
-    id: 'statsServerTotalWordsLabel',
-    class: 'statsTableText',
-    text: 'TOTAL UNIQUE WORDS'
+    type: "TEXT",
+    id: "statsServerTotalWordsLabel",
+    class: "statsTableText",
+    text: "TOTAL UNIQUE WORDS"
   };
 
   var statsServerTotalWords = {
-    type: 'TEXT',
-    id: 'statsServerTotalWords',
-    class: 'statsTableText',
+    type: "TEXT",
+    id: "statsServerTotalWords",
+    class: "statsTableText",
     text: statsObj.heartbeat.totalWords
   };
 
   var statsServerWordsReceivedLabel = {
-    type: 'TEXT',
-    id: 'statsServerWordsReceivedLabel',
-    class: 'statsTableText',
-    text: 'WORDS RCVD'
+    type: "TEXT",
+    id: "statsServerWordsReceivedLabel",
+    class: "statsTableText",
+    text: "WORDS RCVD"
   };
 
   var statsServerWordsReceived = {
-    type: 'TEXT',
-    id: 'statsServerWordsReceived',
-    class: 'statsTableText',
+    type: "TEXT",
+    id: "statsServerWordsReceived",
+    class: "statsTableText",
     text: statsObj.heartbeat.responsesReceived
   };
 
   var statsServerWordsPerMinLabel = {
-    type: 'TEXT',
-    id: 'statsServerWordsPerMinLabel',
-    class: 'statsTableText',
-    text: 'WPM'
+    type: "TEXT",
+    id: "statsServerWordsPerMinLabel",
+    class: "statsTableText",
+    text: "WPM"
   };
 
   var statsServerWordsPerMin = {
-    type: 'TEXT',
-    id: 'statsServerWordsPerMin',
-    class: 'statsTableText',
+    type: "TEXT",
+    id: "statsServerWordsPerMin",
+    class: "statsTableText",
     text: statsObj.heartbeat.wordsPerMin
   };
 
   var statsServerMaxWordsPerMinLabel = {
-    type: 'TEXT',
-    id: 'statsServerMaxWordsPerMinLabel',
-    class: 'statsTableText',
-    text: 'MAX'
+    type: "TEXT",
+    id: "statsServerMaxWordsPerMinLabel",
+    class: "statsTableText",
+    text: "MAX"
   };
 
   var statsServerMaxWordsPerMin = {
-    type: 'TEXT',
-    id: 'statsServerMaxWordsPerMin',
-    class: 'statsTableText',
+    type: "TEXT",
+    id: "statsServerMaxWordsPerMin",
+    class: "statsTableText",
     text: statsObj.heartbeat.maxWordsPerMin
   };
 
   var statsServerMaxWordsPerMinTime = {
-    type: 'TEXT',
-    id: 'statsServerMaxWordsPerMinTime',
-    class: 'statsTableText',
+    type: "TEXT",
+    id: "statsServerMaxWordsPerMinTime",
+    class: "statsTableText",
     text: moment(statsObj.heartbeat.maxWordsPerMinTime).format(defaultDateTimeFormat)
   };
 
   switch (config.sessionViewType) {
 
-    case 'media':
-    case 'force':
-    case 'flow':
-    case 'ticker':
-    case 'histogram':
-    case 'treemap':
-    case 'treepack':
-      tableCreateRow(statsTableServer, optionsHead, ['SERVER']);
+    case "media":
+    case "force":
+    case "flow":
+    case "ticker":
+    case "histogram":
+    case "treemap":
+    case "treepack":
+      tableCreateRow(statsTableServer, optionsHead, ["SERVER"]);
       tableCreateRow(statsTableServer, optionsBody, [statsServerTimeLabel, statsServerTime]);
       tableCreateRow(statsTableServer, optionsBody, [statsServerUpTimeLabel, statsServerUpTime]);
       tableCreateRow(statsTableServer, optionsBody, [statsServerStartTimeLabel, statsServerStartTime]);
@@ -1879,26 +1859,23 @@ function createStatsTable(callback) {
           statsServerMaxWordsPerMin, 
           statsServerMaxWordsPerMinTime
         ]);
-      tableCreateRow(statsTableClient, optionsHead, ['CLIENT']);
+      tableCreateRow(statsTableClient, optionsHead, ["CLIENT"]);
       tableCreateRow(statsTableClient, optionsBody, [statsClientSessionIdLabel, statsClientSessionId]);
       tableCreateRow(statsTableClient, optionsBody, [statsClientNumberNodesLabel, statsClientNumberNodes, statsClientNumberMaxNodesLabel, statsClientNumberMaxNodes]);
       tableCreateRow(statsTableClient, optionsBody, [statsClientAgeRateLabel, statsClientAgeRate, statsClientMaxAgeRateLabel, statsClientMaxAgeRate]);
       tableCreateRow(statsTableClient, optionsBody, [statsClientAddNodeQLabel, statsClientAddNodeQ, statsClientMaxAddNodeQLabel, statsClientMaxAddNodeQ]);
       tableCreateRow(statsTableClient, optionsBody, [statsClientNumberEntitiesLabel, statsClientNumberEntities, statsClientNumberMaxEntitiesLabel, statsClientNumberMaxEntities]);
       break;
-
-    default:
-      break;
   }
 
-  if (callback) callback(statsTable);
+  if (callback) { callback(statsTable); }
 }
 
 //  STATS UPDATE
 function initStatsUpdate(interval){
   setInterval(function() {
-    if (sessionHashMap.count() > maxSessions) maxSessions = sessionHashMap.count();
-    if (statsTableFlag) updateStatsTable(statsObj);
+    if (sessionHashMap.count() > maxSessions) { maxSessions = sessionHashMap.count(); }
+    if (statsTableFlag) { updateStatsTable(statsObj); }
   }, interval);
 }
 
@@ -2071,7 +2048,7 @@ socket.on("SESSION_ABORT", function(rxSessionObject) {
       + " | " + rxSessionObject.sessionId 
       + " | " + rxSessionObject.sessionEvent);
     statsObj.serverConnected = false;
-    statsObj.socketId = 'ABORTED';
+    statsObj.socketId = "ABORTED";
     socket.disconnect();
   }
 });
@@ -2080,7 +2057,7 @@ socket.on("SESSION_DELETE", function(rxSessionObject) {
 
   if (( rxSessionObject.session !== undefined) && ( rxSessionObject.session.tags !== undefined)){
 
-    rxSessionObject.session.nodeId = (config.forceViewMode == 'web') 
+    rxSessionObject.session.nodeId = (config.forceViewMode == "web") 
       ? rxSessionObject.session.tags.entity.toLowerCase() 
       : rxSessionObject.session.tags.entity.toLowerCase() + "_" + rxSessionObject.session.tags.channel.toLowerCase();
 
@@ -2113,7 +2090,7 @@ socket.on("USER_SESSION", function(rxSessionObject) {
     + " | CONN: " + rxSessionObject.connected);
 });
 
-socket.on('TWITTER_TOPTERM_1MIN', function(top10obj) {
+socket.on("TWITTER_TOPTERM_1MIN", function(top10obj) {
   console.debug("TWITTER_TOPTERM_1MIN\n" + jsonPrint(top10obj));
 });
 
@@ -2123,7 +2100,7 @@ function initSocketSessionUpdateRx(){
 
     console.info("SES " + rxSessionObject.action + " | " + rxSessionObject.sessionId);
 
-    if (rxSessionObject.action == 'KEEPALIVE') {
+    if (rxSessionObject.action == "KEEPALIVE") {
       // console.debug("KEEPALIVE"
       //   + "\n" + jsonPrint(rxSessionObject)
       // );
@@ -2226,7 +2203,7 @@ function initSocketNodeRx(){
     getKeywordColor(keywords, function(color){
       newNode.keywordColor = color;
     });  // KLUDGE!  need better way to do keywords
-    
+
     newNode.createdAt = nNode.createdAt;
     newNode.age = 1e-6;
     newNode.ageMaxRatio = 1e-6;
@@ -2295,18 +2272,20 @@ function initSocketNodeRx(){
 
   });
 
-  socket.on('STATS_HASHTAG', function(htStatsObj){
+  socket.on("STATS_HASHTAG", function(htStatsObj){
       console.log(">>> RX STATS_HASHTAG");
 
       var htObjArray = [];
 
-      for (var key in htStatsObj) {
-         if (htStatsObj.hasOwnProperty(key)) {
+      Object.keys(htStatsObj).forEach(function(key) {
+        if (htStatsObj.hasOwnProperty(key)) {
+
           var htObj = htStatsObj[key];
           var mntns = htObj.mentions.toString() ;
           var numPadSpaces = 10 - mntns.length;
-          htObj.displaytext = new Array(numPadSpaces).join("\xa0") + mntns + " " + key ;
+          htObj.displaytext = new Array(numPadSpaces).join("xa0") + mntns + " " + key ;
           htObj.barlabel = key ;
+
           getTimeNow(function(t){
             htObj.seen = t ;
             htObj.topHashtag = true ;
@@ -2314,9 +2293,8 @@ function initSocketNodeRx(){
             htObjArray.push(htObj);
             hashtagHashMap.set(key, htObj);
           });
-          // console.log(htObj.mentions, htObj.text);
         }
-      }
+      });
   });
 }
 
@@ -2346,10 +2324,11 @@ function removeFromHashMap(hm, key, callback) {
   if (hm.has(key)){
     var value = hm.get(key);
     hm.remove(key);
-    callback(value);
+
+    if (callback !== undefined) { callback(value); }
   }
   else{
-    callback(false);
+    if (callback !== undefined) { callback(false); }
   }
 }
 
@@ -2369,10 +2348,10 @@ var processSessionQueues = function(callback) {
   else {
     var session = rxSessionUpdateQueue.shift();
 
-    if ((config.sessionViewType === 'treemap') 
-      || (config.sessionViewType === 'treepack') 
-      || (config.sessionViewType === 'histogram') 
-      || (config.forceViewMode === 'web')) {
+    if ((config.sessionViewType === "treemap") 
+      || (config.sessionViewType === "treepack") 
+      || (config.sessionViewType === "histogram") 
+      || (config.forceViewMode === "web")) {
       session.tags.entity = session.tags.entity.toLowerCase();
       session.tags.channel = session.tags.channel.toLowerCase();
     }
@@ -2390,7 +2369,7 @@ var processSessionQueues = function(callback) {
         }
       break;
       case "livestream":
-        if (session.tags.entity == 'cspan'){
+        if (session.tags.entity == "cspan"){
           if ( session.tags.group.url !== undefined) {
             session.tags.group.url = "https://www.c-span.org/networks/"; 
           }         
@@ -2426,47 +2405,79 @@ var processSessionQueues = function(callback) {
 
     return (callback(null, session.sessionId));
   }
-}
+};
 
 var processNodeDeleteQueue = function(callback) {
   
-  while (nodeDeleteQueue.length > 0) {
-    var deletedNodeId = nodeDeleteQueue.shift();
+  async.each(nodeDeleteQueue, function(deletedNodeId, cb) {
 
-    removeFromHashMap(nodeHashMap, deletedNodeId, function(deletedNode) {
-      if (deletedNode) {
-      }
-    });
-    removeFromHashMap(sessionHashMap, deletedNodeId, function(deletedSession) {
-    });
-    removeFromHashMap(groupHashMap, deletedNodeId, function(deletedGroup) {
-    });
+    removeFromHashMap(nodeHashMap, deletedNodeId);
+    removeFromHashMap(sessionHashMap, deletedNodeId);
+    removeFromHashMap(groupHashMap, deletedNodeId);
+    cb();
 
-  }
-  return (callback(null, "processNodeDeleteQueue"));
-}
+  }, function(){
+    nodeDeleteQueue.length = 0;
+    return (callback(null, "processNodeDeleteQueue"));
+  });
+
+};
 
 var processLinkDeleteQueue = function(callback) {
   
-  while (linkDeleteQueue.length > 0) {
+  // while (linkDeleteQueue.length > 0) {
 
-    var deletedLinkId = linkDeleteQueue.shift();
+  //   var deletedLinkId = linkDeleteQueue.shift();
 
-    removeFromHashMap(linkHashMap, deletedLinkId, function() {
-    });
+  //   removeFromHashMap(linkHashMap, deletedLinkId, function() {
+  //   });
 
-  }
-  return (callback(null, "processNodeDeleteQueue"));
-}
+  // }
+  // return (callback(null, "processNodeDeleteQueue"));
+
+
+  async.each(linkDeleteQueue, function(deletedLinkId, cb) {
+
+    removeFromHashMap(linkHashMap, deletedLinkId);
+    cb();
+
+  }, function(){
+    linkDeleteQueue.length = 0;
+    return (callback(null, "processLinkDeleteQueue"));
+  });
+
+};
 
 function sum( obj ) {
-  var sum = 0;
-  for( var el in obj ) {
-    if( obj.hasOwnProperty( el ) ) {
-      sum += parseFloat( obj[el] );
+
+  // var s = 0;
+
+  // for( var el in obj ) {
+
+  //   if( obj.hasOwnProperty( el ) ) {
+  //     s += parseFloat( obj[el] );
+  //   }
+
+  // }
+
+  // return sum;
+
+
+  var s = 0;
+  var props = Object.keys(obj);
+
+  async.each(props, function(prop, cb) {
+
+    if( obj.hasOwnProperty(prop) ) {
+      s += parseFloat( obj[prop] );
     }
-  }
-  return sum;
+    cb();
+
+  }, function(){
+    return s;
+  });
+
+
 }
 
 var randomNumber360 = 180;
@@ -2474,7 +2485,7 @@ var randomNumber360 = 180;
 var createGroup = function(callback) {
 
   if (groupCreateQueue.length == 0) {
-    return (callback(null, null));
+    callback(null, null);
   } 
   else {
 
@@ -2490,12 +2501,12 @@ var createGroup = function(callback) {
         + groupId + " | " + groupName + " | "
         + " GROUP IN DELETE HASH MAP ... SKIPPING"
       );
-      return (callback(null, null));
+      callback(null, null);
     } 
     else if (groupHashMap.has(groupId)) {
 
-      var currentGroup = {};
-      var currentSession = {};
+      currentGroup = {};
+      currentSession = {};
 
       currentGroup = groupHashMap.get(groupId);
 
@@ -2564,8 +2575,8 @@ var createGroup = function(callback) {
       var nodeStartColor = "hsl(" + randomNumber360 + ",0%,0%)";
       var nodeEndColor = "hsl(" + randomNumber360 + ",0%,100%)";
 
-      var currentGroup = {};
-      var currentSession = {};
+      currentGroup = {};
+      currentSession = {};
 
       currentGroup.groupId = groupId;
       currentGroup.url = groupUrl;
@@ -2587,7 +2598,7 @@ var createGroup = function(callback) {
       currentGroup.source = sessUpdate.source;
       currentGroup.source.lastSeen = dateNow;
       currentGroup.target = sessUpdate.target;
-      if (currentGroup.target) currentGroup.target.lastSeen = dateNow;
+      if (currentGroup.target) { currentGroup.target.lastSeen = dateNow; }
 
       currentGroup.node = {};
       currentGroup.linkHashMap = new HashMap();
@@ -2649,7 +2660,7 @@ var createGroup = function(callback) {
 
       if (sessionHashMap.has(sessUpdate.nodeId)) {
         currentSession = sessionHashMap.get(sessUpdate.nodeId);
-        var groupLinkId = currentGroup.node.nodeId + "_" + currentSession.node.nodeId;
+        groupLinkId = currentGroup.node.nodeId + "_" + currentSession.node.nodeId;
         currentGroup.node.links[groupLinkId] = 1;
       }
 
@@ -2674,18 +2685,18 @@ var createGroup = function(callback) {
       });
     }
   }
-}
+};
 
 var createSession = function(callback) {
 
   if (sessionCreateQueue.length == 0) {
-    return (callback(null, null));
+    callback(null, null);
   } 
   else {
 
     var dateNow = moment().valueOf();
     var sessUpdate = sessionCreateQueue.shift();
-    var currentGroup = {};
+    currentGroup = {};
 
     var currentSessionNodeId = sessUpdate.tags.entity.toLowerCase() + "_" + sessUpdate.tags.channel.toLowerCase();
 
@@ -2704,19 +2715,18 @@ var createSession = function(callback) {
       //   + " | " + sessUpdate.tags.entity 
       //   + " SESSION IN DELETE HASH MAP ... SKIPPING"
       // );
-      return (callback(null, null));
+      callback(null, null);
     } 
     // else if (sessionHashMap.has(sessUpdate.nodeId)) {
     else if (sessionHashMap.has(currentSessionNodeId)) {
 
-      var currentSession = sessionHashMap.get(currentSessionNodeId);
+      currentSession = sessionHashMap.get(currentSessionNodeId);
 
       if (currentSession.wordChainIndex === undefined){
         console.error("*** currentSession.wordChainIndex UNDEFINED");
       }
 
-      if (currentSession.tags === undefined) currentSession.tags = {};
-
+      if (currentSession.tags === undefined) { currentSession.tags = {}; }
       currentSession.tags = sessUpdate.tags;
 
       currentSession.colors = currentGroup.sessionColors;
@@ -2740,8 +2750,8 @@ var createSession = function(callback) {
       currentSession.wordChainIndex = sessUpdate.wordChainIndex;
       currentSession.source = sessUpdate.source;
       currentSession.source.lastSeen = dateNow;
-      if (sessUpdate.target) currentSession.target = sessUpdate.target;
-      if (sessUpdate.target) currentSession.target.lastSeen = dateNow;
+      if (sessUpdate.target) {currentSession.target = sessUpdate.target;}
+      if (sessUpdate.target) {currentSession.target.lastSeen = dateNow;}
       currentSession.interpolateSessionColor = currentGroup.interpolateSessionColor;
       currentSession.interpolateColor = currentGroup.interpolateSessionColor;
 
@@ -2772,7 +2782,7 @@ var createSession = function(callback) {
       currentSession.node.nodeColors = currentGroup.nodeColors;
       currentSession.node.interpolateNodeColor = currentGroup.interpolateNodeColor;
       
-      var sessionLinkId = (config.forceViewMode == 'web') ? currentSession.node.nodeId : currentSession.node.nodeId + "_" + sessUpdate.source.nodeId;
+      var sessionLinkId = (config.forceViewMode == "web") ? currentSession.node.nodeId : currentSession.node.nodeId + "_" + sessUpdate.source.nodeId;
       
       currentSession.node.links = {};
       currentSession.node.links[sessionLinkId] = 1;
@@ -2788,9 +2798,9 @@ var createSession = function(callback) {
 
       sessionsCreated += 1;
 
-      var tarNodId = '<null>';
+      var tarNodId = "<null>";
 
-      if (sessUpdate.target) tarNodId = sessUpdate.target.nodeId;
+      if (sessUpdate.target) {tarNodId = sessUpdate.target.nodeId;}
 
       console.log("+ SES" 
         + " [" + sessUpdate.wordChainIndex + "]" 
@@ -2803,7 +2813,7 @@ var createSession = function(callback) {
         + " > " + tarNodId
       );
 
-      var currentSession = {};
+      currentSession = {};
 
       currentSession.tags = {};
 
@@ -2826,7 +2836,7 @@ var createSession = function(callback) {
       currentSession.rank = -1;
       currentSession.isSession = true;
       // currentSession.nodeId = sessUpdate.tags.entity + "_" + sessUpdate.tags.channel;
-      currentSession.nodeId = (config.forceViewMode == 'web') ? sessUpdate.tags.entity : sessUpdate.tags.entity + "_" + sessUpdate.tags.channel;
+      currentSession.nodeId = (config.forceViewMode == "web") ? sessUpdate.tags.entity : sessUpdate.tags.entity + "_" + sessUpdate.tags.channel;
       currentSession.sessionId = sessUpdate.sessionId;
       currentSession.tags = sessUpdate.tags;
       currentSession.userId = sessUpdate.userId;
@@ -2909,7 +2919,7 @@ var createSession = function(callback) {
       });
     }
   }
-}
+};
 
 var createNode = function(callback) {
 
@@ -2948,7 +2958,7 @@ var createNode = function(callback) {
       session.node.isSessionNode = true;
       session.node.isGroupNode = false;
       // session.node.nodeId = session.tags.entity + "_" + session.tags.channel;
-      session.node.nodeId = (config.forceViewMode == 'web') ? session.tags.entity : session.tags.entity + "_" + session.tags.channel;
+      session.node.nodeId = (config.forceViewMode == "web") ? session.tags.entity : session.tags.entity + "_" + session.tags.channel;
       session.node.entity = session.tags.entity;
       session.node.channel = session.tags.channel;
       session.node.url = session.url;
@@ -2980,23 +2990,23 @@ var createNode = function(callback) {
     var sourceNodeId;
     var targetNodeId;
 
-    if (config.sessionViewType == 'force') {
+    if (config.sessionViewType == "force") {
       sourceNodeId = session.source.nodeId;
       if (session.target) {
         targetNodeId = session.target.nodeId;
       }
     }
-    else if (config.sessionViewType === 'treemap'){
+    else if (config.sessionViewType === "treemap"){
       sourceNodeId = session.source.nodeId;
     }
-    else if (config.sessionViewType === 'treepack'){
+    else if (config.sessionViewType === "treepack"){
       sourceNodeId = session.source.nodeId;
     }
-    else if (config.sessionViewType === 'histogram'){
+    else if (config.sessionViewType === "histogram"){
       sourceNodeId = session.source.nodeId;
     }
-    else if ((config.sessionViewType === 'ticker') 
-      || (config.sessionViewType === 'flow')
+    else if ((config.sessionViewType === "ticker") 
+      || (config.sessionViewType === "flow")
       ){
       sourceNodeId = session.source.nodeId + "_" + moment().valueOf();
       if (session.target) {
@@ -3016,13 +3026,13 @@ var createNode = function(callback) {
 
     async.parallel({
         source: function(cb) {
-          if ((config.sessionViewType !== 'ticker') 
-            && (config.sessionViewType !== 'treemap') 
-            && (config.sessionViewType !== 'treepack') 
-            && (config.sessionViewType !== 'histogram') 
-            && (config.sessionViewType !== 'flow') 
-            && (config.sessionViewType !== 'force') 
-            && (config.sessionViewType !== 'media') 
+          if ((config.sessionViewType !== "ticker") 
+            && (config.sessionViewType !== "treemap") 
+            && (config.sessionViewType !== "treepack") 
+            && (config.sessionViewType !== "histogram") 
+            && (config.sessionViewType !== "flow") 
+            && (config.sessionViewType !== "force") 
+            && (config.sessionViewType !== "media") 
             && session.source.isIgnored) {
             cb(null, {
               node: sourceNodeId,
@@ -3109,7 +3119,6 @@ var createNode = function(callback) {
             sourceNode.isTopTerm = session.source.isTopTerm;
             sourceNode.isKeyword = session.source.isKeyword;
 
-            var keywords = {};
             if (config.autoKeywordsFlag && (session.source.keywordsAuto !== undefined) && session.source.keywordsAuto){
               keywords = session.source.keywordsAuto;
             }
@@ -3124,7 +3133,6 @@ var createNode = function(callback) {
             }
             else {
               console.error("KEWORDS UNDEFINED");
-              throw 2;
               sourceNode.keywordColor = palette.black;
             }
 
@@ -3179,12 +3187,12 @@ var createNode = function(callback) {
         target: function(cb) {
 
           if (targetNodeId === undefined 
-            || (config.sessionViewType === 'media') 
-            || (config.sessionViewType === 'flow') 
-            || (config.sessionViewType === 'treemap') 
-            || (config.sessionViewType === 'treepack') 
-            || (config.sessionViewType === 'histogram') 
-            || (config.sessionViewType === 'ticker')) {
+            || (config.sessionViewType === "media") 
+            || (config.sessionViewType === "flow") 
+            || (config.sessionViewType === "treemap") 
+            || (config.sessionViewType === "treepack") 
+            || (config.sessionViewType === "histogram") 
+            || (config.sessionViewType === "ticker")) {
             cb("TARGET UNDEFINED", null);
           } 
           else if (session.target.isIgnored) {
@@ -3287,7 +3295,6 @@ var createNode = function(callback) {
             }
             else {
               console.error("KEWORDS UNDEFINED");
-              throw 2;
               targetNode.keywordColor = palette.black;
             }
 
@@ -3368,43 +3375,43 @@ var createNode = function(callback) {
 
         addToHashMap(sessionHashMap, session.nodeId, session, function(cSession) {
           if (!results.source.isIgnored 
-            && (config.sessionViewType !== 'media') 
-            && (config.sessionViewType !== 'ticker') 
-            && (config.sessionViewType !== 'treemap') 
-            && (config.sessionViewType !== 'treepack') 
-            && (config.sessionViewType !== 'histogram') 
-            && (config.sessionViewType !== 'flow')) {
+            && (config.sessionViewType !== "media") 
+            && (config.sessionViewType !== "ticker") 
+            && (config.sessionViewType !== "treemap") 
+            && (config.sessionViewType !== "treepack") 
+            && (config.sessionViewType !== "histogram") 
+            && (config.sessionViewType !== "flow")) {
             linkCreateQueue.push(cSession);
           }
         });
       });
   }
   return (callback(null, sessionId));
-}
+};
 
 var prevSessionLinkIdHash = {};
 
 var createLink = function(callback) {
 
-  if ((config.sessionViewType !== 'ticker') 
-    && (config.sessionViewType !== 'flow') 
-    && (config.sessionViewType !== 'treemap') 
-    && (config.sessionViewType !== 'treepack') 
-    && (config.sessionViewType !== 'histogram') 
-    && (config.sessionViewType !== 'media') 
+  if ((config.sessionViewType !== "ticker") 
+    && (config.sessionViewType !== "flow") 
+    && (config.sessionViewType !== "treemap") 
+    && (config.sessionViewType !== "treepack") 
+    && (config.sessionViewType !== "histogram") 
+    && (config.sessionViewType !== "media") 
     && !config.disableLinks 
     && (linkCreateQueue.length > 0)) {
 
     var session = linkCreateQueue.shift();
 
-    var currentGroup = groupHashMap.get(session.tags.group.groupId);
+    currentGroup = groupHashMap.get(session.tags.group.groupId);
 
     var groupLinkId;
     var sessionLinkId;
 
-    if (config.sessionViewType == 'force') {
+    if (config.sessionViewType == "force") {
 
-      var sessionLinkId = session.node.nodeId + "_" + session.source.nodeId;
+      sessionLinkId = session.node.nodeId + "_" + session.source.nodeId;
 
       console.info("sessionLinkId: " + sessionLinkId);
 
@@ -3492,7 +3499,7 @@ var createLink = function(callback) {
     addToHashMap(sessionHashMap, session.nodeId, session, function(sess) {});
   }
   return (callback(null, sessionId));
-}
+};
 
 var updateSessionsReady = true;
 
@@ -3500,7 +3507,7 @@ function updateSessions() {
 
   updateSessionsReady = false;
 
-  if (config.forceViewMode === 'web') {
+  if (config.forceViewMode === "web") {
   }
   else {
     async.series(
@@ -3572,14 +3579,14 @@ function initUpdateSessionsInterval(interval) {
   clearInterval(updateSessionsInterval);
 
   updateSessionsInterval = setInterval(function() {
-    if (updateSessionsReady) updateSessions();
+    if (updateSessionsReady) {updateSessions();}
   }, interval);
 }
 
 requirejs.onError = function(err) {
   console.error("*** REQUIRE ERROR\n" + err);
-  if (err.requireType === 'timeout') {
-    console.log('modules: ' + err.requireModules);
+  if (err.requireType === "timeout") {
+    console.log("modules: " + err.requireModules);
   }
   throw err;
 };
@@ -3616,7 +3623,7 @@ function loadViewType(svt, callback) {
   }
 
   switch (svt) {
-    case 'ticker':
+    case "ticker":
       config.sessionViewType = "ticker";
       config.forceViewMode = "flow";
       requirejs(["js/libs/sessionViewTicker"], function() {
@@ -3629,7 +3636,7 @@ function loadViewType(svt, callback) {
         callback();
       });
       break;
-    case 'media':
+    case "media":
       config.sessionViewType = "media";
       requirejs(["js/libs/sessionViewMedia"], function() {
         console.debug("sessionViewMedia LOADED");
@@ -3650,7 +3657,7 @@ function loadViewType(svt, callback) {
         callback();
       });
       break;
-    case 'flow':
+    case "flow":
       config.sessionViewType = "flow";
       config.forceViewMode = "flow";
       requirejs(["js/libs/sessionViewFlow"], function() {
@@ -3675,7 +3682,7 @@ function loadViewType(svt, callback) {
         callback();
       });
       break;
-    case 'treepack':
+    case "treepack":
       config.sessionViewType = "treepack";
       config.forceViewMode = "flow";
       requirejs(["js/libs/sessionViewTreepack"], function() {
@@ -3699,7 +3706,7 @@ function loadViewType(svt, callback) {
         callback();
       });
       break;
-    case 'treemap':
+    case "treemap":
       config.sessionViewType = "treemap";
       config.forceViewMode = "flow";
       requirejs(["js/libs/sessionViewTreemap"], function() {
@@ -3713,7 +3720,7 @@ function loadViewType(svt, callback) {
         callback();
       });
       break;
-    case 'histogram':
+    case "histogram":
       config.sessionViewType = "histogram";
       config.forceViewMode = "flow";
       requirejs(["js/libs/sessionViewHistogram"], function() {
@@ -3752,7 +3759,6 @@ function loadViewType(svt, callback) {
 
         callback();
       });
-      break;
   }
 }
 
@@ -3768,7 +3774,7 @@ function initIgnoreWordsHashMap(callback) {
 
 function onFullScreenChange() {
   var fullscreenElement = document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement;
-  // if in fullscreen mode fullscreenElement won't be null
+  // if in fullscreen mode fullscreenElement won"t be null
   currentSessionView.resize();
   config.fullscreenMode = (fullscreenElement) ? true : false;
   console.log("FULLSCREEN: " + config.fullscreenMode);
@@ -3790,9 +3796,6 @@ function initialize(callback) {
 
     console.log("URL VARS\n" + jsonPrint(urlVariablesObj));
 
-    var sessionId;
-    var namespace;
-
     if (!err) {
 
       console.log("ON LOAD getUrlVariables\n" + jsonPrint(urlVariablesObj));
@@ -3810,32 +3813,32 @@ function initialize(callback) {
 
           console.log("ON LOAD getUrlVariables: sessionViewType:" + config.sessionViewType);
 
-          if (config.sessionViewType == 'force') {
+          if (config.sessionViewType == "force") {
             initIgnoreWordsHashMap(function() {
               console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
             });
           }
-          if (config.sessionViewType == 'ticker') {
+          if (config.sessionViewType == "ticker") {
             initIgnoreWordsHashMap(function() {
               console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
             });
           }
-          if (config.sessionViewType == 'flow') {
+          if (config.sessionViewType == "flow") {
             initIgnoreWordsHashMap(function() {
               console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
             });
           }
-          if (config.sessionViewType == 'treemap') {
+          if (config.sessionViewType == "treemap") {
             initIgnoreWordsHashMap(function() {
               console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
             });
           }
-          if (config.sessionViewType == 'treepack') {
+          if (config.sessionViewType == "treepack") {
             initIgnoreWordsHashMap(function() {
               console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
             });
           }
-          if (config.sessionViewType == 'histogram') {
+          if (config.sessionViewType == "histogram") {
             initIgnoreWordsHashMap(function() {
               console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
             });
@@ -3846,8 +3849,8 @@ function initialize(callback) {
             console.warn("SESSION VIEW TYPE: " + config.sessionViewType);
             currentSessionView.resize();
 
-            var storedConfigName = "config_" + config.sessionViewType;
-            var storedConfig = store.get(storedConfigName);
+            storedConfigName = "config_" + config.sessionViewType;
+            storedConfig = store.get(storedConfigName);
 
             if (storedConfig) {
               console.debug("STORED CONFIG"
@@ -3857,56 +3860,56 @@ function initialize(callback) {
               );
               config = storedConfig;
 
-              if (config.sessionViewType == 'ticker') {
+              if (config.sessionViewType == "ticker") {
                 currentSessionView.setNodeMaxAge(config.defaultMaxAge);
               }
-              if (config.sessionViewType == 'flow') {
+              if (config.sessionViewType == "flow") {
                 initUpdateSessionsInterval(50);
                 currentSessionView.setNodeMaxAge(config.defaultMaxAge);
               }
-              if (config.sessionViewType == 'treemap') {
+              if (config.sessionViewType == "treemap") {
                 currentSessionView.setNodeMaxAge(config.defaultMaxAge);
               }
-              if (config.sessionViewType == 'treepack') {
+              if (config.sessionViewType == "treepack") {
                 initUpdateSessionsInterval(50);
                 currentSessionView.setNodeMaxAge(config.defaultMaxAge);
               }
-              if (config.sessionViewType == 'histogram') {
+              if (config.sessionViewType == "histogram") {
                 currentSessionView.setNodeMaxAge(config.defaultMaxAge);
               }
-              if (config.sessionViewType == 'force') {
+              if (config.sessionViewType == "force") {
                 currentSessionView.setNodeMaxAge(config.defaultMaxAge);
                 initUpdateSessionsInterval(50);
               }
-              if (config.sessionViewType == 'media') {
+              if (config.sessionViewType == "media") {
                 currentSessionView.setNodeMaxAge(config.defaultMaxAge);
               }
             }
             else {
               console.debug("STORED CONFIG NOT FOUND: " + storedConfigName);
 
-              if (config.sessionViewType == 'ticker') {
+              if (config.sessionViewType == "ticker") {
                 currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
               }
-              if (config.sessionViewType == 'flow') {
+              if (config.sessionViewType == "flow") {
                 initUpdateSessionsInterval(50);
                 currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
               }
-              if (config.sessionViewType == 'treemap') {
+              if (config.sessionViewType == "treemap") {
                 currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
               }
-              if (config.sessionViewType == 'treepack') {
+              if (config.sessionViewType == "treepack") {
                 initUpdateSessionsInterval(50);
                 currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
               }
-              if (config.sessionViewType == 'histogram') {
+              if (config.sessionViewType == "histogram") {
                 currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
               }
-              if (config.sessionViewType == 'force') {
+              if (config.sessionViewType == "force") {
                 currentSessionView.setNodeMaxAge(FORCE_MAX_AGE);
                 initUpdateSessionsInterval(50);
               }
-              if (config.sessionViewType == 'media') {
+              if (config.sessionViewType == "media") {
                 currentSessionView.setNodeMaxAge(MEDIA_MAX_AGE);
               }
             }
@@ -3938,8 +3941,8 @@ function initialize(callback) {
 
           loadViewType(config.sessionViewType, function() {
 
-            var storedConfigName = "config_" + config.sessionViewType;
-            var storedConfig = store.get(storedConfigName);
+            storedConfigName = "config_" + config.sessionViewType;
+            storedConfig = store.get(storedConfigName);
 
             if (storedConfig) {
 
@@ -3951,40 +3954,40 @@ function initialize(callback) {
 
               config = storedConfig;
 
-              if (config.sessionViewType == 'force') {
+              if (config.sessionViewType == "force") {
                 currentSessionView.setNodeMaxAge(config.defaultMaxAge);
                 initIgnoreWordsHashMap(function() {
                   console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
                   initUpdateSessionsInterval(50);
                 });
               }
-              if (config.sessionViewType == 'ticker') {
+              if (config.sessionViewType == "ticker") {
                 currentSessionView.setNodeMaxAge(config.defaultMaxAge);
                 initIgnoreWordsHashMap(function() {
                   console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
                 });
               }
-              if (config.sessionViewType == 'flow') {
-                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
-                initUpdateSessionsInterval(50);
-                initIgnoreWordsHashMap(function() {
-                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-                });
-              }
-              if (config.sessionViewType == 'treemap') {
-                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
-                initIgnoreWordsHashMap(function() {
-                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-                });
-              }
-              if (config.sessionViewType == 'treepack') {
+              if (config.sessionViewType == "flow") {
                 currentSessionView.setNodeMaxAge(config.defaultMaxAge);
                 initUpdateSessionsInterval(50);
                 initIgnoreWordsHashMap(function() {
                   console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
                 });
               }
-              if (config.sessionViewType == 'histogram') {
+              if (config.sessionViewType == "treemap") {
+                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
+                initIgnoreWordsHashMap(function() {
+                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+                });
+              }
+              if (config.sessionViewType == "treepack") {
+                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
+                initUpdateSessionsInterval(50);
+                initIgnoreWordsHashMap(function() {
+                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+                });
+              }
+              if (config.sessionViewType == "histogram") {
                 currentSessionView.setNodeMaxAge(config.defaultMaxAge);
                 initIgnoreWordsHashMap(function() {
                   console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
@@ -3992,40 +3995,40 @@ function initialize(callback) {
               }
             }
             else {
-              if (config.sessionViewType == 'force') {
+              if (config.sessionViewType == "force") {
                 currentSessionView.setNodeMaxAge(FORCE_MAX_AGE);
                 initIgnoreWordsHashMap(function() {
                   console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
                   initUpdateSessionsInterval(50);
                 });
               }
-              if (config.sessionViewType == 'ticker') {
+              if (config.sessionViewType == "ticker") {
                 currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
                 initIgnoreWordsHashMap(function() {
                   console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
                 });
               }
-              if (config.sessionViewType == 'flow') {
-                currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-                initUpdateSessionsInterval(50);
-                initIgnoreWordsHashMap(function() {
-                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-                });
-              }
-              if (config.sessionViewType == 'treemap') {
-                currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
-                initIgnoreWordsHashMap(function() {
-                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-                });
-              }
-              if (config.sessionViewType == 'treepack') {
+              if (config.sessionViewType == "flow") {
                 currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
                 initUpdateSessionsInterval(50);
                 initIgnoreWordsHashMap(function() {
                   console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
                 });
               }
-              if (config.sessionViewType == 'histogram') {
+              if (config.sessionViewType == "treemap") {
+                currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
+                initIgnoreWordsHashMap(function() {
+                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+                });
+              }
+              if (config.sessionViewType == "treepack") {
+                currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
+                initUpdateSessionsInterval(50);
+                initIgnoreWordsHashMap(function() {
+                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+                });
+              }
+              if (config.sessionViewType == "histogram") {
                 currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
                 initIgnoreWordsHashMap(function() {
                   console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
@@ -4033,7 +4036,7 @@ function initialize(callback) {
               }
             }
 
-            currentSessionView.simulationControl('START');
+            currentSessionView.simulationControl("START");
             currentSessionView.resize();
 
             initStatsUpdate(1000);
@@ -4046,8 +4049,8 @@ function initialize(callback) {
             setTimeout(function() {
               console.log("END PAGE LOAD TIMEOUT");
               pageLoadedTimeIntervalFlag = false;
-              if (!config.showStatsFlag) displayStats(false, palette.white);
-              if (!config.showStatsFlag) displayControl(false);
+              if (!config.showStatsFlag) {displayStats(false, palette.white);}
+              if (!config.showStatsFlag) {displayControl(false);}
             }, PAGE_LOAD_TIMEOUT);
 
             callback();
@@ -4063,8 +4066,8 @@ function initialize(callback) {
 
         loadViewType(config.sessionViewType, function() {
 
-            var storedConfigName = "config_" + config.sessionViewType;
-            var storedConfig = store.get(storedConfigName);
+            storedConfigName = "config_" + config.sessionViewType;
+            storedConfig = store.get(storedConfigName);
 
             if (storedConfig) {
 
@@ -4076,39 +4079,39 @@ function initialize(callback) {
 
               config = storedConfig;
 
-              if (config.sessionViewType == 'force') {
+              if (config.sessionViewType == "force") {
                 currentSessionView.setNodeMaxAge(config.defaultMaxAge);
                 initUpdateSessionsInterval(50);
                 initIgnoreWordsHashMap(function() {
                   console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
                 });
               }
-              if (config.sessionViewType == 'ticker') {
+              if (config.sessionViewType == "ticker") {
                 currentSessionView.setNodeMaxAge(config.defaultMaxAge);
                 initIgnoreWordsHashMap(function() {
                   console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
                 });
               }
-              if (config.sessionViewType == 'flow') {
+              if (config.sessionViewType == "flow") {
                 currentSessionView.setNodeMaxAge(config.defaultMaxAge);
                 initIgnoreWordsHashMap(function() {
                   console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
                 });
               }
-              if (config.sessionViewType == 'treemap') {
+              if (config.sessionViewType == "treemap") {
                 currentSessionView.setNodeMaxAge(config.defaultMaxAge);
                 initIgnoreWordsHashMap(function() {
                   console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
                 });
               }
-              if (config.sessionViewType == 'treepack') {
+              if (config.sessionViewType == "treepack") {
                 currentSessionView.setNodeMaxAge(config.defaultMaxAge);
                 initUpdateSessionsInterval(50);
                 initIgnoreWordsHashMap(function() {
                   console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
                 });
               }
-              if (config.sessionViewType == 'histogram') {
+              if (config.sessionViewType == "histogram") {
                 currentSessionView.setNodeMaxAge(config.defaultMaxAge);
                 initIgnoreWordsHashMap(function() {
                   console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
@@ -4116,39 +4119,39 @@ function initialize(callback) {
               }
             }
             else {
-              if (config.sessionViewType == 'force') {
+              if (config.sessionViewType == "force") {
                 currentSessionView.setNodeMaxAge(FORCE_MAX_AGE);
                 initUpdateSessionsInterval(50);
                 initIgnoreWordsHashMap(function() {
                   console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
                 });
               }
-              if (config.sessionViewType == 'ticker') {
+              if (config.sessionViewType == "ticker") {
                 currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
                 initIgnoreWordsHashMap(function() {
                   console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
                 });
               }
-              if (config.sessionViewType == 'flow') {
+              if (config.sessionViewType == "flow") {
                 currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
                 initIgnoreWordsHashMap(function() {
                   console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
                 });
               }
-              if (config.sessionViewType == 'treemap') {
+              if (config.sessionViewType == "treemap") {
                 currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
                 initIgnoreWordsHashMap(function() {
                   console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
                 });
               }
-              if (config.sessionViewType == 'treepack') {
+              if (config.sessionViewType == "treepack") {
                 currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
                 initUpdateSessionsInterval(50);
                 initIgnoreWordsHashMap(function() {
                   console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
                 });
               }
-              if (config.sessionViewType == 'histogram') {
+              if (config.sessionViewType == "histogram") {
                 currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
                 initIgnoreWordsHashMap(function() {
                   console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
@@ -4182,4 +4185,4 @@ function initialize(callback) {
       callback(err);
     }
   });
-};
+}

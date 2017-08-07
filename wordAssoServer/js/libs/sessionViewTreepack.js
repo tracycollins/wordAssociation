@@ -853,6 +853,7 @@ function ViewTreepack() {
       case 'user':
         tooltipString = "@" + d.nodeId
           + "<br>TOPTERM: " + d.isTopTerm 
+          + "<br>ID: " + d.userId 
           + "<br>N: " + d.name 
           + "<br>SN: " + d.screenName 
           // + "<br>TYPE: " + d.nodeType 

@@ -1324,7 +1324,12 @@ function ViewTreepack() {
     var mntns = node.mentions.toString() ;
 
     if (node.nodeType === "user"){
-      mntns = node.followersCount.toString() ;
+      if (node.followersCount !== undefined) { 
+        mntns = node.followersCount.toString() ;
+      }
+      else {
+        mntns = 1;
+      }
     }
 
     var rate = node.rate.toFixed(2).toString() ;
@@ -1605,11 +1610,6 @@ function ViewTreepack() {
       || nNode.isIgnored) { 
       return;
     }
-
-    // if ((nNode.nodeType === "word") && !nNode.isKeyword) { 
-    //   return;
-    // }
-
     var newNode = {};
 
     newNode = nNode;
@@ -1620,17 +1620,6 @@ function ViewTreepack() {
 
     newNode.keywordsMismatch = false;
     newNode.keywordsMatch = false;
-
-    // switch (nNode.nodeType) {
-    //   case "user":
-    //   newNode.followersCount = nNode.followersCount;
-    //   newNode.following = nNode.following;
-    //   newNode.statusesCount = nNode.statusesCount;
-    //   newNode.friendsCount = nNode.friendsCount;
-    //   newNode.threeceeFollowing = nNode.threeceeFollowing;
-    //   break;
-    //   default:
-    // }
 
     if ((newNode.keywordsAuto !== undefined) && newNode.keywordsAuto) {
       Object.keys(newNode.keywords).forEach(function(kw){
@@ -1647,7 +1636,28 @@ function ViewTreepack() {
       });
     }
 
-    if (nNode.mentions > currentMax.mentions.value) { 
+    if ((nNode.nodeType === "user") && (nNode.followersCount > currentMax.mentions.value)) { 
+      currentMax.mentions.value = nNode.followersCount; 
+      currentMax.mentions.nodeId = nNode.screenName; 
+      currentMax.mentions.timeStamp = moment().valueOf(); 
+
+      if (metricMode === "mentions") {
+
+        currentMaxMetric = nNode.followersCount; 
+
+        nodeLabelSizeScale = d3.scaleLinear()
+          .domain([1, currentMaxMetric])
+          .range([fontSizeMin, fontSizeMax])
+          .clamp(true);
+
+        defaultRadiusScale = d3.scaleLinear()
+          .domain([1, Math.sqrt(currentMaxMetric)])
+          .range([minRadius, maxRadius])
+          .clamp(true);
+      }
+
+    }
+    else if (nNode.mentions > currentMax.mentions.value) { 
 
       currentMax.mentions.value = nNode.mentions; 
 

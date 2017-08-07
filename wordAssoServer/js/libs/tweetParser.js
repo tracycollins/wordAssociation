@@ -128,7 +128,7 @@ function initTweetParserQueueInterval(cnf){
 
       tweet = tweetParserQueue.dequeue();
 
-      console.log(chalkInfo("TPQ>"
+      debug(chalkInfo("TPQ>"
         + " [" + tweetParserQueue.size() + "]"
         // + " | " + socket.id
         + " | " + tweet.id_str

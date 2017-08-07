@@ -1328,7 +1328,7 @@ function ViewTreepack() {
         mntns = node.followersCount.toString() ;
       }
       else {
-        mntns = 1;
+        mntns = "1";
       }
     }
 
@@ -1640,7 +1640,9 @@ function ViewTreepack() {
     newNode.keywordsMatch = false;
 
     if ((newNode.keywordsAuto !== undefined) && newNode.keywordsAuto) {
+
       Object.keys(newNode.keywords).forEach(function(kw){
+
         if (keywordTypes.includes(kw)){
           if (newNode.keywordsAuto[kw] !== undefined){
             newNode.keywordsMatch = true;
@@ -1651,6 +1653,7 @@ function ViewTreepack() {
             newNode.keywordsMismatch = true;        
           }
         }
+
       });
     }
 
@@ -1663,18 +1666,7 @@ function ViewTreepack() {
       currentMax.mentions.timeStamp = moment().valueOf(); 
 
       if (metricMode === "mentions") {
-
         currentMaxMetric = nNode.followersCount; 
-
-        // nodeLabelSizeScale = d3.scaleLinear()
-        //   .domain([1, currentMaxMetric])
-        //   .range([fontSizeMin, fontSizeMax])
-        //   .clamp(true);
-
-        // defaultRadiusScale = d3.scaleLinear()
-        //   .domain([1, Math.sqrt(currentMaxMetric)])
-        //   .range([minRadius, maxRadius])
-        //   .clamp(true);
       }
 
     }
@@ -1696,19 +1688,7 @@ function ViewTreepack() {
       currentMax.mentions.timeStamp = moment().valueOf(); 
 
       if (metricMode === "mentions") {
-
         currentMaxMetric = nNode.mentions; 
-        // if (nNode.nodeType === "user") { currentMaxMetric = nNode.followersCount; }
-
-        // nodeLabelSizeScale = d3.scaleLinear()
-        //   .domain([1, currentMaxMetric])
-        //   .range([fontSizeMin, fontSizeMax])
-        //   .clamp(true);
-
-        // defaultRadiusScale = d3.scaleLinear()
-        //   .domain([1, Math.sqrt(currentMaxMetric)])
-        //   .range([minRadius, maxRadius])
-        //   .clamp(true);
       }
 
       // console.info("NEW MAX MENTIONS: " + currentMax.mentions.value + " | " + nNode.nodeId);
@@ -1731,21 +1711,9 @@ function ViewTreepack() {
       currentMax.rate.timeStamp = moment().valueOf(); 
 
       if (metricMode === "rate") {
-
         currentMaxMetric = nNode.rate; 
-
-        // nodeLabelSizeScale = d3.scaleLinear()
-        //   .domain([1, currentMaxMetric])
-        //   .range([fontSizeMin, fontSizeMax])
-        //   .clamp(true);
-
-        // defaultRadiusScale = d3.scaleLinear()
-        //   .domain([1, Math.sqrt(currentMaxMetric)])
-        //   .range([minRadius, maxRadius])
-        //   .clamp(true);
       }
 
-      // console.info("NEW MAX RATE: " + currentMax.rate.value.toFixed(2) + " | " + nNode.nodeId);
     }
 
     if (nodeAddQ.length < MAX_RX_QUEUE) {

@@ -3,13 +3,9 @@
 
 const removeDuplicateFlag = true;
 
-const chalk = require("chalk");
 const _ = require("lodash");
 
-// const HashMap = require("hashmap").HashMap;
-
-// const keywordHashMap = new HashMap();
-
+const chalk = require("chalk");
 const chalkError = chalk.bold.red;
 const chalkAlert = chalk.red;
 const chalkTwitter = chalk.blue;
@@ -60,7 +56,7 @@ exports.findOneUser = function  (user, params, callback) {
 	debug("findOneUser | " + user.userId);
 
 	const query = { userId: user.userId  };
-	const update = { 
+	let update = { 
 		"$inc": { mentions: params.inc }, 
 		"$set": { 
 			isTwitterUser: user.isTwitterUser,
@@ -76,9 +72,9 @@ exports.findOneUser = function  (user, params, callback) {
 			keywordsAuto: user.keywordsAuto,
 			keywords: user.keywords,
 			following: user.following,
-			statusesCount: user.statusesCount,
-			followersCount: user.followersCount,
-			friendsCount: user.friendsCount,
+			// statusesCount: user.statusesCount,
+			// followersCount: user.followersCount,
+			// friendsCount: user.friendsCount,
 			status: user.status,
 			lastSeen: moment().valueOf() 
 		}
@@ -88,7 +84,17 @@ exports.findOneUser = function  (user, params, callback) {
 		// 	friendsCount: user.friendsCount
 		// }
 	};
-	
+
+	if (user.statusesCount !== undefined){
+		update["$set"].statusesCount = user.statusesCount;
+	}
+	if (user.followersCount !== undefined){
+		update["$set"].followersCount = user.followersCount;
+	}
+	if (user.friendsCount !== undefined){
+		update["$set"].friendsCount = user.friendsCount;
+	}
+
 	const options = { 
 		upsert: true, 
 		setDefaultsOnInsert: true,
@@ -462,6 +468,7 @@ function findOneTweet (tweet, params, callback) {
 	debug("findOneUrl | " + tweet.tweetId);
 
 	const query = { tweetId: tweet.tweetId  };
+
 	const update = { 
 		"$inc": { mentions: params.inc }, 
 		"$set": { 
@@ -701,8 +708,10 @@ exports.createStreamTweet = function(params, callback) {
 
     	debug(chalkAlert("ASYNC PARALLEL USER MENTIONS"));
 
-			if ((newTweet.entities.user_mentions) && (newTweet.entities.user_mentions.length > 0)) { 
+			if ((newTweet.entities.user_mentions) && (newTweet.entities.user_mentions.length > 0)) {
+
 				async.concat(newTweet.entities.user_mentions, function (umObj, cb2) {
+
 					const userMentionObj = new User({ 
 						isTwitterUser: true,
 						nodeType: "user",
@@ -717,6 +726,11 @@ exports.createStreamTweet = function(params, callback) {
 						lastSeen : moment().valueOf(),
 						mentions : 0
 					});
+
+					// undefined so won't overwrite values with 0s
+					userMentionObj.statusesCount = undefined;
+					userMentionObj.followersCount = undefined;
+					userMentionObj.friendsCount = undefined;
 
 					if (newTweet.user.id_str === umObj.id_str) {
 						debug(chalkAlert("userMentions SKIPPING: USER MENTION == USER: " + newTweet.user.id_str));
@@ -999,8 +1013,9 @@ exports.createStreamTweet = function(params, callback) {
 				if (err.code !== 11000) {
 					console.log(chalkError("ERROR createStreamTweet: tweet: " + err));
 				}
+				return(callback(err, tweetObj));
 			}
-			callback(err, twObj);
+			callback(null, twObj);
 		});	
 	});
 };

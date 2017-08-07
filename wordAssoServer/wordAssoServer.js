@@ -959,7 +959,6 @@ function socketRxTweet(tw) {
 
   statsObj.twitter.tweetsReceived += 1;
   tweetMeter.mark();
-  // statsObj.twitter.tweetsPerMinute = parseFloat(tweetMeter.toJSON()[metricsRate]);
 
   debug(chalkSocket("tweet" 
     + " [" + statsObj.twitter.tweetsReceived + "]"
@@ -2088,7 +2087,7 @@ function initTwitterRxQueueInterval(interval){
 
     if (!tweetRxQueue.isEmpty()) {
 
-      tweet =  tweetRxQueue.dequeue();
+      tweet = tweetRxQueue.dequeue();
 
       debug(chalkInfo("TPQ<"
         + " [" + tweetRxQueue.size() + "]"

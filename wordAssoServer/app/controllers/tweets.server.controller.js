@@ -56,7 +56,7 @@ exports.findOneUser = function  (user, params, callback) {
 	debug("findOneUser | " + user.userId);
 
 	const query = { userId: user.userId  };
-	
+
 	let update = { 
 		"$inc": { mentions: params.inc }, 
 		"$set": { 
@@ -75,7 +75,7 @@ exports.findOneUser = function  (user, params, callback) {
 			following: user.following,
 			status: user.status,
 			lastSeen: moment().valueOf() 
-		}
+		},
 		"$max": {
 			languageAnalyzed: user.languageAnalyzed,
 			languageAnalysis: user.languageAnalysis

@@ -10,11 +10,11 @@ function ViewTreepack() {
   var simulation;
 
   var enableAgeNodes = true;
+  var newCurrentMaxMetricFlag = true;
 
   var resumeTimeStamp = 0;
 
   var displayTopTermsFlag = false;
-  // var autoKeywordsFlag = false;
 
   var compactDateTimeFormat = "YYYYMMDD HHmmss";
 
@@ -1565,7 +1565,25 @@ function ViewTreepack() {
     updateNodeCircles(function(){
       updateNodeLabels(function(){
         updateTopTerm(function(){
+
+          if (newCurrentMaxMetricFlag) {
+
+            newCurrentMaxMetricFlag = false;
+
+            nodeLabelSizeScale = d3.scaleLinear()
+              .domain([1, currentMaxMetric])
+              .range([fontSizeMin, fontSizeMax])
+              .clamp(true);
+
+            defaultRadiusScale = d3.scaleLinear()
+              .domain([1, Math.sqrt(currentMaxMetric)])
+              .range([minRadius, maxRadius])
+              .clamp(true);
+
+          }
+
           callback();
+
         });
       });
     });
@@ -1637,6 +1655,9 @@ function ViewTreepack() {
     }
 
     if ((nNode.nodeType === "user") && (nNode.followersCount > currentMax.mentions.value)) { 
+
+      newCurrentMaxMetricFlag = true;
+
       currentMax.mentions.value = nNode.followersCount; 
       currentMax.mentions.nodeId = nNode.screenName; 
       currentMax.mentions.timeStamp = moment().valueOf(); 
@@ -1645,19 +1666,21 @@ function ViewTreepack() {
 
         currentMaxMetric = nNode.followersCount; 
 
-        nodeLabelSizeScale = d3.scaleLinear()
-          .domain([1, currentMaxMetric])
-          .range([fontSizeMin, fontSizeMax])
-          .clamp(true);
+        // nodeLabelSizeScale = d3.scaleLinear()
+        //   .domain([1, currentMaxMetric])
+        //   .range([fontSizeMin, fontSizeMax])
+        //   .clamp(true);
 
-        defaultRadiusScale = d3.scaleLinear()
-          .domain([1, Math.sqrt(currentMaxMetric)])
-          .range([minRadius, maxRadius])
-          .clamp(true);
+        // defaultRadiusScale = d3.scaleLinear()
+        //   .domain([1, Math.sqrt(currentMaxMetric)])
+        //   .range([minRadius, maxRadius])
+        //   .clamp(true);
       }
 
     }
     else if (nNode.mentions > currentMax.mentions.value) { 
+
+      newCurrentMaxMetricFlag = true;
 
       currentMax.mentions.value = nNode.mentions; 
 
@@ -1677,21 +1700,23 @@ function ViewTreepack() {
         currentMaxMetric = nNode.mentions; 
         // if (nNode.nodeType === "user") { currentMaxMetric = nNode.followersCount; }
 
-        nodeLabelSizeScale = d3.scaleLinear()
-          .domain([1, currentMaxMetric])
-          .range([fontSizeMin, fontSizeMax])
-          .clamp(true);
+        // nodeLabelSizeScale = d3.scaleLinear()
+        //   .domain([1, currentMaxMetric])
+        //   .range([fontSizeMin, fontSizeMax])
+        //   .clamp(true);
 
-        defaultRadiusScale = d3.scaleLinear()
-          .domain([1, Math.sqrt(currentMaxMetric)])
-          .range([minRadius, maxRadius])
-          .clamp(true);
+        // defaultRadiusScale = d3.scaleLinear()
+        //   .domain([1, Math.sqrt(currentMaxMetric)])
+        //   .range([minRadius, maxRadius])
+        //   .clamp(true);
       }
 
       // console.info("NEW MAX MENTIONS: " + currentMax.mentions.value + " | " + nNode.nodeId);
     }
 
     if (nNode.rate > currentMax.rate.value) { 
+
+      newCurrentMaxMetricFlag = true;
 
       currentMax.rate.value = nNode.rate;
       if (nNode.nodeType === "user") {
@@ -1709,15 +1734,15 @@ function ViewTreepack() {
 
         currentMaxMetric = nNode.rate; 
 
-        nodeLabelSizeScale = d3.scaleLinear()
-          .domain([1, currentMaxMetric])
-          .range([fontSizeMin, fontSizeMax])
-          .clamp(true);
+        // nodeLabelSizeScale = d3.scaleLinear()
+        //   .domain([1, currentMaxMetric])
+        //   .range([fontSizeMin, fontSizeMax])
+        //   .clamp(true);
 
-        defaultRadiusScale = d3.scaleLinear()
-          .domain([1, Math.sqrt(currentMaxMetric)])
-          .range([minRadius, maxRadius])
-          .clamp(true);
+        // defaultRadiusScale = d3.scaleLinear()
+        //   .domain([1, Math.sqrt(currentMaxMetric)])
+        //   .range([minRadius, maxRadius])
+        //   .clamp(true);
       }
 
       // console.info("NEW MAX RATE: " + currentMax.rate.value.toFixed(2) + " | " + nNode.nodeId);

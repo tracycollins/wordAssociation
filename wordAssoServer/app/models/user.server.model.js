@@ -1,9 +1,9 @@
-var mongoose = require('mongoose'),
-	moment = require('moment'),
-	crypto = require('crypto'),
-	Schema = mongoose.Schema;
+const mongoose = require("mongoose");
+const moment = require("moment");
+const crypto = require("crypto");
+const Schema = mongoose.Schema;
 
-var UserSchema = new Schema({
+const UserSchema = new Schema({
 	userId: { type: String,	unique: true },
 	nodeId: { type: String	},
 	nodeType: { type: String, default: "user"},
@@ -35,9 +35,11 @@ var UserSchema = new Schema({
 	mentions: { type: Number, default: 0 },
 
 	status: { type: Object, default: {} },
+	
 	statusesCount: { type: Number, default: 0 },
 	followersCount: { type: Number, default: 0 },
 	friendsCount: { type: Number, default: 0 },
+
 	following: { type: Boolean,	default: false },
 	threeceeFollowing: { type: Object, trim: true },
 
@@ -53,4 +55,4 @@ var UserSchema = new Schema({
 	languageAnalysis: { type: Object, default: {} }
 });
 
-mongoose.model('User', UserSchema);
+mongoose.model("User", UserSchema);

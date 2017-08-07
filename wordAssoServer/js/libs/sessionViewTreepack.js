@@ -1083,7 +1083,10 @@ function ViewTreepack() {
           }
           if (metricMode === "rate") { return defaultRadiusScale(Math.sqrt(d.rate));}
           if (metricMode === "mentions") { 
-            if (d.nodeType === "user") { return defaultRadiusScale(Math.sqrt(d.followersCount)); }
+            if (d.nodeType === "user") { 
+              if (d.followersCount === undefined) { return defaultRadiusScale(1); }
+              return defaultRadiusScale(Math.sqrt(d.followersCount)); 
+            }
             return defaultRadiusScale(Math.sqrt(d.mentions));
           }
         });
@@ -1134,7 +1137,10 @@ function ViewTreepack() {
           }
           if (metricMode === "rate") { return defaultRadiusScale(Math.sqrt(d.rate));}
           if (metricMode === "mentions") { 
-            if (d.nodeType === "user") { return defaultRadiusScale(Math.sqrt(d.followersCount)); }
+            if (d.nodeType === "user") { 
+              if (d.followersCount === undefined) { return defaultRadiusScale(1); }
+              return defaultRadiusScale(Math.sqrt(d.followersCount)); 
+            }
             return defaultRadiusScale(Math.sqrt(d.mentions));
           }
         });
@@ -1208,7 +1214,10 @@ function ViewTreepack() {
       .style("font-size", function(d) {
         if (metricMode === "rate") {return nodeLabelSizeScale(d.rate);}
         if (metricMode === "mentions") {
-          if (d.nodeType === "user") { return nodeLabelSizeScale(d.followersCount); }
+          if (d.nodeType === "user") { 
+            if (d.followersCount === undefined) { return nodeLabelSizeScale(1); }
+            return nodeLabelSizeScale(d.followersCount);
+          }
           return nodeLabelSizeScale(d.mentions);
         }
       });
@@ -1270,7 +1279,10 @@ function ViewTreepack() {
       .style("font-size", function(d) {
         if (metricMode === "rate") {return nodeLabelSizeScale(d.rate);}
         if (metricMode === "mentions") {
-          if (d.nodeType === "user") { return nodeLabelSizeScale(d.followersCount); }
+          if (d.nodeType === "user") { 
+            if (d.followersCount === undefined) { return nodeLabelSizeScale(1); }
+            return nodeLabelSizeScale(d.followersCount);
+          }
           return nodeLabelSizeScale(d.mentions);
         }
       });
@@ -1808,7 +1820,12 @@ function ViewTreepack() {
       .force("collide", d3.forceCollide().radius(function(d) { 
         if (metricMode === "rate") {return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.rate));}
         if (metricMode === "mentions") {
-          if (d.nodeType === "user") { return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.followersCount)); }
+          if (d.nodeType === "user") { 
+            if (d.followersCount === undefined) {
+              return collisionRadiusMultiplier * defaultRadiusScale(1);
+            }
+            return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.followersCount));
+          }
           return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.mentions));
         }
       }).iterations(collisionIterations).strength(1.0))
@@ -2011,7 +2028,12 @@ function ViewTreepack() {
         .force("collide", d3.forceCollide().radius(function(d) { 
           if (metricMode === "rate") {return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.rate));}
           if (metricMode === "mentions") {
-            if (d.nodeType === "user") { return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.followersCount)); }
+            if (d.nodeType === "user") { 
+              if (d.followersCount === undefined) {
+                return collisionRadiusMultiplier * defaultRadiusScale(1);
+              }
+              return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.followersCount));
+            }
             return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.mentions));
           }
         }).iterations(collisionIterations))

@@ -56,6 +56,7 @@ exports.findOneUser = function  (user, params, callback) {
 	debug("findOneUser | " + user.userId);
 
 	const query = { userId: user.userId  };
+	
 	let update = { 
 		"$inc": { mentions: params.inc }, 
 		"$set": { 
@@ -72,17 +73,13 @@ exports.findOneUser = function  (user, params, callback) {
 			keywordsAuto: user.keywordsAuto,
 			keywords: user.keywords,
 			following: user.following,
-			// statusesCount: user.statusesCount,
-			// followersCount: user.followersCount,
-			// friendsCount: user.friendsCount,
 			status: user.status,
 			lastSeen: moment().valueOf() 
 		}
-		// "$max": {
-		// 	statusesCount: user.statusesCount,
-		// 	followersCount: user.followersCount,
-		// 	friendsCount: user.friendsCount
-		// }
+		"$max": {
+			languageAnalyzed: user.languageAnalyzed,
+			languageAnalysis: user.languageAnalysis
+		}
 	};
 
 	if (user.statusesCount !== undefined){

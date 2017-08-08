@@ -1075,7 +1075,7 @@ function initSocketHandler(socketObj) {
   socket.on("disconnect", function socketDisconnect(status) {
     statsObj.socket.disconnects += 1;
 
-    console.log(chalkAlert("SOCKET CONNECT " + socket.id));
+    console.log(chalkAlert("SOCKET DISCONNECT " + socket.id));
 
     debug(chalkDisconnect(moment().format(compactDateTimeFormat) 
       + " | SOCKET DISCONNECT: " + socket.id + "\nstatus\n" + jsonPrint(status)

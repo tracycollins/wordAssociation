@@ -7,10 +7,13 @@ const compactDateTimeFormat = "YYYYMMDD HHmmss";
 const debug = require("debug")("wa");
 const moment = require("moment");
 const os = require("os");
-const mongoose = require("../../config/mongoose");
+// const mongoose = require("../../config/mongoose");
+const mongoose = require("@threeceelabs/mongoose-twitter");
 const db = mongoose();
 
-const tweetServer = require("../../app/controllers/tweets.server.controller");
+// const tweetServer = require("../../app/controllers/tweets.server.controller");
+const tweetServer = require("@threeceelabs/tweet-server-controller");
+// const tweetServer = require("../../../tweetServerController");
 
 const Queue = require("queue-fifo");
 const tweetParserQueue = new Queue();
@@ -76,7 +79,6 @@ console.log(
   + "====================================================================================================\n\n"
 );
 
-
 const configEvents = new EventEmitter2({
   wildcard: true,
   newListener: true,
@@ -91,14 +93,12 @@ if (debug.enabled) {
   console.log("UPDATER: \n%%%%%%%%%%%%%%\n%%%%%%% DEBUG ENABLED %%%%%%%\n%%%%%%%%%%%%%%\n");
 }
 
-
 let cnf = {};
 cnf.verbose = false;
 cnf.updateInterval = 10;
 cnf.globalTestMode = false;
 cnf.testMode = false;
 cnf.inc = true;
-
 
 let tweetParserQueueInterval;
 
@@ -180,7 +180,6 @@ function initTweetParserQueueInterval(cnf){
     }
   }, cnf.updateInterval);
 }
-
 
 process.on("message", function(m) {
 

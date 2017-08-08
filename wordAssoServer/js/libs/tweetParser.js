@@ -7,6 +7,7 @@ const compactDateTimeFormat = "YYYYMMDD HHmmss";
 const debug = require("debug")("wa");
 const moment = require("moment");
 const os = require("os");
+
 const mongoose = require("@threeceelabs/mongoose-twitter");
 const db = mongoose();
 

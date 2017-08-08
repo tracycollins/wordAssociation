@@ -8,8 +8,8 @@ const debug = require("debug")("wa");
 const moment = require("moment");
 const os = require("os");
 
-const mongoose = require("@threeceelabs/mongoose-twitter");
-const db = mongoose();
+const wordAssoDb = require("@threeceelabs/mongoose-twitter");
+const db = wordAssoDb();
 
 const tweetServer = require("@threeceelabs/tweet-server-controller");
 

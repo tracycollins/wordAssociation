@@ -5,8 +5,8 @@
   "main": "wordAssoServer.js",
   "dependencies": {
     "@google-cloud/monitoring": "^0.2.3",
-    "@threeceelabs/mongoose-twitter": "^1.0.10",
-    "@threeceelabs/tweet-server-controller": "^1.0.17",
+    "@threeceelabs/mongoose-twitter": "^1.0.11",
+    "@threeceelabs/tweet-server-controller": "^1.0.18",
     "@threeceelabs/user-server-controller": "^1.0.19",
     "body-parser": "^1.17.2",
     "chalk": "^2.1.0",

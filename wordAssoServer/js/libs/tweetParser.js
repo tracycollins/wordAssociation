@@ -7,13 +7,10 @@ const compactDateTimeFormat = "YYYYMMDD HHmmss";
 const debug = require("debug")("wa");
 const moment = require("moment");
 const os = require("os");
-// const mongoose = require("../../config/mongoose");
 const mongoose = require("@threeceelabs/mongoose-twitter");
 const db = mongoose();
 
-// const tweetServer = require("../../app/controllers/tweets.server.controller");
 const tweetServer = require("@threeceelabs/tweet-server-controller");
-// const tweetServer = require("../../../tweetServerController");
 
 const Queue = require("queue-fifo");
 const tweetParserQueue = new Queue();

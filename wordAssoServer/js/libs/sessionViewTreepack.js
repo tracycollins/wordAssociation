@@ -1660,6 +1660,10 @@ function ViewTreepack() {
     newNode.x = newNode.x || 0.5*width;
     newNode.y = newNode.y || 0.5*height;
 
+    if (nNode.keywordsAuto === undefined) {
+      newNode.keywordsAuto = {};
+    }
+
     if ((nNode.nodeType === "user") && (nNode.followersCount > currentMax.mentions.value)) { 
 
       newCurrentMaxMetricFlag = true;
@@ -1716,7 +1720,6 @@ function ViewTreepack() {
       if (metricMode === "rate") {
         currentMaxMetric = nNode.rate; 
       }
-
     }
 
     if (nodeAddQ.length < MAX_RX_QUEUE) {

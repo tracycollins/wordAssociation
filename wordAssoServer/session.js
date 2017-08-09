@@ -22,11 +22,7 @@ var PARENT_ID = "0047";
 var storedConfigName;
 var storedConfig;
 
-// var autoKeywordsFlag = false;
-
 var PAGE_LOAD_TIMEOUT = 1000;
-
-// var KEYWORD_SCALE = { min: 0, max: 100 };
 
 var DEFAULT_FORCEVIEW_MODE = "web";
 var DEFAULT_SESSION_VIEW = "treepack";
@@ -42,9 +38,6 @@ var controlPanel;
 var controlPanelWindow; 
 var controlPanelFlag = false;
 
-// var statsTable ;
-
-// var initializedFlag = false;
 var statsTableFlag = false;
 
 // requirejs(["https://cdnjs.cloudflare.com/ajax/libs/d3/4.8.0/d3.min.js"], function(d3Loaded) {
@@ -2167,19 +2160,7 @@ function initSocketNodeRx(){
       return;
     }
 
-    // if ((nNode.nodeType === "user") 
-    //   && nNode.isTwitterUser 
-    //   && nNode.screenName 
-    //   && (nNode.nodeId === undefined)){
-
-    //   nNode.nodeId = nNode.screenName;
-    //   if (!nNode.name) { nNode.name = nNode.screenName; }
-    // }
-
-    if ((nNode.nodeType === "user") 
-      // && nNode.isTwitterUser 
-      && nNode.screenName){
-
+    if ((nNode.nodeType === "user") && nNode.screenName){
       nNode.nodeId = nNode.screenName;
       if (!nNode.name) { nNode.name = nNode.screenName; }
     }
@@ -2199,6 +2180,7 @@ function initSocketNodeRx(){
     else {
       keywords = nNode.keywords;
     }
+
 
     getKeywordColor(keywords, function(color){
       newNode.keywordColor = color;
@@ -2256,20 +2238,65 @@ function initSocketNodeRx(){
       newNode.sourceUrl = nNode.sourceUrl;
     }
 
-    if (((config.sessionViewType === "treemap") || (config.sessionViewType === "treepack"))
-      && ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user")))) {
-      currentSessionView.addNode(newNode);
-    }
-    else if ((config.sessionViewType === "histogram")
-      && ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user")))) {
-      currentSessionView.addNode(newNode);
-    }
-    else if ((config.sessionViewType !== "treemap") 
-      && (config.sessionViewType !== "treepack") 
-      && (config.sessionViewType !== "histogram")) {
-      currentSessionView.addNode(newNode);
-    }
 
+    newNode.keywordsMismatch = false;
+    newNode.keywordsMatch = false;
+
+    if ((newNode.keywordsAuto !== undefined) && newNode.keywordsAuto) {
+
+      if (config.autoKeywordsFlag) { 
+        keywords = nNode.keywordsAuto;
+      }
+      else {
+        keywords = nNode.keywords;
+      }
+
+      async.each(Object.keys(newNode.keywords), function(kw, cb){
+
+        if (keywordTypes.includes(kw)){
+          if (newNode.keywordsAuto[kw] !== undefined){
+            newNode.keywordsMatch = true;
+            newNode.keywordsMismatch = false;
+            cb();
+          }
+          else {
+            newNode.keywordsMatch = false;
+            newNode.keywordsMismatch = true;  
+            cb();      
+          }
+        }
+
+      }, function(err){
+        if (((config.sessionViewType === "treemap") || (config.sessionViewType === "treepack"))
+          && ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user")))) {
+          currentSessionView.addNode(newNode);
+        }
+        else if ((config.sessionViewType === "histogram")
+          && ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user")))) {
+          currentSessionView.addNode(newNode);
+        }
+        else if ((config.sessionViewType !== "treemap") 
+          && (config.sessionViewType !== "treepack") 
+          && (config.sessionViewType !== "histogram")) {
+          currentSessionView.addNode(newNode);
+        }
+      });
+    }
+    else {
+      if (((config.sessionViewType === "treemap") || (config.sessionViewType === "treepack"))
+        && ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user")))) {
+        currentSessionView.addNode(newNode);
+      }
+      else if ((config.sessionViewType === "histogram")
+        && ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user")))) {
+        currentSessionView.addNode(newNode);
+      }
+      else if ((config.sessionViewType !== "treemap") 
+        && (config.sessionViewType !== "treepack") 
+        && (config.sessionViewType !== "histogram")) {
+        currentSessionView.addNode(newNode);
+      }
+    }
   });
 
   socket.on("STATS_HASHTAG", function(htStatsObj){

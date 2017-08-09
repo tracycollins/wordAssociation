@@ -4,7 +4,7 @@ function ViewTreepack() {
 
   "use strict";
 
-  var keywordTypes = ["left", "right", "neutral", "negative", "positive"];
+  // var keywordTypes = ["left", "right", "neutral", "negative", "positive"];
 
   var self = this;
   var simulation;
@@ -14,7 +14,7 @@ function ViewTreepack() {
 
   var resumeTimeStamp = 0;
 
-  var displayTopTermsFlag = false;
+  // var displayTopTermsFlag = false;
 
   var compactDateTimeFormat = "YYYYMMDD HHmmss";
 
@@ -41,7 +41,7 @@ function ViewTreepack() {
   var xFocusPositiveRatio = 0.5;
   var yFocusPositiveRatio = 0.3;
 
-  var xFocusNegativeRatio = 0.5;
+  // var xFocusNegativeRatio = 0.5;
   var yFocusNegativeRatio = 0.7;
 
   var xFocusNeutralRatio = 0.5;
@@ -103,26 +103,36 @@ function ViewTreepack() {
 
   var deadNodesHash = {};
 
+  function jsonPrint(obj) {
+    if ((obj) || (obj === 0)) {
+      var jsonString = JSON.stringify(obj, null, 2);
+      return jsonString;
+    } else {
+      return "UNDEFINED";
+    }
+  }
+
+
   var getWindowDimensions = function (){
 
     var w;
     var h;
 
-    if (window.innerWidth !== 'undefined') {
+    if (window.innerWidth !== "undefined") {
       w = window.innerWidth;
       h = window.innerHeight;
     }
     // IE6 in standards compliant mode (i.e. with a valid doctype as the first line in the document)
-    else if (document.documentElement !== 'undefined' 
-      && document.documentElement.clientWidth !== 'undefined' 
+    else if (document.documentElement !== "undefined" 
+      && document.documentElement.clientWidth !== "undefined" 
       && document.documentElement.clientWidth !== 0) {
       w = document.documentElement.clientWidth;
       h = document.documentElement.clientHeight;
     }
     // older versions of IE
     else {
-      w = document.getElementsByTagName('body')[0].clientWidth;
-      h = document.getElementsByTagName('body')[0].clientHeight;
+      w = document.getElementsByTagName("body")[0].clientWidth;
+      h = document.getElementsByTagName("body")[0].clientHeight;
     }
 
     return { width: w, height: h };
@@ -145,8 +155,8 @@ function ViewTreepack() {
   var forceYmultiplier = config.defaultForceYmultiplier;
   var collisionRadiusMultiplier = 1.01;
   var collisionIterations = config.defaultCollisionIterations;
-  var globalLinkStrength = config.defaultLinkStrength;
-  var globalLinkDistance = config.defaultLinkDistance;
+  // var globalLinkStrength = config.defaultLinkStrength;
+  // var globalLinkDistance = config.defaultLinkDistance;
   var velocityDecay = config.defaultVelocityDecay;
   var fontSizeMinRatio = config.defaultFontSizeMinRatio;
   var fontSizeMaxRatio = config.defaultFontSizeMaxRatio;
@@ -207,7 +217,7 @@ function ViewTreepack() {
   var antonymFlag = false;
   var removeDeadNodesFlag = true;
 
-  var defaultPosDuration = 150;
+  // var defaultPosDuration = 150;
 
   var DEFAULT_AGE_RATE = 1.0;
   var MAX_RX_QUEUE = 100;
@@ -252,7 +262,7 @@ function ViewTreepack() {
   var nodeMaxAge = 60000;
 
   var DEFAULT_TREEMAP_CONFIG = {
-    'ageRate': DEFAULT_AGE_RATE
+    "ageRate": DEFAULT_AGE_RATE
   };
 
   var ageRate = DEFAULT_TREEMAP_CONFIG.ageRate;
@@ -282,41 +292,6 @@ function ViewTreepack() {
 
 
   var topTermsDiv = d3.select("#topTermsDiv");
-
-  var topTermsCheckBox = topTermsDiv.append("input")
-    .attr("id", "topTermsCheckBox")
-    .attr("type", "checkbox")
-    // .attr("checked", "false")
-    .on("change", function(){
-      // console.log("CHECKBOX");
-      if (!topTermsCheckBox.property("checked")) { 
-        // console.warn("NOT CHECKED");
-        topTermsDiv.style("visibility", "hidden"); 
-        nodeTopTermLabelSvgGroup.style("visibility", "hidden");
-      }
-      else {
-        // console.error("CHECKED");
-        topTermsDiv.style("visibility", "visible"); 
-        nodeTopTermLabelSvgGroup.style("visibility", "visible");
-      }
-    });
- 
-  // console.log("width: " + width + " | height: " + height);
-
-  var mouseMoveTimeoutEventHandler = function(e) {
-    // var elem = document.getElementById("topTermsCheckBox");
-    // console.debug("mouseMoveTimeoutEvent");
-    if (!topTermsCheckBox.property("checked")) { 
-      // console.log("TOP TERMS NOT CHECKED");
-      topTermsDiv.style("visibility", "hidden"); 
-      nodeTopTermLabelSvgGroup.style("visibility", "hidden");
-    }
-    else {
-      // console.log("TOP TERMS CHECKED");
-      topTermsDiv.style("visibility", "visible"); 
-      nodeTopTermLabelSvgGroup.style("visibility", "visible");
-    }
-  };
 
   document.addEventListener("mouseMoveTimeoutEvent", mouseMoveTimeoutEventHandler);
 
@@ -380,7 +355,7 @@ function ViewTreepack() {
     .attr("x", 1e-6)
     .attr("y", 1e-6);
 
-  var panzoomElement = document.getElementById('svgTreemapLayoutArea');
+  var panzoomElement = document.getElementById("svgTreemapLayoutArea");
   panzoom(panzoomElement, {zoomSpeed: 0.030});
 
 //============TREEMAP=================================
@@ -412,18 +387,38 @@ function ViewTreepack() {
     .attr("class", "tooltip")
     .style("visibility", "hidden");
 
+  var topTermsCheckBox = topTermsDiv.append("input")
+    .attr("id", "topTermsCheckBox")
+    .attr("type", "checkbox")
+    .on("change", function(){
+      if (!topTermsCheckBox.property("checked")) { 
+        topTermsDiv.style("visibility", "hidden"); 
+        nodeTopTermLabelSvgGroup.style("visibility", "hidden");
+      }
+      else {
+        topTermsDiv.style("visibility", "visible"); 
+        nodeTopTermLabelSvgGroup.style("visibility", "visible");
+      }
+    });
+ 
+
+  var mouseMoveTimeoutEventHandler = function(e) {
+    if (!topTermsCheckBox.property("checked")) { 
+      topTermsDiv.style("visibility", "hidden"); 
+      nodeTopTermLabelSvgGroup.style("visibility", "hidden");
+    }
+    else {
+      topTermsDiv.style("visibility", "visible"); 
+      nodeTopTermLabelSvgGroup.style("visibility", "visible");
+    }
+  };
+
 
   console.log("@@@@@@@ CLIENT @@@@@@@@");
 
   var randomIntFromInterval = function(min, max) {
     var random = Math.random();
     var randomInt = Math.floor((random * (max - min + 1)) + min);
-    if (randomInt !== randomInt) {
-      console.error("randomIntFromInterval ERROR"
-        + " | MIN: " + min
-        + " | MAX: " + max
-      );
-    }
     if (Number.isNaN(randomInt)) {
       console.error("randomIntFromInterval NaN"
         + " | MIN: " + min
@@ -528,19 +523,19 @@ function ViewTreepack() {
     console.debug("SET PAUSE: " + value);
     runningFlag = !value;
     if (value){
-      self.simulationControl('PAUSE');
+      self.simulationControl("PAUSE");
     }
     else{
-      self.simulationControl('RESUME');
+      self.simulationControl("RESUME");
     }
   };
 
   self.togglePause = function(){
     if (runningFlag){
-      self.simulationControl('PAUSE');
+      self.simulationControl("PAUSE");
     }
     else{
-      self.simulationControl('RESUME');
+      self.simulationControl("RESUME");
     }
   };
 
@@ -683,7 +678,7 @@ function ViewTreepack() {
     var ageNodesLength = nodes.length - 1;
     var ageNodesIndex = nodes.length - 1;
     var node;
-    var nodeObj;
+    // var nodeObj;
 
     if (nodes.length === 0) {
       ageRate = DEFAULT_AGE_RATE;
@@ -813,7 +808,7 @@ function ViewTreepack() {
     for (ageNodesIndex = ageNodesLength; ageNodesIndex >= 0; ageNodesIndex -= 1) {
       node = nodes[ageNodesIndex];
       if (deadNodesHash[node.nodeId]) {
-        nodeDeleteQ.push({op:'delete', nodeId: node.nodeId});
+        nodeDeleteQ.push({op:"delete", nodeId: node.nodeId});
         deadNodeFlag = true;
         delete deadNodesHash[node.nodeId];
 
@@ -840,17 +835,17 @@ function ViewTreepack() {
 
     var tooltipString;
 
-    var keywords = {};
+    // var keywords = {};
 
-    if (autoKeywordsFlag && (d.keywordsAuto !== undefined) && d.keywordsAuto){
-      keywords = d.keywordsAuto;
-    }
-    else {
-      keywords = d.keywords;
-    }
+    // if (autoKeywordsFlag && (d.keywordsAuto !== undefined) && d.keywordsAuto){
+    //   keywords = d.keywordsAuto;
+    // }
+    // else {
+    //   keywords = d.keywords;
+    // }
 
     switch (d.nodeType) {
-      case 'user':
+      case "user":
         tooltipString = "@" + d.nodeId
           + "<br>TOPTERM: " + d.isTopTerm 
           + "<br>ID: " + d.userId 
@@ -864,32 +859,39 @@ function ViewTreepack() {
           + "<br>Ms: " + d.mentions
           + "<br>" + d.rate.toFixed(2) + " WPM"
           + "<br>AKW: " + autoKeywordsFlag
-          + "<br>KEYWORDS: " + jsonPrint(keywords);
+          + "<br>KWs: " + jsonPrint(d.keywords)
+          + "<br>AKWs: " + jsonPrint(d.keywordsAuto);
       break;
-      case 'hashtag':
+      case "hashtag":
         tooltipString = "#" + d.nodeId
           + "<br>TOPTERM " + d.isTopTerm 
           + "<br>TYPE: " + d.nodeType 
           + "<br>Ms: " + d.mentions
           + "<br>" + d.rate.toFixed(2) + " WPM"
-          + "<br>KEYWORDS: " + jsonPrint(keywords);
+          + "<br>AKW: " + autoKeywordsFlag
+          + "<br>KWs: " + jsonPrint(d.keywords)
+          + "<br>AKWs: " + jsonPrint(d.keywordsAuto);
       break;
-      case 'word':
+      case "word":
         tooltipString = d.nodeId
           + "<br>TOPTERM " + d.isTopTerm 
           + "<br>TYPE: " + d.nodeType 
-          + "<br>KEYWORDS: " + jsonPrint(keywords)
           + "<br>Ms: " + d.mentions
           + "<br>" + d.rate.toFixed(2) + " WPM"
-          + "<br>URL: " + d.url;
+          + "<br>URL: " + d.url
+          + "<br>AKW: " + autoKeywordsFlag
+          + "<br>KWs: " + jsonPrint(d.keywords)
+          + "<br>AKWs: " + jsonPrint(d.keywordsAuto);
       break;
-      case 'place':
+      case "place":
         tooltipString = d.fullName
           + "<br>TOPTERM " + d.isTopTerm 
           + "<br>TYPE: " + d.nodeType 
-          + "<br>KEYWORDS: " + jsonPrint(keywords)
           + "<br>Ms: " + d.mentions
-          + "<br>" + d.rate.toFixed(2) + " WPM";
+          + "<br>" + d.rate.toFixed(2) + " WPM"
+          + "<br>AKW: " + autoKeywordsFlag
+          + "<br>KWs: " + jsonPrint(d.keywords)
+          + "<br>AKWs: " + jsonPrint(d.keywordsAuto);
       break;
     }
 
@@ -907,11 +909,11 @@ function ViewTreepack() {
       });
   }
 
-  function cellClick(d) {
-    // console.debug("cellClick", d);
-    var url = "https://twitter.com/search?f=tweets&q=%23" + d.name ;
-    window.open(url, '_blank');
-  }
+  // function cellClick(d) {
+  //   // console.debug("cellClick", d);
+  //   var url = "https://twitter.com/search?f=tweets&q=%23" + d.name ;
+  //   window.open(url, "_blank");
+  // }
 
   function nodeClick(d) {
     // console.debug("nodeClick");
@@ -922,27 +924,18 @@ function ViewTreepack() {
         // url = "https://twitter.com/search?f=realtime&q=%23" + d.text ;
         // url = "https://twitter.com/search?f=tweets&q=%3A" + d.screenName ;
         url = "https://twitter.com/" + d.screenName ;
-        window.open(url, '_blank');
+        window.open(url, "_blank");
       break;
       case "hashtag" :
         // url = "https://twitter.com/search?f=realtime&q=%23" + d.text ;
         url = "https://twitter.com/search?f=tweets&q=%23" + d.text ;
-        window.open(url, '_blank');
+        window.open(url, "_blank");
       break;
       case "place" :
         // url = "https://twitter.com/search?f=realtime&q=%23" + d.text ;
         url = "http://twitter.com/search?q=place%3A" + d.placeId ;
-        window.open(url, '_blank');
+        window.open(url, "_blank");
       break;
-    }
-  }
-
-  function jsonPrint(obj) {
-    if ((obj) || (obj === 0)) {
-      var jsonString = JSON.stringify(obj, null, 2);
-      return jsonString;
-    } else {
-      return "UNDEFINED";
     }
   }
 
@@ -985,7 +978,7 @@ function ViewTreepack() {
         return d.displaytext;
       })
       .style("font-size", fontTopTerm)
-      .style('fill', function(d) { 
+      .style("fill", function(d) { 
         if (d.newFlag) { return palette.white; }
         if (d.mouseHoverFlag) { return palette.blue; }
         if (d.isKeyword) { return d.keywordColor; }
@@ -993,7 +986,7 @@ function ViewTreepack() {
         if ((d.isGroupNode || d.isSessionNode) && (d.ageMaxRatio < 0.01)) { return palette.yellow; }
         return palette.darkgray; 
       })
-      .style('opacity', function(d) { 
+      .style("opacity", function(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
         return topTermLabelOpacityScale(d.ageMaxRatio); 
       })
@@ -1017,11 +1010,11 @@ function ViewTreepack() {
       })
       .style("font-family", "monospace")
       .style("font-weight", "normal")
-      .style('opacity', function(d) { 
+      .style("opacity", function(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
         return topTermLabelOpacityScale(d.ageMaxRatio); 
       })
-      .style('fill', palette.white)
+      .style("fill", palette.white)
       .style("font-size", fontTopTerm);
 
 
@@ -1060,17 +1053,13 @@ function ViewTreepack() {
         if (d.keywordsMatch) { return palette.green; }
         return palette.white; 
       })
-      // .style("stroke-dasharray", function(d) { 
-      //   if (d.keywordsMismatch) { return "10,2"; }
-      //   return null; 
-      // })
       .style("stroke-width", function(d) { 
         if (d.keywordsMatch) { return "8.0"; }
         if (d.isTopTerm) { return "4.0"; }
         if (d.newFlag) { return "2.0"; }
         return "1.2"; 
       })
-      .style('opacity', function(d) { 
+      .style("opacity", function(d) { 
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
       .on("mouseover", nodeMouseOver)
@@ -1350,10 +1339,11 @@ function ViewTreepack() {
     var ratePadSpaces = rateNumChars - rate.length;
     var displaytext = "";
 
+    var nodeId;
 
     if (node.isMaxNode) {
       if (metricMode === "rate") {
-        var nodeId = node.rateNodeId.toUpperCase();
+        nodeId = node.rateNodeId.toUpperCase();
         if (node.nodeType === "user") { nodeId = "@" + nodeId; }
         displaytext = new Array(ratePadSpaces).join("\xa0") + rate
         + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns 
@@ -1361,7 +1351,7 @@ function ViewTreepack() {
         + " | " + moment(parseInt(node.rateTimeStamp)).format(compactDateTimeFormat);
       }
       else {
-        var nodeId = node.mentionsNodeId.toUpperCase();
+        nodeId = node.mentionsNodeId.toUpperCase();
         if (node.nodeType === "user") { nodeId = "@" + nodeId; }
         displaytext = new Array(ratePadSpaces).join("\xa0") + rate 
         + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns
@@ -1570,7 +1560,7 @@ function ViewTreepack() {
 
   function ticked() {
     drawSimulation(function(){
-      updateSimulation(function(){});
+      updateSimulation();
     });
   }
 
@@ -1602,7 +1592,7 @@ function ViewTreepack() {
     });
   }
 
-  function updateSimulation(callback) {
+  function updateSimulation() {
 
     async.series(
       {
@@ -1610,9 +1600,8 @@ function ViewTreepack() {
         ageNode: ageNodes,
         deadNode: processDeadNodesHash
       },
-      function(err, results) {
+      function() {
         simulation.nodes(nodes);
-        if (typeof callback !== 'undefined') callback();
       }
     );
   }
@@ -1629,11 +1618,16 @@ function ViewTreepack() {
     return value + "%" ;
   }
 
-  this.setChargeSliderValue = function(){
+  this.setChargeSliderValue = function(value){
+    console.debug("SET CHARGE: " + value);
+    config.defaultCharge = value;
+    charge = value;
+    simulation.force("charge", d3.forceManyBody().strength(value));
   };
 
   this.addNode = function(nNode) {
     self.setEnableAgeNodes(true);
+
     if (((nNode.nodeType !== "hashtag") 
       && (nNode.nodeType !== "word") 
       && (nNode.nodeType !== "user")
@@ -1641,12 +1635,13 @@ function ViewTreepack() {
       || nNode.isIgnored) { 
       return;
     }
+
     var newNode = {};
 
     if (nNode.keywordsMatch || nNode.keywordsMismatch){
-      console.debug("keywordsMismatch: " + keywordsMismatch
-        + " | keywordsMismatch: " + keywordsMismatch
-      )
+      console.debug("keywordsMismatch: " + nNode.keywordsMismatch
+        + " | keywordsMismatch: " + nNode.keywordsMismatch
+      );
     }
 
     newNode = nNode;
@@ -1654,27 +1649,6 @@ function ViewTreepack() {
     newNode.newFlag = true;
     newNode.x = newNode.x || 0.5*width;
     newNode.y = newNode.y || 0.5*height;
-
-    // newNode.keywordsMismatch = false;
-    // newNode.keywordsMatch = false;
-
-    // if ((newNode.keywordsAuto !== undefined) && newNode.keywordsAuto) {
-
-    //   Object.keys(newNode.keywords).forEach(function(kw){
-
-    //     if (keywordTypes.includes(kw)){
-    //       if (newNode.keywordsAuto[kw] !== undefined){
-    //         newNode.keywordsMatch = true;
-    //         newNode.keywordsMismatch = false;
-    //       }
-    //       else {
-    //         newNode.keywordsMatch = false;
-    //         newNode.keywordsMismatch = true;        
-    //       }
-    //     }
-
-    //   });
-    // }
 
     if ((nNode.nodeType === "user") && (nNode.followersCount > currentMax.mentions.value)) { 
 
@@ -1736,7 +1710,7 @@ function ViewTreepack() {
     }
 
     if (nodeAddQ.length < MAX_RX_QUEUE) {
-      nodeAddQ.push({op:'add', node: newNode});
+      nodeAddQ.push({op:"add", node: newNode});
     }
 
     if (nodeAddQ.length > maxNodeAddQ) {
@@ -1746,9 +1720,11 @@ function ViewTreepack() {
   };
 
   this.addGroup = function() {
+    // not used
   };
 
   this.addSession = function() {
+    // not used
   };
 
   this.initD3timer = function() {
@@ -1838,29 +1814,29 @@ function ViewTreepack() {
       }).iterations(collisionIterations).strength(1.0))
       .velocityDecay(velocityDecay)
       .on("tick", ticked);
-  }
+  };
 
   this.simulationControl = function(op) {
     switch (op) {
-      case 'RESET':
+      case "RESET":
         // console.info("SIMULATION CONTROL | OP: " + op);
         self.reset();
         runningFlag = false;
       break;
-      case 'START':
+      case "START":
         // console.info("SIMULATION CONTROL | OP: " + op);
         self.initD3timer();
         simulation.alphaTarget(0.7).restart();
         runningFlag = true;
       break;
-      case 'RESUME':
+      case "RESUME":
         // console.info("SIMULATION CONTROL | OP: " + op);
         // self.initD3timer();
         resumeTimeStamp = moment().valueOf();
         runningFlag = true;
         simulation.alphaTarget(0.7).restart();
       break;
-      case 'FREEZE':
+      case "FREEZE":
         // console.info("SIMULATION CONTROL | OP: " + op);
         if (!freezeFlag){
           freezeFlag = true;
@@ -1868,29 +1844,28 @@ function ViewTreepack() {
           simulation.stop();
         }
       break;
-      case 'PAUSE':
+      case "PAUSE":
         // console.info("SIMULATION CONTROL | OP: " + op);
         resumeTimeStamp = 0;
         runningFlag = false;
         simulation.alpha(0);
         simulation.stop();
       break;
-      case 'STOP':
+      case "STOP":
         // console.info("SIMULATION CONTROL | OP: " + op);
         runningFlag = false;
         simulation.alpha(0);
         simulation.stop();
       break;
-      case 'RESTART':
+      case "RESTART":
         // console.info("SIMULATION CONTROL | OP: " + op);
         simulation.alphaTarget(0.7).restart();
         runningFlag = true;
       break;
       default:
         console.error("???? SIMULATION CONTROL | UNKNOWN OP: " + op);
-      break;
     }
-  }
+  };
 
   this.resize = function() {
     // console.info("RESIZE");
@@ -2044,7 +2019,7 @@ function ViewTreepack() {
             return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.mentions));
           }
         }).iterations(collisionIterations))
-        .velocityDecay(velocityDecay)
+        .velocityDecay(velocityDecay);
 
     }
   };

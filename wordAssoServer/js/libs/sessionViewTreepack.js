@@ -1053,6 +1053,10 @@ function ViewTreepack() {
       .style("stroke", function(d) {
         if (d.keywordsMismatch) { return palette.red; }
         if (d.keywordsMatch) { return palette.green; }
+        if (d.keywordsAuto.right) { return palette.yellow; }
+        if (d.keywordsAuto.left) { return palette.blue; }
+        if (d.keywordsAuto.positive) { return palette.green; }
+        if (d.keywordsAuto.negative) { return palette.red; }
         return palette.white; 
       })
       .style("stroke-width", function(d) { 
@@ -1105,6 +1109,10 @@ function ViewTreepack() {
       .style("stroke", function(d) { 
         if (d.keywordsMismatch) { return palette.red; }
         if (d.keywordsMatch) { return palette.green; }
+        if (d.keywordsAuto.right) { return palette.yellow; }
+        if (d.keywordsAuto.left) { return palette.blue; }
+        if (d.keywordsAuto.positive) { return palette.green; }
+        if (d.keywordsAuto.negative) { return palette.red; }
         return palette.white; 
       })
       .style("stroke-width", function(d) { 

@@ -4,9 +4,9 @@
 const MAX_Q = 500;
 const compactDateTimeFormat = "YYYYMMDD HHmmss";
 
+const os = require("os");
 const debug = require("debug")("wa");
 const moment = require("moment");
-const os = require("os");
 
 const wordAssoDb = require("@threeceelabs/mongoose-twitter");
 const db = wordAssoDb();
@@ -128,8 +128,8 @@ function initTweetParserQueueInterval(cnf){
         + " | " + tweet.user.screen_name
         + " | " + tweet.user.name
         + " | Ts: " + tweet.user.statuses_count
-        + " | FLWRs: " + tweet.user.followers_count
-        + " | FRNDs: " + tweet.user.friends_count
+        + " | FLs: " + tweet.user.followers_count
+        + " | FRs: " + tweet.user.friends_count
       ));
 
       params.tweetStatus = tweet;

@@ -822,7 +822,6 @@ function ViewTreepack() {
         deadNodeFlag = true;
         delete deadNodesHash[node.nodeId];
 
-        // localNodeHashMap.remove(node.nodeId);
         delete localNodeHashMap[node.nodeId];
 
         nodesTopTermHashMap.remove(node.nodeId);
@@ -1665,6 +1664,9 @@ function ViewTreepack() {
 
     if (nNode.keywordsAuto === undefined) {
       newNode.keywordsAuto = {};
+    }
+    else {
+      console.debug("AUTO KEYWORDS\n" + jsonPrint(newNode.keywordsAuto));
     }
 
     if ((nNode.nodeType === "user") && (nNode.followersCount > currentMax.mentions.value)) { 

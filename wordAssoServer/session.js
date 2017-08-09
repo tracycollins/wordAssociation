@@ -2242,7 +2242,7 @@ function initSocketNodeRx(){
     newNode.keywordsMismatch = false;
     newNode.keywordsMatch = false;
 
-    if ((newNode.keywordsAuto !== undefined) && newNode.keywordsAuto) {
+    if ((nNode.keywordsAuto !== undefined) && nNode.keywordsAuto) {
 
       if (config.autoKeywordsFlag) { 
         keywords = nNode.keywordsAuto;
@@ -2251,7 +2251,7 @@ function initSocketNodeRx(){
         keywords = nNode.keywords;
       }
 
-      async.each(Object.keys(newNode.keywords), function(kw, cb){
+      async.each(Object.keys(nNode.keywords), function(kw, cb){
 
         if (keywordTypes.includes(kw)){
           if (newNode.keywordsAuto[kw] !== undefined){

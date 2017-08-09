@@ -1643,32 +1643,38 @@ function ViewTreepack() {
     }
     var newNode = {};
 
+    if (nNode.keywordsMatch || nNode.keywordsMismatch){
+      console.debug("keywordsMismatch: " + keywordsMismatch
+        + " | keywordsMismatch: " + keywordsMismatch
+      )
+    }
+
     newNode = nNode;
     newNode.rank = -1;
     newNode.newFlag = true;
     newNode.x = newNode.x || 0.5*width;
     newNode.y = newNode.y || 0.5*height;
 
-    newNode.keywordsMismatch = false;
-    newNode.keywordsMatch = false;
+    // newNode.keywordsMismatch = false;
+    // newNode.keywordsMatch = false;
 
-    if ((newNode.keywordsAuto !== undefined) && newNode.keywordsAuto) {
+    // if ((newNode.keywordsAuto !== undefined) && newNode.keywordsAuto) {
 
-      Object.keys(newNode.keywords).forEach(function(kw){
+    //   Object.keys(newNode.keywords).forEach(function(kw){
 
-        if (keywordTypes.includes(kw)){
-          if (newNode.keywordsAuto[kw] !== undefined){
-            newNode.keywordsMatch = true;
-            newNode.keywordsMismatch = false;
-          }
-          else {
-            newNode.keywordsMatch = false;
-            newNode.keywordsMismatch = true;        
-          }
-        }
+    //     if (keywordTypes.includes(kw)){
+    //       if (newNode.keywordsAuto[kw] !== undefined){
+    //         newNode.keywordsMatch = true;
+    //         newNode.keywordsMismatch = false;
+    //       }
+    //       else {
+    //         newNode.keywordsMatch = false;
+    //         newNode.keywordsMismatch = true;        
+    //       }
+    //     }
 
-      });
-    }
+    //   });
+    // }
 
     if ((nNode.nodeType === "user") && (nNode.followersCount > currentMax.mentions.value)) { 
 

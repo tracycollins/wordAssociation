@@ -563,7 +563,11 @@ function ViewTreepack() {
         if (d.isKeyword){
 
           var keywords = {};
-          if (autoKeywordsFlag && (d.keywordsAuto !== undefined) && d.keywordsAuto){
+          if (autoKeywordsFlag 
+            && (d.keywordsAuto !== undefined) 
+            && d.keywordsAuto
+            && (Object.keys(d.keywordsAuto).length > 0)
+            ){
             keywords = d.keywordsAuto;
           }
           else {
@@ -596,7 +600,11 @@ function ViewTreepack() {
         if (d.isKeyword){
 
           var keywords = {};
-          if (autoKeywordsFlag && (d.keywordsAuto !== undefined) && d.keywordsAuto){
+          if (autoKeywordsFlag 
+            && (d.keywordsAuto !== undefined) 
+            && d.keywordsAuto
+            && (Object.keys(d.keywordsAuto).length > 0)
+            ){
             keywords = d.keywordsAuto;
           }
           else {
@@ -836,15 +844,6 @@ function ViewTreepack() {
     d3.select(this).style("opacity", 1);
 
     var tooltipString;
-
-    // var keywords = {};
-
-    // if (autoKeywordsFlag && (d.keywordsAuto !== undefined) && d.keywordsAuto){
-    //   keywords = d.keywordsAuto;
-    // }
-    // else {
-    //   keywords = d.keywords;
-    // }
 
     switch (d.nodeType) {
       case "user":
@@ -1500,7 +1499,11 @@ function ViewTreepack() {
 
           var keywords = {};
 
-          if (autoKeywordsFlag && (newNode.keywordsAuto !== undefined) && newNode.keywordsAuto){
+            if (autoKeywordsFlag 
+              && (newNode.keywordsAuto !== undefined) 
+              && newNode.keywordsAuto
+              && (Object.keys(newNode.keywordsAuto).length > 0)
+              ){
             keywords = newNode.keywordsAuto;
             // console.warn("AUTO keywords"
             //   + " | NID: " + newNode.nodeId 
@@ -1748,7 +1751,11 @@ function ViewTreepack() {
         if (d.isKeyword){
 
           var keywords = {};
-          if (autoKeywordsFlag && (d.keywordsAuto !== undefined) && d.keywordsAuto){
+          if (autoKeywordsFlag 
+            && (d.keywordsAuto !== undefined) 
+            && d.keywordsAuto
+            && (Object.keys(d.keywordsAuto).length > 0)
+            ){
             keywords = d.keywordsAuto;
           }
           else {
@@ -1783,7 +1790,11 @@ function ViewTreepack() {
         if (d.isKeyword){
 
           var keywords = {};
-          if (autoKeywordsFlag && (d.keywordsAuto !== undefined) && d.keywordsAuto){
+          if (autoKeywordsFlag 
+            && (d.keywordsAuto !== undefined) 
+            && d.keywordsAuto
+            && (Object.keys(d.keywordsAuto).length > 0)
+            ){
             keywords = d.keywordsAuto;
           }
           else {
@@ -1957,7 +1968,11 @@ function ViewTreepack() {
           if (d.isKeyword){
 
             var keywords = {};
-            if (autoKeywordsFlag && (d.keywordsAuto !== undefined) && d.keywordsAuto){
+            if (autoKeywordsFlag 
+              && (d.keywordsAuto !== undefined) 
+              && d.keywordsAuto
+              && (Object.keys(d.keywordsAuto).length > 0)
+              ){
               keywords = d.keywordsAuto;
             }
             else {
@@ -1991,7 +2006,11 @@ function ViewTreepack() {
           if (d.isKeyword){
 
             var keywords = {};
-            if (autoKeywordsFlag && (d.keywordsAuto !== undefined) && d.keywordsAuto){
+            if (autoKeywordsFlag 
+              && (d.keywordsAuto !== undefined) 
+              && d.keywordsAuto
+              && (Object.keys(d.keywordsAuto).length > 0)
+              ){
               keywords = d.keywordsAuto;
             }
             else {

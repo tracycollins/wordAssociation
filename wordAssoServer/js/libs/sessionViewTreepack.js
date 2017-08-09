@@ -293,6 +293,32 @@ function ViewTreepack() {
 
   var topTermsDiv = d3.select("#topTermsDiv");
 
+  var topTermsCheckBox = topTermsDiv.append("input")
+    .attr("id", "topTermsCheckBox")
+    .attr("type", "checkbox")
+    .on("change", function(){
+      if (!topTermsCheckBox.property("checked")) { 
+        topTermsDiv.style("visibility", "hidden"); 
+        nodeTopTermLabelSvgGroup.style("visibility", "hidden");
+      }
+      else {
+        topTermsDiv.style("visibility", "visible"); 
+        nodeTopTermLabelSvgGroup.style("visibility", "visible");
+      }
+    });
+
+  var mouseMoveTimeoutEventHandler = function(e) {
+    if (!topTermsCheckBox.property("checked")) { 
+      topTermsDiv.style("visibility", "hidden"); 
+      nodeTopTermLabelSvgGroup.style("visibility", "hidden");
+    }
+    else {
+      topTermsDiv.style("visibility", "visible"); 
+      nodeTopTermLabelSvgGroup.style("visibility", "visible");
+    }
+  };
+
+
   document.addEventListener("mouseMoveTimeoutEvent", mouseMoveTimeoutEventHandler);
 
   document.addEventListener("mousemove", function() {
@@ -387,31 +413,7 @@ function ViewTreepack() {
     .attr("class", "tooltip")
     .style("visibility", "hidden");
 
-  var topTermsCheckBox = topTermsDiv.append("input")
-    .attr("id", "topTermsCheckBox")
-    .attr("type", "checkbox")
-    .on("change", function(){
-      if (!topTermsCheckBox.property("checked")) { 
-        topTermsDiv.style("visibility", "hidden"); 
-        nodeTopTermLabelSvgGroup.style("visibility", "hidden");
-      }
-      else {
-        topTermsDiv.style("visibility", "visible"); 
-        nodeTopTermLabelSvgGroup.style("visibility", "visible");
-      }
-    });
  
-
-  var mouseMoveTimeoutEventHandler = function(e) {
-    if (!topTermsCheckBox.property("checked")) { 
-      topTermsDiv.style("visibility", "hidden"); 
-      nodeTopTermLabelSvgGroup.style("visibility", "hidden");
-    }
-    else {
-      topTermsDiv.style("visibility", "visible"); 
-      nodeTopTermLabelSvgGroup.style("visibility", "visible");
-    }
-  };
 
 
   console.log("@@@@@@@ CLIENT @@@@@@@@");

@@ -1246,8 +1246,8 @@ function checkKeyword(nodeObj, callback) {
     && (nodeObj.screenName) 
     && keywordHashMap.has(nodeObj.screenName.toLowerCase())) {
     debug(chalkLog("HIT USER SNAME"));
-    nodeObj.isKeyword = true;
     nodeObj.keywords = keywordHashMap.get(nodeObj.screenName.toLowerCase());
+    nodeObj.isKeyword = true;
   }
   else if ((nodeObj.nodeType === "user") 
     && (nodeObj.name !== undefined) 

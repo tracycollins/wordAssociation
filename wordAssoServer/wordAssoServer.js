@@ -1233,40 +1233,110 @@ function initSocketNamespaces(callback){
   if (callback !== undefined) { callback(); }
 }
 
+function printKeyword(keywords) {
+  const keys = Object.keys(keywords);
+
+  if (keys.length === 0) { return (""); }
+
+  keys.forEach(function(kwId){
+    switch(kwId){
+      case "left":
+        return(keywords[kwId]);
+      case "right":
+        return(keywords[kwId]);
+      case "neutral":
+        return(keywords[kwId]);
+      case "positive":
+        return(keywords[kwId]);
+      case "negative":
+        return(keywords[kwId]);
+      break;
+      default:
+        return("");
+    }
+  });
+}
+
 function checkKeyword(nodeObj, callback) {
 
-  debug(chalkLog("checkKeyword"
-    + " | " + nodeObj.nodeType
-    + " | " + nodeObj.nodeId
-    + "\n" + jsonPrint(nodeObj)
-  ));
-  
+  if (nodeObj.keywords !== undefined) {
+
+    const kws = Object.keys(nodeObj.keywords);
+    const akws = Object.keys(nodeObj.keywords);
+
+    debugKeyword(chalkLog("checkKeyword"
+      + " | " + nodeObj.nodeType
+      + " | " + nodeObj.nodeId
+      + " | KWs " + kws
+      + " | AKWs " + akws
+    ));
+  }
+
   if ((nodeObj.nodeType === "user") 
+    && keywordHashMap.has(nodeObj.userId)) {
+
+    nodeObj.keywords = keywordHashMap.get(nodeObj.userId);
+    nodeObj.isKeyword = true;
+
+    debugKeyword(chalkAlert("KW HIT USER ID"
+      + " | " + nodeObj.userId
+      + " | " + printKeyword(nodeObj.keywords)
+    ));
+  }
+  else if ((nodeObj.nodeType === "user") 
     && (nodeObj.screenName !== undefined) 
     && (nodeObj.screenName) 
     && keywordHashMap.has(nodeObj.screenName.toLowerCase())) {
-    debug(chalkLog("HIT USER SNAME"));
+
     nodeObj.keywords = keywordHashMap.get(nodeObj.screenName.toLowerCase());
     nodeObj.isKeyword = true;
+
+    debugKeyword(chalkAlert("KW HIT USER SNAME"
+      + " | " + nodeObj.screenName
+      + " | " + printKeyword(nodeObj.keywords)
+    ));
+
   }
   else if ((nodeObj.nodeType === "user") 
     && (nodeObj.name !== undefined) 
     && (nodeObj.name) 
     && keywordHashMap.has(nodeObj.name.toLowerCase())) {
-    debug(chalkLog("HIT USER NAME"));
+
     nodeObj.keywords = keywordHashMap.get(nodeObj.name.toLowerCase());
     nodeObj.isKeyword = true;
+
+    debugKeyword(chalkAlert("KW HIT USER NAME"
+      + " | " + nodeObj.nodeType.toUpperCase()
+      + " | " + nodeObj.name
+      + " | " + printKeyword(nodeObj.keywords)
+    ));
+    
   }
   else if ((nodeObj.nodeType === "place") 
     && keywordHashMap.has(nodeObj.name.toLowerCase())) {
-    debug(chalkLog("HIT PLACE NAME"));
+
     nodeObj.keywords = keywordHashMap.get(nodeObj.name.toLowerCase());
+    nodeObj.isKeyword = true;
+
+    debugKeyword(chalkAlert("KW HIT PLACE NAME"
+      + " | " + nodeObj.nodeType.toUpperCase()
+      + " | " + nodeObj.name
+      + " | " + printKeyword(nodeObj.keywords)
+    ));
+    
     nodeObj.isKeyword = true;
   }
   else if (nodeObj.nodeId && keywordHashMap.has(nodeObj.nodeId.toLowerCase())) {
-    debug(chalkLog("HIT NODE ID"));
+
     nodeObj.keywords = keywordHashMap.get(nodeObj.nodeId.toLowerCase());
     nodeObj.isKeyword = true;
+
+    debugKeyword(chalkAlert("KW HIT NODE ID"
+      + " | " + nodeObj.nodeType.toUpperCase()
+      + " | " + nodeObj.nodeId
+      + " | " + printKeyword(nodeObj.keywords)
+    ));
+    
     if ((nodeObj.nodeType === "user") 
       && (nodeObj.name === undefined) 
       && (nodeObj.screenName === undefined)) {
@@ -1274,9 +1344,16 @@ function checkKeyword(nodeObj, callback) {
     }
   }
   else if (nodeObj.text && keywordHashMap.has(nodeObj.text.toLowerCase())) {
-    debug(chalkLog("HIT TEXT"));
+
     nodeObj.keywords = keywordHashMap.get(nodeObj.text.toLowerCase());
     nodeObj.isKeyword = true;
+
+    debugKeyword(chalkAlert("KW HIT NODE TEXT"
+      + " | " + nodeObj.nodeType.toUpperCase()
+      + " | " + nodeObj.text
+      + " | " + printKeyword(nodeObj.keywords)
+    ));
+    
     if ((nodeObj.nodeType === "user") 
       && (nodeObj.name === undefined) 
       && (nodeObj.screenName === undefined)) {
@@ -1570,6 +1647,15 @@ function initTransmitNodeQueueInterval(interval){
         transmitNodeQueueReady = true;
       }
       else {
+
+        if (nodeObj.keywordsAuto !== undefined) {
+          debugKeyword(chalkAlert("AKWs"
+            + " | NID: " + nodeObj.nodeId
+            + " | " + nodeObj.nodeType
+            + " | AKWs\n" + jsonPrint(nodeObj.keywordsAuto)
+          ));
+        }        
+
         checkKeyword(nodeObj, function checkKeywordCallback(node){
           updateWordMeter(node, function updateWordMeterCallback(err, n){
             if (!err) {
@@ -2441,19 +2527,19 @@ function initUpdaterMessageQueueInterval(interval){
 
         case "keywordHashMapClear":
           keywordHashMap.clear();
-          console.log(chalkLog("KEYWORD HASHMAP CLEAR"));
+          console.log(chalkAlert("KEYWORD HASHMAP CLEAR"));
           updaterMessageReady = true;
         break;
 
         case "keywordRemove":
           keywordHashMap.remove(updaterObj.keyword);
           keywordHashMap.remove(updaterObj.keyword.toLowerCase());
-          console.log(chalkLog("KEYWORD REMOVE: " + updaterObj.keyword.toLowerCase()));
+          console.log(chalkAlert("KEYWORD REMOVE: " + updaterObj.keyword.toLowerCase()));
           updaterMessageReady = true;
         break;
 
         case "keyword":
-          debugKeyword(chalkLog("KEYWORD: " + jsonPrint(updaterObj)));
+          // debugKeyword(chalkLog("KEYWORD: " + jsonPrint(updaterObj)));
           debugKeyword(chalkLog("UPDATE KEYWORD\n" + jsonPrint(updaterObj.keyword)));
 
           if (typeof updaterObj.keyword.keywordId !== "string") {

@@ -12,6 +12,7 @@ const wordAssoDb = require("@threeceelabs/mongoose-twitter");
 const db = wordAssoDb();
 
 const tweetServer = require("@threeceelabs/tweet-server-controller");
+const wordServer = require("@threeceelabs/word-server-controller");
 
 const Queue = require("queue-fifo");
 const tweetParserQueue = new Queue();

@@ -6,8 +6,8 @@
   "dependencies": {
     "@google-cloud/monitoring": "^0.2.3",
     "@threeceelabs/mongoose-twitter": "^1.0.17",
-    "@threeceelabs/tweet-server-controller": "^1.0.24",
-    "@threeceelabs/user-server-controller": "^1.0.23",
+    "@threeceelabs/tweet-server-controller": "^1.0.25",
+    "@threeceelabs/user-server-controller": "^1.0.24",
     "body-parser": "^1.17.2",
     "chalk": "^2.1.0",
     "deep-equal": "^1.0.1",

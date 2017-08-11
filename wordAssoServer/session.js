@@ -15,6 +15,8 @@ when new instance of word arrives, iterate thru array of nodes and create linksk
 // var DEFAULT_SOURCE = "http://word.threeceelabs.com";
 var DEFAULT_SOURCE = "==SOURCE==";  // will be updated by wordAssoServer.js on app.get
 
+var keywordTypes = ["left", "neutral", "right", "positive", "negative"];
+
 var debug = true;
 
 var PARENT_ID = "0047";
@@ -531,25 +533,15 @@ function getKeywordColor(kwObj, callback){
     }
   */
 
-  // console.debug("getKeywordColor: " + jsonPrint(kwObj));
-
-  // var keywordTypes = Object.keys(kwObj);
   var keywordKeys = Object.keys(kwObj);
 
   if (keywordKeys.length === 0) {
-      // console.debug("COLOR"
-      //   + " | " + palette.white
-      //   // + " | R: " + c.r + " G: " + c.g + " B: " + c.b + " A: " + c.opacity
-      // );
-      callback(palette.darkgray);
+    callback(palette.darkgray);
   }
 
   else {
 
     var color = palette.white;
-
-    // var keywordTypes = Object.keys(kwObj[keywords[0]]);
-    // var keywordTypes = Object.keys(kwObj);
 
     async.each(keywordKeys, function(kwType, cb){
 

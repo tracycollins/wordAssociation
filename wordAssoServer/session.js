@@ -549,9 +549,9 @@ function getKeywordColor(kwObj, callback){
     var color = palette.white;
 
     // var keywordTypes = Object.keys(kwObj[keywords[0]]);
-    var keywordTypes = Object.keys(kwObj);
+    // var keywordTypes = Object.keys(kwObj);
 
-    async.each(keywordTypes, function(kwType, cb){
+    async.each(keywordKeys, function(kwType, cb){
 
       if (kwType === "keywordId") {
         cb();

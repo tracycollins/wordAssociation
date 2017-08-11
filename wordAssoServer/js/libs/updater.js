@@ -29,8 +29,9 @@ const chalkAlert = chalk.red;
 const chalkError = chalk.bold.red;
 const chalkLog = chalk.black;
 
-const mongoose = require("../../config/mongoose");
-const db = mongoose();
+const wordAssoDb = require("@threeceelabs/mongoose-twitter");
+const db = wordAssoDb();
+const mongoose = require("mongoose");
 
 const Admin = require("mongoose").model("Admin");
 const Sessions = require("mongoose").model("Session");
@@ -38,7 +39,7 @@ const Viewer = require("mongoose").model("Viewer");
 const User = require("mongoose").model("User");
 const Word = require("mongoose").model("Word");
 
-const wordServer = require("../../app/controllers/word.server.controller");
+const wordServer = require("@threeceelabs/word-server-controller");
 
 let hostname = os.hostname();
 hostname = hostname.replace(/.local/g, "");
@@ -240,7 +241,14 @@ const updateKeywords = function(folder, file, callback){
             ));
             return data.fileBinary;
           })
-          .then(JSON.parse)
+          .then(function(data){
+            try {
+              return JSON.parse(data);
+            }
+            catch(err){
+              console.error("JSON PARSE ERROR: " , err);
+            }
+          })
           .then(function(kwordsObj){
 
             const words = Object.keys(kwordsObj);
@@ -250,9 +258,6 @@ const updateKeywords = function(folder, file, callback){
               + " | " + fullPath
             ));
 
-
-            // stack overflow issues ????
-            // async.eachSeries(words,  
             async.each(words,
 
               function(w, cb) {
@@ -301,7 +306,7 @@ const updateKeywords = function(folder, file, callback){
                     newKeywordsHashMap.set(wordObj.nodeId, wordObj.keywords);
                     localKeywordHashMap.set(wordObj.nodeId, wordObj.keywords);
 
-                    wordServer.findOneWord(wordObj, false, function(err, updatedWordObj) {
+                    wordServer.findOneWord(wordObj, {noInc: true}, function(err, updatedWordObj) {
                       if (err){
                         console.log(chalkError("ERROR: UPDATING KEYWORD | " + wd + ": " + kwordsObj[wd]));
                         cb();
@@ -323,13 +328,13 @@ const updateKeywords = function(folder, file, callback){
                 else {
                   debug(chalkInfo("UPDATER: UPDATING KEYWORD"
                     + " | " + wd
-                    // + ": " + jsonPrint(wordObj)
+                    + ": " + jsonPrint(wordObj)
                   ));
 
                   newKeywordsHashMap.set(wordObj.nodeId, wordObj.keywords);
                   localKeywordHashMap.set(wordObj.nodeId, wordObj.keywords);
 
-                  wordServer.findOneWord(wordObj, false, function(err, updatedWordObj) {
+                  wordServer.findOneWord(wordObj, {noInc: true}, function(err, updatedWordObj) {
                     if (err){
                       console.log(chalkError("ERROR: UPDATING KEYWORD | " + wd + ": " + kwordsObj[wd]));
                       cb();
@@ -363,9 +368,11 @@ const updateKeywords = function(folder, file, callback){
                 }
               }
             );
+
           })
           .catch(function(err) {
             console.error(new Error("DROPBOX FILE DOWNLOAD ERROR\n" + jsonPrint(err)));
+            console.error(new Error("DROPBOX FILE DOWNLOAD ERROR ", err));
           });
       }
 

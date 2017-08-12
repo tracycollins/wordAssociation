@@ -1669,9 +1669,9 @@ function ViewTreepack() {
     if (nNode.keywordsAuto === undefined) {
       newNode.keywordsAuto = {};
     }
-    else {
-      console.debug("AUTO KEYWORDS\n" + jsonPrint(newNode.keywordsAuto));
-    }
+    // else {
+    //   console.debug("AUTO KEYWORDS\n" + jsonPrint(newNode.keywordsAuto));
+    // }
 
     if ((nNode.nodeType === "user") && (nNode.followersCount > currentMax.mentions.value)) { 
 

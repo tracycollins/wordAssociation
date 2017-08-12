@@ -1414,17 +1414,21 @@ function ViewTreepack() {
 
     var nodesModifiedFlag = false;
 
-    var nodeAddObj;
-    var newNode;
-    var currentNode;
+    // var nodeAddObj;
+    // var newNode;
+    // var currentNode;
 
     if (nodeAddQ.length > 0) {
 
       nodesModifiedFlag = false;
-      nodeAddObj = nodeAddQ.shift();
-      newNode = nodeAddObj.node;
+
+      var nodeAddObj = nodeAddQ.shift();
+
+      var newNode = nodeAddObj.node;
+      
       newNode.nodeId = newNode.nodeId.toLowerCase();
-      currentNode = {};
+
+      var currentNode = {};
 
       if (localNodeHashMap[newNode.nodeId] !== undefined){
 
@@ -1674,7 +1678,7 @@ function ViewTreepack() {
       newCurrentMaxMetricFlag = true;
 
       currentMax.mentions.value = nNode.followersCount; 
-      currentMax.mentions.nodeId = nNode.screenName; 
+      currentMax.mentions.nodeId = nNode.screenName.toLowerCase(); 
       currentMax.mentions.timeStamp = moment().valueOf(); 
 
       if (metricMode === "mentions") {
@@ -1689,7 +1693,7 @@ function ViewTreepack() {
       currentMax.mentions.value = nNode.mentions; 
 
       if (nNode.nodeType === "user") {
-        currentMax.mentions.nodeId = nNode.screenName; 
+        currentMax.mentions.nodeId = nNode.screenName.toLowerCase(); 
       }
       else if (nNode.nodeType === "place") {
         currentMax.mentions.nodeId = nNode.fullName; 
@@ -1712,7 +1716,7 @@ function ViewTreepack() {
 
       currentMax.rate.value = nNode.rate;
       if (nNode.nodeType === "user") {
-        currentMax.rate.nodeId = nNode.screenName; 
+        currentMax.rate.nodeId = nNode.screenName.toLowerCase(); 
       }
       else if (nNode.nodeType === "place") {
         currentMax.rate.nodeId = nNode.fullName; 

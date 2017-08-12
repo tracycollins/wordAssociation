@@ -1360,7 +1360,7 @@ function ViewTreepack() {
       }
       else {
         nodeId = node.mentionsNodeId.toUpperCase();
-        if (node.nodeType === "user") { nodeId = "@" + nodeId; }
+        if (node.nodeType === "user") { nodeId = "@" + node.screenName; }
         displaytext = new Array(ratePadSpaces).join("\xa0") + rate 
         + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns
         + " | MNTN | MAX | " + nodeId
@@ -1696,9 +1696,12 @@ function ViewTreepack() {
         currentMax.mentions.nodeId = nNode.screenName.toLowerCase(); 
       }
       else if (nNode.nodeType === "place") {
-        currentMax.mentions.nodeId = nNode.fullName; 
+        currentMax.mentions.nodeId = nNode.name.toLowerCase(); 
       }
-      else {
+      else if (nNode.nodeId === undefined) {
+        console.error("*** NODE ID UNDEFINED\n" + jsonPrint(nNode));
+      }
+      else  {
         currentMax.mentions.nodeId = nNode.nodeId; 
       }
       currentMax.mentions.timeStamp = moment().valueOf(); 

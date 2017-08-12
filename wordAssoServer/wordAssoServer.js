@@ -1239,38 +1239,26 @@ function initSocketNamespaces(callback){
 }
 
 function printKeyword(keywords) {
-  if (!keywords) {
-    return("FALSE");
-  }
-  const keys = Object.keys(keywords);
-
-  if (keys.length === 0) { return (""); }
-
-  keys.forEach(function(kwId){
-    switch(kwId){
-      case "left":
-        return(keywords[kwId]);
-      case "right":
-        return(keywords[kwId]);
-      case "neutral":
-        return(keywords[kwId]);
-      case "positive":
-        return(keywords[kwId]);
-      case "negative":
-        return(keywords[kwId]);
-      default:
-        return("");
-    }
-  });
+  if (keywords === undefined) { return "FALSE"; }
+  if (keywords.left !== undefined) { return "left"; }
+  if (keywords.right !== undefined) { return "right"; }
+  if (keywords.neutral !== undefined) { return "neutral"; }
+  if (keywords.positive !== undefined) { return "positive"; }
+  if (keywords.negative !== undefined) { return "negative"; }
+  return "FALSE";
 }
 
 function checkKeyword(nodeObj, callback) {
 
+  const kws = printKeyword(nodeObj.keywords);
+  const kwas = printKeyword(nodeObj.keywordsAuto);
+
   debugKeyword(chalkLog("checkKeyword"
     + " | " + nodeObj.nodeType
     + " | " + nodeObj.nodeId
-    + " | KWs: " + printKeyword(nodeObj.keywords)
-    + " | KWAs: " + printKeyword(nodeObj.keywordsAuto)
+    + " | KWs: " + kws
+    + " | KWAs: " + kwas
+    // + "\n" + jsonPrint(nodeObj)
   ));
 
   // if (nodeObj.keywords === undefined) {
@@ -1317,6 +1305,7 @@ function checkKeyword(nodeObj, callback) {
           function topTermScreenName(err, rate) {
 
           debugKeyword(chalkAlert("KW HIT USER SNAME"
+            + " | " + nodeObj.userId
             + " | @" + nodeObj.screenName
             + " | KWs: " + printKeyword(nodeObj.keywords)
             + " | KWAs: " + printKeyword(nodeObj.keywordsAuto)
@@ -1681,11 +1670,14 @@ function initTransmitNodeQueueInterval(interval){
       }
       else {
 
+        const kws = printKeyword(nodeObj.keywords);
+        const kwas = printKeyword(nodeObj.keywordsAuto);
+
         debugKeyword(chalkAlert("TX NODE DE-Q"
           + " | NID: " + nodeObj.nodeId
           + " | " + nodeObj.nodeType
-          + " | KWs: " + printKeyword(nodeObj.keywords)
-          + " | KWAs: " + printKeyword(nodeObj.keywordsAuto)
+          + " | KWs: " + kws
+          + " | KWAs: " + kwas
         ));
 
         checkKeyword(nodeObj, function checkKeywordCallback(node){

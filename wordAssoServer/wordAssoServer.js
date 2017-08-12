@@ -1298,32 +1298,7 @@ function checkKeyword(nodeObj, callback) {
         return(callback(nodeObj));
       }
 
-      if (keywordHashMap.has(nodeObj.userId)) {
-
-        nodeObj.keywords = keywordHashMap.get(nodeObj.userId);
-        nodeObj.isKeyword = true;
-        nodeObj.isTwitterUser = true;
-
-        debugKeyword(chalkAlert("KW HIT USER ID"
-          + " | " + nodeObj.userId
-          + " | KWs: " + printKeyword(nodeObj.keywords)
-          + " | KWAs: " + printKeyword(nodeObj.keywordsAuto)
-        ));
-
-        wordsPerMinuteTopTermCache.get(nodeObj.userId,
-          function topTermUserId(err, userId) {
-          if (err){
-            console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
-          }
-          if (userId !== undefined) {
-            debugKeyword(chalkLog("TOP TERM USER USERID: " + userId));
-            nodeObj.isTopTerm = true;
-          }
-          callback(nodeObj);
-        });
-
-      }
-      else if ((nodeObj.screenName !== undefined) 
+      if ((nodeObj.screenName !== undefined) 
         && (nodeObj.screenName) 
         && keywordHashMap.has(nodeObj.screenName.toLowerCase())) {
 
@@ -1331,14 +1306,21 @@ function checkKeyword(nodeObj, callback) {
         nodeObj.isKeyword = true;
         nodeObj.isTwitterUser = true;
 
-        debugKeyword(chalkAlert("KW HIT USER SNAME"
-          + " | " + nodeObj.screenName
-          + " | KWs: " + printKeyword(nodeObj.keywords)
-          + " | KWAs: " + printKeyword(nodeObj.keywordsAuto)
-        ));
+        // debugKeyword(chalkAlert("KW HIT USER SNAME"
+        //   + " | " + nodeObj.screenName
+        //   + " | KWs: " + printKeyword(nodeObj.keywords)
+        //   + " | KWAs: " + printKeyword(nodeObj.keywordsAuto)
+        // ));
 
         wordsPerMinuteTopTermCache.get(nodeObj.screenName.toLowerCase(), 
           function topTermScreenName(err, screenName) {
+
+          debugKeyword(chalkAlert("KW HIT USER SNAME"
+            + " | " + nodeObj.screenName
+            + " | KWs: " + printKeyword(nodeObj.keywords)
+            + " | KWAs: " + printKeyword(nodeObj.keywordsAuto)
+          ));
+
           if (err){
             console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
           }
@@ -1371,6 +1353,32 @@ function checkKeyword(nodeObj, callback) {
           }
           if (name !== undefined) {
             debugKeyword(chalkLog("TOP TERM USER NAME: " + name));
+            nodeObj.isTopTerm = true;
+          }
+          callback(nodeObj);
+        });
+
+      }
+      // will probably never be true
+      else if (keywordHashMap.has(nodeObj.userId)) {
+
+        nodeObj.keywords = keywordHashMap.get(nodeObj.userId);
+        nodeObj.isKeyword = true;
+        nodeObj.isTwitterUser = true;
+
+        debugKeyword(chalkAlert("KW HIT USER ID"
+          + " | " + nodeObj.userId
+          + " | KWs: " + printKeyword(nodeObj.keywords)
+          + " | KWAs: " + printKeyword(nodeObj.keywordsAuto)
+        ));
+
+        wordsPerMinuteTopTermCache.get(nodeObj.userId,
+          function topTermUserId(err, userId) {
+          if (err){
+            console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
+          }
+          if (userId !== undefined) {
+            debugKeyword(chalkLog("TOP TERM USER USERID: " + userId));
             nodeObj.isTopTerm = true;
           }
           callback(nodeObj);

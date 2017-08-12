@@ -2152,14 +2152,22 @@ function initSocketNodeRx(){
       return;
     }
 
-    if ((nNode.nodeType === "user") && nNode.screenName){
-      nNode.nodeId = nNode.screenName.toLowerCase();
-      if (!nNode.name) { 
-        nNode.name = nNode.screenName.toLowerCase();
-      }
-    }
+    // if ((nNode.nodeType === "user") && nNode.screenName){
+    //   nNode.nodeId = nNode.screenName.toLowerCase();
+    //   if (!nNode.name) { 
+    //     nNode.name = nNode.screenName.toLowerCase();
+    //   }
+    // }
 
     var newNode = {};
+
+    // if ((nNode.nodeType === "user") && nNode.screenName){
+    //   newNode.nodeId = nNode.screenName.toLowerCase();
+    //   if (!nNode.name) { 
+    //     newNode.name = nNode.screenName.toLowerCase();
+    //   }
+    // }
+
     newNode.rate = nNode.rate;
     newNode.isTopTerm = nNode.isTopTerm || false;
     newNode.isKeyword = nNode.isKeyword || false;
@@ -2184,7 +2192,7 @@ function initSocketNodeRx(){
     newNode.age = 1e-6;
     newNode.ageMaxRatio = 1e-6;
     newNode.mouseHoverFlag = false;
-    newNode.nodeId = (nNode.nodeType == "url") ? nNode.nodeId : nNode.nodeId.toString().toLowerCase();  // urls must be case sensitive
+    // newNode.nodeId = (nNode.nodeType == "url") ? nNode.nodeId : nNode.nodeId.toString().toLowerCase();  // urls must be case sensitive
     newNode.nodeType = nNode.nodeType;
     newNode.isDead = false;
     newNode.r = 0;
@@ -2193,6 +2201,7 @@ function initSocketNodeRx(){
     newNode.text = nNode.nodeId;
 
     if (nNode.nodeType === "tweet"){
+      newNode.nodeId = nNode.nodeId;
       newNode.isRetweet = nNode.isRetweet;
       newNode.retweetedId = nNode.retweetedId;
       newNode.retweetedStatus = nNode.retweetedStatus;
@@ -2206,8 +2215,8 @@ function initSocketNodeRx(){
     }
     if (nNode.nodeType === "user"){
       newNode.userId = nNode.userId;
-      // newNode.nodeId = nNode.screenName.toLowerCase();
-      newNode.nodeId = nNode.nodeId;
+      newNode.nodeId = nNode.screenName.toLowerCase();
+      // newNode.nodeId = nNode.nodeId;
       newNode.isTwitterUser = nNode.isTwitterUser;
       newNode.screenName = nNode.screenName.toLowerCase();
       newNode.name = nNode.name;
@@ -2220,6 +2229,7 @@ function initSocketNodeRx(){
       newNode.threeceeFollowing = nNode.threeceeFollowing;
     }
     if (nNode.nodeType === "media"){
+      newNode.nodeId = nNode.nodeId;
       newNode.mediaId = nNode.mediaId;
       newNode.url = nNode.url;
       newNode.sourceUrl = nNode.sourceUrl;

@@ -1303,7 +1303,7 @@ function checkKeyword(nodeObj, callback) {
         && keywordHashMap.has(nodeObj.screenName.toLowerCase())) {
 
         // nodeObj.keywords = {};
-        nodeObj.set("keywords", keywordHashMap.get(nodeObj.screenName.toLowerCase()));
+        nodeObj.keywords = keywordHashMap.get(nodeObj.screenName.toLowerCase());
         nodeObj.isKeyword = true;
         nodeObj.isTwitterUser = true;
 
@@ -1314,10 +1314,10 @@ function checkKeyword(nodeObj, callback) {
         // ));
 
         wordsPerMinuteTopTermCache.get(nodeObj.screenName.toLowerCase(), 
-          function topTermScreenName(err, screenName) {
+          function topTermScreenName(err, rate) {
 
           debugKeyword(chalkAlert("KW HIT USER SNAME"
-            + " | " + nodeObj.screenName
+            + " | @" + nodeObj.screenName
             + " | KWs: " + printKeyword(nodeObj.keywords)
             + " | KWAs: " + printKeyword(nodeObj.keywordsAuto)
             + "\n" + jsonPrint(keywordHashMap.get(nodeObj.screenName.toLowerCase()))
@@ -1326,8 +1326,12 @@ function checkKeyword(nodeObj, callback) {
           if (err){
             console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
           }
-          if (screenName !== undefined) {
-            debugKeyword(chalkLog("TOP TERM USER SNAME: " + screenName));
+          if (rate !== undefined) {
+            debugKeyword(chalkLog("TOP TERM USER SNAME"
+              + " | @" + nodeObj.screenName
+              + " | RATE: " + rate.toFixed(2)
+              + " | NODE RATE: " + nodeObj.rate.toFixed(2)
+            ));
             nodeObj.isTopTerm = true;
           }
           callback(nodeObj);
@@ -1661,7 +1665,7 @@ function initTransmitNodeQueueInterval(interval){
   console.log(chalkLog("INIT TRANSMIT NODE QUEUE INTERVAL: " + interval + " MS"));
 
   clearInterval(transmitNodeQueueInterval);
-  let nodeObj;
+  // let nodeObj;
 
   transmitNodeQueueInterval = setInterval(function txNodeQueue () {
 
@@ -1669,7 +1673,7 @@ function initTransmitNodeQueueInterval(interval){
 
       transmitNodeQueueReady = false;
 
-      nodeObj = transmitNodeQueue.dequeue();
+      let nodeObj = transmitNodeQueue.dequeue();
 
       if (!nodeObj) {
         console.error(new Error("transmitNodeQueue: NULL NODE OBJ DE-Q"));

@@ -2160,6 +2160,7 @@ function initSocketNodeRx(){
     // }
 
     var newNode = {};
+    newNode.nodeType = nNode.nodeType;
 
     // if ((nNode.nodeType === "user") && nNode.screenName){
     //   newNode.nodeId = nNode.screenName.toLowerCase();
@@ -2193,7 +2194,6 @@ function initSocketNodeRx(){
     newNode.ageMaxRatio = 1e-6;
     newNode.mouseHoverFlag = false;
     // newNode.nodeId = (nNode.nodeType == "url") ? nNode.nodeId : nNode.nodeId.toString().toLowerCase();  // urls must be case sensitive
-    newNode.nodeType = nNode.nodeType;
     newNode.isDead = false;
     newNode.r = 0;
     newNode.links = [];

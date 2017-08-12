@@ -1273,14 +1273,14 @@ function checkKeyword(nodeObj, callback) {
     + " | KWAs: " + printKeyword(nodeObj.keywordsAuto)
   ));
 
-  if (nodeObj.keywords === undefined) {
-    nodeObj.keywords = false;
-    nodeObj.isKeyword = false;
-  }
+  // if (nodeObj.keywords === undefined) {
+  //   nodeObj.keywords = false;
+  //   nodeObj.isKeyword = false;
+  // }
 
-  if (nodeObj.keywordsAuto === undefined) {
-    nodeObj.keywordsAuto = false;
-  }
+  // if (nodeObj.keywordsAuto === undefined) {
+  //   nodeObj.keywordsAuto = false;
+  // }
 
   switch (nodeObj.nodeType) {
 
@@ -1677,14 +1677,12 @@ function initTransmitNodeQueueInterval(interval){
       }
       else {
 
-        if (nodeObj.keywordsAuto !== undefined) {
-          debugKeyword(chalkAlert("AKWs"
-            + " | NID: " + nodeObj.nodeId
-            + " | " + nodeObj.nodeType
-            + " | KWs: " + printKeyword(nodeObj.keywords)
-            + " | KWAs: " + printKeyword(nodeObj.keywordsAuto)
-          ));
-        }        
+        debugKeyword(chalkAlert("TX NODE DE-Q"
+          + " | NID: " + nodeObj.nodeId
+          + " | " + nodeObj.nodeType
+          + " | KWs: " + printKeyword(nodeObj.keywords)
+          + " | KWAs: " + printKeyword(nodeObj.keywordsAuto)
+        ));
 
         checkKeyword(nodeObj, function checkKeywordCallback(node){
           updateWordMeter(node, function updateWordMeterCallback(err, n){

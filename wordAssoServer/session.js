@@ -2228,6 +2228,10 @@ function initSocketNodeRx(){
       newNode.friendsCount = nNode.friendsCount;
       newNode.threeceeFollowing = nNode.threeceeFollowing;
     }
+    if (nNode.nodeType === "hashtag"){
+      newNode.nodeId = nNode.text;
+      newNode.text = nNode.text;
+    }
     if (nNode.nodeType === "media"){
       newNode.nodeId = nNode.nodeId;
       newNode.mediaId = nNode.mediaId;

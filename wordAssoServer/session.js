@@ -2198,10 +2198,10 @@ function initSocketNodeRx(){
     newNode.r = 0;
     newNode.links = [];
     newNode.mentions = (nNode.mentions > 0) ? nNode.mentions : 10;
-    newNode.text = nNode.nodeId;
 
     if (nNode.nodeType === "tweet"){
       newNode.nodeId = nNode.nodeId;
+      newNode.text = nNode.nodeId;
       newNode.isRetweet = nNode.isRetweet;
       newNode.retweetedId = nNode.retweetedId;
       newNode.retweetedStatus = nNode.retweetedStatus;
@@ -2216,10 +2216,10 @@ function initSocketNodeRx(){
     if (nNode.nodeType === "user"){
       newNode.userId = nNode.userId;
       newNode.nodeId = nNode.screenName.toLowerCase();
-      // newNode.nodeId = nNode.nodeId;
-      newNode.isTwitterUser = nNode.isTwitterUser;
+      newNode.text = nNode.screenName.toLowerCase();
       newNode.screenName = nNode.screenName.toLowerCase();
       newNode.name = nNode.name;
+      newNode.isTwitterUser = nNode.isTwitterUser;
       newNode.profileUrl = nNode.profileUrl;
       newNode.profileImageUrl = nNode.profileImageUrl;
       newNode.followersCount = nNode.followersCount;

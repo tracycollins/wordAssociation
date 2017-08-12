@@ -1690,10 +1690,19 @@ function ViewTreepack() {
 
       newCurrentMaxMetricFlag = true;
 
+      currentMax.mentions.nodeType = nNode.nodeType;
       currentMax.mentions.value = nNode.mentions; 
 
       if (nNode.nodeType === "user") {
-        currentMax.mentions.nodeId = nNode.screenName.toLowerCase(); 
+        if (nNode.screenName !== undefined) {
+          currentMax.mentions.nodeId = nNode.screenName.toLowerCase(); 
+        }
+        else if (nNode.name !== undefined) {
+          currentMax.mentions.nodeId = nNode.screenName.toLowerCase(); 
+        }
+        else {
+          currentMax.mentions.nodeId = nNode.nodeId; 
+        }
       }
       else if (nNode.nodeType === "place") {
         currentMax.mentions.nodeId = nNode.name.toLowerCase(); 
@@ -1717,12 +1726,22 @@ function ViewTreepack() {
 
       newCurrentMaxMetricFlag = true;
 
+      currentMax.rate.nodeType = nNode.nodeType;
       currentMax.rate.value = nNode.rate;
+
       if (nNode.nodeType === "user") {
-        currentMax.rate.nodeId = nNode.screenName.toLowerCase(); 
+        if (nNode.screenName !== undefined) {
+          currentMax.rate.nodeId = nNode.screenName.toLowerCase(); 
+        }
+        else if (nNode.name !== undefined) {
+          currentMax.rate.nodeId = nNode.screenName.toLowerCase(); 
+        }
+        else {
+          currentMax.rate.nodeId = nNode.nodeId; 
+        }
       }
       else if (nNode.nodeType === "place") {
-        currentMax.rate.nodeId = nNode.fullName; 
+        currentMax.rate.nodeId = nNode.name; 
       }
       else {
         currentMax.rate.nodeId = nNode.nodeId; 

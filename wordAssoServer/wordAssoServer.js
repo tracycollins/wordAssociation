@@ -1677,7 +1677,7 @@ function initTransmitNodeQueueInterval(interval){
       }
       else {
 
-        if (nodeObj.keywordsAuto) {
+        if (nodeObj.keywordsAuto !== undefined) {
           debugKeyword(chalkAlert("AKWs"
             + " | NID: " + nodeObj.nodeId
             + " | " + nodeObj.nodeType

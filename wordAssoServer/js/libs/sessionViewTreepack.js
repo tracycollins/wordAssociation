@@ -1426,7 +1426,7 @@ function ViewTreepack() {
 
       var newNode = nodeAddObj.node;
       
-      newNode.nodeId = newNode.nodeId.toLowerCase();
+      // newNode.nodeId = newNode.nodeId.toLowerCase();
 
       var currentNode = {};
 

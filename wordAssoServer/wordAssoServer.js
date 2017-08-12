@@ -1318,6 +1318,7 @@ function checkKeyword(nodeObj, callback) {
 
           debugKeyword(chalkAlert("KW HIT USER SNAME"
             + " | " + nodeObj.screenName
+            + " | " + keywordHashMap.get(nodeObj.screenName.toLowerCase())
             + " | KWs: " + printKeyword(nodeObj.keywords)
             + " | KWAs: " + printKeyword(nodeObj.keywordsAuto)
           ));

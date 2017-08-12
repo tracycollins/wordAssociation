@@ -1425,7 +1425,7 @@ function ViewTreepack() {
       var nodeAddObj = nodeAddQ.shift();
 
       var newNode = nodeAddObj.node;
-      
+
       // newNode.nodeId = newNode.nodeId.toLowerCase();
 
       var currentNode = {};
@@ -1663,8 +1663,8 @@ function ViewTreepack() {
     newNode = nNode;
     newNode.rank = -1;
     newNode.newFlag = true;
-    newNode.x = newNode.x || 0.5*width;
-    newNode.y = newNode.y || 0.5*height;
+    newNode.x = nNode.x || 0.5*width;
+    newNode.y = nNode.y || 0.5*height;
 
     if (nNode.keywordsAuto === undefined) {
       newNode.keywordsAuto = {};

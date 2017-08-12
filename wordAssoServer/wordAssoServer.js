@@ -658,6 +658,9 @@ function initStats(callback){
   callback();
 }
 
+let updaterPingInterval;
+let updaterPingOutstanding = 0;
+
 function quit(message) {
   clearInterval(updaterPingInterval);
   debug("\n... QUITTING ...");
@@ -1252,7 +1255,6 @@ function printKeyword(keywords) {
         return(keywords[kwId]);
       case "negative":
         return(keywords[kwId]);
-      break;
       default:
         return("");
     }
@@ -1263,14 +1265,11 @@ function checkKeyword(nodeObj, callback) {
 
   if (nodeObj.keywords !== undefined) {
 
-    const kws = Object.keys(nodeObj.keywords);
-    const akws = Object.keys(nodeObj.keywordsAuto);
-
     debugKeyword(chalkLog("checkKeyword"
       + " | " + nodeObj.nodeType
       + " | " + nodeObj.nodeId
-      + " | KWs" + printKeyword(nodeObj.keywords)
-      + " | KWAs" + printKeyword(nodeObj.keywordsAuto)
+      + " | KWs: " + printKeyword(nodeObj.keywords)
+      + " | KWAs: " + printKeyword(nodeObj.keywordsAuto)
     ));
   }
 
@@ -1282,8 +1281,8 @@ function checkKeyword(nodeObj, callback) {
 
     debugKeyword(chalkAlert("KW HIT USER ID"
       + " | " + nodeObj.userId
-      + " | KWs" + printKeyword(nodeObj.keywords)
-      + " | KWAs" + printKeyword(nodeObj.keywordsAuto)
+      + " | KWs: " + printKeyword(nodeObj.keywords)
+      + " | KWAs: " + printKeyword(nodeObj.keywordsAuto)
     ));
   }
   else if ((nodeObj.nodeType === "user") 
@@ -1296,8 +1295,8 @@ function checkKeyword(nodeObj, callback) {
 
     debugKeyword(chalkAlert("KW HIT USER SNAME"
       + " | " + nodeObj.screenName
-      + " | KWs" + printKeyword(nodeObj.keywords)
-      + " | KWAs" + printKeyword(nodeObj.keywordsAuto)
+      + " | KWs: " + printKeyword(nodeObj.keywords)
+      + " | KWAs: " + printKeyword(nodeObj.keywordsAuto)
     ));
 
   }
@@ -1312,8 +1311,8 @@ function checkKeyword(nodeObj, callback) {
     debugKeyword(chalkAlert("KW HIT USER NAME"
       + " | " + nodeObj.nodeType.toUpperCase()
       + " | " + nodeObj.name
-      + " | KWs" + printKeyword(nodeObj.keywords)
-      + " | KWAs" + printKeyword(nodeObj.keywordsAuto)
+      + " | KWs: " + printKeyword(nodeObj.keywords)
+      + " | KWAs: " + printKeyword(nodeObj.keywordsAuto)
     ));
     
   }
@@ -1326,7 +1325,8 @@ function checkKeyword(nodeObj, callback) {
     debugKeyword(chalkAlert("KW HIT PLACE NAME"
       + " | " + nodeObj.nodeType.toUpperCase()
       + " | " + nodeObj.name
-      + " | " + printKeyword(nodeObj.keywords)
+      + " | KWs: " + printKeyword(nodeObj.keywords)
+      + " | KWAs: " + printKeyword(nodeObj.keywordsAuto)
     ));
     
     nodeObj.isKeyword = true;
@@ -1339,7 +1339,8 @@ function checkKeyword(nodeObj, callback) {
     debugKeyword(chalkAlert("KW HIT NODE ID"
       + " | " + nodeObj.nodeType.toUpperCase()
       + " | " + nodeObj.nodeId
-      + " | " + printKeyword(nodeObj.keywords)
+      + " | KWs: " + printKeyword(nodeObj.keywords)
+      + " | KWAs: " + printKeyword(nodeObj.keywordsAuto)
     ));
     
     if ((nodeObj.nodeType === "user") 
@@ -1356,21 +1357,32 @@ function checkKeyword(nodeObj, callback) {
     debugKeyword(chalkAlert("KW HIT NODE TEXT"
       + " | " + nodeObj.nodeType.toUpperCase()
       + " | " + nodeObj.text
-      + " | " + printKeyword(nodeObj.keywords)
+      + " | KWs: " + printKeyword(nodeObj.keywords)
+      + " | KWAs: " + printKeyword(nodeObj.keywordsAuto)
     ));
     
     if ((nodeObj.nodeType === "user") 
       && (nodeObj.name === undefined) 
       && (nodeObj.screenName === undefined)) {
       nodeObj.screenName = nodeObj.nodeId;
+
+      debugKeyword(chalkAlert("KW HIT NODE TEXT | UPDATE USER SNAME"
+        + " | " + nodeObj.nodeType.toUpperCase()
+        + " | " + nodeObj.nodeId
+        + " | " + nodeObj.screenName
+        + " | " + nodeObj.text
+        + " | KWs: " + printKeyword(nodeObj.keywords)
+        + " | KWAs: " + printKeyword(nodeObj.keywordsAuto)
+      ));
+
     }
   }
   else if (nodeObj.keywords === undefined) {
-    nodeObj.keywords = {};
+    nodeObj.keywords = false;
     nodeObj.isKeyword = false;
   }
   else {
-    nodeObj.keywords = {};
+    nodeObj.keywords = false;
     nodeObj.isKeyword = false;
   }
 
@@ -1988,10 +2000,12 @@ function slackMessageHandler(messageObj){
   const textArray = messageObj.text.split(":");
   const op = textArray[0];
 
+  let val;
+
   switch(op){
     case "mr":
       if (textArray.length > 1) {
-        const val = textArray[1];
+        val = textArray[1];
         if (val === "c") { metricsRate = "currentRate"; }
         if (val === "1") { metricsRate = "1MinuteRate"; }
         if (val === "5") { metricsRate = "5MinuteRate"; }
@@ -2355,8 +2369,6 @@ function initSorterMessageRxQueueInterval(interval){
   }, interval);
 }
 
-let updaterPingInterval;
-let updaterPingOutstanding = 0;
 function initUpdater(callback){
 
   clearInterval(updaterPingInterval);
@@ -2392,8 +2404,6 @@ function initUpdater(callback){
       + " | EXIT CODE: " + code
     ));
 
-    // clearInterval(updaterPingInterval);
-
     if (code > 0) { configEvents.emit("CHILD_ERROR", { name: "updater" }); }
 
   });
@@ -2403,15 +2413,11 @@ function initUpdater(callback){
       + " | *** UPDATER CLOSE ***"
       + " | EXIT CODE: " + code
     ));
-
-    // clearInterval(updaterPingInterval);
   });
 
   u.on("message", function updaterMessage(m){
     debug(chalkInfo("UPDATER RX\n" + jsonPrint(m)));
-    // if (updaterMessageQueue.length < MAX_Q){
-      updaterMessageQueue.enqueue(m);
-    // }
+    updaterMessageQueue.enqueue(m);
   });
 
   u.send({
@@ -2421,7 +2427,6 @@ function initUpdater(callback){
     interval: KEYWORDS_UPDATE_INTERVAL
   }, function updaterSendError(err){
     if (err) {
-      // pmx.emit("ERROR", "UPDATER INIT SEND ERROR");
       console.error(chalkError("*** UPDATER SEND ERROR"
         + " | " + err
       ));
@@ -2435,6 +2440,7 @@ function initUpdater(callback){
 
   if (callback !== undefined) { callback(null, u); }
 }
+
 
 function initUpdaterPingInterval(interval){
 
@@ -2480,8 +2486,9 @@ function initUpdaterPingInterval(interval){
       ));
     }
   }, interval);
-
 }
+
+
 
 let updaterMessageReady = true;
 let updaterMessageQueueInterval;
@@ -3197,8 +3204,6 @@ function initStatsInterval(interval){
     // }
   }, interval);
 }
-
-let hd;
 
 initStats(function setCacheObjKeys(){
   cacheObjKeys = Object.keys(statsObj.caches);

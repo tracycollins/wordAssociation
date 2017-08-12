@@ -7,7 +7,6 @@
     "node_args"   : "--max-old-space-size=4096",
     "env": {
       "NODE_ENV": "production",
-      "DEBUG": "kw wordAssoServer.js",
       "HEAPDUMP_ENABLED": false,
       "HEAPDUMP_MODULO": 10,
       "HEAPDUMP_THRESHOLD": 750,

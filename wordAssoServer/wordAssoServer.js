@@ -1302,6 +1302,7 @@ function checkKeyword(nodeObj, callback) {
         && (nodeObj.screenName) 
         && keywordHashMap.has(nodeObj.screenName.toLowerCase())) {
 
+        nodeObj.keywords = {};
         nodeObj.keywords = keywordHashMap.get(nodeObj.screenName.toLowerCase());
         nodeObj.isKeyword = true;
         nodeObj.isTwitterUser = true;
@@ -1336,6 +1337,7 @@ function checkKeyword(nodeObj, callback) {
         && (nodeObj.name) 
         && keywordHashMap.has(nodeObj.name.toLowerCase())) {
 
+        nodeObj.keywords = {};
         nodeObj.keywords = keywordHashMap.get(nodeObj.name.toLowerCase());
         nodeObj.isKeyword = true;
         nodeObj.isTwitterUser = true;
@@ -1362,6 +1364,7 @@ function checkKeyword(nodeObj, callback) {
       // will probably never be true
       else if (keywordHashMap.has(nodeObj.userId)) {
 
+        nodeObj.keywords = {};
         nodeObj.keywords = keywordHashMap.get(nodeObj.userId);
         nodeObj.isKeyword = true;
         nodeObj.isTwitterUser = true;
@@ -1394,6 +1397,7 @@ function checkKeyword(nodeObj, callback) {
 
       if (keywordHashMap.has(nodeObj.nodeId)) {
 
+        nodeObj.keywords = {};
         nodeObj.keywords = keywordHashMap.get(nodeObj.nodeId);
         nodeObj.isKeyword = true;
 
@@ -1425,6 +1429,7 @@ function checkKeyword(nodeObj, callback) {
 
       if (keywordHashMap.has(nodeObj.name.toLowerCase())) {
 
+        nodeObj.keywords = {};
         nodeObj.keywords = keywordHashMap.get(nodeObj.name.toLowerCase());
         nodeObj.isKeyword = true;
 
@@ -1456,6 +1461,7 @@ function checkKeyword(nodeObj, callback) {
 
       if (keywordHashMap.has(nodeObj.nodeId)) {
 
+        nodeObj.keywords = {};
         nodeObj.keywords = keywordHashMap.get(nodeObj.nodeId);
         nodeObj.isKeyword = true;
 

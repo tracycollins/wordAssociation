@@ -464,7 +464,9 @@ if (wordsPerMinuteTopTermTtl === undefined) {wordsPerMinuteTopTermTtl = TOPTERMS
 console.log("TOP TERMS WPM CACHE TTL: " + wordsPerMinuteTopTermTtl + " SECONDS");
 
 let wordsPerMinuteTopTermCheckPeriod = process.env.TOPTERMS_CACHE_CHECK_PERIOD;
-if (wordsPerMinuteTopTermCheckPeriod === undefined) {wordsPerMinuteTopTermCheckPeriod = TOPTERMS_CACHE_CHECK_PERIOD;}
+if (wordsPerMinuteTopTermCheckPeriod === undefined) {
+  wordsPerMinuteTopTermCheckPeriod = TOPTERMS_CACHE_CHECK_PERIOD;
+}
 console.log("TOP TERMS WPM CACHE CHECK PERIOD: " + wordsPerMinuteTopTermCheckPeriod + " SECONDS");
 
 const wordsPerMinuteTopTermCache = new NodeCache({
@@ -1262,13 +1264,13 @@ function checkKeyword(nodeObj, callback) {
   if (nodeObj.keywords !== undefined) {
 
     const kws = Object.keys(nodeObj.keywords);
-    const akws = Object.keys(nodeObj.keywords);
+    const akws = Object.keys(nodeObj.keywordsAuto);
 
     debugKeyword(chalkLog("checkKeyword"
       + " | " + nodeObj.nodeType
       + " | " + nodeObj.nodeId
-      + " | KWs " + kws
-      + " | AKWs " + akws
+      + " | KWs" + printKeyword(nodeObj.keywords)
+      + " | KWAs" + printKeyword(nodeObj.keywordsAuto)
     ));
   }
 
@@ -1280,7 +1282,8 @@ function checkKeyword(nodeObj, callback) {
 
     debugKeyword(chalkAlert("KW HIT USER ID"
       + " | " + nodeObj.userId
-      + " | " + printKeyword(nodeObj.keywords)
+      + " | KWs" + printKeyword(nodeObj.keywords)
+      + " | KWAs" + printKeyword(nodeObj.keywordsAuto)
     ));
   }
   else if ((nodeObj.nodeType === "user") 
@@ -1293,7 +1296,8 @@ function checkKeyword(nodeObj, callback) {
 
     debugKeyword(chalkAlert("KW HIT USER SNAME"
       + " | " + nodeObj.screenName
-      + " | " + printKeyword(nodeObj.keywords)
+      + " | KWs" + printKeyword(nodeObj.keywords)
+      + " | KWAs" + printKeyword(nodeObj.keywordsAuto)
     ));
 
   }
@@ -1308,7 +1312,8 @@ function checkKeyword(nodeObj, callback) {
     debugKeyword(chalkAlert("KW HIT USER NAME"
       + " | " + nodeObj.nodeType.toUpperCase()
       + " | " + nodeObj.name
-      + " | " + printKeyword(nodeObj.keywords)
+      + " | KWs" + printKeyword(nodeObj.keywords)
+      + " | KWAs" + printKeyword(nodeObj.keywordsAuto)
     ));
     
   }
@@ -1379,14 +1384,16 @@ function checkKeyword(nodeObj, callback) {
 
     case "user":
       if (!nodeObj.name && !nodeObj.screenName) {
-        console.log(chalkError("NODE NAME & SCREEN NAME UNDEFINED?\n" + jsonPrint(nodeObj)));
+        console.log(chalkError("NODE NAME & SCREEN NAME UNDEFINED?"
+          + "\n" + jsonPrint(nodeObj)));
         callback(nodeObj);
       }
       else if (nodeObj.screenName){
 
         nodeObj.isTwitterUser = true;
 
-        wordsPerMinuteTopTermCache.get(nodeObj.screenName.toLowerCase(), function topTermScreenName(err, screenName) {
+        wordsPerMinuteTopTermCache.get(nodeObj.screenName.toLowerCase(), 
+          function topTermScreenName(err, screenName) {
           if (err){
             console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
           }
@@ -1400,7 +1407,8 @@ function checkKeyword(nodeObj, callback) {
       else if (nodeObj.name) {
         nodeObj.isTwitterUser = true;
         nodeObj.screenName = nodeObj.name;
-        wordsPerMinuteTopTermCache.get(nodeObj.name.toLowerCase(), function topTermName(err, name) {
+        wordsPerMinuteTopTermCache.get(nodeObj.name.toLowerCase(), 
+          function topTermName(err, name) {
           if (err){
             console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
           }
@@ -1417,7 +1425,8 @@ function checkKeyword(nodeObj, callback) {
     break;
 
     case "hashtag":
-      wordsPerMinuteTopTermCache.get(nodeObj.nodeId.toLowerCase(), function topTermHashtag(err, nodeId) {
+      wordsPerMinuteTopTermCache.get(nodeObj.nodeId.toLowerCase(), 
+        function topTermHashtag(err, nodeId) {
         if (err){
           console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
         }
@@ -1437,7 +1446,8 @@ function checkKeyword(nodeObj, callback) {
         + " | " + nodeObj.country
       ));
 
-      wordsPerMinuteTopTermCache.get(nodeObj.name.toLowerCase(), function topTermPlace(err, nodeId) {
+      wordsPerMinuteTopTermCache.get(nodeObj.name.toLowerCase(), 
+        function topTermPlace(err, nodeId) {
         if (err){
           console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
         }
@@ -1449,7 +1459,8 @@ function checkKeyword(nodeObj, callback) {
     break;
 
     case "word":
-      wordsPerMinuteTopTermCache.get(nodeObj.nodeId.toLowerCase(), function topTermWord(err, nodeId) {
+      wordsPerMinuteTopTermCache.get(nodeObj.nodeId.toLowerCase(), 
+        function topTermWord(err, nodeId) {
         if (err){
           console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
         }
@@ -3186,33 +3197,6 @@ function initStatsInterval(interval){
     // }
   }, interval);
 }
-
-//=================================
-// BEGIN !!
-//=================================
-
-// function sendDirectMessage(user, message, callback) {
-  
-//   twit.post("direct_messages/new", {screen_name: user, text:message}, function twitPostComplete(error, response){
-
-//     if(error) {
-//       console.log(chalkError("!!!!! TWITTER SEND DIRECT MESSAGE ERROR: " 
-//         + moment().format(compactDateTimeFormat) 
-//         + "\nERROR\n"  + jsonPrint(error)
-//         + "\nRESPONSE\n"  + jsonPrint(response)
-//       ));
-//       if (callback !== undefined) { callback(error, message); }
-//     }
-//     else{
-//       console.log(chalkTwitter(moment().format(compactDateTimeFormat)
-//         + " | SENT TWITTER DM TO " + user
-//         + ": " + response.text
-//       ));
-//       if (callback !== undefined) { callback(null, message); }
-//     }
-
-//   });
-// }
 
 let hd;
 

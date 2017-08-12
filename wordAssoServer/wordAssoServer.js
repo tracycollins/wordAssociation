@@ -1290,16 +1290,9 @@ function checkKeyword(nodeObj, callback) {
         && (nodeObj.screenName) 
         && keywordHashMap.has(nodeObj.screenName.toLowerCase())) {
 
-        // nodeObj.keywords = {};
         nodeObj.keywords = keywordHashMap.get(nodeObj.screenName.toLowerCase());
         nodeObj.isKeyword = true;
         nodeObj.isTwitterUser = true;
-
-        // debugKeyword(chalkAlert("KW HIT USER SNAME"
-        //   + " | " + nodeObj.screenName
-        //   + " | KWs: " + printKeyword(nodeObj.keywords)
-        //   + " | KWAs: " + printKeyword(nodeObj.keywordsAuto)
-        // ));
 
         wordsPerMinuteTopTermCache.get(nodeObj.screenName.toLowerCase(), 
           function topTermScreenName(err, rate) {

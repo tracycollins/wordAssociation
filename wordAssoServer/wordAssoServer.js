@@ -1266,127 +1266,20 @@ function printKeyword(keywords) {
 
 function checkKeyword(nodeObj, callback) {
 
-  if (nodeObj.keywords !== undefined) {
+  debugKeyword(chalkLog("checkKeyword"
+    + " | " + nodeObj.nodeType
+    + " | " + nodeObj.nodeId
+    + " | KWs: " + printKeyword(nodeObj.keywords)
+    + " | KWAs: " + printKeyword(nodeObj.keywordsAuto)
+  ));
 
-    debugKeyword(chalkLog("checkKeyword"
-      + " | " + nodeObj.nodeType
-      + " | " + nodeObj.nodeId
-      + " | KWs: " + printKeyword(nodeObj.keywords)
-      + " | KWAs: " + printKeyword(nodeObj.keywordsAuto)
-    ));
-  }
-
-  if ((nodeObj.nodeType === "user") 
-    && keywordHashMap.has(nodeObj.userId)) {
-
-    nodeObj.keywords = keywordHashMap.get(nodeObj.userId);
-    nodeObj.isKeyword = true;
-
-    debugKeyword(chalkAlert("KW HIT USER ID"
-      + " | " + nodeObj.userId
-      + " | KWs: " + printKeyword(nodeObj.keywords)
-      + " | KWAs: " + printKeyword(nodeObj.keywordsAuto)
-    ));
-  }
-  else if ((nodeObj.nodeType === "user") 
-    && (nodeObj.screenName !== undefined) 
-    && (nodeObj.screenName) 
-    && keywordHashMap.has(nodeObj.screenName.toLowerCase())) {
-
-    nodeObj.keywords = keywordHashMap.get(nodeObj.screenName.toLowerCase());
-    nodeObj.isKeyword = true;
-
-    debugKeyword(chalkAlert("KW HIT USER SNAME"
-      + " | " + nodeObj.screenName
-      + " | KWs: " + printKeyword(nodeObj.keywords)
-      + " | KWAs: " + printKeyword(nodeObj.keywordsAuto)
-    ));
-
-  }
-  else if ((nodeObj.nodeType === "user") 
-    && (nodeObj.name !== undefined) 
-    && (nodeObj.name) 
-    && keywordHashMap.has(nodeObj.name.toLowerCase())) {
-
-    nodeObj.keywords = keywordHashMap.get(nodeObj.name.toLowerCase());
-    nodeObj.isKeyword = true;
-
-    debugKeyword(chalkAlert("KW HIT USER NAME"
-      + " | " + nodeObj.nodeType.toUpperCase()
-      + " | " + nodeObj.name
-      + " | KWs: " + printKeyword(nodeObj.keywords)
-      + " | KWAs: " + printKeyword(nodeObj.keywordsAuto)
-    ));
-    
-  }
-  else if ((nodeObj.nodeType === "place") 
-    && keywordHashMap.has(nodeObj.name.toLowerCase())) {
-
-    nodeObj.keywords = keywordHashMap.get(nodeObj.name.toLowerCase());
-    nodeObj.isKeyword = true;
-
-    debugKeyword(chalkAlert("KW HIT PLACE NAME"
-      + " | " + nodeObj.nodeType.toUpperCase()
-      + " | " + nodeObj.name
-      + " | KWs: " + printKeyword(nodeObj.keywords)
-      + " | KWAs: " + printKeyword(nodeObj.keywordsAuto)
-    ));
-    
-    nodeObj.isKeyword = true;
-  }
-  else if (nodeObj.nodeId && keywordHashMap.has(nodeObj.nodeId.toLowerCase())) {
-
-    nodeObj.keywords = keywordHashMap.get(nodeObj.nodeId.toLowerCase());
-    nodeObj.isKeyword = true;
-
-    debugKeyword(chalkAlert("KW HIT NODE ID"
-      + " | " + nodeObj.nodeType.toUpperCase()
-      + " | " + nodeObj.nodeId
-      + " | KWs: " + printKeyword(nodeObj.keywords)
-      + " | KWAs: " + printKeyword(nodeObj.keywordsAuto)
-    ));
-    
-    if ((nodeObj.nodeType === "user") 
-      && (nodeObj.name === undefined) 
-      && (nodeObj.screenName === undefined)) {
-      nodeObj.screenName = nodeObj.nodeId;
-    }
-  }
-  else if (nodeObj.text && keywordHashMap.has(nodeObj.text.toLowerCase())) {
-
-    nodeObj.keywords = keywordHashMap.get(nodeObj.text.toLowerCase());
-    nodeObj.isKeyword = true;
-
-    debugKeyword(chalkAlert("KW HIT NODE TEXT"
-      + " | " + nodeObj.nodeType.toUpperCase()
-      + " | " + nodeObj.text
-      + " | KWs: " + printKeyword(nodeObj.keywords)
-      + " | KWAs: " + printKeyword(nodeObj.keywordsAuto)
-    ));
-    
-    if ((nodeObj.nodeType === "user") 
-      && (nodeObj.name === undefined) 
-      && (nodeObj.screenName === undefined)) {
-      nodeObj.screenName = nodeObj.nodeId;
-
-      debugKeyword(chalkAlert("KW HIT NODE TEXT | UPDATE USER SNAME"
-        + " | " + nodeObj.nodeType.toUpperCase()
-        + " | " + nodeObj.nodeId
-        + " | " + nodeObj.screenName
-        + " | " + nodeObj.text
-        + " | KWs: " + printKeyword(nodeObj.keywords)
-        + " | KWAs: " + printKeyword(nodeObj.keywordsAuto)
-      ));
-
-    }
-  }
-  else if (nodeObj.keywords === undefined) {
+  if (nodeObj.keywords === undefined) {
     nodeObj.keywords = false;
     nodeObj.isKeyword = false;
   }
-  else {
-    nodeObj.keywords = false;
-    nodeObj.isKeyword = false;
+
+  if (nodeObj.keywordsAuto === undefined) {
+    nodeObj.keywordsAuto = false;
   }
 
   switch (nodeObj.nodeType) {
@@ -1398,14 +1291,51 @@ function checkKeyword(nodeObj, callback) {
     break;
 
     case "user":
-      if (!nodeObj.name && !nodeObj.screenName) {
-        console.log(chalkError("NODE NAME & SCREEN NAME UNDEFINED?"
-          + "\n" + jsonPrint(nodeObj)));
-        callback(nodeObj);
-      }
-      else if (nodeObj.screenName){
 
+      if (!nodeObj.name && !nodeObj.screenName) {
+        console.log(chalkError("*** ERROR: checkKeyword: NODE NAME & SCREEN NAME UNDEFINED?"
+          + "\n" + jsonPrint(nodeObj)));
+        return(callback(nodeObj));
+      }
+
+      if (keywordHashMap.has(nodeObj.userId)) {
+
+        nodeObj.keywords = keywordHashMap.get(nodeObj.userId);
+        nodeObj.isKeyword = true;
         nodeObj.isTwitterUser = true;
+
+        debugKeyword(chalkAlert("KW HIT USER ID"
+          + " | " + nodeObj.userId
+          + " | KWs: " + printKeyword(nodeObj.keywords)
+          + " | KWAs: " + printKeyword(nodeObj.keywordsAuto)
+        ));
+
+        wordsPerMinuteTopTermCache.get(nodeObj.userId,
+          function topTermUserId(err, userId) {
+          if (err){
+            console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
+          }
+          if (userId !== undefined) {
+            debugKeyword(chalkLog("TOP TERM USER USERID: " + userId));
+            nodeObj.isTopTerm = true;
+          }
+          callback(nodeObj);
+        });
+
+      }
+      else if ((nodeObj.screenName !== undefined) 
+        && (nodeObj.screenName) 
+        && keywordHashMap.has(nodeObj.screenName.toLowerCase())) {
+
+        nodeObj.keywords = keywordHashMap.get(nodeObj.screenName.toLowerCase());
+        nodeObj.isKeyword = true;
+        nodeObj.isTwitterUser = true;
+
+        debugKeyword(chalkAlert("KW HIT USER SNAME"
+          + " | " + nodeObj.screenName
+          + " | KWs: " + printKeyword(nodeObj.keywords)
+          + " | KWAs: " + printKeyword(nodeObj.keywordsAuto)
+        ));
 
         wordsPerMinuteTopTermCache.get(nodeObj.screenName.toLowerCase(), 
           function topTermScreenName(err, screenName) {
@@ -1413,24 +1343,99 @@ function checkKeyword(nodeObj, callback) {
             console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
           }
           if (screenName !== undefined) {
-            debug(chalkLog("TOP TERM: " + screenName));
+            debugKeyword(chalkLog("TOP TERM USER SNAME: " + screenName));
             nodeObj.isTopTerm = true;
           }
           callback(nodeObj);
         });
+
       }
-      else if (nodeObj.name) {
+      else if ((nodeObj.name !== undefined) 
+        && (nodeObj.name) 
+        && keywordHashMap.has(nodeObj.name.toLowerCase())) {
+
+        nodeObj.keywords = keywordHashMap.get(nodeObj.name.toLowerCase());
+        nodeObj.isKeyword = true;
         nodeObj.isTwitterUser = true;
-        nodeObj.screenName = nodeObj.name;
+
+        debugKeyword(chalkAlert("KW HIT USER NAME"
+          + " | " + nodeObj.name
+          + " | KWs: " + printKeyword(nodeObj.keywords)
+          + " | KWAs: " + printKeyword(nodeObj.keywordsAuto)
+        ));
+
         wordsPerMinuteTopTermCache.get(nodeObj.name.toLowerCase(), 
           function topTermName(err, name) {
           if (err){
             console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
           }
           if (name !== undefined) {
+            debugKeyword(chalkLog("TOP TERM USER NAME: " + name));
             nodeObj.isTopTerm = true;
           }
+          callback(nodeObj);
+        });
 
+      }
+      else {
+        callback(nodeObj);
+      }
+    break;
+
+    case "hashtag":
+
+      if (keywordHashMap.has(nodeObj.nodeId)) {
+
+        nodeObj.keywords = keywordHashMap.get(nodeObj.nodeId);
+        nodeObj.isKeyword = true;
+
+        debugKeyword(chalkAlert("KW HIT HASHTAG NODEID"
+          + " | " + nodeObj.nodeId
+          + " | KWs: " + printKeyword(nodeObj.keywords)
+          + " | KWAs: " + printKeyword(nodeObj.keywordsAuto)
+        ));
+
+        wordsPerMinuteTopTermCache.get(nodeObj.nodeId,
+          function topTermNodeId(err, nodeId) {
+          if (err){
+            console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
+          }
+          if (nodeId !== undefined) {
+            debugKeyword(chalkLog("TOP TERM HASHTAG NODEID: " + nodeId));
+            nodeObj.isTopTerm = true;
+          }
+          callback(nodeObj);
+        });
+
+      }
+      else {
+        callback(nodeObj);
+      }
+    break;
+
+    case "place":
+
+      if (keywordHashMap.has(nodeObj.name.toLowerCase())) {
+
+        nodeObj.keywords = keywordHashMap.get(nodeObj.name.toLowerCase());
+        nodeObj.isKeyword = true;
+
+        debugKeyword(chalkAlert("KW HIT PLACE NAME"
+          + " | " + nodeObj.nodeId
+          + " | NAME: " + nodeObj.name
+          + " | KWs: " + printKeyword(nodeObj.keywords)
+          + " | KWAs: " + printKeyword(nodeObj.keywordsAuto)
+        ));
+
+        wordsPerMinuteTopTermCache.get(nodeObj.name,
+          function topTermPlaceNameId(err, name) {
+          if (err){
+            console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
+          }
+          if (name !== undefined) {
+            debugKeyword(chalkLog("TOP TERM PLACE NAME: " + name));
+            nodeObj.isTopTerm = true;
+          }
           callback(nodeObj);
         });
       }
@@ -1439,51 +1444,35 @@ function checkKeyword(nodeObj, callback) {
       }
     break;
 
-    case "hashtag":
-      wordsPerMinuteTopTermCache.get(nodeObj.nodeId.toLowerCase(), 
-        function topTermHashtag(err, nodeId) {
-        if (err){
-          console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
-        }
-        if (nodeId !== undefined) {
-          nodeObj.isTopTerm = true;
-        }
-        callback(nodeObj);
-      });
-    break;
-
-    case "place":
-
-      debug(chalkLog("PLACE | checkKeyword\n" + jsonPrint(nodeObj)));
-      debug(chalkInfo("PLACE | checkKeyword"
-        + " | " + nodeObj.name
-        + " | " + nodeObj.fullName
-        + " | " + nodeObj.country
-      ));
-
-      wordsPerMinuteTopTermCache.get(nodeObj.name.toLowerCase(), 
-        function topTermPlace(err, nodeId) {
-        if (err){
-          console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
-        }
-        if (nodeId !== undefined) {
-          nodeObj.isTopTerm = true;
-        }
-        callback(nodeObj);
-      });
-    break;
-
     case "word":
-      wordsPerMinuteTopTermCache.get(nodeObj.nodeId.toLowerCase(), 
-        function topTermWord(err, nodeId) {
-        if (err){
-          console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
-        }
-        if (nodeId !== undefined) {
-          nodeObj.isTopTerm = true;
-        }
+
+      if (keywordHashMap.has(nodeObj.nodeId)) {
+
+        nodeObj.keywords = keywordHashMap.get(nodeObj.nodeId);
+        nodeObj.isKeyword = true;
+
+        debugKeyword(chalkAlert("KW HIT WORD NODEID"
+          + " | " + nodeObj.nodeId
+          + " | KWs: " + printKeyword(nodeObj.keywords)
+          + " | KWAs: " + printKeyword(nodeObj.keywordsAuto)
+        ));
+
+        wordsPerMinuteTopTermCache.get(nodeObj.nodeId,
+          function topTermWordNodeId(err, nodeId) {
+          if (err){
+            console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
+          }
+          if (nodeId !== undefined) {
+            debugKeyword(chalkLog("TOP TERM HASHTAG NODEID: " + nodeId));
+            nodeObj.isTopTerm = true;
+          }
+          callback(nodeObj);
+        });
+
+      }
+      else {
         callback(nodeObj);
-      });
+      }
     break;
 
     default:

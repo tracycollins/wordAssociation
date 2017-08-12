@@ -1302,8 +1302,8 @@ function checkKeyword(nodeObj, callback) {
         && (nodeObj.screenName) 
         && keywordHashMap.has(nodeObj.screenName.toLowerCase())) {
 
-        nodeObj.keywords = {};
-        nodeObj.keywords = keywordHashMap.get(nodeObj.screenName.toLowerCase());
+        // nodeObj.keywords = {};
+        nodeObj.set("keywords", keywordHashMap.get(nodeObj.screenName.toLowerCase()));
         nodeObj.isKeyword = true;
         nodeObj.isTwitterUser = true;
 

@@ -1239,6 +1239,9 @@ function initSocketNamespaces(callback){
 }
 
 function printKeyword(keywords) {
+  if (!keywords) {
+    return("FALSE");
+  }
   const keys = Object.keys(keywords);
 
   if (keys.length === 0) { return (""); }
@@ -1557,7 +1560,6 @@ function initUpdateTrendsInterval(interval){
 
 function updateWordMeter(wordObj, callback){
 
-
   if (!configuration.metrics.wordMeterEnabled
     || (wordObj.nodeType === "media") 
     || (wordObj.nodeType === "url")
@@ -1671,11 +1673,12 @@ function initTransmitNodeQueueInterval(interval){
       }
       else {
 
-        if (nodeObj.keywordsAuto !== undefined) {
+        if (nodeObj.keywordsAuto) {
           debugKeyword(chalkAlert("AKWs"
             + " | NID: " + nodeObj.nodeId
             + " | " + nodeObj.nodeType
-            + " | AKWs\n" + jsonPrint(nodeObj.keywordsAuto)
+            + " | KWs: " + printKeyword(nodeObj.keywords)
+            + " | KWAs: " + printKeyword(nodeObj.keywordsAuto)
           ));
         }        
 

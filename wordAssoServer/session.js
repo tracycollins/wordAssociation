@@ -2153,8 +2153,10 @@ function initSocketNodeRx(){
     }
 
     if ((nNode.nodeType === "user") && nNode.screenName){
-      nNode.nodeId = nNode.screenName;
-      if (!nNode.name) { nNode.name = nNode.screenName; }
+      nNode.nodeId = nNode.screenName.toLowerCase();
+      if (!nNode.name) { 
+        nNode.name = nNode.screenName.toLowerCase();
+      }
     }
 
     var newNode = {};
@@ -2207,7 +2209,7 @@ function initSocketNodeRx(){
       // newNode.nodeId = nNode.screenName.toLowerCase();
       newNode.nodeId = nNode.nodeId;
       newNode.isTwitterUser = nNode.isTwitterUser;
-      newNode.screenName = nNode.screenName;
+      newNode.screenName = nNode.screenName.toLowerCase();
       newNode.name = nNode.name;
       newNode.profileUrl = nNode.profileUrl;
       newNode.profileImageUrl = nNode.profileImageUrl;

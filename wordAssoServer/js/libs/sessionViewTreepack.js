@@ -1759,7 +1759,7 @@ function ViewTreepack() {
 
     if (nodeAddQ.length > maxNodeAddQ) {
       maxNodeAddQ = nodeAddQ.length;
-      console.info("NEW MAX NODE ADD Q: " + maxNodeAddQ);
+      // console.info("NEW MAX NODE ADD Q: " + maxNodeAddQ);
     }
   };
 

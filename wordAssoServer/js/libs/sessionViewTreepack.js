@@ -1654,11 +1654,11 @@ function ViewTreepack() {
 
     var newNode = {};
 
-    if (nNode.keywordsMatch || nNode.keywordsMismatch){
-      console.debug("keywordsMismatch: " + nNode.keywordsMismatch
-        + " | keywordsMismatch: " + nNode.keywordsMismatch
-      );
-    }
+    // if (nNode.keywordsMatch || nNode.keywordsMismatch){
+    //   console.debug("keywordsMismatch: " + nNode.keywordsMismatch
+    //     + " | keywordsMismatch: " + nNode.keywordsMismatch
+    //   );
+    // }
 
     newNode = nNode;
     newNode.rank = -1;

@@ -2273,6 +2273,9 @@ function initSocketNodeRx(){
             cb();      
           }
         }
+        else {
+          cb();      
+        }
 
       }, function(err){
         if (((config.sessionViewType === "treemap") || (config.sessionViewType === "treepack"))

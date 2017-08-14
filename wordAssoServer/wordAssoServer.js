@@ -2045,6 +2045,7 @@ function initAppRouting(callback) {
         + " | req.query: " + req.query
         + " | req.params: " + req.params
       ));
+      next();
     }
     else if (req.path === "/slack_event"){
       if (req.body.type === "url_verification") {

@@ -560,6 +560,11 @@ function getKeywordColor(kwObj, callback){
   }
 }
 
+function saveConfig(){
+  storedConfigName = "config_" + config.sessionViewType;
+  store.set(storedConfigName, config);
+}
+
 function displayControl(isVisible) {
   var v = "hidden";
   if (isVisible) { v = "visible"; }
@@ -804,7 +809,8 @@ function resetConfigUpdateTimeOut() {
   configUpdateTimeOut = setTimeout(function() {
 
     console.debug("STORE CONFIG\n" + jsonPrint(config));
-    store.set(storedConfigName, config);
+    saveConfig();
+    // store.set(storedConfigName, config);
 
   }, configUpdateTimeOutInverval);
 }
@@ -974,6 +980,7 @@ function toggleMetric() {
   console.warn("SET RADIUS MODE: " + config.metricMode);
   updateMetricButton();
   if (controlPanelFlag) {controlPanel.updateControlPanel(config);}
+  saveConfig();
 }
 
 function toggleBlah() {
@@ -982,6 +989,7 @@ function toggleBlah() {
   console.warn("TOGGLE BLAH: " + config.blahMode);
   updateBlahButton();
   if (controlPanelFlag) {controlPanel.updateControlPanel(config);}
+  saveConfig();
 }
 
 function toggleAntonym() {
@@ -989,6 +997,7 @@ function toggleAntonym() {
   currentSessionView.setAntonym(config.antonymFlag);
   console.warn("TOGGLE ANT: " + config.antonymFlag);
   controlPanel.updateControlPanel(config);
+  saveConfig();
 }
 
 function togglePause() {
@@ -996,6 +1005,7 @@ function togglePause() {
   currentSessionView.setPause(config.pauseFlag);
   console.warn("TOGGLE PAUSE: " + config.pauseFlag);
   controlPanel.updateControlPanel(config);
+  saveConfig();
 }
 
 function toggleRemoveDeadNode() {
@@ -1003,6 +1013,7 @@ function toggleRemoveDeadNode() {
   currentSessionView.setRemoveDeadNodesFlag(config.removeDeadNodesFlag);
   console.warn("TOGGLE REMOVE DEAD NODES: " + config.removeDeadNodesFlag);
   controlPanel.updateControlPanel(config);
+  saveConfig();
 }
 
 function toggleDisableLinks() {
@@ -1011,6 +1022,7 @@ function toggleDisableLinks() {
   if (config.disableLinks) { linkHashMap.clear(); }
   console.warn("TOGGLE DISABLE LINKS: " + config.disableLinks);
   controlPanel.updateControlPanel(config);
+  saveConfig();
 }
 
 function toggleKeyword() {
@@ -1020,6 +1032,7 @@ function toggleKeyword() {
 
   updateKeywordButton();
   if (controlPanelFlag) { controlPanel.updateControlPanel(config); }
+  saveConfig();
 }
 
 function toggleStats() {
@@ -1042,6 +1055,7 @@ function toggleTestMode() {
   console.warn("TEST MODE: " + config.testModeEnabled);
   currentSessionView.setTestMode(config.testModeEnabled);
   controlPanel.updateControlPanel(config);
+  saveConfig();
 }
 
 
@@ -1192,7 +1206,8 @@ socket.on("VIEWER_READY_ACK", function(vSesKey) {
   config.VIEWER_OBJ = viewerObj;
 
   console.debug("STORE CONFIG ON VIEWER_READY_ACK\n" + jsonPrint(config));
-  store.set(storedConfigName, config);
+  saveConfig();
+  // store.set(storedConfigName, config);
 
   if (sessionMode) {
     console.debug("SESSION MODE" + " | SID: " + sessionId + " | NSP: " + namespace);

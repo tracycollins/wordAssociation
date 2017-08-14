@@ -4,8 +4,6 @@ function ViewTreepack() {
 
   "use strict";
 
-  // var keywordTypes = ["left", "right", "neutral", "negative", "positive"];
-
   var self = this;
   var simulation;
 
@@ -13,9 +11,6 @@ function ViewTreepack() {
   var newCurrentMaxMetricFlag = true;
 
   var resumeTimeStamp = 0;
-
-  // var displayTopTermsFlag = false;
-
   var compactDateTimeFormat = "YYYYMMDD HHmmss";
 
   var minRadiusRatio = 0.01;
@@ -41,7 +36,6 @@ function ViewTreepack() {
   var xFocusPositiveRatio = 0.5;
   var yFocusPositiveRatio = 0.3;
 
-  // var xFocusNegativeRatio = 0.5;
   var yFocusNegativeRatio = 0.7;
 
   var xFocusNeutralRatio = 0.5;
@@ -846,7 +840,7 @@ function ViewTreepack() {
 
     switch (d.nodeType) {
       case "user":
-        tooltipString = "@" + d.nodeId
+        tooltipString = "<a href=http://word.threeceelabs.com/categorize>@" + d.nodeId + "</a>"
           + "<br>TOPTERM: " + d.isTopTerm 
           + "<br>ID: " + d.userId 
           + "<br>N: " + d.name 

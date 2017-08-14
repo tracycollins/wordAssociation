@@ -563,6 +563,11 @@ function getKeywordColor(kwObj, callback){
 function saveConfig(){
   storedConfigName = "config_" + config.sessionViewType;
   store.set(storedConfigName, config);
+  var sc = store.get(storedConfigName);
+  console.debug("STORED CONFIG"
+    + " | " + storedConfigName
+    + "\n" + jsonPrint(sc)
+  );
 }
 
 function displayControl(isVisible) {

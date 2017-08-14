@@ -2040,6 +2040,12 @@ function initAppRouting(callback) {
       console.log(chalkAlert("R> REDIRECT /session")); 
       res.redirect("/session");
     }
+    else if (req.path === "/categorize"){
+      console.log(chalkAlert("R> CATEGORIZE"
+        + " | req.query: " + req.query
+        + " | req.params: " + req.params
+      ));
+    }
     else if (req.path === "/slack_event"){
       if (req.body.type === "url_verification") {
         console.log(chalkAlert("R> SLACK URL VERIFICATION"

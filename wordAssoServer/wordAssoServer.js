@@ -2042,10 +2042,10 @@ function initAppRouting(callback) {
     }
     else if (req.path === "/categorize"){
       console.log(chalkAlert("R> CATEGORIZE"
-        + " | req.query: " + req.query
-        + " | req.params: " + req.params
+        + " | req.query: " + jsonPrint(req.query)
+        + " | req.params: " + jsonPrint(req.params)
       ));
-      next();
+      res.sendStatus(200);
     }
     else if (req.path === "/slack_event"){
       if (req.body.type === "url_verification") {

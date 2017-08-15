@@ -54,6 +54,14 @@
       z-index: 10;
     }
     
+    #twitterIframe {
+      border: 1px solid #aaaaaa;
+      position: absolute;
+      top: 0;
+      right: 0;
+      z-index: 20;
+    }
+
     #statsDiv {
       font-family: "Lucida Console", Monaco, monospace;
       font-size: 0.6em;
@@ -274,13 +282,16 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/store.js/1.3.20/store.min.js"></script>
   <script src="node_modules/hashmap/hashmap.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/3.16.0/math.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/3.16.1/math.min.js"></script>
   <script src="node_modules/panzoom/dist/panzoom.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+  <script src="https://platform.twitter.com/widgets.js"></script>
   <script data-main="session" src="js/require.js"></script>
 </head>
 
 <body style="overflow:hidden;">
+  <iframe id="twitterIframe" name="twitterIframe" src="mask.png"></iframe>
+
   <div id="d3group"></div>
   <div id="topTermsDiv"></div>
   <div id="statsDiv" style="overflow:hidden;"></div>

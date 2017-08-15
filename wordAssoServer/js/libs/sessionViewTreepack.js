@@ -909,30 +909,31 @@ function ViewTreepack() {
   //   window.open(url, "_blank");
   // }
 
-  var twitterIframe = document.getElementById("twitterIframe");
-  twitterIframe.width = "500px";
-  twitterIframe.height = "400px";
+  // var twitterIframe = document.getElementById("twitterIframe");
+  // twitterIframe.width = "500px";
+  // twitterIframe.height = "400px";
 
   function nodeClick(d) {
     // console.debug("nodeClick");
     var url = "";
-    twitterIframe = document.getElementById("twitterIframe");
+    // twitterIframe = document.getElementById("twitterIframe");
 
     switch (d.nodeType) {
       case "user" :
         socket.emit("categorize", { userId: d.userId, screenName: d.screenName });
-        url = "favicon.png";
-
+        url = "https://twitter.com/" + d.screenName ;
         console.debug("LOADING TWITTER USER: " + url);
-        twitterIframe.src = url;
+        window.open(url, "_blank");
       break;
       case "hashtag" :
         url = "https://twitter.com/search?f=tweets&q=%23" + d.text ;
-        twitterIframe.src = url;
+        // twitterIframe.src = url;
+        window.open(url, "_blank");
       break;
       case "place" :
         url = "http://twitter.com/search?q=place%3A" + d.placeId ;
-        twitterIframe.src = url;
+        // twitterIframe.src = url;
+        window.open(url, "_blank");
       break;
     }
   }

@@ -960,6 +960,14 @@ process.env.NODE_ENV = process.env.NODE_ENV || "development";
 debug("NODE_ENV : " + process.env.NODE_ENV);
 debug("CLIENT HOST + PORT: " + "http://localhost:" + config.port);
  
+function categorizeUser(categorizeObj) {
+
+  console.log(chalkSocket("categorizeUser" 
+    + " | categorizeObj\n" + jsonPrint(categorizeObj)
+  ));
+
+}
+
 function socketRxTweet(tw) {
 
   statsObj.twitter.tweetsReceived += 1;
@@ -1196,6 +1204,8 @@ function initSocketHandler(socketObj) {
   });
 
   socket.on("tweet", socketRxTweet);
+
+  socket.on("categorize", categorizeUser)
 }
 
 function initSocketNamespaces(callback){

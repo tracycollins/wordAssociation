@@ -840,7 +840,7 @@ function ViewTreepack() {
 
     switch (d.nodeType) {
       case "user":
-        tooltipString = "<a href=http://word.threeceelabs.com/categorize>@" + d.nodeId + "</a>"
+        tooltipString = "@" + d.nodeId
           + "<br>TOPTERM: " + d.isTopTerm 
           + "<br>ID: " + d.userId 
           + "<br>N: " + d.name 
@@ -909,26 +909,30 @@ function ViewTreepack() {
   //   window.open(url, "_blank");
   // }
 
+  var twitterIframe = document.getElementById("twitterIframe");
+  twitterIframe.width = "500px";
+  twitterIframe.height = "400px";
+
   function nodeClick(d) {
     // console.debug("nodeClick");
     var url = "";
+    twitterIframe = document.getElementById("twitterIframe");
 
     switch (d.nodeType) {
       case "user" :
-        // url = "https://twitter.com/search?f=realtime&q=%23" + d.text ;
-        // url = "https://twitter.com/search?f=tweets&q=%3A" + d.screenName ;
-        url = "https://twitter.com/" + d.screenName ;
-        window.open(url, "_blank");
+        socket.emit("categorize", { userId: d.userId, screenName: d.screenName });
+        url = "favicon.png";
+
+        console.debug("LOADING TWITTER USER: " + url);
+        twitterIframe.src = url;
       break;
       case "hashtag" :
-        // url = "https://twitter.com/search?f=realtime&q=%23" + d.text ;
         url = "https://twitter.com/search?f=tweets&q=%23" + d.text ;
-        window.open(url, "_blank");
+        twitterIframe.src = url;
       break;
       case "place" :
-        // url = "https://twitter.com/search?f=realtime&q=%23" + d.text ;
         url = "http://twitter.com/search?q=place%3A" + d.placeId ;
-        window.open(url, "_blank");
+        twitterIframe.src = url;
       break;
     }
   }
@@ -1055,6 +1059,10 @@ function ViewTreepack() {
         if (d.keywordsMatch) { return "8.0"; }
         if (d.isTopTerm) { return "4.0"; }
         if (d.newFlag) { return "2.0"; }
+        if (d.keywordsAuto.right) { return "4.0"; }
+        if (d.keywordsAuto.left) { return "4.0"; }
+        if (d.keywordsAuto.positive) { return "4.0"; }
+        if (d.keywordsAuto.negative) { return "4.0"; }
         return "1.2"; 
       })
       .style("opacity", function(d) { 
@@ -1108,10 +1116,13 @@ function ViewTreepack() {
         return palette.white; 
       })
       .style("stroke-width", function(d) { 
-        if (d.keywordsMatch) { return "12.0"; }
-        if (d.keywordsMismatch) { return "8.0"; }
+        if (d.keywordsMatch) { return "8.0"; }
         if (d.isTopTerm) { return "4.0"; }
         if (d.newFlag) { return "2.0"; }
+        if (d.keywordsAuto.right) { return "4.0"; }
+        if (d.keywordsAuto.left) { return "4.0"; }
+        if (d.keywordsAuto.positive) { return "4.0"; }
+        if (d.keywordsAuto.negative) { return "4.0"; }
         return "1.2"; 
       })
       // .style("stroke-dasharray", function(d) { 

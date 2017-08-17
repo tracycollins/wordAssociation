@@ -4,6 +4,7 @@ function ViewFlow() {
 
   "use strict";
 
+  var enableAgeNodes = true;
   var SESSION_NODE_INIT_X_RATIO = 0.75;
 
   var mouseMovingFlag = false;
@@ -317,6 +318,12 @@ function ViewFlow() {
     self.updateCharge(DEFAULT_CHARGE);
     self.updateVelocityDecay(DEFAULT_VELOCITY_DECAY);
     self.updateGravity(DEFAULT_GRAVITY);
+  };
+
+  self.setEnableAgeNodes = function(enabled) {
+    enableAgeNodes = enabled;
+    config.enableAgeNodes = enabled;
+    // console.debug("SET ENABLE AGE NODES: " + enableAgeNodes);
   };
 
   //================================

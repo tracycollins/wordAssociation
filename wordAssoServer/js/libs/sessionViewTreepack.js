@@ -1862,38 +1862,38 @@ function ViewTreepack() {
             && (Object.keys(d.keywordsAuto).length > 0)
             ){
             keywords = d.keywordsAuto;
-            if (keywords.right !== undefined) {
+            if (d.keywordsAuto.right !== undefined) {
               return foci.right.y;
             }
-            if (keywords.left !== undefined) {
+            if (d.keywordsAuto.left !== undefined) {
               return foci.left.y;
             }
-            if (keywords.positive !== undefined) {
+            if (d.keywordsAuto.positive !== undefined) {
               return foci.positive.y;
             }
-            if (keywords.negative !== undefined) {
+            if (d.keywordsAuto.negative !== undefined) {
               return foci.negative.y;
             }
-            if (keywords.neutral !== undefined) {
+            if (d.keywordsAuto.neutral !== undefined) {
               return foci.neutral.y;
             }
             return 100;
           }
           else {
             keywords = d.keywords;
-            if (keywords.right !== undefined) {
+            if (d.keywords.right !== undefined) {
               return foci.right.y;
             }
-            if (keywords.left !== undefined) {
+            if (d.keywords.left !== undefined) {
               return foci.left.y;
             }
-            if (keywords.positive !== undefined) {
+            if (d.keywords.positive !== undefined) {
               return foci.positive.y;
             }
-            if (keywords.negative !== undefined) {
+            if (d.keywords.negative !== undefined) {
               return foci.negative.y;
             }
-            if (keywords.neutral !== undefined) {
+            if (d.keywords.neutral !== undefined) {
               return foci.neutral.y;
             }
             return 100;
@@ -2072,37 +2072,37 @@ function ViewTreepack() {
               && (Object.keys(d.keywordsAuto).length > 0)
               ){
               keywords = d.keywordsAuto;
-              if (keywords.right !== undefined) {
+              if (d.keywordsAuto.right !== undefined) {
                 return foci.right.x;
               }
-              if (keywords.left !== undefined) {
+              if (d.keywordsAuto.left !== undefined) {
                 return foci.left.x;
               }
-              if (keywords.positive !== undefined) {
+              if (d.keywordsAuto.positive !== undefined) {
                 return foci.positive.x;
               }
-              if (keywords.negative !== undefined) {
+              if (d.keywordsAuto.negative !== undefined) {
                 return foci.negative.x;
               }
-              if (keywords.neutral !== undefined) {
+              if (d.keywordsAuto.neutral !== undefined) {
                 return foci.neutral.x;
               }
             }
             else {
               keywords = d.keywords;
-              if (keywords.right !== undefined) {
+              if (d.keywords.right !== undefined) {
                 return foci.right.x;
               }
-              if (keywords.left !== undefined) {
+              if (d.keywords.left !== undefined) {
                 return foci.left.x;
               }
-              if (keywords.positive !== undefined) {
+              if (d.keywords.positive !== undefined) {
                 return foci.positive.x;
               }
-              if (keywords.negative !== undefined) {
+              if (d.keywords.negative !== undefined) {
                 return foci.negative.x;
               }
-              if (keywords.neutral !== undefined) {
+              if (d.keywords.neutral !== undefined) {
                 return foci.neutral.x;
               }
             }
@@ -2140,37 +2140,37 @@ function ViewTreepack() {
               && (Object.keys(d.keywordsAuto).length > 0)
               ){
               keywords = d.keywordsAuto;
-              if (keywords.right !== undefined) {
+              if (d.keywordsAuto.right !== undefined) {
                 return foci.right.y;
               }
-              if (keywords.left !== undefined) {
+              if (d.keywordsAuto.left !== undefined) {
                 return foci.left.y;
               }
-              if (keywords.positive !== undefined) {
+              if (d.keywordsAuto.positive !== undefined) {
                 return foci.positive.y;
               }
-              if (keywords.negative !== undefined) {
+              if (d.keywordsAuto.negative !== undefined) {
                 return foci.negative.y;
               }
-              if (keywords.neutral !== undefined) {
+              if (d.keywordsAuto.neutral !== undefined) {
                 return foci.neutral.y;
               }
             }
             else {
               keywords = d.keywords;
-              if (keywords.right !== undefined) {
+              if (d.keywords.right !== undefined) {
                 return foci.right.y;
               }
-              if (keywords.left !== undefined) {
+              if (d.keywords.left !== undefined) {
                 return foci.left.y;
               }
-              if (keywords.positive !== undefined) {
+              if (d.keywords.positive !== undefined) {
                 return foci.positive.y;
               }
-              if (keywords.negative !== undefined) {
+              if (d.keywords.negative !== undefined) {
                 return foci.negative.y;
               }
-              if (keywords.neutral !== undefined) {
+              if (d.keywords.neutral !== undefined) {
                 return foci.neutral.y;
               }
             }

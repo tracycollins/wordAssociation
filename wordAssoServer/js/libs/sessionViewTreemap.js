@@ -6,6 +6,7 @@ function ViewTreemap() {
 
   var self = this;
 
+  var enableAgeNodes = true;
   var testMode = false;
   var freezeFlag = false;
   var MAX_NODES = 100;
@@ -43,6 +44,7 @@ function ViewTreemap() {
 
   self.sessionKeepalive = function() {
   };
+
 
   var mouseHoverFlag = false;
 
@@ -261,6 +263,12 @@ function ViewTreemap() {
   self.updateParam = function(param, value) {
     console.log("updateParam: " + param + " = " + value);
     return;
+  };
+
+  self.setEnableAgeNodes = function(enabled) {
+    enableAgeNodes = enabled;
+    config.enableAgeNodes = enabled;
+    // console.debug("SET ENABLE AGE NODES: " + enableAgeNodes);
   };
 
   function rankHashMapByValue(hmap, sortProperty, callback) {

@@ -1507,7 +1507,10 @@ function ViewTreepack() {
         currentNode.rate = newNode.rate || 0;
         currentNode.displaytext = createDisplayText(currentNode);
 
-        if (currentNode.isKeyword) {
+        if (currentNode.isKeyword 
+          || ((newNode.keywordsAuto !== undefined) 
+              && newNode.keywordsAuto
+              && (Object.keys(newNode.keywordsAuto).length > 0))) {
           // console.info("keywords"
           //   + " | NID: " + newNode.nodeId 
           //   + " | NTYPE: " + newNode.nodeType 
@@ -1518,11 +1521,11 @@ function ViewTreepack() {
 
           var keywords = {};
 
-            if (autoKeywordsFlag 
-              && (newNode.keywordsAuto !== undefined) 
-              && newNode.keywordsAuto
-              && (Object.keys(newNode.keywordsAuto).length > 0)
-              ){
+          if (autoKeywordsFlag 
+            && (newNode.keywordsAuto !== undefined) 
+            && newNode.keywordsAuto
+            && (Object.keys(newNode.keywordsAuto).length > 0)
+            ){
             keywords = newNode.keywordsAuto;
             // console.warn("AUTO keywords"
             //   + " | NID: " + newNode.nodeId 
@@ -1531,6 +1534,11 @@ function ViewTreepack() {
             //   + "\nKWs\n" + jsonPrint(newNode.keywords)
             //   + "\nKWAs\n" + jsonPrint(newNode.keywordsAuto)
             // );
+          }
+          else if ((newNode.keywordsAuto !== undefined) 
+            && newNode.keywordsAuto
+            && (!newNode.keywords || (newNode.keywords === undefined))){
+            keywords = newNode.keywordsAuto;
           }
           else {
             keywords = newNode.keywords;

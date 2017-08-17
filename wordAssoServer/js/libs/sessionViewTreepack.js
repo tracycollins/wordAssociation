@@ -1791,27 +1791,59 @@ function ViewTreepack() {
             && (Object.keys(d.keywordsAuto).length > 0)
             ){
             keywords = d.keywordsAuto;
+            if (keywords.right !== undefined) {
+              return foci.right.x;
+            }
+            if (keywords.left !== undefined) {
+              return foci.left.x;
+            }
+            if (keywords.positive !== undefined) {
+              return foci.positive.x;
+            }
+            if (keywords.negative !== undefined) {
+              return foci.negative.x;
+            }
+            if (keywords.neutral !== undefined) {
+              return foci.neutral.x;
+            }
+            return 100;
           }
           else {
             keywords = d.keywords;
+            if (keywords.right !== undefined) {
+              return foci.right.x;
+            }
+            if (keywords.left !== undefined) {
+              return foci.left.x;
+            }
+            if (keywords.positive !== undefined) {
+              return foci.positive.x;
+            }
+            if (keywords.negative !== undefined) {
+              return foci.negative.x;
+            }
+            if (keywords.neutral !== undefined) {
+              return foci.neutral.x;
+            }
+            return 100;
           }
 
-          if (keywords.right !== undefined) {
-            return foci.right.x;
-          }
-          if (keywords.left !== undefined) {
-            return foci.left.x;
-          }
-          if (keywords.positive !== undefined) {
-            return foci.positive.x;
-          }
-          if (keywords.negative !== undefined) {
-            return foci.negative.x;
-          }
-          if (keywords.neutral !== undefined) {
-            return foci.neutral.x;
-          }
-          return 100;
+          // if (keywords.right !== undefined) {
+          //   return foci.right.x;
+          // }
+          // if (keywords.left !== undefined) {
+          //   return foci.left.x;
+          // }
+          // if (keywords.positive !== undefined) {
+          //   return foci.positive.x;
+          // }
+          // if (keywords.negative !== undefined) {
+          //   return foci.negative.x;
+          // }
+          // if (keywords.neutral !== undefined) {
+          //   return foci.neutral.x;
+          // }
+          // return 100;
         }
         else {
           return foci.default.x;
@@ -1830,27 +1862,59 @@ function ViewTreepack() {
             && (Object.keys(d.keywordsAuto).length > 0)
             ){
             keywords = d.keywordsAuto;
+            if (keywords.right !== undefined) {
+              return foci.right.y;
+            }
+            if (keywords.left !== undefined) {
+              return foci.left.y;
+            }
+            if (keywords.positive !== undefined) {
+              return foci.positive.y;
+            }
+            if (keywords.negative !== undefined) {
+              return foci.negative.y;
+            }
+            if (keywords.neutral !== undefined) {
+              return foci.neutral.y;
+            }
+            return 100;
           }
           else {
             keywords = d.keywords;
+            if (keywords.right !== undefined) {
+              return foci.right.y;
+            }
+            if (keywords.left !== undefined) {
+              return foci.left.y;
+            }
+            if (keywords.positive !== undefined) {
+              return foci.positive.y;
+            }
+            if (keywords.negative !== undefined) {
+              return foci.negative.y;
+            }
+            if (keywords.neutral !== undefined) {
+              return foci.neutral.y;
+            }
+            return 100;
           }
 
-          if (keywords.right !== undefined) {
-            return foci.right.y;
-          }
-          if (keywords.left !== undefined) {
-            return foci.left.y;
-          }
-          if (keywords.positive !== undefined) {
-            return foci.positive.y;
-          }
-          if (keywords.negative !== undefined) {
-            return foci.negative.y;
-          }
-          if (keywords.neutral !== undefined) {
-            return foci.neutral.y;
-          }
-          return 100;
+            // if (keywords.right !== undefined) {
+            //   return foci.right.y;
+            // }
+            // if (keywords.left !== undefined) {
+            //   return foci.left.y;
+            // }
+            // if (keywords.positive !== undefined) {
+            //   return foci.positive.y;
+            // }
+            // if (keywords.negative !== undefined) {
+            //   return foci.negative.y;
+            // }
+            // if (keywords.neutral !== undefined) {
+            //   return foci.neutral.y;
+            // }
+            // return 100;
         }
         else {
           return foci.default.y;
@@ -2008,26 +2072,56 @@ function ViewTreepack() {
               && (Object.keys(d.keywordsAuto).length > 0)
               ){
               keywords = d.keywordsAuto;
+              if (keywords.right !== undefined) {
+                return foci.right.x;
+              }
+              if (keywords.left !== undefined) {
+                return foci.left.x;
+              }
+              if (keywords.positive !== undefined) {
+                return foci.positive.x;
+              }
+              if (keywords.negative !== undefined) {
+                return foci.negative.x;
+              }
+              if (keywords.neutral !== undefined) {
+                return foci.neutral.x;
+              }
             }
             else {
               keywords = d.keywords;
+              if (keywords.right !== undefined) {
+                return foci.right.x;
+              }
+              if (keywords.left !== undefined) {
+                return foci.left.x;
+              }
+              if (keywords.positive !== undefined) {
+                return foci.positive.x;
+              }
+              if (keywords.negative !== undefined) {
+                return foci.negative.x;
+              }
+              if (keywords.neutral !== undefined) {
+                return foci.neutral.x;
+              }
             }
 
-            if (keywords.right !== undefined) {
-              return foci.right.x;
-            }
-            if (keywords.left !== undefined) {
-              return foci.left.x;
-            }
-            if (keywords.positive !== undefined) {
-              return foci.positive.x;
-            }
-            if (keywords.negative !== undefined) {
-              return foci.negative.x;
-            }
-            if (keywords.neutral !== undefined) {
-              return foci.neutral.x;
-            }
+              // if (keywords.right !== undefined) {
+              //   return foci.right.x;
+              // }
+              // if (keywords.left !== undefined) {
+              //   return foci.left.x;
+              // }
+              // if (keywords.positive !== undefined) {
+              //   return foci.positive.x;
+              // }
+              // if (keywords.negative !== undefined) {
+              //   return foci.negative.x;
+              // }
+              // if (keywords.neutral !== undefined) {
+              //   return foci.neutral.x;
+              // }
           }
           else {
             return foci.default.x;
@@ -2046,26 +2140,56 @@ function ViewTreepack() {
               && (Object.keys(d.keywordsAuto).length > 0)
               ){
               keywords = d.keywordsAuto;
+              if (keywords.right !== undefined) {
+                return foci.right.y;
+              }
+              if (keywords.left !== undefined) {
+                return foci.left.y;
+              }
+              if (keywords.positive !== undefined) {
+                return foci.positive.y;
+              }
+              if (keywords.negative !== undefined) {
+                return foci.negative.y;
+              }
+              if (keywords.neutral !== undefined) {
+                return foci.neutral.y;
+              }
             }
             else {
               keywords = d.keywords;
+              if (keywords.right !== undefined) {
+                return foci.right.y;
+              }
+              if (keywords.left !== undefined) {
+                return foci.left.y;
+              }
+              if (keywords.positive !== undefined) {
+                return foci.positive.y;
+              }
+              if (keywords.negative !== undefined) {
+                return foci.negative.y;
+              }
+              if (keywords.neutral !== undefined) {
+                return foci.neutral.y;
+              }
             }
 
-            if (keywords.right !== undefined) {
-              return foci.right.y;
-            }
-            if (keywords.left !== undefined) {
-              return foci.left.y;
-            }
-            if (keywords.positive !== undefined) {
-              return foci.positive.y;
-            }
-            if (keywords.negative !== undefined) {
-              return foci.negative.y;
-            }
-            if (keywords.neutral !== undefined) {
-              return foci.neutral.y;
-            }
+              // if (keywords.right !== undefined) {
+              //   return foci.right.y;
+              // }
+              // if (keywords.left !== undefined) {
+              //   return foci.left.y;
+              // }
+              // if (keywords.positive !== undefined) {
+              //   return foci.positive.y;
+              // }
+              // if (keywords.negative !== undefined) {
+              //   return foci.negative.y;
+              // }
+              // if (keywords.neutral !== undefined) {
+              //   return foci.neutral.y;
+              // }
           }
           else {
             return foci.default.y;

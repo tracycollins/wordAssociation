@@ -1690,8 +1690,11 @@ function ViewTreepack() {
     newNode.x = nNode.x || 0.5*width;
     newNode.y = nNode.y || 0.5*height;
 
-    if (nNode.keywordsAuto === undefined) {
+    if (!nNode.keywordsAuto || (nNode.keywordsAuto === undefined)) {
       newNode.keywordsAuto = {};
+    }
+    else {
+      newNode.isKeyword = true;
     }
     // else {
     //   console.debug("AUTO KEYWORDS\n" + jsonPrint(newNode.keywordsAuto));

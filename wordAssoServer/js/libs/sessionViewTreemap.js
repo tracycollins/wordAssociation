@@ -34,6 +34,8 @@ function ViewTreemap() {
   var width = window.innerWidth;
   var height = window.innerHeight;
 
+  var metricMode = config.defaultMetricMode;
+
   self.getWidth = function() {
     return window.innerWidth;
   };
@@ -269,6 +271,31 @@ function ViewTreemap() {
     enableAgeNodes = enabled;
     config.enableAgeNodes = enabled;
     // console.debug("SET ENABLE AGE NODES: " + enableAgeNodes);
+  };
+
+  this.setMetricMode = function(mode) {
+
+    config.defaultMetricMode = mode;
+    metricMode = mode;
+
+    if (mode === "rate") {
+      currentMaxMetric = currentMax.rate.value;
+    }
+    else if (mode === "mentions") {
+      currentMaxMetric = currentMax.mentions.value;
+    }
+
+    nodeLabelSizeScale = d3.scaleLinear()
+      .domain([1, currentMaxMetric])
+      .range([fontSizeMin, fontSizeMax])
+      .clamp(true);
+
+    defaultRadiusScale = d3.scaleLinear()
+      .domain([0.1, Math.sqrt(currentMaxMetric)])
+      .range([minRadius, maxRadius])
+      .clamp(true);
+
+    console.debug("SET METRIC MODE: " + metricMode);
   };
 
   function rankHashMapByValue(hmap, sortProperty, callback) {

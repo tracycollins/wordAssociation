@@ -564,6 +564,11 @@ function ViewTreepack() {
             ){
             keywords = d.keywordsAuto;
           }
+          else if ((d.keywordsAuto !== undefined) 
+            && d.keywordsAuto
+            && (!d.keywords || (d.keywords === undefined))){
+            keywords = d.keywordsAuto;
+          }
           else {
             keywords = d.keywords;
           }
@@ -599,6 +604,11 @@ function ViewTreepack() {
             && d.keywordsAuto
             && (Object.keys(d.keywordsAuto).length > 0)
             ){
+            keywords = d.keywordsAuto;
+          }
+          else if ((d.keywordsAuto !== undefined) 
+            && d.keywordsAuto
+            && (!d.keywords || (d.keywords === undefined))){
             keywords = d.keywordsAuto;
           }
           else {
@@ -1785,65 +1795,39 @@ function ViewTreepack() {
         if (d.isKeyword){
 
           var keywords = {};
+
           if (autoKeywordsFlag 
             && (d.keywordsAuto !== undefined) 
             && d.keywordsAuto
             && (Object.keys(d.keywordsAuto).length > 0)
             ){
             keywords = d.keywordsAuto;
-            if (keywords.right !== undefined) {
-              return foci.right.x;
-            }
-            if (keywords.left !== undefined) {
-              return foci.left.x;
-            }
-            if (keywords.positive !== undefined) {
-              return foci.positive.x;
-            }
-            if (keywords.negative !== undefined) {
-              return foci.negative.x;
-            }
-            if (keywords.neutral !== undefined) {
-              return foci.neutral.x;
-            }
-            return 100;
+          }
+          else if ((d.keywordsAuto !== undefined) 
+            && d.keywordsAuto
+            && (!d.keywords || (d.keywords === undefined))){
+            keywords = d.keywordsAuto;
           }
           else {
             keywords = d.keywords;
-            if (keywords.right !== undefined) {
-              return foci.right.x;
-            }
-            if (keywords.left !== undefined) {
-              return foci.left.x;
-            }
-            if (keywords.positive !== undefined) {
-              return foci.positive.x;
-            }
-            if (keywords.negative !== undefined) {
-              return foci.negative.x;
-            }
-            if (keywords.neutral !== undefined) {
-              return foci.neutral.x;
-            }
-            return 100;
           }
 
-          // if (keywords.right !== undefined) {
-          //   return foci.right.x;
-          // }
-          // if (keywords.left !== undefined) {
-          //   return foci.left.x;
-          // }
-          // if (keywords.positive !== undefined) {
-          //   return foci.positive.x;
-          // }
-          // if (keywords.negative !== undefined) {
-          //   return foci.negative.x;
-          // }
-          // if (keywords.neutral !== undefined) {
-          //   return foci.neutral.x;
-          // }
-          // return 100;
+          if (keywords.right !== undefined) {
+            return foci.right.x;
+          }
+          if (keywords.left !== undefined) {
+            return foci.left.x;
+          }
+          if (keywords.positive !== undefined) {
+            return foci.positive.x;
+          }
+          if (keywords.negative !== undefined) {
+            return foci.negative.x;
+          }
+          if (keywords.neutral !== undefined) {
+            return foci.neutral.x;
+          }
+          return 100;
         }
         else {
           return foci.default.x;
@@ -1862,59 +1846,32 @@ function ViewTreepack() {
             && (Object.keys(d.keywordsAuto).length > 0)
             ){
             keywords = d.keywordsAuto;
-            if (d.keywordsAuto.right !== undefined) {
-              return foci.right.y;
-            }
-            if (d.keywordsAuto.left !== undefined) {
-              return foci.left.y;
-            }
-            if (d.keywordsAuto.positive !== undefined) {
-              return foci.positive.y;
-            }
-            if (d.keywordsAuto.negative !== undefined) {
-              return foci.negative.y;
-            }
-            if (d.keywordsAuto.neutral !== undefined) {
-              return foci.neutral.y;
-            }
-            return 100;
+          }
+          else if ((d.keywordsAuto !== undefined) 
+            && d.keywordsAuto
+            && (!d.keywords || (d.keywords === undefined))){
+            keywords = d.keywordsAuto;
           }
           else {
             keywords = d.keywords;
-            if (d.keywords.right !== undefined) {
-              return foci.right.y;
-            }
-            if (d.keywords.left !== undefined) {
-              return foci.left.y;
-            }
-            if (d.keywords.positive !== undefined) {
-              return foci.positive.y;
-            }
-            if (d.keywords.negative !== undefined) {
-              return foci.negative.y;
-            }
-            if (d.keywords.neutral !== undefined) {
-              return foci.neutral.y;
-            }
-            return 100;
           }
 
-            // if (keywords.right !== undefined) {
-            //   return foci.right.y;
-            // }
-            // if (keywords.left !== undefined) {
-            //   return foci.left.y;
-            // }
-            // if (keywords.positive !== undefined) {
-            //   return foci.positive.y;
-            // }
-            // if (keywords.negative !== undefined) {
-            //   return foci.negative.y;
-            // }
-            // if (keywords.neutral !== undefined) {
-            //   return foci.neutral.y;
-            // }
-            // return 100;
+          if (keywords.right !== undefined) {
+            return foci.right.y;
+          }
+          if (keywords.left !== undefined) {
+            return foci.left.y;
+          }
+          if (keywords.positive !== undefined) {
+            return foci.positive.y;
+          }
+          if (keywords.negative !== undefined) {
+            return foci.negative.y;
+          }
+          if (keywords.neutral !== undefined) {
+            return foci.neutral.y;
+          }
+          return 100;
         }
         else {
           return foci.default.y;
@@ -2072,56 +2029,31 @@ function ViewTreepack() {
               && (Object.keys(d.keywordsAuto).length > 0)
               ){
               keywords = d.keywordsAuto;
-              if (d.keywordsAuto.right !== undefined) {
-                return foci.right.x;
-              }
-              if (d.keywordsAuto.left !== undefined) {
-                return foci.left.x;
-              }
-              if (d.keywordsAuto.positive !== undefined) {
-                return foci.positive.x;
-              }
-              if (d.keywordsAuto.negative !== undefined) {
-                return foci.negative.x;
-              }
-              if (d.keywordsAuto.neutral !== undefined) {
-                return foci.neutral.x;
-              }
+            }
+            else if ((d.keywordsAuto !== undefined) 
+              && d.keywordsAuto
+              && (!d.keywords || (d.keywords === undefined))){
+              keywords = d.keywordsAuto;
             }
             else {
               keywords = d.keywords;
-              if (d.keywords.right !== undefined) {
-                return foci.right.x;
-              }
-              if (d.keywords.left !== undefined) {
-                return foci.left.x;
-              }
-              if (d.keywords.positive !== undefined) {
-                return foci.positive.x;
-              }
-              if (d.keywords.negative !== undefined) {
-                return foci.negative.x;
-              }
-              if (d.keywords.neutral !== undefined) {
-                return foci.neutral.x;
-              }
             }
 
-              // if (keywords.right !== undefined) {
-              //   return foci.right.x;
-              // }
-              // if (keywords.left !== undefined) {
-              //   return foci.left.x;
-              // }
-              // if (keywords.positive !== undefined) {
-              //   return foci.positive.x;
-              // }
-              // if (keywords.negative !== undefined) {
-              //   return foci.negative.x;
-              // }
-              // if (keywords.neutral !== undefined) {
-              //   return foci.neutral.x;
-              // }
+            if (keywords.right !== undefined) {
+              return foci.right.x;
+            }
+            if (keywords.left !== undefined) {
+              return foci.left.x;
+            }
+            if (keywords.positive !== undefined) {
+              return foci.positive.x;
+            }
+            if (keywords.negative !== undefined) {
+              return foci.negative.x;
+            }
+            if (keywords.neutral !== undefined) {
+              return foci.neutral.x;
+            }
           }
           else {
             return foci.default.x;
@@ -2140,56 +2072,31 @@ function ViewTreepack() {
               && (Object.keys(d.keywordsAuto).length > 0)
               ){
               keywords = d.keywordsAuto;
-              if (d.keywordsAuto.right !== undefined) {
-                return foci.right.y;
-              }
-              if (d.keywordsAuto.left !== undefined) {
-                return foci.left.y;
-              }
-              if (d.keywordsAuto.positive !== undefined) {
-                return foci.positive.y;
-              }
-              if (d.keywordsAuto.negative !== undefined) {
-                return foci.negative.y;
-              }
-              if (d.keywordsAuto.neutral !== undefined) {
-                return foci.neutral.y;
-              }
+            }
+            else if ((d.keywordsAuto !== undefined) 
+              && d.keywordsAuto
+              && (!d.keywords || (d.keywords === undefined))){
+              keywords = d.keywordsAuto;
             }
             else {
               keywords = d.keywords;
-              if (d.keywords.right !== undefined) {
-                return foci.right.y;
-              }
-              if (d.keywords.left !== undefined) {
-                return foci.left.y;
-              }
-              if (d.keywords.positive !== undefined) {
-                return foci.positive.y;
-              }
-              if (d.keywords.negative !== undefined) {
-                return foci.negative.y;
-              }
-              if (d.keywords.neutral !== undefined) {
-                return foci.neutral.y;
-              }
             }
 
-              // if (keywords.right !== undefined) {
-              //   return foci.right.y;
-              // }
-              // if (keywords.left !== undefined) {
-              //   return foci.left.y;
-              // }
-              // if (keywords.positive !== undefined) {
-              //   return foci.positive.y;
-              // }
-              // if (keywords.negative !== undefined) {
-              //   return foci.negative.y;
-              // }
-              // if (keywords.neutral !== undefined) {
-              //   return foci.neutral.y;
-              // }
+            if (keywords.right !== undefined) {
+              return foci.right.y;
+            }
+            if (keywords.left !== undefined) {
+              return foci.left.y;
+            }
+            if (keywords.positive !== undefined) {
+              return foci.positive.y;
+            }
+            if (keywords.negative !== undefined) {
+              return foci.negative.y;
+            }
+            if (keywords.neutral !== undefined) {
+              return foci.neutral.y;
+            }
           }
           else {
             return foci.default.y;

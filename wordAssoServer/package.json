@@ -6,7 +6,7 @@
   "dependencies": {
     "@google-cloud/monitoring": "^0.2.3",
     "@threeceelabs/mongoose-twitter": "^1.0.21",
-    "@threeceelabs/tweet-server-controller": "^1.0.38",
+    "@threeceelabs/tweet-server-controller": "^1.0.39",
     "@threeceelabs/user-server-controller": "^1.0.39",
     "@threeceelabs/word-server-controller": "^1.0.8",
     "body-parser": "^1.17.2",
@@ -17,7 +17,7 @@
     "eventemitter2": "^4.1.2",
     "express": "^4.15.4",
     "grpc": "^1.4.1",
-    "hashmap": "^2.1.0",
+    "hashmap": "^2.3.0",
     "json-schema": "^0.2.3",
     "measured": "^1.1.0",
     "moment": "^2.18.1",

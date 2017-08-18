@@ -833,9 +833,9 @@ function showStats(options){
     + " | TwRxPM: " + statsObj.twitter.tweetsPerMin
     + " | TwRXQ: " + tweetRxQueue.size()
     + " | TwPRQ: " + tweetParserQueue.size()
-    + " | RSS: " + statsObj.memory.rss.toFixed(2) + " MB"
-    + " - MAX: " + statsObj.memory.maxRss.toFixed(2)
-    + " - " + moment(parseInt(statsObj.memory.maxRssTime)).format(compactDateTimeFormat)
+    // + " | RSS: " + statsObj.memory.rss.toFixed(2) + " MB"
+    // + " - MAX: " + statsObj.memory.maxRss.toFixed(2)
+    // + " - " + moment(parseInt(statsObj.memory.maxRssTime)).format(compactDateTimeFormat)
     // + " | H: " + statsObj.memory.heap.toFixed(2) + " MB"
     // + " - MAX: " + statsObj.memory.maxHeap.toFixed(2)
     // + " - " + moment(parseInt(statsObj.memory.maxHeapTime)).format(compactDateTimeFormat)

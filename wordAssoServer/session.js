@@ -2279,39 +2279,60 @@ function initSocketNodeRx(){
         keywords = nNode.keywords;
       }
 
-      async.each(Object.keys(nNode.keywords), function(kw, cb){
+      if ((nNode.keywords !== undefined) && nNode.keywords && (Object.keys(nNode.keywords).length > 0)) {
+        const kws = Object.keys(nNode.keywords);
 
-        if (keywordTypes.includes(kw)){
-          if (newNode.keywordsAuto[kw] !== undefined){
-            newNode.keywordsMatch = true;
-            newNode.keywordsMismatch = false;
-            cb();
+        async.each(kws, function(kw, cb){
+
+          if (keywordTypes.includes(kw)){
+            if (newNode.keywordsAuto[kw] !== undefined){
+              newNode.keywordsMatch = true;
+              newNode.keywordsMismatch = false;
+              cb();
+            }
+            else {
+              newNode.keywordsMatch = false;
+              newNode.keywordsMismatch = true;  
+              cb();      
+            }
           }
           else {
-            newNode.keywordsMatch = false;
-            newNode.keywordsMismatch = true;  
             cb();      
           }
-        }
-        else {
-          cb();      
-        }
 
-      }, function(err){
-        if (((config.sessionViewType === "treemap") || (config.sessionViewType === "treepack"))
-          && ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user")))) {
-          currentSessionView.addNode(newNode);
-        }
-        else if ((config.sessionViewType === "histogram")
-          && ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user")))) {
-          currentSessionView.addNode(newNode);
-        }
-        else if ((config.sessionViewType !== "treemap") 
-          && (config.sessionViewType !== "treepack") 
-          && (config.sessionViewType !== "histogram")) {
-          currentSessionView.addNode(newNode);
-        }
-      });
+        }, function(err){
+          if (((config.sessionViewType === "treemap") || (config.sessionViewType === "treepack"))
+            && ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user")))) {
+            currentSessionView.addNode(newNode);
+          }
+          else if ((config.sessionViewType === "histogram")
+            && ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user")))) {
+            currentSessionView.addNode(newNode);
+          }
+          else if ((config.sessionViewType !== "treemap") 
+            && (config.sessionViewType !== "treepack") 
+            && (config.sessionViewType !== "histogram")) {
+            currentSessionView.addNode(newNode);
+          }
+        });
+      }
+      else {
+          if (((config.sessionViewType === "treemap") || (config.sessionViewType === "treepack"))
+            && ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user")))) {
+            currentSessionView.addNode(newNode);
+          }
+          else if ((config.sessionViewType === "histogram")
+            && ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user")))) {
+            currentSessionView.addNode(newNode);
+          }
+          else if ((config.sessionViewType !== "treemap") 
+            && (config.sessionViewType !== "treepack") 
+            && (config.sessionViewType !== "histogram")) {
+            currentSessionView.addNode(newNode);
+          }
+      }
+
+
     }
     else {
       if (((config.sessionViewType === "treemap") || (config.sessionViewType === "treepack"))

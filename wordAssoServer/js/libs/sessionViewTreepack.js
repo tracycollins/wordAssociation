@@ -286,6 +286,8 @@ function ViewTreepack() {
 
 
   var topTermsDiv = d3.select("#topTermsDiv");
+  var twitterFeedDiv = d3.select("#twitterFeedDiv");
+  var twitterIframes = d3.selectAll("iframe");
 
   var topTermsCheckBox = topTermsDiv.append("input")
     .attr("id", "topTermsCheckBox")
@@ -302,6 +304,11 @@ function ViewTreepack() {
     });
 
   var mouseMoveTimeoutEventHandler = function(e) {
+
+    twitterFeedDiv.style("visibility", "hidden");
+
+    d3.selectAll("iframe").style("visibility", "hidden");
+
     if (!topTermsCheckBox.property("checked")) { 
       topTermsDiv.style("visibility", "hidden"); 
       nodeTopTermLabelSvgGroup.style("visibility", "hidden");
@@ -319,6 +326,13 @@ function ViewTreepack() {
 
     topTermsDiv.style("visibility", "visible");
     nodeTopTermLabelSvgGroup.style("visibility", "visible");
+    twitterFeedDiv.style("visibility", "visible");
+
+    var twitterWidget = d3.select("#twitter-widget-0");
+    
+    if (twitterWidget !== undefined) { 
+      twitterWidget.style("visibility", "visible");
+    }
 
     if (mouseHoverFlag) {
       d3.select("body").style("cursor", "pointer");
@@ -926,16 +940,32 @@ function ViewTreepack() {
   // twitterIframe.width = "500px";
   // twitterIframe.height = "400px";
 
-  function displayTwitterFeed(isVisible) {
-    var v = "hidden";
-    if (isVisible) { v = "visible"; }
-    document.getElementById("twitterFeedDiv").style.visibility = v;
-  }
-
   function loadTwitterFeed(screenName) {
-    var twitterFeedDivInnerHtml = '<object type="text/html" data="https://twitter.com/' + screenName + '" ></object>';
-    document.getElementById("twitterFeedDiv").innerHTML = twitterFeedDivInnerHtml;
-    displayTwitterFeed("visible");
+
+    var twitterFeedDiv = document.getElementById('twitterFeedDiv');
+
+    while (twitterFeedDiv.childNodes.length >= 1) {
+      twitterFeedDiv.removeChild(twitterFeedDiv.firstChild);
+    }
+
+    twttr.widgets.createTimeline(
+      {
+        sourceType: 'profile',
+        screenName: screenName
+      },
+      document.getElementById('twitterFeedDiv'),
+      {
+        width: '450',
+        height: '700',
+        related: 'twitterdev,twitterapi'
+      }).then(function (el) {
+        console.log('Embedded a timeline.')
+
+        // twttr.widgets.load(
+        //   document.getElementById("twitterFeedDiv")
+        // );
+    });
+
   }
 
 
@@ -2165,5 +2195,23 @@ function ViewTreepack() {
     self.resize();
     self.resetDefaultForce();
   };
+
+  twttr.widgets.createTimeline(
+    {
+      sourceType: 'profile',
+      screenName: 'threecee'
+    },
+    document.getElementById('twitterFeedDiv'),
+    {
+      width: '450',
+      height: '700',
+      related: 'twitterdev,twitterapi'
+    }).then(function (el) {
+      console.log('Embedded a timeline.')
+
+      // twttr.widgets.load(
+      //   document.getElementById("twitterFeedDiv")
+      // );
+  });
 
 }

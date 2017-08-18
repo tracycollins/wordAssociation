@@ -850,6 +850,9 @@ function ViewTreepack() {
 
     switch (d.nodeType) {
       case "user":
+
+        loadTwitterFeed(d.screenName);
+
         tooltipString = "@" + d.nodeId
           + "<br>TOPTERM: " + d.isTopTerm 
           + "<br>ID: " + d.userId 
@@ -922,6 +925,19 @@ function ViewTreepack() {
   // var twitterIframe = document.getElementById("twitterIframe");
   // twitterIframe.width = "500px";
   // twitterIframe.height = "400px";
+
+  function displayTwitterFeed(isVisible) {
+    var v = "hidden";
+    if (isVisible) { v = "visible"; }
+    document.getElementById("twitterFeedDiv").style.visibility = v;
+  }
+
+  function loadTwitterFeed(screenName) {
+    var twitterFeedDivInnerHtml = '<object type="text/html" data="https://twitter.com/' + screenName + '" ></object>';
+    document.getElementById("twitterFeedDiv").innerHTML = twitterFeedDivInnerHtml;
+    displayTwitterFeed("visible");
+  }
+
 
   function nodeClick(d) {
     // console.debug("nodeClick");

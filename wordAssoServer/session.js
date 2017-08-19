@@ -11,13 +11,28 @@ word -> array of nodes
 when new instance of word arrives, iterate thru array of nodes and create linkskk
 */
 
-// var DEFAULT_SOURCE = "http://localhost:9997";
+var DEFAULT_SOURCE = "http://localhost:9997";
 // var DEFAULT_SOURCE = "http://word.threeceelabs.com";
-var DEFAULT_SOURCE = "==SOURCE==";  // will be updated by wordAssoServer.js on app.get
+// var DEFAULT_SOURCE = "==SOURCE==";  // will be updated by wordAssoServer.js on app.get
 
 var keywordTypes = ["left", "neutral", "right", "positive", "negative"];
 
 var debug = true;
+
+var twitterUserThreecee = {
+    userId : "14607119",
+    profileImageUrl : "http://pbs.twimg.com/profile_images/780466729692659712/p6RcVjNK.jpg",
+    profileUrl : "http://twitter.com/threecee",
+    url : "http://threeCeeMedia.com",
+    name : "Tracy Collins",
+    screenName : "threecee",
+    nodeId : "14607119",
+    nodeType : "user",
+    following : null,
+    description : "photography + animation + design",
+    isTwitterUser : true,
+    screenNameLower : "threecee"
+};
 
 var PARENT_ID = "0047";
 
@@ -690,7 +705,8 @@ function toggleControlPanel(){
           clearInterval(controlPanelInitWaitInterval);
           updateControlButton(controlPanelFlag);
           console.debug("TX> CONTROL PANEL INIT | SOURCE: " + DEFAULT_SOURCE);
-          cpw.postMessage({op: "INIT", config: cnf}, DEFAULT_SOURCE);
+          controlPanelWindow.postMessage({op: "INIT", config: cnf}, DEFAULT_SOURCE);
+          controlPanelWindow.postMessage({op: "SET_TWITTER_USER", user: twitterUserThreecee}, DEFAULT_SOURCE);
         }
       }, 500);
 
@@ -945,6 +961,17 @@ function controlPanelComm(event) {
     case "INIT":
       console.info("R< CONTROL PANEL LOOPBACK? | INIT ... IGNORING ...");
       break;
+    case "CATEGORIZE":
+      console.info("R< CONTROL PANEL CATEGORIZE"
+        + " | " + data.keywords
+        + " | " + data.user.userId
+        + " | " + data.user.screenName
+      );
+      socket.emit("TWITTER_CATEGORIZE_USER", { keywords: data.keywords, user: data.user });
+      break;
+    case "SET_TWITTER_USER":
+      console.info("R< CONTROL PANEL LOOPBACK? | SET_TWITTER_USER ... IGNORING ...");
+      break;
     default :
       console.error("R< ??? CONTROL PANEL OP UNDEFINED\n" + jsonPrint(data));
   }
@@ -956,7 +983,7 @@ function createPopUpControlPanel (cnf, callback) {
 
   console.debug("createPopUpControlPanel\ncnf\n" + jsonPrint(cnf));
 
-  controlPanelWindow = window.open("controlPanel.html", "CONTROL", "width=800,height=600");
+  controlPanelWindow = window.open("controlPanel.html", "CONTROL", "width=600,height=1000");
 
   controlPanelWindow.addEventListener("message", controlPanelComm, false);
   window.addEventListener("message", controlPanelComm, false);

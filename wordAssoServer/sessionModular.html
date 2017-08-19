@@ -6,7 +6,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://twitter.com/"> -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'unsafe-inline' 'self' ws: https://*.twitter.com/ http://*.googleapis.com/ https://*.cloudflare.com/; script-src 'unsafe-eval' 'unsafe-inline' 'self' http://*.googleapis.com/ https://d3js.org http://*.google-analytics.com/ https://*.cloudflare.com/ https://*.twimg.com/ https://*.twitter.com/; font-src 'unsafe-inline' 'self' data: http://fonts.gstatic.com/; img-src 'self' data: http://*.google-analytics.com/ http://*.twitter.com/ https://*.twitter.com/ http://*.twimg.com/ https://*.twimg.com/; object-src https://twitter.com/; frame-src https://twitter.com/; style-src 'self' 'unsafe-inline' http://*.twimg.com/ https://*.twimg.com/ http://*.googleapis.com/ https://*.twitter.com/ http://*.twitter.com/; ">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'unsafe-inline' 'self' ws: https://*.twitter.com/ http://*.googleapis.com/ https://*.cloudflare.com/; script-src 'unsafe-eval' 'unsafe-inline' 'self' http://*.googleapis.com/ https://d3js.org http://*.google-analytics.com/ https://*.cloudflare.com/ https://*.twimg.com/ https://*.twitter.com/; font-src 'unsafe-inline' 'self' data: http://fonts.gstatic.com/; img-src 'self' data: http://localhost/ http://*.threeceelabs.com/ http://*.google-analytics.com/ http://*.twitter.com/ https://*.twitter.com/ http://*.twimg.com/ https://*.twimg.com/; object-src https://twitter.com/; frame-src https://*.twitter.com/ https://twitter.com/; style-src 'self' 'unsafe-inline' http://*.twimg.com/ https://*.twimg.com/ http://*.googleapis.com/ https://*.twitter.com/ http://*.twitter.com/; ">
   <link rel="stylesheet" href="css/base.css">
   <link rel="icon" type="image/png" href="favicon.png" />
   <style>
@@ -63,6 +63,22 @@
       right: 0;
       z-index: 20;
     }
+
+    #twitterProfileDiv {
+      font-family: "Lucida Console", Monaco, monospace;
+      font-size: 0.6em;
+      line-height: 0.6em;
+      background-color: black;
+      border: 1px solid #aaaaaa;
+      color: black;
+      position: absolute;
+      top: 5%;
+      right: 50%;
+      width: 200px;
+      height: 200px;
+      z-index: 101;
+    }
+
     #twitterFeedDiv {
       font-family: "Lucida Console", Monaco, monospace;
       font-size: 0.6em;
@@ -74,7 +90,7 @@
       padding: 10px;
       overflow: hidden;
       position: absolute;
-      top: 10%;
+      top: 25%;
       right: 0;
       z-index: 10;
     }
@@ -309,7 +325,8 @@
 <body style="overflow:hidden;">
   <!-- <iframe id="twitterIframe" name="twitterIframe" src="mask.png"></iframe> -->
 
-  <div id="twitterFeedDiv""></div>
+  <!-- <div id="twitterProfileDiv""></div> -->
+  <!-- <div id="twitterFeedDiv""></div> -->
   <div id="d3group"></div>
   <div id="topTermsDiv"></div>
   <div id="statsDiv" style="overflow:hidden;"></div>

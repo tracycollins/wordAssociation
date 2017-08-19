@@ -4,6 +4,10 @@ function ViewTreepack() {
 
   "use strict";
 
+  var currentTwitterUser = twitterUserThreecee;
+
+  var defaultProfileImageUrl = "favicon.png";
+
   var self = this;
   var simulation;
 
@@ -284,10 +288,45 @@ function ViewTreepack() {
     "yellowgreen": "#738A05"
   };
 
+  var divTooltip = d3.select("body").append("div")
+    .attr("id", "divTooltip")
+    .attr("class", "tooltip")
+    .style("visibility", "hidden");
+
+  // var divTooltipText = divTooltip.append("div")
+  //   .attr("id", "divTooltipText")
+  //   .attr("class", "tooltip");
+
+
+  // var twitterProfile = d3.select("#twitterProfileDiv").append("svg:svg")  
+  //   .attr("id", "twitterProfile")
+  //   .attr("width", 100)
+  //   .attr("height", 100)
+  //   .attr("viewbox", 1e-6, 1e-6, 100, 100)
+  //   .attr("x", 0)
+  //   .attr("y", 0)
+  //   .append("svg:a")
+  //   .attr("id", "twitterProfileLink")
+  //   .attr("xlink:show", "new")
+  //   .attr("xlink:href", "http://word.threeceelabs.com");
+
+
+  // var twitterProfileImage = twitterProfile.append("svg:image")
+  //   .attr("id", "twitterProfileImage")
+  //   .attr("xlink:href", "favicon.png")
+  //   .attr("width", 100)
+  //   .attr("height", 100)
+  //   .style("opacity", 1)
+  //   .style("visibility", "hidden");
 
   var topTermsDiv = d3.select("#topTermsDiv");
-  var twitterFeedDiv = d3.select("#twitterFeedDiv");
-  var twitterIframes = d3.selectAll("iframe");
+  // var twitterFeedDiv = d3.select("#twitterFeedDiv");
+  // var twitterProfileImage = d3.selectAll("#profileImage");
+
+  // var twitterProfileImage = new Image(200, 200);
+  // twitterProfileImage.id = "twitterProfileImage";
+  // twitterProfileImage.src = "favicon.png";
+
 
   var topTermsCheckBox = topTermsDiv.append("input")
     .attr("id", "topTermsCheckBox")
@@ -305,7 +344,8 @@ function ViewTreepack() {
 
   var mouseMoveTimeoutEventHandler = function(e) {
 
-    twitterFeedDiv.style("visibility", "hidden");
+    // twitterFeedDiv.style("visibility", "hidden");
+    // twitterProfileImage.style("visibility", "hidden");
 
     d3.selectAll("iframe").style("visibility", "hidden");
 
@@ -326,13 +366,14 @@ function ViewTreepack() {
 
     topTermsDiv.style("visibility", "visible");
     nodeTopTermLabelSvgGroup.style("visibility", "visible");
-    twitterFeedDiv.style("visibility", "visible");
+    // twitterFeedDiv.style("visibility", "visible");
+    // twitterProfileImage.style("visibility", "visible");
 
-    var twitterWidget = d3.select("#twitter-widget-0");
+    // var twitterWidget = d3.select("#twitter-widget-0");
     
-    if (twitterWidget !== undefined) { 
-      twitterWidget.style("visibility", "visible");
-    }
+    // if (twitterWidget !== undefined) { 
+    //   twitterWidget.style("visibility", "visible");
+    // }
 
     if (mouseHoverFlag) {
       d3.select("body").style("cursor", "pointer");
@@ -417,11 +458,6 @@ function ViewTreepack() {
   var nodeSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeSvgGroup");
   var nodeLabelSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeLabelSvgGroup");
 
-  var divTooltip = d3.select("body").append("div")
-    .attr("class", "tooltip")
-    .style("visibility", "hidden");
-
- 
 
 
   console.log("@@@@@@@ CLIENT @@@@@@@@");
@@ -852,6 +888,9 @@ function ViewTreepack() {
     }
   };
 
+
+  var previousTwitterUserId;
+
   var nodeMouseOver = function (d) {
 
     d.mouseHoverFlag = true;
@@ -865,7 +904,11 @@ function ViewTreepack() {
     switch (d.nodeType) {
       case "user":
 
-        loadTwitterFeed(d.screenName);
+        currentTwitterUser = d;
+        if (!previousTwitterUserId || (previousTwitterUserId !== d.userId)){
+          controlPanelWindow.postMessage({op: "SET_TWITTER_USER", user: currentTwitterUser}, DEFAULT_SOURCE);
+          previousTwitterUserId = currentTwitterUser.userId;
+        }
 
         tooltipString = "@" + d.nodeId
           + "<br>TOPTERM: " + d.isTopTerm 
@@ -916,7 +959,8 @@ function ViewTreepack() {
       break;
     }
 
-    divTooltip.html(tooltipString)
+    divTooltip.html(tooltipString);
+    divTooltip
       .style("left", (d3.event.pageX - 40) + "px")
       .style("top", (d3.event.pageY - 50) + "px");
   };
@@ -940,33 +984,63 @@ function ViewTreepack() {
   // twitterIframe.width = "500px";
   // twitterIframe.height = "400px";
 
-  function loadTwitterFeed(screenName) {
+  // function loadTwitterProfile(profileImageUrl) {
+  //   console.log("loadTwitterProfile: " + profileImageUrl);
+  //   twitterProfileImage.attr("xlink:href", profileImageUrl);
+  // }
 
-    var twitterFeedDiv = document.getElementById('twitterFeedDiv');
 
-    while (twitterFeedDiv.childNodes.length >= 1) {
-      twitterFeedDiv.removeChild(twitterFeedDiv.firstChild);
-    }
+  // function twitterWidgetsCreateTimeline(screenName, callback){
+  //   twttr.widgets.createTimeline(
+  //     {
+  //       sourceType: "profile",
+  //       screenName: screenName
+  //     },
+  //     document.getElementById("twitterFeedDiv"),
+  //     {
+  //       width: "450",
+  //       height: "700",
+  //       related: "twitterdev,twitterapi"
+  //     })
+  //   .then(function (el) {
+  //     // console.log("Embedded a timeline.");
 
-    twttr.widgets.createTimeline(
-      {
-        sourceType: 'profile',
-        screenName: screenName
-      },
-      document.getElementById('twitterFeedDiv'),
-      {
-        width: '450',
-        height: '700',
-        related: 'twitterdev,twitterapi'
-      }).then(function (el) {
-        console.log('Embedded a timeline.')
+  //     callback(null, el);
+  //     // twttr.widgets.load(
+  //     //   document.getElementById("tfDiv")
+  //     // );
+  //   })
+  //   .catch(function(err){
+  //     console.error("TWITTER WIDGET ERROR: " + err);
+  //     callback(err, null);
+  //   });
+  // }
 
-        // twttr.widgets.load(
-        //   document.getElementById("twitterFeedDiv")
-        // );
-    });
+  // function loadTwitterFeed(screenName, callback) {
 
-  }
+  //   console.debug("loadTwitterFeed: " + screenName);
+
+  //   var tfDiv = document.getElementById("twitterFeedDiv");
+
+  //   async.whilst(
+  //     function(){
+  //       var test = tfDiv.childNodes.length > 0;
+  //       // console.log("test: " + test);
+  //       return test;
+  //     }, 
+  //     function(cb){
+  //       tfDiv.removeChild(tfDiv.firstChild);
+  //       async.setImmediate(function() {
+  //         cb();
+  //       });
+  //     }, 
+  //     function(){
+  //       twitterWidgetsCreateTimeline(screenName, function(err, el){
+  //         callback(err, el);
+  //       });
+  //     }
+  //   );
+  // }
 
 
   function nodeClick(d) {
@@ -2196,22 +2270,23 @@ function ViewTreepack() {
     self.resetDefaultForce();
   };
 
-  twttr.widgets.createTimeline(
-    {
-      sourceType: 'profile',
-      screenName: 'threecee'
-    },
-    document.getElementById('twitterFeedDiv'),
-    {
-      width: '450',
-      height: '700',
-      related: 'twitterdev,twitterapi'
-    }).then(function (el) {
-      console.log('Embedded a timeline.')
 
-      // twttr.widgets.load(
-      //   document.getElementById("twitterFeedDiv")
-      // );
-  });
+  // twttr.widgets.createTimeline(
+  //   {
+  //     sourceType: "profile",
+  //     screenName: "threecee"
+  //   },
+  //   document.getElementById("twitterFeedDiv"),
+  //   {
+  //     width: "450",
+  //     height: "700",
+  //     related: "twitterdev,twitterapi"
+  //   }).then(function (el) {
+  //     // console.log("Embedded a timeline.");
+
+  //     // twttr.widgets.load(
+  //     //   document.getElementById("twitterFeedDiv")
+  //     // );
+  // });
 
 }

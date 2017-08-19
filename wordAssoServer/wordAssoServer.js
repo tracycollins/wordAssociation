@@ -362,6 +362,7 @@ const mongoose = require("mongoose");
 
 const User = require("mongoose").model("User");
 
+const hashtagServer = require("@threeceelabs/hashtag-server-controller");
 const userServer = require("@threeceelabs/user-server-controller");
 
 function jsonPrint(obj) {
@@ -968,19 +969,24 @@ process.env.NODE_ENV = process.env.NODE_ENV || "development";
 debug("NODE_ENV : " + process.env.NODE_ENV);
 debug("CLIENT HOST + PORT: " + "http://localhost:" + config.port);
  
-function categorizeUser(categorizeObj) {
+function categorizeNode(categorizeObj) {
 
-  console.log(chalkSocket("categorizeUser" 
+  console.log(chalkSocket("categorizeNode" 
     + " | categorizeObj\n" + jsonPrint(categorizeObj)
   ));
+
+  switch (categorizeObj.node.nodeType){
+    case "user":
+      keywordHashMap.set(categorizeObj.node.nodeId.toLowerCase(), categorizeObj.keywords);
+      keywordHashMap.set(categorizeObj.node.screenName.toLowerCase(), categorizeObj.keywords);
+      userServer.updateKeywords({user: categorizeObj.node, keywords: categorizeObj.keywords}, function(err, updatedUser){});
+    break;
+    case "hashtag":
+      keywordHashMap.set(categorizeObj.node.nodeId.toLowerCase(), categorizeObj.keywords);
+      hashtagServer.updateKeywords({hashtag: categorizeObj.node, keywords: categorizeObj.keywords}, function(err, updatedUser){});
+    break;
+  }
   
-  keywordHashMap.set(categorizeObj.user.userId, categorizeObj.keywords);
-  keywordHashMap.set(categorizeObj.user.screenName.toLowerCase(), categorizeObj.keywords);
-
-  userServer.updateKeywords({user: categorizeObj.user, keywords: categorizeObj.keywords}, function(err, updatedUser){
-
-  });
-
 }
 
 function socketRxTweet(tw) {
@@ -1188,12 +1194,12 @@ function initSocketHandler(socketObj) {
 
       // socket.emit("TWITTER_CATEGORIZE_USER", { keyword: data.category, userId: data.user.userId });
 
-  socket.on("TWITTER_CATEGORIZE_USER", function twitterCategorizeUser(dataObj) {
-    console.log(chalkSocket("TWITTER_CATEGORIZE_USER"
+  socket.on("TWITTER_CATEGORIZE_NODE", function twittercategorizeNode(dataObj) {
+    console.log(chalkSocket("TWITTER_CATEGORIZE_NODE"
       + " | " + getTimeStamp()
       + "\n" + jsonPrint(dataObj)
     ));
-    categorizeUser(dataObj);
+    categorizeNode(dataObj);
   });
 
   socket.on("USER_READY", function userReady(userObj) {
@@ -1230,7 +1236,7 @@ function initSocketHandler(socketObj) {
 
   socket.on("tweet", socketRxTweet);
 
-  socket.on("categorize", categorizeUser);
+  socket.on("categorize", categorizeNode);
 }
 
 function initSocketNamespaces(callback){

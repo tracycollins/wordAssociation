@@ -356,6 +356,14 @@ const dropboxClient = new Dropbox({ accessToken: DROPBOX_WORD_ASSO_ACCESS_TOKEN 
 const configFolder = "/config/utility/" + hostname;
 const deletedMetricsFile = "deletedMetrics.json";
 
+const wordAssoDb = require("@threeceelabs/mongoose-twitter");
+const db = wordAssoDb();
+const mongoose = require("mongoose");
+
+const User = require("mongoose").model("User");
+
+const userServer = require("@threeceelabs/user-server-controller");
+
 function jsonPrint(obj) {
   if (obj) {
     return JSON.stringify(obj, null, 2);
@@ -965,6 +973,13 @@ function categorizeUser(categorizeObj) {
   console.log(chalkSocket("categorizeUser" 
     + " | categorizeObj\n" + jsonPrint(categorizeObj)
   ));
+  
+  keywordHashMap.set(categorizeObj.user.userId, categorizeObj.keywords);
+  keywordHashMap.set(categorizeObj.user.screenName.toLowerCase(), categorizeObj.keywords);
+
+  userServer.updateKeywords({user: categorizeObj.user, keywords: categorizeObj.keywords}, function(err, updatedUser){
+
+  });
 
 }
 
@@ -1171,6 +1186,16 @@ function initSocketHandler(socketObj) {
     }
   });
 
+      // socket.emit("TWITTER_CATEGORIZE_USER", { keyword: data.category, userId: data.user.userId });
+
+  socket.on("TWITTER_CATEGORIZE_USER", function twitterCategorizeUser(dataObj) {
+    console.log(chalkSocket("TWITTER_CATEGORIZE_USER"
+      + " | " + getTimeStamp()
+      + "\n" + jsonPrint(dataObj)
+    ));
+    categorizeUser(dataObj);
+  });
+
   socket.on("USER_READY", function userReady(userObj) {
     console.log(chalkSocket("USER READY"
       + " | " + getTimeStamp()
@@ -1205,7 +1230,7 @@ function initSocketHandler(socketObj) {
 
   socket.on("tweet", socketRxTweet);
 
-  socket.on("categorize", categorizeUser)
+  socket.on("categorize", categorizeUser);
 }
 
 function initSocketNamespaces(callback){

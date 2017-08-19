@@ -11,8 +11,8 @@ word -> array of nodes
 when new instance of word arrives, iterate thru array of nodes and create linkskk
 */
 
-// var DEFAULT_SOURCE = "http://localhost:9997";
-var DEFAULT_SOURCE = "http://word.threeceelabs.com";
+var DEFAULT_SOURCE = "http://localhost:9997";
+// var DEFAULT_SOURCE = "http://word.threeceelabs.com";
 // var DEFAULT_SOURCE = "==SOURCE==";  // will be updated by wordAssoServer.js on app.get
 
 var keywordTypes = ["left", "neutral", "right", "positive", "negative"];
@@ -962,15 +962,28 @@ function controlPanelComm(event) {
       console.info("R< CONTROL PANEL LOOPBACK? | INIT ... IGNORING ...");
       break;
     case "CATEGORIZE":
-      console.info("R< CONTROL PANEL CATEGORIZE"
-        + " | " + data.keywords
-        + " | " + data.user.userId
-        + " | " + data.user.screenName
-      );
-      socket.emit("TWITTER_CATEGORIZE_USER", { keywords: data.keywords, user: data.user });
+
+      if (data.node.nodeType === "user"){
+        console.info("R< CONTROL PANEL CATEGORIZE"
+          + " | " + data.node.nodeId
+          + " | " + data.node.screenName
+          + "\n" + jsonPrint(data.keywords)
+        );
+        socket.emit("TWITTER_CATEGORIZE_NODE", { keywords: data.keywords, node: data.node });
+      }
+      else if (data.node.nodeType === "hashtag"){
+        console.info("R< CONTROL PANEL CATEGORIZE"
+          + " | " + data.node.nodeId
+          + "\n" + jsonPrint(data.keywords)
+        );
+        socket.emit("TWITTER_CATEGORIZE_NODE", { keywords: data.keywords, node: data.node });
+      }
       break;
     case "SET_TWITTER_USER":
       console.info("R< CONTROL PANEL LOOPBACK? | SET_TWITTER_USER ... IGNORING ...");
+      break;
+    case "SET_TWITTER_HASHTAG":
+      console.info("R< CONTROL PANEL LOOPBACK? | SET_TWITTER_HASHTAG ... IGNORING ...");
       break;
     default :
       console.error("R< ??? CONTROL PANEL OP UNDEFINED\n" + jsonPrint(data));

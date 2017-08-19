@@ -136,47 +136,96 @@ function ControlPanel() {
     );
   }
 
+  function categoryButtonHandler(e){
+
+    var currentButton = document.getElementById(e.target.id);
+    var keywords = {};
+
+    console.warn("CATEGORY BUTTON"
+     + " | ID: " + e.target.id
+     + "\n" + jsonPrint(e.target)
+    );
+
+    switch (e.target.id){
+      case "categoryLeft":
+        console.log("LEFT | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = { left: 100 };
+      break;
+      case "categoryRight":
+        console.log("RIGHT | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = { right: 100 };
+      break;
+      case "categoryNeutral":
+        console.log("NEUTRAL | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = { neutral: 100 };
+      break;
+      case "categoryPositive":
+        console.log("POSITIVE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = { positive: 100 };
+      break;
+      case "categoryNegative":
+        console.log("NEGATIVE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = { negative: 100 };
+      break;
+    }
+
+    parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, keywords: keywords}, DEFAULT_SOURCE);
+
+  }
+
   var twitterCategoryDiv = document.getElementById("twitterCategoryDiv");
 
-  var categoryLeft = document.createElement("INPUT");
+  var categoryLeft = document.createElement("BUTTON");
+  categoryLeft.setAttribute("class", "button");
   categoryLeft.setAttribute("type", "radio");
   categoryLeft.setAttribute("name", "category");
   categoryLeft.setAttribute("id", "categoryLeft");
   categoryLeft.setAttribute("value", "left");
   categoryLeft.setAttribute("checked", true);
-  categoryLeft.innerHTML = "L";
-  categoryLeft.addEventListener("click", function(e){ 
-    console.log("LEFT");
-    parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, keywords: { left: 100 }}, DEFAULT_SOURCE);
-  }, false);
+  categoryLeft.innerHTML = "LEFT";
+  categoryLeft.addEventListener("click", function(e){ categoryButtonHandler(e); }, false);
 
-  var categoryNeutral = document.createElement("INPUT");
+  var categoryNeutral = document.createElement("BUTTON");
+  categoryNeutral.setAttribute("class", "button");
   categoryNeutral.setAttribute("type", "radio");
   categoryNeutral.setAttribute("name", "category");
   categoryNeutral.setAttribute("id", "categoryNeutral");
   categoryNeutral.setAttribute("value", "neutral");
-  categoryNeutral.setAttribute("checked", true);
-  categoryNeutral.innerHTML = "N";
-  categoryNeutral.addEventListener("click", function(e){ 
-    console.log("NEUTRAL");
-    parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, keywords: { neutral: 100 }}, DEFAULT_SOURCE);
-  }, false);
+  categoryNeutral.innerHTML = "NEUTRAL";
+  categoryNeutral.addEventListener("click", function(e){ categoryButtonHandler(e); }, false);
 
-  var categoryRight = document.createElement("INPUT");
+  var categoryRight = document.createElement("BUTTON");
+  categoryRight.setAttribute("class", "button");
   categoryRight.setAttribute("type", "radio");
   categoryRight.setAttribute("name", "category");
   categoryRight.setAttribute("id", "categoryRight");
   categoryRight.setAttribute("value", "right");
-  categoryRight.setAttribute("checked", true);
-  categoryRight.innerHTML = "R";
-  categoryRight.addEventListener("click", function(e){ 
-    console.log("RIGHT");
-    parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, keywords: { right: 100 }}, DEFAULT_SOURCE);
-  }, false);
+  categoryRight.innerHTML = "RIGHT";
+  categoryRight.addEventListener("click", function(e){ categoryButtonHandler(e); }, false);
+
+  var categoryPositive = document.createElement("BUTTON");
+  categoryPositive.setAttribute("class", "button");
+  categoryPositive.setAttribute("type", "radio");
+  categoryPositive.setAttribute("name", "category");
+  categoryPositive.setAttribute("id", "categoryPositive");
+  categoryPositive.setAttribute("value", "positive");
+  categoryPositive.innerHTML = "POSITIVE";
+  categoryPositive.addEventListener("click", function(e){ categoryButtonHandler(e); }, false);
+
+  var categoryNegative = document.createElement("BUTTON");
+  categoryNegative.setAttribute("class", "button");
+  categoryNegative.setAttribute("type", "radio");
+  categoryNegative.setAttribute("name", "category");
+  categoryNegative.setAttribute("id", "categoryNegative");
+  categoryNegative.setAttribute("value", "negative");
+  categoryNegative.innerHTML = "NEGATIVE";
+  categoryNegative.addEventListener("click", function(e){ categoryButtonHandler(e); }, false);
 
   twitterCategoryDiv.appendChild(categoryLeft);
   twitterCategoryDiv.appendChild(categoryNeutral);
   twitterCategoryDiv.appendChild(categoryRight);
+  twitterCategoryDiv.appendChild(categoryPositive);
+  twitterCategoryDiv.appendChild(categoryNegative);
 
   var statsObj = {};
   statsObj.socketId = "NOT SET";

@@ -6,14 +6,15 @@
 function ControlPanel() {
 
   // var DEFAULT_SOURCE = "==SOURCE==";  // will be updated by wordAssoServer.js on app.get
-  // var DEFAULT_SOURCE = "http://localhost:9997";
-  var DEFAULT_SOURCE = "http://word.threeceelabs.com";
+  var DEFAULT_SOURCE = "http://localhost:9997";
+  // var DEFAULT_SOURCE = "http://word.threeceelabs.com";
 
   var parentWindow = window.opener;
   console.info("PARENT WINDOW ID | " + parentWindow.PARENT_ID);
   var self = this;
 
   var config = {};
+  var currentTwitterUser;
 
   config = window.opener.config;
 
@@ -28,8 +29,130 @@ function ControlPanel() {
   var controlTableBody;
   var controlSliderTable;
 
+  var twitterFeedDiv = d3.select("#twitterFeedDiv");
+
+  var twitterProfile = d3.select("#twitterProfileDiv").append("svg:svg")  
+    .attr("id", "twitterProfile")
+    .attr("width", 100)
+    .attr("height", 100)
+    .attr("viewbox", 1e-6, 1e-6, 100, 100)
+    .attr("x", 0)
+    .attr("y", 0)
+    .append("svg:a")
+    .attr("id", "twitterProfileLink")
+    .attr("xlink:show", "new")
+    .attr("xlink:href", "http://word.threeceelabs.com");
+
+
+  var twitterProfileImage = twitterProfile.append("svg:image")
+    .attr("id", "twitterProfileImage")
+    .attr("xlink:href", "favicon.png")
+    .attr("width", 100)
+    .attr("height", 100)
+    .style("opacity", 1)
+    .style("visibility", "hidden");
+
+  function loadTwitterProfile(profileImageUrl) {
+    console.log("loadTwitterProfile: " + profileImageUrl);
+    twitterProfileImage.attr("xlink:href", profileImageUrl);
+  }
+
+  function twitterWidgetsCreateTimeline(screenName, callback){
+    twttr.widgets.createTimeline(
+      {
+        sourceType: "profile",
+        screenName: screenName
+      },
+      document.getElementById("twitterFeedDiv"),
+      {
+        width: "450",
+        height: "700",
+        related: "twitterdev,twitterapi"
+      })
+    .then(function (el) {
+      // console.log("Embedded a timeline.");
+
+      callback(null, el);
+      // twttr.widgets.load(
+      //   document.getElementById("tfDiv")
+      // );
+    })
+    .catch(function(err){
+      console.error("TWITTER WIDGET ERROR: " + err);
+      callback(err, null);
+    });
+  }
+
+  function loadTwitterFeed(user, callback) {
+
+    console.debug("loadTwitterFeed: " + user.screenName);
+
+    var tfDiv = document.getElementById("twitterFeedDiv");
+
+    async.whilst(
+      function(){
+        var test = tfDiv.childNodes.length > 0;
+        // console.log("test: " + test);
+        return test;
+      }, 
+      function(cb){
+        tfDiv.removeChild(tfDiv.firstChild);
+        async.setImmediate(function() {
+          cb();
+        });
+      }, 
+      function(){
+        twitterWidgetsCreateTimeline(user.screenName, function(err, el){
+          callback(err, el);
+        });
+      }
+    );
+  }
+
+  var twitterCategoryDiv = document.getElementById("twitterCategoryDiv");
+
+  var categoryLeft = document.createElement("INPUT");
+  categoryLeft.setAttribute("type", "radio");
+  categoryLeft.setAttribute("name", "category");
+  categoryLeft.setAttribute("id", "categoryLeft");
+  categoryLeft.setAttribute("value", "left");
+  categoryLeft.setAttribute("checked", true);
+  categoryLeft.innerHTML = "L";
+  categoryLeft.addEventListener("click", function(e){ 
+    console.log("LEFT");
+    parentWindow.postMessage({op: "CATEGORIZE", user: currentTwitterUser, keywords: { left: 100 }}, DEFAULT_SOURCE);
+  }, false);
+
+  var categoryNeutral = document.createElement("INPUT");
+  categoryNeutral.setAttribute("type", "radio");
+  categoryNeutral.setAttribute("name", "category");
+  categoryNeutral.setAttribute("id", "categoryNeutral");
+  categoryNeutral.setAttribute("value", "neutral");
+  categoryNeutral.setAttribute("checked", true);
+  categoryNeutral.innerHTML = "N";
+  categoryNeutral.addEventListener("click", function(e){ 
+    console.log("NEUTRAL");
+    parentWindow.postMessage({op: "CATEGORIZE", user: currentTwitterUser, keywords: { neutral: 100 }}, DEFAULT_SOURCE);
+  }, false);
+
+  var categoryRight = document.createElement("INPUT");
+  categoryRight.setAttribute("type", "radio");
+  categoryRight.setAttribute("name", "category");
+  categoryRight.setAttribute("id", "categoryRight");
+  categoryRight.setAttribute("value", "right");
+  categoryRight.setAttribute("checked", true);
+  categoryRight.innerHTML = "R";
+  categoryRight.addEventListener("click", function(e){ 
+    console.log("RIGHT");
+    parentWindow.postMessage({op: "CATEGORIZE", user: currentTwitterUser, keywords: { right: 100 }}, DEFAULT_SOURCE);
+  }, false);
+
+  twitterCategoryDiv.appendChild(categoryLeft);
+  twitterCategoryDiv.appendChild(categoryNeutral);
+  twitterCategoryDiv.appendChild(categoryRight);
+
   var statsObj = {};
-  statsObj.socketId = 'NOT SET';
+  statsObj.socketId = "NOT SET";
 
   this.setVelocityDecaySliderValue = function (value) {
     if (!document.getElementById("velocityDecaySlider")) { return; }
@@ -98,7 +221,7 @@ function ControlPanel() {
   window.addEventListener("message", receiveMessage, false);
 
   window.onbeforeunload = function() {
-    parentWindow.postMessage({op:'CLOSE'}, DEFAULT_SOURCE);
+    parentWindow.postMessage({op:"CLOSE"}, DEFAULT_SOURCE);
   }
 
   function buttonHandler(e) {
@@ -114,7 +237,7 @@ function ControlPanel() {
     if (!currentButton){
       console.error("UNKNOWN BUTTON\n" + jsonPrint(e));
     }
-    else if (typeof controlIdHash[currentButton.id] === 'undefined') {
+    else if (typeof controlIdHash[currentButton.id] === "undefined") {
       console.error("UNKNOWN BUTTON NOT IN HASH\n" + jsonPrint(e));
     }
     else {
@@ -125,7 +248,7 @@ function ControlPanel() {
 
       parentWindow.postMessage({op: buttonConfig.mode, id: currentButton.id}, DEFAULT_SOURCE);
 
-      if (currentButton.id == 'resetButton'){
+      if (currentButton.id == "resetButton"){
         console.warn("RESET");
         self.setLinkStrengthSliderValue(parentWindow.DEFAULT_LINK_STRENGTH);
         self.setLinkDistanceSliderValue(parentWindow.DEFAULT_LINK_DISTANCE);
@@ -140,7 +263,7 @@ function ControlPanel() {
     }
   };
 
-  window.addEventListener('input', function (e) {
+  window.addEventListener("input", function (e) {
     // console.log("keyup event detected! coming from this element:", e.target);
     var currentSlider = document.getElementById(e.target.id);
     currentSlider.multiplier = currentSlider.getAttribute("multiplier");
@@ -151,7 +274,7 @@ function ControlPanel() {
       + " | " + (currentSlider.value/currentSlider.multiplier).toFixed(3)
     );
 
-    var currentSliderTextId = currentSlider.id + 'Text';
+    var currentSliderTextId = currentSlider.id + "Text";
 
     switch (currentSlider.id) {
 
@@ -163,7 +286,7 @@ function ControlPanel() {
         document.getElementById(currentSliderTextId).innerHTML = (currentSlider.value/currentSlider.multiplier).toFixed(3);
     }
 
-    parentWindow.postMessage({op:'UPDATE', id: currentSlider.id, value: (currentSlider.value/currentSlider.multiplier)}, DEFAULT_SOURCE);
+    parentWindow.postMessage({op:"UPDATE", id: currentSlider.id, value: (currentSlider.value/currentSlider.multiplier)}, DEFAULT_SOURCE);
   }, false);
 
   function receiveMessage(event){
@@ -191,7 +314,7 @@ function ControlPanel() {
 
     switch (op) {
 
-      case 'INIT':
+      case "INIT":
         var cnf = event.data.config;
         console.debug("CONTROL PANEL INIT\n" + jsonPrint(cnf));
         for (var prop in cnf) {
@@ -210,6 +333,12 @@ function ControlPanel() {
         self.setFontSizeMinRatioSliderValue(cnf.defaultFontSizeMinRatio);
         self.setFontSizeMaxRatioSliderValue(cnf.defaultFontSizeMaxRatio);
       break;
+
+      case "SET_TWITTER_USER":
+        currentTwitterUser = event.data.user;
+        console.debug("SET TWITTER USER\n" + jsonPrint(currentTwitterUser));
+        loadTwitterFeed(currentTwitterUser, function(err, el){});
+      break;
     }
   }
 
@@ -227,7 +356,7 @@ function ControlPanel() {
 
     var tr = parentTable.insertRow();
     var tdTextColor = options.textColor;
-    var tdBgColor = options.backgroundColor || '#222222';
+    var tdBgColor = options.backgroundColor || "#222222";
 
     if (options.trClass) {
       tr.className = options.trClass;
@@ -246,43 +375,43 @@ function ControlPanel() {
         // console.warn("tableCreateRow\n" + jsonPrint(content));
 
         var td = tr.insertCell();
-        if (typeof content.type === 'undefined') {
+        if (content.type === undefined) {
 
           td.appendChild(document.createTextNode(content));
           td.style.color = tdTextColor;
           td.style.backgroundColor = tdBgColor;
 
-        } else if (content.type == 'TEXT') {
+        } else if (content.type == "TEXT") {
 
           td.className = content.class;
-          td.setAttribute('id', content.id);
+          td.setAttribute("id", content.id);
           td.style.color = tdTextColor;
           td.style.backgroundColor = tdBgColor;
           td.innerHTML = content.text;
 
-        } else if (content.type == 'BUTTON') {
+        } else if (content.type == "BUTTON") {
 
           var buttonElement = document.createElement("BUTTON");
           buttonElement.className = content.class;
-          buttonElement.setAttribute('id', content.id);
-          buttonElement.setAttribute('mode', content.mode);
-          buttonElement.addEventListener('click', function(e){ buttonHandler(e); }, false);
+          buttonElement.setAttribute("id", content.id);
+          buttonElement.setAttribute("mode", content.mode);
+          buttonElement.addEventListener("click", function(e){ buttonHandler(e); }, false);
           buttonElement.innerHTML = content.text;
           td.appendChild(buttonElement);
           controlIdHash[content.id] = content;
 
-        } else if (content.type == 'SLIDER') {
+        } else if (content.type == "SLIDER") {
 
-        console.warn("tableCreateRow\n" + jsonPrint(content));
+        // console.warn("tableCreateRow\n" + jsonPrint(content));
 
           var sliderElement = document.createElement("INPUT");
-          sliderElement.type = 'range';
+          sliderElement.type = "range";
           sliderElement.className = content.class;
-          sliderElement.setAttribute('id', content.id);
-          sliderElement.setAttribute('min', content.min);
-          sliderElement.setAttribute('max', content.max);
-          sliderElement.setAttribute('multiplier', content.multiplier);
-          sliderElement.setAttribute('oninput', content.oninput);
+          sliderElement.setAttribute("id", content.id);
+          sliderElement.setAttribute("min", content.min);
+          sliderElement.setAttribute("max", content.max);
+          sliderElement.setAttribute("multiplier", content.multiplier);
+          sliderElement.setAttribute("oninput", content.oninput);
           sliderElement.value = content.value;
           td.appendChild(sliderElement);
           controlIdHash[content.id] = content;
@@ -307,113 +436,113 @@ function ControlPanel() {
         console.log("--> STORED CONFIG | " + arg + ": " + config[arg]);
       });
     }
-    // statsObj = store.get('stats');
+    // statsObj = store.get("stats");
 
     console.log("CREATE CONTROL PANEL\n" + jsonPrint(config));
 
-    dashboardMain = document.getElementById('dashboardMain');
-    infoTable = document.getElementById('infoTable');
-    controlTable = document.getElementById('controlTable');
-    controlTableHead = document.getElementById('controlTableHead');
-    controlTableBody = document.getElementById('controlTableBody');
-    controlSliderTable = document.getElementById('controlSliderTable');
+    dashboardMain = document.getElementById("dashboardMain");
+    infoTable = document.getElementById("infoTable");
+    controlTable = document.getElementById("controlTable");
+    controlTableHead = document.getElementById("controlTableHead");
+    controlTableBody = document.getElementById("controlTableBody");
+    controlSliderTable = document.getElementById("controlSliderTable");
 
     var optionsHead = {
       headerFlag: true,
-      textColor: '#CCCCCC',
-      backgroundColor: '#222222'
+      textColor: "#CCCCCC",
+      backgroundColor: "#222222"
     };
 
     var optionsBody = {
       headerFlag: false,
-      textColor: '#BBBBBB',
-      backgroundColor: '#111111'
+      textColor: "#BBBBBB",
+      backgroundColor: "#111111"
     };
 
     var resetButton = {
-      type: 'BUTTON',
-      mode: 'MOMENT',
-      id: 'resetButton',
-      class: 'button',
-      text: 'RESET'
+      type: "BUTTON",
+      mode: "MOMENT",
+      id: "resetButton",
+      class: "button",
+      text: "RESET"
     }
 
     var blahButton = {
-      type: 'BUTTON',
-      mode: 'TOGGLE',
-      id: 'blahToggleButton',
-      class: 'button',
-      text: 'BLAH'
+      type: "BUTTON",
+      mode: "TOGGLE",
+      id: "blahToggleButton",
+      class: "button",
+      text: "BLAH"
     }
 
     var fullscreenButton = {
-      type: 'BUTTON',
-      mode: 'TOGGLE',
-      id: 'fullscreenToggleButton',
-      class: 'button',
-      text: 'FULLSCREEN'
+      type: "BUTTON",
+      mode: "TOGGLE",
+      id: "fullscreenToggleButton",
+      class: "button",
+      text: "FULLSCREEN"
     }
 
     var pauseButton = {
-      type: 'BUTTON',
-      mode: 'TOGGLE',
-      id: 'pauseToggleButton',
-      class: 'button',
-      text: 'PAUSE'
+      type: "BUTTON",
+      mode: "TOGGLE",
+      id: "pauseToggleButton",
+      class: "button",
+      text: "PAUSE"
     }
 
     var statsButton = {
-      type: 'BUTTON',
-      mode: 'TOGGLE',
-      id: 'statsToggleButton',
-      class: 'button',
-      text: 'STATS'
+      type: "BUTTON",
+      mode: "TOGGLE",
+      id: "statsToggleButton",
+      class: "button",
+      text: "STATS"
     }
 
     var testModeButton = {
-      type: 'BUTTON',
-      mode: 'TOGGLE',
-      id: 'testModeToggleButton',
-      class: 'button',
-      text: 'TEST'
+      type: "BUTTON",
+      mode: "TOGGLE",
+      id: "testModeToggleButton",
+      class: "button",
+      text: "TEST"
     }
 
     var antonymButton = {
-      type: 'BUTTON',
-      mode: 'TOGGLE',
-      id: 'antonymToggleButton',
-      class: 'button',
-      text: 'ANT'
+      type: "BUTTON",
+      mode: "TOGGLE",
+      id: "antonymToggleButton",
+      class: "button",
+      text: "ANT"
     }
 
     var disableLinksButton = {
-      type: 'BUTTON',
-      mode: 'TOGGLE',
-      id: 'disableLinksToggleButton',
-      class: 'button',
-      text: 'LINKS'
+      type: "BUTTON",
+      mode: "TOGGLE",
+      id: "disableLinksToggleButton",
+      class: "button",
+      text: "LINKS"
     }
 
     var removeDeadNodeButton = {
-      type: 'BUTTON',
-      mode: 'TOGGLE',
-      id: 'removeDeadNodeToogleButton',
-      class: 'button',
-      text: 'DEAD'
+      type: "BUTTON",
+      mode: "TOGGLE",
+      id: "removeDeadNodeToogleButton",
+      class: "button",
+      text: "DEAD"
     }
 
     var nodeCreateButton = {
-      type: 'BUTTON',
-      mode: 'MOMENT',
-      id: 'nodeCreateButton',
-      class: 'button',
-      text: 'NODE'
+      type: "BUTTON",
+      mode: "MOMENT",
+      id: "nodeCreateButton",
+      class: "button",
+      text: "NODE"
     }
 
     var maxAgeSlider = {
-      type: 'SLIDER',
-      id: 'maxAgeSlider',
-      class: 'slider',
+      type: "SLIDER",
+      id: "maxAgeSlider",
+      class: "slider",
       min: 500,
       max: 120000,
       value: config.defaultMaxAge,
@@ -421,18 +550,18 @@ function ControlPanel() {
     }
 
     var maxAgeSliderText = {
-      type: 'TEXT',
-      id: 'maxAgeSliderText',
-      class: 'sliderText',
-      text: maxAgeSlider.value + ' ms'
+      type: "TEXT",
+      id: "maxAgeSliderText",
+      class: "sliderText",
+      text: maxAgeSlider.value + " ms"
     }
 
     console.log("config\n" + jsonPrint(config));
 
      var fontSizeMinRatioSlider = {
-      type: 'SLIDER',
-      id: 'fontSizeMinRatioSlider',
-      class: 'slider',
+      type: "SLIDER",
+      id: "fontSizeMinRatioSlider",
+      class: "slider",
       min: 0,
       max: 100,
       value: config.defaultFontSizeMinRatio * config.defaultMultiplier,
@@ -440,16 +569,16 @@ function ControlPanel() {
     }
 
     var fontSizeMinRatioSliderText = {
-      type: 'TEXT',
-      id: 'fontSizeMinRatioSliderText',
-      class: 'sliderText',
+      type: "TEXT",
+      id: "fontSizeMinRatioSliderText",
+      class: "sliderText",
       text: fontSizeMinRatioSlider.value + fontSizeMinRatioSlider.multiplier
     }
 
     var fontSizeMaxRatioSlider = {
-      type: 'SLIDER',
-      id: 'fontSizeMaxRatioSlider',
-      class: 'slider',
+      type: "SLIDER",
+      id: "fontSizeMaxRatioSlider",
+      class: "slider",
       max: 0,
       max: 100,
       value: config.defaultFontSizeMaxRatio * config.defaultMultiplier,
@@ -457,16 +586,16 @@ function ControlPanel() {
     }
 
     var fontSizeMaxRatioSliderText = {
-      type: 'TEXT',
-      id: 'fontSizeMaxRatioSliderText',
-      class: 'sliderText',
+      type: "TEXT",
+      id: "fontSizeMaxRatioSliderText",
+      class: "sliderText",
       text: fontSizeMaxRatioSlider.value + fontSizeMaxRatioSlider.multiplier
     }
 
     var transitionDurationSlider = {
-      type: 'SLIDER',
-      id: 'transitionDurationSlider',
-      class: 'slider',
+      type: "SLIDER",
+      id: "transitionDurationSlider",
+      class: "slider",
       min: 0,
       max: 100,
       value: config.defaultTransitionDuration,
@@ -474,16 +603,16 @@ function ControlPanel() {
     }
 
     var transitionDurationSliderText = {
-      type: 'TEXT',
-      id: 'transitionDurationSliderText',
-      class: 'sliderText',
+      type: "TEXT",
+      id: "transitionDurationSliderText",
+      class: "sliderText",
       text: (transitionDurationSlider.value * transitionDurationSlider.multiplier)
     }
 
     var chargeSlider = {
-      type: 'SLIDER',
-      id: 'chargeSlider',
-      class: 'slider',
+      type: "SLIDER",
+      id: "chargeSlider",
+      class: "slider",
       min: -100,
       max: 100,
       value: config.defaultCharge,
@@ -491,16 +620,16 @@ function ControlPanel() {
     }
 
     var chargeSliderText = {
-      type: 'TEXT',
-      id: 'chargeSliderText',
-      class: 'sliderText',
+      type: "TEXT",
+      id: "chargeSliderText",
+      class: "sliderText",
       text: (chargeSlider.value * chargeSlider.multiplier)
     }
 
     var gravitySlider = {
-      type: 'SLIDER',
-      id: 'gravitySlider',
-      class: 'slider',
+      type: "SLIDER",
+      id: "gravitySlider",
+      class: "slider",
       min: -5.0,
       max: 5,
       // value: (config.defaultGravity * config.defaultMultiplier),
@@ -509,16 +638,16 @@ function ControlPanel() {
     }
 
     var gravitySliderText = {
-      type: 'TEXT',
-      id: 'gravitySliderText',
-      class: 'sliderText',
+      type: "TEXT",
+      id: "gravitySliderText",
+      class: "sliderText",
       text: (gravitySlider.value * gravitySlider.multiplier)
     }
 
     var velocityDecaySlider = {
-      type: 'SLIDER',
-      id: 'velocityDecaySlider',
-      class: 'slider',
+      type: "SLIDER",
+      id: "velocityDecaySlider",
+      class: "slider",
       min: 0.0,
       max: 1000.0,
       value: config.defaultVelocityDecay * config.defaultMultiplier,
@@ -526,16 +655,16 @@ function ControlPanel() {
     }
 
     var velocityDecaySliderText = {
-      type: 'TEXT',
-      id: 'velocityDecaySliderText',
-      class: 'sliderText',
+      type: "TEXT",
+      id: "velocityDecaySliderText",
+      class: "sliderText",
       text: (velocityDecaySlider.value * velocityDecaySlider.multiplier)
     }
 
     var linkStrengthSlider = {
-      type: 'SLIDER',
-      id: 'linkStrengthSlider',
-      class: 'slider',
+      type: "SLIDER",
+      id: "linkStrengthSlider",
+      class: "slider",
       min: 0.0,
       max: 1000,
       value: config.defaultLinkStrength * config.defaultMultiplier,
@@ -543,16 +672,16 @@ function ControlPanel() {
     }
 
     var linkStrengthSliderText = {
-      type: 'TEXT',
-      id: 'linkStrengthSliderText',
-      class: 'sliderText',
+      type: "TEXT",
+      id: "linkStrengthSliderText",
+      class: "sliderText",
       text: (linkStrengthSlider.value * linkStrengthSlider.multiplier)
     }
 
     var linkDistanceSlider = {
-      type: 'SLIDER',
-      id: 'linkDistanceSlider',
-      class: 'slider',
+      type: "SLIDER",
+      id: "linkDistanceSlider",
+      class: "slider",
       min: 0.0,
       max: 100,
       value: config.defaultLinkDistance,
@@ -560,30 +689,30 @@ function ControlPanel() {
     }
 
     var linkDistanceSliderText = {
-      type: 'TEXT',
-      id: 'linkDistanceSliderText',
-      class: 'sliderText',
+      type: "TEXT",
+      id: "linkDistanceSliderText",
+      class: "sliderText",
       text: (linkDistanceSlider.value * linkDistanceSlider.multiplier)
     }
 
     var status = {
-      type: 'TEXT',
-      id: 'statusSessionId',
-      class: 'statusText',
-      text: 'SESSION ID: ' + statsObj.socketId
+      type: "TEXT",
+      id: "statusSessionId",
+      class: "statusText",
+      text: "SESSION ID: " + statsObj.socketId
     }
 
     var status2 = {
-      type: 'TEXT',
-      id: 'statusSession2Id',
-      class: 'statusText',
-      text: 'NODES: ' + 0
+      type: "TEXT",
+      id: "statusSession2Id",
+      class: "statusText",
+      text: "NODES: " + 0
     }
 
     switch (config.sessionViewType) {
 
-      case 'force':
-      case 'flow':
+      case "force":
+      case "flow":
         self.tableCreateRow(infoTable, optionsBody, [status]);
         self.tableCreateRow(infoTable, optionsBody, [status2]);
         self.tableCreateRow(controlTable, 
@@ -600,18 +729,18 @@ function ControlPanel() {
             fullscreenButton
           ]);
         self.tableCreateRow(controlTable, optionsBody, [resetButton]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ['FONT MIN', fontSizeMinRatioSlider, fontSizeMinRatioSliderText]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ['FONT MAX', fontSizeMaxRatioSlider, fontSizeMaxRatioSliderText]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ['MAX AGE', maxAgeSlider, maxAgeSliderText]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ['CHARGE', chargeSlider, chargeSliderText]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ['GRAVITY', gravitySlider, gravitySliderText]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ['VEL DECAY', velocityDecaySlider, velocityDecaySliderText]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ['LINK STRENGTH', linkStrengthSlider, linkStrengthSliderText]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ['LINK DISTANCE', linkDistanceSlider, linkDistanceSliderText]);
+        self.tableCreateRow(controlSliderTable, optionsBody, ["FONT MIN", fontSizeMinRatioSlider, fontSizeMinRatioSliderText]);
+        self.tableCreateRow(controlSliderTable, optionsBody, ["FONT MAX", fontSizeMaxRatioSlider, fontSizeMaxRatioSliderText]);
+        self.tableCreateRow(controlSliderTable, optionsBody, ["MAX AGE", maxAgeSlider, maxAgeSliderText]);
+        self.tableCreateRow(controlSliderTable, optionsBody, ["CHARGE", chargeSlider, chargeSliderText]);
+        self.tableCreateRow(controlSliderTable, optionsBody, ["GRAVITY", gravitySlider, gravitySliderText]);
+        self.tableCreateRow(controlSliderTable, optionsBody, ["VEL DECAY", velocityDecaySlider, velocityDecaySliderText]);
+        self.tableCreateRow(controlSliderTable, optionsBody, ["LINK STRENGTH", linkStrengthSlider, linkStrengthSliderText]);
+        self.tableCreateRow(controlSliderTable, optionsBody, ["LINK DISTANCE", linkDistanceSlider, linkDistanceSliderText]);
         if (callback) callback(dashboardMain);
         break;
 
-      case 'treepack':
+      case "treepack":
         self.tableCreateRow(infoTable, optionsBody, [status]);
         self.tableCreateRow(infoTable, optionsBody, [status2]);
         self.tableCreateRow(controlTable, 
@@ -628,19 +757,19 @@ function ControlPanel() {
             fullscreenButton
           ]);
         self.tableCreateRow(controlTable, optionsBody, [resetButton]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ['FONT MIN', fontSizeMinRatioSlider, fontSizeMinRatioSliderText]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ['FONT MAX', fontSizeMaxRatioSlider, fontSizeMaxRatioSliderText]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ['TRANSITION', transitionDurationSlider, transitionDurationSliderText]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ['MAX AGE', maxAgeSlider, maxAgeSliderText]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ['CHARGE', chargeSlider, chargeSliderText]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ['GRAVITY', gravitySlider, gravitySliderText]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ['VEL DECAY', velocityDecaySlider, velocityDecaySliderText]);
-        // self.tableCreateRow(controlSliderTable, optionsBody, ['LINK STRENGTH', linkStrengthSlider, linkStrengthSliderText]);
-        // self.tableCreateRow(controlSliderTable, optionsBody, ['LINK DISTANCE', linkDistanceSlider, linkDistanceSliderText]);
+        self.tableCreateRow(controlSliderTable, optionsBody, ["FONT MIN", fontSizeMinRatioSlider, fontSizeMinRatioSliderText]);
+        self.tableCreateRow(controlSliderTable, optionsBody, ["FONT MAX", fontSizeMaxRatioSlider, fontSizeMaxRatioSliderText]);
+        self.tableCreateRow(controlSliderTable, optionsBody, ["TRANSITION", transitionDurationSlider, transitionDurationSliderText]);
+        self.tableCreateRow(controlSliderTable, optionsBody, ["MAX AGE", maxAgeSlider, maxAgeSliderText]);
+        self.tableCreateRow(controlSliderTable, optionsBody, ["CHARGE", chargeSlider, chargeSliderText]);
+        self.tableCreateRow(controlSliderTable, optionsBody, ["GRAVITY", gravitySlider, gravitySliderText]);
+        self.tableCreateRow(controlSliderTable, optionsBody, ["VEL DECAY", velocityDecaySlider, velocityDecaySliderText]);
+        // self.tableCreateRow(controlSliderTable, optionsBody, ["LINK STRENGTH", linkStrengthSlider, linkStrengthSliderText]);
+        // self.tableCreateRow(controlSliderTable, optionsBody, ["LINK DISTANCE", linkDistanceSlider, linkDistanceSliderText]);
         if (callback) callback(dashboardMain);
         break;
 
-      case 'ticker':
+      case "ticker":
         self.tableCreateRow(infoTable, optionsBody, [status]);
         self.tableCreateRow(infoTable, optionsBody, [status2]);
         self.tableCreateRow(controlTable, 
@@ -657,11 +786,11 @@ function ControlPanel() {
           ]
         );
         self.tableCreateRow(controlTable, optionsBody, [resetButton]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ['MAX AGE', maxAgeSlider, maxAgeSliderText]);
+        self.tableCreateRow(controlSliderTable, optionsBody, ["MAX AGE", maxAgeSlider, maxAgeSliderText]);
         if (callback) callback(dashboardMain);
         break;
 
-      case 'histogram':
+      case "histogram":
         self.tableCreateRow(controlTable, optionsBody, [status]);
         self.tableCreateRow(controlTable, optionsBody, [status2]);
         self.tableCreateRow(controlTable, optionsBody, 
@@ -677,7 +806,7 @@ function ControlPanel() {
           ]
         );
         // self.tableCreateRow(controlSliderTable, optionsBody, [blahButton, resetButton]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ['MAX AGE', maxAgeSlider, maxAgeSliderText]);
+        self.tableCreateRow(controlSliderTable, optionsBody, ["MAX AGE", maxAgeSlider, maxAgeSliderText]);
         if (callback) callback(dashboardMain);
 
         break;
@@ -744,7 +873,7 @@ function ControlPanel() {
       document.getElementById("removeDeadNodeToogleButton").style.color = "#888888";
       document.getElementById("removeDeadNodeToogleButton").style.border = "1px solid white";
     }
-    if ((config.sessionViewType == 'force') || (config.sessionViewType == 'flow')){  
+    if ((config.sessionViewType == "force") || (config.sessionViewType == "flow")){  
       if (config.disableLinks) {
         document.getElementById("disableLinksToggleButton").style.color = "red";
         document.getElementById("disableLinksToggleButton").style.border = "2px solid red";
@@ -763,10 +892,27 @@ function ControlPanel() {
     self.createControlPanel(function(dashboard){
       setTimeout(function() {  // KLUDGE to insure table is created before update
         self.updateControlPanel(config, function(){
-          if (typeof parentWindow !== 'undefined') {
+          if (typeof parentWindow !== "undefined") {
             setTimeout(function(){
               console.log("TX PARENT READY " + DEFAULT_SOURCE);
-              parentWindow.postMessage({op:'READY'}, DEFAULT_SOURCE);
+              parentWindow.postMessage({op:"READY"}, DEFAULT_SOURCE);
+
+              loadTwitterFeed({userId: "47474747", screenName: "threecee"}, function(err, el){
+
+              });
+              // twttr.widgets.createTimeline(
+              //   {
+              //     sourceType: "profile",
+              //     screenName: "threecee"
+              //   },
+              //   document.getElementById("twitterFeedDiv"),
+              //   {
+              //     width: "450",
+              //     height: "700",
+              //     related: "twitterdev,twitterapi"
+              //   }).then(function (el) {
+              // });
+
             }, 1000);
           }
           else {

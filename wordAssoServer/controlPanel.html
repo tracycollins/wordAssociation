@@ -35,9 +35,25 @@
       }
       
       .hashtagText {
-        color: #ff0000;
+        top: 10;
+        left: 10;
+        padding: 10px;
+        font-size: 1.75em;
+        color: #aaaaaa;
       }
       
+      #twitterCategoryDiv {
+        background-color: #222222;
+        border: 1px solid #aaaaaa;
+        color: #cccccc;
+        margin: 20px;
+        padding: 10px;
+        /*overflow: hidden;*/
+        bottom: 0%;
+        right: 0;
+        z-index: 10;
+      }
+
       #controlDiv {
         background-color: #222222;
         border: 1px solid #aaaaaa;
@@ -156,7 +172,7 @@
       </div>
     </div>
     <div id="twitterProfileDiv"></div>
-    <div id="twitterCategoryDiv"></div>
+    <div id="twitterCategoryDiv" class="twitterCategory"></div>
     <div id="twitterFeedDiv"></div>
 
     <script src="/js/libs/controlPanel.js"  type="text/javascript"></script>

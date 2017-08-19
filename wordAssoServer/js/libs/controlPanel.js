@@ -6,15 +6,17 @@
 function ControlPanel() {
 
   // var DEFAULT_SOURCE = "==SOURCE==";  // will be updated by wordAssoServer.js on app.get
-  // var DEFAULT_SOURCE = "http://localhost:9997";
-  var DEFAULT_SOURCE = "http://word.threeceelabs.com";
+  var DEFAULT_SOURCE = "http://localhost:9997";
+  // var DEFAULT_SOURCE = "http://word.threeceelabs.com";
 
   var parentWindow = window.opener;
   console.info("PARENT WINDOW ID | " + parentWindow.PARENT_ID);
   var self = this;
 
   var config = {};
+  var currentTwitterNode;
   var currentTwitterUser;
+  var currentTwitterHashtag;
 
   config = window.opener.config;
 
@@ -83,9 +85,27 @@ function ControlPanel() {
     });
   }
 
-  function loadTwitterFeed(user, callback) {
+  function twitterHashtagSearch(text, callback){
 
-    console.debug("loadTwitterFeed: " + user.screenName);
+    var url = "https://twitter.com/search?f=tweets&q=%23" + text ;
+
+    var hashtagText = document.createElement("TEXT");
+    hashtagText.setAttribute("id", "hashtagText");
+    hashtagText.setAttribute("class", "hashtagText");
+    hashtagText.innerHTML = "#" + text;
+
+    document.getElementById("twitterFeedDiv").appendChild(hashtagText);
+
+    callback();
+
+  }
+
+  function loadTwitterFeed(node, callback) {
+
+    console.debug("loadTwitterFeed"
+      + " | " + node.nodeType
+      + " | " + node.nodeId
+    );
 
     var tfDiv = document.getElementById("twitterFeedDiv");
 
@@ -102,9 +122,16 @@ function ControlPanel() {
         });
       }, 
       function(){
-        twitterWidgetsCreateTimeline(user.screenName, function(err, el){
-          callback(err, el);
-        });
+        if (node.nodeType === "user"){
+          twitterWidgetsCreateTimeline(node.screenName, function(err, el){
+            callback(err, el);
+          });
+        }
+        else if (node.nodeType === "hashtag"){
+          twitterHashtagSearch(node.nodeId, function(err, el){
+            callback(err, el);
+          });
+        }
       }
     );
   }
@@ -120,7 +147,7 @@ function ControlPanel() {
   categoryLeft.innerHTML = "L";
   categoryLeft.addEventListener("click", function(e){ 
     console.log("LEFT");
-    parentWindow.postMessage({op: "CATEGORIZE", user: currentTwitterUser, keywords: { left: 100 }}, DEFAULT_SOURCE);
+    parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, keywords: { left: 100 }}, DEFAULT_SOURCE);
   }, false);
 
   var categoryNeutral = document.createElement("INPUT");
@@ -132,7 +159,7 @@ function ControlPanel() {
   categoryNeutral.innerHTML = "N";
   categoryNeutral.addEventListener("click", function(e){ 
     console.log("NEUTRAL");
-    parentWindow.postMessage({op: "CATEGORIZE", user: currentTwitterUser, keywords: { neutral: 100 }}, DEFAULT_SOURCE);
+    parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, keywords: { neutral: 100 }}, DEFAULT_SOURCE);
   }, false);
 
   var categoryRight = document.createElement("INPUT");
@@ -144,7 +171,7 @@ function ControlPanel() {
   categoryRight.innerHTML = "R";
   categoryRight.addEventListener("click", function(e){ 
     console.log("RIGHT");
-    parentWindow.postMessage({op: "CATEGORIZE", user: currentTwitterUser, keywords: { right: 100 }}, DEFAULT_SOURCE);
+    parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, keywords: { right: 100 }}, DEFAULT_SOURCE);
   }, false);
 
   twitterCategoryDiv.appendChild(categoryLeft);
@@ -335,9 +362,15 @@ function ControlPanel() {
       break;
 
       case "SET_TWITTER_USER":
-        currentTwitterUser = event.data.user;
-        console.debug("SET TWITTER USER\n" + jsonPrint(currentTwitterUser));
-        loadTwitterFeed(currentTwitterUser, function(err, el){});
+        currentTwitterNode = event.data.user;
+        console.debug("SET TWITTER USER\n" + jsonPrint(currentTwitterNode));
+        loadTwitterFeed(currentTwitterNode, function(err, el){});
+      break;
+
+      case "SET_TWITTER_HASHTAG":
+        currentTwitterNode = event.data.hashtag;
+        console.debug("SET TWITTER HASHTAG\n" + jsonPrint(currentTwitterNode));
+        loadTwitterFeed(currentTwitterNode, function(err, el){});
       break;
     }
   }
@@ -896,23 +929,6 @@ function ControlPanel() {
             setTimeout(function(){
               console.log("TX PARENT READY " + DEFAULT_SOURCE);
               parentWindow.postMessage({op:"READY"}, DEFAULT_SOURCE);
-
-              loadTwitterFeed({userId: "47474747", screenName: "threecee"}, function(err, el){
-
-              });
-              // twttr.widgets.createTimeline(
-              //   {
-              //     sourceType: "profile",
-              //     screenName: "threecee"
-              //   },
-              //   document.getElementById("twitterFeedDiv"),
-              //   {
-              //     width: "450",
-              //     height: "700",
-              //     related: "twitterdev,twitterapi"
-              //   }).then(function (el) {
-              // });
-
             }, 1000);
           }
           else {

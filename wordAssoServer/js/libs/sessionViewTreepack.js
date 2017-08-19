@@ -5,6 +5,7 @@ function ViewTreepack() {
   "use strict";
 
   var currentTwitterUser = twitterUserThreecee;
+  var currentTwitterHashtag = "resist";
 
   var defaultProfileImageUrl = "favicon.png";
 
@@ -890,6 +891,7 @@ function ViewTreepack() {
 
 
   var previousTwitterUserId;
+  var previousTwitterHashtag;
 
   var nodeMouseOver = function (d) {
 
@@ -905,7 +907,7 @@ function ViewTreepack() {
       case "user":
 
         currentTwitterUser = d;
-        if (!previousTwitterUserId || (previousTwitterUserId !== d.userId)){
+        if (controlPanelReadyFlag && (!previousTwitterUserId || (previousTwitterUserId !== d.userId))){
           controlPanelWindow.postMessage({op: "SET_TWITTER_USER", user: currentTwitterUser}, DEFAULT_SOURCE);
           previousTwitterUserId = currentTwitterUser.userId;
         }
@@ -926,7 +928,16 @@ function ViewTreepack() {
           + "<br>KWs: " + jsonPrint(d.keywords)
           + "<br>AKWs: " + jsonPrint(d.keywordsAuto);
       break;
+
       case "hashtag":
+
+        currentTwitterHashtag = d;
+
+        if (controlPanelReadyFlag && (!previousTwitterHashtag || (previousTwitterHashtag !== d.nodeId))){
+          controlPanelWindow.postMessage({op: "SET_TWITTER_HASHTAG", hashtag: currentTwitterHashtag}, DEFAULT_SOURCE);
+          previousTwitterHashtag = currentTwitterHashtag.nodeId;
+        }
+
         tooltipString = "#" + d.nodeId
           + "<br>TOPTERM " + d.isTopTerm 
           + "<br>TYPE: " + d.nodeType 
@@ -1050,7 +1061,7 @@ function ViewTreepack() {
 
     switch (d.nodeType) {
       case "user" :
-        socket.emit("categorize", { userId: d.userId, screenName: d.screenName });
+        // socket.emit("categorize", { userId: d.userId, screenName: d.screenName });
         url = "https://twitter.com/" + d.screenName ;
         console.debug("LOADING TWITTER USER: " + url);
         window.open(url, "_blank");

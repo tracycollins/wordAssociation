@@ -1146,6 +1146,7 @@ function ViewTreepack() {
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)
       .on("click", nodeClick)
+      .style("pointer-events", "auto")
       .attr("x", xposition)
       .attr("y", yposition)
       .text(function(d) {

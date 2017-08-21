@@ -1734,31 +1734,28 @@ function ViewTreepack() {
 
   function drawSimulation(callback){
 
-    async.series(
-      {
-        unc: updateNodeCircles,
-        utt: updateNodeLabels,
-        unc: updateTopTerm
-      }, 
-      function() {
-        if (newCurrentMaxMetricFlag) {
+    async.series([
+      function(cb){ updateNodeCircles(cb) },
+      function(cb){ updateNodeLabels(cb) },
+      function(cb){ updateTopTerm(cb) }
+    ], function(err, results) {
+      if (newCurrentMaxMetricFlag) {
 
-          newCurrentMaxMetricFlag = false;
+        newCurrentMaxMetricFlag = false;
 
-          nodeLabelSizeScale = d3.scaleLinear()
-            .domain([1, currentMaxMetric])
-            .range([fontSizeMin, fontSizeMax])
-            .clamp(true);
+        nodeLabelSizeScale = d3.scaleLinear()
+          .domain([1, currentMaxMetric])
+          .range([fontSizeMin, fontSizeMax])
+          .clamp(true);
 
-          defaultRadiusScale = d3.scaleLinear()
-            .domain([1, Math.sqrt(currentMaxMetric)])
-            .range([minRadius, maxRadius])
-            .clamp(true);
+        defaultRadiusScale = d3.scaleLinear()
+          .domain([1, Math.sqrt(currentMaxMetric)])
+          .range([minRadius, maxRadius])
+          .clamp(true);
 
-        }
-        callback();
       }
-    );
+      callback();
+    });
   }
 
   function updateSimulation() {

@@ -544,7 +544,7 @@ function ViewTreepack() {
   };
 
   self.updateGravity = function(value) {
-    console.debug("UPDATE GRAVITY: " + value.toFixed(sliderPercision));
+    console.debug("UPDATE GRAVITY: " + value.toFixed(5));
     config.defaultGravity = value;
     gravity = value;
 

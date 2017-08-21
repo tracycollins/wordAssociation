@@ -821,9 +821,7 @@ function ViewTreepack() {
         nodeDeleteQ.push({op:"delete", nodeId: node.nodeId});
         deadNodeFlag = true;
         delete deadNodesHash[node.nodeId];
-
         delete localNodeHashMap[node.nodeId];
-
         nodesTopTermHashMap.remove(node.nodeId);
       }
       deadNodeIds = Object.keys(deadNodesHash);
@@ -834,7 +832,6 @@ function ViewTreepack() {
     }
   };
 
-
   var previousTwitterUserId;
   var previousTwitterHashtag;
 
@@ -843,7 +840,6 @@ function ViewTreepack() {
     d.mouseHoverFlag = true;
 
     self.toolTipVisibility(true);
-
     d3.select(this).style("opacity", 1);
 
     var tooltipString;

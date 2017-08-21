@@ -330,10 +330,10 @@ function ViewTreepack() {
   // twitterProfileImage.id = "twitterProfileImage";
   // twitterProfileImage.src = "favicon.png";
 
-
   var topTermsCheckBox = topTermsDiv.append("input")
     .attr("id", "topTermsCheckBox")
     .attr("type", "checkbox")
+    .attr("pointer-events", "visible")
     .on("change", function(){
       if (!topTermsCheckBox.property("checked")) { 
         topTermsDiv.style("visibility", "hidden"); 

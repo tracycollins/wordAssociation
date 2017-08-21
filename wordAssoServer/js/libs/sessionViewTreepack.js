@@ -1734,7 +1734,7 @@ function ViewTreepack() {
 
   function drawSimulation(callback){
 
-    async.parallel(
+    async.series(
       {
         unc: updateNodeCircles,
         utt: updateNodeLabels,

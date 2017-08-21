@@ -1735,9 +1735,9 @@ function ViewTreepack() {
   function drawSimulation(callback){
 
     async.series([
-      updateNodeCircles(cb),
-      updateNodeLabels(cb),
-      updateTopTerm(cb)
+      function(cb){ updateNodeCircles(cb) },
+      function(cb){ updateNodeLabels(cb) },
+      function(cb){ updateTopTerm(cb) }
     ], function(err, results) {
       if (newCurrentMaxMetricFlag) {
 

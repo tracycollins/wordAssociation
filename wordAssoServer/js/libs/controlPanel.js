@@ -69,7 +69,7 @@ function ControlPanel() {
     var timelineText = document.createElement("TEXT");
     timelineText.setAttribute("id", "timelineText");
     timelineText.setAttribute("class", "hashtagText");
-    timelineText.innerHTML = "<br>" + "KW: " + node.keywords + " | KWA: " + node.keywordsAuto + "<br>";
+    timelineText.innerHTML = "<br><br>" + "KW: " + node.keywords + " | KWA: " + node.keywordsAuto + "<br><br>";
     timelineDiv.appendChild(timelineText);
 
 

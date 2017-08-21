@@ -1,13 +1,15 @@
 /*ver 0.47*/
 /*jslint node: true */
 
-"use strict";
+// "use strict";
 
 function ControlPanel() {
 
+  "use strict";
+
   // var DEFAULT_SOURCE = "==SOURCE==";  // will be updated by wordAssoServer.js on app.get
-  // var DEFAULT_SOURCE = "http://localhost:9997";
-  var DEFAULT_SOURCE = "http://word.threeceelabs.com";
+  var DEFAULT_SOURCE = "http://localhost:9997";
+  // var DEFAULT_SOURCE = "http://word.threeceelabs.com";
 
   var parentWindow = window.opener;
   console.info("PARENT WINDOW ID | " + parentWindow.PARENT_ID);
@@ -46,8 +48,6 @@ function ControlPanel() {
     .attr("id", "twitterProfileLink")
     .attr("xlink:show", "new")
     .attr("xlink:href", "http://word.threeceelabs.com");
-
-
   var twitterProfileImage = twitterProfile.append("svg:image")
     .attr("id", "twitterProfileImage")
     .attr("xlink:href", "favicon.png")
@@ -55,6 +55,15 @@ function ControlPanel() {
     .attr("height", 100)
     .style("opacity", 1)
     .style("visibility", "hidden");
+
+  function jsonPrint(obj) {
+    if ((obj) || (obj === 0)) {
+      var jsonString = JSON.stringify(obj, null, 2);
+      return jsonString;
+    } else {
+      return "UNDEFINED";
+    }
+  }
 
   function loadTwitterProfile(profileImageUrl) {
     console.log("loadTwitterProfile: " + profileImageUrl);
@@ -88,7 +97,6 @@ function ControlPanel() {
     hashtagDiv.appendChild(hashtagText);
 
     callback();
-
   }
 
   Element.prototype.removeAll = function () {
@@ -151,7 +159,6 @@ function ControlPanel() {
     }
 
     parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, keywords: keywords}, DEFAULT_SOURCE);
-
   }
 
   var twitterCategoryDiv = document.getElementById("twitterCategoryDiv");
@@ -211,140 +218,133 @@ function ControlPanel() {
   var statsObj = {};
   statsObj.socketId = "NOT SET";
 
+
+  var nodeSearchInput = document.createElement("input");
+  var nodeSearchLabel = document.createElement("label");
+  var nodeSearchValue = "";
+
+  function nodeSearchHandler(e) {
+    console.log("NODE SEARCH"
+      + " | KEY: " + e.keyCode
+      + " | INPUT: " + nodeSearchInput.value
+    );
+  }
+
+  nodeSearchLabel.setAttribute("id", "nodeSearchLabel");
+
+  nodeSearchLabel.innerHTML = "NODE SEARCH";
+
+  nodeSearchInput.setAttribute("class", "nodeSearch");
+  nodeSearchInput.setAttribute("type", "text");
+  nodeSearchInput.setAttribute("id", "nodeSearchInput");
+  nodeSearchInput.setAttribute("name", "nodeSearch");
+  nodeSearchInput.setAttribute("autofocus", true);
+  nodeSearchInput.setAttribute("autocapitalize", "none");
+  nodeSearchInput.setAttribute("value", nodeSearchValue);
+  // nodeSearchInput.setAttribute("onkeydown", "if (event.keyCode === 13) { return nodeSearch(); }");
+  nodeSearchInput.addEventListener("keydown", function(e){ nodeSearchHandler(e); }, false);
+
+  // var nodeSearchDiv = document.getElementById("nodeSearchDiv");
+  twitterCategoryDiv.appendChild(nodeSearchLabel);
+  twitterCategoryDiv.appendChild(nodeSearchInput);
+
+  // var inputChangedTimeout;
+  // var checkInputTextInterval;
+
+  // clearTimeout(inputChangedTimeout);
+  // clearInterval(checkInputTextInterval);
+
+  // checkInputTextInterval = setInterval(function() {
+  //     if (statsObj.serverConnected && nodeSearchEnabled) {
+  //         currentInput = document.getElementById("nodeSearchInput").value.toLowerCase();
+  //         if (!currentInput || typeof currentInput === 'undefined') {
+  //             clearTimeout(inputChangedTimeout);
+  //         } else if (enterKeyDownFlag || (previousInput != currentInput)) {
+  //             enterKeyDownFlag = false;
+  //             clearTimeout(inputChangedTimeout);
+  //             timeDelta = moment().valueOf() - previousTimestamp;
+  //             // console.log("CHANGE [" + timeDelta + "]: "  + previousInput + " | " + currentInput);
+  //             previousTimestamp = moment().valueOf();
+  //             inputChangedTimeout = setTimeout(function() {
+  //                 sendnodeSearch('PROMPT', currentInput, function(dataTransmitted) {
+  //                     console.log("TXD: " + dataTransmitted);
+  //                     currentInput = document.getElementById("nodeSearchInput");
+  //                     currentInput.value = '';
+  //                 });
+  //             }, responseTimeoutInterval);
+  //         }
+  //         previousInput = document.getElementById("nodeSearchInput").value.toLowerCase();
+  //     } else if (statsObj.serverConnected && !nodeSearchEnabled) {
+  //         clearTimeout(inputChangedTimeout);
+  //         currentInput = document.getElementById("nodeSearchInput");
+  //         currentInput.value = '';
+  //     }
+  // }, 100);
+
   this.setVelocityDecaySliderValue = function (value) {
     if (!document.getElementById("velocityDecaySlider")) { return; }
     console.log("setVelocityDecaySliderValue: " + value);
     document.getElementById("velocityDecaySlider").value = (value * document.getElementById("velocityDecaySlider").getAttribute("multiplier"));
     document.getElementById("velocityDecaySliderText").innerHTML = value.toFixed(3);
-  }
+  };
 
   this.setLinkStrengthSliderValue = function (value) {
     if (!document.getElementById("linkStrengthSlider")) { return; }
     console.log("setLinkStrengthSliderValue: " + value);
     document.getElementById("linkStrengthSlider").value = (value * document.getElementById("linkStrengthSlider").getAttribute("multiplier"));
     document.getElementById("linkStrengthSliderText").innerHTML = value.toFixed(3);
-  }
+  };
 
   this.setLinkDistanceSliderValue = function (value) {
     if (!document.getElementById("linkDistanceSlider")) { return; }
     console.log("setLinkDistanceSliderValue: " + value);
     document.getElementById("linkDistanceSlider").value = (value * document.getElementById("linkDistanceSlider").getAttribute("multiplier"));
     document.getElementById("linkDistanceSliderText").innerHTML = value.toFixed(3);
-  }
+  };
 
   this.setTransitionDurationSliderValue = function (value) {
     if (!document.getElementById("transitionDurationSlider")) { return; }
     console.log("setTransitionDurationSliderValue: " + value);
     document.getElementById("transitionDurationSlider").value = (value* document.getElementById("transitionDurationSlider").getAttribute("multiplier"));
     document.getElementById("transitionDurationSliderText").innerHTML = value.toFixed(3);
-  }
+  };
 
   this.setGravitySliderValue = function (value) {
     if (!document.getElementById("gravitySlider")) { return; }
     console.log("setGravitySliderValue: " + value);
     document.getElementById("gravitySlider").value = (value * document.getElementById("gravitySlider").getAttribute("multiplier"));
     document.getElementById("gravitySliderText").innerHTML = value.toFixed(3);
-  }
+  };
 
   this.setChargeSliderValue = function (value) {
     if (!document.getElementById("chargeSlider")) { return; }
     console.log("setChargeSliderValue: " + value);
     document.getElementById("chargeSlider").value = value;
     document.getElementById("chargeSliderText").innerHTML = value;
-  }
+  };
 
   this.setMaxAgeSliderValue = function (value) {
     if (!document.getElementById("maxAgeSlider")) { return; }
     console.log("setMaxAgeSliderValue: " + value);
     document.getElementById("maxAgeSlider").value = value;
     document.getElementById("maxAgeSliderText").innerHTML = value;
-  }
+  };
 
   this.setFontSizeMinRatioSliderValue = function (value) {
     if (!document.getElementById("fontSizeMinRatioSlider")) { return; }
     console.log("setFontSizeMinRatioSliderValue: " + value);
     document.getElementById("fontSizeMinRatioSlider").value = (value * document.getElementById("fontSizeMinRatioSlider").getAttribute("multiplier"));
-    document.getElementById("fontSizeMinRatioSliderText").innerHTML = (100*value).toFixed(1) + " % H";
-  }
+    var valuePercent = 100*value;
+    document.getElementById("fontSizeMinRatioSliderText").innerHTML = valuePercent.toFixed(1) + "% H";
+  };
 
   this.setFontSizeMaxRatioSliderValue = function (value) {
     if (!document.getElementById("fontSizeMaxRatioSlider")) { return; }
     console.log("setFontSizeMaxRatioSliderValue: " + value);
     document.getElementById("fontSizeMaxRatioSlider").value = (value * document.getElementById("fontSizeMaxRatioSlider").getAttribute("multiplier"));
-    document.getElementById("fontSizeMaxRatioSliderText").innerHTML = (100*value).toFixed(1) + " % H";
-  }
-
-
-  window.addEventListener("message", receiveMessage, false);
-
-  window.onbeforeunload = function() {
-    parentWindow.postMessage({op:"CLOSE"}, DEFAULT_SOURCE);
-  }
-
-  function buttonHandler(e) {
-
-    var currentButton = document.getElementById(e.target.id);
-
-    console.warn("BUTTON"
-     + " | ID: " + e.target.id
-     + "\n HASH\n" + jsonPrint(controlIdHash[e.target.id])
-     + "\n" + jsonPrint(e.target)
-    );
-
-    if (!currentButton){
-      console.error("UNKNOWN BUTTON\n" + jsonPrint(e));
-    }
-    else if (typeof controlIdHash[currentButton.id] === "undefined") {
-      console.error("UNKNOWN BUTTON NOT IN HASH\n" + jsonPrint(e));
-    }
-    else {
-      var buttonConfig = controlIdHash[currentButton.id];
-      console.log("BUTTON " + currentButton.id 
-        + " : " + buttonConfig.mode
-      );
-
-      parentWindow.postMessage({op: buttonConfig.mode, id: currentButton.id}, DEFAULT_SOURCE);
-
-      if (currentButton.id == "resetButton"){
-        console.warn("RESET");
-        self.setLinkStrengthSliderValue(parentWindow.DEFAULT_LINK_STRENGTH);
-        self.setLinkDistanceSliderValue(parentWindow.DEFAULT_LINK_DISTANCE);
-        self.setTransitionDurationSliderValue(parentWindow.DEFAULT_TRANSITION_DURATION);
-        self.setGravitySliderValue(parentWindow.DEFAULT_GRAVITY);
-        self.setChargeSliderValue(parentWindow.DEFAULT_CHARGE);
-        self.setVelocityDecaySliderValue(parentWindow.DEFAULT_VELOCITY_DECAY);
-        self.setMaxAgeSliderValue(parentWindow.DEFAULT_MAX_AGE);
-        self.setFontSizeMinRatioSliderValue(parentWindow.DEFAULT_FONT_SIZE_MIN_RATIO);
-        self.setFontSizeMaxRatioSliderValue(parentWindow.DEFAULT_FONT_SIZE_MAX_RATIO);
-      }
-    }
+    var valuePercent = 100*value;
+    document.getElementById("fontSizeMaxRatioSliderText").innerHTML = valuePercent.toFixed(1) + "% H";
   };
-
-  window.addEventListener("input", function (e) {
-    // console.log("keyup event detected! coming from this element:", e.target);
-    var currentSlider = document.getElementById(e.target.id);
-    currentSlider.multiplier = currentSlider.getAttribute("multiplier");
-
-    console.log("SLIDER " + currentSlider.id 
-      + " | " + currentSlider.value 
-      + " | " + currentSlider.multiplier 
-      + " | " + (currentSlider.value/currentSlider.multiplier).toFixed(3)
-    );
-
-    var currentSliderTextId = currentSlider.id + "Text";
-
-    switch (currentSlider.id) {
-
-      case "fontSizeMinRatioSlider":
-      case "fontSizeMaxRatioSlider":
-        document.getElementById(currentSliderTextId).innerHTML = (100*currentSlider.value/currentSlider.multiplier).toFixed(1) + " % H";
-      break;
-      default:
-        document.getElementById(currentSliderTextId).innerHTML = (currentSlider.value/currentSlider.multiplier).toFixed(3);
-    }
-
-    parentWindow.postMessage({op:"UPDATE", id: currentSlider.id, value: (currentSlider.value/currentSlider.multiplier)}, DEFAULT_SOURCE);
-  }, false);
 
   function receiveMessage(event){
 
@@ -368,18 +368,23 @@ function ControlPanel() {
     );
 
     var op = event.data.op;
+    var cnf;
 
     switch (op) {
 
       case "INIT":
-        var cnf = event.data.config;
+
+        cnf = event.data.config;
+
         console.debug("CONTROL PANEL INIT\n" + jsonPrint(cnf));
-        for (var prop in cnf) {
+
+        Object.keys(cnf).forEach(function(prop){
           config[prop] = cnf[prop];
           console.info("CNF | " + prop 
             + " | " + config[prop]
           );
-        }
+        });
+
         self.setTransitionDurationSliderValue(cnf.defaultTransitionDuration);
         self.setLinkStrengthSliderValue(cnf.defaultLinkStrength);
         self.setLinkDistanceSliderValue(cnf.defaultLinkDistance);
@@ -405,15 +410,94 @@ function ControlPanel() {
     }
   }
 
+  window.addEventListener("message", receiveMessage, false);
 
-  function jsonPrint(obj) {
-    if ((obj) || (obj === 0)) {
-      var jsonString = JSON.stringify(obj, null, 2);
-      return jsonString;
-    } else {
-      return "UNDEFINED";
+  window.onbeforeunload = function() {
+    parentWindow.postMessage({op:"CLOSE"}, DEFAULT_SOURCE);
+  };
+
+  function buttonHandler(e) {
+
+    var currentButton = document.getElementById(e.target.id);
+
+    console.warn("BUTTON"
+     + " | ID: " + e.target.id
+     + "\n HASH\n" + jsonPrint(controlIdHash[e.target.id])
+     + "\n" + jsonPrint(e.target)
+    );
+
+    if (!currentButton){
+      console.error("UNKNOWN BUTTON\n" + jsonPrint(e));
+    }
+    else if (controlIdHash[currentButton.id] === undefined) {
+      console.error("UNKNOWN BUTTON NOT IN HASH\n" + jsonPrint(e));
+    }
+    else {
+      var buttonConfig = controlIdHash[currentButton.id];
+      console.log("BUTTON " + currentButton.id 
+        + " : " + buttonConfig.mode
+      );
+
+      parentWindow.postMessage({op: buttonConfig.mode, id: currentButton.id}, DEFAULT_SOURCE);
+
+      if (currentButton.id === "resetButton"){
+        console.warn("RESET");
+        self.setLinkStrengthSliderValue(parentWindow.DEFAULT_LINK_STRENGTH);
+        self.setLinkDistanceSliderValue(parentWindow.DEFAULT_LINK_DISTANCE);
+        self.setTransitionDurationSliderValue(parentWindow.DEFAULT_TRANSITION_DURATION);
+        self.setGravitySliderValue(parentWindow.DEFAULT_GRAVITY);
+        self.setChargeSliderValue(parentWindow.DEFAULT_CHARGE);
+        self.setVelocityDecaySliderValue(parentWindow.DEFAULT_VELOCITY_DECAY);
+        self.setMaxAgeSliderValue(parentWindow.DEFAULT_MAX_AGE);
+        self.setFontSizeMinRatioSliderValue(parentWindow.DEFAULT_FONT_SIZE_MIN_RATIO);
+        self.setFontSizeMaxRatioSliderValue(parentWindow.DEFAULT_FONT_SIZE_MAX_RATIO);
+      }
     }
   }
+
+  function sliderHandler(e) {
+    var currentSlider = document.getElementById(e.target.id);
+    currentSlider.multiplier = currentSlider.getAttribute("multiplier");
+
+    var valMultRatio = currentSlider.value/currentSlider.multiplier;
+
+    console.log("SLIDER " + currentSlider.id 
+      + " | " + currentSlider.value 
+      + " | " + currentSlider.multiplier 
+      + " | " + valMultRatio.toFixed(3)
+    );
+
+    var currentSliderTextId = currentSlider.id + "Text";
+
+    var v;
+    switch (currentSlider.id) {
+      case "fontSizeMinRatioSlider":
+      case "fontSizeMaxRatioSlider":
+        v = 100*currentSlider.value/currentSlider.multiplier;
+        document.getElementById(currentSliderTextId).innerHTML = v.toFixed(1) + " % H";
+      break;
+      default:
+        v = currentSlider.value/currentSlider.multiplier;
+        document.getElementById(currentSliderTextId).innerHTML = v.toFixed(3);
+    }
+
+    parentWindow.postMessage({op:"UPDATE", id: currentSlider.id, value: (currentSlider.value/currentSlider.multiplier)}, DEFAULT_SOURCE);
+  }
+
+
+  // window.addEventListener("input", function (e) {
+  //   // console.log("keyup event detected! coming from this element:", e.target);
+  //   switch (e.target.id) {
+  //     case "nodeSearchInput":
+  //       // nodeSearchHandler(e);
+  //     break;
+  //     default:
+  //       sliderHandler(e);
+  //   }
+
+  // }, false);
+
+
 
   this.tableCreateRow = function (parentTable, options, cells) {
 
@@ -444,7 +528,7 @@ function ControlPanel() {
           td.style.color = tdTextColor;
           td.style.backgroundColor = tdBgColor;
 
-        } else if (content.type == "TEXT") {
+        } else if (content.type === "TEXT") {
 
           td.className = content.class;
           td.setAttribute("id", content.id);
@@ -452,7 +536,7 @@ function ControlPanel() {
           td.style.backgroundColor = tdBgColor;
           td.innerHTML = content.text;
 
-        } else if (content.type == "BUTTON") {
+        } else if (content.type === "BUTTON") {
 
           var buttonElement = document.createElement("BUTTON");
           buttonElement.className = content.class;
@@ -463,7 +547,7 @@ function ControlPanel() {
           td.appendChild(buttonElement);
           controlIdHash[content.id] = content;
 
-        } else if (content.type == "SLIDER") {
+        } else if (content.type === "SLIDER") {
 
         // console.warn("tableCreateRow\n" + jsonPrint(content));
 
@@ -474,7 +558,7 @@ function ControlPanel() {
           sliderElement.setAttribute("min", content.min);
           sliderElement.setAttribute("max", content.max);
           sliderElement.setAttribute("multiplier", content.multiplier);
-          sliderElement.setAttribute("oninput", content.oninput);
+          sliderElement.setAttribute("oninput", function(e){ sliderHandler(e); }, false);
           sliderElement.value = content.value;
           td.appendChild(sliderElement);
           controlIdHash[content.id] = content;
@@ -482,7 +566,7 @@ function ControlPanel() {
         }
       });
     }
-  }
+  };
 
   this.createControlPanel = function(callback) {
 
@@ -528,7 +612,7 @@ function ControlPanel() {
       id: "resetButton",
       class: "button",
       text: "RESET"
-    }
+    };
 
     var blahButton = {
       type: "BUTTON",
@@ -536,7 +620,7 @@ function ControlPanel() {
       id: "blahToggleButton",
       class: "button",
       text: "BLAH"
-    }
+    };
 
     var fullscreenButton = {
       type: "BUTTON",
@@ -544,7 +628,7 @@ function ControlPanel() {
       id: "fullscreenToggleButton",
       class: "button",
       text: "FULLSCREEN"
-    }
+    };
 
     var pauseButton = {
       type: "BUTTON",
@@ -552,7 +636,7 @@ function ControlPanel() {
       id: "pauseToggleButton",
       class: "button",
       text: "PAUSE"
-    }
+    };
 
     var statsButton = {
       type: "BUTTON",
@@ -560,7 +644,7 @@ function ControlPanel() {
       id: "statsToggleButton",
       class: "button",
       text: "STATS"
-    }
+    };
 
     var testModeButton = {
       type: "BUTTON",
@@ -568,7 +652,7 @@ function ControlPanel() {
       id: "testModeToggleButton",
       class: "button",
       text: "TEST"
-    }
+    };
 
     var antonymButton = {
       type: "BUTTON",
@@ -576,7 +660,7 @@ function ControlPanel() {
       id: "antonymToggleButton",
       class: "button",
       text: "ANT"
-    }
+    };
 
     var disableLinksButton = {
       type: "BUTTON",
@@ -584,7 +668,7 @@ function ControlPanel() {
       id: "disableLinksToggleButton",
       class: "button",
       text: "LINKS"
-    }
+    };
 
     var removeDeadNodeButton = {
       type: "BUTTON",
@@ -592,7 +676,7 @@ function ControlPanel() {
       id: "removeDeadNodeToogleButton",
       class: "button",
       text: "DEAD"
-    }
+    };
 
     var nodeCreateButton = {
       type: "BUTTON",
@@ -600,7 +684,7 @@ function ControlPanel() {
       id: "nodeCreateButton",
       class: "button",
       text: "NODE"
-    }
+    };
 
     var maxAgeSlider = {
       type: "SLIDER",
@@ -610,14 +694,14 @@ function ControlPanel() {
       max: 120000,
       value: config.defaultMaxAge,
       multiplier: 1.0
-    }
+    };
 
     var maxAgeSliderText = {
       type: "TEXT",
       id: "maxAgeSliderText",
       class: "sliderText",
       text: maxAgeSlider.value + " ms"
-    }
+    };
 
     console.log("config\n" + jsonPrint(config));
 
@@ -629,31 +713,31 @@ function ControlPanel() {
       max: 100,
       value: config.defaultFontSizeMinRatio * config.defaultMultiplier,
       multiplier: config.defaultMultiplier
-    }
+    };
 
     var fontSizeMinRatioSliderText = {
       type: "TEXT",
       id: "fontSizeMinRatioSliderText",
       class: "sliderText",
       text: fontSizeMinRatioSlider.value + fontSizeMinRatioSlider.multiplier
-    }
+    };
 
     var fontSizeMaxRatioSlider = {
       type: "SLIDER",
       id: "fontSizeMaxRatioSlider",
       class: "slider",
-      max: 0,
+      min: 0,
       max: 100,
       value: config.defaultFontSizeMaxRatio * config.defaultMultiplier,
       multiplier: config.defaultMultiplier
-    }
+    };
 
     var fontSizeMaxRatioSliderText = {
       type: "TEXT",
       id: "fontSizeMaxRatioSliderText",
       class: "sliderText",
       text: fontSizeMaxRatioSlider.value + fontSizeMaxRatioSlider.multiplier
-    }
+    };
 
     var transitionDurationSlider = {
       type: "SLIDER",
@@ -663,14 +747,14 @@ function ControlPanel() {
       max: 100,
       value: config.defaultTransitionDuration,
       multiplier: 1.0
-    }
+    };
 
     var transitionDurationSliderText = {
       type: "TEXT",
       id: "transitionDurationSliderText",
       class: "sliderText",
       text: (transitionDurationSlider.value * transitionDurationSlider.multiplier)
-    }
+    };
 
     var chargeSlider = {
       type: "SLIDER",
@@ -680,14 +764,14 @@ function ControlPanel() {
       max: 100,
       value: config.defaultCharge,
       multiplier: 1.0
-    }
+    };
 
     var chargeSliderText = {
       type: "TEXT",
       id: "chargeSliderText",
       class: "sliderText",
       text: (chargeSlider.value * chargeSlider.multiplier)
-    }
+    };
 
     var gravitySlider = {
       type: "SLIDER",
@@ -698,14 +782,14 @@ function ControlPanel() {
       // value: (config.defaultGravity * config.defaultMultiplier),
       value: config.defaultGravity * config.defaultMultiplier,
       multiplier: config.defaultMultiplier
-    }
+    };
 
     var gravitySliderText = {
       type: "TEXT",
       id: "gravitySliderText",
       class: "sliderText",
       text: (gravitySlider.value * gravitySlider.multiplier)
-    }
+    };
 
     var velocityDecaySlider = {
       type: "SLIDER",
@@ -715,14 +799,14 @@ function ControlPanel() {
       max: 1000.0,
       value: config.defaultVelocityDecay * config.defaultMultiplier,
       multiplier: config.defaultMultiplier
-    }
+    };
 
     var velocityDecaySliderText = {
       type: "TEXT",
       id: "velocityDecaySliderText",
       class: "sliderText",
       text: (velocityDecaySlider.value * velocityDecaySlider.multiplier)
-    }
+    };
 
     var linkStrengthSlider = {
       type: "SLIDER",
@@ -732,14 +816,14 @@ function ControlPanel() {
       max: 1000,
       value: config.defaultLinkStrength * config.defaultMultiplier,
       multiplier: config.defaultMultiplier
-    }
+    };
 
     var linkStrengthSliderText = {
       type: "TEXT",
       id: "linkStrengthSliderText",
       class: "sliderText",
       text: (linkStrengthSlider.value * linkStrengthSlider.multiplier)
-    }
+    };
 
     var linkDistanceSlider = {
       type: "SLIDER",
@@ -749,28 +833,28 @@ function ControlPanel() {
       max: 100,
       value: config.defaultLinkDistance,
       multiplier: 1.0
-    }
+    };
 
     var linkDistanceSliderText = {
       type: "TEXT",
       id: "linkDistanceSliderText",
       class: "sliderText",
       text: (linkDistanceSlider.value * linkDistanceSlider.multiplier)
-    }
+    };
 
     var status = {
       type: "TEXT",
       id: "statusSessionId",
       class: "statusText",
       text: "SESSION ID: " + statsObj.socketId
-    }
+    };
 
     var status2 = {
       type: "TEXT",
       id: "statusSession2Id",
       class: "statusText",
       text: "NODES: " + 0
-    }
+    };
 
     switch (config.sessionViewType) {
 
@@ -800,7 +884,7 @@ function ControlPanel() {
         self.tableCreateRow(controlSliderTable, optionsBody, ["VEL DECAY", velocityDecaySlider, velocityDecaySliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["LINK STRENGTH", linkStrengthSlider, linkStrengthSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["LINK DISTANCE", linkDistanceSlider, linkDistanceSliderText]);
-        if (callback) callback(dashboardMain);
+        if (callback) { callback(dashboardMain); }
         break;
       case "treepack":
         self.tableCreateRow(infoTable, optionsBody, [status]);
@@ -813,7 +897,7 @@ function ControlPanel() {
         self.tableCreateRow(controlSliderTable, optionsBody, ["CHARGE", chargeSlider, chargeSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["GRAVITY", gravitySlider, gravitySliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["VEL DECAY", velocityDecaySlider, velocityDecaySliderText]);
-        if (callback) callback(dashboardMain);
+        if (callback) { callback(dashboardMain); }
         break;
 
       case "ticker":
@@ -834,7 +918,7 @@ function ControlPanel() {
         );
         self.tableCreateRow(controlTable, optionsBody, [resetButton]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["MAX AGE", maxAgeSlider, maxAgeSliderText]);
-        if (callback) callback(dashboardMain);
+        if (callback) { callback(dashboardMain); }
         break;
 
       case "histogram":
@@ -854,7 +938,7 @@ function ControlPanel() {
         );
         // self.tableCreateRow(controlSliderTable, optionsBody, [blahButton, resetButton]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["MAX AGE", maxAgeSlider, maxAgeSliderText]);
-        if (callback) callback(dashboardMain);
+        if (callback) { callback(dashboardMain); }
 
         break;
 
@@ -866,13 +950,9 @@ function ControlPanel() {
             fullscreenButton, 
             pauseButton, 
             statsButton, testModeButton, resetButton, nodeCreateButton, removeDeadNodeButton]);
-        if (callback) callback(dashboardMain);
-        break;
+        if (callback) { callback(dashboardMain); }
     }
-
-    // self.updateControlPanel(config);
-    // if (callback) callback(dashboardMain);
-  }
+  };
 
   this.updateControlPanel = function (config, callback) {
 
@@ -914,7 +994,7 @@ function ControlPanel() {
       document.getElementById("statsToggleButton").style.border = "1px solid white";
     }
 
-    if ((config.sessionViewType == "force") || (config.sessionViewType == "flow")){  
+    if ((config.sessionViewType === "force") || (config.sessionViewType === "flow")){  
       if (config.disableLinks) {
         document.getElementById("disableLinksToggleButton").style.color = "red";
         document.getElementById("disableLinksToggleButton").style.border = "2px solid red";
@@ -924,8 +1004,8 @@ function ControlPanel() {
       }
     }
 
-    if (callback) callback();
-  }
+    if (callback) { callback(); }
+  };
 
   $( document ).ready(function() {
     console.log( "CONTROL PANEL DOCUMENT READY" );
@@ -933,7 +1013,7 @@ function ControlPanel() {
     self.createControlPanel(function(dashboard){
       setTimeout(function() {  // KLUDGE to insure table is created before update
         self.updateControlPanel(config, function(){
-          if (typeof parentWindow !== "undefined") {
+          if (parentWindow !== undefined) {
             setTimeout(function(){
               console.log("TX PARENT READY " + DEFAULT_SOURCE);
               parentWindow.postMessage({op:"READY"}, DEFAULT_SOURCE);

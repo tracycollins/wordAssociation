@@ -110,7 +110,7 @@ function ControlPanel() {
   function loadTwitterFeed(node, callback) {
 
     var keywords = "-";
-    var keywordsAuto; = "-";
+    var keywordsAuto = "-";
 
     if (node.keywords 
       && (node.keywords !== undefined) 

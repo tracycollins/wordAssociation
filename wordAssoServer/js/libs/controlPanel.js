@@ -304,7 +304,8 @@ function ControlPanel() {
   this.setGravitySliderValue = function (value) {
     if (!document.getElementById("gravitySlider")) { return; }
     console.log("setGravitySliderValue: " + value);
-    document.getElementById("gravitySlider").value = (value * document.getElementById("gravitySlider").getAttribute("multiplier"));
+    // document.getElementById("gravitySlider").value = (value * document.getElementById("gravitySlider").getAttribute("multiplier"));
+    document.getElementById("gravitySlider").value = value;
     document.getElementById("gravitySliderText").innerHTML = value.toFixed(5);
   };
 

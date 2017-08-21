@@ -1,12 +1,4 @@
-/*ver 0.47*/
-/*jslint node: true */
-
-// "use strict";
-
 function ControlPanel() {
-
-  "use strict";
-
   // var DEFAULT_SOURCE = "==SOURCE==";  // will be updated by wordAssoServer.js on app.get
   // var DEFAULT_SOURCE = "http://localhost:9997";
   var DEFAULT_SOURCE = "http://word.threeceelabs.com";
@@ -456,6 +448,8 @@ function ControlPanel() {
   }
 
   function sliderHandler(e) {
+    
+    console.log("sliderHandler: " + e.target.id);
     var currentSlider = document.getElementById(e.target.id);
     currentSlider.multiplier = currentSlider.getAttribute("multiplier");
 
@@ -485,17 +479,17 @@ function ControlPanel() {
   }
 
 
-  // window.addEventListener("input", function (e) {
-  //   // console.log("keyup event detected! coming from this element:", e.target);
-  //   switch (e.target.id) {
-  //     case "nodeSearchInput":
-  //       // nodeSearchHandler(e);
-  //     break;
-  //     default:
-  //       sliderHandler(e);
-  //   }
+  window.addEventListener("input", function (e) {
+    // console.log("keyup event detected! coming from this element:", e.target);
+    switch (e.target.id) {
+      case "nodeSearchInput":
+        // nodeSearchHandler(e);
+      break;
+      default:
+        sliderHandler(e);
+    }
 
-  // }, false);
+  }, false);
 
 
 
@@ -558,7 +552,7 @@ function ControlPanel() {
           sliderElement.setAttribute("min", content.min);
           sliderElement.setAttribute("max", content.max);
           sliderElement.setAttribute("multiplier", content.multiplier);
-          sliderElement.setAttribute("oninput", function(e){ sliderHandler(e); }, false);
+          // sliderElement.setAttribute("oninput", function(e){ sliderHandler(e); }, false);
           sliderElement.value = content.value;
           td.appendChild(sliderElement);
           controlIdHash[content.id] = content;
@@ -1026,7 +1020,4 @@ function ControlPanel() {
       }, 2000);
     });
   });
-
-
-
 }

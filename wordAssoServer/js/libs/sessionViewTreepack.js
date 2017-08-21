@@ -906,9 +906,11 @@ function ViewTreepack() {
     var tooltipString;
 
     switch (d.nodeType) {
+
       case "user":
 
         currentTwitterUser = d;
+
         if (controlPanelReadyFlag && (!previousTwitterUserId || (previousTwitterUserId !== d.userId))){
           controlPanelWindow.postMessage({op: "SET_TWITTER_USER", user: currentTwitterUser}, DEFAULT_SOURCE);
           previousTwitterUserId = currentTwitterUser.userId;
@@ -987,95 +989,37 @@ function ViewTreepack() {
       });
   }
 
-  // function cellClick(d) {
-  //   // console.debug("cellClick", d);
-  //   var url = "https://twitter.com/search?f=tweets&q=%23" + d.name ;
-  //   window.open(url, "_blank");
-  // }
-
-  // var twitterIframe = document.getElementById("twitterIframe");
-  // twitterIframe.width = "500px";
-  // twitterIframe.height = "400px";
-
-  // function loadTwitterProfile(profileImageUrl) {
-  //   console.log("loadTwitterProfile: " + profileImageUrl);
-  //   twitterProfileImage.attr("xlink:href", profileImageUrl);
-  // }
-
-
-  // function twitterWidgetsCreateTimeline(screenName, callback){
-  //   twttr.widgets.createTimeline(
-  //     {
-  //       sourceType: "profile",
-  //       screenName: screenName
-  //     },
-  //     document.getElementById("twitterFeedDiv"),
-  //     {
-  //       width: "450",
-  //       height: "700",
-  //       related: "twitterdev,twitterapi"
-  //     })
-  //   .then(function (el) {
-  //     // console.log("Embedded a timeline.");
-
-  //     callback(null, el);
-  //     // twttr.widgets.load(
-  //     //   document.getElementById("tfDiv")
-  //     // );
-  //   })
-  //   .catch(function(err){
-  //     console.error("TWITTER WIDGET ERROR: " + err);
-  //     callback(err, null);
-  //   });
-  // }
-
-  // function loadTwitterFeed(screenName, callback) {
-
-  //   console.debug("loadTwitterFeed: " + screenName);
-
-  //   var tfDiv = document.getElementById("twitterFeedDiv");
-
-  //   async.whilst(
-  //     function(){
-  //       var test = tfDiv.childNodes.length > 0;
-  //       // console.log("test: " + test);
-  //       return test;
-  //     }, 
-  //     function(cb){
-  //       tfDiv.removeChild(tfDiv.firstChild);
-  //       async.setImmediate(function() {
-  //         cb();
-  //       });
-  //     }, 
-  //     function(){
-  //       twitterWidgetsCreateTimeline(screenName, function(err, el){
-  //         callback(err, el);
-  //       });
-  //     }
-  //   );
-  // }
-
-
   function nodeClick(d) {
-    // console.debug("nodeClick");
     var url = "";
-    // twitterIframe = document.getElementById("twitterIframe");
 
     switch (d.nodeType) {
       case "user" :
-        // socket.emit("categorize", { userId: d.userId, screenName: d.screenName });
+
+        currentTwitterUser = d;
+        
+        if (controlPanelReadyFlag && (!previousTwitterUserId || (previousTwitterUserId !== d.userId))){
+          controlPanelWindow.postMessage({op: "SET_TWITTER_USER", user: currentTwitterUser}, DEFAULT_SOURCE);
+          previousTwitterUserId = currentTwitterUser.userId;
+        }
+
         url = "https://twitter.com/" + d.screenName ;
         console.debug("LOADING TWITTER USER: " + url);
         window.open(url, "_blank");
       break;
       case "hashtag" :
+
+        currentTwitterHashtag = d;
+
+        if (controlPanelReadyFlag && (!previousTwitterHashtag || (previousTwitterHashtag !== d.nodeId))){
+          controlPanelWindow.postMessage({op: "SET_TWITTER_HASHTAG", hashtag: currentTwitterHashtag}, DEFAULT_SOURCE);
+          previousTwitterHashtag = currentTwitterHashtag.nodeId;
+        }
+
         url = "https://twitter.com/search?f=tweets&q=%23" + d.text ;
-        // twitterIframe.src = url;
         window.open(url, "_blank");
       break;
       case "place" :
         url = "http://twitter.com/search?q=place%3A" + d.placeId ;
-        // twitterIframe.src = url;
         window.open(url, "_blank");
       break;
     }

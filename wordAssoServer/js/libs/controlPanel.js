@@ -73,6 +73,8 @@ function ControlPanel() {
     .then(function (el) {
 
       var timelineText = document.createElement("TEXT");
+      timelineText.setAttribute("id", "timelineText");
+      timelineText.setAttribute("class", "timelineText");
       timelineText.innerHTML = "KW: " + node.keywords + " | KWA: " + node.keywordsAuto;
       timelineDiv.appendChild(timelineText);
 

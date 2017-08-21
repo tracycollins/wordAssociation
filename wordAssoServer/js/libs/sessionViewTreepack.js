@@ -1196,6 +1196,8 @@ function ViewTreepack() {
         return "normal";
       })
       .style("text-decoration", function(d) { 
+        if (d.isTopTerm && (d.followersCount > MIN_FOLLOWERS)) { return "overline underline"; }
+        if (!d.isTopTerm && (d.followersCount > MIN_FOLLOWERS)) { return "underline"; }
         if (d.isTopTerm) { return "overline"; }
         return "none"; 
       })

@@ -1112,6 +1112,8 @@ function ViewTreepack() {
       .remove();
 
     nodeTopTermLabels
+        .attr("x", xposition)
+        .attr("y", yposition)
       // .attr("class", "update")
       // .on("mouseover", nodeMouseOver)
       // .on("mouseout", nodeMouseOut)
@@ -1155,7 +1157,15 @@ function ViewTreepack() {
         if (d.mouseHoverFlag) { return 1.0; }
         return topTermLabelOpacityScale(d.ageMaxRatio); 
       })
-      .style("fill", palette.white)
+      // .style("fill", palette.white)
+      .style("fill", function(d) { 
+        if (d.newFlag) { return palette.white; }
+        if (d.mouseHoverFlag) { return palette.blue; }
+        if (d.isKeyword) { return d.keywordColor; }
+        if (d.isTrendingTopic || d.isTwitterUser || d.isNumber || d.isCurrency) { return palette.white; }
+        if ((d.isGroupNode || d.isSessionNode) && (d.ageMaxRatio < 0.01)) { return palette.yellow; }
+        return palette.darkgray; 
+      })
       .style("font-size", fontTopTerm);
 
 

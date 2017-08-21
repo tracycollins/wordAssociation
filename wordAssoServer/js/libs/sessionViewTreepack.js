@@ -1103,43 +1103,42 @@ function ViewTreepack() {
 
   var updateTopTerm = function(callback) {
 
-
     var nodeTopTermLabels = nodeTopTermLabelSvgGroup.selectAll("text")
       .data(nodesTopTerm, function(d) { return d.nodeId; });
 
     nodeTopTermLabels
       .exit()
-      .attr("class", "exit")
+      // .attr("class", "exit")
       .remove();
 
     nodeTopTermLabels
-      .attr("class", "update")
-      .on("mouseover", nodeMouseOver)
-      .on("mouseout", nodeMouseOut)
-      .text(function(d) {
-        return d.displaytext;
-      })
-      .style("font-size", fontTopTerm)
-      .style("fill", function(d) { 
-        if (d.newFlag) { return palette.white; }
-        if (d.mouseHoverFlag) { return palette.blue; }
-        if (d.isKeyword) { return d.keywordColor; }
-        if (d.isTrendingTopic || d.isTwitterUser || d.isNumber || d.isCurrency) { return palette.white; }
-        if ((d.isGroupNode || d.isSessionNode) && (d.ageMaxRatio < 0.01)) { return palette.yellow; }
-        return palette.darkgray; 
-      })
+      // .attr("class", "update")
+      // .on("mouseover", nodeMouseOver)
+      // .on("mouseout", nodeMouseOut)
+      // .text(function(d) {
+      //   return d.displaytext;
+      // })
+      // .style("font-size", fontTopTerm)
+      // .style("fill", function(d) { 
+      //   if (d.newFlag) { return palette.white; }
+      //   if (d.mouseHoverFlag) { return palette.blue; }
+      //   if (d.isKeyword) { return d.keywordColor; }
+      //   if (d.isTrendingTopic || d.isTwitterUser || d.isNumber || d.isCurrency) { return palette.white; }
+      //   if ((d.isGroupNode || d.isSessionNode) && (d.ageMaxRatio < 0.01)) { return palette.yellow; }
+      //   return palette.darkgray; 
+      // })
       .style("opacity", function(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
         return topTermLabelOpacityScale(d.ageMaxRatio); 
-      })
-      .transition()
-        .duration(transitionDuration)
-        .attr("x", xposition)
-        .attr("y", yposition);
+      });
+      // .transition()
+      //   .duration(transitionDuration)
+      //   .attr("x", xposition)
+      //   .attr("y", yposition);
 
     nodeTopTermLabels
       .enter().append("text")
-      .attr("class", "enter")
+      // .attr("class", "enter")
       .style("text-anchor", "right")
       .style("alignment-baseline", "bottom")
       .on("mouseover", nodeMouseOver)
@@ -1151,7 +1150,7 @@ function ViewTreepack() {
         return d.displaytext;
       })
       .style("font-family", "monospace")
-      .style("font-weight", "normal")
+      // .style("font-weight", "normal")
       .style("opacity", function(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
         return topTermLabelOpacityScale(d.ageMaxRatio); 

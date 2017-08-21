@@ -62,12 +62,20 @@ function ControlPanel() {
     twitterProfileImage.attr("xlink:href", profileImageUrl);
   }
 
-  function twitterWidgetsCreateTimeline(screenName, callback){
+  function twitterWidgetsCreateTimeline(node, callback){
+
+    var screenName = node.screenName;
+
     twttr.widgets.createTimeline(
       { sourceType: "profile", screenName: screenName },
       timelineDiv,
       { width: "450", height: "700", related: "twitterdev,twitterapi" })
     .then(function (el) {
+
+      var timelineText = document.createElement("TEXT");
+      timelineText.innerHTML = "KW: " + node.keywords + " | KWA: " + node.keywordsAuto;
+      timelineDiv.appendChild(timelineText);
+
       callback(null, el);
     })
     .catch(function(err){
@@ -99,21 +107,41 @@ function ControlPanel() {
 
   function loadTwitterFeed(node, callback) {
 
+    var keywords = "-";
+    var keywordsAuto; = "-";
+
+    if (node.keywords 
+      && (node.keywords !== undefined) 
+      && (Object.keys(node.keywords).length > 0)){
+      keywords = Object.keys(node.keywords);
+    }
+
+    if (node.keywordsAuto 
+      && (node.keywordsAuto !== undefined) 
+      && (Object.keys(node.keywordsAuto).length > 0)){
+      keywordsAuto = Object.keys(node.keywordsAuto);
+    }
+
+    node.keywords = keywords;
+    node.keywordsAuto = keywordsAuto;
+
     console.debug("loadTwitterFeed"
       + " | " + node.nodeType
       + " | " + node.nodeId
+      + " | " + node.keywords
+      + " | " + node.keywordsAuto
     );
 
     hashtagDiv.removeAll();
     timelineDiv.removeAll();
 
     if (node.nodeType === "user"){
-      twitterWidgetsCreateTimeline(node.screenName, function(err, el){
+      twitterWidgetsCreateTimeline(node, function(err, el){
         callback(err, el);
       });
     }
     else if (node.nodeType === "hashtag"){
-      twitterHashtagSearch(node.nodeId, function(err, el){
+      twitterHashtagSearch(node, function(err, el){
         callback(err, el);
       });
     }

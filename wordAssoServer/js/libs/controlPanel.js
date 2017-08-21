@@ -86,6 +86,7 @@ function ControlPanel() {
     hashtagText.innerHTML = "#" + text;
 
     hashtagDiv.removeAll();
+    timelineDiv.removeAll();
     hashtagDiv.appendChild(hashtagText);
 
     callback();
@@ -103,6 +104,7 @@ function ControlPanel() {
       + " | " + node.nodeId
     );
 
+    hashtagDiv.removeAll();
     timelineDiv.removeAll();
 
     if (node.nodeType === "user"){

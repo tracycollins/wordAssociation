@@ -1732,6 +1732,8 @@ function ViewTreepack() {
     });
   }
 
+  var previousMaxMetric = 0;
+
   function drawSimulation(callback){
 
     async.series([
@@ -1739,9 +1741,10 @@ function ViewTreepack() {
       function(cb){ updateNodeLabels(cb) },
       function(cb){ updateTopTerm(cb) }
     ], function(err, results) {
-      if (newCurrentMaxMetricFlag) {
+      if (newCurrentMaxMetricFlag && (Math.abs(currentMaxMetric - previousMaxMetric)/currentMaxMetric) > 0.05) {
 
         newCurrentMaxMetricFlag = false;
+        previousMaxMetric = currentMaxMetric;
 
         nodeLabelSizeScale = d3.scaleLinear()
           .domain([1, currentMaxMetric])

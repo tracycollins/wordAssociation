@@ -32,7 +32,8 @@ function ControlPanel() {
   var controlSliderTable;
 
   var twitterFeedDiv = d3.select("#twitterFeedDiv");
-  var timelineDiv = document.getElementById("twitterFeedTimelineDiv");
+  var timelineDiv = document.getElementById("timelineDiv");
+  var hashtagDiv =document.getElementById("hashtagDiv");
 
   var twitterProfile = d3.select("#twitterProfileDiv").append("svg:svg")  
     .attr("id", "twitterProfile")
@@ -62,17 +63,9 @@ function ControlPanel() {
 
   function twitterWidgetsCreateTimeline(screenName, callback){
     twttr.widgets.createTimeline(
-      {
-        sourceType: "profile",
-        screenName: screenName
-      },
-      // document.getElementById("twitterFeedTimelineDiv"),
+      { sourceType: "profile", screenName: screenName },
       timelineDiv,
-      {
-        width: "450",
-        height: "700",
-        related: "twitterdev,twitterapi"
-      })
+      { width: "450", height: "700", related: "twitterdev,twitterapi" })
     .then(function (el) {
       callback(null, el);
     })
@@ -91,7 +84,8 @@ function ControlPanel() {
     hashtagText.setAttribute("class", "hashtagText");
     hashtagText.innerHTML = "#" + text;
 
-    document.getElementById("twitterFeedDiv").appendChild(hashtagText);
+    hashtagDiv.removeAll();
+    hashtagDiv.appendChild(hashtagText);
 
     callback();
 
@@ -121,32 +115,6 @@ function ControlPanel() {
         callback(err, el);
       });
     }
-
-    // async.whilst(
-    //   function(){
-    //     var test = tfDiv.childNodes.length > 0;
-    //     // console.log("test: " + test);
-    //     return test;
-    //   }, 
-    //   function(cb){
-    //     tfDiv.removeChild(tfDiv.firstChild);
-    //     async.setImmediate(function() {
-    //       cb();
-    //     });
-    //   }, 
-    //   function(){
-    //     if (node.nodeType === "user"){
-    //       twitterWidgetsCreateTimeline(node.screenName, function(err, el){
-    //         callback(err, el);
-    //       });
-    //     }
-    //     else if (node.nodeType === "hashtag"){
-    //       twitterHashtagSearch(node.nodeId, function(err, el){
-    //         callback(err, el);
-    //       });
-    //     }
-    //   }
-    // );
   }
 
   function categoryButtonHandler(e){

@@ -777,9 +777,9 @@ function ControlPanel() {
       class: "slider",
       min: -1.0,
       max: 1.0,
-      // value: (config.defaultGravity * config.defaultMultiplier),
-      value: config.defaultGravity,
-      multiplier: 1.0
+      value: (config.defaultGravity * config.defaultMultiplier),
+      // value: config.defaultGravity,
+      multiplier: 1000
     };
 
     var gravitySliderText = {

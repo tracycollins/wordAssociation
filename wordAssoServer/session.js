@@ -11,8 +11,8 @@ word -> array of nodes
 when new instance of word arrives, iterate thru array of nodes and create linkskk
 */
 
-// var DEFAULT_SOURCE = "http://localhost:9997";
-var DEFAULT_SOURCE = "http://word.threeceelabs.com";
+var DEFAULT_SOURCE = "http://localhost:9997";
+// var DEFAULT_SOURCE = "http://word.threeceelabs.com";
 // var DEFAULT_SOURCE = "==SOURCE==";  // will be updated by wordAssoServer.js on app.get
 
 var keywordTypes = ["left", "neutral", "right", "positive", "negative"];
@@ -996,7 +996,7 @@ function createPopUpControlPanel (cnf, callback) {
 
   console.debug("createPopUpControlPanel\ncnf\n" + jsonPrint(cnf));
 
-  controlPanelWindow = window.open("controlPanel.html", "CONTROL", "width=800,height=1000");
+  controlPanelWindow = window.open("controlPanel.html", "CONTROL", "width=1000,height=auto");
 
   controlPanelWindow.addEventListener("message", controlPanelComm, false);
   window.addEventListener("message", controlPanelComm, false);
@@ -2126,13 +2126,32 @@ socket.on("SESSION_DELETE", function(rxSessionObject) {
 });
 
 socket.on("USER_SESSION", function(rxSessionObject) {
-  // var rxObj = rxSessionObject;
   console.debug("USER_SESSION" 
     + " | SID: " + rxSessionObject.sessionId 
     + " | UID: " + rxSessionObject.userId 
     + " | NSP: " + rxSessionObject.namespace 
     + " | WCI: " + rxSessionObject.wordChainIndex 
     + " | CONN: " + rxSessionObject.connected);
+});
+
+socket.on("SET_TWITTER_USER", function(twitterUser) {
+
+  console.log("SET_TWITTER_USER" 
+    + " | " + twitterUser.userId 
+    + " | @" + twitterUser.screenName 
+    + " | FLWRs: " + twitterUser.followersCount 
+    + " | FRNDs: " + twitterUser.friendsCount 
+    + " | Ts: " + twitterUser.statusesCount 
+    + "\nKWs: " + jsonPrint(twitterUser.keywords) 
+    + "\nKWAs: " + jsonPrint(twitterUser.keywordsAuto)
+  );
+
+  if (twitterUser.userId === twitterUserThreecee.userId) {
+    twitterUserThreecee = twitterUser;
+  }
+
+  currentSessionView.setTwitterUser(twitterUser);
+
 });
 
 socket.on("TWITTER_TOPTERM_1MIN", function(top10obj) {
@@ -2539,7 +2558,6 @@ var processNodeDeleteQueue = function(callback) {
     nodeDeleteQueue.length = 0;
     return (callback(null, "processNodeDeleteQueue"));
   });
-
 };
 
 var processLinkDeleteQueue = function(callback) {
@@ -2564,7 +2582,6 @@ var processLinkDeleteQueue = function(callback) {
     linkDeleteQueue.length = 0;
     return (callback(null, "processLinkDeleteQueue"));
   });
-
 };
 
 function sum( obj ) {
@@ -2595,8 +2612,6 @@ function sum( obj ) {
   }, function(){
     return s;
   });
-
-
 }
 
 var randomNumber360 = 180;

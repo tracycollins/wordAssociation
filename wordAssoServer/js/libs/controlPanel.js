@@ -32,6 +32,7 @@ function ControlPanel() {
   var controlSliderTable;
 
   var twitterFeedDiv = d3.select("#twitterFeedDiv");
+  var timelineDiv = document.getElementById("twitterFeedTimelineDiv");
 
   var twitterProfile = d3.select("#twitterProfileDiv").append("svg:svg")  
     .attr("id", "twitterProfile")
@@ -65,19 +66,15 @@ function ControlPanel() {
         sourceType: "profile",
         screenName: screenName
       },
-      document.getElementById("twitterFeedDiv"),
+      // document.getElementById("twitterFeedTimelineDiv"),
+      timelineDiv,
       {
         width: "450",
         height: "700",
         related: "twitterdev,twitterapi"
       })
     .then(function (el) {
-      // console.log("Embedded a timeline.");
-
       callback(null, el);
-      // twttr.widgets.load(
-      //   document.getElementById("tfDiv")
-      // );
     })
     .catch(function(err){
       console.error("TWITTER WIDGET ERROR: " + err);
@@ -100,6 +97,11 @@ function ControlPanel() {
 
   }
 
+  Element.prototype.removeAll = function () {
+    while (this.firstChild) { this.removeChild(this.firstChild); }
+    return this;
+  };
+
   function loadTwitterFeed(node, callback) {
 
     console.debug("loadTwitterFeed"
@@ -107,33 +109,44 @@ function ControlPanel() {
       + " | " + node.nodeId
     );
 
-    var tfDiv = document.getElementById("twitterFeedDiv");
+    timelineDiv.removeAll();
 
-    async.whilst(
-      function(){
-        var test = tfDiv.childNodes.length > 0;
-        // console.log("test: " + test);
-        return test;
-      }, 
-      function(cb){
-        tfDiv.removeChild(tfDiv.firstChild);
-        async.setImmediate(function() {
-          cb();
-        });
-      }, 
-      function(){
-        if (node.nodeType === "user"){
-          twitterWidgetsCreateTimeline(node.screenName, function(err, el){
-            callback(err, el);
-          });
-        }
-        else if (node.nodeType === "hashtag"){
-          twitterHashtagSearch(node.nodeId, function(err, el){
-            callback(err, el);
-          });
-        }
-      }
-    );
+    if (node.nodeType === "user"){
+      twitterWidgetsCreateTimeline(node.screenName, function(err, el){
+        callback(err, el);
+      });
+    }
+    else if (node.nodeType === "hashtag"){
+      twitterHashtagSearch(node.nodeId, function(err, el){
+        callback(err, el);
+      });
+    }
+
+    // async.whilst(
+    //   function(){
+    //     var test = tfDiv.childNodes.length > 0;
+    //     // console.log("test: " + test);
+    //     return test;
+    //   }, 
+    //   function(cb){
+    //     tfDiv.removeChild(tfDiv.firstChild);
+    //     async.setImmediate(function() {
+    //       cb();
+    //     });
+    //   }, 
+    //   function(){
+    //     if (node.nodeType === "user"){
+    //       twitterWidgetsCreateTimeline(node.screenName, function(err, el){
+    //         callback(err, el);
+    //       });
+    //     }
+    //     else if (node.nodeType === "hashtag"){
+    //       twitterHashtagSearch(node.nodeId, function(err, el){
+    //         callback(err, el);
+    //       });
+    //     }
+    //   }
+    // );
   }
 
   function categoryButtonHandler(e){

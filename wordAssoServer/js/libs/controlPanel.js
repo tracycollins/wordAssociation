@@ -66,17 +66,24 @@ function ControlPanel() {
 
     var screenName = node.screenName;
 
+    var timelineText = document.createElement("TEXT");
+    timelineText.setAttribute("id", "timelineText");
+    timelineText.setAttribute("class", "hashtagText");
+    timelineText.innerHTML = "<br>" + "KW: " + node.keywords + " | KWA: " + node.keywordsAuto + "<br>";
+    timelineDiv.appendChild(timelineText);
+
+
     twttr.widgets.createTimeline(
       { sourceType: "profile", screenName: screenName },
       timelineDiv,
       { width: "450", height: "700", related: "twitterdev,twitterapi" })
     .then(function (el) {
 
-      var timelineText = document.createElement("TEXT");
-      timelineText.setAttribute("id", "timelineText");
-      timelineText.setAttribute("class", "timelineText");
-      timelineText.innerHTML = "KW: " + node.keywords + " | KWA: " + node.keywordsAuto;
-      timelineDiv.appendChild(timelineText);
+      // var timelineText = document.createElement("TEXT");
+      // timelineText.setAttribute("id", "timelineText");
+      // timelineText.setAttribute("class", "timelineText");
+      // timelineText.innerHTML = "KW: " + node.keywords + " | KWA: " + node.keywordsAuto;
+      // timelineDiv.appendChild(timelineText);
 
       callback(null, el);
     })

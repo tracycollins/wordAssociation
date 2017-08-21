@@ -3,6 +3,24 @@
 
 // const heapdumpThresholdEnabled = false;
 
+var twitterUserThreecee = {
+    userId : "14607119",
+    profileImageUrl : "http://pbs.twimg.com/profile_images/780466729692659712/p6RcVjNK.jpg",
+    profileUrl : "http://twitter.com/threecee",
+    url : "http://threeCeeMedia.com",
+    name : "Tracy Collins",
+    screenName : "threecee",
+    nodeId : "14607119",
+    nodeType : "user",
+    following : null,
+    description : "photography + animation + design",
+    isTwitterUser : true,
+    screenNameLower : "threecee"
+};
+
+var defaultTwitterUser = twitterUserThreecee;
+
+
 let metricsRate = "1MinuteRate";
 
 const MAX_Q = 1000;
@@ -1225,13 +1243,25 @@ function initSocketHandler(socketObj) {
       + " | SENT AT " + moment(parseInt(viewerObj.timeStamp)).format(compactDateTimeFormat)
     ));
 
-    socket.emit("VIEWER_READY_ACK", 
-      {
-        userId: viewerObj.viewerId,
-        timeStamp: moment().valueOf(),
-        viewerSessionKey: moment().valueOf()
+
+    userServer.findOne({user: defaultTwitterUser}, function(err, user){
+      if (err) {
+        socket.emit("SET_TWITTER_USER", defaultTwitterUser);
       }
-    );
+      else {
+        socket.emit("SET_TWITTER_USER", user);
+      }
+
+      socket.emit("VIEWER_READY_ACK", 
+        {
+          userId: viewerObj.viewerId,
+          timeStamp: moment().valueOf(),
+          viewerSessionKey: moment().valueOf()
+        }
+      );
+  
+    });
+
   });
 
   socket.on("tweet", socketRxTweet);

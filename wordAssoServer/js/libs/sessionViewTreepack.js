@@ -1734,55 +1734,16 @@ function ViewTreepack() {
 
   function drawSimulation(callback){
 
-    async.series([
-      function(cb){ updateNodeCircles(cb) },
-      function(cb){ updateNodeLabels(cb) },
-      function(cb){ updateTopTerm(cb) }
-    ], function(err, results) {
-      if (newCurrentMaxMetricFlag) {
-
-        newCurrentMaxMetricFlag = false;
-
-        nodeLabelSizeScale = d3.scaleLinear()
-          .domain([1, currentMaxMetric])
-          .range([fontSizeMin, fontSizeMax])
-          .clamp(true);
-
-        defaultRadiusScale = d3.scaleLinear()
-          .domain([1, Math.sqrt(currentMaxMetric)])
-          .range([minRadius, maxRadius])
-          .clamp(true);
-
+    async.parallel(
+      {
+        unc: updateNodeCircles,
+        utt: updateNodeLabels,
+        unc: updateTopTerm
+      }, 
+      function(err, results) {
+        callback();
       }
-      callback();
-    });
-
-
-    // updateNodeCircles(function(){
-    //   updateNodeLabels(function(){
-    //     updateTopTerm(function(){
-
-    //       if (newCurrentMaxMetricFlag) {
-
-    //         newCurrentMaxMetricFlag = false;
-
-    //         nodeLabelSizeScale = d3.scaleLinear()
-    //           .domain([1, currentMaxMetric])
-    //           .range([fontSizeMin, fontSizeMax])
-    //           .clamp(true);
-
-    //         defaultRadiusScale = d3.scaleLinear()
-    //           .domain([1, Math.sqrt(currentMaxMetric)])
-    //           .range([minRadius, maxRadius])
-    //           .clamp(true);
-
-    //       }
-
-    //       callback();
-
-    //     });
-    //   });
-    // });
+    );
   }
 
   function updateSimulation() {

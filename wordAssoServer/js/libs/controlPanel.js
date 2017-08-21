@@ -780,7 +780,7 @@ function ControlPanel() {
       max: 1000.0,
       value: config.defaultGravity,
       // value: config.defaultGravity,
-      multiplier: 1
+      multiplier: 1000.0
     };
 
     var gravitySliderText = {

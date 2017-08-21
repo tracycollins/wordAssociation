@@ -1405,9 +1405,7 @@ function ViewTreepack() {
       .style("opacity", function(d) { 
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
-      .style("fill", function(d) { 
-        return palette.white; 
-      })
+      .style("fill", palette.white)
       .style("stroke-width", function(d) { 
         if (d.keywordsMatch) { return "12.0"; }
         if (d.keywordsMismatch) { return "8.0"; }

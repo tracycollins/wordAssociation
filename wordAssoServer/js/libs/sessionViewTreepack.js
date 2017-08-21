@@ -1740,7 +1740,7 @@ function ViewTreepack() {
         utt: updateNodeLabels,
         unc: updateTopTerm
       }, 
-      function(err, results) {
+      function() {
         callback();
       }
     );

@@ -802,24 +802,10 @@ function ControlPanel() {
         self.tableCreateRow(controlSliderTable, optionsBody, ["LINK DISTANCE", linkDistanceSlider, linkDistanceSliderText]);
         if (callback) callback(dashboardMain);
         break;
-
       case "treepack":
         self.tableCreateRow(infoTable, optionsBody, [status]);
         self.tableCreateRow(infoTable, optionsBody, [status2]);
-        self.tableCreateRow(controlTable, 
-          optionsBody, 
-          [
-            pauseButton, 
-            statsButton, 
-            testModeButton, 
-            nodeCreateButton, 
-            removeDeadNodeButton, 
-            disableLinksButton, 
-            blahButton,
-            antonymButton,
-            fullscreenButton
-          ]);
-        self.tableCreateRow(controlTable, optionsBody, [resetButton]);
+        self.tableCreateRow(controlTable, optionsBody, [resetButton, pauseButton, statsButton, fullscreenButton]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["FONT MIN", fontSizeMinRatioSlider, fontSizeMinRatioSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["FONT MAX", fontSizeMaxRatioSlider, fontSizeMaxRatioSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["TRANSITION", transitionDurationSlider, transitionDurationSliderText]);

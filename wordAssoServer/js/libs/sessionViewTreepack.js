@@ -1159,7 +1159,7 @@ function ViewTreepack() {
       })
       // .style("fill", palette.white)
       .style("fill", function(d) { 
-        if (d.newFlag) { return palette.white; }
+        // if (d.newFlag) { return palette.white; }
         if (d.mouseHoverFlag) { return palette.blue; }
         if (d.isKeyword) { return d.keywordColor; }
         if (d.isTrendingTopic || d.isTwitterUser || d.isNumber || d.isCurrency) { return palette.white; }

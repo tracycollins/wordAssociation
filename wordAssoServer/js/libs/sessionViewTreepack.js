@@ -1741,6 +1741,21 @@ function ViewTreepack() {
         unc: updateTopTerm
       }, 
       function() {
+        if (newCurrentMaxMetricFlag) {
+
+          newCurrentMaxMetricFlag = false;
+
+          nodeLabelSizeScale = d3.scaleLinear()
+            .domain([1, currentMaxMetric])
+            .range([fontSizeMin, fontSizeMax])
+            .clamp(true);
+
+          defaultRadiusScale = d3.scaleLinear()
+            .domain([1, Math.sqrt(currentMaxMetric)])
+            .range([minRadius, maxRadius])
+            .clamp(true);
+
+        }
         callback();
       }
     );

@@ -1337,7 +1337,7 @@ function ViewTreepack() {
       .style("opacity", function(d) { 
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
-      // .style("fill", palette.white)
+      .style("fill", palette.white)
       // .style("fill", function(d) { 
       //   return palette.white; 
       // })

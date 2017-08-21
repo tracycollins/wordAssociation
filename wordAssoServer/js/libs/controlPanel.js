@@ -305,7 +305,7 @@ function ControlPanel() {
     if (!document.getElementById("gravitySlider")) { return; }
     console.log("setGravitySliderValue: " + value);
     document.getElementById("gravitySlider").value = (value * document.getElementById("gravitySlider").getAttribute("multiplier"));
-    document.getElementById("gravitySliderText").innerHTML = value.toFixed(3);
+    document.getElementById("gravitySliderText").innerHTML = value.toFixed(5);
   };
 
   this.setChargeSliderValue = function (value) {
@@ -771,8 +771,8 @@ function ControlPanel() {
       type: "SLIDER",
       id: "gravitySlider",
       class: "slider",
-      min: -2.0,
-      max: 2,
+      min: -1.0,
+      max: 1.0,
       // value: (config.defaultGravity * config.defaultMultiplier),
       value: config.defaultGravity * config.defaultMultiplier,
       multiplier: config.defaultMultiplier

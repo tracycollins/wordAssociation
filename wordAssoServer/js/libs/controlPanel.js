@@ -880,20 +880,26 @@ function ControlPanel() {
 
     console.log("UPDATE CONTROL PANEL");
 
-    if (config.blahMode) {
-      document.getElementById("blahToggleButton").style.color = "red";
-      document.getElementById("blahToggleButton").style.border = "2px solid red";
-    } else {
-      document.getElementById("blahToggleButton").style.color = "#888888";
-      document.getElementById("blahToggleButton").style.border = "1px solid white";
+    if (controlIdHash.blahToggleButton) {
+      if (config.blahMode) {
+        document.getElementById("blahToggleButton").style.color = "red";
+        document.getElementById("blahToggleButton").style.border = "2px solid red";
+      } else {
+        document.getElementById("blahToggleButton").style.color = "#888888";
+        document.getElementById("blahToggleButton").style.border = "1px solid white";
+      }
     }
-    if (config.antonymFlag) {
-      document.getElementById("antonymToggleButton").style.color = "red";
-      document.getElementById("antonymToggleButton").style.border = "2px solid red";
-    } else {
-      document.getElementById("antonymToggleButton").style.color = "#888888";
-      document.getElementById("antonymToggleButton").style.border = "1px solid white";
+
+    if (controlIdHash.antonymToggleButton) {
+      if (config.antonymFlag) {
+        document.getElementById("antonymToggleButton").style.color = "red";
+        document.getElementById("antonymToggleButton").style.border = "2px solid red";
+      } else {
+        document.getElementById("antonymToggleButton").style.color = "#888888";
+        document.getElementById("antonymToggleButton").style.border = "1px solid white";
+      }
     }
+
     if (config.pauseFlag) {
       document.getElementById("pauseToggleButton").style.color = "red";
       document.getElementById("pauseToggleButton").style.border = "2px solid red";
@@ -901,6 +907,7 @@ function ControlPanel() {
       document.getElementById("pauseToggleButton").style.color = "#888888";
       document.getElementById("pauseToggleButton").style.border = "1px solid white";
     }
+
     if (config.showStatsFlag) {
       document.getElementById("statsToggleButton").style.color = "red";
       document.getElementById("statsToggleButton").style.border = "2px solid red";
@@ -908,20 +915,7 @@ function ControlPanel() {
       document.getElementById("statsToggleButton").style.color = "#888888";
       document.getElementById("statsToggleButton").style.border = "1px solid white";
     }
-    if (config.testModeEnabled) {
-      document.getElementById("testModeToggleButton").style.color = "red";
-      document.getElementById("testModeToggleButton").style.border = "2px solid red";
-    } else {
-      document.getElementById("testModeToggleButton").style.color = "#888888";
-      document.getElementById("testModeToggleButton").style.border = "1px solid white";
-    }
-    if (config.removeDeadNodesFlag) {
-      document.getElementById("removeDeadNodeToogleButton").style.color = "red";
-      document.getElementById("removeDeadNodeToogleButton").style.border = "2px solid red";
-    } else {
-      document.getElementById("removeDeadNodeToogleButton").style.color = "#888888";
-      document.getElementById("removeDeadNodeToogleButton").style.border = "1px solid white";
-    }
+
     if ((config.sessionViewType == "force") || (config.sessionViewType == "flow")){  
       if (config.disableLinks) {
         document.getElementById("disableLinksToggleButton").style.color = "red";

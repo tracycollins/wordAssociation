@@ -1743,13 +1743,15 @@ function ViewTreepack() {
 
         newCurrentMaxMetricFlag = false;
 
-        nodeLabelSizeScale = d3.scaleLinear().domain([1, currentMaxMetric]);
-          // .range([fontSizeMin, fontSizeMax])
-          // .clamp(true);
+        nodeLabelSizeScale = d3.scaleLinear()
+          .domain([1, currentMaxMetric])
+          .range([fontSizeMin, fontSizeMax])
+          .clamp(true);
 
-        defaultRadiusScale = d3.scaleLinear().domain([1, Math.sqrt(currentMaxMetric)]);
-          // .range([minRadius, maxRadius])
-          // .clamp(true);
+        defaultRadiusScale = d3.scaleLinear()
+          .domain([1, Math.sqrt(currentMaxMetric)])
+          .range([minRadius, maxRadius])
+          .clamp(true);
 
       }
       callback();

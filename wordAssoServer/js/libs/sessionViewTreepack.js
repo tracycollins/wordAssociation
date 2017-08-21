@@ -4,6 +4,8 @@ function ViewTreepack() {
 
   "use strict";
 
+  var MIN_FOLLOWERS = 10000;
+
   var currentTwitterUser = twitterUserThreecee;
   var currentTwitterHashtag = "resist";
 

@@ -156,15 +156,12 @@ function ViewTreepack() {
   var forceYmultiplier = config.defaultForceYmultiplier;
   var collisionRadiusMultiplier = 1.01;
   var collisionIterations = config.defaultCollisionIterations;
-  // var globalLinkStrength = config.defaultLinkStrength;
-  // var globalLinkDistance = config.defaultLinkDistance;
   var velocityDecay = config.defaultVelocityDecay;
   var fontSizeMinRatio = config.defaultFontSizeMinRatio;
   var fontSizeMaxRatio = config.defaultFontSizeMaxRatio;
   var fontSizeTopTermRatio = config.defaultFontSizeTopTermRatio;
   var fontSizeMin = config.defaultFontSizeMinRatio * height;
   var fontSizeMax = config.defaultFontSizeMaxRatio * height;
-  // var fontTopTerm = config.defaultFontSizeTopTermRatio * height;
 
   var rowSpacing = fontSizeTopTermRatio*110; // %
   var colSpacing = 90/maxHashtagCols; // %
@@ -214,11 +211,8 @@ function ViewTreepack() {
   };
 
   var minOpacity = 0.35;
-  // var blahFlag = false;
   var antonymFlag = false;
   var removeDeadNodesFlag = true;
-
-  // var defaultPosDuration = 150;
 
   var DEFAULT_AGE_RATE = 1.0;
   var MAX_RX_QUEUE = 100;
@@ -296,39 +290,7 @@ function ViewTreepack() {
     .attr("class", "tooltip")
     .style("visibility", "hidden");
 
-  // var divTooltipText = divTooltip.append("div")
-  //   .attr("id", "divTooltipText")
-  //   .attr("class", "tooltip");
-
-
-  // var twitterProfile = d3.select("#twitterProfileDiv").append("svg:svg")  
-  //   .attr("id", "twitterProfile")
-  //   .attr("width", 100)
-  //   .attr("height", 100)
-  //   .attr("viewbox", 1e-6, 1e-6, 100, 100)
-  //   .attr("x", 0)
-  //   .attr("y", 0)
-  //   .append("svg:a")
-  //   .attr("id", "twitterProfileLink")
-  //   .attr("xlink:show", "new")
-  //   .attr("xlink:href", "http://word.threeceelabs.com");
-
-
-  // var twitterProfileImage = twitterProfile.append("svg:image")
-  //   .attr("id", "twitterProfileImage")
-  //   .attr("xlink:href", "favicon.png")
-  //   .attr("width", 100)
-  //   .attr("height", 100)
-  //   .style("opacity", 1)
-  //   .style("visibility", "hidden");
-
   var topTermsDiv = d3.select("#topTermsDiv");
-  // var twitterFeedDiv = d3.select("#twitterFeedDiv");
-  // var twitterProfileImage = d3.selectAll("#profileImage");
-
-  // var twitterProfileImage = new Image(200, 200);
-  // twitterProfileImage.id = "twitterProfileImage";
-  // twitterProfileImage.src = "favicon.png";
 
   var topTermsCheckBox = topTermsDiv.append("input")
     .attr("id", "topTermsCheckBox")
@@ -346,9 +308,6 @@ function ViewTreepack() {
     });
 
   var mouseMoveTimeoutEventHandler = function(e) {
-
-    // twitterFeedDiv.style("visibility", "hidden");
-    // twitterProfileImage.style("visibility", "hidden");
 
     d3.selectAll("iframe").style("visibility", "hidden");
 
@@ -369,14 +328,6 @@ function ViewTreepack() {
 
     topTermsDiv.style("visibility", "visible");
     nodeTopTermLabelSvgGroup.style("visibility", "visible");
-    // twitterFeedDiv.style("visibility", "visible");
-    // twitterProfileImage.style("visibility", "visible");
-
-    // var twitterWidget = d3.select("#twitter-widget-0");
-    
-    // if (twitterWidget !== undefined) { 
-    //   twitterWidget.style("visibility", "visible");
-    // }
 
     if (mouseHoverFlag) {
       d3.select("body").style("cursor", "pointer");
@@ -436,9 +387,6 @@ function ViewTreepack() {
   var panzoomElement = document.getElementById("svgTreemapLayoutArea");
   panzoom(panzoomElement, {zoomSpeed: 0.030});
 
-//============TREEMAP=================================
-
-
   var svgTopTerms = topTermsDiv.append("svg:svg")
     .attr("id", "svgTopTerms")
     .attr("width", width)
@@ -456,12 +404,8 @@ function ViewTreepack() {
 
   var fontTopTerm = config.defaultFontSizeTopTermRatio * topTermsDiv.height;
 
-  // nodeTopTermLabelSvgGroup.style("visibility", "visible");
-
   var nodeSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeSvgGroup");
   var nodeLabelSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeLabelSvgGroup");
-
-
 
   console.log("@@@@@@@ CLIENT @@@@@@@@");
 
@@ -482,7 +426,6 @@ function ViewTreepack() {
   self.setEnableAgeNodes = function(enabled) {
     enableAgeNodes = enabled;
     config.enableAgeNodes = enabled;
-    // console.debug("SET ENABLE AGE NODES: " + enableAgeNodes);
   };
   
   this.deleteNode = function() {
@@ -1058,33 +1001,13 @@ function ViewTreepack() {
     nodeTopTermLabels
         .attr("x", xposition)
         .attr("y", yposition)
-      // .attr("class", "update")
-      // .on("mouseover", nodeMouseOver)
-      // .on("mouseout", nodeMouseOut)
-      // .text(function(d) {
-      //   return d.displaytext;
-      // })
-      // .style("font-size", fontTopTerm)
-      // .style("fill", function(d) { 
-      //   if (d.newFlag) { return palette.white; }
-      //   if (d.mouseHoverFlag) { return palette.blue; }
-      //   if (d.isKeyword) { return d.keywordColor; }
-      //   if (d.isTrendingTopic || d.isTwitterUser || d.isNumber || d.isCurrency) { return palette.white; }
-      //   if ((d.isGroupNode || d.isSessionNode) && (d.ageMaxRatio < 0.01)) { return palette.yellow; }
-      //   return palette.darkgray; 
-      // })
       .style("opacity", function(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
         return topTermLabelOpacityScale(d.ageMaxRatio); 
       });
-      // .transition()
-      //   .duration(transitionDuration)
-      //   .attr("x", xposition)
-      //   .attr("y", yposition);
 
     nodeTopTermLabels
       .enter().append("text")
-      // .attr("class", "enter")
       .style("text-anchor", "right")
       .style("alignment-baseline", "bottom")
       .on("mouseover", nodeMouseOver)
@@ -1097,14 +1020,11 @@ function ViewTreepack() {
         return d.displaytext;
       })
       .style("font-family", "monospace")
-      // .style("font-weight", "normal")
       .style("opacity", function(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
         return topTermLabelOpacityScale(d.ageMaxRatio); 
       })
-      // .style("fill", palette.white)
       .style("fill", function(d) { 
-        // if (d.newFlag) { return palette.white; }
         if (d.mouseHoverFlag) { return palette.blue; }
         if (d.isKeyword) { return d.keywordColor; }
         if (d.isTrendingTopic || d.isTwitterUser || d.isNumber || d.isCurrency) { return palette.white; }
@@ -1126,16 +1046,6 @@ function ViewTreepack() {
       .enter()
       .append("circle")
       .attr("nodeId", function(d) { return d.nodeId; })
-      // .attr("cx", function(d) { 
-      //   if (Number.isNaN(d.x)) {
-      //     console.error("d.x ERROR\n" + jsonPrint(d));
-      //     d.x = 100;
-      //     return 100;
-      //   }
-      //   else {
-      //     return d.x; 
-      //   }
-      // })
       .attr("cx", function(d) { 
         return d.x; 
       })
@@ -1188,50 +1098,12 @@ function ViewTreepack() {
         });
 
     nodeCircles
-      // .attr("cx", function(d) { 
-      //   // if (typeof d.x != "number") {
-      //   if (Number.isNaN(d.x)) {
-      //     console.error("d.x ERROR\n" + jsonPrint(d));
-      //     d.x = 100;
-      //     return 100;
-      //   }
-      //   else {
-      //     return d.x; 
-      //   }
-      // })
       .attr("cx", function(d) { 
         return d.x; 
       })
       .attr("cy", function(d) { 
         return d.y; 
       })
-      // .style("fill", function(d) { 
-      //   if (!d.isKeyword) { return palette.black; }
-      //   return d.keywordColor; 
-      // })
-      // .style("stroke", function(d) { 
-      //   if (d.keywordsMismatch) { return palette.red; }
-      //   if (d.keywordsMatch) { return palette.green; }
-      //   if (d.keywordsAuto.right) { return palette.yellow; }
-      //   if (d.keywordsAuto.left) { return palette.blue; }
-      //   if (d.keywordsAuto.positive) { return palette.green; }
-      //   if (d.keywordsAuto.negative) { return palette.red; }
-      //   return palette.white; 
-      // })
-      // .style("stroke-width", function(d) { 
-      //   if (d.keywordsMatch) { return "8.0"; }
-      //   if (d.isTopTerm) { return "4.0"; }
-      //   if (d.newFlag) { return "2.0"; }
-      //   if (d.keywordsAuto.right) { return "4.0"; }
-      //   if (d.keywordsAuto.left) { return "4.0"; }
-      //   if (d.keywordsAuto.positive) { return "4.0"; }
-      //   if (d.keywordsAuto.negative) { return "4.0"; }
-      //   return "1.2"; 
-      // })
-      // .style("stroke-dasharray", function(d) { 
-      //   if (d.keywordsMismatch) { return "10,2"; }
-      //   return null; 
-      // })
       .style("opacity", function(d) { 
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
@@ -1270,38 +1142,10 @@ function ViewTreepack() {
     nodeLabels
       .attr("x", function(d) { return d.x; })
       .attr("y", function(d) { return d.y; })
-      // .text(function(d) {
-      //   if (d.nodeType === "hashtag") { return "#" + d.text.toUpperCase(); }
-      //   // if (d.isTwitterUser) { 
-      //   if (d.nodeType === "user") { 
-      //     if (d.screenName) { 
-      //       return "@" + d.screenName.toUpperCase(); 
-      //     }
-      //     else if (d.name){
-      //       return "@" + d.name.toUpperCase(); 
-      //     }
-      //     else {
-      //       return "@UNKNOWN?"; 
-      //     }
-
-      //   }
-      //   if (d.isKeyword || d.isTrendingTopic || d.isTwitterUser) { 
-      //     if (d.nodeType === "hashtag") { return "#" + d.text.toUpperCase(); }
-      //     if (d.nodeType === "place") { return d.fullName.toUpperCase(); }
-      //     return d.nodeId.toUpperCase(); 
-      //   }
-      //   // if (d.nodeType === "hashtag") { return "#" + d.text.toUpperCase(); }
-      //   if (d.nodeType === "place") { return d.fullName; }
-      //   if (testMode) { return "blah"; }
-      //   return d.nodeId; 
-      // })
       .style("opacity", function(d) { 
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
       .style("fill", palette.white)
-      // .style("fill", function(d) { 
-      //   return palette.white; 
-      // })
       .style("font-size", function(d) {
         if (metricMode === "rate") {return nodeLabelSizeScale(d.rate);}
         if (metricMode === "mentions") {
@@ -1330,9 +1174,7 @@ function ViewTreepack() {
       })
       .text(function(d) {
         if (d.nodeType === "hashtag") { return "#" + d.text.toUpperCase(); }
-        // if (d.isTwitterUser) { 
         if (d.nodeType === "user") { 
-          // if (d.nodeType === "hashtag") { return "#" + d.text.toUpperCase(); }
           if (d.screenName) { return "@" + d.screenName.toUpperCase(); 
           }
           else if (d.name){
@@ -1609,13 +1451,6 @@ function ViewTreepack() {
             && (Object.keys(newNode.keywordsAuto).length > 0)
             ){
             keywords = newNode.keywordsAuto;
-            // console.warn("AUTO keywords"
-            //   + " | NID: " + newNode.nodeId 
-            //   + " | NTYPE: " + newNode.nodeType 
-            //   + " | isKeyword: " + newNode.isKeyword 
-            //   + "\nKWs\n" + jsonPrint(newNode.keywords)
-            //   + "\nKWAs\n" + jsonPrint(newNode.keywordsAuto)
-            // );
           }
           else if ((newNode.keywordsAuto !== undefined) 
             && newNode.keywordsAuto
@@ -1666,7 +1501,6 @@ function ViewTreepack() {
         }
 
         nodes.push(currentNode);
-        // console.info("MISS currentNode\n" + jsonPrint(currentNode));
         callback(null, nodesModifiedFlag);
       }
 
@@ -1992,25 +1826,20 @@ function ViewTreepack() {
   this.simulationControl = function(op) {
     switch (op) {
       case "RESET":
-        // console.info("SIMULATION CONTROL | OP: " + op);
         self.reset();
         runningFlag = false;
       break;
       case "START":
-        // console.info("SIMULATION CONTROL | OP: " + op);
         self.initD3timer();
         simulation.alphaTarget(0.7).restart();
         runningFlag = true;
       break;
       case "RESUME":
-        // console.info("SIMULATION CONTROL | OP: " + op);
-        // self.initD3timer();
         resumeTimeStamp = moment().valueOf();
         runningFlag = true;
         simulation.alphaTarget(0.7).restart();
       break;
       case "FREEZE":
-        // console.info("SIMULATION CONTROL | OP: " + op);
         if (!freezeFlag){
           freezeFlag = true;
           simulation.alpha(0);
@@ -2018,20 +1847,17 @@ function ViewTreepack() {
         }
       break;
       case "PAUSE":
-        // console.info("SIMULATION CONTROL | OP: " + op);
         resumeTimeStamp = 0;
         runningFlag = false;
         simulation.alpha(0);
         simulation.stop();
       break;
       case "STOP":
-        // console.info("SIMULATION CONTROL | OP: " + op);
         runningFlag = false;
         simulation.alpha(0);
         simulation.stop();
       break;
       case "RESTART":
-        // console.info("SIMULATION CONTROL | OP: " + op);
         simulation.alphaTarget(0.7).restart();
         runningFlag = true;
       break;
@@ -2041,14 +1867,11 @@ function ViewTreepack() {
   };
 
   this.resize = function() {
-    // console.info("RESIZE");
 
     d3image = d3.select("#d3group");
 
     width = getWindowDimensions().width;
     height = getWindowDimensions().height;
-
-    // console.info("width: " + width + " | height: " + height);
 
     foci = {
       left: {x: xFocusLeftRatio*width, y: yFocusLeftRatio*height}, 
@@ -2107,7 +1930,6 @@ function ViewTreepack() {
       .attr("y", 1e-6);
 
     fontTopTerm = fontSizeTopTermRatio * topTermsDiv.height;
-    // fontTopTerm = fontSizeTopTermRatio * height;
     rowSpacing = fontSizeTopTermRatio*110; // %
 
     if (simulation){
@@ -2152,7 +1974,6 @@ function ViewTreepack() {
           else {
             return foci.default.x;
           }
-          // return 0.5*width; 
         }).strength(function(d){
           return forceXmultiplier * gravity; 
         }))
@@ -2232,24 +2053,5 @@ function ViewTreepack() {
     self.resize();
     self.resetDefaultForce();
   };
-
-
-  // twttr.widgets.createTimeline(
-  //   {
-  //     sourceType: "profile",
-  //     screenName: "threecee"
-  //   },
-  //   document.getElementById("twitterFeedDiv"),
-  //   {
-  //     width: "450",
-  //     height: "700",
-  //     related: "twitterdev,twitterapi"
-  //   }).then(function (el) {
-  //     // console.log("Embedded a timeline.");
-
-  //     // twttr.widgets.load(
-  //     //   document.getElementById("twitterFeedDiv")
-  //     // );
-  // });
 
 }

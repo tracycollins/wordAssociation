@@ -3,6 +3,15 @@ function ControlPanel() {
   // var DEFAULT_SOURCE = "http://localhost:9997";
   var DEFAULT_SOURCE = "http://word.threeceelabs.com";
 
+  function jsonPrint(obj) {
+    if ((obj) || (obj === 0)) {
+      var jsonString = JSON.stringify(obj, null, 2);
+      return jsonString;
+    } else {
+      return "UNDEFINED";
+    }
+  }
+
   var parentWindow = window.opener;
   console.info("PARENT WINDOW ID | " + parentWindow.PARENT_ID);
   var self = this;
@@ -27,40 +36,8 @@ function ControlPanel() {
 
   var twitterFeedDiv = d3.select("#twitterFeedDiv");
   var timelineDiv = document.getElementById("timelineDiv");
+  timelineDiv.setAttribute("width", 800);
   var hashtagDiv =document.getElementById("hashtagDiv");
-
-  var twitterProfile = d3.select("#twitterProfileDiv").append("svg:svg")  
-    .attr("id", "twitterProfile")
-    .attr("width", 100)
-    .attr("height", 100)
-    .attr("viewbox", 1e-6, 1e-6, 100, 100)
-    .attr("x", 0)
-    .attr("y", 0)
-    .append("svg:a")
-    .attr("id", "twitterProfileLink")
-    .attr("xlink:show", "new")
-    .attr("xlink:href", "http://word.threeceelabs.com");
-  var twitterProfileImage = twitterProfile.append("svg:image")
-    .attr("id", "twitterProfileImage")
-    .attr("xlink:href", "favicon.png")
-    .attr("width", 100)
-    .attr("height", 100)
-    .style("opacity", 1)
-    .style("visibility", "hidden");
-
-  function jsonPrint(obj) {
-    if ((obj) || (obj === 0)) {
-      var jsonString = JSON.stringify(obj, null, 2);
-      return jsonString;
-    } else {
-      return "UNDEFINED";
-    }
-  }
-
-  function loadTwitterProfile(profileImageUrl) {
-    console.log("loadTwitterProfile: " + profileImageUrl);
-    twitterProfileImage.attr("xlink:href", profileImageUrl);
-  }
 
   function twitterWidgetsCreateTimeline(node, callback){
 
@@ -68,23 +45,20 @@ function ControlPanel() {
 
     var timelineText = document.createElement("TEXT");
     timelineText.setAttribute("id", "timelineText");
-    timelineText.setAttribute("class", "hashtagText");
-    timelineText.innerHTML = "<br><br>" + "KW: " + node.keywords + " | KWA: " + node.keywordsAuto + "<br><br>";
+    timelineText.setAttribute("class", "timelineText");
+    timelineText.innerHTML = "<br><br>" 
+      + node.followersCount + " FLWRs"
+      + " | " + node.friendsCount + " FRNDs" 
+      + " | " + node.statusesCount + " Ts"
+      + " | KW: " + node.keywords + " (M) / " + node.keywordsAuto + "(A)" + "<br><br>";
     timelineDiv.appendChild(timelineText);
 
 
     twttr.widgets.createTimeline(
       { sourceType: "profile", screenName: screenName },
       timelineDiv,
-      { width: "450", height: "700", related: "twitterdev,twitterapi" })
+      { width: "800", height: "600"})
     .then(function (el) {
-
-      // var timelineText = document.createElement("TEXT");
-      // timelineText.setAttribute("id", "timelineText");
-      // timelineText.setAttribute("class", "timelineText");
-      // timelineText.innerHTML = "KW: " + node.keywords + " | KWA: " + node.keywordsAuto;
-      // timelineDiv.appendChild(timelineText);
-
       callback(null, el);
     })
     .catch(function(err){
@@ -272,45 +246,10 @@ function ControlPanel() {
   nodeSearchInput.setAttribute("autofocus", true);
   nodeSearchInput.setAttribute("autocapitalize", "none");
   nodeSearchInput.setAttribute("value", nodeSearchValue);
-  // nodeSearchInput.setAttribute("onkeydown", "if (event.keyCode === 13) { return nodeSearch(); }");
   nodeSearchInput.addEventListener("keydown", function(e){ nodeSearchHandler(e); }, false);
 
-  // var nodeSearchDiv = document.getElementById("nodeSearchDiv");
   twitterCategoryDiv.appendChild(nodeSearchLabel);
   twitterCategoryDiv.appendChild(nodeSearchInput);
-
-  // var inputChangedTimeout;
-  // var checkInputTextInterval;
-
-  // clearTimeout(inputChangedTimeout);
-  // clearInterval(checkInputTextInterval);
-
-  // checkInputTextInterval = setInterval(function() {
-  //     if (statsObj.serverConnected && nodeSearchEnabled) {
-  //         currentInput = document.getElementById("nodeSearchInput").value.toLowerCase();
-  //         if (!currentInput || typeof currentInput === 'undefined') {
-  //             clearTimeout(inputChangedTimeout);
-  //         } else if (enterKeyDownFlag || (previousInput != currentInput)) {
-  //             enterKeyDownFlag = false;
-  //             clearTimeout(inputChangedTimeout);
-  //             timeDelta = moment().valueOf() - previousTimestamp;
-  //             // console.log("CHANGE [" + timeDelta + "]: "  + previousInput + " | " + currentInput);
-  //             previousTimestamp = moment().valueOf();
-  //             inputChangedTimeout = setTimeout(function() {
-  //                 sendnodeSearch('PROMPT', currentInput, function(dataTransmitted) {
-  //                     console.log("TXD: " + dataTransmitted);
-  //                     currentInput = document.getElementById("nodeSearchInput");
-  //                     currentInput.value = '';
-  //                 });
-  //             }, responseTimeoutInterval);
-  //         }
-  //         previousInput = document.getElementById("nodeSearchInput").value.toLowerCase();
-  //     } else if (statsObj.serverConnected && !nodeSearchEnabled) {
-  //         clearTimeout(inputChangedTimeout);
-  //         currentInput = document.getElementById("nodeSearchInput");
-  //         currentInput.value = '';
-  //     }
-  // }, 100);
 
   this.setVelocityDecaySliderValue = function (value) {
     if (!document.getElementById("velocityDecaySlider")) { return; }
@@ -343,7 +282,6 @@ function ControlPanel() {
   this.setGravitySliderValue = function (value) {
     if (!document.getElementById("gravitySlider")) { return; }
     console.log("setGravitySliderValue: " + value);
-    // document.getElementById("gravitySlider").value = (value * document.getElementById("gravitySlider").getAttribute("multiplier"));
     document.getElementById("gravitySlider").value = value;
     document.getElementById("gravitySliderText").innerHTML = value.toFixed(5);
   };
@@ -390,8 +328,6 @@ function ControlPanel() {
       );
       return;
     }
-
-    // parentWindow = event.source;
 
     console.debug("SOURCE"
       + " | ORIGIN: " + event.origin 
@@ -621,7 +557,6 @@ function ControlPanel() {
         console.log("--> STORED CONFIG | " + arg + ": " + config[arg]);
       });
     }
-    // statsObj = store.get("stats");
 
     console.log("CREATE CONTROL PANEL\n" + jsonPrint(config));
 

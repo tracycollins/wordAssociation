@@ -455,6 +455,18 @@ function ViewTreepack() {
     console.debug("SET ANTONYM: " + antonymFlag);
   };
 
+  this.setTwitterUser = function(user) {
+    console.log("setTwitterUser | "  + user.userId + " | " + user.screenName);
+
+    if (user.userId === twitterUserThreecee.userId) {
+      twitterUserThreecee = user;
+    }
+    
+    if (controlPanelReadyFlag){
+      controlPanelWindow.postMessage({op: "SET_TWITTER_USER", user: user}, DEFAULT_SOURCE);
+    }
+  };
+
   this.setMetricMode = function(mode) {
 
     config.defaultMetricMode = mode;

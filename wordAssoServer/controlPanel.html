@@ -11,6 +11,7 @@
 
     <style>
       body {
+        background-color: white;
         font-family: "Lucida Console", Monaco, monospace;
       }
       
@@ -36,12 +37,24 @@
         fill: blue;
       }
       
+      .timelineText {
+        top: 10;
+        left: 10;
+        padding: 10px;
+        font-size: 1.0em;
+        color: #cccccc;
+      }
+      
       .hashtagText {
         top: 10;
         left: 10;
         padding: 10px;
         font-size: 1.75em;
         color: #aaaaaa;
+      }
+      
+      #dashboardMain {
+        background-color: white;
       }
       
       #twitterCategoryDiv {
@@ -185,8 +198,8 @@
         </table>
       </div>
     </div>
-    <div id="nodeSearchDiv"></div>
-    <div id="twitterProfileDiv"></div>
+    <!-- <div id="nodeSearchDiv"></div> -->
+    <!-- <div id="twitterProfileDiv"></div> -->
     <div id="twitterCategoryDiv" class="twitterCategory"></div>
     <div id="hashtagDiv"></div>
     <div id="timelineDiv"></div>

@@ -776,8 +776,8 @@ function ControlPanel() {
       type: "SLIDER",
       id: "gravitySlider",
       class: "slider",
-      min: -1.0,
-      max: 1.0,
+      min: -0.1,
+      max: 0.1,
       value: config.defaultGravity,
       // value: config.defaultGravity,
       multiplier: 1

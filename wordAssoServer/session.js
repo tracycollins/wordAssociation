@@ -4035,7 +4035,7 @@ function initialize(callback) {
 
             currentSessionView.initD3timer();
 
-            initStatsUpdate(1000);
+            initStatsUpdate(5000);
 
             console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
 
@@ -4158,7 +4158,7 @@ function initialize(callback) {
             currentSessionView.simulationControl("START");
             currentSessionView.resize();
 
-            initStatsUpdate(1000);
+            initStatsUpdate(5000);
 
             console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
 
@@ -4281,7 +4281,7 @@ function initialize(callback) {
           currentSessionView.initD3timer();
           currentSessionView.resize();
 
-          initStatsUpdate(1000);
+          initStatsUpdate(5000);
 
           console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
 

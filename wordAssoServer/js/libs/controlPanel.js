@@ -448,7 +448,7 @@ function ControlPanel() {
   }
 
   function sliderHandler(e) {
-    
+
     console.log("sliderHandler: " + e.target.id);
     var currentSlider = document.getElementById(e.target.id);
     currentSlider.multiplier = currentSlider.getAttribute("multiplier");
@@ -771,8 +771,8 @@ function ControlPanel() {
       type: "SLIDER",
       id: "gravitySlider",
       class: "slider",
-      min: -5.0,
-      max: 5,
+      min: -2.0,
+      max: 2,
       // value: (config.defaultGravity * config.defaultMultiplier),
       value: config.defaultGravity * config.defaultMultiplier,
       multiplier: config.defaultMultiplier

@@ -995,13 +995,81 @@ function categorizeNode(categorizeObj) {
 
   switch (categorizeObj.node.nodeType){
     case "user":
+
+      debug(chalkSocket("categorizeNode USER"
+        + " | " + categorizeObj.node.userId
+        + " | " + categorizeObj.node.screenName
+        + "\n" + jsonPrint(categorizeObj.keywords)
+      ));
+
       keywordHashMap.set(categorizeObj.node.nodeId.toLowerCase(), categorizeObj.keywords);
       keywordHashMap.set(categorizeObj.node.screenName.toLowerCase(), categorizeObj.keywords);
-      userServer.updateKeywords({user: categorizeObj.node, keywords: categorizeObj.keywords}, function(err, updatedUser){});
+      userServer.updateKeywords({user: categorizeObj.node, keywords: categorizeObj.keywords}, function(err, updatedUser){
+
+        if (updater !== undefined){
+
+          updater.send({
+            op: "UPDATE_KEYWORD",
+            word: categorizeObj.node.screenName.toLowerCase(),
+            keywords: categorizeObj.keywords
+          }, function updaterPingError(err){
+            if (err) {
+              // pmx.emit("ERROR", "PING ERROR");
+              console.error(chalkError("*** UPDATER SEND ERROR"
+                + " | " + err
+              ));
+              slackPostMessage(slackChannel, "\n*UPDATER SEND ERROR*\n" + err);
+              initUpdater();
+            }
+          });
+
+          debug(chalkLog(">UPDATER UPDATE_KEYWORD USER"
+          ));
+
+        }
+        else {
+          console.log(chalkError("!!! NO UPDATER UPDATE_KEYWORD ... UNDEFINED"
+          ));
+        }
+      });
+
     break;
     case "hashtag":
+
+      debug(chalkSocket("categorizeNode HASHTAG"
+        + " | " + categorizeObj.node.nodeId
+        + "\n" + jsonPrint(categorizeObj.keywords)
+      ));
+
       keywordHashMap.set(categorizeObj.node.nodeId.toLowerCase(), categorizeObj.keywords);
-      hashtagServer.updateKeywords({hashtag: categorizeObj.node, keywords: categorizeObj.keywords}, function(err, updatedUser){});
+
+      hashtagServer.updateKeywords({hashtag: categorizeObj.node, keywords: categorizeObj.keywords}, function(err, updatedHashtag){
+        if (updater !== undefined){
+
+          updater.send({
+            op: "UPDATE_KEYWORD",
+            word: categorizeObj.node.nodeId.toLowerCase(),
+            keywords: categorizeObj.keywords
+          }, function updaterPingError(err){
+            if (err) {
+              // pmx.emit("ERROR", "PING ERROR");
+              console.error(chalkError("*** UPDATER SEND ERROR"
+                + " | " + err
+              ));
+              slackPostMessage(slackChannel, "\n*UPDATER SEND ERROR*\n" + err);
+              initUpdater();
+            }
+          });
+
+          debug(chalkLog(">UPDATER UPDATE_KEYWORD HASHTAG"
+          ));
+
+        }
+        else {
+          console.log(chalkError("!!! NO UPDATER UPDATE_KEYWORD ... UNDEFINED"
+          ));
+        }
+      });
     break;
   }
   
@@ -1311,6 +1379,7 @@ function initSocketNamespaces(callback){
 
 function printKeyword(keywords) {
   if (keywords === undefined) { return "FALSE"; }
+  if (!keywords) { return "FALSE"; }
   if (keywords.left !== undefined) { return "left"; }
   if (keywords.right !== undefined) { return "right"; }
   if (keywords.neutral !== undefined) { return "neutral"; }

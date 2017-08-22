@@ -211,7 +211,7 @@ function ViewTreepack() {
     default: {x: xFocusDefaultRatio*width, y: yFocusDefaultRatio*height}
   };
 
-  var minOpacity = 0.2;
+  var minOpacity = 0.1;
   var antonymFlag = false;
   var removeDeadNodesFlag = true;
 
@@ -355,7 +355,7 @@ function ViewTreepack() {
     
   var nodeLabelOpacityScale = d3.scaleLinear()
     .domain([1e-6, 0.1, 1.0])
-    .range([1.0, 0.4, minOpacity])
+    .range([1.0, 0.3, minOpacity])
     .clamp(true);
     
   var adjustedAgeRateScale = d3.scaleLinear()

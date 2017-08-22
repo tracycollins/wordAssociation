@@ -49,8 +49,10 @@ hostname = hostname.replace(/.home/g, "");
 hostname = hostname.replace(/.fios-router.home/g, "");
 hostname = hostname.replace(/word0-instance-1/g, "google");
 
-const localKeywordHashMap = new HashMap();
-const newKeywordsHashMap = new HashMap();
+// const localKeywordHashMap = new HashMap();
+// const newKeywordsHashMap = new HashMap();
+let localKeywordHashMap = {};
+let newKeywordsHashMap = {};
 
 
 let statsObj = {};
@@ -127,7 +129,8 @@ const sendKeywords = function(callback){
 
   debug(chalkInfo("sendKeywords START"));
 
-  const words = newKeywordsHashMap.keys();
+  const words = Object.keys(newKeywordsHashMap);
+
   let keywordsSent = 0;
 
   async.eachSeries(
@@ -138,7 +141,7 @@ const sendKeywords = function(callback){
 
       debugKeyword(chalkInfo("sendKeywords\nword: " + jsonPrint(word)));
 
-      let kwObj = newKeywordsHashMap.get(word);
+      let kwObj = newKeywordsHashMap[word];
       kwObj.keywordId = word;
 
       let updaterObj = {};
@@ -217,7 +220,6 @@ function saveFile (path, file, jsonObj, callback){
   let options = {};
 
   options.contents = JSON.stringify(jsonObj, null, 2);
-  // options.contents = jsonObj;
   options.path = fullPath;
   options.mode = "overwrite";
   options.autorename = false;
@@ -267,11 +269,11 @@ const keywordUpdate = function(w, kwObj, callback) {
     wordObj.keywords.keywordId = wd;
   }
 
-  if (localKeywordHashMap.has(wd)) {
+  if (localKeywordHashMap[wd] !== undefined) {
 
     debug(chalkAlert("* KW HM HIT | " + wd));
 
-    const prevKeywordObj = localKeywordHashMap.get(wd);
+    const prevKeywordObj = localKeywordHashMap[wd];
 
     if (equal(prevKeywordObj, wordObj.keywords)){
       debug(chalkAlert("--- WORD UNCHANGED ... SKIPPING | " + wd));
@@ -286,8 +288,8 @@ const keywordUpdate = function(w, kwObj, callback) {
 
       debug(chalkInfo("UPDATER: UPDATING KEYWORD | " + wd + ": " + jsonPrint(wordObj)));
 
-      newKeywordsHashMap.set(wordObj.nodeId, wordObj.keywords);
-      localKeywordHashMap.set(wordObj.nodeId, wordObj.keywords);
+      newKeywordsHashMap[wordObj.nodeId] = wordObj.keywords;
+      localKeywordHashMap[wordObj.nodeId] = wordObj.keywords;
 
       wordServer.findOneWord(wordObj, {noInc: true}, function(err, updatedWordObj) {
         if (err){
@@ -314,8 +316,8 @@ const keywordUpdate = function(w, kwObj, callback) {
       + ": " + jsonPrint(wordObj)
     ));
 
-    newKeywordsHashMap.set(wordObj.nodeId, wordObj.keywords);
-    localKeywordHashMap.set(wordObj.nodeId, wordObj.keywords);
+    newKeywordsHashMap[wordObj.nodeId] = wordObj.keywords;
+    localKeywordHashMap[wordObj.nodeId] = wordObj.keywords;
 
     wordServer.findOneWord(wordObj, {noInc: true}, function(err, updatedWordObj) {
       if (err){
@@ -339,7 +341,7 @@ const keywordUpdate = function(w, kwObj, callback) {
 
 const updateKeywords = function(folder, file, callback){
 
-  newKeywordsHashMap.clear();
+  newKeywordsHashMap = {};
 
   const fullPath = folder + "/" + file;
 
@@ -400,96 +402,6 @@ const updateKeywords = function(folder, file, callback){
                 keywordUpdate(w, kwObj, function(err, updatedWord){
                   cb(err);
                 });
-                // let wd = w.toLowerCase();
-                // wd = wd.replace(/\./g, "");  // KLUDGE:  better way to handle "." in keywords?
-
-                // let kwObj = kwordsObj[w];  // kwObj = { "negative": 10, "right": 7 }
-
-                // let wordObj = new Word();
-
-                // wordObj.nodeId = wd;
-                // wordObj.isKeyword = true;
-
-                // // KLUDEGE: OVERWRITES ANY PREVIOUS KEYWORD SETTINGS FOR NOW
-                // wordObj.keywords = {};
-
-                // if (typeof kwObj === "string") {  // old style keyword: true/false; convert to new style
-                //   wordObj.keywords[kwObj.toLowerCase()] = DEFAULT_KEYWORD_VALUE;
-                //   wordObj.keywords.keywordId = wd;
-                // }
-                // else {
-                //   wordObj.keywords = kwObj;
-                //   wordObj.keywords.keywordId = wd;
-                // }
-
-                // if (localKeywordHashMap.has(wd)) {
-
-                //   debug(chalkAlert("* KW HM HIT | " + wd));
-
-                //   const prevKeywordObj = localKeywordHashMap.get(wd);
-
-                //   if (equal(prevKeywordObj, wordObj.keywords)){
-                //     debug(chalkAlert("--- WORD UNCHANGED ... SKIPPING | " + wd));
-                //     cb();
-                //   }
-                //   else {
-                //     console.log(chalkAlert("+++ WORD CHANGED"
-                //       + " | " + wd
-                //       + "\nPREV\n" + jsonPrint(prevKeywordObj)
-                //       + "\nNEW\n" + jsonPrint(wordObj.keywords)
-                //     ));
-
-                //     debug(chalkInfo("UPDATER: UPDATING KEYWORD | " + wd + ": " + jsonPrint(wordObj)));
-
-                //     newKeywordsHashMap.set(wordObj.nodeId, wordObj.keywords);
-                //     localKeywordHashMap.set(wordObj.nodeId, wordObj.keywords);
-
-                //     wordServer.findOneWord(wordObj, {noInc: true}, function(err, updatedWordObj) {
-                //       if (err){
-                //         console.log(chalkError("ERROR: UPDATING KEYWORD | " + wd + ": " + kwordsObj[wd]));
-                //         cb();
-                //       }
-                //       else {
-                //         debug(chalkLog("+++ UPDATED KEYWORD"
-                //           + " | " + updatedWordObj.nodeId 
-                //           + " | " + updatedWordObj.raw 
-                //           + " | M " + updatedWordObj.mentions 
-                //           + " | I " + updatedWordObj.isIgnored 
-                //           + " | K " + updatedWordObj.isKeyword 
-                //           + " | K " + jsonPrint(updatedWordObj.keywords) 
-                //         ));
-                //         cb();
-                //       }
-                //     });
-                //   }
-                // }
-                // else {
-                //   debug(chalkInfo("UPDATER: UPDATING KEYWORD"
-                //     + " | " + wd
-                //     + ": " + jsonPrint(wordObj)
-                //   ));
-
-                //   newKeywordsHashMap.set(wordObj.nodeId, wordObj.keywords);
-                //   localKeywordHashMap.set(wordObj.nodeId, wordObj.keywords);
-
-                //   wordServer.findOneWord(wordObj, {noInc: true}, function(err, updatedWordObj) {
-                //     if (err){
-                //       console.log(chalkError("ERROR: UPDATING KEYWORD | " + wd + ": " + kwordsObj[wd]));
-                //       cb();
-                //     }
-                //     else {
-                //       debug(chalkLog("+++ UPDATED KEYWORD"
-                //         + " | " + updatedWordObj.nodeId 
-                //         + " | " + updatedWordObj.raw 
-                //         + " | M " + updatedWordObj.mentions 
-                //         + " | I " + updatedWordObj.isIgnored 
-                //         + " | K " + updatedWordObj.isKeyword 
-                //         + " | K " + jsonPrint(updatedWordObj.keywords) 
-                //       ));
-                //       cb();
-                //     }
-                //   });
-                // }
 
               },
 
@@ -500,10 +412,10 @@ const updateKeywords = function(folder, file, callback){
                 }
                 else {
                   console.log(chalkInfo("=== KEYWORD UPDATE COMPLETE"
-                    + " | TOTAL KEYWORDS:   " + newKeywordsHashMap.count()
+                    + " | TOTAL KEYWORDS:   " + Object.keys(newKeywordsHashMap).length
                   ));
 
-                  callback(null, newKeywordsHashMap.count());
+                  callback(null, Object.keys(newKeywordsHashMap).length);
                 }
               }
             );
@@ -686,7 +598,7 @@ process.on("message", function(m) {
         + " | INTERVAL: " + m.interval
       ));
 
-      defaultKeywordsFile = m.keywordsFile;
+      // defaultKeywordsFile = m.keywordsFile;
 
       options = {
         folder: m.folder,
@@ -745,6 +657,7 @@ process.on("message", function(m) {
         + " | KWs\n" + jsonPrint(m.keywords)
       ));
       keywordUpdate(m.word, m.keywords, function(err, wordObj){
+
         saveFile("", defaultKeywordsFile, localKeywordHashMap, function(err, results){});
       });
     break;

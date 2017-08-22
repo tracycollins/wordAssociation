@@ -211,7 +211,7 @@ function ViewTreepack() {
     default: {x: xFocusDefaultRatio*width, y: yFocusDefaultRatio*height}
   };
 
-  var minOpacity = 0.35;
+  var minOpacity = 0.2;
   var antonymFlag = false;
   var removeDeadNodesFlag = true;
 
@@ -355,7 +355,7 @@ function ViewTreepack() {
     
   var nodeLabelOpacityScale = d3.scaleLinear()
     .domain([1e-6, 0.1, 1.0])
-    .range([1.0, 0.5, minOpacity])
+    .range([1.0, 0.4, minOpacity])
     .clamp(true);
     
   var adjustedAgeRateScale = d3.scaleLinear()
@@ -732,7 +732,6 @@ function ViewTreepack() {
       else {
         age = node.age + (ageRate * (moment().valueOf() - node.ageUpdated));
       }
-
 
       ageMaxRatio = age/nodeMaxAge ;
 

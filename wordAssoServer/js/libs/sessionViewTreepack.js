@@ -727,10 +727,12 @@ function ViewTreepack() {
       }
 
       if ((node.nodeType === "user") && (node.followersCount > MIN_FOLLOWERS)){
-        ageRate *= MIN_FOLLOWERS_AGE_RATE_RATIO;
+        age = node.age + (ageRate * MIN_FOLLOWERS_AGE_RATE_RATIO * (moment().valueOf() - node.ageUpdated));
+      }
+      else {
+        age = node.age + (ageRate * (moment().valueOf() - node.ageUpdated));
       }
 
-      age = node.age + (ageRate * (moment().valueOf() - node.ageUpdated));
 
       ageMaxRatio = age/nodeMaxAge ;
 

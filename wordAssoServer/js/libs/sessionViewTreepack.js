@@ -4,7 +4,8 @@ function ViewTreepack() {
 
   "use strict";
 
-  var MIN_FOLLOWERS = 10000;
+  var MIN_FOLLOWERS = 25000;
+  var MIN_FOLLOWERS_AGE_RATE_RATIO = 0.9;  // age users with many followers at a slower rate
 
   var currentTwitterUser = twitterUserThreecee;
   var currentTwitterHashtag = "resist";
@@ -353,8 +354,8 @@ function ViewTreepack() {
     .clamp(true);
     
   var nodeLabelOpacityScale = d3.scaleLinear()
-    .domain([1e-6, 0.2, 1.0])
-    .range([1.0, 0.4, minOpacity])
+    .domain([1e-6, 0.1, 1.0])
+    .range([1.0, 0.5, minOpacity])
     .clamp(true);
     
   var adjustedAgeRateScale = d3.scaleLinear()
@@ -723,6 +724,10 @@ function ViewTreepack() {
 
       if (!enableAgeNodes || (resumeTimeStamp > 0)) {
         ageRate = 0;
+      }
+
+      if ((d.nodeType === "user") && (d.followersCount > MIN_FOLLOWERS)){
+        ageRate *= MIN_FOLLOWERS_AGE_RATE_RATIO;
       }
 
       age = node.age + (ageRate * (moment().valueOf() - node.ageUpdated));
@@ -1218,9 +1223,9 @@ function ViewTreepack() {
       })
       .style("fill", palette.white)
       .style("stroke-width", function(d) { 
-        if (d.keywordsMatch) { return "12.0"; }
-        if (d.keywordsMismatch) { return "8.0"; }
-        if (d.isTopTerm) { return "4.0"; }
+        if (d.keywordsMatch) { return "14.0"; }
+        if (d.keywordsMismatch) { return "10.0"; }
+        if (d.isTopTerm) { return "6.0"; }
         if (d.newFlag) { return "2.0"; }
         return "1.2"; 
       })

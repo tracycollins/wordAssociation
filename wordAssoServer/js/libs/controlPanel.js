@@ -37,6 +37,7 @@ function ControlPanel() {
   var twitterFeedDiv = d3.select("#twitterFeedDiv");
   var timelineDiv = document.getElementById("timelineDiv");
   timelineDiv.setAttribute("width", 800);
+
   var hashtagDiv =document.getElementById("hashtagDiv");
 
   function twitterWidgetsCreateTimeline(node, callback){
@@ -51,8 +52,8 @@ function ControlPanel() {
       + " | " + node.friendsCount + " FRNDs" 
       + " | " + node.statusesCount + " Ts"
       + " | KW: " + node.keywords + " (M) / " + node.keywordsAuto + "(A)" + "<br><br>";
-    timelineDiv.appendChild(timelineText);
 
+    timelineDiv.appendChild(timelineText);
 
     twttr.widgets.createTimeline(
       { sourceType: "profile", screenName: screenName },
@@ -67,7 +68,9 @@ function ControlPanel() {
     });
   }
 
-  function twitterHashtagSearch(text, callback){
+  function twitterHashtagSearch(node, callback){
+
+    var text = node.nodeId.toLowerCase();
 
     var url = "https://twitter.com/search?f=tweets&q=%23" + text ;
 

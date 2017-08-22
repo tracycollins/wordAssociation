@@ -2,15 +2,6 @@
 /*jslint node: true */
 "use strict";
 
-/*
-to create links in ticker view, need a way to track which words are the same in all streams/groups/sessions.
-then just create links between the common words in each stream
-should all instances of the word to be linked to all of the others? 
-hashmap
-word -> array of nodes
-when new instance of word arrives, iterate thru array of nodes and create linkskk
-*/
-
 // var DEFAULT_SOURCE = "http://localhost:9997";
 var DEFAULT_SOURCE = "http://word.threeceelabs.com";
 // var DEFAULT_SOURCE = "==SOURCE==";  // will be updated by wordAssoServer.js on app.get

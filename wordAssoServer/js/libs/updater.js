@@ -6,6 +6,8 @@ const DEFAULT_KEYWORD_VALUE = 100; // on scale of 1-100
 const ONE_SECOND = 1000;
 const ONE_MINUTE = ONE_SECOND * 60;
 
+let defaultKeywordsFile = "keywords.json";
+
 const compactDateTimeFormat = "YYYYMMDD HHmmss";
 
 let updateStatsCountsInterval;
@@ -15,7 +17,7 @@ let statsCountsComplete = true;
 // let config = require('../../config/config');
 
 const Dropbox = require("dropbox");
-const debug = require("debug")("wa");
+const debug = require("debug")("ud");
 const debugKeyword = require("debug")("kw");
 const moment = require("moment");
 const os = require("os");
@@ -204,6 +206,137 @@ const sendKeywords = function(callback){
 
 let prevKeywordModifiedMoment = moment("2010-01-01");
 
+function saveFile (path, file, jsonObj, callback){
+
+  const fullPath = path + "/" + file;
+
+  debug(chalkInfo("LOAD FOLDER " + path));
+  debug(chalkInfo("LOAD FILE " + file));
+  debug(chalkInfo("FULL PATH " + fullPath));
+
+  let options = {};
+
+  options.contents = JSON.stringify(jsonObj, null, 2);
+  // options.contents = jsonObj;
+  options.path = fullPath;
+  options.mode = "overwrite";
+  options.autorename = false;
+
+  dropboxClient.filesUpload(options)
+    .then(function(response){
+      debug(chalkLog("SAVED DROPBOX JSON | " + options.path));
+      callback(null, response);
+    })
+    .catch(function(error){
+      if (error.status === 429) {
+        console.error(chalkAlert("TOO MANY DROPBOX WRITES"));
+      }
+      else {
+        console.error(chalkError(moment().format(compactDateTimeFormat) 
+          + " | !!! ERROR DROBOX JSON WRITE | FILE: " + fullPath 
+          + "\nERROR: " + error
+          + "\nERROR: " + jsonPrint(error)
+          // + "\nERROR\n" + jsonPrint(error)
+        ));
+      }
+      callback(error, null);
+    });
+}
+
+const keywordUpdate = function(w, kwObj, callback) {
+
+  debug("keywordUpdate | w: " + w + " | " + jsonPrint(kwObj));
+
+  let wd = w.toLowerCase();
+  wd = wd.replace(/\./g, "");  // KLUDGE:  better way to handle "." in keywords?
+
+  let wordObj = new Word();
+
+  wordObj.nodeId = wd;
+  wordObj.isKeyword = true;
+
+  // KLUDEGE: OVERWRITES ANY PREVIOUS KEYWORD SETTINGS FOR NOW
+  wordObj.keywords = {};
+
+  if (typeof kwObj === "string") {  // old style keyword: true/false; convert to new style
+    wordObj.keywords[kwObj.toLowerCase()] = DEFAULT_KEYWORD_VALUE;
+    wordObj.keywords.keywordId = wd;
+  }
+  else {
+    wordObj.keywords = kwObj;
+    wordObj.keywords.keywordId = wd;
+  }
+
+  if (localKeywordHashMap.has(wd)) {
+
+    debug(chalkAlert("* KW HM HIT | " + wd));
+
+    const prevKeywordObj = localKeywordHashMap.get(wd);
+
+    if (equal(prevKeywordObj, wordObj.keywords)){
+      debug(chalkAlert("--- WORD UNCHANGED ... SKIPPING | " + wd));
+      callback(null, wordObj);
+    }
+    else {
+      console.log(chalkAlert("+++ WORD CHANGED"
+        + " | " + wd
+        + "\nPREV\n" + jsonPrint(prevKeywordObj)
+        + "\nNEW\n" + jsonPrint(wordObj.keywords)
+      ));
+
+      debug(chalkInfo("UPDATER: UPDATING KEYWORD | " + wd + ": " + jsonPrint(wordObj)));
+
+      newKeywordsHashMap.set(wordObj.nodeId, wordObj.keywords);
+      localKeywordHashMap.set(wordObj.nodeId, wordObj.keywords);
+
+      wordServer.findOneWord(wordObj, {noInc: true}, function(err, updatedWordObj) {
+        if (err){
+          console.log(chalkError("ERROR: UPDATING KEYWORD | " + wd + ": " + kwObj));
+          callback(err, wordObj);
+        }
+        else {
+          debug(chalkLog("+++ UPDATED KEYWORD"
+            + " | " + updatedWordObj.nodeId 
+            + " | " + updatedWordObj.raw 
+            + " | M " + updatedWordObj.mentions 
+            + " | I " + updatedWordObj.isIgnored 
+            + " | K " + updatedWordObj.isKeyword 
+            + " | K " + jsonPrint(updatedWordObj.keywords) 
+          ));
+          callback(null, updatedWordObj);
+        }
+      });
+    }
+  }
+  else {
+    debug(chalkInfo("UPDATER: UPDATING KEYWORD"
+      + " | " + wd
+      + ": " + jsonPrint(wordObj)
+    ));
+
+    newKeywordsHashMap.set(wordObj.nodeId, wordObj.keywords);
+    localKeywordHashMap.set(wordObj.nodeId, wordObj.keywords);
+
+    wordServer.findOneWord(wordObj, {noInc: true}, function(err, updatedWordObj) {
+      if (err){
+        console.log(chalkError("ERROR: UPDATING KEYWORD | " + wd + ": " + kwObj));
+        callback(err, wordObj);
+      }
+      else {
+        debug(chalkLog("+++ UPDATED KEYWORD"
+          + " | " + updatedWordObj.nodeId 
+          + " | " + updatedWordObj.raw 
+          + " | M " + updatedWordObj.mentions 
+          + " | I " + updatedWordObj.isIgnored 
+          + " | K " + updatedWordObj.isKeyword 
+          + " | K " + jsonPrint(updatedWordObj.keywords) 
+        ));
+        callback(null, updatedWordObj);
+      }
+    });
+  }
+};
+
 const updateKeywords = function(folder, file, callback){
 
   newKeywordsHashMap.clear();
@@ -262,96 +395,102 @@ const updateKeywords = function(folder, file, callback){
 
               function(w, cb) {
 
-                let wd = w.toLowerCase();
-                wd = wd.replace(/\./g, "");  // KLUDGE:  better way to handle "." in keywords?
-
                 let kwObj = kwordsObj[w];  // kwObj = { "negative": 10, "right": 7 }
 
-                let wordObj = new Word();
+                keywordUpdate(w, kwObj, function(err, updatedWord){
+                  cb(err);
+                });
+                // let wd = w.toLowerCase();
+                // wd = wd.replace(/\./g, "");  // KLUDGE:  better way to handle "." in keywords?
 
-                wordObj.nodeId = wd;
-                wordObj.isKeyword = true;
+                // let kwObj = kwordsObj[w];  // kwObj = { "negative": 10, "right": 7 }
 
-                // KLUDEGE: OVERWRITES ANY PREVIOUS KEYWORD SETTINGS FOR NOW
-                wordObj.keywords = {};
+                // let wordObj = new Word();
 
-                if (typeof kwObj === "string") {  // old style keyword: true/false; convert to new style
-                  wordObj.keywords[kwObj.toLowerCase()] = DEFAULT_KEYWORD_VALUE;
-                  wordObj.keywords.keywordId = wd;
-                }
-                else {
-                  wordObj.keywords = kwObj;
-                  wordObj.keywords.keywordId = wd;
-                }
+                // wordObj.nodeId = wd;
+                // wordObj.isKeyword = true;
 
-                if (localKeywordHashMap.has(wd)) {
+                // // KLUDEGE: OVERWRITES ANY PREVIOUS KEYWORD SETTINGS FOR NOW
+                // wordObj.keywords = {};
 
-                  debug(chalkAlert("* KW HM HIT | " + wd));
+                // if (typeof kwObj === "string") {  // old style keyword: true/false; convert to new style
+                //   wordObj.keywords[kwObj.toLowerCase()] = DEFAULT_KEYWORD_VALUE;
+                //   wordObj.keywords.keywordId = wd;
+                // }
+                // else {
+                //   wordObj.keywords = kwObj;
+                //   wordObj.keywords.keywordId = wd;
+                // }
 
-                  const prevKeywordObj = localKeywordHashMap.get(wd);
+                // if (localKeywordHashMap.has(wd)) {
 
-                  if (equal(prevKeywordObj, wordObj.keywords)){
-                    debug(chalkAlert("--- WORD UNCHANGED ... SKIPPING | " + wd));
-                    cb();
-                  }
-                  else {
-                    console.log(chalkAlert("+++ WORD CHANGED"
-                      + " | " + wd
-                      + "\nPREV\n" + jsonPrint(prevKeywordObj)
-                      + "\nNEW\n" + jsonPrint(wordObj.keywords)
-                    ));
+                //   debug(chalkAlert("* KW HM HIT | " + wd));
 
-                    debug(chalkInfo("UPDATER: UPDATING KEYWORD | " + wd + ": " + jsonPrint(wordObj)));
+                //   const prevKeywordObj = localKeywordHashMap.get(wd);
 
-                    newKeywordsHashMap.set(wordObj.nodeId, wordObj.keywords);
-                    localKeywordHashMap.set(wordObj.nodeId, wordObj.keywords);
+                //   if (equal(prevKeywordObj, wordObj.keywords)){
+                //     debug(chalkAlert("--- WORD UNCHANGED ... SKIPPING | " + wd));
+                //     cb();
+                //   }
+                //   else {
+                //     console.log(chalkAlert("+++ WORD CHANGED"
+                //       + " | " + wd
+                //       + "\nPREV\n" + jsonPrint(prevKeywordObj)
+                //       + "\nNEW\n" + jsonPrint(wordObj.keywords)
+                //     ));
 
-                    wordServer.findOneWord(wordObj, {noInc: true}, function(err, updatedWordObj) {
-                      if (err){
-                        console.log(chalkError("ERROR: UPDATING KEYWORD | " + wd + ": " + kwordsObj[wd]));
-                        cb();
-                      }
-                      else {
-                        debug(chalkLog("+++ UPDATED KEYWORD"
-                          + " | " + updatedWordObj.nodeId 
-                          + " | " + updatedWordObj.raw 
-                          + " | M " + updatedWordObj.mentions 
-                          + " | I " + updatedWordObj.isIgnored 
-                          + " | K " + updatedWordObj.isKeyword 
-                          + " | K " + jsonPrint(updatedWordObj.keywords) 
-                        ));
-                        cb();
-                      }
-                    });
-                  }
-                }
-                else {
-                  debug(chalkInfo("UPDATER: UPDATING KEYWORD"
-                    + " | " + wd
-                    + ": " + jsonPrint(wordObj)
-                  ));
+                //     debug(chalkInfo("UPDATER: UPDATING KEYWORD | " + wd + ": " + jsonPrint(wordObj)));
 
-                  newKeywordsHashMap.set(wordObj.nodeId, wordObj.keywords);
-                  localKeywordHashMap.set(wordObj.nodeId, wordObj.keywords);
+                //     newKeywordsHashMap.set(wordObj.nodeId, wordObj.keywords);
+                //     localKeywordHashMap.set(wordObj.nodeId, wordObj.keywords);
 
-                  wordServer.findOneWord(wordObj, {noInc: true}, function(err, updatedWordObj) {
-                    if (err){
-                      console.log(chalkError("ERROR: UPDATING KEYWORD | " + wd + ": " + kwordsObj[wd]));
-                      cb();
-                    }
-                    else {
-                      debug(chalkLog("+++ UPDATED KEYWORD"
-                        + " | " + updatedWordObj.nodeId 
-                        + " | " + updatedWordObj.raw 
-                        + " | M " + updatedWordObj.mentions 
-                        + " | I " + updatedWordObj.isIgnored 
-                        + " | K " + updatedWordObj.isKeyword 
-                        + " | K " + jsonPrint(updatedWordObj.keywords) 
-                      ));
-                      cb();
-                    }
-                  });
-                }
+                //     wordServer.findOneWord(wordObj, {noInc: true}, function(err, updatedWordObj) {
+                //       if (err){
+                //         console.log(chalkError("ERROR: UPDATING KEYWORD | " + wd + ": " + kwordsObj[wd]));
+                //         cb();
+                //       }
+                //       else {
+                //         debug(chalkLog("+++ UPDATED KEYWORD"
+                //           + " | " + updatedWordObj.nodeId 
+                //           + " | " + updatedWordObj.raw 
+                //           + " | M " + updatedWordObj.mentions 
+                //           + " | I " + updatedWordObj.isIgnored 
+                //           + " | K " + updatedWordObj.isKeyword 
+                //           + " | K " + jsonPrint(updatedWordObj.keywords) 
+                //         ));
+                //         cb();
+                //       }
+                //     });
+                //   }
+                // }
+                // else {
+                //   debug(chalkInfo("UPDATER: UPDATING KEYWORD"
+                //     + " | " + wd
+                //     + ": " + jsonPrint(wordObj)
+                //   ));
+
+                //   newKeywordsHashMap.set(wordObj.nodeId, wordObj.keywords);
+                //   localKeywordHashMap.set(wordObj.nodeId, wordObj.keywords);
+
+                //   wordServer.findOneWord(wordObj, {noInc: true}, function(err, updatedWordObj) {
+                //     if (err){
+                //       console.log(chalkError("ERROR: UPDATING KEYWORD | " + wd + ": " + kwordsObj[wd]));
+                //       cb();
+                //     }
+                //     else {
+                //       debug(chalkLog("+++ UPDATED KEYWORD"
+                //         + " | " + updatedWordObj.nodeId 
+                //         + " | " + updatedWordObj.raw 
+                //         + " | M " + updatedWordObj.mentions 
+                //         + " | I " + updatedWordObj.isIgnored 
+                //         + " | K " + updatedWordObj.isKeyword 
+                //         + " | K " + jsonPrint(updatedWordObj.keywords) 
+                //       ));
+                //       cb();
+                //     }
+                //   });
+                // }
+
               },
 
               function(err) {
@@ -547,6 +686,8 @@ process.on("message", function(m) {
         + " | INTERVAL: " + m.interval
       ));
 
+      defaultKeywordsFile = m.keywordsFile;
+
       options = {
         folder: m.folder,
         keywordsFile: m.keywordFile,
@@ -596,7 +737,16 @@ process.on("message", function(m) {
           });
         }
       });
+    break;
 
+    case "UPDATE_KEYWORD":
+      console.log(chalkInfo("UPDATER UPDATE_KEYWORD"
+        + " | WORD: " + m.word
+        + " | KWs\n" + jsonPrint(m.keywords)
+      ));
+      keywordUpdate(m.word, m.keywords, function(err, wordObj){
+        saveFile("", defaultKeywordsFile, localKeywordHashMap, function(err, results){});
+      });
     break;
 
     case "PING":

@@ -726,7 +726,7 @@ function ViewTreepack() {
         ageRate = 0;
       }
 
-      if ((d.nodeType === "user") && (d.followersCount > MIN_FOLLOWERS)){
+      if ((node.nodeType === "user") && (node.followersCount > MIN_FOLLOWERS)){
         ageRate *= MIN_FOLLOWERS_AGE_RATE_RATIO;
       }
 

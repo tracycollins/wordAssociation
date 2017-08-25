@@ -51,7 +51,9 @@ function ControlPanel() {
       + node.followersCount + " FLWRs"
       + " | " + node.friendsCount + " FRNDs" 
       + " | " + node.statusesCount + " Ts"
-      + " | KW: " + node.keywords + " (M) / " + node.keywordsAuto + "(A)" + "<br><br>";
+      + "<br>" 
+      + "KW: M: " + node.keywords + " | A: " + node.keywordsAuto
+      + "<br><br>";
 
     timelineDiv.appendChild(timelineText);
 

@@ -51,7 +51,7 @@ function ControlPanel() {
       + node.followersCount + " FLWRs"
       + " | " + node.friendsCount + " FRNDs" 
       + " | " + node.statusesCount + " Ts"
-      + "<br>" 
+      + "<br><br>" 
       + "KW: M: " + node.keywords + " | A: " + node.keywordsAuto
       + "<br><br>";
 

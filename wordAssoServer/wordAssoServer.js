@@ -2706,7 +2706,8 @@ function initUpdaterMessageQueueInterval(interval){
             quit();
           }
 
-          keywordHashMap.set(updaterObj.keyword.keywordId.toLowerCase(), updaterObj.keyword);
+          const kw = omit(updaterObj.keyword, "keywordId");
+          keywordHashMap.set(updaterObj.keyword.keywordId.toLowerCase(), kw);
           updaterMessageReady = true;
         break;
 

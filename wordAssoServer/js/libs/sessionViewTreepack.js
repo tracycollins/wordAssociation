@@ -1118,6 +1118,29 @@ function ViewTreepack() {
       .attr("cy", function(d) { 
         return d.y; 
       })
+      .style("fill", function(d) { 
+        if (!d.isKeyword) { return palette.black; }
+        return d.keywordColor; 
+      })
+      .style("stroke", function(d) {
+        if (d.keywordsMismatch) { return palette.red; }
+        if (d.keywordsMatch) { return palette.green; }
+        if (d.keywordsAuto.right) { return palette.yellow; }
+        if (d.keywordsAuto.left) { return palette.blue; }
+        if (d.keywordsAuto.positive) { return palette.green; }
+        if (d.keywordsAuto.negative) { return palette.red; }
+        return palette.white; 
+      })
+      .style("stroke-width", function(d) { 
+        if (d.keywordsMatch) { return "8.0"; }
+        if (d.isTopTerm) { return "4.0"; }
+        if (d.newFlag) { return "2.0"; }
+        if (d.keywordsAuto.right) { return "4.0"; }
+        if (d.keywordsAuto.left) { return "4.0"; }
+        if (d.keywordsAuto.positive) { return "4.0"; }
+        if (d.keywordsAuto.negative) { return "4.0"; }
+        return "1.2"; 
+      })
       .style("opacity", function(d) { 
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })

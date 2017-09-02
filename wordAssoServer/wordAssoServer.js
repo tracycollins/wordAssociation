@@ -3,7 +3,7 @@
 
 // const heapdumpThresholdEnabled = false;
 
-var twitterUserThreecee = {
+let twitterUserThreecee = {
     userId : "14607119",
     profileImageUrl : "http://pbs.twimg.com/profile_images/780466729692659712/p6RcVjNK.jpg",
     profileUrl : "http://twitter.com/threecee",
@@ -18,8 +18,7 @@ var twitterUserThreecee = {
     screenNameLower : "threecee"
 };
 
-var defaultTwitterUser = twitterUserThreecee;
-
+let defaultTwitterUser = twitterUserThreecee;
 
 let metricsRate = "1MinuteRate";
 
@@ -30,7 +29,7 @@ const slackOAuthAccessToken = "xoxp-3708084981-3708084993-206468961315-ec62db579
 const slackChannel = "#was";
 const Slack = require("slack-node");
 
-let slack = new Slack(slackOAuthAccessToken);
+const slack = new Slack(slackOAuthAccessToken);
 
 console.log("\n\n============== START ==============\n\n");
 
@@ -79,7 +78,7 @@ const TRENDING_CACHE_CHECK_PERIOD = 60;
 const NODE_CACHE_DEFAULT_TTL = 60;
 const NODE_CACHE_CHECK_PERIOD = 5;
 
-let ignoreWordsArray = [
+const ignoreWordsArray = [
   "r",
   "y",
   "se",
@@ -986,7 +985,80 @@ process.env.NODE_ENV = process.env.NODE_ENV || "development";
 
 debug("NODE_ENV : " + process.env.NODE_ENV);
 debug("CLIENT HOST + PORT: " + "http://localhost:" + config.port);
- 
+
+
+function initUpdater(callback){
+
+  clearInterval(updaterPingInterval);
+
+  if (updater !== undefined) {
+    console.error("KILLING PREVIOUS UPDATER | " + updater.pid);
+    updater.kill("SIGINT");
+  }
+
+  if (statsObj.children.updater === undefined){
+    statsObj.children.updater = {};
+    statsObj.children.updater.errors = 0;
+  }
+
+  const u = cp.fork(`${__dirname}/js/libs/updater.js`);
+
+  u.on("error", function updaterError(err){
+    // pmx.emit("ERROR", "UPDATER ERROR");
+    console.error(chalkError(moment().format(compactDateTimeFormat)
+      + " | *** UPDATER ERROR ***"
+      + " \n" + jsonPrint(err)
+    ));
+
+    clearInterval(updaterPingInterval);
+
+    configEvents.emit("CHILD_ERROR", { name: "updater" });
+    initUpdater();
+  });
+
+  u.on("exit", function updaterExit(code){
+    console.error(chalkError(moment().format(compactDateTimeFormat)
+      + " | *** UPDATER EXIT ***"
+      + " | EXIT CODE: " + code
+    ));
+
+    if (code > 0) { configEvents.emit("CHILD_ERROR", { name: "updater" }); }
+
+  });
+
+  u.on("close", function updaterClose(code){
+    console.error(chalkError(moment().format(compactDateTimeFormat)
+      + " | *** UPDATER CLOSE ***"
+      + " | EXIT CODE: " + code
+    ));
+  });
+
+  u.on("message", function updaterMessage(m){
+    debug(chalkInfo("UPDATER RX\n" + jsonPrint(m)));
+    updaterMessageQueue.enqueue(m);
+  });
+
+  u.send({
+    op: "INIT",
+    folder: ".",
+    keywordFile: defaultDropboxKeywordFile,
+    interval: KEYWORDS_UPDATE_INTERVAL
+  }, function updaterSendError(err){
+    if (err) {
+      console.error(chalkError("*** UPDATER SEND ERROR"
+        + " | " + err
+      ));
+      initUpdater();
+    }
+  });
+
+  updater = u;
+
+  initUpdaterPingInterval(60000);
+
+  if (callback !== undefined) { callback(null, u); }
+}
+
 function categorizeNode(categorizeObj) {
 
   console.log(chalkSocket("categorizeNode" 
@@ -1006,30 +1078,34 @@ function categorizeNode(categorizeObj) {
       keywordHashMap.set(categorizeObj.node.screenName.toLowerCase(), categorizeObj.keywords);
       userServer.updateKeywords({user: categorizeObj.node, keywords: categorizeObj.keywords}, function(err, updatedUser){
 
-        if (updater !== undefined){
-
-          updater.send({
-            op: "UPDATE_KEYWORD",
-            word: categorizeObj.node.screenName.toLowerCase(),
-            keywords: categorizeObj.keywords
-          }, function updaterPingError(err){
-            if (err) {
-              // pmx.emit("ERROR", "PING ERROR");
-              console.error(chalkError("*** UPDATER SEND ERROR"
-                + " | " + err
-              ));
-              slackPostMessage(slackChannel, "\n*UPDATER SEND ERROR*\n" + err);
-              initUpdater();
-            }
-          });
-
-          debug(chalkLog(">UPDATER UPDATE_KEYWORD USER"
-          ));
-
+        if (err) {
+          console.log(chalkError("*** USER UPDATE KEYWORDS ERROR: " + jsonPrint(err)));
         }
         else {
-          console.log(chalkError("!!! NO UPDATER UPDATE_KEYWORD ... UNDEFINED"
-          ));
+          if (updater !== undefined){
+
+            updater.send({
+              op: "UPDATE_KEYWORD",
+              word: categorizeObj.node.screenName.toLowerCase(),
+              keywords: categorizeObj.keywords
+            }, function updaterPingError(err){
+              if (err) {
+                // pmx.emit("ERROR", "PING ERROR");
+                console.error(chalkError("*** UPDATER SEND ERROR"
+                  + " | " + err
+                ));
+                slackPostMessage(slackChannel, "\n*UPDATER SEND ERROR*\n" + err);
+                initUpdater();
+              }
+            });
+
+            debug(chalkLog(">UPDATER UPDATE_KEYWORD USER | @" + updatedUser.screenName ));
+
+          }
+          else {
+            console.log(chalkError("!!! NO UPDATER UPDATE_KEYWORD ... UNDEFINED"
+            ));
+          }
         }
       });
 
@@ -1044,31 +1120,38 @@ function categorizeNode(categorizeObj) {
       keywordHashMap.set(categorizeObj.node.nodeId.toLowerCase(), categorizeObj.keywords);
 
       hashtagServer.updateKeywords({hashtag: categorizeObj.node, keywords: categorizeObj.keywords}, function(err, updatedHashtag){
-        if (updater !== undefined){
 
-          updater.send({
-            op: "UPDATE_KEYWORD",
-            word: categorizeObj.node.nodeId.toLowerCase(),
-            keywords: categorizeObj.keywords
-          }, function updaterPingError(err){
-            if (err) {
-              // pmx.emit("ERROR", "PING ERROR");
-              console.error(chalkError("*** UPDATER SEND ERROR"
-                + " | " + err
-              ));
-              slackPostMessage(slackChannel, "\n*UPDATER SEND ERROR*\n" + err);
-              initUpdater();
-            }
-          });
-
-          debug(chalkLog(">UPDATER UPDATE_KEYWORD HASHTAG"
-          ));
-
+        if (err) {
+          console.log(chalkError("*** HASHTAG UPDATE KEYWORDS ERROR: " + jsonPrint(err)));
         }
         else {
-          console.log(chalkError("!!! NO UPDATER UPDATE_KEYWORD ... UNDEFINED"
-          ));
+
+          if (updater !== undefined){
+
+            updater.send({
+              op: "UPDATE_KEYWORD",
+              word: categorizeObj.node.nodeId.toLowerCase(),
+              keywords: categorizeObj.keywords
+            }, function updaterPingError(err){
+              if (err) {
+                // pmx.emit("ERROR", "PING ERROR");
+                console.error(chalkError("*** UPDATER SEND ERROR"
+                  + " | " + err
+                ));
+                slackPostMessage(slackChannel, "\n*UPDATER SEND ERROR*\n" + err);
+                initUpdater();
+              }
+            });
+
+            debug(chalkLog(">UPDATER UPDATE_KEYWORD HASHTAG | #" + updatedHashtag.text ));
+          }
+          else {
+            console.log(chalkError("!!! NO UPDATER UPDATE_KEYWORD ... UNDEFINED"
+            ));
+          }
+
         }
+
       });
     break;
   }
@@ -1126,6 +1209,9 @@ function socketRxTweet(tw) {
     ));
   }
 }
+
+
+// ???? KLUDGE: will this create a mem leak by creating socket objs on each connect?
 
 function initSocketHandler(socketObj) {
 
@@ -1277,8 +1363,6 @@ function initSocketHandler(socketObj) {
       currentTssServer = tssServers[socket.id];
     }
   });
-
-      // socket.emit("TWITTER_CATEGORIZE_USER", { keyword: data.category, userId: data.user.userId });
 
   socket.on("TWITTER_CATEGORIZE_NODE", function twittercategorizeNode(dataObj) {
     console.log(chalkSocket("TWITTER_CATEGORIZE_NODE"
@@ -2449,7 +2533,7 @@ function initSorterMessageRxQueueInterval(interval){
 
   let sortedKeys;
   let endIndex;
-  let index;
+  // let index;
   // let i;
   let node;
   let nodeRate;
@@ -2478,7 +2562,9 @@ function initSorterMessageRxQueueInterval(interval){
           sortedKeys = sorterObj.sortedKeys;
           endIndex = Math.min(configuration.maxTopTerms, sortedKeys.length);
 
-          for (index=0; index < endIndex; index += 1){
+          // for (index=0; index < endIndex; index += 1){
+
+          async.times(endIndex, function(index, next) {
 
             node = sortedKeys[index].toLowerCase();
 
@@ -2492,14 +2578,21 @@ function initSorterMessageRxQueueInterval(interval){
                 && GOOGLE_METRICS_ENABLED 
                 && (nodeRate > MIN_METRIC_VALUE)) {
                 addTopTermMetricDataPoint(node, nodeRate);
+                next();
               }
               else {
                 debug(chalkLog("SKIP ADD METRIC | " + node + " | " + nodeRate.toFixed(3)));
+                next();
               }
-            }
-          }
 
-          sorterMessageRxReady = true; 
+            }
+
+          }, function(){
+
+            sorterMessageRxReady = true; 
+
+          });
+
         break;
 
         default:
@@ -2508,78 +2601,6 @@ function initSorterMessageRxQueueInterval(interval){
       }
     }
   }, interval);
-}
-
-function initUpdater(callback){
-
-  clearInterval(updaterPingInterval);
-
-  if (updater !== undefined) {
-    console.error("KILLING PREVIOUS UPDATER | " + updater.pid);
-    updater.kill("SIGINT");
-  }
-
-  if (statsObj.children.updater === undefined){
-    statsObj.children.updater = {};
-    statsObj.children.updater.errors = 0;
-  }
-
-  const u = cp.fork(`${__dirname}/js/libs/updater.js`);
-
-  u.on("error", function updaterError(err){
-    // pmx.emit("ERROR", "UPDATER ERROR");
-    console.error(chalkError(moment().format(compactDateTimeFormat)
-      + " | *** UPDATER ERROR ***"
-      + " \n" + jsonPrint(err)
-    ));
-
-    clearInterval(updaterPingInterval);
-
-    configEvents.emit("CHILD_ERROR", { name: "updater" });
-    initUpdater();
-  });
-
-  u.on("exit", function updaterExit(code){
-    console.error(chalkError(moment().format(compactDateTimeFormat)
-      + " | *** UPDATER EXIT ***"
-      + " | EXIT CODE: " + code
-    ));
-
-    if (code > 0) { configEvents.emit("CHILD_ERROR", { name: "updater" }); }
-
-  });
-
-  u.on("close", function updaterClose(code){
-    console.error(chalkError(moment().format(compactDateTimeFormat)
-      + " | *** UPDATER CLOSE ***"
-      + " | EXIT CODE: " + code
-    ));
-  });
-
-  u.on("message", function updaterMessage(m){
-    debug(chalkInfo("UPDATER RX\n" + jsonPrint(m)));
-    updaterMessageQueue.enqueue(m);
-  });
-
-  u.send({
-    op: "INIT",
-    folder: ".",
-    keywordFile: defaultDropboxKeywordFile,
-    interval: KEYWORDS_UPDATE_INTERVAL
-  }, function updaterSendError(err){
-    if (err) {
-      console.error(chalkError("*** UPDATER SEND ERROR"
-        + " | " + err
-      ));
-      initUpdater();
-    }
-  });
-
-  updater = u;
-
-  initUpdaterPingInterval(60000);
-
-  if (callback !== undefined) { callback(null, u); }
 }
 
 
@@ -2706,9 +2727,10 @@ function initUpdaterMessageQueueInterval(interval){
             quit();
           }
 
-          const kw = omit(updaterObj.keyword, "keywordId");
-          keywordHashMap.set(updaterObj.keyword.keywordId.toLowerCase(), kw);
+          // const kw = omit(updaterObj.keyword, "keywordId");
+          keywordHashMap.set(updaterObj.keyword.keywordId.toLowerCase(), omit(updaterObj.keyword, "keywordId"));
           updaterMessageReady = true;
+
         break;
 
         default:

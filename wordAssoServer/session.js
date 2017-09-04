@@ -987,7 +987,7 @@ function createPopUpControlPanel (cnf, callback) {
 
   console.debug("createPopUpControlPanel\ncnf\n" + jsonPrint(cnf));
 
-  controlPanelWindow = window.open("controlPanel.html", "CONTROL", "width=600,height=auto");
+  controlPanelWindow = window.open("controlPanel.html", "CONTROL", "width=600,height=400");
 
   controlPanelWindow.addEventListener("message", controlPanelComm, false);
   window.addEventListener("message", controlPanelComm, false);

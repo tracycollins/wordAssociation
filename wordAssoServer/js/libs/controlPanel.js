@@ -229,32 +229,32 @@ function ControlPanel() {
   statsObj.socketId = "NOT SET";
 
 
-  var nodeSearchInput = document.createElement("input");
-  var nodeSearchLabel = document.createElement("label");
-  var nodeSearchValue = "";
+  // var nodeSearchInput = document.createElement("input");
+  // var nodeSearchLabel = document.createElement("label");
+  // var nodeSearchValue = "";
 
-  function nodeSearchHandler(e) {
-    console.log("NODE SEARCH"
-      + " | KEY: " + e.keyCode
-      + " | INPUT: " + nodeSearchInput.value
-    );
-  }
+  // function nodeSearchHandler(e) {
+  //   console.log("NODE SEARCH"
+  //     + " | KEY: " + e.keyCode
+  //     + " | INPUT: " + nodeSearchInput.value
+  //   );
+  // }
 
-  nodeSearchLabel.setAttribute("id", "nodeSearchLabel");
+  // nodeSearchLabel.setAttribute("id", "nodeSearchLabel");
 
-  nodeSearchLabel.innerHTML = "NODE SEARCH";
+  // nodeSearchLabel.innerHTML = "NODE SEARCH";
 
-  nodeSearchInput.setAttribute("class", "nodeSearch");
-  nodeSearchInput.setAttribute("type", "text");
-  nodeSearchInput.setAttribute("id", "nodeSearchInput");
-  nodeSearchInput.setAttribute("name", "nodeSearch");
-  nodeSearchInput.setAttribute("autofocus", true);
-  nodeSearchInput.setAttribute("autocapitalize", "none");
-  nodeSearchInput.setAttribute("value", nodeSearchValue);
-  nodeSearchInput.addEventListener("keydown", function(e){ nodeSearchHandler(e); }, false);
+  // nodeSearchInput.setAttribute("class", "nodeSearch");
+  // nodeSearchInput.setAttribute("type", "text");
+  // nodeSearchInput.setAttribute("id", "nodeSearchInput");
+  // nodeSearchInput.setAttribute("name", "nodeSearch");
+  // nodeSearchInput.setAttribute("autofocus", true);
+  // nodeSearchInput.setAttribute("autocapitalize", "none");
+  // nodeSearchInput.setAttribute("value", nodeSearchValue);
+  // nodeSearchInput.addEventListener("keydown", function(e){ nodeSearchHandler(e); }, false);
 
-  twitterCategoryDiv.appendChild(nodeSearchLabel);
-  twitterCategoryDiv.appendChild(nodeSearchInput);
+  // twitterCategoryDiv.appendChild(nodeSearchLabel);
+  // twitterCategoryDiv.appendChild(nodeSearchInput);
 
   this.setVelocityDecaySliderValue = function (value) {
     if (!document.getElementById("velocityDecaySlider")) { return; }

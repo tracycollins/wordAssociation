@@ -1,10 +1,10 @@
 {
   "name": "wordassoserver",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "word",
   "main": "wordAssoServer.js",
   "dependencies": {
-    "@google-cloud/monitoring": "^0.2.3",
+    "@google-cloud/monitoring": "^0.3.0",
     "@threeceelabs/hashtag-server-controller": "^1.0.13",
     "@threeceelabs/mongoose-twitter": "^1.0.23",
     "@threeceelabs/tweet-server-controller": "^1.0.39",

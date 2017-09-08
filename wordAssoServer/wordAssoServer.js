@@ -253,7 +253,7 @@ const Queue = require("queue-fifo");
 const express = require("./config/express");
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
 const Dropbox = require("dropbox");
-const Monitoring = require("@google-cloud/monitoring").v3();
+const Monitoring = require("@google-cloud/monitoring");
 
 let googleMonitoringClient;
 

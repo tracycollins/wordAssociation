@@ -1,7 +1,8 @@
 /*jslint node: true */
 "use strict";
 
-// const heapdumpThresholdEnabled = false;
+const heapdumpThresholdEnabled = false;
+let hd;
 
 let twitterUserThreecee = {
     userId : "14607119",
@@ -37,13 +38,13 @@ console.log("PROCESS PID: " + process.pid);
 
 let quitOnError = true;
 
-// let HEAPDUMP_THRESHOLD = process.env.HEAPDUMP_THRESHOLD || 300;
+let HEAPDUMP_THRESHOLD = process.env.HEAPDUMP_THRESHOLD || 300;
 
-// const heapdump = require("heapdump");
-// const memwatch = require("memwatch-next");
+const heapdump = require("heapdump");
+const memwatch = require("memwatch-next");
 
-// let HEAPDUMP_ENABLED = false;
-// let HEAPDUMP_MODULO = process.env.HEAPDUMP_MODULO || 10;
+let HEAPDUMP_ENABLED = false;
+let HEAPDUMP_MODULO = process.env.HEAPDUMP_MODULO || 10;
 
 // ==================================================================
 // GLOBAL letIABLES
@@ -313,23 +314,23 @@ const tweetRxQueue = new Queue();
 
 let statsInterval;
 
-// if (process.env.HEAPDUMP_ENABLED !== undefined) {
+if (process.env.HEAPDUMP_ENABLED !== undefined) {
 
-//   console.log(chalkError("DEFINED process.env.HEAPDUMP_ENABLED: " + process.env.HEAPDUMP_ENABLED));
+  console.log(chalkError("DEFINED process.env.HEAPDUMP_ENABLED: " + process.env.HEAPDUMP_ENABLED));
 
-//   if (process.env.HEAPDUMP_ENABLED === "true") {
-//     HEAPDUMP_ENABLED = true;
-//     console.log(chalkError("TRUE process.env.HEAPDUMP_ENABLED: " + process.env.HEAPDUMP_ENABLED));
-//     console.log(chalkError("TRUE HEAPDUMP_ENABLED: " + HEAPDUMP_ENABLED));
-//   }
-//   else if (process.env.HEAPDUMP_ENABLED === "false") {
-//     HEAPDUMP_ENABLED = false;
-//     console.log(chalkError("FALSE process.env.HEAPDUMP_ENABLED: " + process.env.HEAPDUMP_ENABLED));
-//     console.log(chalkError("FALSE HEAPDUMP_ENABLED: " + HEAPDUMP_ENABLED));
-//   }
+  if (process.env.HEAPDUMP_ENABLED === "true") {
+    HEAPDUMP_ENABLED = true;
+    console.log(chalkError("TRUE process.env.HEAPDUMP_ENABLED: " + process.env.HEAPDUMP_ENABLED));
+    console.log(chalkError("TRUE HEAPDUMP_ENABLED: " + HEAPDUMP_ENABLED));
+  }
+  else if (process.env.HEAPDUMP_ENABLED === "false") {
+    HEAPDUMP_ENABLED = false;
+    console.log(chalkError("FALSE process.env.HEAPDUMP_ENABLED: " + process.env.HEAPDUMP_ENABLED));
+    console.log(chalkError("FALSE HEAPDUMP_ENABLED: " + HEAPDUMP_ENABLED));
+  }
 
-//   console.log(chalkError("HEAPDUMP_MODULO: " + HEAPDUMP_MODULO));
-// }
+  console.log(chalkError("HEAPDUMP_MODULO: " + HEAPDUMP_MODULO));
+}
 
 
 let GOOGLE_METRICS_ENABLED = false;
@@ -1219,7 +1220,7 @@ function initSocketHandler(socketObj) {
 
   const ipAddress = socket.handshake.headers["x-real-ip"] || socket.client.conn.remoteAddress;
 
-  const socketConnectText = "\n*SOCKET CONNECT*"
+  const socketConnectText = "\nSOCKET CONNECT"
     // + " | " + socket.id
     + "\n" + hostname
     + " | " + socketObj.namespace
@@ -1413,7 +1414,6 @@ function initSocketHandler(socketObj) {
       );
   
     });
-
   });
 
   socket.on("tweet", socketRxTweet);
@@ -1485,15 +1485,6 @@ function checkKeyword(nodeObj, callback) {
     // + "\n" + jsonPrint(nodeObj)
   ));
 
-  // if (nodeObj.keywords === undefined) {
-  //   nodeObj.keywords = false;
-  //   nodeObj.isKeyword = false;
-  // }
-
-  // if (nodeObj.keywordsAuto === undefined) {
-  //   nodeObj.keywordsAuto = false;
-  // }
-
   switch (nodeObj.nodeType) {
 
     case "tweet":
@@ -1542,7 +1533,6 @@ function checkKeyword(nodeObj, callback) {
           }
           callback(nodeObj);
         });
-
       }
       else if ((nodeObj.name !== undefined) 
         && (nodeObj.name) 
@@ -1570,7 +1560,6 @@ function checkKeyword(nodeObj, callback) {
           }
           callback(nodeObj);
         });
-
       }
       // will probably never be true
       else if (keywordHashMap.has(nodeObj.userId)) {
@@ -1597,7 +1586,6 @@ function checkKeyword(nodeObj, callback) {
           }
           callback(nodeObj);
         });
-
       }
       else {
         callback(nodeObj);
@@ -2243,23 +2231,15 @@ function initAppRouting(callback) {
   debug(chalkInfo(moment().format(compactDateTimeFormat) + " | INIT APP ROUTING"));
 
   app.use(function requestLog(req, res, next) {
-    // console.log("REQ\n" + util.inspect(req, {showHidden:false, depth:1}));
+
     console.log(chalkAlert("R>"
       + " | " + moment().format(compactDateTimeFormat)
       + " | IP: " + req.ip
-      // + " | IPS: " + req.ips
       + " | HOST: " + req.hostname
-      // + " | BASE URL: " + req.baseUrl
       + " | METHOD: " + req.method
       + " | PATH: " + req.path
-      // + " | RES: " + util.inspect(res, {showHidden:false, depth:1})
-      // + " | ROUTE: " + req.route
-      // + " | PROTOCOL: " + req.protocol
-      // + "\nQUERY: " + jsonPrint(req.query)
-      // + "\nPARAMS: " + jsonPrint(req.params)
-      // + "\nCOOKIES: " + jsonPrint(req.cookies)
-      // + "\nBODY: " + jsonPrint(req.baseUrl)
     ));
+
     if (req.path === "/") {
       console.log(chalkAlert("R> REDIRECT /session")); 
       res.redirect("/session");
@@ -2282,11 +2262,6 @@ function initAppRouting(callback) {
       else {
         switch (req.body.event.type) {
           case "message":
-            // console.error(chalkAlert("R> SLACK MSG"
-            //   + " | CH: " + req.body.event.channel
-            //   + " | USER: " + req.body.event.user
-            //   + " | " + req.body.event.text
-            // ));
             slackMessageHandler(req.body.event);
           break;
           default:
@@ -2307,13 +2282,12 @@ function initAppRouting(callback) {
   app.use(exp.static("./public/assets/images"));
 
   const adminHtml = __dirname + "/admin/admin.html";
+
   app.get("/admin", function requestAdmin(req, res) {
     debug(chalkInfo("get req\n" + req));
     console.log(chalkAlert("LOADING PAGE"
       + " | REQ: " + req.url
       + " | RES: " + adminHtml
-      // + "\n" + jsonPrint(req.query)
-      // + "\n" + util.inspect(req, {showHidden:false, depth:4})
     ));
     res.sendFile(adminHtml, function responseAdmin(err) {
       if (err) {
@@ -2337,8 +2311,6 @@ function initAppRouting(callback) {
     console.log(chalkAlert("LOADING PAGE"
       + " | REQ: " + req.url
       + " | RES: " + sessionHtml
-      // + "\n" + jsonPrint(req.query)
-      // + "\n" + util.inspect(req, {showHidden:false, depth:4})
     ));
     res.sendFile(sessionHtml, function responseSession(err) {
       if (err) {
@@ -3278,7 +3250,7 @@ let memStatsInterval;
 function initStatsInterval(interval){
 
   let statsUpdated = 0;
-  // let heapdumpFileName;
+  let heapdumpFileName;
 
   console.log(chalkInfo("INIT STATS INTERVAL"
     + " | " + interval + " MS"
@@ -3349,23 +3321,24 @@ function initStatsInterval(interval){
 
     statsUpdated += 1;
 
-    // if ((HEAPDUMP_ENABLED || (heapdumpThresholdEnabled && (statsObj.memory.maxRss > HEAPDUMP_THRESHOLD))) 
-    //   && (statsUpdated > 1) 
-    //   && (statsUpdated % HEAPDUMP_MODULO === 0)) {
+    if ((HEAPDUMP_ENABLED || (heapdumpThresholdEnabled && (statsObj.memory.maxRss > HEAPDUMP_THRESHOLD))) 
+      && (statsUpdated > 1) 
+      && (statsUpdated % HEAPDUMP_MODULO === 0)) {
 
-    //   heapdumpFileName = "was2" 
-    //     + "_" + hostname 
-    //     + "_" + moment().format(tinyDateTimeFormat) 
-    //     + "_" + process.pid 
-    //     + ".heapsnapshot";
+      heapdumpFileName = "was2" 
+        + "_" + hostname 
+        + "_" + moment().format(tinyDateTimeFormat) 
+        + "_" + process.pid 
+        + ".heapsnapshot";
 
-    //   console.log(chalkError("***** HEAPDUMP *****"
-    //     + " | STATS UPDATED: " +  statsUpdated
-    //     + " | FILE: " +  heapdumpFileName
-    //   ));
+      console.log(chalkError("***** HEAPDUMP *****"
+        + " | STATS UPDATED: " +  statsUpdated
+        + " | FILE: " +  heapdumpFileName
+      ));
 
-    //   heapdump.writeSnapshot(heapdumpFileName);
-    // }
+      heapdump.writeSnapshot(heapdumpFileName);
+    }
+
   }, interval);
 }
 
@@ -3431,75 +3404,75 @@ initialize(configuration, function initializeComplete(err) {
 
     statsObj.configuration = configuration;
 
-    // memwatch.on("leak", function memwatchLeak(info) {
+    memwatch.on("leak", function memwatchLeak(info) {
 
-    //   const diff = hd.end();
+      const diff = hd.end();
 
-    //   statsObj.memwatch.snapshotTaken = false;
-    //   statsObj.memwatch.leak = info;
+      statsObj.memwatch.snapshotTaken = false;
+      statsObj.memwatch.leak = info;
 
-    //   console.error(chalkError("MEM LEAK"
-    //     + " | " + getTimeStamp()
-    //     + " | RSS" + info.growth
-    //     + " | GROWTH: " + info.growth
-    //     + " | " + info.reason
-    //    ));
+      console.error(chalkError("MEM LEAK"
+        + " | " + getTimeStamp()
+        + " | RSS" + info.growth
+        + " | GROWTH: " + info.growth
+        + " | " + info.reason
+       ));
 
-    //   console.log(chalkError("*** MEM DIFF *** \n" + util.inspect(diff, {showHidden:false, depth:4})));
+      console.log(chalkError("*** MEM DIFF *** \n" + util.inspect(diff, {showHidden:false, depth:4})));
 
-    //   const heapdumpFileName = "was2" 
-    //     + "_" + hostname 
-    //     + "_" + moment().format(tinyDateTimeFormat) 
-    //     + "_" + process.pid 
-    //     + "_LEAK"
-    //     + ".heapsnapshot";
+      const heapdumpFileName = "was2" 
+        + "_" + hostname 
+        + "_" + moment().format(tinyDateTimeFormat) 
+        + "_" + process.pid 
+        + "_LEAK"
+        + ".heapsnapshot";
 
-    //   console.log(chalkError("***** HEAPDUMP MEMORY LEAK *****"
-    //     + " | " + getTimeStamp()
-    //     + " | FILE: " +  heapdumpFileName
-    //   ));
+      console.log(chalkError("***** HEAPDUMP MEMORY LEAK *****"
+        + " | " + getTimeStamp()
+        + " | FILE: " +  heapdumpFileName
+      ));
 
-    //   heapdump.writeSnapshot(heapdumpFileName);
+      heapdump.writeSnapshot(heapdumpFileName);
 
-    //   const growth = info.growth/(1024*1024);
+      const growth = info.growth/(1024*1024);
 
-    //   const dmString = "\n*MEM LEAK*"
-    //     + " | " + hostname 
-    //     + "\nGRW: " + growth.toFixed(3) + " MB"
-    //     + "\nRSS: " + statsObj.memory.rss.toFixed(3) + " MB"
-    //     + "\nMAX: " + statsObj.memory.maxRss.toFixed(3) + " MB"
-    //     + " | " + moment(parseInt(statsObj.memory.maxRssTime)).format(compactDateTimeFormat) + " MB"
-    //     + "\n" + info.reason;
+      const dmString = "\n*MEM LEAK*"
+        + " | " + hostname 
+        + "\nGRW: " + growth.toFixed(3) + " MB"
+        + "\nRSS: " + statsObj.memory.rss.toFixed(3) + " MB"
+        + "\nMAX: " + statsObj.memory.maxRss.toFixed(3) + " MB"
+        + " | " + moment(parseInt(statsObj.memory.maxRssTime)).format(compactDateTimeFormat) + " MB"
+        + "\n" + info.reason;
 
-    //   slackPostMessage(slackChannel, dmString);
+      slackPostMessage(slackChannel, dmString);
 
-    // });
+    });
 
-    // memwatch.on("stats", function memwatchStats(stats) {
-    //   if(statsObj.memwatch.snapshotTaken ===false) {
-    //     hd = new memwatch.HeapDiff();
-    //     console.error(chalkAlert(getTimeStamp() + " | MEM SNAPSHOT TAKEN"));
-    //     statsObj.memwatch.snapshotTaken = true;
-    //   }
-    //   statsObj.memwatch.stats = stats;
-    //   statsObj.memwatch.stats.estimated_base = stats.estimated_base/(1024*1024);
-    //   statsObj.memwatch.stats.current_base = stats.current_base/(1024*1024);
-    //   statsObj.memwatch.stats.min = stats.min/(1024*1024);
-    //   statsObj.memwatch.stats.max = stats.max/(1024*1024);
+    memwatch.on("stats", function memwatchStats(stats) {
+      if(statsObj.memwatch.snapshotTaken ===false) {
+        hd = new memwatch.HeapDiff();
+        console.error(chalkAlert(getTimeStamp() + " | MEM SNAPSHOT TAKEN"));
+        statsObj.memwatch.snapshotTaken = true;
+      }
+      statsObj.memwatch.stats = stats;
+      statsObj.memwatch.stats.estimated_base = stats.estimated_base/(1024*1024);
+      statsObj.memwatch.stats.current_base = stats.current_base/(1024*1024);
+      statsObj.memwatch.stats.min = stats.min/(1024*1024);
+      statsObj.memwatch.stats.max = stats.max/(1024*1024);
 
-    //   debug(chalkInfo("MEM"
-    //     + " | " + getTimeStamp()
-    //     + " | FGCs: " + stats.num_full_gc
-    //     + " | IGCs: " + stats.num_inc_gc
-    //     + " | TREND: " + stats.usage_trend
-    //     + " | EBASE: " + statsObj.memwatch.stats.estimated_base.toFixed(3) + " MB"
-    //     + " | CBASE: " + statsObj.memwatch.stats.current_base.toFixed(3) + " MB"
-    //     + " | MIN: " + statsObj.memwatch.stats.min.toFixed(3) + " MB"
-    //     + " | MAX: " + statsObj.memwatch.stats.max.toFixed(3) + " MB"
-    //     // + "\n" + jsonPrint(info)
-    //    ));
-    //   // console.log(chalkInfo("MEM STATS\n" + jsonPrint(stats)));
-    // });
+      debug(chalkInfo("MEM"
+        + " | " + getTimeStamp()
+        + " | FGCs: " + stats.num_full_gc
+        + " | IGCs: " + stats.num_inc_gc
+        + " | TREND: " + stats.usage_trend
+        + " | EBASE: " + statsObj.memwatch.stats.estimated_base.toFixed(3) + " MB"
+        + " | CBASE: " + statsObj.memwatch.stats.current_base.toFixed(3) + " MB"
+        + " | MIN: " + statsObj.memwatch.stats.min.toFixed(3) + " MB"
+        + " | MAX: " + statsObj.memwatch.stats.max.toFixed(3) + " MB"
+        // + "\n" + jsonPrint(info)
+       ));
+      // console.log(chalkInfo("MEM STATS\n" + jsonPrint(stats)));
+    });
 
     // sendDirectMessage("threecee", "INIT " + hostname + " | " + moment().format(compactDateTimeFormat));
     slackPostMessage(slackChannel, "\n*INIT* | " + hostname + "\n");

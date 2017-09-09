@@ -1367,7 +1367,7 @@ function initSocketHandler(socketObj) {
   socket.on("TWITTER_CATEGORIZE_NODE", function twittercategorizeNode(dataObj) {
     console.log(chalkSocket("TWITTER_CATEGORIZE_NODE"
       + " | " + getTimeStamp()
-      + " | @" + Object.keys(dataObj.node.screenName)
+      + " | @" + dataObj.node.screenName
       + " | KWs: " + Object.keys(dataObj.keywords)
       // + "\n" + jsonPrint(dataObj)
     ));

@@ -374,11 +374,11 @@ const dropboxClient = new Dropbox({ accessToken: DROPBOX_WORD_ASSO_ACCESS_TOKEN 
 const configFolder = "/config/utility/" + hostname;
 const deletedMetricsFile = "deletedMetrics.json";
 
-const wordAssoDb = require("@threeceelabs/mongoose-twitter");
-const db = wordAssoDb();
-const mongoose = require("mongoose");
+// const wordAssoDb = require("@threeceelabs/mongoose-twitter");
+// const db = wordAssoDb();
+// const mongoose = require("mongoose");
 
-const User = require("mongoose").model("User");
+// const User = require("mongoose").model("User");
 
 const hashtagServer = require("@threeceelabs/hashtag-server-controller");
 const userServer = require("@threeceelabs/user-server-controller");
@@ -1062,7 +1062,7 @@ function initUpdater(callback){
 
 function categorizeNode(categorizeObj) {
 
-  console.log(chalkSocket("categorizeNode" 
+  debug(chalkSocket("categorizeNode" 
     + " | categorizeObj\n" + jsonPrint(categorizeObj)
   ));
 
@@ -1101,7 +1101,6 @@ function categorizeNode(categorizeObj) {
             });
 
             debug(chalkLog(">UPDATER UPDATE_KEYWORD USER | @" + updatedUser.screenName ));
-
           }
           else {
             console.log(chalkError("!!! NO UPDATER UPDATE_KEYWORD ... UNDEFINED"
@@ -1368,7 +1367,9 @@ function initSocketHandler(socketObj) {
   socket.on("TWITTER_CATEGORIZE_NODE", function twittercategorizeNode(dataObj) {
     console.log(chalkSocket("TWITTER_CATEGORIZE_NODE"
       + " | " + getTimeStamp()
-      + "\n" + jsonPrint(dataObj)
+      + " | @" + Object.keys(dataObj.node.screenName)
+      + " | KWs: " + Object.keys(dataObj.keywords)
+      // + "\n" + jsonPrint(dataObj)
     ));
     categorizeNode(dataObj);
   });
@@ -2430,8 +2431,8 @@ function initTweetParserMessageRxQueueInterval(interval){
 
   clearInterval(tweetParserMessageRxQueueInterval);
 
-  let tweetParserMessage;
-  let tweetObj;
+  // let tweetParserMessage;
+  // let tweetObj;
 
   tweetParserMessageRxQueueInterval = setInterval(function tweetParserMessageRxQueueDequeue() {
 
@@ -2439,7 +2440,7 @@ function initTweetParserMessageRxQueueInterval(interval){
 
       tweetParserMessageRxQueueReady = false;
 
-      tweetParserMessage = tweetParserMessageRxQueue.dequeue();
+      const tweetParserMessage = tweetParserMessageRxQueue.dequeue();
 
       debug(chalkLog("TWEET PARSER RX MESSAGE"
         + " | OP: " + tweetParserMessage.op
@@ -2448,7 +2449,7 @@ function initTweetParserMessageRxQueueInterval(interval){
 
       if (tweetParserMessage.op === "parsedTweet") {
 
-        tweetObj = tweetParserMessage.tweetObj;
+        const tweetObj = tweetParserMessage.tweetObj;
 
         if (!tweetObj.user) {
           console.log(chalkAlert("parsedTweet -- TW USER UNDEFINED"

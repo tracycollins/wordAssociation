@@ -412,7 +412,8 @@ const updateKeywords = function(folder, file, callback){
                 }
                 else {
                   console.log(chalkInfo("=== KEYWORD UPDATE COMPLETE"
-                    + " | TOTAL KEYWORDS:   " + Object.keys(newKeywordsHashMap).length
+                    + " | " + getTimeStamp()
+                    + " | TOTAL KEYWORDS: " + Object.keys(newKeywordsHashMap).length
                   ));
 
                   callback(null, Object.keys(newKeywordsHashMap).length);

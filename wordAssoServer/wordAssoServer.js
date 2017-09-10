@@ -38,7 +38,7 @@ console.log("PROCESS PID: " + process.pid);
 
 let quitOnError = true;
 
-let HEAPDUMP_THRESHOLD = process.env.HEAPDUMP_THRESHOLD || 300;
+let HEAPDUMP_THRESHOLD = process.env.HEAPDUMP_THRESHOLD || 800;
 
 const heapdump = require("heapdump");
 const memwatch = require("memwatch-next");

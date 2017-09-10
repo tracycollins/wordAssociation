@@ -9,7 +9,7 @@
       "NODE_ENV": "production",
       "HEAPDUMP_ENABLED": false,
       "HEAPDUMP_MODULO": 10,
-      "HEAPDUMP_THRESHOLD": 750,
+      "HEAPDUMP_THRESHOLD": 800,
       "SOCKET_IDLE_TIMEOUT" : 300,
       "NODE_CACHE_DEFAULT_TTL": 60,
       "NODE_CACHE_CHECK_PERIOD": 5,
@@ -24,7 +24,7 @@
       "ALTTHREECEE00_TWITTER_CONFIG": "twitterConfig_altthreecee00.yml",
       "WA_STATS_FILE" : "wordAssoServerStats.json",
       "GOOGLE_PROJECT_ID": "graphic-tangent-627",
-      "ENABLE_GOOGLE_METRICS": false
+      "GOOGLE_METRICS_ENABLED": false
     }
   }]
 }

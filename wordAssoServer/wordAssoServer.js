@@ -3374,7 +3374,7 @@ initialize(configuration, function initializeComplete(err) {
       }
       else {
         updater = udtr;
-        initUpdaterPingInterval(60000);
+        // initUpdaterPingInterval(60000);
       }
     });
     

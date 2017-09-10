@@ -2386,7 +2386,7 @@ function initInternetCheckInterval(interval){
 
 function initTwitterRxQueueInterval(interval){
 
-  let tweet;
+  let tweetParserSendReady = true;
 
   console.log(chalkLog("INIT TWITTER RX QUEUE INTERVAL | " + interval + " MS"));
 
@@ -2394,9 +2394,11 @@ function initTwitterRxQueueInterval(interval){
 
   tweetRxQueueInterval = setInterval(function tweetRxQueueDequeue() {
 
-    if (!tweetRxQueue.isEmpty()) {
+    if (!tweetRxQueue.isEmpty() && tweetParserSendReady) {
 
-      tweet = tweetRxQueue.dequeue();
+      tweetParserSendReady = false;
+
+      const tweet = tweetRxQueue.dequeue();
 
       debug(chalkInfo("TPQ<"
         + " [" + tweetRxQueue.size() + "]"
@@ -2408,6 +2410,9 @@ function initTwitterRxQueueInterval(interval){
       ));
 
       tweetParser.send({ op: "tweet", tweetStatus: tweet }, function sendTweetParser(err){
+
+        tweetParserSendReady = true;
+
         if (err) {
           // pmx.emit("ERROR", "TWEET PARSER SEND ERROR");
           console.error(chalkError("*** TWEET PARSER SEND ERROR"

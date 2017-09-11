@@ -425,12 +425,14 @@ const updateKeywords = function(folder, file, callback){
           .catch(function(err) {
             console.error(new Error("DROPBOX FILE DOWNLOAD ERROR\n" + jsonPrint(err)));
             console.error(new Error("DROPBOX FILE DOWNLOAD ERROR ", err));
+            callback(err, null);
           });
       }
 
     })
     .catch(function(err) {
       console.error(new Error("UPDATE KEYWORDS ERROR\n" + jsonPrint(err)));
+      callback(err, null);
     });
 };
 

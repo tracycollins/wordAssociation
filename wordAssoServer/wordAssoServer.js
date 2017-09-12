@@ -2746,7 +2746,7 @@ function initSorter(callback){
 
   s.send({
     op: "INIT",
-    interval: 2*DEFAULT_INTERVAL
+    interval: DEFAULT_INTERVAL
   }, function sorterMessageRxError(err){
     if (err) {
       // pmx.emit("ERROR", "SORTER SEND ERROR");
@@ -3360,7 +3360,7 @@ initialize(configuration, function initializeComplete(err) {
   else {
     debug(chalkLog("INITIALIZE COMPLETE"));
     initUpdaterMessageQueueInterval(DEFAULT_INTERVAL);
-    initSorterMessageRxQueueInterval(2*DEFAULT_INTERVAL);
+    initSorterMessageRxQueueInterval(DEFAULT_INTERVAL);
 
     initUpdater(function initUpdaterComplete(err, udtr){
       if (err) {

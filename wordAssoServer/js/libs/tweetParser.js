@@ -12,7 +12,7 @@ const wordAssoDb = require("@threeceelabs/mongoose-twitter");
 const db = wordAssoDb();
 
 const tweetServer = require("@threeceelabs/tweet-server-controller");
-const wordServer = require("@threeceelabs/word-server-controller");
+// const wordServer = require("@threeceelabs/word-server-controller");
 
 const Queue = require("queue-fifo");
 const tweetParserQueue = new Queue();
@@ -108,6 +108,7 @@ function initTweetParserQueueInterval(cnf){
   clearInterval(tweetParserQueueInterval);
 
   let tweet;
+  let tweetParserQueueReady = true;
   let params = {
     globalTestMode: cnf.globalTestMode,
     testMode: cnf.testMode,
@@ -117,7 +118,9 @@ function initTweetParserQueueInterval(cnf){
 
   tweetParserQueueInterval = setInterval(function(){
 
-    if (!tweetParserQueue.isEmpty()){
+    if (!tweetParserQueue.isEmpty() && tweetParserQueueReady){
+
+      tweetParserQueueReady = false;
 
       tweet = tweetParserQueue.dequeue();
 
@@ -137,11 +140,17 @@ function initTweetParserQueueInterval(cnf){
 
       tweetServer.createStreamTweet(params, function createStreamTweetCallback(err, tweetObj){
         if (err){
+
+          tweetParserQueueReady = true;
+
           if (err.code !== 11000) {
             console.log(chalkError("CREATE STREAM TWEET ERROR\n" + jsonPrint(err)));
           }
         }
         else if (cnf.globalTestMode){
+
+          tweetParserQueueReady = true;
+
           if (cnf.verbose){
             console.log(chalkAlert("t< GLOBAL TEST MODE"
               + " | " + tweetObj.tweetId
@@ -159,6 +168,8 @@ function initTweetParserQueueInterval(cnf){
 
           process.send({op: "parsedTweet", tweetObj: tweetObj}, function(err){
 
+            tweetParserQueueReady = true;
+
             if (err) {
               console.error(chalkError("*** TWEET PARSER SEND TWEET ERROR"
                 + " | " + moment().format(compactDateTimeFormat)
@@ -171,6 +182,7 @@ function initTweetParserQueueInterval(cnf){
                 + " | " + tweetObj.tweetId
               ));
             }
+            
           });
         }
         

@@ -194,6 +194,8 @@ var config = {};
 if (useStoredConfig) {
   console.debug("LOADING STORED CONFIG: " + globalStoredConfigName);
   config = store.get(globalStoredConfigName);
+  config.pauseFlag = false;
+  config.pauseOnMouseMove = false;
 }
 else {
   config.autoKeywordsFlag = false;
@@ -202,7 +204,7 @@ else {
   config.defaultAgeRate = 1.0;
   config.forceViewMode = DEFAULT_FORCEVIEW_MODE;
   config.fullscreenMode = false;
-  config.pauseOnMouseMove = true;
+  config.pauseOnMouseMove = false;
   config.showStatsFlag = false;
   config.blahMode = DEFAULT_BLAH_MODE;
   config.antonymFlag = false;
@@ -2195,7 +2197,7 @@ function initSocketNodeRx(){
 
   socket.on("node", function(nNode) {
 
-    if (!windowVisible || config.pauseFlag) {return;}
+    // if (!windowVisible || config.pauseFlag) {return;}
 
     if ((nNode.nodeType !== "user") 
       && (nNode.nodeType !== "hashtag") 

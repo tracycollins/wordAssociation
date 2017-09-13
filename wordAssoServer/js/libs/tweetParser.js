@@ -124,7 +124,7 @@ function initTweetParserQueueInterval(cnf){
 
       tweet = tweetParserQueue.dequeue();
 
-      console.log(chalkInfo("TPQ>"
+      debug(chalkInfo("TPQ>"
         + " [" + tweetParserQueue.size() + "]"
         // + " | " + socket.id
         + " | " + tweet.id_str
@@ -138,11 +138,11 @@ function initTweetParserQueueInterval(cnf){
 
       params.tweetStatus = tweet;
 
-      console.time("createStreamTweet");
+      // console.time("createStreamTweet");
 
       tweetServer.createStreamTweet(params, function createStreamTweetCallback(err, tweetObj){
 
-        console.timeEnd("createStreamTweet");
+        // console.timeEnd("createStreamTweet");
 
         if (err){
 

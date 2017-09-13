@@ -138,7 +138,12 @@ function initTweetParserQueueInterval(cnf){
 
       params.tweetStatus = tweet;
 
+      console.time("createStreamTweet");
+
       tweetServer.createStreamTweet(params, function createStreamTweetCallback(err, tweetObj){
+
+        console.timeEnd("createStreamTweet");
+
         if (err){
 
           tweetParserQueueReady = true;

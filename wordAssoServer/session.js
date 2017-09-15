@@ -71,8 +71,11 @@ requirejs(["https://d3js.org/d3.v4.min.js"], function(d3Loaded) {
       resetMouseMoveTimer();
       
       document.addEventListener("mousemove", function() {
-        if (config.pauseOnMouseMove && (currentSessionView)) { 
-          currentSessionView.simulationControl("PAUSE"); 
+        // if (config.pauseOnMouseMove && (currentSessionView)) { 
+        if (currentSessionView) { 
+          if (config.pauseOnMouseMove) {
+            currentSessionView.simulationControl("PAUSE"); 
+          }
           mouseMovingFlag = true;
           displayControl(true);
           resetMouseMoveTimer();
@@ -195,7 +198,7 @@ if (useStoredConfig) {
   console.debug("LOADING STORED CONFIG: " + globalStoredConfigName);
   config = store.get(globalStoredConfigName);
   config.pauseFlag = false;
-  config.pauseOnMouseMove = false;
+  config.pauseOnMouseMove = true;
 }
 else {
   config.autoKeywordsFlag = false;
@@ -204,7 +207,7 @@ else {
   config.defaultAgeRate = 1.0;
   config.forceViewMode = DEFAULT_FORCEVIEW_MODE;
   config.fullscreenMode = false;
-  config.pauseOnMouseMove = false;
+  config.pauseOnMouseMove = true;
   config.showStatsFlag = false;
   config.blahMode = DEFAULT_BLAH_MODE;
   config.antonymFlag = false;

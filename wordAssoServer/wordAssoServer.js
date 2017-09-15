@@ -2243,8 +2243,23 @@ function initAppRouting(callback) {
 
 
     if (req.path === "/googleccd19766bea2dfd2.html") {
-      console.log(chalkAlert("R> REDIRECT /session")); 
-      res.send("./googleccd19766bea2dfd2.html");
+      console.log(chalkAlert("R> googleccd19766bea2dfd2.html")); 
+
+      const googleVerification = __dirname + "/googleccd19766bea2dfd2.html";
+
+      res.sendFile(googleVerification, function googleVerify(err) {
+        if (err) {
+          console.error("GET /googleccd19766bea2dfd2.html ERROR:"
+            + " | " + moment().format(compactDateTimeFormat)
+            + " | " + req.url
+            + " | " + googleVerification
+            + " | " + err
+          );
+        } 
+        else {
+          console.log(chalkInfo("SENT:", googleVerification));
+        }
+      });
     }
     else if (req.path === "/") {
       console.log(chalkAlert("R> REDIRECT /session")); 

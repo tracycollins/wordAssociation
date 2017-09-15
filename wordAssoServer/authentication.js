@@ -1,11 +1,11 @@
-const passport = require('passport');
-// var FacebookStrategy = require('passport-facebook').Strategy;
-const TwitterStrategy = require('passport-twitter').Strategy;
-// var GithubStrategy = require('passport-github2').Strategy;
-// var GoogleStrategy = require('passport-google-oauth2').Strategy;
-// var InstagramStrategy = require('passport-instagram').Strategy;
-// var User = require('./user.js');
-const config = require('./oauth.js');
+const passport = require("passport");
+// var FacebookStrategy = require("passport-facebook").Strategy;
+const TwitterStrategy = require("passport-twitter").Strategy;
+// var GithubStrategy = require("passport-github2").Strategy;
+// var GoogleStrategy = require("passport-google-oauth2").Strategy;
+// var InstagramStrategy = require("passport-instagram").Strategy;
+// var User = require("./user.js");
+const config = require("./oauth.js");
 const userServer = require("@threeceelabs/user-server-controller");
 
 function jsonPrint(obj) {

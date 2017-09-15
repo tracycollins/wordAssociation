@@ -2241,7 +2241,12 @@ function initAppRouting(callback) {
       + " | PATH: " + req.path
     ));
 
-    if (req.path === "/") {
+
+    if (req.path === "/googleccd19766bea2dfd2.html") {
+      console.log(chalkAlert("R> REDIRECT /session")); 
+      res.send("./googleccd19766bea2dfd2.html");
+    }
+    else if (req.path === "/") {
       console.log(chalkAlert("R> REDIRECT /session")); 
       res.redirect("/session");
     }

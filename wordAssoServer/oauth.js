@@ -7,7 +7,7 @@ var ids = {
   twitter: {
     consumerKey: '0g1pAgIqe6f3LN9yjaPBGJcSL',
     consumerSecret: 'op5mSFdo1jenyiTxFyED0yD2W1rmviq35qpVlgSSyIIlFPuBj7',
-    callbackURL: "http://127.0.0.1:9997/auth/twitter/callback"
+    callbackURL: "http://word.threeceelabs.com/auth/twitter/callback"
   }
   // github: {
   //   clientID: '817eee74a39f184a3fdf',

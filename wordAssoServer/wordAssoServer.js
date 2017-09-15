@@ -379,9 +379,9 @@ const dropboxClient = new Dropbox({ accessToken: DROPBOX_WORD_ASSO_ACCESS_TOKEN 
 const configFolder = "/config/utility/" + hostname;
 const deletedMetricsFile = "deletedMetrics.json";
 
-// const wordAssoDb = require("@threeceelabs/mongoose-twitter");
-// const db = wordAssoDb();
-// const mongoose = require("mongoose");
+const wordAssoDb = require("@threeceelabs/mongoose-twitter");
+const db = wordAssoDb();
+const mongoose = require("mongoose");
 
 // const User = require("mongoose").model("User");
 
@@ -2234,25 +2234,43 @@ function slackMessageHandler(messageObj){
 function initAppRouting(callback) {
 
   const exp = require("express");
-  const cookieParser = require("cookie-parser");
+  // const cookieParser = require("cookie-parser");
   const bodyParser = require("body-parser");
   const methodOverride = require("method-override");
   const session = require("express-session");
-  const multer  = require("multer");
+  // const cookieSession = require("cookie-session");
+  // const multer  = require("multer");
+  const MongoDBStore = require("connect-mongodb-session")(session);
+
+  const store = new MongoDBStore({
+    uri: "mongodb://127.0.0.1/wordAsso?replicaSet=rs0",
+    collection: "oauthSessions"
+  });
+
+  // Catch errors 
+  store.on("error", function(error) {
+    console.log(chalkError("MONGO STORE ERROR\n" + jsonPrint(error))); 
+    assert.ifError(error);
+    assert.ok(false);
+  });
 
   debug(chalkInfo(moment().format(compactDateTimeFormat) + " | INIT APP ROUTING"));
 
   // app.set("views", __dirname + "/views");
   // app.set("view engine", "jade");
   // app.use(exp.logger());
-  app.use(cookieParser());
+  // app.use(cookieParser());
   app.use(bodyParser.urlencoded({ extended: false }));
   app.use(methodOverride());
   app.use(session({
     secret: "my_precious",
-    resave: false,
+    resave: true,
+    store: store,
     saveUninitialized: true,
-    cookie: { secure: false }
+    cookie: { 
+      secure: false,
+      maxAge: 1000 * 60 * 60 * 24 * 7
+     }
   }));
   app.use(passport.initialize());
   app.use(passport.session());
@@ -2345,9 +2363,11 @@ function initAppRouting(callback) {
     done(null, userId);
   });
   passport.deserializeUser(function(userObj, done) {
-    console.log(chalkAlert("DESERIALIZE USER: " + jsonPrint(userObj)));
+    // console.log(chalkAlert("DESERIALIZE USER: " + jsonPrint(userObj)));
+    debug(chalkAlert("DESERIALIZE USER: @" + userObj.screenName));
     userServer.findOne({ user: userObj}, function(err, user){
-      console.log("PASSPORT USER DESERIALIZED\n" + jsonPrint(user));
+      // console.log("PASSPORT USER DESERIALIZED\n" + jsonPrint(user));
+      console.log(chalkInfo("DESERIALIZED USER: @" + user.screenName));
         if (!err) {
           done(null, user);
         }
@@ -2415,7 +2435,7 @@ function initAppRouting(callback) {
       console.log(chalkAlert("PASSPORT TWITTER AUTHENTICATED"));
       return next();
     }
-    res.redirect("/");
+    res.redirect("/session");
   }
 
 
@@ -2424,7 +2444,8 @@ function initAppRouting(callback) {
   // app.get("/ping", routes.ping);
   app.get("/account", ensureAuthenticated, function(req, res){
 
-    console.log(chalkError("PASSPORT TWITTER AUTH USER\n" + jsonPrint(req.session.passport.user)));  // handle errors
+    debug(chalkError("PASSPORT TWITTER AUTH USER\n" + jsonPrint(req.session.passport.user)));  // handle errors
+    console.log(chalkError("PASSPORT TWITTER AUTH USER: @" + req.session.passport.user.screenName));  // handle errors
 
     userServer.findOne({ user: req.session.passport.user}, function(err, user) {
       if(err) {

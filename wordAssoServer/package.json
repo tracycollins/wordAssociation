@@ -8,7 +8,7 @@
     "@threeceelabs/hashtag-server-controller": "^1.0.13",
     "@threeceelabs/mongoose-twitter": "^1.0.31",
     "@threeceelabs/tweet-server-controller": "^1.0.40",
-    "@threeceelabs/user-server-controller": "^1.0.79",
+    "@threeceelabs/user-server-controller": "^1.0.80",
     "@threeceelabs/word-server-controller": "^1.0.8",
     "body-parser": "^1.18.1",
     "chalk": "^2.1.0",

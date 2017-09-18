@@ -1377,6 +1377,13 @@ function initSocketHandler(socketObj) {
       + " | KWs: " + Object.keys(dataObj.keywords)
       // + "\n" + jsonPrint(dataObj)
     ));
+
+    const text = "TWITTER_CATEGORIZE_NODE | "
+      + ipAddress
+      + "\n@" + dataObj.node.screenName + ": " + Object.keys(dataObj.keywords)
+
+    slackPostMessage(slackChannel, text);
+
     categorizeNode(dataObj);
   });
 

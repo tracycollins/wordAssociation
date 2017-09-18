@@ -1378,8 +1378,8 @@ function initSocketHandler(socketObj) {
       // + "\n" + jsonPrint(dataObj)
     ));
 
-    const text = "TWITTER_CATEGORIZE_NODE | "
-      + ipAddress
+    const text = "CATEGORIZE"
+      + " | " + ipAddress
       + "\n@" + dataObj.node.screenName + ": " + Object.keys(dataObj.keywords)
 
     slackPostMessage(slackChannel, text);

@@ -195,8 +195,6 @@ MEDIAVIEW_DEFAULT.COLLISION_ITERATIONS = 1;
 
 var config = {};
 
-config.authenticationUrl = "http://word.threeceelabs.com/auth/twitter";
-// config.authenticationUrl = "http://localhost:9997/auth/twitter";
 config.twitterUser = {};
 config.twitterUser.userId = "";
 
@@ -205,6 +203,16 @@ if (useStoredConfig) {
   config = store.get(globalStoredConfigName);
   config.pauseFlag = false;
   config.pauseOnMouseMove = true;
+  if (config.authenticationUrl === undefined) {
+    config.authenticationUrl = "http://word.threeceelabs.com/auth/twitter";
+    // config.authenticationUrl = "http://localhost:9997/auth/twitter";
+    config.twitterUser = {};
+    config.twitterUser.userId = "";
+  }
+  if (config.twitterUser === undefined) {
+    config.twitterUser = {};
+    config.twitterUser.userId = "";
+  }
 }
 else {
   config.authenticationUrl = "http://word.threeceelabs.com/auth/twitter";

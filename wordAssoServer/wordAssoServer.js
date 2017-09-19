@@ -2512,7 +2512,7 @@ function initAppRouting(callback) {
     passport.authenticate("twitter", { failureRedirect: "/auth/twitter/error" }),
     function(req, res) {
       console.log(chalkAlert("PASSPORT AUTH TWITTER CALLBACK"));
-      res.redirect("/account");
+      res.sendStatus(200);
     });
 
 

@@ -5,8 +5,8 @@ var ids = {
   //   callbackURL: 'http://127.0.0.1:1337/auth/facebook/callback'
   // },
   twitter: {
-    consumerKey: '0g1pAgIqe6f3LN9yjaPBGJcSL',
-    consumerSecret: 'op5mSFdo1jenyiTxFyED0yD2W1rmviq35qpVlgSSyIIlFPuBj7',
+    consumerKey: "0g1pAgIqe6f3LN9yjaPBGJcSL",
+    consumerSecret: "op5mSFdo1jenyiTxFyED0yD2W1rmviq35qpVlgSSyIIlFPuBj7",
     callbackURL: "http://word.threeceelabs.com/auth/twitter/callback"
   }
   // github: {

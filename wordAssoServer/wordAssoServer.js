@@ -2473,7 +2473,7 @@ function initAppRouting(callback) {
     }
     console.log(chalkAlert("*** PASSPORT TWITTER *NOT* AUTHENTICATED ***"));
     slackPostMessage(slackChannel, "PASSPORT TWITTER AUTHENTICATION FAILED");
-    res.redirect("/session");
+    // res.redirect("/session");
   }
 
   app.get("/account", ensureAuthenticated, function(req, res){

@@ -2491,10 +2491,8 @@ function initAppRouting(callback) {
       else {
         console.log(chalkAlert("TWITTER USER AUTHENTICATED: @" + user.screenName));  // handle errors
         slackPostMessage(slackChannel, "USER AUTH: @" + user.screenName);
-
         authenticatedUserCache.set(user.userId, user);
-
-        res.sendStatus(200);
+        res.redirect("/after-auth.html");
       }
     });
   });
@@ -2517,7 +2515,7 @@ function initAppRouting(callback) {
     passport.authenticate("twitter", { successRedirect: "/session", failureRedirect: "/auth/twitter/error" }),
     function(req, res) {
       console.log(chalkAlert("PASSPORT AUTH TWITTER CALLBACK"));
-      res.redirect("/after-auth.html");
+      res.redirect("/account");
       // res.sendStatus(200);
     });
 

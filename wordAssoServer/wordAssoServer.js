@@ -2284,9 +2284,6 @@ function slackMessageHandler(messageObj){
   }
 }
 
-var loginCallBack = function() {
-  console.log(chalkAlert("LOGIN CALLBACK"));
-};
 
 function initAppRouting(callback) {
 

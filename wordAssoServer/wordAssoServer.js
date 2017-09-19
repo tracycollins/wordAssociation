@@ -2490,7 +2490,7 @@ function initAppRouting(callback) {
 
         authenticatedUserCache.set(user.userId, user);
 
-        // res.redirect("/");
+        res.sendStatus(200);
       }
     });
   });

@@ -2485,12 +2485,12 @@ function initAppRouting(callback) {
         res.redirect("/504.html");
       } 
       else {
-        console.log(chalkAlert("TWITTER USER AUTHENTICATED: " + user.screenName));  // handle errors
-        slackPostMessage(slackChannel, "TWITTER USER AUTHENTICATED: " + user.screenName);
+        console.log(chalkAlert("TWITTER USER AUTHENTICATED: @" + user.screenName));  // handle errors
+        slackPostMessage(slackChannel, "USER AUTH: @" + user.screenName);
 
         authenticatedUserCache.set(user.userId, user);
 
-        res.redirect("/");
+        // res.redirect("/");
       }
     });
   });
@@ -2499,6 +2499,7 @@ function initAppRouting(callback) {
   app.get("/auth/twitter/error", function(req, res){
     console.log(chalkAlert("PASSPORT AUTH TWITTER ERROR"));
   });
+
   app.get("/auth/twitter",
     passport.authenticate("twitter"),
     function(req, res){

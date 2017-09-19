@@ -2,6 +2,8 @@
 /*jslint node: true */
 "use strict";
 
+var DEFAULT_AUTH_URL = "http://word.threeceelabs.com/auth/twitter";
+
 // var DEFAULT_SOURCE = "http://localhost:9997";
 var DEFAULT_SOURCE = "http://word.threeceelabs.com";
 // var DEFAULT_SOURCE = "==SOURCE==";  // will be updated by wordAssoServer.js on app.get
@@ -204,7 +206,7 @@ if (useStoredConfig) {
   config.pauseFlag = false;
   config.pauseOnMouseMove = true;
   if (config.authenticationUrl === undefined) {
-    config.authenticationUrl = "http://word.threeceelabs.com/auth/twitter";
+    config.authenticationUrl = DEFAULT_AUTH_URL;
     // config.authenticationUrl = "http://localhost:9997/auth/twitter";
     config.twitterUser = {};
     config.twitterUser.userId = "";
@@ -215,7 +217,7 @@ if (useStoredConfig) {
   }
 }
 else {
-  config.authenticationUrl = "http://word.threeceelabs.com/auth/twitter";
+  config.authenticationUrl = DEFAULT_AUTH_URL;
   config.twitterUser = {};
   config.twitterUser.userId = "";
   config.autoKeywordsFlag = false;
@@ -4049,6 +4051,7 @@ function initialize(callback) {
                 + "\n" + jsonPrint(storedConfig)
               );
               config = storedConfig;
+              config.authenticationUrl = DEFAULT_AUTH_URL;
 
               if (config.sessionViewType == "ticker") {
                 currentSessionView.setNodeMaxAge(config.defaultMaxAge);
@@ -4143,6 +4146,7 @@ function initialize(callback) {
               );
 
               config = storedConfig;
+              config.authenticationUrl = DEFAULT_AUTH_URL;
 
               if (config.sessionViewType == "force") {
                 currentSessionView.setNodeMaxAge(config.defaultMaxAge);
@@ -4268,6 +4272,7 @@ function initialize(callback) {
               );
 
               config = storedConfig;
+              config.authenticationUrl = DEFAULT_AUTH_URL;
 
               if (config.sessionViewType == "force") {
                 currentSessionView.setNodeMaxAge(config.defaultMaxAge);

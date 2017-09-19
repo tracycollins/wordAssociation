@@ -24,6 +24,6 @@ var ids = {
   //   clientSecret: '350c7e6a3b4b4b7195c4cbf908eed9fc',
   //   callbackURL: 'http://127.0.0.1:1337/auth/instagram/callback'
   // }
-};
+}
 
 module.exports = ids;

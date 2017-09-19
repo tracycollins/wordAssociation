@@ -2512,10 +2512,10 @@ function initAppRouting(callback) {
     });
 
   app.get("/auth/twitter/callback",
-    passport.authenticate("twitter", { successRedirect: "/session", failureRedirect: "/auth/twitter/error" }),
+    passport.authenticate("twitter", { successRedirect: "/account", failureRedirect: "/auth/twitter/error" }),
     function(req, res) {
       console.log(chalkAlert("PASSPORT AUTH TWITTER CALLBACK"));
-      res.redirect("/account");
+      // res.redirect("/account");
       // res.sendStatus(200);
     });
 

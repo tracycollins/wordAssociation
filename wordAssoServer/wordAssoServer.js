@@ -2508,8 +2508,9 @@ function initAppRouting(callback) {
         + " | req.params: " + jsonPrint(req.params)
       ));
     });
+
   app.get("/auth/twitter/callback",
-    passport.authenticate("twitter", { failureRedirect: "/auth/twitter/error" }),
+    passport.authenticate("twitter", { successRedirect: "/session", failureRedirect: "/auth/twitter/error" }),
     function(req, res) {
       console.log(chalkAlert("PASSPORT AUTH TWITTER CALLBACK"));
       res.sendStatus(200);

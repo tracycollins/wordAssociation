@@ -195,7 +195,7 @@ MEDIAVIEW_DEFAULT.COLLISION_RADIUS_MULTIPLIER = 2.50;
 MEDIAVIEW_DEFAULT.COLLISION_ITERATIONS = 1;
 
 var loginCallBack = function() {
-  console.log(chalkAlert("LOGIN CALLBACK"));
+  console.warn("LOGIN CALLBACK");
 };
 
 var config = {};

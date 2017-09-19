@@ -75,6 +75,9 @@ const STATS_UPDATE_INTERVAL = 60000;
 
 const DEFAULT_INTERVAL = 5;
 
+const AUTH_USER_CACHE_DEFAULT_TTL = 60;
+const AUTH_USER_CACHE_CHECK_PERIOD = 5;
+
 const TOPTERMS_CACHE_DEFAULT_TTL = 60;
 const TOPTERMS_CACHE_CHECK_PERIOD = 5;
 
@@ -429,6 +432,38 @@ function slackPostMessage(channel, text, callback){
   });
 }
 
+// ==================================================================
+// AUTH USER CACHE
+// ==================================================================
+let authenticatedUserCacheTtl = process.env.AUTH_USER_CACHE_DEFAULT_TTL;
+if (authenticatedUserCacheTtl === undefined) { authenticatedUserCacheTtl = AUTH_USER_CACHE_DEFAULT_TTL;}
+console.log("AUTHENTICATED USER CACHE TTL: " + authenticatedUserCacheTtl + " SECONDS");
+
+let authenticatedUserCacheCheckPeriod = process.env.AUTH_USER_CACHE_CHECK_PERIOD;
+if (authenticatedUserCacheCheckPeriod === undefined) { authenticatedUserCacheCheckPeriod = AUTH_USER_CACHE_CHECK_PERIOD;}
+console.log("AUTHENTICATED USER CACHE CHECK PERIOD: " + authenticatedUserCacheCheckPeriod + " SECONDS");
+
+
+const authenticatedUserCache = new NodeCache({
+  stdTTL: authenticatedUserCacheTtl,
+  checkperiod: authenticatedUserCacheCheckPeriod
+});
+
+function authenticatedUserCacheExpired(userId, userObj) {
+
+  console.log(chalkLog("XXX $ AUTH USER"
+    + " | " + userObj.userId
+    + " | @" + userObj.screenName
+  ));
+
+}
+
+authenticatedUserCache.on("expired", authenticatedUserCacheExpired);
+
+
+// ==================================================================
+// NODE CACHE
+// ==================================================================
 let nodeCacheTtl = process.env.NODE_CACHE_DEFAULT_TTL;
 if (nodeCacheTtl === undefined) { nodeCacheTtl = NODE_CACHE_DEFAULT_TTL;}
 console.log("NODE CACHE TTL: " + nodeCacheTtl + " SECONDS");
@@ -1067,6 +1102,10 @@ function initUpdater(callback){
 
 function categorizeNode(categorizeObj) {
 
+  if (authenticatedUserCache.has(categorizeObj.twitterUser.userId)) {
+
+  }
+
   debug(chalkSocket("categorizeNode" 
     + " | categorizeObj\n" + jsonPrint(categorizeObj)
   ));
@@ -1082,6 +1121,7 @@ function categorizeNode(categorizeObj) {
 
       keywordHashMap.set(categorizeObj.node.nodeId.toLowerCase(), categorizeObj.keywords);
       keywordHashMap.set(categorizeObj.node.screenName.toLowerCase(), categorizeObj.keywords);
+
       userServer.updateKeywords({user: categorizeObj.node, keywords: categorizeObj.keywords}, function(err, updatedUser){
 
         if (err) {
@@ -1104,6 +1144,12 @@ function categorizeNode(categorizeObj) {
                 initUpdater();
               }
             });
+
+            const text = "CATEGORIZE"
+              + "\n@" + categorizeObj.node.screenName + ": " + Object.keys(categorizeObj.keywords)
+
+            slackPostMessage(slackChannel, text);
+
 
             debug(chalkLog(">UPDATER UPDATE_KEYWORD USER | @" + updatedUser.screenName ));
           }
@@ -1147,6 +1193,11 @@ function categorizeNode(categorizeObj) {
                 initUpdater();
               }
             });
+
+            const text = "CATEGORIZE"
+              + "\n#" + categorizeObj.node.nodeId.toLowerCase() + ": " + Object.keys(categorizeObj.keywords)
+
+            slackPostMessage(slackChannel, text);
 
             debug(chalkLog(">UPDATER UPDATE_KEYWORD HASHTAG | #" + updatedHashtag.text ));
           }
@@ -1370,6 +1421,7 @@ function initSocketHandler(socketObj) {
   });
 
   socket.on("TWITTER_CATEGORIZE_NODE", function twittercategorizeNode(dataObj) {
+
     console.log(chalkSocket("TWITTER_CATEGORIZE_NODE"
       + " | " + getTimeStamp()
       + " | SID: " + socket.id
@@ -1377,12 +1429,6 @@ function initSocketHandler(socketObj) {
       + " | KWs: " + Object.keys(dataObj.keywords)
       // + "\n" + jsonPrint(dataObj)
     ));
-
-    const text = "CATEGORIZE"
-      + " | " + ipAddress
-      + "\n@" + dataObj.node.screenName + ": " + Object.keys(dataObj.keywords)
-
-    slackPostMessage(slackChannel, text);
 
     categorizeNode(dataObj);
   });
@@ -2441,6 +2487,9 @@ function initAppRouting(callback) {
       else {
         console.log(chalkAlert("TWITTER USER AUTHENTICATED: " + user.screenName));  // handle errors
         slackPostMessage(slackChannel, "TWITTER USER AUTHENTICATED: " + user.screenName);
+
+        authenticatedUserCache.set(user.userId, user);
+
         res.redirect("/");
       }
     });

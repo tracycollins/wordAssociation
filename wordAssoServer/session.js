@@ -62,7 +62,8 @@ requirejs(["https://d3js.org/d3.v4.min.js"], function(d3Loaded) {
         statsTableFlag = true;
       });
       addControlButton();
-      addBlahButton();
+      // addBlahButton();
+      addLoginButton();
       addFullscreenButton();
       addMetricButton();
       addStatsButton();
@@ -194,6 +195,11 @@ MEDIAVIEW_DEFAULT.COLLISION_ITERATIONS = 1;
 
 var config = {};
 
+config.authenticationUrl = "http://word.threeceelabs.com/auth/twitter";
+// config.authenticationUrl = "http://localhost:9997/auth/twitter";
+config.twitterUser = {};
+config.twitterUser.userId = "";
+
 if (useStoredConfig) {
   console.debug("LOADING STORED CONFIG: " + globalStoredConfigName);
   config = store.get(globalStoredConfigName);
@@ -201,6 +207,9 @@ if (useStoredConfig) {
   config.pauseOnMouseMove = true;
 }
 else {
+  config.authenticationUrl = "http://word.threeceelabs.com/auth/twitter";
+  config.twitterUser = {};
+  config.twitterUser.userId = "";
   config.autoKeywordsFlag = false;
   config.metricMode = DEFAULT_METRIC_MODE;
   config.enableAgeNodes = true;
@@ -247,6 +256,7 @@ else {
 }
 
 var statsObj = {};
+statsObj.isAuthenticated = false;
 statsObj.socketId = null;
 statsObj.socketErrors = 0;
 statsObj.maxNodes = 0;
@@ -798,6 +808,29 @@ function addBlahButton(){
   controlDiv.appendChild(blahButton);
 }
 
+function updateLoginButton(){
+  var lButton = document.getElementById("loginButton");
+  lButton.innerHTML = statsObj.isAuthenticated ? "LOG OUT" : "LOG IN";
+}
+
+function login() {
+  console.warn("LOGIN: AUTH: " + statsObj.isAuthenticated);
+  window.open(config.authenticationUrl, "LOGIN", "_new");
+  // updateLoginButton();
+  // if (controlPanelFlag) {controlPanel.updateControlPanel(config);}
+  // saveConfig();
+}
+
+function addLoginButton(){
+  var controlDiv = document.getElementById("controlDiv");
+  var loginButton = document.createElement("BUTTON");
+  loginButton.className = "button";
+  loginButton.setAttribute("id", "loginButton");
+  loginButton.setAttribute("onclick", "login()");
+  loginButton.innerHTML = statsObj.isAuthenticated ? "LOG OUT" : "LOG IN";
+  controlDiv.appendChild(loginButton);
+}
+
 function updateFullscreenButton(){
   var bButton = document.getElementById("fullscreenButton");
   bButton.innerHTML = config.fullscreenMode ? "EXIT FULLSCREEN" : "FULLSCREEN";
@@ -959,21 +992,34 @@ function controlPanelComm(event) {
       break;
     case "CATEGORIZE":
 
-      if (data.node.nodeType === "user"){
-        console.info("R< CONTROL PANEL CATEGORIZE"
-          + " | " + data.node.nodeId
-          + " | " + data.node.screenName
-          + "\n" + jsonPrint(data.keywords)
-        );
-        socket.emit("TWITTER_CATEGORIZE_NODE", { keywords: data.keywords, node: data.node });
+      if (statsObj.isAuthenticated) {
+
+        if (data.node.nodeType === "user"){
+          console.info("R< CONTROL PANEL CATEGORIZE"
+            + " | " + data.node.nodeId
+            + " | " + data.node.screenName
+            + "\n" + jsonPrint(data.keywords)
+          );
+          socket.emit("TWITTER_CATEGORIZE_NODE", 
+            { twitterUser: config.twitterUser,
+            keywords: data.keywords,
+            node: data.node}
+          );
+        }
+        else if (data.node.nodeType === "hashtag"){
+          console.info("R< CONTROL PANEL CATEGORIZE"
+            + " | " + data.node.nodeId
+            + "\n" + jsonPrint(data.keywords)
+          );
+          socket.emit("TWITTER_CATEGORIZE_NODE", { keywords: data.keywords, node: data.node });
+        }
+
       }
-      else if (data.node.nodeType === "hashtag"){
-        console.info("R< CONTROL PANEL CATEGORIZE"
-          + " | " + data.node.nodeId
-          + "\n" + jsonPrint(data.keywords)
-        );
-        socket.emit("TWITTER_CATEGORIZE_NODE", { keywords: data.keywords, node: data.node });
+      else {
+        window.open(config.authenticationUrl, "_blank");
       }
+
+
       break;
     case "SET_TWITTER_USER":
       console.info("R< CONTROL PANEL LOOPBACK? | SET_TWITTER_USER ... IGNORING ...");
@@ -1009,6 +1055,9 @@ function createPopUpControlPanel (cnf, callback) {
     callback(controlPanelWindow);
   }, false);
 }
+
+
+
 
 function toggleMetric() {
   if (config.metricMode === "rate") {
@@ -1596,7 +1645,8 @@ function tableCreateRow(parentTable, options, cells) {
 
 function createStatsTable(callback) {
 
-  console.log("CREATE STATS TABLE\n" + jsonPrint(config));
+  // console.log("CREATE STATS TABLE\n" + jsonPrint(config));
+  console.log("CREATE STATS TABLE");
 
   var statsDiv = document.getElementById("statsDiv");
   statsDiv.style.visibility = "hidden";
@@ -2145,6 +2195,8 @@ socket.on("SET_TWITTER_USER", function(twitterUser) {
   if (twitterUser.userId === twitterUserThreecee.userId) {
     twitterUserThreecee = twitterUser;
   }
+
+  config.twitterUser = twitterUser;
 
   currentSessionView.setTwitterUser(twitterUser);
 

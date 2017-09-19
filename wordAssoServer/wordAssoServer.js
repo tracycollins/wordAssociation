@@ -2284,6 +2284,10 @@ function slackMessageHandler(messageObj){
   }
 }
 
+var loginCallBack = function() {
+  console.log(chalkAlert("LOGIN CALLBACK"));
+};
+
 function initAppRouting(callback) {
 
   const exp = require("express");
@@ -2513,7 +2517,8 @@ function initAppRouting(callback) {
     passport.authenticate("twitter", { successRedirect: "/session", failureRedirect: "/auth/twitter/error" }),
     function(req, res) {
       console.log(chalkAlert("PASSPORT AUTH TWITTER CALLBACK"));
-      res.sendStatus(200);
+      res.redirect("/after-auth.html");
+      // res.sendStatus(200);
     });
 
 

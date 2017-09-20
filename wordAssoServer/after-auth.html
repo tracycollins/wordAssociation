@@ -3,7 +3,8 @@
         window.opener.focus();
 
       if(window.opener.loginCallBack) {
-        window.opener.loginCallBack();
+      	var data = { userId: "userId" };
+        window.opener.loginCallBack(data);
       }
     }
     window.close();

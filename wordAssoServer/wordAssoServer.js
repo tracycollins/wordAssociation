@@ -2365,7 +2365,7 @@ function initAppRouting(callback) {
     cookieParser: require('cookie-parser'),       // the same middleware you registrer in express
     key:          "express.sid",       // the name of the cookie where express/connect stores its session_id
     secret:       "my_precious",    // the session_secret to parse the cookie
-    store:        sessionStore        // we NEED to use a sessionstore. no memorystore please
+    store:        sessionStore,        // we NEED to use a sessionstore. no memorystore please
     success:      onAuthorizeSuccess,  // *optional* callback on success - read more below
     fail:         onAuthorizeFail     // *optional* callback on fail/error - read more below
   }));

@@ -50,11 +50,15 @@ function jsonPrint(obj) {
 // ));
 
 module.exports = passport.use(new TwitterStrategy({
+
   consumerKey: config.twitter.consumerKey,
   consumerSecret: config.twitter.consumerSecret,
   callbackURL: config.twitter.callbackURL
+
   },
+
   function(accessToken, refreshToken, profile, done) {
+    
     console.log("AUTH"
       + "\nACCESS TOKEN:  " + accessToken
       + "\nREFRESH TOKEN: " + refreshToken

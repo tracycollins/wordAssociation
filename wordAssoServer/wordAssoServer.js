@@ -10,8 +10,8 @@ const MAX_SESSION_AGE = ONE_DAY;
 const MAX_Q = 200;
 const OFFLINE_MODE = false;
 
-// let oauthConfig = require("./oauth.js");
-// let passport = require("passport");
+let oauthConfig = require("./oauth.js");
+let passport = require("passport");
 // let fbAuth = require("./authentication.js");
 // let passportSocketIo = require("passport.socketio");
 
@@ -2316,31 +2316,31 @@ function slackMessageHandler(messageObj){
 
 
 
-function onAuthorizeSuccess(data, accept){
-  console.log(chalk.green("onAuthorizeSuccess"
-    + " | SID: " + data.sessionID
-    + "\nUSER" + jsonPrint(data.user)
-    + "\nCOOKIE" + jsonPrint(data.cookie)
-  ));
-  debug(util.inspect(data, { showHidden: true, depth: 1 }));
-  return accept();
-}
+// function onAuthorizeSuccess(data, accept){
+//   console.log(chalk.green("onAuthorizeSuccess"
+//     + " | SID: " + data.sessionID
+//     + "\nUSER" + jsonPrint(data.user)
+//     + "\nCOOKIE" + jsonPrint(data.cookie)
+//   ));
+//   debug(util.inspect(data, { showHidden: true, depth: 1 }));
+//   return accept();
+// }
 
-function onAuthorizeFail(data, message, error, accept){
-  console.log(chalkAlert("onAuthorizeFail"
-    + " | SID: " + data.sessionID
-    + " | MESSAGE: " + message
-    + "\nUSER: " + jsonPrint(data.user)
-    + "\nCOOKIE: " + jsonPrint(data.cookie)
-    + "\nERROR: " + jsonPrint(error)
-  ));
-  debug(util.inspect(data, { showHidden: true, depth: 1 }));
+// function onAuthorizeFail(data, message, error, accept){
+//   console.log(chalkAlert("onAuthorizeFail"
+//     + " | SID: " + data.sessionID
+//     + " | MESSAGE: " + message
+//     + "\nUSER: " + jsonPrint(data.user)
+//     + "\nCOOKIE: " + jsonPrint(data.cookie)
+//     + "\nERROR: " + jsonPrint(error)
+//   ));
+//   debug(util.inspect(data, { showHidden: true, depth: 1 }));
 
-  // error indicates whether the fail is due to an error or just a unauthorized client
-  if (error)  { throw new Error(message); }
-  // send the (not-fatal) error-message to the client and deny the connection
-  return accept(new Error(message));
-}
+//   // error indicates whether the fail is due to an error or just a unauthorized client
+//   if (error)  { throw new Error(message); }
+//   // send the (not-fatal) error-message to the client and deny the connection
+//   return accept(new Error(message));
+// }
 
 
 function initAppRouting(callback) {
@@ -2351,7 +2351,7 @@ function initAppRouting(callback) {
   // const session = require("express-session");
   // const MongoDBStore = require("connect-mongodb-session")(session);
 
-  // const store = new MongoDBStore({
+  // const sessionStore = new MongoDBStore({
   //   uri: "mongodb://127.0.0.1/wordAsso?replicaSet=rs0",
   //   collection: "oauthSessions"
   // });
@@ -2380,21 +2380,21 @@ function initAppRouting(callback) {
 
   debug(chalkInfo(moment().format(compactDateTimeFormat) + " | INIT APP ROUTING"));
 
-  // app.use(bodyParser.urlencoded({ extended: false }));
-  // app.use(methodOverride());
-  // app.use(session({
-  //   key: "express.sid",
-  //   secret: "my_precious",
-  //   resave: false,
-  //   store: sessionStore,
-  //   saveUninitialized: true,
-  //   cookie: { 
-  //     secure: false,
-  //     maxAge: MAX_SESSION_AGE
-  //    }
-  // }));
-  // app.use(passport.initialize());
-  // app.use(passport.session());
+  app.use(bodyParser.urlencoded({ extended: false }));
+  app.use(methodOverride());
+  app.use(session({
+    // key: "express.sid",
+    secret: "my_precious",
+    resave: false,
+    store: sessionStore,
+    saveUninitialized: true,
+    cookie: { 
+      secure: false,
+      maxAge: MAX_SESSION_AGE
+     }
+  }));
+  app.use(passport.initialize());
+  app.use(passport.session());
   app.use(exp.static(__dirname + "/public"));
 
   // io.use(passportSocketIo.authorize({
@@ -2470,30 +2470,29 @@ function initAppRouting(callback) {
     }
   });
 
-  // // serialize and deserialize
-  // passport.serializeUser(function(userId, done) {
-  //   debug(chalkAlert("SERIALIZE USER: " + userId));
-  //   done(null, userId);
-  // });
+  // serialize and deserialize
+  passport.serializeUser(function(userId, done) {
+    debug(chalkAlert("SERIALIZE USER: " + userId));
+    done(null, userId);
+  });
 
-  // passport.deserializeUser(function(userObj, done) {
+  passport.deserializeUser(function(userObj, done) {
 
-  //   debug(chalkAlert("DESERIALIZE USER: @" + userObj.screenName));
+    debug(chalkAlert("DESERIALIZE USER: @" + userObj.screenName));
 
-  //   userServer.findOne({ user: userObj}, function(err, user){
+    userServer.findOne({ user: userObj}, function(err, user){
 
-  //     debug(chalkInfo("DESERIALIZED USER: @" + user.screenName));
+      debug(chalkInfo("DESERIALIZED USER: @" + user.screenName));
 
-  //     if (!err) {
-  //       done(null, user);
-  //     }
-  //     else {
-  //       done(err, null);
-  //     }
+      if (!err) {
+        done(null, user);
+      }
+      else {
+        done(err, null);
+      }
 
-  //   });
-
-  // });
+    });
+  });
 
   app.use(exp.static("./"));
   app.use(exp.static("./js"));
@@ -2547,66 +2546,65 @@ function initAppRouting(callback) {
     });
   });
 
-  // // test authentication
-  // function ensureAuthenticated(req, res, next) {
-  //   if (req.isAuthenticated()) { 
-  //     console.log(chalkAlert("PASSPORT TWITTER AUTHENTICATED"));
-  //     slackPostMessage(slackChannel, "PASSPORT TWITTER AUTHENTICATED");
-  //     return next();
-  //   }
-  //   console.log(chalkAlert("*** PASSPORT TWITTER *NOT* AUTHENTICATED ***"));
-  //   slackPostMessage(slackChannel, "PASSPORT TWITTER AUTHENTICATION FAILED");
-  //   // res.redirect("/session");
-  // }
+  function ensureAuthenticated(req, res, next) {
+    if (req.isAuthenticated()) { 
+      console.log(chalkAlert("PASSPORT TWITTER AUTHENTICATED"));
+      slackPostMessage(slackChannel, "PASSPORT TWITTER AUTHENTICATED");
+      return next();
+    }
+    console.log(chalkAlert("*** PASSPORT TWITTER *NOT* AUTHENTICATED ***"));
+    slackPostMessage(slackChannel, "PASSPORT TWITTER AUTHENTICATION FAILED");
+    // res.redirect("/session");
+  }
 
-  // app.get("/account", ensureAuthenticated, function(req, res){
+  app.get("/account", ensureAuthenticated, function(req, res){
 
-  //   debug(chalkError("PASSPORT TWITTER AUTH USER\n" + jsonPrint(req.session.passport.user)));  // handle errors
-  //   console.log(chalkError("PASSPORT TWITTER AUTH USER: @" + req.session.passport.user.screenName));  // handle errors
+    debug(chalkError("PASSPORT TWITTER AUTH USER\n" + jsonPrint(req.session.passport.user)));  // handle errors
+    console.log(chalkError("PASSPORT TWITTER AUTH USER: @" + req.session.passport.user.screenName));  // handle errors
 
-  //   slackPostMessage(slackChannel, "PASSPORT TWITTER AUTH USER: @" + req.session.passport.user.screenName);
+    slackPostMessage(slackChannel, "PASSPORT TWITTER AUTH USER: @" + req.session.passport.user.screenName);
 
-  //   userServer.findOne({ user: req.session.passport.user}, function(err, user) {
-  //     if(err) {
-  //       console.log(chalkError("*** ERROR TWITTER AUTHENTICATION: " + jsonPrint(err)));  // handle errors
-  //       res.redirect("/504.html");
-  //     } 
-  //     else {
-  //       console.log(chalkAlert("TWITTER USER AUTHENTICATED: @" + user.screenName));  // handle errors
-  //       slackPostMessage(slackChannel, "USER AUTH: @" + user.screenName);
-  //       authenticatedUserCache.set(user.userId, user);
-  //       res.redirect("/after-auth.html");
-  //     }
-  //   });
-  // });
-
-
-  // app.get("/auth/twitter/error", function(req, res){
-  //   console.log(chalkAlert("PASSPORT AUTH TWITTER ERROR"));
-  // });
-
-  // app.get("/auth/twitter",
-  //   passport.authenticate("twitter"),
-  //   function(req, res){
-  //     console.log(chalkAlert("PASSPORT AUTH TWITTER"
-  //       + " | req.query: " + jsonPrint(req.query)
-  //       + " | req.params: " + jsonPrint(req.params)
-  //     ));
-  //   });
-
-  // app.get("/auth/twitter/callback",
-  //   passport.authenticate("twitter", { successRedirect: "/account", failureRedirect: "/auth/twitter/error" }),
-  //   function(req, res) {
-  //     console.log(chalkAlert("PASSPORT AUTH TWITTER CALLBACK"));
-  //     // res.redirect("/account");
-  //     // res.sendStatus(200);
-  //   });
+    userServer.findOne({ user: req.session.passport.user}, function(err, user) {
+      if(err) {
+        console.log(chalkError("*** ERROR TWITTER AUTHENTICATION: " + jsonPrint(err)));  // handle errors
+        res.redirect("/504.html");
+      } 
+      else {
+        console.log(chalkAlert("TWITTER USER AUTHENTICATED: @" + user.screenName));  // handle errors
+        slackPostMessage(slackChannel, "USER AUTH: @" + user.screenName);
+        authenticatedUserCache.set(user.userId, user);
+        res.redirect("/after-auth.html");
+      }
+    });
+  });
 
 
-  // app.get("/logout", function(req, res){
-  //   req.logout();
-  //   res.redirect("/");
-  // });
+  app.get("/auth/twitter/error", function(req, res){
+    console.log(chalkAlert("PASSPORT AUTH TWITTER ERROR"));
+  });
+
+  app.get("/auth/twitter",
+    passport.authenticate("twitter"),
+    function(req, res){
+      console.log(chalkAlert("PASSPORT AUTH TWITTER"
+        + " | req.query: " + jsonPrint(req.query)
+        + " | req.params: " + jsonPrint(req.params)
+      ));
+    });
+
+  app.get("/auth/twitter/callback",
+    passport.authenticate("twitter", { successRedirect: "/account", failureRedirect: "/auth/twitter/error" }),
+    function(req, res) {
+      console.log(chalkAlert("PASSPORT AUTH TWITTER CALLBACK"));
+      // res.redirect("/account");
+      // res.sendStatus(200);
+    });
+
+
+  app.get("/logout", function(req, res){
+    req.logout();
+    res.redirect("/");
+  });
 
   callback(null);
 }

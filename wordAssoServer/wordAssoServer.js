@@ -1501,7 +1501,10 @@ function initSocketHandler(socketObj) {
   socket.on("categorize", categorizeNode);
 
   socket.on("LOGIN", function socketLogin(viewerObj){
-    console.log(chalkAlert("LOGIN\n" + jsonPrint(viewerObj)));
+    console.log(chalkAlert("LOGIN"
+      + " | SID: " + socket.id
+      + "\n" + jsonPrint(viewerObj)
+    ));
   });
 
 }
@@ -2313,7 +2316,7 @@ function slackMessageHandler(messageObj){
 
 
 function onAuthorizeSuccess(data, accept){
-  console.log(chalkAlert("onAuthorizeSuccess"
+  console.log(chalk.green("onAuthorizeSuccess"
     + " | SID: " + data.sessionID
     + "\nUSER" + jsonPrint(data.user)
     + "\nCOOKIE" + jsonPrint(data.cookie)

@@ -3489,7 +3489,7 @@ function initialize(cnf, callback) {
     console.log(chalkAlert("DISCONNECT | " + socket.id));
   }
 
-  const socketIoAuth = require("socketio-auth")(io, {
+  const socketIoAuth = require("@threeceelabs/socketio-auth")(io, {
 
     authenticate: function (socket, data, callback) {
 

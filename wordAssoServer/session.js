@@ -2,6 +2,19 @@
 /*jslint node: true */
 "use strict";
 
+function jp(s, obj) {
+  console.warn(s + "\n" + jsonPrint(obj));
+}
+
+function jsonPrint(obj) {
+  if ((obj) || (obj === 0)) {
+    var jsonString = JSON.stringify(obj, null, 2);
+    return jsonString;
+  } else {
+    return "UNDEFINED";
+  }
+}
+
 var randomIntFromInterval = function(min, max) {
   var random = Math.random();
   var randomInt = Math.floor((random * (max - min + 1)) + min);
@@ -28,6 +41,8 @@ DEFAULT_VIEWER_OBJ.tags.entity = USER_ID;
 
 var viewerObj = {};
 viewerObj = DEFAULT_VIEWER_OBJ;
+
+console.log("viewerObj\n" + jsonPrint(viewerObj));
 
 var DEFAULT_AUTH_URL = "http://word.threeceelabs.com/auth/twitter";
 
@@ -1203,18 +1218,6 @@ function toggleTestMode() {
 }
 
 
-function jp(s, obj) {
-  console.warn(s + "\n" + jsonPrint(obj));
-}
-
-function jsonPrint(obj) {
-  if ((obj) || (obj === 0)) {
-    var jsonString = JSON.stringify(obj, null, 2);
-    return jsonString;
-  } else {
-    return "UNDEFINED";
-  }
-}
 
 
 // var initialXpositionRatio = 0.0;

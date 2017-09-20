@@ -1143,7 +1143,7 @@ function categorizeNode(categorizeObj) {
   let user = authenticatedUserCache.get(categorizeObj.twitterUser.userId);
 
   if (!user) {
-    console.log(chalkAlert("*** AUTH USER NOT IN CACHE\n" + jsonPrint(categorizeObj.twitterUser.userId)));
+    console.log(chalkAlert("*** AUTH USER NOT IN CACHE\n" + jsonPrint(categorizeObj.twitterUser)));
     return;
   }
 

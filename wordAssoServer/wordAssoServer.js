@@ -1,7 +1,12 @@
 /*jslint node: true */
 "use strict";
 
-const MAX_SESSION_AGE = 1000 * 30;
+const ONE_SECOND = 1000;
+const ONE_MINUTE = 60 * ONE_SECOND;
+const ONE_HOUR = 60 * ONE_MINUTE;
+const ONE_DAY = 24 * ONE_HOUR;
+
+const MAX_SESSION_AGE = ONE_DAY;
 const MAX_Q = 200;
 const OFFLINE_MODE = false;
 
@@ -31,6 +36,21 @@ let defaultTwitterUser = twitterUserThreecee;
 
 let metricsRate = "1MinuteRate";
 
+const exp = require("express");
+const bodyParser = require("body-parser");
+const methodOverride = require("method-override");
+const session = require("express-session");
+const MongoDBStore = require("connect-mongodb-session")(session);
+
+const store = new MongoDBStore({
+  uri: "mongodb://127.0.0.1/wordAsso?replicaSet=rs0",
+  collection: "oauthSessions"
+});
+
+store.on("error", function(error) {
+  console.log(chalkError("MONGO STORE ERROR\n" + jsonPrint(error))); 
+});
+
 const slackOAuthAccessToken = "xoxp-3708084981-3708084993-206468961315-ec62db5792cd55071a51c544acf0da55";
 const slackChannel = "#was";
 const Slack = require("slack-node");
@@ -56,7 +76,6 @@ let quitOnError = true;
 // ==================================================================
 let statsObj = {};
 
-const ONE_MINUTE = 60000;
 const compactDateTimeFormat = "YYYYMMDD HHmmss";
 const tinyDateTimeFormat = "YYYYMMDDHHmmss";
 
@@ -2287,20 +2306,20 @@ function slackMessageHandler(messageObj){
 
 function initAppRouting(callback) {
 
-  const exp = require("express");
-  const bodyParser = require("body-parser");
-  const methodOverride = require("method-override");
-  const session = require("express-session");
-  const MongoDBStore = require("connect-mongodb-session")(session);
+  // const exp = require("express");
+  // const bodyParser = require("body-parser");
+  // const methodOverride = require("method-override");
+  // const session = require("express-session");
+  // const MongoDBStore = require("connect-mongodb-session")(session);
 
-  const store = new MongoDBStore({
-    uri: "mongodb://127.0.0.1/wordAsso?replicaSet=rs0",
-    collection: "oauthSessions"
-  });
+  // const store = new MongoDBStore({
+  //   uri: "mongodb://127.0.0.1/wordAsso?replicaSet=rs0",
+  //   collection: "oauthSessions"
+  // });
 
-  store.on("error", function(error) {
-    console.log(chalkError("MONGO STORE ERROR\n" + jsonPrint(error))); 
-  });
+  // store.on("error", function(error) {
+  //   console.log(chalkError("MONGO STORE ERROR\n" + jsonPrint(error))); 
+  // });
 
   debug(chalkInfo(moment().format(compactDateTimeFormat) + " | INIT APP ROUTING"));
 

@@ -1345,6 +1345,7 @@ socket.on("VIEWER_READY_ACK", function(vSesKey) {
 });
 
 socket.on("reconnect", function() {
+  viewerObj.userId = socket.id;
   statsObj.socketId = socket.id;
   statsObj.serverConnected = true;
   console.log("RECONNECTED TO HOST | SOCKET ID: " + socket.id);

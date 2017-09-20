@@ -194,10 +194,6 @@ MEDIAVIEW_DEFAULT.LINK_STRENGTH = 0.95;
 MEDIAVIEW_DEFAULT.COLLISION_RADIUS_MULTIPLIER = 2.50;
 MEDIAVIEW_DEFAULT.COLLISION_ITERATIONS = 1;
 
-var loginCallBack = function() {
-  console.warn("LOGIN CALLBACK");
-};
-
 var config = {};
 
 config.twitterUser = {};
@@ -3975,6 +3971,10 @@ function onFullScreenChange() {
   console.log("FULLSCREEN: " + config.fullscreenMode);
   updateFullscreenButton();
 }
+
+var loginCallBack = function() {
+  console.warn("LOGIN CALLBACK");
+};
 
 function initialize(callback) {
 

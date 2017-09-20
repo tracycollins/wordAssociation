@@ -2314,7 +2314,7 @@ function slackMessageHandler(messageObj){
 
 function onAuthorizeSuccess(data, accept){
   console.log(chalkAlert("onAuthorizeSuccess"
-    + " | SID: " + sessionID
+    + " | SID: " + data.sessionID
     + "\nUSER" + jsonPrint(data.user)
     + "\nCOOKIE" + jsonPrint(data.cookie)
   ));
@@ -2324,7 +2324,7 @@ function onAuthorizeSuccess(data, accept){
 
 function onAuthorizeFail(data, message, error, accept){
   console.log(chalkAlert("onAuthorizeFail"
-    + " | SID: " + sessionID
+    + " | SID: " + data.sessionID
     + " | MESSAGE: " + message
     + "\nUSER" + jsonPrint(data.user)
     + "\nCOOKIE" + jsonPrint(data.cookie)

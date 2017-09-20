@@ -1501,7 +1501,8 @@ function initSocketHandler(socketObj) {
 
   socket.on("categorize", categorizeNode);
 
-  socket.on("LOGIN", function socketLogin(viewerObj){
+  // side channel twitter auth in process...
+  socket.on("login", function socketLogin(viewerObj){
     console.log(chalkAlert("LOGIN"
       + " | SID: " + socket.id
       + "\n" + jsonPrint(viewerObj)

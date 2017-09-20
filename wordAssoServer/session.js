@@ -822,10 +822,27 @@ function updateLoginButton(){
   lButton.innerHTML = statsObj.isAuthenticated ? "LOG OUT" : "LOG IN";
 }
 
+socket.on("unauthorized", function(response) {
+
+  console.log("UNAUTHORIZED | " + socket.id + " | " + jsonPrint(response));
+
+});
+
+socket.on("authenticated", function() {
+
+  console.log("AUTHENTICATED | " + socket.id);
+
+  console.log( "CONNECTED TO HOST" 
+    + " | ID: " + socket.id 
+  );
+
+});
+
 function login() {
   console.warn("LOGIN: AUTH: " + statsObj.isAuthenticated + " | URL: " + config.authenticationUrl);
-  // window.open(config.authenticationUrl, "LOGIN", "_new");
-  socket.emit("LOGIN", viewerObj);
+  window.open(config.authenticationUrl, "LOGIN", "_new");
+  // socket.emit("authentication", viewerObj);
+  // socket.emit("LOGIN", viewerObj);
   // updateLoginButton();
   // if (controlPanelFlag) {controlPanel.updateControlPanel(config);}
   // saveConfig();
@@ -1187,6 +1204,7 @@ var DEFAULT_VIEWER_OBJ = {
   viewerId: VIEWER_ID,
   screenName: USER_ID,
   type: "viewer",
+  namespace: "view",
   timeStamp: moment().valueOf(),
   tags: {}
 };
@@ -1333,7 +1351,7 @@ socket.on("reconnect", function() {
 
   viewerObj.timeStamp = moment().valueOf();
 
-  socket.emit("VIEWER_READY", viewerObj);
+  // socket.emit("VIEWER_READY", viewerObj);
 
   if (sessionMode) {
     console.log("SESSION MODE" + " | SID: " + sessionId + " | NSP: " + namespace);
@@ -1345,6 +1363,9 @@ socket.on("reconnect", function() {
 });
 
 socket.on("connect", function() {
+  viewerObj.userId = socket.id;
+
+  socket.emit("authentication", viewerObj);
   statsObj.socketId = socket.id;
   statsObj.serverConnected = true;
   if (currentSessionView !== undefined) {

@@ -2310,6 +2310,20 @@ function slackMessageHandler(messageObj){
   }
 }
 
+function onAuthorizeFail(data, message, error, accept){
+  // error indicates whether the fail is due to an error or just a unauthorized client
+  if(error)  throw new Error(message);
+  // send the (not-fatal) error-message to the client and deny the connection
+  return accept(new Error(message));
+}
+
+// or
+// This function accepts every client unless there's an critical error
+function onAuthorizeFail(data, message, error, accept){
+  if(error)  throw new Error(message);
+  return accept();
+}
+
 
 function initAppRouting(callback) {
 
@@ -2352,8 +2366,8 @@ function initAppRouting(callback) {
     key:          "express.sid",       // the name of the cookie where express/connect stores its session_id
     secret:       "my_precious",    // the session_secret to parse the cookie
     store:        sessionStore        // we NEED to use a sessionstore. no memorystore please
-    // success:      onAuthorizeSuccess,  // *optional* callback on success - read more below
-    // fail:         onAuthorizeFail,     // *optional* callback on fail/error - read more below
+    success:      onAuthorizeSuccess,  // *optional* callback on success - read more below
+    fail:         onAuthorizeFail     // *optional* callback on fail/error - read more below
   }));
 
   app.use(function requestLog(req, res, next) {

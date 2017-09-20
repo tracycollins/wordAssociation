@@ -3828,12 +3828,12 @@ function loadViewType(svt, callback) {
     storedConfigArgs.forEach(function(arg){
       config[arg] = storedConfig[arg];
       if (arg === "VIEWER_OBJ") {
-        console.warn("FOUND PREVIOUS VIEWER OBJ ... OVERIDING"
-          + "\nDEFAULT\n" + jsonPrint(DEFAULT_VIEWER_OBJ) 
-          + "\nSTORED\n" + jsonPrint(storedConfig[arg]) 
-        );
+        // console.warn("FOUND PREVIOUS VIEWER OBJ ... OVERIDING"
+        //   + "\nDEFAULT\n" + jsonPrint(DEFAULT_VIEWER_OBJ) 
+        //   + "\nSTORED\n" + jsonPrint(storedConfig[arg]) 
+        // );
 
-        viewerObj = storedConfig[arg];
+        // viewerObj = storedConfig[arg];
 
       }
       console.log("--> STORED CONFIG | " + arg + ": ", config[arg]);

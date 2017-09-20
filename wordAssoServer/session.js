@@ -3999,8 +3999,8 @@ function onFullScreenChange() {
   updateFullscreenButton();
 }
 
-var loginCallBack = function() {
-  console.warn("LOGIN CALLBACK");
+var loginCallBack = function(data) {
+  console.warn("LOGIN CALLBACK\n" + jsonPrint(data));
 };
 
 function initialize(callback) {

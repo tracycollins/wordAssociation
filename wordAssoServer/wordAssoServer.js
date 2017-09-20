@@ -2329,8 +2329,9 @@ function onAuthorizeFail(data, message, error, accept){
   console.log(chalkAlert("onAuthorizeFail"
     + " | SID: " + data.sessionID
     + " | MESSAGE: " + message
-    + "\nUSER" + jsonPrint(data.user)
-    + "\nCOOKIE" + jsonPrint(data.cookie)
+    + "\nUSER: " + jsonPrint(data.user)
+    + "\nCOOKIE: " + jsonPrint(data.cookie)
+    + "\nERROR: " + jsonPrint(error)
   ));
   debug(util.inspect(data, { showHidden: true, depth: 1 }));
 
@@ -2378,7 +2379,7 @@ function initAppRouting(callback) {
   app.use(exp.static(__dirname + "/public"));
 
   io.use(passportSocketIo.authorize({
-    cookieParser: require('cookie-parser'),       // the same middleware you registrer in express
+    cookieParser: require("cookie-parser"),       // the same middleware you registrer in express
     key:          "express.sid",       // the name of the cookie where express/connect stores its session_id
     secret:       "my_precious",    // the session_secret to parse the cookie
     store:        sessionStore,        // we NEED to use a sessionstore. no memorystore please

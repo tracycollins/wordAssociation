@@ -824,7 +824,8 @@ function updateLoginButton(){
 
 function login() {
   console.warn("LOGIN: AUTH: " + statsObj.isAuthenticated + " | URL: " + config.authenticationUrl);
-  window.open(config.authenticationUrl, "LOGIN", "_new");
+  // window.open(config.authenticationUrl, "LOGIN", "_new");
+  socket.emit("LOGIN", viewerObj);
   // updateLoginButton();
   // if (controlPanelFlag) {controlPanel.updateControlPanel(config);}
   // saveConfig();

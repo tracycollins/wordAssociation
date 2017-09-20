@@ -1,4 +1,4 @@
-var ids = {
+const ids = {
   // facebook: {
   //   clientID: '118941404856082',
   //   clientSecret: 'ec5c5580fe7bd8def51ce4465fa1f4e1',
@@ -24,6 +24,6 @@ var ids = {
   //   clientSecret: '350c7e6a3b4b4b7195c4cbf908eed9fc',
   //   callbackURL: 'http://127.0.0.1:1337/auth/instagram/callback'
   // }
-}
+};
 
 module.exports = ids;

@@ -2310,18 +2310,19 @@ function slackMessageHandler(messageObj){
   }
 }
 
+
+
+function onAuthorizeSuccess(data, accept){
+  console.log(chalkAlert("onAuthorizeSuccess\n" + jsonPrint(data)));
+  return accept();
+}
+
 function onAuthorizeFail(data, message, error, accept){
+  console.log(chalkAlert("onAuthorizeFail\n" + jsonPrint(data)));
   // error indicates whether the fail is due to an error or just a unauthorized client
   if(error)  throw new Error(message);
   // send the (not-fatal) error-message to the client and deny the connection
   return accept(new Error(message));
-}
-
-// or
-// This function accepts every client unless there's an critical error
-function onAuthorizeFail(data, message, error, accept){
-  if(error)  throw new Error(message);
-  return accept();
 }
 
 

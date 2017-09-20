@@ -10,9 +10,9 @@ const MAX_SESSION_AGE = ONE_DAY;
 const MAX_Q = 200;
 const OFFLINE_MODE = false;
 
-let oauthConfig = require("./oauth.js");
-let passport = require("passport");
-// let fbAuth = require("./authentication.js");
+const oauthConfig = require("./oauth.js");
+const passport = require("passport");
+const authStrategies = require("./authentication.js");
 // let passportSocketIo = require("passport.socketio");
 
 // const heapdumpThresholdEnabled = true;

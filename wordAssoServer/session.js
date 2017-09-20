@@ -22,8 +22,8 @@ var randomIntFromInterval = function(min, max) {
 };
 
 var randomId = randomIntFromInterval(1000000000, 9999999999);
-var VIEWER_ID = "VIEWER_RANDOM_" + randomId;
-var USER_ID = "VIEWER_RANDOM_" + randomId;
+var VIEWER_ID = "viewer_random_" + randomId;
+var USER_ID = "viewer_random_" + randomId;
 
 var DEFAULT_VIEWER_OBJ = {
   userId: USER_ID,

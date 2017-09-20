@@ -59,7 +59,7 @@ module.exports = passport.use(new TwitterStrategy({
 
   function(accessToken, refreshToken, profile, done) {
     
-    console.log("AUTH"
+    console.log("+++++ AUTHENTICATION"
       + "\nACCESS TOKEN:  " + accessToken
       + "\nREFRESH TOKEN: " + refreshToken
       + "\nPROFILE\n" + jsonPrint(profile._json)

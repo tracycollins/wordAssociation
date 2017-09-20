@@ -98,6 +98,9 @@ const DEFAULT_INTERVAL = 5;
 const AUTH_USER_CACHE_DEFAULT_TTL = MAX_SESSION_AGE;
 const AUTH_USER_CACHE_CHECK_PERIOD = ONE_MINUTE;
 
+const AUTH_IN_PROGRESS_CACHE_DEFAULT_TTL = 60000;
+const AUTH_IN_PROGRESS_CACHE_CHECK_PERIOD = 1000;
+
 const TOPTERMS_CACHE_DEFAULT_TTL = 60;
 const TOPTERMS_CACHE_CHECK_PERIOD = 5;
 
@@ -463,10 +466,25 @@ let authenticatedUserCacheCheckPeriod = process.env.AUTH_USER_CACHE_CHECK_PERIOD
 if (authenticatedUserCacheCheckPeriod === undefined) { authenticatedUserCacheCheckPeriod = AUTH_USER_CACHE_CHECK_PERIOD;}
 console.log("AUTHENTICATED USER CACHE CHECK PERIOD: " + authenticatedUserCacheCheckPeriod + " SECONDS");
 
-
 const authenticatedUserCache = new NodeCache({
   stdTTL: authenticatedUserCacheTtl,
   checkperiod: authenticatedUserCacheCheckPeriod
+});
+
+// ==================================================================
+// AUTH USER CACHE
+// ==================================================================
+let authInProgressCacheTtl = process.env.AUTH_IN_PROGRESS_CACHE_DEFAULT_TTL;
+if (authInProgressCacheTtl === undefined) { authInProgressCacheTtl = AUTH_IN_PROGRESS_CACHE_DEFAULT_TTL;}
+console.log("AUTH IN PROGRESS CACHE TTL: " + authInProgressCacheTtl + " SECONDS");
+
+let authInProgressCacheCheckPeriod = process.env.AUTH_IN_PROGRESS_CACHE_CHECK_PERIOD;
+if (authInProgressCacheCheckPeriod === undefined) { authInProgressCacheCheckPeriod = AUTH_IN_PROGRESS_CACHE_CHECK_PERIOD;}
+console.log("AUTH IN PROGRESS CACHE CHECK PERIOD: " + authInProgressCacheCheckPeriod + " SECONDS");
+
+const authInProgressCache = new NodeCache({
+  stdTTL: authInProgressCacheTtl,
+  checkperiod: authInProgressCacheCheckPeriod
 });
 
 function authenticatedUserCacheExpired(userId, userObj) {
@@ -1122,8 +1140,11 @@ function initUpdater(callback){
 
 function categorizeNode(categorizeObj) {
 
-  if (authenticatedUserCache.has(categorizeObj.twitterUser.userId)) {
+  let user = authenticatedUserCache.get(categorizeObj.twitterUser.userId);
 
+  if (!user) {
+    console.log(chalkAlert("*** AUTH USER NOT IN CACHE\n" + jsonPrint(categorizeObj.twitterUser.userId)));
+    return;
   }
 
   debug(chalkSocket("categorizeNode" 
@@ -1507,6 +1528,7 @@ function initSocketHandler(socketObj) {
       + " | SID: " + socket.id
       + "\n" + jsonPrint(viewerObj)
     ));
+    authInProgressCache.set(viewerObj.userId, viewerObj);
   });
 
 }
@@ -2578,6 +2600,7 @@ function initAppRouting(callback) {
         slackPostMessage(slackChannel, "USER AUTH: @" + user.screenName);
         authenticatedUserCache.set(user.userId, user);
         res.redirect("/after-auth.html");
+
       }
     });
   });

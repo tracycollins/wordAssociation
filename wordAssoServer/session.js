@@ -2,6 +2,33 @@
 /*jslint node: true */
 "use strict";
 
+var randomIntFromInterval = function(min, max) {
+  var random = Math.random();
+  var randomInt = Math.floor((random * (max - min + 1)) + min);
+  return randomInt;
+};
+
+var randomId = randomIntFromInterval(1000000000, 9999999999);
+var VIEWER_ID = "VIEWER_RANDOM_" + randomId;
+var USER_ID = "VIEWER_RANDOM_" + randomId;
+
+var DEFAULT_VIEWER_OBJ = {
+  userId: USER_ID,
+  viewerId: VIEWER_ID,
+  screenName: USER_ID,
+  type: "viewer",
+  namespace: "view",
+  timeStamp: moment().valueOf(),
+  tags: {}
+};
+
+DEFAULT_VIEWER_OBJ.tags.type = "viewer";
+DEFAULT_VIEWER_OBJ.tags.mode = "stream";
+DEFAULT_VIEWER_OBJ.tags.entity = USER_ID;
+
+var viewerObj = {};
+viewerObj = DEFAULT_VIEWER_OBJ;
+
 var DEFAULT_AUTH_URL = "http://word.threeceelabs.com/auth/twitter";
 
 // var DEFAULT_SOURCE = "http://localhost:9997";
@@ -1189,32 +1216,6 @@ function jsonPrint(obj) {
   }
 }
 
-var randomIntFromInterval = function(min, max) {
-  var random = Math.random();
-  var randomInt = Math.floor((random * (max - min + 1)) + min);
-  return randomInt;
-};
-
-var randomId = randomIntFromInterval(1000000000, 9999999999);
-var VIEWER_ID = "VIEWER_RANDOM_" + randomId;
-var USER_ID = "VIEWER_RANDOM_" + randomId;
-
-var DEFAULT_VIEWER_OBJ = {
-  userId: USER_ID,
-  viewerId: VIEWER_ID,
-  screenName: USER_ID,
-  type: "viewer",
-  namespace: "view",
-  timeStamp: moment().valueOf(),
-  tags: {}
-};
-
-DEFAULT_VIEWER_OBJ.tags.type = "viewer";
-DEFAULT_VIEWER_OBJ.tags.mode = "stream";
-DEFAULT_VIEWER_OBJ.tags.entity = USER_ID;
-
-var viewerObj = {};
-viewerObj = DEFAULT_VIEWER_OBJ;
 
 // var initialXpositionRatio = 0.0;
 // var initialYpositionRatio = 0.5;

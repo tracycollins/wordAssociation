@@ -2318,7 +2318,7 @@ function onAuthorizeSuccess(data, accept){
 }
 
 function onAuthorizeFail(data, message, error, accept){
-  console.log(chalkAlert("onAuthorizeFail\n" + jsonPrint(data)));
+  console.log(chalkAlert("onAuthorizeFail\n", data));
   // error indicates whether the fail is due to an error or just a unauthorized client
   if(error)  throw new Error(message);
   // send the (not-fatal) error-message to the client and deny the connection

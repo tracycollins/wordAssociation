@@ -1351,7 +1351,7 @@ socket.on("reconnect", function() {
 
   viewerObj.timeStamp = moment().valueOf();
 
-  // socket.emit("VIEWER_READY", viewerObj);
+  socket.emit("authentication", viewerObj);
 
   if (sessionMode) {
     console.log("SESSION MODE" + " | SID: " + sessionId + " | NSP: " + namespace);

@@ -2313,12 +2313,15 @@ function slackMessageHandler(messageObj){
 
 
 function onAuthorizeSuccess(data, accept){
-  console.log(chalkAlert("onAuthorizeSuccess\n" + jsonPrint(data)));
+  console.log(chalkAlert("onAuthorizeSuccess\n" + data));
+  console.log(util.inspect(data, { showHidden: true, depth: null }));
   return accept();
 }
 
 function onAuthorizeFail(data, message, error, accept){
-  console.log(chalkAlert("onAuthorizeFail\n", data));
+  console.log(chalkAlert("onAuthorizeFail\n"));
+  console.log(util.inspect(data, { showHidden: true, depth: null }));
+
   // error indicates whether the fail is due to an error or just a unauthorized client
   if(error)  throw new Error(message);
   // send the (not-fatal) error-message to the client and deny the connection

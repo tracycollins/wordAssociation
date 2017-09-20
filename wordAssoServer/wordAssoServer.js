@@ -2561,7 +2561,7 @@ function initAppRouting(callback) {
 
     debug(chalkError("PASSPORT TWITTER AUTH USER\n" + jsonPrint(req.session.passport.user)));  // handle errors
     console.log(chalkError("PASSPORT TWITTER AUTH USER"
-      + " | SID: " + req.session.socket.id
+      + " | SID: " + util.inspect(req.session, {showHidden:false, depth:2})
       + " | @" + req.session.passport.user.screenName
     ));  // handle errors
 

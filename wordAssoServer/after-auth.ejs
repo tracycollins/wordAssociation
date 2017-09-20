@@ -1,0 +1,11 @@
+<script type="text/javascript">
+    if (window.opener) {
+        window.opener.focus();
+
+      if(window.opener.loginCallBack) {
+      	var data = { userId: "userId" };
+        window.opener.loginCallBack(data);
+      }
+    }
+    window.close();
+</script>  

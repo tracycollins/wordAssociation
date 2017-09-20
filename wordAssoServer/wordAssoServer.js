@@ -13,6 +13,7 @@ const OFFLINE_MODE = false;
 let oauthConfig = require("./oauth.js");
 let passport = require("passport");
 let fbAuth = require("./authentication.js");
+let passportSocketIo = require("passport.socketio");
 
 // const heapdumpThresholdEnabled = true;
 let hd;
@@ -42,13 +43,13 @@ const methodOverride = require("method-override");
 const session = require("express-session");
 const MongoDBStore = require("connect-mongodb-session")(session);
 
-const store = new MongoDBStore({
+const sessionStore = new MongoDBStore({
   uri: "mongodb://127.0.0.1/wordAsso?replicaSet=rs0",
   collection: "oauthSessions"
 });
 
-store.on("error", function(error) {
-  console.log(chalkError("MONGO STORE ERROR\n" + jsonPrint(error))); 
+sessionStore.on("error", function(error) {
+  console.log(chalkError("MONGO SESSION STORE ERROR\n" + jsonPrint(error))); 
 });
 
 const slackOAuthAccessToken = "xoxp-3708084981-3708084993-206468961315-ec62db5792cd55071a51c544acf0da55";
@@ -94,8 +95,8 @@ const STATS_UPDATE_INTERVAL = 60000;
 
 const DEFAULT_INTERVAL = 5;
 
-const AUTH_USER_CACHE_DEFAULT_TTL = 60;
-const AUTH_USER_CACHE_CHECK_PERIOD = 5;
+const AUTH_USER_CACHE_DEFAULT_TTL = MAX_SESSION_AGE;
+const AUTH_USER_CACHE_CHECK_PERIOD = ONE_MINUTE;
 
 const TOPTERMS_CACHE_DEFAULT_TTL = 60;
 const TOPTERMS_CACHE_CHECK_PERIOD = 5;
@@ -1498,13 +1499,19 @@ function initSocketHandler(socketObj) {
   socket.on("tweet", socketRxTweet);
 
   socket.on("categorize", categorizeNode);
+
+  socket.on("LOGIN", function socketLogin(viewerObj){
+    console.log(chalkAlert("LOGIN\n" + jsonPrint(viewerObj)));
+  });
+
 }
 
 function initSocketNamespaces(callback){
 
   debug(chalkInfo(moment().format(compactDateTimeFormat) + " | INIT SOCKET NAMESPACES"));
 
-  io = require("socket.io")(httpServer, { reconnection: true });
+  // io = require("socket.io")(httpServer, { reconnection: true });
+
 
   adminNameSpace = io.of("/admin");
   utilNameSpace = io.of("/util");
@@ -2326,9 +2333,10 @@ function initAppRouting(callback) {
   app.use(bodyParser.urlencoded({ extended: false }));
   app.use(methodOverride());
   app.use(session({
+    key: "express.sid",
     secret: "my_precious",
-    resave: true,
-    store: store,
+    resave: false,
+    store: sessionStore,
     saveUninitialized: true,
     cookie: { 
       secure: false,
@@ -2338,6 +2346,15 @@ function initAppRouting(callback) {
   app.use(passport.initialize());
   app.use(passport.session());
   app.use(exp.static(__dirname + "/public"));
+
+  io.use(passportSocketIo.authorize({
+    cookieParser: require('cookie-parser'),       // the same middleware you registrer in express
+    key:          "express.sid",       // the name of the cookie where express/connect stores its session_id
+    secret:       "my_precious",    // the session_secret to parse the cookie
+    store:        sessionStore        // we NEED to use a sessionstore. no memorystore please
+    // success:      onAuthorizeSuccess,  // *optional* callback on success - read more below
+    // fail:         onAuthorizeFail,     // *optional* callback on fail/error - read more below
+  }));
 
   app.use(function requestLog(req, res, next) {
 
@@ -3411,6 +3428,8 @@ function initialize(cnf, callback) {
 
   initTweetParser();
   initInternetCheckInterval(10000);
+
+  io = require("socket.io")(httpServer, { reconnection: true });
 
   initAppRouting(function initAppRoutingComplete() {
     initDeletedMetricsHashmap(function initDeletedMetricsHashmapComplete(){

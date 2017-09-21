@@ -149,6 +149,8 @@ function ControlPanel() {
       case "categoryLeft":
         console.log("LEFT | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
         keywords = { left: 100 };
+        currentButton.style.color = "red";
+        currentButton.style.border = "2px solid red";
       break;
       case "categoryRight":
         console.log("RIGHT | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);

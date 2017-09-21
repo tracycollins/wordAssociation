@@ -241,7 +241,7 @@ function ControlPanel() {
 
   var categoryLeftLabel = document.createElement("label");
   categoryLeftLabel.setAttribute("class", "categoryButtonLabel");
-  categoryLeftLabel.innerHTML = "L";
+  categoryLeftLabel.innerHTML = "LEFT";
 
   var categoryLeft = document.createElement("INPUT");
   categoryLeft.setAttribute("class", "categoryButton");
@@ -255,7 +255,7 @@ function ControlPanel() {
 
   var categoryNeutralLabel = document.createElement("label");
   categoryNeutralLabel.setAttribute("class", "categoryButtonLabel");
-  categoryNeutralLabel.innerHTML = "N";
+  categoryNeutralLabel.innerHTML = "NEUTRAL";
 
   var categoryNeutral = document.createElement("INPUT");
   categoryNeutral.setAttribute("class", "categoryButton");
@@ -269,7 +269,7 @@ function ControlPanel() {
 
   var categoryRightLabel = document.createElement("label");
   categoryRightLabel.setAttribute("class", "categoryButtonLabel");
-  categoryRightLabel.innerHTML = "R";
+  categoryRightLabel.innerHTML = "RIGHT";
 
   var categoryRight = document.createElement("INPUT");
   categoryRight.setAttribute("class", "categoryButton");
@@ -283,7 +283,7 @@ function ControlPanel() {
 
   var categoryPositiveLabel = document.createElement("label");
   categoryPositiveLabel.setAttribute("class", "categoryButtonLabel");
-  categoryPositiveLabel.innerHTML = "+";
+  categoryPositiveLabel.innerHTML = "POSITIVE";
 
   var categoryPositive = document.createElement("INPUT");
   categoryPositive.setAttribute("class", "categoryButton");
@@ -297,7 +297,7 @@ function ControlPanel() {
 
   var categoryNegativeLabel = document.createElement("label");
   categoryNegativeLabel.setAttribute("class", "categoryButtonLabel");
-  categoryNegativeLabel.innerHTML = "-";
+  categoryNegativeLabel.innerHTML = "NEGATIVE";
 
   var categoryNegative = document.createElement("INPUT");
   categoryNegative.setAttribute("class", "categoryButton");

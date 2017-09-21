@@ -47,27 +47,27 @@ function ControlPanel() {
     switch(keyword) {
       case "left":
         element = document.getElementById("categoryLeft");
-        element.setAttribute("checked", true);
+        element.checked = true;
         callback();
       break;
       case "right":
         element = document.getElementById("categoryRight");
-        element.setAttribute("checked", true);
+        element.checked = true;
         callback();
       break;
       case "neutral":
         element = document.getElementById("categoryNeutral");
-        element.setAttribute("checked", true);
+        element.checked = true;
         callback();
       break;
       case "positive":
         element = document.getElementById("categoryPositive");
-        element.setAttribute("checked", true);
+        element.checked = true;
         callback();
       break;
       case "negative":
         element = document.getElementById("categoryNegative");
-        element.setAttribute("checked", true);
+        element.checked = true;
         callback();
       break;
       default:

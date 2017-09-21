@@ -40,6 +40,39 @@ function ControlPanel() {
 
   var hashtagDiv =document.getElementById("hashtagDiv");
 
+
+  function updateCategoryRadioButtons(keyword, callback){
+    switch(keyword) {
+      case "left":
+        document.getElementById("categoryLeft").setAttribute("checked", true);
+        callback();
+      break;
+      case "right":
+        document.getElementById("categoryRight").setAttribute("checked", true);
+        callback();
+      break;
+      case "neutral":
+        document.getElementById("categoryNeutral").setAttribute("checked", true);
+        callback();
+      break;
+      case "positive":
+        document.getElementById("categoryPositive").setAttribute("checked", true);
+        callback();
+      break;
+      case "negative":
+        document.getElementById("categoryNegative").setAttribute("checked", true);
+        callback();
+      break;
+      default:
+        document.getElementById("categoryLeft").setAttribute("checked", false);
+        document.getElementById("categoryRight").setAttribute("checked", false);
+        document.getElementById("categoryNeutral").setAttribute("checked", false);
+        document.getElementById("categoryPositive").setAttribute("checked", false);
+        document.getElementById("categoryNegative").setAttribute("checked", false);
+        callback();
+    }
+  }
+
   function twitterWidgetsCreateTimeline(node, callback){
 
     var screenName = node.screenName;
@@ -57,37 +90,14 @@ function ControlPanel() {
 
     timelineDiv.appendChild(timelineText);
 
-
-    switch(node.keywords) {
-      case "left":
-        document.getElementById("categoryLeft").setAttribute("checked", true);
-      break;
-      case "right":
-        document.getElementById("categoryRight").setAttribute("checked", true);
-      break;
-      case "neutral":
-        document.getElementById("categoryNeutral").setAttribute("checked", true);
-      break;
-      case "positive":
-        document.getElementById("categoryPositive").setAttribute("checked", true);
-      break;
-      case "negative":
-        document.getElementById("categoryNegative").setAttribute("checked", true);
-      break;
-      default:
-        document.getElementById("categoryLeft").setAttribute("checked", false);
-        document.getElementById("categoryRight").setAttribute("checked", false);
-        document.getElementById("categoryNeutral").setAttribute("checked", false);
-        document.getElementById("categoryPositive").setAttribute("checked", false);
-        document.getElementById("categoryNegative").setAttribute("checked", false);
-    }
-
     twttr.widgets.createTimeline(
       { sourceType: "profile", screenName: screenName },
       timelineDiv,
       { width: "800", height: "600"})
     .then(function (el) {
-      callback(null, el);
+      updateCategoryRadioButtons(node.keywords, function(){
+        callback(null, el);
+      });
     })
     .catch(function(err){
       console.error("TWITTER WIDGET ERROR: " + err);

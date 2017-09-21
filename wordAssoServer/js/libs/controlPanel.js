@@ -121,8 +121,10 @@ function ControlPanel() {
     var hashtagText = document.createElement("TEXT");
     hashtagText.setAttribute("id", "hashtagText");
     hashtagText.setAttribute("class", "hashtagText");
-    hashtagText.innerHTML = "#" + text;
+    // hashtagText.innerHTML = "#" + text;
     hashtagText.innerHTML = "<br><br>" 
+      + "#" + text
+      + "<br><br>"
       + "KW: M: " + node.keywords
       + "<br><br>";
 

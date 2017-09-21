@@ -43,6 +43,10 @@ function ControlPanel() {
 
   function updateCategoryRadioButtons(keyword, callback){
     console.warn("updateCategoryRadioButtons | " + keyword);
+
+    if (keyword === undefined || !keyword || (Object.keys(keyword).length === 0)) {
+      keyword = "none";
+    }
     var element;
 
     document.getElementById("categoryLeft").setAttribute("checked", false);
@@ -50,6 +54,7 @@ function ControlPanel() {
     document.getElementById("categoryNeutral").setAttribute("checked", false);
     document.getElementById("categoryPositive").setAttribute("checked", false);
     document.getElementById("categoryNegative").setAttribute("checked", false);
+    document.getElementById("categoryNone").setAttribute("checked", true);
 
     switch(keyword) {
       case "left":
@@ -74,6 +79,11 @@ function ControlPanel() {
       break;
       case "negative":
         element = document.getElementById("categoryNegative");
+        element.checked = true;
+        callback();
+      break;
+      case "-":
+        element = document.getElementById("categoryNone");
         element.checked = true;
         callback();
       break;
@@ -218,6 +228,10 @@ function ControlPanel() {
         console.log("NEGATIVE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
         keywords = { negative: 100 };
       break;
+      case "categoryNone":
+        console.log("NONE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = false;
+      break;
     }
 
     parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, keywords: keywords}, DEFAULT_SOURCE);
@@ -295,11 +309,26 @@ function ControlPanel() {
   categoryNegative.addEventListener("click", function(e){ categoryButtonHandler(e); }, false);
   categoryNegativeLabel.appendChild(categoryNegative);
 
+  var categoryNoneLabel = document.createElement("label");
+  categoryNoneLabel.setAttribute("class", "categoryButtonLabel");
+  categoryNoneLabel.innerHTML = "NONE";
+
+  var categoryNone = document.createElement("INPUT");
+  categoryNone.setAttribute("class", "categoryButton");
+  categoryNone.setAttribute("type", "radio");
+  categoryNone.setAttribute("name", "category");
+  categoryNone.setAttribute("id", "categoryNone");
+  categoryNone.setAttribute("value", false);
+  categoryNone.setAttribute("checked", false);
+  categoryNone.addEventListener("click", function(e){ categoryButtonHandler(e); }, false);
+  categoryNoneLabel.appendChild(categoryNone);
+
   twitterCategoryDiv.appendChild(categoryLeftLabel);
   twitterCategoryDiv.appendChild(categoryNeutralLabel);
   twitterCategoryDiv.appendChild(categoryRightLabel);
   twitterCategoryDiv.appendChild(categoryPositiveLabel);
   twitterCategoryDiv.appendChild(categoryNegativeLabel);
+  twitterCategoryDiv.appendChild(categoryNoneLabel);
 
   var statsObj = {};
   statsObj.socketId = "NOT SET";

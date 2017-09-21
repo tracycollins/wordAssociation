@@ -1,7 +1,7 @@
 function ControlPanel() {
   // var DEFAULT_SOURCE = "==SOURCE==";  // will be updated by wordAssoServer.js on app.get
-  // var DEFAULT_SOURCE = "http://localhost:9997";
-  var DEFAULT_SOURCE = "http://word.threeceelabs.com";
+  var DEFAULT_SOURCE = "http://localhost:9997";
+  // var DEFAULT_SOURCE = "http://word.threeceelabs.com";
 
   function jsonPrint(obj) {
     if ((obj) || (obj === 0)) {
@@ -36,7 +36,7 @@ function ControlPanel() {
 
   var twitterFeedDiv = d3.select("#twitterFeedDiv");
   var timelineDiv = document.getElementById("timelineDiv");
-  timelineDiv.setAttribute("width", 800);
+  // timelineDiv.setAttribute("width", 800);
 
   var hashtagDiv =document.getElementById("hashtagDiv");
 
@@ -174,57 +174,77 @@ function ControlPanel() {
 
   var twitterCategoryDiv = document.getElementById("twitterCategoryDiv");
 
-  var categoryLeft = document.createElement("BUTTON");
-  categoryLeft.setAttribute("class", "button");
+  var categoryLeftLabel = document.createElement("label");
+  categoryLeftLabel.setAttribute("class", "categoryButtonLabel");
+  categoryLeftLabel.innerHTML = "L";
+
+  var categoryLeft = document.createElement("INPUT");
+  categoryLeft.setAttribute("class", "categoryButton");
   categoryLeft.setAttribute("type", "radio");
   categoryLeft.setAttribute("name", "category");
   categoryLeft.setAttribute("id", "categoryLeft");
   categoryLeft.setAttribute("value", "left");
   categoryLeft.setAttribute("checked", true);
-  categoryLeft.innerHTML = "LEFT";
   categoryLeft.addEventListener("click", function(e){ categoryButtonHandler(e); }, false);
+  categoryLeftLabel.appendChild(categoryLeft);
 
-  var categoryNeutral = document.createElement("BUTTON");
-  categoryNeutral.setAttribute("class", "button");
+  var categoryNeutralLabel = document.createElement("label");
+  categoryNeutralLabel.setAttribute("class", "categoryButtonLabel");
+  categoryNeutralLabel.innerHTML = "N";
+
+  var categoryNeutral = document.createElement("INPUT");
+  categoryNeutral.setAttribute("class", "categoryButton");
   categoryNeutral.setAttribute("type", "radio");
   categoryNeutral.setAttribute("name", "category");
   categoryNeutral.setAttribute("id", "categoryNeutral");
   categoryNeutral.setAttribute("value", "neutral");
-  categoryNeutral.innerHTML = "NEUTRAL";
   categoryNeutral.addEventListener("click", function(e){ categoryButtonHandler(e); }, false);
+  categoryNeutralLabel.appendChild(categoryNeutral);
 
-  var categoryRight = document.createElement("BUTTON");
-  categoryRight.setAttribute("class", "button");
+  var categoryRightLabel = document.createElement("label");
+  categoryRightLabel.setAttribute("class", "categoryButtonLabel");
+  categoryRightLabel.innerHTML = "R";
+
+  var categoryRight = document.createElement("INPUT");
+  categoryRight.setAttribute("class", "categoryButton");
   categoryRight.setAttribute("type", "radio");
   categoryRight.setAttribute("name", "category");
   categoryRight.setAttribute("id", "categoryRight");
   categoryRight.setAttribute("value", "right");
-  categoryRight.innerHTML = "RIGHT";
   categoryRight.addEventListener("click", function(e){ categoryButtonHandler(e); }, false);
+  categoryRightLabel.appendChild(categoryRight);
 
-  var categoryPositive = document.createElement("BUTTON");
-  categoryPositive.setAttribute("class", "button");
+  var categoryPositiveLabel = document.createElement("label");
+  categoryPositiveLabel.setAttribute("class", "categoryButtonLabel");
+  categoryPositiveLabel.innerHTML = "+";
+
+  var categoryPositive = document.createElement("INPUT");
+  categoryPositive.setAttribute("class", "categoryButton");
   categoryPositive.setAttribute("type", "radio");
   categoryPositive.setAttribute("name", "category");
   categoryPositive.setAttribute("id", "categoryPositive");
   categoryPositive.setAttribute("value", "positive");
-  categoryPositive.innerHTML = "POSITIVE";
   categoryPositive.addEventListener("click", function(e){ categoryButtonHandler(e); }, false);
+  categoryPositiveLabel.appendChild(categoryPositive);
 
-  var categoryNegative = document.createElement("BUTTON");
-  categoryNegative.setAttribute("class", "button");
+  var categoryNegativeLabel = document.createElement("label");
+  categoryNegativeLabel.setAttribute("class", "categoryButtonLabel");
+  categoryNegativeLabel.innerHTML = "-";
+
+  var categoryNegative = document.createElement("INPUT");
+  categoryNegative.setAttribute("class", "categoryButton");
   categoryNegative.setAttribute("type", "radio");
   categoryNegative.setAttribute("name", "category");
   categoryNegative.setAttribute("id", "categoryNegative");
   categoryNegative.setAttribute("value", "negative");
-  categoryNegative.innerHTML = "NEGATIVE";
   categoryNegative.addEventListener("click", function(e){ categoryButtonHandler(e); }, false);
+  categoryNegativeLabel.appendChild(categoryNegative);
 
-  twitterCategoryDiv.appendChild(categoryLeft);
-  twitterCategoryDiv.appendChild(categoryNeutral);
-  twitterCategoryDiv.appendChild(categoryRight);
-  twitterCategoryDiv.appendChild(categoryPositive);
-  twitterCategoryDiv.appendChild(categoryNegative);
+  twitterCategoryDiv.appendChild(categoryLeftLabel);
+  twitterCategoryDiv.appendChild(categoryNeutralLabel);
+  twitterCategoryDiv.appendChild(categoryRightLabel);
+  twitterCategoryDiv.appendChild(categoryPositiveLabel);
+  twitterCategoryDiv.appendChild(categoryNegativeLabel);
 
   var statsObj = {};
   statsObj.socketId = "NOT SET";
@@ -483,7 +503,7 @@ function ControlPanel() {
 
     var tr = parentTable.insertRow();
     var tdTextColor = options.textColor;
-    var tdBgColor = options.backgroundColor || "#222222";
+    var tdBgColor = options.backgroundColor || "white";
 
     if (options.trClass) {
       tr.className = options.trClass;
@@ -575,14 +595,14 @@ function ControlPanel() {
 
     var optionsHead = {
       headerFlag: true,
-      textColor: "#CCCCCC",
-      backgroundColor: "#222222"
+      textColor: "black",
+      backgroundColor: "white"
     };
 
     var optionsBody = {
       headerFlag: false,
-      textColor: "#BBBBBB",
-      backgroundColor: "#111111"
+      textColor: "black",
+      backgroundColor: "white"
     };
 
     var resetButton = {

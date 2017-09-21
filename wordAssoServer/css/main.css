@@ -557,7 +557,7 @@ output[type="text"]{
 }
 
 
-.statsToggleButton {
+/*.statsToggleButton {
   background-color:black;
   border:1px solid gray;
   cursor:pointer;
@@ -570,7 +570,7 @@ output[type="text"]{
 .statsToggleButton:focus {
   outline:0;
 }
-
+*/
 
 .infoButton {
   background-color:black;

@@ -115,6 +115,9 @@ function ControlPanel() {
     hashtagText.setAttribute("id", "hashtagText");
     hashtagText.setAttribute("class", "hashtagText");
     hashtagText.innerHTML = "#" + text;
+    hashtagText.innerHTML = "<br><br>" 
+      + "KW: M: " + node.keywords
+      + "<br><br>";
 
     hashtagDiv.removeAll();
     timelineDiv.removeAll();

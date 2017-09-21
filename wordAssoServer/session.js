@@ -1083,7 +1083,11 @@ function controlPanelComm(event) {
             + " | " + data.node.nodeId
             + "\n" + jsonPrint(data.keywords)
           );
-          socket.emit("TWITTER_CATEGORIZE_NODE", { keywords: data.keywords, node: data.node });
+          socket.emit("TWITTER_CATEGORIZE_NODE", 
+            { twitterUser: config.twitterUser,
+            keywords: data.keywords,
+            node: data.node}
+          );
         }
 
       }

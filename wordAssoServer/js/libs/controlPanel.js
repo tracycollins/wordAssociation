@@ -123,7 +123,9 @@ function ControlPanel() {
     timelineDiv.removeAll();
     hashtagDiv.appendChild(hashtagText);
 
-    callback();
+    updateCategoryRadioButtons(node.keywords, function(){
+      callback();
+    });
   }
 
   Element.prototype.removeAll = function () {

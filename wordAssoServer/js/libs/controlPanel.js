@@ -44,6 +44,13 @@ function ControlPanel() {
   function updateCategoryRadioButtons(keyword, callback){
     console.warn("updateCategoryRadioButtons | " + keyword);
     var element;
+
+    document.getElementById("categoryLeft").setAttribute("checked", false);
+    document.getElementById("categoryRight").setAttribute("checked", false);
+    document.getElementById("categoryNeutral").setAttribute("checked", false);
+    document.getElementById("categoryPositive").setAttribute("checked", false);
+    document.getElementById("categoryNegative").setAttribute("checked", false);
+
     switch(keyword) {
       case "left":
         element = document.getElementById("categoryLeft");
@@ -71,11 +78,6 @@ function ControlPanel() {
         callback();
       break;
       default:
-        document.getElementById("categoryLeft").setAttribute("checked", false);
-        document.getElementById("categoryRight").setAttribute("checked", false);
-        document.getElementById("categoryNeutral").setAttribute("checked", false);
-        document.getElementById("categoryPositive").setAttribute("checked", false);
-        document.getElementById("categoryNegative").setAttribute("checked", false);
         callback();
     }
   }

@@ -57,6 +57,31 @@ function ControlPanel() {
 
     timelineDiv.appendChild(timelineText);
 
+
+    switch(node.keywords) {
+      case "left":
+        document.getElementById("categoryLeft").setAttribute("checked", true);
+      break;
+      case "right":
+        document.getElementById("categoryRight").setAttribute("checked", true);
+      break;
+      case "neutral":
+        document.getElementById("categoryNeutral").setAttribute("checked", true);
+      break;
+      case "positive":
+        document.getElementById("categoryPositive").setAttribute("checked", true);
+      break;
+      case "negative":
+        document.getElementById("categoryNegative").setAttribute("checked", true);
+      break;
+      default:
+        document.getElementById("categoryLeft").setAttribute("checked", false);
+        document.getElementById("categoryRight").setAttribute("checked", false);
+        document.getElementById("categoryNeutral").setAttribute("checked", false);
+        document.getElementById("categoryPositive").setAttribute("checked", false);
+        document.getElementById("categoryNegative").setAttribute("checked", false);
+    }
+
     twttr.widgets.createTimeline(
       { sourceType: "profile", screenName: screenName },
       timelineDiv,

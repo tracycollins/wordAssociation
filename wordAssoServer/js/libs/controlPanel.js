@@ -104,9 +104,7 @@ function ControlPanel() {
       timelineDiv,
       { width: "800", height: "600"})
     .then(function (el) {
-      updateCategoryRadioButtons(node.keywords, function(){
-        callback(null, el);
-      });
+      callback(null, el);
     })
     .catch(function(err){
       console.error("TWITTER WIDGET ERROR: " + err);
@@ -134,9 +132,7 @@ function ControlPanel() {
     timelineDiv.removeAll();
     hashtagDiv.appendChild(hashtagText);
 
-    updateCategoryRadioButtons(node.keywords, function(){
-      callback();
-    });
+    callback();
   }
 
   Element.prototype.removeAll = function () {
@@ -175,13 +171,17 @@ function ControlPanel() {
     timelineDiv.removeAll();
 
     if (node.nodeType === "user"){
-      twitterWidgetsCreateTimeline(node, function(err, el){
-        callback(err, el);
+      updateCategoryRadioButtons(node.keywords, function(){
+        twitterWidgetsCreateTimeline(node, function(err, el){
+          callback(err, el);
+        });
       });
     }
     else if (node.nodeType === "hashtag"){
-      twitterHashtagSearch(node, function(err, el){
-        callback(err, el);
+      updateCategoryRadioButtons(node.keywords, function(){
+        twitterHashtagSearch(node, function(err, el){
+          callback(err, el);
+        });
       });
     }
   }

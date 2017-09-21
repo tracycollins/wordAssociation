@@ -42,25 +42,32 @@ function ControlPanel() {
 
 
   function updateCategoryRadioButtons(keyword, callback){
+    console.warn("updateCategoryRadioButtons | " + keyword);
+    var element;
     switch(keyword) {
       case "left":
-        document.getElementById("categoryLeft").setAttribute("checked", true);
+        element = document.getElementById("categoryLeft");
+        element.setAttribute("checked", true);
         callback();
       break;
       case "right":
-        document.getElementById("categoryRight").setAttribute("checked", true);
+        element = document.getElementById("categoryRight");
+        element.setAttribute("checked", true);
         callback();
       break;
       case "neutral":
-        document.getElementById("categoryNeutral").setAttribute("checked", true);
+        element = document.getElementById("categoryNeutral");
+        element.setAttribute("checked", true);
         callback();
       break;
       case "positive":
-        document.getElementById("categoryPositive").setAttribute("checked", true);
+        element = document.getElementById("categoryPositive");
+        element.setAttribute("checked", true);
         callback();
       break;
       case "negative":
-        document.getElementById("categoryNegative").setAttribute("checked", true);
+        element = document.getElementById("categoryNegative");
+        element.setAttribute("checked", true);
         callback();
       break;
       default:

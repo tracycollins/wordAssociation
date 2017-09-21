@@ -126,13 +126,13 @@ function ControlPanel() {
     if (node.keywords 
       && (node.keywords !== undefined) 
       && (Object.keys(node.keywords).length > 0)){
-      keywords = Object.keys(node.keywords);
+      keywords = Object.keys(node.keywords)[0];
     }
 
     if (node.keywordsAuto 
       && (node.keywordsAuto !== undefined) 
       && (Object.keys(node.keywordsAuto).length > 0)){
-      keywordsAuto = Object.keys(node.keywordsAuto);
+      keywordsAuto = Object.keys(node.keywordsAuto)[0];
     }
 
     node.keywords = keywords;

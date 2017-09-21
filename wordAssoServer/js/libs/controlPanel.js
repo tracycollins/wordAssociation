@@ -235,7 +235,7 @@ function ControlPanel() {
   categoryLeft.setAttribute("name", "category");
   categoryLeft.setAttribute("id", "categoryLeft");
   categoryLeft.setAttribute("value", "left");
-  categoryLeft.setAttribute("checked", true);
+  categoryLeft.setAttribute("checked", false);
   categoryLeft.addEventListener("click", function(e){ categoryButtonHandler(e); }, false);
   categoryLeftLabel.appendChild(categoryLeft);
 
@@ -249,6 +249,7 @@ function ControlPanel() {
   categoryNeutral.setAttribute("name", "category");
   categoryNeutral.setAttribute("id", "categoryNeutral");
   categoryNeutral.setAttribute("value", "neutral");
+  categoryNeutral.setAttribute("checked", false);
   categoryNeutral.addEventListener("click", function(e){ categoryButtonHandler(e); }, false);
   categoryNeutralLabel.appendChild(categoryNeutral);
 
@@ -262,6 +263,7 @@ function ControlPanel() {
   categoryRight.setAttribute("name", "category");
   categoryRight.setAttribute("id", "categoryRight");
   categoryRight.setAttribute("value", "right");
+  categoryRight.setAttribute("checked", false);
   categoryRight.addEventListener("click", function(e){ categoryButtonHandler(e); }, false);
   categoryRightLabel.appendChild(categoryRight);
 
@@ -275,6 +277,7 @@ function ControlPanel() {
   categoryPositive.setAttribute("name", "category");
   categoryPositive.setAttribute("id", "categoryPositive");
   categoryPositive.setAttribute("value", "positive");
+  categoryPositive.setAttribute("checked", false);
   categoryPositive.addEventListener("click", function(e){ categoryButtonHandler(e); }, false);
   categoryPositiveLabel.appendChild(categoryPositive);
 
@@ -288,6 +291,7 @@ function ControlPanel() {
   categoryNegative.setAttribute("name", "category");
   categoryNegative.setAttribute("id", "categoryNegative");
   categoryNegative.setAttribute("value", "negative");
+  categoryNegative.setAttribute("checked", false);
   categoryNegative.addEventListener("click", function(e){ categoryButtonHandler(e); }, false);
   categoryNegativeLabel.appendChild(categoryNegative);
 

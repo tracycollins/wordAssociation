@@ -46,8 +46,8 @@ console.log("viewerObj\n" + jsonPrint(viewerObj));
 
 var DEFAULT_AUTH_URL = "http://word.threeceelabs.com/auth/twitter";
 
-var DEFAULT_SOURCE = "http://localhost:9997";
-// var DEFAULT_SOURCE = "http://word.threeceelabs.com";
+// var DEFAULT_SOURCE = "http://localhost:9997";
+var DEFAULT_SOURCE = "http://word.threeceelabs.com";
 // var DEFAULT_SOURCE = "==SOURCE==";  // will be updated by wordAssoServer.js on app.get
 
 var keywordTypes = ["left", "neutral", "right", "positive", "negative"];

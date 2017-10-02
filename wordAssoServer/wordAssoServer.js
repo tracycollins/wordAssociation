@@ -1145,7 +1145,7 @@ function categorizeNode(categorizeObj) {
 
     let user = authenticatedUserCache.get(categorizeObj.twitterUser.userId);
 
-    if (!user && (categorizeObj.twitterUser.userId !== 14607119)) {
+    if (!user && (categorizeObj.twitterUser.userId !== "14607119") && (categorizeObj.twitterUser.userId !== "848591649575927810")) {
       console.log(chalkAlert("*** AUTH USER NOT IN CACHE\n" + jsonPrint(categorizeObj.twitterUser)));
       return;
     }
@@ -2599,8 +2599,9 @@ function initAppRouting(callback) {
 
     debug(chalkError("PASSPORT TWITTER AUTH USER\n" + jsonPrint(req.session.passport.user)));  // handle errors
     console.log(chalkError("PASSPORT TWITTER AUTH USER"
-      + " | SID: " + util.inspect(req, {showHidden:false, depth:1})
+      // + " | SID: " + util.inspect(req, {showHidden:false, depth:1})
       + " | @" + req.session.passport.user.screenName
+      + " | UID" + req.session.passport.user.userId
     ));  // handle errors
 
     slackPostMessage(slackChannel, "PASSPORT TWITTER AUTH USER: @" + req.session.passport.user.screenName);

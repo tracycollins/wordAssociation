@@ -10,9 +10,9 @@ let defaultKeywordsFile = "keywords.json";
 
 const compactDateTimeFormat = "YYYYMMDD HHmmss";
 
-let updateStatsCountsInterval;
+// let updateStatsCountsInterval;
 let initGroupsReady = false;
-let statsCountsComplete = true;
+// let statsCountsComplete = true;
 
 // let config = require('../../config/config');
 
@@ -35,7 +35,7 @@ const wordAssoDb = require("@threeceelabs/mongoose-twitter");
 const db = wordAssoDb();
 const mongoose = require("mongoose");
 
-const Admin = require("mongoose").model("Admin");
+// const Admin = require("mongoose").model("Admin");
 const Sessions = require("mongoose").model("Session");
 const Viewer = require("mongoose").model("Viewer");
 const User = require("mongoose").model("User");
@@ -470,113 +470,113 @@ const initKeywordUpdateInterval = function(options){
   }, options.interval);
 };
 
-const updateStatsCounts = function(callback) {
+// const updateStatsCounts = function(callback) {
 
-  async.parallel({
-    totalAdmins: function (cb) {
-      Admin.count({}, function(err, count) {
-        if (err) {
-          console.error(chalkError("DB ADMIN COUNTER ERROR\n" + jsonPrint(err)));
-          cb(err, null);
-        }
-        else {
-          statsObj.db.totalAdmins = count;
-          cb(null, count);
-        }
-      });
-    },
-    totalUsers: function (cb) {
-      User.count({}, function(err, count) {
-        if (err) {
-          console.error(chalkError("DB USER COUNTER ERROR\n" + jsonPrint(err)));
-          cb(err, null);
-        }
-        else {
-          statsObj.db.totalUsers = count;
-          cb(null, count);
-        }
-      });
-    },
-    totalSessions: function (cb) {
-      Sessions.count({}, function(err, count) {
-        if (err) {
-          console.error(chalkError("DB SESSION COUNTER ERROR\n" + jsonPrint(err)));
-          cb(err, null);
-        }
-        else {
-          statsObj.db.totalSessions = count;
-          cb(null, count);
-        }
-      });
-    },
-    totalViewers: function (cb) {
-      Viewer.count({}, function(err, count) {
-        if (err) {
-          console.error(chalkError("DB VIEWER COUNTER ERROR\n" + jsonPrint(err)));
-          cb(err, null);
-        }
-        else {
-          statsObj.db.totalViewers = count;
-          cb(null, count);
-        }
-      });
-    },
-    totalWords: function (cb) {
-      Word.count({}, function(err, count) {
-        if (err) {
-          console.error(chalkError("DB USER COUNTER ERROR\n" + jsonPrint(err)));
-          cb(err, null);
-        }
-        else {
-          statsObj.db.totalWords = count;
-          cb(null, count);
-        }
-      });
-    }
-  },
-  function(err, results) { //async.parallel callback
-    if (err) {
-      console.error(chalkError("\n" + moment().format(compactDateTimeFormat) 
-        + "!!! UPDATE STATS COUNTS ERROR: " + err));
-      statsCountsComplete = true;
-      if (callback !== undefined) { callback(err, null); }
-    } 
-    else {
-      debug(chalkInfo(moment().format(compactDateTimeFormat) + " | UPDATE STATS COUNTS COMPLETE"
-       + "\n" + jsonPrint(results)
-      ));
-      statsCountsComplete = true;
-      if (callback !== undefined) { callback(null, results); }
-    }
-  });
-};
+//   async.parallel({
+//     totalAdmins: function (cb) {
+//       Admin.count({}, function(err, count) {
+//         if (err) {
+//           console.error(chalkError("DB ADMIN COUNTER ERROR\n" + jsonPrint(err)));
+//           cb(err, null);
+//         }
+//         else {
+//           statsObj.db.totalAdmins = count;
+//           cb(null, count);
+//         }
+//       });
+//     },
+//     totalUsers: function (cb) {
+//       User.count({}, function(err, count) {
+//         if (err) {
+//           console.error(chalkError("DB USER COUNTER ERROR\n" + jsonPrint(err)));
+//           cb(err, null);
+//         }
+//         else {
+//           statsObj.db.totalUsers = count;
+//           cb(null, count);
+//         }
+//       });
+//     },
+//     totalSessions: function (cb) {
+//       Sessions.count({}, function(err, count) {
+//         if (err) {
+//           console.error(chalkError("DB SESSION COUNTER ERROR\n" + jsonPrint(err)));
+//           cb(err, null);
+//         }
+//         else {
+//           statsObj.db.totalSessions = count;
+//           cb(null, count);
+//         }
+//       });
+//     },
+//     totalViewers: function (cb) {
+//       Viewer.count({}, function(err, count) {
+//         if (err) {
+//           console.error(chalkError("DB VIEWER COUNTER ERROR\n" + jsonPrint(err)));
+//           cb(err, null);
+//         }
+//         else {
+//           statsObj.db.totalViewers = count;
+//           cb(null, count);
+//         }
+//       });
+//     },
+//     totalWords: function (cb) {
+//       Word.count({}, function(err, count) {
+//         if (err) {
+//           console.error(chalkError("DB USER COUNTER ERROR\n" + jsonPrint(err)));
+//           cb(err, null);
+//         }
+//         else {
+//           statsObj.db.totalWords = count;
+//           cb(null, count);
+//         }
+//       });
+//     }
+//   },
+//   function(err, results) { //async.parallel callback
+//     if (err) {
+//       console.error(chalkError("\n" + moment().format(compactDateTimeFormat) 
+//         + "!!! UPDATE STATS COUNTS ERROR: " + err));
+//       statsCountsComplete = true;
+//       if (callback !== undefined) { callback(err, null); }
+//     } 
+//     else {
+//       debug(chalkInfo(moment().format(compactDateTimeFormat) + " | UPDATE STATS COUNTS COMPLETE"
+//        + "\n" + jsonPrint(results)
+//       ));
+//       statsCountsComplete = true;
+//       if (callback !== undefined) { callback(null, results); }
+//     }
+//   });
+// };
 
-const initUpdateStatsCountsInterval = function(interval){
+// const initUpdateStatsCountsInterval = function(interval){
 
-  console.log(chalkLog("INIT UPDATE STATS COUNTS " + interval + " MS"));
-  clearInterval(updateStatsCountsInterval);
+//   console.log(chalkLog("INIT UPDATE STATS COUNTS " + interval + " MS"));
+//   clearInterval(updateStatsCountsInterval);
 
-  updateStatsCountsInterval = setInterval(function(){
-    if (statsCountsComplete){
-      statsCountsComplete = false;
-      updateStatsCounts(function(err, results){
-        if (err) { console.error(chalkError("STATS COUNTS ERROR\n" + jsonPrint(err))); }
-        debug(chalkRed("STATS COUNTS\n" + jsonPrint(results)));
-        process.send({ type: "stats", pid: process.pid, db: results}, function(err){
-          statsCountsComplete = true;
-          if (err){
-            console.error(chalkError("UPDATER STATS SEND ERROR\n" + err));
-            console.error(chalkError("UPDATER STATS SEND ERROR\n" + err));
-          }
-          else {
-            debug(chalkInfo("UPDATER SENT STATS"
-            ));
-          }
-        });
-      });
-    }
-  }, interval);
-};
+//   updateStatsCountsInterval = setInterval(function(){
+//     if (statsCountsComplete){
+//       statsCountsComplete = false;
+//       updateStatsCounts(function(err, results){
+//         if (err) { console.error(chalkError("STATS COUNTS ERROR\n" + jsonPrint(err))); }
+//         debug(chalkRed("STATS COUNTS\n" + jsonPrint(results)));
+//         process.send({ type: "stats", pid: process.pid, db: results}, function(err){
+//           statsCountsComplete = true;
+//           if (err){
+//             console.error(chalkError("UPDATER STATS SEND ERROR\n" + err));
+//             console.error(chalkError("UPDATER STATS SEND ERROR\n" + err));
+//           }
+//           else {
+//             debug(chalkInfo("UPDATER SENT STATS"
+//             ));
+//           }
+//         });
+//       });
+//     }
+//   }, interval);
+// };
 
 process.on("message", function(m) {
 
@@ -589,7 +589,7 @@ process.on("message", function(m) {
     case "INIT":
 
       clearInterval(keywordUpdateInterval);
-      clearInterval(updateStatsCountsInterval);
+      // clearInterval(updateStatsCountsInterval);
 
       statsCountsComplete = true;
 
@@ -611,26 +611,26 @@ process.on("message", function(m) {
 
       initKeywordUpdateInterval(options);
 
-      updateStatsCounts(function(err, results){
-        if (err) { 
-          console.error(chalkError("STATS COUNTS ERROR\n" + jsonPrint(err)));
-          return;
-        }
+      // updateStatsCounts(function(err, results){
+      //   if (err) { 
+      //     console.error(chalkError("STATS COUNTS ERROR\n" + jsonPrint(err)));
+      //     return;
+      //   }
 
-        debug(chalkRed("STATS COUNTS\n" + jsonPrint(results)));
+      //   debug(chalkRed("STATS COUNTS\n" + jsonPrint(results)));
 
-        process.send({ type: "stats", pid: process.pid, db: results}, function(err){
-          statsCountsComplete = true;
-          if (err){
-            console.error(chalkError("STATS SEND ERROR\n" + err));
-          }
-          else {
-            debug(chalkInfo("UPDATER SENT STATS"
-            ));
-          }
-        });
-      });
-      initUpdateStatsCountsInterval(5*ONE_MINUTE);
+      //   process.send({ type: "stats", pid: process.pid, db: results}, function(err){
+      //     statsCountsComplete = true;
+      //     if (err){
+      //       console.error(chalkError("STATS SEND ERROR\n" + err));
+      //     }
+      //     else {
+      //       debug(chalkInfo("UPDATER SENT STATS"
+      //       ));
+      //     }
+      //   });
+      // });
+      // initUpdateStatsCountsInterval(5*ONE_MINUTE);
     break;
 
     case "UPDATE":

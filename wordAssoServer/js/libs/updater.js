@@ -36,9 +36,9 @@ const db = wordAssoDb();
 const mongoose = require("mongoose");
 
 // const Admin = require("mongoose").model("Admin");
-const Sessions = require("mongoose").model("Session");
-const Viewer = require("mongoose").model("Viewer");
-const User = require("mongoose").model("User");
+// const Sessions = require("mongoose").model("Session");
+// const Viewer = require("mongoose").model("Viewer");
+// const User = require("mongoose").model("User");
 const Word = require("mongoose").model("Word");
 
 const wordServer = require("@threeceelabs/word-server-controller");
@@ -57,10 +57,10 @@ let newKeywordsHashMap = {};
 
 let statsObj = {};
 statsObj.db = {};
-statsObj.db.totalSessions = 0;
-statsObj.db.totalAdmins = 0;
-statsObj.db.totalUsers = 0;
-statsObj.db.totalViewers = 0;
+// statsObj.db.totalSessions = 0;
+// statsObj.db.totalAdmins = 0;
+// statsObj.db.totalUsers = 0;
+// statsObj.db.totalViewers = 0;
 statsObj.db.totalHashtags = 0;
 statsObj.db.totalMedia = 0;
 statsObj.db.totalPlaces = 0;
@@ -591,7 +591,7 @@ process.on("message", function(m) {
       clearInterval(keywordUpdateInterval);
       // clearInterval(updateStatsCountsInterval);
 
-      statsCountsComplete = true;
+      // statsCountsComplete = true;
 
       prevKeywordModifiedMoment = moment("2010-01-01");
 

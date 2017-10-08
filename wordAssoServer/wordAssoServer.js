@@ -40,16 +40,22 @@ const exp = require("express");
 const bodyParser = require("body-parser");
 const methodOverride = require("method-override");
 const session = require("express-session");
-const MongoDBStore = require("connect-mongodb-session")(session);
+// const MongoDBStore = require("connect-mongodb-session")(session);
+const MongoDBStore = require("express-session-mongo");
 
-const sessionStore = new MongoDBStore({
-  uri: "mongodb://127.0.0.1/wordAsso?replicaSet=rs0",
-  collection: "oauthSessions"
-});
+// const sessionStore = new MongoDBStore({
+//   uri: "mongodb://127.0.0.1/wordAsso?replicaSet=rs0",
+//   collection: "oauthSessions"
+// });
 
-sessionStore.on("error", function(error) {
-  console.log(chalkError("MONGO SESSION STORE ERROR\n" + jsonPrint(error))); 
-});
+// const sessionStore = new MongoDBStore({
+//   uri: "mongodb://127.0.0.1/wordAsso?replicaSet=rs0",
+//   collection: "oauthSessions"
+// });
+
+// sessionStore.on("error", function(error) {
+//   console.log(chalkError("MONGO SESSION STORE ERROR\n" + jsonPrint(error))); 
+// });
 
 const slackOAuthAccessToken = "xoxp-3708084981-3708084993-206468961315-ec62db5792cd55071a51c544acf0da55";
 const slackChannel = "#was";
@@ -2420,7 +2426,8 @@ function initAppRouting(callback) {
     // key: "express.sid",
     secret: "my_precious",
     resave: false,
-    store: sessionStore,
+    // store: sessionStore,
+    store: new MongoDBStore({ mongooseConnection: wordAssoDb }),
     saveUninitialized: true,
     cookie: { 
       secure: false,

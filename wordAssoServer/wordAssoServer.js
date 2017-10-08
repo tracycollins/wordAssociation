@@ -13,7 +13,6 @@ const OFFLINE_MODE = false;
 const oauthConfig = require("./oauth.js");
 const passport = require("passport");
 const authStrategies = require("./authentication.js");
-// let passportSocketIo = require("passport.socketio");
 
 // const heapdumpThresholdEnabled = true;
 let hd;

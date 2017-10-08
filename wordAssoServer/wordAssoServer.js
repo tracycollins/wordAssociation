@@ -406,11 +406,8 @@ const configFolder = "/config/utility/" + hostname;
 const deletedMetricsFile = "deletedMetrics.json";
 
 const wordAssoDb = require("@threeceelabs/mongoose-twitter");
-// const wordAssoDb = require("../../mongoose-twitter.js");
 const db = wordAssoDb();
 const mongoose = require("mongoose");
-
-// const User = require("mongoose").model("User");
 
 const hashtagServer = require("@threeceelabs/hashtag-server-controller");
 const userServer = require("@threeceelabs/user-server-controller");

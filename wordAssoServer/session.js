@@ -2241,9 +2241,10 @@ socket.on("SET_TWITTER_USER", function(twitterUser) {
 
   if (twitterUser.userId === twitterUserThreecee.userId) {
     twitterUserThreecee = twitterUser;
+    config.twitterUser = twitterUser;
   }
 
-  config.twitterUser = twitterUser;
+  // config.twitterUser = twitterUser;
 
   currentSessionView.setTwitterUser(twitterUser);
 

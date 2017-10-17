@@ -468,6 +468,14 @@ function ViewTreepack() {
     }
   };
 
+  this.setTwitterHashtag = function(hashtag) {
+    console.log("setTwitterHashtag | HTID: "  + hashtag.hashtagId + " | #" + hashtag.text);
+    
+    if (controlPanelReadyFlag){
+      controlPanelWindow.postMessage({op: "SET_TWITTER_HASHTAG", hashtag: hashtag}, DEFAULT_SOURCE);
+    }
+  };
+
   this.setMetricMode = function(mode) {
 
     config.defaultMetricMode = mode;

@@ -1468,27 +1468,55 @@ function initSocketHandler(socketObj) {
     }
   });
 
-  socket.on("TWITTER_SEARCH_NODE", function twitterSearchNode(searchNode) {
+  socket.on("TWITTER_SEARCH_NODE", function twitterSearchNode(sn) {
+
+    const searchNode = sn.toLowerCase();
 
     console.log(chalkSocket("TWITTER_SEARCH_NODE"
       + " | " + getTimeStamp()
       + " | SID: " + socket.id
-      + " | " + searchNode.toLowerCase()
+      + " | " + searchNode
     ));
 
-    let searchNodeUser = { screenName: searchNode.toLowerCase() };
+    if (searchNode.startsWith("#")) {
 
-    userServer.findOne({user: searchNodeUser}, function(err, user){
-      if (err) {
-        console.log(chalkError("TWITTER_SEARCH_NODE ERROR\n" + jsonPrint(err)));
-        // socket.emit("SET_TWITTER_USER", defaultTwitterUser);
+      let searchNodeHashtag = { text: searchNode.substring(1) };
+
+      hashtagServer.findOne({hashtag: searchNodeHashtag}, function(err, hashtag){
+        if (err) {
+          console.log(chalkError("TWITTER_SEARCH_NODE HASHTAG ERROR\n" + jsonPrint(err)));
+          // socket.emit("SET_TWITTER_USER", defaultTwitterUser);
+        }
+        else {
+          console.log(chalkTwitter("TWITTER_SEARCH_NODE HASHTAG FOUND\n" + jsonPrint(hashtag)));
+          socket.emit("SET_TWITTER_HASHTAG", hashtag);
+        }
+    
+      });
+    }
+    else {
+
+      let searchNodeUser;
+
+      if (searchNode.startsWith("@")) {
+        searchNodeUser = { screenName: searchNode.substring(1) };
       }
       else {
-        console.log(chalkTwitter("TWITTER_SEARCH_NODE USER FOUND\n" + jsonPrint(user)));
-        socket.emit("SET_TWITTER_USER", user);
+        searchNodeUser = { screenName: searchNode };
       }
-  
-    });
+
+      userServer.findOne({user: searchNodeUser}, function(err, user){
+        if (err) {
+          console.log(chalkError("TWITTER_SEARCH_NODE USER ERROR\n" + jsonPrint(err)));
+          // socket.emit("SET_TWITTER_USER", defaultTwitterUser);
+        }
+        else {
+          console.log(chalkTwitter("TWITTER_SEARCH_NODE USER FOUND\n" + jsonPrint(user)));
+          socket.emit("SET_TWITTER_USER", user);
+        }
+    
+      });
+    }
 
   });
 

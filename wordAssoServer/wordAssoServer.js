@@ -1468,7 +1468,31 @@ function initSocketHandler(socketObj) {
     }
   });
 
-  socket.on("TWITTER_CATEGORIZE_NODE", function twittercategorizeNode(dataObj) {
+  socket.on("TWITTER_SEARCH_NODE", function twitterSearchNode(searchNode) {
+
+    console.log(chalkSocket("TWITTER_SEARCH_NODE"
+      + " | " + getTimeStamp()
+      + " | SID: " + socket.id
+      + " | " + searchNode.toLowerCase()
+    ));
+
+    let searchNodeUser = { screenName: searchNode.toLowerCase() };
+
+    userServer.findOne({user: searchNodeUser}, function(err, user){
+      if (err) {
+        console.log(chalkError("TWITTER_SEARCH_NODE ERROR\n" + jsonPrint(err)));
+        // socket.emit("SET_TWITTER_USER", defaultTwitterUser);
+      }
+      else {
+        console.log(chalkTwitter("TWITTER_SEARCH_NODE USER FOUND\n" + jsonPrint(user)));
+        socket.emit("SET_TWITTER_USER", user);
+      }
+  
+    });
+
+  });
+
+  socket.on("TWITTER_CATEGORIZE_NODE", function twitterCategorizeNode(dataObj) {
 
     if (dataObj.node.nodeType === "user") {
       console.log(chalkSocket("TWITTER_CATEGORIZE_NODE"

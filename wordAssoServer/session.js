@@ -2247,7 +2247,18 @@ socket.on("SET_TWITTER_USER", function(twitterUser) {
   // config.twitterUser = twitterUser;
 
   currentSessionView.setTwitterUser(twitterUser);
+});
 
+socket.on("SET_TWITTER_HASHTAG", function(twitterHashtag) {
+
+  console.log("SET_TWITTER_HASHTAG" 
+    + " | " + twitterHashtag.hashtagId 
+    + " | #" + twitterHashtag.text 
+    + "\nKWs: " + jsonPrint(twitterHashtag.keywords) 
+    + "\nKWAs: " + jsonPrint(twitterHashtag.keywordsAuto)
+  );
+
+  currentSessionView.setTwitterHashtag(twitterHashtag);
 });
 
 socket.on("TWITTER_TOPTERM_1MIN", function(top10obj) {

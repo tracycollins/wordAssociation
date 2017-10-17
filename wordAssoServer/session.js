@@ -957,6 +957,10 @@ function controlPanelComm(event) {
       console.warn("R< CONTROL PANEL READY");
       controlPanelReadyFlag = true;
     break;
+    case "NODE_SEARCH" :
+      console.warn("R< CONTROL NODE_SEARCH\n" + jsonPrint(data.input));
+      socket.emit("TWITTER_SEARCH_NODE", data.input);
+    break;
     case "CLOSE" :
       console.warn("R< CONTROL PANEL CLOSING...");
     break;

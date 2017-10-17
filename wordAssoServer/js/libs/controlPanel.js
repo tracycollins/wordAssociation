@@ -334,32 +334,35 @@ function ControlPanel() {
   statsObj.socketId = "NOT SET";
 
 
-  // var nodeSearchInput = document.createElement("input");
-  // var nodeSearchLabel = document.createElement("label");
-  // var nodeSearchValue = "";
+  var nodeSearchInput = document.createElement("input");
+  var nodeSearchLabel = document.createElement("label");
+  var nodeSearchValue = "";
 
-  // function nodeSearchHandler(e) {
-  //   console.log("NODE SEARCH"
-  //     + " | KEY: " + e.keyCode
-  //     + " | INPUT: " + nodeSearchInput.value
-  //   );
-  // }
+  function nodeSearchHandler(e) {
+    console.log("NODE SEARCH"
+      + " | KEY: " + e.keyCode
+      + " | INPUT: " + nodeSearchInput.value
+    );
+    if (e.keyCode === 13) { // 'ENTER' key
+      parentWindow.postMessage({op: "NODE_SEARCH", input: nodeSearchInput.value}, DEFAULT_SOURCE);
+    }
+  }
 
-  // nodeSearchLabel.setAttribute("id", "nodeSearchLabel");
+  nodeSearchLabel.setAttribute("id", "nodeSearchLabel");
 
-  // nodeSearchLabel.innerHTML = "NODE SEARCH";
+  nodeSearchLabel.innerHTML = "NODE SEARCH";
 
-  // nodeSearchInput.setAttribute("class", "nodeSearch");
-  // nodeSearchInput.setAttribute("type", "text");
-  // nodeSearchInput.setAttribute("id", "nodeSearchInput");
-  // nodeSearchInput.setAttribute("name", "nodeSearch");
-  // nodeSearchInput.setAttribute("autofocus", true);
-  // nodeSearchInput.setAttribute("autocapitalize", "none");
-  // nodeSearchInput.setAttribute("value", nodeSearchValue);
-  // nodeSearchInput.addEventListener("keydown", function(e){ nodeSearchHandler(e); }, false);
+  nodeSearchInput.setAttribute("class", "nodeSearch");
+  nodeSearchInput.setAttribute("type", "text");
+  nodeSearchInput.setAttribute("id", "nodeSearchInput");
+  nodeSearchInput.setAttribute("name", "nodeSearch");
+  nodeSearchInput.setAttribute("autofocus", true);
+  nodeSearchInput.setAttribute("autocapitalize", "none");
+  nodeSearchInput.setAttribute("value", nodeSearchValue);
+  nodeSearchInput.addEventListener("keydown", function(e){ nodeSearchHandler(e); }, false);
 
-  // twitterCategoryDiv.appendChild(nodeSearchLabel);
-  // twitterCategoryDiv.appendChild(nodeSearchInput);
+  twitterCategoryDiv.appendChild(nodeSearchLabel);
+  twitterCategoryDiv.appendChild(nodeSearchInput);
 
   this.setVelocityDecaySliderValue = function (value) {
     if (!document.getElementById("velocityDecaySlider")) { return; }
@@ -568,7 +571,6 @@ function ControlPanel() {
     parentWindow.postMessage({op:"UPDATE", id: currentSlider.id, value: (currentSlider.value/currentSlider.multiplier)}, DEFAULT_SOURCE);
   }
 
-
   window.addEventListener("input", function (e) {
     // console.log("keyup event detected! coming from this element:", e.target);
     switch (e.target.id) {
@@ -578,9 +580,7 @@ function ControlPanel() {
       default:
         sliderHandler(e);
     }
-
   }, false);
-
 
 
   this.tableCreateRow = function (parentTable, options, cells) {

@@ -5,6 +5,7 @@ function ViewTreepack() {
   "use strict";
 
   var MIN_FOLLOWERS = 25000;
+  var MIN_MENTIONS = 10000;
   var MIN_FOLLOWERS_AGE_RATE_RATIO = 0.9;  // age users with many followers at a slower rate
 
   var currentTwitterUser = twitterUserThreecee;
@@ -1193,6 +1194,7 @@ function ViewTreepack() {
       .style("fill", palette.white)
       .style("visibility", function(d) {
         if (d.followersCount > MIN_FOLLOWERS) { return "visible"; }
+        if (d.mentions > MIN_FOLLOWERS) { return "visible"; }
         return "hidden";
       })
       .style("font-size", function(d) {
@@ -1250,6 +1252,7 @@ function ViewTreepack() {
       })
       .style("visibility", function(d) {
         if (d.followersCount > MIN_FOLLOWERS) { return "visible"; }
+        if (d.mentions > MIN_MENTIONS) { return "visible"; }
         return "hidden";
       })
       .style("text-decoration", function(d) { 

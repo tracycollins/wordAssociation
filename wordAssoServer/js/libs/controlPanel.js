@@ -94,32 +94,50 @@ function ControlPanel() {
 
   function twitterWidgetsCreateTimeline(node, callback){
 
-    var screenName = node.screenName;
+    if (node.notFound !== undefined) {
+      var timelineText = document.createElement("TEXT");
+      timelineText.setAttribute("id", "timelineText");
+      timelineText.setAttribute("class", "timelineText");
+      timelineText.innerHTML = "<br><br>" 
+        + "--- FLWRs"
+        + " | --- FRNDs" 
+        + " | --- Ts"
+        + "<br><br>" 
+        + "KW: M: --- | A: ---"
+        + "<br><br>";
 
-    var timelineText = document.createElement("TEXT");
-    timelineText.setAttribute("id", "timelineText");
-    timelineText.setAttribute("class", "timelineText");
-    timelineText.innerHTML = "<br><br>" 
-      + node.followersCount + " FLWRs"
-      + " | " + node.friendsCount + " FRNDs" 
-      + " | " + node.statusesCount + " Ts"
-      + "<br><br>" 
-      + "KW: M: " + node.keywords + " | A: " + node.keywordsAuto
-      + "<br><br>";
+      timelineDiv.appendChild(timelineText);
+      callback(null, null);
+    }
+    else {
 
-    timelineDiv.appendChild(timelineText);
+      var screenName = node.screenName;
 
-    twttr.widgets.createTimeline(
-      { sourceType: "profile", screenName: screenName },
-      timelineDiv,
-      { width: "800", height: "600"})
-    .then(function (el) {
-      callback(null, el);
-    })
-    .catch(function(err){
-      console.error("TWITTER WIDGET ERROR: " + err);
-      callback(err, null);
-    });
+      var timelineText = document.createElement("TEXT");
+      timelineText.setAttribute("id", "timelineText");
+      timelineText.setAttribute("class", "timelineText");
+      timelineText.innerHTML = "<br><br>" 
+        + node.followersCount + " FLWRs"
+        + " | " + node.friendsCount + " FRNDs" 
+        + " | " + node.statusesCount + " Ts"
+        + "<br><br>" 
+        + "KW: M: " + node.keywords + " | A: " + node.keywordsAuto
+        + "<br><br>";
+
+      timelineDiv.appendChild(timelineText);
+
+      twttr.widgets.createTimeline(
+        { sourceType: "profile", screenName: screenName },
+        timelineDiv,
+        { width: "800", height: "600"})
+      .then(function (el) {
+        callback(null, el);
+      })
+      .catch(function(err){
+        console.error("TWITTER WIDGET ERROR: " + err);
+        callback(err, null);
+      });
+    }
   }
 
   function twitterHashtagSearch(node, callback){

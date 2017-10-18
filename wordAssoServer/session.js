@@ -2229,6 +2229,16 @@ socket.on("USER_SESSION", function(rxSessionObject) {
 
 socket.on("SET_TWITTER_USER", function(twitterUser) {
 
+  if (twitterUser.notFound !== undefined) {
+
+    console.log("SET_TWITTER_USER | NOT FOUND" 
+      + " | @" + twitterUser.screenName 
+    );
+    
+    currentSessionView.setTwitterUser(twitterUser);
+    return;
+  }
+
   console.log("SET_TWITTER_USER" 
     + " | " + twitterUser.userId 
     + " | @" + twitterUser.screenName 

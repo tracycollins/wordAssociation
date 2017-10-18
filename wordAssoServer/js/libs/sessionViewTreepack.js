@@ -1195,6 +1195,7 @@ function ViewTreepack() {
       .style("visibility", function(d) {
         if (d.followersCount > MIN_FOLLOWERS) { return "visible"; }
         if (d.mentions > MIN_FOLLOWERS) { return "visible"; }
+        if (d.isKeyword) { return "visible"; }
         return "hidden";
       })
       .style("font-size", function(d) {
@@ -1253,6 +1254,7 @@ function ViewTreepack() {
       .style("visibility", function(d) {
         if (d.followersCount > MIN_FOLLOWERS) { return "visible"; }
         if (d.mentions > MIN_MENTIONS) { return "visible"; }
+        if (d.isKeyword) { return "visible"; }
         return "hidden";
       })
       .style("text-decoration", function(d) { 

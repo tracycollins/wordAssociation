@@ -1510,9 +1510,13 @@ function initSocketHandler(socketObj) {
           console.log(chalkError("TWITTER_SEARCH_NODE USER ERROR\n" + jsonPrint(err)));
           // socket.emit("SET_TWITTER_USER", defaultTwitterUser);
         }
-        else {
-          console.log(chalkTwitter("TWITTER_SEARCH_NODE USER FOUND\n" + jsonPrint(user)));
+        else if (user) {
+          console.log(chalkTwitter("+++ TWITTER_SEARCH_NODE USER FOUND\n" + jsonPrint(user)));
           socket.emit("SET_TWITTER_USER", user);
+        }
+        else {
+          console.log(chalkTwitter("--- TWITTER_SEARCH_NODE USER *NOT* FOUND\n" + jsonPrint(searchNodeUser)));
+          socket.emit("SET_TWITTER_USER", {notFound: 1, userId: 0, screenName: searchNodeUser.screenName});
         }
     
       });

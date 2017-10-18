@@ -458,7 +458,14 @@ function ViewTreepack() {
   };
 
   this.setTwitterUser = function(user) {
-    console.log("setTwitterUser | "  + user.userId + " | " + user.screenName);
+
+    if (user.notFound !== undefined) {
+      console.log("setTwitterUser | NOT FOUND: @"  + user.screenName);
+    }
+    else {
+      console.log("setTwitterUser | "  + user.userId + " | @" + user.screenName);
+    }
+
 
     if (user.userId === twitterUserThreecee.userId) {
       twitterUserThreecee = user;

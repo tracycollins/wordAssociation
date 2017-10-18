@@ -12,7 +12,7 @@
     "@threeceelabs/user-server-controller": "^1.0.93",
     "@threeceelabs/word-server-controller": "^1.0.8",
     "body-parser": "^1.18.2",
-    "chalk": "^2.1.0",
+    "chalk": "^2.2.0",
     "connect-mongodb-session": "^1.4.0",
     "cookie-parser": "^1.4.3",
     "cookie-session": "^2.0.0-beta.3",

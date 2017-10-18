@@ -1191,6 +1191,10 @@ function ViewTreepack() {
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
       .style("fill", palette.white)
+      .style("visibility", function(d) {
+        if (d.followersCount > MIN_FOLLOWERS) { return "visible"; }
+        return "hidden";
+      })
       .style("font-size", function(d) {
         if (metricMode === "rate") {return nodeLabelSizeScale(d.rate);}
         if (metricMode === "mentions") {
@@ -1243,6 +1247,10 @@ function ViewTreepack() {
       .style("font-weight", function(d) {
         if (d.followersCount > MIN_FOLLOWERS) { return "bold"; }
         return "normal";
+      })
+      .style("visibility", function(d) {
+        if (d.followersCount > MIN_FOLLOWERS) { return "visible"; }
+        return "hidden";
       })
       .style("text-decoration", function(d) { 
         if (d.isTopTerm && (d.followersCount > MIN_FOLLOWERS)) { return "overline underline"; }

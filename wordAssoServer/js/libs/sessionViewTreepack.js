@@ -1098,12 +1098,12 @@ function ViewTreepack() {
       .style("stroke-width", function(d) { 
         if (d.keywordsMatch) { return "8.0"; }
         if (d.isTopTerm) { return "4.0"; }
-        if (d.newFlag) { return "2.0"; }
+        if (d.newFlag) { return "3.0"; }
         if (d.keywordsAuto.right) { return "4.0"; }
         if (d.keywordsAuto.left) { return "4.0"; }
         if (d.keywordsAuto.positive) { return "4.0"; }
         if (d.keywordsAuto.negative) { return "4.0"; }
-        return "1.2"; 
+        return "2.0"; 
       })
       .style("opacity", function(d) { 
         return nodeLabelOpacityScale(d.ageMaxRatio); 
@@ -1150,12 +1150,12 @@ function ViewTreepack() {
       .style("stroke-width", function(d) { 
         if (d.keywordsMatch) { return "8.0"; }
         if (d.isTopTerm) { return "4.0"; }
-        if (d.newFlag) { return "2.0"; }
+        if (d.newFlag) { return "3.0"; }
         if (d.keywordsAuto.right) { return "4.0"; }
         if (d.keywordsAuto.left) { return "4.0"; }
         if (d.keywordsAuto.positive) { return "4.0"; }
         if (d.keywordsAuto.negative) { return "4.0"; }
-        return "1.2"; 
+        return "2.0"; 
       })
       .style("opacity", function(d) { 
         return nodeLabelOpacityScale(d.ageMaxRatio); 

@@ -9,7 +9,7 @@
     "@threeceelabs/mongoose-twitter": "^1.0.48",
     "@threeceelabs/socketio-auth": "^1.0.5",
     "@threeceelabs/tweet-server-controller": "^1.0.40",
-    "@threeceelabs/user-server-controller": "^1.0.93",
+    "@threeceelabs/user-server-controller": "^1.0.94",
     "@threeceelabs/word-server-controller": "^1.0.8",
     "body-parser": "^1.18.2",
     "chalk": "^2.2.0",

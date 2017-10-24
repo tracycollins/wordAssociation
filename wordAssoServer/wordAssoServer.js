@@ -1500,6 +1500,9 @@ function initSocketHandler(socketObj) {
 
       if (searchNode.startsWith("@")) {
         searchNodeUser = { screenName: searchNode.substring(1) };
+        if (searchNodeUser === "?") {
+          console.log(chalkInfo("SEARCH FOR UNCATEGORIZED USER"));
+        }
       }
       else {
         searchNodeUser = { screenName: searchNode };

@@ -154,6 +154,26 @@ function ViewFlow() {
   var groups = [];
   var sessions = [];
   var nodes = [];
+  
+  this.setTwitterUser = function(user) {
+
+    if (user.notFound !== undefined) {
+      console.log("setTwitterUser | NOT FOUND: @"  + user.screenName);
+    }
+    else {
+      console.log("setTwitterUser | "  + user.userId + " | @" + user.screenName);
+    }
+
+
+    if (user.userId === twitterUserThreecee.userId) {
+      twitterUserThreecee = user;
+    }
+    
+    if (controlPanelReadyFlag){
+      controlPanelWindow.postMessage({op: "SET_TWITTER_USER", user: user}, DEFAULT_SOURCE);
+    }
+  };
+
 
   this.getGroupsLength = function() {
     return groups.length;

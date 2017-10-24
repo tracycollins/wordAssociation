@@ -117,6 +117,7 @@ function ControlPanel() {
       timelineText.setAttribute("id", "timelineText");
       timelineText.setAttribute("class", "timelineText");
       timelineText.innerHTML = "<br><br>" 
+        + "<h3>@" + node.screenName + "</h3><br><br>"
         + node.followersCount + " FLWRs"
         + " | " + node.friendsCount + " FRNDs" 
         + " | " + node.statusesCount + " Ts"
@@ -144,7 +145,7 @@ function ControlPanel() {
 
     var text = node.nodeId.toLowerCase();
 
-    var url = "https://twitter.com/search?f=tweets&q=%23" + text ;
+    // var url = "https://twitter.com/search?f=tweets&q=%23" + text ;
 
     var hashtagText = document.createElement("TEXT");
     hashtagText.setAttribute("id", "hashtagText");
@@ -214,6 +215,44 @@ function ControlPanel() {
     }
   }
 
+
+  var twitterCategoryDiv = document.getElementById("twitterCategoryDiv");
+  var twitterCategorySearchDiv = document.getElementById("twitterCategorySearchDiv");
+
+
+  var nodeSearchInput = document.createElement("input");
+  var nodeSearchLabel = document.createElement("label");
+  var nodeSearchValue = "";
+
+  function nodeSearchHandler(e) {
+    console.log("NODE SEARCH"
+      + " | KEY: " + e.keyCode
+      + " | INPUT: " + nodeSearchInput.value
+    );
+    if (e.keyCode === 13) { // 'ENTER' key
+      parentWindow.postMessage({op: "NODE_SEARCH", input: nodeSearchInput.value}, DEFAULT_SOURCE);
+    }
+  }
+
+  nodeSearchLabel.setAttribute("id", "nodeSearchLabel");
+
+  nodeSearchLabel.innerHTML = "NODE SEARCH";
+
+  nodeSearchInput.setAttribute("class", "nodeSearch");
+  nodeSearchInput.setAttribute("type", "text");
+  nodeSearchInput.setAttribute("id", "nodeSearchInput");
+  nodeSearchInput.setAttribute("name", "nodeSearch");
+  nodeSearchInput.setAttribute("autofocus", true);
+  nodeSearchInput.setAttribute("autocapitalize", "none");
+  nodeSearchInput.setAttribute("value", nodeSearchValue);
+  nodeSearchInput.addEventListener("keydown", function(e){ nodeSearchHandler(e); }, false);
+
+  twitterCategorySearchDiv.appendChild(nodeSearchLabel);
+  twitterCategorySearchDiv.appendChild(nodeSearchInput);
+
+
+  var twitterCategoryButtonsDiv = document.getElementById("twitterCategoryButtonsDiv");
+
   function categoryButtonHandler(e){
 
     var currentButton = document.getElementById(e.target.id);
@@ -254,8 +293,6 @@ function ControlPanel() {
 
     parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, keywords: keywords}, DEFAULT_SOURCE);
   }
-
-  var twitterCategoryDiv = document.getElementById("twitterCategoryDiv");
 
   var categoryLeftLabel = document.createElement("label");
   categoryLeftLabel.setAttribute("class", "categoryButtonLabel");
@@ -341,46 +378,16 @@ function ControlPanel() {
   categoryNone.addEventListener("click", function(e){ categoryButtonHandler(e); }, false);
   categoryNoneLabel.appendChild(categoryNone);
 
-  twitterCategoryDiv.appendChild(categoryLeftLabel);
-  twitterCategoryDiv.appendChild(categoryNeutralLabel);
-  twitterCategoryDiv.appendChild(categoryRightLabel);
-  twitterCategoryDiv.appendChild(categoryPositiveLabel);
-  twitterCategoryDiv.appendChild(categoryNegativeLabel);
-  twitterCategoryDiv.appendChild(categoryNoneLabel);
+  twitterCategoryButtonsDiv.appendChild(categoryLeftLabel);
+  twitterCategoryButtonsDiv.appendChild(categoryNeutralLabel);
+  twitterCategoryButtonsDiv.appendChild(categoryRightLabel);
+  twitterCategoryButtonsDiv.appendChild(categoryPositiveLabel);
+  twitterCategoryButtonsDiv.appendChild(categoryNegativeLabel);
+  twitterCategoryButtonsDiv.appendChild(categoryNoneLabel);
 
   var statsObj = {};
   statsObj.socketId = "NOT SET";
 
-
-  var nodeSearchInput = document.createElement("input");
-  var nodeSearchLabel = document.createElement("label");
-  var nodeSearchValue = "";
-
-  function nodeSearchHandler(e) {
-    console.log("NODE SEARCH"
-      + " | KEY: " + e.keyCode
-      + " | INPUT: " + nodeSearchInput.value
-    );
-    if (e.keyCode === 13) { // 'ENTER' key
-      parentWindow.postMessage({op: "NODE_SEARCH", input: nodeSearchInput.value}, DEFAULT_SOURCE);
-    }
-  }
-
-  nodeSearchLabel.setAttribute("id", "nodeSearchLabel");
-
-  nodeSearchLabel.innerHTML = "NODE SEARCH";
-
-  nodeSearchInput.setAttribute("class", "nodeSearch");
-  nodeSearchInput.setAttribute("type", "text");
-  nodeSearchInput.setAttribute("id", "nodeSearchInput");
-  nodeSearchInput.setAttribute("name", "nodeSearch");
-  nodeSearchInput.setAttribute("autofocus", true);
-  nodeSearchInput.setAttribute("autocapitalize", "none");
-  nodeSearchInput.setAttribute("value", nodeSearchValue);
-  nodeSearchInput.addEventListener("keydown", function(e){ nodeSearchHandler(e); }, false);
-
-  twitterCategoryDiv.appendChild(nodeSearchLabel);
-  twitterCategoryDiv.appendChild(nodeSearchInput);
 
   this.setVelocityDecaySliderValue = function (value) {
     if (!document.getElementById("velocityDecaySlider")) { return; }

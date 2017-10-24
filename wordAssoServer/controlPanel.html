@@ -23,6 +23,15 @@
         background: white;
       }
       
+      h1, h2, h3, h4, h5, h6 {
+        font-family: "Lucida Console", Monaco, monospace;
+        background-color: white;
+        font-weight: 300;
+        color: #CB4B19;
+        font-size: 1.75em;
+        margin-bottom: .2em;
+      }
+
       table {
         background-color: white;
         background: white;
@@ -33,6 +42,17 @@
       p {
         background-color: white;
         background: white;
+      }
+
+      input[type="text"]{
+        margin: none;
+        padding: 0.5em;
+        background:white;
+        background-color:black;
+        color: yellow;
+        font-family: "Lucida Console", Monaco, monospace;
+        font-size: 1em;
+        line-height: 1em;
       }
 
       .updateBar:hover {
@@ -47,7 +67,8 @@
       .timelineText .hashtagText {
         top: 10;
         left: 10;
-        padding: 10px;
+        margin: 10px;
+        padding: 0.5em;
         font-size: 1.0em;
         color: black;
         background-color: white;
@@ -71,7 +92,43 @@
         padding: 5px;
       }
 
+      #twitterCategorySearchDiv {
+        background-color: white;
+        background: white;
+        color: black;
+        z-index: 10;
+        display: inline-block;
+        margin: 10px;
+        padding: 5px;
+      }
+
+      #twitterCategoryButtonsDiv {
+        background-color: white;
+        background: white;
+        color: black;
+        z-index: 10;
+        display: inline-block;
+        margin: 10px;
+        padding: 5px;
+      }
+
       .categoryButtonLabel{
+        background-color: white;
+        background: white;
+        color: black;
+        margin: 5px;
+        display: inline-block;
+      }
+
+      label{
+        display: block;
+        background: white;
+        color: #777777;
+        margin-top: 1.5em;
+        margin-bottom: 1.5em;
+      }
+
+      .nodeSearch{
         background-color: white;
         background: white;
         color: black;
@@ -95,27 +152,27 @@
 */
       #infoDiv{
         background-color: white;
+        margin: 1em;
+        padding: 1em;
       }
 
       #hashtagDiv{
         background-color: white;
-        color: #cccccc;
-        margin: 10px;
-        padding: 5px;
+        color: black;
+        margin: 1em;
+        padding: 1em;
         width: 60%;
-/*        bottom: 0%;
-        left: 0;
-*/        z-index: 10;
+        z-index: 10;
       }
 
       #timelineDiv{
         background-color: white;
         background: white;
         color: black;
-        border: 1px solid #aaaaaa;
-        margin: 10px;
-        padding: 5px;
-        /*width: 100%;*/
+        /*border: 1px solid #aaaaaa;*/
+        margin: 1em;
+        padding: 1em;
+        width: 80%;
 /*        bottom: 0%;
         left: 0;
 */        z-index: 10;
@@ -221,9 +278,12 @@
 
     <div id="dashboardMain">
 
-      <div id="twitterCategoryDiv" class="twitterCategory"></div>
-      <div id="timelineDiv"></div>
+      <div id="twitterCategoryDiv" class="twitterCategory">
+        <div id="twitterCategorySearchDiv"></div>
+        <div id="twitterCategoryButtonsDiv"></div>
+      </div>
       <div id="hashtagDiv"></div>
+      <div id="timelineDiv"></div>
 
       <div id='statsDiv'>
         <table id='statsTable' class='controlTable'>

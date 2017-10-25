@@ -1121,7 +1121,8 @@ function createPopUpControlPanel (cnf, callback) {
 
   controlPanelWindow = window.open(
     "controlPanel.html", 
-    "CONTROL"
+    "CONTROL",
+    "width=600,height=400"
   );
 
   controlPanelWindow.addEventListener("message", controlPanelComm, false);

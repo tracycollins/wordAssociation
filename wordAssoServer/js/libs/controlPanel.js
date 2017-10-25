@@ -195,10 +195,6 @@ function ControlPanel() {
 
   function loadTwitterFeed(node, callback) {
 
-    var nsi =document.getElementById("nodeSearchInput");
-
-    nsi.nodeSearch.setAttribute("value", "-");
-
     var keywords = "-";
     var keywordsAuto = "-";
 
@@ -230,6 +226,10 @@ function ControlPanel() {
     if (node.nodeType === "user"){
       updateCategoryRadioButtons(node.keywords, function(){
         twitterWidgetsCreateTimeline(node, function(err, el){
+
+          var nsi =document.getElementById("nodeSearchInput");
+          nsi.value = node.screenName;
+
           callback(err, el);
         });
       });
@@ -237,6 +237,10 @@ function ControlPanel() {
     else if (node.nodeType === "hashtag"){
       updateCategoryRadioButtons(node.keywords, function(){
         twitterHashtagSearch(node, function(err, el){
+
+          var nsi =document.getElementById("nodeSearchInput");
+          nsi.value = node.text;
+
           callback(err, el);
         });
       });

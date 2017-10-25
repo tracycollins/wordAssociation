@@ -122,13 +122,13 @@ function ControlPanel() {
       var timelineText = document.createElement("TEXT");
       timelineText.setAttribute("id", "timelineText");
       timelineText.setAttribute("class", "timelineText");
-      timelineText.innerHTML = "<br><br>" 
+      timelineText.innerHTML = "<br>" 
         + "--- FLWRs"
         + " | --- FRNDs" 
         + " | --- Ts"
-        + "<br><br>" 
+        + "<br>" 
         + "KW: M: --- | A: ---"
-        + "<br><br>";
+        + "<br><hr>";
 
       timelineDiv.appendChild(timelineText);
       callback(null, null);
@@ -140,14 +140,14 @@ function ControlPanel() {
       var timelineText = document.createElement("TEXT");
       timelineText.setAttribute("id", "timelineText");
       timelineText.setAttribute("class", "timelineText");
-      timelineText.innerHTML = "<br><br>" 
-        + "<h3>@" + node.screenName + "</h3><br><br>"
+      timelineText.innerHTML = "<br>" 
+        + "<h3>@" + node.screenName + "</h3><br>"
         + node.followersCount + " FLWRs"
         + " | " + node.friendsCount + " FRNDs" 
         + " | " + node.statusesCount + " Ts"
-        + "<br><br>" 
+        + "<br>" 
         + "KW: M: " + node.keywords + " | A: " + node.keywordsAuto
-        + "<br><br>";
+        + "<br><hr>";
 
       timelineDiv.appendChild(timelineText);
 

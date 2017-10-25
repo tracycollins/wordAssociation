@@ -3,13 +3,21 @@
   <head>
 
     <meta charset="utf-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'unsafe-inline' 'self' ws: https://*.twitter.com/ http://*.googleapis.com/ https://*.cloudflare.com/; script-src 'unsafe-eval' 'unsafe-inline' 'self' http://*.googleapis.com/ https://d3js.org http://*.google-analytics.com/ https://*.cloudflare.com/ https://*.twimg.com/ https://*.twitter.com/; font-src 'unsafe-inline' 'self' data: http://fonts.gstatic.com/; img-src 'self' data: http://localhost/ http://*.threeceelabs.com/ http://*.google-analytics.com/ http://*.twitter.com/ https://*.twitter.com/ https://api.twitter.com/favicon.ico http://*.twimg.com/ https://*.twimg.com/; object-src https://twitter.com/; frame-src https://*.twitter.com/ https://twitter.com/; style-src 'self' 'unsafe-inline' http://*.twimg.com/ https://*.twimg.com/ http://*.googleapis.com/ https://*.twitter.com/ http://*.twitter.com/; connect-src 'self' https://twitter.com/ http://twitter.com/ https://*.twitter.com/ http://*.twitter.com/; ">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'unsafe-inline' 'self' ws: https://*.twitter.com/ http://*.googleapis.com/ https://*.cloudflare.com/; script-src 'unsafe-eval' 'unsafe-inline' 'self' http://*.googleapis.com/ https://d3js.org http://*.google-analytics.com/ https://*.cloudflare.com/ https://*.twimg.com/ https://*.twitter.com/; font-src 'unsafe-inline' 'self' data: http://fonts.gstatic.com/; img-src 'self' data: http://localhost/ http://*.threeceelabs.com/ http://*.google-analytics.com/ http://*.twitter.com/ https://*.twitter.com/ https://api.twitter.com/favicon.ico http://*.twimg.com/ https://*.twimg.com/; object-src https://twitter.com/; frame-src https://*.twitter.com/ http://*.twitter.com/ https://twitter.com/; style-src 'self' 'unsafe-inline' http://*.twimg.com/ https://*.twimg.com/ http://*.googleapis.com/ https://*.twitter.com/ http://*.twitter.com/; connect-src 'self' https://twitter.com/ http://twitter.com/ https://*.twitter.com/ http://*.twitter.com/; ">
 
     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/main.css">
     <link rel="icon" type="image/png" href="favicon.png" />
 
     <style>
+
+      html {
+        background-color: white;
+        background: white;
+        /*color: black;*/
+        font-family: "Lucida Console", Monaco, monospace;
+      }
+      
       body {
         background-color: white;
         background: white;
@@ -80,7 +88,7 @@
         background: white;
         color: black;
         margin: 1em;
-        width: 100%;
+        /*width: 100%;*/
       }
 
       #twitterCategoryDiv {
@@ -99,7 +107,7 @@
         color: black;
         z-index: 10;
         display: inline-block;
-        /*margin: 10px;*/
+        margin: 0em;
         /*padding: 5px;*/
       }
 
@@ -117,7 +125,7 @@
         background-color: white;
         background: white;
         color: black;
-        /*margin: 5px;*/
+        margin: 0.5em;
         display: inline-block;
       }
 
@@ -125,9 +133,11 @@
         display: block;
         background: white;
         color: #777777;
-        /*margin-top: 0.5em;*/
+        /*margin: 0em;*/
+        padding: 0em;
+        margin-top: 0.5em;
         /*margin-left: 0.5em;*/
-        /*margin-bottom: 0em;*/
+        margin-bottom: 0em;
       }
 
       .nodeSearch{
@@ -181,7 +191,7 @@
         background-color: white;
         background: white;
         color: black;
-        border: 1px solid #aaaaaa;
+        /*border: 1px solid #aaaaaa;*/
         margin: 0em;
         padding: 0em;
         /*overflow: hidden;*/
@@ -195,7 +205,7 @@
         background: white;
         background-color: white;
         color: black;
-        border: 1px solid #aaaaaa;
+        /*border: 1px solid #aaaaaa;*/
         /*color: #cccccc;*/
         margin: 0em;
         padding: 0em;
@@ -207,7 +217,7 @@
       
       #sliderTable {
         background: white;
-        border: 1px solid #aaaaaa;
+        /*border: 1px solid #aaaaaa;*/
         background-color: white;
         color: black;
         margin: 0em;
@@ -275,13 +285,27 @@
 
   <body>
 
-    <div id="dashboardMain">
+    <div id="dashboardMain" width="500" height="800">
+
+      <div id='controlDiv'>
+        <table id='controlTable' class='controlTable'>
+          <thead id='controlTableHead'>
+          </thead>
+          <tbody id='controlTableBody'>
+          </tbody>
+        </table>
+        <hr>
+      </div>
 
       <div id="twitterCategoryDiv" class="twitterCategory">
         <div id="twitterCategorySearchDiv"></div>
+        <br>
+        <hr>
         <div id="twitterCategoryButtonsDiv"></div>
       </div>
+
       <div id="hashtagDiv"></div>
+
       <div id="timelineDiv"></div>
 
       <div id='statsDiv'>
@@ -294,25 +318,16 @@
         </table>
       </div>
 
-      <br>
-
-      <div id='controlDiv'>
-        <table id='controlTable' class='controlTable'>
-          <thead id='controlTableHead'>
-          </thead>
-          <tbody id='controlTableBody'>
-          </tbody>
-        </table>
-        <br>
-      </div>
-
-      <br>
-
       <div id='controlSliderDiv'>
+        <hr>
         <table id='controlSliderTable' class='sliderTable'>
         </table>
       </div>
+
     </div>
+
     <script src="/js/libs/controlPanel.js"  type="text/javascript"></script>
+
   </body>
+
 </html>

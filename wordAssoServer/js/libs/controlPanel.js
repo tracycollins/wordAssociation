@@ -36,13 +36,11 @@ function ControlPanel() {
 
   var twitterFeedDiv = d3.select("#twitterFeedDiv");
   var timelineDiv = document.getElementById("timelineDiv");
-  // timelineDiv.setAttribute("width", 800);
 
   var hashtagDiv =document.getElementById("hashtagDiv");
 
   var twitterCategoryDiv = document.getElementById("twitterCategoryDiv");
   var twitterCategorySearchDiv = document.getElementById("twitterCategorySearchDiv");
-
 
   var nodeSearchInput = document.createElement("input");
   var nodeSearchLabel = document.createElement("label");
@@ -128,7 +126,7 @@ function ControlPanel() {
         + " | --- Ts"
         + "<br>" 
         + "KW: M: --- | A: ---"
-        + "<br><hr>";
+        + "<br>";
 
       timelineDiv.appendChild(timelineText);
       callback(null, null);
@@ -147,14 +145,20 @@ function ControlPanel() {
         + " | " + node.statusesCount + " Ts"
         + "<br>" 
         + "KW: M: " + node.keywords + " | A: " + node.keywordsAuto
-        + "<br><hr>";
+        + "<br>";
 
       timelineDiv.appendChild(timelineText);
 
+      twttr.widgets.createFollowButton(
+        screenName,
+        timelineDiv
+      );
+
       twttr.widgets.createTimeline(
-        { sourceType: "profile", screenName: screenName },
+        { sourceType: "profile", screenName: screenName},
         timelineDiv,
-        { width: "800", height: "600"})
+        { width: "600", height: "400"}
+      )
       .then(function (el) {
         callback(null, el);
       })
@@ -976,8 +980,8 @@ function ControlPanel() {
 
       case "force":
       case "flow":
-        self.tableCreateRow(infoTable, optionsBody, [status]);
-        self.tableCreateRow(infoTable, optionsBody, [status2]);
+        // self.tableCreateRow(infoTable, optionsBody, [status]);
+        // self.tableCreateRow(infoTable, optionsBody, [status2]);
         self.tableCreateRow(controlTable, 
           optionsBody, 
           [
@@ -1003,8 +1007,8 @@ function ControlPanel() {
         if (callback) { callback(dashboardMain); }
         break;
       case "treepack":
-        self.tableCreateRow(infoTable, optionsBody, [status]);
-        self.tableCreateRow(infoTable, optionsBody, [status2]);
+        // self.tableCreateRow(infoTable, optionsBody, [status]);
+        // self.tableCreateRow(infoTable, optionsBody, [status2]);
         self.tableCreateRow(controlTable, optionsBody, [resetButton, pauseButton, statsButton, fullscreenButton]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["FONT MIN", fontSizeMinRatioSlider, fontSizeMinRatioSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["FONT MAX", fontSizeMaxRatioSlider, fontSizeMaxRatioSliderText]);
@@ -1017,8 +1021,8 @@ function ControlPanel() {
         break;
 
       case "ticker":
-        self.tableCreateRow(infoTable, optionsBody, [status]);
-        self.tableCreateRow(infoTable, optionsBody, [status2]);
+        // self.tableCreateRow(infoTable, optionsBody, [status]);
+        // self.tableCreateRow(infoTable, optionsBody, [status2]);
         self.tableCreateRow(controlTable, 
           optionsBody, 
           [
@@ -1038,8 +1042,8 @@ function ControlPanel() {
         break;
 
       case "histogram":
-        self.tableCreateRow(controlTable, optionsBody, [status]);
-        self.tableCreateRow(controlTable, optionsBody, [status2]);
+        // self.tableCreateRow(controlTable, optionsBody, [status]);
+        // self.tableCreateRow(controlTable, optionsBody, [status2]);
         self.tableCreateRow(controlTable, optionsBody, 
           [
             blahButton,
@@ -1124,9 +1128,12 @@ function ControlPanel() {
   };
 
   $( document ).ready(function() {
+
     console.log( "CONTROL PANEL DOCUMENT READY" );
     console.log( "CONTROL PANEL CONFIG\n" + jsonPrint(config) );
+
     self.createControlPanel(function(dashboard){
+
       setTimeout(function() {  // KLUDGE to insure table is created before update
         self.updateControlPanel(config, function(){
           if (parentWindow !== undefined) {
@@ -1140,6 +1147,7 @@ function ControlPanel() {
           }
         });
       }, 2000);
+
     });
   });
 }

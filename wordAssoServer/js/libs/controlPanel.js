@@ -195,7 +195,9 @@ function ControlPanel() {
 
   function loadTwitterFeed(node, callback) {
 
-    nodeSearchInput.setAttribute("value", "---");
+    var nsi =document.getElementById("nodeSearchInput");
+
+    nsi.setAttribute("value", "-");
 
     var keywords = "-";
     var keywordsAuto = "-";

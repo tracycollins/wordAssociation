@@ -228,7 +228,7 @@ function ControlPanel() {
         twitterWidgetsCreateTimeline(node, function(err, el){
 
           var nsi =document.getElementById("nodeSearchInput");
-          nsi.value = node.screenName;
+          nsi.value = "@" + node.screenName;
 
           callback(err, el);
         });
@@ -239,7 +239,7 @@ function ControlPanel() {
         twitterHashtagSearch(node, function(err, el){
 
           var nsi =document.getElementById("nodeSearchInput");
-          nsi.value = node.text;
+          nsi.value = "#" + node.text;
 
           callback(err, el);
         });

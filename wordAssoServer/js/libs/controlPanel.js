@@ -197,7 +197,7 @@ function ControlPanel() {
 
     var nsi =document.getElementById("nodeSearchInput");
 
-    nsi.setAttribute("value", "-");
+    nsi.nodeSearch.setAttribute("value", "-");
 
     var keywords = "-";
     var keywordsAuto = "-";

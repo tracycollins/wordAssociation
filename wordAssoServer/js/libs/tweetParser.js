@@ -21,6 +21,7 @@ const chalk = require("chalk");
 const chalkInfo = chalk.gray;
 const chalkAlert = chalk.red;
 const chalkError = chalk.bold.red;
+const chalkNetwork = chalk.blue;
 
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
 
@@ -116,6 +117,9 @@ function initTweetParserQueueInterval(cnf){
     twitterEvents: configEvents
   };
 
+  tweetServer.loadInputArrays({inputArrays: cnf.inputArrays}, function(){});
+  tweetServer.loadNeuralNetwork({network: cnf.networkObj.network}, function(){});
+
   tweetParserQueueInterval = setInterval(function(){
 
     if (!tweetParserQueue.isEmpty() && tweetParserQueueReady){
@@ -210,7 +214,26 @@ process.on("message", function(m) {
       cnf.updateInterval = m.interval;
       console.log(chalkInfo("TWEET PARSER INIT"
         + " | INTERVAL: " + m.interval
+        + " | NN: " + m.networkObj.networkId
+        + " | SUCCESS RATE: " + m.networkObj.successRate.toFixed(2)
+        // + "\n" + jsonPrint(m.networkObj)
       ));
+      cnf.networkObj = {};
+      cnf.networkObj = m.networkObj;
+
+      cnf.inputArrays = {};
+      Object.keys(m.networkObj.inputs).forEach(function(type){
+
+        console.log(chalkNetwork("NN INPUTS TYPE" 
+          + " | " + type
+          + " | INPUTS: " + m.networkObj.inputs[type].length
+        ));
+
+        cnf.inputArrays[type] = {};
+        cnf.inputArrays[type] = m.networkObj.inputs[type];
+
+      });
+
       initTweetParserQueueInterval(cnf);
 
     break;

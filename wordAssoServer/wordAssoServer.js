@@ -5,6 +5,9 @@ const bestNetworkFolder = "/config/utility/best/neuralNetworks";
 const bestNetworkFile = "bestNetwork.json";
 let bestNetworkObj = {};
 
+let tweetParserReady = false;
+let previousBestNetworkId = "";
+
 const ONE_SECOND = 1000;
 const ONE_MINUTE = 60 * ONE_SECOND;
 const ONE_HOUR = 60 * ONE_MINUTE;
@@ -2782,7 +2785,7 @@ function initTwitterRxQueueInterval(interval){
 
   tweetRxQueueInterval = setInterval(function tweetRxQueueDequeue() {
 
-    if (!tweetRxQueue.isEmpty() && tweetParserSendReady) {
+    if (!tweetRxQueue.isEmpty() && tweetParserReady && tweetParserSendReady) {
 
       tweetParserSendReady = false;
 
@@ -3179,6 +3182,8 @@ function initSorter(callback){
 
 function initTweetParser(callback){
 
+  tweetParserReady = false;
+
   if (tweetParser !== undefined) {
     console.error("KILLING PREVIOUS UPDATER | " + tweetParser.pid);
     tweetParser.kill("SIGINT");
@@ -3237,6 +3242,8 @@ function initTweetParser(callback){
   });
 
   tweetParser = twp;
+
+  tweetParserReady = true;
 
   if (callback !== undefined) { callback(null, twp); }
 }
@@ -3553,6 +3560,58 @@ function initRateQinterval(interval){
   }, interval);
 }
 
+let loadBestNetworkInterval;
+
+function initLoadBestNetworkInterval(interval){
+
+  clearInterval(loadBestNetworkInterval);
+
+  loadBestNetworkInterval = setInterval(function(){
+
+    loadFile(bestNetworkFolder, bestNetworkFile, function(err, nnObj){
+      if (err) {
+        console.log(chalkError("LOAD BEST NETWORK ERROR: " + err));
+      }
+      else {
+
+        console.log(chalkInfo("LOAD BEST NETWORK"
+          + " | " + nnObj.networkId
+          + " | " + nnObj.successRate.toFixed(2)
+          // + "\n" + jsonPrint(nnObj)
+        ));
+
+        bestNetworkObj = nnObj;
+
+        if (tweetParser === undefined) {
+          initTweetParser();
+        }
+
+        if ((tweetParser !== undefined) && (previousBestNetworkId !== bestNetworkObj.networkId)) {
+
+          previousBestNetworkId = bestNetworkObj.networkId;
+
+          console.log(chalkAlert("NEW BEST NETWORK"
+            + " | " + nnObj.networkId
+            + " | " + nnObj.successRate.toFixed(2)
+            // + "\n" + jsonPrint(nnObj)
+          ));
+
+          tweetParser.send({ op: "NETWORK", networkObj: bestNetworkObj }, function twpNetwork(err){
+            if (err) {
+              // pmx.emit("ERROR", "TWEET PARSER INIT SEND ERROR");
+              console.error(chalkError("*** TWEET PARSER SEND NETWORK ERROR"
+                + " | " + err
+              ));
+            }
+          });
+        }
+
+      }
+    });
+  
+  }, interval);
+}
+
 function initialize(cnf, callback) {
 
   debug(chalkInfo(moment().format(compactDateTimeFormat) + " | INITIALIZE"));
@@ -3585,23 +3644,8 @@ function initialize(cnf, callback) {
     }
   });
 
-  loadFile(bestNetworkFolder, bestNetworkFile, function(err, nnObj){
-    if (err) {
-      console.log(chalkError("LOAD BEST NETWORK ERROR: " + err));
-    }
-    else {
+  initLoadBestNetworkInterval(ONE_MINUTE+1);
 
-      console.log(chalkAlert("LOAD BEST NETWORK"
-        + " | " + nnObj.networkId
-        + " | " + nnObj.successRate.toFixed(2)
-        // + "\n" + jsonPrint(nnObj)
-      ));
-
-      bestNetworkObj = nnObj;
-      initTweetParser();
-    }
-  });
-  
   initInternetCheckInterval(10000);
 
   io = require("socket.io")(httpServer, { reconnection: true });

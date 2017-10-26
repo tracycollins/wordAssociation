@@ -1,12 +1,15 @@
 /*jslint node: true */
 "use strict";
 
+let networkReady = false;
+
 const MAX_Q = 500;
 const compactDateTimeFormat = "YYYYMMDD HHmmss";
 
 const os = require("os");
 const debug = require("debug")("wa");
 const moment = require("moment");
+const async = require("async");
 
 const wordAssoDb = require("@threeceelabs/mongoose-twitter");
 const db = wordAssoDb();
@@ -122,7 +125,7 @@ function initTweetParserQueueInterval(cnf){
 
   tweetParserQueueInterval = setInterval(function(){
 
-    if (!tweetParserQueue.isEmpty() && tweetParserQueueReady){
+    if (!tweetParserQueue.isEmpty() && tweetParserQueueReady && networkReady){
 
       tweetParserQueueReady = false;
 
@@ -215,7 +218,7 @@ process.on("message", function(m) {
       console.log(chalkInfo("TWEET PARSER INIT"
         + " | INTERVAL: " + m.interval
         + " | NN: " + m.networkObj.networkId
-        + " | SUCCESS RATE: " + m.networkObj.successRate.toFixed(2)
+        // + " | SUCCESS RATE: " + m.networkObj.successRate.toFixed(2)
         // + "\n" + jsonPrint(m.networkObj)
       ));
       cnf.networkObj = {};
@@ -235,6 +238,40 @@ process.on("message", function(m) {
       });
 
       initTweetParserQueueInterval(cnf);
+
+    break;
+
+    case "NETWORK":
+
+      networkReady = false;
+
+      console.log(chalkInfo("TWEET PARSER NETWORK"
+        + " | NN: " + m.networkObj.networkId
+        + " | SUCCESS RATE: " + m.networkObj.successRate.toFixed(2)
+        // + "\n" + jsonPrint(m.networkObj)
+      ));
+
+      cnf.networkObj = {};
+      cnf.networkObj = m.networkObj;
+
+      cnf.inputArrays = {};
+
+      async.eachSeries(Object.keys(m.networkObj.inputs), function(type, cb){
+
+        console.log(chalkNetwork("NN INPUTS TYPE" 
+          + " | " + type
+          + " | INPUTS: " + m.networkObj.inputs[type].length
+        ));
+
+        cnf.inputArrays[type] = {};
+        cnf.inputArrays[type] = m.networkObj.inputs[type];
+
+        cb();
+
+      }, function(){
+        networkReady = true;
+      });
+
 
     break;
 

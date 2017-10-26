@@ -145,7 +145,7 @@ function ControlPanel() {
         + " | " + node.statusesCount + " Ts"
         + "<br>" 
         + "KW: M: " + node.keywords + " | A: " + node.keywordsAuto
-        + "<br>";
+        + "<br><br>";
 
       timelineDiv.appendChild(timelineText);
 

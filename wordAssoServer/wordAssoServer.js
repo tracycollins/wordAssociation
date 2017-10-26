@@ -1,6 +1,10 @@
 /*jslint node: true */
 "use strict";
 
+const bestNetworkFolder = "/config/utility/best/neuralNetworks";
+const bestNetworkFile = "bestNetwork.json";
+let bestNetworkObj = {};
+
 const ONE_SECOND = 1000;
 const ONE_MINUTE = 60 * ONE_SECOND;
 const ONE_HOUR = 60 * ONE_MINUTE;
@@ -323,6 +327,7 @@ const chalkInfo = chalk.gray;
 const chalkAlert = chalk.red;
 const chalkError = chalk.bold.red;
 const chalkLog = chalk.gray;
+const chalkNetwork = chalk.blue;
 
 const tweetMeter = new Measured.Meter({rateUnit: 60000});
 
@@ -3198,6 +3203,7 @@ function initTweetParser(callback){
 
   twp.send({
     op: "INIT",
+    networkObj: bestNetworkObj,
     interval: TWEET_PARSER_INTERVAL
   }, function tweetParserMessageRxError(err){
     if (err) {
@@ -3579,7 +3585,22 @@ function initialize(cnf, callback) {
     }
   });
 
-  initTweetParser();
+  loadFile(bestNetworkFolder, bestNetworkFile, function(err, nnObj){
+    if (err) {
+      console.log(chalkError("LOAD BEST NETWORK ERROR: " + err));
+    }
+    else {
+
+      console.log(chalkAlert("LOAD BEST NETWORK"
+        + " | " + nnObj.networkId
+        + "\n" + jsonPrint(nnObj)
+      ));
+
+      bestNetworkObj = nnObj;
+      initTweetParser();
+    }
+  });
+  
   initInternetCheckInterval(10000);
 
   io = require("socket.io")(httpServer, { reconnection: true });

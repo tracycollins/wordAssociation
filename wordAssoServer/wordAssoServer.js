@@ -3593,7 +3593,8 @@ function initialize(cnf, callback) {
 
       console.log(chalkAlert("LOAD BEST NETWORK"
         + " | " + nnObj.networkId
-        + "\n" + jsonPrint(nnObj)
+        + " | " + nnObj.successRate.toFixed(2)
+        // + "\n" + jsonPrint(nnObj)
       ));
 
       bestNetworkObj = nnObj;

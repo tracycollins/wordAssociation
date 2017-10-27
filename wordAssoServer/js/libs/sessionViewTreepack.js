@@ -156,7 +156,7 @@ function ViewTreepack() {
   var gravity = config.defaultGravity;
   var forceXmultiplier = config.defaultForceXmultiplier;
   var forceYmultiplier = config.defaultForceYmultiplier;
-  var collisionRadiusMultiplier = 1.01;
+  var collisionRadiusMultiplier = 1.05;
   var collisionIterations = config.defaultCollisionIterations;
   var velocityDecay = config.defaultVelocityDecay;
   var fontSizeMinRatio = config.defaultFontSizeMinRatio;

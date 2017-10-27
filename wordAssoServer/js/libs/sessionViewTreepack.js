@@ -283,9 +283,12 @@ function ViewTreepack() {
     "purple": "#595AB7",
     "blue": "#2176C7",
     "green": "#259286",
-    "lightgreen": "#35A296",
+    "darkergreen": "#158276",
+    "lightgreen":  "#35A296",
     "yellowgreen": "#738A05"
   };
+
+  var keywordsMatchColor = palette.darkergreen;
 
   var divTooltip = d3.select("body").append("div")
     .attr("id", "divTooltip")
@@ -1088,7 +1091,7 @@ function ViewTreepack() {
       })
       .style("stroke", function(d) {
         if (d.keywordsMismatch) { return palette.red; }
-        if (d.keywordsMatch) { return palette.green; }
+        if (d.keywordsMatch) { return keywordsMatchColor; }
         if (d.keywordsAuto.right) { return palette.yellow; }
         if (d.keywordsAuto.left) { return palette.blue; }
         if (d.keywordsAuto.positive) { return palette.green; }
@@ -1096,7 +1099,7 @@ function ViewTreepack() {
         return palette.white; 
       })
       .style("stroke-width", function(d) { 
-        if (d.keywordsMatch) { return "8.0"; }
+        if (d.keywordsMatch) { return "6.0"; }
         if (d.isTopTerm) { return "4.0"; }
         if (d.newFlag) { return "3.0"; }
         if (d.keywordsAuto.right) { return "4.0"; }
@@ -1140,7 +1143,7 @@ function ViewTreepack() {
       })
       .style("stroke", function(d) {
         if (d.keywordsMismatch) { return palette.red; }
-        if (d.keywordsMatch) { return palette.green; }
+        if (d.keywordsMatch) { return keywordsMatchColor; }
         if (d.keywordsAuto.right) { return palette.yellow; }
         if (d.keywordsAuto.left) { return palette.blue; }
         if (d.keywordsAuto.positive) { return palette.green; }
@@ -1148,7 +1151,7 @@ function ViewTreepack() {
         return palette.white; 
       })
       .style("stroke-width", function(d) { 
-        if (d.keywordsMatch) { return "8.0"; }
+        if (d.keywordsMatch) { return "6.0"; }
         if (d.isTopTerm) { return "4.0"; }
         if (d.newFlag) { return "3.0"; }
         if (d.keywordsAuto.right) { return "4.0"; }
@@ -1275,8 +1278,8 @@ function ViewTreepack() {
       })
       .style("fill", palette.white)
       .style("stroke-width", function(d) { 
-        if (d.keywordsMatch) { return "14.0"; }
-        if (d.keywordsMismatch) { return "10.0"; }
+        if (d.keywordsMatch) { return "12.0"; }
+        if (d.keywordsMismatch) { return "8.0"; }
         if (d.isTopTerm) { return "6.0"; }
         if (d.newFlag) { return "2.0"; }
         return "1.2"; 

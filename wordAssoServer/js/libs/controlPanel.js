@@ -125,6 +125,7 @@ function ControlPanel() {
         + " | --- FRNDs" 
         + " | --- Ts"
         + "<br>" 
+        + "<br>" 
         + "KW: M: --- | A: ---"
         + "<br>";
 
@@ -144,6 +145,7 @@ function ControlPanel() {
         + " | " + node.friendsCount + " FRNDs" 
         + " | " + node.statusesCount + " Ts"
         + "<br>" 
+        + "<br>" 
         + "KW: M: " + node.keywords + " | A: " + node.keywordsAuto
         + "<br><br>";
 
@@ -157,7 +159,7 @@ function ControlPanel() {
       twttr.widgets.createTimeline(
         { sourceType: "profile", screenName: screenName},
         timelineDiv,
-        { width: "600", height: "400"}
+        { width: "400", height: "600"}
       )
       .then(function (el) {
         callback(null, el);

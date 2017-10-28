@@ -4,11 +4,11 @@
   "description": "word",
   "main": "wordAssoServer.js",
   "dependencies": {
-    "@google-cloud/monitoring": "^0.4.0",
+    "@google-cloud/monitoring": "^0.4.1",
     "@threeceelabs/hashtag-server-controller": "^1.0.15",
     "@threeceelabs/mongoose-twitter": "^1.0.49",
     "@threeceelabs/socketio-auth": "^1.0.5",
-    "@threeceelabs/tweet-server-controller": "^1.0.63",
+    "@threeceelabs/tweet-server-controller": "^1.0.64",
     "@threeceelabs/twitter-image-parser": "^1.0.24",
     "@threeceelabs/twitter-text-parser": "^1.0.20",
     "@threeceelabs/user-server-controller": "^1.0.97",

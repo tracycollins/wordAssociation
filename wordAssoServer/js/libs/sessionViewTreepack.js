@@ -281,8 +281,8 @@ function ViewTreepack() {
     "red": "#D11C24",
     "pink": "#C61C6F",
     "purple": "#595AB7",
-    "blue": "#2176C7",
-    "green": "#259286",
+    "blue": "#004EBF",
+    "green": "#2FAF00",
     "darkergreen": "#008200",
     "lightgreen":  "#35A296",
     "yellowgreen": "#738A05"

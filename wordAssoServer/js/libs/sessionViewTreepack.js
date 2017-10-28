@@ -282,13 +282,13 @@ function ViewTreepack() {
     "pink": "#C61C6F",
     "purple": "#595AB7",
     "blue": "#4808FF",
-    "green": "#2FAF00",
+    "green": "#02DB00",
     "darkergreen": "#008200",
     "lightgreen":  "#35A296",
     "yellowgreen": "#738A05"
   };
 
-  var keywordsMatchColor = palette.darkergreen;
+  var keywordsMatchColor = palette.green;
 
   var divTooltip = d3.select("body").append("div")
     .attr("id", "divTooltip")

@@ -289,6 +289,8 @@ function ViewTreepack() {
   };
 
   var keywordsMatchColor = palette.green;
+  var keywordsMatchStrokeWidth = "4.0";
+  var keywordsMismatchStrokeWidth = "4.0";
 
   var divTooltip = d3.select("body").append("div")
     .attr("id", "divTooltip")
@@ -1099,7 +1101,7 @@ function ViewTreepack() {
         return palette.white; 
       })
       .style("stroke-width", function(d) { 
-        if (d.keywordsMatch) { return "6.0"; }
+        if (d.keywordsMatch) { return keywordsMatchStrokeWidth; }
         if (d.isTopTerm) { return "4.0"; }
         if (d.newFlag) { return "3.0"; }
         if (d.keywordsAuto.right) { return "4.0"; }
@@ -1151,7 +1153,7 @@ function ViewTreepack() {
         return palette.white; 
       })
       .style("stroke-width", function(d) { 
-        if (d.keywordsMatch) { return "6.0"; }
+        if (d.keywordsMatch) { return keywordsMatchStrokeWidth; }
         if (d.isTopTerm) { return "4.0"; }
         if (d.newFlag) { return "3.0"; }
         if (d.keywordsAuto.right) { return "4.0"; }
@@ -1278,9 +1280,9 @@ function ViewTreepack() {
       })
       .style("fill", palette.white)
       .style("stroke-width", function(d) { 
-        if (d.keywordsMatch) { return "12.0"; }
-        if (d.keywordsMismatch) { return "8.0"; }
-        if (d.isTopTerm) { return "6.0"; }
+        if (d.keywordsMatch) { return keywordsMatchStrokeWidth; }
+        if (d.keywordsMismatch) { return "4.0"; }
+        if (d.isTopTerm) { return "3.0"; }
         if (d.newFlag) { return "2.0"; }
         return "1.2"; 
       })

@@ -291,6 +291,8 @@ function ViewTreepack() {
   var keywordsMatchColor = palette.green;
   var keywordsMatchStrokeWidth = "4.0";
   var keywordsMismatchStrokeWidth = "4.0";
+  var keywordsAutoStrokeWidth = "3.0";
+
 
   var divTooltip = d3.select("body").append("div")
     .attr("id", "divTooltip")
@@ -1102,12 +1104,12 @@ function ViewTreepack() {
       })
       .style("stroke-width", function(d) { 
         if (d.keywordsMatch) { return keywordsMatchStrokeWidth; }
-        if (d.isTopTerm) { return "4.0"; }
+        if (d.isTopTerm) { return "3.0"; }
         if (d.newFlag) { return "3.0"; }
-        if (d.keywordsAuto.right) { return "4.0"; }
-        if (d.keywordsAuto.left) { return "4.0"; }
-        if (d.keywordsAuto.positive) { return "4.0"; }
-        if (d.keywordsAuto.negative) { return "4.0"; }
+        if (d.keywordsAuto.right) { return keywordsAutoStrokeWidth; }
+        if (d.keywordsAuto.left) { return keywordsAutoStrokeWidth; }
+        if (d.keywordsAuto.positive) { return keywordsAutoStrokeWidth; }
+        if (d.keywordsAuto.negative) { return keywordsAutoStrokeWidth; }
         return "2.0"; 
       })
       .style("opacity", function(d) { 
@@ -1156,10 +1158,10 @@ function ViewTreepack() {
         if (d.keywordsMatch) { return keywordsMatchStrokeWidth; }
         if (d.isTopTerm) { return "4.0"; }
         if (d.newFlag) { return "3.0"; }
-        if (d.keywordsAuto.right) { return "4.0"; }
-        if (d.keywordsAuto.left) { return "4.0"; }
-        if (d.keywordsAuto.positive) { return "4.0"; }
-        if (d.keywordsAuto.negative) { return "4.0"; }
+        if (d.keywordsAuto.right) { return keywordsAutoStrokeWidth; }
+        if (d.keywordsAuto.left) { return keywordsAutoStrokeWidth; }
+        if (d.keywordsAuto.positive) { return keywordsAutoStrokeWidth; }
+        if (d.keywordsAuto.negative) { return keywordsAutoStrokeWidth; }
         return "2.0"; 
       })
       .style("opacity", function(d) { 

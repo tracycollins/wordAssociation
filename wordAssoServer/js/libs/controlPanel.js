@@ -61,7 +61,26 @@ function ControlPanel() {
   twitterCategorySearchDiv.appendChild(nodeSearchLabel);
   twitterCategorySearchDiv.appendChild(nodeSearchInput);
 
+  function nextUncategorizedButtonHandler(e){
 
+    console.warn("NEXT UNCATEGORIZED BUTTON"
+     + " | ID: " + e.target.id
+     + "\n" + jsonPrint(e.target)
+    );
+
+    parentWindow.postMessage({op: "NODE_SEARCH", input: "@?"}, DEFAULT_SOURCE);
+  }
+
+  var nextUncategorizedButton = document.createElement("button");
+  nextUncategorizedButton.setAttribute("class", "nodeSearch");
+  nextUncategorizedButton.setAttribute("id", "nextUncategorizedButton");
+  nextUncategorizedButton.addEventListener(
+    "click", 
+    function(e){ nextUncategorizedButtonHandler(e); }, 
+    false
+  );
+
+  twitterCategorySearchDiv.appendChild(nextUncategorizedButton);
 
   function updateCategoryRadioButtons(keyword, callback){
     console.warn("updateCategoryRadioButtons | " + keyword);
@@ -267,6 +286,326 @@ function ControlPanel() {
 
   var twitterCategoryButtonsDiv = document.getElementById("twitterCategoryButtonsDiv");
 
+  function categoryButtonHandler(e){
+
+    var currentButton = document.getElementById(e.target.id);
+    currentButton.setAttribute("checked", true);
+    var keywords = {};
+
+    console.warn("CATEGORY BUTTON"
+     + " | ID: " + e.target.id
+     + "\n" + jsonPrint(e.target)
+    );
+
+    switch (e.target.id){
+      case "categoryLeft":
+        console.log("LEFT | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = { left: 100 };
+      break;
+      case "categoryRight":
+        console.log("RIGHT | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = { right: 100 };
+      break;
+      case "categoryNeutral":
+        console.log("NEUTRAL | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = { neutral: 100 };
+      break;
+      case "categoryPositive":
+        console.log("POSITIVE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = { positive: 100 };
+      break;
+      case "categoryNegative":
+        console.log("NEGATIVE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = { negative: 100 };
+      break;
+      case "categoryNone":
+        console.log("NONE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = false;
+      break;
+    }
+
+    parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, keywords: keywords}, DEFAULT_SOURCE);
+  }
+  function categoryButtonHandler(e){
+
+    var currentButton = document.getElementById(e.target.id);
+    currentButton.setAttribute("checked", true);
+    var keywords = {};
+
+    console.warn("CATEGORY BUTTON"
+     + " | ID: " + e.target.id
+     + "\n" + jsonPrint(e.target)
+    );
+
+    switch (e.target.id){
+      case "categoryLeft":
+        console.log("LEFT | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = { left: 100 };
+      break;
+      case "categoryRight":
+        console.log("RIGHT | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = { right: 100 };
+      break;
+      case "categoryNeutral":
+        console.log("NEUTRAL | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = { neutral: 100 };
+      break;
+      case "categoryPositive":
+        console.log("POSITIVE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = { positive: 100 };
+      break;
+      case "categoryNegative":
+        console.log("NEGATIVE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = { negative: 100 };
+      break;
+      case "categoryNone":
+        console.log("NONE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = false;
+      break;
+    }
+
+    parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, keywords: keywords}, DEFAULT_SOURCE);
+  }
+  function categoryButtonHandler(e){
+
+    var currentButton = document.getElementById(e.target.id);
+    currentButton.setAttribute("checked", true);
+    var keywords = {};
+
+    console.warn("CATEGORY BUTTON"
+     + " | ID: " + e.target.id
+     + "\n" + jsonPrint(e.target)
+    );
+
+    switch (e.target.id){
+      case "categoryLeft":
+        console.log("LEFT | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = { left: 100 };
+      break;
+      case "categoryRight":
+        console.log("RIGHT | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = { right: 100 };
+      break;
+      case "categoryNeutral":
+        console.log("NEUTRAL | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = { neutral: 100 };
+      break;
+      case "categoryPositive":
+        console.log("POSITIVE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = { positive: 100 };
+      break;
+      case "categoryNegative":
+        console.log("NEGATIVE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = { negative: 100 };
+      break;
+      case "categoryNone":
+        console.log("NONE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = false;
+      break;
+    }
+
+    parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, keywords: keywords}, DEFAULT_SOURCE);
+  }
+  function categoryButtonHandler(e){
+
+    var currentButton = document.getElementById(e.target.id);
+    currentButton.setAttribute("checked", true);
+    var keywords = {};
+
+    console.warn("CATEGORY BUTTON"
+     + " | ID: " + e.target.id
+     + "\n" + jsonPrint(e.target)
+    );
+
+    switch (e.target.id){
+      case "categoryLeft":
+        console.log("LEFT | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = { left: 100 };
+      break;
+      case "categoryRight":
+        console.log("RIGHT | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = { right: 100 };
+      break;
+      case "categoryNeutral":
+        console.log("NEUTRAL | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = { neutral: 100 };
+      break;
+      case "categoryPositive":
+        console.log("POSITIVE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = { positive: 100 };
+      break;
+      case "categoryNegative":
+        console.log("NEGATIVE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = { negative: 100 };
+      break;
+      case "categoryNone":
+        console.log("NONE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = false;
+      break;
+    }
+
+    parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, keywords: keywords}, DEFAULT_SOURCE);
+  }
+  function categoryButtonHandler(e){
+
+    var currentButton = document.getElementById(e.target.id);
+    currentButton.setAttribute("checked", true);
+    var keywords = {};
+
+    console.warn("CATEGORY BUTTON"
+     + " | ID: " + e.target.id
+     + "\n" + jsonPrint(e.target)
+    );
+
+    switch (e.target.id){
+      case "categoryLeft":
+        console.log("LEFT | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = { left: 100 };
+      break;
+      case "categoryRight":
+        console.log("RIGHT | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = { right: 100 };
+      break;
+      case "categoryNeutral":
+        console.log("NEUTRAL | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = { neutral: 100 };
+      break;
+      case "categoryPositive":
+        console.log("POSITIVE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = { positive: 100 };
+      break;
+      case "categoryNegative":
+        console.log("NEGATIVE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = { negative: 100 };
+      break;
+      case "categoryNone":
+        console.log("NONE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = false;
+      break;
+    }
+
+    parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, keywords: keywords}, DEFAULT_SOURCE);
+  }
+  function categoryButtonHandler(e){
+
+    var currentButton = document.getElementById(e.target.id);
+    currentButton.setAttribute("checked", true);
+    var keywords = {};
+
+    console.warn("CATEGORY BUTTON"
+     + " | ID: " + e.target.id
+     + "\n" + jsonPrint(e.target)
+    );
+
+    switch (e.target.id){
+      case "categoryLeft":
+        console.log("LEFT | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = { left: 100 };
+      break;
+      case "categoryRight":
+        console.log("RIGHT | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = { right: 100 };
+      break;
+      case "categoryNeutral":
+        console.log("NEUTRAL | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = { neutral: 100 };
+      break;
+      case "categoryPositive":
+        console.log("POSITIVE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = { positive: 100 };
+      break;
+      case "categoryNegative":
+        console.log("NEGATIVE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = { negative: 100 };
+      break;
+      case "categoryNone":
+        console.log("NONE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = false;
+      break;
+    }
+
+    parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, keywords: keywords}, DEFAULT_SOURCE);
+  }
+  function categoryButtonHandler(e){
+
+    var currentButton = document.getElementById(e.target.id);
+    currentButton.setAttribute("checked", true);
+    var keywords = {};
+
+    console.warn("CATEGORY BUTTON"
+     + " | ID: " + e.target.id
+     + "\n" + jsonPrint(e.target)
+    );
+
+    switch (e.target.id){
+      case "categoryLeft":
+        console.log("LEFT | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = { left: 100 };
+      break;
+      case "categoryRight":
+        console.log("RIGHT | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = { right: 100 };
+      break;
+      case "categoryNeutral":
+        console.log("NEUTRAL | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = { neutral: 100 };
+      break;
+      case "categoryPositive":
+        console.log("POSITIVE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = { positive: 100 };
+      break;
+      case "categoryNegative":
+        console.log("NEGATIVE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = { negative: 100 };
+      break;
+      case "categoryNone":
+        console.log("NONE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = false;
+      break;
+    }
+
+    parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, keywords: keywords}, DEFAULT_SOURCE);
+  }
+  function categoryButtonHandler(e){
+
+    var currentButton = document.getElementById(e.target.id);
+    currentButton.setAttribute("checked", true);
+    var keywords = {};
+
+    console.warn("CATEGORY BUTTON"
+     + " | ID: " + e.target.id
+     + "\n" + jsonPrint(e.target)
+    );
+
+    switch (e.target.id){
+      case "categoryLeft":
+        console.log("LEFT | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = { left: 100 };
+      break;
+      case "categoryRight":
+        console.log("RIGHT | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = { right: 100 };
+      break;
+      case "categoryNeutral":
+        console.log("NEUTRAL | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = { neutral: 100 };
+      break;
+      case "categoryPositive":
+        console.log("POSITIVE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = { positive: 100 };
+      break;
+      case "categoryNegative":
+        console.log("NEGATIVE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = { negative: 100 };
+      break;
+      case "categoryNone":
+        console.log("NONE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
+        keywords = false;
+      break;
+    }
+
+    parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, keywords: keywords}, DEFAULT_SOURCE);
+  }
   function categoryButtonHandler(e){
 
     var currentButton = document.getElementById(e.target.id);

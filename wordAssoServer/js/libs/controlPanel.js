@@ -72,7 +72,7 @@ function ControlPanel() {
   }
 
   var nextUncategorizedButton = document.createElement("button");
-  nextUncategorizedButton.setAttribute("class", "nodeSearch");
+  nextUncategorizedButton.setAttribute("class", "button");
   nextUncategorizedButton.setAttribute("id", "nextUncategorizedButton");
   nextUncategorizedButton.addEventListener(
     "click", 

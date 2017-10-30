@@ -71,9 +71,19 @@ function ControlPanel() {
     parentWindow.postMessage({op: "NODE_SEARCH", input: "@?"}, DEFAULT_SOURCE);
   }
 
+          // var buttonElement = document.createElement("BUTTON");
+          // buttonElement.className = content.class;
+          // buttonElement.setAttribute("id", content.id);
+          // buttonElement.setAttribute("mode", content.mode);
+          // buttonElement.addEventListener("click", function(e){ buttonHandler(e); }, false);
+          // buttonElement.innerHTML = content.text;
+          // td.appendChild(buttonElement);
+          // controlIdHash[content.id] = content;
+
   var nextUncategorizedButton = document.createElement("button");
   nextUncategorizedButton.setAttribute("class", "button");
   nextUncategorizedButton.setAttribute("id", "nextUncategorizedButton");
+  nextUncategorizedButton.innerHTML = "NEXT UNCAT";
   nextUncategorizedButton.addEventListener(
     "click", 
     function(e){ nextUncategorizedButtonHandler(e); }, 

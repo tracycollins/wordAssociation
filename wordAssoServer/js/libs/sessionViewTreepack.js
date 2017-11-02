@@ -1032,12 +1032,11 @@ function ViewTreepack() {
 
     nodeTopTermLabels
       .exit()
-      // .attr("class", "exit")
       .remove();
 
     nodeTopTermLabels
-        .attr("x", xposition)
-        .attr("y", yposition)
+      .attr("x", xposition)
+      .attr("y", yposition)
       .style("opacity", function(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
         return topTermLabelOpacityScale(d.ageMaxRatio); 
@@ -1169,6 +1168,8 @@ function ViewTreepack() {
       .style("opacity", function(d) { 
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
+      .on("click", nodeClick)
+      .on("touchstart", nodeClick)
       .transition()
         .duration(transitionDuration)
         .attr("r", function(d) {

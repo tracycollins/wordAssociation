@@ -1987,6 +1987,9 @@ function ViewTreepack() {
       .attr("width", width)
       .attr("height", height)
       .attr("x", 1e-6)
+      .on("touchstart", function(d){
+        topTermsDiv.style("visibility", "visible");
+      })
       .attr("y", 1e-6);
 
     svgTopTermLayoutArea

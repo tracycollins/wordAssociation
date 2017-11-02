@@ -1994,7 +1994,7 @@ function ViewTreepack() {
         nodeTopTermLabelSvgGroup.style("visibility", "visible");
       })
       .on("touchend", function(d){
-        setTimeOut(function(){
+        setTimeout(function(){
           topTermsDiv.style("visibility", "hidden");
           nodeTopTermLabelSvgGroup.style("visibility", "hidden");
         }, 2000);

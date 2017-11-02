@@ -1987,15 +1987,16 @@ function ViewTreepack() {
       .attr("width", width)
       .attr("height", height)
       .attr("x", 1e-6)
-      .on("touchstart", function(d){
-        topTermsDiv.style("visibility", "visible");
-        nodeTopTermLabelSvgGroup.style("visibility", "visible");
-      })
-      .on("touchend", function(d){
-        topTermsDiv.style("visibility", "hidden");
-        nodeTopTermLabelSvgGroup.style("visibility", "hidden");
-      })
-      .attr("y", 1e-6);
+      .attr("y", 1e-6)
+      .on("touchstart", nodeClick);
+      // .on("touchstart", function(d){
+      //   topTermsDiv.style("visibility", "visible");
+      //   nodeTopTermLabelSvgGroup.style("visibility", "visible");
+      // })
+      // .on("touchend", function(d){
+      //   topTermsDiv.style("visibility", "hidden");
+      //   nodeTopTermLabelSvgGroup.style("visibility", "hidden");
+      // })
 
     svgTopTermLayoutArea
       .attr("width", width)

@@ -1050,6 +1050,7 @@ function ViewTreepack() {
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)
       .on("click", nodeClick)
+      .on("touchstart", nodeClick)
       .style("pointer-events", "auto")
       .attr("x", xposition)
       .attr("y", yposition)
@@ -1118,7 +1119,7 @@ function ViewTreepack() {
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)
       .on("click", nodeClick)
-      .on("touch", nodeClick)
+      .on("touchstart", nodeClick)
       .transition()
         .duration(transitionDuration)
         .attr("r", function(d) {
@@ -1233,6 +1234,7 @@ function ViewTreepack() {
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)
       .on("click", nodeClick)
+      .on("touchstart", nodeClick)
       .attr("x", function(d) { 
         return d.x; 
       })

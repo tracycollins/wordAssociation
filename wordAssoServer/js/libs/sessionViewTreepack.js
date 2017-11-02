@@ -1989,6 +1989,11 @@ function ViewTreepack() {
       .attr("x", 1e-6)
       .on("touchstart", function(d){
         topTermsDiv.style("visibility", "visible");
+        nodeTopTermLabelSvgGroup.style("visibility", "visible");
+      })
+      .on("touchend", function(d){
+        topTermsDiv.style("visibility", "hidden");
+        nodeTopTermLabelSvgGroup.style("visibility", "hidden");
       })
       .attr("y", 1e-6);
 

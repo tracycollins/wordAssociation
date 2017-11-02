@@ -1118,6 +1118,7 @@ function ViewTreepack() {
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)
       .on("click", nodeClick)
+      .on("touch", nodeClick)
       .transition()
         .duration(transitionDuration)
         .attr("r", function(d) {

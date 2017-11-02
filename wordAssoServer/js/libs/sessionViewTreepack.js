@@ -1990,10 +1990,15 @@ function ViewTreepack() {
       .attr("y", 1e-6)
       // .on("touchstart", nodeClick);
       .on("touchstart", function(d){
-        nodeClick(d);
+        topTermsDiv.style("visibility", "visible");
+        nodeTopTermLabelSvgGroup.style("visibility", "visible");
       })
       .on("touchend", function(d){
-      })
+        setTimeOut(function(){
+          topTermsDiv.style("visibility", "hidden");
+          nodeTopTermLabelSvgGroup.style("visibility", "hidden");
+        }, 2000);
+      });
 
     svgTopTermLayoutArea
       .attr("width", width)

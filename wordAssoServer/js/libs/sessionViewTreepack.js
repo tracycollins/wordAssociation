@@ -8,6 +8,8 @@ function ViewTreepack() {
   var MIN_MENTIONS = 10000;
   var MIN_FOLLOWERS_AGE_RATE_RATIO = 0.9;  // age users with many followers at a slower rate
 
+  var mouseMovingFlag = false;
+
   var currentTwitterUser = twitterUserThreecee;
   var currentTwitterHashtag = "resist";
 

@@ -1219,12 +1219,12 @@ function ViewTreepack() {
       })
       .style("fill", palette.white)
       .style("visibility", function(d) {
-        if (d.followersCount > MIN_FOLLOWERS) { return "visible"; }
-        if (d.mentions > MIN_FOLLOWERS) { return "visible"; }
-        if (d.isKeyword) { return "visible"; }
         if (mouseMovingFlag) { 
           return "visible";
         }
+        if (d.followersCount > MIN_FOLLOWERS) { return "visible"; }
+        if (d.mentions > MIN_FOLLOWERS) { return "visible"; }
+        if (d.isKeyword) { return "visible"; }
         return "hidden";
       })
       .style("font-size", function(d) {
@@ -1282,12 +1282,12 @@ function ViewTreepack() {
         return "normal";
       })
       .style("visibility", function(d) {
-        if (d.followersCount > MIN_FOLLOWERS) { return "visible"; }
-        if (d.mentions > MIN_MENTIONS) { return "visible"; }
-        if (d.isKeyword) { return "visible"; }
         if (mouseMovingFlag) { 
           return "visible"; 
         }
+        if (d.followersCount > MIN_FOLLOWERS) { return "visible"; }
+        if (d.mentions > MIN_MENTIONS) { return "visible"; }
+        if (d.isKeyword) { return "visible"; }
         return "hidden";
       })
       .style("text-decoration", function(d) { 

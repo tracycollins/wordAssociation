@@ -5,7 +5,6 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://twitter.com/"> -->
 
 
   <meta http-equiv="Content-Security-Policy" content="default-src 'unsafe-inline' 'self' ws: https://*.twitter.com/ http://*.googleapis.com/ https://*.cloudflare.com/; script-src 'unsafe-eval' 'unsafe-inline' 'self' about: http://*.googleapis.com/ https://d3js.org http://*.google-analytics.com/ https://*.cloudflare.com/ https://*.twimg.com/ https://*.twitter.com/; font-src 'unsafe-inline' 'self' data: about: http://fonts.gstatic.com/; img-src 'self' data: http://localhost/ http://*.threeceelabs.com/ http://*.google-analytics.com/ https://api.twitter.com/favicon.ico http://*.twitter.com/ https://*.twitter.com/ http://*.twimg.com/ https://*.twimg.com/; object-src https://twitter.com/; frame-src https://*.twitter.com/ https://twitter.com/; style-src 'self' 'unsafe-inline' http://*.twimg.com/ https://*.twimg.com/ http://*.googleapis.com/ https://*.twitter.com/ http://*.twitter.com/; ">
@@ -13,7 +12,6 @@
   <link rel="stylesheet" href="css/base.css">
   <link rel="icon" type="image/png" href="favicon.png" />
   <style>
-    /*body {}*/
     
     td {
       padding: 8px;
@@ -29,8 +27,6 @@
       background: #222222;
     }
 
-    /*.nodeImage { filter: invert(100%) }*/
-
     .updateBar:hover {
       fill: white;
       cursor: pointer;
@@ -44,14 +40,10 @@
       width: 35%;
       height: 80%;
       font-family: "Lucida Console", Monaco, monospace;
-      /*font-size: 0.6em;*/
-      /*line-height: 0.8em;*/
-      /*background-color: #111111;*/
       background: rgba(25, 25, 25, .50);
       border: 1px solid #aaaaaa;
       color: #cccccc;
       margin: 20px;
-      /*padding: 10px;*/
       overflow: hidden;
       position: absolute;
       top: 0;
@@ -147,19 +139,10 @@
     
     #d3group {
       background: black;
-      /*text-align: center;*/
-      /*margin: 0;*/
-      /*padding: 0;*/
-      /*height: 600px;*/
-      /*overflow: hidden;*/
-      /*position: relative;*/
     }
     
     #svgMain {
-      /*background: #ffffff;*/
       background: black;
-      /*text-align: center;*/
-      /*margin: auto;*/
       width: 100%;
       height: auto;
       overflow: hidden;
@@ -168,13 +151,11 @@
 
     #svgForceLayoutArea {
       background: black;
-      /*border: 5px solid #ff0000;    */
       overflow: hidden;
       padding: 0
     }
 
     #svgFlowLayoutArea {
-      /*border: 5px solid #ff0000;    */
       overflow: hidden;
       padding: 0
     }
@@ -315,7 +296,7 @@
     }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/async/2.5.0/async.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/async/2.6.0/async.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/store.js/1.3.20/store.min.js"></script>
   <script src="node_modules/hashmap/hashmap.js"></script>
@@ -327,24 +308,10 @@
 </head>
 
 <body style="overflow:hidden;">
-  <!-- <iframe id="twitterIframe" name="twitterIframe" src="mask.png"></iframe> -->
-
-  <!-- <div id="twitterProfileDiv""></div> -->
-  <!-- <div id="twitterFeedDiv""></div> -->
   <div id="d3group"></div>
   <div id="topTermsDiv"></div>
   <div id="statsDiv" style="overflow:hidden;"></div>
   <div id="controlDiv" style="overflow:hidden;"></div>
-<!--   <script>
-    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-    })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
-
-    ga('create', 'UA-28931057-6', 'auto');
-    ga('send', 'pageview');
-
-  </script>
- --></body>
+</body>
 
 </html>

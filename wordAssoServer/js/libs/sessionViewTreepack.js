@@ -237,6 +237,9 @@ function ViewTreepack() {
   };
 
   self.mouseMoving = function(isMoving) {
+    if (isMoving && !mouseMovingFlag) {
+      updateNodeLabels(function(){});
+    }
     mouseMovingFlag = isMoving;
   };
 

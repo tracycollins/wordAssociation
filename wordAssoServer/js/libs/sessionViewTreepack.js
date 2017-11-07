@@ -236,6 +236,10 @@ function ViewTreepack() {
     return null;
   };
 
+  self.mouseMoving = function(isMoving) {
+    mouseMovingFlag = isMoving;
+  };
+
   self.getWidth = function() {
     return width;
   };

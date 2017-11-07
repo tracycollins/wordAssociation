@@ -123,7 +123,7 @@ requirejs(["https://d3js.org/d3.v4.min.js"], function(d3Loaded) {
             currentSessionView.simulationControl("PAUSE"); 
           }
           mouseMovingFlag = true;
-          currentSessionView.mouseMovingFlag(true);
+          currentSessionView.mouseMovingFlag = true;
           displayControl(true);
           resetMouseMoveTimer();
         }
@@ -670,11 +670,11 @@ function resetMouseMoveTimer() {
   mouseMoveTimeout = setTimeout(function() {
 
     mouseMovingFlag = false;
-    
+
     d3.select("body").style("cursor", "none");
 
     currentSessionView.toolTipVisibility(false);
-    currentSessionView.mouseMovingFlag(false);
+    currentSessionView.mouseMovingFlag = false;
 
     if (config.pauseOnMouseMove && !config.pauseFlag) { 
       currentSessionView.simulationControl("RESUME"); 

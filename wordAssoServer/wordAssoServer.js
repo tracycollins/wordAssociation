@@ -1519,7 +1519,6 @@ function initSocketHandler(socketObj) {
       userServer.findOne({user: searchNodeUser}, function(err, user){
         if (err) {
           console.log(chalkError("TWITTER_SEARCH_NODE USER ERROR\n" + jsonPrint(err)));
-          // socket.emit("SET_TWITTER_USER", defaultTwitterUser);
         }
         else if (user) {
           console.log(chalkTwitter("+++ TWITTER_SEARCH_NODE USER FOUND\n" + jsonPrint(user)));

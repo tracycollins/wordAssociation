@@ -1213,6 +1213,7 @@ function ViewTreepack() {
         if (d.followersCount > MIN_FOLLOWERS) { return "visible"; }
         if (d.mentions > MIN_FOLLOWERS) { return "visible"; }
         if (d.isKeyword) { return "visible"; }
+        if (mouseMovingFlag) { return "visible"; }
         return "hidden";
       })
       .style("font-size", function(d) {
@@ -1273,6 +1274,7 @@ function ViewTreepack() {
         if (d.followersCount > MIN_FOLLOWERS) { return "visible"; }
         if (d.mentions > MIN_MENTIONS) { return "visible"; }
         if (d.isKeyword) { return "visible"; }
+        if (mouseMovingFlag) { return "visible"; }
         return "hidden";
       })
       .style("text-decoration", function(d) { 

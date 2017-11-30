@@ -27,7 +27,7 @@ function ViewTreepack() {
   var minRadiusRatio = 0.01;
   var maxRadiusRatio = 0.10;
 
-  var sliderPercision = 3;
+  var sliderPercision = 5;
 
   var hashtagTopMargin = 5; // %
   var hashtagLeftMargin = 2; // %

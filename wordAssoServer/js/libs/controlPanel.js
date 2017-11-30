@@ -630,7 +630,8 @@ function ControlPanel() {
       break;
       case "gravitySlider":
         v = currentSlider.value/currentSlider.multiplier;
-        document.getElementById(currentSliderTextId).innerHTML = v.toFixed(5);
+        // document.getElementById(currentSliderTextId).innerHTML = v.toFixed(5);
+        document.getElementById(currentSliderTextId).innerHTML = v;
       break;
       default:
         v = currentSlider.value/currentSlider.multiplier;

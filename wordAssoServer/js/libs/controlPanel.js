@@ -614,9 +614,9 @@ function ControlPanel() {
     var valMultRatio = currentSlider.value/currentSlider.multiplier;
 
     console.log("SLIDER " + currentSlider.id 
-      + " | " + currentSlider.value 
-      + " | " + currentSlider.multiplier 
-      + " | " + valMultRatio.toFixed(3)
+      + " | V: " + currentSlider.value 
+      + " | M: " + currentSlider.multiplier 
+      + " | VMR: " + valMultRatio.toFixed(3)
     );
 
     var currentSliderTextId = currentSlider.id + "Text";
@@ -632,10 +632,12 @@ function ControlPanel() {
         v = currentSlider.value/currentSlider.multiplier;
         // document.getElementById(currentSliderTextId).innerHTML = v.toFixed(5);
         document.getElementById(currentSliderTextId).innerHTML = v;
+        console.log("gravitySlider: " + v);
       break;
       default:
         v = currentSlider.value/currentSlider.multiplier;
         document.getElementById(currentSliderTextId).innerHTML = v.toFixed(5);
+        console.log("default slider: " + v);
     }
 
     parentWindow.postMessage({op:"UPDATE", id: currentSlider.id, value: (currentSlider.value/currentSlider.multiplier)}, DEFAULT_SOURCE);
@@ -704,7 +706,7 @@ function ControlPanel() {
         } else if (content.type === "SLIDER") {
 
         // console.warn("tableCreateRow\n" + jsonPrint(content));
-
+          var step = 1/content.multiplier;
           var sliderElement = document.createElement("INPUT");
           sliderElement.type = "range";
           sliderElement.className = content.class;
@@ -712,6 +714,7 @@ function ControlPanel() {
           sliderElement.setAttribute("min", content.min);
           sliderElement.setAttribute("max", content.max);
           sliderElement.setAttribute("multiplier", content.multiplier);
+          sliderElement.setAttribute("step", step);
           // sliderElement.setAttribute("oninput", function(e){ sliderHandler(e); }, false);
           sliderElement.value = content.value;
           td.appendChild(sliderElement);

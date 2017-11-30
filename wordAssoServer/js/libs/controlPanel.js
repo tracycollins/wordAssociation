@@ -635,7 +635,7 @@ function ControlPanel() {
       break;
       default:
         v = currentSlider.value/currentSlider.multiplier;
-        document.getElementById(currentSliderTextId).innerHTML = v.toFixed(3);
+        document.getElementById(currentSliderTextId).innerHTML = v.toFixed(5);
     }
 
     parentWindow.postMessage({op:"UPDATE", id: currentSlider.id, value: (currentSlider.value/currentSlider.multiplier)}, DEFAULT_SOURCE);

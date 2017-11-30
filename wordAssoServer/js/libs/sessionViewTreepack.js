@@ -1061,7 +1061,7 @@ function ViewTreepack() {
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)
       .on("click", nodeClick)
-      .on("touchstart", nodeClick)
+      // .on("touchstart", nodeClick)
       .style("pointer-events", "auto")
       .attr("x", xposition)
       .attr("y", yposition)
@@ -1130,7 +1130,7 @@ function ViewTreepack() {
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)
       .on("click", nodeClick)
-      .on("touchstart", nodeClick)
+      // .on("touchstart", nodeClick)
       .transition()
         .duration(transitionDuration)
         .attr("r", function(d) {
@@ -1181,7 +1181,7 @@ function ViewTreepack() {
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
       .on("click", nodeClick)
-      .on("touchstart", nodeClick)
+      // .on("touchstart", nodeClick)
       .transition()
         .duration(transitionDuration)
         .attr("r", function(d) {
@@ -1250,7 +1250,7 @@ function ViewTreepack() {
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)
       .on("click", nodeClick)
-      .on("touchstart", nodeClick)
+      // .on("touchstart", nodeClick)
       .attr("x", function(d) { 
         return d.x; 
       })
@@ -2005,18 +2005,18 @@ function ViewTreepack() {
       .attr("width", width)
       .attr("height", height)
       .attr("x", 1e-6)
-      .attr("y", 1e-6)
+      .attr("y", 1e-6);
       // .on("touchstart", nodeClick);
-      .on("touchstart", function(d){
-        topTermsDiv.style("visibility", "visible");
-        nodeTopTermLabelSvgGroup.style("visibility", "visible");
-      })
-      .on("touchend", function(d){
-        setTimeout(function(){
-          topTermsDiv.style("visibility", "hidden");
-          nodeTopTermLabelSvgGroup.style("visibility", "hidden");
-        }, 2000);
-      });
+      // .on("touchstart", function(d){
+      //   topTermsDiv.style("visibility", "visible");
+      //   nodeTopTermLabelSvgGroup.style("visibility", "visible");
+      // })
+      // .on("touchend", function(d){
+      //   setTimeout(function(){
+      //     topTermsDiv.style("visibility", "hidden");
+      //     nodeTopTermLabelSvgGroup.style("visibility", "hidden");
+      //   }, 2000);
+      // });
 
     svgTopTermLayoutArea
       .attr("width", width)

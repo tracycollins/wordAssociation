@@ -930,11 +930,12 @@ function ControlPanel() {
       type: "SLIDER",
       id: "gravitySlider",
       class: "slider",
-      min: -1.0,
-      max: 1.0,
-      value: config.defaultGravity,
+      min: 0.0,
+      max: 1000.0,
+      value: config.defaultGravity * config.defaultMultiplier,
       // value: config.defaultGravity,
-      multiplier: 100.0
+      // multiplier: 100.0
+      multiplier: config.defaultMultiplier
     };
 
     var gravitySliderText = {

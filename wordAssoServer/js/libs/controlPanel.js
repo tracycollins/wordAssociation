@@ -916,8 +916,8 @@ function ControlPanel() {
       type: "SLIDER",
       id: "chargeSlider",
       class: "slider",
-      min: -100,
-      max: 100,
+      min: -200,
+      max: 200,
       value: config.defaultCharge,
       multiplier: 1.0
     };

@@ -464,8 +464,8 @@ function ControlPanel() {
     if (!document.getElementById("gravitySlider")) { return; }
     console.log("setGravitySliderValue: " + value);
     document.getElementById("gravitySlider").value = value;
-    // document.getElementById("gravitySliderText").innerHTML = value.toFixed(5);
-    document.getElementById("gravitySliderText").innerHTML = value;
+    document.getElementById("gravitySliderText").innerHTML = value.toFixed(6);
+    // document.getElementById("gravitySliderText").innerHTML = value;
   };
 
   this.setChargeSliderValue = function (value) {

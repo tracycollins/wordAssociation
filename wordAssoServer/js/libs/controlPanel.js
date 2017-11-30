@@ -928,11 +928,11 @@ function ControlPanel() {
       type: "SLIDER",
       id: "gravitySlider",
       class: "slider",
-      min: -1.0,
-      max: 1.0,
+      min: -10.0,
+      max: 10.0,
       value: config.defaultGravity,
       // value: config.defaultGravity,
-      multiplier: 1000.0
+      multiplier: 100.0
     };
 
     var gravitySliderText = {

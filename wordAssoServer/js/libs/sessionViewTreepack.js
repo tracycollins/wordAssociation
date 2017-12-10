@@ -892,7 +892,13 @@ function ViewTreepack() {
 
     d.mouseHoverFlag = true;
 
-    self.toolTipVisibility(true);
+    if (isMoving || mouseMovingFlag) {
+      self.toolTipVisibility(true);
+    }
+    else {
+      self.toolTipVisibility(false);
+    }
+
     d3.select(this).style("opacity", 1);
 
     var tooltipString;

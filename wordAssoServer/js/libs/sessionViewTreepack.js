@@ -892,7 +892,7 @@ function ViewTreepack() {
 
     d.mouseHoverFlag = true;
 
-    if (isMoving || mouseMovingFlag) {
+    if (mouseMovingFlag) {
       self.toolTipVisibility(true);
     }
     else {

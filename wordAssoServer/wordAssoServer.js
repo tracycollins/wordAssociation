@@ -605,6 +605,7 @@ let internetReady = false;
 let ioReady = false;
 
 let configuration = {};
+configuration.socketIoAuthTimeout = 10*ONE_SECOND;
 configuration.quitOnError = false;
 configuration.maxTopTerms = process.env.WA_MAX_TOP_TERMS || 100;
 configuration.metrics = {};
@@ -3676,14 +3677,17 @@ function initialize(cnf, callback) {
 
         console.log(chalkAlert("DESERIALIZED USER\n" + jsonPrint(user)));
 
-        if (err || !user) { return callback(new Error("User not found")); }
+        if (err || !user) { 
+          console.log(chalkError("!!! USER AUTHENTICATION FAILED !!!"));
+          return callback(new Error("User not found"));
+        }
         return callback(null, user.password === password);
 
       });
     },
     postAuthenticate: postAuthenticate,
     disconnect: disconnect,
-    timeout: 1000
+    timeout: cnf.socketIoAuthTimeout
   });
 
 

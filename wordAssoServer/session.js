@@ -2428,22 +2428,30 @@ function initSocketSessionUpdateRx(){
       newNode.statusesCount = nNode.statusesCount;
       newNode.friendsCount = nNode.friendsCount;
       newNode.threeceeFollowing = nNode.threeceeFollowing;
+      newNode.lastSeen = nNode.lastSeen;
+      newNode.lastTweetId = nNode.lastTweetId;
     }
     if (nNode.nodeType === "hashtag"){
       newNode.nodeId = nNode.text;
       newNode.text = nNode.text;
+      newNode.lastSeen = nNode.lastSeen;
+      newNode.lastTweetId = nNode.lastTweetId;
     }
     if (nNode.nodeType === "word"){
       newNode.nodeId = nNode.nodeId;
       newNode.mediaId = nNode.mediaId;
       newNode.url = nNode.url;
       newNode.sourceUrl = nNode.sourceUrl;
+      newNode.lastSeen = nNode.lastSeen;
+      newNode.lastTweetId = nNode.lastTweetId;
     }
     if (nNode.nodeType === "media"){
       newNode.nodeId = nNode.nodeId;
       newNode.mediaId = nNode.mediaId;
       newNode.url = nNode.url;
       newNode.sourceUrl = nNode.sourceUrl;
+      newNode.lastSeen = nNode.lastSeen;
+      newNode.lastTweetId = nNode.lastTweetId;
     }
     if (nNode.nodeType === "place"){
       newNode.placeId = nNode.placeId;
@@ -2451,6 +2459,8 @@ function initSocketSessionUpdateRx(){
       newNode.name = nNode.name;
       newNode.fullName = nNode.fullName;
       newNode.sourceUrl = nNode.sourceUrl;
+      newNode.lastSeen = nNode.lastSeen;
+      newNode.lastTweetId = nNode.lastTweetId;
     }
 
 

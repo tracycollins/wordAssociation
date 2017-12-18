@@ -991,6 +991,7 @@ function ViewTreepack() {
     var url = "";
 
     switch (d.nodeType) {
+
       case "user" :
 
         currentTwitterUser = d;
@@ -1000,10 +1001,17 @@ function ViewTreepack() {
           previousTwitterUserId = currentTwitterUser.userId;
         }
 
-        url = "https://twitter.com/" + d.screenName ;
+        if ((d.lastTweetId !== undefined) && d.lastTweetId) {
+          url = "https://twitter.com/" + d.screenName + "/status/" + d.lastTweetId ;
+        }
+        else {
+          url = "https://twitter.com/" + d.screenName ;
+        }
+
         console.debug("LOADING TWITTER USER: " + url);
         window.open(url, "_blank");
       break;
+
       case "hashtag" :
 
         currentTwitterHashtag = d;
@@ -1016,6 +1024,7 @@ function ViewTreepack() {
         url = "https://twitter.com/search?f=tweets&q=%23" + d.text ;
         window.open(url, "_blank");
       break;
+
       case "place" :
         url = "http://twitter.com/search?q=place%3A" + d.placeId ;
         window.open(url, "_blank");

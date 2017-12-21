@@ -164,12 +164,14 @@ function ControlPanel() {
     else {
 
       var screenName = node.screenName;
+      var name = (node.name !== undefined) ? node.name : "---";
 
       var timelineText = document.createElement("TEXT");
       timelineText.setAttribute("id", "timelineText");
       timelineText.setAttribute("class", "timelineText");
       timelineText.innerHTML = "<br>" 
-        + "<h3>@" + node.screenName + " | " + node.name + + "</h3><br>"
+        + "<h3>@" + node.screenName
+        + " | " + name + "</h3><br>"
         + node.followersCount + " FLWRs"
         + " | " + node.friendsCount + " FRNDs" 
         + " | " + node.statusesCount + " Ts"

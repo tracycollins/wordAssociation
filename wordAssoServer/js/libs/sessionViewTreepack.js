@@ -1241,9 +1241,13 @@ function ViewTreepack() {
         if (d.followersCount > MIN_FOLLOWERS) { return "visible"; }
         if (d.mentions > MIN_FOLLOWERS) { return "visible"; }
         if (d.isKeyword) { return "visible"; }
+        if (d.nodeType === "hashtag") { 
+          if (d.text.toLowerCase().includes("trump")) { return "visible"; }
+          return "hidden";
+        }
         if (d.nodeType === "user") { 
-          if (d.screenName.includes("trump")) { return visible; }
-          if (d.name.includes("trump")) { return visible; }
+          if (d.screenName.toLowerCase().includes("trump")) { return "visible"; }
+          if (d.name.toLowerCase().includes("trump")) { return "visible"; }
           return "hidden";
         }
         return "hidden";

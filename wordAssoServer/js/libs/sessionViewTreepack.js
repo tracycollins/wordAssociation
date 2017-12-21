@@ -1237,12 +1237,15 @@ function ViewTreepack() {
       })
       .style("fill", palette.white)
       .style("visibility", function(d) {
-        if (mouseMovingFlag) { 
-          return "visible";
-        }
+        if (mouseMovingFlag) { return "visible"; }
         if (d.followersCount > MIN_FOLLOWERS) { return "visible"; }
         if (d.mentions > MIN_FOLLOWERS) { return "visible"; }
         if (d.isKeyword) { return "visible"; }
+        if (d.nodeType === "user") { 
+          if (d.screenName.includes("trump")) { return visible; }
+          if (d.name.includes("trump")) { return visible; }
+          return "hidden";
+        }
         return "hidden";
       })
       .style("font-size", function(d) {
@@ -1283,7 +1286,6 @@ function ViewTreepack() {
           else {
             return "@UNKNOWN?"; 
           }
-
         }
         if (d.isKeyword || d.isTrendingTopic || d.isTwitterUser) { 
           if (d.nodeType === "hashtag") { return "#" + d.text.toUpperCase(); }

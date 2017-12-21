@@ -170,8 +170,8 @@ function ControlPanel() {
       timelineText.setAttribute("id", "timelineText");
       timelineText.setAttribute("class", "timelineText");
       timelineText.innerHTML = "<br>" 
-        + "<h5>@" + node.screenName
-        + "<br>" + name + "</h5><br>"
+        + "<h4>@" + node.screenName
+        + "<br>" + name + "</h4><br>"
         + node.followersCount + " FLWRs"
         + " | " + node.friendsCount + " FRNDs" 
         + " | " + node.statusesCount + " Ts"

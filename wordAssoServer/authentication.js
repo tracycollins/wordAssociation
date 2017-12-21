@@ -65,7 +65,9 @@ module.exports = passport.use(new TwitterStrategy({
       + "\nPROFILE\n" + jsonPrint(profile._json)
     );
 
-    userServer.convertRawUser(profile._json, function(err, userObj){
+// exports.convertRawUser = function (rawUser, tweetId, callback) {
+
+    userServer.convertRawUser(profile._json, null, function(err, userObj){
 
       userServer.findOneUser(userObj, {setMentions: false, noInc: true}, function(err, user) {
         if(err) {

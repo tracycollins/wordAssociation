@@ -817,7 +817,7 @@ function ViewTreepack() {
       }
     }
 
-    if (ageNodesIndex < 0) {
+    if (ageNodesIndex === 0) {
 
       resumeTimeStamp = 0;
 

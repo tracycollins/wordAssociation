@@ -826,6 +826,8 @@ function ViewTreepack() {
       maxRateMentionsNode.age = 0;
       maxRateMentionsNode.rank = 0;
       maxRateMentionsNode.isDead = false;
+      maxRateMentionsNode.x = 100;
+      maxRateMentionsNode.y = 100;
 
       maxRateMentionsNode.rateNodeType = currentMax.rate.nodeType;
       maxRateMentionsNode.rate = currentMax.rate.value;

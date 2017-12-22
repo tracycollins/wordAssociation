@@ -822,6 +822,7 @@ function ViewTreepack() {
       resumeTimeStamp = 0;
 
       maxRateMentionsNode.age = 0;
+      maxRateMentionsNode.isDead = false;
 
       maxRateMentionsNode.rateNodeType = currentMax.rate.nodeType;
       maxRateMentionsNode.rate = currentMax.rate.value;
@@ -1745,7 +1746,6 @@ function ViewTreepack() {
       if (metricMode === "mentions") {
         currentMaxMetric = nNode.followersCount; 
       }
-
     }
     else if (nNode.mentions > currentMax.mentions.value) { 
 

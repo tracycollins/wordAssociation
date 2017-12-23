@@ -439,9 +439,9 @@ function ViewTreepack() {
     .style("font-family", "monospace")
     .style("font-size", fontTopTerm)
     .style("fill", palette.white)
-    .style("stroke", palette.white)
+    // .style("stroke", palette.white)
     .style("opacity", 1.0)
-    .style("text-anchor", "left")
+    .style("text-anchor", "right")
     .style("alignment-baseline", "bottom");
 
   var nodeTopTermLabelSvgGroup = svgTopTerms.append("svg:g")

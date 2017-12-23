@@ -323,7 +323,7 @@ function ViewTreepack() {
     .style("pointer-events", "auto")
     .style("visibility", "visible")
     .on("change", function(){
-      if (!topTermsCheckBox.property("checked") === false) { 
+      if (!topTermsCheckBox.property("checked") === "false") { 
         topTermsDiv.style("visibility", "hidden"); 
         nodeTopTermLabelSvgGroup.style("visibility", "hidden");
       }
@@ -337,7 +337,7 @@ function ViewTreepack() {
 
     d3.selectAll("iframe").style("visibility", "hidden");
 
-    if (!topTermsCheckBox.property("checked") === false) { 
+    if (!topTermsCheckBox.property("checked") === "false") { 
       topTermsDiv.style("visibility", "hidden"); 
       nodeTopTermLabelSvgGroup.style("visibility", "hidden");
     }

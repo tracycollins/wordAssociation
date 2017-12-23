@@ -422,10 +422,14 @@ function ViewTreepack() {
     .attr("id", "maxRateMentionsSvgGroup")
     .attr("width", width)
     .attr("height", height)
-    .text("WHAT")
     .attr("x", 1e-6)
     .attr("y", 1e-6)
-    .attr("visibility", "visible");
+    .attr("visibility", "visible")
+    .append("text")
+    .text("WHAT?")
+    .attr("id", "maxRateMentionsText")
+    .style("text-anchor", "left")
+    .style("alignment-baseline", "bottom");
 
   var nodeTopTermLabelSvgGroup = svgTopTerms.append("svg:g")
     .attr("id", "nodeTopTermLabelSvgGroup")

@@ -1474,7 +1474,7 @@ function ViewTreepack() {
         displaytext = new Array(ratePadSpaces).join("\xa0") + rate 
         + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns
         + " | " + nodeId
-        + " | RATE MAX " + moment(parseInt(node.mentionsTimeStamp)).format(compactDateTimeFormat);
+        + " | MENTION MAX " + moment(parseInt(node.mentionsTimeStamp)).format(compactDateTimeFormat);
       }
     }
     else {

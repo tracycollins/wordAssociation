@@ -385,6 +385,8 @@ function ViewTreepack() {
     .domain([1, MAX_NODES])
     .range([1.0, 10.0]);
 
+  var fontTopTerm = config.defaultFontSizeTopTermRatio * topTermsDiv.height;
+
   var d3image = d3.select("#d3group");
 
   var svgMain = d3image.append("svg:svg")
@@ -427,7 +429,11 @@ function ViewTreepack() {
     .attr("visibility", "visible")
     .append("text")
     .text("WHAT?")
+    .style("font-family", "monospace")
+    .style("font-size", fontTopTerm);
+    .style("fill", palette.white)
     .attr("id", "maxRateMentionsText")
+    .attr("visibility", "visible")
     .style("text-anchor", "left")
     .style("alignment-baseline", "bottom");
 
@@ -439,7 +445,6 @@ function ViewTreepack() {
     .attr("y", 1e-6)
     .attr("visibility", "hidden");
 
-  var fontTopTerm = config.defaultFontSizeTopTermRatio * topTermsDiv.height;
 
   var nodeSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeSvgGroup");
   var nodeLabelSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeLabelSvgGroup");

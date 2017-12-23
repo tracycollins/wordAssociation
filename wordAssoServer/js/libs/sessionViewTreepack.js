@@ -29,8 +29,8 @@ function ViewTreepack() {
 
   var sliderPercision = 5;
 
-  var maxRateMentionsTopMargin = 3; // %
-  var maxRateMentionsLeftMargin = 5; // %
+  var maxRateMentionsTopMargin = 1; // %
+  var maxRateMentionsLeftMargin = 2; // %
   var hashtagTopMargin = 5; // %
   var hashtagLeftMargin = 2; // %
   var mentionsNumChars = 9;

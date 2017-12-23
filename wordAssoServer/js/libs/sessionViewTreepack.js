@@ -170,31 +170,31 @@ function ViewTreepack() {
   var rowSpacing = fontSizeTopTermRatio*110; // %
   var colSpacing = 90/maxHashtagCols; // %
 
-  var maxRateMentionsNode = {};
-  maxRateMentionsNode.rateNodeType = "hashtag";
-  maxRateMentionsNode.mentionsNodeType = "hashtag";
-  maxRateMentionsNode.isMaxNode = true;
-  maxRateMentionsNode.metricMode = metricMode;
+  var maxRateMentions = {};
+  maxRateMentions.rateNodeType = "hashtag";
+  maxRateMentions.mentionsNodeType = "hashtag";
+  maxRateMentions.isMaxNode = true;
+  maxRateMentions.metricMode = metricMode;
 
   if (metricMode === "rate") {
-    maxRateMentionsNode.nodeId = "RATE | MAX";
+    maxRateMentions.nodeId = "RATE | MAX";
   }
   if (metricMode === "mentions") {
-    maxRateMentionsNode.nodeId = "MNTN | MAX";
+    maxRateMentions.nodeId = "MNTN | MAX";
   }
-  maxRateMentionsNode.age = 0;
-  maxRateMentionsNode.rate = 2;
-  maxRateMentionsNode.rateNodeId = "what";
-  maxRateMentionsNode.mentionsNodeId = "what";
-  maxRateMentionsNode.rateTimeStamp = moment().valueOf();
-  maxRateMentionsNode.mentionsTimeStamp = moment().valueOf();
-  maxRateMentionsNode.mentions = 2;
-  maxRateMentionsNode.ageMaxRatio = 0;
-  maxRateMentionsNode.isTrendingTopic = true;
-  maxRateMentionsNode.displaytext = "WHAT?";
-  maxRateMentionsNode.mouseHoverFlag = false;
-  maxRateMentionsNode.x = 100;
-  maxRateMentionsNode.y = 100;
+  // maxRateMentions.age = 0;
+  maxRateMentions.rate = 2;
+  maxRateMentions.rateNodeId = "what";
+  maxRateMentions.mentionsNodeId = "what";
+  maxRateMentions.rateTimeStamp = moment().valueOf();
+  maxRateMentions.mentionsTimeStamp = moment().valueOf();
+  maxRateMentions.mentions = 2;
+  maxRateMentions.ageMaxRatio = 0;
+  maxRateMentions.isTrendingTopic = true;
+  maxRateMentions.displaytext = "WHAT?";
+  maxRateMentions.mouseHoverFlag = false;
+  maxRateMentions.x = 100;
+  maxRateMentions.y = 100;
 
 
   console.warn("TREEPACK CONFIG\n" + jsonPrint(config));
@@ -417,6 +417,15 @@ function ViewTreepack() {
     .attr("height", height)
     .attr("x", 1e-6)
     .attr("y", 1e-6);
+
+  var maxRateMentionsSvgGroup = svgTopTerms.append("svg:g")
+    .attr("id", "maxRateMentionsSvgGroup")
+    .attr("width", width)
+    .attr("height", height)
+    .text("WHAT")
+    .attr("x", 1e-6)
+    .attr("y", 1e-6)
+    .attr("visibility", "visible");
 
   var nodeTopTermLabelSvgGroup = svgTopTerms.append("svg:g")
     .attr("id", "nodeTopTermLabelSvgGroup")
@@ -824,34 +833,36 @@ function ViewTreepack() {
 
       resumeTimeStamp = 0;
 
-      maxRateMentionsNode.age = 0;
-      maxRateMentionsNode.rank = 0;
-      maxRateMentionsNode.isDead = false;
-      maxRateMentionsNode.metricMode = metricMode;
+      // maxRateMentions.age = 0;
+      // maxRateMentions.rank = 0;
+      // maxRateMentions.isDead = false;
+      maxRateMentions.metricMode = metricMode;
       
-      maxRateMentionsNode.rateNodeType = currentMax.rate.nodeType;
-      maxRateMentionsNode.rate = currentMax.rate.value;
-      maxRateMentionsNode.rateNodeId = currentMax.rate.nodeId;
-      maxRateMentionsNode.rateTimeStamp = currentMax.rate.timeStamp;
+      maxRateMentions.rateNodeType = currentMax.rate.nodeType;
+      maxRateMentions.rate = currentMax.rate.value;
+      maxRateMentions.rateNodeId = currentMax.rate.nodeId;
+      maxRateMentions.rateTimeStamp = currentMax.rate.timeStamp;
 
-      maxRateMentionsNode.mentionsNodeType = currentMax.mentions.nodeType;
-      maxRateMentionsNode.mentions = currentMax.mentions.value;
-      maxRateMentionsNode.mentionsNodeId = currentMax.mentions.nodeId;
-      maxRateMentionsNode.mentionsTimeStamp = currentMax.mentions.timeStamp;
+      maxRateMentions.mentionsNodeType = currentMax.mentions.nodeType;
+      maxRateMentions.mentions = currentMax.mentions.value;
+      maxRateMentions.mentionsNodeId = currentMax.mentions.nodeId;
+      maxRateMentions.mentionsTimeStamp = currentMax.mentions.timeStamp;
 
-      maxRateMentionsNode.ageMaxRatio = 0;
-      maxRateMentionsNode.isTrendingTopic = true;
-      maxRateMentionsNode.displaytext = createDisplayText(maxRateMentionsNode);
-      maxRateMentionsNode.mouseHoverFlag = false;
+      // maxRateMentions.ageMaxRatio = 0;
+      maxRateMentions.isTrendingTopic = true;
+      maxRateMentions.displaytext = createDisplayText(maxRateMentions);
+      // maxRateMentions.mouseHoverFlag = false;
+
+      maxRateMentionsSvgGroup
 
       if (metricMode === "rate") {
-        maxRateMentionsNode.nodeId = "RATE | MAX" ;
+        maxRateMentions.nodeId = "RATE | MAX" ;
       }
       if (metricMode === "mentions") {
-        maxRateMentionsNode.nodeId = "MNTN | MAX" ;
+        maxRateMentions.nodeId = "MNTN | MAX" ;
       }
 
-      // nodesTopTermHashMap.set(maxRateMentionsNode.nodeId, maxRateMentionsNode);
+      // nodesTopTermHashMap.set(maxRateMentions.nodeId, maxRateMentions);
 
       rankHashMapByValue(nodesTopTermHashMap, metricMode, function(){
         nodesTopTerm = nodesTopTermHashMap.values();

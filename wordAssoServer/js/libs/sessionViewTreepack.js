@@ -447,8 +447,8 @@ function ViewTreepack() {
     .attr("width", width)
     .attr("height", height)
     .attr("x", 1e-6)
-    .attr("y", 1e-6)
-    .attr("visibility", "hidden");
+    .attr("y", 1e-6);
+    // .attr("visibility", "hidden");
 
 
   var nodeSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeSvgGroup");

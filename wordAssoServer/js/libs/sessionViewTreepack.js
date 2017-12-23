@@ -1464,8 +1464,8 @@ function ViewTreepack() {
         if (node.rateNodeType === "hashtag") { nodeId = "#" + nodeId; }
         displaytext = new Array(ratePadSpaces).join("\xa0") + rate
         + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns 
-        + " | RATE | MAX | " + nodeId
-        + " | " + moment(parseInt(node.rateTimeStamp)).format(compactDateTimeFormat);
+        + " | " + nodeId
+        + " | RATE MAX " + moment(parseInt(node.rateTimeStamp)).format(compactDateTimeFormat);
       }
       else {
         nodeId = node.mentionsNodeId.toUpperCase();
@@ -1473,8 +1473,8 @@ function ViewTreepack() {
         if (node.rateNodeType === "hashtag") { nodeId = "#" + nodeId; }
         displaytext = new Array(ratePadSpaces).join("\xa0") + rate 
         + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns
-        + " | MNTN | MAX | " + nodeId
-        + " | " + moment(parseInt(node.mentionsTimeStamp)).format(compactDateTimeFormat);
+        + " | " + nodeId
+        + " | RATE MAX " + moment(parseInt(node.mentionsTimeStamp)).format(compactDateTimeFormat);
       }
     }
     else {

@@ -431,9 +431,12 @@ function ViewTreepack() {
   var maxRateMentionsText = maxRateMentionsSvgGroup.append("text")
     .attr("id", "maxRateMentionsText")
     .attr("visibility", "visible")
+    .attr("x", 5 + "%")
+    .attr("y", 5 + "%")
     .text("WHAT?")
     .style("font-family", "monospace")
     .style("font-size", fontTopTerm)
+    .style("fill", palette.white)
     .style("stroke", palette.white)
     .style("opacity", 1.0)
     .style("text-anchor", "left")
@@ -444,7 +447,7 @@ function ViewTreepack() {
     .attr("width", width)
     .attr("height", height)
     .attr("x", 1e-6)
-    .attr("y", 100)
+    .attr("y", 1e-6)
     .attr("visibility", "hidden");
 
 

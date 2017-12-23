@@ -319,9 +319,9 @@ function ViewTreepack() {
   var topTermsCheckBox = topTermsDiv.append("input")
     .attr("id", "topTermsCheckBox")
     .attr("type", "checkbox")
-    .attr("checked", true)
+    .attr("checked", false)
     .style("pointer-events", "auto")
-    .style("visibility", "visible")
+    .style("visibility", "hidden")
     .on("change", function(){
       if (!topTermsCheckBox.property("checked")) { 
         topTermsDiv.style("visibility", "hidden"); 

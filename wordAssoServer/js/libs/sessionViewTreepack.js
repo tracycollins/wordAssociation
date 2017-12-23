@@ -435,14 +435,14 @@ function ViewTreepack() {
     .attr("visibility", "visible")
     .attr("x", maxRateMentionsLeftMargin + "%")
     .attr("y", maxRateMentionsTopMargin + "%")
-    .text("WHAT?")
+    .text("MAX MENTIONS: 0")
     .style("font-family", "monospace")
     .style("font-size", fontTopTerm)
     .style("fill", palette.white)
     // .style("stroke", palette.white)
     .style("opacity", 1.0)
     .style("text-anchor", "right")
-    .style("alignment-baseline", "bottom");
+    .style("alignment-baseline", "top");
 
   var nodeTopTermLabelSvgGroup = svgTopTerms.append("svg:g")
     .attr("id", "nodeTopTermLabelSvgGroup")
@@ -875,6 +875,8 @@ function ViewTreepack() {
       if (metricMode === "mentions") {
         maxRateMentions.nodeId = "MNTN | MAX" ;
       }
+
+      maxRateMentionsText.text(maxRateMentions.displaytext);
 
       // nodesTopTermHashMap.set(maxRateMentions.nodeId, maxRateMentions);
 

@@ -321,15 +321,15 @@ function ViewTreepack() {
     .attr("type", "checkbox")
     // .attr("checked", false)
     .style("pointer-events", "auto")
-    .style("visibility", "visible")
+    // .style("visibility", "visible")
     .on("change", function(){
       if (topTermsCheckBox.property("checked") === false) { 
         topTermsDiv.style("visibility", "hidden"); 
-        nodeTopTermLabelSvgGroup.style("visibility", "hidden");
+        // nodeTopTermLabelSvgGroup.style("visibility", "hidden");
       }
       else {
         topTermsDiv.style("visibility", "visible"); 
-        nodeTopTermLabelSvgGroup.style("visibility", "visible");
+        // nodeTopTermLabelSvgGroup.style("visibility", "visible");
       }
     });
 
@@ -339,11 +339,11 @@ function ViewTreepack() {
 
     if (topTermsCheckBox.property("checked") === false) { 
       topTermsDiv.style("visibility", "hidden"); 
-      nodeTopTermLabelSvgGroup.style("visibility", "hidden");
+      // nodeTopTermLabelSvgGroup.style("visibility", "hidden");
     }
     else {
       topTermsDiv.style("visibility", "visible"); 
-      nodeTopTermLabelSvgGroup.style("visibility", "visible");
+      // nodeTopTermLabelSvgGroup.style("visibility", "visible");
     }
   };
 
@@ -353,7 +353,7 @@ function ViewTreepack() {
   document.addEventListener("mousemove", function() {
 
     topTermsDiv.style("visibility", "visible");
-    nodeTopTermLabelSvgGroup.style("visibility", "visible");
+    // nodeTopTermLabelSvgGroup.style("visibility", "visible");
 
     if (mouseHoverFlag) {
       d3.select("body").style("cursor", "pointer");

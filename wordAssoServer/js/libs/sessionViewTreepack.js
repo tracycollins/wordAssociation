@@ -430,7 +430,7 @@ function ViewTreepack() {
     .append("text")
     .text("WHAT?")
     .style("font-family", "monospace")
-    .style("font-size", fontTopTerm);
+    .style("font-size", fontTopTerm)
     .style("fill", palette.white)
     .attr("id", "maxRateMentionsText")
     .attr("visibility", "visible")

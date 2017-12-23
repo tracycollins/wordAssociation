@@ -29,6 +29,8 @@ function ViewTreepack() {
 
   var sliderPercision = 5;
 
+  var maxRateMentionsTopMargin = 3; // %
+  var maxRateMentionsLeftMargin = 5; // %
   var hashtagTopMargin = 5; // %
   var hashtagLeftMargin = 2; // %
   var mentionsNumChars = 9;
@@ -431,8 +433,8 @@ function ViewTreepack() {
   var maxRateMentionsText = maxRateMentionsSvgGroup.append("text")
     .attr("id", "maxRateMentionsText")
     .attr("visibility", "visible")
-    .attr("x", hashtagLeftMargin)
-    .attr("y", hashtagTopMargin)
+    .attr("x", maxRateMentionsLeftMargin)
+    .attr("y", maxRateMentionsTopMargin)
     .text("WHAT?")
     .style("font-family", "monospace")
     .style("font-size", fontTopTerm)

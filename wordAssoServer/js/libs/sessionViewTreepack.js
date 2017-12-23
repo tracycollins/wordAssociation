@@ -321,7 +321,7 @@ function ViewTreepack() {
     .attr("type", "checkbox")
     .attr("checked", false)
     .style("pointer-events", "auto")
-    .style("visibility", "hidden")
+    .style("visibility", "visible")
     .on("change", function(){
       if (!topTermsCheckBox.property("checked")) { 
         topTermsDiv.style("visibility", "hidden"); 

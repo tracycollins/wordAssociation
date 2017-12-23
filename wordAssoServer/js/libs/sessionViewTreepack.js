@@ -851,7 +851,7 @@ function ViewTreepack() {
         maxRateMentionsNode.nodeId = "MNTN | MAX" ;
       }
 
-      nodesTopTermHashMap.set(maxRateMentionsNode.nodeId, maxRateMentionsNode);
+      // nodesTopTermHashMap.set(maxRateMentionsNode.nodeId, maxRateMentionsNode);
 
       rankHashMapByValue(nodesTopTermHashMap, metricMode, function(){
         nodesTopTerm = nodesTopTermHashMap.values();

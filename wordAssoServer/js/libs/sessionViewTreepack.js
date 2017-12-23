@@ -1072,7 +1072,10 @@ function ViewTreepack() {
         if (d.isMaxNode && (metricMode === d.rateNodeType)){
           return "visible";
         }
-        return "hidden";
+        else if (d.isMaxNode && (metricMode !== d.rateNodeType)){
+          return "hidden";
+        }
+        return "visible";
       })
       .style("opacity", function(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
@@ -1098,7 +1101,10 @@ function ViewTreepack() {
         if (d.isMaxNode && (metricMode === d.rateNodeType)){
           return "visible";
         }
-        return "hidden";
+        else if (d.isMaxNode && (metricMode !== d.rateNodeType)){
+          return "hidden";
+        }
+        return "visible";
       })
       .style("opacity", function(d) { 
         if (d.mouseHoverFlag) { return 1.0; }

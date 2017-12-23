@@ -1460,7 +1460,8 @@ function ViewTreepack() {
     if (node.isMaxNode) {
       if (metricMode === "rate") {
         nodeId = node.rateNodeId.toUpperCase();
-        if (node.nodeType === "user") { nodeId = "@" + nodeId; }
+        if (node.rateNodeType === "user") { nodeId = "@" + nodeId; }
+        if (node.rateNodeType === "hashtag") { nodeId = "#" + nodeId; }
         displaytext = new Array(ratePadSpaces).join("\xa0") + rate
         + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns 
         + " | RATE | MAX | " + nodeId
@@ -1468,7 +1469,8 @@ function ViewTreepack() {
       }
       else {
         nodeId = node.mentionsNodeId.toUpperCase();
-        if (node.nodeType === "user") { nodeId = "@" + node.screenName; }
+        if (node.mentionsNodeType === "user") { nodeId = "@" + node.screenName; }
+        if (node.rateNodeType === "hashtag") { nodeId = "#" + nodeId; }
         displaytext = new Array(ratePadSpaces).join("\xa0") + rate 
         + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns
         + " | MNTN | MAX | " + nodeId

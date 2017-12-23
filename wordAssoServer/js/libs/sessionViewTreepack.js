@@ -427,12 +427,10 @@ function ViewTreepack() {
     .attr("width", width)
     .attr("height", height)
     .style("zIndex", 100)
-    .style("opacity", 1.0)
-    .attr("visibility", "visible");
+    .style("opacity", 1.0);
 
   var maxRateMentionsText = maxRateMentionsSvgGroup.append("text")
     .attr("id", "maxRateMentionsText")
-    .attr("visibility", "visible")
     .attr("x", maxRateMentionsLeftMargin + "%")
     .attr("y", maxRateMentionsTopMargin + "%")
     .text("MAX MENTIONS: 0")

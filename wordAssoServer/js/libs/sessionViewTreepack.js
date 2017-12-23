@@ -426,6 +426,7 @@ function ViewTreepack() {
     .attr("height", height)
     .attr("x", 100 + "px")
     .attr("y", 100 + "px")
+    .style("zIndex", 100)
     .style("opacity", 1.0)
     .attr("visibility", "visible");
 

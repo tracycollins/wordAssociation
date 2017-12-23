@@ -424,8 +424,6 @@ function ViewTreepack() {
     .attr("id", "maxRateMentionsSvgGroup")
     .attr("width", width)
     .attr("height", height)
-    .attr("x", 100 + "px")
-    .attr("y", 100 + "px")
     .style("zIndex", 100)
     .style("opacity", 1.0)
     .attr("visibility", "visible");
@@ -446,7 +444,7 @@ function ViewTreepack() {
     .attr("width", width)
     .attr("height", height)
     .attr("x", 1e-6)
-    .attr("y", 1e-6)
+    .attr("y", 100)
     .attr("visibility", "hidden");
 
 

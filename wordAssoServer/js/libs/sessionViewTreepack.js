@@ -174,6 +174,7 @@ function ViewTreepack() {
   maxRateMentionsNode.rateNodeType = "hashtag";
   maxRateMentionsNode.mentionsNodeType = "hashtag";
   maxRateMentionsNode.isMaxNode = true;
+  maxRateMentionsNode.metricMode = metricMode;
 
   if (metricMode === "rate") {
     maxRateMentionsNode.nodeId = "RATE | MAX";
@@ -826,7 +827,8 @@ function ViewTreepack() {
       maxRateMentionsNode.age = 0;
       maxRateMentionsNode.rank = 0;
       maxRateMentionsNode.isDead = false;
-
+      maxRateMentionsNode.metricMode = metricMode;
+      
       maxRateMentionsNode.rateNodeType = currentMax.rate.nodeType;
       maxRateMentionsNode.rate = currentMax.rate.value;
       maxRateMentionsNode.rateNodeId = currentMax.rate.nodeId;
@@ -1069,10 +1071,10 @@ function ViewTreepack() {
       .attr("x", xposition)
       .attr("y", yposition)
       .style("visibility", function(d) {
-        if (d.isMaxNode && (metricMode === d.rateNodeType)){
+        if (d.isMaxNode && (metricMode === d.metricMode)){
           return "visible";
         }
-        else if (d.isMaxNode && (metricMode !== d.rateNodeType)){
+        else if (d.isMaxNode && (metricMode !== d.metricMode)){
           return "hidden";
         }
         return "visible";
@@ -1098,10 +1100,10 @@ function ViewTreepack() {
       })
       .style("font-family", "monospace")
       .style("visibility", function(d) {
-        if (d.isMaxNode && (metricMode === d.rateNodeType)){
+        if (d.isMaxNode && (metricMode === d.metricMode)){
           return "visible";
         }
-        else if (d.isMaxNode && (metricMode !== d.rateNodeType)){
+        else if (d.isMaxNode && (metricMode !== d.metricMode)){
           return "hidden";
         }
         return "visible";

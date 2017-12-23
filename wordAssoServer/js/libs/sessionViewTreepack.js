@@ -435,7 +435,7 @@ function ViewTreepack() {
     .text("WHAT?")
     .style("font-family", "monospace")
     .style("font-size", fontTopTerm)
-    .style("fill", palette.white)
+    .style("stroke", palette.white)
     .style("opacity", 1.0)
     .style("text-anchor", "left")
     .style("alignment-baseline", "bottom");

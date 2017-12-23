@@ -424,16 +424,19 @@ function ViewTreepack() {
     .attr("id", "maxRateMentionsSvgGroup")
     .attr("width", width)
     .attr("height", height)
-    .attr("x", 1e-6)
-    .attr("y", 1e-6)
+    .attr("x", 100 + "px")
+    .attr("y", 100 + "px")
+    .style("opacity", 1.0)
+    .attr("visibility", "visible");
+
+  var maxRateMentionsText = maxRateMentionsSvgGroup.append("text")
+    .attr("id", "maxRateMentionsText")
     .attr("visibility", "visible")
-    .append("text")
     .text("WHAT?")
     .style("font-family", "monospace")
     .style("font-size", fontTopTerm)
     .style("fill", palette.white)
-    .attr("id", "maxRateMentionsText")
-    .attr("visibility", "visible")
+    .style("opacity", 1.0)
     .style("text-anchor", "left")
     .style("alignment-baseline", "bottom");
 
@@ -861,8 +864,6 @@ function ViewTreepack() {
       maxRateMentions.isTrendingTopic = true;
       maxRateMentions.displaytext = createDisplayText(maxRateMentions);
       // maxRateMentions.mouseHoverFlag = false;
-
-      maxRateMentionsSvgGroup
 
       if (metricMode === "rate") {
         maxRateMentions.nodeId = "RATE | MAX" ;

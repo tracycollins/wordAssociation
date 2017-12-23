@@ -826,8 +826,6 @@ function ViewTreepack() {
       maxRateMentionsNode.age = 0;
       maxRateMentionsNode.rank = 0;
       maxRateMentionsNode.isDead = false;
-      maxRateMentionsNode.x = 100;
-      maxRateMentionsNode.y = 100;
 
       maxRateMentionsNode.rateNodeType = currentMax.rate.nodeType;
       maxRateMentionsNode.rate = currentMax.rate.value;
@@ -1070,6 +1068,12 @@ function ViewTreepack() {
     nodeTopTermLabels
       .attr("x", xposition)
       .attr("y", yposition)
+      .style("visibility", function(d) {
+        if (d.isMaxNode && (metricMode === d.rateNodeType)){
+          return "visible";
+        }
+        return "hidden";
+      })
       .style("opacity", function(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
         return topTermLabelOpacityScale(d.ageMaxRatio); 
@@ -1090,6 +1094,12 @@ function ViewTreepack() {
         return d.displaytext;
       })
       .style("font-family", "monospace")
+      .style("visibility", function(d) {
+        if (d.isMaxNode && (metricMode === d.rateNodeType)){
+          return "visible";
+        }
+        return "hidden";
+      })
       .style("opacity", function(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
         return topTermLabelOpacityScale(d.ageMaxRatio); 

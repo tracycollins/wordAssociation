@@ -242,6 +242,7 @@ var config = {};
 
 config.twitterUser = {};
 config.twitterUser.userId = "";
+config.fullscreenMode = false;
 
 if (useStoredConfig) {
   console.debug("LOADING STORED CONFIG: " + globalStoredConfigName);

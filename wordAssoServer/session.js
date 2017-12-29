@@ -247,6 +247,7 @@ config.fullscreenMode = false;
 if (useStoredConfig) {
   console.debug("LOADING STORED CONFIG: " + globalStoredConfigName);
   config = store.get(globalStoredConfigName);
+  config.fullscreenMode = false;
   config.pauseFlag = false;
   config.pauseOnMouseMove = true;
   if (config.authenticationUrl === undefined) {

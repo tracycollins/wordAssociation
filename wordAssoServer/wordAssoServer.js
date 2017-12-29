@@ -1512,6 +1512,9 @@ function initSocketHandler(socketObj) {
         if (searchNodeUser === "?") {
           console.log(chalkInfo("SEARCH FOR UNCATEGORIZED USER"));
         }
+        if (searchNodeUser === "?MM") {
+          console.log(chalkInfo("SEARCH FOR MISMATCHED USER"));
+        }
       }
       else {
         searchNodeUser = { screenName: searchNode };

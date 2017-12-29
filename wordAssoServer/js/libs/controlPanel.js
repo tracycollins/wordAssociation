@@ -68,7 +68,7 @@ function ControlPanel() {
      + "\n" + jsonPrint(e.target)
     );
 
-    parentWindow.postMessage({op: "NODE_SEARCH", input: "NEXT_MISMATCHED"}, DEFAULT_SOURCE);
+    parentWindow.postMessage({op: "NODE_SEARCH", input: "@?MM"}, DEFAULT_SOURCE);
   }
 
   var nextMismatchedButton = document.createElement("button");

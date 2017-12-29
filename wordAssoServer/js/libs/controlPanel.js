@@ -61,6 +61,28 @@ function ControlPanel() {
   twitterCategorySearchDiv.appendChild(nodeSearchLabel);
   twitterCategorySearchDiv.appendChild(nodeSearchInput);
 
+  function nextMismatchedButtonHandler(e){
+
+    console.warn("NEXT MISMATCHED BUTTON"
+     + " | ID: " + e.target.id
+     + "\n" + jsonPrint(e.target)
+    );
+
+    parentWindow.postMessage({op: "NODE_SEARCH", input: "NEXT_MISMATCHED"}, DEFAULT_SOURCE);
+  }
+
+  var nextMismatchedButton = document.createElement("button");
+  nextMismatchedButton.setAttribute("class", "button");
+  nextMismatchedButton.setAttribute("id", "nextMismatchedButton");
+  nextMismatchedButton.innerHTML = "NEXT MISMATCH";
+  nextMismatchedButton.addEventListener(
+    "click", 
+    function(e){ nextMismatchedButtonHandler(e); }, 
+    false
+  );
+
+  twitterCategorySearchDiv.appendChild(nextMismatchedButton);
+
   function nextUncategorizedButtonHandler(e){
 
     console.warn("NEXT UNCATEGORIZED BUTTON"
@@ -70,15 +92,6 @@ function ControlPanel() {
 
     parentWindow.postMessage({op: "NODE_SEARCH", input: "@?"}, DEFAULT_SOURCE);
   }
-
-          // var buttonElement = document.createElement("BUTTON");
-          // buttonElement.className = content.class;
-          // buttonElement.setAttribute("id", content.id);
-          // buttonElement.setAttribute("mode", content.mode);
-          // buttonElement.addEventListener("click", function(e){ buttonHandler(e); }, false);
-          // buttonElement.innerHTML = content.text;
-          // td.appendChild(buttonElement);
-          // controlIdHash[content.id] = content;
 
   var nextUncategorizedButton = document.createElement("button");
   nextUncategorizedButton.setAttribute("class", "button");
@@ -284,7 +297,6 @@ function ControlPanel() {
     }
   }
 
-
   function nodeSearchHandler(e) {
     console.log("NODE SEARCH"
       + " | KEY: " + e.keyCode
@@ -294,7 +306,6 @@ function ControlPanel() {
       parentWindow.postMessage({op: "NODE_SEARCH", input: nodeSearchInput.value}, DEFAULT_SOURCE);
     }
   }
-
 
   var twitterCategoryButtonsDiv = document.getElementById("twitterCategoryButtonsDiv");
 

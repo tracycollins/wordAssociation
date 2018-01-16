@@ -2152,7 +2152,7 @@ function initTransmitNodeQueueInterval(interval){
                     n.verified = rawUser.verified;
                     n.following = rawUser.following;
                     n.description = rawUser.description;
-                    n.lastTweetId = rawUser.status.id_str;
+                    n.lastTweetId = (rawUser.status !== undefined) ? rawUser.status.id_str : null;
                     n.statusesCount = rawUser.statuses_count;
                     n.friendsCount = rawUser.friends_count;
                     n.followersCount = rawUser.followers_count;

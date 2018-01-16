@@ -2136,6 +2136,7 @@ function initTransmitNodeQueueInterval(interval){
                   if (err) {
                     console.log(chalkError("ERROR users/show rawUser" + err));
                     viewNameSpace.volatile.emit("node", n);
+                    transmitNodeQueueReady = true;
                   }
                   else if (rawUser) {
                     debug(chalkTwitter("FOUND users/show rawUser" + jsonPrint(rawUser)));
@@ -2161,21 +2162,28 @@ function initTransmitNodeQueueInterval(interval){
                       if (err) {
                         console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));
                         viewNameSpace.volatile.emit("node", n);
+                        transmitNodeQueueReady = true;
                       }
                       else {
                         debug(chalkTwitter("UPDATED updatedUser" + jsonPrint(updatedUser)));
                         viewNameSpace.volatile.emit("node", updatedUser);
+                        transmitNodeQueueReady = true;
                       }
                     });
                   }
                   else {
                     console.log(chalkTwitter("NOT FOUND users/show data"));
                     viewNameSpace.volatile.emit("node", n);
+                    transmitNodeQueueReady = true;
                   }
                 });
               }
+              else {
+                viewNameSpace.volatile.emit("node", n);
+                transmitNodeQueueReady = true;
+              }
             }
-            transmitNodeQueueReady = true;
+            // transmitNodeQueueReady = true;
           });
         });
       }

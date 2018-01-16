@@ -94,6 +94,7 @@ const tinyDateTimeFormat = "YYYYMMDDHHmmss";
 
 const MIN_METRIC_VALUE = 5.0;
 const MIN_MENTIONS_VALUE = 1000;
+const MIN_FOLLOWERS = 25000;
 
 const RATE_QUEUE_INTERVAL = 1000; // 1 second
 const RATE_QUEUE_INTERVAL_MODULO = 60; // modulo RATE_QUEUE_INTERVAL
@@ -2131,7 +2132,7 @@ function initTransmitNodeQueueInterval(interval){
         checkKeyword(nodeObj, function checkKeywordCallback(node){
           updateWordMeter(node, function updateWordMeterCallback(err, n){
             if (!err) {
-              if ((n.nodeType === "user") && (n.followersCount === 0)){
+              if ((n.nodeType === "user") && n.isTopTerm && (n.followersCount === 0)){
                 twit.get("users/show", {user_id: n.userId, include_entities: true}, function usersShow (err, rawUser, response){
                   if (err) {
                     console.log(chalkError("ERROR users/show rawUser" + err));
@@ -2158,18 +2159,25 @@ function initTransmitNodeQueueInterval(interval){
                     n.followersCount = rawUser.followers_count;
                     n.status = rawUser.status;
 
-                    userServer.findOneUser(n, {noInc: true}, function(err, updatedUser){
-                      if (err) {
-                        console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));
-                        viewNameSpace.volatile.emit("node", n);
-                        transmitNodeQueueReady = true;
-                      }
-                      else {
-                        debug(chalkTwitter("UPDATED updatedUser" + jsonPrint(updatedUser)));
-                        viewNameSpace.volatile.emit("node", updatedUser);
-                        transmitNodeQueueReady = true;
-                      }
-                    });
+                    if (n.followersCount > MIN_FOLLOWERS) {
+                      userServer.findOneUser(n, {noInc: true}, function(err, updatedUser){
+                        if (err) {
+                          console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));
+                          viewNameSpace.volatile.emit("node", n);
+                          transmitNodeQueueReady = true;
+                        }
+                        else {
+                          debug(chalkTwitter("UPDATED updatedUser" + jsonPrint(updatedUser)));
+                          viewNameSpace.volatile.emit("node", updatedUser);
+                          transmitNodeQueueReady = true;
+                        }
+                      });
+                    }
+                    else {
+                      debug(chalkTwitter("LESS THAN MIN_FOLLOWERS users/show data"));
+                      viewNameSpace.volatile.emit("node", n);
+                      transmitNodeQueueReady = true;
+                    }
                   }
                   else {
                     console.log(chalkTwitter("NOT FOUND users/show data"));

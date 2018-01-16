@@ -2131,7 +2131,49 @@ function initTransmitNodeQueueInterval(interval){
         checkKeyword(nodeObj, function checkKeywordCallback(node){
           updateWordMeter(node, function updateWordMeterCallback(err, n){
             if (!err) {
-              viewNameSpace.volatile.emit("node", n);
+              if ((n.nodeType === "user") && (n.followersCount === 0)){
+                twit.get("users/show", {user_id: n.userId, include_entities: true}, function usersShow (err, rawUser, response){
+                  if (err) {
+                    console.log(chalkError("ERROR users/show rawUser" + err));
+                    viewNameSpace.volatile.emit("node", n);
+                  }
+                  else if (rawUser) {
+                    debug(chalkTwitter("FOUND users/show rawUser" + jsonPrint(rawUser)));
+
+                    n.isTwitterUser = true;
+                    n.name = rawUser.name;
+                    n.screenName = rawUser.screen_name.toLowerCase();
+                    n.screenNameLower = rawUser.screen_name.toLowerCase();
+                    n.url = rawUser.url;
+                    n.profileUrl = "http://twitter.com/" + rawUser.screen_name;
+                    n.profileImageUrl = rawUser.profile_image_url;
+                    n.bannerImageUrl = rawUser.profile_banner_url;
+                    n.verified = rawUser.verified;
+                    n.following = rawUser.following;
+                    n.description = rawUser.description;
+                    n.lastTweetId = rawUser.status.id_str;
+                    n.statusesCount = rawUser.statuses_count;
+                    n.friendsCount = rawUser.friends_count;
+                    n.followersCount = rawUser.followers_count;
+                    n.status = rawUser.status;
+
+                    userServer.findOneUser(n, {noInc: true}, function(err, updatedUser){
+                      if (err) {
+                        console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));
+                        viewNameSpace.volatile.emit("node", n);
+                      }
+                      else {
+                        debug(chalkTwitter("UPDATED updatedUser" + jsonPrint(updatedUser)));
+                        viewNameSpace.volatile.emit("node", updatedUser);
+                      }
+                    });
+                  }
+                  else {
+                    console.log(chalkTwitter("NOT FOUND users/show data"));
+                    viewNameSpace.volatile.emit("node", n);
+                  }
+                });
+              }
             }
             transmitNodeQueueReady = true;
           });

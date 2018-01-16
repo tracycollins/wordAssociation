@@ -1526,7 +1526,50 @@ function initSocketHandler(socketObj) {
         }
         else if (user) {
           console.log(chalkTwitter("+++ TWITTER_SEARCH_NODE USER FOUND\n" + jsonPrint(user)));
-          socket.emit("SET_TWITTER_USER", user);
+          twit.get("users/show", {user_id: user.userId, include_entities: true}, function usersShow (err, rawUser, response){
+            if (err) {
+              console.log(chalkError("ERROR users/show rawUser" + err));
+              socket.emit("SET_TWITTER_USER", user);
+            }
+            else if (rawUser) {
+              console.log(chalkTwitter("FOUND users/show rawUser" + jsonPrint(rawUser)));
+
+              user.isTwitterUser = true;
+              user.nodeType = "user";
+              user.name = rawUser.name;
+              user.screenName = rawUser.screen_name.toLowerCase();
+              user.screenNameLower = rawUser.screen_name.toLowerCase();
+              user.url = rawUser.url;
+              user.profileUrl = "http://twitter.com/" + rawUser.screen_name;
+              user.profileImageUrl = rawUser.profile_image_url;
+              user.bannerImageUrl = rawUser.profile_banner_url;
+              user.verified = rawUser.verified;
+              user.following = rawUser.following;
+              user.description = rawUser.description;
+              user.lastTweetId = rawUser.status.id_str;
+              user.statusesCount = rawUser.statuses_count;
+              user.friendsCount = rawUser.friends_count;
+              user.followersCount = rawUser.followers_count;
+              user.status = rawUser.status;
+
+              userServer.findOneUser(user, {noInc: true}, function(err, updatedUser){
+
+                if (err) {
+                  console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));
+                }
+                else {
+                  console.log(chalkTwitter("UPDATED updatedUser" + jsonPrint(updatedUser)));
+                  socket.emit("SET_TWITTER_USER", updatedUser);
+                }
+              });
+
+
+            }
+            else {
+              console.log(chalkTwitter("NOT FOUND users/show data"));
+              socket.emit("SET_TWITTER_USER", user);
+            }
+          });
         }
         else {
           console.log(chalkTwitter("--- TWITTER_SEARCH_NODE USER *NOT* FOUND\n" + jsonPrint(searchNodeUser)));

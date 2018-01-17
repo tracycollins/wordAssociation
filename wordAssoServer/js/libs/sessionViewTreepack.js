@@ -1552,6 +1552,7 @@ function ViewTreepack() {
           currentNode.followersCount = newNode.followersCount;
           currentNode.friendsCount = newNode.friendsCount;
           currentNode.threeceeFollowing = newNode.threeceeFollowing;
+          currentNode.displaytext = createDisplayText(currentNode);
         }
 
         // localNodeHashMap.set(currentNode.nodeId, currentNode);
@@ -1585,6 +1586,14 @@ function ViewTreepack() {
         currentNode.rank = 0;
         currentNode.rate = newNode.rate || 0;
         currentNode.displaytext = createDisplayText(currentNode);
+
+        if (newNode.nodeType === "user"){
+          currentNode.statusesCount = newNode.statusesCount;
+          currentNode.followersCount = newNode.followersCount;
+          currentNode.friendsCount = newNode.friendsCount;
+          currentNode.threeceeFollowing = newNode.threeceeFollowing;
+          currentNode.displaytext = createDisplayText(currentNode);
+        }
 
         if (currentNode.isKeyword 
           || ((newNode.keywordsAuto !== undefined) 

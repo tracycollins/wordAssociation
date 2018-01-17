@@ -952,9 +952,10 @@ function ViewTreepack() {
           // + "<br>TYPE: " + d.nodeType 
           + "<br>FLWRs: " + d.followersCount
           + "<br>FRNDs: " + d.friendsCount
+          + "<br>FMs: " + d.followersMentions
+          + "<br>Ms: " + d.mentions
           + "<br>Ts: " + d.statusesCount
           + "<br>3CF: " + d.threeceeFollowing
-          + "<br>Ms: " + d.followersMentions
           + "<br>" + d.rate.toFixed(2) + " WPM"
           + "<br>AKW: " + autoKeywordsFlag
           + "<br>KWs: " + jsonPrint(d.keywords)

@@ -198,7 +198,6 @@ function ViewTreepack() {
   maxRateMentions.x = 100;
   maxRateMentions.y = 100;
 
-
   console.warn("TREEPACK CONFIG\n" + jsonPrint(config));
 
   var testMode = false;
@@ -955,7 +954,7 @@ function ViewTreepack() {
           + "<br>FRNDs: " + d.friendsCount
           + "<br>Ts: " + d.statusesCount
           + "<br>3CF: " + d.threeceeFollowing
-          + "<br>Ms: " + d.mentions
+          + "<br>Ms: " + d.followersMentions
           + "<br>" + d.rate.toFixed(2) + " WPM"
           + "<br>AKW: " + autoKeywordsFlag
           + "<br>KWs: " + jsonPrint(d.keywords)
@@ -1189,8 +1188,8 @@ function ViewTreepack() {
           if (metricMode === "rate") { return defaultRadiusScale(Math.sqrt(d.rate));}
           if (metricMode === "mentions") { 
             if (d.nodeType === "user") { 
-              if (d.followersCount === undefined) { return defaultRadiusScale(1); }
-              return defaultRadiusScale(Math.sqrt(d.followersCount)); 
+              // if (d.followersCount === undefined) { return defaultRadiusScale(1); }
+              return defaultRadiusScale(Math.sqrt(d.followersMentions)); 
             }
             return defaultRadiusScale(Math.sqrt(d.mentions));
           }
@@ -1240,8 +1239,8 @@ function ViewTreepack() {
           if (metricMode === "rate") { return defaultRadiusScale(Math.sqrt(d.rate));}
           if (metricMode === "mentions") { 
             if (d.nodeType === "user") { 
-              if (d.followersCount === undefined) { return defaultRadiusScale(1); }
-              return defaultRadiusScale(Math.sqrt(d.followersCount)); 
+              // if (d.followersCount === undefined) { return defaultRadiusScale(1); }
+              return defaultRadiusScale(Math.sqrt(d.followersMentions)); 
             }
             return defaultRadiusScale(Math.sqrt(d.mentions));
           }
@@ -1290,8 +1289,8 @@ function ViewTreepack() {
         if (metricMode === "rate") {return nodeLabelSizeScale(d.rate);}
         if (metricMode === "mentions") {
           if (d.nodeType === "user") { 
-            if (d.followersCount === undefined) { return nodeLabelSizeScale(1); }
-            return nodeLabelSizeScale(d.followersCount);
+            // if (d.followersCount === undefined) { return nodeLabelSizeScale(1); }
+            return nodeLabelSizeScale(d.followersMentions);
           }
           return nodeLabelSizeScale(d.mentions);
         }
@@ -1369,8 +1368,8 @@ function ViewTreepack() {
         if (metricMode === "rate") {return nodeLabelSizeScale(d.rate);}
         if (metricMode === "mentions") {
           if (d.nodeType === "user") { 
-            if (d.followersCount === undefined) { return nodeLabelSizeScale(1); }
-            return nodeLabelSizeScale(d.followersCount);
+            // if (d.followersCount === undefined) { return nodeLabelSizeScale(1); }
+            return nodeLabelSizeScale(d.followersMentions);
           }
           return nodeLabelSizeScale(d.mentions);
         }
@@ -1425,14 +1424,15 @@ function ViewTreepack() {
     var mntns = node.mentions.toString() ;
 
     if (node.nodeType === "user"){
-      if (node.followersCount !== undefined) { 
-        const totalMentions = node.mentions + node.followersCount;
-        mntns = totalMentions.toString() ;
-      }
-      else {
-        // mntns = "1";
-        mntns = node.mentions.toString();
-      }
+      mntns = node.followersMentions.toString();
+      // if (node.followersCount !== undefined) { 
+      //   const totalMentions = node.mentions + node.followersCount;
+      //   mntns = totalMentions.toString() ;
+      // }
+      // else {
+      //   // mntns = "1";
+      //   mntns = node.mentions.toString();
+      // }
     }
 
     var rate = node.rate.toFixed(2).toString() ;
@@ -1552,6 +1552,7 @@ function ViewTreepack() {
           currentNode.followersCount = newNode.followersCount;
           currentNode.friendsCount = newNode.friendsCount;
           currentNode.threeceeFollowing = newNode.threeceeFollowing;
+          currentNode.followersMentions = newNode.followersCount + currentNode.mentions;
           currentNode.displaytext = createDisplayText(currentNode);
         }
 
@@ -1592,6 +1593,7 @@ function ViewTreepack() {
           currentNode.followersCount = newNode.followersCount;
           currentNode.friendsCount = newNode.friendsCount;
           currentNode.threeceeFollowing = newNode.threeceeFollowing;
+          currentNode.followersMentions = newNode.followersCount + currentNode.mentions;
           currentNode.displaytext = createDisplayText(currentNode);
         }
 
@@ -1777,20 +1779,21 @@ function ViewTreepack() {
     else {
       newNode.isKeyword = true;
     }
-    // else {
-    //   console.debug("AUTO KEYWORDS\n" + jsonPrint(newNode.keywordsAuto));
-    // }
 
-    if ((nNode.nodeType === "user") && (nNode.followersCount > currentMax.mentions.value)) { 
+    if (newNode.nodeType === "user") {
+      newNode.followersMentions = nNode.mentions + nNode.followersCount;
+    }
+
+    if ((newNode.nodeType === "user") && (newNode.followersMentions > currentMax.mentions.value)) { 
 
       newCurrentMaxMetricFlag = true;
 
-      currentMax.mentions.value = nNode.followersCount; 
+      currentMax.mentions.value = newNode.followersMentions; 
       currentMax.mentions.nodeId = nNode.screenName.toLowerCase(); 
       currentMax.mentions.timeStamp = moment().valueOf(); 
 
       if (metricMode === "mentions") {
-        currentMaxMetric = nNode.followersCount; 
+        currentMaxMetric = newNode.followersMentions; 
       }
     }
     else if (nNode.mentions > currentMax.mentions.value) { 
@@ -1975,9 +1978,9 @@ function ViewTreepack() {
         if (metricMode === "mentions") {
           if (d.nodeType === "user") { 
             if (d.followersCount === undefined) {
-              return collisionRadiusMultiplier * defaultRadiusScale(1);
+              return collisionRadiusMultiplier * defaultRadiusScale(d.mentions);
             }
-            return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.followersCount));
+            return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.followersMentions));
           }
           return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.mentions));
         }
@@ -2198,9 +2201,9 @@ function ViewTreepack() {
           if (metricMode === "mentions") {
             if (d.nodeType === "user") { 
               if (d.followersCount === undefined) {
-                return collisionRadiusMultiplier * defaultRadiusScale(1);
+                return collisionRadiusMultiplier * defaultRadiusScale(d.mentions);
               }
-              return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.followersCount));
+              return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.followersMentions));
             }
             return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.mentions));
           }

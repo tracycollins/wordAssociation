@@ -186,6 +186,7 @@ function ControlPanel() {
         + "<h4>@" + node.screenName + "</h4><br>"
         + "<h4>" + name + "</h4><br>"
         + node.followersCount + " FLWRs"
+        + " | " + node.followersMentions + " FLWRMs" 
         + " | " + node.friendsCount + " FRNDs" 
         + " | " + node.statusesCount + " Ts"
         + "<br>" 

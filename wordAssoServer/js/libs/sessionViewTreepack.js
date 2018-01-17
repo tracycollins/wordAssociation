@@ -1422,7 +1422,7 @@ function ViewTreepack() {
 
   var createDisplayText = function(node) {
 
-    var mntns = node.mentions.toString() ;
+    var mntns = "1" ;
 
     if (node.nodeType === "user"){
       mntns = node.followersMentions.toString();
@@ -1434,6 +1434,9 @@ function ViewTreepack() {
       //   // mntns = "1";
       //   mntns = node.mentions.toString();
       // }
+    }
+    else {
+      mntns = node.mentions.toString() ;
     }
 
     var rate = node.rate.toFixed(2).toString() ;
@@ -1540,11 +1543,11 @@ function ViewTreepack() {
         currentNode.isTrendingTopic = newNode.isTrendingTopic || false;
         currentNode.isTwitterUser = newNode.isTwitterUser || false;
         currentNode.keywordColor = newNode.keywordColor;
-        currentNode.mentions = Math.max(currentNode.mentions, newNode.mentions || 1);
+        // currentNode.mentions = Math.max(currentNode.mentions, newNode.mentions || 1);
+        currentNode.mentions = newNode.mentions;
         currentNode.mouseHoverFlag = false;
         currentNode.rank = currentNode.rank || 0;
         currentNode.rate = newNode.rate || 0;
-        currentNode.displaytext = createDisplayText(currentNode);
         currentNode.x = currentNode.x || 0;
         currentNode.y = currentNode.y || 0;
 
@@ -1553,9 +1556,11 @@ function ViewTreepack() {
           currentNode.followersCount = newNode.followersCount;
           currentNode.friendsCount = newNode.friendsCount;
           currentNode.threeceeFollowing = newNode.threeceeFollowing;
-          currentNode.followersMentions = newNode.followersCount + currentNode.mentions;
-          currentNode.displaytext = createDisplayText(currentNode);
+          currentNode.followersMentions = newNode.followersCount + newNode.mentions;
+          // currentNode.displaytext = createDisplayText(currentNode);
         }
+
+        currentNode.displaytext = createDisplayText(currentNode);
 
         // localNodeHashMap.set(currentNode.nodeId, currentNode);
         localNodeHashMap[currentNode.nodeId] = currentNode;
@@ -1583,20 +1588,23 @@ function ViewTreepack() {
         currentNode.isTrendingTopic = newNode.isTrendingTopic || false;
         currentNode.isTwitterUser = newNode.isTwitterUser || false;
         currentNode.keywordColor = newNode.keywordColor;
-        currentNode.mentions = Math.max(currentNode.mentions, newNode.mentions || 1);
+        // currentNode.mentions = Math.max(currentNode.mentions, newNode.mentions || 1);
+        currentNode.mentions = newNode.mentions;
         currentNode.mouseHoverFlag = false;
         currentNode.rank = 0;
         currentNode.rate = newNode.rate || 0;
-        currentNode.displaytext = createDisplayText(currentNode);
+        // currentNode.displaytext = createDisplayText(currentNode);
 
         if (newNode.nodeType === "user"){
           currentNode.statusesCount = newNode.statusesCount;
           currentNode.followersCount = newNode.followersCount;
           currentNode.friendsCount = newNode.friendsCount;
           currentNode.threeceeFollowing = newNode.threeceeFollowing;
-          currentNode.followersMentions = newNode.followersCount + currentNode.mentions;
-          currentNode.displaytext = createDisplayText(currentNode);
+          currentNode.followersMentions = newNode.followersCount + newNode.mentions;
+          // currentNode.displaytext = createDisplayText(currentNode);
         }
+
+        currentNode.displaytext = createDisplayText(currentNode);
 
         if (currentNode.isKeyword 
           || ((newNode.keywordsAuto !== undefined) 

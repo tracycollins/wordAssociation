@@ -1095,6 +1095,9 @@ function ViewTreepack() {
     nodeTopTermLabels
       .attr("x", xposition)
       .attr("y", yposition)
+      .text(function(d) {
+        return d.displaytext;
+      })
       .style("opacity", function(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
         return topTermLabelOpacityScale(d.ageMaxRatio); 

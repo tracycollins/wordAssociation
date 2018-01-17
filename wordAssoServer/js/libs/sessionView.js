@@ -11,7 +11,6 @@ if(typeof(Worker) !== "undefined") {
 }
 var createSessionNodeLinkReady = true;
 
-
 var serverConnected = false ;
 var serverHeartbeatTimeout = 30000 ;
 var serverCheckInterval = 30000;

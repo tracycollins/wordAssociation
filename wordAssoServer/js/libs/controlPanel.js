@@ -178,6 +178,7 @@ function ControlPanel() {
 
       var screenName = node.screenName;
       var name = (node.name !== undefined) ? node.name : "---";
+      var followersMentions = node.followersCount + node.mentions;
 
       var timelineText = document.createElement("TEXT");
       timelineText.setAttribute("id", "timelineText");
@@ -186,7 +187,7 @@ function ControlPanel() {
         + "<h4>@" + node.screenName + "</h4><br>"
         + "<h4>" + name + "</h4><br>"
         + node.followersCount + " FLWRs"
-        + " | " + node.followersMentions + " FLWRMs" 
+        + " | " + followersMentions + " FLWRMs" 
         + " | " + node.friendsCount + " FRNDs" 
         + " | " + node.statusesCount + " Ts"
         + "<br>" 

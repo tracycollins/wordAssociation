@@ -1423,10 +1423,12 @@ function ViewTreepack() {
 
     if (node.nodeType === "user"){
       if (node.followersCount !== undefined) { 
-        mntns = node.followersCount.toString() ;
+        const totalMentions = node.mentions + node.followersCount;
+        mntns = totalMentions.toString() ;
       }
       else {
-        mntns = "1";
+        // mntns = "1";
+        mntns = node.mentions.toString();
       }
     }
 

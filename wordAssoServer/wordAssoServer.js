@@ -422,6 +422,7 @@ const deletedMetricsFile = "deletedMetrics.json";
 const wordAssoDb = require("@threeceelabs/mongoose-twitter");
 const db = wordAssoDb();
 const mongoose = require("mongoose");
+mongoose.Promise = global.Promise;
 
 const hashtagServer = require("@threeceelabs/hashtag-server-controller");
 const userServer = require("@threeceelabs/user-server-controller");
@@ -3759,7 +3760,7 @@ function initialize(cnf, callback) {
   }
 
   function disconnect(socket) {
-    console.log(chalkAlert("DISCONNECT | " + socket.id));
+    console.log(chalkAlert("POST AUTHENTICATE DISCONNECT | " + socket.id));
   }
 
   const socketIoAuth = require("@threeceelabs/socketio-auth")(io, {

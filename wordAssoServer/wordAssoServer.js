@@ -1547,7 +1547,7 @@ function initSocketHandler(socketObj) {
               user.verified = rawUser.verified;
               user.following = rawUser.following;
               user.description = rawUser.description;
-              user.lastTweetId = rawUser.status.id_str;
+              user.lastTweetId = (rawUser.status !== undefined) ? rawUser.status.id_str : false;
               user.statusesCount = rawUser.statuses_count;
               user.friendsCount = rawUser.friends_count;
               user.followersCount = rawUser.followers_count;

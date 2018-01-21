@@ -34,12 +34,15 @@ const chalkLog = chalk.black;
 const wordAssoDb = require("@threeceelabs/mongoose-twitter");
 const db = wordAssoDb();
 const mongoose = require("mongoose");
+mongoose.Promise = global.Promise;
 
 // const Admin = require("mongoose").model("Admin");
 // const Sessions = require("mongoose").model("Session");
 // const Viewer = require("mongoose").model("Viewer");
 // const User = require("mongoose").model("User");
-const Word = require("mongoose").model("Word");
+// const Word = require("mongoose").model("Word");
+const wordModel = require("@threeceelabs/mongoose-twitter/models/word.server.model");
+const Word = mongoose.model("Word", wordModel.WordSchema);
 
 const wordServer = require("@threeceelabs/word-server-controller");
 
@@ -247,7 +250,8 @@ function saveFile (path, file, jsonObj, callback){
 
 const keywordUpdate = function(w, kwObj, callback) {
 
-  debug("keywordUpdate | w: " + w + " | " + jsonPrint(kwObj));
+  // debug("keywordUpdate | w: " + w + " | " + jsonPrint(kwObj));
+  debug("keywordUpdate | " + w);
 
   let wd = w.toLowerCase();
   wd = wd.replace(/\./g, "");  // KLUDGE:  better way to handle "." in keywords?
@@ -393,7 +397,7 @@ const updateKeywords = function(folder, file, callback){
               + " | " + fullPath
             ));
 
-            async.each(words,
+            async.eachSeries(words,
 
               function(w, cb) {
 

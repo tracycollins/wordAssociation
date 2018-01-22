@@ -7,7 +7,7 @@ const MAX_Q = 500;
 const compactDateTimeFormat = "YYYYMMDD HHmmss";
 
 const os = require("os");
-const debug = require("debug")("wa");
+const debug = require("debug")("twp");
 const moment = require("moment");
 const async = require("async");
 
@@ -133,7 +133,7 @@ function initTweetParserQueueInterval(cnf){
 
       tweet = tweetParserQueue.shift();
 
-      debug(chalkInfo("TPQ>"
+      console.log(chalkInfo("TW PARSER TPQ>"
         + " [" + tweetParserQueue.length + "]"
         // + " | " + socket.id
         + " | " + tweet.id_str
@@ -192,7 +192,7 @@ function initTweetParserQueueInterval(cnf){
               ));
             }
             else {
-              console.log(chalkInfo("TW PARSER SNED COMPLETE"
+              console.log(chalkInfo("TW PARSER SEND COMPLETE"
                 + " | " + moment().format(compactDateTimeFormat)
                 + " | " + tweetObj.tweetId
               ));
@@ -285,7 +285,7 @@ process.on("message", function(m) {
         // tweetParserQueue.enqueue(m.tweetStatus);
         tweetParserQueue.push(m.tweetStatus);
 
-        debug(chalkInfo("T<"
+        debug(chalkInfo("TW PARSER T<"
           // + " [ TPQ: " + tweetParserQueue.size() + "]"
           + " [ TPQ: " + tweetParserQueue.length + "]"
           + " | " + m.tweetStatus.id_str

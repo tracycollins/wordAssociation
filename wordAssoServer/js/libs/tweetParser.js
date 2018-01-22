@@ -174,7 +174,7 @@ function initTweetParserQueueInterval(cnf){
         }
         else {
           // debug(chalkInfo("[" + tweetParserQueue.size() + "]"
-          debug(chalkInfo("[" + tweetParserQueue.length + "]"
+          console.log(chalkInfo("TW PARSER [" + tweetParserQueue.length + "]"
             + " createStreamTweet DONE" 
             + " | " + tweetObj.tweetId
             // + "\ntweetObj.tweet.user\n" + jsonPrint(tweetObj.tweet.user)
@@ -186,14 +186,14 @@ function initTweetParserQueueInterval(cnf){
             tweetParserQueueReady = true;
 
             if (err) {
-              console.error(chalkError("*** TWEET PARSER SEND TWEET ERROR"
+              console.error(chalkError("*** TW PARSER SEND TWEET ERROR"
                 + " | " + moment().format(compactDateTimeFormat)
                 + " | " + err
               ));
             }
             else {
-              debug(chalkInfo(moment().format(compactDateTimeFormat)
-                + " | SEND TWEET COMPLETE"
+              console.log(chalkInfo("TW PARSER SNED COMPLETE"
+                + " | " + moment().format(compactDateTimeFormat)
                 + " | " + tweetObj.tweetId
               ));
             }

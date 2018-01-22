@@ -17,8 +17,9 @@ const db = wordAssoDb();
 const tweetServer = require("@threeceelabs/tweet-server-controller");
 // const wordServer = require("@threeceelabs/word-server-controller");
 
-const Queue = require("queue-fifo");
-const tweetParserQueue = new Queue();
+// const Queue = require("queue-fifo");
+// const tweetParserQueue = new Queue();
+const tweetParserQueue = [];
 
 const chalk = require("chalk");
 const chalkInfo = chalk.gray;
@@ -125,14 +126,15 @@ function initTweetParserQueueInterval(cnf){
 
   tweetParserQueueInterval = setInterval(function(){
 
-    if (!tweetParserQueue.isEmpty() && tweetParserQueueReady && networkReady){
+    // if (!tweetParserQueue.isEmpty() && tweetParserQueueReady && networkReady){
+    if ((tweetParserQueue.length > 0) && tweetParserQueueReady && networkReady){
 
       tweetParserQueueReady = false;
 
-      tweet = tweetParserQueue.dequeue();
+      tweet = tweetParserQueue.shift();
 
       debug(chalkInfo("TPQ>"
-        + " [" + tweetParserQueue.size() + "]"
+        + " [" + tweetParserQueue.length + "]"
         // + " | " + socket.id
         + " | " + tweet.id_str
         + " | " + tweet.user.id_str
@@ -171,7 +173,8 @@ function initTweetParserQueueInterval(cnf){
           }
         }
         else {
-          debug(chalkInfo("[" + tweetParserQueue.size() + "]"
+          // debug(chalkInfo("[" + tweetParserQueue.size() + "]"
+          debug(chalkInfo("[" + tweetParserQueue.length + "]"
             + " createStreamTweet DONE" 
             + " | " + tweetObj.tweetId
             // + "\ntweetObj.tweet.user\n" + jsonPrint(tweetObj.tweet.user)
@@ -276,17 +279,21 @@ process.on("message", function(m) {
     break;
 
     case "tweet":
-      if (tweetParserQueue.size() < MAX_Q) {
+      // if (tweetParserQueue.size() < MAX_Q) {
+      if (tweetParserQueue.length < MAX_Q) {
 
-        tweetParserQueue.enqueue(m.tweetStatus);
+        // tweetParserQueue.enqueue(m.tweetStatus);
+        tweetParserQueue.push(m.tweetStatus);
 
         debug(chalkInfo("T<"
-          + " [ TPQ: " + tweetParserQueue.size() + "]"
+          // + " [ TPQ: " + tweetParserQueue.size() + "]"
+          + " [ TPQ: " + tweetParserQueue.length + "]"
           + " | " + m.tweetStatus.id_str
         ));
       }
       else {
-        debug(chalkAlert("*** MAX TWEET PARSE Q SIZE: " + tweetParserQueue.size()));
+        // debug(chalkAlert("*** MAX TWEET PARSE Q SIZE: " + tweetParserQueue.size()));
+        debug(chalkAlert("*** MAX TWEET PARSE Q SIZE: " + tweetParserQueue.length));
       }
     break;
 

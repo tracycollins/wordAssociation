@@ -17,12 +17,12 @@ const MAX_SESSION_AGE = ONE_DAY/1000;
 const MAX_Q = 200;
 const OFFLINE_MODE = false;
 
-const oauthConfig = require("./oauth.js");
+// const oauthConfig = require("./oauth.js");
 const passport = require("passport");
-const authStrategies = require("./authentication.js");
+// const authStrategies = require("./authentication.js");
 
 // const heapdumpThresholdEnabled = true;
-let hd;
+// let hd;
 
 let twitterUserThreecee = {
     userId : "14607119",
@@ -293,7 +293,7 @@ const debug = require("debug")("wa");
 const debugCache = require("debug")("cache");
 const debugKeyword = require("debug")("kw");
 
-const Queue = require("queue-fifo");
+// const Queue = require("queue-fifo");
 const express = require("./config/express");
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
 const Dropbox = require("dropbox");
@@ -331,7 +331,7 @@ const chalkInfo = chalk.gray;
 const chalkAlert = chalk.red;
 const chalkError = chalk.bold.red;
 const chalkLog = chalk.gray;
-const chalkNetwork = chalk.blue;
+// const chalkNetwork = chalk.blue;
 
 const tweetMeter = new Measured.Meter({rateUnit: 60000});
 
@@ -353,9 +353,12 @@ tmsServer.socket = {};
 let wordMeter = {};
 
 let tweetRxQueueInterval;
-const tweetParserQueue = new Queue();
-const tweetParserMessageRxQueue = new Queue();
-const tweetRxQueue = new Queue();
+// const tweetParserQueue = new Queue();
+// const tweetParserMessageRxQueue = new Queue();
+// const tweetRxQueue = new Queue();
+const tweetParserQueue = [];
+const tweetParserMessageRxQueue = [];
+const tweetRxQueue = [];
 
 let statsInterval;
 
@@ -503,7 +506,7 @@ const authInProgressCache = new NodeCache({
 function authenticatedUserCacheExpired(userId, userObj) {
 
   console.log(chalkLog("XXX $ AUTH USER"
-    + " | " + userObj.userId
+    + " | " + userId
     + " | @" + userObj.screenName
   ));
 
@@ -638,9 +641,9 @@ const net = require("net");
 
 const cp = require("child_process");
 let updater;
-const updaterMessageQueue = new Queue();
+const updaterMessageQueue = [];
 let sorter;
-const sorterMessageRxQueue = new Queue();
+const sorterMessageRxQueue = [];
 
 
 const ignoreWordHashMap = new HashMap();
@@ -950,8 +953,10 @@ function showStats(options){
     // + " | US: " + statsObj.entity.user.connected
     + " | VW: " + statsObj.entity.viewer.connected
     + " | TwRxPM: " + statsObj.twitter.tweetsPerMin
-    + " | TwRXQ: " + tweetRxQueue.size()
-    + " | TwPRQ: " + tweetParserQueue.size()
+    // + " | TwRXQ: " + tweetRxQueue.size()
+    // + " | TwPRQ: " + tweetParserQueue.size()
+    + " | TwRXQ: " + tweetRxQueue.length
+    + " | TwPRQ: " + tweetParserQueue.length
     // + " | RSS: " + statsObj.memory.rss.toFixed(2) + " MB"
     // + " - MAX: " + statsObj.memory.maxRss.toFixed(2)
     // + " - " + moment(parseInt(statsObj.memory.maxRssTime)).format(compactDateTimeFormat)
@@ -1079,6 +1084,51 @@ process.env.NODE_ENV = process.env.NODE_ENV || "development";
 debug("NODE_ENV : " + process.env.NODE_ENV);
 debug("CLIENT HOST + PORT: " + "http://localhost:" + config.port);
 
+function initUpdaterPingInterval(interval){
+
+  console.log(chalkLog("INIT UPDATER PING INTERVAL"
+    + " | " + interval + " MS"
+  ));
+
+  clearInterval(updaterPingInterval);
+
+  updaterPingInterval = setInterval(function updaterPing() {
+
+    if (updaterPingOutstanding > 0) {
+      console.error(chalkError("PING OUTSTANDING | " + updaterPingOutstanding));
+      updaterPingOutstanding = 0;
+      initUpdater();
+      slackPostMessage(slackChannel, "\n*UPDATER PING TIMEOUT*\nOUTSTANDING PINGS: " + updaterPingOutstanding + "\n");
+    }
+
+    updaterPingOutstanding = moment().format(compactDateTimeFormat);
+
+    if (updater !== undefined){
+      updater.send({
+        op: "PING",
+        message: hostname + "_" + process.pid,
+        timeStamp: updaterPingOutstanding
+      }, function updaterPingError(err){
+        if (err) {
+          // pmx.emit("ERROR", "PING ERROR");
+          console.error(chalkError("*** UPDATER SEND ERROR"
+            + " | " + err
+          ));
+          slackPostMessage(slackChannel, "\n*UPDATER SEND ERROR*\n" + err);
+          initUpdater();
+        }
+      });
+
+      debug(chalkLog(">UPDATER PING"
+      ));
+
+    }
+    else {
+      console.log(chalkError("!!! NO UPDATER PING ... UNDEFINED"
+      ));
+    }
+  }, interval);
+}
 
 function initUpdater(callback){
 
@@ -1128,7 +1178,8 @@ function initUpdater(callback){
 
   u.on("message", function updaterMessage(m){
     debug(chalkInfo("UPDATER RX\n" + jsonPrint(m)));
-    updaterMessageQueue.enqueue(m);
+    // updaterMessageQueue.enqueue(m);
+    updaterMessageQueue.push(m);
   });
 
   u.send({
@@ -1286,12 +1337,14 @@ function socketRxTweet(tw) {
     + " | " + tw.user.name
   ));
 
-  if (tweetRxQueue.size() > MAX_Q){
+  // if (tweetRxQueue.size() > MAX_Q){
+  if (tweetRxQueue.length > MAX_Q){
 
     statsObj.errors.twitter.maxRxQueue += 1;
 
     if (statsObj.errors.twitter.maxRxQueue % 100 === 0) {
-      console.log(chalkError("*** TWEET RX MAX QUEUE [" + tweetRxQueue.size() + "]"
+      // console.log(chalkError("*** TWEET RX MAX QUEUE [" + tweetRxQueue.size() + "]"
+      console.log(chalkError("*** TWEET RX MAX QUEUE [" + tweetRxQueue.length + "]"
         + " | " + getTimeStamp()
         + " | MAX Q EVENTS: " + statsObj.errors.twitter.maxRxQueue
         + " | " + tw.id_str
@@ -1303,12 +1356,16 @@ function socketRxTweet(tw) {
 
     tw.inc = true;
 
-    tweetRxQueue.enqueue(tw);
-    statsObj.queues.tweetRxQueue = tweetRxQueue.size();
+    // tweetRxQueue.enqueue(tw);
+    tweetRxQueue.push(tw);
+    // statsObj.queues.tweetRxQueue = tweetRxQueue.size();
+    statsObj.queues.tweetRxQueue = tweetRxQueue.length;
 
     debug(chalkLog("T<"
-      + " [ RXQ: " + tweetRxQueue.size() + "]"
-      + " [ TPQ: " + tweetParserQueue.size() + "]"
+      // + " [ RXQ: " + tweetRxQueue.size() + "]"
+      // + " [ TPQ: " + tweetParserQueue.size() + "]"
+      + " [ RXQ: " + tweetRxQueue.length + "]"
+      + " [ TPQ: " + tweetParserQueue.length + "]"
       + " | " + tw.id_str
       + " | @" + tw.user.screen_name
       + " | " + tw.user.name
@@ -1316,8 +1373,10 @@ function socketRxTweet(tw) {
   }
   else{
     console.log(chalkAlert("NULL USER T*<"
-      + " [ RXQ: " + tweetRxQueue.size() + "]"
-      + " [ TPQ: " + tweetParserQueue.size() + "]"
+      // + " [ RXQ: " + tweetRxQueue.size() + "]"
+      // + " [ TPQ: " + tweetParserQueue.size() + "]"
+      + " [ RXQ: " + tweetRxQueue.length + "]"
+      + " [ TPQ: " + tweetParserQueue.length + "]"
       + " | " + tw.id_str
       + " | @" + tw.user.screen_name
       + " | " + tw.user.name
@@ -2097,7 +2156,7 @@ function updateWordMeter(wordObj, callback){
 
 let transmitNodeQueueReady = true;
 let transmitNodeQueueInterval;
-const transmitNodeQueue = new Queue();
+const transmitNodeQueue = [];
 
 function initTransmitNodeQueueInterval(interval){
 
@@ -2108,11 +2167,13 @@ function initTransmitNodeQueueInterval(interval){
 
   transmitNodeQueueInterval = setInterval(function txNodeQueue () {
 
-    if (transmitNodeQueueReady && (!transmitNodeQueue.isEmpty())){
+    // if (transmitNodeQueueReady && (!transmitNodeQueue.isEmpty())){
+    if (transmitNodeQueueReady && (transmitNodeQueue.length > 0)) {
 
       transmitNodeQueueReady = false;
 
-      let nodeObj = transmitNodeQueue.dequeue();
+      // let nodeObj = transmitNodeQueue.dequeue();
+      let nodeObj = transmitNodeQueue.shift();
 
       if (!nodeObj) {
         console.error(new Error("transmitNodeQueue: NULL NODE OBJ DE-Q"));
@@ -2205,29 +2266,35 @@ function transmitNodes(tw, callback){
   debug("TX NODES");
 
   tw.userMentions.forEach(function userMentionsTxNodeQueue(user){
-    if (user) {transmitNodeQueue.enqueue(user);}
+    // if (user) {transmitNodeQueue.enqueue(user);}
+    if (user) {transmitNodeQueue.push(user);}
   });
 
   tw.hashtags.forEach(function hashtagsTxNodeQueue(hashtag){
-    if (hashtag) {transmitNodeQueue.enqueue(hashtag);}
+    // if (hashtag) {transmitNodeQueue.enqueue(hashtag);}
+    if (hashtag) {transmitNodeQueue.push(hashtag);}
   });
 
   // tw.media.forEach(function(media){
-  //   if (media) {transmitNodeQueue.enqueue(media);}
+    // if (media) {transmitNodeQueue.enqueue(media);}
+  //   if (media) {transmitNodeQueue.push(media);}
   // });
 
   tw.urls.forEach(function urlsTxNodeQueue(url){
-    if (url) {transmitNodeQueue.enqueue(url);}
+    // if (url) {transmitNodeQueue.enqueue(url);}
+    if (url) {transmitNodeQueue.push(url);}
   });
 
-  if (tw.place) {transmitNodeQueue.enqueue(tw.place);}
+  // if (tw.place) {transmitNodeQueue.enqueue(tw.place);}
+  if (tw.place) {transmitNodeQueue.push(tw.place);}
 
-  if (tw.user) {transmitNodeQueue.enqueue(tw.user);}
+  // if (tw.user) {transmitNodeQueue.enqueue(tw.user);}
+  if (tw.user) {transmitNodeQueue.push(tw.user);}
 
   callback();
 }
 
-const metricsDataPointQueue = new Queue();
+const metricsDataPointQueue = [];
 let metricsDataPointQueueReady = true;
 let metricsDataPointQueueInterval;
 
@@ -2249,7 +2316,8 @@ function initMetricsDataPointQueueInterval(interval){
 
     initDeletedMetricsHashmap();
 
-    if (GOOGLE_METRICS_ENABLED && !metricsDataPointQueue.isEmpty() && metricsDataPointQueueReady) {
+    // if (GOOGLE_METRICS_ENABLED && !metricsDataPointQueue.isEmpty() && metricsDataPointQueueReady) {
+    if (GOOGLE_METRICS_ENABLED && (metricsDataPointQueue.length > 0) && metricsDataPointQueueReady) {
 
       metricsDataPointQueueReady = false;
 
@@ -2357,9 +2425,11 @@ function addMetricDataPoint(options, callback){
 
   timeSeriesData.points.push(dataPoint);
 
-  metricsDataPointQueue.enqueue(timeSeriesData);
+  // metricsDataPointQueue.enqueue(timeSeriesData);
+  metricsDataPointQueue.push(timeSeriesData);
 
-  if (callback) { callback(null, { q: metricsDataPointQueue.size()} ); }
+  // if (callback) { callback(null, { q: metricsDataPointQueue.size()} ); }
+  if (callback) { callback(null, { q: metricsDataPointQueue.length} ); }
 }
 
 function addTopTermMetricDataPoint(node, nodeRate){
@@ -2890,14 +2960,17 @@ function initTwitterRxQueueInterval(interval){
 
   tweetRxQueueInterval = setInterval(function tweetRxQueueDequeue() {
 
-    if (!tweetRxQueue.isEmpty() && tweetParserReady && tweetParserSendReady) {
+    // if (!tweetRxQueue.isEmpty() && tweetParserReady && tweetParserSendReady) {
+    if ((tweetRxQueue.length > 0) && tweetParserReady && tweetParserSendReady) {
 
       tweetParserSendReady = false;
 
-      const tweet = tweetRxQueue.dequeue();
+      // const tweet = tweetRxQueue.dequeue();
+      const tweet = tweetRxQueue.shift();
 
       debug(chalkInfo("TPQ<"
-        + " [" + tweetRxQueue.size() + "]"
+        // + " [" + tweetRxQueue.size() + "]"
+        + " [" + tweetRxQueue.length + "]"
         // + " | " + socket.id
         + " | " + tweet.id_str
         + " | " + tweet.user.id_str
@@ -2937,11 +3010,13 @@ function initTweetParserMessageRxQueueInterval(interval){
 
   tweetParserMessageRxQueueInterval = setInterval(function tweetParserMessageRxQueueDequeue() {
 
-    if (!tweetParserMessageRxQueue.isEmpty() && tweetParserMessageRxQueueReady) {
+    // if (!tweetParserMessageRxQueue.isEmpty() && tweetParserMessageRxQueueReady) {
+    if ((tweetParserMessageRxQueue.length > 0) && tweetParserMessageRxQueueReady) {
 
       tweetParserMessageRxQueueReady = false;
 
-      const tweetParserMessage = tweetParserMessageRxQueue.dequeue();
+      // const tweetParserMessage = tweetParserMessageRxQueue.dequeue();
+      const tweetParserMessage = tweetParserMessageRxQueue.shift();
 
       debug(chalkLog("TWEET PARSER RX MESSAGE"
         + " | OP: " + tweetParserMessage.op
@@ -2961,7 +3036,8 @@ function initTweetParserMessageRxQueueInterval(interval){
         else {
 
           debug(chalkInfo("PARSED TW"
-            + " [ TPMRQ: " + tweetParserMessageRxQueue.size() + "]"
+            // + " [ TPMRQ: " + tweetParserMessageRxQueue.size() + "]"
+            + " [ TPMRQ: " + tweetParserMessageRxQueue.length + "]"
             + " | " + tweetObj.tweetId
             + " | USR: " + tweetObj.user.screenName
             + " | Ms: " + tweetObj.mentions
@@ -2972,7 +3048,8 @@ function initTweetParserMessageRxQueueInterval(interval){
             + " | PL: " + (tweetObj.place ? tweetObj.place.fullName : "")
           ));
 
-          if (transmitNodeQueue.size() < MAX_Q) {
+          // if (transmitNodeQueue.size() < MAX_Q) {
+          if (transmitNodeQueue.length < MAX_Q) {
             transmitNodes(tweetObj, function transmitNode(err){
               if (err) {
                 // pmx.emit("ERROR", "TRANSMIT NODES ERROR");
@@ -3015,11 +3092,13 @@ function initSorterMessageRxQueueInterval(interval){
 
   sorterMessageRxQueueInterval = setInterval(function sorterMessageRxQueueDequeue() {
 
-    if (sorterMessageRxReady && !sorterMessageRxQueue.isEmpty()) {
+    // if (sorterMessageRxReady && !sorterMessageRxQueue.isEmpty()) {
+    if (sorterMessageRxReady && (sorterMessageRxQueue.length > 0)) {
 
       sorterMessageRxReady = false;
 
-      sorterObj = sorterMessageRxQueue.dequeue();
+      // sorterObj = sorterMessageRxQueue.dequeue();
+      sorterObj = sorterMessageRxQueue.shift();
       // let sortedKeys;
       // let endIndex;
       // let index;
@@ -3078,51 +3157,51 @@ function initSorterMessageRxQueueInterval(interval){
 }
 
 
-function initUpdaterPingInterval(interval){
+// function initUpdaterPingInterval(interval){
 
-  console.log(chalkLog("INIT UPDATER PING INTERVAL"
-    + " | " + interval + " MS"
-  ));
+//   console.log(chalkLog("INIT UPDATER PING INTERVAL"
+//     + " | " + interval + " MS"
+//   ));
 
-  clearInterval(updaterPingInterval);
+//   clearInterval(updaterPingInterval);
 
-  updaterPingInterval = setInterval(function updaterPing() {
+//   updaterPingInterval = setInterval(function updaterPing() {
 
-    if (updaterPingOutstanding > 0) {
-      console.error(chalkError("PING OUTSTANDING | " + updaterPingOutstanding));
-      updaterPingOutstanding = 0;
-      initUpdater();
-      slackPostMessage(slackChannel, "\n*UPDATER PING TIMEOUT*\nOUTSTANDING PINGS: " + updaterPingOutstanding + "\n");
-    }
+//     if (updaterPingOutstanding > 0) {
+//       console.error(chalkError("PING OUTSTANDING | " + updaterPingOutstanding));
+//       updaterPingOutstanding = 0;
+//       initUpdater();
+//       slackPostMessage(slackChannel, "\n*UPDATER PING TIMEOUT*\nOUTSTANDING PINGS: " + updaterPingOutstanding + "\n");
+//     }
 
-    updaterPingOutstanding = moment().format(compactDateTimeFormat);
+//     updaterPingOutstanding = moment().format(compactDateTimeFormat);
 
-    if (updater !== undefined){
-      updater.send({
-        op: "PING",
-        message: hostname + "_" + process.pid,
-        timeStamp: updaterPingOutstanding
-      }, function updaterPingError(err){
-        if (err) {
-          // pmx.emit("ERROR", "PING ERROR");
-          console.error(chalkError("*** UPDATER SEND ERROR"
-            + " | " + err
-          ));
-          slackPostMessage(slackChannel, "\n*UPDATER SEND ERROR*\n" + err);
-          initUpdater();
-        }
-      });
+//     if (updater !== undefined){
+//       updater.send({
+//         op: "PING",
+//         message: hostname + "_" + process.pid,
+//         timeStamp: updaterPingOutstanding
+//       }, function updaterPingError(err){
+//         if (err) {
+//           // pmx.emit("ERROR", "PING ERROR");
+//           console.error(chalkError("*** UPDATER SEND ERROR"
+//             + " | " + err
+//           ));
+//           slackPostMessage(slackChannel, "\n*UPDATER SEND ERROR*\n" + err);
+//           initUpdater();
+//         }
+//       });
 
-      debug(chalkLog(">UPDATER PING"
-      ));
+//       debug(chalkLog(">UPDATER PING"
+//       ));
 
-    }
-    else {
-      console.log(chalkError("!!! NO UPDATER PING ... UNDEFINED"
-      ));
-    }
-  }, interval);
-}
+//     }
+//     else {
+//       console.log(chalkError("!!! NO UPDATER PING ... UNDEFINED"
+//       ));
+//     }
+//   }, interval);
+// }
 
 
 
@@ -3138,11 +3217,13 @@ function initUpdaterMessageQueueInterval(interval){
 
   updaterMessageQueueInterval = setInterval(function updaterMessageRx() {
 
-    if (updaterMessageReady && !updaterMessageQueue.isEmpty()) {
+    // if (updaterMessageReady && !updaterMessageQueue.isEmpty()) {
+    if (updaterMessageReady && (updaterMessageQueue.length > 0)) {
 
       updaterMessageReady = false;
 
-      updaterObj = updaterMessageQueue.dequeue();
+      // updaterObj = updaterMessageQueue.dequeue();
+      updaterObj = updaterMessageQueue.shift();
 
       switch (updaterObj.type){
 
@@ -3171,7 +3252,8 @@ function initUpdaterMessageQueueInterval(interval){
 
         case "sendKeywordsComplete":
           console.log(chalkLog("UPDATE KEYWORDS COMPLETE"
-            + " [ Q: " + updaterMessageQueue.size() + " ]"
+            // + " [ Q: " + updaterMessageQueue.size() + " ]"
+            + " [ Q: " + updaterMessageQueue.length + " ]"
             + " | " + moment().format(compactDateTimeFormat)
             + " | PID: " + updaterObj.pid
             + " | NUM KEYWORDS: " + updaterObj.keywords
@@ -3236,7 +3318,8 @@ function initSorter(callback){
       // + "\n" + jsonPrint(m)
     ));
     // if (sorterMessageRxQueue.length < MAX_Q){
-      sorterMessageRxQueue.enqueue(m);
+      // sorterMessageRxQueue.enqueue(m);
+      sorterMessageRxQueue.push(m);
     // }
   });
 
@@ -3306,8 +3389,10 @@ function initTweetParser(callback){
       + " | OP: " + m.op
       // + "\n" + jsonPrint(m)
     ));
-    if (tweetParserMessageRxQueue.size() < MAX_Q){
-      tweetParserMessageRxQueue.enqueue(m);
+    // if (tweetParserMessageRxQueue.size() < MAX_Q){
+    if (tweetParserMessageRxQueue.length < MAX_Q){
+      // tweetParserMessageRxQueue.enqueue(m);
+      tweetParserMessageRxQueue.push(m);
     }
   });
 
@@ -3435,11 +3520,17 @@ function initRateQinterval(interval){
   statsObj.maxWordsPerMin = 0.0;
   statsObj.maxTweetsPerMin = 0.0;
 
-  statsObj.queues.transmitNodeQueue = transmitNodeQueue.size();
-  statsObj.queues.tweetRxQueue = tweetRxQueue.size();
-  statsObj.queues.updaterMessageQueue = updaterMessageQueue.size();
-  statsObj.queues.sorterMessageRxQueue = sorterMessageRxQueue.size();
-  statsObj.queues.tweetParserMessageRxQueue = tweetParserMessageRxQueue.size();
+  // statsObj.queues.transmitNodeQueue = transmitNodeQueue.size();
+  // statsObj.queues.tweetRxQueue = tweetRxQueue.size();
+  // statsObj.queues.updaterMessageQueue = updaterMessageQueue.size();
+  // statsObj.queues.sorterMessageRxQueue = sorterMessageRxQueue.size();
+  // statsObj.queues.tweetParserMessageRxQueue = tweetParserMessageRxQueue.size();
+
+  statsObj.queues.transmitNodeQueue = transmitNodeQueue.length;
+  statsObj.queues.tweetRxQueue = tweetRxQueue.length;
+  statsObj.queues.updaterMessageQueue = updaterMessageQueue.length;
+  statsObj.queues.sorterMessageRxQueue = sorterMessageRxQueue.length;
+  statsObj.queues.tweetParserMessageRxQueue = tweetParserMessageRxQueue.length;
 
   cacheObjKeys.forEach(function statsCachesUpdate(cacheName){
     statsObj.caches[cacheName].stats.keys = cacheObj[cacheName].getStats().keys;
@@ -3557,11 +3648,17 @@ function initRateQinterval(interval){
 
   updateMetricsInterval = setInterval(function updateMetrics () {
 
-    statsObj.queues.transmitNodeQueue = transmitNodeQueue.size();
-    statsObj.queues.tweetRxQueue = tweetRxQueue.size();
-    statsObj.queues.updaterMessageQueue = updaterMessageQueue.size();
-    statsObj.queues.sorterMessageRxQueue = sorterMessageRxQueue.size();
-    statsObj.queues.tweetParserMessageRxQueue = tweetParserMessageRxQueue.size();
+    // statsObj.queues.transmitNodeQueue = transmitNodeQueue.size();
+    // statsObj.queues.tweetRxQueue = tweetRxQueue.size();
+    // statsObj.queues.updaterMessageQueue = updaterMessageQueue.size();
+    // statsObj.queues.sorterMessageRxQueue = sorterMessageRxQueue.size();
+    // statsObj.queues.tweetParserMessageRxQueue = tweetParserMessageRxQueue.size();
+
+    statsObj.queues.transmitNodeQueue = transmitNodeQueue.length;
+    statsObj.queues.tweetRxQueue = tweetRxQueue.length;
+    statsObj.queues.updaterMessageQueue = updaterMessageQueue.length;
+    statsObj.queues.sorterMessageRxQueue = sorterMessageRxQueue.length;
+    statsObj.queues.tweetParserMessageRxQueue = tweetParserMessageRxQueue.length;
 
     updateTimeSeriesCount += 1;
 
@@ -3865,7 +3962,7 @@ let memStatsInterval;
 function initStatsInterval(interval){
 
   let statsUpdated = 0;
-  let heapdumpFileName;
+  // let heapdumpFileName;
 
   console.log(chalkInfo("INIT STATS INTERVAL"
     + " | " + interval + " MS"
@@ -3983,7 +4080,6 @@ initialize(configuration, function initializeComplete(err) {
       }
       else {
         updater = udtr;
-        // initUpdaterPingInterval(60000);
       }
     });
     

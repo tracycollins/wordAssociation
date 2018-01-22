@@ -2968,7 +2968,7 @@ function initTwitterRxQueueInterval(interval){
       // const tweet = tweetRxQueue.dequeue();
       const tweet = tweetRxQueue.shift();
 
-      debug(chalkInfo("TPQ<"
+      console.log(chalkInfo("TPQ<"
         // + " [" + tweetRxQueue.size() + "]"
         + " [" + tweetRxQueue.length + "]"
         // + " | " + socket.id

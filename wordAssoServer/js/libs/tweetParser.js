@@ -10,9 +10,39 @@ const os = require("os");
 const debug = require("debug")("twp");
 const moment = require("moment");
 const async = require("async");
+const mongoose = require("mongoose");
+mongoose.Promise = global.Promise;
+
+const hashtagModel = require("@threeceelabs/mongoose-twitter/models/hashtag.server.model");
+const mediaModel = require("@threeceelabs/mongoose-twitter/models/media.server.model");
+const placeModel = require("@threeceelabs/mongoose-twitter/models/place.server.model");
+const tweetModel = require("@threeceelabs/mongoose-twitter/models/tweet.server.model");
+const urlModel = require("@threeceelabs/mongoose-twitter/models/url.server.model");
+const userModel = require("@threeceelabs/mongoose-twitter/models/user.server.model");
+const wordModel = require("@threeceelabs/mongoose-twitter/models/word.server.model");
+
+let Hashtag;
+let Media;
+let Place;
+let Tweet;
+let Url;
+let User;
+let Word;
 
 const wordAssoDb = require("@threeceelabs/mongoose-twitter");
-const db = wordAssoDb();
+const dbConnection = wordAssoDb();
+
+dbConnection.on("error", console.error.bind(console, "connection error:"));
+dbConnection.once("open", function() {
+  console.log("CONNECT: TWEET PARSER MONGOOSE default connection open");
+  Hashtag = mongoose.model("Hashtag", hashtagModel.HashtagSchema);
+  Media = mongoose.model("Media", mediaModel.MediaSchema);
+  Place = mongoose.model("Place", placeModel.PlaceSchema);
+  Tweet = mongoose.model("Tweet", tweetModel.TweetSchema);
+  Url = mongoose.model("Url", urlModel.UrlSchema);
+  User = mongoose.model("User", userModel.UserSchema);
+  Word = mongoose.model("Word", wordModel.WordSchema);
+});
 
 const tweetServer = require("@threeceelabs/tweet-server-controller");
 // const wordServer = require("@threeceelabs/word-server-controller");
@@ -133,7 +163,7 @@ function initTweetParserQueueInterval(cnf){
 
       tweet = tweetParserQueue.shift();
 
-      console.log(chalkInfo("TW PARSER TPQ>"
+      debug(chalkInfo("TW PARSER TPQ>"
         + " [" + tweetParserQueue.length + "]"
         // + " | " + socket.id
         + " | " + tweet.id_str
@@ -174,7 +204,7 @@ function initTweetParserQueueInterval(cnf){
         }
         else {
           // debug(chalkInfo("[" + tweetParserQueue.size() + "]"
-          console.log(chalkInfo("TW PARSER [" + tweetParserQueue.length + "]"
+          debug(chalkInfo("TW PARSER [" + tweetParserQueue.length + "]"
             + " createStreamTweet DONE" 
             + " | " + tweetObj.tweetId
             // + "\ntweetObj.tweet.user\n" + jsonPrint(tweetObj.tweet.user)
@@ -192,7 +222,7 @@ function initTweetParserQueueInterval(cnf){
               ));
             }
             else {
-              console.log(chalkInfo("TW PARSER SEND COMPLETE"
+              debug(chalkInfo("TW PARSER SEND COMPLETE"
                 + " | " + moment().format(compactDateTimeFormat)
                 + " | " + tweetObj.tweetId
               ));

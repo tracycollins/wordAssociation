@@ -31,20 +31,56 @@ const chalkAlert = chalk.red;
 const chalkError = chalk.bold.red;
 const chalkLog = chalk.black;
 
-const wordAssoDb = require("@threeceelabs/mongoose-twitter");
-const db = wordAssoDb();
 const mongoose = require("mongoose");
 mongoose.Promise = global.Promise;
 
-// const Admin = require("mongoose").model("Admin");
-// const Sessions = require("mongoose").model("Session");
-// const Viewer = require("mongoose").model("Viewer");
-// const User = require("mongoose").model("User");
-// const Word = require("mongoose").model("Word");
+// const hashtagModel = require("@threeceelabs/mongoose-twitter/models/hashtag.server.model");
+// const mediaModel = require("@threeceelabs/mongoose-twitter/models/media.server.model");
+// const placeModel = require("@threeceelabs/mongoose-twitter/models/place.server.model");
+// const tweetModel = require("@threeceelabs/mongoose-twitter/models/tweet.server.model");
+// const urlModel = require("@threeceelabs/mongoose-twitter/models/url.server.model");
+// const userModel = require("@threeceelabs/mongoose-twitter/models/user.server.model");
 const wordModel = require("@threeceelabs/mongoose-twitter/models/word.server.model");
-const Word = mongoose.model("Word", wordModel.WordSchema);
+
+const wordAssoDb = require("@threeceelabs/mongoose-twitter");
+const dbConnection = wordAssoDb();
+
+// let Hashtag;
+// let Media;
+// let Place;
+// let Tweet;
+// let Url;
+// let User;
+let Word;
+
+dbConnection.on("error", console.error.bind(console, "connection error:"));
+dbConnection.once("open", function() {
+  console.log("CONNECT: wordAssoServer UPDATER Mongo DB default connection open");
+  // Hashtag = mongoose.model("Hashtag", hashtagModel.HashtagSchema);
+  // Media = mongoose.model("Media", mediaModel.MediaSchema);
+  // Place = mongoose.model("Place", placeModel.PlaceSchema);
+  // Tweet = mongoose.model("Tweet", tweetModel.TweetSchema);
+  // Url = mongoose.model("Url", urlModel.UrlSchema);
+  // User = mongoose.model("User", userModel.UserSchema);
+  Word = mongoose.model("Word", wordModel.WordSchema);
+});
 
 const wordServer = require("@threeceelabs/word-server-controller");
+
+// const wordAssoDb = require("@threeceelabs/mongoose-twitter");
+// const db = wordAssoDb();
+// const mongoose = require("mongoose");
+// mongoose.Promise = global.Promise;
+
+// // const Admin = require("mongoose").model("Admin");
+// // const Sessions = require("mongoose").model("Session");
+// // const Viewer = require("mongoose").model("Viewer");
+// // const User = require("mongoose").model("User");
+// // const Word = require("mongoose").model("Word");
+// const wordModel = require("@threeceelabs/mongoose-twitter/models/word.server.model");
+// const Word = mongoose.model("Word", wordModel.WordSchema);
+
+// const wordServer = require("@threeceelabs/word-server-controller");
 
 let hostname = os.hostname();
 hostname = hostname.replace(/.local/g, "");
@@ -103,7 +139,7 @@ const DROPBOX_WORD_ASSO_ACCESS_TOKEN = process.env.DROPBOX_WORD_ASSO_ACCESS_TOKE
 const DROPBOX_WORD_ASSO_APP_KEY = process.env.DROPBOX_WORD_ASSO_APP_KEY;
 const DROPBOX_WORD_ASSO_APP_SECRET = process.env.DROPBOX_WORD_ASSO_APP_SECRET;
 
-console.log("UPDATER: DROPBOX_WORD_ASSO_ACCESS_TOKEN :" + DROPBOX_WORD_ASSO_ACCESS_TOKEN);
+debug("UPDATER: DROPBOX_WORD_ASSO_ACCESS_TOKEN :" + DROPBOX_WORD_ASSO_ACCESS_TOKEN);
 debug("DROPBOX_WORD_ASSO_APP_KEY :" + DROPBOX_WORD_ASSO_APP_KEY);
 debug("DROPBOX_WORD_ASSO_APP_SECRET :" + DROPBOX_WORD_ASSO_APP_SECRET);
 
@@ -700,7 +736,7 @@ process.on("SIGINT", function() {
 });
 
 console.log(
-  "\n\n====================================================================================================\n" 
+  "====================================================================================================\n" 
   + "========================================= ***START*** ==============================================\n" 
   + "====================================================================================================\n" 
   + process.argv[1] 
@@ -708,7 +744,7 @@ console.log(
   + "\nSTARTED     " + moment().format(compactDateTimeFormat) 
   + "\n" + "====================================================================================================\n" 
   + "========================================= ***START*** ==============================================\n" 
-  + "====================================================================================================\n\n"
+  + "===================================================================================================="
 );
 
 if (debug.enabled) {

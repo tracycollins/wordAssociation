@@ -404,7 +404,7 @@ const updateKeywords = function(folder, file, callback){
             + " | " + fullPath
           ));
 
-          async.each(words,
+          async.eachSeries(words,
 
             function(w, cb) {
 
@@ -414,7 +414,9 @@ const updateKeywords = function(folder, file, callback){
                 if (err) {
                   console.log(chalkError("keywordUpdate ERROR! " + err));
                 }
-                cb(err);
+                async.setImmediate(function() {
+                  cb(err);
+                });
               });
 
             },

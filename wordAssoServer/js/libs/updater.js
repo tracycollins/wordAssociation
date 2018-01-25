@@ -404,7 +404,7 @@ const updateKeywords = function(folder, file, callback){
             + " | " + fullPath
           ));
 
-          async.eachSeries(words,
+          async.each(words,
 
             function(w, cb) {
 

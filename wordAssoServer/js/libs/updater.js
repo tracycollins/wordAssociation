@@ -10,13 +10,10 @@ let defaultKeywordsFile = "keywords.json";
 
 const compactDateTimeFormat = "YYYYMMDD HHmmss";
 
-// let updateStatsCountsInterval;
 let initGroupsReady = false;
-// let statsCountsComplete = true;
 
-// let config = require('../../config/config');
-
-const Dropbox = require("dropbox");
+require("isomorphic-fetch");
+const Dropbox = require('dropbox').Dropbox;
 const debug = require("debug")("ud");
 const debugKeyword = require("debug")("kw");
 const moment = require("moment");
@@ -34,53 +31,20 @@ const chalkLog = chalk.black;
 const mongoose = require("mongoose");
 mongoose.Promise = global.Promise;
 
-// const hashtagModel = require("@threeceelabs/mongoose-twitter/models/hashtag.server.model");
-// const mediaModel = require("@threeceelabs/mongoose-twitter/models/media.server.model");
-// const placeModel = require("@threeceelabs/mongoose-twitter/models/place.server.model");
-// const tweetModel = require("@threeceelabs/mongoose-twitter/models/tweet.server.model");
-// const urlModel = require("@threeceelabs/mongoose-twitter/models/url.server.model");
-// const userModel = require("@threeceelabs/mongoose-twitter/models/user.server.model");
 const wordModel = require("@threeceelabs/mongoose-twitter/models/word.server.model");
 
 const wordAssoDb = require("@threeceelabs/mongoose-twitter");
 const dbConnection = wordAssoDb();
 
-// let Hashtag;
-// let Media;
-// let Place;
-// let Tweet;
-// let Url;
-// let User;
 let Word;
 
 dbConnection.on("error", console.error.bind(console, "connection error:"));
 dbConnection.once("open", function() {
   console.log("CONNECT: wordAssoServer UPDATER Mongo DB default connection open");
-  // Hashtag = mongoose.model("Hashtag", hashtagModel.HashtagSchema);
-  // Media = mongoose.model("Media", mediaModel.MediaSchema);
-  // Place = mongoose.model("Place", placeModel.PlaceSchema);
-  // Tweet = mongoose.model("Tweet", tweetModel.TweetSchema);
-  // Url = mongoose.model("Url", urlModel.UrlSchema);
-  // User = mongoose.model("User", userModel.UserSchema);
   Word = mongoose.model("Word", wordModel.WordSchema);
 });
 
 const wordServer = require("@threeceelabs/word-server-controller");
-
-// const wordAssoDb = require("@threeceelabs/mongoose-twitter");
-// const db = wordAssoDb();
-// const mongoose = require("mongoose");
-// mongoose.Promise = global.Promise;
-
-// // const Admin = require("mongoose").model("Admin");
-// // const Sessions = require("mongoose").model("Session");
-// // const Viewer = require("mongoose").model("Viewer");
-// // const User = require("mongoose").model("User");
-// // const Word = require("mongoose").model("Word");
-// const wordModel = require("@threeceelabs/mongoose-twitter/models/word.server.model");
-// const Word = mongoose.model("Word", wordModel.WordSchema);
-
-// const wordServer = require("@threeceelabs/word-server-controller");
 
 let hostname = os.hostname();
 hostname = hostname.replace(/.local/g, "");
@@ -88,18 +52,12 @@ hostname = hostname.replace(/.home/g, "");
 hostname = hostname.replace(/.fios-router.home/g, "");
 hostname = hostname.replace(/word0-instance-1/g, "google");
 
-// const localKeywordHashMap = new HashMap();
-// const newKeywordsHashMap = new HashMap();
 let localKeywordHashMap = {};
 let newKeywordsHashMap = {};
 
 
 let statsObj = {};
 statsObj.db = {};
-// statsObj.db.totalSessions = 0;
-// statsObj.db.totalAdmins = 0;
-// statsObj.db.totalUsers = 0;
-// statsObj.db.totalViewers = 0;
 statsObj.db.totalHashtags = 0;
 statsObj.db.totalMedia = 0;
 statsObj.db.totalPlaces = 0;

@@ -339,6 +339,18 @@ const keywordUpdate = function(w, kwObj, callback) {
 // ???? TO DO: break up into filesGetMetadata check and filesDownload if need to update
 // causes error now: RangeError: Maximum call stack size exceeded
 
+function getFileMetadata (path, callback){
+  debug(chalkLog("GET FILE METADATA " + path));
+  dropboxClient.filesGetMetadata({path: path})
+    .then(function(response){
+      callback(null, response);
+    })
+    .catch(function(err) {
+      console.log(chalkError(new Error("GET FILE METADATA ERROR\n" + jsonPrint(err))));
+      callback(err, path);
+    });
+}
+
 const updateKeywords = function(folder, file, callback){
 
   newKeywordsHashMap = {};
@@ -347,94 +359,91 @@ const updateKeywords = function(folder, file, callback){
 
   debug(chalkLog("UPDATE KEYWORDS " + fullPath));
 
-  dropboxClient.filesGetMetadata({path: fullPath})
-    .then(function(response){
+  getFileMetadata(fullPath, function(err, metaData){
 
-      const keywordFileClientModifiedMoment = moment(new Date(response.client_modified));
+    const keywordFileClientModifiedMoment = moment(new Date(metaData.client_modified));
 
-      if (keywordFileClientModifiedMoment.isSameOrBefore(prevKeywordModifiedMoment)){
-        debug(chalk.blue("KEYWORD FILE BEFORE OR EQUAL"
-          + " | PREV: " + prevKeywordModifiedMoment.format(compactDateTimeFormat)
-          + " | " + keywordFileClientModifiedMoment.format(compactDateTimeFormat)
-        ));
-        callback(null, 0);
-      }
-      else {
-        console.log(chalk.blue("=K= KEYWORD FILE AFTER"
-          + " | PREV: " + prevKeywordModifiedMoment.format(compactDateTimeFormat)
-          + " | " + keywordFileClientModifiedMoment.format(compactDateTimeFormat)
-        ));
+    if (keywordFileClientModifiedMoment.isSameOrBefore(prevKeywordModifiedMoment)){
+      debug(chalk.blue("KEYWORD FILE BEFORE OR EQUAL"
+        + " | PREV: " + prevKeywordModifiedMoment.format(compactDateTimeFormat)
+        + " | " + keywordFileClientModifiedMoment.format(compactDateTimeFormat)
+      ));
+      callback(null, 0);
+    }
+    else {
+      console.log(chalk.blue("=K= KEYWORD FILE AFTER"
+        + " | PREV: " + prevKeywordModifiedMoment.format(compactDateTimeFormat)
+        + " | " + keywordFileClientModifiedMoment.format(compactDateTimeFormat)
+      ));
 
-        console.log(chalkInfo("=K= UPDATING KEYWORDS | " + folder + "/" + file));
+      console.log(chalkInfo("=K= UPDATING KEYWORDS | " + folder + "/" + file));
 
-        prevKeywordModifiedMoment = moment(keywordFileClientModifiedMoment);
+      prevKeywordModifiedMoment = moment(keywordFileClientModifiedMoment);
 
-        dropboxClient.filesDownload({path: fullPath})
-          .then(function(data){
-            console.log(chalkLog(getTimeStamp()
-              + " | LOADING FILE FROM DROPBOX: " + fullPath
-            ));
-            return data.fileBinary;
-          })
-          .then(function(data){
-            try {
-              return JSON.parse(data);
-            }
-            catch(err){
-              console.log(chalkError("JSON PARSE ERROR: " , err));
-            }
-          })
-          .then(function(kwordsObj){
+      dropboxClient.filesDownload({path: fullPath})
+        .then(function(data){
+          console.log(chalkLog(getTimeStamp()
+            + " | LOADING FILE FROM DROPBOX: " + fullPath
+          ));
+          return data.fileBinary;
+        })
+        .then(function(data){
+          try {
+            return JSON.parse(data);
+          }
+          catch(err){
+            console.log(chalkError("JSON PARSE ERROR: " , err));
+          }
+        })
+        .then(function(kwordsObj){
 
-            const words = Object.keys(kwordsObj);
+          const words = Object.keys(kwordsObj);
 
-            console.log(chalkInfo("UPDATER | LOADED"
-              + " | " + words.length + " WORDS"
-              + " | " + fullPath
-            ));
+          console.log(chalkInfo("UPDATER | LOADED"
+            + " | " + words.length + " WORDS"
+            + " | " + fullPath
+          ));
 
-            async.eachSeries(words,
+          async.eachSeries(words,
 
-              function(w, cb) {
+            function(w, cb) {
 
-                let kwObj = kwordsObj[w];  // kwObj = { "negative": 10, "right": 7 }
+              let kwObj = kwordsObj[w];  // kwObj = { "negative": 10, "right": 7 }
 
-                keywordUpdate(w, kwObj, function(err, updatedWord){
-                  if (err) {
-                    console.log(chalkError("keywordUpdate ERROR! " + err));
-                  }
-                  cb(err);
-                });
-
-              },
-
-              function(err) {
+              keywordUpdate(w, kwObj, function(err, updatedWord){
                 if (err) {
-                  console.log(chalkError("initKeywords ERROR! " + err));
-                  callback(err, null);
+                  console.log(chalkError("keywordUpdate ERROR! " + err));
                 }
-                else {
-                  console.log(chalkInfo("=== KEYWORD UPDATE COMPLETE"
-                    + " | " + getTimeStamp()
-                    + " | TOTAL KEYWORDS: " + Object.keys(newKeywordsHashMap).length
-                  ));
+                cb(err);
+              });
 
-                  callback(null, Object.keys(newKeywordsHashMap).length);
-                }
+            },
+
+            function(err) {
+              if (err) {
+                console.log(chalkError("initKeywords ERROR! " + err));
+                callback(err, null);
               }
-            );
-          })
-          .catch(function(err) {
-            console.log(chalkError(new Error("DROPBOX FILE DOWNLOAD ERROR\n" + jsonPrint(err))));
-            console.log(chalkError(new Error("DROPBOX FILE DOWNLOAD ERROR ", err)));
-            callback(err, null);
-          });
-      }
-    })
-    .catch(function(err) {
-      console.log(chalkError(new Error("UPDATE KEYWORDS ERROR\n" + jsonPrint(err))));
-      callback(err, null);
-    });
+              else {
+                console.log(chalkInfo("=== KEYWORD UPDATE COMPLETE"
+                  + " | " + getTimeStamp()
+                  + " | TOTAL KEYWORDS: " + Object.keys(newKeywordsHashMap).length
+                ));
+
+                callback(null, Object.keys(newKeywordsHashMap).length);
+              }
+            }
+          );
+        })
+        .catch(function(err) {
+          console.log(chalkError(new Error("DROPBOX FILE DOWNLOAD ERROR\n" + jsonPrint(err))));
+          console.log(chalkError(new Error("DROPBOX FILE DOWNLOAD ERROR ", err)));
+          callback(err, null);
+        });
+    }
+
+  });
+
 };
 
 const initKeywordUpdateInterval = function(options){

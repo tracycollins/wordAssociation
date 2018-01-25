@@ -296,7 +296,9 @@ const debugKeyword = require("debug")("kw");
 // const Queue = require("queue-fifo");
 const express = require("./config/express");
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
-const Dropbox = require("dropbox");
+require("isomorphic-fetch");
+// const Dropbox = require("dropbox");
+const Dropbox = require('dropbox').Dropbox;
 const Monitoring = require("@google-cloud/monitoring");
 
 let googleMonitoringClient;

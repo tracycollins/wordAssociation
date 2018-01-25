@@ -21,7 +21,7 @@
     "cookie-session": "^2.0.0-beta.3",
     "deep-copy": "^1.4.2",
     "deep-equal": "^1.0.1",
-    "dropbox": "^3.0.2",
+    "dropbox": "^3.0.3",
     "es6-promise": "^4.2.4",
     "eventemitter2": "^5.0.1",
     "express": "^4.16.2",

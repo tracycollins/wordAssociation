@@ -336,6 +336,9 @@ const keywordUpdate = function(w, kwObj, callback) {
   }
 };
 
+// ???? TO DO: break up into filesGetMetadata check and filesDownload if need to update
+// causes error now: RangeError: Maximum call stack size exceeded
+
 const updateKeywords = function(folder, file, callback){
 
   newKeywordsHashMap = {};

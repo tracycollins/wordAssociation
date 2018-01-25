@@ -13,14 +13,13 @@ const compactDateTimeFormat = "YYYYMMDD HHmmss";
 let initGroupsReady = false;
 
 require("isomorphic-fetch");
-const Dropbox = require('dropbox').Dropbox;
+const Dropbox = require("dropbox").Dropbox;
 const debug = require("debug")("ud");
 const debugKeyword = require("debug")("kw");
 const moment = require("moment");
 const os = require("os");
 const equal = require("deep-equal");
 const async = require("async");
-const HashMap = require("hashmap").HashMap;
 const chalk = require("chalk");
 const chalkRed = chalk.red;
 const chalkInfo = chalk.gray;
@@ -79,7 +78,7 @@ const quit = function(message) {
     msg = message;
   }
 
-  console.error(process.argv[1]
+  console.log(process.argv[1]
     + " | " + moment().format(compactDateTimeFormat)
     + " | UPDATER: **** QUITTING"
     + " | CAUSE: " + msg
@@ -149,7 +148,7 @@ const sendKeywords = function(callback){
 
       process.send(updaterObj, function(err){
         if (err){
-          console.error(chalkError("sendKeywords ERROR\n" + err));
+          console.log(chalkError("sendKeywords ERROR\n" + err));
           cb(err);
         }
         else {
@@ -169,7 +168,7 @@ const sendKeywords = function(callback){
 
       if (err) {
 
-        console.error(chalkError("sendKeywords ERROR! " + err));
+        console.log(chalkError("sendKeywords ERROR! " + err));
         callback(err, null);
 
       }
@@ -181,7 +180,7 @@ const sendKeywords = function(callback){
 
           process.send({ type: "sendKeywordsComplete", pid: process.pid , keywords: words.length}, function(err){
             if (err) {
-              console.error(chalkError("*** UPDATER SEND KEYWORDS ERROR"
+              console.log(chalkError("*** UPDATER SEND KEYWORDS ERROR"
                 + " | " + err
               ));
               callback(err, null);
@@ -228,10 +227,10 @@ function saveFile (path, file, jsonObj, callback){
     })
     .catch(function(error){
       if (error.status === 429) {
-        console.error(chalkAlert("TOO MANY DROPBOX WRITES"));
+        console.log(chalkAlert("TOO MANY DROPBOX WRITES"));
       }
       else {
-        console.error(chalkError(moment().format(compactDateTimeFormat) 
+        console.log(chalkError(moment().format(compactDateTimeFormat) 
           + " | !!! ERROR DROBOX JSON WRITE | FILE: " + fullPath 
           + "\nERROR: " + error
           + "\nERROR: " + jsonPrint(error)
@@ -379,7 +378,7 @@ const updateKeywords = function(folder, file, callback){
               return JSON.parse(data);
             }
             catch(err){
-              console.error("JSON PARSE ERROR: " , err);
+              console.log(chalkError("JSON PARSE ERROR: " , err));
             }
           })
           .then(function(kwordsObj){
@@ -398,6 +397,9 @@ const updateKeywords = function(folder, file, callback){
                 let kwObj = kwordsObj[w];  // kwObj = { "negative": 10, "right": 7 }
 
                 keywordUpdate(w, kwObj, function(err, updatedWord){
+                  if (err) {
+                    console.log(chalkError("keywordUpdate ERROR! " + err));
+                  }
                   cb(err);
                 });
 
@@ -405,7 +407,7 @@ const updateKeywords = function(folder, file, callback){
 
               function(err) {
                 if (err) {
-                  console.error(chalkError("initKeywords ERROR! " + err));
+                  console.log(chalkError("initKeywords ERROR! " + err));
                   callback(err, null);
                 }
                 else {
@@ -418,18 +420,16 @@ const updateKeywords = function(folder, file, callback){
                 }
               }
             );
-
           })
           .catch(function(err) {
-            console.error(new Error("DROPBOX FILE DOWNLOAD ERROR\n" + jsonPrint(err)));
-            console.error(new Error("DROPBOX FILE DOWNLOAD ERROR ", err));
+            console.log(chalkError(new Error("DROPBOX FILE DOWNLOAD ERROR\n" + jsonPrint(err))));
+            console.log(chalkError(new Error("DROPBOX FILE DOWNLOAD ERROR ", err)));
             callback(err, null);
           });
       }
-
     })
     .catch(function(err) {
-      console.error(new Error("UPDATE KEYWORDS ERROR\n" + jsonPrint(err)));
+      console.log(chalkError(new Error("UPDATE KEYWORDS ERROR\n" + jsonPrint(err))));
       callback(err, null);
     });
 };
@@ -453,7 +453,7 @@ const initKeywordUpdateInterval = function(options){
 
       updateKeywords("", options.keywordsFile, function(err, count){
         if (err) {
-          console.error("UPDATER UPDATE KEYWORDS ERROR: " + err);
+          console.log(chalkError("UPDATER UPDATE KEYWORDS ERROR: " + err));
           keywordsUpdateReady = true;
         }
         else {
@@ -468,114 +468,6 @@ const initKeywordUpdateInterval = function(options){
   }, options.interval);
 };
 
-// const updateStatsCounts = function(callback) {
-
-//   async.parallel({
-//     totalAdmins: function (cb) {
-//       Admin.count({}, function(err, count) {
-//         if (err) {
-//           console.error(chalkError("DB ADMIN COUNTER ERROR\n" + jsonPrint(err)));
-//           cb(err, null);
-//         }
-//         else {
-//           statsObj.db.totalAdmins = count;
-//           cb(null, count);
-//         }
-//       });
-//     },
-//     totalUsers: function (cb) {
-//       User.count({}, function(err, count) {
-//         if (err) {
-//           console.error(chalkError("DB USER COUNTER ERROR\n" + jsonPrint(err)));
-//           cb(err, null);
-//         }
-//         else {
-//           statsObj.db.totalUsers = count;
-//           cb(null, count);
-//         }
-//       });
-//     },
-//     totalSessions: function (cb) {
-//       Sessions.count({}, function(err, count) {
-//         if (err) {
-//           console.error(chalkError("DB SESSION COUNTER ERROR\n" + jsonPrint(err)));
-//           cb(err, null);
-//         }
-//         else {
-//           statsObj.db.totalSessions = count;
-//           cb(null, count);
-//         }
-//       });
-//     },
-//     totalViewers: function (cb) {
-//       Viewer.count({}, function(err, count) {
-//         if (err) {
-//           console.error(chalkError("DB VIEWER COUNTER ERROR\n" + jsonPrint(err)));
-//           cb(err, null);
-//         }
-//         else {
-//           statsObj.db.totalViewers = count;
-//           cb(null, count);
-//         }
-//       });
-//     },
-//     totalWords: function (cb) {
-//       Word.count({}, function(err, count) {
-//         if (err) {
-//           console.error(chalkError("DB USER COUNTER ERROR\n" + jsonPrint(err)));
-//           cb(err, null);
-//         }
-//         else {
-//           statsObj.db.totalWords = count;
-//           cb(null, count);
-//         }
-//       });
-//     }
-//   },
-//   function(err, results) { //async.parallel callback
-//     if (err) {
-//       console.error(chalkError("\n" + moment().format(compactDateTimeFormat) 
-//         + "!!! UPDATE STATS COUNTS ERROR: " + err));
-//       statsCountsComplete = true;
-//       if (callback !== undefined) { callback(err, null); }
-//     } 
-//     else {
-//       debug(chalkInfo(moment().format(compactDateTimeFormat) + " | UPDATE STATS COUNTS COMPLETE"
-//        + "\n" + jsonPrint(results)
-//       ));
-//       statsCountsComplete = true;
-//       if (callback !== undefined) { callback(null, results); }
-//     }
-//   });
-// };
-
-// const initUpdateStatsCountsInterval = function(interval){
-
-//   console.log(chalkLog("INIT UPDATE STATS COUNTS " + interval + " MS"));
-//   clearInterval(updateStatsCountsInterval);
-
-//   updateStatsCountsInterval = setInterval(function(){
-//     if (statsCountsComplete){
-//       statsCountsComplete = false;
-//       updateStatsCounts(function(err, results){
-//         if (err) { console.error(chalkError("STATS COUNTS ERROR\n" + jsonPrint(err))); }
-//         debug(chalkRed("STATS COUNTS\n" + jsonPrint(results)));
-//         process.send({ type: "stats", pid: process.pid, db: results}, function(err){
-//           statsCountsComplete = true;
-//           if (err){
-//             console.error(chalkError("UPDATER STATS SEND ERROR\n" + err));
-//             console.error(chalkError("UPDATER STATS SEND ERROR\n" + err));
-//           }
-//           else {
-//             debug(chalkInfo("UPDATER SENT STATS"
-//             ));
-//           }
-//         });
-//       });
-//     }
-//   }, interval);
-// };
-
 process.on("message", function(m) {
 
   debug(chalkInfo("RX MESSAGE\n" + jsonPrint(m)));
@@ -587,10 +479,7 @@ process.on("message", function(m) {
     case "INIT":
 
       clearInterval(keywordUpdateInterval);
-      // clearInterval(updateStatsCountsInterval);
-
-      // statsCountsComplete = true;
-
+ 
       prevKeywordModifiedMoment = moment("2010-01-01");
 
       console.log(chalkInfo("UPDATE INIT"
@@ -599,8 +488,6 @@ process.on("message", function(m) {
         + " | INTERVAL: " + m.interval
       ));
 
-      // defaultKeywordsFile = m.keywordsFile;
-
       options = {
         folder: m.folder,
         keywordsFile: m.keywordFile,
@@ -608,27 +495,6 @@ process.on("message", function(m) {
       };
 
       initKeywordUpdateInterval(options);
-
-      // updateStatsCounts(function(err, results){
-      //   if (err) { 
-      //     console.error(chalkError("STATS COUNTS ERROR\n" + jsonPrint(err)));
-      //     return;
-      //   }
-
-      //   debug(chalkRed("STATS COUNTS\n" + jsonPrint(results)));
-
-      //   process.send({ type: "stats", pid: process.pid, db: results}, function(err){
-      //     statsCountsComplete = true;
-      //     if (err){
-      //       console.error(chalkError("STATS SEND ERROR\n" + err));
-      //     }
-      //     else {
-      //       debug(chalkInfo("UPDATER SENT STATS"
-      //       ));
-      //     }
-      //   });
-      // });
-      // initUpdateStatsCountsInterval(5*ONE_MINUTE);
     break;
 
     case "UPDATE":
@@ -636,12 +502,11 @@ process.on("message", function(m) {
       console.log(chalkInfo("UPDATER UPDATE"
         + " | UPDATE TYPE: " + m.updateType
         + " | KEYWORD FILE: " + m.keywordFile
-        // + " | " + jsonPrint(m)
       ));
 
       updateKeywords("", m.keywordsFile, function(err, count){
         if (err) {
-          console.error("UPDATER UPDATE KEYWORDS ERROR: " + err);
+          console.log(chalkError("UPDATER UPDATE KEYWORDS ERROR: " + err));
         }
         else {
           debug("update keywords: " + count);
@@ -672,7 +537,7 @@ process.on("message", function(m) {
 
       process.send({type: "pong", pid: process.pid, timeStamp: m.timeStamp}, function(err){
         if (err) {
-          console.error(chalkError("*** UPDATER SEND ERROR"
+          console.log(chalkError("*** UPDATER SEND ERROR"
             + " | " + err
           ));
         }
@@ -680,7 +545,7 @@ process.on("message", function(m) {
     break;
 
     default:
-    console.error(chalkError("??? UPDATER RX UNKNOWN MESSAGE\n" + jsonPrint(m)));
+    console.log(chalkError("??? UPDATER RX UNKNOWN MESSAGE\n" + jsonPrint(m)));
 
   }
 });

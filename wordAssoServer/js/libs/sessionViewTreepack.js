@@ -4,6 +4,7 @@ function ViewTreepack() {
 
   "use strict";
 
+  var MIN_RATE = 4.0;
   var MIN_FOLLOWERS = 50000;
   var MIN_MENTIONS = 10000;
   var MIN_FOLLOWERS_AGE_RATE_RATIO = 0.9;  // age users with many followers at a slower rate
@@ -1272,6 +1273,7 @@ function ViewTreepack() {
       .style("fill", palette.white)
       .style("visibility", function(d) {
         if (mouseMovingFlag) { return "visible"; }
+        if (d.rate > MIN_RATE) { return "visible"; }
         if (d.followersCount > MIN_FOLLOWERS) { return "visible"; }
         if (d.mentions > MIN_FOLLOWERS) { return "visible"; }
         if (d.isKeyword) { return "visible"; }
@@ -1343,6 +1345,7 @@ function ViewTreepack() {
         if (mouseMovingFlag) { 
           return "visible"; 
         }
+        if (d.rate > MIN_RATE) { return "visible"; }
         if (d.followersCount > MIN_FOLLOWERS) { return "visible"; }
         if (d.mentions > MIN_MENTIONS) { return "visible"; }
         if (d.isKeyword) { return "visible"; }

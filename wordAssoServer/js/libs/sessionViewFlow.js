@@ -346,6 +346,16 @@ function ViewFlow() {
     // console.debug("SET ENABLE AGE NODES: " + enableAgeNodes);
   };
 
+  self.mouseMoving = function(isMoving) {
+    if (isMoving && !mouseMovingFlag) {
+      mouseMovingFlag = isMoving;
+      updateNodeLabels(function(){});
+    }
+    else {
+      mouseMovingFlag = isMoving;
+    }
+  };
+
   //================================
   // GET NODES FROM QUEUE
   //================================

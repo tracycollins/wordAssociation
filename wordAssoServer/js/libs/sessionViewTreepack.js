@@ -944,11 +944,11 @@ function ViewTreepack() {
           previousTwitterUserId = currentTwitterUser.userId;
         }
 
-        tooltipString = "@" + d.nodeId
+        tooltipString = "@" + d.screenName
           // + "<br>TOPTERM: " + d.isTopTerm 
-          + "<br>" + d.userId 
+          // + "<br>" + d.userId 
           + "<br>" + d.name 
-          + "<br>@" + d.screenName 
+          // + "<br>@" + d.screenName 
           // + "<br>TYPE: " + d.nodeType 
           + "<br>FLWRs: " + d.followersCount
           + "<br>FRNDs: " + d.friendsCount

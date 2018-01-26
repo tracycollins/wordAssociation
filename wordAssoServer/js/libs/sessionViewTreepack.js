@@ -945,19 +945,19 @@ function ViewTreepack() {
         }
 
         tooltipString = "@" + d.nodeId
-          + "<br>TOPTERM: " + d.isTopTerm 
-          + "<br>ID: " + d.userId 
-          + "<br>N: " + d.name 
-          + "<br>SN: " + d.screenName 
+          // + "<br>TOPTERM: " + d.isTopTerm 
+          + "<br>" + d.userId 
+          + "<br>" + d.name 
+          + "<br>@" + d.screenName 
           // + "<br>TYPE: " + d.nodeType 
           + "<br>FLWRs: " + d.followersCount
           + "<br>FRNDs: " + d.friendsCount
           + "<br>FMs: " + d.followersMentions
           + "<br>Ms: " + d.mentions
           + "<br>Ts: " + d.statusesCount
-          + "<br>3CF: " + d.threeceeFollowing
+          // + "<br>3CF: " + d.threeceeFollowing
           + "<br>" + d.rate.toFixed(2) + " WPM"
-          + "<br>AKW: " + autoKeywordsFlag
+          // + "<br>AKW: " + autoKeywordsFlag
           + "<br>KWs: " + jsonPrint(d.keywords)
           + "<br>AKWs: " + jsonPrint(d.keywordsAuto);
       break;
@@ -972,32 +972,32 @@ function ViewTreepack() {
         }
 
         tooltipString = "#" + d.nodeId
-          + "<br>TOPTERM " + d.isTopTerm 
-          + "<br>TYPE: " + d.nodeType 
+          // + "<br>TOPTERM " + d.isTopTerm 
+          // + "<br>TYPE: " + d.nodeType 
           + "<br>Ms: " + d.mentions
           + "<br>" + d.rate.toFixed(2) + " WPM"
-          + "<br>AKW: " + autoKeywordsFlag
+          // + "<br>AKW: " + autoKeywordsFlag
           + "<br>KWs: " + jsonPrint(d.keywords)
           + "<br>AKWs: " + jsonPrint(d.keywordsAuto);
       break;
       case "word":
         tooltipString = d.nodeId
-          + "<br>TOPTERM " + d.isTopTerm 
-          + "<br>TYPE: " + d.nodeType 
+          // + "<br>TOPTERM " + d.isTopTerm 
+          // + "<br>TYPE: " + d.nodeType 
           + "<br>Ms: " + d.mentions
           + "<br>" + d.rate.toFixed(2) + " WPM"
-          + "<br>URL: " + d.url
-          + "<br>AKW: " + autoKeywordsFlag
+          // + "<br>URL: " + d.url
+          // + "<br>AKW: " + autoKeywordsFlag
           + "<br>KWs: " + jsonPrint(d.keywords)
           + "<br>AKWs: " + jsonPrint(d.keywordsAuto);
       break;
       case "place":
         tooltipString = d.fullName
-          + "<br>TOPTERM " + d.isTopTerm 
-          + "<br>TYPE: " + d.nodeType 
+          // + "<br>TOPTERM " + d.isTopTerm 
+          // + "<br>TYPE: " + d.nodeType 
           + "<br>Ms: " + d.mentions
           + "<br>" + d.rate.toFixed(2) + " WPM"
-          + "<br>AKW: " + autoKeywordsFlag
+          // + "<br>AKW: " + autoKeywordsFlag
           + "<br>KWs: " + jsonPrint(d.keywords)
           + "<br>AKWs: " + jsonPrint(d.keywordsAuto);
       break;

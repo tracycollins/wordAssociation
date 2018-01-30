@@ -576,6 +576,10 @@ function ControlPanel() {
     }
   }
 
+  window.addEventListener("load", function() {
+    console.warn("WINDOW LOAD");
+  }, false);
+
   window.addEventListener("message", receiveMessage, false);
 
   window.onbeforeunload = function() {

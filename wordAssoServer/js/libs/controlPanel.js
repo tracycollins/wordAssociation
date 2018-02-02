@@ -520,11 +520,16 @@ function ControlPanel() {
 
     // Do we trust the sender of this message?
     if (event.origin !== DEFAULT_SOURCE){
-      console.error("NOT TRUSTED SOURCE"
-        + " | ORIGIN: " + event.origin 
-        + " | DEFAULT_SOURCE: " + DEFAULT_SOURCE
-      );
-      return;
+      if (event.origin === "https://platform.twitter.com") {
+        console.log("TWITTER SOURCE: " + event.origin);
+      }
+      else {
+        console.error("NOT TRUSTED SOURCE"
+          + " | ORIGIN: " + event.origin 
+          + " | DEFAULT_SOURCE: " + DEFAULT_SOURCE
+        );
+        return;
+      }
     }
 
     console.debug("SOURCE"

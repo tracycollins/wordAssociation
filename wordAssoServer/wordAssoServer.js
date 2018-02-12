@@ -299,7 +299,9 @@ const express = require("./config/express");
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
 require("isomorphic-fetch");
 // const Dropbox = require("dropbox");
-const Dropbox = require('dropbox').Dropbox;
+// const Dropbox = require('dropbox').Dropbox;
+const Dropbox = require("./js/libs/dropbox").Dropbox;
+
 const Monitoring = require("@google-cloud/monitoring");
 
 let googleMonitoringClient;

@@ -257,15 +257,15 @@ process.on("message", function(m) {
       cnf.networkObj = m.networkObj;
 
       cnf.inputArrays = {};
-      Object.keys(m.networkObj.inputObj.inputs).forEach(function(type){
+      Object.keys(m.networkObj.inputsObj.inputs).forEach(function(type){
 
         console.log(chalkNetwork("NN INPUTS TYPE" 
           + " | " + type
-          + " | INPUTS: " + m.networkObj.inputObj.inputs[type].length
+          + " | INPUTS: " + m.networkObj.inputsObj.inputs[type].length
         ));
 
         cnf.inputArrays[type] = {};
-        cnf.inputArrays[type] = m.networkObj.inputObj.inputs[type];
+        cnf.inputArrays[type] = m.networkObj.inputsObj.inputs[type];
 
       });
 
@@ -288,15 +288,15 @@ process.on("message", function(m) {
 
       cnf.inputArrays = {};
 
-      async.eachSeries(Object.keys(m.networkObj.inputObj.inputs), function(type, cb){
+      async.eachSeries(Object.keys(m.networkObj.inputsObj.inputs), function(type, cb){
 
         console.log(chalkNetwork("NN INPUTS TYPE" 
           + " | " + type
-          + " | INPUTS: " + m.networkObj.inputObj.inputs[type].length
+          + " | INPUTS: " + m.networkObj.inputsObj.inputs[type].length
         ));
 
         cnf.inputArrays[type] = {};
-        cnf.inputArrays[type] = m.networkObj.inputObj.inputs[type];
+        cnf.inputArrays[type] = m.networkObj.inputsObj.inputs[type];
 
         cb();
 

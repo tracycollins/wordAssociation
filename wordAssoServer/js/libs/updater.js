@@ -13,7 +13,9 @@ const compactDateTimeFormat = "YYYYMMDD HHmmss";
 let initGroupsReady = false;
 
 require("isomorphic-fetch");
-const Dropbox = require("dropbox").Dropbox;
+// const Dropbox = require("dropbox").Dropbox;
+const Dropbox = require("./dropbox").Dropbox;
+
 const debug = require("debug")("ud");
 const debugKeyword = require("debug")("kw");
 const moment = require("moment");

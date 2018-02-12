@@ -151,12 +151,11 @@ function initTweetParserQueueInterval(cnf){
     twitterEvents: configEvents
   };
 
-  tweetServer.loadInputArrays({inputArrays: cnf.inputArrays}, function(){});
-  tweetServer.loadNeuralNetwork({network: cnf.networkObj.network}, function(){});
+  // tweetServer.loadInputArrays({inputArrays: cnf.inputArrays}, function(){});
+  tweetServer.loadNeuralNetwork({network: cnf.networkObj}, function(){});
 
   tweetParserQueueInterval = setInterval(function(){
 
-    // if (!tweetParserQueue.isEmpty() && tweetParserQueueReady && networkReady){
     if ((tweetParserQueue.length > 0) && tweetParserQueueReady && networkReady){
 
       tweetParserQueueReady = false;
@@ -258,15 +257,15 @@ process.on("message", function(m) {
       cnf.networkObj = m.networkObj;
 
       cnf.inputArrays = {};
-      Object.keys(m.networkObj.inputs).forEach(function(type){
+      Object.keys(m.networkObj.inputObj.inputs).forEach(function(type){
 
         console.log(chalkNetwork("NN INPUTS TYPE" 
           + " | " + type
-          + " | INPUTS: " + m.networkObj.inputs[type].length
+          + " | INPUTS: " + m.networkObj.inputObj.inputs[type].length
         ));
 
         cnf.inputArrays[type] = {};
-        cnf.inputArrays[type] = m.networkObj.inputs[type];
+        cnf.inputArrays[type] = m.networkObj.inputObj.inputs[type];
 
       });
 
@@ -289,15 +288,15 @@ process.on("message", function(m) {
 
       cnf.inputArrays = {};
 
-      async.eachSeries(Object.keys(m.networkObj.inputs), function(type, cb){
+      async.eachSeries(Object.keys(m.networkObj.inputObj.inputs), function(type, cb){
 
         console.log(chalkNetwork("NN INPUTS TYPE" 
           + " | " + type
-          + " | INPUTS: " + m.networkObj.inputs[type].length
+          + " | INPUTS: " + m.networkObj.inputObj.inputs[type].length
         ));
 
         cnf.inputArrays[type] = {};
-        cnf.inputArrays[type] = m.networkObj.inputs[type];
+        cnf.inputArrays[type] = m.networkObj.inputObj.inputs[type];
 
         cb();
 

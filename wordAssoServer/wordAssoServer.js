@@ -2993,12 +2993,10 @@ function initTwitterRxQueueInterval(interval){
 
   tweetRxQueueInterval = setInterval(function tweetRxQueueDequeue() {
 
-    // if (!tweetRxQueue.isEmpty() && tweetParserReady && tweetParserSendReady) {
     if ((tweetRxQueue.length > 0) && tweetParserReady && tweetParserSendReady) {
 
       tweetParserSendReady = false;
 
-      // const tweet = tweetRxQueue.dequeue();
       const tweet = tweetRxQueue.shift();
 
       debug(chalkInfo("TPQ<"
@@ -3038,17 +3036,12 @@ function initTweetParserMessageRxQueueInterval(interval){
 
   clearInterval(tweetParserMessageRxQueueInterval);
 
-  // let tweetParserMessage;
-  // let tweetObj;
-
   tweetParserMessageRxQueueInterval = setInterval(function tweetParserMessageRxQueueDequeue() {
 
-    // if (!tweetParserMessageRxQueue.isEmpty() && tweetParserMessageRxQueueReady) {
     if ((tweetParserMessageRxQueue.length > 0) && tweetParserMessageRxQueueReady) {
 
       tweetParserMessageRxQueueReady = false;
 
-      // const tweetParserMessage = tweetParserMessageRxQueue.dequeue();
       const tweetParserMessage = tweetParserMessageRxQueue.shift();
 
       debug(chalkLog("TWEET PARSER RX MESSAGE"
@@ -3081,7 +3074,6 @@ function initTweetParserMessageRxQueueInterval(interval){
             + " | PL: " + (tweetObj.place ? tweetObj.place.fullName : "")
           ));
 
-          // if (transmitNodeQueue.size() < MAX_Q) {
           if (transmitNodeQueue.length < MAX_Q) {
             transmitNodes(tweetObj, function transmitNode(err){
               if (err) {

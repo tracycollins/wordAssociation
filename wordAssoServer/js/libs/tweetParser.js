@@ -152,7 +152,7 @@ function initTweetParserQueueInterval(cnf){
   };
 
   // tweetServer.loadInputArrays({inputArrays: cnf.inputArrays}, function(){});
-  tweetServer.loadNeuralNetwork({network: cnf.networkObj}, function(){});
+  tweetServer.loadNeuralNetwork({networkObj: cnf.networkObj}, function(){});
 
   tweetParserQueueInterval = setInterval(function(){
 
@@ -257,7 +257,8 @@ process.on("message", function(m) {
       cnf.networkObj = m.networkObj;
 
       cnf.inputArrays = {};
-      Object.keys(m.networkObj.inputsObj.inputs).forEach(function(type){
+
+      async.eachSeries(Object.keys(m.networkObj.inputsObj.inputs), function(type, cb){
 
         console.log(chalkNetwork("NN INPUTS TYPE" 
           + " | " + type
@@ -267,9 +268,13 @@ process.on("message", function(m) {
         cnf.inputArrays[type] = {};
         cnf.inputArrays[type] = m.networkObj.inputsObj.inputs[type];
 
+        cb();
+
+      }, function(){
+        initTweetParserQueueInterval(cnf);
+        networkReady = true;
       });
 
-      initTweetParserQueueInterval(cnf);
 
     break;
 

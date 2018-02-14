@@ -2814,20 +2814,27 @@ function initAppRouting(callback) {
     ));
 
     if (req.path === "/dropbox_webhook") {
+
       debug(chalkAlert("R> dropbox_webhook"
         + "\nreq.query: " + jsonPrint(req.query)
         + "\nreq.params: " + jsonPrint(req.params)
         + "\nreq.body: " + jsonPrint(req.body)
       )); 
+
       res.send(req.query.challenge);
+
       dropboxFolderGetLastestCursor(bestNetworkFolder, function(err, response){
+
         if (response && (response.entries.length > 0)) {
+
           utilNameSpace.emit("DROPBOX_CHANGE", response);
           adminNameSpace.emit("DROPBOX_CHANGE", response);
+
           console.log(chalkAlert(">>> DROPBOX CHANGE"
             + " | " + getTimeStamp()
-            + " | FOLDER: " + folder
+            + " | FOLDER: " + bestNetworkFolder
           ));
+          
           response.entries.forEach(function(entry){
             console.log(chalkAlert(">>> DROPBOX CHANGE | ENTRY"
               + " | TYPE: " + entry[".tag"]

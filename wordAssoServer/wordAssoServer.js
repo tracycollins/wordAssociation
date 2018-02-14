@@ -2734,7 +2734,14 @@ function initAppRouting(callback) {
       + " | PATH: " + req.path
     ));
 
-    if (req.path === "/googleccd19766bea2dfd2.html") {
+    if (req.path === "/dropbox_webhook") {
+      console.log(chalkAlert("R> dropbox_webhook"
+        + " | req.query: " + jsonPrint(req.query)
+        + " | req.params: " + jsonPrint(req.params)
+      )); 
+      res.send(req.params.challenge);
+    }
+    else if (req.path === "/googleccd19766bea2dfd2.html") {
       console.log(chalkAlert("R> googleccd19766bea2dfd2.html")); 
 
       const googleVerification = __dirname + "/googleccd19766bea2dfd2.html";

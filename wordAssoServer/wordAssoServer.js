@@ -845,9 +845,9 @@ function getTimeStamp(inputTime) {
 
 function dropboxLongPoll(last_cursor, callback) {
   dropboxClient.filesListFolderLongpoll({cursor: last_cursor, timeout: 30})
-    .then((result) => {
+    .then((results) => {
       // console.log(chalkAlert("dropboxLongpoll FOLDER: " + lastCursorTruncated + "\n" + jsonPrint(result)));
-      callback(null, result);
+      callback(null, results);
     })
     .catch((err) => {
       console.log(err);
@@ -879,7 +879,7 @@ function dropboxFolderGetLastestCursor(folder, callback) {
 
     dropboxLongPoll(last_cursor.cursor, function(err, results){
 
-      debug(chalkInfo("dropboxLongPoll CURSOR: " + lastCursorTruncated + "| CHANGES: " + results.changes));
+      // debug(chalkInfo("dropboxLongPoll CURSOR: " + lastCursorTruncated + "| CHANGES: " + results.changes));
 
       if (results.changes) {
 
@@ -2821,7 +2821,7 @@ function initAppRouting(callback) {
       )); 
       res.send(req.query.challenge);
       dropboxFolderGetLastestCursor(bestNetworkFolder, function(err, response){
-        if (response.entries.length > 0) {
+        if (response && (response.entries.length > 0)) {
           utilNameSpace.emit("DROPBOX_CHANGE", response);
           adminNameSpace.emit("DROPBOX_CHANGE", response);
           console.log(chalkAlert(">>> DROPBOX CHANGE"

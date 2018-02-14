@@ -2738,6 +2738,7 @@ function initAppRouting(callback) {
       console.log(chalkAlert("R> dropbox_webhook"
         + "\nreq.query: " + jsonPrint(req.query)
         + "\nreq.params: " + jsonPrint(req.params)
+        + "\nreq.body: " + jsonPrint(req.body)
       )); 
       res.send(req.query.challenge);
     }

@@ -299,8 +299,8 @@ const express = require("./config/express");
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
 require("isomorphic-fetch");
 // const Dropbox = require("dropbox");
-// const Dropbox = require('dropbox').Dropbox;
-const Dropbox = require("./js/libs/dropbox").Dropbox;
+const Dropbox = require('dropbox').Dropbox;
+// const Dropbox = require("./js/libs/dropbox").Dropbox;
 
 const Monitoring = require("@google-cloud/monitoring");
 
@@ -842,6 +842,85 @@ function getTimeStamp(inputTime) {
     return currentTimeStamp;
   }
 }
+
+function dropboxLongPoll(last_cursor, callback) {
+  dropboxClient.filesListFolderLongpoll({cursor: last_cursor, timeout: 30})
+    .then((result) => {
+      // console.log(chalkAlert("dropboxLongpoll FOLDER: " + lastCursorTruncated + "\n" + jsonPrint(result)));
+      callback(null, result);
+    })
+    .catch((err) => {
+      console.log(err);
+      callback(err, null);
+    });
+}
+
+
+function dropboxFolderGetLastestCursor(folder, callback) {
+
+  let lastCursorTruncated = "";
+
+  debug(chalkLog("dropboxFolderGetLastestCursor FOLDER: " + folder));
+
+  let optionsGetLatestCursor = {
+    path: folder,
+    recursive: true,
+    include_media_info: false,
+    include_deleted: true,
+    include_has_explicit_shared_members: false
+  };
+
+  dropboxClient.filesListFolderGetLatestCursor(optionsGetLatestCursor)
+  .then((last_cursor) => {
+
+    lastCursorTruncated = last_cursor.cursor.substring(0,20);
+
+    debug(chalkLog("lastCursorTruncated: " + lastCursorTruncated));
+
+    dropboxLongPoll(last_cursor.cursor, function(err, results){
+
+      debug(chalkInfo("dropboxLongPoll CURSOR: " + lastCursorTruncated + "| CHANGES: " + results.changes));
+
+      if (results.changes) {
+
+        dropboxClient.filesListFolderContinue({ cursor: last_cursor.cursor})
+        .then(function(response){
+          debug(chalkLog("filesListFolderContinue: " + jsonPrint(response)));
+          if (response.entries.length > 0) {
+            console.log(chalkAlert(">>> DROPBOX CHANGE"
+              + " | " + getTimeStamp()
+              + " | FOLDER: " + folder
+            ));
+            response.entries.forEach(function(entry){
+              console.log(chalkAlert("ENTRY"
+                + " | TYPE: " + entry[".tag"]
+                + " | PATH: " + entry.path_lower
+                + " | NAME: " + entry.name
+              ));
+            });
+          }
+          callback(null, response);
+        })
+        .catch(function(err){
+          console.log(chalkError("dropboxFolderGetLastestCursor filesListFolder *** DROPBOX FILES LIST FOLDER ERROR"
+            + "\nERROR: " + err 
+            + "\nERROR: " + jsonPrint(err)
+          ));
+          callback(err, last_cursor.cursor);
+        });
+      }
+      else {
+        console.log(chalkLog("... FOLDER NO CHANGE | " + folder));
+        callback(null, null);
+      }
+    });
+  })
+  .catch((err) => {
+    console.log(err);
+    callback(err, folder);
+  });
+}
+
 
 function loadFile(path, file, callback) {
 
@@ -2741,6 +2820,9 @@ function initAppRouting(callback) {
         + "\nreq.body: " + jsonPrint(req.body)
       )); 
       res.send(req.query.challenge);
+      dropboxFolderGetLastestCursor(bestNetworkFolder, function(err, cursor){
+
+      });
     }
     else if (req.path === "/googleccd19766bea2dfd2.html") {
       console.log(chalkAlert("R> googleccd19766bea2dfd2.html")); 

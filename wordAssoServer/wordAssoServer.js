@@ -2736,10 +2736,10 @@ function initAppRouting(callback) {
 
     if (req.path === "/dropbox_webhook") {
       console.log(chalkAlert("R> dropbox_webhook"
-        + " | req.query: " + jsonPrint(req.query)
-        + " | req.params: " + jsonPrint(req.params)
+        + "\nreq.query: " + jsonPrint(req.query)
+        + "\nreq.params: " + jsonPrint(req.params)
       )); 
-      res.send(req.params.challenge);
+      res.send(req.query.challenge);
     }
     else if (req.path === "/googleccd19766bea2dfd2.html") {
       console.log(chalkAlert("R> googleccd19766bea2dfd2.html")); 

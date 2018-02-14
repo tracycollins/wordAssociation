@@ -886,19 +886,19 @@ function dropboxFolderGetLastestCursor(folder, callback) {
         dropboxClient.filesListFolderContinue({ cursor: last_cursor.cursor})
         .then(function(response){
           debug(chalkLog("filesListFolderContinue: " + jsonPrint(response)));
-          if (response.entries.length > 0) {
-            console.log(chalkAlert(">>> DROPBOX CHANGE"
-              + " | " + getTimeStamp()
-              + " | FOLDER: " + folder
-            ));
-            response.entries.forEach(function(entry){
-              console.log(chalkAlert("ENTRY"
-                + " | TYPE: " + entry[".tag"]
-                + " | PATH: " + entry.path_lower
-                + " | NAME: " + entry.name
-              ));
-            });
-          }
+          // if (response.entries.length > 0) {
+          //   console.log(chalkAlert(">>> DROPBOX CHANGE"
+          //     + " | " + getTimeStamp()
+          //     + " | FOLDER: " + folder
+          //   ));
+          //   response.entries.forEach(function(entry){
+          //     console.log(chalkAlert(">>> DROPBOX CHANGE | ENTRY"
+          //       + " | TYPE: " + entry[".tag"]
+          //       + " | PATH: " + entry.path_lower
+          //       + " | NAME: " + entry.name
+          //     ));
+          //   });
+          // }
           callback(null, response);
         })
         .catch(function(err){
@@ -2814,14 +2814,28 @@ function initAppRouting(callback) {
     ));
 
     if (req.path === "/dropbox_webhook") {
-      console.log(chalkAlert("R> dropbox_webhook"
+      debug(chalkAlert("R> dropbox_webhook"
         + "\nreq.query: " + jsonPrint(req.query)
         + "\nreq.params: " + jsonPrint(req.params)
         + "\nreq.body: " + jsonPrint(req.body)
       )); 
       res.send(req.query.challenge);
-      dropboxFolderGetLastestCursor(bestNetworkFolder, function(err, cursor){
-
+      dropboxFolderGetLastestCursor(bestNetworkFolder, function(err, response){
+        if (response.entries.length > 0) {
+          utilNameSpace.emit("DROPBOX_CHANGE", response);
+          adminNameSpace.emit("DROPBOX_CHANGE", response);
+          console.log(chalkAlert(">>> DROPBOX CHANGE"
+            + " | " + getTimeStamp()
+            + " | FOLDER: " + folder
+          ));
+          response.entries.forEach(function(entry){
+            console.log(chalkAlert(">>> DROPBOX CHANGE | ENTRY"
+              + " | TYPE: " + entry[".tag"]
+              + " | PATH: " + entry.path_lower
+              + " | NAME: " + entry.name
+            ));
+          });
+        }
       });
     }
     else if (req.path === "/googleccd19766bea2dfd2.html") {

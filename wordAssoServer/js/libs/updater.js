@@ -264,7 +264,7 @@ const keywordUpdate = function(w, kwObj, callback) {
     wordObj.keywords.keywordId = wd;
   }
   else {
-    wordObj.keywords = kwObj;
+    wordObj.keywords = kwObj ? kwObj : "none";
     wordObj.keywords.keywordId = wd;
   }
 

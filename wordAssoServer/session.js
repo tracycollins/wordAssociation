@@ -497,7 +497,7 @@ ignoreWordsArray.push("`");
 var groupHashMap = new HashMap();
 var groupDeleteHashMap = new HashMap();
 
-var maxSessions = 0;
+// var maxSessions = 0;
 var sessionHashMap = new HashMap();
 var sessionDeleteHashMap = new HashMap();
 
@@ -2022,7 +2022,7 @@ function createStatsTable(callback) {
 //  STATS UPDATE
 function initStatsUpdate(interval){
   setInterval(function() {
-    if (sessionHashMap.count() > maxSessions) { maxSessions = sessionHashMap.count(); }
+    // if (sessionHashMap.count() > maxSessions) { maxSessions = sessionHashMap.count(); }
     if (statsTableFlag) { updateStatsTable(statsObj); }
   }, interval);
 }

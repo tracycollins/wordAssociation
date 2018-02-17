@@ -3925,6 +3925,10 @@ function initLoadBestNetworkInterval(interval){
           // + "\n" + jsonPrint(nnObj)
         ));
 
+        statsObj.bestNetwork.networkId = bRtNnObj.networkId;
+        statsObj.bestNetwork.successRate = bRtNnObj.successRate;
+        statsObj.bestNetwork.matchRate = bRtNnObj.matchRate;
+
         let file = bRtNnObj.networkId + ".json";
 
         loadFile(bestNetworkFolder, file, function(err, nnObj){
@@ -3947,6 +3951,10 @@ function initLoadBestNetworkInterval(interval){
               + " | " + nnObj.matchRate.toFixed(2)
               // + "\n" + jsonPrint(nnObj)
             ));
+
+            statsObj.bestNetwork.networkId = nnObj.networkId;
+            statsObj.bestNetwork.successRate = nnObj.successRate;
+            statsObj.bestNetwork.matchRate = nnObj.matchRate;
 
             tweetParser.send({ op: "NETWORK", networkObj: bestNetworkObj }, function twpNetwork(err){
               if (err) {

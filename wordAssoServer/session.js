@@ -1920,68 +1920,68 @@ function createStatsTable(callback) {
     text: statsObj.heartbeat.runTime
   };
 
-  var statsServerTotalWordsLabel = {
-    type: "TEXT",
-    id: "statsServerTotalWordsLabel",
-    class: "statsTableText",
-    text: "TOTAL UNIQUE WORDS"
-  };
+  // var statsServerTotalWordsLabel = {
+  //   type: "TEXT",
+  //   id: "statsServerTotalWordsLabel",
+  //   class: "statsTableText",
+  //   text: "TOTAL UNIQUE WORDS"
+  // };
 
-  var statsServerTotalWords = {
-    type: "TEXT",
-    id: "statsServerTotalWords",
-    class: "statsTableText",
-    text: statsObj.heartbeat.totalWords
-  };
+  // var statsServerTotalWords = {
+  //   type: "TEXT",
+  //   id: "statsServerTotalWords",
+  //   class: "statsTableText",
+  //   text: statsObj.heartbeat.totalWords
+  // };
 
-  var statsServerWordsReceivedLabel = {
-    type: "TEXT",
-    id: "statsServerWordsReceivedLabel",
-    class: "statsTableText",
-    text: "WORDS RCVD"
-  };
+  // var statsServerWordsReceivedLabel = {
+  //   type: "TEXT",
+  //   id: "statsServerWordsReceivedLabel",
+  //   class: "statsTableText",
+  //   text: "WORDS RCVD"
+  // };
 
-  var statsServerWordsReceived = {
-    type: "TEXT",
-    id: "statsServerWordsReceived",
-    class: "statsTableText",
-    text: statsObj.heartbeat.responsesReceived
-  };
+  // var statsServerWordsReceived = {
+  //   type: "TEXT",
+  //   id: "statsServerWordsReceived",
+  //   class: "statsTableText",
+  //   text: statsObj.heartbeat.responsesReceived
+  // };
 
-  var statsServerWordsPerMinLabel = {
-    type: "TEXT",
-    id: "statsServerWordsPerMinLabel",
-    class: "statsTableText",
-    text: "WPM"
-  };
+  // var statsServerWordsPerMinLabel = {
+  //   type: "TEXT",
+  //   id: "statsServerWordsPerMinLabel",
+  //   class: "statsTableText",
+  //   text: "WPM"
+  // };
 
-  var statsServerWordsPerMin = {
-    type: "TEXT",
-    id: "statsServerWordsPerMin",
-    class: "statsTableText",
-    text: statsObj.heartbeat.wordsPerMin
-  };
+  // var statsServerWordsPerMin = {
+  //   type: "TEXT",
+  //   id: "statsServerWordsPerMin",
+  //   class: "statsTableText",
+  //   text: statsObj.heartbeat.wordsPerMin
+  // };
 
-  var statsServerMaxWordsPerMinLabel = {
-    type: "TEXT",
-    id: "statsServerMaxWordsPerMinLabel",
-    class: "statsTableText",
-    text: "MAX"
-  };
+  // var statsServerMaxWordsPerMinLabel = {
+  //   type: "TEXT",
+  //   id: "statsServerMaxWordsPerMinLabel",
+  //   class: "statsTableText",
+  //   text: "MAX"
+  // };
 
-  var statsServerMaxWordsPerMin = {
-    type: "TEXT",
-    id: "statsServerMaxWordsPerMin",
-    class: "statsTableText",
-    text: statsObj.heartbeat.maxWordsPerMin
-  };
+  // var statsServerMaxWordsPerMin = {
+  //   type: "TEXT",
+  //   id: "statsServerMaxWordsPerMin",
+  //   class: "statsTableText",
+  //   text: statsObj.heartbeat.maxWordsPerMin
+  // };
 
-  var statsServerMaxWordsPerMinTime = {
-    type: "TEXT",
-    id: "statsServerMaxWordsPerMinTime",
-    class: "statsTableText",
-    text: moment(statsObj.heartbeat.maxWordsPerMinTime).format(defaultDateTimeFormat)
-  };
+  // var statsServerMaxWordsPerMinTime = {
+  //   type: "TEXT",
+  //   id: "statsServerMaxWordsPerMinTime",
+  //   class: "statsTableText",
+  //   text: moment(statsObj.heartbeat.maxWordsPerMinTime).format(defaultDateTimeFormat)
+  // };
 
   switch (config.sessionViewType) {
 
@@ -1997,16 +1997,16 @@ function createStatsTable(callback) {
       tableCreateRow(statsTableServer, optionsBody, [statsServerUpTimeLabel, statsServerUpTime]);
       tableCreateRow(statsTableServer, optionsBody, [statsServerStartTimeLabel, statsServerStartTime]);
       tableCreateRow(statsTableServer, optionsBody, [statsServerRunTimeLabel, statsServerRunTime]);
-      tableCreateRow(statsTableServer, optionsBody, [statsServerTotalWordsLabel, statsServerTotalWords]);
-      tableCreateRow(statsTableServer, optionsBody, [statsServerWordsReceivedLabel, statsServerWordsReceived]);
-      tableCreateRow(statsTableServer, optionsBody, 
-        [
-          statsServerWordsPerMinLabel, 
-          statsServerWordsPerMin, 
-          statsServerMaxWordsPerMinLabel, 
-          statsServerMaxWordsPerMin, 
-          statsServerMaxWordsPerMinTime
-        ]);
+      // tableCreateRow(statsTableServer, optionsBody, [statsServerTotalWordsLabel, statsServerTotalWords]);
+      // tableCreateRow(statsTableServer, optionsBody, [statsServerWordsReceivedLabel, statsServerWordsReceived]);
+      // tableCreateRow(statsTableServer, optionsBody, 
+      //   [
+      //     statsServerWordsPerMinLabel, 
+      //     statsServerWordsPerMin, 
+      //     statsServerMaxWordsPerMinLabel, 
+      //     statsServerMaxWordsPerMin, 
+      //     statsServerMaxWordsPerMinTime
+      //   ]);
       tableCreateRow(statsTableClient, optionsHead, ["CLIENT"]);
       tableCreateRow(statsTableClient, optionsBody, [statsClientSessionIdLabel, statsClientSessionId]);
       tableCreateRow(statsTableClient, optionsBody, [statsClientNumberNodesLabel, statsClientNumberNodes, statsClientNumberMaxNodesLabel, statsClientNumberMaxNodes]);
@@ -2118,11 +2118,11 @@ function updateStatsTable(statsObj){
   document.getElementById("statsServerUpTime").innerHTML = msToTime(statsObj.heartbeat.upTime);
   document.getElementById("statsServerStartTime").innerHTML = moment(statsObj.heartbeat.startTime).format(defaultDateTimeFormat);
   document.getElementById("statsServerRunTime").innerHTML = msToTime(statsObj.heartbeat.runTime);
-  document.getElementById("statsServerTotalWords").innerHTML = statsObj.heartbeat.totalWords;
-  document.getElementById("statsServerWordsReceived").innerHTML = statsObj.heartbeat.responsesReceived;
-  document.getElementById("statsServerWordsPerMin").innerHTML = statsObj.heartbeat.wordsPerMin.toFixed(2);
-  document.getElementById("statsServerMaxWordsPerMin").innerHTML = statsObj.heartbeat.maxWordsPerMin.toFixed(2);
-  document.getElementById("statsServerMaxWordsPerMinTime").innerHTML = moment(statsObj.heartbeat.maxWordsPerMinTime).format(defaultDateTimeFormat);
+  // document.getElementById("statsServerTotalWords").innerHTML = statsObj.heartbeat.totalWords;
+  // document.getElementById("statsServerWordsReceived").innerHTML = statsObj.heartbeat.responsesReceived;
+  // document.getElementById("statsServerWordsPerMin").innerHTML = statsObj.heartbeat.wordsPerMin.toFixed(2);
+  // document.getElementById("statsServerMaxWordsPerMin").innerHTML = statsObj.heartbeat.maxWordsPerMin.toFixed(2);
+  // document.getElementById("statsServerMaxWordsPerMinTime").innerHTML = moment(statsObj.heartbeat.maxWordsPerMinTime).format(defaultDateTimeFormat);
   document.getElementById("statsClientNumberNodes").innerHTML = currentSessionView.getNodesLength();
   document.getElementById("statsClientNumberMaxNodes").innerHTML = statsObj.maxNodes;
   document.getElementById("statsClientNumberEntities").innerHTML = sessionHashMap.count();

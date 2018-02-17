@@ -1836,33 +1836,33 @@ function createStatsTable(callback) {
     text: "---"
   };
 
-  var statsClientNumberEntitiesLabel = {
-    type: "TEXT",
-    id: "statsClientNumberEntitiesLabel",
-    class: "statsTableText",
-    text: "ENTITIES"
-  };
+  // var statsClientNumberEntitiesLabel = {
+  //   type: "TEXT",
+  //   id: "statsClientNumberEntitiesLabel",
+  //   class: "statsTableText",
+  //   text: "ENTITIES"
+  // };
 
-  var statsClientNumberEntities = {
-    type: "TEXT",
-    id: "statsClientNumberEntities",
-    class: "statsTableText",
-    text: "---"
-  };
+  // var statsClientNumberEntities = {
+  //   type: "TEXT",
+  //   id: "statsClientNumberEntities",
+  //   class: "statsTableText",
+  //   text: "---"
+  // };
 
-  var statsClientNumberMaxEntitiesLabel = {
-    type: "TEXT",
-    id: "statsClientNumberMaxEntitiesLabel",
-    class: "statsTableText",
-    text: "MAX"
-  };
+  // var statsClientNumberMaxEntitiesLabel = {
+  //   type: "TEXT",
+  //   id: "statsClientNumberMaxEntitiesLabel",
+  //   class: "statsTableText",
+  //   text: "MAX"
+  // };
 
-  var statsClientNumberMaxEntities = {
-    type: "TEXT",
-    id: "statsClientNumberMaxEntities",
-    class: "statsTableText",
-    text: "---"
-  };
+  // var statsClientNumberMaxEntities = {
+  //   type: "TEXT",
+  //   id: "statsClientNumberMaxEntities",
+  //   class: "statsTableText",
+  //   text: "---"
+  // };
 
   var statsServerTimeLabel = {
     type: "TEXT",
@@ -2012,7 +2012,7 @@ function createStatsTable(callback) {
       tableCreateRow(statsTableClient, optionsBody, [statsClientNumberNodesLabel, statsClientNumberNodes, statsClientNumberMaxNodesLabel, statsClientNumberMaxNodes]);
       tableCreateRow(statsTableClient, optionsBody, [statsClientAgeRateLabel, statsClientAgeRate, statsClientMaxAgeRateLabel, statsClientMaxAgeRate]);
       tableCreateRow(statsTableClient, optionsBody, [statsClientAddNodeQLabel, statsClientAddNodeQ, statsClientMaxAddNodeQLabel, statsClientMaxAddNodeQ]);
-      tableCreateRow(statsTableClient, optionsBody, [statsClientNumberEntitiesLabel, statsClientNumberEntities, statsClientNumberMaxEntitiesLabel, statsClientNumberMaxEntities]);
+      // tableCreateRow(statsTableClient, optionsBody, [statsClientNumberEntitiesLabel, statsClientNumberEntities, statsClientNumberMaxEntitiesLabel, statsClientNumberMaxEntities]);
       break;
   }
 
@@ -2125,8 +2125,8 @@ function updateStatsTable(statsObj){
   // document.getElementById("statsServerMaxWordsPerMinTime").innerHTML = moment(statsObj.heartbeat.maxWordsPerMinTime).format(defaultDateTimeFormat);
   document.getElementById("statsClientNumberNodes").innerHTML = currentSessionView.getNodesLength();
   document.getElementById("statsClientNumberMaxNodes").innerHTML = statsObj.maxNodes;
-  document.getElementById("statsClientNumberEntities").innerHTML = sessionHashMap.count();
-  document.getElementById("statsClientNumberMaxEntities").innerHTML = maxSessions;
+  // document.getElementById("statsClientNumberEntities").innerHTML = sessionHashMap.count();
+  // document.getElementById("statsClientNumberMaxEntities").innerHTML = maxSessions;
   document.getElementById("statsClientAddNodeQ").innerHTML = currentSessionView.getNodeAddQlength();
   document.getElementById("statsClientMaxAddNodeQ").innerHTML = currentSessionView.getMaxNodeAddQ();
   document.getElementById("statsClientAgeRate").innerHTML = currentSessionView.getAgeRate().toFixed(2);

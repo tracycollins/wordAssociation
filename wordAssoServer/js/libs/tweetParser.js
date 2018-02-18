@@ -156,7 +156,7 @@ function initTweetParserQueueInterval(cnf){
 
   tweetParserQueueInterval = setInterval(function(){
 
-    if ((tweetParserQueue.length > 0) && tweetParserQueueReady && networkReady){
+    if (tweetServer.ready() && (tweetParserQueue.length > 0) && tweetParserQueueReady && networkReady){
 
       tweetParserQueueReady = false;
 

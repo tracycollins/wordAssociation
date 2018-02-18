@@ -9,6 +9,9 @@ let bestNetworkObj = {};
 let tweetParserReady = false;
 let previousBestNetworkId = "";
 
+const ONE_KILOBYTE = 1024;
+const ONE_MEGABYTE = 1024 * ONE_KILOBYTE;
+
 const ONE_SECOND = 1000;
 const ONE_MINUTE = 60 * ONE_SECOND;
 const ONE_HOUR = 60 * ONE_MINUTE;

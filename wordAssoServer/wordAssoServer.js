@@ -92,7 +92,6 @@ let quitOnError = true;
 // GLOBAL letIABLES
 // ==================================================================
 let statsObj = {};
-statsObj.bestNetwork = {};
 
 const compactDateTimeFormat = "YYYYMMDD HHmmss";
 const tinyDateTimeFormat = "YYYYMMDDHHmmss";
@@ -698,6 +697,9 @@ let tweetParser;
 function initStats(callback){
   console.log(chalkAlert("INIT STATS"));
   statsObj = {};
+
+  statsObj.bestNetwork = {};
+
   statsObj.memwatch = {};
   statsObj.memwatch.snapshotTaken = false;
   statsObj.memwatch.leak = {};
@@ -4038,8 +4040,6 @@ function initLoadBestNetworkInterval(interval){
           + " | " + bRtNnObj.networkId
           + " | SUCCESS: " + bRtNnObj.successRate.toFixed(2) + "%"
           + " | MATCH: " + bRtNnObj.matchRate.toFixed(2) + "%"
-          // + " | " + nnObj.successRate.toFixed(2)
-          // + "\n" + jsonPrint(nnObj)
         ));
 
         statsObj.bestNetwork.networkId = bRtNnObj.networkId;

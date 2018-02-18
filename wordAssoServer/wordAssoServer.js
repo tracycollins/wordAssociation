@@ -4025,7 +4025,10 @@ function initLoadBestNetworkInterval(interval){
     loadFile(bestNetworkFolder, bestRuntimeNetworkFileName, function(err, bRtNnObj){
 
       if (err) {
-        console.log(chalkError("LOAD BEST NETWORK ERROR: " + err));
+        console.log(chalkError("LOAD BEST NETWORK ERROR"
+          + " | PATH: " + bestNetworkFolder + "/" + bestRuntimeNetworkFileName 
+          + " | ERROR" + err
+        ));
       }
       else {
 
@@ -4046,6 +4049,13 @@ function initLoadBestNetworkInterval(interval){
         let file = bRtNnObj.networkId + ".json";
 
         loadFile(bestNetworkFolder, file, function(err, nnObj){
+
+          if (err) {
+            console.log(chalkError("LOAD BEST NETWORK ERROR"
+              + " | PATH: " + bestNetworkFolder + "/" + file 
+              + " | ERROR" + err
+            ));
+          }
 
           bestNetworkObj = nnObj;
 

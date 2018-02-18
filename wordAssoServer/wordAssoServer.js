@@ -51,7 +51,7 @@ const exp = require("express");
 const bodyParser = require("body-parser");
 const methodOverride = require("method-override");
 const session = require("express-session");
-// const MongoDBStore = require("connect-mongodb-session")(session);
+const deepcopy = require("deep-copy");
 const MongoDBStore = require("express-session-mongo");
 
 // const sessionStore = new MongoDBStore({
@@ -4025,9 +4025,9 @@ function initLoadBestNetworkInterval(interval){
     loadFile(bestNetworkFolder, bestRuntimeNetworkFileName, function(err, bRtNnObj){
 
       if (err) {
-        console.log(chalkError("LOAD BEST NETWORK ERROR"
+        console.trace(chalkError("LOAD BEST NETWORK ERROR"
           + " | PATH: " + bestNetworkFolder + "/" + bestRuntimeNetworkFileName 
-          + " | ERROR" + err
+          + " | ERROR: " + err
         ));
       }
       else {
@@ -4051,13 +4051,13 @@ function initLoadBestNetworkInterval(interval){
         loadFile(bestNetworkFolder, file, function(err, nnObj){
 
           if (err) {
-            console.log(chalkError("LOAD BEST NETWORK ERROR"
+            console.trace(chalkError("LOAD BEST NETWORK ERROR"
               + " | PATH: " + bestNetworkFolder + "/" + file 
               + " | ERROR" + err
             ));
           }
 
-          bestNetworkObj = nnObj;
+          bestNetworkObj = deepcopy(nnObj);
 
           if (tweetParser === undefined) {
             initTweetParser();

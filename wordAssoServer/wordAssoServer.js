@@ -464,6 +464,10 @@ mongoose.Promise = global.Promise;
 const hashtagServer = require("@threeceelabs/hashtag-server-controller");
 const userServer = require("@threeceelabs/user-server-controller");
 
+function toMegabytes(sizeInBytes) {
+  return sizeInBytes/ONE_MEGABYTE;
+}
+
 function jsonPrint(obj) {
   if (obj) {
     return JSON.stringify(obj, null, 2);

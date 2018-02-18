@@ -92,6 +92,7 @@ let quitOnError = true;
 // GLOBAL letIABLES
 // ==================================================================
 let statsObj = {};
+statsObj.bestNetwork = {};
 
 const compactDateTimeFormat = "YYYYMMDD HHmmss";
 const tinyDateTimeFormat = "YYYYMMDDHHmmss";

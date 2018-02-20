@@ -25,7 +25,7 @@ function ViewTreepack() {
   var resumeTimeStamp = 0;
   var compactDateTimeFormat = "YYYYMMDD HHmmss";
 
-  var minRadiusRatio = 0.005;
+  var minRadiusRatio = 0.0075;
   var maxRadiusRatio = 0.10;
 
   var sliderPercision = 5;

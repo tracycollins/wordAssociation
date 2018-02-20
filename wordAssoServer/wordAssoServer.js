@@ -21,12 +21,7 @@ const MAX_SESSION_AGE = ONE_DAY/1000;
 const MAX_Q = 200;
 const OFFLINE_MODE = false;
 
-// const oauthConfig = require("./oauth.js");
 const passport = require("passport");
-// const authStrategies = require("./authentication.js");
-
-// const heapdumpThresholdEnabled = true;
-// let hd;
 
 let twitterUserThreecee = {
     userId : "14607119",
@@ -54,20 +49,6 @@ const session = require("express-session");
 const deepcopy = require("deep-copy");
 const MongoDBStore = require("express-session-mongo");
 
-// const sessionStore = new MongoDBStore({
-//   uri: "mongodb://127.0.0.1/wordAsso?replicaSet=rs0",
-//   collection: "oauthSessions"
-// });
-
-// const sessionStore = new MongoDBStore({
-//   uri: "mongodb://127.0.0.1/wordAsso?replicaSet=rs0",
-//   collection: "oauthSessions"
-// });
-
-// sessionStore.on("error", function(error) {
-//   console.log(chalkError("MONGO SESSION STORE ERROR\n" + jsonPrint(error))); 
-// });
-
 const slackOAuthAccessToken = "xoxp-3708084981-3708084993-206468961315-ec62db5792cd55071a51c544acf0da55";
 const slackChannel = "#was";
 const Slack = require("slack-node");
@@ -79,14 +60,6 @@ console.log("\n\n============== START ==============\n\n");
 console.log("PROCESS PID: " + process.pid);
 
 let quitOnError = true;
-
-// let HEAPDUMP_THRESHOLD = process.env.HEAPDUMP_THRESHOLD || 2048;
-
-// const heapdump = require("heapdump");
-// const memwatch = require("memwatch-next");
-
-// let HEAPDUMP_ENABLED = false;
-// let HEAPDUMP_MODULO = process.env.HEAPDUMP_MODULO || 10;
 
 // ==================================================================
 // GLOBAL letIABLES
@@ -297,11 +270,9 @@ const debug = require("debug")("wa");
 const debugCache = require("debug")("cache");
 const debugKeyword = require("debug")("kw");
 
-// const Queue = require("queue-fifo");
 const express = require("./config/express");
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
 require("isomorphic-fetch");
-// const Dropbox = require("dropbox");
 const Dropbox = require('dropbox').Dropbox;
 // const Dropbox = require("./js/libs/dropbox").Dropbox;
 
@@ -361,33 +332,11 @@ tmsServer.socket = {};
 let wordMeter = {};
 
 let tweetRxQueueInterval;
-// const tweetParserQueue = new Queue();
-// const tweetParserMessageRxQueue = new Queue();
-// const tweetRxQueue = new Queue();
 const tweetParserQueue = [];
 const tweetParserMessageRxQueue = [];
 const tweetRxQueue = [];
 
 let statsInterval;
-
-// if (process.env.HEAPDUMP_ENABLED !== undefined) {
-
-//   console.log(chalkError("DEFINED process.env.HEAPDUMP_ENABLED: " + process.env.HEAPDUMP_ENABLED));
-
-//   if (process.env.HEAPDUMP_ENABLED === "true") {
-//     HEAPDUMP_ENABLED = true;
-//     console.log(chalkError("TRUE process.env.HEAPDUMP_ENABLED: " + process.env.HEAPDUMP_ENABLED));
-//     console.log(chalkError("TRUE HEAPDUMP_ENABLED: " + HEAPDUMP_ENABLED));
-//   }
-//   else if (process.env.HEAPDUMP_ENABLED === "false") {
-//     HEAPDUMP_ENABLED = false;
-//     console.log(chalkError("FALSE process.env.HEAPDUMP_ENABLED: " + process.env.HEAPDUMP_ENABLED));
-//     console.log(chalkError("FALSE HEAPDUMP_ENABLED: " + HEAPDUMP_ENABLED));
-//   }
-
-//   console.log(chalkError("HEAPDUMP_MODULO: " + HEAPDUMP_MODULO));
-// }
-
 
 let GOOGLE_METRICS_ENABLED = false;
 

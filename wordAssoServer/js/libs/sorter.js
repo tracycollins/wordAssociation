@@ -18,7 +18,7 @@ hostname = hostname.replace(/.local/g, "");
 hostname = hostname.replace(/.fios-router.home/g, "");
 hostname = hostname.replace(/word0-instance-1/g, "google");
 
-process.title = "node_updater";
+process.title = "node_sorter";
 console.log(
   "\n\n====================================================================================================\n" 
   + "========================================= ***START*** ==============================================\n" 

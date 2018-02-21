@@ -55,9 +55,11 @@ const Slack = require("slack-node");
 
 const slack = new Slack(slackOAuthAccessToken);
 
+process.title = "node_wordAssoServer";
 console.log("\n\n============== START ==============\n\n");
 
-console.log("PROCESS PID: " + process.pid);
+console.log("PROCESS PID:   " + process.pid);
+console.log("PROCESS TITLE: " + process.title);
 
 let quitOnError = true;
 
@@ -1765,7 +1767,9 @@ function initSocketHandler(socketObj) {
           console.log(chalkError("TWITTER_SEARCH_NODE USER ERROR\n" + jsonPrint(err)));
         }
         else if (user) {
+
           console.log(chalkTwitter("+++ TWITTER_SEARCH_NODE USER FOUND\n" + jsonPrint(user)));
+          
           twit.get("users/show", {user_id: user.userId, include_entities: true}, function usersShow (err, rawUser, response){
             if (err) {
               console.log(chalkError("ERROR users/show rawUser" + err));

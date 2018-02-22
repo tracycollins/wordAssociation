@@ -2795,7 +2795,10 @@ function initAppRouting(callback) {
 
       dropboxFolderGetLastestCursor(bestNetworkFolder, function(err, response){
 
-        if (response && (response.entries.length > 0)) {
+        if (err) {
+          next();
+        }
+        else if (response && (response.entries.length > 0)) {
 
           utilNameSpace.emit("DROPBOX_CHANGE", response);
           adminNameSpace.emit("DROPBOX_CHANGE", response);

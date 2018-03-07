@@ -170,6 +170,8 @@ function ViewTreepack() {
   var fontSizeMin = config.defaultFontSizeMinRatio * height;
   var fontSizeMax = config.defaultFontSizeMaxRatio * height;
 
+  var nodeRadiusMin = config.defaultNodeRadiusMinRatio * width;
+
   var rowSpacing = fontSizeTopTermRatio*110; // %
   var colSpacing = 90/maxHashtagCols; // %
 
@@ -724,9 +726,9 @@ function ViewTreepack() {
 
   self.updateNodeRadiusMin = function(value) {
     console.debug("UPDATE NODE RADIUS MIN: " + value);
-    config.defaultnodeRadiusMin = value;
-    nodeRadiusMin = value;
-    nodeRadiusMin = value * height;
+    config.defaultNodeRadiusMinRatio = value;
+    nodeRadiusMinRatio = value;
+    nodeRadiusMin = value * width;
     defaultRadiusScale = d3.scaleLinear()
       .domain([0.1, Math.sqrt(currentMaxMetric)])
       .range([nodeRadiusMin, nodeRadiusMax])

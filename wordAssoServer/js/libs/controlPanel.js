@@ -168,6 +168,9 @@ function ControlPanel() {
         + " | --- Ts"
         + "<br>" 
         + "<br>" 
+        + "3CF: ---"
+        + "<br>" 
+        + "<br>" 
         + "KW: M: --- | A: ---"
         + "<br>";
 
@@ -191,6 +194,9 @@ function ControlPanel() {
         + " | " + followersMentions + " FLWRMs" 
         + " | " + node.friendsCount + " FRNDs" 
         + " | " + node.statusesCount + " Ts"
+        + "<br>" 
+        + "<br>" 
+        + "3CF: " + node.threeceeFollowing
         + "<br>" 
         + "<br>" 
         + "KW: M: " + node.keywords + " | A: " + node.keywordsAuto
@@ -766,7 +772,11 @@ function ControlPanel() {
       });
     }
 
-    console.log("CREATE CONTROL PANEL\n" + jsonPrint(config));
+    console.log("CREATE CONTROL PANEL" 
+      + " | " + config.twitterUser.screenName
+      + " | " + config.twitterUser.threeceeFollowing
+      // + jsonPrint(config)
+    );
 
     dashboardMain = document.getElementById("dashboardMain");
     infoTable = document.getElementById("infoTable");

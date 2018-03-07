@@ -677,6 +677,9 @@ function ControlPanel() {
     var v;
     switch (currentSlider.id) {
       case "nodeRadiusMinRatioSlider":
+        v = currentSlider.value/currentSlider.multiplier;
+        document.getElementById(currentSliderTextId).innerHTML = v.toFixed(3);
+      break;
       case "fontSizeMinRatioSlider":
       case "fontSizeMaxRatioSlider":
         v = 100*currentSlider.value/currentSlider.multiplier;
@@ -1013,7 +1016,7 @@ function ControlPanel() {
       id: "nodeRadiusMinRatioSlider",
       class: "slider",
       min: 0.0,
-      max: 1000.0,
+      max: 100.0,
       value: config.defaultNodeRadiusMinRatio * config.defaultMultiplier,
       multiplier: config.defaultMultiplier
     };

@@ -723,7 +723,7 @@ function ViewTreepack() {
   };
 
   self.updateNodeRadiusMin = function(value) {
-    console.debug("UPDATE RADIUS MIN: " + value);
+    console.debug("UPDATE NODE RADIUS MIN: " + value);
     config.defaultnodeRadiusMin = value;
     nodeRadiusMin = value;
     nodeRadiusMin = value * height;

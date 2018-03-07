@@ -170,7 +170,7 @@ var DEFAULT_GRAVITY = 0.001;
 var DEFAULT_FORCEX_MULTIPLIER = 25.0;
 var DEFAULT_FORCEX_SESSION_MULTIPLIER = 50.0;
 var DEFAULT_FORCEY_MULTIPLIER = 25.0;
-var DEFAULT_NODE_RADIUS_MIN = 1.0;
+var DEFAULT_NODE_RADIUS_MIN = 10.0;
 var DEFAULT_VELOCITY_DECAY = 0.35;
 var DEFAULT_LINK_DISTANCE = 100.0;
 var DEFAULT_LINK_STRENGTH = 0.50;
@@ -1067,8 +1067,8 @@ function controlPanelComm(event) {
           currentSessionView.updateFontSizeMaxRatio(data.value);
           resetConfigUpdateTimeOut();
         break;
-        case "radiusMinSlider" :
-          currentSessionView.updateRadiusMin(data.value);
+        case "nodeRadiusMinSlider" :
+          currentSessionView.updateNodeRadiusMin(data.value);
           resetConfigUpdateTimeOut();
         break;
         default:

@@ -59,6 +59,7 @@ function ControlPanel() {
   var currentTwitterHashtag;
 
   config = window.opener.config;
+  delete config.twitterUser.histograms;
 
   console.log("config\n" + jsonPrint(config));
 

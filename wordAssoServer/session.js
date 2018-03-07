@@ -1071,8 +1071,8 @@ function controlPanelComm(event) {
           currentSessionView.updateFontSizeMaxRatio(data.value);
           resetConfigUpdateTimeOut();
         break;
-        case "nodeRadiusMinSlider" :
-          currentSessionView.updateNodeRadiusMin(data.value);
+        case "nodeRadiusMinRatioSlider" :
+          currentSessionView.updateNodeRadiusMinRatio(data.value);
           resetConfigUpdateTimeOut();
         break;
         default:

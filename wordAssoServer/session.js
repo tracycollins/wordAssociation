@@ -243,6 +243,7 @@ MEDIAVIEW_DEFAULT.LINK_STRENGTH = 0.95;
 MEDIAVIEW_DEFAULT.COLLISION_RADIUS_MULTIPLIER = 2.50;
 MEDIAVIEW_DEFAULT.COLLISION_ITERATIONS = 1;
 MEDIAVIEW_DEFAULT.NODE_RADIUS_MIN_RATIO = 0.0075;
+MEDIAVIEW_DEFAULT.NODE_RADIUS_MAX_RATIO = 0.1000;
 
 var config = {};
 
@@ -301,10 +302,12 @@ else {
   config.defaultCollisionIterations = DEFAULT_COLLISION_ITERATIONS;
   config.defaultLinkStrength = DEFAULT_LINK_STRENGTH;
   config.defaultLinkDistance = DEFAULT_LINK_DISTANCE;
+
   config.defaultNodeRadiusMinRatio = DEFAULT_NODE_RADIUS_MIN_RATIO;
   config.defaultNodeRadiusMaxRatio = DEFAULT_NODE_RADIUS_MAX_RATIO;
-  config.defaultVelocityDecay = DEFAULT_VELOCITY_DECAY;
   config.defaultNodeRadius = DEFAULT_NODE_RADIUS;
+
+  config.defaultVelocityDecay = DEFAULT_VELOCITY_DECAY;
 
   config.defaultFontSizeMinRatio = DEFAULT_FONT_SIZE_MIN_RATIO;
   config.defaultFontSizeMaxRatio = DEFAULT_FONT_SIZE_MAX_RATIO;

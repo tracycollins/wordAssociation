@@ -1065,6 +1065,10 @@ function controlPanelComm(event) {
           currentSessionView.updateFontSizeMaxRatio(data.value);
           resetConfigUpdateTimeOut();
         break;
+        case "radiusMinSlider" :
+          currentSessionView.updateRadiusMin(data.value);
+          resetConfigUpdateTimeOut();
+        break;
         default:
           console.error("UNKNOWN CONTROL PANEL ID: " + data.id + "\n" + jsonPrint(data));
       }

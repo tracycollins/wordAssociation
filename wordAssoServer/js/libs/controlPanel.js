@@ -3,6 +3,10 @@ function ControlPanel() {
   // var DEFAULT_SOURCE = "http://localhost:9997";
   var DEFAULT_SOURCE = "http://word.threeceelabs.com";
 
+  var parentWindow = window.opener;
+  console.info("PARENT WINDOW ID | " + parentWindow.PARENT_ID);
+  var self = this;
+
   function jsonPrint(obj) {
     if ((obj) || (obj === 0)) {
       var jsonString = JSON.stringify(obj, null, 2);
@@ -12,9 +16,42 @@ function ControlPanel() {
     }
   }
 
-  var parentWindow = window.opener;
-  console.info("PARENT WINDOW ID | " + parentWindow.PARENT_ID);
-  var self = this;
+  var twitterCategoryDiv = document.getElementById("twitterCategoryDiv");
+  var twitterCategorySearchDiv = document.getElementById("twitterCategorySearchDiv");
+
+  var nodeSearchInput = document.createElement("input");
+  var nodeSearchLabel = document.createElement("label");
+  var nodeSearchValue = "";
+
+  nodeSearchLabel.setAttribute("id", "nodeSearchLabel");
+  nodeSearchLabel.innerHTML = "NODE SEARCH";
+
+
+  function nodeSearchHandler(e) {
+    console.log("NODE SEARCH"
+      + " | KEY: " + e.keyCode
+      + " | INPUT: " + nodeSearchInput.value
+    );
+    if (e.keyCode === 13) { // 'ENTER' key
+      parentWindow.postMessage({op: "NODE_SEARCH", input: nodeSearchInput.value}, DEFAULT_SOURCE);
+    }
+  }
+
+
+
+  nodeSearchInput.setAttribute("class", "nodeSearch");
+  nodeSearchInput.setAttribute("type", "text");
+  nodeSearchInput.setAttribute("id", "nodeSearchInput");
+  nodeSearchInput.setAttribute("name", "nodeSearch");
+  nodeSearchInput.setAttribute("autofocus", true);
+  nodeSearchInput.setAttribute("autocapitalize", "none");
+  nodeSearchInput.setAttribute("value", nodeSearchValue);
+  nodeSearchInput.addEventListener("keydown", function(e){ nodeSearchHandler(e); }, false);
+
+  twitterCategorySearchDiv.appendChild(nodeSearchLabel);
+  twitterCategorySearchDiv.appendChild(nodeSearchInput);
+
+
 
   var config = {};
   var currentTwitterNode;
@@ -38,28 +75,6 @@ function ControlPanel() {
   var timelineDiv = document.getElementById("timelineDiv");
 
   var hashtagDiv =document.getElementById("hashtagDiv");
-
-  var twitterCategoryDiv = document.getElementById("twitterCategoryDiv");
-  var twitterCategorySearchDiv = document.getElementById("twitterCategorySearchDiv");
-
-  var nodeSearchInput = document.createElement("input");
-  var nodeSearchLabel = document.createElement("label");
-  var nodeSearchValue = "";
-
-  nodeSearchLabel.setAttribute("id", "nodeSearchLabel");
-  nodeSearchLabel.innerHTML = "NODE SEARCH";
-
-  nodeSearchInput.setAttribute("class", "nodeSearch");
-  nodeSearchInput.setAttribute("type", "text");
-  nodeSearchInput.setAttribute("id", "nodeSearchInput");
-  nodeSearchInput.setAttribute("name", "nodeSearch");
-  nodeSearchInput.setAttribute("autofocus", true);
-  nodeSearchInput.setAttribute("autocapitalize", "none");
-  nodeSearchInput.setAttribute("value", nodeSearchValue);
-  nodeSearchInput.addEventListener("keydown", function(e){ nodeSearchHandler(e); }, false);
-
-  twitterCategorySearchDiv.appendChild(nodeSearchLabel);
-  twitterCategorySearchDiv.appendChild(nodeSearchInput);
 
   function nextMismatchedButtonHandler(e){
 
@@ -158,8 +173,10 @@ function ControlPanel() {
 
   function twitterWidgetsCreateTimeline(node, callback){
 
+    var timelineText;
+
     if (node.notFound !== undefined) {
-      var timelineText = document.createElement("TEXT");
+      timelineText = document.createElement("TEXT");
       timelineText.setAttribute("id", "timelineText");
       timelineText.setAttribute("class", "timelineText");
       timelineText.innerHTML = "<br>" 
@@ -183,7 +200,7 @@ function ControlPanel() {
       var name = (node.name !== undefined) ? node.name : "---";
       var followersMentions = node.followersCount + node.mentions;
 
-      var timelineText = document.createElement("TEXT");
+      timelineText = document.createElement("TEXT");
       timelineText.setAttribute("id", "timelineText");
       timelineText.setAttribute("class", "timelineText");
       timelineText.innerHTML = "<br>" 
@@ -303,16 +320,6 @@ function ControlPanel() {
           callback(err, el);
         });
       });
-    }
-  }
-
-  function nodeSearchHandler(e) {
-    console.log("NODE SEARCH"
-      + " | KEY: " + e.keyCode
-      + " | INPUT: " + nodeSearchInput.value
-    );
-    if (e.keyCode === 13) { // 'ENTER' key
-      parentWindow.postMessage({op: "NODE_SEARCH", input: nodeSearchInput.value}, DEFAULT_SOURCE);
     }
   }
 
@@ -454,6 +461,13 @@ function ControlPanel() {
   statsObj.socketId = "NOT SET";
 
 
+  this.setRadiusMinimumSliderValue = function (value) {
+    if (!document.getElementById("radiusMinimumSlider")) { return; }
+    console.log("setRadiusMinimumSliderValue: " + value);
+    document.getElementById("radiusMinimumSlider").value = (value * document.getElementById("radiusMinimumSlider").getAttribute("multiplier"));
+    document.getElementById("radiusMinimumSliderText").innerHTML = value.toFixed(3);
+  };
+
   this.setVelocityDecaySliderValue = function (value) {
     if (!document.getElementById("velocityDecaySlider")) { return; }
     console.log("setVelocityDecaySliderValue: " + value);
@@ -567,6 +581,7 @@ function ControlPanel() {
         self.setLinkDistanceSliderValue(cnf.defaultLinkDistance);
         self.setGravitySliderValue(cnf.defaultGravity);
         self.setChargeSliderValue(cnf.defaultCharge);
+        self.setRadiusMinimumSliderValue(cnf.defaultRadiusMinimum);
         self.setVelocityDecaySliderValue(cnf.defaultVelocityDecay);
         self.setMaxAgeSliderValue(cnf.defaultMaxAge);
         self.setFontSizeMinRatioSliderValue(cnf.defaultFontSizeMinRatio);
@@ -628,6 +643,7 @@ function ControlPanel() {
         self.setTransitionDurationSliderValue(parentWindow.DEFAULT_TRANSITION_DURATION);
         self.setGravitySliderValue(parentWindow.DEFAULT_GRAVITY);
         self.setChargeSliderValue(parentWindow.DEFAULT_CHARGE);
+        self.setRadiusMinimumSliderValue(parentWindow.DEFAULT_RADIUS_MINIMUM);
         self.setVelocityDecaySliderValue(parentWindow.DEFAULT_VELOCITY_DECAY);
         self.setMaxAgeSliderValue(parentWindow.DEFAULT_MAX_AGE);
         self.setFontSizeMinRatioSliderValue(parentWindow.DEFAULT_FONT_SIZE_MIN_RATIO);
@@ -678,7 +694,6 @@ function ControlPanel() {
     // console.log("keyup event detected! coming from this element:", e.target);
     switch (e.target.id) {
       case "nodeSearchInput":
-        // nodeSearchHandler(e);
       break;
       default:
         sliderHandler(e);
@@ -983,6 +998,23 @@ function ControlPanel() {
       text: (gravitySlider.value * gravitySlider.multiplier)
     };
 
+    var radiusMinimumSlider = {
+      type: "SLIDER",
+      id: "radiusMinimumSlider",
+      class: "slider",
+      min: 0.0,
+      max: 1000.0,
+      value: config.defaultVelocityDecay * config.defaultMultiplier,
+      multiplier: config.defaultMultiplier
+    };
+
+    var radiusMinimumSliderText = {
+      type: "TEXT",
+      id: "radiusMinimumSliderText",
+      class: "sliderText",
+      text: (radiusMinimumSlider.value * radiusMinimumSlider.multiplier)
+    };
+
     var velocityDecaySlider = {
       type: "SLIDER",
       id: "velocityDecaySlider",
@@ -1073,6 +1105,7 @@ function ControlPanel() {
         self.tableCreateRow(controlSliderTable, optionsBody, ["MAX AGE", maxAgeSlider, maxAgeSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["CHARGE", chargeSlider, chargeSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["GRAVITY", gravitySlider, gravitySliderText]);
+        self.tableCreateRow(controlSliderTable, optionsBody, ["RADIUS MIN", radiusMinimumSlider, radiusMinimumSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["VEL DECAY", velocityDecaySlider, velocityDecaySliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["LINK STRENGTH", linkStrengthSlider, linkStrengthSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["LINK DISTANCE", linkDistanceSlider, linkDistanceSliderText]);
@@ -1088,6 +1121,7 @@ function ControlPanel() {
         self.tableCreateRow(controlSliderTable, optionsBody, ["MAX AGE", maxAgeSlider, maxAgeSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["CHARGE", chargeSlider, chargeSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["GRAVITY", gravitySlider, gravitySliderText]);
+        self.tableCreateRow(controlSliderTable, optionsBody, ["RADIUS MIN", radiusMinimumSlider, radiusMinimumSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["VEL DECAY", velocityDecaySlider, velocityDecaySliderText]);
         if (callback) { callback(dashboardMain); }
         break;

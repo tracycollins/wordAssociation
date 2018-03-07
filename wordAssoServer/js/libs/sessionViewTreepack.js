@@ -25,8 +25,8 @@ function ViewTreepack() {
   var resumeTimeStamp = 0;
   var compactDateTimeFormat = "YYYYMMDD HHmmss";
 
-  var nodeRadiusMinRatio = 0.0075;
-  var nodeRadiusMaxRatio = 0.10;
+  // var nodeRadiusMinRatio = 0.0075;
+  // var nodeRadiusMaxRatio = 0.10;
 
   var sliderPercision = 5;
 
@@ -149,8 +149,8 @@ function ViewTreepack() {
   var width = getWindowDimensions().width;
   var height = getWindowDimensions().height;
 
-  var nodeRadiusMin = nodeRadiusMinRatio * width;
-  var nodeRadiusMax = nodeRadiusMaxRatio * height;
+  // var nodeRadiusMin = nodeRadiusMinRatio * width;
+  // var nodeRadiusMax = nodeRadiusMaxRatio * height;
 
   var autoKeywordsFlag = config.autoKeywordsFlag;
 
@@ -170,7 +170,10 @@ function ViewTreepack() {
   var fontSizeMin = config.defaultFontSizeMinRatio * height;
   var fontSizeMax = config.defaultFontSizeMaxRatio * height;
 
+  var nodeRadiusMinRatio = config.defaultNodeRadiusMinRatio;
+  var nodeRadiusMaxRatio = config.defaultNodeRadiusMaxRatio;
   var nodeRadiusMin = config.defaultNodeRadiusMinRatio * width;
+  var nodeRadiusMax = config.defaultNodeRadiusMaxRatio * width;
 
   var rowSpacing = fontSizeTopTermRatio*110; // %
   var colSpacing = 90/maxHashtagCols; // %
@@ -729,6 +732,17 @@ function ViewTreepack() {
     config.defaultNodeRadiusMinRatio = value;
     nodeRadiusMinRatio = value;
     nodeRadiusMin = value * width;
+    defaultRadiusScale = d3.scaleLinear()
+      .domain([0.1, Math.sqrt(currentMaxMetric)])
+      .range([nodeRadiusMin, nodeRadiusMax])
+      .clamp(true);
+  };
+
+  self.updateNodeRadiusMaxRatio = function(value) {
+    console.debug("UPDATE NODE RADIUS MAX RATIO: " + value);
+    config.defaultNodeRadiusMaxRatio = value;
+    nodeRadiusMaxRatio = value;
+    nodeRadiusMax = value * width;
     defaultRadiusScale = d3.scaleLinear()
       .domain([0.1, Math.sqrt(currentMaxMetric)])
       .range([nodeRadiusMin, nodeRadiusMax])

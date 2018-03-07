@@ -724,8 +724,8 @@ function ViewTreepack() {
     simulation.force("charge", d3.forceManyBody().strength(value));
   };
 
-  self.updateNodeRadiusMin = function(value) {
-    console.debug("UPDATE NODE RADIUS MIN: " + value);
+  self.updateNodeRadiusMinRatio = function(value) {
+    console.debug("UPDATE NODE RADIUS MIN RATIO: " + value);
     config.defaultNodeRadiusMinRatio = value;
     nodeRadiusMinRatio = value;
     nodeRadiusMin = value * width;

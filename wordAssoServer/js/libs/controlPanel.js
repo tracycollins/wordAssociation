@@ -670,6 +670,7 @@ function ControlPanel() {
 
     var v;
     switch (currentSlider.id) {
+      case "nodeRadiusMinSlider":
       case "fontSizeMinRatioSlider":
       case "fontSizeMaxRatioSlider":
         v = 100*currentSlider.value/currentSlider.multiplier;
@@ -678,7 +679,7 @@ function ControlPanel() {
       case "gravitySlider":
         v = currentSlider.value/currentSlider.multiplier;
         // document.getElementById(currentSliderTextId).innerHTML = v.toFixed(5);
-        document.getElementById(currentSliderTextId).innerHTML = v;
+        document.getElementById(currentSliderTextId).innerHTML = v.toFixed(1);
         console.log("gravitySlider: " + v);
       break;
       default:

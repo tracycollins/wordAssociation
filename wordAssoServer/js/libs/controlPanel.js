@@ -461,11 +461,11 @@ function ControlPanel() {
   statsObj.socketId = "NOT SET";
 
 
-  this.setRadiusMinSliderValue = function (value) {
-    if (!document.getElementById("radiusMinSlider")) { return; }
-    console.log("setRadiusMinSliderValue: " + value);
-    document.getElementById("radiusMinSlider").value = (value * document.getElementById("radiusMinSlider").getAttribute("multiplier"));
-    document.getElementById("radiusMinSliderText").innerHTML = value.toFixed(3);
+  this.setNodeRadiusMinSliderValue = function (value) {
+    if (!document.getElementById("nodeRadiusMinSlider")) { return; }
+    console.log("setNodeRadiusMinSliderValue: " + value);
+    document.getElementById("nodeRadiusMinSlider").value = (value * document.getElementById("nodeRadiusMinSlider").getAttribute("multiplier"));
+    document.getElementById("nodeRadiusMinSliderText").innerHTML = value.toFixed(3);
   };
 
   this.setVelocityDecaySliderValue = function (value) {
@@ -581,7 +581,7 @@ function ControlPanel() {
         self.setLinkDistanceSliderValue(cnf.defaultLinkDistance);
         self.setGravitySliderValue(cnf.defaultGravity);
         self.setChargeSliderValue(cnf.defaultCharge);
-        self.setRadiusMinSliderValue(cnf.defaultRadiusMinimum);
+        self.setNodeRadiusMinSliderValue(cnf.defaultNodeRadiusMin);
         self.setVelocityDecaySliderValue(cnf.defaultVelocityDecay);
         self.setMaxAgeSliderValue(cnf.defaultMaxAge);
         self.setFontSizeMinRatioSliderValue(cnf.defaultFontSizeMinRatio);
@@ -643,7 +643,7 @@ function ControlPanel() {
         self.setTransitionDurationSliderValue(parentWindow.DEFAULT_TRANSITION_DURATION);
         self.setGravitySliderValue(parentWindow.DEFAULT_GRAVITY);
         self.setChargeSliderValue(parentWindow.DEFAULT_CHARGE);
-        self.setRadiusMinSliderValue(parentWindow.DEFAULT_RADIUS_MINIMUM);
+        self.setNodeRadiusMinSliderValue(parentWindow.DEFAULT_NODE_RADIUS_MIN);
         self.setVelocityDecaySliderValue(parentWindow.DEFAULT_VELOCITY_DECAY);
         self.setMaxAgeSliderValue(parentWindow.DEFAULT_MAX_AGE);
         self.setFontSizeMinRatioSliderValue(parentWindow.DEFAULT_FONT_SIZE_MIN_RATIO);
@@ -998,21 +998,21 @@ function ControlPanel() {
       text: (gravitySlider.value * gravitySlider.multiplier)
     };
 
-    var radiusMinSlider = {
+    var nodeRadiusMinSlider = {
       type: "SLIDER",
-      id: "radiusMinSlider",
+      id: "nodeRadiusMinSlider",
       class: "slider",
       min: 0.0,
       max: 1000.0,
-      value: config.defaultVelocityDecay * config.defaultMultiplier,
+      value: config.defaultNodeRadiusMin * config.defaultMultiplier,
       multiplier: config.defaultMultiplier
     };
 
-    var radiusMinSliderText = {
+    var nodeRadiusMinSliderText = {
       type: "TEXT",
-      id: "radiusMinSliderText",
+      id: "nodeRadiusMinSliderText",
       class: "sliderText",
-      text: (radiusMinSlider.value * radiusMinSlider.multiplier)
+      text: (nodeRadiusMinSlider.value * nodeRadiusMinSlider.multiplier)
     };
 
     var velocityDecaySlider = {
@@ -1105,7 +1105,7 @@ function ControlPanel() {
         self.tableCreateRow(controlSliderTable, optionsBody, ["MAX AGE", maxAgeSlider, maxAgeSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["CHARGE", chargeSlider, chargeSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["GRAVITY", gravitySlider, gravitySliderText]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ["RADIUS MIN", radiusMinSlider, radiusMinSliderText]);
+        self.tableCreateRow(controlSliderTable, optionsBody, ["NODE RADIUS MIN", nodeRadiusMinSlider, nodeRadiusMinSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["VEL DECAY", velocityDecaySlider, velocityDecaySliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["LINK STRENGTH", linkStrengthSlider, linkStrengthSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["LINK DISTANCE", linkDistanceSlider, linkDistanceSliderText]);
@@ -1121,7 +1121,7 @@ function ControlPanel() {
         self.tableCreateRow(controlSliderTable, optionsBody, ["MAX AGE", maxAgeSlider, maxAgeSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["CHARGE", chargeSlider, chargeSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["GRAVITY", gravitySlider, gravitySliderText]);
-        self.tableCreateRow(controlSliderTable, optionsBody, ["RADIUS MIN", radiusMinSlider, radiusMinSliderText]);
+        self.tableCreateRow(controlSliderTable, optionsBody, ["NODE RADIUS MIN", nodeRadiusMinSlider, nodeRadiusMinSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["VEL DECAY", velocityDecaySlider, velocityDecaySliderText]);
         if (callback) { callback(dashboardMain); }
         break;

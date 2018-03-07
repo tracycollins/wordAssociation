@@ -25,8 +25,8 @@ function ViewTreepack() {
   var resumeTimeStamp = 0;
   var compactDateTimeFormat = "YYYYMMDD HHmmss";
 
-  var radiusMinRatio = 0.0075;
-  var radiusMaxRatio = 0.10;
+  var nodeRadiusMinRatio = 0.0075;
+  var nodeRadiusMaxRatio = 0.10;
 
   var sliderPercision = 5;
 
@@ -149,8 +149,8 @@ function ViewTreepack() {
   var width = getWindowDimensions().width;
   var height = getWindowDimensions().height;
 
-  var radiusMin = radiusMinRatio * width;
-  var radiusMax = radiusMaxRatio * height;
+  var nodeRadiusMin = nodeRadiusMinRatio * width;
+  var nodeRadiusMax = nodeRadiusMaxRatio * height;
 
   var autoKeywordsFlag = config.autoKeywordsFlag;
 
@@ -365,7 +365,7 @@ function ViewTreepack() {
 
   var defaultRadiusScale = d3.scaleLinear()
     .domain([0.1, Math.sqrt(currentMaxMetric)])
-    .range([radiusMin, radiusMax])
+    .range([nodeRadiusMin, nodeRadiusMax])
     .clamp(true);
 
   var nodeLabelSizeScale = d3.scaleLinear()
@@ -548,7 +548,7 @@ function ViewTreepack() {
 
     defaultRadiusScale = d3.scaleLinear()
       .domain([0.1, Math.sqrt(currentMaxMetric)])
-      .range([radiusMin, radiusMax])
+      .range([nodeRadiusMin, nodeRadiusMax])
       .clamp(true);
 
     console.debug("SET METRIC MODE: " + metricMode);
@@ -722,14 +722,14 @@ function ViewTreepack() {
     simulation.force("charge", d3.forceManyBody().strength(value));
   };
 
-  self.updateRadiusMin = function(value) {
+  self.updateNodeRadiusMin = function(value) {
     console.debug("UPDATE RADIUS MIN: " + value);
-    config.defaultRadiusMin = value;
-    radiusMin = value;
-    radiusMin = value * height;
+    config.defaultnodeRadiusMin = value;
+    nodeRadiusMin = value;
+    nodeRadiusMin = value * height;
     defaultRadiusScale = d3.scaleLinear()
       .domain([0.1, Math.sqrt(currentMaxMetric)])
-      .range([radiusMin, radiusMax])
+      .range([nodeRadiusMin, nodeRadiusMax])
       .clamp(true);
   };
 
@@ -1730,7 +1730,7 @@ function ViewTreepack() {
 
         defaultRadiusScale = d3.scaleLinear()
           .domain([1, Math.sqrt(currentMaxMetric)])
-          .range([radiusMin, radiusMax])
+          .range([nodeRadiusMin, nodeRadiusMax])
           .clamp(true);
 
       }
@@ -2071,12 +2071,12 @@ function ViewTreepack() {
       default: {x: xFocusDefaultRatio*width, y: yFocusDefaultRatio*height}
     };
 
-    radiusMin = radiusMinRatio * width;
-    radiusMax = radiusMaxRatio * width;
+    nodeRadiusMin = nodeRadiusMinRatio * width;
+    nodeRadiusMax = nodeRadiusMaxRatio * width;
 
     defaultRadiusScale = d3.scaleLinear()
     .domain([0.1, Math.sqrt(currentMaxMetric)])
-    .range([radiusMin, radiusMax])
+    .range([nodeRadiusMin, nodeRadiusMax])
     .clamp(true);
 
     fontSizeMin = fontSizeMinRatio * height;

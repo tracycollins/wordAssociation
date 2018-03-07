@@ -60,6 +60,8 @@ function ControlPanel() {
 
   config = window.opener.config;
   delete config.twitterUser.histograms;
+  delete config.twitterUser.countHistory;
+  delete config.twitterUser.status;
 
   console.log("config\n" + jsonPrint(config));
 
@@ -567,6 +569,9 @@ function ControlPanel() {
       case "INIT":
 
         cnf = event.data.config;
+        delete cnf.twitterUser.histograms;
+        delete cnf.twitterUser.countHistory;
+        delete cnf.twitterUser.status;
 
         console.debug("CONTROL PANEL INIT\n" + jsonPrint(cnf));
 
@@ -779,6 +784,9 @@ function ControlPanel() {
 
     console.debug("STORED CONFIG: " + storedConfigName);
     var storedConfig = store.get(storedConfigName);
+    delete storedConfig.twitterUser.histograms;
+    delete storedConfig.twitterUser.countHistory;
+    delete storedConfig.twitterUser.status;
 
     if (storedConfig !== undefined) {
       var storedConfigArgs = Object.keys(storedConfig);
@@ -911,7 +919,7 @@ function ControlPanel() {
       text: maxAgeSlider.value + " ms"
     };
 
-    console.log("config\n" + jsonPrint(config));
+    // console.log("config\n" + jsonPrint(config));
 
      var fontSizeMinRatioSlider = {
       type: "SLIDER",

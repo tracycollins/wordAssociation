@@ -1026,7 +1026,7 @@ function ControlPanel() {
       id: "nodeRadiusMaxRatioSlider",
       class: "slider",
       min: 5.0,
-      max: 40.0,
+      max: 100.0,
       value: config.defaultNodeRadiusMaxRatio * config.defaultMultiplier,
       multiplier: config.defaultMultiplier
     };

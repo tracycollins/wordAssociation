@@ -501,7 +501,6 @@ function authenticatedUserCacheExpired(userId, userObj) {
     + " | " + userId
     + " | @" + userObj.screenName
   ));
-
 }
 
 authenticatedUserCache.on("expired", authenticatedUserCacheExpired);
@@ -592,7 +591,6 @@ function wordCacheExpired(word, wordRate) {
 }
 
 wordsPerMinuteTopTermCache.on("expired", wordCacheExpired);
-
 
 let updateMetricsInterval;
 
@@ -816,7 +814,6 @@ function dropboxLongPoll(last_cursor, callback) {
     });
 }
 
-
 function dropboxFolderGetLastestCursor(folder, callback) {
 
   let lastCursorTruncated = "";
@@ -847,19 +844,6 @@ function dropboxFolderGetLastestCursor(folder, callback) {
         dropboxClient.filesListFolderContinue({ cursor: last_cursor.cursor})
         .then(function(response){
           debug(chalkLog("filesListFolderContinue: " + jsonPrint(response)));
-          // if (response.entries.length > 0) {
-          //   console.log(chalkAlert(">>> DROPBOX CHANGE"
-          //     + " | " + getTimeStamp()
-          //     + " | FOLDER: " + folder
-          //   ));
-          //   response.entries.forEach(function(entry){
-          //     console.log(chalkAlert(">>> DROPBOX CHANGE | ENTRY"
-          //       + " | TYPE: " + entry[".tag"]
-          //       + " | PATH: " + entry.path_lower
-          //       + " | NAME: " + entry.name
-          //     ));
-          //   });
-          // }
           callback(null, response);
         })
         .catch(function(err){
@@ -881,55 +865,6 @@ function dropboxFolderGetLastestCursor(folder, callback) {
     callback(err, folder);
   });
 }
-
-
-// function loadFile(path, file, callback) {
-
-//   debug(chalkInfo("LOAD FOLDER " + path));
-//   debug(chalkInfo("LOAD FILE " + file));
-//   debug(chalkInfo("FULL PATH " + path + "/" + file));
-
-//   dropboxClient.filesDownload({path: path + "/" + file})
-//     .then(function(data) {
-//       debug(chalkLog(getTimeStamp()
-//         + " | LOADING FILE FROM DROPBOX FILE: " + path + "/" + file
-//       ));
-
-//       let payload = data.fileBinary;
-//       debug(payload);
-
-//       if (file.match(/\.json$/gi)) {
-//         let fileObj = JSON.parse(payload);
-//         return(callback(null, fileObj));
-//       }
-//       else {
-//         // return(callback(null, payload));
-//         return(callback(null, data));
-//       }
-//     })
-//     .catch(function(error) {
-//       console.log(chalkError("DROPBOX LOAD FILE ERROR: " + path + "/" + file + "\n" + error));
-//       console.log(chalkError("!!! DROPBOX READ " + file + " ERROR"));
-//       console.log(chalkError(jsonPrint(error)));
-
-//       if (error.status === 404) {
-//         console.error(chalkError("!!! DROPBOX READ FILE " + file + " NOT FOUND"
-//           + " ... SKIPPING ...")
-//         );
-//         return(callback(null, null));
-//       }
-//       if (error.status === 0) {
-//         console.error(chalkError("!!! DROPBOX NO RESPONSE"
-//           + " ... NO INTERNET CONNECTION? ... SKIPPING ..."));
-//         return(callback(null, null));
-//       }
-//       return(callback(error, null));
-//     })
-//     .catch(function(err) {
-//       console.log(chalkError("*** ERROR DROPBOX LOAD FILE\n" + err));
-//       callback(err, null);
-//     });
-// }
 
 function loadFile(path, file, callback) {
 
@@ -1502,7 +1437,6 @@ function categorizeNode(categorizeObj) {
       });
     break;
   }
-  
 }
 
 function socketRxTweet(tw) {
@@ -1564,7 +1498,6 @@ function socketRxTweet(tw) {
     ));
   }
 }
-
 
 // ???? KLUDGE: will this create a mem leak by creating socket objs on each connect?
 

@@ -813,7 +813,6 @@ function ControlPanel() {
     console.log("CREATE CONTROL PANEL" 
       + " | " + config.twitterUser.screenName
       + " | " + config.twitterUser.threeceeFollowing
-      // + jsonPrint(config)
     );
 
     dashboardMain = document.getElementById("dashboardMain");

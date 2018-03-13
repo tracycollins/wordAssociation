@@ -973,19 +973,13 @@ function ViewTreepack() {
         }
 
         tooltipString = "@" + d.screenName
-          // + "<br>TOPTERM: " + d.isTopTerm 
-          // + "<br>" + d.userId 
           + "<br>" + d.name 
-          // + "<br>@" + d.screenName 
-          // + "<br>TYPE: " + d.nodeType 
           + "<br>FLWRs: " + d.followersCount
           + "<br>FRNDs: " + d.friendsCount
           + "<br>FMs: " + d.followersMentions
           + "<br>Ms: " + d.mentions
           + "<br>Ts: " + d.statusesCount
-          // + "<br>3CF: " + d.threeceeFollowing
           + "<br>" + d.rate.toFixed(2) + " WPM"
-          // + "<br>AKW: " + autoKeywordsFlag
           + "<br>KWs: " + jsonPrint(d.keywords)
           + "<br>AKWs: " + jsonPrint(d.keywordsAuto);
       break;
@@ -1000,32 +994,22 @@ function ViewTreepack() {
         }
 
         tooltipString = "#" + d.nodeId
-          // + "<br>TOPTERM " + d.isTopTerm 
-          // + "<br>TYPE: " + d.nodeType 
           + "<br>Ms: " + d.mentions
           + "<br>" + d.rate.toFixed(2) + " WPM"
-          // + "<br>AKW: " + autoKeywordsFlag
           + "<br>KWs: " + jsonPrint(d.keywords)
           + "<br>AKWs: " + jsonPrint(d.keywordsAuto);
       break;
       case "word":
         tooltipString = d.nodeId
-          // + "<br>TOPTERM " + d.isTopTerm 
-          // + "<br>TYPE: " + d.nodeType 
           + "<br>Ms: " + d.mentions
           + "<br>" + d.rate.toFixed(2) + " WPM"
-          // + "<br>URL: " + d.url
-          // + "<br>AKW: " + autoKeywordsFlag
           + "<br>KWs: " + jsonPrint(d.keywords)
           + "<br>AKWs: " + jsonPrint(d.keywordsAuto);
       break;
       case "place":
         tooltipString = d.fullName
-          // + "<br>TOPTERM " + d.isTopTerm 
-          // + "<br>TYPE: " + d.nodeType 
           + "<br>Ms: " + d.mentions
           + "<br>" + d.rate.toFixed(2) + " WPM"
-          // + "<br>AKW: " + autoKeywordsFlag
           + "<br>KWs: " + jsonPrint(d.keywords)
           + "<br>AKWs: " + jsonPrint(d.keywordsAuto);
       break;
@@ -1573,7 +1557,6 @@ function ViewTreepack() {
         currentNode.isTrendingTopic = newNode.isTrendingTopic || false;
         currentNode.isTwitterUser = newNode.isTwitterUser || false;
         currentNode.keywordColor = newNode.keywordColor;
-        // currentNode.mentions = Math.max(currentNode.mentions, newNode.mentions || 1);
         currentNode.mentions = newNode.mentions;
         currentNode.mouseHoverFlag = false;
         currentNode.rank = currentNode.rank || 0;
@@ -1587,12 +1570,10 @@ function ViewTreepack() {
           currentNode.friendsCount = newNode.friendsCount;
           currentNode.threeceeFollowing = newNode.threeceeFollowing;
           currentNode.followersMentions = newNode.followersCount + newNode.mentions;
-          // currentNode.displaytext = createDisplayText(currentNode);
         }
 
         currentNode.displaytext = createDisplayText(currentNode);
 
-        // localNodeHashMap.set(currentNode.nodeId, currentNode);
         localNodeHashMap[currentNode.nodeId] = currentNode;
 
         if (currentNode.isTopTerm) {
@@ -1602,7 +1583,6 @@ function ViewTreepack() {
           nodesTopTermHashMap.remove(currentNode.nodeId);
         }
 
-        // console.info("HIT currentNode\n" + jsonPrint(currentNode));
         callback(null, nodesModifiedFlag);
       }
       else {
@@ -1618,12 +1598,10 @@ function ViewTreepack() {
         currentNode.isTrendingTopic = newNode.isTrendingTopic || false;
         currentNode.isTwitterUser = newNode.isTwitterUser || false;
         currentNode.keywordColor = newNode.keywordColor;
-        // currentNode.mentions = Math.max(currentNode.mentions, newNode.mentions || 1);
         currentNode.mentions = newNode.mentions;
         currentNode.mouseHoverFlag = false;
         currentNode.rank = 0;
         currentNode.rate = newNode.rate || 0;
-        // currentNode.displaytext = createDisplayText(currentNode);
 
         if (newNode.nodeType === "user"){
           currentNode.statusesCount = newNode.statusesCount;
@@ -1631,7 +1609,6 @@ function ViewTreepack() {
           currentNode.friendsCount = newNode.friendsCount;
           currentNode.threeceeFollowing = newNode.threeceeFollowing;
           currentNode.followersMentions = newNode.followersCount + newNode.mentions;
-          // currentNode.displaytext = createDisplayText(currentNode);
         }
 
         currentNode.displaytext = createDisplayText(currentNode);
@@ -1640,13 +1617,6 @@ function ViewTreepack() {
           || ((newNode.keywordsAuto !== undefined) 
               && newNode.keywordsAuto
               && (Object.keys(newNode.keywordsAuto).length > 0))) {
-          // console.info("keywords"
-          //   + " | NID: " + newNode.nodeId 
-          //   + " | NTYPE: " + newNode.nodeType 
-          //   + " | isKeyword: " + newNode.isKeyword 
-          //   + "\nKWs\n" + jsonPrint(newNode.keywords)
-          //   // + "\nKWAs\n" + jsonPrint(newNode.keywordsAuto)
-          // );
 
           var keywords = {};
 

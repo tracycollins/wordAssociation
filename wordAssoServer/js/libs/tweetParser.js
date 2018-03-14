@@ -45,10 +45,6 @@ dbConnection.once("open", function() {
 });
 
 const tweetServer = require("@threeceelabs/tweet-server-controller");
-// const wordServer = require("@threeceelabs/word-server-controller");
-
-// const Queue = require("queue-fifo");
-// const tweetParserQueue = new Queue();
 const tweetParserQueue = [];
 
 const chalk = require("chalk");
@@ -152,7 +148,6 @@ function initTweetParserQueueInterval(cnf){
     twitterEvents: configEvents
   };
 
-  // tweetServer.loadInputArrays({inputArrays: cnf.inputArrays}, function(){});
   tweetServer.loadNeuralNetwork({networkObj: cnf.networkObj}, function(){});
 
   tweetParserQueueInterval = setInterval(function(){
@@ -165,7 +160,6 @@ function initTweetParserQueueInterval(cnf){
 
       debug(chalkInfo("TW PARSER TPQ>"
         + " [" + tweetParserQueue.length + "]"
-        // + " | " + socket.id
         + " | " + tweet.id_str
         + " | " + tweet.user.id_str
         + " | " + tweet.user.screen_name
@@ -177,11 +171,7 @@ function initTweetParserQueueInterval(cnf){
 
       params.tweetStatus = tweet;
 
-      // console.time("createStreamTweet");
-
       tweetServer.createStreamTweet(params, function createStreamTweetCallback(err, tweetObj){
-
-        // console.timeEnd("createStreamTweet");
 
         if (err){
 
@@ -203,12 +193,9 @@ function initTweetParserQueueInterval(cnf){
           }
         }
         else {
-          // debug(chalkInfo("[" + tweetParserQueue.size() + "]"
           debug(chalkInfo("TW PARSER [" + tweetParserQueue.length + "]"
             + " createStreamTweet DONE" 
             + " | " + tweetObj.tweetId
-            // + "\ntweetObj.tweet.user\n" + jsonPrint(tweetObj.tweet.user)
-            // + "\ntweetObj.user\n" + jsonPrint(tweetObj.user)
           ));
 
           process.send({op: "parsedTweet", tweetObj: tweetObj}, function(err){
@@ -241,7 +228,6 @@ process.on("message", function(m) {
 
   debug(chalkAlert("TWEET PARSER RX MESSAGE"
     + " | OP: " + m.op
-    // + "\n" + jsonPrint(m)
   ));
 
   switch (m.op) {
@@ -251,8 +237,6 @@ process.on("message", function(m) {
       console.log(chalkInfo("TWEET PARSER INIT"
         + " | INTERVAL: " + m.interval
         + " | NN: " + m.networkObj.networkId
-        // + " | SUCCESS RATE: " + m.networkObj.successRate.toFixed(2)
-        // + "\n" + jsonPrint(m.networkObj)
       ));
       cnf.networkObj = {};
       cnf.networkObj = m.networkObj;
@@ -286,7 +270,6 @@ process.on("message", function(m) {
       console.log(chalkInfo("TWEET PARSER NETWORK"
         + " | NN: " + m.networkObj.networkId
         + " | SUCCESS RATE: " + m.networkObj.successRate.toFixed(2)
-        // + "\n" + jsonPrint(m.networkObj)
       ));
 
       cnf.networkObj = {};
@@ -314,20 +297,16 @@ process.on("message", function(m) {
     break;
 
     case "tweet":
-      // if (tweetParserQueue.size() < MAX_Q) {
       if (tweetParserQueue.length < MAX_Q) {
 
-        // tweetParserQueue.enqueue(m.tweetStatus);
         tweetParserQueue.push(m.tweetStatus);
 
         debug(chalkInfo("TW PARSER T<"
-          // + " [ TPQ: " + tweetParserQueue.size() + "]"
           + " [ TPQ: " + tweetParserQueue.length + "]"
           + " | " + m.tweetStatus.id_str
         ));
       }
       else {
-        // debug(chalkAlert("*** MAX TWEET PARSE Q SIZE: " + tweetParserQueue.size()));
         debug(chalkAlert("*** MAX TWEET PARSE Q SIZE: " + tweetParserQueue.length));
       }
     break;

@@ -1167,7 +1167,7 @@ function ControlPanel() {
     //   text: "NODES: " + 0
     // };
 
-    var usersFollowersCountText + {
+    var usersFollowersCountText = {
       type: "TEXT",
       id: "usersFollowersCountText",
       class: "statusText",

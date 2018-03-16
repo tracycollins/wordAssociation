@@ -86,48 +86,6 @@ function ControlPanel() {
 
   var hashtagDiv =document.getElementById("hashtagDiv");
 
-  // function tableCreateRow(parentTable, options, cells) {
-
-  //   var tr = parentTable.insertRow();
-  //   var thTextColor = options.thTextColor;
-  //   var tdTextColor = options.tdTextColor;
-
-  //   if (options.textColor) {
-  //     thTextColor = options.textColor;
-  //     tdTextColor = options.textColor;
-  //   }
-  //   var tdBgColor = options.backgroundColor || '#222222';
-
-  //   if (options.trClass) {
-  //     tr.setAttribute("class", options.trClass);
-  //   }
-
-  //   if (options.headerFlag) {
-  //     cells.forEach(function(content) {
-  //       var th = tr.insertCell();
-  //       th.appendChild(document.createTextNode(content));
-  //       th.style.fontSize = "1em";
-  //       th.style.color = thTextColor;
-  //       th.style.backgroundColor = tdBgColor;
-  //     });
-  //   } else {
-  //     cells.forEach(function(c) {
-  //       var content;
-  //       if (typeof c === "object") {
-  //         content = c.content;
-  //       }
-  //       else {
-  //         content = c;
-  //       }
-  //       var td = tr.insertCell();
-  //       td.appendChild(document.createTextNode(content));
-  //       td.style.fontSize = "1em";
-  //       td.style.color = tdTextColor;
-  //       td.style.backgroundColor = tdBgColor;
-  //     });
-  //   }
-  // }
-
   function nextMismatchedButtonHandler(e){
 
     console.warn("NEXT MISMATCHED BUTTON"
@@ -818,6 +776,10 @@ function ControlPanel() {
           td.style.color = tdTextColor;
           td.style.backgroundColor = tdBgColor;
           td.innerHTML = content.text;
+
+          if () {
+            td.style.border = "1px solid #aaaaaa";
+          }
 
         } else if (content.type === "BUTTON") {
 

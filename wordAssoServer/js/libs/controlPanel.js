@@ -1145,7 +1145,7 @@ function ControlPanel() {
       type: "TEXT",
       id: "userScreenNameText",
       class: "userStatusText",
-      text: "@" + statsObj.user.screenName;
+      text: "@" + statsObj.user.screenName
     };
 
     var userNameText = {

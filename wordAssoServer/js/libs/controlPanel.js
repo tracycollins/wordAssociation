@@ -1141,11 +1141,18 @@ function ControlPanel() {
       text: "SESSION ID: " + statsObj.socketId
     };
 
-    var userFollowersCountLabel = {
+    var userScreenNameText = {
       type: "TEXT",
-      id: "userFollowersCountLabel",
+      id: "userScreenNameText",
       class: "userStatusText",
-      text: "FOLLOWERS"
+      text: "@" + statsObj.user.screenName;
+    };
+
+    var userNameText = {
+      type: "TEXT",
+      id: "userNameText",
+      class: "userStatusText",
+      text: statsObj.user.name
     };
 
     var userFollowersCountText = {
@@ -1154,6 +1161,11 @@ function ControlPanel() {
       class: "userStatusText",
       text: statsObj.user.followersCount
     };
+
+    var userFollowersCountLabel = {};
+    userFollowersCountLabel = userFollowersCountText;
+    userFollowersCountLabel.id = "userFollowersCountLabel";
+    userFollowersCountLabel.text = "FOLLOWERS";
 
     var userFriendsCountText = {
       type: "TEXT",
@@ -1215,6 +1227,7 @@ function ControlPanel() {
         break;
       case "treepack":
         self.tableCreateRow(controlTable, optionsBody, [resetButton, pauseButton, statsButton, fullscreenButton]);
+        self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userScreenNameText, userNameText]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userFollowersCountLabel, userFollowersCountText]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, ["FRIENDS", userFriendsCountText]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, ["MENTIONS", userMentionsText]);

@@ -225,30 +225,30 @@ function ControlPanel() {
 
   function twitterWidgetsCreateTimeline(node, callback){
 
-    var timelineText;
+    // var timelineText;
 
     if (node.notFound !== undefined) {
 
-      statsObj.user.followersCount = "";
+      // statsObj.user.followersCount = "";
 
-      timelineText = document.createElement("TEXT");
-      timelineText.setAttribute("id", "timelineText");
-      timelineText.setAttribute("class", "timelineText");
-      timelineText.innerHTML = "<br>" 
-        + "--- FLWRs"
-        + "<br>" 
-        + "--- FRNDs" 
-        + "<br>" 
-        + "--- Ts"
-        + "<br>" 
-        + "<br>" 
-        + "3CF: ---"
-        + "<br>" 
-        + "<br>" 
-        + "KW: M: --- | A: ---"
-        + "<br>";
+      // timelineText = document.createElement("TEXT");
+      // timelineText.setAttribute("id", "timelineText");
+      // timelineText.setAttribute("class", "timelineText");
+      // timelineText.innerHTML = "<br>" 
+      //   + "--- FLWRs"
+      //   + "<br>" 
+      //   + "--- FRNDs" 
+      //   + "<br>" 
+      //   + "--- Ts"
+      //   + "<br>" 
+      //   + "<br>" 
+      //   + "3CF: ---"
+      //   + "<br>" 
+      //   + "<br>" 
+      //   + "KW: M: --- | A: ---"
+      //   + "<br>";
 
-      timelineDiv.appendChild(timelineText);
+      // timelineDiv.appendChild(timelineText);
       callback(null, null);
     }
     else {
@@ -269,30 +269,30 @@ function ControlPanel() {
       statsObj.user.threeceeFollowing = node.threeceeFollowing;
       statsObj.user.mentions = node.mentions;
 
-      timelineText = document.createElement("TEXT");
-      timelineText.setAttribute("id", "timelineText");
-      timelineText.setAttribute("class", "timelineText");
-      timelineText.innerHTML = "<br>" 
-        + "<h4>@" + node.screenName + "</h4><br>"
-        + "<h4>" + name + "</h4><br>"
-        + node.followersCount + " FLWRs"
-        + "<br>" 
-        + node.mentions + " Ms" 
-        + "<br>" 
-        + followersMentions + " FLWRMs" 
-        + "<br>" 
-        + node.friendsCount + " FRNDs" 
-        + "<br>" 
-        + node.statusesCount + " Ts"
-        + "<br>" 
-        + "<br>" 
-        + "3CF: " + node.threeceeFollowing
-        + "<br>" 
-        + "<br>" 
-        + "KW: M: " + node.keywords + " | A: " + node.keywordsAuto
-        + "<br><br>";
+      // timelineText = document.createElement("TEXT");
+      // timelineText.setAttribute("id", "timelineText");
+      // timelineText.setAttribute("class", "timelineText");
+      // timelineText.innerHTML = "<br>" 
+      //   + "<h4>@" + node.screenName + "</h4><br>"
+      //   + "<h4>" + name + "</h4><br>"
+      //   + node.followersCount + " FLWRs"
+      //   + "<br>" 
+      //   + node.mentions + " Ms" 
+      //   + "<br>" 
+      //   + followersMentions + " FLWRMs" 
+      //   + "<br>" 
+      //   + node.friendsCount + " FRNDs" 
+      //   + "<br>" 
+      //   + node.statusesCount + " Ts"
+      //   + "<br>" 
+      //   + "<br>" 
+      //   + "3CF: " + node.threeceeFollowing
+      //   + "<br>" 
+      //   + "<br>" 
+      //   + "KW: M: " + node.keywords + " | A: " + node.keywordsAuto
+      //   + "<br><br>";
 
-      timelineDiv.appendChild(timelineText);
+      // timelineDiv.appendChild(timelineText);
 
       twttr.widgets.createFollowButton(
         screenName,
@@ -1171,13 +1171,6 @@ function ControlPanel() {
       class: "statusText",
       text: "SESSION ID: " + statsObj.socketId
     };
-
-    // var status2 = {
-    //   type: "TEXT",
-    //   id: "statusSession2Id",
-    //   class: "statusText",
-    //   text: "NODES: " + 0
-    // };
 
     var userFollowersCountText = {
       type: "TEXT",

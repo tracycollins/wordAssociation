@@ -66,6 +66,10 @@ function ControlPanel() {
   statsObj.socketId = "NOT SET";
   statsObj.user = {};
   statsObj.user.followersCount = 0;
+  statsObj.user.friendsCount = 0;
+  statsObj.user.statusesCount = 0;
+  statsObj.user.mentions = 0;
+  statsObj.user.threeceeFollowing = "---";
 
   var controlIdHash = {};
 
@@ -254,7 +258,16 @@ function ControlPanel() {
       var followersMentions = node.followersCount + node.mentions;
 
       document.getElementById("userFollowersCountText").innerHTML = node.followersCount;
+      document.getElementById("userFriendsCountText").innerHTML = node.friendsCount;
+      document.getElementById("userStatusesCountText").innerHTML = node.statusesCount;
+      document.getElementById("userMentionsText").innerHTML = node.mentions;
+      document.getElementById("user3cFollowingText").innerHTML = node.threeceeFollowing;
+
       statsObj.user.followersCount = node.followersCount;
+      statsObj.user.friendsCount = node.friendsCount;
+      statsObj.user.statusesCount = node.statusesCount;
+      statsObj.user.threeceeFollowing = node.threeceeFollowing;
+      statsObj.user.mentions = node.mentions;
 
       timelineText = document.createElement("TEXT");
       timelineText.setAttribute("id", "timelineText");
@@ -1173,6 +1186,34 @@ function ControlPanel() {
       text: statsObj.user.followersCount
     };
 
+    var userFriendsCountText = {
+      type: "TEXT",
+      id: "userFriendsCountText",
+      class: "statusText",
+      text: statsObj.user.friendsCount
+    };
+
+    var userMentionsText = {
+      type: "TEXT",
+      id: "userMentionsText",
+      class: "statusText",
+      text: statsObj.user.mentions
+    };
+
+    var userStatusesCountText = {
+      type: "TEXT",
+      id: "userStatusesCountText",
+      class: "statusText",
+      text: statsObj.user.statusesCount
+    };
+
+    var user3cFollowingText = {
+      type: "TEXT",
+      id: "user3cFollowingText",
+      class: "statusText",
+      text: statsObj.user.threeceeFollowing
+    };
+
     switch (config.sessionViewType) {
 
       case "force":
@@ -1206,6 +1247,10 @@ function ControlPanel() {
       case "treepack":
         self.tableCreateRow(controlTable, optionsBody, [resetButton, pauseButton, statsButton, fullscreenButton]);
         self.tableCreateRow(userStatsTable, optionsBody, ["FOLLOWERS", userFollowersCountText]);
+        self.tableCreateRow(userStatsTable, optionsBody, ["FRIENDS", userFriendsCountText]);
+        self.tableCreateRow(userStatsTable, optionsBody, ["MENTIONS", userMentionsText]);
+        self.tableCreateRow(userStatsTable, optionsBody, ["TWEETS", userStatusesCountText]);
+        self.tableCreateRow(userStatsTable, optionsBody, ["3C FOLLOW", user3cFollowingText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["FONT MIN", fontSizeMinRatioSlider, fontSizeMinRatioSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["FONT MAX", fontSizeMaxRatioSlider, fontSizeMaxRatioSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["TRANSITION", transitionDurationSlider, transitionDurationSliderText]);

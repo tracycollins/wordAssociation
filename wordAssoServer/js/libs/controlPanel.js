@@ -62,6 +62,11 @@ function ControlPanel() {
 
   console.log("config\n" + jsonPrint(config));
 
+  var statsObj = {};
+  statsObj.socketId = "NOT SET";
+  statsObj.user = {};
+  statsObj.user.followersCount = 0;
+
   var controlIdHash = {};
 
   var dashboardMain;
@@ -75,6 +80,41 @@ function ControlPanel() {
   var timelineDiv = document.getElementById("timelineDiv");
 
   var hashtagDiv =document.getElementById("hashtagDiv");
+
+  function tableCreateRow(parentTable, options, cells) {
+
+    var tr = parentTable.insertRow();
+    var thTextColor = options.thTextColor;
+    var tdTextColor = options.tdTextColor;
+
+    if (options.textColor) {
+      thTextColor = options.textColor;
+      tdTextColor = options.textColor;
+    }
+    var tdBgColor = options.backgroundColor || '#222222';
+
+    if (options.trClass) {
+      tr.setAttribute("class", options.trClass);
+    }
+
+    if (options.headerFlag) {
+      cells.forEach(function(content) {
+        var th = tr.insertCell();
+        th.appendChild(document.createTextNode(content));
+        th.style.fontSize = "1em";
+        th.style.color = thTextColor;
+        th.style.backgroundColor = tdBgColor;
+      });
+    } else {
+      cells.forEach(function(content) {
+        var td = tr.insertCell();
+        td.appendChild(document.createTextNode(content));
+        td.style.fontSize = "1em";
+        td.style.color = tdTextColor;
+        td.style.backgroundColor = tdBgColor;
+      });
+    }
+  }
 
   function nextMismatchedButtonHandler(e){
 
@@ -176,6 +216,9 @@ function ControlPanel() {
     var timelineText;
 
     if (node.notFound !== undefined) {
+
+      statsObj.user.followersCount = "";
+
       timelineText = document.createElement("TEXT");
       timelineText.setAttribute("id", "timelineText");
       timelineText.setAttribute("class", "timelineText");
@@ -201,6 +244,8 @@ function ControlPanel() {
       var screenName = node.screenName;
       var name = (node.name !== undefined) ? node.name : "---";
       var followersMentions = node.followersCount + node.mentions;
+
+      statsObj.user.followersCount = node.followersCount;
 
       timelineText = document.createElement("TEXT");
       timelineText.setAttribute("id", "timelineText");
@@ -458,9 +503,6 @@ function ControlPanel() {
   twitterCategoryButtonsDiv.appendChild(categoryPositiveLabel);
   twitterCategoryButtonsDiv.appendChild(categoryNegativeLabel);
   twitterCategoryButtonsDiv.appendChild(categoryNoneLabel);
-
-  var statsObj = {};
-  statsObj.socketId = "NOT SET";
 
 
   this.setNodeRadiusMaxRatioSliderValue = function (value) {
@@ -740,8 +782,6 @@ function ControlPanel() {
     } else {
       cells.forEach(function(content) {
 
-        // console.warn("tableCreateRow\n" + jsonPrint(content));
-
         var td = tr.insertCell();
         if (content.type === undefined) {
 
@@ -770,7 +810,6 @@ function ControlPanel() {
 
         } else if (content.type === "SLIDER") {
 
-        // console.warn("tableCreateRow\n" + jsonPrint(content));
           var step = 1/content.multiplier;
           var sliderElement = document.createElement("INPUT");
           sliderElement.type = "range";
@@ -780,7 +819,6 @@ function ControlPanel() {
           sliderElement.setAttribute("max", content.max);
           sliderElement.setAttribute("multiplier", content.multiplier);
           sliderElement.setAttribute("step", step);
-          // sliderElement.setAttribute("oninput", function(e){ sliderHandler(e); }, false);
           sliderElement.value = content.value;
           td.appendChild(sliderElement);
           controlIdHash[content.id] = content;
@@ -1122,8 +1160,6 @@ function ControlPanel() {
 
       case "force":
       case "flow":
-        // self.tableCreateRow(infoTable, optionsBody, [status]);
-        // self.tableCreateRow(infoTable, optionsBody, [status2]);
         self.tableCreateRow(controlTable, 
           optionsBody, 
           [
@@ -1151,9 +1187,8 @@ function ControlPanel() {
         if (callback) { callback(dashboardMain); }
         break;
       case "treepack":
-        // self.tableCreateRow(infoTable, optionsBody, [status]);
-        // self.tableCreateRow(infoTable, optionsBody, [status2]);
         self.tableCreateRow(controlTable, optionsBody, [resetButton, pauseButton, statsButton, fullscreenButton]);
+        self.tableCreateRow(userStatsTable, optionsBody, ["FOLLOWERS", statsObj.user.followersCount]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["FONT MIN", fontSizeMinRatioSlider, fontSizeMinRatioSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["FONT MAX", fontSizeMaxRatioSlider, fontSizeMaxRatioSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["TRANSITION", transitionDurationSlider, transitionDurationSliderText]);
@@ -1167,8 +1202,6 @@ function ControlPanel() {
         break;
 
       case "ticker":
-        // self.tableCreateRow(infoTable, optionsBody, [status]);
-        // self.tableCreateRow(infoTable, optionsBody, [status2]);
         self.tableCreateRow(controlTable, 
           optionsBody, 
           [
@@ -1188,8 +1221,6 @@ function ControlPanel() {
         break;
 
       case "histogram":
-        // self.tableCreateRow(controlTable, optionsBody, [status]);
-        // self.tableCreateRow(controlTable, optionsBody, [status2]);
         self.tableCreateRow(controlTable, optionsBody, 
           [
             blahButton,

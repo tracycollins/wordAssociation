@@ -39,68 +39,6 @@ requirejs(["https://d3js.org/d3.v4.min.js"], function(d3Loaded) {
     console.debug("d3 LOADED");
     initialize(function(){
       initializeComplete = true;
-
-      // setInterval(function(){
-      //   MG.data_graphic({
-      //       title: "TPM",
-      //       description: "TWEETS/MIN",
-      //       data: tpmData,
-      //       width: TIMELINE_WIDTH,
-      //       height: TIMELINE_HEIGHT,
-      //       // right: 20,
-      //       target: '#tpmDiv',
-      //       x_accessor: 'date',
-      //       y_accessor: 'value',
-      //       min_y_from_data: true,
-      //       animate_on_load: false,
-      //       transition_on_update: false,
-      //       missing_is_zero: true
-      //   });
-      //   MG.data_graphic({
-      //       title: "T LIMIT",
-      //       description: "TWITTER LIMIT",
-      //       data: tLimitData,
-      //       width: TIMELINE_WIDTH,
-      //       height: TIMELINE_HEIGHT,
-      //       // right: 20,
-      //       target: '#tlimitDiv',
-      //       x_accessor: 'date',
-      //       y_accessor: 'value',
-      //       min_y_from_data: true,
-      //       animate_on_load: false,
-      //       transition_on_update: false,
-      //       missing_is_zero: true
-      //   });
-      //   MG.data_graphic({
-      //       title: "WPM",
-      //       description: "WORDS/MIN",
-      //       data: wpmData,
-      //       width: TIMELINE_WIDTH,
-      //       height: TIMELINE_HEIGHT,
-      //       // right: 20,
-      //       target: '#wpmDiv',
-      //       x_accessor: 'date',
-      //       y_accessor: 'value',
-      //       min_y_from_data: true,
-      //       animate_on_load: false,
-      //       transition_on_update: false
-      //   });
-      //   MG.data_graphic({
-      //       title: "TrPM",
-      //       description: "TRUMP/MIN",
-      //       data: trpmData,
-      //       width: TIMELINE_WIDTH,
-      //       height: TIMELINE_HEIGHT,
-      //       // right: 20,
-      //       target: '#trpmDiv',
-      //       x_accessor: 'date',
-      //       y_accessor: 'value',
-      //       min_y_from_data: true,
-      //       animate_on_load: false,
-      //       transition_on_update: false
-      //   });
-      // }, 1000);
-
     });
   },
   function(error) {
@@ -243,14 +181,6 @@ var memoryBar;
 var memoryBarDiv;
 var memoryBarText;
 
-// var sessionCacheBar;
-// var sessionCacheBarDiv;
-// var sessionCacheBarText;
-
-// var wordCacheBar;
-// var wordCacheBarDiv;
-// var wordCacheBarText;
-
 var tweetsPerMinBar;
 var tweetsPerMinBarDiv;
 var tweetsPerMinBarText;
@@ -271,10 +201,6 @@ var viewersBar;
 var viewersBarDiv;
 var viewersBarText;
 
-// var wordsPerMinBar;
-// var wordsPerMinBarDiv;
-// var wordsPerMinBarText;
-
 var rawDiv;
 var rawDivText;
 
@@ -286,20 +212,6 @@ function updateRawText(text){
 function initBars(callback){
  
   console.debug("INIT BARS ...");
-
-  // WORDS ===============================
-
-  // wordCacheBarDiv = document.getElementById('words-bar');
-  // wordCacheBar = new ProgressBar.Line(wordCacheBarDiv, { duration: 100 });
-  // wordCacheBar.animate(0);
-  // wordCacheBarText = document.getElementById('words-bar-text');
-
-  // SESSIONS ===============================
-
-  // sessionCacheBarDiv = document.getElementById('sessions-bar');
-  // sessionCacheBar = new ProgressBar.Line(sessionCacheBarDiv, { duration: 100 });
-  // sessionCacheBar.animate(0);
-  // sessionCacheBarText = document.getElementById('sessions-bar-text');
 
   // USERS ===============================
 
@@ -347,11 +259,6 @@ function initBars(callback){
   memoryBarText = document.getElementById('memory-bar-text');
   memoryBar = new ProgressBar.Line(memoryBarDiv, { duration: 100 });
   memoryBar.animate(0);
-
-  // wordsPerMinBarDiv = document.getElementById('delta-response-bar');
-  // wordsPerMinBarText = document.getElementById('delta-response-bar-text');
-  // wordsPerMinBar = new ProgressBar.Line(wordsPerMinBarDiv, { duration: 100 });
-  // wordsPerMinBar.animate(0);
 
   tweetsPerMinBarDiv = document.getElementById('delta-tweet-bar');
   tweetsPerMinBarText = document.getElementById('delta-tweet-bar-text');

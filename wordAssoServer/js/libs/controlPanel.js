@@ -1162,16 +1162,16 @@ function ControlPanel() {
       text: statsObj.user.name
     };
 
-    var userFollowersCountText = {
-      type: "TEXT",
-      id: "userFollowersCountText",
-      class: "userStatusText",
-      text: statsObj.user.followersCount
-    };
+    var userFollowersCountText = {};
+    userFollowersCountText.type = "TEXT";
+    userFollowersCountText.id = "userFollowersCountText";
+    userFollowersCountText.class = "userStatusText";
+    userFollowersCountText.text = statsObj.user.followersCount;
 
     var userFollowersCountLabel = {};
-    userFollowersCountLabel = userFollowersCountText;
+    userFollowersCountLabel.type = "TEXT";
     userFollowersCountLabel.id = "userFollowersCountLabel";
+    userFollowersCountLabel.class = "userStatusText";
     userFollowersCountLabel.text = "FOLLOWERS";
 
     var userFriendsCountText = {

@@ -777,8 +777,8 @@ function ControlPanel() {
           td.style.backgroundColor = tdBgColor;
           td.innerHTML = content.text;
 
-          if () {
-            td.style.border = "1px solid #aaaaaa";
+          if (options.border) {
+            td.style.border = options.border;
           }
 
         } else if (content.type === "BUTTON") {
@@ -854,6 +854,13 @@ function ControlPanel() {
       headerFlag: false,
       textColor: "black",
       backgroundColor: "white"
+    };
+
+    var optionsUserStatsBody = {
+      headerFlag: false,
+      textColor: "black",
+      backgroundColor: "white",
+      border: "1x solid #aaaaaa"
     };
 
     var resetButton = {
@@ -1201,11 +1208,11 @@ function ControlPanel() {
         break;
       case "treepack":
         self.tableCreateRow(controlTable, optionsBody, [resetButton, pauseButton, statsButton, fullscreenButton]);
-        self.tableCreateRow(userStatsTable, optionsBody, ["FOLLOWERS", userFollowersCountText]);
-        self.tableCreateRow(userStatsTable, optionsBody, ["FRIENDS", userFriendsCountText]);
-        self.tableCreateRow(userStatsTable, optionsBody, ["MENTIONS", userMentionsText]);
-        self.tableCreateRow(userStatsTable, optionsBody, ["TWEETS", userStatusesCountText]);
-        self.tableCreateRow(userStatsTable, optionsBody, ["3C FOLLOW", user3cFollowingText]);
+        self.tableCreateRow(userStatsTable, optionsUserStatsBody, ["FOLLOWERS", userFollowersCountText]);
+        self.tableCreateRow(userStatsTable, optionsUserStatsBody, ["FRIENDS", userFriendsCountText]);
+        self.tableCreateRow(userStatsTable, optionsUserStatsBody, ["MENTIONS", userMentionsText]);
+        self.tableCreateRow(userStatsTable, optionsUserStatsBody, ["TWEETS", userStatusesCountText]);
+        self.tableCreateRow(userStatsTable, optionsUserStatsBody, ["3C FOLLOW", user3cFollowingText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["FONT MIN", fontSizeMinRatioSlider, fontSizeMinRatioSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["FONT MAX", fontSizeMaxRatioSlider, fontSizeMaxRatioSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["TRANSITION", transitionDurationSlider, transitionDurationSliderText]);

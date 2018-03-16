@@ -779,7 +779,6 @@ function ControlPanel() {
           td.style.color = tdTextColor;
           td.style.backgroundColor = tdBgColor;
           td.innerHTML = content.text;
-          td.style.border = tdBorder;
 
           if (options.border) {
             console.warn("options.border: " + options.border);

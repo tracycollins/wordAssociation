@@ -1,4 +1,6 @@
+/*jslint node: true */
 function ControlPanel() {
+"use strict";
   // var DEFAULT_SOURCE = "==SOURCE==";  // will be updated by wordAssoServer.js on app.get
   // var DEFAULT_SOURCE = "http://localhost:9997";
   var DEFAULT_SOURCE = "http://word.threeceelabs.com";
@@ -296,7 +298,7 @@ function ControlPanel() {
     return this;
   };
 
-  function loadTwitterFeed(node, callback) {
+  function loadTwitterFeed(node) {
 
     var keywords = "-";
     var keywordsAuto = "-";
@@ -333,7 +335,7 @@ function ControlPanel() {
           var nsi =document.getElementById("nodeSearchInput");
           nsi.value = "@" + node.screenName;
 
-          callback(err, el);
+          // callback(err, el);
         });
       });
     }
@@ -344,7 +346,7 @@ function ControlPanel() {
           var nsi =document.getElementById("nodeSearchInput");
           nsi.value = "#" + node.text;
 
-          callback(err, el);
+          // callback(err, el);
         });
       });
     }
@@ -626,13 +628,13 @@ function ControlPanel() {
       case "SET_TWITTER_USER":
         currentTwitterNode = event.data.user;
         console.debug("SET TWITTER USER\n" + jsonPrint(currentTwitterNode));
-        loadTwitterFeed(currentTwitterNode, function(err, el){});
+        loadTwitterFeed(currentTwitterNode);
       break;
 
       case "SET_TWITTER_HASHTAG":
         currentTwitterNode = event.data.hashtag;
         console.debug("SET TWITTER HASHTAG\n" + jsonPrint(currentTwitterNode));
-        loadTwitterFeed(currentTwitterNode, function(err, el){});
+        loadTwitterFeed(currentTwitterNode);
       break;
     }
   }

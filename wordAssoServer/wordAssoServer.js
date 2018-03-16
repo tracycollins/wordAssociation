@@ -275,7 +275,7 @@ const debugKeyword = require("debug")("kw");
 const express = require("./config/express");
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
 require("isomorphic-fetch");
-const Dropbox = require('dropbox').Dropbox;
+const Dropbox = require("dropbox").Dropbox;
 // const Dropbox = require("./js/libs/dropbox").Dropbox;
 
 const Monitoring = require("@google-cloud/monitoring");
@@ -400,6 +400,10 @@ let Url;
 let User;
 let Word;
 
+const mongoose = require("mongoose");
+mongoose.Promise = global.Promise;
+
+
 dbConnection.on("error", console.error.bind(console, "connection error:"));
 dbConnection.once("open", function() {
   console.log("CONNECT: wordAssoServer Mongo DB default connection open to " + config.wordAssoDb);
@@ -411,9 +415,6 @@ dbConnection.once("open", function() {
   User = mongoose.model("User", userModel.UserSchema);
   Word = mongoose.model("Word", wordModel.WordSchema);
 });
-
-const mongoose = require("mongoose");
-mongoose.Promise = global.Promise;
 
 const hashtagServer = require("@threeceelabs/hashtag-server-controller");
 const userServer = require("@threeceelabs/user-server-controller");
@@ -804,11 +805,11 @@ function getTimeStamp(inputTime) {
 
 function dropboxLongPoll(last_cursor, callback) {
   dropboxClient.filesListFolderLongpoll({cursor: last_cursor, timeout: 30})
-    .then((results) => {
+    .then(function(results){
       // console.log(chalkAlert("dropboxLongpoll FOLDER: " + lastCursorTruncated + "\n" + jsonPrint(result)));
       callback(null, results);
     })
-    .catch((err) => {
+    .catch(function(err){
       console.log(err);
       callback(err, null);
     });
@@ -829,7 +830,7 @@ function dropboxFolderGetLastestCursor(folder, callback) {
   };
 
   dropboxClient.filesListFolderGetLatestCursor(optionsGetLatestCursor)
-  .then((last_cursor) => {
+  .then(function(last_cursor) {
 
     lastCursorTruncated = last_cursor.cursor.substring(0,20);
 
@@ -860,7 +861,7 @@ function dropboxFolderGetLastestCursor(folder, callback) {
       }
     });
   })
-  .catch((err) => {
+  .catch(function(err){
     console.log(err);
     callback(err, folder);
   });
@@ -1245,6 +1246,7 @@ function initUpdaterPingInterval(interval){
     }
   }, interval);
 }
+
 
 function initUpdater(callback){
 
@@ -3704,7 +3706,7 @@ function initLoadBestNetworkInterval(interval){
           + " | ERROR: " + err
         ));
       }
-      else {
+      else if (bRtNnObj) {
 
         bRtNnObj.matchRate = (bRtNnObj.matchRate !== undefined) ? bRtNnObj.matchRate : 0;
 
@@ -3728,38 +3730,41 @@ function initLoadBestNetworkInterval(interval){
               + " | ERROR" + err
             ));
           }
+          else if (nnObj) {
 
-          bestNetworkObj = deepcopy(nnObj);
+            bestNetworkObj = deepcopy(nnObj);
 
-          if (tweetParser === undefined) {
-            initTweetParser();
-          }
+            if (tweetParser === undefined) {
+              initTweetParser();
+            }
 
-          if ((tweetParser !== undefined) && (previousBestNetworkId !== bestNetworkObj.networkId)) {
+            if ((tweetParser !== undefined) && (previousBestNetworkId !== bestNetworkObj.networkId)) {
 
-            previousBestNetworkId = bestNetworkObj.networkId;
+              previousBestNetworkId = bestNetworkObj.networkId;
 
-            nnObj.matchRate = (nnObj.matchRate !== undefined) ? nnObj.matchRate : 0;
+              nnObj.matchRate = (nnObj.matchRate !== undefined) ? nnObj.matchRate : 0;
 
-            console.log(chalkAlert("NEW BEST NETWORK"
-              + " | " + nnObj.networkId
-              + " | " + nnObj.successRate.toFixed(2)
-              + " | " + nnObj.matchRate.toFixed(2)
-              // + "\n" + jsonPrint(nnObj)
-            ));
+              console.log(chalkAlert("NEW BEST NETWORK"
+                + " | " + nnObj.networkId
+                + " | " + nnObj.successRate.toFixed(2)
+                + " | " + nnObj.matchRate.toFixed(2)
+                // + "\n" + jsonPrint(nnObj)
+              ));
 
-            statsObj.bestNetwork.networkId = nnObj.networkId;
-            statsObj.bestNetwork.successRate = nnObj.successRate;
-            statsObj.bestNetwork.matchRate = nnObj.matchRate;
+              statsObj.bestNetwork.networkId = nnObj.networkId;
+              statsObj.bestNetwork.successRate = nnObj.successRate;
+              statsObj.bestNetwork.matchRate = nnObj.matchRate;
 
-            tweetParser.send({ op: "NETWORK", networkObj: bestNetworkObj }, function twpNetwork(err){
-              if (err) {
-                // pmx.emit("ERROR", "TWEET PARSER INIT SEND ERROR");
-                console.error(chalkError("*** TWEET PARSER SEND NETWORK ERROR"
-                  + " | " + err
-                ));
-              }
-            });
+              tweetParser.send({ op: "NETWORK", networkObj: bestNetworkObj }, function twpNetwork(err){
+                if (err) {
+                  // pmx.emit("ERROR", "TWEET PARSER INIT SEND ERROR");
+                  console.error(chalkError("*** TWEET PARSER SEND NETWORK ERROR"
+                    + " | " + err
+                  ));
+                }
+              });
+            }
+
           }
 
         });

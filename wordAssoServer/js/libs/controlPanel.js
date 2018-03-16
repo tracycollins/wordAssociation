@@ -780,6 +780,7 @@ function ControlPanel() {
           td.innerHTML = content.text;
 
           if (options.border) {
+            console.warn("options.border: " + options.border);
             td.style.border = options.border;
           }
 

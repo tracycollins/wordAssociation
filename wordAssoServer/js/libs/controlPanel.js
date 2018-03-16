@@ -749,7 +749,7 @@ function ControlPanel() {
     var tr = parentTable.insertRow();
     var tdTextColor = options.textColor;
     var tdBgColor = options.backgroundColor || "white";
-    var tdBorder = options.border || "1px solid blue";
+    // var tdBorder = options.border || "1px solid blue";
 
     if (options.trClass) {
       tr.className = options.trClass;
@@ -781,10 +781,10 @@ function ControlPanel() {
           td.innerHTML = content.text;
           td.style.border = tdBorder;
 
-          // if (options.border) {
-          //   console.warn("options.border: " + options.border);
-          //   td.style.border = options.border;
-          // }
+          if (options.border) {
+            console.warn("options.border: " + options.border);
+            td.style.border = options.border;
+          }
 
         } else if (content.type === "BUTTON") {
 

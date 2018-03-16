@@ -253,8 +253,7 @@ function ControlPanel() {
       var name = (node.name !== undefined) ? node.name : "---";
       var followersMentions = node.followersCount + node.mentions;
 
-
-      var userFollowersCountText = document.getElementById()
+      document.getElementById("userFollowersCountText").innerHTML = node.followersCount;
       statsObj.user.followersCount = node.followersCount;
 
       timelineText = document.createElement("TEXT");
@@ -1167,9 +1166,9 @@ function ControlPanel() {
     //   text: "NODES: " + 0
     // };
 
-    var usersFollowersCountText = {
+    var userFollowersCountText = {
       type: "TEXT",
-      id: "usersFollowersCountText",
+      id: "userFollowersCountText",
       class: "statusText",
       text: statsObj.user.followersCount
     };
@@ -1206,7 +1205,7 @@ function ControlPanel() {
         break;
       case "treepack":
         self.tableCreateRow(controlTable, optionsBody, [resetButton, pauseButton, statsButton, fullscreenButton]);
-        self.tableCreateRow(userStatsTable, optionsBody, ["FOLLOWERS", usersFollowersCountText]);
+        self.tableCreateRow(userStatsTable, optionsBody, ["FOLLOWERS", userFollowersCountText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["FONT MIN", fontSizeMinRatioSlider, fontSizeMinRatioSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["FONT MAX", fontSizeMaxRatioSlider, fontSizeMaxRatioSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["TRANSITION", transitionDurationSlider, transitionDurationSliderText]);

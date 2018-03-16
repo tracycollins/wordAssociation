@@ -2131,7 +2131,6 @@ function updateTrends(){
     }
     else if (data){
       debug(chalkInfo("LOAD TWITTER TREND - WORLDWIDE"
-        // + "\n" + jsonPrint(data)
       ));
       data.forEach(function trendingCacheSetWorldWide(element){
         element.trends.forEach(function trendElementWorldWide(topic){
@@ -2158,7 +2157,6 @@ function updateTrends(){
       trendingCache.set("america", {name: "america"});
 
       debug(chalkInfo("LOAD TWITTER TREND - US"
-        // + "\n" + jsonPrint(data)
       ));
       data.forEach(function trendingCacheSetUs(element){
         element.trends.forEach(function trendElementUs(topic){

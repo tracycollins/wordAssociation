@@ -1157,7 +1157,7 @@ function ControlPanel() {
       type: "TEXT",
       id: "userFriendsCountText",
       class: "userStatusText",
-      text: statsObj.user.friendsCount
+      text: statsObj.user.friendsCount,
       border: "1px solid green"
     };
 
@@ -1165,7 +1165,7 @@ function ControlPanel() {
       type: "TEXT",
       id: "userMentionsText",
       class: "userStatusText",
-      text: statsObj.user.mentions
+      text: statsObj.user.mentions,
       border: "1px solid blue"
     };
 
@@ -1173,7 +1173,7 @@ function ControlPanel() {
       type: "TEXT",
       id: "userStatusesCountText",
       class: "userStatusText",
-      text: statsObj.user.statusesCount
+      text: statsObj.user.statusesCount,
       border: "1px solid red"
     };
 
@@ -1181,7 +1181,7 @@ function ControlPanel() {
       type: "TEXT",
       id: "user3cFollowingText",
       class: "userStatusText",
-      text: statsObj.user.threeceeFollowing
+      text: statsObj.user.threeceeFollowing,
       border: "1px solid red"
     };
 

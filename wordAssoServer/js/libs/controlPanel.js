@@ -71,6 +71,7 @@ function ControlPanel() {
 
   var dashboardMain;
   var infoTable;
+  var userStatsTable;
   var controlTable;
   var controlTableHead;
   var controlTableBody;
@@ -854,6 +855,7 @@ function ControlPanel() {
 
     dashboardMain = document.getElementById("dashboardMain");
     infoTable = document.getElementById("infoTable");
+    userStatsTable = document.getElementById("userStatsTable");
     controlTable = document.getElementById("controlTable");
     controlTableHead = document.getElementById("controlTableHead");
     controlTableBody = document.getElementById("controlTableBody");

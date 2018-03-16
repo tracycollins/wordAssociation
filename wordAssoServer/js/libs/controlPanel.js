@@ -67,6 +67,8 @@ function ControlPanel() {
   var statsObj = {};
   statsObj.socketId = "NOT SET";
   statsObj.user = {};
+  statsObj.user.name = "---";
+  statsObj.user.screenName = "@";
   statsObj.user.followersCount = 0;
   statsObj.user.friendsCount = 0;
   statsObj.user.statusesCount = 0;
@@ -217,12 +219,17 @@ function ControlPanel() {
       var name = (node.name !== undefined) ? node.name : "---";
       var followersMentions = node.followersCount + node.mentions;
 
+      document.getElementById("userScreenNameText").innerHTML = node.screenName;
+      document.getElementById("userNameText").innerHTML = name;
       document.getElementById("userFollowersCountText").innerHTML = node.followersCount;
       document.getElementById("userFriendsCountText").innerHTML = node.friendsCount;
       document.getElementById("userStatusesCountText").innerHTML = node.statusesCount;
       document.getElementById("userMentionsText").innerHTML = node.mentions;
       document.getElementById("user3cFollowingText").innerHTML = node.threeceeFollowing;
 
+
+      statsObj.user.name = name;
+      statsObj.user.screenName = node.screenName;
       statsObj.user.followersCount = node.followersCount;
       statsObj.user.friendsCount = node.friendsCount;
       statsObj.user.statusesCount = node.statusesCount;

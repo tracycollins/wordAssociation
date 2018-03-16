@@ -1148,7 +1148,7 @@ function ControlPanel() {
     var userFollowersCountText = {
       type: "TEXT",
       id: "userFollowersCountText",
-      class: "statusText",
+      class: "userStatusText",
       text: statsObj.user.followersCount,
       border: "1px solid red"
     };
@@ -1156,29 +1156,33 @@ function ControlPanel() {
     var userFriendsCountText = {
       type: "TEXT",
       id: "userFriendsCountText",
-      class: "statusText",
+      class: "userStatusText",
       text: statsObj.user.friendsCount
+      border: "1px solid green"
     };
 
     var userMentionsText = {
       type: "TEXT",
       id: "userMentionsText",
-      class: "statusText",
+      class: "userStatusText",
       text: statsObj.user.mentions
+      border: "1px solid blue"
     };
 
     var userStatusesCountText = {
       type: "TEXT",
       id: "userStatusesCountText",
-      class: "statusText",
+      class: "userStatusText",
       text: statsObj.user.statusesCount
+      border: "1px solid red"
     };
 
     var user3cFollowingText = {
       type: "TEXT",
       id: "user3cFollowingText",
-      class: "statusText",
+      class: "userStatusText",
       text: statsObj.user.threeceeFollowing
+      border: "1px solid red"
     };
 
     switch (config.sessionViewType) {

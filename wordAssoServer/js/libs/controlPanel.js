@@ -37,8 +37,6 @@ function ControlPanel() {
     }
   }
 
-
-
   nodeSearchInput.setAttribute("class", "nodeSearch");
   nodeSearchInput.setAttribute("type", "text");
   nodeSearchInput.setAttribute("id", "nodeSearchInput");
@@ -50,7 +48,6 @@ function ControlPanel() {
 
   twitterCategorySearchDiv.appendChild(nodeSearchLabel);
   twitterCategorySearchDiv.appendChild(nodeSearchInput);
-
 
 
   var config = {};
@@ -184,8 +181,10 @@ function ControlPanel() {
       timelineText.setAttribute("class", "timelineText");
       timelineText.innerHTML = "<br>" 
         + "--- FLWRs"
-        + " | --- FRNDs" 
-        + " | --- Ts"
+        + "<br>" 
+        + "--- FRNDs" 
+        + "<br>" 
+        + "--- Ts"
         + "<br>" 
         + "<br>" 
         + "3CF: ---"
@@ -210,10 +209,14 @@ function ControlPanel() {
         + "<h4>@" + node.screenName + "</h4><br>"
         + "<h4>" + name + "</h4><br>"
         + node.followersCount + " FLWRs"
-        + " | " + node.mentions + " Ms" 
-        + " | " + followersMentions + " FLWRMs" 
-        + " | " + node.friendsCount + " FRNDs" 
-        + " | " + node.statusesCount + " Ts"
+        + "<br>" 
+        + node.mentions + " Ms" 
+        + "<br>" 
+        + followersMentions + " FLWRMs" 
+        + "<br>" 
+        + node.friendsCount + " FRNDs" 
+        + "<br>" 
+        + node.statusesCount + " Ts"
         + "<br>" 
         + "<br>" 
         + "3CF: " + node.threeceeFollowing
@@ -247,13 +250,9 @@ function ControlPanel() {
   function twitterHashtagSearch(node, callback){
 
     var text = node.nodeId.toLowerCase();
-
-    // var url = "https://twitter.com/search?f=tweets&q=%23" + text ;
-
     var hashtagText = document.createElement("TEXT");
     hashtagText.setAttribute("id", "hashtagText");
     hashtagText.setAttribute("class", "hashtagText");
-    // hashtagText.innerHTML = "#" + text;
     hashtagText.innerHTML = "<br><br>" 
       + "#" + text
       + "<br><br>"

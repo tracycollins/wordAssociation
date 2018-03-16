@@ -779,11 +779,7 @@ function ControlPanel() {
           td.style.color = tdTextColor;
           td.style.backgroundColor = tdBgColor;
           td.innerHTML = content.text;
-
-          if (options.border) {
-            console.warn("options.border: " + options.border);
-            td.style.border = options.border;
-          }
+          td.style.border = options.border || "1px solid #aaaaaa";
 
         } else if (content.type === "BUTTON") {
 
@@ -1149,40 +1145,35 @@ function ControlPanel() {
       type: "TEXT",
       id: "userFollowersCountText",
       class: "userStatusText",
-      text: statsObj.user.followersCount,
-      border: "1px solid red"
+      text: statsObj.user.followersCount
     };
 
     var userFriendsCountText = {
       type: "TEXT",
       id: "userFriendsCountText",
       class: "userStatusText",
-      text: statsObj.user.friendsCount,
-      border: "1px solid green"
+      text: statsObj.user.friendsCount
     };
 
     var userMentionsText = {
       type: "TEXT",
       id: "userMentionsText",
       class: "userStatusText",
-      text: statsObj.user.mentions,
-      border: "1px solid blue"
+      text: statsObj.user.mentions
     };
 
     var userStatusesCountText = {
       type: "TEXT",
       id: "userStatusesCountText",
       class: "userStatusText",
-      text: statsObj.user.statusesCount,
-      border: "1px solid red"
+      text: statsObj.user.statusesCount
     };
 
     var user3cFollowingText = {
       type: "TEXT",
       id: "user3cFollowingText",
       class: "userStatusText",
-      text: statsObj.user.threeceeFollowing,
-      border: "1px solid red"
+      text: statsObj.user.threeceeFollowing
     };
 
     switch (config.sessionViewType) {

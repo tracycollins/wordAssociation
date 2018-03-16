@@ -82,40 +82,47 @@ function ControlPanel() {
 
   var hashtagDiv =document.getElementById("hashtagDiv");
 
-  function tableCreateRow(parentTable, options, cells) {
+  // function tableCreateRow(parentTable, options, cells) {
 
-    var tr = parentTable.insertRow();
-    var thTextColor = options.thTextColor;
-    var tdTextColor = options.tdTextColor;
+  //   var tr = parentTable.insertRow();
+  //   var thTextColor = options.thTextColor;
+  //   var tdTextColor = options.tdTextColor;
 
-    if (options.textColor) {
-      thTextColor = options.textColor;
-      tdTextColor = options.textColor;
-    }
-    var tdBgColor = options.backgroundColor || '#222222';
+  //   if (options.textColor) {
+  //     thTextColor = options.textColor;
+  //     tdTextColor = options.textColor;
+  //   }
+  //   var tdBgColor = options.backgroundColor || '#222222';
 
-    if (options.trClass) {
-      tr.setAttribute("class", options.trClass);
-    }
+  //   if (options.trClass) {
+  //     tr.setAttribute("class", options.trClass);
+  //   }
 
-    if (options.headerFlag) {
-      cells.forEach(function(content) {
-        var th = tr.insertCell();
-        th.appendChild(document.createTextNode(content));
-        th.style.fontSize = "1em";
-        th.style.color = thTextColor;
-        th.style.backgroundColor = tdBgColor;
-      });
-    } else {
-      cells.forEach(function(content) {
-        var td = tr.insertCell();
-        td.appendChild(document.createTextNode(content));
-        td.style.fontSize = "1em";
-        td.style.color = tdTextColor;
-        td.style.backgroundColor = tdBgColor;
-      });
-    }
-  }
+  //   if (options.headerFlag) {
+  //     cells.forEach(function(content) {
+  //       var th = tr.insertCell();
+  //       th.appendChild(document.createTextNode(content));
+  //       th.style.fontSize = "1em";
+  //       th.style.color = thTextColor;
+  //       th.style.backgroundColor = tdBgColor;
+  //     });
+  //   } else {
+  //     cells.forEach(function(c) {
+  //       var content;
+  //       if (typeof c === "object") {
+  //         content = c.content;
+  //       }
+  //       else {
+  //         content = c;
+  //       }
+  //       var td = tr.insertCell();
+  //       td.appendChild(document.createTextNode(content));
+  //       td.style.fontSize = "1em";
+  //       td.style.color = tdTextColor;
+  //       td.style.backgroundColor = tdBgColor;
+  //     });
+  //   }
+  // }
 
   function nextMismatchedButtonHandler(e){
 
@@ -246,6 +253,8 @@ function ControlPanel() {
       var name = (node.name !== undefined) ? node.name : "---";
       var followersMentions = node.followersCount + node.mentions;
 
+
+      var userFollowersCountText = document.getElementById()
       statsObj.user.followersCount = node.followersCount;
 
       timelineText = document.createElement("TEXT");
@@ -1151,11 +1160,18 @@ function ControlPanel() {
       text: "SESSION ID: " + statsObj.socketId
     };
 
-    var status2 = {
+    // var status2 = {
+    //   type: "TEXT",
+    //   id: "statusSession2Id",
+    //   class: "statusText",
+    //   text: "NODES: " + 0
+    // };
+
+    var usersFollowersCountText + {
       type: "TEXT",
-      id: "statusSession2Id",
+      id: "usersFollowersCountText",
       class: "statusText",
-      text: "NODES: " + 0
+      text: statsObj.user.followersCount
     };
 
     switch (config.sessionViewType) {
@@ -1190,7 +1206,7 @@ function ControlPanel() {
         break;
       case "treepack":
         self.tableCreateRow(controlTable, optionsBody, [resetButton, pauseButton, statsButton, fullscreenButton]);
-        self.tableCreateRow(userStatsTable, optionsBody, ["FOLLOWERS", statsObj.user.followersCount]);
+        self.tableCreateRow(userStatsTable, optionsBody, ["FOLLOWERS", usersFollowersCountText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["FONT MIN", fontSizeMinRatioSlider, fontSizeMinRatioSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["FONT MAX", fontSizeMaxRatioSlider, fontSizeMaxRatioSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["TRANSITION", transitionDurationSlider, transitionDurationSliderText]);

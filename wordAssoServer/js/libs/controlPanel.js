@@ -1141,6 +1141,13 @@ function ControlPanel() {
       text: "SESSION ID: " + statsObj.socketId
     };
 
+    var userFollowersCountLabel = {
+      type: "TEXT",
+      id: "userFollowersCountLabel",
+      class: "userStatusText",
+      text: "FOLLOWERS"
+    };
+
     var userFollowersCountText = {
       type: "TEXT",
       id: "userFollowersCountText",
@@ -1208,7 +1215,7 @@ function ControlPanel() {
         break;
       case "treepack":
         self.tableCreateRow(controlTable, optionsBody, [resetButton, pauseButton, statsButton, fullscreenButton]);
-        self.tableCreateRow(userStatsTable, optionsUserStatsBody, ["FOLLOWERS", userFollowersCountText]);
+        self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userFollowersCountLabel, userFollowersCountText]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, ["FRIENDS", userFriendsCountText]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, ["MENTIONS", userMentionsText]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, ["TWEETS", userStatusesCountText]);

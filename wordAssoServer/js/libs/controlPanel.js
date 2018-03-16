@@ -219,7 +219,7 @@ function ControlPanel() {
       var name = (node.name !== undefined) ? node.name : "---";
       var followersMentions = node.followersCount + node.mentions;
 
-      document.getElementById("userScreenNameText").innerHTML = node.screenName;
+      document.getElementById("userScreenNameText").innerHTML = "@" + node.screenName;
       document.getElementById("userNameText").innerHTML = name;
       document.getElementById("userFollowersCountText").innerHTML = node.followersCount;
       document.getElementById("userFriendsCountText").innerHTML = node.friendsCount;

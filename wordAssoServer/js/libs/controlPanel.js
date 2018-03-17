@@ -199,7 +199,7 @@ function ControlPanel() {
       var followersMentions = node.followersCount + node.mentions;
 
       document.getElementById("userScreenNameText").innerHTML = "<h4>@" + node.screenName + "</h4>";
-      document.getElementById("userNameText").innerHTML = name;
+      document.getElementById("userNameText").innerHTML = "<h4>" + name + "</h4>";
       document.getElementById("userKeywordManualText").innerHTML = node.keywords.toUpperCase();
       document.getElementById("userKeywordAutoText").innerHTML = node.keywordsAuto.toUpperCase();
       document.getElementById("userFollowersCountText").innerHTML = node.followersCount;

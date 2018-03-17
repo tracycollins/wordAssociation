@@ -742,6 +742,8 @@ function ControlPanel() {
           td.className = content.class;
           td.setAttribute("id", content.id);
           td.style.color = tdTextColor;
+          td.style.margin = "5px";
+          td.style.padding = "5px";
           td.style.backgroundColor = tdBgColor;
           td.innerHTML = content.text;
           td.style.border = options.border || "none";

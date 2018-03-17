@@ -189,30 +189,7 @@ function ControlPanel() {
 
   function twitterWidgetsCreateTimeline(node, callback){
 
-    // var timelineText;
-
     if (node.notFound !== undefined) {
-
-      // statsObj.user.followersCount = "";
-
-      // timelineText = document.createElement("TEXT");
-      // timelineText.setAttribute("id", "timelineText");
-      // timelineText.setAttribute("class", "timelineText");
-      // timelineText.innerHTML = "<br>" 
-      //   + "--- FLWRs"
-      //   + "<br>" 
-      //   + "--- FRNDs" 
-      //   + "<br>" 
-      //   + "--- Ts"
-      //   + "<br>" 
-      //   + "<br>" 
-      //   + "3CF: ---"
-      //   + "<br>" 
-      //   + "<br>" 
-      //   + "KW: M: --- | A: ---"
-      //   + "<br>";
-
-      // timelineDiv.appendChild(timelineText);
       callback(null, null);
     }
     else {
@@ -223,8 +200,8 @@ function ControlPanel() {
 
       document.getElementById("userScreenNameText").innerHTML = "@" + node.screenName;
       document.getElementById("userNameText").innerHTML = name;
-      document.getElementById("userKeywordManualText").innerHTML = node.keywords;
-      document.getElementById("userKeywordAutoText").innerHTML = node.keywordsAuto;
+      document.getElementById("userKeywordManualText").innerHTML = node.keywords.toUpperCase();
+      document.getElementById("userKeywordAutoText").innerHTML = node.keywordsAuto.toUpperCase();
       document.getElementById("userFollowersCountText").innerHTML = node.followersCount;
       document.getElementById("userFriendsCountText").innerHTML = node.friendsCount;
       document.getElementById("userStatusesCountText").innerHTML = node.statusesCount;
@@ -241,31 +218,6 @@ function ControlPanel() {
       statsObj.user.statusesCount = node.statusesCount;
       statsObj.user.threeceeFollowing = node.threeceeFollowing;
       statsObj.user.mentions = node.mentions;
-
-      // timelineText = document.createElement("TEXT");
-      // timelineText.setAttribute("id", "timelineText");
-      // timelineText.setAttribute("class", "timelineText");
-      // timelineText.innerHTML = "<br>" 
-      //   + "<h4>@" + node.screenName + "</h4><br>"
-      //   + "<h4>" + name + "</h4><br>"
-      //   + node.followersCount + " FLWRs"
-      //   + "<br>" 
-      //   + node.mentions + " Ms" 
-      //   + "<br>" 
-      //   + followersMentions + " FLWRMs" 
-      //   + "<br>" 
-      //   + node.friendsCount + " FRNDs" 
-      //   + "<br>" 
-      //   + node.statusesCount + " Ts"
-      //   + "<br>" 
-      //   + "<br>" 
-      //   + "3CF: " + node.threeceeFollowing
-      //   + "<br>" 
-      //   + "<br>" 
-      //   + "KW: M: " + node.keywords + " | A: " + node.keywordsAuto
-      //   + "<br><br>";
-
-      // timelineDiv.appendChild(timelineText);
 
       twttr.widgets.createFollowButton(
         screenName,

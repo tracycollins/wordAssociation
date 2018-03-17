@@ -223,6 +223,8 @@ function ControlPanel() {
 
       document.getElementById("userScreenNameText").innerHTML = "@" + node.screenName;
       document.getElementById("userNameText").innerHTML = name;
+      document.getElementById("userKeywordManualText").innerHTML = node.keywords;
+      document.getElementById("userKeywordAutoText").innerHTML = node.keywordsAuto;
       document.getElementById("userFollowersCountText").innerHTML = node.followersCount;
       document.getElementById("userFriendsCountText").innerHTML = node.friendsCount;
       document.getElementById("userStatusesCountText").innerHTML = node.statusesCount;

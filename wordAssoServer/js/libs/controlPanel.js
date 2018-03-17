@@ -198,7 +198,7 @@ function ControlPanel() {
       var name = (node.name !== undefined) ? node.name : "---";
       var followersMentions = node.followersCount + node.mentions;
 
-      document.getElementById("userScreenNameText").innerHTML = "@" + node.screenName;
+      document.getElementById("userScreenNameText").innerHTML = "<h4>@" + node.screenName + "</h4>";
       document.getElementById("userNameText").innerHTML = name;
       document.getElementById("userKeywordManualText").innerHTML = node.keywords.toUpperCase();
       document.getElementById("userKeywordAutoText").innerHTML = node.keywordsAuto.toUpperCase();

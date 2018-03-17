@@ -1187,31 +1187,18 @@ function ControlPanel() {
     user3cFollowingLabel.class = "userStatusText";
     user3cFollowingLabel.text = "3C FOLLOW";
 
-    var userKeywordManualText = {
+    var userKeywordText = {
       type: "TEXT",
-      id: "userKeywordManualText",
+      id: "userKeywordText",
       class: "userStatusText",
-      text: statsObj.user.keywords
+      text: "M: " + statsObj.user.keywords + " | A: " + statsObj.user.keywordsAuto
     };
 
-    var userKeywordManualLabel = {};
-    userKeywordManualLabel.type = "TEXT";
-    userKeywordManualLabel.id = "userKeywordManualLabel";
-    userKeywordManualLabel.class = "userStatusText";
-    userKeywordManualLabel.text = "KEYWORD (M)";
-
-    var userKeywordAutoText = {
-      type: "TEXT",
-      id: "userKeywordAutoText",
-      class: "userStatusText",
-      text: statsObj.user.keywordsAuto
-    };
-
-    var userKeywordAutoLabel = {};
-    userKeywordAutoLabel.type = "TEXT";
-    userKeywordAutoLabel.id = "userKeywordAutoLabel";
-    userKeywordAutoLabel.class = "userStatusText";
-    userKeywordAutoLabel.text = "KEYWORD (A)";
+    var userKeywordLabel = {};
+    userKeywordLabel.type = "TEXT";
+    userKeywordLabel.id = "userKeywordLabel";
+    userKeywordLabel.class = "userStatusText";
+    userKeywordLabel.text = "KEYWORDS";
 
     switch (config.sessionViewType) {
 
@@ -1246,12 +1233,11 @@ function ControlPanel() {
       case "treepack":
         self.tableCreateRow(controlTable, optionsBody, [resetButton, pauseButton, statsButton, fullscreenButton]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userScreenNameText, userNameText]);
+        self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userKeywordLabel, userKeywordText]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userFollowersCountLabel, userFollowersCountText]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userFriendsCountLabel, userFriendsCountText]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userMentionsLabel, userMentionsText]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userStatusesCountLabel, userStatusesCountText]);
-        self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userKeywordManualLabel, userKeywordManualText]);
-        self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userKeywordAutoLabel, userKeywordAutoText]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [user3cFollowingLabel, user3cFollowingText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["FONT MIN", fontSizeMinRatioSlider, fontSizeMinRatioSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["FONT MAX", fontSizeMaxRatioSlider, fontSizeMaxRatioSliderText]);

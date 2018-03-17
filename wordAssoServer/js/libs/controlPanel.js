@@ -200,8 +200,7 @@ function ControlPanel() {
 
       document.getElementById("userScreenNameText").innerHTML = "<h4>@" + node.screenName + "</h4>";
       document.getElementById("userNameText").innerHTML = "<h4>" + name + "</h4>";
-      document.getElementById("userKeywordManualText").innerHTML = node.keywords.toUpperCase();
-      document.getElementById("userKeywordAutoText").innerHTML = node.keywordsAuto.toUpperCase();
+      document.getElementById("userKeywordText").innerHTML = "M: " + node.keywords.toUpperCase() + " | A: " + node.keywordsAuto.toUpperCase();
       document.getElementById("userFollowersCountText").innerHTML = node.followersCount;
       document.getElementById("userFriendsCountText").innerHTML = node.friendsCount;
       document.getElementById("userStatusesCountText").innerHTML = node.statusesCount;

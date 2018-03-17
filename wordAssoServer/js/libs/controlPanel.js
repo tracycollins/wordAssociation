@@ -69,6 +69,8 @@ function ControlPanel() {
   statsObj.user = {};
   statsObj.user.name = "---";
   statsObj.user.screenName = "@";
+  statsObj.user.keywords = "---";
+  statsObj.user.keywordsAuto = "---";
   statsObj.user.followersCount = 0;
   statsObj.user.friendsCount = 0;
   statsObj.user.statusesCount = 0;
@@ -230,6 +232,8 @@ function ControlPanel() {
 
       statsObj.user.name = name;
       statsObj.user.screenName = node.screenName;
+      statsObj.user.keywords = node.keywords;
+      statsObj.user.keywordsAuto = node.keywordsAuto;
       statsObj.user.followersCount = node.followersCount;
       statsObj.user.friendsCount = node.friendsCount;
       statsObj.user.statusesCount = node.statusesCount;

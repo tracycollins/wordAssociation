@@ -786,7 +786,7 @@ function ControlPanel() {
           td.style.color = tdTextColor;
           td.style.backgroundColor = tdBgColor;
           td.innerHTML = content.text;
-          td.style.border = options.border || "1px solid #aaaaaa";
+          td.style.border = options.border || "none";
 
         } else if (content.type === "BUTTON") {
 

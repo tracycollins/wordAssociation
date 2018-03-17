@@ -1771,7 +1771,6 @@ function initSocketHandler(socketObj) {
         + " | SID: " + socket.id
         + " | @" + dataObj.node.screenName
         + " | KWs: " + Object.keys(dataObj.keywords)
-        // + "\n" + jsonPrint(dataObj)
       ));
     }
     if (dataObj.node.nodeType === "hashtag") {
@@ -1780,7 +1779,6 @@ function initSocketHandler(socketObj) {
         + " | SID: " + socket.id
         + " | #" + dataObj.node.text
         + " | KWs: " + Object.keys(dataObj.keywords)
-        // + "\n" + jsonPrint(dataObj)
       ));
     }
 
@@ -1792,7 +1790,6 @@ function initSocketHandler(socketObj) {
       + " | " + getTimeStamp()
       + " | " + userObj.userId
       + " | SENT " + moment(parseInt(userObj.timeStamp)).format(compactDateTimeFormat)
-      // + "\n" + jsonPrint(userObj)
     ));
 
     socket.emit("USER_READY_ACK", 

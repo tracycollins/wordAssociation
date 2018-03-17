@@ -1181,12 +1181,25 @@ function ControlPanel() {
       text: statsObj.user.friendsCount
     };
 
+    var userFriendsCountLabel = {};
+    userFriendsCountLabel.type = "TEXT";
+    userFriendsCountLabel.id = "userFriendsCountLabel";
+    userFriendsCountLabel.class = "userStatusText";
+    userFriendsCountLabel.text = "FRIENDS";
+
+
     var userMentionsText = {
       type: "TEXT",
       id: "userMentionsText",
       class: "userStatusText",
       text: statsObj.user.mentions
     };
+
+    var userMentionsLabel = {};
+    userMentionsLabel.type = "TEXT";
+    userMentionsLabel.id = "userMentionsLabel";
+    userMentionsLabel.class = "userStatusText";
+    userMentionsLabel.text = "MENTIONS";
 
     var userStatusesCountText = {
       type: "TEXT",
@@ -1195,12 +1208,24 @@ function ControlPanel() {
       text: statsObj.user.statusesCount
     };
 
+    var userStatusesCountLabel = {};
+    userStatusesCountLabel.type = "TEXT";
+    userStatusesCountLabel.id = "userStatusesCountLabel";
+    userStatusesCountLabel.class = "userStatusText";
+    userStatusesCountLabel.text = "TWEETS";
+
     var user3cFollowingText = {
       type: "TEXT",
       id: "user3cFollowingText",
       class: "userStatusText",
       text: statsObj.user.threeceeFollowing
     };
+
+    var user3cFollowingLabel = {};
+    user3cFollowingLabel.type = "TEXT";
+    user3cFollowingLabel.id = "user3cFollowingLabel";
+    user3cFollowingLabel.class = "userStatusText";
+    user3cFollowingLabel.text = "3C FOLLOW";
 
     switch (config.sessionViewType) {
 
@@ -1236,10 +1261,10 @@ function ControlPanel() {
         self.tableCreateRow(controlTable, optionsBody, [resetButton, pauseButton, statsButton, fullscreenButton]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userScreenNameText, userNameText]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userFollowersCountLabel, userFollowersCountText]);
-        self.tableCreateRow(userStatsTable, optionsUserStatsBody, ["FRIENDS", userFriendsCountText]);
-        self.tableCreateRow(userStatsTable, optionsUserStatsBody, ["MENTIONS", userMentionsText]);
-        self.tableCreateRow(userStatsTable, optionsUserStatsBody, ["TWEETS", userStatusesCountText]);
-        self.tableCreateRow(userStatsTable, optionsUserStatsBody, ["3C FOLLOW", user3cFollowingText]);
+        self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userFriendsCountLabel, userFriendsCountText]);
+        self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userMentionsLabel, userMentionsText]);
+        self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userStatusesCountLabel, userStatusesCountText]);
+        self.tableCreateRow(userStatsTable, optionsUserStatsBody, [user3cFollowingLabel, user3cFollowingText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["FONT MIN", fontSizeMinRatioSlider, fontSizeMinRatioSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["FONT MAX", fontSizeMaxRatioSlider, fontSizeMaxRatioSliderText]);
         self.tableCreateRow(controlSliderTable, optionsBody, ["TRANSITION", transitionDurationSlider, transitionDurationSliderText]);

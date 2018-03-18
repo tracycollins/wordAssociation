@@ -1728,7 +1728,6 @@ function initSocketHandler(socketObj) {
 
           console.log(chalkTwitter("+++ TWITTER_SEARCH_NODE USER FOUND"
             + " | " + printUser({user:user})
-            // + "\n" + jsonPrint(user)
           ));
           
           twit.get("users/show", {user_id: user.userId, include_entities: true}, function usersShow (err, rawUser, response){
@@ -1738,7 +1737,7 @@ function initSocketHandler(socketObj) {
             }
             else if (rawUser) {
 
-              userServer.convertRawUser(rawUser, function(err, cUser){
+              userServer.convertRawUser({user:rawUser}, function(err, cUser){
 
                 console.log(chalkTwitter("FOUND users/show rawUser"
                   + " | " + printUser({user:cUser})
@@ -1752,7 +1751,6 @@ function initSocketHandler(socketObj) {
                   else {
                     console.log(chalkTwitter("UPDATED updatedUser"
                       + " | " + printUser({user:updatedUser})
-                      // + jsonPrint(updatedUser)
                     ));
                     socket.emit("SET_TWITTER_USER", updatedUser);
                   }

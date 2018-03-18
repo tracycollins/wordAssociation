@@ -1045,8 +1045,8 @@ function ViewTreepack() {
         }
 
         if ((d.lastTweetId !== undefined) && d.lastTweetId) {
-          // url = "https://twitter.com/" + d.screenName + "/status/" + d.lastTweetId ;
-          url = d.lastTweetId ;
+          url = "https://twitter.com/" + d.screenName + "/status/" + d.lastTweetId ;
+          // url = d.lastTweetId ;
         }
         else {
           url = "https://twitter.com/" + d.screenName ;

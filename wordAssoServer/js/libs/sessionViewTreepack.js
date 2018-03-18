@@ -1044,7 +1044,7 @@ function ViewTreepack() {
           previousTwitterUserId = currentTwitterUser.userId;
         }
 
-        if ((d.lastTweetId !== undefined) && (d.lastTweetId !== "false") {
+        if ((d.lastTweetId !== undefined) && (d.lastTweetId !== "false")) {
           url = "https://twitter.com/" + d.screenName + "/status/" + d.lastTweetId ;
           // url = d.lastTweetId ;
         }

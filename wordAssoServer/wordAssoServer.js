@@ -432,6 +432,26 @@ function jsonPrint(obj) {
   }
 }
 
+function printUser(params) {
+  let text;
+  if (params.verbose) {
+    return jsonPrint(params.user);
+  } 
+  else {
+    text = params.user.userId 
+      + " | @" + params.user.screenName 
+      + " | N" + params.user.name 
+      + " | 3C: " + params.user.threeceeFollowing 
+      + " | Ts: " + params.user.statusesCount 
+      + " | FRNDs: " + params.user.friendsCount 
+      + " | FLWRs: " + params.user.followersCount 
+      + " | LAd: " + params.user.languageAnalyzed 
+      + "\nKWM: " + jsonPrint(params.user.keywords) 
+      + " \nKWA: " + jsonPrint(params.user.keywordsAuto);
+    return text;
+  }
+}
+
 function msToTime(duration) {
   let seconds = parseInt((duration / 1000) % 60);
   let minutes = parseInt((duration / (1000 * 60)) % 60);
@@ -1706,7 +1726,10 @@ function initSocketHandler(socketObj) {
         }
         else if (user) {
 
-          console.log(chalkTwitter("+++ TWITTER_SEARCH_NODE USER FOUND\n" + jsonPrint(user)));
+          console.log(chalkTwitter("+++ TWITTER_SEARCH_NODE USER FOUND"
+            + printUser({user:user})
+            // + "\n" + jsonPrint(user)
+          ));
           
           twit.get("users/show", {user_id: user.userId, include_entities: true}, function usersShow (err, rawUser, response){
             if (err) {
@@ -1714,35 +1737,23 @@ function initSocketHandler(socketObj) {
               socket.emit("SET_TWITTER_USER", user);
             }
             else if (rawUser) {
-              console.log(chalkTwitter("FOUND users/show rawUser" + jsonPrint(rawUser)));
 
-              user.isTwitterUser = true;
-              user.nodeType = "user";
-              user.name = rawUser.name;
-              user.screenName = rawUser.screen_name.toLowerCase();
-              user.screenNameLower = rawUser.screen_name.toLowerCase();
-              user.url = rawUser.url;
-              user.profileUrl = "http://twitter.com/" + rawUser.screen_name;
-              user.profileImageUrl = rawUser.profile_image_url;
-              user.bannerImageUrl = rawUser.profile_banner_url;
-              user.verified = rawUser.verified;
-              user.following = rawUser.following;
-              user.description = rawUser.description;
-              user.lastTweetId = (rawUser.status !== undefined) ? rawUser.status.id_str : false;
-              user.statusesCount = rawUser.statuses_count;
-              user.friendsCount = rawUser.friends_count;
-              user.followersCount = rawUser.followers_count;
-              user.status = rawUser.status;
+              userServer.convertRawUser(rawUser, function(err, cUser){
 
-              userServer.findOneUser(user, {noInc: true}, function(err, updatedUser){
+                console.log(chalkTwitter("FOUND users/show rawUser"
+                  + printUser({user:cUser})
+                ));
 
-                if (err) {
-                  console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));
-                }
-                else {
-                  console.log(chalkTwitter("UPDATED updatedUser" + jsonPrint(updatedUser)));
-                  socket.emit("SET_TWITTER_USER", updatedUser);
-                }
+                userServer.findOneUser(cUser, {noInc: true}, function(err, updatedUser){
+
+                  if (err) {
+                    console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));
+                  }
+                  else {
+                    console.log(chalkTwitter("UPDATED updatedUser" + jsonPrint(updatedUser)));
+                    socket.emit("SET_TWITTER_USER", updatedUser);
+                  }
+                });
               });
 
 

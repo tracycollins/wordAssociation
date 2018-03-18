@@ -440,7 +440,7 @@ function printUser(params) {
   else {
     text = params.user.userId 
       + " | @" + params.user.screenName 
-      + " | N" + params.user.name 
+      + " | N: " + params.user.name 
       + " | 3C: " + params.user.threeceeFollowing 
       + " | Ts: " + params.user.statusesCount 
       + " | FRNDs: " + params.user.friendsCount 
@@ -1727,7 +1727,7 @@ function initSocketHandler(socketObj) {
         else if (user) {
 
           console.log(chalkTwitter("+++ TWITTER_SEARCH_NODE USER FOUND"
-            + printUser({user:user})
+            + " | " + printUser({user:user})
             // + "\n" + jsonPrint(user)
           ));
           
@@ -1741,7 +1741,7 @@ function initSocketHandler(socketObj) {
               userServer.convertRawUser(rawUser, function(err, cUser){
 
                 console.log(chalkTwitter("FOUND users/show rawUser"
-                  + printUser({user:cUser})
+                  + " | " + printUser({user:cUser})
                 ));
 
                 userServer.findOneUser(cUser, {noInc: true}, function(err, updatedUser){
@@ -1750,7 +1750,10 @@ function initSocketHandler(socketObj) {
                     console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));
                   }
                   else {
-                    console.log(chalkTwitter("UPDATED updatedUser" + jsonPrint(updatedUser)));
+                    console.log(chalkTwitter("UPDATED updatedUser"
+                      + " | " + printUser({user:updatedUser})
+                      // + jsonPrint(updatedUser)
+                    ));
                     socket.emit("SET_TWITTER_USER", updatedUser);
                   }
                 });

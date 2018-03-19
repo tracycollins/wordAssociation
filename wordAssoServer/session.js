@@ -1133,9 +1133,9 @@ function controlPanelComm(event) {
       console.info("R< CONTROL PANEL LOOPBACK? | SET_TWITTER_HASHTAG ... IGNORING ...");
       break;
     default :
-      if (data.twttr !== undefined){
+      if (data["twttr.button"] !== undefined){
         console.log("R< CONTROL PANEL TWITTER" 
-          + "\n" + data.twttr
+          + "\n" + data["twttr.button"]
           // + " | " + jsonPrint(data)
         );
       }

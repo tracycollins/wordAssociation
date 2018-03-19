@@ -832,11 +832,6 @@ function ViewTreepack() {
         nodesTopTermHashMap.remove(node.nodeId);
 
         nodes.splice(ageNodesIndex, 1);
-        // console.debug("X NODE"
-        //   + " | NODES: " + nodes.length
-        //   + " | " + node.nodeType
-        //   + " | " + node.nodeId
-        // );
       } 
       else {
         node.ageUpdated = moment().valueOf();
@@ -874,9 +869,6 @@ function ViewTreepack() {
 
       resumeTimeStamp = 0;
 
-      // maxRateMentions.age = 0;
-      // maxRateMentions.rank = 0;
-      // maxRateMentions.isDead = false;
       maxRateMentions.metricMode = metricMode;
       
       maxRateMentions.rateNodeType = currentMax.rate.nodeType;
@@ -889,10 +881,8 @@ function ViewTreepack() {
       maxRateMentions.mentionsNodeId = currentMax.mentions.nodeId;
       maxRateMentions.mentionsTimeStamp = currentMax.mentions.timeStamp;
 
-      // maxRateMentions.ageMaxRatio = 0;
       maxRateMentions.isTrendingTopic = true;
       maxRateMentions.displaytext = createDisplayText(maxRateMentions);
-      // maxRateMentions.mouseHoverFlag = false;
 
       if (metricMode === "rate") {
         maxRateMentions.nodeId = "RATE | MAX" ;
@@ -902,8 +892,6 @@ function ViewTreepack() {
       }
 
       maxRateMentionsText.text(maxRateMentions.displaytext);
-
-      // nodesTopTermHashMap.set(maxRateMentions.nodeId, maxRateMentions);
 
       rankHashMapByValue(nodesTopTermHashMap, metricMode, function(){
         nodesTopTerm = nodesTopTermHashMap.values();
@@ -1441,15 +1429,7 @@ function ViewTreepack() {
 
     if (node.nodeType === "user"){
       mntns = node.followersMentions.toString();
-      // if (node.followersCount !== undefined) { 
-      //   const totalMentions = node.mentions + node.followersCount;
-      //   mntns = totalMentions.toString() ;
-      // }
-      // else {
-      //   // mntns = "1";
-      //   mntns = node.mentions.toString();
-      // }
-    }
+     }
     else {
       mntns = node.mentions.toString() ;
     }
@@ -1528,10 +1508,6 @@ function ViewTreepack() {
 
     var nodesModifiedFlag = false;
 
-    // var nodeAddObj;
-    // var newNode;
-    // var currentNode;
-
     if (nodeAddQ.length > 0) {
 
       nodesModifiedFlag = false;
@@ -1539,8 +1515,6 @@ function ViewTreepack() {
       var nodeAddObj = nodeAddQ.shift();
 
       var newNode = nodeAddObj.node;
-
-      // newNode.nodeId = newNode.nodeId.toLowerCase();
 
       var currentNode = {};
 
@@ -1683,7 +1657,6 @@ function ViewTreepack() {
       if (nodes.length > maxNumberNodes) {
         maxNumberNodes = nodes.length;
       }
-
     }
     else {
       callback(null, nodesModifiedFlag);
@@ -1730,8 +1703,8 @@ function ViewTreepack() {
     async.series(
       {
         addNode: processNodeAddQ,
-        ageNode: ageNodes,
-        deadNode: processDeadNodesHash
+        ageNode: ageNodes
+        // deadNode: processDeadNodesHash
       },
       function() {
         simulation.nodes(nodes);
@@ -1770,12 +1743,6 @@ function ViewTreepack() {
     }
 
     var newNode = {};
-
-    // if (nNode.keywordsMatch || nNode.keywordsMismatch){
-    //   console.debug("keywordsMismatch: " + nNode.keywordsMismatch
-    //     + " | keywordsMismatch: " + nNode.keywordsMismatch
-    //   );
-    // }
 
     newNode = nNode;
     newNode.rank = -1;

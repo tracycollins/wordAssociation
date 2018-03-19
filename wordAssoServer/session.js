@@ -1135,7 +1135,7 @@ function controlPanelComm(event) {
     default :
       if (data["twttr.button"] !== undefined){
         console.log("R< CONTROL PANEL TWITTER" 
-          + "\n" + data["twttr.button"]
+          + " | " + data["twttr.button"].method
           // + " | " + jsonPrint(data)
         );
       }

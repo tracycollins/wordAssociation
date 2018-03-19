@@ -1133,7 +1133,15 @@ function controlPanelComm(event) {
       console.info("R< CONTROL PANEL LOOPBACK? | SET_TWITTER_HASHTAG ... IGNORING ...");
       break;
     default :
-      console.error("R< ??? CONTROL PANEL OP UNDEFINED\n" + jsonPrint(data));
+      if (data.twttr.button !== undefined){
+        console.log("R< CONTROL PANEL TWITTER" 
+          + " | METHOD: " + data.twttr.button.method
+          // + " | " + jsonPrint(data)
+        );
+      }
+      else {
+        console.warn("R< ??? CONTROL PANEL OP UNDEFINED\n" + jsonPrint(data));
+      }
   }
 }
 
@@ -1146,7 +1154,7 @@ function createPopUpControlPanel (cnf, callback) {
   controlPanelWindow = window.open(
     "controlPanel.html", 
     "CONTROL",
-    "width=600,height=400"
+    "width=800,height=600"
   );
 
   controlPanelWindow.addEventListener("message", controlPanelComm, false);

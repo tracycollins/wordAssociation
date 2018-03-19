@@ -1136,7 +1136,11 @@ function controlPanelComm(event) {
       if (data["twttr.button"] !== undefined){
         console.log("R< CONTROL PANEL TWITTER" 
           + " | " + data["twttr.button"].method
-          // + " | " + jsonPrint(data)
+        );
+      }
+      else if (data["settings"] !== undefined){
+        console.log("R< CONTROL PANEL SETTINGS" 
+          + "\n" + jsonPrint(data["settings"])
         );
       }
       else {

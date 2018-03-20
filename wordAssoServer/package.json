@@ -22,6 +22,7 @@
     "deep-copy": "^1.4.2",
     "deep-equal": "^1.0.1",
     "deepcopy": "^0.6.3",
+    "deepool": "^2.2.0",
     "dropbox": "^4.0.1",
     "dropbox-streaming-upload": "^1.0.2",
     "es6-promise": "^4.2.4",

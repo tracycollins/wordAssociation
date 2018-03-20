@@ -2,8 +2,8 @@
 function ControlPanel() {
 "use strict";
   // var DEFAULT_SOURCE = "==SOURCE==";  // will be updated by wordAssoServer.js on app.get
-  var DEFAULT_SOURCE = "http://localhost:9997";
-  // var DEFAULT_SOURCE = "http://word.threeceelabs.com";
+  // var DEFAULT_SOURCE = "http://localhost:9997";
+  var DEFAULT_SOURCE = "http://word.threeceelabs.com";
 
   var parentWindow = window.opener;
   console.info("PARENT WINDOW ID | " + parentWindow.PARENT_ID);

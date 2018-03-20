@@ -13,42 +13,6 @@ function ViewTreepack() {
     }
   }
 
-  // function Node(){
-  //   this.age = 0;
-  //   this.ageMaxRatio = 0;
-  //   this.ageUpdated = moment().valueOf();
-  //   this.followersCount = 0;
-  //   this.followersMentions = 0;
-  //   this.isDead = false;
-  //   this.isKeyword = false;
-  //   this.isTopTerm = false;
-  //   this.isMaxNode = false;
-  //   this.isTrendingTopic = false;
-  //   this.keywordColor = "";
-  //   this.keywords = {};
-  //   this.keywordsAuto = {};
-  //   this.mentions = 0;
-  //   this.newFlag = true; 
-  //   this.nodeId = "";
-  //   this.nodeType = "";
-  //   this.rank = -1;
-  //   this.rate = 0;
-  //   this.rateNodeId = "";
-  //   this.rateNodeType = "";
-  //   this.rateTimeStamp = moment().valueOf();
-  //   this.mentionsNodeId = "";
-  //   this.mentionsTimeStamp = moment().valueOf();
-  //   this.mouseHoverFlag = false;
-  //   this.screenName = "";
-  //   this.displaytext = "";
-  //   this.x = 0;
-  //   this.y = 0;
-  // }
-
-  // var nodePool = deePool.create( function makeNode(){
-  //     return new Node();
-  // } );
-
   var MIN_RATE = 2.5;
   var MIN_FOLLOWERS = 50000;
   var MIN_MENTIONS = 10000;
@@ -153,7 +117,6 @@ function ViewTreepack() {
 
   var deadNodesHash = {};
 
-
   var getWindowDimensions = function (){
 
     var w;
@@ -181,9 +144,6 @@ function ViewTreepack() {
 
   var width = getWindowDimensions().width;
   var height = getWindowDimensions().height;
-
-  // var nodeRadiusMin = nodeRadiusMinRatio * width;
-  // var nodeRadiusMax = nodeRadiusMaxRatio * height;
 
   var autoKeywordsFlag = config.autoKeywordsFlag;
 
@@ -1522,11 +1482,12 @@ function ViewTreepack() {
 
       var newNode = nodeAddObj.node;
 
-      var currentNode = {};
+      var currentNode = localNodeHashMap[newNode.nodeId];
 
-      if (localNodeHashMap[newNode.nodeId] !== undefined){
+      // if (localNodeHashMap[newNode.nodeId] !== undefined){
+      if (currentNode !== undefined){
 
-        currentNode = localNodeHashMap[newNode.nodeId];
+        // currentNode = localNodeHashMap[newNode.nodeId];
 
         currentNode.age = 1e-6;
         currentNode.ageMaxRatio = 1e-6;

@@ -13,41 +13,41 @@ function ViewTreepack() {
     }
   }
 
-  function Node(){
-    this.age = 0;
-    this.ageMaxRatio = 0;
-    this.ageUpdated = moment().valueOf();
-    this.followersCount = 0;
-    this.followersMentions = 0;
-    this.isDead = false;
-    this.isKeyword = false;
-    this.isTopTerm = false;
-    this.isMaxNode = false;
-    this.isTrendingTopic = false;
-    this.keywordColor = "";
-    this.keywords = {};
-    this.keywordsAuto = {};
-    this.mentions = 0;
-    this.newFlag = true; 
-    this.nodeId = "";
-    this.nodeType = "";
-    this.rank = -1;
-    this.rate = 0;
-    this.rateNodeId = "";
-    this.rateNodeType = "";
-    this.rateTimeStamp = moment().valueOf();
-    this.mentionsNodeId = "";
-    this.mentionsTimeStamp = moment().valueOf();
-    this.mouseHoverFlag = false;
-    this.screenName = "";
-    this.displaytext = "";
-    this.x = 0;
-    this.y = 0;
-  }
+  // function Node(){
+  //   this.age = 0;
+  //   this.ageMaxRatio = 0;
+  //   this.ageUpdated = moment().valueOf();
+  //   this.followersCount = 0;
+  //   this.followersMentions = 0;
+  //   this.isDead = false;
+  //   this.isKeyword = false;
+  //   this.isTopTerm = false;
+  //   this.isMaxNode = false;
+  //   this.isTrendingTopic = false;
+  //   this.keywordColor = "";
+  //   this.keywords = {};
+  //   this.keywordsAuto = {};
+  //   this.mentions = 0;
+  //   this.newFlag = true; 
+  //   this.nodeId = "";
+  //   this.nodeType = "";
+  //   this.rank = -1;
+  //   this.rate = 0;
+  //   this.rateNodeId = "";
+  //   this.rateNodeType = "";
+  //   this.rateTimeStamp = moment().valueOf();
+  //   this.mentionsNodeId = "";
+  //   this.mentionsTimeStamp = moment().valueOf();
+  //   this.mouseHoverFlag = false;
+  //   this.screenName = "";
+  //   this.displaytext = "";
+  //   this.x = 0;
+  //   this.y = 0;
+  // }
 
-  var nodePool = deePool.create( function makeNode(){
-      return new Node();
-  } );
+  // var nodePool = deePool.create( function makeNode(){
+  //     return new Node();
+  // } );
 
   var MIN_RATE = 2.5;
   var MIN_FOLLOWERS = 50000;
@@ -859,11 +859,11 @@ function ViewTreepack() {
         || (removeDeadNodesFlag && (age >= nodeMaxAge))
         ) {
 
-        nodePool.recycle(node);
+        // nodePool.recycle(node);
         delete localNodeHashMap[node.nodeId];
         nodesTopTermHashMap.remove(node.nodeId);
         nodes.splice(ageNodesIndex, 1);
-        // node = {};
+        node = null;
       } 
       else {
         node.ageUpdated = moment().valueOf();
@@ -1746,10 +1746,10 @@ function ViewTreepack() {
       return;
     }
 
-    // var newNode = {};
-    var newNode = nodePool.use();
+    var newNode = {};
+    // var newNode = nodePool.use();
 
-    console.debug("NODE POOL | SIZE: " + nodePool.size());
+    // console.debug("NODE POOL | SIZE: " + nodePool.size());
 
     newNode = nNode;
     newNode.rank = -1;

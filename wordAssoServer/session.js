@@ -657,18 +657,18 @@ function saveConfig(){
   );
 }
 
+var controlDivElement = document.getElementById("controlDiv");
+var topTermsDivElement = document.getElementById("topTermsDiv");
+var statsDivElement = document.getElementById("statsDiv");
+
 function displayControl(isVisible) {
-  var v = "hidden";
-  if (isVisible) { v = "visible"; }
-  document.getElementById("controlDiv").style.visibility = v;
-  document.getElementById("topTermsDiv").style.visibility = v;
+  controlDivElement.style.visibility = (isVisible) ? "visible" : "hidden";
+  topTermsDivElement.style.visibility = (isVisible) ? "visible" : "hidden";
 }
 
 function displayStats(isVisible, dColor) {
-  var v = "hidden";
-  if (isVisible) { v = "visible"; }
-  document.getElementById("statsDiv").style.visibility = v;
-  if (dColor !== undefined) {document.getElementById("statsDiv").style.color = dColor;}
+  statsDivElement.style.visibility = (isVisible) ? "visible" : "hidden";
+  if (dColor !== undefined) {statsDivElement.style.color = dColor;}
 }
 
 var mouseMoveTimeoutEventObj = new CustomEvent("mouseMoveTimeoutEvent");
@@ -788,61 +788,58 @@ function toggleControlPanel(){
   }
 }
 
+var cpButtonElement = document.getElementById("controlPanelButton");
 function updateControlButton(controlPanelFlag){
-  var cpButton = document.getElementById("controlPanelButton");
-  cpButton.innerHTML = controlPanelFlag ? "HIDE CONTROL" : "SHOW CONTROL";
+  cpButtonElement.innerHTML = controlPanelFlag ? "HIDE CONTROL" : "SHOW CONTROL";
 }
 
 function addControlButton(){
-  var controlDiv = document.getElementById("controlDiv");
-  controlDiv.style.visibility = "hidden";
+  controlDivElement.style.visibility = "hidden";
   var controlPanelButton = document.createElement("BUTTON");
   controlPanelButton.className = "button";
   controlPanelButton.setAttribute("id", "controlPanelButton");
   controlPanelButton.setAttribute("onclick", "toggleControlPanel()");
   controlPanelButton.innerHTML = controlPanelFlag ? "HIDE CONTROL" : "SHOW CONTROL";
-  controlDiv.appendChild(controlPanelButton);
+  controlDivElement.appendChild(controlPanelButton);
 }
 
 function addStatsText(){
-  var statsDiv = document.getElementById("statsDiv");
   var statsText = document.createTextNode("STATS");
-  statsDiv.appendChild(statsText);
+  statsDivElement.appendChild(statsText);
 }
 
 function updateStatsText(statsText){
-  var statsDiv = document.getElementById("statsDiv");
-  statsDiv.innerHTML = statsText;
+  statsDivElement.innerHTML = statsText;
 }
 
 function addKeywordButton(){
-  var controlDiv = document.getElementById("controlDiv");
   var keywordButton = document.createElement("BUTTON");
   keywordButton.className = "button";
   keywordButton.setAttribute("id", "keywordButton");
   keywordButton.setAttribute("onclick", "toggleKeyword()");
   keywordButton.innerHTML = config.autoKeywordsFlag ? "AUTO KEYWORD" : "MANUAL KEYWORD";
-  controlDiv.appendChild(keywordButton);
+  controlDivElement.appendChild(keywordButton);
 }
 
+var keywordButtonElement = document.getElementById("keywordButton");
+
 function updateKeywordButton(){
-  var keywordButton = document.getElementById("keywordButton");
-  keywordButton.innerHTML = config.autoKeywordsFlag ? "AUTO KEYWORD" : "MANUAL KEYWORD";
+  keywordButtonElement.innerHTML = config.autoKeywordsFlag ? "AUTO KEYWORD" : "MANUAL KEYWORD";
 }
 
 function addStatsButton(){
-  var controlDiv = document.getElementById("controlDiv");
   var statsButton = document.createElement("BUTTON");
   statsButton.className = "button";
   statsButton.setAttribute("id", "statsButton");
   statsButton.setAttribute("onclick", "toggleStats()");
   statsButton.innerHTML = config.showStats ? "HIDE STATS" : "SHOW STATS";
-  controlDiv.appendChild(statsButton);
+  controlDivElement.appendChild(statsButton);
 }
 
+var statsButtonElement = document.getElementById("statsButton");
+
 function updateStatsButton(){
-  var statsButton = document.getElementById("statsButton");
-  statsButton.innerHTML = config.showStatsFlag ? "HIDE STATS" : "SHOW STATS";
+  statsButtonElement.innerHTML = config.showStatsFlag ? "HIDE STATS" : "SHOW STATS";
 }
 
 function updateMetricButton(){
@@ -851,14 +848,13 @@ function updateMetricButton(){
 }
 
 function addMetricButton(){
-  var controlDiv = document.getElementById("controlDiv");
   var metricButton = document.createElement("BUTTON");
   if (config.metricMode === undefined) { config.metricMode = "rate"; }
   metricButton.className = "button";
   metricButton.setAttribute("id", "metricButton");
   metricButton.setAttribute("onclick", "toggleMetric()");
   metricButton.innerHTML = config.metricMode.toUpperCase() + " RADIUS";
-  controlDiv.appendChild(metricButton);
+  controlDivElement.appendChild(metricButton);
 }
 
 function updateBlahButton(){
@@ -867,13 +863,13 @@ function updateBlahButton(){
 }
 
 function addBlahButton(){
-  var controlDiv = document.getElementById("controlDiv");
+  // var controlDiv = document.getElementById("controlDiv");
   var blahButton = document.createElement("BUTTON");
   blahButton.className = "button";
   blahButton.setAttribute("id", "blahButton");
   blahButton.setAttribute("onclick", "toggleBlah()");
   blahButton.innerHTML = config.blahMode ? "HIDE BLAH" : "SHOW BLAH";
-  controlDiv.appendChild(blahButton);
+  controlDivElement.appendChild(blahButton);
 }
 
 function updateLoginButton(){
@@ -911,13 +907,12 @@ function login() {
 }
 
 function addLoginButton(){
-  var controlDiv = document.getElementById("controlDiv");
   var loginButton = document.createElement("BUTTON");
   loginButton.className = "button";
   loginButton.setAttribute("id", "loginButton");
   loginButton.setAttribute("onclick", "login()");
   loginButton.innerHTML = statsObj.isAuthenticated ? "LOG OUT" : "LOG IN";
-  controlDiv.appendChild(loginButton);
+  controlDivElement.appendChild(loginButton);
 }
 
 function updateFullscreenButton(){
@@ -926,13 +921,12 @@ function updateFullscreenButton(){
 }
 
 function addFullscreenButton(){
-  var controlDiv = document.getElementById("controlDiv");
   var fullscreenButton = document.createElement("BUTTON");
   fullscreenButton.className = "button";
   fullscreenButton.setAttribute("id", "fullscreenButton");
   fullscreenButton.setAttribute("onclick", "toggleFullScreen()");
   fullscreenButton.innerHTML = config.fullscreenMode ? "EXIT FULLSCREEN" : "FULLSCREEN";
-  controlDiv.appendChild(fullscreenButton);
+  controlDivElement.appendChild(fullscreenButton);
 }
 
 var configUpdateTimeOut;
@@ -1736,11 +1730,10 @@ function createStatsTable(callback) {
   // console.log("CREATE STATS TABLE\n" + jsonPrint(config));
   console.log("CREATE STATS TABLE");
 
-  var statsDiv = document.getElementById("statsDiv");
-  statsDiv.style.visibility = "hidden";
-  statsDiv.style.border = "2px solid black ";
-  statsDiv.style.backgroundColor = palette.white;
-  statsDiv.style.textColor = palette.black;
+  statsDivElement.style.visibility = "hidden";
+  statsDivElement.style.border = "2px solid black ";
+  statsDivElement.style.backgroundColor = palette.white;
+  statsDivElement.style.textColor = palette.black;
   var statsTableServer = document.createElement("TABLE");
   var statsTableClient = document.createElement("TABLE");
   var br = document.createElement("br");
@@ -1749,12 +1742,12 @@ function createStatsTable(callback) {
   statsTableServer.setAttribute("id", "statsTableServer");
   statsTableServer.style.border = "1px solid black ";
 
-  statsDiv.appendChild(statsTableServer);
-  statsDiv.appendChild(br);
+  statsDivElement.appendChild(statsTableServer);
+  statsDivElement.appendChild(br);
 
   statsTableClient.className = "table";
   statsTableClient.setAttribute("id", "statsTableClient");
-  statsDiv.appendChild(statsTableClient);
+  statsDivElement.appendChild(statsTableClient);
 
   var optionsHead = {
     headerFlag: true,

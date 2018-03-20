@@ -2359,6 +2359,9 @@ function initTransmitNodeQueueInterval(interval){
                 viewNameSpace.volatile.emit("node", n);
                 transmitNodeQueueReady = true;
               }
+              else {
+                transmitNodeQueueReady = true;
+              }
             }
           });
         });

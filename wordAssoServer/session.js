@@ -1867,34 +1867,6 @@ function createStatsTable(callback) {
     text: "---"
   };
 
-  // var statsClientNumberEntitiesLabel = {
-  //   type: "TEXT",
-  //   id: "statsClientNumberEntitiesLabel",
-  //   class: "statsTableText",
-  //   text: "ENTITIES"
-  // };
-
-  // var statsClientNumberEntities = {
-  //   type: "TEXT",
-  //   id: "statsClientNumberEntities",
-  //   class: "statsTableText",
-  //   text: "---"
-  // };
-
-  // var statsClientNumberMaxEntitiesLabel = {
-  //   type: "TEXT",
-  //   id: "statsClientNumberMaxEntitiesLabel",
-  //   class: "statsTableText",
-  //   text: "MAX"
-  // };
-
-  // var statsClientNumberMaxEntities = {
-  //   type: "TEXT",
-  //   id: "statsClientNumberMaxEntities",
-  //   class: "statsTableText",
-  //   text: "---"
-  // };
-
   var statsServerTimeLabel = {
     type: "TEXT",
     id: "statsServerTimeLabel",
@@ -1951,69 +1923,6 @@ function createStatsTable(callback) {
     text: statsObj.heartbeat.runTime
   };
 
-  // var statsServerTotalWordsLabel = {
-  //   type: "TEXT",
-  //   id: "statsServerTotalWordsLabel",
-  //   class: "statsTableText",
-  //   text: "TOTAL UNIQUE WORDS"
-  // };
-
-  // var statsServerTotalWords = {
-  //   type: "TEXT",
-  //   id: "statsServerTotalWords",
-  //   class: "statsTableText",
-  //   text: statsObj.heartbeat.totalWords
-  // };
-
-  // var statsServerWordsReceivedLabel = {
-  //   type: "TEXT",
-  //   id: "statsServerWordsReceivedLabel",
-  //   class: "statsTableText",
-  //   text: "WORDS RCVD"
-  // };
-
-  // var statsServerWordsReceived = {
-  //   type: "TEXT",
-  //   id: "statsServerWordsReceived",
-  //   class: "statsTableText",
-  //   text: statsObj.heartbeat.responsesReceived
-  // };
-
-  // var statsServerWordsPerMinLabel = {
-  //   type: "TEXT",
-  //   id: "statsServerWordsPerMinLabel",
-  //   class: "statsTableText",
-  //   text: "WPM"
-  // };
-
-  // var statsServerWordsPerMin = {
-  //   type: "TEXT",
-  //   id: "statsServerWordsPerMin",
-  //   class: "statsTableText",
-  //   text: statsObj.heartbeat.wordsPerMin
-  // };
-
-  // var statsServerMaxWordsPerMinLabel = {
-  //   type: "TEXT",
-  //   id: "statsServerMaxWordsPerMinLabel",
-  //   class: "statsTableText",
-  //   text: "MAX"
-  // };
-
-  // var statsServerMaxWordsPerMin = {
-  //   type: "TEXT",
-  //   id: "statsServerMaxWordsPerMin",
-  //   class: "statsTableText",
-  //   text: statsObj.heartbeat.maxWordsPerMin
-  // };
-
-  // var statsServerMaxWordsPerMinTime = {
-  //   type: "TEXT",
-  //   id: "statsServerMaxWordsPerMinTime",
-  //   class: "statsTableText",
-  //   text: moment(statsObj.heartbeat.maxWordsPerMinTime).format(defaultDateTimeFormat)
-  // };
-
   switch (config.sessionViewType) {
 
     case "media":
@@ -2028,22 +1937,11 @@ function createStatsTable(callback) {
       tableCreateRow(statsTableServer, optionsBody, [statsServerUpTimeLabel, statsServerUpTime]);
       tableCreateRow(statsTableServer, optionsBody, [statsServerStartTimeLabel, statsServerStartTime]);
       tableCreateRow(statsTableServer, optionsBody, [statsServerRunTimeLabel, statsServerRunTime]);
-      // tableCreateRow(statsTableServer, optionsBody, [statsServerTotalWordsLabel, statsServerTotalWords]);
-      // tableCreateRow(statsTableServer, optionsBody, [statsServerWordsReceivedLabel, statsServerWordsReceived]);
-      // tableCreateRow(statsTableServer, optionsBody, 
-      //   [
-      //     statsServerWordsPerMinLabel, 
-      //     statsServerWordsPerMin, 
-      //     statsServerMaxWordsPerMinLabel, 
-      //     statsServerMaxWordsPerMin, 
-      //     statsServerMaxWordsPerMinTime
-      //   ]);
       tableCreateRow(statsTableClient, optionsHead, ["CLIENT"]);
       tableCreateRow(statsTableClient, optionsBody, [statsClientSessionIdLabel, statsClientSessionId]);
       tableCreateRow(statsTableClient, optionsBody, [statsClientNumberNodesLabel, statsClientNumberNodes, statsClientNumberMaxNodesLabel, statsClientNumberMaxNodes]);
       tableCreateRow(statsTableClient, optionsBody, [statsClientAgeRateLabel, statsClientAgeRate, statsClientMaxAgeRateLabel, statsClientMaxAgeRate]);
       tableCreateRow(statsTableClient, optionsBody, [statsClientAddNodeQLabel, statsClientAddNodeQ, statsClientMaxAddNodeQLabel, statsClientMaxAddNodeQ]);
-      // tableCreateRow(statsTableClient, optionsBody, [statsClientNumberEntitiesLabel, statsClientNumberEntities, statsClientNumberMaxEntitiesLabel, statsClientNumberMaxEntities]);
       break;
   }
 
@@ -2053,7 +1951,6 @@ function createStatsTable(callback) {
 //  STATS UPDATE
 function initStatsUpdate(interval){
   setInterval(function() {
-    // if (sessionHashMap.count() > maxSessions) { maxSessions = sessionHashMap.count(); }
     if (statsTableFlag) { updateStatsTable(statsObj); }
   }, interval);
 }
@@ -2144,30 +2041,35 @@ function deleteAllSessions(callback) {
   );
 }
 
+let statsServerTimeElement = document.getElementById("statsServerTime");
+let statsServerUpTimeElement = document.getElementById("statsServerUpTime");
+let statsServerStartTimeElement = document.getElementById("statsServerStartTime");
+let statsServerRunTimeElement = document.getElementById("statsServerRunTime");
+let statsClientNumberNodesElement = document.getElementById("statsClientNumberNodes");
+let statsClientNumberMaxNodesElement = document.getElementById("statsClientNumberMaxNodes");
+let statsClientAddNodeQElement = document.getElementById("statsClientAddNodeQ");
+let statsClientMaxAddNodeQElement = document.getElementById("statsClientMaxAddNodeQ");
+let statsClientAgeRateElement = document.getElementById("statsClientAgeRate");
+let statsClientMaxAgeRateElement = document.getElementById("statsClientMaxAgeRate");
+let statsClientSessionIdElement = document.getElementById("statsClientSessionId");
+
 function updateStatsTable(statsObj){
-  document.getElementById("statsServerTime").innerHTML = moment(statsObj.heartbeat.timeStamp).format(defaultDateTimeFormat);
-  document.getElementById("statsServerUpTime").innerHTML = msToTime(statsObj.heartbeat.upTime);
-  document.getElementById("statsServerStartTime").innerHTML = moment(statsObj.heartbeat.startTime).format(defaultDateTimeFormat);
-  document.getElementById("statsServerRunTime").innerHTML = msToTime(statsObj.heartbeat.runTime);
-  // document.getElementById("statsServerTotalWords").innerHTML = statsObj.heartbeat.totalWords;
-  // document.getElementById("statsServerWordsReceived").innerHTML = statsObj.heartbeat.responsesReceived;
-  // document.getElementById("statsServerWordsPerMin").innerHTML = statsObj.heartbeat.wordsPerMin.toFixed(2);
-  // document.getElementById("statsServerMaxWordsPerMin").innerHTML = statsObj.heartbeat.maxWordsPerMin.toFixed(2);
-  // document.getElementById("statsServerMaxWordsPerMinTime").innerHTML = moment(statsObj.heartbeat.maxWordsPerMinTime).format(defaultDateTimeFormat);
-  document.getElementById("statsClientNumberNodes").innerHTML = currentSessionView.getNodesLength();
-  document.getElementById("statsClientNumberMaxNodes").innerHTML = statsObj.maxNodes;
-  // document.getElementById("statsClientNumberEntities").innerHTML = sessionHashMap.count();
-  // document.getElementById("statsClientNumberMaxEntities").innerHTML = maxSessions;
-  document.getElementById("statsClientAddNodeQ").innerHTML = currentSessionView.getNodeAddQlength();
-  document.getElementById("statsClientMaxAddNodeQ").innerHTML = currentSessionView.getMaxNodeAddQ();
-  document.getElementById("statsClientAgeRate").innerHTML = currentSessionView.getAgeRate().toFixed(2);
-  document.getElementById("statsClientMaxAgeRate").innerHTML = currentSessionView.getMaxAgeRate().toFixed(2);
+  statsServerTimeElement.innerHTML = moment(statsObj.heartbeat.timeStamp).format(defaultDateTimeFormat);
+  statsServerUpTimeElement.innerHTML = msToTime(statsObj.heartbeat.upTime);
+  statsServerStartTimeElement.innerHTML = moment(statsObj.heartbeat.startTime).format(defaultDateTimeFormat);
+  statsServerRunTimeElement.innerHTML = msToTime(statsObj.heartbeat.runTime);
+  statsClientNumberNodesElement.innerHTML = currentSessionView.getNodesLength();
+  statsClientNumberMaxNodesElement.innerHTML = statsObj.maxNodes;
+  statsClientAddNodeQElement.innerHTML = currentSessionView.getNodeAddQlength();
+  statsClientMaxAddNodeQElement.innerHTML = currentSessionView.getMaxNodeAddQ();
+  statsClientAgeRateElement.innerHTML = currentSessionView.getAgeRate().toFixed(2);
+  statsClientMaxAgeRateElement.innerHTML = currentSessionView.getMaxAgeRate().toFixed(2);
 
   if (statsObj.serverConnected) {
-    document.getElementById("statsClientSessionId").innerHTML = statsObj.socketId;
+    statsClientSessionIdElement.innerHTML = statsObj.socketId;
   }
   else {
-    document.getElementById("statsClientSessionId").innerHTML = "*** CANNOT CONNECT TO SERVER ***";
+    statsClientSessionIdElement.innerHTML = "*** CANNOT CONNECT TO SERVER ***";
   }
 }
 
@@ -2843,12 +2745,9 @@ function initSocketNodeRx(){
   });
 }
 
-
-
 //================================
 // GET NODES FROM QUEUE
 //================================
-
 
 var nodeIndex = 0;
 var tempMentions;

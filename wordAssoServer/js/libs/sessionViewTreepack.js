@@ -1053,9 +1053,9 @@ function ViewTreepack() {
     nodeTopTermLabels
       .attr("x", xposition)
       .attr("y", yposition)
-      .text(function updateTopTermText(d) {
-        return d.displaytext;
-      })
+      // .text(function updateTopTermText(d) {
+      //   return d.displaytext;
+      // })
       .style("opacity", function updateTopTermOpacity(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
         return topTermLabelOpacityScale(d.ageMaxRatio); 
@@ -1158,29 +1158,29 @@ function ViewTreepack() {
       .attr("cy", function nodeCirclesY(d) { 
         return d.y; 
       })
-      .style("fill", function nodeCirclesFill(d) { 
-        if (!d.isKeyword) { return palette.black; }
-        return d.keywordColor; 
-      })
-      .style("stroke", function nodeCirclesStroke(d) {
-        if (d.keywordsMismatch) { return palette.red; }
-        if (d.keywordsMatch) { return keywordsMatchColor; }
-        if (d.keywordsAuto.right) { return palette.yellow; }
-        if (d.keywordsAuto.left) { return palette.blue; }
-        if (d.keywordsAuto.positive) { return palette.green; }
-        if (d.keywordsAuto.negative) { return palette.red; }
-        return palette.white; 
-      })
-      .style("stroke-width", function nodeCirclesStrokeWidth(d) { 
-        if (d.keywordsMatch) { return keywordsMatchStrokeWidth; }
-        if (d.isTopTerm) { return "4.0"; }
-        if (d.newFlag) { return "3.0"; }
-        if (d.keywordsAuto.right) { return keywordsAutoStrokeWidth; }
-        if (d.keywordsAuto.left) { return keywordsAutoStrokeWidth; }
-        if (d.keywordsAuto.positive) { return keywordsAutoStrokeWidth; }
-        if (d.keywordsAuto.negative) { return keywordsAutoStrokeWidth; }
-        return "2.0"; 
-      })
+      // .style("fill", function nodeCirclesFill(d) { 
+      //   if (!d.isKeyword) { return palette.black; }
+      //   return d.keywordColor; 
+      // })
+      // .style("stroke", function nodeCirclesStroke(d) {
+      //   if (d.keywordsMismatch) { return palette.red; }
+      //   if (d.keywordsMatch) { return keywordsMatchColor; }
+      //   if (d.keywordsAuto.right) { return palette.yellow; }
+      //   if (d.keywordsAuto.left) { return palette.blue; }
+      //   if (d.keywordsAuto.positive) { return palette.green; }
+      //   if (d.keywordsAuto.negative) { return palette.red; }
+      //   return palette.white; 
+      // })
+      // .style("stroke-width", function nodeCirclesStrokeWidth(d) { 
+      //   if (d.keywordsMatch) { return keywordsMatchStrokeWidth; }
+      //   if (d.isTopTerm) { return "4.0"; }
+      //   if (d.newFlag) { return "3.0"; }
+      //   if (d.keywordsAuto.right) { return keywordsAutoStrokeWidth; }
+      //   if (d.keywordsAuto.left) { return keywordsAutoStrokeWidth; }
+      //   if (d.keywordsAuto.positive) { return keywordsAutoStrokeWidth; }
+      //   if (d.keywordsAuto.negative) { return keywordsAutoStrokeWidth; }
+      //   return "2.0"; 
+      // })
       .style("opacity", function nodeCirclesOpacity(d) { 
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
@@ -1224,7 +1224,7 @@ function ViewTreepack() {
       .style("opacity", function nodeLabelsOpacity(d) { 
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
-      .style("fill", palette.white)
+      // .style("fill", palette.white)
       .style("visibility", function nodeLabelsVisibility(d) {
         if (mouseMovingFlag) { return "visible"; }
         if (d.rate > MIN_RATE) { return "visible"; }
@@ -1246,7 +1246,6 @@ function ViewTreepack() {
         if (metricMode === "rate") {return nodeLabelSizeScale(d.rate);}
         if (metricMode === "mentions") {
           if (d.nodeType === "user") { 
-            // if (d.followersCount === undefined) { return nodeLabelSizeScale(1); }
             return nodeLabelSizeScale(d.followersMentions);
           }
           return nodeLabelSizeScale(d.mentions);
@@ -1294,14 +1293,31 @@ function ViewTreepack() {
         if (d.followersCount > MIN_FOLLOWERS) { return "bold"; }
         return "normal";
       })
+      // .style("visibility", function nodeLabelsVisibility(d) {
+      //   if (mouseMovingFlag) { 
+      //     return "visible"; 
+      //   }
+      //   if (d.rate > MIN_RATE) { return "visible"; }
+      //   if (d.followersCount > MIN_FOLLOWERS) { return "visible"; }
+      //   if (d.mentions > MIN_MENTIONS) { return "visible"; }
+      //   if (d.isKeyword) { return "visible"; }
+      //   return "hidden";
+      // })
       .style("visibility", function nodeLabelsVisibility(d) {
-        if (mouseMovingFlag) { 
-          return "visible"; 
-        }
+        if (mouseMovingFlag) { return "visible"; }
         if (d.rate > MIN_RATE) { return "visible"; }
         if (d.followersCount > MIN_FOLLOWERS) { return "visible"; }
-        if (d.mentions > MIN_MENTIONS) { return "visible"; }
+        if (d.mentions > MIN_FOLLOWERS) { return "visible"; }
         if (d.isKeyword) { return "visible"; }
+        if (d.nodeType === "hashtag") { 
+          if (d.text.toLowerCase().includes("trump")) { return "visible"; }
+          return "hidden";
+        }
+        if (d.nodeType === "user") { 
+          if (d.screenName.toLowerCase().includes("trump")) { return "visible"; }
+          if (d.name.toLowerCase().includes("trump")) { return "visible"; }
+          return "hidden";
+        }
         return "hidden";
       })
       .style("text-decoration", function nodeLabelsTextDecoration(d) { 
@@ -1470,10 +1486,7 @@ function ViewTreepack() {
 
       var currentNode = localNodeHashMap[newNode.nodeId];
 
-      // if (localNodeHashMap[newNode.nodeId] !== undefined){
       if (currentNode !== undefined){
-
-        // currentNode = localNodeHashMap[newNode.nodeId];
 
         currentNode.age = 1e-6;
         currentNode.ageMaxRatio = 1e-6;
@@ -1856,7 +1869,6 @@ function ViewTreepack() {
         else {
           return foci.default.x;
         }
-        // return 0.5*width; 
       }).strength(function strengthFunc(d){
         return forceXmultiplier * gravity; 
       }))

@@ -788,8 +788,8 @@ function toggleControlPanel(){
   }
 }
 
-var cpButtonElement = document.getElementById("controlPanelButton");
 function updateControlButton(controlPanelFlag){
+  var cpButtonElement = document.getElementById("controlPanelButton");
   cpButtonElement.innerHTML = controlPanelFlag ? "HIDE CONTROL" : "SHOW CONTROL";
 }
 

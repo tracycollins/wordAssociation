@@ -822,6 +822,7 @@ function ViewTreepack() {
     var ageNodesLength = nodes.length - 1;
     var ageNodesIndex = nodes.length - 1;
     var node;
+    var prevNode;
 
     if (nodes.length === 0) {
       ageRate = DEFAULT_AGE_RATE;
@@ -877,12 +878,14 @@ function ViewTreepack() {
         node.ageMaxRatio = ageMaxRatio;
         node.isDead = false;
 
-        node.isTopTerm = localNodeHashMap[node.nodeId].isTopTerm;
-        node.isKeyword = localNodeHashMap[node.nodeId].isKeyword;
-        node.keywordColor = localNodeHashMap[node.nodeId].keywordColor;
-        node.isTrendingTopic = localNodeHashMap[node.nodeId].isTrendingTopic;
-        node.keywords = localNodeHashMap[node.nodeId].keywords;
-        node.keywordsAuto = localNodeHashMap[node.nodeId].keywordsAuto;
+        prevNode = localNodeHashMap[node.nodeId];
+
+        node.isTopTerm = prevNode.isTopTerm;
+        node.isKeyword = prevNode.isKeyword;
+        node.keywordColor = prevNode.keywordColor;
+        node.isTrendingTopic = prevNode.isTrendingTopic;
+        node.keywords = prevNode.keywords;
+        node.keywordsAuto = prevNode.keywordsAuto;
 
         nodes[ageNodesIndex] = node;
 

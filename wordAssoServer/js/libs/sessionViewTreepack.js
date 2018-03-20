@@ -859,7 +859,7 @@ function ViewTreepack() {
         || (removeDeadNodesFlag && (age >= nodeMaxAge))
         ) {
 
-        nodePool.recycle(node);
+        // nodePool.recycle(node);
         delete localNodeHashMap[node.nodeId];
         nodesTopTermHashMap.remove(node.nodeId);
         nodes.splice(ageNodesIndex, 1);
@@ -1248,6 +1248,8 @@ function ViewTreepack() {
             return defaultRadiusScale(Math.sqrt(d.mentions));
           }
         });
+
+    var nodeCirclesExitSelection = nodeCircles.exit();
 
     nodeCircles
       .exit()

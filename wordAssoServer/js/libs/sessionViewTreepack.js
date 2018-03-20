@@ -15,35 +15,35 @@ function ViewTreepack() {
 
 
   function Node(){
-    // this.age = 0;
-    // this.ageMaxRatio = 0;
-    // this.ageUpdated = moment().valueOf();
-    // this.followersCount = 0;
-    // this.followersMentions = 0;
-    // this.isDead = false;
-    // this.isKeyword = false;
-    // this.isTopTerm = false;
-    // this.isMaxNode = false;
-    // this.isTrendingTopic = false;
-    // this.keywordColor = "";
-    // this.keywords = {};
-    // this.keywordsAuto = {};
-    // this.mentions = 0;
-    // this.newFlag = true; 
-    // this.nodeId = "";
-    // this.nodeType = "";
-    // this.rank = -1;
-    // this.rate = 0;
-    // this.rateNodeId = "";
-    // this.rateNodeType = "";
-    // this.rateTimeStamp = moment().valueOf();
-    // this.mentionsNodeId = "";
-    // this.mentionsTimeStamp = moment().valueOf();
-    // this.mouseHoverFlag = false;
-    // this.screenName = "";
-    // this.displaytext = "";
-    // this.x = 0;
-    // this.y = 0;
+    this.age = 0;
+    this.ageMaxRatio = 0;
+    this.ageUpdated = moment().valueOf();
+    this.followersCount = 0;
+    this.followersMentions = 0;
+    this.isDead = false;
+    this.isKeyword = false;
+    this.isTopTerm = false;
+    this.isMaxNode = false;
+    this.isTrendingTopic = false;
+    this.keywordColor = "";
+    this.keywords = {};
+    this.keywordsAuto = {};
+    this.mentions = 0;
+    this.newFlag = true; 
+    this.nodeId = "";
+    this.nodeType = "";
+    this.rank = -1;
+    this.rate = 0;
+    this.rateNodeId = "";
+    this.rateNodeType = "";
+    this.rateTimeStamp = moment().valueOf();
+    this.mentionsNodeId = "";
+    this.mentionsTimeStamp = moment().valueOf();
+    this.mouseHoverFlag = false;
+    this.screenName = "";
+    this.displaytext = "";
+    this.x = 0;
+    this.y = 0;
   }
 
   var nodePool = deePool.create( function makeNode(){
@@ -959,37 +959,6 @@ function ViewTreepack() {
       });
     }
   };
-
-  // var processDeadNodesHash = function (callback) {
-
-  //   var deadNodeFlag = false;
-
-  //   if (Object.keys(deadNodesHash).length === 0) {
-  //     return (callback(null, deadNodeFlag));
-  //   }
-
-  //   var deadNodeIds = Object.keys(deadNodesHash);
-
-  //   var ageNodesLength = nodes.length - 1;
-  //   var ageNodesIndex = nodes.length - 1;
-  //   var node;
-
-  //   for (ageNodesIndex = ageNodesLength; ageNodesIndex >= 0; ageNodesIndex -= 1) {
-  //     node = nodes[ageNodesIndex];
-  //     if (deadNodesHash[node.nodeId]) {
-  //       nodeDeleteQ.push({op:"delete", nodeId: node.nodeId});
-  //       deadNodeFlag = true;
-  //       delete deadNodesHash[node.nodeId];
-  //       delete localNodeHashMap[node.nodeId];
-  //       nodesTopTermHashMap.remove(node.nodeId);
-  //     }
-  //     deadNodeIds = Object.keys(deadNodesHash);
-  //   }
-
-  //   if ((nodes.length === 0) || (deadNodeIds.length === 0) || (ageNodesIndex < 0)) {
-  //     return (callback(null, deadNodeFlag));
-  //   }
-  // };
 
   var previousTwitterUserId;
   var previousTwitterHashtag;

@@ -13,7 +13,6 @@ function ViewTreepack() {
     }
   }
 
-
   function Node(){
     this.age = 0;
     this.ageMaxRatio = 0;
@@ -50,30 +49,6 @@ function ViewTreepack() {
       return new Node();
   } );
 
-  // var testNode0 = nodePool.use();
-  // var testNode1 = nodePool.use();
-  // var testNode2 = nodePool.use();
-  // var testNode3 = nodePool.use();
-  // var testNode4 = nodePool.use();
-  // var testNode5 = nodePool.use();
-
-  // console.debug("testNode from nodePool | SIZE: " + nodePool.size() + "\n" + jsonPrint(testNode0));
-
-  // nodePool.recycle(testNode0);
-  // nodePool.recycle(testNode1);
-  // nodePool.recycle(testNode2);
-  // nodePool.recycle(testNode3);
-  // nodePool.recycle(testNode4);
-  // nodePool.recycle(testNode5);
-  // testNode0 = null;
-  // testNode1 = null;
-  // testNode2 = null;
-  // testNode3 = null;
-  // testNode4 = null;
-  // testNode5 = null;
-
-  // console.debug("testNode from nodePool | SIZE: " + nodePool.size() + "\n" + jsonPrint(testNode0));
-
   var MIN_RATE = 2.5;
   var MIN_FOLLOWERS = 50000;
   var MIN_MENTIONS = 10000;
@@ -94,9 +69,6 @@ function ViewTreepack() {
 
   var resumeTimeStamp = 0;
   var compactDateTimeFormat = "YYYYMMDD HHmmss";
-
-  // var nodeRadiusMinRatio = 0.0075;
-  // var nodeRadiusMaxRatio = 0.10;
 
   var sliderPercision = 5;
 
@@ -887,11 +859,11 @@ function ViewTreepack() {
         || (removeDeadNodesFlag && (age >= nodeMaxAge))
         ) {
 
+        nodePool.recycle(node);
         delete localNodeHashMap[node.nodeId];
         nodesTopTermHashMap.remove(node.nodeId);
         nodes.splice(ageNodesIndex, 1);
-        node = {};
-        nodePool.recycle(node);
+        // node = {};
       } 
       else {
         node.ageUpdated = moment().valueOf();

@@ -1087,19 +1087,10 @@ function showStats(options){
     + " | S: " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat)
     + " | AD: " + statsObj.entity.admin.connected
     + " | UT: " + statsObj.entity.util.connected
-    // + " | US: " + statsObj.entity.user.connected
     + " | VW: " + statsObj.entity.viewer.connected
     + " | TwRxPM: " + statsObj.twitter.tweetsPerMin
-    // + " | TwRXQ: " + tweetRxQueue.size()
-    // + " | TwPRQ: " + tweetParserQueue.size()
     + " | TwRXQ: " + tweetRxQueue.length
     + " | TwPRQ: " + tweetParserQueue.length
-    // + " | RSS: " + statsObj.memory.rss.toFixed(2) + " MB"
-    // + " - MAX: " + statsObj.memory.maxRss.toFixed(2)
-    // + " - " + moment(parseInt(statsObj.memory.maxRssTime)).format(compactDateTimeFormat)
-    // + " | H: " + statsObj.memory.heap.toFixed(2) + " MB"
-    // + " - MAX: " + statsObj.memory.maxHeap.toFixed(2)
-    // + " - " + moment(parseInt(statsObj.memory.maxHeapTime)).format(compactDateTimeFormat)
   ));
 }
 
@@ -1108,7 +1099,6 @@ function initDeletedMetricsHashmap(callback){
     if (err) {
       if (err.code !== 404) {
         console.error("LOAD DELETED METRICS FILE ERROR\n" + err);
-        // pmx.emit("ERROR", "LOAD DELETED METRICS FILE ERROR");
         if (callback !== undefined) { callback(err, null); }
       }
       else {
@@ -1116,7 +1106,6 @@ function initDeletedMetricsHashmap(callback){
       }
     }
     else {
-      // Object.keys(deletedMetricsObj).forEach(function(metricName){
       async.each(Object.keys(deletedMetricsObj), function deleteMetricHashmapEntry(metricName, cb){
         deletedMetricsHashmap.set(metricName, deletedMetricsObj[metricName]);
         debug(chalkLog("+ DELETED METRIC | " + metricName ));
@@ -1247,7 +1236,6 @@ function initUpdaterPingInterval(interval){
         timeStamp: updaterPingOutstanding
       }, function updaterPingError(err){
         if (err) {
-          // pmx.emit("ERROR", "PING ERROR");
           console.error(chalkError("*** UPDATER SEND ERROR"
             + " | " + err
           ));
@@ -1285,7 +1273,6 @@ function initUpdater(callback){
   const u = cp.fork(`${__dirname}/js/libs/updater.js`);
 
   u.on("error", function updaterError(err){
-    // pmx.emit("ERROR", "UPDATER ERROR");
     console.error(chalkError(moment().format(compactDateTimeFormat)
       + " | *** UPDATER ERROR ***"
       + " \n" + jsonPrint(err)
@@ -1386,7 +1373,6 @@ function categorizeNode(categorizeObj) {
               keywords: categorizeObj.keywords
             }, function updaterPingError(err){
               if (err) {
-                // pmx.emit("ERROR", "PING ERROR");
                 console.error(chalkError("*** UPDATER SEND ERROR"
                   + " | " + err
                 ));
@@ -1436,7 +1422,6 @@ function categorizeNode(categorizeObj) {
               keywords: categorizeObj.keywords
             }, function updaterPingError(err){
               if (err) {
-                // pmx.emit("ERROR", "PING ERROR");
                 console.error(chalkError("*** UPDATER SEND ERROR"
                   + " | " + err
                 ));
@@ -1553,8 +1538,6 @@ function initSocketHandler(socketObj) {
   ));
 
   slackPostMessage(slackChannel, socketConnectText);
-
-  // socket.emit("SERVER_READY", {connected: hostname});
 
   socket.on("reconnect_error", function reconnectError(errorObj) {
     statsObj.socket.reconnect_errors += 1;
@@ -1694,7 +1677,6 @@ function initSocketHandler(socketObj) {
       hashtagServer.findOne({hashtag: searchNodeHashtag}, function(err, hashtag){
         if (err) {
           console.log(chalkError("TWITTER_SEARCH_NODE HASHTAG ERROR\n" + jsonPrint(err)));
-          // socket.emit("SET_TWITTER_USER", defaultTwitterUser);
         }
         else {
           console.log(chalkTwitter("TWITTER_SEARCH_NODE HASHTAG FOUND\n" + jsonPrint(hashtag)));
@@ -2373,7 +2355,7 @@ function initTransmitNodeQueueInterval(interval){
                   }
                 });
               }
-              else {
+              else if ((n.nodeType === "user") || (n.nodeType === "hashtag") || (n.nodeType === "place")) {
                 viewNameSpace.volatile.emit("node", n);
                 transmitNodeQueueReady = true;
               }
@@ -2647,10 +2629,10 @@ configEvents.on("SERVER_READY", function serverReady() {
 
       statsObj.configuration = configuration;
 
-      utilNameSpace.volatile.emit("HEARTBEAT", statsObj);
-      adminNameSpace.volatile.emit("HEARTBEAT", statsObj);
-      userNameSpace.volatile.emit("HEARTBEAT", statsObj);
-      viewNameSpace.volatile.emit("HEARTBEAT", statsObj);
+      // utilNameSpace.volatile.emit("HEARTBEAT", statsObj);
+      // adminNameSpace.volatile.emit("HEARTBEAT", statsObj);
+      // userNameSpace.volatile.emit("HEARTBEAT", statsObj);
+      // viewNameSpace.volatile.emit("HEARTBEAT", statsObj);
 
       if (heartbeatsSent % 60 === 0) { logHeartbeat(); }
 
@@ -3042,7 +3024,6 @@ function initTwitterRxQueueInterval(interval){
         tweetParserSendReady = true;
 
         if (err) {
-          // pmx.emit("ERROR", "TWEET PARSER SEND ERROR");
           console.error(chalkError("*** TWEET PARSER SEND ERROR"
             + " | " + err
           ));
@@ -3105,7 +3086,6 @@ function initTweetParserMessageRxQueueInterval(interval){
           if (transmitNodeQueue.length < MAX_Q) {
             transmitNodes(tweetObj, function transmitNode(err){
               if (err) {
-                // pmx.emit("ERROR", "TRANSMIT NODES ERROR");
                 console.error(chalkError("TRANSMIT NODES ERROR\n" + err));
               }
               tweetParserMessageRxQueueReady = true;
@@ -3312,7 +3292,6 @@ function initSorter(callback){
     interval: DEFAULT_INTERVAL
   }, function sorterMessageRxError(err){
     if (err) {
-      // pmx.emit("ERROR", "SORTER SEND ERROR");
       console.error(chalkError("*** SORTER SEND ERROR"
         + " | " + err
       ));
@@ -3320,12 +3299,10 @@ function initSorter(callback){
   });
 
   s.on("error", function sorterError(err){
-    // pmx.emit("ERROR", "SORTER ERROR");
     console.error(chalkError(moment().format(compactDateTimeFormat)
       + " | *** SORTER ERROR ***"
       + " \n" + jsonPrint(err)
     ));
-
     configEvents.emit("CHILD_ERROR", { name: "sorter" });
   });
 
@@ -3384,7 +3361,6 @@ function initTweetParser(callback){
     interval: TWEET_PARSER_INTERVAL
   }, function tweetParserMessageRxError(err){
     if (err) {
-      // pmx.emit("ERROR", "TWEET PARSER INIT SEND ERROR");
       console.error(chalkError("*** TWEET PARSER SEND ERROR"
         + " | " + err
       ));
@@ -3392,7 +3368,6 @@ function initTweetParser(callback){
   });
 
   twp.on("error", function tweetParserError(err){
-    // pmx.emit("ERROR", "TWEET PARSER ERROR");
     console.error(chalkError(moment().format(compactDateTimeFormat)
       + " | *** TWEET PARSER ERROR ***"
       + " \n" + jsonPrint(err)
@@ -3456,7 +3431,6 @@ function getCustomMetrics(){
     })
     .catch(function metricsHashmapSetError(err){
       if (err.code !== 8) {
-        // pmx.emit("ERROR", "GOOGLE METRICS ERROR");
         console.log(chalkError("*** ERROR GOOGLE METRICS"
           + " | ERR CODE: " + err.code
           + " | META DATA: " + err.metadata
@@ -3764,7 +3738,6 @@ function initLoadBestNetworkInterval(interval){
 
               tweetParser.send({ op: "NETWORK", networkObj: bestNetworkObj }, function twpNetwork(err){
                 if (err) {
-                  // pmx.emit("ERROR", "TWEET PARSER INIT SEND ERROR");
                   console.error(chalkError("*** TWEET PARSER SEND NETWORK ERROR"
                     + " | " + err
                   ));

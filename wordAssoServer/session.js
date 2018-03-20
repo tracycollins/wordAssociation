@@ -1945,6 +1945,18 @@ function createStatsTable(callback) {
       break;
   }
 
+  statsServerTimeElement = document.getElementById("statsServerTime");
+  statsServerUpTimeElement = document.getElementById("statsServerUpTime");
+  statsServerStartTimeElement = document.getElementById("statsServerStartTime");
+  statsServerRunTimeElement = document.getElementById("statsServerRunTime");
+  statsClientNumberNodesElement = document.getElementById("statsClientNumberNodes");
+  statsClientNumberMaxNodesElement = document.getElementById("statsClientNumberMaxNodes");
+  statsClientAddNodeQElement = document.getElementById("statsClientAddNodeQ");
+  statsClientMaxAddNodeQElement = document.getElementById("statsClientMaxAddNodeQ");
+  statsClientAgeRateElement = document.getElementById("statsClientAgeRate");
+  statsClientMaxAgeRateElement = document.getElementById("statsClientMaxAgeRate");
+  statsClientSessionIdElement = document.getElementById("statsClientSessionId");
+
   if (callback) { callback(); }
 }
 
@@ -2041,17 +2053,17 @@ function deleteAllSessions(callback) {
   );
 }
 
-let statsServerTimeElement = document.getElementById("statsServerTime");
-let statsServerUpTimeElement = document.getElementById("statsServerUpTime");
-let statsServerStartTimeElement = document.getElementById("statsServerStartTime");
-let statsServerRunTimeElement = document.getElementById("statsServerRunTime");
-let statsClientNumberNodesElement = document.getElementById("statsClientNumberNodes");
-let statsClientNumberMaxNodesElement = document.getElementById("statsClientNumberMaxNodes");
-let statsClientAddNodeQElement = document.getElementById("statsClientAddNodeQ");
-let statsClientMaxAddNodeQElement = document.getElementById("statsClientMaxAddNodeQ");
-let statsClientAgeRateElement = document.getElementById("statsClientAgeRate");
-let statsClientMaxAgeRateElement = document.getElementById("statsClientMaxAgeRate");
-let statsClientSessionIdElement = document.getElementById("statsClientSessionId");
+let statsServerTimeElement;
+let statsServerUpTimeElement;
+let statsServerStartTimeElement;
+let statsServerRunTimeElement;
+let statsClientNumberNodesElement;
+let statsClientNumberMaxNodesElement;
+let statsClientAddNodeQElement;
+let statsClientMaxAddNodeQElement;
+let statsClientAgeRateElement;
+let statsClientMaxAgeRateElement;
+let statsClientSessionIdElement;
 
 function updateStatsTable(statsObj){
   statsServerTimeElement.innerHTML = moment(statsObj.heartbeat.timeStamp).format(defaultDateTimeFormat);

@@ -262,7 +262,7 @@ function ViewTreepack() {
         keys.push(key);
       }
     });
-    return keys.sort(function(a, b) {
+    return keys.sort(function sortFunc(a, b) {
       return hmap.get(b)[sortProperty] - hmap.get(a)[sortProperty];
     });
   };
@@ -317,17 +317,13 @@ function ViewTreepack() {
   var topTermsCheckBox = topTermsDiv.append("input")
     .attr("id", "topTermsCheckBox")
     .attr("type", "checkbox")
-    // .attr("checked", false)
     .style("pointer-events", "auto")
-    // .style("visibility", "visible")
-    .on("change", function(){
+    .on("change", function topTermsCheckBoxFunc(){
       if (topTermsCheckBox.property("checked") === false) { 
         topTermsDiv.style("visibility", "hidden"); 
-        // nodeTopTermLabelSvgGroup.style("visibility", "hidden");
       }
       else {
         topTermsDiv.style("visibility", "visible"); 
-        // nodeTopTermLabelSvgGroup.style("visibility", "visible");
       }
     });
 
@@ -337,21 +333,18 @@ function ViewTreepack() {
 
     if (topTermsCheckBox.property("checked") === false) { 
       topTermsDiv.style("visibility", "hidden"); 
-      // nodeTopTermLabelSvgGroup.style("visibility", "hidden");
     }
     else {
       topTermsDiv.style("visibility", "visible"); 
-      // nodeTopTermLabelSvgGroup.style("visibility", "visible");
     }
   };
 
 
   document.addEventListener("mouseMoveTimeoutEvent", mouseMoveTimeoutEventHandler);
 
-  document.addEventListener("mousemove", function() {
+  document.addEventListener("mousemove", function mousemoveFunc() {
 
     topTermsDiv.style("visibility", "visible");
-    // nodeTopTermLabelSvgGroup.style("visibility", "visible");
 
     if (mouseHoverFlag) {
       d3.select("body").style("cursor", "pointer");
@@ -888,7 +881,7 @@ function ViewTreepack() {
 
       maxRateMentionsText.text(maxRateMentions.displaytext);
 
-      rankHashMapByValue(nodesTopTermHashMap, metricMode, function(){
+      rankHashMapByValue(nodesTopTermHashMap, metricMode, function rankHashMapByValueFunc(){
         nodesTopTerm = nodesTopTermHashMap.values();
         callback(null, deadNodeFlag);
       });
@@ -1030,11 +1023,11 @@ function ViewTreepack() {
 
   function rankHashMapByValue(hmap, sortProperty, callback) {
     // console.debug("rankHashMapByValue");
-    var keys = hmap.keys().sort(function(a,b){
+    var keys = hmap.keys().sort(function hmapSortFunc(a,b){
       return hmap.get(b)[sortProperty]-hmap.get(a)[sortProperty];
     });
 
-    async.forEachOf(keys, function(key, index, cb) {
+    async.forEachOf(keys, function keysRank(key, index, cb) {
 
       var entry = hmap.get(key);
       entry.rank = index;
@@ -1042,7 +1035,7 @@ function ViewTreepack() {
       hmap.set(key, entry);
       cb();
 
-    }, function(err) {
+    }, function keysRankCallback(err) {
       if (err) { console.error("rankHashMapByValue ERROR: " + err); }
       callback(hmap);
     });
@@ -1051,7 +1044,7 @@ function ViewTreepack() {
   var updateTopTerm = function(callback) {
 
     var nodeTopTermLabels = nodeTopTermLabelSvgGroup.selectAll("text")
-      .data(nodesTopTerm, function(d) { return d.nodeId; });
+      .data(nodesTopTerm, function updateTopTermData(d) { return d.nodeId; });
 
     nodeTopTermLabels
       .exit()
@@ -1060,10 +1053,10 @@ function ViewTreepack() {
     nodeTopTermLabels
       .attr("x", xposition)
       .attr("y", yposition)
-      .text(function(d) {
+      .text(function updateTopTermText(d) {
         return d.displaytext;
       })
-      .style("opacity", function(d) { 
+      .style("opacity", function updateTopTermOpacity(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
         return topTermLabelOpacityScale(d.ageMaxRatio); 
       });
@@ -1075,19 +1068,18 @@ function ViewTreepack() {
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)
       .on("click", nodeClick)
-      // .on("touchstart", nodeClick)
       .style("pointer-events", "auto")
       .attr("x", xposition)
       .attr("y", yposition)
-      .text(function(d) {
+      .text(function updateTopTermText(d) {
         return d.displaytext;
       })
       .style("font-family", "monospace")
-      .style("opacity", function(d) { 
+      .style("opacity", function updateTopTermOpacity(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
         return topTermLabelOpacityScale(d.ageMaxRatio); 
       })
-      .style("fill", function(d) { 
+      .style("fill", function updateTopTermFill(d) { 
         if (d.mouseHoverFlag) { return palette.blue; }
         if (d.isKeyword) { return d.keywordColor; }
         if (d.isTrendingTopic || d.isTwitterUser || d.isNumber || d.isCurrency) { return palette.white; }
@@ -1103,23 +1095,23 @@ function ViewTreepack() {
   var updateNodeCircles = function(callback) {
 
     var nodeCircles = nodeSvgGroup.selectAll("circle")
-      .data(nodes, function(d){ return d.nodeId; });
+      .data(nodes, function updateNodeCirclesData(d){ return d.nodeId; });
 
     nodeCircles
       .enter()
       .append("circle")
-      .attr("nodeId", function(d) { return d.nodeId; })
-      .attr("cx", function(d) { 
+      .attr("nodeId", function nodeCirclesNodeId(d) { return d.nodeId; })
+      .attr("cx", function nodeCirclesX(d) { 
         return d.x; 
       })
-      .attr("cy", function(d) { 
+      .attr("cy", function nodeCirclesY(d) { 
         return d.y; 
       })
-      .style("fill", function(d) { 
+      .style("fill", function nodeCirclesFill(d) { 
         if (!d.isKeyword) { return palette.black; }
         return d.keywordColor; 
       })
-      .style("stroke", function(d) {
+      .style("stroke", function nodeCirclesStroke(d) {
         if (d.keywordsMismatch) { return palette.red; }
         if (d.keywordsMatch) { return keywordsMatchColor; }
         if (d.keywordsAuto.right) { return palette.yellow; }
@@ -1128,7 +1120,7 @@ function ViewTreepack() {
         if (d.keywordsAuto.negative) { return palette.red; }
         return palette.white; 
       })
-      .style("stroke-width", function(d) { 
+      .style("stroke-width", function nodeCirclesStrokeWidth(d) { 
         if (d.keywordsMatch) { return keywordsMatchStrokeWidth; }
         if (d.isTopTerm) { return "3.0"; }
         if (d.newFlag) { return "3.0"; }
@@ -1138,23 +1130,21 @@ function ViewTreepack() {
         if (d.keywordsAuto.negative) { return keywordsAutoStrokeWidth; }
         return "2.0"; 
       })
-      .style("opacity", function(d) { 
+      .style("opacity", function nodeCirclesOpacity(d) { 
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)
       .on("click", nodeClick)
-      // .on("touchstart", nodeClick)
       .transition()
         .duration(transitionDuration)
-        .attr("r", function(d) {
+        .attr("r", function nodeCirclesRadius(d) {
           if (d.isIgnored) {
             return defaultRadiusScale(Math.sqrt(0.1));
           }
           if (metricMode === "rate") { return defaultRadiusScale(Math.sqrt(d.rate));}
           if (metricMode === "mentions") { 
             if (d.nodeType === "user") { 
-              // if (d.followersCount === undefined) { return defaultRadiusScale(1); }
               return defaultRadiusScale(Math.sqrt(d.followersMentions)); 
             }
             return defaultRadiusScale(Math.sqrt(d.mentions));
@@ -1162,17 +1152,17 @@ function ViewTreepack() {
         });
 
     nodeCircles
-      .attr("cx", function(d) { 
+      .attr("cx", function nodeCirclesX(d) { 
         return d.x; 
       })
-      .attr("cy", function(d) { 
+      .attr("cy", function nodeCirclesY(d) { 
         return d.y; 
       })
-      .style("fill", function(d) { 
+      .style("fill", function nodeCirclesFill(d) { 
         if (!d.isKeyword) { return palette.black; }
         return d.keywordColor; 
       })
-      .style("stroke", function(d) {
+      .style("stroke", function nodeCirclesStroke(d) {
         if (d.keywordsMismatch) { return palette.red; }
         if (d.keywordsMatch) { return keywordsMatchColor; }
         if (d.keywordsAuto.right) { return palette.yellow; }
@@ -1181,7 +1171,7 @@ function ViewTreepack() {
         if (d.keywordsAuto.negative) { return palette.red; }
         return palette.white; 
       })
-      .style("stroke-width", function(d) { 
+      .style("stroke-width", function nodeCirclesStrokeWidth(d) { 
         if (d.keywordsMatch) { return keywordsMatchStrokeWidth; }
         if (d.isTopTerm) { return "4.0"; }
         if (d.newFlag) { return "3.0"; }
@@ -1191,21 +1181,19 @@ function ViewTreepack() {
         if (d.keywordsAuto.negative) { return keywordsAutoStrokeWidth; }
         return "2.0"; 
       })
-      .style("opacity", function(d) { 
+      .style("opacity", function nodeCirclesOpacity(d) { 
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
       .on("click", nodeClick)
-      // .on("touchstart", nodeClick)
       .transition()
         .duration(transitionDuration)
-        .attr("r", function(d) {
+        .attr("r", function nodeCirclesRadius(d) {
           if (d.isIgnored) {
             return defaultRadiusScale(Math.sqrt(0.1));
           }
           if (metricMode === "rate") { return defaultRadiusScale(Math.sqrt(d.rate));}
           if (metricMode === "mentions") { 
             if (d.nodeType === "user") { 
-              // if (d.followersCount === undefined) { return defaultRadiusScale(1); }
               return defaultRadiusScale(Math.sqrt(d.followersMentions)); 
             }
             return defaultRadiusScale(Math.sqrt(d.mentions));
@@ -1226,18 +1214,18 @@ function ViewTreepack() {
   var updateNodeLabels = function(callback) {
 
     var nodeLabels = nodeLabelSvgGroup.selectAll("text")
-      .data(nodes, function(d) { 
+      .data(nodes, function nodeLabelsData(d) { 
         return d.nodeId; 
       });
 
     nodeLabels
-      .attr("x", function(d) { return d.x; })
-      .attr("y", function(d) { return d.y; })
-      .style("opacity", function(d) { 
+      .attr("x", function nodeLabelsX(d) { return d.x; })
+      .attr("y", function nodeLabelsY(d) { return d.y; })
+      .style("opacity", function nodeLabelsOpacity(d) { 
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
       .style("fill", palette.white)
-      .style("visibility", function(d) {
+      .style("visibility", function nodeLabelsVisibility(d) {
         if (mouseMovingFlag) { return "visible"; }
         if (d.rate > MIN_RATE) { return "visible"; }
         if (d.followersCount > MIN_FOLLOWERS) { return "visible"; }
@@ -1254,7 +1242,7 @@ function ViewTreepack() {
         }
         return "hidden";
       })
-      .style("font-size", function(d) {
+      .style("font-size", function nodeLabelsFont(d) {
         if (metricMode === "rate") {return nodeLabelSizeScale(d.rate);}
         if (metricMode === "mentions") {
           if (d.nodeType === "user") { 
@@ -1268,20 +1256,19 @@ function ViewTreepack() {
     nodeLabels
       .enter()
       .append("text")
-      .attr("nodeId", function(d) { return d.nodeId; })
+      .attr("nodeId", function nodeLabelsNodeId(d) { return d.nodeId; })
       .style("text-anchor", "middle")
       .style("alignment-baseline", "middle")
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)
       .on("click", nodeClick)
-      // .on("touchstart", nodeClick)
-      .attr("x", function(d) { 
+      .attr("x", function nodeLabelsX(d) { 
         return d.x; 
       })
-      .attr("y", function(d) { 
+      .attr("y", function nodeLabelsY(d) { 
         return d.y; 
       })
-      .text(function(d) {
+      .text(function nodeLabelsText(d) {
         if (d.nodeType === "hashtag") { return "#" + d.text.toUpperCase(); }
         if (d.nodeType === "user") { 
           if (d.screenName) { return "@" + d.screenName.toUpperCase(); 
@@ -1303,11 +1290,11 @@ function ViewTreepack() {
         if (testMode) { return "blah"; }
         return d.nodeId; 
       })
-      .style("font-weight", function(d) {
+      .style("font-weight", function nodeLabelsFontWeight(d) {
         if (d.followersCount > MIN_FOLLOWERS) { return "bold"; }
         return "normal";
       })
-      .style("visibility", function(d) {
+      .style("visibility", function nodeLabelsVisibility(d) {
         if (mouseMovingFlag) { 
           return "visible"; 
         }
@@ -1317,28 +1304,27 @@ function ViewTreepack() {
         if (d.isKeyword) { return "visible"; }
         return "hidden";
       })
-      .style("text-decoration", function(d) { 
+      .style("text-decoration", function nodeLabelsTextDecoration(d) { 
         if (d.isTopTerm && (d.followersCount > MIN_FOLLOWERS)) { return "overline underline"; }
         if (!d.isTopTerm && (d.followersCount > MIN_FOLLOWERS)) { return "underline"; }
         if (d.isTopTerm) { return "overline"; }
         return "none"; 
       })
-      .style("opacity", function(d) { 
+      .style("opacity", function nodeLabelsOpacity(d) { 
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
       .style("fill", palette.white)
-      .style("stroke-width", function(d) { 
+      .style("stroke-width", function nodeLabelsStrokeWidth(d) { 
         if (d.keywordsMatch) { return keywordsMatchStrokeWidth; }
         if (d.keywordsMismatch) { return "4.0"; }
         if (d.isTopTerm) { return "3.0"; }
         if (d.newFlag) { return "2.0"; }
         return "1.2"; 
       })
-      .style("font-size", function(d) {
+      .style("font-size", function nodeLabelsFontSize(d) {
         if (metricMode === "rate") {return nodeLabelSizeScale(d.rate);}
         if (metricMode === "mentions") {
           if (d.nodeType === "user") { 
-            // if (d.followersCount === undefined) { return nodeLabelSizeScale(1); }
             return nodeLabelSizeScale(d.followersMentions);
           }
           return nodeLabelSizeScale(d.mentions);
@@ -1631,7 +1617,7 @@ function ViewTreepack() {
   };
 
   function ticked() {
-    drawSimulation(function(){
+    drawSimulation(function drawSimulationCallback(){
       updateSimulation();
     });
   }
@@ -1641,10 +1627,10 @@ function ViewTreepack() {
   function drawSimulation(callback){
 
     async.series([
-      function(cb){ updateNodeCircles(cb) },
-      function(cb){ updateNodeLabels(cb) },
-      function(cb){ updateTopTerm(cb) }
-    ], function(err, results) {
+      function updateNodeCirclesSeries (cb){ updateNodeCircles(cb) },
+      function updateNodeLabelsSeries (cb){ updateNodeLabels(cb) },
+      function updateTopTermSeries (cb){ updateTopTerm(cb) }
+    ], function drawSimulationCallback (err, results) {
       if (newCurrentMaxMetricFlag && (Math.abs(currentMaxMetric - previousMaxMetric)/currentMaxMetric) > 0.05) {
 
         newCurrentMaxMetricFlag = false;
@@ -1671,9 +1657,8 @@ function ViewTreepack() {
       {
         addNode: processNodeAddQ,
         ageNode: ageNodes
-        // deadNode: processDeadNodesHash
       },
-      function() {
+      function updateSimulationCallback() {
         simulation.nodes(nodes);
       }
     );
@@ -1711,9 +1696,6 @@ function ViewTreepack() {
     }
 
     var newNode = {};
-    // var newNode = nodePool.use();
-
-    // console.debug("NODE POOL | SIZE: " + nodePool.size());
 
     newNode = nNode;
     newNode.rank = -1;
@@ -1833,7 +1815,7 @@ function ViewTreepack() {
 
     simulation = d3.forceSimulation(nodes)
       .force("charge", d3.forceManyBody().strength(charge))
-      .force("forceX", d3.forceX().x(function(d) { 
+      .force("forceX", d3.forceX().x(function forceXfunc(d) { 
         if (d.isKeyword){
 
           var keywords = {};
@@ -1875,10 +1857,10 @@ function ViewTreepack() {
           return foci.default.x;
         }
         // return 0.5*width; 
-      }).strength(function(d){
+      }).strength(function strengthFunc(d){
         return forceXmultiplier * gravity; 
       }))
-      .force("forceY", d3.forceY().y(function(d) { 
+      .force("forceY", d3.forceY().y(function forceYfunc(d) { 
         if (d.isKeyword){
 
           var keywords = {};
@@ -1918,10 +1900,10 @@ function ViewTreepack() {
         else {
           return foci.default.y;
         }
-      }).strength(function(d){
+      }).strength(function strengthFunc(d){
         return forceYmultiplier * gravity; 
       }))
-      .force("collide", d3.forceCollide().radius(function(d) { 
+      .force("collide", d3.forceCollide().radius(function forceCollideFunc(d) { 
         if (metricMode === "rate") {return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.rate));}
         if (metricMode === "mentions") {
           if (d.nodeType === "user") { 
@@ -2024,17 +2006,6 @@ function ViewTreepack() {
       .attr("height", height)
       .attr("x", 1e-6)
       .attr("y", 1e-6);
-      // .on("touchstart", nodeClick);
-      // .on("touchstart", function(d){
-      //   topTermsDiv.style("visibility", "visible");
-      //   nodeTopTermLabelSvgGroup.style("visibility", "visible");
-      // })
-      // .on("touchend", function(d){
-      //   setTimeout(function(){
-      //     topTermsDiv.style("visibility", "hidden");
-      //     nodeTopTermLabelSvgGroup.style("visibility", "hidden");
-      //   }, 2000);
-      // });
 
     svgTopTermLayoutArea
       .attr("width", width)
@@ -2060,7 +2031,7 @@ function ViewTreepack() {
     if (simulation){
       simulation
         .force("charge", d3.forceManyBody().strength(charge))
-        .force("forceX", d3.forceX().x(function(d) { 
+        .force("forceX", d3.forceX().x(function forceXfunc(d) { 
           if (d.isKeyword){
 
             var keywords = {};
@@ -2099,10 +2070,10 @@ function ViewTreepack() {
           else {
             return foci.default.x;
           }
-        }).strength(function(d){
+        }).strength(function strengthFunc(d){
           return forceXmultiplier * gravity; 
         }))
-        .force("forceY", d3.forceY().y(function(d) { 
+        .force("forceY", d3.forceY().y(function forceYfunc(d) { 
           if (d.isKeyword){
 
             var keywords = {};
@@ -2141,10 +2112,10 @@ function ViewTreepack() {
           else {
             return foci.default.y;
           }
-        }).strength(function(d){
+        }).strength(function strengthFunc(d){
           return forceYmultiplier * gravity; 
         }))
-        .force("collide", d3.forceCollide().radius(function(d) { 
+        .force("collide", d3.forceCollide().radius(function forceCollideFunc(d) { 
           if (metricMode === "rate") {return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.rate));}
           if (metricMode === "mentions") {
             if (d.nodeType === "user") { 
@@ -2163,7 +2134,7 @@ function ViewTreepack() {
 
   // ==========================================
 
-  document.addEventListener("resize", function() {
+  document.addEventListener("resize", function resizeFunc() {
     self.resize();
   }, true);
 

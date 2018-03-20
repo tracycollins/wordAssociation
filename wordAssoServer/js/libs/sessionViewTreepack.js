@@ -4,6 +4,76 @@ function ViewTreepack() {
 
   "use strict";
 
+  function jsonPrint(obj) {
+    if ((obj) || (obj === 0)) {
+      var jsonString = JSON.stringify(obj, null, 2);
+      return jsonString;
+    } else {
+      return "UNDEFINED";
+    }
+  }
+
+
+  function Node(){
+    // this.age = 0;
+    // this.ageMaxRatio = 0;
+    // this.ageUpdated = moment().valueOf();
+    // this.followersCount = 0;
+    // this.followersMentions = 0;
+    // this.isDead = false;
+    // this.isKeyword = false;
+    // this.isTopTerm = false;
+    // this.isMaxNode = false;
+    // this.isTrendingTopic = false;
+    // this.keywordColor = "";
+    // this.keywords = {};
+    // this.keywordsAuto = {};
+    // this.mentions = 0;
+    // this.newFlag = true; 
+    // this.nodeId = "";
+    // this.nodeType = "";
+    // this.rank = -1;
+    // this.rate = 0;
+    // this.rateNodeId = "";
+    // this.rateNodeType = "";
+    // this.rateTimeStamp = moment().valueOf();
+    // this.mentionsNodeId = "";
+    // this.mentionsTimeStamp = moment().valueOf();
+    // this.mouseHoverFlag = false;
+    // this.screenName = "";
+    // this.displaytext = "";
+    // this.x = 0;
+    // this.y = 0;
+  }
+
+  var nodePool = deePool.create( function makeNode(){
+      return new Node();
+  } );
+
+  // var testNode0 = nodePool.use();
+  // var testNode1 = nodePool.use();
+  // var testNode2 = nodePool.use();
+  // var testNode3 = nodePool.use();
+  // var testNode4 = nodePool.use();
+  // var testNode5 = nodePool.use();
+
+  // console.debug("testNode from nodePool | SIZE: " + nodePool.size() + "\n" + jsonPrint(testNode0));
+
+  // nodePool.recycle(testNode0);
+  // nodePool.recycle(testNode1);
+  // nodePool.recycle(testNode2);
+  // nodePool.recycle(testNode3);
+  // nodePool.recycle(testNode4);
+  // nodePool.recycle(testNode5);
+  // testNode0 = null;
+  // testNode1 = null;
+  // testNode2 = null;
+  // testNode3 = null;
+  // testNode4 = null;
+  // testNode5 = null;
+
+  // console.debug("testNode from nodePool | SIZE: " + nodePool.size() + "\n" + jsonPrint(testNode0));
+
   var MIN_RATE = 2.5;
   var MIN_FOLLOWERS = 50000;
   var MIN_MENTIONS = 10000;
@@ -110,15 +180,6 @@ function ViewTreepack() {
   currentMax.mentions.timeStamp = moment().valueOf();
 
   var deadNodesHash = {};
-
-  function jsonPrint(obj) {
-    if ((obj) || (obj === 0)) {
-      var jsonString = JSON.stringify(obj, null, 2);
-      return jsonString;
-    } else {
-      return "UNDEFINED";
-    }
-  }
 
 
   var getWindowDimensions = function (){
@@ -789,7 +850,6 @@ function ViewTreepack() {
     var ageNodesLength = nodes.length - 1;
     var ageNodesIndex = nodes.length - 1;
     var node;
-    // var nodeObj;
 
     if (nodes.length === 0) {
       ageRate = DEFAULT_AGE_RATE;
@@ -828,10 +888,10 @@ function ViewTreepack() {
         ) {
 
         delete localNodeHashMap[node.nodeId];
-
         nodesTopTermHashMap.remove(node.nodeId);
-
         nodes.splice(ageNodesIndex, 1);
+        node = {};
+        nodePool.recycle(node);
       } 
       else {
         node.ageUpdated = moment().valueOf();
@@ -900,36 +960,36 @@ function ViewTreepack() {
     }
   };
 
-  var processDeadNodesHash = function (callback) {
+  // var processDeadNodesHash = function (callback) {
 
-    var deadNodeFlag = false;
+  //   var deadNodeFlag = false;
 
-    if (Object.keys(deadNodesHash).length === 0) {
-      return (callback(null, deadNodeFlag));
-    }
+  //   if (Object.keys(deadNodesHash).length === 0) {
+  //     return (callback(null, deadNodeFlag));
+  //   }
 
-    var deadNodeIds = Object.keys(deadNodesHash);
+  //   var deadNodeIds = Object.keys(deadNodesHash);
 
-    var ageNodesLength = nodes.length - 1;
-    var ageNodesIndex = nodes.length - 1;
-    var node;
+  //   var ageNodesLength = nodes.length - 1;
+  //   var ageNodesIndex = nodes.length - 1;
+  //   var node;
 
-    for (ageNodesIndex = ageNodesLength; ageNodesIndex >= 0; ageNodesIndex -= 1) {
-      node = nodes[ageNodesIndex];
-      if (deadNodesHash[node.nodeId]) {
-        nodeDeleteQ.push({op:"delete", nodeId: node.nodeId});
-        deadNodeFlag = true;
-        delete deadNodesHash[node.nodeId];
-        delete localNodeHashMap[node.nodeId];
-        nodesTopTermHashMap.remove(node.nodeId);
-      }
-      deadNodeIds = Object.keys(deadNodesHash);
-    }
+  //   for (ageNodesIndex = ageNodesLength; ageNodesIndex >= 0; ageNodesIndex -= 1) {
+  //     node = nodes[ageNodesIndex];
+  //     if (deadNodesHash[node.nodeId]) {
+  //       nodeDeleteQ.push({op:"delete", nodeId: node.nodeId});
+  //       deadNodeFlag = true;
+  //       delete deadNodesHash[node.nodeId];
+  //       delete localNodeHashMap[node.nodeId];
+  //       nodesTopTermHashMap.remove(node.nodeId);
+  //     }
+  //     deadNodeIds = Object.keys(deadNodesHash);
+  //   }
 
-    if ((nodes.length === 0) || (deadNodeIds.length === 0) || (ageNodesIndex < 0)) {
-      return (callback(null, deadNodeFlag));
-    }
-  };
+  //   if ((nodes.length === 0) || (deadNodeIds.length === 0) || (ageNodesIndex < 0)) {
+  //     return (callback(null, deadNodeFlag));
+  //   }
+  // };
 
   var previousTwitterUserId;
   var previousTwitterHashtag;
@@ -1732,6 +1792,7 @@ function ViewTreepack() {
   };
 
   this.addNode = function(nNode) {
+
     self.setEnableAgeNodes(true);
 
     if (((nNode.nodeType !== "hashtag") 
@@ -1742,7 +1803,10 @@ function ViewTreepack() {
       return;
     }
 
-    var newNode = {};
+    // var newNode = {};
+    var newNode = nodePool.use();
+
+    console.debug("NODE POOL | SIZE: " + nodePool.size());
 
     newNode = nNode;
     newNode.rank = -1;

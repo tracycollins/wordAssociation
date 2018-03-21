@@ -93,7 +93,7 @@ function ViewTreepack() {
   var maxRateMentionsLeftMargin = 2; // %
   var hashtagTopMargin = 7; // %
   var hashtagLeftMargin = 2; // %
-  var mentionsNumChars = 9;
+  var mentionsNumChars = 10;
   var rateNumChars = 8;
 
   var maxHashtagRows = 100;

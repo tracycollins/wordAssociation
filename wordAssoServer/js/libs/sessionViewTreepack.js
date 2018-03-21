@@ -767,15 +767,20 @@ function ViewTreepack() {
     self.updateGravity(config.defaultGravity);
   };
 
+  var age;
+  var ageMaxRatio = 1e-6;
+  var deadNodeFlag = false ;
+  var ageNodesLength = nodes.length - 1;
+  var ageNodesIndex = nodes.length - 1;
+  var node;
+  var prevNode;
+
   var ageNodes = function (callback) {
 
-    var age;
-    var ageMaxRatio = 1e-6;
-    var deadNodeFlag = false ;
-    var ageNodesLength = nodes.length - 1;
-    var ageNodesIndex = nodes.length - 1;
-    var node;
-    var prevNode;
+    ageMaxRatio = 1e-6;
+    deadNodeFlag = false ;
+    ageNodesLength = nodes.length - 1;
+    ageNodesIndex = nodes.length - 1;
 
     if (nodes.length === 0) {
       ageRate = DEFAULT_AGE_RATE;
@@ -813,7 +818,6 @@ function ViewTreepack() {
         || (removeDeadNodesFlag && (age >= nodeMaxAge))
         ) {
 
-        // nodePool.recycle(node);
         delete localNodeHashMap[node.nodeId];
         nodesTopTermHashMap.remove(node.nodeId);
         nodes.splice(ageNodesIndex, 1);
@@ -1472,13 +1476,11 @@ function ViewTreepack() {
     return displaytext;
   };
 
-  // var nodeAddObj = {};
   var newNode = {};
   var currentNode = {};
   var nodesModifiedFlag = false;
 
   var processNodeAddQ = function(callback) {
-
 
     if (nodeAddQ.length > 0) {
 
@@ -1702,9 +1704,6 @@ function ViewTreepack() {
 
     self.setEnableAgeNodes(true);
 
-    // var newNode = {};
-
-    // newNode = nNode;
     newNode.rank = -1;
     newNode.newFlag = true;
     newNode.x = newNode.x || 0.5*width;

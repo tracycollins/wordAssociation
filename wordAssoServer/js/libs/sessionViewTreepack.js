@@ -1533,6 +1533,59 @@ function ViewTreepack() {
           newNode.isKeyword = true;
         }
 
+        if (currentNode.isKeyword 
+          || ((newNode.keywordsAuto !== undefined) 
+              && newNode.keywordsAuto
+              && (Object.keys(newNode.keywordsAuto).length > 0))) {
+
+          var keywords = {};
+
+          if (autoKeywordsFlag 
+            && (newNode.keywordsAuto !== undefined) 
+            && newNode.keywordsAuto
+            && (Object.keys(newNode.keywordsAuto).length > 0)
+            ){
+            keywords = newNode.keywordsAuto;
+          }
+          else if ((newNode.keywordsAuto !== undefined) 
+            && newNode.keywordsAuto
+            && (!newNode.keywords || (newNode.keywords === undefined))){
+            keywords = newNode.keywordsAuto;
+          }
+          else {
+            keywords = newNode.keywords;
+          }
+
+          if (keywords.left) { 
+            currentNode.x = focus("left").x; 
+            currentNode.y = focus("left").y;
+          }
+          else if (keywords.positive) { 
+            currentNode.x = focus("positive").x; 
+            currentNode.y = focus("positive").y;
+          }
+          else if (keywords.right) { 
+            currentNode.x = focus("right").x; 
+            currentNode.y = focus("right").y;
+          }
+          else if (keywords.negative) { 
+            currentNode.x = focus("negative").x; 
+            currentNode.y = focus("negative").y;
+          }
+          else if (keywords.neutral) { 
+            currentNode.x = focus("neutral").x; 
+            currentNode.y = focus("neutral").y;
+          }
+          else {
+            currentNode.x = focus("neutral").x; 
+            currentNode.y = focus("neutral").y;
+          }
+        }
+        else {
+          currentNode.x = focus("neutral").x; 
+          currentNode.y = focus("neutral").y;
+        }
+
         currentNode.displaytext = createDisplayText(currentNode);
 
         localNodeHashMap[currentNode.nodeId] = currentNode;

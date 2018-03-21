@@ -1501,97 +1501,21 @@ function ViewTreepack() {
 
     if (nodeAddQ.length > 0) {
 
-      nodesModifiedFlag = false;
-
       newNode = nodeAddQ.shift();
 
-      currentNode = localNodeHashMap[newNode.nodeId];
+      nodesModifiedFlag = false;
 
-      if (currentNode !== undefined){
+      if (localNodeHashMap[newNode.nodeId] !== undefined){
 
-        currentNode = nodePool.use();
-
-        // currentNode = newNode;
-        // currentNode.isDead = false;
-        // currentNode.age = 1e-6;
-        // currentNode.ageMaxRatio = 1e-6;
-        // currentNode.ageUpdated = moment().valueOf();
-        // currentNode.mouseHoverFlag = false;
+        currentNode = localNodeHashMap[newNode.nodeId];
         currentNode.rank = newNode.rank;
         currentNode.rate = newNode.rate;
         currentNode.isKeyword = newNode.isKeyword;
-        // currentNode.x = newNode.x || 0;
-        // currentNode.y = newNode.y || 0;
+        currentNode.keywords = newNode.keywords;
+        currentNode.keywordsAuto = newNode.keywordsAuto;
 
         if (newNode.nodeType === "user"){
           currentNode.followersMentions = newNode.followersCount + newNode.mentions;
-        }
-
-        if (!newNode.keywords || (newNode.keywords === undefined)) {
-          currentNode.keywords = {};
-        }
-        else {
-          currentNode.keywords = newNode.keywords;
-        }
-
-        if (!newNode.keywordsAuto || (newNode.keywordsAuto === undefined)) {
-          currentNode.keywordsAuto = {};
-        }
-        else {
-          currentNode.keywordsAuto = newNode.keywordsAuto;
-        }
-
-        if (currentNode.isKeyword 
-          || ((newNode.keywordsAuto !== undefined) 
-              && newNode.keywordsAuto
-              && (Object.keys(newNode.keywordsAuto).length > 0))) {
-
-          var keywords = {};
-
-          if (autoKeywordsFlag 
-            && (newNode.keywordsAuto !== undefined) 
-            && newNode.keywordsAuto
-            && (Object.keys(newNode.keywordsAuto).length > 0)
-            ){
-            keywords = newNode.keywordsAuto;
-          }
-          else if ((newNode.keywordsAuto !== undefined) 
-            && newNode.keywordsAuto
-            && (!newNode.keywords || (newNode.keywords === undefined))){
-            keywords = newNode.keywordsAuto;
-          }
-          else {
-            keywords = newNode.keywords;
-          }
-
-          if (keywords.left) { 
-            currentNode.x = focus("left").x; 
-            currentNode.y = focus("left").y;
-          }
-          else if (keywords.positive) { 
-            currentNode.x = focus("positive").x; 
-            currentNode.y = focus("positive").y;
-          }
-          else if (keywords.right) { 
-            currentNode.x = focus("right").x; 
-            currentNode.y = focus("right").y;
-          }
-          else if (keywords.negative) { 
-            currentNode.x = focus("negative").x; 
-            currentNode.y = focus("negative").y;
-          }
-          else if (keywords.neutral) { 
-            currentNode.x = focus("neutral").x; 
-            currentNode.y = focus("neutral").y;
-          }
-          else {
-            currentNode.x = focus("neutral").x; 
-            currentNode.y = focus("neutral").y;
-          }
-        }
-        else {
-          currentNode.x = focus("neutral").x; 
-          currentNode.y = focus("neutral").y;
         }
 
         currentNode.displaytext = createDisplayText(currentNode);
@@ -1610,7 +1534,8 @@ function ViewTreepack() {
       else {
         nodesModifiedFlag = true;
 
-        currentNode = {};
+        currentNode = nodePool.use();
+
         currentNode = newNode;
         currentNode.keywords = {};
         currentNode.keywordsAuto = {};

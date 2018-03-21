@@ -1511,26 +1511,34 @@ function ViewTreepack() {
 
         currentNode = nodePool.use();
 
-        currentNode = newNode;
+        // currentNode = newNode;
         // currentNode.isDead = false;
         // currentNode.age = 1e-6;
         // currentNode.ageMaxRatio = 1e-6;
         // currentNode.ageUpdated = moment().valueOf();
         // currentNode.mouseHoverFlag = false;
-        currentNode.rank = newNode.rank || 0;
-        currentNode.rate = newNode.rate || 0;
-        currentNode.x = newNode.x || 0;
-        currentNode.y = newNode.y || 0;
+        currentNode.rank = newNode.rank;
+        currentNode.rate = newNode.rate;
+        currentNode.isKeyword = newNode.isKeyword;
+        // currentNode.x = newNode.x || 0;
+        // currentNode.y = newNode.y || 0;
 
         if (newNode.nodeType === "user"){
           currentNode.followersMentions = newNode.followersCount + newNode.mentions;
+        }
+
+        if (!newNode.keywords || (newNode.keywords === undefined)) {
+          currentNode.keywords = {};
+        }
+        else {
+          currentNode.keywords = newNode.keywords;
         }
 
         if (!newNode.keywordsAuto || (newNode.keywordsAuto === undefined)) {
           currentNode.keywordsAuto = {};
         }
         else {
-          newNode.isKeyword = true;
+          currentNode.keywordsAuto = newNode.keywordsAuto;
         }
 
         if (currentNode.isKeyword 

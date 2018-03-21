@@ -13,6 +13,29 @@ function ViewTreepack() {
     }
   }
 
+  var palette = {
+    "black": "#000000",
+    "white": "#FFFFFF",
+    "lightgray": "#819090",
+    "gray": "#708284",
+    "mediumgray": "#536870",
+    "darkgray": "#475B62",
+    "darkblue": "#0A2933",
+    "darkerblue": "#042029",
+    "paleryellow": "#FCF4DC",
+    "paleyellow": "#EAE3CB",
+    "yellow": "#A57706",
+    "orange": "#BD3613",
+    "red": "#D11C24",
+    "pink": "#C61C6F",
+    "purple": "#595AB7",
+    "blue": "#4808FF",
+    "green": "#00E540",
+    "darkergreen": "#008200",
+    "lightgreen":  "#35A296",
+    "yellowgreen": "#738A05"
+  };
+
   var MIN_RATE = 2.5;
   var MIN_FOLLOWERS = 50000;
   var MIN_MENTIONS = 10000;
@@ -145,6 +168,37 @@ function ViewTreepack() {
   var width = getWindowDimensions().width;
   var height = getWindowDimensions().height;
 
+  function Node(){
+    this.nodeId = "";
+    this.nodeType = "user";
+    this.screenName = "";
+    this.name = "";
+    this.isDead = false;
+    this.mentions = 0;
+    this.age = 0;
+    this.ageUpdated = moment().valueOf();
+    this.ageMaxRatio = 1e-6;
+    this.mouseHoverFlag = false;
+    this.displaytext = "";
+    this.rate = 0;
+    this.rank = -1;
+    this.newFlag = true;
+    this.x = 0.5*width;
+    this.y = 0.5*height;
+    this.keywords = {};
+    this.keywordsAuto = {};
+    this.isTopTerm = false;
+    this.isTrendingTopic = false;
+    this.isKeyword = false;
+    this.keywordColor = palette.white;
+    this.followersMentions = 0;
+  } 
+
+  var nodePool = deePool.create(function makeNode(){
+    return new Node();
+  });
+
+
   var autoKeywordsFlag = config.autoKeywordsFlag;
 
   var metricMode = config.defaultMetricMode;
@@ -240,7 +294,7 @@ function ViewTreepack() {
   self.mouseMoving = function(isMoving) {
     if (isMoving && !mouseMovingFlag) {
       mouseMovingFlag = isMoving;
-      updateNodeLabels(function(){});
+      updateNodeLabels();
     }
     else {
       mouseMovingFlag = isMoving;
@@ -278,28 +332,6 @@ function ViewTreepack() {
   var ageRate = DEFAULT_TREEMAP_CONFIG.ageRate;
   var maxAgeRate = 0;
 
-  var palette = {
-    "black": "#000000",
-    "white": "#FFFFFF",
-    "lightgray": "#819090",
-    "gray": "#708284",
-    "mediumgray": "#536870",
-    "darkgray": "#475B62",
-    "darkblue": "#0A2933",
-    "darkerblue": "#042029",
-    "paleryellow": "#FCF4DC",
-    "paleyellow": "#EAE3CB",
-    "yellow": "#A57706",
-    "orange": "#BD3613",
-    "red": "#D11C24",
-    "pink": "#C61C6F",
-    "purple": "#595AB7",
-    "blue": "#4808FF",
-    "green": "#00E540",
-    "darkergreen": "#008200",
-    "lightgreen":  "#35A296",
-    "yellowgreen": "#738A05"
-  };
 
   var keywordsMatchColor = palette.green;
   var keywordsMatchStrokeWidth = "4.0";
@@ -501,9 +533,9 @@ function ViewTreepack() {
     }
 
 
-    if (user.userId === twitterUserThreecee.userId) {
-      twitterUserThreecee = user;
-    }
+    // if (user.userId === twitterUserThreecee.userId) {
+    //   twitterUserThreecee = user;
+    // }
     
     if (controlPanelReadyFlag){
       controlPanelWindow.postMessage({op: "SET_TWITTER_USER", user: user}, DEFAULT_SOURCE);
@@ -820,7 +852,7 @@ function ViewTreepack() {
         // nodesTopTermHashMap.remove(node.nodeId);
         // nodes.splice(ageNodesIndex, 1);
         // node = null;
-        
+
         node.isDead = true;
         nodes[ageNodesIndex] = node;
         localNodeHashMap[node.nodeId] = node;
@@ -1342,7 +1374,7 @@ function ViewTreepack() {
       .style("opacity", 1e-6)
       .remove();
 
-    callback();
+    if (callback !== undefined) { callback(); }
   };
 
   var focus = function(focalPoint){
@@ -1471,36 +1503,26 @@ function ViewTreepack() {
 
       nodesModifiedFlag = false;
 
-      newNode = nodeAddQ.shift().node;
+      newNode = nodeAddQ.shift();
 
       currentNode = localNodeHashMap[newNode.nodeId];
 
       if (currentNode !== undefined){
 
+        currentNode = nodePool.use();
+
         currentNode = newNode;
-        currentNode.isDead = false;
-        currentNode.age = 1e-6;
-        currentNode.ageMaxRatio = 1e-6;
-        currentNode.ageUpdated = moment().valueOf();
-        // currentNode.isKeyword = newNode.isKeyword || false;
-        // currentNode.keywords = newNode.keywords;
-        // currentNode.keywordsAuto = newNode.keywordsAuto;
-        // currentNode.isTopTerm = newNode.isTopTerm || false;
-        // currentNode.isTrendingTopic = newNode.isTrendingTopic || false;
-        // currentNode.isTwitterUser = newNode.isTwitterUser || false;
-        // currentNode.keywordColor = newNode.keywordColor;
-        // currentNode.mentions = newNode.mentions;
-        currentNode.mouseHoverFlag = false;
-        currentNode.rank = currentNode.rank || 0;
+        // currentNode.isDead = false;
+        // currentNode.age = 1e-6;
+        // currentNode.ageMaxRatio = 1e-6;
+        // currentNode.ageUpdated = moment().valueOf();
+        // currentNode.mouseHoverFlag = false;
+        currentNode.rank = newNode.rank || 0;
         currentNode.rate = newNode.rate || 0;
-        currentNode.x = currentNode.x || 0;
-        currentNode.y = currentNode.y || 0;
+        currentNode.x = newNode.x || 0;
+        currentNode.y = newNode.y || 0;
 
         if (newNode.nodeType === "user"){
-          // currentNode.statusesCount = newNode.statusesCount;
-          // currentNode.followersCount = newNode.followersCount;
-          // currentNode.friendsCount = newNode.friendsCount;
-          // currentNode.threeceeFollowing = newNode.threeceeFollowing;
           currentNode.followersMentions = newNode.followersCount + newNode.mentions;
         }
 
@@ -1526,10 +1548,6 @@ function ViewTreepack() {
         currentNode.isDead = false;
         currentNode.ageMaxRatio = 1e-6;
         currentNode.ageUpdated = moment().valueOf();
-        // currentNode.isKeyword = newNode.isKeyword || false;
-        // currentNode.isTopTerm = newNode.isTopTerm || false;
-        // currentNode.isTrendingTopic = newNode.isTrendingTopic || false;
-        // currentNode.isTwitterUser = newNode.isTwitterUser || false;
         currentNode.mouseHoverFlag = false;
         currentNode.rank = 0;
         currentNode.rate = newNode.rate || 0;
@@ -1626,9 +1644,9 @@ function ViewTreepack() {
   function drawSimulation(callback){
 
     async.series([
-      function updateNodeCirclesSeries (cb){ updateNodeCircles(cb) },
-      function updateNodeLabelsSeries (cb){ updateNodeLabels(cb) },
-      function updateTopTermSeries (cb){ updateTopTerm(cb) }
+      function updateNodeCirclesSeries (cb){ updateNodeCircles(cb); },
+      function updateNodeLabelsSeries (cb){ updateNodeLabels(cb); },
+      function updateTopTermSeries (cb){ updateTopTerm(cb); }
     ], function drawSimulationCallback (err, results) {
       if (newCurrentMaxMetricFlag && (Math.abs(currentMaxMetric - previousMaxMetric)/currentMaxMetric) > 0.05) {
 
@@ -1686,106 +1704,114 @@ function ViewTreepack() {
 
     self.setEnableAgeNodes(true);
 
-    newNode.rank = -1;
-    newNode.newFlag = true;
-    newNode.x = newNode.x || 0.5*width;
-    newNode.y = newNode.y || 0.5*height;
-
-    if (!newNode.keywordsAuto || (newNode.keywordsAuto === undefined)) {
-      newNode.keywordsAuto = {};
-    }
-    else {
-      newNode.isKeyword = true;
-    }
-
-    if (newNode.nodeType === "user") {
-      newNode.followersMentions = newNode.mentions + newNode.followersCount;
-    }
-
-    if ((newNode.nodeType === "user") && (newNode.followersMentions > currentMax.mentions.value)) { 
-
-      newCurrentMaxMetricFlag = true;
-
-      currentMax.mentions.value = newNode.followersMentions; 
-      currentMax.mentions.nodeId = newNode.screenName.toLowerCase(); 
-      currentMax.mentions.timeStamp = moment().valueOf(); 
-
-      if (metricMode === "mentions") {
-        currentMaxMetric = newNode.followersMentions; 
-      }
-    }
-    else if (newNode.mentions > currentMax.mentions.value) { 
-
-      newCurrentMaxMetricFlag = true;
-
-      currentMax.mentions.nodeType = newNode.nodeType;
-      currentMax.mentions.value = newNode.mentions; 
-      currentMax.mentions.timeStamp = moment().valueOf(); 
-
-      if (newNode.nodeType === "user") {
-        if (newNode.screenName !== undefined) {
-          currentMax.mentions.nodeId = newNode.screenName.toLowerCase(); 
-        }
-        else if (newNode.name !== undefined) {
-          currentMax.mentions.nodeId = newNode.screenName.toLowerCase(); 
-        }
-        else {
-          currentMax.mentions.nodeId = newNode.nodeId; 
-        }
-      }
-      else if (newNode.nodeType === "place") {
-        currentMax.mentions.nodeId = newNode.name.toLowerCase(); 
-      }
-      else if (newNode.nodeId === undefined) {
-        console.error("*** NODE ID UNDEFINED\n" + jsonPrint(newNode));
-      }
-      else  {
-        currentMax.mentions.nodeId = newNode.nodeId; 
-      }
-
-      if (metricMode === "mentions") {
-        currentMaxMetric = newNode.mentions; 
-      }
-    }
-
-    if (newNode.rate > currentMax.rate.value) { 
-
-      newCurrentMaxMetricFlag = true;
-
-      currentMax.rate.nodeType = newNode.nodeType;
-      currentMax.rate.value = newNode.rate;
-
-      if (newNode.nodeType === "user") {
-        if (newNode.screenName !== undefined) {
-          currentMax.rate.nodeId = newNode.screenName.toLowerCase(); 
-        }
-        else if (newNode.name !== undefined) {
-          currentMax.rate.nodeId = newNode.screenName.toLowerCase(); 
-        }
-        else {
-          currentMax.rate.nodeId = newNode.nodeId; 
-        }
-      }
-      else if (newNode.nodeType === "place") {
-        currentMax.rate.nodeId = newNode.name; 
-      }
-      else {
-        currentMax.rate.nodeId = newNode.nodeId; 
-      }
-      currentMax.rate.timeStamp = moment().valueOf(); 
-
-      if (metricMode === "rate") {
-        currentMaxMetric = newNode.rate; 
-      }
-    }
-
     if (nodeAddQ.length < MAX_RX_QUEUE) {
-      nodeAddQ.push({op:"add", node: newNode});
+      nodeAddQ.push(newNode);
     }
 
     if (nodeAddQ.length > maxNodeAddQ) {
       maxNodeAddQ = nodeAddQ.length;
     }
+
+    // newNode.rank = -1;
+    // newNode.newFlag = true;
+    // newNode.x = newNode.x || 0.5*width;
+    // newNode.y = newNode.y || 0.5*height;
+
+    // if (!newNode.keywordsAuto || (newNode.keywordsAuto === undefined)) {
+    //   newNode.keywordsAuto = {};
+    // }
+    // else {
+    //   newNode.isKeyword = true;
+    // }
+
+    // if (newNode.nodeType === "user") {
+    //   newNode.followersMentions = newNode.mentions + newNode.followersCount;
+    // }
+
+    // if ((newNode.nodeType === "user") && (newNode.followersMentions > currentMax.mentions.value)) { 
+
+    //   newCurrentMaxMetricFlag = true;
+
+    //   currentMax.mentions.value = newNode.followersMentions; 
+    //   currentMax.mentions.nodeId = newNode.screenName.toLowerCase(); 
+    //   currentMax.mentions.timeStamp = moment().valueOf(); 
+
+    //   if (metricMode === "mentions") {
+    //     currentMaxMetric = newNode.followersMentions; 
+    //   }
+    // }
+    // else if (newNode.mentions > currentMax.mentions.value) { 
+
+    //   newCurrentMaxMetricFlag = true;
+
+    //   currentMax.mentions.nodeType = newNode.nodeType;
+    //   currentMax.mentions.value = newNode.mentions; 
+    //   currentMax.mentions.timeStamp = moment().valueOf(); 
+
+    //   if (newNode.nodeType === "user") {
+    //     if (newNode.screenName !== undefined) {
+    //       currentMax.mentions.nodeId = newNode.screenName.toLowerCase(); 
+    //     }
+    //     else if (newNode.name !== undefined) {
+    //       currentMax.mentions.nodeId = newNode.screenName.toLowerCase(); 
+    //     }
+    //     else {
+    //       currentMax.mentions.nodeId = newNode.nodeId; 
+    //     }
+    //   }
+    //   else if (newNode.nodeType === "place") {
+    //     currentMax.mentions.nodeId = newNode.name.toLowerCase(); 
+    //   }
+    //   else if (newNode.nodeId === undefined) {
+    //     console.error("*** NODE ID UNDEFINED\n" + jsonPrint(newNode));
+    //   }
+    //   else  {
+    //     currentMax.mentions.nodeId = newNode.nodeId; 
+    //   }
+
+    //   if (metricMode === "mentions") {
+    //     currentMaxMetric = newNode.mentions; 
+    //   }
+    // }
+
+    // if (newNode.rate > currentMax.rate.value) { 
+
+    //   newCurrentMaxMetricFlag = true;
+
+    //   currentMax.rate.nodeType = newNode.nodeType;
+    //   currentMax.rate.value = newNode.rate;
+
+    //   if (newNode.nodeType === "user") {
+    //     if (newNode.screenName !== undefined) {
+    //       currentMax.rate.nodeId = newNode.screenName.toLowerCase(); 
+    //     }
+    //     else if (newNode.name !== undefined) {
+    //       currentMax.rate.nodeId = newNode.screenName.toLowerCase(); 
+    //     }
+    //     else {
+    //       currentMax.rate.nodeId = newNode.nodeId; 
+    //     }
+    //   }
+    //   else if (newNode.nodeType === "place") {
+    //     currentMax.rate.nodeId = newNode.name; 
+    //   }
+    //   else {
+    //     currentMax.rate.nodeId = newNode.nodeId; 
+    //   }
+    //   currentMax.rate.timeStamp = moment().valueOf(); 
+
+    //   if (metricMode === "rate") {
+    //     currentMaxMetric = newNode.rate; 
+    //   }
+    // }
+
+    // if (nodeAddQ.length < MAX_RX_QUEUE) {
+    //   nodeAddQ.push({op:"add", node: newNode});
+    // }
+
+    // if (nodeAddQ.length > maxNodeAddQ) {
+    //   maxNodeAddQ = nodeAddQ.length;
+    // }
   };
 
   this.addGroup = function() {

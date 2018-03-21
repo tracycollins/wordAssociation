@@ -2287,6 +2287,8 @@ function initSocketSessionUpdateRx(){
 
       rxNodeQueueReady = false;
 
+      newNode = rxNodeQueue.shift();
+
       newNode.nodeType = nNode.nodeType;
       newNode.rate = nNode.rate;
       newNode.isTopTerm = nNode.isTopTerm || false;

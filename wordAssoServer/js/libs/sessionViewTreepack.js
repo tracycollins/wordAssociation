@@ -1480,7 +1480,7 @@ function ViewTreepack() {
           currentNode.followersMentions = newNode.followersCount + newNode.mentions;
         }
 
-        if (currentNode.isKeyword || newNode.keywordsAuto) {
+        if (newNode.keywords || newNode.keywordsAuto) {
 
           var keyword = "neutral";
 
@@ -1550,7 +1550,7 @@ function ViewTreepack() {
 
         currentNode.displaytext = createDisplayText(currentNode);
 
-        if (currentNode.isKeyword || newNode.keywordsAuto) {
+        if (newNode.keywords || newNode.keywordsAuto) {
 
           var keyword = "neutral";
 

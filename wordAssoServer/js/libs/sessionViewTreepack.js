@@ -4,6 +4,36 @@ function ViewTreepack() {
 
   "use strict";
 
+  console.log("@@@@@@@ CLIENT @@@@@@@@");
+
+  var getWindowDimensions = function (){
+
+    var w;
+    var h;
+
+    if (window.innerWidth !== "undefined") {
+      w = window.innerWidth;
+      h = window.innerHeight;
+    }
+    // IE6 in standards compliant mode (i.e. with a valid doctype as the first line in the document)
+    else if (document.documentElement !== "undefined" 
+      && document.documentElement.clientWidth !== "undefined" 
+      && document.documentElement.clientWidth !== 0) {
+      w = document.documentElement.clientWidth;
+      h = document.documentElement.clientHeight;
+    }
+    // older versions of IE
+    else {
+      w = document.getElementsByTagName("body")[0].clientWidth;
+      h = document.getElementsByTagName("body")[0].clientHeight;
+    }
+
+    return { width: w, height: h };
+  };
+
+  var width = getWindowDimensions().width;
+  var height = getWindowDimensions().height;
+
   function jsonPrint(obj) {
     if ((obj) || (obj === 0)) {
       var jsonString = JSON.stringify(obj, null, 2);
@@ -118,6 +148,15 @@ function ViewTreepack() {
   var yMinRatioNeutral = 0.65;
   var yMaxRatioNeutral = 0.75;
 
+  var foci = {
+    left: {x: xFocusLeftRatio*width, y: yFocusLeftRatio*height}, 
+    right: {x: xFocusRightRatio*width, y: yFocusRightRatio*height}, 
+    positive: {x: xFocusPositiveRatio*width, y: yFocusPositiveRatio*height}, 
+    negative: {x: xFocusNeutralRatio*width, y: yFocusNegativeRatio*height},
+    neutral: {x: xFocusNeutralRatio*width, y: yFocusNeutralRatio*height},
+    default: {x: xFocusDefaultRatio*width, y: yFocusDefaultRatio*height}
+  };
+
 
   var nodes = [];
   var nodesTopTerm = [];
@@ -139,34 +178,6 @@ function ViewTreepack() {
   currentMax.mentions.timeStamp = moment().valueOf();
 
   var deadNodesHash = {};
-
-  var getWindowDimensions = function (){
-
-    var w;
-    var h;
-
-    if (window.innerWidth !== "undefined") {
-      w = window.innerWidth;
-      h = window.innerHeight;
-    }
-    // IE6 in standards compliant mode (i.e. with a valid doctype as the first line in the document)
-    else if (document.documentElement !== "undefined" 
-      && document.documentElement.clientWidth !== "undefined" 
-      && document.documentElement.clientWidth !== 0) {
-      w = document.documentElement.clientWidth;
-      h = document.documentElement.clientHeight;
-    }
-    // older versions of IE
-    else {
-      w = document.getElementsByTagName("body")[0].clientWidth;
-      h = document.getElementsByTagName("body")[0].clientHeight;
-    }
-
-    return { width: w, height: h };
-  };
-
-  var width = getWindowDimensions().width;
-  var height = getWindowDimensions().height;
 
   function Node(){
     this.nodeId = "";
@@ -259,15 +270,6 @@ function ViewTreepack() {
   var MAX_NODES = 100;
 
   var NEW_NODE_AGE_RATIO = 0.01;
-
-  var foci = {
-    left: {x: xFocusLeftRatio*width, y: yFocusLeftRatio*height}, 
-    right: {x: xFocusRightRatio*width, y: yFocusRightRatio*height}, 
-    positive: {x: xFocusPositiveRatio*width, y: yFocusPositiveRatio*height}, 
-    negative: {x: xFocusNeutralRatio*width, y: yFocusNegativeRatio*height},
-    neutral: {x: xFocusNeutralRatio*width, y: yFocusNeutralRatio*height},
-    default: {x: xFocusDefaultRatio*width, y: yFocusDefaultRatio*height}
-  };
 
   var minOpacity = 0.1;
   var antonymFlag = false;
@@ -475,8 +477,6 @@ function ViewTreepack() {
   var nodeSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeSvgGroup");
   var nodeLabelSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeLabelSvgGroup");
 
-  console.log("@@@@@@@ CLIENT @@@@@@@@");
-
   var randomIntFromInterval = function(min, max) {
     var random = Math.random();
     var randomInt = Math.floor((random * (max - min + 1)) + min);
@@ -646,14 +646,13 @@ function ViewTreepack() {
     simulation
       .force("forceX", d3.forceX().x(function(d) { 
         if (d.isKeyword){
-          var keyword = "neutral";
           if (autoKeywordsFlag && d.keywordsAuto){
-            keyword = d.keywordsAuto;
+            return foci[d.keywordsAuto].x;
           }
-          else if (d.keywords){
-            keyword = d.keywords;
+          if (d.keywords){
+            return foci[d.keywords].x;
           }
-          return foci[keyword].x;
+          return foci.default.x;
         }
         else {
           return foci.default.x;
@@ -663,14 +662,13 @@ function ViewTreepack() {
       }))
       .force("forceY", d3.forceY().y(function(d) { 
         if (d.isKeyword){
-          var keyword = "neutral";
           if (autoKeywordsFlag && d.keywordsAuto){
-            keyword = d.keywordsAuto;
+            return foci[d.keywordsAuto].y;
           }
-          else if (d.keywords){
-            keyword = d.keywords;
+          if (d.keywords){
+            return foci[d.keywords].y;
           }
-          return foci[keyword].y;
+          return foci.default.y;
         }
         else {
           return foci.default.y;
@@ -811,7 +809,7 @@ function ViewTreepack() {
         else {
           nodesTopTermHashMap.remove(node.nodeId);
         }
-        nodePool.recycle(node);
+        // nodePool.recycle(node);
       } 
       else {
         node.ageUpdated = moment().valueOf();
@@ -1334,26 +1332,31 @@ function ViewTreepack() {
           x: randomIntFromInterval(xMinRatioLeft*width, xMaxRatioLeft*width), 
           y: randomIntFromInterval(yMinRatioLeft*height, yMaxRatioLeft*height)
         });
+      break;
       case "right":
         return({
           x: randomIntFromInterval(xMinRatioRight*width, xMaxRatioRight*width), 
           y: randomIntFromInterval(yMinRatioRight*height, yMaxRatioRight*height)
         });
+      break;
       case "positive":
         return({
           x: randomIntFromInterval(xMinRatioPositive*width, xMaxRatioPositive*width), 
           y: randomIntFromInterval(yMinRatioPositive*height, yMaxRatioPositive*height)
         });
+      break;
       case "negative":
         return({
           x: randomIntFromInterval(xMinRatioNegative*width, xMaxRatioNegative*width), 
           y: randomIntFromInterval(yMinRatioNegative*height, yMaxRatioNegative*height)
         });
+      break;
       case "neutral":
         return({
           x: randomIntFromInterval(xMinRatioNeutral*width, xMaxRatioNeutral*width), 
           y: randomIntFromInterval(yMinRatioNeutral*height, yMaxRatioNeutral*height)
         });
+      break;
       default:
         return({
           x: randomIntFromInterval(xMinRatioNeutral*width, xMaxRatioNeutral*width), 
@@ -1446,10 +1449,13 @@ function ViewTreepack() {
   var newNode = {};
   var currentNode = {};
   var nodesModifiedFlag = false;
+  var nodeAddQReady = true;
 
   var processNodeAddQ = function(callback) {
 
-    if (nodeAddQ.length > 0) {
+    if (nodeAddQReady && (nodeAddQ.length > 0)) {
+
+      nodeAddQReady = false;
 
       newNode = nodeAddQ.shift();
 
@@ -1458,13 +1464,19 @@ function ViewTreepack() {
       if (localNodeHashMap[newNode.nodeId] !== undefined){
 
         currentNode = localNodeHashMap[newNode.nodeId];
-        currentNode.rank = newNode.rank;
+
+        currentNode.age = 1e-6;
+        currentNode.isDead = false;
+        currentNode.ageMaxRatio = 1e-6;
+        currentNode.ageUpdated = moment().valueOf();
         currentNode.rate = newNode.rate;
+        currentNode.mentions = newNode.mentions;
         currentNode.isKeyword = newNode.isKeyword;
         currentNode.keywords = newNode.keywords;
         currentNode.keywordsAuto = newNode.keywordsAuto;
 
         if (newNode.nodeType === "user"){
+          currentNode.followersCount = newNode.followersCount;
           currentNode.followersMentions = newNode.followersCount + newNode.mentions;
         }
 
@@ -1479,12 +1491,14 @@ function ViewTreepack() {
           nodesTopTermHashMap.remove(currentNode.nodeId);
         }
 
+        nodeAddQReady = true;
+
         callback(null, nodesModifiedFlag);
       }
       else {
         nodesModifiedFlag = true;
 
-        currentNode = nodePool.use();
+        // currentNode = nodePool.use();
 
         currentNode = newNode;
 
@@ -1495,8 +1509,19 @@ function ViewTreepack() {
         currentNode.mouseHoverFlag = false;
         currentNode.rank = 0;
         currentNode.rate = newNode.rate || 0;
+        currentNode.isKeyword = newNode.isKeyword || false;
+        currentNode.isTopTerm = newNode.isTopTerm || false;
+        currentNode.isTrendingTopic = newNode.isTrendingTopic || false;
+        currentNode.isTwitterUser = newNode.isTwitterUser || false;
+        currentNode.keywordColor = newNode.keywordColor;
+        currentNode.mentions = newNode.mentions;
+        currentNode.mouseHoverFlag = false;
 
         if (newNode.nodeType === "user"){
+          currentNode.statusesCount = newNode.statusesCount;
+          currentNode.followersCount = newNode.followersCount;
+          currentNode.friendsCount = newNode.friendsCount;
+          currentNode.threeceeFollowing = newNode.threeceeFollowing;
           currentNode.followersMentions = newNode.followersCount + newNode.mentions;
         }
 
@@ -1535,6 +1560,9 @@ function ViewTreepack() {
         }
 
         nodes.push(currentNode);
+
+        nodeAddQReady = true;
+
         callback(null, nodesModifiedFlag);
       }
 
@@ -1618,6 +1646,97 @@ function ViewTreepack() {
 
     self.setEnableAgeNodes(true);
 
+    newNode.newFlag = true;
+
+    if (newNode.nodeType === "user") {
+      newNode.followersMentions = newNode.mentions + newNode.followersCount;
+    }
+
+    if ((newNode.nodeType === "user") && (newNode.followersMentions > currentMax.mentions.value)) { 
+
+      newCurrentMaxMetricFlag = true;
+
+      currentMax.mentions.value = newNode.followersMentions; 
+      currentMax.mentions.nodeId = newNode.screenName.toLowerCase(); 
+      currentMax.mentions.timeStamp = moment().valueOf(); 
+
+      if (metricMode === "mentions") {
+        currentMaxMetric = newNode.followersMentions; 
+      }
+    }
+    else if (newNode.mentions > currentMax.mentions.value) { 
+
+      newCurrentMaxMetricFlag = true;
+
+      currentMax.mentions.nodeType = newNode.nodeType;
+      currentMax.mentions.value = newNode.mentions; 
+      currentMax.mentions.timeStamp = moment().valueOf(); 
+
+      if (newNode.nodeType === "user") {
+        if (newNode.screenName !== undefined) {
+          currentMax.mentions.nodeId = newNode.screenName.toLowerCase(); 
+        }
+        else if (newNode.name !== undefined) {
+          currentMax.mentions.nodeId = newNode.screenName.toLowerCase(); 
+        }
+        else {
+          currentMax.mentions.nodeId = newNode.nodeId; 
+        }
+      }
+      else if (newNode.nodeType === "place") {
+        currentMax.mentions.nodeId = newNode.name.toLowerCase(); 
+      }
+      else if (newNode.nodeId === undefined) {
+        console.error("*** NODE ID UNDEFINED\n" + jsonPrint(newNode));
+      }
+      else  {
+        currentMax.mentions.nodeId = newNode.nodeId; 
+      }
+
+      if (metricMode === "mentions") {
+        currentMaxMetric = newNode.mentions; 
+      }
+    }
+
+    if (newNode.rate > currentMax.rate.value) { 
+
+      newCurrentMaxMetricFlag = true;
+
+      currentMax.rate.nodeType = newNode.nodeType;
+      currentMax.rate.value = newNode.rate;
+
+      if (newNode.nodeType === "user") {
+        if (newNode.screenName !== undefined) {
+          currentMax.rate.nodeId = newNode.screenName.toLowerCase(); 
+        }
+        else if (newNode.name !== undefined) {
+          currentMax.rate.nodeId = newNode.screenName.toLowerCase(); 
+        }
+        else {
+          currentMax.rate.nodeId = newNode.nodeId; 
+        }
+      }
+      else if (newNode.nodeType === "place") {
+        currentMax.rate.nodeId = newNode.name; 
+      }
+      else {
+        currentMax.rate.nodeId = newNode.nodeId; 
+      }
+      currentMax.rate.timeStamp = moment().valueOf(); 
+
+      if (metricMode === "rate") {
+        currentMaxMetric = newNode.rate; 
+      }
+    }
+
+    if (newNode.keywords) {
+      newNode.keywords = Object.keys(newNode.keywords)[0];
+    }
+
+    if (newNode.keywordsAuto) {
+      newNode.keywordsAuto = Object.keys(newNode.keywordsAuto)[0];
+    }
+
     if (nodeAddQ.length < MAX_RX_QUEUE) {
       nodeAddQ.push(newNode);
     }
@@ -1625,107 +1744,6 @@ function ViewTreepack() {
     if (nodeAddQ.length > maxNodeAddQ) {
       maxNodeAddQ = nodeAddQ.length;
     }
-
-    // newNode.rank = -1;
-    // newNode.newFlag = true;
-    // newNode.x = newNode.x || 0.5*width;
-    // newNode.y = newNode.y || 0.5*height;
-
-    // if (!newNode.keywordsAuto || (newNode.keywordsAuto === undefined)) {
-    //   newNode.keywordsAuto = {};
-    // }
-    // else {
-    //   newNode.isKeyword = true;
-    // }
-
-    // if (newNode.nodeType === "user") {
-    //   newNode.followersMentions = newNode.mentions + newNode.followersCount;
-    // }
-
-    // if ((newNode.nodeType === "user") && (newNode.followersMentions > currentMax.mentions.value)) { 
-
-    //   newCurrentMaxMetricFlag = true;
-
-    //   currentMax.mentions.value = newNode.followersMentions; 
-    //   currentMax.mentions.nodeId = newNode.screenName.toLowerCase(); 
-    //   currentMax.mentions.timeStamp = moment().valueOf(); 
-
-    //   if (metricMode === "mentions") {
-    //     currentMaxMetric = newNode.followersMentions; 
-    //   }
-    // }
-    // else if (newNode.mentions > currentMax.mentions.value) { 
-
-    //   newCurrentMaxMetricFlag = true;
-
-    //   currentMax.mentions.nodeType = newNode.nodeType;
-    //   currentMax.mentions.value = newNode.mentions; 
-    //   currentMax.mentions.timeStamp = moment().valueOf(); 
-
-    //   if (newNode.nodeType === "user") {
-    //     if (newNode.screenName !== undefined) {
-    //       currentMax.mentions.nodeId = newNode.screenName.toLowerCase(); 
-    //     }
-    //     else if (newNode.name !== undefined) {
-    //       currentMax.mentions.nodeId = newNode.screenName.toLowerCase(); 
-    //     }
-    //     else {
-    //       currentMax.mentions.nodeId = newNode.nodeId; 
-    //     }
-    //   }
-    //   else if (newNode.nodeType === "place") {
-    //     currentMax.mentions.nodeId = newNode.name.toLowerCase(); 
-    //   }
-    //   else if (newNode.nodeId === undefined) {
-    //     console.error("*** NODE ID UNDEFINED\n" + jsonPrint(newNode));
-    //   }
-    //   else  {
-    //     currentMax.mentions.nodeId = newNode.nodeId; 
-    //   }
-
-    //   if (metricMode === "mentions") {
-    //     currentMaxMetric = newNode.mentions; 
-    //   }
-    // }
-
-    // if (newNode.rate > currentMax.rate.value) { 
-
-    //   newCurrentMaxMetricFlag = true;
-
-    //   currentMax.rate.nodeType = newNode.nodeType;
-    //   currentMax.rate.value = newNode.rate;
-
-    //   if (newNode.nodeType === "user") {
-    //     if (newNode.screenName !== undefined) {
-    //       currentMax.rate.nodeId = newNode.screenName.toLowerCase(); 
-    //     }
-    //     else if (newNode.name !== undefined) {
-    //       currentMax.rate.nodeId = newNode.screenName.toLowerCase(); 
-    //     }
-    //     else {
-    //       currentMax.rate.nodeId = newNode.nodeId; 
-    //     }
-    //   }
-    //   else if (newNode.nodeType === "place") {
-    //     currentMax.rate.nodeId = newNode.name; 
-    //   }
-    //   else {
-    //     currentMax.rate.nodeId = newNode.nodeId; 
-    //   }
-    //   currentMax.rate.timeStamp = moment().valueOf(); 
-
-    //   if (metricMode === "rate") {
-    //     currentMaxMetric = newNode.rate; 
-    //   }
-    // }
-
-    // if (nodeAddQ.length < MAX_RX_QUEUE) {
-    //   nodeAddQ.push({op:"add", node: newNode});
-    // }
-
-    // if (nodeAddQ.length > maxNodeAddQ) {
-    //   maxNodeAddQ = nodeAddQ.length;
-    // }
   };
 
   this.addGroup = function() {
@@ -1742,41 +1760,12 @@ function ViewTreepack() {
       .force("charge", d3.forceManyBody().strength(charge))
       .force("forceX", d3.forceX().x(function forceXfunc(d) { 
         if (d.isKeyword){
-
-          var keywords = {};
-
-          if (autoKeywordsFlag 
-            && (d.keywordsAuto !== undefined) 
-            && d.keywordsAuto
-            && (Object.keys(d.keywordsAuto).length > 0)
-            ){
-            keywords = d.keywordsAuto;
+          if (autoKeywordsFlag && d.keywordsAuto){
+            return foci[d.keywordsAuto].x;
           }
-          else if ((d.keywordsAuto !== undefined) 
-            && d.keywordsAuto
-            && (!d.keywords || (d.keywords === undefined))){
-            keywords = d.keywordsAuto;
+          if (d.keywords){
+            return foci[d.keywords].x;
           }
-          else {
-            keywords = d.keywords;
-          }
-
-          if (keywords.right !== undefined) {
-            return foci.right.x;
-          }
-          if (keywords.left !== undefined) {
-            return foci.left.x;
-          }
-          if (keywords.positive !== undefined) {
-            return foci.positive.x;
-          }
-          if (keywords.negative !== undefined) {
-            return foci.negative.x;
-          }
-          if (keywords.neutral !== undefined) {
-            return foci.neutral.x;
-          }
-          return 100;
         }
         else {
           return foci.default.x;
@@ -1786,43 +1775,15 @@ function ViewTreepack() {
       }))
       .force("forceY", d3.forceY().y(function forceYfunc(d) { 
         if (d.isKeyword){
-
-          var keywords = {};
-          if (autoKeywordsFlag 
-            && (d.keywordsAuto !== undefined) 
-            && d.keywordsAuto
-            && (Object.keys(d.keywordsAuto).length > 0)
-            ){
-            keywords = d.keywordsAuto;
+          if (autoKeywordsFlag && d.keywordsAuto){
+            return foci[d.keywordsAuto].x;
           }
-          else if ((d.keywordsAuto !== undefined) 
-            && d.keywordsAuto
-            && (!d.keywords || (d.keywords === undefined))){
-            keywords = d.keywordsAuto;
+          if (d.keywords){
+            return foci[d.keywords].x;
           }
-          else {
-            keywords = d.keywords;
-          }
-
-          if (keywords.right !== undefined) {
-            return foci.right.y;
-          }
-          if (keywords.left !== undefined) {
-            return foci.left.y;
-          }
-          if (keywords.positive !== undefined) {
-            return foci.positive.y;
-          }
-          if (keywords.negative !== undefined) {
-            return foci.negative.y;
-          }
-          if (keywords.neutral !== undefined) {
-            return foci.neutral.y;
-          }
-          return 100;
         }
         else {
-          return foci.default.y;
+          return foci.default.x;
         }
       }).strength(function strengthFunc(d){
         return forceYmultiplier * gravity; 
@@ -1851,6 +1812,7 @@ function ViewTreepack() {
       break;
       case "START":
         self.initD3timer();
+        self.resize();
         simulation.alphaTarget(0.7).restart();
         runningFlag = true;
       break;
@@ -1956,86 +1918,24 @@ function ViewTreepack() {
       simulation
         .force("charge", d3.forceManyBody().strength(charge))
         .force("forceX", d3.forceX().x(function forceXfunc(d) { 
-          if (d.isKeyword){
-
-            var keywords = {};
-            if (autoKeywordsFlag 
-              && (d.keywordsAuto !== undefined) 
-              && d.keywordsAuto
-              && (Object.keys(d.keywordsAuto).length > 0)
-              ){
-              keywords = d.keywordsAuto;
-            }
-            else if ((d.keywordsAuto !== undefined) 
-              && d.keywordsAuto
-              && (!d.keywords || (d.keywords === undefined))){
-              keywords = d.keywordsAuto;
-            }
-            else {
-              keywords = d.keywords;
-            }
-
-            if (keywords.right !== undefined) {
-              return foci.right.x;
-            }
-            if (keywords.left !== undefined) {
-              return foci.left.x;
-            }
-            if (keywords.positive !== undefined) {
-              return foci.positive.x;
-            }
-            if (keywords.negative !== undefined) {
-              return foci.negative.x;
-            }
-            if (keywords.neutral !== undefined) {
-              return foci.neutral.x;
-            }
+          if (d.isKeyword && autoKeywordsFlag && d.keywordsAuto){
+            return foci[d.keywordsAuto].x;
           }
-          else {
-            return foci.default.x;
+          if (d.isKeyword && d.keywords){
+            return foci[d.keywords].x;
           }
+          return foci.default.x;
         }).strength(function strengthFunc(d){
           return forceXmultiplier * gravity; 
         }))
         .force("forceY", d3.forceY().y(function forceYfunc(d) { 
-          if (d.isKeyword){
-
-            var keywords = {};
-            if (autoKeywordsFlag 
-              && (d.keywordsAuto !== undefined) 
-              && d.keywordsAuto
-              && (Object.keys(d.keywordsAuto).length > 0)
-              ){
-              keywords = d.keywordsAuto;
-            }
-            else if ((d.keywordsAuto !== undefined) 
-              && d.keywordsAuto
-              && (!d.keywords || (d.keywords === undefined))){
-              keywords = d.keywordsAuto;
-            }
-            else {
-              keywords = d.keywords;
-            }
-
-            if (keywords.right !== undefined) {
-              return foci.right.y;
-            }
-            if (keywords.left !== undefined) {
-              return foci.left.y;
-            }
-            if (keywords.positive !== undefined) {
-              return foci.positive.y;
-            }
-            if (keywords.negative !== undefined) {
-              return foci.negative.y;
-            }
-            if (keywords.neutral !== undefined) {
-              return foci.neutral.y;
-            }
+          if (d.isKeyword && autoKeywordsFlag && d.keywordsAuto){
+            return foci[d.keywordsAuto].y;
           }
-          else {
-            return foci.default.y;
+          if (d.isKeyword && d.keywords){
+            return foci[d.keywords].y;
           }
+          return foci.default.y;
         }).strength(function strengthFunc(d){
           return forceYmultiplier * gravity; 
         }))

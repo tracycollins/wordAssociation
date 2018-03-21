@@ -763,12 +763,12 @@ function ViewTreepack() {
     if (nodes.length === 0) {
       ageRate = DEFAULT_AGE_RATE;
     } 
-    // else if ((nodes.length > MAX_NODES) && (nodeAddQ.length <= MAX_RX_QUEUE)) {
-    //   ageRate = adjustedAgeRateScale(nodes.length - MAX_NODES);
-    // } 
-    // else if (nodeAddQ.length > MAX_RX_QUEUE) {
-    //   ageRate = adjustedAgeRateScale(nodeAddQ.length - MAX_RX_QUEUE);
-    // } 
+    else if ((nodes.length > MAX_NODES) && (nodeAddQ.length <= MAX_RX_QUEUE)) {
+      ageRate = adjustedAgeRateScale(nodes.length - MAX_NODES);
+    } 
+    else if (nodeAddQ.length > MAX_RX_QUEUE) {
+      ageRate = adjustedAgeRateScale(nodeAddQ.length - MAX_RX_QUEUE);
+    } 
     else {
       ageRate = DEFAULT_AGE_RATE;
     }

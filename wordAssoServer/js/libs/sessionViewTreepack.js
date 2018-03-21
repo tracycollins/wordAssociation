@@ -1113,7 +1113,7 @@ function ViewTreepack() {
       .style("visibility", function (d) {
         if (d.isDead) { return "hidden"; }
         return "visible";
-      });
+      })
       .attr("cx", function (d) { 
         return d.x; 
       })

@@ -2332,11 +2332,13 @@ function initTransmitNodeQueueInterval(interval){
                       userServer.findOneUser(n, {noInc: true}, function(err, updatedUser){
                         if (err) {
                           console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));
+                          delete n.countHistory;
                           viewNameSpace.volatile.emit("node", n);
                           transmitNodeQueueReady = true;
                         }
                         else {
                           debug(chalkTwitter("UPDATED updatedUser" + jsonPrint(updatedUser)));
+                          delete updatedUser.countHistory;
                           viewNameSpace.volatile.emit("node", updatedUser);
                           transmitNodeQueueReady = true;
                         }
@@ -2344,18 +2346,21 @@ function initTransmitNodeQueueInterval(interval){
                     }
                     else {
                       debug(chalkTwitter("LESS THAN MIN_FOLLOWERS users/show data"));
+                      delete n.countHistory;
                       viewNameSpace.volatile.emit("node", n);
                       transmitNodeQueueReady = true;
                     }
                   }
                   else {
                     console.log(chalkTwitter("NOT FOUND users/show data"));
+                    delete n.countHistory;
                     viewNameSpace.volatile.emit("node", n);
                     transmitNodeQueueReady = true;
                   }
                 });
               }
               else if ((n.nodeType === "user") || (n.nodeType === "hashtag") || (n.nodeType === "place")) {
+                delete n.countHistory;
                 viewNameSpace.volatile.emit("node", n);
                 transmitNodeQueueReady = true;
               }

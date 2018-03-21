@@ -1462,28 +1462,27 @@ function ViewTreepack() {
           currentNode.followersMentions = newNode.followersCount + newNode.mentions;
         }
 
-        if (newNode.keywords || newNode.keywordsAuto) {
+        // if (newNode.keywords || newNode.keywordsAuto) {
 
-          var keyword = "neutral";
+        //   var keyword = "neutral";
 
-          if (autoKeywordsFlag && newNode.keywordsAuto){
-            keyword = newNode.keywordsAuto;
-          }
-          else if (newNode.keywordsAuto && !newNode.keywords){
-            keyword = newNode.keywordsAuto;
-          }
-          else if (newNode.keywords){
-            keyword = newNode.keywords;
-          }
+        //   if (autoKeywordsFlag && newNode.keywordsAuto){
+        //     keyword = newNode.keywordsAuto;
+        //   }
+        //   else if (newNode.keywordsAuto && !newNode.keywords){
+        //     keyword = newNode.keywordsAuto;
+        //   }
+        //   else if (newNode.keywords){
+        //     keyword = newNode.keywords;
+        //   }
 
-          currentNode.x = focus(keyword).x; 
-          currentNode.y = focus(keyword).y;
-
-        }
-        else {
-          currentNode.x = focus("neutral").x; 
-          currentNode.y = focus("neutral").y;
-        }
+        //   currentNode.x = focus(keyword).x; 
+        //   currentNode.y = focus(keyword).y;
+        // }
+        // else {
+        //   currentNode.x = focus("neutral").x; 
+        //   currentNode.y = focus("neutral").y;
+        // }
 
         currentNode.displaytext = createDisplayText(currentNode);
 

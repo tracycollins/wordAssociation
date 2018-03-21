@@ -6,6 +6,8 @@
 var DEFAULT_SOURCE = "http://word.threeceelabs.com";
 // var DEFAULT_SOURCE = "==SOURCE==";  // will be updated by wordAssoServer.js on app.get
 
+const RX_NODE_QUEUE_INTERVAL = 10;
+const RX_NODE_QUEUE_MAX = 100;
 
 function jp(s, obj) {
   console.warn(s + "\n" + jsonPrint(obj));
@@ -2223,6 +2225,9 @@ socket.on("TWITTER_TOPTERM_1MIN", function(top10obj) {
   console.debug("TWITTER_TOPTERM_1MIN\n" + jsonPrint(top10obj));
 });
 
+let rxNodeQueueReady = false;
+let rxNodeQueue = [];
+
 function initSocketSessionUpdateRx(){
 
   socket.on("SESSION_UPDATE", function(rxSessionObject) {
@@ -2265,179 +2270,139 @@ function initSocketSessionUpdateRx(){
   });
 
   socket.on("node", function(nNode) {
-
-    // if (!windowVisible || config.pauseFlag) {return;}
-
-    if ((nNode.nodeType !== "user") 
-      && (nNode.nodeType !== "hashtag") 
-      && (nNode.nodeType !== "word")
-      && (nNode.nodeType !== "place")
-      && (config.sessionViewType === "treemap")
-      ) {
-      return;
+    if ((rxNodeQueue.length < RX_NODE_QUEUE_MAX)
+      &&((nNode.nodeType === "user") || (nNode.nodeType === "hashtag") || (nNode.nodeType === "place"))
+    ){
+      rxNodeQueue.push(nNode);
     }
+  });
 
-    if ((nNode.nodeType !== "user") 
-      && (nNode.nodeType !== "hashtag") 
-      && (nNode.nodeType !== "word")
-      && (nNode.nodeType !== "place")
-      && ((config.sessionViewType === "histogram")
-      || (config.sessionViewType === "flow")
-      || (config.sessionViewType === "treepack"))) {
-      return;
-    }
+  rxNodeQueueReady = true;
 
-    if ((nNode.nodeType !== "user") 
-      && (nNode.nodeType !== "media") 
-      && (config.sessionViewType === "media")) {
-      return;
-    }
+  let newNode = {};
 
-    // if ((nNode.nodeType === "user") && nNode.screenName){
-    //   nNode.nodeId = nNode.screenName.toLowerCase();
-    //   if (!nNode.name) { 
-    //     nNode.name = nNode.screenName.toLowerCase();
-    //   }
-    // }
+  setInterval(function(){
 
-    var newNode = {};
-    newNode.nodeType = nNode.nodeType;
+    if (rxNodeQueueReady && (rxNodeQueue.length > 0)) {
 
-    // if ((nNode.nodeType === "user") && nNode.screenName){
-    //   newNode.nodeId = nNode.screenName.toLowerCase();
-    //   if (!nNode.name) { 
-    //     newNode.name = nNode.screenName.toLowerCase();
-    //   }
-    // }
+      rxNodeQueueReady = false;
 
-    newNode.rate = nNode.rate;
-    newNode.isTopTerm = nNode.isTopTerm || false;
-    newNode.isKeyword = nNode.isKeyword || false;
+      newNode.nodeType = nNode.nodeType;
+      newNode.rate = nNode.rate;
+      newNode.isTopTerm = nNode.isTopTerm || false;
+      newNode.isKeyword = nNode.isKeyword || false;
 
-    newNode.keywords = nNode.keywords;
-    newNode.keywordsAuto = nNode.keywordsAuto;
+      newNode.keywords = nNode.keywords;
+      newNode.keywordsAuto = nNode.keywordsAuto;
 
-    var keywords = {};
-    if (config.autoKeywordsFlag && (nNode.keywordsAuto !== undefined) && nNode.keywordsAuto){
-      keywords = nNode.keywordsAuto;
-    }
-    else {
-      keywords = nNode.keywords;
-    }
-
-
-    getKeywordColor(keywords, function(color){
-      newNode.keywordColor = color;
-    });  // KLUDGE!  need better way to do keywords
-
-    newNode.createdAt = nNode.createdAt;
-    newNode.age = 1e-6;
-    newNode.ageMaxRatio = 1e-6;
-    newNode.mouseHoverFlag = false;
-    // newNode.nodeId = (nNode.nodeType == "url") ? nNode.nodeId : nNode.nodeId.toString().toLowerCase();  // urls must be case sensitive
-    newNode.isDead = false;
-    newNode.r = 0;
-    newNode.links = [];
-    newNode.mentions = (nNode.mentions > 0) ? nNode.mentions : 10;
-
-    if (nNode.nodeType === "tweet"){
-      newNode.nodeId = nNode.nodeId;
-      newNode.text = nNode.nodeId;
-      newNode.isRetweet = nNode.isRetweet;
-      newNode.retweetedId = nNode.retweetedId;
-      newNode.retweetedStatus = nNode.retweetedStatus;
-      newNode.url = nNode.url;
-      newNode.user = nNode.user;
-      newNode.hashtags = nNode.hashtags;
-      newNode.media = nNode.media;
-      newNode.urls = nNode.urls;
-      newNode.place = nNode.place;
-      newNode.userMentions = nNode.userMentions;
-    }
-    if (nNode.nodeType === "user"){
-      newNode.userId = nNode.userId;
-      newNode.nodeId = nNode.screenName.toLowerCase();
-      newNode.text = nNode.screenName.toLowerCase();
-      newNode.screenName = nNode.screenName.toLowerCase();
-      newNode.name = nNode.name;
-      newNode.isTwitterUser = nNode.isTwitterUser;
-      newNode.profileUrl = nNode.profileUrl;
-      newNode.profileImageUrl = nNode.profileImageUrl;
-      newNode.followersCount = nNode.followersCount;
-      newNode.following = nNode.following;
-      newNode.statusesCount = nNode.statusesCount;
-      newNode.friendsCount = nNode.friendsCount;
-      newNode.threeceeFollowing = nNode.threeceeFollowing;
-      newNode.lastSeen = nNode.lastSeen;
-      newNode.lastTweetId = nNode.lastTweetId;
-    }
-    if (nNode.nodeType === "hashtag"){
-      newNode.nodeId = nNode.text;
-      newNode.text = nNode.text;
-      newNode.lastSeen = nNode.lastSeen;
-      newNode.lastTweetId = nNode.lastTweetId;
-    }
-    if (nNode.nodeType === "word"){
-      newNode.nodeId = nNode.nodeId;
-      newNode.mediaId = nNode.mediaId;
-      newNode.url = nNode.url;
-      newNode.sourceUrl = nNode.sourceUrl;
-      newNode.lastSeen = nNode.lastSeen;
-      newNode.lastTweetId = nNode.lastTweetId;
-    }
-    if (nNode.nodeType === "media"){
-      newNode.nodeId = nNode.nodeId;
-      newNode.mediaId = nNode.mediaId;
-      newNode.url = nNode.url;
-      newNode.sourceUrl = nNode.sourceUrl;
-      newNode.lastSeen = nNode.lastSeen;
-      newNode.lastTweetId = nNode.lastTweetId;
-    }
-    if (nNode.nodeType === "place"){
-      newNode.placeId = nNode.placeId;
-      newNode.nodeId = nNode.nodeId;
-      newNode.name = nNode.name;
-      newNode.fullName = nNode.fullName;
-      newNode.sourceUrl = nNode.sourceUrl;
-      newNode.lastSeen = nNode.lastSeen;
-      newNode.lastTweetId = nNode.lastTweetId;
-    }
-
-
-    newNode.keywordsMismatch = false;
-    newNode.keywordsMatch = false;
-
-    if ((nNode.keywordsAuto !== undefined) && nNode.keywordsAuto) {
-
-      if (config.autoKeywordsFlag) { 
+      var keywords = {};
+      if (config.autoKeywordsFlag && (nNode.keywordsAuto !== undefined) && nNode.keywordsAuto){
         keywords = nNode.keywordsAuto;
       }
       else {
         keywords = nNode.keywords;
       }
 
-      if ((nNode.keywords !== undefined) && nNode.keywords && (Object.keys(nNode.keywords).length > 0)) {
-        const kws = Object.keys(nNode.keywords);
+      getKeywordColor(keywords, function(color){
+        newNode.keywordColor = color;
+      });  // KLUDGE!  need better way to do keywords
 
-        async.each(kws, function(kw, cb){
+      newNode.createdAt = nNode.createdAt;
+      newNode.age = 1e-6;
+      newNode.ageMaxRatio = 1e-6;
+      newNode.mouseHoverFlag = false;
+      newNode.isDead = false;
+      newNode.r = 0;
+      newNode.links = [];
+      newNode.mentions = (nNode.mentions > 0) ? nNode.mentions : 10;
 
-          if (keywordTypes.includes(kw)){
-            if (newNode.keywordsAuto[kw] !== undefined){
-              newNode.keywordsMatch = true;
-              newNode.keywordsMismatch = false;
-              cb();
+      if (nNode.nodeType === "user"){
+        newNode.userId = nNode.userId;
+        newNode.nodeId = nNode.screenName.toLowerCase();
+        newNode.text = nNode.screenName.toLowerCase();
+        newNode.screenName = nNode.screenName.toLowerCase();
+        newNode.name = nNode.name;
+        newNode.isTwitterUser = nNode.isTwitterUser;
+        newNode.profileUrl = nNode.profileUrl;
+        newNode.profileImageUrl = nNode.profileImageUrl;
+        newNode.followersCount = nNode.followersCount;
+        newNode.following = nNode.following;
+        newNode.statusesCount = nNode.statusesCount;
+        newNode.friendsCount = nNode.friendsCount;
+        newNode.threeceeFollowing = nNode.threeceeFollowing;
+        newNode.lastSeen = nNode.lastSeen;
+        newNode.lastTweetId = nNode.lastTweetId;
+      }
+      if (nNode.nodeType === "hashtag"){
+        newNode.nodeId = nNode.text;
+        newNode.text = nNode.text;
+        newNode.lastSeen = nNode.lastSeen;
+        newNode.lastTweetId = nNode.lastTweetId;
+      }
+      if (nNode.nodeType === "place"){
+        newNode.placeId = nNode.placeId;
+        newNode.nodeId = nNode.nodeId;
+        newNode.name = nNode.name;
+        newNode.fullName = nNode.fullName;
+        newNode.sourceUrl = nNode.sourceUrl;
+        newNode.lastSeen = nNode.lastSeen;
+        newNode.lastTweetId = nNode.lastTweetId;
+      }
+
+      newNode.keywordsMismatch = false;
+      newNode.keywordsMatch = false;
+
+      if ((nNode.keywordsAuto !== undefined) && nNode.keywordsAuto) {
+
+        if (config.autoKeywordsFlag) { 
+          keywords = nNode.keywordsAuto;
+        }
+        else {
+          keywords = nNode.keywords;
+        }
+
+        if ((nNode.keywords !== undefined) && nNode.keywords && (Object.keys(nNode.keywords).length > 0)) {
+
+          const kws = Object.keys(nNode.keywords);
+
+          async.each(kws, function(kw, cb){
+
+            if (keywordTypes.includes(kw)){
+              if (newNode.keywordsAuto[kw] !== undefined){
+                newNode.keywordsMatch = true;
+                newNode.keywordsMismatch = false;
+                cb();
+              }
+              else {
+                newNode.keywordsMatch = false;
+                newNode.keywordsMismatch = true;  
+                cb();      
+              }
             }
             else {
-              newNode.keywordsMatch = false;
-              newNode.keywordsMismatch = true;  
               cb();      
             }
-          }
-          else {
-            cb();      
-          }
+          }, function(err){
 
-        }, function(err){
+            if (((config.sessionViewType === "treemap") || (config.sessionViewType === "treepack"))
+              && ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user")))) {
+              currentSessionView.addNode(newNode);
+            }
+            else if ((config.sessionViewType === "histogram")
+              && ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user")))) {
+              currentSessionView.addNode(newNode);
+            }
+            else if ((config.sessionViewType !== "treemap") 
+              && (config.sessionViewType !== "treepack") 
+              && (config.sessionViewType !== "histogram")) {
+              currentSessionView.addNode(newNode);
+            }
+
+            rxNodeQueueReady = true;
+          });
+        }
+        else {
+
           if (((config.sessionViewType === "treemap") || (config.sessionViewType === "treepack"))
             && ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user")))) {
             currentSessionView.addNode(newNode);
@@ -2451,42 +2416,29 @@ function initSocketSessionUpdateRx(){
             && (config.sessionViewType !== "histogram")) {
             currentSessionView.addNode(newNode);
           }
-        });
+
+          rxNodeQueueReady = true;
+        }
       }
       else {
-          if (((config.sessionViewType === "treemap") || (config.sessionViewType === "treepack"))
-            && ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user")))) {
-            currentSessionView.addNode(newNode);
-          }
-          else if ((config.sessionViewType === "histogram")
-            && ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user")))) {
-            currentSessionView.addNode(newNode);
-          }
-          else if ((config.sessionViewType !== "treemap") 
-            && (config.sessionViewType !== "treepack") 
-            && (config.sessionViewType !== "histogram")) {
-            currentSessionView.addNode(newNode);
-          }
+        if (((config.sessionViewType === "treemap") || (config.sessionViewType === "treepack"))
+          && ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user")))) {
+          currentSessionView.addNode(newNode);
+        }
+        else if ((config.sessionViewType === "histogram")
+          && ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user")))) {
+          currentSessionView.addNode(newNode);
+        }
+        else if ((config.sessionViewType !== "treemap") 
+          && (config.sessionViewType !== "treepack") 
+          && (config.sessionViewType !== "histogram")) {
+          currentSessionView.addNode(newNode);
+        }
+        rxNodeQueueReady = true;
       }
 
-
     }
-    else {
-      if (((config.sessionViewType === "treemap") || (config.sessionViewType === "treepack"))
-        && ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user")))) {
-        currentSessionView.addNode(newNode);
-      }
-      else if ((config.sessionViewType === "histogram")
-        && ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user")))) {
-        currentSessionView.addNode(newNode);
-      }
-      else if ((config.sessionViewType !== "treemap") 
-        && (config.sessionViewType !== "treepack") 
-        && (config.sessionViewType !== "histogram")) {
-        currentSessionView.addNode(newNode);
-      }
-    }
-  });
+  }, RX_NODE_QUEUE_INTERVAL);
 
   socket.on("STATS_HASHTAG", function(htStatsObj){
       console.log(">>> RX STATS_HASHTAG");

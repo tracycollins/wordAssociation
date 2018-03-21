@@ -1451,7 +1451,10 @@ function ViewTreepack() {
         currentNode.ageMaxRatio = 1e-6;
         currentNode.ageUpdated = moment().valueOf();
         currentNode.rate = newNode.rate;
+        currentNode.rank = newNode.rank;
         currentNode.mentions = newNode.mentions;
+        currentNode.isTopTerm = newNode.isTopTerm;
+        currentNode.isTrendingTopic = newNode.isTrendingTopic;
         currentNode.isKeyword = newNode.isKeyword;
         currentNode.keywords = newNode.keywords;
         currentNode.keywordsAuto = newNode.keywordsAuto;
@@ -1510,7 +1513,7 @@ function ViewTreepack() {
         currentNode.ageMaxRatio = 1e-6;
         currentNode.ageUpdated = moment().valueOf();
         currentNode.mouseHoverFlag = false;
-        currentNode.rank = 0;
+        currentNode.rank = -1;
         // currentNode.rate = newNode.rate || 0;
         // currentNode.isKeyword = newNode.isKeyword || false;
         // currentNode.isTopTerm = newNode.isTopTerm || false;
@@ -1532,6 +1535,7 @@ function ViewTreepack() {
         if (newNode.keywords || newNode.keywordsAuto) {
 
           var keyword = "neutral";
+          currentNode.isKeyword = true;
 
           if (autoKeywordsFlag && newNode.keywordsAuto){
             keyword = newNode.keywordsAuto;

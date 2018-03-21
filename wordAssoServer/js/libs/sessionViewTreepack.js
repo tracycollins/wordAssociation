@@ -185,11 +185,11 @@ function ViewTreepack() {
     this.newFlag = true;
     this.x = 0.5*width;
     this.y = 0.5*height;
-    this.keywords = {};
-    this.keywordsAuto = {};
+    this.isKeyword = false;
+    this.keywords = false;
+    this.keywordsAuto = false;
     this.isTopTerm = false;
     this.isTrendingTopic = false;
-    this.isKeyword = false;
     this.keywordColor = palette.white;
     this.followersMentions = 0;
   } 
@@ -646,39 +646,14 @@ function ViewTreepack() {
     simulation
       .force("forceX", d3.forceX().x(function(d) { 
         if (d.isKeyword){
-
-          var keywords = {};
-          if (autoKeywordsFlag 
-            && (d.keywordsAuto !== undefined) 
-            && d.keywordsAuto
-            && (Object.keys(d.keywordsAuto).length > 0)
-            ){
-            keywords = d.keywordsAuto;
+          var keyword = "neutral";
+          if (autoKeywordsFlag && d.keywordsAuto){
+            keyword = d.keywordsAuto;
           }
-          else if ((d.keywordsAuto !== undefined) 
-            && d.keywordsAuto
-            && (!d.keywords || (d.keywords === undefined))){
-            keywords = d.keywordsAuto;
+          else if (d.keywords){
+            keyword = d.keywords;
           }
-          else {
-            keywords = d.keywords;
-          }
-
-          if (keywords.right !== undefined) {
-            return foci.right.x;
-          }
-          if (keywords.left !== undefined) {
-            return foci.left.x;
-          }
-          if (keywords.positive !== undefined) {
-            return foci.positive.x;
-          }
-          if (keywords.negative !== undefined) {
-            return foci.negative.x;
-          }
-          if (keywords.neutral !== undefined) {
-            return foci.neutral.x;
-          }
+          return foci[keyword].x;
         }
         else {
           return foci.default.x;
@@ -688,39 +663,14 @@ function ViewTreepack() {
       }))
       .force("forceY", d3.forceY().y(function(d) { 
         if (d.isKeyword){
-
-          var keywords = {};
-          if (autoKeywordsFlag 
-            && (d.keywordsAuto !== undefined) 
-            && d.keywordsAuto
-            && (Object.keys(d.keywordsAuto).length > 0)
-            ){
-            keywords = d.keywordsAuto;
+          var keyword = "neutral";
+          if (autoKeywordsFlag && d.keywordsAuto){
+            keyword = d.keywordsAuto;
           }
-          else if ((d.keywordsAuto !== undefined) 
-            && d.keywordsAuto
-            && (!d.keywords || (d.keywords === undefined))){
-            keywords = d.keywordsAuto;
+          else if (d.keywords){
+            keyword = d.keywords;
           }
-          else {
-            keywords = d.keywords;
-          }
-
-          if (keywords.right !== undefined) {
-            return foci.right.y;
-          }
-          if (keywords.left !== undefined) {
-            return foci.left.y;
-          }
-          if (keywords.positive !== undefined) {
-            return foci.positive.y;
-          }
-          if (keywords.negative !== undefined) {
-            return foci.negative.y;
-          }
-          if (keywords.neutral !== undefined) {
-            return foci.neutral.y;
-          }
+          return foci[keyword].y;
         }
         else {
           return foci.default.y;
@@ -969,8 +919,8 @@ function ViewTreepack() {
           + "<br>Ms: " + d.mentions
           + "<br>Ts: " + d.statusesCount
           + "<br>" + d.rate.toFixed(2) + " WPM"
-          + "<br>KWs: " + jsonPrint(d.keywords)
-          + "<br>AKWs: " + jsonPrint(d.keywordsAuto);
+          + "<br>KWs: " + d.keywords
+          + "<br>AKWs: " + d.keywordsAuto;
       break;
 
       case "hashtag":
@@ -985,22 +935,22 @@ function ViewTreepack() {
         tooltipString = "#" + d.nodeId
           + "<br>Ms: " + d.mentions
           + "<br>" + d.rate.toFixed(2) + " WPM"
-          + "<br>KWs: " + jsonPrint(d.keywords)
-          + "<br>AKWs: " + jsonPrint(d.keywordsAuto);
+          + "<br>KWs: " + d.keywords
+          + "<br>AKWs: " + d.keywordsAuto;
       break;
       case "word":
         tooltipString = d.nodeId
           + "<br>Ms: " + d.mentions
           + "<br>" + d.rate.toFixed(2) + " WPM"
-          + "<br>KWs: " + jsonPrint(d.keywords)
-          + "<br>AKWs: " + jsonPrint(d.keywordsAuto);
+          + "<br>KWs: " + d.keywords
+          + "<br>AKWs: " + d.keywordsAuto;
       break;
       case "place":
         tooltipString = d.fullName
           + "<br>Ms: " + d.mentions
           + "<br>" + d.rate.toFixed(2) + " WPM"
-          + "<br>KWs: " + jsonPrint(d.keywords)
-          + "<br>AKWs: " + jsonPrint(d.keywordsAuto);
+          + "<br>KWs: " + d.keywords
+          + "<br>AKWs: " + d.keywordsAuto;
       break;
     }
 
@@ -1158,20 +1108,20 @@ function ViewTreepack() {
       .style("stroke", function (d) {
         if (d.keywordsMismatch) { return palette.red; }
         if (d.keywordsMatch) { return keywordsMatchColor; }
-        if (d.keywordsAuto.right) { return palette.yellow; }
-        if (d.keywordsAuto.left) { return palette.blue; }
-        if (d.keywordsAuto.positive) { return palette.green; }
-        if (d.keywordsAuto.negative) { return palette.red; }
+        if (d.keywordsAuto === "right") { return palette.yellow; }
+        if (d.keywordsAuto === "left") { return palette.blue; }
+        if (d.keywordsAuto === "positive") { return palette.green; }
+        if (d.keywordsAuto ==="negative") { return palette.red; }
         return palette.white; 
       })
       .style("stroke-width", function (d) { 
         if (d.keywordsMatch) { return keywordsMatchStrokeWidth; }
         if (d.isTopTerm) { return "3.0"; }
         if (d.newFlag) { return "3.0"; }
-        if (d.keywordsAuto.right) { return keywordsAutoStrokeWidth; }
-        if (d.keywordsAuto.left) { return keywordsAutoStrokeWidth; }
-        if (d.keywordsAuto.positive) { return keywordsAutoStrokeWidth; }
-        if (d.keywordsAuto.negative) { return keywordsAutoStrokeWidth; }
+        if (d.keywordsAuto === "right") { return keywordsAutoStrokeWidth; }
+        if (d.keywordsAuto === "left") { return keywordsAutoStrokeWidth; }
+        if (d.keywordsAuto === "positive") { return keywordsAutoStrokeWidth; }
+        if (d.keywordsAuto ==="negative") { return keywordsAutoStrokeWidth; }
         return "2.0"; 
       })
       .style("opacity", function (d) { 
@@ -1537,10 +1487,6 @@ function ViewTreepack() {
         currentNode = nodePool.use();
 
         currentNode = newNode;
-        currentNode.keywords = {};
-        currentNode.keywordsAuto = {};
-        currentNode.keywords = newNode.keywords;
-        currentNode.keywordsAuto = newNode.keywordsAuto;
 
         currentNode.age = 1e-6;
         currentNode.isDead = false;
@@ -1556,53 +1502,23 @@ function ViewTreepack() {
 
         currentNode.displaytext = createDisplayText(currentNode);
 
-        if (currentNode.isKeyword 
-          || ((newNode.keywordsAuto !== undefined) 
-              && newNode.keywordsAuto
-              && (Object.keys(newNode.keywordsAuto).length > 0))) {
+        if (currentNode.isKeyword || (newNode.keywordsAuto)) {
 
-          var keywords = {};
+          var keyword = "neutral";
 
-          if (autoKeywordsFlag 
-            && (newNode.keywordsAuto !== undefined) 
-            && newNode.keywordsAuto
-            && (Object.keys(newNode.keywordsAuto).length > 0)
-            ){
-            keywords = newNode.keywordsAuto;
+          if (autoKeywordsFlag && newNode.keywordsAuto){
+            keyword = newNode.keywordsAuto;
           }
-          else if ((newNode.keywordsAuto !== undefined) 
-            && newNode.keywordsAuto
-            && (!newNode.keywords || (newNode.keywords === undefined))){
-            keywords = newNode.keywordsAuto;
+          else if (newNode.keywordsAuto && (!newNode.keywords)){
+            keyword = newNode.keywordsAuto;
           }
-          else {
-            keywords = newNode.keywords;
+          else if (newNode.keywords){
+            keyword = newNode.keywords;
           }
 
-          if (keywords.left) { 
-            currentNode.x = focus("left").x; 
-            currentNode.y = focus("left").y;
-          }
-          else if (keywords.positive) { 
-            currentNode.x = focus("positive").x; 
-            currentNode.y = focus("positive").y;
-          }
-          else if (keywords.right) { 
-            currentNode.x = focus("right").x; 
-            currentNode.y = focus("right").y;
-          }
-          else if (keywords.negative) { 
-            currentNode.x = focus("negative").x; 
-            currentNode.y = focus("negative").y;
-          }
-          else if (keywords.neutral) { 
-            currentNode.x = focus("neutral").x; 
-            currentNode.y = focus("neutral").y;
-          }
-          else {
-            currentNode.x = focus("neutral").x; 
-            currentNode.y = focus("neutral").y;
-          }
+          currentNode.x = focus(keyword).x; 
+          currentNode.y = focus(keyword).y;
+
         }
         else {
           currentNode.x = focus("neutral").x; 

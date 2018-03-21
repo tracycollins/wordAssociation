@@ -1551,6 +1551,10 @@ function ViewTreepack() {
 
         currentNode = {};
         currentNode = newNode;
+        currentNode.keywords = {};
+        currentNode.keywordsAuto = {};
+        currentNode.keywords = newNode.keywords;
+        currentNode.keywordsAuto = newNode.keywordsAuto;
 
         currentNode.age = 1e-6;
         currentNode.isDead = false;

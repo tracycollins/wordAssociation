@@ -1472,19 +1472,21 @@ function ViewTreepack() {
     return displaytext;
   };
 
+  // var nodeAddObj = {};
+  var newNode = {};
+  var currentNode = {};
+  var nodesModifiedFlag = false;
+
   var processNodeAddQ = function(callback) {
 
-    var nodesModifiedFlag = false;
 
     if (nodeAddQ.length > 0) {
 
       nodesModifiedFlag = false;
 
-      var nodeAddObj = nodeAddQ.shift();
+      newNode = nodeAddQ.shift().node;
 
-      var newNode = nodeAddObj.node;
-
-      var currentNode = localNodeHashMap[newNode.nodeId];
+      currentNode = localNodeHashMap[newNode.nodeId];
 
       if (currentNode !== undefined){
 

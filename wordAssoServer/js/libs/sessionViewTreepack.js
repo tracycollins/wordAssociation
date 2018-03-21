@@ -1480,6 +1480,29 @@ function ViewTreepack() {
           currentNode.followersMentions = newNode.followersCount + newNode.mentions;
         }
 
+        if (currentNode.isKeyword || newNode.keywordsAuto) {
+
+          var keyword = "neutral";
+
+          if (autoKeywordsFlag && newNode.keywordsAuto){
+            keyword = newNode.keywordsAuto;
+          }
+          else if (newNode.keywordsAuto && !newNode.keywords){
+            keyword = newNode.keywordsAuto;
+          }
+          else if (newNode.keywords){
+            keyword = newNode.keywords;
+          }
+
+          currentNode.x = focus(keyword).x; 
+          currentNode.y = focus(keyword).y;
+
+        }
+        else {
+          currentNode.x = focus("neutral").x; 
+          currentNode.y = focus("neutral").y;
+        }
+
         currentNode.displaytext = createDisplayText(currentNode);
 
         localNodeHashMap[currentNode.nodeId] = currentNode;
@@ -1527,14 +1550,14 @@ function ViewTreepack() {
 
         currentNode.displaytext = createDisplayText(currentNode);
 
-        if (currentNode.isKeyword || (newNode.keywordsAuto)) {
+        if (currentNode.isKeyword || newNode.keywordsAuto) {
 
           var keyword = "neutral";
 
           if (autoKeywordsFlag && newNode.keywordsAuto){
             keyword = newNode.keywordsAuto;
           }
-          else if (newNode.keywordsAuto && (!newNode.keywords)){
+          else if (newNode.keywordsAuto && !newNode.keywords){
             keyword = newNode.keywordsAuto;
           }
           else if (newNode.keywords){

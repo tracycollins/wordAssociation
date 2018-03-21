@@ -1696,27 +1696,19 @@ function ViewTreepack() {
     simulation.force("charge", d3.forceManyBody().strength(value));
   };
 
-  this.addNode = function(nNode) {
+  this.addNode = function(newNode) {
 
     self.setEnableAgeNodes(true);
 
-    if (((nNode.nodeType !== "hashtag") 
-      && (nNode.nodeType !== "word") 
-      && (nNode.nodeType !== "user")
-      && (nNode.nodeType !== "place")) 
-      || nNode.isIgnored) { 
-      return;
-    }
+    // var newNode = {};
 
-    var newNode = {};
-
-    newNode = nNode;
+    // newNode = nNode;
     newNode.rank = -1;
     newNode.newFlag = true;
-    newNode.x = nNode.x || 0.5*width;
-    newNode.y = nNode.y || 0.5*height;
+    newNode.x = newNode.x || 0.5*width;
+    newNode.y = newNode.y || 0.5*height;
 
-    if (!nNode.keywordsAuto || (nNode.keywordsAuto === undefined)) {
+    if (!newNode.keywordsAuto || (newNode.keywordsAuto === undefined)) {
       newNode.keywordsAuto = {};
     }
     else {
@@ -1724,7 +1716,7 @@ function ViewTreepack() {
     }
 
     if (newNode.nodeType === "user") {
-      newNode.followersMentions = nNode.mentions + nNode.followersCount;
+      newNode.followersMentions = newNode.mentions + newNode.followersCount;
     }
 
     if ((newNode.nodeType === "user") && (newNode.followersMentions > currentMax.mentions.value)) { 
@@ -1732,77 +1724,75 @@ function ViewTreepack() {
       newCurrentMaxMetricFlag = true;
 
       currentMax.mentions.value = newNode.followersMentions; 
-      currentMax.mentions.nodeId = nNode.screenName.toLowerCase(); 
+      currentMax.mentions.nodeId = newNode.screenName.toLowerCase(); 
       currentMax.mentions.timeStamp = moment().valueOf(); 
 
       if (metricMode === "mentions") {
         currentMaxMetric = newNode.followersMentions; 
       }
     }
-    else if (nNode.mentions > currentMax.mentions.value) { 
+    else if (newNode.mentions > currentMax.mentions.value) { 
 
       newCurrentMaxMetricFlag = true;
 
-      currentMax.mentions.nodeType = nNode.nodeType;
-      currentMax.mentions.value = nNode.mentions; 
-
-      if (nNode.nodeType === "user") {
-        if (nNode.screenName !== undefined) {
-          currentMax.mentions.nodeId = nNode.screenName.toLowerCase(); 
-        }
-        else if (nNode.name !== undefined) {
-          currentMax.mentions.nodeId = nNode.screenName.toLowerCase(); 
-        }
-        else {
-          currentMax.mentions.nodeId = nNode.nodeId; 
-        }
-      }
-      else if (nNode.nodeType === "place") {
-        currentMax.mentions.nodeId = nNode.name.toLowerCase(); 
-      }
-      else if (nNode.nodeId === undefined) {
-        console.error("*** NODE ID UNDEFINED\n" + jsonPrint(nNode));
-      }
-      else  {
-        currentMax.mentions.nodeId = nNode.nodeId; 
-      }
+      currentMax.mentions.nodeType = newNode.nodeType;
+      currentMax.mentions.value = newNode.mentions; 
       currentMax.mentions.timeStamp = moment().valueOf(); 
 
-      if (metricMode === "mentions") {
-        currentMaxMetric = nNode.mentions; 
+      if (newNode.nodeType === "user") {
+        if (newNode.screenName !== undefined) {
+          currentMax.mentions.nodeId = newNode.screenName.toLowerCase(); 
+        }
+        else if (newNode.name !== undefined) {
+          currentMax.mentions.nodeId = newNode.screenName.toLowerCase(); 
+        }
+        else {
+          currentMax.mentions.nodeId = newNode.nodeId; 
+        }
+      }
+      else if (newNode.nodeType === "place") {
+        currentMax.mentions.nodeId = newNode.name.toLowerCase(); 
+      }
+      else if (newNode.nodeId === undefined) {
+        console.error("*** NODE ID UNDEFINED\n" + jsonPrint(newNode));
+      }
+      else  {
+        currentMax.mentions.nodeId = newNode.nodeId; 
       }
 
-      // console.info("NEW MAX MENTIONS: " + currentMax.mentions.value + " | " + nNode.nodeId);
+      if (metricMode === "mentions") {
+        currentMaxMetric = newNode.mentions; 
+      }
     }
 
-    if (nNode.rate > currentMax.rate.value) { 
+    if (newNode.rate > currentMax.rate.value) { 
 
       newCurrentMaxMetricFlag = true;
 
-      currentMax.rate.nodeType = nNode.nodeType;
-      currentMax.rate.value = nNode.rate;
+      currentMax.rate.nodeType = newNode.nodeType;
+      currentMax.rate.value = newNode.rate;
 
-      if (nNode.nodeType === "user") {
-        if (nNode.screenName !== undefined) {
-          currentMax.rate.nodeId = nNode.screenName.toLowerCase(); 
+      if (newNode.nodeType === "user") {
+        if (newNode.screenName !== undefined) {
+          currentMax.rate.nodeId = newNode.screenName.toLowerCase(); 
         }
-        else if (nNode.name !== undefined) {
-          currentMax.rate.nodeId = nNode.screenName.toLowerCase(); 
+        else if (newNode.name !== undefined) {
+          currentMax.rate.nodeId = newNode.screenName.toLowerCase(); 
         }
         else {
-          currentMax.rate.nodeId = nNode.nodeId; 
+          currentMax.rate.nodeId = newNode.nodeId; 
         }
       }
-      else if (nNode.nodeType === "place") {
-        currentMax.rate.nodeId = nNode.name; 
+      else if (newNode.nodeType === "place") {
+        currentMax.rate.nodeId = newNode.name; 
       }
       else {
-        currentMax.rate.nodeId = nNode.nodeId; 
+        currentMax.rate.nodeId = newNode.nodeId; 
       }
       currentMax.rate.timeStamp = moment().valueOf(); 
 
       if (metricMode === "rate") {
-        currentMaxMetric = nNode.rate; 
+        currentMaxMetric = newNode.rate; 
       }
     }
 
@@ -1812,8 +1802,8 @@ function ViewTreepack() {
 
     if (nodeAddQ.length > maxNodeAddQ) {
       maxNodeAddQ = nodeAddQ.length;
-      // console.info("NEW MAX NODE ADD Q: " + maxNodeAddQ);
     }
+
   };
 
   this.addGroup = function() {

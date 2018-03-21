@@ -778,15 +778,15 @@ function ViewTreepack() {
 
       ageMaxRatio = age/nodeMaxAge ;
 
-      if (node.isDead 
-        || (removeDeadNodesFlag && (age >= nodeMaxAge))
-        ) {
+      if (node.isDead || (removeDeadNodesFlag && (age >= nodeMaxAge))) {
+
+        node.isDead = true;
+        nodePool.recycle(node);
 
         delete localNodeHashMap[node.nodeId];
         nodesTopTermHashMap.remove(node.nodeId);
         nodes.splice(ageNodesIndex, 1);
 
-        node.isDead = true;
         // nodes[ageNodesIndex] = node;
         // localNodeHashMap[node.nodeId] = node;
         if (node.isTopTerm) {
@@ -795,7 +795,6 @@ function ViewTreepack() {
         else {
           nodesTopTermHashMap.remove(node.nodeId);
         }
-        // nodePool.recycle(node);
       } 
       else {
         node.ageUpdated = moment().valueOf();
@@ -1502,7 +1501,7 @@ function ViewTreepack() {
       else {
         nodesModifiedFlag = true;
 
-        // currentNode = nodePool.use();
+        currentNode = nodePool.use();
 
         currentNode = newNode;
 

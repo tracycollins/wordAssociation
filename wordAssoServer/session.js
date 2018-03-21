@@ -2289,83 +2289,53 @@ function initSocketSessionUpdateRx(){
 
       newNode = rxNodeQueue.shift();
 
-      newNode.nodeType = nNode.nodeType;
-      newNode.rate = nNode.rate;
-      newNode.isTopTerm = nNode.isTopTerm || false;
-      newNode.isKeyword = nNode.isKeyword || false;
-
-      newNode.keywords = nNode.keywords;
-      newNode.keywordsAuto = nNode.keywordsAuto;
+      newNode.isTopTerm = newNode.isTopTerm || false;
+      newNode.isKeyword = newNode.isKeyword || false;
 
       var keywords = {};
-      if (config.autoKeywordsFlag && (nNode.keywordsAuto !== undefined) && nNode.keywordsAuto){
-        keywords = nNode.keywordsAuto;
+      if (config.autoKeywordsFlag && (newNode.keywordsAuto !== undefined) && newNode.keywordsAuto){
+        keywords = newNode.keywordsAuto;
       }
       else {
-        keywords = nNode.keywords;
+        keywords = newNode.keywords;
       }
 
       getKeywordColor(keywords, function(color){
         newNode.keywordColor = color;
       });  // KLUDGE!  need better way to do keywords
 
-      newNode.createdAt = nNode.createdAt;
       newNode.age = 1e-6;
       newNode.ageMaxRatio = 1e-6;
       newNode.mouseHoverFlag = false;
       newNode.isDead = false;
       newNode.r = 0;
       newNode.links = [];
-      newNode.mentions = (nNode.mentions > 0) ? nNode.mentions : 10;
+      newNode.mentions = (newNode.mentions > 0) ? newNode.mentions : 10;
 
-      if (nNode.nodeType === "user"){
-        newNode.userId = nNode.userId;
-        newNode.nodeId = nNode.screenName.toLowerCase();
-        newNode.text = nNode.screenName.toLowerCase();
-        newNode.screenName = nNode.screenName.toLowerCase();
-        newNode.name = nNode.name;
-        newNode.isTwitterUser = nNode.isTwitterUser;
-        newNode.profileUrl = nNode.profileUrl;
-        newNode.profileImageUrl = nNode.profileImageUrl;
-        newNode.followersCount = nNode.followersCount;
-        newNode.following = nNode.following;
-        newNode.statusesCount = nNode.statusesCount;
-        newNode.friendsCount = nNode.friendsCount;
-        newNode.threeceeFollowing = nNode.threeceeFollowing;
-        newNode.lastSeen = nNode.lastSeen;
-        newNode.lastTweetId = nNode.lastTweetId;
+      if (newNode.nodeType === "user"){
+        newNode.nodeId = newNode.screenName.toLowerCase();
+        newNode.text = newNode.screenName.toLowerCase();
+        newNode.screenName = newNode.screenName.toLowerCase();
       }
-      if (nNode.nodeType === "hashtag"){
-        newNode.nodeId = nNode.text;
-        newNode.text = nNode.text;
-        newNode.lastSeen = nNode.lastSeen;
-        newNode.lastTweetId = nNode.lastTweetId;
-      }
-      if (nNode.nodeType === "place"){
-        newNode.placeId = nNode.placeId;
-        newNode.nodeId = nNode.nodeId;
-        newNode.name = nNode.name;
-        newNode.fullName = nNode.fullName;
-        newNode.sourceUrl = nNode.sourceUrl;
-        newNode.lastSeen = nNode.lastSeen;
-        newNode.lastTweetId = nNode.lastTweetId;
+      if (newNode.nodeType === "hashtag"){
+        newNode.nodeId = newNode.text;
       }
 
       newNode.keywordsMismatch = false;
       newNode.keywordsMatch = false;
 
-      if ((nNode.keywordsAuto !== undefined) && nNode.keywordsAuto) {
+      if ((newNode.keywordsAuto !== undefined) && newNode.keywordsAuto) {
 
         if (config.autoKeywordsFlag) { 
-          keywords = nNode.keywordsAuto;
+          keywords = newNode.keywordsAuto;
         }
         else {
-          keywords = nNode.keywords;
+          keywords = newNode.keywords;
         }
 
-        if ((nNode.keywords !== undefined) && nNode.keywords && (Object.keys(nNode.keywords).length > 0)) {
+        if ((newNode.keywords !== undefined) && newNode.keywords && (Object.keys(newNode.keywords).length > 0)) {
 
-          const kws = Object.keys(nNode.keywords);
+          const kws = Object.keys(newNode.keywords);
 
           async.each(kws, function(kw, cb){
 
@@ -2387,11 +2357,11 @@ function initSocketSessionUpdateRx(){
           }, function(err){
 
             if (((config.sessionViewType === "treemap") || (config.sessionViewType === "treepack"))
-              && ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user")))) {
+              && ((newNode.nodeType !== "user") || (enableUserNodes && (newNode.nodeType === "user")))) {
               currentSessionView.addNode(newNode);
             }
             else if ((config.sessionViewType === "histogram")
-              && ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user")))) {
+              && ((newNode.nodeType !== "user") || (enableUserNodes && (newNode.nodeType === "user")))) {
               currentSessionView.addNode(newNode);
             }
             else if ((config.sessionViewType !== "treemap") 
@@ -2406,11 +2376,11 @@ function initSocketSessionUpdateRx(){
         else {
 
           if (((config.sessionViewType === "treemap") || (config.sessionViewType === "treepack"))
-            && ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user")))) {
+            && ((newNode.nodeType !== "user") || (enableUserNodes && (newNode.nodeType === "user")))) {
             currentSessionView.addNode(newNode);
           }
           else if ((config.sessionViewType === "histogram")
-            && ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user")))) {
+            && ((newNode.nodeType !== "user") || (enableUserNodes && (newNode.nodeType === "user")))) {
             currentSessionView.addNode(newNode);
           }
           else if ((config.sessionViewType !== "treemap") 
@@ -2424,11 +2394,11 @@ function initSocketSessionUpdateRx(){
       }
       else {
         if (((config.sessionViewType === "treemap") || (config.sessionViewType === "treepack"))
-          && ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user")))) {
+          && ((newNode.nodeType !== "user") || (enableUserNodes && (newNode.nodeType === "user")))) {
           currentSessionView.addNode(newNode);
         }
         else if ((config.sessionViewType === "histogram")
-          && ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user")))) {
+          && ((newNode.nodeType !== "user") || (enableUserNodes && (newNode.nodeType === "user")))) {
           currentSessionView.addNode(newNode);
         }
         else if ((config.sessionViewType !== "treemap") 

@@ -2230,44 +2230,44 @@ let rxNodeQueue = [];
 
 function initSocketSessionUpdateRx(){
 
-  socket.on("SESSION_UPDATE", function(rxSessionObject) {
+  // socket.on("SESSION_UPDATE", function(rxSessionObject) {
 
-    console.info("SES " + rxSessionObject.action + " | " + rxSessionObject.sessionId);
+  //   console.info("SES " + rxSessionObject.action + " | " + rxSessionObject.sessionId);
 
-    if (rxSessionObject.action == "KEEPALIVE") {
-      // console.debug("KEEPALIVE"
-      //   + "\n" + jsonPrint(rxSessionObject)
-      // );
-      currentSessionView.sessionKeepalive(rxSessionObject);
-    } 
-    else if (!windowVisible || config.pauseFlag) {
-      rxSessionUpdateQueue = [];
-      if (debug) {
-        console.log("... SKIP SESSION_UPDATE ... WINDOW NOT VISIBLE");
-      }
+  //   if (rxSessionObject.action == "KEEPALIVE") {
+  //     // console.debug("KEEPALIVE"
+  //     //   + "\n" + jsonPrint(rxSessionObject)
+  //     // );
+  //     currentSessionView.sessionKeepalive(rxSessionObject);
+  //   } 
+  //   else if (!windowVisible || config.pauseFlag) {
+  //     rxSessionUpdateQueue = [];
+  //     if (debug) {
+  //       console.log("... SKIP SESSION_UPDATE ... WINDOW NOT VISIBLE");
+  //     }
       
-    } 
-    else if (sessionMode && (rxSessionObject.sessionId !== currentSession.sessionId)) {
-      if (debug) {
-        console.log("SKIP SESSION_UPDATE: " + rxSessionObject.sessionId 
-          + " | CURRENT: " + currentSession.sessionId);
-      }
-    } 
-    else if (rxSessionUpdateQueue.length < MAX_RX_QUEUE) {
+  //   } 
+  //   else if (sessionMode && (rxSessionObject.sessionId !== currentSession.sessionId)) {
+  //     if (debug) {
+  //       console.log("SKIP SESSION_UPDATE: " + rxSessionObject.sessionId 
+  //         + " | CURRENT: " + currentSession.sessionId);
+  //     }
+  //   } 
+  //   else if (rxSessionUpdateQueue.length < MAX_RX_QUEUE) {
 
-      rxSessionUpdateQueue.push(rxSessionObject);
+  //     rxSessionUpdateQueue.push(rxSessionObject);
 
-      if ((rxSessionObject.tags.trending !== undefined) 
-        && (rxSessionObject.tags.trending.length > 0)) {
-        console.info("TTT" 
-          + " | " + rxSessionObject.source.nodeId 
-          + " | T: " + rxSessionObject.tags.trending
-          // + " | T: " + jsonPrint(rxSessionObject.tags)
-        );
-      }
+  //     if ((rxSessionObject.tags.trending !== undefined) 
+  //       && (rxSessionObject.tags.trending.length > 0)) {
+  //       console.info("TTT" 
+  //         + " | " + rxSessionObject.source.nodeId 
+  //         + " | T: " + rxSessionObject.tags.trending
+  //         // + " | T: " + jsonPrint(rxSessionObject.tags)
+  //       );
+  //     }
 
-    }
-  });
+  //   }
+  // });
 
   socket.on("node", function(nNode) {
     if ((rxNodeQueue.length < RX_NODE_QUEUE_MAX)
@@ -2442,56 +2442,15 @@ function initSocketNodeRx(){
 
   socket.on("node", function(nNode) {
 
-    // if (!windowVisible || config.pauseFlag) {return;}
-
     if ((nNode.nodeType !== "user") 
       && (nNode.nodeType !== "hashtag") 
-      && (nNode.nodeType !== "word")
-      && (nNode.nodeType !== "place")
-      && (config.sessionViewType === "treemap")
+      && (nNode.nodeType !== "place") 
       ) {
       return;
     }
 
-    if ((nNode.nodeType !== "user") 
-      && (nNode.nodeType !== "hashtag") 
-      && (nNode.nodeType !== "word")
-      && (nNode.nodeType !== "place")
-      && ((config.sessionViewType === "histogram")
-      || (config.sessionViewType === "flow")
-      || (config.sessionViewType === "treepack"))) {
-      return;
-    }
-
-    if ((nNode.nodeType !== "user") 
-      && (nNode.nodeType !== "media") 
-      && (config.sessionViewType === "media")) {
-      return;
-    }
-
-    // if ((nNode.nodeType === "user") && nNode.screenName){
-    //   nNode.nodeId = nNode.screenName.toLowerCase();
-    //   if (!nNode.name) { 
-    //     nNode.name = nNode.screenName.toLowerCase();
-    //   }
-    // }
-
-    var newNode = {};
-    newNode.nodeType = nNode.nodeType;
-
-    // if ((nNode.nodeType === "user") && nNode.screenName){
-    //   newNode.nodeId = nNode.screenName.toLowerCase();
-    //   if (!nNode.name) { 
-    //     newNode.name = nNode.screenName.toLowerCase();
-    //   }
-    // }
-
-    newNode.rate = nNode.rate;
-    newNode.isTopTerm = nNode.isTopTerm || false;
-    newNode.isKeyword = nNode.isKeyword || false;
-
-    newNode.keywords = nNode.keywords;
-    newNode.keywordsAuto = nNode.keywordsAuto;
+    nNode.isTopTerm = nNode.isTopTerm || false;
+    nNode.isKeyword = nNode.isKeyword || false;
 
     var keywords = {};
     if (config.autoKeywordsFlag && (nNode.keywordsAuto !== undefined) && nNode.keywordsAuto){
@@ -2501,68 +2460,26 @@ function initSocketNodeRx(){
       keywords = nNode.keywords;
     }
 
-
     getKeywordColor(keywords, function(color){
-      newNode.keywordColor = color;
-    });  // KLUDGE!  need better way to do keywords
+      nNode.keywordColor = color;
+    });
 
-    newNode.createdAt = nNode.createdAt;
-    newNode.age = 1e-6;
-    newNode.ageMaxRatio = 1e-6;
-    newNode.mouseHoverFlag = false;
-    // newNode.nodeId = (nNode.nodeType == "url") ? nNode.nodeId : nNode.nodeId.toString().toLowerCase();  // urls must be case sensitive
-    newNode.isDead = false;
-    newNode.r = 0;
-    newNode.links = [];
-    newNode.mentions = (nNode.mentions > 0) ? nNode.mentions : 10;
+    nNode.age = 1e-6;
+    nNode.ageMaxRatio = 1e-6;
+    nNode.mouseHoverFlag = false;
+    nNode.isDead = false;
+    nNode.r = 0;
+    nNode.links = [];
+    nNode.mentions = (nNode.mentions > 0) ? nNode.mentions : 10;
 
-    if (nNode.nodeType === "tweet"){
-      newNode.nodeId = nNode.nodeId;
-      newNode.text = nNode.nodeId;
-      newNode.isRetweet = nNode.isRetweet;
-      newNode.retweetedId = nNode.retweetedId;
-      newNode.retweetedStatus = nNode.retweetedStatus;
-      newNode.url = nNode.url;
-      newNode.user = nNode.user;
-      newNode.hashtags = nNode.hashtags;
-      newNode.media = nNode.media;
-      newNode.urls = nNode.urls;
-      newNode.place = nNode.place;
-      newNode.userMentions = nNode.userMentions;
-    }
     if (nNode.nodeType === "user"){
-      newNode.userId = nNode.userId;
       newNode.nodeId = nNode.screenName.toLowerCase();
       newNode.text = nNode.screenName.toLowerCase();
       newNode.screenName = nNode.screenName.toLowerCase();
-      newNode.name = nNode.name;
-      newNode.isTwitterUser = nNode.isTwitterUser;
-      newNode.profileUrl = nNode.profileUrl;
-      newNode.profileImageUrl = nNode.profileImageUrl;
-      newNode.followersCount = nNode.followersCount;
-      newNode.following = nNode.following;
-      newNode.statusesCount = nNode.statusesCount;
-      newNode.friendsCount = nNode.friendsCount;
-      newNode.threeceeFollowing = nNode.threeceeFollowing;
     }
     if (nNode.nodeType === "hashtag"){
       newNode.nodeId = nNode.text;
-      newNode.text = nNode.text;
     }
-    if (nNode.nodeType === "media"){
-      newNode.nodeId = nNode.nodeId;
-      newNode.mediaId = nNode.mediaId;
-      newNode.url = nNode.url;
-      newNode.sourceUrl = nNode.sourceUrl;
-    }
-    if (nNode.nodeType === "place"){
-      newNode.placeId = nNode.placeId;
-      newNode.nodeId = nNode.nodeId;
-      newNode.name = nNode.name;
-      newNode.fullName = nNode.fullName;
-      newNode.sourceUrl = nNode.sourceUrl;
-    }
-
 
     newNode.keywordsMismatch = false;
     newNode.keywordsMatch = false;
@@ -2628,8 +2545,6 @@ function initSocketNodeRx(){
             currentSessionView.addNode(newNode);
           }
       }
-
-
     }
     else {
       if (((config.sessionViewType === "treemap") || (config.sessionViewType === "treepack"))
@@ -2757,12 +2672,6 @@ var processSessionQueues = function(callback) {
 
       if (!groupHashMap.has(session.tags.group.entityId)) {
         session.tags.group.groupId = session.tags.group.entityId;
-        // console.warn("+ G FROM ENT ID"
-        //   + " | N: " + session.nodeId
-        //   // + " | " + session.tags.group.url
-        //   + " | E: " + session.tags.group.entityId
-        //   // + "\nTAGS\n" + jsonPrint(session.tags)
-        // );
         groupCreateQueue.push(session);
       }
       else {
@@ -2796,17 +2705,6 @@ var processNodeDeleteQueue = function(callback) {
 };
 
 var processLinkDeleteQueue = function(callback) {
-  
-  // while (linkDeleteQueue.length > 0) {
-
-  //   var deletedLinkId = linkDeleteQueue.shift();
-
-  //   removeFromHashMap(linkHashMap, deletedLinkId, function() {
-  //   });
-
-  // }
-  // return (callback(null, "processNodeDeleteQueue"));
-
 
   async.each(linkDeleteQueue, function(deletedLinkId, cb) {
 
@@ -2820,19 +2718,6 @@ var processLinkDeleteQueue = function(callback) {
 };
 
 function sum( obj ) {
-
-  // var s = 0;
-
-  // for( var el in obj ) {
-
-  //   if( obj.hasOwnProperty( el ) ) {
-  //     s += parseFloat( obj[el] );
-  //   }
-
-  // }
-
-  // return sum;
-
 
   var s = 0;
   var props = Object.keys(obj);
@@ -3979,13 +3864,6 @@ function loadViewType(svt, callback) {
     storedConfigArgs.forEach(function(arg){
       config[arg] = storedConfig[arg];
       if (arg === "VIEWER_OBJ") {
-        // console.warn("FOUND PREVIOUS VIEWER OBJ ... OVERIDING"
-        //   + "\nDEFAULT\n" + jsonPrint(DEFAULT_VIEWER_OBJ) 
-        //   + "\nSTORED\n" + jsonPrint(storedConfig[arg]) 
-        // );
-
-        // viewerObj = storedConfig[arg];
-
       }
       console.log("--> STORED CONFIG | " + arg + ": ", config[arg]);
     });
@@ -3999,7 +3877,6 @@ function loadViewType(svt, callback) {
         console.debug("sessionViewTicker LOADED");
 
         currentSessionView = new ViewTicker();
-        // initSocketNodeRx();
         initSocketSessionUpdateRx();
 
         callback();
@@ -4049,7 +3926,6 @@ function loadViewType(svt, callback) {
         DEFAULT_FONT_SIZE_MAX_RATIO = FLOW_DEFAULT.FONT_SIZE_MAX_RATIO;
 
         currentSessionView = new ViewFlow();
-        // initSocketNodeRx();
         initSocketSessionUpdateRx();
 
         callback();
@@ -4076,7 +3952,7 @@ function loadViewType(svt, callback) {
 
         currentSessionView = new ViewTreepack();
         initSocketSessionUpdateRx();
-        initSocketNodeRx();
+        // initSocketNodeRx();
 
         callback();
       });

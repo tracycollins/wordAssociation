@@ -3952,7 +3952,6 @@ function loadViewType(svt, callback) {
 
         currentSessionView = new ViewTreepack();
         initSocketSessionUpdateRx();
-        // initSocketNodeRx();
 
         callback();
       });

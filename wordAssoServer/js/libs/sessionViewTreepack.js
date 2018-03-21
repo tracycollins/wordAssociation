@@ -439,8 +439,6 @@ function ViewTreepack() {
     .attr("height", height)
     .attr("x", 1e-6)
     .attr("y", 1e-6);
-    // .attr("visibility", "hidden");
-
 
   var nodeSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeSvgGroup");
   var nodeLabelSvgGroup = svgTreemapLayoutArea.append("svg:g").attr("id", "nodeLabelSvgGroup");
@@ -1176,7 +1174,7 @@ function ViewTreepack() {
       .style("visibility", function(d) {
         if (d.isDead) { return "hidden"; }
         return "visible";
-      });
+      })
       .style("opacity", function(d) { 
         if (d.isDead) { return 1e-6; }
         return nodeLabelOpacityScale(d.ageMaxRatio); 

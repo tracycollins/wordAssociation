@@ -786,16 +786,7 @@ function ViewTreepack() {
         delete localNodeHashMap[node.nodeId];
         nodesTopTermHashMap.remove(node.nodeId);
         nodes.splice(ageNodesIndex, 1);
-
-        // nodes[ageNodesIndex] = node;
-        // localNodeHashMap[node.nodeId] = node;
-        if (node.isTopTerm) {
-          nodesTopTermHashMap.set(node.nodeId, node);
-        }
-        else {
-          nodesTopTermHashMap.remove(node.nodeId);
-        }
-      } 
+       } 
       else {
         node.ageUpdated = moment().valueOf();
         node.age = age;
@@ -1464,28 +1455,6 @@ function ViewTreepack() {
           currentNode.followersMentions = newNode.followersCount + newNode.mentions;
         }
 
-        // if (newNode.keywords || newNode.keywordsAuto) {
-
-        //   var keyword = "neutral";
-
-        //   if (autoKeywordsFlag && newNode.keywordsAuto){
-        //     keyword = newNode.keywordsAuto;
-        //   }
-        //   else if (newNode.keywordsAuto && !newNode.keywords){
-        //     keyword = newNode.keywordsAuto;
-        //   }
-        //   else if (newNode.keywords){
-        //     keyword = newNode.keywords;
-        //   }
-
-        //   currentNode.x = focus(keyword).x; 
-        //   currentNode.y = focus(keyword).y;
-        // }
-        // else {
-        //   currentNode.x = focus("neutral").x; 
-        //   currentNode.y = focus("neutral").y;
-        // }
-
         currentNode.displaytext = createDisplayText(currentNode);
 
         localNodeHashMap[currentNode.nodeId] = currentNode;
@@ -1514,22 +1483,6 @@ function ViewTreepack() {
         currentNode.ageUpdated = moment().valueOf();
         currentNode.mouseHoverFlag = false;
         currentNode.rank = -1;
-        // currentNode.rate = newNode.rate || 0;
-        // currentNode.isKeyword = newNode.isKeyword || false;
-        // currentNode.isTopTerm = newNode.isTopTerm || false;
-        // currentNode.isTrendingTopic = newNode.isTrendingTopic || false;
-        // currentNode.isTwitterUser = newNode.isTwitterUser || false;
-        // currentNode.keywordColor = newNode.keywordColor;
-        // currentNode.mentions = newNode.mentions;
-
-        // if (newNode.nodeType === "user"){
-        //   currentNode.statusesCount = newNode.statusesCount;
-        //   currentNode.followersCount = newNode.followersCount;
-        //   currentNode.friendsCount = newNode.friendsCount;
-        //   currentNode.threeceeFollowing = newNode.threeceeFollowing;
-        //   currentNode.followersMentions = newNode.followersCount + newNode.mentions;
-        // }
-
         currentNode.displaytext = createDisplayText(currentNode);
 
         if (newNode.keywords || newNode.keywordsAuto) {

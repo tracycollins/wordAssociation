@@ -645,34 +645,20 @@ function ViewTreepack() {
 
     simulation
       .force("forceX", d3.forceX().x(function(d) { 
-        if (d.isKeyword){
-          if (autoKeywordsFlag && d.keywordsAuto){
-            return foci[d.keywordsAuto].x;
-          }
-          if (d.keywords){
-            return foci[d.keywords].x;
-          }
-          return foci.default.x;
+        if ((autoKeywordsFlag && d.keywordsAuto) || (!d.keywords && d.keywordsAuto)){
+          return foci[d.keywordsAuto].x;
         }
-        else {
-          return foci.default.x;
-        }
+        if (d.keywords){ return foci[d.keywords].x; }
+        return foci.default.x;
       }).strength(function(d){
         return forceXmultiplier * gravity; 
       }))
       .force("forceY", d3.forceY().y(function(d) { 
-        if (d.isKeyword){
-          if (autoKeywordsFlag && d.keywordsAuto){
-            return foci[d.keywordsAuto].y;
-          }
-          if (d.keywords){
-            return foci[d.keywords].y;
-          }
-          return foci.default.y;
+        if ((autoKeywordsFlag && d.keywordsAuto) || (!d.keywords && d.keywordsAuto)){
+          return foci[d.keywordsAuto].y;
         }
-        else {
-          return foci.default.y;
-        }
+        if (d.keywords){ return foci[d.keywords].y; }
+        return foci.default.y;
       }).strength(function(d){
         return forceYmultiplier * gravity; 
       }));
@@ -1238,12 +1224,8 @@ function ViewTreepack() {
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)
       .on("click", nodeClick)
-      .attr("x", function (d) { 
-        return d.x; 
-      })
-      .attr("y", function (d) { 
-        return d.y; 
-      })
+      .attr("x", function (d) { return d.x; })
+      .attr("y", function (d) { return d.y; })
       .text(function (d) {
         if (d.nodeType === "hashtag") { return "#" + d.text.toUpperCase(); }
         if (d.nodeType === "user") { 
@@ -1782,32 +1764,20 @@ function ViewTreepack() {
     simulation = d3.forceSimulation(nodes)
       .force("charge", d3.forceManyBody().strength(charge))
       .force("forceX", d3.forceX().x(function forceXfunc(d) { 
-        if (d.isKeyword){
-          if (autoKeywordsFlag && d.keywordsAuto){
-            return foci[d.keywordsAuto].x;
-          }
-          if (d.keywords){
-            return foci[d.keywords].x;
-          }
+        if ((autoKeywordsFlag && d.keywordsAuto) || (!d.keywords && d.keywordsAuto)){
+          return foci[d.keywordsAuto].x;
         }
-        else {
-          return foci.default.x;
-        }
+        if (d.keywords){ return foci[d.keywords].x; }
+        return foci.default.x;
       }).strength(function strengthFunc(d){
         return forceXmultiplier * gravity; 
       }))
       .force("forceY", d3.forceY().y(function forceYfunc(d) { 
-        if (d.isKeyword){
-          if (autoKeywordsFlag && d.keywordsAuto){
-            return foci[d.keywordsAuto].x;
-          }
-          if (d.keywords){
-            return foci[d.keywords].x;
-          }
+        if ((autoKeywordsFlag && d.keywordsAuto) || (!d.keywords && d.keywordsAuto)){
+          return foci[d.keywordsAuto].y;
         }
-        else {
-          return foci.default.x;
-        }
+        if (d.keywords){ return foci[d.keywords].y; }
+        return foci.default.y;
       }).strength(function strengthFunc(d){
         return forceYmultiplier * gravity; 
       }))
@@ -1941,23 +1911,19 @@ function ViewTreepack() {
       simulation
         .force("charge", d3.forceManyBody().strength(charge))
         .force("forceX", d3.forceX().x(function forceXfunc(d) { 
-          if (d.isKeyword && autoKeywordsFlag && d.keywordsAuto){
+          if ((autoKeywordsFlag && d.keywordsAuto) || (!d.keywords && d.keywordsAuto)){
             return foci[d.keywordsAuto].x;
           }
-          if (d.isKeyword && d.keywords){
-            return foci[d.keywords].x;
-          }
+          if (d.keywords){ return foci[d.keywords].x; }
           return foci.default.x;
         }).strength(function strengthFunc(d){
           return forceXmultiplier * gravity; 
         }))
         .force("forceY", d3.forceY().y(function forceYfunc(d) { 
-          if (d.isKeyword && autoKeywordsFlag && d.keywordsAuto){
+          if ((autoKeywordsFlag && d.keywordsAuto) || (!d.keywords && d.keywordsAuto)){
             return foci[d.keywordsAuto].y;
           }
-          if (d.isKeyword && d.keywords){
-            return foci[d.keywords].y;
-          }
+          if (d.keywords){ return foci[d.keywords].y; }
           return foci.default.y;
         }).strength(function strengthFunc(d){
           return forceYmultiplier * gravity; 
@@ -1975,7 +1941,6 @@ function ViewTreepack() {
           }
         }).iterations(collisionIterations))
         .velocityDecay(velocityDecay);
-
     }
   };
 

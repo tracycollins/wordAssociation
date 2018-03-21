@@ -1549,6 +1549,7 @@ function ViewTreepack() {
       else {
         nodesModifiedFlag = true;
 
+        currentNode = {};
         currentNode = newNode;
 
         currentNode.age = 1e-6;

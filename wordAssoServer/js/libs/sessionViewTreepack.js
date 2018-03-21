@@ -995,7 +995,6 @@ function ViewTreepack() {
 
         if ((d.lastTweetId !== undefined) && (d.lastTweetId !== "false")) {
           url = "https://twitter.com/" + d.screenName + "/status/" + d.lastTweetId ;
-          // url = d.lastTweetId ;
         }
         else {
           url = "https://twitter.com/" + d.screenName ;
@@ -1026,7 +1025,6 @@ function ViewTreepack() {
   }
 
   function rankHashMapByValue(hmap, sortProperty, callback) {
-    // console.debug("rankHashMapByValue");
     var keys = hmap.keys().sort(function hmapSortFunc(a,b){
       return hmap.get(b)[sortProperty]-hmap.get(a)[sortProperty];
     });
@@ -1057,9 +1055,6 @@ function ViewTreepack() {
     nodeTopTermLabels
       .attr("x", xposition)
       .attr("y", yposition)
-      // .text(function updateTopTermText(d) {
-      //   return d.displaytext;
-      // })
       .style("opacity", function updateTopTermOpacity(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
         return topTermLabelOpacityScale(d.ageMaxRatio); 
@@ -1096,9 +1091,10 @@ function ViewTreepack() {
     callback(null, null);
   };
 
+  var nodeCircles;
   var updateNodeCircles = function(callback) {
 
-    var nodeCircles = nodeSvgGroup.selectAll("circle")
+    nodeCircles = nodeSvgGroup.selectAll("circle")
       .data(nodes, function updateNodeCirclesData(d){ return d.nodeId; });
 
     nodeCircles
@@ -1162,29 +1158,6 @@ function ViewTreepack() {
       .attr("cy", function nodeCirclesY(d) { 
         return d.y; 
       })
-      // .style("fill", function nodeCirclesFill(d) { 
-      //   if (!d.isKeyword) { return palette.black; }
-      //   return d.keywordColor; 
-      // })
-      // .style("stroke", function nodeCirclesStroke(d) {
-      //   if (d.keywordsMismatch) { return palette.red; }
-      //   if (d.keywordsMatch) { return keywordsMatchColor; }
-      //   if (d.keywordsAuto.right) { return palette.yellow; }
-      //   if (d.keywordsAuto.left) { return palette.blue; }
-      //   if (d.keywordsAuto.positive) { return palette.green; }
-      //   if (d.keywordsAuto.negative) { return palette.red; }
-      //   return palette.white; 
-      // })
-      // .style("stroke-width", function nodeCirclesStrokeWidth(d) { 
-      //   if (d.keywordsMatch) { return keywordsMatchStrokeWidth; }
-      //   if (d.isTopTerm) { return "4.0"; }
-      //   if (d.newFlag) { return "3.0"; }
-      //   if (d.keywordsAuto.right) { return keywordsAutoStrokeWidth; }
-      //   if (d.keywordsAuto.left) { return keywordsAutoStrokeWidth; }
-      //   if (d.keywordsAuto.positive) { return keywordsAutoStrokeWidth; }
-      //   if (d.keywordsAuto.negative) { return keywordsAutoStrokeWidth; }
-      //   return "2.0"; 
-      // })
       .style("opacity", function nodeCirclesOpacity(d) { 
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
@@ -1204,8 +1177,6 @@ function ViewTreepack() {
           }
         });
 
-    var nodeCirclesExitSelection = nodeCircles.exit();
-
     nodeCircles
       .exit()
       .attr("r", 1e-6)
@@ -1215,9 +1186,10 @@ function ViewTreepack() {
     callback();
   };
 
+  var nodeLabels;
   var updateNodeLabels = function(callback) {
 
-    var nodeLabels = nodeLabelSvgGroup.selectAll("text")
+    nodeLabels = nodeLabelSvgGroup.selectAll("text")
       .data(nodes, function nodeLabelsData(d) { 
         return d.nodeId; 
       });
@@ -1228,7 +1200,6 @@ function ViewTreepack() {
       .style("opacity", function nodeLabelsOpacity(d) { 
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
-      // .style("fill", palette.white)
       .style("visibility", function nodeLabelsVisibility(d) {
         if (mouseMovingFlag) { return "visible"; }
         if (d.rate > MIN_RATE) { return "visible"; }
@@ -1297,16 +1268,6 @@ function ViewTreepack() {
         if (d.followersCount > MIN_FOLLOWERS) { return "bold"; }
         return "normal";
       })
-      // .style("visibility", function nodeLabelsVisibility(d) {
-      //   if (mouseMovingFlag) { 
-      //     return "visible"; 
-      //   }
-      //   if (d.rate > MIN_RATE) { return "visible"; }
-      //   if (d.followersCount > MIN_FOLLOWERS) { return "visible"; }
-      //   if (d.mentions > MIN_MENTIONS) { return "visible"; }
-      //   if (d.isKeyword) { return "visible"; }
-      //   return "hidden";
-      // })
       .style("visibility", function nodeLabelsVisibility(d) {
         if (mouseMovingFlag) { return "visible"; }
         if (d.rate > MIN_RATE) { return "visible"; }
@@ -1798,7 +1759,6 @@ function ViewTreepack() {
     if (nodeAddQ.length > maxNodeAddQ) {
       maxNodeAddQ = nodeAddQ.length;
     }
-
   };
 
   this.addGroup = function() {

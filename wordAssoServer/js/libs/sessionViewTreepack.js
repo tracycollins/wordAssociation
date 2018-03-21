@@ -500,7 +500,7 @@ function ViewTreepack() {
     return null;
   };
   
-  this.getNodesLength = function() { return nodes.length; };
+  this.getNodesLength = function() { return "NODES: " + nodes.length + " | POOL: " + nodePool.size(); };
   
   this.getMaxNodes = function() { return maxNumberNodes; };
   

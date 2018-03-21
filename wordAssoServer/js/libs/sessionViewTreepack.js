@@ -1512,22 +1512,21 @@ function ViewTreepack() {
         currentNode.ageUpdated = moment().valueOf();
         currentNode.mouseHoverFlag = false;
         currentNode.rank = 0;
-        currentNode.rate = newNode.rate || 0;
-        currentNode.isKeyword = newNode.isKeyword || false;
-        currentNode.isTopTerm = newNode.isTopTerm || false;
-        currentNode.isTrendingTopic = newNode.isTrendingTopic || false;
-        currentNode.isTwitterUser = newNode.isTwitterUser || false;
-        currentNode.keywordColor = newNode.keywordColor;
-        currentNode.mentions = newNode.mentions;
-        currentNode.mouseHoverFlag = false;
+        // currentNode.rate = newNode.rate || 0;
+        // currentNode.isKeyword = newNode.isKeyword || false;
+        // currentNode.isTopTerm = newNode.isTopTerm || false;
+        // currentNode.isTrendingTopic = newNode.isTrendingTopic || false;
+        // currentNode.isTwitterUser = newNode.isTwitterUser || false;
+        // currentNode.keywordColor = newNode.keywordColor;
+        // currentNode.mentions = newNode.mentions;
 
-        if (newNode.nodeType === "user"){
-          currentNode.statusesCount = newNode.statusesCount;
-          currentNode.followersCount = newNode.followersCount;
-          currentNode.friendsCount = newNode.friendsCount;
-          currentNode.threeceeFollowing = newNode.threeceeFollowing;
-          currentNode.followersMentions = newNode.followersCount + newNode.mentions;
-        }
+        // if (newNode.nodeType === "user"){
+        //   currentNode.statusesCount = newNode.statusesCount;
+        //   currentNode.followersCount = newNode.followersCount;
+        //   currentNode.friendsCount = newNode.friendsCount;
+        //   currentNode.threeceeFollowing = newNode.threeceeFollowing;
+        //   currentNode.followersMentions = newNode.followersCount + newNode.mentions;
+        // }
 
         currentNode.displaytext = createDisplayText(currentNode);
 

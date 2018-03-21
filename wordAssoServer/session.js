@@ -4069,32 +4069,32 @@ function initialize(callback) {
 
           console.log("ON LOAD getUrlVariables: sessionViewType:" + config.sessionViewType);
 
-          if (config.sessionViewType == "force") {
+          if (config.sessionViewType === "force") {
             initIgnoreWordsHashMap(function() {
               console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
             });
           }
-          if (config.sessionViewType == "ticker") {
+          if (config.sessionViewType === "ticker") {
             initIgnoreWordsHashMap(function() {
               console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
             });
           }
-          if (config.sessionViewType == "flow") {
+          if (config.sessionViewType === "flow") {
             initIgnoreWordsHashMap(function() {
               console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
             });
           }
-          if (config.sessionViewType == "treemap") {
+          if (config.sessionViewType === "treemap") {
             initIgnoreWordsHashMap(function() {
               console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
             });
           }
-          if (config.sessionViewType == "treepack") {
+          if (config.sessionViewType === "treepack") {
             initIgnoreWordsHashMap(function() {
               console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
             });
           }
-          if (config.sessionViewType == "histogram") {
+          if (config.sessionViewType === "histogram") {
             initIgnoreWordsHashMap(function() {
               console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
             });
@@ -4117,56 +4117,56 @@ function initialize(callback) {
               config = storedConfig;
               config.authenticationUrl = DEFAULT_AUTH_URL;
 
-              if (config.sessionViewType == "ticker") {
+              if (config.sessionViewType === "ticker") {
                 currentSessionView.setNodeMaxAge(config.defaultMaxAge);
               }
-              if (config.sessionViewType == "flow") {
+              if (config.sessionViewType === "flow") {
                 initUpdateSessionsInterval(50);
                 currentSessionView.setNodeMaxAge(config.defaultMaxAge);
               }
-              if (config.sessionViewType == "treemap") {
+              if (config.sessionViewType === "treemap") {
                 currentSessionView.setNodeMaxAge(config.defaultMaxAge);
               }
-              if (config.sessionViewType == "treepack") {
+              if (config.sessionViewType === "treepack") {
                 initUpdateSessionsInterval(50);
                 currentSessionView.setNodeMaxAge(config.defaultMaxAge);
               }
-              if (config.sessionViewType == "histogram") {
+              if (config.sessionViewType === "histogram") {
                 currentSessionView.setNodeMaxAge(config.defaultMaxAge);
               }
-              if (config.sessionViewType == "force") {
+              if (config.sessionViewType === "force") {
                 currentSessionView.setNodeMaxAge(config.defaultMaxAge);
                 initUpdateSessionsInterval(50);
               }
-              if (config.sessionViewType == "media") {
+              if (config.sessionViewType === "media") {
                 currentSessionView.setNodeMaxAge(config.defaultMaxAge);
               }
             }
             else {
               console.debug("STORED CONFIG NOT FOUND: " + storedConfigName);
 
-              if (config.sessionViewType == "ticker") {
+              if (config.sessionViewType === "ticker") {
                 currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
               }
-              if (config.sessionViewType == "flow") {
+              if (config.sessionViewType === "flow") {
                 initUpdateSessionsInterval(50);
                 currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
               }
-              if (config.sessionViewType == "treemap") {
+              if (config.sessionViewType === "treemap") {
                 currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
               }
-              if (config.sessionViewType == "treepack") {
+              if (config.sessionViewType === "treepack") {
                 initUpdateSessionsInterval(50);
                 currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
               }
-              if (config.sessionViewType == "histogram") {
+              if (config.sessionViewType === "histogram") {
                 currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
               }
-              if (config.sessionViewType == "force") {
+              if (config.sessionViewType === "force") {
                 currentSessionView.setNodeMaxAge(FORCE_MAX_AGE);
                 initUpdateSessionsInterval(50);
               }
-              if (config.sessionViewType == "media") {
+              if (config.sessionViewType === "media") {
                 currentSessionView.setNodeMaxAge(MEDIA_MAX_AGE);
               }
             }
@@ -4212,40 +4212,40 @@ function initialize(callback) {
               config = storedConfig;
               config.authenticationUrl = DEFAULT_AUTH_URL;
 
-              if (config.sessionViewType == "force") {
+              if (config.sessionViewType === "force") {
                 currentSessionView.setNodeMaxAge(config.defaultMaxAge);
                 initIgnoreWordsHashMap(function() {
                   console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
                   initUpdateSessionsInterval(50);
                 });
               }
-              if (config.sessionViewType == "ticker") {
+              if (config.sessionViewType === "ticker") {
                 currentSessionView.setNodeMaxAge(config.defaultMaxAge);
                 initIgnoreWordsHashMap(function() {
                   console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
                 });
               }
-              if (config.sessionViewType == "flow") {
-                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
-                initUpdateSessionsInterval(50);
-                initIgnoreWordsHashMap(function() {
-                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-                });
-              }
-              if (config.sessionViewType == "treemap") {
-                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
-                initIgnoreWordsHashMap(function() {
-                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
-                });
-              }
-              if (config.sessionViewType == "treepack") {
+              if (config.sessionViewType === "flow") {
                 currentSessionView.setNodeMaxAge(config.defaultMaxAge);
                 initUpdateSessionsInterval(50);
                 initIgnoreWordsHashMap(function() {
                   console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
                 });
               }
-              if (config.sessionViewType == "histogram") {
+              if (config.sessionViewType === "treemap") {
+                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
+                initIgnoreWordsHashMap(function() {
+                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+                });
+              }
+              if (config.sessionViewType === "treepack") {
+                currentSessionView.setNodeMaxAge(config.defaultMaxAge);
+                initUpdateSessionsInterval(50);
+                initIgnoreWordsHashMap(function() {
+                  console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
+                });
+              }
+              if (config.sessionViewType === "histogram") {
                 currentSessionView.setNodeMaxAge(config.defaultMaxAge);
                 initIgnoreWordsHashMap(function() {
                   console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
@@ -4253,33 +4253,33 @@ function initialize(callback) {
               }
             }
             else {
-              if (config.sessionViewType == "force") {
+              if (config.sessionViewType === "force") {
                 currentSessionView.setNodeMaxAge(FORCE_MAX_AGE);
                 initIgnoreWordsHashMap(function() {
                   console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
                   initUpdateSessionsInterval(50);
                 });
               }
-              if (config.sessionViewType == "ticker") {
+              if (config.sessionViewType === "ticker") {
                 currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
                 initIgnoreWordsHashMap(function() {
                   console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
                 });
               }
-              if (config.sessionViewType == "flow") {
+              if (config.sessionViewType === "flow") {
                 currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
                 initUpdateSessionsInterval(50);
                 initIgnoreWordsHashMap(function() {
                   console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
                 });
               }
-              if (config.sessionViewType == "treemap") {
+              if (config.sessionViewType === "treemap") {
                 currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
                 initIgnoreWordsHashMap(function() {
                   console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
                 });
               }
-              if (config.sessionViewType == "treepack") {
+              if (config.sessionViewType === "treepack") {
                 currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
                 initUpdateSessionsInterval(50);
                 initIgnoreWordsHashMap(function() {
@@ -4338,39 +4338,39 @@ function initialize(callback) {
               config = storedConfig;
               config.authenticationUrl = DEFAULT_AUTH_URL;
 
-              if (config.sessionViewType == "force") {
+              if (config.sessionViewType === "force") {
                 currentSessionView.setNodeMaxAge(config.defaultMaxAge);
                 initUpdateSessionsInterval(50);
                 initIgnoreWordsHashMap(function() {
                   console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
                 });
               }
-              if (config.sessionViewType == "ticker") {
+              if (config.sessionViewType === "ticker") {
                 currentSessionView.setNodeMaxAge(config.defaultMaxAge);
                 initIgnoreWordsHashMap(function() {
                   console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
                 });
               }
-              if (config.sessionViewType == "flow") {
+              if (config.sessionViewType === "flow") {
                 currentSessionView.setNodeMaxAge(config.defaultMaxAge);
                 initIgnoreWordsHashMap(function() {
                   console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
                 });
               }
-              if (config.sessionViewType == "treemap") {
+              if (config.sessionViewType === "treemap") {
                 currentSessionView.setNodeMaxAge(config.defaultMaxAge);
                 initIgnoreWordsHashMap(function() {
                   console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
                 });
               }
-              if (config.sessionViewType == "treepack") {
+              if (config.sessionViewType === "treepack") {
                 currentSessionView.setNodeMaxAge(config.defaultMaxAge);
                 initUpdateSessionsInterval(50);
                 initIgnoreWordsHashMap(function() {
                   console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
                 });
               }
-              if (config.sessionViewType == "histogram") {
+              if (config.sessionViewType === "histogram") {
                 currentSessionView.setNodeMaxAge(config.defaultMaxAge);
                 initIgnoreWordsHashMap(function() {
                   console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
@@ -4378,39 +4378,39 @@ function initialize(callback) {
               }
             }
             else {
-              if (config.sessionViewType == "force") {
+              if (config.sessionViewType === "force") {
                 currentSessionView.setNodeMaxAge(FORCE_MAX_AGE);
                 initUpdateSessionsInterval(50);
                 initIgnoreWordsHashMap(function() {
                   console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
                 });
               }
-              if (config.sessionViewType == "ticker") {
+              if (config.sessionViewType === "ticker") {
                 currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
                 initIgnoreWordsHashMap(function() {
                   console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
                 });
               }
-              if (config.sessionViewType == "flow") {
+              if (config.sessionViewType === "flow") {
                 currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
                 initIgnoreWordsHashMap(function() {
                   console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
                 });
               }
-              if (config.sessionViewType == "treemap") {
+              if (config.sessionViewType === "treemap") {
                 currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
                 initIgnoreWordsHashMap(function() {
                   console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
                 });
               }
-              if (config.sessionViewType == "treepack") {
+              if (config.sessionViewType === "treepack") {
                 currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
                 initUpdateSessionsInterval(50);
                 initIgnoreWordsHashMap(function() {
                   console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");
                 });
               }
-              if (config.sessionViewType == "histogram") {
+              if (config.sessionViewType === "histogram") {
                 currentSessionView.setNodeMaxAge(DEFAULT_MAX_AGE);
                 initIgnoreWordsHashMap(function() {
                   console.warn("INIT IGNORE WORD HASH MAP: " + ignoreWordsArray.length + " WORDS");

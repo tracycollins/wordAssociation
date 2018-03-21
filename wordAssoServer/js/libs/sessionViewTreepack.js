@@ -1526,6 +1526,13 @@ function ViewTreepack() {
           currentNode.followersMentions = newNode.followersCount + newNode.mentions;
         }
 
+        if (!newNode.keywordsAuto || (newNode.keywordsAuto === undefined)) {
+          currentNode.keywordsAuto = {};
+        }
+        else {
+          newNode.isKeyword = true;
+        }
+
         currentNode.displaytext = createDisplayText(currentNode);
 
         localNodeHashMap[currentNode.nodeId] = currentNode;

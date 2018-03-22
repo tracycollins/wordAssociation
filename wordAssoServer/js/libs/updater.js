@@ -397,8 +397,7 @@ const categoryUpdate = function(cObj, callback) {
           }
           else {
             console.log(chalkLog("+++ UPDATED CATEGORY"
-              + " | " + updatedHashtagObj.nodeId 
-              + " | " + updatedHashtagObj.raw 
+              + " | #" + updatedHashtagObj.nodeId 
               + " | M " + updatedHashtagObj.mentions 
               + " | C " + updatedHashtagObj.category 
               + " | CA " + updatedHashtagObj.category 
@@ -410,14 +409,13 @@ const categoryUpdate = function(cObj, callback) {
       else if (results.word) {
         wordServer.findOneWord(results.word, {noInc: true}, function(err, updatedWordObj) {
           if (err){
-            console.log(chalkError("ERROR: UPDATING HASHTAG CATEGORY | " + results.word.nodeId 
+            console.log(chalkError("ERROR: UPDATING WORD CATEGORY | " + results.word.nodeId 
               + ": " + results.word.category));
             callback(err, results.word);
           }
           else {
             console.log(chalkLog("+++ UPDATED CATEGORY"
               + " | " + updatedWordObj.nodeId 
-              + " | " + updatedWordObj.raw 
               + " | M " + updatedWordObj.mentions 
               + " | C " + updatedWordObj.category 
               + " | CA " + updatedWordObj.category 

@@ -53,7 +53,7 @@ console.log("viewerObj\n" + jsonPrint(viewerObj));
 
 var DEFAULT_AUTH_URL = "http://word.threeceelabs.com/auth/twitter";
 
-var keywordTypes = ["left", "neutral", "right", "positive", "negative"];
+var categoryTypes = ["left", "neutral", "right", "positive", "negative"];
 
 var debug = true;
 
@@ -103,23 +103,19 @@ requirejs(["https://d3js.org/d3.v4.min.js"], function(d3Loaded) {
 
       PARENT_ID = config.sessionViewType;
 
-      // initializedFlag = true;
-
       createStatsTable(function(){
         statsTableFlag = true;
       });
       addControlButton();
-      // addBlahButton();
       addLoginButton();
       addFullscreenButton();
       addMetricButton();
       addStatsButton();
-      addKeywordButton();
+      addCategoryButton();
 
       resetMouseMoveTimer();
       
       document.addEventListener("mousemove", function() {
-        // if (config.pauseOnMouseMove && (currentSessionView)) { 
         if (currentSessionView) { 
           if (config.pauseOnMouseMove) {
             currentSessionView.simulationControl("PAUSE"); 
@@ -135,7 +131,6 @@ requirejs(["https://d3js.org/d3.v4.min.js"], function(d3Loaded) {
   },
   function(error) {
     console.log("REQUIREJS ERROR handler", error);
-    //error.requireModules : is Array of all failed modules
     var failedId = error.requireModules && error.requireModules[0];
     console.log(failedId);
     console.log(error.message);
@@ -274,7 +269,7 @@ else {
   config.authenticationUrl = DEFAULT_AUTH_URL;
   config.twitterUser = {};
   config.twitterUser.userId = "";
-  config.autoKeywordsFlag = false;
+  config.autoCategoryFlag = false;
   config.metricMode = DEFAULT_METRIC_MODE;
   config.enableAgeNodes = true;
   config.defaultAgeRate = 1.0;
@@ -519,14 +514,14 @@ var nodeHashMap = new HashMap();
 
 var ignoreWordHashMap = new HashMap();
 
-var keywordColorHashMap = new HashMap();
+var categoryColorHashMap = new HashMap();
 
-keywordColorHashMap.set("positive", palette.green);
-keywordColorHashMap.set("negative", palette.red);
-keywordColorHashMap.set("neutral", palette.lightgray);
+categoryColorHashMap.set("positive", palette.green);
+categoryColorHashMap.set("negative", palette.red);
+categoryColorHashMap.set("neutral", palette.lightgray);
 
-keywordColorHashMap.set("left", palette.blue);
-keywordColorHashMap.set("right", palette.yellow);
+categoryColorHashMap.set("left", palette.blue);
+categoryColorHashMap.set("right", palette.yellow);
 
 
 var rxSessionUpdateQueue = [];
@@ -608,45 +603,12 @@ function msToTime(duration) {
   return days + ":" + hours + ":" + minutes + ":" + seconds;
 }
 
-function getKeywordColor(kwObj, callback){
+function getCategoryColor(c, callback){
 
-  if (!kwObj || (kwObj === undefined)) {
+  if (c === undefined) {
     return(callback(palette.white));
   }
-
-  /*
-    kwObj = {
-      keywordId: trump,
-      right: 100,
-      negative: 47
-    }
-  */
-
-  var keywordKeys = Object.keys(kwObj);
-
-  if (keywordKeys.length === 0) {
-    callback(palette.darkgray);
-  }
-
-  else {
-
-    var color = palette.white;
-
-    async.each(keywordKeys, function(kwType, cb){
-
-      if (kwType === "keywordId") {
-        cb();
-      }
-      else {
-        color = keywordColorHashMap.get(kwType);
-        cb();
-      }
-
-    }, function(err){
-      callback(color);
-    });
-
-  }
+  callback(categoryColorHashMap.get(c));
 }
 
 function saveConfig(){
@@ -814,19 +776,19 @@ function updateStatsText(statsText){
   statsDivElement.innerHTML = statsText;
 }
 
-function addKeywordButton(){
-  var keywordButton = document.createElement("BUTTON");
-  keywordButton.className = "button";
-  keywordButton.setAttribute("id", "keywordButton");
-  keywordButton.setAttribute("onclick", "toggleKeyword()");
-  keywordButton.innerHTML = config.autoKeywordsFlag ? "AUTO KEYWORD" : "MANUAL KEYWORD";
-  controlDivElement.appendChild(keywordButton);
+function addCategoryButton(){
+  var categoryButton = document.createElement("BUTTON");
+  categoryButton.className = "button";
+  categoryButton.setAttribute("id", "categoryButton");
+  categoryButton.setAttribute("onclick", "toggleCategory()");
+  categoryButton.innerHTML = config.autoCategoryFlag ? "AUTO CATEGORY" : "MANUAL CATEGORY";
+  controlDivElement.appendChild(categoryButton);
 }
 
-var keywordButtonElement = document.getElementById("keywordButton");
+var categoryButtonElement = document.getElementById("categoryButton");
 
-function updateKeywordButton(){
-  keywordButtonElement.innerHTML = config.autoKeywordsFlag ? "AUTO KEYWORD" : "MANUAL KEYWORD";
+function updateCategoryButton(){
+  categoryButtonElement.innerHTML = config.autoCategoryFlag ? "AUTO CATEGORY" : "MANUAL CATEGORY";
 }
 
 function addStatsButton(){
@@ -1095,22 +1057,22 @@ function controlPanelComm(event) {
           console.info("R< CONTROL PANEL CATEGORIZE"
             + " | " + data.node.nodeId
             + " | " + data.node.screenName
-            + "\n" + jsonPrint(data.keywords)
+            + " | " + data.category
           );
           socket.emit("TWITTER_CATEGORIZE_NODE", 
             { twitterUser: config.twitterUser,
-            keywords: data.keywords,
+            category: data.category,
             node: data.node}
           );
         }
         else if (data.node.nodeType === "hashtag"){
           console.info("R< CONTROL PANEL CATEGORIZE"
             + " | " + data.node.nodeId
-            + "\n" + jsonPrint(data.keywords)
+            + " | " + data.category
           );
           socket.emit("TWITTER_CATEGORIZE_NODE", 
             { twitterUser: config.twitterUser,
-            keywords: data.keywords,
+            category: data.category,
             node: data.node}
           );
         }
@@ -1232,12 +1194,12 @@ function toggleDisableLinks() {
   saveConfig();
 }
 
-function toggleKeyword() {
-  config.autoKeywordsFlag = !config.autoKeywordsFlag;
-  currentSessionView.setAutoKeywordsFlag(config.autoKeywordsFlag);
-  console.warn("AUTO KEYWORD: " + config.autoKeywordsFlag);
+function toggleCategory() {
+  config.autoCategoryFlag = !config.autoCategoryFlag;
+  currentSessionView.setAutoCategoryFlag(config.autoCategoryFlag);
+  console.warn("AUTO CATEGORY: " + config.autoCategoryFlag);
 
-  updateKeywordButton();
+  updateCategoryButton();
   if (controlPanelFlag) { controlPanel.updateControlPanel(config); }
   saveConfig();
 }
@@ -2195,16 +2157,14 @@ socket.on("SET_TWITTER_USER", function(twitterUser) {
     + " | FLWRs: " + twitterUser.followersCount 
     + " | FRNDs: " + twitterUser.friendsCount 
     + " | Ts: " + twitterUser.statusesCount 
-    + "\nKWs: " + jsonPrint(twitterUser.keywords) 
-    + "\nKWAs: " + jsonPrint(twitterUser.keywordsAuto)
+    + " | C: " + twitterUser.category
+    + " | CA: " + twitterUser.categoryAuto
   );
 
   if (twitterUser.userId === twitterUserThreecee.userId) {
     twitterUserThreecee = twitterUser;
     config.twitterUser = twitterUser;
   }
-
-  // config.twitterUser = twitterUser;
 
   currentSessionView.setTwitterUser(twitterUser);
 });
@@ -2214,8 +2174,8 @@ socket.on("SET_TWITTER_HASHTAG", function(twitterHashtag) {
   console.log("SET_TWITTER_HASHTAG" 
     + " | " + twitterHashtag.hashtagId 
     + " | #" + twitterHashtag.text 
-    + "\nKWs: " + jsonPrint(twitterHashtag.keywords) 
-    + "\nKWAs: " + jsonPrint(twitterHashtag.keywordsAuto)
+    + " | C: " + twitterHashtag.category
+    + " | CA: " + twitterHashtag.categoryAuto
   );
 
   currentSessionView.setTwitterHashtag(twitterHashtag);
@@ -2290,19 +2250,18 @@ function initSocketSessionUpdateRx(){
       newNode = rxNodeQueue.shift();
 
       newNode.isTopTerm = newNode.isTopTerm || false;
-      newNode.isKeyword = newNode.isKeyword || false;
 
-      var keywords = {};
-      if (config.autoKeywordsFlag && (newNode.keywordsAuto !== undefined) && newNode.keywordsAuto){
-        keywords = newNode.keywordsAuto;
+      var category;
+      if (config.autoCategoryFlag &&  newNode.categoryAuto){
+        category = newNode.categoryAuto;
       }
       else {
-        keywords = newNode.keywords;
+        category = newNode.category;
       }
 
-      getKeywordColor(keywords, function(color){
-        newNode.keywordColor = color;
-      });  // KLUDGE!  need better way to do keywords
+      getCategoryColor(category, function(color){
+        newNode.categoryColor = color;
+      });
 
       newNode.age = 1e-6;
       newNode.ageMaxRatio = 1e-6;
@@ -2321,93 +2280,23 @@ function initSocketSessionUpdateRx(){
         newNode.nodeId = newNode.text;
       }
 
-      newNode.keywordsMismatch = false;
-      newNode.keywordsMatch = false;
+      newNode.categoryMismatch = newNode.category && newNode.categoryAuto && (newNode.category !== newNode.categoryAuto);
+      newNode.categoryMatch = newNode.category && newNode.categoryAuto && (newNode.category === newNode.categoryAuto);
 
-      if ((newNode.keywordsAuto !== undefined) && newNode.keywordsAuto) {
-
-        if (config.autoKeywordsFlag) { 
-          keywords = newNode.keywordsAuto;
-        }
-        else {
-          keywords = newNode.keywords;
-        }
-
-        if ((newNode.keywords !== undefined) && newNode.keywords && (Object.keys(newNode.keywords).length > 0)) {
-
-          const kws = Object.keys(newNode.keywords);
-
-          async.each(kws, function(kw, cb){
-
-            if (keywordTypes.includes(kw)){
-              if (newNode.keywordsAuto[kw] !== undefined){
-                newNode.keywordsMatch = true;
-                newNode.keywordsMismatch = false;
-                cb();
-              }
-              else {
-                newNode.keywordsMatch = false;
-                newNode.keywordsMismatch = true;  
-                cb();      
-              }
-            }
-            else {
-              cb();      
-            }
-          }, function(err){
-
-            if (((config.sessionViewType === "treemap") || (config.sessionViewType === "treepack"))
-              && ((newNode.nodeType !== "user") || (enableUserNodes && (newNode.nodeType === "user")))) {
-              currentSessionView.addNode(newNode);
-            }
-            else if ((config.sessionViewType === "histogram")
-              && ((newNode.nodeType !== "user") || (enableUserNodes && (newNode.nodeType === "user")))) {
-              currentSessionView.addNode(newNode);
-            }
-            else if ((config.sessionViewType !== "treemap") 
-              && (config.sessionViewType !== "treepack") 
-              && (config.sessionViewType !== "histogram")) {
-              currentSessionView.addNode(newNode);
-            }
-
-            rxNodeQueueReady = true;
-          });
-        }
-        else {
-
-          if (((config.sessionViewType === "treemap") || (config.sessionViewType === "treepack"))
-            && ((newNode.nodeType !== "user") || (enableUserNodes && (newNode.nodeType === "user")))) {
-            currentSessionView.addNode(newNode);
-          }
-          else if ((config.sessionViewType === "histogram")
-            && ((newNode.nodeType !== "user") || (enableUserNodes && (newNode.nodeType === "user")))) {
-            currentSessionView.addNode(newNode);
-          }
-          else if ((config.sessionViewType !== "treemap") 
-            && (config.sessionViewType !== "treepack") 
-            && (config.sessionViewType !== "histogram")) {
-            currentSessionView.addNode(newNode);
-          }
-
-          rxNodeQueueReady = true;
-        }
+      if (((config.sessionViewType === "treemap") || (config.sessionViewType === "treepack"))
+        && ((newNode.nodeType !== "user") || (enableUserNodes && (newNode.nodeType === "user")))) {
+        currentSessionView.addNode(newNode);
       }
-      else {
-        if (((config.sessionViewType === "treemap") || (config.sessionViewType === "treepack"))
-          && ((newNode.nodeType !== "user") || (enableUserNodes && (newNode.nodeType === "user")))) {
-          currentSessionView.addNode(newNode);
-        }
-        else if ((config.sessionViewType === "histogram")
-          && ((newNode.nodeType !== "user") || (enableUserNodes && (newNode.nodeType === "user")))) {
-          currentSessionView.addNode(newNode);
-        }
-        else if ((config.sessionViewType !== "treemap") 
-          && (config.sessionViewType !== "treepack") 
-          && (config.sessionViewType !== "histogram")) {
-          currentSessionView.addNode(newNode);
-        }
-        rxNodeQueueReady = true;
+      else if ((config.sessionViewType === "histogram")
+        && ((newNode.nodeType !== "user") || (enableUserNodes && (newNode.nodeType === "user")))) {
+        currentSessionView.addNode(newNode);
       }
+      else if ((config.sessionViewType !== "treemap") 
+        && (config.sessionViewType !== "treepack") 
+        && (config.sessionViewType !== "histogram")) {
+        currentSessionView.addNode(newNode);
+      }
+      rxNodeQueueReady = true;
 
     }
   }, RX_NODE_QUEUE_INTERVAL);
@@ -2450,18 +2339,17 @@ function initSocketNodeRx(){
     }
 
     nNode.isTopTerm = nNode.isTopTerm || false;
-    nNode.isKeyword = nNode.isKeyword || false;
 
-    var keywords = {};
-    if (config.autoKeywordsFlag && (nNode.keywordsAuto !== undefined) && nNode.keywordsAuto){
-      keywords = nNode.keywordsAuto;
+    var category;
+    if (config.autoCategoryFlag && nNode.categoryAuto){
+      category = nNode.categoryAuto;
     }
     else {
-      keywords = nNode.keywords;
+      category = nNode.category;
     }
 
-    getKeywordColor(keywords, function(color){
-      nNode.keywordColor = color;
+    getCategoryColor(category, function(color){
+      nNode.categoryColor = color;
     });
 
     nNode.age = 1e-6;
@@ -2481,86 +2369,23 @@ function initSocketNodeRx(){
       newNode.nodeId = nNode.text;
     }
 
-    newNode.keywordsMismatch = false;
-    newNode.keywordsMatch = false;
+    newNode.categoryMismatch = nNode.category && nNode.categoryAuto && (nNode.category !== nNode.categoryAuto);
+    newNode.categoryMatch = nNode.category && nNode.categoryAuto && (nNode.category === nNode.categoryAuto);
 
-    if ((nNode.keywordsAuto !== undefined) && nNode.keywordsAuto) {
-
-      if (config.autoKeywordsFlag) { 
-        keywords = nNode.keywordsAuto;
-      }
-      else {
-        keywords = nNode.keywords;
-      }
-
-      if ((nNode.keywords !== undefined) && nNode.keywords && (Object.keys(nNode.keywords).length > 0)) {
-        const kws = Object.keys(nNode.keywords);
-
-        async.each(kws, function(kw, cb){
-
-          if (keywordTypes.includes(kw)){
-            if (newNode.keywordsAuto[kw] !== undefined){
-              newNode.keywordsMatch = true;
-              newNode.keywordsMismatch = false;
-              cb();
-            }
-            else {
-              newNode.keywordsMatch = false;
-              newNode.keywordsMismatch = true;  
-              cb();      
-            }
-          }
-          else {
-            cb();      
-          }
-
-        }, function(err){
-          if (((config.sessionViewType === "treemap") || (config.sessionViewType === "treepack"))
-            && ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user")))) {
-            currentSessionView.addNode(newNode);
-          }
-          else if ((config.sessionViewType === "histogram")
-            && ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user")))) {
-            currentSessionView.addNode(newNode);
-          }
-          else if ((config.sessionViewType !== "treemap") 
-            && (config.sessionViewType !== "treepack") 
-            && (config.sessionViewType !== "histogram")) {
-            currentSessionView.addNode(newNode);
-          }
-        });
-      }
-      else {
-          if (((config.sessionViewType === "treemap") || (config.sessionViewType === "treepack"))
-            && ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user")))) {
-            currentSessionView.addNode(newNode);
-          }
-          else if ((config.sessionViewType === "histogram")
-            && ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user")))) {
-            currentSessionView.addNode(newNode);
-          }
-          else if ((config.sessionViewType !== "treemap") 
-            && (config.sessionViewType !== "treepack") 
-            && (config.sessionViewType !== "histogram")) {
-            currentSessionView.addNode(newNode);
-          }
-      }
+    if (((config.sessionViewType === "treemap") || (config.sessionViewType === "treepack"))
+      && ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user")))) {
+      currentSessionView.addNode(newNode);
     }
-    else {
-      if (((config.sessionViewType === "treemap") || (config.sessionViewType === "treepack"))
-        && ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user")))) {
-        currentSessionView.addNode(newNode);
-      }
-      else if ((config.sessionViewType === "histogram")
-        && ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user")))) {
-        currentSessionView.addNode(newNode);
-      }
-      else if ((config.sessionViewType !== "treemap") 
-        && (config.sessionViewType !== "treepack") 
-        && (config.sessionViewType !== "histogram")) {
-        currentSessionView.addNode(newNode);
-      }
+    else if ((config.sessionViewType === "histogram")
+      && ((nNode.nodeType !== "user") || (enableUserNodes && (nNode.nodeType === "user")))) {
+      currentSessionView.addNode(newNode);
     }
+    else if ((config.sessionViewType !== "treemap") 
+      && (config.sessionViewType !== "treepack") 
+      && (config.sessionViewType !== "histogram")) {
+      currentSessionView.addNode(newNode);
+    }
+
   });
 
   socket.on("STATS_HASHTAG", function(htStatsObj){
@@ -3298,23 +3123,23 @@ var createNode = function(callback) {
             sourceNode = nodeHashMap.get(sourceNodeId);
             sourceNode.sessionNodeId = session.node.nodeId;
             sourceNode.isTopTerm = session.source.isTopTerm;
-            sourceNode.isKeyword = session.source.isKeyword;
             sourceNode.isTrendingTopic = session.source.isTrendingTopic;
 
-            sourceNode.keywords = session.source.keywords;
-            sourceNode.keywordsAuto = session.source.keywordsAuto;
+            sourceNode.category = session.source.category;
+            sourceNode.categoryAuto = session.source.categoryAuto;
 
-            var keywords = {};
-            if (config.autoKeywordsFlag && (session.source.keywordsAuto !== undefined) && session.source.keywordsAuto){
-              keywords = session.source.keywordsAuto;
+            var category;
+            if (config.autoCategoryFlag && session.source.categoryAuto){
+              category = session.source.categoryAuto;
             }
             else {
-              keywords = session.source.keywords;
+              category = session.source.category;
             }
 
-            getKeywordColor(keywords, function(color){
-              sourceNode.keywordColor = color;
-            });  // KLUDGE!  need better way to do keywords
+            getCategoryColor(category, function(color){
+              sourceNode.categoryColor = color;
+            });
+
             sourceNode.latestNode = true;
             sourceNode.newFlag = false;
             sourceNode.userId = session.userId;
@@ -3371,25 +3196,24 @@ var createNode = function(callback) {
               sourceNode.isIgnored = true;
             }
             sourceNode.isTopTerm = session.source.isTopTerm;
-            sourceNode.isKeyword = session.source.isKeyword;
 
-            if (config.autoKeywordsFlag && (session.source.keywordsAuto !== undefined) && session.source.keywordsAuto){
-              keywords = session.source.keywordsAuto;
+            var category;
+            if (config.autoCategoryFlag && session.source.categoryAuto){
+              category = session.source.categoryAuto;
             }
             else {
-              keywords = session.source.keywords;
+              category = session.source.category;
             }
 
-            if (keywords !== undefined) {
-              getKeywordColor(keywords, function(color){
-                sourceNode.keywordColor = color;
-              });  // KLUDGE!  need better way to do keywords
+            if (category) {
+              getCategoryColor(category, function(color){
+                sourceNode.categoryColor = color;
+              });
             }
             else {
               console.error("KEWORDS UNDEFINED");
-              sourceNode.keywordColor = palette.black;
+              sourceNode.categoryColor = palette.black;
             }
-
 
             sourceNode.isTrendingTopic = session.source.isTrendingTopic;
             sourceNode.newFlag = true;
@@ -3465,7 +3289,6 @@ var createNode = function(callback) {
             }
             targetNode.nodeType = "word"; // KLUDGE
             targetNode.isTrendingTopic = session.target.isTrendingTopic;
-            targetNode.isKeyword = session.target.isKeyword;
             targetNode.isTopTerm = session.target.isTopTerm;
             targetNode.userId = session.userId;
             targetNode.sessionId = session.sessionId;
@@ -3532,24 +3355,23 @@ var createNode = function(callback) {
             }
             targetNode.isTrendingTopic = session.target.isTrendingTopic;
             targetNode.isTopTerm = session.target.isTopTerm;
-            targetNode.isKeyword = session.target.isKeyword;
 
-            var keywords = {};
-            if (config.autoKeywordsFlag && (session.target.keywordsAuto !== undefined) && session.target.keywordsAuto){
-              keywords = session.target.keywordsAuto;
+            var category;
+            if (config.autoCategoryFlag && session.target.categoryAuto){
+              category = session.target.categoryAuto;
             }
             else {
-              keywords = session.target.keywords;
+              category = session.target.category;
             }
 
-            if (keywords !== undefined) {
-              getKeywordColor(keywords, function(color){
-                targetNode.keywordColor = color;
-              });  // KLUDGE!  need better way to do keywords
+            if (category) {
+              getCategoryColor(category, function(color){
+                targetNode.categoryColor = color;
+              });
             }
             else {
               console.error("KEWORDS UNDEFINED");
-              targetNode.keywordColor = palette.black;
+              targetNode.categoryColor = palette.black;
             }
 
             targetNode.userId = session.userId;

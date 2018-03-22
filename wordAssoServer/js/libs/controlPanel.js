@@ -69,8 +69,8 @@ function ControlPanel() {
   statsObj.user = {};
   statsObj.user.name = "---";
   statsObj.user.screenName = "@";
-  statsObj.user.keywords = "---";
-  statsObj.user.keywordsAuto = "---";
+  statsObj.user.category = "---";
+  statsObj.user.categoryAuto = "---";
   statsObj.user.followersCount = 0;
   statsObj.user.friendsCount = 0;
   statsObj.user.statusesCount = 0;
@@ -136,11 +136,11 @@ function ControlPanel() {
 
   twitterCategorySearchDiv.appendChild(nextUncategorizedButton);
 
-  function updateCategoryRadioButtons(keyword, callback){
-    console.warn("updateCategoryRadioButtons | " + keyword);
+  function updateCategoryRadioButtons(category, callback){
+    console.warn("updateCategoryRadioButtons | " + category);
 
-    if (keyword === undefined || !keyword) {
-      keyword = "none";
+    if (category === undefined || !category) {
+      category = "none";
     }
     var element;
 
@@ -151,7 +151,7 @@ function ControlPanel() {
     document.getElementById("categoryNegative").setAttribute("checked", false);
     document.getElementById("categoryNone").setAttribute("checked", true);
 
-    switch(keyword) {
+    switch(category) {
       case "left":
         element = document.getElementById("categoryLeft");
         element.checked = true;
@@ -200,7 +200,7 @@ function ControlPanel() {
 
       document.getElementById("userScreenNameText").innerHTML = "<h4>@" + node.screenName + "</h4>";
       document.getElementById("userNameText").innerHTML = "<h4>" + name + "</h4>";
-      document.getElementById("userKeywordText").innerHTML = "M: " + node.keywords + " | A: " + node.keywordsAuto;
+      document.getElementById("userCategoryText").innerHTML = "M: " + node.category + " | A: " + node.categoryAuto;
       document.getElementById("userFollowersCountText").innerHTML = node.followersCount;
       document.getElementById("userFriendsCountText").innerHTML = node.friendsCount;
       document.getElementById("userStatusesCountText").innerHTML = node.statusesCount;
@@ -210,8 +210,8 @@ function ControlPanel() {
 
       statsObj.user.name = name;
       statsObj.user.screenName = node.screenName;
-      statsObj.user.keywords = node.keywords;
-      statsObj.user.keywordsAuto = node.keywordsAuto;
+      statsObj.user.category = node.category;
+      statsObj.user.categoryAuto = node.categoryAuto;
       statsObj.user.followersCount = node.followersCount;
       statsObj.user.friendsCount = node.friendsCount;
       statsObj.user.statusesCount = node.statusesCount;
@@ -247,7 +247,7 @@ function ControlPanel() {
     hashtagText.innerHTML = "<br><br>" 
       + "#" + text
       + "<br><br>"
-      + "KW: M: " + node.keywords
+      + "C: M: " + node.category
       + "<br><br>";
 
     hashtagDiv.removeAll();
@@ -264,53 +264,32 @@ function ControlPanel() {
 
   function loadTwitterFeed(node) {
 
-    var keywords = "-";
-    var keywordsAuto = "-";
-
-    // if (node.keywords 
-    //   && (node.keywords !== undefined) 
-    //   && (Object.keys(node.keywords).length > 0)){
-    //   keywords = Object.keys(node.keywords)[0];
-    // }
-
-    // if (node.keywordsAuto 
-    //   && (node.keywordsAuto !== undefined) 
-    //   && (Object.keys(node.keywordsAuto).length > 0)){
-    //   keywordsAuto = Object.keys(node.keywordsAuto)[0];
-    // }
-
-    // node.keywords = keywords;
-    // node.keywordsAuto = keywordsAuto;
+    var category = "-";
+    var categoryAuto = "-";
 
     console.debug("loadTwitterFeed"
       + " | " + node.nodeType
       + " | " + node.nodeId
-      + " | " + node.keywords
-      + " | " + node.keywordsAuto
+      + " | " + node.category
+      + " | " + node.categoryAuto
     );
 
     hashtagDiv.removeAll();
     timelineDiv.removeAll();
 
     if (node.nodeType === "user"){
-      updateCategoryRadioButtons(node.keywords, function(){
+      updateCategoryRadioButtons(node.category, function(){
         twitterWidgetsCreateTimeline(node, function(err, el){
-
           var nsi =document.getElementById("nodeSearchInput");
           nsi.value = "@" + node.screenName;
-
-          // callback(err, el);
         });
       });
     }
     else if (node.nodeType === "hashtag"){
-      updateCategoryRadioButtons(node.keywords, function(){
+      updateCategoryRadioButtons(node.category, function(){
         twitterHashtagSearch(node, function(err, el){
-
           var nsi =document.getElementById("nodeSearchInput");
           nsi.value = "#" + node.text;
-
-          // callback(err, el);
         });
       });
     }
@@ -322,7 +301,7 @@ function ControlPanel() {
 
     var currentButton = document.getElementById(e.target.id);
     currentButton.setAttribute("checked", true);
-    var keywords = {};
+    var category = false;
 
     console.warn("CATEGORY BUTTON"
      + " | ID: " + e.target.id
@@ -332,31 +311,31 @@ function ControlPanel() {
     switch (e.target.id){
       case "categoryLeft":
         console.log("LEFT | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
-        keywords = { left: 100 };
+        category = "left";
       break;
       case "categoryRight":
         console.log("RIGHT | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
-        keywords = { right: 100 };
+        category = "right";
       break;
       case "categoryNeutral":
         console.log("NEUTRAL | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
-        keywords = { neutral: 100 };
+        category = "neutral";
       break;
       case "categoryPositive":
         console.log("POSITIVE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
-        keywords = { positive: 100 };
+        category = "positive";
       break;
       case "categoryNegative":
         console.log("NEGATIVE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
-        keywords = { negative: 100 };
+        category = "negative";
       break;
       case "categoryNone":
         console.log("NONE | " + currentTwitterNode.nodeType + " | " + currentTwitterNode.nodeId);
-        keywords = false;
+        category = false;
       break;
     }
 
-    parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, keywords: keywords}, DEFAULT_SOURCE);
+    parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, category: category}, DEFAULT_SOURCE);
   }
 
   var categoryLeftLabel = document.createElement("label");
@@ -1186,11 +1165,11 @@ function ControlPanel() {
     user3cFollowingLabel.class = "userStatusText";
     user3cFollowingLabel.text = "3C FOLLOW";
 
-    var userKeywordText = {
+    var userCategoryText = {
       type: "TEXT",
-      id: "userKeywordText",
+      id: "userCategoryText",
       class: "userStatusText",
-      text: "M: " + statsObj.user.keywords + " | A: " + statsObj.user.keywordsAuto
+      text: "M: " + statsObj.user.category + " | A: " + statsObj.user.categoryAuto
     };
 
     var userKeywordLabel = {};
@@ -1232,7 +1211,7 @@ function ControlPanel() {
       case "treepack":
         self.tableCreateRow(controlTable, optionsBody, [resetButton, pauseButton, statsButton, fullscreenButton]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userScreenNameText, userNameText]);
-        self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userKeywordLabel, userKeywordText]);
+        self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userKeywordLabel, userCategoryText]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userFollowersCountLabel, userFollowersCountText]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userFriendsCountLabel, userFriendsCountText]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userMentionsLabel, userMentionsText]);

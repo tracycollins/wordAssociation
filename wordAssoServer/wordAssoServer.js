@@ -448,8 +448,8 @@ function printUser(params) {
       + " | FRNDs: " + params.user.friendsCount 
       + " | FLWRs: " + params.user.followersCount 
       + " | LAd: " + params.user.languageAnalyzed 
-      + "KWM: " + params.user.category
-      + "KWA: " + params.user.categoryAuto;
+      + " | CAT MAN: " + params.user.category
+      + " | CAT AUTO: " + params.user.categoryAuto;
     return text;
   }
 }
@@ -1367,11 +1367,13 @@ function categorizeNode(categorizeObj) {
           console.log(chalkError("*** USER UPDATE CATEGORY ERROR: " + jsonPrint(err)));
         }
         else {
-          if (updater !== undefined){
+          if ((updater !== undefined) && (updatedUser)){
 
             updater.send({
               op: "UPDATE_CATEGORY",
-              nodeId: categorizeObj.node.screenName.toLowerCase(),
+              nodeType: "user",
+              nodeId: updatedUser.userId,
+              screenName: updatedUser.screenName.toLowerCase(),
               category: categorizeObj.category
             }, function updaterPingError(err){
               if (err) {
@@ -1388,7 +1390,6 @@ function categorizeNode(categorizeObj) {
               + ": " + categorizeObj.category;
 
             slackPostMessage(slackChannel, text);
-
 
             debug(chalkLog(">UPDATER UPDATE_CATEGORY USER | @" + updatedUser.screenName ));
           }
@@ -1419,7 +1420,8 @@ function categorizeNode(categorizeObj) {
 
             updater.send({
               op: "UPDATE_CATEGORY",
-              word: categorizeObj.node.nodeId.toLowerCase(),
+              nodeType: "hashtag",
+              nodeId: categorizeObj.node.nodeId.toLowerCase(),
               category: categorizeObj.category
             }, function updaterPingError(err){
               if (err) {

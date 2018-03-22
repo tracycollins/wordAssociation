@@ -162,7 +162,7 @@ function initTweetParserQueueInterval(cnf){
         + " [" + tweetParserQueue.length + "]"
         + " | " + tweet.id_str
         + " | " + tweet.user.id_str
-        + " | " + tweet.user.screen_name
+        + " | @" + tweet.user.screen_name
         + " | " + tweet.user.name
         + " | Ts: " + tweet.user.statuses_count
         + " | FLs: " + tweet.user.followers_count

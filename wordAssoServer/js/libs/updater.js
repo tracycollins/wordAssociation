@@ -1,23 +1,24 @@
 /*jslint node: true */
 "use strict";
 
-const DEFAULT_KEYWORD_VALUE = 100; // on scale of 1-100
+const DEFAULT_CATEGORY_VALUE = 100; // on scale of 1-100
 
 const ONE_SECOND = 1000;
 const ONE_MINUTE = ONE_SECOND * 60;
 
-let defaultKeywordsFile = "keywords.json";
+let dropboxConfigDefaultFolder = "/config/utility/default";
+let defaultCategoryFile = "category.json";
 
 const compactDateTimeFormat = "YYYYMMDD HHmmss";
 
 let initGroupsReady = false;
 
 require("isomorphic-fetch");
-// const Dropbox = require("dropbox").Dropbox;
-const Dropbox = require("./dropbox").Dropbox;
+const Dropbox = require("dropbox").Dropbox;
+// const Dropbox = require("./dropbox").Dropbox;
 
 const debug = require("debug")("ud");
-const debugKeyword = require("debug")("kw");
+const debugCategory = require("debug")("kw");
 const moment = require("moment");
 const os = require("os");
 const equal = require("deep-equal");
@@ -53,8 +54,8 @@ hostname = hostname.replace(/.home/g, "");
 hostname = hostname.replace(/.fios-router.home/g, "");
 hostname = hostname.replace(/word0-instance-1/g, "google");
 
-let localKeywordHashMap = {};
-let newKeywordsHashMap = {};
+let localCategoryHashMap = {};
+let newCategoryHashMap = {};
 
 
 let statsObj = {};
@@ -104,8 +105,8 @@ debug("DROPBOX_WORD_ASSO_APP_SECRET :" + DROPBOX_WORD_ASSO_APP_SECRET);
 
 const dropboxClient = new Dropbox({ accessToken: DROPBOX_WORD_ASSO_ACCESS_TOKEN });
 
-let keywordUpdateInterval;
-let keywordsUpdateReady = true;
+let categoryUpdateInterval;
+let categoryUpdateReady = true;
 
 const getTimeStamp = function(inputTime) {
 
@@ -123,43 +124,36 @@ const getTimeStamp = function(inputTime) {
   return currentTimeStamp.format(compactDateTimeFormat);
 };
 
-const sendKeywords = function(callback){
+const sendCategory = function(callback){
 
-  debug(chalkInfo("sendKeywords START"));
+  debug(chalkInfo("sendCategory START"));
 
-  const words = Object.keys(newKeywordsHashMap);
+  const words = Object.keys(newCategoryHashMap);
 
-  let keywordsSent = 0;
+  let categorySent = 0;
 
-  async.eachSeries(
+  async.eachSeries(words, function(word, cb) {
 
-    words,
-
-    function(word, cb) {
-
-      debugKeyword(chalkInfo("sendKeywords\nword: " + jsonPrint(word)));
-
-      let kwObj = newKeywordsHashMap[word];
-      kwObj.keywordId = word;
+      debugCategory(chalkInfo("sendCategory\nword: " + jsonPrint(word)));
 
       let updaterObj = {};
-      updaterObj.type = "keyword";
+      updaterObj.type = "category";
       updaterObj.pid = process.pid;
-      updaterObj.keyword = {};
-      updaterObj.keyword = kwObj;
+      updaterObj.nodeId = word;
+      updaterObj.category = newCategoryHashMap[word];
 
       process.send(updaterObj, function(err){
         if (err){
-          console.log(chalkError("sendKeywords ERROR\n" + err));
+          console.log(chalkError("sendCategory ERROR\n" + err));
           cb(err);
         }
         else {
-          keywordsSent += 1;
-          debugKeyword(chalkInfo("UPDATER SEND KEYWORD"
+          categorySent += 1;
+          debugCategory(chalkInfo("UPDATER SEND CATEGORY"
             + " | " + word
             + " | " + jsonPrint(updaterObj)
           ));
-          if (keywordsSent%500 === 0) { console.log(chalkInfo("SENT " + keywordsSent + "/" + words.length + " KEYWORDS")); }
+          if (categorySent%500 === 0) { console.log(chalkInfo("SENT " + categorySent + "/" + words.length + " CATEGORY")); }
           cb();
         }
       });
@@ -170,7 +164,7 @@ const sendKeywords = function(callback){
 
       if (err) {
 
-        console.log(chalkError("sendKeywords ERROR! " + err));
+        console.log(chalkError("sendCategory ERROR! " + err));
         callback(err, null);
 
       }
@@ -178,19 +172,19 @@ const sendKeywords = function(callback){
 
         if (words.length > 0) {
 
-          debug(chalkInfo("SEND KEYWORDS COMPLETE | " + words.length + " KEYWORDS"));
+          debug(chalkInfo("SEND CATEGORY COMPLETE | " + words.length + " CATEGORY"));
 
-          process.send({ type: "sendKeywordsComplete", pid: process.pid , keywords: words.length}, function(err){
+          process.send({ type: "sendCategoryComplete", pid: process.pid , category: words.length}, function(err){
             if (err) {
-              console.log(chalkError("*** UPDATER SEND KEYWORDS ERROR"
+              console.log(chalkError("*** UPDATER SEND CATEGORY ERROR"
                 + " | " + err
               ));
               callback(err, null);
             }
             else {
               console.log(chalkInfo(getTimeStamp()
-                + " | SEND KEYWORDS COMPLETE"
-                + " | " + words.length + " KEYWORDS"
+                + " | SEND CATEGORY COMPLETE"
+                + " | " + words.length + " CATEGORY"
               ));
               callback(null, words.length);
             }
@@ -205,7 +199,7 @@ const sendKeywords = function(callback){
   );
 };
 
-let prevKeywordModifiedMoment = moment("2010-01-01");
+let prevCategoryModifiedMoment = moment("2010-01-01");
 
 function saveFile (path, file, jsonObj, callback){
 
@@ -243,66 +237,54 @@ function saveFile (path, file, jsonObj, callback){
     });
 }
 
-const keywordUpdate = function(w, kwObj, callback) {
+const categoryUpdate = function(kwObj, callback) {
 
-  // debug("keywordUpdate | w: " + w + " | " + jsonPrint(kwObj));
-  debug("keywordUpdate | " + w);
+  debug("categoryUpdate\n" + jsonPrint(kwObj));
 
-  let wd = w.toLowerCase();
-  wd = wd.replace(/\./g, "");  // KLUDGE:  better way to handle "." in keywords?
+  // let wd = Object.keys(kwObj)[0];
 
   let wordObj = new Word();
 
-  wordObj.nodeId = wd;
-  wordObj.isKeyword = true;
+  wordObj.nodeId = kwObj.nodeId;
+  wordObj.isCategory = true;
+  wordObj.category = kwObj.category;
 
-  // KLUDEGE: OVERWRITES ANY PREVIOUS KEYWORD SETTINGS FOR NOW
-  wordObj.keywords = {};
+  if (localCategoryHashMap[kwObj.nodeId] !== undefined) {
 
-  if (typeof kwObj === "string") {  // old style keyword: true/false; convert to new style
-    wordObj.keywords[kwObj.toLowerCase()] = DEFAULT_KEYWORD_VALUE;
-    wordObj.keywords.keywordId = wd;
-  }
-  else {
-    wordObj.keywords = kwObj ? kwObj : "none";
-    wordObj.keywords.keywordId = wd;
-  }
+    debug(chalkAlert("* KW HM HIT | " + kwObj.nodeId));
 
-  if (localKeywordHashMap[wd] !== undefined) {
+    const prevCategoryObj = localCategoryHashMap[kwObj.nodeId];
 
-    debug(chalkAlert("* KW HM HIT | " + wd));
-
-    const prevKeywordObj = localKeywordHashMap[wd];
-
-    if (equal(prevKeywordObj, wordObj.keywords)){
-      debug(chalkAlert("--- WORD UNCHANGED ... SKIPPING | " + wd));
+    if (prevCategoryObj.category === kwObj.category){
+      debug(chalkAlert("--- WORD UNCHANGED ... SKIPPING | " + kwObj.nodeId));
       callback(null, wordObj);
     }
     else {
       console.log(chalkAlert("+++ WORD CHANGED"
-        + " | " + wd
-        + "\nPREV\n" + jsonPrint(prevKeywordObj)
-        + "\nNEW\n" + jsonPrint(wordObj.keywords)
+        + " | " + wordObj.nodeId
+        + " | PREV: " + prevCategoryObj.category
+        + " | NEW: " + wordObj.category
       ));
 
-      debug(chalkInfo("UPDATER: UPDATING KEYWORD | " + wd + ": " + jsonPrint(wordObj)));
+      debug(chalkInfo("UPDATER: UPDATING CATEGORY | " + wordObj.nodeId + ": " + wordObj.category));
 
-      newKeywordsHashMap[wordObj.nodeId] = wordObj.keywords;
-      localKeywordHashMap[wordObj.nodeId] = wordObj.keywords;
+      newCategoryHashMap[wordObj.nodeId] = wordObj.category;
+      localCategoryHashMap[wordObj.nodeId] = wordObj.category;
 
       wordServer.findOneWord(wordObj, {noInc: true}, function(err, updatedWordObj) {
         if (err){
-          console.log(chalkError("ERROR: UPDATING KEYWORD | " + wd + ": " + kwObj));
+          console.log(chalkError("ERROR: UPDATING CATEGORY | " + kwObj.nodeId + ": " + kwObj.category));
           callback(err, wordObj);
         }
         else {
-          debug(chalkLog("+++ UPDATED KEYWORD"
+          debug(chalkLog("+++ UPDATED CATEGORY"
             + " | " + updatedWordObj.nodeId 
             + " | " + updatedWordObj.raw 
             + " | M " + updatedWordObj.mentions 
             + " | I " + updatedWordObj.isIgnored 
-            + " | K " + updatedWordObj.isKeyword 
-            + " | K " + jsonPrint(updatedWordObj.keywords) 
+            + " | K " + updatedWordObj.isCategory 
+            + " | CAT " + updatedWordObj.category 
+            // + " | K " + jsonPrint(updatedWordObj.category) 
           ));
           callback(null, updatedWordObj);
         }
@@ -310,27 +292,30 @@ const keywordUpdate = function(w, kwObj, callback) {
     }
   }
   else {
-    debug(chalkInfo("UPDATER: UPDATING KEYWORD"
-      + " | " + wd
-      + ": " + jsonPrint(wordObj)
+    debug(chalkInfo("UPDATER: UPDATING CATEGORY"
+      + " | " + wordObj.nodeId
+      + ": " + wordObj.category
     ));
 
-    newKeywordsHashMap[wordObj.nodeId] = wordObj.keywords;
-    localKeywordHashMap[wordObj.nodeId] = wordObj.keywords;
+    newCategoryHashMap[wordObj.nodeId] = wordObj.category;
+    localCategoryHashMap[wordObj.nodeId] = wordObj.category;
 
     wordServer.findOneWord(wordObj, {noInc: true}, function(err, updatedWordObj) {
       if (err){
-        console.log(chalkError("ERROR: UPDATING KEYWORD | " + wd + ": " + kwObj));
+        console.log(chalkError("ERROR: UPDATING CATEGORY"
+          + " | " + wordObj.nodeId + ": " + wordObj.category
+        ));
         callback(err, wordObj);
       }
       else {
-        debug(chalkLog("+++ UPDATED KEYWORD"
+        debug(chalkLog("+++ UPDATED CATEGORY"
           + " | " + updatedWordObj.nodeId 
           + " | " + updatedWordObj.raw 
           + " | M " + updatedWordObj.mentions 
           + " | I " + updatedWordObj.isIgnored 
-          + " | K " + updatedWordObj.isKeyword 
-          + " | K " + jsonPrint(updatedWordObj.keywords) 
+          + " | K " + updatedWordObj.isCategory 
+          + " | CAT " + updatedWordObj.category 
+          + " | K " + jsonPrint(updatedWordObj.category) 
         ));
         callback(null, updatedWordObj);
       }
@@ -350,34 +335,34 @@ function getFileMetadata (path, callback){
     });
 }
 
-const updateKeywords = function(folder, file, callback){
+const updateCategory = function(folder, file, callback){
 
-  newKeywordsHashMap = {};
+  newCategoryHashMap = {};
 
   const fullPath = folder + "/" + file;
 
-  debug(chalkLog("UPDATE KEYWORDS " + fullPath));
+  debug(chalkLog("UPDATE CATEGORY " + fullPath));
 
   getFileMetadata(fullPath, function(err, metaData){
 
-    const keywordFileClientModifiedMoment = moment(new Date(metaData.client_modified));
+    const categoryFileClientModifiedMoment = moment(new Date(metaData.client_modified));
 
-    if (keywordFileClientModifiedMoment.isSameOrBefore(prevKeywordModifiedMoment)){
-      debug(chalk.blue("KEYWORD FILE BEFORE OR EQUAL"
-        + " | PREV: " + prevKeywordModifiedMoment.format(compactDateTimeFormat)
-        + " | " + keywordFileClientModifiedMoment.format(compactDateTimeFormat)
+    if (categoryFileClientModifiedMoment.isSameOrBefore(prevCategoryModifiedMoment)){
+      debug(chalk.blue("CATEGORY FILE BEFORE OR EQUAL"
+        + " | PREV: " + prevCategoryModifiedMoment.format(compactDateTimeFormat)
+        + " | " + categoryFileClientModifiedMoment.format(compactDateTimeFormat)
       ));
       callback(null, 0);
     }
     else {
-      console.log(chalk.blue("=K= KEYWORD FILE AFTER"
-        + " | PREV: " + prevKeywordModifiedMoment.format(compactDateTimeFormat)
-        + " | " + keywordFileClientModifiedMoment.format(compactDateTimeFormat)
+      console.log(chalk.blue("=K= CATEGORY FILE AFTER"
+        + " | PREV: " + prevCategoryModifiedMoment.format(compactDateTimeFormat)
+        + " | " + categoryFileClientModifiedMoment.format(compactDateTimeFormat)
       ));
 
-      console.log(chalkInfo("=K= UPDATING KEYWORDS | " + folder + "/" + file));
+      console.log(chalkInfo("=K= UPDATING CATEGORY | " + folder + "/" + file));
 
-      prevKeywordModifiedMoment = moment(keywordFileClientModifiedMoment);
+      prevCategoryModifiedMoment = moment(categoryFileClientModifiedMoment);
 
       dropboxClient.filesDownload({path: fullPath})
         .then(function(data){
@@ -390,8 +375,8 @@ const updateKeywords = function(folder, file, callback){
           try {
             return JSON.parse(data);
           }
-          catch(err){
-            console.log(chalkError("JSON PARSE ERROR: " , err));
+          catch(err1){
+            console.log(chalkError("JSON PARSE ERROR: " , err1));
           }
         })
         .then(function(kwordsObj){
@@ -403,15 +388,11 @@ const updateKeywords = function(folder, file, callback){
             + " | " + fullPath
           ));
 
-          async.eachSeries(words,
+          async.eachSeries(words, function(w, cb) {
 
-            function(w, cb) {
-
-              let kwObj = kwordsObj[w];  // kwObj = { "negative": 10, "right": 7 }
-
-              keywordUpdate(w, kwObj, function(err, updatedWord){
+              categoryUpdate({nodeId: w, category: kwordsObj[w]}, function(err, updatedWord){
                 if (err) {
-                  console.log(chalkError("keywordUpdate ERROR! " + err));
+                  console.log(chalkError("categoryUpdate ERROR! " + err));
                 }
                 async.setImmediate(function() {
                   cb(err);
@@ -422,16 +403,16 @@ const updateKeywords = function(folder, file, callback){
 
             function(err) {
               if (err) {
-                console.log(chalkError("initKeywords ERROR! " + err));
+                console.log(chalkError("initCategory ERROR! " + err));
                 callback(err, null);
               }
               else {
-                console.log(chalkInfo("=== KEYWORD UPDATE COMPLETE"
+                console.log(chalkInfo("=== CATEGORY UPDATE COMPLETE"
                   + " | " + getTimeStamp()
-                  + " | TOTAL KEYWORDS: " + Object.keys(newKeywordsHashMap).length
+                  + " | TOTAL CATEGORY: " + Object.keys(newCategoryHashMap).length
                 ));
 
-                callback(null, Object.keys(newKeywordsHashMap).length);
+                callback(null, Object.keys(newCategoryHashMap).length);
               }
             }
           );
@@ -447,32 +428,32 @@ const updateKeywords = function(folder, file, callback){
 
 };
 
-const initKeywordUpdateInterval = function(options){
+const initCategoryUpdateInterval = function(options){
 
-  clearInterval(keywordUpdateInterval);
-  keywordsUpdateReady = true;
+  clearInterval(categoryUpdateInterval);
+  categoryUpdateReady = true;
 
-  console.log(chalkLog("UPDATER: *** START UPDATE KEYWORDS INTERVAL | " + options.interval + " MS"
+  console.log(chalkLog("UPDATER: *** START UPDATE CATEGORY INTERVAL | " + options.interval + " MS"
     + "\n" + jsonPrint(options)
   ));
 
-  keywordUpdateInterval = setInterval(function() {
+  categoryUpdateInterval = setInterval(function() {
 
-    debug(chalk.blue(moment().format(compactDateTimeFormat) + " | UPDATER KEYWORDS INTERVAL"));
+    debug(chalk.blue(moment().format(compactDateTimeFormat) + " | UPDATER CATEGORY INTERVAL"));
 
-    if (keywordsUpdateReady) {
+    if (categoryUpdateReady) {
 
-      keywordsUpdateReady = false;
+      categoryUpdateReady = false;
 
-      updateKeywords("", options.keywordsFile, function(err, count){
+      updateCategory(options.folder, options.categoryFile, function(err, count){
         if (err) {
-          console.log(chalkError("UPDATER UPDATE KEYWORDS ERROR: " + err));
-          keywordsUpdateReady = true;
+          console.log(chalkError("UPDATER UPDATE CATEGORY ERROR: " + err));
+          categoryUpdateReady = true;
         }
         else {
-          debug("update keywords: " + count);
-          sendKeywords(function(){
-            keywordsUpdateReady = true;
+          debug("update category: " + count);
+          sendCategory(function(){
+            categoryUpdateReady = true;
           });
         }
       });
@@ -491,53 +472,54 @@ process.on("message", function(m) {
 
     case "INIT":
 
-      clearInterval(keywordUpdateInterval);
+      clearInterval(categoryUpdateInterval);
  
-      prevKeywordModifiedMoment = moment("2010-01-01");
+      prevCategoryModifiedMoment = moment("2010-01-01");
 
       console.log(chalkInfo("UPDATE INIT"
         + " | FOLDER: " + m.folder
-        + " | KEYWORD FILE: " + m.keywordFile
+        + " | CATEGORY FILE: " + m.categoryFile
         + " | INTERVAL: " + m.interval
       ));
 
       options = {
         folder: m.folder,
-        keywordsFile: m.keywordFile,
+        categoryFile: m.categoryFile,
         interval: m.interval
       };
 
-      initKeywordUpdateInterval(options);
+      initCategoryUpdateInterval(options);
     break;
 
     case "UPDATE":
 
       console.log(chalkInfo("UPDATER UPDATE"
         + " | UPDATE TYPE: " + m.updateType
-        + " | KEYWORD FILE: " + m.keywordFile
+        + " | CATEGORY FILE: " + m.categoryFile
       ));
 
-      updateKeywords("", m.keywordsFile, function(err, count){
+      updateCategory(m.folder, m.categoryFile, function(err, count){
         if (err) {
-          console.log(chalkError("UPDATER UPDATE KEYWORDS ERROR: " + err));
+          console.log(chalkError("UPDATER UPDATE CATEGORY ERROR: " + err));
         }
         else {
-          debug("update keywords: " + count);
-          sendKeywords(function(){
-            debug("sent updated keywords: " + count);
+          debug("update category: " + count);
+          sendCategory(function(){
+            debug("sent updated category: " + count);
           });
         }
       });
     break;
 
-    case "UPDATE_KEYWORD":
-      console.log(chalkInfo("UPDATER UPDATE_KEYWORD"
-        + " | WORD: " + m.word
-        + " | KWs\n" + jsonPrint(m.keywords)
+    case "UPDATE_CATEGORY":
+      console.log(chalkInfo("UPDATER UPDATE_CATEGORY"
+        + " | CATEGORY: " + jsonPrint(m.wordObj)
+        // + " | KWs\n" + jsonPrint(m.category)
       ));
-      keywordUpdate(m.word, m.keywords, function(err, wordObj){
+      // categoryUpdate(m.kwObj, function(err, wordObj){
+      categoryUpdate({nodeId: m.wordObj.nodeId, category: m.wordObj.category}, function(err, wordObj){
 
-        saveFile("", defaultKeywordsFile, localKeywordHashMap, function(err, results){});
+        saveFile(dropboxConfigDefaultFolder, defaultCategoryFile, localCategoryHashMap, function(err, results){});
       });
     break;
 

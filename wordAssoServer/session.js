@@ -2,8 +2,8 @@
 /*jslint node: true */
 "use strict";
 
-// var DEFAULT_SOURCE = "http://localhost:9997";
-var DEFAULT_SOURCE = "http://word.threeceelabs.com";
+var DEFAULT_SOURCE = "http://localhost:9997";
+// var DEFAULT_SOURCE = "http://word.threeceelabs.com";
 // var DEFAULT_SOURCE = "==SOURCE==";  // will be updated by wordAssoServer.js on app.get
 
 const RX_NODE_QUEUE_INTERVAL = 10;
@@ -1051,6 +1051,8 @@ function controlPanelComm(event) {
       console.info("R< CONTROL PANEL LOOPBACK? | INIT ... IGNORING ...");
       break;
     case "CATEGORIZE":
+
+    // parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, category: category}, DEFAULT_SOURCE);
 
       if (statsObj.isAuthenticated) {
 

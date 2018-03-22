@@ -21,10 +21,8 @@ const debug = require("debug")("ud");
 const debugCategory = require("debug")("kw");
 const moment = require("moment");
 const os = require("os");
-const equal = require("deep-equal");
 const async = require("async");
 const chalk = require("chalk");
-const chalkRed = chalk.red;
 const chalkInfo = chalk.gray;
 const chalkAlert = chalk.red;
 const chalkError = chalk.bold.red;
@@ -33,19 +31,27 @@ const chalkLog = chalk.black;
 const mongoose = require("mongoose");
 mongoose.Promise = global.Promise;
 
+const hashtagModel = require("@threeceelabs/mongoose-twitter/models/hashtag.server.model");
+const userModel = require("@threeceelabs/mongoose-twitter/models/user.server.model");
 const wordModel = require("@threeceelabs/mongoose-twitter/models/word.server.model");
 
 const wordAssoDb = require("@threeceelabs/mongoose-twitter");
 const dbConnection = wordAssoDb();
 
 let Word;
+let User;
+let Hashtag;
 
 dbConnection.on("error", console.error.bind(console, "connection error:"));
 dbConnection.once("open", function() {
   console.log("CONNECT: wordAssoServer UPDATER Mongo DB default connection open");
   Word = mongoose.model("Word", wordModel.WordSchema);
+  User = mongoose.model("User", userModel.UserSchema);
+  Hashtag = mongoose.model("Hashtag", hashtagModel.HashtagSchema);
 });
 
+const hashtagServer = require("@threeceelabs/hashtag-server-controller");
+const userServer = require("@threeceelabs/user-server-controller");
 const wordServer = require("@threeceelabs/word-server-controller");
 
 let hostname = os.hostname();
@@ -56,7 +62,6 @@ hostname = hostname.replace(/word0-instance-1/g, "google");
 
 let localCategoryHashMap = {};
 let newCategoryHashMap = {};
-
 
 let statsObj = {};
 statsObj.db = {};
@@ -86,7 +91,6 @@ const quit = function(message) {
     + " | UPDATER: **** QUITTING"
     + " | CAUSE: " + msg
     + " | PID: " + process.pid
-    
   );
 
   process.exit();
@@ -230,97 +234,285 @@ function saveFile (path, file, jsonObj, callback){
           + " | !!! ERROR DROBOX JSON WRITE | FILE: " + fullPath 
           + "\nERROR: " + error
           + "\nERROR: " + jsonPrint(error)
-          // + "\nERROR\n" + jsonPrint(error)
         ));
       }
       callback(error, null);
     });
 }
 
-const categoryUpdate = function(kwObj, callback) {
+const categoryUpdate = function(cObj, callback) {
 
-  debug("categoryUpdate\n" + jsonPrint(kwObj));
+  debug("categoryUpdate\n" + jsonPrint(cObj));
 
-  // let wd = Object.keys(kwObj)[0];
+  let prevCategoryObj = {};
+  prevCategoryObj.category = "";
 
-  let wordObj = new Word();
+  if (localCategoryHashMap[cObj.nodeId] !== undefined) {
+    prevCategoryObj = localCategoryHashMap[cObj.nodeId];
+  }
 
-  wordObj.nodeId = kwObj.nodeId;
-  wordObj.isCategory = true;
-  wordObj.category = kwObj.category;
+  if (prevCategoryObj.category === cObj.category){
+    debug(chalkAlert("* CAT HM HIT | " + cObj.nodeId));
+    console.log(chalkAlert("--- NODE CATEGORY UNCHANGED"
+      + " | TYPE: " + prevCategoryObj.nodeType
+      + " | ID: " + prevCategoryObj.nodeId
+      + " | " + prevCategoryObj.display
+      + " | PREV: " + prevCategoryObj.category
+      + " | NEW: " + cObj.category
+    ));
+    return(callback(null, {updated: false, obj: prevCategoryObj}));
+  }
 
-  if (localCategoryHashMap[kwObj.nodeId] !== undefined) {
+  debug(chalkAlert("+++ NODE CATEGORY CHANGED"
+    + " | ID: " + cObj.nodeId
+    + " | PREV: " + prevCategoryObj.category
+    + " | NEW: " + cObj.category
+  ));
 
-    debug(chalkAlert("* KW HM HIT | " + kwObj.nodeId));
+  let nodeObj;
 
-    const prevCategoryObj = localCategoryHashMap[kwObj.nodeId];
+  if (cObj.nodeType === undefined) {
+    async.parallel({
+        user: function(cb) {
+          User.findOne({screenName: cObj.nodeId.toLowerCase()}, function(err, user) {
+            if (err) {
+              console.log(chalkError("categoryUpdate: ERROR DB FIND ONE USER | " + err));
+              cb(err, null);
+            }
+            else if (user) {
+              debug(chalkInfo("categoryUpdate: USER DB HIT "
+                + " | @" + cObj.nodeId.toLowerCase()
+              ));
+              nodeObj = new User();
+              nodeObj.nodeId = user.nodeId;
+              nodeObj.userId = user.userId;
+              nodeObj.screenName = user.screenName.toLowerCase();
+              nodeObj.display = "@" + user.screenName.toLowerCase();
+              nodeObj.isCategory = true;
+              nodeObj.category = cObj.category;
+              nodeObj.categoryAuto = cObj.categoryAuto;
+              newCategoryHashMap[nodeObj.nodeId] = nodeObj.category;
+              localCategoryHashMap[nodeObj.nodeId] = nodeObj.category;
+              cb(null, nodeObj);
+            }
+            else {
+              debug(chalkInfo("categoryUpdate: USER DB MISS"
+                + " | @" + cObj.nodeId.toLowerCase()
+              ));
+              cb(null, null);
+            }
+          });
+        },
+        hashtag: function(cb) {
+          Hashtag.findOne({nodeId: cObj.nodeId.toLowerCase()}, function(err, hashtag){
+            if (err) {
+              console.log(chalkError("categoryUpdate: ERROR DB FIND ONE HASHTAG | " + err));
+              cb(err, null);
+            }
+            else if (hashtag) {
+              debug(chalkInfo("categoryUpdate: HASHTAG DB HIT "
+                + " | " + cObj.nodeId.toLowerCase()
+              ));
+              nodeObj = new Hashtag();
+              nodeObj.nodeId = hashtag.nodeId.toLowerCase();
+              nodeObj.hashtagId = hashtag.nodeId.toLowerCase();
+              nodeObj.text = hashtag.nodeId.toLowerCase();
+              nodeObj.display = "#" + hashtag.nodeId.toLowerCase();
+              nodeObj.isCategory = true;
+              nodeObj.category = cObj.category;
+              nodeObj.categoryAuto = cObj.categoryAuto;
+              newCategoryHashMap[nodeObj.nodeId] = nodeObj.category;
+              localCategoryHashMap[nodeObj.nodeId] = nodeObj.category;
+              cb(null, nodeObj);
+            }
+            else{
+              debug(chalkInfo("categoryUpdate: HASHTAG DB MISS"
+                + " | #" + cObj.nodeId.toLowerCase()
+              ));
+              cb(null, null);
+            }
+          });
+        },
+        word: function(cb) {
+          Word.findOne({nodeId: cObj.nodeId.toLowerCase()}, function(err, word){
+            if (err) {
+              console.log(chalkError("categoryUpdate: ERROR DB FIND ONE WORD | " + err));
+              cb(err, null);
+            }
+            else if (word) {
+              debug(chalkInfo("categoryUpdate: WORD DB HIT "
+                + " | " + cObj.nodeId.toLowerCase()
+              ));
+              nodeObj = new Word();
+              nodeObj.nodeId = word.nodeId.toLowerCase();
+              nodeObj.wordId = word.nodeId.toLowerCase();
+              nodeObj.display = word.nodeId.toLowerCase();
+              nodeObj.isCategory = true;
+              nodeObj.category = cObj.category;
+              nodeObj.categoryAuto = cObj.categoryAuto;
+              newCategoryHashMap[nodeObj.nodeId] = nodeObj.category;
+              localCategoryHashMap[nodeObj.nodeId] = nodeObj.category;
+              cb(null, nodeObj);
+            }
+            else{
+              debug(chalkInfo("categoryUpdate: WORD DB MISS"
+                + " | " + cObj.nodeId.toLowerCase()
+              ));
+              cb(null, null);
+            }
+          });
+        }
+    }, function(err, results) {
+      if (err) {
+        return(callback(err, null));
+      }
 
-    if (prevCategoryObj.category === kwObj.category){
-      debug(chalkAlert("--- WORD UNCHANGED ... SKIPPING | " + kwObj.nodeId));
-      callback(null, wordObj);
-    }
-    else {
-      console.log(chalkAlert("+++ WORD CHANGED"
-        + " | " + wordObj.nodeId
-        + " | PREV: " + prevCategoryObj.category
-        + " | NEW: " + wordObj.category
-      ));
+      if (results.user) {
+        // console.log("results.user\n" + jsonPrint(results.user));
+        userServer.findOneUser(results.user, { noInc: true}, function(err, updatedUser){
+          if (err){
+            console.log(chalkError("ERROR: UPDATING CATEGORY"
+              + " | " + results.user.nodeId 
+              + " | " + results.user.category));
+            callback(err, results.user);
+          }
+          else {
+            console.log(chalkLog("+++ UPDATED CATEGORY"
+              + " | " + updatedUser.nodeId 
+              + " | @" + updatedUser.screenName 
+              + " | M " + updatedUser.mentions 
+              + " | I " + updatedUser.isIgnored 
+              + " | C " + updatedUser.category 
+              + " | CA " + updatedUser.categoryAuto
+            ));
+            callback(null, updatedUser);
+          }
+        });
+      }
+      else if (results.hashtag) {
+        hashtagServer.findOneHashtag(results.hashtag, {noInc: true}, function(err, updatedHashtagObj) {
+          if (err){
+            console.log(chalkError("ERROR: UPDATING HASHTAG CATEGORY | " + results.hashtag.nodeId 
+              + ": " + results.hashtag.category));
+            callback(err, results.hashtag);
+          }
+          else {
+            console.log(chalkLog("+++ UPDATED CATEGORY"
+              + " | " + updatedHashtagObj.nodeId 
+              + " | " + updatedHashtagObj.raw 
+              + " | M " + updatedHashtagObj.mentions 
+              + " | C " + updatedHashtagObj.category 
+              + " | CA " + updatedHashtagObj.category 
+            ));
+            callback(null, updatedHashtagObj);
+          }
+        });
+      }
+      else if (results.word) {
+        wordServer.findOneWord(results.word, {noInc: true}, function(err, updatedWordObj) {
+          if (err){
+            console.log(chalkError("ERROR: UPDATING HASHTAG CATEGORY | " + results.word.nodeId 
+              + ": " + results.word.category));
+            callback(err, results.word);
+          }
+          else {
+            console.log(chalkLog("+++ UPDATED CATEGORY"
+              + " | " + updatedWordObj.nodeId 
+              + " | " + updatedWordObj.raw 
+              + " | M " + updatedWordObj.mentions 
+              + " | C " + updatedWordObj.category 
+              + " | CA " + updatedWordObj.category 
+            ));
+            callback(null, updatedWordObj);
+          }
+        });
+      }
+      else {
+        callback(null, null);
+      }
+    });
+  }
+  else {
 
-      debug(chalkInfo("UPDATER: UPDATING CATEGORY | " + wordObj.nodeId + ": " + wordObj.category));
+    debug(chalkInfo("UPDATER: UPDATING CATEGORY | " + cObj.nodeId + ": " + cObj.category));
 
-      newCategoryHashMap[wordObj.nodeId] = wordObj.category;
-      localCategoryHashMap[wordObj.nodeId] = wordObj.category;
+    newCategoryHashMap[cObj.nodeId] = cObj.category;
+    localCategoryHashMap[cObj.nodeId] = cObj.category;
 
-      wordServer.findOneWord(wordObj, {noInc: true}, function(err, updatedWordObj) {
+    if (cObj.nodeType === "user") {
+      nodeObj = new User();
+      nodeObj.nodeId = cObj.nodeId;
+      nodeObj.screenName = cObj.screenName.toLowerCase();
+      nodeObj.display = "@" + cObj.screenName;
+      nodeObj.isCategory = true;
+      nodeObj.category = cObj.category;
+      userServer.findOneUser(nodeObj, { noInc: true}, function(err, updatedUser){
         if (err){
-          console.log(chalkError("ERROR: UPDATING CATEGORY | " + kwObj.nodeId + ": " + kwObj.category));
-          callback(err, wordObj);
+          console.log(chalkError("ERROR: UPDATING CATEGORY | " + nodeObj.nodeId + ": " + nodeObj.category));
+          callback(err, nodeObj);
+        }
+        else {
+          debug(chalkLog("+++ UPDATED CATEGORY"
+            + " | " + updatedUser.nodeId 
+            + " | @" + updatedUser.screenName 
+            + " | M " + updatedUser.mentions 
+            + " | I " + updatedUser.isIgnored 
+            + " | C " + updatedUser.category 
+            + " | CA " + updatedUser.categoryAuto
+          ));
+          callback(null, updatedUser);
+        }
+      });
+    }
+    else if (cObj.nodeType === "hashtag") {
+      nodeObj = new Hashtag();
+      nodeObj.nodeId = cObj.nodeId;
+      nodeObj.text = cObj.nodeId;
+      nodeObj.display = "#" + cObj.nodeId;
+      nodeObj.isCategory = true;
+      nodeObj.category = cObj.category;
+      hashtagServer.findOneHashtag(nodeObj, {noInc: true}, function(err, updatedHashtagObj) {
+        if (err){
+          console.log(chalkError("ERROR: UPDATING HASHTAG CATEGORY | " + nodeObj.nodeId + ": " + nodeObj.category));
+          callback(err, nodeObj);
+        }
+        else {
+          debug(chalkLog("+++ UPDATED CATEGORY"
+            + " | " + updatedHashtagObj.nodeId 
+            + " | " + updatedHashtagObj.raw 
+            + " | M " + updatedHashtagObj.mentions 
+            + " | C " + updatedHashtagObj.category 
+            + " | CA " + updatedHashtagObj.category 
+          ));
+          callback(null, updatedHashtagObj);
+        }
+      });
+    }
+    else if (cObj.nodeType === "word") {
+      nodeObj = new Word();
+      nodeObj.nodeId = cObj.nodeId;
+      nodeObj.display = cObj.nodeId;
+      nodeObj.isCategory = true;
+      nodeObj.category = cObj.category;
+      wordServer.findOneWord(nodeObj, {noInc: true}, function(err, updatedWordObj) {
+        if (err){
+          console.log(chalkError("ERROR: UPDATING HASHTAG CATEGORY | " + nodeObj.nodeId + ": " + nodeObj.category));
+          callback(err, nodeObj);
         }
         else {
           debug(chalkLog("+++ UPDATED CATEGORY"
             + " | " + updatedWordObj.nodeId 
             + " | " + updatedWordObj.raw 
             + " | M " + updatedWordObj.mentions 
-            + " | I " + updatedWordObj.isIgnored 
-            + " | K " + updatedWordObj.isCategory 
-            + " | CAT " + updatedWordObj.category 
-            // + " | K " + jsonPrint(updatedWordObj.category) 
+            + " | C " + updatedWordObj.category 
+            + " | CA " + updatedWordObj.category 
           ));
           callback(null, updatedWordObj);
         }
       });
     }
   }
-  else {
-    debug(chalkInfo("UPDATER: UPDATING CATEGORY"
-      + " | " + wordObj.nodeId
-      + ": " + wordObj.category
-    ));
 
-    newCategoryHashMap[wordObj.nodeId] = wordObj.category;
-    localCategoryHashMap[wordObj.nodeId] = wordObj.category;
-
-    wordServer.findOneWord(wordObj, {noInc: true}, function(err, updatedWordObj) {
-      if (err){
-        console.log(chalkError("ERROR: UPDATING CATEGORY"
-          + " | " + wordObj.nodeId + ": " + wordObj.category
-        ));
-        callback(err, wordObj);
-      }
-      else {
-        debug(chalkLog("+++ UPDATED CATEGORY"
-          + " | " + updatedWordObj.nodeId 
-          + " | " + updatedWordObj.raw 
-          + " | M " + updatedWordObj.mentions 
-          + " | I " + updatedWordObj.isIgnored 
-          + " | K " + updatedWordObj.isCategory 
-          + " | CAT " + updatedWordObj.category 
-          + " | K " + jsonPrint(updatedWordObj.category) 
-        ));
-        callback(null, updatedWordObj);
-      }
-    });
-  }
 };
 
 function getFileMetadata (path, callback){
@@ -390,7 +582,7 @@ const updateCategory = function(folder, file, callback){
 
           async.eachSeries(words, function(w, cb) {
 
-              categoryUpdate({nodeId: w, category: kwordsObj[w]}, function(err, updatedWord){
+              categoryUpdate({nodeId: w, category: kwordsObj[w]}, function(err, updatedNodeObj){
                 if (err) {
                   console.log(chalkError("categoryUpdate ERROR! " + err));
                 }
@@ -467,6 +659,7 @@ process.on("message", function(m) {
   debug(chalkInfo("RX MESSAGE\n" + jsonPrint(m)));
 
   let options;
+  let sn = "";
 
   switch (m.op) {
 
@@ -512,13 +705,19 @@ process.on("message", function(m) {
     break;
 
     case "UPDATE_CATEGORY":
+      // op: "UPDATE_CATEGORY",
+      // nodeType: "user",
+      // nodeId: updatedUser.userId,
+      // screenName: updatedUser.screenName.toLowerCase(),
+      // category: categorizeObj.category
+      sn = (m.nodeType === "user") ? (" | @" + m.screenName) : "";
       console.log(chalkInfo("UPDATER UPDATE_CATEGORY"
-        + " | CATEGORY: " + jsonPrint(m.wordObj)
-        // + " | KWs\n" + jsonPrint(m.category)
+        + " | NODE TYPE: " + m.nodeType
+        + " | NODE ID: " + m.nodeId
+        + " | CAT: " + m.category.toUpperCase()
+        + sn
       ));
-      // categoryUpdate(m.kwObj, function(err, wordObj){
-      categoryUpdate({nodeId: m.wordObj.nodeId, category: m.wordObj.category}, function(err, wordObj){
-
+      categoryUpdate(m, function(err, wordObj){
         saveFile(dropboxConfigDefaultFolder, defaultCategoryFile, localCategoryHashMap, function(err, results){});
       });
     break;

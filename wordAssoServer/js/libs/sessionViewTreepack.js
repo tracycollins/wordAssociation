@@ -196,12 +196,12 @@ function ViewTreepack() {
     this.newFlag = true;
     this.x = 0.5*width;
     this.y = 0.5*height;
-    this.isKeyword = false;
-    this.keywords = false;
-    this.keywordsAuto = false;
+    this.isCategory = false;
+    this.category = false;
+    this.categoryAuto = false;
     this.isTopTerm = false;
     this.isTrendingTopic = false;
-    this.keywordColor = palette.white;
+    this.categoryColor = palette.white;
     this.followersMentions = 0;
   } 
 
@@ -210,7 +210,7 @@ function ViewTreepack() {
   });
 
 
-  var autoKeywordsFlag = config.autoKeywordsFlag;
+  var autoCategoryFlag = config.autoCategoryFlag;
 
   var metricMode = config.defaultMetricMode;
   var transitionDuration = config.defaultTransitionDuration;
@@ -335,10 +335,10 @@ function ViewTreepack() {
   var maxAgeRate = 0;
 
 
-  var keywordsMatchColor = palette.green;
-  var keywordsMatchStrokeWidth = "4.0";
-  var keywordsMismatchStrokeWidth = "4.0";
-  var keywordsAutoStrokeWidth = "3.0";
+  var categoryMatchColor = palette.green;
+  var categoryMatchStrokeWidth = "4.0";
+  var categoryMismatchStrokeWidth = "4.0";
+  var categoryAutoStrokeWidth = "3.0";
 
 
   var divTooltip = d3.select("body").append("div")
@@ -580,9 +580,9 @@ function ViewTreepack() {
     console.debug("SET BLAH: " + blahMode);
   };
 
-  this.setAutoKeywordsFlag = function(flag) {
-    autoKeywordsFlag = flag;
-    console.debug("SET AUTO KEYWORDS: " + autoKeywordsFlag);
+  this.setAutoCategoryFlag = function(flag) {
+    autoCategoryFlag = flag;
+    console.debug("SET AUTO CATEGORY: " + autoCategoryFlag);
   };
 
   this.setRemoveDeadNodesFlag = function(flag) {
@@ -645,19 +645,19 @@ function ViewTreepack() {
 
     simulation
       .force("forceX", d3.forceX().x(function(d) { 
-        if ((autoKeywordsFlag && d.keywordsAuto) || (!d.keywords && d.keywordsAuto)){
-          return foci[d.keywordsAuto].x;
+        if ((autoCategoryFlag && d.categoryAuto) || (!d.category && d.categoryAuto)){
+          return foci[d.categoryAuto].x;
         }
-        if (d.keywords){ return foci[d.keywords].x; }
+        if (d.category){ return foci[d.category].x; }
         return foci.default.x;
       }).strength(function(d){
         return forceXmultiplier * gravity; 
       }))
       .force("forceY", d3.forceY().y(function(d) { 
-        if ((autoKeywordsFlag && d.keywordsAuto) || (!d.keywords && d.keywordsAuto)){
-          return foci[d.keywordsAuto].y;
+        if ((autoCategoryFlag && d.categoryAuto) || (!d.category && d.categoryAuto)){
+          return foci[d.categoryAuto].y;
         }
-        if (d.keywords){ return foci[d.keywords].y; }
+        if (d.category){ return foci[d.category].y; }
         return foci.default.y;
       }).strength(function(d){
         return forceYmultiplier * gravity; 
@@ -802,11 +802,10 @@ function ViewTreepack() {
         prevNode = localNodeHashMap[node.nodeId];
 
         node.isTopTerm = prevNode.isTopTerm;
-        node.isKeyword = prevNode.isKeyword;
-        node.keywordColor = prevNode.keywordColor;
+        node.categoryColor = prevNode.categoryColor;
         node.isTrendingTopic = prevNode.isTrendingTopic;
-        node.keywords = prevNode.keywords;
-        node.keywordsAuto = prevNode.keywordsAuto;
+        node.category = prevNode.category;
+        node.categoryAuto = prevNode.categoryAuto;
 
         nodes[ageNodesIndex] = node;
 
@@ -893,8 +892,8 @@ function ViewTreepack() {
           + "<br>Ms: " + d.mentions
           + "<br>Ts: " + d.statusesCount
           + "<br>" + d.rate.toFixed(2) + " WPM"
-          + "<br>KWs: " + d.keywords
-          + "<br>AKWs: " + d.keywordsAuto;
+          + "<br>C: " + d.category
+          + "<br>CA: " + d.categoryAuto;
       break;
 
       case "hashtag":
@@ -909,22 +908,22 @@ function ViewTreepack() {
         tooltipString = "#" + d.nodeId
           + "<br>Ms: " + d.mentions
           + "<br>" + d.rate.toFixed(2) + " WPM"
-          + "<br>KWs: " + d.keywords
-          + "<br>AKWs: " + d.keywordsAuto;
+          + "<br>C: " + d.category
+          + "<br>CA: " + d.categoryAuto;
       break;
       case "word":
         tooltipString = d.nodeId
           + "<br>Ms: " + d.mentions
           + "<br>" + d.rate.toFixed(2) + " WPM"
-          + "<br>KWs: " + d.keywords
-          + "<br>AKWs: " + d.keywordsAuto;
+          + "<br>C: " + d.category
+          + "<br>CA: " + d.categoryAuto;
       break;
       case "place":
         tooltipString = d.fullName
           + "<br>Ms: " + d.mentions
           + "<br>" + d.rate.toFixed(2) + " WPM"
-          + "<br>KWs: " + d.keywords
-          + "<br>AKWs: " + d.keywordsAuto;
+          + "<br>C: " + d.category
+          + "<br>CA: " + d.categoryAuto;
       break;
     }
 
@@ -1044,7 +1043,7 @@ function ViewTreepack() {
       })
       .style("fill", function updateTopTermFill(d) { 
         if (d.mouseHoverFlag) { return palette.blue; }
-        if (d.isKeyword) { return d.keywordColor; }
+        if (d.category || d.categoryAuto) { return d.categoryColor; }
         if (d.isTrendingTopic || d.isTwitterUser || d.isNumber || d.isCurrency) { return palette.white; }
         if ((d.isGroupNode || d.isSessionNode) && (d.ageMaxRatio < 0.01)) { return palette.yellow; }
         return palette.darkgray; 
@@ -1076,26 +1075,26 @@ function ViewTreepack() {
         return d.y; 
       })
       .style("fill", function (d) { 
-        if (!d.isKeyword) { return palette.black; }
-        return d.keywordColor; 
+        if (!d.category && !d.categoryAuto) { return palette.black; }
+        return d.categoryColor; 
       })
       .style("stroke", function (d) {
-        if (d.keywordsMismatch) { return palette.red; }
-        if (d.keywordsMatch) { return keywordsMatchColor; }
-        if (d.keywordsAuto === "right") { return palette.yellow; }
-        if (d.keywordsAuto === "left") { return palette.blue; }
-        if (d.keywordsAuto === "positive") { return palette.green; }
-        if (d.keywordsAuto ==="negative") { return palette.red; }
+        if (d.categoryMismatch) { return palette.red; }
+        if (d.categoryMatch) { return categoryMatchColor; }
+        if (d.categoryAuto === "right") { return palette.yellow; }
+        if (d.categoryAuto === "left") { return palette.blue; }
+        if (d.categoryAuto === "positive") { return palette.green; }
+        if (d.categoryAuto ==="negative") { return palette.red; }
         return palette.white; 
       })
       .style("stroke-width", function (d) { 
-        if (d.keywordsMatch) { return keywordsMatchStrokeWidth; }
+        if (d.categoryMatch) { return categoryMatchStrokeWidth; }
         if (d.isTopTerm) { return "3.0"; }
         if (d.newFlag) { return "3.0"; }
-        if (d.keywordsAuto === "right") { return keywordsAutoStrokeWidth; }
-        if (d.keywordsAuto === "left") { return keywordsAutoStrokeWidth; }
-        if (d.keywordsAuto === "positive") { return keywordsAutoStrokeWidth; }
-        if (d.keywordsAuto ==="negative") { return keywordsAutoStrokeWidth; }
+        if (d.categoryAuto === "right") { return categoryAutoStrokeWidth; }
+        if (d.categoryAuto === "left") { return categoryAutoStrokeWidth; }
+        if (d.categoryAuto === "positive") { return categoryAutoStrokeWidth; }
+        if (d.categoryAuto ==="negative") { return categoryAutoStrokeWidth; }
         return "2.0"; 
       })
       .style("opacity", function (d) { 
@@ -1183,7 +1182,7 @@ function ViewTreepack() {
         if (d.rate > MIN_RATE) { return "visible"; }
         if (d.followersCount > MIN_FOLLOWERS) { return "visible"; }
         if (d.mentions > MIN_FOLLOWERS) { return "visible"; }
-        if (d.isKeyword) { return "visible"; }
+        if (d.category) { return "visible"; }
         if (d.nodeType === "hashtag") { 
           if (d.text.toLowerCase().includes("trump")) { return "visible"; }
           return "hidden";
@@ -1228,7 +1227,7 @@ function ViewTreepack() {
             return "@UNKNOWN?"; 
           }
         }
-        if (d.isKeyword || d.isTrendingTopic || d.isTwitterUser) { 
+        if (d.category || d.isTrendingTopic || d.isTwitterUser) { 
           if (d.nodeType === "hashtag") { return "#" + d.text.toUpperCase(); }
           if (d.nodeType === "place") { return d.fullName.toUpperCase(); }
           return d.nodeId.toUpperCase(); 
@@ -1248,7 +1247,7 @@ function ViewTreepack() {
         if (d.rate > MIN_RATE) { return "visible"; }
         if (d.followersCount > MIN_FOLLOWERS) { return "visible"; }
         if (d.mentions > MIN_FOLLOWERS) { return "visible"; }
-        if (d.isKeyword) { return "visible"; }
+        if (d.category) { return "visible"; }
         if (d.nodeType === "hashtag") { 
           if (d.text.toLowerCase().includes("trump")) { return "visible"; }
           return "hidden";
@@ -1272,8 +1271,8 @@ function ViewTreepack() {
       })
       .style("fill", palette.white)
       .style("stroke-width", function (d) { 
-        if (d.keywordsMatch) { return keywordsMatchStrokeWidth; }
-        if (d.keywordsMismatch) { return "4.0"; }
+        if (d.categoryMatch) { return categoryMatchStrokeWidth; }
+        if (d.categoryMismatch) { return "4.0"; }
         if (d.isTopTerm) { return "3.0"; }
         if (d.newFlag) { return "2.0"; }
         return "1.2"; 
@@ -1446,9 +1445,8 @@ function ViewTreepack() {
         currentNode.mentions = newNode.mentions;
         currentNode.isTopTerm = newNode.isTopTerm;
         currentNode.isTrendingTopic = newNode.isTrendingTopic;
-        currentNode.isKeyword = newNode.isKeyword;
-        currentNode.keywords = newNode.keywords;
-        currentNode.keywordsAuto = newNode.keywordsAuto;
+        currentNode.category = newNode.category;
+        currentNode.categoryAuto = newNode.categoryAuto;
 
         if (newNode.nodeType === "user"){
           currentNode.followersCount = newNode.followersCount;
@@ -1485,23 +1483,22 @@ function ViewTreepack() {
         currentNode.rank = -1;
         currentNode.displaytext = createDisplayText(currentNode);
 
-        if (newNode.keywords || newNode.keywordsAuto) {
+        if (newNode.category || newNode.categoryAuto) {
 
-          var keyword = "neutral";
-          currentNode.isKeyword = true;
+          var category = "neutral";
 
-          if (autoKeywordsFlag && newNode.keywordsAuto){
-            keyword = newNode.keywordsAuto;
+          if (autoCategoryFlag && newNode.categoryAuto){
+            category = newNode.categoryAuto;
           }
-          else if (newNode.keywordsAuto && !newNode.keywords){
-            keyword = newNode.keywordsAuto;
+          else if (newNode.categoryAuto && !newNode.category){
+            category = newNode.categoryAuto;
           }
-          else if (newNode.keywords){
-            keyword = newNode.keywords;
+          else if (newNode.category){
+            category = newNode.category;
           }
 
-          currentNode.x = focus(keyword).x; 
-          currentNode.y = focus(keyword).y;
+          currentNode.x = focus(category).x; 
+          currentNode.y = focus(category).y;
 
         }
         else {
@@ -1688,14 +1685,6 @@ function ViewTreepack() {
       }
     }
 
-    if (newNode.keywords) {
-      newNode.keywords = Object.keys(newNode.keywords)[0];
-    }
-
-    if (newNode.keywordsAuto) {
-      newNode.keywordsAuto = Object.keys(newNode.keywordsAuto)[0];
-    }
-
     if (nodeAddQ.length < MAX_RX_QUEUE) {
       nodeAddQ.push(newNode);
     }
@@ -1718,19 +1707,19 @@ function ViewTreepack() {
     simulation = d3.forceSimulation(nodes)
       .force("charge", d3.forceManyBody().strength(charge))
       .force("forceX", d3.forceX().x(function forceXfunc(d) { 
-        if ((autoKeywordsFlag && d.keywordsAuto) || (!d.keywords && d.keywordsAuto)){
-          return foci[d.keywordsAuto].x;
+        if ((autoCategoryFlag && d.categoryAuto) || (!d.category && d.categoryAuto)){
+          return foci[d.categoryAuto].x;
         }
-        if (d.keywords){ return foci[d.keywords].x; }
+        if (d.category){ return foci[d.category].x; }
         return foci.default.x;
       }).strength(function strengthFunc(d){
         return forceXmultiplier * gravity; 
       }))
       .force("forceY", d3.forceY().y(function forceYfunc(d) { 
-        if ((autoKeywordsFlag && d.keywordsAuto) || (!d.keywords && d.keywordsAuto)){
-          return foci[d.keywordsAuto].y;
+        if ((autoCategoryFlag && d.categoryAuto) || (!d.category && d.categorya)){
+          return foci[d.categoryAuto].y;
         }
-        if (d.keywords){ return foci[d.keywords].y; }
+        if (d.category){ return foci[d.category].y; }
         return foci.default.y;
       }).strength(function strengthFunc(d){
         return forceYmultiplier * gravity; 
@@ -1865,19 +1854,19 @@ function ViewTreepack() {
       simulation
         .force("charge", d3.forceManyBody().strength(charge))
         .force("forceX", d3.forceX().x(function forceXfunc(d) { 
-          if ((autoKeywordsFlag && d.keywordsAuto) || (!d.keywords && d.keywordsAuto)){
-            return foci[d.keywordsAuto].x;
+          if ((autoCategoryFlag && d.categoryAuto) || (!d.category && d.categoryAuto)){
+            return foci[d.categoryAuto].x;
           }
-          if (d.keywords){ return foci[d.keywords].x; }
+          if (d.category){ return foci[d.category].x; }
           return foci.default.x;
         }).strength(function strengthFunc(d){
           return forceXmultiplier * gravity; 
         }))
         .force("forceY", d3.forceY().y(function forceYfunc(d) { 
-          if ((autoKeywordsFlag && d.keywordsAuto) || (!d.keywords && d.keywordsAuto)){
-            return foci[d.keywordsAuto].y;
+          if ((autoCategoryFlag && d.categoryAuto) || (!d.category && d.categoryAuto)){
+            return foci[d.categoryAuto].y;
           }
-          if (d.keywords){ return foci[d.keywords].y; }
+          if (d.category){ return foci[d.category].y; }
           return foci.default.y;
         }).strength(function strengthFunc(d){
           return forceYmultiplier * gravity; 

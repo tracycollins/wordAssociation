@@ -381,7 +381,6 @@ const categoryUpdate = function(cObj, callback) {
               + " | " + updatedUser.nodeId 
               + " | @" + updatedUser.screenName 
               + " | M " + updatedUser.mentions 
-              + " | I " + updatedUser.isIgnored 
               + " | C " + updatedUser.category 
               + " | CA " + updatedUser.categoryAuto
             ));
@@ -456,7 +455,6 @@ const categoryUpdate = function(cObj, callback) {
             + " | " + updatedUser.nodeId 
             + " | @" + updatedUser.screenName 
             + " | M " + updatedUser.mentions 
-            + " | I " + updatedUser.isIgnored 
             + " | C " + updatedUser.category 
             + " | CA " + updatedUser.categoryAuto
           ));

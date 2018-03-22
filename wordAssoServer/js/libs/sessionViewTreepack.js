@@ -531,11 +531,6 @@ function ViewTreepack() {
     else {
       console.log("setTwitterUser | "  + user.userId + " | @" + user.screenName);
     }
-
-
-    // if (user.userId === twitterUserThreecee.userId) {
-    //   twitterUserThreecee = user;
-    // }
     
     if (controlPanelReadyFlag){
       controlPanelWindow.postMessage({op: "SET_TWITTER_USER", user: user}, DEFAULT_SOURCE);

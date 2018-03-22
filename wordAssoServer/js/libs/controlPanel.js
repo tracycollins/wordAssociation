@@ -1172,11 +1172,11 @@ function ControlPanel() {
       text: "M: " + statsObj.user.category + " | A: " + statsObj.user.categoryAuto
     };
 
-    var userKeywordLabel = {};
-    userKeywordLabel.type = "TEXT";
-    userKeywordLabel.id = "userKeywordLabel";
-    userKeywordLabel.class = "userStatusText";
-    userKeywordLabel.text = "KEYWORDS";
+    var userCategoryLabel = {};
+    userCategoryLabel.type = "TEXT";
+    userCategoryLabel.id = "userCategoryLabel";
+    userCategoryLabel.class = "userStatusText";
+    userCategoryLabel.text = "CATEGORY";
 
     switch (config.sessionViewType) {
 
@@ -1211,7 +1211,7 @@ function ControlPanel() {
       case "treepack":
         self.tableCreateRow(controlTable, optionsBody, [resetButton, pauseButton, statsButton, fullscreenButton]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userScreenNameText, userNameText]);
-        self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userKeywordLabel, userCategoryText]);
+        self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userCategoryLabel, userCategoryText]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userFollowersCountLabel, userFollowersCountText]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userFriendsCountLabel, userFriendsCountText]);
         self.tableCreateRow(userStatsTable, optionsUserStatsBody, [userMentionsLabel, userMentionsText]);

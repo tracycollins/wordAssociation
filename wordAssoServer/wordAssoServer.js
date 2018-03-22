@@ -3,6 +3,8 @@
 
 const bestRuntimeNetworkFileName = "bestRuntimeNetwork.json";
 const bestNetworkFolder = "/config/utility/best/neuralNetworks";
+let dropboxConfigDefaultFolder = "/config/utility/default";
+
 let bestRuntimeNetworkId = false;
 let bestNetworkObj = {};
 
@@ -77,7 +79,7 @@ const MIN_FOLLOWERS = 25000;
 
 const RATE_QUEUE_INTERVAL = 1000; // 1 second
 const RATE_QUEUE_INTERVAL_MODULO = 60; // modulo RATE_QUEUE_INTERVAL
-const KEYWORDS_UPDATE_INTERVAL = 30000;
+const CATEGORY_UPDATE_INTERVAL = 30000;
 const TWEET_PARSER_INTERVAL = 5;
 const TWITTER_RX_QUEUE_INTERVAL = 5;
 const TRANSMIT_NODE_QUEUE_INTERVAL = 5;
@@ -270,7 +272,7 @@ const async = require("async");
 const yaml = require("yamljs");
 const debug = require("debug")("wa");
 const debugCache = require("debug")("cache");
-const debugKeyword = require("debug")("kw");
+const debugCategory = require("debug")("kw");
 
 const express = require("./config/express");
 const EventEmitter2 = require("eventemitter2").EventEmitter2;
@@ -446,8 +448,8 @@ function printUser(params) {
       + " | FRNDs: " + params.user.friendsCount 
       + " | FLWRs: " + params.user.followersCount 
       + " | LAd: " + params.user.languageAnalyzed 
-      + "\nKWM: " + jsonPrint(params.user.keywords) 
-      + " \nKWA: " + jsonPrint(params.user.keywordsAuto);
+      + "KWM: " + params.user.category
+      + "KWA: " + params.user.categoryAuto;
     return text;
   }
 }
@@ -615,7 +617,7 @@ wordsPerMinuteTopTermCache.on("expired", wordCacheExpired);
 
 let updateMetricsInterval;
 
-let defaultDropboxKeywordFile = "keywords.json";
+let defaultDropboxCategoryFile = "category.json";
 
 let internetReady = false;
 let ioReady = false;
@@ -656,9 +658,8 @@ const updaterMessageQueue = [];
 let sorter;
 const sorterMessageRxQueue = [];
 
-
 const ignoreWordHashMap = new HashMap();
-const keywordHashMap = new HashMap();
+const categoryHashMap = new HashMap();
 
 const localHostHashMap = new HashMap();
 
@@ -969,7 +970,7 @@ function loadFile(path, file, callback) {
       }
     })
     .catch(function(error) {
-      console.log(chalkError("NNT | DROPBOX loadFile ERROR: " + fullPath + "\n" + error));
+      console.log(chalkError("NNT | DROPBOX loadFile ERROR: " + fullPath + "\n" + jsonPrint(error)));
       console.log(chalkError("NNT | !!! DROPBOX READ " + fullPath + " ERROR"));
       console.log(chalkError("NNT | " + jsonPrint(error.error)));
 
@@ -1210,52 +1211,6 @@ process.env.NODE_ENV = process.env.NODE_ENV || "development";
 debug("NODE_ENV : " + process.env.NODE_ENV);
 debug("CLIENT HOST + PORT: " + "http://localhost:" + config.port);
 
-function initUpdaterPingInterval(interval){
-
-  console.log(chalkLog("INIT UPDATER PING INTERVAL"
-    + " | " + interval + " MS"
-  ));
-
-  clearInterval(updaterPingInterval);
-
-  updaterPingInterval = setInterval(function updaterPing() {
-
-    if (updaterPingOutstanding > 0) {
-      console.error(chalkError("PING OUTSTANDING | " + updaterPingOutstanding));
-      updaterPingOutstanding = 0;
-      initUpdater();
-      slackPostMessage(slackChannel, "\n*UPDATER PING TIMEOUT*\nOUTSTANDING PINGS: " + updaterPingOutstanding + "\n");
-    }
-
-    updaterPingOutstanding = moment().format(compactDateTimeFormat);
-
-    if (updater !== undefined){
-      updater.send({
-        op: "PING",
-        message: hostname + "_" + process.pid,
-        timeStamp: updaterPingOutstanding
-      }, function updaterPingError(err){
-        if (err) {
-          console.error(chalkError("*** UPDATER SEND ERROR"
-            + " | " + err
-          ));
-          slackPostMessage(slackChannel, "\n*UPDATER SEND ERROR*\n" + err);
-          initUpdater();
-        }
-      });
-
-      debug(chalkLog(">UPDATER PING"
-      ));
-
-    }
-    else {
-      console.log(chalkError("!!! NO UPDATER PING ... UNDEFINED"
-      ));
-    }
-  }, interval);
-}
-
-
 function initUpdater(callback){
 
   clearInterval(updaterPingInterval);
@@ -1309,9 +1264,9 @@ function initUpdater(callback){
 
   u.send({
     op: "INIT",
-    folder: ".",
-    keywordFile: defaultDropboxKeywordFile,
-    interval: KEYWORDS_UPDATE_INTERVAL
+    folder: dropboxConfigDefaultFolder,
+    categoryFile: defaultDropboxCategoryFile,
+    interval: CATEGORY_UPDATE_INTERVAL
   }, function updaterSendError(err){
     if (err) {
       console.error(chalkError("*** UPDATER SEND ERROR"
@@ -1327,6 +1282,53 @@ function initUpdater(callback){
 
   if (callback !== undefined) { callback(null, u); }
 }
+
+
+function initUpdaterPingInterval(interval){
+
+  console.log(chalkLog("INIT UPDATER PING INTERVAL"
+    + " | " + interval + " MS"
+  ));
+
+  clearInterval(updaterPingInterval);
+
+  updaterPingInterval = setInterval(function updaterPing() {
+
+    if (updaterPingOutstanding > 0) {
+      console.error(chalkError("PING OUTSTANDING | " + updaterPingOutstanding));
+      updaterPingOutstanding = 0;
+      initUpdater();
+      slackPostMessage(slackChannel, "\n*UPDATER PING TIMEOUT*\nOUTSTANDING PINGS: " + updaterPingOutstanding + "\n");
+    }
+
+    updaterPingOutstanding = moment().format(compactDateTimeFormat);
+
+    if (updater !== undefined){
+      updater.send({
+        op: "PING",
+        message: hostname + "_" + process.pid,
+        timeStamp: updaterPingOutstanding
+      }, function updaterPingError(err){
+        if (err) {
+          console.error(chalkError("*** UPDATER SEND ERROR"
+            + " | " + err
+          ));
+          slackPostMessage(slackChannel, "\n*UPDATER SEND ERROR*\n" + err);
+          initUpdater();
+        }
+      });
+
+      debug(chalkLog(">UPDATER PING"
+      ));
+
+    }
+    else {
+      console.log(chalkError("!!! NO UPDATER PING ... UNDEFINED"
+      ));
+    }
+  }, interval);
+}
+
 
 function categorizeNode(categorizeObj) {
 
@@ -1353,24 +1355,24 @@ function categorizeNode(categorizeObj) {
       debug(chalkSocket("categorizeNode USER"
         + " | " + categorizeObj.node.userId
         + " | " + categorizeObj.node.screenName
-        + "\n" + jsonPrint(categorizeObj.keywords)
+        + " | " + categorizeObj.category
       ));
 
-      keywordHashMap.set(categorizeObj.node.nodeId.toLowerCase(), categorizeObj.keywords);
-      keywordHashMap.set(categorizeObj.node.screenName.toLowerCase(), categorizeObj.keywords);
+      categoryHashMap.set(categorizeObj.node.nodeId.toLowerCase(), categorizeObj.category);
+      categoryHashMap.set(categorizeObj.node.screenName.toLowerCase(), categorizeObj.category);
 
-      userServer.updateKeywords({user: categorizeObj.node, keywords: categorizeObj.keywords}, function(err, updatedUser){
+      userServer.updateCategory({user: categorizeObj.node, category: categorizeObj.category}, function(err, updatedUser){
 
         if (err) {
-          console.log(chalkError("*** USER UPDATE KEYWORDS ERROR: " + jsonPrint(err)));
+          console.log(chalkError("*** USER UPDATE CATEGORY ERROR: " + jsonPrint(err)));
         }
         else {
           if (updater !== undefined){
 
             updater.send({
-              op: "UPDATE_KEYWORD",
-              word: categorizeObj.node.screenName.toLowerCase(),
-              keywords: categorizeObj.keywords
+              op: "UPDATE_CATEGORY",
+              nodeId: categorizeObj.node.screenName.toLowerCase(),
+              category: categorizeObj.category
             }, function updaterPingError(err){
               if (err) {
                 console.error(chalkError("*** UPDATER SEND ERROR"
@@ -1383,43 +1385,42 @@ function categorizeNode(categorizeObj) {
 
             const text = "CATEGORIZE"
               + "\n@" + categorizeObj.node.screenName 
-              + ": " + Object.keys(categorizeObj.keywords);
+              + ": " + categorizeObj.category;
 
             slackPostMessage(slackChannel, text);
 
 
-            debug(chalkLog(">UPDATER UPDATE_KEYWORD USER | @" + updatedUser.screenName ));
+            debug(chalkLog(">UPDATER UPDATE_CATEGORY USER | @" + updatedUser.screenName ));
           }
           else {
-            console.log(chalkError("!!! NO UPDATER UPDATE_KEYWORD ... UNDEFINED"
+            console.log(chalkError("!!! NO UPDATER UPDATE_CATEGORY ... UNDEFINED"
             ));
           }
         }
       });
-
     break;
     case "hashtag":
 
       debug(chalkSocket("categorizeNode HASHTAG"
         + " | " + categorizeObj.node.nodeId
-        + "\n" + jsonPrint(categorizeObj.keywords)
+        + " | " + categorizeObj.category
       ));
 
-      keywordHashMap.set(categorizeObj.node.nodeId.toLowerCase(), categorizeObj.keywords);
+      categoryHashMap.set(categorizeObj.node.nodeId.toLowerCase(), categorizeObj.category);
 
-      hashtagServer.updateKeywords({hashtag: categorizeObj.node, keywords: categorizeObj.keywords}, function(err, updatedHashtag){
+      hashtagServer.updateCategory({hashtag: categorizeObj.node, category: categorizeObj.category}, function(err, updatedHashtag){
 
         if (err) {
-          console.log(chalkError("*** HASHTAG UPDATE KEYWORDS ERROR: " + jsonPrint(err)));
+          console.log(chalkError("*** HASHTAG UPDATE CATEGORY ERROR: " + jsonPrint(err)));
         }
         else {
 
           if (updater !== undefined){
 
             updater.send({
-              op: "UPDATE_KEYWORD",
+              op: "UPDATE_CATEGORY",
               word: categorizeObj.node.nodeId.toLowerCase(),
-              keywords: categorizeObj.keywords
+              category: categorizeObj.category
             }, function updaterPingError(err){
               if (err) {
                 console.error(chalkError("*** UPDATER SEND ERROR"
@@ -1431,14 +1432,14 @@ function categorizeNode(categorizeObj) {
             });
 
             const text = "CATEGORIZE"
-              + "\n#" + categorizeObj.node.nodeId.toLowerCase() + ": " + Object.keys(categorizeObj.keywords);
+              + "\n#" + categorizeObj.node.nodeId.toLowerCase() + ": " + categorizeObj.category;
 
             slackPostMessage(slackChannel, text);
 
-            debug(chalkLog(">UPDATER UPDATE_KEYWORD HASHTAG | #" + updatedHashtag.text ));
+            debug(chalkLog(">UPDATER UPDATE_CATEGORY HASHTAG | #" + updatedHashtag.text ));
           }
           else {
-            console.log(chalkError("!!! NO UPDATER UPDATE_KEYWORD ... UNDEFINED"
+            console.log(chalkError("!!! NO UPDATER UPDATE_CATEGORY ... UNDEFINED"
             ));
           }
 
@@ -1481,14 +1482,23 @@ function socketRxTweet(tw) {
 
     tw.inc = true;
 
-    // tweetRxQueue.enqueue(tw);
+    if (categoryHashMap.has(tw.user.screen_name.toLowerCase())){
+      tw.user.category = categoryHashMap.get(tw.user.screen_name.toLowerCase());
+      debug(chalkLog("T< HM HIT"
+        + " [ RXQ: " + tweetRxQueue.length + "]"
+        + " [ TPQ: " + tweetParserQueue.length + "]"
+        + " | C: " + tw.user.category
+        + " | " + tw.user.name
+        + " | " + tw.id_str
+        + " | @" + tw.user.screen_name
+        + " | " + tw.user.name
+      ));
+    }
+
     tweetRxQueue.push(tw);
-    // statsObj.queues.tweetRxQueue = tweetRxQueue.size();
     statsObj.queues.tweetRxQueue = tweetRxQueue.length;
 
     debug(chalkLog("T<"
-      // + " [ RXQ: " + tweetRxQueue.size() + "]"
-      // + " [ TPQ: " + tweetParserQueue.size() + "]"
       + " [ RXQ: " + tweetRxQueue.length + "]"
       + " [ TPQ: " + tweetParserQueue.length + "]"
       + " | " + tw.id_str
@@ -1498,8 +1508,6 @@ function socketRxTweet(tw) {
   }
   else{
     console.log(chalkAlert("NULL USER T*<"
-      // + " [ RXQ: " + tweetRxQueue.size() + "]"
-      // + " [ TPQ: " + tweetParserQueue.size() + "]"
       + " [ RXQ: " + tweetRxQueue.length + "]"
       + " [ TPQ: " + tweetParserQueue.length + "]"
       + " | " + tw.id_str
@@ -1508,8 +1516,6 @@ function socketRxTweet(tw) {
     ));
   }
 }
-
-// ???? KLUDGE: will this create a mem leak by creating socket objs on each connect?
 
 function initSocketHandler(socketObj) {
 
@@ -1764,7 +1770,7 @@ function initSocketHandler(socketObj) {
         + " | " + getTimeStamp()
         + " | SID: " + socket.id
         + " | @" + dataObj.node.screenName
-        + " | KWs: " + Object.keys(dataObj.keywords)
+        + " | CAT: " + dataObj.category
       ));
     }
     if (dataObj.node.nodeType === "hashtag") {
@@ -1772,7 +1778,7 @@ function initSocketHandler(socketObj) {
         + " | " + getTimeStamp()
         + " | SID: " + socket.id
         + " | #" + dataObj.node.text
-        + " | KWs: " + Object.keys(dataObj.keywords)
+        + " | CAT: " + dataObj.category
       ));
     }
 
@@ -1833,15 +1839,11 @@ function initSocketHandler(socketObj) {
     ));
     authInProgressCache.set(viewerObj.userId, viewerObj);
   });
-
 }
 
 function initSocketNamespaces(callback){
 
   console.log(chalkInfo(moment().format(compactDateTimeFormat) + " | INIT SOCKET NAMESPACES"));
-
-  // io = require("socket.io")(httpServer, { reconnection: true });
-
 
   adminNameSpace = io.of("/admin");
   utilNameSpace = io.of("/util");
@@ -1877,28 +1879,13 @@ function initSocketNamespaces(callback){
   if (callback !== undefined) { callback(); }
 }
 
-function printKeyword(keywords) {
-  if (keywords === undefined) { return "FALSE"; }
-  if (!keywords) { return "FALSE"; }
-  if (keywords.left !== undefined) { return "left"; }
-  if (keywords.right !== undefined) { return "right"; }
-  if (keywords.neutral !== undefined) { return "neutral"; }
-  if (keywords.positive !== undefined) { return "positive"; }
-  if (keywords.negative !== undefined) { return "negative"; }
-  return "FALSE";
-}
+function checkCategory(nodeObj, callback) {
 
-function checkKeyword(nodeObj, callback) {
-
-  const kws = printKeyword(nodeObj.keywords);
-  const kwas = printKeyword(nodeObj.keywordsAuto);
-
-  debugKeyword(chalkLog("checkKeyword"
+  debugCategory(chalkLog("checkCategory"
     + " | " + nodeObj.nodeType
     + " | " + nodeObj.nodeId
-    + " | KWs: " + kws
-    + " | KWAs: " + kwas
-    // + "\n" + jsonPrint(nodeObj)
+    + " | CAT: " + nodeObj.category
+    + " | CATA: " + nodeObj.categoryAuto
   ));
 
   switch (nodeObj.nodeType) {
@@ -1912,35 +1899,34 @@ function checkKeyword(nodeObj, callback) {
     case "user":
 
       if (!nodeObj.name && !nodeObj.screenName) {
-        console.log(chalkError("*** ERROR: checkKeyword: NODE NAME & SCREEN NAME UNDEFINED?"
+        console.log(chalkError("*** ERROR: checkCategory: NODE NAME & SCREEN NAME UNDEFINED?"
           + "\n" + jsonPrint(nodeObj)));
         return(callback(nodeObj));
       }
 
       if ((nodeObj.screenName !== undefined) 
         && (nodeObj.screenName) 
-        && keywordHashMap.has(nodeObj.screenName.toLowerCase())) {
+        && categoryHashMap.has(nodeObj.screenName.toLowerCase())) {
 
-        nodeObj.keywords = keywordHashMap.get(nodeObj.screenName.toLowerCase());
-        nodeObj.isKeyword = true;
+        nodeObj.category = categoryHashMap.get(nodeObj.screenName.toLowerCase());
         nodeObj.isTwitterUser = true;
 
         wordsPerMinuteTopTermCache.get(nodeObj.screenName.toLowerCase(), 
           function topTermScreenName(err, rate) {
 
-          debugKeyword(chalkAlert("KW HIT USER SNAME"
+          debugCategory(chalkAlert("KW HIT USER SNAME"
             + " | " + nodeObj.userId
             + " | @" + nodeObj.screenName
-            + " | KWs: " + printKeyword(nodeObj.keywords)
-            + " | KWAs: " + printKeyword(nodeObj.keywordsAuto)
-            + "\n" + jsonPrint(keywordHashMap.get(nodeObj.screenName.toLowerCase()))
+            + " | CAT: " + nodeObj.category
+            + " | CATA: " + nodeObj.categoryAuto
+            + "\n" + jsonPrint(categoryHashMap.get(nodeObj.screenName.toLowerCase()))
           ));
 
           if (err){
             console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
           }
           if (rate !== undefined) {
-            debugKeyword(chalkLog("TOP TERM USER SNAME"
+            debugCategory(chalkLog("TOP TERM USER SNAME"
               + " | @" + nodeObj.screenName
               + " | RATE: " + rate.toFixed(2)
               + " | NODE RATE: " + nodeObj.rate.toFixed(2)
@@ -1952,17 +1938,15 @@ function checkKeyword(nodeObj, callback) {
       }
       else if ((nodeObj.name !== undefined) 
         && (nodeObj.name) 
-        && keywordHashMap.has(nodeObj.name.toLowerCase())) {
+        && categoryHashMap.has(nodeObj.name.toLowerCase())) {
 
-        nodeObj.keywords = {};
-        nodeObj.keywords = keywordHashMap.get(nodeObj.name.toLowerCase());
-        nodeObj.isKeyword = true;
+        nodeObj.category = categoryHashMap.get(nodeObj.name.toLowerCase());
         nodeObj.isTwitterUser = true;
 
-        debugKeyword(chalkAlert("KW HIT USER NAME"
+        debugCategory(chalkAlert("KW HIT USER NAME"
           + " | " + nodeObj.name
-          + " | KWs: " + printKeyword(nodeObj.keywords)
-          + " | KWAs: " + printKeyword(nodeObj.keywordsAuto)
+          + " | CAT: " + nodeObj.category
+          + " | CATA: " + nodeObj.categoryAuto
         ));
 
         wordsPerMinuteTopTermCache.get(nodeObj.name.toLowerCase(), 
@@ -1971,24 +1955,22 @@ function checkKeyword(nodeObj, callback) {
             console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
           }
           if (name !== undefined) {
-            debugKeyword(chalkLog("TOP TERM USER NAME: " + name));
+            debugCategory(chalkLog("TOP TERM USER NAME: " + name));
             nodeObj.isTopTerm = true;
           }
           callback(nodeObj);
         });
       }
       // will probably never be true
-      else if (keywordHashMap.has(nodeObj.userId)) {
+      else if (categoryHashMap.has(nodeObj.userId)) {
 
-        nodeObj.keywords = {};
-        nodeObj.keywords = keywordHashMap.get(nodeObj.userId);
-        nodeObj.isKeyword = true;
+        nodeObj.category = categoryHashMap.get(nodeObj.userId);
         nodeObj.isTwitterUser = true;
 
-        debugKeyword(chalkAlert("KW HIT USER ID"
+        debugCategory(chalkAlert("KW HIT USER ID"
           + " | " + nodeObj.userId
-          + " | KWs: " + printKeyword(nodeObj.keywords)
-          + " | KWAs: " + printKeyword(nodeObj.keywordsAuto)
+          + " | CAT: " + nodeObj.category
+          + " | CATA: " + nodeObj.categoryAuto
         ));
 
         wordsPerMinuteTopTermCache.get(nodeObj.userId,
@@ -1997,7 +1979,7 @@ function checkKeyword(nodeObj, callback) {
             console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
           }
           if (userId !== undefined) {
-            debugKeyword(chalkLog("TOP TERM USER USERID: " + userId));
+            debugCategory(chalkLog("TOP TERM USER USERID: " + userId));
             nodeObj.isTopTerm = true;
           }
           callback(nodeObj);
@@ -2010,16 +1992,14 @@ function checkKeyword(nodeObj, callback) {
 
     case "hashtag":
 
-      if (keywordHashMap.has(nodeObj.nodeId)) {
+      if (categoryHashMap.has(nodeObj.nodeId)) {
 
-        nodeObj.keywords = {};
-        nodeObj.keywords = keywordHashMap.get(nodeObj.nodeId);
-        nodeObj.isKeyword = true;
+        nodeObj.category = categoryHashMap.get(nodeObj.nodeId);
 
-        debugKeyword(chalkAlert("KW HIT HASHTAG NODEID"
+        debugCategory(chalkAlert("KW HIT HASHTAG NODEID"
           + " | " + nodeObj.nodeId
-          + " | KWs: " + printKeyword(nodeObj.keywords)
-          + " | KWAs: " + printKeyword(nodeObj.keywordsAuto)
+          + " | CAT: " + nodeObj.category
+          + " | CATA: " + nodeObj.categoryAuto
         ));
 
         wordsPerMinuteTopTermCache.get(nodeObj.nodeId,
@@ -2028,7 +2008,7 @@ function checkKeyword(nodeObj, callback) {
             console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
           }
           if (nodeId !== undefined) {
-            debugKeyword(chalkLog("TOP TERM HASHTAG NODEID: " + nodeId));
+            debugCategory(chalkLog("TOP TERM HASHTAG NODEID: " + nodeId));
             nodeObj.isTopTerm = true;
           }
           callback(nodeObj);
@@ -2042,17 +2022,15 @@ function checkKeyword(nodeObj, callback) {
 
     case "place":
 
-      if (keywordHashMap.has(nodeObj.name.toLowerCase())) {
+      if (categoryHashMap.has(nodeObj.name.toLowerCase())) {
 
-        nodeObj.keywords = {};
-        nodeObj.keywords = keywordHashMap.get(nodeObj.name.toLowerCase());
-        nodeObj.isKeyword = true;
+        nodeObj.category = categoryHashMap.get(nodeObj.name.toLowerCase());
 
-        debugKeyword(chalkAlert("KW HIT PLACE NAME"
+        debugCategory(chalkAlert("KW HIT PLACE NAME"
           + " | " + nodeObj.nodeId
           + " | NAME: " + nodeObj.name
-          + " | KWs: " + printKeyword(nodeObj.keywords)
-          + " | KWAs: " + printKeyword(nodeObj.keywordsAuto)
+          + " | CAT: " + nodeObj.category
+          + " | CATA: " + nodeObj.categoryAuto
         ));
 
         wordsPerMinuteTopTermCache.get(nodeObj.name,
@@ -2061,7 +2039,7 @@ function checkKeyword(nodeObj, callback) {
             console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
           }
           if (name !== undefined) {
-            debugKeyword(chalkLog("TOP TERM PLACE NAME: " + name));
+            debugCategory(chalkLog("TOP TERM PLACE NAME: " + name));
             nodeObj.isTopTerm = true;
           }
           callback(nodeObj);
@@ -2074,16 +2052,14 @@ function checkKeyword(nodeObj, callback) {
 
     case "word":
 
-      if (keywordHashMap.has(nodeObj.nodeId)) {
+      if (categoryHashMap.has(nodeObj.nodeId)) {
 
-        nodeObj.keywords = {};
-        nodeObj.keywords = keywordHashMap.get(nodeObj.nodeId);
-        nodeObj.isKeyword = true;
+        nodeObj.category = categoryHashMap.get(nodeObj.nodeId);
 
-        debugKeyword(chalkAlert("KW HIT WORD NODEID"
+        debugCategory(chalkAlert("KW HIT WORD NODEID"
           + " | " + nodeObj.nodeId
-          + " | KWs: " + printKeyword(nodeObj.keywords)
-          + " | KWAs: " + printKeyword(nodeObj.keywordsAuto)
+          + " | CAT: " + nodeObj.category
+          + " | CATA: " + nodeObj.categoryAuto
         ));
 
         wordsPerMinuteTopTermCache.get(nodeObj.nodeId,
@@ -2092,7 +2068,7 @@ function checkKeyword(nodeObj, callback) {
             console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
           }
           if (nodeId !== undefined) {
-            debugKeyword(chalkLog("TOP TERM HASHTAG NODEID: " + nodeId));
+            debugCategory(chalkLog("TOP TERM HASHTAG NODEID: " + nodeId));
             nodeObj.isTopTerm = true;
           }
           callback(nodeObj);
@@ -2105,7 +2081,7 @@ function checkKeyword(nodeObj, callback) {
     break;
 
     default:
-      console.log(chalkAlert("DEFAULT | checkKeyword\n" + jsonPrint(nodeObj)));
+      console.log(chalkAlert("DEFAULT | checkCategory\n" + jsonPrint(nodeObj)));
       callback(nodeObj);
   }
 }
@@ -2288,17 +2264,14 @@ function initTransmitNodeQueueInterval(interval){
       }
       else {
 
-        const kws = printKeyword(nodeObj.keywords);
-        const kwas = printKeyword(nodeObj.keywordsAuto);
-
-        debugKeyword(chalkAlert("TX NODE DE-Q"
+        debugCategory(chalkAlert("TX NODE DE-Q"
           + " | NID: " + nodeObj.nodeId
           + " | " + nodeObj.nodeType
-          + " | KWs: " + kws
-          + " | KWAs: " + kwas
+          + " | CAT: " + nodeObj.category
+          + " | CATA: " + nodeObj.categoryAuto
         ));
 
-        checkKeyword(nodeObj, function checkKeywordCallback(node){
+        checkCategory(nodeObj, function checkCategoryCallback(node){
           updateWordMeter(node, function updateWordMeterCallback(err, n){
             if (!err) {
               if ((n.nodeType === "user") && n.isTopTerm && (n.followersCount === 0)){
@@ -3229,38 +3202,33 @@ function initUpdaterMessageQueueInterval(interval){
           updaterMessageReady = true;
         break;
 
-        case "sendKeywordsComplete":
-          console.log(chalkLog("UPDATE KEYWORDS COMPLETE"
+        case "sendCategoryComplete":
+          console.log(chalkLog("UPDATE CATEGORY COMPLETE"
             + " [ Q: " + updaterMessageQueue.length + " ]"
             + " | " + moment().format(compactDateTimeFormat)
             + " | PID: " + updaterObj.pid
-            + " | NUM KEYWORDS: " + updaterObj.keywords
+            + " | NUM CATEGORY: " + updaterObj.category
           ));
           updaterMessageReady = true;
         break;
 
-        case "keywordHashMapClear":
-          keywordHashMap.clear();
-          console.log(chalkAlert("KEYWORD HASHMAP CLEAR"));
+        case "categoryHashMapClear":
+          categoryHashMap.clear();
+          console.log(chalkAlert("CATEGORY HASHMAP CLEAR"));
           updaterMessageReady = true;
         break;
 
-        case "keywordRemove":
-          keywordHashMap.remove(updaterObj.keyword);
-          keywordHashMap.remove(updaterObj.keyword.toLowerCase());
-          console.log(chalkAlert("KEYWORD REMOVE: " + updaterObj.keyword.toLowerCase()));
+        case "categoryRemove":
+          categoryHashMap.remove(updaterObj.nodeId);
+          categoryHashMap.remove(updaterObj.nodeId.toLowerCase());
+          console.log(chalkAlert("CATEGORY REMOVE: " + updaterObj.nodeId.toLowerCase()));
           updaterMessageReady = true;
         break;
 
-        case "keyword":
-          debugKeyword(chalkLog("UPDATE KEYWORD\n" + jsonPrint(updaterObj.keyword)));
+        case "category":
+          debugCategory(chalkLog("UPDATE CATEGORY: " + jsonPrint(updaterObj)));
 
-          if (typeof updaterObj.keyword.keywordId !== "string") {
-            console.error("KEYWORD IS NOT A STRING: " + updaterObj.keyword.keywordId);
-            quit();
-          }
-
-          keywordHashMap.set(updaterObj.keyword.keywordId.toLowerCase(), omit(updaterObj.keyword, "keywordId"));
+          categoryHashMap.set(updaterObj.nodeId, updaterObj.category);
           updaterMessageReady = true;
 
         break;

@@ -69,7 +69,8 @@ var twitterUserThreecee = {
     following : null,
     description : "photography + animation + design",
     isTwitterUser : true,
-    screenNameLower : "threecee"
+    screenNameLower : "threecee",
+    category: "left"
 };
 
 var PARENT_ID = "0047";
@@ -1226,12 +1227,6 @@ function toggleTestMode() {
   controlPanel.updateControlPanel(config);
   saveConfig();
 }
-
-
-
-
-// var initialXpositionRatio = 0.0;
-// var initialYpositionRatio = 0.5;
 
 function computeInitialPosition(index) {
   var pos = {

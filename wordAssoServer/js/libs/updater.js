@@ -378,11 +378,11 @@ const categoryUpdate = function(cObj, callback) {
           }
           else {
             console.log(chalkLog("+++ UPDATED CATEGORY"
+              + " | C " + updatedUser.category 
+              + " | CA " + updatedUser.categoryAuto
               + " | " + updatedUser.nodeId 
               + " | @" + updatedUser.screenName 
               + " | M " + updatedUser.mentions 
-              + " | C " + updatedUser.category 
-              + " | CA " + updatedUser.categoryAuto
             ));
             callback(null, updatedUser);
           }
@@ -397,10 +397,10 @@ const categoryUpdate = function(cObj, callback) {
           }
           else {
             console.log(chalkLog("+++ UPDATED CATEGORY"
-              + " | #" + updatedHashtagObj.nodeId 
-              + " | M " + updatedHashtagObj.mentions 
               + " | C " + updatedHashtagObj.category 
               + " | CA " + updatedHashtagObj.category 
+              + " | #" + updatedHashtagObj.nodeId 
+              + " | M " + updatedHashtagObj.mentions 
             ));
             callback(null, updatedHashtagObj);
           }
@@ -415,10 +415,10 @@ const categoryUpdate = function(cObj, callback) {
           }
           else {
             console.log(chalkLog("+++ UPDATED CATEGORY"
-              + " | " + updatedWordObj.nodeId 
-              + " | M " + updatedWordObj.mentions 
               + " | C " + updatedWordObj.category 
               + " | CA " + updatedWordObj.category 
+              + " | " + updatedWordObj.nodeId 
+              + " | M " + updatedWordObj.mentions 
             ));
             callback(null, updatedWordObj);
           }
@@ -443,9 +443,11 @@ const categoryUpdate = function(cObj, callback) {
       nodeObj.display = "@" + cObj.screenName;
       nodeObj.isCategory = true;
       nodeObj.category = cObj.category;
-      userServer.findOneUser(nodeObj, { noInc: true}, function(err, updatedUser){
+      nodeObj.save(function(err, updatedUser, numAffected){
         if (err){
-          console.log(chalkError("ERROR: UPDATING CATEGORY | " + nodeObj.nodeId + ": " + nodeObj.category));
+          console.log(chalkError("ERROR: UPDATING CATEGORY"
+            + " | " + nodeObj.nodeId + ": " + nodeObj.category
+          ));
           callback(err, nodeObj);
         }
         else {
@@ -467,18 +469,20 @@ const categoryUpdate = function(cObj, callback) {
       nodeObj.display = "#" + cObj.nodeId;
       nodeObj.isCategory = true;
       nodeObj.category = cObj.category;
-      hashtagServer.findOneHashtag(nodeObj, {noInc: true}, function(err, updatedHashtagObj) {
+      nodeObj.save(function(err, updatedHashtagObj, numAffected) {
         if (err){
-          console.log(chalkError("ERROR: UPDATING HASHTAG CATEGORY | " + nodeObj.nodeId + ": " + nodeObj.category));
+          console.log(chalkError("ERROR: UPDATING HASHTAG CATEGORY"
+            + " | " + nodeObj.nodeId + ": " + nodeObj.category
+          ));
           callback(err, nodeObj);
         }
         else {
           debug(chalkLog("+++ UPDATED CATEGORY"
+            + " | C " + updatedHashtagObj.category 
+            + " | CA " + updatedHashtagObj.category 
             + " | " + updatedHashtagObj.nodeId 
             + " | " + updatedHashtagObj.raw 
             + " | M " + updatedHashtagObj.mentions 
-            + " | C " + updatedHashtagObj.category 
-            + " | CA " + updatedHashtagObj.category 
           ));
           callback(null, updatedHashtagObj);
         }
@@ -490,9 +494,11 @@ const categoryUpdate = function(cObj, callback) {
       nodeObj.display = cObj.nodeId;
       nodeObj.isCategory = true;
       nodeObj.category = cObj.category;
-      wordServer.findOneWord(nodeObj, {noInc: true}, function(err, updatedWordObj) {
+      nodeObj.save(function(err, updatedWordObj, numAffected) {
         if (err){
-          console.log(chalkError("ERROR: UPDATING HASHTAG CATEGORY | " + nodeObj.nodeId + ": " + nodeObj.category));
+          console.log(chalkError("ERROR: UPDATING HASHTAG CATEGORY"
+            + " | " + nodeObj.nodeId + ": " + nodeObj.category
+          ));
           callback(err, nodeObj);
         }
         else {

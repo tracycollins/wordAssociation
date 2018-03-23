@@ -453,9 +453,9 @@ const categoryUpdate = function(cObj, callback) {
       nodeObj.display = "@" + cObj.screenName;
       nodeObj.isCategory = true;
       nodeObj.category = cObj.category;
-      nodeObj.update(function(err, updatedUser, numAffected){
+      userServer.findOneUser(nodeObj, {noInc: true}, function(err, updatedUser){
         if (err){
-          console.log(chalkError("ERROR: UPDATING CATEGORY"
+          console.log(chalkError("ERROR: UPDATING USER CATEGORY"
             + " | " + nodeObj.nodeId
             + " | @" + nodeObj.screenName
             + " | " + nodeObj.category
@@ -482,7 +482,7 @@ const categoryUpdate = function(cObj, callback) {
       nodeObj.display = "#" + cObj.nodeId;
       nodeObj.isCategory = true;
       nodeObj.category = cObj.category;
-      nodeObj.update(function(err, updatedHashtagObj, numAffected) {
+      hashtagServer.findOneHashtag(nodeObj, {noInc: true}, function(err, updatedHashtagObj) {
         if (err){
           console.log(chalkError("ERROR: UPDATING HASHTAG CATEGORY"
             + " | #" + nodeObj.nodeId
@@ -509,7 +509,7 @@ const categoryUpdate = function(cObj, callback) {
       nodeObj.display = cObj.nodeId;
       nodeObj.isCategory = true;
       nodeObj.category = cObj.category;
-      nodeObj.update(function(err, updatedWordObj, numAffected) {
+      wordServer.findOneWord(nodeObj, {noInc: true}, function(err, updatedWordObj) {
         if (err){
           console.log(chalkError("ERROR: UPDATING WORD CATEGORY"
             + " | " + nodeObj.nodeId

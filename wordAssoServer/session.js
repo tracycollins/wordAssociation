@@ -2,8 +2,8 @@
 /*jslint node: true */
 "use strict";
 
-var DEFAULT_SOURCE = "http://localhost:9997";
-// var DEFAULT_SOURCE = "http://word.threeceelabs.com";
+// var DEFAULT_SOURCE = "http://localhost:9997";
+var DEFAULT_SOURCE = "http://word.threeceelabs.com";
 // var DEFAULT_SOURCE = "==SOURCE==";  // will be updated by wordAssoServer.js on app.get
 
 const RX_NODE_QUEUE_INTERVAL = 10;

@@ -617,7 +617,7 @@ wordsPerMinuteTopTermCache.on("expired", wordCacheExpired);
 
 let updateMetricsInterval;
 
-let defaultDropboxCategoryFile = "category.json";
+let defaultDropboxCategoryFile = "classifiedUsers_manual.json";
 
 let internetReady = false;
 let ioReady = false;

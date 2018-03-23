@@ -1723,7 +1723,8 @@ function initSocketHandler(socketObj) {
           twit.get("users/show", {user_id: user.userId, include_entities: true}, function usersShow (err, rawUser, response){
             if (err) {
               console.log(chalkError("ERROR users/show rawUser" + err));
-              socket.emit("SET_TWITTER_USER", user);
+              const u = omit(user, ["histograms", "countHistory", "friends"]);
+              socket.emit("SET_TWITTER_USER", u);
             }
             else if (rawUser) {
 
@@ -1744,7 +1745,8 @@ function initSocketHandler(socketObj) {
                     console.log(chalkTwitter("UPDATED updatedUser"
                       + " | " + printUser({user:updatedUser})
                     ));
-                    socket.emit("SET_TWITTER_USER", updatedUser);
+                    const u = omit(updatedUser, ["histograms", "countHistory", "friends"]);
+                    socket.emit("SET_TWITTER_USER", u);
                   }
                 });
               });
@@ -1753,7 +1755,8 @@ function initSocketHandler(socketObj) {
             }
             else {
               console.log(chalkTwitter("NOT FOUND users/show data"));
-              socket.emit("SET_TWITTER_USER", user);
+              const u = omit(user, ["histograms", "countHistory", "friends"]);
+              socket.emit("SET_TWITTER_USER", u);
             }
           });
         }

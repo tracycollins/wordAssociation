@@ -306,7 +306,7 @@ const categoryUpdate = function(cObj, callback) {
               newCategoryHashMap[user.userId] = cObj.category;
               localCategoryHashMap[user.userId] = cObj.category; 
 
-              cb(null, nodeObj);
+              cb(null, user);
             }
             else {
               debug(chalkInfo("categoryUpdate: USER DB MISS"
@@ -324,19 +324,23 @@ const categoryUpdate = function(cObj, callback) {
             }
             else if (hashtag) {
               debug(chalkInfo("categoryUpdate: HASHTAG DB HIT "
-                + " | " + cObj.nodeId.toLowerCase()
+                + " | " + hashtag.nodeId.toLowerCase()
               ));
-              nodeObj = new Hashtag();
-              nodeObj.nodeId = hashtag.nodeId.toLowerCase();
-              nodeObj.hashtagId = hashtag.nodeId.toLowerCase();
-              nodeObj.text = hashtag.nodeId.toLowerCase();
-              nodeObj.display = "#" + hashtag.nodeId.toLowerCase();
-              nodeObj.isCategory = true;
-              nodeObj.category = cObj.category;
-              nodeObj.categoryAuto = cObj.categoryAuto;
-              newCategoryHashMap[nodeObj.nodeId] = nodeObj.category;
-              localCategoryHashMap[nodeObj.nodeId] = nodeObj.category;
-              cb(null, nodeObj);
+              // nodeObj = new Hashtag();
+              // nodeObj.nodeId = hashtag.nodeId.toLowerCase();
+              // nodeObj.hashtagId = hashtag.nodeId.toLowerCase();
+              // nodeObj.text = hashtag.nodeId.toLowerCase();
+              // nodeObj.display = "#" + hashtag.nodeId.toLowerCase();
+              // nodeObj.isCategory = true;
+              // nodeObj.category = cObj.category;
+              // nodeObj.categoryAuto = cObj.categoryAuto;
+
+              hashtag.category = cObj.category;
+
+              newCategoryHashMap[hashtag.nodeId] = cObj.category;
+              localCategoryHashMap[hashtag.nodeId] = cObj.category;
+
+              cb(null, hashtag);
             }
             else{
               debug(chalkInfo("categoryUpdate: HASHTAG DB MISS"
@@ -354,17 +358,21 @@ const categoryUpdate = function(cObj, callback) {
             }
             else if (word) {
               debug(chalkInfo("categoryUpdate: WORD DB HIT "
-                + " | " + cObj.nodeId.toLowerCase()
+                + " | " + word.nodeId.toLowerCase()
               ));
-              nodeObj = new Word();
-              nodeObj.nodeId = word.nodeId.toLowerCase();
-              nodeObj.wordId = word.nodeId.toLowerCase();
-              nodeObj.display = word.nodeId.toLowerCase();
-              nodeObj.isCategory = true;
-              nodeObj.category = cObj.category;
-              nodeObj.categoryAuto = cObj.categoryAuto;
-              newCategoryHashMap[nodeObj.nodeId] = nodeObj.category;
-              localCategoryHashMap[nodeObj.nodeId] = nodeObj.category;
+              // nodeObj = new Word();
+              // nodeObj.nodeId = word.nodeId.toLowerCase();
+              // nodeObj.wordId = word.nodeId.toLowerCase();
+              // nodeObj.display = word.nodeId.toLowerCase();
+              // nodeObj.isCategory = true;
+              // nodeObj.category = cObj.category;
+              // nodeObj.categoryAuto = cObj.categoryAuto;
+
+              word.category = cObj.category;
+
+              newCategoryHashMap[word.nodeId] = cObj.category;
+              localCategoryHashMap[word.nodeId] = cObj.category;
+
               cb(null, nodeObj);
             }
             else{
@@ -391,11 +399,11 @@ const categoryUpdate = function(cObj, callback) {
           }
           else {
             console.log(chalkLog("+++ UPDATED CATEGORY"
-              + " | C " + printCat(updatedUser.category) 
-              + " | CA " + printCat(updatedUser.categoryAuto)
-              + " | " + updatedUser.nodeId 
+              + " | C: " + printCat(updatedUser.category) 
+              + " | CA: " + printCat(updatedUser.categoryAuto)
+              + " | NID: " + updatedUser.nodeId 
               + " | @" + updatedUser.screenName 
-              + " | M " + updatedUser.mentions 
+              + " | M: " + updatedUser.mentions 
             ));
             callback(null, updatedUser);
           }
@@ -410,10 +418,10 @@ const categoryUpdate = function(cObj, callback) {
           }
           else {
             console.log(chalkLog("+++ UPDATED CATEGORY"
-              + " | C " + printCat(updatedHashtagObj.category) 
-              + " | CA " + printCat(updatedHashtagObj.category) 
+              + " | C: " + printCat(updatedHashtagObj.category) 
+              + " | CA: " + printCat(updatedHashtagObj.category) 
               + " | #" + updatedHashtagObj.nodeId 
-              + " | M " + updatedHashtagObj.mentions 
+              + " | M: " + updatedHashtagObj.mentions 
             ));
             callback(null, updatedHashtagObj);
           }
@@ -428,10 +436,10 @@ const categoryUpdate = function(cObj, callback) {
           }
           else {
             console.log(chalkLog("+++ UPDATED CATEGORY"
-              + " | C " + printCat(updatedWordObj.category) 
-              + " | CA " + printCat(updatedWordObj.category) 
+              + " | C: " + printCat(updatedWordObj.category) 
+              + " | CA: " + printCat(updatedWordObj.category) 
               + " | " + updatedWordObj.nodeId 
-              + " | M " + updatedWordObj.mentions 
+              + " | M: " + updatedWordObj.mentions 
             ));
             callback(null, updatedWordObj);
           }
@@ -450,12 +458,16 @@ const categoryUpdate = function(cObj, callback) {
     localCategoryHashMap[cObj.nodeId] = cObj.category;
 
     if (cObj.nodeType === "user") {
+
       nodeObj = new User();
       nodeObj.nodeId = cObj.nodeId;
+      nodeObj.userId = cObj.userId || cObj.nodeId;
       nodeObj.screenName = cObj.screenName.toLowerCase();
       nodeObj.display = "@" + cObj.screenName;
       nodeObj.isCategory = true;
       nodeObj.category = cObj.category;
+      nodeObj.categoryAuto = cObj.categoryAuto;
+
       userServer.findOneUser(nodeObj, {noInc: true}, function(err, updatedUser){
         if (err){
           console.log(chalkError("ERROR: UPDATING USER CATEGORY"
@@ -479,12 +491,15 @@ const categoryUpdate = function(cObj, callback) {
       });
     }
     else if (cObj.nodeType === "hashtag") {
+
       nodeObj = new Hashtag();
       nodeObj.nodeId = cObj.nodeId;
-      nodeObj.text = cObj.nodeId;
+      nodeObj.text = cObj.nodeId.toLowerCase();
       nodeObj.display = "#" + cObj.nodeId;
       nodeObj.isCategory = true;
       nodeObj.category = cObj.category;
+      nodeObj.categoryAuto = cObj.categoryAuto;
+
       hashtagServer.findOneHashtag(nodeObj, {noInc: true}, function(err, updatedHashtagObj) {
         if (err){
           console.log(chalkError("ERROR: UPDATING HASHTAG CATEGORY"
@@ -497,7 +512,7 @@ const categoryUpdate = function(cObj, callback) {
         else {
           debug(chalkLog("+++ UPDATED CATEGORY"
             + " | C " + updatedHashtagObj.category 
-            + " | CA " + updatedHashtagObj.category 
+            + " | CA " + updatedHashtagObj.categoryAuto 
             + " | " + updatedHashtagObj.nodeId 
             + " | " + updatedHashtagObj.raw 
             + " | M " + updatedHashtagObj.mentions 
@@ -507,11 +522,15 @@ const categoryUpdate = function(cObj, callback) {
       });
     }
     else if (cObj.nodeType === "word") {
+
       nodeObj = new Word();
-      nodeObj.nodeId = cObj.nodeId;
+      nodeObj.nodeId = cObj.nodeId.toLowerCase();
+      nodeObj.raw = cObj.nodeId;
       nodeObj.display = cObj.nodeId;
       nodeObj.isCategory = true;
       nodeObj.category = cObj.category;
+      nodeObj.categoryAuto = cObj.categoryAuto;
+
       wordServer.findOneWord(nodeObj, {noInc: true}, function(err, updatedWordObj) {
         if (err){
           console.log(chalkError("ERROR: UPDATING WORD CATEGORY"
@@ -527,14 +546,13 @@ const categoryUpdate = function(cObj, callback) {
             + " | " + updatedWordObj.raw 
             + " | M " + updatedWordObj.mentions 
             + " | C " + updatedWordObj.category 
-            + " | CA " + updatedWordObj.category 
+            + " | CA " + updatedWordObj.categoryAuto 
           ));
           callback(null, updatedWordObj);
         }
       });
     }
   }
-
 };
 
 function getFileMetadata (path, callback){

@@ -7,7 +7,7 @@ const ONE_SECOND = 1000;
 const ONE_MINUTE = ONE_SECOND * 60;
 
 let dropboxConfigDefaultFolder = "/config/utility/default";
-let defaultCategoryFile = "category.json";
+let defaultCategoryFile = "classifiedUsers_manual.json";
 
 const compactDateTimeFormat = "YYYYMMDD HHmmss";
 
@@ -15,7 +15,6 @@ let initGroupsReady = false;
 
 require("isomorphic-fetch");
 const Dropbox = require("dropbox").Dropbox;
-// const Dropbox = require("./dropbox").Dropbox;
 
 const debug = require("debug")("ud");
 const debugCategory = require("debug")("kw");
@@ -737,7 +736,7 @@ process.on("message", function(m) {
         + sn
       ));
       categoryUpdate(m, function(err, wordObj){
-        saveFile(dropboxConfigDefaultFolder, defaultCategoryFile, localCategoryHashMap, function(err, results){});
+        // saveFile(dropboxConfigDefaultFolder, defaultCategoryFile, localCategoryHashMap, function(err, results){});
       });
     break;
 

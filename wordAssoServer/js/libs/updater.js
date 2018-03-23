@@ -453,7 +453,7 @@ const categoryUpdate = function(cObj, callback) {
       nodeObj.display = "@" + cObj.screenName;
       nodeObj.isCategory = true;
       nodeObj.category = cObj.category;
-      nodeObj.save(function(err, updatedUser, numAffected){
+      nodeObj.update(function(err, updatedUser, numAffected){
         if (err){
           console.log(chalkError("ERROR: UPDATING CATEGORY"
             + " | " + nodeObj.nodeId
@@ -482,7 +482,7 @@ const categoryUpdate = function(cObj, callback) {
       nodeObj.display = "#" + cObj.nodeId;
       nodeObj.isCategory = true;
       nodeObj.category = cObj.category;
-      nodeObj.save(function(err, updatedHashtagObj, numAffected) {
+      nodeObj.update(function(err, updatedHashtagObj, numAffected) {
         if (err){
           console.log(chalkError("ERROR: UPDATING HASHTAG CATEGORY"
             + " | #" + nodeObj.nodeId
@@ -509,7 +509,7 @@ const categoryUpdate = function(cObj, callback) {
       nodeObj.display = cObj.nodeId;
       nodeObj.isCategory = true;
       nodeObj.category = cObj.category;
-      nodeObj.save(function(err, updatedWordObj, numAffected) {
+      nodeObj.update(function(err, updatedWordObj, numAffected) {
         if (err){
           console.log(chalkError("ERROR: UPDATING WORD CATEGORY"
             + " | " + nodeObj.nodeId

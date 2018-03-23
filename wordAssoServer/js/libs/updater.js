@@ -283,25 +283,29 @@ const categoryUpdate = function(cObj, callback) {
   if (cObj.nodeType === undefined) {
     async.parallel({
         user: function(cb) {
-          User.findOne({screenName: cObj.nodeId.toLowerCase()}, function(err, user) {
+          // User.findOne({screenName: cObj.nodeId.toLowerCase()}, function(err, user) {
+          User.findOne({userId: cObj.nodeId}, function(err, user) {
             if (err) {
               console.log(chalkError("categoryUpdate: ERROR DB FIND ONE USER | " + err));
               cb(err, null);
             }
             else if (user) {
               debug(chalkInfo("categoryUpdate: USER DB HIT "
-                + " | @" + cObj.nodeId.toLowerCase()
+                + " | @" + user.screenName.toLowerCase()
               ));
-              nodeObj = new User();
-              nodeObj.nodeId = user.nodeId;
-              nodeObj.userId = user.userId;
-              nodeObj.screenName = user.screenName.toLowerCase();
-              nodeObj.display = "@" + user.screenName.toLowerCase();
-              nodeObj.isCategory = true;
-              nodeObj.category = cObj.category;
-              nodeObj.categoryAuto = cObj.categoryAuto;
-              newCategoryHashMap[nodeObj.nodeId] = nodeObj.category;
-              localCategoryHashMap[nodeObj.nodeId] = nodeObj.category;
+              // nodeObj = new User();
+              // nodeObj.nodeId = user.nodeId;
+              // nodeObj.userId = user.userId;
+              // nodeObj.screenName = user.screenName.toLowerCase();
+              // nodeObj.display = "@" + user.screenName.toLowerCase();
+              // nodeObj.isCategory = true;
+
+              user.nodeId = user.userId;
+              user.category = cObj.category;
+
+              newCategoryHashMap[user.userId] = cObj.category;
+              localCategoryHashMap[user.userId] = cObj.category; 
+
               cb(null, nodeObj);
             }
             else {
@@ -736,7 +740,7 @@ process.on("message", function(m) {
         + sn
       ));
       categoryUpdate(m, function(err, wordObj){
-        // saveFile(dropboxConfigDefaultFolder, defaultCategoryFile, localCategoryHashMap, function(err, results){});
+        saveFile(dropboxConfigDefaultFolder, defaultCategoryFile, localCategoryHashMap, function(err, results){});
       });
     break;
 

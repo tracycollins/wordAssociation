@@ -570,7 +570,13 @@ function ControlPanel() {
 
       case "SET_TWITTER_USER":
         currentTwitterNode = event.data.user;
-        console.debug("SET TWITTER USER\n" + jsonPrint(currentTwitterNode));
+        console.debug("SET TWITTER USER" 
+          + " | " + currentTwitterNode.userId
+          + " | @" + currentTwitterNode.screenName
+          + " | C: " + currentTwitterNode.category
+          + " | CA: " + currentTwitterNode.categoryAuto
+          // + jsonPrint(currentTwitterNode)
+        );
         loadTwitterFeed(currentTwitterNode);
       break;
 

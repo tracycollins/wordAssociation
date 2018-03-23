@@ -1733,6 +1733,8 @@ function initSocketHandler(socketObj) {
                   + " | " + printUser({user:cUser})
                 ));
 
+                cUser.category = user.category;
+
                 userServer.findOneUser(cUser, {noInc: true}, function(err, updatedUser){
 
                   if (err) {

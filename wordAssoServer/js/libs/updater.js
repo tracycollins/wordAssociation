@@ -240,6 +240,16 @@ function saveFile (path, file, jsonObj, callback){
     });
 }
 
+function printCat(c){
+  if (c === "left") { return "L"; }
+  if (c === "neutral") { return "N"; }
+  if (c === "right") { return "R"; }
+  if (c === "positive") { return "+"; }
+  if (c === "negative") { return "-"; }
+  if (c === "none") { return "0"; }
+  return ".";
+}
+
 const categoryUpdate = function(cObj, callback) {
 
   debug("categoryUpdate\n" + jsonPrint(cObj));
@@ -378,8 +388,8 @@ const categoryUpdate = function(cObj, callback) {
           }
           else {
             console.log(chalkLog("+++ UPDATED CATEGORY"
-              + " | C " + updatedUser.category 
-              + " | CA " + updatedUser.categoryAuto
+              + " | C " + printCat(updatedUser.category) 
+              + " | CA " + printCat(updatedUser.categoryAuto)
               + " | " + updatedUser.nodeId 
               + " | @" + updatedUser.screenName 
               + " | M " + updatedUser.mentions 
@@ -397,8 +407,8 @@ const categoryUpdate = function(cObj, callback) {
           }
           else {
             console.log(chalkLog("+++ UPDATED CATEGORY"
-              + " | C " + updatedHashtagObj.category 
-              + " | CA " + updatedHashtagObj.category 
+              + " | C " + printCat(updatedHashtagObj.category) 
+              + " | CA " + printCat(updatedHashtagObj.category) 
               + " | #" + updatedHashtagObj.nodeId 
               + " | M " + updatedHashtagObj.mentions 
             ));
@@ -415,8 +425,8 @@ const categoryUpdate = function(cObj, callback) {
           }
           else {
             console.log(chalkLog("+++ UPDATED CATEGORY"
-              + " | C " + updatedWordObj.category 
-              + " | CA " + updatedWordObj.category 
+              + " | C " + printCat(updatedWordObj.category) 
+              + " | CA " + printCat(updatedWordObj.category) 
               + " | " + updatedWordObj.nodeId 
               + " | M " + updatedWordObj.mentions 
             ));

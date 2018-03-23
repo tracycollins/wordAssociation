@@ -1734,12 +1734,16 @@ function initSocketHandler(socketObj) {
                   + " | " + printUser({user:cUser})
                 ));
 
-                cUser.category = user.category;
+                user.followersCount = cUser.followersCount;
+                user.friendsCount = cUser.friendsCount;
+                user.statusesCount = cUser.statusesCount;
 
-                userServer.findOneUser(cUser, {noInc: true}, function(err, updatedUser){
+                userServer.findOneUser(user, {noInc: true}, function(err, updatedUser){
 
                   if (err) {
                     console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));
+                    const u = omit(user, ["histograms", "countHistory", "friends"]);
+                    socket.emit("SET_TWITTER_USER", u);
                   }
                   else {
                     console.log(chalkTwitter("UPDATED updatedUser"
@@ -1750,8 +1754,6 @@ function initSocketHandler(socketObj) {
                   }
                 });
               });
-
-
             }
             else {
               console.log(chalkTwitter("NOT FOUND users/show data"));

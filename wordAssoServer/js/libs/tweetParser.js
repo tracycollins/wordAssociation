@@ -283,6 +283,8 @@ process.on("message", function(m) {
       cnf.networkObj = {};
       cnf.networkObj = m.networkObj;
 
+      tweetServer.loadNeuralNetwork({networkObj: cnf.networkObj}, function(){});
+
       cnf.inputArrays = {};
 
       async.eachSeries(Object.keys(m.networkObj.inputsObj.inputs), function(type, cb){

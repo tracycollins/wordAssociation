@@ -210,9 +210,9 @@ function ViewTreepack() {
     return new Node();
   });
 
-  function resetNode(n){
-    Object.keys(n).forEach(function(prop){
-      n.prop = null;
+  function resetNode(node){
+    Object.keys(node).forEach(function(prop){
+      node.prop = null;
     });
   }
 

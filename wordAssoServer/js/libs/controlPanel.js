@@ -205,9 +205,12 @@ function ControlPanel() {
       var name = (node.name !== undefined) ? node.name : "---";
       var followersMentions = node.followersCount + node.mentions;
 
+      var category = node.category || "none";
+      var categoryAuto = node.categoryAuto || "none";
+
       document.getElementById("userScreenNameText").innerHTML = "<h4>@" + node.screenName + "</h4>";
       document.getElementById("userNameText").innerHTML = "<h4>" + name + "</h4>";
-      document.getElementById("userCategoryText").innerHTML = "M: " + node.category + " | A: " + node.categoryAuto;
+      document.getElementById("userCategoryText").innerHTML = "M: " + category + " | A: " + categoryAuto;
       document.getElementById("userFollowersCountText").innerHTML = node.followersCount;
       document.getElementById("userFriendsCountText").innerHTML = node.friendsCount;
       document.getElementById("userStatusesCountText").innerHTML = node.statusesCount;
@@ -217,8 +220,8 @@ function ControlPanel() {
 
       statsObj.user.name = name;
       statsObj.user.screenName = node.screenName;
-      statsObj.user.category = node.category || "none";
-      statsObj.user.categoryAuto = node.categoryAuto || "none";
+      statsObj.user.category = category;
+      statsObj.user.categoryAuto = categoryAuto;
       statsObj.user.followersCount = node.followersCount;
       statsObj.user.friendsCount = node.friendsCount;
       statsObj.user.statusesCount = node.statusesCount;

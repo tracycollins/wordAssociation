@@ -194,6 +194,17 @@ function ControlPanel() {
     }
   }
 
+  function shortCategory(c) {
+    switch (c) {
+      case "left": return "L"; break;
+      case "right": return "R"; break;
+      case "neutral": return "N"; break;
+      case "positive": return "+"; break;
+      case "negative": return "-"; break;
+      default: return "0";
+    }
+  }
+
   function twitterWidgetsCreateTimeline(node, callback){
 
     if (node.notFound !== undefined) {
@@ -210,7 +221,7 @@ function ControlPanel() {
 
       document.getElementById("userScreenNameText").innerHTML = "<h4>@" + node.screenName + "</h4>";
       document.getElementById("userNameText").innerHTML = "<h4>" + name + "</h4>";
-      document.getElementById("userCategoryText").innerHTML = "M: " + category + " | A: " + categoryAuto;
+      document.getElementById("userCategoryText").innerHTML = "M: " + shortCategory(category) + " | A: " + shortCategory(categoryAuto);
       document.getElementById("userFollowersCountText").innerHTML = node.followersCount;
       document.getElementById("userFriendsCountText").innerHTML = node.friendsCount;
       document.getElementById("userStatusesCountText").innerHTML = node.statusesCount;

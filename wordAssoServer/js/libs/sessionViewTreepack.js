@@ -805,7 +805,7 @@ function ViewTreepack() {
         node.ageMaxRatio = ageMaxRatio;
         node.isDead = false;
 
-        localNodeHashMap.set(node.nodeId, prevNode);
+        prevNode = localNodeHashMap.get(node.nodeId);
 
         node.isTopTerm = prevNode.isTopTerm;
         node.categoryColor = prevNode.categoryColor;

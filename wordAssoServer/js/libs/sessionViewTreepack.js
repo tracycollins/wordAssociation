@@ -179,7 +179,6 @@ function ViewTreepack() {
 
   var deadNodesHash = {};
 
-  node.
   function Node(){
     this.nodeId = "";
     this.nodeType = "user";

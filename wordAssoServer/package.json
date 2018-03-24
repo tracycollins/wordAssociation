@@ -8,7 +8,7 @@
     "@threeceelabs/hashtag-server-controller": "^1.0.19",
     "@threeceelabs/mongoose-twitter": "^1.0.90",
     "@threeceelabs/socketio-auth": "^1.0.7",
-    "@threeceelabs/tweet-server-controller": "^1.0.150",
+    "@threeceelabs/tweet-server-controller": "^1.0.164",
     "@threeceelabs/twitter-image-parser": "^1.0.40",
     "@threeceelabs/twitter-text-parser": "^1.0.40",
     "@threeceelabs/user-server-controller": "^1.0.211",

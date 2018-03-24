@@ -149,6 +149,8 @@ function initTweetParserQueueInterval(cnf){
   };
 
   tweetServer.loadNeuralNetwork({networkObj: cnf.networkObj}, function(){});
+  tweetServer.loadMaxInputHashMap(cnf.maxInputHashMap, function(){});
+  tweetServer.loadNormalization(cnf.normalization, function(){});
 
   tweetParserQueueInterval = setInterval(function(){
 
@@ -234,14 +236,20 @@ process.on("message", function(m) {
 
     case "INIT":
       cnf.updateInterval = m.interval;
+      cnf.networkObj = {};
+      cnf.networkObj = m.networkObj;
+      cnf.maxInputHashMap = {};
+      cnf.maxInputHashMap = m.maxInputHashMap;
+      cnf.normalization = {};
+      cnf.normalization = m.normalization;
+      cnf.inputArrays = {};
+
       console.log(chalkInfo("TWEET PARSER INIT"
         + " | INTERVAL: " + m.interval
         + " | NN: " + m.networkObj.networkId
+        + " | MAX IN HM INPUT TYPES: " + Object.keys(cnf.maxInputHashMap)
+        + " | NORMALIZATION INPUT TYPES: " + Object.keys(cnf.normalization)
       ));
-      cnf.networkObj = {};
-      cnf.networkObj = m.networkObj;
-
-      cnf.inputArrays = {};
 
       async.eachSeries(Object.keys(m.networkObj.inputsObj.inputs), function(type, cb){
 

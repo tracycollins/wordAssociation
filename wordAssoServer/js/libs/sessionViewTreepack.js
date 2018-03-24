@@ -179,6 +179,7 @@ function ViewTreepack() {
 
   var deadNodesHash = {};
 
+  node.
   function Node(){
     this.nodeId = "";
     this.nodeType = "user";
@@ -203,12 +204,18 @@ function ViewTreepack() {
     this.isTrendingTopic = false;
     this.categoryColor = palette.white;
     this.followersMentions = 0;
+    this.isMaxNode = false;
   } 
 
   var nodePool = deePool.create(function makeNode(){
     return new Node();
   });
 
+  function resetNode(n){
+    Object.keys(n).forEach(function(prop){
+      n.prop = null;
+    });
+  }
 
   var autoCategoryFlag = config.autoCategoryFlag;
 
@@ -780,6 +787,7 @@ function ViewTreepack() {
         delete localNodeHashMap[node.nodeId];
         nodesTopTermHashMap.remove(node.nodeId);
 
+        resetNode(node);
         nodePool.recycle(node);
         nodes.splice(ageNodesIndex, 1);
        } 

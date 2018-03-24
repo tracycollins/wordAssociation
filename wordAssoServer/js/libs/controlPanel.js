@@ -137,11 +137,13 @@ function ControlPanel() {
   twitterCategorySearchDiv.appendChild(nextUncategorizedButton);
 
   function updateCategoryRadioButtons(category, callback){
-    console.warn("updateCategoryRadioButtons | " + category);
+
+    console.log("updateCategoryRadioButtons | " + category);
 
     if (category === undefined || !category) {
       category = "none";
     }
+
     var element;
 
     document.getElementById("categoryLeft").setAttribute("checked", false);
@@ -178,6 +180,11 @@ function ControlPanel() {
         callback();
       break;
       case "-":
+        element = document.getElementById("categoryNone");
+        element.checked = true;
+        callback();
+      break;
+      case "none":
         element = document.getElementById("categoryNone");
         element.checked = true;
         callback();

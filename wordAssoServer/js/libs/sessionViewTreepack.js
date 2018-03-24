@@ -286,8 +286,8 @@ function ViewTreepack() {
   var MAX_RX_QUEUE = 100;
 
   var nodesTopTermHashMap = new HashMap();
+  var localNodeHashMap = new HashMap();
 
-  var localNodeHashMap = {};
   var maxNodeAddQ = 0;
   var maxNumberNodes = 0;
 
@@ -786,7 +786,7 @@ function ViewTreepack() {
 
         node.isDead = true;
 
-        delete localNodeHashMap[node.nodeId];
+        localNodeHashMap.remove(node.nodeId);
         nodesTopTermHashMap.remove(node.nodeId);
 
         resetNode(node);
@@ -805,7 +805,7 @@ function ViewTreepack() {
         node.ageMaxRatio = ageMaxRatio;
         node.isDead = false;
 
-        prevNode = localNodeHashMap[node.nodeId];
+        localNodeHashMap.set(node.nodeId, prevNode);
 
         node.isTopTerm = prevNode.isTopTerm;
         node.categoryColor = prevNode.categoryColor;
@@ -815,7 +815,7 @@ function ViewTreepack() {
 
         nodes[ageNodesIndex] = node;
 
-        localNodeHashMap[node.nodeId] = node;
+        localNodeHashMap.set(node.nodeId, node);
 
         if (node.isTopTerm) {
           nodesTopTermHashMap.set(node.nodeId, node);
@@ -1438,9 +1438,9 @@ function ViewTreepack() {
 
       nodesModifiedFlag = false;
 
-      if (localNodeHashMap[newNode.nodeId] !== undefined){
+      if (localNodeHashMap.has(newNode.nodeId)){
 
-        var currentNode = localNodeHashMap[newNode.nodeId];
+        var currentNode = localNodeHashMap.get(newNode.nodeId);
 
         currentNode.age = 1e-6;
         currentNode.isDead = false;
@@ -1461,7 +1461,7 @@ function ViewTreepack() {
 
         currentNode.displaytext = createDisplayText(currentNode);
 
-        localNodeHashMap[currentNode.nodeId] = currentNode;
+        localNodeHashMap.set(currentNode.nodeId, currentNode);
 
         if (currentNode.isTopTerm) {
           nodesTopTermHashMap.set(currentNode.nodeId, currentNode);
@@ -1512,7 +1512,7 @@ function ViewTreepack() {
           currentNode.y = focus("neutral").y;
         }
 
-        localNodeHashMap[currentNode.nodeId] = currentNode;
+        localNodeHashMap.set(currentNode.nodeId, currentNode);
 
         if (currentNode.isTopTerm) {
           nodesTopTermHashMap.set(currentNode.nodeId, currentNode);
@@ -1903,7 +1903,7 @@ function ViewTreepack() {
     console.info("RESET");
     deadNodesHash = {};
     mouseHoverFlag = false;
-    localNodeHashMap = {};
+    localNodeHashMap.clear();
     nodesTopTermHashMap.clear();
     nodes.forEach(function(node){
       resetNode(node);

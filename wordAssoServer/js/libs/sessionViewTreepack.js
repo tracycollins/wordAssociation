@@ -212,8 +212,8 @@ function ViewTreepack() {
 
   function resetNode(node){
     Object.keys(node).forEach(function(prop){
-      node.prop = null;
-      delete node.prop;
+      node[prop] = null;
+      // delete node.prop;
     });
   }
 

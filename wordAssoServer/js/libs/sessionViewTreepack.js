@@ -445,7 +445,13 @@ function ViewTreepack() {
     .attr("y", 1e-6);
 
   var panzoomElement = document.getElementById("svgTreemapLayoutArea");
-  panzoom(panzoomElement, { zoomSpeed: 0.030 });
+  panzoom(panzoomElement, { 
+    onTouch: function(e) {
+      // `e` - is current touch event.
+      return false; // tells the library to not preventDefault.
+    },
+    zoomSpeed: 0.030 
+  });
 
   var svgTopTerms = topTermsDiv.append("svg:svg")
     .attr("id", "svgTopTerms")
@@ -1069,6 +1075,10 @@ function ViewTreepack() {
     nodeCircles
       .enter()
       .append("circle")
+      // .append(function(){
+      //   var newCircle = document.createElement("circle");
+      //   return newCircle;
+      // })
       .attr("nodeId", function (d) { return d.nodeId; })
       .style("visibility", function (d) {
         if (d.isDead) { return "hidden"; }

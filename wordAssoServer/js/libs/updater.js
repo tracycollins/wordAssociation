@@ -283,7 +283,6 @@ const categoryUpdate = function(cObj, callback) {
   if (cObj.nodeType === undefined) {
     async.parallel({
         user: function(cb) {
-          // User.findOne({screenName: cObj.nodeId.toLowerCase()}, function(err, user) {
           User.findOne({userId: cObj.nodeId}, function(err, user) {
             if (err) {
               console.log(chalkError("categoryUpdate: ERROR DB FIND ONE USER | " + err));
@@ -293,12 +292,6 @@ const categoryUpdate = function(cObj, callback) {
               debug(chalkInfo("categoryUpdate: USER DB HIT "
                 + " | @" + user.screenName.toLowerCase()
               ));
-              // nodeObj = new User();
-              // nodeObj.nodeId = user.nodeId;
-              // nodeObj.userId = user.userId;
-              // nodeObj.screenName = user.screenName.toLowerCase();
-              // nodeObj.display = "@" + user.screenName.toLowerCase();
-              // nodeObj.isCategory = true;
 
               user.nodeId = user.userId;
               user.category = cObj.category;
@@ -326,14 +319,6 @@ const categoryUpdate = function(cObj, callback) {
               debug(chalkInfo("categoryUpdate: HASHTAG DB HIT "
                 + " | " + hashtag.nodeId.toLowerCase()
               ));
-              // nodeObj = new Hashtag();
-              // nodeObj.nodeId = hashtag.nodeId.toLowerCase();
-              // nodeObj.hashtagId = hashtag.nodeId.toLowerCase();
-              // nodeObj.text = hashtag.nodeId.toLowerCase();
-              // nodeObj.display = "#" + hashtag.nodeId.toLowerCase();
-              // nodeObj.isCategory = true;
-              // nodeObj.category = cObj.category;
-              // nodeObj.categoryAuto = cObj.categoryAuto;
 
               hashtag.category = cObj.category;
 
@@ -360,13 +345,6 @@ const categoryUpdate = function(cObj, callback) {
               debug(chalkInfo("categoryUpdate: WORD DB HIT "
                 + " | " + word.nodeId.toLowerCase()
               ));
-              // nodeObj = new Word();
-              // nodeObj.nodeId = word.nodeId.toLowerCase();
-              // nodeObj.wordId = word.nodeId.toLowerCase();
-              // nodeObj.display = word.nodeId.toLowerCase();
-              // nodeObj.isCategory = true;
-              // nodeObj.category = cObj.category;
-              // nodeObj.categoryAuto = cObj.categoryAuto;
 
               word.category = cObj.category;
 
@@ -398,7 +376,7 @@ const categoryUpdate = function(cObj, callback) {
             callback(err, results.user);
           }
           else {
-            console.log(chalkLog("+++ UPDATED CATEGORY"
+            debug(chalkLog("+++ UPDATED CATEGORY"
               + " | C: " + printCat(updatedUser.category) 
               + " | CA: " + printCat(updatedUser.categoryAuto)
               + " | NID: " + updatedUser.nodeId 
@@ -417,7 +395,7 @@ const categoryUpdate = function(cObj, callback) {
             callback(err, results.hashtag);
           }
           else {
-            console.log(chalkLog("+++ UPDATED CATEGORY"
+            debug(chalkLog("+++ UPDATED CATEGORY"
               + " | C: " + printCat(updatedHashtagObj.category) 
               + " | CA: " + printCat(updatedHashtagObj.category) 
               + " | #" + updatedHashtagObj.nodeId 
@@ -435,7 +413,7 @@ const categoryUpdate = function(cObj, callback) {
             callback(err, results.word);
           }
           else {
-            console.log(chalkLog("+++ UPDATED CATEGORY"
+            debug(chalkLog("+++ UPDATED CATEGORY"
               + " | C: " + printCat(updatedWordObj.category) 
               + " | CA: " + printCat(updatedWordObj.category) 
               + " | " + updatedWordObj.nodeId 
@@ -620,13 +598,30 @@ const updateCategory = function(folder, file, callback){
             + " | " + fullPath
           ));
 
+          let index = 0;
+          let wordsLength = words.length;
+          let wordsPercent = 0;
+
           async.eachSeries(words, function(w, cb) {
 
               categoryUpdate({nodeId: w, category: kwordsObj[w]}, function(err, updatedNodeObj){
                 if (err) {
                   console.log(chalkError("categoryUpdate ERROR! " + err));
+                  return(cb(err));
                 }
                 async.setImmediate(function() {
+                  if (updatedNodeObj && (index % 50 === 0)) { 
+                    wordsPercent = 100 * index / wordsLength;
+                    console.log(chalkLog("+++ UPDATED CATEGORY"
+                      + " [" + index + "/" + wordsLength + " (" + wordsPercent.toFixed(2) + "%)]"
+                      + " | C: " + printCat(updatedNodeObj.category) 
+                      + " | CA: " + printCat(updatedNodeObj.categoryAuto)
+                      + " | NID: " + updatedNodeObj.nodeId 
+                      + " | @" + updatedNodeObj.screenName 
+                      + " | M: " + updatedNodeObj.mentions 
+                    ));
+                  }
+                  index += 1;
                   cb(err);
                 });
               });

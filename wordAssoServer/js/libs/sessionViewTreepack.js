@@ -740,6 +740,7 @@ function ViewTreepack() {
   var ageNodesIndex = nodes.length - 1;
   var node;
   var prevNode;
+  var currentTime = moment().valueOf();
 
   var ageNodes = function (callback) {
 
@@ -772,10 +773,10 @@ function ViewTreepack() {
       }
 
       if ((node.nodeType === "user") && (node.followersCount > MIN_FOLLOWERS)){
-        age = node.age + (ageRate * MIN_FOLLOWERS_AGE_RATE_RATIO * (moment().valueOf() - node.ageUpdated));
+        age = node.age + (ageRate * MIN_FOLLOWERS_AGE_RATE_RATIO * (currentTime - node.ageUpdated));
       }
       else {
-        age = node.age + (ageRate * (moment().valueOf() - node.ageUpdated));
+        age = node.age + (ageRate * (currentTime - node.ageUpdated));
       }
 
       ageMaxRatio = age/nodeMaxAge ;
@@ -792,7 +793,7 @@ function ViewTreepack() {
         nodes.splice(ageNodesIndex, 1);
        } 
       else {
-        node.ageUpdated = moment().valueOf();
+        node.ageUpdated = currentTime;
         node.age = age;
         if (ageMaxRatio < NEW_NODE_AGE_RATIO) { 
           node.newFlag = true; 

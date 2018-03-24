@@ -1126,6 +1126,10 @@ function ViewTreepack() {
         if (d.isDead) { return "hidden"; }
         return "visible";
       })
+      .style("fill", function (d) { 
+        if (!d.category && !d.categoryAuto) { return palette.black; }
+        return d.categoryColor; 
+      })
       .style("opacity", function(d) { 
         if (d.isDead) { return 1e-6; }
         return nodeLabelOpacityScale(d.ageMaxRatio); 

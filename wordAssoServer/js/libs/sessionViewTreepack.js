@@ -776,10 +776,11 @@ function ViewTreepack() {
       if (node.isDead || (removeDeadNodesFlag && (age >= nodeMaxAge))) {
 
         node.isDead = true;
-        nodePool.recycle(node);
 
         delete localNodeHashMap[node.nodeId];
         nodesTopTermHashMap.remove(node.nodeId);
+
+        nodePool.recycle(node);
         nodes.splice(ageNodesIndex, 1);
        } 
       else {
@@ -1126,10 +1127,6 @@ function ViewTreepack() {
         if (d.isDead) { return "hidden"; }
         return "visible";
       })
-      .style("fill", function (d) { 
-        if (!d.category && !d.categoryAuto) { return palette.black; }
-        return d.categoryColor; 
-      })
       .style("opacity", function(d) { 
         if (d.isDead) { return 1e-6; }
         return nodeLabelOpacityScale(d.ageMaxRatio); 
@@ -1417,7 +1414,7 @@ function ViewTreepack() {
   };
 
   var newNode = {};
-  var currentNode = {};
+  // var currentNode = {};
   var nodesModifiedFlag = false;
   var nodeAddQReady = true;
 
@@ -1433,7 +1430,7 @@ function ViewTreepack() {
 
       if (localNodeHashMap[newNode.nodeId] !== undefined){
 
-        currentNode = localNodeHashMap[newNode.nodeId];
+        var currentNode = localNodeHashMap[newNode.nodeId];
 
         currentNode.age = 1e-6;
         currentNode.isDead = false;
@@ -1470,7 +1467,7 @@ function ViewTreepack() {
       else {
         nodesModifiedFlag = true;
 
-        currentNode = nodePool.use();
+        var currentNode = nodePool.use();
 
         currentNode = newNode;
 
@@ -1894,11 +1891,14 @@ function ViewTreepack() {
 
   self.reset = function() {
     console.info("RESET");
-    nodes = [];
     deadNodesHash = {};
     mouseHoverFlag = false;
     localNodeHashMap = {};
     nodesTopTermHashMap.clear();
+    nodes.forEach(function(node){
+      nodePool.recycle(node);
+    })
+    nodes = [];
     self.toolTipVisibility(false);
     self.resize();
     self.resetDefaultForce();

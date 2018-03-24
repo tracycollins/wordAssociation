@@ -2269,7 +2269,8 @@ function initSocketSessionUpdateRx(){
       newNode.mentions = (newNode.mentions > 0) ? newNode.mentions : 10;
 
       if (newNode.nodeType === "user"){
-        newNode.nodeId = newNode.screenName.toLowerCase();
+        newNode.userId = newNode.userId;
+        newNode.nodeId = newNode.userId;
         newNode.text = newNode.screenName.toLowerCase();
         newNode.screenName = newNode.screenName.toLowerCase();
       }

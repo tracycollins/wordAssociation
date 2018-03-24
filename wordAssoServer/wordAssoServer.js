@@ -1363,7 +1363,7 @@ function initUpdaterPingInterval(interval){
 }
 
 
-function categorizeNode(categorizeObj) {
+function categorizeNode(categorizeObj, callback) {
 
   if (categorizeObj.twitterUser && categorizeObj.twitterUser.userId) {
 
@@ -1374,6 +1374,10 @@ function categorizeNode(categorizeObj) {
       && (categorizeObj.twitterUser.userId !== "848591649575927810")) 
     {
       console.log(chalkAlert("*** AUTH USER NOT IN CACHE\n" + jsonPrint(categorizeObj.twitterUser)));
+
+      if (callback !== undefined) {
+        return(callback("AUTH USER NOT IN CACHE", categorizeObj.twitterUser));
+      }
       return;
     }
   }
@@ -1398,8 +1402,14 @@ function categorizeNode(categorizeObj) {
 
         if (err) {
           console.log(chalkError("*** USER UPDATE CATEGORY ERROR: " + jsonPrint(err)));
+          if (callback !== undefined) {
+            callback(err, categorizeObj);
+          }
         }
         else {
+
+          const u = omit(updatedUser, ["histograms", "countHistory", "friends"]);
+
           if ((updater !== undefined) && (updatedUser)){
 
             updater.send({
@@ -1415,6 +1425,9 @@ function categorizeNode(categorizeObj) {
                 ));
                 slackPostMessage(slackChannel, "\n*UPDATER SEND ERROR*\n" + err);
                 initUpdater();
+                if (callback !== undefined) {
+                  callback(err, categorizeObj);
+                }
               }
             });
 
@@ -1425,10 +1438,15 @@ function categorizeNode(categorizeObj) {
             slackPostMessage(slackChannel, text);
 
             debug(chalkLog(">UPDATER UPDATE_CATEGORY USER | @" + updatedUser.screenName ));
+            if (callback !== undefined) {
+              callback(null, updatedUser);
+            }
           }
           else {
-            console.log(chalkError("!!! NO UPDATER UPDATE_CATEGORY ... UNDEFINED"
-            ));
+            console.log(chalkError("!!! NO UPDATER UPDATE_CATEGORY ... UNDEFINED"));
+            if (callback !== undefined) {
+              callback("UPDATE_CATEGORY UNDEFINED", categorizeObj);
+            }
           }
         }
       });
@@ -1443,12 +1461,13 @@ function categorizeNode(categorizeObj) {
       categoryHashMap.set(categorizeObj.node.nodeId.toLowerCase(), categorizeObj.category);
 
       hashtagServer.updateCategory({hashtag: categorizeObj.node, category: categorizeObj.category}, function(err, updatedHashtag){
-
         if (err) {
           console.log(chalkError("*** HASHTAG UPDATE CATEGORY ERROR: " + jsonPrint(err)));
+          if (callback !== undefined) {
+            callback(err, categorizeObj);
+          }
         }
         else {
-
           if (updater !== undefined){
 
             updater.send({
@@ -1463,6 +1482,9 @@ function categorizeNode(categorizeObj) {
                 ));
                 slackPostMessage(slackChannel, "\n*UPDATER SEND ERROR*\n" + err);
                 initUpdater();
+                if (callback !== undefined) {
+                  callback(err, categorizeObj);
+                }
               }
             });
 
@@ -1472,12 +1494,17 @@ function categorizeNode(categorizeObj) {
             slackPostMessage(slackChannel, text);
 
             debug(chalkLog(">UPDATER UPDATE_CATEGORY HASHTAG | #" + updatedHashtag.text ));
+            if (callback !== undefined) {
+              callback(null, updatedHashtag);
+            }
           }
           else {
             console.log(chalkError("!!! NO UPDATER UPDATE_CATEGORY ... UNDEFINED"
             ));
+            if (callback !== undefined) {
+              callback("UPDATE_CATEGORY UNDEFINED", categorizeObj);
+            }
           }
-
         }
 
       });
@@ -1732,10 +1759,10 @@ function initSocketHandler(socketObj) {
 
       if (searchNode.startsWith("@")) {
         searchNodeUser = { screenName: searchNode.substring(1) };
-        if (searchNodeUser === "?") {
+        if (searchNodeUser.screenName === "?") {
           console.log(chalkInfo("SEARCH FOR UNCATEGORIZED USER"));
         }
-        if (searchNodeUser === "?mm") {
+        if (searchNodeUser.screenName === "?mm") {
           console.log(chalkInfo("SEARCH FOR MISMATCHED USER"));
         }
       }
@@ -1823,7 +1850,19 @@ function initSocketHandler(socketObj) {
       ));
     }
 
-    categorizeNode(dataObj);
+    categorizeNode(dataObj, function(err, updatedNodeObj){
+      if (err) {
+        console.log(chalkError("CAT NODE ERROR: " + err));
+      }
+      else if (updatedNodeObj) {
+        if (updatedNodeObj.nodeType === "user") {
+          socket.emit("SET_TWITTER_USER", updatedNodeObj);
+        }
+        if (updatedNodeObj.nodeType === "user") {
+          socket.emit("SET_TWITTER_HASHTAG", updatedNodeObj);
+        }
+      }
+    });
   });
 
   socket.on("USER_READY", function userReady(userObj) {

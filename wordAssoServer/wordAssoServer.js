@@ -7,6 +7,12 @@ let dropboxConfigDefaultFolder = "/config/utility/default";
 let dropboxConfigDefaultTrainingSetsFolder = dropboxConfigDefaultFolder + "/trainingSets";
 let maxInputHashMapFile = "maxInputHashMap.json";
 
+const fieldsExclude = {
+  histograms: 0,
+  countHistory: 0,
+  friends: 0
+};
+
 let bestRuntimeNetworkId = false;
 let bestNetworkObj = {};
 let maxInputHashMap = {};
@@ -1737,13 +1743,13 @@ function initSocketHandler(socketObj) {
         searchNodeUser = { screenName: searchNode };
       }
 
-      userServer.findOne({user: searchNodeUser}, function(err, user){
+      userServer.findOne({user: searchNodeUser, fields: fieldsExclude}, function(err, user){
         if (err) {
           console.log(chalkError("TWITTER_SEARCH_NODE USER ERROR\n" + jsonPrint(err)));
         }
         else if (user) {
 
-          let userSlim = {};
+          // let userSlim = {};
 
           console.log(chalkTwitter("+++ TWITTER_SEARCH_NODE USER FOUND"
             + " | " + printUser({user:user})
@@ -1752,8 +1758,8 @@ function initSocketHandler(socketObj) {
           twit.get("users/show", {user_id: user.userId, include_entities: true}, function usersShow (err, rawUser, response){
             if (err) {
               console.log(chalkError("ERROR users/show rawUser" + err));
-              userSlim = omit(user, ["histograms", "countHistory", "friends"]);
-              socket.emit("SET_TWITTER_USER", userSlim);
+              // userSlim = omit(user, ["histograms", "countHistory", "friends"]);
+              socket.emit("SET_TWITTER_USER", user);
             }
             else if (rawUser) {
 
@@ -1767,27 +1773,24 @@ function initSocketHandler(socketObj) {
                 user.friendsCount = cUser.friendsCount;
                 user.statusesCount = cUser.statusesCount;
 
-                userServer.findOneUser(user, {noInc: true}, function(err, updatedUser){
+                userServer.findOneUser(user, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
 
                   if (err) {
                     console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));
-                    userSlim = omit(user, ["histograms", "countHistory", "friends"]);
-                    socket.emit("SET_TWITTER_USER", userSlim);
+                    socket.emit("SET_TWITTER_USER", user);
                   }
                   else {
                     console.log(chalkTwitter("UPDATED updatedUser"
                       + " | " + printUser({user:updatedUser})
                     ));
-                    userSlim = omit(updatedUser, ["histograms", "countHistory", "friends"]);
-                    socket.emit("SET_TWITTER_USER", userSlim);
+                    socket.emit("SET_TWITTER_USER", user);
                   }
                 });
               });
             }
             else {
               console.log(chalkTwitter("NOT FOUND users/show data"));
-              userSlim = omit(user, ["histograms", "countHistory", "friends"]);
-              socket.emit("SET_TWITTER_USER", userSlim);
+              socket.emit("SET_TWITTER_USER", user);
             }
           });
         }
@@ -2340,16 +2343,14 @@ function initTransmitNodeQueueInterval(interval){
                     n.status = rawUser.status;
 
                     if (n.followersCount > MIN_FOLLOWERS) {
-                      userServer.findOneUser(n, {noInc: true}, function(err, updatedUser){
+                      userServer.findOneUser(n, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
                         if (err) {
                           console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));
-                          delete n.countHistory;
                           viewNameSpace.volatile.emit("node", n);
                           transmitNodeQueueReady = true;
                         }
                         else {
                           debug(chalkTwitter("UPDATED updatedUser" + jsonPrint(updatedUser)));
-                          delete updatedUser.countHistory;
                           viewNameSpace.volatile.emit("node", updatedUser);
                           transmitNodeQueueReady = true;
                         }
@@ -2357,21 +2358,18 @@ function initTransmitNodeQueueInterval(interval){
                     }
                     else {
                       debug(chalkTwitter("LESS THAN MIN_FOLLOWERS users/show data"));
-                      delete n.countHistory;
                       viewNameSpace.volatile.emit("node", n);
                       transmitNodeQueueReady = true;
                     }
                   }
                   else {
                     console.log(chalkTwitter("NOT FOUND users/show data"));
-                    delete n.countHistory;
                     viewNameSpace.volatile.emit("node", n);
                     transmitNodeQueueReady = true;
                   }
                 });
               }
               else if ((n.nodeType === "user") || (n.nodeType === "hashtag") || (n.nodeType === "place")) {
-                delete n.countHistory;
                 viewNameSpace.volatile.emit("node", n);
                 transmitNodeQueueReady = true;
               }

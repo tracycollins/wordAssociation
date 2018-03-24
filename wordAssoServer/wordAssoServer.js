@@ -4,9 +4,14 @@
 const bestRuntimeNetworkFileName = "bestRuntimeNetwork.json";
 const bestNetworkFolder = "/config/utility/best/neuralNetworks";
 let dropboxConfigDefaultFolder = "/config/utility/default";
+let dropboxConfigDefaultTrainingSetsFolder = dropboxConfigDefaultFolder + "/trainingSets";
+let maxInputHashMapFile = "maxInputHashMap.json";
 
 let bestRuntimeNetworkId = false;
 let bestNetworkObj = {};
+let maxInputHashMap = {};
+let normalization = {};
+let maxInputHashMapReady = false;
 
 let tweetParserReady = false;
 let previousBestNetworkId = "";
@@ -994,6 +999,28 @@ function loadFile(path, file, callback) {
   }
 }
 
+function loadMaxInputHashMap(params, callback){
+  loadFile(params.folder, params.file, function(err, dataObj){
+    if (err){
+      console.log(chalkError("ERROR: loadMaxInputHashMap: loadFile: " + err));
+      return(callback(err));
+    }
+    if (dataObj.maxInputHashMap === undefined) {
+      console.log(chalkError("ERROR: loadMaxInputHashMap: loadFile: maxInputHashMap UNDEFINED"));
+      return(callback("dataObj.maxInputHashMap UNDEFINED"));
+    }
+    if (dataObj.normalization === undefined) {
+      console.log(chalkError("ERROR: loadMaxInputHashMap: loadFile: normalization UNDEFINED"));
+      return(callback("dataObj.normalization UNDEFINED"));
+    }
+    maxInputHashMap = {};
+    maxInputHashMap = dataObj.maxInputHashMap;
+    normalization = {};
+    normalization = dataObj.normalization;
+    callback();
+  });
+}
+
 function loadYamlConfig(yamlFile, callback){
   console.log(chalkInfo("LOADING YAML CONFIG FILE: " + yamlFile));
   fs.exists(yamlFile, function yamlCheckFileExists(exists) {
@@ -1716,6 +1743,8 @@ function initSocketHandler(socketObj) {
         }
         else if (user) {
 
+          let userSlim = {};
+
           console.log(chalkTwitter("+++ TWITTER_SEARCH_NODE USER FOUND"
             + " | " + printUser({user:user})
           ));
@@ -1723,8 +1752,8 @@ function initSocketHandler(socketObj) {
           twit.get("users/show", {user_id: user.userId, include_entities: true}, function usersShow (err, rawUser, response){
             if (err) {
               console.log(chalkError("ERROR users/show rawUser" + err));
-              const u = omit(user, ["histograms", "countHistory", "friends"]);
-              socket.emit("SET_TWITTER_USER", u);
+              userSlim = omit(user, ["histograms", "countHistory", "friends"]);
+              socket.emit("SET_TWITTER_USER", userSlim);
             }
             else if (rawUser) {
 
@@ -1742,23 +1771,23 @@ function initSocketHandler(socketObj) {
 
                   if (err) {
                     console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));
-                    const u = omit(user, ["histograms", "countHistory", "friends"]);
-                    socket.emit("SET_TWITTER_USER", u);
+                    userSlim = omit(user, ["histograms", "countHistory", "friends"]);
+                    socket.emit("SET_TWITTER_USER", userSlim);
                   }
                   else {
                     console.log(chalkTwitter("UPDATED updatedUser"
                       + " | " + printUser({user:updatedUser})
                     ));
-                    const u = omit(updatedUser, ["histograms", "countHistory", "friends"]);
-                    socket.emit("SET_TWITTER_USER", u);
+                    userSlim = omit(updatedUser, ["histograms", "countHistory", "friends"]);
+                    socket.emit("SET_TWITTER_USER", userSlim);
                   }
                 });
               });
             }
             else {
               console.log(chalkTwitter("NOT FOUND users/show data"));
-              const u = omit(user, ["histograms", "countHistory", "friends"]);
-              socket.emit("SET_TWITTER_USER", u);
+              userSlim = omit(user, ["histograms", "countHistory", "friends"]);
+              socket.emit("SET_TWITTER_USER", userSlim);
             }
           });
         }
@@ -2369,9 +2398,9 @@ function transmitNodes(tw, callback){
     if (hashtag) {transmitNodeQueue.push(hashtag);}
   });
 
-  tw.urls.forEach(function urlsTxNodeQueue(url){
-    if (url) {transmitNodeQueue.push(url);}
-  });
+  // tw.urls.forEach(function urlsTxNodeQueue(url){
+  //   if (url) {transmitNodeQueue.push(url);}
+  // });
 
   if (tw.place) {transmitNodeQueue.push(tw.place);}
   if (tw.user) {transmitNodeQueue.push(tw.user);}
@@ -3343,6 +3372,8 @@ function initTweetParser(callback){
   twp.send({
     op: "INIT",
     networkObj: bestNetworkObj,
+    maxInputHashMap: maxInputHashMap,
+    normalization: normalization,
     interval: TWEET_PARSER_INTERVAL
   }, function tweetParserMessageRxError(err){
     if (err) {
@@ -3772,6 +3803,18 @@ function initialize(cnf, callback) {
     }
   });
 
+  loadMaxInputHashMap({folder: dropboxConfigDefaultTrainingSetsFolder, file: maxInputHashMapFile}, function(err){
+    if (err) {
+      console.log(chalkError("ERROR: loadMaxInputHashMap: " + err));
+    }
+    else {
+      console.log(chalkInfo("LOADED MAX INPUT HASHMAP + NORMALIZATION"));
+      console.log(chalkInfo("MAX INPUT HASHMAP INPUT TYPES: " + Object.keys(maxInputHashMap)));
+      console.log(chalkInfo("NORMALIZATION INPUT TYPES: " + Object.keys(normalization)));
+      maxInputHashMapReady = true;
+    }
+  });
+
   initLoadBestNetworkInterval(ONE_MINUTE+1);
 
   initInternetCheckInterval(10000);
@@ -3811,7 +3854,6 @@ function initialize(cnf, callback) {
     disconnect: disconnect,
     timeout: cnf.socketIoAuthTimeout
   });
-
 
   initAppRouting(function initAppRoutingComplete() {
     initDeletedMetricsHashmap(function initDeletedMetricsHashmapComplete(){

@@ -512,15 +512,17 @@ function ControlPanel() {
 
   function receiveMessage(event){
 
-    console.log("RX MESSAGE\n" + jsonPrint(event.data));
 
     // Do we trust the sender of this message?
     if (event.origin !== DEFAULT_SOURCE){
       if (event.origin === "https://platform.twitter.com") {
-        console.log("TWITTER SOURCE: " + event.origin);
+        if (event.data["twttr.button"]["method"] === "twttr.private.resizeButton"){
+          return;
+        }
+        // console.log("TWITTER SOURCE: " + event.origin);
       }
       else {
-        console.error("NOT TRUSTED SOURCE"
+        console.error("RX MESSAGE | NOT TRUSTED SOURCE"
           + " | ORIGIN: " + event.origin 
           + " | DEFAULT_SOURCE: " + DEFAULT_SOURCE
         );
@@ -528,7 +530,7 @@ function ControlPanel() {
       }
     }
 
-    console.debug("SOURCE"
+    console.debug("RX MESSAGE | SOURCE"
       + " | ORIGIN: " + event.origin 
       + " | PARENT WINDOW: " + parentWindow.PARENT_ID
       + " | DEFAULT_SOURCE: " + DEFAULT_SOURCE

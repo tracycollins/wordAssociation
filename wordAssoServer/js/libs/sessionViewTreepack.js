@@ -763,6 +763,7 @@ function ViewTreepack() {
     }
 
     maxAgeRate = Math.max(ageRate, maxAgeRate);
+    currentTime = moment().valueOf();
 
     for (ageNodesIndex = ageNodesLength; ageNodesIndex >= 0; ageNodesIndex -= 1) {
 

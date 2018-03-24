@@ -2188,45 +2188,6 @@ let rxNodeQueue = [];
 
 function initSocketSessionUpdateRx(){
 
-  // socket.on("SESSION_UPDATE", function(rxSessionObject) {
-
-  //   console.info("SES " + rxSessionObject.action + " | " + rxSessionObject.sessionId);
-
-  //   if (rxSessionObject.action == "KEEPALIVE") {
-  //     // console.debug("KEEPALIVE"
-  //     //   + "\n" + jsonPrint(rxSessionObject)
-  //     // );
-  //     currentSessionView.sessionKeepalive(rxSessionObject);
-  //   } 
-  //   else if (!windowVisible || config.pauseFlag) {
-  //     rxSessionUpdateQueue = [];
-  //     if (debug) {
-  //       console.log("... SKIP SESSION_UPDATE ... WINDOW NOT VISIBLE");
-  //     }
-      
-  //   } 
-  //   else if (sessionMode && (rxSessionObject.sessionId !== currentSession.sessionId)) {
-  //     if (debug) {
-  //       console.log("SKIP SESSION_UPDATE: " + rxSessionObject.sessionId 
-  //         + " | CURRENT: " + currentSession.sessionId);
-  //     }
-  //   } 
-  //   else if (rxSessionUpdateQueue.length < MAX_RX_QUEUE) {
-
-  //     rxSessionUpdateQueue.push(rxSessionObject);
-
-  //     if ((rxSessionObject.tags.trending !== undefined) 
-  //       && (rxSessionObject.tags.trending.length > 0)) {
-  //       console.info("TTT" 
-  //         + " | " + rxSessionObject.source.nodeId 
-  //         + " | T: " + rxSessionObject.tags.trending
-  //         // + " | T: " + jsonPrint(rxSessionObject.tags)
-  //       );
-  //     }
-
-  //   }
-  // });
-
   socket.on("node", function(nNode) {
     if ((rxNodeQueue.length < RX_NODE_QUEUE_MAX)
       &&((nNode.nodeType === "user") || (nNode.nodeType === "hashtag") || (nNode.nodeType === "place"))

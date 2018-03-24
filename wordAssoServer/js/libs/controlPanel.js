@@ -217,8 +217,8 @@ function ControlPanel() {
 
       statsObj.user.name = name;
       statsObj.user.screenName = node.screenName;
-      statsObj.user.category = node.category;
-      statsObj.user.categoryAuto = node.categoryAuto;
+      statsObj.user.category = node.category || "none";
+      statsObj.user.categoryAuto = node.categoryAuto || "none";
       statsObj.user.followersCount = node.followersCount;
       statsObj.user.friendsCount = node.friendsCount;
       statsObj.user.statusesCount = node.statusesCount;

@@ -1903,6 +1903,7 @@ function ViewTreepack() {
     localNodeHashMap = {};
     nodesTopTermHashMap.clear();
     nodes.forEach(function(node){
+      resetNode(node);
       nodePool.recycle(node);
     })
     nodes = [];

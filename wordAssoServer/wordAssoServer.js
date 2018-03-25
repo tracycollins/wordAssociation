@@ -2349,7 +2349,10 @@ function initTransmitNodeQueueInterval(interval){
       }
       else {
 
-        debugCategory(chalkAlert("TX NODE DE-Q"
+        if (!nodeObj.category || (nodeObj.category === undefined)) { nodeObj.category = false; }
+        if (!nodeObj.categoryAuto || (nodeObj.categoryAuto === undefined)) { nodeObj.categoryAuto = false; }
+
+        debug(chalkAlert("TX NODE DE-Q"
           + " | NID: " + nodeObj.nodeId
           + " | " + nodeObj.nodeType
           + " | CAT: " + nodeObj.category

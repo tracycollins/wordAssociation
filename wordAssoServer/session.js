@@ -2557,7 +2557,7 @@ var createGroup = function(callback) {
       currentGroup.mentions++;
       currentGroup.age = 1e-6;
       currentGroup.ageMaxRatio = 1e-6;
-      currentGroup.lastSeen = dateNow;
+      currentGroup.lastSeen = Date.now;
       currentGroup.text = groupName;
       currentGroup.wordChainIndex = sessUpdate.wordChainIndex;
 
@@ -2569,7 +2569,7 @@ var createGroup = function(callback) {
       currentGroup.node.age = 1e-6;
       currentGroup.node.ageMaxRatio = 1e-6;
       currentGroup.node.ageUpdated = dateNow;
-      currentGroup.node.lastSeen = dateNow;
+      currentGroup.node.lastSeen = Date.now;
       currentGroup.node.isDead = false;
 
       currentGroup.node.mentions++;
@@ -2624,7 +2624,7 @@ var createGroup = function(callback) {
       currentGroup.age = 1e-6;
       currentGroup.ageUpdated = dateNow;
       currentGroup.ageMaxRatio = 1e-6;
-      currentGroup.lastSeen = dateNow;
+      currentGroup.lastSeen = Date.now;
       currentGroup.nodeType = "group";
       currentGroup.isGroup = true;
       currentGroup.isSession = false;
@@ -2635,9 +2635,9 @@ var createGroup = function(callback) {
       currentGroup.tags = sessUpdate.tags;
       currentGroup.text = groupName;
       currentGroup.source = sessUpdate.source;
-      currentGroup.source.lastSeen = dateNow;
+      currentGroup.source.lastSeen = Date.now;
       currentGroup.target = sessUpdate.target;
-      if (currentGroup.target) { currentGroup.target.lastSeen = dateNow; }
+      if (currentGroup.target) { currentGroup.target.lastSeen = Date.now; }
 
       currentGroup.node = {};
       currentGroup.linkHashMap = new HashMap();
@@ -2675,7 +2675,7 @@ var createGroup = function(callback) {
       currentGroup.node.ageMaxRatio = 1e-6;
       currentGroup.node.isDead = false;
       currentGroup.node.ageUpdated = dateNow;
-      currentGroup.node.lastSeen = dateNow;
+      currentGroup.node.lastSeen = Date.now;
 
       currentGroup.node.wordChainIndex = sessUpdate.wordChainIndex;
       currentGroup.node.sessionWordChainIndex = {};  // per session wci
@@ -2782,15 +2782,15 @@ var createSession = function(callback) {
       currentSession.ageUpdated = dateNow;
       currentSession.ageMaxRatio = 1e-6;
       currentSession.mentions++;
-      currentSession.lastSeen = dateNow;
+      currentSession.lastSeen = Date.now;
       currentSession.userId = sessUpdate.userId;
       currentSession.url = sessUpdate.url;
       currentSession.text = sessUpdate.tags.entity + " | " + sessUpdate.tags.channel;
       currentSession.wordChainIndex = sessUpdate.wordChainIndex;
       currentSession.source = sessUpdate.source;
-      currentSession.source.lastSeen = dateNow;
+      currentSession.source.lastSeen = Date.now;
       if (sessUpdate.target) {currentSession.target = sessUpdate.target;}
-      if (sessUpdate.target) {currentSession.target.lastSeen = dateNow;}
+      if (sessUpdate.target) {currentSession.target.lastSeen = Date.now;}
       currentSession.interpolateSessionColor = currentGroup.interpolateSessionColor;
       currentSession.interpolateColor = currentGroup.interpolateSessionColor;
 
@@ -2804,7 +2804,7 @@ var createSession = function(callback) {
       currentSession.node.nodeType = "session"; // KLUDGE
       currentSession.node.isDead = false;
       currentSession.node.ageUpdated = dateNow;
-      currentSession.node.lastSeen = dateNow;
+      currentSession.node.lastSeen = Date.now;
       currentSession.node.wordChainIndex = sessUpdate.wordChainIndex;
       currentSession.node.mentions = sessUpdate.wordChainIndex;
 
@@ -2860,21 +2860,14 @@ var createSession = function(callback) {
       currentSession.sessionColors = {};
       currentSession.nodeColors = {};
 
-      // currentSession.node = {};
-      // currentSession.node.sessionColors = {};
-      // currentSession.node.groupColors = {};
-      // currentSession.node.nodeColors = {};
-      // currentSession.node.links = {};
-
       currentSession.groupId = currentGroup.groupId;
       currentSession.url = sessUpdate.url;
       currentSession.age = 1e-6;
       currentSession.ageMaxRatio = 1e-6;
       currentSession.mentions = 1;
-      currentSession.lastSeen = dateNow;
+      currentSession.lastSeen = Date.now;
       currentSession.rank = -1;
       currentSession.isSession = true;
-      // currentSession.nodeId = sessUpdate.tags.entity + "_" + sessUpdate.tags.channel;
       currentSession.nodeId = (config.forceViewMode == "web") ? sessUpdate.tags.entity : sessUpdate.tags.entity + "_" + sessUpdate.tags.channel;
       currentSession.sessionId = sessUpdate.sessionId;
       currentSession.tags = sessUpdate.tags;
@@ -2922,7 +2915,7 @@ var createSession = function(callback) {
       currentSession.node.age = 1e-6;
       currentSession.node.ageMaxRatio = 1e-6;
       currentSession.node.ageUpdated = dateNow;
-      currentSession.node.lastSeen = dateNow;
+      currentSession.node.lastSeen = Date.now;
       currentSession.node.wordChainIndex = sessUpdate.wordChainIndex;
       currentSession.node.mentions = sessUpdate.wordChainIndex;
       currentSession.node.text = sessUpdate.tags.entity + "|" + sessUpdate.tags.channel;
@@ -2941,9 +2934,9 @@ var createSession = function(callback) {
       currentSession.node.interpolateNodeColor = currentGroup.interpolateNodeColor;
 
 
-      currentSession.source.lastSeen = dateNow;
+      currentSession.source.lastSeen = Date.now;
       if (currentSession.target) {
-        currentSession.target.lastSeen = dateNow;
+        currentSession.target.lastSeen = Date.now;
       }
 
       addToHashMap(nodeHashMap, currentSession.node.nodeId, currentSession.node, function(sesNode) {
@@ -3112,7 +3105,7 @@ var createNode = function(callback) {
             sourceNode.ageMaxRatio = 1e-6;
             sourceNode.isDead = false;
             sourceNode.ageUpdated = dateNow;
-            sourceNode.lastSeen = dateNow;
+            sourceNode.lastSeen = Date.now;
 
             if (ignoreWordHashMap.has(sourceText)) {
               sourceNode.isIgnored = true;
@@ -3192,7 +3185,7 @@ var createNode = function(callback) {
             sourceNode.age = 1e-6;
             sourceNode.ageMaxRatio = 1e-6;
             sourceNode.isDead = false;
-            sourceNode.lastSeen = dateNow;
+            sourceNode.lastSeen = Date.now;
             sourceNode.ageUpdated = dateNow;
 
             sourceNode.groupColors = session.groupColors;
@@ -3260,7 +3253,7 @@ var createNode = function(callback) {
             targetNode.ageMaxRatio = 1e-6;
             targetNode.isDead = false;
             targetNode.ageUpdated = dateNow;
-            targetNode.lastSeen = dateNow;
+            targetNode.lastSeen = Date.now;
 
             targetNode.groupColors = session.groupColors;
             targetNode.sessionColors = session.sessionColors;
@@ -3345,7 +3338,7 @@ var createNode = function(callback) {
             targetNode.age = 1e-6;
             targetNode.ageMaxRatio = 1e-6;
             targetNode.isDead = false;
-            targetNode.lastSeen = dateNow;
+            targetNode.lastSeen = Date.now;
             targetNode.ageUpdated = dateNow;
 
             targetNode.groupColors = session.groupColors;

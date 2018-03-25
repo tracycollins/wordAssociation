@@ -1218,7 +1218,7 @@ function toggleStats() {
     displayStats(false, palette.white);
   }
 
-  updateStatsButton();
+  if (statsButtonElement) { updateStatsButton(); }
   if (controlPanelFlag) { controlPanel.updateControlPanel(config); }
 }
 

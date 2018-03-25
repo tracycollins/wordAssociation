@@ -2261,7 +2261,8 @@ function updateWordMeter(wordObj, callback){
      }
   }
   else if (wordObj.nodeType === "hashtag") {
-    meterWordId = wordObj.hashtagId.toLowerCase();
+    debug("hashtag\n" + jsonPrint(wordObj));
+    meterWordId = wordObj.nodeId.toLowerCase();
   }
   else if (wordObj.nodeType === "place") {
     meterWordId = wordObj.name.toLowerCase();

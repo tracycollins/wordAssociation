@@ -2260,6 +2260,9 @@ function updateWordMeter(wordObj, callback){
       meterWordId = wordObj.nodeId;
      }
   }
+  else if (wordObj.nodeType === "hashtag") {
+    meterWordId = wordObj.hashtagId.toLowerCase();
+  }
   else if (wordObj.nodeType === "place") {
     meterWordId = wordObj.name.toLowerCase();
   }
@@ -2353,7 +2356,9 @@ function initTransmitNodeQueueInterval(interval){
         ));
 
         checkCategory(nodeObj, function checkCategoryCallback(node){
+
           updateWordMeter(node, function updateWordMeterCallback(err, n){
+
             if (!err) {
               if ((n.nodeType === "user") && n.isTopTerm && (n.followersCount === 0)){
                 twit.get("users/show", {user_id: n.userId, include_entities: true}, function usersShow (err, rawUser, response){

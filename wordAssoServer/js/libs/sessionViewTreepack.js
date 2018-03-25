@@ -1205,7 +1205,7 @@ function ViewTreepack() {
         }
         if (d.nodeType === "user") { 
           if (d.screenName.toLowerCase().includes("trump")) { return "visible"; }
-          if (d.name.toLowerCase().includes("trump")) { return "visible"; }
+          if (d.name && d.name.toLowerCase().includes("trump")) { return "visible"; }
           return "hidden";
         }
         return "hidden";
@@ -1270,7 +1270,7 @@ function ViewTreepack() {
         }
         if (d.nodeType === "user") { 
           if (d.screenName.toLowerCase().includes("trump")) { return "visible"; }
-          if (d.name.toLowerCase().includes("trump")) { return "visible"; }
+          if (d.name && d.name.toLowerCase().includes("trump")) { return "visible"; }
           return "hidden";
         }
         return "hidden";
@@ -1655,7 +1655,7 @@ function ViewTreepack() {
           currentMax.mentions.nodeId = newNode.nodeId; 
         }
       }
-      else if (newNode.nodeType === "place") {
+      else if (newNode.name && (newNode.nodeType === "place")) {
         currentMax.mentions.nodeId = newNode.name.toLowerCase(); 
       }
       else if (newNode.nodeId === undefined) {

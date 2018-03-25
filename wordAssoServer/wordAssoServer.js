@@ -454,6 +454,7 @@ function printUser(params) {
     text = params.user.userId 
       + " | @" + params.user.screenName 
       + " | N: " + params.user.name 
+      + " | FLWg: " + params.user.following 
       + " | 3C: " + params.user.threeceeFollowing 
       + " | Ts: " + params.user.statusesCount 
       + " | FRNDs: " + params.user.friendsCount 

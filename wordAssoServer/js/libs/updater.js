@@ -8,6 +8,7 @@ const ONE_MINUTE = ONE_SECOND * 60;
 
 let dropboxConfigDefaultFolder = "/config/utility/default";
 let defaultCategoryFile = "classifiedUsers_manual.json";
+let defaultCategoryAutoFile = "classifiedUsers_auto.json";
 
 const compactDateTimeFormat = "YYYYMMDD HHmmss";
 
@@ -60,6 +61,7 @@ hostname = hostname.replace(/.fios-router.home/g, "");
 hostname = hostname.replace(/word0-instance-1/g, "google");
 
 let localCategoryHashMap = {};
+let localCategoryAutoHashMap = {};
 let newCategoryHashMap = {};
 
 let statsObj = {};
@@ -749,11 +751,14 @@ process.on("message", function(m) {
       console.log(chalkInfo("UPDATER UPDATE_CATEGORY"
         + " | NODE TYPE: " + m.nodeType
         + " | NODE ID: " + m.nodeId
+        // + " | CAT TYPE (Auto/Man): " + m.categoryType
         + " | CAT: " + m.category.toUpperCase()
         + sn
       ));
       categoryUpdate(m, function(err, wordObj){
-        saveFile(dropboxConfigDefaultFolder, defaultCategoryFile, localCategoryHashMap, function(err, results){});
+        if (wordObj.categoryType == "manual") {
+          saveFile(dropboxConfigDefaultFolder, defaultCategoryFile, localCategoryHashMap, function(err, results){});
+        }
       });
     break;
 

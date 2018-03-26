@@ -7,6 +7,10 @@ let dropboxConfigDefaultFolder = "/config/utility/default";
 let dropboxConfigDefaultTrainingSetsFolder = dropboxConfigDefaultFolder + "/trainingSets";
 let maxInputHashMapFile = "maxInputHashMap.json";
 
+const classifiedUsersFolder = dropboxConfigDefaultFolder + "/classifiedUsers";
+const classifiedUsersDefaultFile = "classifiedUsers_manual.json";
+const autoClassifiedUsersDefaultFile = "classifiedUsers_auto.json";
+
 const fieldsExclude = {
   histograms: 0,
   countHistory: 0,
@@ -672,6 +676,7 @@ let sorterMessageRxQueue = [];
 
 const ignoreWordHashMap = new HashMap();
 const categoryHashMap = new HashMap();
+const categoryAutoHashMap = new HashMap();
 
 const localHostHashMap = new HashMap();
 
@@ -1004,6 +1009,21 @@ function loadFile(path, file, callback) {
       callback(error, null);
     });
   }
+}
+
+function loadCategoryAutoHashMap(params, callback){
+  loadFile(params.folder, params.file, function(err, dataObj){
+    if (err){
+      console.log(chalkError("ERROR: categoryAutoHashMap: loadFile: " + err));
+      return(callback(err));
+    }
+    // console.log(chalkLog("... LOADING CAT AUTO HASHMAP | ENTRIES: " + Object.keys(dataObj).length));
+    Object.keys(dataObj).forEach(function(entryKey){
+      categoryAutoHashMap.set(entryKey, dataObj[entryKey]);
+      debug("+++ CAT AUTO | " + entryKey + ": " + dataObj[entryKey]);
+    });
+    callback();
+  });
 }
 
 function loadMaxInputHashMap(params, callback){
@@ -1777,8 +1797,6 @@ function initSocketHandler(socketObj) {
         }
         else if (user) {
 
-          // let userSlim = {};
-
           console.log(chalkTwitter("+++ TWITTER_SEARCH_NODE USER FOUND"
             + " | " + printUser({user:user})
           ));
@@ -1786,7 +1804,6 @@ function initSocketHandler(socketObj) {
           twit.get("users/show", {user_id: user.userId, include_entities: true}, function usersShow (err, rawUser, response){
             if (err) {
               console.log(chalkError("ERROR users/show rawUser" + err));
-              // userSlim = omit(user, ["histograms", "countHistory", "friends"]);
               socket.emit("SET_TWITTER_USER", user);
             }
             else if (rawUser) {
@@ -1983,6 +2000,20 @@ function checkCategory(nodeObj, callback) {
         console.log(chalkError("*** ERROR: checkCategory: NODE NAME & SCREEN NAME UNDEFINED?"
           + "\n" + jsonPrint(nodeObj)));
         return(callback(nodeObj));
+      }
+
+      if ((nodeObj.screenName !== undefined) 
+        && (nodeObj.screenName) 
+        && categoryAutoHashMap.has(nodeObj.screenName.toLowerCase())) {
+        nodeObj.categoryAuto = categoryAutoHashMap.get(nodeObj.screenName.toLowerCase());
+      }
+      else if ((nodeObj.name !== undefined) 
+        && (nodeObj.name) 
+        && categoryAutoHashMap.has(nodeObj.name.toLowerCase())) {
+        nodeObj.categoryAuto = categoryAutoHashMap.get(nodeObj.name.toLowerCase());
+      }
+      else if (categoryHashMap.has(nodeObj.userId)) {
+        nodeObj.categoryAuto = categoryAutoHashMap.get(nodeObj.userId.toLowerCase());
       }
 
       if ((nodeObj.screenName !== undefined) 
@@ -3738,6 +3769,16 @@ function initLoadBestNetworkInterval(interval){
 
   loadBestNetworkInterval = setInterval(function(){
 
+    loadCategoryAutoHashMap({folder: classifiedUsersFolder, file: autoClassifiedUsersDefaultFile}, function(err){
+      if (err) {
+        console.log(chalkError("ERROR: loadCategoryAutoHashMap: " + err));
+      }
+      else {
+        console.log(chalkLog("LOADED CATEGORY AUTO HASHMAP | ENTRIES: " + categoryAutoHashMap.count()));
+      }
+    });
+
+
     loadFile(bestNetworkFolder, bestRuntimeNetworkFileName, function(err, bRtNnObj){
 
       if (err) {
@@ -3845,6 +3886,16 @@ function initialize(cnf, callback) {
       updateTrends();
     }
   });
+
+  loadCategoryAutoHashMap({folder: classifiedUsersFolder, file: autoClassifiedUsersDefaultFile}, function(err){
+    if (err) {
+      console.log(chalkError("ERROR: loadCategoryAutoHashMap: " + err));
+    }
+    else {
+      console.log(chalkLog("LOADED CATEGORY AUTO HASHMAP | ENTRIES: " + categoryAutoHashMap.count()));
+    }
+  });
+
 
   loadMaxInputHashMap({folder: dropboxConfigDefaultTrainingSetsFolder, file: maxInputHashMapFile}, function(err){
     if (err) {

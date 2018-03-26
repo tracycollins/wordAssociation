@@ -347,9 +347,9 @@ tmsServer.socket = {};
 let wordMeter = {};
 
 let tweetRxQueueInterval;
-const tweetParserQueue = [];
-const tweetParserMessageRxQueue = [];
-const tweetRxQueue = [];
+let tweetParserQueue = [];
+let tweetParserMessageRxQueue = [];
+let tweetRxQueue = [];
 
 let statsInterval;
 
@@ -666,9 +666,9 @@ const net = require("net");
 
 const cp = require("child_process");
 let updater;
-const updaterMessageQueue = [];
+let updaterMessageQueue = [];
 let sorter;
-const sorterMessageRxQueue = [];
+let sorterMessageRxQueue = [];
 
 const ignoreWordHashMap = new HashMap();
 const categoryHashMap = new HashMap();
@@ -2327,7 +2327,7 @@ function updateWordMeter(wordObj, callback){
 
 let transmitNodeQueueReady = true;
 let transmitNodeQueueInterval;
-const transmitNodeQueue = [];
+let transmitNodeQueue = [];
 
 function initTransmitNodeQueueInterval(interval){
 
@@ -2445,17 +2445,13 @@ function transmitNodes(tw, callback){
     if (hashtag) {transmitNodeQueue.push(hashtag);}
   });
 
-  // tw.urls.forEach(function urlsTxNodeQueue(url){
-  //   if (url) {transmitNodeQueue.push(url);}
-  // });
-
   if (tw.place) {transmitNodeQueue.push(tw.place);}
   if (tw.user) {transmitNodeQueue.push(tw.user);}
 
   callback();
 }
 
-const metricsDataPointQueue = [];
+let metricsDataPointQueue = [];
 let metricsDataPointQueueReady = true;
 let metricsDataPointQueueInterval;
 
@@ -3071,7 +3067,7 @@ function initTwitterRxQueueInterval(interval){
 
     if ((tweetRxQueue.length > 0) && tweetParserReady && tweetParserSendReady) {
 
-      tweetParserSendReady = false;
+      // tweetParserSendReady = false;
 
       const tweet = tweetRxQueue.shift();
 
@@ -3087,7 +3083,7 @@ function initTwitterRxQueueInterval(interval){
 
       tweetParser.send({ op: "tweet", tweetStatus: tweet }, function sendTweetParser(err){
 
-        tweetParserSendReady = true;
+        // tweetParserSendReady = true;
 
         if (err) {
           console.error(chalkError("*** TWEET PARSER SEND ERROR"
@@ -3141,12 +3137,12 @@ function initTweetParserMessageRxQueueInterval(interval){
             + " [ TPMRQ: " + tweetParserMessageRxQueue.length + "]"
             + " | " + tweetObj.tweetId
             + " | USR: " + tweetObj.user.screenName
-            + " | Ms: " + tweetObj.mentions
+            // + " | Ms: " + tweetObj.mentions
             + " | Hs: " + tweetObj.hashtags.length
             + " | UMs: " + tweetObj.userMentions.length
-            + " | M: " + tweetObj.media.length
-            + " | URLs: " + tweetObj.url.length
-            + " | PL: " + (tweetObj.place ? tweetObj.place.fullName : "")
+            // + " | M: " + tweetObj.media.length
+            // + " | URLs: " + tweetObj.url.length
+            // + " | PL: " + (tweetObj.place ? tweetObj.place.fullName : "")
           ));
 
           if (transmitNodeQueue.length < MAX_Q) {

@@ -126,7 +126,7 @@ if (debug.enabled) {
 
 let cnf = {};
 cnf.verbose = false;
-cnf.updateInterval = 10;
+cnf.updateInterval = 5;
 cnf.globalTestMode = false;
 cnf.testMode = false;
 cnf.inc = true;

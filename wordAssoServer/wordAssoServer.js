@@ -1017,10 +1017,23 @@ function loadCategoryAutoHashMap(params, callback){
       console.log(chalkError("ERROR: categoryAutoHashMap: loadFile: " + err));
       return(callback(err));
     }
-    // console.log(chalkLog("... LOADING CAT AUTO HASHMAP | ENTRIES: " + Object.keys(dataObj).length));
     Object.keys(dataObj).forEach(function(entryKey){
       categoryAutoHashMap.set(entryKey, dataObj[entryKey]);
       debug("+++ CAT AUTO | " + entryKey + ": " + dataObj[entryKey]);
+    });
+    callback();
+  });
+}
+
+function loadCategoryHashMap(params, callback){
+  loadFile(params.folder, params.file, function(err, dataObj){
+    if (err){
+      console.log(chalkError("ERROR: categoryHashMap: loadFile: " + err));
+      return(callback(err));
+    }
+    Object.keys(dataObj).forEach(function(entryKey){
+      categoryHashMap.set(entryKey, dataObj[entryKey]);
+      debug("+++ CAT MAN  | " + entryKey + ": " + dataObj[entryKey]);
     });
     callback();
   });
@@ -1977,6 +1990,16 @@ function initSocketNamespaces(callback){
   if (callback !== undefined) { callback(); }
 }
 
+function printCat(c){
+  if (c === "left") { return "L"; }
+  if (c === "neutral") { return "N"; }
+  if (c === "right") { return "R"; }
+  if (c === "positive") { return "+"; }
+  if (c === "negative") { return "-"; }
+  if (c === "none") { return "0"; }
+  return ".";
+}
+
 function checkCategory(nodeObj, callback) {
 
   debugCategory(chalkLog("checkCategory"
@@ -2006,14 +2029,27 @@ function checkCategory(nodeObj, callback) {
         && (nodeObj.screenName) 
         && categoryAutoHashMap.has(nodeObj.screenName.toLowerCase())) {
         nodeObj.categoryAuto = categoryAutoHashMap.get(nodeObj.screenName.toLowerCase());
+        debug(chalkAlert("CA HIT USER SNAME"
+          + " | CA: " + printCat(nodeObj.categoryAuto)
+          + " | @" + printCat(nodeObj.screenName)
+        ));
       }
       else if ((nodeObj.name !== undefined) 
         && (nodeObj.name) 
         && categoryAutoHashMap.has(nodeObj.name.toLowerCase())) {
         nodeObj.categoryAuto = categoryAutoHashMap.get(nodeObj.name.toLowerCase());
+        debug(chalkAlert("CA HIT USER NAME"
+          + " | CA: " + printCat(nodeObj.categoryAuto)
+          + " | @" + printCat(nodeObj.name)
+        ));
       }
-      else if (categoryHashMap.has(nodeObj.userId)) {
+      else if (categoryAutoHashMap.has(nodeObj.userId)) {
         nodeObj.categoryAuto = categoryAutoHashMap.get(nodeObj.userId.toLowerCase());
+        debug(chalkAlert("CA HIT USER ID"
+          + " | CA: " + printCat(nodeObj.categoryAuto)
+          + " | UID: " + nodeObj.userId
+          + " | @" + nodeObj.screenName
+        ));
       }
 
       if ((nodeObj.screenName !== undefined) 
@@ -2029,8 +2065,8 @@ function checkCategory(nodeObj, callback) {
           debugCategory(chalkAlert("KW HIT USER SNAME"
             + " | " + nodeObj.userId
             + " | @" + nodeObj.screenName
-            + " | CAT: " + nodeObj.category
-            + " | CATA: " + nodeObj.categoryAuto
+            + " | C: " + nodeObj.category
+            + " | CA: " + nodeObj.categoryAuto
             + "\n" + jsonPrint(categoryHashMap.get(nodeObj.screenName.toLowerCase()))
           ));
 
@@ -3766,10 +3802,31 @@ function initLoadBestNetworkInterval(interval){
 
     loadCategoryAutoHashMap({folder: classifiedUsersFolder, file: autoClassifiedUsersDefaultFile}, function(err){
       if (err) {
-        console.log(chalkError("ERROR: loadCategoryAutoHashMap: " + err));
+        console.log(chalkError("ERROR: loadCategoryAutoHashMap"
+          + " | " + classifiedUsersFolder + "/" + autoClassifiedUsersDefaultFile
+          + " | " + err
+        ));
       }
       else {
-        console.log(chalkLog("LOADED CATEGORY AUTO HASHMAP | ENTRIES: " + categoryAutoHashMap.count()));
+        console.log(chalkLog("LOADED CATEGORY AUTO HASHMAP"
+          + " | ENTRIES: " + categoryAutoHashMap.count()
+          + " | " + classifiedUsersFolder + "/" + autoClassifiedUsersDefaultFile
+        ));
+      }
+    });
+
+    loadCategoryHashMap({folder: classifiedUsersFolder, file: classifiedUsersDefaultFile}, function(err){
+      if (err) {
+        console.log(chalkError("ERROR: loadCategoryHashMap"
+          + " | " + classifiedUsersFolder + "/" + classifiedUsersDefaultFile
+          + " | " + err
+        ));
+      }
+      else {
+        console.log(chalkLog("LOADED CATEGORY MAN HASHMAP"
+          + " | ENTRIES: " + categoryHashMap.count()
+          + " | " + classifiedUsersFolder + "/" + classifiedUsersDefaultFile
+        ));
       }
     });
 
@@ -3887,7 +3944,10 @@ function initialize(cnf, callback) {
       console.log(chalkError("ERROR: loadCategoryAutoHashMap: " + err));
     }
     else {
-      console.log(chalkLog("LOADED CATEGORY AUTO HASHMAP | ENTRIES: " + categoryAutoHashMap.count()));
+      console.log(chalkLog("LOADED CATEGORY AUTO HASHMAP"
+        + " | ENTRIES: " + categoryAutoHashMap.count()
+        + " | " + classifiedUsersFolder + "/" + autoClassifiedUsersDefaultFile
+      ));
     }
   });
 

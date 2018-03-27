@@ -101,6 +101,7 @@ const TRANSMIT_NODE_QUEUE_INTERVAL = 5;
 const TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL = 5;
 const UPDATE_TRENDS_INTERVAL = 15*ONE_MINUTE;
 const STATS_UPDATE_INTERVAL = 60000;
+const HASHTAG_LOOKUP_QUEUE_INTERVAL = 10;
 
 const DEFAULT_INTERVAL = 5;
 
@@ -354,6 +355,9 @@ let tweetRxQueueInterval;
 let tweetParserQueue = [];
 let tweetParserMessageRxQueue = [];
 let tweetRxQueue = [];
+
+let hashtagLookupQueueInterval;
+let hashtagLookupQueue = [];
 
 let statsInterval;
 
@@ -1780,9 +1784,13 @@ function initSocketHandler(socketObj) {
         if (err) {
           console.log(chalkError("TWITTER_SEARCH_NODE HASHTAG ERROR\n" + jsonPrint(err)));
         }
-        else {
+        else if (hashtag) { 
           console.log(chalkTwitter("TWITTER_SEARCH_NODE HASHTAG FOUND\n" + jsonPrint(hashtag)));
           socket.emit("SET_TWITTER_HASHTAG", hashtag);
+          if (hashtag.category) { categoryHashMap.set(hashtag.text.toLowerCase(), hashtag.category); }
+        }
+        else {
+          console.log(chalkTwitter("TWITTER_SEARCH_NODE HASHTAG NOT FOUND: " + searchNodeHashtag));
         }
     
       });
@@ -2164,6 +2172,7 @@ function checkCategory(nodeObj, callback) {
 
       }
       else {
+        hashtagLookupQueue.push(nodeObj);
         callback(nodeObj);
       }
     break;
@@ -3160,6 +3169,47 @@ function initTwitterRxQueueInterval(interval){
             quit("TWEET PARSER SEND ERROR");
           }
         }
+      });
+
+    }
+  }, interval);
+}
+
+function initHashtagLookupQueueInterval(interval){
+
+  let hashtagLookupQueueReady = true;
+
+  console.log(chalkLog("INIT HASHTAG LOOKUP QUEUE INTERVAL | " + interval + " MS"));
+
+  clearInterval(hashtagLookupQueueInterval);
+
+  hashtagLookupQueueInterval = setInterval(function hashtagLookupQueueDeQ() {
+
+    if ((hashtagLookupQueue.length > 0) && hashtagLookupQueueReady) {
+
+      hashtagLookupQueueReady = false;
+
+      const htObj = hashtagLookupQueue.shift();
+
+      hashtagServer.findOne({hashtag: htObj}, function(err, hashtag){
+        if (err) {
+          console.log(chalkError("HASHTAG FIND ONE ERROR\n" + jsonPrint(err)));
+        }
+        else if (hashtag) { 
+          if (hashtag.category) { categoryHashMap.set(hashtag.text.toLowerCase(), hashtag.category); }
+          debug(chalkTwitter("+++ HT HIT "
+            + " | C: " + printCat(hashtag.category)
+            + " | #" + hashtag.text.toLowerCase()
+          ));
+        }
+        else {
+          // debug(chalkTwitter("HASHTAG NOT FOUND: " + htObj.text));
+          debug(chalkTwitter("--- HT MISS"
+            + " | C: " + printCat(htObj.category)
+            + " | #" + htObj.text.toLowerCase()
+          ));
+        }
+        hashtagLookupQueueReady = true;
       });
 
     }
@@ -4186,6 +4236,8 @@ initialize(configuration, function initializeComplete(err) {
     // initMetricsDataPointQueueInterval(60000);
     initTwitterRxQueueInterval(TWITTER_RX_QUEUE_INTERVAL);
     initTweetParserMessageRxQueueInterval(TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL);
+    initHashtagLookupQueueInterval(HASHTAG_LOOKUP_QUEUE_INTERVAL);
+
     console.log(chalkInfo("NODE CACHE TTL: " + nodeCacheTtl + " SECONDS"));
 
     console.log(chalkAlert("CONFIGURATION\n" + jsonPrint(configuration)));

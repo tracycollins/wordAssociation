@@ -3164,16 +3164,11 @@ function initTweetParserMessageRxQueueInterval(interval){
         else {
 
           debug(chalkInfo("PARSED TW"
-            // + " [ TPMRQ: " + tweetParserMessageRxQueue.size() + "]"
             + " [ TPMRQ: " + tweetParserMessageRxQueue.length + "]"
             + " | " + tweetObj.tweetId
             + " | USR: " + tweetObj.user.screenName
-            // + " | Ms: " + tweetObj.mentions
             + " | Hs: " + tweetObj.hashtags.length
             + " | UMs: " + tweetObj.userMentions.length
-            // + " | M: " + tweetObj.media.length
-            // + " | URLs: " + tweetObj.url.length
-            // + " | PL: " + (tweetObj.place ? tweetObj.place.fullName : "")
           ));
 
           if (transmitNodeQueue.length < MAX_Q) {

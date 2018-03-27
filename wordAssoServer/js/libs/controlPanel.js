@@ -356,7 +356,16 @@ function ControlPanel() {
       break;
     }
 
-    parentWindow.postMessage({op: "CATEGORIZE", node: currentTwitterNode, category: category}, DEFAULT_SOURCE);
+    const catNode = {
+      nodeId: currentTwitterNode.nodeId,
+      nodeType: currentTwitterNode.nodeType,
+      userId: currentTwitterNode.userId,
+      screenName: currentTwitterNode.screenName,
+      category: currentTwitterNode.category,
+      categoryAuto: currentTwitterNode.categoryAuto,
+    };
+
+    parentWindow.postMessage({op: "CATEGORIZE", node: catNode, category: category}, DEFAULT_SOURCE);
   }
 
   var categoryLeftLabel = document.createElement("label");
@@ -537,7 +546,8 @@ function ControlPanel() {
     // Do we trust the sender of this message?
     if (event.origin !== DEFAULT_SOURCE){
       if (event.origin === "https://platform.twitter.com") {
-        if (event.data["twttr.button"]["method"] === "twttr.private.resizeButton"){
+        if (event.data["twttr.button"] 
+          && (event.data["twttr.button"]["method"] === "twttr.private.resizeButton")){
           return;
         }
         // console.log("TWITTER SOURCE: " + event.origin);

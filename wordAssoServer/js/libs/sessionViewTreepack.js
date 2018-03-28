@@ -448,7 +448,7 @@ function ViewTreepack() {
   panzoom(panzoomElement, { 
     onTouch: function(e) {
       // `e` - is current touch event.
-      return false; // tells the library to not preventDefault.
+      return true; // tells the library to not preventDefault.
     },
     zoomSpeed: 0.030 
   });

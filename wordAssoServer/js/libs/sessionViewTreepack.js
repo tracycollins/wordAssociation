@@ -446,10 +446,10 @@ function ViewTreepack() {
 
   var panzoomElement = document.getElementById("svgTreemapLayoutArea");
   panzoom(panzoomElement, { 
-    onTouch: function(e) {
-      // `e` - is current touch event.
-      return true; // tells the library to not preventDefault.
-    },
+    // onTouch: function(e) {
+    //   // `e` - is current touch event.
+    //   return true; // tells the library to not preventDefault.
+    // },
     zoomSpeed: 0.030 
   });
 

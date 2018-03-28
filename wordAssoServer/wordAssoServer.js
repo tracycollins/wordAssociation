@@ -349,7 +349,7 @@ tmsServer.connected = false;
 tmsServer.user = {};
 tmsServer.socket = {};
 
-let wordMeter = {};
+let nodeMeter = {};
 
 let tweetRxQueueInterval;
 let tweetParserQueue = [];
@@ -573,26 +573,26 @@ function nodeCacheExpired(nodeCacheId, nodeObj) {
     + " | " + nodeCacheId
   ));
 
-  if (wordMeter[nodeCacheId] || (wordMeter[nodeCacheId] !== undefined)) {
+  if (nodeMeter[nodeCacheId] || (nodeMeter[nodeCacheId] !== undefined)) {
 
-    wordMeter[nodeCacheId].end();
-    wordMeter[nodeCacheId] = null;
+    nodeMeter[nodeCacheId].end();
+    nodeMeter[nodeCacheId] = null;
 
-    wordMeter = omit(wordMeter, nodeCacheId);
-    delete wordMeter[nodeCacheId];
+    nodeMeter = omit(nodeMeter, nodeCacheId);
+    delete nodeMeter[nodeCacheId];
 
-    debugCache(chalkLog("XXX NODE METER WORD"
-      + " | Ks: " + Object.keys(wordMeter).length
+    debugCache(chalkLog("XXX NODE METER"
+      + " | Ks: " + Object.keys(nodeMeter).length
       + " | " + nodeCacheId
     ));
 
 
-    if (statsObj.wordMeterEntries > statsObj.wordMeterEntriesMax) {
-      statsObj.wordMeterEntriesMax = statsObj.wordMeterEntries;
+    if (statsObj.nodeMeterEntries > statsObj.wordMeterEntriesMax) {
+      statsObj.wordMeterEntriesMax = statsObj.nodeMeterEntries;
       statsObj.wordMeterEntriesMaxTime = moment().valueOf();
-      debugCache(chalkLog("NEW MAX WORD METER ENTRIES"
+      debugCache(chalkLog("NEW MAX NODE METER ENTRIES"
         + " | " + moment().format(compactDateTimeFormat)
-        + " | " + statsObj.wordMeterEntries.toFixed(0)
+        + " | " + statsObj.nodeMeterEntries.toFixed(0)
       ));
     }
   }
@@ -702,7 +702,7 @@ function initStats(callback){
   statsObj.errors.twitter = {};
   statsObj.errors.twitter.maxRxQueue = 0;
 
-  statsObj.wordMeterEntries = 0;
+  statsObj.nodeMeterEntries = 0;
   statsObj.wordMeterEntriesMax = 0;
   statsObj.wordMeterEntriesMaxTime = moment().valueOf();
 
@@ -879,8 +879,6 @@ function dropboxFolderGetLastestCursor(folder, callback) {
     debug(chalkLog("lastCursorTruncated: " + lastCursorTruncated));
 
     dropboxLongPoll(last_cursor.cursor, function(err, results){
-
-      // debug(chalkInfo("dropboxLongPoll CURSOR: " + lastCursorTruncated + "| CHANGES: " + results.changes));
 
       if (results.changes) {
 
@@ -2307,96 +2305,96 @@ function initUpdateTrendsInterval(interval){
   }, interval);
 }
 
-function updateWordMeter(wordObj, callback){
+function updateNodeMeter(nodeObj, callback){
 
   if (!configuration.metrics.wordMeterEnabled
-    || (wordObj.nodeType === "media") 
-    || (wordObj.nodeType === "url")
-    || (wordObj.nodeType === "keepalive")
+    || (nodeObj.nodeType === "media") 
+    || (nodeObj.nodeType === "url")
+    || (nodeObj.nodeType === "keepalive")
     ) {
-    callback(null, wordObj);
+    callback(null, nodeObj);
     return;
   }
 
-  let meterWordId;
+  let meterNodeId;
 
-  if (wordObj.isTwitterUser || (wordObj.nodeType === "user")) {
-    if (wordObj.screenName !== undefined) {
-      meterWordId = wordObj.screenName.toLowerCase();
+  if (nodeObj.isTwitterUser || (nodeObj.nodeType === "user")) {
+    if (nodeObj.screenName !== undefined) {
+      meterNodeId = nodeObj.screenName.toLowerCase();
     }
-    else if (wordObj.name !== undefined) {
-      meterWordId = wordObj.name.toLowerCase();
+    else if (nodeObj.name !== undefined) {
+      meterNodeId = nodeObj.name.toLowerCase();
     }
     else {
-      debug(chalkWarn("updateWordMeter WARN: TWITTER USER UNDEFINED NAME & SCREEN NAME"
-        + " | USING NODEID: " + wordObj.nodeId
-        // + "\n" + jsonPrint(wordObj)
+      debug(chalkWarn("updateNodeMeter WARN: TWITTER USER UNDEFINED NAME & SCREEN NAME"
+        + " | USING NODEID: " + nodeObj.nodeId
+        // + "\n" + jsonPrint(nodeObj)
       ));
 
-      meterWordId = wordObj.nodeId;
+      meterNodeId = nodeObj.nodeId;
      }
   }
-  else if (wordObj.nodeType === "hashtag") {
-    debug("hashtag\n" + jsonPrint(wordObj));
-    meterWordId = wordObj.nodeId.toLowerCase();
+  else if (nodeObj.nodeType === "hashtag") {
+    debug("hashtag\n" + jsonPrint(nodeObj));
+    meterNodeId = nodeObj.nodeId.toLowerCase();
   }
-  else if (wordObj.nodeType === "place") {
-    meterWordId = wordObj.name.toLowerCase();
-  }
-  else {
-    meterWordId = wordObj.nodeId.toLowerCase();
-  }
-
-  if (ignoreWordHashMap.has(meterWordId)) {
-
-    debug(chalkLog("updateWordMeter IGNORE " + meterWordId));
-
-    wordObj.isIgnored = true;
-    wordMeter[meterWordId] = null;
-    delete wordMeter[meterWordId];
-
-    if (callback !== undefined) { callback(null, wordObj); }
+  else if (nodeObj.nodeType === "place") {
+    meterNodeId = nodeObj.name.toLowerCase();
   }
   else {
-    if (/TSS_/.test(meterWordId) || wordObj.isServer){
-      debug(chalkLog("updateWordMeter\n" + jsonPrint(wordObj)));
-      if (callback !== undefined) { callback(null, wordObj); }
+    meterNodeId = nodeObj.nodeId.toLowerCase();
+  }
+
+  if (ignoreWordHashMap.has(meterNodeId)) {
+
+    debug(chalkLog("updateNodeMeter IGNORE " + meterNodeId));
+
+    nodeObj.isIgnored = true;
+    nodeMeter[meterNodeId] = null;
+    delete nodeMeter[meterNodeId];
+
+    if (callback !== undefined) { callback(null, nodeObj); }
+  }
+  else {
+    if (/TSS_/.test(meterNodeId) || nodeObj.isServer){
+      debug(chalkLog("updateNodeMeter\n" + jsonPrint(nodeObj)));
+      if (callback !== undefined) { callback(null, nodeObj); }
     }
-    else if (!wordMeter[meterWordId] 
-      || (Object.keys(wordMeter[meterWordId]).length === 0)
-      || (wordMeter[meterWordId] === undefined) ){
+    else if (!nodeMeter[meterNodeId] 
+      || (Object.keys(nodeMeter[meterNodeId]).length === 0)
+      || (nodeMeter[meterNodeId] === undefined) ){
 
-      wordMeter[meterWordId] = null;
+      nodeMeter[meterNodeId] = null;
 
       const newMeter = new Measured.Meter({rateUnit: 60000});
 
       newMeter.mark();
-      wordObj.rate = parseFloat(newMeter.toJSON()[metricsRate]);
+      nodeObj.rate = parseFloat(newMeter.toJSON()[metricsRate]);
 
-      wordMeter[meterWordId] = newMeter;
+      nodeMeter[meterNodeId] = newMeter;
 
-      nodeCache.set(meterWordId, wordObj);
+      nodeCache.set(meterNodeId, nodeObj);
 
-      statsObj.wordMeterEntries = Object.keys(wordMeter).length;
+      statsObj.nodeMeterEntries = Object.keys(nodeMeter).length;
 
-      if (statsObj.wordMeterEntries > statsObj.wordMeterEntriesMax) {
-        statsObj.wordMeterEntriesMax = statsObj.wordMeterEntries;
+      if (statsObj.nodeMeterEntries > statsObj.wordMeterEntriesMax) {
+        statsObj.wordMeterEntriesMax = statsObj.nodeMeterEntries;
         statsObj.wordMeterEntriesMaxTime = moment().valueOf();
-        debug(chalkLog("NEW MAX WORD METER ENTRIES"
+        debug(chalkLog("NEW MAX NODE METER ENTRIES"
           + " | " + moment().format(compactDateTimeFormat)
-          + " | " + statsObj.wordMeterEntries.toFixed(0)
+          + " | " + statsObj.nodeMeterEntries.toFixed(0)
         ));
       }
 
-      if (callback !== undefined) { callback(null, wordObj); }
+      if (callback !== undefined) { callback(null, nodeObj); }
     }
     else {
-      wordMeter[meterWordId].mark();
-      wordObj.rate = parseFloat(wordMeter[meterWordId].toJSON()[metricsRate]);
+      nodeMeter[meterNodeId].mark();
+      nodeObj.rate = parseFloat(nodeMeter[meterNodeId].toJSON()[metricsRate]);
 
-      nodeCache.set(meterWordId, wordObj);
+      nodeCache.set(meterNodeId, nodeObj);
 
-      if (callback !== undefined) { callback(null, wordObj); }
+      if (callback !== undefined) { callback(null, nodeObj); }
     }
   }
 }
@@ -2437,7 +2435,7 @@ function initTransmitNodeQueueInterval(interval){
 
         checkCategory(nodeObj, function checkCategoryCallback(node){
 
-          updateWordMeter(node, function updateWordMeterCallback(err, n){
+          updateNodeMeter(node, function updateWordMeterCallback(err, n){
 
             if (!err) {
               if ((n.nodeType === "user") && n.isTopTerm && (n.followersCount === 0)){
@@ -3318,9 +3316,9 @@ function initSorterMessageRxQueueInterval(interval){
 
             node = sortedKeys[index].toLowerCase();
 
-            if (wordMeter[node]) {
+            if (nodeMeter[node]) {
 
-              nodeRate = parseFloat(wordMeter[node].toJSON()[metricsRate]);
+              nodeRate = parseFloat(nodeMeter[node].toJSON()[metricsRate]);
 
               wordsPerMinuteTopTermCache.set(node, nodeRate);
 
@@ -3767,13 +3765,13 @@ function initRateQinterval(interval){
       paramsSorter.max = configuration.maxTopTerms;
       paramsSorter.obj = {};
 
-      async.each(Object.keys(wordMeter), function sorterParams(meterId, cb){
+      async.each(Object.keys(nodeMeter), function sorterParams(meterId, cb){
 
-        if (!wordMeter[meterId]) {
-          console.error(chalkError("*** ERROR NULL wordMeter[meterId]: " + meterId));
+        if (!nodeMeter[meterId]) {
+          console.error(chalkError("*** ERROR NULL nodeMeter[meterId]: " + meterId));
         }
 
-        paramsSorter.obj[meterId] = pick(wordMeter[meterId].toJSON(), paramsSorter.sortKey);
+        paramsSorter.obj[meterId] = pick(nodeMeter[meterId].toJSON(), paramsSorter.sortKey);
 
         cb();
 
@@ -4143,14 +4141,14 @@ function initStatsInterval(interval){
     statsObj.runTime = moment().valueOf() - statsObj.startTime;
     statsObj.upTime = os.uptime() * 1000;
 
-    statsObj.wordMeterEntries = Object.keys(wordMeter).length;
+    statsObj.nodeMeterEntries = Object.keys(nodeMeter).length;
 
-    if (statsObj.wordMeterEntries > statsObj.wordMeterEntriesMax) {
-      statsObj.wordMeterEntriesMax = statsObj.wordMeterEntries;
+    if (statsObj.nodeMeterEntries > statsObj.wordMeterEntriesMax) {
+      statsObj.wordMeterEntriesMax = statsObj.nodeMeterEntries;
       statsObj.wordMeterEntriesMaxTime = moment().valueOf();
-      debug(chalkLog("NEW MAX WORD METER ENTRIES"
+      debug(chalkLog("NEW MAX NODE METER ENTRIES"
         + " | " + moment().format(compactDateTimeFormat)
-        + " | " + statsObj.wordMeterEntries.toFixed(0)
+        + " | " + statsObj.nodeMeterEntries.toFixed(0)
       ));
     }
 

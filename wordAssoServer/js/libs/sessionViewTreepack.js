@@ -753,6 +753,26 @@ function ViewTreepack() {
     self.updateGravity(config.defaultGravity);
   };
 
+  function rankHashMapByValue(hmap, sortProperty, callback) {
+    var keys = hmap.keys().sort(function hmapSortFunc(a,b){
+      return hmap.get(b)[sortProperty]-hmap.get(a)[sortProperty];
+    });
+
+    async.forEachOf(keys, function keysRank(key, index, cb) {
+
+      var entry = hmap.get(key);
+      entry.rank = index;
+
+      hmap.set(key, entry);
+      cb();
+
+    }, function keysRankCallback(err) {
+      if (err) { console.error("rankHashMapByValue ERROR: " + err); }
+      callback(hmap);
+    });
+  }
+
+
   var age;
   var ageMaxRatio = 1e-6;
   // var deadNodeFlag = false ;
@@ -1011,25 +1031,6 @@ function ViewTreepack() {
     }
   }
 
-  function rankHashMapByValue(hmap, sortProperty, callback) {
-    var keys = hmap.keys().sort(function hmapSortFunc(a,b){
-      return hmap.get(b)[sortProperty]-hmap.get(a)[sortProperty];
-    });
-
-    async.forEachOf(keys, function keysRank(key, index, cb) {
-
-      var entry = hmap.get(key);
-      entry.rank = index;
-
-      hmap.set(key, entry);
-      cb();
-
-    }, function keysRankCallback(err) {
-      if (err) { console.error("rankHashMapByValue ERROR: " + err); }
-      callback(hmap);
-    });
-  }
-
   var updateTopTerm = function(callback) {
 
     var nodeTopTermLabels = nodeTopTermLabelSvgGroup.selectAll("text")
@@ -1047,7 +1048,7 @@ function ViewTreepack() {
         return topTermLabelOpacityScale(d.ageMaxRatio); 
       })
       .transition()
-        .duration(2*transitionDuration)
+        .duration(1.5*transitionDuration)
         .attr("y", yposition);
 
     nodeTopTermLabels
@@ -1143,6 +1144,7 @@ function ViewTreepack() {
       .transition()
         .duration(transitionDuration)
         .attr("r", function (d) {
+          if (!d.isValid) { return 1e-6; }
           if (d.isDead) { return 1e-6; }
           if (d.isIgnored) {
             return defaultRadiusScale(Math.sqrt(0.1));
@@ -1198,6 +1200,7 @@ function ViewTreepack() {
       .transition()
         .duration(transitionDuration)
         .attr("r", function(d) {
+          if (!d.isValid) { return 1e-6; }
           if (d.isDead) { return 1e-6; }
           if (d.isIgnored) {
             return defaultRadiusScale(Math.sqrt(0.1));

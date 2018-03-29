@@ -1013,30 +1013,73 @@ function loadFile(path, file, callback) {
   }
 }
 
-function loadCategoryAutoHashMap(params, callback){
-  loadFile(params.folder, params.file, function(err, dataObj){
-    if (err){
-      console.log(chalkError("ERROR: categoryAutoHashMap: loadFile: " + err));
-      return(callback(err));
-    }
-    Object.keys(dataObj).forEach(function(entryKey){
-      categoryAutoHashMap.set(entryKey, dataObj[entryKey]);
-      debug("+++ CAT AUTO | " + entryKey + ": " + dataObj[entryKey]);
-    });
-    callback();
-  });
-}
+// kludge: collapse auto + man into one function
+// function loadCategoryAutoHashMap(params, callback){
+//   loadFile(params.folder, params.file, function(err, dataObj){
+//     if (err){
+//       console.log(chalkError("ERROR: categoryAutoHashMap: loadFile: " + err));
+//       return(callback(err));
+//     }
+//     Object.keys(dataObj).forEach(function(entryKey){
+//       if (!categoryAutoHashMap.has(entryKey)){
+//         categoryAutoHashMap.set(entryKey, dataObj[entryKey]);
+//         console.log(chalkInfo("+++ LOAD CAT AUTO MISS"
+//           + " [ " + categoryAutoHashMap.count() + " HM ENTRIES ]"
+//           + " | " + entryKey + ": " + dataObj[entryKey]
+//         ));
+//       }
+//       else if (categoryAutoHashMap.get(entryKey) === dataObj[entryKey]) {
+//         console.log(chalkInfo("--- LOAD CAT AUTO MATCH   "
+//           + " [ " + categoryAutoHashMap.count() + " HM ENTRIES ]"
+//           + " | " + entryKey + ": " + dataObj[entryKey]
+//         ));
+//       }
+//       else {
+//         console.log(chalkInfo("-0- LOAD CAT AUTO MISMATCH"
+//           + " [ " + categoryAutoHashMap.count() + " HM ENTRIES ]"
+//           + " | " + entryKey + ": " + dataObj[entryKey]
+//           + " | HM: " + categoryAutoHashMap.get(entryKey)
+//         ));
+//       }
+//     });
+//     callback();
+//   });
+// }
 
 function loadCategoryHashMap(params, callback){
+
+  let hm = categoryHashMap;
+
+  if (params.hashmap && ((params.hashmap) === "auto")) {
+    hm = categoryAutoHashMap;
+  }
+
   loadFile(params.folder, params.file, function(err, dataObj){
     if (err){
-      console.log(chalkError("ERROR: categoryHashMap: loadFile: " + err));
+      console.log(chalkError("ERROR: CAT " + params.hashmap.toUpperCase() + " HM: loadFile: " + err));
       return(callback(err));
     }
     Object.keys(dataObj).forEach(function(entryKey){
-      categoryHashMap.set(entryKey, dataObj[entryKey]);
-      debug("+++ CAT MAN  | " + entryKey + ": " + dataObj[entryKey]);
-    });
+      if (!hm.has(entryKey)){
+        hm.set(entryKey, dataObj[entryKey]);
+        console.log(chalkInfo("+++ LOAD CAT AUTO MISS"
+          + " [ " + hm.count() + " HM ENTRIES ]"
+          + " | " + entryKey + ": " + dataObj[entryKey]
+        ));
+      }
+      else if (hm.get(entryKey) === dataObj[entryKey]) {
+        debug(chalkInfo("--- LOAD CAT AUTO MATCH   "
+          + " [ " + hm.count() + " HM ENTRIES ]"
+          + " | " + entryKey + ": " + dataObj[entryKey]
+        ));
+      }
+      else {
+        console.log(chalkInfo("-0- LOAD CAT AUTO MISMATCH"
+          + " [ " + hm.count() + " HM ENTRIES ]"
+          + " | " + entryKey + ": " + dataObj[entryKey]
+          + " | HM: " + hm.get(entryKey)
+        ));
+      }    });
     callback();
   });
 }
@@ -3848,7 +3891,13 @@ function initLoadBestNetworkInterval(interval){
 
   loadBestNetworkInterval = setInterval(function(){
 
-    loadCategoryAutoHashMap({folder: classifiedUsersFolder, file: autoClassifiedUsersDefaultFile}, function(err){
+    loadCategoryHashMap(
+    {
+      hashmap: "auto", 
+      folder: classifiedUsersFolder, 
+      file: autoClassifiedUsersDefaultFile
+    }, 
+    function(err){
       if (err) {
         console.log(chalkError("ERROR: loadCategoryAutoHashMap"
           + " | " + classifiedUsersFolder + "/" + autoClassifiedUsersDefaultFile
@@ -3987,7 +4036,7 @@ function initialize(cnf, callback) {
     }
   });
 
-  loadCategoryAutoHashMap({folder: classifiedUsersFolder, file: autoClassifiedUsersDefaultFile}, function(err){
+  loadCategoryHashMap({hashmap: "auto", folder: classifiedUsersFolder, file: autoClassifiedUsersDefaultFile}, function(err){
     if (err) {
       console.log(chalkError("ERROR: loadCategoryAutoHashMap: " + err));
     }

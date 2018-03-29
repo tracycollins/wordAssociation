@@ -204,6 +204,7 @@ function ViewTreepack() {
     this.categoryAuto = false;
     this.categoryMatch = false;
     this.categoryMismatch = false;
+    this.isTwitterUser = false;
     this.isTopTerm = false;
     this.isTrendingTopic = false;
     this.categoryColor = palette.white;
@@ -754,7 +755,7 @@ function ViewTreepack() {
 
   var age;
   var ageMaxRatio = 1e-6;
-  var deadNodeFlag = false ;
+  // var deadNodeFlag = false ;
   var ageNodesLength = 0;
   // var ageNodesIndex = 0;
   var node;
@@ -766,7 +767,7 @@ function ViewTreepack() {
 
     nodeIdArray = localNodeHashMap.keys();
     ageMaxRatio = 1e-6;
-    deadNodeFlag = false ;
+    // deadNodeFlag = false ;
     // ageNodesLength = nodes.length - 1;
     ageNodesLength = nodeIdArray.length;
     // ageNodesIndex = nodes.length - 1;
@@ -811,15 +812,9 @@ function ViewTreepack() {
         node.isValid = false;
 
         localNodeHashMap.remove(node.nodeId);
+        nodesTopTermHashMap.remove(node.nodeId);
 
-        if (node.nodeType === "user"){
-          nodesTopTermHashMap.remove(node.screenName);
-        }
-        if (node.nodeType === "hashtag"){
-          nodesTopTermHashMap.remove(node.text);
-        }
-
-        resetNode(node);
+        // resetNode(node);
         nodePool.recycle(node);
         // nodes.splice(ageNodesIndex, 1);
        } 
@@ -879,7 +874,7 @@ function ViewTreepack() {
 
       rankHashMapByValue(nodesTopTermHashMap, metricMode, function rankHashMapByValueFunc(){
         nodesTopTerm = nodesTopTermHashMap.values();
-        callback(null, deadNodeFlag);
+        callback(null);
       });
     // }
   };
@@ -1080,7 +1075,10 @@ function ViewTreepack() {
         if ((d.isGroupNode || d.isSessionNode) && (d.ageMaxRatio < 0.01)) { return palette.yellow; }
         return palette.darkgray; 
       })
-      .style("font-size", fontTopTerm);
+      .style("font-size", fontTopTerm)
+      .transition()
+        .duration(2*transitionDuration)
+        .attr("y", yposition);
 
 
     callback(null, null);
@@ -1711,6 +1709,7 @@ function ViewTreepack() {
     newNode.mentions = (newNode.mentions) ? newNode.mentions : 0;
 
     if (newNode.nodeType === "user") {
+      newNode.isTwitterUser = true;
       newNode.followersMentions = newNode.mentions + newNode.followersCount;
     }
 

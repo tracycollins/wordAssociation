@@ -1049,32 +1049,35 @@ function loadFile(path, file, callback) {
 function loadCategoryHashMap(params, callback){
 
   let hm = categoryHashMap;
+  let hmString = "MAN";
 
   if (params.hashmap && ((params.hashmap) === "auto")) {
     hm = categoryAutoHashMap;
+    hmString = "AUTO";
   }
+
 
   loadFile(params.folder, params.file, function(err, dataObj){
     if (err){
-      console.log(chalkError("ERROR: CAT " + params.hashmap.toUpperCase() + " HM: loadFile: " + err));
+      console.log(chalkError("ERROR: CAT " + hmString + " HM: loadFile: " + err));
       return(callback(err));
     }
     Object.keys(dataObj).forEach(function(entryKey){
       if (!hm.has(entryKey)){
         hm.set(entryKey, dataObj[entryKey]);
-        console.log(chalkInfo("+++ LOAD CAT AUTO MISS"
+        console.log(chalkInfo("+++ LOAD CAT " + hmString + " MISS"
           + " [ " + hm.count() + " HM ENTRIES ]"
           + " | " + entryKey + ": " + dataObj[entryKey]
         ));
       }
       else if (hm.get(entryKey) === dataObj[entryKey]) {
-        debug(chalkInfo("--- LOAD CAT AUTO MATCH   "
+        debug(chalkInfo("--- LOAD CAT " + hmString + " MATCH   "
           + " [ " + hm.count() + " HM ENTRIES ]"
           + " | " + entryKey + ": " + dataObj[entryKey]
         ));
       }
       else {
-        console.log(chalkInfo("-0- LOAD CAT AUTO MISMATCH"
+        console.log(chalkInfo("-0- LOAD CAT " + hmString + " MISMATCH"
           + " [ " + hm.count() + " HM ENTRIES ]"
           + " | " + entryKey + ": " + dataObj[entryKey]
           + " | HM: " + hm.get(entryKey)

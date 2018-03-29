@@ -1098,10 +1098,6 @@ function ViewTreepack() {
     nodeCircles
       .enter()
       .append("circle")
-      // .append(function(){
-      //   var newCircle = document.createElement("circle");
-      //   return newCircle;
-      // })
       .attr("nodeId", function (d) { return d.nodeId; })
       .style("visibility", function (d) {
         if (d.isDead) { return "hidden"; }
@@ -1173,46 +1169,46 @@ function ViewTreepack() {
       .style("opacity", function(d) { 
         if (d.isDead) { return 1e-6; }
         return nodeLabelOpacityScale(d.ageMaxRatio); 
-      })
-      .style("fill", function (d) { 
-        if (!d.category && !d.categoryAuto) { return palette.black; }
-        return d.categoryColor; 
-      })
-      .style("stroke", function (d) {
-        if (d.categoryMismatch) { return palette.red; }
-        if (d.categoryMatch) { return categoryMatchColor; }
-        if (d.categoryAuto === "right") { return palette.yellow; }
-        if (d.categoryAuto === "left") { return palette.blue; }
-        if (d.categoryAuto === "positive") { return palette.green; }
-        if (d.categoryAuto ==="negative") { return palette.red; }
-        return palette.white; 
-      })
-      .style("stroke-width", function (d) { 
-        if (d.categoryMatch) { return categoryMatchStrokeWidth; }
-        if (d.isTopTerm) { return "3.0"; }
-        if (d.newFlag) { return "3.0"; }
-        if (d.categoryAuto === "right") { return categoryAutoStrokeWidth; }
-        if (d.categoryAuto === "left") { return categoryAutoStrokeWidth; }
-        if (d.categoryAuto === "positive") { return categoryAutoStrokeWidth; }
-        if (d.categoryAuto ==="negative") { return categoryAutoStrokeWidth; }
-        return "2.0"; 
-      })
-      .on("click", nodeClick)
-      .transition()
-        .duration(transitionDuration)
-        .attr("r", function(d) {
-          if (d.isDead) { return 1e-6; }
-          if (d.isIgnored) {
-            return defaultRadiusScale(Math.sqrt(0.1));
-          }
-          if (metricMode === "rate") { return defaultRadiusScale(Math.sqrt(d.rate));}
-          if (metricMode === "mentions") { 
-            if (d.nodeType === "user") { 
-              return defaultRadiusScale(Math.sqrt(d.followersMentions)); 
-            }
-            return defaultRadiusScale(Math.sqrt(d.mentions));
-          }
-        });
+      });
+      // .style("fill", function (d) { 
+      //   if (!d.category && !d.categoryAuto) { return palette.black; }
+      //   return d.categoryColor; 
+      // })
+      // .style("stroke", function (d) {
+      //   if (d.categoryMismatch) { return palette.red; }
+      //   if (d.categoryMatch) { return categoryMatchColor; }
+      //   if (d.categoryAuto === "right") { return palette.yellow; }
+      //   if (d.categoryAuto === "left") { return palette.blue; }
+      //   if (d.categoryAuto === "positive") { return palette.green; }
+      //   if (d.categoryAuto ==="negative") { return palette.red; }
+      //   return palette.white; 
+      // })
+      // .style("stroke-width", function (d) { 
+      //   if (d.categoryMatch) { return categoryMatchStrokeWidth; }
+      //   if (d.isTopTerm) { return "3.0"; }
+      //   if (d.newFlag) { return "3.0"; }
+      //   if (d.categoryAuto === "right") { return categoryAutoStrokeWidth; }
+      //   if (d.categoryAuto === "left") { return categoryAutoStrokeWidth; }
+      //   if (d.categoryAuto === "positive") { return categoryAutoStrokeWidth; }
+      //   if (d.categoryAuto ==="negative") { return categoryAutoStrokeWidth; }
+      //   return "2.0"; 
+      // })
+      // .on("click", nodeClick)
+      // .transition()
+      //   .duration(transitionDuration)
+      //   .attr("r", function(d) {
+      //     if (d.isDead) { return 1e-6; }
+      //     if (d.isIgnored) {
+      //       return defaultRadiusScale(Math.sqrt(0.1));
+      //     }
+      //     if (metricMode === "rate") { return defaultRadiusScale(Math.sqrt(d.rate));}
+      //     if (metricMode === "mentions") { 
+      //       if (d.nodeType === "user") { 
+      //         return defaultRadiusScale(Math.sqrt(d.followersMentions)); 
+      //       }
+      //       return defaultRadiusScale(Math.sqrt(d.mentions));
+      //     }
+      //   });
 
     nodeCircles
       .exit()

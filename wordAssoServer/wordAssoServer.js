@@ -2566,6 +2566,20 @@ function initTransmitNodeQueueInterval(interval){
                   }
                 });
               }
+              else if ((n.nodeType === "hashtag") && n.isTopTerm){
+                hashtagServer.findOneHashtag(n, {noInc: true}, function(err, updatedHashtag){
+                  if (err) {
+                    console.log(chalkError("updatedHashtag ERROR" + jsonPrint(err)));
+                    viewNameSpace.volatile.emit("node", n);
+                    transmitNodeQueueReady = true;
+                  }
+                  else {
+                    debug(chalkTwitter("UPDATED updatedHashtag" + jsonPrint(updatedHashtag)));
+                    viewNameSpace.volatile.emit("node", updatedHashtag);
+                    transmitNodeQueueReady = true;
+                  }
+                });
+              }
               else if ((n.nodeType === "user") || (n.nodeType === "hashtag") || (n.nodeType === "place")) {
                 viewNameSpace.volatile.emit("node", n);
                 transmitNodeQueueReady = true;

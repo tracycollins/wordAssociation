@@ -2026,7 +2026,7 @@ function updateStatsTable(statsObj){
   statsServerStartTimeElement.innerHTML = moment(statsObj.heartbeat.startTime).format(defaultDateTimeFormat);
   statsServerRunTimeElement.innerHTML = msToTime(statsObj.heartbeat.runTime);
   statsClientNumberNodesElement.innerHTML = currentSessionView.getNodesLength();
-  statsClientNumberMaxNodesElement.innerHTML = statsObj.maxNodes;
+  statsClientNumberMaxNodesElement.innerHTML = currentSessionView.getMaxNodes();
   statsClientAddNodeQElement.innerHTML = currentSessionView.getNodeAddQlength();
   statsClientMaxAddNodeQElement.innerHTML = currentSessionView.getMaxNodeAddQ();
   statsClientAgeRateElement.innerHTML = currentSessionView.getAgeRate().toFixed(2);
@@ -2139,7 +2139,10 @@ socket.on("USER_SESSION", function(rxSessionObject) {
 
 socket.on("SET_TWITTER_USER", function(twitterUser) {
 
-  if (twitterUser.notFound !== undefined) {
+  if (!twitterUser) {
+    return;
+  }
+  else if (!twitterUser || (twitterUser.notFound !== undefined)) {
 
     console.log("SET_TWITTER_USER | NOT FOUND" 
       + " | @" + twitterUser.screenName 

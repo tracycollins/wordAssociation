@@ -811,7 +811,13 @@ function ViewTreepack() {
         node.isValid = false;
 
         localNodeHashMap.remove(node.nodeId);
-        nodesTopTermHashMap.remove(node.nodeId);
+
+        if (node.nodeType === "user"){
+          nodesTopTermHashMap.remove(node.screenName);
+        }
+        if (node.nodeType === "hashtag"){
+          nodesTopTermHashMap.remove(node.text);
+        }
 
         resetNode(node);
         nodePool.recycle(node);
@@ -831,19 +837,9 @@ function ViewTreepack() {
         node.ageMaxRatio = ageMaxRatio;
         node.isDead = false;
 
-        // prevNode = localNodeHashMap.get(node.nodeId);
-
-        // node.isTopTerm = prevNode.isTopTerm;
-        // node.categoryColor = prevNode.categoryColor;
-        // node.isTrendingTopic = prevNode.isTrendingTopic;
-        // node.category = prevNode.category;
-        // node.categoryAuto = prevNode.categoryAuto;
-
-        // nodes[ageNodesIndex] = node;
-
         localNodeHashMap.set(node.nodeId, node);
 
-        if (node.isTopTerm) {
+        if (node.isTopTerm){
           nodesTopTermHashMap.set(node.nodeId, node);
         }
         else {
@@ -1046,15 +1042,18 @@ function ViewTreepack() {
 
     nodeTopTermLabels
       .exit()
-      // .remove();
+      .remove();
 
     nodeTopTermLabels
       .attr("x", xposition)
-      .attr("y", yposition)
+      // .attr("y", yposition)
       .style("opacity", function updateTopTermOpacity(d) { 
         if (d.mouseHoverFlag) { return 1.0; }
         return topTermLabelOpacityScale(d.ageMaxRatio); 
-      });
+      })
+      .transition()
+        .duration(2*transitionDuration)
+        .attr("y", yposition);
 
     nodeTopTermLabels
       .enter().append("text")
@@ -1065,7 +1064,7 @@ function ViewTreepack() {
       .on("click", nodeClick)
       .style("pointer-events", "auto")
       .attr("x", xposition)
-      .attr("y", yposition)
+      // .attr("y", yposition)
       .text(function updateTopTermText(d) {
         return d.displaytext;
       })
@@ -1439,7 +1438,8 @@ function ViewTreepack() {
       }
     }
     else {
-      if (node.isTwitterUser) { 
+      // if (node.isTwitterUser) { 
+      if (node.nodeType === "user") { 
         if (node.screenName) {
           displaytext = new Array(ratePadSpaces).join("\xa0") + rate 
           + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns 
@@ -1513,7 +1513,7 @@ function ViewTreepack() {
         currentNode.categoryAuto = newNode.categoryAuto;
 
         if (newNode.nodeType === "user"){
-          currentNode.followersCount = newNode.followersCount;
+          currentNode.followersCount = newNode.followersCount || 0;
           currentNode.followersMentions = newNode.followersCount + newNode.mentions;
         }
 
@@ -1550,6 +1550,10 @@ function ViewTreepack() {
         currentNode.name = newNode.name;
         currentNode.rate = newNode.rate;
         currentNode.text = newNode.text;
+        currentNode.rank = newNode.rank;
+
+        currentNode.isTopTerm = newNode.isTopTerm;
+        currentNode.isTrendingTopic = newNode.isTrendingTopic;
 
         currentNode.category = newNode.category;
         currentNode.categoryAuto = newNode.categoryAuto;
@@ -1561,19 +1565,21 @@ function ViewTreepack() {
         currentNode.mentions = newNode.mentions;
         currentNode.statusesCount = newNode.statusesCount;
         currentNode.friendsCount = newNode.friendsCount;
-        currentNode.followersCount = newNode.followersCount;
-        currentNode.followersMentions = newNode.followersMentions;
+        // currentNode.followersCount = newNode.followersCount;
+
+        // currentNode.followersMentions = newNode.followersMentions;
+        if (newNode.nodeType === "user"){
+          currentNode.followersCount = newNode.followersCount || 0;
+          currentNode.followersMentions = newNode.followersCount + newNode.mentions;
+        }
 
         currentNode.age = 1e-6;
         currentNode.ageMaxRatio = 1e-6;
         currentNode.ageUpdated = moment().valueOf();
         currentNode.isDead = false;
         currentNode.isMaxNode = false;
-        currentNode.isTopTerm = false;
-        currentNode.isTrendingTopic = false;
         currentNode.mouseHoverFlag = false;
         currentNode.newFlag = true;
-        currentNode.rank = -1;
         currentNode.x = 0.5*width;
         currentNode.y = 0.5*height;
 
@@ -1701,6 +1707,8 @@ function ViewTreepack() {
     self.setEnableAgeNodes(true);
 
     newNode.newFlag = true;
+    newNode.followersCount = (newNode.followersCount) ? newNode.followersCount : 0;
+    newNode.mentions = (newNode.mentions) ? newNode.mentions : 0;
 
     if (newNode.nodeType === "user") {
       newNode.followersMentions = newNode.mentions + newNode.followersCount;

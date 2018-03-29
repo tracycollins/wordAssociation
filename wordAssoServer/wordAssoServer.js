@@ -2133,6 +2133,9 @@ function checkCategory(nodeObj, callback) {
             ));
             nodeObj.isTopTerm = true;
           }
+          else {
+            nodeObj.isTopTerm = false;
+          }
           callback(nodeObj);
         });
       }
@@ -2158,6 +2161,9 @@ function checkCategory(nodeObj, callback) {
             debugCategory(chalkLog("TOP TERM USER NAME: " + name));
             nodeObj.isTopTerm = true;
           }
+          else {
+            nodeObj.isTopTerm = false;
+          }
           callback(nodeObj);
         });
       }
@@ -2181,6 +2187,9 @@ function checkCategory(nodeObj, callback) {
           if (userId !== undefined) {
             debugCategory(chalkLog("TOP TERM USER USERID: " + userId));
             nodeObj.isTopTerm = true;
+          }
+          else {
+            nodeObj.isTopTerm = false;
           }
           callback(nodeObj);
         });
@@ -2210,6 +2219,9 @@ function checkCategory(nodeObj, callback) {
           if (nodeId !== undefined) {
             debugCategory(chalkLog("TOP TERM HASHTAG NODEID: " + nodeId));
             nodeObj.isTopTerm = true;
+          }
+          else {
+            nodeObj.isTopTerm = false;
           }
           callback(nodeObj);
         });
@@ -2243,6 +2255,9 @@ function checkCategory(nodeObj, callback) {
             debugCategory(chalkLog("TOP TERM PLACE NAME: " + name));
             nodeObj.isTopTerm = true;
           }
+          else {
+            nodeObj.isTopTerm = false;
+          }
           callback(nodeObj);
         });
       }
@@ -2271,6 +2286,9 @@ function checkCategory(nodeObj, callback) {
           if (nodeId !== undefined) {
             debugCategory(chalkLog("TOP TERM HASHTAG NODEID: " + nodeId));
             nodeObj.isTopTerm = true;
+          }
+          else {
+            nodeObj.isTopTerm = false;
           }
           callback(nodeObj);
         });
@@ -2365,20 +2383,23 @@ function updateNodeMeter(nodeObj, callback){
   let meterNodeId;
 
   if (nodeObj.isTwitterUser || (nodeObj.nodeType === "user")) {
-    if (nodeObj.screenName !== undefined) {
-      meterNodeId = nodeObj.screenName.toLowerCase();
-    }
-    else if (nodeObj.name !== undefined) {
-      meterNodeId = nodeObj.name.toLowerCase();
-    }
-    else {
-      debug(chalkWarn("updateNodeMeter WARN: TWITTER USER UNDEFINED NAME & SCREEN NAME"
-        + " | USING NODEID: " + nodeObj.nodeId
-        // + "\n" + jsonPrint(nodeObj)
-      ));
 
-      meterNodeId = nodeObj.nodeId;
-     }
+    meterNodeId = nodeObj.nodeId;
+
+    // if (nodeObj.screenName !== undefined) {
+    //   meterNodeId = nodeObj.screenName.toLowerCase();
+    // }
+    // else if (nodeObj.name !== undefined) {
+    //   meterNodeId = nodeObj.name.toLowerCase();
+    // }
+    // else {
+    //   debug(chalkWarn("updateNodeMeter WARN: TWITTER USER UNDEFINED NAME & SCREEN NAME"
+    //     + " | USING NODEID: " + nodeObj.nodeId
+    //     // + "\n" + jsonPrint(nodeObj)
+    //   ));
+
+    //   meterNodeId = nodeObj.nodeId;
+    //  }
   }
   else if (nodeObj.nodeType === "hashtag") {
     debug("hashtag\n" + jsonPrint(nodeObj));
@@ -2483,7 +2504,14 @@ function initTransmitNodeQueueInterval(interval){
 
           updateNodeMeter(node, function updateWordMeterCallback(err, n){
 
-            if (!err) {
+            if (err) {
+              console.log(chalkError("ERROR updateNodeMeter: " + err
+                + " | TYPE: " + node.nodeType
+                + " | NID: " + node.nodeId
+              ));
+              viewNameSpace.volatile.emit("node", node);
+            }
+            else {
               if ((n.nodeType === "user") && n.isTopTerm && (n.followersCount === 0)){
                 twit.get("users/show", {user_id: n.userId, include_entities: true}, function usersShow (err, rawUser, response){
                   if (err) {
@@ -2511,7 +2539,7 @@ function initTransmitNodeQueueInterval(interval){
                     n.followersCount = rawUser.followers_count;
                     n.status = rawUser.status;
 
-                    if (n.followersCount > MIN_FOLLOWERS) {
+                    if (n.following || (n.followersCount > MIN_FOLLOWERS)) {
                       userServer.findOneUser(n, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
                         if (err) {
                           console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));
@@ -3367,17 +3395,18 @@ function initSorterMessageRxQueueInterval(interval){
               nodeRate = parseFloat(nodeMeter[node].toJSON()[metricsRate]);
 
               wordsPerMinuteTopTermCache.set(node, nodeRate);
+              next();
 
-              if (!deletedMetricsHashmap.has(node) 
-                && GOOGLE_METRICS_ENABLED 
-                && (nodeRate > MIN_METRIC_VALUE)) {
-                addTopTermMetricDataPoint(node, nodeRate);
-                next();
-              }
-              else {
-                debug(chalkLog("SKIP ADD METRIC | " + node + " | " + nodeRate.toFixed(3)));
-                next();
-              }
+              // if (!deletedMetricsHashmap.has(node) 
+              //   && GOOGLE_METRICS_ENABLED 
+              //   && (nodeRate > MIN_METRIC_VALUE)) {
+              //   addTopTermMetricDataPoint(node, nodeRate);
+              //   next();
+              // }
+              // else {
+              //   debug(chalkLog("SKIP ADD METRIC | " + node + " | " + nodeRate.toFixed(3)));
+              //   next();
+              // }
 
             }
 

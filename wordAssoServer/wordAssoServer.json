@@ -5,7 +5,7 @@
     "cwd"         : "/home/tc/wordAssociation/wordAssoServer",
     "autorestart" : true,
     "restart_delay": 30000,
-    "node_args"   : "--max-old-space-size=4096",
+    "node_args"   : "--max-old-space-size=6144 --inspect",
     "env": {
       "NODE_ENV": "production",
       "HEAPDUMP_ENABLED": false,

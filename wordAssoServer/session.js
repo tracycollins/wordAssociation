@@ -2211,7 +2211,7 @@ function initSocketSessionUpdateRx(){
 
       newNode = rxNodeQueue.shift();
 
-      newNode.isTopTerm = newNode.isTopTerm || false;
+      // newNode.isTopTerm = (newNode.isTopTerm) ? true : false;
 
       var category;
       if (config.autoCategoryFlag &&  newNode.categoryAuto){
@@ -2231,7 +2231,7 @@ function initSocketSessionUpdateRx(){
       newNode.isDead = false;
       newNode.r = 0;
       newNode.links = [];
-      newNode.mentions = (newNode.mentions > 0) ? newNode.mentions : 10;
+      newNode.mentions = (newNode.mentions) ? newNode.mentions : 1;
 
       if (newNode.nodeType === "user"){
         newNode.userId = newNode.userId;
@@ -2301,7 +2301,7 @@ function initSocketNodeRx(){
       return;
     }
 
-    nNode.isTopTerm = nNode.isTopTerm || false;
+    // nNode.isTopTerm = nNode.isTopTerm || false;
 
     var category;
     if (config.autoCategoryFlag && nNode.categoryAuto){
@@ -2320,8 +2320,11 @@ function initSocketNodeRx(){
     nNode.mouseHoverFlag = false;
     nNode.isDead = false;
     nNode.r = 0;
+    nNode.rank = -1;
     nNode.links = [];
-    nNode.mentions = (nNode.mentions > 0) ? nNode.mentions : 10;
+    nNode.rate = (nNode.rate) ? nNode.rate : 0;
+    nNode.mentions = (nNode.mentions) ? nNode.mentions : 1;
+    nNode.followersCount = (nNode.followersCount) ? nNode.followersCount : 0;
 
     if (nNode.nodeType === "user"){
       newNode.nodeId = nNode.screenName.toLowerCase();

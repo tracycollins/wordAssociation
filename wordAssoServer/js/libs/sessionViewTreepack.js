@@ -158,7 +158,7 @@ function ViewTreepack() {
   };
 
 
-  var nodes = [];
+  var nodeArray = [];
   var nodesTopTerm = [];
 
   var currentMaxMetric = 2;
@@ -179,12 +179,15 @@ function ViewTreepack() {
 
   var deadNodesHash = {};
 
-  function Node(){
+  function Node(nodePooId){
+    this.nodePooId = nodePooId;
+    this.isValid = false;
     this.nodeId = "";
     this.nodeType = "user";
     this.screenName = "";
+    this.text = "";
     this.name = "";
-    this.isDead = false;
+    this.isDead = true;
     this.mentions = 0;
     this.age = 0;
     this.ageUpdated = moment().valueOf();
@@ -199,6 +202,8 @@ function ViewTreepack() {
     this.isCategory = false;
     this.category = false;
     this.categoryAuto = false;
+    this.categoryMatch = false;
+    this.categoryMismatch = false;
     this.isTopTerm = false;
     this.isTrendingTopic = false;
     this.categoryColor = palette.white;
@@ -206,15 +211,22 @@ function ViewTreepack() {
     this.isMaxNode = false;
   } 
 
+  var nodePoolIndex = 0;
   var nodePool = deePool.create(function makeNode(){
-    return new Node();
+    var nodePooId = "nodePoolId_" + nodePoolIndex;
+    var n = new Node(nodePooId);
+    return n;
   });
 
   function resetNode(node){
-    Object.keys(node).forEach(function(prop){
-      node[prop] = null;
-      // delete node.prop;
-    });
+    // Object.keys(node).forEach(function(prop){
+    //   switch (prop) {
+    //     case "nodePooId":
+    //     break;
+    //     default:
+    //     node[prop] = null;
+    //   }
+    // });
   }
 
   var autoCategoryFlag = config.autoCategoryFlag;
@@ -287,6 +299,7 @@ function ViewTreepack() {
 
   var nodesTopTermHashMap = new HashMap();
   var localNodeHashMap = new HashMap();
+  var nodeArray = [];
 
   var maxNodeAddQ = 0;
   var maxNumberNodes = 0;
@@ -513,7 +526,7 @@ function ViewTreepack() {
     return null;
   };
   
-  this.getNodesLength = function() { return "NODES: " + nodes.length + " | POOL: " + nodePool.size(); };
+  this.getNodesLength = function() { return "NODES: " + nodeArray.length + " | POOL: " + nodePool.size(); };
   
   this.getMaxNodes = function() { return maxNumberNodes; };
   
@@ -742,24 +755,27 @@ function ViewTreepack() {
   var age;
   var ageMaxRatio = 1e-6;
   var deadNodeFlag = false ;
-  var ageNodesLength = nodes.length - 1;
-  var ageNodesIndex = nodes.length - 1;
+  var ageNodesLength = 0;
+  // var ageNodesIndex = 0;
   var node;
   var prevNode;
   var currentTime = moment().valueOf();
+  var nodeIdArray = [];
 
   var ageNodes = function (callback) {
 
+    nodeIdArray = localNodeHashMap.keys();
     ageMaxRatio = 1e-6;
     deadNodeFlag = false ;
-    ageNodesLength = nodes.length - 1;
-    ageNodesIndex = nodes.length - 1;
+    // ageNodesLength = nodes.length - 1;
+    ageNodesLength = nodeIdArray.length;
+    // ageNodesIndex = nodes.length - 1;
 
-    if (nodes.length === 0) {
+    if (ageNodesLength === 0) {
       ageRate = DEFAULT_AGE_RATE;
     } 
-    else if ((nodes.length > MAX_NODES) && (nodeAddQ.length <= MAX_RX_QUEUE)) {
-      ageRate = adjustedAgeRateScale(nodes.length - MAX_NODES);
+    else if ((ageNodesLength > MAX_NODES) && (nodeAddQ.length <= MAX_RX_QUEUE)) {
+      ageRate = adjustedAgeRateScale(ageNodesLength - MAX_NODES);
     } 
     else if (nodeAddQ.length > MAX_RX_QUEUE) {
       ageRate = adjustedAgeRateScale(nodeAddQ.length - MAX_RX_QUEUE);
@@ -771,9 +787,10 @@ function ViewTreepack() {
     maxAgeRate = Math.max(ageRate, maxAgeRate);
     currentTime = moment().valueOf();
 
-    for (ageNodesIndex = ageNodesLength; ageNodesIndex >= 0; ageNodesIndex -= 1) {
-
-      node = nodes[ageNodesIndex];
+    // for (ageNodesIndex = ageNodesLength; ageNodesIndex >= 0; ageNodesIndex -= 1) {
+    nodeIdArray.forEach(function(nodeId){
+      // node = nodes[ageNodesIndex];
+      node = localNodeHashMap.get(nodeId);
 
       if (!enableAgeNodes || (resumeTimeStamp > 0)) {
         ageRate = 0;
@@ -791,15 +808,18 @@ function ViewTreepack() {
       if (node.isDead || (removeDeadNodesFlag && (age >= nodeMaxAge))) {
 
         node.isDead = true;
+        node.isValid = false;
 
         localNodeHashMap.remove(node.nodeId);
         nodesTopTermHashMap.remove(node.nodeId);
 
         resetNode(node);
         nodePool.recycle(node);
-        nodes.splice(ageNodesIndex, 1);
+        // nodes.splice(ageNodesIndex, 1);
        } 
       else {
+        node.isDead = false;
+        node.isValid = true;
         node.ageUpdated = currentTime;
         node.age = age;
         if (ageMaxRatio < NEW_NODE_AGE_RATIO) { 
@@ -811,15 +831,15 @@ function ViewTreepack() {
         node.ageMaxRatio = ageMaxRatio;
         node.isDead = false;
 
-        prevNode = localNodeHashMap.get(node.nodeId);
+        // prevNode = localNodeHashMap.get(node.nodeId);
 
-        node.isTopTerm = prevNode.isTopTerm;
-        node.categoryColor = prevNode.categoryColor;
-        node.isTrendingTopic = prevNode.isTrendingTopic;
-        node.category = prevNode.category;
-        node.categoryAuto = prevNode.categoryAuto;
+        // node.isTopTerm = prevNode.isTopTerm;
+        // node.categoryColor = prevNode.categoryColor;
+        // node.isTrendingTopic = prevNode.isTrendingTopic;
+        // node.category = prevNode.category;
+        // node.categoryAuto = prevNode.categoryAuto;
 
-        nodes[ageNodesIndex] = node;
+        // nodes[ageNodesIndex] = node;
 
         localNodeHashMap.set(node.nodeId, node);
 
@@ -830,9 +850,10 @@ function ViewTreepack() {
           nodesTopTermHashMap.remove(node.nodeId);
         }
       }
-    }
+    });
+    // }
 
-    if (ageNodesIndex < 0) {
+      nodeArray = localNodeHashMap.values();
 
       resumeTimeStamp = 0;
 
@@ -864,7 +885,7 @@ function ViewTreepack() {
         nodesTopTerm = nodesTopTermHashMap.values();
         callback(null, deadNodeFlag);
       });
-    }
+    // }
   };
 
   var previousTwitterUserId;
@@ -1025,7 +1046,7 @@ function ViewTreepack() {
 
     nodeTopTermLabels
       .exit()
-      .remove();
+      // .remove();
 
     nodeTopTermLabels
       .attr("x", xposition)
@@ -1069,8 +1090,10 @@ function ViewTreepack() {
   var nodeCircles;
   var updateNodeCircles = function(callback) {
 
+    // var nodeArray = localNodeHashMap.values();
+
     nodeCircles = nodeSvgGroup.selectAll("circle")
-      .data(nodes, function (d){ return d.nodeId; });
+      .data(nodeArray, function (d){ return d.nodeId; });
 
     nodeCircles
       .enter()
@@ -1151,6 +1174,29 @@ function ViewTreepack() {
         if (d.isDead) { return 1e-6; }
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
+      .style("fill", function (d) { 
+        if (!d.category && !d.categoryAuto) { return palette.black; }
+        return d.categoryColor; 
+      })
+      .style("stroke", function (d) {
+        if (d.categoryMismatch) { return palette.red; }
+        if (d.categoryMatch) { return categoryMatchColor; }
+        if (d.categoryAuto === "right") { return palette.yellow; }
+        if (d.categoryAuto === "left") { return palette.blue; }
+        if (d.categoryAuto === "positive") { return palette.green; }
+        if (d.categoryAuto ==="negative") { return palette.red; }
+        return palette.white; 
+      })
+      .style("stroke-width", function (d) { 
+        if (d.categoryMatch) { return categoryMatchStrokeWidth; }
+        if (d.isTopTerm) { return "3.0"; }
+        if (d.newFlag) { return "3.0"; }
+        if (d.categoryAuto === "right") { return categoryAutoStrokeWidth; }
+        if (d.categoryAuto === "left") { return categoryAutoStrokeWidth; }
+        if (d.categoryAuto === "positive") { return categoryAutoStrokeWidth; }
+        if (d.categoryAuto ==="negative") { return categoryAutoStrokeWidth; }
+        return "2.0"; 
+      })
       .on("click", nodeClick)
       .transition()
         .duration(transitionDuration)
@@ -1172,7 +1218,7 @@ function ViewTreepack() {
       .exit()
       .attr("r", 1e-6)
       .style("opacity", 1e-6)
-      .remove();
+      // .remove();
 
     callback();
   };
@@ -1180,8 +1226,10 @@ function ViewTreepack() {
   var nodeLabels;
   var updateNodeLabels = function(callback) {
 
+    // var nodeArray = localNodeHashMap.values();
+
     nodeLabels = nodeLabelSvgGroup.selectAll("text")
-      .data(nodes, function (d) { 
+      .data(nodeArray, function (d) { 
         return d.nodeId; 
       });
 
@@ -1472,6 +1520,7 @@ function ViewTreepack() {
         currentNode.displaytext = createDisplayText(currentNode);
 
         localNodeHashMap.set(currentNode.nodeId, currentNode);
+        nodeArray = localNodeHashMap.values();
 
         if (currentNode.isTopTerm) {
           nodesTopTermHashMap.set(currentNode.nodeId, currentNode);
@@ -1489,14 +1538,45 @@ function ViewTreepack() {
 
         var currentNode = nodePool.use();
 
-        currentNode = newNode;
+        // currentNode = newNode;
+
+        currentNode.isValid = true;
+
+        currentNode.nodeId = newNode.nodeId;
+        currentNode.userId = newNode.userId;
+        currentNode.hashtagId = newNode.hashtagId;
+        currentNode.nodeType = newNode.nodeType;
+        currentNode.screenName = newNode.screenName;
+        currentNode.name = newNode.name;
+        currentNode.rate = newNode.rate;
+        currentNode.text = newNode.text;
+
+        currentNode.category = newNode.category;
+        currentNode.categoryAuto = newNode.categoryAuto;
+        currentNode.isCategory = newNode.isCategory;
+        currentNode.categoryMatch = newNode.categoryMatch;
+        currentNode.categoryMismatch = newNode.categoryMismatch;
+        currentNode.categoryColor = newNode.categoryColor;
+
+        currentNode.mentions = newNode.mentions;
+        currentNode.statusesCount = newNode.statusesCount;
+        currentNode.friendsCount = newNode.friendsCount;
+        currentNode.followersCount = newNode.followersCount;
+        currentNode.followersMentions = newNode.followersMentions;
 
         currentNode.age = 1e-6;
-        currentNode.isDead = false;
         currentNode.ageMaxRatio = 1e-6;
         currentNode.ageUpdated = moment().valueOf();
+        currentNode.isDead = false;
+        currentNode.isMaxNode = false;
+        currentNode.isTopTerm = false;
+        currentNode.isTrendingTopic = false;
         currentNode.mouseHoverFlag = false;
+        currentNode.newFlag = true;
         currentNode.rank = -1;
+        currentNode.x = 0.5*width;
+        currentNode.y = 0.5*height;
+
         currentNode.displaytext = createDisplayText(currentNode);
 
         if (newNode.category || newNode.categoryAuto) {
@@ -1515,7 +1595,6 @@ function ViewTreepack() {
 
           currentNode.x = focus(category).x; 
           currentNode.y = focus(category).y;
-
         }
         else {
           currentNode.x = focus("neutral").x; 
@@ -1523,6 +1602,7 @@ function ViewTreepack() {
         }
 
         localNodeHashMap.set(currentNode.nodeId, currentNode);
+        nodeArray = localNodeHashMap.values();
 
         if (currentNode.isTopTerm) {
           nodesTopTermHashMap.set(currentNode.nodeId, currentNode);
@@ -1531,19 +1611,21 @@ function ViewTreepack() {
           nodesTopTermHashMap.remove(currentNode.nodeId);
         }
 
-        nodes.push(currentNode);
-
         nodeAddQReady = true;
 
         callback(null, nodesModifiedFlag);
       }
 
-      if (nodes.length > maxNumberNodes) {
-        maxNumberNodes = nodes.length;
+      if (localNodeHashMap.size > maxNumberNodes) {
+        maxNumberNodes = localNodeHashMap.size;
       }
+
     }
     else {
-      callback(null, nodesModifiedFlag);
+      if (localNodeHashMap.size > maxNumberNodes) {
+        maxNumberNodes = localNodeHashMap.size;
+      }
+     callback(null, nodesModifiedFlag);
     }
   };
 
@@ -1590,7 +1672,7 @@ function ViewTreepack() {
         ageNode: ageNodes
       },
       function updateSimulationCallback() {
-        simulation.nodes(nodes);
+        simulation.nodes(nodeArray);
       }
     );
   }
@@ -1720,7 +1802,7 @@ function ViewTreepack() {
 
   this.initD3timer = function() {
 
-    simulation = d3.forceSimulation(nodes)
+    simulation = d3.forceSimulation(nodeArray)
       .force("charge", d3.forceManyBody().strength(charge))
       .force("forceX", d3.forceX().x(function forceXfunc(d) { 
         if ((autoCategoryFlag && d.categoryAuto) || (!d.category && d.categoryAuto)){
@@ -1914,12 +1996,8 @@ function ViewTreepack() {
     deadNodesHash = {};
     mouseHoverFlag = false;
     localNodeHashMap.clear();
+    nodeArray = [];
     nodesTopTermHashMap.clear();
-    nodes.forEach(function(node){
-      resetNode(node);
-      nodePool.recycle(node);
-    })
-    nodes = [];
     self.toolTipVisibility(false);
     self.resize();
     self.resetDefaultForce();

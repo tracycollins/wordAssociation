@@ -59,6 +59,7 @@ var categoryTypes = ["left", "neutral", "right", "positive", "negative"];
 var debug = true;
 
 var twitterUserThreecee = {
+    nodeId : "14607119",
     userId : "14607119",
     profileImageUrl : "http://pbs.twimg.com/profile_images/780466729692659712/p6RcVjNK.jpg",
     profileUrl : "http://twitter.com/threecee",
@@ -2154,7 +2155,7 @@ socket.on("SET_TWITTER_USER", function(twitterUser) {
   }
 
   console.log("SET_TWITTER_USER" 
-    + " | " + twitterUser.userId 
+    + " | " + twitterUser.nodeId 
     + " | @" + twitterUser.screenName 
     + " | FLWRs: " + twitterUser.followersCount 
     + " | FRNDs: " + twitterUser.friendsCount 
@@ -2163,7 +2164,7 @@ socket.on("SET_TWITTER_USER", function(twitterUser) {
     + " | CA: " + twitterUser.categoryAuto
   );
 
-  if (twitterUser.userId === twitterUserThreecee.userId) {
+  if (twitterUser.nodeId === twitterUserThreecee.nodeId) {
     twitterUserThreecee = twitterUser;
     config.twitterUser = twitterUser;
   }

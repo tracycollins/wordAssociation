@@ -359,7 +359,7 @@ function ControlPanel() {
     const catNode = {
       nodeId: currentTwitterNode.nodeId,
       nodeType: currentTwitterNode.nodeType,
-      userId: currentTwitterNode.userId,
+      nodeId: currentTwitterNode.nodeId,
       screenName: currentTwitterNode.screenName,
       category: currentTwitterNode.category,
       categoryAuto: currentTwitterNode.categoryAuto,
@@ -604,7 +604,7 @@ function ControlPanel() {
       case "SET_TWITTER_USER":
         currentTwitterNode = event.data.user;
         console.debug("SET TWITTER USER" 
-          + " | " + currentTwitterNode.userId
+          + " | " + currentTwitterNode.nodeId
           + " | @" + currentTwitterNode.screenName
           + " | C: " + currentTwitterNode.category
           + " | CA: " + currentTwitterNode.categoryAuto

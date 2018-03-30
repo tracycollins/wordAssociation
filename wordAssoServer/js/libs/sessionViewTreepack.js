@@ -836,7 +836,7 @@ function ViewTreepack() {
         nodesTopTermHashMap.remove(node.nodeId);
 
         var c = document.getElementById(node.nodePooId);
-        c.attr("r", 1e-6);
+        c.setAttribute("r", 1e-6);
         nodePool.recycle(node);
         // nodes.splice(ageNodesIndex, 1);
        } 

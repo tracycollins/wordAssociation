@@ -1575,7 +1575,7 @@ function categorizeNode(categorizeObj, callback) {
 
             slackPostMessage(slackChannel, text);
 
-            debug(chalkLog(">UPDATER UPDATE_CATEGORY HASHTAG | #" + updatedHashtag.text ));
+            debug(chalkLog(">UPDATER UPDATE_CATEGORY HASHTAG | #" + updatedHashtag.nodeId ));
             if (callback !== undefined) {
               callback(null, updatedHashtag);
             }
@@ -1831,7 +1831,7 @@ function initSocketHandler(socketObj) {
         else if (hashtag) { 
           console.log(chalkTwitter("TWITTER_SEARCH_NODE HASHTAG FOUND\n" + jsonPrint(hashtag)));
           socket.emit("SET_TWITTER_HASHTAG", hashtag);
-          if (hashtag.category) { categoryHashMap.set(hashtag.text.toLowerCase(), hashtag.category); }
+          if (hashtag.category) { categoryHashMap.set(hashtag.nodeId.toLowerCase(), hashtag.category); }
         }
         else {
           console.log(chalkTwitter("TWITTER_SEARCH_NODE HASHTAG NOT FOUND: " + searchNodeHashtag));
@@ -1928,7 +1928,7 @@ function initSocketHandler(socketObj) {
       console.log(chalkSocket("TWITTER_CATEGORIZE_NODE"
         + " | " + getTimeStamp()
         + " | SID: " + socket.id
-        + " | #" + dataObj.node.text
+        + " | #" + dataObj.node.nodeId
         + " | CAT: " + dataObj.category
       ));
     }
@@ -2206,7 +2206,7 @@ function checkCategory(nodeObj, callback) {
         nodeObj.category = categoryHashMap.get(nodeObj.nodeId);
 
         debugCategory(chalkAlert("KW HIT HASHTAG NODEID"
-          + " | " + nodeObj.nodeId
+          + " | #" + nodeObj.nodeId
           + " | CAT: " + nodeObj.category
           + " | CATA: " + nodeObj.categoryAuto
         ));
@@ -3282,17 +3282,17 @@ function initHashtagLookupQueueInterval(interval){
           console.log(chalkError("HASHTAG FIND ONE ERROR\n" + jsonPrint(err)));
         }
         else if (hashtag) { 
-          if (hashtag.category) { categoryHashMap.set(hashtag.text.toLowerCase(), hashtag.category); }
+          if (hashtag.category) { categoryHashMap.set(hashtag.nodeId.toLowerCase(), hashtag.category); }
           debug(chalkTwitter("+++ HT HIT "
             + " | C: " + printCat(hashtag.category)
-            + " | #" + hashtag.text.toLowerCase()
+            + " | #" + hashtag.nodeId.toLowerCase()
           ));
         }
         else {
           // debug(chalkTwitter("HASHTAG NOT FOUND: " + htObj.text));
           debug(chalkTwitter("--- HT MISS"
             + " | C: " + printCat(htObj.category)
-            + " | #" + htObj.text.toLowerCase()
+            + " | #" + htObj.nodeId.toLowerCase()
           ));
         }
         hashtagLookupQueueReady = true;

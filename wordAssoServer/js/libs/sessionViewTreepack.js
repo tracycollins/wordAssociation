@@ -93,7 +93,7 @@ function ViewTreepack() {
   var maxRateMentionsLeftMargin = 2; // %
   var hashtagTopMargin = 7; // %
   var hashtagLeftMargin = 2; // %
-  var mentionsNumChars = 10;
+  var mentionsNumChars = 12;
   var rateNumChars = 8;
 
   var maxHashtagRows = 100;
@@ -1404,15 +1404,15 @@ function ViewTreepack() {
 
     var mntns = "1" ;
 
-    if (node.nodeType === "user"){
-      mntns = node.followersMentions.toString();
-     }
-    else {
-      mntns = node.mentions.toString() ;
-    }
+    // if (node.nodeType === "user"){
+      mntns = parseInt(node.mentions);
+     // }
+    // else {
+    //   mntns = parseInt(node.mentions);
+    // }
 
     var rate = node.rate.toFixed(2).toString() ;
-    var mentionPadSpaces = mentionsNumChars - mntns.length;
+    var mentionPadSpaces = mentionsNumChars - mntns.toString().length;
     var ratePadSpaces = rateNumChars - rate.length;
     var displaytext = "";
 

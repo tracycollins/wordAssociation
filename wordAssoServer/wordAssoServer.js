@@ -41,6 +41,7 @@ const OFFLINE_MODE = false;
 const passport = require("passport");
 
 let twitterUserThreecee = {
+    nodeId : "14607119",
     userId : "14607119",
     profileImageUrl : "http://pbs.twimg.com/profile_images/780466729692659712/p6RcVjNK.jpg",
     profileUrl : "http://twitter.com/threecee",
@@ -459,7 +460,7 @@ function printUser(params) {
     return jsonPrint(params.user);
   } 
   else {
-    text = params.user.userId 
+    text = params.user.nodeId 
       + " | @" + params.user.screenName 
       + " | N: " + params.user.name 
       + " | FLWg: " + params.user.following 
@@ -538,10 +539,10 @@ const authInProgressCache = new NodeCache({
   checkperiod: authInProgressCacheCheckPeriod
 });
 
-function authenticatedUserCacheExpired(userId, userObj) {
+function authenticatedUserCacheExpired(nodeId, userObj) {
 
   console.log(chalkLog("XXX $ AUTH USER"
-    + " | " + userId
+    + " | " + nodeId
     + " | @" + userObj.screenName
   ));
 }
@@ -1446,13 +1447,13 @@ function initUpdaterPingInterval(interval){
 
 function categorizeNode(categorizeObj, callback) {
 
-  if (categorizeObj.twitterUser && categorizeObj.twitterUser.userId) {
+  if (categorizeObj.twitterUser && categorizeObj.twitterUser.nodeId) {
 
-    let user = authenticatedUserCache.get(categorizeObj.twitterUser.userId);
+    let user = authenticatedUserCache.get(categorizeObj.twitterUser.nodeId);
 
     if (!user 
-      && (categorizeObj.twitterUser.userId !== "14607119") 
-      && (categorizeObj.twitterUser.userId !== "848591649575927810")) 
+      && (categorizeObj.twitterUser.nodeId !== "14607119") 
+      && (categorizeObj.twitterUser.nodeId !== "848591649575927810")) 
     {
       console.log(chalkAlert("*** AUTH USER NOT IN CACHE\n" + jsonPrint(categorizeObj.twitterUser)));
 
@@ -1471,7 +1472,7 @@ function categorizeNode(categorizeObj, callback) {
     case "user":
 
       debug(chalkSocket("categorizeNode USER"
-        + " | " + categorizeObj.node.userId
+        + " | " + categorizeObj.node.nodeId
         + " | " + categorizeObj.node.screenName
         + " | " + categorizeObj.category
       ));
@@ -1496,7 +1497,7 @@ function categorizeNode(categorizeObj, callback) {
             updater.send({
               op: "UPDATE_CATEGORY",
               nodeType: "user",
-              nodeId: updatedUser.userId,
+              nodeId: updatedUser.nodeId,
               screenName: updatedUser.screenName.toLowerCase(),
               category: categorizeObj.category
             }, function updaterPingError(err){
@@ -1735,7 +1736,7 @@ function initSocketHandler(socketObj) {
     if (tmsServers[socket.id] !== undefined) { 
       console.error(chalkSession("XXX DELETED TMS SERVER" 
         + " | " + moment().format(compactDateTimeFormat)
-        + " | " + tmsServers[socket.id].user.userId
+        + " | " + tmsServers[socket.id].user.nodeId
         + " | " + socket.id
       ));
       delete tmsServers[socket.id];
@@ -1743,7 +1744,7 @@ function initSocketHandler(socketObj) {
     if (tssServers[socket.id] !== undefined) { 
       console.error(chalkSession("XXX DELETED TSS SERVER" 
         + " | " + moment().format(compactDateTimeFormat)
-        + " | " + tssServers[socket.id].user.userId
+        + " | " + tssServers[socket.id].user.nodeId
         + " | " + socket.id
       ));
       delete tssServers[socket.id];
@@ -1753,36 +1754,36 @@ function initSocketHandler(socketObj) {
 
   socket.on("SESSION_KEEPALIVE", function sessionKeepalive(userObj) {
 
-    if (statsObj.utilities[userObj.userId] === undefined) {
-      statsObj.utilities[userObj.userId] = {};
+    if (statsObj.utilities[userObj.nodeId] === undefined) {
+      statsObj.utilities[userObj.nodeId] = {};
     }
 
     statsObj.socket.keepalives += 1;
 
-    if (userObj.stats) {statsObj.utilities[userObj.userId] = userObj.stats;}
+    if (userObj.stats) {statsObj.utilities[userObj.nodeId] = userObj.stats;}
 
-    if (userObj.userId.match(/LA_/g)){
+    if (userObj.nodeId.match(/LA_/g)){
       userObj.isServer = true;
 
       languageServer.connected = true;
       languageServer.user = userObj;
 
       debug(chalkSession("K-LA" 
-        + " | " + userObj.userId
+        + " | " + userObj.nodeId
         + " | " + socket.id
         + " | " + moment().format(compactDateTimeFormat)
         // + "\n" + jsonPrint(userObj)
       ));
     }
  
-    if (userObj.userId.match(/TMS_/g)){
+    if (userObj.nodeId.match(/TMS_/g)){
       userObj.isServer = true;
 
       if (tmsServers[socket.id] === undefined) { 
         tmsServers[socket.id] = {};
         console.error(chalkSession("+++ ADDED TMS SERVER" 
           + " | " + moment().format(compactDateTimeFormat)
-          + " | " + userObj.userId
+          + " | " + userObj.nodeId
           + " | " + socket.id
         ));
       }
@@ -1791,14 +1792,14 @@ function initSocketHandler(socketObj) {
       tmsServers[socket.id].user = userObj;
     }
  
-    if (userObj.userId.match(/TSS_/g)){
+    if (userObj.nodeId.match(/TSS_/g)){
       userObj.isServer = true;
 
       if (tssServers[socket.id] === undefined) {
         tssServers[socket.id] = {};
         console.error(chalkSession("+++ ADDED TSS SERVER" 
           + " | " + moment().format(compactDateTimeFormat)
-          + " | " + userObj.userId
+          + " | " + userObj.nodeId
           + " | " + socket.id
         ));
       }
@@ -1865,7 +1866,7 @@ function initSocketHandler(socketObj) {
             + " | " + printUser({user:user})
           ));
           
-          twit.get("users/show", {user_id: user.userId, include_entities: true}, function usersShow (err, rawUser, response){
+          twit.get("users/show", {user_id: user.nodeId, include_entities: true}, function usersShow (err, rawUser, response){
             if (err) {
               console.log(chalkError("ERROR users/show rawUser" + err));
               socket.emit("SET_TWITTER_USER", user);
@@ -1905,7 +1906,7 @@ function initSocketHandler(socketObj) {
         }
         else {
           console.log(chalkTwitter("--- TWITTER_SEARCH_NODE USER *NOT* FOUND\n" + jsonPrint(searchNodeUser)));
-          socket.emit("SET_TWITTER_USER", {notFound: 1, userId: 0, screenName: searchNodeUser.screenName});
+          socket.emit("SET_TWITTER_USER", {notFound: 1, nodeId: 0, screenName: searchNodeUser.screenName});
         }
     
       });
@@ -1980,7 +1981,7 @@ function initSocketHandler(socketObj) {
 
       socket.emit("VIEWER_READY_ACK", 
         {
-          userId: viewerObj.viewerId,
+          nodeId: viewerObj.viewerId,
           timeStamp: moment().valueOf(),
           viewerSessionKey: moment().valueOf()
         }
@@ -1999,7 +2000,7 @@ function initSocketHandler(socketObj) {
       + " | SID: " + socket.id
       + "\n" + jsonPrint(viewerObj)
     ));
-    authInProgressCache.set(viewerObj.userId, viewerObj);
+    authInProgressCache.set(viewerObj.nodeId, viewerObj);
   });
 }
 
@@ -2070,129 +2071,6 @@ function checkCategory(nodeObj, callback) {
 
     case "user":
 
-      // if (!nodeObj.name && !nodeObj.screenName) {
-      //   console.log(chalkError("*** ERROR: checkCategory: NODE NAME & SCREEN NAME UNDEFINED?"
-      //     + "\n" + jsonPrint(nodeObj)));
-      //   return(callback(nodeObj));
-      // }
-
-      // if ((nodeObj.screenName !== undefined) 
-      //   && (nodeObj.screenName) 
-      //   && categoryAutoHashMap.has(nodeObj.screenName.toLowerCase())) {
-      //   nodeObj.categoryAuto = categoryAutoHashMap.get(nodeObj.screenName.toLowerCase());
-      //   debug(chalkAlert("CA HIT USER SNAME"
-      //     + " | CA: " + printCat(nodeObj.categoryAuto)
-      //     + " | @" + printCat(nodeObj.screenName)
-      //   ));
-      // }
-      // else if ((nodeObj.name !== undefined) 
-      //   && (nodeObj.name) 
-      //   && categoryAutoHashMap.has(nodeObj.name.toLowerCase())) {
-      //   nodeObj.categoryAuto = categoryAutoHashMap.get(nodeObj.name.toLowerCase());
-      //   debug(chalkAlert("CA HIT USER NAME"
-      //     + " | CA: " + printCat(nodeObj.categoryAuto)
-      //     + " | @" + printCat(nodeObj.name)
-      //   ));
-      // }
-      // else if (categoryAutoHashMap.has(nodeObj.userId)) {
-      //   nodeObj.categoryAuto = categoryAutoHashMap.get(nodeObj.userId.toLowerCase());
-      //   debug(chalkAlert("CA HIT USER ID"
-      //     + " | CA: " + printCat(nodeObj.categoryAuto)
-      //     + " | UID: " + nodeObj.userId
-      //     + " | @" + nodeObj.screenName
-      //   ));
-      // }
-
-      // if ((nodeObj.screenName !== undefined) 
-      //   && (nodeObj.screenName) 
-      //   && categoryHashMap.has(nodeObj.screenName.toLowerCase())) {
-
-      //   nodeObj.category = categoryHashMap.get(nodeObj.screenName.toLowerCase());
-      //   nodeObj.isTwitterUser = true;
-
-      //   wordsPerMinuteTopTermCache.get(nodeObj.screenName.toLowerCase(), 
-      //     function topTermScreenName(err, rate) {
-
-      //     debugCategory(chalkAlert("KW HIT USER SNAME"
-      //       + " | " + nodeObj.userId
-      //       + " | @" + nodeObj.screenName
-      //       + " | C: " + nodeObj.category
-      //       + " | CA: " + nodeObj.categoryAuto
-      //       + "\n" + jsonPrint(categoryHashMap.get(nodeObj.screenName.toLowerCase()))
-      //     ));
-
-      //     if (err){
-      //       console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
-      //     }
-      //     if (rate !== undefined) {
-      //       debugCategory(chalkLog("TOP TERM USER SNAME"
-      //         + " | @" + nodeObj.screenName
-      //         + " | RATE: " + rate.toFixed(2)
-      //         + " | NODE RATE: " + nodeObj.rate.toFixed(2)
-      //       ));
-      //       nodeObj.isTopTerm = true;
-      //     }
-      //     else {
-      //       nodeObj.isTopTerm = false;
-      //     }
-      //     callback(nodeObj);
-      //   });
-      // }
-      // else if ((nodeObj.name !== undefined) 
-      //   && (nodeObj.name) 
-      //   && categoryHashMap.has(nodeObj.name.toLowerCase())) {
-
-      //   nodeObj.category = categoryHashMap.get(nodeObj.name.toLowerCase());
-      //   nodeObj.isTwitterUser = true;
-
-      //   debugCategory(chalkAlert("KW HIT USER NAME"
-      //     + " | " + nodeObj.name
-      //     + " | CAT: " + nodeObj.category
-      //     + " | CATA: " + nodeObj.categoryAuto
-      //   ));
-
-      //   wordsPerMinuteTopTermCache.get(nodeObj.name.toLowerCase(), 
-      //     function topTermName(err, name) {
-      //     if (err){
-      //       console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
-      //     }
-      //     if (name !== undefined) {
-      //       debugCategory(chalkLog("TOP TERM USER NAME: " + name));
-      //       nodeObj.isTopTerm = true;
-      //     }
-      //     else {
-      //       nodeObj.isTopTerm = false;
-      //     }
-      //     callback(nodeObj);
-      //   });
-      // }
-      // // will probably never be true
-      // else if (categoryHashMap.has(nodeObj.userId)) {
-
-      //   nodeObj.category = categoryHashMap.get(nodeObj.userId);
-      //   nodeObj.isTwitterUser = true;
-
-      //   debugCategory(chalkAlert("KW HIT USER ID"
-      //     + " | " + nodeObj.userId
-      //     + " | CAT: " + nodeObj.category
-      //     + " | CATA: " + nodeObj.categoryAuto
-      //   ));
-
-      //   wordsPerMinuteTopTermCache.get(nodeObj.userId,
-      //     function topTermUserId(err, userId) {
-      //     if (err){
-      //       console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
-      //     }
-      //     if (userId !== undefined) {
-      //       debugCategory(chalkLog("TOP TERM USER USERID: " + userId));
-      //       nodeObj.isTopTerm = true;
-      //     }
-      //     else {
-      //       nodeObj.isTopTerm = false;
-      //     }
-      //     callback(nodeObj);
-      //   });
-      // }
       if (categoryHashMap.has(nodeObj.nodeId)) {
 
         nodeObj.category = categoryHashMap.get(nodeObj.nodeId);
@@ -2410,6 +2288,11 @@ function updateNodeMeter(nodeObj, callback){
     return;
   }
 
+  if (nodeObj.nodeId === undefined) {
+    console.log(chalkError("NODE ID UNDEFINED\n" + jsonPrint(nodeObj)));
+    callback("NODE ID UNDEFINED", nodeObj);
+  }
+
   let meterNodeId;
 
   meterNodeId = nodeObj.nodeId;
@@ -2472,6 +2355,15 @@ let transmitNodeQueueReady = true;
 let transmitNodeQueueInterval;
 let transmitNodeQueue = [];
 
+let twitUserShowReady = true;
+
+function startTwitUserShowRateLimitTimeout(){
+  setTimeout(function(){
+    console.log(chalkAlert("TWITTER USER SHOW TIMEOUT"));
+    twitUserShowReady = true;
+  }, 60000);
+}
+
 function initTransmitNodeQueueInterval(interval){
 
   console.log(chalkLog("INIT TRANSMIT NODE QUEUE INTERVAL: " + interval + " MS"));
@@ -2519,9 +2411,13 @@ function initTransmitNodeQueueInterval(interval){
 
               viewNameSpace.volatile.emit("node", n);
 
-              if ((n.nodeType === "user") && n.following && (n.followersCount === 0)){
-                twit.get("users/show", {user_id: n.userId, include_entities: true}, function usersShow (err, rawUser, response){
+              if (twitUserShowReady && (n.nodeType === "user") && n.following && (n.followersCount === 0)){
+
+                twit.get("users/show", {user_id: n.nodeId, include_entities: true}, function usersShow (err, rawUser, response){
+
                   if (err) {
+                    twitUserShowReady = false;
+                    startTwitUserShowRateLimitTimeout();
                     console.log(chalkError("ERROR users/show rawUser" + err));
                   }
                   else if (rawUser) {
@@ -2563,7 +2459,7 @@ function initTransmitNodeQueueInterval(interval){
               }
 
             }
-            
+
           });
         });
       }
@@ -3000,9 +2896,9 @@ function initAppRouting(callback) {
   });
 
   // serialize and deserialize
-  passport.serializeUser(function(userId, done) {
-    debug(chalkAlert("SERIALIZE USER: " + userId));
-    done(null, userId);
+  passport.serializeUser(function(nodeId, done) {
+    debug(chalkAlert("SERIALIZE USER: " + nodeId));
+    done(null, nodeId);
   });
 
   passport.deserializeUser(function(userObj, done) {
@@ -3091,7 +2987,7 @@ function initAppRouting(callback) {
     console.log(chalkError("PASSPORT TWITTER AUTH USER"
       // + " | SID: " + util.inspect(req, {showHidden:false, depth:1})
       + " | @" + req.session.passport.user.screenName
-      + " | UID" + req.session.passport.user.userId
+      + " | UID" + req.session.passport.user.nodeId
     ));  // handle errors
 
     slackPostMessage(slackChannel, "PASSPORT TWITTER AUTH USER: @" + req.session.passport.user.screenName);
@@ -3104,7 +3000,7 @@ function initAppRouting(callback) {
       else {
         console.log(chalkAlert("TWITTER USER AUTHENTICATED: @" + user.screenName));  // handle errors
         slackPostMessage(slackChannel, "USER AUTH: @" + user.screenName);
-        authenticatedUserCache.set(user.userId, user);
+        authenticatedUserCache.set(user.nodeId, user);
         res.redirect("/after-auth.html");
 
       }
@@ -3859,47 +3755,6 @@ function initRateQinterval(interval){
         }
 
       });
-
-      // if (GOOGLE_METRICS_ENABLED) {
-
-      //   queueNames = Object.keys(statsObj.queues);
-
-      //   let queueDataPoint = {};
-
-      //   queueNames.forEach(function metricsQueues(queueName){
-      //     queueDataPoint.metricType = "word/queues/" + queueName;
-      //     queueDataPoint.value = statsObj.queues[queueName];
-      //     queueDataPoint.metricLabels = {server_id: "QUEUE"};
-      //     addMetricDataPoint(queueDataPoint);
-      //   }); 
-
-      //   dataPointWpm.value = statsObj.wordsPerMin;
-      //   addMetricDataPoint(dataPointWpm);
-
-      //   dataPointUtils.value = Object.keys(utilNameSpace.connected).length;
-      //   addMetricDataPoint(dataPointUtils);
-
-      //   if (currentTssServer.connected) {
-      //     dataPointTssTpm.value = statsObj.utilities[currentTssServer.user.userId].tweetsPerMinute;
-      //     addMetricDataPoint(dataPointTssTpm);
-
-      //     dataPointTssTpm2.value = statsObj.utilities[currentTssServer.user.userId].twitterLimit;
-      //     addMetricDataPoint(dataPointTssTpm2);
-      //   }
-
-      //   if (tmsServer.connected) {
-      //     dataPointTmsTpm.value = statsObj.utilities[tmsServer.user.userId].tweetsPerMinute;
-      //     addMetricDataPoint(dataPointTmsTpm);
-          
-      //     if (statsObj.utilities[tmsServer.user.userId].twitterLimit) {
-      //       let dataPointTmsTpm2 = {};
-      //       dataPointTmsTpm2.metricType = "twitter/tweet_limit";
-      //       dataPointTmsTpm2.value = statsObj.utilities[tmsServer.user.userId].twitterLimit;
-      //       dataPointTmsTpm2.metricLabels = {server_id: "TMS"};
-      //       addMetricDataPoint(dataPointTmsTpm2);
-      //     }
-      //   }
-      // }
     }
 
   }, interval);

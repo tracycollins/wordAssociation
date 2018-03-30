@@ -835,7 +835,8 @@ function ViewTreepack() {
         localNodeHashMap.remove(node.nodeId);
         nodesTopTermHashMap.remove(node.nodeId);
 
-        // resetNode(node);
+        var c = document.getElementById(nodePooId);
+        c.attr("r", 1e-6);
         nodePool.recycle(node);
         // nodes.splice(ageNodesIndex, 1);
        } 
@@ -1091,19 +1092,14 @@ function ViewTreepack() {
   var nodeCircles;
   var updateNodeCircles = function(callback) {
 
-    // var nodeArray = localNodeHashMap.values();
-
     nodeCircles = nodeSvgGroup.selectAll("circle")
       .data(nodeArray, function (d){ return d.nodeId; });
 
     nodeCircles
       .enter()
       .append("circle")
-      // .append(function(){
-      //   var newCircle = document.createElement("circle");
-      //   return newCircle;
-      // })
       .attr("nodeId", function (d) { return d.nodeId; })
+      .attr("nodePooId", function (d) { return d.nodePooId; })
       .style("visibility", function (d) {
         if (d.isDead) { return "hidden"; }
         return "visible";
@@ -1145,22 +1141,6 @@ function ViewTreepack() {
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)
       .on("click", nodeClick);
-      // .transition()
-      //   .duration(transitionDuration)
-      //   .attr("r", function (d) {
-      //     if (!d.isValid) { return 1e-6; }
-      //     if (d.isDead) { return 1e-6; }
-      //     if (d.isIgnored) {
-      //       return defaultRadiusScale(Math.sqrt(0.1));
-      //     }
-      //     if (metricMode === "rate") { return defaultRadiusScale(Math.sqrt(d.rate));}
-      //     if (metricMode === "mentions") { 
-      //       if (d.nodeType === "user") { 
-      //         return defaultRadiusScale(Math.sqrt(d.followersMentions)); 
-      //       }
-      //       return defaultRadiusScale(Math.sqrt(d.mentions));
-      //     }
-      //   });
 
     nodeCircles
       .attr("cx", function(d) { 
@@ -1220,7 +1200,6 @@ function ViewTreepack() {
       .exit()
       .attr("r", 1e-6)
       .style("opacity", 1e-6)
-      // .remove();
 
     callback();
   };

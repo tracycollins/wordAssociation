@@ -2061,6 +2061,8 @@ function checkCategory(nodeObj, callback) {
     + " | CATA: " + nodeObj.categoryAuto
   ));
 
+  nodeObj.categoryAuto = categoryAutoHashMap.get(nodeObj.nodeId);
+
   switch (nodeObj.nodeType) {
 
     case "tweet":
@@ -2100,6 +2102,7 @@ function checkCategory(nodeObj, callback) {
       else {
         callback(nodeObj);
       }
+      
     break;
 
     case "hashtag":

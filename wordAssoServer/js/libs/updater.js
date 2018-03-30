@@ -441,7 +441,7 @@ const categoryUpdate = function(cObj, callback) {
 
       nodeObj = new User();
       nodeObj.nodeId = cObj.nodeId;
-      nodeObj.userId = cObj.userId || cObj.nodeId;
+      nodeObj.userId = cObj.nodeId;
       nodeObj.screenName = cObj.screenName.toLowerCase();
       nodeObj.display = "@" + cObj.screenName;
       nodeObj.isCategory = true;
@@ -473,8 +473,8 @@ const categoryUpdate = function(cObj, callback) {
     else if (cObj.nodeType === "hashtag") {
 
       nodeObj = new Hashtag();
-      nodeObj.nodeId = cObj.nodeId;
-      nodeObj.text = cObj.nodeId.toLowerCase();
+      nodeObj.nodeId = cObj.nodeId.toLowerCase();
+      nodeObj.text = cObj.nodeId;
       nodeObj.display = "#" + cObj.nodeId;
       nodeObj.isCategory = true;
       nodeObj.category = cObj.category;
@@ -654,7 +654,6 @@ const updateCategory = function(folder, file, callback){
     }
 
   });
-
 };
 
 const initCategoryUpdateInterval = function(options){
@@ -718,7 +717,7 @@ process.on("message", function(m) {
         interval: m.interval
       };
 
-      initCategoryUpdateInterval(options);
+      // initCategoryUpdateInterval(options);
     break;
 
     case "UPDATE":

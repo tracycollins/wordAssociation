@@ -633,7 +633,7 @@ function wordCacheExpired(word, wordRate) {
   debugCache(chalkInfo("XXX $ WPM TOPTERM | " + wordRate.toFixed(3) + " | " + word));
 }
 
-wordsPerMinuteTopTermCache.on("expired", wordCacheExpired);
+// wordsPerMinuteTopTermCache.on("expired", wordCacheExpired);
 
 let updateMetricsInterval;
 
@@ -2395,46 +2395,24 @@ function initUpdateTrendsInterval(interval){
 
 function updateNodeMeter(nodeObj, callback){
 
+  // if (!configuration.metrics.wordMeterEnabled
+  //   || (nodeObj.nodeType === "media") 
+  //   || (nodeObj.nodeType === "url")
+  //   || (nodeObj.nodeType === "keepalive")
+  //   ) {
+  //   callback(null, nodeObj);
+  //   return;
+  // }
+
   if (!configuration.metrics.wordMeterEnabled
-    || (nodeObj.nodeType === "media") 
-    || (nodeObj.nodeType === "url")
-    || (nodeObj.nodeType === "keepalive")
-    ) {
+    || ((nodeObj.nodeType !== "user") && (nodeObj.nodeType !== "hashtag") && (nodeObj.nodeType !== "place"))) {
     callback(null, nodeObj);
     return;
   }
 
   let meterNodeId;
 
-  if (nodeObj.isTwitterUser || (nodeObj.nodeType === "user")) {
-
-    meterNodeId = nodeObj.nodeId;
-
-    // if (nodeObj.screenName !== undefined) {
-    //   meterNodeId = nodeObj.screenName.toLowerCase();
-    // }
-    // else if (nodeObj.name !== undefined) {
-    //   meterNodeId = nodeObj.name.toLowerCase();
-    // }
-    // else {
-    //   debug(chalkWarn("updateNodeMeter WARN: TWITTER USER UNDEFINED NAME & SCREEN NAME"
-    //     + " | USING NODEID: " + nodeObj.nodeId
-    //     // + "\n" + jsonPrint(nodeObj)
-    //   ));
-
-    //   meterNodeId = nodeObj.nodeId;
-    //  }
-  }
-  else if (nodeObj.nodeType === "hashtag") {
-    debug("hashtag\n" + jsonPrint(nodeObj));
-    meterNodeId = nodeObj.nodeId.toLowerCase();
-  }
-  else if (nodeObj.nodeType === "place") {
-    meterNodeId = nodeObj.name.toLowerCase();
-  }
-  else {
-    meterNodeId = nodeObj.nodeId.toLowerCase();
-  }
+  meterNodeId = nodeObj.nodeId;
 
   if (ignoreWordHashMap.has(meterNodeId)) {
 
@@ -3830,49 +3808,49 @@ function initRateQinterval(interval){
   }
   let queueNames;
 
-  let memoryRssDataPoint = {};
-  memoryRssDataPoint.metricType = "memory/rss";
-  memoryRssDataPoint.metricLabels = {server_id: "MEM"};
+  // let memoryRssDataPoint = {};
+  // memoryRssDataPoint.metricType = "memory/rss";
+  // memoryRssDataPoint.metricLabels = {server_id: "MEM"};
 
-  let dataPointTssTpm = {};
-  dataPointTssTpm.metricType = "twitter/tweets_per_minute";
-  dataPointTssTpm.metricLabels = {server_id: "TSS"};
+  // let dataPointTssTpm = {};
+  // dataPointTssTpm.metricType = "twitter/tweets_per_minute";
+  // dataPointTssTpm.metricLabels = {server_id: "TSS"};
 
-  let dataPointTssTpm2 = {};
-  dataPointTssTpm2.metricType = "twitter/tweet_limit";
-  dataPointTssTpm2.metricLabels = {server_id: "TSS"};
+  // let dataPointTssTpm2 = {};
+  // dataPointTssTpm2.metricType = "twitter/tweet_limit";
+  // dataPointTssTpm2.metricLabels = {server_id: "TSS"};
 
-  let dataPointTmsTpm = {};
-  dataPointTmsTpm.metricType = "twitter/tweets_per_minute";
-  dataPointTmsTpm.metricLabels = {server_id: "TMS"};
+  // let dataPointTmsTpm = {};
+  // dataPointTmsTpm.metricType = "twitter/tweets_per_minute";
+  // dataPointTmsTpm.metricLabels = {server_id: "TMS"};
 
-  let dataPointWpm = {};
-  dataPointWpm.metricType = "word/words_per_minute";
-  dataPointWpm.metricLabels = {server_id: "WORD"};
+  // let dataPointWpm = {};
+  // dataPointWpm.metricType = "word/words_per_minute";
+  // dataPointWpm.metricLabels = {server_id: "WORD"};
 
-  let dataPointOpm = {};
-  dataPointOpm.metricType = "word/obama_per_minute";
-  dataPointOpm.metricLabels = {server_id: "WORD"};
+  // let dataPointOpm = {};
+  // dataPointOpm.metricType = "word/obama_per_minute";
+  // dataPointOpm.metricLabels = {server_id: "WORD"};
   
-  let dataPointOTrpm = {};
-  dataPointOTrpm.metricType = "word/trump_per_minute";
-  dataPointOTrpm.metricLabels = {server_id: "WORD"};
+  // let dataPointOTrpm = {};
+  // dataPointOTrpm.metricType = "word/trump_per_minute";
+  // dataPointOTrpm.metricLabels = {server_id: "WORD"};
 
-  let dataPointUtils = {};
-  dataPointUtils.metricType = "util/global/number_of_utils";
-  dataPointUtils.metricLabels = {server_id: "UTIL"};
+  // let dataPointUtils = {};
+  // dataPointUtils.metricType = "util/global/number_of_utils";
+  // dataPointUtils.metricLabels = {server_id: "UTIL"};
 
-  let dataPointViewers = {};
-  dataPointViewers.metricType = "user/global/number_of_viewers";
-  dataPointViewers.metricLabels = {server_id: "USER"};
+  // let dataPointViewers = {};
+  // dataPointViewers.metricType = "user/global/number_of_viewers";
+  // dataPointViewers.metricLabels = {server_id: "USER"};
 
-  let dataPointUsers = {};
-  dataPointUsers.metricType = "user/global/number_of_users";
-  dataPointUsers.metricLabels = {server_id: "USER"};
+  // let dataPointUsers = {};
+  // dataPointUsers.metricType = "user/global/number_of_users";
+  // dataPointUsers.metricLabels = {server_id: "USER"};
 
-  let dataPointNodeCache = {};
-  dataPointNodeCache.metricType = "cache/node/keys";
-  dataPointNodeCache.metricLabels = {server_id: "CACHE"};
+  // let dataPointNodeCache = {};
+  // dataPointNodeCache.metricType = "cache/node/keys";
+  // dataPointNodeCache.metricLabels = {server_id: "CACHE"};
 
   let updateTimeSeriesCount = 0;
   let paramsSorter = {};
@@ -3924,46 +3902,46 @@ function initRateQinterval(interval){
 
       });
 
-      if (GOOGLE_METRICS_ENABLED) {
+      // if (GOOGLE_METRICS_ENABLED) {
 
-        queueNames = Object.keys(statsObj.queues);
+      //   queueNames = Object.keys(statsObj.queues);
 
-        let queueDataPoint = {};
+      //   let queueDataPoint = {};
 
-        queueNames.forEach(function metricsQueues(queueName){
-          queueDataPoint.metricType = "word/queues/" + queueName;
-          queueDataPoint.value = statsObj.queues[queueName];
-          queueDataPoint.metricLabels = {server_id: "QUEUE"};
-          addMetricDataPoint(queueDataPoint);
-        }); 
+      //   queueNames.forEach(function metricsQueues(queueName){
+      //     queueDataPoint.metricType = "word/queues/" + queueName;
+      //     queueDataPoint.value = statsObj.queues[queueName];
+      //     queueDataPoint.metricLabels = {server_id: "QUEUE"};
+      //     addMetricDataPoint(queueDataPoint);
+      //   }); 
 
-        dataPointWpm.value = statsObj.wordsPerMin;
-        addMetricDataPoint(dataPointWpm);
+      //   dataPointWpm.value = statsObj.wordsPerMin;
+      //   addMetricDataPoint(dataPointWpm);
 
-        dataPointUtils.value = Object.keys(utilNameSpace.connected).length;
-        addMetricDataPoint(dataPointUtils);
+      //   dataPointUtils.value = Object.keys(utilNameSpace.connected).length;
+      //   addMetricDataPoint(dataPointUtils);
 
-        if (currentTssServer.connected) {
-          dataPointTssTpm.value = statsObj.utilities[currentTssServer.user.userId].tweetsPerMinute;
-          addMetricDataPoint(dataPointTssTpm);
+      //   if (currentTssServer.connected) {
+      //     dataPointTssTpm.value = statsObj.utilities[currentTssServer.user.userId].tweetsPerMinute;
+      //     addMetricDataPoint(dataPointTssTpm);
 
-          dataPointTssTpm2.value = statsObj.utilities[currentTssServer.user.userId].twitterLimit;
-          addMetricDataPoint(dataPointTssTpm2);
-        }
+      //     dataPointTssTpm2.value = statsObj.utilities[currentTssServer.user.userId].twitterLimit;
+      //     addMetricDataPoint(dataPointTssTpm2);
+      //   }
 
-        if (tmsServer.connected) {
-          dataPointTmsTpm.value = statsObj.utilities[tmsServer.user.userId].tweetsPerMinute;
-          addMetricDataPoint(dataPointTmsTpm);
+      //   if (tmsServer.connected) {
+      //     dataPointTmsTpm.value = statsObj.utilities[tmsServer.user.userId].tweetsPerMinute;
+      //     addMetricDataPoint(dataPointTmsTpm);
           
-          if (statsObj.utilities[tmsServer.user.userId].twitterLimit) {
-            let dataPointTmsTpm2 = {};
-            dataPointTmsTpm2.metricType = "twitter/tweet_limit";
-            dataPointTmsTpm2.value = statsObj.utilities[tmsServer.user.userId].twitterLimit;
-            dataPointTmsTpm2.metricLabels = {server_id: "TMS"};
-            addMetricDataPoint(dataPointTmsTpm2);
-          }
-        }
-      }
+      //     if (statsObj.utilities[tmsServer.user.userId].twitterLimit) {
+      //       let dataPointTmsTpm2 = {};
+      //       dataPointTmsTpm2.metricType = "twitter/tweet_limit";
+      //       dataPointTmsTpm2.value = statsObj.utilities[tmsServer.user.userId].twitterLimit;
+      //       dataPointTmsTpm2.metricLabels = {server_id: "TMS"};
+      //       addMetricDataPoint(dataPointTmsTpm2);
+      //     }
+      //   }
+      // }
     }
 
   }, interval);

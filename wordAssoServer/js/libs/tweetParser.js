@@ -190,7 +190,7 @@ function initTweetParserQueueInterval(cnf){
           if (cnf.verbose){
             console.log(chalkAlert("t< GLOBAL TEST MODE"
               + " | " + tweetObj.tweetId
-              + " | @" + tweetObj.user.userId
+              + " | @" + tweetObj.user.screenName
             ));
           }
         }

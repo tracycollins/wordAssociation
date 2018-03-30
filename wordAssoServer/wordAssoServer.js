@@ -2321,7 +2321,9 @@ function updateNodeMeter(nodeObj, callback){
       const newMeter = new Measured.Meter({rateUnit: 60000});
 
       newMeter.mark();
+      
       nodeObj.rate = parseFloat(newMeter.toJSON()[metricsRate]);
+      nodeObj.mentions += 1;
 
       nodeMeter[meterNodeId] = newMeter;
 
@@ -2341,8 +2343,11 @@ function updateNodeMeter(nodeObj, callback){
       if (callback !== undefined) { callback(null, nodeObj); }
     }
     else {
+
       nodeMeter[meterNodeId].mark();
+
       nodeObj.rate = parseFloat(nodeMeter[meterNodeId].toJSON()[metricsRate]);
+      nodeObj.mentions += 1;
 
       nodeCache.set(meterNodeId, nodeObj);
 
@@ -2411,7 +2416,8 @@ function initTransmitNodeQueueInterval(interval){
 
               viewNameSpace.volatile.emit("node", n);
 
-              if (twitUserShowReady && (n.nodeType === "user") && n.following && (n.followersCount === 0)){
+              // if (twitUserShowReady && (n.nodeType === "user") && n.following && (n.followersCount === 0)){
+              if (twitUserShowReady && (n.nodeType === "user") && n.category && (n.followersCount === 0)){
 
                 twit.get("users/show", {user_id: n.nodeId, include_entities: true}, function usersShow (err, rawUser, response){
 

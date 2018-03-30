@@ -1351,7 +1351,7 @@ function initUpdater(callback){
     clearInterval(updaterPingInterval);
 
     configEvents.emit("CHILD_ERROR", { name: "updater" });
-    initUpdater();
+    // initUpdater();
   });
 
   u.on("exit", function updaterExit(code){
@@ -1361,7 +1361,6 @@ function initUpdater(callback){
     ));
 
     if (code > 0) { configEvents.emit("CHILD_ERROR", { name: "updater" }); }
-
   });
 
   u.on("close", function updaterClose(code){
@@ -1393,7 +1392,7 @@ function initUpdater(callback){
 
   updater = u;
 
-  initUpdaterPingInterval(60000);
+  // initUpdaterPingInterval(60000);
 
   if (callback !== undefined) { callback(null, u); }
 }
@@ -1490,7 +1489,7 @@ function categorizeNode(categorizeObj, callback) {
         }
         else {
 
-          const u = omit(updatedUser, ["histograms", "countHistory", "friends"]);
+          // const u = omit(updatedUser, ["histograms", "countHistory", "friends"]);
 
           if ((updater !== undefined) && (updatedUser)){
 
@@ -2542,7 +2541,8 @@ function initTransmitNodeQueueInterval(interval){
 
               viewNameSpace.volatile.emit("node", n);
 
-              if ((n.nodeType === "user") && n.isTopTerm && (n.followersCount === 0)){
+              // if ((n.nodeType === "user") && n.isTopTerm && (n.followersCount === 0)){
+              if ((n.nodeType === "user") && n.following){
                 twit.get("users/show", {user_id: n.userId, include_entities: true}, function usersShow (err, rawUser, response){
                   if (err) {
                     console.log(chalkError("ERROR users/show rawUser" + err));
@@ -2569,7 +2569,7 @@ function initTransmitNodeQueueInterval(interval){
                     n.followersCount = rawUser.followers_count;
                     n.status = rawUser.status;
 
-                    if (n.following || (n.followersCount > MIN_FOLLOWERS)) {
+                    // if (n.following || (n.followersCount > MIN_FOLLOWERS)) {
                       userServer.findOneUser(n, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
                         if (err) {
                           console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));
@@ -2582,7 +2582,7 @@ function initTransmitNodeQueueInterval(interval){
                         //   // transmitNodeQueueReady = true;
                         // }
                       });
-                    }
+                    // }
                     // else {
                     //   debug(chalkTwitter("LESS THAN MIN_FOLLOWERS users/show data"));
                       // viewNameSpace.volatile.emit("node", n);
@@ -2601,7 +2601,7 @@ function initTransmitNodeQueueInterval(interval){
                 viewNameSpace.volatile.emit("node", n);
                 transmitNodeQueueReady = true;
 
-                if ((n.nodeType === "hashtag") && n.isTopTerm){
+                if ((n.nodeType === "hashtag") && n.category){
 
                 // viewNameSpace.volatile.emit("node", n);
                 // transmitNodeQueueReady = true;
@@ -2657,161 +2657,161 @@ let metricsDataPointQueue = [];
 let metricsDataPointQueueReady = true;
 let metricsDataPointQueueInterval;
 
-function initMetricsDataPointQueueInterval(interval){
+// function initMetricsDataPointQueueInterval(interval){
 
-  console.log(chalkLog("INIT METRICS DATA POINT QUEUE INTERVAL | " + interval + " MS"));
+//   console.log(chalkLog("INIT METRICS DATA POINT QUEUE INTERVAL | " + interval + " MS"));
 
-  clearInterval(metricsDataPointQueueInterval);
+//   clearInterval(metricsDataPointQueueInterval);
 
-  let googleRequest = {};
+//   let googleRequest = {};
 
-  if (GOOGLE_METRICS_ENABLED) {
-    googleRequest.name = googleMonitoringClient.projectPath(process.env.GOOGLE_PROJECT_ID);
-    googleRequest.timeSeries = [];
-  }
+//   if (GOOGLE_METRICS_ENABLED) {
+//     googleRequest.name = googleMonitoringClient.projectPath(process.env.GOOGLE_PROJECT_ID);
+//     googleRequest.timeSeries = [];
+//   }
 
 
-  metricsDataPointQueueInterval = setInterval(function metricsInterval() {
+//   metricsDataPointQueueInterval = setInterval(function metricsInterval() {
 
-    initDeletedMetricsHashmap();
+//     initDeletedMetricsHashmap();
 
-    // if (GOOGLE_METRICS_ENABLED && !metricsDataPointQueue.isEmpty() && metricsDataPointQueueReady) {
-    if (GOOGLE_METRICS_ENABLED && (metricsDataPointQueue.length > 0) && metricsDataPointQueueReady) {
+//     // if (GOOGLE_METRICS_ENABLED && !metricsDataPointQueue.isEmpty() && metricsDataPointQueueReady) {
+//     if (GOOGLE_METRICS_ENABLED && (metricsDataPointQueue.length > 0) && metricsDataPointQueueReady) {
 
-      metricsDataPointQueueReady = false;
+//       metricsDataPointQueueReady = false;
 
-      debug(chalkLog("METRICS TIME SERIES"
-        + "\n" + jsonPrint(googleRequest.timeSeries)
-      ));
+//       debug(chalkLog("METRICS TIME SERIES"
+//         + "\n" + jsonPrint(googleRequest.timeSeries)
+//       ));
 
-      googleRequest.timeSeries.length = 0;
+//       googleRequest.timeSeries.length = 0;
 
-      async.each(metricsDataPointQueue, function metricsGoogleRequest(dataPoint, cb){
+//       async.each(metricsDataPointQueue, function metricsGoogleRequest(dataPoint, cb){
 
-        googleRequest.timeSeries.push(dataPoint);
-        cb();
+//         googleRequest.timeSeries.push(dataPoint);
+//         cb();
 
-      }, function metricsGoogleRequestError(err){
+//       }, function metricsGoogleRequestError(err){
 
-        if (err) {
-          console.error(chalkError("ERROR INIT METRICS DATAPOINT QUEUE INTERVAL\n" + err ));
-        }
+//         if (err) {
+//           console.error(chalkError("ERROR INIT METRICS DATAPOINT QUEUE INTERVAL\n" + err ));
+//         }
 
-        metricsDataPointQueue.clear();
+//         metricsDataPointQueue.clear();
 
-        googleMonitoringClient.createTimeSeries(googleRequest)
-          .then(function createTimeSeries(){
-            debug(chalkInfo("METRICS"
-              + " | DATA POINTS: " + googleRequest.timeSeries.length 
-              // + " | " + options.value
-            ));
-            metricsDataPointQueueReady = true;
-          })
-          .catch(function createTimeSeriesError(err){
-            if (statsObj.errors.google[err.code] === undefined) {
-              statsObj.errors.google[err.code] = 0;
-            }
-            statsObj.errors.google[err.code] += 1;
-            console.error(chalkError(moment().format(compactDateTimeFormat)
-              + " | *** ERROR GOOGLE METRICS"
-              + " | DATA POINTS: " + googleRequest.timeSeries.length 
-              + "\n*** ERR:  " + err
-              + "\n*** NOTE: " + err.note
-              + "\nERR\n" + jsonPrint(err)
-              // + "\nREQUEST\n" + jsonPrint(googleRequest)
-              // + "\nMETA DATA\n" + jsonPrint(err.metadata)
-            ));
-            metricsDataPointQueueReady = true;
-        });
+//         googleMonitoringClient.createTimeSeries(googleRequest)
+//           .then(function createTimeSeries(){
+//             debug(chalkInfo("METRICS"
+//               + " | DATA POINTS: " + googleRequest.timeSeries.length 
+//               // + " | " + options.value
+//             ));
+//             metricsDataPointQueueReady = true;
+//           })
+//           .catch(function createTimeSeriesError(err){
+//             if (statsObj.errors.google[err.code] === undefined) {
+//               statsObj.errors.google[err.code] = 0;
+//             }
+//             statsObj.errors.google[err.code] += 1;
+//             console.error(chalkError(moment().format(compactDateTimeFormat)
+//               + " | *** ERROR GOOGLE METRICS"
+//               + " | DATA POINTS: " + googleRequest.timeSeries.length 
+//               + "\n*** ERR:  " + err
+//               + "\n*** NOTE: " + err.note
+//               + "\nERR\n" + jsonPrint(err)
+//               // + "\nREQUEST\n" + jsonPrint(googleRequest)
+//               // + "\nMETA DATA\n" + jsonPrint(err.metadata)
+//             ));
+//             metricsDataPointQueueReady = true;
+//         });
 
-      });
+//       });
 
-    }
+//     }
 
-  }, interval);
-}
+//   }, interval);
+// }
 
-function addMetricDataPoint(options, callback){
+// function addMetricDataPoint(options, callback){
 
-  if (!GOOGLE_METRICS_ENABLED) {
-    console.trace("***** GOOGLE_METRICS_ENABLED FALSE? " + GOOGLE_METRICS_ENABLED);
-    if (callback) { callback(null,options); }
-    return;
-  }
+//   if (!GOOGLE_METRICS_ENABLED) {
+//     console.trace("***** GOOGLE_METRICS_ENABLED FALSE? " + GOOGLE_METRICS_ENABLED);
+//     if (callback) { callback(null,options); }
+//     return;
+//   }
 
-  debug(chalkLog("addMetricDataPoint"
-    + " | GOOGLE_METRICS_ENABLED: " + GOOGLE_METRICS_ENABLED
-    + "\n" + jsonPrint(options)
-  ));
+//   debug(chalkLog("addMetricDataPoint"
+//     + " | GOOGLE_METRICS_ENABLED: " + GOOGLE_METRICS_ENABLED
+//     + "\n" + jsonPrint(options)
+//   ));
 
-  defaults(options, {
-    endTime: (Date.now() / 1000),
-    dataType: "doubleValue",
-    resourceType: "global",
-    projectId: process.env.GOOGLE_PROJECT_ID,
-    metricTypePrefix: CUSTOM_GOOGLE_APIS_PREFIX
-  });
+//   defaults(options, {
+//     endTime: (Date.now() / 1000),
+//     dataType: "doubleValue",
+//     resourceType: "global",
+//     projectId: process.env.GOOGLE_PROJECT_ID,
+//     metricTypePrefix: CUSTOM_GOOGLE_APIS_PREFIX
+//   });
 
-  debug(chalkLog("addMetricDataPoint AFTER\n" + jsonPrint(options)));
+//   debug(chalkLog("addMetricDataPoint AFTER\n" + jsonPrint(options)));
 
-  let dataPoint = {
-    interval: { endTime: { seconds: options.endTime } },
-    value: {}
-  };
+//   let dataPoint = {
+//     interval: { endTime: { seconds: options.endTime } },
+//     value: {}
+//   };
 
-  dataPoint.value[options.dataType] = parseFloat(options.value);
+//   dataPoint.value[options.dataType] = parseFloat(options.value);
 
-  let timeSeriesData = {
-    metric: {
-      type: options.metricTypePrefix + "/" + options.metricType,
-      labels: options.metricLabels
-    },
-    resource: {
-      type: options.resourceType,
-      labels: { project_id: options.projectId }
-    },
-    points: []
-  };
+//   let timeSeriesData = {
+//     metric: {
+//       type: options.metricTypePrefix + "/" + options.metricType,
+//       labels: options.metricLabels
+//     },
+//     resource: {
+//       type: options.resourceType,
+//       labels: { project_id: options.projectId }
+//     },
+//     points: []
+//   };
 
-  timeSeriesData.points.push(dataPoint);
+//   timeSeriesData.points.push(dataPoint);
 
-  metricsDataPointQueue.push(timeSeriesData);
+//   metricsDataPointQueue.push(timeSeriesData);
 
-  if (callback) { callback(null, { q: metricsDataPointQueue.length} ); }
-}
+//   if (callback) { callback(null, { q: metricsDataPointQueue.length} ); }
+// }
 
-function addTopTermMetricDataPoint(node, nodeRate){
+// function addTopTermMetricDataPoint(node, nodeRate){
 
-  nodeCache.get(node, function nodeCacheGet(err, nodeObj){
-    if (err) {
-      console.error(chalkInfo("ERROR addTopTermMetricDataPoint " + err
-        // + " | " + node
-      ));
-    }
-    else if (nodeObj === undefined) {
-      console.error(chalkError("?? SORTED NODE NOT IN WORD $"
-        + " | " + node
-      ));
-    }
-    else if (parseInt(nodeObj.mentions) > MIN_MENTIONS_VALUE) {
+//   nodeCache.get(node, function nodeCacheGet(err, nodeObj){
+//     if (err) {
+//       console.error(chalkInfo("ERROR addTopTermMetricDataPoint " + err
+//         // + " | " + node
+//       ));
+//     }
+//     else if (nodeObj === undefined) {
+//       console.error(chalkError("?? SORTED NODE NOT IN WORD $"
+//         + " | " + node
+//       ));
+//     }
+//     else if (parseInt(nodeObj.mentions) > MIN_MENTIONS_VALUE) {
 
-      debug(chalkInfo("+++ TOP TERM METRIC"
-        + " | " + node
-        + " | Ms: " + nodeObj.mentions
-        + " | RATE: " + nodeRate.toFixed(2)
-      ));
+//       debug(chalkInfo("+++ TOP TERM METRIC"
+//         + " | " + node
+//         + " | Ms: " + nodeObj.mentions
+//         + " | RATE: " + nodeRate.toFixed(2)
+//       ));
 
-      const topTermDataPoint = {
-        displayName: node,
-        metricTyp: "word/top10/" + node,
-        value: parseFloat(nodeRate),
-        metricLabels: {server_id: "WORD"}
-      };
+//       const topTermDataPoint = {
+//         displayName: node,
+//         metricTyp: "word/top10/" + node,
+//         value: parseFloat(nodeRate),
+//         metricLabels: {server_id: "WORD"}
+//       };
 
-      addMetricDataPoint(topTermDataPoint);
-    }
-  });
-}
+//       addMetricDataPoint(topTermDataPoint);
+//     }
+//   });
+// }
 
 
 let heartbeatsSent = 0;
@@ -4220,6 +4220,7 @@ configEvents.on("CHILD_ERROR", function childError(childObj){
       console.error("KILL UPDATER");
       if (updater !== undefined) { updater.kill("SIGINT"); }
       initUpdater();
+      initUpdaterPingInterval(60000);
     break;
     case "sorter":
       console.error("KILL SORTER");

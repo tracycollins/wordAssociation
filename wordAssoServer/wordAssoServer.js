@@ -2504,6 +2504,8 @@ function initTransmitNodeQueueInterval(interval){
 
           updateNodeMeter(node, function updateWordMeterCallback(err, n){
 
+            transmitNodeQueueReady = true;
+
             if (err) {
               console.log(chalkError("ERROR updateNodeMeter: " + err
                 + " | TYPE: " + node.nodeType
@@ -2512,12 +2514,15 @@ function initTransmitNodeQueueInterval(interval){
               viewNameSpace.volatile.emit("node", node);
             }
             else {
+
+              viewNameSpace.volatile.emit("node", n);
+
               if ((n.nodeType === "user") && n.isTopTerm && (n.followersCount === 0)){
                 twit.get("users/show", {user_id: n.userId, include_entities: true}, function usersShow (err, rawUser, response){
                   if (err) {
                     console.log(chalkError("ERROR users/show rawUser" + err));
-                    viewNameSpace.volatile.emit("node", n);
-                    transmitNodeQueueReady = true;
+                    // viewNameSpace.volatile.emit("node", n);
+                    // transmitNodeQueueReady = true;
                   }
                   else if (rawUser) {
                     debug(chalkTwitter("FOUND users/show rawUser" + jsonPrint(rawUser)));
@@ -2543,50 +2548,60 @@ function initTransmitNodeQueueInterval(interval){
                       userServer.findOneUser(n, {noInc: true, fields: fieldsExclude}, function(err, updatedUser){
                         if (err) {
                           console.log(chalkError("findOneUser ERROR" + jsonPrint(err)));
-                          viewNameSpace.volatile.emit("node", n);
-                          transmitNodeQueueReady = true;
+                          // viewNameSpace.volatile.emit("node", n);
+                          // transmitNodeQueueReady = true;
                         }
-                        else {
-                          debug(chalkTwitter("UPDATED updatedUser" + jsonPrint(updatedUser)));
-                          viewNameSpace.volatile.emit("node", updatedUser);
-                          transmitNodeQueueReady = true;
-                        }
+                        // else {
+                        //   debug(chalkTwitter("UPDATED updatedUser" + jsonPrint(updatedUser)));
+                        //   // viewNameSpace.volatile.emit("node", updatedUser);
+                        //   // transmitNodeQueueReady = true;
+                        // }
                       });
                     }
-                    else {
-                      debug(chalkTwitter("LESS THAN MIN_FOLLOWERS users/show data"));
-                      viewNameSpace.volatile.emit("node", n);
-                      transmitNodeQueueReady = true;
-                    }
+                    // else {
+                    //   debug(chalkTwitter("LESS THAN MIN_FOLLOWERS users/show data"));
+                      // viewNameSpace.volatile.emit("node", n);
+                      // transmitNodeQueueReady = true;
+                    // }
                   }
-                  else {
-                    console.log(chalkTwitter("NOT FOUND users/show data"));
-                    viewNameSpace.volatile.emit("node", n);
-                    transmitNodeQueueReady = true;
-                  }
+                  // else {
+                  //   console.log(chalkTwitter("NOT FOUND users/show data"));
+                  //   viewNameSpace.volatile.emit("node", n);
+                  //   transmitNodeQueueReady = true;
+                  // }
                 });
-              }
-              else if ((n.nodeType === "hashtag") && n.isTopTerm){
-                hashtagServer.findOneHashtag(n, {noInc: true}, function(err, updatedHashtag){
-                  if (err) {
-                    console.log(chalkError("updatedHashtag ERROR" + jsonPrint(err)));
-                    viewNameSpace.volatile.emit("node", n);
-                    transmitNodeQueueReady = true;
-                  }
-                  else {
-                    debug(chalkTwitter("UPDATED updatedHashtag" + jsonPrint(updatedHashtag)));
-                    viewNameSpace.volatile.emit("node", updatedHashtag);
-                    transmitNodeQueueReady = true;
-                  }
-                });
-              }
-              else if ((n.nodeType === "user") || (n.nodeType === "hashtag") || (n.nodeType === "place")) {
-                viewNameSpace.volatile.emit("node", n);
-                transmitNodeQueueReady = true;
               }
               else {
+
+                viewNameSpace.volatile.emit("node", n);
                 transmitNodeQueueReady = true;
+
+                if ((n.nodeType === "hashtag") && n.isTopTerm){
+
+                // viewNameSpace.volatile.emit("node", n);
+                // transmitNodeQueueReady = true;
+
+                  hashtagServer.findOneHashtag(n, {noInc: true}, function(err, updatedHashtag){
+                    if (err) {
+                      console.log(chalkError("updatedHashtag ERROR" + jsonPrint(err)));
+                      // viewNameSpace.volatile.emit("node", n);
+                      // transmitNodeQueueReady = true;
+                    }
+                    // else {
+                    //   debug(chalkTwitter("UPDATED updatedHashtag" + jsonPrint(updatedHashtag)));
+                    //   viewNameSpace.volatile.emit("node", updatedHashtag);
+                    //   transmitNodeQueueReady = true;
+                    // }
+                  });
+                }
               }
+              // else if ((n.nodeType === "user") || (n.nodeType === "hashtag") || (n.nodeType === "place")) {
+              //   viewNameSpace.volatile.emit("node", n);
+              //   transmitNodeQueueReady = true;
+              // }
+              // else {
+              //   transmitNodeQueueReady = true;
+              // }
             }
           });
         });

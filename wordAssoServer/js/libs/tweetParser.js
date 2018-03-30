@@ -44,8 +44,8 @@ dbConnection.once("open", function() {
   Word = mongoose.model("Word", wordModel.WordSchema);
 });
 
-// const tweetServer = require("@threeceelabs/tweet-server-controller");
-const tweetServer = require("../../../../tweetServerController");
+const tweetServer = require("@threeceelabs/tweet-server-controller");
+// const tweetServer = require("../../../../tweetServerController");
 const tweetParserQueue = [];
 
 const chalk = require("chalk");

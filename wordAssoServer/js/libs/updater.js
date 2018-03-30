@@ -285,7 +285,7 @@ const categoryUpdate = function(cObj, callback) {
   if (cObj.nodeType === undefined) {
     async.parallel({
         user: function(cb) {
-          User.findOne({userId: cObj.nodeId}, function(err, user) {
+          User.findOne({nodeId: cObj.nodeId}, function(err, user) {
             if (err) {
               console.log(chalkError("categoryUpdate: ERROR DB FIND ONE USER | " + err));
               cb(err, null);
@@ -295,11 +295,11 @@ const categoryUpdate = function(cObj, callback) {
                 + " | @" + user.screenName.toLowerCase()
               ));
 
-              user.nodeId = user.userId;
+              user.userId = user.nodeId;
               user.category = cObj.category;
 
-              newCategoryHashMap[user.userId] = cObj.category;
-              localCategoryHashMap[user.userId] = cObj.category; 
+              newCategoryHashMap[user.nodeId] = cObj.category;
+              localCategoryHashMap[user.nodeId] = cObj.category; 
 
               cb(null, user);
             }
@@ -741,11 +741,6 @@ process.on("message", function(m) {
     break;
 
     case "UPDATE_CATEGORY":
-      // op: "UPDATE_CATEGORY",
-      // nodeType: "user",
-      // nodeId: updatedUser.userId,
-      // screenName: updatedUser.screenName.toLowerCase(),
-      // category: categorizeObj.category
       sn = (m.nodeType === "user") ? (" | @" + m.screenName) : "";
       console.log(chalkInfo("UPDATER UPDATE_CATEGORY"
         + " | NODE TYPE: " + m.nodeType

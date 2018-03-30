@@ -33,6 +33,7 @@ var VIEWER_ID = "viewer_random_" + randomId;
 var USER_ID = "viewer_random_" + randomId;
 
 var DEFAULT_VIEWER_OBJ = {
+  nodeId: USER_ID,
   userId: USER_ID,
   viewerId: VIEWER_ID,
   screenName: USER_ID,

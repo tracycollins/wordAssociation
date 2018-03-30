@@ -604,7 +604,7 @@ const updateCategory = function(folder, file, callback){
           let wordsLength = words.length;
           let wordsPercent = 0;
 
-          async.eachSeries(words, function(w, cb) {
+          async.eachLimit(words, 50, function(w, cb) {
 
               categoryUpdate({nodeId: w, category: kwordsObj[w]}, function(err, updatedNodeObj){
                 if (err) {

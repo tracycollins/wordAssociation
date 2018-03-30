@@ -185,6 +185,8 @@ function ViewTreepack() {
     this.nodeId = "";
     this.nodeType = "user";
     this.screenName = "";
+    this.followersCount = 0;
+    this.followersMentions = 0;
     this.text = "";
     this.name = "";
     this.isDead = true;
@@ -208,7 +210,6 @@ function ViewTreepack() {
     this.isTopTerm = false;
     this.isTrendingTopic = false;
     this.categoryColor = palette.white;
-    this.followersMentions = 0;
     this.isMaxNode = false;
   } 
 
@@ -1107,6 +1108,7 @@ function ViewTreepack() {
         if (d.isDead) { return "hidden"; }
         return "visible";
       })
+      .attr("r", 1e-6) 
       .attr("cx", function (d) { 
         return d.x; 
       })
@@ -1142,23 +1144,23 @@ function ViewTreepack() {
       })
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)
-      .on("click", nodeClick)
-      .transition()
-        .duration(transitionDuration)
-        .attr("r", function (d) {
-          if (!d.isValid) { return 1e-6; }
-          if (d.isDead) { return 1e-6; }
-          if (d.isIgnored) {
-            return defaultRadiusScale(Math.sqrt(0.1));
-          }
-          if (metricMode === "rate") { return defaultRadiusScale(Math.sqrt(d.rate));}
-          if (metricMode === "mentions") { 
-            if (d.nodeType === "user") { 
-              return defaultRadiusScale(Math.sqrt(d.followersMentions)); 
-            }
-            return defaultRadiusScale(Math.sqrt(d.mentions));
-          }
-        });
+      .on("click", nodeClick);
+      // .transition()
+      //   .duration(transitionDuration)
+      //   .attr("r", function (d) {
+      //     if (!d.isValid) { return 1e-6; }
+      //     if (d.isDead) { return 1e-6; }
+      //     if (d.isIgnored) {
+      //       return defaultRadiusScale(Math.sqrt(0.1));
+      //     }
+      //     if (metricMode === "rate") { return defaultRadiusScale(Math.sqrt(d.rate));}
+      //     if (metricMode === "mentions") { 
+      //       if (d.nodeType === "user") { 
+      //         return defaultRadiusScale(Math.sqrt(d.followersMentions)); 
+      //       }
+      //       return defaultRadiusScale(Math.sqrt(d.mentions));
+      //     }
+      //   });
 
     nodeCircles
       .attr("cx", function(d) { 
@@ -1204,9 +1206,7 @@ function ViewTreepack() {
         .attr("r", function(d) {
           if (!d.isValid) { return 1e-6; }
           if (d.isDead) { return 1e-6; }
-          if (d.isIgnored) {
-            return defaultRadiusScale(Math.sqrt(0.1));
-          }
+          if (d.isIgnored) { return 1e-6; }
           if (metricMode === "rate") { return defaultRadiusScale(Math.sqrt(d.rate));}
           if (metricMode === "mentions") { 
             if (d.nodeType === "user") { 
@@ -1662,7 +1662,7 @@ function ViewTreepack() {
           .clamp(true);
 
         defaultRadiusScale = d3.scaleLinear()
-          .domain([1, Math.sqrt(currentMaxMetric)])
+          .domain([0.1, Math.sqrt(currentMaxMetric)])
           .range([nodeRadiusMin, nodeRadiusMax])
           .clamp(true);
 

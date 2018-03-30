@@ -1822,7 +1822,7 @@ function initSocketHandler(socketObj) {
 
     if (searchNode.startsWith("#")) {
 
-      let searchNodeHashtag = { text: searchNode.substring(1) };
+      let searchNodeHashtag = { nodeId: searchNode.substring(1) };
 
       hashtagServer.findOne({hashtag: searchNodeHashtag}, function(err, hashtag){
         if (err) {

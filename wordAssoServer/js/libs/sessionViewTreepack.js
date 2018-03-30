@@ -1098,8 +1098,8 @@ function ViewTreepack() {
     nodeCircles
       .enter()
       .append("circle")
+      .attr("id", function (d) { return d.nodePooId; })
       .attr("nodeId", function (d) { return d.nodeId; })
-      .attr("nodePooId", function (d) { return d.nodePooId; })
       .style("visibility", function (d) {
         if (d.isDead) { return "hidden"; }
         return "visible";

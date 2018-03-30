@@ -291,7 +291,7 @@ function ViewTreepack() {
 
   var NEW_NODE_AGE_RATIO = 0.01;
 
-  var minOpacity = 0.1;
+  var minOpacity = 0.2;
   var antonymFlag = false;
   var removeDeadNodesFlag = true;
 
@@ -1227,8 +1227,6 @@ function ViewTreepack() {
 
   var nodeLabels;
   var updateNodeLabels = function(callback) {
-
-    // var nodeArray = localNodeHashMap.values();
 
     nodeLabels = nodeLabelSvgGroup.selectAll("text")
       .data(nodeArray, function (d) { 

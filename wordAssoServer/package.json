@@ -5,10 +5,10 @@
   "main": "wordAssoServer.js",
   "dependencies": {
     "@google-cloud/monitoring": "^0.4.1",
-    "@threeceelabs/hashtag-server-controller": "^1.0.22",
+    "@threeceelabs/hashtag-server-controller": "^1.0.23",
     "@threeceelabs/mongoose-twitter": "^1.0.95",
     "@threeceelabs/socketio-auth": "^1.0.7",
-    "@threeceelabs/tweet-server-controller": "^1.0.196",
+    "@threeceelabs/tweet-server-controller": "^1.0.197",
     "@threeceelabs/twitter-image-parser": "^1.0.40",
     "@threeceelabs/twitter-text-parser": "^1.0.40",
     "@threeceelabs/user-server-controller": "^1.0.229",

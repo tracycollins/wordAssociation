@@ -2274,87 +2274,60 @@ function initUpdateTrendsInterval(interval){
   }, interval);
 }
 
-function updateNodeMeter(nodeObj, callback){
-
-  // if (!configuration.metrics.wordMeterEnabled
-  //   || (nodeObj.nodeType === "media") 
-  //   || (nodeObj.nodeType === "url")
-  //   || (nodeObj.nodeType === "keepalive")
-  //   ) {
-  //   callback(null, nodeObj);
-  //   return;
-  // }
+function updateNodeMeter(node, callback){
 
   if (!configuration.metrics.wordMeterEnabled
-    || ((nodeObj.nodeType !== "user") && (nodeObj.nodeType !== "hashtag") && (nodeObj.nodeType !== "place"))) {
-    callback(null, nodeObj);
-    return;
+    || ((node.nodeType !== "user") && (node.nodeType !== "hashtag") && (node.nodeType !== "place"))) {
+    return(callback(null, node));
   }
 
-  if (nodeObj.nodeId === undefined) {
-    console.log(chalkError("NODE ID UNDEFINED\n" + jsonPrint(nodeObj)));
-    callback("NODE ID UNDEFINED", nodeObj);
+  if (node.nodeId === undefined) {
+    console.log(chalkError("NODE ID UNDEFINED\n" + jsonPrint(node)));
+    return(callback("NODE ID UNDEFINED", node));
   }
 
-  let meterNodeId;
+  const nodeId = node.nodeId;
 
-  meterNodeId = nodeObj.nodeId;
+  if (ignoreWordHashMap.has(nodeId)) {
 
-  if (ignoreWordHashMap.has(meterNodeId)) {
+    debug(chalkLog("updateNodeMeter IGNORE " + nodeId));
 
-    debug(chalkLog("updateNodeMeter IGNORE " + meterNodeId));
+    node.isIgnored = true;
+    nodeCache.del(nodeId);
 
-    nodeObj.isIgnored = true;
-    nodeMeter[meterNodeId] = null;
-    delete nodeMeter[meterNodeId];
-
-    if (callback !== undefined) { callback(null, nodeObj); }
+    callback(null, node);
   }
   else {
-    if (/TSS_/.test(meterNodeId) || nodeObj.isServer){
-      debug(chalkLog("updateNodeMeter\n" + jsonPrint(nodeObj)));
-      if (callback !== undefined) { callback(null, nodeObj); }
-    }
-    else if (!nodeMeter[meterNodeId] 
-      || (Object.keys(nodeMeter[meterNodeId]).length === 0)
-      || (nodeMeter[meterNodeId] === undefined) ){
-
-      nodeMeter[meterNodeId] = null;
-
-      const newMeter = new Measured.Meter({rateUnit: 60000});
-
-      newMeter.mark();
-      
-      nodeObj.rate = parseFloat(newMeter.toJSON()[metricsRate]);
-      nodeObj.mentions += 1;
-
-      nodeMeter[meterNodeId] = newMeter;
-
-      nodeCache.set(meterNodeId, nodeObj);
-
-      statsObj.nodeMeterEntries = Object.keys(nodeMeter).length;
-
-      if (statsObj.nodeMeterEntries > statsObj.wordMeterEntriesMax) {
-        statsObj.wordMeterEntriesMax = statsObj.nodeMeterEntries;
-        statsObj.wordMeterEntriesMaxTime = moment().valueOf();
-        debug(chalkLog("NEW MAX NODE METER ENTRIES"
-          + " | " + moment().format(compactDateTimeFormat)
-          + " | " + statsObj.nodeMeterEntries.toFixed(0)
-        ));
-      }
-
-      if (callback !== undefined) { callback(null, nodeObj); }
+    if (/TSS_/.test(nodeId) || node.isServer){
+      debug(chalkLog("updateNodeMeter\n" + jsonPrint(node)));
+      callback(null, node);
     }
     else {
 
-      nodeMeter[meterNodeId].mark();
+      nodeCache.get(nodeId, function(err, nCacheObj){
 
-      nodeObj.rate = parseFloat(nodeMeter[meterNodeId].toJSON()[metricsRate]);
-      nodeObj.mentions += 1;
+        if (nCacheObj === undefined) { 
+          let meter = new Measured.Meter({rateUnit: 60000});
+          nCacheObj = {};
+          nCacheObj.meter = meter;
+          nCacheObj.node = node;
+        }
 
-      nodeCache.set(meterNodeId, nodeObj);
+        node.mentions = Math.max(nCacheObj.node.mentions, node.mentions);
+        node.mentions += 1;
+        nCacheObj.meter.mark();
+        node.rate = parseFloat(nCacheObj.meter.toJSON()[metricsRate]);
 
-      if (callback !== undefined) { callback(null, nodeObj); }
+        console.log("METER"
+          + " | T: " + node.nodeType
+          + " | NID: " + node.nodeId
+          + " | R: " + node.rate.toFixed(2)
+          + " | M: " + node.mentions
+        );
+        nodeCache.set(nodeId, { node: node, meter: nCacheObj.meter});
+        callback(null, node);
+
+      });
     }
   }
 }

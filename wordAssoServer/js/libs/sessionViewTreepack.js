@@ -1572,9 +1572,11 @@ function ViewTreepack() {
         }
 
         var c = document.getElementById(currentNode.nodePooId);
-        c.setAttribute("r", 1e-6);
-        c.setAttribute("visibility", "hidden");
-        c.setAttribute("opacity", 1e-6);
+        if (c) {
+          c.setAttribute("r", 1e-6);
+          c.setAttribute("visibility", "hidden");
+          c.setAttribute("opacity", 1e-6);
+        }
 
         currentNode.isValid = true;
         localNodeHashMap.set(currentNode.nodeId, currentNode);

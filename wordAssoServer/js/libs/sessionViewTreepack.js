@@ -216,19 +216,12 @@ function ViewTreepack() {
   var nodePoolIndex = 0;
   var nodePool = deePool.create(function makeNode(){
     var nodePooId = "nodePoolId_" + nodePoolIndex;
+    nodePoolIndex += 1;
     var n = new Node(nodePooId);
     return n;
   });
 
   function resetNode(node){
-    // Object.keys(node).forEach(function(prop){
-    //   switch (prop) {
-    //     case "nodePooId":
-    //     break;
-    //     default:
-    //     node[prop] = null;
-    //   }
-    // });
   }
 
   var autoCategoryFlag = config.autoCategoryFlag;
@@ -809,9 +802,8 @@ function ViewTreepack() {
     maxAgeRate = Math.max(ageRate, maxAgeRate);
     currentTime = moment().valueOf();
 
-    // for (ageNodesIndex = ageNodesLength; ageNodesIndex >= 0; ageNodesIndex -= 1) {
     nodeIdArray.forEach(function(nodeId){
-      // node = nodes[ageNodesIndex];
+
       node = localNodeHashMap.get(nodeId);
 
       if (!enableAgeNodes || (resumeTimeStamp > 0)) {
@@ -838,7 +830,6 @@ function ViewTreepack() {
         var c = document.getElementById(node.nodePooId);
         c.setAttribute("r", 1e-6);
         nodePool.recycle(node);
-        // nodes.splice(ageNodesIndex, 1);
        } 
       else {
         node.isDead = false;

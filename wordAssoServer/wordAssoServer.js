@@ -48,7 +48,6 @@ let twitterUserThreecee = {
     url : "http://threeCeeMedia.com",
     name : "Tracy Collins",
     screenName : "threecee",
-    nodeId : "14607119",
     nodeType : "user",
     following : null,
     description : "photography + animation + design",
@@ -350,8 +349,6 @@ tmsServer.connected = false;
 tmsServer.user = {};
 tmsServer.socket = {};
 
-let nodeMeter = {};
-
 let tweetRxQueueInterval;
 let tweetParserQueue = [];
 let tweetParserMessageRxQueue = [];
@@ -574,29 +571,6 @@ function nodeCacheExpired(nodeCacheId, nodeObj) {
     + " | " + nodeCacheId
   ));
 
-  if (nodeMeter[nodeCacheId] || (nodeMeter[nodeCacheId] !== undefined)) {
-
-    nodeMeter[nodeCacheId].end();
-    nodeMeter[nodeCacheId] = null;
-
-    nodeMeter = omit(nodeMeter, nodeCacheId);
-    delete nodeMeter[nodeCacheId];
-
-    debugCache(chalkLog("XXX NODE METER"
-      + " | Ks: " + Object.keys(nodeMeter).length
-      + " | " + nodeCacheId
-    ));
-
-
-    if (statsObj.nodeMeterEntries > statsObj.wordMeterEntriesMax) {
-      statsObj.wordMeterEntriesMax = statsObj.nodeMeterEntries;
-      statsObj.wordMeterEntriesMaxTime = moment().valueOf();
-      debugCache(chalkLog("NEW MAX NODE METER ENTRIES"
-        + " | " + moment().format(compactDateTimeFormat)
-        + " | " + statsObj.nodeMeterEntries.toFixed(0)
-      ));
-    }
-  }
 }
 
 nodeCache.on("expired", nodeCacheExpired);
@@ -2324,7 +2298,7 @@ function updateNodeMeter(node, callback){
           + " | R: " + node.rate.toFixed(2)
           + " | M: " + node.mentions
         );
-        
+
         nodeCache.set(nodeId, { node: node, meter: nCacheObj.meter});
         callback(null, node);
 
@@ -3232,7 +3206,7 @@ function initSorterMessageRxQueueInterval(interval){
 
   let sortedKeys;
   let endIndex;
-  let node;
+  let nodeId;
   let nodeRate;
   let sorterObj;
 
@@ -3257,27 +3231,20 @@ function initSorterMessageRxQueueInterval(interval){
 
           async.times(endIndex, function(index, next) {
 
-            node = sortedKeys[index].toLowerCase();
+            nodeId = sortedKeys[index].toLowerCase();
 
-            if (nodeMeter[node]) {
+            nodeCache.get(nodeId, function(err, nCacheObj){
 
-              nodeRate = parseFloat(nodeMeter[node].toJSON()[metricsRate]);
+              if (nCacheObj) {
 
-              wordsPerMinuteTopTermCache.set(node, nodeRate);
-              next();
+                nodeRate = parseFloat(nCacheObj.meter.toJSON()[metricsRate]);
 
-              // if (!deletedMetricsHashmap.has(node) 
-              //   && GOOGLE_METRICS_ENABLED 
-              //   && (nodeRate > MIN_METRIC_VALUE)) {
-              //   addTopTermMetricDataPoint(node, nodeRate);
-              //   next();
-              // }
-              // else {
-              //   debug(chalkLog("SKIP ADD METRIC | " + node + " | " + nodeRate.toFixed(3)));
-              //   next();
-              // }
+                wordsPerMinuteTopTermCache.set(nodeId, nodeRate);
+                next();
 
-            }
+              }
+            });
+
 
           }, function(){
 
@@ -3709,19 +3676,24 @@ function initRateQinterval(interval){
       paramsSorter.max = configuration.maxTopTerms;
       paramsSorter.obj = {};
 
-      async.each(Object.keys(nodeMeter), function sorterParams(meterId, cb){
+      const nodeCacheKeys = nodeCache.keys();
 
-        if (!nodeMeter[meterId]) {
-          console.error(chalkError("*** ERROR NULL nodeMeter[meterId]: " + meterId));
-        }
+      async.each(nodeCacheKeys, function sorterParams(nodeId, cb){
 
-        paramsSorter.obj[meterId] = pick(nodeMeter[meterId].toJSON(), paramsSorter.sortKey);
+        nodeCache.get(nodeId, function(err, nCacheObj){
 
-        cb();
+          if (nCacheObj === undefined) {
+            console.error(chalkError("*** ERROR NULL NODE CACHE ENTRY: " + nodeId));
+          }
+          else {
+            paramsSorter.obj[nodeId] = pick(nCacheObj.meter.toJSON(), paramsSorter.sortKey);
+          }
+
+          cb();
+
+        });
 
       }, function(err){
-
-        // console.log(chalkAlert("paramsSorter\n" + jsonPrint(paramsSorter)));
 
         if (err) {
           console.error(chalkError("ERROR RATE QUEUE INTERVAL\n" + err ));
@@ -4050,17 +4022,6 @@ function initStatsInterval(interval){
     statsObj.timeStamp = moment().format(compactDateTimeFormat);
     statsObj.runTime = moment().valueOf() - statsObj.startTime;
     statsObj.upTime = os.uptime() * 1000;
-
-    statsObj.nodeMeterEntries = Object.keys(nodeMeter).length;
-
-    if (statsObj.nodeMeterEntries > statsObj.wordMeterEntriesMax) {
-      statsObj.wordMeterEntriesMax = statsObj.nodeMeterEntries;
-      statsObj.wordMeterEntriesMaxTime = moment().valueOf();
-      debug(chalkLog("NEW MAX NODE METER ENTRIES"
-        + " | " + moment().format(compactDateTimeFormat)
-        + " | " + statsObj.nodeMeterEntries.toFixed(0)
-      ));
-    }
 
     statsObj.memory.heap = process.memoryUsage().heapUsed/(1024*1024);
 

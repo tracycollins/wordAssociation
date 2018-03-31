@@ -3227,8 +3227,6 @@ function initSorterMessageRxQueueInterval(interval){
           sortedKeys = sorterObj.sortedKeys;
           endIndex = Math.min(configuration.maxTopTerms, sortedKeys.length);
 
-          // for (index=0; index < endIndex; index += 1){
-
           async.times(endIndex, function(index, next) {
 
             nodeId = sortedKeys[index].toLowerCase();
@@ -3236,12 +3234,12 @@ function initSorterMessageRxQueueInterval(interval){
             nodeCache.get(nodeId, function(err, nCacheObj){
 
               if (nCacheObj) {
-
                 nodeRate = parseFloat(nCacheObj.meter.toJSON()[metricsRate]);
-
                 wordsPerMinuteTopTermCache.set(nodeId, nodeRate);
                 next();
-
+              }
+              else {
+                next();
               }
             });
 

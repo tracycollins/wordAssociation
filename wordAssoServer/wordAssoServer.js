@@ -1834,7 +1834,7 @@ function initSocketHandler(socketObj) {
           if (hashtag.category) { categoryHashMap.set(hashtag.nodeId.toLowerCase(), hashtag.category); }
         }
         else {
-          console.log(chalkTwitter("TWITTER_SEARCH_NODE HASHTAG NOT FOUND: " + searchNodeHashtag));
+          console.log(chalkTwitter("TWITTER_SEARCH_NODE HASHTAG NOT FOUND: #" + searchNodeHashtag.nodeId));
         }
     
       });

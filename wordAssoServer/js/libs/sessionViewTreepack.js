@@ -1140,9 +1140,9 @@ function ViewTreepack() {
         if (d.isIgnored) { return 1e-6; }
         if (metricMode === "rate") { return defaultRadiusScale(Math.sqrt(d.rate));}
         if (metricMode === "mentions") { 
-          if (d.nodeType === "user") { 
-            return defaultRadiusScale(Math.sqrt(d.followersMentions)); 
-          }
+          // if (d.nodeType === "user") { 
+          //   return defaultRadiusScale(Math.sqrt(d.followersMentions)); 
+          // }
           return defaultRadiusScale(Math.sqrt(d.mentions));
         }
       })
@@ -1243,9 +1243,9 @@ function ViewTreepack() {
       .style("font-size", function (d) {
         if (metricMode === "rate") {return nodeLabelSizeScale(d.rate);}
         if (metricMode === "mentions") {
-          if (d.nodeType === "user") { 
-            return nodeLabelSizeScale(d.followersMentions);
-          }
+          // if (d.nodeType === "user") { 
+          //   return nodeLabelSizeScale(d.followersMentions);
+          // }
           return nodeLabelSizeScale(d.mentions);
         }
       });
@@ -1326,9 +1326,9 @@ function ViewTreepack() {
       .style("font-size", function (d) {
         if (metricMode === "rate") {return nodeLabelSizeScale(d.rate);}
         if (metricMode === "mentions") {
-          if (d.nodeType === "user") { 
-            return nodeLabelSizeScale(d.followersMentions);
-          }
+          // if (d.nodeType === "user") { 
+          //   return nodeLabelSizeScale(d.followersMentions);
+          // }
           return nodeLabelSizeScale(d.mentions);
         }
       });
@@ -1698,16 +1698,19 @@ function ViewTreepack() {
       newNode.followersMentions = newNode.mentions + newNode.followersCount;
     }
 
-    if ((newNode.nodeType === "user") && (newNode.followersMentions > currentMax.mentions.value)) { 
+    // if ((newNode.nodeType === "user") && (newNode.followersMentions > currentMax.mentions.value)) { 
+    if ((newNode.nodeType === "user") && (newNode.mentions > currentMax.mentions.value)) { 
 
       newCurrentMaxMetricFlag = true;
 
-      currentMax.mentions.value = newNode.followersMentions; 
+      // currentMax.mentions.value = newNode.followersMentions; 
+      currentMax.mentions.value = newNode.mentions; 
       currentMax.mentions.nodeId = newNode.screenName.toLowerCase(); 
       currentMax.mentions.timeStamp = moment().valueOf(); 
 
       if (metricMode === "mentions") {
-        currentMaxMetric = newNode.followersMentions; 
+        // currentMaxMetric = newNode.followersMentions; 
+        currentMaxMetric = newNode.mentions; 
       }
     }
     else if (newNode.mentions > currentMax.mentions.value) { 
@@ -1817,12 +1820,12 @@ function ViewTreepack() {
       .force("collide", d3.forceCollide().radius(function forceCollideFunc(d) { 
         if (metricMode === "rate") {return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.rate));}
         if (metricMode === "mentions") {
-          if (d.nodeType === "user") { 
-            if (d.followersCount === undefined) {
-              return collisionRadiusMultiplier * defaultRadiusScale(d.mentions);
-            }
-            return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.followersMentions));
-          }
+          // if (d.nodeType === "user") { 
+          //   if (d.followersCount === undefined) {
+          //     return collisionRadiusMultiplier * defaultRadiusScale(d.mentions);
+          //   }
+          //   return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.followersMentions));
+          // }
           return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.mentions));
         }
       }).iterations(collisionIterations).strength(1.0))
@@ -1964,12 +1967,12 @@ function ViewTreepack() {
         .force("collide", d3.forceCollide().radius(function forceCollideFunc(d) { 
           if (metricMode === "rate") {return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.rate));}
           if (metricMode === "mentions") {
-            if (d.nodeType === "user") { 
-              if (d.followersCount === undefined) {
-                return collisionRadiusMultiplier * defaultRadiusScale(d.mentions);
-              }
-              return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.followersMentions));
-            }
+            // if (d.nodeType === "user") { 
+            //   if (d.followersCount === undefined) {
+            //     return collisionRadiusMultiplier * defaultRadiusScale(d.mentions);
+            //   }
+            //   return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.followersMentions));
+            // }
             return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.mentions));
           }
         }).iterations(collisionIterations))

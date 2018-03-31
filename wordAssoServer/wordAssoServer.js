@@ -2318,12 +2318,13 @@ function updateNodeMeter(node, callback){
         nCacheObj.meter.mark();
         node.rate = parseFloat(nCacheObj.meter.toJSON()[metricsRate]);
 
-        console.log("METER"
+        debug("METER"
           + " | T: " + node.nodeType
           + " | NID: " + node.nodeId
           + " | R: " + node.rate.toFixed(2)
           + " | M: " + node.mentions
         );
+        
         nodeCache.set(nodeId, { node: node, meter: nCacheObj.meter});
         callback(null, node);
 

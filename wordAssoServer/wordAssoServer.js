@@ -48,6 +48,7 @@ let twitterUserThreecee = {
     url : "http://threeCeeMedia.com",
     name : "Tracy Collins",
     screenName : "threecee",
+    nodeId : "14607119",
     nodeType : "user",
     following : null,
     description : "photography + animation + design",
@@ -349,6 +350,8 @@ tmsServer.connected = false;
 tmsServer.user = {};
 tmsServer.socket = {};
 
+let nodeMeter = {};
+
 let tweetRxQueueInterval;
 let tweetParserQueue = [];
 let tweetParserMessageRxQueue = [];
@@ -571,6 +574,29 @@ function nodeCacheExpired(nodeCacheId, nodeObj) {
     + " | " + nodeCacheId
   ));
 
+  if (nodeMeter[nodeCacheId] || (nodeMeter[nodeCacheId] !== undefined)) {
+
+    nodeMeter[nodeCacheId].end();
+    nodeMeter[nodeCacheId] = null;
+
+    nodeMeter = omit(nodeMeter, nodeCacheId);
+    delete nodeMeter[nodeCacheId];
+
+    debugCache(chalkLog("XXX NODE METER"
+      + " | Ks: " + Object.keys(nodeMeter).length
+      + " | " + nodeCacheId
+    ));
+
+
+    if (statsObj.nodeMeterEntries > statsObj.wordMeterEntriesMax) {
+      statsObj.wordMeterEntriesMax = statsObj.nodeMeterEntries;
+      statsObj.wordMeterEntriesMaxTime = moment().valueOf();
+      debugCache(chalkLog("NEW MAX NODE METER ENTRIES"
+        + " | " + moment().format(compactDateTimeFormat)
+        + " | " + statsObj.nodeMeterEntries.toFixed(0)
+      ));
+    }
+  }
 }
 
 nodeCache.on("expired", nodeCacheExpired);
@@ -2248,61 +2274,95 @@ function initUpdateTrendsInterval(interval){
   }, interval);
 }
 
-function updateNodeMeter(node, callback){
+function updateNodeMeter(nodeObj, callback){
+
+  // if (!configuration.metrics.wordMeterEnabled
+  //   || (nodeObj.nodeType === "media") 
+  //   || (nodeObj.nodeType === "url")
+  //   || (nodeObj.nodeType === "keepalive")
+  //   ) {
+  //   callback(null, nodeObj);
+  //   return;
+  // }
 
   if (!configuration.metrics.wordMeterEnabled
-    || ((node.nodeType !== "user") && (node.nodeType !== "hashtag") && (node.nodeType !== "place"))) {
-    return(callback(null, node));
+    || ((nodeObj.nodeType !== "user") && (nodeObj.nodeType !== "hashtag") && (nodeObj.nodeType !== "place"))) {
+    callback(null, nodeObj);
+    return;
   }
 
-  if (node.nodeId === undefined) {
-    console.log(chalkError("NODE ID UNDEFINED\n" + jsonPrint(node)));
-    return(callback("NODE ID UNDEFINED", node));
+  if (nodeObj.nodeId === undefined) {
+    console.log(chalkError("NODE ID UNDEFINED\n" + jsonPrint(nodeObj)));
+    callback("NODE ID UNDEFINED", nodeObj);
   }
 
-  const nodeId = node.nodeId;
+  let meterNodeId;
 
-  if (ignoreWordHashMap.has(nodeId)) {
+  meterNodeId = nodeObj.nodeId;
 
-    debug(chalkLog("updateNodeMeter IGNORE " + nodeId));
+  if (ignoreWordHashMap.has(meterNodeId)) {
 
-    node.isIgnored = true;
-    nodeCache.del(nodeId);
+    debug(chalkLog("updateNodeMeter IGNORE " + meterNodeId));
 
-    callback(null, node);
+    nodeObj.isIgnored = true;
+    nodeMeter[meterNodeId] = null;
+    delete nodeMeter[meterNodeId];
+
+    if (callback !== undefined) { callback(null, nodeObj); }
   }
   else {
-    if (/TSS_/.test(nodeId) || node.isServer){
-      debug(chalkLog("updateNodeMeter\n" + jsonPrint(node)));
-      callback(null, node);
+    if (/TSS_/.test(meterNodeId) || nodeObj.isServer){
+      debug(chalkLog("updateNodeMeter\n" + jsonPrint(nodeObj)));
+      if (callback !== undefined) { callback(null, nodeObj); }
+    }
+    else if (!nodeMeter[meterNodeId] 
+      || (Object.keys(nodeMeter[meterNodeId]).length === 0)
+      || (nodeMeter[meterNodeId] === undefined) ){
+
+      nodeMeter[meterNodeId] = null;
+
+      const newMeter = new Measured.Meter({rateUnit: 60000});
+
+      newMeter.mark();
+      
+      nodeObj.rate = parseFloat(newMeter.toJSON()[metricsRate]);
+      nodeObj.mentions += 1;
+
+      nodeMeter[meterNodeId] = newMeter;
+
+      nodeCache.set(meterNodeId, nodeObj);
+
+      statsObj.nodeMeterEntries = Object.keys(nodeMeter).length;
+
+      if (statsObj.nodeMeterEntries > statsObj.wordMeterEntriesMax) {
+        statsObj.wordMeterEntriesMax = statsObj.nodeMeterEntries;
+        statsObj.wordMeterEntriesMaxTime = moment().valueOf();
+        debug(chalkLog("NEW MAX NODE METER ENTRIES"
+          + " | " + moment().format(compactDateTimeFormat)
+          + " | " + statsObj.nodeMeterEntries.toFixed(0)
+        ));
+      }
+
+      if (callback !== undefined) { callback(null, nodeObj); }
     }
     else {
 
-      nodeCache.get(nodeId, function(err, nCacheObj){
 
-        if (nCacheObj === undefined) { 
-          let meter = new Measured.Meter({rateUnit: 60000});
-          nCacheObj = {};
-          nCacheObj.meter = meter;
-          nCacheObj.node = node;
-        }
+      nodeMeter[meterNodeId].mark();
 
-        node.mentions = Math.max(nCacheObj.node.mentions, node.mentions);
-        node.mentions += 1;
-        nCacheObj.meter.mark();
-        node.rate = parseFloat(nCacheObj.meter.toJSON()[metricsRate]);
+      nodeObj.rate = parseFloat(nodeMeter[meterNodeId].toJSON()[metricsRate]);
 
-        debug("METER"
-          + " | T: " + node.nodeType
-          + " | NID: " + node.nodeId
-          + " | R: " + node.rate.toFixed(2)
-          + " | M: " + node.mentions
-        );
+      let nCacheObj = nodeCache.get(meterNodeId);
 
-        nodeCache.set(nodeId, { node: node, meter: nCacheObj.meter});
-        callback(null, node);
+      if (nCacheObj) {
+        nodeObj.mentions = Math.max(nodeObj.mentions, nCacheObj.mentions);
+      }
 
-      });
+      nodeObj.mentions += 1;
+
+      nodeCache.set(meterNodeId, nodeObj);
+
+      if (callback !== undefined) { callback(null, nodeObj); }
     }
   }
 }
@@ -3206,7 +3266,7 @@ function initSorterMessageRxQueueInterval(interval){
 
   let sortedKeys;
   let endIndex;
-  let nodeId;
+  let node;
   let nodeRate;
   let sorterObj;
 
@@ -3227,22 +3287,31 @@ function initSorterMessageRxQueueInterval(interval){
           sortedKeys = sorterObj.sortedKeys;
           endIndex = Math.min(configuration.maxTopTerms, sortedKeys.length);
 
+          // for (index=0; index < endIndex; index += 1){
+
           async.times(endIndex, function(index, next) {
 
-            nodeId = sortedKeys[index].toLowerCase();
+            node = sortedKeys[index].toLowerCase();
 
-            nodeCache.get(nodeId, function(err, nCacheObj){
+            if (nodeMeter[node]) {
 
-              if (nCacheObj) {
-                nodeRate = parseFloat(nCacheObj.meter.toJSON()[metricsRate]);
-                wordsPerMinuteTopTermCache.set(nodeId, nodeRate);
-                next();
-              }
-              else {
-                next();
-              }
-            });
+              nodeRate = parseFloat(nodeMeter[node].toJSON()[metricsRate]);
 
+              wordsPerMinuteTopTermCache.set(node, nodeRate);
+              next();
+
+              // if (!deletedMetricsHashmap.has(node) 
+              //   && GOOGLE_METRICS_ENABLED 
+              //   && (nodeRate > MIN_METRIC_VALUE)) {
+              //   addTopTermMetricDataPoint(node, nodeRate);
+              //   next();
+              // }
+              // else {
+              //   debug(chalkLog("SKIP ADD METRIC | " + node + " | " + nodeRate.toFixed(3)));
+              //   next();
+              // }
+
+            }
 
           }, function(){
 
@@ -3674,24 +3743,19 @@ function initRateQinterval(interval){
       paramsSorter.max = configuration.maxTopTerms;
       paramsSorter.obj = {};
 
-      const nodeCacheKeys = nodeCache.keys();
+      async.each(Object.keys(nodeMeter), function sorterParams(meterId, cb){
 
-      async.each(nodeCacheKeys, function sorterParams(nodeId, cb){
+        if (!nodeMeter[meterId]) {
+          console.error(chalkError("*** ERROR NULL nodeMeter[meterId]: " + meterId));
+        }
 
-        nodeCache.get(nodeId, function(err, nCacheObj){
+        paramsSorter.obj[meterId] = pick(nodeMeter[meterId].toJSON(), paramsSorter.sortKey);
 
-          if (nCacheObj === undefined) {
-            console.error(chalkError("*** ERROR NULL NODE CACHE ENTRY: " + nodeId));
-          }
-          else {
-            paramsSorter.obj[nodeId] = pick(nCacheObj.meter.toJSON(), paramsSorter.sortKey);
-          }
-
-          cb();
-
-        });
+        cb();
 
       }, function(err){
+
+        // console.log(chalkAlert("paramsSorter\n" + jsonPrint(paramsSorter)));
 
         if (err) {
           console.error(chalkError("ERROR RATE QUEUE INTERVAL\n" + err ));
@@ -4020,6 +4084,17 @@ function initStatsInterval(interval){
     statsObj.timeStamp = moment().format(compactDateTimeFormat);
     statsObj.runTime = moment().valueOf() - statsObj.startTime;
     statsObj.upTime = os.uptime() * 1000;
+
+    statsObj.nodeMeterEntries = Object.keys(nodeMeter).length;
+
+    if (statsObj.nodeMeterEntries > statsObj.wordMeterEntriesMax) {
+      statsObj.wordMeterEntriesMax = statsObj.nodeMeterEntries;
+      statsObj.wordMeterEntriesMaxTime = moment().valueOf();
+      debug(chalkLog("NEW MAX NODE METER ENTRIES"
+        + " | " + moment().format(compactDateTimeFormat)
+        + " | " + statsObj.nodeMeterEntries.toFixed(0)
+      ));
+    }
 
     statsObj.memory.heap = process.memoryUsage().heapUsed/(1024*1024);
 

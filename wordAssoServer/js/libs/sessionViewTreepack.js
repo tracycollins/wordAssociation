@@ -206,7 +206,6 @@ function ViewTreepack() {
     this.categoryAuto = false;
     this.categoryMatch = false;
     this.categoryMismatch = false;
-    this.isTwitterUser = false;
     this.isTopTerm = false;
     this.isTrendingTopic = false;
     this.categoryColor = palette.white;
@@ -829,6 +828,8 @@ function ViewTreepack() {
 
         var c = document.getElementById(node.nodePooId);
         c.setAttribute("r", 1e-6);
+        c.setAttribute("visibility", "hidden");
+        c.setAttribute("opacity", 1e-6);
         nodePool.recycle(node);
        } 
       else {
@@ -1055,7 +1056,6 @@ function ViewTreepack() {
       .on("click", nodeClick)
       .style("pointer-events", "auto")
       .attr("x", xposition)
-      // .attr("y", yposition)
       .text(function updateTopTermText(d) {
         return d.displaytext;
       })
@@ -1067,7 +1067,7 @@ function ViewTreepack() {
       .style("fill", function updateTopTermFill(d) { 
         if (d.mouseHoverFlag) { return palette.blue; }
         if (d.category || d.categoryAuto) { return d.categoryColor; }
-        if (d.isTrendingTopic || d.isTwitterUser || d.isNumber || d.isCurrency) { return palette.white; }
+        if (d.isTrendingTopic || d.isNumber || d.isCurrency) { return palette.white; }
         if ((d.isGroupNode || d.isSessionNode) && (d.ageMaxRatio < 0.01)) { return palette.yellow; }
         return palette.darkgray; 
       })
@@ -1261,7 +1261,7 @@ function ViewTreepack() {
             return "@UNKNOWN?"; 
           }
         }
-        if (d.category || d.isTrendingTopic || d.isTwitterUser) { 
+        if (d.category || d.isTrendingTopic) { 
           if (d.nodeType === "hashtag") { return "#" + d.text.toUpperCase(); }
           if (d.nodeType === "place") { return d.fullName.toUpperCase(); }
           return d.nodeId.toUpperCase(); 
@@ -1409,7 +1409,6 @@ function ViewTreepack() {
       }
     }
     else {
-      // if (node.isTwitterUser) { 
       if (node.nodeType === "user") { 
         if (node.screenName) {
           displaytext = new Array(ratePadSpaces).join("\xa0") + rate 
@@ -1509,10 +1508,6 @@ function ViewTreepack() {
 
         var currentNode = nodePool.use();
 
-        // currentNode = newNode;
-
-        currentNode.isValid = true;
-
         currentNode.nodeId = newNode.nodeId;
         currentNode.userId = newNode.userId;
         currentNode.hashtagId = newNode.hashtagId;
@@ -1536,9 +1531,7 @@ function ViewTreepack() {
         currentNode.mentions = newNode.mentions;
         currentNode.statusesCount = newNode.statusesCount;
         currentNode.friendsCount = newNode.friendsCount;
-        // currentNode.followersCount = newNode.followersCount;
 
-        // currentNode.followersMentions = newNode.followersMentions;
         if (newNode.nodeType === "user"){
           currentNode.followersCount = newNode.followersCount || 0;
           currentNode.followersMentions = newNode.followersCount + newNode.mentions;
@@ -1578,6 +1571,12 @@ function ViewTreepack() {
           currentNode.y = focus("neutral").y;
         }
 
+        var c = document.getElementById(currentNode.nodePooId);
+        c.setAttribute("r", 1e-6);
+        c.setAttribute("visibility", "hidden");
+        c.setAttribute("opacity", 1e-6);
+
+        currentNode.isValid = true;
         localNodeHashMap.set(currentNode.nodeId, currentNode);
         nodeArray = localNodeHashMap.values();
 
@@ -1682,7 +1681,6 @@ function ViewTreepack() {
     newNode.mentions = (newNode.mentions) ? newNode.mentions : 0;
 
     if (newNode.nodeType === "user") {
-      newNode.isTwitterUser = true;
       newNode.followersMentions = newNode.mentions + newNode.followersCount;
     }
 

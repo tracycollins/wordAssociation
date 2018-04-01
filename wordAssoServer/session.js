@@ -328,10 +328,28 @@ statsObj.socketId = null;
 statsObj.socketErrors = 0;
 statsObj.maxNodes = 0;
 statsObj.maxNodeAddQ = 0;
-statsObj.heartbeat = {};
-statsObj.heartbeat.wordsPerMin = 0;
-statsObj.heartbeat.maxWordsPerMin = 0;
 statsObj.serverConnected = false;
+
+statsObj.heartbeat = {};
+statsObj.heartbeat.tweetsPerMin = 0;
+statsObj.heartbeat.maxTweetsPerMin = 0;
+statsObj.heartbeat.nodesPerMin = 0;
+statsObj.heartbeat.maxNodesPerMin = 0;
+statsObj.heartbeat.serverTime = null;
+statsObj.heartbeat.runTime = null;
+statsObj.heartbeat.upTime = null;
+statsObj.heartbeat.elapsed = null;
+
+statsObj.heartbeat.memory = {};
+
+statsObj.heartbeat.nodesPerMin = 0;
+statsObj.heartbeat.maxNodesPerMin = 0;
+statsObj.heartbeat.maxNodesPerMinTime = 0;
+
+statsObj.heartbeat.twitter = {};
+statsObj.heartbeat.twitter.tweetsPerMin = 0;
+statsObj.heartbeat.twitter.maxTweetsPerMin = 0;
+statsObj.heartbeat.twitter.maxTweetsPerMinTime = 0;
 
 var serverHeartbeatTimeout = 30000;
 var serverCheckInterval = 30000;
@@ -1835,7 +1853,7 @@ function createStatsTable(callback) {
     type: "TEXT",
     id: "statsServerTime",
     class: "statsTableText",
-    text: statsObj.heartbeat.timeStamp
+    text: moment(parseInt(statsObj.heartbeat.serverTime)).format(defaultDateTimeFormat)
   };
 
   var statsServerUpTimeLabel = {
@@ -1849,7 +1867,7 @@ function createStatsTable(callback) {
     type: "TEXT",
     id: "statsServerUpTime",
     class: "statsTableText",
-    text: statsObj.heartbeat.upTime
+    text: moment(parseInt(statsObj.heartbeat.upTime)).format(defaultDateTimeFormat)
   };
 
   var statsServerStartTimeLabel = {
@@ -1863,7 +1881,7 @@ function createStatsTable(callback) {
     type: "TEXT",
     id: "statsServerStartTime",
     class: "statsTableText",
-    text: statsObj.heartbeat.startTime
+    text: moment(parseInt(statsObj.heartbeat.startTime)).format(defaultDateTimeFormat)
   };
 
   var statsServerRunTimeLabel = {
@@ -1877,7 +1895,7 @@ function createStatsTable(callback) {
     type: "TEXT",
     id: "statsServerRunTime",
     class: "statsTableText",
-    text: statsObj.heartbeat.runTime
+    text: msToTime(statsObj.heartbeat.runTime)
   };
 
   switch (config.sessionViewType) {
@@ -1964,11 +1982,8 @@ setInterval(function() {
 function deleteSession(nodeId, callback) {
 
   if (!sessionHashMap.has(nodeId)) {
-    // console.warn("deleteSession: SID NOT IN HASH: " + nodeId + " ... SKIPPING DELETE");
     return (callback(nodeId));
   }
-
-  // console.warn("deleteSession: " + nodeId);
 
   var deletedSession = sessionHashMap.get(nodeId);
   var groupLinkId = deletedSession.groupId + "_" + deletedSession.node.nodeId;

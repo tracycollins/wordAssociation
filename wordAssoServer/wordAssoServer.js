@@ -602,9 +602,9 @@ function nodeCacheExpired(nodeCacheId, nodeObj) {
     ));
 
 
-    if (statsObj.nodeMeterEntries > statsObj.wordMeterEntriesMax) {
-      statsObj.wordMeterEntriesMax = statsObj.nodeMeterEntries;
-      statsObj.wordMeterEntriesMaxTime = moment().valueOf();
+    if (statsObj.nodeMeterEntries > statsObj.nodeMeterEntriesMax) {
+      statsObj.nodeMeterEntriesMax = statsObj.nodeMeterEntries;
+      statsObj.nodeMeterEntriesMaxTime = moment().valueOf();
       debugCache(chalkLog("NEW MAX NODE METER ENTRIES"
         + " | " + moment().format(compactDateTimeFormat)
         + " | " + statsObj.nodeMeterEntries.toFixed(0)
@@ -629,18 +629,18 @@ const trendingCache = new NodeCache({
   checkperiod: TRENDING_CACHE_CHECK_PERIOD
 });
 
-let wordsPerMinuteTopTermTtl = process.env.TOPTERMS_CACHE_DEFAULT_TTL;
-if (wordsPerMinuteTopTermTtl === undefined) {wordsPerMinuteTopTermTtl = TOPTERMS_CACHE_DEFAULT_TTL;}
-console.log("TOP TERMS WPM CACHE TTL: " + wordsPerMinuteTopTermTtl + " SECONDS");
+let nodesPerMinuteTopTermTtl = process.env.TOPTERMS_CACHE_DEFAULT_TTL;
+if (nodesPerMinuteTopTermTtl === undefined) {nodesPerMinuteTopTermTtl = TOPTERMS_CACHE_DEFAULT_TTL;}
+console.log("TOP TERMS WPM CACHE TTL: " + nodesPerMinuteTopTermTtl + " SECONDS");
 
-let wordsPerMinuteTopTermCheckPeriod = process.env.TOPTERMS_CACHE_CHECK_PERIOD;
-if (wordsPerMinuteTopTermCheckPeriod === undefined) {
-  wordsPerMinuteTopTermCheckPeriod = TOPTERMS_CACHE_CHECK_PERIOD;
+let nodesPerMinuteTopTermCheckPeriod = process.env.TOPTERMS_CACHE_CHECK_PERIOD;
+if (nodesPerMinuteTopTermCheckPeriod === undefined) {
+  nodesPerMinuteTopTermCheckPeriod = TOPTERMS_CACHE_CHECK_PERIOD;
 }
-console.log("TOP TERMS WPM CACHE CHECK PERIOD: " + wordsPerMinuteTopTermCheckPeriod + " SECONDS");
+console.log("TOP TERMS WPM CACHE CHECK PERIOD: " + nodesPerMinuteTopTermCheckPeriod + " SECONDS");
 
-const wordsPerMinuteTopTermCache = new NodeCache({
-  stdTTL: wordsPerMinuteTopTermTtl,
+const nodesPerMinuteTopTermCache = new NodeCache({
+  stdTTL: nodesPerMinuteTopTermTtl,
   checkperiod: TOPTERMS_CACHE_CHECK_PERIOD
 });
 
@@ -648,7 +648,7 @@ function wordCacheExpired(word, wordRate) {
   debugCache(chalkInfo("XXX $ WPM TOPTERM | " + wordRate.toFixed(3) + " | " + word));
 }
 
-// wordsPerMinuteTopTermCache.on("expired", wordCacheExpired);
+// nodesPerMinuteTopTermCache.on("expired", wordCacheExpired);
 
 let updateMetricsInterval;
 
@@ -665,17 +665,17 @@ configuration.socketIoAuthTimeout = 30*ONE_SECOND;
 configuration.quitOnError = false;
 configuration.maxTopTerms = process.env.WA_MAX_TOP_TERMS || 100;
 configuration.metrics = {};
-configuration.metrics.wordMeterEnabled = true;
+configuration.metrics.nodeMeterEnabled = true;
 
-if (process.env.NODE_WORD_METER_ENABLED !== undefined) {
-  if (process.env.NODE_WORD_METER_ENABLED === "true") {
-    configuration.metrics.wordMeterEnabled = true;
+if (process.env.NODE_METER_ENABLED !== undefined) {
+  if (process.env.NODE_METER_ENABLED === "true") {
+    configuration.metrics.nodeMeterEnabled = true;
   }
-  else if (process.env.NODE_WORD_METER_ENABLED === "false") {
-    configuration.metrics.wordMeterEnabled = false;
+  else if (process.env.NODE_METER_ENABLED === "false") {
+    configuration.metrics.nodeMeterEnabled = false;
   }
   else {
-    configuration.metrics.wordMeterEnabled = true;
+    configuration.metrics.nodeMeterEnabled = true;
   }
 }
 
@@ -722,8 +722,8 @@ function initStats(callback){
   statsObj.errors.twitter.maxRxQueue = 0;
 
   statsObj.nodeMeterEntries = 0;
-  statsObj.wordMeterEntriesMax = 0;
-  statsObj.wordMeterEntriesMaxTime = moment().valueOf();
+  statsObj.nodeMeterEntriesMax = 0;
+  statsObj.nodeMeterEntriesMaxTime = moment().valueOf();
 
   statsObj.children = {};
 
@@ -731,33 +731,30 @@ function initStats(callback){
   statsObj.twitter.tweetsReceived = 0;
   statsObj.twitter.tweetsPerMin = 0;
   statsObj.twitter.maxTweetsPerMinTime = moment().valueOf();
-
   statsObj.hostname = hostname;
   statsObj.name = "Word Association Server Status";
   statsObj.startTime = moment().valueOf();
   statsObj.timeStamp = moment().format(compactDateTimeFormat);
+  statsObj.serverTime = moment().valueOf();
   statsObj.upTime = os.uptime() * 1000;
   statsObj.runTime = 0;
   statsObj.runTimeArgs = process.argv;
-
-  statsObj.wordsPerMin = 0;
-  statsObj.maxWordsPerMin = 0;
-  statsObj.maxWordsPerMinTime = moment().valueOf();
-
-  statsObj.wordsPerMin = 0.0;
-  statsObj.wordsPerSecond = 0.0;
-  statsObj.maxWordsPerMin = 0.0;
+  statsObj.nodesPerMin = 0;
+  statsObj.maxNodesPerMin = 0;
+  statsObj.maxNodesPerMinTime = moment().valueOf();
+  statsObj.nodesPerMin = 0.0;
+  statsObj.nodesPerSec = 0.0;
+  statsObj.maxNodesPerMin = 0.0;
   statsObj.maxTweetsPerMin = 0.0;
-
   statsObj.caches = {};
   statsObj.caches.nodeCache = {};
   statsObj.caches.nodeCache.stats = {};
   statsObj.caches.nodeCache.stats.keys = 0;
   statsObj.caches.nodeCache.stats.keysMax = 0;
-  statsObj.caches.wordsPerMinuteTopTermCache = {};
-  statsObj.caches.wordsPerMinuteTopTermCache.stats = {};
-  statsObj.caches.wordsPerMinuteTopTermCache.stats.keys = 0;
-  statsObj.caches.wordsPerMinuteTopTermCache.stats.keysMax = 0;
+  statsObj.caches.nodesPerMinuteTopTermCache = {};
+  statsObj.caches.nodesPerMinuteTopTermCache.stats = {};
+  statsObj.caches.nodesPerMinuteTopTermCache.stats.keys = 0;
+  statsObj.caches.nodesPerMinuteTopTermCache.stats.keysMax = 0;
 
   statsObj.db = {};
   statsObj.db.errors = 0;
@@ -832,9 +829,6 @@ function initStats(callback){
 
   callback();
 }
-
-// let updaterPingInterval;
-// let updaterPingOutstanding = 0;
 
 function quit(message) {
   // clearInterval(updaterPingInterval);
@@ -2159,10 +2153,10 @@ function checkCategory(nodeObj, callback) {
           + " | CATA: " + nodeObj.categoryAuto
         ));
 
-        wordsPerMinuteTopTermCache.get(nodeObj.nodeId,
+        nodesPerMinuteTopTermCache.get(nodeObj.nodeId,
           function topTermNodeId(err, nodeId) {
           if (err){
-            console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
+            console.log(chalkError("nodesPerMinuteTopTermCache GET ERR: " + err));
           }
           if (nodeId !== undefined) {
             debugCategory(chalkLog("TOP TERM USER NODEID: " + nodeId));
@@ -2192,10 +2186,10 @@ function checkCategory(nodeObj, callback) {
           + " | CATA: " + nodeObj.categoryAuto
         ));
 
-        wordsPerMinuteTopTermCache.get(nodeObj.nodeId,
+        nodesPerMinuteTopTermCache.get(nodeObj.nodeId,
           function topTermNodeId(err, nodeId) {
           if (err){
-            console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
+            console.log(chalkError("nodesPerMinuteTopTermCache GET ERR: " + err));
           }
           if (nodeId !== undefined) {
             debugCategory(chalkLog("TOP TERM HASHTAG NODEID: " + nodeId));
@@ -2285,7 +2279,7 @@ function initUpdateTrendsInterval(interval){
 
 function updateNodeMeter(nodeObj, callback){
 
-  // if (!configuration.metrics.wordMeterEnabled
+  // if (!configuration.metrics.nodeMeterEnabled
   //   || (nodeObj.nodeType === "media") 
   //   || (nodeObj.nodeType === "url")
   //   || (nodeObj.nodeType === "keepalive")
@@ -2294,7 +2288,7 @@ function updateNodeMeter(nodeObj, callback){
   //   return;
   // }
 
-  if (!configuration.metrics.wordMeterEnabled
+  if (!configuration.metrics.nodeMeterEnabled
     || ((nodeObj.nodeType !== "user") && (nodeObj.nodeType !== "hashtag") && (nodeObj.nodeType !== "place"))) {
     callback(null, nodeObj);
     return;
@@ -2343,9 +2337,9 @@ function updateNodeMeter(nodeObj, callback){
 
       statsObj.nodeMeterEntries = Object.keys(nodeMeter).length;
 
-      if (statsObj.nodeMeterEntries > statsObj.wordMeterEntriesMax) {
-        statsObj.wordMeterEntriesMax = statsObj.nodeMeterEntries;
-        statsObj.wordMeterEntriesMaxTime = moment().valueOf();
+      if (statsObj.nodeMeterEntries > statsObj.nodeMeterEntriesMax) {
+        statsObj.nodeMeterEntriesMax = statsObj.nodeMeterEntries;
+        statsObj.nodeMeterEntriesMaxTime = moment().valueOf();
         debug(chalkLog("NEW MAX NODE METER ENTRIES"
           + " | " + moment().format(compactDateTimeFormat)
           + " | " + statsObj.nodeMeterEntries.toFixed(0)
@@ -2421,7 +2415,7 @@ function initTransmitNodeQueueInterval(interval){
 
         checkCategory(nodeObj, function checkCategoryCallback(node){
 
-          updateNodeMeter(node, function updateWordMeterCallback(err, n){
+          updateNodeMeter(node, function updateNodeMeterCallback(err, n){
 
             transmitNodeQueueReady = true;
 
@@ -2528,7 +2522,7 @@ function logHeartbeat() {
   memoryAvailablePercent = (statsObj.memory.memoryAvailable/statsObj.memory.memoryTotal);
 
   debug(chalkLog("HB " + heartbeatsSent 
-    + " | " + moment(parseInt(statsObj.timeStamp)).format(compactDateTimeFormat) 
+    + " | " + moment().format(compactDateTimeFormat) 
     + " | ST: " + moment(parseInt(statsObj.startTime)).format(compactDateTimeFormat) 
     + " | UP: " + msToTime(statsObj.upTime) 
     + " | RN: " + msToTime(statsObj.runTime) 
@@ -2581,8 +2575,12 @@ configEvents.on("SERVER_READY", function serverReady() {
   memoryTotalMB = (statsObj.memory.memoryTotal/(1024*1024));
   memoryAvailablePercent = (statsObj.memory.memoryAvailable/statsObj.memory.memoryTotal);
 
+  let hearbeatObj = {};
+  hearbeatObj.memory = {};
+
   setInterval(function hearbeatInterval() {
 
+    statsObj.serverTime = moment().valueOf();
     statsObj.runTime = moment().valueOf() - statsObj.startTime;
     statsObj.upTime = os.uptime() * 1000;
     statsObj.memory.memoryTotal = os.totalmem();
@@ -2590,16 +2588,30 @@ configEvents.on("SERVER_READY", function serverReady() {
     statsObj.memory.memoryUsage = process.memoryUsage();
 
     if (internetReady && ioReady) {
-
-      heartbeatsSent += 1;
-
       statsObj.configuration = configuration;
 
-      // utilNameSpace.volatile.emit("HEARTBEAT", statsObj);
-      // adminNameSpace.volatile.emit("HEARTBEAT", statsObj);
-      // userNameSpace.volatile.emit("HEARTBEAT", statsObj);
-      // viewNameSpace.volatile.emit("HEARTBEAT", statsObj);
+      hearbeatObj.serverTime = statsObj.serverTime;
+      hearbeatObj.runTime = statsObj.runTime;
+      hearbeatObj.upTime = statsObj.upTime;
+      hearbeatObj.elapsed = statsObj.elapsed;
 
+      hearbeatObj.memory = statsObj.memory;
+
+      hearbeatObj.tweetsPerMin = statsObj.tweetsPerMin;
+      hearbeatObj.maxTweetsPerMin = statsObj.maxTweetsPerMin;
+      hearbeatObj.nodesPerMin = statsObj.nodesPerMin;
+      hearbeatObj.maxNodesPerMin = statsObj.maxNodesPerMin;
+
+      hearbeatObj.twitter.tweetsPerMin = statsObj.twitter.tweetsPerMin;
+      hearbeatObj.twitter.maxTweetsPerMin = statsObj.twitter.maxTweetsPerMin;
+      hearbeatObj.twitter.maxTweetsPerMinTime = statsObj.twitter.maxTweetsPerMinTime;
+
+      utilNameSpace.volatile.emit("HEARTBEAT", hearbeatObj);
+      adminNameSpace.volatile.emit("HEARTBEAT", hearbeatObj);
+      userNameSpace.volatile.emit("HEARTBEAT", hearbeatObj);
+      viewNameSpace.volatile.emit("HEARTBEAT", hearbeatObj);
+
+      heartbeatsSent += 1;
       if (heartbeatsSent % 60 === 0) { logHeartbeat(); }
 
     } 
@@ -3157,7 +3169,7 @@ function initSorterMessageRxQueueInterval(interval){
 
               nodeRate = parseFloat(nodeMeter[node].toJSON()[metricsRate]);
 
-              wordsPerMinuteTopTermCache.set(node, nodeRate);
+              nodesPerMinuteTopTermCache.set(node, nodeRate);
               next();
             }
 
@@ -3356,7 +3368,7 @@ function getCustomMetrics(){
 
 const cacheObj = {
   "nodeCache": nodeCache,
-  "wordsPerMinuteTopTermCache": wordsPerMinuteTopTermCache,
+  "nodesPerMinuteTopTermCache": nodesPerMinuteTopTermCache,
   "trendingCache": trendingCache
 };
 
@@ -3375,9 +3387,9 @@ function initRateQinterval(interval){
   
   clearInterval(updateMetricsInterval);
 
-  statsObj.wordsPerMin = 0.0;
-  statsObj.wordsPerSecond = 0.0;
-  statsObj.maxWordsPerMin = 0.0;
+  statsObj.nodesPerMin = 0.0;
+  statsObj.nodesPerSec = 0.0;
+  statsObj.maxNodesPerMin = 0.0;
   statsObj.maxTweetsPerMin = 0.0;
 
   statsObj.queues.transmitNodeQueue = transmitNodeQueue.length;
@@ -3897,9 +3909,9 @@ function initStatsInterval(interval){
 
     statsObj.nodeMeterEntries = Object.keys(nodeMeter).length;
 
-    if (statsObj.nodeMeterEntries > statsObj.wordMeterEntriesMax) {
-      statsObj.wordMeterEntriesMax = statsObj.nodeMeterEntries;
-      statsObj.wordMeterEntriesMaxTime = moment().valueOf();
+    if (statsObj.nodeMeterEntries > statsObj.nodeMeterEntriesMax) {
+      statsObj.nodeMeterEntriesMax = statsObj.nodeMeterEntries;
+      statsObj.nodeMeterEntriesMaxTime = moment().valueOf();
       debug(chalkLog("NEW MAX NODE METER ENTRIES"
         + " | " + moment().format(compactDateTimeFormat)
         + " | " + statsObj.nodeMeterEntries.toFixed(0)
@@ -3979,7 +3991,7 @@ initialize(configuration, function initializeComplete(err) {
 
     console.log(chalkAlert("CONFIGURATION\n" + jsonPrint(configuration)));
 
-    if (!configuration.metrics.wordMeterEnabled) {
+    if (!configuration.metrics.nodeMeterEnabled) {
       console.log(chalkAlert("*** WORD RATE METER DISABLED ***"));
     }
 

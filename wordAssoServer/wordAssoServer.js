@@ -1967,7 +1967,7 @@ function initSocketHandler(socketObj) {
                     console.log(chalkTwitter("UPDATED updatedUser"
                       + " | " + printUser({user:updatedUser})
                     ));
-                    socket.emit("SET_TWITTER_USER", user);
+                    socket.emit("SET_TWITTER_USER", updatedUser);
                   }
                 });
               });

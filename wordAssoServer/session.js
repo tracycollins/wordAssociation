@@ -9,6 +9,8 @@ var DEFAULT_SOURCE = "http://word.threeceelabs.com";
 const RX_NODE_QUEUE_INTERVAL = 10;
 const RX_NODE_QUEUE_MAX = 100;
 
+const STATS_UPDATE_INTERVAL = 1000;
+
 function jp(s, obj) {
   console.warn(s + "\n" + jsonPrint(obj));
 }
@@ -4008,7 +4010,7 @@ function initialize(callback) {
 
             currentSessionView.initD3timer();
 
-            initStatsUpdate(5000);
+            initStatsUpdate(STATS_UPDATE_INTERVAL);
 
             console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
 
@@ -4132,7 +4134,7 @@ function initialize(callback) {
             currentSessionView.simulationControl("START");
             currentSessionView.resize();
 
-            initStatsUpdate(5000);
+            initStatsUpdate(STATS_UPDATE_INTERVAL);
 
             console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
 
@@ -4256,7 +4258,7 @@ function initialize(callback) {
           currentSessionView.initD3timer();
           currentSessionView.resize();
 
-          initStatsUpdate(5000);
+          initStatsUpdate(STATS_UPDATE_INTERVAL);
 
           console.log("TX VIEWER_READY\n" + jsonPrint(viewerObj));
 

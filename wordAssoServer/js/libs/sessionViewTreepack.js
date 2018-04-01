@@ -1198,7 +1198,7 @@ function ViewTreepack() {
           return "#" + d.text.toUpperCase() + " | "+ d.age.toFixed(0) + " | "+ (100*d.ageMaxRatio); 
         }
         if (d.nodeType === "user") { 
-          if (d.screenName) { return "@" + d.screenName.toUpperCase() + " | "+ d.age.toFixed(0)  +" | "+ (100*d.ageMaxRatio; }
+          if (d.screenName) { return "@" + d.screenName.toUpperCase() + " | "+ d.age.toFixed(0)  +" | "+ (100*d.ageMaxRatio); }
           else if (d.name){ return "@" + d.name.toUpperCase(); }
           else { return "@UNKNOWN?";  }
         }
@@ -1255,7 +1255,7 @@ function ViewTreepack() {
           return "#" + d.text.toUpperCase() + " | "+ d.age.toFixed(0) + " | "+ (100*d.ageMaxRatio); 
         }
         if (d.nodeType === "user") { 
-          if (d.screenName) { return "@" + d.screenName.toUpperCase() + " | "+ d.age.toFixed(0)  +" | "+ (100*d.ageMaxRatio; }
+          if (d.screenName) { return "@" + d.screenName.toUpperCase() + " | "+ d.age.toFixed(0)  +" | "+ (100*d.ageMaxRatio); }
           else if (d.name){ return "@" + d.name.toUpperCase(); }
           else { return "@UNKNOWN?";  }
         }

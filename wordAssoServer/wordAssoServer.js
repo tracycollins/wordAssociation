@@ -3910,6 +3910,11 @@ function initStatsInterval(interval){
     statsObj.runTime = moment().valueOf() - statsObj.startTime;
     statsObj.upTime = os.uptime() * 1000;
 
+    if (statsObj.twitter.tweetsPerMin > statsObj.twitter.maxTweetsPerMin){
+      statsObj.twitter.maxTweetsPerMin = statsObj.twitter.tweetsPerMin;
+      statsObj.twitter.maxTweetsPerMinTime = moment().valueOf();
+    }
+
     statsObj.nodeMeterEntries = Object.keys(nodeMeter).length;
 
     if (statsObj.nodeMeterEntries > statsObj.nodeMeterEntriesMax) {

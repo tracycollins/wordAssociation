@@ -1404,6 +1404,7 @@ function showStats(options){
     + " | UT: " + statsObj.entity.util.connected
     + " | VW: " + statsObj.entity.viewer.connected
     + " | TwRxPM: " + statsObj.twitter.tweetsPerMin
+    + " | MaxTwRxPM: " + statsObj.twitter.maxTweetsPerMin
     + " | TwRXQ: " + tweetRxQueue.length
     + " | TwPRQ: " + tweetParserQueue.length
   ));
@@ -2582,12 +2583,19 @@ configEvents.on("SERVER_READY", function serverReady() {
 
     statsObj.serverTime = moment().valueOf();
     statsObj.runTime = moment().valueOf() - statsObj.startTime;
+    statsObj.elapsed = msToTime(moment().valueOf() - statsObj.startTime);
+    statsObj.timeStamp = moment().format(compactDateTimeFormat);
     statsObj.upTime = os.uptime() * 1000;
     statsObj.memory.memoryTotal = os.totalmem();
     statsObj.memory.memoryAvailable = os.freemem();
     statsObj.memory.memoryUsage = process.memoryUsage();
 
     statsObj.twitter.tweetsPerMin = parseInt(tweetMeter.toJSON()[metricsRate]);
+
+    if (statsObj.twitter.tweetsPerMin > statsObj.twitter.maxTweetsPerMin){
+      statsObj.twitter.maxTweetsPerMin = statsObj.twitter.tweetsPerMin;
+      statsObj.twitter.maxTweetsPerMinTime = moment().valueOf();
+    }
 
     if (internetReady && ioReady) {
       statsObj.configuration = configuration;

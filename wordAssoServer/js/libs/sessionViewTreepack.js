@@ -1225,6 +1225,7 @@ function ViewTreepack() {
         }
         if (d.nodeType === "place") { return d.fullName.toUpperCase(); }
         return d.nodeId; 
+      })
       .attr("x", function (d) { return d.x; })
       .attr("y", function (d) { return d.y; })
       .style("opacity", function (d) { 

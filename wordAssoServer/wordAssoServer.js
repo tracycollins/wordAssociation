@@ -2009,7 +2009,7 @@ function initSocketHandler(socketObj) {
         if (updatedNodeObj.nodeType === "user") {
           socket.emit("SET_TWITTER_USER", updatedNodeObj);
         }
-        if (updatedNodeObj.nodeType === "user") {
+        if (updatedNodeObj.nodeType === "hashtag") {
           socket.emit("SET_TWITTER_HASHTAG", updatedNodeObj);
         }
       }

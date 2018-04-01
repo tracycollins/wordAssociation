@@ -2587,6 +2587,8 @@ configEvents.on("SERVER_READY", function serverReady() {
     statsObj.memory.memoryAvailable = os.freemem();
     statsObj.memory.memoryUsage = process.memoryUsage();
 
+    statsObj.twitter.tweetsPerMin = parseInt(tweetMeter.toJSON()[metricsRate]);
+
     if (internetReady && ioReady) {
       statsObj.configuration = configuration;
 
@@ -3389,12 +3391,13 @@ function initRateQinterval(interval){
   statsObj.nodesPerMin = 0.0;
   statsObj.nodesPerSec = 0.0;
   statsObj.maxNodesPerMin = 0.0;
+
+  statsObj.twitter.tweetsPerMin = 0.0;
   statsObj.twitter.maxTweetsPerMin = 0.0;
   statsObj.twitter.maxTweetsPerMinTime = 0;
 
   statsObj.queues.transmitNodeQueue = transmitNodeQueue.length;
   statsObj.queues.tweetRxQueue = tweetRxQueue.length;
-  // statsObj.queues.updaterMessageQueue = updaterMessageQueue.length;
   statsObj.queues.sorterMessageRxQueue = sorterMessageRxQueue.length;
   statsObj.queues.tweetParserMessageRxQueue = tweetParserMessageRxQueue.length;
 

@@ -964,15 +964,15 @@ function ViewTreepack() {
 
   function labelText(d) {
     if (d.nodeType === "hashtag") { 
-      return "#" + d.text.toUpperCase() 
+      return "#" + d.text.toUpperCase();
         // + " | " + d.age.toFixed(0) 
-        + " | " + (100*(1.0 - d.ageMaxRatio)).toFixed(0); 
+        // + " | " + (100*(1.0 - d.ageMaxRatio)).toFixed(0); 
     }
     if (d.nodeType === "user") { 
       if (d.screenName) { 
-        return "@" + d.screenName.toUpperCase()
+        return "@" + d.screenName.toUpperCase();
           // + " | " + d.age.toFixed(0)  
-        + " | " + (100*(1.0 - d.ageMaxRatio)).toFixed(0); 
+        // + " | " + (100*(1.0 - d.ageMaxRatio)).toFixed(0); 
         }
       else if (d.name){ 
         return "@" + d.name.toUpperCase();

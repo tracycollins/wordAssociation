@@ -1100,7 +1100,7 @@ function ViewTreepack() {
       .attr("id", function (d) { return d.nodePooId; })
       .attr("nodeId", function (d) { return d.nodeId; })
       .style("visibility", function (d) {
-        if (d.isDead) { return "hidden"; }
+        // if (d.isDead) { return "hidden"; }
         return "visible";
       })
       .attr("r", 1e-6) 
@@ -1134,7 +1134,7 @@ function ViewTreepack() {
         return "2.0"; 
       })
       .style("opacity", function (d) { 
-        if (d.isDead) { return 1e-6; }
+        // if (d.isDead) { return 1e-6; }
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
       .on("mouseover", nodeMouseOver)
@@ -1156,7 +1156,7 @@ function ViewTreepack() {
         return d.y; 
       })
       .style("visibility", function(d) {
-        if (d.isDead) { return "hidden"; }
+        // if (d.isDead) { return "hidden"; }
         return "visible";
       })
       .style("opacity", function(d) { 
@@ -1223,11 +1223,11 @@ function ViewTreepack() {
       .attr("x", function (d) { return d.x; })
       .attr("y", function (d) { return d.y; })
       .style("opacity", function (d) { 
-        if (d.isDead) { return 1e-6; }
+        // if (d.isDead) { return 1e-6; }
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
       .style("visibility", function (d) {
-        if (d.isDead) { return "hidden"; }
+        // if (d.isDead) { return "hidden"; }
         if (mouseMovingFlag) { return "visible"; }
         if (d.rate > MIN_RATE) { return "visible"; }
         if (d.followersCount > MIN_FOLLOWERS) { return "visible"; }
@@ -1271,7 +1271,7 @@ function ViewTreepack() {
         return "normal";
       })
       .style("visibility", function (d) {
-        if (d.isDead) { return "hidden"; }
+        // if (d.isDead) { return "hidden"; }
         if (mouseMovingFlag) { return "visible"; }
         if (d.rate > MIN_RATE) { return "visible"; }
         if (d.followersCount > MIN_FOLLOWERS) { return "visible"; }
@@ -1295,7 +1295,7 @@ function ViewTreepack() {
         return "none"; 
       })
       .style("opacity", function (d) { 
-        if (d.isDead) { return 1e-6; }
+        // if (d.isDead) { return 1e-6; }
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
       .style("fill", palette.white)

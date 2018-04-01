@@ -2576,6 +2576,7 @@ configEvents.on("SERVER_READY", function serverReady() {
   memoryAvailablePercent = (statsObj.memory.memoryAvailable/statsObj.memory.memoryTotal);
 
   let hearbeatObj = {};
+  hearbeatObj.twitter = {};
   hearbeatObj.memory = {};
 
   setInterval(function hearbeatInterval() {
@@ -2591,6 +2592,7 @@ configEvents.on("SERVER_READY", function serverReady() {
       statsObj.configuration = configuration;
 
       hearbeatObj.serverTime = statsObj.serverTime;
+      hearbeatObj.startTime = statsObj.startTime;
       hearbeatObj.runTime = statsObj.runTime;
       hearbeatObj.upTime = statsObj.upTime;
       hearbeatObj.elapsed = statsObj.elapsed;

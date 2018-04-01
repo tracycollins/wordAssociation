@@ -324,7 +324,7 @@ else {
 
 var statsObj = {};
 statsObj.isAuthenticated = false;
-statsObj.socketId = null;
+statsObj.socketId = 0;
 statsObj.socketErrors = 0;
 statsObj.maxNodes = 0;
 statsObj.maxNodeAddQ = 0;
@@ -335,10 +335,11 @@ statsObj.heartbeat.tweetsPerMin = 0;
 statsObj.heartbeat.maxTweetsPerMin = 0;
 statsObj.heartbeat.nodesPerMin = 0;
 statsObj.heartbeat.maxNodesPerMin = 0;
-statsObj.heartbeat.serverTime = null;
-statsObj.heartbeat.runTime = null;
-statsObj.heartbeat.upTime = null;
-statsObj.heartbeat.elapsed = null;
+statsObj.heartbeat.serverTime = 0;
+statsObj.heartbeat.startTime = 0;
+statsObj.heartbeat.runTime = 0;
+statsObj.heartbeat.upTime = 0;
+statsObj.heartbeat.elapsed = 0;
 
 statsObj.heartbeat.memory = {};
 
@@ -1898,6 +1899,35 @@ function createStatsTable(callback) {
     text: msToTime(statsObj.heartbeat.runTime)
   };
 
+  var statsServerTweetsPerMinLabel = {
+    type: "TEXT",
+    id: "statsServerTweetsPerMinLabel",
+    class: "statsTableText",
+    text: "TWEETS/MIN"
+  };
+
+  var statsServerTweetsPerMin = {
+    type: "TEXT",
+    id: "statsServerTweetsPerMin",
+    class: "statsTableText",
+    text: statsObj.heartbeat.tweetsPerMin.toFixed(0)
+  };
+
+  var statsServerMaxTweetsPerMinLabel = {
+    type: "TEXT",
+    id: "statsServerMaxTweetsPerMinLabel",
+    class: "statsTableText",
+    text: "MAX"
+  };
+
+  var statsServerMaxTweetsPerMin = {
+    type: "TEXT",
+    id: "statsServerMaxTweetsPerMin",
+    class: "statsTableText",
+    text: "---"
+  };
+
+
   switch (config.sessionViewType) {
 
     case "media":
@@ -1912,6 +1942,7 @@ function createStatsTable(callback) {
       tableCreateRow(statsTableServer, optionsBody, [statsServerUpTimeLabel, statsServerUpTime]);
       tableCreateRow(statsTableServer, optionsBody, [statsServerStartTimeLabel, statsServerStartTime]);
       tableCreateRow(statsTableServer, optionsBody, [statsServerRunTimeLabel, statsServerRunTime]);
+      tableCreateRow(statsTableServer, optionsBody, [statsServerTweetsPerMinLabel, statsServerTweetsPerMin, statsServerMaxTweetsPerMinLabel, statsServerMaxTweetsPerMin]);
       tableCreateRow(statsTableClient, optionsHead, ["CLIENT"]);
       tableCreateRow(statsTableClient, optionsBody, [statsClientSessionIdLabel, statsClientSessionId]);
       tableCreateRow(statsTableClient, optionsBody, [statsClientNumberNodesLabel, statsClientNumberNodes, statsClientNumberMaxNodesLabel, statsClientNumberMaxNodes]);
@@ -1924,6 +1955,8 @@ function createStatsTable(callback) {
   statsServerUpTimeElement = document.getElementById("statsServerUpTime");
   statsServerStartTimeElement = document.getElementById("statsServerStartTime");
   statsServerRunTimeElement = document.getElementById("statsServerRunTime");
+  statsServerTweetsPerMinElement = document.getElementById("statsServerTweetsPerMin");
+  statsServerMaxTweetsPerMinElement = document.getElementById("statsServerMaxTweetsPerMin");
   statsClientNumberNodesElement = document.getElementById("statsClientNumberNodes");
   statsClientNumberMaxNodesElement = document.getElementById("statsClientNumberMaxNodes");
   statsClientAddNodeQElement = document.getElementById("statsClientAddNodeQ");
@@ -2029,6 +2062,8 @@ let statsServerTimeElement;
 let statsServerUpTimeElement;
 let statsServerStartTimeElement;
 let statsServerRunTimeElement;
+let statsServerTweetsPerMinElement;
+let statsServerMaxTweetsPerMinElement;
 let statsClientNumberNodesElement;
 let statsClientNumberMaxNodesElement;
 let statsClientAddNodeQElement;
@@ -2042,6 +2077,8 @@ function updateStatsTable(statsObj){
   statsServerUpTimeElement.innerHTML = msToTime(statsObj.heartbeat.upTime);
   statsServerStartTimeElement.innerHTML = moment(statsObj.heartbeat.startTime).format(defaultDateTimeFormat);
   statsServerRunTimeElement.innerHTML = msToTime(statsObj.heartbeat.runTime);
+  statsServerTweetsPerMinElement.innerHTML = statsObj.heartbeat.twitter.tweetsPerMin.toFixed(0);
+  statsServerMaxTweetsPerMinElement.innerHTML = statsObj.heartbeat.twitter.maxTweetsPerMin.toFixed(0);
   statsClientNumberNodesElement.innerHTML = currentSessionView.getNodesLength();
   statsClientNumberMaxNodesElement.innerHTML = currentSessionView.getMaxNodes();
   statsClientAddNodeQElement.innerHTML = currentSessionView.getNodeAddQlength();

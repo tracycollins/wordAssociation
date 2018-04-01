@@ -1,15 +1,20 @@
 /*jslint node: true */
 "use strict";
 
-const bestRuntimeNetworkFileName = "bestRuntimeNetwork.json";
-const bestNetworkFolder = "/config/utility/best/neuralNetworks";
+const DROPBOX_LIST_FOLDER_LIMIT = 50;
+
 let dropboxConfigDefaultFolder = "/config/utility/default";
+
+const bestNetworkFolder = "/config/utility/best/neuralNetworks";
+const bestRuntimeNetworkFileName = "bestRuntimeNetwork.json";
+
 let dropboxConfigDefaultTrainingSetsFolder = dropboxConfigDefaultFolder + "/trainingSets";
+
 let maxInputHashMapFile = "maxInputHashMap.json";
 
-const classifiedUsersFolder = dropboxConfigDefaultFolder + "/classifiedUsers";
-const classifiedUsersDefaultFile = "classifiedUsers_manual.json";
-const autoClassifiedUsersDefaultFile = "classifiedUsers_auto.json";
+const categorizedFolder = dropboxConfigDefaultFolder + "/categorized";
+const categorizedUsersFile = "categorizedUsers.json";
+const categorizedHashtagsFile = "categorizedHashtags.json";
 
 const fieldsExclude = {
   histograms: 0,
@@ -48,7 +53,7 @@ let twitterUserThreecee = {
     url : "http://threeCeeMedia.com",
     name : "Tracy Collins",
     screenName : "threecee",
-    nodeId : "14607119",
+    // nodeId : "14607119",
     nodeType : "user",
     following : null,
     description : "photography + animation + design",
@@ -65,6 +70,8 @@ const bodyParser = require("body-parser");
 const methodOverride = require("method-override");
 const session = require("express-session");
 const deepcopy = require("deep-copy");
+const sizeof = require("object-sizeof");
+const writeJsonFile = require("write-json-file");
 const MongoDBStore = require("express-session-mongo");
 
 const slackOAuthAccessToken = "xoxp-3708084981-3708084993-206468961315-ec62db5792cd55071a51c544acf0da55";
@@ -85,6 +92,7 @@ let quitOnError = true;
 // GLOBAL letIABLES
 // ==================================================================
 let statsObj = {};
+statsObj.dbConnection = false;
 
 const compactDateTimeFormat = "YYYYMMDD HHmmss";
 const tinyDateTimeFormat = "YYYYMMDDHHmmss";
@@ -304,6 +312,8 @@ let googleMonitoringClient;
 const HashMap = require("hashmap").HashMap;
 const NodeCache = require("node-cache");
 
+const categorizedUserHashMap = new HashMap();
+const categorizedHashtagHashMap = new HashMap();
 const metricsHashmap = new HashMap();
 const deletedMetricsHashmap = new HashMap();
 
@@ -425,6 +435,11 @@ let Word;
 const mongoose = require("mongoose");
 mongoose.Promise = global.Promise;
 
+const hashtagServer = require("@threeceelabs/hashtag-server-controller");
+const userServer = require("@threeceelabs/user-server-controller");
+
+// const hashtagServer = require("../../hashtagServerController");
+// const userServer = require("../../userServerController");
 
 dbConnection.on("error", console.error.bind(console, "connection error:"));
 dbConnection.once("open", function() {
@@ -436,10 +451,9 @@ dbConnection.once("open", function() {
   Url = mongoose.model("Url", urlModel.UrlSchema);
   User = mongoose.model("User", userModel.UserSchema);
   Word = mongoose.model("Word", wordModel.WordSchema);
+  statsObj.dbConnection = true;
 });
 
-const hashtagServer = require("@threeceelabs/hashtag-server-controller");
-const userServer = require("@threeceelabs/user-server-controller");
 
 function toMegabytes(sizeInBytes) {
   return sizeInBytes/ONE_MEGABYTE;
@@ -638,12 +652,15 @@ function wordCacheExpired(word, wordRate) {
 
 let updateMetricsInterval;
 
-let defaultDropboxCategoryFile = "classifiedUsers_manual.json";
 
 let internetReady = false;
 let ioReady = false;
 
+let saveFileQueue = [];
+
+
 let configuration = {};
+configuration.saveFileQueueInterval = ONE_SECOND;
 configuration.socketIoAuthTimeout = 30*ONE_SECOND;
 configuration.quitOnError = false;
 configuration.maxTopTerms = process.env.WA_MAX_TOP_TERMS || 100;
@@ -662,7 +679,6 @@ if (process.env.NODE_WORD_METER_ENABLED !== undefined) {
   }
 }
 
-
 let internetCheckInterval;
 
 const app = express();
@@ -674,14 +690,16 @@ let io;
 const net = require("net");
 
 const cp = require("child_process");
-let updater;
-let updaterMessageQueue = [];
 let sorter;
 let sorterMessageRxQueue = [];
 
 const ignoreWordHashMap = new HashMap();
-const categoryHashMap = new HashMap();
-const categoryAutoHashMap = new HashMap();
+
+const categorizedManualUserHashMap = new HashMap();
+const categorizedAutoUserHashMap = new HashMap();
+
+const categorizedManualHashtagHashMap = new HashMap();
+const categorizedAutoHashtagHashMap = new HashMap();
 
 const localHostHashMap = new HashMap();
 
@@ -726,8 +744,6 @@ function initStats(callback){
   statsObj.maxWordsPerMin = 0;
   statsObj.maxWordsPerMinTime = moment().valueOf();
 
-  // statsObj.obamaPerMinute = 0.0;
-  // statsObj.trumpPerMinute = 0.0;
   statsObj.wordsPerMin = 0.0;
   statsObj.wordsPerSecond = 0.0;
   statsObj.maxWordsPerMin = 0.0;
@@ -795,7 +811,7 @@ function initStats(callback){
   statsObj.queues.tweetParserMessageRxQueue = 0;
   statsObj.queues.tweetParserQueue = 0;
   statsObj.queues.tweetRxQueue = 0;
-  statsObj.queues.updaterMessageQueue = 0;
+  // statsObj.queues.updaterMessageQueue = 0;
 
   statsObj.session = {};
   statsObj.session.errors = 0;
@@ -817,11 +833,11 @@ function initStats(callback){
   callback();
 }
 
-let updaterPingInterval;
-let updaterPingOutstanding = 0;
+// let updaterPingInterval;
+// let updaterPingOutstanding = 0;
 
 function quit(message) {
-  clearInterval(updaterPingInterval);
+  // clearInterval(updaterPingInterval);
   debug("\n... QUITTING ...");
   let msg = "";
   if (message) {msg = message;}
@@ -924,7 +940,7 @@ function loadFile(path, file, callback) {
     fs.readFile(fullPath, "utf8", function(err, data) {
 
       if (err) {
-        console.log("NNT"
+        console.log("WAS"
           + " | " + chalkError(getTimeStamp()
           + " | *** ERROR LOADING FILE FROM DROPBOX FILE"
           + " | " + fullPath
@@ -932,7 +948,7 @@ function loadFile(path, file, callback) {
         return(callback(err, null));
       }
 
-      debug("NNT"
+      debug("WAS"
         + " | " + chalkLog(getTimeStamp()
         + " | LOADING FILE FROM DROPBOX FILE"
         + " | " + fullPath
@@ -944,7 +960,7 @@ function loadFile(path, file, callback) {
           callback(null, fileObj);
         }
         catch(e){
-          console.trace(chalkError("NNT | JSON PARSE ERROR: " + e));
+          console.trace(chalkError("WAS | JSON PARSE ERROR: " + e));
           callback(e, null);
         }
       }
@@ -960,7 +976,7 @@ function loadFile(path, file, callback) {
     dropboxClient.filesDownload({path: fullPath})
     .then(function(data) {
 
-      debug("NNT"
+      debug("WAS"
         + " | " + chalkLog(getTimeStamp()
         + " | LOADING FILE FROM DROPBOX: [" + toMegabytes(data.size).toFixed(3) + " MB] | " + fullPath
       ));
@@ -974,7 +990,7 @@ function loadFile(path, file, callback) {
           callback(null, fileObj);
         }
         catch(e){
-          console.trace(chalkError("NNT | JSON PARSE ERROR: " + fullPath  + " | ERROR: " + e + "\n" + jsonPrint(e)));
+          console.trace(chalkError("WAS | JSON PARSE ERROR: " + fullPath  + " | ERROR: " + e + "\n" + jsonPrint(e)));
           callback(e, null);
         }
       }
@@ -982,7 +998,7 @@ function loadFile(path, file, callback) {
         callback(null, data);
       }
       else {
-        console.log(chalkLog("NNT"
+        console.log(chalkLog("WAS"
           + " | " + getTimeStamp()
           + " | ??? LOADING FILE FROM DROPBOX FILE | NOT .json OR .txt: " + fullPath
         ));
@@ -990,102 +1006,28 @@ function loadFile(path, file, callback) {
       }
     })
     .catch(function(error) {
-      console.log(chalkError("NNT | DROPBOX loadFile ERROR: " + fullPath + "\n" + jsonPrint(error)));
-      console.log(chalkError("NNT | !!! DROPBOX READ " + fullPath + " ERROR"));
-      console.log(chalkError("NNT | " + jsonPrint(error.error)));
+      // console.log(chalkError("WAS | DROPBOX loadFile ERROR: " + fullPath + "\n" + jsonPrint(error)));
+      console.log(chalkError("WAS | !!! DROPBOX READ " + fullPath + " ERROR"));
+      // console.log(chalkError("WAS | " + jsonPrint(error.error)));
 
       if (error.status === 404) {
-        console.error(chalkError("NNT | !!! DROPBOX READ FILE " + fullPath + " NOT FOUND"
+        console.error(chalkError("WAS | !!! DROPBOX READ FILE " + fullPath + " NOT FOUND"
           + " ... SKIPPING ...")
         );
         return(callback(null, null));
       }
       if (error.status === 409) {
-        console.error(chalkError("NNT | !!! DROPBOX READ FILE " + fullPath + " NOT FOUND"));
-        return(callback(error, null));
+        console.error(chalkError("WAS | !!! DROPBOX READ FILE " + fullPath + " NOT FOUND"));
+        return(callback(null, null));
       }
       if (error.status === 0) {
-        console.error(chalkError("NNT | !!! DROPBOX NO RESPONSE"
+        console.error(chalkError("WAS | !!! DROPBOX NO RESPONSE"
           + " ... NO INTERNET CONNECTION? ... SKIPPING ..."));
         return(callback(null, null));
       }
       callback(error, null);
     });
   }
-}
-
-// kludge: collapse auto + man into one function
-// function loadCategoryAutoHashMap(params, callback){
-//   loadFile(params.folder, params.file, function(err, dataObj){
-//     if (err){
-//       console.log(chalkError("ERROR: categoryAutoHashMap: loadFile: " + err));
-//       return(callback(err));
-//     }
-//     Object.keys(dataObj).forEach(function(entryKey){
-//       if (!categoryAutoHashMap.has(entryKey)){
-//         categoryAutoHashMap.set(entryKey, dataObj[entryKey]);
-//         console.log(chalkInfo("+++ LOAD CAT AUTO MISS"
-//           + " [ " + categoryAutoHashMap.count() + " HM ENTRIES ]"
-//           + " | " + entryKey + ": " + dataObj[entryKey]
-//         ));
-//       }
-//       else if (categoryAutoHashMap.get(entryKey) === dataObj[entryKey]) {
-//         console.log(chalkInfo("--- LOAD CAT AUTO MATCH   "
-//           + " [ " + categoryAutoHashMap.count() + " HM ENTRIES ]"
-//           + " | " + entryKey + ": " + dataObj[entryKey]
-//         ));
-//       }
-//       else {
-//         console.log(chalkInfo("-0- LOAD CAT AUTO MISMATCH"
-//           + " [ " + categoryAutoHashMap.count() + " HM ENTRIES ]"
-//           + " | " + entryKey + ": " + dataObj[entryKey]
-//           + " | HM: " + categoryAutoHashMap.get(entryKey)
-//         ));
-//       }
-//     });
-//     callback();
-//   });
-// }
-
-function loadCategoryHashMap(params, callback){
-
-  let hm = categoryHashMap;
-  let hmString = "MAN";
-
-  if (params.hashmap && ((params.hashmap) === "auto")) {
-    hm = categoryAutoHashMap;
-    hmString = "AUTO";
-  }
-
-
-  loadFile(params.folder, params.file, function(err, dataObj){
-    if (err){
-      console.log(chalkError("ERROR: CAT " + hmString + " HM: loadFile: " + err));
-      return(callback(err));
-    }
-    Object.keys(dataObj).forEach(function(entryKey){
-      if (!hm.has(entryKey)){
-        hm.set(entryKey, dataObj[entryKey]);
-        console.log(chalkInfo("+++ LOAD CAT " + hmString + " MISS"
-          + " [ " + hm.count() + " HM ENTRIES ]"
-          + " | " + entryKey + ": " + dataObj[entryKey]
-        ));
-      }
-      else if (hm.get(entryKey) === dataObj[entryKey]) {
-        debug(chalkInfo("--- LOAD CAT " + hmString + " MATCH   "
-          + " [ " + hm.count() + " HM ENTRIES ]"
-          + " | " + entryKey + ": " + dataObj[entryKey]
-        ));
-      }
-      else {
-        console.log(chalkInfo("-0- LOAD CAT " + hmString + " MISMATCH"
-          + " [ " + hm.count() + " HM ENTRIES ]"
-          + " | " + entryKey + ": " + dataObj[entryKey]
-          + " | HM: " + hm.get(entryKey)
-        ));
-      }    });
-    callback();
-  });
 }
 
 function loadMaxInputHashMap(params, callback){
@@ -1123,6 +1065,269 @@ function loadYamlConfig(yamlFile, callback){
       callback(err, null);
     }
   });
+}
+
+function saveFile (params, callback){
+
+  const fullPath = params.folder + "/" + params.file;
+
+  debug(chalkInfo("LOAD FOLDER " + params.folder));
+  debug(chalkInfo("LOAD FILE " + params.file));
+  debug(chalkInfo("FULL PATH " + fullPath));
+
+  let options = {};
+
+  if (params.localFlag) {
+
+    options.access_token = configuration.DROPBOX.DROPBOX_WORD_ASSO_ACCESS_TOKEN;
+    options.file_size = sizeof(params.obj);
+    options.destination = params.dropboxFolder + "/" + params.file;
+    options.autorename = true;
+    options.mode = params.mode || "overwrite";
+    options.mode = "overwrite";
+
+    const objSizeMBytes = options.file_size/ONE_MEGABYTE;
+
+    showStats();
+    console.log(chalkAlert("WAS | ... SAVING LOCALLY | " + objSizeMBytes.toFixed(2) + " MB | " + fullPath));
+
+    writeJsonFile(fullPath, params.obj)
+    .then(function() {
+
+      console.log(chalkAlert("WAS | SAVED LOCALLY | " + objSizeMBytes.toFixed(2) + " MB | " + fullPath));
+      console.log(chalkAlert("WAS | ... PAUSE 5 SEC TO FINISH FILE SAVE | " + objSizeMBytes.toFixed(2) + " MB | " + fullPath));
+
+      setTimeout(function(){
+
+        console.log(chalkAlert("WAS | ... DROPBOX UPLOADING | " + objSizeMBytes.toFixed(2) + " MB | " + fullPath + " > " + options.destination));
+
+        // const source = fs.createReadStream(fullPath);
+
+        const stats = fs.statSync(fullPath);
+        const fileSizeInBytes = stats.size;
+        const savedSize = fileSizeInBytes/ONE_MEGABYTE;
+
+        console.log(chalkLog("WAS | ... SAVING DROPBOX JSON"
+          + " | " + getTimeStamp()
+          + " | " + savedSize.toFixed(2) + " MBYTES"
+          + "\n SRC: " + fullPath
+          + "\n DST: " + options.destination
+          // + " successMetadata\n" + jsonPrint(successMetadata)
+          // + " successMetadata\n" + jsonPrint(successMetadata)
+        ));
+
+        const drbx = require("@davvo/drbx")({
+          token: configuration.DROPBOX.DROPBOX_WORD_ASSO_ACCESS_TOKEN
+        });
+
+        let localReadStream = fs.createReadStream(fullPath);
+        let remoteWriteStream = drbx.file(options.destination).createWriteStream();
+
+
+        let bytesRead = 0;
+        let chunksRead = 0;
+        let mbytesRead = 0;
+        let percentRead = 0;
+
+        localReadStream.pipe(remoteWriteStream);
+
+        localReadStream.on("data", function(chunk){
+          bytesRead += chunk.length;
+          mbytesRead = bytesRead/ONE_MEGABYTE;
+          percentRead = 100 * bytesRead/fileSizeInBytes;
+          chunksRead += 1;
+          if (chunksRead % 100 === 0){
+            console.log(chalkInfo("WAS | LOCAL READ"
+              + " | " + mbytesRead.toFixed(2) + " / " + savedSize.toFixed(2) + " MB"
+              + " (" + percentRead.toFixed(2) + "%)"
+            ));
+          }
+        });
+
+        localReadStream.on("close", function(){
+          console.log(chalkAlert("WAS | LOCAL STREAM READ CLOSED | SOURCE: " + fullPath));
+        });
+
+        remoteWriteStream.on("close", function(){
+          console.log(chalkAlert("WAS | REMOTE STREAM WRITE CLOSED | DEST: " + options.destination));
+        });
+
+        localReadStream.on("end", function(){
+          console.log(chalkInfo("WAS | LOCAL READ COMPLETE"
+            + " | SOURCE: " + fullPath
+            + " | " + mbytesRead.toFixed(2) + " / " + savedSize.toFixed(2) + " MB"
+            + " (" + percentRead.toFixed(2) + "%)"
+          ));
+          localReadStream.close();
+        });
+
+        localReadStream.on("error", function(err){
+          console.error("WAS | *** LOCAL STREAM READ ERROR | " + err);
+          if (callback !== undefined) { return callback(err); }
+        });
+
+        remoteWriteStream.on("end", function(){
+          console.log(chalkAlert("WAS | REMOTE STREAM WRITE END | DEST: " + options.destination));
+          if (callback !== undefined) { return callback(null); }
+        });
+
+        remoteWriteStream.on("error", function(err){
+          console.error("WAS | *** REMOTE STREAM WRITE ERROR | DEST: " + options.destination + "\n" + err);
+          if (callback !== undefined) { return callback(err); }
+        });
+
+      }, 5000);
+
+    })
+    .catch(function(error){
+      console.trace(chalkError("WAS | " + moment().format(compactDateTimeFormat) 
+        + " | !!! ERROR DROBOX JSON WRITE | FILE: " + fullPath 
+        + " | ERROR: " + error
+        + " | ERROR\n" + jsonPrint(error)
+        // + " ERROR\n" + jsonPrint(params)
+      ));
+      if (callback !== undefined) { return callback(error); }
+    });
+  }
+  else {
+
+    options.contents = JSON.stringify(params.obj, null, 2);
+    options.autorename = params.autorename || false;
+    options.mode = params.mode || "overwrite";
+    options.path = fullPath;
+
+    const dbFileUpload = function () {
+
+      dropboxClient.filesUpload(options)
+      .then(function(){
+        debug(chalkLog("SAVED DROPBOX JSON | " + options.path));
+        if (callback !== undefined) { return callback(null); }
+      })
+      .catch(function(error){
+        if (error.status === 413){
+          console.error(chalkError("WAS | " + moment().format(compactDateTimeFormat) 
+            + " | !!! ERROR DROBOX JSON WRITE | FILE: " + fullPath 
+            + " | ERROR: 413"
+            // + " ERROR\n" + jsonPrint(error.error)
+          ));
+          if (callback !== undefined) { return callback(error.error_summary); }
+        }
+        else if (error.status === 429){
+          console.error(chalkError("WAS | " + moment().format(compactDateTimeFormat) 
+            + " | !!! ERROR DROBOX JSON WRITE | FILE: " + fullPath 
+            + " | ERROR: TOO MANY WRITES"
+            // + " ERROR\n" + "jsonPrint"(error.error)
+          ));
+          if (callback !== undefined) { return callback(error.error_summary); }
+        }
+        else if (error.status === 500){
+          console.error(chalkError("WAS | " + moment().format(compactDateTimeFormat) 
+            + " | !!! ERROR DROBOX JSON WRITE | FILE: " + fullPath 
+            + " | ERROR: DROPBOX SERVER ERROR"
+            // + " ERROR\n" + jsonPrint(error.error)
+          ));
+          if (callback !== undefined) { return callback(error.error_summary); }
+        }
+        else {
+          console.trace(chalkError("WAS | " + moment().format(compactDateTimeFormat) 
+            + " | !!! ERROR DROBOX JSON WRITE | FILE: " + fullPath 
+            + " | ERROR: " + error
+            + " | ERROR\n" + jsonPrint(error)
+            // + " ERROR\n" + jsonPrint(params)
+          ));
+          if (callback !== undefined) { return callback(error); }
+        }
+      });
+    };
+
+    if (options.mode === "add") {
+
+      dropboxClient.filesListFolder({path: params.folder, limit: DROPBOX_LIST_FOLDER_LIMIT})
+      .then(function(response){
+
+        debug(chalkLog("DROPBOX LIST FOLDER"
+          + " | ENTRIES: " + response.entries.length
+          + " | CURSOR (trunc): " + response.cursor.substr(-10)
+          + " | MORE: " + response.has_more
+          + " | PATH:" + options.path
+        ));
+
+        let fileExits = false;
+
+        async.each(response.entries, function(entry, cb){
+
+          console.log(chalkInfo("WAS | DROPBOX FILE"
+            + " | " + params.folder
+            + " | LAST MOD: " + moment(new Date(entry.client_modified)).format(compactDateTimeFormat)
+            + " | " + entry.name
+          ));
+
+          if (entry.name === params.file) {
+            fileExits = true;
+          }
+
+          cb();
+
+        }, function(err){
+          if (err) {
+            console.log(chalkError("WAS | *** ERROR DROPBOX SAVE FILE: " + err));
+            if (callback !== undefined) { 
+              return(callback(err, null));
+            }
+            return;
+          }
+          if (fileExits) {
+            console.log(chalkAlert("WAS | ... DROPBOX FILE EXISTS ... SKIP SAVE | " + fullPath));
+            if (callback !== undefined) { callback(err, null); }
+          }
+          else {
+            console.log(chalkAlert("WAS | ... DROPBOX DOES NOT FILE EXIST ... SAVING | " + fullPath));
+            dbFileUpload();
+          }
+        });
+      })
+      .catch(function(err){
+        console.log(chalkError("WAS | *** DROPBOX FILES LIST FOLDER ERROR: " + err));
+        console.log(chalkError("WAS | *** DROPBOX FILES LIST FOLDER ERROR\n" + jsonPrint(err)));
+        if (callback !== undefined) { callback(err, null); }
+      });
+    }
+    else {
+      dbFileUpload();
+    }
+  }
+}
+
+let saveFileQueueInterval;
+let saveFileBusy = false;
+
+function initSaveFileQueue(cnf){
+
+  console.log(chalkInfo("WAS | INIT DROPBOX SAVE FILE INTERVAL | " + cnf.saveFileQueueInterval + " MS"));
+
+  clearInterval(saveFileQueueInterval);
+
+  saveFileQueueInterval = setInterval(function () {
+
+    if (!saveFileBusy && saveFileQueue.length > 0) {
+
+      saveFileBusy = true;
+
+      const saveFileObj = saveFileQueue.shift();
+
+      saveFile(saveFileObj, function(err){
+        if (err) {
+          console.log(chalkError("WAS | *** SAVE FILE ERROR ... RETRY | " + saveFileObj.folder + "/" + saveFileObj.file));
+          saveFileQueue.push(saveFileObj);
+        }
+        else {
+          console.log(chalkInfo("WAS | SAVED FILE | " + saveFileObj.folder + "/" + saveFileObj.file));
+        }
+        saveFileBusy = false;
+      });
+    }
+
+  }, cnf.saveFileQueueInterval);
 }
 
 function saveStats(statsFile, statsObj, callback) {
@@ -1239,9 +1444,7 @@ function initDeletedMetricsHashmap(callback){
 }
 
 process.on("exit", function processExit() {
-  clearInterval(updaterPingInterval);
   if (tweetParser !== undefined) { tweetParser.kill("SIGINT"); }
-  if (updater !== undefined) { updater.kill("SIGINT"); }
   if (sorter !== undefined) { sorter.kill("SIGINT"); }
 });
 
@@ -1253,7 +1456,7 @@ process.on("message", function processMessageRx(msg) {
     debug("... SAVING STATS");
 
     clearInterval(internetCheckInterval);
-    clearInterval(updaterPingInterval);
+    // clearInterval(updaterPingInterval);
 
     saveStats(statsFile, statsObj, function processMessageSaveStats(status) {
       if (status !=="OK") {
@@ -1327,124 +1530,6 @@ process.env.NODE_ENV = process.env.NODE_ENV || "development";
 debug("NODE_ENV : " + process.env.NODE_ENV);
 debug("CLIENT HOST + PORT: " + "http://localhost:" + config.port);
 
-function initUpdater(callback){
-
-  clearInterval(updaterPingInterval);
-
-  if (updater !== undefined) {
-    console.error("KILLING PREVIOUS UPDATER | " + updater.pid);
-    updater.kill("SIGINT");
-  }
-
-  if (statsObj.children.updater === undefined){
-    statsObj.children.updater = {};
-    statsObj.children.updater.errors = 0;
-  }
-
-  const u = cp.fork(`${__dirname}/js/libs/updater.js`);
-
-  u.on("error", function updaterError(err){
-    console.error(chalkError(moment().format(compactDateTimeFormat)
-      + " | *** UPDATER ERROR ***"
-      + " \n" + jsonPrint(err)
-    ));
-
-    clearInterval(updaterPingInterval);
-
-    configEvents.emit("CHILD_ERROR", { name: "updater" });
-    // initUpdater();
-  });
-
-  u.on("exit", function updaterExit(code){
-    console.error(chalkError(moment().format(compactDateTimeFormat)
-      + " | *** UPDATER EXIT ***"
-      + " | EXIT CODE: " + code
-    ));
-
-    if (code > 0) { configEvents.emit("CHILD_ERROR", { name: "updater" }); }
-  });
-
-  u.on("close", function updaterClose(code){
-    console.error(chalkError(moment().format(compactDateTimeFormat)
-      + " | *** UPDATER CLOSE ***"
-      + " | EXIT CODE: " + code
-    ));
-  });
-
-  u.on("message", function updaterMessage(m){
-    debug(chalkInfo("UPDATER RX\n" + jsonPrint(m)));
-    // updaterMessageQueue.enqueue(m);
-    updaterMessageQueue.push(m);
-  });
-
-  u.send({
-    op: "INIT",
-    folder: dropboxConfigDefaultFolder,
-    categoryFile: defaultDropboxCategoryFile,
-    interval: CATEGORY_UPDATE_INTERVAL
-  }, function updaterSendError(err){
-    if (err) {
-      console.error(chalkError("*** UPDATER SEND ERROR"
-        + " | " + err
-      ));
-      initUpdater();
-    }
-  });
-
-  updater = u;
-
-  // initUpdaterPingInterval(60000);
-
-  if (callback !== undefined) { callback(null, u); }
-}
-
-
-function initUpdaterPingInterval(interval){
-
-  console.log(chalkLog("INIT UPDATER PING INTERVAL"
-    + " | " + interval + " MS"
-  ));
-
-  clearInterval(updaterPingInterval);
-
-  updaterPingInterval = setInterval(function updaterPing() {
-
-    if (updaterPingOutstanding > 0) {
-      console.error(chalkError("PING OUTSTANDING | " + updaterPingOutstanding));
-      updaterPingOutstanding = 0;
-      initUpdater();
-      slackPostMessage(slackChannel, "\n*UPDATER PING TIMEOUT*\nOUTSTANDING PINGS: " + updaterPingOutstanding + "\n");
-    }
-
-    updaterPingOutstanding = moment().format(compactDateTimeFormat);
-
-    if (updater !== undefined){
-      updater.send({
-        op: "PING",
-        message: hostname + "_" + process.pid,
-        timeStamp: updaterPingOutstanding
-      }, function updaterPingError(err){
-        if (err) {
-          console.error(chalkError("*** UPDATER SEND ERROR"
-            + " | " + err
-          ));
-          slackPostMessage(slackChannel, "\n*UPDATER SEND ERROR*\n" + err);
-          initUpdater();
-        }
-      });
-
-      debug(chalkLog(">UPDATER PING"
-      ));
-
-    }
-    else {
-      console.log(chalkError("!!! NO UPDATER PING ... UNDEFINED"
-      ));
-    }
-  }, interval);
-}
-
-
 function categorizeNode(categorizeObj, callback) {
 
   if (categorizeObj.twitterUser && categorizeObj.twitterUser.nodeId) {
@@ -1468,6 +1553,10 @@ function categorizeNode(categorizeObj, callback) {
     + " | categorizeObj\n" + jsonPrint(categorizeObj)
   ));
 
+  let cObj = {};
+  cObj.manual = false;
+  cObj.auto = false;
+
   switch (categorizeObj.node.nodeType){
     case "user":
 
@@ -1477,8 +1566,22 @@ function categorizeNode(categorizeObj, callback) {
         + " | " + categorizeObj.category
       ));
 
-      categoryHashMap.set(categorizeObj.node.nodeId.toLowerCase(), categorizeObj.category);
-      categoryHashMap.set(categorizeObj.node.screenName.toLowerCase(), categorizeObj.category);
+      cObj.manual = categorizeObj.category;
+
+    // value = { manual: hashtag.category, auto: hashtag.categoryAuto };
+      if (categorizedUserHashMap.has(categorizeObj.node.nodeId)){
+        cObj.auto = categorizedUserHashMap.get(categorizeObj.node.nodeId.toLowerCase()).auto || false;
+      }
+
+      categorizedUserHashMap.set(categorizeObj.node.nodeId.toLowerCase(), cObj);
+
+      saveFileQueue.push(
+        {
+          localFlag: false, 
+          folder: categorizedFolder, 
+          file: categorizedUsersFile, 
+          obj: categorizedUserHashMap.entries()
+        });
 
       userServer.updateCategory({user: categorizeObj.node, category: categorizeObj.category}, function(err, updatedUser){
 
@@ -1490,45 +1593,17 @@ function categorizeNode(categorizeObj, callback) {
         }
         else {
 
-          // const u = omit(updatedUser, ["histograms", "countHistory", "friends"]);
+          categorizedUserHashMap.set(updatedUser.nodeId, {manual: updatedUser.category, auto: updatedUser.categoryAuto});
 
-          if ((updater !== undefined) && (updatedUser)){
+          const text = "CATEGORIZE"
+            + "\n@" + categorizeObj.node.screenName 
+            + ": " + categorizeObj.category;
 
-            updater.send({
-              op: "UPDATE_CATEGORY",
-              nodeType: "user",
-              nodeId: updatedUser.nodeId,
-              screenName: updatedUser.screenName.toLowerCase(),
-              category: categorizeObj.category
-            }, function updaterPingError(err){
-              if (err) {
-                console.error(chalkError("*** UPDATER SEND ERROR"
-                  + " | " + err
-                ));
-                slackPostMessage(slackChannel, "\n*UPDATER SEND ERROR*\n" + err);
-                initUpdater();
-                if (callback !== undefined) {
-                  callback(err, categorizeObj);
-                }
-              }
-            });
+          slackPostMessage(slackChannel, text);
 
-            const text = "CATEGORIZE"
-              + "\n@" + categorizeObj.node.screenName 
-              + ": " + categorizeObj.category;
-
-            slackPostMessage(slackChannel, text);
-
-            debug(chalkLog(">UPDATER UPDATE_CATEGORY USER | @" + updatedUser.screenName ));
-            if (callback !== undefined) {
-              callback(null, updatedUser);
-            }
-          }
-          else {
-            console.log(chalkError("!!! NO UPDATER UPDATE_CATEGORY ... UNDEFINED"));
-            if (callback !== undefined) {
-              callback("UPDATE_CATEGORY UNDEFINED", categorizeObj);
-            }
+          debug(chalkLog("UPDATE_CATEGORY USER | @" + updatedUser.screenName ));
+          if (callback !== undefined) {
+            callback(null, updatedUser);
           }
         }
       });
@@ -1540,7 +1615,22 @@ function categorizeNode(categorizeObj, callback) {
         + " | " + categorizeObj.category
       ));
 
-      categoryHashMap.set(categorizeObj.node.nodeId.toLowerCase(), categorizeObj.category);
+      cObj.manual = categorizeObj.category;
+
+    // value = { manual: hashtag.category, auto: hashtag.categoryAuto };
+      if (categorizedHashtagHashMap.has(categorizeObj.node.nodeId.toLowerCase())){
+        cObj.auto = categorizedHashtagHashMap.get(categorizeObj.node.nodeId.toLowerCase()).auto || false;
+      }
+
+      categorizedHashtagHashMap.set(categorizeObj.node.nodeId.toLowerCase(), cObj);
+
+      saveFileQueue.push(
+        {
+          localFlag: false, 
+          folder: categorizedFolder, 
+          file: categorizedHashtagsFile, 
+          obj: categorizedHashtagHashMap.entries()
+        });
 
       hashtagServer.updateCategory({hashtag: categorizeObj.node, category: categorizeObj.category}, function(err, updatedHashtag){
         if (err) {
@@ -1550,46 +1640,21 @@ function categorizeNode(categorizeObj, callback) {
           }
         }
         else {
-          if (updater !== undefined){
 
-            updater.send({
-              op: "UPDATE_CATEGORY",
-              nodeType: "hashtag",
-              nodeId: categorizeObj.node.nodeId.toLowerCase(),
-              category: categorizeObj.category
-            }, function updaterPingError(err){
-              if (err) {
-                console.error(chalkError("*** UPDATER SEND ERROR"
-                  + " | " + err
-                ));
-                slackPostMessage(slackChannel, "\n*UPDATER SEND ERROR*\n" + err);
-                initUpdater();
-                if (callback !== undefined) {
-                  callback(err, categorizeObj);
-                }
-              }
-            });
+          categorizedHashtagHashMap.set(updatedHashtag.nodeId, {manual: updatedHashtag.category, auto: updatedHashtag.categoryAuto});
 
-            const text = "CATEGORIZE"
-              + "\n#" + categorizeObj.node.nodeId.toLowerCase() + ": " + categorizeObj.category;
+          const text = "CATEGORIZE"
+            + "\n#" + categorizeObj.node.nodeId.toLowerCase() + ": " + categorizeObj.category;
 
-            slackPostMessage(slackChannel, text);
+          slackPostMessage(slackChannel, text);
 
-            debug(chalkLog(">UPDATER UPDATE_CATEGORY HASHTAG | #" + updatedHashtag.nodeId ));
-            if (callback !== undefined) {
-              callback(null, updatedHashtag);
-            }
-          }
-          else {
-            console.log(chalkError("!!! NO UPDATER UPDATE_CATEGORY ... UNDEFINED"
-            ));
-            if (callback !== undefined) {
-              callback("UPDATE_CATEGORY UNDEFINED", categorizeObj);
-            }
+          debug(chalkLog("UPDATE_CATEGORY HASHTAG | #" + updatedHashtag.nodeId ));
+          if (callback !== undefined) {
+            callback(null, updatedHashtag);
           }
         }
-
       });
+
     break;
   }
 }
@@ -1626,8 +1691,9 @@ function socketRxTweet(tw) {
 
     tw.inc = true;
 
-    if (categoryHashMap.has(tw.user.screen_name.toLowerCase())){
-      tw.user.category = categoryHashMap.get(tw.user.screen_name.toLowerCase());
+    if (categorizedUserHashMap.has(tw.user.screen_name.toLowerCase())){
+      tw.user.category = categorizedUserHashMap.get(tw.user.screen_name.toLowerCase()).manual;
+      tw.user.categoryAuto = categorizedUserHashMap.get(tw.user.screen_name.toLowerCase()).auto;
       debug(chalkLog("T< HM HIT"
         + " [ RXQ: " + tweetRxQueue.length + "]"
         + " [ TPQ: " + tweetParserQueue.length + "]"
@@ -1831,7 +1897,15 @@ function initSocketHandler(socketObj) {
         else if (hashtag) { 
           console.log(chalkTwitter("TWITTER_SEARCH_NODE HASHTAG FOUND\n" + jsonPrint(hashtag)));
           socket.emit("SET_TWITTER_HASHTAG", hashtag);
-          if (hashtag.category) { categoryHashMap.set(hashtag.nodeId.toLowerCase(), hashtag.category); }
+          if (hashtag.category) { 
+            let htCatObj = {};
+            htCatObj.manual = hashtag.category;
+            htCatObj.auto = false;
+            if (categorizedHashtagHashMap.has(hashtag.nodeId.toLowerCase())) {
+              htCatObj.auto = categorizedHashtagHashMap.get(hashtag.nodeId.toLowerCase());
+            }
+            categorizedHashtagHashMap.set(hashtag.nodeId.toLowerCase(), htCatObj);
+          }
         }
         else {
           console.log(chalkTwitter("TWITTER_SEARCH_NODE HASHTAG NOT FOUND: #" + searchNodeHashtag.nodeId));
@@ -2061,21 +2135,22 @@ function checkCategory(nodeObj, callback) {
     + " | CATA: " + nodeObj.categoryAuto
   ));
 
-  nodeObj.categoryAuto = categoryAutoHashMap.get(nodeObj.nodeId);
-
   switch (nodeObj.nodeType) {
 
     case "tweet":
     case "media":
     case "url":
+    case "place":
+    case "word":
       callback(nodeObj);
     break;
 
     case "user":
 
-      if (categoryHashMap.has(nodeObj.nodeId)) {
+      if (categorizedUserHashMap.has(nodeObj.nodeId)) {
 
-        nodeObj.category = categoryHashMap.get(nodeObj.nodeId);
+        nodeObj.category = categorizedUserHashMap.get(nodeObj.nodeId).manual;
+        nodeObj.categoryAuto = categorizedUserHashMap.get(nodeObj.nodeId).auto;
 
         debugCategory(chalkAlert("KW HIT USER NODEID"
           + " | NID: " + nodeObj.nodeId
@@ -2102,14 +2177,14 @@ function checkCategory(nodeObj, callback) {
       else {
         callback(nodeObj);
       }
-      
     break;
 
     case "hashtag":
 
-      if (categoryHashMap.has(nodeObj.nodeId)) {
+      if (categorizedHashtagHashMap.has(nodeObj.nodeId)) {
 
-        nodeObj.category = categoryHashMap.get(nodeObj.nodeId);
+        nodeObj.category = categorizedHashtagHashMap.get(nodeObj.nodeId).manual;
+        nodeObj.categoryAuto = categorizedHashtagHashMap.get(nodeObj.nodeId).auto;
 
         debugCategory(chalkAlert("KW HIT HASHTAG NODEID"
           + " | #" + nodeObj.nodeId
@@ -2134,72 +2209,6 @@ function checkCategory(nodeObj, callback) {
       }
       else {
         hashtagLookupQueue.push(nodeObj);
-        callback(nodeObj);
-      }
-    break;
-
-    case "place":
-
-      if (categoryHashMap.has(nodeObj.nodeId)) {
-
-        nodeObj.category = categoryHashMap.get(nodeObj.nodeId);
-
-        debugCategory(chalkAlert("KW HIT PLACE NAME"
-          + " | " + nodeObj.nodeId
-          + " | NAME: " + nodeObj.name
-          + " | CAT: " + nodeObj.category
-          + " | CATA: " + nodeObj.categoryAuto
-        ));
-
-        wordsPerMinuteTopTermCache.get(nodeObj.nodeId,
-          function topTermPlaceNameId(err, nodeId) {
-          if (err){
-            console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
-          }
-          if (nodeId !== undefined) {
-            debugCategory(chalkLog("TOP TERM PLACE NODE ID: " + nodeId));
-            nodeObj.isTopTerm = true;
-          }
-          else {
-            nodeObj.isTopTerm = false;
-          }
-          callback(nodeObj);
-        });
-      }
-      else {
-        callback(nodeObj);
-      }
-    break;
-
-    case "word":
-
-      if (categoryHashMap.has(nodeObj.nodeId)) {
-
-        nodeObj.category = categoryHashMap.get(nodeObj.nodeId);
-
-        debugCategory(chalkAlert("KW HIT WORD NODEID"
-          + " | " + nodeObj.nodeId
-          + " | CAT: " + nodeObj.category
-          + " | CATA: " + nodeObj.categoryAuto
-        ));
-
-        wordsPerMinuteTopTermCache.get(nodeObj.nodeId,
-          function topTermWordNodeId(err, nodeId) {
-          if (err){
-            console.log(chalkError("wordsPerMinuteTopTermCache GET ERR: " + err));
-          }
-          if (nodeId !== undefined) {
-            debugCategory(chalkLog("TOP TERM HASHTAG NODEID: " + nodeId));
-            nodeObj.isTopTerm = true;
-          }
-          else {
-            nodeObj.isTopTerm = false;
-          }
-          callback(nodeObj);
-        });
-
-      }
-      else {
         callback(nodeObj);
       }
     break;
@@ -2505,162 +2514,6 @@ function transmitNodes(tw, callback){
 let metricsDataPointQueue = [];
 let metricsDataPointQueueReady = true;
 let metricsDataPointQueueInterval;
-
-// function initMetricsDataPointQueueInterval(interval){
-
-//   console.log(chalkLog("INIT METRICS DATA POINT QUEUE INTERVAL | " + interval + " MS"));
-
-//   clearInterval(metricsDataPointQueueInterval);
-
-//   let googleRequest = {};
-
-//   if (GOOGLE_METRICS_ENABLED) {
-//     googleRequest.name = googleMonitoringClient.projectPath(process.env.GOOGLE_PROJECT_ID);
-//     googleRequest.timeSeries = [];
-//   }
-
-
-//   metricsDataPointQueueInterval = setInterval(function metricsInterval() {
-
-//     initDeletedMetricsHashmap();
-
-//     // if (GOOGLE_METRICS_ENABLED && !metricsDataPointQueue.isEmpty() && metricsDataPointQueueReady) {
-//     if (GOOGLE_METRICS_ENABLED && (metricsDataPointQueue.length > 0) && metricsDataPointQueueReady) {
-
-//       metricsDataPointQueueReady = false;
-
-//       debug(chalkLog("METRICS TIME SERIES"
-//         + "\n" + jsonPrint(googleRequest.timeSeries)
-//       ));
-
-//       googleRequest.timeSeries.length = 0;
-
-//       async.each(metricsDataPointQueue, function metricsGoogleRequest(dataPoint, cb){
-
-//         googleRequest.timeSeries.push(dataPoint);
-//         cb();
-
-//       }, function metricsGoogleRequestError(err){
-
-//         if (err) {
-//           console.error(chalkError("ERROR INIT METRICS DATAPOINT QUEUE INTERVAL\n" + err ));
-//         }
-
-//         metricsDataPointQueue.clear();
-
-//         googleMonitoringClient.createTimeSeries(googleRequest)
-//           .then(function createTimeSeries(){
-//             debug(chalkInfo("METRICS"
-//               + " | DATA POINTS: " + googleRequest.timeSeries.length 
-//               // + " | " + options.value
-//             ));
-//             metricsDataPointQueueReady = true;
-//           })
-//           .catch(function createTimeSeriesError(err){
-//             if (statsObj.errors.google[err.code] === undefined) {
-//               statsObj.errors.google[err.code] = 0;
-//             }
-//             statsObj.errors.google[err.code] += 1;
-//             console.error(chalkError(moment().format(compactDateTimeFormat)
-//               + " | *** ERROR GOOGLE METRICS"
-//               + " | DATA POINTS: " + googleRequest.timeSeries.length 
-//               + "\n*** ERR:  " + err
-//               + "\n*** NOTE: " + err.note
-//               + "\nERR\n" + jsonPrint(err)
-//               // + "\nREQUEST\n" + jsonPrint(googleRequest)
-//               // + "\nMETA DATA\n" + jsonPrint(err.metadata)
-//             ));
-//             metricsDataPointQueueReady = true;
-//         });
-
-//       });
-
-//     }
-
-//   }, interval);
-// }
-
-// function addMetricDataPoint(options, callback){
-
-//   if (!GOOGLE_METRICS_ENABLED) {
-//     console.trace("***** GOOGLE_METRICS_ENABLED FALSE? " + GOOGLE_METRICS_ENABLED);
-//     if (callback) { callback(null,options); }
-//     return;
-//   }
-
-//   debug(chalkLog("addMetricDataPoint"
-//     + " | GOOGLE_METRICS_ENABLED: " + GOOGLE_METRICS_ENABLED
-//     + "\n" + jsonPrint(options)
-//   ));
-
-//   defaults(options, {
-//     endTime: (Date.now() / 1000),
-//     dataType: "doubleValue",
-//     resourceType: "global",
-//     projectId: process.env.GOOGLE_PROJECT_ID,
-//     metricTypePrefix: CUSTOM_GOOGLE_APIS_PREFIX
-//   });
-
-//   debug(chalkLog("addMetricDataPoint AFTER\n" + jsonPrint(options)));
-
-//   let dataPoint = {
-//     interval: { endTime: { seconds: options.endTime } },
-//     value: {}
-//   };
-
-//   dataPoint.value[options.dataType] = parseFloat(options.value);
-
-//   let timeSeriesData = {
-//     metric: {
-//       type: options.metricTypePrefix + "/" + options.metricType,
-//       labels: options.metricLabels
-//     },
-//     resource: {
-//       type: options.resourceType,
-//       labels: { project_id: options.projectId }
-//     },
-//     points: []
-//   };
-
-//   timeSeriesData.points.push(dataPoint);
-
-//   metricsDataPointQueue.push(timeSeriesData);
-
-//   if (callback) { callback(null, { q: metricsDataPointQueue.length} ); }
-// }
-
-// function addTopTermMetricDataPoint(node, nodeRate){
-
-//   nodeCache.get(node, function nodeCacheGet(err, nodeObj){
-//     if (err) {
-//       console.error(chalkInfo("ERROR addTopTermMetricDataPoint " + err
-//         // + " | " + node
-//       ));
-//     }
-//     else if (nodeObj === undefined) {
-//       console.error(chalkError("?? SORTED NODE NOT IN WORD $"
-//         + " | " + node
-//       ));
-//     }
-//     else if (parseInt(nodeObj.mentions) > MIN_MENTIONS_VALUE) {
-
-//       debug(chalkInfo("+++ TOP TERM METRIC"
-//         + " | " + node
-//         + " | Ms: " + nodeObj.mentions
-//         + " | RATE: " + nodeRate.toFixed(2)
-//       ));
-
-//       const topTermDataPoint = {
-//         displayName: node,
-//         metricTyp: "word/top10/" + node,
-//         value: parseFloat(nodeRate),
-//         metricLabels: {server_id: "WORD"}
-//       };
-
-//       addMetricDataPoint(topTermDataPoint);
-//     }
-//   });
-// }
 
 
 let heartbeatsSent = 0;
@@ -3166,21 +3019,30 @@ function initHashtagLookupQueueInterval(interval){
 
       const htObj = hashtagLookupQueue.shift();
 
+      let categoryObj = {};
+
       hashtagServer.findOne({hashtag: htObj}, function(err, hashtag){
         if (err) {
           console.log(chalkError("HASHTAG FIND ONE ERROR\n" + jsonPrint(err)));
         }
         else if (hashtag) { 
-          if (hashtag.category) { categoryHashMap.set(hashtag.nodeId.toLowerCase(), hashtag.category); }
+
+          categoryObj.manual = hashtag.category || false;
+          categoryObj.auto = hashtag.categoryAuto || false;
+
+          categorizedHashtagHashMap.set(hashtag.nodeId.toLowerCase(), categoryObj); 
+
           debug(chalkTwitter("+++ HT HIT "
-            + " | C: " + printCat(hashtag.category)
+            + " | CM: " + printCat(hashtag.category)
+            + " | CA: " + printCat(hashtag.categoryAuto)
             + " | #" + hashtag.nodeId.toLowerCase()
           ));
         }
         else {
           // debug(chalkTwitter("HASHTAG NOT FOUND: " + htObj.text));
           debug(chalkTwitter("--- HT MISS"
-            + " | C: " + printCat(htObj.category)
+            + " | CM: " + printCat(htObj.category)
+            + " | CA: " + printCat(htObj.categoryAuto)
             + " | #" + htObj.nodeId.toLowerCase()
           ));
         }
@@ -3287,8 +3149,6 @@ function initSorterMessageRxQueueInterval(interval){
           sortedKeys = sorterObj.sortedKeys;
           endIndex = Math.min(configuration.maxTopTerms, sortedKeys.length);
 
-          // for (index=0; index < endIndex; index += 1){
-
           async.times(endIndex, function(index, next) {
 
             node = sortedKeys[index].toLowerCase();
@@ -3299,18 +3159,6 @@ function initSorterMessageRxQueueInterval(interval){
 
               wordsPerMinuteTopTermCache.set(node, nodeRate);
               next();
-
-              // if (!deletedMetricsHashmap.has(node) 
-              //   && GOOGLE_METRICS_ENABLED 
-              //   && (nodeRate > MIN_METRIC_VALUE)) {
-              //   addTopTermMetricDataPoint(node, nodeRate);
-              //   next();
-              // }
-              // else {
-              //   debug(chalkLog("SKIP ADD METRIC | " + node + " | " + nodeRate.toFixed(3)));
-              //   next();
-              // }
-
             }
 
           }, function(){
@@ -3325,88 +3173,6 @@ function initSorterMessageRxQueueInterval(interval){
           console.log(chalkError("??? SORTER UNKNOWN OP\n" + jsonPrint(sorterObj)));
           sorterMessageRxReady = true; 
       }
-    }
-  }, interval);
-}
-
-let updaterMessageReady = true;
-let updaterMessageQueueInterval;
-function initUpdaterMessageQueueInterval(interval){
-
-  console.log(chalkInfo("INIT UPDATER MESSAGE QUEUE INTERVAL | " + interval + " MS"));
-
-  clearInterval(updaterMessageQueueInterval);
-
-  let updaterObj;
-
-  updaterMessageQueueInterval = setInterval(function updaterMessageRx() {
-
-    if (updaterMessageReady && (updaterMessageQueue.length > 0)) {
-
-      updaterMessageReady = false;
-      updaterObj = updaterMessageQueue.shift();
-
-      switch (updaterObj.type){
-
-        case "pong":
-          debug(chalkLog("<UPDATER PONG"
-            + " | " + moment().format(compactDateTimeFormat)
-            + " | " + updaterObj.timeStamp
-          ));
-          updaterMessageReady = true;
-        break;
-
-        case "stats":
-          debug(chalkLog("UPDATE STATS COMPLETE"
-            + " | DB\n" + jsonPrint(updaterObj.db)
-          ));
-          if (updaterObj.db) {
-            statsObj.db.totalAdmins = updaterObj.db.totalAdmins;
-            statsObj.db.totalUsers = updaterObj.db.totalUsers;
-            statsObj.db.totalViewers = updaterObj.db.totalViewers;
-            statsObj.db.totalGroups = updaterObj.db.totalGroups;
-            statsObj.db.totalSessions = updaterObj.db.totalSessions;
-            statsObj.db.totalWords = updaterObj.db.totalWords;
-          }
-          updaterMessageReady = true;
-        break;
-
-        case "sendCategoryComplete":
-          console.log(chalkLog("UPDATE CATEGORY COMPLETE"
-            + " [ Q: " + updaterMessageQueue.length + " ]"
-            + " | " + moment().format(compactDateTimeFormat)
-            + " | PID: " + updaterObj.pid
-            + " | NUM CATEGORY: " + updaterObj.category
-          ));
-          updaterMessageReady = true;
-        break;
-
-        case "categoryHashMapClear":
-          categoryHashMap.clear();
-          console.log(chalkAlert("CATEGORY HASHMAP CLEAR"));
-          updaterMessageReady = true;
-        break;
-
-        case "categoryRemove":
-          categoryHashMap.remove(updaterObj.nodeId);
-          categoryHashMap.remove(updaterObj.nodeId.toLowerCase());
-          console.log(chalkAlert("CATEGORY REMOVE: " + updaterObj.nodeId.toLowerCase()));
-          updaterMessageReady = true;
-        break;
-
-        case "category":
-          debugCategory(chalkLog("UPDATE CATEGORY: " + jsonPrint(updaterObj)));
-
-          categoryHashMap.set(updaterObj.nodeId, updaterObj.category);
-          updaterMessageReady = true;
-
-        break;
-
-        default:
-          console.log(chalkError("??? UPDATE UNKNOWN TYPE\n" + jsonPrint(updaterObj)));
-          updaterMessageReady = true;
-      }
-
     }
   }, interval);
 }
@@ -3479,7 +3245,7 @@ function initTweetParser(callback){
   tweetParserReady = false;
 
   if (tweetParser !== undefined) {
-    console.error("KILLING PREVIOUS UPDATER | " + tweetParser.pid);
+    console.error("KILLING PREVIOUS TWEET PARSER | " + tweetParser.pid);
     tweetParser.kill("SIGINT");
   }
 
@@ -3616,7 +3382,7 @@ function initRateQinterval(interval){
 
   statsObj.queues.transmitNodeQueue = transmitNodeQueue.length;
   statsObj.queues.tweetRxQueue = tweetRxQueue.length;
-  statsObj.queues.updaterMessageQueue = updaterMessageQueue.length;
+  // statsObj.queues.updaterMessageQueue = updaterMessageQueue.length;
   statsObj.queues.sorterMessageRxQueue = sorterMessageRxQueue.length;
   statsObj.queues.tweetParserMessageRxQueue = tweetParserMessageRxQueue.length;
 
@@ -3679,50 +3445,6 @@ function initRateQinterval(interval){
   }
   let queueNames;
 
-  // let memoryRssDataPoint = {};
-  // memoryRssDataPoint.metricType = "memory/rss";
-  // memoryRssDataPoint.metricLabels = {server_id: "MEM"};
-
-  // let dataPointTssTpm = {};
-  // dataPointTssTpm.metricType = "twitter/tweets_per_minute";
-  // dataPointTssTpm.metricLabels = {server_id: "TSS"};
-
-  // let dataPointTssTpm2 = {};
-  // dataPointTssTpm2.metricType = "twitter/tweet_limit";
-  // dataPointTssTpm2.metricLabels = {server_id: "TSS"};
-
-  // let dataPointTmsTpm = {};
-  // dataPointTmsTpm.metricType = "twitter/tweets_per_minute";
-  // dataPointTmsTpm.metricLabels = {server_id: "TMS"};
-
-  // let dataPointWpm = {};
-  // dataPointWpm.metricType = "word/words_per_minute";
-  // dataPointWpm.metricLabels = {server_id: "WORD"};
-
-  // let dataPointOpm = {};
-  // dataPointOpm.metricType = "word/obama_per_minute";
-  // dataPointOpm.metricLabels = {server_id: "WORD"};
-  
-  // let dataPointOTrpm = {};
-  // dataPointOTrpm.metricType = "word/trump_per_minute";
-  // dataPointOTrpm.metricLabels = {server_id: "WORD"};
-
-  // let dataPointUtils = {};
-  // dataPointUtils.metricType = "util/global/number_of_utils";
-  // dataPointUtils.metricLabels = {server_id: "UTIL"};
-
-  // let dataPointViewers = {};
-  // dataPointViewers.metricType = "user/global/number_of_viewers";
-  // dataPointViewers.metricLabels = {server_id: "USER"};
-
-  // let dataPointUsers = {};
-  // dataPointUsers.metricType = "user/global/number_of_users";
-  // dataPointUsers.metricLabels = {server_id: "USER"};
-
-  // let dataPointNodeCache = {};
-  // dataPointNodeCache.metricType = "cache/node/keys";
-  // dataPointNodeCache.metricLabels = {server_id: "CACHE"};
-
   let updateTimeSeriesCount = 0;
   let paramsSorter = {};
 
@@ -3730,7 +3452,6 @@ function initRateQinterval(interval){
 
     statsObj.queues.transmitNodeQueue = transmitNodeQueue.length;
     statsObj.queues.tweetRxQueue = tweetRxQueue.length;
-    statsObj.queues.updaterMessageQueue = updaterMessageQueue.length;
     statsObj.queues.sorterMessageRxQueue = sorterMessageRxQueue.length;
     statsObj.queues.tweetParserMessageRxQueue = tweetParserMessageRxQueue.length;
 
@@ -3784,43 +3505,6 @@ function initLoadBestNetworkInterval(interval){
   clearInterval(loadBestNetworkInterval);
 
   loadBestNetworkInterval = setInterval(function(){
-
-    loadCategoryHashMap(
-    {
-      hashmap: "auto", 
-      folder: classifiedUsersFolder, 
-      file: autoClassifiedUsersDefaultFile
-    }, 
-    function(err){
-      if (err) {
-        console.log(chalkError("ERROR: loadCategoryAutoHashMap"
-          + " | " + classifiedUsersFolder + "/" + autoClassifiedUsersDefaultFile
-          + " | " + err
-        ));
-      }
-      else {
-        console.log(chalkLog("LOADED CATEGORY AUTO HASHMAP"
-          + " | ENTRIES: " + categoryAutoHashMap.count()
-          + " | " + classifiedUsersFolder + "/" + autoClassifiedUsersDefaultFile
-        ));
-      }
-    });
-
-    loadCategoryHashMap({folder: classifiedUsersFolder, file: classifiedUsersDefaultFile}, function(err){
-      if (err) {
-        console.log(chalkError("ERROR: loadCategoryHashMap"
-          + " | " + classifiedUsersFolder + "/" + classifiedUsersDefaultFile
-          + " | " + err
-        ));
-      }
-      else {
-        console.log(chalkLog("LOADED CATEGORY MAN HASHMAP"
-          + " | ENTRIES: " + categoryHashMap.count()
-          + " | " + classifiedUsersFolder + "/" + classifiedUsersDefaultFile
-        ));
-      }
-    });
-
 
     loadFile(bestNetworkFolder, bestRuntimeNetworkFileName, function(err, bRtNnObj){
 
@@ -3898,6 +3582,151 @@ function initLoadBestNetworkInterval(interval){
   }, interval);
 }
 
+function initCategoryHashmaps(callback){
+
+  console.log(chalkTwitter("INIT CATEGORIZED USER + HASHTAG HASHMAPS FROM DB"));
+
+  async.parallel({
+    hashtag: function(cb){
+
+    // results.obj[nodeId] = { manual: hashtag.category, auto: hashtag.categoryAuto };
+
+      hashtagServer.findCategorizedHashtagsCursor({}, function(err, results){
+        if (err) {
+          console.error(chalkError("ERROR: initCategoryHashmaps: findCategorizedHashtagsCursor:"
+            + " " + err
+          ));
+          cb(err);
+        }
+        else {
+          console.log(chalkTwitter("LOADED CATEGORIZED HASHTAGS FROM DB"
+            + " | " + results.count + " CATEGORIZED"
+            + " | " + results.manual + " MAN"
+            + " | " + results.auto + " AUTO"
+            + " | " + results.matchRate.toFixed(2) + "% MR"
+          ));
+
+          Object.keys(results.obj).forEach(function(nodeId){
+            categorizedHashtagHashMap.set(nodeId, results.obj[nodeId]);
+          });
+
+          cb();
+        }
+      });
+    },
+    user: function(cb){
+      userServer.findCategorizedUsersCursor({}, function(err, results){
+        if (err) {
+          console.error(chalkError("ERROR: initCategoryHashmaps: findCategorizedUsersCursor:"
+            + " " + err
+          ));
+          cb(err);
+        }
+        else {
+          console.log(chalkTwitter("LOADED CATEGORIZED USERS FROM DB"
+            + " | " + results.count + " CATEGORIZED"
+            + " | " + results.manual + " MAN"
+            + " | " + results.auto + " AUTO"
+            + " | " + results.matchRate.toFixed(2) + "% MR"
+          ));
+
+          // categorizedUsersObj[user.nodeId.toString()] = { manual: user.category, auto: user.categoryAuto };
+          Object.keys(results.obj).forEach(function(nodeId){
+            categorizedUserHashMap.set(nodeId, results.obj[nodeId]);
+          });
+
+          cb();
+        }
+      });
+    }
+  }, function(err){
+    if (err) {
+      console.log(chalkError("ERROR: initCategoryHashmaps: " + err));
+      callback(err);
+    }
+    else {
+      console.log(chalkAlert("LOAD COMPLETE: initCategoryHashmaps"));
+      callback();
+    }
+
+    // loadFile(categorizedFolder, categorizedUsersFile, function(err, categoriedUserObj){
+    //   if (err){
+    //     if (err.status === 409){
+    //       console.log(chalkError("FILE NOT FOUND: " + categorizedFolder + "/" + categorizedUsersFile));
+    //     }
+    //     else {
+    //       console.log(chalkError("ERROR: " + err));
+    //       return(callback(err));
+    //     }
+    //   }
+
+    //   let cObj = {};
+    //   cObj.manual = false;
+    //   cObj.auto = false;
+
+    //   if (categoriedUserObj) {
+    //     Object.keys(categoriedUserObj).forEach(function(nodeId){
+
+    //       cObj = categoriedUserObj[nodeId];
+
+    //       // value = { manual: hashtag.category, auto: hashtag.categoryAuto };
+    //       if (categorizedUserHashMap.has(nodeId)){
+    //         cObj.auto = categorizedUserHashMap.get(nodeId).auto || false;
+    //       }
+
+    //       categorizedUserHashMap.set(nodeId, cObj);
+
+    //       console.log(chalkInfo("CL USR"
+    //         + " | CM: " + printCat(cObj.manual)
+    //         + " | CA: " + printCat(cObj.auto)
+    //         + " | " + nodeId
+    //       ));
+    //     });
+
+    //     console.log(chalkAlert("LOADED " + Object.keys(categoriedUserManualObj).length + " CATEGORIZED USERS"
+    //       + " | " + categorizedFolder + "/" + categorizedUsersFile
+    //     ));
+    //   }
+
+    //   console.log(chalkAlert(categorizedUserHashMap.count() + " CATEGORIZED USERS IN HASHMAP"
+    //   ));
+
+    //   categorizedUserHashMap.forEach(function(catObj, nodeId){
+
+    //     User.findOneAndUpdate({nodeId: nodeId}, { $set: { category: catObj.manual }}, {}, function(err, updatedUser){
+    //       if (err) { 
+    //         console.log(chalkError("ERROR: SAVE: categorizedUserHashMap: USER FINDEONE AND UPDATE: " + err));
+    //       }
+    //       if (updatedUser) {
+
+    //         console.log("UPDATED DB"
+    //           + " | CM: " + printCat(updatedUser.category)
+    //           + " | CA: " + printCat(updatedUser.categoryAuto)
+    //           + " | @" + updatedUser.screenName
+    //           + " | " + updatedUser.nodeId
+    //         );
+    //         if (typeof updatedUser.category === "object") {
+    //           console.log(chalkAlert("??? CATEGORY IS OBJECT ... SETTING TO false"
+    //             + " | @" + updatedUser.screenName
+    //             + " | " + updatedUser.nodeId
+    //             + "\n" + jsonPrint(updatedUser.category)
+    //           ));
+    //         }
+    //       }
+    //       else {
+    //         console.log("--- MISS UPDATE DB"
+    //           + " | " + nodeId
+    //           + " | CM: " + printCat(catObj.manual)
+    //         );
+    //       }
+    //     });
+    //   });
+    //   callback();
+    // });
+
+  });
+}
+
 function initialize(cnf, callback) {
 
   debug(chalkInfo(moment().format(compactDateTimeFormat) + " | INITIALIZE"));
@@ -3930,18 +3759,6 @@ function initialize(cnf, callback) {
     }
   });
 
-  loadCategoryHashMap({hashmap: "auto", folder: classifiedUsersFolder, file: autoClassifiedUsersDefaultFile}, function(err){
-    if (err) {
-      console.log(chalkError("ERROR: loadCategoryAutoHashMap: " + err));
-    }
-    else {
-      console.log(chalkLog("LOADED CATEGORY AUTO HASHMAP"
-        + " | ENTRIES: " + categoryAutoHashMap.count()
-        + " | " + classifiedUsersFolder + "/" + autoClassifiedUsersDefaultFile
-      ));
-    }
-  });
-
 
   loadMaxInputHashMap({folder: dropboxConfigDefaultTrainingSetsFolder, file: maxInputHashMapFile}, function(err){
     if (err) {
@@ -3956,7 +3773,6 @@ function initialize(cnf, callback) {
   });
 
   initLoadBestNetworkInterval(ONE_MINUTE+1);
-
   initInternetCheckInterval(10000);
 
   io = require("socket.io")(httpServer, { reconnection: true });
@@ -4023,12 +3839,6 @@ configEvents.on("CHILD_ERROR", function childError(childObj){
       console.error("KILL TWEET PARSER");
       if (tweetParser !== undefined) { tweetParser.kill("SIGINT"); }
       initTweetParser();
-    break;
-    case "updater":
-      console.error("KILL UPDATER");
-      if (updater !== undefined) { updater.kill("SIGINT"); }
-      initUpdater();
-      initUpdaterPingInterval(60000);
     break;
     case "sorter":
       console.error("KILL SORTER");
@@ -4138,31 +3948,16 @@ initialize(configuration, function initializeComplete(err) {
   } 
   else {
     debug(chalkLog("INITIALIZE COMPLETE"));
-    initUpdaterMessageQueueInterval(DEFAULT_INTERVAL);
     initSorterMessageRxQueueInterval(DEFAULT_INTERVAL);
-
-    initUpdater(function initUpdaterComplete(err, udtr){
-      if (err) {
-        console.error(chalkError("INIT UPDATER ERROR: " + err));
-        if (udtr !== undefined) { 
-          udtr.kill("SIGKILL"); 
-        }
-        if (updater !== undefined) { 
-          updater.kill("SIGKILL"); 
-        }
-      }
-      else {
-        updater = udtr;
-      }
-    });
+    initSaveFileQueue(configuration);
     
     initSorter(function initSorterComplete(err, srtr){
       if (err) {
-        console.error(chalkError("INIT UPDATER ERROR: " + err));
+        console.error(chalkError("INIT SORTER ERROR: " + err));
         if (srtr !== undefined) { 
           srtr.kill("SIGKILL"); 
         }
-        if (updater !== undefined) { 
+        if (sorter !== undefined) { 
           sorter.kill("SIGKILL"); 
         }
       }
@@ -4170,12 +3965,12 @@ initialize(configuration, function initializeComplete(err) {
         sorter = srtr;
       }
     });
+
     initTransmitNodeQueueInterval(TRANSMIT_NODE_QUEUE_INTERVAL);
     initStatsInterval(STATS_UPDATE_INTERVAL);
     initIgnoreWordsHashMap();
     initUpdateTrendsInterval(UPDATE_TRENDS_INTERVAL);
     initRateQinterval(RATE_QUEUE_INTERVAL);
-    // initMetricsDataPointQueueInterval(60000);
     initTwitterRxQueueInterval(TWITTER_RX_QUEUE_INTERVAL);
     initTweetParserMessageRxQueueInterval(TWEET_PARSER_MESSAGE_RX_QUEUE_INTERVAL);
     initHashtagLookupQueueInterval(HASHTAG_LOOKUP_QUEUE_INTERVAL);
@@ -4190,6 +3985,14 @@ initialize(configuration, function initializeComplete(err) {
 
     statsObj.configuration = configuration;
 
+    initCategoryHashmaps(function(err){
+      if (err) {
+        console.log(chalkError("ERROR: LOAD CATEGORY HASHMAPS: " + err));
+      }
+      else {
+        console.log(chalkInfo("LOADED CATEGORY HASHMAPS"));
+      }
+    });
 
     slackPostMessage(slackChannel, "\n*INIT* | " + hostname + "\n");
 

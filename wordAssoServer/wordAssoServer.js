@@ -745,7 +745,6 @@ function initStats(callback){
   statsObj.nodesPerMin = 0.0;
   statsObj.nodesPerSec = 0.0;
   statsObj.maxNodesPerMin = 0.0;
-  statsObj.maxTweetsPerMin = 0.0;
   statsObj.caches = {};
   statsObj.caches.nodeCache = {};
   statsObj.caches.nodeCache.stats = {};
@@ -2599,8 +2598,6 @@ configEvents.on("SERVER_READY", function serverReady() {
 
       hearbeatObj.memory = statsObj.memory;
 
-      hearbeatObj.tweetsPerMin = statsObj.tweetsPerMin;
-      hearbeatObj.maxTweetsPerMin = statsObj.maxTweetsPerMin;
       hearbeatObj.nodesPerMin = statsObj.nodesPerMin;
       hearbeatObj.maxNodesPerMin = statsObj.maxNodesPerMin;
 
@@ -3392,7 +3389,8 @@ function initRateQinterval(interval){
   statsObj.nodesPerMin = 0.0;
   statsObj.nodesPerSec = 0.0;
   statsObj.maxNodesPerMin = 0.0;
-  statsObj.maxTweetsPerMin = 0.0;
+  statsObj.twitter.maxTweetsPerMin = 0.0;
+  statsObj.twitter.maxTweetsPerMinTime = 0;
 
   statsObj.queues.transmitNodeQueue = transmitNodeQueue.length;
   statsObj.queues.tweetRxQueue = tweetRxQueue.length;

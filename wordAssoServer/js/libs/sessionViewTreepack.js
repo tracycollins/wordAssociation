@@ -1211,6 +1211,20 @@ function ViewTreepack() {
       });
 
     nodeLabels
+      .text(function (d) {
+        if (d.nodeType === "hashtag") { return "#" + d.text.toUpperCase() +" | "+ d.age.toFixed(1); }
+        if (d.nodeType === "user") { 
+          if (d.screenName) { return "@" + d.screenName.toUpperCase() +" | "+ d.age.toFixed(1); 
+          }
+          else if (d.name){
+            return "@" + d.name.toUpperCase(); 
+          }
+          else {
+            return "@UNKNOWN?"; 
+          }
+        }
+        if (d.nodeType === "place") { return d.fullName.toUpperCase(); }
+        return d.nodeId; 
       .attr("x", function (d) { return d.x; })
       .attr("y", function (d) { return d.y; })
       .style("opacity", function (d) { 
@@ -1257,9 +1271,9 @@ function ViewTreepack() {
       .attr("x", function (d) { return d.x; })
       .attr("y", function (d) { return d.y; })
       .text(function (d) {
-        if (d.nodeType === "hashtag") { return "#" + d.text.toUpperCase() +"<br/>"+ d.age; }
+        if (d.nodeType === "hashtag") { return "#" + d.text.toUpperCase() +" | "+ d.age.toFixed(1); }
         if (d.nodeType === "user") { 
-          if (d.screenName) { return "@" + d.screenName.toUpperCase() +"<br/>"+ d.age;; 
+          if (d.screenName) { return "@" + d.screenName.toUpperCase() +" | "+ d.age.toFixed(1); 
           }
           else if (d.name){
             return "@" + d.name.toUpperCase(); 
@@ -1268,15 +1282,15 @@ function ViewTreepack() {
             return "@UNKNOWN?"; 
           }
         }
+        if (d.nodeType === "place") { return d.fullName.toUpperCase(); }
+        return d.nodeId; 
         // if (d.category || d.isTrendingTopic) { 
         //   if (d.nodeType === "hashtag") { return "#" + d.text.toUpperCase(); }
-        //   if (d.nodeType === "place") { return d.fullName.toUpperCase(); }
         //   return d.nodeId.toUpperCase(); 
         // }
         // if (d.nodeType === "hashtag") { return "#" + d.text.toUpperCase(); }
         // if (d.nodeType === "place") { return d.fullName; }
         // if (testMode) { return "blah"; }
-        return d.nodeId; 
       })
       .style("font-weight", function (d) {
         if (d.followersCount > MIN_FOLLOWERS) { return "bold"; }

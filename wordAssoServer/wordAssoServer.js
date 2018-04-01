@@ -436,9 +436,9 @@ const mongoose = require("mongoose");
 mongoose.Promise = global.Promise;
 
 const hashtagServer = require("@threeceelabs/hashtag-server-controller");
-const userServer = require("@threeceelabs/user-server-controller");
-
 // const hashtagServer = require("../../hashtagServerController");
+
+const userServer = require("@threeceelabs/user-server-controller");
 // const userServer = require("../../userServerController");
 
 dbConnection.on("error", console.error.bind(console, "connection error:"));

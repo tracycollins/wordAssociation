@@ -1139,12 +1139,7 @@ function ViewTreepack() {
         if (d.isDead) { return 1e-6; }
         if (d.isIgnored) { return 1e-6; }
         if (metricMode === "rate") { return defaultRadiusScale(Math.sqrt(d.rate));}
-        if (metricMode === "mentions") { 
-          // if (d.nodeType === "user") { 
-          //   return defaultRadiusScale(Math.sqrt(d.followersMentions)); 
-          // }
-          return defaultRadiusScale(Math.sqrt(d.mentions));
-        }
+        if (metricMode === "mentions") {return defaultRadiusScale(Math.sqrt(d.mentions));}
       })
       .attr("cx", function(d) { 
         return d.x; 
@@ -1157,7 +1152,7 @@ function ViewTreepack() {
         return "visible";
       })
       .style("opacity", function(d) { 
-        if (d.isDead) { return 1e-6; }
+        // if (d.isDead) { return 1e-6; }
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
       .style("fill", function (d) { 
@@ -1262,9 +1257,9 @@ function ViewTreepack() {
       .attr("x", function (d) { return d.x; })
       .attr("y", function (d) { return d.y; })
       .text(function (d) {
-        if (d.nodeType === "hashtag") { return "#" + d.text.toUpperCase(); }
+        if (d.nodeType === "hashtag") { return "#" + d.text.toUpperCase() +"<br/>"+ d.age; }
         if (d.nodeType === "user") { 
-          if (d.screenName) { return "@" + d.screenName.toUpperCase(); 
+          if (d.screenName) { return "@" + d.screenName.toUpperCase() +"<br/>"+ d.age;; 
           }
           else if (d.name){
             return "@" + d.name.toUpperCase(); 
@@ -1273,14 +1268,14 @@ function ViewTreepack() {
             return "@UNKNOWN?"; 
           }
         }
-        if (d.category || d.isTrendingTopic) { 
-          if (d.nodeType === "hashtag") { return "#" + d.text.toUpperCase(); }
-          if (d.nodeType === "place") { return d.fullName.toUpperCase(); }
-          return d.nodeId.toUpperCase(); 
-        }
-        if (d.nodeType === "hashtag") { return "#" + d.text.toUpperCase(); }
-        if (d.nodeType === "place") { return d.fullName; }
-        if (testMode) { return "blah"; }
+        // if (d.category || d.isTrendingTopic) { 
+        //   if (d.nodeType === "hashtag") { return "#" + d.text.toUpperCase(); }
+        //   if (d.nodeType === "place") { return d.fullName.toUpperCase(); }
+        //   return d.nodeId.toUpperCase(); 
+        // }
+        // if (d.nodeType === "hashtag") { return "#" + d.text.toUpperCase(); }
+        // if (d.nodeType === "place") { return d.fullName; }
+        // if (testMode) { return "blah"; }
         return d.nodeId; 
       })
       .style("font-weight", function (d) {

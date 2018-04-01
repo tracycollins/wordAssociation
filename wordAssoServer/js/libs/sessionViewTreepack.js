@@ -780,23 +780,14 @@ function ViewTreepack() {
 
     nodeIdArray = localNodeHashMap.keys();
     ageMaxRatio = 1e-6;
-    // deadNodeFlag = false ;
-    // ageNodesLength = nodes.length - 1;
     ageNodesLength = nodeIdArray.length;
-    // ageNodesIndex = nodes.length - 1;
 
-    if (ageNodesLength === 0) {
-      ageRate = DEFAULT_AGE_RATE;
-    } 
+    if (ageNodesLength === 0) { ageRate = DEFAULT_AGE_RATE; } 
     else if ((ageNodesLength > MAX_NODES) && (nodeAddQ.length <= MAX_RX_QUEUE)) {
       ageRate = adjustedAgeRateScale(ageNodesLength - MAX_NODES);
     } 
-    else if (nodeAddQ.length > MAX_RX_QUEUE) {
-      ageRate = adjustedAgeRateScale(nodeAddQ.length - MAX_RX_QUEUE);
-    } 
-    else {
-      ageRate = DEFAULT_AGE_RATE;
-    }
+    else if (nodeAddQ.length > MAX_RX_QUEUE) { ageRate = adjustedAgeRateScale(nodeAddQ.length - MAX_RX_QUEUE); } 
+    else { ageRate = DEFAULT_AGE_RATE; }
 
     maxAgeRate = Math.max(ageRate, maxAgeRate);
     currentTime = moment().valueOf();
@@ -837,26 +828,17 @@ function ViewTreepack() {
         node.isValid = true;
         node.ageUpdated = currentTime;
         node.age = age;
-        if (ageMaxRatio < NEW_NODE_AGE_RATIO) { 
-          node.newFlag = true; 
-        }
-        else {
-          node.newFlag = false; 
-        }
+        if (ageMaxRatio < NEW_NODE_AGE_RATIO) { node.newFlag = true; }
+        else { node.newFlag = false;   }
         node.ageMaxRatio = ageMaxRatio;
         node.isDead = false;
 
         localNodeHashMap.set(node.nodeId, node);
 
-        if (node.isTopTerm){
-          nodesTopTermHashMap.set(node.nodeId, node);
-        }
-        else {
-          nodesTopTermHashMap.remove(node.nodeId);
-        }
+        if (node.isTopTerm){ nodesTopTermHashMap.set(node.nodeId, node);  }
+        else { nodesTopTermHashMap.remove(node.nodeId); }
       }
     });
-    // }
 
       nodeArray = localNodeHashMap.values();
 
@@ -1212,16 +1194,13 @@ function ViewTreepack() {
 
     nodeLabels
       .text(function (d) {
-        if (d.nodeType === "hashtag") { return "#" + d.text.toUpperCase() +" | "+ d.age.toFixed(1); }
+        if (d.nodeType === "hashtag") { 
+          return "#" + d.text.toUpperCase() + " | "+ d.age.toFixed(0) + " | "+ (100*d.ageMaxRatio.toFixed(0)); 
+        }
         if (d.nodeType === "user") { 
-          if (d.screenName) { return "@" + d.screenName.toUpperCase() +" | "+ d.age.toFixed(1); 
-          }
-          else if (d.name){
-            return "@" + d.name.toUpperCase(); 
-          }
-          else {
-            return "@UNKNOWN?"; 
-          }
+          if (d.screenName) { return "@" + d.screenName.toUpperCase() +" | "+ (100*d.ageMaxRatio.toFixed(0)); }
+          else if (d.name){ return "@" + d.name.toUpperCase(); }
+          else { return "@UNKNOWN?";  }
         }
         if (d.nodeType === "place") { return d.fullName.toUpperCase(); }
         return d.nodeId; 
@@ -1272,16 +1251,11 @@ function ViewTreepack() {
       .attr("x", function (d) { return d.x; })
       .attr("y", function (d) { return d.y; })
       .text(function (d) {
-        if (d.nodeType === "hashtag") { return "#" + d.text.toUpperCase() +" | "+ d.age.toFixed(1); }
+        if (d.nodeType === "hashtag") { return "#" + d.text.toUpperCase() +" | "+ d.age.toFixed(0); }
         if (d.nodeType === "user") { 
-          if (d.screenName) { return "@" + d.screenName.toUpperCase() +" | "+ d.age.toFixed(1); 
-          }
-          else if (d.name){
-            return "@" + d.name.toUpperCase(); 
-          }
-          else {
-            return "@UNKNOWN?"; 
-          }
+          if (d.screenName) { return "@" + d.screenName.toUpperCase() +" | "+ d.age.toFixed(0);  }
+          else if (d.name){ return "@" + d.name.toUpperCase(); }
+          else { return "@UNKNOWN?"; }
         }
         if (d.nodeType === "place") { return d.fullName.toUpperCase(); }
         return d.nodeId; 

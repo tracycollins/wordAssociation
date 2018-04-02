@@ -36,8 +36,8 @@ function ViewTreepack() {
 
   function jsonPrint(obj) {
     if ((obj) || (obj === 0)) {
-      var jsonString = JSON.stringify(obj, null, 2);
-      return jsonString;
+      // var jsonString = JSON.stringify(obj, null, 2);
+      return JSON.stringify(obj, null, 2);;
     } else {
       return "UNDEFINED";
     }
@@ -674,7 +674,6 @@ function ViewTreepack() {
     config.defaultFontSizeMinRatio = value;
     fontSizeMinRatio = value;
     fontSizeMin = value * height;
-    // rowSpacing = value * 110; // %
     nodeLabelSizeScale = d3.scaleLinear()
       .domain([1, currentMaxMetric])
       .range([fontSizeMin, fontSizeMax])
@@ -720,6 +719,19 @@ function ViewTreepack() {
     });
   }
 
+  function resetNode(n){
+    n.isDead = true;
+    n.isValid = false;
+    n.age = 1e-6;
+    n.ageMaxRatio = 1e-6;
+    n.isTopTerm = false;
+
+    var c = document.getElementById(n.nodePooId);
+    c.setAttribute("r", 1e-6);
+    c.setAttribute("visibility", "hidden");
+    c.setAttribute("opacity", 1e-6);
+  }
+
   var age;
   var ageMaxRatio = 1e-6;
   var ageNodesLength = 0;
@@ -763,18 +775,14 @@ function ViewTreepack() {
 
       if (node.isDead || (removeDeadNodesFlag && (age >= nodeMaxAge))) {
 
-        node.isDead = true;
-        node.isValid = false;
-
         localNodeHashMap.remove(node.nodeId);
         nodesTopTermHashMap.remove(node.nodeId);
 
-        var c = document.getElementById(node.nodePooId);
-        c.setAttribute("r", 1e-6);
-        c.setAttribute("visibility", "hidden");
-        c.setAttribute("opacity", 1e-6);
+        resetNode(node);
+
         nodePool.recycle(node);
-       } 
+
+      } 
       else {
         node.isDead = false;
         node.isValid = true;

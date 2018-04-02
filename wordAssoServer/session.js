@@ -17,17 +17,17 @@ function jp(s, obj) {
 
 function jsonPrint(obj) {
   if ((obj) || (obj === 0)) {
-    var jsonString = JSON.stringify(obj, null, 2);
-    return jsonString;
+    // var jsonString = JSON.stringify(obj, null, 2);
+    return JSON.stringify(obj, null, 2);
   } else {
     return "UNDEFINED";
   }
 }
 
 var randomIntFromInterval = function(min, max) {
-  var random = Math.random();
-  var randomInt = Math.floor((random * (max - min + 1)) + min);
-  return randomInt;
+  // var random = Math.random();
+  // var randomInt = Math.floor((Math.random() * (max - min + 1)) + min);
+  return (Math.floor((Math.random() * (max - min + 1)) + min));
 };
 
 var randomId = randomIntFromInterval(1000000000, 9999999999);
@@ -137,8 +137,8 @@ requirejs(["https://d3js.org/d3.v4.min.js"], function(d3Loaded) {
   },
   function(error) {
     console.log("REQUIREJS ERROR handler", error);
-    var failedId = error.requireModules && error.requireModules[0];
-    console.log(failedId);
+    // var failedId = error.requireModules && error.requireModules[0];
+    console.log(error.requireModules && error.requireModules[0]);
     console.log(error.message);
   }
 );
@@ -530,7 +530,6 @@ ignoreWordsArray.push("`");
 var groupHashMap = new HashMap();
 var groupDeleteHashMap = new HashMap();
 
-// var maxSessions = 0;
 var sessionHashMap = new HashMap();
 var sessionDeleteHashMap = new HashMap();
 
@@ -547,7 +546,6 @@ categoryColorHashMap.set("neutral", palette.lightgray);
 
 categoryColorHashMap.set("left", palette.blue);
 categoryColorHashMap.set("right", palette.yellow);
-
 
 var rxSessionUpdateQueue = [];
 var rxSessionDeleteQueue = [];
@@ -613,12 +611,18 @@ var recentMediaMentionsArray = [] ;
 var viewerSessionKey;
 var socket = io("/view");
 
+var milliseconds;
+var seconds;
+var minutes;
+var hours;
+var days;
+
 function msToTime(duration) {
-  var milliseconds = parseInt((duration % 1000) / 1000);
-  var seconds = parseInt((duration / 1000) % 60);
-  var minutes = parseInt((duration / (1000 * 60)) % 60);
-  var hours = parseInt((duration / (1000 * 60 * 60)) % 24);
-  var days = parseInt(duration / (1000 * 60 * 60 * 24));
+  milliseconds = parseInt((duration % 1000) / 1000);
+  seconds = parseInt((duration / 1000) % 60);
+  minutes = parseInt((duration / (1000 * 60)) % 60);
+  hours = parseInt((duration / (1000 * 60 * 60)) % 24);
+  days = parseInt(duration / (1000 * 60 * 60 * 24));
 
   days = (days < 10) ? "0" + days : days;
   hours = (hours < 10) ? "0" + hours : hours;
@@ -629,20 +633,17 @@ function msToTime(duration) {
 }
 
 function getCategoryColor(c, callback){
-
-  if (c === undefined) {
-    return(callback(palette.white));
-  }
+  if (c === undefined) { return(callback(palette.white)); }
   callback(categoryColorHashMap.get(c));
 }
 
 function saveConfig(){
   storedConfigName = "config_" + config.sessionViewType;
   store.set(storedConfigName, config);
-  var sc = store.get(storedConfigName);
+  // var sc = store.get(storedConfigName);
   console.debug("STORED CONFIG"
     + " | " + storedConfigName
-    + "\n" + jsonPrint(sc)
+    + "\n" + jsonPrint(store.get(storedConfigName))
   );
 }
 
@@ -744,9 +745,9 @@ window.onbeforeunload = function() {
 
 function toggleControlPanel(){
 
-  var cnf = config;
+  // var cnf = config;
 
-  console.warn("toggleControlPanel config\n" + jsonPrint(cnf));
+  console.warn("toggleControlPanel config\n" + jsonPrint(config));
 
   if (controlPanelFlag){
     controlPanelWindow.close();
@@ -759,7 +760,7 @@ function toggleControlPanel(){
 
     var controlPanelInitWaitInterval;
 
-    createPopUpControlPanel(cnf, function(cpw){
+    createPopUpControlPanel(config, function(cpw){
 
       console.warn("createPopUpControlPanel toggleControlPanel: " + controlPanelFlag);
 
@@ -768,7 +769,7 @@ function toggleControlPanel(){
           clearInterval(controlPanelInitWaitInterval);
           updateControlButton(controlPanelFlag);
           console.debug("TX> CONTROL PANEL INIT | SOURCE: " + DEFAULT_SOURCE);
-          controlPanelWindow.postMessage({op: "INIT", config: cnf}, DEFAULT_SOURCE);
+          controlPanelWindow.postMessage({op: "INIT", config: config}, DEFAULT_SOURCE);
           controlPanelWindow.postMessage({op: "SET_TWITTER_USER", user: twitterUserThreecee}, DEFAULT_SOURCE);
         }
       }, 500);
@@ -778,8 +779,8 @@ function toggleControlPanel(){
 }
 
 function updateControlButton(controlPanelFlag){
-  var cpButtonElement = document.getElementById("controlPanelButton");
-  cpButtonElement.innerHTML = controlPanelFlag ? "HIDE CONTROL" : "SHOW CONTROL";
+  // var cpButtonElement = document.getElementById("controlPanelButton");
+  document.getElementById("controlPanelButton").innerHTML = controlPanelFlag ? "HIDE CONTROL" : "SHOW CONTROL";
 }
 
 function addControlButton(){
@@ -810,10 +811,10 @@ function addCategoryButton(){
   controlDivElement.appendChild(categoryButton);
 }
 
-var categoryButtonElement = document.getElementById("categoryButton");
+// var categoryButtonElement = document.getElementById("categoryButton");
 
 function updateCategoryButton(){
-  categoryButtonElement.innerHTML = config.autoCategoryFlag ? "AUTO CATEGORY" : "MANUAL CATEGORY";
+  document.getElementById("categoryButton").innerHTML = config.autoCategoryFlag ? "AUTO CATEGORY" : "MANUAL CATEGORY";
 }
 
 function addStatsButton(){
@@ -832,8 +833,8 @@ function updateStatsButton(){
 }
 
 function updateMetricButton(){
-  var bButton = document.getElementById("metricButton");
-  bButton.innerHTML = config.metricMode.toUpperCase() + " RADIUS";
+  // var bButton = document.getElementById("metricButton");
+  document.getElementById("metricButton").innerHTML = config.metricMode.toUpperCase() + " RADIUS";
 }
 
 function addMetricButton(){
@@ -847,8 +848,8 @@ function addMetricButton(){
 }
 
 function updateBlahButton(){
-  var bButton = document.getElementById("blahButton");
-  bButton.innerHTML = config.blahMode ? "HIDE BLAH" : "SHOW BLAH";
+  // var bButton = document.getElementById("blahButton");
+  document.getElementById("blahButton").innerHTML = config.blahMode ? "HIDE BLAH" : "SHOW BLAH";
 }
 
 function addBlahButton(){
@@ -862,8 +863,8 @@ function addBlahButton(){
 }
 
 function updateLoginButton(){
-  var lButton = document.getElementById("loginButton");
-  lButton.innerHTML = statsObj.isAuthenticated ? "LOG OUT" : "LOG IN";
+  // var lButton = document.getElementById("loginButton");
+  document.getElementById("loginButton").innerHTML = statsObj.isAuthenticated ? "LOG OUT" : "LOG IN";
 }
 
 socket.on("unauthorized", function(response) {
@@ -905,8 +906,8 @@ function addLoginButton(){
 }
 
 function updateFullscreenButton(){
-  var bButton = document.getElementById("fullscreenButton");
-  bButton.innerHTML = config.fullscreenMode ? "EXIT FULLSCREEN" : "FULLSCREEN";
+  // var bButton = document.getElementById("fullscreenButton");
+  document.getElementById("fullscreenButton").innerHTML = config.fullscreenMode ? "EXIT FULLSCREEN" : "FULLSCREEN";
 }
 
 function addFullscreenButton(){
@@ -941,9 +942,9 @@ function controlPanelComm(event) {
 
   console.debug("CONTROL PANEL: " + event.origin); // prints: { message: "Hello world!"} 
 
-  var data = event.data;
+  // var data = event.data;
 
-  if (data === "DisableHTML5Autoplay_Initialize") {
+  if (event.data === "DisableHTML5Autoplay_Initialize") {
     console.info("RX> CONTROL PANEL | DisableHTML5Autoplay_Initialize ... IGNORING ...");
     return;
   }
@@ -952,21 +953,21 @@ function controlPanelComm(event) {
   // if (event.origin !== "http://example.com:8080")
   //   return;
 
-  switch (data.op) {
+  switch (event.data.op) {
     case "READY" :
       console.warn("R< CONTROL PANEL READY");
       controlPanelReadyFlag = true;
     break;
     case "NODE_SEARCH" :
-      console.warn("R< CONTROL NODE_SEARCH\n" + jsonPrint(data.input));
-      socket.emit("TWITTER_SEARCH_NODE", data.input);
+      console.warn("R< CONTROL NODE_SEARCH\n" + jsonPrint(event.data.input));
+      socket.emit("TWITTER_SEARCH_NODE", event.data.input);
     break;
     case "CLOSE" :
       console.warn("R< CONTROL PANEL CLOSING...");
     break;
     case "MOMENT" :
       console.warn("R< CONTROL PANEL MOMENT...");
-      switch (data.id) {
+      switch (event.data.id) {
         case "resetButton" :
           reset();
         break;
@@ -976,7 +977,7 @@ function controlPanelComm(event) {
     break;
     case "TOGGLE" :
       console.warn("R< CONTROL PANEL TOGGLE");
-      switch (data.id) {
+      switch (event.data.id) {
         case "metricToggleButton" :
           toggleMetric();
           resetConfigUpdateTimeOut();
@@ -1021,54 +1022,54 @@ function controlPanelComm(event) {
     break;
     case "UPDATE" :
       console.warn("R< CONTROL PANEL UPDATE");
-      switch (data.id) {
+      switch (event.data.id) {
         case "transitionDurationSlider" :
-          currentSessionView.updateTransitionDuration(data.value);
-          config.defaultTransitionDuration = data.value;
+          currentSessionView.updateTransitionDuration(event.data.value);
+          config.defaultTransitionDuration = event.data.value;
           resetConfigUpdateTimeOut();
         break;
         case "linkStrengthSlider" :
-          currentSessionView.updateLinkStrength(data.value);
+          currentSessionView.updateLinkStrength(event.data.value);
           resetConfigUpdateTimeOut();
         break;
         case "linkDistanceSlider" :
-          currentSessionView.updateLinkDistance(data.value);
+          currentSessionView.updateLinkDistance(event.data.value);
           resetConfigUpdateTimeOut();
         break;
         case "velocityDecaySlider" :
-          currentSessionView.updateVelocityDecay(data.value);
+          currentSessionView.updateVelocityDecay(event.data.value);
           resetConfigUpdateTimeOut();
         break;
         case "gravitySlider" :
-          currentSessionView.updateGravity(data.value);
+          currentSessionView.updateGravity(event.data.value);
           resetConfigUpdateTimeOut();
         break;
         case "chargeSlider" :
-          currentSessionView.updateCharge(data.value);
+          currentSessionView.updateCharge(event.data.value);
           resetConfigUpdateTimeOut();
         break;
         case "maxAgeSlider" :
-          currentSessionView.setNodeMaxAge(data.value);
+          currentSessionView.setNodeMaxAge(event.data.value);
           resetConfigUpdateTimeOut();
         break;
         case "fontSizeMinRatioSlider" :
-          currentSessionView.updateFontSizeMinRatio(data.value);
+          currentSessionView.updateFontSizeMinRatio(event.data.value);
           resetConfigUpdateTimeOut();
         break;
         case "fontSizeMaxRatioSlider" :
-          currentSessionView.updateFontSizeMaxRatio(data.value);
+          currentSessionView.updateFontSizeMaxRatio(event.data.value);
           resetConfigUpdateTimeOut();
         break;
         case "nodeRadiusMinRatioSlider" :
-          currentSessionView.updateNodeRadiusMinRatio(data.value);
+          currentSessionView.updateNodeRadiusMinRatio(event.data.value);
           resetConfigUpdateTimeOut();
         break;
         case "nodeRadiusMaxRatioSlider" :
-          currentSessionView.updateNodeRadiusMaxRatio(data.value);
+          currentSessionView.updateNodeRadiusMaxRatio(event.data.value);
           resetConfigUpdateTimeOut();
         break;
         default:
-          console.error("UNKNOWN CONTROL PANEL ID: " + data.id + "\n" + jsonPrint(data));
+          console.error("UNKNOWN CONTROL PANEL ID: " + event.data.id + "\n" + jsonPrint(event.data));
       }
     break;
     case "INIT":
@@ -1080,27 +1081,27 @@ function controlPanelComm(event) {
 
       if (statsObj.isAuthenticated) {
 
-        if (data.node.nodeType === "user"){
+        if (event.data.node.nodeType === "user"){
           console.info("R< CONTROL PANEL CATEGORIZE"
-            + " | " + data.node.nodeId
-            + " | " + data.node.screenName
-            + " | " + data.category
+            + " | " + event.data.node.nodeId
+            + " | " + event.data.node.screenName
+            + " | " + event.data.category
           );
           socket.emit("TWITTER_CATEGORIZE_NODE", 
             { twitterUser: config.twitterUser,
-            category: data.category,
-            node: data.node}
+            category: event.data.category,
+            node: event.data.node}
           );
         }
-        else if (data.node.nodeType === "hashtag"){
+        else if (event.data.node.nodeType === "hashtag"){
           console.info("R< CONTROL PANEL CATEGORIZE"
-            + " | " + data.node.nodeId
-            + " | " + data.category
+            + " | " + event.data.node.nodeId
+            + " | " + event.data.category
           );
           socket.emit("TWITTER_CATEGORIZE_NODE", 
             { twitterUser: config.twitterUser,
-            category: data.category,
-            node: data.node}
+            category: event.data.category,
+            node: event.data.node}
           );
         }
 
@@ -1108,8 +1109,6 @@ function controlPanelComm(event) {
       else {
         window.open(config.authenticationUrl, "_blank");
       }
-
-
       break;
     case "SET_TWITTER_USER":
       console.info("R< CONTROL PANEL LOOPBACK? | SET_TWITTER_USER ... IGNORING ...");
@@ -1118,18 +1117,18 @@ function controlPanelComm(event) {
       console.info("R< CONTROL PANEL LOOPBACK? | SET_TWITTER_HASHTAG ... IGNORING ...");
       break;
     default :
-      if (data["twttr.button"] !== undefined){
+      if (event.data["twttr.button"] !== undefined){
         console.log("R< CONTROL PANEL TWITTER" 
-          + " | " + data["twttr.button"].method
+          + " | " + event.data["twttr.button"].method
         );
       }
-      else if (data["settings"] !== undefined){
+      else if (event.data["settings"] !== undefined){
         console.log("R< CONTROL PANEL SETTINGS" 
-          + "\n" + jsonPrint(data["settings"])
+          + "\n" + jsonPrint(event.data["settings"])
         );
       }
       else {
-        console.warn("R< ??? CONTROL PANEL OP UNDEFINED\n" + jsonPrint(data));
+        console.warn("R< ??? CONTROL PANEL OP UNDEFINED\n" + jsonPrint(event.data));
       }
   }
 }
@@ -1162,20 +1161,13 @@ function createPopUpControlPanel (cnf, callback) {
   }, false);
 }
 
-
-
-
 function toggleMetric() {
-  if (config.metricMode === "rate") {
-    config.metricMode = "mentions";
-  }
-  else {
-    config.metricMode = "rate";
-  }
+  if (config.metricMode === "rate") { config.metricMode = "mentions"; }
+  else { config.metricMode = "rate"; }
   currentSessionView.setMetricMode(config.metricMode);
   console.warn("SET RADIUS MODE: " + config.metricMode);
   updateMetricButton();
-  if (controlPanelFlag) {controlPanel.updateControlPanel(config);}
+  if (controlPanelFlag) { controlPanel.updateControlPanel(config); }
   saveConfig();
 }
 
@@ -1184,7 +1176,7 @@ function toggleBlah() {
   currentSessionView.setBlah(config.blahMode);
   console.warn("TOGGLE BLAH: " + config.blahMode);
   updateBlahButton();
-  if (controlPanelFlag) {controlPanel.updateControlPanel(config);}
+  if (controlPanelFlag) { controlPanel.updateControlPanel(config); }
   saveConfig();
 }
 
@@ -1235,11 +1227,8 @@ function toggleStats() {
   config.showStatsFlag = !config.showStatsFlag;
   console.warn("TOGGLE STATS: " + config.showStatsFlag);
 
-  if (config.showStatsFlag) {
-    displayStats(config.showStatsFlag);
-  } else {
-    displayStats(false, palette.white);
-  }
+  if (config.showStatsFlag) { displayStats(config.showStatsFlag); }
+  else { displayStats(false, palette.white); }
 
   if (statsButtonElement) { updateStatsButton(); }
   if (controlPanelFlag) { controlPanel.updateControlPanel(config); }
@@ -1254,50 +1243,52 @@ function toggleTestMode() {
   saveConfig();
 }
 
+var initialPosition
 function computeInitialPosition(index) {
-  var pos = {
+  initialPosition = {
     x: randomIntFromInterval(0.95 * currentSessionView.getWidth(), 1.0 * currentSessionView.getWidth()),
     y: randomIntFromInterval(0.3 * currentSessionView.getHeight(), 0.7 * currentSessionView.getHeight())
   };
 
-  if (!pos.x || !pos.y) {
-    console.error("POS " + jsonPrint(pos));
+  if (!initialPosition.x || !initialPosition.y) {
+    console.error("POS " + jsonPrint(initialPosition));
   }
-  return pos;
+  return initialPosition;
 }
 
+var keysForSortedKeys = [];
 function getSortedKeys(hmap, sortProperty) {
-  var keys = [];
+  // var keys = [];
   hmap.forEach(function(value, key) {
-    if (!value.isSessionNode) {
-      keys.push(key);
-    }
+    if (!value.isSessionNode) { keysForSortedKeys.push(key); }
   });
-  return keys.sort(function(a, b) {
+  return keysForSortedKeys.sort(function(a, b) {
     return hmap.get(b)[sortProperty] - hmap.get(a)[sortProperty];
   });
 }
 
-function getTimeStamp(inputTime) {
-  var options = {
-    weekday: "long",
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    hour12: false,
-    minute: "2-digit"
-  };
+var optionsTimeStamp = {
+  weekday: "long",
+  year: "numeric",
+  month: "short",
+  day: "numeric",
+  hour: "2-digit",
+  hour12: false,
+  minute: "2-digit"
+};
 
-  var currentDate;
-  var currentTime;
+var currentDate;
+var currentTime;
+
+function getTimeStamp(inputTime) {
 
   if (inputTime === undefined) {
-    currentDate = new Date().toDateString("en-US", options);
-    currentTime = new Date().toTimeString("en-US", options);
-  } else {
-    currentDate = new Date(inputTime).toDateString("en-US", options);
-    currentTime = new Date(inputTime).toTimeString("en-US", options);
+    currentDate = new Date().toDateString("en-US", optionsTimeStamp);
+    currentTime = new Date().toTimeString("en-US", optionsTimeStamp);
+  } 
+  else {
+    currentDate = new Date(inputTime).toDateString("en-US", optionsTimeStamp);
+    currentTime = new Date(inputTime).toTimeString("en-US", optionsTimeStamp);
   }
   return currentDate + " - " + currentTime;
 }
@@ -1324,19 +1315,13 @@ function getBrowserPrefix() {
 }
 
 function hiddenProperty(prefix) {
-  if (prefix) {
-    return prefix + "Hidden";
-  } else {
-    return "hidden";
-  }
+  if (prefix) { return prefix + "Hidden"; } 
+  else { return "hidden"; }
 }
 
 function getVisibilityEvent(prefix) {
-  if (prefix) {
-    return prefix + "visibilitychange";
-  } else {
-    return "visibilitychange";
-  }
+  if (prefix) {return prefix + "visibilitychange"; } 
+  else { return "visibilitychange"; }
 }
 
 socket.on("SERVER_READY", function(serverAck) {
@@ -1360,12 +1345,11 @@ socket.on("VIEWER_READY_ACK", function(vSesKey) {
 
   console.debug("STORE CONFIG ON VIEWER_READY_ACK\n" + jsonPrint(config));
   saveConfig();
-  // store.set(storedConfigName, config);
 
   if (sessionMode) {
     console.debug("SESSION MODE" + " | SID: " + sessionId + " | NSP: " + namespace);
-    var tempSessionId = "/" + namespace + "#" + sessionId;
-    currentSession.sessionId = tempSessionId;
+    // var tempSessionId = "/" + namespace + "#" + sessionId;
+    currentSession.sessionId = "/" + namespace + "#" + sessionId;
     console.debug("TX GET_SESSION | " + currentSession.sessionId);
     socket.emit("GET_SESSION", currentSession.sessionId);
   } 
@@ -1391,8 +1375,8 @@ socket.on("reconnect", function() {
 
   if (sessionMode) {
     console.log("SESSION MODE" + " | SID: " + sessionId + " | NSP: " + namespace);
-    var tempSessionId = "/" + namespace + "#" + sessionId;
-    currentSession.sessionId = tempSessionId;
+    // var tempSessionId = "/" + namespace + "#" + sessionId;
+    currentSession.sessionId = "/" + namespace + "#" + sessionId;
     controlPanel.document.getElementById("statusSessionId").innerHTML = "SOCKET: " + statsObj.socketId;
     socket.emit("GET_SESSION", currentSession.sessionId);
   } 
@@ -1404,18 +1388,14 @@ socket.on("connect", function() {
   socket.emit("authentication", viewerObj);
   statsObj.socketId = socket.id;
   statsObj.serverConnected = true;
-  if (currentSessionView !== undefined) {
-    currentSessionView.setEnableAgeNodes(true);
-  }
+  if (currentSessionView !== undefined) { currentSessionView.setEnableAgeNodes(true); }
   console.log("CONNECTED TO HOST | SOCKET ID: " + socket.id);
 });
 
 socket.on("disconnect", function() {
   statsObj.serverConnected = false;
   statsObj.socketId = null;
-  if (currentSessionView !== undefined) {
-    currentSessionView.setEnableAgeNodes(false);
-  }
+  if (currentSessionView !== undefined) { currentSessionView.setEnableAgeNodes(false); }
   console.log("*** DISCONNECTED FROM HOST ... DELETING ALL SESSIONS ...");
   deleteAllSessions(function() {
     console.log("DELETED ALL SESSIONS");
@@ -1487,7 +1467,6 @@ var prefix = getBrowserPrefix();
 var hidden = hiddenProperty(prefix);
 var visibilityEvent = getVisibilityEvent(prefix);
 
-
 function reset(){
   currentSessionView.simulationControl("RESET");
   windowVisible = true;
@@ -1507,24 +1486,18 @@ function reset(){
   });  
 }
 
-window.addEventListener("resize", function() {
-  currentSessionView.resize();
-});
+window.addEventListener("resize", function() { currentSessionView.resize(); });
 
 document.addEventListener(visibilityEvent, function() {
   if (!document[hidden]) {
     windowVisible = true;
     resetMouseMoveTimer();
-    if (currentSessionView !== undefined) {
-      currentSessionView.setPause(false);
-    }
+    if (currentSessionView !== undefined) { currentSessionView.setPause(false); }
     console.info("visibilityEvent: " + windowVisible);
   } 
   else {
     windowVisible = false;
-    if (currentSessionView !== undefined) {
-      currentSessionView.setPause(true);
-    }
+    if (currentSessionView !== undefined) { currentSessionView.setPause(true); }
     console.info("visibilityEvent: " + windowVisible);
   }
 });
@@ -1630,7 +1603,6 @@ function launchSessionView(sessionId) {
   window.open(url, "SESSION VIEW", "_new");
 }
 
-
 var globalLinkIndex = 0;
 
 function generateLinkId(callback) {
@@ -1638,73 +1610,69 @@ function generateLinkId(callback) {
   return "LNK" + globalLinkIndex;
 }
 
+var tableRow;
+var tableHead;
+var tableCell;
+var tableButton;
+var tableSlider;
+var tdTextColor;
+var tdBgColor;
+
 function tableCreateRow(parentTable, options, cells) {
 
-  var tr = parentTable.insertRow();
-  var tdTextColor = options.textColor;
-  var tdBgColor = options.backgroundColor || "#222222";
+  tableRow = parentTable.insertRow();
+  tdTextColor = options.textColor;
+  tdBgColor = options.backgroundColor || "#222222";
 
   if (options.trClass) {
-    tr.className = options.trClass;
+    tableRow.className = options.trClass;
   }
 
   if (options.headerFlag) {
     cells.forEach(function(content) {
-      var th = tr.insertCell();
-      th.appendChild(document.createTextNode(content));
-      th.style.color = tdTextColor;
-      th.style.backgroundColor = tdBgColor;
+      tableHead = tableRow.insertCell();
+      tableHead.appendChild(document.createTextNode(content));
+      tableHead.style.color = tdTextColor;
+      tableHead.style.backgroundColor = tdBgColor;
     });
-  } else {
+  } 
+  else {
     cells.forEach(function(content) {
-
-      // console.warn("tableCreateRow\n" + jsonPrint(content));
-
-      var td = tr.insertCell();
+      tableCell = tableRow.insertCell();
       if (content.type === undefined) {
-
-        td.appendChild(document.createTextNode(content));
-        td.style.color = tdTextColor;
-        td.style.backgroundColor = tdBgColor;
-
+        tableCell.appendChild(document.createTextNode(content));
+        tableCell.style.color = tdTextColor;
+        tableCell.style.backgroundColor = tdBgColor;
       } 
       else if (content.type == "TEXT") {
-
-        td.className = content.class;
-        td.setAttribute("id", content.id);
-        td.style.color = tdTextColor;
-        td.style.backgroundColor = tdBgColor;
-        td.innerHTML = content.text;
-
+        tableCell.className = content.class;
+        tableCell.setAttribute("id", content.id);
+        tableCell.style.color = tdTextColor;
+        tableCell.style.backgroundColor = tdBgColor;
+        tableCell.innerHTML = content.text;
       } 
       else if (content.type == "BUTTON") {
-
-        var buttonElement = document.createElement("BUTTON");
-        buttonElement.className = content.class;
-        buttonElement.setAttribute("id", content.id);
-        buttonElement.setAttribute("mode", content.mode);
-        buttonElement.addEventListener("click", function(e){ buttonHandler(e); }, false);
-        buttonElement.innerHTML = content.text;
-        td.appendChild(buttonElement);
+        tableButton = document.createElement("BUTTON");
+        tableButton.className = content.class;
+        tableButton.setAttribute("id", content.id);
+        tableButton.setAttribute("mode", content.mode);
+        tableButton.addEventListener("click", function(e){ buttonHandler(e); }, false);
+        tableButton.innerHTML = content.text;
+        tableCell.appendChild(tableButton);
         controlIdHash[content.id] = content;
-
       } 
       else if (content.type == "SLIDER") {
-
-      console.warn("tableCreateRow\n" + jsonPrint(content));
-
-        var sliderElement = document.createElement("INPUT");
-        sliderElement.type = "range";
-        sliderElement.className = content.class;
-        sliderElement.setAttribute("id", content.id);
-        sliderElement.setAttribute("min", content.min);
-        sliderElement.setAttribute("max", content.max);
-        sliderElement.setAttribute("multiplier", content.multiplier);
-        sliderElement.setAttribute("oninput", content.oninput);
-        sliderElement.value = content.value;
-        td.appendChild(sliderElement);
+        tableSlider = document.createElement("INPUT");
+        tableSlider.type = "range";
+        tableSlider.className = content.class;
+        tableSlider.setAttribute("id", content.id);
+        tableSlider.setAttribute("min", content.min);
+        tableSlider.setAttribute("max", content.max);
+        tableSlider.setAttribute("multiplier", content.multiplier);
+        tableSlider.setAttribute("oninput", content.oninput);
+        tableSlider.value = content.value;
+        tableCell.appendChild(tableSlider);
         controlIdHash[content.id] = content;
-
       }
     });
   }
@@ -1712,7 +1680,6 @@ function tableCreateRow(parentTable, options, cells) {
 
 function createStatsTable(callback) {
 
-  // console.log("CREATE STATS TABLE\n" + jsonPrint(config));
   console.log("CREATE STATS TABLE");
 
   statsDivElement.style.visibility = "hidden";
@@ -1981,7 +1948,6 @@ function initStatsUpdate(interval){
 setInterval(function() {
   if (statsObj.serverConnected) {
     socket.emit("SESSION_KEEPALIVE", viewerObj);
-    // console.log("SESSION_KEEPALIVE | " + moment());
   }
 }, serverKeepaliveInteval);
 
@@ -2019,7 +1985,6 @@ function deleteSession(nodeId, callback) {
   if (!sessionHashMap.has(nodeId)) {
     return (callback(nodeId));
   }
-
   var deletedSession = sessionHashMap.get(nodeId);
   var groupLinkId = deletedSession.groupId + "_" + deletedSession.node.nodeId;
   var sessionLinks = deletedSession.linkHashMap.keys();
@@ -2102,9 +2067,9 @@ socket.on("HEARTBEAT", function(heartbeat) {
 
   resetServerActiveTimer();
 
-  var nodesLength = ( currentSessionView === undefined) ? 0 : currentSessionView.getNodesLength();
+  // var nodesLength = ( currentSessionView === undefined) ? 0 : currentSessionView.getNodesLength();
   statsObj.maxNodes = ( currentSessionView === undefined) ? 0 : currentSessionView.getMaxNodes();
-  var nodeAddQLength = ( currentSessionView === undefined) ? 0 : currentSessionView.getNodeAddQlength();
+  // var nodeAddQLength = ( currentSessionView === undefined) ? 0 : currentSessionView.getNodeAddQlength();
   statsObj.maxNodeAddQ = ( currentSessionView === undefined) ? 0 : currentSessionView.getMaxNodeAddQ();
 
   statsObj.heartbeat = heartbeat;
@@ -2195,9 +2160,7 @@ socket.on("USER_SESSION", function(rxSessionObject) {
 
 socket.on("SET_TWITTER_USER", function(twitterUser) {
 
-  if (!twitterUser) {
-    return;
-  }
+  if (!twitterUser) { return; }
   else if (!twitterUser || (twitterUser.notFound !== undefined)) {
 
     console.log("SET_TWITTER_USER | NOT FOUND" 
@@ -2266,8 +2229,6 @@ function initSocketSessionUpdateRx(){
       rxNodeQueueReady = false;
 
       newNode = rxNodeQueue.shift();
-
-      // newNode.isTopTerm = (newNode.isTopTerm) ? true : false;
 
       var category;
       if (config.autoCategoryFlag &&  newNode.categoryAuto){
@@ -2346,6 +2307,7 @@ function initSocketSessionUpdateRx(){
   });
 }
 
+var newNodeCategory
 function initSocketNodeRx(){
 
   socket.on("node", function(nNode) {
@@ -2357,17 +2319,14 @@ function initSocketNodeRx(){
       return;
     }
 
-    // nNode.isTopTerm = nNode.isTopTerm || false;
-
-    var category;
     if (config.autoCategoryFlag && nNode.categoryAuto){
-      category = nNode.categoryAuto;
+      newNodeCategory = nNode.categoryAuto;
     }
     else {
-      category = nNode.category;
+      newNodeCategory = nNode.category;
     }
 
-    getCategoryColor(category, function(color){
+    getCategoryColor(newNodeCategory, function(color){
       nNode.categoryColor = color;
     });
 
@@ -3653,8 +3612,6 @@ function toggleFullScreen() {
       document.webkitExitFullscreen();
     }
   }
-
-  // if (currentSessionView) currentSessionView.resize();
 }
 
 var updateSessionsInterval;

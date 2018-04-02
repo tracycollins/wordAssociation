@@ -1345,6 +1345,8 @@ function ViewTreepack() {
   var newNode = {};
   var nodesModifiedFlag = false;
   var nodeAddQReady = true;
+  var currentNode;
+  var nodePooIdcircle;
 
   var processNodeAddQ = function(callback) {
 
@@ -1358,7 +1360,7 @@ function ViewTreepack() {
 
       if (localNodeHashMap.has(newNode.nodeId)){
 
-        var currentNode = localNodeHashMap.get(newNode.nodeId);
+        currentNode = localNodeHashMap.get(newNode.nodeId);
 
         currentNode.age = 1e-6;
         currentNode.isDead = false;
@@ -1392,7 +1394,7 @@ function ViewTreepack() {
       else {
         nodesModifiedFlag = true;
 
-        var currentNode = nodePool.use();
+        currentNode = nodePool.use();
 
         currentNode.nodeId = newNode.nodeId;
         currentNode.userId = newNode.userId;
@@ -1434,25 +1436,35 @@ function ViewTreepack() {
 
         if (newNode.category || newNode.categoryAuto) {
 
-          var category = "neutral";
+          // var category = "neutral";
 
-          if (autoCategoryFlag && newNode.categoryAuto) { category = newNode.categoryAuto; }
-          else if (newNode.categoryAuto && !newNode.category) { category = newNode.categoryAuto; }
-          else if (newNode.category) { category = newNode.category; }
+          if (autoCategoryFlag && newNode.categoryAuto) { 
+            // category = newNode.categoryAuto;
+            currentNode.x = focus(newNode.categoryAuto).x; 
+            currentNode.y = focus(newNode.categoryAuto).y;
+          }
+          else if (newNode.categoryAuto && !newNode.category) { 
+            // category = newNode.categoryAuto; 
+            currentNode.x = focus(newNode.categoryAuto).x; 
+            currentNode.y = focus(newNode.categoryAuto).y;
+          }
+          else if (newNode.category) { 
+            // category = newNode.category; 
+            currentNode.x = focus(newNode.category).x; 
+            currentNode.y = focus(newNode.category).y;
+          }
 
-          currentNode.x = focus(category).x; 
-          currentNode.y = focus(category).y;
         }
         else {
           currentNode.x = focus("neutral").x; 
           currentNode.y = focus("neutral").y;
         }
 
-        var c = document.getElementById(currentNode.nodePooId);
-        if (c) {
-          c.setAttribute("r", 1e-6);
-          c.setAttribute("visibility", "hidden");
-          c.setAttribute("opacity", 1e-6);
+        nodePooIdcircle = document.getElementById(currentNode.nodePooId);
+        if (nodePooIdcircle) {
+          nodePooIdcircle.setAttribute("r", 1e-6);
+          nodePooIdcircle.setAttribute("visibility", "hidden");
+          nodePooIdcircle.setAttribute("opacity", 1e-6);
         }
 
         currentNode.isValid = true;
@@ -1522,16 +1534,19 @@ function ViewTreepack() {
     );
   }
 
+  // var rowNum;
+
   function yposition(d){
-    var rowNum = d.rank % maxHashtagRows;
-    var value = hashtagTopMargin + (rowNum * rowSpacing);
-    return value + "%";
+    // rowNum = d.rank % maxHashtagRows;
+    // var value = hashtagTopMargin + (rowNum * rowSpacing);
+    return (hashtagTopMargin + ((d.rank % maxHashtagRows) * rowSpacing)) + "%";
   }
 
+  // var colNum;
   function xposition(d){
-    var colNum = parseInt(d.rank / maxHashtagRows);        
-    var value = hashtagLeftMargin + (colNum * colSpacing);
-    return value + "%" ;
+    // colNum = parseInt(d.rank / maxHashtagRows);        
+    // var value = hashtagLeftMargin + ((parseInt(d.rank / maxHashtagRows)) * colSpacing);
+    return (hashtagLeftMargin + ((parseInt(d.rank / maxHashtagRows)) * colSpacing)) + "%" ;
   }
 
   this.setChargeSliderValue = function(value){

@@ -216,13 +216,13 @@ function ViewTreepack() {
 
   var nodePool = deePool.create(function makeNode(){
 
-    var nodePooId = "nodePoolId_" + nodePoolIndex;
+    // var nodePooId = "nodePoolId_" + nodePoolIndex;
 
     nodePoolIndex += 1;
 
-    var n = new Node(nodePooId);
+    // var n = new Node(nodePooId);
 
-    return n;
+    return (new Node("nodePoolId_" + nodePoolIndex));
 
   });
 

@@ -321,12 +321,12 @@ function ViewTreepack() {
 
   self.getHeight = function() { return height; };
 
+  var keysForSort = [];
   self.getSortedKeys = function(hmap, sortProperty) {
-    var keys = [];
     hmap.forEach(function(value, key) {
-      if (!value.isSessionNode) { keys.push(key); }
+      if (!value.isSessionNode) { keysForSort.push(key); }
     });
-    return keys.sort(function sortFunc(a, b) {
+    return keysForSort.sort(function sortFunc(a, b) {
       return hmap.get(b)[sortProperty] - hmap.get(a)[sortProperty];
     });
   };
@@ -700,12 +700,14 @@ function ViewTreepack() {
     self.updateGravity(config.defaultGravity);
   };
 
+  var keysForRankHashMap = [];
   function rankHashMapByValue(hmap, sortProperty, callback) {
-    var keys = hmap.keys().sort(function hmapSortFunc(a,b){
+
+    keysForRankHashMap = hmap.keys().sort(function hmapSortFunc(a,b){
       return hmap.get(b)[sortProperty]-hmap.get(a)[sortProperty];
     });
 
-    async.forEachOf(keys, function keysRank(key, index, cb) {
+    async.forEachOf(keysForRankHashMap, function keysRank(key, index, cb) {
 
       var entry = hmap.get(key);
       entry.rank = index;
@@ -719,6 +721,8 @@ function ViewTreepack() {
     });
   }
 
+  var tempNodeCirle;
+
   function resetNode(n){
     n.isDead = true;
     n.isValid = false;
@@ -726,10 +730,10 @@ function ViewTreepack() {
     n.ageMaxRatio = 1e-6;
     n.isTopTerm = false;
 
-    var c = document.getElementById(n.nodePooId);
-    c.setAttribute("r", 1e-6);
-    c.setAttribute("visibility", "hidden");
-    c.setAttribute("opacity", 1e-6);
+    tempNodeCirle = document.getElementById(n.nodePooId);
+    tempNodeCirle.setAttribute("r", 1e-6);
+    tempNodeCirle.setAttribute("visibility", "hidden");
+    tempNodeCirle.setAttribute("opacity", 1e-6);
   }
 
   var age;
@@ -832,6 +836,7 @@ function ViewTreepack() {
 
   var previousTwitterUserId;
   var previousTwitterHashtag;
+  var tooltipString;
 
   var nodeMouseOver = function (d) {
 
@@ -846,7 +851,6 @@ function ViewTreepack() {
 
     d3.select(this).style("opacity", 1);
 
-    var tooltipString;
 
     switch (d.nodeType) {
 
@@ -928,8 +932,8 @@ function ViewTreepack() {
     return d.nodeId; 
   }
 
+  var nodeUrl = "";
   function nodeClick(d) {
-    var url = "";
 
     switch (d.nodeType) {
 
@@ -943,14 +947,18 @@ function ViewTreepack() {
         }
 
         if ((d.lastTweetId !== undefined) && (d.lastTweetId !== "false")) {
-          url = "https://twitter.com/" + d.screenName + "/status/" + d.lastTweetId ;
+          nodeUrl = "https://twitter.com/" + d.screenName + "/status/" + d.lastTweetId ;
+          console.debug("LOADING TWITTER USER: " + "https://twitter.com/" + d.screenName + "/status/" + d.lastTweetId);
+          window.open("https://twitter.com/" + d.screenName + "/status/" + d.lastTweetId, "_blank");
         }
         else {
-          url = "https://twitter.com/" + d.screenName ;
+          nodeUrl = "https://twitter.com/" + d.screenName ;
+          console.debug("LOADING TWITTER USER: " + "https://twitter.com/" + d.screenName);
+          window.open("https://twitter.com/" + d.screenName, "_blank");
         }
 
-        console.debug("LOADING TWITTER USER: " + url);
-        window.open(url, "_blank");
+        // console.debug("LOADING TWITTER USER: " + nodeUrl);
+        // window.open(nodeUrl, "_blank");
       break;
 
       case "hashtag" :
@@ -962,20 +970,22 @@ function ViewTreepack() {
           previousTwitterHashtag = currentTwitterHashtag.nodeId;
         }
 
-        url = "https://twitter.com/search?f=tweets&q=%23" + d.text ;
-        window.open(url, "_blank");
+        // nodeUrl = "https://twitter.com/search?f=tweets&q=%23" + d.text ;
+        window.open("https://twitter.com/search?f=tweets&q=%23"+d.text, "_blank");
       break;
 
       case "place" :
-        url = "http://twitter.com/search?q=place%3A" + d.placeId ;
-        window.open(url, "_blank");
+        // nodeUrl = "http://twitter.com/search?q=place%3A" + d.placeId ;
+        window.open("http://twitter.com/search?q=place%3A" + d.placeId, "_blank");
       break;
     }
   }
 
+  var nodeTopTermLabels;
+
   var updateTopTerm = function(callback) {
 
-    var nodeTopTermLabels = nodeTopTermLabelSvgGroup.selectAll("text")
+    nodeTopTermLabels = nodeTopTermLabelSvgGroup.selectAll("text")
       .data(nodesTopTerm, function updateTopTermData(d) { return d.nodeId; });
 
     nodeTopTermLabels
@@ -1253,73 +1263,78 @@ function ViewTreepack() {
     }
   };
 
+  var mentionsInt = 0;
+  var rateString = "";
+  var mentionPadSpaces = 0;
+  var ratePadSpaces = 0;
+  var displaytext = "";
+  var nodeIdString = "";
+
   var createDisplayText = function(node) {
 
-    var mntns = parseInt(node.mentions);
+    mentionsInt = parseInt(node.mentions);
 
-    var rate = node.rate.toFixed(2).toString() ;
-    var mentionPadSpaces = mentionsNumChars - mntns.toString().length;
-    var ratePadSpaces = rateNumChars - rate.length;
-    var displaytext = "";
-
-    var nodeId;
+    rateString = node.rate.toFixed(2).toString() ;
+    mentionPadSpaces = mentionsNumChars - mentionsInt.toString().length;
+    ratePadSpaces = rateNumChars - rateString.length;
+    displaytext = "";
 
     if (node.isMaxNode) {
       if (metricMode === "rate") {
-        nodeId = node.rateNodeId.toUpperCase();
-        if (node.rateNodeType === "user") { nodeId = "@" + nodeId; }
-        if (node.rateNodeType === "hashtag") { nodeId = "#" + nodeId; }
-        displaytext = new Array(ratePadSpaces).join("\xa0") + rate
-        + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns 
-        + " | " + nodeId
+        nodeIdString = node.rateNodeId.toUpperCase();
+        if (node.rateNodeType === "user") { nodeIdString = "@" + nodeIdString; }
+        if (node.rateNodeType === "hashtag") { nodeIdString = "#" + nodeIdString; }
+        displaytext = new Array(ratePadSpaces).join("\xa0") + rateString
+        + " | " + new Array(mentionPadSpaces).join("\xa0") + mentionsInt 
+        + " | " + nodeIdString
         + " | RATE MAX " + moment(parseInt(node.rateTimeStamp)).format(compactDateTimeFormat);
       }
       else {
-        nodeId = node.mentionsNodeId.toUpperCase();
-        if (node.mentionsNodeType === "user") { nodeId = "@" + node.screenName; }
-        if (node.rateNodeType === "hashtag") { nodeId = "#" + nodeId; }
-        displaytext = new Array(ratePadSpaces).join("\xa0") + rate 
-        + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns
-        + " | " + nodeId
+        nodeIdString = node.mentionsNodeId.toUpperCase();
+        if (node.mentionsNodeType === "user") { nodeIdString = "@" + node.screenName; }
+        if (node.rateNodeType === "hashtag") { nodeIdString = "#" + nodeIdString; }
+        displaytext = new Array(ratePadSpaces).join("\xa0") + rateString 
+        + " | " + new Array(mentionPadSpaces).join("\xa0") + mentionsInt
+        + " | " + nodeIdString
         + " | MENTION MAX " + moment(parseInt(node.mentionsTimeStamp)).format(compactDateTimeFormat);
       }
     }
     else {
       if (node.nodeType === "user") { 
         if (node.screenName) {
-          displaytext = new Array(ratePadSpaces).join("\xa0") + rate 
-          + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns 
+          displaytext = new Array(ratePadSpaces).join("\xa0") + rateString 
+          + " | " + new Array(mentionPadSpaces).join("\xa0") + mentionsInt 
           + " | @" + node.screenName.toUpperCase() ;
         }
         else if (node.name) {
-          displaytext = new Array(ratePadSpaces).join("\xa0") + rate 
-          + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns 
+          displaytext = new Array(ratePadSpaces).join("\xa0") + rateString 
+          + " | " + new Array(mentionPadSpaces).join("\xa0") + mentionsInt 
           + " | @" + node.name.toUpperCase() ;
         }
         else {
-          displaytext = new Array(ratePadSpaces).join("\xa0") + rate 
-          + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns 
+          displaytext = new Array(ratePadSpaces).join("\xa0") + rateString 
+          + " | " + new Array(mentionPadSpaces).join("\xa0") + mentionsInt 
           + " | @UNKNOWN?";
         }
       }
       else if (node.nodeType === "hashtag") { 
-        displaytext = new Array(ratePadSpaces).join("\xa0") + rate 
-        + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns 
+        displaytext = new Array(ratePadSpaces).join("\xa0") + rateString 
+        + " | " + new Array(mentionPadSpaces).join("\xa0") + mentionsInt 
         + " | #" + node.text.toUpperCase() ;
       }
       else if (node.nodeType === "place") { 
-        displaytext = new Array(ratePadSpaces).join("\xa0") + rate 
-        + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns 
+        displaytext = new Array(ratePadSpaces).join("\xa0") + rateString 
+        + " | " + new Array(mentionPadSpaces).join("\xa0") + mentionsInt 
         + " | " + node.fullName.toUpperCase() ;
       }
       else if (testMode) { 
-        displaytext = new Array(ratePadSpaces).join("\xa0") + rate 
-        + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns 
+        displaytext = new Array(ratePadSpaces).join("\xa0") + rateString 
+        + " | " + new Array(mentionPadSpaces).join("\xa0") + mentionsInt 
         + " | BLAH" ;
       }
       else { 
-        displaytext = new Array(ratePadSpaces).join("\xa0") + rate 
-        + " | " + new Array(mentionPadSpaces).join("\xa0") + mntns 
+        displaytext = new Array(ratePadSpaces).join("\xa0") + rateString 
+        + " | " + new Array(mentionPadSpaces).join("\xa0") + mentionsInt 
         + " | " + node.nodeId.toUpperCase() ;
       }
     }

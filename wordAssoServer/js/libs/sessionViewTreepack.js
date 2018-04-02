@@ -191,12 +191,12 @@ function ViewTreepack() {
     this.name = "";
     this.isDead = true;
     this.mentions = 0;
-    this.age = 0;
+    this.age = 1e-6;
     this.ageUpdated = moment().valueOf();
     this.ageMaxRatio = 1e-6;
     this.mouseHoverFlag = false;
     this.displaytext = "";
-    this.rate = 0;
+    this.rate = 1e-6;
     this.rank = -1;
     this.newFlag = true;
     this.x = 0.5*width;
@@ -213,15 +213,18 @@ function ViewTreepack() {
   } 
 
   var nodePoolIndex = 0;
-  var nodePool = deePool.create(function makeNode(){
-    var nodePooId = "nodePoolId_" + nodePoolIndex;
-    nodePoolIndex += 1;
-    var n = new Node(nodePooId);
-    return n;
-  });
 
-  function resetNode(node){
-  }
+  var nodePool = deePool.create(function makeNode(){
+
+    var nodePooId = "nodePoolId_" + nodePoolIndex;
+
+    nodePoolIndex += 1;
+
+    var n = new Node(nodePooId);
+
+    return n;
+
+  });
 
   var autoCategoryFlag = config.autoCategoryFlag;
 
@@ -261,14 +264,13 @@ function ViewTreepack() {
   if (metricMode === "mentions") {
     maxRateMentions.nodeId = "MNTN | MAX";
   }
-  // maxRateMentions.age = 0;
   maxRateMentions.rate = 2;
   maxRateMentions.rateNodeId = "what";
   maxRateMentions.mentionsNodeId = "what";
   maxRateMentions.rateTimeStamp = moment().valueOf();
   maxRateMentions.mentionsTimeStamp = moment().valueOf();
   maxRateMentions.mentions = 2;
-  maxRateMentions.ageMaxRatio = 0;
+  maxRateMentions.ageMaxRatio = 1e-6;
   maxRateMentions.isTrendingTopic = true;
   maxRateMentions.displaytext = "WHAT?";
   maxRateMentions.mouseHoverFlag = false;
@@ -312,25 +314,17 @@ function ViewTreepack() {
       mouseMovingFlag = isMoving;
       updateNodeLabels();
     }
-    else {
-      mouseMovingFlag = isMoving;
-    }
+    else { mouseMovingFlag = isMoving; }
   };
 
-  self.getWidth = function() {
-    return width;
-  };
+  self.getWidth = function() { return width; };
 
-  self.getHeight = function() {
-    return height;
-  };
+  self.getHeight = function() { return height; };
 
   self.getSortedKeys = function(hmap, sortProperty) {
     var keys = [];
     hmap.forEach(function(value, key) {
-      if (!value.isSessionNode) {
-        keys.push(key);
-      }
+      if (!value.isSessionNode) { keys.push(key); }
     });
     return keys.sort(function sortFunc(a, b) {
       return hmap.get(b)[sortProperty] - hmap.get(a)[sortProperty];
@@ -341,19 +335,15 @@ function ViewTreepack() {
 
   var nodeMaxAge = 60000;
 
-  var DEFAULT_TREEMAP_CONFIG = {
-    "ageRate": DEFAULT_AGE_RATE
-  };
+  var DEFAULT_TREEMAP_CONFIG = { "ageRate": DEFAULT_AGE_RATE };
 
   var ageRate = DEFAULT_TREEMAP_CONFIG.ageRate;
-  var maxAgeRate = 0;
-
+  var maxAgeRate = 1e-6;
 
   var categoryMatchColor = palette.green;
   var categoryMatchStrokeWidth = "4.0";
   var categoryMismatchStrokeWidth = "4.0";
   var categoryAutoStrokeWidth = "3.0";
-
 
   var divTooltip = d3.select("body").append("div")
     .attr("id", "divTooltip")
@@ -367,24 +357,16 @@ function ViewTreepack() {
     .attr("type", "checkbox")
     .style("pointer-events", "auto")
     .on("change", function topTermsCheckBoxFunc(){
-      if (topTermsCheckBox.property("checked") === false) { 
-        topTermsDiv.style("visibility", "hidden"); 
-      }
-      else {
-        topTermsDiv.style("visibility", "visible"); 
-      }
+      if (topTermsCheckBox.property("checked") === false) { topTermsDiv.style("visibility", "hidden"); }
+      else { topTermsDiv.style("visibility", "visible"); }
     });
 
   var mouseMoveTimeoutEventHandler = function(e) {
 
     d3.selectAll("iframe").style("visibility", "hidden");
 
-    if (topTermsCheckBox.property("checked") === false) { 
-      topTermsDiv.style("visibility", "hidden"); 
-    }
-    else {
-      topTermsDiv.style("visibility", "visible"); 
-    }
+    if (topTermsCheckBox.property("checked") === false) { topTermsDiv.style("visibility", "hidden"); }
+    else { topTermsDiv.style("visibility", "visible"); }
   };
 
 
@@ -394,11 +376,8 @@ function ViewTreepack() {
 
     topTermsDiv.style("visibility", "visible");
 
-    if (mouseHoverFlag) {
-      d3.select("body").style("cursor", "pointer");
-    } else {
-      d3.select("body").style("cursor", "default");
-    }
+    if (mouseHoverFlag) { d3.select("body").style("cursor", "pointer"); } 
+    else { d3.select("body").style("cursor", "default"); }
 
   }, true);
 
@@ -516,9 +495,7 @@ function ViewTreepack() {
     config.enableAgeNodes = enabled;
   };
   
-  this.deleteNode = function() {
-    return null;
-  };
+  this.deleteNode = function() { return null; };
   
   this.getNodesLength = function() { return "NODES: " + nodeArray.length + " | POOL: " + nodePool.size(); };
   
@@ -545,16 +522,10 @@ function ViewTreepack() {
 
   this.setTwitterUser = function(user) {
 
-    if (user.notFound !== undefined) {
-      console.log("setTwitterUser | NOT FOUND: @"  + user.screenName);
-    }
-    else {
-      console.log("setTwitterUser | "  + user.userId + " | @" + user.screenName);
-    }
-    
-    if (controlPanelReadyFlag){
-      controlPanelWindow.postMessage({op: "SET_TWITTER_USER", user: user}, DEFAULT_SOURCE);
-    }
+    if (user.notFound !== undefined) { console.log("setTwitterUser | NOT FOUND: @"  + user.screenName); }
+    else { console.log("setTwitterUser | "  + user.userId + " | @" + user.screenName); }
+
+    if (controlPanelReadyFlag){ controlPanelWindow.postMessage({op: "SET_TWITTER_USER", user: user}, DEFAULT_SOURCE); }
   };
 
   this.setTwitterHashtag = function(hashtag) {
@@ -570,12 +541,8 @@ function ViewTreepack() {
     config.defaultMetricMode = mode;
     metricMode = mode;
 
-    if (mode === "rate") {
-      currentMaxMetric = currentMax.rate.value;
-    }
-    else if (mode === "mentions") {
-      currentMaxMetric = currentMax.mentions.value;
-    }
+    if (mode === "rate") { currentMaxMetric = currentMax.rate.value;  }
+    else if (mode === "mentions") { currentMaxMetric = currentMax.mentions.value;  }
 
     nodeLabelSizeScale = d3.scaleLinear()
       .domain([1, currentMaxMetric])
@@ -611,12 +578,8 @@ function ViewTreepack() {
   };
 
   self.toolTipVisibility = function(isVisible){
-    if (isVisible) {
-      divTooltip.style("visibility", "visible");
-    }
-    else {
-      divTooltip.style("visibility", "hidden");
-    }
+    if (isVisible) { divTooltip.style("visibility", "visible"); }
+    else { divTooltip.style("visibility", "hidden"); }
   };
 
   self.deleteSessionLinks = function(){ console.debug("DELETE LINKS"); };
@@ -624,21 +587,13 @@ function ViewTreepack() {
   self.setPause = function(value){
     console.debug("SET PAUSE: " + value);
     runningFlag = !value;
-    if (value){
-      self.simulationControl("PAUSE");
-    }
-    else{
-      self.simulationControl("RESUME");
-    }
+    if (value) { self.simulationControl("PAUSE");  }
+    else { self.simulationControl("RESUME"); }
   };
 
   self.togglePause = function(){
-    if (runningFlag){
-      self.simulationControl("PAUSE");
-    }
-    else{
-      self.simulationControl("RESUME");
-    }
+    if (runningFlag) { self.simulationControl("PAUSE"); }
+    else { self.simulationControl("RESUME"); }
   };
 
   self.updateParam = function(param, value) {
@@ -765,12 +720,9 @@ function ViewTreepack() {
     });
   }
 
-
   var age;
   var ageMaxRatio = 1e-6;
-  // var deadNodeFlag = false ;
   var ageNodesLength = 0;
-  // var ageNodesIndex = 0;
   var node;
   var prevNode;
   var currentTime = moment().valueOf();
@@ -797,7 +749,7 @@ function ViewTreepack() {
       node = localNodeHashMap.get(nodeId);
 
       if (!enableAgeNodes || (resumeTimeStamp > 0)) {
-        ageRate = 0;
+        ageRate = 1e-6;
       }
 
       if ((node.nodeType === "user") && (node.followersCount > MIN_FOLLOWERS)){
@@ -859,12 +811,8 @@ function ViewTreepack() {
       maxRateMentions.isTrendingTopic = true;
       maxRateMentions.displaytext = createDisplayText(maxRateMentions);
 
-      if (metricMode === "rate") {
-        maxRateMentions.nodeId = "RATE | MAX" ;
-      }
-      if (metricMode === "mentions") {
-        maxRateMentions.nodeId = "MNTN | MAX" ;
-      }
+      if (metricMode === "rate") { maxRateMentions.nodeId = "RATE | MAX" ; }
+      if (metricMode === "mentions") { maxRateMentions.nodeId = "MNTN | MAX" ;  }
 
       maxRateMentionsText.text(maxRateMentions.displaytext);
 
@@ -872,7 +820,6 @@ function ViewTreepack() {
         nodesTopTerm = nodesTopTermHashMap.values();
         callback(null);
       });
-    // }
   };
 
   var previousTwitterUserId;
@@ -963,30 +910,15 @@ function ViewTreepack() {
   }
 
   function labelText(d) {
-    if (d.nodeType === "hashtag") { 
-      return "#" + d.text.toUpperCase();
-        // + " | " + d.age.toFixed(0) 
-        // + " | " + (100*(1.0 - d.ageMaxRatio)).toFixed(0); 
-    }
+    if (d.nodeType === "hashtag") { return "#" + d.text.toUpperCase(); }
     if (d.nodeType === "user") { 
-      if (d.screenName) { 
-        return "@" + d.screenName.toUpperCase();
-          // + " | " + d.age.toFixed(0)  
-        // + " | " + (100*(1.0 - d.ageMaxRatio)).toFixed(0); 
-        }
-      else if (d.name){ 
-        return "@" + d.name.toUpperCase();
-      }
-      else { 
-        return "@UNKNOWN?";
-      }
+      if (d.screenName) { return "@" + d.screenName.toUpperCase(); }
+      else if (d.name){ return "@" + d.name.toUpperCase(); }
+      else { return "@UNKNOWN?"; }
     }
-    if (d.nodeType === "place") { 
-      return d.fullName.toUpperCase(); 
-    }
+    if (d.nodeType === "place") {  return d.fullName.toUpperCase(); }
     return d.nodeId; 
   }
-
 
   function nodeClick(d) {
     var url = "";
@@ -1099,17 +1031,10 @@ function ViewTreepack() {
       .append("circle")
       .attr("id", function (d) { return d.nodePooId; })
       .attr("nodeId", function (d) { return d.nodeId; })
-      .style("visibility", function (d) {
-        // if (d.isDead) { return "hidden"; }
-        return "visible";
-      })
+      .style("visibility", function (d) { return "visible"; })
       .attr("r", 1e-6) 
-      .attr("cx", function (d) { 
-        return d.x; 
-      })
-      .attr("cy", function (d) { 
-        return d.y; 
-      })
+      .attr("cx", function (d) { return d.x; })
+      .attr("cy", function (d) { return d.y; })
       .style("fill", function (d) { 
         if (!d.category && !d.categoryAuto) { return palette.black; }
         return d.categoryColor; 
@@ -1133,10 +1058,7 @@ function ViewTreepack() {
         if (d.categoryAuto ==="negative") { return categoryAutoStrokeWidth; }
         return "2.0"; 
       })
-      .style("opacity", function (d) { 
-        // if (d.isDead) { return 1e-6; }
-        return nodeLabelOpacityScale(d.ageMaxRatio); 
-      })
+      .style("opacity", function (d) { return nodeLabelOpacityScale(d.ageMaxRatio); })
       .on("mouseover", nodeMouseOver)
       .on("mouseout", nodeMouseOut)
       .on("click", nodeClick);
@@ -1149,20 +1071,10 @@ function ViewTreepack() {
         if (metricMode === "rate") { return defaultRadiusScale(Math.sqrt(d.rate));}
         if (metricMode === "mentions") {return defaultRadiusScale(Math.sqrt(d.mentions));}
       })
-      .attr("cx", function(d) { 
-        return d.x; 
-      })
-      .attr("cy", function(d) { 
-        return d.y; 
-      })
-      .style("visibility", function(d) {
-        // if (d.isDead) { return "hidden"; }
-        return "visible";
-      })
-      .style("opacity", function(d) { 
-        // if (d.isDead) { return 1e-6; }
-        return nodeLabelOpacityScale(d.ageMaxRatio); 
-      })
+      .attr("cx", function(d) { return d.x; })
+      .attr("cy", function(d) { return d.y; })
+      .style("visibility", function(d) {return "visible"; })
+      .style("opacity", function(d) { return nodeLabelOpacityScale(d.ageMaxRatio); })
       .style("fill", function (d) { 
         if (!d.category && !d.categoryAuto) { return palette.black; }
         return d.categoryColor; 
@@ -1187,20 +1099,6 @@ function ViewTreepack() {
         return "2.0"; 
       })
       .on("click", nodeClick);
-      // .transition()
-      //   .duration(transitionDuration)
-      //   .attr("r", function(d) {
-      //     if (!d.isValid) { return 1e-6; }
-      //     if (d.isDead) { return 1e-6; }
-      //     if (d.isIgnored) { return 1e-6; }
-      //     if (metricMode === "rate") { return defaultRadiusScale(Math.sqrt(d.rate));}
-      //     if (metricMode === "mentions") { 
-      //       if (d.nodeType === "user") { 
-      //         return defaultRadiusScale(Math.sqrt(d.followersMentions)); 
-      //       }
-      //       return defaultRadiusScale(Math.sqrt(d.mentions));
-      //     }
-      //   });
 
     nodeCircles
       .exit()
@@ -1214,20 +1112,16 @@ function ViewTreepack() {
   var updateNodeLabels = function(callback) {
 
     nodeLabels = nodeLabelSvgGroup.selectAll("text")
-      .data(nodeArray, function (d) { 
-        return d.nodeId; 
-      });
+      .data(nodeArray, function (d) { return d.nodeId; });
 
     nodeLabels
       .text(labelText)
       .attr("x", function (d) { return d.x; })
       .attr("y", function (d) { return d.y; })
       .style("opacity", function (d) { 
-        // if (d.isDead) { return 1e-6; }
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
       .style("visibility", function (d) {
-        // if (d.isDead) { return "hidden"; }
         if (mouseMovingFlag) { return "visible"; }
         if (d.rate > MIN_RATE) { return "visible"; }
         if (d.followersCount > MIN_FOLLOWERS) { return "visible"; }
@@ -1245,13 +1139,8 @@ function ViewTreepack() {
         return "hidden";
       })
       .style("font-size", function (d) {
-        if (metricMode === "rate") {return nodeLabelSizeScale(d.rate);}
-        if (metricMode === "mentions") {
-          // if (d.nodeType === "user") { 
-          //   return nodeLabelSizeScale(d.followersMentions);
-          // }
-          return nodeLabelSizeScale(d.mentions);
-        }
+        if (metricMode === "rate") { return nodeLabelSizeScale(d.rate); }
+        if (metricMode === "mentions") { return nodeLabelSizeScale(d.mentions); }
       });
 
     nodeLabels
@@ -1271,7 +1160,6 @@ function ViewTreepack() {
         return "normal";
       })
       .style("visibility", function (d) {
-        // if (d.isDead) { return "hidden"; }
         if (mouseMovingFlag) { return "visible"; }
         if (d.rate > MIN_RATE) { return "visible"; }
         if (d.followersCount > MIN_FOLLOWERS) { return "visible"; }
@@ -1294,10 +1182,7 @@ function ViewTreepack() {
         if (d.isTopTerm) { return "overline"; }
         return "none"; 
       })
-      .style("opacity", function (d) { 
-        // if (d.isDead) { return 1e-6; }
-        return nodeLabelOpacityScale(d.ageMaxRatio); 
-      })
+      .style("opacity", function (d) { return nodeLabelOpacityScale(d.ageMaxRatio); })
       .style("fill", palette.white)
       .style("stroke-width", function (d) { 
         if (d.categoryMatch) { return categoryMatchStrokeWidth; }
@@ -1307,13 +1192,8 @@ function ViewTreepack() {
         return "1.2"; 
       })
       .style("font-size", function (d) {
-        if (metricMode === "rate") {return nodeLabelSizeScale(d.rate);}
-        if (metricMode === "mentions") {
-          // if (d.nodeType === "user") { 
-          //   return nodeLabelSizeScale(d.followersMentions);
-          // }
-          return nodeLabelSizeScale(d.mentions);
-        }
+        if (metricMode === "rate") { return nodeLabelSizeScale(d.rate); }
+        if (metricMode === "mentions") { return nodeLabelSizeScale(d.mentions); }
       });
 
     nodeLabels
@@ -1367,14 +1247,7 @@ function ViewTreepack() {
 
   var createDisplayText = function(node) {
 
-    var mntns = "1" ;
-
-    // if (node.nodeType === "user"){
-      mntns = parseInt(node.mentions);
-     // }
-    // else {
-    //   mntns = parseInt(node.mentions);
-    // }
+    var mntns = parseInt(node.mentions);
 
     var rate = node.rate.toFixed(2).toString() ;
     var mentionPadSpaces = mentionsNumChars - mntns.toString().length;
@@ -1447,7 +1320,6 @@ function ViewTreepack() {
   };
 
   var newNode = {};
-  // var currentNode = {};
   var nodesModifiedFlag = false;
   var nodeAddQReady = true;
 
@@ -1487,12 +1359,8 @@ function ViewTreepack() {
         localNodeHashMap.set(currentNode.nodeId, currentNode);
         nodeArray = localNodeHashMap.values();
 
-        if (currentNode.isTopTerm) {
-          nodesTopTermHashMap.set(currentNode.nodeId, currentNode);
-        }
-        else {
-          nodesTopTermHashMap.remove(currentNode.nodeId);
-        }
+        if (currentNode.isTopTerm) { nodesTopTermHashMap.set(currentNode.nodeId, currentNode);  }
+        else { nodesTopTermHashMap.remove(currentNode.nodeId); }
 
         nodeAddQReady = true;
 
@@ -1512,17 +1380,14 @@ function ViewTreepack() {
         currentNode.rate = newNode.rate;
         currentNode.text = newNode.text;
         currentNode.rank = newNode.rank;
-
         currentNode.isTopTerm = newNode.isTopTerm;
         currentNode.isTrendingTopic = newNode.isTrendingTopic;
-
         currentNode.category = newNode.category;
         currentNode.categoryAuto = newNode.categoryAuto;
         currentNode.isCategory = newNode.isCategory;
         currentNode.categoryMatch = newNode.categoryMatch;
         currentNode.categoryMismatch = newNode.categoryMismatch;
         currentNode.categoryColor = newNode.categoryColor;
-
         currentNode.mentions = newNode.mentions;
         currentNode.statusesCount = newNode.statusesCount;
         currentNode.friendsCount = newNode.friendsCount;
@@ -1548,15 +1413,9 @@ function ViewTreepack() {
 
           var category = "neutral";
 
-          if (autoCategoryFlag && newNode.categoryAuto){
-            category = newNode.categoryAuto;
-          }
-          else if (newNode.categoryAuto && !newNode.category){
-            category = newNode.categoryAuto;
-          }
-          else if (newNode.category){
-            category = newNode.category;
-          }
+          if (autoCategoryFlag && newNode.categoryAuto) { category = newNode.categoryAuto; }
+          else if (newNode.categoryAuto && !newNode.category) { category = newNode.categoryAuto; }
+          else if (newNode.category) { category = newNode.category; }
 
           currentNode.x = focus(category).x; 
           currentNode.y = focus(category).y;
@@ -1577,35 +1436,25 @@ function ViewTreepack() {
         localNodeHashMap.set(currentNode.nodeId, currentNode);
         nodeArray = localNodeHashMap.values();
 
-        if (currentNode.isTopTerm) {
-          nodesTopTermHashMap.set(currentNode.nodeId, currentNode);
-        }
-        else {
-          nodesTopTermHashMap.remove(currentNode.nodeId);
-        }
+        if (currentNode.isTopTerm) { nodesTopTermHashMap.set(currentNode.nodeId, currentNode); }
+        else { nodesTopTermHashMap.remove(currentNode.nodeId); }
 
         nodeAddQReady = true;
 
         callback(null, nodesModifiedFlag);
       }
 
-      if (localNodeHashMap.size > maxNumberNodes) {
-        maxNumberNodes = localNodeHashMap.size;
-      }
+      if (localNodeHashMap.size > maxNumberNodes) { maxNumberNodes = localNodeHashMap.size; }
 
     }
     else {
-      if (localNodeHashMap.size > maxNumberNodes) {
-        maxNumberNodes = localNodeHashMap.size;
-      }
-     callback(null, nodesModifiedFlag);
+      if (localNodeHashMap.size > maxNumberNodes) { maxNumberNodes = localNodeHashMap.size; }
+      callback(null, nodesModifiedFlag);
     }
   };
 
   function ticked() {
-    drawSimulation(function drawSimulationCallback(){
-      updateSimulation();
-    });
+    drawSimulation(function drawSimulationCallback() { updateSimulation(); });
   }
 
   var previousMaxMetric = 0;
@@ -1681,18 +1530,15 @@ function ViewTreepack() {
       newNode.followersMentions = newNode.mentions + newNode.followersCount;
     }
 
-    // if ((newNode.nodeType === "user") && (newNode.followersMentions > currentMax.mentions.value)) { 
     if ((newNode.nodeType === "user") && (newNode.mentions > currentMax.mentions.value)) { 
 
       newCurrentMaxMetricFlag = true;
 
-      // currentMax.mentions.value = newNode.followersMentions; 
       currentMax.mentions.value = newNode.mentions; 
       currentMax.mentions.nodeId = newNode.screenName.toLowerCase(); 
       currentMax.mentions.timeStamp = moment().valueOf(); 
 
       if (metricMode === "mentions") {
-        // currentMaxMetric = newNode.followersMentions; 
         currentMaxMetric = newNode.mentions; 
       }
     }
@@ -1738,36 +1584,20 @@ function ViewTreepack() {
       currentMax.rate.value = newNode.rate;
 
       if (newNode.nodeType === "user") {
-        if (newNode.screenName !== undefined) {
-          currentMax.rate.nodeId = newNode.screenName.toLowerCase(); 
-        }
-        else if (newNode.name !== undefined) {
-          currentMax.rate.nodeId = newNode.screenName.toLowerCase(); 
-        }
-        else {
-          currentMax.rate.nodeId = newNode.nodeId; 
-        }
+        if (newNode.screenName !== undefined) { currentMax.rate.nodeId = newNode.screenName.toLowerCase(); }
+        else if (newNode.name !== undefined) { currentMax.rate.nodeId = newNode.screenName.toLowerCase(); }
+        else { currentMax.rate.nodeId = newNode.nodeId; }
       }
-      else if (newNode.nodeType === "place") {
-        currentMax.rate.nodeId = newNode.name; 
-      }
-      else {
-        currentMax.rate.nodeId = newNode.nodeId; 
-      }
+      else if (newNode.nodeType === "place") { currentMax.rate.nodeId = newNode.name; }
+      else { currentMax.rate.nodeId = newNode.nodeId; }
       currentMax.rate.timeStamp = moment().valueOf(); 
 
-      if (metricMode === "rate") {
-        currentMaxMetric = newNode.rate; 
-      }
+      if (metricMode === "rate") { currentMaxMetric = newNode.rate; }
     }
 
-    if (nodeAddQ.length < MAX_RX_QUEUE) {
-      nodeAddQ.push(newNode);
-    }
+    if (nodeAddQ.length < MAX_RX_QUEUE) { nodeAddQ.push(newNode); }
 
-    if (nodeAddQ.length > maxNodeAddQ) {
-      maxNodeAddQ = nodeAddQ.length;
-    }
+    if (nodeAddQ.length > maxNodeAddQ) { maxNodeAddQ = nodeAddQ.length; }
   };
 
   this.addGroup = function() {
@@ -1783,34 +1613,18 @@ function ViewTreepack() {
     simulation = d3.forceSimulation(nodeArray)
       .force("charge", d3.forceManyBody().strength(charge))
       .force("forceX", d3.forceX().x(function forceXfunc(d) { 
-        if ((autoCategoryFlag && d.categoryAuto) || (!d.category && d.categoryAuto)){
-          return foci[d.categoryAuto].x;
-        }
-        if (d.category){ return foci[d.category].x; }
+        if ((autoCategoryFlag && d.categoryAuto) || (!d.category && d.categoryAuto)) { return foci[d.categoryAuto].x; }
+        if (d.category) { return foci[d.category].x; }
         return foci.default.x;
-      }).strength(function strengthFunc(d){
-        return forceXmultiplier * gravity; 
-      }))
+      }).strength(function strengthFunc(d) { return forceXmultiplier * gravity; }))
       .force("forceY", d3.forceY().y(function forceYfunc(d) { 
-        if ((autoCategoryFlag && d.categoryAuto) || (!d.category && d.categorya)){
-          return foci[d.categoryAuto].y;
-        }
+        if ((autoCategoryFlag && d.categoryAuto) || (!d.category && d.categorya)){ return foci[d.categoryAuto].y; }
         if (d.category){ return foci[d.category].y; }
         return foci.default.y;
-      }).strength(function strengthFunc(d){
-        return forceYmultiplier * gravity; 
-      }))
+      }).strength(function strengthFunc(d){ return forceYmultiplier * gravity; }))
       .force("collide", d3.forceCollide().radius(function forceCollideFunc(d) { 
-        if (metricMode === "rate") {return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.rate));}
-        if (metricMode === "mentions") {
-          // if (d.nodeType === "user") { 
-          //   if (d.followersCount === undefined) {
-          //     return collisionRadiusMultiplier * defaultRadiusScale(d.mentions);
-          //   }
-          //   return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.followersMentions));
-          // }
-          return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.mentions));
-        }
+        if (metricMode === "rate") { return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.rate));}
+        if (metricMode === "mentions") { return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.mentions)); }
       }).iterations(collisionIterations).strength(1.0))
       .velocityDecay(velocityDecay)
       .on("tick", ticked);
@@ -1887,7 +1701,6 @@ function ViewTreepack() {
     fontSizeMin = fontSizeMinRatio * height;
     fontSizeMax = fontSizeMaxRatio * height;
 
-
     nodeLabelSizeScale = d3.scaleLinear()
       .domain([1, currentMaxMetric])
       .range([fontSizeMin, fontSizeMax])
@@ -1930,7 +1743,7 @@ function ViewTreepack() {
       simulation
         .force("charge", d3.forceManyBody().strength(charge))
         .force("forceX", d3.forceX().x(function forceXfunc(d) { 
-          if ((autoCategoryFlag && d.categoryAuto) || (!d.category && d.categoryAuto)){
+          if ((autoCategoryFlag && d.categoryAuto) || (!d.category && d.categoryAuto)) {
             return foci[d.categoryAuto].x;
           }
           if (d.category){ return foci[d.category].x; }
@@ -1950,12 +1763,6 @@ function ViewTreepack() {
         .force("collide", d3.forceCollide().radius(function forceCollideFunc(d) { 
           if (metricMode === "rate") {return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.rate));}
           if (metricMode === "mentions") {
-            // if (d.nodeType === "user") { 
-            //   if (d.followersCount === undefined) {
-            //     return collisionRadiusMultiplier * defaultRadiusScale(d.mentions);
-            //   }
-            //   return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.followersMentions));
-            // }
             return collisionRadiusMultiplier * defaultRadiusScale(Math.sqrt(d.mentions));
           }
         }).iterations(collisionIterations))
@@ -1965,9 +1772,7 @@ function ViewTreepack() {
 
   // ==========================================
 
-  document.addEventListener("resize", function resizeFunc() {
-    self.resize();
-  }, true);
+  document.addEventListener("resize", function resizeFunc() { self.resize();  }, true);
 
   self.reset = function() {
     console.info("RESET");

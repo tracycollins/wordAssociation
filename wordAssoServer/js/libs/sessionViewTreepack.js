@@ -1034,10 +1034,10 @@ function ViewTreepack() {
       .remove();
 
     nodeTopTermLabels
-      .style("visibility", function (d) { 
-        if (!d.isValid) { return "hidden"; }
-        return "visible"; 
-      })
+      // .style("visibility", function (d) { 
+      //   if (!d.isValid) { return "hidden"; }
+      //   return "visible"; 
+      // })
       .attr("x", xposition)
       .text(function updateTopTermText(d) {
         return d.displaytext;

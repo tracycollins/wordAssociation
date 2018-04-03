@@ -37,7 +37,7 @@ function ViewTreepack() {
   function jsonPrint(obj) {
     if ((obj) || (obj === 0)) {
       // var jsonString = JSON.stringify(obj, null, 2);
-      return JSON.stringify(obj, null, 2);;
+      return JSON.stringify(obj, null, 2);
     } else {
       return "UNDEFINED";
     }
@@ -179,8 +179,8 @@ function ViewTreepack() {
 
   var deadNodesHash = {};
 
-  function Node(nodePooId){
-    this.nodePooId = nodePooId;
+  function Node(nodePoolId){
+    this.nodePoolId = nodePoolId;
     this.isValid = false;
     this.nodeId = "";
     this.nodeType = "user";
@@ -216,11 +216,11 @@ function ViewTreepack() {
 
   var nodePool = deePool.create(function makeNode(){
 
-    // var nodePooId = "nodePoolId_" + nodePoolIndex;
+    // var nodePoolId = "nodePoolId_" + nodePoolIndex;
 
     nodePoolIndex += 1;
 
-    // var n = new Node(nodePooId);
+    // var n = new Node(nodePoolId);
 
     return (new Node("nodePoolId_" + nodePoolIndex));
 
@@ -295,7 +295,7 @@ function ViewTreepack() {
 
   var nodesTopTermHashMap = new HashMap();
   var localNodeHashMap = new HashMap();
-  var nodeArray = [];
+  var nodeIdHashMap = new HashMap();
 
   var maxNodeAddQ = 0;
   var maxNumberNodes = 0;
@@ -704,6 +704,9 @@ function ViewTreepack() {
   function rankHashMapByValue(hmap, sortProperty, callback) {
 
     keysForRankHashMap = hmap.keys().sort(function hmapSortFunc(a,b){
+      if (!hmap.get(a).isValid && !hmap.get(b).isValid) { return 0; }
+      if (!hmap.get(a).isValid && hmap.get(b).isValid) { return -1; }
+      if (hmap.get(a).isValid && !hmap.get(b).isValid) { return 1; }
       return hmap.get(b)[sortProperty]-hmap.get(a)[sortProperty];
     });
 
@@ -721,6 +724,27 @@ function ViewTreepack() {
     });
   }
 
+  var keysForRankArray = [];
+  function rankArrayByValue(arr, sortProperty, callback) {
+
+    keysForRankArray = arr.sort(function hmapSortFunc(a,b){
+      if (!a.isValid && !b.isValid) { return 0; }
+      if (!a.isValid && b.isValid) { return -1; }
+      if (a.isValid && !b.isValid) { return 1; }
+      return b[sortProperty]-a[sortProperty];
+    });
+
+    async.forEachOf(keysForRankArray, function keysRank(nodeId, index, cb) {
+
+      arr[index].rank = index;
+      cb();
+
+    }, function keysRankCallback(err) {
+      if (err) { console.error("rankArrayByValue ERROR: " + err); }
+      callback(arr);
+    });
+  }
+
   var tempNodeCirle;
 
   function resetNode(n){
@@ -730,7 +754,7 @@ function ViewTreepack() {
     n.ageMaxRatio = 1e-6;
     n.isTopTerm = false;
 
-    tempNodeCirle = document.getElementById(n.nodePooId);
+    tempNodeCirle = document.getElementById(n.nodePoolId);
     tempNodeCirle.setAttribute("r", 1e-6);
     tempNodeCirle.setAttribute("visibility", "hidden");
     tempNodeCirle.setAttribute("opacity", 1e-6);
@@ -746,7 +770,10 @@ function ViewTreepack() {
 
   var ageNodes = function (callback) {
 
-    nodeIdArray = localNodeHashMap.keys();
+    nodeArray = [];
+    nodesTopTerm = [];
+
+    nodeIdArray = nodeIdHashMap.keys();
     ageMaxRatio = 1e-6;
     ageNodesLength = nodeIdArray.length;
 
@@ -762,7 +789,12 @@ function ViewTreepack() {
 
     nodeIdArray.forEach(function(nodeId){
 
-      node = localNodeHashMap.get(nodeId);
+      var nodePoolId = nodeIdHashMap.get(nodeId);
+      node = localNodeHashMap.get(nodePoolId);
+
+      if (!node.isValid || node.isDead) {
+        return;
+      }
 
       if (!enableAgeNodes || (resumeTimeStamp > 0)) {
         ageRate = 1e-6;
@@ -777,10 +809,11 @@ function ViewTreepack() {
 
       ageMaxRatio = age/nodeMaxAge ;
 
-      if (node.isDead || (removeDeadNodesFlag && (age >= nodeMaxAge))) {
+      if ((!node.isDead && node.isValid) && (removeDeadNodesFlag && (age >= nodeMaxAge))) {
 
-        localNodeHashMap.remove(node.nodeId);
-        nodesTopTermHashMap.remove(node.nodeId);
+        node.isDead = true;
+        nodeIdHashMap.remove(node.nodeId);
+        localNodeHashMap.set(nodePoolId, node);
 
         resetNode(node);
 
@@ -789,49 +822,57 @@ function ViewTreepack() {
       } 
       else {
         node.isDead = false;
-        node.isValid = true;
+        // node.isValid = true;
         node.ageUpdated = currentTime;
         node.age = age;
+        node.ageMaxRatio = ageMaxRatio;
+
         if (ageMaxRatio < NEW_NODE_AGE_RATIO) { node.newFlag = true; }
         else { node.newFlag = false;   }
-        node.ageMaxRatio = ageMaxRatio;
-        node.isDead = false;
 
-        localNodeHashMap.set(node.nodeId, node);
+        localNodeHashMap.set(nodePoolId, node);
+        nodeIdHashMap.set(node.nodeId, nodePoolId);
+        // nodesTopTermHashMap.set(nodePoolId, node);  
 
-        if (node.isTopTerm){ nodesTopTermHashMap.set(node.nodeId, node);  }
-        else { nodesTopTermHashMap.remove(node.nodeId); }
+        nodeArray.push(node);
+
+        if (node.isTopTerm){ 
+          nodesTopTerm.push(node);
+        }
       }
     });
 
-      nodeArray = localNodeHashMap.values();
+    resumeTimeStamp = 0;
 
-      resumeTimeStamp = 0;
+    maxRateMentions.metricMode = metricMode;
+    
+    maxRateMentions.rateNodeType = currentMax.rate.nodeType;
+    maxRateMentions.rate = currentMax.rate.value;
+    maxRateMentions.rateNodeId = currentMax.rate.nodeId;
+    maxRateMentions.rateTimeStamp = currentMax.rate.timeStamp;
 
-      maxRateMentions.metricMode = metricMode;
-      
-      maxRateMentions.rateNodeType = currentMax.rate.nodeType;
-      maxRateMentions.rate = currentMax.rate.value;
-      maxRateMentions.rateNodeId = currentMax.rate.nodeId;
-      maxRateMentions.rateTimeStamp = currentMax.rate.timeStamp;
+    maxRateMentions.mentionsNodeType = currentMax.mentions.nodeType;
+    maxRateMentions.mentions = currentMax.mentions.value;
+    maxRateMentions.mentionsNodeId = currentMax.mentions.nodeId;
+    maxRateMentions.mentionsTimeStamp = currentMax.mentions.timeStamp;
 
-      maxRateMentions.mentionsNodeType = currentMax.mentions.nodeType;
-      maxRateMentions.mentions = currentMax.mentions.value;
-      maxRateMentions.mentionsNodeId = currentMax.mentions.nodeId;
-      maxRateMentions.mentionsTimeStamp = currentMax.mentions.timeStamp;
+    maxRateMentions.isTrendingTopic = true;
+    maxRateMentions.displaytext = createDisplayText(maxRateMentions);
 
-      maxRateMentions.isTrendingTopic = true;
-      maxRateMentions.displaytext = createDisplayText(maxRateMentions);
+    if (metricMode === "rate") { maxRateMentions.nodeId = "RATE | MAX" ; }
+    if (metricMode === "mentions") { maxRateMentions.nodeId = "MNTN | MAX" ;  }
 
-      if (metricMode === "rate") { maxRateMentions.nodeId = "RATE | MAX" ; }
-      if (metricMode === "mentions") { maxRateMentions.nodeId = "MNTN | MAX" ;  }
+    maxRateMentionsText.text(maxRateMentions.displaytext);
 
-      maxRateMentionsText.text(maxRateMentions.displaytext);
+    // rankHashMapByValue(nodesTopTermHashMap, metricMode, function rankHashMapByValueFunc(){
+    //   nodesTopTerm = nodesTopTermHashMap.values();
+    //   callback(null);
+    // });
 
-      rankHashMapByValue(nodesTopTermHashMap, metricMode, function rankHashMapByValueFunc(){
-        nodesTopTerm = nodesTopTermHashMap.values();
-        callback(null);
-      });
+    rankArrayByValue(nodesTopTerm, metricMode, function rankArrayByValueFunc(){
+      // nodeArray = localNodeHashMap.values();
+      callback(null);
+    });
   };
 
   var previousTwitterUserId;
@@ -993,11 +1034,16 @@ function ViewTreepack() {
       .remove();
 
     nodeTopTermLabels
+      .style("visibility", function (d) { 
+        if (!d.isValid) { return "hidden"; }
+        return "visible"; 
+      })
       .attr("x", xposition)
       .text(function updateTopTermText(d) {
         return d.displaytext;
       })
       .style("opacity", function updateTopTermOpacity(d) { 
+        // if (!d.isValid) { return 1e-6; }
         if (d.mouseHoverFlag) { return 1.0; }
         return topTermLabelOpacityScale(d.ageMaxRatio); 
       })
@@ -1007,6 +1053,11 @@ function ViewTreepack() {
 
     nodeTopTermLabels
       .enter().append("text")
+      // .filter(function(d) { return d.isValid; })
+      .style("visibility", function (d) { 
+        if (!d.isValid) { return "hidden"; }
+        return "visible"; 
+      })
       .style("text-anchor", "right")
       .style("alignment-baseline", "bottom")
       .on("mouseover", nodeMouseOver)
@@ -1045,11 +1096,14 @@ function ViewTreepack() {
       .data(nodeArray, function (d){ return d.nodeId; });
 
     nodeCircles
-      .enter()
-      .append("circle")
-      .attr("id", function (d) { return d.nodePooId; })
+      .enter().append("circle")
+      // .filter(function(d) { return d.isValid; })
+      .attr("id", function (d) { return d.nodePoolId; })
       .attr("nodeId", function (d) { return d.nodeId; })
-      .style("visibility", function (d) { return "visible"; })
+      .style("visibility", function (d) { 
+        if (!d.isValid) { return "hidden"; }
+        return "visible"; 
+      })
       .attr("r", 1e-6) 
       .attr("cx", function (d) { return d.x; })
       .attr("cy", function (d) { return d.y; })
@@ -1091,8 +1145,13 @@ function ViewTreepack() {
       })
       .attr("cx", function(d) { return d.x; })
       .attr("cy", function(d) { return d.y; })
-      .style("visibility", function(d) {return "visible"; })
-      .style("opacity", function(d) { return nodeLabelOpacityScale(d.ageMaxRatio); })
+      .style("visibility", function(d) {
+        if (!d.isValid) { return "hidden"; }
+        return "visible"; 
+      })
+      .style("opacity", function(d) { 
+        return nodeLabelOpacityScale(d.ageMaxRatio); 
+      })
       .style("fill", function (d) { 
         if (!d.category && !d.categoryAuto) { return palette.black; }
         return d.categoryColor; 
@@ -1121,7 +1180,8 @@ function ViewTreepack() {
     nodeCircles
       .exit()
       .attr("r", 1e-6)
-      .style("opacity", 1e-6)
+      .style("opacity", 1e-6);
+      // .remove()
 
     callback();
   };
@@ -1140,6 +1200,7 @@ function ViewTreepack() {
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })
       .style("visibility", function (d) {
+        if (!d.isValid) { return "hidden"; }
         if (mouseMovingFlag) { return "visible"; }
         if (d.rate > MIN_RATE) { return "visible"; }
         if (d.followersCount > MIN_FOLLOWERS) { return "visible"; }
@@ -1162,8 +1223,8 @@ function ViewTreepack() {
       });
 
     nodeLabels
-      .enter()
-      .append("text")
+      .enter().append("text")
+      // .filter(function(d) { return d.isValid; })
       .attr("nodeId", function (d) { return d.nodeId; })
       .style("text-anchor", "middle")
       .style("alignment-baseline", "middle")
@@ -1178,6 +1239,7 @@ function ViewTreepack() {
         return "normal";
       })
       .style("visibility", function (d) {
+        if (!d.isValid) { return "hidden"; }
         if (mouseMovingFlag) { return "visible"; }
         if (d.rate > MIN_RATE) { return "visible"; }
         if (d.followersCount > MIN_FOLLOWERS) { return "visible"; }
@@ -1218,7 +1280,7 @@ function ViewTreepack() {
       .exit()
       .style("font-size", 1e-6)
       .style("opacity", 1e-6)
-      .remove();
+      // .remove();
 
     if (callback !== undefined) { callback(); }
   };
@@ -1346,7 +1408,7 @@ function ViewTreepack() {
   var nodesModifiedFlag = false;
   var nodeAddQReady = true;
   var currentNode;
-  var nodePooIdcircle;
+  var nodePoolIdcircle;
 
   var processNodeAddQ = function(callback) {
 
@@ -1358,9 +1420,11 @@ function ViewTreepack() {
 
       nodesModifiedFlag = false;
 
-      if (localNodeHashMap.has(newNode.nodeId)){
+      if (nodeIdHashMap.has(newNode.nodeId)){
 
-        currentNode = localNodeHashMap.get(newNode.nodeId);
+        var nodePoolId = nodeIdHashMap.get(newNode.nodeId);
+
+        currentNode = localNodeHashMap.get(nodePoolId);
 
         currentNode.age = 1e-6;
         currentNode.isDead = false;
@@ -1381,11 +1445,17 @@ function ViewTreepack() {
 
         currentNode.displaytext = createDisplayText(currentNode);
 
-        localNodeHashMap.set(currentNode.nodeId, currentNode);
-        nodeArray = localNodeHashMap.values();
+        localNodeHashMap.set(currentNode.nodePoolId, currentNode);
+        // nodeArray = localNodeHashMap.values();
 
-        if (currentNode.isTopTerm) { nodesTopTermHashMap.set(currentNode.nodeId, currentNode);  }
-        else { nodesTopTermHashMap.remove(currentNode.nodeId); }
+        // nodesTopTermHashMap.set(currentNode.nodePoolId, currentNode); 
+
+        // if (currentNode.isTopTerm) { 
+        //   nodesTopTermHashMap.set(currentNode.nodeId, currentNode); 
+        // }
+        // else { 
+        //   nodesTopTermHashMap.remove(currentNode.nodeId); 
+        // }
 
         nodeAddQReady = true;
 
@@ -1395,6 +1465,10 @@ function ViewTreepack() {
         nodesModifiedFlag = true;
 
         currentNode = nodePool.use();
+
+        nodeIdHashMap.set(newNode.nodeId, currentNode.nodePoolId);
+
+        currentNode.isValid = true;
 
         currentNode.nodeId = newNode.nodeId;
         currentNode.userId = newNode.userId;
@@ -1460,30 +1534,31 @@ function ViewTreepack() {
           currentNode.y = focus("neutral").y;
         }
 
-        nodePooIdcircle = document.getElementById(currentNode.nodePooId);
-        if (nodePooIdcircle) {
-          nodePooIdcircle.setAttribute("r", 1e-6);
-          nodePooIdcircle.setAttribute("visibility", "hidden");
-          nodePooIdcircle.setAttribute("opacity", 1e-6);
+        nodePoolIdcircle = document.getElementById(currentNode.nodePoolId);
+        if (nodePoolIdcircle) {
+          nodePoolIdcircle.setAttribute("r", 1e-6);
+          nodePoolIdcircle.setAttribute("visibility", "hidden");
+          nodePoolIdcircle.setAttribute("opacity", 1e-6);
         }
 
-        currentNode.isValid = true;
-        localNodeHashMap.set(currentNode.nodeId, currentNode);
-        nodeArray = localNodeHashMap.values();
+        // nodesTopTermHashMap.set(currentNode.nodePoolId, currentNode);
 
-        if (currentNode.isTopTerm) { nodesTopTermHashMap.set(currentNode.nodeId, currentNode); }
-        else { nodesTopTermHashMap.remove(currentNode.nodeId); }
+        localNodeHashMap.set(currentNode.nodePoolId, currentNode);
+        // nodeArray = localNodeHashMap.values();
+
+        // if (currentNode.isTopTerm) { nodesTopTermHashMap.set(currentNode.nodeId, currentNode); }
+        // else { nodesTopTermHashMap.remove(currentNode.nodeId); }
 
         nodeAddQReady = true;
 
         callback(null, nodesModifiedFlag);
       }
 
-      if (localNodeHashMap.size > maxNumberNodes) { maxNumberNodes = localNodeHashMap.size; }
+      if (nodeIdHashMap.size > maxNumberNodes) { maxNumberNodes = nodeIdHashMap.size; }
 
     }
     else {
-      if (localNodeHashMap.size > maxNumberNodes) { maxNumberNodes = localNodeHashMap.size; }
+      if (nodeIdHashMap.size > maxNumberNodes) { maxNumberNodes = nodeIdHashMap.size; }
       callback(null, nodesModifiedFlag);
     }
   };
@@ -1817,6 +1892,7 @@ function ViewTreepack() {
     deadNodesHash = {};
     mouseHoverFlag = false;
     localNodeHashMap.clear();
+    nodeIdHashMap.clear();
     nodeArray = [];
     nodesTopTermHashMap.clear();
     self.toolTipVisibility(false);

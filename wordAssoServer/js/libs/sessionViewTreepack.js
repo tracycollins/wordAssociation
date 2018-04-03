@@ -1034,16 +1034,11 @@ function ViewTreepack() {
       .remove();
 
     nodeTopTermLabels
-      // .style("visibility", function (d) { 
-      //   if (!d.isValid) { return "hidden"; }
-      //   return "visible"; 
-      // })
       .attr("x", xposition)
       .text(function updateTopTermText(d) {
         return d.displaytext;
       })
       .style("opacity", function updateTopTermOpacity(d) { 
-        // if (!d.isValid) { return 1e-6; }
         if (d.mouseHoverFlag) { return 1.0; }
         return topTermLabelOpacityScale(d.ageMaxRatio); 
       })
@@ -1053,11 +1048,6 @@ function ViewTreepack() {
 
     nodeTopTermLabels
       .enter().append("text")
-      // .filter(function(d) { return d.isValid; })
-      .style("visibility", function (d) { 
-        if (!d.isValid) { return "hidden"; }
-        return "visible"; 
-      })
       .style("text-anchor", "right")
       .style("alignment-baseline", "bottom")
       .on("mouseover", nodeMouseOver)
@@ -1097,7 +1087,6 @@ function ViewTreepack() {
 
     nodeCircles
       .enter().append("circle")
-      // .filter(function(d) { return d.isValid; })
       .attr("id", function (d) { return d.nodePoolId; })
       .attr("nodeId", function (d) { return d.nodeId; })
       .style("visibility", function (d) { 
@@ -1224,7 +1213,6 @@ function ViewTreepack() {
 
     nodeLabels
       .enter().append("text")
-      // .filter(function(d) { return d.isValid; })
       .attr("nodeId", function (d) { return d.nodeId; })
       .style("text-anchor", "middle")
       .style("alignment-baseline", "middle")

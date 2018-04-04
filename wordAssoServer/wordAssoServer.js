@@ -1976,7 +1976,6 @@ function initSocketHandler(socketObj) {
           console.log(chalkTwitter("--- TWITTER_SEARCH_NODE USER *NOT* FOUND\n" + jsonPrint(searchNodeUser)));
           socket.emit("SET_TWITTER_USER", {notFound: 1, nodeId: 0, screenName: searchNodeUser.screenName});
         }
-    
       });
     }
 

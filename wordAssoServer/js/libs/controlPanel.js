@@ -117,8 +117,7 @@ function ControlPanel() {
   function nextUncategorizedButtonHandler(e){
 
     console.warn("NEXT UNCATEGORIZED BUTTON"
-     + " | ID: " + e.target.id
-     + "\n" + jsonPrint(e.target)
+      + " | ID: " + e.target.id
     );
 
     parentWindow.postMessage({op: "NODE_SEARCH", input: "@?"}, DEFAULT_SOURCE);

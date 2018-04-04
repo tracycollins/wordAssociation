@@ -1131,9 +1131,7 @@ function ViewTreepack() {
       })
       .attr("cx", function(d) { return d.x; })
       .attr("cy", function(d) { return d.y; })
-      .style("opacity", function(d) { 
-        return nodeLabelOpacityScale(d.ageMaxRatio); 
-      })
+      .style("opacity", function(d) { return nodeLabelOpacityScale(d.ageMaxRatio); })
       .style("fill", function (d) { 
         if (!d.category && !d.categoryAuto) { return palette.black; }
         return d.categoryColor; 
@@ -1161,8 +1159,8 @@ function ViewTreepack() {
 
     nodeCircles
       .exit()
-      .attr("r", 1e-6)
-      .style("opacity", 1e-6);
+      // .attr("r", 1e-6)
+      // .style("opacity", 1e-6);
       // .remove()
 
     callback();

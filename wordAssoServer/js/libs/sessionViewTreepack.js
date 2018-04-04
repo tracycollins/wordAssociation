@@ -1089,10 +1089,10 @@ function ViewTreepack() {
       .enter().append("circle")
       .attr("id", function (d) { return d.nodePoolId; })
       .attr("nodeId", function (d) { return d.nodeId; })
-      .style("visibility", function (d) { 
-        if (!d.isValid) { return "hidden"; }
-        return "visible"; 
-      })
+      // .style("visibility", function (d) { 
+      //   if (!d.isValid) { return "hidden"; }
+      //   return "visible"; 
+      // })
       .attr("r", 1e-6) 
       .attr("cx", function (d) { return d.x; })
       .attr("cy", function (d) { return d.y; })
@@ -1131,10 +1131,6 @@ function ViewTreepack() {
       })
       .attr("cx", function(d) { return d.x; })
       .attr("cy", function(d) { return d.y; })
-      // .style("visibility", function(d) {
-      //   if (!d.isValid) { return "hidden"; }
-      //   return "visible"; 
-      // })
       .style("opacity", function(d) { 
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })

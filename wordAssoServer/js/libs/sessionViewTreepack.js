@@ -769,11 +769,12 @@ function ViewTreepack() {
   var currentTime = moment().valueOf();
   var nodeIdArray = [];
   var tempNodeArray = [];
+  var tempNodesTopTerm = [];
 
   var ageNodes = function (callback) {
 
     tempNodeArray = [];
-    nodesTopTerm = [];
+    tempNodesTopTerm = [];
 
     nodeIdArray = nodeIdHashMap.keys();
     ageMaxRatio = 1e-6;
@@ -817,7 +818,7 @@ function ViewTreepack() {
         nodeIdHashMap.remove(node.nodeId);
         localNodeHashMap.set(nodePoolId, node);
 
-        resetNode(node);
+        // resetNode(node);
 
         nodePool.recycle(node);
 
@@ -838,7 +839,7 @@ function ViewTreepack() {
         tempNodeArray.push(node);
 
         if (node.isTopTerm){ 
-          nodesTopTerm.push(node);
+          tempNodesTopTerm.push(node);
         }
       }
     });
@@ -872,6 +873,7 @@ function ViewTreepack() {
 
     rankArrayByValue(nodesTopTerm, metricMode, function rankArrayByValueFunc(){
       nodeArray = tempNodeArray;
+      nodesTopTerm = tempNodesTopTerm;
       callback(null);
     });
   };

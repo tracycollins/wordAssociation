@@ -1126,18 +1126,15 @@ function ViewTreepack() {
 
     nodeCircles
       .attr("r", function(d) {
-        // if (!d.isValid) { return 1e-6; }
-        // if (d.isDead) { return 1e-6; }
-        // if (d.isIgnored) { return 1e-6; }
         if (metricMode === "rate") { return defaultRadiusScale(Math.sqrt(d.rate));}
         if (metricMode === "mentions") {return defaultRadiusScale(Math.sqrt(d.mentions));}
       })
       .attr("cx", function(d) { return d.x; })
       .attr("cy", function(d) { return d.y; })
-      .style("visibility", function(d) {
-        if (!d.isValid) { return "hidden"; }
-        return "visible"; 
-      })
+      // .style("visibility", function(d) {
+      //   if (!d.isValid) { return "hidden"; }
+      //   return "visible"; 
+      // })
       .style("opacity", function(d) { 
         return nodeLabelOpacityScale(d.ageMaxRatio); 
       })

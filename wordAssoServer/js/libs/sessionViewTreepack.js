@@ -1159,8 +1159,8 @@ function ViewTreepack() {
 
     nodeCircles
       .exit()
-      // .attr("r", 1e-6)
-      // .style("opacity", 1e-6);
+      .attr("r", 1e-6)
+      .style("opacity", 1e-6);
       // .remove()
 
     callback();

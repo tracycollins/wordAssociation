@@ -1126,9 +1126,9 @@ function ViewTreepack() {
 
     nodeCircles
       .attr("r", function(d) {
-        if (!d.isValid) { return 1e-6; }
-        if (d.isDead) { return 1e-6; }
-        if (d.isIgnored) { return 1e-6; }
+        // if (!d.isValid) { return 1e-6; }
+        // if (d.isDead) { return 1e-6; }
+        // if (d.isIgnored) { return 1e-6; }
         if (metricMode === "rate") { return defaultRadiusScale(Math.sqrt(d.rate));}
         if (metricMode === "mentions") {return defaultRadiusScale(Math.sqrt(d.mentions));}
       })
